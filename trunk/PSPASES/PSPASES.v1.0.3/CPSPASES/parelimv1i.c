@@ -1,5 +1,5 @@
-/* $Id: parelimh1i.c,v 1.3 2005-01-05 07:37:08 paklein Exp $ */
-/* parelimh1i.f -- translated by f2c (version 20030320).
+/* $Id: parelimv1i.c,v 1.1 2005-01-05 07:37:08 paklein Exp $ */
+/* parelimv1i.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
 */
@@ -13,21 +13,22 @@
 #include <stdio.h>
 
 /* Table of constant values */
+static integer c__11 = 11;
 static integer c__5 = 5;
-static doublereal c_b15 = 1.;
+static doublereal c_b20 = 1.;
 static integer c__4 = 4;
-static doublereal c_b22 = -1.;
+static doublereal c_b28 = -1.;
 static integer c__3 = 3;
 static integer c__1 = 1;
 static integer c__9 = 9;
-static integer c__27 = 27;
+static integer c__72 = 72;
 
 /* /+***************************************************************************+/ */
 /* /+                                                                           +/ */
 /* /+   (C) Copyright IBM Corporation, 1997                                     +/ */
 /* /+   (C) Copyright Regents of the University of Minnesota, 1997              +/ */
 /* /+                                                                           +/ */
-/* /+   parelimh1i.f                                                            +/ */
+/* /+   parelimv1i.f                                                            +/ */
 /* /+                                                                           +/ */
 /* /+   Written by Anshul Gupta, IBM Corp.                                      +/ */
 /* /+   Modified by Mahesh Joshi, U of MN.                                      +/ */
@@ -64,7 +65,7 @@ static integer c__27 = 27;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: parelimh1i.c,v 1.3 2005-01-05 07:37:08 paklein Exp $ +/ */
+/* /+ $Id: parelimv1i.c,v 1.1 2005-01-05 07:37:08 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -80,7 +81,7 @@ static integer min(integer a, integer b) {
 }
 
 /*<    >*/
-/* Subroutine */ int parelimh1_(doublereal *wmem, doublereal *vbuf_s__, 
+/* Subroutine */ int parelimv1_(doublereal *wmem, doublereal *vbuf_s__, 
 	doublereal *hbuf_s__, doublereal *vbuf_r__, doublereal *hbuf_r__, 
 	integer *supinds, integer *tptrs, integer *tinds, integer *cinfo, 
 	integer *stak, integer *nstak, doublereal *avals, integer *aptrs, 
@@ -89,8 +90,8 @@ static integer min(integer a, integer b) {
 	integer *fptr, integer *ldf, integer *nrows, integer *ncols, integer *
 	rsuptr, integer *csuptr, integer *myid, integer *myleft, integer *
 	myright, integer *myup, integer *mydown, integer *diagproc, integer *
-	bufsize, integer *wmemsize, integer *locinds, integer *prof, 
-	doublereal *dfopts, integer *ifopts, MPI_Comm *comm)
+	bufsize, integer *wmemsize, integer *locinds, integer *n, integer *
+	prof, doublereal *dfopts, integer *ifopts, MPI_Comm *comm)
 {
     /* System generated locals */
     integer i__1, i__2;
@@ -99,17 +100,17 @@ static integer min(integer a, integer b) {
     integer msgtype1, msgtype2;
     integer npending;
     integer csuptr_u__, rsuptr_u__, j, i__, k, l;
-    integer ii, jj, ldb, lda /*, req[4] */;
-    MPI_Request req[4];
-    
-    integer locf, node, rank, info;
+    integer ii, jj, indxbufptr, ldb, lda /*, req[4] */;
+	MPI_Request req[4];
+
+    integer indxbufsize, locf, node, rank, info;
     extern /* Subroutine */ int mydc_(integer *, doublereal *, doublereal *);
     integer ireq, ierr, uptr;
     extern /* Subroutine */ int dpack_(doublereal *, doublereal *, integer *, 
 	    integer *, integer *), dgemm_(char *, char *, integer *, integer *
 	    , integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *, ftnlen, ftnlen);
-    integer inode, jnode, nclim;
+    integer jnode, inode, nclim;
     extern /* Subroutine */ int myddc_(integer *, doublereal *, doublereal *, 
 	    doublereal *);
     integer msgid, index, nrlim, nprof;
@@ -121,9 +122,9 @@ static integer min(integer a, integer b) {
     integer nsent1, nsent2, buflen;
     extern /* Subroutine */ int dpotrf_(char *, integer *, doublereal *, 
 	    integer *, integer *, ftnlen);
-    integer locptr, bottom, nbytes, newsup, newlocf, ncols_u__ /*, statall[16] */
+    integer locptr, bottom, nbytes, newsup, newlocf, ncols_u__ /* , statall[16]	*/
 	    /* was [4][4] */, newrank, /* mpistat[4], */ msgtype;
-	MPI_Status mpistat, statall[4];
+	MPI_Status mpistat[1], statall[4];
 
 /*<       integer supinds(*),tptrs(3,0:*),tinds(*),stak(3,*),nstak(*) >*/
 /*<       integer cinfo(0:*) >*/
@@ -133,9 +134,10 @@ static integer min(integer a, integer b) {
 /*<       integer rsuptr,csuptr,myid,myleft,myright,myup,mydown >*/
 /*<       integer diagproc,bufsize,wmemsize,locinds(*) >*/
 /*<       integer prof(4,*),ifopts(5) >*/
-/*<       double precision wmem(*),vbuf_s(*),hbuf_s(*)  >*/
+/*<       double precision wmem(*),vbuf_s(*),hbuf_s(*) >*/
 /*<       double precision vbuf_r(*),hbuf_r(*) >*/
-/*<       integer rank, uptr, bottom, rsuptr_u, csuptr_u, buflen >*/
+/*<       integer rank, uptr, bottom, rsuptr_u, csuptr_u, buflen, newsup >*/
+/*<       integer indxbufptr >*/
 /*<       include 'mpif.h' >*/
 /*<       integer mpistat(MPI_STATUS_SIZE),req(4),ierr >*/
 /* -*- fortran -*- */
@@ -172,6 +174,8 @@ static integer min(integer a, integer b) {
 	req[ireq - 1] = MPI_REQUEST_NULL;
 /*<       end do >*/
     }
+/*<       INDXBUFSIZE = N >*/
+    indxbufsize = *n;
 /*<       buflen = ishft(bufsize,3) >*/
     buflen = *bufsize << 3;
 /*<       node = nstak(nptr) >*/
@@ -259,41 +263,146 @@ L1000:
 	}
 /*<       end if >*/
     }
-/*< 10    if (newsup .eq. 1) then >*/
+/*< 10    continue >*/
 L10:
+/*<       if (newsup .eq. 1) then >*/
     if (newsup == 1) {
 /*<         newsup = 0 >*/
 	newsup = 0;
+/*<         indxbufptr = 1 >*/
+	indxbufptr = 1;
+/*<         if (diagproc .eq. 1) then >*/
+	if (*diagproc == 1) {
+/*<           if (myid .ne. mydown) then >*/
+	    if (*myid != *mydown) {
+/*<    >*/
+		MPI_Send(&supinds[*rsuptr], *nrows, MPI_INT, *mydown, *myid, *comm);
+/*<           end if >*/
+	    }
+/*<         else >*/
+	} else {
+/*<           msgtype = MPI_ANY_TAG >*/
+	    msgtype = MPI_ANY_TAG;
+/*<    >*/
+
+	    MPI_Recv(&locinds[1], indxbufsize, MPI_INT, *myup, msgtype, *comm, mpistat);
+
+/*<           call mpi_get_count(mpistat,MPI_INTEGER,nbytes,ierr) >*/
+	    MPI_Get_count(mpistat, MPI_INT, &nbytes);
+	    
+/*<           msgtype = mpistat(MPI_TAG) >*/
+	    msgtype = mpistat->MPI_TAG;
+/*<           if (mydown .ne. msgtype) then >*/
+	    if (*mydown != msgtype) {
+/*<    >*/
+
+		MPI_Send(&locinds[1], nbytes, MPI_INT, *mydown, msgtype, *comm);
+
+/*<           end if >*/
+	    }
+/*<           jnode = supinds(csuptr) >*/
+	    jnode = supinds[*csuptr];
+/*<           if (nrows .gt. 0) then >*/
+	    if (*nrows > 0) {
+/*<             do while (locinds(indxbufptr) .lt. jnode) >*/
+		while(locinds[indxbufptr] < jnode) {
+/*<               indxbufptr = indxbufptr + 1 >*/
+		    ++indxbufptr;
+/*<             end do >*/
+		}
+/*<           end if >*/
+	    }
+/*<         end if >*/
+	}
 /*<         if (cinfo(bottom) .ne. 1) then >*/
 	if (cinfo[bottom] != 1) {
 /*<           nprof = 0 >*/
 	    nprof = 0;
-/*<           if (diagproc .ne. 1) then >*/
-	    if (*diagproc != 1) {
-/*<             jj = 1 >*/
-		jj = 1;
-/*<             newlocf = fptr >*/
-		newlocf = *fptr;
-/*<             i = csuptr >*/
-		i__ = *csuptr;
-/*<             j = rsuptr >*/
-		j = *rsuptr;
+/*<           newlocf = fptr >*/
+	    newlocf = *fptr;
+/*<           i = csuptr >*/
+	    i__ = *csuptr;
+/*<           j = rsuptr >*/
+	    j = *rsuptr;
+/*<           if (diagproc .eq. 1) then >*/
+	    if (*diagproc == 1) {
 /*<             do while (i .lt. nclim) >*/
 		while(i__ < nclim) {
 /*<               nprof = nprof + 1 >*/
 		    ++nprof;
+/*<               newrank = 0 >*/
+		    newrank = 0;
+/*<               k = j >*/
+		    k = j;
+/*<               jnode = supinds(i) >*/
+		    jnode = supinds[i__];
+/*<               do while (supinds(j) .lt. jnode) >*/
+		    while(supinds[j] < jnode) {
+/*<                 j = j + 1 >*/
+			++j;
+/*<               end do >*/
+		    }
+/*<               k = j - k >*/
+		    k = j - k;
+/*<               newlocf = newlocf + k >*/
+		    newlocf += k;
 /*<               locf = newlocf >*/
 		    locf = newlocf;
+/*<               do while (supinds(j+newrank) .eq. supinds(i+newrank)) >*/
+		    while(supinds[j + newrank] == supinds[i__ + newrank]) {
+/*<                 newrank = newrank + 1 >*/
+			++newrank;
+/*<                 if (i+newrank .eq. nclim) goto 125 >*/
+			if (i__ + newrank == nclim) {
+			    goto L125;
+			}
+/*<               end do >*/
+		    }
+/*< 125           newlocf = locf + newrank * (ldf + 1) >*/
+L125:
+		    newlocf = locf + newrank * (*ldf + 1);
+/*<               prof(1,nprof) = locf >*/
+		    prof[(nprof << 2) + 1] = locf;
+/*<               prof(2,nprof) = newrank >*/
+		    prof[(nprof << 2) + 2] = newrank;
+/*<               prof(3,nprof) = k >*/
+		    prof[(nprof << 2) + 3] = k;
+/*<               i = i + newrank >*/
+		    i__ += newrank;
+/*<               j = j + newrank >*/
+		    j += newrank;
+/*<             end do >*/
+		}
+/*<           else >*/
+	    } else {
+/*<             jj = 0 >*/
+		jj = 0;
+/*<             do while (i .lt. nclim) >*/
+		while(i__ < nclim) {
+/*<               nprof = nprof + 1 >*/
+		    ++nprof;
+/*<               jnode = supinds(i) >*/
+		    jnode = supinds[i__];
+/*<               do while (locinds(indxbufptr+jj) .lt. jnode) >*/
+		    while(locinds[indxbufptr + jj] < jnode) {
+/*<                 jj = jj + 1 >*/
+			++jj;
+/*<               end do >*/
+		    }
 /*<               prof(1,nprof) = newlocf >*/
 		    prof[(nprof << 2) + 1] = newlocf;
+/*<               locf = newlocf >*/
+		    locf = newlocf;
 /*<               newrank = 0 >*/
 		    newrank = 0;
 /*<               inode = supinds(j) >*/
 		    inode = supinds[j];
 /*<               do while (i+newrank .lt. nclim) >*/
 		    while(i__ + newrank < nclim) {
-/*<                 if (supinds(i+newrank) .gt. inode) goto 135 >*/
-			if (supinds[i__ + newrank] > inode) {
+/*<    >*/
+			if (supinds[i__ + newrank] > inode || supinds[i__ + 
+				newrank] != locinds[indxbufptr + jj + newrank]
+				) {
 			    goto L135;
 			}
 /*<                 newrank = newrank + 1 >*/
@@ -327,14 +436,12 @@ L135:
 		    }
 /*<               prof(3,nprof) = k >*/
 		    prof[(nprof << 2) + 3] = k;
-/*<               prof(4,nprof) = jj >*/
-		    prof[(nprof << 2) + 4] = jj;
+/*<               prof(4,nprof) = jj + 1 >*/
+		    prof[(nprof << 2) + 4] = jj + 1;
 /*<               j = j + k >*/
 		    j += k;
 /*<               newlocf = newlocf + k >*/
 		    newlocf += k;
-/*<               jj = jj + newrank >*/
-		    jj += newrank;
 /*<             end do >*/
 		}
 /*<           end if >*/
@@ -388,7 +495,7 @@ L135:
 	    dpack_(&wmem[*fptr], &vbuf_s__[1], &rank, ldf, &rank);
 /*<           call dpotrf('l',rank,vbuf_s,rank,info) >*/
 	    dpotrf_("l", &rank, &vbuf_s__[1], &rank, &info, (ftnlen)1);
-/*<         if (info.gt.0) goto 1 >*/
+/*<           if (info.gt.0) goto 1 >*/
 	    if (info > 0) {
 		goto L1;
 	    }
@@ -397,11 +504,12 @@ L135:
 /*<    >*/
 		i__1 = rank * rank << 3;
 		MPI_Send(&vbuf_s__[1], i__1, MPI_BYTE, *mydown, *myid, *comm);
+
 /*<           end if >*/
 	    }
 /*<    >*/
 	    i__1 = *nrows - rank;
-	    dtrsm_("R", "L", "T", "N", &i__1, &rank, &c_b15, &vbuf_s__[1], &
+	    dtrsm_("R", "L", "T", "N", &i__1, &rank, &c_b20, &vbuf_s__[1], &
 		    rank, &wmem[*fptr + rank], ldf, (ftnlen)1, (ftnlen)1, (
 		    ftnlen)1, (ftnlen)1);
 /*<           locf = fptr + rank >*/
@@ -434,6 +542,7 @@ L135:
 /*<    >*/
 	    i__1 = rank * (*nrows - rank) << 3;
 	    MPI_Isend(&hbuf_s__[1], i__1, MPI_BYTE, *myright, *myid, *comm, req);
+
 /*<           i = i + csuptr >*/
 	    i__ += *csuptr;
 /*<           j = rsuptr + rank >*/
@@ -468,31 +577,88 @@ L135:
 	    *csuptr += rank;
 /*<           ncols = ncols - rank >*/
 	    *ncols -= rank;
+/*<           if (myid .ne. mydown) then >*/
+	    if (*myid != *mydown) {
+/*<             call dpack(wmem(uptr),vbuf_s,nrows,ldf,rank) >*/
+		dpack_(&wmem[uptr], &vbuf_s__[1], nrows, ldf, &rank);
 /*<    >*/
-	    i__1 = rank * *nrows << 3;
-	    MPI_Isend(&hbuf_s__[1], i__1, MPI_BYTE, *mydown, *myid, *comm, &req[1]);
-
+		i__1 = rank * *nrows << 3;
+		MPI_Isend(&vbuf_s__[1], i__1, MPI_BYTE, *mydown, *myid, *comm, &req[1]);
+/*<           end if >*/
+	    }
 /*<           call mpi_waitall(4,req,statall,ierr) >*/
 	    MPI_Waitall(4, req, statall);
-
+/*<           nprof = 0 >*/
+	    nprof = 0;
+/*<           do while (i .lt. nclim) >*/
+	    while(i__ < nclim) {
+/*<             nprof = nprof + 1 >*/
+		++nprof;
+/*<             jnode = supinds(i) >*/
+		jnode = supinds[i__];
+/*<             k = j >*/
+		k = j;
+/*<             do while (supinds(j) .lt. jnode) >*/
+		while(supinds[j] < jnode) {
+/*<               j = j + 1 >*/
+		    ++j;
+/*<             end do >*/
+		}
+/*<             k = j - k >*/
+		k = j - k;
+/*<             uptr = uptr + k >*/
+		uptr += k;
+/*<             newlocf = newlocf + k >*/
+		newlocf += k;
+/*<             newrank = 0 >*/
+		newrank = 0;
+/*<             locf = newlocf >*/
+		locf = newlocf;
+/*<             do while (supinds(i+newrank) .eq. supinds(j+newrank)) >*/
+		while(supinds[i__ + newrank] == supinds[j + newrank]) {
+/*<               newrank = newrank + 1 >*/
+		    ++newrank;
+/*<               if (i+newrank .eq. nclim) goto 70 >*/
+		    if (i__ + newrank == nclim) {
+			goto L70;
+		    }
+/*<             end do >*/
+		}
+/*< 70          newlocf = newlocf + newrank * (ldf + 1) >*/
+L70:
+		newlocf += newrank * (*ldf + 1);
+/*<             prof(1,nprof) = locf >*/
+		prof[(nprof << 2) + 1] = locf;
+/*<             prof(2,nprof) = newrank >*/
+		prof[(nprof << 2) + 2] = newrank;
+/*<             prof(3,nprof) = k >*/
+		prof[(nprof << 2) + 3] = k;
 /*<    >*/
-	    if (*nrows > 0) {
-		mydsyrk_("L", "N", nrows, &rank, &c_b22, &wmem[uptr], ldf, &
-			c_b15, &wmem[*fptr], ldf, (ftnlen)1, (ftnlen)1);
+		mydsyrk_("L", "N", &newrank, &rank, &c_b28, &wmem[uptr], ldf, &
+			c_b20, &wmem[locf], ldf, (ftnlen)1, (ftnlen)1);
+/*<             i = i + newrank >*/
+		i__ += newrank;
+/*<             j = j + newrank >*/
+		j += newrank;
+/*<    >*/
+		i__1 = nrlim - j;
+		dgemm_("N", "T", &i__1, &newrank, &rank, &c_b28, &wmem[uptr + 
+			newrank], ldf, &wmem[uptr], ldf, &c_b20, &wmem[locf + 
+			newrank], ldf, (ftnlen)1, (ftnlen)1);
+/*<             uptr = uptr + newrank >*/
+		uptr += newrank;
+/*<           end do >*/
 	    }
 /*<         else >*/
 	} else {
 /*<           msgtype = MPI_ANY_TAG >*/
 	    msgtype = MPI_ANY_TAG;
 /*<    >*/
-
-	    MPI_Recv(&vbuf_r__[1], buflen, MPI_BYTE, *myup, msgtype, *comm, &mpistat);
-
+	    MPI_Recv(&vbuf_r__[1], buflen, MPI_BYTE, *myup, msgtype, *comm, mpistat);
 /*<           call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
-	    MPI_Get_count(&mpistat, MPI_BYTE, &nbytes);
-
+	    MPI_Get_count(mpistat, MPI_BYTE, &nbytes);
 /*<           msgtype = mpistat(MPI_TAG) >*/
-	    msgtype = mpistat.MPI_TAG;
+	    msgtype = mpistat->MPI_TAG;
 /*<           if (msgtype .ne. mydown) then >*/
 	    if (msgtype != *mydown) {
 /*<    >*/
@@ -502,7 +668,7 @@ L135:
 /*<           if (ncols .gt. 0) then >*/
 	    if (*ncols > 0) {
 /*<    >*/
-		dtrsm_("R", "L", "T", "N", nrows, &rank, &c_b15, &vbuf_r__[1],
+		dtrsm_("R", "L", "T", "N", nrows, &rank, &c_b20, &vbuf_r__[1],
 			 &rank, &wmem[*fptr], ldf, (ftnlen)1, (ftnlen)1, (
 			ftnlen)1, (ftnlen)1);
 /*<           end if >*/
@@ -523,17 +689,15 @@ L135:
 /*<           do while (npending .gt. 0) >*/
 	    while(npending > 0) {
 /*<             call mpi_waitany(4,req,msgid,mpistat,ierr) >*/
-		MPI_Waitany(4, req, &msgid, &mpistat);
-
+		MPI_Waitany(4, req, &msgid, mpistat);
 /*<             call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
-		MPI_Get_count(&mpistat, MPI_BYTE, &nbytes);
-
+		MPI_Get_count(mpistat, MPI_BYTE, &nbytes);
 /*<             if (msgid .eq. 2 .and. nsent1 .eq. 0) then >*/
 		if (msgid == 2 && nsent1 == 0) {
+/*<               msgtype1 = mpistat(MPI_TAG) >*/
+		    msgtype1 = mpistat->MPI_TAG;
 /*<               ldb = ishft(nbytes/rank,-3) >*/
 		    ldb = lbit_shift(nbytes / rank, (ftnlen)-3);
-/*<               msgtype1 = mpistat(MPI_TAG) >*/
-		    msgtype1 = mpistat.MPI_TAG;
 /*<               if (msgtype1 .ne. mydown) then >*/
 		    if (msgtype1 != *mydown) {
 /*<    >*/
@@ -542,7 +706,7 @@ L135:
 			++npending;
 /*<               end if >*/
 		    }
-/*<             nsent1 = 1 >*/
+/*<               nsent1 = 1 >*/
 		    nsent1 = 1;
 /*<             end if >*/
 		}
@@ -572,10 +736,16 @@ L135:
 	    *csuptr = i__;
 /*<           if (rank .lt. ncols) then >*/
 	    if (rank < *ncols) {
-/*<             jj = 1 >*/
-		jj = 1;
+/*<             jj = 0 >*/
+		jj = 0;
 /*<             jnode = supinds(i) >*/
 		jnode = supinds[i__];
+/*<             do while (locinds(indxbufptr) .lt. jnode) >*/
+		while(locinds[indxbufptr] < jnode) {
+/*<               indxbufptr = indxbufptr + 1 >*/
+		    ++indxbufptr;
+/*<             end do >*/
+		}
 /*<             j = rsuptr >*/
 		j = *rsuptr;
 /*<             do while (supinds(j) .lt. jnode) >*/
@@ -592,7 +762,7 @@ L135:
 		*fptr = newlocf;
 /*<           end if >*/
 	    }
-/*<           nrows = nrlim - j >*/
+/*<           nrows = nrlim - j  >*/
 	    *nrows = nrlim - j;
 /*<           rsuptr = j >*/
 	    *rsuptr = j;
@@ -604,18 +774,25 @@ L135:
 	    while(i__ < nclim) {
 /*<             nprof = nprof + 1 >*/
 		++nprof;
-/*<             locf = newlocf >*/
-		locf = newlocf;
+/*<             do while (locinds(jj+indxbufptr) .lt. jnode) >*/
+		while(locinds[jj + indxbufptr] < jnode) {
+/*<               jj = jj + 1 >*/
+		    ++jj;
+/*<             end do >*/
+		}
 /*<             prof(1,nprof) = newlocf >*/
 		prof[(nprof << 2) + 1] = newlocf;
+/*<             locf = newlocf >*/
+		locf = newlocf;
 /*<             newrank = 0 >*/
 		newrank = 0;
 /*<             inode = supinds(j) >*/
 		inode = supinds[j];
 /*<             do while (i+newrank .lt. nclim) >*/
 		while(i__ + newrank < nclim) {
-/*<               if (supinds(i+newrank) .gt. inode) goto 90 >*/
-		    if (supinds[i__ + newrank] > inode) {
+/*<    >*/
+		    if (supinds[i__ + newrank] > inode || supinds[i__ + 
+			    newrank] != locinds[indxbufptr + jj + newrank]) {
 			goto L90;
 		    }
 /*<               newrank = newrank + 1 >*/
@@ -649,19 +826,17 @@ L90:
 		}
 /*<             prof(3,nprof) = k >*/
 		prof[(nprof << 2) + 3] = k;
-/*<             prof(4,nprof) = jj >*/
-		prof[(nprof << 2) + 4] = jj;
+/*<             prof(4,nprof) = jj + 1 >*/
+		prof[(nprof << 2) + 4] = jj + 1;
 /*<    >*/
 		i__1 = nrlim - j;
-		dgemm_("N", "T", &i__1, &newrank, &rank, &c_b22, &wmem[uptr], 
-			ldf, &vbuf_r__[jj], &ldb, &c_b15, &wmem[locf], ldf, (
-			ftnlen)1, (ftnlen)1);
+		dgemm_("N", "T", &i__1, &newrank, &rank, &c_b28, &wmem[uptr], 
+			ldf, &vbuf_r__[jj + 1], &ldb, &c_b20, &wmem[locf], 
+			ldf, (ftnlen)1, (ftnlen)1);
 /*<             j = j + k >*/
 		j += k;
 /*<             newlocf = newlocf + k >*/
 		newlocf += k;
-/*<             jj = jj + newrank >*/
-		jj += newrank;
 /*<             uptr = uptr + k >*/
 		uptr += k;
 /*<           end do >*/
@@ -676,8 +851,9 @@ L90:
 	    *csuptr = nclim;
 /*<         end if >*/
 	}
-/*<         if (nrows .lt. 0 .or. ncols .eq. 0) then >*/
-	if (*nrows < 0 || *ncols == 0) {
+/*<         if (nrows .lt. 0 .or. ncols .eq.. 0) then >*/
+/*	if (*nrows < 0 || (real) (*ncols) == 0.f) { */
+	if (*nrows < 0 || *ncols == 0) {	
 /*<           nrows = 0 >*/
 	    *nrows = 0;
 /*<           rsuptr = nrlim >*/
@@ -691,13 +867,11 @@ L90:
 /*<           msgtype = MPI_ANY_TAG  >*/
 	    msgtype = MPI_ANY_TAG;
 /*<    >*/
-	    MPI_Recv(&hbuf_r__[1], buflen, MPI_BYTE, *myleft, msgtype, *comm, &mpistat);
-	    
+	    MPI_Recv(&hbuf_r__[1], buflen, MPI_BYTE, *myleft, msgtype, *comm, mpistat);
 /*<           call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
-	    MPI_Get_count(&mpistat, MPI_BYTE, &nbytes);
-	    
+	    MPI_Get_count(mpistat, MPI_BYTE, &nbytes);
 /*<           msgtype = mpistat(MPI_TAG) >*/
-	    msgtype = mpistat.MPI_TAG;
+	    msgtype = mpistat->MPI_TAG;
 /*<           ldb = ishft(nbytes/rank,-3) >*/
 	    ldb = lbit_shift(nbytes / rank, (ftnlen)-3);
 /*<           uptr = 1 + ldb - nrows >*/
@@ -727,10 +901,30 @@ L90:
 	    }
 /*<           call mpi_waitall(4,req,statall,ierr) >*/
 	    MPI_Waitall(4, req, statall);
+/*<           j = nrows >*/
+	    j = *nrows;
+/*<           newrank = 0 >*/
+	    newrank = 0;
+/*<           do 120 i = 1, nprof >*/
+	    i__1 = nprof;
+	    for (i__ = 1; i__ <= i__1; ++i__) {
+/*<             uptr = uptr +  newrank + prof(3,i) >*/
+		uptr = uptr + newrank + prof[(i__ << 2) + 3];
+/*<             newrank = prof(2,i) >*/
+		newrank = prof[(i__ << 2) + 2];
+/*<             j = j - newrank - prof(3,i) >*/
+		j = j - newrank - prof[(i__ << 2) + 3];
 /*<    >*/
-	    if (*nrows > 0) {
-		mydsyrk_("L", "N", nrows, &rank, &c_b22, &hbuf_r__[uptr], &ldb, 
-			&c_b15, &wmem[*fptr], ldf, (ftnlen)1, (ftnlen)1);
+		mydsyrk_("L", "N", &newrank, &rank, &c_b28, &hbuf_r__[uptr], &
+			ldb, &c_b20, &wmem[prof[(i__ << 2) + 1]], ldf, (
+			ftnlen)1, (ftnlen)1);
+/*<    >*/
+		dgemm_("N", "T", &j, &newrank, &rank, &c_b28, &hbuf_r__[uptr 
+			+ newrank], &ldb, &hbuf_r__[uptr], &ldb, &c_b20, &
+			wmem[prof[(i__ << 2) + 1] + newrank], ldf, (ftnlen)1, 
+			(ftnlen)1);
+/*< 120       continue >*/
+/* L120: */
 	    }
 /*<         else >*/
 	} else {
@@ -744,18 +938,16 @@ L90:
 	    MPI_Irecv(&vbuf_r__[1], buflen, MPI_BYTE, *myup, msgtype2, *comm, &req[1]);
 /*<           npending = 2 >*/
 	    npending = 2;
-/*<         nsent1 = 0 >*/
+/*<           nsent1 = 0 >*/
 	    nsent1 = 0;
-/*<         nsent2 = 0 >*/
+/*<           nsent2 = 0 >*/
 	    nsent2 = 0;
 /*<           do while (npending .ne. 0) >*/
 	    while(npending != 0) {
 /*<             call mpi_waitany(4,req,msgid,mpistat,ierr) >*/
-		MPI_Waitany(4, req, &msgid, &mpistat);
-		
+		MPI_Waitany(4, req, &msgid, mpistat);
 /*<             call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
-		MPI_Get_count(&mpistat, MPI_BYTE, &nbytes);
-
+		MPI_Get_count(mpistat, MPI_BYTE, &nbytes);
 /*<             npending = npending - 1 >*/
 		--npending;
 /*<             if (msgid .eq. 1 .and. nsent1 .eq. 0) then >*/
@@ -763,12 +955,11 @@ L90:
 /*<               lda = ishft(nbytes/rank,-3) >*/
 		    lda = lbit_shift(nbytes / rank, (ftnlen)-3);
 /*<               msgtype1 = mpistat(MPI_TAG) >*/
-		    msgtype1 = mpistat.MPI_TAG;
+		    msgtype1 = mpistat->MPI_TAG;
 /*<               if (msgtype1 .ne. myright) then >*/
 		    if (msgtype1 != *myright) {
 /*<    >*/
 			MPI_Isend(&hbuf_r__[1], nbytes, MPI_BYTE, *myright, msgtype1, *comm, &req[2]);
-
 /*<                 npending = npending + 1 >*/
 			++npending;
 /*<               end if >*/
@@ -782,12 +973,11 @@ L90:
 /*<               ldb = ishft(nbytes/rank,-3) >*/
 		    ldb = lbit_shift(nbytes / rank, (ftnlen)-3);
 /*<               msgtype2 = mpistat(MPI_TAG) >*/
-		    msgtype2 = mpistat.MPI_TAG;
+		    msgtype2 = mpistat->MPI_TAG;
 /*<               if (msgtype2 .ne. mydown) then >*/
 		    if (msgtype2 != *mydown) {
 /*<    >*/
 			MPI_Isend(&vbuf_r__[1], nbytes, MPI_BYTE, *mydown, msgtype2, *comm, &req[3]);
-
 /*<                 npending = npending + 1 >*/
 			++npending;
 /*<               end if >*/
@@ -806,9 +996,9 @@ L90:
 	    i__1 = nprof;
 	    for (i__ = 1; i__ <= i__1; ++i__) {
 /*<    >*/
-		dgemm_("N", "T", &j, &prof[(i__ << 2) + 2], &rank, &c_b22, &
+		dgemm_("N", "T", &j, &prof[(i__ << 2) + 2], &rank, &c_b28, &
 			hbuf_r__[uptr], &lda, &vbuf_r__[prof[(i__ << 2) + 4]],
-			 &ldb, &c_b15, &wmem[prof[(i__ << 2) + 1]], ldf, (
+			 &ldb, &c_b20, &wmem[prof[(i__ << 2) + 1]], ldf, (
 			ftnlen)1, (ftnlen)1);
 /*<             j = j - prof(3,i) >*/
 		j -= prof[(i__ << 2) + 3];
@@ -1037,9 +1227,6 @@ L310:
 /*< 1  >*/
 L1:
 	printf("%d: non positive definite matrix found at %d", *myid, bottom);
-	MPI_Abort(*comm, 27);
-/*<       call mpi_abort(comm,27,ierr) >*/
-/*<       end  >*/
+	MPI_Abort(*comm, 72);
     return 0;
-} /* parelimh1_ */
-
+} /* parelimv1_ */
