@@ -1,4 +1,4 @@
-/* $Id: CellGeometryT.h,v 1.5 2005-01-27 17:50:34 paklein Exp $ */
+/* $Id: CellGeometryT.h,v 1.6 2005-01-28 00:38:02 cjkimme Exp $ */
 #ifndef _CELL_GEOMETRY_T_
 #define _CELL_GEOMETRY_T_
 
@@ -63,10 +63,25 @@ public:
 	
 protected: /* for derived classes only */
 
+	/** Given a list of nodes covering a point, merge that list and its values into
+		an accumulated structure that is the union of the new nodes and the existing
+		ones in the data structure. This routine is an insert into sorted routine. */	
 	void MergeFacetIntegral(int node_num, double weight, dArrayT& facetNormal, const dArrayT& phiValues,
-						iArrayT& ip_cover, iArrayT& ip_cover_key, ArrayT< LinkedListT<int> >& nodeWorkSpace, 
-						ArrayT< LinkedListT<dArrayT> >& facetWorkSpace,
-						ArrayT< LinkedListT<double> >& circumferentialWorkSpace);
+						const iArrayT& neighbors); 
+	
+	/** Same as merge facet integral, but here only a single value rather than a vector
+	    is merged. Also, the insertionQ flag tells whether to actually insert (insertionQ = true)
+	    or to overwrite (insertionQ = false). This latter case is relevant to the axisymmetric
+	    elements where the shape function values at the node are not computed during loops
+	    over facet integration points. */					
+	void MergeNodalValues(int node_num, dArrayT& values, const iArrayT& neighbors, 
+						ArrayT< LinkedListT<int> >& suppWorkSpace, 
+						ArrayT< LinkedListT<double> >& valWorkSpace, bool insertionQ);
+	
+	/** Move data from linked list workspaces to RaggedArray2DTs. Also finishes computation of circumferential
+		components of B-vectors. */
+	void ConfigureDataStructures(RaggedArray2DT<int>& cellSupports, RaggedArray2DT<dArrayT>& bVectors,
+							RaggedArray2DT<double>& circumferential_B, dArrayT& cellVolumes);
 	
 	/** number of integration points per facet for cell volume boundary integration */
 	int fNumIP; 
@@ -85,6 +100,11 @@ protected: /* for derived classes only */
 	
 	/** axisymmetric? -- false by default */
 	bool qIsAxisymmetric;
+	
+	/** workspaces for computeBMatrices */
+	ArrayT< LinkedListT<int> > nodeWorkSpace;
+	ArrayT< LinkedListT<dArrayT> > facetWorkSpace;
+	ArrayT< LinkedListT<double> > circumferentialWorkSpace;
 	
 };
 
