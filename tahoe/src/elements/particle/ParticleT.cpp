@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.31 2003-11-19 23:15:09 bsun Exp $ */
+/* $Id: ParticleT.cpp,v 1.32 2003-11-21 22:47:08 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -243,7 +243,7 @@ void ParticleT::RegisterOutput(void)
 	if (parition_nodes)
 	{
 		int num_nodes = parition_nodes->Length();
-		fPointConnectivities.Set(num_nodes, 1, parition_nodes->Pointer());
+		fPointConnectivities.Alias(num_nodes, 1, parition_nodes->Pointer());
 	}
 	else /* ALL nodes */
 	{
@@ -291,7 +291,7 @@ void ParticleT::WriteOutput(void)
 		if (parition_nodes)
 		{
 			int num_nodes = parition_nodes->Length();
-			fPointConnectivities.Set(num_nodes, 1, parition_nodes->Pointer());	
+			fPointConnectivities.Alias(num_nodes, 1, parition_nodes->Pointer());	
 		}
 		else
 			ExceptionT::GeneralFail("ParticleT::WriteOutput", "expecting a partition nodes list");
@@ -414,7 +414,7 @@ void ParticleT::SetSkipParticles(const iArrayT& skip)
 		{
 			nodes_used = 0;
 			int npn = part_nodes->Length();
-			int*  p = part_nodes->Pointer();
+			const int* p = part_nodes->Pointer();
 			for (int i = 0; i < npn; i++)
 				nodes_used[*p++] = 1;
 		}
@@ -423,7 +423,7 @@ void ParticleT::SetSkipParticles(const iArrayT& skip)
 
 		/* mark nodes to skip */
 		int nsn = skip.Length();
-		int* ps = skip.Pointer();
+		const int* ps = skip.Pointer();
 		for (int i = 0; i < nsn; i++)
 			nodes_used[*ps++] = 0;
 			
@@ -688,7 +688,7 @@ double ParticleT::MaxDisplacement(void) const
 	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
 	double dmax2 = 0.0;
 	int nsd = curr_coords.MinorDim();
-	double *p_old = fReNeighborCoords.Pointer();
+	const double *p_old = fReNeighborCoords.Pointer();
 	if (part_nodes)
 	{
 		int nnd = part_nodes->Length();
@@ -697,7 +697,7 @@ double ParticleT::MaxDisplacement(void) const
 		{
 			for (int i = 0; i < nnd; i++)
 			{
-				double* p_new = curr_coords((*part_nodes)[i]);
+				const double* p_new = curr_coords((*part_nodes)[i]);
 				double dx, d2 = 0.0;
 				dx = (*p_old++) - (*p_new++);
 				d2 += dx*dx;
@@ -712,7 +712,7 @@ double ParticleT::MaxDisplacement(void) const
 		{
 			for (int i = 0; i < nnd; i++)
 			{
-				double* p_new = curr_coords((*part_nodes)[i]);
+				const double* p_new = curr_coords((*part_nodes)[i]);
 				double dx, d2 = 0.0;
 				dx = (*p_old++) - (*p_new++);
 				d2 += dx*dx;
@@ -725,7 +725,7 @@ double ParticleT::MaxDisplacement(void) const
 		{
 			for (int i = 0; i < nnd; i++)
 			{
-				double* p_new = curr_coords((*part_nodes)[i]);
+				const double* p_new = curr_coords((*part_nodes)[i]);
 				double dx, d2 = 0.0;
 				dx = (*p_old++) - (*p_new++);
 				d2 += dx*dx;
@@ -737,7 +737,7 @@ double ParticleT::MaxDisplacement(void) const
 	else /* use ALL nodes */
 	{
 		int nnd = curr_coords.MajorDim();
-		double *p_new = curr_coords.Pointer();
+		const double *p_new = curr_coords.Pointer();
 		if (nsd == 3)
 		{
 			for (int i = 0; i < nnd; i++)
@@ -1016,6 +1016,7 @@ ThermostatBaseT* ParticleT::New_Thermostat(const StringT& name, bool throw_on_fa
 
 double ParticleT::GenCSymmValue (CSymmParamNode *CSymmParam, int ndof) 
 {
+#pragma unused(ndof)
   
   int counter=0;
   double CSymmValue=0.0;

@@ -1,12 +1,10 @@
-/* $Id: dArrayT.h,v 1.6 2002-10-04 20:51:39 thao Exp $ */
-/* created: paklein (08/11/1996)                                          */
-
+/* $Id: dArrayT.h,v 1.7 2003-11-21 22:41:30 paklein Exp $ */
+/* created: paklein (08/11/1996) */
 #ifndef _DARRAY_T_H_
 #define _DARRAY_T_H_
 
 /* base class */
 #include "nArrayT.h"
-
 
 namespace Tahoe {
 
@@ -14,23 +12,32 @@ class dArrayT: public nArrayT<double>
 {
 public:
 
-	/* constructors */
+	/** \name constructors */
+	/*@{*/
 	dArrayT(void);
 	explicit dArrayT(int length);
-	dArrayT(int length, double* p);
 	dArrayT(const dArrayT& source);
 
-	/* assigment operators */
+	/** construct an alias */
+	dArrayT(int length, const double* p);
+	/*@}*/
+
+	/** \name assigment operators */
+	/*@{*/
 	dArrayT& operator=(const dArrayT& RHS);
 	dArrayT& operator=(const double value);
+	/*@}*/
 
-	/* L2 norm of the vector */
+	/** L2 norm of the vector */
 	double Magnitude(void) const;
 
-	/* set this equal the unit vector in the direction of vector.  If no
-	 * argument is passed in, *this is scaled */
+	/** \name create a unit vectors */
+	/*@{*/
 	dArrayT& UnitVector(const dArrayT& vector);
+
+	/** scale this */
 	dArrayT& UnitVector(void);
+	/*@}*/
 };
 
 /* inlines */

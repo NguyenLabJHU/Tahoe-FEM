@@ -1,4 +1,4 @@
-/* $Id: RootedLevelT.cpp,v 1.6 2002-10-20 22:39:01 paklein Exp $ */
+/* $Id: RootedLevelT.cpp,v 1.7 2003-11-21 22:41:54 paklein Exp $ */
 /* created: paklein (08/05/1996) */
 
 #include "RootedLevelT.h"
@@ -64,8 +64,8 @@ void RootedLevelT::MakeRootedLevel(const GraphT& graph, int rootnode)
 		for (int i = 0; i < fNumNodes; i++)
 			if (fLevels[i] == fNumLevels - 1)
 			{
-				int  degree = graph.Degree(i);
-				int* edges  = graph.Edges(i);
+				int degree = graph.Degree(i);
+				const int* edges  = graph.Edges(i);
 				
 				for (int j = 0; j < degree; j++)
 				{	
@@ -164,7 +164,7 @@ void RootedLevelT::MakePartialRootedLevel(const GraphT& graph, int rootnode,
 			if (fLevels[i] == fNumLevels - 1)
 			{
 				int degree = graph.Degree(i);
-				int* edges = graph.Edges(i);
+				const int* edges = graph.Edges(i);
 				
 				for (int j = 0; j < degree; j++)
 				{	

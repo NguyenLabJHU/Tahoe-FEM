@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.cpp,v 1.16 2003-11-04 01:20:59 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.17 2003-11-21 22:41:36 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "dMatrixT.h"
 #include <iostream.h>
@@ -18,7 +18,7 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<dMatrixT>::fByteCopy = false;
 dMatrixT::dMatrixT(void) { }
 dMatrixT::dMatrixT(int numrows, int numcols): nMatrixT<double>(numrows,numcols) { }
 dMatrixT::dMatrixT(int squaredim): nMatrixT<double>(squaredim) { }
-dMatrixT::dMatrixT(int numrows, int numcols, double* p):
+dMatrixT::dMatrixT(int numrows, int numcols, const double* p):
 	nMatrixT<double>(numrows, numcols, p) { }
 dMatrixT::dMatrixT(const dMatrixT& source): nMatrixT<double>(source) { }
 
@@ -391,8 +391,8 @@ void dMatrixT::MultSymAB(const dSymMatrixT& A, const dMatrixT& B)
 	  	B.Rows() != B.Cols()) throw ExceptionT::kSizeMismatch; 
 	if(fCols < 2 || fCols > 3) throw ExceptionT::kGeneralFail;
 #endif		   
-	double* pB = B.Pointer();
-	double* pA = A.Pointer();
+	const double* pB = B.Pointer();
+	const double* pA = A.Pointer();
 	if (fCols == 2)
 	{
 		fArray[0] = pA[0]*pB[0]+pA[2]*pB[1];
@@ -432,7 +432,7 @@ void dMatrixT::ReducedI_C(const dSymMatrixT& C)
 	if (fRows != fCols || fCols < nummod ) throw ExceptionT::kGeneralFail;
 #endif
 	
-	double* pC = C.Pointer();
+	const double* pC = C.Pointer();
 
 	if (nummod == 3)
 	{
@@ -505,11 +505,11 @@ dMatrixT&  dMatrixT::DyadAB(const dSymMatrixT& A, const dSymMatrixT& B)
 	    || fCols < nummod) throw ExceptionT::kGeneralFail;
 #endif	
 	double* pthis = fArray;
-	double* pB = B.Pointer();
+	const double* pB = B.Pointer();
 	
 	for (int i = 0; i < nummod; i++)
 	{
-	     double* pA = A.Pointer();
+	     const double* pA = A.Pointer();
 	     for (int j  = 0; j < nummod; j++)
 	            *pthis++ = (*pA++) * (*pB);
 	     pB++;
@@ -530,20 +530,19 @@ void dMatrixT::Expand(const dMatrixT& B, int factor, AssemblyModeT mode)
 	if (mode == kOverwrite) *this = 0.0;
 
 	double*	pCol  = Pointer();
-	double* pBCol = B.Pointer();
+	const double* pBCol = B.Pointer();
 	
 	int coloffset = factor*fRows;
 	
 	for (int i = 0; i < B.fCols; i++)
 	{
 		double* pcol  = pCol;
-		double* pBcol = pBCol;
+		const double* pBcol = pBCol;
 
 		/* expand column of B */
 		for (int k = 0; k < factor; k++)
 		{
-			double* psubBcol = pBcol;
-			
+			const double* psubBcol = pBcol;
 			for (int j = 0; j < B.fRows; j++)
 			{
 				*pcol += *psubBcol++; /* accumulate */

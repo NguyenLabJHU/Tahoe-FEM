@@ -1,4 +1,4 @@
-/* $Id: SF2.cpp,v 1.3 2003-11-19 22:10:39 thao Exp $ */
+/* $Id: SF2.cpp,v 1.4 2003-11-21 22:41:27 paklein Exp $ */
 /* created: paklein (10/30/1997)                                          */
 
 #include "SF2.h"
@@ -79,7 +79,7 @@ dArrayT& SF2::MapFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pU = out.Pointer();
 	
 	for (int i = 0; i < in.Length(); i++)
@@ -95,7 +95,7 @@ dArrayT& SF2::MapDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl  = in.Pointer();
+	const double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
 	
 	for (int i = 0; i < in.Length(); i++)
@@ -111,7 +111,7 @@ dArrayT& SF2::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl   = in.Pointer();
+	const double* pl   = in.Pointer();
 	double* pddU = out.Pointer();
 	
 	for (int i = 0; i < in.Length(); i++)

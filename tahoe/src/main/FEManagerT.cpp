@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.64 2003-10-28 07:45:12 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.65 2003-11-21 22:47:52 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -730,7 +730,7 @@ void FEManagerT::WriteOutput(double time)
 					{
 						double* f = n_values(j) + column;
 						int node = fSO_Connects[j];
-						int* eqno = eqnos(node);
+						const int* eqno = eqnos(node);
 						for (int k = 0; k < ndof_i; k++)
 						{
 							int eq_k = eqno[k] - shift;

@@ -1,4 +1,4 @@
-/* $Id: ModBessel.cpp,v 1.9 2003-11-10 22:14:00 cjkimme Exp $ */
+/* $Id: ModBessel.cpp,v 1.10 2003-11-21 22:41:27 paklein Exp $ */
 /* created: dzeigle (4/18/2002) */
 
 #include "ModBessel.h"
@@ -101,7 +101,7 @@ dArrayT& ModBessel::MapFunction(const dArrayT& in,  dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 	
-	double* pl = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pU = out.Pointer();
 	
 	for (int i = 0; i < in.Length(); i++)
@@ -117,7 +117,7 @@ dArrayT& ModBessel::MapDFunction(const dArrayT& in,  dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl  = in.Pointer();
+	const double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
 	
 	for (int i = 0; i < in.Length(); i++)
@@ -133,7 +133,7 @@ dArrayT& ModBessel::MapDDFunction(const dArrayT& in,  dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl   = in.Pointer();
+	const double* pl   = in.Pointer();
 	double* pddU = out.Pointer();
 	
 	cout << "\n Second derivative of the Bessel Function of the 3rd Kind not tabulated!\n";

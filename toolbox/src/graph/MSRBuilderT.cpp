@@ -1,4 +1,4 @@
-/* $Id: MSRBuilderT.cpp,v 1.5 2002-10-20 22:39:01 paklein Exp $ */
+/* $Id: MSRBuilderT.cpp,v 1.6 2003-11-21 22:41:54 paklein Exp $ */
 /* created: paklein (07/30/1998)                                          */
 /* class to generate MSR matrix structure data                            */
 
@@ -51,7 +51,7 @@ void MSRBuilderT::CheckActiveSet(const iArrayT& activerows) const
 	}
 
 	/* must be in ascending order */
-	int* pactive = activerows.Pointer() + 1;
+	const int* pactive = activerows.Pointer() + 1;
 	for (int i = 1; i < activerows.Length(); i++)
 	{
 		if (*(pactive-1) >= *pactive)
@@ -74,7 +74,7 @@ void MSRBuilderT::GenerateMSR(int row_shift, const RaggedArray2DT<int>& edgelist
 
 	int* pstarts = MSRdata.Pointer();
 	int* pcol    = MSRdata.Pointer(MSRcolumnoffset);
-	int* pactive = activeeqs.Pointer();
+	const int* pactive = activeeqs.Pointer();
 	
 	*pstarts = MSRcolumnoffset;
 	pstarts++; /* one column ahead */
@@ -82,7 +82,7 @@ void MSRBuilderT::GenerateMSR(int row_shift, const RaggedArray2DT<int>& edgelist
 	{
 		int  dex   = *pactive - row_shift;
 		int  count = edgelist.MinorDim(dex);
-		int* pdata = edgelist(dex);
+		const int* pdata = edgelist(dex);
 		int  offdiagsize = count - 1;
 		
 		/* column start offsets */
@@ -127,7 +127,7 @@ void MSRBuilderT::WriteMSRData(ostream& out, const iArrayT& activerows,
 		int row_length = MSRdata[i+1] - MSRdata[i];
 		if (row_length > 0)
 		{
-			rowdata.Set(MSRdata[i+1] - MSRdata[i], MSRdata.Pointer(MSRdata[i]));
+			rowdata.Alias(MSRdata[i+1] - MSRdata[i], MSRdata.Pointer(MSRdata[i]));
 			out << rowdata.wrap_tight(wrap) << '\n';
 		}
 	}

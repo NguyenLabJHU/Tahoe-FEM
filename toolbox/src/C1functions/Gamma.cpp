@@ -1,4 +1,4 @@
-/* $Id: Gamma.cpp,v 1.5 2003-11-10 22:14:00 cjkimme Exp $ */
+/* $Id: Gamma.cpp,v 1.6 2003-11-21 22:41:27 paklein Exp $ */
 
 #include "Gamma.h"
 #include <math.h>
@@ -97,7 +97,7 @@ dArrayT& Gamma::MapFunction(const dArrayT& in,  dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 	
-	double* pl = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pU = out.Pointer();
 	double x, y, tmp, ser;
 	static double cof[6] = {76.18009172947146, -86.50532032941677,
@@ -125,7 +125,7 @@ dArrayT& Gamma::MapDFunction(const dArrayT& in,  dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl  = in.Pointer();
+	const double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
 	
 	cout << "\n Derivative of the Gamma Function not tabulated!\n";
@@ -143,7 +143,7 @@ dArrayT& Gamma::MapDDFunction(const dArrayT& in,  dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl   = in.Pointer();
+	const double* pl   = in.Pointer();
 	double* pddU = out.Pointer();
 	
 	cout << "\n Second derivative of the Gamma Function not tabulated!\n";

@@ -1,15 +1,13 @@
-/* $Id: iAutoArrayT.h,v 1.2 2002-07-02 19:56:40 cjkimme Exp $ */
-/* created: paklein (02/08/1999)                                          */
-
+/* $Id: iAutoArrayT.h,v 1.3 2003-11-21 22:41:30 paklein Exp $ */
 #ifndef _I_AUTO_ARRAY_T_H_
 #define _I_AUTO_ARRAY_T_H_
 
 /* base class */
 #include "AutoArrayT.h"
 
-
 namespace Tahoe {
 
+/** AutoArrayT of integers */	
 class iAutoArrayT: public AutoArrayT<int>
 {
 public:

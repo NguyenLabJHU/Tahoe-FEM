@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.11 2003-11-11 07:38:01 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.12 2003-11-21 22:42:02 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
@@ -202,7 +202,7 @@ void CommunicatorT::Sum(const nArrayT<double>& my_values, nArrayT<double>& sum) 
 #ifdef __TAHOE_MPI__
 	else if (Size() > 1)
 	{
-		int ret = MPI_Allreduce(my_values.Pointer(), sum.Pointer(), my_values.Length(), MPI_DOUBLE, MPI_SUM, fComm);
+		int ret = MPI_Allreduce((void*) my_values.Pointer(), sum.Pointer(), my_values.Length(), MPI_DOUBLE, MPI_SUM, fComm);
 		
 #ifdef CHECK_MPI_RETURN
 		if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Allreduce failed");
@@ -346,8 +346,8 @@ void CommunicatorT::Gather(const nArrayT<int>& my_values, nArrayT<int>& gather,
 #endif
 
 #ifdef __TAHOE_MPI__
-	int ret = MPI_Gatherv(my_values.Pointer(), my_values.Length(), MPI_INT, 
-		gather.Pointer(), counts.Pointer(), displacements.Pointer(), MPI_INT, 
+	int ret = MPI_Gatherv((void*) my_values.Pointer(), my_values.Length(), MPI_INT, 
+		gather.Pointer(), (int*) counts.Pointer(), (int*) displacements.Pointer(), MPI_INT, 
 		Rank(), fComm);
 
 #ifdef CHECK_MPI_RETURN
@@ -378,7 +378,7 @@ void CommunicatorT::Gather(const nArrayT<int>& my_values, int destination) const
 	if (destination < 0 || destination >= Size()) ExceptionT::SizeMismatch(caller);
 
 #ifdef __TAHOE_MPI__
-	int ret = MPI_Gatherv(my_values.Pointer(), my_values.Length(), MPI_INT, 
+	int ret = MPI_Gatherv((void*) my_values.Pointer(), my_values.Length(), MPI_INT, 
 		NULL, NULL, NULL, MPI_INT, destination, fComm);
 		
 #ifdef CHECK_MPI_RETURN
@@ -449,7 +449,7 @@ void CommunicatorT::AllGather(const nArrayT<double>& my, nArrayT<double>& gather
 
 #ifdef __TAHOE_MPI__
 	int len = my.Length();
-	int ret = MPI_Allgather(my.Pointer(), len, MPI_DOUBLE, gather.Pointer(), len, MPI_DOUBLE, fComm);
+	int ret = MPI_Allgather((void*) my.Pointer(), len, MPI_DOUBLE, gather.Pointer(), len, MPI_DOUBLE, fComm);
 
 #ifdef CHECK_MPI_RETURN
 	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Allgather failed");
@@ -482,7 +482,7 @@ void CommunicatorT::AllGather(const nArrayT<int>& my, nArrayT<int>& gather) cons
 
 #ifdef __TAHOE_MPI__
 	int len = my.Length();
-	int ret = MPI_Allgather(my.Pointer(), len, MPI_INT, gather.Pointer(), len, MPI_INT, fComm);
+	int ret = MPI_Allgather((void*) my.Pointer(), len, MPI_INT, gather.Pointer(), len, MPI_INT, fComm);
 
 #ifdef CHECK_MPI_RETURN
 	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Allgather failed");
@@ -524,8 +524,8 @@ void CommunicatorT::AllGather(const nArrayT<double>& my, nArrayT<double>& gather
 
 #ifdef __TAHOE_MPI__
 	int len = my.Length();
-	int ret = MPI_Allgatherv(my.Pointer(), len, MPI_DOUBLE, gather.Pointer(), 
-				counts.Pointer(), displacements.Pointer(), MPI_DOUBLE, fComm);
+	int ret = MPI_Allgatherv((void*) my.Pointer(), len, MPI_DOUBLE, gather.Pointer(), 
+				(int*) counts.Pointer(), (int*) displacements.Pointer(), MPI_DOUBLE, fComm);
 
 #ifdef CHECK_MPI_RETURN
 	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Allgatherv failed");
@@ -568,8 +568,8 @@ void CommunicatorT::AllGather(const nArrayT<int>& my, nArrayT<int>& gather,
 
 #ifdef __TAHOE_MPI__
 	int len = my.Length();
-	int ret = MPI_Allgatherv(my.Pointer(), len, MPI_INT, gather.Pointer(), 
-				counts.Pointer(), displacements.Pointer(), MPI_INT, fComm);
+	int ret = MPI_Allgatherv((void*) my.Pointer(), len, MPI_INT, gather.Pointer(), 
+				(int*) counts.Pointer(), (int*) displacements.Pointer(), MPI_INT, fComm);
 
 #ifdef CHECK_MPI_RETURN
 	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Allgatherv failed");
@@ -674,7 +674,7 @@ void CommunicatorT::PostSend(const nArrayT<double>& data, int destination, int t
 
 #ifdef __TAHOE_MPI__
 	/* post send */
-	int ret = MPI_Isend(data.Pointer(), data.Length(), MPI_DOUBLE, destination, tag, fComm, &request);
+	int ret = MPI_Isend((void*) data.Pointer(), data.Length(), MPI_DOUBLE, destination, tag, fComm, &request);
 
 #ifdef CHECK_MPI_RETURN
 	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Isend failed");
@@ -700,7 +700,7 @@ void CommunicatorT::PostSend(const nArrayT<int>& data, int destination, int tag,
 
 #ifdef __TAHOE_MPI__
 	/* post send */
-	int ret = MPI_Isend(data.Pointer(), data.Length(), MPI_INT, destination, tag, fComm, &request);
+	int ret = MPI_Isend((void*) data.Pointer(), data.Length(), MPI_INT, destination, tag, fComm, &request);
 	
 #ifdef CHECK_MPI_RETURN
 	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Isend failed");
@@ -771,7 +771,7 @@ void CommunicatorT::WaitReceive(const ArrayT<MPI_Request>& requests, int& index,
 #ifdef __TAHOE_MPI__
 	/* grab completed receive */
 	MPI_Status status;
-	int ret = MPI_Waitany(requests.Length(), requests.Pointer(), &index, &status);
+	int ret = MPI_Waitany(requests.Length(), (MPI_Request*) requests.Pointer(), &index, &status);
 
 #ifdef CHECK_MPI_RETURN
 	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Waitany failed");
@@ -801,7 +801,7 @@ void CommunicatorT::WaitSends(const ArrayT<MPI_Request>& requests)
 #ifdef __TAHOE_MPI__
 		/* grab completed receive */
 		MPI_Status status;
-		int ret = MPI_Waitany(requests.Length(), requests.Pointer(), &index, &status);
+		int ret = MPI_Waitany(requests.Length(), (MPI_Request*) requests.Pointer(), &index, &status);
 
 #ifdef CHECK_MPI_RETURN
 		if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Waitany failed");
@@ -835,7 +835,7 @@ void CommunicatorT::Send(const nArrayT<double>& data, int destination, int tag) 
 
 #ifdef __TAHOE_MPI__
 	/* post send */
-	int ret = MPI_Send(data.Pointer(), data.Length(), MPI_DOUBLE, destination, tag, fComm);
+	int ret = MPI_Send((void*) data.Pointer(), data.Length(), MPI_DOUBLE, destination, tag, fComm);
 
 #ifdef CHECK_MPI_RETURN
 	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Send failed");
@@ -858,7 +858,7 @@ void CommunicatorT::Send(const nArrayT<int>& data, int destination, int tag) con
 
 #ifdef __TAHOE_MPI__
 	/* post send */
-	int ret = MPI_Send(data.Pointer(), data.Length(), MPI_INT, destination, tag, fComm);
+	int ret = MPI_Send((void*) data.Pointer(), data.Length(), MPI_INT, destination, tag, fComm);
 
 #ifdef CHECK_MPI_RETURN
 	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Send failed");

@@ -1,4 +1,4 @@
-/* $Id: FrontNodeT.cpp,v 1.8 2003-11-04 01:21:14 paklein Exp $ */
+/* $Id: FrontNodeT.cpp,v 1.9 2003-11-21 22:41:51 paklein Exp $ */
 /* created: paklein (03/19/1999) */
 #include "FrontNodeT.h"
 
@@ -60,7 +60,7 @@ void FrontNodeT::Write(ostream& out) const
 	dMatrixT Q;
 	for (int i = 0; i < fQ.MajorDim(); i++)
 	{
-		Q.Set(fdim, fdim, fQ(i));
+		Q.Alias(fdim, fdim, fQ(i));
 		out << Q << '\n';
 	}
 }

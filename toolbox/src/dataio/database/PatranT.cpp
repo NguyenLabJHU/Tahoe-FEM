@@ -1,6 +1,5 @@
-/* $Id: PatranT.cpp,v 1.21 2003-11-10 22:14:20 cjkimme Exp $ */
+/* $Id: PatranT.cpp,v 1.22 2003-11-21 22:41:46 paklein Exp $ */
 /* created sawimme (05/17/2001) */
-
 #include "PatranT.h"
 #include "ifstreamT.h"
 #include "iArrayT.h"
@@ -11,7 +10,6 @@
 #include "iAutoArrayT.h"
 #include "ofstreamT.h"
 #include <time.h>
-
 
 using namespace Tahoe;
 
@@ -147,8 +145,8 @@ bool PatranT::NumNodesInSet (const StringT& title, int& num) const
   /* pull node IDs from component list */
   num = 0;
   int length = fNamedComponentsData[index].MajorDim();
-  int *it = fNamedComponentsData[index].Pointer();
-  int *il = fNamedComponentsData[index].Pointer() + 1;
+  const int *it = fNamedComponentsData[index].Pointer();
+  const int *il = fNamedComponentsData[index].Pointer() + 1;
   for (int i=0; i < length; i++, it += 2, il += 2)
     if (*it == kNCNode)
       num++;
@@ -326,8 +324,8 @@ bool PatranT::ReadElementSet (const StringT& title, PatranT::NamedTypes& namedty
   iAutoArrayT set;
   namedtype = kNoNamedType;
   int length = fNamedComponentsData[index].MajorDim();
-  int *it = fNamedComponentsData[index].Pointer();
-  int *il = fNamedComponentsData[index].Pointer() + 1;
+  const int *it = fNamedComponentsData[index].Pointer();
+  const int *il = fNamedComponentsData[index].Pointer() + 1;
   for (int i=0; i < length; i++, it += 2, il += 2)
     if ((*it >   5 && *it < 19) ||
 	(*it > 105 && *it < 119) ||
@@ -356,8 +354,8 @@ bool PatranT::ReadElementSetMixed (const StringT& title, ArrayT<PatranT::NamedTy
   iAutoArrayT set;
   iAutoArrayT nt;
   int length = fNamedComponentsData[index].MajorDim();
-  int *it = fNamedComponentsData[index].Pointer();
-  int *il = fNamedComponentsData[index].Pointer() + 1;
+  const int *it = fNamedComponentsData[index].Pointer();
+  const int *il = fNamedComponentsData[index].Pointer() + 1;
   for (int i=0; i < length; i++, it += 2, il += 2)
     if ((*it >   5 && *it < 19) ||
 	(*it > 105 && *it < 119) ||
@@ -430,8 +428,8 @@ bool PatranT::ReadNodeSet (const StringT& title, iArrayT& nodes) const
   /* pull node IDs from component list */
   iAutoArrayT set;
   int length = fNamedComponentsData[index].MajorDim();
-  int *it = fNamedComponentsData[index].Pointer();
-  int *il = fNamedComponentsData[index].Pointer() + 1;
+  const int *it = fNamedComponentsData[index].Pointer();
+  const int *il = fNamedComponentsData[index].Pointer() + 1;
   for (int i=0; i < length; i++, it += 2, il += 2)
     if (*it == kNCNode)
       set.Append (*il);
@@ -589,7 +587,7 @@ bool PatranT::WriteElements (ostream& out, const iArray2DT& elems, const ArrayT<
 	out << setw (16) << theta[t];
       out << "\n";
       
-      int *elnode = elems(e);
+      const int *elnode = elems(e);
       int wrap = 1;
       for (int n=0; n < elems.MinorDim(); n++, wrap++)
 	{
@@ -619,7 +617,7 @@ bool PatranT::WriteNamedComponent (ostream& out, const StringT& name, int ID, co
   for (int g=0; g < 12 && g < name.Length()-1; g++)
     out << name[g];
   out << "\n";
-  int *pc = comps.Pointer();
+  const int *pc = comps.Pointer();
   int w = 1;
   for (int i=0; i < IV; i++, w++)
     {
@@ -729,8 +727,9 @@ bool PatranT::WriteNodalVariables (const StringT& filename, const iArrayT& ids, 
 
   out.precision (7);
   out.setf(ios::right, ios::adjustfield);
-  double *pv = values.Pointer();
-  for (int i=0, *pi=ids.Pointer(); i < num; i++)
+  const double *pv = values.Pointer();
+  const int *pi = ids.Pointer();
+  for (int i=0; i < num; i++)
     {
       out << setw (8) << *pi++;
       int wrap = 1;
@@ -775,9 +774,9 @@ bool PatranT::WriteElementVariables (const StringT& filename, const iArrayT& ids
   out << setw (80) << titles[1] << "\n";
   out << setw (80) << titles[2] << "\n";
 
-  double *pv = values.Pointer();
-  int *pi = ids.Pointer();
-  PatranT::ElementTypes *ps = shapes.Pointer();
+  const double *pv = values.Pointer();
+  const int *pi = ids.Pointer();
+  const PatranT::ElementTypes *ps = shapes.Pointer();
   for (int i=0; i < nume; i++)
     {
       out << setw (8) << *pi++ << setw (8) << *ps++ << "\n";

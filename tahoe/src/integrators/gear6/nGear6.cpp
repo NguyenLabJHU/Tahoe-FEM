@@ -121,7 +121,7 @@ void nGear6::Corrector(BasicFieldT& field, const dArray2DT& update)
 	double* p3 = field[3].Pointer();
 	double* p4 = field[4].Pointer();
 	double* p5 = field[5].Pointer();
-	double* pu = update.Pointer();
+	const double* pu = update.Pointer();
 
 	if (fabs(fdt) > kSmall)
 	{
@@ -165,7 +165,7 @@ void nGear6::Corrector(BasicFieldT& field, const dArrayT& update,
 	const iArray2DT& eqnos = field.Equations();
 
 	/* add update - assumes that fEqnos maps directly into dva */
-	int    *peq = eqnos.Pointer();
+	const int *peq = eqnos.Pointer();
 	
 	/* fetch pointers */
 	double* p0 = field[0].Pointer(); 
@@ -240,7 +240,7 @@ ExceptionT::Stop("nGear6::MappedCorrector", "not implemented");
 	for (int i = 0; i < map.Length(); i++)
 	{
 		int row = map[i];
-		int* pflags = flags(i);
+		const int* pflags = flags(i);
 		
 		double* p0 = (field[0])(row);
 		double* p1 = (field[1])(row);

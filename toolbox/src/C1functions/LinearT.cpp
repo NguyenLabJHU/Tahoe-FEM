@@ -1,4 +1,4 @@
-/* $Id: LinearT.cpp,v 1.5 2003-11-10 22:14:00 cjkimme Exp $ */
+/* $Id: LinearT.cpp,v 1.6 2003-11-21 22:41:27 paklein Exp $ */
 /* created: paklein (03/25/1999) */
 #include "LinearT.h"
 #include <iostream.h>
@@ -32,7 +32,7 @@ dArrayT& LinearT::MapFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pU = out.Pointer();
 	double x;
 	

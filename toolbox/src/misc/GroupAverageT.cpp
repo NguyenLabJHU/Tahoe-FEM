@@ -1,4 +1,4 @@
-/* $Id: GroupAverageT.cpp,v 1.7 2003-01-27 06:42:48 paklein Exp $ */
+/* $Id: GroupAverageT.cpp,v 1.8 2003-11-21 22:41:57 paklein Exp $ */
 /* created: paklein (10/03/1996) */
 #include "GroupAverageT.h"
 
@@ -85,8 +85,8 @@ void GroupAverageT::OutputUsedAverage(dArray2DT& average)
 /* return the number of rows in the current smoothing set */
 int GroupAverageT::NumberOfAverageCols(void) const
 {
-	int  nodecount = 0;
-	int* p = fCounts.Pointer();
+	int nodecount = 0;
+	const int* p = fCounts.Pointer();
 	for (int i = 0; i < fNumRows; i++)
 		if (*p++ > 0)
 			nodecount++;
@@ -159,16 +159,16 @@ void GroupAverageT::RowsUsed(iArrayT& rowsused) const
 	rowsused.Dimension(count);
 
 	/* copy in used rows */
-	int* pcount = fCounts.Pointer();
-	int*  pused = rowsused.Pointer();
+	const int* pcount = fCounts.Pointer();
+	int* pused = rowsused.Pointer();
 	for (int j = 0; j < fNumRows; j++)
 		if (*pcount++ > 0) *pused++ = j;
 }
 
 int GroupAverageT::NumRowsUsed(void) const
 {
-	int* pcount = fCounts.Pointer();
-	int   count = 0;
+	const int* pcount = fCounts.Pointer();
+	int count = 0;
 	for (int i = 0; i < fNumRows; i++)
 		if (*pcount++ > 0) count++;
 

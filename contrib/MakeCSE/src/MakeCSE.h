@@ -51,7 +51,7 @@ class MakeCSE
   void MakeList (int node, iAutoArrayT& elems, iAutoArrayT& faces, iAutoArrayT& hit_elems);
   void FindNeighbors (int elm, int face, int node, iAutoArrayT& fElements, iAutoArrayT& fFaces);
   void CheckNeighbor (int elocal, int face, int node, iAutoArrayT& nelems, iAutoArrayT& nfaces);
-  void ReduceList (iAutoArrayT& hit_elems, const iAutoArrayT& elems, const iArrayT& checkelems) const;
+  void ReduceList (iAutoArrayT& hit_elems, const iAutoArrayT& elems, iArrayT& checkelems) const;
   int ReNumber (int node, const ArrayT<int>& fElements, const ArrayT<int>& fFaces);
 
   void CollectMassLessNodes (void);

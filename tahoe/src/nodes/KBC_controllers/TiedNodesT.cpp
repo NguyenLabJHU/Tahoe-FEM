@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.25 2003-08-08 00:33:27 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.26 2003-11-21 22:47:59 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -362,7 +362,7 @@ void TiedNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 
 	for (int i = 0; i <=FLength; i++)
 	{
-		double* x_f = coords(follower_nodes[i]);
+		const double* x_f = coords(follower_nodes[i]);
 		
 		/*If a follower is external, flag it for removal from the list*/
 		if (pMap && (*pMap)[follower_nodes[i]] != np)
@@ -372,7 +372,7 @@ void TiedNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 		
 		for (int j = 0; j < leader_nodes.Length(); j++)
 		{
-			double* x_l = coords(leader_nodes[j]);
+			const double* x_l = coords(leader_nodes[j]);
 			bool OK = true;
 			for (int k = 0; OK && k < nsd; k++)
 				OK = fabs(x_f[k] - x_l[k]) < kSmall;

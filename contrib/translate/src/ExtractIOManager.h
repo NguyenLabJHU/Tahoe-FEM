@@ -22,7 +22,7 @@ class ExtractIOManager : public TranslateIOManager
   void WriteVarData (iArrayT& varsused, int ts) const;
 
  private:
-  void OpenFile (ofstreamT& o, StringT& name, bool append) const;
+  void OpenFile (ofstreamT& o, const StringT& name, bool append) const;
 
  protected:
   int fNumItems;

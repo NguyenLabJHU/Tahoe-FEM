@@ -1,4 +1,4 @@
-/* $Id: BandedLAdMatrixT.h,v 1.4 2002-10-20 22:38:54 paklein Exp $ */
+/* $Id: BandedLAdMatrixT.h,v 1.5 2003-11-21 22:41:36 paklein Exp $ */
 /* created: MLK (05/21/1997)                                              */
 /* square banded matrix operations                                        */
 /* banded matrix elements stored in columns                               */
@@ -22,22 +22,31 @@ class BandedLAdMatrixT: public nArrayT<double>
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	BandedLAdMatrixT(int squaredim, int leftbandsize, int rightbandsize);
 
-	/* element  and column accessor */
-	double& operator()(int row, int col) const;
-	double GetElement(int row, int col) const; //returns 0.0 out of the band
-	double* operator()(int col) const;
+	/** \name element and column accessor */
+	/*@{*/
+	double& operator()(int row, int col);
+	const double& operator()(int row, int col) const;
+
+	double* operator()(int col);
+	const double* operator()(int col) const;
+
+	/** returns 0.0 out of the band */
+	double GetElement(int row, int col) const;
+	/*@}*/
 
 	/* assemble beginning with row and col in the upper left. */
 	void AddBlock(int row, int col, const dMatrixT& block);
 	
-	/* dimensions */
+	/** \name dimensions */
+	/*@{*/
 	int Lband(void) const;
 	int Rband(void) const;
 	int Rows(void) const;
 	int Cols(void) const;
+	/*@}*/
 	
 	/* transpose copy */
 	void Transpose(const BandedLAdMatrixT& matrix);
@@ -76,7 +85,21 @@ protected:
 /* in-lines */
 
 /* element accessor */
-inline double& BandedLAdMatrixT::operator()(int row, int col) const
+inline const double& BandedLAdMatrixT::operator()(int row, int col) const
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (row < 0 || row >= fRows || col < 0 || col >= fCols)
+		throw ExceptionT::kOutOfRange;
+
+	/* don't allow access to non banded elements */
+	if(row-col > fLband || col-row > fRband) throw ExceptionT::kOutOfRange;
+#endif
+	
+	return (fArray[col*fColumnHeight + fRband + row - col]);
+};
+
+inline double& BandedLAdMatrixT::operator()(int row, int col)
 {
 /* range checking */
 #if __option (extended_errorcheck)
@@ -91,7 +114,18 @@ inline double& BandedLAdMatrixT::operator()(int row, int col) const
 };
 
 /* returns a pointer to the top of the specified column */
-inline double* BandedLAdMatrixT::operator()(int col) const
+inline double* BandedLAdMatrixT::operator()(int col)
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (col < 0 || col >= fCols)
+		throw ExceptionT::kOutOfRange;
+#endif
+	
+	return (fArray + col*fColumnHeight);
+};
+
+const inline double* BandedLAdMatrixT::operator()(int col) const
 {
 /* range checking */
 #if __option (extended_errorcheck)

@@ -1,4 +1,4 @@
-/* $Id: dSPMatrixT.cpp,v 1.6 2003-11-10 22:14:05 cjkimme Exp $ */
+/* $Id: dSPMatrixT.cpp,v 1.7 2003-11-21 22:41:36 paklein Exp $ */
 /* created MLK 10/3/00 */
 #include "dSPMatrixT.h"
 
@@ -141,13 +141,11 @@ dSPMatrixT& dSPMatrixT::operator+=(const dSPMatrixT& RHS)
 	int RHSnumrows = RHS.Rows();
 	for( int i = 0; i < RHSnumrows; i++ )
 	{
-		double* pV = RHS.ValPointer(i);
-		int* pC = RHS.ColPointer(i);
+		const double* pV = RHS.ValPointer(i);
+		const int* pC = RHS.ColPointer(i);
 		int RHSnnzrowi = RHS.RowNnz(i);
 		for( int j = 0; j < RHSnnzrowi; j++ )
-		{
 			AddElement(i, *pC++, *pV++);
-		}
 	}
 	
 	return(*this);
@@ -179,8 +177,8 @@ void dSPMatrixT::CopyRow(int i, dArrayT& row) const
 	row = 0;
 	
 	/* pointers to beginning of rows */
-	double* pV = fVal_Matrix(i);
-	int* pC = fCol_Matrix(i);
+	const double* pV = fVal_Matrix(i);
+	const int* pC = fCol_Matrix(i);
 	
 	/* record each nonzero element of the row */
 	int numrownnz = RowNnz(i);
@@ -247,8 +245,8 @@ void dSPMatrixT::SetBlock(int row, int col, const dSPMatrixT& block)
 	int blocknumrows = block.Rows();
 	for( int i = 0; i < blocknumrows; i++ )
 	{
-		double* pV = block.ValPointer(i);
-		int* pC = block.ColPointer(i);
+		const double* pV = block.ValPointer(i);
+		const int* pC = block.ColPointer(i);
 		int blocknnzrowi = block.RowNnz(i);
 		for( int j = 0; j < blocknnzrowi; j++ )
 		{
@@ -285,8 +283,8 @@ void dSPMatrixT::AddBlock(int row, int col, const dSPMatrixT& block)
 	int blocknumrows = block.Rows();
 	for( int i = 0; i < blocknumrows; i++ )
 	{
-		double* pV = block.ValPointer(i);
-		int* pC = block.ColPointer(i);
+		const double* pV = block.ValPointer(i);
+		const int* pC = block.ColPointer(i);
 		int blocknnzrowi = block.RowNnz(i);
 		for( int j = 0; j < blocknnzrowi; j++ )
 		{
@@ -307,8 +305,8 @@ void dSPMatrixT::AddBlockT(int row, int col, const dSPMatrixT& block)
 	int blocknumrows = block.Rows();
 	for( int i = 0; i < blocknumrows; i++ )
 	{
-		double* pV = block.ValPointer(i);
-		int* pC = block.ColPointer(i);
+		const double* pV = block.ValPointer(i);
+		const int* pC = block.ColPointer(i);
 		int blocknnzrowi = block.RowNnz(i);
 		for( int j = 0; j < blocknnzrowi; j++ )
 		{
@@ -377,8 +375,8 @@ void dSPMatrixT::Multx(const dArrayT& x, dArrayT& b) const
 	for(int i = 0; i < fRows; i++)
 	{
 		/* pointers to beginning of rows */
-		double* pV = fVal_Matrix(i);
-		int* pC = fCol_Matrix(i);
+		const double* pV = fVal_Matrix(i);
+		const int* pC = fCol_Matrix(i);
 		for(int j = 0; j < fCol_Matrix.MinorDim(i); j++)
 		{
 			b[i] += (*pV++)*x[*pC++];
@@ -404,8 +402,8 @@ void dSPMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
 	for(int i = 0; i < fRows; i++)
 	{
 		/* pointers to beginning of rows */
-		double* pV = fVal_Matrix(i);
-		int* pC = fCol_Matrix(i);
+		const double* pV = fVal_Matrix(i);
+		const int* pC = fCol_Matrix(i);
 		for(int j = 0; j < fCol_Matrix.MinorDim(i); j++)
 		{
 			b[*pC++] += (*pV++)*x[i];
@@ -419,8 +417,8 @@ void dSPMatrixT::Transpose(const dSPMatrixT& RHS)
 	int RHSnumrows = RHS.Rows();
 	for( int i = 0; i < RHSnumrows; i++ )
 	{
-		double* pV = RHS.ValPointer(i);
-		int* pC = RHS.ColPointer(i);
+		const double* pV = RHS.ValPointer(i);
+		const int* pC = RHS.ColPointer(i);
 		int RHSnnzrowi = RHS.RowNnz(i);
 		for( int j = 0; j < RHSnnzrowi; j++ )
 		{
@@ -460,8 +458,8 @@ void dSPMatrixT::MultABT(const dSPMatrixT& A, const dSPMatrixT& B)
 		
 		/* record elements of row i of A in vector, arowvec */
 		arowvec = 0;
-		int* pC_A = A.ColPointer(i);    // pointer to column numbers of row i of A
-		double* pV_A = A.ValPointer(i); // pointer to values of entries in row i of A
+		const int* pC_A = A.ColPointer(i);    // pointer to column numbers of row i of A
+		const double* pV_A = A.ValPointer(i); // pointer to values of entries in row i of A
 		for(int kk = 0; kk < Anumrowvals; kk++ )
 			arowvec[*pC_A++] = *pV_A++;
 	
@@ -469,8 +467,8 @@ void dSPMatrixT::MultABT(const dSPMatrixT& A, const dSPMatrixT& B)
 		for(int j = 0; j < numrows_B; j++)
 		{	
 			double sum = 0.0;
-			int* pC_B = B.ColPointer(j);    // pointer to column numbers of row j of B
-			double* pV_B = B.ValPointer(j); // pointer to values of entries in row j of B
+			const int* pC_B = B.ColPointer(j);    // pointer to column numbers of row j of B
+			const double* pV_B = B.ValPointer(j); // pointer to values of entries in row j of B
 			
 			/* iterate over nonzero values of B in row j */
 			for(int k = 0; k < Bnumrowvals[j]; k++)
@@ -533,8 +531,8 @@ void dSPMatrixT::MultAB(const dSPMatrixT& A, const dSPMatrixT& B)
 		
 		/* record elements of row i of A in vector, arowvec */
 		arowvec = 0;
-		int* pC_A = A.ColPointer(i);    // pointer to column numbers of row i of A
-		double* pV_A = A.ValPointer(i); // pointer to values of entries in row i of A
+		const int* pC_A = A.ColPointer(i);    // pointer to column numbers of row i of A
+		const double* pV_A = A.ValPointer(i); // pointer to values of entries in row i of A
 		for(int kk = 0; kk < Anumrowvals; kk++ )
 			arowvec[*pC_A++] = *pV_A++;
 	
@@ -754,18 +752,6 @@ double dSPMatrixT::Value(int row, int j) const
 int dSPMatrixT::Width(void) const
 {
 	return ( fCol_Matrix.MaxMinorDim() );
-}
-
-/* returns pointer to first element of column numbers matrix */
-int* dSPMatrixT::ColPointer(int row) const
-{
-	return fCol_Matrix(row);
-}
-
-/* returns pointer to first element of values matrix */
-double* dSPMatrixT::ValPointer(int row) const
-{
-	return fVal_Matrix(row);
 }
 
 #if 0

@@ -1,4 +1,4 @@
-/* $Id: povirk2D.h,v 1.6 2003-01-29 07:35:09 paklein Exp $ */
+/* $Id: povirk2D.h,v 1.7 2003-11-21 22:46:58 paklein Exp $ */
 /* created: Harold Park (09/10/2001) */
 
 #ifndef _POVIRK_2D_H_
@@ -105,7 +105,7 @@ class povirk2D: public FSSolidMatT, public IsotropicT, public Material2DT
   double ComputeViscoTemperature(void);
   double ComputeEffectiveStress(void);
   double ComputeViscoEffectiveStrain(void);
-  int CheckIfPlastic(const ElementCardT& element, int ip);
+  int CheckIfPlastic(ElementCardT& element, int ip);
   /* load element data for the specified integration point */
   void LoadData(const ElementCardT& element, int ip); 
   /* element level data */

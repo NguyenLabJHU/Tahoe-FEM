@@ -1,4 +1,4 @@
-/* $Id: dArrayT.cpp,v 1.9 2003-11-04 01:20:54 paklein Exp $ */
+/* $Id: dArrayT.cpp,v 1.10 2003-11-21 22:41:30 paklein Exp $ */
 /* created: paklein (08/11/1996) */
 #include "dArrayT.h"
 #include <iostream.h>
@@ -16,14 +16,14 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<dArrayT>::fByteCopy = false;
 /* constructor */
 dArrayT::dArrayT(void) { }
 dArrayT::dArrayT(int length): nArrayT<double>(length) { }
-dArrayT::dArrayT(int length, double* p): nArrayT<double>(length,p) { }
+dArrayT::dArrayT(int length, const double* p): nArrayT<double>(length,p) { }
 dArrayT::dArrayT(const dArrayT& source): nArrayT<double>(source) { }
 
 /* L2 norm of the vector */
 double dArrayT::Magnitude(void) const
 {
 	int length = Length();
-	double* p = Pointer();
+	const double* p = Pointer();
 	if (length == 2)
 		return sqrt(p[0]*p[0] + p[1]*p[1]);
 	else if (length == 3)

@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.15 2003-10-31 20:53:14 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.16 2003-11-21 22:48:06 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "GlobalMatrixT.h"
 #include <iostream.h>
@@ -180,7 +180,7 @@ void GlobalMatrixT::PrintRHS(const dArrayT& RHS) const
 	if (fCheckCode != kPrintRHS) return;
 	
 	/* increase output stream precision */
-	double* p = RHS.Pointer();
+	const double* p = RHS.Pointer();
 
 	int high_precision = 12;
 	fOut.precision(high_precision);
@@ -205,7 +205,7 @@ void GlobalMatrixT::PrintSolution(const dArrayT& solution) const
 	if (fCheckCode != kPrintSolution) return;
 	
 	/* increase output stream precision */
-	double* p = solution.Pointer();
+	const double* p = solution.Pointer();
 
 	int high_precision = 12;
 	fOut.precision(high_precision);

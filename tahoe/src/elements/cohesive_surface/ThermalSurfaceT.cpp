@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.9 2003-05-20 10:34:33 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.10 2003-11-21 22:45:50 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -310,7 +310,7 @@ void ThermalSurfaceT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	while (NextElement())
 	{
 		/* current element */
-		ElementCardT& element = CurrentElement();
+		const ElementCardT& element = CurrentElement();
 
 		/* conduction parameters */
 		int set = element.MaterialNumber();

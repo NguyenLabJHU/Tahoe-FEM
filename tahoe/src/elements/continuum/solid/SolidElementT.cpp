@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.51 2003-10-07 16:54:34 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.52 2003-11-21 22:46:06 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -233,9 +233,6 @@ double SolidElementT::InternalEnergy(void)
 		/* global shape function derivatives, jacobians, local coords */
 		SetGlobalShape();
 
-		/* compute strain and B matricies */
-		//SetDeformation();
-		
 		/* integration */
 		const double* Det    = fShapes->IPDets();
 		const double* Weight = fShapes->IPWeights();
@@ -642,15 +639,15 @@ void SolidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 	/* 1D */
 	if (DNa.MajorDim() == 1)
 	{
-		double* pNax = DNa(0);
+		const double* pNax = DNa(0);
 		for (int i = 0; i < nnd; i++)
 			*pB++ = *pNax++;
 	}
 	/* 2D */
 	else if (DNa.MajorDim() == 2)
 	{
-		double* pNax = DNa(0);
-		double* pNay = DNa(1);
+		const double* pNax = DNa(0);
+		const double* pNay = DNa(1);
 		for (int i = 0; i < nnd; i++)
 		{
 			/* see Hughes (2.8.20) */
@@ -666,9 +663,9 @@ void SolidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 	/* 3D */
 	else		
 	{
-		double* pNax = DNa(0);
-		double* pNay = DNa(1);
-		double* pNaz = DNa(2);
+		const double* pNax = DNa(0);
+		const double* pNay = DNa(1);
+		const double* pNaz = DNa(2);
 		for (int i = 0; i < nnd; i++)
 		{
 			/* see Hughes (2.8.21) */
@@ -720,11 +717,11 @@ void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradie
 	/* 2D */
 	else if (DNa.MajorDim() == 2)
 	{
-		double* pNax = DNa(0);
-		double* pNay = DNa(1);
+		const double* pNax = DNa(0);
+		const double* pNay = DNa(1);
 			
-		double* pBmx = mean_gradient(0);
-		double* pBmy = mean_gradient(1);
+		const double* pBmx = mean_gradient(0);
+		const double* pBmy = mean_gradient(1);
 			
 		for (int i = 0; i < nnd; i++)
 		{
@@ -746,13 +743,13 @@ void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradie
 	/* 3D */
 	else		
 	{
-		double* pNax = DNa(0);
-		double* pNay = DNa(1);
-		double* pNaz = DNa(2);
+		const double* pNax = DNa(0);
+		const double* pNay = DNa(1);
+		const double* pNaz = DNa(2);
 
-		double* pBmx = mean_gradient(0);
-		double* pBmy = mean_gradient(1);
-		double* pBmz = mean_gradient(2);
+		const double* pBmx = mean_gradient(0);
+		const double* pBmy = mean_gradient(1);
+		const double* pBmz = mean_gradient(2);
 			
 		for (int i = 0; i < nnd; i++)
 		{
@@ -828,9 +825,6 @@ void SolidElementT::ElementLHSDriver(void)
 			/* set shape function derivatives */
 			SetGlobalShape();
 
-			/* compute strain and B matricies */
-			//SetDeformation();
-		
 			/* element mass */
 			if (fabs(constMe) > kSmall)
 				FormMass(fMassType, constMe*(fCurrMaterial->Density()));
@@ -915,7 +909,7 @@ void SolidElementT::ElementRHSDriver(void)
 		}
 
 		/* current element */
-		ElementCardT& element = CurrentElement();
+		const ElementCardT& element = CurrentElement();
 
 		if (element.Flag() != kOFF)
 		{
@@ -1171,9 +1165,6 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 			/* global shape function values */
 			SetGlobalShape();
-
-			/* compute strain/deformation */
-			//SetDeformation();
 
                 /* collect nodal values */
                 if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum])

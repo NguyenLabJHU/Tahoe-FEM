@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT.cpp,v 1.3 2002-10-20 22:38:47 paklein Exp $ */
+/* $Id: C1FunctionT.cpp,v 1.4 2003-11-21 22:41:27 paklein Exp $ */
 /* created: paklein (12/04/1996) */
 #include "C1FunctionT.h"
 #include "dArrayT.h"
@@ -22,7 +22,7 @@ dArrayT& C1FunctionT::MapFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension check */
 	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
-	double *pin  =  in.Pointer();
+	const double *pin  =  in.Pointer();
 	double *pout = out.Pointer();
 	int    length = in.Length();
 	
@@ -38,7 +38,7 @@ dArrayT& C1FunctionT::MapDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension check */
 	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
-	double *pin  =  in.Pointer();
+	const double *pin  =  in.Pointer();
 	double *pout = out.Pointer();
 	int    length = in.Length();
 	
@@ -54,7 +54,7 @@ dArrayT& C1FunctionT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension check */
 	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
-	double *pin  =  in.Pointer();
+	const double *pin  =  in.Pointer();
 	double *pout = out.Pointer();
 	int    length = in.Length();
 	

@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.15 2003-11-13 22:19:25 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.16 2003-11-21 22:45:57 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 #include "AugLagContact2DT.h"
 
@@ -103,7 +103,7 @@ void AugLagContact2DT::GenerateElementData(void)
 	/* resize work space */
 	fXDOFConnectivities_man.SetMajorDimension(num_active, false);
 	fXDOFEqnos_man.SetMajorDimension(num_active, false);
-	int *pelem = fConnectivities[0]->Pointer();
+	const int *pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
 	for (int i = 0; i < num_active; i++, pelem += rowlength)
 	{	

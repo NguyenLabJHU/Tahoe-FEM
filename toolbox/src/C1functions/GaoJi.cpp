@@ -1,4 +1,4 @@
-/* $Id: GaoJi.cpp,v 1.3 2002-10-20 22:38:47 paklein Exp $ */
+/* $Id: GaoJi.cpp,v 1.4 2003-11-21 22:41:27 paklein Exp $ */
 /* created: Baohua Ji (02/25/2002)                                          */
 
 #include "GaoJi.h"
@@ -108,7 +108,7 @@ dArrayT& GaoJi::MapFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pU = out.Pointer();
         double luk, ghos;
         double ee = 2.718281828;
@@ -135,7 +135,7 @@ dArrayT& GaoJi::MapDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl  = in.Pointer();
+	const double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
         double luk, ghos;
         double ee = 2.718281828;
@@ -161,7 +161,7 @@ dArrayT& GaoJi::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl   = in.Pointer();
+	const double* pl   = in.Pointer();
 	double* pddU = out.Pointer();
         double luk, ghos;
         double ee = 2.718281828;

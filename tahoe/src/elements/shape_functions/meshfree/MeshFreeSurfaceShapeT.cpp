@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.7 2003-10-20 23:32:54 cjkimme Exp $ */
+/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.8 2003-11-21 22:47:14 paklein Exp $ */
 /* created: paklein (06/03/2000)                                          */
 
 #include "MeshFreeSurfaceShapeT.h"
@@ -171,7 +171,7 @@ int MeshFreeSurfaceShapeT::SetFacet(int facet)
 
 	/* set facet reference coordinates */
 	const dArray2DT& all_facets = fMFSurfaceSupport->FacetCoords();
-	fRefFacetCoords.Set(fRefSurfaceShape.NumFacetNodes(),
+	fRefFacetCoords.Alias(fRefSurfaceShape.NumFacetNodes(),
 		fRefSurfaceShape.NumSD() + 1, all_facets(facet));
 	fFacetCoords.FromTranspose(fRefFacetCoords);
 	
@@ -200,7 +200,7 @@ const dArrayT& MeshFreeSurfaceShapeT::InterpolateJumpU(const LocalArrayT& nodal_
 		double* phi = fjump_phi(fCurrIP);
 	
 		double jump = 0.0;
-		double* u = nodal_1(i);
+		const double* u = nodal_1(i);
 		for (int j1 = 0; j1 < nnd_1; j1++)
 			jump += (*phi++)*(*u++);
 
@@ -370,7 +370,7 @@ void MeshFreeSurfaceShapeT::Set_dQ(const dMatrixT& Q, double j, ArrayT<dMatrixT>
 		dMatrixT& dQ2 = dQ[1];
 	
 		/* unit tangent */
-		fx_vec.Set(2, Q(0));
+		fx_vec.Alias(2, Q(0));
 		dMatrixT& dtan_du = fdx_dsdu[0];
 		dtan_du.MultTx(fx_vec, fu_vec);
 	
@@ -415,7 +415,7 @@ void MeshFreeSurfaceShapeT::Set_dQ(const dMatrixT& Q, double j, ArrayT<dMatrixT>
 		dMatrixT& dm2_du = grad_dd[1];
 
 		/* first component */
-		fx_vec.Set(3, Q(0));
+		fx_vec.Alias(3, Q(0));
 		dm1_du.MultTx(fx_vec, fu_vec);
 		dQ1.Outer(fx_vec, fu_vec);
 		dQ1 -= dm1_du;
@@ -430,15 +430,15 @@ void MeshFreeSurfaceShapeT::Set_dQ(const dMatrixT& Q, double j, ArrayT<dMatrixT>
 		fM1 += fM2;
 		
 		/* third component */
-		fx_vec.Set(3, Q(2));
+		fx_vec.Alias(3, Q(2));
 		fM1.MultTx(fx_vec, fu_vec);
 		dQ3.Outer(fx_vec, fu_vec);
 		dQ3 -= fM1;
 		dQ3 /= -j;
 		
 		/* second component */
-		double* t1 = Q(0);
-		double*  n = Q(2);
+		const double* t1 = Q(0);
+		const double*  n = Q(2);
 		for (int k = 0; k < nu; k++)
 		{
 			CrossProduct(dQ3(k), t1, dQ2(k));

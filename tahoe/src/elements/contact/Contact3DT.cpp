@@ -1,4 +1,4 @@
-/* $Id: Contact3DT.cpp,v 1.8 2003-11-13 22:16:54 paklein Exp $ */
+/* $Id: Contact3DT.cpp,v 1.9 2003-11-21 22:45:57 paklein Exp $ */
 /* created: paklein (07/17/1999) */
 #include "Contact3DT.h"
 
@@ -143,30 +143,24 @@ bool Contact3DT::SetActiveInteractions(void)
 /* generate element data (based on current striker/body data) */
 void Contact3DT::SetConnectivities(void)
 {
+	const char caller[] = "Contact3DT::SetConnectivities";
+
 	/* check */
 	if (fConnectivities[0]->MajorDim() != fActiveStrikers.Length())
-	{
-		cout << "\n Contact3DT::SetConnectivities: expecting the number of contact\n"
-		     <<   "    connectivities " << fConnectivities[0]->MajorDim()
-		     << " to equal the number of active strikers "
-		     << fActiveStrikers.Length() << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::SizeMismatch(caller, "contact interactions %d != active strikers %d",
+			fConnectivities[0]->MajorDim(), fActiveStrikers.Length());
 
-	int* pelem = fConnectivities[0]->Pointer();
+	int* pelem = (int*) fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
-	if (fConnectivities[0]->MajorDim() > 0 && rowlength != 4) {
-		cout << "\n Contact2DT::SetConnectivities: expecting connectivites length 4 not " 
-		     << rowlength << endl;
-		throw ExceptionT::kSizeMismatch;
-	}
+	if (fConnectivities[0]->MajorDim() > 0 && rowlength != 4)
+		ExceptionT::SizeMismatch(caller, "expecting connectivites length 4 not %d", rowlength);
 	
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
 		const iArray2DT& surface = fSurfaces[fHitSurface[i]];
 		
-		int   facet = fHitFacets[i];
-		int* pfacet = surface(facet);
+		int facet = fHitFacets[i];
+		const int* pfacet = surface(facet);
 
 		/* all element tags */
 		pelem[0] = pfacet[0]; // 1st facet node
@@ -181,9 +175,9 @@ void Contact3DT::Set_dn_du(const dArray2DT& curr_coords,
 	dMatrixT& dn_du) const
 {
 	double* p = dn_du.Pointer();
-	double* x1 = curr_coords(0);
-	double* x2 = curr_coords(1);
-	double* x3 = curr_coords(2);
+	const double* x1 = curr_coords(0);
+	const double* x2 = curr_coords(1);
+	const double* x3 = curr_coords(2);
 
 	*p++ = 0;
 	*p++ =-x2[2] + x3[2];
@@ -256,7 +250,7 @@ void Contact3DT::SetActiveStrikers(void)
 		for (int j = 0; j < numfacets; j++)
 		{
 			/* facet node positions */
-			int* pfacet = surface(j);
+			const int* pfacet = surface(j);
 			allcoords.RowAlias(pfacet[0], fx1);	
 			allcoords.RowAlias(pfacet[1], fx2);	
 			allcoords.RowAlias(pfacet[2], fx3);
@@ -292,7 +286,7 @@ if (print_all || strikertag == follow_tag)
 				if (!surface.HasValue(strikertag))
 				{
 					/* possible striker */
-					fStriker.Set(NumSD(), hits[k].Coords());
+					fStriker.Alias(NumSD(), hits[k].Coords());
 
 					double h;
 					if (Intersect(fx1, fx2, fx3, fStriker, h))

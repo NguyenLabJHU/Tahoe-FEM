@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.27 2003-11-10 22:14:05 cjkimme Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.28 2003-11-21 22:41:36 paklein Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -26,7 +26,7 @@ inline double d_sign(double a, double b)
 /* constructor */
 dSymMatrixT::dSymMatrixT(void): fNumSD(kNone) { }
 dSymMatrixT::dSymMatrixT(DimensionT nsd) { Dimension(nsd); }
-dSymMatrixT::dSymMatrixT(DimensionT nsd, double* array) { Set(nsd,array); }
+dSymMatrixT::dSymMatrixT(DimensionT nsd, const double* array) { Alias(nsd, array); }
 dSymMatrixT::dSymMatrixT(const dSymMatrixT& source): fNumSD(kNone)
 {
 	operator=(source);
@@ -48,7 +48,7 @@ void dSymMatrixT::Dimension(DimensionT nsd)
 }
 
 /* accessor */
-double& dSymMatrixT::operator()(int row, int col) const
+const double& dSymMatrixT::operator()(int row, int col) const
 {
 	const char caller[] = "dSymMatrixT::operator()";
 #if __option (extended_errorcheck)
@@ -678,7 +678,7 @@ dSymMatrixT& dSymMatrixT::Symmetrize(const dMatrixT& matrix)
 	if (fNumSD != matrix.Rows() ||
 	    fNumSD != matrix.Cols()) ExceptionT::SizeMismatch("dSymMatrixT::Symmetrize");
 
-	double* pmat = matrix.Pointer();
+	const double* pmat = matrix.Pointer();
 
 	if (fNumSD == 2)
 	{
@@ -712,7 +712,7 @@ dSymMatrixT& dSymMatrixT::FromMatrix(const dMatrixT& matrix)
 		matrix.Rows() != fNumSD) ExceptionT::SizeMismatch(caller);
 #endif
 
-	double* pmat = matrix.Pointer();
+	const double* pmat = matrix.Pointer();
 
 	if (fNumSD == 2)
 	{
@@ -784,8 +784,8 @@ void dSymMatrixT::A_ijkl_B_kl(const dMatrixT& A, const dSymMatrixT& B)
 	      Rows() != B.Rows()) ExceptionT::SizeMismatch("caller");
 #endif
 
-	double* pA = A.Pointer();
-	double* pB = B.Pointer();
+	const double* pA = A.Pointer();
+	const double* pB = B.Pointer();
 	if (fNumSD == 2)
 	{
 		fArray[0] = pA[0]*pB[0] + pA[3]*pB[1] + 2*pA[6]*pB[2];
@@ -817,8 +817,8 @@ void dSymMatrixT::A_ijkl_B_ij(const dMatrixT& A, const dSymMatrixT& B)
 	      Rows() != B.Rows()) ExceptionT::SizeMismatch(caller);
 #endif
 
-	double* pA = A.Pointer();
-	double* pB = B.Pointer();
+	const double* pA = A.Pointer();
+	const double* pB = B.Pointer();
 	if (fNumSD == 2)
 	{
 		fArray[0] = pA[0]*pB[0] + pA[1]*pB[1] + 2*pA[2]*pB[2];
@@ -849,8 +849,8 @@ double dSymMatrixT::B_ij_A_ijkl_B_kl(const dMatrixT& A) const
 	    A.Rows() != NumValues(Rows())) ExceptionT::SizeMismatch(caller);
 #endif
 
-	double* pA = A.Pointer();
-	double* pB = Pointer();
+	const double* pA = A.Pointer();
+	const double* pB = Pointer();
 	if (fNumSD == 2)
 		return pB[0]*(pA[0]*pB[0] + pA[1]*pB[1] + 2*pA[2]*pB[2]) +
 pB[1]*(pA[3]*pB[0] + pA[4]*pB[1] + 2*pA[5]*pB[2]) +
@@ -886,7 +886,7 @@ void dSymMatrixT::Outer(const dArrayT& v)
 #endif
 
 	double *pthis = fArray;
-	double    *pv = v.Pointer();
+	const double *pv = v.Pointer();
 	if (fNumSD == 2)
 	{
 		*pthis++ = pv[0]*pv[0];
@@ -955,7 +955,7 @@ void dSymMatrixT::MultATA(const dMatrixT& A)
 	    A.Rows() != fNumSD) ExceptionT::SizeMismatch(caller);
 #endif
 
-	double* pA = A.Pointer();
+	const double* pA = A.Pointer();
 
 	if (fNumSD == 2)
 	{
@@ -989,7 +989,7 @@ void dSymMatrixT::MultAAT(const dMatrixT& A)
 	    A.Rows() != fNumSD) ExceptionT::SizeMismatch(caller);
 #endif
 
-	double* pA = A.Pointer();
+	const double* pA = A.Pointer();
 
 	if (fNumSD == 2)
 	{
@@ -1028,8 +1028,8 @@ void dSymMatrixT::MultQBQT(const dMatrixT& Q, const dSymMatrixT& B)
 	/* no transforms of self */
 	if (B.Pointer() == Pointer()) ExceptionT::GeneralFail(caller, "no transforms of self");
 
-	double* b = B.Pointer();
-	double* q = Q.Pointer();
+	const double* b = B.Pointer();
+	const double* q = Q.Pointer();
 	if (fNumSD == 2)
 	{
 		fArray[0] = b[0]*q[0]*q[0] + 2.0*b[2]*q[0]*q[2] + b[1]*q[2]*q[2];
@@ -1073,7 +1073,7 @@ void dSymMatrixT::MultQTBQ(const dMatrixT& Q, const dSymMatrixT& B)
 	    B.fNumSD != fNumSD) ExceptionT::SizeMismatch(caller);
 #endif
 
-	double* q = Q.Pointer();
+	const double* q = Q.Pointer();
 	if (fNumSD == 2)
 	{
 		/* copy out to allow transforms of self */
@@ -1134,7 +1134,7 @@ void dSymMatrixT::Multx(const dArrayT& x, dArrayT& b) const
 	    b.Length() != fNumSD) ExceptionT::SizeMismatch(caller);
 #endif
 
-	double* px = x.Pointer();
+	const double* px = x.Pointer();
 
 	if (fNumSD == 2)
 	{
@@ -1163,8 +1163,8 @@ double dSymMatrixT::MultmBn(const dArrayT& m, const dArrayT& n) const
 	    n.Length() != fNumSD) ExceptionT::SizeMismatch(caller);
 #endif
 
-	double *pn = n.Pointer();
-	double *pm = m.Pointer();
+	const double *pn = n.Pointer();
+	const double *pm = m.Pointer();
 
 	if (fNumSD == 2)
 		return (fArray[0]*pm[0] + fArray[2]*pm[1])*pn[0] +

@@ -1,4 +1,4 @@
-/* $Id: AutoFill2DT.h,v 1.12 2003-11-10 22:14:08 cjkimme Exp $ */
+/* $Id: AutoFill2DT.h,v 1.13 2003-11-21 22:41:39 paklein Exp $ */
 /* created: paklein (01/19/1999) */
 #ifndef _AUTO_ARRAY2D_T_H_
 #define _AUTO_ARRAY2D_T_H_
@@ -68,10 +68,16 @@ public:
 	 * to the values on the next row since the rows may be in separate chunks. */
 	/*@{*/
 	/** single element accessor */
-	TYPE& operator()(int row, int col) const;
+	TYPE& operator()(int row, int col);
+
+	/** const single element accessor */
+	const TYPE& operator()(int row, int col) const;
 
 	/** row accessor */
-	TYPE* operator()(int row) const;
+	TYPE* operator()(int row);
+
+	/** row accessor */
+	const TYPE* operator()(int row) const;
 	/*@}*/
 
 	/** \name (re-)set logical size to 0 */
@@ -301,7 +307,7 @@ void AutoFill2DT<TYPE>::Free(void)
 
 /* accessors */
 template <class TYPE>
-inline TYPE& AutoFill2DT<TYPE>::operator()(int row, int col) const
+inline const TYPE& AutoFill2DT<TYPE>::operator()(int row, int col) const
 {
 #if __option(extended_errorcheck)
 	/* checks */
@@ -319,7 +325,42 @@ inline TYPE& AutoFill2DT<TYPE>::operator()(int row, int col) const
 }
 
 template <class TYPE>
-inline TYPE* AutoFill2DT<TYPE>::operator()(int row) const
+inline TYPE& AutoFill2DT<TYPE>::operator()(int row, int col)
+{
+#if __option(extended_errorcheck)
+	/* checks */
+	if (row < 0 || row >= fMajorDim) ExceptionT::OutOfRange();
+	if (col < 0 || col >= fCounts[row]) ExceptionT::OutOfRange();
+#endif
+
+	/* resolve chunk */
+	int chunk = 0;
+	int chunk_row = 0;
+	Chunk(row, chunk, chunk_row);
+
+	/* map to single element */
+	return *(fChunks[chunk] + chunk_row*fChunkMinorDim[chunk] + col);
+}
+
+template <class TYPE>
+inline const TYPE* AutoFill2DT<TYPE>::operator()(int row) const
+{
+#if __option(extended_errorcheck)
+	/* checks */
+	if (row < 0 || row >= fMajorDim) ExceptionT::OutOfRange();
+#endif
+
+	/* resolve chunk */
+	int chunk = 0;
+	int chunk_row = 0;
+	Chunk(row, chunk, chunk_row);
+	
+	/* map to row pointer */
+	return fChunks[chunk] + chunk_row*fChunkMinorDim[chunk];
+}
+
+template <class TYPE>
+inline TYPE* AutoFill2DT<TYPE>::operator()(int row)
 {
 #if __option(extended_errorcheck)
 	/* checks */
@@ -476,7 +517,7 @@ int AutoFill2DT<TYPE>::AppendUnique(int row, const TYPE& value)
 template <class TYPE>
 inline int AutoFill2DT<TYPE>::AppendUnique(int row, const ArrayT<TYPE>& source)
 {	
-	TYPE* psrc = source.Pointer();
+	const TYPE* psrc = source.Pointer();
 	int length = source.Length();
 	int count = 0;
 	for (int i = 0; i < length; i++)

@@ -1,4 +1,4 @@
-/* $Id: ReLabellerT.cpp,v 1.5 2003-09-25 01:02:10 paklein Exp $ */
+/* $Id: ReLabellerT.cpp,v 1.6 2003-11-21 22:41:54 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "ReLabellerT.h"
@@ -495,8 +495,8 @@ void ReLabellerT::ComputeSize(const iArrayT& sequence, int& bandwidth, int& prof
 	bandwidth = 0;
 	for (int i = 0; i < fGraph.NumNodes(); i++)
 	{
-		int* edges  = fGraph.Edges(i);
-		int  degree = fGraph.Degree(i);
+		const int* edges = fGraph.Edges(i);
+		int degree = fGraph.Degree(i);
 	
 		int itag = nodemap[i];
 		int maxheight = 0;
@@ -561,8 +561,8 @@ void ReLabellerT::Queue(int nodenum)
 /* assign new number and check adjacent nodes */
 void ReLabellerT::NewNumber(int nodenum)
 {	
-	int* adj_i    = fGraph.Edges(nodenum);
-	int  length_j = fGraph.Degree(nodenum);
+	const int* adj_i = fGraph.Edges(nodenum);
+	int length_j = fGraph.Degree(nodenum);
 
 	/* queue any adjacent nodes */
 	if (fStatus[nodenum] == kPreActive)
@@ -586,8 +586,8 @@ void ReLabellerT::MakeActive(int nodenum)
 	fStatus[nodenum]    = kActive;
 
 	/* queue any adjacent nodes */
-	int* adj_i    = fGraph.Edges(nodenum);
-	int  length_j = fGraph.Degree(nodenum);
+	const int* adj_i = fGraph.Edges(nodenum);
+	int length_j = fGraph.Degree(nodenum);
 
 	for (int j = 0; j < length_j; j++)
 		Queue( adj_i[j] );

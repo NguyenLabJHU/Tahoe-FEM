@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.23 2003-11-10 22:14:20 cjkimme Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.24 2003-11-21 22:41:46 paklein Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -801,7 +801,7 @@ void AbaqusResultsT::WriteConnectivity (GeometryT::CodeT code, int startnumber, 
 void AbaqusResultsT::WriteCoordinates (const iArrayT& nodes_used, const dArray2DT& coords)
 {
   int length = 3 + 6;
-  int *pn = nodes_used.Pointer();
+  const int *pn = nodes_used.Pointer();
   double zero = 0.;
   for (int i=0; i < nodes_used.Length(); i++)
     {
@@ -809,7 +809,7 @@ void AbaqusResultsT::WriteCoordinates (const iArrayT& nodes_used, const dArray2D
       Write (length);
       Write (NODE);
       Write (*pn);
-      double *pc = coords (*pn++ - 1);
+		const double *pc = coords (*pn++ - 1);
       for (int j=0; j < coords.MinorDim(); j++)
 	Write (*pc++);
       // fill to 6 degrees of freedom
@@ -823,7 +823,7 @@ void AbaqusResultsT::WriteElementSet (const StringT& name, const iArrayT& elms)
   AbaqusResultsT::GeneralKeys key = ELEMENTSET;
   int headerlength = 3;
   int num_vals_in_record = 80 - headerlength;
-  int *pe = elms.Pointer();
+  const int *pe = elms.Pointer();
   for (int i=0; i < elms.Length(); i++)
     {
       if (i%num_vals_in_record == 0)
@@ -852,7 +852,7 @@ void AbaqusResultsT::WriteNodeSet (const StringT& name, const iArrayT& nodes)
   AbaqusResultsT::GeneralKeys key = NODESET;
   int headerlength = 3;
   int num_vals_in_record = 80 - headerlength;
-  int *pe = nodes.Pointer();
+  const int *pe = nodes.Pointer();
   for (int i=0; i < nodes.Length(); i++)
     {
       if (i%num_vals_in_record == 0)
@@ -1234,6 +1234,7 @@ void AbaqusResultsT::WriteElementHeader (int key, int number, int intpt, int sec
 					 AbaqusResultsT::ElementVarType flag, int numdirect, 
 					 int numshear, int numdir, int numsecforc)
 {
+#pragma unused(key)
 //  int index = VariableKeyIndex (key);
   int rebarname = 0;
   WriteASCII ("*");
@@ -1934,7 +1935,7 @@ void AbaqusResultsT::Write (double d)
 
 void AbaqusResultsT::Write (const StringT& s, int blocks)
 {
-  char *ps = s.Pointer();
+  const char *ps = s.Pointer();
   if (fBinary)
     {
       CheckBufferSize (fOut);

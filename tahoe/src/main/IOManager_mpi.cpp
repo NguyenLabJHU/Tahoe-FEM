@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.27 2003-10-28 07:47:53 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.28 2003-11-21 22:47:52 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
@@ -605,7 +605,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 				int offset = 0; 
 				for (int i = 0; i < block_ID.Length(); i++)
 				{
-					elem_map.Set(rbuff[i], rbuff.Pointer(offset + block_ID.Length())); /* skip over list of block dimensions */
+					elem_map.Alias(rbuff[i], rbuff.Pointer(offset + block_ID.Length())); /* skip over list of block dimensions */
 					block_assem_map.Set(elem_map.Length(), assem_map.Pointer(offset));
 					BuildElementAssemblyMap(k, block_ID[i], elem_map, block_assem_map);
 				
@@ -763,7 +763,7 @@ void IOManager_mpi::GlobalSetNodes(const iArrayT& local_set_nodes, iArrayT& node
 		/* count non-external nodes */
 		int count = 0;
 		int   length = local_set_nodes.Length();
-		int* p_local = local_set_nodes.Pointer();
+		const int* p_local = local_set_nodes.Pointer();
 		for (int i = 0; i < length; i++)
 			if (*p_local++ < cut_off)
 				count++;
@@ -818,7 +818,7 @@ void IOManager_mpi::SetAssemblyMap(const iArrayT& inv_global, int shift, const i
 	int n_map = local.Length();
 	lg_map.Dimension(n_map);
 	int dex = 0;
-	int*  p = local.Pointer();
+	const int* p = local.Pointer();
 	for (int j = 0; j < n_map; j++)
 	{
 		int dex = inv_global[*p++ - shift];

@@ -902,7 +902,7 @@ void ParticlePairT::RHSDriver2D(void)
 		int   tag_i = neighbors[0]; /* self is 1st spot */
 		int  type_i = fType[tag_i];
 		double* f_i = fForce(tag_i);
-		double* x_i = coords(tag_i);
+		const double* x_i = coords(tag_i);
 		
 		/* run though neighbors for one atom - first neighbor is self */
 		for (int j = 1; j < neighbors.Length(); j++)
@@ -911,7 +911,7 @@ void ParticlePairT::RHSDriver2D(void)
 			int   tag_j = neighbors[j];
 			int  type_j = fType[tag_j];
 			double* f_j = fForce(tag_j);
-			double* x_j = coords(tag_j);
+			const double* x_j = coords(tag_j);
 
 			/* set pair property (if not already set) */
 			int property = fPropertiesMap(type_i, type_j);
@@ -1000,7 +1000,7 @@ void ParticlePairT::RHSDriver3D(void)
 		int   tag_i = neighbors[0]; /* self is 1st spot */
 		int  type_i = fType[tag_i];
 		double* f_i = fForce(tag_i);
-		double* x_i = coords(tag_i);
+		const double* x_i = coords(tag_i);
 		
 		/* run though neighbors for one atom - first neighbor is self */
 		for (int j = 1; j < neighbors.Length(); j++)
@@ -1009,7 +1009,7 @@ void ParticlePairT::RHSDriver3D(void)
 			int   tag_j = neighbors[j];
 			int  type_j = fType[tag_j];
 			double* f_j = fForce(tag_j);
-			double* x_j = coords(tag_j);
+			const double* x_j = coords(tag_j);
 
 			/* set pair property (if not already set) */
 			int property = fPropertiesMap(type_i, type_j);

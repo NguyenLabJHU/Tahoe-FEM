@@ -1,6 +1,5 @@
-/* $Id: zArrayT.h,v 1.6 2002-07-05 22:26:18 paklein Exp $ */
-/* created: PAK/AFLP (05/19/1997)                                         */
-
+/* $Id: zArrayT.h,v 1.7 2003-11-21 22:41:33 paklein Exp $ */
+/* created: PAK/AFLP (05/19/1997) */
 #ifndef _ZARRAY_T_H_
 #define _ZARRAY_T_H_
 
@@ -19,14 +18,14 @@ class zArrayT: public nArrayT<ComplexT>
 {
 public:
 
-	/*
-	 * Constructors
-	 */
+	/** constructors */
+	/*@{*/
 	zArrayT(void);
 	explicit zArrayT(int length);
-	zArrayT(int length, ComplexT* p);
+	zArrayT(int length, const ComplexT* p);
 	zArrayT(const dArrayT& re, const dArrayT& im);
 	zArrayT(const zArrayT& source);
+	/*@}*/
 	
 	/*
 	 * I/O operators

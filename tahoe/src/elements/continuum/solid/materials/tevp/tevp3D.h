@@ -1,4 +1,4 @@
-/* $Id: tevp3D.h,v 1.9 2003-01-29 07:35:09 paklein Exp $ */
+/* $Id: tevp3D.h,v 1.10 2003-11-21 22:46:58 paklein Exp $ */
 /* created:  Harold Park (06/25/2001) */
 #ifndef _TEVP_3D_H_
 #define _TEVP_3D_H_
@@ -96,8 +96,8 @@ class tevp3D: public FSSolidMatT, public IsotropicT
   double ComputeEffectiveStress(void);
   double ComputeFluidEffectiveStrain(void);
   double ComputeViscoEffectiveStrain(void);
-  void CheckCriticalCriteria(const ElementCardT& element, int ip);
-  int CheckIfPlastic(const ElementCardT& element, int ip);
+  void CheckCriticalCriteria(ElementCardT& element, int ip);
+  int CheckIfPlastic(ElementCardT& element, int ip);
   /* load element data for the specified integration point */
   void LoadData(const ElementCardT& element, int ip); 
   /* element level data */

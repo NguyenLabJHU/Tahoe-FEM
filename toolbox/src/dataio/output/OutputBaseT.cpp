@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.20 2003-11-10 22:14:25 cjkimme Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.21 2003-11-21 22:41:49 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
@@ -291,7 +291,7 @@ void OutputBaseT::LocalConnectivity(const iArrayT& node_map,
 	/* generate local connects */
 	int length = local_connects.Length();
 	int* p_loc = local_connects.Pointer();
-	int* p_glb = connects.Pointer();
+	const int* p_glb = connects.Pointer();
 	for (int j = 0; j < length; j++)
 		*p_loc++ = inv_node_map.Map(*p_glb++);
 }

@@ -1,4 +1,4 @@
-/* $Id: Tensor4DT.h,v 1.6 2002-10-20 22:38:56 paklein Exp $ */
+/* $Id: Tensor4DT.h,v 1.7 2003-11-21 22:41:41 paklein Exp $ */
 /* created paklein (12/19/96) */
 #ifndef _TENSOR4D_T_H_
 #define _TENSOR4D_T_H_
@@ -29,10 +29,15 @@ class Tensor4DT: public TensorT<MATHTYPE>
 
 	/** \name element and subdimension accessors */
 	/*@{*/
-	MATHTYPE& operator()(int dim0, int dim1, int dim2, int dim3) const;
-	MATHTYPE* operator()(int dim0, int dim1, int dim2) const;
-	MATHTYPE* operator()(int dim0, int dim1) const;
-	MATHTYPE* operator()(int dim0) const;
+	MATHTYPE& operator()(int dim0, int dim1, int dim2, int dim3);
+	MATHTYPE* operator()(int dim0, int dim1, int dim2);
+	MATHTYPE* operator()(int dim0, int dim1);
+	MATHTYPE* operator()(int dim0);
+
+	const MATHTYPE& operator()(int dim0, int dim1, int dim2, int dim3) const;
+	const MATHTYPE* operator()(int dim0, int dim1, int dim2) const;
+	const MATHTYPE* operator()(int dim0, int dim1) const;
+	const MATHTYPE* operator()(int dim0) const;
 	/*@}*/
 
   	/** \name assignment operators */
@@ -95,6 +100,20 @@ void Tensor4DT<MATHTYPE>::Dimension(int dim0, int dim1, int dim2, int dim3)
 
 template <class MATHTYPE>
 inline MATHTYPE& Tensor4DT<MATHTYPE>::
+	operator()(int dim0, int dim1, int dim2, int dim3)
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (dim0 < 0 || dim0 >= fDim[0] ||
+        dim1 < 0 || dim1 >= fDim[1] ||
+        dim2 < 0 || dim2 >= fDim[2] ||
+        dim3 < 0 || dim3 >= fDim[3]) throw ExceptionT::kGeneralFail;
+#endif
+
+	return (fArray[dim0*fOffset0 + dim1*fOffset1 + dim2*fOffset2 + dim3]);
+}
+template <class MATHTYPE>
+inline const MATHTYPE& Tensor4DT<MATHTYPE>::
 	operator()(int dim0, int dim1, int dim2, int dim3) const
 {
 /* range checking */
@@ -110,6 +129,19 @@ inline MATHTYPE& Tensor4DT<MATHTYPE>::
 
 template <class MATHTYPE>
 inline MATHTYPE* Tensor4DT<MATHTYPE>::
+	operator()(int dim0, int dim1, int dim2)
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (dim0 < 0 || dim0 >= fDim[0] ||
+        dim1 < 0 || dim1 >= fDim[1] ||
+        dim2 < 0 || dim2 >= fDim[2]) throw ExceptionT::kGeneralFail;
+#endif
+
+	return fArray + dim0*fOffset0 + dim1*fOffset1 + dim2*fOffset2;
+}
+template <class MATHTYPE>
+inline const MATHTYPE* Tensor4DT<MATHTYPE>::
 	operator()(int dim0, int dim1, int dim2) const
 {
 /* range checking */
@@ -123,7 +155,18 @@ inline MATHTYPE* Tensor4DT<MATHTYPE>::
 }
 
 template<class MATHTYPE>
-inline MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0, int dim1) const
+inline MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0, int dim1)
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (dim0 < 0 || dim0 >= fDim[0] ||
+        dim1 < 0 || dim1 >= fDim[1]) throw ExceptionT::kGeneralFail;
+#endif
+
+	return fArray + dim0*fOffset0 + dim1*fOffset1;
+}
+template<class MATHTYPE>
+inline const MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0, int dim1) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
@@ -135,7 +178,17 @@ inline MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0, int dim1) const
 }
 
 template <class MATHTYPE>
-inline MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0) const
+inline MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0)
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (dim0 < 0 || dim0 >= fDim[0]) throw ExceptionT::kGeneralFail;
+#endif
+
+	return fArray + dim0*fOffset0;
+}
+template <class MATHTYPE>
+inline const MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0) const
 {
 /* range checking */
 #if __option (extended_errorcheck)

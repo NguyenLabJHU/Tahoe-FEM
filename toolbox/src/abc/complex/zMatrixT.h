@@ -1,7 +1,5 @@
-/* $Id: zMatrixT.h,v 1.6 2002-07-05 22:26:18 paklein Exp $ */
-/* created: paklein (05/19/1997)                                          */
-/* 2 dimensional matrix mathematics object.                               */
-
+/* $Id: zMatrixT.h,v 1.7 2003-11-21 22:41:33 paklein Exp $ */
+/* created: paklein (05/19/1997) */
 #ifndef _ZMATRIX_T_H_
 #define _ZMATRIX_T_H_
 
@@ -16,19 +14,20 @@ namespace Tahoe {
 /* forward declarations */
 class dMatrixT;
 
+/** two-dimensional matrix mathematics object */
 class zMatrixT: public nMatrixT<ComplexT>
 {
 public:
 
-	/*
-	 * constructor
-	 */
+	/** \name constructor */
+	/*@{*/
 	zMatrixT(void);
 	zMatrixT(int numrows, int numcols);
 	explicit zMatrixT(int squaredim);
-	zMatrixT(int numrows, int numcols, ComplexT* p);
+	zMatrixT(int numrows, int numcols, const ComplexT* p);
 	zMatrixT(const dMatrixT& re, const dMatrixT& im);
 	zMatrixT(const zMatrixT& source);
+	/*@}*/
 	
 	/*
 	 * I/O operators

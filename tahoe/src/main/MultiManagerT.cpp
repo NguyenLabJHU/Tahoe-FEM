@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.3 2003-11-04 01:13:16 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.4 2003-11-21 22:47:52 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -292,7 +292,7 @@ void MultiManagerT::WriteOutput(double time)
 	/* compute the fine scale part of the field */
 	for (int i = 0; i < source_points.Length(); i++)
 	{
-		double* p_total = total(source_points[i]);
+		const double* p_total = total(source_points[i]);
 		double* p_crse = coarse(i);
 		double* p_crse_out = n_values(i);
 		double* p_fine_out = p_crse_out + ndof;

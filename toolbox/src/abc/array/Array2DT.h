@@ -1,4 +1,4 @@
-/* $Id: Array2DT.h,v 1.9 2003-09-17 01:26:20 paklein Exp $ */
+/* $Id: Array2DT.h,v 1.10 2003-11-21 22:41:30 paklein Exp $ */
 /* created: paklein (11/02/1998) */
 #ifndef _ARRAY2D_T_H_
 #define _ARRAY2D_T_H_
@@ -14,16 +14,23 @@ class Array2DT: public ArrayT<TYPE>
 {
 public:
 
-	/* constructors */
+	/** \name constructors */
+	/*@{*/
 	Array2DT(void);
 	Array2DT(int majordim, int minordim);
-	Array2DT(int majordim, int minordim, TYPE* TYPEPtr);
 	Array2DT(const Array2DT& source);
 
-	/* destructor */
+	/** construct an alias */
+	Array2DT(int majordim, int minordim, const TYPE* TYPEPtr);
+	/*@}*/
+
+	/** destructor */
 	~Array2DT(void);
 
-	/* set fields - convert to shallow object */
+	/** create alias */
+	void Alias(int majordim, int minordim, const TYPE* TYPEPtr);
+
+	/** \deprecated replaced with Array2DT::Alias */
 	void Set(int majordim, int minordim, TYPE* TYPEPtr);
 
 	/** set the array size to the given dimensions. No change occurs if the array
@@ -38,24 +45,31 @@ public:
 	/** \deprecated replaced by Array2DT::Dimension on 02/13/2002 */
 	void Allocate(int majordim, int minordim) { Dimension(majordim, minordim); };
 
-	/* resize to new major dimension, copying in at most what fits.
+	/** resize to new major dimension, copying in at most what fits.
 	 * extra space is initialized by specifying the fill. */
 	void Resize(int new_majordim);
 	void Resize(int new_majordim, const TYPE& fill);
 
-	/* exchange data */
+	/** exchange data */
 	void Swap(Array2DT<TYPE>& source);
 
 	/* free memory (if allocated) and set size to zero */
 	void Free(void);
 
-	/* dimensions */
+	/** \name dimensions */
+	/*@{*/
 	int MajorDim(void) const;
 	int MinorDim(void) const;
+	/*@}*/
 
-	/* accessors */
-	TYPE& operator()(int majordim, int minordim) const;
-	TYPE* operator()(int majordim) const;
+	/** \name accessors */
+	/*@{*/
+	TYPE& operator()(int majordim, int minordim);
+	const TYPE& operator()(int majordim, int minordim) const;
+
+	TYPE* operator()(int majordim);
+	const TYPE* operator()(int majordim) const;
+	/*@}*/
 
 	/** shallow copy of a row.
 	 * \param row row number to alias
@@ -67,10 +81,12 @@ public:
 	Array2DT<TYPE>& operator=(const TYPE& value);
 	void Alias(const Array2DT& RHS);
 
-	/* set values in batch */
+	/** \name set values in batch */
+	/*@{*/
 	void SetRow(int row, const TYPE& value);
 	void SetRow(int row, const TYPE* array);
 	void SetRow(int row, const ArrayT<TYPE>& array);
+	/*@}*/
 
 protected:
 
@@ -98,7 +114,7 @@ inline Array2DT<TYPE>::Array2DT(int majordim, int minordim)
 }
 
 template <class TYPE>
-inline Array2DT<TYPE>::Array2DT(int majordim, int minordim, TYPE* TYPEPtr):
+inline Array2DT<TYPE>::Array2DT(int majordim, int minordim, const TYPE* TYPEPtr):
 	ArrayT<TYPE>(majordim*minordim, TYPEPtr),
 	fMajorDim(majordim),
 	fMinorDim(minordim)
@@ -127,6 +143,18 @@ inline void Array2DT<TYPE>::Set(int majordim, int minordim,
 {
 	/* inherited */
 	ArrayT<TYPE>::Set(majordim*minordim,TYPEPtr);
+
+	/* set dimensions */
+	fMajorDim = majordim;
+	fMinorDim = minordim;
+}
+
+template <class TYPE>
+inline void Array2DT<TYPE>::Alias(int majordim, int minordim,
+	const TYPE* TYPEPtr)
+{
+	/* inherited */
+	ArrayT<TYPE>::Alias(majordim*minordim,TYPEPtr);
 
 	/* set dimensions */
 	fMajorDim = majordim;
@@ -211,7 +239,7 @@ inline int Array2DT<TYPE>::MinorDim(void) const { return fMinorDim; }
 
 /* accessors */
 template <class TYPE>
-inline TYPE& Array2DT<TYPE>::operator()(int majordim, int minordim) const
+inline TYPE& Array2DT<TYPE>::operator()(int majordim, int minordim)
 {
 /* range checking */
 #if __option (extended_errorcheck)
@@ -223,7 +251,30 @@ if (majordim < 0 || majordim >= fMajorDim ||
 }
 
 template <class TYPE>
-inline TYPE* Array2DT<TYPE>::operator()(int majordim) const
+inline const TYPE& Array2DT<TYPE>::operator()(int majordim, int minordim) const
+{
+/* range checking */
+#if __option (extended_errorcheck)
+if (majordim < 0 || majordim >= fMajorDim ||
+	minordim < 0 || minordim >= fMinorDim) throw ExceptionT::kOutOfRange;
+#endif
+
+	return fArray[majordim*fMinorDim + minordim];
+}
+
+template <class TYPE>
+inline TYPE* Array2DT<TYPE>::operator()(int majordim)
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
+#endif
+
+	return fArray + majordim*fMinorDim ;
+}
+
+template <class TYPE>
+inline const TYPE* Array2DT<TYPE>::operator()(int majordim) const
 {
 /* range checking */
 #if __option (extended_errorcheck)

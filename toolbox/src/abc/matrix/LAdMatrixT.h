@@ -1,4 +1,4 @@
-/* $Id: LAdMatrixT.h,v 1.4 2002-07-05 22:26:18 paklein Exp $ */
+/* $Id: LAdMatrixT.h,v 1.5 2003-11-21 22:41:36 paklein Exp $ */
 /* created: paklein (12/05/1996)                                          */
 /* dMatrixT with some linear algebra functions                            */
 
@@ -31,8 +31,7 @@ public:
 	/* Note: matrix overwritten during solution!              */
 	void LinearSolve(dArrayT& RHS);
 	void LinearSolve2(dArrayT& RHS); /* skips zeroes */
-	
-	
+
 //*****************************************************************
 // Iterative  routine -- BiCGSTAB
 //
@@ -74,8 +73,6 @@ public:
 //*****************************************************************
 	int BiCGStab(dArrayT& x ,const dArrayT& RHS ,const double   M , int max_it , double tol );
 	int BiCGStab(dArrayT& x ,const dArrayT& RHS ,const dArrayT& M , int max_it , double tol );
-
-	
 
 	/* assignment operators */
 	LAdMatrixT& operator=(const dMatrixT& RHS);

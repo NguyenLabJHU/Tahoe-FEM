@@ -1,4 +1,4 @@
-/* $Id: CBLatticeT.cpp,v 1.4 2003-03-31 23:14:38 paklein Exp $ */
+/* $Id: CBLatticeT.cpp,v 1.5 2003-11-21 22:46:16 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "CBLatticeT.h"
 
@@ -148,7 +148,7 @@ void CBLatticeT::BatchBondTensor2_2D(dArray2DT& comptable) const
 
 	for (int i = 0; i < fNumBonds; i++)
 	{
-		double* pbond = fBonds(i);
+		const double* pbond = fBonds(i);
 		double* pcomp = comptable(i);
 	
 		double R0 = pbond[0];
@@ -167,7 +167,7 @@ void CBLatticeT::BatchBondTensor2_3D(dArray2DT& comptable) const
 
 	for (int i = 0; i < fNumBonds; i++)
 	{
-		double* pbond = fBonds(i);
+		const double* pbond = fBonds(i);
 		double* pcomp = comptable(i);
 	
 		double R0 = pbond[0];

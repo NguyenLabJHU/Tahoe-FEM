@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.17 2003-11-10 22:14:17 cjkimme Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.18 2003-11-21 22:41:44 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 #include "JoinOutputT.h"
 
@@ -665,7 +665,7 @@ void JoinOutputT::SetAssemblyMap(const iArrayT& inv_global, int shift, const iAr
 	int n_map = local.Length();
 	lg_map.Dimension(n_map);
 //	int dex = 0;
-	int*  p = local.Pointer();
+	const int*  p = local.Pointer();
 	for (int j = 0; j < n_map; j++)
 	{
 		int dex = inv_global[*p++ - shift];

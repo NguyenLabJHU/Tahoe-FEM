@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.h,v 1.10 2002-07-05 22:26:19 paklein Exp $ */
+/* $Id: dMatrixEXT.h,v 1.11 2003-11-21 22:41:36 paklein Exp $ */
 /* created: paklein (03/06/1998) */
 
 #ifndef _DMATRIXEX_T_H_
@@ -22,7 +22,7 @@ public:
 	/* constructor */
 	dMatrixEXT(void);
 	explicit dMatrixEXT(int squaredim);
-	dMatrixEXT(int squaredim, double* p);
+	dMatrixEXT(int squaredim, const double* p);
 
 	/** dimension to a square matrix */
 	void Dimension(int squaredim);
@@ -132,7 +132,8 @@ private:
 	int svdcmp(double* a, int m, int n, double* w, double* v, double* rv1, int max_its) const;
 
 	/** back substitute SVD */
-	void svbksb(double* u, double* w, double* v, int m, int n, double* b, double* x, double* tmp) const;
+	void svbksb(const double* u, const double* w, const double* v, int m, int n, 
+		const double* b, double* x, double* tmp) const;
 
 private:
 

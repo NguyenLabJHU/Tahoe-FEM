@@ -1,4 +1,4 @@
-/* $Id: iAutoArrayT.cpp,v 1.8 2003-11-04 01:20:54 paklein Exp $ */
+/* $Id: iAutoArrayT.cpp,v 1.9 2003-11-21 22:41:30 paklein Exp $ */
 /* created: paklein (02/08/1999) */
 #include "iAutoArrayT.h"
 
@@ -17,7 +17,7 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<iAutoArrayT>::fByteCopy = false;
 /* max and min */
 int iAutoArrayT::Max(void) const
 {
-	int* pthis = Pointer();
+	const int* pthis = Pointer();
 	int  max   = *pthis++;
 	for (int i = 1; i < Length(); i++)
 	{
@@ -29,7 +29,7 @@ int iAutoArrayT::Max(void) const
 
 int iAutoArrayT::Min(void) const
 {
-	int* pthis = Pointer();
+	const int* pthis = Pointer();
 	int  min   = *pthis++;
 	for (int i = 1; i < Length(); i++)
 	{
@@ -41,7 +41,7 @@ int iAutoArrayT::Min(void) const
 
 void iAutoArrayT::MinMax(int& min, int& max) const
 {
-	int* pthis = Pointer();
+	const int* pthis = Pointer();
 	min = max = *pthis++;
 	for (int i = 1; i < Length(); i++)
 	{
@@ -67,7 +67,7 @@ void iAutoArrayT::ChangeValue(int from, int to)
 int	iAutoArrayT::Count(int value) const
 {
 	int count = 0;
-	int* pthis = Pointer();
+	const int* pthis = Pointer();
 	for (int i = 0; i < Length(); i++)
 		if (*pthis++ == value) count++;
 		
@@ -77,7 +77,7 @@ int	iAutoArrayT::Count(int value) const
 namespace Tahoe {
 ostream& operator<<(ostream& out, const iAutoArrayT& array)
 {
-	int* p = array.Pointer();
+	const int* p = array.Pointer();
 	for (int i = 0; i < array.Length(); i++)
 		out << setw(kIntWidth) << *p++ << '\n';
 

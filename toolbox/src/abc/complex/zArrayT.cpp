@@ -1,6 +1,5 @@
-/* $Id: zArrayT.cpp,v 1.9 2002-10-20 22:38:52 paklein Exp $ */
-/* created: PAK/AFLP (05/19/1997)                                         */
-
+/* $Id: zArrayT.cpp,v 1.10 2003-11-21 22:41:33 paklein Exp $ */
+/* created: PAK/AFLP (05/19/1997) */
 #include "zArrayT.h"
 
 #include <iostream.h>
@@ -8,15 +7,11 @@
 #include "toolboxConstants.h"
 #include "dArrayT.h"
 
-/*
-* constructor
-*/
-
 using namespace Tahoe;
 
 zArrayT::zArrayT(void) { }
 zArrayT::zArrayT(int length): nArrayT<ComplexT>(length) { }
-zArrayT::zArrayT(int length, ComplexT* p): nArrayT<ComplexT>(length,p) { }
+zArrayT::zArrayT(int length, const ComplexT* p): nArrayT<ComplexT>(length,p) { }
 zArrayT::zArrayT(const dArrayT& re, const dArrayT& im)
 {
 	toZ(re,im);
@@ -75,7 +70,7 @@ zArrayT& zArrayT::Conjugate(const zArrayT& array)
   if (array.Length() != Length()) throw ExceptionT::kSizeMismatch;
 
   ComplexT* pLHS = Pointer();
-  ComplexT* pRHS = array.Pointer();
+  const ComplexT* pRHS = array.Pointer();
   int length = Length();
   for(int i = 0; i < length; i++)
 	(*pLHS++).Conjugate(*pRHS++);

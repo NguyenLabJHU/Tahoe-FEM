@@ -1,4 +1,4 @@
-/* $Id: GaussIsokineticT.cpp,v 1.7 2003-10-30 17:15:21 paklein Exp $ */
+/* $Id: GaussIsokineticT.cpp,v 1.8 2003-11-21 22:47:11 paklein Exp $ */
 #include "GaussIsokineticT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -55,7 +55,7 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 
 	double denom = 0.;
 	double num = 0.;
-	double* v_j;
+	const double* v_j;
 	double* f_j;
 	int tag_j, currType, natoms;
 	double mass;

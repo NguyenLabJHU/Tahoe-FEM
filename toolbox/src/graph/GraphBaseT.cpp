@@ -1,4 +1,4 @@
-/* $Id: GraphBaseT.cpp,v 1.14 2003-11-10 22:14:32 cjkimme Exp $ */
+/* $Id: GraphBaseT.cpp,v 1.15 2003-11-21 22:41:54 paklein Exp $ */
 /* created: paklein (04/13/1999) */
 #include "GraphBaseT.h"
 
@@ -286,7 +286,7 @@ void GraphBaseT::ReturnDegrees(const ArrayT<int>& nodes, ArrayT<int>& degrees) c
 	if (nodes.Length() != degrees.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
-	int* pnodes   = nodes.Pointer();
+	const int* pnodes = nodes.Pointer();
 	int* pdegrees = degrees.Pointer();
 	int length = nodes.Length();
 	for (int i = 0; i < length; i++)
@@ -321,7 +321,7 @@ void GraphBaseT::Write(ostream& out) const
 	iArrayT temp;
 	for (int i = 0; i < fEdgeList.MajorDim(); i++)
 	{
-		temp.Set(fEdgeList.MinorDim(i), fEdgeList(i));
+		temp.Alias(fEdgeList.MinorDim(i), fEdgeList(i));
 		
 		out << setw(kIntWidth) << fShift + i;
 		temp++;
@@ -523,8 +523,8 @@ int GraphBaseT::SetGains(const GraphBaseT& graph, const iArrayT& partition,
 	gain = 0;
 	for (int i = 0; i < nnd; i++)
 	{
-		int  degree = graph.Degree(i);
-		int*  edges = graph.Edges(i);
+		int degree = graph.Degree(i);
+		const int* edges = graph.Edges(i);
 		int* gain_i = gain(i);
 		for (int j = 0; j < degree; j++)
 			gain_i[partition[*edges++]]++;
@@ -577,8 +577,8 @@ void GraphBaseT::SetMoves(const iArray2DT& gain, const iArrayT& partition,
 	max  =-1;
 	for (int k = 0; k < nnd; k++)
 	{
-		int* gain_k = gain(k);
-		int  part_k = partition[k];
+		const int* gain_k = gain(k);
+		int part_k = partition[k];
 //		int   dim_k = gain_k[part_k];
 		for (int j = 0; j < dim; j++)
 		{
@@ -684,8 +684,8 @@ int GraphBaseT::ApplyMoves(const GraphBaseT& graph, const iArrayT& move,
 				cuts -= gain_l[part_f];
 		
 				/* local data */
-				int  degree = graph.Degree(node);
-				int*  edges = graph.Edges(node);
+				int degree = graph.Degree(node);
+				const int* edges = graph.Edges(node);
 				for (int i = 0; i < degree; i++)
 				{
 					int nd = *edges++;

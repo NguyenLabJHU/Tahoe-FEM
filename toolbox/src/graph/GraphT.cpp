@@ -1,4 +1,4 @@
-/* $Id: GraphT.cpp,v 1.14 2003-06-03 21:43:03 cjkimme Exp $ */
+/* $Id: GraphT.cpp,v 1.15 2003-11-21 22:41:54 paklein Exp $ */
 #include "GraphT.h"
 
 #include <time.h>
@@ -92,7 +92,7 @@ void GraphT::MakeGraph(void)
 	{
 		int  nel = currgroup->MajorDim();
 		int  nen = currgroup->MinorDim();
-		int* ien = currgroup->Pointer();
+		const int* ien = currgroup->Pointer();
 		for (int k = 0; k < nel; k++)
 		{
 			for (int i = 0; i < nen; i++)
@@ -122,8 +122,8 @@ void GraphT::MakeGraph(void)
 		int  nel = raggroup->MajorDim();
 		for (int k = 0; k < nel; k++)
 		{
-			int  nen = raggroup->MinorDim(k);
-			int* ien = (*raggroup)(k);
+			int nen = raggroup->MinorDim(k);
+			const int* ien = (*raggroup)(k);
 			for (int i = 0; i < nen; i++)
 			{	
 				int r_i = ien[i];
@@ -149,7 +149,7 @@ void GraphT::MakeGraph(void)
 	{	
 		int  nel = currEquiv->MajorDim();
 		int  nen = currEquiv->MinorDim();
-		int* ien = currEquiv->Pointer();
+		const int* ien = currEquiv->Pointer();
 		iArrayT row_i, row_j;
 		for (int k = 0; k < nel; k++)
 		{
@@ -250,7 +250,7 @@ void GraphT::MakeGraph(const iArrayT& active_rows, bool add_self)
 	int range = fMaxNodeNum - fMinNodeNum + 1;
 	iArrayT active(range);
 	active = 0;
-	int* pactiverow = active_rows.Pointer();
+	const int* pactiverow = active_rows.Pointer();
 	int num_active = active_rows.Length();
 	for (int i = 0; i < num_active; i++)
 		active[*pactiverow++ - fShift] = 1;		
@@ -262,7 +262,7 @@ void GraphT::MakeGraph(const iArrayT& active_rows, bool add_self)
 	/* initialize all lists with self */
 	if (add_self)
 	{
-		int* pactiverow = active_rows.Pointer();
+		const int* pactiverow = active_rows.Pointer();
 		for (int i = 0; i < num_active; i++)
 		{
 			int r_i = *pactiverow++;
@@ -277,7 +277,7 @@ void GraphT::MakeGraph(const iArrayT& active_rows, bool add_self)
 	{
 		int  nel = currgroup->MajorDim();
 		int  nen = currgroup->MinorDim();
-		int* ien = currgroup->Pointer(); //OFFSET 1,...
+		const int* ien = currgroup->Pointer(); //OFFSET 1,...
 		for (int k = 0; k < nel; k++)
 		{
 			for (int i = 0; i < nen; i++)
@@ -318,8 +318,8 @@ void GraphT::MakeGraph(const iArrayT& active_rows, bool add_self)
 		int  nel = raggroup->MajorDim();
 		for (int k = 0; k < nel; k++)
 		{
-			int  nen = raggroup->MinorDim(k);
-			int* ien = (*raggroup)(k); //OFFSET 1,...
+			int nen = raggroup->MinorDim(k);
+			const int* ien = (*raggroup)(k); //OFFSET 1,...
 
 			for (int i = 0; i < nen; i++)
 			{	
@@ -376,7 +376,7 @@ void GraphT::MakeGraph(const iArrayT& active_rows, bool add_self, bool upper_onl
 		int range = fMaxNodeNum - fMinNodeNum + 1;
 		iArrayT active(range);
 		active = 0;
-		int* pactiverow = active_rows.Pointer();
+		const int* pactiverow = active_rows.Pointer();
 		int num_active = active_rows.Length();
 		for (int i = 0; i < num_active; i++)
 			active[*pactiverow++ - fShift] = 1;		
@@ -388,7 +388,7 @@ void GraphT::MakeGraph(const iArrayT& active_rows, bool add_self, bool upper_onl
 		/* initialize all lists with self */
 		if (add_self)
 		{
-			int* pactiverow = active_rows.Pointer();
+			const int* pactiverow = active_rows.Pointer();
 			for (int i = 0; i < num_active; i++)
 			{
 				int r_i = *pactiverow++;
@@ -403,7 +403,7 @@ void GraphT::MakeGraph(const iArrayT& active_rows, bool add_self, bool upper_onl
 		{
 			int  nel = currgroup->MajorDim();
 			int  nen = currgroup->MinorDim();
-			int* ien = currgroup->Pointer(); //OFFSET 1,...
+			const int* ien = currgroup->Pointer(); //OFFSET 1,...
 			for (int k = 0; k < nel; k++)
 			{
 				for (int i = 0; i < nen; i++)
@@ -440,8 +440,8 @@ void GraphT::MakeGraph(const iArrayT& active_rows, bool add_self, bool upper_onl
 			int  nel = raggroup->MajorDim();		
 			for (int k = 0; k < nel; k++)
 			{
-				int  nen = raggroup->MinorDim(k);
-				int* ien = (*raggroup)(k); //OFFSET 1,...
+				int nen = raggroup->MinorDim(k);
+				const int* ien = (*raggroup)(k); //OFFSET 1,...
 				for (int i = 0; i < nen; i++)
 				{	
 					int r_i = ien[i];

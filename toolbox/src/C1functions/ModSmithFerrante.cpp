@@ -1,4 +1,4 @@
-/* $Id: ModSmithFerrante.cpp,v 1.4 2003-11-11 01:49:32 rjones Exp $ */
+/* $Id: ModSmithFerrante.cpp,v 1.5 2003-11-21 22:41:27 paklein Exp $ */
 
 /* Smith Ferrante modified to have a linear branch */
 
@@ -63,7 +63,7 @@ dArrayT& ModSmithFerrante::MapFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pU = out.Pointer();
 	double x;
 	
@@ -80,7 +80,7 @@ dArrayT& ModSmithFerrante::MapDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl  = in.Pointer();
+	const double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
 	double x;
 	
@@ -97,7 +97,7 @@ dArrayT& ModSmithFerrante::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl   = in.Pointer();
+	const double* pl   = in.Pointer();
 	double* pddU = out.Pointer();
 	double x;
 	

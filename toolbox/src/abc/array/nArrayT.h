@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.22 2003-11-10 22:14:03 cjkimme Exp $ */
+/* $Id: nArrayT.h,v 1.23 2003-11-21 22:41:30 paklein Exp $ */
 /* created: paklein (05/23/1997) */
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
@@ -41,10 +41,10 @@ public:
 	 * \param length length of dynamically allocated space */
 	explicit nArrayT(int length);
 
-	/** construct a shallow array.
+	/** construct an alias
 	 * \param length logical size of the array
 	 * \param TYPEPtr pointer to the memory to use */
-	nArrayT(int length, nTYPE* TYPEPtr);
+	nArrayT(int length, const nTYPE* TYPEPtr);
 
 	/** copy constructor */
 	nArrayT(const nArrayT& source);
@@ -217,7 +217,7 @@ istream& operator>>(istream& in, nArrayT<nTYPE>& array)
 template <class nTYPE>
 ostream& operator<<(ostream& out, const nArrayT<nTYPE>& array)
 {
-	nTYPE* p = array.Pointer();
+	const nTYPE* p = array.Pointer();
 	int width = OutputWidth(out, p);
 	for (int i = 0; i < array.Length(); i++)
 	{
@@ -307,7 +307,7 @@ template <class nTYPE>
 inline nArrayT<nTYPE>::nArrayT(int length): ArrayT<nTYPE>(length) { }
 
 template <class nTYPE>
-inline nArrayT<nTYPE>::nArrayT(int length, nTYPE* MATHTYPEPtr):
+inline nArrayT<nTYPE>::nArrayT(int length, const nTYPE* MATHTYPEPtr):
 	ArrayT<nTYPE>(length, MATHTYPEPtr) { }
 
 template <class nTYPE>
@@ -318,7 +318,7 @@ inline nArrayT<nTYPE>::nArrayT(const nArrayT& source):
 template <class nTYPE>
 void nArrayT<nTYPE>::WriteNoWrap(ostream& out) const
 {
-	nTYPE*  p = Pointer();
+	const nTYPE* p = Pointer();
 	int width = OutputWidth(out, p);
 	for (int i = 0; i < Length(); i++)
 		out << setw(width) << p[i];
@@ -327,7 +327,7 @@ void nArrayT<nTYPE>::WriteNoWrap(ostream& out) const
 template <class nTYPE>
 void nArrayT<nTYPE>::WriteNoWrapTight(ostream& out) const
 {
-	nTYPE*  p = Pointer();
+	const nTYPE* p = Pointer();
 	for (int i = 0; i < Length(); i++)
 		out << " " << p[i];
 }
@@ -335,7 +335,7 @@ void nArrayT<nTYPE>::WriteNoWrapTight(ostream& out) const
 template <class nTYPE>
 void nArrayT<nTYPE>::WriteWrapped(ostream& out, int linecount, int tab) const
 {
-	nTYPE*  p = Pointer();
+	const nTYPE*  p = Pointer();
 	int width = OutputWidth(out, p);
 	int count = 0;
 	for (int i = 0; i < Length(); i++)
@@ -358,7 +358,7 @@ void nArrayT<nTYPE>::WriteWrapped(ostream& out, int linecount, int tab) const
 template <class nTYPE>
 void nArrayT<nTYPE>::WriteWrappedTight(ostream& out, int linecount) const
 {
-	nTYPE*  p = Pointer();
+	const nTYPE*  p = Pointer();
 //	int width = OutputWidth(out, p);
 	int count = 0;
 	for (int i = 0; i < Length(); i++)
@@ -473,7 +473,7 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator*=(const nArrayT& RHS)
 #endif
 
 	nTYPE* pthis = Pointer();
-	nTYPE* pRHS  = RHS.Pointer();
+	const nTYPE* pRHS  = RHS.Pointer();
 	for (int i = 0; i < fLength; i++)
 		*pthis++ *= *pRHS++;
 		
@@ -499,7 +499,7 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator/=(const nArrayT& RHS)
 #endif
 
 	nTYPE* pthis = Pointer();
-	nTYPE* pRHS  = RHS.Pointer();
+	const nTYPE* pRHS  = RHS.Pointer();
 	for (int i = 0; i < fLength; i++)
 		*pthis++ /= *pRHS++;
 		
@@ -546,11 +546,9 @@ template <class nTYPE>
 inline nTYPE nArrayT<nTYPE>::Sum(void) const
 {
 	register nTYPE sum = nTYPE(0.0);
-	nTYPE* p = Pointer();
-	
+	const nTYPE* p = Pointer();
 	for (int i = 0; i < fLength; i++)
 		sum += *p++;
-
 	return sum;
 }
 
@@ -558,10 +556,9 @@ template <class nTYPE>
 inline nTYPE nArrayT<nTYPE>::AbsSum(void) const
 {
 	register nTYPE sum = nTYPE(0.0);
-	nTYPE* p = Pointer();
+	const nTYPE* p = Pointer();
 	for (int i = 0; i < fLength; i++)
 		sum += fabs(*p++);
-
 	return sum;
 }
 
@@ -575,10 +572,9 @@ template <class nTYPE>
 inline nTYPE nArrayT<nTYPE>::Product(void) const
 {
 	register nTYPE product = nTYPE(1.0);
-	nTYPE* p = Pointer();
+	const nTYPE* p = Pointer();
 	for (int i = 0; i < fLength; i++)
 		product *= *p++;
-
 	return product;
 }
 
@@ -590,8 +586,8 @@ nTYPE nArrayT<nTYPE>::Max(void) const
 	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
-	nTYPE* pthis = Pointer();
-	nTYPE  max   = *pthis++;
+	const nTYPE* pthis = Pointer();
+	nTYPE max = *pthis++;
 	for (int i = 1; i < Length(); i++)
 	{
 		if (*pthis > max) max = *pthis;
@@ -608,8 +604,8 @@ nTYPE nArrayT<nTYPE>::Max(int& position) const
 	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
-	nTYPE* pthis = Pointer();
-	nTYPE  max   = *pthis++;
+	const nTYPE* pthis = Pointer();
+	nTYPE max = *pthis++;
 	position = 0;
 	for (int i = 1; i < Length(); i++)
 	{
@@ -631,8 +627,8 @@ nTYPE nArrayT<nTYPE>::Min(void) const
 	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
-	nTYPE* pthis = Pointer();
-	nTYPE  min   = *pthis++;
+	const nTYPE* pthis = Pointer();
+	nTYPE min = *pthis++;
 	for (int i = 1; i < Length(); i++)
 	{
 		if (*pthis < min) min = *pthis;
@@ -649,7 +645,7 @@ nTYPE nArrayT<nTYPE>::Min(int& position) const
 	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
-	nTYPE* pthis = Pointer();
+	const nTYPE* pthis = Pointer();
 	nTYPE  min   = *pthis++;
 	position = 0;
 	for (int i = 1; i < Length(); i++)
@@ -672,7 +668,7 @@ nTYPE nArrayT<nTYPE>::AbsMax(void) const
 	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
-	nTYPE* pthis = Pointer();
+	const nTYPE* pthis = Pointer();
 	nTYPE abs, max = fabs(*pthis++);
 	for (int i = 1; i < Length(); i++)
 	{
@@ -690,7 +686,7 @@ nTYPE nArrayT<nTYPE>::AbsMin(void) const
 	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
-	nTYPE* pthis = Pointer();
+	const nTYPE* pthis = Pointer();
 	nTYPE abs, min = fabs(*pthis++);
 	for (int i = 1; i < Length(); i++)
 	{
@@ -712,7 +708,7 @@ void nArrayT<nTYPE>::MinMax(nTYPE& min, nTYPE& max,
 	/* ignore negative numbers */
 	if (positive_only)
 	{
-		nTYPE* pthis = Pointer();
+		const nTYPE* pthis = Pointer();
 		max = 0;
 		min = *pthis++;
 		for (int i = 1; i < Length(); i++)
@@ -733,7 +729,7 @@ void nArrayT<nTYPE>::MinMax(nTYPE& min, nTYPE& max,
 	}
 	else
 	{
-		nTYPE* pthis = Pointer();
+		const nTYPE* pthis = Pointer();
 		min = *pthis++;
 		max = min;
 		for (int i = 1; i < Length(); i++)
@@ -756,7 +752,7 @@ void nArrayT<nTYPE>::AbsMinMax(nTYPE& absmin, nTYPE& absmax) const
 #endif
 
 	nTYPE abs;
-	nTYPE* pthis = Pointer();
+	const nTYPE* pthis = Pointer();
 	absmax = absmin = fabs(*pthis++);
 	for (int i = 1; i < Length(); i++)
 	{
@@ -1006,8 +1002,8 @@ nTYPE nArrayT<nTYPE>::Distance(const nArrayT<nTYPE>& A1,
 	if (A1.Length() != A2.Length()) ExceptionT::SizeMismatch();
 #endif
 
-	nTYPE* p1 = A1.Pointer();
-	nTYPE* p2 = A2.Pointer();
+	const nTYPE* p1 = A1.Pointer();
+	const nTYPE* p2 = A2.Pointer();
 	
 	register nTYPE dot = 0.0;
 	register nTYPE temp;
@@ -1136,8 +1132,8 @@ void nArrayT<nTYPE>::SetToCombination(const nTYPE& a, const nArrayT& A,
 #endif
 
 	nTYPE* pthis = Pointer();
-	nTYPE* pA    = A.Pointer();
-	nTYPE* pB    = B.Pointer();
+	const nTYPE* pA = A.Pointer();
+	const nTYPE* pB = B.Pointer();
 
 	register nTYPE temp;
 	
@@ -1167,9 +1163,9 @@ void nArrayT<nTYPE>::SetToCombination(
 #endif
 
 	nTYPE* pthis = Pointer();
-	nTYPE* pA    = A.Pointer();
-	nTYPE* pB    = B.Pointer();
-	nTYPE* pC    = C.Pointer();
+	const nTYPE* pA = A.Pointer();
+	const nTYPE* pB = B.Pointer();
+	const nTYPE* pC = C.Pointer();
 
 	register nTYPE temp;
 	
@@ -1199,8 +1195,8 @@ void nArrayT<nTYPE>::AddCombination(const nTYPE& a, const nArrayT& A,
 #endif
 
 	nTYPE* pthis = Pointer();
-	nTYPE* pA    = A.Pointer();
-	nTYPE* pB    = B.Pointer();
+	const nTYPE* pA = A.Pointer();
+	const nTYPE* pB = B.Pointer();
 
 	register nTYPE temp;
 	
@@ -1225,7 +1221,7 @@ void nArrayT<nTYPE>::AddCombination(const nTYPE& a, const nArrayT& A)
 #endif
 
 	nTYPE* pthis = Pointer();
-	nTYPE* pA    = A.Pointer();
+	const nTYPE* pA = A.Pointer();
 
 	register nTYPE temp;
 	
@@ -1287,7 +1283,7 @@ void nArrayT<nTYPE>::WriteWithFormat(ostream& out, int width, int prec,
 	out.precision(prec);
 	
 	int     count = 0;
-	nTYPE* pthis = Pointer();
+	const nTYPE* pthis = Pointer();
 	
 	for (int i = 0; i < Length(); i++)
 	{

@@ -1,4 +1,4 @@
-/* $Id: iGridManager2DT.cpp,v 1.5 2003-01-27 06:42:48 paklein Exp $ */
+/* $Id: iGridManager2DT.cpp,v 1.6 2003-11-21 22:42:07 paklein Exp $ */
 /* created: paklein (12/09/1997) */
 #include "iGridManager2DT.h"
 #include "iArrayT.h"
@@ -23,7 +23,7 @@ void iGridManager2DT::Neighbors(int n, double tol, AutoArrayT<int>& neighbors)
 	neighbors.Dimension(0);
 	
 	/* fetch prospective neighbors */
-	double* target = fCoords(n);
+	const double* target = fCoords(n);
 	const AutoArrayT<iNodeT>& hits =  HitsInRegion(target, tol);
 
 	/* search through list */
@@ -32,7 +32,7 @@ void iGridManager2DT::Neighbors(int n, double tol, AutoArrayT<int>& neighbors)
 	for (int i = 0; i < hits.Length(); i++)
 		if (hits[i].Tag() != thistag)
 		{
-			double* coords = hits[i].Coords();
+			const double* coords = hits[i].Coords();
 			
 			double dx = target[0] - coords[0];
 			double dy = target[1] - coords[1];
@@ -58,7 +58,7 @@ void iGridManager2DT::Neighbors(int n, const ArrayT<double>& tol_xy,
 	neighbors.Dimension(0);
 	
 	/* fetch prospective neighbors */
-	double* target = fCoords(n);
+	const double* target = fCoords(n);
 	const AutoArrayT<iNodeT>& hits =  HitsInRegion(target, tol_xy);
 
 	/* search through list */
@@ -68,7 +68,7 @@ void iGridManager2DT::Neighbors(int n, const ArrayT<double>& tol_xy,
 	for (int i = 0; i < hits.Length(); i++)
 		if (hits[i].Tag() != thistag)
 		{
-			double* coords = hits[i].Coords();
+			const double* coords = hits[i].Coords();
 			
 			double dx = fabs(target[0] - coords[0]);
 			double dy = fabs(target[1] - coords[1]);
@@ -98,7 +98,7 @@ void iGridManager2DT::Reset(void)
 	else
 	{
 		iNodeT temp;
-		int* dex = fNodesUsed->Pointer();
+		const int* dex = fNodesUsed->Pointer();
 		for (int i = 0; i < fNodesUsed->Length(); i++)
 		{
 			int node = *dex++;

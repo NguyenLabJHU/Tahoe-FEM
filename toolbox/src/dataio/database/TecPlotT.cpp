@@ -1,4 +1,4 @@
-/* $Id: TecPlotT.cpp,v 1.6 2002-10-20 22:36:53 paklein Exp $ */
+/* $Id: TecPlotT.cpp,v 1.7 2003-11-21 22:41:46 paklein Exp $ */
 /* created: saw (06.06.2000)                                              */
 /* version 7.5                                                            */
 /* rules:                                                                 */
@@ -130,7 +130,7 @@ void TecPlotT::WriteData (ostream& out, const ArrayT<double>& data, const int ro
     {
       for (int j=0; j < cols; j++)
 	{
-	  double *p = data.Pointer(j);
+	  const double *p = data.Pointer(j);
 	  for (int k=0; k < rows; k++)
 	    {
 	      out << *p << " ";

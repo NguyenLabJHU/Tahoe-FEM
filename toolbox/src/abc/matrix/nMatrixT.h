@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.26 2003-11-07 20:08:38 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.27 2003-11-21 22:41:36 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _NMATRIX_T_H_
 #define _NMATRIX_T_H_
@@ -25,8 +25,10 @@ public:
 	nMatrixT(void);
 	nMatrixT(int numrows, int numcols);
 	explicit nMatrixT(int squaredim);
-	nMatrixT(int numrows, int numcols, nTYPE* p);	
 	nMatrixT(const nMatrixT& source);	
+
+	/** construct alias */
+	nMatrixT(int numrows, int numcols, const nTYPE* p);	
 	/*@}*/
 
 	/** destructor*/
@@ -46,8 +48,8 @@ public:
 
 	/** \name convert to a shallow object */
 	/*@{*/
-	void Alias(int numrows, int numcols, nTYPE* p);
-	void Alias(int dim, nTYPE* p) { Alias(dim, dim, p); };
+	void Alias(int numrows, int numcols, const nTYPE* p);
+	void Alias(int dim, const nTYPE* p) { Alias(dim, dim, p); };
 	void Alias(const nMatrixT& RHS);
 	/*@}*/
 
@@ -75,10 +77,16 @@ public:
 	/** \name accessors */
 	/*@{*/
 	/** return a single element of the matrix */
-	nTYPE& operator()(int nrow, int ncol) const;
+	nTYPE& operator()(int nrow, int ncol);
+
+	/** return a single element of the matrix */
+	const nTYPE& operator()(int nrow, int ncol) const;
 
 	/** return a pointer a column in the matrix */
-	nTYPE* operator()(int ncol) const;
+	nTYPE* operator()(int ncol);
+
+	/** return a pointer a column in the matrix */
+	const nTYPE* operator()(int ncol) const;
 	/*@}*/
 
 	/** \name accessing blocks
@@ -263,7 +271,7 @@ inline nMatrixT<nTYPE>::nMatrixT(int squaredim)
 }
 
 template <class nTYPE>
-inline nMatrixT<nTYPE>::nMatrixT(int numrows, int numcols, nTYPE* p)
+inline nMatrixT<nTYPE>::nMatrixT(int numrows, int numcols, const nTYPE* p)
 {
 	Alias(numrows, numcols, p);
 }
@@ -304,7 +312,7 @@ inline void nMatrixT<nTYPE>::Dimension(int squaredim)
 }
 
 template <class nTYPE>
-inline void nMatrixT<nTYPE>::Alias(int numrows, int numcols, nTYPE* p)
+inline void nMatrixT<nTYPE>::Alias(int numrows, int numcols, const nTYPE* p)
 {
 	/* inherited */
 	nArrayT<nTYPE>::Alias(numrows*numcols, p);
@@ -340,7 +348,21 @@ inline void nMatrixT<nTYPE>::Free(void)
 
 /* element accessor */
 template <class nTYPE>
-inline nTYPE& nMatrixT<nTYPE>::operator()(int nrow, int ncol) const
+inline nTYPE& nMatrixT<nTYPE>::operator()(int nrow, int ncol)
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (nrow < 0 ||
+	    nrow >= fRows ||
+	    ncol < 0 ||
+	    ncol >= fCols) throw ExceptionT::kOutOfRange;
+#endif
+	
+	return(fArray[ncol*fRows + nrow]);
+}
+
+template <class nTYPE>
+inline const nTYPE& nMatrixT<nTYPE>::operator()(int nrow, int ncol) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
@@ -355,7 +377,18 @@ inline nTYPE& nMatrixT<nTYPE>::operator()(int nrow, int ncol) const
 
 /* returns a pointer to the top of the specified column */
 template <class nTYPE>
-inline nTYPE* nMatrixT<nTYPE>::operator()(int ncol) const
+inline nTYPE* nMatrixT<nTYPE>::operator()(int ncol)
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (ncol < 0 || ncol >= fCols) throw ExceptionT::kOutOfRange;
+#endif
+	
+	return(fArray + ncol*fRows);
+}
+
+template <class nTYPE>
+inline const nTYPE* nMatrixT<nTYPE>::operator()(int ncol) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
@@ -373,12 +406,11 @@ const nMatrixT<nTYPE>& block)
 /* range checking */
 #if __option (extended_errorcheck)
 	if (row + block.Rows() > fRows ||
-	    col + block.Cols() > fCols) throw ExceptionT::kSizeMismatch;
+	    col + block.Cols() > fCols) ExceptionT::SizeMismatch("nMatrixT<nTYPE>::AddBlock");
 #endif
 
 	double* pstart = &(*this)(row,col);
-	double* pblock = block.Pointer();
-	
+	const double* pblock = block.Pointer();
 	for (int i = 0; i < block.Cols(); i++)
 	{
 		double* pcol = pstart;
@@ -396,12 +428,11 @@ const nMatrixT<nTYPE>& block)
 /* range checking */
 #if __option (extended_errorcheck)
 	if (row + block.Rows() > fRows ||
-	    col + block.Cols() > fCols) throw ExceptionT::kSizeMismatch;
+	    col + block.Cols() > fCols) ExceptionT::SizeMismatch("nMatrixT<nTYPE>::SetBlock");
 #endif
 
 	double* pstart = &(*this)(row,col);
-	double* pblock = block.Pointer();
-	
+	const double* pblock = block.Pointer();
 	for (int i = 0; i < block.Cols(); i++)
 	{
 		double* pcol = pstart;
@@ -419,14 +450,14 @@ void nMatrixT<nTYPE>::CopyBlock(int row, int col,
 /* range checking */
 #if __option (extended_errorcheck)
 	if (row + block.Rows() > fRows ||
-	    col + block.Cols() > fCols) throw ExceptionT::kSizeMismatch;
+	    col + block.Cols() > fCols) ExceptionT::SizeMismatch("nMatrixT<nTYPE>::CopyBlock");
 #endif
 
-	double* pstart = &(*this)(row,col);
+	const double* pstart = &(*this)(row,col);
 	double* pblock = block.Pointer();
 	for (int i = 0; i < block.Cols(); i++)
 	{
-		double* pcol = pstart;
+		const double* pcol = pstart;
 		for (int j = 0; j < block.Rows(); j++)
 			*pblock++ = *pcol++;
 		pstart += fRows;
@@ -440,14 +471,14 @@ void nMatrixT<nTYPE>::CopyBlock(const ArrayT<int>& rc,
 /* range checking */
 #if __option (extended_errorcheck)
 	if (block.Rows() != block.Cols() ||
-	    block.Cols() != rc.Length()) throw ExceptionT::kSizeMismatch;
+	    block.Cols() != rc.Length()) ExceptionT::SizeMismatch("nMatrixT<nTYPE>::CopyBlock");
 #endif
 	
 	nTYPE* pblock = block.Pointer();
 	for (int j = 0; j < rc.Length(); j++)
 	{
-		nTYPE* pcol = (*this)(rc[j]);
-		int* prc = rc.Pointer();
+		const nTYPE* pcol = (*this)(rc[j]);
+		const int* prc = rc.Pointer();
 		for (int i = 0; i < rc.Length(); i++)
 			*pblock++ = pcol[*prc++];
 	}
@@ -460,15 +491,15 @@ void nMatrixT<nTYPE>::CopyBlock(const ArrayT<int>& r,
 /* range checking */
 #if __option (extended_errorcheck)
 	if (block.Rows() != r.Length() ||
-	    block.Cols() != c.Length()) throw ExceptionT::kSizeMismatch;
+	    block.Cols() != c.Length()) ExceptionT::SizeMismatch("nMatrixT<nTYPE>::CopyBlock");
 #endif
 	
 	nTYPE* pblock = block.Pointer();
-	int* pc = c.Pointer();
+	const int* pc = c.Pointer();
 	for (int j = 0; j < c.Length(); j++)
 	{
-		nTYPE* pcol = (*this)(*pc++);
-		int* pr = r.Pointer();
+		const nTYPE* pcol = (*this)(*pc++);
+		const int* pr = r.Pointer();
 		for (int i = 0; i < r.Length(); i++)
 			*pblock++ = pcol[*pr++];
 	}
@@ -530,8 +561,8 @@ void nMatrixT<nTYPE>::CopyRow(int rownum, ArrayT<nTYPE>& row) const
 	if (rownum < 0 || rownum >= fRows) throw ExceptionT::kOutOfRange;
 #endif
 
-	nTYPE* prow  = row.Pointer();
-	nTYPE* pthis = Pointer() + rownum;
+	nTYPE* prow = row.Pointer();
+	const nTYPE* pthis = Pointer() + rownum;
 	for (int i = 0; i < fCols; i++)
 	{
 		*prow++ = *pthis;
@@ -552,7 +583,7 @@ void nMatrixT<nTYPE>::CopyFromRow(int rownum, int start_col,
 
 	int num_vals = row.Length();
 	nTYPE* prow  = row.Pointer();
-	nTYPE* pthis = Pointer(start_col) + rownum;
+	const nTYPE* pthis = Pointer(start_col) + rownum;
 	for (int i = 0; i < fCols; i++)
 	{
 		*prow++ = *pthis;
@@ -771,8 +802,8 @@ void nMatrixT<nTYPE>::MultAB(const nMatrixT& A, const nMatrixT& B, int upper)
 	/* 2 x 2 specialization */
 	if (fRows == 2 && fCols == 2 && A.fCols == 2) {
 		nTYPE* c = Pointer();
-		nTYPE* a = A.Pointer();
-		nTYPE* b = B.Pointer();
+		const nTYPE* a = A.Pointer();
+		const nTYPE* b = B.Pointer();
 
 		c[0] = a[0]*b[0] + a[2]*b[1];
 		c[1] = a[1]*b[0] + a[3]*b[1];
@@ -782,8 +813,8 @@ void nMatrixT<nTYPE>::MultAB(const nMatrixT& A, const nMatrixT& B, int upper)
 	/* 3 x 3 specialization */
 	else if (fRows == 3 && fCols == 3 && A.fCols == 3) {
 		nTYPE* c = Pointer();
-		nTYPE* a = A.Pointer();
-		nTYPE* b = B.Pointer();
+		const nTYPE* a = A.Pointer();
+		const nTYPE* b = B.Pointer();
 
 		c[0] = a[0]*b[0] + a[3]*b[1] + a[6]*b[2];
 		c[1] = a[1]*b[0] + a[4]*b[1] + a[7]*b[2];
@@ -797,23 +828,23 @@ void nMatrixT<nTYPE>::MultAB(const nMatrixT& A, const nMatrixT& B, int upper)
 	}
 	else if (!upper)	/* entire matrix */		
 	{		
-		int        dotcount = A.fCols;
-		nTYPE*	c       = Pointer();
-		nTYPE*	BCol    = B.Pointer();
+		int dotcount = A.fCols;
+		nTYPE* c = Pointer();
+		const nTYPE* BCol = B.Pointer();
 
 		register nTYPE temp;
 		register nTYPE sum;
 		
 		for (int Bcol = 0; Bcol < fCols; Bcol++)
 		{
-			nTYPE*ARow = A.Pointer();
+			const nTYPE* ARow = A.Pointer();
 		 		 	
 			for (int Arow = 0; Arow < fRows; Arow++)
 			{
 				sum = 0.0;
 				
-				nTYPE* AR = ARow;
-				nTYPE* BC = BCol;
+				const nTYPE* AR = ARow;
+				const nTYPE* BC = BCol;
 				
 				for (int i = 0; i < dotcount; i++)
 				{
@@ -838,8 +869,8 @@ void nMatrixT<nTYPE>::MultAB(const nMatrixT& A, const nMatrixT& B, int upper)
 		if (fRows != fCols) throw ExceptionT::kGeneralFail;
 #endif
 		
-		int 	  dotcount = A.fCols;
-		nTYPE* BCol     = B.Pointer();
+		int dotcount = A.fCols;
+		const nTYPE* BCol = B.Pointer();
 		
 		register nTYPE temp;
 		register nTYPE sum;
@@ -847,13 +878,13 @@ void nMatrixT<nTYPE>::MultAB(const nMatrixT& A, const nMatrixT& B, int upper)
 		for (int Bcol = 0; Bcol < fCols; Bcol++)
 		{
 			nTYPE*  c   = Pointer() + Bcol*fRows;
-		 	nTYPE* ARow = A.Pointer();
+		 	const nTYPE* ARow = A.Pointer();
 		 	 	
 			for (int Arow = 0; Arow <= Bcol; Arow++)
 			{
 				sum = 0.0;
-				nTYPE* AR = ARow;
-				nTYPE* BC = BCol;
+				const nTYPE* AR = ARow;
+				const nTYPE* BC = BCol;
 				
 				for (int i = 0; i < dotcount; i++)
 				{
@@ -887,22 +918,22 @@ void nMatrixT<nTYPE>::MultATB(const nMatrixT& A, const nMatrixT& B, int upper)
 
 	if (!upper)	/* entire matrix */
 	{
-		int		  dotcount = A.fRows;
-		nTYPE*  c       = Pointer();
-		nTYPE*  BCol    = B.Pointer();
+		int dotcount = A.fRows;
+		nTYPE* c = Pointer();
+		const nTYPE* BCol = B.Pointer();
 		
 		register nTYPE temp;
 		register nTYPE sum;
 		
 		for (int Bcol = 0; Bcol < fCols; Bcol++)
 		{
-			nTYPE* ACol = A.Pointer();
+			const nTYPE* ACol = A.Pointer();
 		 		 	
 			for (int Acol = 0; Acol < fRows; Acol++)
 			{
 				sum = 0.0;
-				nTYPE* AC = ACol;
-				nTYPE* BC = BCol;
+				const nTYPE* AC = ACol;
+				const nTYPE* BC = BCol;
 				
 				for (int i = 0; i < dotcount; i++)
 				{
@@ -926,22 +957,22 @@ void nMatrixT<nTYPE>::MultATB(const nMatrixT& A, const nMatrixT& B, int upper)
 		if(fRows != fCols) throw ExceptionT::kGeneralFail;
 #endif
 
-	  	int 	  dotcount = A.fRows;
-		nTYPE*  BCol    = B.Pointer();
+	  	int dotcount = A.fRows;
+		const nTYPE* BCol = B.Pointer();
 
 		register nTYPE temp;
 		register nTYPE sum;
 		
 		for (int Bcol = 0; Bcol < fCols; Bcol++)
 		{
-		 	nTYPE* c    = Pointer() + Bcol*fRows;
-		 	nTYPE* ACol = A.Pointer();
+		 	nTYPE* c = Pointer() + Bcol*fRows;
+		 	const nTYPE* ACol = A.Pointer();
 		 	 	
 			for (int Acol = 0; Acol <= Bcol; Acol++)
 			{
 				sum = 0.0;
-				nTYPE* AC = ACol;
-				nTYPE* BC = BCol;
+				const nTYPE* AC = ACol;
+				const nTYPE* BC = BCol;
 				
 				for (int i = 0; i < dotcount; i++)
 				{
@@ -974,22 +1005,22 @@ void nMatrixT<nTYPE>::MultABT(const nMatrixT& A, const nMatrixT& B, int upper)
 
 	if (!upper) /* entire matrix */
 	{	
-		int		  dotcount = A.fCols;
-		nTYPE*  c       = Pointer();
-		nTYPE*  BRow    = B.Pointer();
+		int dotcount = A.fCols;
+		nTYPE* c = Pointer();
+		const nTYPE* BRow = B.Pointer();
 	
 		register nTYPE temp;
 		register nTYPE sum;
 
 		for (int Brow = 0; Brow < fCols; Brow++)
 		{
-			nTYPE* ARow = A.Pointer();
+			const nTYPE* ARow = A.Pointer();
 		 		 	
 			for (int Arow = 0; Arow < fRows; Arow++)
 			{
 				sum = 0.0;
-				nTYPE* AR = ARow;
-				nTYPE* BR = BRow;
+				const nTYPE* AR = ARow;
+				const nTYPE* BR = BRow;
 					
 				for (int i = 0; i < dotcount; i++)
 				{
@@ -1015,22 +1046,22 @@ void nMatrixT<nTYPE>::MultABT(const nMatrixT& A, const nMatrixT& B, int upper)
 		if (fRows != fCols) throw ExceptionT::kGeneralFail;
 #endif
 
-		int 	  dotcount = A.fCols;
-		nTYPE*  BRow    = B.Pointer();
+		int dotcount = A.fCols;
+		const nTYPE* BRow = B.Pointer();
 
 		register nTYPE temp;
 		register nTYPE sum;
 		
 		for (int Brow = 0; Brow < fCols; Brow++)
 		{
-		 	nTYPE*  c   = Pointer() + Brow*fRows;
-		 	nTYPE* ARow = A.Pointer();
+		 	nTYPE* c = Pointer() + Brow*fRows;
+		 	const nTYPE* ARow = A.Pointer();
 		 		 	
 			for (int Arow = 0; Arow <= Brow; Arow++)
 			{
 				sum  = 0.0;
-				nTYPE* AR = ARow;
-				nTYPE* BR = BRow;
+				const nTYPE* AR = ARow;
+				const nTYPE* BR = BRow;
 				
 				for (int i = 0; i < dotcount; i++)
 				{
@@ -1063,23 +1094,23 @@ void nMatrixT<nTYPE>::MultATBT(const nMatrixT& A, const nMatrixT& B)
 A.fRows != B.fCols) throw ExceptionT::kSizeMismatch;
 #endif
 
-	int 	  dotcount = A.fRows;
-	nTYPE* cRow     = Pointer();
-	nTYPE* ACol     = A.Pointer();
+	int dotcount = A.fRows;
+	nTYPE* cRow = Pointer();
+	const nTYPE* ACol = A.Pointer();
 
 	register nTYPE temp;
 	register nTYPE sum;
 
 	for (int Acol = 0; Acol < fRows; Acol++)
 	{
-		nTYPE* BRow  = B.Pointer();
-		nTYPE* cR    = cRow;
+		const nTYPE* BRow = B.Pointer();
+		nTYPE* cR = cRow;
 		 		 	
 		for (int Brow = 0; Brow < fCols; Brow++)
 		{
 			sum = 0.0;
-			nTYPE* AC = ACol;
-			nTYPE* BR = BRow;
+			const nTYPE* AC = ACol;
+			const nTYPE* BR = BRow;
 					
 			for (int i = 0; i < dotcount; i++)
 			{
@@ -1121,18 +1152,18 @@ void nMatrixT<nTYPE>::MultABC(const nMatrixT& p, const nMatrixT& b, const nMatri
 	register nTYPE temp;
 	register nTYPE bq_Ji;
 	
-	nTYPE* pthisj =   Pointer();
-	nTYPE* pqj    = q.Pointer();
+	nTYPE* pthisj = Pointer();
+	const nTYPE* pqj = q.Pointer();
 	for (int j = 0; j < fCols; j++)
 	{
 		int istop = (range == kUpperOnly) ? j + 1 : fRows;
 	
-		nTYPE* pbI = b.Pointer();
-		nTYPE* ppI = p.Pointer();
+		const nTYPE* pbI = b.Pointer();
+		const nTYPE* ppI = p.Pointer();
 		for (int I = 0; I < b.fRows; I++)
 		{			
-			nTYPE* pbJ = pbI++;
-			nTYPE* pqJ = pqj;
+			const nTYPE* pbJ = pbI++;
+			const nTYPE* pqJ = pqj;
 			bq_Ji = 0.0;
 			for (int J = 0; J < b.fCols; J++)
 			{
@@ -1145,7 +1176,7 @@ void nMatrixT<nTYPE>::MultABC(const nMatrixT& p, const nMatrixT& b, const nMatri
 				pqJ++;
 			}
 
-			nTYPE* ppi    = ppI;
+			const nTYPE* ppi = ppI;
 			nTYPE* pthisi = pthisj;
 			for (int i = 0; i < istop; i++)
 			{
@@ -1180,18 +1211,18 @@ void nMatrixT<nTYPE>::MultABCT(const nMatrixT& p, const nMatrixT& b, const nMatr
 	register nTYPE temp;
 	register nTYPE bqT_Ij;
 	
-	nTYPE* pthisj =   Pointer();
-	nTYPE* pqj    = q.Pointer();
+	nTYPE* pthisj = Pointer();
+	const nTYPE* pqj = q.Pointer();
 	for (int j = 0; j < fCols; j++)
 	{
 		int istop = (range == kUpperOnly) ? j + 1 : fRows;
 	
-		nTYPE* pbI = b.Pointer();
-		nTYPE* ppI = p.Pointer();
+		const nTYPE* pbI = b.Pointer();
+		const nTYPE* ppI = p.Pointer();
 		for (int I = 0; I < b.fRows; I++)
 		{			
-			nTYPE* pbJ = pbI++;
-			nTYPE* pqJ = pqj;
+			const nTYPE* pbJ = pbI++;
+			const nTYPE* pqJ = pqj;
 			bqT_Ij = 0.0;
 			for (int J = 0; J < b.fCols; J++)
 			{
@@ -1204,7 +1235,7 @@ void nMatrixT<nTYPE>::MultABCT(const nMatrixT& p, const nMatrixT& b, const nMatr
 				pqJ += q.fRows;
 			}
 
-			nTYPE* ppi    = ppI;
+			const nTYPE* ppi = ppI;
 			nTYPE* pthisi = pthisj;
 			for (int i = 0; i < istop; i++)
 			{
@@ -1239,18 +1270,18 @@ void nMatrixT<nTYPE>::MultATBC(const nMatrixT& p, const nMatrixT& b, const nMatr
 	register nTYPE temp;
 	register nTYPE bq_iJ;
 	
-	nTYPE* pthisJ =   Pointer();
-	nTYPE* pqJ    = q.Pointer();
+	nTYPE* pthisJ = Pointer();
+	const nTYPE* pqJ = q.Pointer();
 	for (int J = 0; J < fCols; J++)
 	{
 		int Istop = (range == kUpperOnly) ? J + 1 : fRows;
 	
-		nTYPE* ppi = p.Pointer();
-		nTYPE* pbi = b.Pointer();
+		const nTYPE* ppi = p.Pointer();
+		const nTYPE* pbi = b.Pointer();
 		for (int i = 0; i < b.fRows; i++)
 		{			
-			nTYPE* pbj = pbi++;
-			nTYPE* pqj = pqJ;
+			const nTYPE* pbj = pbi++;
+			const nTYPE* pqj = pqJ;
 			bq_iJ = 0.0;
 			for (int j = 0; j < b.fCols; j++)
 			{
@@ -1262,7 +1293,7 @@ void nMatrixT<nTYPE>::MultATBC(const nMatrixT& p, const nMatrixT& b, const nMatr
 				pbj += b.fRows;
 			}
 
-			nTYPE* ppI    = ppi++;
+			const nTYPE* ppI = ppi++;
 			nTYPE* pthisI = pthisJ;
 			for (int I = 0; I < Istop; I++)
 			{
@@ -1316,20 +1347,20 @@ void nMatrixT<nTYPE>::MultQBQT(const nMatrixT& q,
 	register nTYPE temp;
 	register nTYPE bqT_Ij;
 	
-	nTYPE* pthisj =   Pointer();
-	nTYPE* pqj    = q.Pointer();
+	nTYPE* pthisj = Pointer();
+	const nTYPE* pqj = q.Pointer();
 
 	for (int j = 0; j < fCols; j++)
 	{
 		int istop = (range == kUpperOnly) ? j + 1 : fRows;
 	
-		nTYPE* pbI = b.Pointer();
-		nTYPE* pqI = q.Pointer();
+		const nTYPE* pbI = b.Pointer();
+		const nTYPE* pqI = q.Pointer();
 	
 		for (int I = 0; I < b.fRows; I++)
 		{			
-			nTYPE* pbJ = pbI++;
-			nTYPE* pqJ = pqj;
+			const nTYPE* pbJ = pbI++;
+			const nTYPE* pqJ = pqj;
 			
 			bqT_Ij = 0.0;
 			for (int J = 0; J < b.fCols; J++)
@@ -1343,7 +1374,7 @@ void nMatrixT<nTYPE>::MultQBQT(const nMatrixT& q,
 				pqJ += q.fRows;
 			}
 
-			nTYPE* pqi    = pqI;
+			const nTYPE* pqi = pqI;
 			nTYPE* pthisi = pthisj;
 			
 			for (int i = 0; i < istop; i++)
@@ -1378,8 +1409,8 @@ void nMatrixT<nTYPE>::MultQTBQ(const nMatrixT& q,
 	if (fRows == 3 && fCols == 3)
 	{
 		nTYPE* A = Pointer();
-		nTYPE* Q = q.Pointer();
-		nTYPE* B = b.Pointer();
+		const nTYPE* Q = q.Pointer();
+		const nTYPE* B = b.Pointer();
 
 		/* initialize */
 		if (fillmode == kOverwrite) {
@@ -1418,20 +1449,20 @@ void nMatrixT<nTYPE>::MultQTBQ(const nMatrixT& q,
 		register nTYPE temp;
 		register nTYPE bq_iJ;
 	
-		nTYPE* pthisJ =   Pointer();
-		nTYPE* pqJ    = q.Pointer();
+		nTYPE* pthisJ = Pointer();
+		const nTYPE* pqJ = q.Pointer();
 
 		for (int J = 0; J < fCols; J++)
 		{
 			int Istop = (range == kUpperOnly) ? J + 1 : fRows;
 	
-			nTYPE* pqi = q.Pointer();
-			nTYPE* pbi = b.Pointer();
+			const nTYPE* pqi = q.Pointer();
+			const nTYPE* pbi = b.Pointer();
 	
 			for (int i = 0; i < b.fRows; i++)
 			{			
-				nTYPE* pbj = pbi++;
-				nTYPE* pqj = pqJ;
+				const nTYPE* pbj = pbi++;
+				const nTYPE* pqj = pqJ;
 			
 				bq_iJ = 0.0;
 				for (int j = 0; j < b.fCols; j++)
@@ -1443,7 +1474,7 @@ void nMatrixT<nTYPE>::MultQTBQ(const nMatrixT& q,
 					pbj += b.fRows;
 				}
 
-				nTYPE* pqI    = pqi++;
+				const nTYPE* pqI = pqi++;
 				nTYPE* pthisI = pthisJ;
 			
 				for (int I = 0; I < Istop; I++)
@@ -1482,7 +1513,7 @@ inline void nMatrixT<nTYPE>::Multx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b,
 template <class nTYPE>
 void nMatrixT<nTYPE>::Multx(const nTYPE* x, nTYPE* b, const nTYPE& scale, int fillmode) const
 {
-	nTYPE* ARow = Pointer();
+	const nTYPE* ARow = Pointer();
 	const nTYPE* px0 = x;
 	nTYPE* pb = b;
 
@@ -1495,7 +1526,7 @@ void nMatrixT<nTYPE>::Multx(const nTYPE* x, nTYPE* b, const nTYPE& scale, int fi
 		{
 			sum = 0.0;
 			const nTYPE *px = px0;
-			nTYPE *AR = ARow;
+			const nTYPE *AR = ARow;
 			for (int j = 0; j < fCols; j++)
 			{
 				temp  = *px++;
@@ -1515,7 +1546,7 @@ void nMatrixT<nTYPE>::Multx(const nTYPE* x, nTYPE* b, const nTYPE& scale, int fi
 		{
 			sum = 0.0;
 			const nTYPE *px = px0;
-			nTYPE *AR = ARow;
+			const nTYPE *AR = ARow;
 			for (int j = 0; j < fCols; j++)
 			{
 				temp  = *px++;
@@ -1548,7 +1579,7 @@ inline void nMatrixT<nTYPE>::MultTx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b,
 template <class nTYPE>
 void nMatrixT<nTYPE>::MultTx(const nTYPE* x, nTYPE* b, const nTYPE& scale, int fillmode) const
 {
-	nTYPE* ARow = Pointer();
+	const nTYPE* ARow = Pointer();
 	const nTYPE* px0 = x;
 	nTYPE* pb = b;
 
@@ -1561,8 +1592,7 @@ void nMatrixT<nTYPE>::MultTx(const nTYPE* x, nTYPE* b, const nTYPE& scale, int f
 		{
 			sum = 0.0;
 			const nTYPE *px = px0;
-			nTYPE *AR = ARow;
-	
+			const nTYPE *AR = ARow;
 			for (int j = 0; j < fRows; j++)
 			{
 				temp  = *px++;
@@ -1580,8 +1610,7 @@ void nMatrixT<nTYPE>::MultTx(const nTYPE* x, nTYPE* b, const nTYPE& scale, int f
 		{
 			sum = 0.0;
 			const nTYPE *px = px0;
-			nTYPE *AR = ARow;
-	
+			const nTYPE *AR = ARow;
 			for (int j = 0; j < fRows; j++)
 			{
 				temp  = *px++;
@@ -1611,14 +1640,14 @@ nTYPE nMatrixT<nTYPE>::MultmBn(const nArrayT<nTYPE>& m,
 	register nTYPE mB;
 	register nTYPE temp;
 	
-	nTYPE* pnj = n.Pointer();
-	nTYPE* pBj = (*this).Pointer();
-	
+	const nTYPE* pnj = n.Pointer();
+	const nTYPE* pBj = (*this).Pointer();
+
 	for (int j = 0; j < fCols; j++)
 	{
 		mB = 0.0;
-		nTYPE* pBi = pBj;
-		nTYPE* pmi = m.Pointer();
+		const nTYPE* pBi = pBj;
+		const nTYPE* pmi = m.Pointer();
 	
 		for (int i = 0; i < fRows; i++)
 		{
@@ -1915,7 +1944,7 @@ inline nTYPE nMatrixT<nTYPE>::DotRow(int rownum,
 template <class nTYPE>
 inline nTYPE nMatrixT<nTYPE>::DotRow(int rownum, const nTYPE* pvec) const
 {
-	nTYPE *p = &(*this)(rownum,0);
+	const nTYPE *p = &(*this)(rownum,0);
 	register nTYPE sum = 0.0;
 	register nTYPE temp;
 	for (int i = 0; i < fCols; i++)
@@ -1942,7 +1971,7 @@ inline nTYPE nMatrixT<nTYPE>::DotCol(int colnum,
 template <class nTYPE>
 inline nTYPE nMatrixT<nTYPE>::DotCol(int colnum, const nTYPE* pvec) const
 {
-	nTYPE *p    = (*this)(colnum);
+	const nTYPE *p = (*this)(colnum);
 	register nTYPE sum = 0.0;
 	register nTYPE temp;
 	for (int i = 0; i < fRows; i++)

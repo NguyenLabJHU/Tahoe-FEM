@@ -1,4 +1,4 @@
-/* $Id: GaoJi2.cpp,v 1.3 2002-10-20 22:38:47 paklein Exp $ */
+/* $Id: GaoJi2.cpp,v 1.4 2003-11-21 22:41:27 paklein Exp $ */
 /* created: Baohua Ji (02/25/2002)                                          */
 
 #include "GaoJi2.h"
@@ -94,7 +94,7 @@ dArrayT& GaoJi2::MapFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pU = out.Pointer();
 
         double B1 = fB*(pow(2.*fN,fN)*pow(-1. + 2.*fN,0.5 - fN))/2.718281828;
@@ -115,7 +115,7 @@ dArrayT& GaoJi2::MapDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl  = in.Pointer();
+	const double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
 
         double B1 = fB*(pow(2.*fN,fN)*pow(-1. + 2.*fN,0.5 - fN))/2.718281828;
@@ -136,7 +136,7 @@ dArrayT& GaoJi2::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl   = in.Pointer();
+	const double* pl   = in.Pointer();
 	double* pddU = out.Pointer();
 
         double B1 = fB*(pow(2.*fN,fN)*pow(-1. + 2.*fN,0.5 - fN))/2.718281828;

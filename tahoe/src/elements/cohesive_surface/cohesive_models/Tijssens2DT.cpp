@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.21 2003-05-29 06:41:17 paklein Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.22 2003-11-21 22:45:53 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -207,7 +207,7 @@ const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 	}
 	else 
 	{
-		double *state_old = state.Pointer(kIntShift);
+		const double *state_old = state.Pointer(kIntShift);
 		if (state_old[5] > fDelta_n_ccr) 
 		{
 			if (state_old[1] - fk_n/fSteps*(jump_u[1]-state_old[3]) > kSmall)
@@ -220,11 +220,11 @@ const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 		}
 		else
 		{
-			/*Normal stiffness*/	
+			/* Normal stiffness */	
 			double du_n = jump_u[1]-state_old[3];
 		
-			if (state_old[1] < kSmall)
-				state_old[1] = 1.1 * fsigma_c;
+			//if (state_old[1] < kSmall)
+			//	state_old[1] = 1.1 * fsigma_c;
 				
 			/* Grab current traction */
 			double Tnp1 = state[1];

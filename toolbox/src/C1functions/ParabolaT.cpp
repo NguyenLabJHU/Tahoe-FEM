@@ -1,4 +1,4 @@
-/* $Id: ParabolaT.cpp,v 1.7 2003-11-10 22:14:01 cjkimme Exp $ */
+/* $Id: ParabolaT.cpp,v 1.8 2003-11-21 22:41:27 paklein Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "ParabolaT.h"
@@ -30,7 +30,7 @@ dArrayT& ParabolaT::MapFunction(const dArrayT& in, dArrayT& out) const
         /* dimension checks */
         if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-        double* pl = in.Pointer();
+        const double* pl = in.Pointer();
         double* pU = out.Pointer();
         
         for (int i = 0; i < in.Length(); i++)
@@ -48,7 +48,7 @@ dArrayT& ParabolaT::MapDFunction(const dArrayT& in, dArrayT& out) const
         /* dimension checks */
         if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-        double* pl  = in.Pointer();
+        const double* pl  = in.Pointer();
         double* pdU = out.Pointer();
         
         for (int i = 0; i < in.Length(); i++)

@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.6 2003-05-15 00:47:11 cjkimme Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.7 2003-11-21 22:47:59 paklein Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -313,7 +313,7 @@ void ScaledVelocityNodesT::SetBCCards(void)
 		{	
 			if (myNodes[i] >= 0)
 			{
-				double* v_i = (*velocities)(myNodes[i]);
+				const double* v_i = (*velocities)(myNodes[i]);
 			
 				for (int j = 0; j < ndof; j++)
 				{	
@@ -349,7 +349,7 @@ void ScaledVelocityNodesT::SetBCCards(void)
 		{
 			if (myNodes[i] >= 0)
 			{
-				double* v_i = (*velocities)(myNodes[i]);	
+				const double* v_i = (*velocities)(myNodes[i]);	
 				
 		    	for (int j = 0; j < ndof; j++)
 				{	

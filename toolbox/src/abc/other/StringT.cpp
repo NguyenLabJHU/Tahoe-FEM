@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.36 2003-11-10 22:14:08 cjkimme Exp $ */
+/* $Id: StringT.cpp,v 1.37 2003-11-21 22:41:39 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -659,7 +659,7 @@ StringT& StringT::FirstWord(const StringT& source, int& count, bool C_word_only)
 		/* skip leading white space */
 		int length = strlen(source);
 		count = 0;
-		char* str = source;
+		const char* str = source;
 		while (count < length && isspace(*str))
 		{
 			str++;
@@ -667,7 +667,7 @@ StringT& StringT::FirstWord(const StringT& source, int& count, bool C_word_only)
 		}
 
 		/* count word length */
-		char* start = str;
+		const char* start = str;
 		int word_count = 0;
 		if (C_word_only)
 		{
@@ -962,8 +962,8 @@ int StringT::versioncmp(const char* v1_, const char* v2_)
 /* extract double */
 bool StringT::Tail(char key, double& value) const
 {
-	char* first = Pointer();
-	char* p = first + StringLength() - 1;
+	const char* first = Pointer();
+	const char* p = first + StringLength() - 1;
 	while (p != first && *p != key) p--;
 
 	value = 0.0;
@@ -980,7 +980,7 @@ bool StringT::Tail(char key, double& value) const
 int StringT::FirstPositionOf(char a) const
 {
 	int len = StringLength();
-	char* p = Pointer();
+	const char* p = Pointer();
 	for (int i = 0; i < len; i++)
 		if (*p++ == a)
 			return i;
@@ -991,7 +991,7 @@ int StringT::FirstPositionOf(char a) const
 int StringT::LastPositionOf(char a) const
 {
 	int len = StringLength();
-	char* p = Pointer(len - 1);
+	const char* p = Pointer(len - 1);
 	for (int i = len - 1; i > -1; i--)
 		if (*p-- == a)
 			return i;
@@ -1001,8 +1001,8 @@ int StringT::LastPositionOf(char a) const
 /* extract integer */
 bool StringT::Tail(char key, int& value) const
 {
-	char* first = Pointer();
-	char* p = first + StringLength() - 1;
+	const char* first = Pointer();
+	const char* p = first + StringLength() - 1;
 	while (p != first && *p != key) p--;
 
 	value = 0;
@@ -1019,8 +1019,8 @@ bool StringT::Tail(char key, int& value) const
 /* extract string */
 bool StringT::Tail(char key, StringT& value) const
 {
-	char* first = Pointer();
-	char* p = first + StringLength() - 1;
+	const char* first = Pointer();
+	const char* p = first + StringLength() - 1;
 	while (p != first && *p != key) p--;
 
 	value.Clear();

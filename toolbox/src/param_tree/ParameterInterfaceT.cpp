@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.9 2003-11-10 22:14:41 cjkimme Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.10 2003-11-21 22:42:04 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 #include "ParameterUtils.h"
@@ -72,7 +72,7 @@ void ParameterInterfaceT::ValidateParameterList(const ParameterListT& raw_list, 
 		int count = 0;
 		for (int j = 0; j < raw_parameters.Length(); j++) {
 
-			ParameterT& raw_parameter = raw_parameters[j];
+			const ParameterT& raw_parameter = raw_parameters[j];
 
 			/* name match */
 			if (raw_parameter.Name() == parameter.Name()) {

@@ -1,11 +1,6 @@
-/* $Id: RandomNumberT.h,v 1.5 2003-04-24 20:49:06 cjkimme Exp $ */
+/* $Id: RandomNumberT.h,v 1.6 2003-11-21 22:41:39 paklein Exp $ */
 #ifndef _RANDOM_NUMBER_T_H_
 #define _RANDOM_NUMBER_T_H_
-
-/* Environmental */
-//#include "Environment.h"
-
-//#include "ios_fwd_decl.h"
 
 namespace Tahoe {
 

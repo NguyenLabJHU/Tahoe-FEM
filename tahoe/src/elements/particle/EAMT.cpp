@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.50 2003-11-19 23:15:09 bsun Exp $ */
+/* $Id: EAMT.cpp,v 1.51 2003-11-21 22:47:08 paklein Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -1355,7 +1355,7 @@ void EAMT::RHSDriver2D(void)
       int   tag_i = neighbors[0]; /* self is 1st spot */
       int  type_i = fType[tag_i];
       double* f_i = fForce(tag_i);
-      double* x_i = coords(tag_i);
+      const double* x_i = coords(tag_i);
 
       for (int j = 1; j < neighbors.Length(); j++)
 	{
@@ -1363,7 +1363,7 @@ void EAMT::RHSDriver2D(void)
 	  int   tag_j = neighbors[j];
 	  int  type_j = fType[tag_j];
 	  double* f_j = fForce(tag_j);
-	  double* x_j = coords(tag_j);
+	  const double* x_j = coords(tag_j);
 
 	  /* set EAM property (if not already set) */
 	  int property_i = fPropertiesMap(type_i, type_j);
@@ -1510,7 +1510,7 @@ void EAMT::RHSDriver3D(void)
       int   tag_i = neighbors[0]; /* self is 1st spot */
       int  type_i = fType[tag_i];
       double* f_i = fForce(tag_i);
-      double* x_i = coords(tag_i);
+      const double* x_i = coords(tag_i);
 
       /* Compute Force  */
       for (int j = 1; j < neighbors.Length(); j++)
@@ -1519,7 +1519,7 @@ void EAMT::RHSDriver3D(void)
 	  int   tag_j = neighbors[j];
 	  int  type_j = fType[tag_j];
 	  double* f_j = fForce(tag_j);
-	  double* x_j = coords(tag_j);
+	  const double* x_j = coords(tag_j);
 
 	  /* set EAM property (if not already set) */
 	  int property_i = fPropertiesMap(type_i, type_j);
@@ -1741,14 +1741,14 @@ void EAMT::GetRho2D(const dArray2DT& coords,dArray2DT& rho)
       /* type */
       int   tag_i = neighbors[0]; /* self is 1st spot */
       int  type_i = fType[tag_i];
-      double* x_i = coords(tag_i);
+      const double* x_i = coords(tag_i);
 
       for (int j = 1; j < neighbors.Length(); j++)
 	{
 	  /* global tag */
 	  int   tag_j = neighbors[j];
 	  int  type_j = fType[tag_j];
-	  double* x_j = coords(tag_j);
+	  const double* x_j = coords(tag_j);
 
 	  int property = fPropertiesMap(type_i, type_j);
 	  if (property != current_property)
@@ -1784,14 +1784,14 @@ void EAMT::GetRho3D(const dArray2DT& coords,dArray2DT& rho)
       /* type */
       int   tag_i = neighbors[0]; /* self is 1st spot */
       int  type_i = fType[tag_i];
-      double* x_i = coords(tag_i);
+      const double* x_i = coords(tag_i);
 
       for (int j = 1; j < neighbors.Length(); j++)
 	{
 	  /* global tag */
 	  int   tag_j = neighbors[j];
 	  int  type_j = fType[tag_j];
-	  double* x_j = coords(tag_j);
+	  const double* x_j = coords(tag_j);
 
 	  int property = fPropertiesMap(type_i, type_j);
 	  if (property != current_property)

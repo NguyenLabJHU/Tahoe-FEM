@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.cpp,v 1.12 2003-05-28 23:15:27 cjkimme Exp $ */
+/* $Id: YoonAllen2DT.cpp,v 1.13 2003-11-21 22:45:53 paklein Exp $ */
 #include "YoonAllen2DT.h"
 
 #include <iostream.h>
@@ -280,7 +280,7 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	double u_n = jump_u[1];
 
 	/* compute the current tractions first */
-	double *state2 = state.Pointer(iNumRelaxTimes);
+	const double *state2 = state.Pointer(iNumRelaxTimes);
 
 	/*double u_t_dot = (u_t - state2[0])/fTimeStep;
 	double u_n_dot = (u_n - state2[1])/fTimeStep;

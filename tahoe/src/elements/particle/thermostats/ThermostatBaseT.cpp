@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.cpp,v 1.9 2003-11-09 16:45:45 paklein Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.10 2003-11-21 22:47:11 paklein Exp $ */
 #include "ThermostatBaseT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -62,7 +62,7 @@ void ThermostatBaseT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const d
 			dArray2DT& forces, AutoArrayT<int>& types,
 			ArrayT<ParticlePropertyT*>& particleProperties)
 {
-	double* v_j;
+	const double* v_j;
 	double* f_j;
 	int tag_j, currType;
 	double mass, beta;
@@ -216,7 +216,7 @@ void ThermostatBaseT::NodesInRegion(const dArray2DT& coords,
 
 	double* xmin = fxmin.Pointer();
 	double* xmax = fxmax.Pointer(); 
-	double* x_i;
+	const double* x_i;
 	int ihits = 0;
 	bool isSerial = !partition_nodes;
 	int nnd = isSerial ? coords.MajorDim() : partition_nodes->Length();

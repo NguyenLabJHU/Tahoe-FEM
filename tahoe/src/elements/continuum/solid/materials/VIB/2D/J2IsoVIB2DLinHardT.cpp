@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.8 2003-01-29 07:34:52 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.9 2003-11-21 22:46:35 paklein Exp $ */
 /* created: paklein (10/18/1998) */
 #include "J2IsoVIB2DLinHardT.h"
 
@@ -525,19 +525,20 @@ void J2IsoVIB2DLinHardT::InitIntermediate(const dMatrixT& F_total,
 void J2IsoVIB2DLinHardT::LoadData(const ElementCardT& element, int ip)
 {
 	/* fetch internal variable array */
-	dArrayT& d_array = element.DoubleData();
+	const dArrayT& d_array = element.DoubleData();
 
 	/* decode */
+	dSymMatrixT::DimensionT dim = dSymMatrixT::int2DimensionT(kNSD);
 	int stressdim = dSymMatrixT::NumValues(kNSD);
 	int blocksize = stressdim + stressdim + kNSD + kNSD + kNSD + kNumInternal;
 	int dex       = ip*blocksize;
 	
-	     fb_n.Set(        kNSD, &d_array[dex             ]);
-	    fb_tr.Set(        kNSD, &d_array[dex += stressdim]);
-	 fbeta_tr.Set(        kNSD, &d_array[dex += stressdim]);
-	   flog_e.Set(        kNSD, &d_array[dex += kNSD     ]);
-	fUnitNorm.Set(        kNSD, &d_array[dex += kNSD     ]);
-	fInternal.Set(kNumInternal, &d_array[dex += kNSD     ]);     	
+	     fb_n.Alias(         dim, &d_array[dex             ]);
+	    fb_tr.Alias(         dim, &d_array[dex += stressdim]);
+	 fbeta_tr.Alias(        kNSD, &d_array[dex += stressdim]);
+	   flog_e.Alias(        kNSD, &d_array[dex += kNSD     ]);
+	fUnitNorm.Alias(        kNSD, &d_array[dex += kNSD     ]);
+	fInternal.Alias(kNumInternal, &d_array[dex += kNSD     ]);     	
 }
 
 /* returns 1 if the trial elastic strain state lies outside of the

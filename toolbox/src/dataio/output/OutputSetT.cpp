@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.20 2003-11-10 22:14:25 cjkimme Exp $ */
+/* $Id: OutputSetT.cpp,v 1.21 2003-11-21 22:41:49 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 #include "OutputSetT.h"
 #include "iArrayT.h"
@@ -22,8 +22,8 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	fID("1"), /* dummy ID */
 	fChanging(changing),
 	fGeometry(geometry_code),
-        fBlockID(block_ID),
-        fConnectivities(connectivities.Length()),
+	fBlockID(block_ID),
+	fConnectivities(connectivities),
 	fBlockNodesUsed(fConnectivities.Length()),
 	fBlockIndexToSetIndexMap(fConnectivities.Length())
 {
@@ -34,9 +34,6 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	    cout << "\n    fBlockID.Length = " << fBlockID.Length() << endl;
 	    throw ExceptionT::kSizeMismatch;
 	  }
-
-	for (int i=0; i < fConnectivities.Length(); i++)
-		fConnectivities[i] = connectivities[i];
 
 	fNodeOutputLabels.Dimension(n_labels.Length());
 	for (int i = 0; i < fNodeOutputLabels.Length(); i++)

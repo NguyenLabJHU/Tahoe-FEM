@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.10 2003-10-28 07:38:02 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.11 2003-11-21 22:47:52 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -342,7 +342,7 @@ void FEManagerT_bridging::InterpolationMatrix(const StringT& field, dSPMatrixT& 
 		const iArrayT& nodes = element_card.NodesU();
 
 		/* shape functions at the interpolation point */
-		double* Na = weights(i);
+		const double* Na = weights(i);
 		
 		/* expand row dof's */
 		for (int j = 0; j < ndof; j++) {

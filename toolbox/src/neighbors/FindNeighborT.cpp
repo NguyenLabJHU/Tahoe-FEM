@@ -1,4 +1,4 @@
-/* $Id: FindNeighborT.cpp,v 1.6 2002-11-16 20:51:16 paklein Exp $ */
+/* $Id: FindNeighborT.cpp,v 1.7 2003-11-21 22:41:59 paklein Exp $ */
 /* created: paklein (03/21/1997) */
 #include "FindNeighborT.h"
 #include <iostream.h>
@@ -268,8 +268,8 @@ int FindNeighborT::Count2Body(void) const
 	int count = 0;
 	for (int node = 0; node < fNumPts; node++)
 	{
-		int* pneigh = fNeighbors(node);	
-		int  num    = node;
+		const int* pneigh = fNeighbors(node);	
+		int num = node;
 	
 		for (int neigh = 0; neigh < fCount[node]; neigh++)
 			if (*pneigh++ > num) count++;
@@ -284,8 +284,8 @@ int FindNeighborT::Count2BodyMapped(void) const
 	int count = 0;
 	for (int node = 0; node < fNumPts; node++)
 	{
-		int* pneigh = fNeighbors(node);
-		int  num    = (*fNodeMap)[node];
+		const int* pneigh = fNeighbors(node);
+		int num = (*fNodeMap)[node];
 	
 		for (int neigh = 0; neigh < fCount[node]; neigh++)
 			if ((*fNodeMap)[*pneigh++] > num) count++;
@@ -301,7 +301,7 @@ void FindNeighborT::Set2Body(iArray2DT& edges) const
 
 	for (int node = 0; node < fNumPts; node++)
 	{
-		int* pneigh = fNeighbors(node);
+		const int* pneigh = fNeighbors(node);
 	
 		for (int neigh = 0; neigh < fCount[node]; neigh++)
 		{		
@@ -324,7 +324,7 @@ void FindNeighborT::Set2BodyMapped(iArray2DT& edges) const
 
 	for (int node = 0; node < fNumPts; node++)
 	{
-		int* pneigh = fNeighbors(node);
+		const int* pneigh = fNeighbors(node);
 		
 		for (int neigh = 0; neigh < fCount[node]; neigh++)
 		{

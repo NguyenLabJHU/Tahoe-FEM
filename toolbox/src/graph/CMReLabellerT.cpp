@@ -1,4 +1,4 @@
-/* $Id: CMReLabellerT.cpp,v 1.3 2002-10-20 22:39:01 paklein Exp $ */
+/* $Id: CMReLabellerT.cpp,v 1.4 2003-11-21 22:41:54 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "CMReLabellerT.h"
@@ -309,8 +309,8 @@ void CMReLabellerT::Queue(int nodenum)
 /* assign new number and check adjacent nodes */
 void CMReLabellerT::NewNumber(int nodenum)
 {	
-	int* adj_i    = fGraph.Edges(nodenum);
-	int  length_j = fGraph.Degree(nodenum);
+	const int* adj_i = fGraph.Edges(nodenum);
+	int length_j = fGraph.Degree(nodenum);
 
 	/* queue any adjacent nodes */
 	if (fStatus[nodenum] == kPreActive)
@@ -334,8 +334,8 @@ void CMReLabellerT::MakeActive(int nodenum)
 	fStatus[nodenum]    = kActive;
 
 	/* queue any adjacent nodes */
-	int* adj_i    = fGraph.Edges(nodenum);
-	int  length_j = fGraph.Degree(nodenum);
+	const int* adj_i = fGraph.Edges(nodenum);
+	int length_j = fGraph.Degree(nodenum);
 
 	for (int j = 0; j < length_j; j++)
 		Queue( adj_i[j] );
@@ -383,7 +383,7 @@ void CMReLabellerT::CMSequence(void)
 			// look at edges of nodes in L_(i-1)
 			int postactivenode = Liminus1[j];
 			iArrayT edges;
-			edges.Set(fGraph.Degree(postactivenode), fGraph.Edges(postactivenode));
+			edges.Alias(fGraph.Degree(postactivenode), fGraph.Edges(postactivenode));
 			SortByMinDegree(edges);
 			
 			// while active nodes still exist in L_i, loop through edges of each node
@@ -442,7 +442,7 @@ void CMReLabellerT::ComputeSize(const iArrayT& sequence, int& bandwidth, int& pr
 	bandwidth = 0;
 	for (int i = 0; i < fGraph.NumNodes(); i++)
 	{
-		int* edges = fGraph.Edges(i);
+		const int* edges = fGraph.Edges(i);
 		int degree = fGraph.Degree(i);
 	
 		int itag = nodemap[i];

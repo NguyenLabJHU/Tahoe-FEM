@@ -1,4 +1,4 @@
-/* $Id: RampedDampingT.cpp,v 1.3 2003-10-30 17:15:21 paklein Exp $ */
+/* $Id: RampedDampingT.cpp,v 1.4 2003-11-21 22:47:11 paklein Exp $ */
 #include "RampedDampingT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -61,7 +61,7 @@ void RampedDampingT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dA
 		{ 
 			int tag_j = fNodes[j];
 			double* f_j = forces(j);
-			double* v_j = (*velocities)(tag_j);
+			const double* v_j = (*velocities)(tag_j);
 
 			for (int i = 0; i < fSD; i++)
 				*f_j++ -= fBeta*(*v_j++); 	

@@ -1,4 +1,4 @@
-/* $Id: InverseMapT.h,v 1.7 2003-11-04 23:19:45 paklein Exp $ */
+/* $Id: InverseMapT.h,v 1.8 2003-11-21 22:41:57 paklein Exp $ */
 #ifndef _INVERSE_MAP_T_H_
 #define _INVERSE_MAP_T_H_
 
@@ -80,7 +80,7 @@ inline InverseMapT::InverseMapT(void):
 
 inline void InverseMapT::SetMap(const ArrayT<int>& forward) {
 	nArrayT<int> fwd;
-	fwd.Alias(forward);
+	fwd.Alias((ArrayT<int>&) forward);
 	SetMap(fwd);
 }
 

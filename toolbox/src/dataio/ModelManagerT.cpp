@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.39 2003-11-10 22:14:17 cjkimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.40 2003-11-21 22:41:44 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -1071,7 +1071,7 @@ void ModelManagerT::ManyNodeSets (const ArrayT<StringT>& ID, iArrayT& nodes)
 		{
 			const iArrayT& node_set = NodeSet(ID[i]);
 
-			int* p = node_set.Pointer();
+			const int* p = node_set.Pointer();
 			int len = node_set.Length();
 			for (int j = 0; j < len; j++)
 				flag[*p++] = 1;
@@ -1284,7 +1284,7 @@ void ModelManagerT::AddNodes (const dArray2DT& newcoords, iArrayT& new_node_tags
   fCoordinates_man.SetMajorDimension(fCoordinateDimensions[0], true);
 
   /* copy in */
-  double *pc = newcoords.Pointer();
+  const double *pc = newcoords.Pointer();
   for (int i=0; i < newnodes; i++, pc += newcoords.MinorDim())
     fCoordinates.SetRow (new_node_tags[i], pc);
 }
@@ -1443,7 +1443,7 @@ void ModelManagerT::AddElement (const StringT& ID, const iArray2DT& connects,
   fElementSets[index]->Resize (newelems);
 
   /* copy in */
-  int *pc = connects.Pointer();
+  const int *pc = connects.Pointer();
   for (int i=0; i < newelems; i++, pc += connects.MinorDim())
     fElementSets[index]->SetRow (new_elem_tags[i], pc);
 }

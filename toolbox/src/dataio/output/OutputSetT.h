@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.17 2003-08-08 00:26:59 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.18 2003-11-21 22:41:49 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -194,10 +194,10 @@ private:
 	GeometryT::CodeT fGeometry;
 
 	/** list of ID's for the connectivities */
-	const ArrayT<StringT> fBlockID;
+	ArrayT<StringT> fBlockID;
 
 	/** pointers to the connectivity data */
-	const ArrayT<const iArray2DT*> fConnectivities;
+	ArrayT<const iArray2DT*> fConnectivities;
 	
 	/** labels for nodal output variables */
 	ArrayT<StringT> fNodeOutputLabels;

@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.27 2003-05-21 23:48:12 paklein Exp $ */
+/* $Id: DetCheckT.cpp,v 1.28 2003-11-21 22:46:55 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -644,7 +644,7 @@ void DetCheckT::ComputeCoefficients(void)
 /* 2 is 22 */
 /* 3 is 12 */
 /* angle theta subtends from the x1 axis to the band normal */
-int DetCheckT::SPINLOC_localize(double *c__, double *thetan, int *loccheck)
+int DetCheckT::SPINLOC_localize(const double *c__, double *thetan, int *loccheck)
 {
     /* Initialized data */
     double zero = 0.;

@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.cpp,v 1.12 2003-01-29 07:35:02 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.cpp,v 1.13 2003-11-21 22:46:48 paklein Exp $ */
 /* created: paklein (06/29/1997) */
 #include "J2QL2DLinHardT.h"
 
@@ -297,13 +297,13 @@ void J2QL2DLinHardT::ComputeOutput(dArrayT& output)
 	output[1] = fBeta.Magnitude()/sqrt23;
 
 	/* plastic evolution parameter */
-	ElementCardT& element = CurrentElement();
+	const ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
 		output[0] = fInternal[kalpha];
 
 		/* status flags */
-		iArrayT& flags = element.IntegerData();
+		const iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == kIsPlastic) // output with update
 			output[0] += sqrt23*fInternal[kdgamma];
 	}
@@ -415,7 +415,7 @@ void J2QL2DLinHardT::ElastoPlasticCorrection(dSymMatrixT& a_ep, dArrayT& beta,
 	int ip)
 {
 	/* element pointer */
-	ElementCardT& element = CurrentElement();
+	const ElementCardT& element = CurrentElement();
 
 	if (element.IsAllocated() &&
 	    (element.IntegerData())[ip] == kIsPlastic)
@@ -507,18 +507,19 @@ void J2QL2DLinHardT::InitIntermediate(const dMatrixT& F_total,
 void J2QL2DLinHardT::LoadData(const ElementCardT& element, int ip)
 {
 	/* fetch internal variable array */
-	dArrayT& d_array = element.DoubleData();
+	const dArrayT& d_array = element.DoubleData();
 
 	/* decode */
 	int stressdim = dSymMatrixT::NumValues(kNSD);
+	dSymMatrixT::DimensionT dim = dSymMatrixT::int2DimensionT(kNSD);
 	int blocksize = stressdim + stressdim + kNSD + kNSD + kNumInternal;
-	int dex       = ip*blocksize;
+	int dex = ip*blocksize;
 	
-	     fb_n.Set(        kNSD, &d_array[dex             ]);
-	    fb_tr.Set(        kNSD, &d_array[dex += stressdim]);
-	 fbeta_tr.Set(        kNSD, &d_array[dex += stressdim]);
-	fUnitNorm.Set(        kNSD, &d_array[dex += kNSD]);
-	fInternal.Set(kNumInternal, &d_array[dex += kNSD     ]);     	
+	     fb_n.Alias(        dim, &d_array[dex             ]);
+	    fb_tr.Alias(        dim, &d_array[dex += stressdim]);
+	 fbeta_tr.Alias(        kNSD, &d_array[dex += stressdim]);
+	fUnitNorm.Alias(        kNSD, &d_array[dex += kNSD]);
+	fInternal.Alias(kNumInternal, &d_array[dex += kNSD     ]);     	
 }
 
 /*

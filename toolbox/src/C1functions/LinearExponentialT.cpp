@@ -1,4 +1,4 @@
-/* $Id: LinearExponentialT.cpp,v 1.3 2002-10-20 22:38:48 paklein Exp $ */
+/* $Id: LinearExponentialT.cpp,v 1.4 2003-11-21 22:41:27 paklein Exp $ */
 /* created: paklein (10/30/1997)                                          */
 
 #include "LinearExponentialT.h"
@@ -67,7 +67,7 @@ dArrayT& LinearExponentialT::MapFunction(const dArrayT& in, dArrayT& out) const
 
 	int length = in.Length();
 	double* y = out.Pointer();
-	double* x = in.Pointer();
+	const double* x = in.Pointer();
 	for (int i = 0; i < length; i++)
 	{
 		*y++ = fa + fb*(*x) + fc*(1.0 - exp(-(*x)/fd));
@@ -84,7 +84,7 @@ dArrayT& LinearExponentialT::MapDFunction(const dArrayT& in, dArrayT& out) const
 
 	int length = in.Length();
 	double* y = out.Pointer();
-	double* x = in.Pointer();
+	const double* x = in.Pointer();
 	for (int i = 0; i < length; i++)
 		*y++ = fb + fc*exp(-(*x++)/fd)/fd;
 	return out;
@@ -98,7 +98,7 @@ dArrayT& LinearExponentialT::MapDDFunction(const dArrayT& in, dArrayT& out) cons
 
 	int length = in.Length();
 	double* y = out.Pointer();
-	double* x = in.Pointer();
+	const double* x = in.Pointer();
 	for (int i = 0; i < length; i++)
 		*y++ = -fc*exp(-(*x++)/fd)/fd/fd;
 	return out;

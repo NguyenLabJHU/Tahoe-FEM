@@ -1,4 +1,4 @@
-/* $Id: GraphBaseT.h,v 1.5 2003-04-07 17:30:50 cjkimme Exp $ */
+/* $Id: GraphBaseT.h,v 1.6 2003-11-21 22:41:54 paklein Exp $ */
 /* created: paklein (04/13/1999) */
 
 #ifndef _GRAPHBASE_T_H_
@@ -29,7 +29,7 @@ public:
 	int  Degree(int nodenum) const; // number of edges incident on the node
 	void Degrees(ArrayT<int>& degrees, int& row_shift) const; // all of them
 	int  NumNodes(void) const;
-	int* Edges(int nodenum) const;  // adjacency list for the node
+	const int* Edges(int nodenum) const;  // adjacency list for the node
 	int  MinDegree(void) const;
 	int  MinDegreeNode(void) const;
 	void GetEdges(int nodenum, ArrayT<int>& edges) const; // shallow copy
@@ -131,7 +131,7 @@ inline void GraphBaseT::Degrees(ArrayT<int>& degrees, int& row_shift) const
 }
 
 inline int GraphBaseT::NumNodes(void) const { return fEdgeList.MajorDim(); }
-inline int* GraphBaseT::Edges(int nodenum) const
+inline const int* GraphBaseT::Edges(int nodenum) const
 {
 	return fEdgeList(nodenum - fShift);
 }

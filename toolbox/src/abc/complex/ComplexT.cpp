@@ -1,4 +1,4 @@
-/* $Id: ComplexT.cpp,v 1.15 2003-11-04 01:20:57 paklein Exp $ */
+/* $Id: ComplexT.cpp,v 1.16 2003-11-21 22:41:33 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997) */
 #include "ComplexT.h"
 
@@ -23,7 +23,7 @@ void ComplexT::z_to_Re(const nArrayT<ComplexT>& z, nArrayT<double>& d)
 	/* dimension check */
 	if ( z.Length() != d.Length() ) throw ExceptionT::kOutOfRange;
 	
-	ComplexT* pz = z.Pointer();
+	const ComplexT* pz = z.Pointer();
 	double*   pd = d.Pointer();
 	
 	for (int i = 0; i < z.Length(); i++)
@@ -35,7 +35,7 @@ void ComplexT::z_to_Im(const nArrayT<ComplexT>& z, nArrayT<double>& d)
 	/* dimension check */
 	if ( z.Length() != d.Length() ) throw ExceptionT::kOutOfRange;
 	
-	ComplexT* pz = z.Pointer();
+	const ComplexT* pz = z.Pointer();
 	double*   pd = d.Pointer();
 	
 	for (int i = 0; i < z.Length(); i++)
@@ -48,9 +48,9 @@ void ComplexT::ReIm_to_z(const nArrayT<double>& re, const nArrayT<double>& im,
 	/* dimension check */
 	if ( re.Length() != im.Length() || im.Length() != z.Length() ) throw ExceptionT::kOutOfRange;
 
-	ComplexT* pz  = z.Pointer();
-	double*   pre = re.Pointer();
-	double*   pim = im.Pointer();
+	ComplexT* pz = z.Pointer();
+	const double* pre = re.Pointer();
+	const double* pim = im.Pointer();
 	
 	for (int i = 0; i < z.Length(); i++)
 		(pz++)->toZ(*pre++,*pim++);

@@ -1,4 +1,4 @@
-/* $Id: MonitorT.cpp,v 1.3 2002-09-12 16:40:20 paklein Exp $ */
+/* $Id: MonitorT.cpp,v 1.4 2003-11-21 22:41:57 paklein Exp $ */
 /* created: paklein (09/30/1996)                                          */
 
 #include "MonitorT.h"
@@ -98,8 +98,8 @@ void MonitorT::PrintOFF(ostream& out) const
 */
 void MonitorT::PrintValued(ostream& out, int value, int wrapat) const
 {
-	int* p = fStatus.Pointer();
-	int  count = 0;
+	const int* p = fStatus.Pointer();
+	int count = 0;
 
 	for (int i = 0; i < fStatus.Length(); i++)
 		if (*p++ == value)

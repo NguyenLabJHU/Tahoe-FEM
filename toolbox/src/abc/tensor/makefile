@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2003-03-04 06:41:10 paklein Exp $
+# $Id: makefile,v 1.4 2003-11-21 22:41:41 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -89,3 +89,4 @@ include $(MACRO_DIR)/subdir.targets
 # dependencies
 DEPEND = /dev/null
 include $(DEPEND)
+# DO NOT DELETE

@@ -1,4 +1,4 @@
-/* $Id: PTHT2BodyT.cpp,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
+/* $Id: PTHT2BodyT.cpp,v 1.3 2003-11-21 22:46:42 paklein Exp $ */
 /* created: paklein (10/11/1997)                                          */
 
 #include "PTHT2BodyT.h"
@@ -29,7 +29,7 @@ void PTHT2BodyT::Set(void)
 	double* pdPhi  = fdPhi.Pointer();
 	double* pddPhi = fddPhi.Pointer();
 	
-	double* pl = fLengths.Pointer();
+	const double* pl = fLengths.Pointer();
 	
 	/* expansion factor */
 	double a = 1.0;

@@ -1,4 +1,4 @@
-/* $Id: iArrayT.cpp,v 1.17 2003-11-04 01:20:54 paklein Exp $ */
+/* $Id: iArrayT.cpp,v 1.18 2003-11-21 22:41:30 paklein Exp $ */
 /* created: paklein (08/10/1996) */
 #include "iArrayT.h"
 #include <iostream.h>
@@ -17,7 +17,7 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<iArrayT>::fByteCopy = false;
 /* constructor */
 iArrayT::iArrayT(void) { }
 iArrayT::iArrayT(int length): nArrayT<int>(length) { }
-iArrayT::iArrayT(int length, int* p): nArrayT<int>(length,p) { }
+iArrayT::iArrayT(int length, const int* p): nArrayT<int>(length,p) { }
 iArrayT::iArrayT(const iArrayT& source): nArrayT<int>(source) { }
 
 /* flagging operations */
@@ -39,7 +39,7 @@ int iArrayT::ChangeValue(int from, int to)
 
 int iArrayT::Count(int value) const
 {
-	int* p = Pointer();
+	const int* p = Pointer();
 	int  count = 0;
 	for (int i = 0; i < Length(); i++)
 		if (*p++ == value)
@@ -49,7 +49,7 @@ int iArrayT::Count(int value) const
 
 int iArrayT::HasValue(int value) const
 {
-	int* p = Pointer();
+	const int* p = Pointer();
 	for (int i = 0; i < Length(); i++)
 		if (*p++ == value)
 			return 1;
@@ -59,7 +59,7 @@ int iArrayT::HasValue(int value) const
 int iArrayT::HasValue(int value, int& index) const
 {
 	index  = -1;
-	int* p = Pointer();
+	const int* p = Pointer();
 	for (int i = 0; i < Length(); i++)
 		if (*p++ == value)
 		{
@@ -87,7 +87,7 @@ iArrayT& iArrayT::Union(const nArrayT<int>& source)
 		node_map = 0;
 
 		/* mark nodes used */
-		int* p = source.Pointer();
+		const int* p = source.Pointer();
 		for (int i = 0; i < source.Length(); i++)
 			node_map[*p++ - min] = 1;
 
@@ -147,7 +147,7 @@ iArrayT& iArrayT::Union(const ArrayT<const nArrayT<int>*>& source)
 				if (!empty[j]) 
 				{
 					const nArrayT<int>& src = *source[j];
-					int* p = src.Pointer();
+					const int* p = src.Pointer();
 					for (int i = 0; i < src.Length(); i++)
 						node_map[*p++ - min] = 1;
 				}
