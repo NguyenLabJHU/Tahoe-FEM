@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.12 2004-01-10 04:41:25 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.12.28.1 2004-09-22 06:13:33 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -83,6 +83,9 @@ protected:
 	virtual const dSymMatrixT& AcousticalTensor(const dArrayT& normal);
 
 private:
+
+	/** small strain material support additive split of thermal strains by default */
+	virtual bool SupportsThermalStrain(void) const { return true; };
 
 	/* set the internal thermal strain */
 	virtual bool SetThermalStrain(dSymMatrixT& thermal_strain);
