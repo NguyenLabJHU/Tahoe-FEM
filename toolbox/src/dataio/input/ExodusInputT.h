@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.h,v 1.5 2001-09-21 13:48:51 sawimme Exp $ */
+/* $Id: ExodusInputT.h,v 1.6 2001-10-15 17:48:55 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #ifndef _EXODUSINPUT_T_H_
@@ -53,7 +53,7 @@ public:
 
   virtual bool AreSideSetsLocal (void) const;
   virtual int  NumSidesInSet (StringT& setname) const;
-  virtual int  SideSetGroupIndex (StringT& setname) const;
+  virtual StringT SideSetGroupName (StringT& setname) const;
   virtual void ReadSideSetLocal (StringT& setname, iArray2DT& sides) const;
   virtual void ReadSideSetGlobal (StringT& setname, iArray2DT& sides) const;
 
