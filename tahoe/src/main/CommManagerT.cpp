@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.1.2.10 2003-01-11 01:18:41 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.1.2.11 2003-01-11 22:10:43 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -328,10 +328,10 @@ int CommManagerT::Init_AllGather(MessageT::TypeT t, int num_vals)
 		AllGatherT* ghost_all_gather = new AllGatherT(fComm);
 
 		/* set message size */
-		all_gather->Initialize(fPBCNodes.Length()*num_vals);
+		ghost_all_gather->Initialize(fPBCNodes.Length()*num_vals);
 		
 		/* store */
-		fGhostCommunications.Append(all_gather);
+		fGhostCommunications.Append(ghost_all_gather);
 	}
 	else if (decomp_type == PartitionT::kAtom) /* shifts */
 	{
@@ -400,7 +400,8 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 		if (!all_gather) ExceptionT::GeneralFail(caller);
 		
 		/* exchange */
-		fdExchange.Set(fPartition->NumPartitionNodes(), values.MinorDim(), values.Pointer());
+		int nrn = fModelManager.NumNodes() - fPBCNodes.Length();
+		fdExchange.Set(nrn, values.MinorDim(), values(0));
 		all_gather->AllGather(fdExchange);
 
 		/* ghost nodes */
@@ -416,7 +417,6 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 			if (!all_gather) ExceptionT::GeneralFail(caller);
 
 			/* exchange */
-			int nrn = fModelManager.NumNodes() - fPBCNodes.Length();
 			fdExchange.Set(fPBCNodes.Length(), values.MinorDim(), values(nrn));
 			all_gather->AllGather(fdExchange);
 		}		
@@ -462,7 +462,8 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 		if (!all_gather) ExceptionT::GeneralFail(caller);
 		
 		/* exchange */
-		fiExchange.Set(fPartition->NumPartitionNodes(), values.MinorDim(), values.Pointer());
+		int nrn = fModelManager.NumNodes() - fPBCNodes.Length();
+		fiExchange.Set(nrn, values.MinorDim(), values(0));
 		all_gather->AllGather(values);
 		
 		/* ghost nodes */
@@ -478,7 +479,6 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 			if (!all_gather) ExceptionT::GeneralFail(caller);
 
 			/* exchange */
-			int nrn = fModelManager.NumNodes() - fPBCNodes.Length();
 			fiExchange.Set(fPBCNodes.Length(), values.MinorDim(), values(nrn));
 			all_gather->AllGather(fiExchange);
 		}		
