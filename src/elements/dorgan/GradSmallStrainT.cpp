@@ -35,6 +35,7 @@ const double kYieldTol    = 1.0e-10;
 GradSmallStrainT::GradSmallStrainT(const ElementSupportT& support):
 	SmallStrainT(support), //pass the displacement field to the base class
 	fGradSSMatSupport(NULL),
+	fHoldTime(false),
 
 	fK_bb(ElementMatrixT::kNonSymmetric),
 	fK_bh(ElementMatrixT::kNonSymmetric),
@@ -81,6 +82,37 @@ GradSmallStrainT::~GradSmallStrainT(void)
 {  
 	delete fGradSSMatSupport;
 	delete fShapes_PMultiplier;
+}
+
+/* adds check for weakening */
+void GradSmallStrainT::RHSDriver(void)
+{
+	/* inherited */
+	SmallStrainT::RHSDriver();
+	
+	/* check weakening */
+	if (ElementSupport().RunState() == GlobalT::kFormRHS)
+	{
+	
+	
+		//if the solver shouldn't go onto the next time step
+		//fHoldTime = true;
+	}
+	else
+		fHoldTime = false;
+}
+
+/* element level reconfiguration for the current time increment */
+GlobalT::RelaxCodeT GradSmallStrainT::RelaxSystem(void)
+{
+	/* inherited */
+	GlobalT::RelaxCodeT code = SmallStrainT::RelaxSystem();
+
+	/* resolve current time */
+	if (fHoldTime)
+		code = GlobalT::MaxPrecedence(code, GlobalT::kRelax);
+		
+	return code;
 }
 
 void GradSmallStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,

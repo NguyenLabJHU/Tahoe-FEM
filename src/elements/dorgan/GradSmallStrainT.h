@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.h,v 1.13 2004-08-04 22:02:13 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.h,v 1.14 2004-08-05 00:22:57 paklein Exp $ */ 
 #ifndef _GRAD_SMALL_STRAIN_T_H_ 
 #define _GRAD_SMALL_STRAIN_T_H_ 
 
@@ -27,6 +27,12 @@ public:
 
 	/** destructor */
 	~GradSmallStrainT(void);
+
+	/** adds check for weakening */
+	virtual void RHSDriver(void);
+
+	/** element level reconfiguration for the current time increment */
+	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 	
 	/** \name field */
 	/*@{*/
@@ -168,6 +174,9 @@ protected:
 	GradSSSolidMatT*  fCurrMaterial_Grad;
 	
  private:
+
+	/** keep solving current time step */
+	bool fHoldTime;
 
 	/** connectivities for the multiplier */
 	ArrayT<iArray2DT> fConnectivities_PMultiplier;
