@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.16 2002-12-03 19:15:04 cjkimme Exp $ */
+/* $Id: ElementSupportT.h,v 1.17 2002-12-11 23:13:15 cjkimme Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -11,6 +11,9 @@
 #include "dArray2DT.h"
 #ifndef _SIERRA_TEST_
 #include "FieldT.h"
+#else
+#include "StringT.h"
+#include "GroupAverageT.h"
 #endif
 
 namespace Tahoe {
@@ -45,6 +48,15 @@ class LocalArrayT;
 class ElementSupportT
 {
 public:
+
+#ifdef _SIERRA_TEST_
+	/* Parameters normally read from input stream must be passed through ElementSupport */
+	enum CodeT { kGeometryCode = 0, /**< Topology of surface element */
+	    		    kNumIntPts = 1, /**< Number of integration points */
+	             kCloseSurface = 2, /**< Initially close cohesive surfaces? */
+				   kOutputArea = 3, /**< Output fracture area */
+	             kMaterialCode = 4};/**< Which cohesive law to use */ 
+#endif
 
 	/** constructor */
 	ElementSupportT(void);
@@ -105,7 +117,7 @@ public:
 	dArrayT *FloatInput(void) const;
 	
 	/** accessor for element integer input when streams are not available */
-	int *IntInput(void) const;
+	iArrayT *IntInput(void) const;
 	
 	/** generate equation numbers based on connectivity information */
 	void SetEqnos(int *conn, const int& nelem, const int& nElemNodes, const int&nNodes);
@@ -114,19 +126,25 @@ public:
 	
 	dMatrixT& Stiffness(void) const { return *fStiffness; };
 	
-	void SetInput(double *inputFloats, int length);
+	void SetMaterialInput(double *inputFloats, int length);
 	
-	void Setfmap(map<string,double>& inputDoubles);
-	
-	void Setimap(map<string,int>& inputInts);
+	void SetElementInput(int *inputInts, int length);
 		
-	double ReturnInputDouble(string label);
-	
-	int ReturnInputInt(string label);
+	int ReturnInputInt(CodeT label);
 	
 	double *StateVariableArray(void);
 	
 	void SetStateVariableArray(double *incomingArray);
+	
+	void SetBlockID(StringT &Id);
+	
+	StringT& BlockID(void);
+	
+	void OutputSize(int& nNodeOutputVars, int& nElemOutputVars);
+	
+	void SetOutputCodes(iArrayT& fNodalOutputCodes, iArrayT& fElementOutputCodes);
+	
+	void SetOutputPointers(double *nodalOutput, double *elemOutput);
 
 #endif // def _SIERRA_TEST_
 
@@ -272,7 +290,12 @@ public:
 
 	/** register the output set. returns the ID that should be used with
 	 * ElementSupport::WriteOutput */
+#ifndef _SIERRA_TEST_
 	int RegisterOutput(const OutputSetT& output_set) const;
+#else
+	/** for SIERRA interface, we're just holding the data till they want it */
+	int RegisterOutput(ArrayT<StringT>& n_labels, ArrayT<StringT>& e_labels);
+#endif
 
 	/** write results for a single output set
 	 * \param ID output set ID for the given data
@@ -315,6 +338,8 @@ private:
 #ifdef _SIERRA_TEST_	
  
  	ModelManagerT* fModelManager;
+ 	
+ 	GroupAverageT*fGroupAverage;
 
 	dArray2DT *fInitialCoordinates, *fCurrentCoordinates;
 	dArrayT *fResidual;
@@ -327,17 +352,17 @@ private:
 	ifstreamT *ifst;
 	ofstreamT *ofst;
 	
-//	double *fparams;
 	dArrayT *fparams;
-	map<string,double> fmap;
-	map<string,int> imap;
+	iArrayT *iparams;
 	
-	int *iparams;
-
 	iArrayT *ieqnos;
 	
-	double *fStateVars;
+	double *fStateVars, *fNodalOutput, *fElemOutput;
 
+	StringT sBlockID;
+	
+	ArrayT<StringT> fNodeOutputLabels;
+	ArrayT<StringT> fElemOutputLabels;
 #endif
 	
 };
@@ -365,7 +390,7 @@ inline NodeManagerT& ElementSupportT::Nodes(void) const
 #else
 inline int ElementSupportT::NumElements(void) const { return fElem; }
 inline dArrayT *ElementSupportT::FloatInput(void) const { return fparams; }
-inline int *ElementSupportT::IntInput(void) const { return iparams; }
+inline iArrayT *ElementSupportT::IntInput(void) const { return iparams; }
 #endif
 
 /* return a const reference to the run state flag */

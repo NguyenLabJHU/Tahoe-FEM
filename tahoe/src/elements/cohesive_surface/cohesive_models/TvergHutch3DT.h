@@ -1,4 +1,4 @@
-/* $Id: TvergHutch3DT.h,v 1.3 2002-12-03 19:13:38 cjkimme Exp $ */
+/* $Id: TvergHutch3DT.h,v 1.4 2002-12-11 23:13:18 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _TVERG_HUTCH_3D_T_H_
@@ -21,7 +21,7 @@ public:
 
 	/** constructors */
 	TvergHutch3DT(ifstreamT& in);
-	TvergHutch3DT(dArrayT params);
+	TvergHutch3DT(dArrayT& params);
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const { return 0; };

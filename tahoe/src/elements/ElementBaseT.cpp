@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.29 2002-11-30 16:41:22 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.30 2002-12-11 23:13:15 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -33,7 +33,7 @@ ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):
 	fController = fSupport.eController(field);
 }
 #else
-ElementBaseT::ElementBaseT(const ElementSupportT& support):
+ElementBaseT::ElementBaseT(ElementSupportT& support):
 	fSupport(support),
 	fController(NULL),
 	fElementCards(0),
@@ -50,11 +50,13 @@ ElementBaseT::~ElementBaseT(void) {	}
 void ElementBaseT::Initialize(void)
 {
 	/* set console variables */
+#ifndef _SIERRA_TEST_
 	int index = fSupport.ElementGroupNumber(this) + 1;
 	StringT name;
 	name.Append(index);
 	name.Append("_element_group");
 	iSetName(name);
+#endif
 
 	/* streams */
 	ifstreamT& in = fSupport.Input();
@@ -119,17 +121,14 @@ void ElementBaseT::FormLHS(GlobalT::SystemTypeT sys_type)
 	try { LHSDriver(sys_type); }
 	catch (ExceptionT::CodeT error)
 	{
+#ifndef _SIERRA_TEST_
 		cout << "\n ElementBaseT::FormLHS: " << fSupport.Exception(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
 		
 		if (fElementCards.InRange())
 		{
-#ifndef _SIERRA_TEST_		
 			ostream& out = fSupport.Output();
-#else
-			ostream& out = cout;
-#endif
 		
 			/* header */
 			out << "\n ElementBaseT::FormLHS: caught exception " << error << '\n';
@@ -144,6 +143,7 @@ void ElementBaseT::FormLHS(GlobalT::SystemTypeT sys_type)
 		else
 			cout << "     Current element information not available\n";
 		cout.flush();
+#endif
 		throw error;
 	}
 }
@@ -153,13 +153,13 @@ void ElementBaseT::FormRHS(void)
 	try { RHSDriver(); }
 	catch (ExceptionT::CodeT error)
 	{
+#ifndef _SIERRA_TEST_
 		cout << "\n ElementBaseT::FormRHS: " << fSupport.Exception(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
 		
 		if (fElementCards.InRange())
-		{
-#ifndef _SIERRA_TEST_		
+		{	
 			ostream& out = fSupport.Output();
 	
 			/* header */
@@ -171,11 +171,11 @@ void ElementBaseT::FormRHS(void)
 			/* write current element information to main out */
 			CurrElementInfo(out);
 			cout << "     See output file for current element information\n";
-#endif
 		}
 		else
 			cout << "     Current element information not available\n";
 		cout.flush();
+#endif
 		throw error;
 	}
 }
@@ -273,8 +273,10 @@ void ElementBaseT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 const StringT& ElementBaseT::ElementBlockID(int element) const
 {
 	if (element < 0 || element >= NumElements()) {
+#ifndef _SIERRA_TEST_
 		cout << "\n ElementBaseT::ElementBlockID: element number " << element << " is out of range {0,"
 		    << NumElements() - 1 << "}" << endl;
+#endif
 		throw ExceptionT::kOutOfRange;
 	}
 	
@@ -285,8 +287,10 @@ const StringT& ElementBaseT::ElementBlockID(int element) const
 			return fBlockData[i].ID();
 
 	if (!found) {
+#ifndef _SIERRA_TEST_
 		cout << "\n ElementBaseT::ElementBlockID: could not resolve block ID for element "
 		     << element << endl;
+#endif
 		throw ExceptionT::kGeneralFail;
 	}
 	return fBlockData[0].ID(); /* dummy */
@@ -435,7 +439,8 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	/* For Sierra, can't use input stream */
 	elem_ID.Dimension(1);
 	matnums.Dimension(1);
-	elem_ID = "1";
+	elem_ID[0] = fSupport.BlockID();
+	/*Might have to generalize this later*/
 	matnums = 1; 
 #endif
 
@@ -504,7 +509,8 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 
 /* resolve output formats */
 void ElementBaseT::WriteConnectivity(ostream& out) const
-{	
+{
+#ifndef _SIERRA_TEST_	
 	out << " Number of elements. . . . . . . . . . . . . . . = " << NumElements() << '\n';
 
 	/* write dimensions of blocks */
@@ -548,6 +554,9 @@ void ElementBaseT::WriteConnectivity(ostream& out) const
 		}
 		out << endl;
 	}
+#else
+#pragma unused(out)
+#endif
 }
 
 /* return pointer to block data given the ID */
@@ -561,6 +570,7 @@ const ElementBlockDataT& ElementBaseT::BlockData(const StringT& block_ID) const
 	/* check */
 	if (block_num == -1)
 	{
+#ifndef _SIERRA_TEST_
 		cout << "\n ElementBaseT::BlockData: block ID ";
 		cout << block_ID << " not found in\n";
 		cout <<   "     element group " << fSupport.ElementGroupNumber(this) + 1;
@@ -577,6 +587,7 @@ const ElementBlockDataT& ElementBaseT::BlockData(const StringT& block_ID) const
                  << setw(kIntWidth) << fBlockData[i].MaterialID() << '\n';
 
 		cout.flush();
+#endif
 		throw ExceptionT::kBadInputValue;
 	}
 
@@ -587,7 +598,6 @@ const ElementBlockDataT& ElementBaseT::BlockData(const StringT& block_ID) const
 /* write all current element information to the stream */
 void ElementBaseT::CurrElementInfo(ostream& out) const
 {
-#pragma unused(out)
 #ifndef _SIERRA_TEST_
 	if (!fElementCards.InRange()) return;
 	
@@ -646,7 +656,9 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 
 	out <<   " equations:\n";
 	out << (CurrentElement().Equations()).wrap(4) << '\n';
-#endif // ndef _SIERRA_TEST_
+#else
+#pragma unused(out)
+#endif 
 }
 
 /* set element cards array */
@@ -654,10 +666,12 @@ void ElementBaseT::SetElementCards(void)
 {
   if (fConnectivities.Length() != fEqnos.Length())
     {
+#ifndef _SIERRA_TEST_
       cout << "ElementBaseT::SetElementCards length mismatch ";
       cout << "\n           element group: " << fSupport.ElementGroupNumber(this) + 1;      
       cout << "\n fConnectivities length = " << fConnectivities.Length();
       cout << "\n          fEqnos length = " << fEqnos.Length() << endl;
+#endif
       throw ExceptionT::kSizeMismatch;
     }
 
@@ -673,11 +687,13 @@ void ElementBaseT::SetElementCards(void)
 
 		if (blockconn->MajorDim() != blockeqnos.MajorDim())
 		  {
+#ifndef _SIERRA_TEST_
 		    cout << "ElementBaseT::SetElementCards length mismatch ";
 		    cout << "\n   element group: " << fSupport.ElementGroupNumber(this) + 1; 
 		    cout << "\n           block: " << i+1;
 		    cout << "\n  blockconn dim = " << blockconn->MajorDim() << " " << blockconn->MinorDim();
 		    cout << "\n blockeqnos dim = " << blockeqnos.MajorDim() << " " << blockeqnos.MinorDim() << endl;
+#endif
 		    throw ExceptionT::kSizeMismatch;
 		  }
 
@@ -698,10 +714,12 @@ void ElementBaseT::SetElementCards(void)
 			nodes.MinMax(min, max);
 			if (min < 0 || max >= numberofnodes)
 			{
+#ifndef _SIERRA_TEST_
 				cout << "\n ElementBaseT::SetElementCards: nodes {" << min + 1
 				     << "," << max + 1 << "} in element " << dim + 1 << "\n";
 				cout <<   "     (" << j + 1 << " in block " <<  i + 1 << ") of group "
 				     << fSupport.ElementGroupNumber(this) + 1 << " are out of range" << endl;
+#endif
 				throw ExceptionT::kBadInputValue;
 			}
 

@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.16 2002-12-03 19:15:04 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.17 2002-12-11 23:13:15 cjkimme Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -16,6 +16,7 @@
 #include "iArrayT.h"
 #include "dMatrixT.h"
 #include "ElementMatrixT.h"
+#include "IOBaseT.h"
 #endif
 
 using namespace Tahoe;
@@ -35,6 +36,7 @@ ElementSupportT::ElementSupportT(void)
 	ieqnos = NULL;
 	iparams = NULL;
 	fparams = NULL;
+	fGroupAverage = new GroupAverageT();
 #endif
 }
 
@@ -290,6 +292,7 @@ const eControllerT* ElementSupportT::eController(const FieldT& field) const
 void ElementSupportT::SetNumNodes(int nn)
 {
 	fNumNodes = nn;
+	fGroupAverage->SetNumAverageRows(fNumNodes);
 }
 
 void ElementSupportT::SetTimeStep(double dt)
@@ -370,7 +373,7 @@ void ElementSupportT::SetEqnos(int *conn, const int& nElem, const int& nElemNode
 	fStiffness->Dimension(fNumSD*nNodes);
 }
 
-void ElementSupportT::SetInput(double *inputFloats, int length)
+void ElementSupportT::SetMaterialInput(double *inputFloats, int length)
 {
 	fparams = new dArrayT();
 	fparams->Dimension(length);
@@ -380,33 +383,20 @@ void ElementSupportT::SetInput(double *inputFloats, int length)
 		*ftmp++ = *inputFloats++;
 	
 }
-
-/* Do I really want to copy these?  */
-void ElementSupportT::Setfmap(map<string,double>& inputDoubles)
-{
-	fmap = inputDoubles;
-}
 	
-void ElementSupportT::Setimap(map<string,int>& inputInts)
+void ElementSupportT::SetElementInput(int *inputInts, int length)
 {
-	imap = inputInts;
+	iparams = new iArrayT();
+	iparams->Dimension(length);
+	
+	int *itmp = iparams->Pointer();
+	for (int i = 0; i < length; i++)
+		*itmp++ = *inputInts++;
 }
 
-double ElementSupportT::ReturnInputDouble(string label) 
+int ElementSupportT::ReturnInputInt(CodeT label) 
 { 
-	if (fmap.find(label) != fmap.end())
-		return fmap[label];
-	else 
-		return 0.;
-}
-
-
-int ElementSupportT::ReturnInputInt(string label) 
-{ 
-	if (imap.find(label) != imap.end())
-		return imap[label];
-	else
-		return 0;
+		return (*iparams)[label];
 }
 
 void ElementSupportT::SetStateVariableArray(double *incomingArray)
@@ -418,7 +408,36 @@ double *ElementSupportT::StateVariableArray(void)
 {
 	return fStateVars;
 }
+
+void ElementSupportT::SetBlockID(StringT& Id)
+{
+	sBlockID = Id;
+}
+
+StringT& ElementSupportT::BlockID(void)
+{
+	return sBlockID;
+}
+
+void ElementSupportT::OutputSize(int& nNodeOutputVars, int& nElemOutputVars)
+{
+	nNodeOutputVars = fNodeOutputLabels.Length();
+	nElemOutputVars = fElemOutputLabels.Length();
+}
 	
+void ElementSupportT::SetOutputCodes(iArrayT& fNodalOutputCodes, iArrayT& fElementOutputCodes)
+{
+#pragma message("Must read in IO codes somehow")
+	fNodalOutputCodes = IOBaseT::kAtInc;
+	fElementOutputCodes = IOBaseT::kAtInc;
+}
+
+void ElementSupportT::SetOutputPointers(double *nodalOutput, double *elemOutput)
+{
+	fNodalOutput = nodalOutput;
+	fElemOutput = elemOutput;
+}
+
 #endif
 
 /* element number map for the given block ID */
@@ -568,7 +587,7 @@ void ElementSupportT::ResetAverage(int n_values) const
 #ifndef _SIERRA_TEST_
 	Nodes().ResetAverage(n_values);
 #else
-#pragma unused(n_values)
+	fGroupAverage->ResetAverage(n_values);
 #endif
 }
 
@@ -578,8 +597,7 @@ void ElementSupportT::AssembleAverage(const iArrayT& nodes, const dArray2DT& val
 #ifndef _SIERRA_TEST_
 	Nodes().AssembleAverage(nodes, vals);
 #else
-#pragma unused(nodes)
-#pragma unused(vals)
+    fGroupAverage->AssembleAverage(nodes,vals);
 #endif
 }
 
@@ -589,7 +607,7 @@ const dArray2DT& ElementSupportT::OutputAverage(void) const
 #ifndef _SIERRA_TEST_
 	return Nodes().OutputAverage();
 #else
-	return *fCurrentCoordinates;
+	return fGroupAverage->OutputAverage();
 #endif
 }
 
@@ -599,7 +617,7 @@ void ElementSupportT::OutputUsedAverage(dArray2DT& average_values) const
 #ifndef _SIERRA_TEST_
 	Nodes().OutputUsedAverage(average_values);
 #else
-#pragma unused(average_values)
+	fGroupAverage->OutputUsedAverage(average_values);
 #endif
 }
 
@@ -621,15 +639,26 @@ ofstreamT& ElementSupportT::Output(void) const
 #endif
 }
 
+#ifndef _SIERRA_TEST_
 int ElementSupportT::RegisterOutput(const OutputSetT& output_set) const
 {
-#ifndef _SIERRA_TEST_
 	return FEManager().RegisterOutput(output_set);
-#else
-#pragma unused(output_set)
-	return 0;
-#endif
 }
+#else
+int ElementSupportT::RegisterOutput(ArrayT<StringT>& n_labels, 
+	ArrayT<StringT>& e_labels)
+{
+	/* copy labels */
+	fNodeOutputLabels.Dimension(n_labels.Length());
+	for (int i = 0; i < fNodeOutputLabels.Length(); i++)
+		fNodeOutputLabels[i] = n_labels[i];
+	fElemOutputLabels.Dimension(e_labels.Length());
+	for (int i = 0; i < fElemOutputLabels.Length(); i++)
+		fElemOutputLabels[i] = e_labels[i];
+		
+	return 0;
+}
+#endif
 
 void ElementSupportT::WriteOutput(int ID, const dArray2DT& n_values, 
 	const dArray2DT& e_values) const
@@ -638,8 +667,15 @@ void ElementSupportT::WriteOutput(int ID, const dArray2DT& n_values,
 	FEManager().WriteOutput(ID, n_values, e_values);
 #else
 #pragma unused(ID)
-#pragma unused(n_values)
-#pragma unused(e_values)
+	double *ftmp1, *ftmp2;
+	ftmp1 = fNodalOutput;
+	ftmp2 = n_values.Pointer();
+	for (int i = 0; i < n_values.Length(); i++)
+		*ftmp1++ = *ftmp2++;
+	ftmp1 = fElemOutput;
+	ftmp2 = e_values.Pointer();
+	for (int i = 0; i < e_values.Length(); i++)
+		*ftmp1++ = *ftmp2++;
 #endif
 }
 

@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.14 2002-12-03 19:13:38 cjkimme Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.15 2002-12-11 23:13:19 cjkimme Exp $ */
 /* created: paklein (06/23/1999)*/
 
 #include "XuNeedleman3DT.h"
@@ -39,7 +39,7 @@ XuNeedleman3DT::XuNeedleman3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 	fK = fKratio*phi_n/(d_n*d_n);
 }
 
-XuNeedleman3DT::XuNeedleman3DT(dArrayT params): SurfacePotentialT(knumDOF)
+XuNeedleman3DT::XuNeedleman3DT(dArrayT& params): SurfacePotentialT(knumDOF)
 {
 	q = params[0];; // phi_t/phi_n
 	r = params[1]; // delta_n* /d_n
