@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.h,v 1.4 2004-08-04 22:00:23 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.h,v 1.5 2004-10-24 03:57:06 paklein Exp $ */
 #ifndef _FS_SCNIMF_AXI_T_H_
 #define _FS_SCNIMF_AXI_T_H_
 
@@ -17,7 +17,6 @@ class FS_SCNIMF_AxiT: public SCNIMFT
 public:
 
 	/** constructor */
-	FS_SCNIMF_AxiT(const ElementSupportT& support, const FieldT& field);
 	FS_SCNIMF_AxiT(const ElementSupportT& support);
 
 	/** destructor */
@@ -51,6 +50,15 @@ public:
 	/** */
 	virtual void RHSDriver(void);
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+	/*@}*/
+
 protected: /* for derived classes only */
 	
 	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
@@ -65,22 +73,6 @@ protected: /* for derived classes only */
 
 	/** compute B matrices for strain smoothing/nodal integration */
 	virtual void ComputeBMatrices(void);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
-		SubListT& sub_lists) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-	/*@}*/
 
 protected:
 
