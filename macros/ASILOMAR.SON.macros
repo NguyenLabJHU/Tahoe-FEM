@@ -1,6 +1,6 @@
-# $Id: ASILOMAR.SON.macros,v 1.1 2002-09-17 21:25:30 ebmarin Exp $
+# $Id: ASILOMAR.SON.macros,v 1.2 2002-11-28 16:43:22 paklein Exp $
 # MPI
-MPI_CFLAGS = -D__MPI__
+MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpich -lgm
 
 # CA-CPLANT (DEC)

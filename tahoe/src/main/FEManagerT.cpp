@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.45 2002-11-28 01:14:06 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.46 2002-11-28 16:44:18 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -309,18 +309,18 @@ const int& FEManagerT::IterationNumber(int group) const
 }
 
 /* solution messaging */
-void FEManagerT::FormLHS(int group) const
+void FEManagerT::FormLHS(int group, GlobalT::SystemTypeT sys_type) const
 {
 	/* state */
 	SetStatus(GlobalT::kFormLHS);
 	
-	/* nodal contributions - from F(x) BC's */
-	fNodeManager->FormLHS(group);
+	/* nodal contributions - from special BC's */
+	fNodeManager->FormLHS(group, sys_type);
 
 	/* element contributions */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
 		if (fElementGroups[i]->InGroup(group))
-			fElementGroups[i]->FormLHS();
+			fElementGroups[i]->FormLHS(sys_type);
 }
 
 void FEManagerT::FormRHS(int group) const
@@ -329,7 +329,6 @@ void FEManagerT::FormRHS(int group) const
 	SetStatus(GlobalT::kFormRHS);
 
 	/* nodal force contribution - F(t) */
-	//fController->FormNodalForce(fNodeManager);
 	fNodeManager->FormRHS(group);
 
 	/* element contribution */

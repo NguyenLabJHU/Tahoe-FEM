@@ -1,5 +1,5 @@
-# $Id: JANUS.macros,v 1.9 2002-03-19 17:18:53 paklein Exp $
-MPI_CFLAGS = -D__MPI__
+# $Id: JANUS.macros,v 1.10 2002-11-28 16:43:22 paklein Exp $
+MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpi
 
 # ASCI Red - JANUS (sasn100, sasn101)

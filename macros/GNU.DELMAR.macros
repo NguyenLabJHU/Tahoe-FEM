@@ -1,6 +1,6 @@
-# $Id: GNU.DELMAR.macros,v 1.3 2002-03-19 17:18:52 paklein Exp $
+# $Id: GNU.DELMAR.macros,v 1.4 2002-11-28 16:43:22 paklein Exp $
 # MPI
-MPI_CFLAGS = -D__MPI__
+MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpich -lgm
 
 # CA-CPLANT (DEC)
