@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.10 2002-04-02 23:40:38 paklein Exp $
+# $Id: makefile.template,v 1.11 2002-09-12 17:37:39 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -41,6 +41,12 @@ MACRO_DIR = $(HOME_DIR)/../macros
 
 ############################### build options ###########################
 # uncomment macros for installed models
+
+##### any additional user C, C++, fortran, or linker flags
+MY_CFLAGS  =
+MY_CCFLAGS =
+MY_FFLAGS  =
+MY_LFLAGS  =
 
 ##### toolbox
 TB_DIR      = $(HOME_DIR)/../toolbox
@@ -130,6 +136,14 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 
 # extra macros for specific modules
 include $(MACRO_DIR)/tahoe.extras
+
+# "make build" extras - target brought up to date before other makefile
+# targets associated with "make build". To activate, uncomment the line
+# defining MAKE_BUILD_XTRAS, and add any commands below make_build_extras.
+# This two part approach is for backward compatibility betweem make.targets
+# and older versions of makefile.template
+#MAKE_BUILD_XTRAS = make_build_extras
+make_build_extras:
 
 # include common target definitions
 include $(MACRO_DIR)/make.targets
