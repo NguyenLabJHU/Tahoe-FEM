@@ -1,9 +1,10 @@
-/* $Id: CommunicatorT.cpp,v 1.7.2.3 2002-12-27 23:02:41 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.7.2.4 2003-01-06 18:37:51 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
 #include <time.h>
 #include "nArrayT.h"
+#include "ofstreamT.h"
 
 /* to handle the variable number of arguments in Throw() */
 #if defined(__SGI__) || defined(__DELMAR__)
