@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:46 paklein Exp $
+# $Id: makefile,v 1.5 2001-05-01 23:24:52 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -11,6 +11,7 @@ OBJ = \
 	J2QL2DLinHardT.o \
 	J2SimoLinHardT.o \
 	J2Simo2D.o \
+	J2Simo3D.o \
 	J2SSKStV.o \
 	J2SSKStV2D.o \
 	J2SSLinHardT.o
@@ -27,6 +28,7 @@ SRC = \
 	J2QL2DLinHardT.cpp \
 	J2SimoLinHardT.cpp \
 	J2Simo2D.cpp \
+	J2Simo3D.cpp \
 	J2SSKStV.cpp \
 	J2SSKStV2D.cpp \
 	J2SSLinHardT.cpp
@@ -38,6 +40,7 @@ HDR = \
 	J2QL2DLinHardT.h \
 	J2SimoLinHardT.h \
 	J2Simo2D.h \
+	J2Simo3D.h \
 	J2SSKStV.h \
 	J2SSKStV2D.h \
 	J2SSLinHardT.h
