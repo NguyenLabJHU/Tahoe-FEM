@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.cpp,v 1.3 2003-11-10 21:58:40 thao Exp $ */
+/* $Id: UpLagMF.cpp,v 1.4 2003-11-10 22:16:41 paklein Exp $ */
 #include "UpLagMF.h"
 
 #include "OutputSetT.h"
@@ -109,7 +109,7 @@ void UpLagMF::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
   const CommunicatorT& comm = ElementSupport().Communicator();
   
   /*check for parallel execution*/
-  if (comm.Size()> 1)
+  if (true && comm.Size()> 1)
   {
     /*make graph from element connectivities*/
     bool verbose = true;
@@ -136,9 +136,21 @@ void UpLagMF::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
       }
     }
     /*Q:Does fExtendedConnect need to be split into element groups?*/
-    //    fXConnects.Copy(fill);    
-    fXConnects->Copy(fill);
-    connects_2.Append(fXConnects);
+    
+    /* non-const this */
+    UpLagMF* non_const_this = (UpLagMF*) this; 
+	non_const_this->fXConnects.Copy(fill); 
+
+//TEMP
+	iArrayT tmp(fXConnects.Length(), fXConnects.Pointer());
+	tmp++;
+	ofstreamT& out = ElementSupport().Output();
+	out << "\nextended connectivities: \n";
+	fXConnects.WriteNumbered(ElementSupport().Output());
+	tmp--;
+//TEMP
+
+    connects_2.Append(&fXConnects);
   }
 }
 

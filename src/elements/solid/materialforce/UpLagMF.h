@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.h,v 1.2 2003-11-10 21:58:40 thao Exp $ */
+/* $Id: UpLagMF.h,v 1.3 2003-11-10 22:16:41 paklein Exp $ */
 
 #ifndef _UpLagMF_H_
 #define _UpLagMF_H_
@@ -7,14 +7,14 @@
 #include "UpdatedLagrangianT.h"
 #include "MFSupportT.h"
 #include "ofstreamT.h"
-//#include "RaggedArray2DT.h"
+#include "RaggedArray2DT.h"
 namespace Tahoe {
 
 /* forward declarations */
 class FSSolidMatT;
 class ifstreamT;
 class StringT;
-template<class TYPE> class RaggedArray2DT;
+//template<class TYPE> class RaggedArray2DT;
 
 /** Interface for linear strain deformation and field gradients */
 class UpLagMF: public UpdatedLagrangianT, public MFSupportT
@@ -54,8 +54,8 @@ class UpLagMF: public UpdatedLagrangianT, public MFSupportT
     FSSolidMatT* fCurrFSMat;
 
     /*connectivities*/
-    //    RaggedArray2DT<int> fXConnects;
-    RaggedArray2DT<int>* fXConnects;
+	RaggedArray2DT<int> fXConnects;
+    //RaggedArray2DT<int>* fXConnects;
 
  private:
     dMatrixT fEshelby;        /*eshelby energy momentum tensor*/
