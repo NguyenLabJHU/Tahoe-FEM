@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.7 2003-04-01 20:09:26 manzari Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.8 2003-04-10 20:02:22 manzari Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -64,16 +64,17 @@ void MR_RP2DT::InitStateVariables(ArrayT<double>& state)
 	/* clear */
 	if (num_state > 0) state = 0.0;
 	
-	double enp = state[14];
-	double esp = state[15];
+	/* Initializing internal state variables */
+	double enp  = state[14];
+	double esp  = state[15];
 	double fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
 	double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
 	double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
 	double ftan_psi = (tan(fpsi_p))*exp(-falpha_psi*esp);	
-	state[6] = fchi;
-	state[7] = fc ;
-    state[8] = ftan_phi;
-    state[9] = ftan_psi;
+	state[6]  = fchi;
+	state[7]  = fc ;
+    state[8]  = ftan_phi;
+    state[9]  = ftan_psi;
     state[13] = 0.;
 }
 
@@ -136,8 +137,8 @@ const dArrayT& MR_RP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, 
 if (state[nTiedFlag] != 1. && state[nTiedFlag] != -10.)
 {
 	fTraction = 0.;
-	/*state[0] = sigma[0];
-	state[1] = sigma[1];*/
+	state[0] = sigma[2];
+	state[1] = sigma[1];
 
 	return fTraction;
 }
@@ -153,9 +154,11 @@ else
 {
 
 if (state[nTiedFlag] == -10.)
+    state[0] = sigma[2];
+    state[1] = sigma[1];
 	state[nTiedFlag] = 1.;
 	
-int i; int j; int kk;
+int i; int j; int kk; int iplastic;
 
 dMatrixT AA(6,6); dMatrixT KE(2,2); dMatrixT KE_Inv(2,2); dMatrixT I_mat(4,4); 
 dMatrixT CMAT(6,6); dMatrixT A_qq(4,4); dMatrixT A_uu(2,2); dMatrixT A_uq(2,4);
@@ -163,7 +166,7 @@ dMatrixT A_qu(4,2); dMatrixT ZMAT(2,4); dMatrixT ZMATP(4,2);
 dMatrixT dQdSig2(2,2); dMatrixT dqbardq(4,4); dMatrixT dQdSigdq(2,4);
 dMatrixT dqbardSig(4,2); dMatrixT AA_inv(6,6);
 
-dArrayT u(2); dArrayT up(2); dArrayT du(2); dArrayT dup(2); dArrayT qn(4);
+dArrayT up(2); dArrayT dup(2); dArrayT dSig(2); dArrayT qn(4);
 dArrayT qo(4); dArrayT Rvec(6); dArrayT Cvec(6); dArrayT upo(2);
 dArrayT R(6); dArrayT Rmod(6); dArrayT Sig(2); dArrayT Sig_I(2);
 dArrayT dQdSig(2); dArrayT dfdq(4); dArrayT qbar(4);
@@ -172,123 +175,93 @@ dArrayT dfdSig(2); dArrayT dq(4); dArrayT Y(6);
 
 
 double ff; double bott; double topp; double dlam; double dlam2; double normr;
-double Denom;
+double normflow; double normdup;
 
-	/* Calculate incremental jumps and initialize the neecessary vectors */
+/* initialize the neecessary vectors */
+	I_mat = 0.;
+    ZMAT = 0.; ZMATP = 0.; dlam = 0.; dlam2 = 0.; normr = 0.;
+    
     for (i = 0; i<=1; ++i) {
-       u[i] = jump_u[i];
-       du[i] = u[i] - state[i+2];
-       up[i] = state[i+4];
-       upo[i] = up[i];
+       up[i] = jump_u[i];
+       dup[i] = up[i] - state[i+2];
+       upo[i] = state[i+4];
        Sig_I[i] = state[i];
     }
-    Sig = Sig_I;
-    dQdSig[0] = 2.*Sig[0];
-    dQdSig[1] = 2.*qn[3]*qn[1] - Sig[1]*qn[3];
-    dfdSig[0] = 2.*Sig[0];
-    dfdSig[1] = 2.*qn[2]*qn[1] - Sig[1]*qn[2];
-    qbar_f(Sig, qn, qbar);
-    dfdq_f(Sig, qn, dfdq);
-    Denom = 0.;
-    for (i=0; i<=3; ++i)  {
-    Denom += dfdq[i]*qbar[i]; 
-    }
-    KE(0,0) = dQdSig[0]*dfdSig[0];
-    KE(0,1) = dQdSig[0]*dfdSig[1];
-    KE(1,0) = dQdSig[1]*dfdSig[0];
-    KE(1,1) = dQdSig[1]*dfdSig[1];
-    KE /=Denom;
-    
-    I_mat = 0.;
-    ZMAT = 0.; ZMATP = 0.;
-    
-    KE_Inv.Inverse(KE);
     
     for (i = 0; i<=3; ++i) {
         qn[i] = state[i+6];
         qo[i] = qn[i];
         I_mat(i,i) = 1.;
     }
-     
-    dArrayT ue(2), Sig_e(2);
-    ue = 0.;
-    ue -= up;
-    KE.MultTx(ue,Sig_e);
-    Sig +=Sig_e;
     
-    int iplastic;
-    dlam = 0.; dlam2 = 0.; normr = 0.;
+    Sig = Sig_I;
+    dQdSig_f(Sig, qn, dQdSig);
+    qbar_f(Sig, qn, qbar);
     
-/* Check the yield function */
-     
+/* first estimate of plastic consistency parameter */    
+    normflow = dQdSig.Magnitude();
+    normdup  = dup.Magnitude();
+    dlam     = normdup;
+    dlam    /= normflow;
+    
+/* calculate residuals */    
+    for (i = 0; i<=1; ++i) {
+          R[i]  = upo[i];
+          R[i] -= up[i];
+          R[i] += dlam*dQdSig[i];
+    }
+        for (i = 0; i<=3; ++i) {
+          R[i+2]  = qo[i];
+          R[i+2] -= qn[i];
+          R[i+2] += dlam*qbar[i];
+    }
+    normr = R.Magnitude();
+    
+    
+/* Local Iteration */
+
+    kk = 0;
+    iplastic = 1;
     Yield_f(Sig, qn, ff);
-    if (ff <0.) {
-      iplastic = 0;
-      state[10] = ff;
-      normr = 0.;
-      state[13] = normr;
-      kk = 0.;
-    }  
-    else {
-      kk = 0;
-      iplastic = 1;
-      while (ff > fTol_1 | normr > fTol_2) {
+    while (ff > fTol_1 | normr > fTol_2) {
         if (kk > 500) {
         	ExceptionT::GeneralFail("MR2DT::Traction","Too Many Iterations");
         }
         
-        Sig = Sig_I;
-        ue = 0.;
-        ue -= up;
-        KE.Multx(ue,Sig_e);
-        Sig +=Sig_e;
-        
-        Yield_f(Sig, qn, ff);
-        dQdSig[0] = 2.*Sig[0];
-        dQdSig[1] = 2.*qn[3]*qn[1] - Sig[1]*qn[3];
-        
+        dfdSig_f(Sig, qn, dfdSig);
+        dQdSig_f(Sig, qn, dQdSig);
         qbar_f(Sig, qn, qbar);
-        for (i = 0; i<=1; ++i) {
-          R[i] = upo[i];
-          R[i] -=up[i];
-          R[i] +=dlam*dQdSig[i];
-        }
-        for (i = 0; i<=3; ++i) {
-          R[i+2] = qo[i];
-          R[i+2] -=qn[i];
-          R[i+2] +=dlam*qbar[i];
-        }
-                
-        normr = R.Magnitude();
-        dQdSig2_f(qn,dQdSig2);
+        dfdq_f(Sig, qn, dfdq);
+        dQdSig2_f(qn, dQdSig2);
         dQdSigdq_f(Sig, qn, A_uq);
         dqbardSig_f(Sig, qn, A_qu);
         dqbardq_f(Sig, qn, A_qq);
+        
         for (i = 0; i<=5; ++i) {
           for (j = 0; j<=5; ++j) {
             if (i<=1 & j<=1){
-             AA_inv(i,j)  = KE_Inv(i,j);
-             AA_inv(i,j) += dlam*dQdSig2(i,j);
+             AA_inv(i,j)  = dQdSig2(i,j);
+             AA_inv(i,j) *= dlam;
             }
             if (i<=1 & j>1){
-             AA_inv(i,j) = A_uq(i,j-2);
+             AA_inv(i,j)  = A_uq(i,j-2);
              AA_inv(i,j) *= dlam;
             } 
             if(i>1 & j<=1){
-             AA_inv(i,j) = A_qu(i-2,j);
+             AA_inv(i,j)  = A_qu(i-2,j);
              AA_inv(i,j) *= dlam;
             } 
             if(i>1 & j >1) {
              AA_inv(i,j)  = I_mat(i-2,j-2);
-             AA_inv(i,j)  *= -1.; 
+             AA_inv(i,j) *= -1.; 
              AA_inv(i,j) += dlam*A_qq(i-2,j-2);
             } 
           }
         }
+        
         AA.Inverse(AA_inv);
-        dfdSig_f(Sig, qn, dfdSig);
+        
         V_sig = dfdSig;
-        dfdq_f(Sig, qn, dfdq);
         V_q = dfdq;
         for (i = 0; i<=5; ++i) {
             if (i<=1){
@@ -300,6 +273,7 @@ double Denom;
              Cvec[i] = qbar[i-2];
             }
         }
+        Yield_f(Sig, qn, ff);
         dArrayT tmpVec(6);
         AA.Multx(R,tmpVec);
         topp = ff;
@@ -323,18 +297,39 @@ double Denom;
         Y -= X;
         for (i = 0; i<=5; ++i) {
             if (i<=1) {
-             dup[i] = Y[i];
+             dSig[i] = Y[i];
             }
             if (i > 1) {
              dq[i-2] = Y[i];
             }
         }
-        up += dup;
-        qn += dq;
+        
+ /*  Update stresses and internal variables */       
+        Sig += dSig;
+        qn  += dq;
         dlam = dlam + dlam2;
         kk = kk + 1;
+        
+ /*  Calculation of Yield Function and Residuals for next iteration check */       
+        Yield_f(Sig, qn, ff);
+        dQdSig_f(Sig, qn, dQdSig);
+        qbar_f(Sig, qn, qbar);
+        
+        for (i = 0; i<=1; ++i) {
+          R[i]  = upo[i];
+          R[i] -= up[i];
+          R[i] += dlam*dQdSig[i];
+        }
+        for (i = 0; i<=3; ++i) {
+          R[i+2]  = qo[i];
+          R[i+2] -= qn[i];
+          R[i+2] += dlam*qbar[i];
+        }
+        normr = R.Magnitude();
+        
       }
-    }
+      
+/* update the state variables after convergence is achieved */
     state[0] = Sig[0];
     state[1] = Sig[1];     
 	fTraction[0] = state[0];
@@ -351,8 +346,7 @@ double Denom;
 	state[11] = dlam;
 	state[12] = double(iplastic);
 	state[13] = normr;
-	dQdSig[0] = 2.*Sig[0];
-    dQdSig[1] = 2.*qn[3]*qn[1] - Sig[1]*qn[3];
+	dQdSig_f(Sig, qn, dQdSig);
 	state[14] = Sig[0]*dQdSig[0];
 	state[14] += (Sig[1] + fabs(Sig[1]))*dQdSig[1]/2.;
 	state[14] /=fGf_I;
@@ -445,6 +439,16 @@ dArrayT& MR_RP2DT::dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdS
   dfdSig[1] = 2.*qn[2]*(qn[1] - Sig[1]*qn[2]);
   
   return dfdSig;
+}
+
+/* calculation of dQdSig_f */
+
+dArrayT& MR_RP2DT::dQdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dQdSig)
+{
+  dQdSig[0] = 2.*Sig[0];
+  dQdSig[1] = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
+  
+  return dQdSig;
 }
 
 
@@ -556,7 +560,7 @@ dMatrixT& MR_RP2DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& d
    dqbardq(3,2) = A4*DQDT*DB3_DTanphi;
    dqbardq(3,3) = -falpha_psi*B3*DQDT;
    
-    return dqbardq;
+   return dqbardq;
 }
 
 
@@ -658,8 +662,7 @@ double bott, dlam;
             V_sig = dfdSig;
             dfdq_f(Sig,qn, dfdq);
             V_q = dfdq;
-            dQdSig[0] = 2.*Sig[0];
-            dQdSig[1] = 2.*qn[3]*qn[1] - Sig[1]*qn[3];
+            dQdSig_f(Sig, qn, dQdSig);  
             for (i = 0; i<=5; ++i) {
               if (i<=1) {
                 Rvec[i] = V_sig[i];
@@ -788,10 +791,11 @@ double MR_RP2DT::signof(double& r)
 		return fabs(r)/r;
 }
 
-bool MR_RP2DT::InitiationQ(const double *Sig)
+bool MR_RP2DT::InitiationQ(const double *sigma)
 {
 
   double tmp1, tmp11, tmp12, tmp2, tmp3, tmp31, tmp32, ff;
+  dArrayT Sig(2);
   
   double enp = 0.;
   double esp = 0.;
@@ -799,6 +803,8 @@ bool MR_RP2DT::InitiationQ(const double *Sig)
   double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
   double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
   
+  Sig[0] = sigma[2];
+  Sig[1] = sigma[1];
   /*tmp1   = qn[1];*/
   tmp1   = fc;
   tmp11  = Sig[1];

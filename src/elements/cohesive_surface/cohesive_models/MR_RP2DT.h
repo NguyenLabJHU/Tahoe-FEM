@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.h,v 1.5 2003-03-31 23:29:50 cjkimme Exp $*/
+/*$Id: MR_RP2DT.h,v 1.6 2003-04-10 20:02:22 manzari Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #ifndef _MR_RP_2D_T_H_
@@ -46,17 +46,27 @@ public:
 	 * time step. */	
 
 	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate);
-  
+    
+    /** yield function */
     double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
+    
+    /** hardening functions*/
     dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar);
+    
+    /** normal to yield surface */
     dArrayT& dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig);
+    
+    /** normal to plastic potential */
+    dArrayT& dQdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dQdSig);
+    
+    /** derivatives for local iteration and calculation of algorithmic tangent operator */
     dArrayT& dfdq_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdq);    
     dMatrixT& dQdSig2_f(const dArrayT& qn, dMatrixT& dQdSig2);
     dMatrixT& dQdSigdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQdSigdq);
     dMatrixT& dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardSig);
     dMatrixT& dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardq);
-
-	/** tangent stiffness */
+    
+	/** algorithmic tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
 
 	/** write model name to output */
