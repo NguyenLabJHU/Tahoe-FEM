@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: material.solid.tex,v 1.4 2001-04-27 22:43:55 paklein Exp $
+% $Id: material.solid.tex,v 1.5 2001-05-07 04:45:21 paklein Exp $
 
 \section{Constitutive models for solid mechanics}
 This section of the guide describes the constitutive models available 
@@ -891,26 +891,29 @@ for a small strain $J_2$ plasticity model.}
 \end{table}
 
 \subsection{Material 9: finite deformation $J_{2}$ plasticity}
-\label{sect.mat.FD.J2.LinearHardening}
-This model combines the isotropic stored energy function from 
-Section~\ref{sect.mat.FDKStV} with
-a $J_{2}$ yield condition incorporating
-linear kinematic and isotropic hardening for finite strain analysis. 
-This model is due to Simo~\cite{Simo1988a,Simo1988b}.
+\label{sect.mat.FD.J2.C0.Hardening}
+This model is based on a formulation due to Simo~\cite{Simo1988a,Simo1988b}
+for finite strain $J_{2}$ plasticity. The formulation includes
+both linear isotropic and kinematic hardening; however, the 
+implementation allows specification of an arbitrary isotropic hardening 
+function, but does not include kinematic hardening.
+The isotropic stored energy function for this model is taken from the 
+model described in Section~\ref{sect.mat.FDKStV}. 
 The yield condition is formulated in terms of the
 Kirchhoff stress $\boldsymbol{\tau}$ as
 \begin{equation}
 	f\farg{\boldsymbol{\tau}, \mathbf{q}} := 
-	||\boldsymbol{\eta}|| 
+	||\bar{\boldsymbol{\eta}}|| 
 	- \sqrt{\frac{2}{3}} K\farg{\alpha} \le 0,
 \end{equation}
 where the internal variables 
 $\mathbf{q} = \cbrkt{\alpha, \bar{\boldsymbol{\beta}}}$ are
 the equivalent plastic strain $\alpha$ and the center of
 the yield surface $\bar{\boldsymbol{\beta}}$ in deviatoric
-Kirchhoff stress space. The relative stress $\boldsymbol{\eta}$ is
+Kirchhoff stress space. The deviatoric relative stress 
+$\bar{\boldsymbol{\eta}}$ is
 \begin{equation}
-\boldsymbol{\eta} = \textrm{dev}\sbrkt{\boldsymbol\tau} - 
+\bar{\boldsymbol{\eta}} = \textrm{dev}\sbrkt{\boldsymbol\tau} - 
 \bar{\boldsymbol{\beta}}.
 \end{equation}
 As in the small strain case, the hardening variable is assumed
@@ -921,30 +924,49 @@ to evolve as
 where $\gamma$ is the consistency parameter 
 in~\eqref{eq.Kuhn-Tucker.1} and~\eqref{eq.Kuhn-Tucker.2}.
 The flow rule rule and kinematic hardening law are derived
-assuming a multiplicative split of the deformation gradient.
-These will not be outlined here; however,
-the linear kinematic and isotropic hardening functions
-\begin{equation}
-	H\farg{\alpha} = \rbrkt{1 - \theta} \bar{H} \alpha
-\end{equation}
-and
-\begin{equation}
-	K\farg{\alpha} = \tau_{y} + \theta \bar{H} \alpha
-\end{equation}
-functional analogously to the small strain model described
-in Section~\ref{sect.mat.SS.J2.LinearHardening}.
-$\tau_{y}$ is the initial Kirchhoff yield stress and
-$\bar{H}$ is the hardening modulus.
-The parameter $0 \le \theta \le 1$ determines the mixity of 
-isotropic to kinematic hardening, with $\theta = 1$ indicating purely 
-isotropic hardening.
+assuming a multiplicative split of the deformation gradient
+as $\mathbf{F} = \mathbf{F}^{\textrm{e}} \mathbf{F}^{\textrm{p}}$.
+The isotropic hardening functions available for this model are 
+described in Section~\ref{sect.hardening.functions}.
 
-NOTE: This implementation of this model has not been verified.
-Finite strain, $J_{2}$ plasticity is also implemented in the model
+NOTE: The implementation of the consistent tangent moduli for this model 
+has not been verified. The moduli are not used in the stress-update 
+equations, but do affect the rate of convergence for Newton-type 
+solvers. Finite strain, $J_{2}$ plasticity is also implemented in the model
 described in Section~\ref{sect.mat.J2.QL.LinearHardening}.
 
 \subsubsection{3D input parameters}
-This model is currently not implemented for three-dimensional analysis.
+An example of input parameters for two-dimensional analysis is shown 
+below:
+\begin{inputfile}
+####### finite strain J2 plasticity
+ 9     # material code
+####### common material parameters
+0.0    0.0    1.0
+0      0.0
+####### moduli
+100.0 # Young's modulus
+0.25  # Poisson's ratio
+####### plasticity
+2     # isotropic hardening function
+####### spline hardening function
+4     # number of points
+# [alpha] [K(alpha)]
+0.00  0.25
+0.01  0.255
+0.05  0.26
+0.10  0.30
+\end{inputfile}
+After the common parameters described in 
+Section~\ref{sect.material.solid.common}, the 
+model requires specification of Young's modulus 
+$E$ and Poisson's ratio $\nu$. 
+The moduli are followed by the specification of the isotropic 
+hardening function $K\farg{\alpha}$. In the example, the function specification
+\texttt{2} indicates the general 
+cubic spline. All available hardening functions are listed in 
+Table~\ref{tab.hardening.functions.iso}.
+The points defining the spline follow.
 
 \subsubsection{2D input parameters}
 An example of input parameters for two-dimensional analysis is shown 
@@ -962,9 +984,14 @@ below:
 1.0   # thickness
 2     # constraint option (override)
 ####### plasticity
-0.25  # yield stress
-0.01  # hardening parameter
-1.0   # kinematic/isotropic mixity
+2     # isotropic hardening function
+####### spline hardening function
+4     # number of points
+# [alpha] [K(alpha)]
+0.00  0.25
+0.01  0.255
+0.05  0.26
+0.10  0.30
 \end{inputfile}
 After the common parameters described in 
 Section~\ref{sect.material.solid.common}, the 
@@ -976,13 +1003,167 @@ follow the parameters for three-dimensional analysis.
 This two-dimensional model is formulated in plane strain,
 so other values for the constraint option are silently
 overridden.
-Finally, the user defines the initial 
-yield stress $\sigma_{y}$, the hardening parameter $\bar{H}$, and the 
-kinematic/isotropic hardening mixity parameter $\theta$, 
-for which $\theta = 1$ produces purely isotropic hardening.
+The parameters for 2D analysis 
+are followed by the specification of the isotropic 
+hardening function $K\farg{\alpha}$. In the example, the function specification
+\texttt{2} indicates the general 
+cubic spline. All available hardening functions are listed in 
+Table~\ref{tab.hardening.functions.iso}.
+The points defining the spline follow.
 
 \subsubsection{Output values}
-This constitutive model does not have any output values.
+This constitutive model has three scalar output values listed in
+Table~\ref{tab.mat.FD.J2.C0.Hardening.output}.
+\begin{table}[h]
+\caption{\label{tab.mat.FD.J2.C0.Hardening.output} Output values 
+for a small strain $J_2$ plasticity model.}
+\begin{center}
+\begin{tabular}[c]{|l|c|c|}
+\hline
+ \parbox[c]{1.00in}{\centering \textbf{var.}}
+&\parbox[c]{3.0in}{\raggedright \textbf{description}}
+&\parbox[c]{1.0in}{\raggedright  \textbf{labels}}\\
+\hline
+\parbox[c]{1.00in}{\centering $\alpha$} & 
+\parbox[c]{3.0in}{\raggedright equivalent plastic strain} &
+\parbox[c]{1.0in}{\raggedright \texttt{alpha}}\\
+\hline
+\parbox[c]{1.00in}{\centering $||\bar{\boldsymbol{\beta}}||$} & 
+\parbox[c]{3.0in}{\raggedright norm of kinematic hardening} &
+\parbox[c]{1.0in}{\raggedright \texttt{norm\_beta}}\\
+\hline
+\parbox[c]{1.00in}{\centering 
+$\sqrt{\frac{3}{2}}||\textrm{dev}\sbrkt{\boldsymbol{\tau}}||$}  & 
+\parbox[c]{3.0in}{\raggedright second invariant of the deviatoric stress} &
+\parbox[c]{1.0in}{\raggedright \texttt{VM\_Kirch}}\\
+\hline
+\parbox[c]{1.00in}{\centering $p$}  & 
+\parbox[c]{3.0in}{\raggedright pressure} &
+\parbox[c]{1.0in}{\raggedright \texttt{press}}\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsubsection{Hardening functions}
+\label{sect.hardening.functions}
+The isotropic hardening function for this model is specified by the 
+user. The functions available are listed 
+in Table~\ref{tab.hardening.functions.iso}.
+\begin{table}[h]
+\caption{\label{tab.hardening.functions.iso} Isotropic hardening 
+functions.}
+\begin{center}
+\begin{tabular}[c]{|l|c|c|}
+\hline
+ \parbox[b]{0.75in}{\centering \textbf{code}}
+&\parbox[b]{2.5in}{\raggedright \textbf{description}}\\
+\hline
+\parbox[b]{0.75in}{\centering 0} & 
+\parbox[b]{2.5in}{\raggedright linear}\\
+\hline
+\parbox[b]{0.75in}{\centering 1} & 
+\parbox[b]{2.5in}{\raggedright linear-exponential saturation}\\
+\hline
+\parbox[b]{0.75in}{\centering 2}  & 
+\parbox[b]{2.5in}{\raggedright general cubic spline}\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+The input parameters for each function are described in the sections 
+that follow. For the 
+nonlinear hardening functions, it is possible to specify the function 
+parameters to produce hardening behavior that is not strictly convex. 
+The local Newton iteration used to compute the return mapping during 
+plastic loading is not guaranteed to converge under these conditions.
+
+\paragraph{linear}
+The linear hardening function has the form
+\begin{equation}
+K\farg{\alpha} = \sigma_{y} + K\,\alpha,
+\end{equation}
+where $\sigma_{y}$ is the initial yield stress and $K$ is the 
+hardening modulus. An example of input parameters is shown below:
+\begin{inputfile}
+####### linear hardening function
+0.25  # initial yield stress
+0.01  # hardening modulus
+\end{inputfile}	
+
+\paragraph{linear-exponential saturation}
+The linear-exponential saturation hardening function has the form
+\begin{equation}
+K\farg{\alpha} = \sigma_{y} + K\,\alpha 
++ \Delta K_{\infty} \rbrkt{1 - \exp \sbrkt{-\frac{\alpha}{\delta}}},
+\end{equation}
+where $\sigma_{y}$ is the initial yield stress and $K$ is the 
+linear hardening modulus. The saturation hardening has a magnitude of
+$\Delta K_{\infty}$ and occurs at a characteristic 
+equivalent plastic strain of $\delta$. An example of input parameters is shown below:
+\begin{inputfile}
+####### linear-exponential saturation
+0.25  # initial yield stress
+0.10  # linear hardening modulus
+0.05  # saturation hardening
+0.05  # saturation strain
+\end{inputfile}	
+
+\paragraph{general cubic spline}
+The cubic spline hardening function has the general form
+\begin{equation}
+K\farg{\alpha} =
+\begin{cases}
+K^{(1)}\farg{\alpha_{1}} + \rbrkt{\alpha - \alpha_{1}} {K^{(1)}}'\farg{\alpha_{1}}
+& \textrm{if~} \alpha < \alpha_{1}, \\
+K^{(i)}\farg{\alpha}
+& \textrm{if~} \alpha_{i} < \alpha <  \alpha_{i+1} \textrm{~for~} i=1,\ldots,n-1, \\
+K^{(n)}\farg{\alpha_{n}} + \rbrkt{\alpha - \alpha_{n}} {K^{(n)}}'\farg{\alpha_{n}}
+& \textrm{if~}\alpha > \alpha_{n},
+\end{cases}	
+\end{equation}
+where the $n$ is the number of points used to define the spline. Over 
+each sub-interval, the spline takes the form
+\begin{equation}
+K^{(i)}\farg{\alpha} = a_{0}^{(i)} 
++ a_{1}^{(i)} \Delta \alpha 
++ a_{2}^{(i)} \Delta \alpha^{2} 
++ a_{3}^{(i)} \Delta \alpha^{3},
+\end{equation}	
+where $\Delta \alpha = \alpha - \alpha_{i}$. The coefficients 
+$\mathbf{a}^{(i)}$ 
+are computed from the spline points under the conditions that 
+spline pass through the data and that the first derivative of the 
+spline is continuous between sub-intervals. Additionally, the end 
+conditions for the spline are specified as 
+\begin{equation}
+{K^{(1)}}''\farg{\alpha_{1}} = {K^{(n)}}''\farg{\alpha_{n}} = 0
+\end{equation}
+to match the linear extensions assumed beyond the range of the spline 
+data. A specific example of input to define a hardening function is 
+shown below:
+\begin{inputfile}
+####### spline hardening function
+4     # number of spline points
+# [alpha] [K(alpha)]
+0.00  0.25
+0.01  0.255
+0.05  0.26
+0.10  0.30	
+\end{inputfile}
+Generally, the input has the form
+\begin{align}
+& \texttt{\#\#\#\#\#\#\# spline hardening function} \notag \\
+& \sbrkt{n_{pts} = \textit{number of spline points}} \notag \\
+& \begin{matrix}
+\sbrkt{\alpha_{1}} & \sbrkt{K\farg{\alpha_{1}}} \\
+\vdots \\
+\sbrkt{\alpha_{n_{pts}}} & \sbrkt{K\farg{\alpha_{n_{pts}}}}
+\end{matrix} \notag
+\end{align}
+Although not required or enforced, one typically selects
+$\alpha_{1} = 0$ in order to define the initial yield 
+stress specifically with $K\farg{\alpha_{1}}$.
 
 \subsection[Material 10: finite deformation $J_{2}$ plasticity in 
 principal stretches]
@@ -999,16 +1180,16 @@ The yield condition is formulated in terms of the
 Kirchhoff stress $\boldsymbol{\tau}$ as
 \begin{equation}
 	f\farg{\boldsymbol{\tau}, \mathbf{q}} := 
-	||\boldsymbol{\eta}|| 
+	||\bar{\boldsymbol{\eta}}|| 
 	- \sqrt{\frac{2}{3}} K\farg{\alpha} \le 0,
 \end{equation}
 where the internal variables 
 $\mathbf{q} = \cbrkt{\alpha, \bar{\boldsymbol{\beta}}}$ are
 the equivalent plastic strain $\alpha$ and the center of
 the yield surface $\bar{\boldsymbol{\beta}}$ in deviatoric
-Kirchhoff stress space. The relative stress $\boldsymbol{\eta}$ is
+Kirchhoff stress space. The relative stress $\bar{\boldsymbol{\eta}}$ is
 \begin{equation}
-\boldsymbol{\eta} = \textrm{dev}\sbrkt{\boldsymbol\tau} - 
+\bar{\boldsymbol{\eta}} = \textrm{dev}\sbrkt{\boldsymbol\tau} - 
 \bar{\boldsymbol{\beta}}.
 \end{equation}
 As in the small strain case, the hardening variable is assumed
@@ -1428,8 +1609,7 @@ a_0 \left\{
 \end{equation}
 where $a_0$ is the undeformed lattice parameter.
 
-From~\eqref{eq.3.9} 
-and~\eqref{eq.3.10}, the Cauchy stress and spatial tangent modulus are given by
+Following Green elastic theory, the Cauchy stress and spatial tangent modulus are given by
 \begin{gather}
 \boldsymbol{\sigma} =  \sigma \mathbf{1}, \\
 \intertext{where the magnitude of the equibiaxial stress is}
