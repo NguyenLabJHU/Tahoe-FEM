@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.cpp,v 1.13 2004-10-31 20:48:41 paklein Exp $ */
+/* $Id: GaussianWindowT.cpp,v 1.14 2004-11-03 01:21:07 raregue Exp $ */
 #include "GaussianWindowT.h"
 #include "ExceptionT.h"
 #include <math.h>
@@ -50,7 +50,7 @@ void GaussianWindowT::WriteParameters(ostream& out) const
 
 /* Single point evaluations */
 bool GaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw)
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw) //kyonten
 {
 	/* check out of influence range */
 	if (!GaussianWindowT::Covers(x_n, x, param_n))
@@ -60,7 +60,11 @@ bool GaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const d
 		{
 			Dw = 0.0;
 			if (order > 1)
+			{
 				DDw = 0.0;
+				if (order > 2) // kyonten
+					DDDw = 0.0;
+			}
     	}
     	
     	/* no cover */
@@ -85,6 +89,43 @@ bool GaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const d
 	  			DDw.Outer(Dw);
 	  			DDw *= 4.0 * w / (adm2 * adm2);
 	  			DDw.PlusIdentity(-2.0 * w / adm2);
+	  			if (order > 2) // kyonten
+	  			{
+					int nsd = x.Length();
+					/* work space */
+	  				dSymMatrixT DDDw1(nsd);
+	  				dMatrixT DDDw2(nsd,nsd);
+	  				dMatrixT DDDw3(nsd,nsd);
+	  				dArrayT DDDw1_vec(nsd), I(nsd);
+	  				/*  DDDw is a [nsd]x[nsd]x[nsd] or [nsd]x[nsd*nsd] matrix. 
+	  				    using symmetry it reduces to [nsd]x[nstr]
+	  					only the first three (3D) or two (2D) columns (contribution from 
+	  					diagonal terms) of the [nsd]x[nstr] matrix are needed for the
+	  					calculation of the Laplacian of strain tensor
+	  					DDDw, thus, becomes a [nsd]x[nsd] unsymmetric matrix 
+	  				*/
+	  				DDDw1.Outer(Dw);
+	  				for (int i = 0; i < nsd; i++)
+	  				{
+	  					for (int j = 0; i < nsd; j++)
+	  					{
+	  						if (i == j)
+	  						{
+	  							DDDw1_vec[j] = DDDw1(i,j); //collect diagonal terms
+	  							I[j] = 1.0;
+	  						}
+	  					}
+	  				}
+	  				DDDw.Outer(Dw,DDDw1_vec);
+	  				DDDw *= -8.0*w/(adm2*adm2*adm2);
+	  				DDDw2.Outer(Dw,I);
+	  				DDDw2 += DDDw2;
+	  				DDDw2 *= 4.0*w/(adm2*adm2);
+	  				DDDw += DDDw2;
+	  				DDDw3.Outer(Dw,I); 
+	  				DDDw3 *= 4.0*w/(adm2*adm2);
+	  				DDDw += DDDw3;
+	  			} // (order > 2)
       		}
       		
       		/* set first derivative */
@@ -98,12 +139,13 @@ bool GaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const d
 
 /* multiple point calculations */
 int GaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, 
-	const dArrayT& x, int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw)
+	const dArrayT& x, int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw) //kyonten
 {
 	/* allocate */
 	int nsd = x.Length();
 	fNSD.Dimension(nsd);
 	fNSDsym.Dimension(nsd);
+	fNSDunsym.Dimension(nsd,nsd);
 	
 	/* work space */
 	dArrayT x_node, param_node;
@@ -117,7 +159,7 @@ int GaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 		param_n.RowAlias(i, param_node);
 	
 		/* single point evaluation (override virtual) */
-		if (GaussianWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym))
+		if (GaussianWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym, fNSDunsym))
 			count++;
 			
 		/* store derivatives */
@@ -125,7 +167,11 @@ int GaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 		{
 			Dw.SetColumn(i, fNSD);
 			if (order > 1)
+			{
 				DDw.SetColumn(i, fNSDsym);
+				if (order > 2) //kyonten
+					DDDw.SetColumn(i, fNSDunsym);
+			}
 		}
 	}
 	return count;

@@ -1,4 +1,4 @@
-/* $Id: RectCubicSplineWindowT.cpp,v 1.12 2004-10-31 20:48:41 paklein Exp $ */
+/* $Id: RectCubicSplineWindowT.cpp,v 1.13 2004-11-03 01:21:07 raregue Exp $ */
 #include "RectCubicSplineWindowT.h"
 #include "ExceptionT.h"
 #include <math.h>
@@ -46,7 +46,7 @@ void RectCubicSplineWindowT::WriteParameters(ostream& out) const
 
 /* Single point evaluations */
 bool RectCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw)
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw) //kyonten
 {
   /* Compute window function and its derivatives - accomplish by scalar product of individual
    * window functions in x/y/z directions */
@@ -58,7 +58,11 @@ bool RectCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, 
     {
       Dw = 0.0;
       if (order > 1)
-	DDw = 0.0;
+      {
+      	DDw = 0.0;
+      	if (order > 2) // kyonten
+      		DDDw = 0.0;
+      }
     }
     return false;
   }
@@ -105,6 +109,33 @@ bool RectCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, 
       {
 	if (order > 1)
 	{
+	  if (order > 2) // kyonten (DDDw) double check the derivatives!!
+	  {
+	  	/* check x-direction */
+	  if ((rx >= -2) && (rx < -1))
+	    DDDw[0] = - wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0]);
+	  else if ((rx >= -1) && (rx < 0))
+	    DDDw[0] = wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (3.0);
+	  else if ((rx >= 0) && (rx < 1))
+	    DDDw[0] = -wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (3.0);
+	  else if ((rx >= 1) && (rx <= 2))
+	    DDDw[0] = wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (2.0);
+	  else
+	    DDDw[0] = 0.0;
+	  
+	  /* check y-direction */
+	  if ((ry >= -2) && (ry < -1))
+	    DDDw[1] = - wx / (param_n[1] * param_n[1] * param_n[1] * param_n[1]) * (2.0);
+	  else if ((ry >= -1) && (ry < 0))
+	    DDDw[1] = wx / (param_n[1] * param_n[1] * param_n[1] * param_n[1]) * (3.0);
+	  else if ((ry >= 0) && (ry < 1))
+	    DDDw[1] = wx / (param_n[1] * param_n[1] * param_n[1] * param_n[1]) * (3.0);
+	  else if ((ry >= 1) && (ry <= 2))
+	    DDDw[1] = wx / (param_n[1] * param_n[1] * param_n[1] * param_n[1]) * (2.0);
+	  else
+	    DDDw[1] = 0.0;
+	  } //if (order > 2)
+	  
 	  /* check x-direction */
 	  if ((rx >= -2) && (rx < -1))
 	    DDw[0] = wy / (ax * ax * ax) * (2.0 + rx);
@@ -209,6 +240,45 @@ bool RectCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, 
       {
 	if (order > 1)
 	{
+	  if (order > 2) // kyonten (DDDw)  double check the derivatives!!
+	  {
+	  	/* check x-direction */
+	  if ((rx >= -2) && (rx < -1))
+	    DDDw[0] = -wy * wz / (param_n[0] * param_n[0] * param_n[0] * param_n[0]);
+	  else if ((rx >= -1) && (rx < 0))
+	    DDDw[0] = wy * wz / (param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (3.0);
+	  else if ((rx >= 0) && (rx < 1))
+	    DDDw[0] = - wy * wz / (param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (3.0 );
+	  else if ((rx >= 1) && (rx <= 2))
+	    DDDw[0] = wy * wz / (param_n[0] * param_n[0] * param_n[0] * param_n[0]);
+	  else
+	    DDDw[0] = 0.0;
+	  
+	  /* check y-direction */
+	  if ((ry >= -2) && (ry < -1))
+	    DDDw[1] = -wx * wz / (param_n[1] * param_n[1] * param_n[1] * param_n[1]);
+	  else if ((ry >= -1) && (ry < 0))
+	    DDDw[1] = wx * wz / (param_n[1] * param_n[1] * param_n[1] * param_n[1]) * (3.0);
+	  else if ((ry >= 0) && (ry < 1))
+	    DDDw[1] = - wx * wz / (param_n[1] * param_n[1] * param_n[1] * param_n[1]) * (3.0);
+	  else if ((ry >= 1) && (ry <= 2))
+	    DDDw[1] = wx * wz / (param_n[1] * param_n[1] * param_n[1] * param_n[1]);
+	  else
+	    DDDw[1] = 0.0;
+
+	  /* check z-direction */
+	  if ((rz >= -2) && (rz < -1))
+	    DDDw[2] = -wx * wy / (param_n[2] * param_n[2] * param_n[2] * param_n[2]);
+	  else if ((rz >= -1) && (rz < 0))
+	    DDDw[2] = wx * wy / (param_n[2] * param_n[2] * param_n[2] * param_n[2]) * (3.0);
+	  else if ((rz >= 0) && (rz < 1))
+	    DDDw[2] = - wx * wy / (param_n[2] * param_n[2] * param_n[2] * param_n[2]) * (3.0);
+	  else if ((rz >= 1) && (rz <= 2))
+	    DDDw[2] = wx * wy / (param_n[2] * param_n[2] * param_n[2] * param_n[2]);
+	  else
+	    DDDw[2] = 0.0;
+	  } // (order > 2)
+	  
 	  /* check x-direction */
 	  if ((rx >= -2) && (rx < -1))
 	    DDw[0] = wy * wz / (ax * ax * ax) * (2.0 + rx);
@@ -293,7 +363,7 @@ bool RectCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, 
 
 /* multiple point calculations */
 int RectCubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
-		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw)
+		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw) //kyonten
 {
   /* compute window function and derivatives for multiple field points */
 
@@ -301,6 +371,7 @@ int RectCubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_
   int nsd = x.Length();
   fNSD.Dimension(nsd);
   fNSDsym.Dimension(nsd);
+  fNSDunsym.Dimension(nsd,nsd); //kyonten
 
   /* work space */
   dArrayT x_node, param_node;
@@ -313,7 +384,7 @@ int RectCubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_
     x_n.RowAlias(i, x_node);
     param_n.RowAlias(i, param_node);
       
-    if (RectCubicSplineWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym))
+    if (RectCubicSplineWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym, fNSDunsym))
       count ++;
 
     /* store derivatives */
@@ -321,7 +392,11 @@ int RectCubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_
     {
       Dw.SetColumn(i, fNSD);
       if (order > 1)
-	DDw.SetColumn(i, fNSDsym);
+      {
+      	DDw.SetColumn(i, fNSDsym);
+      	if (order > 2)
+	  		DDDw.SetColumn(i, fNSDunsym); //kyonten
+      }
     }
   }
   return count;

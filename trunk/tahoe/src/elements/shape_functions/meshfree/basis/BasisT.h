@@ -1,4 +1,4 @@
-/* $Id: BasisT.h,v 1.5 2004-10-30 20:54:28 raregue Exp $ */
+/* $Id: BasisT.h,v 1.6 2004-11-03 01:21:01 raregue Exp $ */
 /* created: paklein (12/10/1999)                                          */
 /* base class for basis functions                                         */
 
@@ -50,10 +50,7 @@ protected:
 	dArray2DT fP;           // [nbasis] x [nnd]
 	ArrayT<dArray2DT> fDP;  // [nsd] x [nbasis] x [nnd]
 	ArrayT<dArray2DT> fDDP; // [nstr] x [nbasis] x [nnd]
-	ArrayT<dArray2DT> fDDDP; // [nstr] x [nbasis] x [nnd] // kyonten 
-							// difference b/ween nstr and nsd? 
-							// nstr = number of stress/strain dimensions (in vector form)
-							// nsd = number of spatial dimensions 
+	ArrayT<dArray2DT> fDDDP; // [nsd*nsd] x [nbasis] x [nnd] // kyonten 
 
 	/* dynamic workspace manager */
 	nArray2DGroupT<double> fArray2DGroup1; // [nbasis] x [nnd]

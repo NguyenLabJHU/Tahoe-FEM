@@ -1,4 +1,4 @@
-/* $Id: RectGaussianWindowT.cpp,v 1.7 2004-10-31 20:48:41 paklein Exp $ */
+/* $Id: RectGaussianWindowT.cpp,v 1.8 2004-11-03 01:21:07 raregue Exp $ */
 #include "RectGaussianWindowT.h"
 #include "ExceptionT.h"
 #include <math.h>
@@ -50,7 +50,7 @@ void RectGaussianWindowT::WriteParameters(ostream& out) const
 
 /* Single point evaluations */
 bool RectGaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw)
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw) //kyonten
 {
   /* Compute window function and its derivatives - accomplish by scalar product of individual
    * window functions in x/y/z directions */
@@ -61,7 +61,12 @@ bool RectGaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, con
     {
       Dw = 0.0;
       if (order > 1)
-	DDw = 0.0;
+      {
+      	DDw = 0.0;
+      	if (order > 2)
+      	  DDDw = 0.0;
+      }
+	
     }
     return false;
   }
@@ -83,6 +88,13 @@ bool RectGaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, con
       {
 	if (order > 1)
 	{
+	  if (order > 2) // kyonten (DDDw)
+	  {
+	  	DDDw[0] = (-2.0 * w / admx2) * (2.0 * Dw[0] * Dw[0] / admx2 - 1)
+	  			*(2.0 * DDw[0] * Dw[0] / admx2)*(2.0 * Dw[0] * DDw[0] / admx2); //double check!!
+	  	DDDw[1] = (-2.0 * w / admy2) * (2.0 * Dw[1] * Dw[1] / admy2 - 1)
+	  			*(2.0 * DDw[1] * Dw[1] / admy2)*(2.0 * Dw[1] * DDw[1] / admy2); 
+	  }
 	  DDw[0] = (2.0 * w / admx2) * (2.0 * Dw[0] * Dw[0] / admx2 - 1);
 	  DDw[1] = (2.0 * w / admy2) * (2.0 * Dw[1] * Dw[1] / admy2 - 1);
 	}
@@ -110,6 +122,15 @@ bool RectGaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, con
       {
 	if (order > 1)
 	{
+	  if (order > 2) // kyonten
+	  {
+	  	DDDw[0] = (2.0 * w / admx2) * (2.0 * Dw[0] * Dw[0] / admx2 - 1)
+	  			*(2.0 * DDw[0] * Dw[0] / admx2)*(2.0 * Dw[0] * DDw[0] / admx2); //double check!!
+	  	DDDw[1] = (2.0 * w / admy2) * (2.0 * Dw[1] * Dw[1] / admy2 - 1)
+	  			*(2.0 * DDw[1] * Dw[1] / admy2)*(2.0 * Dw[1] * DDw[1] / admy2);
+	  	DDDw[2] = (2.0 * w / admz2) * (2.0 * Dw[2] * Dw[2] / admz2 - 1)
+	  			*(2.0 * DDw[2] * Dw[2] / admz2)*(2.0 * Dw[2] * DDw[2] / admz2); 
+	  }
 	  DDw[0] = (2.0 * w / admx2) * (2.0 * Dw[0] * Dw[0] / admx2 - 1);
 	  DDw[1] = (2.0 * w / admy2) * (2.0 * Dw[1] * Dw[1] / admy2 - 1);
 	  DDw[2] = (2.0 * w / admz2) * (2.0 * Dw[2] * Dw[2] / admz2 - 1);
@@ -129,7 +150,7 @@ bool RectGaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, con
 
 /* multiple point calculations */
 int RectGaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
-		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw)
+		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw) //kyonten
 {
   /* compute window function and derivatives for multiple field points */
 
@@ -137,6 +158,7 @@ int RectGaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, 
   int nsd = x.Length();
   fNSD.Dimension(nsd);
   fNSDsym.Dimension(nsd);
+  fNSDunsym.Dimension(nsd,nsd); //kyonten
 
   /* work space */
   dArrayT x_node, param_node;
@@ -149,7 +171,7 @@ int RectGaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, 
     x_n.RowAlias(i, x_node);
     param_n.RowAlias(i, param_node);
       
-    if (RectGaussianWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym))
+    if (RectGaussianWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym, fNSDunsym))
       count ++;
 
     /* store derivatives */
@@ -157,7 +179,11 @@ int RectGaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, 
     {
       Dw.SetColumn(i, fNSD);
       if (order > 1)
-	DDw.SetColumn(i, fNSDsym);
+      {
+      	DDw.SetColumn(i, fNSDsym);
+      	if (order > 2)
+	  		DDDw.SetColumn(i, fNSDunsym);	//kyonten
+      }
     }
   }
   return count;
