@@ -6,6 +6,37 @@
 # written by: 
 #    Reese Jones (rjones@sandia.gov) and Patrick Klein (paklein@sandia.gov)
 #------------------------------------------------------------------------------
+use Cwd; # $home = cwd();
+
+# maps & constants
+%module2define = qw(
+expat	EXPAT_
+toolbox	TB_
+tahoe	NODEFINE
+macros	NODEFINE
+spooles SPOOLES_
+f2c	F2C_
+blas	BLAS_
+access	AX_
+);
+
+%syslib2module = qw(
+ACCESS	access
+);
+
+%connect2command = qw(
+cvs     cvs
+http	curl
+);
+
+# core modules
+@defaultmodules = ("macros","expat","toolbox","tahoe");
+
+#default repository
+$cvsrep = "tahoe.ca.sandia.gov:/cvs/protected/tahoe"; 
+
+#default configuration file
+$config_file = "./.tahoe_config";
 
 # initialization
 initialize();
@@ -32,28 +63,19 @@ exit 0;
 sub initialize{
 # username
 $username = getlogin();
-use Cwd; # $home = cwd();
 
-#default repository
-$cvsrep = "tahoe.ca.sandia.gov:/cvs/protected/tahoe"; 
+# search for system libs 
+foreach $key (sort(keys %ENV)) {
+	foreach $lib (keys %syslib2module) {
+		if ($key =~ /$lib/ ) { 
+			$loc = $ENV{$key};
+			print "* found $lib \@ $loc \n"; 
+			push(@syslibs,$lib);
+		}
+	}
+}
 
-%module2define = qw(
-expat	EXPAT_
-toolbox	TB_
-tahoe	NODEFINE
-macros	NODEFINE
-spooles SPOOLES_
-f2c	F2C_
-blas	BLAS_
-access	AX_
-);
-
-%connect2command = qw(
-cvs     cvs
-http	curl
-);
-
-$config_file = "./.tahoe_config";
+# configuration file
 if(-e "$config_file") { read_config();}
 else                  { write_default_config();}
 
@@ -70,12 +92,11 @@ if (my_which($connect2command{$connection}) =~ "") {
 	if ($connection =~ /http/) {
 		print "ERROR: curl is available from http://curl.haxx.se/\n";
 	}
-#	exit;
+ 	exit;
 }
 
 # check cvs settings
 if ($connection =~ /cvs/) {
-
 	$cvs_OK = 0;
 	foreach $key (sort(keys %ENV)) {
 		if ($key =~ /CVS_RSH/ && $ENV{$key} =~ /ssh/) { $cvs_OK = 1; }
@@ -85,7 +106,9 @@ if ($connection =~ /cvs/) {
 		exit;
 	}
 }
+}
 
+##############################################################################
 sub read_config{
 print "* reading config file $config_file\n";
 open(CONFIG,$config_file) || die "cannot open file $config_file for reading : $!";
@@ -106,22 +129,43 @@ while(<CONFIG>) {
 close(CONFIG);
 
 # need to make sure the core modules exist
+foreach $core (@defaultmodules) {
+	$found = 0;
+	foreach $module (@modules) {
+ 		if($module =~ $core) { $found = 1;}
+	}
+	unless($found){
+		print "* adding : $core, to modules\n";
+ 		push(@modules,$core);
+ 	}
+}
 
 # need to sort modules based on dependencies
 @tmp_modules = @modules;
 @modules = sort by_depend @tmp_modules;
 }
-}
 
+##############################################################################
 sub write_default_config{
 print "* creating default config file $config_file\n";
 
+# look for environmental settings
+foreach $key (sort(keys %ENV)) {
+	$value =  $ENV{$key};
+	if ($key =~ /TAHOE_CONNECT/ ) {
+		print "* found environmental var : $key = $value\n";
+		$connection = $value;}
+	if ($key =~ /TAHOE_ARCH/ ) { 
+		print "* found environmental var : $key = $value\n";
+		$arch = $value;}
+}
+
 # connection type
+unless(defined($connection)){ 
 @connections = ("cvs", "http");
 $i=0;foreach $choice (@connections) { print "$i $choice\n"; $i++; }
 print "select connection type [cvs]: ";
-$i = <STDIN>;
-chomp($i);
+$i = <STDIN>; chomp($i);
 if (length($i) == 0) { # default
 	$i = 0;
 }
@@ -134,6 +178,7 @@ if ($connection =~ /http/) { # ask for proxy
 	if (length($proxy) == 0) { # default
 		$proxy = "NONE";
 	}
+}
 }
 
 # get macros module
@@ -164,6 +209,7 @@ unless(-d "macros") {
 }
 
 # architecture
+unless(defined($arch)){
 chdir "macros"; 
 @macros = glob("*.macros"); 
 foreach $choice (@macros) { $choice =~ s/\.macros//; push(@choices,$choice);}
@@ -172,9 +218,10 @@ print "no default build architecture, choices:\n";
 $i=0;foreach $choice (@choices) { print "$i $choice\n"; $i++;}
 print "? "; $i = <STDIN>; $arch = $choices[$i]; 
 print "* you chose : $arch\n";
+}
 
 # modules
-@modules = ("macros","expat","toolbox","tahoe");
+@modules = @defaultmodules;
 open(CONFIG,">$config_file") || die "cannot open file $config_file for writing : $!";
 print CONFIG  "# CONNECTION\n$connection\n\n";
 print CONFIG  "# PROXY\n$proxy\n\n";
@@ -182,8 +229,10 @@ print CONFIG  "# ARCHITECTURE\n$arch\n\n";
 print CONFIG  "# MODULES\n@modules\n\n";
 print CONFIG  "# EOF";
 close(CONFIG);
+
 }
 
+##############################################################################
 sub update{
 	if ($connection =~ /cvs/) {
 		update_cvs();
@@ -196,6 +245,7 @@ sub update{
 	}
 }
 
+##############################################################################
 sub update_cvs{
 	$time = localtime();
 	print "($count) updating: @modules, at $time\n";
@@ -218,6 +268,7 @@ sub update_cvs{
 	}
 }
 
+##############################################################################
 sub update_http{
 	$time = localtime();
 	print "($count) updating: @modules, at $time\n";
@@ -255,6 +306,7 @@ sub update_http{
 	}
 }
 
+##############################################################################
 sub rebuild{
 	$time = localtime();
 	print "($count) rebuilding: @modules, at $time\n";
@@ -276,6 +328,7 @@ sub rebuild{
 	}
 }
 
+##############################################################################
 sub build{
 	$time = localtime();
 	print "($count) building: @modules, at $time\n";
@@ -298,6 +351,7 @@ sub build{
 	}
 }
 
+##############################################################################
 sub test{
 	$time = localtime();
 	print "($count) running tests at $time\n";
@@ -326,11 +380,13 @@ sub test{
 	print "* $pass $fail, see compare.summary for more details\n";
 }
 
+##############################################################################
 sub failed{
 	$time = localtime();
 	die "*-*-*-* process FAILED at $time *-*-*-*\n";
 }
 
+##############################################################################
 sub usage{
 	print "\nusage: tahoe-manager [list of keywords and options]\n";
 	print "       update  : updates or checks out modules\n";
@@ -340,6 +396,7 @@ sub usage{
 	exit 1;
 }
 
+##############################################################################
 sub by_depend {
 	$filename = "$a/makefile.template";
 	$a_on_b = -1;
@@ -368,14 +425,10 @@ sub by_depend {
         ($a_on_b <=> $b_on_a);
 }
 
+##############################################################################
 sub fillin_makefile{
 	unlink("makefile");
 	$path = cwd();
-# search for system libs
-	$sys_ACCESS = 0;
-	foreach $key (sort(keys %ENV)) {
-		if ($key =~ /ACCESS/ ) { $sys_ACCESS = 1; }
-	}
 	open(IN,"makefile.template");
 	open(OUT,">makefile");
 	while (defined($line = <IN>)){
@@ -385,8 +438,8 @@ sub fillin_makefile{
 			$define = $module2define{$module};
 			$line =~ s/\#$define/$define/;
 		}
-		if ($sys_ACCESS) {
-			$define = $module2define{"access"};
+		foreach $syslib (@syslibs) {
+			$define = $module2define{$syslib2module{$syslib}};
 			$line =~ s/\#$define/$define/;
 		}
 		print OUT "$line";
@@ -395,6 +448,7 @@ sub fillin_makefile{
 	close(OUT);
 }
 
+##############################################################################
 sub my_which{
 	my $cmd = shift(@_); 
         $location = "";
