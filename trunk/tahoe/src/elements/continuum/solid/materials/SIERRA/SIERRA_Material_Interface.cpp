@@ -1,10 +1,10 @@
-/* $Id: SIERRA_Material_Interface.cpp,v 1.2 2003-03-08 01:56:20 paklein Exp $ */
+/* $Id: SIERRA_Material_Interface.cpp,v 1.3 2003-03-09 04:42:31 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
 
 /* retrieve a named value */
-void get_real_constant(double* destination, const double* all_values, 
+void FORTRAN_NAME(get_real_constant)(double* destination, const double* all_values, 
 	const char* value_name)
 {
 	int index = SIERRA_Material_DB::RealIndex(value_name);
@@ -12,7 +12,7 @@ void get_real_constant(double* destination, const double* all_values,
 }
 
 /* retrieve the index for the value for the given material */
-void get_var_index(int* index, int* num_workset_elem, const char* variable_name, 
+void FORTRAN_NAME(get_var_index)(int* index, int* num_workset_elem, const char* variable_name, 
 	const char* material_name)
 {
 	const char caller[] = "get_var_index";
@@ -41,7 +41,7 @@ void get_var_index(int* index, int* num_workset_elem, const char* variable_name,
 }
 
 /* register the material model */
-void register_material(int* XML_command_id, Sierra_function_param_check check_func, 
+void FORTRAN_NAME(register_material)(int* XML_command_id, Sierra_function_param_check check_func, 
 	int* modulus_flag, const char* material_name)
 {
 	/* initialize material record */
@@ -53,35 +53,35 @@ void register_material(int* XML_command_id, Sierra_function_param_check check_fu
 }
 
 /* register function to do material computations */
-void register_process_func(Sierra_function_material_calc calc_func, const char* material_name)
+void FORTRAN_NAME(register_process_func)(Sierra_function_material_calc calc_func, const char* material_name)
 {
 	SIERRA_Material_Data* mat = SIERRA_Material_DB::Material(material_name);
 	mat->SetCalcFunction(calc_func);
 }
 
 /* register function to do material initialization */
-void register_init_func(Sierra_function_material_init init_func, const char* material_name)
+void FORTRAN_NAME(register_init_func)(Sierra_function_material_init init_func, const char* material_name)
 {
 	SIERRA_Material_Data* mat = SIERRA_Material_DB::Material(material_name);
 	mat->SetInitFunction(init_func);
 }
 
 /* register the number of state variables */
-void register_num_state_vars(int* nsv, const char* material_name)
+void FORTRAN_NAME(register_num_state_vars)(int* nsv, const char* material_name)
 {
 	SIERRA_Material_Data* mat = SIERRA_Material_DB::Material(material_name);
 	mat->SetNumStateVariables(*nsv);
 }
 
 /* register the data */
-void register_input_var(const char* variable_name, const char* material_name)
+void FORTRAN_NAME(register_input_var)(const char* variable_name, const char* material_name)
 {
 	SIERRA_Material_Data* mat = SIERRA_Material_DB::Material(material_name);
 	mat->AddInputVariable(variable_name);
 }
 
 /* register the XML commands that specify material parameters */
-void register_parser_line(int* XML_command_id, const char* material_name)
+void FORTRAN_NAME(register_parser_line)(int* XML_command_id, const char* material_name)
 {
 	SIERRA_Material_Data* mat = SIERRA_Material_DB::Material(material_name);
 	mat->AddXMLCommandID(*XML_command_id);
