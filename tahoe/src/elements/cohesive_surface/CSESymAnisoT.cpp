@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.8 2004-09-10 20:29:41 paklein Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.9 2004-09-10 21:40:05 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -40,12 +40,18 @@ CSESymAnisoT::CSESymAnisoT(const ElementSupportT& support):
 	CSEAnisoT(support)
 {
 	SetName("anisotropic_symmetry_CSE");
+
+	/* reset default values */
+	fRotate = false;
 }
 #else
 CSESymAnisoT::CSESymAnisoT(ElementSupportT& support, bool rotate):
 	CSEAnisoT(support)
 {
 	SetName("anisotropic_symmetry_CSE");
+
+	/* reset default values */
+	fRotate = false;
 }
 #endif
 
@@ -109,17 +115,6 @@ void CSESymAnisoT::RegisterOutput(void)
 #else
 	ElementSupport().RegisterOutput(n_labels,e_labels);
 #endif
-}
-
-/* describe the parameters needed by the interface */
-void CSESymAnisoT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	CSEAnisoT::DefineParameters(list);
-
-	/* no rotating frame */
-	ParameterT& rotate_frame = list.GetParameter("rotate_frame");
-	rotate_frame.SetDefault(false);	
 }
 
 /* accept parameter list */
