@@ -1,4 +1,5 @@
-/* $Id: FEManagerT_THK.h,v 1.8 2004-06-26 18:54:31 paklein Exp $ */
+/* $Id: FEManagerT_THK.h,v 1.9 2004-06-28 22:42:03 hspark Exp $ */
+
 #ifndef _FE_MANAGER_THK_H_
 #define _FE_MANAGER_THK_H_
 
@@ -59,19 +60,13 @@ public:
 	/** calculate THK disp for ghost atoms for 3D disp/disp formulation **/
 	const dArray2DT& THKDisp(const dArray2DT& badisp);
 
-	/** impose gaussian wave initial displacements */
-	const dArray2DT& GaussianWave(void);
-	
-	/** impose 3D wave initial displacements */
-	const dArray2DT& ThreeDWave(const iArrayT& nonghostatoms);
-
 private:
 
 	/** compute theta tables for 2D disp/force formulation */
 	void ComputeThetaTables2D(const StringT& data_file);
 	                
 	/** compute theta tables for 3D disp/disp formulation - ADD 3 more data_files as input */
-	void ComputeThetaTables3D(const StringT& data_file, const StringT& data_file2, const StringT& data_file3, const StringT& data_file4);
+	void ComputeThetaTables3D(const StringT& data_file);
 
 private:
 
@@ -87,7 +82,7 @@ private:
 	
 	/** theta values: [neighbor] x [time x n_theta_values] */
 	/** 2D Theta */
-	ArrayT<dArray2DT> fThetaTable;
+	ArrayT<dArray2DT> fThetaTable, fThetaTableT, fThetaTableB;
 	
 	/** 3D Thetas */
 	ArrayT<dArray2DT> fTheta11t, fTheta12t, fTheta21t, fTheta22t;
