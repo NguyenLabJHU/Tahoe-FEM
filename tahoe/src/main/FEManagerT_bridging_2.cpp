@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.8 2004-05-27 14:29:04 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.9 2004-05-27 16:25:06 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -290,9 +290,11 @@ if (param.is_open()) {
 		double rel_tol = 1.0e-10;
 		double div_tol = 1.0e+03;		
 		double error_0, error;
-		int max_iter = 20;
-		int check_iter = 10;
-		while (bound - 0.50 > kSmall) /* continuation */
+		int max_iter = 15;
+		int check_iter = 8;
+		bool more_continuation = true;
+		while (more_continuation) /* continuation */		
+		//while (bound - 0.50 > kSmall) /* continuation */
 		{		
 			int iter = 0;
 
@@ -519,15 +521,21 @@ if (param.is_open()) {
 				last_solution.CopyIn(num_eq_p, p_i);
 
 				/* increase step size */
-				if (iter < 3 && num_continuation < num_continuation_0)
-					num_continuation *= 2;
+				if (iter > 1 && iter < 4 && num_continuation > num_continuation_0)
+					num_continuation /= 2;
 
 				/* tighten bounds */
 				if (bound > 0.5)
 				{
 					double d_bound = (outer_bound - 0.5)/num_continuation;
 					bound -= d_bound;
+					
+					
+					/* correct overshoot */
+					bound = (bound < 0.5) ? 0.5 : bound;
 				}
+				else /* done */
+					more_continuation = false;
 			}
 			else /* did not converge */
 			{
@@ -552,7 +560,7 @@ if (param.is_open()) {
 				}
 			}
 
-			cout << "{bounds, num_continuration} = {" << bound  << ", " << num_continuation << "}" << endl;
+			cout << "{bounds, num_continuation} = {" << bound  << ", " << num_continuation << "}" << endl;
 
 		} /* continuation */
 
