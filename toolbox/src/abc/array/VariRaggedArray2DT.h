@@ -1,37 +1,29 @@
-/* $Id: VariRaggedArray2DT.h,v 1.3 2002-10-20 22:38:51 paklein Exp $ */
-/* created: paklein (02/17/2000)                                          */
-/* VariRaggedArray2DT with dynamics resizing functions                    */
-
+/* $Id: VariRaggedArray2DT.h,v 1.4 2002-11-25 07:02:00 paklein Exp $ */
+/* created: paklein (02/17/2000) */
 #ifndef _VARI_RAGGED_2D_T_H_
 #define _VARI_RAGGED_2D_T_H_
 
 /* base class */
 #include "RaggedArray2DT.h"
 
-/* direct members */
-#include "VariArrayT.h"
-
-
 namespace Tahoe {
 
+/** RaggedArray2DT with a couple of extra functions to allow
+ * the number of rows to be changed dynamically and to
+ * change the dimenion of rows */
 template <class TYPE>
 class VariRaggedArray2DT: public RaggedArray2DT<TYPE>
 {
 public:
 
-	/* constructors */
+	/** constructors */
+	/*@{*/
 	VariRaggedArray2DT(int headroom);
-	VariRaggedArray2DT(int majordim, int minordim, int blocksize = 1);
+	VariRaggedArray2DT(int majordim, int minordim, int headroom, int blocksize = 1);
+	/*@}*/
 
-	/* overidden base class functions */
-	void Configure(const ArrayT<int>& rowcounts, int blocksize = 1);
-	VariRaggedArray2DT<TYPE>& operator=(const VariRaggedArray2DT& source);
-	void Copy(const AutoFill2DT<TYPE>& source);
-	void Copy(const ArrayT<int>& rowcounts, const ArrayT<TYPE*>& data);
-	void CopyCompressed(const AutoFill2DT<TYPE>& source);
-	void Free(void);
 
-	/* adding rows */
+	/** add a row */
 	void AddRow(int row, const ArrayT<TYPE>& row_data);
 	//void AddRowsAt(int row, const ArrayT<TYPE>& row_data);
 
@@ -43,104 +35,48 @@ public:
 	void SetRow(int row, const ArrayT<TYPE>& array);
 	void SetRow(int row, const TYPE* array);
 
-private:
+	/** \name assignment operators */
+	/*@{*/
+	/** assigment operator from another RaggedArray2DT */
+	RaggedArray2DT<TYPE>& operator=(const RaggedArray2DT<TYPE>& source);
 
-	/* resize wrappers */
-	VariArrayT<TYPE*> fPtrs_wrap;
-	VariArrayT<TYPE>  fData_wrap;
+	/** set entire array to the same value */
+	RaggedArray2DT<TYPE>& operator=(const TYPE& value);
+	/*@}*/
 };
 
 /*************************************************************************
-* Implementation
-*************************************************************************/
+ * Implementation
+ *************************************************************************/
 
 /* constructors */
 template <class TYPE>
 VariRaggedArray2DT<TYPE>::VariRaggedArray2DT(int headroom):
-	fPtrs_wrap(headroom, fPtrs),
-	fData_wrap(headroom, fData)
+	RaggedArray2DT<TYPE>(headroom)
 {
 
 }
 
 template <class TYPE>
-VariRaggedArray2DT<TYPE>::VariRaggedArray2DT(int majordim, int minordim, int blocksize):
-	RaggedArray2DT<TYPE>(majordim, minordim, blocksize),
-	fPtrs_wrap(15, fPtrs),
-	fData_wrap(15, fData)
+VariRaggedArray2DT<TYPE>::VariRaggedArray2DT(int majordim, int minordim, int headroom, 
+	int blocksize):
+	RaggedArray2DT<TYPE>(majordim, minordim, headroom, blocksize)
 {
 
 }
 
-/* configuration functions */
+/* assigment operator from another RaggedArray2DT */
 template <class TYPE>
-inline void VariRaggedArray2DT<TYPE>::Configure(const ArrayT<int>& rowcounts, int blocksize)
+inline RaggedArray2DT<TYPE>& VariRaggedArray2DT<TYPE>::operator=(const RaggedArray2DT<TYPE>& source)
 {
-	/* free all memory */
-	fPtrs_wrap.Free();
-	fData_wrap.Free();
-
-	/* inherited */
-	RaggedArray2DT<TYPE>::Configure(rowcounts, blocksize);
-
+	return RaggedArray2DT<TYPE>::operator=(source);
 }
 
-/* assigment operator */
+/* set entire array to the same value */
 template <class TYPE>
-inline VariRaggedArray2DT<TYPE>& VariRaggedArray2DT<TYPE>::operator=(const VariRaggedArray2DT& source)
+inline RaggedArray2DT<TYPE>& VariRaggedArray2DT<TYPE>::operator=(const TYPE& value)
 {
-	/* free all memory */
-	fPtrs_wrap.Free();
-	fData_wrap.Free();
-
-	/* inherited */
-	RaggedArray2DT<TYPE>::operator=(source);
-}
-
-template <class TYPE>
-inline void VariRaggedArray2DT<TYPE>::Copy(const AutoFill2DT<TYPE>& source)
-{
-	/* free all memory */
-	fPtrs_wrap.Free();
-	fData_wrap.Free();
-
-	/* inherited */
-	RaggedArray2DT<TYPE>::Copy(source);
-}
-
-template <class TYPE>
-inline void VariRaggedArray2DT<TYPE>::Copy(const ArrayT<int>& rowcounts,
-	const ArrayT<TYPE*>& data)
-{
-	/* free all memory */
-	fPtrs_wrap.Free();
-	fData_wrap.Free();
-
-	/* inherited */
-	RaggedArray2DT<TYPE>::Copy(rowcounts, data);
-}
-
-template <class TYPE>
-void VariRaggedArray2DT<TYPE>::CopyCompressed(const AutoFill2DT<TYPE>& source) // removes empty rows
-{
-	/* free all memory */
-	fPtrs_wrap.Free();
-	fData_wrap.Free();
-
-	/* inherited */
-	RaggedArray2DT<TYPE>::CopyCompressed(rowcounts, data);
-}
-
-/* free memory (if allocated) */
-template <class TYPE>
-inline void VariRaggedArray2DT<TYPE>::Free(void)
-{	
-	/* free all memory */
-	fPtrs_wrap.Free();
-	fData_wrap.Free();
-
-	/* inherited */
-	RaggedArray2DT<TYPE>::Free();
+	return RaggedArray2DT<TYPE>::operator=(value);
 }
 
 /* adding rows */
@@ -148,18 +84,17 @@ template <class TYPE>
 void VariRaggedArray2DT<TYPE>::AddRow(int row, const ArrayT<TYPE>& row_data)
 {
 	/* check */
-	if (row < 0 || row > MajorDim()) throw ExceptionT::kOutOfRange;
+	if (row < 0 || row > MajorDim()) ExceptionT::OutOfRange();
 
 	/* dimensions */
 	int size = row_data.Length();
-	int TYPE_size  = sizeof(TYPE);
+	int TYPE_size = sizeof(TYPE);
 
 	if (MajorDim() == 0)
 	{
-		fData_wrap.SetLength(size, false);
-		memcpy(fData.Pointer(), row_data.Pointer(), TYPE_size*size);
+		fData = row_data;
 	
-		fPtrs_wrap.SetLength(2, false);
+		fPtrs.Dimension(2);
 		fPtrs[0] = fData.Pointer();
 		fPtrs[1] = fPtrs[0] + size;
 	}
@@ -167,7 +102,7 @@ void VariRaggedArray2DT<TYPE>::AddRow(int row, const ArrayT<TYPE>& row_data)
 	{
 		/* resize data array */
 		int old_data_length = fData.Length();
-		fData_wrap.SetLength(old_data_length + size, true); //fPtrs is now stale
+		fData.Resize(old_data_length + size);
 
 		/* reset pointers */
 		if (fData.Pointer() != fPtrs[0])
@@ -185,7 +120,7 @@ void VariRaggedArray2DT<TYPE>::AddRow(int row, const ArrayT<TYPE>& row_data)
 
 		/* resize pointers array */
 		int old_ptrs_length = fPtrs.Length();
-		fPtrs_wrap.SetLength(old_ptrs_length + 1, true);
+		fPtrs.Resize(fPtrs.Length() + 1);
 		memmove(&fPtrs[row + 1], &fPtrs[row], sizeof(TYPE*)*(old_ptrs_length - row));
 
 		/* shift pointers */
@@ -209,10 +144,7 @@ void VariRaggedArray2DT<TYPE>::AddRow(int row, const ArrayT<TYPE>& row_data)
 	/* check pointer bounds */
 	if (fPtrs.First() != fData.Pointer() ||
 	    fPtrs.Last() - fPtrs.First() != fData.Length())
-	{
-		cout << "\n VariRaggedArray2DT<TYPE>::AddRow: pointer reassignment error" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("VariRaggedArray2DT<TYPE>::AddRow", "pointer reassignment error");
 #endif
 }
 
@@ -241,7 +173,7 @@ void VariRaggedArray2DT<TYPE>::SetRow(int row, const ArrayT<TYPE>& array) // wit
 		{
 			/* resize data array */
 			int old_data_length = fData.Length();
-			fData_wrap.SetLength(old_data_length + shift, true); // fPtrs is now stale
+			fData.Resize(old_data_length + true);
 	
 			/* reset pointers */
 			if (fData.Pointer() != fPtrs[0])
@@ -296,10 +228,7 @@ void VariRaggedArray2DT<TYPE>::SetRow(int row, const ArrayT<TYPE>& array) // wit
 	/* check pointer bounds */
 	if (fPtrs.First() != fData.Pointer() ||
 	    fPtrs.Last() - fPtrs.First() != fData.Length())
-	{
-		cout << "\n VariRaggedArray2DT<TYPE>::SetRow: pointer reassignment error" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("VariRaggedArray2DT<TYPE>::SetRow", "pointer reassignment error");
 #endif
 }
 
@@ -310,5 +239,6 @@ inline void VariRaggedArray2DT<TYPE>::SetRow(int row, const TYPE* array) // no r
 	RaggedArray2DT<TYPE>::SetRow(row, array);
 }
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _VARI_RAGGED_2D_T_H_ */
