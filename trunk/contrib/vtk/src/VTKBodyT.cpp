@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.40 2003-02-08 01:16:28 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.41 2003-02-20 02:30:06 paklein Exp $ */
 #include "VTKBodyT.h"
 
 /* tahoe toolbox headers */
@@ -584,10 +584,10 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 					axes->SetCamera(renderer->GetActiveCamera());
 					axes->SetLabelFormat("%6.4g");
 					if (ugrids[i]->NumSD() == 2) axes->ZAxisVisibilityOff();
-					//axes->SetCornerOffset(.2);
+					axes->SetCornerOffset(0);
 					//axes->ShadowOn();
-					axes->SetFlyModeToOuterEdges();
-					//axes->SetFlyModeToClosestTriad();
+					//axes->SetFlyModeToOuterEdges();
+					axes->SetFlyModeToClosestTriad();
 					//axes->SetFontFactor(1.8);
 					axes->GetProperty()->SetColor(1,1,1);
 					axes->ShadowOff();
