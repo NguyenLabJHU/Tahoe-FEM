@@ -1,4 +1,4 @@
-$Id: ReadMe,v 1.1 2004-07-15 08:03:06 paklein Exp $
+$Id: ReadMe,v 1.2 2004-09-16 00:04:37 paklein Exp $
 
 INSTALLATION:
 See makefile.template for instructions for building this module. Optional
@@ -26,7 +26,7 @@ The precompiled headers are useful for the following:
     
         toolbox/src/pch/toolboxPrefix.h
 
-(2) Some versions of CodeWarrior did now have a mechanism for defining symbols
+(2) Some versions of CodeWarrior did not have a mechanism for defining symbols
     for the C preprocessor, as is normally done with -D[symbol] flags passed to
     command-line compilers. The "build options" section of makefile.template
     defines a number of these to define the configuration of the build. With
