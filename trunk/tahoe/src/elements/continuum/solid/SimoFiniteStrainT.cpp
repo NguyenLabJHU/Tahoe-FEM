@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.14 2001-09-15 01:16:39 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.15 2001-11-14 21:52:09 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -155,10 +155,12 @@ void SimoFiniteStrainT::Initialize(void)
 	/* stiffness work space */
 	fStressStiff_11.Allocate(fNumElemNodes);
 	fStressStiff_12.Allocate(fNumElemNodes, fNumModeShapes);
+	fStressStiff_21.Allocate(fNumModeShapes, fNumElemNodes);
 	fStressStiff_22.Allocate(fNumModeShapes, fNumModeShapes);
 	
 	fK22.Allocate(fNumModeShapes*fNumDOF);	
 	fK12.Allocate(fNumElemNodes*fNumDOF, fNumModeShapes*fNumDOF);
+	fK21.Allocate(fNumModeShapes*fNumDOF, fNumElemNodes*fNumDOF);
 	
 	/* solve all dof's together */
 	if (fModeSolveMethod == kMonolithic)
@@ -598,11 +600,6 @@ void SimoFiniteStrainT::FormStiffness_staggered(double constK)
 		dMatrixT::kWhole :
 		dMatrixT::kUpperOnly;
 
-//TEMP - nonsymmetric not supported yet
-if (format != dMatrixT::kUpperOnly) {
-	cout << "\n SimoFiniteStrainT::FormStiffness_staggered: no nonsymmetric tangent" << endl;
-	throw eGeneralFail;
-}
 	/* integration */
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
@@ -653,7 +650,17 @@ if (format != dMatrixT::kUpperOnly) {
 		/* material stiffness (4.14) */
 		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);
 		fK22.MultQTBQ(fB_enh, fD, dMatrixT::kWhole, dMatrixT::kAccumulate);
-		fK12.MultATBC(fB, fD, fB_enh, dMatrixT::kWhole, dMatrixT::kAccumulate);		
+		fK12.MultATBC(fB, fD, fB_enh, dMatrixT::kWhole, dMatrixT::kAccumulate);
+		
+		/* non symmetric */
+		if (format != dMatrixT::kUpperOnly)
+		{
+			/* stress stiffness */
+			fStressStiff_21.Transpose(fStressStiff_12);
+		
+			/* material stiffness */
+			fK12.MultATBC(fB_enh, fD, fB, dMatrixT::kWhole, dMatrixT::kAccumulate);
+		}
 	}
 						
 	/* stress stiffness into fLHS */
@@ -664,7 +671,16 @@ if (format != dMatrixT::kUpperOnly) {
 	/* condensation of element modes */
 	fK22.Inverse();
 	fK22 *= -1.0;
-	fLHS.MultQBQT(fK12, fK22, format, dMatrixT::kAccumulate);
+	if (format == dMatrixT::kUpperOnly)
+		fLHS.MultQBQT(fK12, fK22, format, dMatrixT::kAccumulate);
+	else
+	{
+		/* expand stress stiffness part */
+		fK21.Expand(fStressStiff_21, fNumDOF);
+	
+		/* assemble */
+		fLHS.MultABC(fK12, fK22, fK21, dMatrixT::kWhole, dMatrixT::kAccumulate);
+	}
 }
 
 /* compute and assemble the element stiffness for the monolithic
@@ -677,12 +693,6 @@ void SimoFiniteStrainT::FormStiffness_monolithic(double constK)
 		dMatrixT::kWhole :
 		dMatrixT::kUpperOnly;
 
-//TEMP - nonsymmetric not supported yet
-if (format != dMatrixT::kUpperOnly) {
-	cout << "\n SimoFiniteStrainT::FormStiffness_monolithic: no nonsymmetric tangent" << endl;
-	throw eGeneralFail;
-}
-
 	/* integration */
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
@@ -694,6 +704,10 @@ if (format != dMatrixT::kUpperOnly) {
 	fK11 = 0.0;
 	fK22 = 0.0;
 	fK12 = 0.0;
+	if (format != dMatrixT::kUpperOnly) {
+		fK21 = 0.0;
+		fStressStiff_21 = 0.0;
+	}
 	
 	/* integrate over element */
 	fShapes->TopIP();
@@ -733,6 +747,16 @@ if (format != dMatrixT::kUpperOnly) {
 		fK11.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);
 		fK22.MultQTBQ(fB_enh, fD, format, dMatrixT::kAccumulate);
 		fK12.MultATBC(fB, fD, fB_enh, dMatrixT::kWhole, dMatrixT::kAccumulate);
+
+		/* non symmetric */
+		if (format != dMatrixT::kUpperOnly)
+		{
+			/* stress stiffness */
+			fStressStiff_21.Transpose(fStressStiff_12);
+		
+			/* material stiffness */
+			fK21.MultATBC(fB_enh, fD, fB, dMatrixT::kWhole, dMatrixT::kAccumulate);
+		}
 	}
 						
 	/* expand/assemble stress stiffness */
@@ -742,8 +766,18 @@ if (format != dMatrixT::kUpperOnly) {
 	
 	/* assemble into element stiffness matrix */
 	fLHS.AddBlock(0          , 0          , fK11);
-	fLHS.AddBlock(fK11.Rows(), fK11.Rows(), fK22);
-	fLHS.AddBlock(0          , fK11.Rows(), fK12);
+	fLHS.AddBlock(fK11.Rows(), fK11.Cols(), fK22);
+	fLHS.AddBlock(0          , fK11.Cols(), fK12);
+	
+	/* non symmetric */
+	if (format != dMatrixT::kUpperOnly) {
+	
+		/* expand stress stiffness term */
+		fK21.Expand(fStressStiff_21, fNumDOF);
+
+		/* assemble */
+		fLHS.AddBlock(fK11.Rows(), 0, fK21);
+	}
 }
 
 /* form the contribution to the the residual force associated with the 
