@@ -800,6 +800,7 @@ void VoronoiDiagramT::InitializeVoronoiData(void)
   CompGeomT::ConvexHullMap voronoiCells;
 
   fVoronoiVertices.Alias(fVoronoi->VoronoiVertices());
+  int nsd = fVoronoiVertices.MinorDim();
   voronoiCells.Alias(fVoronoi->VoronoiCells()); 		
   voronoiFacetIndices.Alias(fVoronoi->VoronoiFacetIndices());
   
