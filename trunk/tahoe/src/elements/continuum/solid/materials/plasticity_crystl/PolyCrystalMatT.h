@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.h,v 1.8 2003-01-29 07:35:05 paklein Exp $ */
+/* $Id: PolyCrystalMatT.h,v 1.9 2004-01-08 01:14:15 ebmarin Exp $ */
 #ifndef _POLY_CRYSTAL_MAT_T_H_
 #define _POLY_CRYSTAL_MAT_T_H_
 
@@ -85,6 +85,9 @@ class PolyCrystalMatT : public FDHookeanMatT
 
   // print data read
   virtual void Print(ostream& out) const;
+
+  int Size(void) { return FSMatSupport().Size(); }
+  int Rank(void) { return FSMatSupport().Rank(); }
 
  protected:
   /* set (material) tangent modulus */
