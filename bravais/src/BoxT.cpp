@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.46 2005-02-03 20:14:43 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.47 2005-02-11 18:33:11 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -73,7 +73,7 @@
       {
          for(int i=0;i<nSD;i++)
          {
-            double dist = ncells[i]*lattice_parameter[i]*0.5;
+	   //double dist = ncells[i]*lattice_parameter[i]*0.5;
             //length(i,0) = 0 ; // -dist;
 	    // length(i,1) = dist; // length(i,0) + (dist - length(i,0));
 
@@ -182,7 +182,6 @@
       int nuca = pcl->GetNUCA();
       int ntype = pcl->GetNTYPE();
    
-      int natoms=0;
       int temp_nat=0;
       dArray2DT temp_atom;
       iArrayT temp_type;
@@ -225,18 +224,20 @@
       length = ComputeMinMax();
    
    //Calculate volume here
-      switch(nlsd) {
-         case 2:
-            volume = (length(0,1)-length(0,0))*(length(1,1)-length(1,0));
-            break;
-         case 3:
-            volume = (length(0,1)-length(0,0))*         
-               (length(1,1)-length(1,0))*
+      switch(nlsd) 
+	{
+	case 2:
+	  volume = (length(0,1)-length(0,0))*(length(1,1)-length(1,0));
+	  break;
+	case 3:
+	  volume = (length(0,1)-length(0,0))*         
+	    (length(1,1)-length(1,0))*
                (length(2,1)-length(2,0));
-            break;
-      }
+	  break;
+	}
 
-      // !
+   // Output spacings along ox, oy and oz.
+
        iArrayT TmpSort;
        TmpSort.Dimension(nSD);
        TmpSort = WhichSort;
@@ -255,15 +256,10 @@
        WhichSort[1] = 1;
        WhichSort[2] = 2;
        SortLattice(pcl);
-
        cout << "\n";
 
        WhichSort = TmpSort;
        
-       
-       
-	 
-
    
    // Sort Lattice 
       if(WhichSort  != 0) SortLattice(pcl);
@@ -493,13 +489,7 @@
    
    // Update sorted atoms
       atom_coord = new_coord;
-      atom_types = new_type;
-      
-      // Output spacings along ox, oy and oz.
-      
- 
-
-   
+      atom_types = new_type;   
    }
 
     void BoxT::CalculateBounds(CrystalLatticeT* pcl)
@@ -536,58 +526,17 @@
 
     int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,iArrayT* temp_type,int temp_nat)
    {
-      int nlsd = pcl->GetNLSD();
-      int nuca = pcl->GetNUCA();
-   
       const dArrayT& vLP = pcl->GetLatticeParameters();
-      const dArray2DT& vB = pcl->GetBasis();
-      const dArray2DT& vA = pcl->GetAxis();
-      const iArrayT& vT = pcl->GetType();
-   
+
+      int nlsd = pcl->GetNLSD();
       const dArrayT& vec_a = pcl->GetVector_a();
       const dArrayT& vec_b = pcl->GetVector_b();
       const dArrayT& vec_c = pcl->GetVector_c();
    
       double x,y,z;
-      double eps = 1.e-6;
-   
+         
       int natom= 0;
       int type= 0;
-   
-   //cout << "Rotating Atoms in Box \n";
-   
-   // Redefine lengths according to rotation
-      dArrayT PerLen(nlsd);
-      dArrayT vec(nlsd); 
-   
-      vec[0] = 1.0;vec[1] = 0.0; vec[2] = 0.0;
-      PerLen[0] = CalculatePeriodicLength(pcl,vec);  
-      vec[0] = 0.0;vec[1] = 1.0; vec[2] = 0.0;
-      PerLen[1] = CalculatePeriodicLength(pcl,vec);  
-      vec[0] = 0.0;vec[1] = 0.0; vec[2] = 1.0;
-      PerLen[2] = CalculatePeriodicLength(pcl,vec);  
-   
-      //for (int i=0;i<nlsd;i++) 
-      //{    
-      //   PerLen[i] *= ncells[i];
-      //   length(i,0) = -PerLen[i]/2.;
-      //   length(i,1) =  PerLen[i]/2.;
-      //}
-
-      cout << "Periodic Lengths:" ; 
-      cout << PerLen[0] << "  " << PerLen[1] << " " << PerLen[2] << "\n";
-
-   
-   // Define a slightly shorter box
-      double l00,l01,l10,l11;
-      if(length(0,0) >= 0.0) l00 = length(0,0) + eps; 
-      else l00 = length(0,0) - eps;
-      if(length(0,1) >= 0.0) l01 = length(0,1) + eps; 
-      else l01 = length(0,1) - eps;
-      if(length(1,0) >= 0.0) l10 = length(1,0) + eps; 
-      else l10 = length(1,0) - eps;
-      if(length(1,1) >= 0.0) l11 = length(1,1) + eps; 
-      else l11 = length(1,1) - eps;
    
    // Define new number of cells after rotation
       double xlen = Maxx(fabs(vec_a[0]),fabs(vec_a[1]),fabs(vec_a[2]))*vLP[0]/2.;
@@ -607,50 +556,44 @@
       new_cel[0] = 2*new_cel[0];
       int ncentx = new_cel[0]/2;
    
+      double epsx = 0.01*(length(0,1)-length(0,0));
+      double epsy = 0.01*(length(1,1)-length(1,0));
+      double l00 = length(0,0);//+ epsx;
+      double l01 = length(0,1)- epsx;
+      
+      double l10 = length(1,0);//+ epsy;
+      double l11 = length(1,1)- epsy;
+
       if (nlsd==2) 
       {
-      // Rotate coordinates in tmp; Determine number of atoms
-         for (int p=-2*ncells[1];p<2*ncells[1];p++) 
-            for (int q=-2*ncells[0];q<2*ncells[0];q++)    
-            {
-               dArrayT c(nlsd);
-               c[0] = (double)q; c[1] = (double)p;
-               for (int m=0;m<nuca;m++) 
-               {
-                  if ( natom >= temp_nat) {cout << "natoms wrong ";throw eSizeMismatch;}
+	cout << epsx << " " << epsy << "\n";
+	// Rotate coordinates
+	for (int r=0;r<new_cel[0];r++) 
+	  for (int q=0;q<new_cel[0];q++)    	
+	    {
+	      if (natom > temp_nat) {cout << "natoms wrong ";throw eSizeMismatch;}
+	      
+	      int rr = r - ncentx;
+	      int qq = q - ncentx;
                
-                  x = length(0,0);
-                  y = length(1,0);
-               
-                  for (int k=0;k<nlsd;k++) 
-                  {
-                     x += (c[k] + vB(k,m))*vA(k,0);
-                     y += (c[k] + vB(k,m))*vA(k,1);
-                     type = vT[m];
-                  }
-               
-                  if(x >= l00 && x <= l01 && y >= l10 && y <= l11 )
-                  {
-                     (*temp_atom)(natom)[0] = x;
-                     (*temp_atom)(natom)[1] = y;
-                     (*temp_type)[natom] = type;
-                     natom++;
-                  }
-               }
-            }
+	      x = (rr*vec_a[0] + qq*vec_b[0])*vLP[0]/2.;
+	      y = (rr*vec_a[1] + qq*vec_b[1])*vLP[1]/2.;
+	      
+	      type = 1;
+	      
+	      if(x > l00 && x < l01 && y > l10 && y < l11)
+		{
+		  (*temp_atom)(natom)[0] = x;
+		  (*temp_atom)(natom)[1] = y;
+		  (*temp_type)[natom] = type;
+		  natom++;                     
+		}
+	    }
+	
       }
       else if (nlsd==3) 
       {
-         double epsx = 0.01*(length(0,1)-length(0,0));
-         double epsy = 0.01*(length(1,1)-length(1,0));
-         double epsz = 0.01*(length(2,1)-length(2,0));
-      
-         double l00 = length(0,0);//+ epsx;
-         double l01 = length(0,1)- epsx;
-      
-         double l10 = length(1,0);//+ epsy;
-         double l11 = length(1,1)- epsy;
-      
+         double epsz = 0.01*(length(2,1)-length(2,0));      
          double l20 = length(2,0);//+ epsz;
          double l21 = length(2,1)- epsz;
 
@@ -663,8 +606,7 @@
                for (int p=0;p<new_cel[0];p++) 	
                {
                   if (natom > temp_nat) {cout << "natoms wrong ";throw eSizeMismatch;}
-               
-                  dArrayT c(nlsd);
+          
                   int rr = r - ncentx;
                   int qq = q - ncentx;
                   int pp = p - ncentx;
@@ -696,7 +638,6 @@
    
       int nlsd = pcl->GetNLSD();
       int nuca = pcl->GetNUCA();
-      const dArrayT& vLP = pcl->GetLatticeParameters();
       const dArray2DT& vA = pcl->GetAxis();
       const dArray2DT& vB = pcl->GetBasis();
       const iArrayT& vT = pcl->GetType();
