@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.h,v 1.7 2001-10-02 18:40:31 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.8 2001-10-03 17:37:29 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -25,6 +25,7 @@ class vtkSelectVisiblePoints;
 class vtkLabeledDataMapper;
 class vtkActor2D;
 class vtkScalars;
+class vtkCamera;
 
 
 class VTKConsoleT: public iConsoleObjectT
@@ -43,10 +44,12 @@ class VTKConsoleT: public iConsoleObjectT
   double satRange1, satRange2;
   double alphaRange1, alphaRange2;
   double scalarRange1, scalarRange2;
+  double time;
   int numColors;
   StringT source_file;
   StringT output_file;
   StringT outFileName;
+  StringT sbTitle;
   vtkUnstructuredGridReader *ugr;
   vtkRenderer *renderer;
   vtkRenderWindow *renWin;
@@ -66,6 +69,7 @@ class VTKConsoleT: public iConsoleObjectT
   /* vtkScalars *scalars[num_time_steps]; */
   vtkScalars *scalars[10000];
   int num_time_steps;
+  vtkCamera *cam;
 
 };
 

@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.10 2001-10-03 15:34:26 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.11 2001-10-03 17:37:29 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "vtkRenderer.h"
@@ -20,6 +20,7 @@
 #include "vtkLabeledDataMapper.h"
 #include "vtkActor2D.h"
 #include "vtkFieldData.h"
+#include "vtkCamera.h"
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -53,6 +54,7 @@ VTKConsoleT::VTKConsoleT(void)
   iAddCommand("Update_Rendering");
   iAddCommand("Reset_to_Default_Values");
   iAddCommand("Save");
+  iAddCommand("Save_flip_book_images");
   iAddCommand("Show_Node_Numbers");
   iAddCommand("Hide_Node_Numbers");
   iAddCommand("Color_bar_on");
@@ -123,7 +125,7 @@ VTKConsoleT::VTKConsoleT(void)
 /* look for results data */
   //int num_time_steps = exo.NumTimeSteps();
   num_time_steps = exo.NumTimeSteps();
-  double time;
+  // double time;
   //if (num_time_steps > 0)
   //	{
 	  /* variables defined at the nodes */
@@ -254,6 +256,7 @@ VTKConsoleT::VTKConsoleT(void)
   visPts = vtkSelectVisiblePoints::New();
   ldm = vtkLabeledDataMapper::New();
   pointLabels = vtkActor2D::New();
+  cam = vtkCamera::New();
   
   renWin->AddRenderer(renderer);
  
@@ -296,7 +299,10 @@ VTKConsoleT::VTKConsoleT(void)
   renWin->SetSize(600, 700);
 
   scalarBar->SetLookupTable(ugridMapper->GetLookupTable());
-  scalarBar->SetTitle("Temperature for time .5000");
+  sbTitle = "Temperature for frame 000";
+  // sbTitle.Append(time,5);
+  scalarBar->SetTitle(sbTitle);
+  // scalarBar->SetTitle("Temperature for time .5000");
   scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
   scalarBar->GetPositionCoordinate()->SetValue(0.1,0.01);
   scalarBar->SetOrientationToHorizontal();
@@ -310,8 +316,10 @@ VTKConsoleT::VTKConsoleT(void)
 bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 {
 
-int xDir, yDir, zDir;
-double xRot, yRot, zRot;
+  int xDir, yDir, zDir, sfbTest;
+  int frameNum;
+  double xRot, yRot, zRot;
+  double timeStep;
 
   if (command == "Start_Rendering")
   {
@@ -367,6 +375,8 @@ double xRot, yRot, zRot;
       writer->SetInput(renSrc->GetOutput());
       writer->SetFileName(output_file);
       writer->Write();
+      renWin->Render();
+      iren->Start();
       return true;
     }
 
@@ -461,62 +471,85 @@ double xRot, yRot, zRot;
 
   else if (command == "Flip_book")
     {
-      time_t start_time, cur_time;
-      double timeStep;
+ 
       cout << "Enter time step in seconds: ";
       cin >> timeStep;
       char line[255];
       cin.getline(line, 254);
-      
+      cout << "Save images at: \n 1: current view\n 2: default view: ";
+      cin >> sfbTest;
+      cin.getline(line, 254);
+	
+     
+	if (sfbTest == 2) {
+	  cam->SetFocalPoint(0,0,0);
+	  cam->SetPosition(0,0,1);
+	  cam->ComputeViewPlaneNormal();
+	  cam->SetViewUp(0,1,0);
+	  cam->OrthogonalizeViewUp();
+	  renderer->SetActiveCamera(cam);
+	  renderer->ResetCamera();
+	}
 
       for (int j = 0; j<num_time_steps; j++){
-// 	time(&start_time);
-// 	  do {
-// 	    time(&cur_time);
-// 	    ugrid->GetPointData()->SetScalars(scalars[j]);
-// 	    renWin->Render();
-// 	  } while((cur_time - start_time) < timeStep);
-      
-      
+            
         clock_t start_time, cur_time;
          start_time = clock();
          while((clock() - start_time) < timeStep * CLOCKS_PER_SEC)
          {
          }
-// 	 renSrc->SetInput(renderer);
-// 	 renSrc->WholeWindowOn();
-// 	 writer->SetInput(renSrc->GetOutput());
-// 	 outFileName = j + ".tif";
-// 	 writer->SetFileName(outFileName);
-// 	 writer->Write();
+	 sbTitle = "Temperature for frame ";
+	 sbTitle.Append(j,3);
+	 scalarBar->SetTitle(sbTitle);
 	 ugrid->GetPointData()->SetScalars(scalars[j]);
 	 renWin->Render();
 
       }
-
-//       for (int j=2; j<12; j++){
-// 	time(&start_time);    
-// 	if (j % 2 == 0) {
-// 	  do {
-// 	    time(&cur_time);
-// 	    ugrid->GetPointData()->SetScalars(scalars[0]);
-// 	    renWin->Render();
-// 	  } while((cur_time - start_time) < timeStep);
-// 	}
-// 	else {
-// 	  do {
-// 	    time(&cur_time);
-// 	    ugrid->GetPointData()->SetScalars(scalars[1]);
-// 	    renWin->Render();
-// 	  } while((cur_time - start_time) < timeStep);
-// 	}
-//       }
 
       renWin->Render();
       iren->Start();
       return true;
     }
 
+  else if (command== "Save_flip_book_images")
+    {
+      
+      cout << "Save images at: \n 1: current view\n 2: default view: ";
+      cin >> sfbTest;
+      char line[255];
+      cin.getline(line, 254);
+      if (sfbTest == 2) {
+	cam->SetFocalPoint(0,0,0);
+	cam->SetPosition(0,0,1);
+	cam->ComputeViewPlaneNormal();
+	cam->SetViewUp(0,1,0);
+	cam->OrthogonalizeViewUp();
+	renderer->SetActiveCamera(cam);
+	renderer->ResetCamera();
+      }	
+      
+      for (int j = 0; j<num_time_steps; j++){
+
+	sbTitle = "Temperature for frame ";
+	sbTitle.Append(j,3);
+	scalarBar->SetTitle(sbTitle);	 
+	ugrid->GetPointData()->SetScalars(scalars[j]);
+	renWin->Render();  
+	renSrc->SetInput(renderer);
+	renSrc->WholeWindowOn();
+	writer->SetInput(renSrc->GetOutput());
+	outFileName = "Frame";
+	outFileName.Append(j,3); // pad to a width of 3 digits
+	outFileName.Append(".tif");
+	writer->SetFileName(outFileName);
+	writer->Write();
+	renWin->Render();
+      }
+      renWin->Render();
+      iren->Start();
+      return true;
+    }
+	 
   else if (command=="Change_background_color")
     {
       int bgColor;
@@ -551,11 +584,15 @@ double xRot, yRot, zRot;
 
   else if (command == "Select_frame_number")
     {
-      int frameNum;
+
       cout << "choose frame number from 0 to " << num_time_steps-1 <<" to be displayed: ";
       cin >> frameNum;
       char line[255];
       cin.getline(line, 254);
+      sbTitle = "Temperature for frame ";
+      sbTitle.Append(frameNum,3);
+      scalarBar->SetTitle(sbTitle);
+
       ugrid->GetPointData()->SetScalars(scalars[frameNum]);
       renWin->Render();
       iren->Start();
