@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.h,v 1.8 2002-04-07 19:14:14 paklein Exp $ */
+/* $Id: ifstreamT.h,v 1.9 2002-04-08 16:15:06 paklein Exp $ */
 /* created: paklein (03/03/1999) */
 
 #ifndef _IFSTREAM_T_H_
@@ -13,6 +13,11 @@
 
 /* direct members */
 #include "StringT.h"
+
+/* should be defined by I/O */
+#ifndef streamsize
+#define streamsize int
+#endif
 
 /** input file stream with extended capabilities */
 class ifstreamT: public ifstream
