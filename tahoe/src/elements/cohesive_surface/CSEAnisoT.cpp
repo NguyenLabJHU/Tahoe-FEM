@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.60 2004-01-05 07:34:30 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.61 2004-03-19 17:16:53 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -1092,7 +1092,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArray2DT nodal_all(nen, n_out);
 	dArray2DT coords, disp;
 	dArray2DT jump, T;
-	dArray2DT matdat;	
+	dArray2DT matdat;
 
 	/* ip values */
 	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, nen, nsd);
@@ -1126,6 +1126,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	double phi_tmp, area;
 	double& phi = (e_codes[CohesiveEnergy]) ? *pall++ : phi_tmp;
 	dArrayT traction;
+	
 	if (e_codes[Traction])
 	{
 		traction.Set(ndof, pall); 
@@ -1233,14 +1234,20 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 					/* compute traction in local frame */
 					const dArrayT& tract = surfpot->Traction(fdelta, state, localFrameIP, false);
-				       
+
+					/* transform to global frame */
+					if (fOutputGlobalTractions)
+						fQ.Multx(tract, fT);
+					else
+						fT = tract;
+
 					/* project to nodes */
 					if (n_codes[NodalTraction])
-						fShapes->Extrapolate(tract, T);
+						fShapes->Extrapolate(fT, T);
 					
 					/* element average */
 					if (e_codes[Traction])
-						traction.AddScaled(ip_w, tract);
+						traction.AddScaled(ip_w, fT);
 				}
 					
 				/* material output data */
@@ -1390,8 +1397,15 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 
 	if (n_codes[NodalTraction])
 	{
-		const char* t_2D[2] = {"T_t", "T_n"};
-		const char* t_3D[3] = {"T_t1", "T_t2", "T_n"};
+		const char* t_2D_loc[2] = {"T_t", "T_n"};
+		const char* t_3D_loc[3] = {"T_t1", "T_t2", "T_n"};
+		
+		const char* t_2D_glo[2] = {"T_X", "T_Y"};
+		const char* t_3D_glo[3] = {"T_X", "T_Y", "T_Z"};
+		
+		const char** t_2D = (fOutputGlobalTractions) ? t_2D_glo : t_2D_loc;
+		const char** t_3D = (fOutputGlobalTractions) ? t_3D_glo : t_3D_loc;
+		
 		const char** tlabels;
 		if (NumDOF() == 2)
 			tlabels = t_2D;
