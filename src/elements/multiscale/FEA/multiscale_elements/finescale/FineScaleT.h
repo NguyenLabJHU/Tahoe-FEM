@@ -20,7 +20,7 @@ public:
 	/** Pure virtual functions */
 
 	virtual void Construct ( FEA_ShapeFunctionT&, VMF_MaterialT*, VMS_VariableT&, VMS_VariableT&, 
-								double  = 0.0, int  = FEA::kBackward_Euler) = 0;
+								double  fdelta_t = 0.0, int Integration_Scheme = FEA::kBackward_Euler ) = 0;
 	virtual void Form_LHS_Ka_Kb	(	dMatrixT &Ka, dMatrixT &Kb	)	= 0; 
 	virtual void Form_RHS_F_int	(	dArrayT &F_int	) = 0; 
 	
