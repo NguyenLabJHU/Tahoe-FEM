@@ -1,7 +1,7 @@
-# $Id: ASILOMAR.SRN.macros,v 1.1 2001-03-14 03:08:29 paklein Exp $
+# $Id: ASILOMAR.SRN.macros,v 1.2 2001-03-14 19:32:08 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__MPI__
-MPI_LFLAGS = -lmpi
+MPI_LFLAGS = -lmpich -lgm
 
 # CA-CPLANT (DEC)
 MAKE        = make
@@ -11,15 +11,15 @@ COMP_CC     = cxx
 COMP_F      = f77
 LINK        = $(COMP_CC)
 TR          = $(MACRO_DIR)/cxx_repository
-MORE_CFLAGS = -O3 -DNDEBUG 
+MORE_CFLAGS = -O3 -DNDEBUG
 #MORE_CFLAGS = -g 
 DEFINES     = -D__DEC__ -D__CPLANT__ -D__ASILOMAR__
-MY_CFLAGS   = -c -I$(INC_DIR) -I/usr/local/asilomar/include -msg_display_number $(DEFINES) $(MORE_CFLAGS)
-CFLAGS_C    = $(MPI_CFLAGS) $(MY_CFLAGS) -msg_disable 161
+MY_CFLAGS   = -c -I$(INC_DIR) -I/usr/local/asilomar/build/LINUX/ch_gm/include  -I/usr/local/asilomar/include -msg_display_number $(DEFINES) $(MORE_CFLAGS)
+CFLAGS_C    = $(MPI_CFLAGS) $(MY_CFLAGS)
 CFLAGS_CC   = $(MPI_CFLAGS) $(MY_CFLAGS) -ptr $(TR) -msg_disable 161,111
 CFLAGS_F    = $(MPI_CFLAGS) $(MY_CFLAGS)
 LINK        = $(COMP_CC)
-LFLAGS      = $(MPI_LFLAGS) -lm -ptr $(TR) -L/usr/local/asilomar/build/LINUX/ch_gm/lib
+LFLAGS      = $(MPI_LFLAGS) -lm -ptr $(TR) -L/usr/local/asilomar/build/LINUX/ch_gm/lib -L/usr/local/asilomar/lib
 AR          = ar
 ARFLAGS     = -cruv
 MAKE_OPTS   = -s
