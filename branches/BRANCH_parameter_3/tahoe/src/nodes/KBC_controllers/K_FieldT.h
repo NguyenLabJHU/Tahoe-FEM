@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.h,v 1.8.18.2 2004-05-20 14:59:37 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.8.18.3 2004-05-21 21:25:57 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _K_FIELD_T_H_
 #define _K_FIELD_T_H_
@@ -34,10 +34,6 @@ public:
 	/* constructor */
 	K_FieldT(NodeManagerT& node_manager);
 
-	/* initialize data - called immediately after construction */
-	virtual void Initialize(ifstreamT& in);
-	virtual void WriteParameters(ostream& out) const;
-
 	/* initial condition/restart functions
 	 *
 	 * Set to initial conditions.  The restart functions
@@ -61,9 +57,6 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
@@ -83,7 +76,8 @@ protected:
 	void ResolveMaterialReference(int element_group, int material_num,
 		const IsotropicT** piso, const SolidMaterialT** pmat) const;
 
-	/* compute K-field displacement factors */
+	/** compute K-field displacement factors. Recompute the asymptotic displacement
+	 * field as a function of the current values of K_FieldT::fmu and K_FieldT::fkappa. */
 	virtual void ComputeDisplacementFactors(const dArrayT& tip_coords);
 	
 	/* set BC cards with current displacement field */
@@ -133,14 +127,18 @@ protected:
 	/*@}*/
 		
 	/* BC nodes */
-	int     fFarFieldGroupNum;
-	int     fFarFieldMaterialNum;
 	ArrayT<StringT> fID_List;
 	iArrayT fNodes;
 	
-	/* external links */
-	const IsotropicT*  fIsotropic;
-	const SolidMaterialT* fSolidMaterial;
+	/** \name elastic constants */
+	/*@{*/
+	double fmu; /**< shear modulus */
+	double fnu; /**< Poisson's ratio */
+	double fkappa; /**< function of nu */
+	
+	int fGroupNumber;
+	int fMaterialNumber;
+	/*@}*/
 
 	/* runtime data */
 	ScheduleT fDummySchedule;

@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.9.2.3 2004-05-20 14:59:37 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.9.2.4 2004-05-21 21:25:57 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "BimaterialK_FieldT.h"
 
@@ -202,7 +202,6 @@ void BimaterialK_FieldT::WriteParameters(ostream& out) const
 	out << " Fracture path test value column number. . . . . = " << fTipColumnNum + 1  << '\n';
 	out << " Maximum extension distance per load step. . . . = " << fMaxGrowthDistance << '\n';
 	out << " Maximum number of extensions per load step. . . = " << fMaxGrowthSteps    << '\n';
-#endif
 
 	iArrayT tmp;
 	/* set 1 */
@@ -262,6 +261,8 @@ void BimaterialK_FieldT::WriteParameters(ostream& out) const
 		out << " Far field element group 2 number. . . . . . . . = RIGID\n";
 
 	out << " Group in the upper half plane . . . . . . . . . = " << fUHP << '\n';
+
+#endif
 }
 
 /***********************************************************************
@@ -271,6 +272,7 @@ void BimaterialK_FieldT::WriteParameters(ostream& out) const
 /* compute K-field displacement factors */
 void BimaterialK_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 {
+#if 0
 	/* resolve near tip and material reference */
 	if (fFarFieldGroupNum != -1 && !fIsotropic)
 		ResolveMaterialReference(fFarFieldGroupNum, fFarFieldMaterialNum,
@@ -359,6 +361,7 @@ void BimaterialK_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 		if (fIsotropic)
 			SetFieldFactors(-1, eps, mu_1, G_1, tip_coords, fNodes_1, fK1Disp_1, fK2Disp_1);
 	}
+#endif
 }
 
 /***********************************************************************
