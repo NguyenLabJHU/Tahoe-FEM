@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.8.2.5 2002-05-17 01:29:57 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.8.2.6 2002-06-04 16:30:38 cjkimme Exp $ */
 /* created: paklein (05/28/1996) */
 
 #ifndef _ELASTIC_T_H_
@@ -30,7 +30,7 @@ public:
          iPrincipal = 3, /**< extrapolated principal stresses */
      iEnergyDensity = 4, /**< extrapolated strain energy density */
         iWaveSpeeds = 5, /**< extrapolated local wave speeds */
-      iMaterialData = 6  /**< extrapolated  model output */
+      iMaterialData = 6 /**< extrapolated model output */
 		};
 	
 	/** list/index of element outputs */
@@ -41,7 +41,7 @@ public:
 	 iKineticEnergy = 3, /**< integrated kinetic energy */
     iLinearMomentum = 4, /**< integrated linear momentum */
           iIPStress = 5, /**< integration point stresses */
-    iIPMaterialData = 6  /**< integration point material model output */
+    iIPMaterialData = 6, /**< integration point material model output */
       	};
 
 	/** constructor */
@@ -125,7 +125,7 @@ protected:
 	/* driver for calculating output values */
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	                           const iArrayT& e_codes, dArray2DT& e_values);
-
+	
 	/** indicies of elements in the list of material needs */
 	enum MaterialNeedsT {kNeedDisp = 0,
 	                     kNeedVel  = 1,
@@ -176,6 +176,9 @@ protected:
 	/* parameters */
 	static const int NumNodalOutputCodes;
 	static const int NumElementOutputCodes;
+	
+	/* additional smoothing flags */
+	bool qUseSimo, qNoExtrap;
 };
 
 /* accessors */
