@@ -1,4 +1,4 @@
-/* $Id: ModelFileT.cpp,v 1.11 2003-05-29 23:08:05 paklein Exp $ */
+/* $Id: ModelFileT.cpp,v 1.12 2004-01-31 07:19:54 paklein Exp $ */
 /* created: paklein (12/15/1999)                                          */
 
 #include "ModelFileT.h"
@@ -274,8 +274,7 @@ ModelFileT::StatusT ModelFileT::GetCoordinates(dArray2DT& coords) const
 	if (AdvanceStream(in, keyword[knodes]) == kOK)
 	{
 		ifstreamT in2;
-		ifstreamT& src = OpenExternal(in, in2, cout, false,
-			"ModelFileT::GetCoordinates: file not found");
+		ifstreamT& src = OpenExternal(in, in2, "ModelFileT::GetCoordinates");
 
 		int num_nodes, dimension;
 		src >> num_nodes >> dimension;
@@ -376,8 +375,7 @@ ModelFileT::StatusT ModelFileT::GetElementSet(int ID, iArray2DT& set) const
 			keyword[kset], dex) == kOK)
 		{
 			ifstreamT in2;
-			ifstreamT& src = OpenExternal(in, in2, cout, false,
-				"ModelFileT::GetElementSet: file not found");
+			ifstreamT& src = OpenExternal(in, in2, "ModelFileT::GetElementSet");
 
 			int num_elements;
 			int num_element_nodes;
@@ -490,8 +488,7 @@ cout << "\n ModelFileT::GetNodeSet: wrong mode or ID not found" << endl;
 			keyword[kset], dex) == kOK)
 		{
 			ifstreamT in2;
-			ifstreamT& src = OpenExternal(in, in2, cout, false,
-				"ModelFileT::GetNodeSet: file not found");
+			ifstreamT& src = OpenExternal(in, in2, "ModelFileT::GetNodeSet");
 
 			int num_nodes;
 			src >> num_nodes;
@@ -639,8 +636,7 @@ ModelFileT::StatusT ModelFileT::GetSideSet(int ID, int& element_set_ID,
 			element_set_ID = fSideSetID(dex, 1);
 	
 			ifstreamT in2;
-			ifstreamT& src = OpenExternal(in, in2, cout, false,
-				"ModelFileT::GetSideSet: file not found");
+			ifstreamT& src = OpenExternal(in, in2, "ModelFileT::GetSideSet");
 
 			int num_sides;
 			src >> num_sides;
@@ -895,8 +891,7 @@ void ModelFileT::WriteFile(bool extern_file) const
 	}
 }
 
-ifstreamT& ModelFileT::OpenExternal(ifstreamT& in,  ifstreamT& in2,
-	ostream& out, bool verbose, const char* fail) const
+ifstreamT& ModelFileT::OpenExternal(ifstreamT& in,  ifstreamT& in2, const char* caller) const
 {
 	/* check for external file */
 	char nextchar = in.next_char();
@@ -907,7 +902,6 @@ ifstreamT& ModelFileT::OpenExternal(ifstreamT& in,  ifstreamT& in2,
 		/* external file name */
 		StringT file;
 		in >> file;
-		if (verbose) out << " external file: " << file << '\n';
 		file.ToNativePathName();
 		
 		/* path to source file */
@@ -918,10 +912,7 @@ ifstreamT& ModelFileT::OpenExternal(ifstreamT& in,  ifstreamT& in2,
 		/* open stream */
 		in2.open(file);
 		if (!in2.is_open())
-		{
-			if (fail) cout << fail << ": " << file << endl;
-			throw ExceptionT::kBadInputValue;
-		}
+			ExceptionT::DatabaseFail(caller, "could not open file \"%s\"", file.Pointer());
 
 		/* set comments */
 		if (in.skip_comments()) in2.set_marker(in.comment_marker());
