@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.1.2.8 2003-12-09 18:22:31 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.1.2.9 2003-12-09 19:54:58 paklein Exp $ */
 #include "ABAQUS_UMAT_SS_BaseT.h"
 
 #ifdef __F2C__
@@ -22,6 +22,7 @@ using namespace Tahoe;
 ABAQUS_UMAT_SS_BaseT::ABAQUS_UMAT_SS_BaseT(ifstreamT& in, const SSMatSupportT& support):
 	SSSolidMatT(in, support),
 	fApproxModulus(false),
+	fNumElasticIterations(-1),
 	fTangentType(GlobalT::kSymmetric),
 	fStress(NumSD()),
 	fIPCoordinates(NumSD()),
@@ -36,6 +37,9 @@ ABAQUS_UMAT_SS_BaseT::ABAQUS_UMAT_SS_BaseT(ifstreamT& in, const SSMatSupportT& s
 	nshr = 0;
 	ntens = 0;
 	nstatv = 0;
+
+	/* read non-ABAQUS parameters */
+	in >> fNumElasticIterations;
 
 	/* read ABAQUS-format input */
 	bool nonsym = false;	
@@ -61,6 +65,9 @@ void ABAQUS_UMAT_SS_BaseT::Print(ostream& out) const
 	/* inherited */
 	SSSolidMatT::Print(out);
 	IsotropicT::Print(out);
+	
+	/* class parameters */
+	out << " Number of elastic iterations. . . . . . . . . . = " << fNumElasticIterations << '\n';
 	
 	/* write properties array */
 	out << " Number of ABAQUS UMAT internal variables. . . . = " << nstatv << '\n';
@@ -341,7 +348,10 @@ const dSymMatrixT& ABAQUS_UMAT_SS_BaseT::s_ij(void)
 		double  t = fSSMatSupport.Time();
 		double dt = fSSMatSupport.TimeStep();
 		int  step = fSSMatSupport.StepNumber();
-		int  iter = fSSMatSupport.IterationNumber();
+		int iter = fSSMatSupport.IterationNumber();
+		if (iter < fNumElasticIterations-1) /* treat as 'first' iteration */
+			iter = -1;
+		
 		Call_UMAT(t, dt, step, iter);
 	}
 	else
