@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.7 2002-06-08 20:20:54 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.8 2002-06-26 23:28:55 hspark Exp $ */
 /* created: paklein (06/26/1996) */
 
 #include "ShapeFunctionT.h"
@@ -108,8 +108,20 @@ void ShapeFunctionT::B(const dArray2DT& DNa, dMatrixT& B_matrix) const
 	/* standard strain-displacement operator */
 	if (fB_option == kStandardB)
 	{
+	        /* 1D */
+                if (DNa.MajorDim() == 1)
+		{
+			double* pNax = DNa(0);
+
+			for (int i = 0; i < numnodes; i++)
+			{
+			        /* currently assuming that DNa gets 1D shape functions
+                                   correctly from LineT somehow...*/
+				*pB++ = *pNax++;
+			}
+		}
 		/* 2D */
-		if (DNa.MajorDim() == 2)
+		else if (DNa.MajorDim() == 2)
 		{
 			double* pNax = DNa(0);
 			double* pNay = DNa(1);
@@ -163,8 +175,14 @@ void ShapeFunctionT::B(const dArray2DT& DNa, dMatrixT& B_matrix) const
 	 * call to SetMeanDilatation */
 	else
 	{
-		/* 2D */
-		if (DNa.MajorDim() == 2)
+	        /* 1D */
+                if (DNa.MajorDim() == 1)
+		{
+		  	cout << "\n ShapeFunctionT::B: not implemented yet for 1D B-bar" << endl;
+	                throw eGeneralFail;
+		}
+	        /* 2D */
+		else if (DNa.MajorDim() == 2)
 		{
 			double* pNax = DNa(0);
 			double* pNay = DNa(1);
@@ -271,7 +289,7 @@ void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 			*p++ = *pNaz++;
 		}
 	}
-	else
+	else /* 1D case defaults to this */
 	{
 		for (int i = 0; i < numsd; i++)	
 			for (int a = 0; a < numnodes; a++)	
