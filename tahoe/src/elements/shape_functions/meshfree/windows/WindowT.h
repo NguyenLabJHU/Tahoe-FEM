@@ -1,4 +1,4 @@
-/* $Id: WindowT.h,v 1.9 2004-06-26 06:11:13 paklein Exp $ */
+/* $Id: WindowT.h,v 1.10 2004-10-12 00:20:26 paklein Exp $ */
 #ifndef _WINDOW_T_H_
 #define _WINDOW_T_H_
 
@@ -84,7 +84,7 @@ class WindowT
 	 * transform the nodal parameters into rectangular dimensions that circumscribes
 	 * the support of the nodal support */
 	/*@{*/
-	virtual const dArrayT& RectangularSupportSize(const dArrayT& param_n) const = 0;
+	virtual void RectangularSupportSize(const dArrayT& param_n, dArrayT& support_size) const = 0;
 	/*@}*/
 	
 	/** \name multi-point evaluations */
@@ -106,8 +106,7 @@ class WindowT
 	 * \param x field point of evaluation
 	 * \param covers array of coverage test results: [npts] 
 	 * \return the number of points covering x */
-	virtual int Covers(const dArray2DT& x_n, const dArrayT& x, 
-			    const dArray2DT& param_n, ArrayT<bool>& covers) const = 0;
+	virtual int Covers(const dArray2DT& x_n, const dArrayT& x, const dArray2DT& param_n, ArrayT<bool>& covers) const;
 
 	/** compute spherical support size in batch. Default implementation uses the relies on the
 	 * purely virtual method WindowT::SupportSize to evaluate the support size over

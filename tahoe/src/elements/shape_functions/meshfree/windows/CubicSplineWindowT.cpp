@@ -172,10 +172,10 @@ double CubicSplineWindowT::SphericalSupportSize(const dArrayT& param_n) const
 }
 
 /* rectangular support size */
-const dArrayT& CubicSplineWindowT::RectangularSupportSize(const dArrayT& param_n) const 
+void CubicSplineWindowT::RectangularSupportSize(const dArrayT& param_n, dArrayT& support_size) const
 {
-	ExceptionT::GeneralFail("CubicSplineWindowT::RectangularSupportSize");
-	return param_n; /* dummy */
+	/* same in all dimensions */
+	support_size = SphericalSupportSize(param_n);
 }
 
 /* spherical support sizes in batch */
@@ -190,12 +190,4 @@ void CubicSplineWindowT::SphericalSupportSize(const dArray2DT& param_n, ArrayT<d
 	dArrayT tmp;
 	tmp.Alias(support_size);
 	tmp.SetToScaled(1.0*fDilationScaling, param_n);
-}
-
-/* rectangular support sizes in batch */
-void CubicSplineWindowT::RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const
-{
-#pragma unused(param_n)
-#pragma unused(support_size)
-	ExceptionT::GeneralFail("CubicSplineWindowT::RectangularSupportSize");
 }
