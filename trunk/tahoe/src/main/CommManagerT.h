@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.8 2004-11-10 17:10:41 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.9 2004-11-14 00:32:20 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -175,11 +175,23 @@ private:
 
 	/** \name methods for configuring computation with a spatial decomposition */
 	/*@{*/
+	/** init data needed for reconfiguring across processors */
+	void InitConfigure(iArray2DT& i_values, nVariArray2DT<int>& i_values_man, 
+		dArray2DT& new_init_coords, nVariArray2DT<double>& new_init_coords_man,
+		dArray2DT& new_curr_coords, nVariArray2DT<double>& new_curr_coords_man);
+	
 	/** distribute nodes on spatial grid */
-	void Distribute(void);
+	void Distribute(iArray2DT& i_values, nVariArray2DT<int>& i_values_man, 
+		dArray2DT& new_init_coords, nVariArray2DT<double>& new_init_coords_man,
+		dArray2DT& new_curr_coords, nVariArray2DT<double>& new_curr_coords_man);
 	
 	/** set border information */
-	void SetExchange(void);
+	void SetExchange(iArray2DT& i_values, nVariArray2DT<int>& i_values_man, 
+		dArray2DT& new_init_coords, nVariArray2DT<double>& new_init_coords_man,
+		dArray2DT& new_curr_coords, nVariArray2DT<double>& new_curr_coords_man);
+
+	/** finalize configuration */
+	void CloseConfigure(iArray2DT& i_values, dArray2DT& new_init_coords);
 	/*@}*/
 
 	/** determine the local coordinate bounds 
@@ -292,8 +304,12 @@ private:
 	/** ID of surrounding processors needed for spatial decomposition only */
 	iArray2DT fAdjacentCommID; /* [nsd] x {low, high} */
 
-	/** exchange nodes */
-	Array2DT<AutoArrayT<int> > fExchange;
+	/** communication patterns for shift: {+x, +y, +z,..., -x, -y, -z,...}*/
+	iArray2DT fSwap;
+
+	/** send nodes for each phase of shift */
+	ArrayT<AutoArrayT<int> > fSendNodes;
+	ArrayT<AutoArrayT<int> > fRecvNodes;
 	/*@}*/
 };
 
