@@ -1,4 +1,4 @@
-/* $Id: NLSolver.h,v 1.11 2004-09-09 23:54:55 paklein Exp $ */
+/* $Id: NLSolver.h,v 1.12 2004-12-20 02:21:15 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NL_SOLVER_H_
@@ -55,7 +55,7 @@ protected:
 	virtual void Update(const dArrayT& update, const dArrayT* residual);
 
 	/* relax system - reform tangent at newtancount intervals */
-	virtual SolutionStatusT Relax(int newtancount = 1);
+//	virtual SolutionStatusT Relax(int newtancount = 1);
 
 	/** returns the appropriate iteration status flag for
 	 * the given error measurement, based on the current
@@ -94,6 +94,7 @@ protected:
 	double fError0;
 	int	   fQuickConvCount;
 	int    fIterationOutputCount;
+	int    fRestartIteration;
 	/*@}*/
 
 	/* output control */

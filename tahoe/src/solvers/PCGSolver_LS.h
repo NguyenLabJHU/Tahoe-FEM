@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.h,v 1.10 2004-11-19 23:40:31 paklein Exp $ */
+/* $Id: PCGSolver_LS.h,v 1.11 2004-12-20 02:21:15 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #ifndef _PCG_SOLVER_LS_H_
 #define _PCG_SOLVER_LS_H_
@@ -43,6 +43,9 @@ protected:
 
 	/** apply system update (socket for line searching) */
 	virtual void Update(const dArrayT& update, const dArrayT* residual);
+
+	/** relax system */
+//	virtual SolutionStatusT Relax(int newtancount = 1);
 
 	/** do one iteration of the solution procedure */
 	virtual void Iterate(void);

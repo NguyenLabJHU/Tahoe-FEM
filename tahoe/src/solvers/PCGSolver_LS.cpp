@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.24 2004-11-19 23:43:04 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.25 2004-12-20 02:21:15 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -117,6 +117,18 @@ void PCGSolver_LS::Iterate(void)
 	fLHS_lock = kLocked;
 }
 
+#if 0
+/* relax system */
+SolverT::SolutionStatusT PCGSolver_LS::Relax(int newtancount)
+{
+	/* begin in steepest */
+	fRestart_count = -1;
+
+	/* inherited */
+	return NLSolver::Solve(newtancount);
+}
+#endif
+
 SolverT::SolutionStatusT PCGSolver_LS::Solve(int max_iterations)
 {
 	fRestart_count = -1;
@@ -135,9 +147,12 @@ void PCGSolver_LS::CGSearch(void)
 	const char caller[] = "PCGSolver_LS::CGSearch";
 
 	/* restart */
+	bool start_relaxation = fRestartIteration == IterationNumber();
 	fRestart_count++;
-	if (fRestart_count == 0 || fRestart_count == fRestart) {
-		fR_last = fRHS;
+	if (fRestart_count == 0 || fRestart_count == fRestart || start_relaxation) 
+	{
+		/* steepest descent direction */
+		fR_last = fRHS;		
 		if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet(caller);
 		fu_last = fRHS;
 		fRestart_count = 0;
