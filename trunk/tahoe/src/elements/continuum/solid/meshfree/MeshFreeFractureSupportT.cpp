@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.3 2002-01-24 02:43:01 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.4 2002-02-20 09:40:26 paklein Exp $ */
 /* created: paklein (02/15/2000)                                          */
 
 #include "MeshFreeFractureSupportT.h"
@@ -136,16 +136,28 @@ void MeshFreeFractureSupportT::InitSupport(ifstreamT& in, ostream& out,
 	}
 }
 
-bool MeshFreeFractureSupportT::CheckGrowth(StructuralMaterialT& material,
-	LocalArrayT& disp, bool verbose)
+bool MeshFreeFractureSupportT::CheckGrowth(StructuralMaterialT* material, 
+	LocalArrayT* disp, bool verbose)
 {
 	/* clear facets to reset */
 	fResetFacets.Allocate(0);
 	fInitTractionMan.SetMajorDimension(0, false);
 
-	/* steps in checking growth */
-	bool growth_on_front = CheckFronts(material, disp, verbose);
-	bool growth_on_surfs = CheckSurfaces(material, disp, verbose);
+	/* do check */
+	bool growth_on_front = false;
+	bool growth_on_surfs = false;
+	if (material) {
+
+		/* check */
+		if (!disp) {
+			cout << "\n MeshFreeFractureSupportT::CheckGrowth: displacement array is NULL" << endl;
+			throw eGeneralFail;
+		}
+
+		/* check source of growth */
+		growth_on_front = CheckFronts(*material, *disp, verbose);
+		growth_on_surfs = CheckSurfaces(*material, *disp, verbose);
+	}
 
 	/* write cutting facets */
 	if (verbose)
