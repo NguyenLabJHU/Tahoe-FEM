@@ -66,7 +66,7 @@ HEXT::HEXT(int nlsd,int nuca,dArrayT alat,
       vAxis(1,0) = 0.0;
       vAxis(2,0) = 0.0;
 
-      vAxis(0,1) = 
+      vAxis(0,1) = 0.0;
       vAxis(1,1) = vLatticeParameters[1];
       vAxis(2,1) = 0.0;
 
