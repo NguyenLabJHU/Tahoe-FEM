@@ -1,4 +1,4 @@
-// $Id: APS_VariableT.cpp,v 1.8 2003-09-22 20:53:14 raregue Exp $
+// $Id: APS_VariableT.cpp,v 1.9 2003-09-25 20:40:20 raregue Exp $
 #include "APS_VariableT.h"
 
 //---------------------------------------------------------------------
@@ -20,7 +20,7 @@ void APS_VariableT::Construct (const FEA_dMatrixT& grad_u, const FEA_dVectorT& g
 {
   	n_vars_vector = APS::kNUM_APS_VECTOR_VARS;  
   	n_vars_matrix = APS::kNUM_APS_MATRIX_VARS; 
-  	fVars_vector[ n_vars_vector ];
+  	fVars_vector.Dimension( n_vars_vector );
   	fVars_matrix.Dimension( n_vars_matrix );  
 
 	//fVars_vector[APS::kgrad_u] = grad_u; // This = opr allocates if LHS Length=0

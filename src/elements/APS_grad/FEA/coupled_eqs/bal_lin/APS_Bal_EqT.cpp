@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.8 2003-09-23 19:31:44 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.9 2003-09-25 20:40:22 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -21,9 +21,10 @@ void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_M
 	Time_Integration_Scheme = Integration_Scheme;
 
 	n_ip 		= np1.fVars_vector[0].IPs(); 
-	n_rows_vector = np1.fVars_vector[0].Rows(); 
+	/*n_rows_vector = np1.fVars_vector[0].Rows(); 
 	n_rows_matrix = np1.fVars_matrix[0].Rows(); 
-	n_cols_matrix = np1.fVars_matrix[0].Cols();
+	n_cols_matrix = np1.fVars_matrix[0].Cols(); 
+	*/
 //#pragma message("APS_Bal_EqT::Construct: FEA_dVectorT has no Cols() function")
 
 	n_en    	= Shapes.dNdx.Cols();
@@ -84,7 +85,8 @@ void APS_Bal_EqT::Form_B_List (void)
 {
 		B_d.Construct 	( kNUM_B_d_TERMS, n_ip, n_sd, n_en);
 		B_eps.Construct ( kNUM_B_eps_TERMS, n_ip, n_sd, n_sd_x_n_en);
-		B_gradu.Construct ( kNUM_B_gradu_TERMS, n_ip, 1, n_sd);		
+		int dum=1;
+		B_gradu.Construct ( kNUM_B_gradu_TERMS, n_ip, n_sd, dum);		
 		
 		Data_Pro.APS_B(B_d[kB]);
  		Data_Pro.APS_Ngamma(B_eps[kBgamma]);

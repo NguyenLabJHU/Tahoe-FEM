@@ -1,4 +1,4 @@
-// $Id: APS_VariableT.h,v 1.5 2003-09-22 20:53:14 raregue Exp $
+// $Id: APS_VariableT.h,v 1.6 2003-09-25 20:40:21 raregue Exp $
 #ifndef _APS_VARIABLE_T_H_ 
 #define _APS_VARIABLE_T_H_ 
 
@@ -49,8 +49,8 @@ class APS_VariableT
 
  		//protected:
 
-    	ArrayT <FEA_dVectorT> fVars_vector; //Variables : grad_u, gammap stored here
-    	ArrayT <FEA_dMatrixT> fVars_matrix; //Variables : grad_gammap stored here
+    	ArrayT <FEA_dVectorT> fVars_vector; //Variables : gammap stored here
+    	ArrayT <FEA_dMatrixT> fVars_matrix; //Variables : grad_u, grad_gammap stored here
 
 	private:
 

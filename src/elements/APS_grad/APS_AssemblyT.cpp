@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.14 2003-09-25 17:57:01 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.15 2003-09-25 20:40:19 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -505,6 +505,7 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 	 	SetLocalX(fInitCoords); 
 	 	// coordinates do not change for anti-plane shear
 		//fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
+		fCurrCoords = fInitCoords;
 		fShapes->SetDerivatives(); 
 		
 		// ?????
@@ -824,7 +825,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 
 	 	SetLocalX(fInitCoords); 
 	 	// for anti-plane shear, coordinates do not change
-		//fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
+		//fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u);
+		fCurrCoords = fInitCoords; 
 		fShapes->SetDerivatives(); 
 		
 		//repackage data to forms compatible with FEA classes (very little cost in big picture)

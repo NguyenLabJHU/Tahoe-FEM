@@ -24,7 +24,7 @@ public:
 	/** Pure virtual functions */
 
 	virtual void Construct ( FEA_ShapeFunctionT&, APS_MaterialT*, APS_VariableT&, APS_VariableT&, 
-							int	&fTime_Step, double  fdelta_t = 0.0, int Integration_Scheme=FEA::kBackward_Euler) =0;
+							int	&fTime_Step, double  fdelta_t = 0.0, int =FEA::kBackward_Euler) =0;
 	virtual void Form_LHS_Keps_Kd	(	dMatrixT &Keps, dMatrixT &Kd	)	=0; 
   	virtual void Form_RHS_F_int	( dArrayT  &F_int, APS_VariableT &npt ) =0; 
 	virtual void Get ( StringT &Name, FEA_dScalarT &scalar ) =0;
