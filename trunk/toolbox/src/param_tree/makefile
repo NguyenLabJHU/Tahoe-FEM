@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2003-04-22 18:32:16 paklein Exp $
+# $Id: makefile,v 1.3 2003-04-26 02:09:18 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -28,6 +28,7 @@ OBJ = \
 	FormatterT.o \
 	XML_Attribute_FormatterT.o \
 	XML_Atomic_FormatterT.o \
+	PrettyPrint_FormatterT.o \
 	ParameterInterfaceT.o
 
 OBJ_LINK = $(OBJ)
@@ -56,6 +57,7 @@ SRC = \
 	FormatterT.cpp \
 	XML_Attribute_FormatterT.cpp \
 	XML_Atomic_FormatterT.cpp \
+	PrettyPrint_FormatterT.cpp \
 	ParameterInterfaceT.cpp
 
 ##################### (3) headers
@@ -76,7 +78,8 @@ HDR = \
 	ParameterInterfaceT.h \
 	FormatterT.h \
 	XML_Attribute_FormatterT.h \
-	XML_Atomic_FormatterT.h
+	XML_Atomic_FormatterT.h \
+	PrettyPrint_FormatterT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
