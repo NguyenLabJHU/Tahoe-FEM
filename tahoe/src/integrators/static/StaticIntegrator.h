@@ -1,4 +1,4 @@
-/* $Id: StaticIntegrator.h,v 1.2 2001-08-27 17:12:15 paklein Exp $ */
+/* $Id: StaticIntegrator.h,v 1.3 2002-04-02 23:19:24 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _STATIC_CONTROLLER_H_
@@ -17,12 +17,12 @@ class StaticIntegrator: public nStaticIntegrator, public eStaticIntegrator
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	StaticIntegrator(ostream& out);
 	  	
 protected:  	
 	
-	/* recalculate time stepping constants */
+	/** recalculate time stepping constants */
 	virtual void ComputeParameters(void);
 	
 };

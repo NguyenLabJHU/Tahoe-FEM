@@ -1,49 +1,46 @@
-/* $Id: eIntegratorT.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
-/* created: paklein (10/14/1996)                                          */
-/* Base class for a general (upto) second order element controller.  This */
-/* is the interface between the elements and the Controller class heirarchy. */
+/* $Id: eIntegratorT.h,v 1.2 2002-04-02 23:19:22 paklein Exp $ */
+/* created: paklein (10/14/1996) */
 
 #ifndef _E_CONTROLLERT_H_
 #define _E_CONTROLLERT_H_
 
-class eIntegratorT
+/* base class */
+#include "IntegratorT.h"
+
+/** Base class for a general (upto) second order element controller.  
+ * This is the interface between the elements and the Controller 
+ * class heirarchy. */
+class eIntegratorT: virtual public IntegratorT
 {
 public:
 
-	/* time integration flags */
-	enum StatDynFlagT {kStatic, kDynamic};
-	enum ImpExpFlagT  {kImplicit, kExplicit};
-
-	/* constructor */
+	/** constructor */
 	eIntegratorT(void);
 
-	/* destructor */
+	/** destructor */
 	virtual ~eIntegratorT(void);
 
-	/* time integration parameters */
-	virtual StatDynFlagT StaticDynamic(void) const = 0;
-	virtual ImpExpFlagT  ImplicitExplicit(void) const = 0;
-	
-	/* return order time discretization */
-	virtual int Order(void) const = 0;
-
-	/* returns 1 if the algorithm requires M, C, or K and sets const equal
+	/** \name elements of the effective mass matrix
+	 * returns 1 if the algorithm requires M, C, or K and sets const equal
 	 * to the coefficient for the linear combination of components in the
-	 * element effective mass matrix.  Returning 0 implies that the constX
-	 * are exactly zero */
+	 * element effective mass matrix */
+	/*@{*/
 	virtual int FormM(double& constM) const = 0;
 	virtual int FormC(double& constC) const = 0;
 	virtual int FormK(double& constK) const = 0;
+	/*@}*/
 
-	/* components of the internal force vector.  Returning 0 implies that
-	 * the constXx are exactly zero */
+	/** \name elements of the residual
+	 * components of the internal force vector */
+	/*@{*/
 	virtual int FormMa(double& constMa) const = 0;
 	virtual int FormCv(double& constCv) const = 0;
 	virtual int FormKd(double& constKd) const = 0;
+	/*@}*/
 
 protected:
 	
-	/* recalculate element branch constants */
+	/** recalculate element branch constants */
 	virtual void eComputeParameters(void) = 0;
 };
 
