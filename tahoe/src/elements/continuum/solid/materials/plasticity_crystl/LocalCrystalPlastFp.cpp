@@ -443,7 +443,7 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
   const int& step = ContinuumElement().FEManager().StepNumber();
   const int& nsteps = ContinuumElement().FEManager().NumberOfSteps();
 
-  if (fmod(step, fODFOutInc) == 0 || step == nsteps)
+  if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
     {
       for (int igrn = 0; igrn < fNumGrain; igrn++)
 	{

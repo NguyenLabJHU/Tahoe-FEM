@@ -263,7 +263,7 @@ void GradCrystalPlastFp::ComputeOutput(dArrayT& output)
   const int& step = ContinuumElement().FEManager().StepNumber();
   const int& nsteps = ContinuumElement().FEManager().NumberOfSteps();
 
-  if (fmod(step, fODFOutInc) == 0 || step == nsteps)
+  if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
   {
     // texture: rotation tensor from fFe
     fSpecD.PolarDecomp(fFe, fRe, fUe, false);
