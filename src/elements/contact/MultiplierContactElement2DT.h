@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.h,v 1.6 2002-11-21 01:13:36 paklein Exp $ */
+/* $Id: MultiplierContactElement2DT.h,v 1.7 2002-11-30 16:41:27 paklein Exp $ */
 // created by : rjones 2001
 
 // DEVELOPMENT
@@ -43,7 +43,7 @@ class MultiplierContactElement2DT: public ContactElementT
 	virtual void RHSDriver(void);
 	
 	/* construct the effective mass matrix */
-	virtual void LHSDriver(void);
+	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
 
 };
 

@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.2 2002-11-23 01:11:32 creigh Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.3 2002-11-30 16:41:30 paklein Exp $ */ 
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
 //DEVELOPMENT
@@ -92,7 +92,7 @@ protected:
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
 	/*@{*/
 	/** form group contribution to the stiffness matrix */
-	virtual void LHSDriver(void);
+	virtual void LHSDriver(GlobalT::SystemTypeT);
 
 	/** form group contribution to the residual */
 	virtual void RHSDriver(void);

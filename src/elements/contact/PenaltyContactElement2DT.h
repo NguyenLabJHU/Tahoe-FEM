@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.14 2002-11-21 01:13:36 paklein Exp $ */
+/* $Id: PenaltyContactElement2DT.h,v 1.15 2002-11-30 16:41:27 paklein Exp $ */
 // created by : rjones 2001
 
 // DEVELOPMENT
@@ -70,7 +70,7 @@ class PenaltyContactElement2DT: public ContactElementT
 	virtual void RHSDriver(void);
 	
 	/* construct the effective mass matrix */
-	virtual void LHSDriver(void);
+	virtual void LHSDriver(GlobalT::SystemTypeT);
 	
 	/* total _real_ area of contact for each surface */
 	dArrayT fRealArea; 

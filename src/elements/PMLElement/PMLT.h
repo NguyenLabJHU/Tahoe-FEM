@@ -1,4 +1,4 @@
-/* $Id: PMLT.h,v 1.7 2002-11-14 17:05:50 paklein Exp $ */
+/* $Id: PMLT.h,v 1.8 2002-11-30 16:41:23 paklein Exp $ */
 #ifndef _PML_T_H_
 #define _PML_T_H_
 
@@ -39,7 +39,7 @@ class PMLT: public ElasticT
 
   protected:
 	/* construct the effective mass matrix */
-	virtual void LHSDriver(void);
+	virtual void LHSDriver(GlobalT::SystemTypeT);
 	void ElementLHSDriver(void);
 
 	/* form the residual force vector */

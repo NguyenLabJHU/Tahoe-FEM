@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.3 2002-11-23 16:09:43 paklein Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.4 2002-11-30 16:41:30 paklein Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -140,7 +140,7 @@ void StaggeredMultiScaleT::Initialize(void)
 //---------------------------------------------------------------------
 
 /* form group contribution to the stiffness matrix and RHS */
-void StaggeredMultiScaleT::LHSDriver(void)	// RHS too!	
+void StaggeredMultiScaleT::LHSDriver(GlobalT::SystemTypeT)	// RHS too!	
 {
 	/* which equations are being solved? */
 	int curr_group = ElementSupport().CurrentGroup();

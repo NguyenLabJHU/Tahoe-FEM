@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.cpp,v 1.8 2002-11-21 01:13:36 paklein Exp $ */
+/* $Id: PenaltyContactElement3DT.cpp,v 1.9 2002-11-30 16:41:27 paklein Exp $ */
 
 // DEVELOPMENT
 
@@ -251,7 +251,7 @@ void PenaltyContactElement3DT::RHSDriver(void)
   }
 }
 
-void PenaltyContactElement3DT::LHSDriver(void)
+void PenaltyContactElement3DT::LHSDriver(GlobalT::SystemTypeT)
 { /* form STIFFNESS */
   /* del g =  (n1.N2 * del u2 -  n1.N1 * del u1) */
   /* primary (X) primary block */

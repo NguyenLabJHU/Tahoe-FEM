@@ -1,4 +1,4 @@
-/* $Id: BEMelement.cpp,v 1.5 2002-11-21 01:13:33 paklein Exp $ */
+/* $Id: BEMelement.cpp,v 1.6 2002-11-30 16:41:22 paklein Exp $ */
 /* created: AFLP (02/28/1998) */
 
 #include "BEMelement.h"
@@ -69,7 +69,7 @@ void BEMelement::SendOutput(int kincode)
 ***********************************************************************/
 
 /* called by FormRHS and FormLHS */
-void BEMelement::LHSDriver(void)
+void BEMelement::LHSDriver(GlobalT::SystemTypeT)
 {
 
 }

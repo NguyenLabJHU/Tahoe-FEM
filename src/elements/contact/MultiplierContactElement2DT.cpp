@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.14 2002-11-21 01:13:36 paklein Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.15 2002-11-30 16:41:26 paklein Exp $ */
 // created by : rjones 2001
 
 // DEVELOPMENT
@@ -231,7 +231,7 @@ void MultiplierContactElement2DT::RHSDriver(void)
   }
 }
 
-void MultiplierContactElement2DT::LHSDriver(void)
+void MultiplierContactElement2DT::LHSDriver(GlobalT::SystemTypeT)
 { /* form STIFFNESS */
   bool elem_in_contact = 0;
   int opp_surf_tag=-1, status=-1;

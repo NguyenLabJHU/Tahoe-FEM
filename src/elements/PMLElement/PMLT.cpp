@@ -1,4 +1,4 @@
-/* $Id: PMLT.cpp,v 1.9 2002-10-20 22:48:16 paklein Exp $ */
+/* $Id: PMLT.cpp,v 1.10 2002-11-30 16:41:23 paklein Exp $ */
 
 #include "PMLT.h"
 
@@ -138,10 +138,10 @@ void PMLT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 }
 
 /* construct the effective mass matrix */
-void PMLT::LHSDriver(void)
+void PMLT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
 	/* inherited */
-	ElasticT::LHSDriver();
+	ElasticT::LHSDriver(sys_type);
 
 	/* element contribution */
 	ElementLHSDriver();
