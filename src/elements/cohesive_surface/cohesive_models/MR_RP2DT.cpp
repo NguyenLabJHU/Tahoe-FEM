@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.14 2003-04-18 17:22:12 manzari Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.15 2003-04-18 18:24:06 manzari Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -648,8 +648,8 @@ double bott, dlam;
 	        dqbardSig_f(Sig, qn, A_qu);
 	        dqbardq_f(Sig, qn, A_qq);
 	        dQdSigdq_f(Sig, qn, A_uq);
-	        Ch = A_qq;
-	        Ch *= -state[11];
+	        Ch  = A_qq;
+	        Ch *= -dlam;
 	        Ch += I_mat;
 	        Ch_Inv.Inverse(Ch);
 	        KE1.MultAB(Ch_Inv,A_qu);
@@ -689,7 +689,8 @@ double bott, dlam;
             V_sig = dfdSig;
             dfdq_f(Sig,qn, dfdq);
             V_q = dfdq;
-            dQdSig_f(Sig, qn, dQdSig);  
+            dQdSig_f(Sig, qn, dQdSig);
+            qbar_f(Sig, qn, qbar);  
             for (i = 0; i<=5; ++i) {
               if (i<=1) {
                 Rvec[i] = V_sig[i];
