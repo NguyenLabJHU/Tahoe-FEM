@@ -86,13 +86,6 @@ class PolyCrystalMatT : public FDHookeanMatT
   void AllocateElements();
 
  private:
-
- 	/** return true if material implementation supports imposed thermal
-	 * strains. This material does not support multiplicative thermal
-	 * strains. FDHookeanMatT has been updated, but this class needs
-	 * another look. */
-	virtual bool SupportsThermalStrain(void) const { return false; };
-
   // slip system geometry
   void SetSlipSystems();
 

@@ -1,4 +1,4 @@
-/* $Id: tevp2D.h,v 1.17 2001-08-14 01:22:32 hspark Exp $ */
+/* $Id: tevp2D.h,v 1.15 2001-07-22 21:25:11 hspark Exp $ */
 /* Created:  Harold Park (04/04/2001) */
 
 #ifndef _TEVP_2D_H_
@@ -77,8 +77,8 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
                              kSb = 1,   // Effective Stress
                              kEb = 2};  // Effective Strain
   enum ModelT {kTevp = 0,          // Thermo-elasto-viscoplastic
-               kFluid = 1};        // Fluid model
-
+               kFluid = 1,        // Fluid model
+               kCrack = 2};
   enum StessComponentsT {kSig11 = 0,
                          kSig12 = 1,
                          kSig22 = 2,   // fTempStress stored like this...
@@ -89,8 +89,8 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   double ComputeFluidTemperature(void);
   double ComputeViscoTemperature(void);
   double ComputeEffectiveStress(void);
-  double ComputeFluidEffectiveStrain(double& effectivestrainrate);
-  double ComputeViscoEffectiveStrain(double& effectivestrainrate);
+  double ComputeFluidEffectiveStrain(void);
+  double ComputeViscoEffectiveStrain(void);
   void CheckCriticalCriteria(const ElementCardT& element, int ip);
   int CheckIfPlastic(const ElementCardT& element, int ip);
   /* load element data for the specified integration point */
@@ -149,14 +149,11 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   dSymMatrixT fSymStress2D;    // 2D symmetrix stress tensor
   double fJ;                   // Jacobian of deformation gradient
   double fVisc;                // Original viscosity
-  double Bvisc;                // coefficient of viscosity
 
   /* output variables/internal variables */
   double fTemperature;         // Temperature
   double fSb;                  // Effective stress
   double fEb;                  // Effective strain
-  double fEffectiveStrainRate;    // Fluid model effective strain rate
-
   
   /* Global material constants - class scope variables */
   double Temp_0, El_E, El_V, El_K, El_G, Sb0, Rho0, Eb0, Eb0tot, BigN, Smm;

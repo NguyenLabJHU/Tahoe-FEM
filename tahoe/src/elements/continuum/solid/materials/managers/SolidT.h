@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.8 2001-09-10 16:36:50 hspark Exp $ */
+/* $Id: SolidT.h,v 1.6 2001-07-19 18:55:06 hspark Exp $ */
 /* created: paklein (03/10/2001)                                          */
 
 #ifndef _MATERIAL_T_H_
@@ -33,10 +33,8 @@ kmodCauchyBornDC = 15,
     kIsoVIBOgden = 18,
    kIsoVIBSimoJ2 = 19,
 kThermoViscoPlastic = 30,
-kPovirk2D = 31,
        kHyperEVP = 40,
         kBCJHypo = 45,
-    kFDXtalElast = 49,
    kLocXtalPlast = 50,
  kLocXtalPlast_C = 51,
    kGrdXtalPlast = 52,

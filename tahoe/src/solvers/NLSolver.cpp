@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.8 2001-09-15 01:12:17 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.7 2001-06-12 22:12:52 paklein Exp $ */
 /* created: paklein (07/09/1996)                                          */
 
 #include "NLSolver.h"
@@ -338,7 +338,7 @@ NLSolver::IterationStatusT NLSolver::ExitIteration(double error)
 		}
 	}
 	/* iteration limit hit */
-	else if (fNumIteration > fMaxIterations)
+	else if (fNumIteration >= fMaxIterations)
 	{
 		cout << "\n NLSolver::ExitIteration: max iterations hit" << endl;
 		status = kFailed;

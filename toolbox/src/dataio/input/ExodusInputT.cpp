@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.3 2001-09-04 14:46:37 sawimme Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusInputT.h"
@@ -8,319 +8,158 @@
 #include "dArray2DT.h"
 #include "dArrayT.h"
 
-ExodusInputT::ExodusInputT (ostream& out) :
-  InputBaseT (out),
-  fData (out)
+ExodusInputT::ExodusInputT (ostream& out, const char* filename) :
+InputBaseT (out),
+	fData (out)
 {
+fData.OpenRead (filename);
 }
 
-void ExodusInputT::Open (const StringT& filename)
+void ExodusInputT::GroupNumbers (iArrayT& groupnums) const
 {
-  fData.OpenRead (filename);
+groupnums.Allocate (NumElementGroups ());
+fData.ElementBlockID (groupnums);
 }
 
-void ExodusInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
+void ExodusInputT::SideSetNumbers (iArrayT& sidenums) const
 {
-  if (groupnames.Length() != NumElementGroups()) throw eSizeMismatch;
-  iArrayT ids (groupnames.Length());
-  fData.ElementBlockID (ids);
-  for (int i=0; i < groupnames.Length(); i++)
-    groupnames[i].Append (ids[i]);
+sidenums.Allocate (NumSideSets ());
+fData.SideSetID (sidenums);
 }
 
-void ExodusInputT::SideSetNames (ArrayT<StringT>& sidenames) const
+void ExodusInputT::NodeSetNumbers (iArrayT& nodenums) const
 {
-  if (sidenames.Length() != NumSideSets ()) throw eSizeMismatch;
-  iArrayT sidenums (sidenames.Length());
-  fData.SideSetID (sidenums);
-  for (int i=0; i < sidenames.Length(); i++)
-    sidenames[i].Append (sidenums[i]);
-}
-
-void ExodusInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
-{
-  if (nodenames.Length() != NumSideSets ()) throw eSizeMismatch;
-  iArrayT nodenums (nodenames.Length());
-  fData.NodeSetID (nodenums);
-  for (int i=0; i < nodenames.Length(); i++)
-    nodenames[i].Append (nodenums[i]);
-}
-
-void ExodusInputT::ReadNodeMap (iArrayT& nodemap)
-{
-  if (nodemap.Length() != NumNodes()) throw eSizeMismatch;
-  fData.ReadNodeMap (nodemap);
-}
-
-void ExodusInputT::ReadCoordinates (dArray2DT& coords)
-{
-  if (coords.MajorDim() != NumNodes() ||
-      coords.MinorDim() != fData.NumDimensions()) throw eSizeMismatch;
-  fData.ReadCoordinates (coords);
+nodenums.Allocate (NumNodeSets ());
+fData.NodeSetID (nodenums);
 }
 
 void ExodusInputT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
 {
-  ReadNodeMap (nodemap);
-  ReadCoordinates (coords);
+int numnodes = fData.NumNodes();
+coords.Allocate (numnodes, fData.NumDimensions());
+fData.ReadCoordinates (coords);
+nodemap.Allocate (numnodes);
+fData.ReadNodeMap (nodemap);
 }
 
-int ExodusInputT::NumGlobalElements (void) const
+void ExodusInputT::ReadConnectivity (int group, GeometryT::CodeT& geocode, iArray2DT& connects, iArrayT& elementmap)
 {
-  iArrayT ids (NumElementGroups());
-  fData.ElementBlockID (ids);
-  int count = 0;
-  int numelems, numelemnodes;
-  for (int i=0; i < ids.Length(); i++)
-    {
-      fData.ReadElementBlockDims (ids[i], numelems, numelemnodes);
-      count += numelems;
-    }
-  return count;
+#pragma unused (elementmap)
+int numelems, numelemnodes;
+fData.ReadElementBlockDims (group, numelems, numelemnodes);
+connects.Allocate (numelems, numelemnodes);
+fData.ReadConnectivities (group, geocode, connects);
+
+connects += -1;
 }
 
-int ExodusInputT::NumElements (StringT& name)
+void ExodusInputT::ReadNodeSet (int set_num, iArrayT& nodes) const
 {
-  int ID = atoi (name.Pointer());
-  int numelems, numelemnodes;
-  fData.ReadElementBlockDims (ID, numelems, numelemnodes);
-  return numelems;
+nodes.Allocate (fData.NumNodesInSet (set_num));
+fData.ReadNodeSet (set_num, nodes);
+
+nodes += -1;
 }
 
-int ExodusInputT::NumElementNodes (StringT& name)
+void ExodusInputT::ReadSideSet (int set_num, iArray2DT& sides) const
 {
-  int ID = atoi (name.Pointer());
-  int numelems, numelemnodes;
-  fData.ReadElementBlockDims (ID, numelems, numelemnodes);
-  return numelemnodes;
+sides.Allocate (fData.NumSidesInSet (set_num), 2);
+int block_ID;
+fData.ReadSideSet (set_num, block_ID, sides);
+
+sides += -1;
 }
 
-void ExodusInputT::ReadAllElementMap (iArrayT& elemmap)
+void ExodusInputT::ReadSideSetGlobal (int set_num, iArray2DT& sides) const
 {
-  if (elemmap.Length() != NumGlobalElements()) throw eSizeMismatch;
-  elemmap.SetValueToPosition ();
-  elemmap += 1;
+sides.Allocate (fData.NumSidesInSet (set_num), 2);
+int block_ID;
+fData.ReadSideSet (set_num, block_ID, sides);
+
+iArrayT ids;
+GroupNumbers (ids);
+int num_elems, dim, offset = 0;
+for (int i=0; i < ids.Length(); i++)
+{
+if (ids[i] == block_ID) break;
+fData.ReadElementBlockDims (ids[i], num_elems, dim);
+offset += num_elems;
 }
 
-void ExodusInputT::ReadGlobalElementMap (StringT& name, iArrayT& elemmap)
-{
-  if (elemmap.Length() != NumElements (name)) throw eSizeMismatch;
-  int id = atoi (name.Pointer());
-  int offset = 0;
-  ArrayT<StringT> eid (NumElementGroups());
-  ElementGroupNames (eid);
-  for (int i=0; i < eid.Length(); i++)
-    {
-      if (eid[i] == id) break;
-      offset += NumElements (eid[i]);
-    }
+int *pelem = sides.Pointer();
+for (int j=0; j < sides.MajorDim(); j++, pelem += 2)
+*pelem += offset;
 
-  elemmap.SetValueToPosition ();
-  elemmap += offset + 1;
+sides += -1;
 }
 
-void ExodusInputT::ReadGlobalElementSet (StringT& name, iArrayT& set)
+void ExodusInputT::Close (void)
 {
-  ReadGlobalElementMap (name, set);
-  set += -1;
+fData.Close ();
 }
 
-void ExodusInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
+void ExodusInputT::QARecords (ArrayT<StringT>& records) const
 {
-  int group = atoi (name.Pointer());
-  int numelems, numelemnodes;
-  GeometryT::CodeT geocode;
-  fData.ReadElementBlockDims (group, numelems, numelemnodes);
-
-  if (connects.MajorDim() != numelems ||
-      connects.MinorDim() != numelemnodes) throw eSizeMismatch;
-  fData.ReadConnectivities (group, geocode, connects);
-
-  connects += -1;
-}
-
-void ExodusInputT::ReadGeometryCode (StringT& name, GeometryT::CodeT& code)
-{
-  int group = atoi (name.Pointer());
-  int numelems, numelemnodes;
-  fData.ReadElementBlockDims (group, numelems, numelemnodes);
-  iArray2DT connects (numelems, numelemnodes);
-  fData.ReadConnectivities (group, code, connects);
-}
-
-void ExodusInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
-{
-  int set_num = atoi (name.Pointer());
-  if (nodes.Length() != fData.NumNodesInSet(set_num)) throw eSizeMismatch;
-  fData.ReadNodeSet (set_num, nodes);
-  
-  nodes += -1;
-}
-
-int ExodusInputT::SideSetGroupIndex (StringT& name) const
-{
-  int setnum = atoi (name.Pointer());
-  int block_ID;
-  iArray2DT sides (fData.NumSidesInSet (setnum), 2);
-  fData.ReadSideSet (setnum, block_ID, sides);
-  return block_ID;
-}
-
-void ExodusInputT::ReadSideSetLocal (StringT& name, iArray2DT& sides) const
-{
-  int set_num = atoi (name.Pointer());
-  if (sides.MajorDim() != fData.NumSidesInSet (set_num) ||
-      sides.MinorDim() != 2) throw eSizeMismatch;
-  int block_ID;
-  fData.ReadSideSet (set_num, block_ID, sides);
-  
-  sides += -1;
-}
-
-void ExodusInputT::ReadSideSetGlobal (StringT& name, iArray2DT& sides) const
-{
-  int set_num = atoi (name.Pointer());
-  if (sides.MajorDim() != fData.NumSidesInSet (set_num) ||
-      sides.MinorDim() != 2) throw eSizeMismatch;
-  int block_ID;
-  fData.ReadSideSet (set_num, block_ID, sides);
-  
-  iArrayT ids;
-  fData.ElementBlockID (ids);
-  int num_elems, dim, offset = 0;
-  for (int i=0; i < ids.Length(); i++)
-    {
-      if (ids[i] == block_ID) break;
-      fData.ReadElementBlockDims (ids[i], num_elems, dim);
-      offset += num_elems;
-    }
-  
-  int *pelem = sides.Pointer();
-  for (int j=0; j < sides.MajorDim(); j++, pelem += 2)
-    *pelem += offset;
-  
-  sides += -1;
+fData.ReadQA (records);
 }
 
 void ExodusInputT::ReadTimeSteps (dArrayT& steps)
 {
-  if (steps.Length() != NumTimeSteps()) throw eSizeMismatch;
-  for (int i=0; i < steps.Length(); i++)
-    fData.ReadTime (i+1, steps[i]);
+int numsteps = fData.NumTimeSteps ();
+steps.Allocate (numsteps);
+for (int i=0; i < steps.Length(); i++)
+fData.ReadTime (i+1, steps[i]);
 }
 
-void ExodusInputT::ReadAllNodeVariables (int step, dArray2DT& values)
+void ExodusInputT::ReadLabels (ArrayT<StringT>& nlabels, ArrayT<StringT>& elabels, int group_id)
 {
-  if (values.MajorDim() != NumNodes() ||
-      values.MinorDim() != NumNodeVariables()) throw eSizeMismatch;
-
-  dArrayT temp (NumNodes());
-  for (int n=0; n < values.MinorDim(); n++)
-    {
-      fData.ReadNodalVariable (step+1, n+1, temp);
-      values.SetColumn (n, temp);
-    }
+#pragma unused (group_id)
+fData.ReadNodeLabels (nlabels);
+fData.ReadElementLabels (elabels);
 }
 
-void ExodusInputT::ReadNodeVariables (int step, StringT& name, dArray2DT& values)
+void ExodusInputT::ReadVariables (int step, int group_id, dArray2DT& nvalues, dArray2DT& evalues)
 {
-  iArray2DT connects (NumElements (name), NumElementNodes (name));
-  ReadConnectivity (name, connects);
+ArrayT<StringT> nlabel, elabel;
+ReadLabels (nlabel, elabel, group_id);
 
-  iArrayT nodesused;
-  NodesUsed (connects, nodesused);
-
-  values.Allocate (nodesused.Length(), NumNodeVariables ());
-  //if (values.MajorDim() != nodesused ||
-  //  values.MinorDim() != NumNodeVariables ()) throw eSizeMismatch;
-
-  dArrayT temp (NumNodes());
-  dArray2DT temp2 (NumNodes(), NumNodeVariables ());
-  for (int n=0; n < values.MinorDim(); n++)
-    {
-      fData.ReadNodalVariable (step+1, n+1, temp);
-      temp2.SetColumn (n, temp);
-    }
-
-  values.RowCollect (nodesused, temp2);
+// read nodal variables
+dArray2DT ntemp (fData.NumNodes(), nlabel.Length());
+dArrayT temp (nvalues.MajorDim());
+for (int n=0; n < nlabel.Length(); n++)
+{
+fData.ReadNodalVariable (step+1, n+1, temp);
+ntemp.SetColumn (n, temp);
 }
 
-void ExodusInputT::ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& values)
+// only want to return nodal variable values for nodes used
+int numelems, numelemnodes;
+iArray2DT connects;
+GeometryT::CodeT geocode;
+fData.ReadElementBlockDims (group_id, numelems, numelemnodes);
+connects.Allocate (numelems, numelemnodes);
+fData.ReadConnectivities (group_id, geocode, connects);
+connects += -1;
+iArrayT nodesused;
+NodesUsed (connects, nodesused);
+nvalues.Allocate (nodesused.Length(), nlabel.Length());
+nvalues.RowCollect (nodesused, ntemp);
+
+// read element variables
+evalues.Allocate (numelems, elabel.Length());
+temp.Allocate (numelems);
+for (int e=0; e < elabel.Length(); e++)
 {
-  iArrayT ns (NumNodesInSet (nsetname));
-  ReadNodeSet (nsetname, ns);
-
-  iArrayT nodesused;
-  NodesUsed (ns, nodesused);
-
-  values.Allocate (nodesused.Length(), NumNodeVariables ());
-  //if (values.MajorDim() != nodesused ||
-  //  values.MinorDim() != NumNodeVariables ()) throw eSizeMismatch;
-
-  dArrayT temp (NumNodes());
-  dArray2DT temp2 (NumNodes(), NumNodeVariables ());
-  for (int n=0; n < values.MinorDim(); n++)
-    {
-      fData.ReadNodalVariable (step+1, n+1, temp);
-      temp2.SetColumn (n, temp);
-    }
-
-  values.RowCollect (nodesused, temp2);
+fData.ReadElementVariable (step+1, group_id, e+1, temp);
+evalues.SetColumn (e, temp);
 }
-
-void ExodusInputT::ReadAllElementVariables (int step, dArray2DT& values)
-{
-  int num = values.MinorDim();
-  if (values.MajorDim() != NumGlobalElements () ||
-      num != NumElementVariables ()) throw eSizeMismatch;
-  dArray2DT vt (num, values.MajorDim());
-  
-  int ng = NumElementGroups ();
-  iArrayT ids (ng);
-  fData.ElementBlockID (ids);
-  
-  for (int i=0, offset = 0; i < ng; i++)
-    {
-      int numelems, dim;
-      fData.ReadElementBlockDims (ids[i], numelems, dim);
-
-      dArrayT temp (numelems);
-      for (int e=0; e < num; e++)
-	{
-	  fData.ReadElementVariable (step+1, ids[i], e+1, temp);
-	  vt.CopyPart (e*num + offset, temp, 0, numelems);
-	}
-
-      offset += numelems;
-    }
-  values.Transpose (vt);
-}
-
-void ExodusInputT::ReadElementVariables (int step, StringT& name, dArray2DT& evalues)
-{
-  int group_id = atoi (name.Pointer());
-  int num = NumElementVariables ();
-
-  int numelems, dim;
-  fData.ReadElementBlockDims (group_id, numelems, dim);
-  
-  // read element variables
-  if (evalues.MajorDim() != numelems ||
-      evalues.MinorDim() != num) throw eSizeMismatch;
-
-  dArrayT temp (numelems);
-  for (int e=0; e < num; e++)
-    {
-      fData.ReadElementVariable (step+1, group_id, e+1, temp);
-      evalues.SetColumn (e, temp);
-    }
 }
 
 /*************************************************************************
 * Private
 *************************************************************************/
 
-void ExodusInputT::NodesUsed(const nArrayT<int>& connects, iArrayT& nodesused) const
+void ExodusInputT::NodesUsed(const iArray2DT& connects, iArrayT& nodesused) const
 {
 	/* quick exit */
 	if (connects.Length() == 0) return;

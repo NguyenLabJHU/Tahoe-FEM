@@ -1,4 +1,4 @@
-/* $Id: Environment.h,v 1.2 2001-09-25 00:53:31 paklein Exp $ */
+/* $Id: Environment.h,v 1.1.1.1 2001-01-25 20:56:28 paklein Exp $ */
 /* created: paklein (02/10/1997)                                          */
 /* Environment.h                                                          */
 /* defining environment-specific preprocessor symbols and options         */
@@ -54,9 +54,7 @@
 /*              CWPro > 3                           CWPro >= 5.3 ? */
 #if defined(MSIPL_USING_NAMESPACE) || defined(_MSL_USING_NAMESPACE)
 #ifdef __cplusplus
-#if (__MWERKS__ < 0x7000)
 using namespace std;
-#endif
 #endif
 #endif
 

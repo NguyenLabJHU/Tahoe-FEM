@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2001-08-20 15:43:13 paklein Exp $
+# $Id: makefile,v 1.7 2001-07-17 00:18:13 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -12,7 +12,6 @@ OBJ = \
 	FiniteStrainT.o \
 	LocalizerT.o \
 	NonsingularContinuumT.o \
-	SimoFiniteStrainT.o \
 	SmallStrainT.o \
 	TotalLagrangianT.o \
 	UpdatedLagrangianT.o \
@@ -32,7 +31,6 @@ SRC = \
 	FiniteStrainT.cpp \
 	LocalizerT.cpp \
 	NonsingularContinuumT.cpp \
-	SimoFiniteStrainT.cpp \
 	SmallStrainT.cpp \
 	TotalLagrangianT.cpp \
 	UpdatedLagrangianT.cpp \
@@ -46,7 +44,6 @@ HDR = \
 	FiniteStrainT.h \
 	LocalizerT.h \
 	NonsingularContinuumT.h \
-	SimoFiniteStrainT.h \
 	SmallStrainT.h \
 	TotalLagrangianT.h \
 	UpdatedLagrangianT.h \

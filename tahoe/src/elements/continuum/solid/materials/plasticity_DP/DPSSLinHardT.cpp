@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.cpp,v 1.13 2001-09-20 23:46:00 cfoster Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.9 2001-07-27 01:23:05 paklein Exp $ */
 /* created: myip (06/01/1999)                                        */
 /*
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -15,7 +15,7 @@
 #include "StringT.h"
 
 /* class constants */
-const int    kNumInternal = 5; // number of internal state variables
+const int    kNumInternal = 4; // number of internal state variables
 const double sqrt23       = sqrt(2.0/3.0);
 const double sqrt32       = sqrt(3.0/2.0);
 const double kYieldTol    = 1.0e-10;
@@ -90,59 +90,23 @@ const dSymMatrixT& DPSSLinHardT::StressCorrection(
 		/* fetch data */
 		double  ftrial = fInternal[kftrial];
 		double& dgamma = fInternal[kdgamma];
-		double& dgamma2 = fInternal[kdgamma2];
 
 		/* return mapping (single step) */
 		if (ftrial > kYieldTol)
 		{
-
 		/* plastic increment */
 	        dgamma = ftrial/fX_H;
 
-		//construct the trial deviatoric stress and 
-		//calculate norm of deviatoric trial stress
+		/* plastic increment stress correction */
+		fStressCorr.PlusIdentity(-sqrt(3.0)*fdilation*fkappa*dgamma);
+		fStressCorr.AddScaled(-sqrt(6.0)*fmu*dgamma, fUnitNorm);
+
+		//construct the trial stress
 		dSymMatrixT stress(DeviatoricStress(trialstrain, element));
-		double devstressnorm=sqrt(stress.ScalarProduct());
-	
-
-		if ( devstressnorm!=0 && 1-sqrt(6.0)*fmu*dgamma/devstressnorm >= 0)
-		  {
-		  /* plastic increment stress correction */
-
-		    dgamma2=0.0;
-
-		    fStressCorr.PlusIdentity(-sqrt(3.0)*fdilation*fkappa*dgamma);
-		    fStressCorr.AddScaled(-sqrt(6.0)*fmu*dgamma, fUnitNorm);
-
-		  }
-		else
-		  {
-
-		    dgamma=devstressnorm/(sqrt(6.0)*fmu);
-
-		    //cout << "dgamma = " << dgamma << endl;
-
-		    double totalcohesion=sqrt(3.0)*falpha_bar-fInternal[kalpha] + fH_prime*dgamma;	
-		    
-		    dgamma2=(MeanStress(trialstrain,element)-totalcohesion/ffriction-sqrt(3.0)*fkappa*fdilation*dgamma)/fkappa;
-
-
-		    fStressCorr.PlusIdentity(-1*MeanStress(trialstrain,element));
-		    fStressCorr.PlusIdentity(totalcohesion/(sqrt(3.0)*ffriction));
-	     	    fStressCorr.AddScaled(-1.0, stress);
-
-		  }
-
-		//augment stress to full trial state
-
 		stress.PlusIdentity(MeanStress(trialstrain,element));
 		
 		//corrected stress and internal state variables
 		stress += fStressCorr;
-
-		//cout << " stress = \n";
-		//cout << stress << endl;
-
 		double a = fInternal[kalpha] - fH_prime*dgamma;
 
 		// evaluate plastic consistency
@@ -157,7 +121,7 @@ const dSymMatrixT& DPSSLinHardT::StressCorrection(
 	}
 		
 	return fStressCorr;
-}
+}	
 
 /* return the correction to moduli due to plasticity (if any)
  *
@@ -168,18 +132,20 @@ const dMatrixT& DPSSLinHardT::ModuliCorrection(const ElementCardT& element,
 	int ip)
 {
 	/* initialize */
-fModuliCorr = 0.0;
+	fModuliCorr = 0.0;
 
-if (element.IsAllocated() && 
+	cout << "element.IsAllocated = " << element.IsAllocated() << '\n';
+	cout << "element.IntegerData()  = " << element.IntegerData() << '\n'; 
+
+	if (element.IsAllocated() && 
 	   (element.IntegerData())[ip] == kIsPlastic)
 	{
         
+	  cout << " in if statement \n";
+
 		/* load internal state variables */
 	  	LoadData(element,ip);
 		
-
-		if (fInternal[kdgamma2]==0.0)
-		  {
 	double c1  = -3.0*ffriction*fdilation*fkappa*fkappa/fX_H;
 	       c1 += (4.0/3.0)*sqrt32*fmu*fmu*fInternal[kdgamma]/fInternal[kstressnorm];
 	double c2  = -sqrt(6.0)*fmu*fmu*fInternal[kdgamma]/fInternal[kstressnorm];
@@ -202,52 +168,18 @@ if (element.IsAllocated() &&
 
 		fTensorTemp.Outer(fUnitNorm,One);
 		fModuliCorr.AddScaled(ffriction*c4, fTensorTemp);
+	}
 
-		//cout << "fModuliCorr = " << fModuliCorr << endl;
-		  }
-		else
-		  {
-		    //return fModuliCorr;
-
-		    //cout << "In vertex region \n";
-
-		    //cout << " kstressnorm = " << fInternal[kstressnorm] << endl;
-		    double c1 = -fkappa;
-		    c1 += 2.0/3.0*fmu;
-		    
-		    double c2 = -fmu;
-		    
-		    //double c3  = sqrt32*fInternal[kdgamma]/fInternal[kstressnorm];
-		    //c3 *= 4.0*fmu*fmu;
-		    //c3 += -2.0*fmu;
-		    
-		    double c4 = sqrt(2.0)*fH_prime/(3*ffriction);
-
-		    fTensorTemp.Outer(One, One);
-		    fModuliCorr.AddScaled(c1, fTensorTemp);
-		
-		    fTensorTemp.ReducedIndexI();
-		    fModuliCorr.AddScaled(2.0*c2, fTensorTemp);
-		      
-
-		    //cout << "fModuliCorr = " << fModuliCorr << endl;
+               cout << " Moduli Correction = \n";
+	       //        cout << fModuliCorr[0] << ' ' <<  fModuliCorr[6] << ' ' << fModuliCorr[12] << fModuliCorr[18] << ' ' <<  fModuliCorr[24] << ' ' << fModuliCorr[30] << '\n';
+	       // cout << fModuliCorr[1] << ' ' <<  fModuliCorr[7] << ' ' << fModuliCorr[13] << fModuliCorr[19] << ' ' <<  fModuliCorr[25] << ' ' << fModuliCorr[31] << '\n';
+	       // cout << fModuliCorr[2] << ' ' <<  fModuliCorr[8] << ' ' << fModuliCorr[14] << fModuliCorr[20] << ' ' <<  fModuliCorr[26] << ' ' << fModuliCorr[32] << '\n'; 
+	       // cout << fModuliCorr[3] << ' ' <<  fModuliCorr[9] << ' ' << fModuliCorr[15] << fModuliCorr[21] << ' ' <<  fModuliCorr[27] << ' ' << fModuliCorr[33] << '\n';
+	       // cout << fModuliCorr[4] << ' ' <<  fModuliCorr[10] << ' ' << fModuliCorr[16] << fModuliCorr[22] << ' ' <<  fModuliCorr[28] << ' ' << fModuliCorr[34] << '\n';
+	       // cout << fModuliCorr[5] << ' ' <<  fModuliCorr[11] << ' ' << fModuliCorr[17] << fModuliCorr[23] << ' ' <<  fModuliCorr[29] << ' ' << fModuliCorr[35] << '\n';
 	
-		     //fTensorTemp.Outer(fUnitNorm,fUnitNorm);
-		    //fModuliCorr.AddScaled(c3, fTensorTemp);
+               cout << fModuliCorr << '\n';
 	
-		     if ( fInternal[kdgamma] != 0.0)
-		      {
-			fTensorTemp.Outer(One, fUnitNorm);
-			fModuliCorr.AddScaled(c4, fTensorTemp);
-		      }
-
-		   
-		     //cout << "fModuliCorr = " << fModuliCorr << endl;
-
-		     
-		  }
-
-}
 
 	return fModuliCorr;
 }	
@@ -261,16 +193,11 @@ const dMatrixT& DPSSLinHardT::ModuliCorrDisc(const ElementCardT& element,
 	int ip)
 {
 	/* initialize */
-
-fModuliCorrDisc = 0.0;
+	fModuliCorrDisc = 0.0;
 
 	if (element.IsAllocated() && 
 	   (element.IntegerData())[ip] == kIsPlastic)
 	{
-
-
-
-
 		/* load internal state variables */
 	  	LoadData(element,ip);
 		
@@ -296,8 +223,6 @@ fModuliCorrDisc = 0.0;
 		fTensorTemp.Outer(fUnitNorm,One);
 		fModuliCorrDisc.AddScaled(ffriction*c4d, fTensorTemp);
 	}
-
-
 	return fModuliCorrDisc;
 }	
 
@@ -354,7 +279,7 @@ void DPSSLinHardT::Update(ElementCardT& element)
 		if (Flags[ip] == kIsPlastic) /* plastic update */
 		{
 			/* do not repeat if called again. */
-			Flags[ip] = kIsElastic;
+			//Flags[ip] = kIsElastic;
 			/* NOTE: ComputeOutput writes the updated internal variables
 			 *       for output even during iteration output, which is
 			 *       called before UpdateHistory */
@@ -364,13 +289,13 @@ void DPSSLinHardT::Update(ElementCardT& element)
 	
 			/* plastic increment */
 			double& dgamma = fInternal[kdgamma];
-			//cout << "kdgamma = " << fInternal[kdgamma] << endl;
+			//cout << fInternal[kdgamma] << endl;
 		
 			/* internal state variable */
 			fInternal[kalpha] -= fH_prime*dgamma;
 
 			/* dev plastic strain increment	*/
-			fPlasticStrain.AddScaled( sqrt32*dgamma, fUnitNorm);
+			fPlasticStrain.AddScaled( sqrt32*dgamma, fUnitNorm );
         	
         	/* vol plastic strain increment	*/
 			fPlasticStrain.AddScaled( fdilation*dgamma/sqrt(3.0), One );
@@ -446,7 +371,7 @@ int DPSSLinHardT::PlasticLoading(const dSymMatrixT& trialstrain,
 		else
 		{
 			/* set flag */
-		    Flags[ip] = kIsElastic; //removed to avoid restting 7/01
+			Flags[ip] = kIsElastic;
 			
 			return 0;
 		}

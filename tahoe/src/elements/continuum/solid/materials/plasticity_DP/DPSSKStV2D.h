@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.h,v 1.6 2001-08-15 16:54:41 cfoster Exp $ */
+/* $Id: DPSSKStV2D.h,v 1.5 2001-07-13 23:15:06 cfoster Exp $ */
 /* created: myip (06/01/1999)                                    */
 
 #ifndef _DP_SS_KSTV_2D_H_
@@ -29,7 +29,6 @@ class DPSSKStV2D: public DPSSKStV, public Material2DT
 	
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);
-	virtual const dMatrixT& cdisc_ijkl(void);
   	
 	/* stress */
 	virtual const dSymMatrixT& s_ij(void);

@@ -1,4 +1,4 @@
-/* $Id: EnSightT.cpp,v 1.3 2001-09-04 14:38:54 sawimme Exp $ */
+/* $Id: EnSightT.cpp,v 1.2 2001-07-19 00:56:54 paklein Exp $ */
 /* created: sawimme (05/13/1999)                                          */
 /* ******EnSight6 Format Gold, ASCII or Binary******                      */
 
@@ -386,21 +386,6 @@ else
 in >> vector;
 }
 return true;
-}
-
-int EnSightT::NumTimeSteps (ifstreamT& in) const
-{
-  char c = 'c';
-  int timeset, num;
-
-  while (c != ':') in >> c;
-  in >> timeset;
-  c = 'c';
-  
-  while (c != ':') in >> c;
-  in >> num;
-
-  return num;
 }
 
 bool EnSightT::ReadTimeSection (ifstreamT& in, int& start, int& increment, dArrayT& timesteps) const

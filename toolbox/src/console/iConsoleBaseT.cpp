@@ -1,5 +1,6 @@
-/* $Id: iConsoleBaseT.cpp,v 1.4 2001-09-26 20:59:26 paklein Exp $ */
-/* created: paklein (12/21/2000) */
+/* $Id: iConsoleBaseT.cpp,v 1.2 2001-02-13 17:48:34 paklein Exp $ */
+/* created: paklein (12/21/2000)                                          */
+/* iConsoleBaseT.cpp                                                      */
 
 #include "iConsoleBaseT.h"
 #include <strstream.h>
@@ -27,7 +28,7 @@ void iConsoleBaseT::iWriteVariables(ostream& out) const
 		out << setw(4) << " " << "<none>" << endl;
 	else
 	{
-		const char* type_names[] = {"integer", "double", "string", "boolean", "float"};
+		const char* type_names[] = {"integer", "double", "string", "boolean"};
 		for (int i = 0; i < fVariables.Length(); i++)
 		{
 			out << setw(4) << " " << fVariables[i] << " = ";
@@ -78,8 +79,6 @@ bool iConsoleBaseT::iDoVariable(const StringT& variable, StringT& line)
 			OK = Operate(*((bool*) fVariableValues[dex]), op, line);
 		else if (fVariableTypes[dex] == int_)
 			OK = Operate(*((int*) fVariableValues[dex]), op, line);
-		else if (fVariableTypes[dex] == float_)
-			OK = Operate(*((float*) fVariableValues[dex]), op, line);
 		else if (fVariableTypes[dex] == double_)
 			OK = Operate(*((double*) fVariableValues[dex]), op, line);
 		else if (fVariableTypes[dex] == string_)
@@ -148,16 +147,6 @@ bool iConsoleBaseT::iAddVariable(const StringT& name, double& variable)
 bool iConsoleBaseT::iAddVariable(const StringT& name, const double& variable)
 {
 	return AddVariable(name, double_, (void*) &variable, true);
-}
-
-bool iConsoleBaseT::iAddVariable(const StringT& name, float& variable)
-{
-	return AddVariable(name, float_, (void*) &variable, false);
-}
-
-bool iConsoleBaseT::iAddVariable(const StringT& name, const float& variable)
-{
-	return AddVariable(name, float_, (void*) &variable, true);
 }
 
 bool iConsoleBaseT::iAddVariable(const StringT& name, StringT& variable)
@@ -403,9 +392,6 @@ void iConsoleBaseT::WriteVariable(ostream& out, int i) const
 		case int_:
 			out << *((int*) fVariableValues[i]);
 			break;
-		case float_:
-			out << *((float*) fVariableValues[i]);
-			break;
 		case double_:
 			out << *((double*) fVariableValues[i]);
 			break;
@@ -577,51 +563,6 @@ bool iConsoleBaseT::Operate(int& variable, VariableOperator op, StringT& line) c
 	}
 }
 
-bool iConsoleBaseT::Operate(float& variable, VariableOperator op, StringT& line) const
-{
-	/* convert first word to integer */
-	int count;
-	StringT rhs_str;
-	rhs_str.FirstWord(line, count, false);
-	
-	istrstream rhs_in(rhs_str.Pointer());
-	float test_val = -919;
-	float rhs = test_val;
-	rhs_in >> rhs;
-	if (rhs == test_val)
-	{
-		cout << "could not resolve float from: \"" << line << "\"" << endl;
-		return false;
-	}
-	else
-	{
-		line.Drop(count);
-		switch (op)
-		{
-			case kEQ:
-				variable = rhs;
-				break;
-			case kPlusEQ:
-				variable += rhs;
-				break;
-			case kMinusEQ:
-				variable -= rhs;
-				break;
-			case kTimesEQ:
-				variable *= rhs;
-				break;
-			case kDivEQ:
-				variable /= rhs;
-				break;
-			default:				
-				cout << "iConsoleBaseT::Operate: unsupported operator: "
-				     << op << endl;
-				return false;
-		}
-		return true;
-	}
-}
-
 bool iConsoleBaseT::Operate(double& variable, VariableOperator op, StringT& line) const
 {
 	/* convert first word to integer */
@@ -635,7 +576,7 @@ bool iConsoleBaseT::Operate(double& variable, VariableOperator op, StringT& line
 	rhs_in >> rhs;
 	if (rhs == test_val)
 	{
-		cout << "could not resolve double from: \"" << line << "\"" << endl;
+		cout << "could not resolve integer from: \"" << line << "\"" << endl;
 		return false;
 	}
 	else
@@ -669,13 +610,13 @@ bool iConsoleBaseT::Operate(double& variable, VariableOperator op, StringT& line
 
 bool iConsoleBaseT::Operate(StringT& variable, VariableOperator op, StringT& line) const
 {
-	if (op != kEQ && op != kPlusEQ)
+	if (op != kEQ || op != kPlusEQ)
 		return kFail;
 	else
 	{
 		int count;
 		StringT rhs;
-		rhs.FirstWord(line, count, false);
+		rhs.FirstWord(line, count, true);
 		line.Drop(count);
 		if (op == kEQ)	
 			variable = rhs;

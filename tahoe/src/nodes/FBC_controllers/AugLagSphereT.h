@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.h,v 1.2 2001-08-15 18:37:48 paklein Exp $ */
+/* $Id: AugLagSphereT.h,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
 /* created: paklein (03/24/1999)                                          */
 
 #ifndef _AUGLAG_SPHERE_T_H_
@@ -40,17 +40,17 @@ public:
 	virtual void ApplyLHS(void);
 
 	/* returns the array for the DOF tags needed for the current config */
-	virtual void SetDOFTags(void);
-	virtual iArrayT& DOFTags(int tag_set);
+	virtual iArrayT& SetDOFTags(void);
+	virtual const iArrayT& DOFTags(void) const;
 
 	/* generate nodal connectivities - does nothing here */
 	virtual void GenerateElementData(void);
 
 	/* return the contact elements */
-	virtual const iArray2DT& DOFConnects(int tag_set) const;
+	virtual const iArray2DT& DOFConnects(void) const;
 
 	/* restore the DOF values to the last converged solution */
-	virtual void ResetDOF(dArray2DT& DOF, int tag_set) const;
+	virtual void ResetDOF(dArray2DT& DOF) const;
 
 	/* returns 1 if group needs to reconfigure DOF's, else 0 */
 	virtual int Reconfigure(void);

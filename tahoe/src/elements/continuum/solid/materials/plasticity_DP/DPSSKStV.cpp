@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.11 2001-08-17 00:51:03 cfoster Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.8 2001-07-27 01:23:05 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 
@@ -81,10 +81,13 @@ void DPSSKStV::PrintName(ostream& out) const
 /* modulus */
 const dMatrixT& DPSSKStV::c_ijkl(void)
 {
-
+	/* elastoplastic correction */
+        
+  // CurrentElement().IntegerData()[CurrIP()] = kIsPlastic;
+        //UpdateHistory();
 	fModulus.SumOf(HookeanMatT::Modulus(),
 		ModuliCorrection(CurrentElement(), CurrIP()));
-	
+
 	return fModulus;
 }
 
@@ -154,34 +157,43 @@ void DPSSKStV::OutputLabels(ArrayT<StringT>& labels) const
 
 void DPSSKStV::ComputeOutput(dArrayT& output)
 {
-	
-	/* stress tensor (load state) */
+	/* stress tensor (loads element data) */
 	const dSymMatrixT& stress = s_ij();
 
 	/* pressure */
 	output[2] = fStress.Trace()/3.0;
+	
+	cout << " stress= \n";
+	  cout << stress << '\n';
+
 
 
 	/* compute modulus */
-
 	const dMatrixT& modulus = c_ijkl();
+
+        cout << "modulus=\n";
+        cout << modulus << '\n';
 
         /* continuous localization condition checker */
 	DetCheckT checker(stress, modulus);
 	dArrayT normal(stress.Rows());
-	output[3] = checker.IsLocalized_SS(normal);
-
-	/* compute discontinuous bifurcation modulus */
+	output[3] = checker.IsLocalized_SPINLOC(normal);
+   
+        /* compute discontinuous bifurcationmodulus */
 	const dMatrixT& modulusdisc = cdisc_ijkl();
-	
 
-	/* discontinuous localization condition checker */
+        cout << "modulusdisc=\n";
+        cout << modulusdisc << '\n';
 
+
+
+
+        /* discontinuous localization condition checker */
 	DetCheckT checkerdisc(stress, modulusdisc);
 	dArrayT normaldisc(stress.Rows());
-	output[4] = checkerdisc.IsLocalized_SS(normaldisc);
-
+	output[4] = checkerdisc.IsLocalized_SPINLOC(normaldisc);
    
+
 	/* deviatoric Von Mises stress */
 	fStress.Deviatoric();
 	double J2 = fStress.Invariant2();
@@ -193,9 +205,6 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 	if (element.IsAllocated())
 	{
 		output[0] = fInternal[kalpha];
-		const iArrayT& flags = element.IntegerData();
-		if (flags[CurrIP()] == kIsPlastic)
-			output[0] -= fH_prime*fInternal[kdgamma];
 	}
 	else
 	{

@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.7 2001-09-15 01:13:32 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.5 2001-07-19 01:05:25 paklein Exp $ */
 
 #include "FiniteStrainT.h"
 #include "ShapeFunctionT.h"
@@ -21,13 +21,14 @@ void FiniteStrainT::Initialize(void)
 	ElasticT::Initialize();
 
 	/* what's needed */
-	bool need_F = false;
+	bool need_F      = false;
 	bool need_F_last = false;
-	for (int i = 0; i < fMaterialList->Length(); i++)
+	for (int i = 0; i < fMaterialNeeds.Length(); i++)
 	{
-		need_F = need_F || Needs_F(i);		
-		need_F_last = need_F_last || Needs_F_last(i);
-	}	
+		const ArrayT<bool>& needs = fMaterialNeeds[i];
+		need_F = need_F || needs[fNeedsOffset + kF];
+		need_F_last = need_F_last || needs[fNeedsOffset + kF_last];
+	}
 
 	/* allocate deformation gradient list */
 	if (need_F)
@@ -141,9 +142,8 @@ void FiniteStrainT::SetGlobalShape(void)
 	ElasticT::SetGlobalShape();
 	
 	/* what needs to get computed */
-	int material_number = CurrentElement().MaterialNumber();
-	bool needs_F = Needs_F(material_number);
-	bool needs_F_last = Needs_F_last(material_number);
+	bool needs_F = Needs_F();
+	bool needs_F_last = Needs_F_last();
 	
 	/* loop over integration points */
 	for (int i = 0; i < NumIP(); i++)
@@ -203,16 +203,3 @@ void FiniteStrainT::FormCv(double constC)
 #endif
 }
 
-/* write all current element information to the stream */
-void FiniteStrainT::CurrElementInfo(ostream& out) const
-{
-	/* inherited */
-	ElasticT::CurrElementInfo(out);
-	
-	/* write deformation gradients */
-	out << "\n i.p. deformation gradients:\n";
-	for (int i = 0; i < fF_List.Length(); i++)
-		out << " ip: " << i+1 << '\n'
-		    << fF_List[i] << '\n';
-	out << '\n';
-}

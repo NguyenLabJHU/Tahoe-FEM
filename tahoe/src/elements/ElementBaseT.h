@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.4 2001-09-05 00:26:04 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.3 2001-04-27 10:52:17 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -174,10 +174,10 @@ protected: /* for derived classes only */
 	/* write all current element information to the stream */
 	virtual void CurrElementInfo(ostream& out) const;
 
-	/** (re-)set element cards array */
-	void SetElementCards(void);
-
 private:
+
+	/* set element cards array */
+	void SetElementCards(void);
 
 	/* I/O formats */
 	void ReadConnectivity_ASCII(ifstreamT& in, ostream& out, int num_blocks);
@@ -185,11 +185,11 @@ private:
 	void ReadConnectivity_ExodusII(ifstreamT& in, ostream& out, int num_blocks);
 	void WriteConnectivity_ASCII(ostream& out) const;
 
-	/** return the default number of element nodes. This function is needed
-	 * because ExodusII databases (see ExodusT) do not store ANY information about
-	 * empty element groups, which causes trouble for parallel execution
-	 * when a partition contains no element from a group. */
+	/* return the default number of element nodes */
 	virtual int DefaultNumElemNodes(void) const;
+	//NOTE: needed because ExodusII does not store ANY information about
+	//      empty element groups, which causes trouble for parallel execution
+	//      when a partition contains no element from a group.
 	
 protected:
 

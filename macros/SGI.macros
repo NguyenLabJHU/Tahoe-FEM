@@ -1,5 +1,5 @@
-# $Id: SGI.macros,v 1.11 2001-09-21 01:05:47 paklein Exp $
-
+# $Id: SGI.macros,v 1.9 2001-06-03 21:12:50 paklein Exp $
+# SGI Irix 6.2 (or newer)
 MAKE        = make
 MAKE_DEPEND = makedepend
 COMP_C      = cc

@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianT.cpp,v 1.5 2001-09-15 01:13:12 paklein Exp $ */
+/* $Id: TotalLagrangianT.cpp,v 1.3 2001-07-10 07:29:54 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "TotalLagrangianT.h"
@@ -36,6 +36,17 @@ void TotalLagrangianT::Initialize(void)
 	/* inherited */
 	FiniteStrainT::Initialize();
 
+//TEMP
+	if (fMaterialList->HasThermalStrains())
+	{
+		cout << "\n TotalLagrangianT::Initialize: element group ";
+		cout << fFEManager.ElementGroupNumber(this) + 1 << ": total Lagrangian\n";
+		cout << "     formulation has a bug associated with the multiplicative treatment\n";
+		cout << "     of thermal strains. The solutions appear correct, but the convergence\n";
+		cout << "     is not quadratic. Use updated Lagrangian formulation." << endl;
+		throw eGeneralFail;
+	}	
+
 	/* dimension */
 	fGradNa.Allocate(fNumSD, fNumElemNodes);
 	fStressStiff.Allocate(fNumElemNodes);
@@ -49,14 +60,6 @@ void TotalLagrangianT::Initialize(void)
 /* form the element stiffness matrix */
 void TotalLagrangianT::FormStiffness(double constK)
 {		
-//NOTE: Because most materials have been optimized to calculate the
-//      Cauchy stress s_ij and the material tangent modulus c_ijkl,
-//      the derivatives with respect to the reference coordinates X 
-//      are transformed to derivatives with respect to the current
-//      coordinates x using the inverse of the deformation gradient.
-//      Alternately, the stress and modulus could have been transferred
-//      to their material representations, i.e., pulled back.
-
 	/* matrix format */
 	dMatrixT::SymmetryFlagT format =
 		(fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
@@ -75,14 +78,14 @@ void TotalLagrangianT::FormStiffness(double constK)
 	{
 	/* S T R E S S   S T I F F N E S S */
 				
-		/* Cauchy stress (and set deformation gradient) */
+		/* PK2 stress (and set deformation gradient) */
 		(fCurrMaterial->s_ij()).ToMatrix(fStressMat);
 	
-		/* chain rule shape function derivatives */
+		/* change rule shape function derivatives */
 		fTempMat1 = DeformationGradient();
 		double J = fTempMat1.Det();
 		fTempMat1.Inverse();
-		fShapes->TransformDerivatives(fTempMat1, fDNa_x);
+		fShapes->SetChainRule(fTempMat1, fDNa_x);
 
 		/* get shape function gradients matrix */
 		fShapes->GradNa(fDNa_x, fGradNa);
@@ -178,9 +181,6 @@ void TotalLagrangianT::ComputeEffectiveDVA(int formBody,
 /* calculate the internal force contribution ("-k*d") */
 void TotalLagrangianT::FormKd(double constK)
 {
-//NOTE: compute 1st P-K stress based on Cauchy stress since most materials
-//      have not been optimized to compute PK2 directly.	
-
 	/* matrix alias to fTemp */
 	dMatrixT fWP(fNumSD, fStressStiff.Rows(), fNEEvec.Pointer());
 
@@ -190,6 +190,9 @@ void TotalLagrangianT::FormKd(double constK)
 	fShapes->TopIP();
 	while (fShapes->NextIP())
 	{
+//TEMP: compute 1st PK stress based on Cauchy stress since most materials
+//      have not been optimized to compute PK2 directly.	
+	
 		/* get Cauchy stress */
 		(fCurrMaterial->s_ij()).ToMatrix(fTempMat1);
 
@@ -204,7 +207,7 @@ void TotalLagrangianT::FormKd(double constK)
 		else
 			fTempMat2.Inverse();
 
-		/* compute PK1/J */
+		/* compute PK1 */
 		fStressMat.MultABT(fTempMat1, fTempMat2);
 
 		/* get matrix of shape function gradients */

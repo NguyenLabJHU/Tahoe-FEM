@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.11 2001-08-20 15:09:41 rdorgan Exp $
+# $Id: makefile,v 1.10 2001-07-18 21:29:43 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -21,7 +21,6 @@ DEP = /dev/null
 
 # subdirectories
 SUB_DIR = \
-	elasticity_crystl \
 	ABAQUS_UMAT \
 	ABAQUS_VUMAT \
 	CB \

@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.cpp,v 1.6 2001-09-15 01:21:01 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.4 2001-07-03 01:35:33 paklein Exp $ */
 /* created: paklein (06/22/1997)                                          */
 
 #include "J2Simo3D.h"
@@ -169,11 +169,11 @@ void J2Simo3D::ComputeOutput(dArrayT& output)
 			double k = 2.0*mu_bar_bar*dgamma/fmu;
 		
 			/* update variables */
-			alpha += sqrt23*dgamma;
+			fInternal[kalpha] += sqrt23*dgamma;
 			fbeta_bar_trial_.SetToCombination(1.0, fbeta_bar, k*dH(alpha)/3.0, fUnitNorm);
 
 			/* write output */
-			output[0] = alpha;
+			output[0] = alpha + sqrt23*dgamma;
 			output[1] = sqrt(fbeta_bar_trial_.ScalarProduct());
 			stress -= fbeta_bar_trial_;
 		}
@@ -216,7 +216,7 @@ void J2Simo3D::PrintName(ostream& out) const
 void J2Simo3D::ComputeGradients(void)
 {
 	/* total deformation gradient */
-	fFtot = F_total();
+	fFtot = F();
 
 	/* relative deformation gradient */
 	fF_temp.Inverse(F_last());

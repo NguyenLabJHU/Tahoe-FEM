@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.5 2001-09-28 01:32:12 paklein Exp $ */
+/* $Id: IOManager.h,v 1.2 2001-05-30 23:25:10 paklein Exp $ */
 /* created: sawimme (10/12/1999)                                          */
 
 #ifndef _IOMANAGER_H_
@@ -14,11 +14,10 @@
 #include "iAutoArrayT.h"
 #include "IOBaseT.h"
 #include "GeometryT.h"
-#include "ModelManagerT.h"
 
 /* forward declarations */
 class ifstreamT;
-class ModelMangerT;
+class InputBaseT;
 class OutputBaseT;
 class iArray2DT;
 class dArray2DT;
@@ -64,11 +63,48 @@ public:
 	const OutputSetT& OutputSet(int ID) const;
 
 	// input
-	ModelManagerT* ModelManager (void) const;
-	void SetInput (ifstreamT& in);
-	void SetInput (const IOBaseT::FileTypeT format, const StringT& database);
+	int NumElementGroups(void) const;
+	int NumSideSets(void) const;
+	int NumNodeSets(void) const;
+
+	void GroupNumbers(iArrayT& groupnums) const;
+	void SideSetNumbers(iArrayT& sidenums) const;
+	void NodeSetNumbers(iArrayT& nodenums) const;
+
+	void ReadConnectivity(const int group, GeometryT::CodeT & geocode, iArray2DT& connects,
+		iArrayT& elementmap);
+	void ReadCoordinates(dArray2DT& coords, iArrayT& nodemap);
+	void ReadSideSet(const int set_num, iArray2DT& sides, const int global);
+	void ReadNodeSet(const int set_num, iArrayT& nodes);
+
+	void ReadTimeSteps (dArrayT& steps);
+	void ReadLabels (ArrayT<StringT>& nlabels, ArrayT<StringT>& elabels, int group_id);
+	void ReadVariables (int step, int group_id, dArray2DT& nvalues, dArray2DT& evalues);
+
+	void ReadParameters (ifstreamT& in, bool interactive, const StringT& program_name, const StringT& version);
+
+	virtual void Interactive (void);
+	virtual void ReadInputFile(ifstreamT& in);
+
+	// use int instead of enum, so can pass derived class enum values.
+	virtual void InputData (int& data, int key) const;
+	virtual void InputData (iArrayT& data, int key) const;
+
+	void SetInput(void);
+
+	void Translate (void);
+
+protected:
+
+	bool ReadWord1 (ifstreamT& in, StringT& word1) const;
+	virtual void Parse (ifstreamT& in, StringT& word1);
+	void InteractiveIO (void);
 
 private:
+
+	void ReadOutputFormat (ifstreamT& in);
+	void ReadInputFormat (ifstreamT& in);
+	void PrintFormat (ostream& log) const;
 
 	/* return new output formatter */
 	OutputBaseT* SetOutput(const StringT& program_name, const StringT& version,
@@ -86,12 +122,13 @@ protected:
 
 	/* input formatter */
 	IOBaseT::FileTypeT fInputFormat;
-	ModelManagerT* fModel;
+	InputBaseT* fInput;
 	StringT     fInDatabase;
 
 	/* echo interactive data to input file */
 	ofstream fEchoInput;
 	bool fEcho;
+	bool fExternTahoeII;
 	
 private:
 
@@ -104,6 +141,5 @@ private:
 
 /* inlines */
 inline void IOManager::SetOutputTime(double time) { fOutputTime = time; }
-inline ModelManagerT* IOManager::ModelManager (void) const { return fModel; }
 
 #endif

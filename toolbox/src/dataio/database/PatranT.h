@@ -1,4 +1,3 @@
-/* $Id: PatranT.h,v 1.4 2001-09-04 14:38:53 sawimme Exp $ */
 /* created: sawimme (05/17/2001)  */
 
 #ifndef _PATRAN_T_H_
@@ -20,10 +19,10 @@ class PatranT
   ~PatranT (void);
 
   bool OpenRead (const StringT& filename);
+  bool OpenWrite (const StringT& filename);
 
   /* accessors */
   const StringT& Filename (void) const;
-  void VersionNotes (ArrayT<StringT>& records) const;
   int NumNodes (void) const;
   int NumElements (void) const;
   int NumDimensions (void) const;
@@ -43,13 +42,6 @@ class PatranT
   bool ReadNodeSet (const StringT& title, iArrayT& nodes) const;
   bool ReadNodeSets (const ArrayT<StringT>& title, iArrayT& nodes) const;
 
-  bool WriteHeader (ostream& out, int numnodes, int numelems, StringT& title) const;
-  bool WriteCoordinates (ostream& out, dArray2DT& coords, int firstnodeID) const;
-  bool WriteElements (ostream& out, iArray2DT& elems, iArrayT& elemtypes, int firstelemID) const;
-  bool WriteNamedComponent (ostream& out, StringT& name, int ID, iArray2DT& comps) const;
-  bool WriteGeometryPoints (ostream& out, dArray2DT& points, int firstptiD) const;
-  bool WriteClosure (ostream& out) const;
-
   enum NamedTypes { kNCNode = 5, 
 		    kNCLine = 6, kNCLine2 = 106, kNCLine3 = 206,
 		    kNCTriangle = 7, kNCTriangle2 = 107, kNCTriangle3 = 207,
@@ -66,8 +58,7 @@ class PatranT
 		      kHexahedron = 8 };
 
  private:
-  enum PacketT { kTitle = 25,
-		 kSummary = 26,
+  enum PacketT { kSummary = 26,
 		 kNode = 1,
 		 kElement = 2,
 		 kMaterial = 3,
@@ -76,8 +67,7 @@ class PatranT
 		 kDistLoads = 6,
 		 kNodeForce = 7,
 		 kNodeDisp = 8,
-		 kNamedComponents = 21,
-		 kGridData = 31 };
+		 kNamedComponents = 21 };
 
   enum ShapeT { kBarShape = 2,
 		kTriShape = 3,
@@ -106,17 +96,13 @@ class PatranT
 		kWedgeTypeB = 211, 
 		kHexTypeB = 212 };
 
-  enum PrintFormatT { hwidth = 8, cwidth = 16, prec = 9 };
-
   bool ReadNamedComponent (const StringT &title, iArrayT& list) const;
   bool AdvanceTo (ifstream& in, int target, int &ID, int &IV, int &KC) const;
   void ClearPackets (ifstream &in, int KC) const;
 
-  bool WritePacketHeader (ostream& out, int tag, int ID, int IV, int KC, iArrayT n) const;
-
  private:
   StringT file_name;
-  ostream &fMessage;
+  ostream &fOut;
 };
 
 inline const StringT& PatranT::Filename (void) const { return file_name; }

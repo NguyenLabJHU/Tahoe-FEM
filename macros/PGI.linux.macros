@@ -1,4 +1,4 @@
-# $Id: PGI.linux.macros,v 1.2 2001-08-20 22:52:15 hspark Exp $
+# $Id: PGI.linux.macros,v 1.1 2001-03-01 01:15:04 hspark Exp $
 # linux with Portland Group compilers
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = -lmpich
@@ -21,7 +21,7 @@ AR          = ar
 ARFLAGS     = -cruv
 MAKE_OPTS   = -s
 RM          = rm
-RM_FILES    = *.o *.ti *.*~ *.bak ii_* *.d all.depend *.h_link
+RM_FILES    = *.o *.ti *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
 ECHO        = /bin/echo -e
 CAT         = cat

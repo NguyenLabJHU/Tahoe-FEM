@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.7 2001-08-14 22:28:09 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.6 2001-07-23 23:13:21 hspark Exp $ */
 
 #include "ABAQUS_VUMAT_BaseT.h"
 
@@ -33,12 +33,7 @@ ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& elem
 	/* read ABAQUS-format input */
 	nstatv = 0;
 	Read_ABAQUS_Input(in);
-
-	/* set (material tangent) modulus tensor (fixed) */
-	double   Young = double(fProperties[0]);
-	double Poisson = double(fProperties[1]);
-	Set_E_nu(Young, Poisson);
-		
+	
 	/* VUMAT dimensions */
 	ndi = 3; // always 3 direct components
 	int nsd = NumSD();
@@ -71,10 +66,10 @@ ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& elem
 	//fBlockSize += 3;           // fsse_pd_cd
 	/* may not need that (above) */
 	fBlockSize += nstatv;      // fstatv
-	//fBlockSize += fModulusDim; // fmodulus
+	fBlockSize += fModulusDim; // fmodulus
 	fBlockSize += ntens;       // fstress_last
 	fBlockSize += ntens;       // fstrain_last
-	//fBlockSize += 3;           // fsse_pd_cd_last
+	fBlockSize += 3;           // fsse_pd_cd_last
 	/* may not need this (above) */
 	fBlockSize += nstatv;      // fstatv_last
 	
@@ -87,14 +82,15 @@ ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& elem
 	fstrain.Set(ntens, parg);        parg += ntens;
 	//fsse_pd_cd.Set(3, parg);         parg += 3;
 	fstatv.Set(nstatv, parg);        parg += nstatv;
-	//fmodulus.Set(fModulusDim, parg); parg += fModulusDim;
+	fmodulus.Set(fModulusDim, parg); parg += fModulusDim;
 	fstress_last.Set(ntens, parg);   parg += ntens;
 	fstrain_last.Set(ntens, parg);   parg += ntens;
 	//fsse_pd_cd_last.Set(3, parg);    parg += 3;
 	fstatv_last.Set(nstatv, parg);
 	
+
 	/* VUMAT array arguments */
-	//fddsdde.Allocate(ntens);
+	fddsdde.Allocate(ntens);
 	fdstran.Allocate(ntens);
 	fdstran = 0.0;
 	fdrot.Allocate(3);   // always 3
@@ -227,8 +223,81 @@ void ABAQUS_VUMAT_BaseT::ResetHistory(void)
 /* spatial description */
 const dMatrixT& ABAQUS_VUMAT_BaseT::c_ijkl(void)
 {
-	/* very approximate */
-	return ABAQUS_VUMAT_BaseT::C_IJKL();
+	/* load stored data */
+	Load(CurrentElement(), CurrIP());
+
+	int nsd = NumSD();
+	if (nsd != 2 && nsd != 3) throw eGeneralFail;
+	if (fTangentType == GlobalT::kDiagonal)
+	{
+		if (nsd == 2)
+		{
+			fModulus(0,0) = double(fmodulus[0]); // 11
+			fModulus(1,1) = double(fmodulus[1]); // 22
+			fModulus(2,2) = double(fmodulus[3]); // 12
+		}
+		else
+		{
+			fModulus(0,0) = double(fmodulus[0]); // 11
+			fModulus(1,1) = double(fmodulus[1]); // 22
+			fModulus(2,2) = double(fmodulus[2]); // 33
+			fModulus(3,3) = double(fmodulus[5]); // 23
+			fModulus(4,4) = double(fmodulus[4]); // 13
+			fModulus(5,5) = double(fmodulus[3]); // 12
+		}
+	}
+	else if (fTangentType == GlobalT::kSymmetric)
+	{
+		if (nsd == 2)
+		{
+			fModulus(0,0) = double(fmodulus[0]);
+
+			fModulus(1,0) = fModulus(0,1) = double(fmodulus[1]);
+			fModulus(1,1) = double(fmodulus[2]);
+
+			fModulus(2,0) = fModulus(0,2) = double(fmodulus[6]);
+			fModulus(2,1) = fModulus(1,2) = double(fmodulus[7]);
+			fModulus(2,2) = double(fmodulus[9]);	
+		}
+		else
+		{
+			fModulus(0,0) = double(fmodulus[0]);
+
+			fModulus(1,0) = fModulus(0,1) = double(fmodulus[1]);
+			fModulus(1,1) = double(fmodulus[2]);
+
+			fModulus(2,0) = fModulus(0,2) = double(fmodulus[3]);
+			fModulus(2,1) = fModulus(1,2) = double(fmodulus[4]);
+			fModulus(2,2) = double(fmodulus[5]);
+
+			fModulus(3,0) = fModulus(0,3) = double(fmodulus[15]);
+			fModulus(3,1) = fModulus(1,3) = double(fmodulus[16]);
+			fModulus(3,2) = fModulus(2,3) = double(fmodulus[17]);
+			fModulus(3,3) = double(fmodulus[20]);
+		
+			fModulus(4,0) = fModulus(0,4) = double(fmodulus[10]);
+			fModulus(4,1) = fModulus(1,4) = double(fmodulus[11]);
+			fModulus(4,2) = fModulus(2,4) = double(fmodulus[12]);
+			fModulus(4,3) = fModulus(3,4) = double(fmodulus[19]);
+			fModulus(4,4) = double(fmodulus[14]);
+		
+			fModulus(5,0) = fModulus(0,5) = double(fmodulus[6]);
+			fModulus(5,1) = fModulus(1,5) = double(fmodulus[7]);
+			fModulus(5,2) = fModulus(2,5) = double(fmodulus[8]);
+			fModulus(5,3) = fModulus(3,5) = double(fmodulus[18]);
+			fModulus(5,4) = fModulus(4,5) = double(fmodulus[13]);		
+			fModulus(5,5) = double(fmodulus[9]);		
+		}
+	}
+	else if (fTangentType == GlobalT::kNonSymmetric)
+	{
+		cout << "\n ABAQUS_VUMAT_BaseT::c_ijkl: index mapping for nonsymmetric\n"
+		     <<   "     tangent is not implemented" << endl;
+		throw eGeneralFail;
+	}
+	else throw eGeneralFail;	
+
+	return fModulus;
 }
 
 const dSymMatrixT& ABAQUS_VUMAT_BaseT::s_ij(void)
@@ -255,12 +324,11 @@ const dSymMatrixT& ABAQUS_VUMAT_BaseT::s_ij(void)
 /* material description */
 const dMatrixT& ABAQUS_VUMAT_BaseT::C_IJKL(void)
 {
-	/* assuming constant and isotropic */
-	if (NumSD() == 2)
-		ComputeModuli2D(fModulus, Material2DT::kPlaneStrain);
-	else
-		ComputeModuli(fModulus);
+	/* spatial tangent moduli */
+	const dMatrixT& c = ABAQUS_VUMAT_BaseT::c_ijkl();
 
+	/* spatial -> material */
+	fModulus.SetToScaled(F().Det(), PushForward(F(), c));	
 	return fModulus;
 }
 
@@ -772,16 +840,16 @@ void ABAQUS_VUMAT_BaseT::Call_VUMAT(double t, double dt, int step, int iter)
 	/* map VUMAT arguments */
 	doublereal* stressold = fstress_last.Pointer();     // i: Cauchy stress - rotated
 	doublereal* statevold = fstatv_last.Pointer();      // i: state variables
-	//doublereal* ddsdde = fddsdde.Pointer();             //   o: constitutive Jacobian
+	doublereal* ddsdde = fddsdde.Pointer();             //   o: constitutive Jacobian
 	//doublereal  sse = fsse_pd_cd[0];                    // i/o: specific elastic strain energy
 	//doublereal  spd = fsse_pd_cd[1];                    // i/o: plastic dissipation
 	//doublereal  scd = fsse_pd_cd[2];                    // i/o: creep dissipation
 
 	// for fully-coupled only
-//	doublereal  rpl;                                    // o: volumetric heat generation
+	doublereal  rpl;                                    // o: volumetric heat generation
 	doublereal* ddsddt = NULL;                          // o: stress-temperature variation
 	doublereal* drplde = NULL;                          // o: rpl-strain variation
-//	doublereal  drpldt;                                 // o: rpl-temperature variation
+	doublereal  drpldt;                                 // o: rpl-temperature variation
 
 	doublereal* stran  = fstrain.Pointer();             // i: total integrated strain
 	doublereal* dstran = fdstran.Pointer();             // i: strain increment
@@ -799,7 +867,7 @@ void ABAQUS_VUMAT_BaseT::Call_VUMAT(double t, double dt, int step, int iter)
 	integer     nprops = integer(fProperties.Length()); // i: number of material properties
 	doublereal* coords = fcoords.Pointer();             // i: coordinates of the integration point
 	doublereal* drot   = fdrot.Pointer();               // i: rotation increment matrix
-//	doublereal  pnewdt;                                 // o: suggested time step (automatic time integration)
+	doublereal  pnewdt;                                 // o: suggested time step (automatic time integration)
 	doublereal  celent;                                 // i: characteristic element length
 	doublereal* dfgrd0 = fdfgrd0.Pointer();             // i: deformation gradient at the beginning of the increment
 	doublereal* dfgrd1 = fdfgrd1.Pointer();             // i: deformation gradient at the end of the increment
@@ -865,6 +933,9 @@ flog << fstatv.wrap(5) << endl;
 
 	/* update strain */
 	fstrain += fdstran;
+
+	/* store modulus */
+	Store_VUMAT_Modulus();
 	
 	/* write to storage */
 	Store(CurrentElement(), CurrIP());
@@ -955,5 +1026,33 @@ void ABAQUS_VUMAT_BaseT::Set_VUMAT_Arguments(void)
 	ABAQUS_to_dSymMatrixT(fstress_last.Pointer(), fU1);
 	fU2.MultQBQT(fA_nsd, fU1);
 	dSymMatrixT_to_ABAQUS(fU2, fstress_last.Pointer());
+}
+
+/* store the modulus */
+void ABAQUS_VUMAT_BaseT::Store_VUMAT_Modulus(void)
+{
+	if (fTangentType == GlobalT::kDiagonal)
+	{
+		/* take diagonal values */
+		for (int i = 0; i < fmodulus.Length(); i++)
+			fmodulus[i] = fddsdde(i,i);
+	}
+	else if (fTangentType == GlobalT::kSymmetric)
+	{
+		/* columns */
+		int dex = 0;
+		for (int j = 0; j < ntens; j++)
+			for (int i = 0; i <= j; i++)
+				if (i == j)
+					fmodulus[dex++] = fddsdde(i,j);
+				else
+					fmodulus[dex++] = 0.5*(fddsdde(i,j) + fddsdde(j,i));
+	}
+	else if (fTangentType == GlobalT::kNonSymmetric)
+	{
+		/* store everything */
+		fmodulus = fddsdde;
+	}
+	else throw eGeneralFail;	
 }
 #endif /* __F2C__ */
