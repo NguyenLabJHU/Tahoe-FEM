@@ -1,4 +1,4 @@
-/* $Id: ParameterContainerT.cpp,v 1.3 2004-03-28 09:53:29 paklein Exp $ */
+/* $Id: ParameterContainerT.cpp,v 1.4 2004-04-28 15:41:35 paklein Exp $ */
 #include "ParameterContainerT.h"
 
 using namespace Tahoe;
@@ -50,10 +50,11 @@ void ParameterContainerT::AddSub(const SubListDescriptionT& sub)
 	fSubs.AddSub(sub);
 }
 
-void ParameterContainerT::AddSub(const ParameterContainerT& sub, ParameterListT::OccurrenceT occur)
+void ParameterContainerT::AddSub(const ParameterContainerT& sub, ParameterListT::OccurrenceT occur, bool is_inline)
 {
 	fContainers.Append(sub);
 	fContainersOccur.Append(occur);
+	fContainersInline.Append(is_inline);
 }
 
 /* set source for subs not defined by the container */
@@ -127,5 +128,5 @@ void ParameterContainerT::DefineSubs(SubListT& sub_list) const
 
 	/* register all containers */
 	for (int i = 0; i < fContainers.Length(); i++)
-		sub_list.AddSub(fContainers[i].Name(), fContainersOccur[i]);	
+		sub_list.AddSub(fContainers[i].Name(), fContainersOccur[i], fContainersInline[i]);
 }
