@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: IsoVIB3D.h,v 1.1.1.1.2.1 2001-06-06 16:32:13 paklein Exp $ */
 /* created: paklein (03/15/1998)                                          */
 /* 3D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -66,8 +66,9 @@ private:
 	/* integration point generator */
 	SpherePointsT*	fSphere;
 	
-	/* return value */
-	dMatrixT fModulus;
+	/* return values */
+	dMatrixT    fModulus;
+	dSymMatrixT fStress;
 };
 
 #endif /* _ISO_VIB_3D_H_ */

@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.cpp,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.1.1.1.2.1 2001-06-06 16:32:12 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 2D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -24,7 +24,8 @@ IsoVIB2D::IsoVIB2D(ifstreamT& in, const ElasticT& element):
 	fEigs(2),
 	fEigmods(2),
 	fSpectral(2),
-	fModulus(dSymMatrixT::NumValues(2))
+	fModulus(dSymMatrixT::NumValues(2)),
+	fStress(2)
 {
 	/* point generator */
 	fCircle = new EvenSpacePtsT(in);
@@ -111,8 +112,8 @@ const dMatrixT& IsoVIB2D::c_ijkl(void)
 
 		double k = fEigs[0]*fEigs[0]/J;
 		fModulus(0,0) = fModulus(1,1) = c11*k;
-fModulus(0,1) = fModulus(1,0) = c12*k;
-fModulus(2,2) = 0.5*(c11 - c12)*k;
+		fModulus(0,1) = fModulus(1,0) = c12*k;
+		fModulus(2,2) = 0.5*(c11 - c12)*k;
 
 //		fModulus(2,2) = fModulus(0,1) =
 //		               fModulus(1,0) = c12*k; //Cauchy symmetry
@@ -192,21 +193,25 @@ const dSymMatrixT& IsoVIB2D::s_ij(void)
 /* material description */
 const dMatrixT& IsoVIB2D::C_IJKL(void)
 {
-	/* spatial tangent modulus */
-	const dMatrixT& modulus = c_ijkl();
+	/* deformation gradient */
+	const dMatrixT& Fmat = F();
 	
-	/* tranform to material */
-	return c_to_C(modulus);  	
+	/* transform */
+	fModulus.SetToScaled(Fmat.Det(), PullBack(Fmat, c_ijkl()));
+	return fModulus;
 }
+/**< \todo construct directly in material description */
 
 const dSymMatrixT& IsoVIB2D::S_IJ(void)
 {
-	/* Cauchy stress */
-	const dSymMatrixT& cauchy = s_ij();
-
-	/* convert to PK2 */
-	return s_to_S(cauchy);
+	/* deformation gradient */
+	const dMatrixT& Fmat = F();
+	
+	/* transform */
+	fStress.SetToScaled(Fmat.Det(), PullBack(Fmat, s_ij()));
+	return fStress;
 }
+/**< \todo construct directly in material description */
 
 //TEMP
 const dSymMatrixT& IsoVIB2D::CurvatureTensor(void)

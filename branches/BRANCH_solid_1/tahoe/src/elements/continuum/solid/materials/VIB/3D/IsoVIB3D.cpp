@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.cpp,v 1.2 2001-04-27 10:54:33 paklein Exp $ */
+/* $Id: IsoVIB3D.cpp,v 1.2.2.1 2001-06-06 16:32:13 paklein Exp $ */
 /* created: paklein (03/15/1998)                                          */
 /* 3D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -25,7 +25,8 @@ IsoVIB3D::IsoVIB3D(ifstreamT& in, const ElasticT& element):
 	fEigs(3),
 	fEigmods(3),
 	fSpectral(3),
-	fModulus(dSymMatrixT::NumValues(3))
+	fModulus(dSymMatrixT::NumValues(3)),
+	fStress(3)
 {	
 	/* construct point generator */
 	int gencode;
@@ -261,15 +262,25 @@ const dSymMatrixT& IsoVIB3D::s_ij(void)
 /* material description */
 const dMatrixT& IsoVIB3D::C_IJKL(void)
 {
-	/* could construct directly in material description */
-	return c_to_C(IsoVIB3D::c_ijkl());
+	/* deformation gradient */
+	const dMatrixT& Fmat = F();
+	
+	/* transform */
+	fModulus.SetToScaled(Fmat.Det(), PullBack(Fmat, IsoVIB3D::c_ijkl()));
+	return fModulus;
 }
+/**< \todo construct directly in material description */
 
 const dSymMatrixT& IsoVIB3D::S_IJ(void)
 {
-	/* could construct directly in material description */
-	return  s_to_S(IsoVIB3D::s_ij());
+	/* deformation gradient */
+	const dMatrixT& Fmat = F();
+	
+	/* transform */
+	fStress.SetToScaled(Fmat.Det(), PullBack(Fmat, IsoVIB3D::s_ij()));
+	return fStress;
 }
+/**< \todo construct directly in material description */
 
 /* strain energy density */
 double IsoVIB3D::StrainEnergyDensity(void)
