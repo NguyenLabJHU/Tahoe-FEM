@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.3 2001-05-30 23:25:10 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.4 2001-07-19 01:07:22 paklein Exp $ */
 /* created: paklein (03/14/2000)                                          */
 
 #include "IOManager_mpi.h"
@@ -489,7 +489,7 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 		if (fIO_map[i] == Rank())
 		{
 			/* output set data */
-			const OutputSetT& set = *(element_sets[i]);
+			OutputSetT& set = *(element_sets[i]);
 			
 			/* check node maps */
 			if (set.NumNodeValues() > 0)
