@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.5 2001-06-04 23:40:17 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.4 2001-05-04 19:16:05 paklein Exp $ */
 /* created: paklein (10/26/2000)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -103,11 +103,8 @@ void J2QLLinHardT::UpdateHistory(void)
 		if (Flags[ip] != kReset && Flags[ip] != kNotInit)
 		//if (Flags[ip] == kIsPlastic || Flags[ip] == kP0)
 		{
-			/* mark internal state as up to date */
-			Flags[ip] = kReset;
-			/* NOTE: ComputeOutput writes the updated internal variables
-			 *       for output even during iteration output, which is
-			 *       called before UpdateHistory */
+			/* do not repeat if called again */
+			Flags[ip] = kReset; //why was I worried about this????
 						
 			/* fetch element data */
 			LoadData(element,ip);

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.13 2001-06-03 21:02:24 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.12 2001-05-30 23:27:02 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -48,7 +48,7 @@
 #include "iNLSolver_LS.h"
 
 /* File/Version Control */
-const char* kCurrentVersion = "v3.4.1"; //version marker
+const char* kCurrentVersion = "v3.4"; //version marker
 const char* kProgramName    = "tahoe";
 
 /* exception strings */
@@ -1174,13 +1174,6 @@ void FEManagerT::ReadParameters(void)
 	{
 		fMainIn >> fRestartFile;
 		fRestartFile.ToNativePathName();
-
-	    /* path from input file */
-	    StringT path;
-	    path.FilePath(fMainIn.filename());
-	    
-	    /* prepend path */
-	    fRestartFile.Prepend(path);
 	}
 	fMainIn >> fWriteRestart;
 	fMainIn >> fPrintInput;

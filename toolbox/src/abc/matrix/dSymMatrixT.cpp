@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.3 2001-06-05 17:27:18 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.2 2001-02-19 23:13:44 paklein Exp $ */
 /* created: paklein (03/03/1997)                                          */
 
 #include "dSymMatrixT.h"
@@ -850,15 +850,9 @@ void dSymMatrixT::MultQBQT(const dMatrixT& Q, const dSymMatrixT& B)
 	    B.fNumSD != fNumSD) throw eSizeMismatch;
 #endif
 
-	/* no transforms of self */
-	if (B.Pointer() == Pointer())
-	{
-		cout << "\n dSymMatrixT::MultQBQT: no transforms of self" << endl;
-		throw eGeneralFail;
-	}
-
 	double* b = B.Pointer();
 	double* q = Q.Pointer();
+
 	if (fNumSD == 2)
 	{
 		fArray[0] = b[0]*q[0]*q[0] + 2.0*b[2]*q[0]*q[2] + b[1]*q[2]*q[2];
@@ -900,16 +894,11 @@ void dSymMatrixT::MultQTBQ(const dMatrixT& Q, const dSymMatrixT& B)
 	    B.fNumSD != fNumSD) throw eSizeMismatch;
 #endif
 
+	double* b = B.Pointer();
 	double* q = Q.Pointer();
+
 	if (fNumSD == 2)
 	{
-		/* copy out to allow transforms of self */
-		double b[3];
-		b[0] = B[0];
-		b[1] = B[1];
-		b[2] = B[2];
-		
-		/* transform */
 		fArray[0] = b[0]*q[0]*q[0] + 2.0*b[2]*q[0]*q[1] + b[1]*q[1]*q[1];
 		fArray[1] = b[0]*q[2]*q[2] + 2.0*b[2]*q[2]*q[3] + b[1]*q[3]*q[3];
 		fArray[2] = b[0]*q[0]*q[2] + b[2]*q[1]*q[2] +
@@ -917,16 +906,6 @@ void dSymMatrixT::MultQTBQ(const dMatrixT& Q, const dSymMatrixT& B)
 	}
 	else if (fNumSD == 3)
 	{
-		/* copy out to allow transforms of self */
-		double b[6];
-		b[0] = B[0];
-		b[1] = B[1];
-		b[2] = B[2];
-		b[3] = B[3];
-		b[4] = B[4];
-		b[5] = B[5];
-		
-		/* transform */
 		fArray[0] = b[0]*q[0]*q[0] + 2*b[5]*q[0]*q[1] + b[1]*q[1]*q[1] +
 		          2*b[4]*q[0]*q[2] + 2*b[3]*q[1]*q[2] + b[2]*q[2]*q[2];
 		fArray[1] = b[0]*q[3]*q[3] + 2*b[5]*q[3]*q[4] + b[1]*q[4]*q[4] +
@@ -945,7 +924,7 @@ void dSymMatrixT::MultQTBQ(const dMatrixT& Q, const dSymMatrixT& B)
 		            (b[4]*q[0] + b[3]*q[1] + b[2]*q[2])*q[5];
 	}
 	else if (fNumSD == 1)
-		fArray[0] = B[0]*q[0]*q[0];
+		fArray[0] = b[0]*q[0]*q[0];
 	else
 		throw eGeneralFail;
 }
