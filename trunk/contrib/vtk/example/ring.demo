@@ -1,4 +1,4 @@
-# $Id: ring.demo,v 1.3 2002-04-08 17:23:54 paklein Exp $
+# $Id: ring.demo,v 1.4 2002-07-16 16:37:47 recampb Exp $
 :root
 Layout nx 1 ny 1
 WindowSize w 400 h 400
@@ -14,7 +14,7 @@ echo
 echo "Typing 'AddBody ./ring/ring.geom' loads our example file..."
 echo
 wait 5
-AddBody ./ring/ring.geom
+AddBody example/ring/ring.geom
 Upd
 echo
 echo "Enter 'y' to stop now, 'n' to continue"
