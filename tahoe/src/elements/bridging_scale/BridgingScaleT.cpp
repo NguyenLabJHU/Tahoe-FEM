@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.30.2.3 2003-02-11 02:45:02 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.30.2.4 2003-02-12 02:48:54 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -14,7 +14,6 @@
 #include "iNodeT.h"
 #include "nArrayGroupT.h"
 #include "PointInCellDataT.h"
-#include "InverseMapT.h"
 
 using namespace Tahoe;
 
@@ -177,7 +176,7 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used,
 	cell = -1;
 	
 	/* global to local map */
-	InverseMapT global_to_local;
+	InverseMapT& global_to_local = cell_data.GlobalToLocal();
 	global_to_local.SetMap(points_used);
 
 	/* cell shape functions */
@@ -252,6 +251,177 @@ void BridgingScaleT::InterpolateField(const StringT& field, const PointInCellDat
 		/* interpolate */
 		for (int j = 0; j < point_values.MinorDim(); j++)
 			point_values(i,j) = weights.DotRow(i, loc_field(j));
+	}
+}
+
+/* compute the projection matrix */
+void BridgingScaleT::InitProjection(const PointInCellDataT& cell_data)
+{
+	/* projected part of the mesh */
+	const iArrayT& cell_nodes = cell_data.CellNodes();
+	const iArray2DT& cell_connects = cell_data.CellConnectivities();
+
+	/* configure the matrix */
+	int num_projected_nodes = cell_nodes.Length();
+	fGlobalMass.AddEquationSet(cell_connects);
+	fGlobalMass.Initialize(num_projected_nodes, num_projected_nodes, 1);
+	fGlobalMass.Clear();
+
+	/* points in cell data */
+	const RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
+	const dArray2DT& weights = cell_data.InterpolationWeights();
+	const InverseMapT& global_to_local = cell_data.GlobalToLocal();
+
+	/* cell connectivities are (matrix equations) - 1 */
+	iArrayT tmp_shift;
+	tmp_shift.Alias(cell_connects);
+	tmp_shift++;
+
+	/* loop over mesh */
+	int cell_dex = 0;
+	iArrayT cell_eq;
+	dArrayT Na;
+	for (int i = 0; i < point_in_cell.MajorDim(); i++)
+	{
+		int np = point_in_cell.MinorDim(i);
+		if (np > 0)
+		{
+			fElMatU = 0.0;
+			int* points = point_in_cell(i);
+			for (int j = 0; j < np; j++)
+			{
+				/* fetch interpolation weights */
+				int point_dex = global_to_local.Map(points[j]);
+				weights.RowAlias(point_dex, Na);
+			
+				/* element mass */
+				fElMatU.Outer(Na, Na, 1.0, dMatrixT::kAccumulate);
+			}
+
+			/* equations of cell in projector */
+			cell_connects.RowAlias(cell_dex++, cell_eq);
+
+			/* assemble into matrix */
+			fGlobalMass.Assemble(fElMatU, cell_eq);
+		}
+	}
+	
+	/* shift back */
+	tmp_shift--;
+}
+
+/* project the point values onto the mesh */
+void BridgingScaleT::ProjectField(const StringT& field, const PointInCellDataT& cell_data,
+	const dArray2DT& values, dArray2DT& projection)
+{
+#pragma unused(field)
+
+	/* projected part of the mesh */
+	const iArrayT& cell_nodes = cell_data.CellNodes();
+	const iArray2DT& cell_connects = cell_data.CellConnectivities();
+
+	/* points in cell data */
+	const RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
+	const dArray2DT& weights = cell_data.InterpolationWeights();
+	const InverseMapT& global_to_local = cell_data.GlobalToLocal();
+
+	/* initialize return value */
+	projection.Dimension(cell_nodes.Length(), values.MinorDim());
+	projection = 0.0;
+
+	/* cell connectivities are (matrix equations) - 1 */
+	iArrayT tmp_shift;
+	tmp_shift.Alias(cell_connects);
+	tmp_shift++;
+
+	/* loop over mesh */
+	int cell_dex = 0;
+	iArrayT cell_eq;
+	dArrayT Na, point_value;
+	dMatrixT Nd(cell_connects.MinorDim(), values.MinorDim());
+	for (int i = 0; i < point_in_cell.MajorDim(); i++)
+	{
+		int np = point_in_cell.MinorDim(i);
+		if (np > 0)
+		{
+			int* points = point_in_cell(i);
+			Nd = 0.0;
+			for (int j = 0; j < np; j++)
+			{
+				int point = points[j];
+			
+				/* fetch interpolation weights */
+				int point_dex = global_to_local.Map(point);
+				weights.RowAlias(point_dex, Na);
+
+				/* source values of the point */
+				values.RowAlias(point, point_value);
+			
+				/* rhs during projection */
+				Nd.Outer(Na, point_value, 1.0, dMatrixT::kAccumulate);
+			}
+
+			/* equations of cell in projector */
+			cell_connects.RowAlias(cell_dex++, cell_eq);
+
+			/* assemble */
+			for (int j = 0; j < Nd.Cols(); j++)
+				projection.Accumulate(j, cell_eq, Nd(j));
+		}
+	}
+	
+	/* shift back (only needed for matrix assembly) */
+	tmp_shift--;
+
+	/* calculate projection - requires global matrix that supports 
+	 * multiple sovles */
+	dArrayT u_tmp(projection.MajorDim());
+	for (int i = 0; i < projection.MinorDim(); i++)
+	{
+		projection.ColumnCopy(i, u_tmp);
+		fGlobalMass.Solve(u_tmp);
+		projection.SetColumn(i, u_tmp);
+	}
+	u_tmp.Free();
+
+	/* initialize return values */
+	fFineScale.Dimension(values);
+	fFineScale = 0.0;
+	fCoarseScale.Dimension(values);
+	fCoarseScale = 0.0;
+
+	cell_dex = 0;
+	iArrayT cell_connect;
+	dArray2DT cell_projection(cell_connect.Length(), projection.MinorDim());
+	for (int i = 0; i < point_in_cell.MajorDim(); i++)
+	{
+		int np = point_in_cell.MinorDim(i);
+		if (np > 0)
+		{
+			/* gather cell information */
+			cell_connects.RowAlias(cell_dex++, cell_connect);
+			cell_projection.RowCollect(cell_connect, projection);
+		
+			int* points = point_in_cell(i);
+			for (int j = 0; j < np; j++)
+			{
+				int point = points[j];
+			
+				/* fetch interpolation weights */
+				int point_dex = global_to_local.Map(point);
+				weights.RowAlias(point_dex, Na);
+
+				/* interpolate to point */
+				for (int k = 0; k < projection.MinorDim(); k++)
+				{
+					/* interpolate coarse scale to point */
+					fCoarseScale(point, k) = cell_projection.DotColumn(k, Na);
+
+					/* error = source - projection */
+					fFineScale(point, k) = values(point, k) - fCoarseScale(point, k);
+				}
+			}
+		}
 	}
 }
 
@@ -337,126 +507,4 @@ void BridgingScaleT::CurrElementInfo(ostream& out) const
 	temp.Dimension(fLocDisp.NumberOfNodes(), fLocDisp.MinorDim());
 	fLocDisp.ReturnTranspose(temp);
 	temp.WriteNumbered(out);
-}
-
-/***********************************************************************
- * Private
- ***********************************************************************/
-
-/* compute the projection matrix */
-void BridgingScaleT::ComputeProjector(const PointInCellDataT& cell_data, GlobalMatrixT& projector)
-{
-	/* projected part of the mesh */
-	const iArrayT& cell_nodes = cell_data.CellNodes();
-	const iArray2DT& cell_connects = cell_data.CellConnectivities();
-
-	/* configure the matrix */
-	int num_projected_nodes = cell_nodes.Length();
-	projector.AddEquationSet(cell_connects);
-	projector.Initialize(num_projected_nodes, num_projected_nodes, 1);
-	projector.Clear();
-
-
-
-}
-
-void BridgingScaleT::CoarseFineFields(void)
-{
-  /* computes coarse and fine scale displacement fields */
-  const ParentDomainT& parent = ShapeFunction().ParentDomain();
-  const FieldT& field = Field();
-  iArrayT atoms, elemconnect(parent.NumNodes());
-  const dArray2DT& displacements = field[0];
-
-//  fFineScaleU.Dimension(fParticlesUsed.MajorDim(), displacements.MinorDim());
-
-  dArrayT map, shape(parent.NumNodes()), temp(NumSD()), disp;
-  dMatrixT tempmass(parent.NumNodes()), Nd(parent.NumNodes(), NumSD()), wglobalu(fTotalNodes, NumSD());
-  /* set global matrices for bridging scale calculations */
-  fGlobalMass.AddEquationSet(fConnect);
-  fGlobalMass.Initialize(fTotalNodes,fTotalNodes,1); // hard wired for serial calculations
-  fGlobalMass.Clear();
-  wglobalu = 0.0;
-
-  for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
-  {
-      fElMatU = 0.0;
-		fWtempU = 0.0;
-      fParticlesInCell.RowAlias(i,atoms);
-      fInverseMapInCell.RowAlias(i,map);
-      fConnect.RowAlias(i,elemconnect);
-      for (int j = 0; j < fParticlesInCell.MinorDim(i); j++)
-      {
-	  // still need to access individual atomic masses!!!
-	  displacements.RowAlias(atoms[j], disp);
-	  temp.CopyPart(0, map, NumSD()*j, NumSD());
-	  parent.EvaluateShapeFunctions(temp,shape);
-	  tempmass.Outer(shape,shape);
-	  fElMatU += tempmass;
-	  Nd.Outer(shape, disp);
-	  fWtempU += Nd;
-      }
-      
-      /* Assemble local equations to global equations for LHS */
-      fGlobalMass.Assemble(fElMatU, elemconnect);
-
-      /* Assemble local equations to global equations for RHS */
-      for (int i = 0; i < parent.NumNodes(); i++)
-      {
-	for (int j = 0; j < NumSD(); j++)
-	    wglobalu(elemconnect[i] - 1,j) += fWtempU(i,j);
-      }
-  }
-  
-  /* Solve for global coarse scale (FEM) displacements */
-  if (NumSD() == 1)
-    {
-      wglobalu.ColumnAlias(0, fUx);
-      fGlobalMass.Solve(fUx);
-      cout << "Ux = \n" << fUx << endl;
-    }
-  else if (NumSD() == 2)
-    {
-      wglobalu.ColumnAlias(0, fUx);
-      wglobalu.ColumnAlias(1, fUy);
-      fGlobalMass.Solve(fUx);
-      fGlobalMass.Solve(fUy);
-      cout << "Ux = \n" << fUx << endl;
-      cout << "Uy = \n" << fUy << endl;
-    }
-
-  /* Compute resulting fine scale fields = MD - FE */
-  dArrayT ux(parent.NumNodes()), uy(parent.NumNodes());
-  iArrayT atomconn, conn;
-  double nux, nuy;
-
-  for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
-  {
-    fParticlesInCell.RowAlias(i,atoms);
-    fInverseMapInCell.RowAlias(i,map);
-    fConnect.RowCopy(i,conn);
-    fAtomConnect.RowCopy(i,atomconn);
-    atomconn -= 1;
-    conn -= 1; // so that array indices start from 0
-    ux.Collect(conn, fUx);
-    for (int j = 0; j < fParticlesInCell.MinorDim(i); j++)
-      {
-	displacements.RowAlias(atoms[j],disp);
-	temp.CopyPart(0, map, NumSD()*j, NumSD());
-	parent.EvaluateShapeFunctions(temp,shape);
-	nux = dArrayT::Dot(shape,ux);
-	int which = atomconn[j];
-	double fux = disp[0] - nux;
-	fFineScaleU(which,0) = fux;
-	if (NumSD() == 2)
-	  {
-	    uy.Collect(conn, fUy);
-	    nuy = dArrayT::Dot(shape,uy);
-	    double fuy = disp[1] - nuy;
-	    fFineScaleU(which,1) = fuy; 
-	  }
-      }
-  }
-  cout << "MD U = \n" << displacements << endl;
-  cout << "fine scale U = \n" << fFineScaleU << endl; 
 }

@@ -1,10 +1,11 @@
-/* $Id: PointInCellDataT.h,v 1.1.2.2 2003-02-11 02:45:02 paklein Exp $ */
+/* $Id: PointInCellDataT.h,v 1.1.2.3 2003-02-12 02:48:54 paklein Exp $ */
 #ifndef _POINT_IN_CELL_DATA_T_H_
 #define _POINT_IN_CELL_DATA_T_H_
 
 /* direct members */
 #include "RaggedArray2DT.h"
 #include "iArray2DT.h"
+#include "InverseMapT.h"
 
 namespace Tahoe {
 
@@ -29,10 +30,12 @@ public:
 	/** \name particle in cell data */
 	/*@{*/
 	RaggedArray2DT<int>& PointInCell(void) { return fPointInCell; };
+	const RaggedArray2DT<int>& PointInCell(void) const { return fPointInCell; };
 	RaggedArray2DT<double>& PointInCellCoords(void) { return fPointInCellCoords; };
 	/*@}*/
 	
-	/** \name interpolation data */
+	/** \name interpolation data
+	 * The major dimension of these arrays is the number of interpolating points. */
 	/*@{*/
 	/** interpolation data */
 	dArray2DT& InterpolationWeights(void) { return fInterpolationWeights; };
@@ -45,6 +48,12 @@ public:
 
 	/** const access to the cells containing each point of interpolation */
 	const iArrayT& InterpolatingCell(void) const { return fInterpolatingCell; };
+
+	/** global to local map */
+	InverseMapT& GlobalToLocal(void) { return fGlobalToLocal; };
+
+	/** const access to global to local map */
+	const InverseMapT& GlobalToLocal(void) const { return fGlobalToLocal; };
 	/*@}*/
 
 	/** generate non-empty cell connectivities in local numbering. Generates the data
@@ -83,6 +92,10 @@ private:
 	 	
 	/** \name interpolation data */
 	/*@{*/
+	/** map from global id of interpolating point to the index in the
+	 * interpolation data */
+	InverseMapT fGlobalToLocal;
+	
 	/** cell containing each point of interpolation */
 	iArrayT fInterpolatingCell;
 	

@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.22.2.2 2003-02-11 02:45:02 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.22.2.3 2003-02-12 02:48:54 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -53,6 +53,18 @@ public:
 		dArray2DT& point_values) const;
 	/*@}*/
 
+	/** \name project external field onto mesh */
+	/*@{*/
+	/** compute the projection matrix */
+	void InitProjection(const PointInCellDataT& cell_data);
+
+	/** project the point values onto the mesh. Requires a previous call to
+	 * BridgingScaleT::InitProjection in order to compute the mass-like
+	 * matrix. */
+	void ProjectField(const StringT& field, const PointInCellDataT& cell_data,
+		const dArray2DT& values, dArray2DT& projection);
+	/*@}*/
+
 	/** register self for output */
 	virtual void RegisterOutput(void);
 
@@ -103,21 +115,7 @@ protected:
 	 * debugging information after runtime errors */
 	virtual void CurrElementInfo(ostream& out) const;
 
-private:
-
-	/** compute the projection matrix */
-	void ComputeProjector(const PointInCellDataT& cell_data, GlobalMatrixT& projector);
-
-	/** compute coarse and fine scale displacement fields */
-	void CoarseFineFields(void);
-
 protected:
-
-#if 0
-	/** "element" group calculating particle solution */
-	const RodT& fParticle;
-	iArray2DT fParticlesUsed;
-#endif
 
 	/** continuum group solving displacements */
 	const SolidElementT& fSolid;
@@ -129,6 +127,14 @@ protected:
 	/** take fParticlesInCell, now have list of inverse mappings per element:
 	 *  [n_cell] x [n_inversemap_i] */
 	RaggedArray2DT<double> fInverseMapInCell;
+
+	/** coarse scale field at the source points. The projected field interpolated
+	 * to the source points. */
+	dArray2DT fCoarseScale;
+
+	/** fine scale field at the source points. The difference in the source field
+	 * and projected field interpolated to the source points. */
+	dArray2DT fFineScale;
 
 	/** Nodal degrees of freedom */
 	dArrayT fUx, fUy;

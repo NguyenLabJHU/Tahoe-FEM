@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.52.2.1 2003-02-11 02:46:12 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.52.2.2 2003-02-12 02:48:54 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -453,7 +453,7 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 					fSolverPhasesStatus(i, kPass) = -1;					
 				}
 				else if (status == SolverT::kConverged && 
-					(pass == -1 || solve_status(i, kPass) <= pass))
+					(pass == -1 || fSolverPhasesStatus(i, kPass) <= pass))
 				{
 					all_pass = all_pass && true; /* must all be true */
 					fSolverPhasesStatus(i, kPass) = 1;
@@ -476,7 +476,7 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 				     << setw(kIntWidth) << "solver"
 				     << setw(kIntWidth) << "its."
 				     << setw(kIntWidth) << "pass" << '\n';
-				solve_status.WriteNumbered(cout);
+				fSolverPhasesStatus.WriteNumbered(cout);
 				cout << endl;
 			}			
 		}
