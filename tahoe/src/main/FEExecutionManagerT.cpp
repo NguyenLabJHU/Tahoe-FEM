@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.55.2.11 2004-03-08 21:36:23 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.55.2.12 2004-03-15 01:19:49 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -698,7 +698,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	int order3 = 2;
 	double dissipation = 0.0;
 	dArray2DT field_at_ghosts, totalu, fubig, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
-	dArray2DT thkforce, totaldisp, elecdens, embforce;
+	dArray2DT thkforce, totaldisp, elecdens, embforce, wavedisp;
 	dSPMatrixT ntf;
 	iArrayT activefenodes, boundaryghostatoms;
 	StringT bridging_field = "displacement";
@@ -726,6 +726,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	//dArrayT mdmass;
 	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
 	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive, (atoms.GhostNodes()).Length());	
+	wavedisp.Dimension((atoms.NonGhostNodes()).Length(), nsd);
 	nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
 	//nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for fracture problem
 	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
@@ -758,6 +759,10 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	
 	while (atom_time->NextSequence() && continuum_time->NextSequence())
 	{	
+		/* temporary to test 3D wave */
+		//wavedisp = atoms.ThreeDWave(atoms.NonGhostNodes());
+		//atoms.SetFieldValues(bridging_field, atoms.NonGhostNodes(), order1, wavedisp);
+	
 		/* set to initial condition */
 		atoms.InitialCondition();
 		
@@ -791,7 +796,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			ntf.Multx(tempz,fz);
 			ntfproduct.SetColumn(2,fz);
 		}
-		
+
 		/* Add FEM RHS force to RHS using SetExternalForce */
 		continuum.SetExternalForce(bridging_field, ntfproduct, activefenodes);
 	
@@ -871,7 +876,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 					/* calculate fine scale part of MD ghost atom displacements */
 					totaldisp = atoms.THKDisp(badisp);
 					totaldisp+=gadisp;	// FEM solution interpolated to ghost atom positions
-				
+					
 					/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
 					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, totaldisp);
 				}
