@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.cpp,v 1.4 2002-01-03 19:10:28 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.5 2002-01-03 19:33:06 paklein Exp $ */
 /* created: paklein (08/27/1997) */
 
 #include "ExecutionManagerT.h"
@@ -408,3 +408,4 @@ int ExecutionManagerT::OpenWithPrompt(const char* prompt, const char* skipname,
 		}
 	}	
 }
+
