@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.h,v 1.10 2004-07-20 23:16:50 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.h,v 1.11 2004-07-21 21:51:54 paklein Exp $ */ 
 #ifndef _GRAD_SMALL_STRAIN_T_H_ 
 #define _GRAD_SMALL_STRAIN_T_H_ 
 
@@ -181,6 +181,7 @@ protected:
 	/*@{*/
 	const FieldT* fDisplacement; /**< displacement field */
 	const FieldT* fPMultiplier;        /**< hardening parameter field */
+//	ArrayT<KBC_ControllerT*> fFixedPMultiplier; /**< fixed conditions block-by-block */
 	/*@}*/
 	
 	/** \name shape functions for lambda */

@@ -75,6 +75,11 @@ GradSmallStrainT::~GradSmallStrainT(void)
 {  
 	delete fGradSSMatSupport;
 	delete fShapes_PMultiplier;
+	
+#if 0
+	for (int i = 0; i < fFixedPMultiplier.Length(); i++)
+		delete fFixedPMultiplier;
+#endif
 }
 
 void GradSmallStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -412,6 +417,9 @@ void GradSmallStrainT::DefineElements(const ArrayT<StringT>& block_ID, const Arr
 
 		fConnectivities_All.Dimension(NumElements(), num_vertex_nodes);
 	
+		//fFixedPMultiplier.Dimension(fConnectivities.Length());
+		//fFixedPMultiplier = NULL;
+	
 		/* translate blocks */
 		int count = 0;
 		for (int i = 0; i < fConnectivities.Length(); i++)
@@ -426,7 +434,28 @@ void GradSmallStrainT::DefineElements(const ArrayT<StringT>& block_ID, const Arr
 				
 			/* next block */
 			count += connects.MajorDim();
-		}
+
+#if 0
+			/* prescribe fixed multiplier field at center node */
+			FieldT* non_constPMultiplier = const_cast<FieldT*>fPMultiplier;
+
+			/* construct new contoller */
+			fFixedPMultiplier[i] = ElementSupport().NodeManager().NewKBC_Controller(*non_constPMultiplier, KBC_ControllerT::kPrescribed);
+
+			/* add to field */
+			non_constPMultiplier->AddKBCController(fFixedPMultiplier[i]);
+
+			/* define fixed conditions */
+			ArrayT<KBC_CardT>& KBC_cards = fFixedPMultiplier[i]->KBC_Cards();
+			KBC_cards.Dimension(connects.MajorDim()*fNumDOF_PMultiplier);
+			int dex = 0;
+			for (int j = 0; j < fNumDOF_PMultiplier; j++)
+				for (int i = 0; i < connects.MajorDim(); i++)
+					KBC_cards[dex++].SetValues(connects[2], j, KBC_CardT::kFix, NULL, 0.0);
+#endif
+	
+#pragma message("define fixed multipliers")
+		}		
 	}
 	else /* same connectivities - make aliases */
 	{
@@ -444,7 +473,7 @@ void GradSmallStrainT::SetLocalArrays(void)
 	SmallStrainT::SetLocalArrays();
 
 	/* dimension local arrays */
-	fLocPMultiplier.Dimension(NumElementNodes(), fPMultiplier->NumDOF());
+	fLocPMultiplier.Dimension(fNumElementNodes_PMultiplier, fPMultiplier->NumDOF());
 	fLocLastPMultiplier.Dimension(fNumElementNodes_PMultiplier, fPMultiplier->NumDOF());
 
 	fLocPMultiplierTranspose.Dimension(fLocPMultiplier.Length());
