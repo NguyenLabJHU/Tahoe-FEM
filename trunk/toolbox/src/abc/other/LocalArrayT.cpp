@@ -1,15 +1,13 @@
-/* $Id: LocalArrayT.cpp,v 1.12 2002-10-20 22:38:55 paklein Exp $ */
+/* $Id: LocalArrayT.cpp,v 1.13 2002-11-25 07:06:39 paklein Exp $ */
 /* created: paklein (07/10/1996) */
-
 #include "LocalArrayT.h"
 #include "dArray2DT.h"
 #include "iArrayT.h"
 
-/* array behavior */
-
 using namespace Tahoe;
 
 namespace Tahoe {
+/* array behavior */
 const bool ArrayT<LocalArrayT::TypeT>::fByteCopy = true;
 } /* namespace Tahoe */
 
@@ -49,13 +47,13 @@ LocalArrayT::LocalArrayT(const LocalArrayT& source):
 void LocalArrayT::Copy(int numnodes, int minordim, const nArrayT<double>& source)
 {
 #if __option(extended_errorcheck)
-	if (numnodes*minordim != source.Length()) throw ExceptionT::kSizeMismatch;
+	if (numnodes*minordim != source.Length()) ExceptionT::SizeMismatch();
 #endif
 
 	/* dimensions */
 	fNumNodes = numnodes;
 	fMinorDim = minordim;
-	if (fGlobal && fMinorDim != fGlobal->MinorDim()) throw ExceptionT::kSizeMismatch;
+	if (fGlobal && fMinorDim != fGlobal->MinorDim()) ExceptionT::SizeMismatch();
 
 	/* inherited */
 	nArrayT<double>::operator=(source);
@@ -81,10 +79,10 @@ LocalArrayT& LocalArrayT::operator=(const LocalArrayT& RHS)
 void LocalArrayT::BlockCopyAt(const LocalArrayT& source, int start_node)
 {
 #if __option (extended_errorcheck)
-	if (source.MinorDim() != MinorDim()) throw ExceptionT::kSizeMismatch;
+	if (source.MinorDim() != MinorDim()) ExceptionT::SizeMismatch();
 	if (start_node < 0 ||
 	    start_node + source.NumberOfNodes() > NumberOfNodes())
-	    throw ExceptionT::kOutOfRange;
+	    ExceptionT::OutOfRange();
 #endif
 
 	int size = sizeof(double)*source.NumberOfNodes();
@@ -113,7 +111,7 @@ void LocalArrayT::ReturnTranspose(nArrayT<double>& transpose) const
 {
 #if __option (extended_errorcheck)
 	/* dimensions check */
-	if(fLength != transpose.Length()) throw ExceptionT::kSizeMismatch;
+	if(fLength != transpose.Length()) ExceptionT::SizeMismatch();
 #endif
 
 	double* ptrans = transpose.Pointer();
@@ -145,7 +143,7 @@ void LocalArrayT::AddScaledTranspose(double scale, const nArrayT<double>& transp
 {
 #if __option (extended_errorcheck)
 	/* dimension check */
-	if(fLength != transpose.Length()) throw ExceptionT::kSizeMismatch;
+	if(fLength != transpose.Length()) ExceptionT::SizeMismatch();
 #endif
 
 	double* ptrans = transpose.Pointer();
@@ -164,7 +162,7 @@ void LocalArrayT::AddScaledTranspose(double scale, const nArrayT<double>& transp
 void LocalArrayT::SetGlobal(const dArray2DT& global)
 {
 #if __option(extended_errorcheck)
-	if (global.MinorDim() != fMinorDim) throw ExceptionT::kSizeMismatch;
+	if (global.MinorDim() != fMinorDim) ExceptionT::SizeMismatch();
 #endif
 	
 	fGlobal = &global;
@@ -173,8 +171,8 @@ void LocalArrayT::SetGlobal(const dArray2DT& global)
 void LocalArrayT::SetLocal(const ArrayT<int>& keys)
 {
 #if __option (extended_errorcheck)
-	if (!fGlobal) throw ExceptionT::kGeneralFail;
-	if (keys.Length() != fNumNodes) throw ExceptionT::kSizeMismatch;
+	if (!fGlobal) ExceptionT::GeneralFail();
+	if (keys.Length() != fNumNodes) ExceptionT::SizeMismatch();
 #endif
 
 	fGlobal->SetLocal(keys,*this);
