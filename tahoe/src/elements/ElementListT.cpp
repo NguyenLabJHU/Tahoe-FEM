@@ -1,10 +1,9 @@
-/* $Id: ElementListT.cpp,v 1.26 2002-07-19 00:58:25 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.26.2.1 2002-09-23 06:32:00 paklein Exp $ */
 /* created: paklein (04/20/1998) */
-
 #include "ElementListT.h"
+
 #include <iostream.h>
 #include "fstreamT.h"
-//#include "FEManagerT.h"
 #include "StringT.h"
 #include "ElementT.h"
 #include "ElementSupportT.h"
@@ -31,6 +30,7 @@
 #include "CoarseScaleT.h"
 #include "FinePhestT.h"
 #include "BridgingScaleT.h"
+#include "SimoQ1P0.h"
 
 /* contact */
 #include "PenaltyContact2DT.h"
@@ -167,6 +167,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		out << "    eq. " << ElementT::kPenaltyContactElement2D       << ", 2D penalty contact elements\n";
 		out << "    eq. " << ElementT::kPenaltyContactElement3D       << ", 3D penalty contact elements\n";
 		out << "    eq. " << ElementT::kBridgingScale      << ", Bridging Scale\n";
+		out << "    eq. " << ElementT::kSimoQ1P0           << ", Q1P0 mixed element\n";
 		/* check */
 		if (group < 0 || group >= Length())
 		{
@@ -208,6 +209,10 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 
 			case ElementT::kSimoFiniteStrain:
 				fArray[group] = new SimoFiniteStrainT(fSupport, *field);
+				break;
+
+			case ElementT::kSimoQ1P0:
+				fArray[group] = new SimoQ1P0(fSupport, *field);
 				break;
 
 			case ElementT::kMultiScale:
