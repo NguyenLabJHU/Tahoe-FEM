@@ -1,5 +1,6 @@
-/* $Id: XDOF_ManagerT.h,v 1.8 2003-03-02 19:02:49 paklein Exp $ */
+/* $Id: XDOF_ManagerT.h,v 1.7 2002-07-05 22:28:32 paklein Exp $ */
 /* created: paklein (06/01/1998) */
+
 #ifndef _XDOF_MANAGER_T_H_
 #define _XDOF_MANAGER_T_H_
 
@@ -115,10 +116,7 @@ protected:
 	/** assign equation numbers */
 	void SetEquations(int group, int& num_eq);
 
-	/** remove external DOF's from first slot of each row. The augmented Lagrangian 
-	 * formulation puts a zero on the diagonal of the unfactorized matrix. This might 
-	 * be OK if that equation isn't exactly the first one. Check this and swap equations 
-	 * with any of the displacement DOF's connected to the augmented Lagrangian DOF. */
+	/** remove external DOF's from first slot of each row */
 	void CheckEquationNumbers(ostream& out, iArray2DT& eqnos);
 
 	/** append equation numbers for the tags sets in the specified group */

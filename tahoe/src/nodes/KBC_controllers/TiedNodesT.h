@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.15 2003-03-26 20:03:03 cjkimme Exp $ */
+/* $Id: TiedNodesT.h,v 1.13 2003-01-27 07:00:30 paklein Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -12,9 +12,6 @@
 #include "iArrayT.h"
 #include "ScheduleT.h"
 #include "AutoArrayT.h"
-//#ifdef COHESIVE_SURFACE_ELEMENT
-//#include "SurfacePotentialT.h"
-//#endif
 
 namespace Tahoe {
 
@@ -22,8 +19,7 @@ namespace Tahoe {
 class dArray2DT;
 class BasicFieldT;
 class FEManagerT;
-class SurfacePotentialT;
-class TiedPotentialBaseT;
+
 } 
 
 namespace Tahoe {
@@ -163,10 +159,6 @@ protected:
 	iArrayT fPairStatus_last;
 	/*@}*/
 	
-	/** workspaces for evaluating release conditions */
-	dArray2DT fPairSpace;
-	iArrayT iPairSpace;
-	
 	/** equations numbers of the global system */
 //	iArray2DT* fEqnos;
 
@@ -182,10 +174,6 @@ protected:
 	 * to determine release condition
 	 */
 	bool qNoTiedPotential;
-	
-	SurfacePotentialT* fSurfPot;
-	TiedPotentialBaseT* fTiedPot;
-
 };
 
 } // namespace Tahoe 

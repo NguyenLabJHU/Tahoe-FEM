@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.12 2003-03-19 17:08:54 thao Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.11 2003-01-29 07:34:43 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #include "OgdenIsotropicT.h"
 
@@ -75,9 +75,6 @@ const dSymMatrixT& OgdenIsotropicT::s_ij(void)
 	
 	/* transform */
 	fStress.SetToScaled(1.0/Fmat.Det(), PushForward(Fmat, OgdenIsotropicT::S_IJ()));
-	Compute_C(fC);
-	/*        cout <<"\nC: "<<fC;
-		  cout <<"\nsig: "<<fStress;*/
 	return fStress;
 }
 /**< \todo compute directly in spatial representation rather than transforming */

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.23 2003-03-04 08:37:40 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.21.2.4 2003-03-31 03:48:21 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -369,17 +369,25 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 
 	/* update current configurations */
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
+		UpdateCurrentCoordinates();
+	
+	/* inherited - update external DOF */
+	XDOF_ManagerT::Update(group, update);
+}
+
+/* update the current configuration. This is called by NodeManagerT::Update
+	 * and does not usually need to be called explicitly. */
+void NodeManagerT::UpdateCurrentCoordinates(void)
+{
+	if (fCoordUpdate)
 	{
 		/* should be allocated */
 		if (!fCurrentCoords)
-			ExceptionT::GeneralFail("NodeManagerT::Update", "current coords not initialized");
+			ExceptionT::GeneralFail("NodeManagerT::UpdateCurrentCoordinates", "current coords not initialized");
 	
 		/* update */
 		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
 	}	
-	
-	/* inherited - update external DOF */
-	XDOF_ManagerT::Update(group, update);
 }
 
 /* update history */
@@ -1272,7 +1280,8 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			field->SetLabels(labels);
 			field->SetGroup(group_num);
 			field->Dimension(NumNodes(), false);
-			field->Clear();
+			for (int j = 0; j <= field->Order(); j++)
+				(*field)[j] = 0.0;
 			field->WriteParameters(out);
 
 			/* coordinate update field */
@@ -1366,7 +1375,6 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		
 		/* dimension */
 		field->Dimension(NumNodes(), false);
-		field->Clear();
 		
 		/* clear all equation numbers */
 		field->Equations() = FieldT::kInit;
@@ -1817,9 +1825,6 @@ void NodeManagerT::EchoKinematicBCControllers(FieldT& field, ifstreamT& in, ostr
 	/* model manager */
 	ModelManagerT* model = fFEManager.ModelManager();
 
-	/* controller list */
-	pArrayT<KBC_ControllerT*>& controllers = field.KBC_Controllers();
-
 	/* account for text file name instead of data */
 	ifstreamT tmp;
 	ifstreamT& in2 = model->OpenExternal(in, tmp, out, true, "NodeManagerT::EchoKinematicBCControllers: could not open file");
@@ -1833,21 +1838,23 @@ void NodeManagerT::EchoKinematicBCControllers(FieldT& field, ifstreamT& in, ostr
 	out << numKBC << '\n' << endl;
 
 	/* construct */
-	controllers.Dimension(numKBC);
 	for (int i = 0; i < numKBC; i++)
 	{
 		int num, type;
 		in2 >> num >> type; num--;
 		
 		/* construct */
-		controllers[num] = NewKBC_Controller(field, type);
-		if (!controllers[num]) throw ExceptionT::kOutOfMemory;
+		KBC_ControllerT* controller = NewKBC_Controller(field, type);
 		
 		/* initialize */
-		controllers[num]->Initialize(in2);
+		controller->Initialize(in2);
+		
+		/* store */
+		field.AddKBCController(controller);
 	}
 
 	/* echo parameters */
+	const ArrayT<KBC_ControllerT*>& controllers = field.KBC_Controllers();
 	for (int j = 0; j < numKBC; j++)
 	{
 		out << " Controller: " << j+1 << '\n';
@@ -1866,9 +1873,6 @@ void NodeManagerT::EchoForceBCControllers(FieldT& field, ifstreamT& in, ostream&
 	/* model manager */
 	ModelManagerT* model = fFEManager.ModelManager();
 
-	/* controller list */
-	pArrayT<FBC_ControllerT*>& controllers = field.FBC_Controllers();
-
 	/* account for text file name instead of data */
 	ifstreamT tmp;
 	ifstreamT& in2 = model->OpenExternal(in, tmp, out, true, "NodeManagerT::EchoForceBCControllers: could not open file");
@@ -1882,21 +1886,22 @@ void NodeManagerT::EchoForceBCControllers(FieldT& field, ifstreamT& in, ostream&
 	out << " Number of controllers . . . . . . . . . . . . . = ";
 	out << numFBCcont << '\n' << endl;
 
-	controllers.Dimension(numFBCcont);
 	for (int i = 0; i < numFBCcont; i++)
 	{
 		int num, type;
 		in2 >> num >> type; num--;
 		
 		/* construct */
-		controllers[num] = NewFBC_Controller(field, type);
-		if (!controllers[num]) throw ExceptionT::kOutOfMemory;
+		FBC_ControllerT* controller = NewFBC_Controller(field, type);
 		
 		/* echo data */
-		controllers[num]->EchoData(in2, out);
+		controller->EchoData(in2, out);
 
 		/* initialize */
-		controllers[num]->Initialize();
+		controller->Initialize();
+		
+		/* store */
+		field.AddFBCController(controller);
 	}
 
 	/* flush output */

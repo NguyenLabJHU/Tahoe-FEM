@@ -1,4 +1,4 @@
-/* $Id: Aztec_fe.h,v 1.5 2003-02-28 02:07:17 paklein Exp $ */
+/* $Id: Aztec_fe.h,v 1.4 2002-07-05 22:28:35 paklein Exp $ */
 /* created: paklein (08/01/1998) */
 
 #ifndef _AZTEC_FE_H_
@@ -30,7 +30,7 @@ public:
 	/** constuctor 
 	 * \param in stream to read input parameters 
 	 * \param msg output stream for logging messages */
-	Aztec_fe(ifstreamT& in, ostream& msg, CommunicatorT& comm);
+	Aztec_fe(ifstreamT& in, ostream& msg);
 
 	/* destructor */
 	virtual ~Aztec_fe(void);

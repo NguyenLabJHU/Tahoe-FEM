@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.h,v 1.6 2003-03-08 03:13:29 paklein Exp $ */
+/* $Id: MaterialSupportT.h,v 1.4 2003-01-27 07:00:28 paklein Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
@@ -14,8 +14,6 @@ namespace Tahoe {
 class ContinuumElementT;
 class ElementCardT;
 class ScheduleT;
-class ifstreamT;
-class ofstreamT;
 
 /** support for the Tahoe materials classes. */
 class MaterialSupportT
@@ -139,15 +137,6 @@ public:
 
 	/** set pointer local array */
 	virtual void SetLocalArray(const LocalArrayT& array);
-	/*@}*/
-
-	/** \name input/output streams */
-	/*@{*/
-	/** the parameters stream */
-	ifstreamT& Input(void) const;
-
-	/** the echo file */
-	ofstreamT& Output(void) const;
 	/*@}*/
 
   private:

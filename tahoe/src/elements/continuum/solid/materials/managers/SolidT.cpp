@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.25 2003-03-19 17:09:02 thao Exp $ */
+/* $Id: SolidT.cpp,v 1.22.2.2 2003-02-21 01:17:48 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 
@@ -50,8 +50,8 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 		case SolidT::kLJTr2D:
 			code = SolidT::kLJTr2D;
 			break;
-		case SolidT::kLJFCC111:
-			code = SolidT::kLJFCC111;
+		case SolidT::kHex2D:
+			code = SolidT::kHex2D;
 			break;
 		case SolidT::kmodCauchyBornDC:
 			code = SolidT::kmodCauchyBornDC;
@@ -68,9 +68,12 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 		case SolidT::kIsoVIBSimoJ2:
 			code = SolidT::kIsoVIBSimoJ2;
 			break;
-	        case SolidT::kFossumSSIso:
-		        code = SolidT::kFossumSSIso;
-		        break;
+		case SolidT::kFCC:
+			code = SolidT::kFCC;
+			break;
+		case SolidT::kFossumSSIso:
+			code = SolidT::kFossumSSIso;
+			break;
 		case SolidT::kThermoViscoPlastic:
 			code = SolidT::kThermoViscoPlastic;
 			break;
@@ -89,9 +92,9 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 		case SolidT::kBCJHypoIsoDmgYC:
 			code = SolidT::kBCJHypoIsoDmgYC;
 			break;
-	case SolidT::kFDXtalElast:
-			code = SolidT::kFDXtalElast;
-			break;
+                case SolidT::kFDXtalElast:
+                        code = SolidT::kFDXtalElast;
+                        break;
 		case SolidT::kLocXtalPlast:
 			code = SolidT::kLocXtalPlast;
 			break;
@@ -113,8 +116,8 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 		case SolidT::kRGVIB:
 			code = SolidT::kRGVIB;
 			break;
-		case SolidT::kRGSplit:
-			code = SolidT::kRGSplit;
+		case SolidT::kRGNeoHookean:
+			code = SolidT::kRGNeoHookean;
 			break;
 		case SolidT::kSVNeoHookean:
 			code = SolidT::kSVNeoHookean;
@@ -125,20 +128,11 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 		case SolidT::kSSSVKStV:
 			code = SolidT::kSSSVKStV;
 			break;
-		case SolidT::kOgdenMat:
-			code = SolidT::kOgdenMat;
-			break;
 		case SolidT::kLocJ2SSNlHard:
 			code = SolidT::kLocJ2SSNlHard;
 			break;
 		case SolidT::kGrdJ2SSNlHard:
 			code = SolidT::kGrdJ2SSNlHard;
-			break;
-		case SolidT::kSIERRA_Hypoelastic:
-			code = SolidT::kSIERRA_Hypoelastic;
-			break;
-		case SolidT::kSIERRA_Iso_Geomat:
-			code = SolidT::kSIERRA_Iso_Geomat;
 			break;
 		case SolidT::kABAQUS_BCJ:
 			code = SolidT::kABAQUS_BCJ;
@@ -149,6 +143,9 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 		case SolidT::kFCCEAM:
 			code = SolidT::kFCCEAM;
 			break;
+			/*		case SolidT::kOgdenViscVIB:
+					code = SolidT::kOgdenViscVIB;
+					break;*/
 		default:
 			cout << "\n operator>>SolidT::TypeT: unknown code: "
 			<< i_code<< endl;

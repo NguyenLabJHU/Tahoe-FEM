@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.34 2003-02-21 22:31:28 cjkimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.32 2003-01-29 07:34:26 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -55,19 +55,17 @@ void ElementBaseT::Initialize(void)
 	name.Append(index);
 	name.Append("_element_group");
 	iSetName(name);
+#endif
 
 	/* streams */
 	ifstreamT& in = fSupport.Input();
 	ostream&   out = fSupport.Output();
-
+#ifndef _SIERRA_TEST_
 	/* control data */
 	PrintControlData(out);
-
+#endif
 	/* element connectivity data */
 	EchoConnectivityData(in, out);
-#else
-	EchoConnectivityData();
-#endif
 
 	/* dimension */
 	int neq = NumElementNodes()*NumDOF();
@@ -234,7 +232,6 @@ void ElementBaseT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	ConnectsX(connects_1);
 }
 
-#ifndef _SIERRA_TEST_
 void ElementBaseT::ReadRestart(istream& in)
 {
 	/* stream check */
@@ -246,17 +243,6 @@ void ElementBaseT::WriteRestart(ostream& out) const
 	/* stream check */
 	if (!out.good()) throw ExceptionT::kGeneralFail;
 }
-#else
-void ElementBaseT::ReadRestart(double* incomingData)
-{
-	// Do nothing
-}
-
-void ElementBaseT::WriteRestart(double* outgoingData) const
-{
-	// Do nothing
-}
-#endif
 
 /* returns 1 if DOF's are interpolants of the nodal values */
 int ElementBaseT::InterpolantDOFs(void) const { return 1; }
@@ -399,7 +385,6 @@ void ElementBaseT::AssembleLHS(void) const
 #endif
 }
 
-#ifndef _SIERRA_TEST_
 /* print element group data */
 void ElementBaseT::PrintControlData(ostream& out) const
 {
@@ -409,20 +394,12 @@ void ElementBaseT::PrintControlData(ostream& out) const
 /* echo element connectivity data, resolve material pointers
 * and set the local equation numbers */
 void ElementBaseT::EchoConnectivityData(ifstreamT& in, ostream& out)
-{	
+{
+#ifndef _SIERRA_TEST_	
 	out << "\n Element Connectivity:\n";
-
+#endif	
 	/* read */
 	ReadConnectivity(in, out);
-
-#else
-
-void ElementBaseT::EchoConnectivityData(void)
-{	
-	/* read */
-	ReadConnectivity();
-
-#endif
 
 	/* derived dimensions */
 	int neq = NumElementNodes()*NumDOF();
@@ -443,14 +420,12 @@ void ElementBaseT::EchoConnectivityData(void)
 #endif
 }
 
-#ifndef _SIERRA_TEST_
 /* resolve input format types */
 void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 {
 #pragma unused(out)
-#else
-void ElementBaseT::ReadConnectivity(void)
-{
+#ifdef _SIERRA_TEST_
+#pragma unused(in)
 #endif
 
 	/* read from parameter file */
@@ -531,10 +506,10 @@ void ElementBaseT::ReadConnectivity(void)
 	fElementCards.Dimension(elem_count);
 }
 
-#ifndef _SIERRA_TEST_
 /* resolve output formats */
 void ElementBaseT::WriteConnectivity(ostream& out) const
-{	
+{
+#ifndef _SIERRA_TEST_	
 	out << " Number of elements. . . . . . . . . . . . . . . = " << NumElements() << '\n';
 
 	/* write dimensions of blocks */
@@ -578,8 +553,10 @@ void ElementBaseT::WriteConnectivity(ostream& out) const
 		}
 		out << endl;
 	}
-}
+#else
+#pragma unused(out)
 #endif
+}
 
 /* return pointer to block data given the ID */
 const ElementBlockDataT& ElementBaseT::BlockData(const StringT& block_ID) const

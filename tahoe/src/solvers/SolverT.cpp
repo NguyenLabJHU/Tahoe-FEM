@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.14 2003-02-28 02:07:16 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.13.2.2 2003-02-27 07:55:13 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -32,6 +32,7 @@ SolverT::SolverT(FEManagerT& fe_manager, int group):
 	fLHS(NULL),
 	fNumIteration(0),
 	fLHS_lock(kOpen),
+	fLHS_update(true),
 	fRHS_lock(kOpen)
 {
 	/* read parameters */
@@ -82,11 +83,6 @@ SolverT::SolverT(FEManagerT& fe_manager, int group):
 		cout << "\n SolverT::SolverT: \"print equation numbers\" out of range: {0,1}" << endl;
 		throw ExceptionT::kBadInputValue;
 	}
-//	if (!CheckMatrixType(fMatrixType, fFEManager.Analysis()))
-//	{
-//		cout << "\n SolverT::SolverT: incompatible matrix type: " << fMatrixType << endl;		
-//		throw ExceptionT::kBadInputValue;
-//	}
 	
 	/* construct global matrix */
 	SetGlobalMatrix(fMatrixType, check_code);
@@ -122,8 +118,24 @@ void SolverT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	}
 }
 
+/* start solution step */
+void SolverT::InitStep(void)
+{
+	fNumIteration = -1;
+	fLHS_update = true;
+}
+
+/* end solution step */
+void SolverT::CloseStep(void)
+{
+	/* do nothing */ 
+}
+
 /* error handler */
-void SolverT::ResetStep(void) { /* do nothing */ }
+void SolverT::ResetStep(void) 
+{
+	/* do nothing */ 
+}
 
 /* process element group equation data to configure GlobalMatrixT */
 void SolverT::ReceiveEqns(const iArray2DT& equations) const
@@ -138,14 +150,16 @@ void SolverT::ReceiveEqns(const RaggedArray2DT<int>& equations) const
 
 void SolverT::AssembleRHS(const nArrayT<double>& elRes, const nArrayT<int>& eqnos)
 {
+	const char caller[] = "SolverT::AssembleRHS";
+
 	/* consistency check */
-	if (elRes.Length() != eqnos.Length()) throw ExceptionT::kGeneralFail;
+	if (elRes.Length() != eqnos.Length()) ExceptionT::GeneralFail(caller);
 
 	/* lock state */
 	if (fRHS_lock == kIgnore)
 		return;
 	else if (fRHS_lock == kLocked)
-		ExceptionT::GeneralFail("SolverT::AssembleRHS", "RHS is locked");
+		ExceptionT::GeneralFail(caller, "RHS is locked");
 
 #if __option(extended_errorcheck)
 	GlobalT::EquationNumberScopeT scope = (GlobalT::EquationNumberScopeT) fLHS->EquationNumberScope();
@@ -162,11 +176,7 @@ void SolverT::AssembleRHS(const nArrayT<double>& elRes, const nArrayT<int>& eqno
 
 #if __option(extended_errorcheck)
 		else if (scope == GlobalT::kLocal && eq >= num_eq)
-		{
-			cout << "\n SolverT::AssembleRHS: equation number is out of range: "
-			     << eq + start_eq << endl;
-			throw ExceptionT::kOutOfRange;
-		}
+			ExceptionT::OutOfRange(caller, "equation number is out of range: %d", eq + start_eq);
 #endif
 	}	
 }
@@ -390,7 +400,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 		{
 #ifdef __AZTEC__
 			/* construct */
-			fLHS = new AztecMatrixT(in, out, check_code, fFEManager.Communicator());
+			fLHS = new AztecMatrixT(in, out, check_code);
 #else
 			cout << "\n SolverT::SetGlobalMatrix: Aztec solver not installed: ";
 			cout << fMatrixType << endl;

@@ -1,12 +1,11 @@
-/* $Id: TiedPotentialT.h,v 1.10 2003-03-26 20:00:08 cjkimme Exp $ */
+/* $Id: TiedPotentialT.h,v 1.7 2002-11-06 21:53:48 cjkimme Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
 #define _TIED_POTENTIAL_T_H_
 
-/* base classes */
+/* base class */
 #include "SurfacePotentialT.h"
-#include "TiedPotentialBaseT.h"
 
 namespace Tahoe {
 
@@ -17,14 +16,16 @@ class dArray2DT;
 /** cohesive potential from Tvergaard and Hutchinson. This model is
  * described in JMPS v41, n6, 1995, 1119-1135. See SurfacePotentialT
  * for more information about the */
-class TiedPotentialT: public SurfacePotentialT, public TiedPotentialBaseT
+class TiedPotentialT: public SurfacePotentialT
 {
 public:
 	
 	enum sbntmaT {kAverageCode = 2};
 
 	/** constructor */
-	TiedPotentialT(ifstreamT& in);
+	TiedPotentialT(ifstreamT& in, const double &fTimeStep);
+
+	virtual void InitStateVariables(ArrayT<double>& state);
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const;
@@ -37,7 +38,7 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma);
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
@@ -68,8 +69,11 @@ public:
 	virtual int NodalQuantityNeeded(void);
 	//        virtual double ComputeNodalValue(const dArrayT &);
 	//        virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
+	virtual int ElementGroupNeeded(void);
 	
-	virtual bool InitiationQ(const double* sigma);
+	static bool InitiationQ(const double* sigma);
+
+	static int BulkGroup(void);
 	
 protected:
 
@@ -78,6 +82,9 @@ protected:
 	virtual bool CompatibleOutput(const SurfacePotentialT& potential) const;
 		
 private:
+
+	/** the time step */
+	const double& fTimeStep;
 
 	/* traction potential parameters */
 	int qTv;
@@ -88,9 +95,10 @@ private:
 	double r_fail; 
 	double fsigma, fL_0, fL_1, fL_2;
 	
-	double fnvec1, fnvec2; /*components of direction
+	static double fnvec1, fnvec2; /*components of direction
 	  in which to sample the stress for freeing nodes */
-	double fsigma_critical; /* Initiation traction */
+	static double fsigma_critical; /* Initiation traction */
+        static int iBulkGroup;
 };
 
 } // namespace Tahoe 

@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.12 2002-12-13 02:42:56 paklein Exp $ */
+/* $Id: SolverT.h,v 1.12.2.3 2003-02-27 07:55:14 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -75,18 +75,32 @@ public:
 	void ReceiveEqns(const iArray2DT& equations) const;
 	void ReceiveEqns(const RaggedArray2DT<int>& equations) const;
 
+	/** \name solution steps */
+	/*@{*/
+	/** start solution step */
+	virtual void InitStep(void);
+
 	/** solve the system over the current time increment.
 	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
 	 *        does not signal a SolverT::kFailed status, unless solver's internal parameters
 	 *        also indicate the solution procedure has failed.
 	 * \return one of SolverT::IterationsStatusT */
-	virtual SolutionStatusT Solve(int num_iterations) = 0;
+	virtual SolutionStatusT Solve(int max_iterations) = 0;
 
-	/* error handler */
-	virtual void ResetStep(void);
-	
+	/** end solution step */
+	virtual void CloseStep(void);
+
+	/** error handler */
+	virtual void ResetStep(void);	
+	/*@}*/
+
 	/** \name assembling the global equation system */
 	/*@{*/
+	void UnlockRHS(void) { fRHS_lock = kOpen; };
+	void LockRHS(void) { fRHS_lock = kLocked; };
+	void UnlockLHS(void) { fLHS_lock = kOpen; };
+	void LockLHS(void) { fLHS_lock = kLocked; };
+	
 	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
 	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos);
@@ -96,6 +110,10 @@ public:
 	void DisassembleLHSDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;
 
 	void AssembleRHS(const nArrayT<double>& elRes, const nArrayT<int>& eqnos);
+
+	/** assemble forces over the whole system.
+	 * \param elRes force vector with length the total number of unknowns */
+	void AssembleRHS(const nArrayT<double>& elRes);
 	void OverWriteRHS(const dArrayT& elRes, const nArrayT<int>& eqnos);
 	void DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const;
 	/*@}*/
@@ -148,17 +166,29 @@ protected:
 	/** equation group number */
 	int fGroup;
 
-	/* flags */
+	/** \name flags */
+	/*@{*/
 	int fMatrixType;
 	int fPrintEquationNumbers;
+	/*@}*/
 	
 	/** global equation system */
 	/*@{*/
+	/** global LHS matrix */
 	GlobalMatrixT* fLHS;
-	LockStateT     fLHS_lock;
+	
+	/** write protection for the LHS matrix */
+	LockStateT fLHS_lock;
+
+	/** runtime flag. Set to true to signal LHS matrix needs to be recalculated. By
+	 * default, this is set to true during the call to SolverT::InitStep. */
+	bool fLHS_update;
 		
-	dArrayT        fRHS;
-	LockStateT     fRHS_lock;
+	/** residual */
+	dArrayT fRHS;
+	
+	/** write protection for the RHS vector */
+	LockStateT fRHS_lock;
 	/*@}*/
 
 	/** runtime data */
@@ -166,6 +196,18 @@ protected:
 };
 
 /* inlines */
+
+/* assemble forces over the whole system */
+inline void SolverT::AssembleRHS(const nArrayT<double>& elRes)
+{
+	/* lock state */
+	if (fRHS_lock == kIgnore)
+		return;
+	else if (fRHS_lock == kLocked)
+		ExceptionT::GeneralFail("SolverT::AssembleRHS");
+	else
+		fRHS += elRes;
+}
 
 /* assembling the global equation system */
 inline void SolverT::AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)

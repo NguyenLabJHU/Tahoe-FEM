@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.cpp,v 1.8 2003-02-22 18:20:48 paklein Exp $ */
+/* $Id: SimoQ1P0.cpp,v 1.7 2003-01-29 07:34:34 paklein Exp $ */
 #include "SimoQ1P0.h"
 
 #include "ShapeFunctionT.h"
@@ -10,7 +10,8 @@ using namespace Tahoe;
 /* constructor */
 SimoQ1P0::SimoQ1P0(const ElementSupportT& support, const FieldT& field):
 	UpdatedLagrangianT(support, field),
-	fF_tmp(NumSD())
+	fF_tmp(NumSD()),
+	fLastVolumeInit(false)
 {
 
 }
@@ -62,20 +63,6 @@ void SimoQ1P0::Initialize(void)
 	fdiff_b.Dimension(fGradNa);
 	fb_bar.Dimension(fGradNa);
 	fb_sig.Dimension(fGradNa);
-
-	/* need to initialize previous volume */
-	Top();
-	while (NextElement())
-	{
-		/* inherited - computes gradients and standard 
-		 * deformation gradients */
-		UpdatedLagrangianT::SetGlobalShape();
-
-		/* compute mean of shape function gradients */
-		double H; /* reference volume */
-		double& v = fElementVolume_last[CurrElementNumber()];
-		SetMeanGradient(fMeanGradient, H, v);
-	}
 }
 
 /* finalize current step - step is solved */
@@ -86,6 +73,7 @@ void SimoQ1P0::CloseStep(void)
 	
 	/* store converged solution */
 	fElementVolume_last = fElementVolume;
+	fLastVolumeInit = true;
 }
 	
 /* restore last converged state */
@@ -109,6 +97,7 @@ void SimoQ1P0::ReadRestart(istream& in)
 	
 	/* reset last state */
 	fElementVolume_last = fElementVolume;
+	fLastVolumeInit = true;
 }
 
 /* write restart information from stream */
@@ -142,6 +131,7 @@ void SimoQ1P0::SetGlobalShape(void)
 	
 	/* last deformed volume */
 	double& v_last = fElementVolume_last[elem];
+	if (!fLastVolumeInit) v_last = v;
 
 	/* what needs to get computed */
 	int material_number = CurrentElement().MaterialNumber();

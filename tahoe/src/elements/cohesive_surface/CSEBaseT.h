@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.11 2003-02-07 21:50:52 cjkimme Exp $ */
+/* $Id: CSEBaseT.h,v 1.10 2002-12-11 23:13:17 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -94,7 +94,6 @@ protected:
 	/** print element group data */
 	virtual void PrintControlData(ostream& out) const;
 
-#ifndef _SIERRA_TEST_
 	/** read element connectivity data. Cohesive elements with higher order
 	 * elements may need to revise the connectivity read from the geometry
 	 * file. The problem is that the element topologies resulting from
@@ -103,9 +102,6 @@ protected:
 	 * of connectivities is generated for the element calculations, while
 	 * output is written to the original connectivities. */
 	virtual void ReadConnectivity(ifstreamT& in, ostream& out);
-#else
-	virtual void ReadConnectivity(void);
-#endif 
 
 	/** \name output data */
 	/*@{*/

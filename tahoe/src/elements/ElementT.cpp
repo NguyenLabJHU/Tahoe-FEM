@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.17 2003-03-19 17:11:21 thao Exp $ */
+/* $Id: ElementT.cpp,v 1.15 2002-11-25 07:24:51 paklein Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -59,8 +59,8 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kBEMelement:
 			type = ElementT::kBEMelement;
 			break;
-		case ElementT::kAugLagContact:
-			type = ElementT::kAugLagContact;
+		case ElementT::kAugLagContact2D:
+			type = ElementT::kAugLagContact2D;
 			break;
 		case ElementT::kTotLagHyperElastic:
 			type = ElementT::kTotLagHyperElastic;
@@ -120,13 +120,7 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;	
 		case ElementT::kParticlePair:
 			type = ElementT::kParticlePair;
-			break;
-		case ElementT::kFSMatForce:
-		    type = ElementT::kFSMatForce;
-		    break;
-		case ElementT::kSSMatForce:
-		    type = ElementT::kSSMatForce;
-		    break;
+			break;	
 		default:
 			cout << "\n operator>>ElementT::TypeT: unknown type: "
 			<< i_type<< endl;

@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.14 2003-03-27 16:08:12 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.10 2002-11-06 21:53:48 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -9,7 +9,6 @@
 #include "ExceptionT.h"
 #include "fstreamT.h"
 #include "StringT.h"
-#include "iArrayT.h"
 
 /* class parameters */
 
@@ -18,10 +17,19 @@ using namespace Tahoe;
 const int    knumDOF = 2;
 const double kExpMax = 100;
 
+/* initialize static variables */
+int TiedPotentialT::iBulkGroup = 0;
+double TiedPotentialT::fsigma_critical = 0.;
+double TiedPotentialT::fnvec1 = 0.;
+double TiedPotentialT::fnvec2 = 0.;
+
 /* constructor */
-TiedPotentialT::TiedPotentialT(ifstreamT& in): 
-	SurfacePotentialT(knumDOF), TiedPotentialBaseT()
+TiedPotentialT::TiedPotentialT(ifstreamT& in, const double& time_step): 
+	SurfacePotentialT(knumDOF),
+	fTimeStep(time_step)
 {
+#pragma unused(time_step)
+
     in >> fnvec1; /* read in direction to sample stress state at */
     in >> fnvec2;
  
@@ -32,14 +40,9 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in):
     fnvec2 /= mag;
  
     int nBulkGroups;
-    in >> nBulkGroups; if (nBulkGroups < 1) throw ExceptionT::kBadInputValue;
-    iBulkGroups.Dimension(nBulkGroups);
-    for (int i = 0; i < nBulkGroups; i++)
-    {
-    	in >> iBulkGroups[i]; 
-    	if (iBulkGroups[i] < 0) throw ExceptionT::kBadInputValue;
-    	iBulkGroups[i]--;
-    }
+    in >> nBulkGroups;
+    in >> iBulkGroup; if (iBulkGroup < 0) throw ExceptionT::kBadInputValue;
+    iBulkGroup--;
     
 	in >> qTv; /* 0 for Xu-Needleman. 1 for TvergHutch */
 	
@@ -81,8 +84,13 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in):
 	fsigma_critical *= fsigma_critical;
 }
 
+void TiedPotentialT::InitStateVariables(ArrayT<double>& state)
+{
+	state = 0.;
+}
+
 /* return the number of state variables needed by the model */
-int TiedPotentialT::NumStateVariables(void) const { return 1; }
+int TiedPotentialT::NumStateVariables(void) const { return 3; }
 
 /* surface potential */ 
 double TiedPotentialT::FractureEnergy(const ArrayT<double>& state) 
@@ -114,12 +122,19 @@ double TiedPotentialT::Potential(const dArrayT& jump_u, const ArrayT<double>& st
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
+const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
+	if (fTimeStep <= 0.0) {
+#ifndef _SIERRA_TEST_
+		cout << "\n TiedPotentialT::Traction: expecting positive time increment: "
+		     << fTimeStep << endl;
+#endif
+		throw ExceptionT::kBadInputValue;
+	}
 #endif
 
 
@@ -131,7 +146,7 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	{
 		if (!qTv)
 		{
-			double du_n = jump_u[1]+d_n;
+			double du_n = jump_u[1]+/*.608341*/d_n;
 			double fexpf = exp(-du_n/d_n)* exp(-jump_u[0]*jump_u[0]/d_t/d_t);
 		
 			fTraction[0] = 2.*phi_n*jump_u[0]/d_t*fexpf/d_t;
@@ -164,7 +179,7 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 						fTraction = 0.;
 		}
 		
-		if (state[0] == -10. && qIntegrate)
+		if (state[0] == -10.)
 			state[0] = 1.;
 	}
 
@@ -190,7 +205,7 @@ const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<do
 		fStiffness = 0.;
 		if (!qTv)
 		{
-			double du_n = jump_u[1]+d_n;
+			double du_n = jump_u[1]+/*.608341*/d_n;
 			double fexpf = exp(-du_n/d_n)* exp(-jump_u[0]*jump_u[0]/d_t/d_t);
 		
 			fStiffness[0] = 2.*phi_n/d_t/d_t*fexpf*(1.-2.*jump_u[0]*jump_u[0]/d_t/d_t);
@@ -317,12 +332,11 @@ void TiedPotentialT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& 
 	dArrayT& output)
 {
 #pragma unused(jump_u)
-#pragma unused(state) 
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	
 
-	output[0] = 0.;//state[0];
+	output[0] = state[1];
 }
 
 bool TiedPotentialT::NeedsNodalInfo(void) { return true; }
@@ -332,6 +346,21 @@ int TiedPotentialT::NodalQuantityNeeded(void)
         return kAverageCode; /*get stress tensor from bulk */ 
 }
 
+/*double TiedPotentialT::ComputeNodalValue(const dArrayT& nodalRow) 
+{
+       return (nodalRow[0]+nodalRow[1])/3;
+}
+
+void TiedPotentialT::UpdateStateVariables(const dArrayT& IPdata, ArrayT<double>& state)
+{
+  //state[7] = IPdata[0];
+}
+*/
+int TiedPotentialT::ElementGroupNeeded(void) 
+{
+	return 0;
+}
+
 bool TiedPotentialT::InitiationQ(const double* sigma) 
 {
 	double t1 = sigma[0]*fnvec1+sigma[2]*fnvec2;
@@ -339,6 +368,18 @@ bool TiedPotentialT::InitiationQ(const double* sigma)
 	
 	return t1*t1 + t2*t2 >= fsigma_critical;
 }
+
+int TiedPotentialT::BulkGroup(void)
+{
+  return iBulkGroup;
+}
+
+/*void TiedPotentialT::AllocateSpace(int MajorDim, int MinorDim) 
+{
+  	
+  	nodal_stresses.Dimension(MajorDim,MinorDim);
+  	
+}*/
 
 bool TiedPotentialT::CompatibleOutput(const SurfacePotentialT& potential) const
 {

@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.19 2003-03-26 20:03:03 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.17 2003-01-27 07:00:30 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -6,16 +6,9 @@
 #include "BasicFieldT.h"
 #include "FEManagerT.h"
 #include "ElementsConfig.h"
-#include "SolidElementT.h"
 
 #ifdef COHESIVE_SURFACE_ELEMENT
-#include "SurfacePotentialT.h"
 #include "TiedPotentialT.h"
-#include "TiedPotentialBaseT.h"
-#endif
-
-#ifdef COHESIVE_SURFACE_ELEMENT_DEV
-#include "MR_RP2DT.h"
 #endif
 
 //TEMP
@@ -29,9 +22,7 @@ TiedNodesT::TiedNodesT(NodeManagerT& node_manager, BasicFieldT& field):
 	KBC_ControllerT(node_manager),
 	fField(field),
 	fDummySchedule(1.0),
-	fFEManager(node_manager.FEManager()),
-	fPairSpace(),
-	iPairSpace()
+	fFEManager(node_manager.FEManager())
 {
 #ifndef COHESIVE_SURFACE_ELEMENT
 	ExceptionT::BadInputValue("TiedNodesT::TiedNodesT", "COHESIVE_SURFACE_ELEMENT not enabled");
@@ -63,45 +54,7 @@ void TiedNodesT::Initialize(ifstreamT& in)
 	int tiedFlag;
 	in >> tiedFlag; 
 	if (tiedFlag)
-	{
-#ifdef COHESIVE_SURFACE_ELEMENT
 		qNoTiedPotential = false;
-		int code;
-		in >> code;
-		switch (code)
-		{
-			case SurfacePotentialT::kTiedPotential:
-			{	
-				if (fNodeManager.NumSD() == 2)
-					fSurfPot = new TiedPotentialT(in);
-				else
-					ExceptionT::BadInputValue("TiedNodesT", "potential not implemented for 3D: %d", code);
-				break;
-			}
-			case SurfacePotentialT::kMR_RP:
-			{
-#ifdef COHESIVE_SURFACE_ELEMENT_DEV
-				if (fNodeManager.NumSD() == 2)
-					fSurfPot = new MR_RP2DT(in);
-				else
-					ExceptionT::BadInputValue("TiedNodesT", "potential not implemented for 3D: %d", code);
-				break;
-#else
-				ExceptionT::BadInputValue("TiedNodesT", "COHESIVE_SURFACE_ELEMENT_DEV not enabled: %d", code);
-#endif
-			}
-			default:
-				throw ExceptionT::kBadInputValue;
-		}
-		fTiedPot = dynamic_cast<TiedPotentialBaseT*>(fSurfPot);
-		if (fTiedPot == 0)
-		{
-			ExceptionT::GeneralFail("TiedNodesT","Cannot access TiedPotentialBase functions");
-		}
-#else
-		ExceptionT::BadInputValue("TiedNodesT","Cohesive Surface Elements Not Defined");
-#endif
-	}
 	else
 		qNoTiedPotential = true;
 
@@ -427,47 +380,25 @@ bool TiedNodesT::ChangeStatus(void)
 #ifndef COHESIVE_SURFACE_ELEMENT
 		return false;
 #else
-      	bool changeQ = false;
-      	iArrayT& qGroups = fTiedPot->BulkGroups();
-      	for (int j = 0; j < qGroups.Length(); j++) 
-      	{
-			ElementBaseT* surroundingGroup = fFEManager.ElementGroup(qGroups[j]);
-  			if (!surroundingGroup)
-        	{
-           		cout <<"TiedPotentialT::ChangeStatus: Element group "<<qGroups[j]<<" doesn't exist \n";
-      	  		throw ExceptionT::kGeneralFail;
-       	 	}
-	  		surroundingGroup->SendOutput(SolidElementT::iNodalStress);
-	  		dArray2DT fNodalQs = fNodeManager.OutputAverage();
+      bool changeQ = false;
+	ElementBaseT* surroundingGroup = fFEManager.ElementGroup(TiedPotentialT::BulkGroup());
+  		if (!surroundingGroup)
+        {
+           	cout <<"TiedPotentialT::ChangeStatus: Group 0 doesn't exist \n";
+      	  	throw ExceptionT::kGeneralFail;
+        }
+	  	surroundingGroup->SendOutput(2);
+	  	dArray2DT fNodalQs = fNodeManager.OutputAverage();
 
-			if (j == 0)
-			{
-				if (!fPairSpace.IsAllocated())
-				{
-					fPairSpace.Dimension(fNodePairs.MajorDim(),fNodalQs.MinorDim());
-					iPairSpace.Dimension(fNodePairs.MajorDim());
-				}
-				fPairSpace = 0.;
-				iPairSpace = 0;
-			}
-
-		  	for (int i = 0; i < fNodePairs.MajorDim();i++) 
-		    {  
-			    fPairSpace.AddToRowScaled(i,1.,fNodalQs(fNodePairs(i,1)));
-	        }   
-	    }
-	    
-	    for (int i = 0; i < fNodePairs.MajorDim();i++) 
-		{  
-			dArrayT sigma(fPairSpace.MinorDim(),fPairSpace(i));
-			    
-			if (fPairStatus[i] == kTied && fTiedPot->InitiationQ(sigma.Pointer()))     
+	  	for (int i = 0; i < fNodePairs.MajorDim();i++) 
+	    {  
+		    dArrayT sigma(fNodalQs.MinorDim(),fNodalQs(fNodePairs(i,1)));
+			if (fPairStatus[i] == kTied && TiedPotentialT::InitiationQ(sigma.Pointer()))     
 			{ 
-			  	fPairStatus[i] = kFree;
-			  	changeQ = true;
+		  		fPairStatus[i] = kFree;
+		  		changeQ = true;
 			}
-	   	}   
-	        
+        }   
         return changeQ;
 #endif
     }	

@@ -1,5 +1,7 @@
-/* $Id: AztecReaderT.cpp,v 1.4 2003-03-04 17:47:06 paklein Exp $ */
-/* created: paklein (08/12/1998) */
+/* $Id: AztecReaderT.cpp,v 1.3 2002-10-20 22:49:35 paklein Exp $ */
+/* created: paklein (08/12/1998)                                          */
+/* utility to read Aztec options and parameters                           */
+
 #include "AztecReaderT.h"
 
 /* library support options */
@@ -13,13 +15,14 @@
 #include "az_aztec_defs.h"
 #include "fstreamT.h"
 
+/* class parameters */
+
 using namespace Tahoe;
 
-/* class parameters */
 const int kNameLength = 255;
 
 /* option constants and indices */
-const int kNumOptions = 26; // AZ_OPTIONS_SIZE is 47, but only support some
+const int kNumOptions = 13; // AZ_OPTIONS_SIZE is 15, but only support 13
 const char* opt_name[kNumOptions] = {
 "AZ_solver",
 "AZ_scaling",
@@ -30,33 +33,16 @@ const char* opt_name[kNumOptions] = {
 "AZ_max_iter",
 "AZ_poly_ord",
 "AZ_overlap",
-"AZ_type_overlap",
 "AZ_kspace",
 "AZ_orthog",
 "AZ_aux_vec",
-"AZ_reorder",
-"AZ_keep_info",
-"AZ_recursion_level",
-"AZ_print_freq",
-"AZ_graph_fill",
-"AZ_subdomain_solve",
-"AZ_init_guess",
-"AZ_keep_kvecs",
-"AZ_apply_kvecs",
-"AZ_orth_kvecs",
-"AZ_ignore_scaling",
-"AZ_check_update_size",
-"AZ_extreme"
-};
-const int opt_idex[kNumOptions] = {
- 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,
-10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-20, 21, 22, 23, 24, 25};
+"AZ_print_freq"};
+const int opt_idex[kNumOptions] = {0,1,2,3,4,5,6,7,8,9,10,11,12};
 
 /* parameter constants and indices */
-const int   kNumParams = 3; // AZ_PARAMS_SIZE is 30, but only support some
-const char* param_name[kNumParams] = {"AZ_tol", "AZ_drop", "AZ_ilut_fill"};
-const int   param_idex[kNumParams] = {0, 1, 2};
+const int   kNumParams = 2; // AZ_PARAMS_SIZE is 5, but only support 2
+const char* param_name[kNumParams] = {"AZ_tol","AZ_drop"};
+const int   param_idex[kNumParams] = {0,2};
 
 /* constructor */
 AztecReaderT::AztecReaderT(void) { }

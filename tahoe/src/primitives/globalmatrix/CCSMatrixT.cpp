@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.15 2003-03-11 07:21:29 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.14 2002-11-25 07:13:40 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "CCSMatrixT.h"
 
@@ -212,11 +212,8 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos
 							throw ExceptionT::kGeneralFail;
 						}
 #endif
-						/* off-diagonal in element, but global in diagonal */
-						if (ceqno == reqno && row != col)
-							fMatrix[dex] += 2.0*elMat(row,col);
-						else
-							fMatrix[dex] += elMat(row,col);
+						/* assemble */
+						fMatrix[dex] += elMat(row,col);
 					}
 			}
 	}

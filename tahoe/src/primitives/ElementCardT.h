@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.h,v 1.5 2002-11-09 18:13:48 paklein Exp $ */
+/* $Id: ElementCardT.h,v 1.5.4.1 2003-02-23 02:38:33 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENT_CARD_T_H_
 #define _ELEMENT_CARD_T_H_
@@ -40,7 +40,9 @@ public:
 	iArrayT& NodesX(void);             // geometry nodes
 	const iArrayT& NodesX(void) const; // geometry nodes
 	iArrayT& NodesU(void);             // field nodes
+	const iArrayT& NodesU(void) const;             // field nodes
 	iArrayT& Equations(void);
+	const iArrayT& Equations(void) const;
 
 	/* reset field nodes array pointer (non-isoparametric) */
 	void SetNodesU(iArrayT& nodesU);
@@ -123,7 +125,9 @@ inline int ElementCardT::MaterialNumber(void) const { return fMatNum; }
 inline iArrayT& ElementCardT::NodesX(void) { return fNodesX;  }
 inline const iArrayT& ElementCardT::NodesX(void) const { return fNodesX;  }
 inline iArrayT& ElementCardT::NodesU(void) { return *fNodesU; }
+inline const iArrayT& ElementCardT::NodesU(void) const { return *fNodesU; }
 inline iArrayT& ElementCardT::Equations(void) { return fEqnos;   }
+inline const iArrayT& ElementCardT::Equations(void) const { return fEqnos;   }
 
 /* reset field nodes array pointer (non-isoparametric) */
 inline void ElementCardT::SetNodesU(iArrayT& nodesU)

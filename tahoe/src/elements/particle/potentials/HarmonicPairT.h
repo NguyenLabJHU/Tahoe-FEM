@@ -1,4 +1,4 @@
-/* $Id: HarmonicPairT.h,v 1.2 2002-11-26 01:55:37 paklein Exp $ */
+/* $Id: HarmonicPairT.h,v 1.2.4.1 2003-02-21 01:18:54 paklein Exp $ */
 #ifndef _HARMONIC_PAIR_T_H_
 #define _HARMONIC_PAIR_T_H_
 
@@ -26,6 +26,9 @@ public:
 	/** return a pointer to the stiffness function */
 	virtual StiffnessFunction getStiffnessFunction(void);
 	/*@}*/
+
+	/** write properties to output */
+	virtual void Write(ostream& out) const;
 
 private:
 

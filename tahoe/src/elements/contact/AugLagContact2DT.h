@@ -1,5 +1,6 @@
-/* $Id: AugLagContact2DT.h,v 1.10 2003-03-02 18:59:07 paklein Exp $ */
+/* $Id: AugLagContact2DT.h,v 1.9 2002-11-30 16:41:26 paklein Exp $ */
 /* created: paklein (05/31/1998) */
+
 #ifndef _AUGLAG_CONTACT2D_T_H_
 #define _AUGLAG_CONTACT2D_T_H_
 
@@ -12,16 +13,19 @@
 
 namespace Tahoe {
 
+/* forward declarations */
+class iGridManager2DT;
+
 /** contact enforcement in 2D using an augmented Lagrangian formulation.
  * Formulation by J. Heegaard and A. Curnier, IJNME \b 36, 569-593, 1993. */
 class AugLagContact2DT: public Contact2DT, public DOFElementT
 {
 public:
 
-	/** constructor */
+	/* constructor */
 	AugLagContact2DT(const ElementSupportT& support, const FieldT& field);
 
-	/** allocates space and reads connectivity data */
+	/* allocates space and reads connectivity data */
 	virtual void Initialize(void);
 
 	/** \name implementation of the DOFElementT interface */
@@ -53,17 +57,16 @@ public:
 	/* element level reconfiguration for the current solution */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
+
 	/* append connectivities */
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
 
-	/** \name restart functions
-	 * 	\note restarts have not been tested. these functions throw 
-	 * ExceptionT::kGeneralFail. */
-	/*@{*/
+	/* restart functions */
 	virtual void ReadRestart(istream& in);
 	virtual void WriteRestart(ostream& out) const;
-	/*@}*/
+	//TEMP - restarts have not been tested. these functions
+	//       throw ExceptionT::xceptions
 		 	
 protected:
 

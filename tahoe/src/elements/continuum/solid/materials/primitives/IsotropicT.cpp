@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.7 2003-03-19 17:09:03 thao Exp $ */
+/* $Id: IsotropicT.cpp,v 1.6 2002-10-20 22:49:11 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "IsotropicT.h"
@@ -76,8 +76,6 @@ void IsotropicT::Print(ostream& out) const
 	out << " Poisson's ratio . . . . . . . . . . . . . . . . = " << fPoisson << '\n';
 	out << " Shear modulus . . . . . . . . . . . . . . . . . = " << fMu      << '\n';
 	out << " Bulk modulus. . . . . . . . . . . . . . . . . . = " << fKappa   << '\n';
-	out << " Lame modulus  . . . . . . . . . . . . . . . . . = " << fLambda  << '\n';
-	
 }
 
 /*************************************************************************

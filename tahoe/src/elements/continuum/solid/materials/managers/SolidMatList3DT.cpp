@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.34 2003-03-27 16:53:25 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.29.2.2 2003-02-21 01:17:48 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "fstreamT.h"
@@ -18,6 +18,7 @@
 
 #ifdef CAUCHY_BORN_MATERIAL
 #include "EAMFCC3DMatT.h"
+#include "FCC3D.h"
 #endif
 
 #ifdef MODCBSW_MATERIAL
@@ -31,15 +32,14 @@
 #include "OgdenIsoVIB3D.h"
 #endif
 
-#ifdef VISCOELASTIC_MATERIALS_DEV
+#ifdef SIMO_HOLZAPFEL_MATERIAL
 #include "SV_NeoHookean3D.h"
 #include "SSSV_KStV3D.h"
 #include "FDSV_KStV3D.h"
-#include "RGSplit3D.h"
 #endif
 
-#ifdef ELASTIC_OGDEN_MATERIAL_DEV
-#include "OgdenMaterialT.h"
+#ifdef REESE_GOVINDJEE_MATERIAL
+#include "RG_NeoHookean3D.h"
 #endif
 
 #ifdef PLASTICITY_CRYSTAL_MATERIAL
@@ -83,13 +83,6 @@
 #include "DPSSKStV.h"
 #endif
 
-#ifdef SIERRA_MATERIAL
-#include "SIERRA_HypoElasticT.h"
-#ifdef __FOSSUM__
-#include "SIERRA_Isotropic_Geomaterial.h"
-#endif /* __FOSSUM__ */
-#endif /* SIERRA_MATERIAL */
-
 #ifdef FOSSUM_MATERIAL_DEV
 #include "FossumSSIsoT.h"
 #endif
@@ -129,7 +122,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		switch (matcode)
 		{
 			case kLJTr2D:
-			case kLJFCC111:
+			case kHex2D:
 			{
 				ExceptionT::BadInputValue(caller, "material is 2D only: %d", matcode);
 			}
@@ -248,6 +241,18 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new EAMFCC3DMatT(in, *fFSMatSupport);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);
+#endif
+			}
+			case kFCC:
+			{
+#ifdef CAUCHY_BORN_MATERIAL
+				/* check */
+				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new FCC3D(in, *fFSMatSupport);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);
@@ -546,22 +551,22 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "model requires f2c support: %d", kABAQUS_VUMAT_BCJ);
 #endif /* __F2C__ */
 			}			
-			case kRGSplit:
+			case kRGNeoHookean:
 			{
-#ifdef VISCOELASTIC_MATERIALS_DEV
+#ifdef REESE_GOVINDJEE_MATERIAL
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new RGSplit3D(in, *fFSMatSupport);
+				fArray[matnum] = new RG_NeoHookean3D(in, *fFSMatSupport);
 				fHasHistory = true;
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "VISCOELASTIC_MATERIALS_DEV not enabled: %d", matcode);
+				ExceptionT::BadInputValue(caller, "REESE_GOVINDJEE_MATERIAL not enabled: %d", matcode);
 #endif
 			}
 			case kSVNeoHookean:
 			{
-#if VISCOELASTIC_MATERIALS_DEV
+#if SIMO_HOLZAPFEL_MATERIAL
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
@@ -569,12 +574,12 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "VISCOELASTIC_MATERIALS_DEV not enabled: %d", matcode);
+				ExceptionT::BadInputValue(caller, "SIMO_HOLZAPFEL_MATERIAL not enabled: %d", matcode);
 #endif
 			}
 			case kFDSVKStV:
 			{
-#if VISCOELASTIC_MATERIALS_DEV
+#if SIMO_HOLZAPFEL_MATERIAL
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
@@ -582,12 +587,12 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "VISCOELASTIC_MATERIALS_DEV not enabled: %d", matcode);
+				ExceptionT::BadInputValue(caller, "SIMO_HOLZAPFEL_MATERIAL not enabled: %d", matcode);
 #endif
 			}
 			case kSSSVKStV:
 			{
-#if VISCOELASTIC_MATERIALS_DEV
+#if SIMO_HOLZAPFEL_MATERIAL
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 
@@ -595,50 +600,8 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "VISCOELASTIC_MATERIALS_DEV not enabled: %d", matcode);
+				ExceptionT::BadInputValue(caller, "SIMO_HOLZAPFEL_MATERIAL not enabled: %d", matcode);
 #endif
-			}
-			case kOgdenMat:
-			{
-#if ELASTIC_OGDEN_MATERIAL_DEV
-				/* check */
-				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
-
-				fArray[matnum] = new OgdenMaterialT(in, *fFSMatSupport);
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "ELASTIC_OGDEN_MATERIAL_DEV not enabled: %d", matcode);
-#endif
-			}
-			case kSIERRA_Hypoelastic:
-			{
-#if SIERRA_MATERIAL
-				/* check */
-				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
-
-				fArray[matnum] = new SIERRA_HypoElasticT(in, *fFSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "SIERRA_MATERIAL not enabled: %d", matcode);
-#endif
-			}
-			case kSIERRA_Iso_Geomat:
-			{
-#if SIERRA_MATERIAL
-#ifdef __FOSSUM__
-				/* check */
-				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
-
-				fArray[matnum] = new SIERRA_Isotropic_Geomaterial(in, *fFSMatSupport);
-				fHasHistory = true;
-				break;
-#else /* __FOSSUM__ */
-				ExceptionT::BadInputValue(caller, "requires module fossum");
-#endif /* __FOSSUM__ */
-#else /* SIERRA_MATERIAL */
-				ExceptionT::BadInputValue(caller, "SIERRA_MATERIAL not enabled: %d", matcode);
-#endif /* SIERRA_MATERIAL*/
 			}
 			default:
 				ExceptionT::BadInputValue(caller, "unknown material code: %d", matcode);
@@ -648,7 +611,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		SolidMaterialT* pmat = (SolidMaterialT*) fArray[matnum];
 
 		/* verify construction */
-		if (!pmat) ExceptionT::OutOfMemory(caller);
+		if (!pmat) throw ExceptionT::kOutOfMemory;
 		
 		/* set thermal LTf pointer */
 		int LTfnum = pmat->ThermalStrainSchedule();

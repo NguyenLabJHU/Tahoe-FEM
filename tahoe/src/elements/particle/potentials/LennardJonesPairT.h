@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.h,v 1.4 2002-11-28 15:00:28 paklein Exp $ */
+/* $Id: LennardJonesPairT.h,v 1.4.4.1 2003-02-21 01:18:54 paklein Exp $ */
 #ifndef _LENNARD_JONES_PAIR_T_H_
 #define _LENNARD_JONES_PAIR_T_H_
 
@@ -48,6 +48,9 @@ public:
 	/** return a pointer to the stiffness function */
 	virtual StiffnessFunction getStiffnessFunction(void);
 	/*@}*/
+
+	/** write properties to output */
+	virtual void Write(ostream& out) const;
 
 private:
 

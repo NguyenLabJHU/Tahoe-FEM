@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.23 2003-03-28 00:14:59 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.19 2002-12-11 23:13:17 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -17,9 +17,6 @@ namespace Tahoe {
 
 /* forward declarations */
 class SurfacePotentialT;
-#ifndef _SIERRA_TEST_
-class TiedPotentialBaseT;
-#endif
 
 /** Cohesive surface elements with vector argument cohesive relations. */
 class CSEAnisoT: public CSEBaseT
@@ -45,18 +42,12 @@ public:
 	/** close current time increment */
 	virtual void CloseStep(void);
 
-#ifndef _SIERRA_TEST_
 	/** write restart data to the output stream. */
 	virtual void WriteRestart(ostream& out) const;
 
 	/** read restart data to the output stream. */
 	virtual void ReadRestart(istream& in);
-#else
-	virtual void WriteRestart(double* outgoingData) const;
 	
-	virtual void ReadRestart(double* incomingData);
-#endif	
-
 #ifdef _SIERRA_TEST_	
 	/* Initialize fields passed in from the outside */
 	virtual void InitStep(void);
@@ -103,10 +94,6 @@ protected:
 	/* cohesive surface potentials */
 	iArrayT fNumStateVariables;
 	pArrayT<SurfacePotentialT*> fSurfPots;
-#ifndef _SIERRA_TEST_
-	pArrayT<TiedPotentialBaseT**> fTiedPots;
-	TiedPotentialBaseT* tiedpot;
-#endif
 
 #ifndef _SIERRA_TEST_
 	/** state variable storage array. 
@@ -123,8 +110,6 @@ protected:
 	dArray2DT fStateVariables;
 	dArray2DT fStateVariables_last;
 #endif
-
-	const GlobalT::StateT& fRunState;
 
 	/** incremental heat sources for each element block */
 	ArrayT<dArray2DT> fIncrementalHeat;
@@ -144,13 +129,15 @@ protected:
 	/* variables for calculating nodal info */
 	/* Added by cjkimme 11/07/01 */
 	bool fCalcNodalInfo;
-	int fNodalInfoCode, iTiedFlagIndex;
+	int fNodalInfoCode;
 	dArray2DT fNodalQuantities;
-	iArrayT iBulkGroups;
+	int iBulkGroup;
 	
 	/* if nodes are tied, keep track of free nodes per element */
 	Array2DT<bool> freeNodeQ, freeNodeQ_last;
 	
+	/* if nodes are constrained by symmetry, so be it */
+	static bool fModeIQ;
 };
 
 } // namespace Tahoe 

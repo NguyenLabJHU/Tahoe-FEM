@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.19 2002-11-07 21:32:01 sawimme Exp $ */
+/* $Id: ComparatorT.cpp,v 1.19.4.1 2003-03-30 17:47:20 paklein Exp $ */
 #include "ComparatorT.h"
 
 #include <iostream.h>
@@ -111,35 +111,87 @@ void ComparatorT::BatchFileCommand(const StringT& command, ifstreamT& batch)
 
 void ComparatorT::RunJob(ifstreamT& in, ostream& status)
 {
-#pragma unused(status)
+	const char caller[] = "ComparatorT::RunJob";
 
-	/* append to list of files */
-	fFiles.Append(in.filename());
+	/* check for multi-Tahoe files */
+	char job_char = in.next_char(); /* peek at next char */
 
-	/* append to results */
-	cout << "\nSTART: " << in.filename() << '\n';
-	bool result = false;
-	try 
-	  { 
-	    int index; 
-	    // to handle batches from MakeCSE and Translate
-	    if (CommandLineOption ("-ext", index))
-	      result = PassOrFail_Extension (in, fCommandLineOptions[index + 1]);
-	    else
-	      result = PassOrFail(in); 
-	  }
-	catch (ExceptionT::CodeT error) 
-	  {
-	    cout << in.filename() << ": " << "EXCEPTION: " << error << endl;
-	    result = false;
-	  }
-	fPassFail.Append(result);
-	cout << in.filename() << ": " << ((result) ? "PASS" : "FAIL") << '\n';
-	cout << "\nEND: " << in.filename() << '\n';
+	if (job_char != fJobChar) /* standard job file */
+	{
+		/* append to list of files */
+		fFiles.Append(in.filename());
+
+		/* append to results */
+		cout << "\nSTART: " << in.filename() << '\n';
+		bool result = false;
+		try 
+		{ 
+			int index; 
+			// to handle batches from MakeCSE and Translate
+			if (CommandLineOption ("-ext", index))
+				result = PassOrFail_Extension (in, fCommandLineOptions[index + 1]);
+			else
+				result = PassOrFail(in); 
+		}
+		catch (ExceptionT::CodeT error) 
+		{
+	    	cout << in.filename() << ": " << "EXCEPTION: " << error << endl;
+	    	result = false;
+	  	}
+		fPassFail.Append(result);
+		cout << in.filename() << ": " << ((result) ? "PASS" : "FAIL") << '\n';
+		cout << "\nEND: " << in.filename() << '\n';
+
+		/* clear values passed in batch file */
+		fAbsTol_batch = -1.0;
+		fRelTol_batch = -1.0;
+	}
+	else /* multi-Tahoe jobs have embedded input files */
+	{
+		/* path */
+		StringT path;
+		path.FilePath(in.filename());
 	
-	/* clear values passed in batch file */
-	fAbsTol_batch = -1.0;
-	fRelTol_batch = -1.0;
+		/* store values passed in batch file */
+		double abs_tol_batch = fAbsTol_batch;
+		double rel_tol_batch = fRelTol_batch;
+
+		/* clear job char */
+		in >> job_char;
+		
+		/* files listed in the multi-Tahoe file */
+		StringT atom_file, atom_bridge_file, cont_file, cont_bridge_file;
+		in >> atom_file 
+		   >> atom_bridge_file
+		   >> cont_file
+		   >> cont_bridge_file;
+		
+		/* atom file */
+		atom_file.ToNativePathName();
+		atom_file.Prepend(path);
+		ifstreamT atom_in(in.comment_marker(), atom_file);
+		atom_in >> job_char;
+		if (job_char)
+			RunJob(atom_in, status); /* check file */
+		else
+			ExceptionT::GeneralFail(caller, "expecting job char %c not %c from file \"%s\"",
+				fJobChar, job_char, atom_in.filename());
+
+		/* continuum file */
+		cont_file.ToNativePathName();
+		cont_file.Prepend(path);
+		ifstreamT cont_in(in.comment_marker(), cont_file);
+		cont_in >> job_char;
+		if (job_char)
+			RunJob(cont_in, status); /* check file */
+		else
+			ExceptionT::GeneralFail(caller, "expecting job char %c not %c from file \"%s\"",
+				fJobChar, job_char, cont_in.filename());
+
+		/* restore values passed in batch file */
+		fAbsTol_batch = abs_tol_batch;
+		fRelTol_batch = rel_tol_batch;
+	}
 }
 
 /* batch file processing */

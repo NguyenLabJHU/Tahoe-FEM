@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.17 2003-03-19 17:11:21 thao Exp $ */
+/* $Id: ElementT.h,v 1.15 2002-11-25 07:24:51 paklein Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -28,7 +28,7 @@ public:
          kThermalSurface = 12,
          kPenaltyContact = 14,
              kBEMelement = 15,
-          kAugLagContact = 16,
+        kAugLagContact2D = 16,
      kTotLagHyperElastic = 17, /**< total Lagragian large strain solid */
         kMeshFreeElastic = 18,
       kMeshFreeFDElastic = 19,
@@ -49,10 +49,9 @@ kPenaltyContactElement3D = 34,
           kBridgingScale = 35,
                kSimoQ1P0 = 36, /**< Q1P0, finite strain, mixed element */
                kAdhesion = 37, /**< adhesive tractions between surfaces */
-           kParticlePair = 38,  /**< particles with pair interactions */
-/***************************************/
-	     kFSMatForce = 60,    /*UpLag with material force calculation*/
-	     kSSMatForce = 61};   /*small strain with mat force calculation*/
+           kParticlePair = 38  /**< particles with pair interactions */
+	};
+
 	/** stream extraction operator */ 
 	friend istream& operator>>(istream& in, ElementT::TypeT& type);
 };

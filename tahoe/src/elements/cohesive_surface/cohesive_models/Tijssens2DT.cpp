@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.18 2003-03-19 00:53:27 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.17 2003-01-22 00:52:42 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -16,8 +16,6 @@
 using namespace Tahoe;
 
 const int knumDOF = 2;
-const int ku_c = 5;
-const int kIntShift = 6;
 
 /* constructor */
 Tijssens2DT::Tijssens2DT(ifstreamT& in, const double& time_step): 
@@ -54,32 +52,23 @@ Tijssens2DT::Tijssens2DT(ifstreamT& in, const double& time_step):
 }
 
 /* return the number of state variables needed by the model */
-int Tijssens2DT::NumStateVariables(void) const { return 6*knumDOF+1; }
-/* State variable array: 
- * 0..knumDOF - 1 are components of previous step's traction vector
- * knumDOF .. 2 knumDOF - 1 are components of previous step's gap vector
- * 2 knumDOF .. 3 knumDOF - 1 are components of previous step's craze vector
- * Then, they all repeat again to store the previous timestep's after
- * integration.
- * Final one is integral of T dot dDelta
- */
+int Tijssens2DT::NumStateVariables(void) const { return 3*knumDOF+1; }
 
 /* surface potential */ 
 double Tijssens2DT::FractureEnergy(const ArrayT<double>& state) 
 {
-	return state[6*knumDOF]; 
+	return state[6]; 
 }
 
 double Tijssens2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 {
 #pragma unused(jump_u)
 
-	/* There isn't a potential to return. Just return the work done so far */
-	return state[6*knumDOF];
+	return state[6];
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
+const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
@@ -94,95 +83,74 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 	}
 #endif
 
-	if (!qIntegrate)
+	double du_t = jump_u[0]-state[2];
+	double du_n = jump_u[1]-state[3];
+
+	/* see if crazing has been initiated */
+	//if (state[7] < kSmall || (state[8] <= kSmall && (1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall) || (state[5] >= fDelta_n_ccr && state[9] <= kSmall))
+	if (jump_u[1] < 1.01*fsigma_c/fk_n) 
 	{
-		fTraction[0] = state[0];
-		fTraction[1] = state[1];
-		
-		return fTraction;
+	    state[1] += fk_n*du_n;
+	    state[0] += fk_t0*du_t;
+	    /* interpenetration */
+	    if (jump_u[1] < kSmall)
+	   		state[1] += 2.*fk_n*du_n;
 	}
-	else
-	{
-		double du_t = jump_u[0]-state[2];
-		double du_n = jump_u[1]-state[3];
+	else 
+	  	if (state[5] > fDelta_n_ccr)
+	  	{
+	    	if (state[1] - fk_n/fSteps*du_n > kSmall)
+	    	{
+				state[1] -= fk_n/fSteps*du_n;
+				state[0] -= fk_t0*exp(-fc_1)*du_t;
+	    	}
+	    	else
+	      		state[1] = state[0] = 0.;
+	  	}
+	  	else
+	  	{ 
+	    /*NormalTraction*/
+	    	if (state[1] < kSmall) 
+	      		state[1] = 1.1*fsigma_c;
+	    	double Tnp1 = state[1];
+		    SecantMethodT secant(20);
+		    double du_nd = du_n/fTimeStep;//.000001;
+
+	    	secant.Reset(fsigma_c,-state[1]-fk_n*fTimeStep*(du_nd-fDelta_0),1.5*state[1],.5*state[1]-fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))));
+	    	Tnp1 = secant.NextGuess();
+		    while (!secant.NextPoint(Tnp1,Tnp1-state[1]-(fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))))))
+		   		Tnp1 = secant.NextGuess();
+
+		    double du_c = fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1));
+		    state[1] += fk_n*(du_nd*fTimeStep-du_c);
+
+	    	state[5] += du_c;
+	    	state[6] += state[1]*du_n;
+
+	    /* Tangential traction *//*
+	    Tnp1 = state[0];
+	    double fk_t = fk_t0*exp(-fc_1*state[4]/fDelta_n_ccr);
+	    secant.Reset(0,-state[0]-fk_t*(du_t-fTimeStep*fGamma_0*(exp(-fastar*(ftau_c-Tnp1))-exp(-fastar*(ftau_c+Tnp1)))),1.5*state[0],.5*state[0]-fk_t*(du_t-fTimeStep*fGamma_0*(exp(-fastar*(ftau_c-Tnp1))-exp(-fastar*(ftau_c+Tnp1)))));
+	    Tnp1 = secant.NextGuess();
+	    while (!secant.NextPoint(Tnp1,Tnp1-state[0]-fk_t*(du_t-fTimeStep*fGamma_0*(exp(-fastar*(ftau_c-Tnp1))-exp(-fastar*(ftau_c+Tnp1))))))
+	      Tnp1 = secant.NextGuess();
+
+	      state[0] += fk_t*(du_t-fTimeStep*fGamma_0*(exp(-fastar*(ftau_c-Tnp1))-exp(-fastar*(ftau_c+Tnp1))));*/
+
+	    	/*if a craze will fail, request a smaller timestep*/
+			/*not implemented */
 		
-		/* Store previous step's data */
-		/* (You can practically see the for loop writing itself here) */
-		state[kIntShift] = state[0];
-		state[kIntShift+1] = state[1];
-		state[kIntShift+2] = state[2];
-		state[kIntShift+3] = state[3];
-		state[kIntShift+4] = state[4];
-		state[kIntShift+5] = state[5];
-
-		/* see if crazing has been initiated */
-		//if (state[7] < kSmall || (state[8] <= kSmall && (1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall) || (state[5] >= fDelta_n_ccr && state[9] <= kSmall))
-		if (jump_u[1] < 1.01*fsigma_c/fk_n) 
-		{
-		    state[1] += fk_n*du_n;
-		    state[0] += fk_t0*du_t;
-
-		    /* interpenetration */
-		    if (jump_u[1] < kSmall)
-		   		state[1] += 2.*fk_n*du_n;
+		 	double dw_t = fk_t0*exp(-fc_1*state[5]/fDelta_n_ccr)*du_t;
+		 	state[0] += dw_t;
+	   	 	state[6] += state[0]*du_t;
 		}
-		else 
-		  	if (state[5] > fDelta_n_ccr)
-		  	{
-		    	if (state[1] - fk_n/fSteps*du_n > kSmall)
-		    	{
-					state[1] -= fk_n/fSteps*du_n;
-					state[0] -= fk_t0*exp(-fc_1)*du_t;
-		    	}
-		    	else
-		      		state[1] = state[0] = 0.;
-		  	}
-		  	else
-		  	{ 
-		    	/*NormalTraction*/
-		    	if (state[1] < kSmall) 
-		      		state[1] = 1.1*fsigma_c;
-		    	double Tnp1 = state[1];
-			    SecantMethodT secant(20);
-			    double du_nd = du_n/fTimeStep;
 
-		    	secant.Reset(fsigma_c,-state[1]-fk_n*fTimeStep*(du_nd-fDelta_0),1.5*state[1],.5*state[1]-fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))));
-		    	Tnp1 = secant.NextGuess();
-			    while (!secant.NextPoint(Tnp1,Tnp1-state[1]-(fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))))))
-			   		Tnp1 = secant.NextGuess();
+	fTraction[0] = state[0];
+	fTraction[1] = state[1];
+	state[2] = jump_u[0];
+	state[3] = jump_u[1];
 
-			    double du_c = fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1));
-			    state[1] += fk_n*(du_nd*fTimeStep-du_c);
-
-		    	state[5] += du_c;
-		    	state[6*knumDOF] += state[1]*du_n;
-
-			    /* Tangential traction *//*
-			    Tnp1 = state[0];
-		    	double fk_t = fk_t0*exp(-fc_1*state[4]/fDelta_n_ccr);
-		    	secant.Reset(0,-state[0]-fk_t*(du_t-fTimeStep*fGamma_0*(exp(-fastar*(ftau_c-Tnp1))-exp(-fastar*(ftau_c+Tnp1)))),1.5*state[0],.5*state[0]-fk_t*(du_t-fTimeStep*fGamma_0*(exp(-fastar*(ftau_c-Tnp1))-exp(-fastar*(ftau_c+Tnp1)))));
-		    	Tnp1 = secant.NextGuess();
-		    	while (!secant.NextPoint(Tnp1,Tnp1-state[0]-fk_t*(du_t-fTimeStep*fGamma_0*(exp(-fastar*(ftau_c-Tnp1))-exp(-fastar*(ftau_c+Tnp1))))))
-		      		Tnp1 = secant.NextGuess();
-
-		      	state[0] += fk_t*(du_t-fTimeStep*fGamma_0*(exp(-fastar*(ftau_c-Tnp1))-exp(-fastar*(ftau_c+Tnp1))));*/
-
-		    	/*if a craze will fail, request a smaller timestep*/
-				/*not implemented */
-			
-			 	double dw_t = fk_t0*exp(-fc_1*state[5]/fDelta_n_ccr)*du_t;
-			 	state[0] += dw_t;
-		   	 	state[6*knumDOF] += state[0]*du_t;
-			}
-
-		fTraction[0] = state[0];
-		fTraction[1] = state[1];
-		state[2] = jump_u[0];
-		state[3] = jump_u[1];
-
-		return fTraction;
-	}
-	
+	return fTraction;
 }
 
 /* potential stiffness */
@@ -194,22 +162,20 @@ const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
 
+	
 	fStiffness[1] = fStiffness[2] = 0.;
 	if (jump_u[1] <= 1.01*fsigma_c/fk_n) 
 	{
 	    fStiffness[3] = fk_n;
 	    fStiffness[0] = fk_t0;
-
 	    /* interpenetration */
 	    if (jump_u[1] < kSmall)
 	      fStiffness[3] += 2.*fk_n;
 	}
 	else 
-	{
-		double *state_old = state.Pointer(kIntShift);
-	  	if (state_old[5] > fDelta_n_ccr) 
+	  	if (state[5] > fDelta_n_ccr) 
 	  	{
-	   		if (state_old[1] - fk_n/fSteps*(jump_u[1]-state_old[3]) > kSmall)
+	   		if (state[1] - fk_n/fSteps*(jump_u[1]-state[3]) > kSmall)
 	      	{
 	      		fStiffness[3] = -fk_n/fSteps;
 				fStiffness[0] = -fk_t0*exp(-fc_1);
@@ -220,27 +186,47 @@ const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 	  	else
 	  	{
 	   		/*Normal stiffness*/
-	      	double du_n = jump_u[1]-state_old[3];
-	      	if (state_old[1] < kSmall)
-				state_old[1] = 1.1 * fsigma_c;
-				
-			/* Grab current traction */
+	      	double du_n = jump_u[1]-state[3];
+	      	if (state[1] < kSmall)
+				state[1] = 1.1 * fsigma_c;
 		    double Tnp1 = state[1];
-	    	
-	      	if (state_old[1] < 1.01*fsigma_c && du_n > kSmall)
+	      	SecantMethodT secant(20);
+	      
+	      	secant.Reset(fsigma_c,-state[1]-fk_n*(du_n-fTimeStep*fDelta_0),1.5*state[1],.5*state[1]-(fk_n*(du_n-fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1)))));
+	      	Tnp1 = secant.NextGuess();
+	      	while (!secant.NextPoint(Tnp1,Tnp1-state[1]-(fk_n*(du_n-fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1))))))
+				Tnp1 = secant.NextGuess();
+	    
+	      	if (state[1] < 1.01*fsigma_c && du_n > kSmall)
 	      	{ 
-				fStiffness[3] = (Tnp1-state_old[1])/(jump_u[1]-state_old[3]);
+				//RequestNewTimeStep((1.01*fsigma_c/fk_n - state[3])/du_n*fTimeStep);
+				fStiffness[3] = (Tnp1-state[1])/(jump_u[1]-state[3]);
+	      
 	      	}
 	      	else
 	      	{
 	      		fStiffness[3] = fk_n/(1.+fk_n*fTimeStep*fastar*fDelta_0*exp(-fastar*(fsigma_c-Tnp1)));
+
+	      /*Tangential stiffness*//*
+	      Tnp1 = 1.5*state[0];
+	      double du_t = jump_u[0]-state[2];
+	      double fk_t = fk_t0*exp(-fc_1*state[5]/fDelta_n_ccr);
+	      secant.Reset(0,-state[0]-fk_t*du_t,1.,1.-state[0]-fk_t*(du_t-fTimeStep*fGamma_0*(exp(-fastar*(ftau_c-1.))-exp(-fastar*(ftau_c+1.)))));
+	      cout << "New step Tnp1 " << Tnp1 <<" \n";
+	      Tnp1 = secant.NextGuess();
+	      cout << "Tnp1 " << Tnp1 << "\n";
+	      while (!secant.NextPoint(Tnp1,Tnp1-state[0]-fk_t*(du_t-fTimeStep*fGamma_0*(exp(-fastar*(ftau_c-Tnp1))-exp(-fastar*(ftau_c+Tnp1))))))
+		{Tnp1 = secant.NextGuess();
+		cout << "Tnp1 " << Tnp1 << "\n";}
+
+	      fStiffness[0] = fk_t/(1+fTimeStep*fGamma_0*fastar*(exp(-fastar*(ftau_c-Tnp1))+exp(-fastar*(ftau_c+Tnp1))));
+				      */
 		    }
 	      	
-	      	double fk_t = fk_t0*exp(-fc_1*state[5+kIntShift]/fDelta_n_ccr);
+	      	double fk_t = fk_t0*exp(-fc_1*state[5]/fDelta_n_ccr);
 	      	fStiffness[0] = fk_t;
-	  	}
-	}
-	  
+	  }
+
 	return fStiffness;
 
 }
@@ -255,10 +241,10 @@ SurfacePotentialT::StatusT Tijssens2DT::Status(const dArrayT& jump_u,
 #endif
        
 	//	if ((1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall)
-	if (state[1+kIntShift] < 1.1*fsigma_c)
+	if (state[1] < 1.1*fsigma_c)
 	         return Precritical;
 	else 
-	  	if (state[5+kIntShift] >= fDelta_n_ccr) 
+	  	if (state[5] >= fDelta_n_ccr) 
 	    	return Failed;
 	  	else
 	    	return Critical;
@@ -291,6 +277,9 @@ void Tijssens2DT::Print(ostream& out) const
 #endif
 }
 
+/* returns the number of variables computed for nodal extrapolation
+* during for element output, ie. internal variables. Returns 0
+* by default */
 int Tijssens2DT::NumOutputVariables(void) const { return 4; }
 
 void Tijssens2DT::OutputLabels(ArrayT<StringT>& labels) const
@@ -309,9 +298,9 @@ void Tijssens2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& sta
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	
-	output[0] = (jump_u[1]-state[9])/fTimeStep;
-	output[1] = state[10];
-	output[2] = state[11];
+	output[0] = (jump_u[1]-state[3])/fTimeStep;
+	output[1] = state[4];
+	output[2] = state[5];
 	output[3] = 0;
 }
 

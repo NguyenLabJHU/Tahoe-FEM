@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.12 2003-03-02 19:02:49 paklein Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.11 2002-10-20 22:49:30 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
@@ -288,13 +288,22 @@ void XDOF_ManagerT::EquationNumbers(int group, AutoArrayT<iArray2DT*>& equations
 /* remove external DOF's from first slot of each row */
 void XDOF_ManagerT::CheckEquationNumbers(ostream& out, iArray2DT& eqnos)
 {
+//NOTE: The augmented Lagrangian formulation puts a zero on the
+//      diagonal of the unfactorized matrix. This might be OK if
+//      that equation isn't exactly the first one. Check this and
+//      swap equations with any of the displacement DOF's connected
+//      to the aug. lag. DOF.
+
 	/* quick exit */
 	if (fDOFElements.Length() == 0) return;
 
 	out << "\n XDOF_ManagerT::CheckEquationNumbers: swapped node/tag's:\n\n";
 
+	/* output formatting */
+	const int num_cols = 3;
+	int col = 0;
+
 	/* put external equation number after displacement equations */
-	iArray2DT elem_u_eqnos;
 	int set_index =-1;
 	for (int i = 0; i < fDOFElements.Length(); i++)
 		for (int set = 0; set < fNumTagSets[i]; set++)
@@ -310,16 +319,13 @@ void XDOF_ManagerT::CheckEquationNumbers(ostream& out, iArray2DT& eqnos)
 
 				/* constraint connectivities */
 				const iArray2DT& connects = fDOFElements[i]->DOFConnects(set);
-
-				iArrayT elem, elem_u;
+				iArrayT elem;
 				iArrayT eq_u;
 				int nen = connects.MinorDim();
-				elem_u_eqnos.Dimension(nen-1, eqnos.MinorDim()); /* just u nodes */
 				int x_node = 0;
 				for (int j = 0; j < connects.MajorDim(); j++)
 				{
 					connects.RowAlias(j, elem);
-					elem_u.Set(elem.Length() - 1, elem.Pointer());
 					if (elem[nen-1] < 0 ) 
 					{ 	/* no xdof exists for this u node */
 						out << "\n XDOF_ManagerT: found u node w/o xdof: ";
@@ -333,50 +339,49 @@ void XDOF_ManagerT::CheckEquationNumbers(ostream& out, iArray2DT& eqnos)
 						throw ExceptionT::kGeneralFail;
 					} else {
 		
-						/* collect element equations */
-						elem_u_eqnos.RowCollect(elem_u, eqnos);
-						
-						/* find max eq in element */
-						int node_max = -1;
-						int  dof_max = -1;
-						int   eq_max = -1;
-						for (int n = 0; n < elem_u_eqnos.MajorDim(); n++)
-							for (int m = 0; m < elem_u_eqnos.MinorDim(); m++)
-								if (elem_u_eqnos(n,m) > eq_max) {
-									node_max = n;
-									dof_max = m;
-									eq_max = elem_u_eqnos(n,m);
-								}
-		
+						/* get equations from 1st node in connect */
+						eqnos.RowAlias(elem[0], eq_u); // connects are 1,...
+
 						/* find highest equation of the node */
-						if (eq_max < 0)
+						int max_eq = eq_u.Max();
+						if (max_eq < 0)
 						{	/* xdof has been assigned to a node with ess.bcs*/
 							out << "\n XDOF_ManagerT: no active u equations found with xdof tag ";
 							out << elem[nen-1] << '\n';
 							out << " connectivity: ";
 							out << elem.no_wrap() << '\n';
 							out << endl;
-						} else if (eq_max > XDOF_eqnos(x_node,0)) {
+						} else {
 
 							/* swap */
-							eqnos(elem[node_max], dof_max) = XDOF_eqnos(x_node,0);
-							XDOF_eqnos(x_node,0) = eq_max;
+							eq_u.ChangeValue(max_eq, XDOF_eqnos(x_node,0));
+							XDOF_eqnos(x_node,0) = max_eq;
 		
-							out << '{' << setw(kIntWidth) << elem[node_max]+1 << ',' 
-							           << setw(kIntWidth) << dof_max+1 << "}  <-->  "
-							           << setw(kIntWidth) << elem[nen-1]+1 << '\n';
+							out << setw(kIntWidth) << elem[0];
+							out << setw(kIntWidth) << elem[nen-1];
+							if (++col == num_cols)
+							{
+								out << '\n';
+								col = 0;
+							}
+							else
+							out << setw(kIntWidth) << " ";
+	
 						}
-
 						x_node++;
 					}
 				}
 			}
-			else {
+			else
+			{
 				cout << "\n XDOF_ManagerT::CheckNewEquationNumbers: no check for NDOF > 1: " 
 				     << XDOF_eqnos.MinorDim() << endl;
 			}
 		}
-	}
+	
+	/* mid-line */
+	if (col != 0) out << '\n';
+}
 
 /* resolve index of the tag set */
 int XDOF_ManagerT::TagSetIndex(const DOFElementT* group, int tag_set) const

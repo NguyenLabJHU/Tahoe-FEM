@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.36 2003-01-27 23:10:20 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.36.2.14 2003-03-30 21:25:45 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -31,6 +31,13 @@
 #include "OutputBaseT.h"
 #include "CommunicatorT.h"
 
+//TEMP - bridging scale Tahoe
+#include "FEManagerT_bridging.h"
+#include "TimeManagerT.h"
+#include "NodeManagerT.h"
+#include "dSPMatrixT.h"
+#include "FieldT.h"
+
 using namespace Tahoe;
 
 /* Constructor */
@@ -54,58 +61,84 @@ FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
 /* MUST be overloaded */
 void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 {
-	/* run serial by default */
-	int size = fComm.Size();
-	int run_option = 0;
-	if (size > 1) run_option = 1;
+	const char caller[] = "FEExecutionManagerT::RunJob";
+
+	/* mode - job by default */
+	ModeT mode = kJob;
 
 	/* check command line options */
 	for (int i = 0; i < fCommandLineOptions.Length(); i++)
 	{
 		if (fCommandLineOptions[i] == "-decomp")
-			run_option = 3;
+			mode = kDecompose;
 		else if (fCommandLineOptions[i] == "-join")
-			run_option = 4;
+			mode = kJoin;
 	}
 
-	switch (run_option)
+	/* check second char */
+	if (mode == kJob) {
+		
+		/* peek at next char */
+		char a = in.next_char();
+		if (a == fJobChar) {
+			mode = kBridging;
+			in >> a; /* clear character */	
+		}
+	}
+
+	switch (mode)
 	{
-		case 0:
-			cout << "\n RunJob_serial: " << in.filename() << endl;
-			RunJob_serial(in, status);
+		case kJob:
+		{
+			if (fComm.Size() == 1) {
+				cout << "\n RunJob_serial: " << in.filename() << endl;
+				RunJob_serial(in, status);
+			} else {
+				cout << "\n RunJob_parallel: " << in.filename() << endl;
+				RunJob_parallel(in, status);
+			}
 			break;
-		case 1:
-			cout << "\n RunJob_parallel: " << in.filename() << endl;
-			RunJob_parallel(in, status);
-			break;
-		case 3:
+		}
+		case kDecompose:
 		{
 			cout << "\n RunDecomp_serial: " << in.filename() << endl;
-			if (size > 1) cout << " RunDecomp_serial: SERIAL ONLY" << endl;
+			if (fComm.Size() > 1) cout << " RunDecomp_serial: SERIAL ONLY" << endl;
 				
-			if (fComm.Rank() == 0)
-				RunDecomp_serial(in, status);
+			/* decompose using rank 0 */
+			if (fComm.Rank() == 0) RunDecomp_serial(in, status);
+
+			/* synch */
 			fComm.Barrier();
 			break;
 		}
-		case 4:
+		case kJoin:
 		{
 			cout << "\n RunJoin_serial: " << in.filename() << endl;
-			if (size > 1) cout << " RunJoin_serial: SERIAL ONLY" << endl;
+			if (fComm.Size() > 1) cout << " RunJoin_serial: SERIAL ONLY" << endl;
 			
-			if (fComm.Rank() == 0)
-				RunJoin_serial(in, status);
+			/* join using rank 0 */
+			if (fComm.Rank() == 0) RunJoin_serial(in, status);
+
+			/* synch */
 			fComm.Barrier();
+			break;
+		}
+		case kBridging:
+		{
+			cout << "\n RunBridging: " << in.filename() << endl;
+			if (fComm.Size() > 1) ExceptionT::GeneralFail(caller, "RunBridging for SERIAL ONLY");
+
+			RunBridging(in, status);
 			break;
 		}
 		default:
-			ExceptionT::GeneralFail("FEExecutionManagerT::RunJob", "unknown option: %d", run_option);
+			ExceptionT::GeneralFail("FEExecutionManagerT::RunJob", "unknown mode: %d", mode);
 	}
 }
 
 /**********************************************************************
-* Protected
-**********************************************************************/
+ * Protected
+ **********************************************************************/
 
 bool FEExecutionManagerT::AddCommandLineOption(const char* str)
 {
@@ -195,6 +228,304 @@ bool FEExecutionManagerT::RemoveCommandLineOption(const char* str)
 /**********************************************************************
 * Private
 **********************************************************************/
+
+/* 2 Tahoe bridging calculation */
+void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
+{
+	const char caller[] = "FEExecutionManagerT::RunBridging";
+	StringT path;
+	path.FilePath(in.filename());
+
+	/* read atomistic and continuum source files */
+	StringT atom_file, bridge_atom_file;
+	in >> atom_file
+	   >> bridge_atom_file;
+	   
+	StringT continuum_file, bridge_continuum_file;
+	in >> continuum_file
+	   >> bridge_continuum_file;
+
+	/* streams for atomistic Tahoe */
+	atom_file.ToNativePathName();
+	atom_file.Prepend(path);
+	ifstreamT atom_in('#', atom_file);
+	if (atom_in.is_open())
+		cout << " atomistic parameters file: " << atom_file << endl;
+	else
+		ExceptionT::BadInputValue(caller, "file not found: %s", atom_file.Pointer());
+	StringT atom_out_file;
+	atom_out_file.Root(atom_in.filename());
+	atom_out_file.Append(".out");
+	ofstreamT atom_out;
+	atom_out.open(atom_out_file);
+
+	bridge_atom_file.ToNativePathName();
+	bridge_atom_file.Prepend(path);
+	ifstreamT bridge_atom_in('#', bridge_atom_file);
+	if (bridge_atom_in.is_open())
+		cout << " atomistic bridging parameters file: " << bridge_atom_file << endl;
+	else
+		ExceptionT::BadInputValue(caller, "file not found: %s", bridge_atom_file.Pointer());
+
+	/* streams for continuum Tahoe */
+	continuum_file.ToNativePathName();
+	continuum_file.Prepend(path);
+	ifstreamT continuum_in('#', continuum_file);
+	if (continuum_in.is_open())
+		cout << " continuum parameters file: " << continuum_file << endl;
+	else
+		ExceptionT::BadInputValue(caller, "file not found: %s", continuum_file.Pointer());
+	StringT continuum_out_file;
+	continuum_out_file.Root(continuum_in.filename());
+	continuum_out_file.Append(".out");
+	ofstreamT continuum_out;
+	continuum_out.open(continuum_out_file);
+
+	bridge_continuum_file.ToNativePathName();
+	bridge_continuum_file.Prepend(path);
+	ifstreamT bridge_continuum_in('#', bridge_continuum_file);
+	if (bridge_continuum_in.is_open())
+		cout << " continuum bridging parameters file: " << bridge_continuum_file << endl;
+	else
+		ExceptionT::BadInputValue(caller, "file not found: %s", bridge_continuum_file.Pointer());
+
+	/* brigding solver log file */
+	StringT log_file;
+	log_file.Root(in.filename());
+	log_file.Append(".log");
+	ofstreamT log_out;
+	log_out.open(log_file);
+
+	clock_t t0 = 0, t1 = 0, t2 = 0;
+
+	/* start day/date info */
+	time_t starttime;
+	time(&starttime);
+
+	int phase; // job phase
+	try
+	{
+		t0 = clock();
+
+		/* construction */
+		phase = 0;
+		char job_char;
+		atom_in >> job_char;
+		FEManagerT_bridging atoms(atom_in, atom_out, fComm, bridge_atom_in);
+		atoms.Initialize();
+
+		continuum_in >> job_char;
+		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, bridge_continuum_in);
+		continuum.Initialize();
+
+		/* configure ghost nodes */
+		int group = 0;
+		StringT bridging_field = "displacement";
+		atoms.InitGhostNodes();
+		continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
+		continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager());
+
+#if 0
+		/* cross coupling matricies */
+		int neq_A = atoms.NodeManager()->Field(bridging_field)->NumEquations();
+		int neq_C = continuum.NodeManager()->Field(bridging_field)->NumEquations();
+		dSPMatrixT K_AC(neq_A, neq_C, 0), K_G_NG;
+		dSPMatrixT K_CA(neq_C, neq_A, 0), G_Interpolation;
+		dArrayT F_A(neq_A), F_C(neq_C);
+		continuum.InterpolationMatrix(bridging_field, G_Interpolation);
+#endif
+
+		t1 = clock();
+
+		/* solution */
+		phase = 1;
+
+		/* time managers */
+		TimeManagerT* atom_time = atoms.TimeManager();
+		TimeManagerT* continuum_time = continuum.TimeManager();
+
+		dArray2DT field_at_ghosts;
+		atom_time->Top();
+		continuum_time->Top();
+		int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
+		while (atom_time->NextSequence() && continuum_time->NextSequence())
+		{	
+			/* set to initial condition */
+			atoms.InitialCondition();
+			continuum.InitialCondition();
+
+			/* read restart information */
+			atoms.ReadRestart();
+			continuum.ReadRestart();
+
+			/* loop over time increments */
+			AutoArrayT<int> loop_count, atom_iter_count, continuum_iter_count;
+			bool seq_OK = true;
+			while (seq_OK && 
+				atom_time->Step() &&
+				continuum_time->Step()) //TEMP - same clock
+			{
+				log_out << "\n Step = " << atom_time->StepNumber() << '\n'
+				        << " Time = " << atom_time->Time() << endl;
+			
+				/* running status flag */
+				ExceptionT::CodeT error = ExceptionT::kNoError;		
+
+				/* initialize step */
+				if (error == ExceptionT::kNoError) error = atoms.InitStep();
+				if (error == ExceptionT::kNoError) error = continuum.InitStep();
+			
+				/* solver phase status */
+				const iArray2DT& atom_phase_status = atoms.SolverPhasesStatus();
+				const iArray2DT& continuum_phase_status = continuum.SolverPhasesStatus();
+
+#if 0
+				/* set cross-coupling */
+				atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
+				K_AC.MultAB(K_G_NG, G_Interpolation);
+				K_CA.Transpose(K_AC);
+#endif
+		
+				/* loop until both solved */
+				int group_num = 0;
+				double atoms_res, continuum_res, combined_res_0 = 0.0;
+				int count = 0;
+				int atom_last_iter, atom_iter, continuum_last_iter, continuum_iter;
+				atom_last_iter = atom_iter = continuum_last_iter = continuum_iter = 0;
+				while (count == 0 || (atom_iter > 0 || continuum_iter > 0)) //TEMP - assume just one phase
+
+//				while (1 || error == ExceptionT::kNoError &&
+//					(atom_phase_status(0, FEManagerT::kIteration) > 0 ||
+//					continuum_phase_status(0, FEManagerT::kIteration) > 0)) //TEMP - assume just one phase
+				{
+					count++;
+
+					/* solve atoms */
+					if (1 || error == ExceptionT::kNoError) {
+						atoms.ResetCumulativeUpdate(group);
+						error = atoms.SolveStep();
+					}
+
+#if 0
+					/* set cross-coupling */
+					atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
+					K_AC.MultAB(K_G_NG, G_Interpolation);
+					K_CA.Transpose(K_AC);
+#endif
+					
+					/* apply solution to continuum */
+					continuum.ProjectField(bridging_field, *atoms.NodeManager());
+#if 0
+					K_CA.Multx(atoms.CumulativeUpdate(group_num), F_C);
+					F_C *= -1.0;
+					continuum.SetExternalForce(group_num, F_C);
+#endif
+					continuum.FormRHS(group_num);
+					continuum_res = continuum.Residual(group_num).Magnitude(); //serial
+					
+					/* solve continuum */
+					if (1 || error == ExceptionT::kNoError) {
+						continuum.ResetCumulativeUpdate(group);
+						error = continuum.SolveStep();
+					}
+				
+					/* apply solution to atoms */
+					continuum.InterpolateField(bridging_field, field_at_ghosts);
+					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
+#if 0
+					K_AC.Multx(continuum.CumulativeUpdate(group_num), F_A);
+					F_A *= -1.0;
+					atoms.SetExternalForce(group_num, F_A);
+#endif
+					atoms.FormRHS(group_num);
+					atoms_res = atoms.Residual(group_num).Magnitude(); //serial
+
+					/* reset the reference errors */
+					if (count == 1) {
+						combined_res_0 = atoms_res + continuum_res;
+						atoms.SetReferenceError(group_num, combined_res_0);
+						continuum.SetReferenceError(group_num, combined_res_0);
+					}
+					
+					/* log residual */
+					log_out << setw(kIntWidth) << count << ": "
+					        << setw(d_width) << atoms_res << " (A) | "
+					        << setw(d_width) << continuum_res << " (C) | "
+					        << setw(d_width) << (atoms_res + continuum_res)/combined_res_0 << endl;
+
+					/* number of interations in last pass */
+					int atom_total_iter = atom_phase_status(0, FEManagerT::kIteration);
+					int continuum_total_iter = continuum_phase_status(0, FEManagerT::kIteration);
+					atom_iter = atom_total_iter - atom_last_iter;
+					continuum_iter = continuum_total_iter - continuum_last_iter;
+					atom_last_iter = atom_total_iter;
+					continuum_last_iter = continuum_total_iter;
+				}
+				
+				loop_count.Append(count);
+				atom_iter_count.Append(atom_last_iter);
+				continuum_iter_count.Append(continuum_last_iter);
+			
+				/* close step */
+				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();
+				if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
+
+				/* check for error */
+				if (0)
+//				if (error != ExceptionT::kNoError)
+					ExceptionT::GeneralFail(caller, "hit error %d", error);
+				//TEMP - no error recovery yet
+			}
+			
+			cout << "\n Number of bridging iterations:\n";
+			cout << setw(kIntWidth) << "step" 
+			     << setw(kIntWidth) << "cycles" 
+			     << setw(kIntWidth) << "a-its."
+			     << setw(kIntWidth) << "c-its."<< '\n';
+			for (int i = 0; i < loop_count.Length(); i++)
+				cout << setw(kIntWidth) << i+1
+				     << setw(kIntWidth) << loop_count[i]
+				     << setw(kIntWidth) << atom_iter_count[i]
+				     << setw(kIntWidth) << continuum_iter_count[i] << '\n';
+		}
+
+		t2 = clock();
+	}
+
+	/* job failure */
+	catch (ExceptionT::CodeT code)
+	{
+		status << "\n \"" << in.filename() << "\" exit on exception during the\n";
+		if (phase == 0)
+		{
+			status << " construction phase. Check the input file for errors." << endl;
+		
+			/* echo some lines from input */
+			if (code == ExceptionT::kBadInputValue) Rewind(in, status);
+		}
+		else
+			status << " solution phase.";
+		
+		/* fix clock values */
+		if (t1 == 0) t1 = clock();
+		if (t2 == 0) t2 = clock();		
+
+		atom_out << endl;
+		continuum_out << endl;
+	}
+
+	/* stop day/date info */
+	time_t stoptime;
+	time(&stoptime);
+
+	/* output timing */
+	status << "\n     Filename: " << in.filename() << '\n';
+	status <<   "   Start time: " << ctime(&starttime);
+	status <<   " Construction: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
+	status <<   "     Solution: " << double(t2 - t1)/CLOCKS_PER_SEC << " sec.\n";
+	status << "    Stop time: " << ctime(&stoptime);
+	status << "\n End Execution\n" << endl;
+}
 
 /* standard serial driver */
 void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
@@ -290,7 +621,7 @@ void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
 	out <<   " Construction: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
 	out <<   "     Solution: "   << double(t2 - t1)/CLOCKS_PER_SEC << " sec.\n";
 	status << "    Stop time: " << ctime(&stoptime);
-out   << "    Stop time: " << ctime(&stoptime);
+	out   << "    Stop time: " << ctime(&stoptime);
 
 	status << "\n End Execution\n" << endl;
 	out    << "\n End Execution\n" << endl;

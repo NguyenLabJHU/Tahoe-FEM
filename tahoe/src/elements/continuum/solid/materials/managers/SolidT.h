@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.27 2003-03-19 17:09:02 thao Exp $ */
+/* $Id: SolidT.h,v 1.24.2.2 2003-02-21 01:17:48 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 
 #ifndef _MATERIAL_T_H_
@@ -27,13 +27,14 @@ public:
            kJ2QL = 10,
        kDPSSKStV = 11,
          kLJTr2D = 12,
-       kLJFCC111 = 13,
+          kHex2D = 13,
          kFCCEAM = 14,
 kmodCauchyBornDC = 15,
             kVIB = 16,
      kIsoVIBSimo = 17,
     kIsoVIBOgden = 18,
    kIsoVIBSimoJ2 = 19,
+            kFCC = 20,
     kFossumSSIso = 26,
 kThermoViscoPlastic = 30,
        kPovirk2D = 31,
@@ -49,19 +50,14 @@ kBCJHypoIsoDmgYC = 47,
 kLocXtalPlastFp_C = 56,
  kGrdXtalPlastFp = 57,
           kRGVIB = 60,
-	kRGSplit = 61,
+   kRGNeoHookean = 61,
    kSVNeoHookean = 62,
        kFDSVKStV = 63,
        kSSSVKStV = 64,
-       kOgdenMat = 65,
   kLocJ2SSNlHard = 70,
   kGrdJ2SSNlHard = 71,
      kABAQUS_BCJ = 80,
-kABAQUS_VUMAT_BCJ = 90,
-kSIERRA_Hypoelastic = 110,
- kSIERRA_Iso_Geomat = 111
-};
-
+kABAQUS_VUMAT_BCJ = 90};
 	/* stream extraction operator */ 
 	friend istream& operator>>(istream& in, SolidT::TypeT& code);
 

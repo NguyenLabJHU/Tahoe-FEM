@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.12 2003-01-29 07:35:21 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.12.2.3 2003-02-12 23:40:58 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -72,9 +72,13 @@ public:
 	int NumSD(void) const;
 	int NumFields(void) const { return fFields.Length(); };
 	
-	/** return a pointer to the field with the specified name. returns NULL
+	/** return a const pointer to the field with the specified name. returns NULL
 	 * if a field with the given name is not found. */
 	const FieldT* Field(const char* name) const;
+
+	/** return a non-const pointer to the field with the specified name. returns NULL
+	 * if a field with the given name is not found. */
+	FieldT* Field(const char* name);
 
 	/** symmetry/structure of the stiffness matrix for the given group */
 	virtual GlobalT::SystemTypeT TangentType(int group) const;
@@ -166,6 +170,10 @@ public:
 
 	/** update the active degrees of freedom */
 	virtual void Update(int group, const dArrayT& update);
+	
+	/** update the current configuration. This is called by NodeManagerT::Update
+	 * and does not usually need to be called explicitly. */
+	void UpdateCurrentCoordinates(void);
 
 	/** copy nodal information. Copy all field information from the source 
 	 * nodes to the targets. The current coordinates are updated, but the
@@ -352,6 +360,15 @@ private:
 };
 
 /* inlines */
+
+/* return a const pointer to the field with the specified name */
+inline FieldT* NodeManagerT::Field(const char* name)
+{
+	/* const this */
+	const NodeManagerT* const this_ = (const NodeManagerT* const) this;
+	const FieldT* field = this_->Field(name);
+	return (FieldT*) field;
+}
 
 /* reference configuration */
 inline const dArray2DT& NodeManagerT::InitialCoordinates(void) const

@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.h,v 1.5 2003-03-25 01:22:41 saubry Exp $ */
+/* $Id: ParadynPairT.h,v 1.4 2002-12-05 07:50:45 paklein Exp $ */
 #ifndef _PARADYN_PAIR_T_H_
 #define _PARADYN_PAIR_T_H_
 
@@ -91,7 +91,7 @@ private:
 	dArray2DT fCoefficients;
 	
 	/** \name static parameters 
-	 * There parameters are used during evaluation of the static interaction 
+	 * There parameters are use during evaluation of the static interaction 
 	 * functions. These are copied to static when a function pointer is requested */
 	/*@{*/
 	static int     s_nr;
@@ -102,7 +102,4 @@ private:
 
 } /* namespace Tahoe */
 
-#endif /* _PARADYN_PAIR_T_H_ */
-
-
-
+#endif /* _HARMONIC_PAIR_T_H_ */

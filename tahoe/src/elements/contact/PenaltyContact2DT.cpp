@@ -1,5 +1,6 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.9 2003-03-02 18:59:07 paklein Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.8 2003-01-29 07:34:30 paklein Exp $ */
 /* created: paklein (12/11/1997) */
+
 #include "PenaltyContact2DT.h"
 
 #include <math.h>
@@ -30,9 +31,21 @@ PenaltyContact2DT::PenaltyContact2DT(const ElementSupportT& support, const Field
 	}
 }
 
+/* print/compute element output quantities */
+void PenaltyContact2DT::WriteOutput(void)
+{
+	/* inherited */
+	Contact2DT::WriteOutput();
+
+	/* contact statistics */
+	ostream& out = ElementSupport().Output();
+	out << " Number of contact interactions = " << fnum_contact << '\n';
+	out << " Maximum penetration depth      = " << fh_max << '\n';
+}
+
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
 
 /* print element group data */
 void PenaltyContact2DT::PrintControlData(ostream& out) const
@@ -151,8 +164,8 @@ void PenaltyContact2DT::RHSDriver(void)
 	const dArray2DT& disp = Field()[0]; /* displacements */
 
 	/* reset tracking data */
-	int num_contact = 0;
-	double h_max = 0.0;
+	fnum_contact = 0;
+	fh_max = 0.0;
 
 	/* loop over active elements */
 	dArrayT tangent(NumSD());
@@ -189,8 +202,8 @@ void PenaltyContact2DT::RHSDriver(void)
 		if (h < 0.0)
 		{
 			/* tracking data */
-			num_contact++;
-			h_max = (h < h_max) ? h : h_max;
+			fnum_contact++;
+			fh_max = (h < fh_max) ? h : fh_max;
 
 			/* penetration force */
 			double dphi =-fK*h;
@@ -215,12 +228,13 @@ void PenaltyContact2DT::RHSDriver(void)
 					
 			/* get equation numbers */
 			fEqnos[0].RowAlias(i, eqnos);
-
+			
 			/* assemble */
 			ElementSupport().AssembleRHS(Group(), fRHS, eqnos);
 		}
 	}
-
-	/* set tracking */
-	SetTrackingData(num_contact, h_max);
 }
+
+/***********************************************************************
+* Private
+***********************************************************************/

@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.8 2002-12-13 02:42:55 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.8.2.1 2003-02-15 02:38:16 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
@@ -87,7 +87,10 @@ SolverT::SolutionStatusT NLSolverX::Solve(int num_iterations)
 		/* force new tangent */
 		if (fMinFreshTangents > 0 &&
 			fNumIteration < fMinFreshTangents)
+		{
 			fFormNewTangent = 1;
+			fLHS_update = true;
+		}
 			
 		if (fFormNewTangent)
 		{
@@ -101,7 +104,7 @@ SolverT::SolutionStatusT NLSolverX::Solve(int num_iterations)
 			cout << " re-use :" << setw(3) << reuse_count <<  ": ";
 		}
 				
-		error = SolveAndForm(fFormNewTangent, true);
+		error = SolveAndForm();
 		solutionflag = ExitIteration(error);
 
 		/* check for negative pivots */
@@ -114,6 +117,7 @@ SolverT::SolutionStatusT NLSolverX::Solve(int num_iterations)
 			cout << "\n NLSolverX: overriding kFailed on quasi-Newton step" << endl;
 			solutionflag = kContinue;
 			fFormNewTangent = 1;
+			fLHS_update = true;
 		}
 		/* tangent re-use limit and fail recovery */
 		else if (solutionflag == kContinue &&
@@ -127,15 +131,18 @@ SolverT::SolutionStatusT NLSolverX::Solve(int num_iterations)
 				fFEManager.Update(Group(), fLastUpdate);
 			}
 
-			fFormNewTangent = 1;				
+			fFormNewTangent = 1;
+			fLHS_update = true;				
 		}
 		else
 			fFormNewTangent = 0;
+			fLHS_update = false;
 				
 		/* don't re-use if negative pivot */
 		if (negative_pivot)
 		{
 			fFormNewTangent = 1;
+			fLHS_update = false;
 			cout << "\n NLSolverX: no re-use for negative pivot" << endl;
 		}
 				
@@ -174,41 +181,9 @@ SolverT::SolutionStatusT NLSolverX::Solve(int num_iterations)
 	catch (ExceptionT::CodeT code) { return kFailed; }
 }
 
-
-/* form and solve the equation system */
-double NLSolverX::SolveAndForm(bool newtangent, bool clear_LHS)
-{		
-	/* form the stiffness matrix */
-	if (newtangent)
-	{
-		if (clear_LHS) fLHS->Clear();
-		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);
-	}
-		 		
-	/* solve equation system */
-	if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
-	//double updatemag = fRHS.Magnitude(); //for alternate error measures
-
-	/* update system */
-	fFEManager.Update(Group(), fRHS);
-	
-	/* keep last update for reset */
-	fLastUpdate = fRHS;
-							
-	/* compute new residual */
-	fRHS = 0.0;
-	fFEManager.FormRHS(Group());
-
-	/* combine residual magnitude with update magnitude */
-	/* e = a1 |R| + a2 |delta_d|                        */
-	//not implemented!
-			
-	return( fRHS.Magnitude() );
-}
-
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* relax system */
 NLSolver::SolutionStatusT NLSolverX::Relax(int newtancount)
@@ -246,7 +221,7 @@ NLSolver::SolutionStatusT NLSolverX::Relax(int newtancount)
 			cout << " re-use :" << setw(3) << reuse_count <<  ": ";
 		}
 			
-		error = SolveAndForm(fFormNewTangent, true);
+		error = SolveAndForm();
 		solutionflag = ExitIteration(error);
 
 		/* check for negative pivots */

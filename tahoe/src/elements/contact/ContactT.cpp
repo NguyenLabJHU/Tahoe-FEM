@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.12 2003-03-02 18:55:11 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.10 2002-11-21 01:13:36 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -16,8 +16,7 @@ using namespace Tahoe;
 /* constructor */
 ContactT::ContactT(const ElementSupportT& support, const FieldT& field, int numfacetnodes):
 	ElementBaseT(support, field),
-	fNumFacetNodes(numfacetnodes),
-	fnum_contact(-1), fh_max(1)
+	fNumFacetNodes(numfacetnodes)
 {
 
 }
@@ -58,14 +57,6 @@ void ContactT::Initialize(void)
 	
 	/* set initial contact configuration */
 	SetContactConfiguration();	
-}
-
-/* initialize current time increment. Reset the contact tracking data. */
-void ContactT::InitStep(void)
-{
-	/* reset tracking data */
-	fnum_contact = -1;
-	fh_max = 1;
 }
 
 /* solution calls */
@@ -109,15 +100,6 @@ void ContactT::WriteOutput(void)
 			out << '\n';
 		}
 		out << endl;
-	}
-
-	/* write tracking data */
-	if (fnum_contact != -1) {
-		out << " Number of contact interactions = " << fnum_contact << '\n';
-		out << " Maximum penetration depth      = " << fh_max << '\n';
-	} else { /* not set */
-		out << " Number of contact interactions = --\n";
-		out << " Maximum penetration depth      = --\n";	
 	}
 }
 
@@ -252,7 +234,7 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	in >> striker_spec_mode;
 	switch (striker_spec_mode)
 	{
-		case kNodeSetList: /* read strikers from node sets */
+		case kListStrikers: /* read strikers */
 			ReadStrikers(in, out);
 			break;
 		
@@ -263,10 +245,6 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		case kAllStrikers:  /* shallow striker coords */
 			fStrikerCoords.Alias(ElementSupport().CurrentCoordinates());
 			out << "\n Striker nodes: ALL\n";	
-			break;
-
-		case kSideSetList: /* collect strikers from side sets */
-			StrikersFromSideSets(in, out);
 			break;
 	
 		default:
@@ -377,6 +355,11 @@ void ContactT::InputNodesOnFacet(ifstreamT& in, iArray2DT& facets)
 
 void ContactT::InputSideSets(ifstreamT& in, iArray2DT& facets)
 {
+//TEMP
+	int elem_group;
+	in >> elem_group;
+	cout << "\n ContactT::InputSideSets: element group number required, but not used" << endl;
+
 	/* read data from parameter file */
 	ArrayT<StringT> ss_ID;
 	bool multidatabasesets = false; /* change to positive and the parameter file format changes */
@@ -486,40 +469,4 @@ void ContactT::ReadStrikers(ifstreamT& in, ostream& out)
 
   /* collect nodes from those indexes */
   model.ManyNodeSets(ns_ID, fStrikerTags);
-}
-
-void ContactT::StrikersFromSideSets(ifstreamT& in, ostream& out)
-{
-#pragma unused(out)
-
-	/* read data from parameter file */
-	ArrayT<StringT> ss_ID;
-	bool multidatabasesets = true;
-	ModelManagerT& model = ElementSupport().Model();
-	model.SideSetList(in, ss_ID, multidatabasesets);
-
-	/* list node nodes used */
-	iArrayT nodes_used(model.NumNodes());
-	nodes_used = 0;
-
-	/* mark nodes used in side sets */
-	ArrayT<GeometryT::CodeT> facet_geom;
-	iArrayT facet_nodes;
-	iArray2DT facets;
-	for (int i = 0; i < ss_ID.Length(); i++)
-	{
-		/* read side set */
-		model.SideSet(ss_ID[i], facet_geom, facet_nodes, facets);
-	
-		/* mark nodes used */
-		for (int j = 0; j < facets.Length(); j++)
-			nodes_used[facets[j]] = 1;
-	}
-	
-	/* collect nodes */
-	fStrikerTags.Dimension(nodes_used.Count(1));
-	int dex = 0;
-	for (int i = 0; i < nodes_used.Length(); i++)
-		if (nodes_used[i] == 1)
-			fStrikerTags[dex++] = i;
 }

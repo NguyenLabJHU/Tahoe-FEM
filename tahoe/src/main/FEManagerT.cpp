@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.52 2003-01-29 07:35:20 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.52.2.4 2003-02-15 02:41:05 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -189,6 +189,8 @@ void FEManagerT::Initialize(InitCodeT init)
 /* solve all the time sequences */
 void FEManagerT::Solve(void)
 {
+	const char caller[] = "FEManagerT::Solve";
+
 	fTimeManager->Top();
 	while (fTimeManager->NextSequence())
 	{	
@@ -227,7 +229,7 @@ void FEManagerT::Solve(void)
 				case ExceptionT::kGeneralFail:
 				case ExceptionT::kBadJacobianDet:
 				{
-					cout << "\n FEManagerT::Solve: trying to recover: error: " << ExceptionT::ToString(error) << endl;
+					cout << '\n' << caller << ": trying to recover from error: " << ExceptionT::ToString(error) << endl;
 				
 					/* reset system configuration */
 					error = ResetStep();
@@ -240,7 +242,7 @@ void FEManagerT::Solve(void)
 					break;
 				}
 				default:
-					cout << "\n FEManagerT::Solve: no recovery for error: " << ExceptionT::ToString(error) << endl;
+					cout << '\n' << caller <<  ": no recovery for error: " << ExceptionT::ToString(error) << endl;
 					seq_OK = false;
 			}
 		}
@@ -356,6 +358,9 @@ void FEManagerT::FormRHS(int group) const
 	/* state */
 	SetStatus(GlobalT::kFormRHS);
 
+	/* unlock assembly into RHS */
+	fSolvers[group]->UnlockRHS();
+
 	/* nodal force contribution - F(t) */
 	fNodeManager->FormRHS(group);
 
@@ -367,6 +372,9 @@ void FEManagerT::FormRHS(int group) const
 	/* output system info (debugging) */
 	if (fSolvers[group]->Check() == GlobalMatrixT::kPrintRHS)
 		WriteSystemConfig(fMainOut, group);
+
+	/* lock assembly into RHS */
+	fSolvers[group]->LockRHS();
 }
 
 /* collect the internal force on the specified node */
@@ -387,14 +395,18 @@ ExceptionT::CodeT FEManagerT::InitStep(void)
 	SetStatus(GlobalT::kInitStep);
 	
 	/* set the default value for the output time stamp */
-	fIOManager->SetOutputTime(Time());
+	fIOManager->SetOutputTime(Time());	
 
-	/* check group flag */
+	/* loop over solver groups */
 	if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
-
-	/* nodes - ALL groups*/
 	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
+	{
+		/* solver */
+		fSolvers[fCurrentGroup]->InitStep();
+
+		/* nodes */
 		fNodeManager->InitStep(fCurrentGroup);
+	}
 	fCurrentGroup = -1;
 
 	/* elements */
@@ -424,15 +436,12 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 		bool all_pass = false;
 		SolverT::SolutionStatusT status = SolverT::kContinue;
 
-		/* status */
-		iArray2DT solve_status(fSolverPhases.MajorDim(), 3);
-
 		while (!all_pass && 
-			loop_count < fMaxSolverLoops &&
+			(fMaxSolverLoops == -1 || loop_count < fMaxSolverLoops) &&
 			status != SolverT::kFailed)
 		{
 			/* clear status */
-			solve_status = 0;
+			fSolverPhasesStatus = 0;
 		 
 			/* one solver after the next */
 			all_pass = true;
@@ -440,29 +449,29 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 			{
 				/* group parameters */
 				fCurrentGroup = fSolverPhases(i,0);
-				int iter  = fSolverPhases(i,1);
-				int pass  = fSolverPhases(i,2);
+				int iter = fSolverPhases(i,1);
+				int pass = fSolverPhases(i,2);
 			
 				/* call solver */
 				status = fSolvers[fCurrentGroup]->Solve(iter);
 				
 				/* check result */
-				solve_status(i,0) = fCurrentGroup;
-				solve_status(i,1) = fSolvers[fCurrentGroup]->IterationNumber();
+				fSolverPhasesStatus(i, kGroup) = fCurrentGroup;
+				fSolverPhasesStatus(i, kIteration) = fSolvers[fCurrentGroup]->IterationNumber();
 				if (status == SolverT::kFailed) {
 					all_pass = false;
-					solve_status(i,2) = -1;					
+					fSolverPhasesStatus(i, kPass) = -1;					
 				}
 				else if (status == SolverT::kConverged && 
-					(pass == -1 || solve_status(i,1) <= pass))
+					(pass == -1 || fSolverPhasesStatus(i, kPass) <= pass))
 				{
 					all_pass = all_pass && true; /* must all be true */
-					solve_status(i,2) = 1;
+					fSolverPhasesStatus(i, kPass) = 1;
 				}
 				else
 				{
 					all_pass = false;
-					solve_status(i,2) = 0;
+					fSolverPhasesStatus(i, kPass) = 0;
 				}
 			}
 
@@ -477,7 +486,7 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 				     << setw(kIntWidth) << "solver"
 				     << setw(kIntWidth) << "its."
 				     << setw(kIntWidth) << "pass" << '\n';
-				solve_status.WriteNumbered(cout);
+				fSolverPhasesStatus.WriteNumbered(cout);
 				cout << endl;
 			}			
 		}
@@ -509,13 +518,18 @@ ExceptionT::CodeT FEManagerT::CloseStep(void)
 	/* state */
 	SetStatus(GlobalT::kCloseStep);
 
+	/* solvers - need to be called first because they may be diverted the
+	 * output to a temp file and need to switch it back */
+	if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
+	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
+		fSolvers[fCurrentGroup]->CloseStep();
+	fCurrentGroup = -1;
+
 	/* write output BEFORE closing nodes and elements */
 	fTimeManager->CloseStep();
 
-	/* check group flag */
+	/* nodes - loop over all groups */
 	if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
-
-	/* nodes - ALL groups */
 	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
 		fNodeManager->CloseStep(fCurrentGroup);
 	fCurrentGroup = -1;
@@ -1150,7 +1164,7 @@ void FEManagerT::SetSolver(void)
 	
 	/* read solver phases */
 	AutoArrayT<int> solver_list;
-	if (fSolvers.Length() > 1) {
+	if (fAnalysisCode == GlobalT::kMultiField) {
 	
 		int num_phases = -99;
 		fMainIn >> num_phases;
@@ -1200,6 +1214,10 @@ void FEManagerT::SetSolver(void)
 		fMaxSolverLoops  = 1;
 		solver_list.Append(0);
 	}
+	
+	/* dimension solver phase status array */
+	fSolverPhasesStatus.Dimension(fSolverPhases.MajorDim(), kNumStatusFlags);
+	fSolverPhasesStatus = 0;
 		
 	/* echo solver information */
 	fMainOut << "\n Multi-solver parameters: " << fSolverPhases.MajorDim() << '\n';

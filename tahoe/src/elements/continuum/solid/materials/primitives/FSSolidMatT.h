@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.12 2003-03-19 17:09:03 thao Exp $ */
+/* $Id: FSSolidMatT.h,v 1.10 2003-01-29 07:35:08 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -115,15 +115,7 @@ public:
 	 * deformation gradient not associated 
 	 * with an imposed thermal strain. */
 	const dMatrixT& F_mechanical_last(int ip);
-
-	/*inquire if dissipation variables used in material force calculation
-	  are needed*/
-	virtual bool HasDissipVar(void) const {return false;}
-
-	/** return the strain in the material at the current integration point. 
-	 * Returns the Green-Lagrangian strain. */
-	virtual void Strain(dSymMatrixT& strain) { Compute_E(F_mechanical(), strain); };
-
+	
 protected:
 
 	/** enum for use by derived classes to to track last stress called */

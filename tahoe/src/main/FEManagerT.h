@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.32 2003-01-29 07:35:20 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.32.2.4 2003-02-27 07:57:46 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -62,7 +62,7 @@ public:
 	virtual ~FEManagerT(void);
 
 	/** initialize members */
-	void Initialize(InitCodeT init = kFull);
+	virtual void Initialize(InitCodeT init = kFull);
 	
 	/** solve all the time sequences */
 	void Solve(void);
@@ -102,6 +102,9 @@ public:
 	/** the model database manager */
 	ModelManagerT* ModelManager (void) const;
 
+	/** the time manager */
+	TimeManagerT* TimeManager(void) const;
+
 	/** the node manager */
 	NodeManagerT* NodeManager(void) const;
 
@@ -113,6 +116,9 @@ public:
 
 	/** resolve the index of the given element group */
 	int ElementGroupNumber(const ElementBaseT* pgroup) const;
+
+	/** pointer to an element group */
+	SolverT* Solver(int group) { return fSolvers[group]; };
 	
 	/** the MP communicator */
 	CommunicatorT& Communicator(void) const { return fComm; };
@@ -159,7 +165,11 @@ public:
 	int NumSequences(void) const;
 	/*@}*/
 
-	/** \name group methods */
+	/** \name solution messaging 
+	 * Methods called by the solver during the solution process. Either can be called
+	 * an arbitrary number of times per time increment. However, FEManagerT::FormRHS
+	 * must be called before the corresponding call to FEManagerT::FormLHS during a
+	 * given iteration. */
 	/*@{*/
 	/** iteration number for the solution of the given group over the
 	 * current time increment */	
@@ -169,12 +179,6 @@ public:
 	 * if no group is current. */
 	int IterationNumber(void) const;
 
-	/** \name solution messaging 
-	 * Methods called by the solver during the solution process. Either can be called
-	 * an arbitrary number of times per time increment. However, FEManagerT::FormRHS
-	 * must be called before the corresponding call to FEManagerT::FormLHS during a
-	 * given iteration. */
-	/*@{*/
 	/** compute LHS-side matrix and assemble to solver.
 	 * \param group equation group to solve
 	 * \param sys_type "maximum" LHS matrix type needed by the solver. The GlobalT::SystemTypeT
@@ -184,8 +188,7 @@ public:
 
 	/** compute RHS-side, residual force vector and assemble to solver
 	 * \param group equation group to solve */
-	void FormRHS(int group) const;
-	/*@}*/
+	virtual void FormRHS(int group) const;
 
 	/** send update of the solution to the NodeManagerT */
 	virtual void Update(int group, const dArrayT& update);
@@ -292,6 +295,45 @@ public:
 	/** interactive */
 	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
 
+	/** \name solution steps 
+	 * These methods are called during FEManagerT::Solve during the solution
+	 * process. These would only be called if the solution process is going to
+	 * be driven externally, i.e., without calling FEManagerT::Solve.
+	 * All steps return ExceptionT::kNoError = 0 unless a problem occurs. */
+	/*@{*/
+	/** (re-)set system to initial conditions */
+	virtual void InitialCondition(void);
+
+	/** initialize the current time increment for all groups */
+	virtual ExceptionT::CodeT InitStep(void);
+
+	/** execute the solution procedure */
+	virtual ExceptionT::CodeT SolveStep(void);
+
+	/** close the current time increment for all groups */
+	virtual ExceptionT::CodeT CloseStep(void);
+
+	/** called for all groups if the solution procedure for any group fails */
+	virtual ExceptionT::CodeT ResetStep(void);
+	
+	/** solver phase information. Results of the last call to FEManagerT::SolveStep */
+	const iArray2DT& SolverPhasesStatus(void) const { return fSolverPhasesStatus; };
+
+	/** enum defining the contents of the FEManagerT::SolverPhasesStatus array */
+	enum PhaseStatusT {
+          kGroup = 0, /**< solver group associated with the phase */
+      kIteration = 1, /**< number of iterations executed by the phase */
+           kPass = 2, /**< 1/0 if phase PASS/FAIL-ed test conditions */
+ kNumStatusFlags = 3  /**< number of phase status flags */
+	};
+	/*@}*/
+
+	/** \name initialize/restart functions */
+	/*@{*/
+	void ReadRestart(const StringT* file_name = NULL);
+	void WriteRestart(const StringT* file_name = NULL) const;
+	/*@}*/
+
 protected:
 
 	/** "const" function that sets the status flag */
@@ -303,21 +345,12 @@ protected:
 	/** \name phases of FEManagerT::Initialize. */
 	/*@{*/
 	virtual void ReadParameters(InitCodeT init);
-	void WriteParameters(void) const;
+	virtual void WriteParameters(void) const;
 	void SetIntegrator(void);
 	virtual void SetNodeManager(void);
 	virtual void SetElementGroups(void);
-	void SetSolver(void);
+	virtual void SetSolver(void);
 	virtual void SetOutput(void);
-	/*@}*/
-
-	/* (re-)set system to initial conditions */
-	virtual void InitialCondition(void);
-	  	
-	/** \name initialize/restart functions */
-	/*@{*/
-	void ReadRestart(const StringT* file_name = NULL);
-	void WriteRestart(const StringT* file_name = NULL) const;
 	/*@}*/
 
 	/** (re-) set cached value of the first equation number for the given
@@ -331,22 +364,6 @@ protected:
 	
 	/** collect element equations and send to solver */
 	void SendEqnsToSolver(int group) const;
-
-	/** \name solution steps 
-	 * All steps return ExceptionT::kNoError = 0 unless a problem occurs. */
-	/*@{*/
-	/** initialize the current time increment for all groups */
-	virtual ExceptionT::CodeT InitStep(void);
-
-	/** execute the solution procedure */
-	virtual ExceptionT::CodeT SolveStep(void);
-
-	/** close the current time increment for all groups */
-	virtual ExceptionT::CodeT CloseStep(void);
-
-	/** called for all groups if the solution procedure for any group fails */
-	virtual ExceptionT::CodeT ResetStep(void);
-	/*@}*/
 
 	/** construct a new CommManagerT. Should be called some time after the
 	 * ModelManagerT has been constructed */
@@ -414,6 +431,9 @@ protected:
 	/** maximum number of loops through the solvers. This is either a number
 	 * greater than zero or -1, for no limit. */
 	int fMaxSolverLoops;
+	
+	/** status of solver phases. Updated during call to FEManagerT::SolveStep */
+	iArray2DT fSolverPhasesStatus;
 	/*@}*/
 
 	/** \name run time information */
@@ -439,6 +459,7 @@ inline ofstreamT& FEManagerT::Output(void) const { return fMainOut; }
 inline const GlobalT::StateT& FEManagerT::RunState(void) const { return fStatus; }
 inline IOBaseT::FileTypeT FEManagerT::OutputFormat(void) const { return fOutputFormat; }
 inline ModelManagerT* FEManagerT::ModelManager (void) const { return fModelManager; }
+inline TimeManagerT* FEManagerT::TimeManager(void) const { return fTimeManager; }
 inline NodeManagerT* FEManagerT::NodeManager(void) const { return fNodeManager; }
 inline CommManagerT* FEManagerT::CommManager(void) const { return fCommManager; }
 inline IOManager* FEManagerT::OutputManager(void) const { return fIOManager; }

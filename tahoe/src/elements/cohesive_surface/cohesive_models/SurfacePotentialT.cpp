@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.cpp,v 1.15 2003-03-26 20:00:08 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.cpp,v 1.14 2003-01-25 22:08:39 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 
 #include "SurfacePotentialT.h"
@@ -68,7 +68,7 @@ void SurfacePotentialT::ComputeOutput(const dArrayT& jump, const ArrayT<double>&
 #pragma unused(output)
 }
 
-/*bool SurfacePotentialT::NeedsNodalInfo(void)
+bool SurfacePotentialT::NeedsNodalInfo(void)
 {
         return false;
 }
@@ -76,7 +76,7 @@ void SurfacePotentialT::ComputeOutput(const dArrayT& jump, const ArrayT<double>&
 int SurfacePotentialT::NodalQuantityNeeded(void) 
 {
 	return 0;
-}*/
+}
 
 /*
 double SurfacePotentialT::ComputeNodalValue(const dArrayT& nodalRow)
@@ -92,10 +92,10 @@ void SurfacePotentialT::UpdateStateVariables(const dArrayT& IPdata, ArrayT<doubl
 }
 */
 
-/*int SurfacePotentialT::ElementGroupNeeded(void)
+int SurfacePotentialT::ElementGroupNeeded(void)
 {
 	return -1;
-}*/
+}
 
 
 /*************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.21 2003-03-27 21:14:18 cjkimme Exp $ */
+/* $Id: NLSolver.cpp,v 1.20.2.2 2003-02-15 02:38:16 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -69,7 +69,7 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 	if (fQuickSeriesTol != -1 && fQuickSeriesTol < 1) throw ExceptionT::kBadInputValue;
 	if (fIterationOutputIncrement < 0)
 	{
-		cout << "\n NLSolver::NLSolver: expecting iteration output increment >= 0: "
+		cout << "\n NLSolver::NLSolver: expecting iteration output increment < 0: "
 		     << fIterationOutputIncrement << endl;
 		throw ExceptionT::kBadInputValue;
 	}
@@ -82,51 +82,63 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 	iAddVariable("iteration_output_inc", fIterationOutputIncrement);
 }
 
+/* start solution step */
+void NLSolver::InitStep(void)
+{
+	/* inherited */
+	SolverT::InitStep();
+
+	/* open iteration output */
+	InitIterationOutput();
+}
+
 /* generate the solution for the current time sequence */
-SolverT::SolutionStatusT NLSolver::Solve(int num_iterations)
+SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 {
 	/* write some header information */
 	if (fLHS->CheckCode() != GlobalMatrixT::kNoCheck) {
 		ofstreamT& out = fFEManager.Output();
 		out << " NLSolver::Solve:\n"
 		    << "      group = " << fGroup+1 << '\n'
-		    << " iterations = " << num_iterations << '\n';	
+		    << " iterations = " << max_iterations << '\n';	
 	}
 
 	try
 	{ 	
 	/* reset iteration count */
-	fNumIteration = -1;
+//	fNumIteration = -1;
 
 	/* open iteration output */
-	InitIterationOutput();
+//	InitIterationOutput();
 
 	/* form the first residual force vector */
-	fLHS->Clear();
-	fRHS = 0.0;
-	fLHS_lock = kOpen; /* LHS open for assembly, too! */
 	fRHS_lock = kOpen;
+	if (fLHS_update) {
+		fLHS->Clear();
+		fLHS_lock = kOpen; /* LHS open for assembly, too! */
+	}
+	else
+		fLHS_lock = kIgnore; /* ignore assembled values */
+	fRHS = 0.0;
 	fFEManager.FormRHS(Group());	
 	fLHS_lock = kLocked;
 	fRHS_lock = kLocked;
-
-	double error = Residual(fRHS);
-			
+		
 	/* loop on error */
+	double error = Residual(fRHS);
 	SolutionStatusT solutionflag = ExitIteration(error);
+	int num_iterations = 0;
 	while (solutionflag == kContinue &&
-		(num_iterations == -1 || fNumIteration < num_iterations))
+		(max_iterations == -1 || num_iterations++ < max_iterations))
 	{
-		error = SolveAndForm(true, false);
+		error = SolveAndForm();
+		fNumIteration++;
 		solutionflag = ExitIteration(error);
 	}
 
 	/* found solution - check relaxation */
 	if (solutionflag == kConverged)
 		solutionflag = DoConverged();
-				
-	/* close iteration output */	
-	CloseIterationOutput();
 			
 	return solutionflag;
 	}
@@ -146,6 +158,16 @@ SolverT::SolutionStatusT NLSolver::Solve(int num_iterations)
 	}
 }
 
+/* end solution step */
+void NLSolver::CloseStep(void)
+{
+	/* inherited */
+	SolverT::CloseStep();
+
+	/* close iteration output */	
+	CloseIterationOutput();
+}
+
 /* error handler */
 void NLSolver::ResetStep(void)
 {
@@ -156,7 +178,14 @@ void NLSolver::ResetStep(void)
 	fQuickConvCount = 0;
 
 	/* restore output */
-	if (fIterationOutputIncrement > 0) fFEManager.RestoreOutput();
+	CloseIterationOutput();
+}
+
+/* (re-)set the reference error */
+void NLSolver::SetReferenceError(double error)
+{
+	cout <<   "\n Group : " << fGroup+1 << '\n' << " Absolute error = " << error << endl;
+	fError0 = error;
 }
 
 /* handlers */
@@ -241,8 +270,8 @@ void NLSolver::CloseIterationOutput(void)
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* apply system update (socket for line searching) */
 void NLSolver::Update(const dArrayT& update, const dArrayT* residual)
@@ -264,10 +293,9 @@ NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
 	int count = newtancount - 1;
 
 	/* form the first residual force vector */
-	fLHS->Clear();
-	fRHS = 0.0;
 	fLHS_lock = kOpen; /* LHS open for assembly, too! */
 	fRHS_lock = kOpen;
+	fRHS = 0.0;
 	fFEManager.FormRHS(Group());	
 	fLHS_lock = kLocked;
 	fRHS_lock = kLocked;
@@ -278,14 +306,13 @@ NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
 	SolutionStatusT solutionflag = ExitIteration(error);
 	while (solutionflag == kContinue)
 	{
-	    int newtangent = 0;
-		if (++count == newtancount)
-		{	
-			newtangent = 1;
+		if (++count == newtancount) {	
+			fLHS_update = true;
 			count      = 0;
 		}
+		else fLHS_update = false;
 			
-		error = SolveAndForm(newtangent, false);
+		error = SolveAndForm();
 		solutionflag = ExitIteration(error);
 	}
 
@@ -304,8 +331,7 @@ NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
 * iteration re-entered with the next Step() call */
 NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 {
-	/* iteration count */
-	++fNumIteration;
+	int d_width = cout.precision() + kDoubleExtra;
 
 	/* write convergence output */
 	if (++fIterationOutputCount == fIterationOutputIncrement)
@@ -318,7 +344,7 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 	SolutionStatusT status = kContinue;
 	
 	/* first pass */
-	if (fNumIteration == 0)
+	if (fNumIteration == -1)
 	{
 		cout <<   "\n Group : " << fGroup+1 << '\n';
 		cout <<   " Absolute error = " << error << '\n';
@@ -341,17 +367,18 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 	/* iteration limit hit */
 	else if (fNumIteration > fMaxIterations)
 	{
+		cout << setw(kIntWidth) << fNumIteration 
+		     << ": Relative error = " << setw(d_width) << error/fError0 << '\n';	
 		cout << "\n NLSolver::ExitIteration: max iterations hit" << endl;
 		status = kFailed;
 	}
 	/* interpret error */
 	else
 	{
-		int d_width = cout.precision() + kDoubleExtra;
 		double relerror = error/fError0;
-		if (fVerbose) cout << setw(kIntWidth) << fNumIteration 
-		                   << ": Relative error = "
-		                   << setw(d_width) << relerror << endl;
+		if (fVerbose) 
+			cout << setw(kIntWidth) << fNumIteration  << ": Relative error = "
+			     << setw(d_width) << relerror << endl;
 
 		/* diverging solution */	
 		if (relerror > fDivTolerance)
@@ -363,10 +390,8 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 		else if (relerror < fTolerance || error < fZeroTolerance)
 		{
 			if (!fVerbose)
-			{
-				cout << setw(kIntWidth) << fNumIteration;
-				cout << setw(d_width)   << relerror << '\n';
-			}
+				cout << setw(kIntWidth) << fNumIteration  << ": Relative error = " 
+				     << setw(d_width) << relerror << " (converged)\n";
 	
 			fFEManager.Output() << "\n Converged at time = " << fFEManager.Time() << endl;
 			status = kConverged;
@@ -380,36 +405,35 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 }
 
 /* form and solve the equation system */
-double NLSolver::SolveAndForm(bool newtangent, bool clear_LHS)
+double NLSolver::SolveAndForm(void)
 {		
-	/* form the stiffness matrix */
-	if (newtangent)
-	{
-		if (clear_LHS) fLHS->Clear();
-
+	/* form the stiffness matrix (must be cleared previously) */
+	if (fLHS_update) {
 		fLHS_lock = kOpen;
 		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);
-		fLHS_lock = kIgnore;
+		fLHS_lock = kLocked;
 	}
-		 		
+
 	/* solve equation system */
 	if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet("NLSolver::SolveAndForm");
 
 	/* apply update to system */
 	Update(fRHS, NULL);
-								
-	/* compute new residual */
-	fLHS->Clear();
-	fRHS = 0.0;
-	fLHS_lock = kOpen; /* LHS open for assembly, too! */
+
+	/* recalculate residual */
 	fRHS_lock = kOpen;
+	if (fLHS_update) {
+		fLHS->Clear();
+		fLHS_lock = kOpen; /* LHS open for assembly, too! */
+	}
+	else
+		fLHS_lock = kIgnore; /* ignore assembled values */
+	fRHS = 0.0;
 	fFEManager.FormRHS(Group());	
 	fLHS_lock = kLocked;
 	fRHS_lock = kLocked;
 
-	/* combine residual magnitude with update magnitude */
-	/* e = a1 |R| + a2 |delta_d|                        */
-	//not implemented!
-			
+	/* could combine residual magnitude with update magnitude
+	 * e = a1 |R| + a2 |delta_d|  --> not implemented */	
 	return Residual(fRHS);
 }

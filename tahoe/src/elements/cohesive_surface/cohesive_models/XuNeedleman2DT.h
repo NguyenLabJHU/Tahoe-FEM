@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman2DT.h,v 1.9 2003-03-19 00:53:27 cjkimme Exp $ */
+/* $Id: XuNeedleman2DT.h,v 1.8 2002-07-05 22:28:00 paklein Exp $ */
 /* created: paklein (11/14/1997) */
 
 #ifndef _XU_NEEDLE_2D_T_H_
@@ -31,7 +31,7 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma);
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);

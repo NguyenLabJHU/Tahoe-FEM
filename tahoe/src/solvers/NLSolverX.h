@@ -1,6 +1,5 @@
-/* $Id: NLSolverX.h,v 1.5 2002-12-13 02:42:55 paklein Exp $ */
+/* $Id: NLSolverX.h,v 1.5.2.1 2003-02-15 02:38:16 paklein Exp $ */
 /* created: paklein (08/25/1996) */
-
 #ifndef _NL_SOLVER_X_H_
 #define _NL_SOLVER_X_H_
 
@@ -27,10 +26,6 @@ public:
 	 *        also indicate the solution procedure has failed.
 	 * \return one of SolverT::IterationsStatusT */
 	virtual SolutionStatusT Solve(int num_iterations);
-
-	/* form and solve the equation system - returns the magnitude of the
-	 * residual */
-	virtual double SolveAndForm(bool newtangent, bool clear_LHS);
 
 	/* error handler */
 	virtual void ResetStep(void);

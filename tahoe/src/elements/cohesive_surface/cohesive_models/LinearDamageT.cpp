@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.cpp,v 1.13 2003-03-19 00:53:27 cjkimme Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.12 2002-10-23 00:18:03 cjkimme Exp $ */
 /* created: paklein (08/21/2000) */
 
 #include "LinearDamageT.h"
@@ -37,7 +37,7 @@ LinearDamageT::LinearDamageT(ifstreamT& in, const dArrayT& init_traction):
 /* return the number of state variables */
 int LinearDamageT::NumStateVariables(void) const
 {
-	return 2*fInitTraction.Length() + // initiation traction
+	return fInitTraction.Length() + // initiation traction
 	       1 +                      // max opening
 	       1;                       // trial max opening
 }
@@ -72,7 +72,7 @@ double LinearDamageT::Potential(const dArrayT& jump_u, const ArrayT<double>& sta
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
+const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
@@ -89,9 +89,7 @@ const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		r_t2 = jump_u[0]*jump_u[0]/fd_c_t/fd_c_t;
 	else
 		r_t2 = (jump_u[0]*jump_u[0] + jump_u[1]*jump_u[1])/fd_c_t/fd_c_t;
-	double L  = sqrt(r_t2 + r_n*r_n);
-	if (qIntegrate)
-		state[kTrialOpening] = L;
+	double L = state[kTrialOpening] = sqrt(r_t2 + r_n*r_n);
 
 	if (L > kSmall)
 	{
@@ -117,12 +115,9 @@ const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 	/* penetration */
 	if (u_n < 0) fTraction.Last() += fK*u_n;
 
-	if (qIntegrate)
-	{
-		/* update state variables (in place) */
-		if (state[kTrialOpening] > state[kMaxOpening])
-			state[kMaxOpening] = state[kTrialOpening];
-	}
+	/* update state variables (in place) */
+	if (state[kTrialOpening] > state[kMaxOpening])
+		state[kMaxOpening] = state[kTrialOpening];
 
 	return fTraction;
 }

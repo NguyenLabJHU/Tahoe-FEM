@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.h,v 1.7 2003-02-22 18:20:48 paklein Exp $ */
+/* $Id: SimoQ1P0.h,v 1.6 2002-10-10 17:28:41 paklein Exp $ */
 #ifndef _SIMO_Q1_P0_H_
 #define _SIMO_Q1_P0_H_
 
@@ -97,6 +97,9 @@ protected:
 
 	/** deformed element volume from the last time step */
 	dArrayT fElementVolume_last;
+	
+	/** flag to indicate SimoQ1P0::fElementVolume_last has been initialized */
+	bool fLastVolumeInit;
 	/*@}*/
 	
 	/** element pressure. Calculated during SimoQ1P0::FormKd. */

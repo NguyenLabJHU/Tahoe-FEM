@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.20 2003-03-26 20:00:08 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.17 2003-01-25 22:08:39 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -36,9 +36,7 @@ public:
               kTiedPotential = 6, /**< wrapper for models w/o initial load-up */
               	  kYoonAllen = 7, /**< Allen history-dependent law */
 			 kSimoViscoElast = 8, /**< Simo's thermo-visco-elasto model */
-           kInelasticDuctile = 9, /**< rate-based ductile fracture model */
-           				kMR = 10, /**< Elastoplastic Cohesive Model for Geomaterials*/
-           			 kMR_RP = 11};/**< Rigid-plastic Cohesive Model for Geomaterials*/ 
+           kInelasticDuctile = 9  /**< rate-based ductile fracture model */}; 
 			 
 	/** surface element status codes */
 	enum StatusT {Precritical = 0, /**< loading phase */
@@ -71,7 +69,7 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate) = 0;
+	virtual const dArrayT& Traction(const dArrayT& jump, ArrayT<double>& state, const dArrayT& sigma) = 0;
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump, const ArrayT<double>& state, const dArrayT& sigma) = 0;
@@ -100,8 +98,11 @@ public:
 
 	/** returns true if the potential needs access to physical quantities
 at the nodes. Returns false by default. */
-	//virtual bool NeedsNodalInfo(void);
-	//virtual int NodalQuantityNeeded(void);
+	virtual bool NeedsNodalInfo(void);
+	virtual int NodalQuantityNeeded(void);
+//	virtual double ComputeNodalValue(const dArrayT &); 
+//      virtual void UpdateStateVariables(const dArrayT & IPdata, ArrayT<double> &);
+	virtual int ElementGroupNeeded(void);
 
 	/** returns true if two materials have compatible nodal outputs */
 	static bool CompatibleOutput(const SurfacePotentialT&, const SurfacePotentialT&);

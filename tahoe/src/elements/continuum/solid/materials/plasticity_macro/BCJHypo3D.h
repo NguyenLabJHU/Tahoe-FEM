@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.h,v 1.8 2003-02-19 19:22:54 ebmarin Exp $ */
+/* $Id: BCJHypo3D.h,v 1.7 2003-01-29 07:35:06 paklein Exp $ */
 #ifndef _BCJ_HYPO_3D_H_
 #define _BCJ_HYPO_3D_H_
 
@@ -101,9 +101,6 @@ class BCJHypo3D : public EVPFDBaseT
   // forward gradient estimate for primary unknowns (DEQP, DALP, DKAPP) 
   virtual void ForwardGradientEstimate();
 
-  // elastic update of variables
-  virtual void UpdateElasticProcess(int subIncr, int totSubIncrs);
-
   // check for negative values of solution variables
   virtual bool IsSolnVariableNegative();
 
@@ -173,9 +170,6 @@ class BCJHypo3D : public EVPFDBaseT
   dSymMatrixT fSigTrDev;
   dSymMatrixT fXiTr;
 
-  // trial back stress
-  dSymMatrixT falphaTr;
-
   // incremental strains
   dSymMatrixT fDEBar;
   dSymMatrixT fDE;
@@ -202,7 +196,6 @@ class BCJHypo3D : public EVPFDBaseT
   dArrayT fInternal;      // DEQP, ALPH, KAPP
   dArrayT fInt_save;
   dArrayT fEQValues;      // EQP_n, EQP, EQXi_n, EQXi, Press
-  dArrayT fInternalTr;
 
   // arrays used in forward gradient estimate
   dArrayT fRHS;

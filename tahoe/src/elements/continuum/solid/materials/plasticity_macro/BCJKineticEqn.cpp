@@ -123,8 +123,7 @@ void BCJKineticEqn::ComputeMaterialProperties(const double theta)
 {
   // compute material parameters for kinetic equation
   fMatProp[0]  = fC1*exp(-fC2/theta);               // V
-  fMatProp[1]  = fC3/(fC21+exp(-fC4/theta));        // Y
-  if (fC19 > 0.0) 
-      fMatProp[1] *= 0.5*(1.+tanh(fC19*(fC20-theta)));  // Y
+  fMatProp[1]  = fC3/(fC21+exp(-fC4/theta));
+  fMatProp[1] *= 0.5*(1.+tanh(fC19*(fC20-theta)));  // Y
   fMatProp[2]  = fC5*exp(-fC6/theta);               // f
 }   

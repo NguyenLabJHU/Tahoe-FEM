@@ -1,4 +1,4 @@
-/* $Id: SymmetricNodesT.cpp,v 1.6 2003-03-26 20:03:03 cjkimme Exp $ */
+/* $Id: SymmetricNodesT.cpp,v 1.5 2003-01-27 07:00:30 paklein Exp $ */
 #include "SymmetricNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -116,12 +116,12 @@ bool SymmetricNodesT::ChangeStatus(void)
   	for (int i = 0; i < fNodePairs.MajorDim();i++) 
     {		
   		dArrayT sigma(fNodalQs.MinorDim(),fNodalQs(fNodePairs(i,0)));
-/*	  	if (fPairStatus[i] == kTied && TiedPotentialT::InitiationQ(sigma.Pointer()))     
+	  	if (fPairStatus[i] == kTied && TiedPotentialT::InitiationQ(sigma.Pointer()))     
 		{ 
 	  		fPairStatus[i] = kFree;
 	  		changeQ = true;
 	  		cout << "Freed a node !!! \n";
-		}*/
+		}
     }
 
   	return changeQ;
