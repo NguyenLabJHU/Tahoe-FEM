@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.h,v 1.10 2002-07-10 16:47:51 cfoster Exp $ */
+/* $Id: DetCheckT.h,v 1.11 2002-07-13 00:03:58 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
@@ -57,11 +57,9 @@ private:
 	int DetCheck3D_SS(dArrayT& normal);
 
 	/* auxiliary functions to DetCheck3D_SS */
-	void ConvertTangentFrom2DTo4D(dTensor4DT& C);
 	void FindApproxLocalMins(double detA [numThetaChecks] [numPhiChecks],
 				 int localmin [numThetaChecks] [numPhiChecks], dTensor4DT& C);
-	dArrayT ChooseNewNormal(dArrayT& prevnormal, dMatrixEXT& J,
-				    double tol);
+	dArrayT ChooseNewNormal(dArrayT& prevnormal, dMatrixEXT& J);
 	dArrayT ChooseNormalFromNormalSet(AutoArrayT <dArrayT> &normalSet, dTensor4DT &C);
 
 	/* 2D determinant check function */
