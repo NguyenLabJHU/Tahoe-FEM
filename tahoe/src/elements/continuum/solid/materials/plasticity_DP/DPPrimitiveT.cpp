@@ -1,4 +1,4 @@
-/* $Id: DPPrimitiveT.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: DPPrimitiveT.cpp,v 1.2 2001-04-27 10:54:34 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 /* Base class for a Druker Prager pressure dependent plastic material     */
 /* with linear isotropic hardening.                                       */
@@ -20,18 +20,18 @@ falpha_bar(-1.0),  //**mien**//
 	ffriction(-1.0),
 	fdilation(-1.0),
 	fH_prime(0.0),
-	fK_prime(0.0),
-	fH_delta(1.0),
-	fK_delta(1.0)
+	fK_prime(0.0)
+//	fH_delta(1.0),
+//	fK_delta(1.0)
 {
 	/* read parameters */
-in >> falpha_bar;  if (falpha_bar < 0.0 ) throw eBadInputValue;  //**mien**//
+    in >> falpha_bar;  if (falpha_bar < 0.0 ) throw eBadInputValue;  //**mien**//
 	in >> ffriction;   if (ffriction < 0.0 ) throw eBadInputValue;
 	in >> fdilation;   if (fdilation < 0.0 ) throw eBadInputValue;
 	in >> fH_prime;
 	in >> fK_prime;
-	in >> fH_delta;    if (fH_delta > 0.0 ) throw eBadInputValue;
-	in >> fK_delta;    if (fK_delta > 0.0 ) throw eBadInputValue;
+//	in >> fH_delta;    if (fH_delta > 0.0 ) throw eBadInputValue;
+//	in >> fK_delta;    if (fK_delta > 0.0 ) throw eBadInputValue;
 }
 
 /* destructor */
@@ -45,8 +45,8 @@ out << " Friction-like parameter . . . . . . . . . . . . = " << ffriction  << '\
 out << " Dilation parameter. . . . . . . . . . . . . . . = " << fdilation  << '\n';
 out << " Deviatoric hardening parameter. . . . . . . . . = " << fH_prime   << '\n';
 out << " Volumetric hardening parameter. . . . . . . . . = " << fK_prime   << '\n';
-out << " Localized deviatoric hardening parameter. . . . = " << fH_delta   << '\n';
-out << " Localized volumetric hardening parameter. . . . = " << fK_delta   << '\n';
+//out << " Localized deviatoric hardening parameter. . . . = " << fH_delta   << '\n';
+//out << " Localized volumetric hardening parameter. . . . = " << fK_delta   << '\n';
 }
 
 /***********************************************************************

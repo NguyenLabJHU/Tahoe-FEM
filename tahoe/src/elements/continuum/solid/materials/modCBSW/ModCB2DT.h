@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.h,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* $Id: ModCB2DT.h,v 1.2 2001-04-27 10:54:33 paklein Exp $ */
 /* created: paklein (05/31/1997)                                          */
 
 #ifndef _MODCB_2DT_H_
@@ -17,8 +17,14 @@ class ModCB2DT: public NL_E_Mat2DT
 {
 public:
 
+	/* plane codes - for crystal axes rotated wrt global axes */
+	enum PlaneCodeT {kDC001 = 0,
+                     kDC101 = 1,
+                     kDC111 = 2};
+
 	/* constructor */
-	ModCB2DT(ifstreamT& in, const ElasticT& element, bool equilibrate);
+	ModCB2DT(ifstreamT& in, const ElasticT& element, bool equilibrate, 
+		PlaneCodeT plane_code);
 
 	/* destructor */
 	virtual ~ModCB2DT(void);
@@ -49,7 +55,7 @@ private:
 private:
 	
 	/* 2D plane code */
-	int fPlaneCode;
+	PlaneCodeT fPlaneCode;
 
 	/* modified CB solver */
 	ModCBSolverT*	fModCBSolver;

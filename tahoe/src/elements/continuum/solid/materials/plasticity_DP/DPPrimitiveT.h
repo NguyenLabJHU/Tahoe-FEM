@@ -1,4 +1,4 @@
-/* $Id: DPPrimitiveT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: DPPrimitiveT.h,v 1.2 2001-04-27 10:54:34 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 /* Base class for a pressure dependent plastic material                   */
 
@@ -42,11 +42,12 @@ protected:
 	
 	double falpha_bar;  /* cohesion-like strength parameter (falpha_bar >= 0.0) */
 	double ffriction;   /* friction-like parameter (ffriction >= 0.0) */
-	double fdilation;   /* dilation-like parameter (fdialtion >= 0.0) */
+	double fdilation;   /* dilation-like parameter (fdilation >= 0.0) */
 	double fH_prime;    /* Deviatoric hardening parameter */
 	double fK_prime;    /* Volumetric hardening parameter */
-	double fH_delta;    /* Localized deviatoric hardening parameter (fH_delta < 0.0) */
-	double fK_delta;    /* Localized volumetric hardening parameter (fK_delta < 0.0) */
+//	double fH_delta;    /* Localized deviatoric hardening parameter (fH_delta < 0.0) */
+//	double fK_delta;    /* Localized volumetric hardening parameter (fK_delta < 0.0) */
+//NOTE: this parameters are not used in the current implementation
 };
 
 #endif /* _DP_PRIMITIVET_H_ */

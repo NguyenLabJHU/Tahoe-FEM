@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.2 2001-02-20 00:26:51 paklein Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.3 2001-04-27 10:54:31 paklein Exp $ */
 /* created: paklein (10/01/2000)                                          */
 /* base class for large deformation isotropic material following          */
 /* Ogden's formulation.                                                   */
@@ -206,14 +206,14 @@ void OgdenIsotropicT::MixedRank4_2D(const dArrayT& a, const dArrayT& b,
 
 	double* p = rank4_ab.Pointer();
 	*p++ = z11;
-*p++ = z8;
-*p++ = z3;
-*p++ = z8;
-*p++ = z5;
-*p++ = z1;
-*p++ = z3;
-*p++ = z1;
-*p   = z2;
+	*p++ = z8;
+	*p++ = z3;
+	*p++ = z8;
+	*p++ = z5;
+	*p++ = z1;
+	*p++ = z3;
+	*p++ = z1;
+	*p   = z2;
 }
 
 void OgdenIsotropicT::MixedRank4_3D(const dArrayT& a, const dArrayT& b,
@@ -342,40 +342,40 @@ void OgdenIsotropicT::MixedRank4_3D(const dArrayT& a, const dArrayT& b,
 	// { z2, z13, z11, z15,  z3,  z7}}
 	
 	double* p = rank4_ab.Pointer();
-*p++ = z30;
-*p++ = z16;
-*p++ = z10;
-*p++ = z6;
-*p++ = z5;
-*p++ = z2;
-*p++ = z16;
-*p++ = z37;
-*p++ = z26;
-*p++ = z8;
-*p++ = z9;
-*p++ = z13;
-*p++ = z10;
-*p++ = z26;
-*p++ = z27;
-*p++ = z4;
-*p++ = z1;
-*p++ = z11;
-*p++ = z6;
-*p++ = z8;
-*p++ = z4;
-*p++ = z17;
-*p++ = z12;
-*p++ = z15;
-*p++ = z5;
-*p++ = z9;
-*p++ = z1;
-*p++ = z12;
-*p++ = z14;
-*p++ = z3;
-*p++ = z2;
-*p++ = z13;
-*p++ = z11;
-*p++ = z15;
-*p++ = z3;
-*p  = z7;
+	*p++ = z30;
+	*p++ = z16;
+	*p++ = z10;
+	*p++ = z6;
+	*p++ = z5;
+	*p++ = z2;
+	*p++ = z16;
+	*p++ = z37;
+	*p++ = z26;
+	*p++ = z8;
+	*p++ = z9;
+	*p++ = z13;
+	*p++ = z10;
+	*p++ = z26;
+	*p++ = z27;
+	*p++ = z4;
+	*p++ = z1;
+	*p++ = z11;
+	*p++ = z6;
+	*p++ = z8;
+	*p++ = z4;
+	*p++ = z17;
+	*p++ = z12;
+	*p++ = z15;
+	*p++ = z5;
+	*p++ = z9;
+	*p++ = z1;
+	*p++ = z12;
+	*p++ = z14;
+	*p++ = z3;
+	*p++ = z2;
+	*p++ = z13;
+	*p++ = z11;
+	*p++ = z15;
+	*p++ = z3;
+	*p  = z7;
 }

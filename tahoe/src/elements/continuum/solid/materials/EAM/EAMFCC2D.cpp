@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.2 2001-04-27 10:54:30 paklein Exp $ */
 /* created: paklein (12/09/1996)                                          */
 /* Plane strain EAM material                                              */
 
@@ -20,9 +20,9 @@ const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-EAMFCC2D::EAMFCC2D(ifstreamT& in, const ElasticT& element, int planecode):
+EAMFCC2D::EAMFCC2D(ifstreamT& in, const ElasticT& element, PlaneCodeT plane_code):
 	NL_E_Mat2DT(in, element, kPlaneStrain),
-	fPlaneCode(planecode),
+	fPlaneCode(plane_code),
 	fEAM(NULL)
 {
 	/* read EAM code */
@@ -30,12 +30,12 @@ EAMFCC2D::EAMFCC2D(ifstreamT& in, const ElasticT& element, int planecode):
 	
 	switch (fPlaneCode)
 	{
-		case kFCC2Dnatural:
+		case kFCC001:
 		{
 			fEAM = new EAMFCC3DSym(in, fEAMCode, knsd);
 			break;
 		}	
-		case kFCC2D110:
+		case kFCC101:
 		{
 			dMatrixT Q(3);
 			
@@ -52,7 +52,7 @@ EAMFCC2D::EAMFCC2D(ifstreamT& in, const ElasticT& element, int planecode):
 			fEAM = new EAMFCC3DSym(in, Q, fEAMCode, knsd);
 			break;
 		}	
-		case kFCC2D111:
+		case kFCC111:
 		{
 			dMatrixT Q(3);
 			Q = 0.0;
@@ -115,8 +115,7 @@ void EAMFCC2D::PrintName(ostream& out) const
 	/* inherited */
 	NL_E_Mat2DT::PrintName(out);
 
-	const char* planes[] = {"natural", "110", "111"};
-
+	const char* planes[] = {"001", "101", "111"};
 	out << "    EAM FCC 2D <" << planes[fPlaneCode] << "> Plane Strain\n";
 }
 

@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.cpp,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* $Id: ModCB2DT.cpp,v 1.2 2001-04-27 10:54:33 paklein Exp $ */
 /* created: paklein (05/31/1997)                                          */
 
 #include "ModCB2DT.h"
@@ -18,14 +18,11 @@ const int knsd = 2;
 const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
 
-/* plane codes - for crystal axes rotated wrt global axes*/
-const int	kDC2Dnatural 	= 0;
-const int 	kDC2D110		= 1;
-const int	kDC2D111		= 2;
-
 /* constructor */
-ModCB2DT::ModCB2DT(ifstreamT& in, const ElasticT& element, bool equilibrate):
+ModCB2DT::ModCB2DT(ifstreamT& in, const ElasticT& element, bool equilibrate, 
+	PlaneCodeT plane_code):
 	NL_E_Mat2DT(in, element, kPlaneStrain),
+	fPlaneCode(plane_code),
 	fModCBSolver(NULL),
 	fCij3D(dSymMatrixT::NumValues(3)),
 	fXsi(3), fStretch3D(3),
@@ -33,15 +30,14 @@ ModCB2DT::ModCB2DT(ifstreamT& in, const ElasticT& element, bool equilibrate):
 {
 	/* lattice transformation */
 	dMatrixT Q;
-	in >> fPlaneCode;
 	switch (fPlaneCode)
 	{
-		case kDC2Dnatural:
+		case kDC001:
 			
 			//no Q to construct
 			break;
 
-		case kDC2D110:
+		case kDC101:
 		{
 			Q.Allocate(3);
 			Q = 0.0;
@@ -56,7 +52,7 @@ ModCB2DT::ModCB2DT(ifstreamT& in, const ElasticT& element, bool equilibrate):
 
 			break;
 		}
-		case kDC2D111:
+		case kDC111:
 		{
 			Q.Allocate(3);
 			Q = 0.0;
@@ -117,7 +113,7 @@ void ModCB2DT::PrintName(ostream& out) const
 	/* inherited */
 	NL_E_Mat2DT::PrintName(out);
 	
-	const char* planes[] = {"natural", "110", "111"};
+	const char* planes[] = {"001", "101", "111"};
 	out << "    Modified CB <" << planes[fPlaneCode] << "> Plane Strain\n";
 
 	/* potential name */

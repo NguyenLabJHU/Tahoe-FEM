@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.cpp,v 1.2 2001-02-20 00:28:19 paklein Exp $ */
+/* $Id: SimoIso3D.cpp,v 1.3 2001-04-27 10:54:32 paklein Exp $ */
 /* created: paklein (03/02/1997)                                          */
 
 #include "SimoIso3D.h"
@@ -144,7 +144,7 @@ void SimoIso3D::ComputeCauchy(double J, const dSymMatrixT& b_bar,
 
 double SimoIso3D::ComputeEnergy(double J, const dSymMatrixT& b_bar)
 {
-	return U(J) +                         /* volumetric */
+	return U(J) +                          /* volumetric */
 	       0.5*Mu()*(b_bar.Trace() - 3.0); /* deviatoric */
 }
 
