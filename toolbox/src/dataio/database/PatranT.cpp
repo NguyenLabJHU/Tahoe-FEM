@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.8 2002-01-07 20:43:25 paklein Exp $ */
+/* $Id: PatranT.cpp,v 1.9 2002-01-27 18:31:02 paklein Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -185,7 +185,7 @@ bool PatranT::ReadGlobalElementMap (iArrayT& map) const
   return true;
 }
 
-bool PatranT::NumNodesInSet (StringT& title, int& num) const
+bool PatranT::NumNodesInSet (const StringT& title, int& num) const
 {
   num = -1;
   iArrayT list;

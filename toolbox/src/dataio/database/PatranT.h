@@ -1,4 +1,4 @@
-/* $Id: PatranT.h,v 1.4 2001-09-04 14:38:53 sawimme Exp $ */
+/* $Id: PatranT.h,v 1.5 2002-01-27 18:31:02 paklein Exp $ */
 /* created: sawimme (05/17/2001)  */
 
 #ifndef _PATRAN_T_H_
@@ -29,7 +29,7 @@ class PatranT
   int NumDimensions (void) const;
   int NumNamedComponents (void) const;
   bool NamedComponents (ArrayT<StringT>& names) const;
-  bool NumNodesInSet (StringT& title, int& num) const;
+  bool NumNodesInSet (const StringT& title, int& num) const;
   bool ReadGlobalNodeMap (iArrayT& map) const;
   bool ReadGlobalElementMap (iArrayT& map) const;
   /* dof is user defined to allow 3D data with z=0 to shrink to 2D */
