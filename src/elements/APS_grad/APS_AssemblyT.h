@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.13 2003-10-02 23:50:18 paklein Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.14 2003-10-03 00:36:18 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -258,11 +258,6 @@ private:
 	/** output ID */
 	int fOutputID;
 	
-	/** integration point stresses. Calculated and stored during 
-	 * APS_AssemblyT::RHSDriver */
-	dArray2DT fIPVariable;
-	/*@}*/
-
 	/** integration point stresses. Calculated and stored during 
 	 * APS_AssemblyT::RHSDriver */
 	dArray2DT fIPVariable;

@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.24 2003-10-02 23:50:18 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.25 2003-10-03 00:36:18 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -94,7 +94,7 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	if (!fStack) fStack = new FEA_StackT;
 
 	/* prescribed plastic gradient at surface */
-	int num_sides;
+	/*int num_sides;
 	in >> num_sides;
 	fSideSetID.Dimension(num_sides);
 	fPlasticGradient.Dimension(num_sides);
@@ -108,9 +108,10 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 		in >> fSideSetID[i];
 		in >> fPlasticGradient[i];
 	
-		/* get nodes-on-faces */
+		// get nodes-on-faces
 		model.SideSet(fSideSetID[i], facet_geom, facet_nodes, fPlasticGradientFaces[i]);
 	}
+	*/
 }
 
 //---------------------------------------------------------------------
@@ -368,14 +369,14 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 	}
 	
 	/* get the equation number for the nodes on the faces */
-	for (int i = 0; i < fPlasticGradientFaceEqnos.Length(); i++)
+	/*for (int i = 0; i < fPlasticGradientFaceEqnos.Length(); i++)
 	{
 		iArray2DT& faces = fPlasticGradientFaces[i];
 		iArray2DT& eqnos = fPlasticGradientFaceEqnos[i];
 		eqnos.Dimension(faces.MajorDim(), faces.MajorDim()*fDispl.NumDOF());
 	
 		fDispl.SetLocalEqnos(faces, eqnos);
-	}
+	} */
 }
 
 
