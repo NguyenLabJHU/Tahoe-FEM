@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.11 2002-01-27 18:51:01 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.12 2002-02-11 01:39:02 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -403,11 +403,7 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	fNumElemNodes = nen;
 	
 	/* connectivity returned empty */
-	if (fNumElemNodes == 0)
-	{
-		fNumElemNodes = DefaultNumElemNodes();
-		fConnectivities.Allocate(0);
-	}
+	if (fNumElemNodes == 0) fNumElemNodes = DefaultNumElemNodes();
 
 	/* derived dimensions */	
 	fNumElemEqnos = fNumElemNodes*fNumDOF;
