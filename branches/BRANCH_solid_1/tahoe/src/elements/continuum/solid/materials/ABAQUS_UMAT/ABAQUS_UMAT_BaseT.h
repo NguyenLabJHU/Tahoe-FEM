@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.1.1.1.2.3 2001-06-29 23:55:45 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.1.1.1.2.4 2001-07-02 21:54:23 paklein Exp $ */
 /* created: paklein (05/09/2000)                                          */
 /* NOTE: pick the base class for this based on the                        */
 /* weak form equations it's supposed to fit into                          */
@@ -141,8 +141,6 @@ private:
 	//  expansion   (*EXPANSION)
 
 	/* work space */
-//	const LocalArrayT& fLocLastDisp; // displacements from the last time step
-//DEV
 	dMatrixT    fModulus;            // return value
 	dSymMatrixT fStress;             // return value
 	dArrayT fIPCoordinates;          // integration point coordinates

@@ -1,3 +1,4 @@
+/* $Id: BCJHypo3D.cpp,v 1.3.2.3 2001-07-02 21:54:34 paklein Exp $ */
 /*
   File: BCJHypo3D.cpp
 */
@@ -9,8 +10,6 @@
 #include "Utils.h"
 #include "BCJKineticEqn.h"
 
-//#include "ElasticT.h"
-//DEV
 #include "ContinuumElementT.h"
 #include "FEManagerT.h"
 

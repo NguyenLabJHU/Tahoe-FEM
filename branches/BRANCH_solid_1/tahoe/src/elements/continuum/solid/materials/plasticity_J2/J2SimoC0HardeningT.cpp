@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.cpp,v 1.4.2.1 2001-06-22 14:18:21 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.cpp,v 1.4.2.2 2001-07-02 21:54:30 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 
 #include "J2SimoC0HardeningT.h"
@@ -7,9 +7,6 @@
 #include <math.h>
 
 #include "ifstreamT.h"
-//#include "ElasticT.h"
-//DEV
-
 #include "iArrayT.h"
 #include "ElementCardT.h"
 

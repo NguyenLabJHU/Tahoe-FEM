@@ -1,3 +1,4 @@
+/* $Id: GradCrystalPlast2D.cpp,v 1.1.2.3 2001-07-02 21:54:31 paklein Exp $ */
 /*
   File: GradCrystalPlast2D.cpp
 */
@@ -6,12 +7,6 @@
 #include "Utils.h"
 
 #include "ifstreamT.h"
-//#include "ElasticT.h"
-//DEV
-
-//#include "ShapeFunctionT.h"
-//DEV
-
 
 /* spatial dimensions of the problem */
 const int kNSD = 2;
@@ -66,18 +61,3 @@ void GradCrystalPlast2D::PrintName(ostream& out) const
   // output 2D case name
   out << "    Plane Strain\n";
 }
-
-//DEV - deprecated
-#if 0
-const dMatrixT& GradCrystalPlast2D::DeformationGradient(const LocalArrayT& disp)
-{
-  // 2D displacement gradient at IP
-  ShapeFunction().GradU(disp, fGradU, fIP);
-
-  // expand total deformation gradient: 2D -> 3D (plane strain)
-  fmatx1.Rank2ExpandFrom2D(FDContinuumT::F(fGradU));    // fFtot or fFtot_n
-  fmatx1(2, 2) = 1.;
-
-  return fmatx1;
-}
-#endif

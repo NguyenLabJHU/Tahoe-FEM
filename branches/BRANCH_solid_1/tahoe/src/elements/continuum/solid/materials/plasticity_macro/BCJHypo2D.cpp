@@ -6,10 +6,6 @@
 #include "ifstreamT.h"
 #include "Utils.h"
 
-//#include "ElasticT.h"
-//DEV
-
-
 /* spatial dimension of problem */
 const int kNSD = 2;
 

@@ -1,27 +1,18 @@
-/* $Id: FSSolidMatT.cpp,v 1.1.1.1.2.5 2001-07-02 16:12:04 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.1.1.1.2.6 2001-07-02 21:54:36 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 
 #include "FSSolidMatT.h"
 #include <iostream.h>
 
 #include "FiniteStrainT.h"
-//#include "ShapeFunctionT.h"
-//DEV
 #include "ThermalDilatationT.h"
 
 /* constructor */
 FSSolidMatT::FSSolidMatT(ifstreamT& in, const FiniteStrainT& element):
-//	FDContinuumT(element.NumSD()),
-//DEV
 	StructuralMaterialT(in, element),
 	TensorTransformT(NumSD()),
 	fFiniteStrain(element),
-//	fShapes(element.ShapeFunction()),
-//	fLocDisp(element.Displacements()),
-//DEV
 	fQ(NumSD())
-//	fGradU(NumSD())
-//DEV
 {
 
 }
@@ -35,7 +26,7 @@ void FSSolidMatT::Initialize(void)
 	/* active multiplicative dilatation */
 	if (fThermal->IsActive())
 	{
-		//TEMP
+		//DEV
 		cout << "\n FSSolidMatT::Initialize: no imposed thermal strain yet" << endl;
 		throw eGeneralFail;
 
@@ -224,46 +215,6 @@ void FSSolidMatT::Compute_E(dSymMatrixT& E) const
 		throw eGeneralFail;
 	}
 }
-
-//DEV
-#if 0
-const dMatrixT& FSSolidMatT::F(const LocalArrayT& disp)
-{
-	/* displacement gradient */
-	fShapes.GradU(disp, fGradU);
-
-	/* deformation gradient */
-	return FDContinuumT::F(fGradU);
-}
-
-const dSymMatrixT& FSSolidMatT::C(void)
-{
-	/* displacement gradient */
-	fShapes.GradU(fLocDisp, fGradU);
-
-	/* right stretch */
-	return FDContinuumT::C(fGradU);
-}
-
-const dSymMatrixT& FSSolidMatT::b(void)
-{
-	/* displacement gradient */
-	fShapes.GradU(fLocDisp, fGradU);
-
-	/* left stretch */
-	return FDContinuumT::b(fGradU);
-}
-
-const dSymMatrixT& FSSolidMatT::E(void)
-{
-	/* displacement gradient */
-	fShapes.GradU(fLocDisp, fGradU);
-
-	/* Green-Lagrange strain */
-	return FDContinuumT::E(fGradU);
-}
-#endif
-//DEV
 
 /* return the acoustical tensor and wave speeds */
 const dSymMatrixT& FSSolidMatT::AcousticalTensor(const dArrayT& normal)

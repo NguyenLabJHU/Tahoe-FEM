@@ -1,3 +1,4 @@
+/* $Id: LocalCrystalPlast_C.cpp,v 1.1.2.2 2001-07-02 21:54:33 paklein Exp $ */
 /*
   File: LocalCrystalPlast_C.cpp
 */
@@ -9,9 +10,6 @@
 #include "ifstreamT.h"
 #include "Utils.h"
 #include "ContinuumElementT.h"
-
-//#include "ElasticT.h"
-//DEV
 #include "FEManagerT.h"
 
 /* spatial dimensions of the problem */
@@ -314,6 +312,7 @@ cout << "not fixed yet" << endl;
 throw;
 //DEV - don't know how to fix this yet. Need a mechanism to
 //      compute the deformation gradient at the element centroid
+// paklein (07/02/2001)
   return  DefGradientAtCenter(disp);
 }
 

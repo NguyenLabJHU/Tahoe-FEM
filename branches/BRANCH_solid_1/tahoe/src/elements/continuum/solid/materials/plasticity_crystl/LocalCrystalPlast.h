@@ -1,3 +1,4 @@
+/* $Id: LocalCrystalPlast.h,v 1.1.2.3 2001-07-02 21:54:32 paklein Exp $ */
 /*
   File: LocalCrystalPlast.h
 */
@@ -124,10 +125,6 @@ class LocalCrystalPlast : public PolyCrystalMatT
 
   // polar decomposition of deformation gradient
   void PolarDecomp();
-
-  // deformation gradient
-  //virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
-//DEV
 
 	// function to compute 3D deformations regardless of dimensionality of the
 	// problem. For 2D, the out-of-plane direction is x3 and the deformation

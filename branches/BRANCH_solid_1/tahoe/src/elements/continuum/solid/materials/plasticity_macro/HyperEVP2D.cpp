@@ -1,3 +1,4 @@
+/* $Id: HyperEVP2D.cpp,v 1.1.2.3 2001-07-02 21:54:35 paklein Exp $ */
 /*
   File: HyperEVP2D.cpp
 */
@@ -5,10 +6,6 @@
 #include "HyperEVP2D.h"
 #include "ifstreamT.h"
 #include "Utils.h"
-
-//#include "ElasticT.h"
-//DEV
-
 
 /* spatial dimension of problem */
 const int kNSD = 2;
@@ -63,15 +60,3 @@ void HyperEVP2D::PrintName(ostream& out) const
   // output model name
   out << "    Plane Strain\n";
 }
-
-//DEV - deprecated?
-#if 0
-const dMatrixT& HyperEVP2D::DeformationGradient(const LocalArrayT& disp)
-{
-  // expand total deformation gradient: 2D -> 3D (plane strain)
-  fmatx1.Rank2ExpandFrom2D(F(disp));    // fFtot or fFtot_n
-  fmatx1(2, 2) = 1.;
-
-  return fmatx1;
-}
-#endif

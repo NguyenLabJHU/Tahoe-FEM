@@ -1,3 +1,4 @@
+/* $Id: LocalCrystalPlast2D.h,v 1.1.2.2 2001-07-02 21:54:32 paklein Exp $ */
 /*
   File: LocalCrystalPlast2D.h
 */
@@ -36,11 +37,6 @@ class LocalCrystalPlast2D : public LocalCrystalPlast, public Material2DT
 
  protected:
  
-  // deformation gradient
-//  virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
-//DEV - deprecated
-
- protected:
   // crystal Cauchy stress in 2D
   dSymMatrixT f2Dsavg_ij;
   

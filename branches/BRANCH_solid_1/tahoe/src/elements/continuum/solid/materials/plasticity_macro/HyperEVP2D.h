@@ -1,3 +1,4 @@
+/* $Id: HyperEVP2D.h,v 1.1.2.3 2001-07-02 21:54:35 paklein Exp $ */
 /*
   File: HyperEVP2D.h
 */
@@ -33,11 +34,6 @@ class HyperEVP2D : public HyperEVP3D, public Material2DT
   // print data and model name
   virtual void Print(ostream& out) const;
   virtual void PrintName(ostream& out) const;
-
- protected:
-  // deformation gradient
-  //virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
-//DEV - see who needs this
 
  protected:
   // Cauchy stress in 2D

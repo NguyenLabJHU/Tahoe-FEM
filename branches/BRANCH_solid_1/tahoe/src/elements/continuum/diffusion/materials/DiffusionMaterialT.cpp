@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:29 paklein Exp $ */
+/* $Id: DiffusionMaterialT.cpp,v 1.1.1.1.2.3 2001-07-02 21:54:36 paklein Exp $ */
 /* created: paklein (10/02/1999)                                          */
 
 #include "DiffusionMaterialT.h"
@@ -9,8 +9,6 @@
 #include "fstreamT.h"
 #include "dArrayT.h"
 #include "dSymMatrixT.h"
-//#include "ShapeFunctionT.h"
-//DEV
 
 #include "LocalArrayT.h"
 #include "DiffusionT.h"
@@ -18,8 +16,6 @@
 /* constructor */
 DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionT& element):
 	ContinuumMaterialT(element),
-//	fShapes(element.ShapeFunction()),
-//DEV
 	fLocDisp(element.Displacements()),
 	fConductivity(NumSD()),
 	fT_x(1, NumSD()),

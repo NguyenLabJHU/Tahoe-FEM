@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.5.2.4 2001-06-29 23:55:49 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.5.2.5 2001-07-02 21:54:29 paklein Exp $ */
 /* created: paklein (10/26/2000)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -14,8 +14,6 @@
 #include <math.h>
 
 #include "Constants.h"
-//#include "ElasticT.h"
-//DEV
 
 #include "iArrayT.h"
 #include "ElementCardT.h"

@@ -1,3 +1,4 @@
+/* $Id: LocalCrystalPlast.cpp,v 1.1.2.3 2001-07-02 21:54:32 paklein Exp $ */
 /*
   File: LocalCrystalPlast.cpp
 */
@@ -15,10 +16,6 @@
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 #include "Utils.h"
-
-//#include "ElasticT.h"
-//DEV
-
 #include "ContinuumElementT.h"
 #include "FEManagerT.h"
 
@@ -1269,14 +1266,6 @@ void LocalCrystalPlast::PolarDecomp()
   // rotation tensor
   fRe.MultAB(fFe, fmatx1); 
 }
-
-//DEV - deprecated
-#if 0
-const dMatrixT& LocalCrystalPlast::DeformationGradient(const LocalArrayT& disp)
-{ 
-  return F(disp); 
-}
-#endif
 
 // compute 3D deformation gradient
 void LocalCrystalPlast::Compute_Ftot_3D(dMatrixT& F_3D) const

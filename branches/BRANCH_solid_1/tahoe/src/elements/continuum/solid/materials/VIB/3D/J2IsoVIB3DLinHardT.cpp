@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:13 paklein Exp $ */
+/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.1.1.1.2.3 2001-07-02 21:54:26 paklein Exp $ */
 /* created: paklein (10/12/1998)                                          */
 /* VIB plus principal stretch elasticity                                  */
 /* Interface for a elastoplastic material that is linearly                */
@@ -14,9 +14,6 @@
 
 #include <iostream.h>
 #include <math.h>
-
-//#include "ElasticT.h"
-//DEV
 
 #include "Constants.h"
 #include "iArrayT.h"

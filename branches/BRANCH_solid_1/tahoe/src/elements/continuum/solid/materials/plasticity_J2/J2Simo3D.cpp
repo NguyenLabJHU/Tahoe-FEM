@@ -1,10 +1,7 @@
-/* $Id: J2Simo3D.cpp,v 1.3.2.3 2001-06-29 23:55:50 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.3.2.4 2001-07-02 21:54:30 paklein Exp $ */
 /* created: paklein (06/22/1997)                                          */
 
 #include "J2Simo3D.h"
-//#include "ElasticT.h"
-//DEV
-
 #include "ElementCardT.h"
 #include "StringT.h"
 
