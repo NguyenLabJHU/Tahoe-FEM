@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.3.2.11 2003-05-13 00:19:30 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.3.2.12 2003-05-13 02:38:56 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -367,7 +367,7 @@ void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& nodes) const
 
 /* initialize data for the driving field */
 void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& field, 
-	NodeManagerT& node_manager)
+	NodeManagerT& node_manager, bool make_inactive)
 {
 	const char caller[] = "FEManagerT_bridging::SetExactSolution";
 
@@ -404,12 +404,15 @@ void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& fi
 	/* generate KBC cards - all degrees of freedom */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
 	int ndof = the_field->NumDOF();
-	ArrayT<KBC_CardT>& KBC_cards = fSolutionDriver->KBC_Cards();
-	KBC_cards.Dimension(cell_nodes.Length()*ndof);
-	int dex = 0;
-	for (int j = 0; j < ndof; j++)
-		for (int i = 0; i < cell_nodes.Length(); i++)
-			KBC_cards[dex++].SetValues(cell_nodes[i], j, KBC_CardT::kDsp, 0, 0.0);
+	if (make_inactive)
+	{
+		ArrayT<KBC_CardT>& KBC_cards = fSolutionDriver->KBC_Cards();
+		KBC_cards.Dimension(cell_nodes.Length()*ndof);
+		int dex = 0;
+		for (int j = 0; j < ndof; j++)
+			for (int i = 0; i < cell_nodes.Length(); i++)
+				KBC_cards[dex++].SetValues(cell_nodes[i], j, KBC_CardT::kDsp, 0, 0.0);
+	}
 
 	/* dimension work space */
 	fProjection.Dimension(cell_nodes.Length(), ndof);
