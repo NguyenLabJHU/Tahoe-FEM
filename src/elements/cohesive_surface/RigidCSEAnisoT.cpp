@@ -1,8 +1,8 @@
-/* $Id: RigidCSEAnisoT.cpp,v 1.2 2004-01-05 07:44:44 paklein Exp $ */
+/* $Id: RigidCSEAnisoT.cpp,v 1.3 2004-06-17 06:43:18 paklein Exp $ */
 #include "RigidCSEAnisoT.h"
 
 #include "XDOF_ManagerT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "eIntegratorT.h"
 #include "SurfaceShapeT.h"
 

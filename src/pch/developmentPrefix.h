@@ -15,5 +15,6 @@
 #include "dArrayT.h"
 #include "dMatrixT.h"
 #include "dArray2DT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "RaggedArray2DT.h"
