@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.18 2003-09-05 20:27:26 paklein Exp $ */
+/* $Id: main.cpp,v 1.19 2004-05-10 01:28:48 paklein Exp $ */
 #include "ExceptionT.h"
 #include "TranslateIOManager.h"
 #include "ExtractNode.h"
@@ -6,6 +6,7 @@
 #include "ExtractQuad.h"
 #include "PointPlots.h"
 #include "MergeResults.h"
+#include "JoinResults.h"
 #include "ifstreamT.h"
 #include "StringT.h"
 #include "AutoArrayT.h"
@@ -63,7 +64,8 @@ int main (int c, char* a [])
 	      cout << "4. Quadrature Data Extraction for Point Plots \n";
 	      cout << "5. Merge Results Files \n";
 	      cout << "6. Element Data Extraction to XY Data \n";
-	      cout << "\n Select type of translation: ";
+	      cout << "7. Concatentate Results Files \n";
+		  cout << "\n Select type of translation: ";
 	    }
 	  in >> selection;
 	  cout << "\n Type of translation: " << selection << ".";
@@ -119,6 +121,14 @@ int main (int c, char* a [])
 			program = "Extract";
 			version = "v1.0";
 			dataio = new ExtractElement(cout, in, write);
+			break;
+		}
+		case 7:
+		{
+			cout << " Concatenate results files.\n\n";
+			program = "Concat";
+			version = "v1.0";
+			dataio = new JoinResults(cout, in, write);
 			break;
 		}
 	    default:
