@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Interface.cpp,v 1.1 2003-03-06 17:23:31 paklein Exp $ */
+/* $Id: SIERRA_Material_Interface.cpp,v 1.2 2003-03-08 01:56:20 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -37,7 +37,7 @@ void get_var_index(int* index, int* num_workset_elem, const char* variable_name,
 	if (vars[0] != variable_name)
 		ExceptionT::GeneralFail(caller, "variable not found: %s", variable_name);
 	else
-		*index = sizes[0];
+		*index = 0;
 }
 
 /* register the material model */

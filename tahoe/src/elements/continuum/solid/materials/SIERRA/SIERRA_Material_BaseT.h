@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.h,v 1.2 2003-03-06 17:23:31 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.h,v 1.3 2003-03-08 01:56:20 paklein Exp $ */
 #ifndef _SIERRA_MAT_BASE_T_H_
 #define _SIERRA_MAT_BASE_T_H_
 
@@ -18,7 +18,11 @@ class SpectralDecompT;
 class SIERRA_Material_Data;
 class ParameterListT;
 
-/** base class for wrappers around Sierra material models */
+/** base class for wrappers around Sierra material models. Sub-classes \e must 
+ * overload two methods: SIERRA_Material_BaseT::Register_SIERRA_Material, which
+ * should register all material parameters with SIERRA_Material_DB, and
+ * SIERRA_Material_BaseT::SetOutputVariables, which defines the labels and indecies 
+ * for values in the state variable array that will be written with material output. */
 class SIERRA_Material_BaseT: public FSSolidMatT, protected IsotropicT
 {
 public:
@@ -35,7 +39,7 @@ public:
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
-	/** print parameters */
+	/** \name print parameters */
 	/*@{*/
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
@@ -95,24 +99,39 @@ public:
 	virtual const dSymMatrixT& S_IJ(void);
 	/*@}*/
 
-	/* returns the strain energy density for the specified strain */
+	/** returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
 
+	/** \name material output */
+	/*@{*/
 	/* returns the number of variables computed for nodal extrapolation
-	 * during for element output, i.e., state variables. Returns 0
-	 * by default */
+	 * during for element output, i.e., some of the state variables. */
 	virtual int NumOutputVariables(void) const;
+	
+	/** return the labels for the output variables */
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
-	virtual void ComputeOutput(dArrayT& output);
 
-	/* set material output */
-	virtual void SetOutputVariables(iArrayT& variable_index,
-		ArrayT<StringT>& output_labels) = 0;
+	/** compute the output variables */
+	virtual void ComputeOutput(dArrayT& output);
+	/*@}*/
 
 protected:
 
-	/** I/O functions */
-	virtual void PrintProperties(ostream& out) const;
+	/** \name required by sub-classes */
+	/*@{*/
+	/** call the SIERRA registration function */
+	virtual void Register_SIERRA_Material(void) const = 0;
+
+	/** set material output */
+	virtual void SetOutputVariables(iArrayT& variable_index,
+		ArrayT<StringT>& output_labels) const = 0;
+	/*@}*/
+
+	/** \name load/store element data */
+	/*@{*/
+	void Load(ElementCardT& element, int ip);
+	void Store(ElementCardT& element, int ip);
+	/*@}*/
 
 private:
 
@@ -120,12 +139,6 @@ private:
 	/*@{*/
 	void SIERRA_to_dSymMatrixT(const double* pA, dSymMatrixT& B) const;
 	void dSymMatrixT_to_SIERRA(const dSymMatrixT& A, double* pB) const;
-	/*@}*/
-
-	/** \name load/store element data */
-	/*@{*/
-	void Load(ElementCardT& element, int ip);
-	void Store(ElementCardT& element, int ip);
 	/*@}*/
 
 	/** compute strains, rotated stresses, etc. */
@@ -143,7 +156,25 @@ private:
 	SIERRA_Material_Data* Process_SIERRA_Input(ParameterListT& param_list);
 	/*@}*/
 
+protected:
+
+	/** \name Sierra_function_material_calc arguments */
+	/*@{*/
+	nArrayT<double> fdstran;     /**< rotated strain increment */
+	nArrayT<double> fstress_old; /**< (rotated) stress from the previous time increment */
+	nArrayT<double> fstress_new; /**< destination for updated stress */
+	nArrayT<double> fstate_old;  /**< state variables from the previous time increment */
+	nArrayT<double> fstate_new;  /**< destination for updated state variables */
+	nArrayT<double> fmatvals;    /**< array of material parameters */
+	/*@}*/
+
 private:
+
+	/** material name */
+	StringT fMaterialName;
+	
+	/** model name */
+	StringT fMaterialModelName;
 
 	/** tangent type */
 	GlobalT::SystemTypeT fTangentType;
@@ -155,16 +186,6 @@ private:
 	dMatrixT    fModulus;            // return value
 	dSymMatrixT fStress;             // return value
 	double fPressure; /**< pressure for the most recent calculation of the stress */
-	
-	/** \name Sierra_function_material_calc arguments */
-	/*@{*/
-	nArrayT<double> fdstran;     /**< rotated strain increment */
-	nArrayT<double> fstress_old; /**< (rotated) stress from the previous time increment */
-	nArrayT<double> fstress_new; /**< destination for updated stress */
-	nArrayT<double> fstate_old;  /**< state variables from the previous time increment */
-	nArrayT<double> fstate_new;  /**< destination for updated state variables */
-	nArrayT<double> fmatvals;    /**< array of material parameters */
-	/*@}*/
 	
 	/** \name polar decomposition work space */
 	/*@{*/

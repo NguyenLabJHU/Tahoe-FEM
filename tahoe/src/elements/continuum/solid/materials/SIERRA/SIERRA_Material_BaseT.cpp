@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.2 2003-03-06 17:23:31 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.3 2003-03-08 01:56:20 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -10,8 +10,6 @@ using namespace Tahoe;
 /* initialize static variables */
 int SIERRA_Material_BaseT::sSIERRA_Material_count = 0;
 const int kSIERRA_stress_dim = 6;
-
-/* usually 
 
 /* constructor */
 SIERRA_Material_BaseT::SIERRA_Material_BaseT(ifstreamT& in, const FSMatSupportT& support):
@@ -35,47 +33,6 @@ SIERRA_Material_BaseT::SIERRA_Material_BaseT(ifstreamT& in, const FSMatSupportT&
 	/* instantiate materials database */
 	if (++sSIERRA_Material_count == 1)
 		SIERRA_Material_DB::Create();
-
-	/* read SIERRA-format input */
-	StringT line;
-	line.GetLineFromStream(in);
-	StringT word;
-	int count;
-	word.FirstWord(line, count, true);
-	if (word != "begin")
-		ExceptionT::BadInputValue(caller, "expecting \"begin\":\n%s", line.Pointer());
-	line.Tail(' ', word);
-	ParameterListT param_list(word);
-	Read_SIERRA_Input(in, param_list);
-	fSIERRA_Material_Data = Process_SIERRA_Input(param_list);
-
-#pragma message("set fModulus")
-	fModulus = 0.0;
-
-	/* checks */
-	const AutoArrayT<StringT>& input_vars = fSIERRA_Material_Data->InputVariables();
-	if (input_vars.Length() != 1 ||
-	    input_vars[0] != "rot_strain_inc")
-	    ExceptionT::GeneralFail(caller, "input variable must be \"rot_strain_inc\"");
-
-	/* storage block size (per ip) */
-	int nsv = fSIERRA_Material_Data->NumStateVariables();
-	fBlockSize = 0;
-	fBlockSize += kSIERRA_stress_dim; // fstress_old
-	fBlockSize += kSIERRA_stress_dim; // fstress_new
-	fBlockSize += nsv;  // fstate_old
-	fBlockSize += nsv;  // fstate_new
-	
-	/* argument array */
-	fArgsArray.Dimension(fBlockSize);
-
-	/* assign pointers */
-	double* parg = fArgsArray.Pointer();
-	
-	fstress_old.Set(kSIERRA_stress_dim, parg); parg += kSIERRA_stress_dim;
-	fstress_new.Set(kSIERRA_stress_dim, parg); parg += kSIERRA_stress_dim;
-	fstate_old.Set(nsv, parg); parg += nsv;
-	fstate_new.Set(nsv, parg);	
 	
 	/* spectral decomp */
 	fDecomp = new SpectralDecompT(NumSD());
@@ -101,6 +58,7 @@ void SIERRA_Material_BaseT::Print(ostream& out) const
 	FSSolidMatT::Print(out);
 	
 	/* write properties array */
+	out << " Material name . . . . . . . . . . . . . . . . . = " << fMaterialName << '\n';
 	out << " Material model name . . . . . . . . . . . . . . = " << fSIERRA_Material_Data->Name() << '\n';
 	out << " Number of state variables . . . . . . . . . . . = " << fSIERRA_Material_Data->NumStateVariables() << '\n';
 	
@@ -117,8 +75,70 @@ void SIERRA_Material_BaseT::Print(ostream& out) const
 /* disable multiplicative thermal strains */
 void SIERRA_Material_BaseT::Initialize(void)
 {
+	const char caller[] = "SIERRA_Material_BaseT::Initialize";
+
 	/* inherited */
 	FSSolidMatT::Initialize();
+
+	/* call SIERRA registration function */
+	Register_SIERRA_Material();
+
+	/* input stream */
+	ifstreamT& in = MaterialSupport().Input();
+
+	/* read SIERRA-format input */
+	StringT line;
+	line.GetLineFromStream(in);
+	StringT word;
+	int count;
+	word.FirstWord(line, count, true);
+	if (word != "begin")
+		ExceptionT::BadInputValue(caller, "expecting \"begin\":\n%s", line.Pointer());
+	line.Tail(' ', word);
+	word.ToUpper();
+	ParameterListT param_list(word);
+	Read_SIERRA_Input(in, param_list);
+	fSIERRA_Material_Data = Process_SIERRA_Input(param_list);
+
+	/* check parameters */
+	const ArrayT<double>& properties = fSIERRA_Material_Data->PropertyValues();
+	Sierra_function_param_check check = fSIERRA_Material_Data->CheckFunction();
+	check(properties.Pointer());
+
+	/* set density */
+	int rho_dex = SIERRA_Material_DB::RealIndex("DENSITY");	
+	fDensity = properties[rho_dex];
+
+	/* set the modulus */
+	int k_dex = SIERRA_Material_DB::RealIndex("BULK_MODULUS");
+	int two_mu_dex = SIERRA_Material_DB::RealIndex("TWO_MU");
+	IsotropicT::Set_mu_kappa(properties[two_mu_dex]/2.0, properties[k_dex]);
+	IsotropicT::ComputeModuli(fModulus);
+
+	/* checks */
+	const AutoArrayT<StringT>& input_vars = fSIERRA_Material_Data->InputVariables();
+	if (input_vars.Length() != 1 ||
+	    input_vars[0] != "rot_strain_inc")
+	    ExceptionT::GeneralFail(caller, "input variable must be \"rot_strain_inc\"");
+
+	/* storage block size (per ip) */
+	int nsv = fSIERRA_Material_Data->NumStateVariables();
+	fBlockSize = 0;
+	fBlockSize += kSIERRA_stress_dim; // fstress_old
+	fBlockSize += kSIERRA_stress_dim; // fstress_new
+	fBlockSize += nsv;  // fstate_old
+	fBlockSize += nsv;  // fstate_new
+	
+	/* argument array */
+	fArgsArray.Dimension(fBlockSize);
+
+	/* assign pointers */
+	double* parg = fArgsArray.Pointer();
+	
+	fstress_old.Set(kSIERRA_stress_dim, parg); parg += kSIERRA_stress_dim;
+	fstress_new.Set(kSIERRA_stress_dim, parg); parg += kSIERRA_stress_dim;
+	fstate_old.Set(nsv, parg); parg += nsv;
+	fstate_new.Set(nsv, parg);	
 
 	/* notify */
 	if (fThermal->IsActive())
@@ -199,7 +219,14 @@ void SIERRA_Material_BaseT::ResetHistory(void)
 }
 
 /* spatial description */
-const dMatrixT& SIERRA_Material_BaseT::c_ijkl(void) { return fModulus; }
+const dMatrixT& SIERRA_Material_BaseT::c_ijkl(void)
+{
+	IsotropicT::ComputeModuli(fModulus);
+	return fModulus;
+	
+//NOTE: could do better here using the stress_old, stress_new, and
+//      incremental strain to give an estimate of the tangent modulus
+}
 
 const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 {
@@ -208,6 +235,9 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 	{
 		/* load stored data */
 		Load(CurrentElement(), CurrIP());
+
+		/* compute strains and other calc functions */
+		Set_Calc_Arguments();
 	
 		/* parameters */
 		int nelem = 1;
@@ -240,12 +270,13 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 /* material description */
 const dMatrixT& SIERRA_Material_BaseT::C_IJKL(void)
 {
-	/* spatial tangent moduli */
-	const dMatrixT& c = SIERRA_Material_BaseT::c_ijkl();
-
 	/* spatial -> material */
-	fModulus.SetToScaled(F().Det(), PushForward(F(), c));	
+	const dMatrixT& Fmat = F();
+	fModulus.SetToScaled(Fmat.Det(), PullBack(Fmat, c_ijkl()));	
 	return fModulus;
+	
+//NOTE: could do better here using the stress_old, stress_new, and
+//      incremental strain to give an estimate of the tangent modulus
 }
 
 const dSymMatrixT& SIERRA_Material_BaseT::S_IJ(void)
@@ -254,8 +285,17 @@ const dSymMatrixT& SIERRA_Material_BaseT::S_IJ(void)
 	const dSymMatrixT& s = SIERRA_Material_BaseT::s_ij();
 
 	/* spatial -> material */
-	fStress.SetToScaled(F().Det(), PushForward(F(), s));	
+	fStress.SetToScaled(F().Det(), PullBack(F(), s));	
 	return fStress;
+}
+
+/* return the pressure associated with the last call to SolidMaterialT::s_ij */
+double SIERRA_Material_BaseT::Pressure(void) const
+{
+	/* load stored data (cast const-ness) */
+	SIERRA_Material_BaseT* non_const_this = (SIERRA_Material_BaseT*) this;
+	non_const_this->Load(CurrentElement(), CurrIP());
+	return (fstress_new[3] + fstress_new[4] + fstress_new[5])/3.0;
 }
 
 /* returns the strain energy density for the specified strain */
@@ -365,13 +405,15 @@ void SIERRA_Material_BaseT::Read_SIERRA_Input(ifstreamT& in,
 	{
 		StringT word;
 		word.FirstWord(line, char_count, C_word_only);
+		word.ToUpper();
 		
 		/* start of new list */
-		if (word == "begin")
+		if (word == "BEGIN")
 		{
 			/* get list name */
 			StringT list_name;
 			line.Tail(' ', list_name);
+			list_name.ToUpper();
 			if (list_name.StringLength() == 0)
 				ExceptionT::BadInputValue(caller, "could not list name from line:\n%s",
 					line.Pointer());
@@ -385,11 +427,12 @@ void SIERRA_Material_BaseT::Read_SIERRA_Input(ifstreamT& in,
 				ExceptionT::BadInputValue(caller, "list is duplicate: \"%s\"",
 					param_sub_list.Name().Pointer());
 		}
-		else if (word == "end") /* end of this list */
+		else if (word == "END") /* end of this list */
 		{
 			/* get list name */
 			StringT name;
 			line.Tail(' ', name);
+			name.ToUpper();
 			if (name != param_list.Name())
 				ExceptionT::BadInputValue(caller, "expecting end for \"%s\" not \"%s\"",
 					param_list.Name().Pointer(), name.Pointer());
@@ -418,6 +461,45 @@ void SIERRA_Material_BaseT::Read_SIERRA_Input(ifstreamT& in,
 	in.set_marker(old_comment_marker);
 }
 
+SIERRA_Material_Data* SIERRA_Material_BaseT::Process_SIERRA_Input(ParameterListT& param_list)
+{
+	const char caller[] = "SIERRA_Material_BaseT::Process_SIERRA_Input";
+	fMaterialName = param_list.Name();
+
+	/* sublist - gives model name */
+	const ArrayT<ParameterListT>& sub_list = param_list.Lists();
+	if (sub_list.Length() != 1)
+		ExceptionT::BadInputValue(caller, "expecting 1 parameter sub-list: %d", sub_list.Length());
+
+	const ParameterListT& model_param_list = sub_list[0];
+	const StringT& model_name = model_param_list.Name();
+	SIERRA_Material_Data* mat_data = SIERRA_Material_DB::Material(model_name);
+
+	/* first add top level parameters */
+	const ArrayT<ParameterT>& params = param_list.Parameters();
+	for (int i = 0; i < params.Length(); i++)
+	{
+		/* add to material's parameter list */
+		int index = mat_data->AddProperty(params[i].Name(), params[i]);
+	
+		/* add to material dictionary */
+		SIERRA_Material_DB::AddRealIndex(params[i].Name(), index);
+	}
+
+	/* add model parameters */
+	const ArrayT<ParameterT>& model_params = model_param_list.Parameters();
+	for (int i = 0; i < model_params.Length(); i++)
+	{
+		/* add to material's parameter list */
+		int index = mat_data->AddProperty(model_params[i].Name(), model_params[i]);
+	
+		/* add to material dictionary */
+		SIERRA_Material_DB::AddRealIndex(model_params[i].Name(), index);
+	}
+
+	return mat_data;
+}
+
 /* load element data for the specified integration point */
 void SIERRA_Material_BaseT::Load(ElementCardT& element, int ip)
 {
@@ -440,10 +522,6 @@ void SIERRA_Material_BaseT::Store(ElementCardT& element, int ip)
 /* set stress/strain arguments */
 void SIERRA_Material_BaseT::Set_Calc_Arguments(void)
 {
-	/* assign "last" to "current" */
-//	fstress_new = fstress_old;
-//	fstate_new  = fstate_old;
-
 	/* relative deformation gradient */
 	fA_nsd = F_total_last();
 	const dMatrixT& F_n = F();
@@ -468,9 +546,7 @@ void SIERRA_Material_BaseT::Set_Calc_Arguments(void)
 	fdstran[4] = 2.0*fU1U2[3]; // 23
 	fdstran[5] = 2.0*fU1U2[4]; // 31
 
-#pragma message("correct stress?")
-
-	/* rotate stress to current configuration */
+	/* rotate old stress to current configuration */
 	SIERRA_to_dSymMatrixT(fstress_old.Pointer(), fU1);
 	fU2.MultQBQT(fA_nsd, fU1);
 	dSymMatrixT_to_SIERRA(fU2, fstress_old.Pointer());
