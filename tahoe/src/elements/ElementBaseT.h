@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.40 2004-07-22 08:18:02 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.41 2004-08-04 22:20:34 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -323,15 +323,19 @@ public:
 #endif
 
 protected: /* for derived classes only */
+
 	/** \name construction of connectivities */
 	/*@{*/
-	/** extract element block info from parameter list to be used. Method is
+	/** extract element block info from parameter list to be used. The method is
 	 * used in conjunction with ElementBaseT::DefineElements to initialize
-	 * the element group connectivities. By default, ElementBaseT::ExtractBlockInfo 
-	 * does not extract any information; henace to connectivies are read. 
-	 * The default implementation looks for block declarations with names
-	 * containing "_element_block" which contains block ID's within a
-	 * "block_ID_list". */
+	 * the element group connectivities. By default, ElementBaseT::CollectBlockInfo 
+	 * looks for block declarations as ParameterListT's within the source list
+	 * with names containing "_element_block". The source list can contain any number
+	 * of these block declatations. The element block ID's are assumed to
+	 * be contained in the block declarations in a ParameterListT with the name "block_ID_list".
+	 * If no ParameterListT matching "_element_block" is found in the source list, no
+	 * block information is extracted.
+	 */
 	virtual void CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const;
 
 	/** define the elements blocks for the element group */
