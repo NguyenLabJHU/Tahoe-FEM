@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.27 2002-10-20 22:38:55 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.28 2002-11-16 20:48:25 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 
 #include "StringT.h"
@@ -126,6 +126,18 @@ int operator==(const char* str_lhs, const StringT& str_rhs)
 	return (str_rhs == str_lhs);
 }
 } /* namespace Tahoe */
+
+/* return 1 of {*this, rhs} are in alphabetical order, 0 otherwise */
+int StringT::operator<(const StringT& rhs) const
+{
+	return strcmp(*this,rhs) < 0;
+}
+	
+/* return 1 of {*this, rhs} are in reverse alphabetical order, 0 otherwise */
+int StringT::operator>(const StringT& rhs) const
+{
+	return strcmp(*this,rhs) > 0;
+}
 
 int StringT::operator!=(const char* string) const
 {

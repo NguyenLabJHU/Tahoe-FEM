@@ -1,6 +1,5 @@
-/* $Id: StringT.h,v 1.16 2002-09-03 07:06:06 paklein Exp $ */
-/* created: paklein (08/01/1996)                                          */
-
+/* $Id: StringT.h,v 1.17 2002-11-16 20:48:25 paklein Exp $ */
+/* created: paklein (08/01/1996) */
 #ifndef _STRING_T_H_
 #define _STRING_T_H_
 
@@ -17,15 +16,18 @@ namespace Tahoe {
 /* forward declarations */
 class ifstreamT;
 
+/** string class */
 class StringT: public ArrayT<char>
 {
 public:
 
-	/** constructors */
+	/** \name constructors */
+	/*@{*/
 	StringT(void);
 	StringT(const StringT& string);
 	StringT(const char* string);
 	explicit StringT(int length);
+	/*@}*/
 	
 	/** type conversion operator - allows use of StringT in all const char*
 	 * ANSI C functions. */
@@ -36,9 +38,11 @@ public:
 	friend istream& operator>>(istream& in, StringT& string);
 	friend ostream& operator<<(ostream& out, const StringT& string);
 
-	/** assignment operator */
+	/** \name assignment operators */
+	/*@{*/
 	StringT& operator=(const char* string);
 	StringT& operator=(const StringT& string);
+	/*@}*/
 
 	/** copy what fits into the current string length. returns new string length */
 	int CopyIn(const char* string);
@@ -50,17 +54,34 @@ public:
 	 * before the first '\0' character, i.e., the ANSI C strlen() function */
 	int StringLength(void) const;
 
-	/** equality operators */
+	/** \name equality operators */
+	/*@{*/
 	int operator==(const StringT& rhs) const;
 	int operator==(const char* string) const;
 	int operator==(char* string) const { return operator==((const char *) string); };
 	friend int operator==(const char* str_lhs, const StringT& str_rhs);
+	/*@}*/
+	
+	/** \name comparisons */
+	/*@{*/
+	/** return true of {*this, rhs} are in alphabetical order, 0 otherwise. Note that
+	 * the order is case sensitive [A-Z] < [a-z], i.e., capital letters come before
+	 * lower case. */
+	int operator<(const StringT& rhs) const;
+	
+	/** return true of {*this, rhs} are in reverse alphabetical order, 0 otherwise. Note that
+	 * the order is case sensitive [A-Z] < [a-z], i.e., capital letters come before
+	 * lower case. */
+	int operator>(const StringT& rhs) const;
+	/*@}*/
 
-	/** inequality operators */
+	/** \name inequality operators */
+	/*@{*/
 	int operator!=(const StringT& rhs) const;
 	int operator!=(const char* string) const;
 	int operator!=(char* string) const { return operator!=((const char*) string); };
 	friend int operator!=(const char* str_lhs, const StringT& str_rhs);
+	/*@}*/
 
 	/** convert all to uppercase */
 	const StringT& ToUpper(void);
@@ -73,18 +94,24 @@ public:
 	void GetLineFromStream(ifstreamT& in);
 	/*@}*/
 
-	/** drop the last ".xxx" extension to the string */
+	/** \name drop the last ".xxx" extension to the string */
+	/*@{*/
 	StringT& Root(char marker = '.');
 	StringT& Root(const char* s, char marker = '.');
+	/*@}*/
 	
-	/** returns the last ".xxx" extension to the string */
+	/** \name returns the last ".xxx" extension to the string */
+	/*@{*/
 	StringT& Suffix(char marker = '.');
 	StringT& Suffix(const char* s, char marker = '.');
+	/*@}*/
 
 	/** returns the path part of the full path to a file - drops the file
 	 * from the full path to a file, keeping the directory separator */
+	/*@{*/
 	StringT& FilePath(void);
 	StringT& FilePath(const char* s);
+	/*@}*/
 
 	/** \name append characters to the string */
 	/*@{*/
@@ -107,8 +134,10 @@ public:
 	StringT& Append(double number, int precision = 2);
 
 	/** insert characters at the beginning of the string */
+	/*@{*/
 	StringT& Prepend(const char* s);
 	StringT& Prepend(const char* s1, const char* s2);
+	/*@}*/
 	
 	/** drop n characters from the string from the start (n > 0) or
 	 * from the end (n < 0) */
@@ -146,12 +175,14 @@ public:
 	/** drop trailing white space */
 	StringT& DropTrailingSpace(void);
 
-	/** convert string to native, relative file path */
+	/** \name convert string to native, relative file path */
+	/*@{*/
 	void ToNativePathName(void);
 	void ToMacOSPath(void);			
 	void ToWinNTPath(void);			
 	void ToUNIXPath(void);
 	static char DirectorySeparator(void);	
+	/*@}*/
 
 	/** print ASCII codes */
 	void PrintCodes(ostream& out) const;
