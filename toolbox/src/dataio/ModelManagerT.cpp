@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.4.2.7 2001-10-16 22:11:06 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.4.2.8 2001-10-18 21:48:32 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -590,6 +590,21 @@ void ModelManagerT::ReadCoordinates (void)
   fInput->ReadCoordinates (fCoordinates);
 }
 
+/* used to reduce 3D database coordinates (Patran, Abaqus, etc.) */
+bool ModelManagerT::AreElements2D (void) const
+{
+  if (fCoordinateDimensions[1] < 3) return true;
+
+  /* look over registered element sets */
+  for (int i=0; i < fNumElementSets; i++)
+    if (fElementCodes[i] == GeometryT::kPoint ||
+	fElementCodes[i] == GeometryT::kTriangle ||
+	fElementCodes[i] == GeometryT::kQuadrilateral )
+      return true;
+
+  return false;
+}
+
 void ModelManagerT::ElementGroupNames (ArrayT<StringT>& names) const
 {
   for (int i=0; i < names.Length(); i++)
@@ -845,6 +860,28 @@ void ModelManagerT::DuplicateNodes (const iArrayT& nodes, iArrayT& new_node_tags
     fCoordinates.CopyRowFromRow (new_node_tags[i], nodes[i]);
 }
 
+void ModelManagerT::AdjustCoordinatesto2D (void)
+{
+  if (fCoordinateDimensions[1] != 3) return;
+
+  /* make sure coordinates are already loaded */
+  ReadCoordinates ();
+
+  /* copy first two dimensions */
+  dArray2DT temp (fCoordinateDimensions[0], 2);
+  double *pt = temp.Pointer();
+  double *pc = fCoordinates.Pointer();
+  for (int i=0; i < fCoordinateDimensions[0]; i++)
+    {
+      for (int j=0; j < 2; j++)
+	*pt++ = *pc++;
+      *pc++;
+    }
+  
+  /* overwrite registered values */
+  RegisterNodes (temp);
+}
+
 void ModelManagerT::CloseModel (void)
 {
   if (fInput) fInput->Close ();
@@ -854,6 +891,10 @@ void ModelManagerT::CloseModel (void)
 
 ifstreamT& ModelManagerT::OpenExternal (ifstreamT& in, ifstreamT& in2, ostream& out, bool verbose, const char* fail) const
 {
+  /* external files are only allowed with inline text */
+  if (fFormat != IOBaseT::kTahoe)
+    return in;
+
 	/* check for external file */
 	char nextchar = in.next_char();
 	if (isdigit(nextchar))
