@@ -1,4 +1,4 @@
-/* $Id: PolyBasis3DGPT.cpp,v 1.1 2004-06-22 23:17:48 kyonten Exp $ */
+/* $Id: PolyBasis3DGPT.cpp,v 1.2 2004-07-06 20:16:24 kyonten Exp $ */
 /* created: paklein (04/19/2000)                                          */
 
 #include "PolyBasis3DGPT.h"
@@ -8,7 +8,7 @@
 using namespace Tahoe;
 
 PolyBasis3DGPT::PolyBasis3DGPT(int complete):
-	BasisT(complete, 3)
+	BasisGPT(complete, 3)
 {
 	if (fComplete < 0 || fComplete > 1)
 	{
