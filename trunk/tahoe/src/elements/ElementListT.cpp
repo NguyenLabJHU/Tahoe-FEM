@@ -1,11 +1,11 @@
-/* $Id: ElementListT.cpp,v 1.11 2001-08-20 06:45:52 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.12 2001-08-27 17:16:21 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
 #include <iostream.h>
 #include "fstreamT.h"
 #include "FEManagerT.h"
-#include "XDOF_FDNodesT.h"
+#include "NodeManagerT.h"
 #include "StringT.h"
 #include "ElementT.h"
 
@@ -215,12 +215,12 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 			{
 #ifdef __NO_RTTI__
 				if (fFEManager.Analysis() != GlobalT::kAugLagStatic) throw eGeneralFail;
-				XDOF_FDNodesT* XDOF_man = (XDOF_FDNodesT*) fFEManager.NodeManager();
+				XDOF_ManagerT* XDOF_man = (XDOF_ManagerT*) fFEManager.NodeManager();
 #else
-				XDOF_FDNodesT* XDOF_man = dynamic_cast<XDOF_FDNodesT*>(fFEManager.NodeManager());
+				XDOF_ManagerT* XDOF_man = dynamic_cast<XDOF_ManagerT*>(fFEManager.NodeManager());
 				if (!XDOF_man)
 				{
-					cout << "\n ElementListT::EchoElementData: failed to cast node manager to XDOF_FDNodesT\n"
+					cout << "\n ElementListT::EchoElementData: failed to cast node manager to XDOF_ManagerT\n"
 					     <<   "     as needed with analysis code: " << ElementT::kAugLagContact2D << endl;
 					throw eBadInputValue;
 				}
@@ -269,19 +269,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 			case ElementT::kMultiplierContact2D:
 			{
 #ifdef __NO_RTTI__
-				if (fFEManager.Analysis() 
-				  != GlobalT::kAugLagStatic) throw eGeneralFail;
-				XDOF_FDNodesT* XDOF_man	
-				  = (XDOF_FDNodesT*) fFEManager.NodeManager();
+				if (fFEManager.Analysis() != GlobalT::kAugLagStatic) throw eGeneralFail;
+				XDOF_ManagerT* XDOF_man	= (XDOF_ManagerT*) fFEManager.NodeManager();
 #else
-				XDOF_FDNodesT* XDOF_man 
-				  = dynamic_cast<XDOF_FDNodesT*>
-				  (fFEManager.NodeManager());
+				XDOF_ManagerT* XDOF_man = dynamic_cast<XDOF_ManagerT*>(fFEManager.NodeManager());
 				if (!XDOF_man)
 				{
 				cout<< "\n ElementListT::EchoElementData: "
 				      << "failed to cast node manager to "
-			              << "XDOF_FDNodesT\n"
+			              << "XDOF_ManagerT\n"
 				      << "     as needed with analysis code: " 
 				      << ElementT::kMultiplierContact2D << endl;
 				throw eBadInputValue;
