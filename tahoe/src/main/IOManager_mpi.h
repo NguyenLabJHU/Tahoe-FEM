@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.h,v 1.5 2002-01-07 20:37:22 paklein Exp $ */
+/* $Id: IOManager_mpi.h,v 1.6 2002-01-11 23:48:32 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #ifndef _IOMANAGER_MPI_H_
@@ -18,6 +18,12 @@
 /* forward declarations */
 class PartitionT;
 
+/** class to support runtime joining of parallel output. The generation of
+ * assembly maps differs here from the approach used in JoinOutputT in that
+ * in this implementation, only information about the local processor is
+ * read and stored. The remaining information is communicated during initialization.
+ * The JoinOutputT class reads information about every partition in order to
+ * generate the communication and assembly maps. */
 class IOManager_mpi: public IOManager
 {
 public:
@@ -38,6 +44,9 @@ public:
 
 private:
 
+	/** write the assembly maps. Used for debugging */
+	void WriteMaps(ostream& out) const;
+
 	/** communicate output counts */
 	void SetCommunication(const IOManager& local_IO);
 
@@ -54,14 +63,20 @@ private:
 	void SetAssemblyMap(const iArrayT& inv_global, int shift,
 		const iArrayT& local, iArrayT& lg_map) const;		
 
+	/** determine the assembly map. Incorporate the partial assemble map
+	 * into the global assemble map.
+	 * \param set output set index to assemble
+	 * \param block_ID block ID for the partial map
+	 * \param block_map global block ID as a function of partial index
+	 * \param map global output set ID as a function of set index. This array
+	 *        is allocate/initialized if passed in empty. Subsequently the
+	 *        array length must match the number of elements in the output set */
+	void BuildElementAssemblyMap(int set, int block_ID, const iArrayT& block_map, 
+		iArrayT& map) const;
+
 	/** MPI information */
 	int Rank(void) const;
 	int Size(void) const;
-
-#ifdef __MPI__
-	/** clear all outstanding requests - returns 1 of all OK */
-	int Clear(ArrayT<MPI_Request>& requests);
-#endif
 
 	/** check that assembly maps are compact and complete */
 	void CheckAssemblyMaps(void);
@@ -73,6 +88,14 @@ private:
 	 * \param format model database format */
 	void ReadOutputGeometry(const StringT& model_file,
 		const ArrayT<OutputSetT*>& element_sets, IOBaseT::FileTypeT format);
+
+#ifdef __MPI__
+	/** clear all outstanding requests - returns 1 of all OK */
+	int Clear(ArrayT<MPI_Request>& requests);
+
+	/** write status information */
+	void WriteStatus(ostream& out, const char* caller, const MPI_Status& status) const;
+#endif
 
 private:
 
@@ -99,14 +122,13 @@ private:
 	/** maps (for each output set) from processor to global node number */
 	ArrayT<MapSetT> fMapSets;
 
-	/** number of outgoing nodes per set */
-	iArrayT fOutNodeCounts; // assumes values for border nodes will be at the end
-	  	
-#ifdef __MPI__
-	/* requests for non-blocking communication */
-	ArrayT<MPI_Request> fRecvRequest;
-	ArrayT<MPI_Request> fSendRequest;
-#endif
+	/** number of outgoing nodes per set. This is the sum of the internal and
+	 * border nodes. These ID's are determined assuming the local ID's are
+	 * assigned in order as _i, _b, _e. An analogous array for elements is
+	 * not needed because all elements are resident, hence the ID's (by
+	 * block) can be taken directly from the elements maps stored in the
+	 * local PartitionT. Seems to be redundant with IOManager_mpi::fNodeCounts */
+	iArrayT fOutNodeCounts;
 };
 
 #endif /* _IOMANAGER_MPI_H_ */
