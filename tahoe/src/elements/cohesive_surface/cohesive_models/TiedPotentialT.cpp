@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.13 2003-03-26 20:00:08 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.14 2003-03-27 16:08:12 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -120,13 +120,6 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
-	if (fTimeStep <= 0.0) {
-#ifndef _SIERRA_TEST_
-		cout << "\n TiedPotentialT::Traction: expecting positive time increment: "
-		     << fTimeStep << endl;
-#endif
-		throw ExceptionT::kBadInputValue;
-	}
 #endif
 
 
