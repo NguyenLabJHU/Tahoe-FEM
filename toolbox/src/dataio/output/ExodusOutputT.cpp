@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.4 2002-01-27 18:38:14 paklein Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.5 2002-02-12 02:13:57 paklein Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "ExodusOutputT.h"
@@ -174,7 +174,6 @@ void ExodusOutputT::CreateGeometryFile(ExodusT& exo)
   
   int num_elem = 0, num_blks = 0;
   for (int e=0; e < fElementSets.Length(); e++)
-    if (fElementSets[e]->NumNodes() > 0)
       {
 	num_blks += fElementSets[e]->NumBlocks();
 	num_elem += fElementSets[e]->NumElements();
@@ -192,7 +191,6 @@ void ExodusOutputT::CreateGeometryFile(ExodusT& exo)
   
   // write connectivities
   for (int i=0; i < fElementSets.Length(); i++)
-    if (fElementSets[i]->NumNodes() > 0)
       WriteConnectivity (i, exo, nodes_used);
   
   // write node sets
@@ -210,7 +208,7 @@ void ExodusOutputT::CreateGeometryFile(ExodusT& exo)
     {
       iArray2DT& set = *((iArray2DT*) fSideSets[s]);
       set++;
-      int block_ID = atoi(fElementSets[fSSGroupID[s]]->ID()); //NOTE: sending the output set ID?
+      int block_ID = fSSGroupID[s];
       exo.WriteSideSet (fSideSetIDs[s], block_ID, set);
       set--;
     }
