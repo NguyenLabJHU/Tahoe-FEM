@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.cpp,v 1.7 2003-04-14 22:31:59 thao Exp $ */
+/* $Id: RGVIB2D.cpp,v 1.8 2003-08-27 03:47:17 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include <math.h>
@@ -11,6 +11,8 @@
 #include "toolboxConstants.h"
 #include "VariViscT.h"
 #include "C1FunctionT.h"
+#include "ContinuumElementT.h"
+#include "DetCheckT.h"
 
 /* point generator */
 #include "EvenSpacePtsT.h"
@@ -20,8 +22,8 @@
 
 using namespace Tahoe;
 
-const int kNumOutputVar = 3;
-static const char* Labels[kNumOutputVar] = {"Jv","Je","Phi_visc"};
+const int kNumOutputVar = 2;
+static const char* Labels[kNumOutputVar] = {"Jv","Phi_visc"};
 
 /***********************************************************************
  * Public
@@ -50,7 +52,10 @@ RGVIB2D::RGVIB2D(ifstreamT& in, const FSMatSupportT& support):
         fStress(2), 
 	fiKAB(2),
 	fGAB(2),
-	fDAB(2)
+	fDAB(2),
+	fSupport(support),
+	fNormal(2),
+	fIPCoords(2)
 {
         fconst = 0.5;
 
@@ -59,13 +64,29 @@ RGVIB2D::RGVIB2D(ifstreamT& in, const FSMatSupportT& support):
 
 	/* set tables */
 	Construct();
-		
+	const StringT& input_file = in.filename();
+	foutfile.Root(input_file);
+	int rank = fSupport.Rank();
+	foutfile.Append(".io");
+	foutfile.Append(rank);
+	foutfile.Append(".sum");
+
+	fout.open(foutfile);
+	fout << setw(kIntWidth) << "Time"
+	     << setw(kPrecision) << "X"
+	     << setw(kPrecision) << "Y"
+	     << setw(kPrecision) << "NX"
+	     << setw(kPrecision) << "NY"
+	     << endl;
+
+	fout.close();
 }
 
 /* destructor */
 RGVIB2D::~RGVIB2D(void)
 {
 	delete fCircle;
+	delete fDetCheck;
 }
 
 /* print parameters */
@@ -105,6 +126,10 @@ void RGVIB2D::OutputLabels(ArrayT<StringT>& labels) const
 void RGVIB2D::Initialize(void)
 {
         RGBaseT::Initialize();
+
+	/*initialize DetCheck class*/
+	fDetCheck = new DetCheckT(fStress, fModulus);
+
         /* initial modulus */
 
         fEigs = 1.0;
@@ -204,6 +229,13 @@ const dMatrixT& RGVIB2D::c_ijkl(void)
 	MixedRank4_2D(eigenvectors[0], eigenvectors[1], fModMat); 
 	fModulus.AddScaled(2.0*coeff, fModMat); 
 	fModulus /= J;
+
+        fStress = fSpectralDecompSpat.EigsToRank2(ftau_E); 
+        fStress += fSpectralDecompSpat.EigsToRank2(ftau_I); 
+	fStress /= J;
+
+	/*check for loss of ellipticity*/
+	Localized();
 
 	return fModulus; 
 } 
@@ -313,10 +345,9 @@ void RGVIB2D::ComputeOutput(dArrayT& output)
 
 	fEigs_e = fEigs;
 	fEigs_e /= fEigs_v;
-        double Je = J/Jv; 
+	double Je = sqrt(fEigs_e[0]*fEigs_e[1]); 
  
         output[0] = Jv; 
-        output[1] = Je; 
          
         dWdE(fEigs_e, ftau_I, Inelastic); 
         dWdE(fEigs, ftau_E, Elastic); 
@@ -611,7 +642,22 @@ void RGVIB2D::ComputeEigs_e(const dArrayT& eigenstretch,
 /***********************************************************************
  * Private
  ***********************************************************************/
-/* Initialize angle tables */
+void RGVIB2D::Localized(void)
+{
+  if (fDetCheck->IsLocalized(fNormal) == 1)
+  {
+    ContinuumElement().IP_Coords(fIPCoords);
+    fout.open_append(foutfile);
+	fout << setw(kIntWidth) << fSupport.Time()
+	     << setw(kPrecision) << fIPCoords[0]
+	     << setw(kPrecision) << fIPCoords[1]
+	     << setw(kPrecision) << fNormal[0]
+	     << setw(kPrecision) << fNormal[1]
+	     << endl;
+
+	fout.close();    
+  }
+}
 
 void RGVIB2D::ComputeiKAB(double& J, double& Je, 
 			  dArrayT& eigenstress, dSymMatrixT& eigenmodulus)

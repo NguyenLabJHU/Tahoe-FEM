@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.h,v 1.4 2003-04-05 20:38:06 thao Exp $ */
+/* $Id: RGVIB2D.h,v 1.5 2003-08-27 03:47:17 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #ifndef _RG_VIB_2D_H_
@@ -7,11 +7,17 @@
 /* base classes */
 #include "RGBaseT.h"
 #include "ViscVIB.h"
+#include "FSMatSupportT.h"
+#include "ofstreamT.h"
+#include "StringT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class CirclePointsT;
+class FSMatSupportT;
+class DetCheckT;
+class ofstreamT;
 
 /** 2D Isotropic ViscVIB using Ogden's spectral formulation */
 class RGVIB2D: public RGBaseT, public ViscVIB
@@ -75,6 +81,7 @@ class RGVIB2D: public RGBaseT, public ViscVIB
 	virtual bool HasDissipVar(void) const{ return false;};
 
   private:
+	void Localized(void);
 
 	void ComputeiKAB(double& Jv, double& Je, dArrayT& eigenstress, 
 			 dSymMatrixT& eigenmodulus);
@@ -91,6 +98,14 @@ class RGVIB2D: public RGBaseT, public ViscVIB
   	CirclePointsT*	fCircle;  
  
   private:  
+	/*check for loss of ellipticity*/
+	FSMatSupportT fSupport;
+	DetCheckT* fDetCheck;
+	dArrayT fNormal;
+	dArrayT fIPCoords;
+	ofstreamT fout;
+	StringT foutfile;
+
 	SpectralDecompT fSpectralDecompSpat;
 	SpectralDecompT fSpectralDecompTrial;
 	SpectralDecompT fSpectralDecompRef;
