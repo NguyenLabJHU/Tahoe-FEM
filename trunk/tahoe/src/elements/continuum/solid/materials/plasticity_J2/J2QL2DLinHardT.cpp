@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.cpp,v 1.5 2001-07-03 01:35:31 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.cpp,v 1.6 2001-07-25 08:13:34 paklein Exp $ */
 /* created: paklein (06/29/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -96,8 +96,9 @@ void J2QL2DLinHardT::UpdateHistory(void)
 		if (Flags[ip] != kReset && Flags[ip] != kNotInit)
 		//if (Flags[ip] == kIsPlastic || Flags[ip] == kP0)
 		{
-			/* do not repeat if called again */
-			Flags[ip] = kReset; //why was I worried about this????
+			/* do not repeat if called again. Also, needed
+			 * so ComputeOutput does not repeat the update */
+			Flags[ip] = kReset;
 						
 			/* fetch element data */
 			LoadData(element,ip);
