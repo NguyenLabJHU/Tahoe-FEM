@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.16.2.3 2002-12-18 09:52:57 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.16.2.4 2002-12-19 03:12:36 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #ifndef _FE_MANAGER_MPI_H_
 #define _FE_MANAGER_MPI_H_
@@ -13,15 +13,13 @@
 /* direct members */
 #include "PartitionT.h"
 #include "dArray2DT.h"
+
 #ifdef __TAHOE_MPI__
 #include "mpi.h"
 #else
-
 namespace Tahoe {
-
 typedef int MPI_Request;
 typedef int MPI_Op;
-
 } // namespace Tahoe 
 #endif
 
@@ -153,13 +151,16 @@ private:
 	IOManager_mpi* fExternIOManager;
 	IOBaseT::FileTypeT fInputFormat;
 	StringT fModelFile;
-	
+
 	/* partition information */
 	PartitionT* fPartition;
+	
+#if 0
 	ArrayT<dArray2DT> fRecvBuffer;
 	ArrayT<dArray2DT> fSendBuffer;
 	ArrayT<MPI_Request> fRecvRequest;
 	ArrayT<MPI_Request> fSendRequest;
+#endif
 
 	//TEMP?
 	ofstreamT flog;

@@ -1,11 +1,14 @@
-/* $Id: CommManagerT.cpp,v 1.1.2.4 2002-12-18 09:52:56 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.1.2.5 2002-12-19 03:12:36 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
 #include "PartitionT.h"
-#include "AllGatherT.h"
 #include "InverseMapT.h"
 #include <float.h>
+
+/* message types */
+#include "AllGatherT.h"
+#include "PointToPointT.h"
 
 using namespace Tahoe;
 
@@ -28,6 +31,13 @@ CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 		fProcessor.Dimension(fModelManager.NumNodes());
 		fProcessor = fComm.Rank();
 	}
+}
+
+CommManagerT::~CommManagerT(void)
+{
+	/* free any remaining communications */
+	for (int i = 0; i < fCommunications.Length(); i++)
+		delete fCommunications[i];
 }
 
 /* set or clear partition information */
@@ -143,6 +153,91 @@ const InverseMapT* CommManagerT::PartitionNodes_inv(void) const
 		
 		return &fPartitionNodes_inv;
 	}
+}
+
+/* set up */
+int CommManagerT::Init_AllGather(int num_vals)
+{
+	const char caller[] = "CommManagerT::Init_AllGather";
+
+	PartitionT::DecompTypeT decomp_type = fPartition->DecompType();
+	if (decomp_type == PartitionT::kGraph) /* non-blocking send-receive */
+	{
+		/* new point-to-point */
+		PointToPointT* p2p = new PointToPointT(fComm, *fPartition);
+
+		/* allocate buffers */
+		p2p->Initialize(num_vals);
+	
+		/* store */
+		fCommunications.Append(p2p);
+	}
+	else if (decomp_type == PartitionT::kAtom) /* all gather */
+	{
+		/* new all gather */
+		AllGatherT* all_gather = new AllGatherT(fComm);
+
+		/* set message size */
+		all_gather->Initialize(fPartition->NumPartitionNodes()*num_vals);
+		
+		/* store */
+		fCommunications.Append(all_gather);
+	}
+	else if (decomp_type == PartitionT::kAtom) /* shifts */
+	{
+		ExceptionT::GeneralFail(caller, "not implemented yet");
+	}
+	else
+		ExceptionT::GeneralFail(caller, "unrecognized decomp type: %d", decomp_type);
+
+	/* ID is just the array position */
+	return fCommunications.Length() - 1;
+}
+
+/* clear the persistent communication */
+void CommManagerT::Clear_AllGather(int id)
+{
+	/* check */
+	if (id < 0 || id >= fCommunications.Length())
+		ExceptionT::OutOfRange("CommManagerT::Clear_AllGather");
+
+	/* free memory */
+	delete fCommunications[id];
+	
+	/* purge from array */
+	fCommunications.DeleteAt(id);
+}
+
+/** perform the all gather */
+void CommManagerT::AllGather(int id, dArray2DT& values)
+{
+	const char caller[] = "CommManagerT::AllGather";
+
+	PartitionT::DecompTypeT decomp_type = fPartition->DecompType();
+	if (decomp_type == PartitionT::kGraph) /* non-blocking send-receive */
+	{
+		/* retrieve pointer */
+		PointToPointT* p2p = dynamic_cast<PointToPointT*>(fCommunications[id]);
+		if (!p2p) ExceptionT::GeneralFail(caller);
+
+		/* do it */
+		p2p->AllGather(values);
+	}
+	else if (decomp_type == PartitionT::kAtom) /* all gather */
+	{
+		/* retrieve pointer */
+		AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fCommunications[id]);
+		if (!all_gather) ExceptionT::GeneralFail(caller);
+		
+		/* do it */
+		all_gather->AllGather(values);
+	}
+	else if (decomp_type == PartitionT::kAtom) /* shifts */
+	{
+		ExceptionT::GeneralFail(caller, "not implemented yet");
+	}
+	else
+		ExceptionT::GeneralFail(caller, "unrecognized decomp type: %d", decomp_type);
 }
 
 /*************************************************************************
