@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.50.2.1 2003-10-08 00:11:48 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.50.2.2 2003-12-03 19:51:48 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -1403,20 +1403,31 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         dArray2DT extrap_values;
         ElementSupport().OutputUsedAverage(extrap_values);
 
-	int tmpDim = extrap_values.MajorDim();
+		int tmpDim = extrap_values.MajorDim();
         n_values.Dimension(tmpDim,n_out);
         n_values.BlockColumnCopyAt(extrap_values,0);
         if (qUseSimo)
         {        
         	int rowNum = 0;
-        	dArray2DT tmp_simo(tmpDim,n_simo);
-                for (int i = 0; i < simo_force.MajorDim();i++)
-		  if (simo_counts[i] > 0)
-		  {
-                        simo_force.ScaleRow(i,1./simo_mass(i,0));
-			tmp_simo.SetRow(rowNum++,simo_force(i));
-		  }
-                n_values.BlockColumnCopyAt(tmp_simo,simo_offset);
+        	iArrayT nodes_used(tmpDim);
+        	dArray2DT tmp_simo(tmpDim, n_simo);
+			for (int i = 0; i < simo_force.MajorDim(); i++)
+				if (simo_counts[i] > 0)
+				{
+					nodes_used[rowNum] = i;
+					simo_force.ScaleRow(i, 1./simo_mass(i,0));
+					tmp_simo.SetRow(rowNum, simo_force(i));
+					rowNum++;
+		  		}
+			
+			/* collect final values */
+			n_values.BlockColumnCopyAt(tmp_simo, simo_offset);
+			
+			/* write final values back into the averaging workspace */
+			if (extrap_values.MinorDim() != n_values.MinorDim()) {
+				ElementSupport().ResetAverage(n_values.MinorDim());
+				ElementSupport().AssembleAverage(nodes_used, n_values);
+			}
         }
 }
 
