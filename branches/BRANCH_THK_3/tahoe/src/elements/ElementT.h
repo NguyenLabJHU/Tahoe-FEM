@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.23 2003-07-09 23:19:42 paklein Exp $ */
+/* $Id: ElementT.h,v 1.23.4.1 2003-09-03 16:15:27 paklein Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -56,7 +56,8 @@ kPenaltyContactElement3D = 34,
 	     kFSMatForce = 60, /**< UpLag with material force calculation*/
 	     kSSMatForce = 61, /**< small strain with mat force calculation*/
 	     kTest = 62,
-	     kDorganVoyiadjisMarin = 63};    
+	     kDorganVoyiadjisMarin = 63,
+	     kTotLagSplitIntegration = 117 };
 
  /** stream extraction operator */ 
 	friend istream& operator>>(istream& in, ElementT::TypeT& type);
