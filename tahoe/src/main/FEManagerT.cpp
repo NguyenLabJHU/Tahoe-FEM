@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.75 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.76 2004-07-22 08:26:12 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -9,6 +9,7 @@
 #include <ctype.h>
 
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "TimeManagerT.h"
 #include "ModelManagerT.h"
 #include "ElementBaseT.h"
@@ -20,23 +21,9 @@
 #include "nIntegratorT.h"
 #include "CommunicatorT.h"
 #include "CommManagerT.h"
-#include "ParameterContainerT.h"
-
-/* nodes */
 #include "NodeManagerT.h"
-
-/* solvers */
-#include "LinearSolver.h"
-#include "NLSolver.h"
-#include "DRSolver.h"
-#include "NLK0Solver.h"
-#include "ExpCD_DRSolver.h"
-#include "NLSolverX.h"
-#include "NLSolver_LS.h"
-#include "PCGSolver_LS.h"
-#include "iNLSolver_LS.h"
-#include "NOXSolverT.h"
-#include "NLSolver_LSX.h" //TEMP
+#include "SolverT.h"
+#include "ParameterContainerT.h"
 
 using namespace Tahoe;
 
@@ -68,7 +55,6 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output, Communicato
 	fActiveEquationStart(0),
 	fGlobalNumEquations(0),
 	fCurrentGroup(-1),
-	fAnalysisCode(GlobalT::kNoAnalysis),
 	fInitCode(kFull)
 {
 	/* console name */
@@ -117,51 +103,47 @@ void FEManagerT::Solve(void)
 {
 	const char caller[] = "FEManagerT::Solve";
 
-	fTimeManager->Top();
-	while (fTimeManager->NextSequence())
-	{	
-		/* set to initial condition */
-		ExceptionT::CodeT error = InitialCondition();
+	/* set to initial condition */
+	ExceptionT::CodeT error = InitialCondition();
 
-		/* loop over time increments */
-		while (error == ExceptionT::kNoError && fTimeManager->Step())
+	/* loop over time increments */
+	while (error == ExceptionT::kNoError && fTimeManager->Step())
+	{
+		/* initialize the current time step */
+		if (error == ExceptionT::kNoError) 
+			error = InitStep();
+	
+		/* solve the current time step */
+		if (error == ExceptionT::kNoError) 
+			error = SolveStep();
+			
+		/* close the current time step */
+		if (error == ExceptionT::kNoError) 
+			error = CloseStep();
+
+		/* handle errors */
+		switch (error)
 		{
-			/* initialize the current time step */
-			if (error == ExceptionT::kNoError) 
-				error = InitStep();
-			
-			/* solve the current time step */
-			if (error == ExceptionT::kNoError) 
-				error = SolveStep();
-			
-			/* close the current time step */
-			if (error == ExceptionT::kNoError) 
-				error = CloseStep();
-
-			/* handle errors */
-			switch (error)
+			case ExceptionT::kNoError:
+				/* nothing to do */
+				break;
+			case ExceptionT::kGeneralFail:
+			case ExceptionT::kBadJacobianDet:
 			{
-				case ExceptionT::kNoError:
-					/* nothing to do */
-					break;
-				case ExceptionT::kGeneralFail:
-				case ExceptionT::kBadJacobianDet:
-				{
-					cout << '\n' << caller << ": trying to recover from error: " << ExceptionT::ToString(error) << endl;
+				cout << '\n' << caller << ": trying to recover from error: " << ExceptionT::ToString(error) << endl;
 				
-					/* reset system configuration */
-					error = ResetStep();
+				/* reset system configuration */
+				error = ResetStep();
 					
-					/* cut time step */
-					if (error == ExceptionT::kNoError)
-						if (!DecreaseLoadStep())
-							error = ExceptionT::kGeneralFail;
+				/* cut time step */
+				if (error == ExceptionT::kNoError)
+					if (!DecreaseLoadStep())
+						error = ExceptionT::kGeneralFail;
 
-					break;
-				}
-				default:
-					cout << '\n' << caller <<  ": no recovery for error: " << ExceptionT::ToString(error) << endl;
+				break;
 			}
+			default:
+				cout << '\n' << caller <<  ": no recovery for error: " << ExceptionT::ToString(error) << endl;
 		}
 	}
 }
@@ -172,7 +154,6 @@ const ScheduleT* FEManagerT::Schedule(int num) const
 	return fTimeManager->Schedule(num);
 }
 
-GlobalT::AnalysisCodeT FEManagerT::Analysis(void) const { return fAnalysisCode; }
 bool FEManagerT::PrintInput(void) const { return fPrintInput; }
 
 void FEManagerT::WriteEquationNumbers(int group) const
@@ -254,8 +235,6 @@ const double& FEManagerT::Time(void) const { return fTimeManager->Time(); }
 const double& FEManagerT::TimeStep(void) const { return fTimeManager->TimeStep(); }
 const int& FEManagerT::StepNumber(void) const { return fTimeManager->StepNumber() ; }
 const int& FEManagerT::NumberOfSteps(void) const { return fTimeManager->NumberOfSteps(); }
-int FEManagerT::SequenceNumber(void) const { return fTimeManager->SequenceNumber(); }
-int FEManagerT::NumSequences(void) const { return fTimeManager->NumSequences(); }
 const int& FEManagerT::IterationNumber(int group) const 
 {
 #if __option(extended_errorcheck)
@@ -1468,7 +1447,7 @@ ExceptionT::CodeT FEManagerT::InitialCondition(void)
 	fStatus = GlobalT::kInitialCondition;	
 
 	/* set I/O */		
-	fIOManager->NextTimeSequence(SequenceNumber());
+	fIOManager->NextTimeSequence(0);
 
 	/* time manager */
 	fTimeManager->InitialCondition();
@@ -1523,10 +1502,7 @@ bool FEManagerT::ReadRestart(const StringT* file_name)
 		const StringT& rs_file = (file_name != NULL) ?
 			*file_name : fRestartFile;
 	
-		cout << "\n Restart for sequence: ";
-		cout << fTimeManager->SequenceNumber() + 1 << '\n';
-		cout <<   "         Restart file: " << rs_file << endl;
-
+		cout <<  "\n Restart file: " << rs_file << endl;
 		ifstreamT restart(rs_file);			
 		if (restart.is_open())
 		{
@@ -1763,88 +1739,4 @@ CommManagerT* FEManagerT::New_CommManager(void) const
 
 	CommManagerT* comm_man = new CommManagerT(fComm, *fModelManager);
 	return comm_man;
-}
-
-/*************************************************************************
- * Private
- *************************************************************************/
-
-SolverT* FEManagerT::New_Solver(int code, int group)
-{
-	const char caller[] = "FEManagerT::New_Solver";
-
-	/* construct solver */
-	SolverT* solver = NULL;
-	switch (code)
-	{
-		case GlobalT::kLinearSolver:
-			solver = new LinearSolver(*this, group);
-			break;
-
-		case GlobalT::kDRSolver:
-			solver = new DRSolver(*this, group);
-			break;
-	
-		case GlobalT::kNewtonSolver:
-			solver = new NLSolver(*this, group);
-			break;
-
-		case GlobalT::kK0_NewtonSolver:
-			solver = new NLK0Solver(*this, group);
-			break;
-
-		case GlobalT::kModNewtonSolver:
-			solver = new NLSolverX(*this, group);
-			break;
-
-		case GlobalT::kExpCD_DRSolver:
-			solver = new ExpCD_DRSolver(*this, group);
-			break;
-
-		case GlobalT::kNewtonSolver_LS:				
-			solver = new NLSolver_LS(*this, group);
-			break;
-
-		//TEMP
-		case GlobalT::kNewtonSolver_LSX:				
-			solver = new NLSolver_LSX(*this, group);
-			break;
-
-		case GlobalT::kPCGSolver_LS:				
-			solver = new PCGSolver_LS(*this, group);
-			break;
-
-		case GlobalT::kiNewtonSolver_LS:				
-			solver = new iNLSolver_LS(*this, group);
-			break;
-
-		case GlobalT::kNOXSolver:
-		{
-#ifdef __NOX__
-			//TEMP - need to figure out which set of DOF's to send to the solver.
-			//       This gets complicated since each group could have more than
-			//       one time integrator, which sets the order of the DOF. For now,
-			//       grab the integrator from the first field in this group and
-			//       let its integrator decide.
-			
-			/* all fields in the group */
-			ArrayT<FieldT*> fields;
-			fNodeManager->CollectFields(group, fields);
-			if (fields.Length() < 1) ExceptionT::GeneralFail(caller);
-			
-			const nIntegratorT& integrator = fields[0]->nIntegrator();
-			solver = new NOXSolverT(*this, group, integrator.OrderOfUnknown());
-			break;
-#else
-			ExceptionT::GeneralFail(caller, "NOX not installed: %d", GlobalT::kNOXSolver);
-#endif	
-		}		
-		default:
-			ExceptionT::BadInputValue(caller, "unknown nonlinear solver code: %d", code);
-	}
-
-	/* fail */
-	if (!solver) ExceptionT::GeneralFail(caller, "failed");
-
-	return solver;
 }
