@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.13 2003-03-08 16:13:25 creigh Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.14 2003-03-17 22:05:26 creigh Exp $ */ 
 //DEVELOPMENT
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
@@ -15,6 +15,7 @@
 #include "ElementBaseT.h"
 
 #include "StringT.h"
+#include "ofstreamT.h"
 
 /* direct members */
 #include "LocalArrayT.h"
@@ -24,7 +25,6 @@
 #include "FEA.h"
 #include "VMS.h"
 #include "FEA_FormatT.h"
-
 
 namespace Tahoe {
 
@@ -54,12 +54,21 @@ class StaggeredMultiScaleT: public ElementBaseT
 									k__l,
 									k__K,
 									k__H,
-									kNUM_FMAT_TERMS	};
+									k__Pi,
+									k__Rho,
+									kNUM_FMAT_TERMS	};		// MAT for material here, not matrix
 
 	enum iMat_T 	{ 
 									k__BS_Type,
 									k__IH_Type,
 									kNUM_IMAT_TERMS	};
+
+	enum bLogic_T 	{ 
+									k__Control_Eb,
+									k__Diagnosis_Variables,
+									k__Del_Curl_sE,
+									k__BCJ_file_read,
+									kNUM_LOGICAL_SWITCHES	};
 
 	/** constructor */
 	StaggeredMultiScaleT(const ElementSupportT& support, const FieldT& coarse, 
@@ -70,6 +79,9 @@ class StaggeredMultiScaleT: public ElementBaseT
 
 	/** data initialization */
 	virtual void Initialize(void); 
+
+	/** echo input */
+	void Echo_Input_Data (void); 
 
 	/** return true if the element contributes to the solution of the
 	 * given group. ElementBaseT::InGroup returns true if group is the
@@ -145,7 +157,7 @@ private:
 	//VMS_VariableT n,np1; // <-- keep local scope in elmt loop for now 
 
 	/** Gradients with respect to reference coodinates */
-	FEA_dMatrixT fGRAD_ua, fGRAD_ua_n, fGRAD_ub, fGRAD_ub_n, fSigma;
+	FEA_dMatrixT fGRAD_ua, fGRAD_ua_n, fGRAD_ub, fGRAD_ub_n, fVar;
 	//FEA_dScalar_ArrayT  S;
 
 	/** \name  values read from input in the constructor */
@@ -174,6 +186,7 @@ private:
 	//int step_number_last_iter;
 	//bool New_Step;
 	int step_number;
+	int iFineScaleModelType;
 
 	//------- Render Variables 
 	
@@ -181,13 +194,36 @@ private:
 	StringT render_settings_file_name;
 	StringT surface_file_name;
  	double render_time;	
- 	int render_variable;	
-	int component_ij;
+ 	int num_tensors_to_render;	
+ 	int num_scalars_to_render;	
+	ArrayT < StringT > Render_Tensor_Names; 
+	ArrayT < StringT > Render_Scalar_Names; 
+	StringT write_file_name;
+	int component_i;
+	int component_j;
+	int Elmt2Write;
+	int ElmtIP2Write;
+	bool bLog_Strain;
+	int cube_top_elmt;
+	int cube_top_elmt_top_local_node;
+	int cube_bottom_elmt;
+	int cube_bottom_elmt_bottom_local_node;
  	int render_variable_group;	
  	int render_variable_order;	
  	int render_displ;	
 
+  ofstreamT var_plot_file;
+ 	double x_top;  // for calc Lf	
+ 	double x_bot;  // for calc Lf	
+
+	ArrayT < FEA_dMatrix_ArrayT >  Render_Tensor; // ( n_el x num variables to render (n_rv)
+	ArrayT < FEA_dScalar_ArrayT >  Render_Scalar; // ( n_el x num variables to render (n_rv)
+
+	// above will actually be ( n_el x n_rv x n_ip x n_sd x n_sd )
+
 	bool render_data_stored;
+	bool bStep_Complete;
+	bool bControl_Eb, bDiagnosis_Variables, bDel_Curl_sE;
  	double time;	
 
 	int e_set;
@@ -208,6 +244,7 @@ private:
 
 	dArrayT fMaterial_Data;
 	iArrayT iMaterial_Data;
+	ArrayT <bool> bLogical_Switches;
 	/** \name shape functions wrt to current coordinates */
 	/*@{*/
 	/** shape functions and derivatives. The derivatives are wrt to the 
@@ -278,7 +315,7 @@ private:
 	
 	/** integration point stresses. Calculated and stored during 
 	 * StaggeredMultiScaleT::RHSDriver */
-	dArray2DT fIPStress;
+	dArray2DT fIPVariable;
 	/*@}*/
 
 	//##########################################################################################

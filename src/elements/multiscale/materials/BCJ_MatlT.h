@@ -1,4 +1,4 @@
-// $Id: BCJ_MatlT.h,v 1.3 2003-03-07 22:24:04 creigh Exp $
+// $Id: BCJ_MatlT.h,v 1.4 2003-03-17 22:05:33 creigh Exp $
 #ifndef _BCJ_MATLT_
 #define _BCJ_MATLT_
 
@@ -28,6 +28,8 @@ class BCJ_MatlT : public VMF_MaterialT
 		 				kCo,
 		 				kc,
 		 				kH,
+		 				kPi,
+		 				kRho,
 		 				kPlastic_Modulus_K,
 		        kNUM_BCJ_MATL_PARAMS };
 

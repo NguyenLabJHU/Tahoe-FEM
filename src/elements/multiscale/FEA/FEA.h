@@ -1,4 +1,4 @@
-// $Id: FEA.h,v 1.4 2003-03-07 22:23:58 creigh Exp $
+// $Id: FEA.h,v 1.5 2003-03-17 22:05:27 creigh Exp $
 #ifndef _FEA_H_
 #define _FEA_H_
 
@@ -27,7 +27,7 @@ public:
 	enum KineT  		{ kPlaneStrain, kPlaneStress };
 	enum MatFillT  	{ kNoZeros, kZeros };
 	enum TransposeT { kNonSymmetric, kNonSymTranspose, kSymmetric };
-	enum TimeStepT 	{ kForward_Euler, kBackward_Euler, kCrank_Nicholson, kNewmark, kLax_Friedrich }; 
+	enum TimeStepT 	{ kBackward_Euler, kForward_Euler, kCrank_Nicholson, kNewmark, kLax_Friedrich }; 
 	enum VersionT   {	kVersionI, kVersionII, kVersionIII, kVersionIV, kVersionV };
 };
 

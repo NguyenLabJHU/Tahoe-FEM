@@ -5,6 +5,7 @@
 #define _COARSESCALE_T_H_ 
 
 #include "Iso_MatlT.h"
+#include "StringT.h"
 
 
 namespace Tahoe {
@@ -26,9 +27,12 @@ public:
 
 	virtual void Form_LHS_Ka_Kb	(	dMatrixT &Ka, dMatrixT &Kb,double delta_t=0.0	)	=0; 
   virtual void Form_RHS_F_int	(	dArrayT &F_int, double delta_t=0.0	) =0; 
+	virtual void Get ( StringT &Name, FEA_dScalarT &scalar ) =0;
+	virtual void Get ( StringT &Name, FEA_dMatrixT &tensor ) =0;
   virtual void Get ( int scalar_code, FEA_dScalarT &scalar ) =0; 
   virtual void Get ( int tensor_code, FEA_dMatrixT &tensor,int tensor_order ) =0; 
 	
+	bool bControl_Eb;
 
 };
 } // namespace Tahoe 

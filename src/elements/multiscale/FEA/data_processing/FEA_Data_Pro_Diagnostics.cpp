@@ -1,4 +1,4 @@
-// $Id: FEA_Data_Pro_Diagnostics.cpp,v 1.3 2003-02-03 04:40:22 paklein Exp $
+// $Id: FEA_Data_Pro_Diagnostics.cpp,v 1.4 2003-03-17 22:05:28 creigh Exp $
 #include "FEA.h"  
 
 using namespace Tahoe;
@@ -217,7 +217,7 @@ void FEA_Data_ProcessorT::c_ijkl_Alt (double &lamda,double &mu, FEA_dScalarT &J,
 {
   int m = (n_sd-1)*3;	
 	FEA_dMatrixT CC 		(n_ip, n_sd_x_n_sd, n_sd_x_n_sd);
-	FEA_dMatrixT CC_sym (n_ip, (n_sd-1)*3, (n_sd-1)*3 );
+	FEA_dMatrixT CC_sym (n_ip, (n_sd-1)*3, (n_sd-1)*3 );  // <-- symetric reduction map here (n_sd-1)*3
 
   C_IJKL	(	lamda,mu, CC );
 	CC.Extract_SubMatrix ( 0,0, CC_sym ); // <-- Must reduce to smaller size common-place for sym matricies

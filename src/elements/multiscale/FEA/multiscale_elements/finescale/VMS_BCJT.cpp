@@ -1,4 +1,4 @@
-// $Id: VMS_BCJT.cpp,v 1.12 2003-03-07 22:24:02 creigh Exp $
+// $Id: VMS_BCJT.cpp,v 1.13 2003-03-17 22:05:32 creigh Exp $
 #include "FEA.h" 
 #include "VMS.h" 
 
@@ -44,8 +44,7 @@ void VMS_BCJT::Initialize (int &in_ip,int &in_sd,int &in_en, int Initial_Time_St
 void VMS_BCJT::Construct (FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
 							int &fTime_Step, double fdelta_t, int Integration_Scheme) 
 {
-#pragma unused(Integration_Scheme)
-
+	Time_Integration_Scheme = Integration_Scheme;
 
 	if ( fTime_Step != time_step) { 	// New time step
 		S[kIV_Alpha_n] = S[kIV_Alpha];  // Eventually do this with all the kVar_n and make method Next_Step()
@@ -88,7 +87,7 @@ void VMS_BCJT::Form_LHS_Ka_Kb ( dMatrixT &Ka, dMatrixT &Kb )
 	Kb  = Integral.of( B[kB_1hat], C[kNeg_dt_Root3by2_f], T4[kMM], B[kBb_DEV_H] );
 
  	if 	(Iso_Hard_Type != kNo_Iso_Hard) 
-		Ka += Integral.of( B[kB_1hat], S[kBetaK], T4[kN_o_Ne], B[kBa_Kappa] );
+		Ka += Integral.of( B[kB_1hat], S[kBetaK], T4[kN_o_Nea], B[kBa_Kappa] );
 }
 
 //---------------------------------------------------------------------
@@ -133,8 +132,8 @@ void VMS_BCJT::Form_B_List (void)
 	 	Data_Pro.A_grad_u_T_B ( A[kA3T],  	A[kA3],  	B[kBb_Cbi_tau_3hat] );		B[kBb_Cbi_tau_3hat]	*= -1.0; 	
 
 		//-- Calculation of del ( S )
-		B[kBa_S].MultAB( T4[kCC],  B[kBa_Cb_3hat] );
-		B[kBb_S].MultAB( T4[kCC],  B[kBb_Cb_3hat] );
+		B[kBa_S].MultAB( T4[kCC_tilde],  B[kBa_Cb_3hat] );  // CC_tilde = CC if Eb control is off
+		B[kBb_S].MultAB( T4[kCC_tilde],  B[kBb_Cb_3hat] );
 
 		//-- Calculation of del ( Zeta )
 		Form_del_Zeta_B ( ); // Calculates B[kBa_Z],  B[kBb_Z]	
@@ -240,9 +239,18 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 	A[kDa_mp1] = 0.0;
 	A[kDa_mp1].PlusIdentity(0.5); 
 	
+	//--- Get Eb 
+
 	A[kEb]  = A[kCb]; 
 	A[kEb].PlusIdentity (-1.0); 
 	A[kEb] *= 0.5; 
+
+	if 	( bControl_Eb ) {
+		Control_Eb ( ); // Eb_tilde calculated
+		//A[kEb_tilde].Print ("Eb_tilde");
+	}
+	else
+		A[kEb_tilde] = A[kEb];
 
 	//--- Get Zeta	
 
@@ -250,13 +258,14 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 		Get_Back_Stress ( ); //-- Builds  A[kZeta]
 	else
 		A[kZeta] = 0.0;
-	
-	//--- Get S	
-	Data_Pro.C_IJKL_E_KL 	( C[kMu], C[kLamda], A[kEb], A[kS] );	// Doesn't multiply excessive zeros 
 
-	/* A[kgrad_ub].Print("grad_ub");
-	A[kEb].Print("Eb");
-	A[kS].Print("S"); */
+	//--- Get S	
+	Data_Pro.C_IJKL_E_KL 	( C[kLamda], C[kMu], A[kEb_tilde], A[kS] );	// Doesn't multiply excessive zeros 
+
+	//-- Get Sigma (use only for result query, not needed in formulation, slight waste of flops)
+	S[kJ].Determinant( A[kF] );
+	A[kSigma].MultABCT 		(  A[kFb], 		A[kS], 	A[kFb] 	);
+	A[kSigma] /= S[kJ]; // not kJb !!
 
 	A[kH_bar].SumOf ( A[kS], A[kZeta] );
 
@@ -273,14 +282,13 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 	//--- Get Beta
 	S[kBeta]  = S[kMag_DEV_H];
 	S[kBeta] *= C[kRoot3by2]; 
+	S[kBeta] /= C[kV];
+	S[kBeta] -= C[kY]; // Re-define Y as Y = Y/V more control this way
  	if 	( Iso_Hard_Type != kNo_Iso_Hard ) { //-- Apply Iso Hard to RHS
 		Get_Iso_Hard_Kappa_bar ( ); 
 		S[kBeta] -= S[kKappa_bar]; 
-		S[kBeta] -= C[kY]; 
 	}
-	S[kBeta] *= C[k1byV];
-
-	//S[kBeta].Print(">>### kBeta ###<<");
+	//S[kBeta] /= C[kV];
 
 	//--- Get Sinh(Beta) 
 	S[kMacaulay_Sinh_Beta].Sinh( S[kBeta] ); 
@@ -291,12 +299,9 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 
 	//--- Include Hardening Coef. Kappa_Bar
  	if 	( Iso_Hard_Type != kNo_Iso_Hard ) {
-		S[kBetaK] 		= S[kBeta2]; 
-		S[kBetaK] 	 *= ( delta_t * C[kf] * C[k1by3] * C[kKappa] ); //-- For LHS
+		S[kBetaK] 	= S[kBeta2]; 
+		S[kBetaK]  *= ( delta_t * C[kf] * C[k1by3] * C[kKappa] ); //-- For LHS
 	}	
-
-	//S[kMacaulay_Sinh_Beta].Print(">>### kMacaulay_Sinh_Beta ###<<");
-	//S[kBeta2].Print(">>### kcosh(beta)*root(3/2)/V ###<<");
 
 	//-- RHS Start ******
 	
@@ -307,7 +312,26 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
   A[kG2] += A[kDa_mp1];
 
 	//-- RHS Finished  ******
+
+	//---- Stuff for purely Diagnostics NOT NEEDED IN CALCULATIONS ------ 
+
+	if (bDiagnosis_Variables) {	
+
+		A[kFa_dot].DiffOf( A[kFa], A[kFa_n] );	
+		A[kFa_dot] /= delta_t; 
+		A[kLa].MultAB ( A[kFa_dot], A[kFai] );
+		A[kDa].Sym ( A[kLa] );
+
+		S[kpLamda]  = S[kMag_DEV_H];
+		S[kpLamda] /= S[kMacaulay_Sinh_Beta]; 
+		S[kpLamda] /= ( C[kRoot3by2] * C[kf] );
 	
+		A[kC].MultATB  ( A[kF], A[kF] );	
+		A[kE]  = A[kC]; 
+		A[kE].PlusIdentity (-1.0); 
+		A[kE] *= 0.5; 
+	}
+
 }
 
 //##################################################################################
@@ -317,16 +341,40 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 void VMS_BCJT::Form_T4_List (void)  // These matricies are all 9x9 (not 3x3 like A)
 {
 	
-  Data_Pro.C_IJKL (	C[kLamda],  C[kMu],					T4[kCC]			); 
+  Data_Pro.C_IJKL (	C[kLamda],  C[kMu],		T4[kCC]	); 
 
 	A[kA_Temp0] = A[kN];
 	Data_Pro.A_o_B 					( A[kCbi], 			A[kH_bar], 		T4[kCbi_o_H] 	);
 	Data_Pro.A_o_B 					( A[kCbi], 			A[kCb], 			T4[kCbi_o_Cb] );
 	Data_Pro.A_o_B 					( A[kA_Temp0], 	A[kN], 				T4[kN_o_N] 		);  
+
  	Data_Pro.II_minus_A_o_B ( A[kA_Temp0],	A[kN],				T4[kPP] 			); // 4th Order Projector 
+  T4[kPP] /= S[kMag_DEV_H]; // See notes on del( N ) why we do this
+
+ 	if 	(bControl_Eb) {  // Build CC_tilde 
+
+		A[kA_Temp0] = A[kNeb];
+		Data_Pro.A_o_B 					( A[kA_Temp0], 	A[kNeb], 				T4[kNeb_o_Neb] 	);  
+ 		Data_Pro.II_minus_A_o_B ( A[kA_Temp0],	A[kNeb],				T4[kPPeb] 			); // 4th Order Projector 
+  	T4[kPPeb] /= S[kMag_Eb]; // See notes on del( N ) why we do this
+
+		S[kPi_Sech_Rho_Mag_Eb_2].Sech ( S[kRho_Mag_Eb] );
+		S[kPi_Sech_Rho_Mag_Eb_2].Squared ( );
+		S[kPi_Sech_Rho_Mag_Eb_2] *= C[kPi]; 
+
+		T4[kT4_Temp0]  = T4[kNeb_o_Neb];
+		T4[kT4_Temp0] *=  S[kPi_Sech_Rho_Mag_Eb_2];
+		T4[kRR]  = T4[kPPeb]; 
+		T4[kRR] *= S[kPi_Tanh_Rho_Mag_Eb]; 
+		T4[kRR] += T4[kT4_Temp0];  
+
+		T4[kCC_tilde].MultAB ( T4[kCC], T4[kRR] );
+	}
+	else
+		T4[kCC_tilde] = T4[kCC];	
 
  	if 	(Iso_Hard_Type != kNo_Iso_Hard) 
-		Data_Pro.A_o_B 				( A[kA_Temp0], 	A[kNe], 	T4[kN_o_Ne] 	);  
+		Data_Pro.A_o_B 				( A[kA_Temp0], 	A[kNea], 	T4[kN_o_Nea] 	);  
 
  	if 	( Back_Stress_Type != kNo_Back_Stress ) { 
 		Data_Pro.A_o_B 				( A[kZeta], 	A[kF_sharp_T], 	T4[kZ_o_F_sharp_T] 	);  
@@ -358,6 +406,10 @@ void VMS_BCJT::Form_C_List (VMF_MaterialT *BCJ_Matl)
 	C[kV]    	 		= BCJ_Matl -> Retrieve ( BCJ_MatlT::kV	 		);
 	C[kY]    	 		= BCJ_Matl -> Retrieve ( BCJ_MatlT::kY	 		);
 
+	//-- Eb Control 
+	C[kPi]    		= BCJ_Matl -> Retrieve ( BCJ_MatlT::kPi 		);
+	C[kRho]    	 	= BCJ_Matl -> Retrieve ( BCJ_MatlT::kRho 		);
+
 	//-- Iso Hard
 	C[kKappa]    	= BCJ_Matl -> Retrieve ( BCJ_MatlT::kPlastic_Modulus_K );
 	C[kH]    	 		= BCJ_Matl -> Retrieve ( BCJ_MatlT::kH	 		);
@@ -370,15 +422,12 @@ void VMS_BCJT::Form_C_List (VMF_MaterialT *BCJ_Matl)
 	C[kRoot3by2]						= sqrt(1.5);
 	C[kNeg_dt_Root3by2_f]  	= -1.0 * delta_t * C[kRoot3by2] * C[kf]; 
 	C[kRoot3by2byV]					= C[kRoot3by2] / C[kV];
-	C[k1byV]								=	1.0 /  C[kV];
-	C[kYbyV]								=	C[kY] /  C[kV];
 	C[k1by3] 								= 1.0/3.0;
 	C[k2by3] 								= 2.0/3.0;
 	C[kRoot2by3]						= sqrt( C[k2by3] ); 
 	C[kMu_c_l]							= C[kMu] * C[kc] * C[kl];
 
 }
-
 
 //##################################################################################
 //################ Isotropic Hardening #############################################
@@ -396,7 +445,7 @@ void VMS_BCJT::Get_Iso_Hard_Kappa_bar ( void )
 
 		A[kEa_dot].DiffOf ( A[kEa], A[kEa_n] );
 		A[kEa_dot] /= delta_t; 
-  	A[kEa_dot].Mag_and_Dir 		( S[kMag_Ea_dot], 	A[kNe] );
+  	A[kEa_dot].Mag_and_Dir 		( S[kMag_Ea_dot], 	A[kNea] );
 
 		if ( Iso_Hard_Type == kMethod1 || Iso_Hard_Type == kMethod2 ) {
 
@@ -410,6 +459,11 @@ void VMS_BCJT::Get_Iso_Hard_Kappa_bar ( void )
 
 			//-- Derive Kappa Bar: Sum Term 1 and Term 2 
   		S[kKappa_bar]  += S[kS_Temp0];  
+
+			//-- Derive Alpha (This is needed to be used as Alpha_n next step)
+			S[kIV_Alpha]		 = S[kMag_Ea_dot]; 
+			S[kIV_Alpha]		*= ( C[kRoot2by3] * C[kH] * delta_t ); 
+			S[kIV_Alpha]		+= S[kIV_Alpha_n];    
 
 		}
 		else
@@ -591,5 +645,91 @@ void VMS_BCJT::Form_del_Zeta_B ( void ) // Calculates B[kBa_Z],  B[kBb_Z]
 	B[kBb_Z] -= B[kBb_Zeta_Fbi];
 	B[kBb_Z] += B[kBb_Zeta_curl_sE_T];
 
+}
+
+//################################## Enhance Eb ################################################
+
+void VMS_BCJT::Control_Eb ( )  // Produces Eb_tilde
+{
+  A[kEb].Mag_and_Dir ( S[kMag_Eb], A[kNeb] ); 
+  S[kRho_Mag_Eb]  = S[kMag_Eb]; 
+  S[kRho_Mag_Eb] *= C[kRho]; 
+
+	S[kPi_Tanh_Rho_Mag_Eb].Tanh( S[kRho_Mag_Eb] ); 
+
+	S[kPi_Tanh_Rho_Mag_Eb] *= C[kPi]; 
+
+	 A[kEb_tilde]  = A[kNeb]; 
+	 A[kEb_tilde] *= S[kPi_Tanh_Rho_Mag_Eb];	
+}
+
+//##############################################################################################
+
+void VMS_BCJT::Get ( StringT &Name, FEA_dMatrixT &tensor )
+{
+	if ( Name == "F" )
+		tensor = A[kF];
+	else if ( Name == "Fa" )
+		tensor = A[kFa];
+	else if ( Name == "Fb" )
+		tensor = A[kFb];
+	else if ( Name == "C" )
+		tensor = A[kC];
+	else if ( Name == "Ca" )
+		tensor = A[kCa];
+	else if ( Name == "Cb" )
+		tensor = A[kCb];
+	else if ( Name == "Cbi" )
+		tensor = A[kCbi];
+	else if ( Name == "S" )
+		tensor = A[kS];
+	else if ( Name == "Sigma" )
+		tensor = A[kSigma];
+	else if ( Name == "Da" )
+		tensor = A[kDa];
+	else if ( Name == "La" )
+		tensor = A[kLa];
+	else if ( Name == "Ea_dot" )
+		tensor = A[kEa_dot];
+	else if ( Name == "E" )
+		tensor = A[kE];
+	else if ( Name == "Ea" )
+		tensor = A[kEa];
+	else if ( Name == "Eb" )
+		tensor = A[kEb];
+	else if ( Name == "Eb_tilde" )
+		tensor = A[kEb_tilde];
+	else if ( Name == "grad_ub" )
+		tensor = A[kgrad_ub];
+	else
+		cout << " ...ERROR: VMS_BCJT::Get() >> Unknown tensor '"<<Name<<"' requested. \n";
+}
+
+//##################################################################################
+
+void VMS_BCJT::Get ( StringT &Name, FEA_dScalarT &scalar )
+{
+	if ( Name == "J" )
+		scalar = S[kJ];
+	else if ( Name == "Jb" )
+		scalar = S[kJb];
+	else if ( Name == "Rho_Mag_Eb" )
+		scalar = S[kRho_Mag_Eb];
+	else if ( Name == "Pi_Tanh_Rho_Mag_Eb" )
+		scalar = S[kPi_Tanh_Rho_Mag_Eb];
+	else if ( Name == "Beta" )
+		scalar = S[kBeta];
+	else if ( Name == "Sinh_Beta" )
+		scalar = S[kMacaulay_Sinh_Beta];
+	else if ( Name == "Mag_DEV_H" )
+		scalar = S[kMag_DEV_H];
+	else if ( Name == "pLamda" )
+		scalar = S[kpLamda];
+	else if ( Name == "IV_Alpha" )
+		scalar = S[kIV_Alpha];
+	else if ( Name == "Kappa_bar" )
+		scalar = S[kKappa_bar];
+	else
+		cout << " ...ERROR: VMS_BCJT::Get() >> Unknown scalar '"<<Name<<"' requested. \n";
 }
 

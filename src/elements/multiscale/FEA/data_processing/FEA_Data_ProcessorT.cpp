@@ -1,4 +1,4 @@
-// $Id: FEA_Data_ProcessorT.cpp,v 1.6 2003-03-07 22:23:59 creigh Exp $
+// $Id: FEA_Data_ProcessorT.cpp,v 1.7 2003-03-17 22:05:28 creigh Exp $
 #include "FEA.h"  
 
 using namespace Tahoe;
@@ -6,6 +6,10 @@ using namespace Tahoe;
 //---------------------------------------------------------------------
 
 FEA_Data_ProcessorT::FEA_Data_ProcessorT() { };
+
+//---------------------------------------------------------------------
+
+FEA_Data_ProcessorT::~FEA_Data_ProcessorT() { };
 
 //---------------------------------------------------------------------
 
@@ -534,7 +538,7 @@ for (int i=0; i<n_sd; i++)
 
 //---------------------------------------------------------------------
 
-void FEA_Data_ProcessorT::c_ijkl	(double &lamda,double &mu, FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &D) 
+void FEA_Data_ProcessorT::c_ijkl	(double &lamda,double &mu, FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &cc) 
 {
 	int i,j,k,l;
 	FEA_dMatrixT b	(n_ip,n_sd,n_sd); // Left Cauchy Tensor
@@ -544,7 +548,36 @@ void FEA_Data_ProcessorT::c_ijkl	(double &lamda,double &mu, FEA_dScalarT &J, FEA
 		for (j=0; j<n_sd; j++)
 			for (k=0; k<n_sd; k++)
 				for (l=0; l<n_sd; l++) 
-					D ( Map(i,j), Map(k,l) )  = ( b(i,j)*b(k,l)*lamda + ( b(i,k)*b(j,l) + b(i,l)*b(j,k) )*mu ) /J; 
+					cc ( Map(i,j), Map(k,l) )  = ( b(i,j)*b(k,l)*lamda + ( b(i,k)*b(j,l) + b(i,l)*b(j,k) )*mu ) /J; 
+}
+
+//---------------------------------------------------------------------
+
+void FEA_Data_ProcessorT::c_ijkl	(FEA_dScalarT &JJ, FEA_dMatrixT &F, FEA_dMatrixT &CC, FEA_dMatrixT &RR, FEA_dMatrixT &cc ) 
+{
+	int i,I,j,J,k,K,l,L;
+	FEA_dMatrixT Ka	(n_ip, n_sd_x_n_sd, n_sd_x_n_sd); 
+	FEA_dMatrixT Kb	(n_ip, n_sd_x_n_sd, n_sd_x_n_sd); 
+	FEA_dMatrixT A	(n_ip, n_sd_x_n_sd, n_sd_x_n_sd); 
+	FEA_dMatrixT B	(n_ip, n_sd_x_n_sd, n_sd_x_n_sd); 
+ 
+	for (i=0; i<n_sd; i++)
+		for (I=0; I<n_sd; I++)
+			for (j=0; j<n_sd; j++)
+				for (J=0; J<n_sd; J++)
+					Ka ( Map(i,j), Map(I,J) ) = F(i,I)*F(j,J);
+
+	for (k=0; k<n_sd; k++)
+		for (K=0; K<n_sd; K++)
+			for (l=0; l<n_sd; l++) 
+				for (L=0; L<n_sd; L++) 
+					Kb ( Map(K,L), Map(k,l) ) = F(k,K)*F(l,L);
+
+	A.MultAB ( Ka, CC );
+	B.MultAB ( RR, Kb );
+
+	cc.MultAB ( A,B );
+	cc /= JJ;
 }
 
 //---------------------------------------------------------------------------

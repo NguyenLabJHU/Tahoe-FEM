@@ -22,7 +22,7 @@ VMF_Virtual_Work_EqT::VMF_Virtual_Work_EqT	( FEA_ShapeFunctionT &Shapes,VMF_Mate
 void VMF_Virtual_Work_EqT::Construct ( 	FEA_ShapeFunctionT &Shapes,VMF_MaterialT *Iso_Matl,VMS_VariableT &np1,VMS_VariableT &n, 
 														int Integration_Scheme) 
 {
-#pragma unused(Integration_Scheme)
+	Time_Integration_Scheme = Integration_Scheme;
 
 	n_ip 		= np1.fVars[0].IPs(); 
 	n_rows	= np1.fVars[0].Rows(); 
@@ -31,8 +31,11 @@ void VMF_Virtual_Work_EqT::Construct ( 	FEA_ShapeFunctionT &Shapes,VMF_MaterialT
   n_sd 		= n_rows;	
 	n_sd_x_n_sd = n_sd * n_sd;
 	n_sd_x_n_en = n_sd * n_en;
+
 	lamda = Iso_Matl -> Retrieve ( Iso_MatlT::kLamda 	);
 	mu 		= Iso_Matl -> Retrieve ( Iso_MatlT::kMu 		);
+	Pi 		= Iso_Matl -> Retrieve ( Iso_MatlT::kPi 		);
+	Rho 	= Iso_Matl -> Retrieve ( Iso_MatlT::kRho 		);
  
 	Data_Pro.Construct ( Shapes.dNdx );
 
@@ -71,11 +74,11 @@ void VMF_Virtual_Work_EqT::Form_LHS_Ka_Kb	( dMatrixT &Ka, dMatrixT &Kb, double d
 {
 #pragma unused(delta_t)
 
-	/* Term I. 		*/		Ka 	= Integral.of( 	B[kB_1hat], B[kBI_tau_3hat] 								);  	
-	/* Term IIb. 	*/	 	Kb  = Integral.of( 	B[kB_1hat], B[kBbII_2hat] 									);  	
-	/* Term IIa. 	*/	 	Ka -= Integral.of( 	B[kB_1hat], B[kBaII_3hat] 									);  	
-	/* Term IIIb.	*/	 	Kb += Integral.of( 	B[kB_1hat], T4[kd_1bar],		B[kB_1hat] 			);  	
-	/* Term IIIa.	*/	 	Ka -= Integral.of( 	B[kB_1hat], T4[kd_1bar],		B[kBaIII_2bar] 	);  	
+	/* Term I. 		*/		Ka 	= Integral.of( 	B[kB_1hat], B[kBI_tau_3hat] 									);  	
+	/* Term IIb. 	*/	 	Kb  = Integral.of( 	B[kB_1hat], B[kBbII_2hat] 										);  	
+	/* Term IIa. 	*/	 	Ka -= Integral.of( 	B[kB_1hat], B[kBaII_3hat] 										);  	
+	/* Term IIIb.	*/	 	Kb += Integral.of( 	B[kB_1hat], T4[kcc_b_tilde], B[kB_1hat] 			);  	
+	/* Term IIIa.	*/	 	Ka -= Integral.of( 	B[kB_1hat], T4[kcc_b_tilde], B[kBaIII_2bar] 	);  	
 }
 
 //---------------------------------------------------------------------
@@ -138,14 +141,24 @@ void VMF_Virtual_Work_EqT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n,i
 	A[kFbT].Transpose  		( A[kFb] 								);
 	A[kF_sharp].MultAB  	( A[kgrad_ub], 	A[kFb] 	);
 
+	//----- Calculate Eb 
+	
 	A[kCb].MultATB   			( A[kFb],  			A[kFb] 	);					
 	A[kEb]  = A[kCb]; 
 	A[kEb].PlusIdentity(-1.0); 
 	A[kEb] *= 0.5; 
 
+	if 	( bControl_Eb ) {
+		Control_Eb ( ); // Eb_tilde calculated
+		//A[kEb_tilde].Print ("Eb_tilde Coarse");
+	}
+	else
+		A[kEb_tilde] = A[kEb];
+
 	//----- Calculate stresses S and Sigma
-	
-  Data_Pro.C_IJKL_E_KL	(  lamda, mu, A[kEb], A[kS] 	); // Untested Hooke's Law
+
+  Data_Pro.C_IJKL_E_KL	(  lamda, mu, A[kEb_tilde], A[kS] 	); // UT
+
 	A[kSigma].MultABCT 		(  A[kFb], 		A[kS], 	A[kFb] 	);
 	A[kSigma] /= S[kJ]; // not kJb !!
 
@@ -153,9 +166,85 @@ void VMF_Virtual_Work_EqT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n,i
 
 	T4.Construct ( kNUM_T4_TERMS, n_ip, n_sd_x_n_sd, n_sd_x_n_sd );
 
-  Data_Pro.c_ijkl				(	lamda,mu, S[kJ], A[kFb], T4[kd_1bar]	);
-  Data_Pro.c_ijkl_Alt		(	lamda,mu, S[kJ], A[kFb], T4[kT4_Temp0]	);
+  Data_Pro.c_ijkl				(	lamda,mu, S[kJ], A[kFb], T4[kcc_b]	);
+  //Data_Pro.c_ijkl_Alt		(	lamda,mu, S[kJ], A[kFb], T4[kT4_Temp0]	);
 
+ 	if 	(0) {  //------- Build CC_tilde for Control of Eb
+ 	//if 	(bControl_Eb) {  //------- Build CC_tilde for Control of Eb
+
+		A[kA_Temp0] = A[kNeb];
+		Data_Pro.A_o_B 					( A[kA_Temp0], 	A[kNeb], 				T4[kNeb_o_Neb] 	);  
+ 		Data_Pro.II_minus_A_o_B ( A[kA_Temp0],	A[kNeb],				T4[kPPeb] 			); // 4th Order Projector 
+
+		S[kPi_Sech_Rho_Mag_Eb_2].Sech ( S[kRho_Mag_Eb] );
+		S[kPi_Sech_Rho_Mag_Eb_2].Squared ( );
+		S[kPi_Sech_Rho_Mag_Eb_2] *= Pi; 
+
+		T4[kT4_Temp0]  = T4[kNeb_o_Neb];
+		T4[kT4_Temp0] *=  S[kPi_Sech_Rho_Mag_Eb_2];
+		T4[kRR]  = T4[kPPeb]; 
+		T4[kRR] *= S[kPi_Tanh_Rho_Mag_Eb]; 
+		T4[kRR] += T4[kT4_Temp0];  
+
+		Data_Pro.C_IJKL 	(	lamda, mu, T4[kCC]	); 
+		Data_Pro.c_ijkl  	(	S[kJ], A[kFb], T4[kCC], T4[kRR], T4[kcc_b_tilde] );
+
+	}
+	else
+		T4[kcc_b_tilde] =  T4[kcc_b];
+	
 }
 
+
+//################################## Enhance Eb ################################################
+
+void VMF_Virtual_Work_EqT::Control_Eb ( )  // Produces Eb_tilde
+{
+  A[kEb].Mag_and_Dir ( S[kRho_Mag_Eb], A[kNeb] ); 
+  S[kRho_Mag_Eb] *= Rho; 
+
+	S[kPi_Tanh_Rho_Mag_Eb].Tanh( S[kRho_Mag_Eb] ); 
+	S[kPi_Tanh_Rho_Mag_Eb] *= Pi; 
+
+	 A[kEb_tilde]  = A[kNeb]; 
+	 A[kEb_tilde] *= S[kPi_Tanh_Rho_Mag_Eb];	
+}
+
+//##################################################################################
+
+void VMF_Virtual_Work_EqT::Get ( StringT &Name, FEA_dMatrixT &tensor )
+{
+	if ( Name == "Sigma" )
+		tensor = A[kSigma];
+	else if ( Name == "S" )
+		tensor = A[kS];
+	else if ( Name == "Eb" )
+		tensor = A[kEb];
+	else if ( Name == "Eb_tilde" )
+		tensor = A[kEb_tilde];
+	else if ( Name == "F" )
+		tensor = A[kF];
+	else if ( Name == "Fb" )
+		tensor = A[kFb];
+	else if ( Name == "Cb" )
+		tensor = A[kCb];
+	else if ( Name == "grad_ub" )
+		tensor = A[kgrad_ub];
+	else
+		cout << " ...ERROR: VMF_Virtual_Work_EqT::Get() >> Unknown tensor '"<<Name<<"' requested. \n";
+}
+
+//##################################################################################
+
+void VMF_Virtual_Work_EqT::Get ( StringT &Name, FEA_dScalarT &scalar )
+{
+	if ( Name == "J" )
+		scalar = S[kJ];
+	else if ( Name == "Rho_Mag_Eb" )
+		scalar = S[kRho_Mag_Eb];
+	else if ( Name == "Pi_Tanh_Rho_Mag_Eb" )
+		scalar = S[kPi_Tanh_Rho_Mag_Eb];
+	else
+		cout << " ...ERROR: VMF_Virtual_Work_EqT::Get() >> Unknown scalar '"<<Name<<"' requested. \n";
+}
 

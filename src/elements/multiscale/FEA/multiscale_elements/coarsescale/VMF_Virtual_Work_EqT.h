@@ -36,6 +36,8 @@ class VMF_Virtual_Work_EqT	: public CoarseScaleT
 						   	kF_sharp,
 						   	kCb,
 						   	kEb,
+						   	kNeb,
+						   	kEb_tilde,
 						   	kS,
 						   	kSigma,
 						   	kA_Temp0,
@@ -43,10 +45,18 @@ class VMF_Virtual_Work_EqT	: public CoarseScaleT
 
     	enum S_T { 
 								kJ,
+								kRho_Mag_Eb,
+								kPi_Tanh_Rho_Mag_Eb,
+								kPi_Sech_Rho_Mag_Eb_2,
 	             	kNUM_S_TERMS };  
 						
     	enum T4_T { 
-								kd_1bar,
+								kCC,
+								kcc_b,
+								kcc_b_tilde,
+								kPPeb,				// Used for Eb_Control 
+								kRR,					// Used for Eb_Control 
+								kNeb_o_Neb,		// Used for Eb_Control 
 						   	kT4_Temp0,
 	             	kNUM_T4_TERMS };  
 						
@@ -67,6 +77,10 @@ class VMF_Virtual_Work_EqT	: public CoarseScaleT
 		void 	Form_B_List 		( void );  // Strain Displacement Matricies
 		void 	Form_A_S_Lists 	( VMS_VariableT &np1, VMS_VariableT &n,int Integration_Scheme=FEA::kBackward_Euler ); // BCDE ---> A 
 
+		void	Control_Eb ( void );
+
+		void  Get ( StringT &Name, FEA_dMatrixT &tensor );
+		void  Get ( StringT &Name, FEA_dScalarT &scalar );
 		void 	Get ( int scalar_code, FEA_dScalarT &scalar  ) { scalar = S[scalar_code]; } 
 		void 	Get ( int tensor_code, FEA_dMatrixT &tensor, int tensor_order ) 		
 								{ tensor = (tensor_order==2) ? A[tensor_code] : T4[tensor_code]; } 
@@ -83,8 +97,9 @@ class VMF_Virtual_Work_EqT	: public CoarseScaleT
 		FEA_IntegrationT 		Integral;
 		FEA_Data_ProcessorT Data_Pro; 
 
-		double lamda,mu;
-		int n_ip, n_rows, n_cols, n_sd, n_en, n_sd_x_n_sd, n_sd_x_n_en;
+		double lamda,mu,Pi,Rho; // <-- put these in C[] like the others do
+
+		int n_ip, n_rows, n_cols, n_sd, n_en, n_sd_x_n_sd, n_sd_x_n_en, Time_Integration_Scheme;
   
 };
 

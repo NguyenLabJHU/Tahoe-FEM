@@ -1,8 +1,9 @@
-// $Id: FineScaleT.h,v 1.9 2003-03-07 22:24:02 creigh Exp $
+// $Id: FineScaleT.h,v 1.10 2003-03-17 22:05:32 creigh Exp $
 #ifndef _FINESCALE_T_H_ 
 #define _FINESCALE_T_H_ 
 
 #include "BCJ_MatlT.h"
+#include "StringT.h"
 
 namespace Tahoe {
 
@@ -24,7 +25,13 @@ public:
 	virtual void Form_RHS_F_int	(	dArrayT &F_int	) = 0;
 	virtual void Initialize	(	int &in_ip, int &in_sd, int &in_en, int Initial_Time_Step ) = 0;
 
-	int  Back_Stress_Type, Iso_Hard_Type;	
+	virtual void Get ( StringT &Name, FEA_dMatrixT &tensor ) =0;
+	virtual void Get ( StringT &Name, FEA_dScalarT &scalar ) =0;
+  virtual void Get ( int scalar_code, FEA_dScalarT &scalar ) =0; 
+  virtual void Get ( int tensor_code, FEA_dMatrixT &tensor,int tensor_order ) =0; 
+
+	int  Back_Stress_Type, Iso_Hard_Type;
+	bool bControl_Eb, bDiagnosis_Variables, bDel_Curl_sE;
 
 };
 } // namespace Tahoe 

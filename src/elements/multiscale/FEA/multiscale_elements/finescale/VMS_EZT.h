@@ -1,4 +1,4 @@
-// $Id: VMS_EZT.h,v 1.4 2003-03-07 22:24:02 creigh Exp $
+// $Id: VMS_EZT.h,v 1.5 2003-03-17 22:05:32 creigh Exp $
 #ifndef _VMS_EZ_T_H_ 
 #define _VMS_EZ_T_H_ 
 
@@ -29,6 +29,10 @@ class VMS_EZT : public FineScaleT
 						   	kG2,
 	             	kNUM_A_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 
+  	enum C_T { 
+						   	kNeg_Alpha,   
+	             	kNUM_C_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
+
 		//--------------------------------------------------------------
 	
  	VMS_EZT	(	) { }
@@ -45,11 +49,20 @@ class VMS_EZT : public FineScaleT
   void 	Form_RHS_F_int	(	dArrayT &F_int ); 
 	void 	Form_B_List 		( void );  // Strain Displacement Matricies
 	void 	Form_A_S_Lists 	( VMS_VariableT &np1, VMS_VariableT &n ); // BCDE ---> A 
+ 	void 	Form_C_List 		( VMF_MaterialT *BCJ_Matl );  // Constant List
+
+	void  Get ( StringT &Name, FEA_dScalarT &scalar ) { scalar = 0.0; cout<<"EZ: Unknown scalar '"<<Name<<"' requested.\n"; } 
+	void  Get ( StringT &Name, FEA_dMatrixT &tensor );
+	void 	Get ( int scalar_code, FEA_dScalarT &scalar  )  { scalar_code=scalar.Length(); } // { scalar = S[scalar_code]; } 
+	void 	Get ( int tensor_code, FEA_dMatrixT &tensor, int tensor_order ) 		
+							{ tensor = A[tensor_code]; tensor_order++; } 
+							//{ tensor = (tensor_order==2) ? A[tensor_code] : T4[tensor_code]; } 
 
 	protected:
 
   	FEA_dMatrix_ArrayT    B; // Dimension: n_sd x n_sd*n_en , 		e.g. 9x24
 		FEA_dMatrix_ArrayT    A; // Dimension: n_sd x n_sd , 					e.g. 3x3 
+   	dArrayT 			      	C;
  
 	protected:
 
@@ -57,10 +70,10 @@ class VMS_EZT : public FineScaleT
 		FEA_Data_ProcessorT Data_Pro; 
 
 		int n_ip, n_rows, n_cols, n_sd, n_en, n_sd_x_n_sd, n_sd_x_n_en;
-		double neg_1by10;
   
 };
 
 } // namespace Tahoe 
 #endif /* _VMS_EZT_H_ */
+
 

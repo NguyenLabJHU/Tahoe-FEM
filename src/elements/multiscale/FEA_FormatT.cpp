@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.5 2003-03-07 22:23:57 creigh Exp $
+// $Id: FEA_FormatT.cpp,v 1.6 2003-03-17 22:05:26 creigh Exp $
 #include "FEA_FormatT.h"
 
 //---------------------------------------------------------------------
@@ -45,9 +45,9 @@ void FEA_FormatT::Gradiants (	ShapeFunctionT *fShapes,LocalArrayT &u_np1,LocalAr
 
 void FEA_FormatT::Displacements ( LocalArrayT &u_mat, dArrayT &u_vec ) 
 {
-	int i,j,k=0, n_en=u_mat.NumberOfNodes(), n_dof=u_mat.MinorDim();
-	for (i=0; i<n_en; i++)
-		for (j=0; j<n_dof; j++)
-			u_vec[k++] = u_mat(i,j); 
+	int a,i,k=0, n_en=u_mat.NumberOfNodes(), n_dof=u_mat.MinorDim();
+	for (a=0; a<n_en; a++)
+		for (i=0; i<n_dof; i++)
+			u_vec[k++] = u_mat(a,i); 
 }
 

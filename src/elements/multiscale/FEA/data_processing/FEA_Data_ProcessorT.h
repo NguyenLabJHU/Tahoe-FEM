@@ -1,4 +1,4 @@
-// $Id: FEA_Data_ProcessorT.h,v 1.4 2003-03-07 22:23:59 creigh Exp $
+// $Id: FEA_Data_ProcessorT.h,v 1.5 2003-03-17 22:05:28 creigh Exp $
 #ifndef _FEA_DATAPROCESSRT_H_
 #define _FEA_DATAPROCESSRT_H_
 
@@ -11,7 +11,8 @@ class FEA_Data_ProcessorT
 		enum Spatial_DirectionT { dx1, dx2, dx3 };
 		enum NumberT { k1, k2, k3, k4, k5, k6, k7, k8, k9, k10 }; // <-- numbers are one less then face value
 					
-		FEA_Data_ProcessorT 			(); 
+		 FEA_Data_ProcessorT 			(); 
+		~FEA_Data_ProcessorT 			(); 
 		FEA_Data_ProcessorT 			( FEA_dMatrixT &fdNdx );
 		void Construct 						( FEA_dMatrixT &fdNdx ); 
 
@@ -43,8 +44,9 @@ class FEA_Data_ProcessorT
 	 	
 	  void C_IJKL 					(const double &lamda,const double &mu,FEA_dMatrixT &D,int kine=FEA::kPlaneStrain);
 		void C_IJKL_E_KL			(double &lamda,double &mu, FEA_dMatrixT &E, FEA_dMatrixT &S); // Hooke's Law
-		void c_ijkl						(double &lamda,double &mu, FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &D);
+		void c_ijkl						(double &lamda,double &mu, FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &cc);
 		void c_ijkl_Alt				(double &lamda,double &mu, FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &D);
+		void c_ijkl						(FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &CC, FEA_dMatrixT &RR, FEA_dMatrixT &cc);
 
 		void Curl			    		(const ArrayT<dMatrixT> &T,	FEA_dMatrixT &curl) const;
 		void Grad			    		(const ArrayT<dArrayT> 	&u,	FEA_dMatrixT &grad) const;
@@ -60,6 +62,7 @@ class FEA_Data_ProcessorT
 
 		void Form_Permutation_Symbol 	( void ); // Form e_ijk
 		void Form_Order_Reduction_Map	( void );
+		void Form_Order_Reduction_Map	( int in_sd ) { n_sd = in_sd; Form_Order_Reduction_Map(); }
 
     nMatrixT<int> Map;		
 	  FEA_dMatrixT dN;	

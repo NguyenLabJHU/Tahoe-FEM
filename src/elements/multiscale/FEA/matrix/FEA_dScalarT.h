@@ -1,4 +1,4 @@
-// $Id: FEA_dScalarT.h,v 1.3 2003-03-07 22:24:01 creigh Exp $
+// $Id: FEA_dScalarT.h,v 1.4 2003-03-17 22:05:29 creigh Exp $
 #ifndef _FEA_DSCALART_H_
 #define _FEA_DSCALART_H_
 
@@ -33,7 +33,10 @@ class FEA_dScalarT: public dArrayT // For the name sake only
 		void Tan			( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = tan  ( s[i] ); }
 		void Exp  		( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = exp  ( s[i] ); }
 		void Sinh 		( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = sinh ( s[i] ); }
+		void ArcSinh 	( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = asinh ( s[i] ); }
 		void Cosh 		( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = cosh ( s[i] ); }
+		void Tanh 		( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = tanh ( s[i] ); }
+		void Sech 		( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = 1.0/cosh ( s[i] ); }
 		void Sqrt			( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = sqrt ( s[i] ); }
 		void Macaulay ( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) if (s[i]<0.0) (*this)[i] = s[i]; else (*this)[i] = 0.0; }
 
@@ -42,9 +45,14 @@ class FEA_dScalarT: public dArrayT // For the name sake only
 		void Tan			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = tan  ( (*this)[i] ); }
 		void Exp			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = exp  ( (*this)[i] ); }
 		void Sinh			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = sinh ( (*this)[i] ); }
+		void ArcSinh	( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = asinh ( (*this)[i] ); }
 		void Cosh			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = cosh ( (*this)[i] ); }
+		void Tanh			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = tanh ( (*this)[i] ); }
+		void Sech			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = 1.0/cosh ( (*this)[i] ); }
 		void Sqrt			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = sqrt ( (*this)[i] ); }
 		void Macaulay ( void )						{ for (int i=0; i<fLength; i++)  if ((*this)[i]<0.0) (*this)[i]=0.0; }
+
+		void Squared  ( void )						{ for (int i=0; i<fLength; i++) (*this)[i] *= (*this)[i]; }
 
 		void operator  = (const double *a ) 				{ for (int i=0; i<fLength; i++) (*this)[i]  = a[i]; }
 
