@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.4 2002-11-30 16:41:30 paklein Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.5 2002-12-01 19:54:07 paklein Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -340,6 +340,27 @@ void StaggeredMultiScaleT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		eq_1.Append(&fEqnos_fine);
 	}
 	else throw ExceptionT::kGeneralFail;
+}
+
+//---------------------------------------------------------------------
+
+/* write element group parameters to out */
+void StaggeredMultiScaleT::PrintControlData(ostream& out) const
+{
+	/* inherited */
+	ElementBaseT::PrintControlData(out);
+
+	out << " Coarse scale field. . . . . . . . . . . . . . . = \"" << fCoarse.Name() << "\"\n";
+	out << " Fine scale field. . . . . . . . . . . . . . . . = \"" << fFine.Name() << "\"\n";
+	out << " Element geometry code . . . . . . . . . . . . . = " << fGeometryCode << '\n';
+	out << "    eq." << GeometryT::kPoint         << ", point\n";
+	out << "    eq." << GeometryT::kLine          << ", line\n";
+	out << "    eq." << GeometryT::kQuadrilateral << ", quadrilateral\n";
+	out << "    eq." << GeometryT::kTriangle	  << ", triangle\n";
+	out << "    eq." << GeometryT::kHexahedron	  << ", hexahedron\n";
+	out << "    eq." << GeometryT::kTetrahedron   << ", tetrahedron\n";
+	out << " Number of integration points. . . . . . . . . . = " << fNumIP    << '\n';
+
 }
 
 //---------------------------------------------------------------------
