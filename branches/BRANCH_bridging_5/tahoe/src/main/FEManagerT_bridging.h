@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11.4.7 2004-04-10 23:22:15 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.4.8 2004-04-15 21:15:57 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -166,8 +166,14 @@ public:
 	const PointInCellDataT& ProjectionData(void) { return fDrivenCellData; };
 	/*@}*/
 	
+	/** \name methods to compute bond density correctoin in the overlap region */
+	/*@{*/
 	/** compute internal correction for the overlap region */
-	void CorrectOverlap(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing);
+	void CorrectOverlap(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
+
+	/** compute internal correction for the overlap region */
+	void CorrectOverlap_nodal(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
+	/*@}*/
 
 	/** (re-)set the equation number for the given group */
 	virtual void SetEquationSystem(int group, int start_eq_shift = 0);
@@ -234,11 +240,11 @@ protected:
 #if 0
 	void Compute_df_dp(const dArrayT& R, double V_0, const ContinuumElementT& coarse, 
 		const ArrayT<int>& overlap_cell, const InverseMapT& overlap_node_map, const dArray2DT& rho, 
-		dArrayT& f_a, double smoothing, dArray2DT& df_dp, dArray2DT& ddf_dpdp) const;
+		dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, dArray2DT& ddf_dpdp) const;
 #endif
 	void Compute_df_dp(const dArrayT& R, double V_0, const ContinuumElementT& coarse, 
 		const ArrayT<int>& overlap_cell, const InverseMapT& overlap_node_map, const dArray2DT& rho, 
-		dArrayT& f_a, double smoothing, dArray2DT& df_dp, LAdMatrixT& ddf_dpdp) const;
+		dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, LAdMatrixT& ddf_dpdp) const;
 	/*@}*/
 
 private:
