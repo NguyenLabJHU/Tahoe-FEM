@@ -1,0 +1,198 @@
+#!/usr/bin/perl -w
+#------------------------------------------------------------------------------
+# tahoe-manager: 
+#    a PERL script to checkout, configure, build and run regression tests
+#    for TAHOE
+# written by: 
+#    Reese Jones (rjones@sandia.gov) and Patrick Klein # (paklein@sandia.gov)
+#------------------------------------------------------------------------------
+
+# initialization
+$username = getlogin();
+use Cwd; $home = cwd();
+$cvsrep = "tahoe.ca.sandia.gov:/cvs/protected/tahoe"; 
+%module2define = qw(
+expat	EXPAT
+toolbox	TB
+tahoe	NODEFINE
+macros	NODEFINE
+);
+$config_file = "./.tahoe_config";
+if(-e "$config_file") { read_config();}
+else                  { write_default_config();}
+$script_status = 0;
+
+# loop through arguments and options
+if (@ARGV < 1) {usage(); exit 0;}
+ARG: while (@ARGV) {
+	OPT: for (shift@ARGV) {
+		$count = @ARGV;
+		if ($script_status > 0 ){ failed();}
+		if (/^-/) {
+			if (/c|checkout/i)        { checkout(); next ARG; }
+			if (/u|update/i)          { update(); next ARG; }
+			if (/r|rebuild/i)         { rebuild(); next ARG; }
+			if (/b|build/i)           { build(); next ARG; }
+			if (/t|test/i)            { test(); next ARG; }
+			if (/u|usage|help|h/i)           { usage();}
+		}
+		print "ERROR: unknown option: $_ \n"; usage();
+	}
+}
+
+exit 0;
+
+###############################################################################
+sub read_config{
+print "reading config file $config_file\n";
+open(CONFIG,$config_file) || die "cannot open file $config_file for reading : $!";
+$type = "UNKNOWN";
+while(<CONFIG>) {
+	s/^\s+//; s/\s+$//; @list = split(/ +/);
+ 	if (defined($list[0])){
+        	if (/^\#/ ){ 
+			if     ($type  =~ /ARCH/){$arch = $tmp_list[0];}
+ 			elsif  ($type  =~ /MODU/){@modules = @tmp_list;}
+ 			$type = $list[1]; @tmp_list =();
+ 		} 
+ 		else { push(@tmp_list,@list);}
+ 	}
+}
+close(CONFIG);
+
+
+# need to make sure the core modules exist
+# need to sort modules based on dependencies
+@tmp_modules = @modules;
+@modules = sort by_depend @tmp_modules;
+
+print ">architecture: $arch\n";
+print ">modules: @modules\n";
+}
+
+sub write_default_config{
+print "creating default config file $config_file\n";
+# architecture
+unless(-d "macros"){
+	print "checking out macros\n";
+	unlink("cvs.log");
+	system("cvs -d $username\@$cvsrep checkout macros > cvs.log 2>&1");
+}
+$system = "GNU"; # HACK
+chdir "macros"; 
+@macros = glob("$system*.macros"); 
+foreach $choice (@macros) { $choice =~ s/\.macros//; push(@choices,$choice);}
+chdir "..";
+print "no default build architecture, choices:\n";
+$i=0;foreach $choice (@choices) { print "$i $choice\n"; $i++;}
+print "? "; $i = <STDIN>; $arch = $choices[$i]; 
+print "$arch\n";
+# modules
+@modules = ("macros","expat","toolbox","tahoe");
+open(CONFIG,">$config_file") || die "cannot open file $config_file for writing : $!";
+$arch = "GNU.linux";
+print CONFIG  "# ARCHITECTURE\n$arch\n\n";
+print CONFIG  "# MODULES\n@modules\n\n";
+print CONFIG  "# EOF";
+close(CONFIG);
+}
+
+sub checkout{
+	print "($count) checking out @modules\n";
+	unlink("cvs.log");
+	system("cvs -d $username\@$cvsrep checkout @modules > cvs.log 2>&1");
+}
+
+sub update{
+	print "($count) updating @modules\n";
+	unlink("cvs.log");
+	foreach $dir (@modules) {
+		system("cd $dir; cvs update -Pd > ../cvs.log 2>&1");
+	}
+}
+
+sub rebuild{
+	print "($count) rebuilding @modules\n";
+# winnow out "static" modules??
+	foreach $dir (@modules) {
+		chdir $dir;
+		if (-e "makefile" && !(-e "static")) {
+			unlink("build.log");
+			system("make build > build.log 2>&1");
+		# check build log for errors	
+		}
+		chdir "..";
+	}
+}
+
+sub build{
+	print "($count) building @modules\n";
+	foreach $dir (@modules) {
+		chdir $dir;
+		if (-e "makefile.template") {
+			$path = "$home/$dir";
+			unlink("makefile");
+			open(IN,"makefile.template");
+			open(OUT,">makefile");
+			while (defined($line = <IN>)){
+				$line =~ s/HOME_DIR =/HOME_DIR = $path/;
+				$line =~ s/ARCH =/ARCH = $arch/;
+				print OUT "$line";
+ 			}
+			close(IN);
+			close(OUT);
+			unlink("build.log");
+			system("make init build > build.log 2>&1");
+			
+		}
+		chdir "..";
+	}
+}
+
+sub test{
+	print "($count) running tests\n";
+}
+
+sub clean{
+	print "($count) cleaning\n";
+}
+
+sub failed{
+	die "*-*-*-* process FAILED *-*-*-*\n";
+}
+
+sub usage{
+	print "\nusage: tahoe-manager [list of keywords and options]\n";
+	print "       checkout: checks out\n";
+	print "       update  : updates\n";
+	print "       build   : builds \n";
+	print "       rebuild : rebuilds \n";
+	print "       test    : runs regression tests\n";
+	print "       clean   : cleans \n";
+	exit 1;
+}
+
+sub by_depend {
+	$filename = "$a/makefile.template";
+	if (-e $filename) {
+		open(IN,"$filename");
+		@lines = <IN>; $afile = "@lines"; 
+		close(IN);
+		$bdefine = $module2define{$b}; 
+ 		$a_on_b = ($afile =~ /$bdefine/);
+		unless(defined($a_on_b)) {$a_on_b = 0;}
+	} else { $a_on_b = -1;}
+
+	$filename = "$b/makefile.template";
+	if (-e $filename) {
+		open(IN,"$filename");
+		@lines = <IN>; $bfile = "@lines"; 
+		close(IN);
+		$adefine = $module2define{$a};
+	        $b_on_a = ($bfile =~ /$adefine/);
+		unless(defined($b_on_a)) {$b_on_a = 0;}
+	} else { $b_on_a = -1;};
+
+        ($a_on_b <=> $b_on_a);
+}
+
