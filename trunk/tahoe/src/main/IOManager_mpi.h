@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.h,v 1.7 2002-01-12 05:15:56 paklein Exp $ */
+/* $Id: IOManager_mpi.h,v 1.8 2002-01-27 18:51:08 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #ifndef _IOMANAGER_MPI_H_
@@ -72,7 +72,7 @@ private:
 	 * \param map global output set ID as a function of set index. This array
 	 *        is allocate/initialized if passed in empty. Subsequently the
 	 *        array length must match the number of elements in the output set */
-	void BuildElementAssemblyMap(int set, int block_ID, const iArrayT& block_map, 
+	void BuildElementAssemblyMap(int set, const StringT& block_ID, const iArrayT& block_map, 
 		iArrayT& map) const;
 
 	/** MPI information */

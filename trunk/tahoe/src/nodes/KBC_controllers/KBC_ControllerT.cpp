@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.3 2002-01-09 12:07:28 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.4 2002-01-27 18:51:11 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "KBC_ControllerT.h"
@@ -57,7 +57,7 @@ void KBC_ControllerT::WriteOutput(ostream& out) const
 **********************************************************************/
 
 /* read nodes from stream */
-void KBC_ControllerT::ReadNodes(ifstreamT& in, iArrayT& id_list,
+void KBC_ControllerT::ReadNodes(ifstreamT& in, ArrayT<StringT>& id_list,
 	iArrayT& nodes) const
 {
 	/* top level */
@@ -68,8 +68,5 @@ void KBC_ControllerT::ReadNodes(ifstreamT& in, iArrayT& id_list,
 	model->NodeSetList (in, id_list);
 
 	/* collect sets */
-	model->ManyNodeSets (id_list, nodes);
-
-	/* offset to make ID's from indexes */
-	id_list ++;
+	model->ManyNodeSets(id_list, nodes);
 }

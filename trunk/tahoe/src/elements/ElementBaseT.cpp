@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.10 2002-01-09 12:02:31 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.11 2002-01-27 18:51:01 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -262,21 +262,26 @@ void ElementBaseT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 }
 
 /* block ID for the specified element */
-int ElementBaseT::ElementBlockID(int element) const
+const StringT& ElementBaseT::ElementBlockID(int element) const
 {
-	if (element < 0 || element >= fNumElements) throw eOutOfRange;
+	if (element < 0 || element >= fNumElements) {
+		cout << "\n ElementBaseT::ElementBlockID: element number " << element << " is out of range {0,"
+		    << fNumElements - 1 << "}" << endl;
+		throw eOutOfRange;
+	}
 	
-	int blockID = 0;
 	bool found = false;
-	for (int i = 0; i < fBlockData.MajorDim() && !found; i++)
-		if (element >= fBlockData(i, kStartNum) &&
-		    element <  fBlockData(i, kStartNum) + fBlockData(i, kBlockDim))
-		{
-			blockID = fBlockData(i, kID);
-			found = true;
-		}
-	if (!found) throw eGeneralFail;
-	return blockID;
+	for (int i = 0; i < fBlockData.Length(); i++)
+		if (element >= fBlockData[i].StartNumber() &&
+		    element <  fBlockData[i].StartNumber() + fBlockData[i].Dimension())
+			return fBlockData[i].ID();
+
+	if (!found) {
+		cout << "\n ElementBaseT::ElementBlockID: could not resolve block ID for element "
+		     << element << endl;
+		throw eGeneralFail;
+	}
+	return fBlockData[0].ID(); /* dummy */
 }
 
 /* weight the computational effort of every node */
@@ -348,13 +353,14 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 #pragma unused(out)
 
 	/* read from parameter file */
-	iArrayT indexes, matnums;
+	ArrayT<StringT> elem_ID;
+	iArrayT matnums;
 	ModelManagerT* model = fFEManager.ModelManager();
-	model->ElementBlockList (in, indexes, matnums);
+	model->ElementBlockList(in, elem_ID, matnums);
 
 	/* allocate block map */
-	int num_blocks = indexes.Length();
-	fBlockData.Allocate(num_blocks, kBlockDataSize);
+	int num_blocks = elem_ID.Length();
+	fBlockData.Allocate(num_blocks);
 	fConnectivities.Allocate (num_blocks);
 
 	/* read from parameter file */
@@ -364,7 +370,7 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	{
 	    /* check number of nodes */
 	    int num_elems, num_nodes;
-	    model->ElementGroupDimensions(indexes[b], num_elems, num_nodes);
+	    model->ElementGroupDimensions(elem_ID[b], num_elems, num_nodes);
 	    
 	    /* set if unset */
 	    if (nen == 0) nen = num_nodes;
@@ -380,19 +386,16 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 		}
 	    
 	    /* store block data */
-	    fBlockData (b, kID) = indexes[b] + 1; // use global index as ID value
-	    fBlockData (b, kStartNum) = elem_count;
-	    fBlockData (b, kBlockDim) = num_elems;
-	    fBlockData (b, kBlockMat) = matnums[b] - 1; // offset
+	    fBlockData[b].Set(elem_ID[b], elem_count, num_elems, matnums[b] - 1); // offset
 
 	    /* increment element count */
 	    elem_count += num_elems;
 
 	    /* load connectivity from database into model manager */
-	    model->ReadConnectivity(indexes[b]);
+	    model->ReadConnectivity(elem_ID[b]);
 
 	    /* set pointer to connectivity list */
-	    fConnectivities[b] = model->ElementGroupPointer(indexes[b]);
+	    fConnectivities[b] = model->ElementGroupPointer(elem_ID[b]);
 	}
 	  
 	/* set dimensions */
@@ -461,11 +464,11 @@ void ElementBaseT::WriteConnectivity(ostream& out) const
 * returns the number of nodes used by the element group */
 int ElementBaseT::MakeLocalConnects(iArray2DT& localconnects)
 {
-       int num_blocks = fBlockData.MajorDim();
+       int num_blocks = fBlockData.Length();
 
        iArrayT mins (num_blocks);
        iArrayT maxes (num_blocks);
-       for (int i=0; i < fBlockData.MajorDim(); i++)
+       for (int i=0; i < fBlockData.Length(); i++)
 	 {
 	   mins[i] = fConnectivities[i]->Min();
 	   maxes[i] = fConnectivities[i]->Max();
@@ -510,11 +513,11 @@ int ElementBaseT::MakeLocalConnects(iArray2DT& localconnects)
 
 void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
 {
-       int num_blocks = fBlockData.MajorDim();
+       int num_blocks = fBlockData.Length();
 
        iArrayT mins (num_blocks);
        iArrayT maxes (num_blocks);
-       for (int i=0; i < fBlockData.MajorDim(); i++)
+       for (int i = 0; i < fBlockData.Length(); i++)
 	 {
 	   mins[i] = fConnectivities[i]->Min();
 	   maxes[i] = fConnectivities[i]->Max();
@@ -546,12 +549,12 @@ void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
 }
 
 /* return pointer to block data given the ID */
-const int* ElementBaseT::BlockData(int block_ID) const
+const ElementBlockDataT& ElementBaseT::BlockData(const StringT& block_ID) const
 {
 	/* resolve block ID */
 	int block_num = -1;
-	for (int j = 0; j < fBlockData.MajorDim() && block_num == -1; j++)
-		if (fBlockData(j, kID) == block_ID) block_num = j;
+	for (int j = 0; j < fBlockData.Length() && block_num == -1; j++)
+		if (fBlockData[j].ID() == block_ID) block_num = j;
 
 	/* check */
 	if (block_num == -1)
@@ -560,16 +563,23 @@ const int* ElementBaseT::BlockData(int block_ID) const
 		cout << block_ID << " not found in\n";
 		cout <<   "     element group " << fFEManager.ElementGroupNumber(this) + 1;
 		cout << ". Block data:\n";
-		cout << setw(kIntWidth) << "ID"
+		cout << setw(12) << "ID"
 		     << setw(kIntWidth) << "start"
 		     << setw(kIntWidth) << "size"
 		     << setw(kIntWidth) << "mat." << '\n';
-		cout << fBlockData << endl;
+
+		for (int i = 0; i < fBlockData.Length(); i++)
+			cout << setw(12) << fBlockData[i].ID()
+                 << setw(kIntWidth) << fBlockData[i].StartNumber()
+                 << setw(kIntWidth) << fBlockData[i].Dimension()
+                 << setw(kIntWidth) << fBlockData[i].MaterialID() << '\n';
+
+		cout.flush();
 		throw eBadInputValue;
 	}
 
 	/* return */
-	return fBlockData(block_num);
+	return fBlockData[block_num];
 }
 
 /* write all current element information to the stream */
@@ -577,14 +587,33 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 {
 	if (!fElementCards.InRange()) return;
 	
-	out << "\n   element group: " << fFEManager.ElementGroupNumber(this) + 1 << '\n';
-	out << "\n current element: " << fElementCards.Position() + 1 << '\n';
-	
+	out << "\n element group: " << fFEManager.ElementGroupNumber(this) + 1 << '\n';
+	out << "\n element (in group): " << fElementCards.Position() + 1 << '\n';
+
+	/* block data */
+	const StringT& block_ID = ElementBlockID(fElementCards.Position());
+	const ElementBlockDataT& block_data = BlockData(block_ID);
+
+	/* model manager - block processor number */
+	ModelManagerT* model = fFEManager.ModelManager();
+	iArrayT elem_map(block_data.Dimension());
+	model->ElementMap(block_ID, elem_map);
+
+	/* block global number */
+	const iArrayT* global_map = fFEManager.ElementMap(block_ID);
+
+	/* report */
+	out << "\n element (in partition block): " << elem_map[fElementCards.Position()] << '\n';
+	if (global_map)
+		out << " element (in global block): " << (*global_map)[fElementCards.Position()] << '\n';
+	else
+		out << " element (in global block): " << elem_map[fElementCards.Position()] << '\n';
+
 	/* node number map */
 	const iArrayT* node_map = fFEManager.NodeMap();
 	iArrayT temp;
 
-	out <<   " connectivity(x):\n";
+	out <<   "\n connectivity(x):\n";
 	if (node_map)
 	{
 		const iArrayT& nodes_X = CurrentElement().NodesX();
@@ -632,10 +661,10 @@ void ElementBaseT::SetElementCards(void)
 	/* loop over blocks to set pointers */
 	int numberofnodes = fNodes->NumNodes();
 	int count = 0;
-	for (int i = 0; i < fBlockData.MajorDim(); i++)
+	for (int i = 0; i < fBlockData.Length(); i++)
 	{
-		int dim = fBlockData(i, kBlockDim);
-		int mat = fBlockData(i, kBlockMat);
+		int dim = fBlockData[i].Dimension();
+		int mat = fBlockData[i].MaterialID();
 		const iArray2DT* blockconn = fConnectivities[i];
 		iArray2DT& blockeqnos = fEqnos[i];
 

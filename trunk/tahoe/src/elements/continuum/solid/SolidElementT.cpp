@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.18 2002-01-03 00:22:49 cjkimme Exp $ */
+/* $Id: SolidElementT.cpp,v 1.19 2002-01-27 18:51:04 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #include "SolidElementT.h"
@@ -121,7 +121,7 @@ void SolidElementT::AddNodalForce(int node, dArrayT& force)
 {
 	/* quick exit */
         bool hasnode = false;
-	for (int i=0; i < fBlockData.MajorDim() && !hasnode; i++)
+	for (int i=0; i < fBlockData.Length() && !hasnode; i++)
 	  if (fConnectivities[i]->HasValue(node)) hasnode = true;
 	if (!hasnode) return;
 

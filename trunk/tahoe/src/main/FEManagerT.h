@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.9 2002-01-09 18:29:17 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.10 2002-01-27 18:51:08 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -188,7 +188,7 @@ public:
 	/* debugging */
 	virtual void WriteSystemConfig(ostream& out) const;
 	virtual const iArrayT* NodeMap(void) const { return NULL; }
-	virtual const iArrayT* ElementMap(int blockID) const;
+	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
 
 	/* basic MP support */
 	virtual int Rank(void) const { return 0; }
@@ -289,9 +289,9 @@ inline IOBaseT::FileTypeT FEManagerT::OutputFormat(void) const { return fOutputF
 inline ModelManagerT* FEManagerT::ModelManager (void) const { return fModelManager; }
 inline NodeManagerT* FEManagerT::NodeManager(void) const { return fNodeManager; }
 inline IOManager* FEManagerT::OutputManager(void) const { return fIOManager; }
-inline const iArrayT* FEManagerT::ElementMap(int blockID) const
+inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
 {
-#pragma unused(blockID)
+#pragma unused(block_ID)
 	return NULL;
 }
 

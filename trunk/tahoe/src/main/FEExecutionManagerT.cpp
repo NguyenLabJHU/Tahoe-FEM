@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.16 2002-01-09 22:19:33 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.17 2002-01-27 18:51:08 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #include "FEExecutionManagerT.h"
@@ -1154,7 +1154,12 @@ void FEExecutionManagerT::EchoPartialGeometry_ExodusII(const PartitionT& partiti
 	iArrayT elementID(num_blks);
 	model_ALL.ElementBlockID(elementID);
 	for (int ii = 0; ii < num_blks; ii++)
-		num_elem += (partition.ElementMap(elementID[ii])).Length();
+	{
+		/* convert ID to string */
+		StringT ID;
+		ID.Append(elementID[ii]);
+		num_elem += (partition.ElementMap(ID)).Length();
+	}
 
 	/* partial model file */
 	ExodusT model(cout);
@@ -1182,7 +1187,9 @@ void FEExecutionManagerT::EchoPartialGeometry_ExodusII(const PartitionT& partiti
 		model_ALL.ReadConnectivities(elementID[j], geometry_code, set_ALL);
 
 		/* collect connectivities within the partition */
-		const iArrayT& element_map = partition.ElementMap(elementID[j]);
+		StringT ID;
+		ID.Append(elementID[j]);
+		const iArrayT& element_map = partition.ElementMap(ID);
 		iArray2DT set(element_map.Length(), set_ALL.MinorDim());
 		set.RowCollect(element_map, set_ALL);
 
@@ -1243,8 +1250,10 @@ void FEExecutionManagerT::EchoPartialGeometry_ExodusII(const PartitionT& partiti
 			elements_ALL--;
 			sideset_ALL.SetColumn(0, elements_ALL);
 				
+			StringT ID;
+			ID.Append(element_set_ID);
 			iArrayT local_indices;
-			partition.ReturnPartitionElements(element_set_ID, elements_ALL, local_indices);
+			partition.ReturnPartitionElements(ID, elements_ALL, local_indices);
 						
 			/* non-empty set */
 			if (local_indices.Length() > 0)
@@ -1254,7 +1263,7 @@ void FEExecutionManagerT::EchoPartialGeometry_ExodusII(const PartitionT& partiti
 
 				iArrayT elements(sideset.MajorDim());
 				sideset.ColumnCopy(0, elements);
-				partition.SetElementScope(PartitionT::kLocal, element_set_ID, elements);
+				partition.SetElementScope(PartitionT::kLocal, ID, elements);
 				elements++;
 				sideset.SetColumn(0, elements);
 			}
@@ -1306,7 +1315,9 @@ void FEExecutionManagerT::EchoPartialGeometry_TahoeII(const PartitionT& partitio
 	for (int j = 0; j < elementID.Length(); j++)
 	{
 		/* collect connecitivities within the partition */
-		const iArrayT& element_map = partition.ElementMap(elementID[j]);
+		StringT ID;
+		ID.Append(elementID[j]);
+		const iArrayT& element_map = partition.ElementMap(ID);
 		iArray2DT set_ALL;
 		if (model_ALL.GetElementSet(elementID[j], set_ALL) != ModelFileT::kOK) throw eGeneralFail;				
 		iArray2DT set(element_map.Length(), set_ALL.MinorDim());
@@ -1364,8 +1375,10 @@ void FEExecutionManagerT::EchoPartialGeometry_TahoeII(const PartitionT& partitio
 			elements_ALL--;
 			sideset_ALL.SetColumn(0, elements_ALL);
 				
+			StringT ID;
+			ID.Append(element_set_ID);
 			iArrayT local_indices;
-			partition.ReturnPartitionElements(element_set_ID, elements_ALL, local_indices);
+			partition.ReturnPartitionElements(ID, elements_ALL, local_indices);
 			sideset.Allocate(local_indices.Length(), sideset_ALL.MinorDim());
 			sideset.RowCollect(local_indices, sideset_ALL);
 				
@@ -1374,7 +1387,7 @@ void FEExecutionManagerT::EchoPartialGeometry_TahoeII(const PartitionT& partitio
 			{
 				iArrayT elements(sideset.MajorDim());
 				sideset.ColumnCopy(0, elements);
-				partition.SetElementScope(PartitionT::kLocal, element_set_ID, elements);
+				partition.SetElementScope(PartitionT::kLocal, ID, elements);
 				elements++;
 				sideset.SetColumn(0, elements);
 			}

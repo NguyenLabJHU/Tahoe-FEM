@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.4 2002-01-09 12:02:34 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.5 2002-01-27 18:51:07 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #include "UnConnectedRodT.h"
@@ -67,8 +67,8 @@ GlobalT::RelaxCodeT UnConnectedRodT::RelaxSystem(void)
 		
 		/* update model manager */
 		ModelManagerT* model = fFEManager.ModelManager ();
-		model->UpdateConnectivity (fBlockData (0, kID) - 1, rodconnects);
-		fBlockData (0, kBlockDim) = rodconnects.MajorDim();
+		model->UpdateConnectivity (fBlockData[0].ID(), rodconnects);
+		fBlockData[0].SetDimension(rodconnects.MajorDim());
 		fNumElements = rodconnects.MajorDim();
 
 		/* reset local equation number lists */	
@@ -158,19 +158,15 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	name.Append (fFEManager.ElementGroupNumber(this) + 1);
 	GeometryT::CodeT code = GeometryT::kLine;
 	model->RegisterElementGroup (name, rodconnects, code);
-	int index = model->ElementGroupIndex(name);
 
 	/* set up fBlockData to store block ID */
-	fBlockData.Allocate (1, ElementBaseT::kBlockDataSize);
-	fBlockData (0, kID) = index + 1;
-	fBlockData (0, kStartNum) = 0;
-	fBlockData (0, kBlockDim) = rodconnects.MajorDim();
-	fBlockData (0, kBlockMat) = 0; // currently assume all interactions use potential 0
+	fBlockData.Allocate(1);
+	fBlockData[0].Set(name, 0, rodconnects.MajorDim(), 0); // currently assume all interactions use potential 0
 	fNumElements = rodconnects.MajorDim();
 
 	/* set up fConnectivities */
 	fConnectivities.Allocate (1);
-	fConnectivities[0] = model->ElementGroupPointer (index);
+	fConnectivities[0] = model->ElementGroupPointer(name);
 	
 	/* set up base class equations array */
 	fEqnos.Allocate(1);
@@ -210,9 +206,10 @@ void UnConnectedRodT::ConfigureElementData(void)
 		card.Equations().Set(fNumElemEqnos, rod_eqnos(i));
 		
 		/* material number */
-		card.SetMaterialNumber(fBlockData(block_index,kBlockMat));
+		card.SetMaterialNumber(fBlockData[block_index].MaterialID());
 		
-		if (i == fBlockData(block_index,kStartNum) + fBlockData(block_index,kBlockDim) - 1)
+		if (i == fBlockData[block_index].StartNumber() + 
+		         fBlockData[block_index].Dimension() - 1)
 			block_index++;
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.5 2001-12-17 00:12:59 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.6 2002-01-27 18:51:08 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #ifndef _FE_MANAGER_MPI_H_
@@ -84,7 +84,7 @@ public:
 
 	/* debugging */
 	virtual const iArrayT* NodeMap(void) const;
-	virtual const iArrayT* ElementMap(int blockID) const;
+	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
 
 	/* basic MP support */
 	virtual int Rank(void) const;
@@ -174,14 +174,14 @@ inline const iArrayT* FEManagerT_mpi::NodeMap(void) const
 	}
 }
 
-inline const iArrayT* FEManagerT_mpi::ElementMap(int blockID) const
+inline const iArrayT* FEManagerT_mpi::ElementMap(const StringT& block_ID) const
 {
 	if (fTask == kDecompose)
 		return NULL; // assume no map
 	else
 	{
-		if (!fPartition) throw eGeneralFail;
-		return &(fPartition->ElementMap(blockID));
+		if (!fPartition) throw eGeneralFail;		
+		return &(fPartition->ElementMap(block_ID));
 	}
 }
 

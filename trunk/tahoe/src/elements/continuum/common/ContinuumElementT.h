@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.7 2001-12-17 00:15:54 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.8 2002-01-27 18:51:04 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 /* Interface for a general continuum element type, meaning the presence   */
 /* of shape functions, and the implied presence of a continuum mechanics  */
@@ -93,7 +93,7 @@ public:
 	 * \param sideset {elememt, face} of each side in the set
 	 * \param facets nodes on each facet of the side set in cannonical ordering.
 	 *        array is dimensioned internally */
-	void SideSetToFacets(int block_ID, const iArray2DT& sideset, iArray2DT& facets) const;
+	void SideSetToFacets(const StringT& block_ID, const iArray2DT& sideset, iArray2DT& facets) const;
 
 	/** return geometry and number of nodes on each facet */
 	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, iArrayT& num_facet_nodes) const;

@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.cpp,v 1.3 2001-07-03 01:35:46 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.4 2002-01-27 18:51:12 paklein Exp $ */
 /* created: paklein (04/07/1997)                                          */
 
 #include "MappedPeriodicT.h"
@@ -38,7 +38,7 @@ void MappedPeriodicT::Initialize(ifstreamT& in)
 	if (!in.good()) throw eBadInputValue;
 
 	/* list of mapped nodes */
-	iArrayT id_list;
+	ArrayT<StringT> id_list;
 	ReadNodes(in, id_list, fMappedNodeList);
 
 	/* read master nodes */

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.6 2001-12-17 00:15:49 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.7 2002-01-27 18:51:01 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -17,6 +17,7 @@
 #include "dArrayT.h"
 #include "AutoArrayT.h"
 #include "IOBaseT.h"
+#include "ElementBlockDataT.h"
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
@@ -181,21 +182,13 @@ public:
 	virtual void NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const;
 
 	/** return the block ID for the specified element */
-	int ElementBlockID(int element) const;
+	const StringT& ElementBlockID(int element) const;
 
 	/** weight the computational effort of every node.
 	 * \param weight array length number of nodes */
 	virtual void WeightNodalCost(iArrayT& weight) const;
 
 protected: /* for derived classes only */
-
-	/** block info indexes. Enum's indicate for connectivity block used by
-	 * the element group the location of... */
-	enum BlockIndexT {kID = 0, /**< identification for the block */
-	            kStartNum = 1, /**< first element number within the group */
-	            kBlockDim = 2, /**< number of elements in the block */
-	            kBlockMat = 3, /**< material number used for the block */
-	       kBlockDataSize = 4  /**< number of items in the block */ }; 
 
 	/* get local element data, X for geometry, U for
 	 * field variables */
@@ -243,7 +236,7 @@ protected: /* for derived classes only */
 	void NodesUsed(ArrayT<int>& nodes_used) const;
 
 	/* return pointer to block data given the ID */
-	const int* BlockData(int block_ID) const;
+	const ElementBlockDataT& BlockData(const StringT& ID) const;
 
 	/* write all current element information to the stream */
 	virtual void CurrElementInfo(ostream& out) const;
@@ -289,7 +282,7 @@ protected:
 	/** data for multiple connectivity blocks. Each row contains the
 	 * information for a block of connectivities. The content of each
 	 * row is set by ElementBaseT::BlockIndexT. */
-	iArray2DT fBlockData; 
+	ArrayT<ElementBlockDataT> fBlockData;
 };
 
 /* inline functions */
