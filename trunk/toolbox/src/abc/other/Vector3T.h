@@ -1,4 +1,4 @@
-/* $Id: Vector3T.h,v 1.6 2002-10-20 22:38:55 paklein Exp $ */
+/* $Id: Vector3T.h,v 1.7 2003-11-14 04:46:40 paklein Exp $ */
 /* created: paklein (02/11/2000) */
 
 #ifndef _VECTOR_3_T_H_
@@ -31,38 +31,46 @@ class Vector3T
 	/** type conversion operator. Convert a Vector3T to a (nTYPE*) */
 	operator nTYPE*() const;
 
-	/* assignment operator */
+	/** \name assignment operator */
+	/*@{*/
 	Vector3T<nTYPE>& operator=(const nTYPE* rhs);
 	Vector3T<nTYPE>& operator=(const nTYPE& value);
+	/*@}*/
 
-	/* mathematical operators */
+	/** \name mathematical operators */
+	/*@{*/
 	Vector3T<nTYPE>& operator+=(const nTYPE* rhs);
 	Vector3T<nTYPE>& operator-=(const nTYPE* rhs);
+	/*@}*/
 
-	/* with scalars */
+	/** \name with scalars */
+	/*@{*/
 	Vector3T<nTYPE>& operator+=(const nTYPE& value);
 	Vector3T<nTYPE>& operator-=(const nTYPE& value);
 	Vector3T<nTYPE>& operator*=(const nTYPE& value);
 	Vector3T<nTYPE>& operator/=(const nTYPE& value);
+	/*@}*/
 
-	/* average */
+	/** \name average */
+	/*@{*/
 	Vector3T<nTYPE>& Average(const nTYPE* a, const nTYPE* b);
 	Vector3T<nTYPE>& Average(const nTYPE* a, const nTYPE* b, const nTYPE* c);
+	/*@}*/
 	
-	/* difference */
+	/** difference */
 	Vector3T<nTYPE>& Diff(const nTYPE* a, const nTYPE* b);
 
-	/* vector cross product */
+	/** vector cross product */
 	Vector3T<nTYPE>& Cross(const nTYPE* a, const nTYPE* b);
 
-	/* inner product */
+	/** inner product */
 	static nTYPE Dot(const nTYPE* a, const nTYPE* b);
 
-	/* L2 norm (between a and b) */
+	/** L2 norm (between a and b) */
 	nTYPE Norm(void) const;
 	static nTYPE Norm(const nTYPE* a, const nTYPE* b);
 
-	/* linear combinations <- a*A + b*B */
+	/** linear combinations <- a*A + b*B */
 	Vector3T<nTYPE>& Combine(const nTYPE& a, const nTYPE* A,
 	                         const nTYPE& b, const nTYPE* B);
 
