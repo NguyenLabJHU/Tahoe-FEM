@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.39.2.8 2003-05-07 20:55:37 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.39.2.9 2003-05-09 08:48:24 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -713,7 +713,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 }
 
 /* calculate MD internal force as function of total bridging scale displacement u */
-dArray2DT FEExecutionManagerT::InternalForce(dArray2DT& totalu, FEManagerT_bridging atoms) const
+const dArray2DT& FEExecutionManagerT::InternalForce(dArray2DT& totalu, FEManagerT_bridging atoms) const
 {
 	/* first obtain the MD displacement field */
 	StringT bridging_field = "displacement";
@@ -725,12 +725,14 @@ dArray2DT FEExecutionManagerT::InternalForce(dArray2DT& totalu, FEManagerT_bridg
 	/* now write total bridging scale displacement u into field */
 	atoms.SetFieldValues(bridging_field, nodes, totalu);
 	
-	/* call FEManagerT_bridging::InternalForce here */
-	//dArray2DT force;  // MD force as a function of total displacement u
-	//force = atoms.InternalForce(group);  //Internal force will particle group, get fForce...
+	/* compute RHS */
+	atoms.FormRHS(group);
 			
 	/* write actual MD displacements back into field */
 	atoms.SetFieldValues(bridging_field, nodes, mddisp);
+
+	/* get the internal force contribution associated with the last call to FormRHS */
+	return atoms.InternalForce(group);
 }
 
 #else /* bridging element not enabled */
