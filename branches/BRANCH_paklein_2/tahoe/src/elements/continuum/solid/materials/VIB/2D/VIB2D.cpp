@@ -1,7 +1,5 @@
-/* $Id: VIB2D.cpp,v 1.5 2002-10-20 22:48:55 paklein Exp $ */
-/* created: paklein (04/09/1997)                                          */
-/* 2D VIB solver                                                          */
-
+/* $Id: VIB2D.cpp,v 1.5.2.1 2002-10-28 06:49:10 paklein Exp $ */
+/* created: paklein (04/09/1997) */
 #include "VIB2D.h"
 
 #include <math.h>
@@ -18,15 +16,14 @@
 #include "EvenSpacePtsT.h"
 #include "GaussPtsT.h"
 
-/* constants */
-
 using namespace Tahoe;
 
+/* constants */
 const double Pi = acos(-1.0);
 
 /* constructors */
-VIB2D::VIB2D(ifstreamT& in, const FiniteStrainT& element):
-	NL_E_Mat2DT(in, element, kPlaneStress),
+VIB2D::VIB2D(ifstreamT& in, const FDMatSupportT& support):
+	NL_E_Mat2DT(in, support, kPlaneStress),
 	VIB_E_MatT(in, 2)
 {
 	/* construct point generator */

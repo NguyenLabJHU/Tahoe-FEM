@@ -1,4 +1,4 @@
-/* $Id: FDSimoVisco3D.cpp,v 1.5 2002-10-20 22:48:51 paklein Exp $ */
+/* $Id: FDSimoVisco3D.cpp,v 1.5.2.1 2002-10-28 06:49:07 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSimoVisco3D.h"
@@ -10,8 +10,8 @@
 
 using namespace Tahoe;
 
-FDSimoVisco3D::FDSimoVisco3D(ifstreamT& in, const FiniteStrainT& element):
-	FDSimoViscoBaseT(in, element),
+FDSimoVisco3D::FDSimoVisco3D(ifstreamT& in, const FDMatSupportT& support):
+	FDSimoViscoBaseT(in, support),
 	fStress(3),
 	fModulus(6),
 	fFbar_E(3),

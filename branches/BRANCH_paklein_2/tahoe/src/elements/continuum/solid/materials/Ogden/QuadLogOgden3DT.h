@@ -1,22 +1,20 @@
-/* $Id: QuadLogOgden3DT.h,v 1.3 2002-07-02 19:55:47 cjkimme Exp $ */
-/* created: paklein (02/17/2001)                                          */
-/* principal stretch version of Quad Log model                            */
-
+/* $Id: QuadLogOgden3DT.h,v 1.3.8.1 2002-10-28 06:48:56 paklein Exp $ */
+/* created: paklein (02/17/2001) */
 #ifndef _QUAD_LOG_ISO_3D_T_H_
 #define _QUAD_LOG_ISO_3D_T_H_
 
 /* base class */
 #include "OgdenIsotropicT.h"
 
-
 namespace Tahoe {
 
+/** principal stretch version of Quad Log model */
 class QuadLogOgden3DT: public OgdenIsotropicT
 {
 public:
 
 	/* constructor */
-	QuadLogOgden3DT(ifstreamT& in, const FiniteStrainT& element);
+	QuadLogOgden3DT(ifstreamT& in, const FDMatSupportT& support);
 	
 	/* print parameters */
 	virtual void PrintName(ostream& out) const;

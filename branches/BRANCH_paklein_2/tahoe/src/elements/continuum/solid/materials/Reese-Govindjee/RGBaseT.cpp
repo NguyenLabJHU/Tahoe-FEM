@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.cpp,v 1.2 2002-10-20 22:48:45 paklein Exp $ */
+/* $Id: RGBaseT.cpp,v 1.2.2.1 2002-10-28 06:48:58 paklein Exp $ */
 /* created: TDN (01/22/2000) */
 
 #include "RGBaseT.h"
@@ -8,8 +8,8 @@
 using namespace Tahoe;
 
 /* constructor */
-RGBaseT::RGBaseT(ifstreamT& in, const FiniteStrainT& element):
-	FDStructMatT(in, element),
+RGBaseT::RGBaseT(ifstreamT& in, const FDMatSupportT& support):
+	FDStructMatT(in, support),
 	fSpectralDecompSpat(NumSD()),
 	fSpectralDecompRef(NumSD()),
 	fRunState(ContinuumElement().RunState()),

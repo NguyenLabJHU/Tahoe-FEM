@@ -1,6 +1,5 @@
-/* $Id: SolidMatList2DT.h,v 1.8 2002-10-05 20:04:16 paklein Exp $ */
+/* $Id: SolidMatList2DT.h,v 1.8.6.1 2002-10-28 06:49:16 paklein Exp $ */
 /* created: paklein (02/14/1997) */
-
 #ifndef _MATLIST_2D_T_H_
 #define _MATLIST_2D_T_H_
 
@@ -12,9 +11,9 @@ namespace Tahoe {
 
 /* forward declaration */
 class ElasticT;
-class SmallStrainT;
-class FiniteStrainT;
-class MultiScaleT;
+class SSMatSupportT;
+class FDMatSupportT;
+//class MultiScaleT;
 
 class SolidMatList2DT: public StructuralMatListT, public MaterialT
 {
@@ -39,9 +38,9 @@ private:
 private:
 
 	const ElasticT&      fElementGroup;
-	const SmallStrainT*  fSmallStrain;
-	const FiniteStrainT* fFiniteStrain;
-	const MultiScaleT*   fMultiScale;
+	const SSMatSupportT* fSSMatSupport;
+	const FDMatSupportT* fFDMatSupport;
+//	const MultiScaleT*   fMultiScale;
 };
 
 } // namespace Tahoe 

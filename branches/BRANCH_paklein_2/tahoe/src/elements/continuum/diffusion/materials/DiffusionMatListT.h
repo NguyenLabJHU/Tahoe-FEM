@@ -1,6 +1,5 @@
-/* $Id: DiffusionMatListT.h,v 1.3 2002-07-05 22:28:21 paklein Exp $ */
-/* created: paklein (10/02/1999)                                          */
-
+/* $Id: DiffusionMatListT.h,v 1.3.8.1 2002-10-28 06:49:16 paklein Exp $ */
+/* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_MAT_LIST_T_H_
 #define _DIFFUSE_MAT_LIST_T_H_
 
@@ -11,6 +10,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class DiffusionT;
+class DiffusionMatSupportT;
 
 class DiffusionMatListT: public MaterialListT
 {
@@ -26,7 +26,7 @@ private:
 
 	/* element group */
 	const DiffusionT& fElementGroup;
-
+	const DiffusionMatSupportT* fDiffMatSupport;
 };
 
 } // namespace Tahoe 

@@ -1,4 +1,4 @@
-/* $Id: RG_VDSplit2D.cpp,v 1.3 2002-10-20 22:48:45 paklein Exp $ */
+/* $Id: RG_VDSplit2D.cpp,v 1.3.2.1 2002-10-28 06:48:58 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 #include "ExceptionT.h"
 #include "fstreamT.h"
@@ -18,8 +18,8 @@ static const char* Labels[kNumOutputVar] = {"dW_visc"};
  ***********************************************************************/
 
 /* constructors */
-RG_VDSplit2D::RG_VDSplit2D(ifstreamT& in, const FiniteStrainT& element):
-	RGBaseT(in, element),
+RG_VDSplit2D::RG_VDSplit2D(ifstreamT& in, const FDMatSupportT& support):
+	RGBaseT(in, support),
 	Material2DT(in),
 	fb(2),
 	fEigs(2),

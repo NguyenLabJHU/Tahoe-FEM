@@ -1,6 +1,5 @@
-/* $Id: SSCubicT.h,v 1.3 2002-07-02 19:55:39 cjkimme Exp $ */
-/* created: paklein (06/11/1997)                                          */
-
+/* $Id: SSCubicT.h,v 1.3.8.1 2002-10-28 06:48:50 paklein Exp $ */
+/* created: paklein (06/11/1997) */
 #ifndef _SS_CUBIC_T_H_
 #define _SS_CUBIC_T_H_
 
@@ -11,12 +10,13 @@
 
 namespace Tahoe {
 
+/** elastic small strain material with cubic symmetry */
 class SSCubicT: public SSHookeanMatT, public CubicT
 {
 public:
 
 	/* constructor */
-	SSCubicT(ifstreamT& in, const SmallStrainT& element);
+	SSCubicT(ifstreamT& in, const SSMatSupportT& support);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

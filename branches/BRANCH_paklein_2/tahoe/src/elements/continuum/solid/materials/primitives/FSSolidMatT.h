@@ -1,6 +1,5 @@
-/* $Id: FSSolidMatT.h,v 1.8 2002-10-05 20:04:19 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.8.6.1 2002-10-28 06:49:27 paklein Exp $ */
 /* created: paklein (06/09/1997) */
-
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
 
@@ -12,6 +11,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class FiniteStrainT;
+class FDMatSupportT;
 
 /** base class for finite deformation constitutive models. The interface
  * provides access to the element-computed deformation as well as
@@ -29,11 +29,14 @@ class FSSolidMatT: public StructuralMaterialT, protected TensorTransformT
 public:
 
 	/** constructor */
-	FSSolidMatT(ifstreamT& in, const FiniteStrainT& element);
+	FSSolidMatT(ifstreamT& in, const FDMatSupportT& support);
 
 	/** initialization. If active, initialize the history of
 	 * prescribed thermal strains. */
 	virtual void Initialize(void);
+
+	/** finite strain materials support */
+	const FDMatSupportT& FDMatSupport(void) const { return fFDMatSupport; };
 
 	/** write name to output stream */
 	virtual void PrintName(ostream& out) const;
@@ -156,9 +159,11 @@ protected:
 
 	/** finite strain element group.
 	 * allows access to all const functions of the finite strain element
-	 * class that are not currently supported with wrappers.
+	 * class that are not currently supported with wrappers. \note this
+	 * method is not guaranteed to be supported. If no FiniteStrainT is
+	 * available, this function will throw an exception.
 	 * \return a const reference to the supporting element group */
-	const FiniteStrainT& FiniteStrain(void) const { return fFiniteStrain; }
+	const FiniteStrainT& FiniteStrain(void) const;
 
 private:
 
@@ -185,8 +190,8 @@ private:
 
 private:
 
-	/** reference to finite deformation element group */
-	const FiniteStrainT& fFiniteStrain;
+	/** support for finite strain materials */
+	const FDMatSupportT& fFDMatSupport;
 
 	/** return value for FSSolidMatT::AcousticalTensor */
 	dSymMatrixT fQ;  

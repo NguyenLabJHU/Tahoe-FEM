@@ -1,12 +1,12 @@
-/* $Id: SolidMatList2DT.cpp,v 1.25 2002-10-20 22:49:02 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.25.2.1 2002-10-28 06:49:16 paklein Exp $ */
 /* created: paklein (02/14/1997) */
-
 #include "SolidMatList2DT.h"
+#include "ElasticT.h"
 
-#include "MultiScaleT.h"
-#include "SmallStrainT.h"
-#include "FiniteStrainT.h"
-#include "D2MeshFreeFDElasticT.h"
+//#include "MultiScaleT.h"
+//#include "SmallStrainT.h"
+//#include "FiniteStrainT.h"
+//#include "D2MeshFreeFDElasticT.h"
 
 #include "fstreamT.h"
 
@@ -57,10 +57,9 @@
 #include "LocalCrystalPlastFp2D.h"
 #include "GradCrystalPlastFp2D.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 SolidMatList2DT::SolidMatList2DT(int length, const ElasticT& element_group):
 	StructuralMatListT(length),
 	fElementGroup(element_group)
@@ -69,22 +68,23 @@ SolidMatList2DT::SolidMatList2DT(int length, const ElasticT& element_group):
 	cout << "\n SolidMatList2DT::SolidMatList2DT: WARNING: environment has no RTTI. Some\n" 
 	     <<   "    consistency checking is disabled" << endl;
 	/* cast and hope for the best */
-	fSmallStrain  = (const SmallStrainT*)  &fElementGroup;
-	fFiniteStrain = (const FiniteStrainT*) &fElementGroup;
-	fMultiScale   = (const MultiScaleT*)   &fElementGroup;
+//	fSmallStrain  = (const SmallStrainT*)  &fElementGroup;
+//	fFiniteStrain = (const FiniteStrainT*) &fElementGroup;
+//	fMultiScale   = (const MultiScaleT*)   &fElementGroup;
 #else
 
 	/* cast to small strain */
-	fSmallStrain  = dynamic_cast<const SmallStrainT*>(&fElementGroup);
+//	fSmallStrain  = dynamic_cast<const SmallStrainT*>(&fElementGroup);
 
 	/* cast to finite strain */
-	fFiniteStrain = dynamic_cast<const FiniteStrainT*>(&fElementGroup);
+//	fFiniteStrain = dynamic_cast<const FiniteStrainT*>(&fElementGroup);
 	
 	/* cast to multi scale */
-	fMultiScale   = dynamic_cast<const MultiScaleT*>(&fElementGroup);
+//	fMultiScale   = dynamic_cast<const MultiScaleT*>(&fElementGroup);
 	
 	/* must have at least one */
-	if (!fSmallStrain && !fFiniteStrain && !fMultiScale)
+//	if (!fSmallStrain && !fFiniteStrain && !fMultiScale)
+	if (!fSSMatSupport && !fFDMatSupport)
 	{
 		cout << "\n SolidMatList2DT::SolidMatList2DT: could not cast element group to\n" 
 		     <<   "     either SmallStrainT, FiniteStrainT, or MultiScaleT" << endl;
@@ -122,17 +122,17 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			case kSSKStV:
 			{
 				/* check */
-				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 			
-				fArray[matnum] = new SSKStV2D(in, *fSmallStrain);
+				fArray[matnum] = new SSKStV2D(in, *fSSMatSupport);
 				break;
 			}
 			case kFDKStV:
 			{
 				/* check */
-				if (!fFiniteStrain && !fMultiScale) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new FDKStV2D(in, *fFiniteStrain);
+				fArray[matnum] = new FDKStV2D(in, *fFDMatSupport);
 				break;
 			}
 			/* case kMSKStV: // ---- Multi-Scale Kirchhoff - St. Venant
@@ -146,99 +146,99 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			case kSSCubic:
 			{ 
 				/* check */
-				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 			
-				fArray[matnum] = new SSCubic2DT(in, *fSmallStrain);
+				fArray[matnum] = new SSCubic2DT(in, *fSSMatSupport);
 				break;
 			}
 			case kFDCubic:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 			
-				fArray[matnum] = new FDCubic2DT(in, *fFiniteStrain);
+				fArray[matnum] = new FDCubic2DT(in, *fFDMatSupport);
 				break;
 			}
 			case kSimoIso:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 			
-				fArray[matnum] = new SimoIso2D(in, *fFiniteStrain);
+				fArray[matnum] = new SimoIso2D(in, *fFDMatSupport);
 				break;
 			}
 			case kQuadLog:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 			
-				fArray[matnum] = new QuadLog2D(in, *fFiniteStrain);
+				fArray[matnum] = new QuadLog2D(in, *fFDMatSupport);
 				break;
 			}
 			case kQuadLogOgden:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 			
-				fArray[matnum] = new QuadLogOgden2DT(in, *fFiniteStrain);												
+				fArray[matnum] = new QuadLogOgden2DT(in, *fFDMatSupport);												
 				break;
 			}
 			case kJ2SSKStV:
 			{
 				/* check */
-				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 			
-				fArray[matnum] = new J2SSKStV2D(in, *fSmallStrain);
+				fArray[matnum] = new J2SSKStV2D(in, *fSSMatSupport);
 				fHasHistory = true;															
 				break;
 			}
 			case kJ2Simo:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 			
-				fArray[matnum] = new J2Simo2D(in, *fFiniteStrain);
+				fArray[matnum] = new J2Simo2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
 			case kJ2QL:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 			
-				fArray[matnum] = new J2QL2DLinHardT(in, *fFiniteStrain);
+				fArray[matnum] = new J2QL2DLinHardT(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
 			case kDPSSKStV:
 			{
 				/* check */
-				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 			
-				fArray[matnum] = new DPSSKStV2D(in, *fSmallStrain);
+				fArray[matnum] = new DPSSKStV2D(in, *fSSMatSupport);
 				fHasHistory = true;															
 				break;
 			}
 			case kLJTr2D:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new LJTr2D(in, *fFiniteStrain);
+				fArray[matnum] = new LJTr2D(in, *fFDMatSupport);
 				break;
 			}
 			case kLJFCC111:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new LJFCC111(in, *fFiniteStrain);
+				fArray[matnum] = new LJFCC111(in, *fFDMatSupport);
 				break;
 			}
 			case kFCCEAM:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 			
 				int i_plane_code;
 				in >> i_plane_code;
@@ -252,14 +252,14 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 					throw ExceptionT::kBadInputValue;
 				}
 
-				fArray[matnum] = new EAMFCC2D(in, *fFiniteStrain, plane_code);			
+				fArray[matnum] = new EAMFCC2D(in, *fFDMatSupport, plane_code);			
 				break;
 			}
 
 			case kmodCauchyBornDC:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
 				int i_plane_code;
 				in >> i_plane_code;
@@ -273,43 +273,43 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 					throw ExceptionT::kBadInputValue;
 				}
 
-				fArray[matnum] = new ModCB2DT(in, *fFiniteStrain, true, plane_code);
+				fArray[matnum] = new ModCB2DT(in, *fFDMatSupport, true, plane_code);
 				break;
 			}
 
 			case kVIB:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 			
-				fArray[matnum] = new VIB2D(in, *fFiniteStrain);
+				fArray[matnum] = new VIB2D(in, *fFDMatSupport);
 				fHasLocalizers = true;  				
 				break;
 			}
 			case kIsoVIBSimo:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode); 
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode); 
 			
-				fArray[matnum] = new IsoVIB2D(in, *fFiniteStrain);
+				fArray[matnum] = new IsoVIB2D(in, *fFDMatSupport);
 				fHasLocalizers = true;
 				break;
 			}
 			case kIsoVIBOgden:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 			
-				fArray[matnum] = new OgdenIsoVIB2D(in, *fFiniteStrain);
+				fArray[matnum] = new OgdenIsoVIB2D(in, *fFDMatSupport);
 				fHasLocalizers = true;
 				break;
 			}
 			case kIsoVIBSimoJ2:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 			
-				fArray[matnum] = new J2IsoVIB2DLinHardT(in, *fFiniteStrain);
+				fArray[matnum] = new J2IsoVIB2DLinHardT(in, *fFDMatSupport);
 				fHasLocalizers = true;
 				fHasHistory = true;
 				break;
@@ -317,72 +317,73 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 		        case kFossumSSIso:
 			{
 				/* check */
-				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 			
-				fArray[matnum] = new FossumSSIso2DT(in, *fSmallStrain);
-				fHasHistory = true;		       		      				break;
+				fArray[matnum] = new FossumSSIso2DT(in, *fSSMatSupport);
+				fHasHistory = true;		       		      				
+				break;
 			}
 	
 			case kThermoViscoPlastic:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 			
-				fArray[matnum] = new tevp2D(in, *fFiniteStrain);
+				fArray[matnum] = new tevp2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
-		        case kPovirk2D:
+			case kPovirk2D:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 			
-				fArray[matnum] = new povirk2D(in, *fFiniteStrain);
+				fArray[matnum] = new povirk2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
 			case kHyperEVP:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new HyperEVP2D(in, *fFiniteStrain);
+				fArray[matnum] = new HyperEVP2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
 			case kBCJHypo:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new BCJHypo2D(in, *fFiniteStrain);
+				fArray[matnum] = new BCJHypo2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
 			case kBCJHypoIsoDmgKE:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new BCJHypoIsoDamageKE2D(in, *fFiniteStrain);
+				fArray[matnum] = new BCJHypoIsoDamageKE2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
 			case kBCJHypoIsoDmgYC:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new BCJHypoIsoDamageYC2D(in, *fFiniteStrain);
+				fArray[matnum] = new BCJHypoIsoDamageYC2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
 			case kLocXtalPlast:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new LocalCrystalPlast2D(in, *fFiniteStrain);
+				fArray[matnum] = new LocalCrystalPlast2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
@@ -396,52 +397,52 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			case kGrdXtalPlast:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new GradCrystalPlast2D(in, *fFiniteStrain);
+				fArray[matnum] = new GradCrystalPlast2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
 			case kLocXtalPlastFp:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new LocalCrystalPlastFp2D(in, *fFiniteStrain);
+				fArray[matnum] = new LocalCrystalPlastFp2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
 			case kGrdXtalPlastFp:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new GradCrystalPlastFp2D(in, *fFiniteStrain);
+				fArray[matnum] = new GradCrystalPlastFp2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
 			case kLocJ2SSNlHard:
 			{
 				/* check */
-				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 			
-				fArray[matnum] = new LocalJ2SSNonlinHard2D(in, *fSmallStrain);
+				fArray[matnum] = new LocalJ2SSNonlinHard2D(in, *fSSMatSupport);
 				fHasHistory = true;															
 				break;
 			}
 			case kGrdJ2SSNlHard:
 			{
 				/* check */
-				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 			
-				fArray[matnum] = new GradJ2SSNonlinHard2D(in, *fSmallStrain);
+				fArray[matnum] = new GradJ2SSNonlinHard2D(in, *fSSMatSupport);
 				fHasHistory = true;															
 				break;
 			}
 			case kABAQUS_BCJ:
 			{
 #ifdef __F2C__
-				fArray[matnum] = new ABAQUS_BCJ(in, *fFiniteStrain);
+				fArray[matnum] = new ABAQUS_BCJ(in, *fFDMatSupport);
 				fHasHistory = true;
 #else
 				cout << "\n SolidMatList2DT::ReadMaterialData: model requires f2c support: "
@@ -453,7 +454,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			case kABAQUS_VUMAT_BCJ:
 			{
 #ifdef __F2C__
-				fArray[matnum] = new ABAQUS_VUMAT_BCJ(in, *fFiniteStrain);
+				fArray[matnum] = new ABAQUS_VUMAT_BCJ(in, *fFDMatSupport);
 				fHasHistory = true;
 #else
 				cout << "\n SolidMatList2DT::ReadMaterialData: model requires f2c support: "
@@ -465,56 +466,56 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			case kRGVIB:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new RGVIB2D(in, *fFiniteStrain);
+				fArray[matnum] = new RGVIB2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
 			case kRGNeoHookean:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new RG_NeoHookean2D(in, *fFiniteStrain);
+				fArray[matnum] = new RG_NeoHookean2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
 			case kSVNeoHookean:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new SV_NeoHookean2D(in, *fFiniteStrain);
+				fArray[matnum] = new SV_NeoHookean2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
 			case kFDSVKStV:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new FDSV_KStV2D(in, *fFiniteStrain);
+				fArray[matnum] = new FDSV_KStV2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
 			}
 			case kSSSVKStV:
 			{
 				/* check */
-				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 
-				fArray[matnum] = new SSSV_KStV2D(in, *fSmallStrain);
+				fArray[matnum] = new SSSV_KStV2D(in, *fSSMatSupport);
 				fHasHistory = true;
 				break;
 			}
 //TEMP
 #if 0
 			case kSWDC100:
-				fArray[matnum] = new SWDiamond100(in, *fFiniteStrain);
+				fArray[matnum] = new SWDiamond100(in, *fFDMatSupport);
 				break;
 
 			case kSWDC110:
-				fArray[matnum] = new SWDiamond110(in, *fFiniteStrain);
+				fArray[matnum] = new SWDiamond110(in, *fFDMatSupport);
 				break;
 
 
@@ -543,9 +544,9 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 
 			/*			case kOgdenViscVIB:
 						{
-						if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+						if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 						
-						fArray[matnum] = new OgdenViscVIB2D(in, *fFiniteStrain);
+						fArray[matnum] = new OgdenViscVIB2D(in, *fFDMatSupport);
 						fHasHistory = true;
 						break;
 						}*/

@@ -1,4 +1,4 @@
-/* $Id: FDSV_KStV3D.cpp,v 1.5 2002-10-20 22:48:52 paklein Exp $ */
+/* $Id: FDSV_KStV3D.cpp,v 1.5.2.1 2002-10-28 06:49:08 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSV_KStV3D.h"
@@ -10,8 +10,8 @@
 
 using namespace Tahoe;
 
-FDSV_KStV3D::FDSV_KStV3D(ifstreamT& in, const FiniteStrainT& element):
-	FDSimoViscoBaseT(in, element),
+FDSV_KStV3D::FDSV_KStV3D(ifstreamT& in, const FDMatSupportT& support):
+	FDSimoViscoBaseT(in, support),
 	fStress(3),
 	fModulus(6),
 	fE(3),

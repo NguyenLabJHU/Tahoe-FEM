@@ -1,8 +1,10 @@
+/* $Id: SolidMatList1DT.cpp,v 1.4.2.1 2002-10-28 06:49:16 paklein Exp $ */
 #include "SolidMatList1DT.h"
+#include "ElasticT.h"
 
-#include "MultiScaleT.h"
-#include "SmallStrainT.h"
-#include "FiniteStrainT.h"
+//#include "MultiScaleT.h"
+//#include "SmallStrainT.h"
+//#include "FiniteStrainT.h"
 
 #include "fstreamT.h"
 
@@ -19,22 +21,23 @@ SolidMatList1DT::SolidMatList1DT(int length, const ElasticT& element_group):
 	cout << "\n SolidMatList1DT::SolidMatList1DT: WARNING: environment has no RTTI. Some\n" 
 	     <<   "    consistency checking is disabled" << endl;
 	/* cast and hope for the best */
-	fSmallStrain  = (const SmallStrainT*)  &fElementGroup;
-	fFiniteStrain = (const FiniteStrainT*) &fElementGroup;
-	fMultiScale   = (const MultiScaleT*)   &fElementGroup;
+//	fSmallStrain  = (const SmallStrainT*)  &fElementGroup;
+//	fFiniteStrain = (const FiniteStrainT*) &fElementGroup;
+//	fMultiScale   = (const MultiScaleT*)   &fElementGroup;
 #else
 
 	/* cast to small strain */
-	fSmallStrain  = dynamic_cast<const SmallStrainT*>(&fElementGroup);
+//	fSmallStrain  = dynamic_cast<const SmallStrainT*>(&fElementGroup);
 
 	/* cast to finite strain */
-	fFiniteStrain = dynamic_cast<const FiniteStrainT*>(&fElementGroup);
+//	fFiniteStrain = dynamic_cast<const FiniteStrainT*>(&fElementGroup);
 	
 	/* cast to multi scale */
-	fMultiScale   = dynamic_cast<const MultiScaleT*>(&fElementGroup);
+//	fMultiScale   = dynamic_cast<const MultiScaleT*>(&fElementGroup);
 	
 	/* must have at least one */
-	if (!fSmallStrain && !fFiniteStrain && !fMultiScale)
+//	if (!fSmallStrain && !fFiniteStrain && !fMultiScale)
+	if (fSSMatSupport && !fFDMatSupport)
 	{
 		cout << "\n SolidMatList1DT::SolidMatList1DT: could not cast element group to\n" 
 		     <<   "     either SmallStrainT, FiniteStrainT, or MultiScaleT" << endl;
@@ -72,8 +75,8 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		  case kSSKStV:
 		  {
 			/* check */
-                        if (!fSmallStrain) Error_no_small_strain(cout, matcode);
-                        fArray[matnum] = new SSHookean1D(in, *fSmallStrain);
+                        if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
+                        fArray[matnum] = new SSHookean1D(in, *fSSMatSupport);
                         break;
 		  }
 			default:

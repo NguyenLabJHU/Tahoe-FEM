@@ -1,12 +1,12 @@
-/* $Id: FDHookeanMatT.cpp,v 1.7 2002-10-20 22:48:41 paklein Exp $ */
+/* $Id: FDHookeanMatT.cpp,v 1.7.2.1 2002-10-28 06:48:49 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "FDHookeanMatT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-FDHookeanMatT::FDHookeanMatT(ifstreamT& in, const FiniteStrainT& element):
-	FDStructMatT(in, element),
+FDHookeanMatT::FDHookeanMatT(ifstreamT& in, const FDMatSupportT& support):
+	FDStructMatT(in, support),
 	HookeanMatT(NumSD()),
 	fE(NumSD()),
 	fStress(NumSD()),

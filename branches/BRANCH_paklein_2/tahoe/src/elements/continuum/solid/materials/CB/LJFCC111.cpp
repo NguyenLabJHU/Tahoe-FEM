@@ -1,13 +1,10 @@
-/* $Id: LJFCC111.cpp,v 1.4 2002-10-20 22:48:38 paklein Exp $ */
-/* created: paklein (07/31/1996)                                          */
-
+/* $Id: LJFCC111.cpp,v 1.4.2.1 2002-10-28 06:48:46 paklein Exp $ */
+/* created: paklein (07/31/1996) */
 #include "LJFCC111.h"
 
 #include <math.h>
 #include <iostream.h>
-
 #include "fstreamT.h"
-
 
 using namespace Tahoe;
 
@@ -15,8 +12,8 @@ const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-LJFCC111::LJFCC111(ifstreamT& in, const FiniteStrainT& element):
-	NL_E_RotMat2DT(in, element, kPlaneStrain)
+LJFCC111::LJFCC111(ifstreamT& in, const FDMatSupportT& support):
+	NL_E_RotMat2DT(in, support, kPlaneStrain)
 {
 	in >> fScale;	if (fScale < 0.0) throw ExceptionT::kBadInputValue;
 }

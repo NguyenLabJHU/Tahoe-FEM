@@ -1,6 +1,5 @@
-/* $Id: SolidMatList3DT.h,v 1.6 2002-07-05 22:28:21 paklein Exp $ */
+/* $Id: SolidMatList3DT.h,v 1.6.8.1 2002-10-28 06:49:16 paklein Exp $ */
 /* created: paklein (02/14/1997) */
-
 #ifndef _MATLIST_3D_T_H_
 #define _MATLIST_3D_T_H_
 
@@ -12,8 +11,8 @@ namespace Tahoe {
 
 /* forward declaration */
 class ElasticT;
-class SmallStrainT;
-class FiniteStrainT;
+class SSMatSupportT;
+class FDMatSupportT;
 
 class SolidMatList3DT: public StructuralMatListT, public MaterialT
 {
@@ -34,8 +33,8 @@ private:
 private:
 
 	const ElasticT&      fElementGroup;
-	const SmallStrainT*  fSmallStrain;
-	const FiniteStrainT* fFiniteStrain;
+	const SSMatSupportT* fSSMatSupport;
+	const FDMatSupportT* fFDMatSupport;
 };
 
 } // namespace Tahoe 

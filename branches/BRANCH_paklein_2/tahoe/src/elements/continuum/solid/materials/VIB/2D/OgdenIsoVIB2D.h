@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.h,v 1.7 2002-10-05 20:04:14 paklein Exp $ */
+/* $Id: OgdenIsoVIB2D.h,v 1.7.6.1 2002-10-28 06:49:10 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _OGDEN_ISO_VIB_2D_H_
 #define _OGDEN_ISO_VIB_2D_H_
@@ -19,7 +19,7 @@ class OgdenIsoVIB2D: public OgdenIsotropicT, public Material2DT, public VIB
 public:
 
 	/* constructor */
-	OgdenIsoVIB2D(ifstreamT& in, const FiniteStrainT& element);
+	OgdenIsoVIB2D(ifstreamT& in, const FDMatSupportT& support);
 
 	/* destructor */
 	~OgdenIsoVIB2D(void);

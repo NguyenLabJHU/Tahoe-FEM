@@ -1,4 +1,5 @@
-/* Created:  Harold Park (09/10/2001) */
+/* $Id: povirk2D.h,v 1.4.6.1 2002-10-28 06:49:32 paklein Exp $ */
+/* created: Harold Park (09/10/2001) */
 
 #ifndef _POVIRK_2D_H_
 #define _POVIRK_2D_H_
@@ -19,7 +20,7 @@ class povirk2D: public FDStructMatT, public IsotropicT, public Material2DT
 {
  public:
   /* constructor */
-  povirk2D(ifstreamT& in, const FiniteStrainT& element);
+  povirk2D(ifstreamT& in, const FDMatSupportT& support);
   
   /* materials initialization */
   virtual bool NeedsPointInitialization(void) const { return true; }
@@ -123,7 +124,7 @@ class povirk2D: public FDStructMatT, public IsotropicT, public Material2DT
   dMatrixT fModulus;
   double fStrainEnergyDensity;   // How do I define this for this material?
   /* execution stage */
-  const GlobalT::StateT& fRunState;  
+//  const GlobalT::StateT& fRunState;  
 
 /* element level internal variables */
   dArrayT fInternal;             // Internal variables
@@ -133,7 +134,7 @@ class povirk2D: public FDStructMatT, public IsotropicT, public Material2DT
                             // timestep (Sig11, Sig12=Sig21, Sig22, Sig33)
  private:
 
-  const double& fDt;           // Timestep
+	double fDt;           // Timestep
 
   /* work space */
   dMatrixT fFtot_2D;           // Deformation gradient 2D
@@ -141,8 +142,8 @@ class povirk2D: public FDStructMatT, public IsotropicT, public Material2DT
   dMatrixT fDtot;              // Rate of deformation (3D)
   dMatrixT fGradV_2D;          // Velocity gradient (2D)
   dMatrixT fGradV;             // Velocity gradient (3D)
-  const LocalArrayT& fLocVel;  // Nodal velocities
-  const LocalArrayT& fLocDisp; // Nodal displacements (not necessary)
+  const LocalArrayT* fLocVel;  // Nodal velocities
+  const LocalArrayT* fLocDisp; // Nodal displacements (not necessary)
   dMatrixT fF_temp;            // Deformation gradient to work with
   double fSpin;                // Spin scalar - only Spin(1,2) non-zero...
   int fCriticalStrain;         // Checks if critical strain criteria is met

@@ -1,8 +1,4 @@
-/* $Id: LocalCrystalPlast2D.h,v 1.3 2002-07-02 19:56:14 cjkimme Exp $ */
-/*
-  File: LocalCrystalPlast2D.h
-*/
-
+/* $Id: LocalCrystalPlast2D.h,v 1.3.8.1 2002-10-28 06:49:22 paklein Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_2D_H_
 #define _LOCAL_CRYSTAL_PLAST_2D_H_
 
@@ -13,7 +9,6 @@
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 
-
 namespace Tahoe {
 
 class ifstreamT;
@@ -23,7 +18,7 @@ class LocalCrystalPlast2D : public LocalCrystalPlast, public Material2DT
 {
  public:
   // constructor
-  LocalCrystalPlast2D(ifstreamT& in, const FiniteStrainT& element);
+  LocalCrystalPlast2D(ifstreamT& in, const FDMatSupportT& support);
 
   // destructor
   ~LocalCrystalPlast2D();

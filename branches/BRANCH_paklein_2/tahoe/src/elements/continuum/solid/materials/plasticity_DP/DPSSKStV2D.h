@@ -1,13 +1,11 @@
-/* $Id: DPSSKStV2D.h,v 1.7 2002-07-02 19:56:10 cjkimme Exp $ */
-/* created: myip (06/01/1999)                                    */
-
+/* $Id: DPSSKStV2D.h,v 1.7.8.1 2002-10-28 06:49:18 paklein Exp $ */
+/* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_2D_H_
 #define _DP_SS_KSTV_2D_H_
 
 /* base class */
 #include "Material2DT.h"
 #include "DPSSKStV.h"
-
 
 namespace Tahoe {
 
@@ -16,7 +14,7 @@ class DPSSKStV2D: public DPSSKStV, public Material2DT
   public:
 
 	/* constructor */
-	DPSSKStV2D(ifstreamT& in, const SmallStrainT& element);
+	DPSSKStV2D(ifstreamT& in, const SSMatSupportT& support);
 
 	/* initialization */
 	virtual void Initialize(void);

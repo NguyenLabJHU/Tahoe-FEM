@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.h,v 1.3 2002-10-20 22:48:45 paklein Exp $ */
+/* $Id: RGBaseT.h,v 1.3.2.1 2002-10-28 06:48:58 paklein Exp $ */
 /* created : TDN (1/22/2001) */
 
 #ifndef _RG_BASE_T_H_
@@ -21,7 +21,7 @@ class RGBaseT: public FDStructMatT, public IsotropicT
   public:
   
 	/* constructor */
-	RGBaseT(ifstreamT& in, const FiniteStrainT& element);
+	RGBaseT(ifstreamT& in, const FDMatSupportT& support);
 
 	/** return the pressure associated with the last call to 
 	 * StructuralMaterialT::s_ij. \note NOT IMPLEMENTED */

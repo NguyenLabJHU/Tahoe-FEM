@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.9 2002-10-20 22:48:23 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.9.2.1 2002-10-28 06:48:44 paklein Exp $ */
 
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
@@ -19,13 +19,17 @@ class SmallStrainT: public ElasticT
 	/** initialization. called immediately after constructor */
 	virtual void Initialize(void);
 
-	/** total strain */
+	/** \name total strain */
+	/*@{*/
 	const dSymMatrixT& LinearStrain(void) const;
 	const dSymMatrixT& LinearStrain(int ip) const;
+	/*@}*/
 
 	/** total strain from the end of the previous time step */
+	/*@{*/
 	const dSymMatrixT& LinearStrain_last(void) const;
 	const dSymMatrixT& LinearStrain_last(int ip) const;
+	/*@}*/
 
   protected:
 
@@ -58,9 +62,11 @@ class SmallStrainT: public ElasticT
 	/** offset to material needs */
 	int fNeedsOffset; //NOTE - better to have this or a separate array?
   
-  	/** return values */
+  	/** \name return values */
+	/*@{*/
   	ArrayT<dSymMatrixT> fStrain_List;
   	ArrayT<dSymMatrixT> fStrain_last_List;
+	/*@}*/
   	
   	/** \name work space */
   	/*@{*/

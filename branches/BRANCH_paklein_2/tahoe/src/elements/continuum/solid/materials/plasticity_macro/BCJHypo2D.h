@@ -1,5 +1,4 @@
-/* $Id: BCJHypo2D.h,v 1.4 2002-07-05 22:28:26 paklein Exp $ */
-
+/* $Id: BCJHypo2D.h,v 1.4.8.1 2002-10-28 06:49:24 paklein Exp $ */
 #ifndef _BCJ_HYPO_2D_H_
 #define _BCJ_HYPO_2D_H_
 
@@ -10,7 +9,6 @@
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 
-
 namespace Tahoe {
 
 class ifstreamT;
@@ -20,7 +18,7 @@ class BCJHypo2D : public BCJHypo3D, public Material2DT
 {
  public:
   // constructor
-  BCJHypo2D(ifstreamT& in, const FiniteStrainT& element);
+  BCJHypo2D(ifstreamT& in, const FDMatSupportT& support);
 
   // destructor
   ~BCJHypo2D();

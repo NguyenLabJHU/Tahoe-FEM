@@ -1,11 +1,7 @@
-/* $Id: DiffusionMaterialT.h,v 1.4 2002-07-05 22:28:27 paklein Exp $ */
-/* created: paklein (10/02/1999)                                          */
-/* Defines the interface for materials for diffusion.                     */
-
+/* $Id: DiffusionMaterialT.h,v 1.4.8.1 2002-10-28 06:49:27 paklein Exp $ */
+/* created: paklein (10/02/1999) */
 #ifndef _DIFFUSION_MATERIALT_H_
 #define _DIFFUSION_MATERIALT_H_
-
-#include "GlobalT.h"
 
 /* base class */
 #include "ContinuumMaterialT.h"
@@ -18,35 +14,40 @@ namespace Tahoe {
 
 /* forward declarations */
 class ifstreamT;
-class LocalArrayT;
 class DiffusionT;
+class DiffusionMatSupportT;
 
+/** interface for materials for diffusion */
 class DiffusionMaterialT: public ContinuumMaterialT
 {
 public:
 
-	/* constructor */
-	DiffusionMaterialT(ifstreamT& in, const DiffusionT& element);
+	/** constructor */
+	DiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT& support);
 
-	/* print parameters */
+	/** \name print parameters */
+	/*@{*/
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
+	/*@}*/
 
-	/* conductivity */
+	/** \name parameters at the current field point */
+	/*@{*/
+	/** conductivity */
 	const dMatrixT& k_ij(void);
 
-	/* heat flux */
+	/** heat flux */
 	const dArrayT& q_i(void);
 
-	/* returns the density */
 	double Density(void) const;
 	double SpecificHeat(void) const;
 	double Capacity(void) const;
-	
+	/*@}*/
+
 protected:
 
-	/* local displacements */
-	const LocalArrayT& fLocDisp;
+	/** support for diffusion materials */
+	const DiffusionMatSupportT& fDiffusionMatSupport;
 
 	/* parameters */
 	double   fDensity;
@@ -56,9 +57,8 @@ protected:
 	/* derived */
 	double fCapacity;
 
-	/* return value */
-	dMatrixT fT_x; // temperature gradient
-	dArrayT fq_i;  // heat flux
+	/** heat flux return value*/
+	dArrayT fq_i;  
 };
 
 /* returns the density */

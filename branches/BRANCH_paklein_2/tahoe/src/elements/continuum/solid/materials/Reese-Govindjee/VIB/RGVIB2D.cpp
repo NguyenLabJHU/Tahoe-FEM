@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.cpp,v 1.5 2002-10-20 22:48:47 paklein Exp $ */
+/* $Id: RGVIB2D.cpp,v 1.5.2.1 2002-10-28 06:49:05 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include <math.h>
@@ -28,8 +28,8 @@ static const char* Labels[kNumOutputVar] = {"Jv","Je","dW_disp"};
  ***********************************************************************/
 
 /* constructors */
-RGVIB2D::RGVIB2D(ifstreamT& in, const FiniteStrainT& element): 
-	RGBaseT(in, element),
+RGVIB2D::RGVIB2D(ifstreamT& in, const FDMatSupportT& support): 
+	RGBaseT(in, support),
 	Material2DT(in, kPlaneStress),
 	ViscVIB(in, 2, 2, 3),
 	fCircle(NULL),

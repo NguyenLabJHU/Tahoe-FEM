@@ -1,7 +1,5 @@
-/* $Id: VIB3D.h,v 1.4 2002-07-05 22:28:18 paklein Exp $ */
-/* created: paklein (04/20/1997)                                          */
-/* 3D isotropic VIB solver.                                               */
-
+/* $Id: VIB3D.h,v 1.4.8.1 2002-10-28 06:49:11 paklein Exp $ */
+/* created: paklein (04/20/1997) */
 #ifndef _VIB_3D_H_
 #define _VIB_3D_H_
 
@@ -15,12 +13,13 @@ namespace Tahoe {
 /* forward declarations */
 class dMatrixT;
 
+/** 3D isotropic VIB solver */
 class VIB3D: public NL_E_MatT, public VIB_E_MatT
 {
 public:
 
 	/* constructor */
-	VIB3D(ifstreamT& in, const FiniteStrainT& element);
+	VIB3D(ifstreamT& in, const FDMatSupportT& support);
 
 	/* destructor */
 	~VIB3D(void);

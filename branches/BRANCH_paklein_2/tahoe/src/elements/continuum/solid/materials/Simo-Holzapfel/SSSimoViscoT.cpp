@@ -1,4 +1,4 @@
-/* $Id: SSSimoViscoT.cpp,v 1.2 2002-10-20 22:48:51 paklein Exp $ */
+/* $Id: SSSimoViscoT.cpp,v 1.2.2.1 2002-10-28 06:49:07 paklein Exp $ */
 #include "SSSimoViscoT.h"
 
 #include "fstreamT.h"
@@ -11,8 +11,8 @@ using namespace Tahoe;
 const int kNumOutputVar = 2;
 static const char* Labels[kNumOutputVar] = {"r_dil","r_dev"};
 
-SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SmallStrainT& element):
-	SSStructMatT(in, element),
+SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support):
+	SSStructMatT(in, support),
 	fRunState(ContinuumElement().RunState()),
 	fdt(ContinuumElement().ElementSupport().TimeStep())
 {

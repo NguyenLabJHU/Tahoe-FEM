@@ -1,16 +1,14 @@
-/* $Id: J2SSKStV2D.cpp,v 1.3 2002-07-02 19:56:11 cjkimme Exp $ */
-/* created: paklein (06/18/1997)                                          */
-
+/* $Id: J2SSKStV2D.cpp,v 1.3.8.1 2002-10-28 06:49:19 paklein Exp $ */
+/* created: paklein (06/18/1997) */
 #include "J2SSKStV2D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-J2SSKStV2D::J2SSKStV2D(ifstreamT& in, const SmallStrainT& element):
-J2SSKStV(in, element),
+/* constructor */
+J2SSKStV2D::J2SSKStV2D(ifstreamT& in, const SSMatSupportT& support):
+	J2SSKStV(in, support),
 	Material2DT(in, Material2DT::kPlaneStrain),
 	fStress2D(2),
 	fModulus2D(dSymMatrixT::NumValues(2)),

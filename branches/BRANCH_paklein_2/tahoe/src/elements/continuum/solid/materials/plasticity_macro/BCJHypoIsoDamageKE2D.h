@@ -1,7 +1,4 @@
-/*
-  File: BCJHypoIsoDamageKE2D.h
-*/
-
+/* $Id: BCJHypoIsoDamageKE2D.h,v 1.2.8.1 2002-10-28 06:49:24 paklein Exp $ */
 #ifndef _BCJ_HYPO_ISO_DAMAGE_KE_2D_H_
 #define _BCJ_HYPO_ISO_DAMAGE_KE_2D_H_
 
@@ -12,7 +9,6 @@
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 
-
 namespace Tahoe {
 
 class ifstreamT;
@@ -22,7 +18,7 @@ class BCJHypoIsoDamageKE2D : public BCJHypoIsoDamageKE3D, public Material2DT
 {
  public:
   // constructor
-  BCJHypoIsoDamageKE2D(ifstreamT& in, const FiniteStrainT& element);
+  BCJHypoIsoDamageKE2D(ifstreamT& in, const FDMatSupportT& support);
 
   // destructor
   ~BCJHypoIsoDamageKE2D();

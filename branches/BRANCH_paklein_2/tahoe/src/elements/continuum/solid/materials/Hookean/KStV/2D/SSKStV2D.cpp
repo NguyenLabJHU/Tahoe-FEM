@@ -1,20 +1,18 @@
-/* $Id: SSKStV2D.cpp,v 1.4 2002-10-20 22:48:43 paklein Exp $ */
-/* created: paklein (06/10/1997)                                          */
-
+/* $Id: SSKStV2D.cpp,v 1.4.2.1 2002-10-28 06:48:55 paklein Exp $ */
+/* created: paklein (06/10/1997) */
 #include "SSKStV2D.h"
 #include "StringT.h"
 #include "ThermalDilatationT.h"
 
-/* element output data */
-
 using namespace Tahoe;
 
+/* element output data */
 const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {"phi", "J2_dev", "p"};
 
 /* constructor */
-SSKStV2D::SSKStV2D(ifstreamT& in, const SmallStrainT& element):
-	SSKStV(in, element),
+SSKStV2D::SSKStV2D(ifstreamT& in, const SSMatSupportT& support):
+	SSKStV(in, support),
 	Material2DT(in)
 {
 	/* account for thickness */

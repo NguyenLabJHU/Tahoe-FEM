@@ -1,6 +1,5 @@
-/* $Id: LJTr2D.cpp,v 1.4 2002-10-20 22:48:38 paklein Exp $ */
-/* created: paklein (07/01/1996)                                          */
-
+/* $Id: LJTr2D.cpp,v 1.4.2.1 2002-10-28 06:48:47 paklein Exp $ */
+/* created: paklein (07/01/1996) */
 #include "LJTr2D.h"
 
 #include <math.h>
@@ -8,14 +7,13 @@
 
 #include "fstreamT.h"
 
-
 using namespace Tahoe;
 
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-LJTr2D::LJTr2D(ifstreamT& in, const FiniteStrainT& element):
-	NL_E_RotMat2DT(in, element, kPlaneStress),
+LJTr2D::LJTr2D(ifstreamT& in, const FDMatSupportT& support):
+	NL_E_RotMat2DT(in, support, kPlaneStress),
 	fBondVectors(3,2)
 {
 	in >> fScale;	if (fScale < 0.0) throw ExceptionT::kBadInputValue;

@@ -1,6 +1,5 @@
-/* $Id: J2Simo2D.h,v 1.8 2002-07-05 22:28:24 paklein Exp $ */
+/* $Id: J2Simo2D.h,v 1.8.8.1 2002-10-28 06:49:19 paklein Exp $ */
 /* created: paklein (06/22/1997) */
-
 #ifndef _J2_SIMO_2D_H_
 #define _J2_SIMO_2D_H_
 
@@ -20,7 +19,7 @@ class J2Simo2D: public SimoIso2D, public J2SimoC0HardeningT
 public:
 
 	/** constructor */
-	J2Simo2D(ifstreamT& in, const FiniteStrainT& element);
+	J2Simo2D(ifstreamT& in, const FDMatSupportT& support);
 
 	/** form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;

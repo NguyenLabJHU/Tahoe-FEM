@@ -1,5 +1,4 @@
-/* $Id: CrystalElast.cpp,v 1.7 2002-10-20 22:49:00 paklein Exp $ */
-
+/* $Id: CrystalElast.cpp,v 1.7.2.1 2002-10-28 06:49:13 paklein Exp $ */
 #include "CrystalElast.h"
 #include "CrystalElastMat.h"
 #include "CrystalElastLat.h"
@@ -9,10 +8,9 @@
 #include "FiniteStrainT.h"
 #include "StringT.h"
 
-/* number of elastic material properties used in computations */
-
 using namespace Tahoe;
 
+/* number of elastic material properties used in computations */
 const int kNumMatProp = 3;
 
 /* initialization flag value */
@@ -21,10 +19,10 @@ const int kIsInit = 1;
 /* spatial dimensions of the problem */
 const int kNSD = 3;
 
-CrystalElast::CrystalElast(ifstreamT& in, const FiniteStrainT& element) :
-  FDHookeanMatT(in, element),
+CrystalElast::CrystalElast(ifstreamT& in, const FDMatSupportT& support) :
+  FDHookeanMatT(in, support),
   // status flag
-  	fStatus       (element.RunState()),
+//  	fStatus       (element.RunState()),
   // pointers to supporting classes
   	fCrystalElastLat (NULL),
   	fCrystalElastMat (NULL),

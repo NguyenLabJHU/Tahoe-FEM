@@ -1,6 +1,5 @@
-/* $Id: IsoVIB2D.h,v 1.6 2002-10-20 22:48:55 paklein Exp $ */
+/* $Id: IsoVIB2D.h,v 1.6.2.1 2002-10-28 06:49:10 paklein Exp $ */
 /* created: paklein (11/08/1997) */
-
 #ifndef _ISO_VIB_2D_H_
 #define _ISO_VIB_2D_H_
 
@@ -23,7 +22,7 @@ class IsoVIB2D: public FDStructMatT, public Material2DT, public VIB
 public:
 
 	/* constructor */
-	IsoVIB2D(ifstreamT& in, const FiniteStrainT& element);
+	IsoVIB2D(ifstreamT& in, const FDMatSupportT& support);
 
 	/* destructor */
 	~IsoVIB2D(void);

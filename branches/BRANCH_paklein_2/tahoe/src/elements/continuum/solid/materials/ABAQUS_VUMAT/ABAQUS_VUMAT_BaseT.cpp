@@ -1,5 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.14 2002-10-20 22:48:37 paklein Exp $ */
-
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.14.2.1 2002-10-28 06:48:46 paklein Exp $ */
 #include "ABAQUS_VUMAT_BaseT.h"
 
 #ifdef __F2C__
@@ -15,13 +14,12 @@
 
 #define VUMAT_DEBUG 0
 
-/* constructor */
-
 using namespace Tahoe;
 
-ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& element):
-	FDStructMatT(in, element),
-	fRunState(ContinuumElement().RunState()),
+/* constructor */
+ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FDMatSupportT& support):
+	FDStructMatT(in, support),
+//	fRunState(ContinuumElement().RunState()),
 	fTangentType(GlobalT::kSymmetric),
 	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fStress(NumSD()),
@@ -240,7 +238,7 @@ const dMatrixT& ABAQUS_VUMAT_BaseT::c_ijkl(void)
 const dSymMatrixT& ABAQUS_VUMAT_BaseT::s_ij(void)
 {
 	/* call VUMAT */
-	if (fRunState == GlobalT::kFormRHS)
+	if (MaterialSupport().RunState() == GlobalT::kFormRHS)
 	{
 		const ElementSupportT& support = ContinuumElement().ElementSupport();
 		double  t = support.Time();

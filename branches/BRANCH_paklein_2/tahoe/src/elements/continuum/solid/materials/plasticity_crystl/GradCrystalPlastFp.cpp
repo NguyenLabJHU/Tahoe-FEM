@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.cpp,v 1.10 2002-10-20 22:49:07 paklein Exp $ */
+/* $Id: GradCrystalPlastFp.cpp,v 1.10.2.1 2002-10-28 06:49:22 paklein Exp $ */
 #include "GradCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -12,10 +12,9 @@
 #include "ifstreamT.h"
 #include "ContinuumElementT.h"
 
-/* spatial dimensions of the problem */
-
 using namespace Tahoe;
 
+/* spatial dimensions of the problem */
 const int kNSD = 3;
 
 /* useful constant */
@@ -29,8 +28,8 @@ static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"}
 const bool XTAL_MESSAGES = false;
 const int ELprnt = 0;
 
-GradCrystalPlastFp::GradCrystalPlastFp(ifstreamT& in, const FiniteStrainT& element) :
-  LocalCrystalPlastFp(in, element),  
+GradCrystalPlastFp::GradCrystalPlastFp(ifstreamT& in, const FDMatSupportT& support) :
+  LocalCrystalPlastFp(in, support),  
   fLocInitX (ContinuumElement().InitialCoordinates()),
   fLocCurrX (LocalArrayT::kCurrCoords),
   fGradTool (NULL),
