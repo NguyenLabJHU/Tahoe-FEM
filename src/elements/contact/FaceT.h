@@ -1,7 +1,9 @@
-/* $Id: FaceT.h,v 1.24 2002-07-05 22:28:01 paklein Exp $ */
-
+/* $Id: FaceT.h,v 1.25 2002-09-12 17:45:02 paklein Exp $ */
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
+
+/* suppress CW warning messages */
+#pragma warn_unusedarg off
 
 /* direct members */
 #include "iArrayT.h"
@@ -161,5 +163,9 @@ private:
 };
 
 } // namespace Tahoe 
+
+/* suppress CW warning messages */
+#pragma warn_unusedarg reset
+
 #endif /* _FACE_T_H_ */
 

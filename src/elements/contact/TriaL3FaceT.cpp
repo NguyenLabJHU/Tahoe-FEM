@@ -1,6 +1,8 @@
-/* $Id: TriaL3FaceT.cpp,v 1.7 2002-07-02 19:55:20 cjkimme Exp $ */
-
+/* $Id: TriaL3FaceT.cpp,v 1.8 2002-09-12 17:45:19 paklein Exp $ */
 #include "TriaL3FaceT.h"
+
+/* suppress CW warning messages */
+#pragma warn_unusedarg off
 
 #include "ContactElementT.h"
 #include "ContactNodeT.h"
@@ -302,3 +304,5 @@ TriaL3FaceT::Quadrature
 	}
 }
 
+/* suppress CW warning messages */
+#pragma warn_unusedarg reset
