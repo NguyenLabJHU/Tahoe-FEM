@@ -1,6 +1,5 @@
-/* $Id: main.cpp,v 1.1.2.2 2003-05-03 09:08:27 paklein Exp $ */
+/* $Id: main.cpp,v 1.1.2.3 2003-05-04 22:13:39 paklein Exp $ */
 #include "Environment.h"
-#include "house.h"
 #include "ofstreamT.h"
 
 /* parameter headers */
@@ -23,8 +22,8 @@ int main(int argc, char** argv)
 #pragma unused(argc)
 #pragma unused(argv)
 
-//	StringT cwd = "/Volumes/Uster/USERS/paklein/Code/protected-tahoe/BRANCH_parameter_1/contrib/parameter_example/example/";
-	StringT cwd = "./";
+	StringT cwd = "/Volumes/Uster/USERS/paklein/Code/protected-tahoe/BRANCH_parameter_1/contrib/parameter_example/example/";
+	//StringT cwd = "./";
 
 	/* dump a parameter description */
 	StringT dtd_path;
@@ -42,7 +41,7 @@ int main(int argc, char** argv)
 	/* dump validated list */
 	StringT pp_path;
 	pp_path.Append(cwd, "house.out");
-	ofstreamT pp_out(pp_path);
+	ofstream pp_out(pp_path);
 	DotLine_FormatterT pp_format;
 	pp_format.SetTabWidth(4);
 	pp_format.InitParameterFile(pp_out);
@@ -60,7 +59,7 @@ int main(int argc, char** argv)
 	
 	/* build house */
 	house house3;
-	house3.SetParameters(list1);
+	house3.TakeParameterList(list1);
 
 	return 0;
 }

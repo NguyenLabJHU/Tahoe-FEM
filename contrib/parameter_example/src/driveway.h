@@ -1,4 +1,4 @@
-/* $Id: driveway.h,v 1.1.2.2 2003-05-03 09:08:27 paklein Exp $ */
+/* $Id: driveway.h,v 1.1.2.3 2003-05-04 22:13:39 paklein Exp $ */
 #ifndef _DRIVEWAY_H_
 #define _DRIVEWAY_H_
 
@@ -11,6 +11,7 @@ class driveway: public ParameterInterfaceT
 {
 public:
 
+	/** driveway surface enumeration */
 	enum surface {
 		undefined,
 		dirt,
@@ -20,12 +21,13 @@ public:
 		concrete
 	};
 
+	/** constructor */
 	driveway(void);
 
 	/** \name implementation of ParameterInterfaceT */
 	/*@{*/
 	virtual void DefineParameters(ParameterListT& list) const;
-	virtual void SetParameters(const ParameterListT& list);
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 private:

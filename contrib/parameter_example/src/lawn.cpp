@@ -1,4 +1,4 @@
-/* $Id: lawn.cpp,v 1.1.2.2 2003-05-03 09:08:27 paklein Exp $ */
+/* $Id: lawn.cpp,v 1.1.2.3 2003-05-04 22:13:39 paklein Exp $ */
 #include "lawn.h"
 
 lawn::lawn(void):
@@ -13,7 +13,7 @@ void lawn::DefineParameters(ParameterListT& list) const
 	ParameterInterfaceT::DefineParameters(list);
 }
 
-void lawn::SetParameters(const ParameterListT& list)
+void lawn::TakeParameterList(const ParameterListT& list)
 {
 #pragma unused(list)
 }

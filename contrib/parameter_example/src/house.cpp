@@ -1,4 +1,4 @@
-/* $Id: house.cpp,v 1.1.2.5 2003-05-03 17:45:23 paklein Exp $ */
+/* $Id: house.cpp,v 1.1.2.6 2003-05-04 22:13:39 paklein Exp $ */
 #include "house.h"
 #include "lawn.h"
 #include "AutoArrayT.h"
@@ -43,9 +43,9 @@ void house::DefineParameters(ParameterListT& list) const
 	list.AddParameter(zipcode_, "zipcode");	
 }
 
-void house::SetParameters(const ParameterListT& list)
+void house::TakeParameterList(const ParameterListT& list)
 {
-	const char caller[] = "house::SetParameters";
+	const char caller[] = "house::TakeParameterList";
 
 	/* my parameters */
 	list.GetParameter("style", enum2int<style>(style_));
@@ -54,28 +54,28 @@ void house::SetParameters(const ParameterListT& list)
 	/* the roof */
 	const ParameterListT* roof_params = list.List("roof");
 	if (!roof_params) ExceptionT::GeneralFail(caller, "cannot find \"roof\"");
-	roof_.SetParameters(*roof_params);
+	roof_.TakeParameterList(*roof_params);
 
 	/* the driveway */
 	const ParameterListT* driveway_params = list.List("driveway");
 	if (!driveway_params) ExceptionT::GeneralFail(caller, "cannot find \"driveway\"");
-	driveway_.SetParameters(*driveway_params);
+	driveway_.TakeParameterList(*driveway_params);
 	
 	/* 1st garage */
 	const ParameterListT* garage_params_1 = list.List("garage", 1);
 	if (!garage_params_1) ExceptionT::GeneralFail(caller, "cannot find 1st \"garage\"");
-	garage1_.SetParameters(*garage_params_1);
+	garage1_.TakeParameterList(*garage_params_1);
 
 	/* 2nd garage */
 	const ParameterListT* garage_params_2 = list.List("garage", 2);
 	if (!garage_params_2) ExceptionT::GeneralFail(caller, "cannot find 2nd \"garage\"");
-	garage2_.SetParameters(*garage_params_2);
+	garage2_.TakeParameterList(*garage_params_2);
 
 	/* (optional) lawn */
 	const ParameterListT* lawn_params = list.List("lawn");
 	if (lawn_params) {
 		lawn_ = new lawn;
-		lawn_->SetParameters(*lawn_params);
+		lawn_->TakeParameterList(*lawn_params);
 	}
 
 	/* (optional) basement */
@@ -83,7 +83,7 @@ void house::SetParameters(const ParameterListT& list)
 	if (!basement_params) basement_params = list.List("storm_shelter");
 	if (basement_params) {
 		basement_ = New_basement(basement_params->Name(), true);
-		basement_->SetParameters(*basement_params);
+		basement_->TakeParameterList(*basement_params);
 	}
 	
 	/* rooms */
@@ -96,14 +96,14 @@ void house::SetParameters(const ParameterListT& list)
 		const ParameterListT* closet_params = list.List("closet", i);
 		if (!closet_params) ExceptionT::GeneralFail(caller, "cannot find \"closet\" %d", i);
 		room* new_room = New_room(closet_params->Name(), true);
-		new_room->SetParameters(*closet_params);
+		new_room->TakeParameterList(*closet_params);
 		rooms_[num_rooms++] = new_room;
 	}
 	for (int i = 1; i <= num_bedrooms; i++) {
 		const ParameterListT* br_params = list.List("bedroom", i);
 		if (!br_params) ExceptionT::GeneralFail(caller, "cannot find \"bedroom\" %d", i);
 		room* new_room = New_room(br_params->Name(), true);
-		new_room->SetParameters(*br_params);
+		new_room->TakeParameterList(*br_params);
 		rooms_[num_rooms++] = new_room;
 	}
 }
@@ -134,11 +134,6 @@ void house::SubNames(ArrayT<StringT>& names, ArrayT<ParameterListT::OccurrenceT>
 	occur_tmp.Append(ParameterListT::Once);
 	is_inline_tmp.Append(false);
 
-	/* the rooms */
-	names_tmp.Append("rooms");
-	occur_tmp.Append(ParameterListT::OnePlus);
-	is_inline_tmp.Append(true);
-
 	/* the lawn */
 	names_tmp.Append("lawn");
 	occur_tmp.Append(ParameterListT::ZeroOrOnce);
@@ -147,6 +142,11 @@ void house::SubNames(ArrayT<StringT>& names, ArrayT<ParameterListT::OccurrenceT>
 	/* the basement */
 	names_tmp.Append("basement");
 	occur_tmp.Append(ParameterListT::ZeroOrOnce);
+	is_inline_tmp.Append(true);
+
+	/* the rooms */
+	names_tmp.Append("rooms");
+	occur_tmp.Append(ParameterListT::OnePlus);
 	is_inline_tmp.Append(true);
 	
 	/* copy to return values */

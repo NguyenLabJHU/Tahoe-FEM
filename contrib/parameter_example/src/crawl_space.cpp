@@ -1,4 +1,4 @@
-/* $Id: crawl_space.cpp,v 1.1.2.1 2003-05-03 09:08:27 paklein Exp $ */
+/* $Id: crawl_space.cpp,v 1.1.2.2 2003-05-04 22:13:39 paklein Exp $ */
 #include "crawl_space.h"
 
 crawl_space::crawl_space(void):
@@ -18,10 +18,10 @@ void crawl_space::DefineParameters(ParameterListT& list) const
 	list.AddParameter(sump_pump);
 }
 
-void crawl_space::SetParameters(const ParameterListT& list)
+void crawl_space::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	basement::SetParameters(list);
+	basement::TakeParameterList(list);
 
 	list.GetParameter("sump_pump", sump_pump_);
 }

@@ -1,4 +1,4 @@
-/* $Id: garage.cpp,v 1.1.2.1 2003-05-03 09:08:27 paklein Exp $ */
+/* $Id: garage.cpp,v 1.1.2.2 2003-05-04 22:13:39 paklein Exp $ */
 #include "garage.h"
 #include "window.h"
 
@@ -39,10 +39,10 @@ void garage::DefineParameters(ParameterListT& list) const
 	list.AddParameter(width);
 }
 
-void garage::SetParameters(const ParameterListT& list)
+void garage::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	ParameterInterfaceT::SetParameters(list);
+	ParameterInterfaceT::TakeParameterList(list);
 
 	list.GetParameter("opener", opener_);
 	list.GetParameter("length", length_);
@@ -51,7 +51,7 @@ void garage::SetParameters(const ParameterListT& list)
 	const ParameterListT* window_params = list.List("window");
 	if (window_params) {
 		window_ = new window;
-		window_->SetParameters(*window_params);
+		window_->TakeParameterList(*window_params);
 	}
 }
 
