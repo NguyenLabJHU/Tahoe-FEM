@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.15 2004-08-10 23:13:08 raregue Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.16 2005-01-24 06:59:21 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #include "ShapeFunctionT.h"
@@ -63,7 +63,7 @@ void ShapeFunctionT::GradU(const LocalArrayT& nodal, dMatrixT& grad_U, const dAr
 
 /************************ for the current integration point *********************/
 void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
-	dArrayT& u) const
+	ArrayT<double>& u) const
 {
 #if __option(extended_errorcheck)
 	if (nodal.MinorDim() != u.Length() ||
@@ -76,7 +76,7 @@ void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
 }
 
 void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
-	dArrayT& u, int ip) const
+	ArrayT<double>& u, int ip) const
 {
 #if __option(extended_errorcheck)
 	if (nodal.MinorDim() != u.Length() ||
