@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.h,v 1.6 2002-11-28 16:43:41 paklein Exp $ */
+/* $Id: CommunicatorT.h,v 1.7 2002-11-29 19:18:51 paklein Exp $ */
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
 
@@ -19,7 +19,7 @@ namespace Tahoe {
 template <class TYPE> class ArrayT;
 
 /** interface to handle process to process communication. If compiled
- * with -D__MPI__, will implemented process-to-process communication
+ * with -D__TAHOE_MPI__, will implemented process-to-process communication
  * using MPI. Otherwise, will assume single process. */
 class CommunicatorT
 {
@@ -157,7 +157,7 @@ class CommunicatorT
 /* returns true if an MP environment is active */
 inline bool CommunicatorT::ActiveMP(void)
 {
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	return true;
 #else
 	return false;

@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.5 2002-10-20 22:39:10 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.6 2002-11-29 19:18:51 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
@@ -20,7 +20,7 @@ CommunicatorT::CommunicatorT(void):
 	/* check MPI environment */
 	Init();
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	fComm = MPI_COMM_WORLD;
 	if (MPI_Comm_size(fComm, &fSize) != MPI_SUCCESS) {
 		Log("CommunicatorT::CommunicatorT", "MPI_Comm_size failed", true);
@@ -77,7 +77,7 @@ int CommunicatorT::Max(int a) const
 	if (fLogLevel != kSilent)
 		*fLog << '\n' << Rank() << ": CommunicatorT::Max: in = " << a << endl;
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	if (Size() > 1)
 	{
 		int b = a;
@@ -100,7 +100,7 @@ int CommunicatorT::Min(int a) const
 	if (fLogLevel != kSilent)
 		*fLog << '\n' << Rank() << ": CommunicatorT::Min: in = " << a << endl;
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	if (Size() > 1)
 	{
 		int b = a;
@@ -123,7 +123,7 @@ int CommunicatorT::Sum(int a) const
 	if (fLogLevel != kSilent)
 		*fLog << '\n' << Rank() << ": CommunicatorT::Sum: in = " << a << endl;
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	if (Size() > 1)
 	{
 		int b = a;
@@ -146,7 +146,7 @@ double CommunicatorT::Max(double a) const
 	if (fLogLevel != kSilent)
 		*fLog << '\n' << Rank() << ": CommunicatorT::Max: in = " << a << endl;
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	if (Size() > 1)
 	{
 		double b = a;
@@ -168,7 +168,7 @@ double CommunicatorT::Min(double a) const
 	if (fLogLevel != kSilent)
 		*fLog << '\n' << Rank() << ": CommunicatorT::Min: in = " << a << endl;
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	if (Size() > 1)
 	{
 		double b = a;
@@ -191,7 +191,7 @@ double CommunicatorT::Sum(double a) const
 	if (fLogLevel != kSilent)
 		*fLog << '\n' << Rank() << ": CommunicatorT::Sum: in = " << a << endl;
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	if (Size() > 1)
 	{
 		double b = a;
@@ -215,7 +215,7 @@ void CommunicatorT::Gather(int a, ArrayT<int>& gather) const
 	gather.Dimension(Size());
 	gather[Rank()] = a;
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	if (MPI_Gather(&a, 1, MPI_INT, gather.Pointer(), 1, MPI_INT, Rank(), fComm) != MPI_SUCCESS) {
 		Log("CommunicatorT::Gather", "MPI_Gather failed", true);
 		throw ExceptionT::kMPIFail;
@@ -233,7 +233,7 @@ void CommunicatorT::Gather(int a, int destination) const
 		throw ExceptionT::kGeneralFail;
 	}
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	int* tmp = NULL;
 	if (MPI_Gather(&a, 1, MPI_INT, tmp, 1, MPI_INT, destination, fComm) != MPI_SUCCESS) {
 		Log("CommunicatorT::Gather", "MPI_Gather failed", true);
@@ -247,7 +247,7 @@ void CommunicatorT::Gather(int a, int destination) const
 /* synchronize all processes */
 void CommunicatorT::Barrier(void) const
 {
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	if (MPI_Barrier(fComm) != MPI_SUCCESS) {
 		Log("CommunicatorT::Barrier", "MPI_Barrier failed", true);
 		throw ExceptionT::kMPIFail;
@@ -262,7 +262,7 @@ void CommunicatorT::AllGather(int a, ArrayT<int>& gather) const
 	gather.Dimension(Size());
 	gather[Rank()] = a;
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	if (MPI_Allgather(&a, 1, MPI_INT, gather.Pointer(), 1, MPI_INT, fComm) != MPI_SUCCESS) {
 		Log("CommunicatorT::Gather", "MPI_Allgather failed", true);
 		throw ExceptionT::kMPIFail;
@@ -276,7 +276,7 @@ void CommunicatorT::AllGather(int a, ArrayT<int>& gather) const
 /* broadcast character array */
 void CommunicatorT::Broadcast(ArrayT<char>& data)
 {
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	if (MPI_Bcast(data.Pointer(), data.Length(), MPI_CHAR, 0, fComm) != MPI_SUCCESS) {
 		Log("CommunicatorT::Broadcast", "MPI_Bcast failed", true);
 		throw ExceptionT::kMPIFail;
@@ -322,7 +322,7 @@ void CommunicatorT::Init(void)
 	/* communicator count */
 	fCount++;
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	if (fCount == 1)
 	{
 		int *argc_ = fargc, argc = 1;
@@ -365,7 +365,7 @@ void CommunicatorT::Finalize(void)
 	/* communicator count */
 	fCount--;
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	if (fCount == 0)
 	{
 		/* shut down MPI environment */
