@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:27 paklein Exp $
+# $Id: makefile,v 1.4.2.1 2001-07-02 18:16:11 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,7 +6,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	Cubic2DT.o \
 	FDCubic2DT.o \
 	SSCubic2DT.o
 OBJ_LINK = $(OBJ)
@@ -17,13 +16,11 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	Cubic2DT.cpp \
 	FDCubic2DT.cpp \
 	SSCubic2DT.cpp
 
 # headers
 HDR = \
-	Cubic2DT.h \
 	FDCubic2DT.h \
 	SSCubic2DT.h
 HDR_LINK = $(HDR:.h=.h_link)
