@@ -1,4 +1,4 @@
-/* $Id: LimitT.cpp,v 1.5 2003-04-22 22:11:31 paklein Exp $ */
+/* $Id: LimitT.cpp,v 1.5.2.1 2003-04-27 22:12:11 paklein Exp $ */
 #include "LimitT.h"
 
 /* array behavior */
@@ -27,6 +27,8 @@ const char* LimitT::ToString(BoundT bound)
 }
 
 } /* namespace Tahoe */
+
+using namespace Tahoe;
 
 /* constructors */
 LimitT::LimitT(int a, BoundT bound):
