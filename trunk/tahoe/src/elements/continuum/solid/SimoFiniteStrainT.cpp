@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.6 2001-08-20 06:47:16 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.7 2001-08-21 01:12:59 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -76,9 +76,20 @@ void SimoFiniteStrainT::Initialize(void)
 	 * points of all the elements */
 	fPK1_storage.Allocate(NumElements(), nip*nsd*nsd);
 	fc_ijkl_storage.Allocate(NumElements(), nip*nst*nst);
+	fPK1_list.Allocate(nip);
+	fc_ijkl_list.Allocate(nip);
+
+	/* what's needed */
+	bool need_F = false;
+	bool need_F_last = false;
+	for (int i = 0; i < fMaterialList->Length(); i++)
+	{
+		need_F = need_F || Needs_F(i);		
+		need_F_last = need_F_last || Needs_F_last(i);
+	}	
 
 	/* space for enhanced part of the deformation gradient */
-	if (Needs_F())
+	if (need_F)
 	{
 		fF_enh_all.Allocate(nip*nsd*nsd);
 		fF_Galerkin_all.Allocate(nip*nsd*nsd);
@@ -93,7 +104,7 @@ void SimoFiniteStrainT::Initialize(void)
 	}
 	
 	/* space for enhanced part of the "last" deformation gradient */
-	if (Needs_F_last())
+	if (need_F_last)
 	{
 		fF_enh_last_all.Allocate(nip*nsd*nsd);
 		fF_Galerkin_last_all.Allocate(nip*nsd*nsd);
@@ -109,11 +120,19 @@ void SimoFiniteStrainT::Initialize(void)
 
 	/* dimension work space */
 	fGradNa.Allocate(fNumSD, fNumElemNodes);
-	fStressStiff_11.Allocate(fNumElemNodes);
-	fStressStiff_12(fNumElemNodes, fNumModeShapes);
-	fStressStiff_22(fNumModeShapes, fNumModeShapes);
+	fGradNa_enh.Allocate(fNumSD, fNumModeShapes);
+	fRHS_enh.Allocate(fNumSD*fNumModeShapes);
+	fB_enh.Allocate(dSymMatrixT::NumValues(fNumSD), fNumSD*fNumModeShapes);
 	fWP_enh.Allocate(fNumSD, fNumModeShapes);
 	
+	/* stiffness work space */
+	fStressStiff_11.Allocate(fNumElemNodes);
+	fStressStiff_12.Allocate(fNumElemNodes, fNumModeShapes);
+	fStressStiff_22.Allocate(fNumModeShapes, fNumModeShapes);
+	
+	fK22.Allocate(fNumModeShapes*fNumDOF);	
+	fK12.Allocate(fNumElemNodes*fNumDOF, fNumModeShapes*fNumDOF);
+
 //TEMP
 //	fTemp2.Allocate(fNumElemNodes*fNumDOF);
 }
@@ -191,8 +210,8 @@ bool SimoFiniteStrainT::NextElement(void)
 		{
 			fPK1_list[i].Set(nsd, nsd, s);
 			fc_ijkl_list[i].Set(nst, nst, c);
-			s += nsd;
-			c += nst;
+			s += nsd_2;
+			c += nst_2;
 		}
 	}
 	return next;
@@ -235,6 +254,11 @@ void SimoFiniteStrainT::SetShape(void)
 	fEnhancedShapes->Initialize();
 	
 	/* set base class pointer */
+	if (fShapes != NULL)
+	{
+		cout << "\n SimoFiniteStrainT::SetShape: deleting non-NULL fShapes" << endl;
+		delete fShapes;
+	}
 	fShapes = fEnhancedShapes;
 }
 
@@ -252,8 +276,9 @@ void SimoFiniteStrainT::SetGlobalShape(void)
 	else /* modification is strictly additive */
 	{
 		/* what needs to get computed */
-		bool needs_F = Needs_F();
-		bool needs_F_last = Needs_F_last();
+		int material_number = CurrentElement().MaterialNumber();
+		bool needs_F = Needs_F(material_number);
+		bool needs_F_last = Needs_F_last(material_number);
 
 		/* inherited - set Galerkin part of deformation gradient */
 		FiniteStrainT::SetGlobalShape();
@@ -283,6 +308,7 @@ cout << setw(kIntWidth) << "iter" << setw(kDoubleWidth) << "error" << '\n';
 cout << setw(kIntWidth) << iter_enh << setw(kDoubleWidth) << res << '\n';
 
 			/* form the stiffness associated with the enhanced modes */
+			fK22 = 0.0;
 			FormStiffness_enhanced(fK22, NULL);
 
 			/* update enhanced modes */
@@ -306,6 +332,8 @@ cout << setw(kIntWidth) << iter_enh << setw(kDoubleWidth) << res << '\n';
 	}
 	
 	/* form the stiffness associated with the enhanced modes */
+	fK22 = 0.0;
+	fK12 = 0.0;
 	FormStiffness_enhanced(fK22, &fK12);
 }
 
