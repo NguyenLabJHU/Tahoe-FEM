@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.h,v 1.3 2001-09-21 13:49:59 sawimme Exp $ */
+/* $Id: AbaqusResultsT.h,v 1.3.2.1 2001-11-06 14:20:39 sawimme Exp $ */
 /*
    CREATED: S. Wimmer 9 Nov 2000
 
@@ -25,6 +25,8 @@
 #include "iAutoArrayT.h"
 #include "AutoArrayT.h"
 #include "GeometryT.h"
+#include "iArray2DT.h"
+#include "AbaqusVariablesT.h"
 
 class AbaqusResultsT
 {
@@ -37,25 +39,22 @@ class AbaqusResultsT
 		     kWedge = 16,
 		     kShell = 17 };
 
-  enum VariableType { kQuadVar = 0,
-		      kElemVar = 1,
-		      kNodeVar = 2 };
-
-  enum NumVariables { NVT = 26 };
-  enum VariableKeyT { kNone = -1,
-		      kTEMP = 2, kLOADS = 3, kFLUXS = 4,
-		      kSDV = 5, kCOORD = 8,
-		      kS = 11, kSINV = 12,
-		      kE = 21, kPE = 22, kCE = 23, kIE = 24, kEE = 25,
-		      kU = 101, kV = 102, kA = 103, kNCOORD = 107,
-		      kSP = 401,
-		      kEP = 403, kNEP = 404, kLEP = 405, kERP = 406,
-		      kEEP = 408, kIEP = 409, kTHEP = 410, kPEP = 411, kCEP = 412 };
+  enum AnalysisTypeT { kStatic = 1,
+		       kDynamic = 12 };
 
   AbaqusResultsT (ostream& message);
+
   void Initialize (char *filename);
-  void Close (void);
-  void ScanFile (int &numelems, int &numnodes, int &numtimesteps, int &nummodes);
+
+  void Create (char *filename, bool binary, int numelems, int numnodes, 
+	       double elemsize);
+  void OpenWrite (char *filename, bool binary, int bufferwritten);
+
+  /** close file and return amount of buffer written */
+  int Close (void);
+
+  void ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
+		 int &nummodes);
 
   void ElementSetNames (ArrayT<StringT>& names) const;
   void NodeSetNames (ArrayT<StringT>& names) const;
@@ -77,19 +76,37 @@ class AbaqusResultsT
   void ModeData (int index, int &number, double &mode) const;
   void TimeData (int index, int &number, double &time) const;
 
-  void NodeVariables (ArrayT<VariableKeyT>& keys, iArrayT& dims) const;
-  void ElementVariables (ArrayT<VariableKeyT>& keys, iArrayT& dims) const;
-  void QuadratureVariables (ArrayT<VariableKeyT>& keys, iArrayT& dims) const;
+  void NodeVariables (iArrayT& keys, iArrayT& dims) const;
+  void ElementVariables (iArrayT& keys, iArrayT& dims) const;
+  void QuadratureVariables (iArrayT& keys, iArrayT& dims) const;
 
-  void ReadVariables (VariableType vt, int step, dArray2DT& values, StringT& name);
+  void ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray2DT& values,
+		      StringT& name);
 
   const char* VariableName (int index) const;
-  VariableKeyT IntToVariableKey (int key) const;
-  VariableKeyT VariableKey (int index) const;
-  int VariableKeyIndex (VariableKeyT key) const;
+  int VariableKey (const char *name) const;
+  int VariableKey (int index) const;
+  int VariableKeyIndex (int key) const;
 
   bool NextCoordinate (int &number, dArrayT& nodes);
   bool NextElement (int &number, GeometryT::CodeT &type, iArrayT &nodes);
+
+  void WriteConnectivity (GeometryT::CodeT code, int startnumber, 
+			  const iArray2DT& connects);
+  void WriteCoordinates (const iArrayT& nodes_used, const dArray2DT& coords);
+  void WriteElementSet (const StringT& name, const iArrayT& elms);
+  void WriteNodeSet (const StringT& name, const iArrayT& nodes);
+  void WriteActiveDOF (const iArrayT& active);
+  void WriteHeading (const StringT& heading);
+
+  void WriteStartIncrement (int step, int inc, double totaltime, 
+     double time, double timeincrement, AbaqusResultsT::AnalysisTypeT atype);
+
+  void WriteOutputDefinition (int key, const StringT& setname, GeometryT::CodeT code, 
+			      int numelemnodes);
+  void WriteNodeVariables (int &index, const iArrayT& keys, const dArray2DT& values, 
+			   const iArrayT& nodes_used, int numdir, int numshear);
+  void WriteEndIncrement (void);
 
   void VersionNotes (ArrayT<StringT>& records);
   void ResetFile (void);
@@ -102,38 +119,21 @@ class AbaqusResultsT
   int NumNodeSets (void) const;
 
  private:
-  bool ReadVersion (void);
-  void NextMode (int &number, double &mode);
-  void NextTimeSteps (int &number, double &time);
-  void ScanElement (void);
-  void ReadOutputDefinitions (int &outputmode);
-  void ReadElementHeader (int& objnum, int& intpt, int& secpt, int &location);
-  void ScanVariable (AbaqusResultsT::VariableKeyT key, int outputmode, int location);
 
-  bool VariableWrittenWithNodeNumber (AbaqusResultsT::VariableKeyT key) const;
-  bool CorrectType (int outputmode, int objnum, int intpt, int location, VariableType vt, int& ID) const;
-
-  int TranslateElementName (char *, GeometryT::CodeT &, int &);
-  int TranslateContinuum (char *, GeometryT::CodeT &, int &);
-  int Translate2D (char *, GeometryT::CodeT &, int &);
-  int Translate3D (char *, GeometryT::CodeT &, int &);
-  int TranslateShell (char *, GeometryT::CodeT &, int &);
-  
-  void AdvanceTo (int target);
-  bool SkipAttributes (void);
-  int  ReadNextRecord (int &key);
-
-  bool Read (StringT& s, int n);
-  bool Read (int& i);
-  bool Read (double& d);
-  bool CheckBufferSize (istream& in, int numchars);
-  void CheckBufferSize (istream& in);
+  enum NumVariables { NVT = 23 };
 
   enum OutputType { kElementOutput = 0,
 		    kNodalOutput = 1,
 		    kModalOutput = 2,
 		    kElemSetOutput = 3 };
 
+  enum ElementVarType { kElementQuadrature = 0,
+			kElementCentroidal = 1,
+			kElementNodal = 2,
+			kElementRebar = 3,
+			kElementNodeAveraged = 4,
+			kElementWhole = 5};
+  
   enum GeneralKeys { ELEMENTHEADER = 1,
 		     ELEMENT = 1900,
 		     NODE = 1901,
@@ -154,10 +154,58 @@ class AbaqusResultsT
 
   enum StatusT { OKAY = -101, BAD = -102, END = -103 };
 
+  bool ReadVersion (void);
+  void NextMode (int &number, double &mode);
+  void NextTimeSteps (int &number, double &time);
+  void ScanElement (void);
+  void ReadOutputDefinitions (int &outputmode);
+  void ReadElementHeader (int& objnum, int& intpt, int& secpt, int &location);
+  void ScanVariable (int key, int outputmode, int location);
+
+  void WriteOutputDefinition (int key, const StringT& setname, 
+			      GeometryT::CodeT code, int numnodes,
+			      int count, int& numdir, int& numshear);
+  void WriteElementHeader (int key, int number, int intpt, int secpt, 
+			   AbaqusResultsT::ElementVarType flag, int numdirect, 
+			   int numshear, int numdir, int numsecforc); 
+
+  bool VariableWrittenWithNodeNumber (int key) const;
+  bool CorrectType (int outputmode, int objnum, int intpt, int location, 
+		    AbaqusVariablesT::TypeT vt, int& ID) const;
+
+  int TranslateElementName (char *, GeometryT::CodeT &, int &);
+  int TranslateContinuum (char *, GeometryT::CodeT &, int &);
+  int Translate2D (char *, GeometryT::CodeT &, int &);
+  int Translate3D (char *, GeometryT::CodeT &, int &);
+  int TranslateShell (char *, GeometryT::CodeT &, int &);
+  void GetElementName (GeometryT::CodeT geometry_code, int elemnodes, 
+		       int& num_output_nodes, StringT& elem_name) const;
+  
+  void AdvanceTo (int target);
+  bool SkipAttributes (void);
+  int  ReadNextRecord (int &key);
+
+  bool Read (StringT& s, int n);
+  bool Read (int& i);
+  bool Read (double& d);
+  bool CheckBufferSize (istream& in, int numchars);
+  void CheckBufferSize (istream& in);
+
+  void Write (int i);
+  void Write (double d);
+  void Write (const StringT& s, int blocks = 1);
+  void WriteASCII (const StringT& s);
+  void CheckBufferSize (ostream& out);
+
+  void SetVariableNames (void);
+
  private:
   ifstream fIn;
+  ofstream fOut;
   ostream& fMessage;
   StringT fFileName;
+  const StringT fMarker;
+  const StringT fOutVersion;
 
   bool fBinary;
   int fBufferDone;
@@ -177,9 +225,7 @@ class AbaqusResultsT
   int fEndCount;
   int fModalCount;
 
-  iArrayT fVarDimension;
-  iArrayT fVarType;
-  iArrayT fVarArrayColumn;
+  ArrayT<AbaqusVariablesT> fVariableTable;
   int fNumNodeVars;
   int fNumElemVars;
   int fNumQuadVars;
@@ -196,7 +242,7 @@ class AbaqusResultsT
 
 inline int AbaqusResultsT::NumElements (void) const { return fNumElements; }
 inline int AbaqusResultsT::ElementNumber (int index) const { return fElementNumber[index]; }
-inline int AbaqusResultsT::VariableDimension (int index) const { return fVarDimension[index]; }
+inline int AbaqusResultsT::VariableDimension (int index) const { return fVariableTable[index].Dimension(); }
 inline int AbaqusResultsT::NodeNumber (int index) const { return fNodeNumber[index]; }
 inline int AbaqusResultsT::NumElementSets (void) const { return fNumElementSets; }
 inline int AbaqusResultsT::NumNodeSets (void) const { return fNumNodeSets; }
