@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.1.2.1 2002-05-07 07:23:41 paklein Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.1.2.2 2002-05-07 19:00:19 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -12,77 +12,52 @@
 #include "SecantMethodT.h"
 
 /* class parameters */
-const int knumDOF = 2;
+const int    knumDOF = 2;
+const double kExpMax = 100;
+double TiedPotentialT::fsigma_critical = 0.;
 
 /* constructor */
 TiedPotentialT::TiedPotentialT(ifstreamT& in, const double& time_step): 
-	SurfacePotentialT(knumDOF),
-	fTimeStep(time_step)
+	SurfacePotentialT(knumDOF)
 {
-	/* traction potential parameters */
-	in >> fsigma_max; if (fsigma_max < 0) throw eBadInputValue;
-	in >> fd_c_n; if (fd_c_n < 0) throw eBadInputValue;
-	in >> fd_c_t; if (fd_c_t < 0) throw eBadInputValue;
+#pragma unused(time_step)
+
+	in >> q; // phi_t/phi_n
+	in >> r; // delta_n* /d_n
+	if (q < 0.0 || r < 0.0) throw eBadInputValue;
 	
-	/* non-dimensional opening parameters */
-	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw eBadInputValue;
-	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw eBadInputValue;
-	in >> fL_fail;
-	if (fL_fail < 1.0) fL_fail = 1.0;
+	in >> d_n; // characteristic normal opening
+	in >> d_t; // characteristic tangent opening
+	if (d_n < 0.0 || d_t < 0.0) throw eBadInputValue;
+	
+	in >> phi_n; // mode I work to fracture
+	if (phi_n < 0.0) throw eBadInputValue;
 
-	/* stiffness multiplier */
-	in >> fpenalty; if (fpenalty < 0) throw eBadInputValue;
-	in >> L_2_b;
-	in >> L_2_m;
-        in >> fslope;
+	in >> r_fail; // d/d_(n/t) for which surface is considered failed
+	if (r_fail < 1.0) throw eBadInputValue;
 
-	/* penetration stiffness */
-	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
-
-	//initiationQ = false;
+	in >> fKratio; // stiffening ratio
+	if (fKratio < 0.0) throw eBadInputValue;
+	fK = fKratio*phi_n/(d_n*d_n);
+	
+	fsigma_critical = phi_n/exp(1.)/d_n;
 }
 
 /*initialize state variables with values from the rate-independent model */
 void TiedPotentialT::InitStateVariables(ArrayT<double>& state)
 {
-        int num_state = NumStateVariables();
-	if (state.Length() != num_state) {
-	  cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
-		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
-		throw eSizeMismatch;
-	}
-
-	/* clear */
-	if (num_state > 0) state = 0.0;
-
-	/* state variables below are with their corresponding parameters 
-         * in TvergHutch2DT. state[n] has a flag in state[n+1] that
-         * can be used to allow the traction routine to change the
-         * parameter to reflect local opening rates. For instance,
-         * state[6] represents the critical normal length scale and
-         * state[7] = 0. indicates state[6] has not been modified
-         * from its initialized (rate-independent) value while
-         * state[7] = 1. indicates that the length-scale has
-         * been modified as a function of rate. */
-	state[0] = fL_1;
-	state[2] = fL_2;
-	state[4] = fsigma_max;
-	state[6] = fd_c_n;
-	state[7] = 0.;
-	/* state[8] = previous timestep's u_t
-	 * state[9] = previous timestep's u_n
-	 */
-        state[10] = fd_c_t;
-	state[11] = 0.;
+	state = 0.;
 }
 
 /* return the number of state variables needed by the model */
-int TiedPotentialT::NumStateVariables(void) const { return 12; }
+int TiedPotentialT::NumStateVariables(void) const { return 2; }
 
 /* surface potential */ 
 double TiedPotentialT::FractureEnergy(const ArrayT<double>& state) 
 {
-   	return state[6]*state[4]*0.5*(1 - state[1] + state[2]); 
+#pragma unused(state)
+
+   	return phi_n*(1.-2./exp(1.)); 
 }
 
 double TiedPotentialT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
@@ -91,32 +66,41 @@ double TiedPotentialT::Potential(const dArrayT& jump_u, const ArrayT<double>& st
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 #endif
+	if (state[0] < kSmall && state[1] < kSmall) 
+		return 0.;
 
-	double u_t = jump_u[0];
-	double u_n = jump_u[1];
+	double z1, z2, z3, z4, z5, z6, z7, z8;
 
-	double r_t = u_t/state[10];
-	double r_n = u_n/state[6];
-	double L = sqrt(r_t*r_t + r_n*r_n); // (1.1)
+	double u_t = jump_u[0] + state[0];
+	double u_n = jump_u[1] + state[1];
 
-	double u;
-	if (L < state[0])
-		u = state[4]*0.5*(L/state[0])*L;
-	else if (L < state[2])
-		u = state[4]*(0.5*fL_1 + (L - state[0]));
-	else if (L < 1)
-	{
-		double z1 = (1.0 - state[2]);
-		double z2 = (1.0 - L);
-		u = state[4]*(0.5*state[0] + (state[2]- state[0]) + 0.5*(z1 - (z2/z1)*z2));
-	}
-	else
-		u = state[4]*0.5*(1 - state[0] + state[2]);
+	z1 = 1./d_n;
+	z2 = 1./(d_t*d_t);
+	z3 = -q;
+	z4 = -1. + r;
+	z5 = -r;
+	z6 = u_t*u_t;
+	z7 = -u_n*z1;
+	z1 = u_n*z1;
+	z8 = 1. + z3;
+	z3 = r + z3;
+	z4 = 1./z4;
+	z2 = -z2*z6;
+	z2 = exp(z2);
+	z6 = exp(z7);
+	z3 = z1*z3*z4;
+	z1 = 1. + z1 + z5;
+	z3 = q + z3;
+	z1 = z1*z4*z8;
+	z2 = -z2*z3;
+	z1 = z1 + z2;
+	z1 = phi_n*z1*z6;
+	// phi_n + z1
 
 	/* penetration */
-	if (u_n < 0) u += 0.5*u_n*u_n*fK/state[6];
+	if (u_n < 0.0) z1 += 0.5*u_n*u_n*fK;
 
-	return u*state[6]; // (1.2)
+	return phi_n + z1;
 }
 	
 /* traction vector given displacement jump vector */	
@@ -132,75 +116,67 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	}
 #endif
 
-	if (jump_u[0]*jump_u[0]+jump_u[1]*jump_u[1] < kSmall*kSmall)
-	  {
-	    fTraction[0] = 0.;
-	    cout << " In Traction " << jump_u[0] << " " << jump_u[1] << "\n";
-	    cout << sigma[0] << " " << sigma[1] << " \n";
-	    return fTraction;
-	  }
-	else 
-	  if (state[11] < kSmall) 
-	    {
-	      state[11] = 1.;
-	      fu_t0 = 0.;
-	      fu_n0 = fL_1*fd_c_n;
-	    }
-
-	double u_t = jump_u[0] + fu_t0;
-	double u_n = jump_u[1] + fu_n0;
-
-	double r_t = u_t/state[10];
-	double r_n = u_n/state[6];
-	double L = sqrt(r_t*r_t + r_n*r_n); // (1.1)
-
-	double sigbyL;
-	if (L < state[0])
-		sigbyL = state[4]/state[0];
-	else if (L < state[2]) /*L > state[0] means we're at the plateau stress */
-	{ 
-	  if (state[7] == 0.) 
-	  { 
-	      double u_n_dot = (u_n-state[9])/fTimeStep;
-	      if (u_n_dot > kSmall) 
-	      {
-		state[7] = 1.;
-		state[6] = L_2_b + L_2_m * log(u_n_dot);
-		/* make sure new length scale is greater than current
-		 * gap vector 
-                 */
-	        state[0] *= fd_c_n/state[6];
-	        r_n = u_n/state[6];
-	        L = sqrt(r_t*r_t+r_n*r_n);
-	        sigbyL = state[4]*(1+fslope*(L-state[0]))/L;
-		if (state[6] < u_n || state[6] < fd_c_n*fL_1)
+	if (state[0] < kSmall && state[1] < kSmall)
+	{
+		if (!InitiationQ(sigma))
 		{
-		  cout <<  "\n TiedPotentialT::Traction: rate-dependent length scale " << state[6] << " is incompatible with rate-independent one. Check input parameters. \n ";
-	          state[6] = fd_c_n;
-	          state[2] = state[0]; /* start unloading now */
-	          r_n = u_n/state[6];
-	          L = sqrt(r_t*r_t+r_n*r_n);
-                  sigbyL = state[4]*(1-(L-state[2])/(1-state[2]))/L;
-		  //throw eBadInputValue;
+			fTraction = 0.;
+			return fTraction;
 		}
-	      }
-	  }
-	  else 
-	    sigbyL = state[4]*(1+fslope*(L-state[0]))/L;
+		else
+		{
+			state[1] = d_n; 
+			state[0] = 0.;
+		}
 	}
-	else if (L < 1)
-		sigbyL = state[4]*(1+fslope*(state[2]-state[0]))*(1 - (L - state[2])/(1 - state[2]))/L;
-	else
-		sigbyL = 0.0;	
 
-	fTraction[0] = sigbyL*(u_t/state[10])*(state[6]/state[10]);
-	fTraction[1] = sigbyL*(u_n/state[6]);
+	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11;
+
+	double u_t = jump_u[0] + state[0];
+	double u_n = jump_u[1] + state[1];
+
+	z1 = 1./d_n;
+	z2 = 1./(d_t*d_t);
+	z3 = -q;
+	z4 = -1. + r;
+	z5 = -r;
+	z6 = u_t*u_t;
+	z7 = -u_n*z1;
+	z8 = u_n*z1;
+	z9 = 1. + z3;
+	z3 = r + z3;
+	z4 = 1./z4;
+	z6 = -z2*z6;
+	z10 = exp(z6); //don't limit shear opening
+	// limit compressive deformation
+	if (z7 > kExpMax)
+	{
+		cout << "\n XuNeedleman2DT::Traction: exp(x): x = " << z7 << " > kExpMax" << endl;
+		throw eBadJacobianDet;
+	}
+	z11 = exp(z7);
+	z6 = z6 + z7; // since (z6 < 0), (z6' < z7) and z7 is checked above
+	z7 = z3*z4*z8;
+	z5 = 1. + z5 + z8;
+	z8 = z1*z4*z9;
+	z6 = exp(z6);
+	z3 = -z1*z10*z3*z4;
+	z7 = q + z7;
+	z4 = z4*z5*z9;
+	z3 = z3 + z8;
+	z5 = -z10*z7;
+	z2 = 2.*phi_n*u_t*z2*z6*z7;
+	z3 = phi_n*z11*z3;
+	z4 = z4 + z5;
+	z1 = -phi_n*z1*z11*z4;
+	z1 = z1 + z3;
+	//z1 = List(z2,z1);
+
+	fTraction[0] = z2;
+	fTraction[1] = z1;
 
 	/* penetration */
-	if (u_n < 0) fTraction[1] += fK*u_n;
-
-	state[8] = u_t;
-	state[9] = u_n;
+	if (u_n < 0.0) fTraction[1] += u_n*fK;
 
 	return fTraction;
 	
@@ -215,124 +191,72 @@ const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<do
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif
 
-	if (jump_u[0]*jump_u[0]+jump_u[1]*jump_u[1] < kSmall*kSmall)
-	  {
-	    fStiffness = 0.;
-	    return fStiffness;
-	  }
-	else 
-	  if (state[11] < kSmall) 
-	    {
-	      fu_t0 = 0.;
-	      fu_n0 = fL_1*fd_c_n;
-	    }
+	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12;
+	double z13, z14, z15, z16;
+
+	double u_t = jump_u[0] + state[0];
+	double u_n = jump_u[1] + state[1]; 
 	
-	double u_t = jump_u[0] + fu_t0;
-	double u_n = jump_u[1] + fu_n0;
-
-	double z1, z2, z3, z4, z5, z6;	
-
-	/* effective opening */
-	z1 = u_n*u_n;
-	z2 = 1./(state[6]*state[6]);
-	z3 = u_t*u_t;
-	z4 = 1./(state[10]*state[10]);
-	z5 = z1*z2;
-	z6 = z3*z4;
-	z5 += z6;
-	double L = sqrt(z5);
-
-	if (L < state[0]) // K1
+	if (state[0] < kSmall && state[1] < kSmall)
 	{
-		fStiffness[0] = (state[6]/state[10])*state[4]/(state[0]*state[10]);
-		fStiffness[1] = 0.0;
-		fStiffness[2] = 0.0;
-		fStiffness[3] = state[4]/(state[0]*state[6]);
+		if (!InitiationQ(sigma))
+		{
+			fStiffness = 0.;
+			return fStiffness;
+		}
+		else
+		{
+			u_n += d_n;
+		}
 	}
-	else if (L < state[2]) // K2
-	{
-		z5 = 1./state[6];
-		z2 *= z1;
-		z3 *= z4;
-		z2 += z3;
-		z2 = pow(z2,-1.5);
-		z2 *= state[4]*(1+fslope*(L-state[0]))*z5;
-		z3 *= z2;
-		z2 *= z4;
-		z4 = -u_n*u_t*z2;
-		z1 *= z2;
 
-		//{{z1, z4},
-		// {z4, z3}}
-		fStiffness[0] = z1;
-		fStiffness[1] = z4;
-		fStiffness[2] = z4;
-		fStiffness[3] = z3;
-	}
-	else if (L < 1 && state[2] < 1.) // K3
-	{
-		double z7, z8, z9, z10, z11, z12, z13, z14, z15, z16;
+	z1 = 1./(d_n*d_n);
+	z2 = 1./d_n;
+	z3 = pow(d_t,-4.);
+	z4 = 1./(d_t*d_t);
+	z5 = -q;
+	z6 = -1. + r;
+	z7 = -r;
+	z8 = u_t*u_t;
+	z9 = -u_n*z2;
+	z10 = u_n*z2;
+	z11 = 1. + z5;
+	z5 = r + z5;
+	z6 = 1./z6;
+	z12 = -z4*z8;
+	z13 = exp(z12);
+	z14 = exp(z9);
+	z15 = z10*z5*z6;
+	z16 = z11*z2*z6;
+	z7 = 1. + z10 + z7;
+	z9 = z12 + z9;
+	z9 = exp(z9);
+	z10 = q + z15;
+	z7 = z11*z6*z7;
+	z11 = -z13*z2*z5*z6;
+	z12 = -z10*z13;
+	z11 = z11 + z16;
+	z5 = 2.*phi_n*u_t*z2*z4*z5*z6*z9;
+	z6 = 2.*phi_n*z10*z4*z9;
+	z4 = -2.*phi_n*u_t*z10*z2*z4*z9;
+	z3 = -4.*phi_n*z10*z3*z8*z9;
+	z7 = z12 + z7;
+	z2 = -2.*phi_n*z11*z14*z2;
+	z4 = z4 + z5;
+	z3 = z3 + z6;
+	z1 = phi_n*z1*z14*z7;
 
-		z5 = -1. + state[2];
-		z6 = -state[2];
-		z7 = pow(state[6],-3.);
-		z8 = 1./state[6];
-		z9 = state[6]*state[6];
-		z10 = pow(state[6],3.);
-		z11 = pow(state[10],-4.);
-		z12 = state[10]*state[10];
-		z2 = z1*z2;
-		z13 = z3*z4;
-		z6 += 1.;
-		z12 *= z1;
-		z2 += z13;
-		z9 *= z3;
-		z5 = 1./z5;
-		z6 = 1./z6;
-		z14 = pow(z2,-1.5);
-		z15 = 1./z2;
-		z16 = 1./sqrt(z2);
-		z2 = sqrt(z2);
-		z9 += z12;
-		z12 = -state[4]*(1+fslope*(state[2]-state[0]))*z1*z15*z6*z7;
-		z2 = -z2;
-		z9 = 1./z9;
-		z2 += state[2];
-		z5 *= state[4]*(1+fslope*(state[2]-state[0]))*z9;
-		z9 = u_n*state[6]*u_t*z5;
-		z5 *= z10*z13;
-		z2 *= z6;
-		z2 += 1.;
-		z2 *= state[4]*(1+fslope*(state[2]-state[0]));
-		z1 *= -z14*z2*z7;
-		z6 = z16*z2*z8;
-		z3 *= -state[6]*z11*z14*z2;
-		z7 = -u_n*u_t*z14*z2*z4*z8;
-		z2 *= state[6]*z16*z4;
-		z1 += z12 + z6;
-		z4 = z7 + z9;
-		z2 += z3 + z5;
-	
-		//{{z2, z4},
-		// {z4, z1}}
-		fStiffness[0] = z2;
-		fStiffness[1] = z4;
-		fStiffness[2] = z4;
-		fStiffness[3] = z1;
-	}
-	else
-	{
-		fStiffness[0] = 0.0;
-		fStiffness[1] = 0.0;
-		fStiffness[2] = 0.0;
-		fStiffness[3] = 0.0;	
-	}
+	// {{z3, z4}, {z4, z1 + z2}}
+
+	fStiffness[0] = z3;
+	fStiffness[1] = z4;
+	fStiffness[2] = z4;
+	fStiffness[3] = z1 + z2;
 
 	/* penetration */
-	if (u_n < 0) fStiffness[3] += fK;
+	if (u_n < 0.0) fStiffness[3] += fK;
 
 	return fStiffness;
-
 }
 
 /* surface status */
@@ -344,51 +268,46 @@ SurfacePotentialT::StatusT TiedPotentialT::Status(const dArrayT& jump_u,
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 #endif
        
-	double u_t = jump_u[0];
-	double u_n = jump_u[1];
-
-	double r_t = u_t/state[10];
-	double r_n = u_n/state[6];
-	double L = sqrt(r_t*r_t + r_n*r_n); // (1.1)
+	double u_t1 = jump_u[0] + state[0];
+	double u_t  = sqrt(u_t1*u_t1);
+	double u_n  = jump_u[1] + state[0];
 	
-	if (L > fL_fail)
+	/* square box for now */
+	if (u_t > r_fail*d_t || u_n > r_fail*d_n)
 		return Failed;
-	else if (L > state[0])
+	else if (u_t > d_t || u_n > d_n)
 		return Critical;
 	else
 		return Precritical;
-
 }
 
 void TiedPotentialT::PrintName(ostream& out) const
 {
-	out << "    RateDep 2D \n";
+	out << "    TiedPotentialT (modified Xu-Needleman) 2D \n";
 }
 
 /* print parameters to the output stream */
 void TiedPotentialT::Print(ostream& out) const
 {
-	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_max << '\n';
-	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
-	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';
-	out << " Non-dimensional opening to peak traction. . . . = " << fL_1       << '\n';
-	out << " Non-dimensional opening to declining traction . = " << fL_2       << '\n';
-	out << " Non-dimensional opening to failure. . . . . . . = " << fL_fail    << '\n';
-	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';
+	out << " Surface energy ratio (phi_t/phi_n). . . . . . . = " << q       << '\n';
+	out << " Critical opening ratio (delta_n* /d_n). . . . . = " << r       << '\n';
+	out << " Characteristic normal opening to failure. . . . = " << d_n     << '\n';
+	out << " Characteristic tangential opening to failure. . = " << d_t     << '\n';
+	out << " Mode I work to fracture (phi_n) . . . . . . . . = " << phi_n   << '\n';
+	out << " Failure ratio (d_n/delta_n or d_t/delta_t). . . = " << r_fail   << '\n';
+	out << " Penetration stiffness multiplier. . . . . . . . = " << fKratio << '\n';
 }
 
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
 * by default */
-int TiedPotentialT::NumOutputVariables(void) const { return 4; }
+int TiedPotentialT::NumOutputVariables(void) const { return 2; }
 
 void TiedPotentialT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(4);
-	labels[0] = "lambda";
-	labels[1] = "D_t_dot";
-	labels[2] = "D_n_dot";
-        labels[3] = "fd_c_n";
+	labels.Allocate(2);
+	labels[0] = "D_t_0";
+	labels[1] = "D_n_0";
 }
 
 void TiedPotentialT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
@@ -398,15 +317,9 @@ void TiedPotentialT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& 
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif	
-	double u_t = jump_u[0];
-	double u_n = jump_u[1];
 
-	double r_t = u_t/state[10];
-	double r_n = u_n/state[6];
-	output[0]  = sqrt(r_t*r_t + r_n*r_n); // (1.1)
-	output[1] = (u_t-state[8])/fTimeStep;
-	output[2] = (u_n-state[9])/fTimeStep;
-	output[3] = state[6];
+	output[0] = state[0];
+	output[1] = state[1];
 
 }
 
@@ -432,6 +345,14 @@ int TiedPotentialT::ElementGroupNeeded(void)
 	return 0;
 }
 
+bool TiedPotentialT::InitiationQ(const dArrayT& sigma) 
+{
+#pragma unused(sigma)
+//	if (sigma[0] >= fsigma_critical) 
+//		cout << ":::InitiationQ " << sigma[0] <<" " << fsigma_critical<<"\n";
+	return sigma[0] >= fsigma_critical;
+}
+
 bool TiedPotentialT::CompatibleOutput(const SurfacePotentialT& potential) const
 {
 #ifdef __NO_RTTI__
@@ -442,5 +363,4 @@ bool TiedPotentialT::CompatibleOutput(const SurfacePotentialT& potential) const
 	return pTH != NULL;
 #endif
 }
-
 
