@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.22 2003-05-23 22:59:21 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.23 2003-12-02 17:13:36 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -47,6 +47,7 @@ public:
 
 	/** constructor */
 	SolidElementT(const ElementSupportT& support, const FieldT& field);
+	SolidElementT(const ElementSupportT& support);
 
 	/** destructor */
 	~SolidElementT(void);
@@ -94,6 +95,12 @@ public:
 	 * group to the residual for the given solver group. ParticleT::InternalForce 
 	 * returns the internal force calculated with the latest call to ElementBaseT::FormRHS. */
 	virtual const dArray2DT& InternalForce(int group);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 
