@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.7.2.1 2001-10-11 20:04:38 sawimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.7.2.2 2001-10-15 19:38:30 sawimme Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementBaseT.h"
@@ -11,8 +11,6 @@
 #include "Constants.h"
 #include "FEManagerT.h"
 #include "NodeManagerT.h"
-#include "ExodusT.h"
-#include "ModelFileT.h"
 
 /* array behavior */
 const bool ArrayT<const RaggedArray2DT<int>*>::fByteCopy = true;
