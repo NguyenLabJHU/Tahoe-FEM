@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<tahoe author="paklein" geometry_file="../geometry/cube.1.geom"
-    title="3D uniaxial extension" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/cube.1.geom" title="3D uniaxial extension">
     <time num_steps="2" output_inc="1" time_step="0.5">
         <schedule_function>
             <piecewise_linear>
@@ -25,8 +24,7 @@
     <element_list>
         <updated_lagrangian field_name="displacement">
             <hexahedron/>
-            <solid_element_nodal_output displacements="1"
-                material_output="1" stress="1"/>
+            <solid_element_nodal_output displacements="1" material_output="1" stress="1"/>
             <large_strain_element_block>
                 <block_ID_list>
                     <String value="1"/>
@@ -36,14 +34,11 @@
                         <CB_lattice_FCC>
                             <FCC_natural/>
                         </CB_lattice_FCC>
-                        <Lennard_Jones cut_off_distance="2.63"
-                            energy_scaling="0.5678950796453064"
-                            length_scaling="2.62311730030557" mass="196.97"/>
+                        <Lennard_Jones cut_off_distance="2.63" energy_scaling="0.5678950796453064" length_scaling="2.62311730030557" mass="196.97"/>
                     </FCC_3D>
                 </large_strain_material_3D>
             </large_strain_element_block>
         </updated_lagrangian>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10"
-        divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12"/>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
 </tahoe>

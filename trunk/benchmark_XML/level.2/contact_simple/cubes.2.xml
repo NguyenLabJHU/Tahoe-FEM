@@ -1,7 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<tahoe author="paklein" echo_input="false"
-    geometry_file="../geometry/two_cubes.2.geom"
-    title="two cubes in contact" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" echo_input="false" geometry_file="../geometry/two_cubes.2.geom" title="two cubes in contact">
     <time num_steps="5" output_inc="5" time_step="0.02">
         <schedule_function>
             <piecewise_linear>
@@ -54,6 +52,5 @@
             </contact_nodes>
         </contact_3D_penalty>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10"
-        divergence_tolerance="1.0e+03" max_iterations="5" rel_tolerance="1.0e-12"/>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+03" max_iterations="5" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
 </tahoe>

@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<tahoe author="paklein" geometry_file="../geometry/cs_regress_db.geom"
-    title="cs regression test for Xu-Needleman (shear-failure)" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/cs_regress_db.geom" title="cs regression test for Xu-Needleman (shear-failure)">
     <time num_steps="50" output_inc="1" time_step="0.4">
         <schedule_function>
             <piecewise_linear>
@@ -48,12 +47,10 @@
                     <String value="3"/>
                 </block_ID_list>
                 <cohesive_relation_2D>
-                    <Xu-Needleman_2D K_ratio="0.0" d_n="0.001"
-                        d_t="0.001" phi_n="10.0" r_fail="1.0"/>
+                    <Xu-Needleman_2D K_ratio="0.0" d_n="0.001" d_t="0.001" phi_n="10.0" r_fail="1.0"/>
                 </cohesive_relation_2D>
             </anisotropic_CSE_element_block>
         </anisotropic_CSE>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10"
-        divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-10"/>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-10"><profile_matrix/></nonlinear_solver>
 </tahoe>

@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<tahoe author="paklein" geometry_file="../geometry/rect.5x1.geom"
-    title="total lagrangian axisymmetric explicit dynamic test" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/rect.5x1.geom" title="total lagrangian axisymmetric explicit dynamic test">
     <time num_steps="100" output_inc="20" time_step="0.01">
         <schedule_function>
             <piecewise_linear>
@@ -35,5 +34,5 @@
             </large_strain_axi_element_block>
         </total_lagrangian_axi>
     </element_list>
-    <linear_solver matrix_type="diagonal"/>
+    <linear_solver><diagonal_matrix/></linear_solver>
 </tahoe>
