@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.10 2002-07-18 21:58:21 hspark Exp $ */
+/* $Id: ElementT.h,v 1.10.2.1 2002-09-23 06:32:00 paklein Exp $ */
 
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
@@ -42,14 +42,15 @@ public:
     kMultiplierContact3D = 24,
    kTotLagrExternalField = 26, /**< experimental/temporary for loosely coupled problems */
    kNonsingularContinuum = 27, /**< nonsingular continuum element */ 
-    kMultiplierContactElement2D = 28,
+kMultiplierContactElement2D = 28,
        kSimoFiniteStrain = 29,  /**< enhanced strain element */
 kPenaltyContactElement2D = 30,
              kMultiScale = 31,
-	    kCoarseScale = 32,
-	      kFinePhest = 33,
+	        kCoarseScale = 32,
+	          kFinePhest = 33,
 kPenaltyContactElement3D = 34,
-            kBridgingScale=35
+          kBridgingScale = 35,
+               kSimoQ1P0 = 36  /**< Q1P0, finite strain, mixed element */
 	};
 
 	/** stream extraction operator */ 
