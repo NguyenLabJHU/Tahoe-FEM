@@ -1,4 +1,4 @@
-/* $Id: ValueT.cpp,v 1.4 2002-11-18 09:59:03 paklein Exp $ */
+/* $Id: ValueT.cpp,v 1.5 2003-03-08 01:57:27 paklein Exp $ */
 #include "ValueT.h"
 
 /* array behavior */
@@ -138,3 +138,25 @@ const ValueT& ValueT::operator=(const ValueT& rhs)
 	fString = rhs.fString;
 }
 #endif
+
+/* type conversion operators not lvalues */
+ValueT::operator const int&() const
+{
+	if (fType != Integer)
+		ExceptionT::GeneralFail("ValueT::operator const int&()", "type mismatch");	
+	return fInteger;
+}
+
+ValueT::operator const double&() const
+{
+	if (fType != Double)
+		ExceptionT::GeneralFail("ValueT::operator const double&()", "type mismatch");	
+	return fDouble;
+}
+
+ValueT::operator const StringT&() const
+{
+	if (fType != String)
+		ExceptionT::GeneralFail("ValueT::operator const StringT&()", "type mismatch");	
+	return fString;
+}
