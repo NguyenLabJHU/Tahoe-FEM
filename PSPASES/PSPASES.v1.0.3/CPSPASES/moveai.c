@@ -1,4 +1,4 @@
-/* $Id: moveai.c,v 1.1 2004-12-11 10:10:51 paklein Exp $ */
+/* $Id: moveai.c,v 1.2 2004-12-11 10:18:10 paklein Exp $ */
 /* moveai.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -57,7 +57,7 @@ static integer c__11 = 11;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: moveai.c,v 1.1 2004-12-11 10:10:51 paklein Exp $ +/ */
+/* /+ $Id: moveai.c,v 1.2 2004-12-11 10:18:10 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 /*<    >*/
 
@@ -141,7 +141,7 @@ integer lbit_shift(integer a, integer b) {
 /*<       ppg  = 10*pp >*/
     ppg = *pp * 10;
 /*<       pgrsize = ishft(1,ishft(dd,-1)) >*/
-    pgrsize = lbit_shift((ftnlen)1, lbit_shift(*dd, (ftnlen)-1));
+    pgrsize = lbit_shift(1, lbit_shift(*dd, -1));
 /*<       wrkint(psdi) = 0 >*/
     wrkint[psdi] = 0;
 /*<       wrkint(psds) = 0 >*/
@@ -171,18 +171,18 @@ integer lbit_shift(integer a, integer b) {
     wrkint[pscs + *pp - 1] = 0;
 
 /*      allocate(sendinds(0:nsend-1),stat=is1) */
-	sendinds = (integer*) malloc(nsend*sizeof(integer));
+	sendinds = (integer*) malloc((*nsend)*sizeof(integer));
 /*<       if(is1.ne.0) then >*/
     if (!sendinds) {
 /*<         print *,'Error in allocate' >*/
 		printf("%d: Error in allocate", *myid);
 /*<         call mpi_abort(comm,1,ierr) >*/
-		MPI_Abort(*comm, 1)
+		MPI_Abort(*comm, 1);
 /*<       end if >*/
     }
 
 /*      allocate(sendsizs(0:iwillsend_sizs-1),stat=is1) */
-	sendsizs = (integer*) malloc(iwillsend_sizs*sizeof(integer));
+	sendsizs = (integer*) malloc(iwillsend_sizs__*sizeof(integer));
 /*<       if(is1.ne.0) then >*/
     if (!sendsizs) {
 /*<         print *,'Error in allocate' >*/
