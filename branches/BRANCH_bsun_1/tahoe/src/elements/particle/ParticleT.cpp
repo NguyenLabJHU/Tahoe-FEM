@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.23.2.3 2003-10-09 23:58:17 bsun Exp $ */
+/* $Id: ParticleT.cpp,v 1.23.2.4 2003-10-10 21:27:35 bsun Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -686,6 +686,7 @@ double ParticleT::MaxDisplacement(void) const
 
 void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 {
+
 #pragma unused(out)
 	
 	const char caller[] = "ParticleT::EchoDamping";
@@ -884,7 +885,7 @@ void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CPara
     { //run through j
       /* tags */
       int   tag_j = neighbors[j];
-      
+      ofstreamT& out = ElementSupport().Output();
       
       /* global coordinates */
       coords.RowAlias(tag_j, x_j);
@@ -901,7 +902,9 @@ void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CPara
       EtaTemp.Outer(deltaX, deltaX);
       Omega+=OmegaTemp;
       Eta+=EtaTemp;
-  
+      out<<"delta:"<<deltaX<<"\n";
+      
+      out<<"r:"<<r_ji<<"\n";  
 
       SlipVectorTemp.DiffOf(deltaX, r_ji);
       *SlipVector+=SlipVectorTemp;
