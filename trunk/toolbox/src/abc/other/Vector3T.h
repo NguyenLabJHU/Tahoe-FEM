@@ -1,4 +1,4 @@
-/* $Id: Vector3T.h,v 1.2 2001-09-11 05:55:33 paklein Exp $ */
+/* $Id: Vector3T.h,v 1.3 2002-01-03 23:10:32 paklein Exp $ */
 /* created: paklein (02/11/2000) */
 
 #ifndef _VECTOR_3_T_H_
@@ -8,7 +8,7 @@
 #include "Environment.h"
 
 /** utility class for 3D vector functions.
-/* \note some functions do create temporary nTYPE instances */
+ * \note some functions do create temporary nTYPE instances */
 template <class nTYPE>
 class Vector3T
 {
