@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.9 2003-09-29 23:28:49 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.10 2003-09-30 16:09:29 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -182,7 +182,7 @@ private:
 	
 	dArrayT fForces_at_Node;
 	bool bStep_Complete;
- 	double time;
+ 	double time, kappa;
  	
  	void Get_Fd_ext 	( dArrayT &fFd_ext );
 	
