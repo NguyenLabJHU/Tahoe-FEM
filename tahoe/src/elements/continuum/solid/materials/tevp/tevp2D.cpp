@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.17 2001-07-13 16:27:20 paklein Exp $ */
+/* $Id: tevp2D.cpp,v 1.18 2001-07-22 21:25:11 hspark Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (06/12/2001) */
@@ -61,12 +61,14 @@ tevp2D::tevp2D(ifstreamT& in, const FiniteStrainT& element):
   fSymStress2D(2),
   fStressArray(kVoigt),
   fSmlp(kVoigt),
+  fVisc(0.0),
   fJ(0.0)
   
 {
 	/* read parameters from input stream */
 	in >> Mu_d;
-	
+	fVisc = Mu_d;
+
 	/* check values */
 	if (Mu_d < 0.0) 
 	{
@@ -222,6 +224,9 @@ const dSymMatrixT& tevp2D::s_ij(void)
       double cm = -Gamma_d * El_E * (1.0 - fJ + Alpha_T * (temp - Temp_0));
       cm /= (fJ * (1.0 - El_V));
 
+      /* add a dynamic viscosity term */
+      double* mu_d = &Mu_d;
+      *mu_d = fVisc * exp((temp-Temp_0) / Temp_0);
       dMatrixT eye_cm(3), dtemp(3);
       eye_cm = 0.0;
       eye_cm.PlusIdentity(1.0);
@@ -236,6 +241,13 @@ const dSymMatrixT& tevp2D::s_ij(void)
       fInternal[kTemp] = ComputeFluidTemperature();
       fInternal[kEb] = ComputeFluidEffectiveStrain();
     }  
+    else if (flags[ip + fNumIP] == kCrack) {
+      fStress = 0.0;
+      fInternal[kSb] = 0.0;
+      fInternal[kTemp] = Temp_0;
+      fInternal[kEb] = 0.0;
+      fTempKirchoff = 0.0;
+    }
     else {
       /* Incremental stress update part - if critical strain criteria not
        * exceeded */
@@ -280,7 +292,11 @@ const dSymMatrixT& tevp2D::s_ij(void)
     fStress.ReduceFrom3D(fStress3D);     // Take only 2D stress components
     // STORE CAUCHY STRESS HERE (2D version)
     fTempCauchy = fStress;
-    CheckCriticalStrain(element, ip);
+    /* check for model switch criteria - visco to fluid and ductile to brittle */
+    CheckCriticalCriteria(element, ip);
+    /* add if statement here to 0 stress if crack initiation criteria is met */
+    if (flags[ip + fNumIP] == kCrack)       
+      fStress = 0.0;
   }
   else
   {
@@ -437,7 +453,7 @@ double tevp2D::ComputeEffectiveStress(void)
   return fSb;
 }
 
-void tevp2D::CheckCriticalStrain(const ElementCardT& element, int ip)
+void tevp2D::CheckCriticalCriteria(const ElementCardT& element, int ip)
 {
   /* Returns an indicator to determine whether critical strain criteria
    * has been met, and switch to fluid model happens next time step */
@@ -447,15 +463,26 @@ void tevp2D::CheckCriticalStrain(const ElementCardT& element, int ip)
   /* if already fluid, no need to check criterion */
   if (flags[ip + fNumIP] == kFluid)
     *criticalstrain = 1;
+  else if (flags[ip + fNumIP] == kCrack)
+    *criticalstrain = 2;
   else
   {  
     const double eb = fInternal[kEb];
     double ebar_cr = Epsilon_1 + (Epsilon_2 - Epsilon_1) * Epsilon_rate;
     ebar_cr /= (Epsilon_rate + fEbtot);
+    double RR = .25 * (pow((fTempKirchoff[0] - fTempKirchoff[1]), 2)) + pow(fTempKirchoff[3], 2);
+    RR = sqrt(RR);
+    double sigmax = RR + .5 * (fTempKirchoff[0] + fTempKirchoff[1]);
     if (eb >= ebar_cr)
     {
       flags[ip + fNumIP] = kFluid;
       *criticalstrain = 1;        // Indicator to switch to fluid model
+    }
+    else if (sigmax >= SigCr)
+    {
+      /* check for ductile to brittle criteria */
+      flags[ip + fNumIP] = kCrack;
+      *criticalstrain = 2;
     }
     else
     {
