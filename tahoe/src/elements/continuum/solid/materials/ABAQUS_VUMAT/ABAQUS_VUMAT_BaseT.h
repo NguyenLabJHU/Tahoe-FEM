@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.3 2001-07-19 19:44:35 hspark Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.4 2001-07-20 17:03:52 hspark Exp $ */
 
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
@@ -170,7 +170,8 @@ private:
 	nMatrixT<doublereal> fdfgrd0;
 	nMatrixT<doublereal> fdfgrd1;
 	nArrayT<doublereal>  fcoords;
-	
+	nMatrixT<doublereal> fRelSpin;
+
 	/* VUMAT stored array arguments */
 	nArrayT<doublereal> fstress;
 	nArrayT<doublereal> fstrain;
@@ -191,12 +192,9 @@ private:
 	
 	/* polar decomposition work space */
 	SpectralDecompT* fDecomp;
-	dMatrixT fF_rel, fROld, fRNew;
-	dMatrixT fA_nsd;
+	dMatrixT fF_rel;
+	dMatrixT fA_nsd, fROld, fRNew;
 	dSymMatrixT fU1, fU2, fU1U2, fUOld, fUNew;
-
-	/* relative spin increment */
-	dMatrixT fRelSpin;
 
 	/* density */
 	double fAbDensity;

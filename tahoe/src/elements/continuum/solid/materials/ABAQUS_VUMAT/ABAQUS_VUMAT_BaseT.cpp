@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.4 2001-07-19 21:23:56 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.5 2001-07-20 17:03:52 hspark Exp $ */
 
 #include "ABAQUS_VUMAT_BaseT.h"
 
@@ -27,7 +27,6 @@ ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& elem
 	fROld(NumSD()),
 	fRNew(NumSD()),
 	fA_nsd(NumSD()),
-	fRelSpin(NumSD()),
 	fAbDensity(0.0),
 	fU1(NumSD()), fU2(NumSD()), fU1U2(NumSD()), fUOld(NumSD()), fUNew(NumSD())
 {
@@ -101,7 +100,14 @@ ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& elem
 	fdfgrd1.Allocate(3); // always 3
 	fdfgrd1.Identity();
 	fcoords.Allocate(nsd);
-	
+
+	/* initialize other VUMAT array arguments */
+	fROld = 0.0;
+	fRNew = 0.0;
+	fRelSpin = 0.0;
+	fUOld = 0.0;
+	fUNew = 0.0;
+
 	/* spectral decomp */
 	fDecomp = new SpectralDecompT(NumSD());
 	if (!fDecomp) throw eOutOfMemory;
