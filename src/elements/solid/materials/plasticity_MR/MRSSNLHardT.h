@@ -83,6 +83,7 @@ public:
 	                      ktanpsi = 21,
                       kstressnorm = 22,  // norm of residuals
                          kdlambda = 23,  // consistency parameter
+                         kplastic = 24,  // Plastic Index
                           kftrial = 27}; // yield function value
 
 	/* element level data */

@@ -89,7 +89,7 @@ void MRPrimitiveT::PrintName(ostream& out) const
 double MRPrimitiveT::YieldCondition(const dSymMatrixT& devstress, 
 			const double meanstress)
 {
-   double kTemp1, kTemp2, kTemp3, kTemp4;
+  double kTemp1, kTemp2, kTemp3, kTemp4;
   double fc, fchi, ffriction, ff, ftan_phi, fpress;
 
   fpress  = meanstress;
