@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.13 2001-10-10 22:36:59 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.14 2001-10-15 18:40:11 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "vtkRenderer.h"
@@ -21,6 +21,8 @@
 #include "vtkActor2D.h"
 #include "vtkFieldData.h"
 #include "vtkCamera.h"
+#include "vtkWarpVector.h"
+#include "vtkVectors.h"
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -82,7 +84,8 @@ VTKConsoleT::VTKConsoleT(void)
   else if (test == 3) file = "test2.io0.exo";
   else if (test == 4) file = "big.exo";
   else cout << "bad entry";
-  currentVarNum = 0;
+  currentVarNum = 12;
+  frameNum = 0;
 
 
    ExodusT exo(cout);
@@ -100,8 +103,9 @@ VTKConsoleT::VTKConsoleT(void)
   int num_dim   = exo.NumDimensions();
   dArray2DT coordinates(num_nodes, num_dim);
  
-  //ArrayT<dArray2DT> coordinates(num_nodes);
+  // ArrayT<dArray2DT> coordinates(num_time_steps);
   exo.ReadCoordinates(coordinates);
+  // exo.ReadCoordinates(coordinates(0));
 
   if (coordinates.MinorDim() == 2) 
     { 
@@ -166,7 +170,6 @@ VTKConsoleT::VTKConsoleT(void)
 	  dArrayT ndata(num_nodes);
 	  // scalarRange1 = 10000;
 	  // scalarRange2 = -10000;
-
 	  if (num_time_steps > 0)
 	    {
 	      for (int i = 0; i < num_time_steps; i++)
@@ -177,6 +180,9 @@ VTKConsoleT::VTKConsoleT(void)
 		      exo.ReadNodalVariable(i+1, j+1, ndata);
 		      nodal_data.SetColumn(j, ndata);
 		      scalars[i][j] =  vtkScalars::New(VTK_DOUBLE);
+		      // if (j<3) 
+			vectors[i][j] = vtkVectors::New(VTK_DOUBLE);
+		     
 		      // }
 		      scalarRange1[j] = 10000;
 		      scalarRange2[j] = -10000;
@@ -186,7 +192,10 @@ VTKConsoleT::VTKConsoleT(void)
 			//	scalars[i][j]->InsertScalar(k+1, nodal_data[k][j]);
 			if (nodal_data(k,j) < scalarRange1[j]) scalarRange1[j] = nodal_data(k,j);
 			if (nodal_data(k,j) > scalarRange2[j]) scalarRange2[j] = nodal_data(k,j);
-				scalars[i][j]->InsertScalar(k+1, nodal_data(k,j));
+			scalars[i][j]->InsertScalar(k+1, nodal_data(k,j));
+			//if (j<3)                ////k???
+			vectors[i][j]->InsertVector(k+1, nodal_data(k,0),nodal_data(k,1),nodal_data(k,2));
+			
 		      }
 		    }
 // 		  cout << " time: " << time << endl;
@@ -197,9 +206,20 @@ VTKConsoleT::VTKConsoleT(void)
 
 //   vtkPoints *points = vtkPoints::New();
 //  for (int i=0; i<num_nodes; i++) points->InsertPoint(i,coordinates[i]);
+
+
 		  
  points = vtkPoints::New();
  for (int i=0; i<num_nodes; i++) points->InsertPoint(i+1,coordinates(i));
+
+ warpGrid = vtkUnstructuredGrid::New();
+ dPoints = vtkPoints::New();
+ warp = vtkWarpVector::New();
+ for (int i = 0; i<num_nodes; i++) dPoints->InsertPoint(i+1, nodal_data(i,0), nodal_data(i,1), nodal_data(i,2));
+ warpGrid->SetPoints(dPoints);
+
+ 
+ 
 
  //NOTE: this code is only for a single block of cells
  //      the data for visualization will be provided one
@@ -222,7 +242,7 @@ VTKConsoleT::VTKConsoleT(void)
 
   
  ugrid = vtkUnstructuredGrid::New();
-
+ warp->SetInput(ugrid);
 
  /* create VTK array of cells */
  vtkCellArray* vtk_cell_array = vtkCellArray::New();
@@ -264,7 +284,8 @@ VTKConsoleT::VTKConsoleT(void)
 
   ugrid->SetPoints(points);
   points->Delete();
-  ugrid->GetPointData()->SetScalars(scalars[0][currentVarNum]);
+  ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
+  ugrid->GetPointData()->SetVectors(vectors[frameNum][currentVarNum]);
   // ugrid->GetPointData()->SetScalars(scalars[0]);
   //ugrid->SetFieldData(fd[0]);
 
@@ -277,6 +298,7 @@ VTKConsoleT::VTKConsoleT(void)
   alphaRange1 = 1; alphaRange2 = 1;
   // scalarRange1 = 6; scalarRange2 = 17;
   renderer = vtkRenderer::New();
+  renderer2 = vtkRenderer::New();
   renWin = vtkRenderWindow::New();
   iren = vtkRenderWindowInteractor::New();
   lut = vtkLookupTable::New();
@@ -293,7 +315,9 @@ VTKConsoleT::VTKConsoleT(void)
   cam = vtkCamera::New();
   axes = vtkCubeAxesActor2D::New();
   
+  
   renWin->AddRenderer(renderer);
+  // renWin->AddRenderer(renderer2);
  
   iren->SetRenderWindow(renWin);
 
@@ -304,7 +328,8 @@ VTKConsoleT::VTKConsoleT(void)
   lut->SetNumberOfColors(numColors);
   lut->Build();
   
-  ugridMapper->SetInput(ugrid);
+  // ugridMapper->SetInput(ugrid);
+  ugridMapper->SetInput(warp->GetOutput());
   ugridMapper->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
   ugridMapper->SetLookupTable(lut);
   ugridMapper->ImmediateModeRenderingOn();
@@ -352,14 +377,14 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 {
 
   int sfbTest;
-  int frameNum, varNum;
+  int  varNum;
   double xRot, yRot, zRot;
   double timeStep;
 
   if (command == "Start_Rendering")
   {
     renWin->Render();
-    cout << "type 'e' in the graphics with to exit interactive mode" << endl;
+    cout << "type 'e' in the graphics window to exit interactive mode" << endl;
     iren->Start();
     return true;
   }
@@ -374,7 +399,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
     lut->SetNumberOfColors(numColors);
 
     renWin->Render();
-    cout << "type 'e' in the graphics with to exit interactive mode" << endl;   
+    cout << "type 'e' in the graphics window to exit interactive mode" << endl;   
     iren->Start();
     return true;
   }
@@ -410,7 +435,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	  renderer->SetActiveCamera(cam);
 	  renderer->ResetCamera();
 	  renWin->Render();
-	  cout << "type 'e' in the graphics with to exit interactive mode" << endl;
+	  cout << "type 'e' in the graphics window to exit interactive mode" << endl;
 	  iren->Start();
 	  return true;
     }
@@ -463,7 +488,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       pointLabels->VisibilityOn();
       renderer->AddActor2D(pointLabels);
       renWin->Render();
-      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
+      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       iren->Start();
       return true;      
 
@@ -474,7 +499,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
     {
       renderer->RemoveActor(scalarBar);
       renWin->Render();
-      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
+      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       iren->Start();
       return true;
     }
@@ -483,7 +508,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
     {
       renderer->AddActor(scalarBar);
       renWin->Render();
-      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
+      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       iren->Start();
       return true;
     }
@@ -498,7 +523,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       cin.getline(line, 254);
       renderer->GetActiveCamera()->Elevation(xRot);
       renWin->Render();
-      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
+      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       iren->Start();
       return true;
     }
@@ -513,7 +538,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       cin.getline(line, 254);
       renderer->GetActiveCamera()->Azimuth(yRot);
       renWin->Render();
-      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
+      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       iren->Start();
       return true;
     }
@@ -527,7 +552,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       cin.getline(line, 254);
       renderer->GetActiveCamera()->Roll(zRot);
       renWin->Render();
-      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
+      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       iren->Start();
       return true;
     }
@@ -570,13 +595,14 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	  sbTitle.Append(j,3);
 	 scalarBar->SetTitle(sbTitle);
 	 ugrid->GetPointData()->SetScalars(scalars[j][currentVarNum]);
+	 ugrid->GetPointData()->SetVectors(vectors[j][currentVarNum]);
 	 // ugrid->GetPointData()->SetScalars(scalars[j]);
 	 renWin->Render();
 
       }
 
       renWin->Render();
-      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
+      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       iren->Start();
       return true;
     }
@@ -613,6 +639,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	sbTitle.Append(j,3);
 	scalarBar->SetTitle(sbTitle);	 
 	ugrid->GetPointData()->SetScalars(scalars[j][currentVarNum]);
+	 ugrid->GetPointData()->SetVectors(vectors[j][currentVarNum]);
 	//ugrid->GetPointData()->SetScalars(scalars[j]);
 
 	renWin->Render();  
@@ -661,7 +688,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	break;
       }
       renWin->Render();
-      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
+      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       iren->Start();
       return true;
     }
@@ -683,8 +710,9 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       scalarBar->SetTitle(sbTitle);
       // ugrid->GetPointData()->SetScalars(scalars[frameNum]);
        ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
+        ugrid->GetPointData()->SetVectors(vectors[frameNum][currentVarNum]);
       renWin->Render();
-      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
+      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       iren->Start();
       return true;
       
@@ -698,7 +726,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 // //       ids->Update();
       pointLabels->VisibilityOff();
       renWin->Render();
-      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
+      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       iren->Start();
       return true;   
  
@@ -722,7 +750,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       axes->VisibilityOn();
       renderer->AddActor2D(axes);
       renWin->Render();
-      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
+      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       iren->Start();
       return true;
   }
@@ -731,7 +759,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
     {
       axes->VisibilityOff();
       renWin->Render();
-      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
+      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       iren->Start();
       return true;
     }
@@ -744,12 +772,13 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       cin >> currentVarNum;
       char line[255];
       cin.getline(line, 254);
-      ugrid->GetPointData()->SetScalars(scalars[0][currentVarNum]);
+      ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
       ugridMapper->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
+      ugrid->GetPointData()->SetVectors(vectors[frameNum][currentVarNum]);
       sbTitle = "";
       sbTitle.Append(node_labels[currentVarNum]); 
-      sbTitle.Append(" for frame 000");
-  // sbTitle.Append(time,5);
+      sbTitle.Append(" for frame ");
+      sbTitle.Append(frameNum,3);
       scalarBar->SetTitle(sbTitle);
       renWin->Render();
       return true;

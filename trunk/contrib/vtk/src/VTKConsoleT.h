@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.h,v 1.10 2001-10-10 22:36:59 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.11 2001-10-15 18:40:11 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -29,6 +29,8 @@ class vtkScalars;
 class vtkCamera;
 class vtkCubeAxesActor2D;
 class StringT;
+class vtkWarpVector;
+class vtkVectors;
 
 
 class VTKConsoleT: public iConsoleObjectT
@@ -58,6 +60,7 @@ class VTKConsoleT: public iConsoleObjectT
   StringT varList;
   vtkUnstructuredGridReader *ugr;
   vtkRenderer *renderer;
+  vtkRenderer *renderer2;
   vtkRenderWindow *renWin;
   vtkRenderWindowInteractor *iren;
   vtkLookupTable *lut;
@@ -73,13 +76,17 @@ class VTKConsoleT: public iConsoleObjectT
   vtkActor2D *pointLabels;
   vtkUnstructuredGrid *ugrid;  
   /* vtkScalars *scalars[num_time_steps]; */
-  vtkScalars *scalars[1000][10];
-  /* vtkScalars *scalars[1000]; */
+  vtkScalars *scalars [1000][12];
+  vtkVectors *vectors [1000][12];
   int num_time_steps;
   vtkCamera *cam;
   vtkCubeAxesActor2D *axes;
   vtkPoints *points;
-   ArrayT<StringT> node_labels;
+  ArrayT<StringT> node_labels;
+  vtkUnstructuredGrid *warpGrid;
+  vtkPoints *dPoints;
+  vtkWarpVector *warp;
+  int frameNum;
 };
 
 #endif
