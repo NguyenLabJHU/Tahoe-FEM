@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.h,v 1.2 2001-02-20 00:10:04 paklein Exp $ */
+/* $Id: SpectralDecompT.h,v 1.3 2001-05-04 19:18:40 paklein Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -26,7 +26,7 @@ public:
 	void DecompAndModPrep(const dSymMatrixT& rank2, bool perturb_repeated); //before forming rank4's
 
 	/* compute spectral decomposition (using Jacobi iterations in 3D) */
-	void SpectralDecomp_new(const dSymMatrixT& rank2);
+	void SpectralDecomp_new(const dSymMatrixT& rank2, bool perturb_repeated);
 
 	/* compute the polar decomposition of F = RU, where R^T R = 1 and U = U^T */
 	void PolarDecomp(const dMatrixT& F, dMatrixT& R, dSymMatrixT& U, bool perturb_repeated);
@@ -82,6 +82,10 @@ private:
 	void SchmidtDecompose(const dSymMatrixT& rank2,
 	                 double l3, dSymMatrixT& n2xn2,
 	                 double l , dSymMatrixT& n0xn0, dSymMatrixT& n1xn1);
+
+	/* function to perturb repeated roots */
+	void PerturbRepeated(dArrayT& roots);
+
 protected:
 	
 	/* fixed forms */
