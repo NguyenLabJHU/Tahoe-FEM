@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.36.2.6 2004-04-20 17:40:46 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.36.2.7 2004-04-21 07:38:16 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -8,7 +8,7 @@
 #include "ElementSupportT.h"
 #include "ModelManagerT.h"
 #include "iGridManagerT.h"
-#include "iNodeT.h"l3
+#include "iNodeT.h"
 #include "ParticlePropertyT.h"
 #include "RaggedArray2DT.h"
 #include "CommManagerT.h"
