@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.41 2004-11-09 21:56:32 paklein Exp $
+# $Id: makefile.template,v 1.42 2004-11-19 17:19:25 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (1) copy makefile.template to a local makefile
@@ -146,7 +146,7 @@ EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
 #SPOOLESMPI_LFLAGS   = -L$(SPOOLESMPI_DIR)/lib -l$(SPOOLESMPI_LIB_NAME)
 
 #### PSPASES
-#PSPASES_DIR      = $(HOME_DIR)/../PSPASES.v1.0.3
+#PSPASES_DIR      = $(HOME_DIR)/../PSPASES/PSPASES.v1.0.3
 #PSPASES_INC      = -I$(PSPASES_DIR)/PSPASES
 #PSPASES_DEFINES  = -D__PSPASES__
 #PSPASES_CFLAGS   = $(PSPASES_INC) $(PSPASES_DEFINES)
