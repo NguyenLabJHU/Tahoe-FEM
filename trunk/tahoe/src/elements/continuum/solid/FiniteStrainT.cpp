@@ -1,22 +1,26 @@
-/* $Id: FiniteStrainT.cpp,v 1.11 2002-07-17 00:02:10 paklein Exp $ */
-
+/* $Id: FiniteStrainT.cpp,v 1.12 2002-09-23 06:58:25 paklein Exp $ */
 #include "FiniteStrainT.h"
+
 #include "ShapeFunctionT.h"
 #include "FDStructMatT.h"
 #include "MaterialList1DT.h"
 #include "MaterialList2DT.h"
 #include "MaterialList3DT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 FiniteStrainT::FiniteStrainT(const ElementSupportT& support, const FieldT& field):
 	ElasticT(support, field),
 	fNeedsOffset(-1),
 	fCurrShapes(NULL)	
 {
-
+	/* disable any strain-displacement options */
+	if (fStrainDispOpt != kStandardB)
+	{
+		cout << "\n FiniteStrainT::FiniteStrainT: no strain-displacement options\n" << endl;
+		fStrainDispOpt = kStandardB;
+	}
 }
 
 /* called immediately after constructor */
@@ -142,7 +146,7 @@ void FiniteStrainT::SetGlobalShape(void)
 {
 	/* inherited */
 	ElasticT::SetGlobalShape();
-	
+
 	/* what needs to get computed */
 	int material_number = CurrentElement().MaterialNumber();
 	bool needs_F = Needs_F(material_number);
@@ -175,35 +179,6 @@ void FiniteStrainT::SetGlobalShape(void)
 			mat.PlusIdentity();
 		}
 	}
-}
-
-/* calculate the damping force contribution ("-c*v") */
-void FiniteStrainT::FormCv(double constC)
-{
-#pragma unused(constC)
-//NOTE: this "linear" damping was needed only to support
-//      Rayleigh damping for linear problems. Will be removed 
-//      soon.
-
-#if 0
-//approximate?
-	/* clear workspace */
-	fLHS = 0.0;
-	fStressStiff = 0.0;
-
-	/* form tangent stiffness */
-	FormStiffness(constC);
-	fLHS.CopySymmetric();
-
-	/* reorder */
-	fLocVel.ReturnTranspose(fTemp2);
-	
-	/* C*v */
-	fLHS.MultTx(fTemp2, fNEEvec);
-	
-	/* Accumulate */
-	fRHS += fNEEvec;
-#endif
 }
 
 /* write all current element information to the stream */

@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.20 2002-09-12 17:49:53 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.21 2002-09-23 06:58:25 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -26,13 +26,6 @@ SimoFiniteStrainT::SimoFiniteStrainT(const ElementSupportT& support, const Field
 	fTempMat1(NumSD()),
 	fTempMat2(NumSD())
 {
-	/* disable any strain-displacement options */
-	if (fStrainDispOpt != 0)
-	{
-		cout << "\n SimoFiniteStrainT::SimoFiniteStrainT: no strain-displacement options\n" << endl;
-		fStrainDispOpt = 0;
-	}
-
 	/* read parameters */
 	ifstreamT& in = ElementSupport().Input();
 
@@ -672,8 +665,8 @@ void SimoFiniteStrainT::FormStiffness_staggered(double constK)
 		fShapes->GradNa(fDNa_x_enh, fGradNa_enh);
 		
 		/* strain displacement matricies */
-		fShapes->B(fDNa_x, fB);
-		fShapes->B(fDNa_x_enh, fB_enh);
+		Set_B(fDNa_x, fB);
+		Set_B(fDNa_x_enh, fB_enh);
 
 		/* stress stiffness (4.18) */
 		fStressStiff_11.MultQTBQ(fGradNa, fStressMat, format, dMatrixT::kAccumulate);
@@ -768,8 +761,8 @@ void SimoFiniteStrainT::FormStiffness_monolithic(double constK)
 		fShapes->GradNa(fDNa_x_enh, fGradNa_enh);
 		
 		/* strain displacement matricies */
-		fShapes->B(fDNa_x, fB);
-		fShapes->B(fDNa_x_enh, fB_enh);
+		Set_B(fDNa_x, fB);
+		Set_B(fDNa_x_enh, fB_enh);
 
 		/* stress stiffness (4.18) */
 		fStressStiff_11.MultQTBQ(fGradNa, fStressMat, format, dMatrixT::kAccumulate);
@@ -1045,7 +1038,7 @@ void SimoFiniteStrainT::FormStiffness_enhanced(dMatrixT& K_22, dMatrixT* K_12)
 	/* M A T E R I A L   S T I F F N E S S */									
 	
 		/* strain displacement matrix */
-		fShapes->B(fDNa_x_enh, fB_enh);
+		Set_B(fDNa_x_enh, fB_enh);
 
 		/* get D matrix */
 		fD.SetToScaled(scale, fc_ijkl_list[CurrIP()]);
@@ -1071,7 +1064,7 @@ void SimoFiniteStrainT::FormStiffness_enhanced(dMatrixT& K_22, dMatrixT* K_12)
 	/* M A T E R I A L   S T I F F N E S S */									
 	
 			/* strain displacement matrix */
-			fShapes->B(fDNa_x, fB);
+			Set_B(fDNa_x, fB);
 
 			/* accumulate */
 			K_12->MultATBC(fB, fD, fB_enh, dMatrixT::kWhole, dMatrixT::kAccumulate);

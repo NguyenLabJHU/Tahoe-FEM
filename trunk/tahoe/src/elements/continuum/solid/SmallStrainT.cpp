@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.6 2002-07-17 00:00:49 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.7 2002-09-23 06:58:25 paklein Exp $ */
 
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
@@ -93,11 +93,76 @@ void SmallStrainT::SetLocalArrays(void)
 	ElasticT::SetLocalArrays();
 
 	/* using B-bar */
-	if (fStrainDispOpt == ShapeFunctionT::kMeanDilBbar)
-		fLocDispTranspose.Allocate(fLocDisp.Length());
+	if (fStrainDispOpt == kMeanDilBbar) {
+		fLocDispTranspose.Dimension(fLocDisp.Length());
+		fMeanGradient.Dimension(NumSD(), NumElementNodes());
+	}
 }
 
-/* increment current element */
+/* calculate the internal force contribution ("-k*d") */
+void SmallStrainT::FormKd(double constK)
+{
+	const double* Det    = fShapes->IPDets();
+	const double* Weight = fShapes->IPWeights();
+	
+	/* collect incremental heat */
+	bool need_heat = fElementHeat.Length() == fShapes->NumIP();
+	
+	fShapes->TopIP();
+	while (fShapes->NextIP())
+	{
+		/* strain displacement matrix */
+		if (fStrainDispOpt == kMeanDilBbar)
+			Set_B_bar(fShapes->Derivatives_U(), fMeanGradient, fB);
+		else
+			Set_B(fShapes->Derivatives_U(), fB);
+
+		/* B^T * Cauchy stress */
+		fB.MultTx(fCurrMaterial->s_ij(), fNEEvec);
+		
+		/* accumulate */
+		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
+		
+		/* incremental heat generation */
+		if (need_heat) 
+			fElementHeat[fShapes->CurrIP()] += fCurrMaterial->IncrementalHeat();
+	}	
+}
+
+/* form the element stiffness matrix */
+void SmallStrainT::FormStiffness(double constK)
+{
+	/* matrix format */
+	dMatrixT::SymmetryFlagT format =
+		(fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
+		dMatrixT::kWhole :
+		dMatrixT::kUpperOnly;
+
+	/* integrate element stiffness */
+	const double* Det    = fShapes->IPDets();
+	const double* Weight = fShapes->IPWeights();
+	
+	fShapes->TopIP();
+	while ( fShapes->NextIP() )
+	{
+		double scale = constK*(*Det++)*(*Weight++);
+	
+		/* strain displacement matrix */
+		if (fStrainDispOpt == kMeanDilBbar)
+			Set_B_bar(fShapes->Derivatives_U(), fMeanGradient, fB);
+		else
+			Set_B(fShapes->Derivatives_U(), fB);
+
+		/* get D matrix */
+		fD.SetToScaled(scale, fCurrMaterial->c_ijkl());
+							
+		/* multiply b(transpose) * db, taking account of symmetry, */
+		/* and accumulate in elstif */
+		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);	
+	}
+}
+
+/* compute the measures of strain/deformation over the element */
 void SmallStrainT::SetGlobalShape(void)
 {
 	/* inherited */
@@ -108,18 +173,19 @@ void SmallStrainT::SetGlobalShape(void)
 	const ArrayT<bool>& needs = fMaterialNeeds[material_number];
 	
 	/* using B-bar */
-	if (fStrainDispOpt == ShapeFunctionT::kMeanDilBbar)
+	if (fStrainDispOpt == kMeanDilBbar)
 	{
-		/* compute mean dilatation */
-		fShapes->SetMeanDilatation();
+		/* compute mean of shape function gradients */
+		SetMeanGradient(fMeanGradient);
 
 		/* loop over integration points */
 		fShapes->TopIP();
 		while (fShapes->NextIP())
 		{
-			/* get B-bar */
-			fShapes->B(fB);
-		
+			/* set B-bar */
+			int ip = fShapes->CurrIP();
+			Set_B_bar(fShapes->Derivatives_U(ip), fMeanGradient, fB);
+	
 			/* deformation gradient */
 			if (needs[fNeedsOffset + kstrain])
 			{
@@ -127,7 +193,7 @@ void SmallStrainT::SetGlobalShape(void)
 				fLocDisp.ReturnTranspose(fLocDispTranspose);
 
 				/* compute strain using B-bar */
-				dSymMatrixT& strain = fStrain_List[fShapes->CurrIP()];
+				dSymMatrixT& strain = fStrain_List[ip];
 				fB.Multx(fLocDispTranspose, strain);
 				strain.ScaleOffDiagonal(0.5);
 			}
@@ -139,7 +205,7 @@ void SmallStrainT::SetGlobalShape(void)
 				fLocLastDisp.ReturnTranspose(fLocDispTranspose);
 
 				/* compute strain using B-bar */
-				dSymMatrixT& strain = fStrain_last_List[fShapes->CurrIP()];
+				dSymMatrixT& strain = fStrain_last_List[ip];
 				fB.Multx(fLocDispTranspose, strain);
 				strain.ScaleOffDiagonal(0.5);
 			}
@@ -171,4 +237,28 @@ void SmallStrainT::SetGlobalShape(void)
 			}
 		}
 	}
+}
+
+/***********************************************************************
+ * Private
+ ***********************************************************************/
+
+/* compute mean shape function gradient, Hughes (4.5.23) */
+void SmallStrainT::SetMeanGradient(dArray2DT& mean_gradient) const
+{
+	int nip = NumIP();
+	const double* det = fShapes->IPDets();
+	const double*   w = fShapes->IPWeights();
+
+	/* volume */
+	double vol = 0.0;
+	for (int i = 0; i < nip; i++)
+		vol += w[i]*det[i];
+
+	/* initialize */
+	mean_gradient = 0.0;			
+
+	/* integrate */
+	for (int i = 0; i < nip; i++)
+		mean_gradient.AddScaled(w[i]*det[i]/vol, fShapes->Derivatives_U(i));
 }

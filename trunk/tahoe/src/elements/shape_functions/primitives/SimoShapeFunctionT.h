@@ -1,4 +1,4 @@
-/* $Id: SimoShapeFunctionT.h,v 1.7 2002-07-05 22:28:40 paklein Exp $ */
+/* $Id: SimoShapeFunctionT.h,v 1.8 2002-09-23 06:58:29 paklein Exp $ */
 
 #ifndef _SIMO_SHAPE_FUNCTION_T_H_
 #define _SIMO_SHAPE_FUNCTION_T_H_
@@ -35,9 +35,11 @@ public:
 	 *        dimensioned during the call: [nsd] x [num_modes] */
 	void TransformDerivatives_enhanced(const dMatrixT& changeofvar, dArray2DT& derivatives);
 
+#if 0
 	/** strain displacement matrix associated with the enhanced modes (4.11)
 	 * at the current integration point */
 	void B_enhanced(dMatrixT& B_matrix) const;
+#endif
 
 	/** shape function gradients matrix associated with the enhanced 
 	 * modes, as in (4.18) at the current integration point */
@@ -90,12 +92,14 @@ inline void SimoShapeFunctionT::TransformDerivatives_enhanced(const dMatrixT& ch
 	DoTransformDerivatives(changeofvar, fDNaX_bubble[fCurrIP], derivatives);
 }
 
+#if 0
 /* strain displacement matrix associated with the enhanced modes (4.11) */
 inline void SimoShapeFunctionT::B_enhanced(dMatrixT& B_matrix) const
 {
 	/* inherited */
 	B(fDNaX_bubble[fCurrIP], B_matrix);
 }
+#endif
 
 /* shape function gradients matrix */
 inline void SimoShapeFunctionT::GradNa_enhanced(dMatrixT& grad_Na) const

@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.11 2002-07-17 00:02:10 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.12 2002-09-23 06:58:25 paklein Exp $ */
 
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
@@ -61,10 +61,6 @@ class FiniteStrainT: public ElasticT
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
 
-	/** calculate the damping force contribution ("-c*v"). \note arises from
-	 * support for Rayleigh damping, which is on the way out */
-	virtual void FormCv(double constC);
-
 	/** returns true if the material requires the deformation gradient */
 	bool Needs_F(int material_number) const;
 
@@ -84,11 +80,13 @@ class FiniteStrainT: public ElasticT
 
   protected:
 
-  	/* work space  */
+  	/** \name work space  */
+  	/*@{*/
   	ArrayT<dMatrixT> fF_List;      /**< deformation gradient */
   	dArrayT          fF_all;       /**< grouped memory for all deformation gradients */
   	ArrayT<dMatrixT> fF_last_List; /**< last deformation gradient */
   	dArrayT          fF_last_all;  /**< grouped memory for all last deformation gradients */
+  	/*@}*/
 
 	/** Pointer to shape functions wrt current coords. This pointer must be
 	 * set by sub-classes to enable calculation wrt current coordinates */

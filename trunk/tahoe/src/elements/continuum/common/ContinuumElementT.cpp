@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.21 2002-09-12 17:45:37 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.22 2002-09-23 06:58:25 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "ContinuumElementT.h"
@@ -7,7 +7,6 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-//#include "FEManagerT.h"
 #include "ModelManagerT.h"
 #include "StructuralMaterialT.h"
 #include "ShapeFunctionT.h"
@@ -31,10 +30,9 @@
 #include "MaterialListT.h"
 #include "Material2DT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 ContinuumElementT::ContinuumElementT(const ElementSupportT& support, 
 	const FieldT& field):
 	ElementBaseT(support, field),
@@ -635,20 +633,20 @@ void ContinuumElementT::SurfaceNodes(iArrayT& surface_nodes) const
 namespace Tahoe {
 
 /* stream extraction operator */
-istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type)
+istream& operator>>(istream& in, ContinuumElementT::MassTypeT& mtype)
 {
 	int i_type;
 	in >> i_type;
 	switch (i_type)
 	{
 		case ContinuumElementT::kNoMass:
-			type = ContinuumElementT::kNoMass;
+			mtype = ContinuumElementT::kNoMass;
 			break;
 		case ContinuumElementT::kConsistentMass:
-			type = ContinuumElementT::kConsistentMass;
+			mtype = ContinuumElementT::kConsistentMass;
 			break;
 		case ContinuumElementT::kLumpedMass:
-			type = ContinuumElementT::kLumpedMass;
+			mtype = ContinuumElementT::kLumpedMass;
 			break;
 		default:
 			cout << "\n ContinuumElementT::MassTypeT: unknown type: "
