@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.35 2003-08-14 05:52:16 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.36 2003-08-19 08:02:02 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -869,6 +869,11 @@ void ModelManagerT::SurfaceFacets(const ArrayT<StringT>& IDs,
 	/* collect list of pointers to element blocks */
 	ArrayT<const iArray2DT*> connects;
 	ElementGroupPointers(IDs, connects);
+
+	GeometryT::CodeT block_geometry = ElementGroupGeometry(IDs[0]);
+	for (int i = 1; i < IDs.Length(); i++)
+		if (ElementGroupGeometry(IDs[i]) != block_geometry)
+			ExceptionT::GeneralFail(caller, "all blocks must have the same geometry");
 
 	/* geometry info */
 	bool my_geometry = false;
