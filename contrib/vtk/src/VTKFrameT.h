@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.h,v 1.16 2001-12-13 09:56:22 paklein Exp $ */
+/* $Id: VTKFrameT.h,v 1.16.2.1 2002-06-28 17:25:09 cjkimme Exp $ */
 
 #ifndef _VTK_FRAME_T_H_
 #define _VTK_FRAME_T_H_
@@ -11,6 +11,8 @@
 #include "AutoArrayT.h"
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
+
+using namespace Tahoe; 
 
 /* VTK forward declarations */
 class vtkRenderer;

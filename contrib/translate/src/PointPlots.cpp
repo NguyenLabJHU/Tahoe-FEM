@@ -4,6 +4,8 @@
 #include "AVST.h"
 #include <stdio.h>
 
+using namespace Tahoe;
+
 PointPlots::PointPlots (ostream& out, istream& in, bool write) :
   TranslateIOManager (out, in, write)
 {

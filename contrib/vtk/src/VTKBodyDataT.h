@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.17 2002-06-26 18:00:20 recampb Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.17.2.1 2002-06-28 17:25:08 cjkimme Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -19,6 +19,8 @@ class vtkRenderer;
 class VTKUGridT;
 class vtkFloatArray;
 class vtkRenderer;
+
+using namespace Tahoe;
 
 /** interface for model data. A single VTKBodyDataT is constructed
  * for each body (unless loaded more than once). This data may appear

@@ -5,6 +5,8 @@
 #include "ExtractIOManager.h"
 #include "ofstreamT.h"
 
+namespace Tahoe {
+
 class ExtractQuad : public ExtractIOManager
 {
  public:
@@ -18,5 +20,7 @@ class ExtractQuad : public ExtractIOManager
   StringT fElementName;
   int fElementGroup;
 };
+
+} //namespace Tahoe
 
 #endif

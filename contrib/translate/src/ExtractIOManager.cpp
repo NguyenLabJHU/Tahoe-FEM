@@ -4,6 +4,8 @@
 #include <stdio.h>
 //#include <time.h>
 
+using namespace Tahoe;
+
 ExtractIOManager::ExtractIOManager (ostream& out, istream& in, bool write) :
   TranslateIOManager (out, in, write)
 {

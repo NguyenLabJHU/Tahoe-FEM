@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.11 2002-06-25 14:19:58 sawimme Exp $ */
+/* $Id: main.cpp,v 1.11.2.1 2002-06-28 17:25:07 cjkimme Exp $ */
 
 #include "TranslateIOManager.h"
 #include "ExtractNode.h"
@@ -8,6 +8,8 @@
 #include "ifstreamT.h"
 #include "StringT.h"
 #include "AutoArrayT.h"
+
+using namespace Tahoe;
 
 void ReadArgs (int c, char* a[], AutoArrayT<StringT>& list);
 istream& Open (ifstreamT& tmp, const StringT& f);

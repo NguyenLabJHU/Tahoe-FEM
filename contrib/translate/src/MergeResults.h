@@ -1,9 +1,11 @@
-/* $Id: MergeResults.h,v 1.1 2002-05-19 17:45:42 paklein Exp $ */
+/* $Id: MergeResults.h,v 1.1.2.1 2002-06-28 17:25:06 cjkimme Exp $ */
 #ifndef _TRANSLATE_MERGE_H_
 #define _TRANSLATE_MERGE_H_
 
 /* base class */
 #include "TranslateIOManager.h"
+
+namespace Tahoe {
 
 /** merge results data from multiple results files */
 class MergeResults: public TranslateIOManager
@@ -41,5 +43,7 @@ private:
 	/** node maps from the input sources */
 	ArrayT<iArrayT> fNodeMaps;
 };
+
+} // namespace Tahoe
 
 #endif /* _TRANSLATE_MERGE_H_ */

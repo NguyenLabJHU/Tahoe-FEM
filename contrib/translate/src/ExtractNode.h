@@ -3,6 +3,8 @@
 
 #include "ExtractIOManager.h"
 
+namespace Tahoe {
+
 class ExtractNode : public ExtractIOManager
 {
  public:
@@ -12,5 +14,7 @@ class ExtractNode : public ExtractIOManager
   void Initialize (void);
   void TranslateVariables (void);
 };
+
+} // namespace Tahoe
 
 #endif
