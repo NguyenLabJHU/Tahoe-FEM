@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.2 2001-05-09 17:27:27 paklein Exp $ */
 /* created: paklein (05/14/2000)                                          */
 
 #include "ABAQUS_UMAT_BaseT.h"
@@ -212,7 +212,7 @@ void ABAQUS_UMAT_BaseT::ResetHistory(void)
 /* required parameter flags */
 bool ABAQUS_UMAT_BaseT::NeedDisp(void) const     { return true; }
 bool ABAQUS_UMAT_BaseT::NeedLastDisp(void) const { return true; }
-bool ABAQUS_UMAT_BaseT::NeedVel(void) const      { return true; }
+bool ABAQUS_UMAT_BaseT::NeedVel(void) const      { return false; }
 
 /* spatial description */
 const dMatrixT& ABAQUS_UMAT_BaseT::c_ijkl(void)
@@ -928,7 +928,8 @@ void ABAQUS_UMAT_BaseT::Set_UMAT_Arguments(void)
 	fF_rel.MultAB(F_n, fA_nsd);
 
 	/* polar decomposition */
-	fDecomp->PolarDecomp(fF_rel, fA_nsd, fU1, true);
+	bool perturb_repeated_roots = false;
+	fDecomp->PolarDecomp(fF_rel, fA_nsd, fU1, perturb_repeated_roots);
 
 	/* incremental rotation */
 	dMatrixT_to_ABAQUS(fA_nsd, fdrot);
