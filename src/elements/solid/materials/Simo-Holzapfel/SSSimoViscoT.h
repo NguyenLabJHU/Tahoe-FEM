@@ -1,4 +1,4 @@
-/* $Id: SSSimoViscoT.h,v 1.6 2004-07-15 08:28:46 paklein Exp $ */
+/* $Id: SSSimoViscoT.h,v 1.7 2004-08-01 01:04:25 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_SIMO_VISCO_H_
 #define _SS_SIMO_VISCO_H_
@@ -32,6 +32,9 @@ class SSSimoViscoT: public SSSolidMatT
 	/*initialize history variable*/
 	virtual bool NeedsPointInitialization(void) const {return true;}; // declare true
 	virtual void PointInitialize(void);                // assigns storage space
+
+	/** material has history variables */
+	virtual bool HasHistory(void) const { return true; };
 	
 	/* update/reset internal variables */
 	virtual void UpdateHistory(void); // element at a time

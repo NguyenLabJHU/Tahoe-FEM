@@ -37,12 +37,14 @@ public:
 	// FossumSSIsoT(ifstreamT& in, const SmallStrainT& element, int num_ip, double mu, double lambda);
 	FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support);
 
+	/* destructor */
+	virtual ~FossumSSIsoT(void);
 
 	/* required parameter flags */
 	virtual bool Need_Strain_last(void) const {return true;};
 
-	/* destructor */
-	virtual ~FossumSSIsoT(void);
+	/** material has history variables */
+	virtual bool HasHistory(void) const { return true; };
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

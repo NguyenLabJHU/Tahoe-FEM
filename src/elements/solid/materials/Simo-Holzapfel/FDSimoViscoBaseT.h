@@ -1,4 +1,4 @@
-/* $Id: FDSimoViscoBaseT.h,v 1.4 2004-07-15 08:28:46 paklein Exp $ */
+/* $Id: FDSimoViscoBaseT.h,v 1.5 2004-08-01 01:04:25 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #ifndef _FD_SIMO_VISCO_BASE_H_
@@ -29,6 +29,9 @@ class FDSimoViscoBaseT: public FSSolidMatT
 
 	/* apply pre-conditions at the current time step */
 	virtual void InitStep(void){FSSolidMatT::InitStep();};
+
+	/** material has history variables */
+	virtual bool HasHistory(void) const { return true; };
 
 	/*initialize history variable*/
 	virtual bool NeedsPointInitialization(void) const {return true;}; // declare true

@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.h,v 1.5 2004-07-15 08:28:40 paklein Exp $ */
+/* $Id: RGBaseT.h,v 1.6 2004-08-01 01:04:22 paklein Exp $ */
 /* created : TDN (1/22/2001) */
 #ifndef _RG_BASE_T_H_
 #define _RG_BASE_T_H_
@@ -39,6 +39,9 @@ class RGBaseT: public FSIsotropicMatT
 	/*Initialize history variable*/
 	virtual bool NeedsPointInitialization(void) const {return true;}; 
 	virtual void PointInitialize(void);              
+
+	/** material has history variables */
+	virtual bool HasHistory(void) const { return true; };
 
 	/* update/reset internal variables */
 	virtual void UpdateHistory(void); // element at a time

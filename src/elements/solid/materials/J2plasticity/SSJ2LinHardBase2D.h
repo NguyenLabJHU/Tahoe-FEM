@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBase2D.h,v 1.2 2004-07-15 08:28:34 paklein Exp $ */
+/* $Id: SSJ2LinHardBase2D.h,v 1.3 2004-08-01 01:04:19 paklein Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -39,6 +39,10 @@ public:
 	virtual void InitStep(void){SSSolidMatT::InitStep();}
        
 	/*manage history variables*/
+
+	/** material has history variables */
+	virtual bool HasHistory(void) const { return true; };
+
  	/*initialize history variable*/
 	virtual bool NeedsPointInitialization(void) const {return true;}; // declare true
 	virtual void PointInitialize(void);
