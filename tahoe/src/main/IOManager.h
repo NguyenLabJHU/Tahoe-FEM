@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.18 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: IOManager.h,v 1.16 2003-08-08 00:38:38 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 
 #ifndef _IOMANAGER_H_
@@ -99,16 +99,12 @@ public:
 	 * \param e_values element output values in the the ordered defined in the connectivities */
 	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
 
-	/** write a snapshot */
-	void WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
-		const dArray2DT& values, const ArrayT<StringT>& labels) const;
-
 	/** return the list of nodes used by the output set
 	 * \param ID set ID returned from the call to IOManager::AddElementSet */
 	const iArrayT& NodesUsed(int ID) const;
 
 	/** temporarily re-route output to a database with the given filename */
-	virtual void DivertOutput(const StringT& outfile);
+	void DivertOutput(const StringT& outfile);
 
 	/** restore output to the default stream */
 	void RestoreOutput(void);

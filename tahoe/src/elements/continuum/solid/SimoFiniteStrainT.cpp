@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.28 2004-02-09 08:23:43 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.26 2003-03-31 23:17:53 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -222,15 +222,13 @@ void SimoFiniteStrainT::CloseStep(void)
 }
 	
 /* restore last converged state */
-GlobalT::RelaxCodeT SimoFiniteStrainT::ResetStep(void)
+void SimoFiniteStrainT::ResetStep(void)
 {
 	/* inherited */
-	GlobalT::RelaxCodeT relax = FiniteStrainT::ResetStep();
+	FiniteStrainT::ResetStep();
 	
 	/* store converged solution */
 	fElementModes = fElementModes_last;
-
-	return relax;
 }
 
 /* read restart information from stream */
@@ -312,7 +310,7 @@ void SimoFiniteStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		}
 		
 		/* reset element cards */
-		SetElementCards(fBlockData, fConnectivities, fEqnos, fElementCards);
+		SetElementCards();	
 	}
 }
 

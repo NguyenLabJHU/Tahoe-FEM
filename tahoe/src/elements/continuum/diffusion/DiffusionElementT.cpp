@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.19 2003-12-28 08:23:11 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.14 2003-06-09 06:58:12 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -35,22 +35,12 @@ DiffusionElementT::DiffusionElementT(const ElementSupportT& support, const Field
 	fq(NumSD()),
 	fDiffusionMatSupport(NULL)
 {
-	SetName("diffusion");
-
 	/* check base class initializations */
 	if (NumDOF() != kDiffusionNDOF) {
 		cout << "\n DiffusionElementT::DiffusionElementT: expecting field with " << kDiffusionNDOF << " dof/node not " 
 		     << NumDOF() << endl;
 		throw ExceptionT::kBadInputValue;
 	}
-}
-
-DiffusionElementT::DiffusionElementT(const ElementSupportT& support):
-	ContinuumElementT(support),
-	fLocVel(LocalArrayT::kVel),
-	fDiffusionMatSupport(NULL)
-{
-	SetName("diffusion");
 }
 
 /* destructor */
@@ -389,8 +379,8 @@ void DiffusionElementT::B(int ip, dMatrixT& B_matrix) const
 	/* 2D */
 	if (DNa.MajorDim() == 2)
 	{
-		const double* pNax = DNa(0);
-		const double* pNay = DNa(1);
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
 
 		for (int i = 0; i < nnd; i++)
 		{
@@ -401,9 +391,9 @@ void DiffusionElementT::B(int ip, dMatrixT& B_matrix) const
 	/* 3D */
 	else		
 	{
-		const double* pNax = DNa(0);
-		const double* pNay = DNa(1);
-		const double* pNaz = DNa(2);
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
+		double* pNaz = DNa(2);
 		
 		for (int i = 0; i < nnd; i++)
 		{
@@ -499,8 +489,8 @@ MaterialSupportT* DiffusionElementT::NewMaterialSupport(MaterialSupportT* p) con
 	/* inherited initializations */
 	ContinuumElementT::NewMaterialSupport(p);
 	
-	/* set DiffusionMatSupportT fields */
-	DiffusionMatSupportT* ps = TB_DYNAMIC_CAST(DiffusionMatSupportT*, p);
+	/* set SolidMatSupportT fields */
+	DiffusionMatSupportT* ps = dynamic_cast<DiffusionMatSupportT*>(p);
 	if (ps) {
 		ps->SetContinuumElement(this);
 		ps->SetGradient(&fGradient_list);
@@ -510,22 +500,16 @@ MaterialSupportT* DiffusionElementT::NewMaterialSupport(MaterialSupportT* p) con
 }
 
 /* return a pointer to a new material list */
-MaterialListT* DiffusionElementT::NewMaterialList(int nsd, int size)
+MaterialListT* DiffusionElementT::NewMaterialList(int size)
 {
-#pragma unused(nsd)
-	if (size > 0)
-	{
-		/* material support */
-		if (!fDiffusionMatSupport) {
-			fDiffusionMatSupport = TB_DYNAMIC_CAST(DiffusionMatSupportT*, NewMaterialSupport());
-			if (!fDiffusionMatSupport) ExceptionT::GeneralFail("DiffusionElementT::NewMaterialList");
-		}
-
-		/* allocate */
-		return new DiffusionMatListT(size, *fDiffusionMatSupport);
+	/* material support */
+	if (!fDiffusionMatSupport) {
+		fDiffusionMatSupport = dynamic_cast<DiffusionMatSupportT*>(NewMaterialSupport());
+		if (!fDiffusionMatSupport) throw ExceptionT::kGeneralFail;
 	}
-	else
-		return new DiffusionMatListT;
+
+	/* allocate */
+	return new DiffusionMatListT(size, *fDiffusionMatSupport);
 }
 
 /* driver for calculating output values */
@@ -542,7 +526,10 @@ void DiffusionElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_value
 //TEMP
 #pragma unused(e_values)
 if (e_out > 0)
-	ExceptionT::GeneralFail("DiffusionElementT::ComputeOutput", "element output not supported");
+{
+	cout << "\n DiffusionElementT::ComputeOutput: element output not yet supported" << endl;
+	throw ExceptionT::kGeneralFail;
+}
 
 	/* dimensions */
 	int nen = NumElementNodes();
@@ -608,29 +595,10 @@ if (e_out > 0)
 	}
 	
 	/* get nodally averaged values */
+	//was:
+	//const iArrayT& node_used = fFEManager.OutputSet(fOutputID).NodesUsed();
+	//fNodes->OutputAverage(node_used, n_values);
 	ElementSupport().OutputUsedAverage(n_values);
-}
-
-/* information about subordinate parameter lists */
-void DiffusionElementT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	ContinuumElementT::DefineSubs(sub_list);
-
-	sub_list.AddSub("diffusion_materials");
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* DiffusionElementT::NewSub(const StringT& list_name) const
-{
-	if (list_name == "diffusion_materials")
-	{
-		/* non-const this */
-		DiffusionElementT* non_const_this = const_cast<DiffusionElementT*>(this);
-		return non_const_this->NewMaterialList(0,0);
-	}
-	else /* inherited */
-		return ContinuumElementT::NewSub(list_name);
 }
 
 /***********************************************************************

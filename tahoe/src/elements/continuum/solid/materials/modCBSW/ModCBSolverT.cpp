@@ -1,4 +1,4 @@
-/* $Id: ModCBSolverT.cpp,v 1.4 2003-11-21 22:46:41 paklein Exp $ */
+/* $Id: ModCBSolverT.cpp,v 1.3 2002-10-20 22:49:03 paklein Exp $ */
 /* created: paklein (05/27/1997)                                          */
 /* Q defines the orientation of the crystals' natural coordinates         */
 /* and the global coordinate frame. Q is defined as:                      */
@@ -160,7 +160,7 @@ void ModCBSolverT::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& stress
 	for (int i = 0 ; i < dPhi_2.Length(); i++)
 	{
 		/* stress */
-		dl1hdC.Alias(kNSD, kNSD, dlh_dC(i));
+		dl1hdC.Set(kNSD, kNSD, dlh_dC(i));
 
 		stress.AddScaled(dPhi_2[i], dl1hdC);	
 	}
@@ -179,12 +179,12 @@ void ModCBSolverT::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& stress
 		int n1 = fPairs(j,0);
 		int n2 = fPairs(j,1);
 
-		coeffs.Alias(kNumDOF, dPhi_3(j));
+		coeffs.Set(kNumDOF, dPhi_3(j));
 	
 		/* stress */
-		dl1hdC.Alias(kNSD, kNSD, dlh_dC(n1));
-		dl2hdC.Alias(kNSD, kNSD, dlh_dC(n2));
-		dCoshdC.Alias(kNSD, kNSD, dCosh_dC(j));
+		dl1hdC.Set(kNSD, kNSD, dlh_dC(n1));
+		dl2hdC.Set(kNSD, kNSD, dlh_dC(n2));
+		dCoshdC.Set(kNSD, kNSD, dCosh_dC(j));
 	
 		stress.AddScaled(coeffs[0],dl1hdC);
 		stress.AddCombination(coeffs[1],dl2hdC,
@@ -291,12 +291,12 @@ void ModCBSolverT::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 	for (int i = 0 ; i < dPhi_2.Length(); i++)
 	{
 		/* gradient */
-		dl1dXsi.Alias(kNumDOF, dl_dXsi(i));
+		dl1dXsi.Set(kNumDOF, dl_dXsi(i));
 
 		dXsi.AddScaled(dPhi_2[i], dl1dXsi);
 	
 		/* hessian */
-		d2ldXsidXsi.Alias(kNumDOF,kNumDOF,d2l_dXsidXsi(i));
+		d2ldXsidXsi.Set(kNumDOF,kNumDOF,d2l_dXsidXsi(i));
 		fMat1.Outer(dl1dXsi,dl1dXsi);
 	
 		dXsidXsi.AddCombination(ddPhi_2[i], fMat1, dPhi_2[i], d2ldXsidXsi);
@@ -320,12 +320,12 @@ void ModCBSolverT::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 		int n1 = fPairs(j,0);
 		int n2 = fPairs(j,1);
 
-		coeffs.Alias(kNumDOF, dPhi_3(j));
+		coeffs.Set(kNumDOF, dPhi_3(j));
 	
 		/* gradient */
-		dl1dXsi.Alias(kNumDOF, dl_dXsi(n1));
-		dl2dXsi.Alias(kNumDOF, dl_dXsi(n2));
-		dCosdXsi.Alias(kNumDOF, dc_dXsi(j));
+		dl1dXsi.Set(kNumDOF, dl_dXsi(n1));
+		dl2dXsi.Set(kNumDOF, dl_dXsi(n2));
+		dCosdXsi.Set(kNumDOF, dc_dXsi(j));
 	
 		fGradl_i.SetRow(0, dl1dXsi );
 		fGradl_i.SetRow(1, dl2dXsi );
@@ -336,16 +336,16 @@ void ModCBSolverT::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 		dXsi += fVec;
 		
 		/* hessian */
-		ddPhi3.Alias(kNumDOF,kNumDOF,ddPhi_3(j));
+		ddPhi3.Set(kNumDOF,kNumDOF,ddPhi_3(j));
 		fMat1.MultATB(fGradl_i,ddPhi3);
 		fMat2.MultAB(fMat1,fGradl_i);
 	
 		//testing
 		//dXsidXsi += fMat2;
 		
-		ddl1.Alias(kNumDOF , kNumDOF, d2l_dXsidXsi(n1));
-		ddl2.Alias(kNumDOF , kNumDOF, d2l_dXsidXsi(n2));
-		ddc12.Alias(kNumDOF, kNumDOF, d2c_dXsidXsi(j));
+		ddl1.Set(kNumDOF , kNumDOF, d2l_dXsidXsi(n1));
+		ddl2.Set(kNumDOF , kNumDOF, d2l_dXsidXsi(n2));
+		ddc12.Set(kNumDOF, kNumDOF, d2c_dXsidXsi(j));
 		
 		//testing
 		//dXsidXsi.AddCombination(coeffs, fMatrices);
@@ -392,19 +392,19 @@ void ModCBSolverT::SetAll(const dMatrixT& CIJ)
 	for (int i = 0 ; i < dPhi_2.Length(); i++)
 	{
 		/* d2/dCdC */
-		dldC.Alias(kNSD, kNSD, dl_dC(i));
+		dldC.Set(kNSD, kNSD, dl_dC(i));
 		fSymMat1.FromMatrix(dldC);
 		fTempRank4.Outer(fSymMat1,fSymMat1);
 
-		d2ldCdC.Alias(kStressDim, kStressDim, d2l_dCdC(i));		
+		d2ldCdC.Set(kStressDim, kStressDim, d2l_dCdC(i));		
 
 		dCdC_hat.AddCombination(dPhi_2[i], d2ldCdC, ddPhi_2[i], fTempRank4);
 	
 		/* d2/dCdXsi */
-		dldXsi.Alias(kNumDOF, dl_dXsi(i));
+		dldXsi.Set(kNumDOF, dl_dXsi(i));
 		fTempMixed.Outer(fSymMat1,dldXsi);
 		
-		d2ldCdXsi.Alias(kStressDim, kNumDOF, d2l_dCdXsi(i));
+		d2ldCdXsi.Set(kStressDim, kNumDOF, d2l_dCdXsi(i));
 			
 		dCdXsi_hat.AddCombination(dPhi_2[i], d2ldCdXsi, ddPhi_2[i], fTempMixed);
 	}
@@ -429,14 +429,14 @@ void ModCBSolverT::SetAll(const dMatrixT& CIJ)
 		int n1 = fPairs(j,0);
 		int n2 = fPairs(j,1);
 
-		coeffs.Alias(kNumDOF, dPhi_3(j));
+		coeffs.Set(kNumDOF, dPhi_3(j));
 	
 		/* d2/dCdC */
-		ddPhi3.Alias(kNumDOF, kNumDOF, ddPhi_3(j));
+		ddPhi3.Set(kNumDOF, kNumDOF, ddPhi_3(j));
 		
-		dl1dC.Alias(kNSD, kNSD, dl_dC(n1));		
-		dl2dC.Alias(kNSD, kNSD, dl_dC(n2));
-		dCosdC.Alias(kNSD, kNSD, dc_dC(j));
+		dl1dC.Set(kNSD, kNSD, dl_dC(n1));		
+		dl2dC.Set(kNSD, kNSD, dl_dC(n2));
+		dCosdC.Set(kNSD, kNSD, dc_dC(j));
 	
 		fSymMat1.FromMatrix(dl1dC);
 		fGradl_C.SetRow(0, fSymMat1);
@@ -451,9 +451,9 @@ void ModCBSolverT::SetAll(const dMatrixT& CIJ)
 		//testing
 		//dCdC_hat += fTempRank4;
 		
-		ddl1.Alias(kStressDim, kStressDim, d2l_dCdC(n1));
-		ddl2.Alias(kStressDim, kStressDim, d2l_dCdC(n2));
-		ddc12.Alias(kStressDim, kStressDim, d2c_dCdC(j));
+		ddl1.Set(kStressDim, kStressDim, d2l_dCdC(n1));
+		ddl2.Set(kStressDim, kStressDim, d2l_dCdC(n2));
+		ddc12.Set(kStressDim, kStressDim, d2c_dCdC(j));
 		
 		//testing
 		//dCdC_hat.AddCombination(coeffs,fMatrices);
@@ -463,9 +463,9 @@ void ModCBSolverT::SetAll(const dMatrixT& CIJ)
 		                        coeffs[2],ddc12);		
 				
 		/* d2/dCdXsi */
-		dl1dXsi.Alias(kNumDOF, dl_dXsi(n1));
-		dl2dXsi.Alias(kNumDOF, dl_dXsi(n2));
-		dCosdXsi.Alias(kNumDOF, dc_dXsi(j));
+		dl1dXsi.Set(kNumDOF, dl_dXsi(n1));
+		dl2dXsi.Set(kNumDOF, dl_dXsi(n2));
+		dCosdXsi.Set(kNumDOF, dc_dXsi(j));
 		
 		fGradl_i.SetRow(0, dl1dXsi);
 		fGradl_i.SetRow(1, dl2dXsi );
@@ -477,9 +477,9 @@ void ModCBSolverT::SetAll(const dMatrixT& CIJ)
 		//testing
 		//dCdXsi_hat += fTempMixed;
 		
-		ddl1.Alias(kStressDim , kNumDOF, d2l_dCdXsi(n1));
-		ddl2.Alias(kStressDim , kNumDOF, d2l_dCdXsi(n2));
-		ddc12.Alias(kStressDim, kNumDOF, d2c_dCdXsi(j));
+		ddl1.Set(kStressDim , kNumDOF, d2l_dCdXsi(n1));
+		ddl2.Set(kStressDim , kNumDOF, d2l_dCdXsi(n2));
+		ddc12.Set(kStressDim, kNumDOF, d2c_dCdXsi(j));
 		
 		//testing
 		//dCdC_hat.AddCombination(coeffs,fMatrices);

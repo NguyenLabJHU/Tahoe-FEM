@@ -1,4 +1,4 @@
-/* $Id: DOFElementT.h,v 1.3 2004-01-05 07:35:36 paklein Exp $ */
+/* $Id: DOFElementT.h,v 1.2 2003-01-27 07:00:24 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 
 #ifndef _DOF_ELEMENT_T_H_
@@ -87,12 +87,6 @@ public:
 	 * and DOFElementT::ResetDOF.
 	 * \return 1 if group needs to reconfigure its tags, else 0 */
 	virtual int Reconfigure(void) = 0;
-	
-	/** restore any state data to the previous converged state. This is an indication
-	 * to the group that the solution for the current time step has failed. This
-	 * call will be followed by a call to DOFElementT::Reconfigure so the group
-	 * can determine the number of tags needed */
-	virtual void ResetState(void) = 0;
 };
 
 } // namespace Tahoe 

@@ -1,5 +1,6 @@
-/* $Id: J2SimoC0HardeningT.cpp,v 1.12 2004-01-27 19:11:40 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.cpp,v 1.10 2002-10-20 22:49:05 paklein Exp $ */
 /* created: paklein (05/01/2001) */
+
 #include "J2SimoC0HardeningT.h"
 
 #include <iostream.h>
@@ -12,7 +13,7 @@
 /* hardening functions */
 #include "CubicSplineT.h"
 #include "LinearExponentialT.h"
-#include "PowerLawT.h"
+
 
 using namespace Tahoe;
 
@@ -484,13 +485,12 @@ void J2SimoC0HardeningT::InitIntermediate(const dMatrixT& F_mechanical,
 void J2SimoC0HardeningT::LoadData(const ElementCardT& element, int ip)
 {
 	/* fetch internal variable array */
-	const dArrayT& d_array = element.DoubleData();
+	dArrayT& d_array = element.DoubleData();
 
 	/* decode */
 	int stressdim = dSymMatrixT::NumValues(kNSD);
-	dSymMatrixT::DimensionT dim = dSymMatrixT::int2DimensionT(kNSD);
-	int offset = stressdim*fNumIP;
-	int dex = ip*stressdim;
+	int offset    = stressdim*fNumIP;
+	int dex       = ip*stressdim;
 	
 	/* already set */
 	if (fb_bar.Pointer() == d_array.Pointer(dex)) 
@@ -498,12 +498,12 @@ void J2SimoC0HardeningT::LoadData(const ElementCardT& element, int ip)
 	else
 	{
 		/* set pointers */
-		fb_bar.Alias(dim, &d_array[dex]);
-		fUnitNorm.Alias(dim, &d_array[offset + dex]);
-		fbeta_bar.Alias(dim, &d_array[2*offset + dex]);
-		fb_bar_trial_.Alias(dim, &d_array[3*offset + dex]);
-		fbeta_bar_trial_.Alias(dim, &d_array[4*offset + dex]);
-		fInternal.Alias(kNumInternal, &d_array[5*offset + ip*kNumInternal]);
+		fb_bar.Set(kNSD, &d_array[dex]);
+		fUnitNorm.Set(kNSD, &d_array[offset + dex]);
+		fbeta_bar.Set(kNSD, &d_array[2*offset + dex]);
+		fb_bar_trial_.Set(kNSD, &d_array[3*offset + dex]);
+		fbeta_bar_trial_.Set(kNSD, &d_array[4*offset + dex]);
+		fInternal.Set(kNumInternal, &d_array[5*offset + ip*kNumInternal]);
 	}
 }
 
@@ -575,17 +575,6 @@ void J2SimoC0HardeningT::ConstructHardeningFunction(ifstreamT& in)
 			
 			/* construct spline */
 			fK = new CubicSplineT(points, CubicSplineT::kFreeRun);
-			break;
-		}
-		case kPowerLaw:
-		{
-			fType = kPowerLaw;
-			double a, b, n;
-			a = b = n = 0.0;
-			in >> a >> b >> n;
-			
-			/* construct function */
-			fK = new PowerLawT(a, b, n);
 			break;
 		}
 		default:

@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.12 2004-01-05 07:15:23 paklein Exp $ */
+/* $Id: GlobalT.h,v 1.11 2003-09-09 22:43:48 paklein Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -77,11 +77,10 @@ public:
 	         kFormLHS = 7,
 	       kResetStep = 8,
 	       kCloseStep = 9,
-	     kRelaxSystem =10,
-	     kWriteOutput =11,
-		kWriteRestart =12,
-		   kException =13,
-		 kDestruction =14};
+	     kWriteOutput =10,
+		kWriteRestart =11,
+		   kException =12,
+		 kDestruction =13};
 
 	/** global system types, ordered so n_1 > n_2 implies that n_1 is a
 	 * superset of n_2. */

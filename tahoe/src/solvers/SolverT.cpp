@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.19 2004-03-16 06:58:22 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.16 2003-08-14 05:31:46 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -9,7 +9,6 @@
 #include "FEManagerT.h"
 #include "CommunicatorT.h"
 #include "iArrayT.h"
-#include "ElementMatrixT.h"
 
 /* global matrix */
 #include "CCSMatrixT.h"
@@ -17,9 +16,8 @@
 #include "FullMatrixT.h"
 #include "CCNSMatrixT.h"
 #include "AztecMatrixT.h"
-#include "SuperLUMatrixT.h"
+#include "SLUMatrix.h"
 #include "SPOOLESMatrixT.h"
-#include "PSPASESMatrixT.h"
 
 #ifdef __TAHOE_MPI__
 #include "SPOOLESMatrixT_mpi.h"
@@ -35,8 +33,7 @@ SolverT::SolverT(FEManagerT& fe_manager):
 	fNumIteration(0),
 	fLHS_lock(kOpen),
 	fLHS_update(true),
-	fRHS_lock(kOpen),
-	fPerturbation(0.0)
+	fRHS_lock(kOpen)
 {
 	/* console */
 	iSetName("solver");
@@ -52,22 +49,14 @@ SolverT::SolverT(FEManagerT& fe_manager, int group):
 	fNumIteration(0),
 	fLHS_lock(kOpen),
 	fLHS_update(true),
-	fRHS_lock(kOpen),
-	fPerturbation(0.0)
+	fRHS_lock(kOpen)
 {
-	const char caller[] = "SolverT::SolverT";
-
 	/* read parameters */
 	ifstreamT& in = fFEManager.Input();
 	int check_code;
 	in >> fMatrixType;
 	in >> fPrintEquationNumbers;
 	in >> check_code;
-	if (check_code == GlobalMatrixT::kCheckLHS) {
-		in >> fPerturbation;
-		if (fabs(fPerturbation) < kSmall)
-			ExceptionT::BadInputValue(caller, "perturbation is too small: %g", fPerturbation);
-	}
 
 	ostream& out = fFEManager.Output();
 	out << "\n S o l v e r   p a r a m e t e r s:\n\n";
@@ -84,9 +73,9 @@ SolverT::SolverT(FEManagerT& fe_manager, int group):
 #endif
 
 #ifdef __SUPERLU__
-	out << "    eq. " << kSuperLU     << ", fully sparse matrix with direct solver: SuperLU\n";
+	out << "    eq. " << kSparseDirect     << ", fully sparse matrix with direct solver: SuperLU\n";
 #else
-	out << "    eq. " << kSuperLU     << ", NOT AVAILABLE\n";
+	out << "    eq. " << kSparseDirect     << ", NOT AVAILABLE\n";
 #endif
 
 #ifdef __SPOOLES__
@@ -97,19 +86,19 @@ SolverT::SolverT(FEManagerT& fe_manager, int group):
 
 	out << " Output global equation numbers. . . . . . . . . = " << fPrintEquationNumbers << '\n';
 	out << " Check code. . . . . . . . . . . . . . . . . . . = " << check_code << '\n';
-	out << "    eq. " << GlobalMatrixT::kNoCheck       << ", no check\n";
-	out << "    eq. " << GlobalMatrixT::kZeroPivots    << ", print zero/negative pivots\n";
-	out << "    eq. " << GlobalMatrixT::kAllPivots     << ", print all pivots\n";
-	out << "    eq. " << GlobalMatrixT::kPrintLHS      << ", print LHS matrix\n";
-	out << "    eq. " << GlobalMatrixT::kPrintRHS      << ", print RHS vector\n";
-	out << "    eq. " << GlobalMatrixT::kPrintSolution << ", print vector\n";   	
-	out << "    eq. " << GlobalMatrixT::kCheckLHS      << ", check LHS matrix\n";
-	if (check_code == GlobalMatrixT::kCheckLHS)
-		out << " Finite difference perturbation. . . . . . . . . = " << fPerturbation << '\n';
+	out << "    eq. " << GlobalMatrixT::kNoCheck       << ", do not perform rank check\n";
+	out << "    eq. " << GlobalMatrixT::kZeroPivots    << ", zero/negative pivots\n";
+	out << "    eq. " << GlobalMatrixT::kAllPivots     << ", all pivots\n";
+	out << "    eq. " << GlobalMatrixT::kPrintLHS      << ", entire LHS matrix\n";
+	out << "    eq. " << GlobalMatrixT::kPrintRHS      << ", entire RHS vector\n";
+	out << "    eq. " << GlobalMatrixT::kPrintSolution << ", solution vector\n";   	
 
 	/* check matrix type against analysis code */
 	if (fPrintEquationNumbers != 0 && fPrintEquationNumbers != 1)
-		ExceptionT::BadInputValue(caller, "\"print equation numbers\" out of range: {0,1}");
+	{	
+		cout << "\n SolverT::SolverT: \"print equation numbers\" out of range: {0,1}" << endl;
+		throw ExceptionT::kBadInputValue;
+	}
 	
 	/* construct global matrix */
 	SetGlobalMatrix(fMatrixType, check_code);
@@ -317,93 +306,6 @@ double SolverT::InnerProduct(const dArrayT& v1, const dArrayT& v2) const
 	return fFEManager.Communicator().Sum(dArrayT::Dot(v1, v2));
 }
 
-/* return approximate stiffness matrix */
-GlobalMatrixT* SolverT::ApproximateLHS(const GlobalMatrixT& template_LHS)
-{
-	/* create matrix with same structure as the template */
-	GlobalMatrixT* approx_LHS = template_LHS.Clone();
-
-	/* open locks */
-	fRHS_lock = kOpen;
-	fLHS_lock = kIgnore;
-
-	/* get copy of residual */
-	fRHS = 0.0;
-	fFEManager.FormRHS(Group());	
-	dArrayT rhs = fRHS;
-	dArrayT update;
-	update.Dimension(rhs);
-	update = 0.0;
-	
-	/* perturb each degree of freedom and compute the new residual */
-	approx_LHS->Clear();
-	iArrayT col(1);
-	AutoArrayT<int> rows;
-	AutoArrayT<double> K_col_tmp;
-	ElementMatrixT K_col(ElementMatrixT::kNonSymmetric);
-	for (int i = 0; i < fRHS.Length(); i++)
-	{
-		/* perturbation */
-		update[i] = fPerturbation;
-		
-		/* apply update to system */
-		fFEManager.Update(Group(), update);
-
-		/* compute residual */
-		fRHS = 0.0;
-		fFEManager.FormRHS(Group());	
-	
-		/* reset work space */
-		rows.Dimension(0);
-		K_col_tmp.Dimension(0);
-			
-		/* compute column of stiffness matrix */
-		for (int j = 0; j < fRHS.Length(); j++)
-		{
-			/* finite difference approximation */
-			double K_ij = (rhs[j] - fRHS[j])/fPerturbation;
-
-			/* assemble only non-zero values */
-			if (fabs(K_ij) > kSmall) {
-				col[0] = i+1;
-				rows.Append(j+1);
-				K_col_tmp.Append(K_ij);
-			}
-		}
-		
-		/* assemble */
-		K_col.Alias(rows.Length(), 1, K_col_tmp.Pointer());
-		approx_LHS->Assemble(K_col, rows, col);
-			
-		/* undo perturbation */
-		update[i] = -fPerturbation;
-		if (i > 0) update[i-1] = 0.0;
-	}
-		
-	/* restore configuration and residual */
-	fFEManager.Update(Group(), update);
-	fRHS = 0.0;
-	fFEManager.FormRHS(Group());	
-
-	/* close locks */
-	fRHS_lock = kLocked;
-	fLHS_lock = kLocked;
-
-	/* return */
-	return approx_LHS;
-}
-
-void SolverT::CompareLHS(const GlobalMatrixT& ref_LHS, const GlobalMatrixT& test_LHS) const
-{
-	ofstreamT& out = fFEManager.Output();
-
-	out << "\nreference LHS:\n";
-	ref_LHS.PrintLHS(true);
-
-	out << "\ntest LHS:\n";
-	test_LHS.PrintLHS(true);
-}
-
 /*************************************************************************
 * Private
 *************************************************************************/
@@ -451,7 +353,7 @@ int SolverT::CheckMatrixType(int matrix_type, int analysis_code) const
 			      analysis_code != GlobalT::kVarNodeNLExpDyn);
 			break;
 			
-		case kSuperLU:
+		case kSparseDirect:
 		
 			OK = (analysis_code == GlobalT::kLinStatic       ||
 			      analysis_code == GlobalT::kLinDynamic      ||
@@ -499,7 +401,7 @@ int SolverT::CheckMatrixType(int matrix_type, int analysis_code) const
 	if (fFEManager.Size() > 1 &&
 	    (matrix_type == kFullMatrix    ||
 	     matrix_type == kProfileSolver ||
-	     matrix_type == kSuperLU  ||
+	     matrix_type == kSparseDirect  ||
 	     matrix_type == kSPOOLES))
 	{
 		cout << "\n SolverT::CheckMatrixType: matrix type not support in parallel: "
@@ -512,8 +414,6 @@ int SolverT::CheckMatrixType(int matrix_type, int analysis_code) const
 /* set global equation matrix */
 void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 {
-	const char caller[] = "SolverT::SetGlobalMatrix";
-
 	/* streams */
 	ifstreamT& in = fFEManager.Input();
 	ostream&   out = fFEManager.Output();
@@ -553,40 +453,24 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 			/* construct */
 			fLHS = new AztecMatrixT(in, out, check_code, fFEManager.Communicator());
 #else
-			ExceptionT::GeneralFail(caller, "Aztec solver not installed: %d", fMatrixType);
+			cout << "\n SolverT::SetGlobalMatrix: Aztec solver not installed: ";
+			cout << fMatrixType << endl;
+			throw ExceptionT::kGeneralFail;		
 #endif /* __AZTEC__ */
 			break;
 		}
 
-		case kPSPASES:
-		{
-#ifdef __PSPASES__
-			/* construct */
-			fLHS = new PSPASESMatrixT(out, check_code, fFEManager.Communicator());
-#else
-			ExceptionT::GeneralFail(caller, " PSPASES solver not installed: %d", fMatrixType);
-#endif /* __PSPASES__ */
-			break;
-		}
-
-		case kSuperLU:
+		case kSparseDirect:
 		{
 #ifdef __SUPERLU__
-			/* global system properties */
-			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
-
-			bool symmetric;
-			if (type == GlobalT::kDiagonal || type == GlobalT::kSymmetric)
-				symmetric = true;
-			else if (type == GlobalT::kNonSymmetric)
-				symmetric = false;
-			else
-				ExceptionT::GeneralFail(caller, "unexpected system type: %d", type);
-
-			/* construct */
-			fLHS = new SuperLUMatrixT(out, check_code, symmetric);
+			// when spd code is in place, check matrix type as
+			// above in kProfileSolver. For now, always go with
+			// SuperLU.
+			fLHS = new SLUMatrix(out, check_code);
 #else
-			ExceptionT::GeneralFail(caller, "SuperLU matrix not installed: %d", fMatrixType);
+			cout << "\n SolverT::SetGlobalMatrix: SuperLU matrix not installed: ";
+			cout << fMatrixType << endl;
+			throw ExceptionT::kGeneralFail;
 #endif /* __SUPERLU__ */
 			break;
 		}
@@ -606,39 +490,57 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 			else if (type == GlobalT::kNonSymmetric)
 				symmetric = false;
 			else
-				ExceptionT::GeneralFail(caller, "unexpected system type: %d", type);
+			{
+				cout << "\n SolverT::SetGlobalMatrix: unexpected system type: "
+				     << type << endl;
+				throw ExceptionT::kGeneralFail;
+			}
 
 #ifdef __TAHOE_MPI__
+#ifdef __MWERKS__
+
+			cout << "\n SolverT::SetGlobalMatrix: SPOOLES requires functions not supported\n"
+			     <<   "     in MacMPI" << endl;
+			throw ExceptionT::kBadInputValue;
+#else
 			/* constuctor */
 			if (fFEManager.Size() > 1)
 			{
 #ifdef __SPOOLES_MPI__
 				fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting, fFEManager.Communicator());
-#else /* __SPOOLES_MPI__ */
-				ExceptionT::GeneralFail(caller, "SPOOLES MPI not installed: %d", matrix_type);
+#else
+				cout << "\n SolverT::SetGlobalMatrix: SPOOLES MPI not installed: ";
+				cout << matrix_type << endl;
+				throw ExceptionT::kGeneralFail;
 #endif /* __SPOOLES_MPI__ */
 			}
 			else
 				fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
-#else /* __TAHOE_MPI__ */
+#endif /* __MWERKS__ */
+#else
 			/* constuctor */
 			fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
 
 #endif /* __TAHOE_MPI__ */
-#else /* __SPOOLES__ */
-			ExceptionT::GeneralFail(caller, "SPOOLES not installed: %d", matrix_type);
+#else
+			cout << "\n SolverT::SetGlobalMatrix: SPOOLES not installed: ";
+			cout << matrix_type << endl;
+			throw ExceptionT::kGeneralFail;
 #endif /* __SPOOLES__ */
 			break;
 		}
 		default:
-			ExceptionT::GeneralFail(caller, "unknown matrix type: %d", matrix_type);
+		
+			cout << "\n SolverT::SetGlobalMatrix: unknown matrix type: ";
+			cout << matrix_type << endl;
+			throw ExceptionT::kGeneralFail;
 	}	
-	if (!fLHS) ExceptionT::OutOfMemory(caller);
+	if (!fLHS) throw ExceptionT::kOutOfMemory;
 }
 
 /* call for equation renumbering */
 bool SolverT::RenumberEquations(void)
 {
-	if (!fLHS) ExceptionT::GeneralFail("SolverT::RenumberEquations");
+	if (!fLHS) throw ExceptionT::kGeneralFail;
 	return fLHS->RenumberEquations();
 }

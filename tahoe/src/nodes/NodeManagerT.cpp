@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.45 2004-01-05 07:12:36 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.38 2003-10-04 19:14:01 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -37,6 +37,7 @@
 #include "BimaterialK_FieldT.h"
 #include "MappedPeriodicT.h"
 #include "TiedNodesT.h"
+#include "SymmetricNodesT.h"
 #include "PeriodicNodesT.h"
 #include "ScaledVelocityNodesT.h"
 #include "SetOfNodesKBCT.h"
@@ -53,8 +54,7 @@ NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
 	fFieldSupport(fe_manager, *this),
 	fInitCoords(NULL),
 	fCoordUpdate(NULL),
-	fCurrentCoords(NULL),
-	fNeedCurrentCoords(false)
+	fCurrentCoords(NULL)
 {
 	/* set console */
 	iSetName("nodes");
@@ -132,10 +132,6 @@ void NodeManagerT::Initialize(void)
 
 	/* history nodes */
 	EchoHistoryNodes(in, out);
-
-	/* relaxation flags */
-	fXDOFRelaxCodes.Dimension(fFEManager.NumGroups());
-	fXDOFRelaxCodes = GlobalT::kNoRelax;
 }
 
 /* register data for output */
@@ -294,8 +290,6 @@ void NodeManagerT::RegisterCoordinates(LocalArrayT& array) const
 		case LocalArrayT::kCurrCoords:
 		{
 			array.SetGlobal(CurrentCoordinates());
-			NodeManagerT* non_const_this = (NodeManagerT*) this;
-			non_const_this->fNeedCurrentCoords = true;
 			break;					
 		}
 		default:
@@ -341,9 +335,6 @@ void NodeManagerT::InitStep(int group)
 	/* update current configurations */
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
 		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
-
-	/* clear history of relaxation over tbe last step */
-	fXDOFRelaxCodes[group] = GlobalT::kNoRelax;
 }
 
 /* compute the nodal contribution to the tangent */
@@ -427,8 +418,7 @@ void NodeManagerT::UpdateCurrentCoordinates(void)
 		if (!fCurrentCoords)
 			ExceptionT::GeneralFail("NodeManagerT::UpdateCurrentCoordinates", "current coords not initialized");
 	
-		/* simple update assuming displacement degrees of freedom are the
-		 * nodal values */
+		/* update */
 		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
 	}	
 }
@@ -496,21 +486,15 @@ void NodeManagerT::WriteRestart(ofstreamT& out) const
 }
 
 /* reset displacements (and configuration to the last known solution) */
-GlobalT::RelaxCodeT NodeManagerT::ResetStep(int group)
+void NodeManagerT::ResetStep(int group)
 {
-	/* initialize return value */
-	GlobalT::RelaxCodeT relax = GlobalT::kNoRelax;
-
 	/* reset fields */
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
-			relax = GlobalT::MaxPrecedence(relax, fFields[i]->ResetStep());
-
-	/* reset the XDOF elements */
-	XDOF_ManagerT::ResetState(group);
+			fFields[i]->ResetStep();
 
 	/* inherited - reset external DOF */
-	return GlobalT::MaxPrecedence(relax, XDOF_ManagerT::ResetTags(group));
+	XDOF_ManagerT::Reset(group);
 }
 
 void NodeManagerT::WriteOutput(void)
@@ -954,7 +938,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArrayT& nodes,
 	int nen = nodes.Length();
 	int neq = eqnos.Length();
 
-	const int* ien = nodes.Pointer();
+	int* ien = nodes.Pointer();
 	int* peq = eqnos.Pointer();
 		
 	/* count assigned equation numbers */
@@ -1040,7 +1024,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArray2DT& nodes,
 	int nen = nodes.MinorDim();
 	int neq = eqnos.MinorDim();
 
-	const int* ien = nodes.Pointer();
+	int* ien = nodes.Pointer();
 	int* peq = eqnos.Pointer();
 	for (int i = 0; i < nel; i++)
 	{
@@ -1133,7 +1117,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& node
 	int nnd = NumNodes();
 	int nel = nodes.MajorDim();
 
-	const int* ien = nodes.Pointer();
+	int* ien = nodes.Pointer();
 	int* peq = eqnos.Pointer();
 	for (int i = 0; i < nel; i++)
 	{
@@ -1348,7 +1332,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 				in >> labels[j];
 			
 			/* get integrator */
-			const nIntegratorT* controller = fFEManager.nIntegrator(cont_num);
+			nIntegratorT* controller = fFEManager.nIntegrator(cont_num);
 			if (!controller) ExceptionT::GeneralFail(caller);
 
 			/* new field */			
@@ -1390,7 +1374,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		fFields.Dimension(1);
 		fFields = NULL;
 		fMessageID.Dimension(1);
-		const nIntegratorT* controller = fFEManager.nIntegrator(0);
+		nIntegratorT* controller = fFEManager.nIntegrator(0);
 		if (!controller) ExceptionT::GeneralFail(caller);
 		
 		/* field config set by analysis type */
@@ -1796,6 +1780,11 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 			TiedNodesT* kbc = new TiedNodesT(*this, field);
 			return kbc;
 		}
+		case KBC_ControllerT::kSymmetricNodes:
+		{
+			SymmetricNodesT* kbc = new SymmetricNodesT(*this, field);
+			return kbc;
+		}
 		case KBC_ControllerT::kPeriodicNodes:
 		{
 			PeriodicNodesT* kbc = new PeriodicNodesT(*this, field);
@@ -1830,8 +1819,6 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 
 FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 {
-  const char caller[] = "NodeManagerT::NewFBC_Controller";
-
 	/* displacement field */
 	const dArray2DT& disp = field[0];
 
@@ -1874,13 +1861,15 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 			break;
 
 		default:
-			ExceptionT::BadInputValue(caller, "FBC controller code %d is not supported", code);
+			ExceptionT::BadInputValue("NodeManagerT::NewFBC_Controller",
+				"FBC controller code %d is not supported", code);
 	}
 	
 	/* set time integrator */
 	if (fbc) {
-		const eIntegratorT& e_integrator = field.nIntegrator().eIntegrator();
-		fbc->SetController(&e_integrator);
+		const nIntegratorT& n_cont = field.nIntegrator();
+		const eIntegratorT* e_cont = dynamic_cast<const eIntegratorT*>(&n_cont);
+		fbc->SetController(e_cont);
 	}
 	
 	return fbc;

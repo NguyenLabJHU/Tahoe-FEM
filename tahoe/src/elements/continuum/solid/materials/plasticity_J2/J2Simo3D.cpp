@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.cpp,v 1.14 2003-10-12 01:39:03 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.13 2003-01-29 07:35:02 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo3D.h"
 #include "ElementCardT.h"
@@ -11,12 +11,24 @@ const double sqrt23 = sqrt(2.0/3.0);
 /* constructor */
 J2Simo3D::J2Simo3D(ifstreamT& in, const FSMatSupportT& support):
 	SimoIso3D(in, support),
+//	J2SimoLinHardT(in, NumIP(), Mu()),
 	J2SimoC0HardeningT(in, NumIP(), Mu()),
 	fFmech(3),
 	ffrel(3),
 	fF_temp(3)
 {
-
+// with J2 from J2SimoLinHardT
+#if 0
+//TEMP - Kinematic hardening is not working correctly. The
+//       stress state after a return map does not satisfy
+//       the consistency condition, and therefore, all other
+//       calculated values cannot be verified.
+if (J2PrimitiveT::ftheta != 1.0) {
+	cout << "\n J2Simo3D::J2Simo3D: kinematic hardening is not working correctly.\n" 
+	     <<   "     Use pure isotropic hardening, i.e., theta = 1.0: " 
+	     << J2PrimitiveT::ftheta << endl;
+	throw ExceptionT::kBadInputValue; }
+#endif
 }
 
 /* form of tangent matrix (symmetric by default) */
@@ -46,6 +58,7 @@ void J2Simo3D::Print(ostream& out) const
 {
 	/* inherited */
 	SimoIso3D::Print(out);
+//	J2SimoLinHardT::Print(out);
 	J2SimoC0HardeningT::Print(out);
 }
 
@@ -221,6 +234,7 @@ void J2Simo3D::PrintName(ostream& out) const
 {
 	/* inherited */
 	SimoIso3D::PrintName(out);
+//	J2SimoLinHardT::PrintName(out);
 	J2SimoC0HardeningT::PrintName(out);
 }
 

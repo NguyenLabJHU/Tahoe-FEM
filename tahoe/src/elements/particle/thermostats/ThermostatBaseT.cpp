@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.cpp,v 1.11 2003-12-28 23:37:27 paklein Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.6 2003-05-06 19:57:45 cjkimme Exp $ */
 #include "ThermostatBaseT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -18,25 +18,13 @@ using namespace Tahoe;
 /* constructor */
 ThermostatBaseT::ThermostatBaseT(ifstreamT& in, const int& nsd, 
 	const double& dt):
-	ParameterInterfaceT("thermostat"),
-	fBeta(0.0),
+	fNodes(),
 	fTemperature(-1.),
-	fTimeStep(dt),
 	fSD(nsd),
+	fTimeStep(dt),
 	fTemperatureSchedule(NULL)
 {
 	in >> fBeta;
-}
-
-ThermostatBaseT::ThermostatBaseT(void):
-	ParameterInterfaceT("thermostat"),
-	fBeta(0.0),
-	fTemperature(0.0),
-	fSD(0),
-	fTimeStep(0.0),
-	fTemperatureSchedule(NULL)
-{
-	SetName("thermostat");
 }
 
 /* write properties to output */
@@ -62,7 +50,7 @@ void ThermostatBaseT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const d
 			dArray2DT& forces, AutoArrayT<int>& types,
 			ArrayT<ParticlePropertyT*>& particleProperties)
 {
-	const double* v_j;
+	double* v_j;
 	double* f_j;
 	int tag_j, currType;
 	double mass, beta;
@@ -186,26 +174,6 @@ void ThermostatBaseT::InitRegion(ifstreamT& in, const dArray2DT& coords,
 	NodesInRegion(coords, partition_nodes);
 }	
 
-/* describe the parameters needed by the interface */
-void ThermostatBaseT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineParameters(list);
-
-	ParameterT beta(fBeta, "beta");
-	beta.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(beta);
-}
-
-/* accept parameter list */
-void ThermostatBaseT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	ParameterInterfaceT::TakeParameterList(list);
-
-	fBeta = list.GetParameter("beta");
-}
-
 void ThermostatBaseT::NodesInRegion(const dArray2DT& coords,	
 					const ArrayT<int>* partition_nodes)
 {
@@ -216,7 +184,7 @@ void ThermostatBaseT::NodesInRegion(const dArray2DT& coords,
 
 	double* xmin = fxmin.Pointer();
 	double* xmax = fxmax.Pointer(); 
-	const double* x_i;
+	double* x_i;
 	int ihits = 0;
 	bool isSerial = !partition_nodes;
 	int nnd = isSerial ? coords.MajorDim() : partition_nodes->Length();

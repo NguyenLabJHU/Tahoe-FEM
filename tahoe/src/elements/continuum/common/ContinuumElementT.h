@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.26 2004-02-02 23:46:43 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.19 2002-11-21 01:13:37 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -26,7 +26,6 @@ public:
 
 	/** constructor */
 	ContinuumElementT(const ElementSupportT& support, const FieldT& field);
-	ContinuumElementT(const ElementSupportT& support);
 
 	/** destructor */
 	virtual ~ContinuumElementT(void);
@@ -39,9 +38,6 @@ public:
 
 	/** reference to the current integration point number */
 	const int& CurrIP(void) const;
-
-	/** communicator over the group */
-	const CommunicatorT& GroupCommunicator(void) const;
 	
 	/** the coordinates of the current integration point */
 	void IP_Coords(dArrayT& ip_coords) const;
@@ -93,7 +89,7 @@ public:
 	/* initialize/finalize time increment */
 	virtual void InitStep(void);
 	virtual void CloseStep(void);
-	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
+	virtual void ResetStep(void); // restore last converged state
 
 	/** read restart information from stream */
 	virtual void ReadRestart(istream& in);
@@ -129,11 +125,6 @@ protected:
 	/** stream extraction operator */
 	friend istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type);
 
-	/** echo element connectivity data. Calls the inherited ElementBaseT::ElementBaseT
-	 * and then constructs the communicator for the processes with non-zero numbers
-	 * of elements in this group */
-	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
-
 	/** allocate and initialize local arrays */
 	virtual void SetLocalArrays(void);
 
@@ -147,7 +138,6 @@ protected:
 	/** compute contribution to element residual force due to natural boundary 
 	 * conditions */
 	void ApplyTractionBC(void);
-	virtual bool Axisymmetric(void) const { return false; };
 
 	/** compute shape functions and derivatives */
 	virtual void SetGlobalShape(void);
@@ -180,11 +170,9 @@ protected:
 	// shared but the output of what each code means is class-dependent
 	void EchoTractionBC(ifstreamT& in, ostream& out);
 
-	/** return a pointer to a new material list. Recipient is responsible for freeing 
-	 * the pointer. 
-	 * \param nsd number of spatial dimensions
-	 * \param size length of the list */
-	virtual MaterialListT* NewMaterialList(int nsd, int size) = 0;
+	/** construct a new material list and return a pointer. Recipient is responsible for
+	 * for freeing the pointer. */
+	virtual MaterialListT* NewMaterialList(int size) = 0;
 
 	/** construct a new material support and return a pointer. Recipient is responsible for
 	 * for freeing the pointer.
@@ -210,19 +198,6 @@ protected:
 	 * \return true if output variables of all materials for the group matches */
 	virtual bool CheckMaterialOutput(void) const;
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
-	/*@}*/
-
 private:
 
 	/** construct output labels array */
@@ -240,9 +215,6 @@ private:
 	virtual int DefaultNumElemNodes(void) const;
 
 protected:
-
-	/** communicator over processes with elements in this group */
-	CommunicatorT* fGroupCommunicator;
 
 	/** list of materials */
 	MaterialListT* fMaterialList;
@@ -284,21 +256,9 @@ private:
 
 	/** element parameter */
 	GeometryT::CodeT fGeometryCode;
-	
-	/** cached results from ContinuumElementT::Axisymmetric */
-	bool fAxisymmetric;
 };
 
 /* inlines */
-/* communicator over the group */
-inline const CommunicatorT& ContinuumElementT::GroupCommunicator(void) const
-{
-#if __option(extended_errorcheck)
-	if (!fGroupCommunicator)
-		ExceptionT::GeneralFail("ContinuumElementT::GroupCommunicator", "pointer not set");
-#endif
-	return *fGroupCommunicator;
-}
 
 /* return the geometry code */
 inline GeometryT::CodeT ContinuumElementT::GeometryCode(void) const

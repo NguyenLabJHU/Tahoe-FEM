@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.10 2004-01-05 07:27:58 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.9 2003-01-29 07:34:34 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 
 #include "LocalizerT.h"
@@ -306,16 +306,14 @@ void LocalizerT::WriteRestart(ostream& out) const
 }
 
 /* resets to the last converged solution */
-GlobalT::RelaxCodeT LocalizerT::ResetStep(void)
+void LocalizerT::ResetStep(void)
 {
 	/* inherited */
-	GlobalT::RelaxCodeT relax = UpdatedLagrangianT::ResetStep();
+	UpdatedLagrangianT::ResetStep();
 
 	/* reset flagged elements */
 	fElementMonitor.MarkedToON();
 	fElementMonitor.ResetFlags(kMonitorLocalized, MonitorT::kON);
-
-	return relax;
 }
 
 /***********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.25 2004-02-04 07:37:52 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.22 2003-05-23 22:59:21 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -47,7 +47,6 @@ public:
 
 	/** constructor */
 	SolidElementT(const ElementSupportT& support, const FieldT& field);
-	SolidElementT(const ElementSupportT& support);
 
 	/** destructor */
 	~SolidElementT(void);
@@ -96,12 +95,6 @@ public:
 	 * returns the internal force calculated with the latest call to ElementBaseT::FormRHS. */
 	virtual const dArray2DT& InternalForce(int group);
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-	/*@}*/
-
 protected:
 
 	/** stream extraction operator */
@@ -129,25 +122,13 @@ protected:
 
 	/** set the \e B matrix using the given shape function derivatives
 	 * Set strain displacement matrix as in Hughes (2.8.20)
-	 * \param derivatives of shape function derivatives: [nsd] x [nen]
+	 * \param derivatives of shape function derivatives: [nsd] x [nnd]
 	 * \param B destination for B */
 	void Set_B(const dArray2DT& derivatives, dMatrixT& B) const;
 
-	/** set the \e B matrix for 2D axysymmetric problems using the given shape functions
-	 * and derivative using the y-axis as the axis or revolution.
-	 * \param shapes shape function values: [nen]
-	 * \param derivatives of shape function derivatives: [nsd] x [nen]
-	 * \param r distance from the axis of revolution
-	 * \param B destination for B */
-	void Set_B_axi(const dArrayT& shapes, const dArray2DT& derivatives, double r, dMatrixT& B) const;
-
-	/** set B-bar as given by Hughes (4.5.11-16) */
+	/** set B-bar as given by Hughes (4.5.11-16)*/
 	void Set_B_bar(const dArray2DT& derivatives, const dArray2DT& mean_gradient, 
-		dMatrixT& B) const;
-
-	/** set B-bar for axisymmetric deformations */
-	void Set_B_bar_axi(const dArrayT& shapes, const dArray2DT& derivatives, const dArray2DT& mean_gradient, 
-		double r, dMatrixT& B) const;
+		dMatrixT& B);
 
 	/** \name construct the effective mass matrix */
 	/*@{*/

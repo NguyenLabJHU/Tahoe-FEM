@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.13 2004-01-27 01:26:19 cjkimme Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.12 2003-01-27 07:00:26 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 
 #include "MeshFreeElementSupportT.h"
@@ -6,7 +6,6 @@
 #include "fstreamT.h"
 #include "iAutoArrayT.h"
 #include "MeshFreeShapeFunctionT.h"
-#include "MeshFreeNodalShapeFunctionT.h"
 #include "ElementCardT.h"
 #include "MeshFreeSupportT.h"
 #include "ElementBaseT.h"
@@ -22,7 +21,6 @@ const int kHeadRoom = 10; // percent
 /* constructor */
 MeshFreeElementSupportT::MeshFreeElementSupportT(ifstreamT& in):
 	fMFShapes(NULL),
-	fNodalShapes(NULL),
 	fLocGroup(kHeadRoom),
 	fNumElemenNodes(0),
 	fNEEArray(kHeadRoom, true),

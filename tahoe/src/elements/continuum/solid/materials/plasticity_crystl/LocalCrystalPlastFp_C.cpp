@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp_C.cpp,v 1.8 2003-12-18 22:22:01 ebmarin Exp $ */
+/* $Id: LocalCrystalPlastFp_C.cpp,v 1.7 2003-01-29 07:35:05 paklein Exp $ */
 #include "LocalCrystalPlastFp_C.h"
 #include "LatticeOrient.h"
 #include "CrystalElasticity.h"
@@ -261,7 +261,6 @@ void LocalCrystalPlastFp_C::ComputeOutput(dArrayT& output)
     {
       // gather element information
       ElementCardT& element = CurrentElement();
-      int group = ContinuumElement().ElementGroupNumber();
       int elem  = CurrElementNumber();
       int intpt = 0;
 
@@ -312,7 +311,7 @@ void LocalCrystalPlastFp_C::ComputeOutput(dArrayT& output)
 	    }
 	  
 	  // write texture at center of element
-	  fLatticeOrient->WriteTexture(group, elem, intpt, fNumGrain, step, fangles);
+	  fLatticeOrient->WriteTexture(elem, intpt, fNumGrain, step, fangles);
 	}
     }
 }

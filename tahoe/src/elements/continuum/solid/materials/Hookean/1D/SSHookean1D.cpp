@@ -1,4 +1,4 @@
-/* $Id: SSHookean1D.cpp,v 1.6 2004-01-10 04:41:14 paklein Exp $ */
+/* $Id: SSHookean1D.cpp,v 1.5 2002-11-14 17:06:03 paklein Exp $ */
 #include "SSHookean1D.h"
 
 using namespace Tahoe;
@@ -8,12 +8,7 @@ SSHookean1D::SSHookean1D(ifstreamT& in, const SSMatSupportT& support):
 	SSHookeanMatT(in, support),
 	IsotropicT(in)
 {
-	SetName("small_strain_Hookean_1D");
-}
 
-SSHookean1D::SSHookean1D(void)
-{
-	SetName("small_strain_Hookean_1D");
 }
 
 /* print parameters */

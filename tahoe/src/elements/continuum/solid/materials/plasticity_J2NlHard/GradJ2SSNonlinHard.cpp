@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSNonlinHard.cpp,v 1.13 2004-01-10 04:41:23 paklein Exp $ */
+/* $Id: GradJ2SSNonlinHard.cpp,v 1.11 2003-09-03 23:43:31 paklein Exp $ */
 #include "GradJ2SSNonlinHard.h"
 
 #include "iArrayT.h"
@@ -183,9 +183,9 @@ const dSymMatrixT& GradJ2SSNonlinHard::s_ij(void)
 	int fCurrIP = CurrIP();
 	ElementCardT& element = CurrentElement();
 
-	int iteration = fSSMatSupport->IterationNumber();
+	int iteration = fSSMatSupport.IterationNumber();
 
-	if (fSSMatSupport->RunState() == GlobalT::kFormRHS && fCurrIP == 0)
+	if (fSSMatSupport.RunState() == GlobalT::kFormRHS && fCurrIP == 0)
 	{
 	        if (iteration > -1)
 		        /* solve state at each integration point (all at once) */
@@ -480,27 +480,26 @@ double GradJ2SSNonlinHard::YieldCondition(const dSymMatrixT& relstress,
 void GradJ2SSNonlinHard::LoadData(const ElementCardT& element, int fCurrIP)
 {
 	/* fetch arrays */
-	const dArrayT& d_array = element.DoubleData();
+	dArrayT& d_array = element.DoubleData();
 	
 	/* decode */
-	dSymMatrixT::DimensionT sdim = dSymMatrixT::int2DimensionT(kNSD);
 	int dim   = dSymMatrixT::NumValues(kNSD);
 	int block = 10*dim + 2*kNumInternal + dim*dim;
 	int dex   = fCurrIP*block;
 
-	fStress.Alias       (sdim,         &d_array[dex                ]);
-	fStress_n.Alias     (sdim,         &d_array[dex += dim         ]);
-	fPlstStrn.Alias     (sdim,         &d_array[dex += dim         ]);
-	fPlstStrn_n.Alias   (sdim,         &d_array[dex += dim         ]);
-	fUnitNorm.Alias     (sdim,         &d_array[dex += dim         ]);
-	fUnitNorm_n.Alias   (sdim,         &d_array[dex += dim         ]);
-	fKinHardCF.Alias    (sdim,         &d_array[dex += dim         ]);
-	fKinHardCF_n.Alias  (sdim,         &d_array[dex += dim         ]);
-	fNLKinHardCF.Alias  (sdim,         &d_array[dex += dim         ]);
-	fNLKinHardCF_n.Alias(sdim,         &d_array[dex += dim         ]);
-	fInternal.Alias     (kNumInternal, &d_array[dex += dim         ]);
-	fInternal_n.Alias   (kNumInternal, &d_array[dex += kNumInternal]);
-	fModulus.Alias      (dim,dim,      &d_array[dex += kNumInternal]);
+        fStress.Set     (kNSD,         &d_array[dex                ]);
+        fStress_n.Set   (kNSD,         &d_array[dex += dim         ]);
+        fPlstStrn.Set   (kNSD,         &d_array[dex += dim         ]);
+        fPlstStrn_n.Set (kNSD,         &d_array[dex += dim         ]);
+        fUnitNorm.Set   (kNSD,         &d_array[dex += dim         ]);
+        fUnitNorm_n.Set (kNSD,         &d_array[dex += dim         ]);
+        fKinHardCF.Set   (kNSD,         &d_array[dex += dim         ]);
+        fKinHardCF_n.Set (kNSD,         &d_array[dex += dim         ]);
+        fNLKinHardCF.Set  (kNSD,        &d_array[dex += dim         ]);
+        fNLKinHardCF_n.Set(kNSD,        &d_array[dex += dim         ]);
+        fInternal.Set   (kNumInternal, &d_array[dex += dim         ]);
+        fInternal_n.Set (kNumInternal, &d_array[dex += kNumInternal]);
+        fModulus.Set    (dim,dim,      &d_array[dex += kNumInternal]);
 }
 
 /* computes the increment in the plasticity parameter */

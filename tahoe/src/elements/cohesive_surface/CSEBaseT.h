@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.19 2004-03-19 17:16:53 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.15 2003-08-14 05:51:27 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -26,10 +26,7 @@ public:
 	/* flags for derived class support */
 	enum FormulationT {Isotropic = 0,
 	                 Anisotropic = 1, 
-	         NoRotateAnisotropic = 2,
-	         	ModeIAnisotropic = 3,
-	            RigidAnisotropic = 4,
-	       NodalRigidAnisotropic = 5};
+	         NoRotateAnisotropic = 2};
 
 	/** indicies for nodal output */
 	enum NodalOutputCodeT {
@@ -68,7 +65,7 @@ public:
 	virtual void CloseStep(void);
 
 	/* resets to the last converged solution */
-	virtual GlobalT::RelaxCodeT ResetStep(void);
+	virtual void ResetStep(void);
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* solution calls */
@@ -131,19 +128,16 @@ protected:
 	/* write current element information to the output */
 	void CurrElementInfo(ostream& out) const;
 	
-	/* number of facet nodes as a function of number of element nodes */
-	virtual int NumFacetNodes(void) { return NumElementNodes()/2; }
-	
+private:
+
+	/* close surfaces to zero gap */
+	void CloseSurfaces(void) const;
+
 	/* return the default number of element nodes */
 	virtual int DefaultNumElemNodes(void) const;
 	//NOTE: needed because ExodusII does not store ANY information about
 	//      empty element groups, which causes trouble for parallel execution
 	//      when a partition contains no element from a group.
-	
-private:
-
-	/* close surfaces to zero gap */
-	void CloseSurfaces(void) const;
 	
 protected:
 
@@ -153,20 +147,15 @@ protected:
 	int fCloseSurfaces;
 	int fOutputArea;
 
-	/** \name output control */
-	/*@{*/
+	/* output control */
 	int fOutputID;
 	iArrayT	fNodalOutputCodes;
 	iArrayT	fElementOutputCodes;
 	iArrayT fNodesUsed;
-	bool fOutputGlobalTractions;
-	/*@}*/
 
-	/** \name output of fracture area */
-	/*@{*/
+	/* output stream for fracture area */
 	ofstreamT farea_out;
 	double fFractureArea;
-	/*@}*/
 
 	/* shape functions */
 	SurfaceShapeT* fShapes;

@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.17 2004-02-02 23:48:38 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.15 2003-01-29 07:34:34 paklein Exp $ */
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
 
@@ -67,11 +67,10 @@ class FiniteStrainT: public SolidElementT
 	 *        a new MaterialSupportT and initialize it. */
 	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
 
-	/** return a pointer to a new material list. Recipient is responsible for freeing 
-	 * the pointer. 
-	 * \param nsd number of spatial dimensions
-	 * \param size length of the list */
-	virtual MaterialListT* NewMaterialList(int nsd, int size);
+	/** return a pointer to a new material list. Recipient is responsible for
+	 * for freeing the pointer.
+	 * \param size number of materials in the list */
+	virtual MaterialListT* NewMaterialList(int size);
 
 	/** construct list of materials from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
@@ -110,12 +109,12 @@ class FiniteStrainT: public SolidElementT
 	 * set by sub-classes to enable calculation wrt current coordinates */
 	ShapeFunctionT* fCurrShapes;
   
+  private:
+  
   	/** the material support used to construct materials lists. This pointer
   	 * is only set the first time FiniteStrainT::NewMaterialList is called. */
 	FSMatSupportT* fFSMatSupport;
-
-  private:
-    
+  
 	/** offset to material needs */
 	int fNeedsOffset; //NOTE - better to have this or a separate array?
 };

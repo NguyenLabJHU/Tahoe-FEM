@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.22 2004-01-08 17:58:17 paklein Exp $ */
+/* $Id: main.cpp,v 1.19 2003-06-14 00:34:54 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -33,7 +33,7 @@ static void DumpLicense(void);
 
 /* redirect of cout for parallel execution */
 ofstream console;
-#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__) || defined(__INTEL_CC__)
+#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__)
 streambuf* cout_buff = NULL,*cerr_buff = NULL;
 #endif
 
@@ -64,13 +64,13 @@ static void StartUp(int* argc, char*** argv, CommunicatorT& comm)
 {
 #if defined(__MWERKS__) && defined(__MACH__)
 /* CW8 console apps launch with cwd = "/" */
-if (chdir("/Volumes/Uster/USERS/paklein/Code/protected-tahoe/benchmark") != 0) cout << " chdir failed" << endl;
+if (chdir("/Volumes/Uster/USERS/tahoe/bin") != 0) cout << " chdir failed" << endl;
 char cwd[255];
 if (getcwd(cwd, 255)) cout << " cwd: " << cwd << endl;
 #endif
 
 #if !defined(_MACOS_) && !defined(__INTEL__)
-#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__) || defined(__INTEL_CC__)
+#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__)
 	/* redirect cout and cerr */
 	if (comm.Rank() > 0)
 	{
@@ -96,7 +96,7 @@ if (getcwd(cwd, 255)) cout << " cwd: " << cwd << endl;
 		cout = console;
 		cerr = console;
 	}
-#endif /* __DEC__ || __SUN__ || __GCC_3__ || __INTEL_CC__ */
+#endif /* __DEC__ */
 #else /* __MACOS__ && __INTEL__ */
 #pragma unused(comm)
 #endif /* __MACOS__ && __INTEL__ */
@@ -162,7 +162,7 @@ static void ShutDown(CommunicatorT& comm)
 
 void DumpLicense(void)
 {
-	const char version[] = "Tahoe 1.3";
+	const char version[] = "Tahoe 1.2";
 	cout << "\n " << version << "\n\n"
          << " Copyright 2003, Sandia Corporation.\n" 
 	     << " All rights reserved.\n\n"

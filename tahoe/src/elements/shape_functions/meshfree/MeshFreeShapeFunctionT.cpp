@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.12 2004-03-16 06:58:54 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.9 2003-01-27 07:00:30 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 
 #include "MeshFreeShapeFunctionT.h"
@@ -22,10 +22,10 @@ MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, i
 {
 	/* construct MLS support */
 	if (all_coords.MinorDim() == 2)
-		fMFSupport = new MeshFreeSupport2DT(fDomain, all_coords, connects,
+		fMFSupport = new MeshFreeSupport2DT(*fDomain, all_coords, connects,
 							nongridnodes, in);
 	else
-		fMFSupport = new MeshFreeSupport3DT(fDomain, all_coords, connects,
+		fMFSupport = new MeshFreeSupport3DT(*fDomain, all_coords, connects,
 							nongridnodes, in);
 
 	if (!fMFSupport) throw ExceptionT::kOutOfMemory;
@@ -419,7 +419,7 @@ void MeshFreeShapeFunctionT::InitBlend(void)
 	hit_map = 0;
 	for (int j = 0; j < nel; j++)
 	{
-		const int* pelem = fXConnects(j);
+		int* pelem = fXConnects(j);
 		for (int k = 0; k < nen; k++)
 		{
 			int shifted_node = *pelem++ - shift;
@@ -471,7 +471,7 @@ void MeshFreeShapeFunctionT::InitBlend(void)
 			/* convert to map of element data */
 			fElemHasExactNode[ii] = flagged_count;
 
-			const int* pelem = fXConnects(ii);
+			int* pelem  = fXConnects(ii);
 			int* pflags = fElemFlags(flagged_count);
 			for (int j = 0; j < nen; j++)
 			{
@@ -521,14 +521,14 @@ void MeshFreeShapeFunctionT::BlendElementData(void)
 	int nen = rNa.MinorDim();
 	int nnd = fNeighbors.Length();
 	
-	fR  = 0.0;
-	fDR = 0.0;			
+	fR  = 0;
+	fDR = 0;			
 	int* pelem_flags = fElemFlags(fElemHasExactNode[fCurrElement]);
 	for (int ii = 0; ii < nip; ii++)
 	{
 		/* ramp function */
-		int* pflag = pelem_flags;
-		const double* pNa = rNa(ii);
+		int*  pflag = pelem_flags;
+		double* pNa = rNa(ii);
 		for (int j = 0; j < nen; j++)
 			fR[ii] += (1 - *pflag++)*(*pNa++);
 		
@@ -537,7 +537,7 @@ void MeshFreeShapeFunctionT::BlendElementData(void)
 		{
 			int*   pflag = pelem_flags;
 			double* pDR  = fDR(ii);
-			const double* pDNa = (rDNa[ii])(k);
+			double* pDNa = (rDNa[ii])(k);
 			for (int j = 0; j < nen; j++)
 				pDR[k] += (1 - *pflag++)*(*pDNa++);
 		}
@@ -566,8 +566,8 @@ void MeshFreeShapeFunctionT::BlendElementData(void)
 	fNeighExactFlags.Dimension(nnd);
 	for (int k = 0; k < nnd; k++)
 	{
-		int loc = -1;
-		const int* pelem = fXConnects(fCurrElement);
+		int    loc   = -1;
+		int* pelem   = fXConnects(fCurrElement);
 		int listnode = fNeighbors[k];
 		for (int i = 0; i < nen && loc < 0; i++)
 			if (*pelem++ == listnode) loc = i;

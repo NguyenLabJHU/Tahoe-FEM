@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.15 2003-11-11 07:14:00 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.14 2003-10-04 20:32:30 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -17,7 +17,6 @@
 #include "eIntegratorT.h"
 #include "IOBaseT.h"
 #include "OutputSetT.h"
-#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
@@ -303,37 +302,19 @@ void PenaltyRegionT::WriteOutput(ostream& out) const
 {
 	int d_width = out.precision() + kDoubleExtra;
 
-	/* mp support */
-	CommunicatorT& comm = fFEManager.Communicator();
-
-	/* maximum penetration */
 	double h_max = 0.0;
 	if (fContactNodes.Length() > 0)
-		h_max = fGap.Min();
-
+		fGap.Min();
 	out << "\n P e n a l t y   R e g i o n   D a t a :\n\n";
-	out << " Local maximum penetration. . . . . . . . . =\n"
+	out << " Maximum penetration. . . . . . . . . . . . =\n"
 	    << setw(d_width) << h_max << '\n';
-	out << " Global maximum penetration . . . . . . . . =\n"
-	    << setw(d_width) << comm.Min(h_max) << '\n';
 	out << " Position . . . . . . . . . . . . . . . . . =\n" << fx << '\n';
 	out << " Velocity . . . . . . . . . . . . . . . . . =\n" << fv << '\n';
 	
-	/* compute contact force */
-	dArrayT loc_sum(fContactForce2D.MinorDim());
+	/* contact force */
+	out << " Contact force:\n";
 	for (int i = 0; i < rCoords.MinorDim(); i++)
-		loc_sum[i] = -fContactForce2D.ColumnSum(i);
-	dArrayT global_sum(loc_sum.Length());
-	comm.Sum(loc_sum, global_sum);
-
-	/* write output */
-	out << " Local contact force. . . . . . . . . . . . =\n";
-	for (int i = 0; i < loc_sum.Length(); i++)
-		out << setw(kDoubleWidth) << loc_sum[i] << '\n';
-
-	out << " Glocal contact force . . . . . . . . . . . =\n";
-	for (int i = 0; i < global_sum.Length(); i++)
-		out << setw(kDoubleWidth) << global_sum[i] << '\n';
+		out << setw(kDoubleWidth) << -fContactForce2D.ColumnSum(i) << '\n';
 
 	/* collect output data */
 	int ndof = rEqnos.MinorDim();

@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.28 2004-03-04 08:54:17 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.25 2003-08-25 21:41:49 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -7,7 +7,6 @@
 #include "ExceptionT.h"
 
 /* direct members */
-#include "IOBaseT.h"
 #include "GlobalT.h"
 #include "dArray2DT.h"
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -23,7 +22,6 @@ namespace Tahoe {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 class FEManagerT;
 class NodeManagerT;
-class TimeManagerT;
 class XDOF_ManagerT;
 class FieldT;
 class eIntegratorT;
@@ -230,7 +228,7 @@ public:
 	/** rank of this process */
 	int Rank(void) const;
 
-	/** low-level global communicator */
+	/** low-level communicator */
 	const CommunicatorT& Communicator(void) const;
 
 	/** the nodes not native to this processor. Returns NULL if there is no 
@@ -292,9 +290,6 @@ public:
 	/** the echo file */
 	ofstreamT& Output(void) const;
 
-	/** format of the output files */
-	IOBaseT::FileTypeT OutputFormat(void) const;
-
 	/** register the output set. returns the ID that should be used with
 	 * ElementSupport::WriteOutput */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -309,13 +304,6 @@ public:
 	 * \param n_values nodal output values
 	 * \param e_values element output values */
 	void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
-	
-	/** return true if output is going to be written for the current time step */
-	bool WriteOutput(void) const;
-
-	/** write a snapshot */
-	void WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
-		const dArray2DT& values, const ArrayT<StringT>& labels) const;
 	
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/** return a reference to the output set with the given ID */
@@ -333,9 +321,6 @@ public:
 
 	/** the nodes */
 	NodeManagerT& Nodes(void) const;
-
-	/** the time manager */
-	TimeManagerT& TimeManager(void) const;
 	/*@}*/
 #endif
 
@@ -350,9 +335,6 @@ private:
 	
 	/** the nodes */
 	NodeManagerT* fNodes;
-
-	/** the time manager */
-	TimeManagerT* fTimeManager;
 
 	const dArray2DT *fInitialCoordinates;
 	const dArray2DT *fCurrentCoordinates;
@@ -420,14 +402,6 @@ inline NodeManagerT& ElementSupportT::Nodes(void) const
 	if (!fNodes) 
 		ExceptionT::GeneralFail("ElementSupportT::Nodes", "pointer not set");
 	return *fNodes;
-}
-
-/* the time manager */
-inline TimeManagerT& ElementSupportT::TimeManager(void) const
-{
-	if (!fTimeManager) 
-		ExceptionT::GeneralFail("ElementSupportT::TimeManager", "pointer not set");
-	return *fTimeManager;
 }
 #else
 inline int ElementSupportT::NumElements(void) const { return fElem; }

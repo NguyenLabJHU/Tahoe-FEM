@@ -1,12 +1,10 @@
-/* $Id: FieldT.cpp,v 1.25 2004-02-17 18:00:50 cjkimme Exp $ */
+/* $Id: FieldT.cpp,v 1.21 2003-10-04 19:14:01 paklein Exp $ */
 #include "FieldT.h"
-
 #include "fstreamT.h"
 #include "nIntegratorT.h"
 #include "KBC_ControllerT.h"
 #include "FBC_ControllerT.h"
 #include "RaggedArray2DT.h"
-#include "LinkedListT.h"
 #include "LocalArrayT.h"
 #include "FieldSupportT.h"
 
@@ -24,7 +22,7 @@ FieldT::FieldT(const FieldSupportT& field_support):
 }
 
 /* configure the field */
-void FieldT::Initialize(const StringT& name, int ndof, const nIntegratorT& controller)
+void FieldT::Initialize(const StringT& name, int ndof, nIntegratorT& controller)
 {
 	/* initialize base class */
 	BasicFieldT::Initialize(name, ndof, controller.Order());
@@ -361,7 +359,7 @@ GlobalT::RelaxCodeT FieldT::RelaxSystem(void)
 }
 
 /* reset displacements (and configuration to the last known solution) */
-GlobalT::RelaxCodeT FieldT::ResetStep(void)
+void FieldT::ResetStep(void)
 {
 	/* reset field */
 	fField = fField_last;
@@ -373,8 +371,6 @@ GlobalT::RelaxCodeT FieldT::ResetStep(void)
 	/* FBC controllers */
 	for (int i = 0; i < fFBC_Controllers.Length(); i++)
 		fFBC_Controllers[i]->Reset();
-		
-	return GlobalT::kNoRelax;
 }
 
 /* mark prescribed equations */
@@ -433,7 +429,7 @@ void FieldT::SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const
 	int ndof  = NumDOF();
 	for (int i = 0; i < numel; i++)
 	{
-		const int* pnodes = nodes(i);
+		int* pnodes = nodes(i);
 		int* pien   = eqnos(i);
 		for (int j = 0; j < nen; j++)
 		{
@@ -486,7 +482,7 @@ void FieldT::SetLocalEqnos(const RaggedArray2DT<int>& nodes,
 		//must have enough space (and maybe more)
 #endif
 		int  nen    = nodes.MinorDim(i);
-		const int* pnodes = nodes(i);
+		int* pnodes = nodes(i);
 		int* pien   = eqnos(i);
 		int ndof    = NumDOF();
 		for (int j = 0; j < nen; j++)
@@ -494,39 +490,6 @@ void FieldT::SetLocalEqnos(const RaggedArray2DT<int>& nodes,
 			int nodenum = *pnodes++;
 			for (int k = 0; k < ndof; k++)
 				*pien++ = fEqnos(nodenum, k);
-		}
-	}
-}
-
-/* NB that nodes is not declared const since traversing the linked list
- * modifies pointers. 
- */
-void FieldT::SetLocalEqnos(ArrayT< LinkedListT<int> >& nodes,
-	RaggedArray2DT<int>& eqnos) const
-{
-/* consistency checks */
-#if __option(extended_errorcheck)
-	const char caller[] = "FieldT::SetLocalEqnos";
-	if (nodes.Length() != eqnos.MajorDim()) ExceptionT::SizeMismatch(caller);
-#endif
-	
-	int numel = nodes.Length();
-	int ndof    = NumDOF();
-	for (int i = 0; i < numel; i++)
-	{
-#if __option(extended_errorcheck)
-		if (eqnos.MinorDim(i) < nodes[i].Length()*ndof) ExceptionT::SizeMismatch(caller);
-		//must have enough space (and maybe more)
-#endif
-		int  nen    = eqnos.MinorDim(i)/ndof; // do this to avoid traversing the list twice
-		int pnodes;
-		int* pien   = eqnos(i);
-		LinkedListT<int>& nodeList = nodes[i];
-		nodeList.Top();
-		while (nodeList.Next(pnodes))
-		{
-			for (int k = 0; k < ndof; k++)
-				*pien++ = fEqnos(pnodes, k);
 		}
 	}
 }

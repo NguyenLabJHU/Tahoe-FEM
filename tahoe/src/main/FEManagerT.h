@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.41 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.37 2003-08-14 06:05:37 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -44,7 +44,6 @@ class OutputSetT;
 class FieldT;
 class CommunicatorT;
 class CommManagerT;
-class GlobalMatrixT;
 
 class FEManagerT: public iConsoleObjectT, public ParameterInterfaceT
 {
@@ -194,19 +193,11 @@ public:
 	 * \param sys_type "maximum" LHS matrix type needed by the solver. The GlobalT::SystemTypeT
 	 *        enum is ordered by generality. The solver should indicate the most general
 	 *        system type that is actually needed. */
-	virtual void FormLHS(int group, GlobalT::SystemTypeT sys_type) const;
+	void FormLHS(int group, GlobalT::SystemTypeT sys_type) const;
 
 	/** compute RHS-side, residual force vector and assemble to solver
 	 * \param group equation group to solve */
 	virtual void FormRHS(int group) const;
-
-	/** the residual for the given group. The array contains the residual from
-	 * the latest call to FEManagerT::FormRHS */
-	const dArrayT& RHS(int group) const;
-
-	/** the LHS matrix for the given group. The array contains the matrix from
-	 * the latest call to FEManagerT::FormLHS */
-	const GlobalMatrixT& LHS(int group) const;
 
 	/** send update of the solution to the NodeManagerT */
 	virtual void Update(int group, const dArrayT& update);
@@ -261,10 +252,6 @@ public:
 	 * \param e_values element output values */
 	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
 
-	/** write a snapshot */
-	void WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
-		const dArray2DT& values, const ArrayT<StringT>& labels) const;
-
 	/** write a geometry file for the current model */
 	void WriteGeometryFile(const StringT& file_name, IOBaseT::FileTypeT output_format) const;
 
@@ -283,13 +270,12 @@ public:
 	int NumIntegrators(void) const { return fIntegrators.Length(); };
 	IntegratorT* Integrator(int index) { return fIntegrators[index]; };
 	const IntegratorT* Integrator(int index) const { return fIntegrators[index]; };
-	const eIntegratorT* eIntegrator(int index) const;
-	const nIntegratorT* nIntegrator(int index) const;
+	eIntegratorT* eIntegrator(int index) const;
+	nIntegratorT* nIntegrator(int index) const;
 	/*@}*/
 
 	/** debugging */
 	virtual void WriteSystemConfig(ostream& out, int group) const;
-	virtual void RegisterSystemOutput(int group);
 
 	/** \name basic MP info */
 	/*@{*/
@@ -326,8 +312,6 @@ public:
 	/*@{*/
 	/** (re-)set system to initial conditions */
 	virtual ExceptionT::CodeT InitialCondition(void);
-	
-	void SetComputeInitialCondition(bool compute_IC) { fComputeInitialCondition = compute_IC; };
 
 	/** initialize the current time increment for all groups */
 	virtual ExceptionT::CodeT InitStep(void);
@@ -490,6 +474,7 @@ protected:
 	/** \name run time information */
 	/*@{*/
 	GlobalT::StateT fStatus; /**< state */
+	int fRestartCount; 	     /**< restart output counter */
 	int fCurrentGroup;       /**< current group being operated on */
 	/*@}*/
 	
@@ -500,19 +485,6 @@ protected:
 	iArrayT fGlobalEquationStart;
 	iArrayT fActiveEquationStart;
 	iArrayT fGlobalNumEquations;
-	/*@}*/
-	
-	/** \name system output (SO). Write nodal residuals for groups with check 
-	 * code 4. Move this to the NodeManagerT or within the FieldT's ? */
-	/*@{*/
-	/** true if output per group is currently being diverted */
-	ArrayT<bool> fSO_DivertOutput;
-
-	/** output ID for the system output by group */
-	iArrayT fSO_OutputID;
-	
-	/** point connectivities used by all solver groups */
-	iArray2DT fSO_Connects;
 	/*@}*/
 };
 

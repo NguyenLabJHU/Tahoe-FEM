@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.9 2003-12-28 08:23:46 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.6 2003-08-23 20:10:11 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -166,21 +166,15 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 			{
 				/* current coordinates */
 				int nd = (partition_nodes) ? (*partition_nodes)[j] : j;
-				const double& X = reference_coords(nd,i);
+				double& X = reference_coords(nd,i);
 				double& d = displacement(nd,i);
 				double  x = X + d;
 
 				/* shift displacements - back in the box */
-				if (x > x_max) {
-					double dist = x - x_max;
-					int cell = int(dist/x_len); /* which periodic cell */
-					d -= (cell+1)*x_len;
-				}
-				else if (x < x_min) {
-					double dist = x_min - x;
-					int cell = int(dist/x_len);
-					d += (cell+1)*x_len;
-				}
+				if (x > x_max) 
+					d -= x_len;
+				else if (x < x_min)
+					d += x_len;
 
 				/* collect nodes close to periodic boundaries */
 				x = X + d;
@@ -199,7 +193,7 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 			{
 				/* current coordinates */
 				int nd = fPBCNodes[j];
-				const double& X = reference_coords(nd,i);
+				double& X = reference_coords(nd,i);
 				double& d = displacement(nd,i);
 				double  x = X + d;
 			
@@ -247,7 +241,7 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 		const dArray2DT& coords = fModelManager.Coordinates();
 		dArray2DT ghost_coords;
 		if (fPBCNodes_ghost.Length() > 0) {
-			ghost_coords.Alias(fPBCNodes_ghost.Length(), coords.MinorDim(), coords(ghost_num_start));
+			ghost_coords.Set(fPBCNodes_ghost.Length(), coords.MinorDim(), coords(ghost_num_start));
 
 			/* copy coordinates */
 			for (int i = 0; i < fPBCNodes_ghost.Length(); i++)
@@ -292,7 +286,7 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 		for (int i = 0; i < fGhostCommunications.Length(); i++)
 		{
 			/* retrieve communications pointer */
-			AllGatherT* all_gather = TB_DYNAMIC_CAST(AllGatherT*, fGhostCommunications[i]);
+			AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fGhostCommunications[i]);
 			if (!all_gather) ExceptionT::GeneralFail(caller, "could not recover ghost communication");
 
 			/* (re-)set message size */
@@ -457,7 +451,7 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 	if (decomp_type == PartitionT::kGraph) /* non-blocking send-receive */
 	{
 		/* retrieve pointer */
-		PointToPointT* p2p = TB_DYNAMIC_CAST(PointToPointT*, fCommunications[id]);
+		PointToPointT* p2p = dynamic_cast<PointToPointT*>(fCommunications[id]);
 		if (!p2p) ExceptionT::GeneralFail(caller);
 
 		/* do it */
@@ -466,7 +460,7 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 	else if (decomp_type == PartitionT::kAtom) /* all gather */
 	{
 		/* retrieve pointer */
-		AllGatherT* all_gather = TB_DYNAMIC_CAST(AllGatherT*, fCommunications[id]);
+		AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fCommunications[id]);
 		if (!all_gather) ExceptionT::GeneralFail(caller);
 		
 		/* exchange */
@@ -482,7 +476,7 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 				values.SetRow(fPBCNodes_ghost[i], values(fPBCNodes[i]));
 
 			/* retrieve communications pointer */
-			AllGatherT* all_gather = TB_DYNAMIC_CAST(AllGatherT*, fGhostCommunications[id]);
+			AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fGhostCommunications[id]);
 			if (!all_gather) ExceptionT::GeneralFail(caller);
 
 			/* exchange */
@@ -518,7 +512,7 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 	if (decomp_type == PartitionT::kGraph) /* non-blocking send-receive */
 	{
 		/* retrieve pointer */
-		PointToPointT* p2p = TB_DYNAMIC_CAST(PointToPointT*, fCommunications[id]);
+		PointToPointT* p2p = dynamic_cast<PointToPointT*>(fCommunications[id]);
 		if (!p2p) ExceptionT::GeneralFail(caller);
 
 		/* do it */
@@ -527,7 +521,7 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 	else if (decomp_type == PartitionT::kAtom) /* all gather */
 	{
 		/* retrieve communications pointer */
-		AllGatherT* all_gather = TB_DYNAMIC_CAST(AllGatherT*, fCommunications[id]);
+		AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fCommunications[id]);
 		if (!all_gather) ExceptionT::GeneralFail(caller);
 		
 		/* exchange */
@@ -543,7 +537,7 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 				values.SetRow(fPBCNodes_ghost[i], values(fPBCNodes[i]));
 
 			/* retrieve communications pointer */
-			AllGatherT* all_gather = TB_DYNAMIC_CAST(AllGatherT*, fGhostCommunications[id]);
+			AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fGhostCommunications[id]);
 			if (!all_gather) ExceptionT::GeneralFail(caller);
 
 			/* exchange */
@@ -568,7 +562,7 @@ void CommManagerT::CollectPartitionNodes(const ArrayT<int>& n2p_map, int part,
 	AutoArrayT<int>& part_nodes) const
 {
 	int count = 0;
-	const int* p = n2p_map.Pointer();
+	int* p = n2p_map.Pointer();
 	int len = n2p_map.Length();
 	for (int i = 0; i < len; i++)
 		if (*p++ == part)
@@ -727,26 +721,26 @@ void CommManagerT::GetBounds(const dArray2DT& coords_all, const iArrayT& local,
 	/* resolve by spatial dimension */
 	if (nsd == 1)
 	{
-		const int* p_i = local.Pointer();
+		int* p_i = local.Pointer();
 		double& x_min = bounds(0,0);
 		double& x_max = bounds(0,1);
 		for (int i = 0; i < local.Length(); i++)
 		{
-			const double* x = coords_all(*p_i++);
+			double* x = coords_all(*p_i++);
 			x_min = (*x < x_min) ? *x : x_min;
 			x_max = (*x > x_max) ? *x : x_max;
 		}
 	}
 	else if (nsd == 2)
 	{
-		const int* p_i = local.Pointer();
+		int* p_i = local.Pointer();
 		double& x_min = bounds(0,0);
 		double& x_max = bounds(0,1);
 		double& y_min = bounds(1,0);
 		double& y_max = bounds(1,1);
 		for (int i = 0; i < local.Length(); i++)
 		{
-			const double* x = coords_all(*p_i++);
+			double* x = coords_all(*p_i++);
 			x_min = (*x < x_min) ? *x : x_min;
 			x_max = (*x > x_max) ? *x : x_max;
 			x++;
@@ -756,7 +750,7 @@ void CommManagerT::GetBounds(const dArray2DT& coords_all, const iArrayT& local,
 	}
 	else if (nsd == 3)
 	{
-		const int* p_i = local.Pointer();
+		int* p_i = local.Pointer();
 		double& x_min = bounds(0,0);
 		double& x_max = bounds(0,1);
 		double& y_min = bounds(1,0);
@@ -765,7 +759,7 @@ void CommManagerT::GetBounds(const dArray2DT& coords_all, const iArrayT& local,
 		double& z_max = bounds(2,1);
 		for (int i = 0; i < local.Length(); i++)
 		{
-			const double* x = coords_all(*p_i++);
+			double* x = coords_all(*p_i++);
 			x_min = (*x < x_min) ? *x : x_min;
 			x_max = (*x > x_max) ? *x : x_max;
 			x++;

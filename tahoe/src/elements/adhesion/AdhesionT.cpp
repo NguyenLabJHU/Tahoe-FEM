@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.16 2003-11-13 22:16:14 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.14 2003-08-14 05:49:46 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -203,7 +203,7 @@ void AdhesionT::WriteOutput(void)
 	out << "\n Surface adhesion: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
 	out << " Time                           = " << ElementSupport().Time() << '\n';
 	out << " Active face pairs              = " << fSurface1.Length() << '\n';
-	if (fSurface1.Length() > 0 && ElementSupport().PrintInput())
+	if (fSurface1.Length() > 0)
 	{
 		out << setw(kIntWidth) << "surf 1";
 		out << setw(kIntWidth) << "facet";
@@ -801,10 +801,9 @@ void AdhesionT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		fLocCurrCoords[i].Dimension(fSurfaces[i].MinorDim(), NumSD());
 		ElementSupport().RegisterCoordinates(fLocCurrCoords[i]);
 	
-		int nen = 2*fLocInitCoords[i].NumberOfNodes();
 		/* surface shape functions over undeformed configuration */
 		fShapes[i] = new SurfaceShapeT(geom[i], NumIP(geom[i]), 
-			nen, nen/2, NumSD(), fLocInitCoords[i]);
+			2*fLocInitCoords[i].NumberOfNodes(), NumSD(), fLocInitCoords[i]);
 
 		/* initialize */
 		fShapes[i]->Initialize();

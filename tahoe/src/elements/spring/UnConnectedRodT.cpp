@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.14 2004-01-05 07:19:56 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.12 2003-01-27 07:00:26 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #include "UnConnectedRodT.h"
@@ -38,7 +38,7 @@ void UnConnectedRodT::InitStep(void)
 }
 
 /* resets to the last converged solution */
-GlobalT::RelaxCodeT UnConnectedRodT::ResetStep(void)
+void UnConnectedRodT::ResetStep(void)
 {
 	/* pre-condition */
 	fReconnectCount--;
@@ -46,9 +46,6 @@ GlobalT::RelaxCodeT UnConnectedRodT::ResetStep(void)
 		// condition implies that equilibrium could not be
 		// established with a reconnected system for which
 		// there is no last converged solution to go back to
-
-	/* inherited */
-	return RodT::ResetStep();
 }
 
 /* element level reconfiguration for the current solution */
@@ -230,8 +227,8 @@ void UnConnectedRodT::ConfigureElementData(void)
 		ElementCardT& card = fElementCards[i];
 	
 		/* node and equation numbers */			
-		card.NodesX().Alias(NumElementNodes(), (*connects)(i));
-		card.Equations().Alias(rod_eqnos.MinorDim(), rod_eqnos(i));
+		card.NodesX().Set(NumElementNodes(), (*connects)(i));
+		card.Equations().Set(rod_eqnos.MinorDim(), rod_eqnos(i));
 		
 		/* material number */
 		card.SetMaterialNumber(fBlockData[block_index].MaterialID());

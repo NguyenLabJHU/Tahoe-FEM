@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.34 2004-01-14 22:04:44 rdorgan Exp $ */
+/* $Id: SolidT.cpp,v 1.32 2003-08-16 01:33:20 rdorgan Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 
@@ -155,9 +155,6 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 		case SolidT::kGradJ2SS:
 			code = SolidT::kGradJ2SS;
 			break;
-		case SolidT::kGradC0J2SS:
-			code = SolidT::kGradC0J2SS;
-			break;
 		case SolidT::kSIERRA_Hypoelastic:
 			code = SolidT::kSIERRA_Hypoelastic;
 			break;
@@ -167,9 +164,6 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 		case SolidT::kABAQUS_BCJ:
 			code = SolidT::kABAQUS_BCJ;
 			break;
-		case SolidT::kABAQUS_BCJ_ISO:
-			code = SolidT::kABAQUS_BCJ_ISO;
-			break;
 		case SolidT::kABAQUS_VUMAT_BCJ:
 			code = SolidT::kABAQUS_VUMAT_BCJ;
 			break;
@@ -177,7 +171,9 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 			code = SolidT::kFCCEAM;
 			break;
 		default:
-			ExceptionT::BadInputValue("operator>>SolidT::TypeT", "unknown code %d", i_code);
+			cout << "\n operator>>SolidT::TypeT: unknown code: "
+			<< i_code<< endl;
+			throw ExceptionT::kBadInputValue;	
 	}
 	return in;
 }

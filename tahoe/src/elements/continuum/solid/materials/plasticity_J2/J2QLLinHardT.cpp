@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.13 2003-11-21 22:46:48 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.12 2003-01-29 07:35:02 paklein Exp $ */
 /* created: paklein (10/26/2000) */
 #include "J2QLLinHardT.h"
 
@@ -274,13 +274,13 @@ void J2QLLinHardT::ComputeOutput(dArrayT& output)
 	output[1] = fBeta.Magnitude()/sqrt23;
 
 	/* plastic evolution parameter */
-	const ElementCardT& element = CurrentElement();
+	ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
 		output[0] = fInternal[kalpha];
 
 		/* status flags */
-		const iArrayT& flags = element.IntegerData();
+		iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == kIsPlastic) // output with update
 			output[0] += sqrt23*fInternal[kdgamma];
 	}
@@ -409,7 +409,7 @@ void J2QLLinHardT::ElastoPlasticCorrection(dSymMatrixT& a_ep, dArrayT& beta,
 	int ip)
 {
 	/* element pointer */
-	const ElementCardT& element = CurrentElement();
+	ElementCardT& element = CurrentElement();
 
 	if (element.IsAllocated() &&
 	    (element.IntegerData())[ip] == kIsPlastic)
@@ -494,19 +494,18 @@ void J2QLLinHardT::InitIntermediate(const dMatrixT& F_total,
 void J2QLLinHardT::LoadData(const ElementCardT& element, int ip)
 {
 	/* fetch internal variable array */
-	const dArrayT& d_array = element.DoubleData();
+	dArrayT& d_array = element.DoubleData();
 
 	/* decode */
 	int stressdim = dSymMatrixT::NumValues(kNSD);
-	dSymMatrixT::DimensionT dim = dSymMatrixT::int2DimensionT(kNSD);	
 	int blocksize = stressdim + stressdim + kNSD + kNSD + kNumInternal;
 	int dex       = ip*blocksize;
 	
-	     fb_n.Alias(         dim, &d_array[dex             ]);
-	    fb_tr.Alias(         dim, &d_array[dex += stressdim]);
-	 fbeta_tr.Alias(        kNSD, &d_array[dex += stressdim]);
-	fUnitNorm.Alias(        kNSD, &d_array[dex += kNSD]);
-	fInternal.Alias(kNumInternal, &d_array[dex += kNSD     ]);     	
+	     fb_n.Set(        kNSD, &d_array[dex             ]);
+	    fb_tr.Set(        kNSD, &d_array[dex += stressdim]);
+	 fbeta_tr.Set(        kNSD, &d_array[dex += stressdim]);
+	fUnitNorm.Set(        kNSD, &d_array[dex += kNSD]);
+	fInternal.Set(kNumInternal, &d_array[dex += kNSD     ]);     	
 }
 
 /*

@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.h,v 1.9 2003-12-02 17:12:22 paklein Exp $ */
+/* $Id: SolidMatList3DT.h,v 1.8 2003-01-29 07:34:58 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #ifndef _MATLIST_3D_T_H_
 #define _MATLIST_3D_T_H_
@@ -16,7 +16,6 @@ public:
 
 	/** constructors */
 	SolidMatList3DT(int length, const SolidMatSupportT& support);
-	SolidMatList3DT(void);
 
 	/** read material data from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);

@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.16 2004-03-16 06:56:28 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.11 2002-11-25 07:13:40 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
 #include <iostream.h>
@@ -12,8 +12,7 @@ using namespace Tahoe;
 
 /* constructor */
 FullMatrixT::FullMatrixT(ostream& out,int check_code):
-	GlobalMatrixT(out, check_code),
-	fIsFactorized(false)
+	GlobalMatrixT(out, check_code)
 {
 
 }
@@ -21,8 +20,7 @@ FullMatrixT::FullMatrixT(ostream& out,int check_code):
 /* copy constructor */
 FullMatrixT::FullMatrixT(const FullMatrixT& source):
 	GlobalMatrixT(source),
-	fMatrix(source.fMatrix),
-	fIsFactorized(source.fIsFactorized)
+	fMatrix(source.fMatrix)
 {
 
 }
@@ -46,7 +44,6 @@ void FullMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	
 	/* allocate work space */
 	fMatrix.Dimension(fLocNumEQ);
-	fIsFactorized = false;
 }
 
 /* set all matrix values to 0.0 */
@@ -57,9 +54,6 @@ void FullMatrixT::Clear(void)
 	
 	/* clear values */
 	fMatrix = 0.0;	
-
-	/* set flag */
-	fIsFactorized = false;
 }
 
 /* add element group equations to the overall topology.
@@ -81,7 +75,7 @@ void FullMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-void FullMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
+void FullMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension checking */
@@ -95,10 +89,10 @@ void FullMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 	if (format == ElementMatrixT::kDiagonal)
 	{
 		/* from diagonal only */
-		const double* pelMat = elMat.Pointer();
+		double* pelMat = elMat.Pointer();
 		int inc = elMat.Rows() + 1;
 	
-		const int* peq = eqnos.Pointer();		
+		int*    peq    = eqnos.Pointer();		
 		for (int i = 0; i < elMat.Length(); i++)
 		{
 			int eq = *peq++;
@@ -114,16 +108,17 @@ void FullMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 		/* copy to full symmetric */
 		if (elMat.Format() == ElementMatrixT::kSymmetricUpper) elMat.CopySymmetric();
 
-		const int* peq = eqnos.Pointer();	
+		int*    peq    = eqnos.Pointer();	
 		for (int col = 0; col < elMat.Cols(); col++)
 		{
-			int eqc = eqnos[col];
-			const double* pelMat = elMat(col);
+			int        eqc = eqnos[col];
+			double* pelMat = elMat(col);
 		
 			/* active dof's only */
 			if (eqc-- > 0)
 			{		
-				const int* peqr = eqnos.Pointer();
+				int* peqr = eqnos.Pointer();
+						
 				for (int row = 0; row < elMat.Rows(); row++)
 				{
 					int eqr = *peqr++;
@@ -138,8 +133,8 @@ void FullMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 	}
 }
 
-void FullMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-	const ArrayT<int>& col_eqnos)
+void FullMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
@@ -177,7 +172,7 @@ void FullMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_e
 	}
 }
 
-void FullMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
+void FullMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
@@ -204,16 +199,17 @@ void FullMatrixT::OverWrite(const ElementMatrixT& elMat, const nArrayT<int>& eqn
 	/* copy to full symmetric */
 	if (elMat.Format() == ElementMatrixT::kSymmetricUpper) elMat.CopySymmetric();
 
-	const int* peq = eqnos.Pointer();	
+	int* peq = eqnos.Pointer();	
 	for (int col = 0; col < elMat.Cols(); col++)
 	{
-		int eqc = eqnos[col];
-		const double* pelMat = elMat(col);
+		int        eqc = eqnos[col];
+		double* pelMat = elMat(col);
 		
 		/* active dof's only */
 		if (eqc-- > 0)
 		{		
-			const int* peqr = eqnos.Pointer();
+			int* peqr = eqnos.Pointer();
+					
 			for (int row = 0; row < elMat.Rows(); row++)
 			{
 				int eqr = *peqr++;
@@ -235,7 +231,8 @@ void FullMatrixT::Disassemble(dMatrixT& elMat, const nArrayT<int>& eqnos) const
 	    elMat.Cols() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
-	const int* peq = eqnos.Pointer();
+	int* peq = eqnos.Pointer();
+	
 	for (int col = 0; col < elMat.Cols(); col++)
 	{
 		int        eqc = eqnos[col];
@@ -244,7 +241,8 @@ void FullMatrixT::Disassemble(dMatrixT& elMat, const nArrayT<int>& eqnos) const
 		/* active dof's only */
 		if (eqc-- > 0)
 		{		
-			const int* peqr = eqnos.Pointer();
+			int* peqr = eqnos.Pointer();
+					
 			for (int row = 0; row < elMat.Rows(); row++)
 			{
 				int eqr = *peqr++;
@@ -297,7 +295,6 @@ GlobalMatrixT& FullMatrixT::operator=(const FullMatrixT& rhs)
 	GlobalMatrixT::operator=(rhs);
 
 	fMatrix = rhs.fMatrix;
-	fIsFactorized = rhs.fIsFactorized;
 	return *this;
 }
 
@@ -309,7 +306,7 @@ GlobalMatrixT& FullMatrixT::operator=(const GlobalMatrixT& rhs)
 	throw ExceptionT::kGeneralFail;
 #endif
 
-	const FullMatrixT* full = TB_DYNAMIC_CAST(const FullMatrixT*, &rhs);
+	const FullMatrixT* full = dynamic_cast<const FullMatrixT*>(&rhs);
 	if (!full) {
 		cout << "\n FullMatrixT::operator= : cast failed" << endl;
 		throw ExceptionT::kGeneralFail;
@@ -351,14 +348,21 @@ bool FullMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
 }
 
 /**************************************************************************
- * Protected
- **************************************************************************/
+* Protected
+**************************************************************************/
 
+/* precondition matrix */
+void FullMatrixT::Factorize(void)
+{
+//TEMP: no full, nonsymmetric factorization implemented
+	fIsFactorized = 0; // undo GlobalMatrixT flag set
+}
+	
 /* determine new search direction and put the results in result */
 void FullMatrixT::BackSubstitute(dArrayT& result)
 {
-	if (fIsFactorized)
-		ExceptionT::GeneralFail("FullMatrixT::BackSubstitute", "no multiple solves");
+//TEMP: no full, nonsymmetric factorization implemented
+	if (fIsFactorized) throw ExceptionT::kGeneralFail;
 
 	fMatrix.LinearSolve(result);
 	fIsFactorized = true;
@@ -375,9 +379,9 @@ void FullMatrixT::PrintZeroPivots(void) const
 //TEMP: no full, nonsymmetric factorization implemented
 }
 
-void FullMatrixT::PrintLHS(bool force) const
+void FullMatrixT::PrintLHS(void) const
 {
-	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
+	if (fCheckCode != GlobalMatrixT::kPrintLHS) return;
 		
 	fOut << "\nLHS matrix:\n\n";
 	fOut << fMatrix << "\n\n";

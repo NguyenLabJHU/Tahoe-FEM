@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.23 2003-11-04 17:34:45 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.22 2003-08-08 00:43:00 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -8,8 +8,6 @@
 #include "iArrayT.h"
 #include "dArrayT.h"
 #include "dMatrixT.h"
-
-#include "GlobalT.h"
 
 #include "ios_fwd_decl.h"
 
@@ -81,9 +79,6 @@ public:
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump, const ArrayT<double>& state, const dArrayT& sigma) = 0;
-
-	/** type of stiffness matrix */
-	virtual GlobalT::SystemTypeT TangentType(void) const { return GlobalT::kSymmetric; }
 
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump, const ArrayT<double>& state) = 0;

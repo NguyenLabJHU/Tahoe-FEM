@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.17 2004-01-05 07:16:47 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.16 2003-01-29 07:35:11 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -321,13 +321,11 @@ void MeshFreeSSSolidT::CloseStep(void)
 	MeshFreeFractureSupportT::CloseStep();
 }
 
-GlobalT::RelaxCodeT MeshFreeSSSolidT::ResetStep(void)
+void MeshFreeSSSolidT::ResetStep(void)
 {
 	/* inherited */
-	GlobalT::RelaxCodeT relax = SmallStrainT::ResetStep();
+	SmallStrainT::ResetStep();
 	MeshFreeFractureSupportT::ResetStep();
-
-	return relax;
 }
 
 /***********************************************************************

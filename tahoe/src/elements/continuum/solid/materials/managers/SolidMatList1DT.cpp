@@ -1,4 +1,4 @@
-/* $Id: SolidMatList1DT.cpp,v 1.16 2004-01-14 22:04:44 rdorgan Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.11 2003-08-16 01:33:20 rdorgan Exp $ */
 #include "SolidMatList1DT.h"
 #include "SolidMatSupportT.h"
 #include "fstreamT.h"
@@ -11,10 +11,9 @@
 #include "DevelopmentElementsConfig.h"
 #endif
 
-#ifdef GRAD_SMALL_STRAIN_DEV
+#ifdef DORGAN_VOYIADJIS_MARIN_DEV
 #include "GradJ2SS1D.h"
 #include "J2SSKStV1D.h"
-#include "GradC0J2SS1D.h"
 #endif
 
 using namespace Tahoe;
@@ -23,12 +22,7 @@ using namespace Tahoe;
 SolidMatList1DT::SolidMatList1DT(int length, const SolidMatSupportT& support):
 	SolidMatListT(length, support)
 {
-	SetName("solid_materials_1D");
-}
 
-SolidMatList1DT::SolidMatList1DT(void)
-{
-	SetName("solid_materials_1D");
 }
 
 /* read material data from the input stream */
@@ -66,7 +60,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		  	}
 			case kGradJ2SS:
 			{
-#ifdef GRAD_SMALL_STRAIN_DEV
+#ifdef DORGAN_VOYIADJIS_MARIN_DEV
 				/* check */
 				if (!fGradSSMatSupport) Error_no_small_strain(cout, matcode);
 
@@ -74,12 +68,12 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 #else
-				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "GRAD_SMALL_STRAIN_DEV not enabled: %d", matcode);
+				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", matcode);
 #endif
 			}
 			case kJ2SSKStV1D:
 			{
-#ifdef GRAD_SMALL_STRAIN_DEV
+#ifdef DORGAN_VOYIADJIS_MARIN_DEV
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 			
@@ -87,20 +81,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;															
 				break;
 #else
-				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "GRAD_SMALL_STRAIN_DEV not enabled: %d", matcode);
-#endif
-			}
-			case kGradC0J2SS:
-			{
-#ifdef GRAD_SMALL_STRAIN_DEV
-				/* check */
-				if (!fGradSSMatSupport) Error_no_small_strain(cout, matcode);
-
-				fArray[matnum] = new GradC0J2SS1D(in, *fGradSSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "GRAD_SMALL_STRAIN_DEV not enabled: %d", matcode);
+				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", matcode);
 #endif
 			}
 			default:
@@ -120,7 +101,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		int LTfnum = pmat->ThermalStrainSchedule();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalSchedule(fSolidMatSupport->Schedule(LTfnum));
+			pmat->SetThermalSchedule(fSolidMatSupport.Schedule(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;
@@ -138,52 +119,6 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 	}
 }
 
-/* information about subordinate parameter lists */
-void SolidMatList1DT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	SolidMatListT::DefineSubs(sub_list);
-
-	/* list of materials an array of choices */
-	sub_list.AddSub("solid_material_list_1D", ParameterListT::OnePlus, true);
-}
-
-/* return the description of the given inline subordinate parameter list */
-void SolidMatList1DT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
-{
-	if (sub == "solid_material_list_1D")
-	{
-		order = ParameterListT::Choice;
-	
-		sub_sub_list.AddSub("small_strain_Hookean_1D");
-
-#ifdef GRAD_SMALL_STRAIN_DEV
-		sub_sub_list.AddSub("GradJ2SS1D");
-		sub_sub_list.AddSub("J2SSKStV1D");
-		sub_sub_list.AddSub("GradC0J2SS1D");
-#endif		
-	}
-	else /* inherited */
-		SolidMatListT::DefineInlineSub(sub, order, sub_sub_list);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* SolidMatList1DT::NewSub(const StringT& list_name) const
-{
-	if (list_name == "small_strain_Hookean_1D")
-		return new SSHookean1D;
-#ifdef GRAD_SMALL_STRAIN_DEV
-	else if (list_name == "GradJ2SS1D")
-		return new GradJ2SS1D;
-	else if (list_name == "J2SSKStV1D")
-		return new J2SSKStV1D;
-        else if (list_name == "GradC0J2SS1D")
-                return new GradC0J2SS1D;
-#endif		
-	else /* inherited */
-		return SolidMatListT::NewSub(list_name);
-}
 
 /* error messages */
 

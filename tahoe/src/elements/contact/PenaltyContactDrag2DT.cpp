@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactDrag2DT.cpp,v 1.4 2003-11-21 22:45:57 paklein Exp $ */
+/* $Id: PenaltyContactDrag2DT.cpp,v 1.3 2003-08-25 04:41:02 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContactDrag2DT.h"
 #include "fstreamT.h"
@@ -80,7 +80,7 @@ void PenaltyContactDrag2DT::RHSDriver(void)
 	dArrayT tangent(NumSD());
 	iArrayT eqnos;
 	dArrayT tangent_ref(NumSD()), drag(NumDOF()); 
-	const int* pelem = fConnectivities[0]->Pointer();
+	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{

@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatSupportT.cpp,v 1.6 2003-12-28 08:23:16 paklein Exp $ */
+/* $Id: DiffusionMatSupportT.cpp,v 1.5 2003-06-09 06:53:58 paklein Exp $ */
 #include "DiffusionMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -50,6 +50,6 @@ void DiffusionMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 
 #ifdef CONTINUUM_ELEMENT
 	/* cast to small strain pointer */
-	fDiffusion = TB_DYNAMIC_CAST(const DiffusionElementT*, p);
+	fDiffusion = dynamic_cast<const DiffusionElementT*>(p);
 #endif
 }

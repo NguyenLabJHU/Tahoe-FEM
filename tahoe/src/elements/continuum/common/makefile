@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2004-01-05 07:30:11 paklein Exp $
+# $Id: makefile,v 1.2 2003-03-04 07:37:02 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,7 +21,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	ContinuumElementT.o \
-	ViscousDragT.o \
 	ContinuumMaterialT.o \
 	MaterialListT.o \
 	MaterialSupportT.o
@@ -45,7 +44,6 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	ContinuumElementT.cpp \
-	ViscousDragT.cpp \
 	ContinuumMaterialT.cpp \
 	MaterialListT.cpp \
 	MaterialSupportT.cpp
@@ -61,7 +59,6 @@ SRC = \
 #
 HDR = \
 	ContinuumElementT.h \
-	ViscousDragT.h \
 	ContinuumMaterialT.h \
 	MaterialListT.h \
 	MaterialSupportT.h

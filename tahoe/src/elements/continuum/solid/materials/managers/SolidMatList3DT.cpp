@@ -1,7 +1,6 @@
-/* $Id: SolidMatList3DT.cpp,v 1.42 2004-01-05 07:18:21 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.40 2003-09-06 07:12:13 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
-
 #include "fstreamT.h"
 #include "SolidMaterialsConfig.h"
 
@@ -87,8 +86,6 @@
 #ifdef ABAQUS_MATERIAL
 #ifdef ABAQUS_BCJ_MATERIAL_DEV
 #include "ABAQUS_BCJ.h"
-#include "ABAQUS_BCJ_ISO.h"
-#include "ABAQUS_SS_BCJ_ISO.h"
 #include "ABAQUS_VUMAT_BCJ.h"
 #endif
 #endif
@@ -118,12 +115,7 @@ using namespace Tahoe;
 SolidMatList3DT::SolidMatList3DT(int length, const SolidMatSupportT& support):
 	SolidMatListT(length, support)
 {
-	SetName("solid_materials_3D");
-}
 
-SolidMatList3DT::SolidMatList3DT(void)
-{
-	SetName("solid_materials_3D");
 }
 
 /* read material data from the input stream */
@@ -603,28 +595,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "model requires f2c support: %d", kABAQUS_BCJ);
 #endif /* __F2C__ */	
 			}			
-			case kABAQUS_BCJ_ISO:
-			{
-#ifdef __F2C__
-#if defined(ABAQUS_MATERIAL) && defined(ABAQUS_BCJ_MATERIAL_DEV)
-	
-				/* small vs large strain elements */
-				if (fFSMatSupport)
-					fArray[matnum] = new ABAQUS_BCJ_ISO(in, *fFSMatSupport);
-				else if (fSSMatSupport)
-					fArray[matnum] = new ABAQUS_SS_BCJ_ISO(in, *fSSMatSupport);
-				else
-					ExceptionT::GeneralFail(caller);
-					
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "ABAQUS_MATERIAL or ABAQUS_BCJ_MATERIAL_DEV not enabled: %d", matcode);
-#endif
-#else
-				ExceptionT::BadInputValue(caller, "model requires f2c support: %d", kABAQUS_BCJ_ISO);
-#endif /* __F2C__ */	
-			}			
 			case kABAQUS_VUMAT_BCJ:
 			{
 #ifdef __F2C__			
@@ -750,7 +720,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		int LTfnum = pmat->ThermalStrainSchedule();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalSchedule(fSolidMatSupport->Schedule(LTfnum));
+			pmat->SetThermalSchedule(fSolidMatSupport.Schedule(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.38 2004-03-17 22:47:02 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.32 2003-09-03 22:54:11 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -41,11 +41,6 @@ class SubListT;
 class FieldT;
 #endif
 
-#ifdef __NO_RTTI__
-class ParticleT;
-class BridgingScaleT;
-#endif
-
 /** base class for element types. Initialization of the element classes
  * is accomplished by first setting the time integration controller with
  * ElementBaseT::SetController followed by calling the function 
@@ -84,9 +79,6 @@ public:
 
 	/** \name accessors */
 	/*@{*/
-	/** the index of this element group within the FEManagerT */
-	int ElementGroupNumber(void) const;
-	
 	/** number of elements */
 	int NumElements(void) const { return fElementCards.Length(); };
 
@@ -174,7 +166,7 @@ public:
 	/** restore the element group to its state at the beginning of the
 	 * current time step. Called if the integration over the
 	 * current time increment was unsuccessful. */
-	virtual GlobalT::RelaxCodeT ResetStep(void); 
+	virtual void ResetStep(void); 
 
 	/** element level reconfiguration for the current time increment. This
 	 * provides an interface for element-level adaptivity. The nature of
@@ -257,20 +249,14 @@ public:
 
 	/** \name element card data */
 	/*@{*/
-	/** read/write information about a particular element */
-	ElementCardT& ElementCard(int card);
-
-	/** read-only information about a particular element */
-	const ElementCardT& ElementCard(int card) const;
+	/** information about a particular element */
+	ElementCardT& ElementCard(int card) const;
 
 	/** index of the "current" element */
 	int CurrElementNumber(void) const;
 
 	/** reference "current" element */
-	ElementCardT& CurrentElement(void);
-
-	/** const reference "current" element */
-	const ElementCardT& CurrentElement(void) const;
+	ElementCardT& CurrentElement(void) const;
 	/*@}*/
 
 	/** returns 1 if DOF's are interpolants of the nodal values */
@@ -287,9 +273,6 @@ public:
 
 	/** array of nodes used by the element group */
 	void NodesUsed(ArrayT<int>& nodes_used) const;
-
-	/** add the element group's contribution to the lumped (scalar) mass of the given nodes */
-	virtual void LumpedMass(const iArrayT& nodes, dArrayT& mass) const;
 
 	/** contribution to the nodal residual forces. Return the contribution of this element
 	 * group to the residual for the given solver group. 
@@ -310,17 +293,6 @@ public:
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
 	/*@}*/
-
-#ifdef __NO_RTTI__
-	/** \name fixes for environments without working RTTI */
-	/*@{*/
-	/** cast this to ParticleT */
-	virtual ParticleT* dynamic_cast_ParticleT(void) { return NULL; };
-
-	/** cast this to BridgingScaleT* */
-	virtual BridgingScaleT* dynamic_cast_BridgingScaleT(void) { return NULL; };
-	/*@}*/
-#endif
 
 protected: /* for derived classes only */
 
@@ -409,9 +381,8 @@ protected: /* for derived classes only */
 	virtual void CurrElementInfo(ostream& out) const;
 
 	/** (re-)set element cards array */
-	void SetElementCards(const ArrayT<ElementBlockDataT>& block_data, const ArrayT<const iArray2DT*>& connectivities,		
-		const ArrayT<iArray2DT>& eqnos, AutoArrayT<ElementCardT>& element_cards) const;
-	
+	void SetElementCards(void);
+
 private:
 
 	/** return the default number of element nodes. This function is needed
@@ -470,11 +441,8 @@ inline bool ElementBaseT::NextElement(void) { return fElementCards.Next(); }
 
 /* element card */
 inline int ElementBaseT::CurrElementNumber(void) const { return fElementCards.Position(); }
-inline const ElementCardT& ElementBaseT::CurrentElement(void) const { return fElementCards.Current(); }
-inline ElementCardT& ElementBaseT::CurrentElement(void) { return fElementCards.Current(); }
-
-inline ElementCardT& ElementBaseT::ElementCard(int card) { return fElementCards[card]; }
-inline const ElementCardT& ElementBaseT::ElementCard(int card) const { return fElementCards[card]; }
+inline ElementCardT& ElementBaseT::CurrentElement(void) const { return fElementCards.Current(); }
+inline ElementCardT& ElementBaseT::ElementCard(int card) const { return fElementCards[card]; }
 
 /* called by FormRHS and FormLHS */
 inline void ElementBaseT::LHSDriver(GlobalT::SystemTypeT) { }

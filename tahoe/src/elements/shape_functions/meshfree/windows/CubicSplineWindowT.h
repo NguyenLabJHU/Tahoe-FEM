@@ -18,7 +18,8 @@ class CubicSplineWindowT: public WindowT
    public:
    
    /* constructor */
-	CubicSplineWindowT(double dilation_scaling);
+	CubicSplineWindowT(double dilation_scaling, double sharpening_factor,
+		double cut_off_factor);
 	
 	/** window function name */
 	virtual const char* Name(void) const { return "Cubic Spline"; };
@@ -65,6 +66,7 @@ class CubicSplineWindowT: public WindowT
   
   	/* window function adjustable parameters */
   	double fDilationScaling;
+  	double fSharpeningFactor;
   	double fCutOffFactor;
   	
 	/* work space */

@@ -1,4 +1,4 @@
-/* $Id: LangevinT.cpp,v 1.6 2003-11-21 22:47:11 paklein Exp $ */
+/* $Id: LangevinT.cpp,v 1.4 2003-04-29 23:09:36 cjkimme Exp $ */
 #include "LangevinT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -17,14 +17,8 @@ using namespace Tahoe;
 LangevinT::LangevinT(ifstreamT& in, const int& nsd, const double& dt):
 	ThermostatBaseT(in,nsd,dt)
 {
-	SetName("Langevin");
 //	in >> fTemperature;
 //	fAmp = sqrt(2.*fBeta*fkB*fTemperature/fTimeStep);
-}
-
-LangevinT::LangevinT(void)
-{
-	SetName("Langevin");
 }
 
 /* write properties to output */
@@ -71,7 +65,7 @@ void LangevinT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2
 		{
 			int tag_j = *neighbors(j);
 			double* f_j = forces(tag_j);
-	    	const double* v_j = (*velocities)(tag_j);
+	    	double* v_j = (*velocities)(tag_j);
 			if (types[tag_j] != currType)
 			{
 				currType = types[tag_j];
@@ -98,7 +92,7 @@ void LangevinT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2
 		{ 
 			int tag_j = fNodes[j];
 			double* f_j = forces(tag_j);
-			const double* v_j = (*velocities)(tag_j);
+			double* v_j = (*velocities)(tag_j);
 			if (types[tag_j] != currType)
 			{
 				currType = types[tag_j];

@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.18 2004-03-16 06:56:28 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.14 2002-11-25 07:13:40 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "GlobalMatrixT.h"
 #include <iostream.h>
@@ -15,9 +15,11 @@ GlobalMatrixT::GlobalMatrixT(ostream& out, int check_code):
 	fCheckCode(check_code),
 	fLocNumEQ(0),	
 	fTotNumEQ(0),
-	fStartEQ(0)
+	fStartEQ(0),
+	fIsFactorized(0)
 {
-
+	if (fCheckCode < kNoCheck ||
+	    fCheckCode > kPrintSolution) ExceptionT::BadInputValue();
 }
 
 GlobalMatrixT::GlobalMatrixT(const GlobalMatrixT& source):
@@ -25,7 +27,8 @@ GlobalMatrixT::GlobalMatrixT(const GlobalMatrixT& source):
 	fCheckCode(kNoCheck),
 	fLocNumEQ(0),	
 	fTotNumEQ(0),
-	fStartEQ(0)
+	fStartEQ(0),
+	fIsFactorized(0)
 {
 	GlobalMatrixT::operator=(source);
 }
@@ -61,6 +64,9 @@ void GlobalMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		ExceptionT::GeneralFail(caller, "active equation numbers must be > 0");
 }
 
+/* set all matrix values to 0.0 */
+void GlobalMatrixT::Clear(void) { fIsFactorized = 0; }
+
 /*
 * Solve the system for the vector given, returning the result
 * in the same array
@@ -70,19 +76,26 @@ bool GlobalMatrixT::Solve(dArrayT& result)
 	/* catch any exceptions */
 	try 
 	{
-		/* store original precision */
-		int old_precision = fOut.precision();
-		fOut.precision(12);
+		if (!fIsFactorized)
+		{
+			/* store original precision */
+			int old_precision = fOut.precision();
 	
-		/* rank checks before factorization */
-		PrintLHS();
+			/* rank checks before factorization */
+			fOut.precision(12);
+			PrintLHS();
+			fOut.precision(old_precision);
 	
-		/* factorize/precondition */
-		Factorize();
+			/* factorize */
+			fIsFactorized = 1;
+			Factorize();
 	
-		/* rank checks after factorization */
-		PrintZeroPivots();
-		PrintAllPivots();
+			/* rank checks after factorization */
+			fOut.precision(12);
+			PrintZeroPivots();
+			PrintAllPivots();
+			fOut.precision(old_precision);
+		}
 
 		/* output before solution */
 		PrintRHS(result);
@@ -92,9 +105,6 @@ bool GlobalMatrixT::Solve(dArrayT& result)
 
 		/* output after solution */
 		PrintSolution(result);
-
-		/* restore precision */
-		fOut.precision(old_precision);
 	}
 	catch (ExceptionT::CodeT error) {
 		cout << "\n GlobalMatrixT::Solve: caught exception: " << error << endl;
@@ -135,6 +145,7 @@ GlobalMatrixT& GlobalMatrixT::operator=(const GlobalMatrixT& RHS)
 	fLocNumEQ     = RHS.fLocNumEQ;
 	fTotNumEQ     = RHS.fTotNumEQ;
 	fStartEQ      = RHS.fStartEQ;
+	fIsFactorized = RHS.fIsFactorized;
 	return *this;
 }
 
@@ -170,7 +181,7 @@ void GlobalMatrixT::PrintRHS(const dArrayT& RHS) const
 	if (fCheckCode != kPrintRHS) return;
 	
 	/* increase output stream precision */
-	const double* p = RHS.Pointer();
+	double* p = RHS.Pointer();
 
 	int high_precision = 12;
 	fOut.precision(high_precision);
@@ -195,7 +206,7 @@ void GlobalMatrixT::PrintSolution(const dArrayT& solution) const
 	if (fCheckCode != kPrintSolution) return;
 	
 	/* increase output stream precision */
-	const double* p = solution.Pointer();
+	double* p = solution.Pointer();
 
 	int high_precision = 12;
 	fOut.precision(high_precision);

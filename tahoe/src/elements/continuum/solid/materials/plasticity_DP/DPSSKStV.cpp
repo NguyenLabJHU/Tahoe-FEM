@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.21 2004-01-10 04:41:18 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.20 2003-01-29 07:35:01 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
 #include "SSMatSupportT.h"
@@ -132,7 +132,7 @@ const dSymMatrixT& DPSSKStV::s_ij(void)
 int DPSSKStV::IsLocalized(dArrayT& normal)
 {
         DetCheckT checker(fStress, fModulus);
-        checker.SetfStructuralMatSupport(*fSSMatSupport);
+        checker.SetfStructuralMatSupport(fSSMatSupport);
 
         int loccheck= checker.IsLocalized(normal);
         return loccheck;

@@ -1,9 +1,8 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.16 2004-01-05 23:42:08 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.12 2003-09-06 08:43:51 paklein Exp $ */
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
 
 /* base class */
-#include "ABAQUS_BaseT.h"
 #include "FSSolidMatT.h"
 #include "IsotropicT.h"
 
@@ -29,7 +28,7 @@ class SpectralDecompT;
 /** interface for ABAQUS/Explicit VUMAT's. The class is derived
  * from IsotropicT because the VUMAT interface assumes elastic
  * response is approximately isotropic */
-class ABAQUS_VUMAT_BaseT: protected ABAQUS_BaseT, public FSSolidMatT, public IsotropicT
+class ABAQUS_VUMAT_BaseT: public FSSolidMatT, public IsotropicT
 {
 public:
 
@@ -99,8 +98,13 @@ protected:
 
 private:
 
+	/* conversion functions */
+	void dMatrixT_to_ABAQUS(const dMatrixT& A, nMatrixT<doublereal>& B) const;
+	void ABAQUS_to_dSymMatrixT(const doublereal* pA, dSymMatrixT& B) const;
+	void dSymMatrixT_to_ABAQUS(const dSymMatrixT& A, doublereal* pB) const;
+
 	/* load element data for the specified integration point */
-	void Load(const ElementCardT& element, int ip);
+	void Load(ElementCardT& element, int ip);
 	void Store(ElementCardT& element, int ip);
 
 	/* make call to the VUMAT */
@@ -115,6 +119,13 @@ private:
 		doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
                 doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
                 doublereal*) = 0;
+                
+	/* read ABAQUS-format input */
+	void Read_ABAQUS_Input(ifstreamT& in);
+	bool Next_ABAQUS_Keyword(ifstreamT& in) const;
+	bool Skip_ABAQUS_Symbol(ifstreamT& in, char c) const; // returns true if c is next non-whitespace
+	void Skip_ABAQUS_Comments(ifstreamT& in);
+	void Read_ABAQUS_Word(ifstreamT& in, StringT& word, bool to_upper = true) const;
 	
 private:
 
@@ -186,6 +197,9 @@ private:
 	dMatrixT fF_rel;
 	dMatrixT fA_nsd, fROld, fRNew;
 	dSymMatrixT fU1, fU2, fU1U2, fUOld, fUNew;
+
+	/* density */
+	double fAbDensity;
 };
 
 /* inlines */
@@ -194,8 +208,6 @@ inline GlobalT::SystemTypeT ABAQUS_VUMAT_BaseT::TangentType(void) const
 	return fTangentType;
 }
 
-} /* namespace Tahoe */
-
 #else /* __F2C__ */
 
 #ifndef __MWERKS__
@@ -203,5 +215,7 @@ inline GlobalT::SystemTypeT ABAQUS_VUMAT_BaseT::TangentType(void) const
 #endif
 
 #endif /* __F2C__ */
+
+} /* namespace Tahoe */
 
 #endif /* _ABAQUS_VUMAT_BASE_T_H_ */

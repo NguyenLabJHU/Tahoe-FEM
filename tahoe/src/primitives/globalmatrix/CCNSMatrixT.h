@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.h,v 1.12 2004-03-16 06:56:28 paklein Exp $ */
+/* $Id: CCNSMatrixT.h,v 1.10 2002-11-30 16:31:03 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #ifndef _CCNSMATRIX_T_H_
 #define _CCNSMATRIX_T_H_
@@ -78,10 +78,10 @@ public:
 	/* assemble the element contribution into the LHS matrix - assumes
 	 * that elMat is square (n x n) and that eqnos is also length n.
 	 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos);
-	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-		const ArrayT<int>& col_eqnos);
-	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+		const nArrayT<int>& col_eqnos);
+	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos);
 
 	/* returns 1 if the factorized matrix contains a negative
 	 * pivot.  Matrix MUST be factorized.  Otherwise function
@@ -132,7 +132,7 @@ protected:
 	/* check functions */
 	virtual void PrintAllPivots(void) const;
 	virtual void PrintZeroPivots(void) const;
-	virtual void PrintLHS(bool force = false) const;
+	virtual void PrintLHS(void) const;
 
 	/* test if {row,col} is within the skyline */
 	int InSkyline(int row, int col) const;
@@ -170,34 +170,25 @@ private:
 
 protected:
 
-	/** \name equations sets */
-	/*@{*/
+	/* equations sets */
 	LinkedListT<const iArray2DT*> fEqnos;
 	LinkedListT<const RaggedArray2DT<int>*> fRaggedEqnos;
-	/*@}*/
 
-	/** skyline */
+	/* skyline */
 	int* famax; // length fNumEQ+1
 
-	/** \name matrix components - pointers to fMatrix */
-	/*@{*/
-	double* fKU; /**< upper triangle */
-	double*	fKL; /**< lower triangle */
-	double*	fKD; /**< diagonal */
-	/*@}*/
+	/* matrix components - pointers to fMatrix */
+	double* fKU; // upper triangle
+	double*	fKL; // lower triangle
+	double*	fKD; // diagonal
 
-	/** \name storage */   	
-	/*@{*/
+	/* storage */   	
 	int		fNumberOfTerms;
 	double* fMatrix;
-	/*@}*/
-
-	/** runtime flag */
-	bool fIsFactorized;
 
 private:
 
-	/** workspace */
+	/* workspace */
 	double* fu;
 };
 

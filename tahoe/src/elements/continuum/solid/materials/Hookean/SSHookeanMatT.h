@@ -1,4 +1,4 @@
-/* $Id: SSHookeanMatT.h,v 1.7 2004-01-10 04:41:12 paklein Exp $ */
+/* $Id: SSHookeanMatT.h,v 1.6 2003-01-29 07:34:39 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _SS_HOOKEAN_MAT_H_
 #define _SS_HOOKEAN_MAT_H_
@@ -13,11 +13,10 @@ class SSHookeanMatT: public SSSolidMatT, public HookeanMatT
 {
 public:
 
-	/** constructor */
+	/* constructor */
 	SSHookeanMatT(ifstreamT& in, const SSMatSupportT& support);
-	SSHookeanMatT(void);
 
-	/** initialization */
+	/* initialization */
 	virtual void Initialize(void);
 
 	/** \name spatial description */

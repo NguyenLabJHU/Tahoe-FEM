@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.h,v 1.7 2004-01-05 07:19:56 paklein Exp $ */
+/* $Id: UnConnectedRodT.h,v 1.6 2002-07-05 22:28:06 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #ifndef _UNCONN_ROD_T_H_
@@ -24,7 +24,7 @@ public:
 	virtual void InitStep(void);
 
 	/* resets to the last converged solution */
-	virtual GlobalT::RelaxCodeT ResetStep(void);
+	virtual void ResetStep(void);
 
 	/* element level reconfiguration for the current solution */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);

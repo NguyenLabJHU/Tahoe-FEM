@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.14 2003-11-21 22:47:24 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.11 2002-10-20 22:49:46 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #include "ShapeFunctionT.h"
@@ -45,20 +45,14 @@ void ShapeFunctionT::SetDerivatives(void)
 }
 
 /* field gradients at specific parent domain coordinates. */
-void ShapeFunctionT::GradU(const LocalArrayT& nodal, dMatrixT& grad_U, const dArrayT& coord, 
-	dArrayT& Na, dArray2DT& DNa) const
+void ShapeFunctionT::GradU(const LocalArrayT& nodal, dMatrixT& grad_U, 
+	const dArrayT& coord) const
 {
-	/* dimensions */
-	int nnd = fCoords.NumberOfNodes();
-	int nsd = fCoords.MinorDim();
-	Na.Dimension(nnd);
-	DNa.Dimension(nsd, nnd);
-
-	/* compute the shape function derivatives */
-	EvaluateShapeFunctions(coord, Na, DNa);
-
-	/* compute the gradient */
-	fDomain->Jacobian(nodal, DNa, grad_U);
+#pragma unused(nodal)
+#pragma unused(grad_U)
+#pragma unused(coord)
+	cout << "\n ShapeFunctionT::GradU: not implemented yet" << endl;
+	throw ExceptionT::kGeneralFail;
 }
 
 /************************ for the current integration point *********************/
@@ -103,8 +97,8 @@ void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 
 	if (numsd == 2)
 	{
-		const double* pNax = DNa(0);
-		const double* pNay = DNa(1);
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
 		
 		for (int i = 0; i < numnodes; i++)
 		{
@@ -114,9 +108,9 @@ void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 	}
 	else if (numsd == 3)
 	{
-		const double* pNax = DNa(0);
-		const double* pNay = DNa(1);
-		const double* pNaz = DNa(2);
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
+		double* pNaz = DNa(2);
 		
 		for (int i = 0; i < numnodes; i++)
 		{

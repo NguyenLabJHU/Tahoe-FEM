@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.h,v 1.11 2004-01-05 07:32:28 paklein Exp $ */
+/* $Id: AugLagContact2DT.h,v 1.10 2003-03-02 18:59:07 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 #ifndef _AUGLAG_CONTACT2D_T_H_
 #define _AUGLAG_CONTACT2D_T_H_
@@ -45,9 +45,6 @@ public:
 
 	/* returns 1 if group needs to reconfigure DOF's, else 0 */
 	virtual int Reconfigure(void);
-
-	/** restore any state data to the previous converged state */
-	virtual void ResetState(void) { };
 
 	/* the group */
 	virtual int Group(void) const { return Contact2DT::Group(); }

@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.42 2004-03-18 01:16:19 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.35 2003-10-02 21:05:07 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -69,12 +69,6 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 	iGridManagerT grid(10, 100, point_coordinates, &points_used);
 	grid.Reset();
 	
-	/* verbose output */
-	if (ElementSupport().PrintInput()) {
-		grid.WriteStatistics(out);
-		grid.DumpGrid(out);
-	}
-		
 	/* track cell containing each point, so only one cell is associated with each point */
 	iArrayT found_in_cell(points_used.Length());
 	found_in_cell = -1;
@@ -105,7 +99,7 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 			/* not mapped yet */
 			if (found_in_cell[local] == -1)
 			{
-				x_atom.Alias(NumSD(), hits[j].Coords());
+				x_atom.Set(NumSD(), hits[j].Coords());
 				if (parent.PointInDomain(loc_cell_coords, x_atom)) 
 				{
 					found_in_cell[local] = i;
@@ -224,10 +218,10 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used, const dArray2
 		int np = point_in_cell.MinorDim(i);
 		if (np > 0)
 		{
-			const int* points = point_in_cell(i);
+			int* points = point_in_cell(i);
 			
 			/* mapped coordinates of points in this cell */
-			mapped_coords.Alias(np, nsd, point_in_cell_coords(i));
+			mapped_coords.Set(np, nsd, point_in_cell_coords(i));
 			
 			/* run through points */
 			for (int j = 0; j < np; j++)
@@ -257,7 +251,7 @@ void BridgingScaleT::InterpolateField(const StringT& field, int order, const Poi
 	/* get the field */
 	const FieldT* the_field = ElementSupport().Field(field);
 	LocalArrayT loc_field(LocalArrayT::kDisp, nen, the_field->NumDOF());
-	loc_field.SetGlobal((*the_field)[order]); /* change order so can accomodate any field */
+	loc_field.SetGlobal((*the_field)[order]); /* change orde so can accomodate any field */
 	
 	/* interpolation data */
 	const dArray2DT& weights = cell_data.InterpolationWeights();
@@ -283,10 +277,11 @@ void BridgingScaleT::InterpolateField(const StringT& field, int order, const Poi
 }
 
 /* compute the projection matrix */
-void BridgingScaleT::InitProjection(CommManagerT& comm, const iArrayT& points_used, const dArray2DT* init_coords, 
+void BridgingScaleT::InitProjection(const iArrayT& points_used, const dArray2DT* init_coords, 
 	const dArray2DT* curr_coords, PointInCellDataT& cell_data)
 {
-#pragma unused(comm)
+	/* initialize point-in-cell data */
+	MaptoCells(points_used, init_coords, curr_coords, cell_data);
 
 	/* compute interpolation data */
 	InitInterpolation(points_used, init_coords, curr_coords, cell_data);
@@ -319,24 +314,21 @@ void BridgingScaleT::InitProjection(CommManagerT& comm, const iArrayT& points_us
 	int cell_dex = 0;
 	iArrayT cell_eq;
 	dArrayT Na;
-	//double atommass;
 	for (int i = 0; i < point_in_cell.MajorDim(); i++)
 	{
 		int np = point_in_cell.MinorDim(i);
 		if (np > 0)
 		{
 			fElMatU = 0.0;
-			const int* points = point_in_cell(i);
+			int* points = point_in_cell(i);
 			for (int j = 0; j < np; j++)
 			{
 				/* fetch interpolation weights */
 				int point_dex = global_to_local.Map(points[j]);
 				weights.RowAlias(point_dex, Na);
-				//atommass = mdmass[point_dex];
 				
 				/* element mass */
 				fElMatU.Outer(Na, Na, 1.0, dMatrixT::kAccumulate);
-				//fElMatU *= atommass;	// need to multiply by atomic mass, i.e. M = N^{T}M_{A}N
 			}
 
 			/* equations of cell in projector */
@@ -386,7 +378,7 @@ void BridgingScaleT::ProjectField(const PointInCellDataT& cell_data,
 		int np = point_in_cell.MinorDim(i);
 		if (np > 0)
 		{
-			const int* points = point_in_cell(i);
+			int* points = point_in_cell(i);
 			Nd = 0.0;
 			for (int j = 0; j < np; j++)
 			{
@@ -449,7 +441,7 @@ out << "\n residual =\n" << projection << endl;
 			cell_connects.RowAlias(cell_dex++, cell_connect);
 			cell_projection.RowCollect(cell_connect, projection);
 		
-			const int* points = point_in_cell(i);
+			int* points = point_in_cell(i);
 			for (int j = 0; j < np; j++)
 			{
 				int point = points[j];
@@ -470,17 +462,6 @@ out << "\n residual =\n" << projection << endl;
 			}
 		}
 	}
-}
-
-/* compute the coarse scale part of the source field */
-void BridgingScaleT::CoarseField(const PointInCellDataT& cell_data, const dArray2DT& field, dArray2DT& coarse) const
-{
-#pragma unused(cell_data)
-#pragma unused(field)
-#pragma unused(coarse)
-
-	const char caller[] = "BridgingScaleT::CoarseField";
-	ExceptionT::GeneralFail(caller, "not implemented");
 }
 
 /* Project point values onto mesh, write into displacement field.  Used to compute initial
@@ -507,13 +488,12 @@ void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT
 	iArrayT cell_eq;
 	dArrayT Na, point_value;
 	dMatrixT Nd(cell_connects.MinorDim(), point_values.MinorDim());
-	//double atommass;
 	for (int i = 0; i < point_in_cell.MajorDim(); i++)
 	{
 		int np = point_in_cell.MinorDim(i);
 		if (np > 0)
 		{
-			const int* points = point_in_cell(i);
+			int* points = point_in_cell(i);
 			Nd = 0.0;
 			for (int j = 0; j < np; j++)
 			{
@@ -522,14 +502,12 @@ void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT
 				/* fetch interpolation weights */
 				int point_dex = global_to_local.Map(point);
 				weights.RowAlias(point_dex, Na);
-				//atommass = mdmass[point_dex];
-				
+
 				/* source values of the point */
 				point_values.RowAlias(point, point_value);
 
 				/* rhs during projection - calculating part of w */
 				Nd.Outer(Na, point_value, 1.0, dMatrixT::kAccumulate);
-				//Nd *= atommass;	// need to multiply by atomic mass, i.e. w = M^{-1}N^{T}M_{A}q
 			}
 
 			/* equations of cell in projector */
@@ -602,7 +580,7 @@ out << "\n residual =\n" << projection << endl;
 			cell_connects.RowAlias(cell_dex++, cell_connect);
 			cell_projection.RowCollect(cell_connect, projection);
 		
-			const int* points = point_in_cell(i);
+			int* points = point_in_cell(i);
 			for (int j = 0; j < np; j++)
 			{
 				int point = points[j];
@@ -653,13 +631,12 @@ void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT
 	iArrayT cell_eq;
 	dArrayT Na, point_value;
 	dMatrixT Nd(cell_connects.MinorDim(), mddisp.MinorDim());
-	//double atommass;
 	for (int i = 0; i < point_in_cell.MajorDim(); i++)
 	{
 		int np = point_in_cell.MinorDim(i);
 		if (np > 0)
 		{
-			const int* points = point_in_cell(i);
+			int* points = point_in_cell(i);
 			Nd = 0.0;
 			for (int j = 0; j < np; j++)
 			{
@@ -668,14 +645,12 @@ void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT
 				/* fetch interpolation weights */
 				int point_dex = global_to_local.Map(point);
 				weights.RowAlias(point_dex, Na);
-				//atommass = mdmass[point_dex];
 
 				/* source values of the point */
 				mddisp.RowAlias(point, point_value);
 			
 				/* rhs during projection - calculating part of w */
 				Nd.Outer(Na, point_value, 1.0, dMatrixT::kAccumulate);
-				//Nd *= atommass;	// need to multiply by atomic mass, i.e. w = M^{-1}N^{T}M_{A}q
 			}
 
 			/* equations of cell in projector */
@@ -737,7 +712,7 @@ out << "\n residual =\n" << projection << endl;
 			cell_projection.RowCollect(cell_connect, projection);
 				
 			/* element info */
-			const int* points = point_in_cell(i);
+			int* points = point_in_cell(i);
 			int off = global_to_local.Map(points[0]);
 			const ElementCardT& element_card = continuum->ElementCard(cell[off]);
 			const iArrayT& fenodes = element_card.NodesU();
@@ -790,9 +765,11 @@ void BridgingScaleT::RegisterOutput(void)
 	fSolidOutputID = ElementSupport().RegisterOutput(output_set_solid);
 #endif
 
+#if 0
 	/* register output at particles */
-//	OutputSetT output_set_particle(GeometryT::kPoint, fParticlesUsed, n_labels);
-//	fParticleOutputID = ElementSupport().RegisterOutput(output_set_particle);
+	OutputSetT output_set_particle(GeometryT::kPoint, fParticlesUsed, n_labels);
+	fParticleOutputID = ElementSupport().RegisterOutput(output_set_particle);
+#endif
 }
 
 //NOTE - this function is/was identical to CSEBaseT::WriteOutput

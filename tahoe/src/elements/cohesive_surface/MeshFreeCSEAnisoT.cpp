@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.21 2004-01-05 07:34:30 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.18 2003-03-19 00:53:25 cjkimme Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -58,8 +58,6 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const Field
 	fNEEMatrix(kHeadRoom, true),
 	fMatrixManager(kHeadRoom, true)
 {
-	const char caller[] = "MeshFreeCSEAnisoT::MeshFreeCSEAnisoT";
-
 	/* set format of element stiffness matrix */
 	fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
 
@@ -72,13 +70,21 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const Field
 
 	/* checks */
 	if (NumSD() == 2 && fGeometryCode != GeometryT::kLine)
-		ExceptionT::BadInputValue(caller, "expecting geometry code %d for 2D: %d", 
-			GeometryT::kLine, fGeometryCode);
+	{
+		cout << "\n MeshFreeCSEAnisoT::MeshFreeCSEAnisoT: expecting geometry code "
+		     << GeometryT::kLine<< " for 2D: " << fGeometryCode << endl;
+		throw ExceptionT::kBadInputValue;
+	}
 	else if (NumSD() == 3 &&
 	         fGeometryCode != GeometryT::kQuadrilateral &&
 	         fGeometryCode != GeometryT::kTriangle)
-		ExceptionT::BadInputValue(caller, "expecting geometry code %d or %d for 3D: %d", 
-			GeometryT::kQuadrilateral, GeometryT::kTriangle , fGeometryCode);
+	{
+		cout << "\n MeshFreeCSEAnisoT::MeshFreeCSEAnisoT: expecting geometry code "
+             << GeometryT::kQuadrilateral
+		     << " or\n" <<   "     " << GeometryT::kTriangle << " for 3D: "
+		     << fGeometryCode << endl;
+		throw ExceptionT::kBadInputValue;
+	}
 	if (fOutputArea != 0 && fOutputArea != 1) throw ExceptionT::kBadInputValue;
 
 	/* check element group */
@@ -86,13 +92,19 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const Field
 	ElementBaseT* element_group = &(ElementSupport().ElementGroup(fMFElementGroup));
 	
 	/* check cast to meshfree group */
-	fMFFractureSupport = TB_DYNAMIC_CAST(MeshFreeFractureSupportT*, element_group);
-	if (!fMFFractureSupport)
-		ExceptionT::BadInputValue(caller, "domain element group %d is not meshfree", fMFElementGroup + 1);
-
-	/* RTTI is required */
 #ifdef __NO_RTTI__
-	ExceptionT::GeneralFail(caller, "requires RTTI");
+	cout << "\n MeshFreeCSEAnisoT::MeshFreeCSEAnisoT: NO RTTI: Domain element\n"
+	     <<   "     group " << fMFElementGroup + 1
+	     << " cannot be verified as meshfree" << endl;
+	fMFFractureSupport = (MeshFreeFractureSupportT*) element_group;
+#else
+	fMFFractureSupport = dynamic_cast<MeshFreeFractureSupportT*>(element_group);
+	if (!fMFFractureSupport)
+	{
+		cout << "\n MeshFreeCSEAnisoT::MeshFreeCSEAnisoT: domain element group\n"
+		     <<   "    " << fMFElementGroup + 1 << " is not meshfree" << endl;
+		throw ExceptionT::kBadInputValue;
+	}
 #endif
 }
 
@@ -287,14 +299,16 @@ void MeshFreeCSEAnisoT::CloseStep(void)
 }
 
 /* resets to the last converged solution */
-GlobalT::RelaxCodeT MeshFreeCSEAnisoT::ResetStep(void)
+void MeshFreeCSEAnisoT::ResetStep(void)
 {
 	/* inherited */
-	GlobalT::RelaxCodeT relax = ElementBaseT::ResetStep();
+	ElementBaseT::ResetStep();
 
 	/* mismatch could occur with misuse of managers */
-	if (fd_Storage.MajorDim() != fd_Storage_last.MajorDim())
-		ExceptionT::GeneralFail("MeshFreeCSEAnisoT::ResetStep", "state variable storage mismatch");
+	if (fd_Storage.MajorDim() != fd_Storage_last.MajorDim()) {
+		cout << "\n MeshFreeCSEAnisoT::ResetStep: state variable storage mismatch" << endl;
+		throw ExceptionT::kGeneralFail;
+	}
 	
 	/* restore last state */
 	fd_Storage = fd_Storage_last;
@@ -305,8 +319,6 @@ GlobalT::RelaxCodeT MeshFreeCSEAnisoT::ResetStep(void)
 		StatusFlagT& flag = fActiveFlag[i];
 		flag = (flag == kMarked) ? kON : flag;
 	}
-
-	return relax;
 }
 
 /* element level reconfiguration for the current solution */

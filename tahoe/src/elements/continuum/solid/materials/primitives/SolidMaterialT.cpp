@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.10 2004-01-10 04:41:25 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.9 2002-11-14 17:06:39 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -21,17 +21,6 @@ SolidMaterialT::SolidMaterialT(ifstreamT& in,
 	in >> fDensity;		if (fDensity   <= 0.0) throw ExceptionT::kBadInputValue;
 	fThermal = new ThermalDilatationT(in);
 	if (!fThermal) throw ExceptionT::kOutOfMemory;
-
-	SetName("solid_material");
-}
-
-SolidMaterialT::SolidMaterialT(void):
-	fThermal(NULL),
-	fDensity(0.0),
-	fMassDamp(0.0),
-	fStiffDamp(0.0)
-{
-	SetName("solid_material");
 }
 
 /* destructor */
@@ -148,17 +137,4 @@ int SolidMaterialT::IsLocalized(dArrayT& normal)
 
 	/* by default, no localization */
 	return 0;
-}
-
-/* describe the parameters needed by the interface */
-void SolidMaterialT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ContinuumMaterialT::DefineParameters(list);
-
-	/* density */
-	ParameterT density(fDensity, "density");
-	density.SetDefault(1.0);
-	density.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(density);
 }

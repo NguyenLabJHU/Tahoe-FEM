@@ -1,4 +1,4 @@
-/* $Id: PTHT3BodyT.h,v 1.4 2003-12-28 23:37:12 paklein Exp $ */
+/* $Id: PTHT3BodyT.h,v 1.3 2002-07-05 22:28:22 paklein Exp $ */
 /* created: paklein (10/11/1997)                                          */
 
 #ifndef _PTHT3_BODY_T_H_
@@ -18,13 +18,10 @@ class PTHT3BodyT: public ThreeBodyT
 {
 public:
 
-	/** constructor */
+	/* constructor */
 	PTHT3BodyT(const dArrayT& lengths, const dArrayT& angles,
 		const iArray2DT& bondpairs, const ThermalDilatationT* thermal,
 		ifstreamT& in);
-
-	/** destructor */
-	virtual ~PTHT3BodyT(void) { };
 
 	/* triggers recomputation */
 	virtual void Set(void);

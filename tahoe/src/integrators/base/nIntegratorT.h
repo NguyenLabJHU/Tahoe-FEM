@@ -1,4 +1,4 @@
-/* $Id: nIntegratorT.h,v 1.9 2003-12-28 08:55:56 paklein Exp $ */
+/* $Id: nIntegratorT.h,v 1.8 2003-05-20 10:27:06 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_CONTROLLERT_H_
@@ -35,9 +35,6 @@ public:
 
 	/** destructor */
 	virtual ~nIntegratorT(void);
-
-	/** casting up from IntegratorT */
-	virtual const nIntegratorT& nIntegrator(void) const { return *this; };
 
 	/** indicate field dimension to integrator. Allows integrator to redimension
 	 * any internal work space. */

@@ -1,4 +1,4 @@
-/* $Id: BasisT.h,v 1.4 2003-12-28 23:37:31 paklein Exp $ */
+/* $Id: BasisT.h,v 1.3 2002-07-05 22:28:38 paklein Exp $ */
 /* created: paklein (12/10/1999)                                          */
 /* base class for basis functions                                         */
 
@@ -19,12 +19,9 @@ class BasisT
 {
 public:
 
-	/** constructor */
+	/* constructor */
 	BasisT(int complete, int nsd);
-
-	/** destructor */
-	virtual ~BasisT(void) { };
-
+	
 	/* return the number of basis functions */
 	virtual int BasisDimension(void) const = 0;
 

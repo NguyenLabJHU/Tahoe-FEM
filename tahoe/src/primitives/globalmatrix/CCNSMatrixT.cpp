@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.19 2004-03-17 20:02:24 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.13 2003-04-08 23:00:17 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -23,8 +23,7 @@ CCNSMatrixT::CCNSMatrixT(ostream& out, int check_code):
 	famax(NULL),
 	fNumberOfTerms(0),
 	fMatrix(NULL),
-	fu(NULL),
-	fIsFactorized(false)
+	fu(NULL)
 {
 
 }
@@ -38,8 +37,7 @@ CCNSMatrixT::CCNSMatrixT(const CCNSMatrixT& source):
 	fKD(NULL),
 	fNumberOfTerms(0),
 	fMatrix(NULL),
-	fu(NULL),
-	fIsFactorized(false)
+	fu(NULL)
 {
 	CCNSMatrixT::operator=(source);
 }
@@ -139,8 +137,6 @@ void CCNSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	/* clear stored equation sets */
 	fEqnos.Clear();
 	fRaggedEqnos.Clear();
-	
-	/* set flag */
 }
 
 /* set all matrix volues to 0.0 */
@@ -150,8 +146,7 @@ void CCNSMatrixT::Clear(void)
 	GlobalMatrixT::Clear();
 
 	/* byte set */
-	memset(fMatrix, 0, sizeof(double)*fNumberOfTerms);
-	fIsFactorized = false;
+	memset(fMatrix, 0, sizeof(double)*fNumberOfTerms);	
 }
 
 /* add element group equations to the overall topology.
@@ -171,7 +166,7 @@ void CCNSMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fLocNumEQ */
-void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
+void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
@@ -179,7 +174,7 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 	if (format == ElementMatrixT::kDiagonal)
 	{
 		/* from diagonal only */
-		const double* pelMat = elMat.Pointer();
+		double* pelMat = elMat.Pointer();
 		int inc = elMat.Rows() + 1;
 		
 		int size = eqnos.Length();
@@ -224,8 +219,8 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 	}
 }
 
-void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-	const ArrayT<int>& col_eqnos)
+void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
@@ -263,7 +258,7 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_e
 	}
 }
 
-void CCNSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
+void CCNSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
@@ -330,8 +325,7 @@ void CCNSMatrixT::FindMinMaxPivot(double& min, double& max, double& abs_min,
 /* assignment operator */
 GlobalMatrixT& CCNSMatrixT::operator=(const CCNSMatrixT& rhs)
 {
-	fIsFactorized = rhs.fIsFactorized;
-
+#pragma unused(rhs)
 	cout << "\n CCNSMatrixT::operator= : not implemented" << endl;
 	throw ExceptionT::kGeneralFail;
 }
@@ -344,7 +338,7 @@ GlobalMatrixT& CCNSMatrixT::operator=(const GlobalMatrixT& rhs)
 	throw ExceptionT::kGeneralFail;
 #endif
 
-	const CCNSMatrixT* ccns = TB_DYNAMIC_CAST(const CCNSMatrixT*, &rhs);
+	const CCNSMatrixT* ccns = dynamic_cast<const CCNSMatrixT*>(&rhs);
 	if (!ccns) {
 		cout << "\n CCNSMatrixT::operator= : cast failed" << endl;
 		throw ExceptionT::kGeneralFail;
@@ -370,6 +364,7 @@ bool CCNSMatrixT::CopyDiagonal(dArrayT& diags) const
 		/* copy */
 		dArrayT tmp(fLocNumEQ, fKD);
 		diags = tmp;
+
 		return true;		
 	}
 }
@@ -410,22 +405,14 @@ ostream& operator<<(ostream& out, const CCNSMatrixT& matrix)
 
 /* solution routines */
 void CCNSMatrixT::Factorize(void)
-{
-	/* quick exit */
-	if (fIsFactorized)
-		return;
-	else /* factorization routine (GRF) */ {
-		SolNonSymSysSkyLine(fKU, fKL, fKD, famax, fLocNumEQ);
-		fIsFactorized = true;
-	}
+{			
+	/* factorization routine (GRF) */
+	SolNonSymSysSkyLine(fKU, fKL, fKD, famax, fLocNumEQ);
 }
 
 /* solves system. K has already been decomposed in LU form. */
 void CCNSMatrixT::BackSubstitute(dArrayT& result)
 {
-	if (!fIsFactorized) ExceptionT::GeneralFail("CCNSMatrixT::BackSubstitute",
-		"matrix is not factorized");
-
 	/* solves L u'= F -> F := u' (GRF) */
 	solvLT(fKL, result.Pointer(), famax, fLocNumEQ);
 	
@@ -489,9 +476,9 @@ void CCNSMatrixT::PrintAllPivots(void) const
 	fOut << '\n';
 }
 
-void CCNSMatrixT::PrintLHS(bool force) const
+void CCNSMatrixT::PrintLHS(void) const
 {
-	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS)
+	if (fCheckCode != GlobalMatrixT::kPrintLHS)
 		return;
 		
 	fOut << "\nLHS matrix:\n\n";
@@ -535,8 +522,8 @@ double& CCNSMatrixT::operator()(int row, int col) const
 	const char caller[] = "CCNSMatrixT::operator()";
 
 	/* range checks */
-	if (row < 0 || row >= fLocNumEQ) ExceptionT::OutOfRange(caller);
-	if (col < 0 || col >= fLocNumEQ) ExceptionT::OutOfRange(caller);
+	if (row < 0 || row >= fLocNumEQ) ExceptionT::GeneralFail(caller);
+	if (col < 0 || col >= fLocNumEQ) ExceptionT::GeneralFail(caller);
 
 	if (row == col)      /* element on diagonal */
 		return fKD[row];
@@ -623,8 +610,8 @@ void CCNSMatrixT::SetSkylineHeights(const iArray2DT& eqnos)
 
 	for (int j = 0; j < nel; j++)
 	{
-		const int* eleqnos = eqnos(j);
-		int  min = fLocNumEQ;
+		int* eleqnos = eqnos(j);
+		int  min     = fLocNumEQ;
 	
 		/* find the smallest eqno > 0 */
 		for (int k = 0; k < nee; k++)
@@ -661,8 +648,8 @@ void CCNSMatrixT::SetSkylineHeights(const RaggedArray2DT<int>& eqnos)
 	int nel = eqnos.MajorDim();
 	for (int j = 0; j < nel; j++)
 	{
-		int nee = eqnos.MinorDim(j);
-		const int* eleqnos = eqnos(j);
+		int      nee = eqnos.MinorDim(j);
+		int* eleqnos = eqnos(j);
 	
 		/* find the smallest eqno > 0 */
 		int min = fLocNumEQ;

@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.31 2004-03-04 08:54:17 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.25 2003-08-25 21:41:49 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -6,7 +6,6 @@
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "FEManagerT.h"
-#include "TimeManagerT.h"
 #include "CommManagerT.h"
 #include "NodeManagerT.h"
 #include "eIntegratorT.h"
@@ -58,9 +57,6 @@ void ElementSupportT::SetFEManager(FEManagerT* fe)
 		/* set model manager */
 		fModelManager = fe->ModelManager();
 
-		/* set time manager */
-		fTimeManager = fe->TimeManager();
-
 		/* set comm manager */
 		fCommManager = fe->CommManager();
 	}
@@ -74,9 +70,6 @@ void ElementSupportT::SetFEManager(FEManagerT* fe)
 
 		/* clear model manager */
 		fModelManager = NULL;
-		
-		/* clear time manager */
-		fTimeManager = NULL;
 
 		/* clear comm manager */
 		fCommManager = NULL;
@@ -287,7 +280,9 @@ const FieldT* ElementSupportT::Field(const char* name) const
 /* return the element controller appropriate for the given field */
 const eIntegratorT* ElementSupportT::eIntegrator(const FieldT& field) const
 {
-	return &(field.nIntegrator().eIntegrator());
+	const nIntegratorT& n_cont = field.nIntegrator();
+	const eIntegratorT* e_cont = dynamic_cast<const eIntegratorT*>(&n_cont);
+	return e_cont;
 }
 
 #else //_FRACTURE_INTERFACE_LIBRARY_
@@ -654,9 +649,6 @@ ofstreamT& ElementSupportT::Output(void) const
 #endif
 }
 
-/* format of the output files */
-IOBaseT::FileTypeT ElementSupportT::OutputFormat(void) const { return FEManager().OutputFormat(); }
-
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 int ElementSupportT::RegisterOutput(const OutputSetT& output_set) const
 {
@@ -695,23 +687,6 @@ void ElementSupportT::WriteOutput(int ID, const dArray2DT& n_values,
 	for (int i = 0; i < e_values.Length(); i++)
 		*ftmp1++ = *ftmp2++;
 #endif
-}
-
-/* return true if output is going to be written for the current time step */
-bool ElementSupportT::WriteOutput(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return TimeManager().WriteOutput();
-#else
-	return false;
-#endif
-}
-
-/* write a snapshot */
-void ElementSupportT::WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
-	const dArray2DT& values, const ArrayT<StringT>& labels) const
-{
-	FEManager().WriteOutput(file, coords, node_map, values, labels);
 }
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_

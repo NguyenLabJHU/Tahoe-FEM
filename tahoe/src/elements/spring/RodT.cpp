@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.30 2003-12-28 23:37:35 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.29 2003-05-22 09:05:46 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -579,7 +579,7 @@ void RodT::ComputeAvgTotalE(void)
 	if (fStepNumber > 0) /* only for positive steps */
 		tempavg = fSumTotalE / fStepNumber;
 	else
-		tempavg = 0.0;
+		tempavg;
 }
 
 void RodT::ComputeInstTemperature(void)

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceSupportT.cpp,v 1.5 2003-11-21 22:47:14 paklein Exp $ */
+/* $Id: MeshFreeSurfaceSupportT.cpp,v 1.4 2002-10-20 22:49:41 paklein Exp $ */
 /* created: paklein (02/22/2000)                                          */
 /* supporting functions for cohesive elements in a meshfree domain        */
 
@@ -100,7 +100,7 @@ out2 << "\n facet = " << facet+1 << '\n';
 //DEBUG
 
 		/* set facet coordinates */
-		facet_coords.Alias(fRefLocCoords.NumberOfNodes(), nsd, fFacetCoords(facet));
+		facet_coords.Set(fRefLocCoords.NumberOfNodes(), nsd, fFacetCoords(facet));
 		fRefLocCoords.FromTranspose(facet_coords);
 		double h = FacetSize(facet_coords);		
 
@@ -385,8 +385,8 @@ double MeshFreeSurfaceSupportT::FacetSize(const dArray2DT& facet_coords) const
 	if (fRefSurfaceShape.NumSD() + 1 != 2)
 	{
 //TEMP
-		const double* x1 = facet_coords(0);
-		const double* x2 = facet_coords(1);
+		double* x1 = facet_coords(0);
+		double* x2 = facet_coords(1);
 		double dx = x1[0] - x2[0];
 		double dy = x1[1] - x2[1];
 		double dz = x1[2] - x2[2];
@@ -395,8 +395,8 @@ double MeshFreeSurfaceSupportT::FacetSize(const dArray2DT& facet_coords) const
 	/* 2D surfaces */
 	else
 	{
-		const double* x1 = facet_coords(0);
-		const double* x2 = facet_coords(1);
+		double* x1 = facet_coords(0);
+		double* x2 = facet_coords(1);
 		double dx = x1[0] - x2[0];
 		double dy = x1[1] - x2[1];
 		return sqrt(dx*dx + dy*dy);

@@ -1,4 +1,5 @@
-/* $Id: ElementT.cpp,v 1.41 2004-03-02 23:50:28 raregue Exp $ */
+/* $Id: ElementT.cpp,v 1.30 2003-10-02 21:59:53 hspark Exp $ */
+
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -19,14 +20,8 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kElastic:
 			type = ElementT::kElastic;
 			break;
-		case ElementT::kElasticAxi:
-			type = ElementT::kElasticAxi;
-			break;
 		case ElementT::kHyperElastic:
 			type = ElementT::kHyperElastic;
-			break;
-		case ElementT::kHyperElasticAxi:
-			type = ElementT::kHyperElasticAxi;
 			break;
 		case ElementT::kLocalizing:
 			type = ElementT::kLocalizing;
@@ -59,9 +54,6 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kThermalSurface:
 			type = ElementT::kThermalSurface;
 			break;
-		case ElementT::kViscousDrag:
-			type = ElementT::kViscousDrag;
-			break;
 		case ElementT::kPenaltyContact:
 			type = ElementT::kPenaltyContact;
 			break;
@@ -74,17 +66,11 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kTotLagHyperElastic:
 			type = ElementT::kTotLagHyperElastic;
 			break;
-		case ElementT::kTotLagHyperElasticAxi:
-			type = ElementT::kTotLagHyperElasticAxi;
-			break;
 		case ElementT::kMeshFreeElastic:
 			type = ElementT::kMeshFreeElastic;
 			break;
 		case ElementT::kMeshFreeFDElastic:
 			type = ElementT::kMeshFreeFDElastic;
-			break;
-		case ElementT::kMeshFreeFDElasticAxi:
-			type = ElementT::kMeshFreeFDElasticAxi;
 			break;
 		case ElementT::kD2MeshFreeFDElastic:
 			type = ElementT::kD2MeshFreeFDElastic;
@@ -136,9 +122,6 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kSimoQ1P0:
 			type = ElementT::kSimoQ1P0;
 			break;	
-		case ElementT::kSimoQ1P0Axi:
-			type = ElementT::kSimoQ1P0Axi;
-			break;	
 		case ElementT::kAdhesion:
 			type = ElementT::kAdhesion;
 			break;	
@@ -169,11 +152,8 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kSSQ1P0MF:
 		    type = ElementT::kSSQ1P0MF;
 		    break;
-		case ElementT::kGradSmallStrain:
-		    type = ElementT::kGradSmallStrain;
-		    break;
-		case ElementT::kGradC0SmallStrain:
-		    type = ElementT::kGradC0SmallStrain;
+		case ElementT::kDorganVoyiadjisMarin:
+		    type = ElementT::kDorganVoyiadjisMarin;
 		    break;
 		case ElementT::kAPSgrad:
 		    type = ElementT::kAPSgrad;
@@ -184,27 +164,13 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kPenaltyContactDrag:
 		    type = ElementT::kPenaltyContactDrag;
 			break;
-		case ElementT::kMeshfreePenaltyContact:
-		    type = ElementT::kMeshfreePenaltyContact;
-			break;
 		case ElementT::kTotLagSplitIntegration:
 		    type = ElementT::kTotLagSplitIntegration;
 		    break;
-		case ElementT::kSS_SCNIMF:
-			type = ElementT::kSS_SCNIMF;
-			break;
-		case ElementT::kFS_SCNIMF:
-			type = ElementT::kFS_SCNIMF;
-			break;
-		case ElementT::kAPSVgrad:
-		    type = ElementT::kAPSVgrad;
-		    break;    
-		case ElementT::kTotLagFlat:
-		    type = ElementT::kTotLagFlat;
-		    break;
 		default:
-			ExceptionT::BadInputValue("operator>>ElementT::TypeT",
-				"unknown type: %d", i_type);
+			cout << "\n operator>>ElementT::TypeT: unknown type: "
+			<< i_type<< endl;
+			throw ExceptionT::kBadInputValue;	
 	}
 	return in;
 }

@@ -1,4 +1,4 @@
-/* $Id: tevp3D.cpp,v 1.16 2003-11-21 22:46:58 paklein Exp $ */
+/* $Id: tevp3D.cpp,v 1.15 2003-01-29 07:35:09 paklein Exp $ */
 /* created:  Harold Park (06/25/2001) */
 #include "tevp3D.h"
 #include <iostream.h>
@@ -441,7 +441,7 @@ double tevp3D::ComputeEffectiveStress(void)
   return fSb;
 }
 
-void tevp3D::CheckCriticalCriteria(ElementCardT& element, int ip)
+void tevp3D::CheckCriticalCriteria(const ElementCardT& element, int ip)
 {
   /* Returns an indicator to determine whether critical strain criteria
    * has been met, and switch to fluid model happens next time step */
@@ -582,7 +582,7 @@ dArrayT& tevp3D::ComputeEP_tan(void)
   return fEP_tan;
 }
 
-int tevp3D::CheckIfPlastic(ElementCardT& element, int ip)
+int tevp3D::CheckIfPlastic(const ElementCardT& element, int ip)
 {
   /* Checks to see if the gauss point has gone plastic yet via a
    * test on the effective stress */
@@ -637,10 +637,10 @@ void tevp3D::LoadData(const ElementCardT& element, int ip)
   int dex = ip * kVoigt;     // 6 non-zero 3Dstress components (11, 22, 33, 23, 13, 21)
   int offset = fNumIP * kVoigt;
   /* fetch arrays */
-  const dArrayT& d_array = element.DoubleData();
-  fTempKirchoff.Alias(kVoigt, &d_array[dex]);
-  fTempCauchy.Alias(kVoigt, &d_array[offset + dex]);
-  fInternal.Alias(kNumOutput, &d_array[2 * offset + ip * kNumOutput]);
+  dArrayT& d_array = element.DoubleData();
+  fTempKirchoff.Set(kVoigt, &d_array[dex]);
+  fTempCauchy.Set(kVoigt, &d_array[offset + dex]);
+  fInternal.Set(kNumOutput, &d_array[2 * offset + ip * kNumOutput]);
 }
 
 void tevp3D::Update(ElementCardT& element)

@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.cpp,v 1.8 2004-01-10 17:15:06 paklein Exp $ */
+/* $Id: MaterialSupportT.cpp,v 1.7 2003-08-25 21:42:42 paklein Exp $ */
 #include "MaterialSupportT.h"
 #include "ElementsConfig.h"
 
@@ -28,7 +28,6 @@ MaterialSupportT::MaterialSupportT(int nsd, int ndof, int nip):
 	fSize(1),
 	fRank(0),
 	fCommunicator(NULL),
-	fGroupCommunicator(NULL),
 
 	fElementCards(NULL),
 	fContinuumElement(NULL),
@@ -51,11 +50,9 @@ void MaterialSupportT::SetContinuumElement(const ContinuumElementT* p)
 		fSize = element_support.Size();
 		fRank = element_support.Rank();
 		fCommunicator = &(element_support.Communicator());
-		fGroupCommunicator = &(fContinuumElement->GroupCommunicator());
 	}
 	else
 		fCommunicator = NULL;
-		fGroupCommunicator = NULL;
 #endif
 }
 

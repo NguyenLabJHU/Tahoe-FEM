@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.61 2004-03-19 17:16:53 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.55 2003-09-04 07:16:50 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -110,14 +110,7 @@ GlobalT::SystemTypeT CSEAnisoT::TangentType(void) const
 		/* tangent matrix is not symmetric */
 		return GlobalT::kNonSymmetric;
 	else
-	{ // symmetric lest cohesive model says otherwise
-		
-		for (int i = 0; i < fSurfPots.Length(); i++)
-			if (fSurfPots[i]->TangentType() == GlobalT::kNonSymmetric)
-				return GlobalT::kNonSymmetric;
-			
 		return GlobalT::kSymmetric;
-	}
 }
 
 void CSEAnisoT::Initialize(void)
@@ -300,6 +293,7 @@ void CSEAnisoT::Initialize(void)
 			{
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 				if (NumDOF() == 2)
+//					fSurfPots[num] = new InelasticDuctile_RP2DT(in, ElementSupport().TimeStep(), fIPArea);
 					fSurfPots[num] = new InelasticDuctile_RP2DT(in, ElementSupport().TimeStep(), fIPArea, ElementSupport().Output());
 				else
 					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
@@ -409,8 +403,11 @@ void CSEAnisoT::Initialize(void)
 			{
 				const SurfacePotentialT* pot_i = fSurfPots[i];
 				if (!SurfacePotentialT::CompatibleOutput(*pot_k, *pot_i))
-					ExceptionT::BadInputValue(caller, "incompatible output between potentials %d and %d",
-						k+1, i+1);
+				{
+					cout << "\n CSEAnisoT::Initialize: incompatible output between potentials\n"
+					     <<   "     " << k+1 << " and " << i+1 << endl;
+					throw ExceptionT::kBadInputValue;
+				}
 			}
 		}
 			
@@ -475,27 +472,6 @@ void CSEAnisoT::Initialize(void)
 	/* For SIERRA, don't do anything. Wait until InitStep. */
 #endif
 
-}
-
-/* prepare for a sequence of time steps */
-void CSEAnisoT::InitialCondition(void)
-{
-	/* inherited */
-	CSEBaseT::InitialCondition();
-
-#ifdef COHESIVE_SURFACE_ELEMENT_DEV
-	/* set iteration pointers */
-	for (int i = 0; i < fSurfPots.Length(); i++)
-	{
-		SurfacePotentialT* potential = fSurfPots[i];
-		InelasticDuctile_RP2DT* ductile = dynamic_cast<InelasticDuctile_RP2DT*>(potential);
-		if (ductile)
-		{
-			const int& iteration = ElementSupport().IterationNumber(Group());	
-			ductile->SetIterationPointer(&iteration);
-		}
-	}
-#endif
 }
 
 #ifdef _FRACTURE_INTERFACE_LIBRARY_	
@@ -678,7 +654,7 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 	/* work space for collecting element variables */
 	LocalArrayT nodal_values(LocalArrayT::kUnspecified);
 	dArray2DT elementVals;
-	dArrayT localFrameIP;
+	dArrayT localFrameIP, tensorIP;
 	iArrayT ndIndices;
 
 	AutoArrayT<double> state2;
@@ -708,9 +684,22 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 		fLHS = 0.0;
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-		/* Get local bulk values for CSE*/
 		if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
-			SurfaceValuesFromBulk(element, ndIndices, elementVals, nodal_values);
+		{
+		  	ndIndices = element.NodesX();
+		  	int numElemNodes = ndIndices.Length();
+			elementVals.Dimension(numElemNodes,fNodalQuantities.MinorDim());
+		  	nodal_values.Dimension(numElemNodes,fNodalQuantities.MinorDim());
+		  	for (int iIndex = 0; iIndex < numElemNodes; iIndex++) 
+			{
+				elementVals.SetRow(iIndex,0.);
+			 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[iIndex]));
+			 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[otherInds[iIndex]]));
+			}
+		  	nodal_values.SetGlobal(elementVals);
+		  	ndIndices.SetValueToPosition();
+		  	nodal_values.SetLocal(ndIndices);
+		}
 #endif
 
 		/* loop over integration points */
@@ -746,10 +735,21 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 			/* gap vector in local frame */
 			fQ.MultTx(delta, fdelta);			
 			
+			/* Interpolate nodal info to IPs */
+			/* stress tensor in local frame */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-			/* Interpolate nodal info to IPs using stress tensor in local frame*/
 			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
-				FromNodesToIPs(tiedpot->RotateNodalQuantity(), localFrameIP, nodal_values);
+			{
+				tensorIP.Dimension(nodal_values.MinorDim());
+				localFrameIP.Dimension(nodal_values.MinorDim());
+			    fShapes->Interpolate(nodal_values, tensorIP);
+			    if (tiedpot->RotateNodalQuantity()) {
+					dSymMatrixT s_rot(NumSD(), localFrameIP.Pointer());
+					s_rot.MultQBQT(fQ, dSymMatrixT(NumSD(), tensorIP.Pointer()));
+				}
+				else
+					localFrameIP = tensorIP;
+			}
 #endif
 
 			/* stiffness in local frame */
@@ -793,9 +793,7 @@ void CSEAnisoT::RHSDriver(void)
 
 	/* time-integration parameters */
 	double constKd = 1.0;
-
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-
 	int formKd = fIntegrator->FormKd(constKd);
 	if (!formKd) return;
 
@@ -803,29 +801,53 @@ void CSEAnisoT::RHSDriver(void)
 	const FieldT* temperature = ElementSupport().Field("temperature");
 
 	/* initialize sources */
-	if (temperature) 
-		InitializeTemperature(temperature);
+	if (temperature) {
+	
+		if (fIncrementalHeat.Length() == 0) {
 
+			/* initialize heat source arrays */
+			fIncrementalHeat.Dimension(fBlockData.Length());
+			for (int i = 0; i < fIncrementalHeat.Length(); i++)
+			{
+				/* dimension */
+				fIncrementalHeat[i].Dimension(fBlockData[i].Dimension(), fShapes->NumIP());
+	
+				/* register */
+				temperature->RegisterSource(fBlockData[i].ID(), fIncrementalHeat[i]);
+			}
+		}
+		
+		/* clear sources */
+		for (int i = 0; i < fIncrementalHeat.Length(); i++)
+			fIncrementalHeat[i] = 0.0;
+	}
 #else // _FRACTURE_INTERFACE_LIBRARY_ defined
-
     /*Read in SIERRA's new state variables. We need their memory. */	
 	fStateVariables.Set(fStateVariables.MajorDim(),fStateVariables.MinorDim(),
 		ElementSupport().StateVariableArray());
-
 #endif
 
 	/* set state to start of current step */
 	fStateVariables = fStateVariables_last;
 	if (freeNodeQ.IsAllocated())
 		freeNodeQ = freeNodeQ_last;
-
 	/* node map of facet 1 */
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 	
-	/* If potential needs info from nodes, start to gather it now */
-	if (fCalcNodalInfo)
-		StoreBulkOutput();
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+	/* If the potential needs info from the nodes, start to gather it now */
+	if (fCalcNodalInfo) 
+	{
+		ElementBaseT& surroundingGroup = ElementSupport().ElementGroup(iBulkGroups[0]);
+		surroundingGroup.SendOutput(fNodalInfoCode);
+		if (fNodalQuantities.Length() > 0) 
+		{
+			fNodalQuantities.Free();
+		}
+		fNodalQuantities = ElementSupport().OutputAverage();
+	}
+#endif
 
 	/* fracture surface area */
 	fFractureArea = 0.0;
@@ -833,7 +855,7 @@ void CSEAnisoT::RHSDriver(void)
 	/* work space for collecting element variables */
 	LocalArrayT nodal_values(LocalArrayT::kUnspecified);
 	dArray2DT elementVals;
-	dArrayT localFrameIP;
+	dArrayT localFrameIP, tensorIP;
 	iArrayT ndIndices;
 
 	int block_count = 0, block_dex = 0;
@@ -869,9 +891,23 @@ void CSEAnisoT::RHSDriver(void)
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 			TiedPotentialBaseT* tiedpot = fTiedPots[element.MaterialNumber()];
 
-			/* Get local bulk values for CSE*/
-			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 	
-				SurfaceValuesFromBulk(element, ndIndices, elementVals, nodal_values);
+			int currElNum = CurrElementNumber();
+			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
+			{
+				ndIndices = element.NodesX();
+			  	int numElemNodes = ndIndices.Length();
+				elementVals.Dimension(numElemNodes,fNodalQuantities.MinorDim()); 	
+			  	nodal_values.Dimension(numElemNodes,fNodalQuantities.MinorDim());
+			  	for (int iIndex = 0; iIndex < numElemNodes; iIndex++) 
+				{
+					elementVals.SetRow(iIndex,0.);
+				 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[iIndex]));
+				 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[otherInds[iIndex]]));
+				}
+			  	nodal_values.SetGlobal(elementVals);
+			  	ndIndices.SetValueToPosition();
+			  	nodal_values.SetLocal(ndIndices);
+			}
 #endif
 			
 			/* loop over integration points */
@@ -906,14 +942,39 @@ void CSEAnisoT::RHSDriver(void)
 	
 				/* gap vector in local frame */
 				fQ.MultTx(delta, fdelta);
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_					
-				/* Interpolate nodal info to IPs using stress tensor in local frame*/
+					
+				/* Interpolate nodal info to IPs */
+				/* stress tensor in local frame */
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 				if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 				{
-					FromNodesToIPs(tiedpot->RotateNodalQuantity(), localFrameIP, nodal_values);
-					UntieOrRetieNodes(CurrElementNumber(), ndIndices.Length(), 
-									tiedpot, state, localFrameIP);
+					int numElemNodes = ndIndices.Length();
+					tensorIP.Dimension(nodal_values.MinorDim());
+					localFrameIP.Dimension(nodal_values.MinorDim());					
+				    fShapes->Interpolate(nodal_values, tensorIP);
+				    if (tiedpot->RotateNodalQuantity()) {
+				    	dSymMatrixT s_rot(NumSD(), localFrameIP.Pointer());
+						s_rot.MultQBQT(fQ,dSymMatrixT(NumSD(), tensorIP.Pointer()));
+					}
+					else
+						localFrameIP = tensorIP;
+					
+					if (state[iTiedFlagIndex] == TiedPotentialBaseT::kTiedNode && 
+						tiedpot->InitiationQ(localFrameIP))
+					{
+						for (int i = 0; i < numElemNodes; i++) 
+							freeNodeQ(currElNum,i) = 1.;
+						state[iTiedFlagIndex] = TiedPotentialBaseT::kReleaseNextStep;
+					}
+					else
+						/* see if nodes need to be retied */
+						if (qRetieNodes && state[iTiedFlagIndex] == TiedPotentialBaseT::kFreeNode && 
+							tiedpot->RetieQ(localFrameIP, state, fdelta))
+						{
+							state[iTiedFlagIndex] = TiedPotentialBaseT::kTieNextStep;
+							for (int i = 0; i < numElemNodes; i++)
+								freeNodeQ(currElNum,i) = 0.;
+						}
 				}
 #endif
 				/* traction vector in/out of local frame */
@@ -1092,7 +1153,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArray2DT nodal_all(nen, n_out);
 	dArray2DT coords, disp;
 	dArray2DT jump, T;
-	dArray2DT matdat;
+	dArray2DT matdat;	
 
 	/* ip values */
 	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, nen, nsd);
@@ -1126,7 +1187,6 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	double phi_tmp, area;
 	double& phi = (e_codes[CohesiveEnergy]) ? *pall++ : phi_tmp;
 	dArrayT traction;
-	
 	if (e_codes[Traction])
 	{
 		traction.Set(ndof, pall); 
@@ -1139,7 +1199,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 	dArray2DT elementVals;
 	LocalArrayT nodal_values(LocalArrayT::kUnspecified);
-	dArrayT localFrameIP;
+	dArrayT localFrameIP, tensorIP;
 	iArrayT ndIndices;
 
 	AutoArrayT<double> state;
@@ -1147,7 +1207,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	while (NextElement())
 	{
 		/* current element */
-		const ElementCardT& element = CurrentElement();
+		ElementCardT& element = CurrentElement();
 		
 		/* initialize */
 		nodal_space = 0.0;
@@ -1192,10 +1252,22 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 			TiedPotentialBaseT* tiedpot = fTiedPots[element.MaterialNumber()];
-			
-			/* Get local bulk values for CSE*/
-			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 	
-				SurfaceValuesFromBulk(element, ndIndices, elementVals, nodal_values);
+			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
+			{
+			  	int numElemNodes = element.NodesX().Length();
+			  	elementVals.Dimension(numElemNodes,fNodalQuantities.MinorDim());
+				ndIndices = element.NodesX();
+			  	nodal_values.Dimension(numElemNodes,fNodalQuantities.MinorDim());
+			  	for (int iIndex = 0; iIndex < numElemNodes; iIndex++) 
+				{
+					elementVals.SetRow(iIndex,0.);
+				 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[iIndex]));
+				 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[otherInds[iIndex]]));
+				}
+				nodal_values.SetGlobal(elementVals);
+				ndIndices.SetValueToPosition();
+			  	nodal_values.SetLocal(ndIndices);
+			}
 #endif
 
 			/* integrate */
@@ -1226,28 +1298,33 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					/* copy state variables (not integrated) */
 					state.Set(num_state,pstate);
 
+					/* Interpolate nodal info to IPs */
+					/* stress tensor in local frame */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-					/* Interpolate nodal info to IPs using stress tensor in local frame*/
 					if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
-						FromNodesToIPs(tiedpot->RotateNodalQuantity(), localFrameIP, nodal_values);			
+					{
+						tensorIP.Dimension(nodal_values.MinorDim());
+						localFrameIP.Dimension(nodal_values.MinorDim());
+					    fShapes->Interpolate(nodal_values, tensorIP);
+					    if (tiedpot->RotateNodalQuantity()) {		    
+					    	dSymMatrixT s_rot(NumSD(), localFrameIP.Pointer());
+							s_rot.MultQBQT(fQ, dSymMatrixT(NumSD(), tensorIP.Pointer()));
+						}
+						else
+							localFrameIP = tensorIP;
+					}
 #endif
 
 					/* compute traction in local frame */
 					const dArrayT& tract = surfpot->Traction(fdelta, state, localFrameIP, false);
-
-					/* transform to global frame */
-					if (fOutputGlobalTractions)
-						fQ.Multx(tract, fT);
-					else
-						fT = tract;
-
+				       
 					/* project to nodes */
 					if (n_codes[NodalTraction])
-						fShapes->Extrapolate(fT, T);
+						fShapes->Extrapolate(tract, T);
 					
 					/* element average */
 					if (e_codes[Traction])
-						traction.AddScaled(ip_w, fT);
+						traction.AddScaled(ip_w, tract);
 				}
 					
 				/* material output data */
@@ -1397,15 +1474,8 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 
 	if (n_codes[NodalTraction])
 	{
-		const char* t_2D_loc[2] = {"T_t", "T_n"};
-		const char* t_3D_loc[3] = {"T_t1", "T_t2", "T_n"};
-		
-		const char* t_2D_glo[2] = {"T_X", "T_Y"};
-		const char* t_3D_glo[3] = {"T_X", "T_Y", "T_Z"};
-		
-		const char** t_2D = (fOutputGlobalTractions) ? t_2D_glo : t_2D_loc;
-		const char** t_3D = (fOutputGlobalTractions) ? t_3D_glo : t_3D_loc;
-		
+		const char* t_2D[2] = {"T_t", "T_n"};
+		const char* t_3D[3] = {"T_t1", "T_t2", "T_n"};
 		const char** tlabels;
 		if (NumDOF() == 2)
 			tlabels = t_2D;
@@ -1515,10 +1585,7 @@ void CSEAnisoT::Q_ijk__u_j(const ArrayT<dMatrixT>& Q, const dArrayT& u,
 		throw ExceptionT::kGeneralFail;
 }
 
-/* Auxiliary routines to interface with cohesive models requiring more input
- * than the gap vector.
- */
-void CSEAnisoT::ComputeFreeNodesForOutput(void)
+void CSEAnisoT::ComputeFreeNodesForOutput()
 {
 	if (!freeNodeQ.IsAllocated())
 		ExceptionT::GeneralFail("CSEAnisoT::ComputeFreeNodesForOutput","No TiedNodes Data!");
@@ -1533,92 +1600,4 @@ void CSEAnisoT::ComputeFreeNodesForOutput(void)
 		oneElement.Set(nen,1,freeNodeQ(CurrElementNumber()));
 		ElementSupport().AssembleAverage(CurrentElement().NodesX(),oneElement);
 	}
-}
-
-void CSEAnisoT::StoreBulkOutput(void)
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	ElementBaseT& surroundingGroup = ElementSupport().ElementGroup(iBulkGroups[0]);
-	surroundingGroup.SendOutput(fNodalInfoCode);
-	if (fNodalQuantities.Length() > 0) 
-	{
-		fNodalQuantities.Free();
-	}
-	fNodalQuantities = ElementSupport().OutputAverage();
-#endif
-}
-
-void CSEAnisoT::SurfaceValuesFromBulk(const ElementCardT& element, iArrayT& ndIndices, 
-									  dArray2DT& elementVals, LocalArrayT& nodal_values)
-{	
-	ndIndices = element.NodesX();
-  	int numElemNodes = ndIndices.Length();
-	elementVals.Dimension(numElemNodes,fNodalQuantities.MinorDim()); 	
-  	nodal_values.Dimension(numElemNodes,fNodalQuantities.MinorDim());
-  	for (int iIndex = 0; iIndex < numElemNodes; iIndex++) 
-	{
-		elementVals.SetRow(iIndex,0.);
-	 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[iIndex]));
-	 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[otherInds[iIndex]]));
-	}
-  	nodal_values.SetGlobal(elementVals);
-  	ndIndices.SetValueToPosition();
-  	nodal_values.SetLocal(ndIndices);
-}
-
-void CSEAnisoT::FromNodesToIPs(bool rotate, dArrayT& localFrameIP, LocalArrayT& nodal_values)
-{
-	dArrayT tensorIP(nodal_values.MinorDim());
-	localFrameIP.Dimension(nodal_values.MinorDim());
-    fShapes->Interpolate(nodal_values, tensorIP);
-    if (rotate) {
-		dSymMatrixT s_rot(NumSD(), localFrameIP.Pointer());
-		s_rot.MultQBQT(fQ, dSymMatrixT(NumSD(), tensorIP.Pointer()));
-	}
-	else
-		localFrameIP = tensorIP;
-}
-
-void CSEAnisoT::UntieOrRetieNodes(int elNum, int nnd, const TiedPotentialBaseT* tiedpot, 
-								ArrayT<double>& state, dArrayT& localFrameIP)
-{
-	if (state[iTiedFlagIndex] == TiedPotentialBaseT::kTiedNode && 
-		tiedpot->InitiationQ(localFrameIP))
-	{
-		for (int i = 0; i < nnd; i++) 
-			freeNodeQ(elNum,i) = 1.;
-		state[iTiedFlagIndex] = TiedPotentialBaseT::kReleaseNextStep;
-	}
-	else
-		/* see if nodes need to be retied */
-		if (qRetieNodes && state[iTiedFlagIndex] == TiedPotentialBaseT::kFreeNode && 
-			tiedpot->RetieQ(localFrameIP, state, fdelta))
-		{
-			state[iTiedFlagIndex] = TiedPotentialBaseT::kTieNextStep;
-			for (int i = 0; i < nnd; i++)
-				freeNodeQ(elNum,i) = 0.;
-		}
-}
-					
-
-/* Auxiliary routines for heat flow */
-void CSEAnisoT::InitializeTemperature(const FieldT* temperature)
-{
-	if (fIncrementalHeat.Length() == 0) {
-
-		/* initialize heat source arrays */
-		fIncrementalHeat.Dimension(fBlockData.Length());
-		for (int i = 0; i < fIncrementalHeat.Length(); i++)
-		{
-			/* dimension */
-			fIncrementalHeat[i].Dimension(fBlockData[i].Dimension(), fShapes->NumIP());
-
-			/* register */
-			temperature->RegisterSource(fBlockData[i].ID(), fIncrementalHeat[i]);
-		}
-	}
-		
-	/* clear sources */
-	for (int i = 0; i < fIncrementalHeat.Length(); i++)
-		fIncrementalHeat[i] = 0.0;
 }

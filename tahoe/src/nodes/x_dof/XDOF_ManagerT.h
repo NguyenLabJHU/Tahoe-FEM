@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.h,v 1.9 2004-01-05 07:12:48 paklein Exp $ */
+/* $Id: XDOF_ManagerT.h,v 1.8 2003-03-02 19:02:49 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 #ifndef _XDOF_MANAGER_T_H_
 #define _XDOF_MANAGER_T_H_
@@ -7,7 +7,6 @@
 #include "dArrayT.h"
 #include "AutoArrayT.h"
 #include "VariArrayT.h"
-#include "GlobalT.h"
 
 namespace Tahoe {
 
@@ -96,12 +95,9 @@ protected:
 	/** set the start tag */
 	void SetStartTag(int start_tag) { fStartTag = start_tag; };
 
-	/** prompt elements to restore their internal states */
-	void ResetState(int group);
-
 	/** prompt elements in the specified group to reset tags.
 	 * \return true if tags have been reset */
-	GlobalT::RelaxCodeT ResetTags(int group);
+	bool ResetTags(int group);
 
 	/** return the total number of tag sets */
 	int NumTagSets(void) const { return fXDOF_Eqnos.Length(); };
@@ -150,13 +146,11 @@ protected:
 	/** registered element groups */
 	AutoArrayT<DOFElementT*> fDOFElements;
 	
-	/** \name tag info */
-	/*@{*/
+	/* tag info */
 	int fStartTag; /**< first tag number */
 	int fNumTags;  /**< total number of tags */
 	AutoArrayT<int> fNumTagSets;   /**< number of tag sets for each element group */
 	AutoArrayT<int> fTagSetLength; /**< number of tags in each tag set */
-	/*@}*/
 
 	/** global equations numbers for each tag set */
 	AutoArrayT<iArray2DT*> fXDOF_Eqnos;

@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.17 2004-03-14 16:32:56 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.12 2003-03-11 07:21:31 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #include "AztecMatrixT.h"
 
@@ -116,7 +116,7 @@ void AztecMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 * that elMat is square (n x n) and that eqnos is also length n.
 *
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
+void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
@@ -145,10 +145,8 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqno
 		/* check completion */
 		if (!status)
 		{
-			iArrayT tmp;
-			tmp.Alias(eqnos);
 			cout << "\n AztecMatrixT::Assemble: ERROR with equations:\n";
-			cout << tmp << endl;
+			cout << eqnos << endl;
 			throw ExceptionT::kGeneralFail;
 		}
 	}
@@ -202,17 +200,15 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqno
 		/* check completion */
 		if (!status)
 		{
-			iArrayT tmp;
-			tmp.Alias(eqnos);
 			cout << "\n AztecMatrixT::Assemble: ERROR with equations:\n";
-			cout << tmp << endl;
+			cout << eqnos << endl;
 			throw ExceptionT::kGeneralFail;
 		}
 	}
 }
 
-void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-	const ArrayT<int>& col_eqnos)
+void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
 {
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
@@ -276,18 +272,15 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_
 		/* check completion */
 		if (!status)
 		{
-			iArrayT tmp;
 			cout << "\n AztecMatrixT::Assemble: ERROR with equations:\n";
-			tmp.Alias(row_eqnos);
-			cout << " row:\n" << tmp << '\n';
-			tmp.Alias(col_eqnos);
-			cout << " col:\n" << tmp << endl;
+			cout << " row:\n" << row_eqnos << '\n';
+			cout << " col:\n" << col_eqnos << endl;
 			throw ExceptionT::kGeneralFail;
 		}
 	}
 }
 
-void AztecMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
+void AztecMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
 {
 #pragma unused(diagonal_elMat)
 #pragma unused(eqnos)
@@ -319,7 +312,7 @@ GlobalMatrixT& AztecMatrixT::operator=(const GlobalMatrixT& rhs)
 	throw ExceptionT::kGeneralFail;
 #endif
 
-	const AztecMatrixT* az = TB_DYNAMIC_CAST(const AztecMatrixT*,&rhs);
+	const AztecMatrixT* az = dynamic_cast<const AztecMatrixT*>(&rhs);
 	if (!az) {
 		cout << "\n AztecMatrixT::operator= : cast failed" << endl;
 		throw ExceptionT::kGeneralFail;
@@ -335,12 +328,22 @@ GlobalMatrixT* AztecMatrixT::Clone(void) const
 }
 
 /*************************************************************************
- * Protected
- *************************************************************************/
+* Protected
+*************************************************************************/
+
+/* precondition matrix */
+void AztecMatrixT::Factorize(void)
+{
+	/* preconditioning done during solve */
+	fIsFactorized = 0; // undo GlobalMatrixT flag set
+}
 	
 /* determine new search direction and put the results in result */
 void AztecMatrixT::BackSubstitute(dArrayT& result)
 {
+	/* flag should not be set */
+	if (fIsFactorized) throw ExceptionT::kGeneralFail;
+
 	/* inherited - no initial guess */
 	fAztec->Solve(result);
 }
@@ -356,9 +359,9 @@ void AztecMatrixT::PrintZeroPivots(void) const
 //not implemented
 }
 
-void AztecMatrixT::PrintLHS(bool force) const
+void AztecMatrixT::PrintLHS(void) const
 {
-	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
+	if (fCheckCode != GlobalMatrixT::kPrintLHS) return;
 
 	/* inherited */
 	fAztec->PrintNonZero(fOut);

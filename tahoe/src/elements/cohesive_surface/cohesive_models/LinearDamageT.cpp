@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.cpp,v 1.16 2003-11-21 22:45:53 paklein Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.15 2003-05-28 23:15:26 cjkimme Exp $ */
 /* created: paklein (08/21/2000) */
 
 #include "LinearDamageT.h"
@@ -146,7 +146,7 @@ const dMatrixT& LinearDamageT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		r_t2 = jump_u[0]*jump_u[0]/fd_c_t/fd_c_t;
 	else
 		r_t2 = (jump_u[0]*jump_u[0] + jump_u[1]*jump_u[1])/fd_c_t/fd_c_t;
-	double L = sqrt(r_t2 + r_n*r_n);
+	double L = state[kTrialOpening] = sqrt(r_t2 + r_n*r_n);
 
 	if (L > kSmall)
 	{
@@ -160,7 +160,7 @@ const dMatrixT& LinearDamageT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		else
 			Df = (1.0 - L_max)/L_max; // unloading
 			
-		const double* init_traction = state.Pointer(kInitTraction);
+		double* init_traction = state.Pointer(kInitTraction);
 		double DfbyL = Df/L;
 		if (nsd == 2)
 		{

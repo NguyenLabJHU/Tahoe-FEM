@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.9 2004-01-10 04:41:20 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.7 2003-01-29 07:35:02 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
 #include "SSMatSupportT.h"
@@ -93,7 +93,7 @@ const dSymMatrixT& J2SSKStV::s_ij(void)
 	HookeanStress(e_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
-	int iteration = fSSMatSupport->IterationNumber();
+	int iteration = fSSMatSupport.IterationNumber();
 	if (iteration > -1) /* elastic iteration */
 		fStress += StressCorrection(e_els, element, ip);
 	return fStress;	
@@ -140,7 +140,7 @@ void J2SSKStV::ComputeOutput(dArrayT& output)
 		output[0] = fInternal[kalpha];
 		
 		/* status flags */
-		const iArrayT& flags = element.IntegerData();
+		iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == kIsPlastic) // output with update
 			output[0] += sqrt23*fInternal[kdgamma];
 	}

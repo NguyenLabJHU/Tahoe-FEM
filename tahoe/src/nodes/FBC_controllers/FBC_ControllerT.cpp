@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.cpp,v 1.9 2003-11-04 01:37:02 paklein Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.7 2003-08-18 03:44:36 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #include "FBC_ControllerT.h"
 #include "ArrayT.h"
@@ -9,8 +9,8 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<FBC_ControllerT>::fByteCopy = false;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<FBC_ControllerT*>::fByteCopy = true;
+const bool ArrayT<FBC_ControllerT>::fByteCopy = false;
+const bool ArrayT<FBC_ControllerT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */

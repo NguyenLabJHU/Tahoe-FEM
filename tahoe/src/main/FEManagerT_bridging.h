@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.5 2003-07-11 16:46:07 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -60,10 +60,8 @@ public:
 	 * The ghost node database must be initialized by calling
 	 * FEManagerT_bridging::InitGhostNodes before accessing the lists.*/
 	/*@{*/
-	/** initialize the ghost node information 
-	 * \param include_image_nodes flag to indicate whether image nodes should be
-	 *        included in the list of non-ghost nodes */
-	void InitGhostNodes(bool include_image_nodes);
+	/** initialize the ghost node information */
+	void InitGhostNodes(void);
 
 	/** prescribe the motion of ghost nodes. Generate KBC cards to control the
 	 * ghost node motion. Assumes all components of the ghost node motion are
@@ -88,9 +86,6 @@ public:
 
 	/** \name interpolation and projection operators */
 	/*@{*/
-	/** return the "lumped" (scalar) mass associated with the given nodes */
-	void LumpedMass(const iArrayT& nodes, dArrayT& mass) const;
-	
 	/** initialize interpolation data. Initialize data structures needed to interpolate
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
@@ -112,20 +107,13 @@ public:
 	/** initialize projection data. Initialize data structures needed to project
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
-	void InitProjection(CommManagerT& comm, const iArrayT& nodes, const StringT& field,
+	void InitProjection(const iArrayT& nodes, const StringT& field,
 		NodeManagerT& node_manager, bool make_inactive);
-
-	/** indicate whether image nodes should be included in the projection */
-	virtual bool ProjectImagePoints(void) const;
 
 	/** project the point values onto the mesh. Project to the nodes using
 	 * projection initialized with the latest call to FEManagerT_bridging::InitProjection. */
-	void ProjectField(const StringT& field, const NodeManagerT& node_manager, int order);
-
-	/** compute the coarse scale projection at the source points. Project the solution to the source
-	 * points initialized with the latest call to FEManagerT_bridging::InitProjection. In other words,
-	 * filter out the fine scale part of the solution. */
-	void CoarseField(const StringT& field, const NodeManagerT& node_manager, int order, dArray2DT& coarse);
+	void ProjectField(const StringT& field, NodeManagerT& node_manager, int order);
+	/*@}*/
 
 	/** calculate the fine scale part of MD solution as well as total displacement u.  Does not
 	  * write into the displacement field */
@@ -140,9 +128,16 @@ public:
 
 	/** (re-)set the equation number for the given group */
 	virtual void SetEquationSystem(int group);
+	
+	/** \name solver control */
+	/*@{*/
+	/** the residual for the given group. The array contains the residual from
+	 * the latest call to FEManagerT::FormRHS */
+	const dArrayT& Residual(int group) const;
 
 	/** set the reference error for the given group */
 	void SetReferenceError(int group, double error) const;
+	/*@}*/
 
 	/** return the internal forces for the given solver group associated with the
 	 * most recent call to FEManagerT_bridging::FormRHS. */

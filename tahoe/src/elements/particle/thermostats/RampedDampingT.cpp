@@ -1,4 +1,4 @@
-/* $Id: RampedDampingT.cpp,v 1.4 2003-11-21 22:47:11 paklein Exp $ */
+/* $Id: RampedDampingT.cpp,v 1.2 2003-04-22 01:23:16 cjkimme Exp $ */
 #include "RampedDampingT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -16,13 +16,7 @@ using namespace Tahoe;
 RampedDampingT::RampedDampingT(ifstreamT& in, const int& nsd, const double& dt):
 	ThermostatBaseT(in,nsd,dt)
 {
-	SetName("ramped_damping");
 	// Not yet
-}
-
-RampedDampingT::RampedDampingT(void)
-{
-	SetName("ramped_damping");
 }
 
 /* write properties to output */
@@ -61,7 +55,7 @@ void RampedDampingT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dA
 		{ 
 			int tag_j = fNodes[j];
 			double* f_j = forces(j);
-			const double* v_j = (*velocities)(tag_j);
+			double* v_j = (*velocities)(tag_j);
 
 			for (int i = 0; i < fSD; i++)
 				*f_j++ -= fBeta*(*v_j++); 	

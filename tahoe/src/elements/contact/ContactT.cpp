@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.16 2003-12-29 04:54:44 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.13 2003-08-23 16:15:34 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -34,10 +34,6 @@ GlobalT::SystemTypeT ContactT::TangentType(void) const
 /* element level reconfiguration for the current solution */
 GlobalT::RelaxCodeT ContactT::RelaxSystem(void)
 {
-	/* write before reconfiguration since information will be reset */
-	if (ElementSupport().WriteOutput())
-		WriteContactInfo(ElementSupport().Output());
-
 	/* inherited */
 	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
 
@@ -90,7 +86,40 @@ double ContactT::InternalEnergy(void)
 
 /* writing output - nothing to write */
 void ContactT::RegisterOutput(void) {}
-void ContactT::WriteOutput(void) {}
+void ContactT::WriteOutput(void)
+{
+	/* contact statistics */
+	ostream& out = ElementSupport().Output();
+	out << "\n Contact tracking: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
+	out << " Time                           = " << ElementSupport().Time() << '\n';
+	out << " Active strikers                = " << fActiveStrikers.Length() << '\n';
+	if (fActiveStrikers.Length() > 0)
+	{
+		out << setw(kIntWidth) << "striker";
+		out << setw(kIntWidth) << "surface";
+		out << setw(kIntWidth) << "facet";
+		out << setw(fNumFacetNodes*kIntWidth) << "facet nodes" << '\n';
+		for (int i = 0; i < fActiveStrikers.Length(); i++)
+		{
+			out << setw(kIntWidth) << fActiveStrikers[i] + 1;
+			out << setw(kIntWidth) << fHitSurface[i] + 1; int hit_facet = fHitFacets[i];
+			out << setw(kIntWidth) << hit_facet + 1;
+			for (int j = 0; j < fNumFacetNodes; j++)
+				out << setw(kIntWidth) << fSurfaces[fHitSurface[i]](hit_facet, j) + 1;
+			out << '\n';
+		}
+		out << endl;
+	}
+
+	/* write tracking data */
+	if (fnum_contact != -1) {
+		out << " Number of contact interactions = " << fnum_contact << '\n';
+		out << " Maximum penetration depth      = " << fh_max << '\n';
+	} else { /* not set */
+		out << " Number of contact interactions = --\n";
+		out << " Maximum penetration depth      = --\n";	
+	}
+}
 
 /* compute specified output parameter and send for smoothing */
 void ContactT::SendOutput(int kincode)
@@ -234,11 +263,6 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		case kAllStrikers:  /* shallow striker coords */
 			fStrikerCoords.Alias(ElementSupport().CurrentCoordinates());
 			out << "\n Striker nodes: ALL\n";	
-
-			//TEMP			
-			ExceptionT::GeneralFail("ContactT::EchoConnectivityData", 
-				"all nodes as strikers not tested");
-			
 			break;
 
 		case kSideSetList: /* collect strikers from side sets */
@@ -289,7 +313,7 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 void ContactT::SetWorkSpace(void)
 {
 	/* allocate map to active strikers data */
-	fActiveMap.Dimension(fStrikerTags.Length());
+	fActiveMap.Dimension(fStrikerCoords.MajorDim());
 	fActiveMap = -1;
 
 	/* make pseudo-element list to link surfaces in case
@@ -307,55 +331,15 @@ void ContactT::SetWorkSpace(void)
 	}
 }
 
-void ContactT::WriteContactInfo(ostream& out) const
-{
-	/* contact statistics */
-	int d_width = OutputWidth(out, fActiveStrikersForce.Pointer());
-	out << "\n Contact tracking: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
-	out << " Time                           = " << ElementSupport().Time() << '\n';
-	out << " Active strikers                = " << fActiveStrikers.Length() << '\n';
-	if (fActiveStrikers.Length() > 0)
-	{
-		out << setw(kIntWidth) << "striker" 
-		    << setw(kIntWidth) << "surface"
-		    << setw(kIntWidth) << "facet"
-		    << setw(fNumFacetNodes*kIntWidth) << "facet nodes" 
-		    << setw(d_width) << "force" << '\n';
-		for (int i = 0; i < fActiveStrikers.Length(); i++)
-		{
-			out << setw(kIntWidth) << fActiveStrikers[i] + 1;
-			out << setw(kIntWidth) << fHitSurface[i] + 1; int hit_facet = fHitFacets[i];
-			out << setw(kIntWidth) << hit_facet + 1;
-			for (int j = 0; j < fNumFacetNodes; j++)
-				out << setw(kIntWidth) << fSurfaces[fHitSurface[i]](hit_facet, j) + 1;
-			out << setw(d_width) << fActiveStrikersForce[i];				
-			out << '\n';
-		}
-		out << endl;
-	}
-
-	/* write tracking data */
-	if (fnum_contact != -1) {
-		out << " Number of contact interactions = " << fnum_contact << '\n';
-		out << " Maximum penetration depth      = " << fh_max << '\n';
-	} else { /* not set */
-		out << " Number of contact interactions = --\n";
-		out << " Maximum penetration depth      = --\n";	
-	}
-}
-
 /* generate contact element data - return true if configuration has
 * changed since the last call */
 bool ContactT::SetContactConfiguration(void)
 {
-	int last_num_active = fActiveStrikers.Length();
 	bool contact_changed = SetActiveInteractions();
 	if (contact_changed)
 	{
 		/* resize */
 		int nel = fActiveStrikers.Length();
-		fActiveStrikersForce.Dimension(nel);
-		fActiveStrikersForce = 0.0;
 		fConnectivities_man.SetMajorDimension(nel, false);
 		fEqnos_man.SetMajorDimension(nel, false);
 
@@ -366,24 +350,7 @@ bool ContactT::SetContactConfiguration(void)
 		ElementBlockDataT& block = fBlockData[0];
 		block.Set(block.ID(), block.StartNumber(), fConnectivities[0]->MinorDim(), block.MaterialID());
 	}
-
-	/* write list of active strikers */
-	iArrayT tmp;
-	tmp.Alias(fActiveStrikers);	
-	ostream& out = ElementSupport().Output();
-	out << "\n            time: " << ElementSupport().Time() << '\n';
-	out <<   " previous active: " << last_num_active << '\n';
-	out <<   "  current active: " << fActiveStrikers.Length() << '\n';
-	if (fActiveStrikers.Length() > 0 && ElementSupport().PrintInput()) {
-		out << setw(kIntWidth) << "node" 
-		    << setw(kIntWidth) << "surface" 
-		    << setw(kIntWidth) << "face" << '\n';
-		for (int i = 0; i < fActiveStrikers.Length(); i++)
-			out << setw(kIntWidth) << fActiveStrikers[i]+1
-			    << setw(kIntWidth) << fHitSurface[i]+1
-			    << setw(kIntWidth) << fHitFacets[i]+1 << '\n';
-	}
-
+	
 	return contact_changed;
 }
 
@@ -430,6 +397,12 @@ void ContactT::InputSideSets(ifstreamT& in, iArray2DT& facets)
 void ContactT::InputBodyBoundary(ifstreamT& in, ArrayT<iArray2DT>& surfaces,
 		int& surface)
 {
+#ifdef __NO_RTTI__
+	cout << "\n ContactT::InputBodyBoundary: RTTI required, but not available.\n";
+	cout <<   "     Use different surface specification mode." << endl;
+	throw;
+#endif
+
 	/* gather element group info */
 	int elem_group;
 	in >> elem_group;

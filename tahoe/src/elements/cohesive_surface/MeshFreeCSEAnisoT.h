@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.h,v 1.9 2004-01-05 07:34:30 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.h,v 1.8 2002-11-30 16:41:25 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #ifndef _MF_CSE_ANISO_T_H_
@@ -51,7 +51,7 @@ public:
 	virtual void CloseStep(void);
 
 	/* resets to the last converged solution */
-	virtual GlobalT::RelaxCodeT ResetStep(void);
+	virtual void ResetStep(void);
 
 	/* element level reconfiguration for the current solution */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);

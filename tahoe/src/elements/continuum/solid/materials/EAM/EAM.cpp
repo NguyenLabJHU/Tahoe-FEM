@@ -1,4 +1,4 @@
-/* $Id: EAM.cpp,v 1.4 2003-11-21 22:46:19 paklein Exp $ */
+/* $Id: EAM.cpp,v 1.3 2002-10-20 22:48:39 paklein Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAM.cpp                                                                */
 
@@ -57,7 +57,7 @@ double EAM::ComputeUnitEnergy(void)
 	double rho = 0.0;
 	double energy = 0.0;
 	
-	const int* pcount = fCounts.Pointer();
+	int* pcount = fCounts.Pointer();
 	double* prho = ElectronDensity.Pointer();
 	double* pphi = PairPotential.Pointer();
 	for (int i = 0; i < fNumBonds; i++)
@@ -183,7 +183,7 @@ double EAM::TotalElectronDensity(void)
 	dArrayT& ElectronDensity = fElectronDensity->MapFunction(fBonds, fBond1);
 
 	double rho = 0.0;
-	const int* pcount = fCounts.Pointer();
+	int*    pcount    = fCounts.Pointer();
 	double* pedensity = ElectronDensity.Pointer();
 
 	for (int i = 0; i < fNumBonds; i++)

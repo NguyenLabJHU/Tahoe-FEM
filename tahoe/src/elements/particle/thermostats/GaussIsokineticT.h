@@ -1,4 +1,4 @@
-/* $Id: GaussIsokineticT.h,v 1.3 2003-10-30 17:15:21 paklein Exp $ */
+/* $Id: GaussIsokineticT.h,v 1.2 2003-04-22 01:23:16 cjkimme Exp $ */
 #ifndef _GAUSS_ISOKINETIC_T_H_
 #define _GAUSS_ISOKINETIC_T_H_
 
@@ -22,7 +22,6 @@ public:
 
 	/** constructor */
 	GaussIsokineticT(ifstreamT& in, const int& nsd, const double& dt);
-	GaussIsokineticT(void);
 
 	/** destructor */
 	virtual ~GaussIsokineticT(void) {};

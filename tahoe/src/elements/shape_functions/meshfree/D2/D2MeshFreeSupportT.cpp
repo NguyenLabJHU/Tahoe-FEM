@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.10 2004-01-27 19:12:20 paklein Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.8 2002-10-20 22:49:42 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -26,7 +26,7 @@
 
 using namespace Tahoe;
 
-D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT* domain, const dArray2DT& coords,
+D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT& domain, const dArray2DT& coords,
 	const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in):
 	MeshFreeSupportT(domain, coords, connects, nongridnodes, in),
 	fD2EFG(NULL)
@@ -63,7 +63,7 @@ void D2MeshFreeSupportT::InitNeighborData(void)
 //TEMP - reset nodal work space for higher order derivatives
 //       this process could be redesigned
 
-	int nip        = fDomain->NumIP();
+	int nip        = fDomain.NumIP();
 	int nsd        = fCoords.MinorDim();
 	int stress_dim = dSymMatrixT::NumValues(nsd);
 
@@ -136,14 +136,14 @@ void D2MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 	dArray2DT& phi, ArrayT<dArray2DT>& Dphi, ArrayT<dArray2DT>& DDphi)
 {
 #if __option(extended_errorcheck)
-	if (Dphi.Length() != fDomain->NumIP()) throw ExceptionT::kSizeMismatch;
+	if (Dphi.Length() != fDomain.NumIP()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* element neighbors */
 	feNeighborData.RowAlias(element, neighbors);
 
 	/* dimensions */
-	int nip = fDomain->NumIP();
+	int nip = fDomain.NumIP();
 	int nsd = fCoords.MinorDim();
 	int nst = dSymMatrixT::NumValues(nsd);
 	int nnd = neighbors.Length();
@@ -334,7 +334,7 @@ void D2MeshFreeSupportT::SetElementShapeFunctions(void)
 	InitElementShapeData();
 
 	/* dimensions */
-	int nip = fDomain->NumIP();
+	int nip = fDomain.NumIP();
 	int nel = fConnects.MajorDim();
 
 	/* work space */
@@ -415,7 +415,7 @@ void D2MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 {
 	/* dimensions */
 	int nsd = fCoords.MinorDim();
-	int nip = fDomain->NumIP();
+	int nip = fDomain.NumIP();
 	int nnd = neighbors.Length();
 	int nen = fConnects.MinorDim();
 
@@ -436,7 +436,7 @@ void D2MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	/* integration point coordinates */
 	fConnects.RowAlias(element, elementnodes);
 	loccoords.SetLocal(elementnodes);
-	fDomain->Interpolate(loccoords, fx_ip_table);
+	fDomain.Interpolate(loccoords, fx_ip_table);
 		
 	/* loop over integration points */
 	dArrayT x_ip;
@@ -493,7 +493,7 @@ void D2MeshFreeSupportT::InitElementShapeData(void)
 
 	/* dimensions */
 	int nst = dSymMatrixT::NumValues(fCoords.MinorDim());
-	int nip = fDomain->NumIP();
+	int nip = fDomain.NumIP();
 
 	/* configure element storage */
 	feDDPhiData.Configure(feNeighborCount, nip*nst);

@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.4 2003-11-07 21:22:25 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.3 2003-08-23 20:10:11 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -52,9 +52,6 @@ public:
 	/*@{*/
 	void SetPeriodicBoundaries(int i, double x_i_min, double x_i_max);
 	void ClearPeriodicBoundaries(int i);
-	
-	/** accessor */
-	const dArray2DT& PeriodicBoundaries(void) { return fPeriodicBoundaries; };
 	
 	/** enforce the periodic boundary conditions.
 	 * Enforcement involves the following steps:

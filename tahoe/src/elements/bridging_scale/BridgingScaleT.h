@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.32 2004-03-17 22:47:06 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.26 2003-07-11 16:45:59 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -59,7 +59,7 @@ public:
 	 * \param curr_coords point to the initial coordinates array if available
 	 * \param point_in_cell destination for map data
 	 */
-	virtual void InitProjection(CommManagerT& comm, const iArrayT& points_used, const dArray2DT* init_coords, 
+	virtual void InitProjection(const iArrayT& points_used, const dArray2DT* init_coords, 
 		const dArray2DT* curr_coords, PointInCellDataT& cell_data);
 
 	/** project the point values onto the mesh. Requires a previous call to
@@ -67,13 +67,6 @@ public:
 	 * matrix. */
 	virtual void ProjectField(const PointInCellDataT& cell_data,
 		const dArray2DT& point_values, dArray2DT& projection);
-
-	/** compute the coarse scale part of the source field */
-	virtual void CoarseField(const PointInCellDataT& cell_data,
-		const dArray2DT& field, dArray2DT& coarse) const;
-		
-	/** indicate whether image nodes should be included in the projection */
-	virtual bool ProjectImagePoints(void) const { return false; };
 	/*@}*/
 
 	/** Same as ProjectField, except that computes and returns total solution u 
@@ -107,14 +100,6 @@ public:
 
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int) {};
-
-#ifdef __NO_RTTI__
-	/** \name fixes for environments without working RTTI */
-	/*@{*/
-	/** cast this to BridgingScaleT* */
-	virtual BridgingScaleT* dynamic_cast_BridgingScaleT(void) { return this; };
-	/*@}*/
-#endif
 
 protected:
 

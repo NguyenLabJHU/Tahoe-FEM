@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.14 2004-03-14 07:35:40 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.12 2003-09-11 21:41:34 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT_mpi.h"
@@ -35,10 +35,28 @@ void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 {
 	const char caller[] = "SPOOLESMatrixT_mpi::BackSubstitute";
 
+	/* flag should not be set */
+	if (fIsFactorized) throw ExceptionT::kGeneralFail;
+
 	/* convert matrix to RCV */
 	iArrayT r, c;
 	dArrayT v;
 	GenerateRCV(r, c, v, 1.0e-15);
+	
+	/* write matrix */
+	if (fCheckCode == kPrintLHS) {
+		int old_precision = fOut.precision();
+		fOut.precision(12);
+		int d_width = fOut.precision() + kDoubleExtra;
+		fOut << "\n LHS matrix in {r,c,v} format:\n";
+		fOut << " Number of values = " << r.Length() << '\n';
+		for (int i = 0; i < r.Length(); i++)
+			fOut << setw(kIntWidth) << r[i] + 1
+			     << setw(kIntWidth) << c[i] + 1
+			     << setw(d_width) << v[i] << '\n';
+		fOut.flush();
+		fOut.precision(old_precision);
+	}
 
 	/* serial driver provided by in SPOOLES documentation */
 	int msglvl = 0; //  0: nothing

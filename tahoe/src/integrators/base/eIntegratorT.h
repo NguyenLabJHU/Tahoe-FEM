@@ -1,4 +1,4 @@
-/* $Id: eIntegratorT.h,v 1.5 2003-12-28 08:55:56 paklein Exp $ */
+/* $Id: eIntegratorT.h,v 1.4 2002-07-05 22:27:53 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _E_CONTROLLERT_H_
@@ -21,9 +21,6 @@ public:
 
 	/** destructor */
 	virtual ~eIntegratorT(void);
-
-	/** casting up from IntegratorT */
-	virtual const eIntegratorT& eIntegrator(void) const { return *this; };
 
 	/** \name elements of the effective mass matrix
 	 * returns 1 if the algorithm requires M, C, or K and sets const equal

@@ -1,7 +1,6 @@
-/* $Id: K_FieldT.cpp,v 1.17 2004-01-06 00:42:57 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.13 2003-09-02 07:03:12 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
-
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "MaterialListT.h"
@@ -34,7 +33,6 @@ K_FieldT::K_FieldT(NodeManagerT& node_manager):
 	fNearTipGroupNum(-1),
 	fNearTipOutputCode(-1),
 	fTipColumnNum(-1),
-	fTrackingCode(kMaximum),
 	fMaxGrowthDistance(-1),
 	fMaxGrowthSteps(-1)
 {
@@ -77,31 +75,6 @@ void K_FieldT::Initialize(ifstreamT& in)
 	in >> fNearTipGroupNum;   // -1: no nearfield group
 	in >> fNearTipOutputCode; // variable to locate crack tip
 	in >> fTipColumnNum;      // column of output variable to locate tip
-
-	/* tracking type */
-	int tracking_type = -99;
-	in >> tracking_type;
-	switch (tracking_type)
-	{
-		case kMaximum:
-		{
-			fTrackingCode = kMaximum;
-			break;
-		}
-		case kThreshold:
-		{
-			fTrackingCode = kThreshold;
-		
-			/* threshold value */
-			fTrackingParameters.Dimension(1);
-			in >> fTrackingParameters;
-			break;
-		}
-		default:
-			ExceptionT::BadInputValue(caller, "unrecognized tip tracking method: %d", tracking_type);
-	}
-
-	/* growth limiting */
 	in >> fMaxGrowthDistance; if (fMaxGrowthDistance < 0.0) ExceptionT::BadInputValue(caller);
 	in >> fMaxGrowthSteps; if (fMaxGrowthSteps < 1) ExceptionT::BadInputValue(caller);
 
@@ -162,8 +135,6 @@ void K_FieldT::WriteParameters(ostream& out) const
 	else out << "<none>\n";
 	out << " Fracture path output code . . . . . . . . . . . = " << fNearTipOutputCode + 1 << '\n';
 	out << " Fracture path test value column number. . . . . = " << fTipColumnNum + 1  << '\n';
-	out << " Tip tracking method . . . . . . . . . . . . . . = " << fTrackingCode << '\n';
-	if (fTrackingParameters.Length() > 0) out << " parameters: " << fTrackingParameters.no_wrap() << '\n';
 	out << " Maximum extension distance per load step. . . . = " << fMaxGrowthDistance << '\n';
 	out << " Maximum number of extensions per load step. . . = " << fMaxGrowthSteps    << '\n';
 	out << " Far field element group number. . . . . . . . . = " << fFarFieldGroupNum + 1 << '\n';
@@ -287,7 +258,7 @@ GlobalT::RelaxCodeT K_FieldT::RelaxSystem(void)
 		if (advance < 0.0)
 		{
 			/* tip moving backwards */
-			cout << " K_FieldT::RelaxSystem: tip moving backwards: IGNORED: " << advance << '\n';
+			cout << " K_FieldT::RelaxSystem: tip moving backwards: IGNORED\n";
 			cout << " current position: " << fTipCoords[0] << '\n';
 			return relax;
 		}
@@ -363,81 +334,57 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 
 	/* signal to accumulate nodal values */
 	neartip_group->SendOutput(fNearTipOutputCode);
+	
+	/* find the node with max opening stress */
+	int maxrow;
+	double maxval;
+	fNodeManager.MaxInColumn(fTipColumnNum, maxrow, maxval);
+	if (maxrow == -1) ExceptionT::GeneralFail(caller);
 
-	/* find new tip coordinates */
-	tip_coords = fTipCoords;
-	switch (fTrackingCode)
-	{
-		case kMaximum:
-		{
-			/* find the node with maximum value */
-			int maxrow;
-			double maxval;
-			fNodeManager.MaxInColumn(fTipColumnNum, maxrow, maxval);
-			if (maxrow == -1) ExceptionT::GeneralFail(caller);
-
-			/* get new tip coordinates */
-			if (maxval > TipNoise)
-				fNodeManager.InitialCoordinates().RowCopy(maxrow, tip_coords);
-
-			break;
-		}
-		case kThreshold:
-		{
-			/* nodal coordinates */
-			const dArray2DT& initial_coordinates = fNodeManager.InitialCoordinates();
-		
-			/* get all nodal values */
-			const dArray2DT& nodal_values = fNodeManager.OutputAverage(); 
-		
-			/* test threshold */
-			double threshold = fTrackingParameters[0];
-			double max_growth = 0.0;
-			dArrayT advance(fGrowthDirection.Length());
-			dArrayT x_node;
-			for (int i = 0; i < nodal_values.MajorDim(); i++)
-				if (nodal_values(i,fTipColumnNum) > threshold) {
-			
-					/* crack extension increment */
-					initial_coordinates.RowAlias(i, x_node);
-					advance.DiffOf(x_node, fTipCoords);
-					double growth = dArrayT::Dot(fGrowthDirection, advance);
-			
-					/* maximum extension */
-					if (growth > max_growth) {
-						max_growth = growth;
-						tip_coords = x_node;
-					}
-				}
-
-			break;
-		}
-		default:
-			ExceptionT::GeneralFail(caller, "unrecognized tracking method %d", fTrackingCode);
-	}
+	/* get new tip coordinates */
+	if (maxval > TipNoise)
+		fNodeManager.InitialCoordinates().RowAlias(maxrow, tip_coords);
+	else /* keep current tip position */
+		tip_coords = fTipCoords;
 }
 
 /* resolve element info to isotropic material */
 void K_FieldT::ResolveMaterialReference(int element_group,
 	int material_num, const IsotropicT** iso, const Material2DT** mat) const
 {
-	const char caller[] = "K_FieldT::ResolveMaterialReference";
-
 #ifdef CONTINUUM_ELEMENT
 	/* resolve element group */
 	const FEManagerT& fe_man = fNodeManager.FEManager();
 	const ElementBaseT* element = fe_man.ElementGroup(element_group);
 	if (!element) throw ExceptionT::kGeneralFail;
-
-	const ContinuumElementT* cont_element = TB_DYNAMIC_CAST(const ContinuumElementT*, element);
+#ifdef __NO_RTTI__
+	cout << "\n K_FieldT::ResolveReference: WARNING: environment does not support RTTI:\n"
+	     <<   "     assuming cast of element group " << element_group+1
+	     << " to ContinuumElementT is safe" << endl;
+	const ContinuumElementT* cont_element = (const ContinuumElementT*) element;
+#else
+	const ContinuumElementT* cont_element = dynamic_cast<const ContinuumElementT*>(element);
 	if (!cont_element)
-		ExceptionT::GeneralFail(caller, "could not cast element group %d to ContinuumElementT", element_group+1);
+	{
+		cout << "\n K_FieldT::ResolveReference: could not cast element group "
+		     << element_group+1<< " to\n" <<   "     ContinuumElementT"
+		     << endl;
+		throw ExceptionT::kGeneralFail;
+	}
+#endif
 
 	/* resolve material reference */
 	const MaterialListT& material_list = cont_element->MaterialsList();
 	ContinuumMaterialT* cont_mat = material_list[material_num];
 	if (!cont_mat) throw ExceptionT::kGeneralFail;
-	*iso = TB_DYNAMIC_CAST(IsotropicT*, cont_mat);
+#ifdef __NO_RTTI__
+	cout << "\n K_FieldT::ResolveReference: WARNING: environment does not support RTTI:\n"
+	     <<   "     assuming cast of material " << material_num+1
+	     << " to IsotropicT and Material2DT is safe" << endl;
+	*iso = (IsotropicT*) cont_mat;
+	if (fNodeManager.NumSD() == 2) *mat = (Material2DT*) cont_mat;
+#else
+	*iso = dynamic_cast<IsotropicT*>(cont_mat);
 	if (!(*iso))
 	{
 		cout << "\n K_FieldT::ResolveReference: could not cast material "
@@ -446,14 +393,10 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 		cout.flush();
 		throw ExceptionT::kGeneralFail;
 	}
-
-#ifdef __NO_RTTI__
-	ExceptionT::GeneralFail("K_FieldT::ResolveMaterialReference", "requires RTTI");
-#endif
-
+	
 	if (fNodeManager.NumSD() == 2)
 	{
-		*mat = TB_DYNAMIC_CAST(Material2DT*, cont_mat);
+		*mat = dynamic_cast<Material2DT*>(cont_mat);
 		if (!(*mat))
 		{
 			cout << "\n K_FieldT::ResolveReference: could not cast material "
@@ -463,6 +406,7 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 			throw ExceptionT::kGeneralFail;
 		}
 	}
+#endif
 #else /* CONTINUUM_ELEMENT */
 #pragma unused(element_group)
 #pragma unused(material_num)

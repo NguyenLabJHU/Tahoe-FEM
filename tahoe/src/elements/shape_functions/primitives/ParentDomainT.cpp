@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.24 2004-03-18 17:43:05 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.20 2003-10-02 21:05:15 hspark Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -33,7 +33,7 @@ ParentDomainT::ParentDomainT(GeometryT::CodeT geometry_code, int numIP, int numn
 		fDNa[i].Dimension(fNumSD, fNumNodes);
 		
 	/* initialize parent domain geometry */
-	fGeometry = GeometryT::New(fGeometryCode, fNumNodes);
+	fGeometry = GeometryT::NewGeometry(fGeometryCode, fNumNodes);
 }
 
 /* destructor */
@@ -94,7 +94,7 @@ jac.Rows() != nodal.MinorDim()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double *pjac = jac.Pointer();
-	const double *pval = nodal.Pointer();
+	double *pval = nodal.Pointer();
 	
 	int nnd   = nodal.NumberOfNodes();
 	int num_u = jac.Rows();
@@ -102,40 +102,26 @@ jac.Rows() != nodal.MinorDim()) throw ExceptionT::kSizeMismatch;
 	
 	if (num_d == 2 && num_u == 2)
 	{
-		if (nnd == 4)
-		{
-			const double* pu1 = nodal(0);
-			const double* pu2 = nodal(1);
-			const double* dx1 = DNa(0);
-			const double* dx2 = DNa(1);
-			pjac[0] = pu1[0]*dx1[0] + pu1[1]*dx1[1] + pu1[2]*dx1[2] + pu1[3]*dx1[3];
-	    	pjac[1] = pu2[0]*dx1[0] + pu2[1]*dx1[1] + pu2[2]*dx1[2] + pu2[3]*dx1[3];
-			pjac[2] = pu1[0]*dx2[0] + pu1[1]*dx2[1] + pu1[2]*dx2[2] + pu1[3]*dx2[3];
-			pjac[3] = pu2[0]*dx2[0] + pu2[1]*dx2[1] + pu2[2]*dx2[2] + pu2[3]*dx2[3];
-		}
-		else
-		{
-			double& j11 = *pjac++;
-			double& j21 = *pjac++;
-			double& j12 = *pjac++;
-			double& j22 = *pjac;
+		double& j11 = *pjac++;
+		double& j21 = *pjac++;
+		double& j12 = *pjac++;
+		double& j22 = *pjac;
 	
-			j11 = j21 = j12 = j22 = 0.0;
+		j11 = j21 = j12 = j22 = 0.0;
 
-			const double* pu1 = nodal(0);
-			const double* pu2 = nodal(1);
-			const double* dx1 = DNa(0);
-			const double* dx2 = DNa(1);
+		double* pu1 = nodal(0);
+		double* pu2 = nodal(1);
+		double* dx1 = DNa(0);
+		double* dx2 = DNa(1);
 
-			for (int i = 0; i < nnd; i++)
-			{
-				j11 += (*pu1)*(*dx1);
-	    		j21 += (*pu2)*(*dx1);
-				j12 += (*pu1)*(*dx2);
-				j22 += (*pu2)*(*dx2);
-				
-				pu1++; pu2++; dx1++; dx2++;	
-			}
+		for (int i = 0; i < nnd; i++)
+		{
+			j11 += (*pu1)*(*dx1);
+	    	j21 += (*pu2)*(*dx1);
+			j12 += (*pu1)*(*dx2);
+			j22 += (*pu2)*(*dx2);
+			
+			pu1++; pu2++; dx1++; dx2++;	
 		}
 	}
 	else if (num_d == 3 && num_u == 3)
@@ -152,12 +138,12 @@ jac.Rows() != nodal.MinorDim()) throw ExceptionT::kSizeMismatch;
 	
 		j11 = j21 = j31 = j12 = j22 = j32 = j13 = j23 = j33 = 0.0;
 
-		const double* pu1 = nodal(0);
-		const double* pu2 = nodal(1);
-		const double* pu3 = nodal(2);
-		const double* dx1 = DNa(0);
-		const double* dx2 = DNa(1);
-		const double* dx3 = DNa(2);
+		double* pu1 = nodal(0);
+		double* pu2 = nodal(1);
+		double* pu3 = nodal(2);
+		double* dx1 = DNa(0);
+		double* dx2 = DNa(1);
+		double* dx3 = DNa(2);
 
 		for (int i = 0; i < nnd; i++)
 		{
@@ -212,9 +198,9 @@ void ParentDomainT::Curl(const ArrayT<dArrayT>& T, const dArray2DT& DNa, dArrayT
 	
 		c1 = c2 = c3 = 0.0;
 
-		const double* dx1 = DNa(0);
-		const double* dx2 = DNa(1);
-		const double* dx3;
+		double* dx1 = DNa(0);
+		double* dx2 = DNa(1);
+		double* dx3;
 
 		if (DNa.MajorDim() == 3) { // 3D Problem
 		  dx3 = DNa(2);
@@ -230,15 +216,15 @@ void ParentDomainT::Curl(const ArrayT<dArrayT>& T, const dArray2DT& DNa, dArrayT
 		  throw ExceptionT::kSizeMismatch;
 		}
 
-		const double *pT;
+		double *pT;
 
 		for (int i = 0; i < nnd; i++) {
 	
 		  pT  = T[i].Pointer();
 
-		  const double& T1 = *pT++;
-		  const double& T2 = *pT++;
-		  const double& T3 = *pT;
+		  double& T1 = *pT++;
+		  double& T2 = *pT++;
+		  double& T3 = *pT;
 
 		  c1 +=  T3*(*dx2) - T2*(*dx3) ;
 		  c2 +=  T1*(*dx3) - T3*(*dx1) ;
@@ -276,9 +262,9 @@ void ParentDomainT::Curl(const ArrayT<dMatrixT>& T, const dArray2DT& DNa, dMatri
 	
 		c11 = c21 = c31 = c12 = c22 = c32 = c13 = c23 = c33 = 0.0;
 
-		const double* dx1 = DNa(0);
-		const double* dx2 = DNa(1);
-		const double* dx3;
+		double* dx1 = DNa(0);
+		double* dx2 = DNa(1);
+		double* dx3;
 
 		if (DNa.MajorDim() == 3) { // 3D Problem
 		  dx3 = DNa(2);
@@ -294,21 +280,21 @@ void ParentDomainT::Curl(const ArrayT<dMatrixT>& T, const dArray2DT& DNa, dMatri
 		  throw ExceptionT::kSizeMismatch;
 		}
 
-		const double *pT;
+		double *pT;
 
 		for (int i = 0; i < nnd; i++) {
 	
 		  pT  = T[i].Pointer();
 
-		  const double& T11 = *pT++;
-		  const double& T21 = *pT++;
-		  const double& T31 = *pT++;
-		  const double& T12 = *pT++;
-		  const double& T22 = *pT++;
-		  const double& T32 = *pT++;
-		  const double& T13 = *pT++;
-		  const double& T23 = *pT++;
-		  const double& T33 = *pT  ;
+		  double& T11 = *pT++;
+		  double& T21 = *pT++;
+		  double& T31 = *pT++;
+		  double& T12 = *pT++;
+		  double& T22 = *pT++;
+		  double& T32 = *pT++;
+		  double& T13 = *pT++;
+		  double& T23 = *pT++;
+		  double& T33 = *pT  ;
 
 		  c11 += ( T12*(*dx3) - T13*(*dx2) );
 		  c21 += ( T22*(*dx3) - T23*(*dx2) );
@@ -340,7 +326,7 @@ double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian) const
 
 	if (fNumSD == 1)
 	{
-		const double* n = jacobian.Pointer();
+		double* n = jacobian.Pointer();
 		return sqrt(n[0]*n[0] + n[1]*n[1]);
 	}
 	else
@@ -369,7 +355,7 @@ double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian, dMatrixT& Q) con
 	/* surface dimension */
 	if (fNumSD == 1)
 	{
-		const double* t = jacobian.Pointer();
+		double* t = jacobian.Pointer();
 		double  j = sqrt(t[0]*t[0] + t[1]*t[1]);
 
 		/* check */
@@ -393,8 +379,8 @@ double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian, dMatrixT& Q) con
 		double* n2 = Q(1);
 		double* n3 = Q(2);
 		
-		const double* m1 = jacobian(0);
-		const double* m2 = jacobian(1);
+		double* m1 = jacobian(0);
+		double* m2 = jacobian(1);
 		CrossProduct(m1, m2, n3);
 		
 		double jn = sqrt(n3[0]*n3[0] + n3[1]*n3[1] + n3[2]*n3[2]);
@@ -510,12 +496,12 @@ void ParentDomainT::NodalValues(const dArrayT& IPvalues,
 	/* single integration point */
 	if (numIP == 1)
 	{
-		const double* pip = IPvalues.Pointer();
+		double* pip = IPvalues.Pointer();
 		double* pnv = nodalvalues.Pointer();
 	
 		for (int i = 0; i < fNumNodes; i++)
 		{									
-			const double* prep = pip;
+			double* prep = pip;
 		
 			/* just overwrite */
 			for (int j = 0; j < numvals; j++)
@@ -525,13 +511,13 @@ void ParentDomainT::NodalValues(const dArrayT& IPvalues,
 /* more than 1 integration point */
 	else
 	{	
-		const double* psmooth = fNodalExtrap(IPnum);
-		double* pnv = nodalvalues.Pointer();
-		const double* pip = IPvalues.Pointer();
+		double* psmooth = fNodalExtrap(IPnum);
+		double* pnv     = nodalvalues.Pointer();
+		double* pip     = IPvalues.Pointer();
 		
 		for (int i = 0; i < fNumNodes; i++)
 		{
-			const double* prep = pip;
+			double* prep = pip;
 		
 			for (int j = 0; j < numvals; j++)
 				*pnv++ += (*psmooth)*(*prep++);
@@ -550,6 +536,142 @@ void ParentDomainT::Print(ostream& out) const
 	out << "\n Parent domain shape function derivatives:\n";
 	for (int i = 0; i < fDNa.Length(); i++)
 		fDNa[i].WriteNumbered(out);
+}
+
+/* return true if the given point is within the domain */
+bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
+{
+	const char caller[] = "ParentDomainT::PointInDomain";
+	
+#if __option(extended_errorcheck)
+	if (coords.MinorDim() != point.Length()) ExceptionT::SizeMismatch(caller);
+#endif
+
+	int dim = point.Length();
+	if (dim == 1) /* 1D case */
+	{
+#if __option(extended_errorcheck)
+		if (coords.NumberOfNodes() != 2) 
+			ExceptionT::GeneralFail(caller, "expecting only 2 points in 1D: %d", coords.NumberOfNodes());
+#endif
+
+		if (coords[1] > coords[0])
+		{
+			if (point[0] >= coords[0] && point[0] <= coords[1])
+				return true;
+			else
+				return false;
+		}
+		else
+		{
+			if (point[0] >= coords[1] && point[0] <= coords[0])
+				return true;
+			else
+				return false;
+		}
+	}
+	else if (dim == 2)
+	{
+		/* method: run around the perimeter of the element and see if
+		 *         the point always lies to the left of segment a-b */
+		int nen = coords.NumberOfNodes();
+		int a = nen - 1;
+		int b = 0;
+		bool in_domain = true;
+		for (int i = 0; in_domain && i < nen; i++)
+		{
+			double ab_0 = coords(b,0) - coords(a,0);
+			double ab_1 = coords(b,1) - coords(a,1);
+
+			double ap_0 = point[0] - coords(a,0);
+			double ap_1 = point[1] - coords(a,1);
+		
+			double cross = ab_0*ap_1 - ab_1*ap_0;
+			in_domain = cross >= 0.0;
+			a++; 
+			b++;
+			if (a == nen) a = 0;
+		}
+		
+		return in_domain;
+	}
+	else if (dim == 3)
+	{
+		//TEMP - only implemented for 8-node hex's
+		if (fGeometryCode != GeometryT::kHexahedron && fNumNodes != 8)
+			ExceptionT::GeneralFail(caller, "only implemented for 8-node hex's");
+
+#if __option(extended_errorcheck)
+		if (coords.NumberOfNodes() != 8) 
+			ExceptionT::GeneralFail(caller, "expecting 8 element nodes: %d", coords.NumberOfNodes());
+#endif
+
+		/* nodes-facet data - ordered for outward normals */
+		int dat8[] = {
+			0, 3, 2, 1,
+			4, 5, 6, 7,
+			0, 1, 5, 4,
+			1, 2, 6, 5,
+			2, 3, 7, 6,
+			3, 0, 4, 7};
+
+		/* method: check all faces and see of point lies inside, breaking
+		*          each face into 2 triangular facets */
+		bool in_domain = true;
+		int* facet_nodes = dat8;
+		for (int i = 0; in_domain && i < 6; i++)
+		{
+			/* facet 1 */
+			double ab_0 = coords(facet_nodes[1], 0) - coords(facet_nodes[0], 0);
+			double ab_1 = coords(facet_nodes[1], 1) - coords(facet_nodes[0], 1);
+			double ab_2 = coords(facet_nodes[1], 2) - coords(facet_nodes[0], 2);
+
+			double ac_0 = coords(facet_nodes[3], 0) - coords(facet_nodes[0], 0);
+			double ac_1 = coords(facet_nodes[3], 1) - coords(facet_nodes[0], 1);
+			double ac_2 = coords(facet_nodes[3], 2) - coords(facet_nodes[0], 2);
+
+			double ap_0 = point[0] - coords(facet_nodes[0], 0);
+			double ap_1 = point[1] - coords(facet_nodes[0], 1);
+			double ap_2 = point[2] - coords(facet_nodes[0], 2);
+			
+			/* vector triple product */
+			double ac_ab_0 = ac_1*ab_2 - ac_2*ab_1;
+			double ac_ab_1 = ac_2*ab_0 - ac_0*ab_2;
+			double ac_ab_2 = ac_0*ab_1 - ac_1*ab_0;			
+			double triple_product = ac_ab_0*ap_0 + ac_ab_1*ap_1 + ac_ab_2*ap_2;
+			in_domain = triple_product >= 0.0;
+
+			/* facet 2 */
+			if (in_domain) {
+
+				ab_0 = coords(facet_nodes[3], 0) - coords(facet_nodes[2], 0);
+				ab_1 = coords(facet_nodes[3], 1) - coords(facet_nodes[2], 1);
+				ab_2 = coords(facet_nodes[3], 2) - coords(facet_nodes[2], 2);
+
+				ac_0 = coords(facet_nodes[1], 0) - coords(facet_nodes[2], 0);
+				ac_1 = coords(facet_nodes[1], 1) - coords(facet_nodes[2], 1);
+				ac_2 = coords(facet_nodes[1], 2) - coords(facet_nodes[2], 2);
+
+				ap_0 = point[0] - coords(facet_nodes[2], 0);
+				ap_1 = point[1] - coords(facet_nodes[2], 1);
+				ap_2 = point[2] - coords(facet_nodes[2], 2);
+
+				/* vector triple product */
+				ac_ab_0 = ac_1*ab_2 - ac_2*ab_1;
+				ac_ab_1 = ac_2*ab_0 - ac_0*ab_2;
+				ac_ab_2 = ac_0*ab_1 - ac_1*ab_0;			
+				triple_product = ac_ab_0*ap_0 + ac_ab_1*ap_1 + ac_ab_2*ap_2;
+				in_domain = triple_product >= 0.0;
+			}
+
+			facet_nodes += 4;
+		}
+		
+		return in_domain;
+	}
+	
+	/* fall through */
+  	return false;
 }
 
 /* map domain coordinates into the parent coordinates */

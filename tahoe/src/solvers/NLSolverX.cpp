@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.11 2004-01-05 07:07:19 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.9 2003-03-31 22:59:32 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
@@ -31,7 +31,7 @@ NLSolverX::NLSolverX(FEManagerT& fe_manager, int group):
 	cout << "\n NLSolverX::Initialize: RTTI required" << endl;
 	throw ExceptionT::kGeneralFail;
 #else
-	pCCS = TB_DYNAMIC_CAST(CCSMatrixT*, fLHS);
+	pCCS = dynamic_cast<CCSMatrixT*>(fLHS);
 	if (!pCCS)
 	{
 		cout << "\n NLSolverX::Initialize: expecting CCS global matrix" << endl;
@@ -80,7 +80,7 @@ SolverT::SolutionStatusT NLSolverX::Solve(int num_iterations)
 	int into_trust     = 0;
 	int negative_pivot = 0;
 	int reuse_count    = 0;
-	SolutionStatusT solutionflag = ExitIteration(error, fNumIteration);
+	SolutionStatusT solutionflag = ExitIteration(error);
 	while(solutionflag == kContinue &&
 		(num_iterations == -1 || IterationNumber() < num_iterations))
 	{
@@ -104,8 +104,8 @@ SolverT::SolutionStatusT NLSolverX::Solve(int num_iterations)
 			cout << " re-use :" << setw(3) << reuse_count <<  ": ";
 		}
 				
-		error = SolveAndForm(fNumIteration);
-		solutionflag = ExitIteration(error, fNumIteration);
+		error = SolveAndForm();
+		solutionflag = ExitIteration(error);
 
 		/* check for negative pivots */
 		if (fCheckNegPivots && fFormNewTangent)
@@ -193,7 +193,7 @@ NLSolver::SolutionStatusT NLSolverX::Relax(int newtancount)
 	cout <<   " Relaxation:" << '\n';
 
 	/* reset counts */
-	int iteration = -1;
+	fNumIteration    = -1;
 		
 	/* form the first residual force vector */
 	fRHS = 0.0;
@@ -205,7 +205,7 @@ NLSolver::SolutionStatusT NLSolverX::Relax(int newtancount)
 	int negative_pivot = 0;
 	int tangentcount   = 0;
 	int reuse_count    = 0;
-	SolutionStatusT solutionflag = ExitIteration(error, iteration);
+	SolutionStatusT solutionflag = ExitIteration(error);
 	while (solutionflag == kContinue)
 	{
 		if (fFormNewTangent)
@@ -221,8 +221,8 @@ NLSolver::SolutionStatusT NLSolverX::Relax(int newtancount)
 			cout << " re-use :" << setw(3) << reuse_count <<  ": ";
 		}
 			
-		error = SolveAndForm(iteration);
-		solutionflag = ExitIteration(error, iteration);
+		error = SolveAndForm();
+		solutionflag = ExitIteration(error);
 
 		/* check for negative pivots */
 		if (fCheckNegPivots && fFormNewTangent)

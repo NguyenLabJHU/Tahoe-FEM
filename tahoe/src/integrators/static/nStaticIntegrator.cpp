@@ -1,4 +1,4 @@
-/* $Id: nStaticIntegrator.cpp,v 1.9 2004-02-06 17:34:08 cjkimme Exp $ */
+/* $Id: nStaticIntegrator.cpp,v 1.7 2003-04-16 18:07:39 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nStaticIntegrator.h"
@@ -39,7 +39,7 @@ void nStaticIntegrator::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 			break;
 		}
 		default:
-			ExceptionT::BadInputValue("nStaticIntegrator::ConsistentKBC", "unknown BC code: %d", KBC.Code());
+			ExceptionT::BadInputValue("nTrapezoid::ConsistentKBC", "unknown BC code: %d", KBC.Code());
 	}
 }		
 
@@ -64,8 +64,8 @@ void nStaticIntegrator::Corrector(BasicFieldT& field, const dArrayT& update,
 	const iArray2DT& eqnos = field.Equations();
 
 	/* add update - assumes that fEqnos maps directly into dva */
-	const int* peq = eqnos.Pointer();
-	double* pd  = field[0].Pointer();
+	int    *peq = eqnos.Pointer();
+	double *pd  = field[0].Pointer();
 	for (int i = 0; i < eqnos.Length(); i++)
 	{
 		int eq = *peq++ - eq_start;
@@ -92,7 +92,7 @@ void nStaticIntegrator::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 	for (int i = 0; i < map.Length(); i++)
 	{
 		int row = map[i];
-		const int* pflags = flags(i);
+		int* pflags = flags(i);
 
 		double* pd = (field[0])(row);
 		for (int j = 0; j < minordim; j++)

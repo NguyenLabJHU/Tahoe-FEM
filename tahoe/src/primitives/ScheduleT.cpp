@@ -1,4 +1,4 @@
-/* $Id: ScheduleT.cpp,v 1.5 2003-10-28 07:12:14 paklein Exp $ */
+/* $Id: ScheduleT.cpp,v 1.4 2002-10-20 22:49:31 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ScheduleT.h"
 #include "fstreamT.h"
@@ -6,11 +6,11 @@
 #include <iostream.h>
 #include <iomanip.h>
 
+/* constructors */
+
 using namespace Tahoe;
 
-/* constructors */
 ScheduleT::ScheduleT(double value):
-	fCurrentTime(0.0),
 	fCurrentValue(value)
 {
 
@@ -19,7 +19,6 @@ ScheduleT::ScheduleT(double value):
 ScheduleT::ScheduleT(int numpts):
 	fTime(numpts),
 	fValue(numpts),
-	fCurrentTime(0.0),
 	fCurrentValue(0.0)
 {
 
@@ -28,7 +27,6 @@ ScheduleT::ScheduleT(int numpts):
 ScheduleT::ScheduleT(const dArrayT& times, const dArrayT& values):
 	fTime(times),
 	fValue(values),
-	fCurrentTime(0.0),
 	fCurrentValue(0.0)
 {
 	/* check data */
@@ -65,7 +63,6 @@ void ScheduleT::Write(ostream& out) const
 /* set the load factor based on the time given */
 void ScheduleT::SetTime(double time)
 {
-	fCurrentTime = time;
 	int num_pts = fTime.Length();
 	if (num_pts > 1)
 	{

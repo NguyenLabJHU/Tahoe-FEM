@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.16 2004-01-10 17:15:08 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.12 2003-01-29 07:35:04 paklein Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -12,9 +12,6 @@
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 #include "Utils.h"
-#include "CommunicatorT.h"
-
-#include "ContinuumElementT.h"
 
 using namespace Tahoe;
 
@@ -183,12 +180,8 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
                 fElasticity->ComputeModuli(fcBar_ijkl);
 
 	  // compute crystal Cauchy stress (elastic predictor at first iteration)
-          /* use these two lines when MPS */
-          //if (fFSMatSupport.StepNumber() == 0 &&        
-	  //        fFSMatSupport.IterationNumber() <= -1)
-          /* use these two lines when FEM */
-          if (fFSMatSupport.StepNumber() >= 0 &&
-                  fFSMatSupport.IterationNumber() <= -1)
+          if (fFSMatSupport.StepNumber() >= 1 &&
+	          fFSMatSupport.IterationNumber() <= -1)
 	     {
 	       // defomation gradient
                fMatx1.SetToCombination(1., fFtot, -1., fFtot_n);
@@ -451,7 +444,6 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
 {
   // gather element/integ point information
   ElementCardT& element = CurrentElement();
-  int group = ContinuumElement().ElementGroupNumber();
   int elem  = CurrElementNumber();
   int intpt = CurrIP();
 
@@ -465,24 +457,14 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
 
   // compute averaged equivalent stress
   if (elem == 0 && intpt == 0) fAvgStress = 0.0;
-  fAvgStress += fsavg_ij;
-
+  fAvgStress.AddScaled(1./(NumIP()*NumElements()), fsavg_ij);
   // cout << " elem = " << elem << "   intpt = " << intpt << endl;
   // cout << "    fsavg_ij = " << endl << fsavg_ij << endl;
   // cout << "    fAvgStress = " << endl << fAvgStress << endl;
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
-	{
-	const CommunicatorT* comm = fFSMatSupport.GroupCommunicator();
-	dArrayT stress_sum(fAvgStress.Length());
-	comm->Sum(fAvgStress, stress_sum);
-
-	int total_denominator = comm->Sum(NumIP()*NumElements());
-	fAvgStress.SetToScaled(1.0/total_denominator, stress_sum);
-	
      cerr << " step # " << fFSMatSupport.StepNumber() 
-          << "    group # " << group
           << "    S_eq_avg = " 
-          << sqrt(fSymMatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 	}
+          << sqrt(fSymMatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 
 
   // iteration counter for nlcsolver and state
   output[1] = fIterCount;
@@ -511,7 +493,7 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
 	}
 
       // write texture at IP/ELE
-      fLatticeOrient->WriteTexture(group, elem, intpt, fNumGrain, step, fangles);
+      fLatticeOrient->WriteTexture(elem, intpt, fNumGrain, step, fangles);
     }
 }
 

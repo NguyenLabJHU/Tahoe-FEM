@@ -1,4 +1,4 @@
-/* $Id: SpherePointsT.h,v 1.3 2003-12-28 23:37:08 paklein Exp $ */
+/* $Id: SpherePointsT.h,v 1.2 2002-07-02 19:56:00 cjkimme Exp $ */
 /* created: paklein (10/31/1997)                                          */
 /* Base class for spherical point generators.                             */
 
@@ -22,11 +22,11 @@ public:
                  kIcosahedral = 1,
                          kFCC = 2}; // FCC lattice in shells
 
-	/** constructor */
+	/* constructor */
 	SpherePointsT(void);
 
-	/** destructor */
-	virtual ~SpherePointsT(void);
+	/* destructor */
+	~SpherePointsT(void);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const = 0;

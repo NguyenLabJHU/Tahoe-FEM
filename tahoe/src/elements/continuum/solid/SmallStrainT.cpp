@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13 2003-12-28 08:23:20 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.11 2003-06-28 17:32:12 thao Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -18,15 +18,7 @@ SmallStrainT::SmallStrainT(const ElementSupportT& support, const FieldT& field):
 	fGradU(NumSD()),
 	fSSMatSupport(NULL)
 {
-	SetName("small_strain");
-}
 
-SmallStrainT::SmallStrainT(const ElementSupportT& support):
-	SolidElementT(support),
-	fNeedsOffset(-1),
-	fSSMatSupport(NULL)
-{
-	SetName("small_strain");
 }
 
 /* destructor */
@@ -78,65 +70,9 @@ void SmallStrainT::InitialCondition(void)
 	fSSMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
 }
 
-/* implementation of the ParameterInterfaceT interface */
-void SmallStrainT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	SolidElementT::DefineParameters(list);
-
-	/* strain-displacement relation */
-	ParameterT strain_displacement(ParameterT::Enumeration, "strain_displacement");
-	strain_displacement.AddEnumeration("standard", kStandardB);
-    strain_displacement.AddEnumeration("B_bar", kMeanDilBbar);
-    strain_displacement.SetDefault(kStandardB);
-	list.AddParameter(strain_displacement);
-}
-
-/* information about subordinate parameter lists */
-void SmallStrainT::DefineSubs(SubListT& sub_list) const
-{	
-	/* inherited */
-	SolidElementT::DefineSubs(sub_list);
-
-	/* the element groups - an array of choices */
-	sub_list.AddSub("solid_materials", ParameterListT::Once, true);
-}
-
-/* return the description of the given inline subordinate parameter list */
-void SmallStrainT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
-{
-	if (sub == "solid_materials")
-	{
-		order = ParameterListT::Choice;
-		sub_sub_list.AddSub("solid_materials_1D");
-		sub_sub_list.AddSub("solid_materials_2D");	
-		sub_sub_list.AddSub("solid_materials_3D");	
-	}
-	else /* inherited */
-		SolidElementT::DefineInlineSub(sub, order, sub_sub_list);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* SmallStrainT::NewSub(const StringT& list_name) const
-{
-	/* create non-const this */
-	SmallStrainT* non_const_this = const_cast<SmallStrainT*>(this);
-
-	if (list_name == "solid_materials_1D")
-		return non_const_this->NewMaterialList(1,0);
-	else if (list_name == "solid_materials_2D")
-		return non_const_this->NewMaterialList(2,0);
-	else if (list_name == "solid_materials_3D")
-		return non_const_this->NewMaterialList(3,0);
-	else /* inherited */
-
-		return SolidElementT::NewSub(list_name);
-}
-
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
 
 /* construct a new material support and return a pointer */
 MaterialSupportT* SmallStrainT::NewMaterialSupport(MaterialSupportT* p) const
@@ -148,7 +84,7 @@ MaterialSupportT* SmallStrainT::NewMaterialSupport(MaterialSupportT* p) const
 	SolidElementT::NewMaterialSupport(p);
 	
 	/* set SolidMatSupportT fields */
-	SSMatSupportT* ps = TB_DYNAMIC_CAST(SSMatSupportT*, p);
+	SSMatSupportT* ps = dynamic_cast<SSMatSupportT*>(p);
 	if (ps) {
 		ps->SetLinearStrain(&fStrain_List);
 		ps->SetLinearStrain_last(&fStrain_last_List);
@@ -158,38 +94,22 @@ MaterialSupportT* SmallStrainT::NewMaterialSupport(MaterialSupportT* p) const
 }
 
 /* return a pointer to a new material list */
-MaterialListT* SmallStrainT::NewMaterialList(int nsd, int size)
+MaterialListT* SmallStrainT::NewMaterialList(int size)
 {
-	/* full list */
-	if (size > 0)
-	{
-		/* material support */
-		if (!fSSMatSupport) {
-			fSSMatSupport = TB_DYNAMIC_CAST(SSMatSupportT*, NewMaterialSupport());
-			if (!fSSMatSupport)
-				ExceptionT::GeneralFail("SmallStrainT::NewMaterialList");
-		}
-
-		if (nsd == 1)
-			return new SolidMatList1DT(size, *fSSMatSupport);
-		else if (nsd == 2)
-			return new SolidMatList2DT(size, *fSSMatSupport);
-		else if (nsd == 3)
-			return new SolidMatList3DT(size, *fSSMatSupport);
-		else
-			return NULL;
+	/* material support */
+	if (!fSSMatSupport) {
+		fSSMatSupport = dynamic_cast<SSMatSupportT*>(NewMaterialSupport());
+		if (!fSSMatSupport) throw ExceptionT::kGeneralFail;
 	}
+
+	if (NumSD() == 1)
+		return new SolidMatList1DT(size, *fSSMatSupport);
+	else if (NumSD() == 2)
+		return new SolidMatList2DT(size, *fSSMatSupport);
+	else if (NumSD() == 3)
+		return new SolidMatList3DT(size, *fSSMatSupport);
 	else
-	{
-		if (nsd == 1)
-			return new SolidMatList1DT;
-		else if (nsd == 2)
-			return new SolidMatList2DT;
-		else if (nsd == 3)
-			return new SolidMatList3DT;
-		else
-			return NULL;
-	}	
+		return NULL;		
 }
 
 /* construct list of materials from the input stream */
@@ -246,6 +166,13 @@ void SmallStrainT::FormKd(double constK)
 	/* collect incremental heat */
 	bool need_heat = fElementHeat.Length() == fShapes->NumIP();
 
+	/********DEBUG*******/
+	bool print = false; 
+	int pos = fElementCards.Position(); 
+	if (pos == 1&&0)  
+	  print = true; 
+	/*******************/
+	
 	fShapes->TopIP();
 	while (fShapes->NextIP())
 	{
@@ -258,6 +185,8 @@ void SmallStrainT::FormKd(double constK)
 		/* B^T * Cauchy stress */
 		fB.MultTx(fCurrMaterial->s_ij(), fNEEvec);
 
+		if (print) cout << "\nstress: "<<fCurrMaterial->s_ij();
+		
 		/* accumulate */
 		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
 		

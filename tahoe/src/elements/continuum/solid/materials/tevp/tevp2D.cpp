@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.30 2003-11-21 22:46:58 paklein Exp $ */
+/* $Id: tevp2D.cpp,v 1.29 2003-01-29 07:35:09 paklein Exp $ */
 /* created: Harold Park (04/04/2001) */
 #include "tevp2D.h"
 
@@ -464,7 +464,7 @@ double tevp2D::ComputeEffectiveStress(void)
   return fSb;
 }
 
-void tevp2D::CheckCriticalCriteria(ElementCardT& element, int ip)
+void tevp2D::CheckCriticalCriteria(const ElementCardT& element, int ip)
 {
   /* Returns an indicator to determine whether critical strain criteria
    * has been met, and switch to fluid model happens next time step */
@@ -608,7 +608,7 @@ dArrayT& tevp2D::ComputeEP_tan(void)
   return fEP_tan;
 }
 
-int tevp2D::CheckIfPlastic(ElementCardT& element, int ip)
+int tevp2D::CheckIfPlastic(const ElementCardT& element, int ip)
 {
   /* Checks to see if the gauss point has gone plastic yet via a
    * test on the effective stress */
@@ -665,10 +665,10 @@ void tevp2D::LoadData(const ElementCardT& element, int ip)
   int offset = fNumIP * 4;
   int offset2 = kNSD * offset / kVoigt;
   /* fetch arrays */
-  const dArrayT& d_array = element.DoubleData();
-  fTempKirchoff.Alias(kVoigt, &d_array[dex]);
-  fTempCauchy.Alias(kNSD, &d_array[offset + dex2]);
-  fInternal.Alias(kNumStateVariables, &d_array[offset + offset2 + ip * kNumStateVariables]); 
+  dArrayT& d_array = element.DoubleData();
+  fTempKirchoff.Set(kVoigt, &d_array[dex]);
+  fTempCauchy.Set(kNSD, &d_array[offset + dex2]);
+  fInternal.Set(kNumStateVariables, &d_array[offset + offset2 + ip * kNumStateVariables]); 
 }
 
 void tevp2D::Update(ElementCardT& element)

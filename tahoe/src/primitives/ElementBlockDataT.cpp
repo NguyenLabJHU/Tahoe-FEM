@@ -1,12 +1,12 @@
-/* $Id: ElementBlockDataT.cpp,v 1.8 2003-11-04 01:32:06 paklein Exp $ */
+/* $Id: ElementBlockDataT.cpp,v 1.6 2003-08-14 05:32:30 paklein Exp $ */
 #include "ElementBlockDataT.h"
 
 using namespace Tahoe;
 
 /* copy behavior for arrays FBC_CardT's */
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<ElementBlockDataT*>::fByteCopy = true;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<ElementBlockDataT>::fByteCopy = false;
+const bool ArrayT<ElementBlockDataT*>::fByteCopy = true;
+const bool ArrayT<ElementBlockDataT>::fByteCopy = false;
 } /* namespace Tahoe */
 
 /* constructor */

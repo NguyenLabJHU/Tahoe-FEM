@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.cpp,v 1.10 2003-11-21 22:47:46 paklein Exp $ */
+/* $Id: nTrapezoid.cpp,v 1.9 2003-05-20 10:29:37 paklein Exp $ */
 /* created: paklein (10/03/1999) */
 #include "nTrapezoid.h"
 #include "dArrayT.h"
@@ -79,7 +79,7 @@ void nTrapezoid::Corrector(BasicFieldT& field, const dArrayT& update,
 	const iArray2DT& eqnos = field.Equations();
 
 	/* add update - assumes that fEqnos maps directly into dva */
-	const int* peq = eqnos.Pointer();
+	int    *peq = eqnos.Pointer();
 	double *pd  = field[0].Pointer();
 	double *pv  = field[1].Pointer();
 	for (int i = 0; i < eqnos.Length(); i++)
@@ -107,7 +107,7 @@ void nTrapezoid::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 	for (int i = 0; i < map.Length(); i++)
 	{
 		int row = map[i];
-		const int* pflags = flags(i);
+		int* pflags = flags(i);
 
 		double* pd = (field[0])(row);
 		double* pv = (field[1])(row);

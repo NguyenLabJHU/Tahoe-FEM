@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.11 2003-12-28 08:23:37 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.9 2003-01-29 07:35:11 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 #include "MeshFreeFractureSupportT.h"
 
@@ -467,7 +467,7 @@ bool MeshFreeFractureSupportT::CheckFronts(SolidMaterialT& material,
 #endif
 
 	/* check for finite deformation */
-	FSSolidMatT* FD_material = TB_DYNAMIC_CAST(FSSolidMatT*, &material);
+	FSSolidMatT* FD_material = dynamic_cast<FSSolidMatT*>(&material);
 	
 	/* dimensions */
 	int nsd = fMFShapes->NumSD();
@@ -507,8 +507,8 @@ bool MeshFreeFractureSupportT::CheckFronts(SolidMaterialT& material,
 			for (int j = 0; j < x_list.MajorDim(); j++)
 			{
 				/* fetch coords and transformation tensor */
-				x_s.Alias(nsd, x_list(j));
-				Q_s.Alias(nsd, nsd, Q_list(j));
+				x_s.Set(nsd, x_list(j));
+				Q_s.Set(nsd, nsd, Q_list(j));
 				
 				/* set field */
 				if (fMFShapes->SetDerivativesAt(x_s))
@@ -621,7 +621,7 @@ bool MeshFreeFractureSupportT::CheckFronts(SolidMaterialT& material,
 				for (int k = 0; k < x_list.MajorDim(); k++)
 				{
 					/* fetch coords and transformation tensor */
-					x_s.Alias(nsd, x_list(k));
+					x_s.Set(nsd, x_list(k));
 						
 					/* output */
 					cout << setw(kIntWidth) << k+1
@@ -651,7 +651,7 @@ bool MeshFreeFractureSupportT::CheckSurfaces(SolidMaterialT& material,
 #endif
 
 	/* check for finite deformation */
-	FSSolidMatT* FD_material = TB_DYNAMIC_CAST(FSSolidMatT*, &material);
+	FSSolidMatT* FD_material = dynamic_cast<FSSolidMatT*>(&material);
 
 	/* sampling point data */
 	iArrayT neighbors;

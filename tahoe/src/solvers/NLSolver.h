@@ -1,4 +1,4 @@
-/* $Id: NLSolver.h,v 1.9 2004-01-05 07:07:19 paklein Exp $ */
+/* $Id: NLSolver.h,v 1.8 2003-08-14 05:31:46 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NL_SOLVER_H_
@@ -57,14 +57,14 @@ protected:
 	/* relax system - reform tangent at newtancount intervals */
 	virtual SolutionStatusT Relax(int newtancount = 1);
 
-	/** returns the appropriate iteration status flag for
+	/* returns the appropriate iteration status flag for
 	 * the given error measurement, based on the current
 	 * iteration number, convergence tolerance, etc. */
-	SolutionStatusT ExitIteration(double error, int iteration);
+	SolutionStatusT ExitIteration(double error);
 
 	/* form and solve the equation system - returns the magnitude of the
 	 * residual */
-	virtual double SolveAndForm(int& iteration);
+	virtual double SolveAndForm(void);
 
 	/* divert output for iterations */
 	void InitIterationOutput(void);
@@ -80,7 +80,6 @@ protected:
 	/** \name error management parameters */	
 	/*@{*/
 	int    fMaxIterations;  /**< maximum number of iterations per step */
-	int    fMinIterations;  /**< minimum number of iterations per step */
 	double fZeroTolerance;  /**< absolute convergence tolerance */
 	double fTolerance;		/**< relative convergence tolerance */
 	double fDivTolerance;   /**< tolerance for a diverging solution */

@@ -1,4 +1,4 @@
-/* $Id: ElementListT.h,v 1.9 2003-12-28 08:22:54 paklein Exp $ */
+/* $Id: ElementListT.h,v 1.7 2003-08-14 06:00:11 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #ifndef _ELEMENTLIST_T_H_
 #define _ELEMENTLIST_T_H_
@@ -41,7 +41,7 @@ public:
 	bool InterpolantDOFs(void) const;
 
 	/** returns true if contact group present */
-	bool HasContact(void) const { return fHasContact; };
+	bool HasContact(void) const;
 
 	/** change the active element groups.
 	 * \param mask list with length of the \e total number of element
@@ -54,10 +54,6 @@ public:
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
-	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const;
-
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
 	/*@}*/
@@ -69,9 +65,6 @@ private:
 
 	/** cached pointers to element groups */
 	ArrayT<ElementBaseT*> fAllElementGroups;
-	
-	/** true if list contains contact elements */
-	bool fHasContact;
 };
 
 } /* namespace Tahoe */

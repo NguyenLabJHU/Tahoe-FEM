@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.h,v 1.7 2003-11-21 22:48:03 paklein Exp $ */
+/* $Id: ElementCardT.h,v 1.6 2003-03-31 23:01:56 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENT_CARD_T_H_
 #define _ELEMENT_CARD_T_H_
@@ -32,11 +32,8 @@ public:
 	/* set material number */
 	void SetMaterialNumber(int matnum);
 
-	/** \name setting/getting the activity flags */
-	/*@{*/
+	/* setting/getting the activity flags */
 	int& Flag(void);
-	const int& Flag(void) const;
-	/*@}*/
 						
 	/* accessors */
 	int MaterialNumber(void) const;
@@ -59,10 +56,8 @@ public:
 	void Dimension(int i_size, int d_size);
 	void Set(int i_size, int* i_data, int d_size, double* d_data);
 
-	iArrayT& IntegerData(void);
-	const iArrayT& IntegerData(void) const;
-	dArrayT& DoubleData(void);
-	const dArrayT& DoubleData(void) const;
+	iArrayT& IntegerData(void) const;
+	dArrayT& DoubleData(void) const;
 	
 private:
 	
@@ -123,7 +118,6 @@ private:
 
 /* setting/getting the activity flags */
 inline int& ElementCardT::Flag(void) { return fFlag; }
-inline const int& ElementCardT::Flag(void) const { return fFlag; }
 
 /* accessors */
 inline int ElementCardT::MaterialNumber(void) const { return fMatNum; }
@@ -143,20 +137,12 @@ inline void ElementCardT::SetNodesU(iArrayT& nodesU)
 
 /* element storage accessors/modifiers */
 inline int ElementCardT::IsAllocated(void) const { return (fData != NULL); }
-inline iArrayT& ElementCardT::IntegerData(void)
-{
-	return (!fData) ? i_junk : fData->fIntegerData;
-}
-inline const iArrayT& ElementCardT::IntegerData(void) const
+inline iArrayT& ElementCardT::IntegerData(void) const
 {
 	return (!fData) ? i_junk : fData->fIntegerData;
 }
 
-inline dArrayT& ElementCardT::DoubleData(void)
-{
-	return (!fData) ? d_junk : fData->fDoubleData;
-}
-inline const dArrayT& ElementCardT::DoubleData(void) const
+inline dArrayT& ElementCardT::DoubleData(void) const
 {
 	return (!fData) ? d_junk : fData->fDoubleData;
 }

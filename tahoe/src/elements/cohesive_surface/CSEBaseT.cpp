@@ -1,5 +1,6 @@
-/* $Id: CSEBaseT.cpp,v 1.31 2004-03-19 17:16:53 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.27 2003-09-03 23:45:18 paklein Exp $ */
 /* created: paklein (11/19/1997) */
+
 #include "CSEBaseT.h"
 
 #include <math.h>
@@ -28,8 +29,7 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support, const FieldT& field):
 	fLocCurrCoords(LocalArrayT::kCurrCoords),
 	fFractureArea(0.0),
 	fShapes(NULL),
-	fNumIntPts(-1),
-	fOutputGlobalTractions(false)
+	fNumIntPts(-1)
 {
 	SetName("CSE_base");
 	
@@ -70,8 +70,7 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support):
 	fLocCurrCoords(LocalArrayT::kCurrCoords),
 	fFractureArea(0.0),
 	fShapes(NULL),
-	fNumIntPts(-1),
-	fOutputGlobalTractions(false)
+	fNumIntPts(-1)
 {
 	SetName("CSE_base");	
 }
@@ -83,8 +82,7 @@ CSEBaseT::CSEBaseT(ElementSupportT& support):
 	fLocCurrCoords(LocalArrayT::kCurrCoords),
 	fFractureArea(0.0),
 	fShapes(NULL),
-	fNumIntPts(-1),
-	fOutputGlobalTractions(false)	
+	fNumIntPts(-1)	
 {
 	SetName("CSE_base");
 
@@ -155,7 +153,7 @@ void CSEBaseT::Initialize(void)
 	ElementBaseT::Initialize();
 
 	/* dimensions */
-	int num_facet_nodes = NumFacetNodes();
+	int num_facet_nodes = NumElementNodes()/2;
 
 	/* initialize local arrays */
 	fLocInitCoords1.Dimension(num_facet_nodes, NumSD());
@@ -164,8 +162,8 @@ void CSEBaseT::Initialize(void)
 	ElementSupport().RegisterCoordinates(fLocCurrCoords);
 
 	/* construct surface shape functions */
-	fShapes = new SurfaceShapeT(fGeometryCode, fNumIntPts, NumElementNodes(), 
-		num_facet_nodes, NumDOF(), fLocInitCoords1);
+	fShapes = new SurfaceShapeT(fGeometryCode, fNumIntPts, NumElementNodes(), NumDOF(),
+		fLocInitCoords1);
 	if (!fShapes) throw ExceptionT::kOutOfMemory;
 	fShapes->Initialize();
 
@@ -183,9 +181,6 @@ void CSEBaseT::Initialize(void)
 	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
 	{
 		in >> fNodalOutputCodes[i];
-		
-		/* output tractions in global frame */
-		if (fNodalOutputCodes[i] == 2) fOutputGlobalTractions = true;
 
 		/* convert all to "at print increment" */
 		if (fNodalOutputCodes[i] != IOBaseT::kAtNever)
@@ -308,10 +303,10 @@ void CSEBaseT::CloseStep(void)
 }
 
 /* resets to the last converged solution */
-GlobalT::RelaxCodeT CSEBaseT::ResetStep(void)
+void CSEBaseT::ResetStep(void)
 {
 	/* inherited */
-	GlobalT::RelaxCodeT relax = ElementBaseT::ResetStep();
+	ElementBaseT::ResetStep();
 
 	/* unset marks */
 	int nel = NumElements();
@@ -320,8 +315,6 @@ GlobalT::RelaxCodeT CSEBaseT::ResetStep(void)
 		int& flag = fElementCards[i].Flag();
 		flag = (flag == kMarked) ? kON : flag;
 	}
-	
-	return relax;
 }
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -449,11 +442,13 @@ void CSEBaseT::SendOutput(int kincode)
 		case NodalTraction:
 		    flags[NodalTraction] = 1;
 			break;
-		case MaterialData:
-		    flags[MaterialData] = 1;
-			break;
 		default:
-			ExceptionT::BadInputValue("CSEBaseT::SendKinematic", "invalid output code: %d", kincode);
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+			cout << "\n CSEBaseT::SendKinematic: invalid output code: ";
+			cout << kincode << endl;
+#else
+			throw ExceptionT::kBadInputValue;
+#endif
 	}
 
 	/* number of output values */
@@ -585,7 +580,7 @@ void CSEBaseT::ReadConnectivity(void)
 				for (int i = 0; i < dest.MajorDim(); i++)
 				{
 					int* a = dest(i);
-					const int* b = source(i);
+					int* b = source(i);
 					for (int j = 0; j < map.Length(); j++)
 						*a++ = b[map[j]];	
 				}
@@ -736,16 +731,16 @@ void CSEBaseT::CloseSurfaces(void) const
 	int nel = NumElements();
 	for (int i = 0; i < nel; i++)
 	{			
-		const int* pfacet1 = facetnodes(0);
-		const int* pfacet2 = facetnodes(1);
-		const iArrayT& elemnodes = fElementCards[i].NodesX();
-		const int* nodes = elemnodes.Pointer();
+		int* pfacet1 = facetnodes(0);
+		int* pfacet2 = facetnodes(1);
+	        const iArrayT& elemnodes = fElementCards[i].NodesX();
+		int* nodes = elemnodes.Pointer();
 
 		for (int j = 0; j < facetnodes.MinorDim(); j++)
 		{
 			/* facet coordinates */		
-			double* px1 = const_cast<double*>(init_coords(nodes[*pfacet1++]));
-			double* px2 = const_cast<double*>(init_coords(nodes[*pfacet2++]));
+			double* px1 = init_coords(nodes[*pfacet1++]);
+			double* px2 = init_coords(nodes[*pfacet2++]);
 				
 			for (int k = 0; k < NumSD(); k++)
 			{

@@ -1,4 +1,4 @@
-/* $Id: OrthoMLSSolverT.cpp,v 1.7 2003-11-21 22:47:14 paklein Exp $ */
+/* $Id: OrthoMLSSolverT.cpp,v 1.6 2003-01-27 07:00:30 paklein Exp $ */
 /* created: paklein (07/03/1998)                                          */
 
 #include "OrthoMLSSolverT.h"
@@ -167,9 +167,9 @@ void OrthoMLSSolverT::ComputeOrtho(dMatrixT& mat) const
 		{
 			double sum = 0.0;
 			
-			const double* w = fw.Pointer();
-			const double* qi = fqJ(i);
-			const double* qj = fqJ(j);
+			double* w  = fw.Pointer();
+			double* qi = fqJ(i);
+			double* qj = fqJ(j);
 			for (int J = 0; J < fNumNeighbors; J++)		
 				sum += (*w++)*(*qi++)*(*qj++);
 		
@@ -188,13 +188,13 @@ void OrthoMLSSolverT::ComputeDOrtho(int deriv, dMatrixT& mat) const
 		{
 			double sum = 0.0;
 			
-			const double* w = fw.Pointer();
-			const double* qi = fqJ(i);
-			const double* qj = fqJ(j);
+			double* w  = fw.Pointer();
+			double* qi = fqJ(i);
+			double* qj = fqJ(j);
 
-			const double* Dw  = fDw(deriv);
-			const double* Dqi = (fDqJ[deriv])(i);
-			const double* Dqj = (fDqJ[deriv])(j);
+			double* Dw  = fDw(deriv);
+			double* Dqi = (fDqJ[deriv])(i);
+			double* Dqj = (fDqJ[deriv])(j);
 			for (int J = 0; J < fNumNeighbors; J++)
 			{
 				sum += (*Dw++)*(*qi)*(*qj) +

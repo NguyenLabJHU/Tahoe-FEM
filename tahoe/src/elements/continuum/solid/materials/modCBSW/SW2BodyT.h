@@ -1,4 +1,4 @@
-/* $Id: SW2BodyT.h,v 1.4 2003-12-28 23:37:12 paklein Exp $ */
+/* $Id: SW2BodyT.h,v 1.3 2002-07-05 22:28:22 paklein Exp $ */
 /* created: paklein (05/20/1997)                                          */
 
 #ifndef _SW2_BODY_T_H_
@@ -16,12 +16,9 @@ class SW2BodyT: public TwoBodyT
 {
 public:
 
-	/** constructor */
+	/* constructor */
 	SW2BodyT(const dArrayT& lengths, const ThermalDilatationT* thermal,
 		const SWDataT& SW);
-
-	/** destructor */
-	virtual ~SW2BodyT(void) { };
 
 	/* set free dof - triggers recomputation */
 	virtual void Set(void);
