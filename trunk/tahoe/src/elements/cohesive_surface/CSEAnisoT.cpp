@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.56 2003-10-20 23:31:07 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.57 2003-11-04 17:34:42 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -110,7 +110,14 @@ GlobalT::SystemTypeT CSEAnisoT::TangentType(void) const
 		/* tangent matrix is not symmetric */
 		return GlobalT::kNonSymmetric;
 	else
+	{ // symmetric lest cohesive model says otherwise
+		
+		for (int i = 0; i < fSurfPots.Length(); i++)
+			if (fSurfPots[i]->TangentType() == GlobalT::kNonSymmetric)
+				return GlobalT::kNonSymmetric;
+			
 		return GlobalT::kSymmetric;
+	}
 }
 
 void CSEAnisoT::Initialize(void)
