@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.8 2001-10-24 02:24:21 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.8.2.1 2002-04-29 17:22:10 paklein Exp $ */
 
 #include "ABAQUS_VUMAT_BaseT.h"
 
@@ -8,7 +8,6 @@
 #include <float.h>
 
 #include "fstreamT.h"
-#include "FEManagerT.h"
 #include "ContinuumElementT.h"
 
 #include "SpectralDecompT.h"
@@ -236,11 +235,11 @@ const dSymMatrixT& ABAQUS_VUMAT_BaseT::s_ij(void)
 	/* call VUMAT */
 	if (fRunState == GlobalT::kFormRHS)
 	{
-		const FEManagerT& fe_man = ContinuumElement().FEManager();
-		double  t = fe_man.Time();
-		double dt = fe_man.TimeStep();
-		int  step = fe_man.StepNumber();
-		int  iter = fe_man.IterationNumber();
+		const ElementSupportT& support = ContinuumElement().ElementSupport();
+		double  t = support.Time();
+		double dt = support.TimeStep();
+		int  step = support.StepNumber();
+		int  iter = support.IterationNumber(ContinuumElement().Group());
 		Call_VUMAT(t, dt, step, iter);
 	}
 	else

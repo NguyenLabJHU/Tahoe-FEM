@@ -1,5 +1,5 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.4 2001-10-24 02:23:31 paklein Exp $ */
-/* created: paklein (05/14/2000)                                          */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.4.2.1 2002-04-29 17:22:09 paklein Exp $ */
+/* created: paklein (05/14/2000) */
 
 #include "ABAQUS_UMAT_BaseT.h"
 
@@ -9,7 +9,6 @@
 #include <float.h>
 
 #include "fstreamT.h"
-#include "FEManagerT.h"
 #include "ContinuumElementT.h"
 
 #include "SpectralDecompT.h"
@@ -293,11 +292,11 @@ const dSymMatrixT& ABAQUS_UMAT_BaseT::s_ij(void)
 	/* call UMAT */
 	if (fRunState == GlobalT::kFormRHS)
 	{
-		const FEManagerT& fe_man = ContinuumElement().FEManager();
-		double  t = fe_man.Time();
-		double dt = fe_man.TimeStep();
-		int  step = fe_man.StepNumber();
-		int  iter = fe_man.IterationNumber();
+		const ElementSupportT& support = ContinuumElement().ElementSupport();
+		double  t = support.Time();
+		double dt = support.TimeStep();
+		int  step = support.StepNumber();
+		int  iter = support.IterationNumber(ContinuumElement().Group());
 		Call_UMAT(t, dt, step, iter);
 	}
 	else

@@ -1,11 +1,7 @@
-/*
-  File: LocalCrystalPlastFp2D.cpp
-*/
-
+/* $Id: LocalCrystalPlastFp2D.cpp,v 1.1.2.1 2002-04-29 17:22:14 paklein Exp $ */
 #include "LocalCrystalPlastFp2D.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
-#include "FEManagerT.h"
 
 /* spatial dimensions of the problem */
 const int kNSD = 2;
