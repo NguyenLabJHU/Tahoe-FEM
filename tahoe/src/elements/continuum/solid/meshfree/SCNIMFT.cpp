@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.33 2004-10-24 03:56:37 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.34 2004-10-25 22:11:23 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 
@@ -18,6 +18,7 @@
 #include "ParentDomainT.h"
 #include "ParameterUtils.h"
 #include "ParameterContainerT.h"
+#include "InverseMapT.h"
 
 #include "MeshFreeSupport2DT.h"
 #include "MeshFreeNodalShapeFunctionT.h"
@@ -264,7 +265,7 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	nodal_phi.Dimension(nNodes);
 	nodal_supports.Dimension(nNodes);
 	for (int i = 0; i < nNodes; i++) {
-		nodalCoords.Set(fSD, fDeloneVertices(fNodes[i]));
+		nodalCoords.Set(fSD, fDeloneVertices(i));
 	
 		if (!fNodalShapes->SetFieldAt(nodalCoords, NULL)) // shift = 0 or not ?
 			ExceptionT::GeneralFail("SCNIMFT::TakeParameterList","Shape Function evaluation"
@@ -718,6 +719,15 @@ void SCNIMFT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>&
 		out << "\n " << caller << ": boundary nodes\n" << fBoundaryNodes.wrap(10) << endl;
 		fBoundaryNodes--;
 	}
+
+	/* convert to local numbering for qhull */
+	InverseMapT inv_map;
+	inv_map.SetMap(fNodes);
+	for (int i = 0; i < fBoundaryNodes.Length(); i++)
+	  fBoundaryNodes[i] = inv_map.Map(fBoundaryNodes[i]);
+	int* fbcptr = fBoundaryConnectivity.Pointer();
+	for (int i = 0; i < fBoundaryConnectivity.Length(); i++)
+	  *fbcptr++ = inv_map.Map(*fbcptr);
 	
 	/* don't need this information */
 	facet_numbers.Free();
