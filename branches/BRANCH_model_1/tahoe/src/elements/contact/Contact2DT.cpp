@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.cpp,v 1.1.1.1.6.1 2001-10-25 20:25:15 sawimme Exp $ */
+/* $Id: Contact2DT.cpp,v 1.1.1.1.6.2 2001-10-26 15:29:02 sawimme Exp $ */
 /* created: paklein (05/26/1999)                                          */
 
 #include "Contact2DT.h"
@@ -214,26 +214,19 @@ void Contact2DT::SetConnectivities(void)
 	}
 
 	/* set interacting nodes */
-	int count = 0;
-	for (int b = 0; b < fBlockData.MajorDim(); b++)
-	  {
-	    const iArray2DT* conn = fConnectivities[b];
-	    int *pelem = conn->Pointer();
-	    for (int i = 0; i < conn->MajorDim(); i++)
-	      {
-		const iArray2DT& surface = fSurfaces[fHitSurface[count]];
+	for (int i = 0; i < fNumElements; i++)
+	{
+		const iArray2DT& surface = fSurfaces[fHitSurface[i]];
 		
-		int   facet = fHitFacets[count];
+		int   facet = fHitFacets[i];
 		int* pfacet = surface(facet);
+	        const iArrayT& elemnodes = fElementCards[i].NodesX();
+		int* pelem = elemnodes.Pointer();
 
 		/* all element tags */
 		pelem[0] = pfacet[0]; // 1st facet node
 		pelem[1] = pfacet[1]; // 2nd facet node
 		pelem[2] = fActiveStrikers[i]; // striker node
-
-		count ++;
-		pelem += conn->MinorDim();
-	      }
 	}
 }
 
