@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.h,v 1.4 2001-11-28 22:05:44 paklein Exp $ */
+/* $Id: iConsoleBaseT.h,v 1.5 2001-12-10 12:41:07 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_BASE_T_H_
@@ -49,12 +49,12 @@ public:
 	 * \return a pointer command specification if the function and
 	 *         all of its arguments were resolved without problems,
 	 *         NULL otherwise. */
-	const CommandSpecT* ResolveCommand(const StringT& command_name, 
+	const CommandSpecT* iResolveCommand(const StringT& command_name, 
 		StringT& line) const;
 
 	/** return the command specification with the given name. Returns
 	 * NULL if the name is not found */
-	CommandSpecT* Command(const StringT& command_name) const;
+	CommandSpecT* iCommand(const StringT& command_name) const;
 
 protected:
 
@@ -141,6 +141,9 @@ protected:
 
 	/** resolve the operator type from the input line */
 	VariableOperator ResolveOperator(StringT& line) const;
+
+	/** copy variables from the source. \return true if all variables added. */
+	bool AddVariables(const iConsoleBaseT& source);
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: CommandSpecT.h,v 1.1 2001-11-28 22:05:44 paklein Exp $ */
+/* $Id: CommandSpecT.h,v 1.2 2001-12-10 12:41:07 paklein Exp $ */
 
 #ifndef _COMMAND_SPEC_T_H_
 #define _COMMAND_SPEC_T_H_
@@ -45,6 +45,18 @@ class CommandSpecT
 	 * of arguments is set by the order in which they are added
 	 * using CommandSpecT::AddArgument. */
 	const ArgSpecT& Argument(int index) const { return *fArguments[index]; };
+
+	/** return a reference to a specific argument. The indeces
+	 * of arguments is set by the order in which they are added
+	 * using CommandSpecT::AddArgument. Works with named arguments
+	 * only. Throws exception if argument not found. */
+	ArgSpecT& Argument(const char* name);
+
+	/** return a const reference to a specific argument. The indeces
+	 * of arguments is set by the order in which they are added
+	 * using CommandSpecT::AddArgument. Works with named arguments
+	 * only. Throws exception if argument not found. */
+	const ArgSpecT& Argument(const char* name) const;
 
 	/** clear all argument values */
 	void ClearValues(void);

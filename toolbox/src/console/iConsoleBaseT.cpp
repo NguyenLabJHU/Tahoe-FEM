@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.cpp,v 1.5 2001-11-28 22:05:44 paklein Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.6 2001-12-10 12:41:07 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleBaseT.h"
@@ -106,11 +106,11 @@ bool iConsoleBaseT::iDoVariable(const StringT& variable, StringT& line)
 }
 
 /* resolve name into function specification */
-const CommandSpecT* iConsoleBaseT::ResolveCommand(const StringT& command_name, 
+const CommandSpecT* iConsoleBaseT::iResolveCommand(const StringT& command_name, 
 	StringT& line) const
 {
 	/* find spec */
-	CommandSpecT* command_spec = Command(command_name);
+	CommandSpecT* command_spec = iCommand(command_name);
 
 	/* resolve arguments */
 	if (command_spec && ResolveArguments(*command_spec, line, cout, cin))
@@ -120,7 +120,7 @@ const CommandSpecT* iConsoleBaseT::ResolveCommand(const StringT& command_name,
 }
 
 /* return the command specification with the given name. */
-CommandSpecT* iConsoleBaseT::Command(const StringT& command_name) const
+CommandSpecT* iConsoleBaseT::iCommand(const StringT& command_name) const
 {
 	CommandSpecT* command_spec = NULL;
 	for (int i = 0; !command_spec && i < fCommands.Length(); i++)
@@ -602,6 +602,17 @@ iConsoleBaseT::VariableOperator iConsoleBaseT::ResolveOperator(StringT& line) co
 	}
 	else
 		return kFail;
+}
+
+/* copy variables from the source. \return true if all variables added. */
+bool iConsoleBaseT::AddVariables(const iConsoleBaseT& source)
+{
+	/* add all variables */
+	int count = 0;
+	for (int i = 0; i < source.fVariables.Length(); i++)
+		if (AddVariable(source.fVariables[i], source.fVariableTypes[i], source.fVariableValues[i], source.fVariableIsConst[i]))
+			count++;
+	return count == source.fVariables.Length();
 }
 
 /************************************************************************
