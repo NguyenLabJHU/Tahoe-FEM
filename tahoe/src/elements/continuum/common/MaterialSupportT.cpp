@@ -1,9 +1,10 @@
-/* $Id: MaterialSupportT.cpp,v 1.5 2003-01-27 07:00:28 paklein Exp $ */
+/* $Id: MaterialSupportT.cpp,v 1.6 2003-03-08 01:55:14 paklein Exp $ */
 #include "MaterialSupportT.h"
 #include "ElementsConfig.h"
 
 #ifdef CONTINUUM_ELEMENT
 #include "ContinuumElementT.h"
+#include "ElementSupportT.h"
 #endif
 
 using namespace Tahoe;
@@ -79,6 +80,36 @@ void MaterialSupportT::SetLocalArray(const LocalArrayT& array)
 			ExceptionT::GeneralFail("MaterialSupportT::LocalArray",
 				"unrecognized array type: %d", array.Type());
 	}
+}
+
+/* the parameters stream */
+ifstreamT& MaterialSupportT::Input(void) const
+{
+	const char caller[] = "MaterialSupportT::Input";
+
+#ifdef CONTINUUM_ELEMENT
+	if (!fContinuumElement) ExceptionT::GeneralFail(caller, "continuum element not defined");
+	return fContinuumElement->ElementSupport().Input();
+#else
+	ExceptionT::GeneralFail(caller, "requires option CONTINUUM_ELEMENT");
+	ifstreamT* dummy;
+	return &dummy;
+#endif
+}
+
+/* the echo file */
+ofstreamT& MaterialSupportT::Output(void) const
+{
+	const char caller[] = "MaterialSupportT::Output";
+
+#ifdef CONTINUUM_ELEMENT
+	if (!fContinuumElement) ExceptionT::GeneralFail(caller, "continuum element not defined");
+	return fContinuumElement->ElementSupport().Output();
+#else
+	ExceptionT::GeneralFail(caller, "requires option CONTINUUM_ELEMENT");
+	ofstreamT* dummy;
+	return &dummy;
+#endif
 }
 
 /* interpolate the given field to the current integration point */
