@@ -8,7 +8,10 @@
 
 /* direct members */
 #include "dMatrixT.h"
+
+
 #include "dArrayT.h"
+#include "dArray2DT.h"
 
 
 namespace Tahoe {
@@ -20,6 +23,7 @@ public:
 	/* constructor - angle(degrees) */
 	Rotate3DT(void);
 	Rotate3DT(dArrayT u,double angle);
+	Rotate3DT(double phi, double theta, double psi);
 
 	/* set the angle field and associated work variables - angle
 	 * passed in degrees */
@@ -29,6 +33,8 @@ public:
 	
 	/* transformation tensor */
 	const dMatrixT& Q(void) const;
+	void GiveTransfoMatrix(const dArray2DT Q);
+	void SetEuler(double phi,double theta,double psi);
 	
 	/* Transformations */
 	
@@ -44,6 +50,14 @@ private:
 
 	dMatrixT	fQ; 
 	dArrayT		fVec;
+
+	double fPhiDeg,fThetaDeg,fPsiDeg;
+	double fPhi,fTheta,fPsi;
+
+	double fCos;
+	double fSin;
+
+	double fCosPhi,fSinPhi,fCosTheta,fSinTheta,fCosPsi,fSinPsi;
 	
 };
 
