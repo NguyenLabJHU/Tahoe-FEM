@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.cpp,v 1.9 2003-03-19 00:53:27 cjkimme Exp $ */
+/* $Id: YoonAllen2DT.cpp,v 1.10 2003-05-20 10:34:35 paklein Exp $ */
 #include "YoonAllen2DT.h"
 
 #include <iostream.h>
@@ -124,14 +124,14 @@ double YoonAllen2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& stat
 /* traction vector given displacement jump vector */	
 const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
+	const char caller[] = "YoonAllen2DT::Traction";
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
-	if (fTimeStep <= 0.0) {
-#ifndef _SIERRA_TEST_	
-		cout << "\n YoonAllen2DT::Traction: expecting positive time increment: "
-		     << fTimeStep << endl;
+	if (jump_u.Length() != knumDOF) ExceptionT::SizeMismatch(caller);
+	if (state.Length() != NumStateVariables()) ExceptionT::SizeMismatch(caller);
+	if (fTimeStep < 0.0) {
+#ifndef _SIERRA_TEST_
+		ExceptionT::BadInputValue(caller, "expecting non-negative time increment: %g", fTimeStep);
 #endif		     
 		throw ExceptionT::kBadInputValue;
 	}
@@ -166,7 +166,8 @@ const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 		double l_1_old = state2[1]/fd_c_n;
 		double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old);
 		double prefactold = 1./(1-state2[2*knumDOF+1]);
-		double l_dot = (l-l_old)/fTimeStep;
+		double l_dot = 0.0;
+		if (fabs(fTimeStep) > kSmall) l_dot = (l-l_old)/fTimeStep; /* allow for dt -> 0 */
 
 		/* do the bulk of the computation now */
 		if (l_old > kSmall) 
@@ -303,7 +304,8 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	double l_1_old = state2[7]/fd_c_n; 
 	double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old);
 	double prefactold = 1./(1-state2[2*knumDOF+7]);
-	double l_dot = (l-l_old)/fTimeStep;
+	double l_dot = 0.0;
+	if (fabs(fTimeStep) > kSmall) l_dot = (l-l_old)/fTimeStep; /* allow for dt -> 0 */
 
 	dArrayT currTraction(2);
 	currTraction = 0.;
@@ -348,7 +350,8 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	if (fabs(l_dot) > kSmall)
 	{
 		/* Now tackle some stiffnesses */
-		fStiffness = tmpSum/l_dot*(1-alpha)/fTimeStep;
+		fStiffness = 0.0;
+		if (fabs(fTimeStep) > kSmall) fStiffness = tmpSum/l_dot*(1-alpha)/fTimeStep;
 		if (l > kSmall) 
 		{
 			fStiffness /= l*l;

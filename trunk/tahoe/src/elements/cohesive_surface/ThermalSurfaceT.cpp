@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.8 2003-01-29 07:34:29 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.9 2003-05-20 10:34:33 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -163,6 +163,7 @@ void ThermalSurfaceT::RHSDriver(void)
 	if (block_source) ip_source.Dimension(fShapes->NumIP());
 	int block_count = 0;
 
+	double dt = ElementSupport().TimeStep();
 	Top();
 	while (NextElement())
 	{
@@ -176,7 +177,10 @@ void ThermalSurfaceT::RHSDriver(void)
 		/* convert heat increment/volume to rate */
 		if (block_source) {
 			block_source->RowCopy(block_count, ip_source);
-			ip_source /= ElementSupport().TimeStep();
+			if (fabs(dt) > kSmall)
+				ip_source /= dt;
+			else /* dt -> 0 */
+				ip_source = 0.0;
 		}
 		block_count++;
 	

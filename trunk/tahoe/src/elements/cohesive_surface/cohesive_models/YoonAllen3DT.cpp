@@ -1,5 +1,4 @@
-/* $Id: YoonAllen3DT.cpp,v 1.9 2003-03-19 00:53:27 cjkimme Exp $ */
-
+/* $Id: YoonAllen3DT.cpp,v 1.10 2003-05-20 10:34:35 paklein Exp $ */
 #include "YoonAllen3DT.h"
 
 #include <iostream.h>
@@ -8,10 +7,10 @@
 #include "ExceptionT.h"
 #include "fstreamT.h"
 #include "StringT.h"
-/* class parameters */
 
 using namespace Tahoe;
 
+/* class parameters */
 const int knumDOF = 3;
 
 #ifndef _SIERRA_TEST_
@@ -179,18 +178,18 @@ double YoonAllen3DT::Potential(const dArrayT& jump_u, const ArrayT<double>& stat
 /* traction vector given displacement jump vector */	
 const dArrayT& YoonAllen3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
+	const char caller[] = "YoonAllen3DT::Traction";
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
-	if (fTimeStep <= 0.0) {
-#ifndef _SIERRA_TEST_	
-		cout << "\n YoonAllen3DT::Traction: expecting positive time increment: "
-		     << fTimeStep << endl;
-#endif // _SIERRA_TEST_    
+	if (fTimeStep < 0.0) {
+#ifndef _SIERRA_TEST_
+		ExceptionT::BadInputValue(caller, "expecting non-negative time increment: %g", fTimeStep);
+#endif		     
 		throw ExceptionT::kBadInputValue;
 	}
-#endif // __option(extended_errorcheck)
+#endif
 
 	if (!qIntegrate)
 	{
@@ -226,7 +225,8 @@ const dArrayT& YoonAllen3DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 		double l_2_old = state2[2]/fd_c_n;
 		double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old+l_2_old*l_2_old);
 		double prefactold = 1./(1-state2[2*knumDOF+1]);
-		double l_dot = (l-l_old)/fTimeStep;
+		double l_dot = 0.0;
+		if (fabs(fTimeStep) > kSmall) l_dot = (l-l_old)/fTimeStep; /* for dt -> 0 */
 
 		/* do the bulk of the computation now */
 		if (l_old > kSmall)
@@ -377,7 +377,8 @@ const dMatrixT& YoonAllen3DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	double l_2_old = state2[10]/fd_c_n;
 	double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old+l_2_old*l_2_old);
 	double prefactold = 1./(1-state2[2*knumDOF+9]);
-	double l_dot = (l-l_old)/fTimeStep;
+	double l_dot = 0.0;
+	if (fabs(fTimeStep) > kSmall) l_dot = (l-l_old)/fTimeStep; /* for dt -> 0 */
 
 	dArrayT currTraction(knumDOF);
 	currTraction = 0.;
@@ -425,7 +426,8 @@ const dMatrixT& YoonAllen3DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	if (fabs(l_dot) > kSmall)
 	{
 		/* Now tackle some stiffnesses */
-		fStiffness = tmpSum/l_dot*(1-alpha)/l/l/fTimeStep;
+		fStiffness = 0.0;
+		if (fabs(fTimeStep) > kSmall) fStiffness = tmpSum/l_dot*(1-alpha)/l/l/fTimeStep;
 		if (l < kSmall)
 		{
 			fStiffness[0] *= l_0*l_0;
@@ -629,9 +631,16 @@ void YoonAllen3DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& st
 	output[1] = state[iNumRelaxTimes+2*knumDOF+8];
 	output[2] = state[iNumRelaxTimes+2*knumDOF+9];
 	
-	double u_t0_dot = (u_t0 - state[iNumRelaxTimes+8])/fTimeStep;
-	double u_t1_dot = (u_t1 - state[iNumRelaxTimes+9])/fTimeStep;
-	double u_n_dot = (u_n - state[iNumRelaxTimes+10])/fTimeStep;
+	double u_t0_dot = 0.0;
+	double u_t1_dot = 0.0;
+	double u_n_dot = 0.0;
+	if (fabs(fTimeStep) > kSmall) /* allow dt -> 0 */
+	{
+		u_t0_dot = (u_t0 - state[iNumRelaxTimes+8])/fTimeStep;
+		u_t1_dot = (u_t1 - state[iNumRelaxTimes+9])/fTimeStep;
+		u_n_dot = (u_n - state[iNumRelaxTimes+10])/fTimeStep;	
+	}
+
 	double l_dot = (l_t0*u_t0_dot/fd_c_t+l_t1*u_t1_dot/fd_c_t+l_n*u_n_dot/fd_c_n)/output[0];
 	if (l_dot > kSmall)
 		output[2] += falpha_0*pow(output[0],falpha_exp);
