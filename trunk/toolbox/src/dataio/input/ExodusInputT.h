@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.h,v 1.4 2001-09-04 16:37:36 paklein Exp $ */
+/* $Id: ExodusInputT.h,v 1.5 2001-09-21 13:48:51 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #ifndef _EXODUSINPUT_T_H_
@@ -41,6 +41,7 @@ public:
   virtual int  NumGlobalElements (void) const;
   virtual int  NumElements (StringT& name);
   virtual int  NumElementNodes (StringT& name);
+  virtual int  NumElementQuadPoints (StringT& name);
   virtual void ReadAllElementMap (iArrayT& elemmap);
   virtual void ReadGlobalElementMap (StringT& name, iArrayT& elemmap);
   virtual void ReadGlobalElementSet (StringT& name, iArrayT& set);
@@ -105,6 +106,11 @@ inline int ExodusInputT::NumNodes (void) const
 inline int ExodusInputT::NumDimensions (void) const
 { return fData.NumDimensions (); }
 
+inline int ExodusInputT::NumElementQuadPoints (StringT& name)
+{
+#pragma unused (name)
+  return (0);
+}
 inline int ExodusInputT::NumNodesInSet (StringT& name)
 { 
   int setnum = atoi (name.Pointer());
