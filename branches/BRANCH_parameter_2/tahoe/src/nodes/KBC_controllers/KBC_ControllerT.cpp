@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.11.6.2 2004-03-24 19:52:28 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.11.6.3 2004-03-27 04:18:01 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "KBC_ControllerT.h"
 
@@ -78,12 +78,25 @@ void KBC_ControllerT::WriteOutput(ostream& out) const
 void KBC_ControllerT::ReadNodes(ifstreamT& in, ArrayT<StringT>& id_list,
 	iArrayT& nodes) const
 {
+#pragma message("delete me")
+
 	/* top level */
 	const FEManagerT& fe_man = fNodeManager.FEManager();
 	ModelManagerT* model = fe_man.ModelManager();
 
 	/* read node set indexes */
 	model->NodeSetList (in, id_list);
+
+	/* collect sets */
+	model->ManyNodeSets(id_list, nodes);
+}
+
+/* read nodes from stream */
+void KBC_ControllerT::GetNodes(const ArrayT<StringT>& id_list, iArrayT& nodes) const
+{
+	/* get the model */
+	const FEManagerT& fe_man = fNodeManager.FEManager();
+	ModelManagerT* model = fe_man.ModelManager();
 
 	/* collect sets */
 	model->ManyNodeSets(id_list, nodes);
