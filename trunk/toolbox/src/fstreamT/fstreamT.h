@@ -1,4 +1,4 @@
-/* $Id: fstreamT.h,v 1.6 2002-07-05 22:26:29 paklein Exp $ */
+/* $Id: fstreamT.h,v 1.7 2002-12-02 09:37:02 paklein Exp $ */
 /* created: paklein (12/30/2000) */
 
 #ifndef _FSTREAM_T_H_
@@ -26,6 +26,11 @@ class fstreamT
 	
 	/** returns true if the given file is found */
 	static bool Exists(const char* path);
+
+	/** clear input stream to the end of the line. A fix needed because GCC 3.1 has
+	 * a bug in getline which does not return when it hits the line delimiter '\n'
+	 * \return the number of characters read from the stream including the newline */
+	static int ClearLine(istream& in);
 };
 
 } // namespace Tahoe 
