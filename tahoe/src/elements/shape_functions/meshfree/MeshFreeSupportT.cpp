@@ -1,6 +1,5 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.23 2004-03-04 08:54:29 paklein Exp $ */
-/* created: paklein (09/07/1998)                                          */
-
+/* $Id: MeshFreeSupportT.cpp,v 1.23.4.1 2004-03-20 16:43:12 paklein Exp $ */
+/* created: paklein (09/07/1998) */
 #include "MeshFreeSupportT.h"
 
 #include <math.h>
@@ -31,10 +30,9 @@
 /* use disk to reduce memory usage */
 #undef _USE_DISK_
 
-/* parameters */
-
 using namespace Tahoe;
 
+/* parameters */
 const int kMaxNumGrid   = 100;
 const int kListInitSize =  10; // initial neighbor list size
 const int kListSizeinc  =   5; // list size increment on overflow
@@ -273,8 +271,6 @@ void MeshFreeSupportT::InitSupportParameters(void)
 	/* post-modify support size */
 	if (fMeshfreeType == kEFG)
 		fNodalParameters *= fDextra; /* scale neighborhoods */
-	else if (fMeshfreeType == kRKPM)
-		fRKPM->ModifySupportParameters(fNodalParameters);
 	else 
 		throw ExceptionT::kGeneralFail;
 }
@@ -823,12 +819,11 @@ void MeshFreeSupportT::WriteStatistics(ostream& out) const
 /* initialize search grid */
 void MeshFreeSupportT::SetSearchGrid(void)
 {
+	const char caller[] = "MeshFreeSupportT::SetSearchGrid";
+
 	/* must set nodes used first */
 	if (fNodesUsed.Length() == 0)
-	{
-		cout << "\n MeshFreeSupportT::SetSearchGrid: must set used nodes first" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "must set used nodes first");
 
 	/* try to get roughly least 10 per grid */
 	int ngrid = int(pow(fNodesUsed.Length()/10.0, 1.0/fSD)) + 1;
@@ -842,7 +837,7 @@ void MeshFreeSupportT::SetSearchGrid(void)
 	iArrayT n_grid(fSD);
 	n_grid = ngrid;
 	fGrid = new iGridManagerT(n_grid, fCoords, &fNodesUsed);	
-	if (!fGrid) throw ExceptionT::kOutOfMemory;
+	if (!fGrid) ExceptionT::OutOfMemory(caller);
 
 	/* reset search grid bounds */
 	fGrid->Reset();
@@ -852,8 +847,10 @@ void MeshFreeSupportT::SetSearchGrid(void)
 * nodal coords (self included) */
 void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 {
+	const char caller[] = "MeshFreeSupportT::SetNodeNeighborData";
 #if __option(extended_errorcheck)
-	if (coords.MajorDim() != fNodalParameters.MajorDim()) throw ExceptionT::kSizeMismatch;
+	if (coords.MajorDim() != fNodalParameters.MajorDim())
+		ExceptionT::SizeMismatch(caller);
 #endif
 
 	int numnodes = fNodalParameters.MajorDim();
@@ -868,19 +865,25 @@ void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 	iArray2DT* pthis = &a1;
 	iArray2DT* pnext = &a2;
 
-	/* determine search type */
+	/* determine search type and size */
+	dArrayT support_size;
+	dArray2DT rect_support_size;
 	WindowT::SearchTypeT search_type = WindowT::kNone;
-	if (fMeshfreeType == kEFG)
+	if (fMeshfreeType == kEFG) {
 		search_type = WindowT::kSpherical;
-	else if (fMeshfreeType == kRKPM)
+		support_size.Dimension(fNodalParameters.MajorDim());
+		support_size.SetToScaled(fDextra, fNodalParameters);
+	}
+	else if (fMeshfreeType == kRKPM) {
 		search_type = fRKPM->SearchType();
-	
-	/* check */
-	if (search_type == WindowT::kNone)
-	{
-		cout << "\n MeshFreeSupportT::SetNodeNeighborData: could not determine\n" 
-		     <<   "     search type" << endl;
-		throw ExceptionT::kGeneralFail;
+		if (search_type == WindowT::kSpherical) {
+			support_size.Dimension(fNodalParameters.MajorDim());
+			fRKPM->SphericalSupportSize(fNodalParameters, support_size);
+		}
+		else {
+			rect_support_size.Dimension(fNodalParameters.MajorDim(), nsd);
+			fRKPM->RectangularSupportSize(fNodalParameters, rect_support_size);		
+		}
 	}
 
 	/* loop over "active" nodes */
@@ -893,10 +896,9 @@ void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 		
 		/* find nodes in neighborhood */
 		if (search_type == WindowT::kSpherical)
-			fGrid->Neighbors(i, fNodalParameters(i,0), neighbors);
-		else
-		{
-			fNodalParameters.RowAlias(i, nodal_params);
+			fGrid->Neighbors(i, support_size[i], neighbors);
+		else {
+			rect_support_size.RowAlias(i, nodal_params);
 			fGrid->Neighbors(i, nodal_params, neighbors);
 		}		
 
@@ -932,8 +934,10 @@ void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 
 void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 {
+	const char caller[] = "MeshFreeSupportT::SetNodeNeighborData_2";
 #if __option(extended_errorcheck)
-	if (coords.MajorDim() != fNodalParameters.MajorDim()) throw ExceptionT::kSizeMismatch;
+	if (coords.MajorDim() != fNodalParameters.MajorDim()) 
+		ExceptionT::SizeMismatch(caller);
 #endif
 
 	int numnodes = fNodalParameters.MajorDim();
@@ -948,19 +952,25 @@ void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 	ArrayT<int*> pointers(numnodes);
 	pointers = NULL;
 
-	/* determine search type */
+	/* determine search type and size */
+	dArrayT support_size;
+	dArray2DT rect_support_size;
 	WindowT::SearchTypeT search_type = WindowT::kNone;
-	if (fMeshfreeType == kEFG)
+	if (fMeshfreeType == kEFG) {
 		search_type = WindowT::kSpherical;
-	else if (fMeshfreeType == kRKPM)
+		support_size.Dimension(fNodalParameters.MajorDim());
+		support_size.SetToScaled(fDextra, fNodalParameters);
+	}
+	else if (fMeshfreeType == kRKPM) {
 		search_type = fRKPM->SearchType();
-	
-	/* check */
-	if (search_type == WindowT::kNone)
-	{
-		cout << "\n MeshFreeSupportT::SetNodeNeighborData_2: could not determine\n" 
-		     <<   "     search type" << endl;
-		throw ExceptionT::kGeneralFail;
+		if (search_type == WindowT::kSpherical) {
+			support_size.Dimension(fNodalParameters.MajorDim());
+			fRKPM->SphericalSupportSize(fNodalParameters, support_size);
+		}
+		else {
+			rect_support_size.Dimension(fNodalParameters.MajorDim(), nsd);
+			fRKPM->RectangularSupportSize(fNodalParameters, rect_support_size);		
+		}
 	}
 
 	/* loop over "active" nodes */
@@ -973,10 +983,10 @@ void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 		
 		/* find nodes in neighborhood */
 		if (search_type == WindowT::kSpherical)
-			fGrid->Neighbors(i, fNodalParameters(i,0), neighbors);
+			fGrid->Neighbors(i, support_size[i], neighbors);
 		else
 		{
-			fNodalParameters.RowAlias(i, nodal_params);
+			rect_support_size.RowAlias(i, nodal_params);
 			fGrid->Neighbors(i, nodal_params, neighbors);
 		}		
 
@@ -1684,18 +1694,16 @@ void MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 /* set support for each node in the connectivities */
 void MeshFreeSupportT::SetSupport_Spherical_Search(void)
 {
+	const char caller[] = "MeshFreeSupportT::SetSupport_Spherical_Search";
+
 	/* dimensions */
 	int nnd = fCoords.MajorDim();
 	int nsd = fCoords.MinorDim();
 
 	/* MLS solver specific check */
 	if (fRKPM && fRKPM->NumberOfSupportParameters() != 1)
-	{
-		cout << "\n MeshFreeSupportT::SetSupport_Spherical_Search: expecting only 1\n" 
-		     <<   "     nodal support size parameter:" << fRKPM->NumberOfSupportParameters() 
-		     << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "expecting 1 support parameter not %d", 
+			fRKPM->NumberOfSupportParameters());
 
 	int min_neighbors = (fEFG) ? fEFG->NumberOfMonomials() :
 	                            fRKPM->BasisDimension();
@@ -1704,10 +1712,7 @@ void MeshFreeSupportT::SetSupport_Spherical_Search(void)
 
 	/* quick check */
 	if (fNodesUsed.Length() < min_neighbors)
-	{
-		cout << " MeshFreeSupportT::SetDmax: not enough meshfree nodes" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "not enough meshfree nodes");
 
 	/* "big" system */
 	const int big = 25000;

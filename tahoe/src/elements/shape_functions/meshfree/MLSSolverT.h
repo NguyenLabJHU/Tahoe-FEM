@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.8 2003-05-23 23:01:41 paklein Exp $ */
+/* $Id: MLSSolverT.h,v 1.8.26.1 2004-03-20 16:43:12 paklein Exp $ */
 /* created: paklein (12/08/1999) */
 
 #ifndef _MLS_SOLVER_T_H_
@@ -85,11 +85,20 @@ public:
 	/** "synchronization" of nodal field parameters */
 	void SynchronizeSupportParameters(dArray2DT& params_1, dArray2DT& params_2);
 
-	/** modify nodal shape function parameters */
-	void ModifySupportParameters(dArray2DT& nodal_params) const;
+	/** \name translate support parameters to support sizes */
+	/*@{*/
+	/** compute spherical support size */
+	virtual double SphericalSupportSize(const dArrayT& param_n) const;
 
-	/* debugging functions */
-	
+	/** compute spherical support size in batch */
+	virtual void SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const;
+
+	/** compute rectangular support size in batch */
+	virtual void RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const;
+	/*@}*/
+
+	/** \name debugging methods */	
+	/*@{*/
 	/* return field value and derivatives - valid AFTER SetField() */
 	/* the weight function */
 	const dArrayT& w(void) const;	
@@ -105,8 +114,12 @@ public:
 	const dArrayT& C(void) const;
 	const dArray2DT& DC(void) const;	
 	const dArray2DT& DDC(void) const;	
+	/*@}*/
 
 private:
+
+	/** error checking accessor to the window function */
+	WindowT& Window(void) const;
 
 	/* configure solver for current number of neighbors */
 	void Dimension(void);
@@ -195,39 +208,47 @@ private:
 
 /* inlines */
 
+/* error checking accessor to the window function */
+inline WindowT& MLSSolverT::Window(void) const {
+#if __option(extended_errorcheck)
+	if (!fWindow) ExceptionT::GeneralFail("MLSSolverT::Window", "window not set");
+#endif
+	return *fWindow;
+}
+
 /* number of nodal field parameters */
 inline int MLSSolverT::NumberOfSupportParameters(void) const
 {
-#if __option(extended_errorcheck)
-	if (!fWindow) throw ExceptionT::kGeneralFail;
-#endif
-	return fWindow->NumberOfSupportParameters();
+	return Window().NumberOfSupportParameters();
 }
 
 /* coverage test */
 inline bool MLSSolverT::Covers(const dArrayT& x_n, const dArrayT& x, 
 	const dArrayT& param_n) const
 {
-#if __option(extended_errorcheck)
-	if (!fWindow) throw ExceptionT::kGeneralFail;
-#endif
-	return fWindow->Covers(x_n, x, param_n);
+	return Window().Covers(x_n, x, param_n);
 }
 
 /* neighbor search type needed by the window function */
 inline WindowT::SearchTypeT MLSSolverT::SearchType(void) const
 {
-#if __option(extended_errorcheck)
-	if (!fWindow) throw ExceptionT::kGeneralFail;
-#endif
-	return fWindow->SearchType();
+	return Window().SearchType();
 }
 
-/* modify nodal shape function parameters */
-inline void MLSSolverT::ModifySupportParameters(dArray2DT& nodal_params) const
-{
-	fWindow->ModifySupportParameters(nodal_params); 
-};
+/* compute spherical support size */
+inline double MLSSolverT::SphericalSupportSize(const dArrayT& param_n) const {
+	return Window().SphericalSupportSize(param_n);
+}
+
+/* compute spherical support size in batch */
+inline void MLSSolverT::SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const {
+	Window().SphericalSupportSize(param_n, support_size);
+}
+
+/* compute rectangular support size in batch */
+inline void MLSSolverT::RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const {
+	Window().SphericalSupportSize(param_n, support_size);
+}
 
 /* return field value and derivatives */
 inline const dArrayT& MLSSolverT::phi(void) const { return fphi; }
@@ -244,14 +265,9 @@ inline const dArray2DT& MLSSolverT::DDC(void) const { return fDDC; }
 
 /* correction function coefficients */
 inline const dArrayT& MLSSolverT::b(void) const { return fb; }
-inline const dArrayT& MLSSolverT::Db(int component) const
-{
-	return fDb[component];
-}
-inline const dArrayT& MLSSolverT::DDb(int component) const
-{
-	return fDDb[component];
-}
+inline const dArrayT& MLSSolverT::Db(int component) const { return fDb[component]; }
+inline const dArrayT& MLSSolverT::DDb(int component) const { return fDDb[component]; }
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _MLS_SOLVER_T_H_ */
