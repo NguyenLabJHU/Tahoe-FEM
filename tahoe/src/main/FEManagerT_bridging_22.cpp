@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_22.cpp,v 1.5 2005-01-13 19:59:19 paklein Exp $ */
+/* $Id: FEManagerT_bridging_22.cpp,v 1.6 2005-02-03 17:05:58 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -33,7 +33,8 @@
 #endif
 
 /* debugging */
-#define __DEBUG__ 1
+//#define __DEBUG__ 1
+#undef __DEBUG__
 
 /* atom/point types */
 const char free_ = 'f';
@@ -49,40 +50,9 @@ const double sqrt2 = sqrt(2.0);
 using namespace Tahoe;
 
 void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_neighbors, const dArray2DT& point_coords, 
-	double smoothing, double k2, double bound_tol, int nip)
+	const StringT& overlap_file, double smoothing, double k2, double bound_tol, int nip)
 {
 	const char caller[] = "FEManagerT_bridging::CorrectOverlap_22";
-
-	/* finding free vs projected nodes */
-	int nnd = fNodeManager->NumNodes();
-	ArrayT<char> node_type(nnd);
-	node_type = free_;
-	for (int i = 0; i < fProjectedNodes.Length(); i++) /* mark projected nodes */
-		node_type[fProjectedNodes[i]] = not_free_;
-
-	/* map describing free or ghost points */
-	ArrayT<char> point_type(point_coords.MajorDim());
-	point_type = free_;
-	const ArrayT<int>& point_in_cell_data = fFollowerCellData.PointInCell().Data();
-	for (int i = 0; i < point_in_cell_data.Length(); i++)
-		point_type[point_in_cell_data[i]] = not_free_;
-
-	/* collect only bonds terminating with ghost points */
-	RaggedArray2DT<int> ghost_neighbors_all;
-	iArrayT overlap_cell_all;
-	InverseMapT overlap_cell_all_map;
-	overlap_cell_all_map.SetOutOfRange(InverseMapT::MinusOne);	
-	GhostNodeBonds(point_neighbors, ghost_neighbors_all, overlap_cell_all);
-	overlap_cell_all_map.SetMap(overlap_cell_all);
-	if (fPrintInput) {
-		fMainOut << "\n Bonds to interpolation points (self as leading neighbor):\n";
-		fMainOut << setw(kIntWidth) << "row" << "  n..." << '\n';
-		iArrayT tmp(ghost_neighbors_all.Length(), ghost_neighbors_all.Pointer());
-		tmp++;
-		ghost_neighbors_all.WriteNumbered(fMainOut);
-		tmp--;
-		fMainOut.flush();
-	}
 
 	/* coarse scale element group */
 	const ContinuumElementT* coarse = fFollowerCellData.ContinuumElement();
@@ -108,8 +78,82 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 	double V_0 = (hex_2D) ? hex_2D->CellVolume() : ((fcc_3D) ? fcc_3D->CellVolume() : mat_1D->CellVolume());
 	double R_0 = (hex_2D) ? hex_2D->NearestNeighbor() : ((fcc_3D) ? fcc_3D->NearestNeighbor() : mat_1D->NearestNeighbor());
 
+	/* collect only bonds terminating with ghost points */
+	RaggedArray2DT<int> ghost_neighbors_all;
+	iArrayT overlap_cell_all;
+	GhostNodeBonds(point_neighbors, ghost_neighbors_all, overlap_cell_all);
+
+	/* overlap region information */
+	dArray2DT bond_densities;
+
+	/* look for restart files */
+	bool solve_density = true;
+	ifstreamT overlap(overlap_file);
+	if (overlap.is_open())
+	{
+		cout << "\n " << caller << ": reading overlap from file \"" << overlap_file << '\"' << endl;
+	
+		/* dimension data */
+		int num_cells = -99, num_bond = -99, num_ip = -99;
+		overlap >> num_cells >> num_bond >> num_ip;
+
+		/* read overlap cells indicies */
+		iArrayT overlap_cell_all_tmp(num_cells);
+		overlap >> overlap_cell_all_tmp;
+		
+		/* checks */
+		if (num_bond == bonds.MajorDim() &&
+		    num_ip == nip &&
+		    overlap_cell_all_tmp == overlap_cell_all)
+		{
+			/* read bond densities */
+			bond_densities.Dimension(num_cells, num_bond*num_ip);
+			overlap >> bond_densities;
+		
+			/* don't need to solve */
+			solve_density = false;
+		}
+		else
+			cout << "\n " << caller << ": parameter mismatch in file \"" << overlap_file << '\"' << endl;
+
+		/* close stream */
+		overlap.close();
+	}
+
+	if (solve_density) /* solve for bond densities */
+	{
+#if 0
+	/* finding free vs projected nodes */
+	int nnd = fNodeManager->NumNodes();
+	ArrayT<char> node_type(nnd);
+	node_type = free_;
+	for (int i = 0; i < fProjectedNodes.Length(); i++) /* mark projected nodes */
+		node_type[fProjectedNodes[i]] = not_free_;
+
+	/* map describing free or ghost points */
+	ArrayT<char> point_type(point_coords.MajorDim());
+	point_type = free_;
+	const ArrayT<int>& point_in_cell_data = fFollowerCellData.PointInCell().Data();
+	for (int i = 0; i < point_in_cell_data.Length(); i++)
+		point_type[point_in_cell_data[i]] = not_free_;
+#endif
+
+	/* set work space */
+	InverseMapT overlap_cell_all_map;
+	overlap_cell_all_map.SetOutOfRange(InverseMapT::MinusOne);	
+	overlap_cell_all_map.SetMap(overlap_cell_all);
+	if (fPrintInput) {
+		fMainOut << "\n Bonds to interpolation points (self as leading neighbor):\n";
+		fMainOut << setw(kIntWidth) << "row" << "  n..." << '\n';
+		iArrayT tmp(ghost_neighbors_all.Length(), ghost_neighbors_all.Pointer());
+		tmp++;
+		ghost_neighbors_all.WriteNumbered(fMainOut);
+		tmp--;
+		fMainOut.flush();
+	}
+
 	/* unknown bond densities */
-	dArray2DT bond_densities(overlap_cell_all.Length(), nip*bonds.MajorDim());
+	bond_densities.Dimension(overlap_cell_all.Length(), nip*bonds.MajorDim());
 	bond_densities = 1.0;
 
 	/* works space that changes for each bond family */
@@ -510,6 +554,18 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 				bond_densities(cell, i+j*nb) = p_i(k,j);
 		}		
 	}
+
+	/* write overlap information to restart file */
+	ofstreamT overlap(overlap_file);
+	overlap.precision(DBL_DIG - 1); /* full precision */
+	overlap << overlap_cell_all.Length() << " "
+	        << bonds.MajorDim() << " "
+	        << nip << '\n';
+	overlap << overlap_cell_all.wrap_tight(10) << '\n';
+	overlap << bond_densities << '\n';
+	overlap.close();
+
+	} /* solve for bond densities */
 	
 	/* write densities */
 	if (fPrintInput) {
