@@ -1,4 +1,4 @@
-/* $Id */
+/* $Id: SCNIMFT.h,v 1.11.2.1 2004-07-08 00:41:53 paklein Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -134,9 +134,6 @@ protected: /* for derived classes only */
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 	
 	virtual void ReadMaterialData(ifstreamT& in);
-	
-	virtual void WriteMaterialData(ostream& out) const;
-	
 	virtual MaterialListT* NewMaterialList(int nsd, int size) = 0;
 	
 	/** generate labels for output data */

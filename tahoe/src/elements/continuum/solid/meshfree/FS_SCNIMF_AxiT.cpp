@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.1 2004-06-24 21:02:33 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.1.2.1 2004-07-08 00:41:53 paklein Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -20,8 +20,8 @@
 #include "FSSolidMatT.h"
 #include "SolidMatSupportT.h"
 
-/* materials lists */
-#include "SolidMatList3DT.h"
+/* materials list */
+#include "FSSolidMatList3DT.h"
 
 using namespace Tahoe;
 
@@ -603,15 +603,6 @@ void FS_SCNIMF_AxiT::ReadMaterialData(ifstreamT& in)
 	}
 }
 
-/* use in conjunction with ReadMaterialData */
-void FS_SCNIMF_AxiT::WriteMaterialData(ostream& out) const
-{
-	fMaterialList->WriteMaterialData(out);
-
-	/* flush buffer */
-	out.flush();
-}
-
 /* return a pointer to a new material list */
 MaterialListT* FS_SCNIMF_AxiT::NewMaterialList(int nsd, int size)
 {
@@ -622,24 +613,14 @@ MaterialListT* FS_SCNIMF_AxiT::NewMaterialList(int nsd, int size)
 	{
 		/* material support */
 		if (!fFSMatSupport) {
-			fFSMatSupport = new FSMatSupportT(3, NumDOF(), 1);
-			
-			if (!fFSMatSupport)
-				ExceptionT::GeneralFail("FS_SCNIMF_AxiT::NewMaterialList","Could not instantiate material support\n");
-				
-			/* ElementSupportT sources */
-			const ElementSupportT& e_support = ElementSupport();
-			fFSMatSupport->SetRunState(e_support.RunState());
-			fFSMatSupport->SetStepNumber(e_support.StepNumber());
-			fFSMatSupport->SetTime(e_support.Time());                              
-			fFSMatSupport->SetTimeStep(e_support.TimeStep());
-			fFSMatSupport->SetNumberOfSteps(e_support.NumberOfSteps());
+			fFSMatSupport = new FSMatSupportT(NumDOF(), 1);
+			fFSMatSupport->SetNumSD(3);
 		}
 
-		return new SolidMatList3DT(size, *fFSMatSupport);
+		return new FSSolidMatList3DT(size, *fFSMatSupport);
 	}
 	else
-		return new SolidMatList3DT;
+		return new FSSolidMatList3DT;
 }
 
 void FS_SCNIMF_AxiT::ComputeBMatrices(void)

@@ -1,13 +1,10 @@
-/* $Id: FiniteStrainAxiT.cpp,v 1.3.22.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.cpp,v 1.3.22.2 2004-07-08 00:41:52 paklein Exp $ */
 #include "FiniteStrainAxiT.h"
 
 #include "ShapeFunctionT.h"
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
 #include "ParameterContainerT.h"
-
-/* materials lists */
-#include "SolidMatList3DT.h"
 
 using namespace Tahoe;
 

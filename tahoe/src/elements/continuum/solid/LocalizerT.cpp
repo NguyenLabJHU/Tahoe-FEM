@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.11.2.1 2004-07-07 15:28:05 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.11.2.2 2004-07-08 00:41:52 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 #include "LocalizerT.h"
 
@@ -8,12 +8,11 @@
 
 #include "ifstreamT.h"
 #include "SolidMaterialT.h"
-#include "SolidMatList2DT.h"
-#include "SolidMatList3DT.h"
 #include "ShapeFunctionT.h"
 #include "EdgeFinderT.h"
 #include "iAutoArrayT.h"
 #include "ExodusT.h"
+#include "SolidMatListT.h"
 
 //for strain check below
 #include "FSSolidMatT.h"

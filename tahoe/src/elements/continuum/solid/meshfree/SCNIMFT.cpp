@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.17.2.1 2004-07-06 06:54:15 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.17.2.2 2004-07-08 00:41:53 paklein Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -23,9 +23,9 @@
 #include "SolidMatSupportT.h"
 
 /* materials lists */
-#include "SolidMatList1DT.h"
-#include "SolidMatList2DT.h"
-#include "SolidMatList3DT.h"
+#include "SSSolidMatList1DT.h"
+#include "SSSolidMatList2DT.h"
+#include "SSSolidMatList3DT.h"
 
 #ifdef __QHULL__
 #include "CompGeomT.h"
@@ -252,7 +252,6 @@ void SCNIMFT::Initialize(void)
 	
 	/** Material Data */
 	ReadMaterialData(in);
-	WriteMaterialData(out);
 	
 	//TEMP - only works for one material right now, else would have to check
 	//       for the material active within the integration cell (element)
@@ -592,15 +591,6 @@ void SCNIMFT::ReadMaterialData(ifstreamT& in)
 		if (fBlockData[i].MaterialID() < 0 || fBlockData[i].MaterialID() >= size)
 			ExceptionT::BadInputValue(caller, "material number %d for element block %d is out of range",
 				fBlockData[i].MaterialID()+1, i+1);*/
-}
-
-/* use in conjunction with ReadMaterialData */
-void SCNIMFT::WriteMaterialData(ostream& out) const
-{
-	fMaterialList->WriteMaterialData(out);
-
-	/* flush buffer */
-	out.flush();
 }
 
 int SCNIMFT::GlobalToLocalNumbering(iArrayT& nodes)
