@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.7 2001-07-11 01:02:14 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.8 2001-07-13 22:00:22 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 
 #include "ContinuumElementT.h"
@@ -669,24 +669,24 @@ void ContinuumElementT::ApplyTractionBC(void)
 			/* BC destination */
 			int elem, facet;
 			BC_card.Destination(elem, facet);
-			double thick = 1.0;
 			
+#ifdef __NO_RTTI__
+			/* default thickness */
+			double thick = 1.0;
+#else
 			/* use thickness for 2D solid deformation elements */
+			double thick = 1.0;
 			if (fNumSD == 2 && fNumDOF == 2) //better to do this once elsewhere?
 			{
 				/* get material pointer */
 				const ElementCardT& elem_card = fElementCards[elem];
 				ContinuumMaterialT* pmat = (*fMaterialList)[elem_card.MaterialNumber()];
 			
-#ifdef __NO_RTTI__
-				/* assume it's OK */
-				Material2DT* pmat2D = (Material2DT*) pmat;
-#else
+				/* thickness from 2D material */
 				Material2DT* pmat2D = dynamic_cast<Material2DT*>(pmat);
-				if (!pmat2D) throw eGeneralFail;
-#endif				
-				thick = pmat2D->Thickness();
+				if (pmat2D) thick = pmat2D->Thickness();
 			}
+#endif
 			
 			/* boundary shape functions */
 			const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(facet);
