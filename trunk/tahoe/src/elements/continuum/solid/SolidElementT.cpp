@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.60 2004-06-17 07:40:07 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.61 2004-06-26 18:32:27 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -1204,7 +1204,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         dArrayT element_values(e_values.MinorDim());
         pall = element_values.Pointer();
         dArrayT centroid, ip_centroid, ip_mass;
-        dArrayT ip_coords(nsd);        
+        dArrayT ip_coords(nsd);
         if (e_codes[iCentroid])
         {
                 centroid.Set(nsd, pall); pall += nsd;
@@ -1250,10 +1250,10 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		if (CurrentElement().Flag() != kOFF)
         {
 			/* initialize */
-            nodal_space = 0.0;
-            simo_space = 0.;
-            simo_all = 0.;
-            simoNa_bar = 0.;
+			nodal_space = 0.0;
+			simo_space = 0.;
+			simo_all = 0.;
+			simoNa_bar = 0.;
 
 			/* global shape function values */
 			SetGlobalShape();
