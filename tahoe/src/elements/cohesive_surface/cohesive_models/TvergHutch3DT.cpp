@@ -1,4 +1,4 @@
-/* $Id: TvergHutch3DT.cpp,v 1.4 2002-10-23 00:18:03 cjkimme Exp $ */
+/* $Id: TvergHutch3DT.cpp,v 1.5 2002-11-15 02:46:31 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch3DT.h"
@@ -43,8 +43,8 @@ TvergHutch3DT::TvergHutch3DT(double* params): SurfacePotentialT(knumDOF)
 	fd_c_n = params[1]; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
 	fd_c_t = params[2]; if (fd_c_t < 0) throw ExceptionT::kBadInputValue;
 	/* non-dimensional opening parameters */
-	fL_1 = params[3]; if (fL_1 < 0 || fL_1 > 1) ExceptionT::kBadInputValue;
-	fL_2 = params[4]; if (fL_2 < fL_1 || fL_2 > 1) ExceptionT::kBadInputValue;
+	fL_1 = params[3]; if (fL_1 < 0 || fL_1 > 1) throw ExceptionT::kBadInputValue;
+	fL_2 = params[4]; if (fL_2 < fL_1 || fL_2 > 1) throw ExceptionT::kBadInputValue;
 	fL_fail = params[5]; if (fL_fail < 1.0) fL_fail = 1.0;
 
 	/* stiffness multiplier */
