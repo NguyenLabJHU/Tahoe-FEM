@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.1 2004-01-27 01:26:19 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.2 2004-01-27 02:30:35 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -146,7 +146,7 @@ void SCNIMFT::Initialize(void)
 			vout.close();
 		}
 		else 
-  			cout  << " Unable to save data to file " << fileName << ". Ignoring error \n"; 
+  			cout  << " Unable to save data to file " << vCellFile << ". Ignoring error \n"; 
 #endif
 	} 
     else 
@@ -157,7 +157,7 @@ void SCNIMFT::Initialize(void)
 	    ifstreamT vin(vCellFile);
 
     	if (!vin.is_open())
-			ExceptionT::GeneralFail(caller,"Unable to open file %s for reading", vCellFile);
+	    ExceptionT::GeneralFail(caller,"Unable to open file for reading");
 	    
 	    VoronoiDiagramFromFile(vin);  
 	    
