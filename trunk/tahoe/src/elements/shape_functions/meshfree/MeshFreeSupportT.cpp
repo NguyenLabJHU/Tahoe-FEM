@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.9 2001-07-08 01:06:13 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.10 2001-07-12 22:29:02 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -320,47 +320,21 @@ void MeshFreeSupportT::SynchronizeSupportParameters(dArray2DT& nodal_params)
 
 void MeshFreeSupportT::SetNodalParameters(const iArrayT& node, const dArray2DT& nodal_params)
 {
+	/* checks */
 	if (node.Length() != nodal_params.MajorDim()) throw eSizeMismatch;
-
-	/* parameters initialized externally */
-	if (fNodalParameters.MajorDim() == 0)
+	if (node.Length() != fCoords.MajorDim())
 	{
-		if (node.Length() != fCoords.MajorDim())
-		{
-			cout << "\n MeshFreeSupportT::SetNodalParameters: must initialize field parameters\n"
-			     << " for ALL nodes" << endl;
-			throw eGeneralFail;
-		}
+		cout << "\n MeshFreeSupportT::SetNodalParameters: must initialize field parameters\n"
+		     << " for ALL nodes" << endl;
+		throw eGeneralFail;
+	}
 
-		/* assume not following "normal" route to initialization */
-		if (!fGrid)
-		{
-			fNodesUsed.Allocate(fCoords.MajorDim());
-			fNodesUsed.SetValueToPosition();
-			SetSearchGrid();
-		}
-
-//NOTE - why were these allocated here? these now allocated
-//       in the constructor.
-#if 0
-		/* dimensions set by MLS solver type */
-		if (fMeshfreeType == kEFG)
-			fNodalParameters.Allocate(fCoords.MajorDim(), 1);
-		else if  (fMeshfreeType == kRKPM)
-		{
-			fNodalParameters.Allocate(fCoords.MajorDim(), fRKPM->NumberOfSupportParameters());
-			
-			/* additional parameters */	
-			fVolume.Allocate(fCoords.MajorDim());
-			fVolume = 1.0;
-			//TEMP - make all nodal "volumes" the same
-		}
-		else
-			throw eGeneralFail;
-#endif
-
-		/* initialize */
-		fNodalParameters = -1;
+	/* make sure grid is set */
+	if (!fGrid)
+	{
+		fNodesUsed.Allocate(fCoords.MajorDim());
+		fNodesUsed.SetValueToPosition();
+		SetSearchGrid();
 	}
 
 	/* map in */
