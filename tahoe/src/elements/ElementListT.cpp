@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.64 2003-10-02 21:05:04 hspark Exp $ */
+/* $Id: ElementListT.cpp,v 1.64.6.1 2003-10-16 12:51:41 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -285,11 +285,11 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			}
 			case ElementT::kHyperElasticInitCSE:
 			{
-#ifdef CONTINUUM_ELEMENT
+#if defined(CONTINUUM_ELEMENT) && defined(COHESIVE_SURFACE_ELEMENT)
 				fArray[group] = new UpLagAdaptiveT(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT or COHESIVE_SURFACE_ELEMENT not enabled: %d", code);
 #endif
 			}
 			case ElementT::kTotLagHyperElastic:
