@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.3 2001-05-09 17:31:37 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.4 2001-06-12 22:15:11 paklein Exp $ */
 /* created: paklein (03/04/1998)                                          */
 
 #include "CCNSMatrixT.h"
@@ -273,6 +273,32 @@ GlobalMatrixT::EquationNumberScopeT CCNSMatrixT::EquationNumberScope(void) const
 
 bool CCNSMatrixT::RenumberEquations(void) const { return true; }
 
+/* find the smallest and largest diagonal value */
+void CCNSMatrixT::FindMinMaxPivot(double& min, double& max, double& abs_min, 
+	double& abs_max) const
+{
+	if (fLocNumEQ == 0) min = max = abs_min = abs_max = 0.0;
+	else
+	{
+		abs_min = abs_max = min = max = fKD[0];
+		for (int i = 1; i < fLocNumEQ; i++)
+		{
+			double& diag = fKD[i];
+
+			/* absolute */
+			if (diag < min)
+				min = diag;
+			else if (diag > max)
+				max = diag;
+				
+			/* magnitude */	
+			if (fabs(diag) < fabs(abs_min))
+				abs_min = diag;
+			else if (fabs(diag) > fabs(abs_max))
+				abs_max = diag;
+		}
+	}
+}
 /**************************************************************************
 * Protected
 **************************************************************************/
@@ -329,6 +355,16 @@ void CCNSMatrixT::PrintZeroPivots(void) const
 	if (fCheckCode != GlobalMatrixT::kZeroPivots) return;
 	int d_width = OutputWidth(fOut, fKD);
 
+	/* pivot extrema */
+	double min, max, abs_min, abs_max;
+	FindMinMaxPivot(min, max, abs_min, abs_max);
+	fOut << "\n Matrix pivots:\n"
+	     <<   "     min = " << setw(d_width) << min << '\n' 
+	     <<   "     max = " << setw(d_width) << max << '\n' 
+	     <<   "   |min| = " << setw(d_width) << abs_min << '\n' 
+	     <<   "   |max| = " << setw(d_width) << abs_max << '\n';
+
+	/* write zero or negative pivots */
 	int firstline = 1;
 	for (int i = 0; i < fLocNumEQ; i++)
 	{

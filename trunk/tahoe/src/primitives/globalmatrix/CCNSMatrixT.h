@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.h,v 1.2 2001-05-01 23:22:55 paklein Exp $ */
+/* $Id: CCNSMatrixT.h,v 1.3 2001-06-12 22:15:11 paklein Exp $ */
 /* created: paklein (03/04/1998)                                          */
 /* This is the interface for a non-symmetric matrix stored in             */
 /* Compact Column form.                                                   */
@@ -91,6 +91,9 @@ public:
 	/* number scope and reordering */
 	virtual EquationNumberScopeT EquationNumberScope(void) const;
 	virtual bool RenumberEquations(void) const;
+
+	/* find the smallest and largest diagonal value */
+	void FindMinMaxPivot(double& min, double& max, double& abs_min, double& abs_max) const;
 
 protected:
 	
