@@ -1,4 +1,4 @@
-/* $Id: ComplexT.cpp,v 1.11 2002-07-05 17:15:54 paklein Exp $ */
+/* $Id: ComplexT.cpp,v 1.12 2002-09-12 16:40:17 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997) */
 
 #include "ComplexT.h"
@@ -6,7 +6,7 @@
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "nArrayT.h"
 
 /* array behavior */

@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.10 2002-07-02 19:56:39 cjkimme Exp $ */
+/* $Id: ArrayT.h,v 1.11 2002-09-12 16:40:16 paklein Exp $ */
 /* created: paklein (06/19/1996) */
 
 #ifndef _ARRAY_T_H_
@@ -6,7 +6,7 @@
 
 /* Environmental */
 #include "Environment.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 
 /* ANSI headers */
 #include <iostream.h>

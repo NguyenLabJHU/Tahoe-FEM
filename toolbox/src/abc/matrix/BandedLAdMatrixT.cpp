@@ -1,4 +1,4 @@
-/* $Id: BandedLAdMatrixT.cpp,v 1.2 2002-07-02 19:56:46 cjkimme Exp $ */
+/* $Id: BandedLAdMatrixT.cpp,v 1.3 2002-09-12 16:40:17 paklein Exp $ */
 /* created: MLK (05/21/1997)                                              */
 /* square banded matrix operations                                        */
 /* banded matrix elements stored in columns                               */
@@ -7,7 +7,7 @@
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "dArrayT.h"
 #include "dMatrixT.h"
 

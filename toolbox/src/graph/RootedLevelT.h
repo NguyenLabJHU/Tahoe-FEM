@@ -1,11 +1,11 @@
-/* $Id: RootedLevelT.h,v 1.3 2002-07-05 22:26:30 paklein Exp $ */
+/* $Id: RootedLevelT.h,v 1.4 2002-09-12 16:40:19 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #ifndef _ROOTEDLEVEL_T_H_
 #define _ROOTEDLEVEL_T_H_
 
 #include "Environment.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 
 namespace Tahoe {
 

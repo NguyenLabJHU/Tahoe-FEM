@@ -1,11 +1,11 @@
-/* $Id: zArrayT.cpp,v 1.7 2002-07-05 15:05:30 paklein Exp $ */
+/* $Id: zArrayT.cpp,v 1.8 2002-09-12 16:40:17 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 
 #include "zArrayT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "dArrayT.h"
 
 /*

@@ -1,9 +1,9 @@
-/* $Id: MSRBuilderT.cpp,v 1.3 2002-07-02 19:57:14 cjkimme Exp $ */
+/* $Id: MSRBuilderT.cpp,v 1.4 2002-09-12 16:40:19 paklein Exp $ */
 /* created: paklein (07/30/1998)                                          */
 /* class to generate MSR matrix structure data                            */
 
 #include "MSRBuilderT.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 #include "iArrayT.h"
 #include "iArray2DT.h"

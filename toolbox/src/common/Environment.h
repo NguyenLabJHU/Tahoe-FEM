@@ -1,4 +1,4 @@
-/* $Id: Environment.h,v 1.5 2001-10-09 08:44:55 paklein Exp $ */
+/* $Id: Environment.h,v 1.6 2002-09-12 16:40:18 paklein Exp $ */
 /* created: paklein (02/10/1997)                                          */
 /* Environment.h                                                          */
 /* defining environment-specific preprocessor symbols and options         */
@@ -83,6 +83,11 @@ using namespace std;
 /* failure of new throws bad_alloc */
 #if defined(__DEC__) || defined(__ALASKA__) || defined(_MW_MSL_)
 #define __NEW_THROWS__
+#endif
+
+/* gcc3.1 */
+#ifdef __GCC_3__
+using namespace std;
 #endif
 
 #endif /* _ENVIRONMENT_H_ */
