@@ -1,6 +1,9 @@
-/* $Id: NOX_Tahoe_Group.h,v 1.1 2002-03-28 16:40:35 paklein Exp $ */
+/* $Id: NOX_Tahoe_Group.h,v 1.2 2002-04-02 23:30:55 paklein Exp $ */
 #ifndef NOX_TAHOE_GROUP_H
 #define NOX_TAHOE_GROUP_H
+
+/* optional */
+#ifdef __NOX__
 
 /* base class */
 #include "NOX_Abstract_Group.H"
@@ -16,7 +19,7 @@ namespace NOX {
 		class List;
 	}
 }
-class NOXInterfaceT;
+class SolverInterfaceT;
 class GlobalMatrixT;
 
 namespace NOX {
@@ -31,17 +34,16 @@ public:
   
 	/** constructor. The resulting object uses, but does not take ownership
 	 * of the matrix passed in. */
-	Group(NOXInterfaceT& interface, dArrayT& X, GlobalMatrixT& J);
+	Group(SolverInterfaceT& interface, dArrayT& X, GlobalMatrixT& J);
 
 	/** copy constructor. The resulting object owns the Jacobian matrix used 
 	 * by the class */
-	Group(const Group& source);
+	Group(const Group& source, CopyType type);
 
 	/** destructor */
 	virtual ~Group(void);
 	
 	/** access to the solution vector 
-  
   /*! 
     \brief Copies the values of all vectors and any other data in
     source group to this group.  (May invalidate shared data for
@@ -64,15 +66,15 @@ public:
   virtual bool computeRHS(void);
 
   //! Compute Jacobian.
-  virtual bool computeJacobian() = 0;
+  virtual bool computeJacobian(void);
 
   //! Compute and return gradient.
   //! Throws an error if RHS and Jacobian have not been computed.
-  virtual bool computeGrad() = 0;
+  virtual bool computeGrad(void);
 
   //! Compute and return Newton direction, using parameters for nonlinear solve.
   //! Throws an error if RHS and Jacobian have not been computed.
-  virtual bool computeNewton(Parameter::List& params) = 0;
+  virtual bool computeNewton(Parameter::List& params);
 
   //@}
 
@@ -90,19 +92,19 @@ public:
     Returns false is any errors occur, such as the Jacobian not being
     computed.
   */
-  virtual bool applyJacobian(const Abstract::Vector& input, Abstract::Vector& result) const = 0;
+  virtual bool applyJacobian(const Abstract::Vector& input, Abstract::Vector& result) const;
 
   /*! 
     \brief If supported, returns true and calculates result =
     Jacobian^T * input.  Otherwise, returns false.  Throws an error if
     the Jacobian has not been computed. 
   */
-  virtual bool applyJacobianTranspose(const Abstract::Vector& input, Abstract::Vector& result) const = 0;
+  virtual bool applyJacobianTranspose(const Abstract::Vector& input, Abstract::Vector& result) const;
   
   /*!
     \brief Applies the Jacobian Diagonal to the given input vector.
   */
-  virtual bool applyJacobianDiagonalInverse(const Abstract::Vector& input, Abstract::Vector& result) const = 0;
+  virtual bool applyJacobianDiagonalInverse(const Abstract::Vector& input, Abstract::Vector& result) const;
     
 
   //@}
@@ -136,19 +138,19 @@ public:
   //@{ 
 
   //! Return solution vector.  
-  virtual const Vector& getX() const { return fSolution; };
+  virtual const Abstract::Vector& getX() const { return fSolution; };
 
   //! Return right-hand-side (RHS). 
-  virtual const Vector& getRHS() const { return fRHS; };
+  virtual const Abstract::Vector& getRHS() const { return fRHS; };
 
   //! Return 2-norm of RHS.
   virtual double getNormRHS() const { return fRHSNorm; };
 
   //! Return gradient.
-  virtual const Vector& getGrad() const { return fGradient; };
+  virtual const Abstract::Vector& getGrad() const { return fGradient; };
 
   //! Return Newton direction.
-  virtual const Vector& getNewton() const { return fNewton; };
+  virtual const Abstract::Vector& getNewton() const { return fNewton; };
 
   //@}
 
@@ -162,14 +164,14 @@ public:
     "this". Otherwise, if type is "CopyShape", we need only replicate
     the shape of "this". Returns NULL if clone is not supported.
   */
-  virtual Group* clone(CopyType type = DeepCopy) const = 0;
+  virtual Abstract::Group* clone(CopyType type = DeepCopy) const;
 
   //@}
 
   private:
   
   	/** interface to Tahoe */
-  	NOXInterfaceT& fTahoeInterface;
+  	SolverInterfaceT& fTahoeInterface;
   
   	/** true if object owns its associated jacobian matrix */
   	bool fOwnJ;
@@ -177,16 +179,11 @@ public:
 	/** Jacobian matrix */
   	GlobalMatrixT* fJ;
 
-	/** copy of Jacobian matrix. needed for operations involving the Jacobian
-	 * applied after the Newton direction has been solved, which either overwrites
-	 * the Jacobian, or leaves it in a factorized form */
-	GlobalMatrixT* fJCopy;	 
+	/** solution vector */
+	Vector fSolution;
 
   	/** solution vector */
   	Vector fRHS;
-
-	/** solution vector */
-	Vector fSolution;
 	
 	/** gradient of objective function */
 	Vector fGradient;
@@ -201,9 +198,10 @@ public:
 	bool fIsNewton;
 	
 	/** 2-norm of RHS. Computed during Group::computeRHS */
-	double fRHSNorm;
+	double fRHSNorm;	
 };
 } // namespace Tahoe
 } // namespace NOX
 
+#endif /* __NOX__ */
 #endif /* NOX_TAHOE_GROUP_H */

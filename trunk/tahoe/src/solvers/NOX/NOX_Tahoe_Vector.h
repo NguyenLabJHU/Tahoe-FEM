@@ -1,6 +1,9 @@
-// $Id: NOX_Tahoe_Vector.h,v 1.1 2002-03-28 16:40:35 paklein Exp $
+// $Id: NOX_Tahoe_Vector.h,v 1.2 2002-04-02 23:30:55 paklein Exp $
 #ifndef NOX_TAHOE_VECTOR_H
 #define NOX_TAHOE_VECTOR_H
+
+/* optional */
+#ifdef __NOX__
 
 // base class
 #include "NOX_Abstract_Vector.H"
@@ -125,4 +128,5 @@ class Vector : public Abstract::Vector {
 } // namespace Tahoe
 } // namespace NOX
 
-#endif
+#endif /* __NOX__ */
+#endif /* NOX_TAHOE_VECTOR_H */
