@@ -1,9 +1,0 @@
-# $Id: SGI.macros,v 1.4 2002-08-12 17:16:36 paklein Exp $
-# macros for SGI (wallaby2)
-COMP_CC = CC
-CC_FLAGS = -c -I/usr/java2/include -I/usr/java2/include/irix
-LD       = CC
-LD_FLAGS = -shared
-DSO_EXT  = so
-ARCH_JUNK = so_locations
-
