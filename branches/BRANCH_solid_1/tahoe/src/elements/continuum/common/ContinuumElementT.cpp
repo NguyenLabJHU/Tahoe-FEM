@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.4.2.2 2001-06-29 23:58:46 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.4.2.3 2001-07-02 18:14:07 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 
 #include "ContinuumElementT.h"
@@ -68,7 +68,7 @@ const int& ContinuumElementT::CurrIP(void) const
 void ContinuumElementT::IP_Coords(dArrayT& ip_coords) const
 {
 	/* computed by shape functions */
-	return ShapeFunction().IPCoords(ip_coords);
+	ShapeFunction().IPCoords(ip_coords);
 }
 
 /* field gradients */
