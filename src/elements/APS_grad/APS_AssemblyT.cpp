@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.8 2003-09-22 20:53:10 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.9 2003-09-22 21:10:40 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -18,8 +18,8 @@
 using namespace Tahoe;
 
 /* parameters */
-int knum_d_state = 1; // double's needed per ip
-int knum_i_state = 1; // int's needed per ip
+static int knum_d_state = 1; // double's needed per ip
+static int knum_i_state = 1; // int's needed per ip
 
 //---------------------------------------------------------------------
 
