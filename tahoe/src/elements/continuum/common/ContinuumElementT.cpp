@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.38 2004-02-03 18:29:45 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.39 2004-02-06 18:01:38 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -658,7 +658,8 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 			const double* Det    = fShapes->IPDets();
 			const double* Weight = fShapes->IPWeights();
 			
-			int nen = fLocDisp.NumberOfNodes();
+			int nen = NumElementNodes();
+			int nun = fLocDisp.NumberOfNodes();
 			int ndof = NumDOF();
 			
 			/* matrix form */
@@ -680,13 +681,13 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 				
 					double temp = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
 					const double* Na = fShapes->IPShapeU();		
-					for (a = 0; a < nen; a++)
+					for (a = 0; a < nun; a++)
 						for (int i = 0; i < ndof; i++)
 						{
 							int p = a*ndof + i;
 							
 							/* upper triangle only */
-							for (int b = b_start; b < nen; b++) //TEMP - interpolate at the same time?
+							for (int b = b_start; b < nun; b++) //TEMP - interpolate at the same time?
 								for (int j = 0; j < ndof; j++)
 									if(i == j) {
 										int q = b*ndof + j;
@@ -702,13 +703,13 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 				{
 					double temp = constM*(*Weight++)*(*Det++);
 					const double* Na = fShapes->IPShapeU();		
-					for (a = 0; a < nen; a++)
+					for (a = 0; a < nun; a++)
 						for (int i = 0; i < ndof; i++)
 						{
 							int p = a*ndof + i;
 							
 							/* upper triangle only */
-							for (int b = b_start; b < nen; b++)
+							for (int b = b_start; b < nun; b++)
 								for (int j = 0; j < ndof; j++)
 									if(i == j) {
 										int q = b*ndof + j;
@@ -722,7 +723,8 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 
 		case kLumpedMass:	/* lumped mass */
 		{
-			int nen = fLocDisp.NumberOfNodes();
+			int nen = NumElementNodes();
+			int nun = fLocDisp.NumberOfNodes();
 			int ndof = NumDOF();
 
 		    double dsum   = 0.0;
@@ -749,7 +751,7 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 					double temp1     = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
 					const double* Na = fShapes->IPShapeU();
 					totmas += temp1;
-					for (int lnd = 0; lnd < nen; lnd++) {
+					for (int lnd = 0; lnd < nun; lnd++) {
 						double temp2 = temp1*Na[lnd]*Na[lnd];
 						dsum += temp2;
 						fNEEvec[lnd] += temp2;
@@ -763,7 +765,7 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 					double temp1     = constM*(*Weight++)*(*Det++);
 					const double* Na = fShapes->IPShapeU();
 					totmas += temp1;
-					for (int lnd = 0; lnd < nen; lnd++) {
+					for (int lnd = 0; lnd < nun; lnd++) {
 						double temp2 = temp1*Na[lnd]*Na[lnd];
 						dsum += temp2;
 						fNEEvec[lnd] += temp2;
@@ -777,7 +779,7 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 			/* lump mass onto diagonal */
 			double* pmass = fLHS.Pointer();
 			int inc = fLHS.Rows() + 1;
-			for (int lnd = 0; lnd < nen; lnd++)
+			for (int lnd = 0; lnd < nun; lnd++)
 			{
 				double temp = diagmass*fNEEvec[lnd];
 				for (int ed = 0; ed < ndof; ed++)
