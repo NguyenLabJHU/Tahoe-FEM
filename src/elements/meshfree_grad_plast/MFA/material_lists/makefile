@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2004-10-30 01:32:39 raregue Exp $
+# $Id: makefile,v 1.2 2005-01-13 18:09:07 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,6 +20,10 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.2).
 #
 OBJ = \
+	MFGP_MaterialSupportT.o \
+	MFGP_SSIsotropicMatT.o \
+	MFGP_SSSolidMatT.o \
+	MFGP_SolidMatListT.o \
 	MFGP_SSSolidMatList2DT.o \
 	MFGP_SSSolidMatList3DT.o 
 
@@ -40,6 +44,10 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
+	MFGP_MaterialSupportT.cpp \
+	MFGP_SSIsotropicMatT.cpp \
+	MFGP_SSSolidMatT.cpp \
+	MFGP_SolidMatListT.cpp \
 	MFGP_SSSolidMatList2DT.cpp \
 	MFGP_SSSolidMatList3DT.cpp 
 #
@@ -53,6 +61,10 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
+	MFGP_MaterialSupportT.h \
+	MFGP_SSIsotropicMatT.h \
+	MFGP_SSSolidMatT.h \
+	MFGP_SolidMatListT.h \
 	MFGP_SSSolidMatList2DT.h \
 	MFGP_SSSolidMatList3DT.h 
 
