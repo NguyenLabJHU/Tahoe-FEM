@@ -1,4 +1,4 @@
-/* $Id: RandomNumberT.h,v 1.3 2003-04-10 17:13:27 cjkimme Exp $ */
+/* $Id: RandomNumberT.h,v 1.4 2003-04-14 17:26:21 cjkimme Exp $ */
 #ifndef _RANDOM_NUMBER_T_H_
 #define _RANDOM_NUMBER_T_H_
 
@@ -65,10 +65,6 @@ inline double RandomNumberT::Rand(void)
 	return (this->*randFunc)();
 }
 
-inline long RandomNumberT::RandSeed(void)
-{
-	return fseed;
-}
 
 }//namespace Tahoe
 #endif /* _RANDOM_NUMBER_T_H_ */
