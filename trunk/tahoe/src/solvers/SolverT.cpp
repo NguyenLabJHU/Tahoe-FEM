@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.15 2003-03-31 22:59:32 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.16 2003-08-14 05:31:46 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -25,8 +25,24 @@
 
 using namespace Tahoe;
 
+SolverT::SolverT(FEManagerT& fe_manager):
+	ParameterInterfaceT("solver"),
+	fFEManager(fe_manager),
+	fGroup(-1),
+	fLHS(NULL),
+	fNumIteration(0),
+	fLHS_lock(kOpen),
+	fLHS_update(true),
+	fRHS_lock(kOpen)
+{
+	/* console */
+	iSetName("solver");
+	iAddVariable("print_equation_numbers", fPrintEquationNumbers);
+}
+
 /* constructor */
 SolverT::SolverT(FEManagerT& fe_manager, int group):
+	ParameterInterfaceT("solver"),
 	fFEManager(fe_manager),
 	fGroup(group),
 	fLHS(NULL),
@@ -234,6 +250,41 @@ GlobalT::EquationNumberScopeT SolverT::EquationNumberScope(void) const
 #endif
 
 	return (GlobalT::EquationNumberScopeT) fLHS->EquationNumberScope();
+}
+
+/* describe the parameters needed by the interface */
+void SolverT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineParameters(list);
+
+	/* matrix type */
+	ParameterT matrix_type(ParameterT::Enumeration, "matrix_type");
+	matrix_type.AddEnumeration("diagonal", kDiagonalMatrix);
+	matrix_type.AddEnumeration("profile", kProfileSolver);
+	matrix_type.AddEnumeration("full", kFullMatrix);
+#ifdef __AZTEC__
+	matrix_type.AddEnumeration("Aztec", kAztec);
+#endif
+#ifdef __SPOOLES__
+	matrix_type.AddEnumeration("SPOOLES", kSPOOLES);
+#endif
+	list.AddParameter(matrix_type);
+
+	/* print equation numbers */
+	ParameterT print_eqnos(ParameterT::Boolean, "print_eqnos");
+	print_eqnos.SetDefault(false);
+	list.AddParameter(print_eqnos);
+
+	/* check code */
+	ParameterT check_code(ParameterT::Enumeration, "check_code");
+	check_code.AddEnumeration("no_check", GlobalMatrixT::kNoCheck);
+	check_code.AddEnumeration("small_pivots", GlobalMatrixT::kZeroPivots);
+	check_code.AddEnumeration("print_LHS", GlobalMatrixT::kPrintLHS);
+	check_code.AddEnumeration("print_RHS", GlobalMatrixT::kPrintRHS);
+	check_code.AddEnumeration("print_solution", GlobalMatrixT::kPrintSolution);
+	check_code.SetDefault(GlobalMatrixT::kNoCheck);
+	list.AddParameter(print_eqnos);
 }
 
 /*************************************************************************

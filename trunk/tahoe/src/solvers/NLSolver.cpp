@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.22 2003-03-31 22:59:32 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.23 2003-08-14 05:31:46 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -14,6 +14,26 @@
 using namespace Tahoe;
 
 /* constructor */
+NLSolver::NLSolver(FEManagerT& fe_manager):
+	SolverT(fe_manager),
+	fMaxIterations(-1),
+	fZeroTolerance(0.0),
+	fTolerance(0.0),
+	fDivTolerance(-1.0),
+	fQuickConvCount(0),
+	fIterationOutputCount(0),
+	fVerbose(1)
+{
+	SetName("nonlinear_solver");
+
+	/* console variables */
+	iAddVariable("max_iterations", fMaxIterations);
+	iAddVariable("abs_tolerance", fZeroTolerance);
+	iAddVariable("rel_tolerance", fTolerance);
+	iAddVariable("div_tolerance", fDivTolerance);
+	iAddVariable("iteration_output_inc", fIterationOutputIncrement);
+}
+
 NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 	SolverT(fe_manager, group),
 	fMaxIterations(-1),
@@ -26,7 +46,7 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 {
 	ifstreamT& in = fFEManager.Input();
 	
-	in >> fMaxIterations;	
+	in >> fMaxIterations;
 	in >> fZeroTolerance;
 	in >> fTolerance;
 	in >> fDivTolerance;
@@ -259,6 +279,32 @@ void NLSolver::CloseIterationOutput(void)
 {
 	if (fIterationOutputIncrement > 0)
 		fFEManager.RestoreOutput();
+}
+
+/* describe the parameters needed by the interface */
+void NLSolver::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SolverT::DefineParameters(list);
+
+	/* additional parameters */
+	list.AddParameter(fMaxIterations, "max_iterations");
+	list.AddParameter(fZeroTolerance, "abs_tolerance");
+	list.AddParameter(fTolerance, "rel_tolerance");
+	list.AddParameter(fDivTolerance, "divergence_tolerance");
+
+	ParameterT quick_solve_iter(fQuickSolveTol, "quick_solve_iter");
+	quick_solve_iter.SetDefault(6);
+	list.AddParameter(quick_solve_iter);
+
+	ParameterT quick_solve_count(fQuickSeriesTol, "quick_solve_count");
+	quick_solve_count.SetDefault(3);
+	list.AddParameter(quick_solve_count);
+
+	ParameterT output_inc(fIterationOutputIncrement, "output_inc");
+	output_inc.SetDefault(0);
+	output_inc.AddLimit(0, LimitT::LowerInclusive);
+	list.AddParameter(output_inc);
 }
 
 /*************************************************************************

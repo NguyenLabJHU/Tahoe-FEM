@@ -1,12 +1,17 @@
-/* $Id: LinearSolver.cpp,v 1.8 2003-05-20 10:18:09 paklein Exp $ */
+/* $Id: LinearSolver.cpp,v 1.9 2003-08-14 05:31:46 paklein Exp $ */
 /* created: paklein (05/30/1996) */
-
 #include "LinearSolver.h"
 #include "FEManagerT.h"
 
-/* constructor */
-
 using namespace Tahoe;
+
+/* constructors */
+LinearSolver::LinearSolver(FEManagerT& fe_manager):
+	SolverT(fe_manager),
+	fFormLHS(1)
+{
+	SetName("linear_solver");
+}
 
 LinearSolver::LinearSolver(FEManagerT& fe_manager, int group):
 	SolverT(fe_manager, group),
