@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.1.2.1 2003-10-16 12:56:14 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.1.2.2 2003-10-21 18:58:36 paklein Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -54,6 +54,19 @@ public:
 	virtual GlobalT::RelaxCodeT RelaxSystem(int group) const;
 	/*@}*/
 
+	/** \name output */
+	/*@{*/
+	/** initiate the process of writing output from all output sets 
+	 * \param time time label associated with the output data */
+	virtual void WriteOutput(double time);
+
+	/** (temporarily) direct output away from main out */
+	virtual void DivertOutput(const StringT& outfile);
+
+	/** restore outputs to their regular destinations */
+	virtual void RestoreOutput(void);
+	/*@}*/
+
 private:
 
 	/** \name sub-managers */
@@ -70,6 +83,12 @@ private:
 
 	/** work space */
 	dArray2DT fFieldAtGhosts;
+	
+	/** \name coarse/fine output */
+	/*@{*/ 
+	iArray2DT fAtomConnectivities;
+	int fOutputID;
+	/*@}*/ 
 };
 
 } /* namespace Tahoe */
