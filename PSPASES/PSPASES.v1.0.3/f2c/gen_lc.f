@@ -39,11 +39,11 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: gen_lc.f,v 1.1 2004-12-10 20:28:27 paklein Exp $ */
+C/* $Id: gen_lc.f,v 1.2 2004-12-12 23:27:53 paklein Exp $ */
 C/*****************************************************************************/
 
-      recursive
-     +subroutine GEN_LC(root,lc,linds,lptrs,tinds,tptrs,sup,iptrs,
+C     recursive
+      subroutine GEN_LC(root,lc,linds,lptrs,tinds,tptrs,sup,iptrs,
      1                 lcsize,wa1,wa2,lctr,wsmy,wstot,wstri)
       integer root,lcsize,lctr,lc(*),linds(*),lptrs(3,0:*),sup(*)
       integer tinds(*),tptrs(3,0:*),iptrs(2,0:*), wsmy, wstot, wstri
@@ -86,7 +86,7 @@ C/*****************************************************************************/
         iptrs(2,kid) = ln
         iptrs(2,kbot) = ln
 
-        call gen_lc(kid,lc,linds,lptrs,tinds,tptrs,sup,iptrs,
+        call gen_lc_recursive(kid,lc,linds,lptrs,tinds,tptrs,sup,iptrs,
      1              lcsize,wa1(itptr),wa2(itptr),lctr,wa1(i),wa2(i),
      2              kwstri)
         maxwstri = max(maxwstri,kwstri)
