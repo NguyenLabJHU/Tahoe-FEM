@@ -1,10 +1,13 @@
-# $Id: makefile,v 1.3 2004-04-04 03:00:42 paklein Exp $
+# $Id: makefile,v 1.4 2004-06-08 04:50:05 paklein Exp $
 #
 # type "make clean" to remove test results
 #
 
 # list of subdirectories
-SUB_DIR = level.0 level.2
+SUB_DIR = \
+level.0 \
+level.1 \
+level.2
 
 all:
 	@echo "make clean to remove test results"
