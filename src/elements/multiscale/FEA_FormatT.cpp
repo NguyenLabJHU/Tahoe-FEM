@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.10 2003-09-22 14:17:50 paklein Exp $
+// $Id: FEA_FormatT.cpp,v 1.11 2003-09-22 20:51:28 raregue Exp $
 #include "FEA_FormatT.h"
 
 using namespace Tahoe;
@@ -33,7 +33,7 @@ void FEA_FormatT::Na	(int n_en, ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA
 }
 
 //---------------------------------------------------------------------
-
+/*
 void FEA_FormatT::Gradients (	ShapeFunctionT *fShapes,LocalArrayT &u_np1,LocalArrayT &u_n, 
 								FEA_dVectorT &GRAD_u_np1, FEA_dVectorT &GRAD_u_n)
 {
@@ -45,6 +45,7 @@ void FEA_FormatT::Gradients (	ShapeFunctionT *fShapes,LocalArrayT &u_np1,LocalAr
 #endif
 	}
 }
+*/
 
 //---------------------------------------------------------------------
 
