@@ -1,4 +1,4 @@
-# $Id: DELMAR.debug.macros,v 1.4 2003-08-15 01:26:20 paklein Exp $
+# $Id: DELMAR.debug.macros,v 1.5 2003-09-12 20:07:50 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__  -DAZTEC_MPI
 MPI_LFLAGS = -lmpich -lgm
@@ -12,7 +12,7 @@ COMP_CC     = cxx
 COMP_F      = f77
 LINK        = $(COMP_CC)
 TR          = $(MACRO_DIR)/cxx_repository
-MORE_CFLAGS = -g3 -D__USE_STD_IOSTREAM -arch ev6 -DNON_UNIX_STDIO
+MORE_CFLAGS = -g -D__USE_STD_IOSTREAM -arch ev6 -DNON_UNIX_STDIO
 DEFINES     = -D__DEC__ -D__CPLANT__ -D__CA_CPLANT__ -D__DELMAR__ -D__ALPHA_LINUX__
 LOC_CFLAGS  = -c -I$(INC_DIR) -I/usr/local/delmar/include -msg_display_number $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
