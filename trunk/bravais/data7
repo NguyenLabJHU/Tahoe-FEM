@@ -41,7 +41,7 @@ if ROTATION  (default is identity)
 * read either rotation angle in 2D or rotation matrix in 3D.
 (rk: if no rotation put either 0 or identity matrix).
 
-if SORT
+if SORT (default is zero)
 * isort(nsd) 
 example: isort = 2 1 0: sorts coordinates according to z (2) direction.
 (one criterion only up to now)
