@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.28 2004-03-04 08:54:17 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.28.10.1 2004-04-02 18:58:27 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -337,12 +337,20 @@ public:
 	/** the time manager */
 	TimeManagerT& TimeManager(void) const;
 	/*@}*/
+
+	/** \name command line flags */
+	/*@{*/
+	const ArrayT<StringT>& Argv(void) const;
+	bool CommandLineOption(const char* str) const;
+
+	/** returns the index of the requested option or -1 if not bound */
+	bool CommandLineOption(const char* str, int& index) const;
+	/*@}*/
 #endif
 
 private:
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-
 	/** \name managers */
 	/*@{*/
 	/** the boss */

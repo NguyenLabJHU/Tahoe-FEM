@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianAxiT.h,v 1.2.12.1 2004-03-30 19:09:39 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.h,v 1.2.12.2 2004-04-02 18:58:28 paklein Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_AXI_T_H_
 #define _TOTAL_LAGRANGRIAN_AXI_T_H_
 
@@ -44,6 +44,9 @@ protected:
 	
 	/** debugging flags */
 	bool fOutputInit;
+	
+	//TEMP - cell tracking
+	int fOutputCell;
 };
 
 } /* namespace Tahoe */
