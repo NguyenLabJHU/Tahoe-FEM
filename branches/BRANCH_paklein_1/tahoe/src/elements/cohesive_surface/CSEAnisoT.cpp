@@ -1,6 +1,5 @@
-/* $Id: CSEAnisoT.cpp,v 1.24.4.1 2002-10-17 04:28:49 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.24.4.2 2002-10-19 17:51:22 paklein Exp $ */
 /* created: paklein (11/19/1997) */
-
 #include "CSEAnisoT.h"
 
 #include <math.h>
@@ -25,7 +24,6 @@
 #include "TiedPotentialT.h"
 #include "YoonAllen2DT.h"
 #include "YoonAllen3DT.h"
-//#include "SimoViscoElast2DT.h"
 
 /* constructor */
 
