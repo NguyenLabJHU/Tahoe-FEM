@@ -1,6 +1,6 @@
-/* $Id: YoonAllen2DT.cpp,v 1.4 2002-08-05 19:27:55 cjkimme Exp $ */
+/* $Id: YoonAllen3DT.cpp,v 1.1 2002-08-05 19:27:55 cjkimme Exp $ */
 
-#include "YoonAllen2DT.h"
+#include "YoonAllen3DT.h"
 
 #include <iostream.h>
 #include <math.h>
@@ -12,10 +12,10 @@
 
 using namespace Tahoe;
 
-const int knumDOF = 2;
+const int knumDOF = 3;
 
 /* constructor */
-YoonAllen2DT::YoonAllen2DT(ifstreamT& in, const double& time_step): 
+YoonAllen3DT::YoonAllen3DT(ifstreamT& in, const double& time_step): 
 	SurfacePotentialT(knumDOF),
 	fTimeStep(time_step)
 {
@@ -61,7 +61,7 @@ YoonAllen2DT::YoonAllen2DT(ifstreamT& in, const double& time_step):
 }
 
 /*initialize state variables with values from the rate-independent model */
-void YoonAllen2DT::InitStateVariables(ArrayT<double>& state)
+void YoonAllen3DT::InitStateVariables(ArrayT<double>& state)
 {
  	int num_state = NumStateVariables();
 	if (state.Length() != num_state) 
@@ -92,18 +92,18 @@ void YoonAllen2DT::InitStateVariables(ArrayT<double>& state)
 }
 
 /* return the number of state variables needed by the model */
-int YoonAllen2DT::NumStateVariables(void) const 
+int YoonAllen3DT::NumStateVariables(void) const 
 { 
 	return 2*knumDOF + fNumRelaxTimes + 3; 
 }
 
 /* surface potential */ 
-double YoonAllen2DT::FractureEnergy(const ArrayT<double>& state) 
+double YoonAllen3DT::FractureEnergy(const ArrayT<double>& state) 
 {
    	return state[2*knumDOF + fNumRelaxTimes + 2]; 
 }
 
-double YoonAllen2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
+double YoonAllen3DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 {
 #pragma unused(jump_u)
 #pragma unused(state)
@@ -113,13 +113,13 @@ double YoonAllen2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& stat
 #endif
 
 #ifndef _TAHOE_FRACTURE_INTERFACE_
-	cout << "YoonAllen2DT::Potential is not implemented. It's viscoelastic \n";
+	cout << "YoonAllen3DT::Potential is not implemented. It's viscoelastic \n";
 #endif
 	return 0.;
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
+const dArrayT& YoonAllen3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
@@ -127,25 +127,29 @@ const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 	if (fTimeStep <= 0.0) {
 #ifndef _TAHOE_FRACTURE_INTERFACE_	
-		cout << "\n YoonAllen2DT::Traction: expecting positive time increment: "
+		cout << "\n YoonAllen3DT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
 #endif		     
 		throw eBadInputValue;
 	}
 #endif
 
-	double u_t = jump_u[0];
-	double u_n = jump_u[1];
+	double u_t0 = jump_u[0];
+	double u_t1 = jump_u[1];
+	double u_n = jump_u[2];
 	
 	double *state2 = state.Pointer(fNumRelaxTimes);
 
-	/*double u_t_dot = (u_t - state2[0])/fTimeStep;
-	double u_n_dot = (u_n - state2[1])/fTimeStep;
+	/* These calculations don't get used. They're useless! */
+	/*double u_t0_dot = (u_t0 - state2[0])/fTimeStep;
+	double u_t1_dot = (u_t1 - state2[1])/fTimeStep;
+	double u_n_dot = (u_n - state2[2])/fTimeStep;
 	*/
-	
-	double l_0 = u_t/fd_c_t;
-	double l_1 = u_n/fd_c_n;
-	double l = sqrt(l_0*l_0+l_1*l_1); // l stands for lambda 
+		
+	double l_0 = u_t0/fd_c_t;
+	double l_1 = u_t1/fd_c_t;
+	double l_2 = u_n/fd_c_n;
+	double l = sqrt(l_0*l_0+l_1*l_1+l_2*l_2); // l stands for lambda 
 	
 	fTraction = 0.;
 	
@@ -156,8 +160,9 @@ const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 	}
 	
 	double l_0_old = state2[0]/fd_c_t;
-	double l_1_old = state2[1]/fd_c_n;
-	double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old);
+	double l_1_old = state2[1]/fd_c_t;
+	double l_2_old = state2[2]/fd_c_n;
+	double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old+l_2_old*l_2_old);
 	double prefactold = l_old/(1-state2[2*knumDOF+1]);
 	double l_dot = (l-l_old)/fTimeStep;
 
@@ -168,6 +173,8 @@ const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 			fTraction[0] = prefactold/l_0_old*state2[knumDOF]; 
 		if (fabs(l_1_old) > kSmall)
 			fTraction[1] = prefactold/l_1_old*state2[knumDOF+1];  
+		if (fabs(l_2_old) > kSmall)
+			fTraction[2] = prefactold/l_2_old*state2[knumDOF+2];
 	}
 		
 	double tmpSum = fE_infty*fTimeStep;
@@ -201,26 +208,28 @@ const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 	/* scale the final tractions */
 	fTraction[0] *= l_0/l*(1.-alpha);
 	fTraction[1] *= l_1/l*(1.-alpha);
+	fTraction[2] *= l_2/l*(1.-alpha);
 
 	/* handle penetration */
 //	if (u_n < 0) fTraction[1] += fK*u_n;
 	
-	
 	/* update the rest of the state variables */
-	state2[0] = u_t;
-	state2[1] = u_n;
-	state2[2] = fTraction[0];
-	state2[3] = fTraction[1];
-	state2[4] = l_dot;
-	state2[5] = alpha;
-	state2[6] += fTraction[0]*(u_t - state2[0]) + fTraction[1]*(u_n - state2[1]);
+	state2[0] = u_t0;
+	state2[1] = u_t1;
+	state2[2] = u_n;
+	state2[3] = fTraction[0];
+	state2[4] = fTraction[1];
+	state2[5] = fTraction[2];
+	state2[6] = l_dot;
+	state2[7] = alpha;
+	state2[8] += fTraction[0]*(u_t0 - state2[0]) + fTraction[1]*(u_t1 - state2[1])+ fTraction[2]*(u_n - state2[2]);
 	
 	return fTraction;
 	
 }
 
 /* potential stiffness */
-const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
+const dMatrixT& YoonAllen3DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
@@ -228,20 +237,23 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif	
 
-	double u_t = jump_u[0];
-	double u_n = jump_u[1];
+	double u_t0 = jump_u[0];
+	double u_t1 = jump_u[1];
+	double u_n = jump_u[2];
 
 	/* fStiffness = {dT_0/dd_0,dT_0/dd_1,dT_1,dd_0,dT_1/dd_1} */
 	/* compute the current tractions first */
 	double *state2 = state.Pointer(fNumRelaxTimes);
 
-	/*double u_t_dot = (u_t - state2[0])/fTimeStep;
-	double u_n_dot = (u_n - state2[1])/fTimeStep;
+	/*double u_t0_dot = (u_t0 - state2[0])/fTimeStep;
+	double u_t1_dot = (u_t1 - state2[1])/fTimeStep;
+	double u_n_dot = (u_n - state2[2])/fTimeStep;
 	*/
 	
-	double l_0 = u_t/fd_c_t;
-	double l_1 = u_n/fd_c_n;
-	double l = sqrt(l_0*l_0+l_1*l_1); // l stands for lambda 
+	double l_0 = u_t0/fd_c_t;
+	double l_1 = u_t1/fd_c_t;
+	double l_2 = u_n/fd_c_n;
+	double l = sqrt(l_0*l_0+l_1*l_1+l_2*l_2); // l stands for lambda 
 	
 	fStiffness = 0.;
 	
@@ -254,12 +266,13 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 //	double l_dot = (l_0*u_t_dot/fd_c_t+l_1*u_n_dot/fd_c_n)/l;
 	
 	double l_0_old = state2[0]/fd_c_t;
-	double l_1_old = state2[1]/fd_c_n;
-	double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old);
+	double l_1_old = state2[1]/fd_c_t;
+	double l_2_old = state2[2]/fd_c_n;
+	double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old+l_2_old*l_2_old);
 	double prefactold = l_old/(1-state2[2*knumDOF+1]);
 	double l_dot = (l-l_old)/fTimeStep;
 
-	dArrayT currTraction(2);
+	dArrayT currTraction(knumDOF);
 	currTraction = 0.;
 	
 	if (prefactold > kSmall) 
@@ -269,6 +282,8 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 			currTraction[0] = prefactold/l_0_old*state2[knumDOF]; 
 		if (fabs(l_1_old) > kSmall)
 			currTraction[1] = prefactold/l_1_old*state2[knumDOF+1];  
+		if (fabs(l_2_old) > kSmall)
+			currTraction[2] = prefactold/l_2_old*state2[knumDOF+2];
 	}
 		
 	double tmpSum = fE_infty*fTimeStep;
@@ -307,8 +322,13 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 		fStiffness = tmpSum/l_dot*(1-alpha)/l/l/fTimeStep;
 		fStiffness[0] *= l_0*l_0;
 		fStiffness[1] *= l_0*l_1;
-		fStiffness[2] *= l_1*l_0;
-		fStiffness[3] *= l_1*l_1;
+		fStiffness[2] *= l_0*l_2;
+		fStiffness[3] *= l_1*l_0;
+		fStiffness[4] *= l_1*l_1;
+		fStiffness[5] *= l_1*l_2;
+		fStiffness[6] *= l_2*l_0;
+		fStiffness[7] *= l_2*l_1;
+		fStiffness[8] *= l_2*l_2;
 	}
 	
 	/* scale the final tractions up to components of the gap vector */
@@ -316,11 +336,13 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 
 	/* delta_ij terms added to stiffness */
 	fStiffness[0] += currTraction[0];
-	fStiffness[3] += currTraction[1];
+	fStiffness[4] += currTraction[1];
+	fStiffness[8] += currTraction[2];
 	
 	/* now scale currTraction to actually be the traction */
 	currTraction[0] *= l_0;
 	currTraction[1] *= l_1;
+	currTraction[2] *= l_2;
 	
 	double scratch;
 	scratch = 1./l/l;
@@ -330,17 +352,28 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 //		scratch += falpha_exp*pow(l_dot,falpha_exp-1)*falpha_0*fTimeStep/(1.-alpha)/l;
 	l_0 *= scratch;
 	l_1 *= scratch;
+	l_2 *= scratch;
 	
 	fStiffness[0] -= currTraction[0]*l_0;
 	fStiffness[1] -= currTraction[0]*l_1;
-	fStiffness[2] -= currTraction[1]*l_0;
-	fStiffness[3] -= currTraction[1]*l_1;
+	fStiffness[2] -= currTraction[0]*l_2;
+	fStiffness[3] -= currTraction[1]*l_0;
+	fStiffness[4] -= currTraction[1]*l_1;
+	fStiffness[5] -= currTraction[1]*l_2;
+	fStiffness[6] -= currTraction[2]*l_0;
+	fStiffness[7] -= currTraction[2]*l_1;
+	fStiffness[8] -= currTraction[2]*l_2;
 	
 	/*scale stiffnesses by critical lengths */
 	fStiffness[0] /= fd_c_t;
-	fStiffness[1] /= fd_c_n;
-	fStiffness[2] /= fd_c_t;
-	fStiffness[3] /= fd_c_n; 
+	fStiffness[1] /= fd_c_t;
+	fStiffness[2] /= fd_c_n;
+	fStiffness[3] /= fd_c_t;
+	fStiffness[4] /= fd_c_t;
+	fStiffness[5] /= fd_c_n;
+	fStiffness[6] /= fd_c_t;
+	fStiffness[7] /= fd_c_t;
+	fStiffness[8] /= fd_c_n; 
 
 	/* penetration */
 //	if (u_n < 0) fStiffness[3] += fK;
@@ -350,7 +383,7 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 }
 
 /* surface status */
-SurfacePotentialT::StatusT YoonAllen2DT::Status(const dArrayT& jump_u, 
+SurfacePotentialT::StatusT YoonAllen3DT::Status(const dArrayT& jump_u, 
 	const ArrayT<double>& state)
 {
 #pragma unused(jump_u)
@@ -367,7 +400,7 @@ SurfacePotentialT::StatusT YoonAllen2DT::Status(const dArrayT& jump_u,
 
 }
 
-void YoonAllen2DT::PrintName(ostream& out) const
+void YoonAllen3DT::PrintName(ostream& out) const
 {
 #ifndef _TAHOE_FRACTURE_INTERFACE_
 	out << " Yoon-Allen 2D \n";
@@ -375,7 +408,7 @@ void YoonAllen2DT::PrintName(ostream& out) const
 }
 
 /* print parameters to the output stream */
-void YoonAllen2DT::Print(ostream& out) const
+void YoonAllen3DT::Print(ostream& out) const
 {
 #ifndef _TAHOE_FRACTURE_INTERFACE_
 	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_0   << '\n';
@@ -400,9 +433,9 @@ void YoonAllen2DT::Print(ostream& out) const
  * during for element output, ie. internal variables. Returns 0
  * by default 
  */
-int YoonAllen2DT::NumOutputVariables(void) const { return 3; }
+int YoonAllen3DT::NumOutputVariables(void) const { return 3; }
 
-void YoonAllen2DT::OutputLabels(ArrayT<StringT>& labels) const
+void YoonAllen3DT::OutputLabels(ArrayT<StringT>& labels) const
 {
 	labels.Allocate(3);
 	labels[0] = "lambda";
@@ -410,7 +443,7 @@ void YoonAllen2DT::OutputLabels(ArrayT<StringT>& labels) const
 	labels[2] = "alpha";
 }
 
-void YoonAllen2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
+void YoonAllen3DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
 	dArrayT& output)
 {
 #pragma unused(jump_u)
@@ -419,43 +452,46 @@ void YoonAllen2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& st
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif	
 #endif
-	double u_t = jump_u[0];
-	double u_n = jump_u[1];
+	double u_t0 = jump_u[0];
+	double u_t1 = jump_u[1];
+	double u_n = jump_u[2];
 	
-	double l_t = u_t/fd_c_t;
+	double l_t0 = u_t0/fd_c_t;
+	double l_t1 = u_t1/fd_c_t;
 	double l_n = u_n/fd_c_n;
 
-	output[0] = sqrt(l_t*l_t + l_n*l_n); 
+	output[0] = sqrt(l_t0*l_t0 + l_t1*l_t1 + l_n*l_n); 
 	output[1] = state[fNumRelaxTimes+2*knumDOF];
 	output[2] = state[fNumRelaxTimes+2*knumDOF+1];
 	
-	double u_t_dot = (u_t - state[fNumRelaxTimes])/fTimeStep;
-	double u_n_dot = (u_n - state[fNumRelaxTimes+1])/fTimeStep;
-	double l_dot = (l_t*u_t_dot/fd_c_t+l_t*u_n_dot/fd_c_n)/output[0];
+	double u_t0_dot = (u_t0 - state[fNumRelaxTimes])/fTimeStep;
+	double u_t1_dot = (u_t1 - state[fNumRelaxTimes+1])/fTimeStep;
+	double u_n_dot = (u_n - state[fNumRelaxTimes+2])/fTimeStep;
+	double l_dot = (l_t0*u_t0_dot/fd_c_t+l_t1*u_t1_dot/fd_c_t+l_n*u_n_dot/fd_c_n)/output[0];
 	if (l_dot > kSmall)
 		output[2] += falpha_0*pow(output[0],falpha_exp);
 	
 }
 
-bool YoonAllen2DT::NeedsNodalInfo(void) { return false; }
+bool YoonAllen3DT::NeedsNodalInfo(void) { return false; }
 
-int YoonAllen2DT::NodalQuantityNeeded(void) 
+int YoonAllen3DT::NodalQuantityNeeded(void) 
 { 
         return -1; 
 }
 
-int YoonAllen2DT::ElementGroupNeeded(void) 
+int YoonAllen3DT::ElementGroupNeeded(void) 
 {
 	return -1;
 }
 
-bool YoonAllen2DT::CompatibleOutput(const SurfacePotentialT& potential) const
+bool YoonAllen3DT::CompatibleOutput(const SurfacePotentialT& potential) const
 {
 #ifdef __NO_RTTI__
 #pragma unused(potential)
 	return false;
 #else
-	const YoonAllen2DT* pTH = dynamic_cast<const YoonAllen2DT*>(&potential);
+	const YoonAllen3DT* pTH = dynamic_cast<const YoonAllen3DT*>(&potential);
 	return pTH != NULL;
 #endif
 }

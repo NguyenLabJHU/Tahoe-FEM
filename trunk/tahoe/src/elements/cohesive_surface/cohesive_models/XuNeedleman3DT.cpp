@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.9 2002-07-02 19:55:17 cjkimme Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.10 2002-08-05 19:27:55 cjkimme Exp $ */
 /* created: paklein (06/23/1999)*/
 
 #include "XuNeedleman3DT.h"
@@ -35,6 +35,7 @@ XuNeedleman3DT::XuNeedleman3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 
 	in >> fKratio; // stiffening ratio
 	if (fKratio < 0.0) throw eBadInputValue;
+	
 	fK = fKratio*phi_n/(d_n*d_n);
 }
 
@@ -112,45 +113,47 @@ const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 
 	z1 = 1./d_n;
 	z2 = 1./(d_t*d_t);
-	z3 = -q;
-	z4 = -1. + r;
-	z5 = -r;
-	z6 = u_t1*u_t1;
-	z7 = u_t2*u_t2;
+	z3 = r-q;
+	z4 = 1./(-1. + r);
+	z5 = 1 - r;
+//	z7 = u_t2*u_t2;
+	z6 = -z2*(u_t1*u_t1 + u_t2*u_t2);
 	z8 = -u_n*z1;
-	z9 = u_n*z1;
-	z10 = 1. + z3;
-	z3 = r + z3;
-	z4 = 1./z4;
-	z6 = z6 + z7;
+	z9 = -z8;
+	z10 = 1. - q;
+//	z3 += r;
+//	z4 = 1./z4;
+//	z6 += z7;
 	// limit compressive deformation
 	if (z8 > kExpMax)
 	{
+#ifndef _TAHOE_FRACTURE_INTERFACE_
 		cout << "\n XuNeedleman2DT::Traction: exp(x): x = " << z8 << " > kExpMax" << endl;
+#endif
 		throw eBadJacobianDet;
 	}	
 	z7 = exp(z8);
 	z11 = z1*z10*z4;
-	z6 = -z2*z6;
-	z12 = z3*z4*z9;
-	z5 = 1. + z5 + z9;
+//	z6 *= -z2;
+	z12 = z3*z4*z9 + q;
+	z5 += z9;
 	z9 = exp(z6); //don't limit shear opening
-	z12 = q + z12;
-	z5 = z10*z4*z5;
-	z6 = z6 + z8; // since (z6 < 0), (z6' < z8) and z8 is checked above
+//	z12 += q;
+	z5 *= z10*z4;
+	z6 += z8; // since (z6 < 0), (z6' < z8) and z8 is checked above
 	z6 = exp(z6);
 	z8 = -z9;
-	z3 = z1*z3*z4*z8;
-	z4 = z12*z8;
-	z2 = 2.*phi_n*z12*z2*z6;
-	z3 = z11 + z3;
-	z4 = z4 + z5;
+	z3 *= z1*z4*z8;
+	z4 = z12*z8 + z5;
+	z2 *= 2.*phi_n*z12*z6;
+	z3 += z11;
+//	z4 += z5;
 	z5 = u_t1*z2;
-	z2 = u_t2*z2;
+	z2 *= u_t2;
 	z6 = phi_n*z7;
-	z3 = z3*z6;
-	z1 = -z1*z4*z6;
-	z1 = z1 + z3;
+	z3 *= z6;
+	z1 *= -z4*z6;
+	z1 += z3;
 	//z1 = List(z5,z2,z1);
 	
 	fTraction[0] = z5;
@@ -282,16 +285,20 @@ SurfacePotentialT::StatusT XuNeedleman3DT::Status(const dArrayT& jump_u, const A
 	
 void XuNeedleman3DT::PrintName(ostream& out) const
 {
+#ifndef _TAHOE_FRACTURE_INTERFACE_
 	out << "    Xu-Needleman 3D\n";
+#endif
 }
 
 /* print parameters to the output stream */
 void XuNeedleman3DT::Print(ostream& out) const
 {
+#ifndef _TAHOE_FRACTURE_INTERFACE_
 	out << " Surface energy ratio (phi_t/phi_n). . . . . . . = " << q       << '\n';
 	out << " Critical opening ratio (delta_n* /d_n). . . . . = " << r       << '\n';
 	out << " Characteristic normal opening to failure. . . . = " << d_n     << '\n';
 	out << " Characteristic tangential opening to failure. . = " << d_t     << '\n';
 	out << " Mode I work to fracture (phi_n) . . . . . . . . = " << phi_n   << '\n';
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fKratio << '\n';
+#endif
 }

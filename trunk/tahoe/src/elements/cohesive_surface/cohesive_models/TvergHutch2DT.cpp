@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.10 2002-07-02 19:55:17 cjkimme Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.11 2002-08-05 19:27:55 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch2DT.h"
@@ -27,8 +27,7 @@ TvergHutch2DT::TvergHutch2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 	/* non-dimensional opening parameters */
 	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw eBadInputValue;
 	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw eBadInputValue;
-	in >> fL_fail;
-	if (fL_fail < 1.0) fL_fail = 1.0;
+	in >> fL_fail; if (fL_fail < 1.0) fL_fail = 1.0;
 
 	/* stiffness multiplier */
 	in >> fpenalty; if (fpenalty < 0) throw eBadInputValue;
@@ -114,6 +113,7 @@ const dArrayT& TvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 	if (u_n < 0) fTraction[1] += fK*u_n;
 
 	return fTraction;
+
 }
 
 /* potential stiffness */
@@ -272,12 +272,15 @@ SurfacePotentialT::StatusT TvergHutch2DT::Status(const dArrayT& jump_u,
 
 void TvergHutch2DT::PrintName(ostream& out) const
 {
+#ifndef _TAHOE_FRACTURE_INTERFACE_
 	out << "    Tvergaard-Hutchinson 2D\n";
+#endif
 }
 
 /* print parameters to the output stream */
 void TvergHutch2DT::Print(ostream& out) const
 {
+#ifndef _TAHOE_FRACTURE_INTERFACE_
 	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_max << '\n';
 	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';
@@ -285,6 +288,7 @@ void TvergHutch2DT::Print(ostream& out) const
 	out << " Non-dimensional opening to declining traction . = " << fL_2       << '\n';
 	out << " Non-dimensional opening to failure. . . . . . . = " << fL_fail    << '\n';
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';
+#endif
 }
 
 /* returns the number of variables computed for nodal extrapolation
