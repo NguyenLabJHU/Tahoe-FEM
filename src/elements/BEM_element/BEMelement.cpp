@@ -1,16 +1,15 @@
-/* $Id: BEMelement.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
-/* created: AFLP (02/28/1998)                                             */
+/* $Id: BEMelement.cpp,v 1.2 2002-06-08 20:20:14 paklein Exp $ */
+/* created: AFLP (02/28/1998) */
 
 #include "BEMelement.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include "Constants.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
 #include "StringT.h"
 
-BEMelement::BEMelement(FEManagerT& fe_manager, const StringT& infile):
-	ElementBaseT(fe_manager),
+BEMelement::BEMelement(const ElementSupportT& support, const FieldT& field, 
+	const StringT& infile):
+	ElementBaseT(support, field),
 	fInfile(infile)
 {
 	/* reset format */
@@ -35,8 +34,9 @@ GlobalT::SystemTypeT BEMelement::TangentType(void) const
 }
 
 /* solution calls */
-void BEMelement::AddNodalForce(int node, dArrayT& force)
+void BEMelement::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
+#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 }

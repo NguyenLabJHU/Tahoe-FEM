@@ -1,4 +1,4 @@
-/* $Id: PMLT.cpp,v 1.4 2002-01-27 18:51:01 paklein Exp $ */
+/* $Id: PMLT.cpp,v 1.5 2002-06-08 20:20:15 paklein Exp $ */
 
 #include "PMLT.h"
 
@@ -9,8 +9,6 @@
 #include "Constants.h"
 
 #include "fstreamT.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
 #include "eControllerT.h"
@@ -18,22 +16,21 @@
 #include "MaterialListT.h"
 #include "iAutoArrayT.h"
 #include "SSStructMatT.h"
-#include "ContinuumElementT.h"
 
 /* constructor */
-PMLT::PMLT(FEManagerT& fe_manager):
-	ElasticT(fe_manager),
+PMLT::PMLT(const ElementSupportT& support, const FieldT& field):
+	ElasticT(support, field),
 	fNeedsOffset(-1),
 	fGradU(NumSD()),
 	fLHSa(fLHS.Format()),
 	fLHSb(fLHS.Format()),
-	fDa(dSymMatrixT::NumValues(fNumSD)),
-	fDb(dSymMatrixT::NumValues(fNumSD)),
-	fdt(FEManager().TimeStep())
+	fDa(dSymMatrixT::NumValues(NumSD())),
+	fDb(dSymMatrixT::NumValues(NumSD())),
+	fdt(ElementSupport().TimeStep())
 
 {
 #if __option(extended_errorcheck)
-	if (fNumSD > 2)
+	if (NumSD() > 2)
 	{
 		cout << "\n PML is implemented only for 2D geometries";
 		throw eBadInputValue;
@@ -41,10 +38,10 @@ PMLT::PMLT(FEManagerT& fe_manager):
 #endif
 	if (fStrainDispOpt != ShapeFunctionT::kStandardB ) throw eBadInputValue;
 
-//fNumDOF set correctly from the nodes
-//	fNumDOF = fNumSD*fNumSD;             
-//	fNumElemEqnos = fNumElemNodes*fNumDOF;
-	fNEESub = fNumSD*fNumElemNodes;
+//NumDOF() set correctly from the nodes
+//	NumDOF() = NumSD()*NumSD();             
+//	fNumElemEqnos = NumElementNodes()*NumDOF();
+	fNEESub = NumSD()*NumElementNodes();
 }
 
 /* called immediately after constructor */
@@ -53,26 +50,26 @@ void PMLT::Initialize(void)
 	/* inherited */
 	ElasticT::Initialize();
 	
-//	fDOFvec.Allocate(fNumDOF);
+//	fDOFvec.Allocate(NumDOF());
 		
-// Q:	fLocDisp.Allocate(fNumElemNodes, fNumDOF); Is this needed here?
-	fTotDisp.Allocate(fNumElemNodes,fNumSD);
-	fTotLastDisp.Allocate(fNumElemNodes,fNumSD);
-	fTotVel.Allocate(fNumElemNodes,fNumSD);
-	fTotAcc.Allocate(fNumElemNodes, fNumSD);
+// Q:	fLocDisp.Allocate(NumElementNodes(), NumDOF()); Is this needed here?
+	fTotDisp.Allocate(NumElementNodes(),NumSD());
+	fTotLastDisp.Allocate(NumElementNodes(),NumSD());
+	fTotVel.Allocate(NumElementNodes(),NumSD());
+	fTotAcc.Allocate(NumElementNodes(), NumSD());
 
 #if 0
-	fFEManager.RegisterLocal(fTotDisp);
-	fFEManager.RegisterLocal(fTotLastDisp);
-	fFEManager.RegisterLocal(fTotVel);
-	fFEManager.RegisterLocal(fTotAcc);
+	Field().RegisterLocal(fTotDisp);
+	Field().RegisterLocal(fTotLastDisp);
+	Field().RegisterLocal(fTotVel);
+	Field().RegisterLocal(fTotAcc);
 #endif
 //only need to register arrays that need to collect values for the
 //element from a global array
 
 	/* allocates decomposition of strain-displacement matrix */
-	fBa.Allocate(dSymMatrixT::NumValues(fNumSD), fNumSD*fNumElemNodes);
-	fBb.Allocate(dSymMatrixT::NumValues(fNumSD), fNumSD*fNumElemNodes);
+	fBa.Allocate(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
+	fBb.Allocate(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
 
 	/* resizes LHS and RHS components*/
 	fLHSa.Allocate(fNEESub);
@@ -81,7 +78,7 @@ void PMLT::Initialize(void)
 	fRHSa.Set(fNEESub,fRHS.Pointer());
 	fRHSb.Set(fNEESub,fRHS.Pointer()+fNEESub);
 		
-	fBody.Allocate(fNumSD);
+	fBody.Allocate(NumSD());
 
 		/* what's needed */
 	bool need_strain = false;
@@ -113,6 +110,9 @@ void PMLT::Initialize(void)
 /* construct the field */
 void PMLT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 {
+#pragma unused(nodes)
+#pragma unused(DOFs)
+
 	cout << "\n PMLT::NodalDOFs: not implemented" << endl;
 	throw eGeneralFail;
 
@@ -216,7 +216,7 @@ void PMLT::ElementRHSDriver(void)
 	/* body forces */
 	int formBody = 0;
 	if (fMassType != kNoMass &&
-	   (fBodyForceLTf > -1 && fBody.Magnitude() > kSmall))
+	   (fBodySchedule && fBody.Magnitude() > kSmall))
 	{	
 		cout << "\nPML does not yet incorporate body forces";
 		if (!formMa) constMa = 1.0; /* override */
@@ -276,7 +276,7 @@ void PMLT::FormMass(int mass_type, double constM)
 			const double* Det    = fShapes->IPDets();
 			const double* Weight = fShapes->IPWeights();
 			
-			int nen = fNumElemNodes;
+			int nen = NumElementNodes();
 			
 			/* matrix form */
 			int a = 0, zero = 0;
@@ -289,16 +289,16 @@ void PMLT::FormMass(int mass_type, double constM)
 				const double* Na = fShapes->IPShapeU();
 								
 				for (a = 0; a < nen; a++)
-					for (int i = 0; i < fNumSD; i++)
+					for (int i = 0; i < NumSD(); i++)
 					{
-						int p = a*fNumSD + i;
+						int p = a*NumSD() + i;
 						
 						/* upper triangle only */
 						for (int b = b_start; b < nen; b++)
-							for (int j = 0; j < fNumSD; j++)
+							for (int j = 0; j < NumSD(); j++)
 								if(i == j)
 								{									
-									int q = b*fNumSD + j;
+									int q = b*NumSD() + j;
 									fLHSa(p,q) += temp*Na[a]*Na[b];
 									fLHSb(p,q) += temp*Na[a]*Na[b];
 								}
@@ -362,7 +362,7 @@ void PMLT::FormMass(int mass_type, double constM)
 			for (int lnd = 0; lnd < nen; lnd++)
 			{
 				double temp = diagmass*fNEEvec[lnd];
-				for (int ed = 0; ed < fNumSD; ed++)
+				for (int ed = 0; ed < NumSD(); ed++)
 				{
 					*p1 += temp;
 					p1 += inc;	
@@ -402,7 +402,7 @@ void PMLT::FormDamping(int mass_type, double constC)
 			const double* Det    = fShapes->IPDets();
 			const double* Weight = fShapes->IPWeights();
 			
-			int nen = fNumElemNodes;
+			int nen = NumElementNodes();
 			
 			/* matrix form */
 			int a = 0, zero = 0;
@@ -415,16 +415,16 @@ void PMLT::FormDamping(int mass_type, double constC)
 				const double* Na = fShapes->IPShapeU();
 								
 				for (a = 0; a < nen; a++)
-					for (int i = 0; i < fNumSD; i++)
+					for (int i = 0; i < NumSD(); i++)
 					{
-						int p = a*fNumSD + i;
+						int p = a*NumSD() + i;
 						
 						/* upper triangle only */
 						for (int b = b_start; b < nen; b++)
-							for (int j = 0; j < fNumSD; j++)
+							for (int j = 0; j < NumSD(); j++)
 								if(i == j)
 								{									
-									int q = b*fNumSD + j;
+									int q = b*NumSD() + j;
 									fLHSa(p,q) += damp_a*temp*Na[a]*Na[b];
 									fLHSb(p,q) += damp_b*temp*Na[a]*Na[b];
 								}
@@ -488,7 +488,7 @@ void PMLT::FormDamping(int mass_type, double constC)
 			for (int lnd = 0; lnd < nen; lnd++)
 			{
 				double temp = diagmass*fNEEvec[lnd];
-				for (int ed = 0; ed < fNumSD; ed++)
+				for (int ed = 0; ed < NumSD(); ed++)
 				{
 					*p1 += temp * damp_a;
 					p1 += inc;	
@@ -550,7 +550,7 @@ void PMLT::FormStiffness(double constK)
 		fLHSb.MultATBC(fBb, fDb, fBb, dMatrixT::kWhole, dMatrixT::kAccumulate);
 	/*Map into fLHS*/
 	}
-	int next = fNumElemEqnos*fNEESub;
+	int next = NumElementNodes()*NumDOF()*fNEESub;
 	double* p1 = fLHS.Pointer();
 	double* p2 = p1+fNEESub;
 	double* pa = fLHSa.Pointer();
@@ -572,8 +572,11 @@ void PMLT::FormStiffness(double constK)
 }
 
 /* solution calls */
-void PMLT::AddNodalForce(int node, dArrayT& force)
+void PMLT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
+	/* not my field */
+	if (&field != &(Field())) return;
+
 	/* quick exit */
 	bool hasnode = false;
 	for (int i=0; i < fBlockData.Length() && !hasnode; i++)
@@ -593,7 +596,7 @@ void PMLT::AddNodalForce(int node, dArrayT& force)
 	/* body forces */
 	int formBody = 0;
 	if (fMassType != kNoMass && 
-	   (fBodyForceLTf > -1 && fBody.Magnitude() > kSmall))
+	   (fBodySchedule && fBody.Magnitude() > kSmall))
 	{	
 		cout << "\nWarning: Body forces not yet implemented in PML";
 		if (!formMa) constMa = 1.0; /* override */
@@ -638,7 +641,7 @@ void PMLT::AddNodalForce(int node, dArrayT& force)
 			}
 
 			/* components for node */
-			nodalforce.Set(fNumDOF, &fRHS[fNumDOF*nodeposition]);
+			nodalforce.Set(NumDOF(), &fRHS[NumDOF()*nodeposition]);
 	
 			/* accumulate */
 			force += nodalforce;
@@ -649,12 +652,12 @@ void PMLT::AddNodalForce(int node, dArrayT& force)
 /* calculate the body force contribution */
 void PMLT::FormMa(int mass_type, double constM, const LocalArrayT& body_force)
 {
-	int nen = fNumElemNodes;
-	int next = nen*fNumSD;
+	int nen = NumElementNodes();
+	int next = nen*NumSD();
 	LocalArrayT body_forcea;
 	LocalArrayT body_forceb;
-	body_forcea.Set(nen,fNumSD,body_force.Pointer());
-	body_forceb.Set(nen,fNumSD,body_force.Pointer()+next);
+	body_forcea.Set(nen,NumSD(),body_force.Pointer());
+	body_forceb.Set(nen,NumSD(),body_force.Pointer()+next);
 	
 	switch (mass_type)
 	{
@@ -664,8 +667,8 @@ void PMLT::FormMa(int mass_type, double constM, const LocalArrayT& body_force)
 			if (fRHS.Length() != body_force.Length()) throw eSizeMismatch;
 #endif
 						
-			dArrayT fNSDveca(fNumSD);
-			dArrayT fNSDvecb(fNumSD);
+			dArrayT fNSDveca(NumSD());
+			dArrayT fNSDvecb(NumSD());
 			
 			const double* Det    = fShapes->IPDets();
 			const double* Weight = fShapes->IPWeights();
@@ -689,7 +692,7 @@ void PMLT::FormMa(int mass_type, double constM, const LocalArrayT& body_force)
 					double* pacca = fNSDveca.Pointer();
 					double* paccb = fNSDvecb.Pointer();
 					
-					for (int nsd = 0; nsd < fNumSD; nsd++)			
+					for (int nsd = 0; nsd < NumSD(); nsd++)			
 						*resa++ += temp2*(*pacca++);
 						*resb++ += temp2*(*paccb++);
 				}
@@ -740,12 +743,12 @@ void PMLT::FormMa(int mass_type, double constM, const LocalArrayT& body_force)
 /* calculate the body force contribution */
 void PMLT::FormCv_PML(int mass_type, double constC, const LocalArrayT& body_force)
 {
-	int nen = fNumElemNodes;
-	int next = nen*fNumSD;
+	int nen = NumElementNodes();
+	int next = nen*NumSD();
 	LocalArrayT body_forcea;
 	LocalArrayT body_forceb;
-	body_forcea.Set(nen,fNumSD,body_force.Pointer());
-	body_forceb.Set(nen,fNumSD,body_force.Pointer()+next);
+	body_forcea.Set(nen,NumSD(),body_force.Pointer());
+	body_forceb.Set(nen,NumSD(),body_force.Pointer()+next);
 
 	switch (mass_type)
 	{
@@ -755,8 +758,8 @@ void PMLT::FormCv_PML(int mass_type, double constC, const LocalArrayT& body_forc
 			if (fRHS.Length() != body_force.Length()) throw eSizeMismatch;
 #endif
 						
-			dArrayT fNSDveca(fNumSD);
-			dArrayT fNSDvecb(fNumSD);
+			dArrayT fNSDveca(NumSD());
+			dArrayT fNSDvecb(NumSD());
 			
 		//To be replaced later by C1Functions
 			double damp_a = 0.0;
@@ -784,7 +787,7 @@ void PMLT::FormCv_PML(int mass_type, double constC, const LocalArrayT& body_forc
 					double* pvela = fNSDveca.Pointer();
 					double* pvelb = fNSDvecb.Pointer();
 					
-					for (int nsd = 0; nsd < fNumSD; nsd++)			
+					for (int nsd = 0; nsd < NumSD(); nsd++)			
 						*resa++ += damp_a*temp2*(*pvela++);
 						*resb++ += damp_b*temp2*(*pvelb++);
 				}
@@ -858,9 +861,10 @@ void PMLT::FormKd(double constK)
 void PMLT::AddLinearMomentum(dArrayT& momentum)
 {
 	/* check */
-	if (momentum.Length() != fNumSD) throw eSizeMismatch;
+	if (momentum.Length() != NumSD()) throw eSizeMismatch;
 		
 	/* loop over elements */
+	dArrayT vec_ndof(NumDOF());
 	Top();
 	while (NextElement())
 	{
@@ -884,11 +888,11 @@ void PMLT::AddLinearMomentum(dArrayT& momentum)
 			double temp  = density*(*Det++)*(*Weight++);
 
 			/* integration point velocities */
-			fShapes->InterpolateU(LocVel, fNSDvec);
+			fShapes->InterpolateU(LocVel, vec_ndof);
 
 			double* p    = momentum.Pointer();
-			double* pvel = fNSDvec.Pointer();					
-			for (int nsd = 0; nsd < fNumSD; nsd++)			
+			double* pvel = vec_ndof.Pointer();					
+			for (int nsd = 0; nsd < NumSD(); nsd++)			
 				*p++ += temp*(*pvel++);
 		}
 	}
@@ -904,7 +908,7 @@ void PMLT::SendOutput(int kincode)
 	switch (kincode)
 	{
 		case iNodalDisp:
-		    flags[iNodalDisp] = fNumSD;
+		    flags[iNodalDisp] = NumSD();
 			break;
 		case iNodalStress:
 		    flags[iNodalStress] = 1;
@@ -913,7 +917,7 @@ void PMLT::SendOutput(int kincode)
 		    flags[iEnergyDensity] = 1;
 			break;
 		case iPrincipal:
-			flags[iPrincipal] = fNumSD;
+			flags[iPrincipal] = NumSD();
 			break;
 		default:
 			cout << "\n ElasticT::SendKinematic: invalid output code: ";
@@ -925,7 +929,7 @@ void PMLT::SendOutput(int kincode)
 	SetNodalOutputCodes(IOBaseT::kAtInc, flags, n_counts);
 
 	/* reset averaging workspace */
-	fNodes->ResetAverage(n_counts.Sum());
+	ElementSupport().ResetAverage(n_counts.Sum());
       
 	/* no element output */
 	iArrayT e_counts(fElementOutputCodes.Length());
@@ -945,17 +949,17 @@ void PMLT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 
 	/* set output flags */
 	if (flags[iNodalCoord] == mode)
-		counts[iNodalCoord] = fNumSD;
+		counts[iNodalCoord] = NumSD();
 	if (flags[iNodalDisp] == mode)
-		counts[iNodalDisp] = fNumSD;
+		counts[iNodalDisp] = NumSD();
 	if (flags[iNodalStress] == mode)
-		counts[iNodalStress] = dSymMatrixT::NumValues(fNumSD);
+		counts[iNodalStress] = dSymMatrixT::NumValues(NumSD());
 	if (flags[iPrincipal] == mode)
-		counts[iPrincipal] = fNumSD;
+		counts[iPrincipal] = NumSD();
 	if (flags[iEnergyDensity] == mode)
 		counts[iEnergyDensity] = 1;
 	if (flags[iWaveSpeeds] == mode)
-		counts[iWaveSpeeds] = fNumSD;
+		counts[iWaveSpeeds] = NumSD();
 	if (flags[iMaterialData] == mode)
 		counts[iMaterialData] = (*fMaterialList)[0]->NumOutputVariables();
 }
@@ -967,14 +971,14 @@ void PMLT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags
 	counts = 0;
 
 	/* set output flags */
-	if (fElementOutputCodes[iCentroid] == mode) counts[iCentroid] = fNumSD;
+	if (fElementOutputCodes[iCentroid] == mode) counts[iCentroid] = NumSD();
 	if (fElementOutputCodes[iMass] == mode) counts[iMass] = 1;
 	if (fElementOutputCodes[iStrainEnergy] == mode) counts[iStrainEnergy] = 1;
 	if (fElementOutputCodes[iKineticEnergy] == mode) counts[iKineticEnergy] = 1;
-	if (fElementOutputCodes[iLinearMomentum] == mode) counts[iLinearMomentum] = fNumSD;
-	if (fElementOutputCodes[iIPStress] == mode) counts[iIPStress] = dSymMatrixT::NumValues(fNumSD)*fNumIP;
+	if (fElementOutputCodes[iLinearMomentum] == mode) counts[iLinearMomentum] = NumSD();
+	if (fElementOutputCodes[iIPStress] == mode) counts[iIPStress] = dSymMatrixT::NumValues(NumSD())*NumIP();
 	if (fElementOutputCodes[iIPMaterialData] == mode) 
-		counts[iIPMaterialData] = (*fMaterialList)[0]->NumOutputVariables()*fNumIP;
+		counts[iIPMaterialData] = (*fMaterialList)[0]->NumOutputVariables()*NumIP();
 }
 void PMLT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels, 
 	const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
@@ -985,15 +989,16 @@ void PMLT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_label
 	int count = 0;
 	if (n_codes[iNodalDisp])
 	{
-		const char* dlabels[3] = {"D_X", "D_Y", "D_Z"};
-		for (int i = 0; i < fNumSD; i++)
-			n_labels[count++] = dlabels[i];
+		/* labels from the field */
+		const ArrayT<StringT>& labels = Field().Labels();
+		for (int i = 0; i < labels.Length(); i++)
+			n_labels[count++] = labels[i];
 	}
 
 	if (n_codes[iNodalCoord])
 	{
 		const char* xlabels[] = {"x1", "x2", "x3"};
-		for (int i = 0; i < fNumSD; i++)
+		for (int i = 0; i < NumSD(); i++)
 			n_labels[count++] = xlabels[i];
 	}
 
@@ -1001,15 +1006,15 @@ void PMLT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_label
 	{
 		const char* slabels2D[] = {"s11", "s22", "s12"};
 		const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12"};
-		const char**    slabels = (fNumSD == 2) ? slabels2D : slabels3D;
-		for (int i = 0; i < dSymMatrixT::NumValues(fNumSD); i++)
+		const char**    slabels = (NumSD() == 2) ? slabels2D : slabels3D;
+		for (int i = 0; i < dSymMatrixT::NumValues(NumSD()); i++)
 			n_labels[count++] = slabels[i];
 	}
 		
 	if (n_codes[iPrincipal])
 	{
 		const char* plabels[] = {"s1", "s2", "s3"};
-		for (int i = 0; i < fNumSD; i++)
+		for (int i = 0; i < NumSD(); i++)
 			n_labels[count++] = plabels[i];
 	}
 		
@@ -1018,8 +1023,8 @@ void PMLT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_label
 	{
 		const char* clabels2D[] = {"cd", "cs"};
 		const char* clabels3D[] = {"cd", "cs_min", "cs_max"};
-		const char**    clabels = (fNumSD == 2) ? clabels2D : clabels3D;
-		for (int i = 0; i < fNumSD; i++)
+		const char**    clabels = (NumSD() == 2) ? clabels2D : clabels3D;
+		for (int i = 0; i < NumSD(); i++)
 			n_labels[count++] = clabels[i];		
 	}
 
@@ -1039,7 +1044,7 @@ void PMLT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_label
 	if (e_codes[iCentroid])
 	{
 		const char* xlabels[] = {"xc_1", "xc_2", "xc_3"};
-		for (int i = 0; i < fNumSD; i++)
+		for (int i = 0; i < NumSD(); i++)
 			e_labels[count++] = xlabels[i];
 	}
 	if (e_codes[iMass]) e_labels[count++] = "mass";
@@ -1048,23 +1053,23 @@ void PMLT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_label
 	if (e_codes[iLinearMomentum])
 	{
 		const char* plabels[] = {"L_X", "L_Y", "L_Z"};
-		for (int i = 0; i < fNumSD; i++)
+		for (int i = 0; i < NumSD(); i++)
 			e_labels[count++] = plabels[i];
 	}
 	if (e_codes[iIPStress])
 	{
 		const char* slabels2D[] = {"s11", "s22", "s12"};
 		const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12"};
-		const char**    slabels = (fNumSD == 2) ? slabels2D : slabels3D;
+		const char**    slabels = (NumSD() == 2) ? slabels2D : slabels3D;
 
 		/* over integration points */
-		for (int j = 0; j < fNumIP; j++)
+		for (int j = 0; j < NumIP(); j++)
 		{
 			StringT ip_label;
 			ip_label.Append("ip", j+1);
 			
 			/* over stress components */
-			for (int i = 0; i < dSymMatrixT::NumValues(fNumSD); i++)
+			for (int i = 0; i < dSymMatrixT::NumValues(NumSD()); i++)
 			{
 				e_labels[count].Clear();
 				e_labels[count].Append(ip_label, ".", slabels[i]);
@@ -1080,7 +1085,7 @@ void PMLT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_label
 		(*fMaterialList)[0]->OutputLabels(matlabels);	
 
 		/* over integration points */
-		for (int j = 0; j < fNumIP; j++)
+		for (int j = 0; j < NumIP(); j++)
 		{
 			StringT ip_label;
 			ip_label.Append("ip", j+1);
@@ -1107,32 +1112,32 @@ void PMLT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	if (n_out == 0 && e_out == 0) return;
 
 	/* reset averaging workspace */
-	fNodes->ResetAverage(n_out);
+	ElementSupport().ResetAverage(n_out);
 	
 	/* allocate element results space */
-	e_values.Allocate(fNumElements, e_out);
+	e_values.Allocate(NumElements(), e_out);
 
 	/* nodal work arrays */
-	dArray2DT nodal_space(fNumElemNodes, n_out);
-	dArray2DT nodal_all(fNumElemNodes, n_out);
+	dArray2DT nodal_space(NumElementNodes(), n_out);
+	dArray2DT nodal_all(NumElementNodes(), n_out);
 	dArray2DT coords, disp;
 	dArray2DT nodalstress, princstress, matdat;
 	dArray2DT energy, speed;
 
 	/* ip values */
-	dSymMatrixT cauchy(fNumSD);
+	dSymMatrixT cauchy(NumSD());
 	dArrayT ipmat(n_codes[iMaterialData]), ipenergy(1);
-	dArrayT ipspeed(fNumSD), ipprincipal(fNumSD);
+	dArrayT ipspeed(NumSD()), ipprincipal(NumSD());
 
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
-	coords.Set(fNumElemNodes, n_codes[iNodalCoord], pall)      ; pall += coords.Length();
-	disp.Set(fNumElemNodes, n_codes[iNodalDisp], pall)         ; pall += disp.Length();
-	nodalstress.Set(fNumElemNodes, n_codes[iNodalStress], pall); pall += nodalstress.Length();
-	princstress.Set(fNumElemNodes, n_codes[iPrincipal], pall)  ; pall += princstress.Length();
-	energy.Set(fNumElemNodes, n_codes[iEnergyDensity], pall)   ; pall += energy.Length();
-	speed.Set(fNumElemNodes, n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
-	matdat.Set(fNumElemNodes, n_codes[iMaterialData], pall);
+	coords.Set(NumElementNodes(), n_codes[iNodalCoord], pall)      ; pall += coords.Length();
+	disp.Set(NumElementNodes(), n_codes[iNodalDisp], pall)         ; pall += disp.Length();
+	nodalstress.Set(NumElementNodes(), n_codes[iNodalStress], pall); pall += nodalstress.Length();
+	princstress.Set(NumElementNodes(), n_codes[iPrincipal], pall)  ; pall += princstress.Length();
+	energy.Set(NumElementNodes(), n_codes[iEnergyDensity], pall)   ; pall += energy.Length();
+	speed.Set(NumElementNodes(), n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
+	matdat.Set(NumElementNodes(), n_codes[iMaterialData], pall);
 
 	/* element work arrays */
 	dArrayT element_values(e_values.MinorDim());
@@ -1140,8 +1145,8 @@ void PMLT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArrayT centroid, ip_centroid;
 	if (e_codes[iCentroid])
 	{
-		centroid.Set(fNumSD, pall); pall += fNumSD;
-		ip_centroid.Allocate(fNumSD);
+		centroid.Set(NumSD(), pall); pall += NumSD();
+		ip_centroid.Allocate(NumSD());
 	}
 	double m_tmp, w_tmp, ke_tmp;
 	double& mass = (e_codes[iMass]) ? *pall++ : m_tmp;
@@ -1150,19 +1155,19 @@ void PMLT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArrayT linear_momentum, ip_velocity;
 	if (e_codes[iLinearMomentum])
 	{
-		linear_momentum.Set(fNumSD, pall); pall += fNumSD;
-		ip_velocity.Allocate(fNumSD);
+		linear_momentum.Set(NumSD(), pall); pall += NumSD();
+		ip_velocity.Allocate(NumSD());
 	}
 	dArray2DT ip_stress;
 	if (e_codes[iIPStress])
 	{
-		ip_stress.Set(fNumIP, e_codes[iIPStress]/fNumIP, pall);
+		ip_stress.Set(NumIP(), e_codes[iIPStress]/NumIP(), pall);
 		pall += ip_stress.Length();
 	}
 	dArray2DT ip_material_data;
 	if (e_codes[iIPMaterialData])
 	{
-		ip_material_data.Set(fNumIP, e_codes[iIPMaterialData]/fNumIP, pall);
+		ip_material_data.Set(NumIP(), e_codes[iIPMaterialData]/NumIP(), pall);
 		pall += ip_material_data.Length();
 		ipmat.Allocate(ip_material_data.MinorDim());
 	}
@@ -1309,7 +1314,7 @@ void PMLT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		nodal_all.BlockColumnCopyAt(matdat     , colcount);
 
 		/* accumulate - extrapolation done from ip's to corners => X nodes */
-		fNodes->AssembleAverage(CurrentElement().NodesX(), nodal_all);
+		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
 		
 		/* element values */
 		if (e_codes[iCentroid]) centroid /= mass;
@@ -1319,7 +1324,7 @@ void PMLT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	}
 
 	/* get nodally averaged values */
-	fNodes->OutputUsedAverage(n_values);
+	ElementSupport().OutputUsedAverage(n_values);
 }
 
 /*********************************************************************
@@ -1383,7 +1388,7 @@ void PMLT::Ba(dMatrixT& Ba_matrix, dMatrixT& B_matrix)
 	if (B_matrix.Rows() != Ba_matrix.Rows() ||
 	    B_matrix.Cols() != Ba_matrix.Rows())
 	    throw eSizeMismatch;
-	if (fNumSD != 2)
+	if (NumSD() != 2)
 	{
 		cout << "\n PML has been implemented only for 2D geometry";
 		throw eBadInputValue;
@@ -1393,7 +1398,7 @@ void PMLT::Ba(dMatrixT& Ba_matrix, dMatrixT& B_matrix)
 	double* pB = B_matrix.Pointer();
 	double* pBa = Ba_matrix.Pointer();
 	
-	for (int i = 0; i< fNumElemNodes; i++)
+	for (int i = 0; i< NumElementNodes(); i++)
 	{	
 		*pBa++ = *pB++;
 		*pBa++ = *pB++;
@@ -1411,7 +1416,7 @@ void PMLT::Bb(dMatrixT& Bb_matrix, dMatrixT& B_matrix)
 	if (B_matrix.Rows() != Bb_matrix.Rows() ||
 	    B_matrix.Cols() != Bb_matrix.Rows())
 	    throw eSizeMismatch;
-	if (fNumSD != 2)
+	if (NumSD() != 2)
 	{
 		cout << "\n PML has been implemented only for 2D geometry";
 		throw eBadInputValue;
@@ -1421,7 +1426,7 @@ void PMLT::Bb(dMatrixT& Bb_matrix, dMatrixT& B_matrix)
 	double* pB = B_matrix.Pointer();
 	double* pBb = Bb_matrix.Pointer();
 	
-	for (int i = 0; i< fNumElemNodes; i++)
+	for (int i = 0; i< NumElementNodes(); i++)
 	{	
 		*pBb++ = 0.0; pB++;
 		*pBb++ = *pB++;

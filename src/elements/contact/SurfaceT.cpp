@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.23 2002-03-18 19:24:23 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.24 2002-06-08 20:20:20 paklein Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -8,8 +8,6 @@
 #include "ModelManagerT.h"
 #include "fstreamT.h"
 #include "IOBaseT.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
 #include "ContinuumElementT.h" // For conversion of side sets to facets.
 #include "FaceT.h"
 #include "LineL2FaceT.h"
@@ -109,7 +107,7 @@ void SurfaceT::PrintConnectivityData(ostream& out)
 
 /* surface input functions */
 void SurfaceT::InputSideSets 
-(const FEManagerT& fe_manager, ifstreamT& in, ostream& out)
+(const ElementSupportT& support, ifstreamT& in, ostream& out)
 {
 // parent element determines number of face nodes per face
 #ifdef __NO_RTTI__
@@ -122,9 +120,9 @@ void SurfaceT::InputSideSets
 	int elem_group;
 	in >> elem_group;
 	elem_group--;
-	ContinuumElementT* pelem_group =
-		dynamic_cast<ContinuumElementT*>
-                (fe_manager.ElementGroup(elem_group));
+	const ContinuumElementT* pelem_group =
+		dynamic_cast<const ContinuumElementT*>
+                (&support.ElementGroup(elem_group));
 
 	/* checks */
 	if (!pelem_group)
@@ -143,8 +141,8 @@ void SurfaceT::InputSideSets
 	/* read data from parameter file */
 	ArrayT<StringT> ss_ID;
 	bool multidatabasesets = false; /* change to positive and the parameter file format changes */
-	ModelManagerT* model = fe_manager.ModelManager();
-	model->SideSetList (in, ss_ID, multidatabasesets);
+	ModelManagerT& model = support.Model();
+	model.SideSetList (in, ss_ID, multidatabasesets);
 
 	if (ss_ID.Length () != 1) 
 	  {
@@ -154,12 +152,12 @@ void SurfaceT::InputSideSets
 
 	/* read side set */
 	StringT block_ID;
-	side_set = model->SideSet(ss_ID[0]);
-	if (side_set.MajorDim() > 0 && model->IsSideSetLocal(ss_ID[0]))
-	    block_ID = model->SideSetGroupID(ss_ID[0]);
+	side_set = model.SideSet(ss_ID[0]);
+	if (side_set.MajorDim() > 0 && model.IsSideSetLocal(ss_ID[0]))
+	    block_ID = model.SideSetGroupID(ss_ID[0]);
 	else {
 		iArray2DT temp = side_set;
-		model->SideSetGlobalToLocal(temp, side_set, block_ID);
+		model.SideSetGlobalToLocal(temp, side_set, block_ID);
 	}
 	
 	/* global node numbers of faces from element group */
@@ -169,7 +167,7 @@ void SurfaceT::InputSideSets
 	int num_faces = faces_tmp.MajorDim();
 
 	/* make node list and convert connectivities to local numbering */
-        int num_nodes = (fe_manager.NodeManager())->NumNodes();
+        int num_nodes = support.NumNodes();
         iArrayT counts(num_nodes);
         iArrayT global2local(num_nodes);
         counts = 0;
@@ -291,11 +289,11 @@ void SurfaceT::InputSideSets
 
 }
 
-void SurfaceT::Initialize (const NodeManagerT* node_manager) 
+void SurfaceT::Initialize (const ElementSupportT& support) 
 {
 
-	kNodeManager = node_manager;
-	fNumSD = kNodeManager->NumSD();
+	fElementSupport = &support;
+	fNumSD = fElementSupport->NumSD();
 
 	int num_nodes = fGlobalNodes.Length();
         fCoordinates.Allocate(num_nodes,fNumSD);
@@ -318,7 +316,7 @@ void SurfaceT::UpdateConfiguration ()
 {
   /* update current coordinates */ 
   fCoordinates.RowCollect
-	(fGlobalNodes,kNodeManager->CurrentCoordinates());
+	(fGlobalNodes, fElementSupport->CurrentCoordinates());
 
   /* update averaged outward normals (and tangents) */
   ComputeSurfaceBasis();

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.22 2002-03-25 16:11:42 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.23 2002-06-08 20:20:19 paklein Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -36,10 +36,10 @@ class ContactElementT: public ElementBaseT, public DOFElementT
 public:
 
 	/* constructor */
-	ContactElementT(FEManagerT& fe_manager, int num_enf_params);
+	ContactElementT(const ElementSupportT& support, const FieldT& field, int num_enf_params);
 
 	/* constructor for elements with multipliers */
-	ContactElementT(FEManagerT& fe_manager, int num_enf_params, 
+	ContactElementT(const ElementSupportT& support, const FieldT& field, int num_enf_params, 
 		XDOF_ManagerT* xdof_nodes);
 
 	/* destructor */
@@ -55,7 +55,7 @@ public:
 	virtual void Initialize(void);
 
 	/* solution calls */
-	virtual void AddNodalForce(int node, dArrayT& force); //not implemented
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force); //not implemented
 
 	/* Returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void); // not implemented
@@ -92,6 +92,8 @@ public:
 			kArea,
 			kNumOutputFlags};
 
+	/** \name implementation of the DOFElementT interface */
+	/*@{*/
 	/* returns the array for the DOF tags needed for the current config */
 	virtual void SetDOFTags(void);
 	virtual iArrayT& DOFTags(int tag_set);
@@ -113,6 +115,10 @@ public:
 	
    	/* returns 1 if group needs to reconfigure DOF's, else 0 */
    	virtual int Reconfigure(void);
+
+	/** return the solver group number */
+	int Group(void) const { return ElementBaseT::Group(); };
+	/*@}*/
 
 	inline bool HasMultipliers (void) {return fXDOF_Nodes;}
 

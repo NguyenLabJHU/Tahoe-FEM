@@ -1,5 +1,5 @@
-/* $Id: BEMelement.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
-/* created: AFLP (02/28/1998)                                             */
+/* $Id: BEMelement.h,v 1.2 2002-06-08 20:20:14 paklein Exp $ */
+/* created: AFLP (02/28/1998) */
 
 #ifndef _BEM_ELEMENT_H_
 #define _BEM_ELEMENT_H_
@@ -15,7 +15,8 @@ class BEMelement: public ElementBaseT
 public:
 
 	/* constructor */
-	BEMelement(FEManagerT& fe_manager, const StringT& infile);
+	BEMelement(const ElementSupportT& support, const FieldT& field, 
+		const StringT& infile);
 
 	/* destructor */
 	virtual ~BEMelement(void);
@@ -24,7 +25,7 @@ public:
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
 	/* solution calls */
-	virtual void AddNodalForce(int node, dArrayT& force);
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 
 	/* returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void);

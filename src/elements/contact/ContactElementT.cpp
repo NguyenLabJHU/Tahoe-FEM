@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.32 2002-05-10 00:13:50 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.33 2002-06-08 20:20:19 paklein Exp $ */
 
 #include "ContactElementT.h"
 
@@ -9,8 +9,6 @@
 #include "ofstreamT.h"
 #include "fstreamT.h"
 #include "IOBaseT.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
 #include "iGridManager2DT.h"
 #include "XDOF_ManagerT.h"
 #include "ExodusT.h"
@@ -24,8 +22,8 @@ static const int kMaxNumFaceDOF   = 12; // 4node quads in 3D
 
 /* constructor */
 ContactElementT::ContactElementT
-(FEManagerT& fe_manager, int num_enf_params):
-    ElementBaseT(fe_manager),
+(const ElementSupportT& support, const FieldT& field, int num_enf_params):
+    ElementBaseT(support, field),
     LHS(ElementMatrixT::kNonSymmetric),
     tmp_LHS(ElementMatrixT::kNonSymmetric),
     fContactSearch(NULL),
@@ -37,8 +35,8 @@ ContactElementT::ContactElementT
 }
 
 ContactElementT::ContactElementT
-(FEManagerT& fe_manager, int num_enf_params, XDOF_ManagerT* xdof_nodes):
-    ElementBaseT(fe_manager),
+(const ElementSupportT& support, const FieldT& field, int num_enf_params, XDOF_ManagerT* xdof_nodes):
+    ElementBaseT(support, field),
     fXDOF_Nodes(xdof_nodes),
     LHS(ElementMatrixT::kNonSymmetric),
     tmp_LHS(ElementMatrixT::kNonSymmetric),
@@ -70,7 +68,7 @@ void ContactElementT::Initialize(void)
 
 	/* initialize surfaces, connect nodes to coordinates */
 	for (int i = 0; i < fSurfaces.Length(); i++) {
-		fSurfaces[i].Initialize(ElementBaseT::fNodes,fNumMultipliers);
+		fSurfaces[i].Initialize(ElementSupport(), fNumMultipliers);
 	}
 #if 0
         /* set console access */
@@ -102,7 +100,7 @@ void ContactElementT::Initialize(void)
 		numDOF = fNumMultipliers;
 		/* this calls GenerateElementData */
 		/* register with node manager */
-		fNodes->XDOF_Register(this, numDOF);
+		ElementSupport().XDOF_Manager().XDOF_Register(this, numDOF);
 	}
 	else {
 		/* set initial contact configuration */
@@ -112,8 +110,8 @@ void ContactElementT::Initialize(void)
 
 void ContactElementT::SetWorkspace(void)
 { 	/* workspace matrices */  // ARE THESE CORRECT?
-	n1.Allocate(fNumSD);
-	l1.Allocate(fNumSD);
+	n1.Allocate(NumSD());
+	l1.Allocate(NumSD());
    	RHS_man.SetWard    (kMaxNumFaceDOF,RHS);
    	tmp_RHS_man.SetWard(kMaxNumFaceDOF,tmp_RHS);
    	LHS_man.SetWard    (kMaxNumFaceDOF,LHS);
@@ -122,8 +120,8 @@ void ContactElementT::SetWorkspace(void)
    	N2_man.SetWard     (kMaxNumFaceDOF,N2);
    	N1n_man.SetWard    (kMaxNumFaceDOF,N1n);
    	N2n_man.SetWard    (kMaxNumFaceDOF,N2n);
-   	eqnums1_man.SetWard(kMaxNumFaceDOF,eqnums1,fNumSD);
-   	eqnums2_man.SetWard(kMaxNumFaceDOF,eqnums2,fNumSD);
+   	eqnums1_man.SetWard(kMaxNumFaceDOF,eqnums1,NumSD());
+   	eqnums2_man.SetWard(kMaxNumFaceDOF,eqnums2,NumSD());
    	weights_man.SetWard(kMaxNumFaceNodes,weights);
 	
 	if (fXDOF_Nodes) {
@@ -221,7 +219,7 @@ void ContactElementT::GenerateElementData(void)
 { 
 	for (int i = 0; i < fSurfaces.Length(); i++) {
 		/* hand off location of multipliers */
-		const dArray2DT& multipliers = fNodes->XDOF(this, i);
+		const dArray2DT& multipliers = ElementSupport().XDOF_Manager().XDOF(this, i);
 		fSurfaces[i].AliasMultipliers(multipliers);
 
 		/* form potential connectivity for step */
@@ -256,12 +254,10 @@ void ContactElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
         /* get local equations numbers for u nodes from NodeManager */
 	/* Connectivities generated in SetConfiguration */
 	if (!fXDOF_Nodes ) {
-          ElementBaseT::fNodes->
-		SetLocalEqnos(connectivities, equation_numbers);
+		Field().SetLocalEqnos(connectivities, equation_numbers);
 	}
 	else {
-          ElementBaseT::fNodes->
-	   XDOF_SetLocalEqnos(connectivities, equation_numbers);
+		ElementSupport().XDOF_Manager().XDOF_SetLocalEqnos(Group(), connectivities, equation_numbers);
 	}
 
         /* add to list */
@@ -304,17 +300,17 @@ void ContactElementT::WriteOutput(IOBaseT::OutputModeT mode)
 
 // look at EXODUS output in continuumelementT
         /* contact statistics */
-        ostream& out = fFEManager.Output();
+        ostream& out = ElementSupport().Output();
         out << "\n Contact tracking: group "
-                << fFEManager.ElementGroupNumber(this) + 1 << '\n';
+                << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
         out << " Time                           = "
-                << fFEManager.Time() << '\n';
+                << ElementSupport().Time() << '\n';
 
         /* output files */
         StringT filename;
-        filename.Root(fFEManager.Input().filename());
-        filename.Append(".", fFEManager.StepNumber());
-        filename.Append("of", fFEManager.NumberOfSteps());
+        filename.Root(ElementSupport().Input().filename());
+        filename.Append(".", ElementSupport().StepNumber());
+        filename.Append("of", ElementSupport().NumberOfSteps());
 
         for(int s = 0; s < fSurfaces.Length(); s++) {
             const ContactSurfaceT& surface = fSurfaces[s];
@@ -360,8 +356,9 @@ void ContactElementT::SendOutput(int kincode)
 void ContactElementT::RegisterOutput(void) {}
 
 /* solution calls */
-void ContactElementT::AddNodalForce(int node, dArrayT& force)
+void ContactElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
+#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 //not implemented
@@ -383,8 +380,8 @@ double ContactElementT::InternalEnergy(void)
 void ContactElementT::ReadControlData(void)
 {
     /* streams */
-    ifstreamT& in = fFEManager.Input(); 
-    ostream&  out = fFEManager.Output(); 
+    ifstreamT& in = ElementSupport().Input(); 
+    ostream&  out = ElementSupport().Output(); 
 
     /* print flags */
     fOutputFlags.Allocate(kNumOutputFlags);
@@ -470,7 +467,7 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		switch (spec_mode)
 		{
 			case kSideSets:
-				surface.InputSideSets(fFEManager, in, out);
+				surface.InputSideSets(ElementSupport(), in, out);
 				break;
 			
 			default:

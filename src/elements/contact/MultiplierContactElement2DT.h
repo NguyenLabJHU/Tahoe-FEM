@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.h,v 1.2 2002-04-01 19:04:29 rjones Exp $ */
+/* $Id: MultiplierContactElement2DT.h,v 1.3 2002-06-08 20:20:19 paklein Exp $ */
 // created by : rjones 2001
 
 #ifndef _MULTIPLIER_CONTACT_ELEMENT_2D_T_H_
@@ -12,8 +12,7 @@ class MultiplierContactElement2DT: public ContactElementT
   public:
 
 	/* constructor */
-	MultiplierContactElement2DT
-		(FEManagerT& fe_manager, XDOF_ManagerT* xdof_nodes);
+	MultiplierContactElement2DT(const ElementSupportT& support, const FieldT& field);
 
 	/* writing output */
 	virtual void WriteOutput(IOBaseT::OutputModeT mode);

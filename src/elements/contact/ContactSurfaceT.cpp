@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.24 2002-05-10 00:13:50 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.25 2002-06-08 20:20:19 paklein Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -24,11 +24,11 @@ ContactSurfaceT::~ContactSurfaceT(void)
 
 void
 ContactSurfaceT::Initialize
-(const NodeManagerT* node_manager, int num_multipliers)
+(const ElementSupportT& support, int num_multipliers)
 {
 
 	/* inherited */
-	SurfaceT::Initialize(node_manager);
+	SurfaceT::Initialize(support);
 
 	fNumMultipliers = num_multipliers;
 

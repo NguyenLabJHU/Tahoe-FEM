@@ -1,4 +1,4 @@
-/* $Id: SurfaceT.h,v 1.14 2001-09-19 15:27:16 rjones Exp $ */
+/* $Id: SurfaceT.h,v 1.15 2002-06-08 20:20:20 paklein Exp $ */
 
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
@@ -6,8 +6,7 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 class ifstreamT;
-class FEManagerT;
-class NodeManagerT;
+class ElementSupportT;
 
 /* direct members */
 #include "iArrayT.h"
@@ -34,10 +33,10 @@ class SurfaceT
 
 	/* allocate and input face nodes */
 	void InputSideSets
-		(const FEManagerT& fe_manager, ifstreamT& in, ostream& out);
+		(const ElementSupportT& support, ifstreamT& in, ostream& out);
 
 	/* compute neighbors and initalize coordinates */
-	void Initialize (const NodeManagerT* node_manager);
+	void Initialize (const ElementSupportT& support);
 
 	/* update kinetimatics */
 	void UpdateConfiguration();
@@ -97,7 +96,7 @@ class SurfaceT
 
 	int fNumSD;
 	int fTag;
-	const NodeManagerT* kNodeManager;
+	const ElementSupportT* fElementSupport;
 
   private:
 	void ComputeNeighbors(void);

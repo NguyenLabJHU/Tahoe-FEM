@@ -1,3 +1,4 @@
+/* $Id: PMLT.h,v 1.3 2002-06-08 20:20:15 paklein Exp $ */
 #ifndef _PML_T_H_
 #define _PML_T_H_
 
@@ -7,14 +8,14 @@ class PMLT: public ElasticT
 {
   public:
       
-	PMLT(FEManagerT& fe_manager);
+	PMLT(const ElementSupportT& support, const FieldT& field);
 
 	/** initialization. called immediately after constructor */
 	virtual void Initialize(void);
 	/** total strain */
 	/* accessors */
 		
-	virtual void AddNodalForce(int node, dArrayT& force);	
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);	
 	virtual void AddLinearMomentum(dArrayT& momentum);
 	virtual void SendOutput(int kincode);
 

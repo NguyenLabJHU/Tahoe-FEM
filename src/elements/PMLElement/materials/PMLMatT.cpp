@@ -1,4 +1,4 @@
-/* $Id: PMLMatT.cpp,v 1.1 2002-01-21 06:44:56 thao Exp $ */
+/* $Id: PMLMatT.cpp,v 1.2 2002-06-08 20:20:33 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "PMLMatT.h"
@@ -7,7 +7,7 @@
 #include <iostream.h>
 #include "ExceptionCodes.h"
 #include "ContinuumElementT.h"
-#include "FEManagerT.h"
+#include "ElementSupportT.h"
 #include "fstreamT.h"
 #include "LinearDecreaseT.h"
 #include "QuadraticDecreaseT.h"
@@ -25,7 +25,7 @@ PMLMatT::PMLMatT(ifstreamT& in, const PMLT& element):
 	fStress(NumSD()),
 	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fRunState(ContinuumElement().RunState()),
-	fdt(ContinuumElement().FEManager().TimeStep())
+	fdt(ContinuumElement().ElementSupport().TimeStep())
 {
  	int code;
 	in >> code;

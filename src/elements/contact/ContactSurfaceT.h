@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.20 2002-04-05 22:15:46 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.21 2002-06-08 20:20:19 paklein Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -14,7 +14,6 @@
 
 /* forward declarations */
 class ofstreamT;
-class FEManagerT;
 class ContactNodeT;
 
 /* 
@@ -33,7 +32,7 @@ class ContactSurfaceT : public SurfaceT
 	~ContactSurfaceT(void);
 
 	/* allocate contact node array */
-	void Initialize(const NodeManagerT* node_manager, int num_multipliers);
+	void Initialize(const ElementSupportT& support, int num_multipliers);
 
 	/* potential connectivities based on growing/sliding contact */
 	void SetPotentialConnectivity(void);

@@ -1,6 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.23 2002-05-21 18:46:57 dzeigle Exp $ */
-// created by : rjones 2001
-
+/* $Id: PenaltyContactElement2DT.cpp,v 1.24 2002-06-08 20:20:20 paklein Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -8,8 +6,6 @@
 #include <iomanip.h>
 
 #include "ContactNodeT.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
 #include "Linear.h"
 #include "ModSmithFerrante.h"
 #include "GreenwoodWilliamson.h"
@@ -25,8 +21,8 @@ static const int kMaxNumFaceNodes = 4;
 static const int kMaxNumFaceDOF   = 12;
 
 /* constructor */
-PenaltyContactElement2DT::PenaltyContactElement2DT(FEManagerT& fe_manager):
-	ContactElementT(fe_manager, kNumEnfParameters)
+PenaltyContactElement2DT::PenaltyContactElement2DT(const ElementSupportT& support, const FieldT& field):
+	ContactElementT(support, field, kNumEnfParameters)
 {
 }
 
@@ -179,6 +175,7 @@ void PenaltyContactElement2DT::RHSDriver(void)
 
 
   int num_surfaces = fSurfaces.Length(); 
+  int nsd = NumSD();
   /* residual */
   for(int s = 0; s < num_surfaces; s++) {
 	ContactSurfaceT& surface = fSurfaces[s];
@@ -186,9 +183,9 @@ void PenaltyContactElement2DT::RHSDriver(void)
 	const ArrayT<FaceT*>& faces = surface.Faces();
 	const ArrayT<ContactNodeT*>& nodes = surface.ContactNodes();
 	num_nodes = surface.NumNodesPerFace();
-	RHS_man.SetLength(num_nodes*fNumSD,false);
-	tmp_RHS_man.SetLength(num_nodes*fNumSD,false);
-	N1_man.SetDimensions(num_nodes*fNumSD,fNumSD);
+	RHS_man.SetLength(num_nodes*nsd,false);
+	tmp_RHS_man.SetLength(num_nodes*nsd,false);
+	N1_man.SetDimensions(num_nodes*nsd, nsd);
 	weights_man.SetLength(num_nodes,false);
 	eqnums1_man.SetMajorDimension(num_nodes,false);
 	fRealArea[s] = 0;
@@ -214,7 +211,7 @@ void PenaltyContactElement2DT::RHSDriver(void)
           pre  = -parameters[kPenalty] * fPenaltyFunctions[LookUp(s,s2,num_surfaces)]->DFunction(gap);
 		  node->nPressure() = pre; // store value on ContactNode for output
 		  face->ComputeShapeFunctions(points(i),N1);
-		  for (int j =0; j < fNumSD; j++) {n1[j] = node->Normal()[j];}
+		  for (int j =0; j < nsd; j++) {n1[j] = node->Normal()[j];}
 		  N1.Multx(n1, tmp_RHS);
 		  /* pressure = -e <g> and t = - p n   */
 		  tmp_RHS.SetToScaled(-pre*weights[i], tmp_RHS);
@@ -237,9 +234,9 @@ void PenaltyContactElement2DT::RHSDriver(void)
 		}
 	  } 
           /* get equation numbers */
-          ElementBaseT::fNodes-> SetLocalEqnos(conn1, eqnums1);
+          Field().SetLocalEqnos(conn1, eqnums1);
           /* assemble */
-          if (in_contact) fFEManager.AssembleRHS(RHS, eqnums1);
+          if (in_contact) ElementSupport().AssembleRHS(Group(), RHS, eqnums1);
 	}
   }
 }
@@ -259,7 +256,7 @@ void PenaltyContactElement2DT::LHSDriver(void)
   double gap=0.0;
   double lm2[3];
   dArrayT n1alphal1;
-  n1alphal1.Allocate(fNumSD);
+  n1alphal1.Allocate(NumSD());
 
   /* for consistent stiffness */    
    dArrayT N1nl;
@@ -269,12 +266,13 @@ void PenaltyContactElement2DT::LHSDriver(void)
    dArrayT T1n;
    VariArrayT<double> T1n_man(kMaxNumFaceDOF,T1n);
 
-   dMatrixT Perm(fNumSD);
+   dMatrixT Perm(NumSD());
    Perm(0,0) = 0.0 ; Perm(0,1) = -1.0;
    Perm(1,0) = 1.0 ; Perm(1,1) =  0.0;
    double alpha;
 
 
+	int nsd = NumSD();
     int num_surfaces = fSurfaces.Length(); 
 	for(int s = 0; s < num_surfaces; s++) {
 		ContactSurfaceT& surface = fSurfaces[s];
@@ -282,14 +280,14 @@ void PenaltyContactElement2DT::LHSDriver(void)
         const ArrayT<FaceT*>& faces = surface.Faces();
         const ArrayT<ContactNodeT*>& nodes = surface.ContactNodes();
 		num_nodes = surface.NumNodesPerFace();	
-        LHS_man.SetDimensions(num_nodes*fNumSD);
-        tmp_LHS_man.SetDimensions(num_nodes*fNumSD);
-        N1_man.SetDimensions(num_nodes*fNumSD,fNumSD);
-        N1n_man.SetLength(num_nodes*fNumSD,false);
+        LHS_man.SetDimensions(num_nodes*nsd);
+        tmp_LHS_man.SetDimensions(num_nodes*nsd);
+        N1_man.SetDimensions(num_nodes*nsd, nsd);
+        N1n_man.SetLength(num_nodes*nsd,false);
 		//if consistent
-         N1nl_man.SetLength(num_nodes*fNumSD,false);
-         T1_man.SetDimensions(num_nodes*fNumSD,fNumSD);
-         T1n_man.SetLength(num_nodes*fNumSD,false);
+         N1nl_man.SetLength(num_nodes*nsd,false);
+         T1_man.SetDimensions(num_nodes*nsd, nsd);
+         T1n_man.SetLength(num_nodes*nsd,false);
         weights_man.SetLength(num_nodes,false);
         eqnums1_man.SetMajorDimension(num_nodes,false);
         /* form stiffness */
@@ -299,7 +297,7 @@ void PenaltyContactElement2DT::LHSDriver(void)
 			/* primary face */
 			const iArrayT& conn1 = face->GlobalConnectivity();
 			/* get equation numbers */
-			ElementBaseT::fNodes-> SetLocalEqnos(conn1, eqnums1);
+			Field().SetLocalEqnos(conn1, eqnums1);
 			LHS = 0.0;
 			in_contact = 0;
 			/*loop over (nodal) quadrature points */
@@ -319,40 +317,40 @@ void PenaltyContactElement2DT::LHSDriver(void)
 					consistent = (int) parameters[kConsistentTangent];
 					const FaceT* opp_face = node->OpposingFace();
 					opp_num_nodes = opp_face->NumNodes();
-					N2_man.SetDimensions(opp_num_nodes*fNumSD,fNumSD);
-					N2n_man.SetLength(opp_num_nodes*fNumSD,false);
+					N2_man.SetDimensions(opp_num_nodes*nsd, nsd);
+					N2n_man.SetLength(opp_num_nodes*nsd,false);
 					eqnums2_man.SetMajorDimension(opp_num_nodes,false);
 					const iArrayT& conn2 = opp_face->GlobalConnectivity();
 					opp_face->ComputeShapeFunctions
 						(node->OpposingLocalCoordinates(),N2);
 					const double* nm1 = node->Normal();
-					for (int j =0; j < fNumSD; j++) {n1[j] = nm1[j];}
+					for (int j =0; j < nsd; j++) {n1[j] = nm1[j];}
 					N1.Multx(n1, N1n);
 					N2.Multx(n1, N2n); 
 
 					/* N1n (x) D g */
 					/* Part:  dx1 (x) dx2 */
-					tmp_LHS_man.SetDimensions(opp_num_nodes*fNumSD);
+					tmp_LHS_man.SetDimensions(opp_num_nodes*nsd);
 					tmp_LHS.Outer(N1n, N2n);
 					tmp_LHS.SetToScaled(-dpre_dg*weights[i], tmp_LHS);
 
 					/* get equation numbers */
-					ElementBaseT::fNodes-> SetLocalEqnos(conn2, eqnums2);
+					Field().SetLocalEqnos(conn2, eqnums2);
 					/* assemble primary-secondary face stiffness */
-					fFEManager.AssembleLHS(tmp_LHS, eqnums1,eqnums2);
+					ElementSupport().AssembleLHS(Group(), tmp_LHS, eqnums1,eqnums2);
 
 					/* Part:  dx1 (x) dx1 */
 					if (consistent) {
-						for (int j =0; j < fNumSD; j++) 
+						for (int j =0; j < nsd; j++) 
 							{l1[j] =node->Tangent1()[j];}
 						node->OpposingFace()->ComputeTangent1(points(i),lm2);
 						alpha = Dot(node->Normal(),lm2) 
 							/ Dot(l1.Pointer(),  lm2);
-						for (int j =0; j < fNumSD; j++) 
+						for (int j =0; j < nsd; j++) 
 							{n1alphal1[j] = n1[j] - alpha*l1[j];}
 						N1.Multx(n1alphal1, N1nl);
 						tmp_LHS.Outer(N1n, N1nl);
-						tmp_LHS_man.SetDimensions(num_nodes*fNumSD);
+						tmp_LHS_man.SetDimensions(num_nodes*nsd);
 						tmp_LHS.SetToScaled(dpre_dg*weights[i], tmp_LHS);
 						LHS += tmp_LHS;
 
@@ -376,7 +374,7 @@ void PenaltyContactElement2DT::LHSDriver(void)
 				}
 			}
           	/* assemble primary-primary face stiffness */
-			if (in_contact) fFEManager.AssembleLHS(LHS, eqnums1);
+			if (in_contact) ElementSupport().AssembleLHS(Group(), LHS, eqnums1);
 		}
 	}
 }

@@ -1,6 +1,4 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.9 2002-05-09 22:10:10 dzeigle Exp $ */
-// created by : rjones 2001
-
+/* $Id: PenaltyContactElement2DT.h,v 1.10 2002-06-08 20:20:20 paklein Exp $ */
 #ifndef _PENALTY_CONTACT_ELEMENT_2D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_2D_T_H_
 
@@ -16,7 +14,7 @@ class PenaltyContactElement2DT: public ContactElementT
   public:
 
 	/* constructor */
-	PenaltyContactElement2DT(FEManagerT& fe_manager);
+	PenaltyContactElement2DT(const ElementSupportT& support, const FieldT& field);
 	
 	/* initialize */
 	virtual void Initialize(void);

@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.6 2002-04-16 16:10:31 rjones Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.7 2002-06-08 20:20:19 paklein Exp $ */
 // created by : rjones 2001
 #include "MultiplierContactElement2DT.h"
 
@@ -9,8 +9,8 @@
 
 #include "MultiplierContactElement2DT.h"
 #include "ContactNodeT.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
+#include "ElementSupportT.h"
+#include "XDOF_ManagerT.h"
 
 /* vector functions */
 #include "vector2D.h"
@@ -21,8 +21,8 @@ static const int kMaxNumFaceDOF   = 12;
 
 /* constructor */
 MultiplierContactElement2DT::MultiplierContactElement2DT
-(FEManagerT& fe_manager, XDOF_ManagerT* xdof_nodes):
-	ContactElementT(fe_manager, kNumEnfParameters, xdof_nodes)
+(const ElementSupportT& support, const FieldT& field):
+	ContactElementT(support, field, kNumEnfParameters, &support.XDOF_Manager())
 {
 	fNumMultipliers = 1;
 }
@@ -138,16 +138,17 @@ void MultiplierContactElement2DT::RHSDriver(void)
   ContactNodeT* node;
   double gap, pen, pre, opp_pre=0.0;
 
+	int nsd = NumSD();
   for(int surf_tag = 0; surf_tag < fSurfaces.Length(); surf_tag++) {
 	ContactSurfaceT& surface = fSurfaces[surf_tag];
 	/* all faces on a surface the same size */
 	const ArrayT<FaceT*>& faces = surface.Faces();
 	const ArrayT<ContactNodeT*>& nodes = surface.ContactNodes();
 	num_nodes = surface.NumNodesPerFace();
-	RHS_man.SetLength(num_nodes*fNumSD,false);
+	RHS_man.SetLength(num_nodes*nsd,false);
 	xRHS_man.SetLength(num_nodes*fNumMultipliers,false);
-	tmp_RHS_man.SetLength(num_nodes*fNumSD,false);
-	N1_man.SetDimensions(num_nodes*fNumSD,fNumSD);
+	tmp_RHS_man.SetLength(num_nodes*nsd,false);
+	N1_man.SetDimensions(num_nodes*nsd, nsd);
 	P1_man.SetDimensions(num_nodes,fNumMultipliers);
 	weights_man.SetLength(num_nodes,false);
 	eqnums1_man.SetMajorDimension(num_nodes,false);
@@ -187,7 +188,7 @@ void MultiplierContactElement2DT::RHSDriver(void)
 					if (status == kGapZero) 
 						{ pre += -parameters[kPenalty]*gap;}
 					face->ComputeShapeFunctions(points(i),N1);
-					for (int j =0; j < fNumSD; j++) {n1[j] = node->Normal()[j];}
+					for (int j =0; j < nsd; j++) {n1[j] = node->Normal()[j];}
 					N1.Multx(n1, tmp_RHS);
 					tmp_RHS.SetToScaled(-pre*weights[i], tmp_RHS);
 					RHS += tmp_RHS;
@@ -220,10 +221,12 @@ void MultiplierContactElement2DT::RHSDriver(void)
 		} 
 		/* assemble */
 		if (elem_in_contact) {
-			ElementBaseT::fNodes-> SetLocalEqnos(conn1, eqnums1);
-			fFEManager.AssembleRHS(RHS, eqnums1);
-			ElementBaseT::fNodes-> XDOF_SetLocalEqnos(xconn1, xeqnums1);
-			fFEManager.AssembleRHS(xRHS, xeqnums1);
+			const ElementSupportT& support = ElementSupport();
+		
+			Field().SetLocalEqnos(conn1, eqnums1);
+			support.AssembleRHS(Group(), RHS, eqnums1);
+			support.XDOF_Manager().XDOF_SetLocalEqnos(Group(), xconn1, xeqnums1);
+			support.AssembleRHS(Group(), xRHS, xeqnums1);
 		}
 	}
   }
@@ -238,7 +241,7 @@ void MultiplierContactElement2DT::LHSDriver(void)
   double sfac, gap;
   double lm2[3];
   dArrayT n1alphal1;
-  n1alphal1.Allocate(fNumSD);
+  n1alphal1.Allocate(NumSD());
 
   /* for consistent stiffness */    
   dArrayT N1nl;
@@ -247,25 +250,25 @@ void MultiplierContactElement2DT::LHSDriver(void)
   nVariMatrixT<double> T1_man(kMaxNumFaceDOF,T1);
   dArrayT T1n;
   VariArrayT<double> T1n_man(kMaxNumFaceDOF,T1n);
-  dMatrixT Perm(fNumSD);
+  dMatrixT Perm(NumSD());
   Perm(0,0) = 0.0 ; Perm(0,1) = -1.0;
   Perm(1,0) = 1.0 ; Perm(1,1) =  0.0;
   double alpha;
 
-
+	int nsd = NumSD();
   for(int surf_tag = 0; surf_tag < fSurfaces.Length(); surf_tag++) {
 	ContactSurfaceT& surface = fSurfaces[surf_tag];
 	/* all faces on a surface the same size */
 	const ArrayT<FaceT*>& faces = surface.Faces();
 	const ArrayT<ContactNodeT*>& nodes = surface.ContactNodes();
 	num_nodes = surface.NumNodesPerFace();
-	LHS_man.SetDimensions(num_nodes*fNumSD);
-	N1_man.SetDimensions(num_nodes*fNumSD,fNumSD);
-	N1n_man.SetLength(num_nodes*fNumSD,false);
+	LHS_man.SetDimensions(num_nodes*nsd);
+	N1_man.SetDimensions(num_nodes*nsd, nsd);
+	N1n_man.SetLength(num_nodes*nsd,false);
 	//if consistent
-	N1nl_man.SetLength(num_nodes*fNumSD,false);
-	T1_man.SetDimensions(num_nodes*fNumSD,fNumSD);
-	T1n_man.SetLength(num_nodes*fNumSD,false);
+	N1nl_man.SetLength(num_nodes*nsd,false);
+	T1_man.SetDimensions(num_nodes*nsd, nsd);
+	T1n_man.SetLength(num_nodes*nsd,false);
 	weights_man.SetLength(num_nodes,false);
 	eqnums1_man.SetMajorDimension(num_nodes,false);
 	xeqnums1_man.SetMajorDimension(num_nodes,false);
@@ -276,10 +279,10 @@ void MultiplierContactElement2DT::LHSDriver(void)
 		const FaceT* face = faces[f];
 		const iArrayT& conn1 = face->GlobalConnectivity();
 		surface.MultiplierTags(face->Connectivity(),xconn1);
-		ElementBaseT::fNodes-> XDOF_SetLocalEqnos(xconn1, xeqnums1);
+		ElementSupport().XDOF_Manager().XDOF_SetLocalEqnos(Group(), xconn1, xeqnums1);
 		face->Quadrature(points,weights);
 		/* get equation numbers */
-		ElementBaseT::fNodes-> SetLocalEqnos(conn1, eqnums1);
+		Field().SetLocalEqnos(conn1, eqnums1);
 		LHS = 0.0;
 		elem_in_contact = 0;
 		/*loop over (nodal) quadrature points */
@@ -308,27 +311,27 @@ void MultiplierContactElement2DT::LHSDriver(void)
 /* K =  N1n (x) { P1 + pen (n1.N2 * D u2 -  n1.N1 * D u1) }  */
                 if (status == kGapZero || status == kPJump){
 					face->ComputeShapeFunctions(points(i),N1);				
-					for (int j =0; j < fNumSD; j++) {n1[j] = node->Normal()[j];}
+					for (int j =0; j < NumSD(); j++) {n1[j] = node->Normal()[j];}
 					N1.Multx(n1, N1n);
 
 /* primary U (X) primary   P block */
 					tmp_LHS_man.SetDimensions
-						(num_nodes*fNumSD,num_nodes*fNumMultipliers);
+						(num_nodes*NumSD(),num_nodes*fNumMultipliers);
 					tmp_LHS.Outer(N1n, P1);
-					fFEManager.AssembleLHS(tmp_LHS, eqnums1,xeqnums1);
+					ElementSupport().AssembleLHS(Group(), tmp_LHS, eqnums1,xeqnums1);
 
                 	if (status == kGapZero){
 /* primary U (X) primary   U block */
 						if (consistent) { 
 							/* slip */
 							tmp_LHS_man.SetDimensions
-								(num_nodes*fNumSD,num_nodes*fNumSD);
-							for (int j =0; j < fNumSD; j++) 
+								(num_nodes*NumSD(),num_nodes*NumSD());
+							for (int j =0; j < NumSD(); j++) 
 								{l1[j] = node->Tangent1()[j];}
 							opp_face->ComputeTangent1(points(i),lm2);
 							alpha = Dot(node->Normal(),lm2) 
 							      / Dot(l1.Pointer(),lm2);
-							for (int j =0; j < fNumSD; j++) 
+							for (int j =0; j < NumSD(); j++) 
 								{n1alphal1[j] = n1[j] - alpha*l1[j];}
 							N1.Multx(n1alphal1, N1nl);
 							face->ComputeShapeFunctionDerivatives(points(i),T1);
@@ -347,27 +350,27 @@ void MultiplierContactElement2DT::LHSDriver(void)
 							LHS.Outer(N1n, N1n);
 							LHS.SetToScaled(sfac*weights[i], LHS);
 						}
-						fFEManager.AssembleLHS(LHS, eqnums1);
+						ElementSupport().AssembleLHS(Group(), LHS, eqnums1);
 
 /* primary U (X) secondary U block */
 						/* get connectivity */
 						const iArrayT& conn2 = opp_face->GlobalConnectivity();
 
-						N2_man.SetDimensions(opp_num_nodes*fNumSD,fNumSD);
-						N2n_man.SetLength(opp_num_nodes*fNumSD,false);
+						N2_man.SetDimensions(opp_num_nodes*NumSD(), NumSD());
+						N2n_man.SetLength(opp_num_nodes*NumSD(),false);
 						eqnums2_man.SetMajorDimension(opp_num_nodes,false);
 						opp_face->ComputeShapeFunctions (opp_xi,N2);
 						N2.Multx(n1, N2n); 
 
 						tmp_LHS_man.SetDimensions
-							(num_nodes*fNumSD,opp_num_nodes*fNumSD);
+							(num_nodes*NumSD(),opp_num_nodes*NumSD());
 						tmp_LHS.Outer(N1n, N2n);
 						tmp_LHS.SetToScaled(-sfac*weights[i], tmp_LHS);
 
 						/* get equation numbers */
-						ElementBaseT::fNodes-> SetLocalEqnos(conn2, eqnums2);
+						Field().SetLocalEqnos(conn2, eqnums2);
 						/* assemble primary-secondary face stiffness */
-						fFEManager.AssembleLHS(tmp_LHS, eqnums1,eqnums2);
+						ElementSupport().AssembleLHS(Group(), tmp_LHS, eqnums1,eqnums2);
 
 					}
 				} 
@@ -376,7 +379,7 @@ void MultiplierContactElement2DT::LHSDriver(void)
 					double gfac = parameters[kGScale];
 /* primary P (X) primary   U block */
 					tmp_LHS_man.SetDimensions
-						(num_nodes*fNumMultipliers,num_nodes*fNumSD);
+						(num_nodes*fNumMultipliers,num_nodes*NumSD());
 					if (consistent) {
 						/* T1n is the consistent D_u1 g(u1,u2) */
 						tmp_LHS.Outer(P1, T1n);
@@ -384,13 +387,13 @@ void MultiplierContactElement2DT::LHSDriver(void)
 						tmp_LHS.Outer(P1, N1n);
 					}
 					tmp_LHS.SetToScaled(gfac, tmp_LHS);
-					fFEManager.AssembleLHS(tmp_LHS, xeqnums1,eqnums1);
+					ElementSupport().AssembleLHS(Group(), tmp_LHS, xeqnums1,eqnums1);
 /* primary P (X) secondary U block */
 					tmp_LHS_man.SetDimensions
-						(num_nodes*fNumMultipliers,opp_num_nodes*fNumSD);
+						(num_nodes*fNumMultipliers,opp_num_nodes*NumSD());
 					tmp_LHS.Outer(P1, N2n);
 					tmp_LHS.SetToScaled(-gfac, tmp_LHS);
-					fFEManager.AssembleLHS(tmp_LHS, xeqnums1,eqnums2);
+					ElementSupport().AssembleLHS(Group(), tmp_LHS, xeqnums1,eqnums2);
                 }
                 else if (status == kPJump || status == kPZero) {
 					double pfac = parameters[kPScale];
@@ -399,15 +402,14 @@ void MultiplierContactElement2DT::LHSDriver(void)
 						(num_nodes*fNumMultipliers,num_nodes*fNumMultipliers);
 					tmp_LHS.Outer(P1, P1);
 					tmp_LHS.SetToScaled(pfac, tmp_LHS);
-					fFEManager.AssembleLHS(tmp_LHS, xeqnums1,xeqnums1);
+					ElementSupport().AssembleLHS(Group(), tmp_LHS, xeqnums1,xeqnums1);
                 	if (status == kPJump) {
 /* primary P (X) secondary P block */		
 					    xconn2_man.SetLength(opp_num_nodes,false);
 						opp_surf->MultiplierTags
 							(opp_face->Connectivity(),xconn2);
 					    xeqnums2_man.SetMajorDimension(opp_num_nodes,false);
-						ElementBaseT::fNodes-> 
-							XDOF_SetLocalEqnos(xconn2, xeqnums2);
+						ElementSupport().XDOF_Manager().XDOF_SetLocalEqnos(Group(), xconn2, xeqnums2);
 						P2_man.SetDimensions
 							(opp_num_nodes*fNumMultipliers,fNumMultipliers);
 						opp_face->ComputeShapeFunctions(opp_xi,P2);
@@ -415,7 +417,7 @@ void MultiplierContactElement2DT::LHSDriver(void)
 							opp_num_nodes*fNumMultipliers);
 						tmp_LHS.Outer(P1, P2);
 						tmp_LHS.SetToScaled(-pfac, tmp_LHS);
-						fFEManager.AssembleLHS(tmp_LHS, xeqnums1,xeqnums2);
+						ElementSupport().AssembleLHS(Group(), tmp_LHS, xeqnums1,xeqnums2);
 					}
                 }
 			}
