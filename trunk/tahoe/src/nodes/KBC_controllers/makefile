@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.13 2003-08-08 00:32:48 paklein Exp $
+# $Id: makefile,v 1.14 2003-10-20 23:53:29 cjkimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -24,7 +24,6 @@ OBJ = \
 	KBC_ControllerT.o \
 	K_FieldT.o \
 	MappedPeriodicT.o \
-	SymmetricNodesT.o \
 	TiedNodesT.o \
 	PeriodicNodesT.o \
 	KBC_PrescribedT.o \
@@ -55,7 +54,6 @@ SRC = \
 	KBC_ControllerT.cpp \
 	K_FieldT.cpp \
 	MappedPeriodicT.cpp \
-	SymmetricNodesT.cpp \
 	TiedNodesT.cpp \
 	PeriodicNodesT.cpp \
 	KBC_PrescribedT.cpp \
@@ -78,7 +76,6 @@ HDR = \
 	KBC_ControllerT.h \
 	K_FieldT.h \
 	MappedPeriodicT.h \
-	SymmetricNodesT.h \
 	TiedNodesT.h \
 	PeriodicNodesT.h \
 	KBC_PrescribedT.h \
