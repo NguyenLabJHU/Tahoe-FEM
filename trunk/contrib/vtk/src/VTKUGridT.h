@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.16 2002-07-02 21:23:00 cjkimme Exp $ */
+/* $Id: VTKUGridT.h,v 1.17 2002-07-11 15:57:42 recampb Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -83,9 +83,9 @@ class VTKUGridT
 	void ShowContours(vtkFloatArray* scalars, int numContours, double min, double max, vtkRenderer* renderer);
 	
 	/** remove contours */
-	void HideContours(vtkFloatArray* scalars, vtkRenderer* renderer);
+	void HideContours(vtkRenderer* renderer);
 
-	void CuttingPlane(vtkRenderer* renderer, double oX, double oY, double oZ, double nX, double nY, double nZ, bool warp);
+	void CuttingPlane(vtkRenderer* renderer, double oX, double oY, double oZ, double nX, double nY, double nZ, bool warp, double min, double max);
 
 	void HideCuttingPlane(vtkRenderer* renderer);
 

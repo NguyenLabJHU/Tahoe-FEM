@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.33 2002-07-03 18:55:59 recampb Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.34 2002-07-11 15:57:42 recampb Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -570,9 +570,9 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 
 					/* track deformation */
 					if (ugrids[i]->Warp())
-						axes->SetInput(ugrids[i]->Warp()->GetOutput());
+					  axes->SetInput(ugrids[i]->Warp()->GetOutput());
 					else
-						axes->SetInput(ugrids[i]->UGrid());
+					  axes->SetInput(ugrids[i]->UGrid());
 
 					axes->SetCamera(renderer->GetActiveCamera());
 					axes->SetLabelFormat("%6.4g");
@@ -655,7 +655,7 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 		command.Argument("nX").GetValue(nX);
 		command.Argument("nY").GetValue(nY);
 		command.Argument("nZ").GetValue(nZ);
-		    fUGrids[i]->CuttingPlane(fFrame->Renderer(), oX, oY, oZ, nX, nY, nZ, warp );
+		    fUGrids[i]->CuttingPlane(fFrame->Renderer(), oX, oY, oZ, nX, nY, nZ, warp, fBodyData->CurrentScalarRange1(), fBodyData->CurrentScalarRange2() );
 		    
 	      }
 	    return true;
@@ -689,28 +689,10 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	    
 
 	  }
-
-
-
+	
 	
 	else if (command.Name() == "Pick")
 	  {
-
-	    bool warp = false;
-	    if (fBodyData->VectorField("D")) warp = true;
-	    vtkPolyDataMapper* sphereMapper = vtkPolyDataMapper::New();
-	    vtkActor* sphereActor = vtkActor::New();  
-	    vtkSphereSource *sphere = vtkSphereSource::New();
-	    sphere->SetThetaResolution(8); sphere->SetPhiResolution(8);
-	    //float* bounds = pointPicker->GetDataSet()->GetBounds();
-	    
-	    //sphere->SetRadius(.01);
-	    sphereMapper->SetInput(sphere->GetOutput());
-	    sphereActor->SetMapper(sphereMapper);
-	    sphereActor->GetProperty()->SetColor(1,1,1);
-	    sphereActor->VisibilityOn();
-	    sphereActor->PickableOff();
-	
 	    int nodeNum;
 	    command.Argument("node").GetValue(nodeNum);
 
@@ -718,10 +700,21 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	    nodeNum = fBodyData->NodeMapIndex(nodeNum);
 	    if (nodeNum == -1) return false;
 
+	    bool warp = false;
+	    if (fBodyData->VectorField("D")) warp = true;
+	    vtkPolyDataMapper* sphereMapper = vtkPolyDataMapper::New();
+	    vtkActor* sphereActor = vtkActor::New();  
+	    vtkSphereSource *sphere = vtkSphereSource::New();
+	    sphere->SetThetaResolution(8); sphere->SetPhiResolution(8);
+
+	    sphereMapper->SetInput(sphere->GetOutput());
+	    sphereActor->SetMapper(sphereMapper);
+	    sphereActor->GetProperty()->SetColor(1,1,1);
+	    sphereActor->VisibilityOn();
+	    sphereActor->PickableOff();
 
 	    Array2DT<vtkFloatArray*> scalars = fBodyData->getScalars();
 	    dArray2DT Coordinates = fBodyData->Coordinates();   	    
-	    
 	    
 	    float* coords;
 	    float* bounds;
@@ -746,28 +739,9 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	      const CommandSpecT* comm = iResolveCommand("Update", dummy);
 	      if (!comm) return false;
 	      iDoCommand(*comm, dummy);
-  
-
-
-
-//   float* coords = pointPicker->GetDataSet()->GetPoint(pointPicker->GetPointId());
-//       int num_values = pointPicker->GetDataSet()->GetPointData()->GetScalars()->GetNumberOfComponents(); 
-    
-//       sphereActor->SetPosition(coords);
-//       pointPicker->GetRenderer()->AddActor(sphereActor);
-//       pickedPoints.Append(sphereActor);
-//       iren->GetRenderWindow()->Render();
- 
-		
-//       cout <<"Point: " << pointPicker->GetPointId()+1 << endl;
-//       cout <<"Coordinates: " << "(" << coords[0] << ", " << coords[1] << ", " << coords[2] << ")" << endl;
-//       cout <<"Value: " << (pointPicker->GetDataSet()->GetPointData()->GetScalars()->GetComponent(pointPicker->GetPointId(), 0)) << endl;
-
-
 	      
- 	      cout <<"Point: " << nodeNum << endl;
 	      cout <<"Coordinates: " << "(" << (float)coords[0] << ", " << (float)coords[1] << ", " << (float)coords[2] << ")" << endl;
-	      cout <<"Value: " << scalars(fBodyData->CurrentStepNumber(), fBodyData->CurrentVariableNumber())->GetComponent(nodeNum-1, 0) << endl;
+	      cout <<"Value: " << scalars(fBodyData->CurrentStepNumber(), fBodyData->CurrentVariableNumber())->GetComponent(nodeNum, 0) << endl;
 	      
 	    }
 	    
