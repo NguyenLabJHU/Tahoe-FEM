@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.11 2001-08-09 15:12:12 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.12 2001-08-15 18:37:10 paklein Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -85,8 +85,8 @@ public:
 			kNumOutputFlags};
 
         /* returns the array for the DOF tags needed for the current config */
-        virtual iArrayT& SetDOFTags(void);
-        virtual const iArrayT& DOFTags(void) const;
+        virtual void SetDOFTags(void);
+        virtual iArrayT& DOFTags(int tag_set);
 
         /* generate nodal connectivities */
         virtual void GenerateElementData(void);
@@ -98,10 +98,10 @@ public:
         //       is current.
 
         /* return the contact elements */
-        virtual const iArray2DT& DOFConnects(void) const;
+        virtual const iArray2DT& DOFConnects(int tag_set) const;
 
         /* restore the DOF values to the last converged solution */
-        virtual void ResetDOF(dArray2DT& DOF) const;
+        virtual void ResetDOF(dArray2DT& DOF, int tag_set) const;
 
         /* returns 1 if group needs to reconfigure DOF's, else 0 */
         virtual int Reconfigure(void);

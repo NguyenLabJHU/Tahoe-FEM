@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.17 2001-08-09 15:12:12 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.18 2001-08-15 18:37:10 paklein Exp $ */
 
 #include "ContactElementT.h"
 
@@ -94,7 +94,7 @@ GlobalT::RelaxCodeT ContactElementT::RelaxSystem(void)
 }
 
 /* returns the array for the DOF tags needed for the current config */
-iArrayT& ContactElementT::SetDOFTags(void)
+void ContactElementT::SetDOFTags(void)
 {
 #if 0
         /* store history */
@@ -123,7 +123,7 @@ iArrayT& ContactElementT::SetDOFTags(void)
 #endif
 }
 
-const iArrayT& ContactElementT::DOFTags(void) const
+iArrayT& ContactElementT::DOFTags(int tag_set)
 {
 #if 0
         return fContactDOFtags;
@@ -158,7 +158,7 @@ void ContactElementT::GenerateElementData(void)
 }
 
 /* return the contact elements */
-const iArray2DT& ContactElementT::DOFConnects(void) const
+const iArray2DT& ContactElementT::DOFConnects(int tag_set) const
 {
 #if 0
         return fXDOFConnectivities;
@@ -167,7 +167,7 @@ const iArray2DT& ContactElementT::DOFConnects(void) const
 
 
 /* restore the DOF values to the last converged solution */
-void ContactElementT::ResetDOF(dArray2DT& DOF) const
+void ContactElementT::ResetDOF(dArray2DT& DOF, int tag_set) const
 {
 #if 0
         /* alias */
