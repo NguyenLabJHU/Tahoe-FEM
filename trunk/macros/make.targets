@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.22 2003-01-31 09:53:54 paklein Exp $
+# $Id: make.targets,v 1.23 2003-03-08 04:57:50 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -11,6 +11,7 @@ include $(OBJECT_LIST)
 # grouped
 OPT_CFLAGS = \
 	$(DEV_CFLAGS) \
+	$(FOSSUM_CFLAGS) \
 	$(TB_CFLAGS) \
 	$(NOX_CFLAGS) \
 	$(T_CFLAGS) \
@@ -27,6 +28,7 @@ OPT_CFLAGS = \
 
 OPT_LFLAGS = \
 	$(DEV_LFLAGS) \
+	$(FOSSUM_LFLAGS) \
 	$(TB_LFLAGS) \
 	$(NOX_LFLAGS) \
 	$(T_LFLAGS) \
@@ -43,6 +45,7 @@ OPT_LFLAGS = \
 
 OPT_LIB = \
 	$(DEV_LIB) \
+	$(FOSSUM_LIB) \
 	$(TB_LIB) \
 	$(NOX_LIB) \
 	$(T_LIB) \
@@ -58,6 +61,7 @@ OPT_LIB = \
 
 OPT_INC = \
 	$(DEV_INC) \
+	$(FOSSUM_INC) \
 	$(NOX_INC) \
 	$(TB_INC) \
 	$(T_INC) \
@@ -74,6 +78,7 @@ OPT_INC = \
 
 OPT_DEFINES = \
 	$(DEV_DEFINES) \
+	$(FOSSUM_DEFINES) \
 	$(TB_DEFINES) \
 	$(NOX_DEFINES) \
 	$(T_DEFINES) \
@@ -91,7 +96,7 @@ OPT_DEFINES = \
 #########################################################################
 # paths for file dependencies
 DEPEND_FILE = all.depend
-DEPEND_PATH = -I$(INC_DIR) $(OPT_INC) $(DEFINES) $(OPT_DEFINES) $(DEPENDFLAGS)
+DEPEND_PATH = -I$(INC_DIR) $(OPT_INC) $(DEFINES) $(OPT_DEFINES) $(DEPENDFLAGS) $(MY_DEPEND_FLAGS)
 
 # Sun spends too much time searching standard directories
 #DEPEND_PATH = -Y -I$(INC_DIR) $(OPT_INC) $(DEFINES) $(OPT_DEFINES) $(DEPENDFLAGS)
