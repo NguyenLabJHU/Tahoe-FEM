@@ -419,14 +419,14 @@ sub clean{
 sub test{
 	$time = localtime();
 	print "($count) running tests at $time\n";
- 	unless(-d "benchmark"){
+ 	unless(-d "benchmark_XML"){
 		print "checking out benchmark\n";
 		unlink("cvs.log");
-		system("cvs -d $username\@$cvsrep checkout benchmark > cvs.log 2>&1");
+		system("cvs -d $username\@$cvsrep checkout benchmark_XML > cvs.log 2>&1");
  	} else {
-		system("cd benchmark; cvs update -Pd > cvs.log 2>&1");
+		system("cd benchmark_XML; cvs update -Pd > cvs.log 2>&1");
 	}
-	chdir("benchmark/comparator");
+	chdir("benchmark_XML/comparator");
 	print("\tbuilding comparator");
 	fillin_makefile(); system("make init build > build.log 2>&1");
 	print(" ...done\n");
