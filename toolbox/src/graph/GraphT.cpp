@@ -1,4 +1,4 @@
-/* $Id: GraphT.cpp,v 1.10 2002-11-14 16:55:52 paklein Exp $ */
+/* $Id: GraphT.cpp,v 1.11 2003-04-07 17:30:50 cjkimme Exp $ */
 #include "GraphT.h"
 
 #include <time.h>
@@ -49,6 +49,16 @@ void GraphT::ClearGroups(void)
 {
 	fGroupData_1.Clear();
 	fGroupData_2.Clear();
+}
+
+/* add a group to the graph */
+void GraphT::AddEquivalentNodes(const iArray2DT& equivalentNodes)
+{
+	/* reset maximum node number */
+	//SetRange(equivalentNodes);
+
+	/* do not allow repeated registering of groups */
+	if (!fEquivalentData.AppendUnique(&equivalentNodes)) throw ExceptionT::kGeneralFail;
 }
 	
 /* make the graph using the current data */
@@ -131,6 +141,52 @@ void GraphT::MakeGraph(void)
 			ien += nen;
 		}
 	}
+	
+#if 0
+	const iArray2DT* currEquiv;
+	fEquivalentData.Top();
+	while ( fEquivalentData.Next(currEquiv) )
+	{
+		int  nel = currEquiv->MajorDim();
+		int  nen = currEquiv->MinorDim();
+		int* ien = currEquiv->Pointer();
+		for (int k = 0; k < 1; k++)
+		{
+			for (int i = 0; i < nen; i++)
+			{	
+				int r_i = ien[i];
+				if (r_i > -1)
+				{
+					for (int j = i+1; j < nen; j++)
+					{
+						/* Copy all equivalent rows of edgedata to
+						 * all the other equivalent rows 
+						 */
+						int r_j = ien[j];
+						if (r_j > -1 && r_i != r_j) 	
+					    {
+					    	iArrayT row_i, row_j;
+					    	row_i.Dimension(edgedata.MinorDim(r_i - fShift));
+					    	row_i.Copy(edgedata(r_i - fShift));
+					    	row_j.Dimension(edgedata.MinorDim(r_j - fShift));
+					    	row_j.Copy(edgedata(r_j - fShift));
+					    
+					    	edgedata.AppendUnique(r_j - fShift, row_i);
+							edgedata.AppendUnique(r_i - fShift, row_j);
+							
+							iArrayT row_k, row_l;
+					    	row_k.Dimension(edgedata.MinorDim(r_i - fShift));
+					    	row_k.Copy(edgedata(r_i - fShift));
+					    	row_l.Dimension(edgedata.MinorDim(r_j - fShift));
+					    	row_l.Copy(edgedata(r_j - fShift));
+						}
+					}
+				}
+			}
+			ien += nen;
+		}
+	}
+#endif
 		
 	/* copy/compress */
 	fEdgeList.Copy(edgedata);

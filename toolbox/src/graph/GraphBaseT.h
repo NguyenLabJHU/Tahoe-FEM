@@ -1,4 +1,4 @@
-/* $Id: GraphBaseT.h,v 1.4 2002-07-05 22:26:30 paklein Exp $ */
+/* $Id: GraphBaseT.h,v 1.5 2003-04-07 17:30:50 cjkimme Exp $ */
 /* created: paklein (04/13/1999) */
 
 #ifndef _GRAPHBASE_T_H_
@@ -13,7 +13,7 @@ namespace Tahoe {
 class iArrayT;
 class iArray2DT;
 
-/** base class for graph manipulations. Actual construction of the graph is
+/** base class for graph manipulations. Actual construction of the graph
  * must be handled by the derived classes */
 class GraphBaseT
 {
