@@ -1,4 +1,4 @@
-# $Id: DEC.mpi.macros,v 1.14 2003-02-28 02:06:19 paklein Exp $
+# $Id: DEC.mpi.macros,v 1.14.2.1 2003-03-15 16:48:15 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__  -DAZTEC_MPI
 MPI_LFLAGS = -lmpi
@@ -29,6 +29,7 @@ LN          = ln -sf
 ECHO        = echo
 CAT         = cat
 PERL        = perl -w
+PRINTF      = printf
 
 # command needed build library
 #BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
