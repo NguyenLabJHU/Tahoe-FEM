@@ -46,6 +46,11 @@ public:
 	void toRe(dMatrixT& re) const;
 	void toIm(dMatrixT& im) const;
 	zMatrixT& toZ(const dMatrixT& re, const dMatrixT& im);
+
+  	
+  	zMatrixT&   Inverse( const zMatrixT& matrix);
+  	zMatrixT& Conjugate( const zMatrixT& matrix);
+  	
 };
 
 /*
