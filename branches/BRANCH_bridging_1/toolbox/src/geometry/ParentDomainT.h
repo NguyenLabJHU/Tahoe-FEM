@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.12 2002-07-20 08:02:46 paklein Exp $ */
+/* $Id: ParentDomainT.h,v 1.12.12.1 2003-02-09 00:50:48 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _PARENT_DOMAIN_T_H_
 #define _PARENT_DOMAIN_T_H_
@@ -181,7 +181,7 @@ class ParentDomainT
 	
 	/** return geometry and number of nodes on each facet */
 	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geom, iArrayT& facet_nodes) const;
-	
+
 	/** return true if the given point is within the domain defined by
 	 * the list of coordinates
 	 * \param coords list of coordinates defining the domain
@@ -195,7 +195,7 @@ class ParentDomainT
 	 * \param point test point coordinates 
 	 * \param mapped point coordinates in the parent coordinates */
 	bool MapToParentDomain(const LocalArrayT& coords, const dArrayT& point,
-		dArrayT& mapped) const;
+		dArrayT& mapped);
 
 	/** calculate a characteristic domain size. Calculate the maximum distance
 	 * between the average nodal position and each of the nodes. 
@@ -225,8 +225,10 @@ class ParentDomainT
 
 	/** \name work space */
 	/*@{*/
-	dMatrixT fNodalExtrap; /**< extrapolation matrix */
-	dMatrixT fJacobian;    /**< jacobian matrix */
+	dMatrixT  fNodalExtrap; /**< extrapolation matrix */
+	dMatrixT  fJacobian;    /**< jacobian matrix */
+	dArrayT   fNa_p;        /**< array of shape functions */
+	dArray2DT fDNa_p;       /**< array of shape function derivatives */
 	/*@}*/
 };
 
