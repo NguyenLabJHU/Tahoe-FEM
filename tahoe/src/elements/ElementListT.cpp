@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.85.12.2 2004-04-14 17:35:37 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.85.12.3 2004-04-20 17:41:45 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -1040,6 +1040,11 @@ void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 		sub_sub_list.AddSub("adhesion");
 #endif
 
+#ifdef CONTACT_ELEMENT
+		sub_sub_list.AddSub("contact_2D_penalty");
+		sub_sub_list.AddSub("contact_3D_penalty");
+#endif
+
 #ifdef PARTICLE_ELEMENT
 		sub_sub_list.AddSub("particle_pair");
 		sub_sub_list.AddSub("particle_EAM");
@@ -1119,6 +1124,13 @@ ElementBaseT* ElementListT::NewElement(const StringT& list_name) const
 #ifdef ADHESION_ELEMENT
 	else if (list_name == "adhesion")
 		return new AdhesionT(fSupport);
+#endif
+
+#ifdef CONTACT_ELEMENT
+	else if (list_name == "contact_2D_penalty")
+		return new PenaltyContact2DT(fSupport);
+	else if (list_name == "contact_3D_penalty")
+		return new PenaltyContact3DT(fSupport);
 #endif
 
 #ifdef PARTICLE_ELEMENT

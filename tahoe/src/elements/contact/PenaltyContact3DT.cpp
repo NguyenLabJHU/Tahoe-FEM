@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.11 2003-11-21 22:45:57 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.11.20.1 2004-04-20 17:41:46 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #include "PenaltyContact3DT.h"
 
@@ -40,6 +40,8 @@ PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support, const Field
 	fM2(NumSD(), fElDisp.Length()),
 	fV1(fElDisp.Length())
 {
+	SetName("contact_3D_penalty");
+
 	const char caller[] = "PenaltyContact3DT::PenaltyContact3DT";
 	ElementSupport().Input() >> fK;
 	if (fK < 0.0)
@@ -86,6 +88,25 @@ PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support, const Field
 	
 	/* set console access */
 	iAddVariable("penalty_parameter", fK);
+}
+
+PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support):
+	Contact3DT(support),
+	fK(0.0)
+{
+	SetName("contact_3D_penalty");
+}
+
+/* describe the parameters needed by the interface */
+void PenaltyContact3DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	Contact3DT::DefineParameters(list);
+
+	/* penalty stiffness */
+	ParameterT stiffness(ParameterT::Double, "penalty_stiffness");
+	stiffness.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(stiffness);
 }
 
 /***********************************************************************

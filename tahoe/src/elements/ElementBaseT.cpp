@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.45.14.1 2004-04-08 07:32:21 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.45.14.2 2004-04-20 17:41:45 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -447,7 +447,8 @@ void ElementBaseT::TakeParameterList(const ParameterListT& list)
  ***********************************************************************/
 
 /* extract element block info from parameter list */
-void ElementBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const
+void ElementBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  
+	ArrayT<int>& mat_index) const
 {
 	/* search for a block declarations */
 	const ParameterListT* block_search = list.FindList("_element_block");

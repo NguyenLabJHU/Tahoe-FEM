@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.11 2003-11-13 22:19:25 paklein Exp $ */
+/* $Id: ContactT.h,v 1.11.20.1 2004-04-20 17:41:46 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #ifndef _CONTACT_T_H_
 #define _CONTACT_T_H_
@@ -24,6 +24,7 @@ public:
 
 	/** constructor */
 	ContactT(const ElementSupportT& support, const FieldT& field, int numfacetnodes);
+	ContactT(const ElementSupportT& support, int numfacetnodes);
 
 	/** destructor */
 	virtual ~ContactT(void);
@@ -64,6 +65,18 @@ public:
 	virtual void ConnectsX(AutoArrayT<const iArray2DT*>& connects) const;
 	/*@}*/
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/	
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/** surface specification modes */
@@ -83,7 +96,9 @@ protected:
 	
 	/** \name initialization steps */
 	/*@{*/
-	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
+	/** Echo contact bodies and striker nodes. After the read section, should 
+	 * have valid nodes/facet connectivities for the local database. */
+	virtual void ExtractContactGeometry(const ParameterListT& list);
 	virtual void SetWorkSpace(void);
 	/*@}*/
 
@@ -105,14 +120,11 @@ protected:
 
 	/** \name surface input methods */
 	/*@{*/
-	/** specify facets as lists of nodes */
-	void InputNodesOnFacet(ifstreamT& in, iArray2DT& facets);
-
 	/** specify facets as side sets */
-	void InputSideSets(ifstreamT& in, iArray2DT& facets);
+	void InputSideSets(const ParameterListT& list, iArray2DT& facets);
 
 	/** specify facets automatically from body boundaries */
-	void InputBodyBoundary(ifstreamT& in, ArrayT<iArray2DT>& surfaces, int& surface);
+	void InputBodyBoundary(const ParameterListT& list, ArrayT<iArray2DT>& surfaces, int& surface);
 	/*@}*/
 
 	/** \name collecting striker nodes */
@@ -121,10 +133,10 @@ protected:
 	void StrikersFromSurfaces(void);
 
 	/** collect strikers from nodes sets */
-	void ReadStrikers(ifstreamT& in, ostream& out);
+	void StrikersFromNodeSets(const ParameterListT& list);
 
 	/** collect strikers from sides sets */
-	void StrikersFromSideSets(ifstreamT& in, ostream& out);
+	void StrikersFromSideSets(const ParameterListT& list);
 	/*@}*/
 
 	/** set the tracking data */

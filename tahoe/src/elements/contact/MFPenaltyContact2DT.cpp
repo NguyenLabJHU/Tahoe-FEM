@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.6.14.1 2004-04-08 07:32:28 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.6.14.2 2004-04-20 17:41:46 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -200,6 +200,7 @@ void MFPenaltyContact2DT::RHSDriver(void)
 /* set contact surfaces and strikers */
 void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
+#if 0
 	const char caller[] = "MFPenaltyContact2DT::EchoConnectivityData";
 
 	int num_surfaces;
@@ -348,6 +349,7 @@ void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	/* set managed equation numbers array */
 	fEqnos.Dimension(1);
 	fEqnos_man.SetWard(0, fEqnos[0], nen*NumDOF());
+#endif
 }
 
 /* generate contact element data */
