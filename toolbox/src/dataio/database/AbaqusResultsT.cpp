@@ -4,6 +4,7 @@
 */
 
 #include "AbaqusResultsT.h"
+#include <time.h>
 
 /* these variables are nodal and have a node number before the value list */
 AbaqusResultsT::AbaqusResultsT (ostream& message) :

@@ -74,4 +74,4 @@ inline int AbaqusVariablesT::Dimension (void) const { return fDimension; }
 inline AbaqusVariablesT::TypeT AbaqusVariablesT::Type (void) const { return fType; }
 inline int AbaqusVariablesT::IOIndex (void) const { return fIOIndex; }
 
-#endif;
+#endif

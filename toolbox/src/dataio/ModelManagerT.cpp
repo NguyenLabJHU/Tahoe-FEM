@@ -1,9 +1,10 @@
-/* $Id: ModelManagerT.cpp,v 1.4.2.12 2001-11-06 15:46:48 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.4.2.13 2001-11-06 19:52:14 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
-#include "ifstreamT.h"
+#include <ctype.h>
 
+#include "ifstreamT.h"
 #include "TahoeInputT.h"
 #include "ExodusInputT.h"
 #include "PatranInputT.h"
