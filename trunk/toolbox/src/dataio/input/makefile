@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2001-08-03 19:16:43 sawimme Exp $
+# $Id: makefile,v 1.7 2001-08-08 11:47:12 sawimme Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -10,7 +10,8 @@ OBJ = \
 	TahoeInputT.o \
 	PatranInputT.o \
 	ExodusInputT.o \
-	EnSightInputT.o
+	EnSightInputT.o \
+	AbaqusInputT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -23,14 +24,16 @@ SRC = \
 	TahoeInputT.cpp \
 	PatranInputT.cpp \
 	ExodusInputT.cpp \
-	EnSightInputT.cpp
+	EnSightInputT.cpp \
+	AbaqusInputT.cpp
 # headers
 HDR = \
 	InputBaseT.h \
 	TahoeInputT.h \
 	PatranInputT.h \
 	ExodusInputT.h \
-	EnSightInputT.h
+	EnSightInputT.h \
+	AbaqusInputT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
