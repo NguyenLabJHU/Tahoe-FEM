@@ -1,4 +1,4 @@
-/* $Id: VIB.cpp,v 1.8 2003-05-21 04:47:23 thao Exp $ */
+/* $Id: VIB.cpp,v 1.9 2003-05-21 06:40:43 thao Exp $ */
 /* created: paklein (10/30/1997) */
 #include "VIB.h"
 
@@ -58,9 +58,10 @@ VIB::VIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
 		}
 		case C1FunctionT::kQuadratic:
 		{
-			double A;
+			double A, B;
 			in >> A;		
-			fPotential = new ParabolaT(A);
+	                in >> B;
+			fPotential = new ParabolaT(A,B);
 			break;
 		}
 		case C1FunctionT::kTriantafyllidis:
