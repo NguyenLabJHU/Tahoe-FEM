@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.6 2001-04-06 02:55:29 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.7 2001-06-11 02:01:53 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -952,7 +952,6 @@ GeometryT::CodeT ExodusT::ToGeometryCode(const StringT& elem_name) const
 	
 	GeometryT::CodeT code = GeometryT::kNone;
 	for (int i = 0; i < 7 && code == GeometryT::kNone; i++)
-		//if (elem_name_upper == elem_names[i])
 		if (strncmp(elem_name_upper, elem_names[i], 3) == 0)
 			code = geom_codes[i];
 
