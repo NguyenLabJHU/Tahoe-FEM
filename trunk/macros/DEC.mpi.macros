@@ -1,4 +1,4 @@
-# $Id: DEC.mpi.macros,v 1.4 2001-02-06 03:13:17 paklein Exp $
+# $Id: DEC.mpi.macros,v 1.5 2001-02-22 23:38:43 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = -lmpi
@@ -23,6 +23,7 @@ AR          = ar
 ARFLAGS     = -cruv
 MAKE_OPTS   =
 RM          = rm
+RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
 ECHO        = echo
 CAT         = cat
