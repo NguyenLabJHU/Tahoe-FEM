@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.65 2004-11-06 01:48:31 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.66 2004-11-19 23:24:31 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -1193,8 +1193,12 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			SetGlobalShape();
 
                 /* collect nodal values */
-                if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum])
+                if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum]) {
+                	if (fLocVel.IsRegistered())
                         SetLocalU(fLocVel);
+                	else
+						fLocVel = 0.0;
+                }
                 
                 /* coordinates and displacements all at once */
                 if (n_codes[iNodalCoord]) fLocInitCoords.ReturnTranspose(coords);
