@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.h,v 1.8.18.3 2004-05-06 16:00:22 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.h,v 1.8.18.4 2004-05-11 15:57:29 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #ifndef _MF_SMALLSTRAIN_T_H_
 #define _MF_SMALLSTRAIN_T_H_
@@ -27,6 +27,9 @@ public:
 	/* constructor */
 	MeshFreeSSSolidT(const ElementSupportT& support, const FieldT& field);
 	MeshFreeSSSolidT(const ElementSupportT& support);
+
+	/* destructor */
+	~MeshFreeSSSolidT(void);
 	
 	/* append element equations numbers to the list */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -108,6 +111,11 @@ private:
 	
 	/* field ready flag */
 	bool fFieldSet;
+
+	/** pointer to list parameters needed to construct meshless shape functions. This
+	 * pointer is set during MeshFreeSSSolidT::TakeParamaterListT and used during
+	 * MeshFreeSSSolidT::SetShape */
+	const ParameterListT* fMeshfreeParameters;
 };
 
 } // namespace Tahoe 

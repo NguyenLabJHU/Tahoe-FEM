@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.13.16.2 2004-05-04 15:49:59 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.13.16.3 2004-05-11 15:57:29 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 #include "MeshFreeElementSupportT.h"
 
@@ -50,13 +50,13 @@ void MeshFreeElementSupportT::DefineSubs(SubListT& sub_list) const
 	ParameterInterfaceT::DefineSubs(sub_list);
 
 	/* ID's for off grid nodes */
-	sub_list.AddSub("off_grid_node_ID_list");
+	sub_list.AddSub("off_grid_node_ID_list", ParameterListT::ZeroOrOnce);
 
 	/* ID's for interpolant nodes */
-	sub_list.AddSub("interpolant_node_ID_list");
+	sub_list.AddSub("interpolant_node_ID_list", ParameterListT::ZeroOrOnce);
 
 	/* ID's for forces meshless nodes */
-	sub_list.AddSub("meshfree_node_ID_list");
+	sub_list.AddSub("meshfree_node_ID_list", ParameterListT::ZeroOrOnce);
 }
 
 /* accept parameter list */

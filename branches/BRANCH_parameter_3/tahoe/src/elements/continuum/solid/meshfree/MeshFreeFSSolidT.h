@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.h,v 1.9.18.3 2004-05-06 16:00:22 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.h,v 1.9.18.4 2004-05-11 15:57:29 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #ifndef _EFG_FDELASTIC_T_H_
 #define _EFG_FDELASTIC_T_H_
@@ -28,6 +28,9 @@ public:
 	/* constructor */
 	MeshFreeFSSolidT(const ElementSupportT& support, const FieldT& field);
 	MeshFreeFSSolidT(const ElementSupportT& support);
+
+	/* destructor */
+	~MeshFreeFSSolidT(void);
 	
 	/* append element equations numbers to the list */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -112,6 +115,11 @@ protected:
 
 	/* connectivities over all element blocks */
 	iArray2DT fConnectsAll;
+
+	/** pointer to list parameters needed to construct meshless shape functions. This
+	 * pointer is set during MeshFreeSSSolidT::TakeParamaterListT and used during
+	 * MeshFreeSSSolidT::SetShape */
+	const ParameterListT* fMeshfreeParameters;
 };
 
 } /* namespace Tahoe */
