@@ -1,4 +1,4 @@
-/* $Id: AbaqusOutputT.cpp,v 1.2.2.3 2001-11-06 20:22:51 sawimme Exp $ */
+/* $Id: AbaqusOutputT.cpp,v 1.2.2.4 2001-11-07 15:09:12 sawimme Exp $ */
 /* created: sawimme (05/31/2000)                                          */
 
 #include "AbaqusOutputT.h"
@@ -102,18 +102,10 @@ const dArray2DT& e_values)
 	  iArrayT nkeys (n_labels.Length()); 
 	  SetRecordKey (aba, n_labels, nkeys);
 
-	  // collect node numbers
+	  // collect node numbers and break up group into block
 	  iArrayT nodes_used;
-	  fElementSets[ID]->BlockNodesUsed(ec, nodes_used);
-
-	  // change nodes_used from global to local numbering
-	  int offset = connects->Min();
-	  iArrayT rows_used = nodes_used;
-	  rows_used += -offset;
-
-	  // break up group into block
-	  dArray2DT blockvals (rows_used.Length(), n_values.MinorDim());
-	  blockvals.RowCollect (rows_used, n_values);
+	  dArray2DT blockvals;
+	  NodalBlockValues (ID, ec, n_values, blockvals, nodes_used);
 
 	  nodes_used++;
 	  for (int n=0; n < nkeys.Length(); n++)
