@@ -1,6 +1,5 @@
-/* $Id: DetCheckT.h,v 1.2 2001-07-03 01:35:41 paklein Exp $ */
-/* created: paklein (09/11/1997)                                          */
-/* Note: Class does not dynamically allocate memory on construction       */
+/* $Id: DetCheckT.h,v 1.3 2001-07-25 05:56:02 paklein Exp $ */
+/* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
 #define _DETCHECK_T_H_
@@ -10,21 +9,39 @@ class dSymMatrixT;
 class dMatrixT;
 class dArrayT;
 
+/** class to support checks of loss of ellipticity.  \note this class does 
+ * not dynamically allocate memory on construction */
 class DetCheckT
 {
 public:
 
-	/* Constructor */
+	/** constructor
+	 * \param s_jl Cauchy stress
+	 * \param c_ijkl spatial tangent modulus */
 	DetCheckT(const dSymMatrixT& s_jl, const dMatrixT& c_ijkl);
 
-	/*
-	 * Returns 1 if acoustic tensor isn't positive definite,
+	/** check ellipticity of tangent modulus.
+	 * \return 1 if acoustic tensor isn't positive definite,
 	 * and returns the normal to the surface of localization.
-	 * Returns 0, otherwise.
-	 */
+	 * returns 0, otherwise */
 	int IsLocalized(dArrayT& normal);
 
+	/** check ellipticity of tangent modulus using closed form algorithm
+	 * taken from R.A.Regueiro's SPINLOC.
+	 * \return 1 if acoustic tensor isn't positive definite,
+	 * and returns the normal to the surface of localization.
+	 * returns 0, otherwise */
+	int IsLocalized_SPINLOC(dArrayT& normal);
+
 private:
+
+	/** closed-form check for localization, assuming plane strain conditions.
+	 * Taken from R.A.Regueiro's SPINLOC.
+	/* 1 is 11
+	/* 2 is 22
+	/* 3 is 12
+	/* angle theta subtends from the x1 axis to the band normal */
+	int SPINLOC_localize(double *c__, double *thetan, int *loccheck);
 
 	/* 2D determinant check function */
 	int DetCheck2D(dArrayT& normal);

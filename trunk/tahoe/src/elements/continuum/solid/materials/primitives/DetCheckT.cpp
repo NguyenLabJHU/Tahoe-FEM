@@ -1,5 +1,5 @@
-/* $Id: DetCheckT.cpp,v 1.2 2001-07-03 01:35:41 paklein Exp $ */
-/* created: paklein (09/11/1997)                                          */
+/* $Id: DetCheckT.cpp,v 1.3 2001-07-25 05:56:02 paklein Exp $ */
+/* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
 #include <math.h>
@@ -47,7 +47,29 @@ int DetCheckT::IsLocalized(dArrayT& normal)
 	if (fs_jl.Rows() == 2)
 		return DetCheck2D(normal);
 	else
-	//TEMP - not implemented
+		//TEMP - not implemented
+		return 0;
+}
+
+/* check ellipticity of tangent modulus using closed form algorithm
+ * taken from R.A.Regueiro's SPINLOC. */
+int DetCheckT::IsLocalized_SPINLOC(dArrayT& normal)
+{
+	if (fs_jl.Rows() == 2)
+	{
+		/* call SPINLOC routine */
+		double theta = 0.0;
+		int check = 0; 
+		SPINLOC_localize(fc_ijkl.Pointer(), &theta, &check);
+		if (check == 0)
+		{
+			normal[0] = cos(theta);
+			normal[1] = sin(theta);		
+		}
+		return check;
+	}
+	else
+		//TEMP - not implemented
 		return 0;
 }
 
@@ -194,4 +216,142 @@ void DetCheckT::ComputeCoefficients(void)
 
 	A2 = c2t/sin(2.0*phi2);
 	A4 = c4t/sin(4.0*phi4);
+}
+
+/* ***************************************************************** */
+/* closed-form check for localization, assuming plane strain condition */
+/* 1 is 11 */
+/* 2 is 22 */
+/* 3 is 12 */
+/* angle theta subtends from the x1 axis to the band normal */
+int SPINLOC_localize(double *c__, double *thetan, int *loccheck)
+{
+    /* Initialized data */
+    double zero = 0.;
+    double one = 1.;
+    double two = 2.;
+    double three = 3.;
+    double four = 4.;
+    double tol = .01;
+
+    /* System generated locals */
+    int i__1;
+    double d__1, d__2, d__3, d__4;
+
+    /* Local variables */
+    double capa, capb, half, fmin, temp, xmin, temp2, temp3, a, b, 
+	    f;
+    int i__, n;
+    double p, q, r__, x[3], theta, third, a0, a1, a2, a3, a4, pi, 
+	    qq, rad;
+
+    /* Parameter adjustments */
+    c__ -= 4;
+
+    /* Function Body */
+    half = one / two;
+    third = one / three;
+    rad = four * atan(one) / 180.;
+    pi = four * atan(one);
+
+    a0 = c__[4] * c__[12] - c__[10] * c__[6];
+    a1 = c__[4] * (c__[9] + c__[11]) - c__[10] * c__[5] - c__[6] * c__[7];
+    a2 = c__[4] * c__[8] + c__[10] * c__[9] + c__[6] * c__[11] - c__[7] * (
+	    c__[12] + c__[5]) - c__[12] * c__[5];
+    a3 = c__[8] * (c__[10] + c__[6]) - c__[11] * c__[7] - c__[9] * c__[5];
+    a4 = c__[12] * c__[8] - c__[9] * c__[11];
+
+    p = three / four * (a3 / a4);
+    q = a2 / a4 * (one / two);
+    r__ = a1 / a4 * (one / four);
+
+	/* Computing 2nd power */
+    d__1 = p;
+    a = (three * q - d__1 * d__1) * third;
+/* Computing 3rd power */
+    d__1 = p, d__2 = d__1;
+    b = (two * (d__2 * (d__1 * d__1)) - p * 9. * q + r__ * 27.) / 27.;
+
+/* Computing 2nd power */
+    d__1 = b;
+/* Computing 3rd power */
+    d__2 = a, d__3 = d__2;
+    qq = d__1 * d__1 / four + d__3 * (d__2 * d__2) / 27.;
+    if (fabs(qq) < 1e-8) {
+	qq = zero;
+    }
+
+    temp = p * third;
+
+    if (qq > zero || qq == 0.f) {
+	temp2 = one;
+	temp3 = -half * b + sqrt(qq);
+	if (temp3 < zero) {
+	    temp2 = -one;
+	}
+	d__1 = fabs(temp3);
+	capa = temp2 * pow(d__1, third);
+	temp2 = one;
+	temp3 = -half * b - sqrt(qq);
+	if (temp3 < zero) {
+	    temp2 = -one;
+	}
+	d__1 = fabs(temp3);
+	capb = temp2 * pow(d__1, third);
+	x[0] = capa + capb - temp;
+	x[1] = -(capa + capb) * half - temp;
+	x[2] = x[1];
+    } else {
+	if (a < zero) {
+/* Computing 3rd power */
+	    d__2 = a * third, d__3 = d__2;
+	    theta = acos(-half * b / sqrt((d__1 = -(d__3 * (d__2 * d__2)), 
+		    fabs(d__1))));
+	    temp2 = two * sqrt((d__1 = -a * third, fabs(d__1)));
+	    x[0] = temp2 * cos(theta * third) - temp;
+	    x[1] = -temp2 * cos(theta * third + rad * 60.) - temp;
+	    x[2] = -temp2 * cos(theta * third - rad * 60.) - temp;
+	} else {
+		cout << "\n DetCheckT::SPINLOC_localize: a is positive when it should be negative" << endl;
+	}
+    }
+
+    fmin = 1e50;
+    n = 3;
+    if (fabs(qq) < 1e-8) {
+	n = 2;
+    }
+    if (qq > zero) {
+	n = 1;
+    }
+    i__1 = n;
+    for (i__ = 1; i__ <= i__1; ++i__) {
+/* Computing 4th power */
+	d__1 = x[i__ - 1], d__1 *= d__1;
+/* Computing 3rd power */
+	d__2 = x[i__ - 1], d__3 = d__2;
+/* Computing 2nd power */
+	d__4 = x[i__ - 1];
+	f = a4 * (d__1 * d__1) + a3 * (d__3 * (d__2 * d__2)) + a2 * (d__4 * 
+		d__4) + a1 * x[i__ - 1] + a0;
+	if (f <= fmin) {
+	    fmin = f;
+	    xmin = x[i__ - 1];
+	}
+/* L5: */
+    }
+
+/* .. output */
+
+    *thetan = atan(xmin);
+
+/* 	if(fmin.lt.tol) then */
+    if (fmin / c__[4] < tol) {
+/* localized */
+	*loccheck = 1;
+    } else {
+/* not localized */
+	*loccheck = 0;
+    }
+    return 0;
 }
