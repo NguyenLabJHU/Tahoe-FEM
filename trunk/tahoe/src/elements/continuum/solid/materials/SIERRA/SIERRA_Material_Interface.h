@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Interface.h,v 1.5 2003-03-10 23:30:56 paklein Exp $ */
+/* $Id: SIERRA_Material_Interface.h,v 1.6 2003-04-23 16:55:45 paklein Exp $ */
 #ifndef __SIERRA_MAT_INTERFACE_H__
 #define __SIERRA_MAT_INTERFACE_H__
 
@@ -13,12 +13,12 @@ extern "C" {
 /*@{*/ 
 /** retrieve a named value */
 extern void FORTRAN_NAME(get_real_constant)(double* destination, const int* mat_vals, 
-	const char* value_name);
+	const char* value_name, int value_name_len);
 
 /** retrieve the index for the value for the given material. The numbering uses
  * Fortran conventions, so the first index is 1. */
 extern void FORTRAN_NAME(get_var_index)(int* index, int* num_workset_elem, const char* variable_name, 
-	const char* material_name);
+	const char* material_name, int variable_name_len, int material_name_len);
 /*@}*/ 
 
 /** \name Sierra callback function types */
@@ -69,24 +69,27 @@ typedef void (*Sierra_function_material_init)(int* nelem, double* dt, int* nsv,
  * \param material_name name for material model
 */
 extern void FORTRAN_NAME(register_material)(int* XML_command_id, Sierra_function_param_check check_func, 
-	int* modulus_flag, const char* material_name);
+	int* modulus_flag, const char* material_name, int material_name_len);
 
 /** register function to do material computations */
-extern void FORTRAN_NAME(register_process_func)(Sierra_function_material_calc calc_func, const char* material_name);
+extern void FORTRAN_NAME(register_process_func)(Sierra_function_material_calc calc_func, const char* material_name, int material_name_len);
 
 /** register function to do material initialization */
-extern void FORTRAN_NAME(register_init_func)(Sierra_function_material_init init_func, const char* material_name);
+extern void FORTRAN_NAME(register_init_func)(Sierra_function_material_init init_func, const char* material_name, int material_name_len);
 
 /** register the number of state variables */
-extern void FORTRAN_NAME(register_num_state_vars)(int* nsv, const char* material_name);
+extern void FORTRAN_NAME(register_num_state_vars)(int* nsv, const char* material_name, int material_name_len);
 
 /** register the data that the material model needs from the element in
  * order to do its computations */
-extern void FORTRAN_NAME(register_input_var)(const char* variable_name, const char* material_name);
+extern void FORTRAN_NAME(register_input_var)(const char* variable_name, const char* material_name, int variable_name_len, int material_name_len);
 
 /** register the XML commands that specify material parameters */
-extern void FORTRAN_NAME(register_parser_line)(int* XML_command_id, const char* material_name);
+extern void FORTRAN_NAME(register_parser_line)(int* XML_command_id, const char* material_name, int material_name_len);
 /*@}*/
+
+/** convert a fortran character array into a C string */
+extern void f2c_string(const char* f_string, int f_string_len, char* buffer, int buffer_len);
 
 #ifdef __cplusplus 
 }
