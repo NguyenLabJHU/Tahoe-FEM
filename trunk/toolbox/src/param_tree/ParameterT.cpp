@@ -1,8 +1,10 @@
-/* $Id: ParameterT.cpp,v 1.2 2002-09-03 07:54:08 paklein Exp $ */
+/* $Id: ParameterT.cpp,v 1.3 2002-11-16 20:50:21 paklein Exp $ */
 #include "ParameterT.h"
 
 /* array behavior */
+namespace Tahoe {
 const bool ArrayT<ParameterT>::fByteCopy = false;
+}
 
 /* constructors */
 ParameterT::ParameterT(int a, const StringT& name):
