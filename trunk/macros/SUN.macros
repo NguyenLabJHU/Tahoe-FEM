@@ -1,21 +1,28 @@
-# $Id: SUN.macros,v 1.15 2003-03-15 16:54:31 paklein Exp $
+# $Id: SUN.macros,v 1.16 2003-10-14 13:08:53 sawimme Exp $
 #
-## Load GNU file utilities to get ln -sf to work properly (sunfreeware.com)
+# Load GNU file utilities to get ln -sf to work properly (sunfreeware.com)
 #
 # OPTIONAL: set this from your shell or .cshrc
 # setenv LD_LIBRARY_PATH $(COMP_DIR)/lib
 #
 # set the path to your compiler
+COMP_DIR = /opt/studio8/SUNWspro
 #COMP_DIR = /opt/forte62/SUNWspro/WS6U2
 #COMP_DIR = /opt/SUNWspro/WS6
-COMP_DIR = /opt/SUNWspro/SC5.0
+#COMP_DIR = /opt/SUNWspro/SC5.0
 #
 MAKE        = make
 # use the makedepend that comes with /usr/openwin/bin
 # do not use the one that comes with SEACAS/etc
 MAKE_DEPEND = makedepend
 #
-DEPENDFLAGS  = -I/$(COMP_DIR)/include/cc -I/$(COMP_DIR)/include/CC \
+# studio 8 puts include in the sub directory prod
+DEPENDFLAGS  = -I/$(COMP_DIR)/prod/include/cc -I/$(COMP_DIR)/prod/include/CC \
+               -I/$(COMP_DIR)/prod/include/CC4 -I/$(COMP_DIR)/prod/include/CCios \
+               -I/$(COMP_DIR)/prod/include/f77 -I/$(COMP_DIR)/prod/include/f90 \
+               -I/$(COMP_DIR)/prod/include/f95 -I/$(COMP_DIR)/prod/include/libdwarf \
+               -I/$(COMP_DIR)/prod/include/lint
+#DEPENDFLAGS  = -I/$(COMP_DIR)/include/cc -I/$(COMP_DIR)/include/CC \
                -I/$(COMP_DIR)/include/CC4 -I/$(COMP_DIR)/include/CCios \
                -I/$(COMP_DIR)/include/f77
 COMP_C      = $(COMP_DIR)/bin/cc
@@ -26,7 +33,9 @@ COMP_F      = $(COMP_DIR)/bin/f77
 MORE_CFLAGS = -g
 LOC_CFLAGS  = -c -I$(INC_DIR) -D__SUN__ $(MORE_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
-CFLAGS_CC   = $(LOC_CFLAGS) -features=rtti -instances=static
+# -instances=static no longer needed in Studio 8
+CFLAGS_CC   = $(LOC_CFLAGS) -features=rtti 
+#CFLAGS_CC   = $(LOC_CFLAGS) -features=rtti -instances=static
 CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = 
