@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.14 2002-03-04 07:05:53 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.15 2002-05-07 07:28:40 paklein Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -227,7 +227,7 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
   	if (num_node_variables > 0) UpdateData();
 
 	/* add variables to the console */
-	if (currentVarNum > 0)
+	if (currentVarNum > -1)
 	{
 		iAddVariable("min_Scalar_Range", scalarRange1[currentVarNum]);
 		iAddVariable("max_Scalar_Range", scalarRange2[currentVarNum]);
