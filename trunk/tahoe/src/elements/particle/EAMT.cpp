@@ -70,6 +70,9 @@ void EAMT::Initialize(void)
   fLHS.Dimension(2*ndof);
   fRHS.Dimension(2*ndof);
 
+  /* new array */
+  fRHS2.Dimension(2*ndof);
+
   /* constant matrix needed to calculate stiffness */
   fOneOne.Dimension(fLHS);
   dMatrixT one(ndof);
@@ -520,6 +523,8 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 	      if(iEmb == 1)
 		{
 		  fLHS  = 0.0;
+		  r_ji = r_ij;
+
 		  double Ep_i   = fEmbeddingForce(tag_i,0); 
 		  double Epp_i  = fEmbeddingStiff(tag_i,0); 
 		  
@@ -544,31 +549,22 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 		  double K2_i = Epp_i * rhop_j;
 		  double K2_j = Epp_j * rhop_i;
 
-		  dMatrixT El_i(ndof);
-		  dMatrixT El_j(ndof);
+		  /* 2nd term */
+		  dArrayT El(2*ndof);
 		  for (int k = 0; k < ndof; k++)
 		    {
-		      double r2_k = r_ij[k]/r;
-		      for (int l = 0; l < ndof; l++)
-			{
-			  double r_kl = r2_k * r_ij[l]/r;
-			  
-			  double F_ik = F_i_byr*(1.0 - r_kl);
-			  double F_jk = F_j_byr*(1.0 - r_kl);
-			  
-			  double K_ik = K_i*r_kl + K2_i*rp_i[l]*r2_k;
-			  double K_jk = K_j*r_kl + K2_j*rp_j[l]*r2_k;
+		      El[k]      =  (K_i - F_i_byr)*fRHS[k]/r + K2_i*rp_i[k];
+		      El[k+ndof] =  (K_j - F_j_byr)*fRHS[k]/r + K2_j*rp_j[k];
+		    }		  
 
-			  El_i(k,l) =  F_ik + K_ik;
-			  El_j(k,l) =  F_jk + K_jk;
-			}		  
-		    }
-		  
-		  fLHS.SetBlock(0,0,El_i); 
-		  fLHS.SetBlock(ndof,ndof,El_j); 
-		  fLHS.SetBlock(0,ndof,El_i); 
-		  fLHS.SetBlock(ndof,0,El_j);
+		  fLHS.Outer(fRHS, El, 1./r);		  
 
+		  /* 1st term */
+		  for (int k = 0; k < ndof; k++)
+		    {
+		      fLHS(k,k)           +=  F_i_byr;
+		      fLHS(k+ndof,k+ndof) +=  F_j_byr;
+		    }		  
 
 		  /* assemble */
 		  for (int p = 0; p < row_eqnos.Length(); p++)
@@ -937,7 +933,7 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		
 	      /* global coordinates */
 	      coords.RowAlias(tag_j, x_j);
-		
+
 	      /* connecting vector */
 	      r_ij.DiffOf(x_j, x_i);
 	      double r = r_ij.Magnitude();
@@ -961,7 +957,7 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 		/* 1st term */
 		fLHS.Outer(fRHS, fRHS, (K - Fbyr)/r/r);
-		
+
 		/* 2nd term */
 		fLHS.AddScaled(Fbyr, fOneOne);
 
@@ -996,6 +992,8 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	      if(iEmb == 1)
 		{
 		  fLHS  = 0.0;
+		  r_ji = r_ij;
+
 		  double Ep_i   = fEmbeddingForce(tag_i,0); 
 		  double Epp_i  = fEmbeddingStiff(tag_i,0); 
 		  
@@ -1020,31 +1018,22 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		  double K2_i = Epp_i * rhop_j;
 		  double K2_j = Epp_j * rhop_i;
 
-		  dMatrixT El_i(ndof);
-		  dMatrixT El_j(ndof);
+		  /* 2nd term */
+		  dArrayT El(2*ndof);
 		  for (int k = 0; k < ndof; k++)
 		    {
-		      double r_k = r_ij[k]/r;
-		      for (int l = 0; l < ndof; l++)
-			{
-			  double r_l = r_ij[l]/r;
-			  double r_kl = r_k * r_l;
-			  
-			  double Fi = F_i_byr*(1.0 - r_kl);
-			  double Fj = F_j_byr*(1.0 - r_kl);
-			  
-			  double K_ik = K_i*r_k*r_l + K2_i*rp_i[l]*r_k;
-			  double K_jk = K_j*r_k*r_l + K2_j*rp_j[l]*r_k;
+		      El[k]      =  (K_i - F_i_byr)*fRHS[k]/r + K2_i*rp_i[k];
+		      El[k+ndof] =  (K_j - F_j_byr)*fRHS[k]/r + K2_j*rp_j[k];
+		    }		  
 
-			  El_i(k,l) =  Fi + K_ik;
-			  El_j(k,l) =  Fj + K_jk;
-			}		  
-		    }
-		  
-		  fLHS.SetBlock(0,0,El_i); 
-		  fLHS.SetBlock(ndof,ndof,El_j); 
-		  fLHS.SetBlock(0,ndof,El_i); 
-		  fLHS.SetBlock(ndof,0,El_j);
+		  fLHS.Outer(fRHS, El, 1./r);		  
+
+		  /* 1st term */
+		  for (int k = 0; k < ndof; k++)
+		    {
+		      fLHS(k,k)           +=  F_i_byr;
+		      fLHS(k+ndof,k+ndof) +=  F_j_byr;
+		    }		  
 
 		  /* assemble */
 		  pair_eqnos.RowCollect(pair, field_eqnos);
