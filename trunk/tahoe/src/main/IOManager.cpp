@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.12 2002-02-18 09:33:25 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.13 2002-03-02 20:24:34 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 
 #include "IOManager.h"
@@ -79,9 +79,11 @@ void IOManager::NextTimeSequence(int sequence_number)
 }
 
 /* set model coordinates */
-void IOManager::SetCoordinates(const dArray2DT& coordinates, const iArrayT* node_map)
+//void IOManager::SetCoordinates(const dArray2DT& coordinates, const iArrayT* node_map)
+void IOManager::SetCoordinates(const dArray2DT& coordinates)
 {
-	fOutput->SetCoordinates(coordinates, node_map);
+//	fOutput->SetCoordinates(coordinates, node_map); 
+	fOutput->SetCoordinates(coordinates); 
 }
 	
 /* register the output for an element set. returns the output ID */
@@ -157,7 +159,8 @@ void IOManager::DivertOutput(const StringT& outfile)
 			AddElementSet(*(element_sets[i]));
 			
 		/* set coordinate data */
-		fOutput->SetCoordinates(fOutput_tmp->Coordinates(), fOutput_tmp->NodeMap());		
+//		fOutput->SetCoordinates(fOutput_tmp->Coordinates(), fOutput_tmp->NodeMap());
+		fOutput->SetCoordinates(fOutput_tmp->Coordinates());
 	}
 }
 
