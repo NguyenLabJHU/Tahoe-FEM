@@ -1,4 +1,4 @@
-/* $Id: SolidMatList1DT.cpp,v 1.8 2003-05-21 23:48:11 paklein Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.9 2003-07-29 21:17:49 rdorgan Exp $ */
 #include "SolidMatList1DT.h"
 #include "SolidMatSupportT.h"
 #include "fstreamT.h"
@@ -6,6 +6,14 @@
 /* 1D material types codes */
 /* Add small strain linear elastic material here */
 #include "SSHookean1D.h"
+
+#ifdef __DEVELOPMENT__
+#include "DevelopmentMaterialsConfig.h"
+#endif
+
+#ifdef GRADJ2SS_MATERIAL_DEV
+#include "GradJ2SS1D.h"
+#endif
 
 using namespace Tahoe;
 
@@ -39,7 +47,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 			throw ExceptionT::kBadInputValue;
 		}
 		
-		/* add to the list of materials */
+		/* add to the list of matxxerials */
 		switch (matcode)
 		{
 			case kSSKStV:
@@ -49,6 +57,19 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 				fArray[matnum] = new SSHookean1D(in, *fSSMatSupport);
 				break;
 		  	}
+			case kGradJ2SS:
+			{
+#ifdef GRADJ2SS_MATERIAL_DEV
+				/* check */
+				if (!fGradSSMatSupport) Error_no_small_strain(cout, matcode);
+
+				fArray[matnum] = new GradJ2SS1D(in, *fGradSSMatSupport);
+				fHasHistory = true;
+				break;
+#else
+				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "GRADJ2SS_MATERIAL_DEV not enabled: %d", matcode);
+#endif
+			}
 			default:
 			{
 				cout << "\n SolidMatList1DT::ReadMaterialData: unknown material code: ";
