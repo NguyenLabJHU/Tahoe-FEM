@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.10.2.6 2003-01-13 19:51:28 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.10.2.7 2003-01-14 15:39:09 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -267,14 +267,6 @@ void ParticleT::SetConfiguration(void)
 	/* reset the types array */
 	int nnd = ElementSupport().NumNodes();
 	fType.Resize(nnd);
-	const ArrayT<int>* ghosted_nodes = comm_manager.NodesWithGhosts();
-	if (ghosted_nodes) {
-		const ArrayT<int>* ghosts = comm_manager.GhostNodes();
-		int* to = ghosts->Pointer();
-		int* from = ghosted_nodes->Pointer();
-		for (int i = 0; i < ghosted_nodes->Length(); i++)
-			fType[to[i]] = fType[from[i]];
-	}
 	
 	/* exchange type information */
 	iArray2DT type_wrapper(fType.Length(), 1, fType.Pointer());
