@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.1 2001-04-27 10:53:30 paklein Exp $ */
+/* $Id: SolidT.h,v 1.2 2001-04-27 18:57:19 paklein Exp $ */
 /* created: paklein (03/10/2001)                                          */
 
 #ifndef _MATERIAL_T_H_
@@ -43,14 +43,11 @@ kmodCauchyBornDC = 15,
 const int kSWDC100         = 24;//improper CB material
 const int kSWDC110         = 15;	//improper CB material
 const int kD2VIB           = 23; // plane stress VIB + gradient terms
-
-const int kABAQUS_BCJ      = 80;
 #endif
 
 /* 3D types */
 #if 0
 const int kIsoVIB_X	    = 14; // remove
-const int kABAQUS_BCJ   = 80;
 #endif
   
 };
