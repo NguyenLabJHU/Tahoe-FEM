@@ -391,8 +391,8 @@ if ( msglvl > 2 ) {
 if ( error >= 0 ) {
    fprintf(stderr, 
           "\n proc %d : factorization error at front %d", myid, error) ;
-   MPI_Finalize() ;
-   exit(-1) ;
+   /* MPI_Finalize() ; */
+   return -1;
 }
 /*--------------------------------------------------------------------*/
 /*
