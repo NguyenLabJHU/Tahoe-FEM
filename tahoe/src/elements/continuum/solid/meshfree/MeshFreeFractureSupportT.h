@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.h,v 1.2 2001-12-17 00:15:56 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.h,v 1.3 2002-02-20 09:40:26 paklein Exp $ */
 /* created: paklein (02/15/2000)                                          */
 
 #ifndef _MESHFREE_FRACTURE_T_H_
@@ -63,8 +63,16 @@ protected:
 		const iArrayT& surface_nodes, int numDOF, int max_node_num,
 		ModelManagerT* model);
 
-	/* returns true for crack growth */
-	bool CheckGrowth(StructuralMaterialT& material, LocalArrayT& disp,
+	/** check for extension of active crack fronts. Material properties are evaluated
+	 * at the sampling points using the constitutive model and the displacement array.
+	 * This call collects the list of facets returned by MeshFreeFractureSupportT::ResetFacets
+	 * \param material pointer to the bulk constitutive model. If passes as NULL, no check
+	 *        is performed, but the reset facet list is cleared.
+	 * \param disp pointer to the nodal displacement data. Can by passed as NULL \e only if
+	 *        the material pointer is also NULL.
+	 * \param verbose pass as true to write debugging data to cout
+	 * \return true of new facets have been inserted */
+	bool CheckGrowth(StructuralMaterialT* material, LocalArrayT* disp,
 		bool verbose);
 
 private:
