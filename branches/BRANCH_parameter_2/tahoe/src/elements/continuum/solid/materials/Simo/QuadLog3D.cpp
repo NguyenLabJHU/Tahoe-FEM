@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.cpp,v 1.8.30.2 2004-02-18 16:33:47 paklein Exp $ */
+/* $Id: QuadLog3D.cpp,v 1.8.30.3 2004-02-19 19:59:52 paklein Exp $ */
 /* created: paklein (06/27/1997) */
 #include "QuadLog3D.h"
 
@@ -10,8 +10,6 @@ using namespace Tahoe;
 /* constructor */
 QuadLog3D::QuadLog3D(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("quad_log_3D"),
-	FSSolidMatT(in, support), //in principal stress space
-	IsotropicT(in),
 	fSpectral(3),
 	fb(3),
 	fStress(3),
@@ -92,33 +90,6 @@ double QuadLog3D::StrainEnergyDensity(void)
 	LogStretches(fEigs);
 
 	return ComputeEnergy(floge);
-}
-
-/* information about subordinate parameter lists */
-void QuadLog3D::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	FSSolidMatT::DefineSubs(sub_list);
-	IsotropicT::DefineSubs(sub_list);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* QuadLog3D::NewSub(const StringT& list_name) const
-{
-	/* inherited */
-	ParameterInterfaceT* params = FSSolidMatT::NewSub(list_name);
-	if (params)
-		return params;
-	else
-		return IsotropicT::NewSub(list_name);
-}
-
-/* accept parameter list */
-void QuadLog3D::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	FSSolidMatT::TakeParameterList(list);
-	IsotropicT::TakeParameterList(list);
 }
 
 /*************************************************************************

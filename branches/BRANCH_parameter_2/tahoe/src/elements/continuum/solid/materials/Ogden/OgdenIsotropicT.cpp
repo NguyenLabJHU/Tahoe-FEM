@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.13.18.2 2004-02-18 16:33:46 paklein Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.13.18.3 2004-02-19 19:59:50 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #include "OgdenIsotropicT.h"
 
@@ -9,7 +9,7 @@ using namespace Tahoe;
 
 /* constructor */
 OgdenIsotropicT::OgdenIsotropicT(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("Ogden_isotropic")
+	ParameterInterfaceT("Ogden_isotropic"),
 	fSpectralDecomp(NumSD()),
 	fC(NumSD()),
 	fEigs(NumSD()),
@@ -166,36 +166,9 @@ double OgdenIsotropicT::Pressure(void) const
 			sqrt(fSpectralDecomp.Eigenvalues().Product());
 }
 
-/* information about subordinate parameter lists */
-void OgdenIsotropicT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	FSSolidMatT::DefineSubs(sub_list);
-	IsotropicT::DefineSubs(sub_list);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* OgdenIsotropicT::NewSub(const StringT& list_name) const
-{
-	/* inherited */
-	ParameterInterfaceT* params = FSSolidMatT::NewSub(list_name);
-	if (params)
-		return params;
-	else
-		return IsotropicT::NewSub(list_name);
-}
-
-/* accept parameter list */
-void OgdenIsotropicT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	FSSolidMatT::TakeParameterList(list);
-	IsotropicT::TakeParameterList(list);
-}
-
 /*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 /* construct symmetric rank-4 mixed-direction tensor (6.1.44) */
 void OgdenIsotropicT::MixedRank4_2D(const dArrayT& a, const dArrayT& b,

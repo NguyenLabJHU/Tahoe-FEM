@@ -1,10 +1,9 @@
-/* $Id: LocalJ2SSNonlinHard.h,v 1.7 2003-01-29 07:35:03 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard.h,v 1.7.30.1 2004-02-19 19:59:53 paklein Exp $ */
 #ifndef _LOCAL_J2_SS_NONLIN_HARD_H_
 #define _LOCAL_J2_SS_NONLIN_HARD_H_
 
 /* base classes */
-#include "SSSolidMatT.h"
-#include "IsotropicT.h"
+#include "SSIsotropicMatT.h"
 #include "HookeanMatT.h"
 
 /* direct members */
@@ -19,9 +18,7 @@ namespace Tahoe {
 class ElementCardT;
 class ifstreamT;
 
-class LocalJ2SSNonlinHard: public SSSolidMatT,
-	    public IsotropicT,
-	    public HookeanMatT
+class LocalJ2SSNonlinHard: public SSIsotropicMatT, public HookeanMatT
 {
 public:
 

@@ -1,4 +1,4 @@
-/* $Id: EVPFDBaseT.cpp,v 1.11.30.1 2004-01-21 19:10:25 paklein Exp $ */
+/* $Id: EVPFDBaseT.cpp,v 1.11.30.2 2004-02-19 19:59:54 paklein Exp $ */
 #include "EVPFDBaseT.h"
 #include "NLCSolver.h"
 #include "NLCSolver_LS.h"
@@ -102,6 +102,33 @@ void EVPFDBaseT::Print(ostream& out) const
   out << "    NLC solver:\n";
   out << "       Solver method . . . . . . . . . . . . . . = " << fSolverCode << "\n";
   fSolver->Print(out);
+}
+
+/* information about subordinate parameter lists */
+void EVPFDBaseT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	FDHookeanMatT::DefineSubs(sub_list);
+	IsotropicT::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* EVPFDBaseT::NewSub(const StringT& list_name) const
+{
+	/* inherited */
+	ParameterInterfaceT* params = FDHookeanMatT::NewSub(list_name);
+	if (params)
+		return params;
+	else
+		return IsotropicT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void EVPFDBaseT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FDHookeanMatT::TakeParameterList(list);
+	IsotropicT::TakeParameterList(list);
 }
 
 /* set (material) tangent modulus */

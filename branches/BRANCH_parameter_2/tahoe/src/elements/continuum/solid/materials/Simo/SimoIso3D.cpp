@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.cpp,v 1.9.30.2 2004-02-18 16:33:47 paklein Exp $ */
+/* $Id: SimoIso3D.cpp,v 1.9.30.3 2004-02-19 19:59:52 paklein Exp $ */
 /* created: paklein (03/02/1997) */
 #include "SimoIso3D.h"
 #include <iostream.h>
@@ -9,8 +9,6 @@ using namespace Tahoe;
 /* constructor */
 SimoIso3D::SimoIso3D(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("Simo_isotropic_3D"),
-	FSSolidMatT(in, support),
-	IsotropicT(in),
 	fStress(3),
 	fModulus(dSymMatrixT::NumValues(3)),
 	
@@ -113,33 +111,6 @@ double SimoIso3D::StrainEnergyDensity(void)
 	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 
 	return ComputeEnergy(J, fb_bar);
-}
-
-/* information about subordinate parameter lists */
-void SimoIso3D::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	FSSolidMatT::DefineSubs(sub_list);
-	IsotropicT::DefineSubs(sub_list);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* SimoIso3D::NewSub(const StringT& list_name) const
-{
-	/* inherited */
-	ParameterInterfaceT* params = FSSolidMatT::NewSub(list_name);
-	if (params)
-		return params;
-	else
-		return IsotropicT::NewSub(list_name);
-}
-
-/* accept parameter list */
-void SimoIso3D::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	FSSolidMatT::TakeParameterList(list);
-	IsotropicT::TakeParameterList(list);
 }
 
 /*************************************************************************
