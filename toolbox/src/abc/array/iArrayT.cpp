@@ -1,5 +1,5 @@
-/* $Id: iArrayT.cpp,v 1.5 2002-01-08 23:12:15 paklein Exp $ */
-/* created: paklein (08/10/1996)                                          */
+/* $Id: iArrayT.cpp,v 1.6 2002-01-11 23:44:20 paklein Exp $ */
+/* created: paklein (08/10/1996) */
 
 #include "iArrayT.h"
 #include <iostream.h>
@@ -115,11 +115,18 @@ iArrayT& iArrayT::Union(const ArrayT<const nArrayT<int>*>& source)
 		Allocate(0);
 	else
 	{
-		/* skip empties */
+		/* verify list and skip empties */
 		iArrayT empty(source.Length());
 		empty = 1;
 		for (int i = 0; i < empty.Length(); i++)
-			if (source[i]->Length() > 0) empty[i] = 0;
+		{
+			const nArrayT<int>* a = source[i];
+			if (!a) {
+				cout << "\n iArrayT::Union: source array " << i << " is NULL" << endl;
+				throw eGeneralFail;
+			}
+			if (a->Length() > 0) empty[i] = 0;
+		}
 	
 		/* range of data */
 		int count = empty.Count(0);
