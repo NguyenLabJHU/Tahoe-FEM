@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.24.2.7 2004-03-22 18:40:53 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.24.2.8 2004-03-24 19:48:55 paklein Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -763,6 +763,9 @@ void FieldT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& ord
 
 		/* torsion */
 		sub_sub_list.AddSub("torsion");	
+
+		/* mapped nodes */
+		sub_sub_list.AddSub("mapped_nodes");	
 	}
 	else if (sub == "FBC_controllers")
 	{
