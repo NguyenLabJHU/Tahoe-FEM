@@ -2,7 +2,7 @@
 #----------------- Compilers for sequential code ----------------
 
 CC = cc
-OPTFLAGS = -O3
+OPTFLAGS = -g
 INCDIR = 
 COPTIONS = 
 

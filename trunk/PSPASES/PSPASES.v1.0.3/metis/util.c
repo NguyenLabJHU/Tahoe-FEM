@@ -8,11 +8,13 @@
  * Started 9/28/95
  * George
  *
- * $Id: util.c,v 1.1.1.1 2004-10-07 16:05:25 paklein Exp $
+ * $Id: util.c,v 1.2 2004-12-11 09:27:26 paklein Exp $
  */
 
 #include <metis.h>
 
+/* #define __DO_DEBUG__ 1 */
+#undef __DO_DEBUG__ 
 
 /*************************************************************************
 * This function prints an error message and exits
@@ -104,6 +106,10 @@ idxtype *idxsmalloc(int n, idxtype ival, char *msg)
 void *GKmalloc(int nbytes, char *msg)
 {
   void *ptr;
+
+#ifdef __DO_DEBUG__
+	printf("nbytes = %d\n", nbytes);
+#endif
 
   if (nbytes == 0)
     return NULL;

@@ -1,15 +1,16 @@
-/* $Id: order.c,v 1.1 2004-12-11 01:44:14 paklein Exp $ */
+/* $Id: order.c,v 1.2 2004-12-11 09:27:22 paklein Exp $ */
 /* order.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
 */
 
 /* debugging */
-#undef __DO_DEBUG__
-/* #define __DO_DEBUG__ 1 */
+/* #undef __DO_DEBUG__ */
+#define __DO_DEBUG__ 1
 
 #include "mpi.h"
 #include "pspases_f2c.h"
+#include <stdio.h>
 
 /* Table of constant values */
 static integer c__3 = 3;
@@ -52,13 +53,13 @@ static integer c__0 = 0;
 /* /+ of such damages, IBM expects the user to accept the risk of any such      +/ */
 /* /+ harm, or the user shall not attempt to use these libraries for any        +/ */
 /* /+ purpose.                                                                  +/ */
-/* /+                                                                           +/ */
+/* /+                                                        m                   +/ */
 /* /+ The downloading, compiling, or executing any part of this software        +/ */
 /* /+ constitutes an implicit agreement to these terms.  These terms and        +/ */
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: order.c,v 1.1 2004-12-11 01:44:14 paklein Exp $ +/ */
+/* /+ $Id: order.c,v 1.2 2004-12-11 09:27:22 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 /*<    >*/
 /* Subroutine */ int porder_(integer *rowdist, integer *aptrs, integer *ainds,
@@ -69,6 +70,12 @@ static integer c__0 = 0;
 	*ioasize2)
 */
 {
+#ifdef __DO_DEBUG__
+	FILE* fp = NULL;
+	char file[] = "rankN";
+	char ints[] = "0123456789";
+#endif
+
     /* System generated locals */
     integer i__1, i__2;
 
@@ -76,7 +83,7 @@ static integer c__0 = 0;
     static integer mynnodes, i__, j, k, l, m;
     extern /* Subroutine */ int  
     	parometisf_(integer *, integer *, integer *, integer *, integer *,
-	     integer *, integer *, integer *);
+	     integer *, integer *, MPI_Comm *);
     static integer ierr, opts[5], offdnz, ioasize;
 
 /*<       implicit none >*/
@@ -90,6 +97,7 @@ static integer c__0 = 0;
 /*<       double precision MPI_WTIME, MPI_WTICK, PMPI_WTIME, PMPI_WTICK >*/
 /*<       external MPI_WTIME, MPI_WTICK, PMPI_WTIME, PMPI_WTICK >*/
 /*      integer, allocatable :: xadj(:),adjncy(:), sorder(:), counts(:) */
+	integer *xadj, *adjncy;
 /*<       integer xadj, adjncy, sorder, counts >*/
 /*<       integer mynnodes2, ioasize2 >*/
 /*<       dimension xadj(0:mynnodes2) >*/
@@ -98,6 +106,15 @@ static integer c__0 = 0;
 /*<       integer comm,myid,pp,serialorder >*/
 /*<       integer dbgpp >*/
 /*<       mynnodes = rowdist(myid+1)-rowdist(myid) >*/
+
+	/* debugging */
+#ifdef __DO_DEBUG__
+	file[4] = ints[*myid];
+	fp = fopen(file, "a");
+	fprintf(fp, "porder_: %d", *myid);
+	fflush(fp);
+#endif
+
     /* Parameter adjustments */
     --aptrs;
     --ainds;
@@ -105,10 +122,10 @@ static integer c__0 = 0;
     /* Function Body */
     mynnodes = rowdist[*myid + 1] - rowdist[*myid];
 /*<       ioasize = aptrs(2,mynnodes-1)+aptrs(1,mynnodes-1)-1 >*/
-    ioasize = aptrs[(mynnodes - 1 << 1) + 2] + aptrs[(mynnodes - 1 << 1) + 1] 
-	    - 1;
+    ioasize = aptrs[(mynnodes - 1 << 1) + 2] + aptrs[(mynnodes - 1 << 1) + 1] - 1;
 /*      allocate(xadj(0:mynnodes),stat=i) */
-	xadj = (integer*) malloc(mynnodes*sizeof(integer));
+	xadj = (integer*) malloc((mynnodes+1)*sizeof(integer));
+	psp_clear_int(xadj, mynnodes);
 
 /*<       if(i.ne.0) then >*/
     if (!xadj) {
@@ -120,7 +137,8 @@ static integer c__0 = 0;
     }
 
 /*      allocate(adjncy(0:ioasize-mynnodes-1),stat=i) */
-	adjncy = (integer*) malloc((ioasize-mynnodes-1)*sizeof(integer));
+	adjncy = (integer*) malloc((ioasize-mynnodes)*sizeof(integer));
+	psp_clear_int(adjncy, ioasize-mynnodes-1);
 
 /*<       if(i.ne.0) then >*/
     if (!adjncy) {
@@ -198,6 +216,12 @@ static integer c__0 = 0;
 	opts[2] = *dbgpp;
 /*<         opts(4) = 0 >*/
 	opts[3] = 0;
+
+	/* debug level */
+	opts[4] = 0;
+#ifdef __DO_DEBUG__
+	opts[4] = 2;
+#endif
 /*<    >*/
 	parometisf_(rowdist, xadj, adjncy, order, sizes, opts, serialorder, comm);
 /*<       end if >*/
@@ -208,6 +232,10 @@ static integer c__0 = 0;
 	free(xadj);
 	free(adjncy);
 
+	/* debugging */
+#ifdef __DO_DEBUG__
+	fclose(fp);
+#endif
 /*<       end >*/
     return 0;
 } /* porder_ */

@@ -3,11 +3,20 @@ Things that needed to be addressed when running the code through f2c
     pointers where re-written into the argument list so their dynamic
 	dimensions could be set with the DIMENSION statement.
 
-(2) When freeing these variables, you need to be careful to undo any
+(2) allocate statements (Cray pointers) are replaced with malloc's. Be
+    sure to get enough space to cover the range of integers given, i.e.,
+
+	allocate(p(0:N))
+
+	means you need an array length N+1.
+
+(3) When freeing these variables, you need to be careful to undo any
     pointer offsets that f2c produces.
 
-(3) all calls to functions in libf2c.a where replaced with calls to normal
+(4) all calls to functions in libf2c.a where replaced with calls to normal
 	C functions.
 
-(4) look out for calls to abs(), which should be fabs. Comparisons between
+(5) look out for calls to abs(), which should be fabs. Comparisons between
     fabs(), .i.e, if (fabs(a) > fabs(b)) don't seem to work properly.
+
+(6) C doesn't initialize the contents of dynamically allocated space to 0.
