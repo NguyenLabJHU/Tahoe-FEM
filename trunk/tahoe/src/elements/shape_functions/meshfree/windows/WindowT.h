@@ -1,4 +1,4 @@
-/* $Id: WindowT.h,v 1.3 2001-06-15 08:33:48 paklein Exp $ */
+/* $Id: WindowT.h,v 1.4 2001-06-18 17:04:19 hspark Exp $ */
 
 #ifndef _WINDOW_T_H_
 #define _WINDOW_T_H_
@@ -72,13 +72,14 @@ class WindowT
 	/** coverage test.
 	 * \return true if the window function centered at x_n covers the
 	 * point x. */
-	virtual bool Covers(const dArrayT& x_n, const dArrayT& x) = 0;
+	virtual bool Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n) = 0;
 
 	/** coverage test for multiple points.
 	 * \param x_n array of window function centers: [npts] x [nsd]
 	 * \param x field point of evaluation
 	 * \param covers array of coverage test results: [npts] */
-	virtual void Covers(const dArray2DT& x_n, const dArrayT& x, ArrayT<bool>& covers) = 0;
+	virtual void Covers(const dArray2DT& x_n, const dArrayT& x, 
+			    const dArrayT& param_n, ArrayT<bool>& covers) = 0;
 };
 
 #endif /* _WINDOW_T_H_ */
