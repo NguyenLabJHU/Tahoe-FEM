@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.15 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.16 2002-10-05 20:07:45 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -15,6 +15,7 @@ namespace Tahoe {
 /* forward declarations */
 class ShapeFunctionT;
 class StructuralMaterialT;
+class StructuralMatListT;
 class StringT;
 
 /** base class of elements for deformation of solids */
@@ -139,6 +140,9 @@ protected:
 
 	/* return a pointer to a new material list */
 	virtual MaterialListT* NewMaterialList(int size) const;
+	
+	/** return the materials list. \return NULL if fail. */
+	const StructuralMatListT& StructuralMaterialList(void) const;
 
 	/* driver for calculating output values */
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
