@@ -1,4 +1,4 @@
-/* $Id: iConsoleObjectT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: iConsoleObjectT.cpp,v 1.2 2001-02-13 17:48:34 paklein Exp $ */
 /* created: paklein (12/21/2000)                                          */
 /* iConsoleObjectT.cpp                                                    */
 
@@ -11,7 +11,7 @@ const bool ArrayT<iConsoleObjectT*>::fByteCopy = true;
 /* constructor */
 iConsoleObjectT::iConsoleObjectT(void):
 	fSuper(NULL),
-	fSubs(0, true)
+	fSubs(0)
 {
 	StringT name("<none>");
 	iSetName(name);

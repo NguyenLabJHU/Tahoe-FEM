@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.2 2001-02-07 22:08:14 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.3 2001-02-13 17:48:34 paklein Exp $ */
 /* created: paklein (12/21/2000)                                          */
 /* iConsoleT.cpp                                                          */
 
@@ -20,16 +20,16 @@ iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current):
 	fmax_recursion_depth(25),
 	fhistory_size(10),
 	fCurrent(NULL),
-	fInputStack(0, true),
+	fInputStack(0),
 	fHistory(fhistory_size + 1, 0), /* shift size by 1 */
 	
 	/* dictionary */
-	fWord(20, true),
-	fWordScope(20, true),
+	fWord(20),
+	fWordScope(20),
 
 	/* aliases */
-	fAlias(20, false),
-	fAliasCommand(20, false)
+	fAlias(20),
+	fAliasCommand(20)
 {
 	/* set commands */
 	iAddCommand("end");
