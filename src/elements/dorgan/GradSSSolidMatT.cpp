@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.cpp,v 1.7 2004-04-01 22:46:54 rdorgan Exp $ */ 
+/* $Id: GradSSSolidMatT.cpp,v 1.8 2004-04-23 18:44:36 rdorgan Exp $ */ 
 #include "GradSSSolidMatT.h"
 #include <iostream.h>
 #include "GradSSMatSupportT.h"
@@ -41,7 +41,7 @@ void GradSSSolidMatT::PrintName(ostream& out) const
 	/* inherited */
 	SSSolidMatT::PrintName(out);
 	
-	out << "    Gradient Enhanced\n";
+	out << "    Multi Field solution\n";
 }
 
 /* field */

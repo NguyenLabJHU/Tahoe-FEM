@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.h,v 1.3 2004-04-01 22:46:54 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.h,v 1.4 2004-04-23 18:44:36 rdorgan Exp $ */ 
 #ifndef _GRAD_SMALL_STRAIN_T_H_ 
 #define _GRAD_SMALL_STRAIN_T_H_ 
 
@@ -7,8 +7,7 @@
 
 /* direct members */
 #include "LocalArrayT.h"
-//#include "GeometryT.h"
-#include "C1GeometryT.h"
+#include "GeometryT.h"
 #include "dSymMatrixT.h"
 
 namespace Tahoe {
@@ -16,9 +15,9 @@ namespace Tahoe {
 /* forward declarations */
 class GradSSSolidMatT;
 class GradSSMatSupportT;
-//class SolidMatListT;
-class C1ShapeFunctionT;
-
+class ShapeFunctionT;
+class C1ShapeTools; 
+ 
 /** element formulation with gradient plasticity constitutive model */
 class GradSmallStrainT: public SmallStrainT
 {
@@ -26,7 +25,7 @@ public:
 
 	/** constructor */
 	GradSmallStrainT(const ElementSupportT& support, const FieldT& disp, 
-					 const FieldT& iso_hard);
+					   const FieldT& field);
 
 	/** destructor */
 	~GradSmallStrainT(void);
@@ -41,39 +40,32 @@ public:
 	
 	/** \name isotropic hardening */
 	/*@{*/
-	const double& LinearField(void) const { return fR_List[CurrIP()]; };
-	const double& LinearField(int ip) const { return fR_List[ip]; };
+	const double& LinearField(void) const { return fField_List[CurrIP()]; };
+	const double& LinearField(int ip) const { return fField_List[ip]; };
 	/*@}*/
 	
 	/** \name isotropic hardening from the end of the previous time step */
 	/*@{*/
-	const double& LinearField_last(void) const { return fR_last_List[CurrIP()]; };
-	const double& LinearField_last(int ip) const { return fR_last_List[ip]; };
+	const double& LinearField_last(void) const { return fField_last_List[CurrIP()]; };
+	const double& LinearField_last(int ip) const { return fField_last_List[ip]; };
 	/*@}*/
 	
-	/** \name Laplacian isotropic hardening */
-	/*@{*/
-	const double& LinearLaplacianField(void) const { return fLapR_List[CurrIP()]; };
-	const double& LinearLaplacianField(int ip) const { return fLapR_List[ip]; };
-	/*@}*/
+	/** return the number of degrees of freedom for field per node */
+	int NumDOF_Field(void) const { return fField.NumDOF();} ;
 	
-	/** \name Laplacian isotropic hardening from the end of the previous time step */
-	/*@{*/
-	const double& LinearLaplacianField_last(void) const { return fLapR_last_List[CurrIP()]; };
-	const double& LinearLaplacianField_last(int ip) const { return fLapR_last_List[ip]; };
-	/*@}*/
+	/** number of element integration points for field */
+	int NumIP_Field(void) const { return fNumIP_Field;} ;
 	
-	/** return the number of degrees of freedom for iso_hard per node */
-	int NumDOF_Field(void) const { return fIsoHardening.NumDOF();} ;
-	
-	/** number of element integration points for iso_hard field */
-	int NumIP_Field(void) const { return fNumIP_R;} ;
-	
+	/** number of nodes per element for the field.
+	 * This value will initially be taken to be the number
+	 * of nodes per element for the displacement field. */
+	int NumElementNodes_Field(void) const { return NumElementNodes();} ;
+
 	/** reference to element shape functions */
-	const C1ShapeFunctionT& C1ShapeFunction(void) const;
+	const C1ShapeTools& ShapeFunction(void) const;
 	
 	/** return the geometry code */
-	C1GeometryT::CodeT GeometryCode_Field(void) const;
+	GeometryT::CodeT GeometryCode_Field(void) const;
 	
 protected:
 	
@@ -106,40 +98,38 @@ protected:
 	virtual void PrintControlData(ostream& out) const;
 	
 private:
-	/** set the \e h matrix using the given shape functions */
+	/** set the shape function matrices using the given shape functions */
 	virtual void Set_h(dMatrixT& h) const;
-	
-	/** set the \e p matrix using the given shape functions */
 	virtual void Set_p(dMatrixT& p) const;
+	virtual void Set_q(dMatrixT& q) const;
 
 protected:
 	/** \name return values */
 	/*@{*/
-	dArrayT fR_List;
-	dArrayT fR_last_List;
-	
-	dArrayT fLapR_List;
-	dArrayT fLapR_last_List;
+	dArrayT fField_List;
+	dArrayT fField_last_List;
+
+	dArrayT fYield_List;
 	/*@}*/
 	  
-	/** \name element iso_hard in local ordering for current element */
+	/** \name element field in local ordering for current element */
 	/*@{*/
-	LocalArrayT fLocR;           /**< hardness */
-	LocalArrayT fLocLastR;       /**< hardness from last time increment */
+	LocalArrayT fLocField;      /**< hardness */
+	LocalArrayT fLocLastField;  /**< hardness from last time increment */
 
-	dArrayT fLocRTranspose;      /**< hardness */
-	dArrayT fLocLastRTranspose;  /**< hardness from last time increment */
+	dArrayT fLocFieldTranspose;      /**< hardness */
+	dArrayT fLocLastFieldTranspose;  /**< hardness from last time increment */
 	/*@}*/
 	
 private:
 	/* \name fields */
 	/*@{*/
 	const FieldT& fDisplacement; /**< displacement field */
-	const FieldT& fIsoHardening; /**< hardening parameter fiel */
+	const FieldT& fField;        /**< hardening parameter fiel */
 	/*@}*/
 	
-	/** \name shape functions for isotropic hardening */
-	C1ShapeFunctionT* fShapes_R;
+	/** \name shape functions for field */
+	C1ShapeTools* fShapes_Field;
 	
 	/** the material support used to construct materials lists. This pointer
 	 * is only set the first time GradSmallStrainT::NewMaterialList is called. */
@@ -150,78 +140,76 @@ private:
 	
 	/** \name work space */
 	/*@{*/
-	/** shape functions for R */
-	dMatrixT fh;                      /**< C1 shape functions */
-	dMatrixT fhT;                     /**< C1 shape functions (Transpose) */
-	
-	/** shape functions for LapR */
-	dMatrixT fp;                      /**< Laplacian of C1 shape functions */
-	dMatrixT fpT;                     /**< Laplacian of C1 shape functions (Transpose) */
+	/** shape functions for Field */
+	dMatrixT fh;      /**<  shape functions */
+	dMatrixT fhT;     /**<  shape functions (Transpose) */
+	dMatrixT fp;      /**<  gradient shape functions */
+	dMatrixT fpT;     /**<  gradient shape functions (Transpose) */
+	dMatrixT fq;      /**<  Laplacian shape functions */
+	dMatrixT fqT;     /**<  Laplacian shape functions (Transpose) */
 	
 	/** stiffnesses */
-	ElementMatrixT fK_bb;             /**< elastic stiffness matrix */
-	ElementMatrixT fK_bh, fK_hb;      /**< off-diagonal matrices */
-	ElementMatrixT fK_hh;             /**< Gradient matrix */
-	ElementMatrixT fK_hp;
-	ElementMatrixT fK_hq;
-	ElementMatrixT fK_ct;             /**< constraint matrix */
-
+	ElementMatrixT fK_bb;               /**< elastic stiffness matrix */
+	ElementMatrixT fK_bh;               /**< off-diagonal matrices */
+	ElementMatrixT fK_hb;               /**< off-diagonal matrices */
+	ElementMatrixT fK_hh, fK_hp, fK_hq; /**< Gradient matrices */
+	ElementMatrixT fK_ct;  /**< constraint matrix */
+       
 	/** returned matrices */
 	dMatrixT fDM_bb;
-	dMatrixT fOM_bh;
-	dMatrixT fOM_hb;
-	dMatrixT fGM_hh;
-	dMatrixT fGM_hp;
+	dMatrixT fOM_hb, fOM_bh;
+	dMatrixT fGM_hh, fGM_hp, fGM_hq;
 	dMatrixT fI;
 	/*@}*/
 	
 	/** \name dimensions */
 	/*@{*/
-	int fNumIP;                       /**< number of integration points */
-	int fNumIP_R;                     /**< number of integration points for iso_hard field */
-	
-	int fNumSD;                       /**< number of spatial dimensions */
-	
-	//	int fNumElementNodes;         /**< number of element nodes */
-	int fNumElements;                 /**< number of integration points */
-	
-	int fNumDOF;                      /**< number of degrees of freedom for displacement field */
-	int fNumDOF_R;                    /**< number of degrees of freedom for iso_hard field */
-	int fNumDOF_Total;                /**< number of total degrees of freedom (ndf_Disp + ndf_R) */
+	int fNumIP_Disp;            /**< number of integration points */
+	int fNumSD;                 /**< number of spatial dimensions */
+	int fNumDOF_Disp;           /**< number of degrees of freedom for displacement field */
+	int fNumDOF_Field;          /**< number of degrees of freedom for field */
+	int fNumEQ_Total;           /**< number of total equations */
 	/*@}*/
-	
-	/* print debug information */
+
+	/** \name input data for Field */
+	/*@{*/
+	GeometryT::CodeT fGeometryCode_Field; /**< element parameter */
+	int fNumIP_Field;                     /**< number of integration points for field */
+	int fNumElementNodes_Field;           /**< number of integration points */
+	int fDegreeOfContinuity_Field;        /**< degree of continuity of Field shape functions */
+	double fNodalConstraint;              /**< constraint constants */
+	/*@}*/
+		
+	/** \name print debug information */
+	/*@{*/
 	bool print_GlobalShape;
 	bool print_Kd;
 	bool print_Stiffness;
-	
-	/** constraint constant */
-	double fKConstraintA;
-	double fKConstraintB;
-	double fRConstraintA;
-	double fRConstraintB;
-	
-	/** element parameter */
-	C1GeometryT::CodeT fGeometryCode_R;
+	/*@}*/
+
+	/* element degree of continuity types */
+	enum TypeT {
+		C0 = 0,
+		C1 = 1};
 };
 
 /* inlines */
 
 /* return the geometry code */
-inline C1GeometryT::CodeT GradSmallStrainT::GeometryCode_Field(void) const
-{ return fGeometryCode_R; }
+inline GeometryT::CodeT GradSmallStrainT::GeometryCode_Field(void) const
+{ return fGeometryCode_Field; }
 
 /* accessors */
-inline const C1ShapeFunctionT& GradSmallStrainT::C1ShapeFunction(void) const
+inline const C1ShapeTools& GradSmallStrainT::ShapeFunction(void) const
 {
 #if __option(extended_errorcheck)
-	if (!fShapes_R)
+	if (!fShapes_Field)
 	{
-		cout << "\n GradSmallStrainT::C1ShapeFunction: no shape functions" << endl;
+		cout << "\n GradSmallStrainT::ShapeFunction: no shape functions" << endl;
 		throw ExceptionT::kGeneralFail;
 	}
 #endif
-	return *fShapes_R;
+	return *fShapes_Field;
 }
 
 } // namespace Tahoe 

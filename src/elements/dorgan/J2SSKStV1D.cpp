@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV1D.cpp,v 1.7 2004-04-01 22:46:54 rdorgan Exp $ */ 
+/* $Id: J2SSKStV1D.cpp,v 1.8 2004-04-23 18:44:36 rdorgan Exp $ */ 
 #include "J2SSKStV1D.h"
 #include "SSMatSupportT.h"
 #include "ElementCardT.h"

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2004-01-14 22:02:46 rdorgan Exp $
+# $Id: makefile,v 1.7 2004-04-23 18:44:36 rdorgan Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,6 +21,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
+	C0ShapeTools.o\
+	C1ShapeTools.o\
 	GradSmallStrainT.o\
 	GradC0SmallStrainT.o\
         J2SSKStV1D.o\
@@ -47,6 +49,8 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
+        C0ShapeTools.cpp\
+        C1ShapeTools.cpp\
 	GradSmallStrainT.cpp\
 	GradC0SmallStrainT.cpp\
         J2SSKStV1D.cpp\
@@ -65,6 +69,8 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
+        C0ShapeTools.h\
+        C1ShapeTools.h\
 	GradSmallStrainT.h\
 	GradC0SmallStrainT.h\
         J2SSKStV1D.h\
@@ -82,19 +88,16 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = \
-	geometry \
-	shape_functions
-
-subdir_driver: subdir_loop
+#SUB_DIR = \
+#subdir_driver: subdir_loop
 
 #
 # (4.2) If there are no sub-directories in this directory:
 #    (1) comment the SUB_DIR and subdir_driver in section (4.1)
 #    (2) uncomment the subdir_driver macro below
 #
-#SUB_DIR =
-#subdir_driver: 
+SUB_DIR =
+subdir_driver: 
 
 #####################
 

@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV1D.h,v 1.6 2004-04-01 22:46:54 rdorgan Exp $ */
+/* $Id: J2SSKStV1D.h,v 1.7 2004-04-23 18:44:36 rdorgan Exp $ */
 #ifndef _J2_SS_KSTV_1D_H_
 #define _J2_SS_KSTV_1D_H_
 
