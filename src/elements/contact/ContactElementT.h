@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.26 2002-07-05 22:28:01 paklein Exp $ */
+/* $Id: ContactElementT.h,v 1.27 2002-11-09 01:50:29 paklein Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -100,22 +100,20 @@ public:
 	virtual void SetDOFTags(void);
 	virtual iArrayT& DOFTags(int tag_set);
 
-	/* generate nodal connectivities */
+	/** generate nodal connectivities. Since the sequence of setting global equation
+     * number is controlled externally, responsibility for calling the element group 
+     * to (self-) configure is also left to calls from the outside. otherwise it's tough 
+     * to say whether data requested by the group is current. 
+     */
 	virtual void GenerateElementData(void);
-	// NOTE: since the sequence of setting global equation
-	//       number is controlled externally, responsibility
-  	//       for calling the element group to (self-) configure
-   	//       is also left to calls from the outside. otherwise
-	//       it's tough to say whether data requested by the group
-	//       is current.
 
-	/* return the contact elements */
+	/** return the contact elements */
   	virtual const iArray2DT& DOFConnects(int tag_set) const;
 
-   	/* restore the DOF values to the last converged solution */
+   	/** restore the DOF values to the last converged solution */
    	virtual void ResetDOF(dArray2DT& DOF, int tag_set) const;
 	
-   	/* returns 1 if group needs to reconfigure DOF's, else 0 */
+   	/** returns 1 if group needs to reconfigure DOF's, else 0 */
    	virtual int Reconfigure(void);
 
 	/** return the solver group number */
@@ -130,8 +128,8 @@ public:
                     kDeformable,
                     kRigid};
 
-
 protected:
+
 	/* contact surfaces */
 	ArrayT<ContactSurfaceT> fSurfaces; 
 
