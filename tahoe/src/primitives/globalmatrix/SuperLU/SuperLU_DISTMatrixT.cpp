@@ -1,4 +1,4 @@
-/* $Id: SuperLU_DISTMatrixT.cpp,v 1.1 2004-03-16 10:03:21 paklein Exp $ */
+/* $Id: SuperLU_DISTMatrixT.cpp,v 1.2 2004-03-21 05:19:18 paklein Exp $ */
 #include "SuperLU_DISTMatrixT.h"
 
 /* library support options */
@@ -11,6 +11,7 @@
 #include "iArrayT.h"
 #include "iArray2DT.h"
 #include "ElementMatrixT.h"
+#include "CommunicatorT.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -20,7 +21,7 @@
 using namespace Tahoe;
 
 /* constructor */
-SuperLU_DISTMatrixT::SuperLU_DISTMatrixT(ostream& out, int check_code, bool symmetric, CommunicatorT& comm):
+SuperLU_DISTMatrixT::SuperLU_DISTMatrixT(ostream& out, int check_code, CommunicatorT& comm):
 	GlobalMatrixT(out, check_code),
 	fComm(comm),
 	fBuilder(NULL),
@@ -49,54 +50,44 @@ SuperLU_DISTMatrixT::SuperLU_DISTMatrixT(ostream& out, int check_code, bool symm
 	A->rowptr = NULL;
 	A->colind = NULL;
 
-	/* The only important thing to initialize in L and U are pointers */
-	fL.Store = NULL;
-	fU.Store = NULL;
-
-	/* rhs vector */
-	fB.Stype = SLU_DN;
-	fB.Dtype = SLU_D;
-	fB.Mtype = SLU_GE;
-	fB.nrow = 0;
-	fB.ncol = 1;
-	fB.Store = malloc(sizeof(DNformat));
-	if (!fB.Store) ExceptionT::OutOfMemory(caller);
-
-	DNformat* BStore = (DNformat*) fB.Store;
-	BStore->lda = 0;
-	BStore->nzval = NULL;
-
-	/* solution  vector */
-	fX.Stype = SLU_DN;
-	fX.Dtype = SLU_D;
-	fX.Mtype = SLU_GE;
-	fX.nrow = 0;
-	fX.ncol = 1;
-	fX.Store = malloc(sizeof(DNformat));
-	if (!fX.Store) ExceptionT::OutOfMemory(caller);
-
-	DNformat* XStore = (DNformat*) fX.Store;
-	XStore->lda = 0;
-	XStore->nzval = NULL;
+	/* create blank data structures */
+	fScalePermstruct.DiagScale = NOEQUIL;
+	fScalePermstruct.R = NULL;
+	fScalePermstruct.C = NULL;
+	fScalePermstruct.perm_r = NULL;
+	fScalePermstruct.perm_c = NULL;
+	
+	fLUstruct.etree = NULL;
+	fLUstruct.Glu_persist = NULL;
+	fLUstruct.Llu = NULL;	
 
     /* Set the default input options:
-		options.Fact = DOFACT;
-		options.Equil = YES;
-    	options.ColPerm = COLAMD;
-		options.DiagPivotThresh = 1.0;
-    	options.Trans = NOTRANS;
-    	options.IterRefine = NOREFINE;
-    	options.SymmetricMode = NO;
-    	options.PivotGrowth = NO;
-    	options.ConditionNumber = NO;
-    	options.PrintStat = YES; */
-    set_default_options(&foptions);
+        options.Fact = DOFACT;
+        options.Equil = YES;
+        options.ColPerm = MMD_AT_PLUS_A;
+        options.RowPerm = LargeDiag;
+        options.ReplaceTinyPivot = YES;
+        options.Trans = NOTRANS;
+        options.IterRefine = DOUBLE;
+        options.SolveInitialized = NO;
+        options.RefineInitialized = NO;
+        options.PrintStat = YES;
+     */
+    set_default_options_dist(&foptions);
 #if __option (extended_errorcheck)
     foptions.PrintStat = YES;
 #else
     foptions.PrintStat = NO;
 #endif
-	foptions.SymmetricMode = (symmetric) ? YES : NO;		
+
+	/* initialize the process grid - divide as square */
+	int size = fComm.Size();
+	int nprow = int(sqrt(double(size)));
+	nprow = (nprow < 1) ? 1 : nprow;
+	int npcol = size/nprow;
+	if (npcol*nprow != size)
+		ExceptionT::GeneralFail(caller, "number of processes must be even %d", size);
+    superlu_gridinit(fComm.Comm(), nprow, npcol, &fgrid);
 }
 
 /* Destructor */	
@@ -104,14 +95,19 @@ SuperLU_DISTMatrixT::~SuperLU_DISTMatrixT(void)
 {
 	delete fBuilder;
 
-	/* free the matrix */
-	free(fA.Store);
+	/* free the matrix struct */
+	SUPERLU_FREE(fA.Store);
 
 	/* free upper and lower factors */
-	if (fIsNumFactorized) {
-		Destroy_SuperNode_Matrix(&fL);
-		Destroy_CompCol_Matrix(&fU);
-	}
+	FreeScalePermstruct(fScalePermstruct);
+	FreeLUstruct(fLocNumEQ, fgrid, fLUstruct);
+
+	/* free information about solution phase */
+    if (foptions.SolveInitialized)
+        dSolveFinalize(&foptions, &fSOLVEstruct);
+
+	/* release process grid */
+    superlu_gridexit(&fgrid);
 }
 
 /* add to structure */
@@ -125,39 +121,22 @@ void SuperLU_DISTMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_e
 {
 	const char caller[] = "SuperLU_DISTMatrixT::Initialize";
 
+	/* free existing memory */
+	FreeLUstruct(fLocNumEQ, fgrid, fLUstruct);
+	FreeScalePermstruct(fScalePermstruct);
+
+	/* free information about solution phase */
+    if (foptions.SolveInitialized) {
+        dSolveFinalize(&foptions, &fSOLVEstruct);
+        foptions.SolveInitialized = NO;
+    }
+
 	/* inherited */
 	GlobalMatrixT::Initialize(tot_num_eq, loc_num_eq, start_eq);
-	
-	/* A note on memory allocation: since SuperLU is a C library, */
-	/* I use malloc/free instead of new/delete for the structures */
-	/* that SuperLU accesses, just in case. */	
 
-	/* solution vector */
-	fX.nrow = fLocNumEQ;
-	DNformat* XStore = (DNformat*) fX.Store;
-	XStore->lda = fLocNumEQ;
-	free(XStore->nzval);
-	XStore->nzval = (double*) malloc(fLocNumEQ*sizeof(double));
-	if (!XStore->nzval) ExceptionT::OutOfMemory(caller);
-
-#pragma message("what about these?")
-	/* dimension work space */
-	fperm_c.Dimension(fLocNumEQ);
-	fperm_r.Dimension(fLocNumEQ);
-	fetree.Dimension(fLocNumEQ);
-
-	/* structure could be changing, so get rid of old factors etc. */
-	if (fIsNumFactorized) {
-		Destroy_SuperNode_Matrix(&fL);
-		fL.nrow = 0;
-		fL.ncol = 0;
-		fL.Store = NULL;
-		Destroy_CompCol_Matrix(&fU);
-		fU.nrow = 0;
-		fU.ncol = 0;
-		fU.Store = NULL;
-		fIsNumFactorized = false;
-	}
+	/* redimension */
+    ScalePermstructInit(fTotNumEQ, fTotNumEQ, &fScalePermstruct);
+    LUstructInit(fTotNumEQ, fTotNumEQ, &fLUstruct);
 
 	/* set update vector - global numbering */
 	iArrayT activerows(fLocNumEQ);
@@ -168,7 +147,7 @@ void SuperLU_DISTMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_e
 	/* return the distributed SuperLU data structure */
 	iArrayT rowptr;
 	iArrayT colind;
-	fBuilder->SetSuperLUData(activerows, iArrayT& rowptr, iArrayT& colind);
+	fBuilder->SetSuperLUData(activerows, rowptr, colind);
 	frowptr = rowptr;
 	fcolind = colind;
 	fnzval.Dimension(colind.Length());
@@ -184,17 +163,12 @@ void SuperLU_DISTMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_e
 	A->rowptr = frowptr.Pointer();
 	A->colind = fcolind.Pointer();
 
-#pragma message("what about these?")
-	/* scalings */
-	fR.Dimension(fA.nrow);
-	fC.Dimension(fA.ncol);
-
 	/* output */
-	fOut <<" Number of nonzeros in global matrix = "<< A->nnz <<"\n"<<endl;
+	fOut <<" Number of nonzeros in local global matrix = "<< A->nnz_loc <<"\n"<<endl;
 	
 	/* reset flags/options */
 	fIsSymFactorized = false;
-	fequed = 'N';
+	fIsNumFactorized = false;
 }
 
 /* set all matrix values to 0.0 */
@@ -209,23 +183,13 @@ void SuperLU_DISTMatrixT::Clear(void)
 	tmp = 0.0;
 	
 	/* no equilibration */
-	fequed = 'N';
 	fIsNumFactorized = false;
-}
 
-/* add element group equations to the overall topology.
- * NOTE: assembly positions (equation numbers) = 1...fLocNumEQ
- * equations can be of fixed size (iArray2DT) or
- * variable length (RaggedArray2DT) */
-void SuperLU_DISTMatrixT::AddEquationSet(const iArray2DT& eqset)
-{
-	fEqnos.AppendUnique (&eqset);
-}
-
-/* see AddEquationSet above */
-void SuperLU_DISTMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
-{
-	fRaggedEqnos.AppendUnique (&eqset);
+	/* free information about solution phase */
+    if (foptions.SolveInitialized) {
+        dSolveFinalize(&foptions, &fSOLVEstruct);
+        foptions.SolveInitialized = NO;
+    }
 }
 
 /* assemble the element contribution into the LHS matrix - assumes
@@ -233,47 +197,65 @@ void SuperLU_DISTMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 * NOTE: assembly positions (equation numbers) = 1...fLocNumEQ */
 void SuperLU_DISTMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
 {
+	const char caller[] = "SuperLU_DISTMatrixT::Assemble";
+
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
 
 	/* two cases: element matrix is diagonal, or it's not. */
+	int end_update = fStartEQ + fLocNumEQ - 1;
 	if (format == ElementMatrixT::kDiagonal)
 	{
-		/* less work to do! We only add diagonal entries */
+		/* diagonal entries only */
 		const double *pelMat = elMat.Pointer();
-		int inc = elMat.Rows() + 1; // how far apart diag entries are
-
+		int inc = elMat.Rows() + 1; /* offset between diag entries are */
 		int nee = eqnos.Length();
-		for (int eqdex = 0; eqdex < nee; ++eqdex)
-		{
-			int eqno = eqnos[eqdex] - 1;
-			if (eqno > -1)   // active dof?
-				(*this)(eqno,eqno) += *pelMat;
+		for (int i = 0; i < nee; ++i) {
+			int eq = eqnos[i];
+			if (eq >= fStartEQ && eq <= end_update) /* active eqn */ {
+				eq--;
+				double* a = (*this)(eq,eq);
+				if (a)
+					*a += *pelMat;
+				else
+					ExceptionT::OutOfRange(caller);
+			}
 			pelMat += inc;
 		}
 	}
-	else    /* otherwise there's a full matrix to deal with */
+	else if (format == ElementMatrixT::kNonSymmetric || 
+             format == ElementMatrixT::kSymmetric ||
+             format == ElementMatrixT::kSymmetricUpper )
 	{
-		/* If it's symmetric and just a triangle is stored, */
-		/* copy it over to get full storage */
-		if (format == ElementMatrixT::kSymmetricUpper)
+		/* fill matrix */
+		if (format != ElementMatrixT::kNonSymmetric)
 			elMat.CopySymmetric();
 
 		int nee = eqnos.Length();  // number of equations for element
 		for (int col = 0; col < nee; ++col)
 		{
 			int ceqno = eqnos[col] - 1;
-			if (ceqno > -1)   // active dof?
-			{
-				for (int row = 0; row < nee; ++row)
-				{
-					int reqno = eqnos[row] - 1;
-					if (reqno > -1) // active dof?
-						(*this)(reqno,ceqno) += elMat(row,col);
+			if (ceqno > -1) /* active eqn */ {
+				for (int row = 0; row < nee; ++row) {
+					int reqno = eqnos[row];
+					if (reqno >= fStartEQ && reqno <= end_update) /* active eqn */ {
+						reqno--;
+						double* a = (*this)(reqno,ceqno);
+						if (a)
+							*a += 0.5*(elMat(row,col) + elMat(col,row));
+						else {
+							iArrayT tmp;
+							tmp.Alias(eqnos);
+							fOut << "\n " << caller << ": bad eqnos = " << tmp.no_wrap() << endl;
+							ExceptionT::OutOfRange(caller);
+						}
+					}
 				}
 			}
 		}
 	}
+	else
+		ExceptionT::GeneralFail(caller, "unsupported element matrix format %d", format);
 }
 
 void SuperLU_DISTMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
@@ -328,64 +310,123 @@ void SuperLU_DISTMatrixT::BackSubstitute(dArrayT& result)
 	else /* just solve linear system */
 		foptions.Fact = FACTORED;
 
-	/* rhs into B */
-	fB.nrow = fLocNumEQ;
-	DNformat* BStore = (DNformat*) fB.Store;
-	BStore->lda   = fLocNumEQ;
-	BStore->nzval = result.Pointer();
-
     /* Initialize the statistics variables. */
 	SuperLUStat_t stat;    
-    StatInit(&stat);
-    
+    PStatInit(&stat);
+
+	/* make copy since solver may permute */
+	fcolind2 = fcolind;
+	frowptr2 = frowptr;
+
 	/* call SuperLU */
-	int info;
-	mem_usage_t mem_usage;
-	int lwork = 0; /* allocate space internally */
-	void* work = NULL;
-	double recip_pivot_growth;
-	double rcond;
-	double ferr;
+    int info;
+    int nrhs = 1;
 	double berr;
-	dgssvx(&foptions, &fA, fperm_c.Pointer(), fperm_r.Pointer(), fetree.Pointer(), &fequed,
-		fR.Pointer(), fC.Pointer(), &fL, &fU, work, lwork,
-		&fB, &fX, &recip_pivot_growth, &rcond, &ferr, &berr, &mem_usage, &stat, &info);
+    pdgssvx(&foptions, &fA, &fScalePermstruct, result.Pointer(), result.Length(), nrhs, &fgrid,
+		     &fLUstruct, &fSOLVEstruct, &berr, &stat, &info);
+
+	/* restore */
+	fcolind = fcolind2;
+	frowptr = frowptr2;
 
 	/* check results */
 	if (info != 0)
-		ExceptionT::BadJacobianDet(caller, "dgssvx return %d with estimated condition number %g", info, rcond);
+		ExceptionT::BadJacobianDet(caller, "pdgssvx_ABglobal return %d with backward componentwise error %g", info, berr);
 
 	/* report statistics */
-    if (foptions.PrintStat) StatPrint(&stat);
-    StatFree(&stat);
+    if (foptions.PrintStat) PStatPrint(&foptions, &stat, &fgrid);
+    PStatFree(&stat);
 
 	/* always fully factorized on exit */
+	foptions.SolveInitialized = YES;
 	fIsSymFactorized = true;
 	fIsNumFactorized = true;
-
-	/* copy result */
-	DNformat* XStore = (DNformat*) fX.Store;
-	result = (double*) XStore->nzval;
 }
 
 /* check functions */
 void SuperLU_DISTMatrixT::PrintAllPivots(void) const
 {
-// temp - not implemented yet. Maybe inappropriate
+//not implemented
 }
 
 void SuperLU_DISTMatrixT::PrintZeroPivots(void) const
 {
-// temp - not implemented yet. Maybe inappropriate
+//not implemented
 }
 
 void SuperLU_DISTMatrixT::PrintLHS(bool force) const
 {
-	if (!force || fCheckCode != GlobalMatrixT::kPrintLHS)
-		return;
+	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
 
-	fOut << "\nLHS matrix:\n\n";
-	fOut << (*this) << "\n\n";
+	const char caller[] = "SuperLU_DISTMatrixT::PrintLHS";
+	fOut << "\n " << caller << '\n';
+	
+	NRformat_loc *A = (NRformat_loc*) fA.Store;
+	fOut << "number of nonzero = " << A->nnz_loc << '\n';
+	fOut << "rows on this processor = " << A->m_loc << '\n';
+	fOut << "first row on this processor = " << A->fst_row << '\n';
+	
+	/* not allocated */
+	if (A->nzval == NULL || A->rowptr == NULL || A->colind == NULL) {
+		fOut << endl;
+		ExceptionT::GeneralFail(caller, "storage is NULL");
+	}
+
+	/* sparse matrix format */
+	iArrayT tmp;
+	tmp.Alias(frowptr);
+	fOut << "row pointers:\n" << tmp.wrap(10) << '\n';
+	fOut << "col indicies:\n";
+	for (int i = 0; i < A->m_loc; i++) {
+		int length = frowptr[i+1] - frowptr[i];
+		tmp.Alias(length, fcolind.Pointer(frowptr[i]));
+		fOut << tmp.no_wrap() << '\n';
+	}
+
+	fOut << "LHS: {r, c, v}: \n";
+	int dim = A->m_loc;
+	const double* nzval_ = (const double*) A->nzval;
+	const int* rowptr_ = A->rowptr;
+	const int* colind_ = A->colind;
+	for (int i = 0; i < dim; i++) {
+	
+		int index = rowptr_[i];
+		int count = rowptr_[i+1] - index;
+
+		const int* col = colind_ + index;
+		const double* val = nzval_ + index;
+	
+		for (int j = 0; j < count; j++)
+			fOut << i+fStartEQ << " " << (*col++)+1 << " " << *val++ << '\n';
+	}
+	fOut << endl;
+}
+
+void SuperLU_DISTMatrixT::FreeLUstruct(int dim, gridinfo_t& grid, LUstruct_t& lu_struct) const
+{
+	/* only free if allocated */
+	if (lu_struct.Glu_persist) {
+		Destroy_LU(dim, &grid, &lu_struct);
+		LUstructFree(&lu_struct);
+	}
+	
+	/* clear all pointers */
+	lu_struct.etree = NULL;
+	lu_struct.Glu_persist = NULL;
+	lu_struct.Llu = NULL;
+}
+
+void SuperLU_DISTMatrixT::FreeScalePermstruct(ScalePermstruct_t& scale_struct) const
+{
+	/* if allocated */
+	if (scale_struct.perm_r)
+		ScalePermstructFree(&scale_struct);
+
+	/* clear all pointers */
+	scale_struct.R = NULL;
+	scale_struct.C = NULL;
+	scale_struct.perm_r = NULL;
+	scale_struct.perm_c = NULL;
 }
 
 #endif /* __TAHOE_MPI__ */
