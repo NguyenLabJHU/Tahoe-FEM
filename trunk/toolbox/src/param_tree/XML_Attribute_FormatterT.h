@@ -1,4 +1,4 @@
-/* $Id: XML_Attribute_FormatterT.h,v 1.4 2003-04-26 02:09:46 paklein Exp $ */
+/* $Id: XML_Attribute_FormatterT.h,v 1.5 2003-08-19 08:02:36 paklein Exp $ */
 #ifndef _XML_ATTRIBUTE_FORMATTER_T_H_
 #define _XML_ATTRIBUTE_FORMATTER_T_H_
 
@@ -19,11 +19,18 @@ class XML_Attribute_FormatterT: public FormatterT
 {
 public:
 
+	/** enum for different document type defintions */
+	enum DocTypeT {
+  Undefined =-1,
+		DTD = 0, /**< Document Type Definition */
+		XSD = 1  /**< XML Schema */
+	};
+
 	/** constructor */
-	XML_Attribute_FormatterT(void);
+	XML_Attribute_FormatterT(DocTypeT doc_type);
 	
-	/** DTD settings */
-	void SetDTD(const StringT& doc_root, const StringT& dtd_path);
+	/** set the document description */
+	void SetDocDescription(const StringT& doc_root, const StringT& description_path);
 	
 	/** \name writing parameters
 	 * All methods return true if successful. */	
@@ -59,7 +66,15 @@ private:
 	 * \param list parameter list being described
 	 * \param tags list of tags needed to check for uniqueness of tags
 	 * \return true if successful, false if problems occur, such as repeated tags */
-	bool DoWriteDescription(ostream& out, const ParameterListT& list, BinaryTreeT<StringT>& tags) const;
+	bool DoWriteDTD(ostream& out, const ParameterListT& list, BinaryTreeT<StringT>& tags) const;
+
+	/** write the XML schema data description. A list of tags is maintained in order to check
+	 * for uniqueness in tags. ParameterListT with repeated names will not be processed.
+	 * \param out output stream for description
+	 * \param list parameter list being described
+	 * \param tags list of tags needed to check for uniqueness of tags
+	 * \return true if successful, false if problems occur, such as repeated tags */
+	bool DoWriteXSD(ostream& out, const ParameterListT& list, BinaryTreeT<StringT>& tags) const;
 
 	/** \name helpful functions for formatting */
 	/*@{*/
@@ -75,10 +90,11 @@ private:
 
 private:
 	
-	/** \name DTD parameters */
+	/** \name document type parameters */
 	/*@{*/
-	StringT fDTD;
-	StringT fDocumentRoot;
+	DocTypeT fDocType;
+	StringT  fPath;
+	StringT  fDocumentRoot;
 	/*@}*/
 };
 
