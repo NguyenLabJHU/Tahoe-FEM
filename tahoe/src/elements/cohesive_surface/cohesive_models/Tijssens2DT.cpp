@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.1 2001-10-25 22:22:12 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.2 2001-10-29 19:30:00 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -86,7 +86,7 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 	else
 	{
 	        if (state[5] <= fDelta_n_ccr) {
-		  delta_tc *= fLambda_0;
+		  delta_tc = fLambda_0;
 		  if (state[0] <= ftau_c)
 		    delta_tc *= exp(-fastar*ftau_c/ftemp*(1-state[0]/ftau_c))-exp(-fastar*ftau_c/ftemp*(1+state[0]/ftau_c));
 		  delta_nc = fDelta_0;
