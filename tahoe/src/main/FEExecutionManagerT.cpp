@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.73 2004-10-06 21:14:30 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.74 2004-11-17 23:39:12 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -696,7 +696,7 @@ void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& s
 				int count = 0;
 				int n_grid = -1;
 				while (count++ < 10 && n_grid < 1) {
-					cout << " number of grid cells in direction " << i+1 << ": ";
+					cout << " number of grid cells in direction " << i+1 << '/' << nsd << ": ";
 					cin >> n_grid;
 				}
 				if (count == 10) ExceptionT::GeneralFail(caller);
