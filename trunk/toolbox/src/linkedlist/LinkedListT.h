@@ -1,4 +1,4 @@
-/* $Id: LinkedListT.h,v 1.5 2002-11-16 20:44:59 paklein Exp $ */
+/* $Id: LinkedListT.h,v 1.6 2002-11-21 01:06:41 paklein Exp $ */
 /* created: paklein (02/07/1996) */
 #ifndef _LINKEDLIST_T_H_
 #define _LINKEDLIST_T_H_
@@ -46,7 +46,13 @@ public:
 	/** \name top/next loops */
 	/*@{*/
 	void Top(void);
+	
+	/** increment the list pointer and copy the contents of the next element into value */
 	int Next(TYPE& value);
+	
+	/** return a pointer to the next value in the list. Returns NULL if there are no 
+	 * more values */
+	TYPE* Next(void);
 	/*@}*/
 				
 	/** clears list contents */
@@ -232,6 +238,27 @@ int LinkedListT<TYPE>::Next(TYPE &value)
 	
 		value = fCurrPtr->fValue;	
 		return (1);
+	}
+}
+
+template <class TYPE>
+TYPE* LinkedListT<TYPE>::Next(void)
+{
+	if (fFirstPtr == NULL)
+		return NULL;
+	else
+	{
+		if (fAtTop)
+		{
+			fAtTop = 0;
+			fCurrPtr = fFirstPtr;
+		}
+		else if (fCurrPtr == fLastPtr)
+			return NULL;
+		else
+			fCurrPtr = fCurrPtr->fNextPtr;
+	
+		return &(fCurrPtr->fValue);
 	}
 }
 
