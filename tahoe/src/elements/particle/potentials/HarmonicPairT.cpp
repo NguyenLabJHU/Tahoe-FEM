@@ -1,5 +1,6 @@
-/* $Id: HarmonicPairT.cpp,v 1.2.4.2 2003-02-21 01:18:54 paklein Exp $ */
+/* $Id: HarmonicPairT.cpp,v 1.2.4.3 2003-02-21 02:03:17 paklein Exp $ */
 #include "HarmonicPairT.h"
+#include <iostream.h>
 
 using namespace Tahoe;
 
