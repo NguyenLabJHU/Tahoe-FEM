@@ -1,6 +1,5 @@
-/* $Id: GroupAverageT.h,v 1.4 2002-07-05 22:26:31 paklein Exp $ */
-/* created: paklein (10/03/1996)                                          */
-
+/* $Id: GroupAverageT.h,v 1.4.4.1 2003-01-11 01:12:56 paklein Exp $ */
+/* created: paklein (10/03/1996) */
 #ifndef _GROUPAVERAGE_T_H_
 #define _GROUPAVERAGE_T_H_
 
