@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.45.2.9 2004-04-01 08:35:02 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.45.2.10 2004-04-07 15:38:45 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -1229,7 +1229,7 @@ void NodeManagerT::DefineSubs(SubListT& sub_list) const
 	sub_list.AddSub("field", ParameterListT::OnePlus);
 	
 	/* list of history node ID's */
-	sub_list.AddSub("history_node_ID", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("history_node_ID_list", ParameterListT::ZeroOrOnce);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -1237,8 +1237,6 @@ ParameterInterfaceT* NodeManagerT::NewSub(const StringT& list_name) const
 {
 	if (list_name == "field")
 		return new FieldT(fFieldSupport);
-	else if (list_name == "history_node_ID")
-		return new StringListT("history_node_ID");
 	else
 		return ParameterInterfaceT::NewSub(list_name);
 }
@@ -1259,7 +1257,7 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 	fXDOFRelaxCodes = GlobalT::kNoRelax;
 
 	/* collect history nodes */
-	const ParameterListT* history_nodes = list.List("history_node_ID");
+	const ParameterListT* history_nodes = list.List("history_node_ID_list");
 	if (history_nodes) {
 	
 		/* model database */
