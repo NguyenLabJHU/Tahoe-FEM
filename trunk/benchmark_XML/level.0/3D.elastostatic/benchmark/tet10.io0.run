@@ -1,0 +1,26 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodal values. . . . . . . . . . . . . = 9
+ Labels:
+	D_X
+	D_Y
+	D_Z
+	s11
+	s22
+	s33
+	s23
+	s13
+	s12
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodes . . . . . . . . . . . . . . . . = 369
+ Number of elements. . . . . . . . . . . . . . . = 182
+
+ O U T P U T   D A T A :  T O C
+tet10.io0.run.ps0000
