@@ -1,9 +1,10 @@
-/* $Id: RowAutoFill2DT.h,v 1.2 2001-07-07 19:04:24 paklein Exp $ */
+/* $Id: RowAutoFill2DT.h,v 1.3 2001-07-08 01:02:15 paklein Exp $ */
 
 #ifndef _ROW_AUTO_ARRAY2D_T_H_
 #define _ROW_AUTO_ARRAY2D_T_H_
 
 #include <string.h>
+#include <fstream.h>
 
 #include "Environment.h"
 #include "ExceptionCodes.h"
@@ -34,7 +35,7 @@ public:
 	void SetHeadRoom(int head_room);
 	
 	/** flush size */
-	void SetFlushSize(int flush_size);	
+	void SetFlushSize(long flush_size);	
 	
 	/* accessors */
 	TYPE& operator()(int major_dim, int minor_dim) const;
@@ -75,8 +76,8 @@ private:
 	/* dimensions */
 	int fHeadRoom; /**< amount of overallocation, as a percentage */
 	int fTotalMemorySize; /**< running count of total allocation */
-	int fFlushSize; /**< memory allocation disk flush interval in bytes */
-	int fFlushCount; /**< allocation count */
+	long fFlushSize; /**< memory allocation disk flush interval in bytes */
+	long fFlushCount; /**< allocation count */
 
 	/** logical size of each row */
 	ArrayT<int> fLogicalSize;
@@ -193,7 +194,7 @@ inline void RowAutoFill2DT<TYPE>::SetHeadRoom(int head_room)
 
 /* flush size */
 template <class TYPE>
-inline void RowAutoFill2DT<TYPE>::SetFlushSize(int flush_size)
+inline void RowAutoFill2DT<TYPE>::SetFlushSize(long flush_size)
 {
 	fFlushSize = flush_size;
 	fFlushCount = 0;
@@ -347,7 +348,7 @@ void RowAutoFill2DT<TYPE>::SetLogicalSize(int row, int length)
 		fFlushCount += mem_size*sizeof(TYPE);
 
 		/* copy old data */
-		if (fLogicalSize[row] > 0) 
+		if (fLogicalSize[row] > 0 && fRowData[row] != NULL) 
 			memcpy(new_array, fRowData[row], sizeof(TYPE)*fLogicalSize[row]);
 
 		/* free old memory */
@@ -381,8 +382,10 @@ void RowAutoFill2DT<TYPE>::FlushMemory(void)
 
 	/* free data memory */
 	for (int j = 0; j < fRowData.Length(); j++)
+	  {
 		delete[] fRowData[j];
-	fRowData = NULL;
+		fRowData[j] = NULL;
+	  }
 	fMemorySize = 0;
 	fTotalMemorySize = 0;
 
@@ -392,12 +395,15 @@ void RowAutoFill2DT<TYPE>::FlushMemory(void)
 	ifstream in(file);
 	for (int k = 0; k < fRowData.Length(); k++)
 	{
+	  if (fLogicalSize[k] > 0)
+		{
 		/* set logical size */
 		SetLogicalSize(k, fLogicalSize[k]);
 		
 		/* read */
 		dump.Set(fLogicalSize[k], fRowData[k]);
 		dump.ReadBinary(in);
+		}
 	}
 	in.close();
 
