@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.h,v 1.10 2004-07-15 08:27:35 paklein Exp $ */
+/* $Id: SimoIso3D.h,v 1.11 2004-08-01 00:58:34 paklein Exp $ */
 /* created: paklein (03/02/1997) */
 #ifndef _SIMO_ISO_3D_H_
 #define _SIMO_ISO_3D_H_
@@ -33,12 +33,6 @@ public:
 	virtual double Pressure(void) const { return fStress.Trace()/3.0; };
 	/*@}*/
 
-	/* material description */
-	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
-	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
-//TEMP - no reason to use these in total Lagrangian formulation.
-//       calls to these write error message and throw ExceptionT::xception
-
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
 
@@ -69,13 +63,15 @@ private:
 
 protected:
 
-	/* return values */
-	dSymMatrixT	fStress;
-	dMatrixT    fModulus;
-
 	/* work space */
 	dSymMatrixT	fb;	
 	dSymMatrixT	fb_bar;
+
+	/** \name return values */
+	/*@{*/
+	dSymMatrixT fStress;
+	dMatrixT fModulus;
+	/*@}*/
 
 private:
 
