@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.33 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.34 2002-10-05 20:07:44 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -937,6 +937,12 @@ MaterialListT* SolidElementT::NewMaterialList(int size) const
 		return new MaterialList3DT(size, *this);
 	else
 		return NULL;		
+}
+
+/* return the materials list */
+const StructuralMatListT& SolidElementT::StructuralMaterialList(void) const
+{
+	return dynamic_cast<const StructuralMatListT&>(MaterialsList());
 }
 
 /* extrapolate the integration point stresses and strains and extrapolate */
