@@ -1,4 +1,4 @@
-/* $Id: SymmetricNodesT.h,v 1.1.2.2 2002-04-30 01:30:21 paklein Exp $ */
+/* $Id: SymmetricNodesT.h,v 1.1.2.3 2002-05-10 00:08:18 cjkimme Exp $ */
 
 #ifndef _SYMMETRIC_NODES_T_H_
 #define _SYMMETRIC_NODES_T_H_
@@ -77,21 +77,16 @@ protected:
 
 	/** check status of pairs.
 	 * \return true if the status of any pair has changed */
-	//virtual bool ChangeStatus(void);
+	virtual bool ChangeStatus(void);
 
 private:
-
-	/** pair status */
-	enum StatusT {
-		kTied = 1, /**< nodes move together */
-		kFree = 0  /**< nodes are independent */};
 
 	/** generate boundary condition card for each degree of freedom
 	 * of follower nodes with TiedNodesT::kTied status */
 	//void SetBCCards(void);
 
 	/** copy kinematic information from the leader nodes to the follower nodes */
-	virtual void CopyKinematics(void);
+	//virtual void CopyKinematics(void);
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.h,v 1.3.2.3 2002-04-30 01:30:21 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.3.2.4 2002-05-10 00:08:18 cjkimme Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _K_FIELD_T_H_
@@ -49,7 +49,7 @@ public:
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
 	/* output current configuration */
-	virtual void WriteOutput(ostream& out) const;
+	virtual void WriteOutput(ostream& out);
 
 protected:
 

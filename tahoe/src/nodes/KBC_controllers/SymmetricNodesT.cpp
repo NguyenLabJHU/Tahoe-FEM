@@ -1,19 +1,14 @@
-/* $Id: SymmetricNodesT.cpp,v 1.1.2.2 2002-04-30 01:30:21 paklein Exp $ */
+/* $Id: SymmetricNodesT.cpp,v 1.1.2.3 2002-05-10 00:08:18 cjkimme Exp $ */
 #include "SymmetricNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
-//#include "ElementBaseT.h"
-//#include "FEManagerT.h"
+#include "ElementBaseT.h"
+#include "FEManagerT.h"
 #include "ifstreamT.h"
 #include "BasicFieldT.h"
 
 /* constructor */
 SymmetricNodesT::SymmetricNodesT(NodeManagerT& node_manager, BasicFieldT& field):
-	/*KBC_ControllerT(node_manager),
-	fEqnos(NULL),
-	fKinematics(0),
-	fDummySchedule(1.0),
-	fFEManager(node_manager.FEManager())*/
 	TiedNodesT(node_manager, field)
 {
 
@@ -66,43 +61,58 @@ void SymmetricNodesT::Initialize(ifstreamT& in)
 }	
 
 /* copy kinematic information from the leader nodes to the follower nodes */
-void SymmetricNodesT::CopyKinematics(void)
-{
-//UNUSED
-#if 0
-	int curCoordsIndex = fKinematics.Length() - 1;
-#endif
-
-	int nsd = fNodeManager.NumSD();
-	dArrayT w(nsd);
-	for (int i = 0; i < fPairStatus.Length(); i++)
-		if (fPairStatus[i] == kTied)
-		{
+//void SymmetricNodesT::CopyKinematics(void)
+//{
+//	int nsd = fNodeManager.NumSD();
+//	dArrayT w(nsd);
+//	for (int i = 0; i < fPairStatus.Length(); i++)
+//		if (fPairStatus[i] == kTied)
+//		{
 			/* destination and source */
-			int follower = fNodePairs(i,0);
-			int leader   = fNodePairs(i,1);
+//			int follower = fNodePairs(i,0);
+//			int leader   = fNodePairs(i,1);
 
 			/* kinematics */
-			for (int j = 0; j < fField.Order(); j++)
-			{
-				dArray2DT& u = fField[j];
+//			for (int j = 0; j < fField.Order(); j++)
+//			{
+//				dArray2DT& u = fField[j];
 
 				/* copy data from the leader */	
-				u.RowCopy(leader,w);
+//				u.RowCopy(leader,w);
 
-				/*if (j != curCoordsIndex)
-				  for (k = 0; k < fSD; k++)
-				  w[k] -=  fDir(fSD,k);*/
-				double scalarProd = 0.;
-				for (int k = 0; k < nsd; k++)
-				  scalarProd += w[k]*fDir(0,k);
-				scalarProd *= 2.;
-				for (int k = 0;k < nsd;k++)
-				  w[k] -= scalarProd*fDir(0,k);
-				/*if (j != curCoordsIndex)
-				  for (k = 0; k < fSD; k++) 
-				  w[k] += fDir(fSD,k);*/
-				u.SetRow(follower,w);
-			}
+				/* modify data for reflection symmetry */
+//				double scalarProd = 0.;
+//				for (int k = 0; k < nsd; k++)
+//				  scalarProd += w[k]*fDir(0,k);
+//				scalarProd *= 2.;
+//				for (int k = 0;k < nsd;k++)
+//				  w[k] -= scalarProd*fDir(0,k);
+//				u.SetRow(follower,w);
+//			}
+//		}
+//}
+bool SymmetricNodesT::ChangeStatus(void)
+{
+  	bool changeQ = false;
+	ElementBaseT* surroundingGroup = fFEManager.ElementGroup(0);
+  	if (!surroundingGroup)
+    {
+      	cout <<" Group 0 doesn't exist \n";
+      	throw eGeneralFail;
+    }
+  	surroundingGroup->SendOutput(3);
+  	dArray2DT fNodalQs = fNodeManager.OutputAverage();
+
+  	for (int i = 0; i < fNodePairs.MajorDim();i++) 
+    {		
+  		dArrayT sigma(fNodalQs.MinorDim(),fNodalQs(fNodePairs(i,0)));
+	  	if (fPairStatus[i] == kTied && TiedPotentialT::InitiationQ(sigma))     
+		{ 
+	  		fPairStatus[i] = kFree;
+	  		changeQ = true;
 		}
+    }
+
+  	return changeQ;
+
 }
