@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.26 2005-01-31 07:09:46 paklein Exp $ */
+/* $Id: main.cpp,v 1.27 2005-02-04 22:10:18 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -140,7 +140,6 @@ static void ShutDown(CommunicatorT& comm)
 	cout << "\nExit.\n" << endl;
 
 #if __option (profile)		
-	ProfilerDump("\ptahoe.prof");
 	ProfilerTerm();
 #endif
 
