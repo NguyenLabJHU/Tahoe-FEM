@@ -131,12 +131,34 @@ if ($connection =~ /http/) { # ask for proxy
 	}
 }
 
-# architecture
-unless(-d "macros"){
-	print "checking out macros\n";
-	unlink("cvs.log");
-	system("cvs -d $username\@$cvsrep checkout macros > cvs.log 2>&1");
+# get macros module
+unless(-d "macros") {
+	if ($connection =~ /cvs/) {
+		print "checking out macros\n";
+		unlink("cvs.log");
+		system("cvs -d $username\@$cvsrep checkout macros > cvs.log 2>&1");
+	} elsif ($connection =~ /http/) {
+	
+		# grab new copy
+		$curl_cmd = "curl http://tahoe.ca.sandia.gov/download/nightly/macros.tar.gz --remote-name --connect-timeout 10";
+		if ($proxy !~ /NONE/) {
+			$curl_cmd = $curl_cmd." --proxy $proxy";
+		}
+		system("$curl_cmd") == 0
+			or die "ERROR: curl failed. Check connection or proxy ($proxy)";
+
+		# unpack
+		system("gunzip macros.tar.gz");
+		system("tar xf macros.tar");
+		system("rm macros.tar");
+	}
+	else {
+		print "ERROR: unrecognized connection '$connection'\n";	
+		exit;
+	}
 }
+
+# architecture
 chdir "macros"; 
 @macros = glob("*.macros"); 
 foreach $choice (@macros) { $choice =~ s/\.macros//; push(@choices,$choice);}
@@ -164,7 +186,7 @@ sub update{
 		update_http();	
 	}
 	else {
-		print "ERROR: unrecognized connection \"$connection\"";	
+		print "ERROR: unrecognized connection '$connection'\n";	
 		exit;
 	}
 }
