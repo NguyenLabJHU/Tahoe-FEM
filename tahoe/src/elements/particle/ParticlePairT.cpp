@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.28.4.2 2004-04-07 15:39:16 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.28.4.3 2004-04-08 06:15:51 paklein Exp $ */
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
@@ -70,28 +70,6 @@ void ParticlePairT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	eq_2.Append(&fEqnos);
 }
 
-/* class initialization */
-void ParticlePairT::Initialize(void)
-{
-	/* inherited */
-	ParticleT::Initialize();
-
-	/* dimension */
-	int ndof = NumDOF();
-	fLHS.Dimension(2*ndof);
-	fRHS.Dimension(2*ndof);
-
-	/* constant matrix needed to calculate stiffness */
-	fOneOne.Dimension(fLHS);
-	dMatrixT one(ndof);
-	one.Identity();
-	fOneOne.SetBlock(0, 0, one);
-	fOneOne.SetBlock(ndof, ndof, one);
-	one *= -1;
-	fOneOne.SetBlock(0, ndof, one);
-	fOneOne.SetBlock(ndof, 0, one);
-}
-
 /* collecting element geometry connectivities */
 void ParticlePairT::ConnectsX(AutoArrayT<const iArray2DT*>& connects) const
 {
@@ -145,7 +123,6 @@ void ParticlePairT::WriteOutput(void)
 	/* global coordinates */
 	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
 
-
 	/* pair properties function pointers */
 	int current_property = -1;
 	PairPropertyT::EnergyFunction energy_function = NULL;	
@@ -161,8 +138,9 @@ void ParticlePairT::WriteOutput(void)
 	if (field.Order() > 0) velocities = &(field[1]);
 
 	/* collect mass per particle */
-	dArrayT mass(fNumTypes);
-	for (int i = 0; i < fNumTypes; i++)
+	int num_types = fTypeNames.Length();
+	dArrayT mass(num_types);
+	for (int i = 0; i < num_types; i++)
 		mass[i] = fPairProperties[fPropertiesMap(i,i)]->Mass();
 
 	/* collect displacements */
@@ -519,13 +497,6 @@ void ParticlePairT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 	}
 }
 
-/* describe the parameters needed by the interface */
-void ParticlePairT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ParticleT::DefineParameters(list);
-}
-
 /* information about subordinate parameter lists */
 void ParticlePairT::DefineSubs(SubListT& sub_list) const
 {
@@ -583,6 +554,28 @@ ParameterInterfaceT* ParticlePairT::NewSub(const StringT& list_name) const
 	}	
 	else /* inherited */
 		return ParticleT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void ParticlePairT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParticleT::TakeParameterList(list);
+
+	/* dimension */
+	int ndof = NumDOF();
+	fLHS.Dimension(2*ndof);
+	fRHS.Dimension(2*ndof);
+
+	/* constant matrix needed to calculate stiffness */
+	fOneOne.Dimension(fLHS);
+	dMatrixT one(ndof);
+	one.Identity();
+	fOneOne.SetBlock(0, 0, one);
+	fOneOne.SetBlock(ndof, ndof, one);
+	one *= -1;
+	fOneOne.SetBlock(0, ndof, one);
+	fOneOne.SetBlock(ndof, 0, one);
 }
 
 /***********************************************************************
@@ -694,8 +687,9 @@ void ParticlePairT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	if (formM) {
 
 		/* collect mass per particle */
-		dArrayT mass(fNumTypes);
-		for (int i = 0; i < fNumTypes; i++)
+		int num_types = fTypeNames.Length();
+		dArrayT mass(num_types);
+		for (int i = 0; i < num_types; i++)
 			mass[i] = fPairProperties[fPropertiesMap(i,i)]->Mass();
 		mass *= constM;
 	
@@ -1134,8 +1128,9 @@ void ParticlePairT::ExtractProperties(const ParameterListT& list, const ArrayT<S
 			properties_map.Rows(), dim);
 
 	/* read properties */
-	properties.Dimension(num_props);
+	fPairProperties.Dimension(num_props);
 	for (int i = 0; i < num_props; i++) {
+
 		const ParameterListT& interaction = list.GetList("pair_particle_interaction", i);
 		
 		/* type names */
@@ -1144,7 +1139,13 @@ void ParticlePairT::ExtractProperties(const ParameterListT& list, const ArrayT<S
 		
 		/* resolve index */
 		int index_1 = -1, index_2 = -1;
->>>>>>>>> resolve index of each label
+		for (int j = 0; index_1 == -1 && j < type_names.Length(); j++)
+			if (type_names[j] == label_1) index_1 = j;
+		if (index_1 == -1) ExceptionT::GeneralFail(caller, "could not resolve index of \"%s\"", label_1.Pointer());
+
+		for (int j = 0; index_2 == -1 && j < type_names.Length(); j++)
+			if (type_names[j] == label_2) index_2 = j;
+		if (index_2 == -1) ExceptionT::GeneralFail(caller, "could not resolve index of \"%s\"", label_2.Pointer());
 		
 		/* set properies map */
 		if (properties_map(index_1, index_2) != -1)
@@ -1158,8 +1159,13 @@ void ParticlePairT::ExtractProperties(const ParameterListT& list, const ArrayT<S
 			ExceptionT::GeneralFail(caller, "could not resolve \"pair_property_choice\"");
 		PairPropertyT* pair_prop = New_PairProperty(property->Name(), true);
 		pair_prop->TakeParameterList(*property);
-		properties[i] = pair_prop;
+		fPairProperties[i] = pair_prop;
 	}
+	
+	/* copy */
+	properties.Dimension(fPairProperties.Length());
+	for (int i = 0; i < properties.Length(); i++)
+		properties[i] = fPairProperties[i];
 }
 
 #if 0

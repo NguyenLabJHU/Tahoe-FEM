@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.33.2.2 2004-04-07 15:39:16 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.33.2.3 2004-04-08 06:15:51 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -76,6 +76,7 @@ ParticleT::ParticleT(const ElementSupportT& support):
 	fGrid(NULL),
 	fReNeighborCounter(0),
 	fDmax(0),
+	fForce_man(fForce),
 	fActiveParticles(NULL),
 	fRandom(NULL)
 {
@@ -346,14 +347,14 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 	fReNeighborCounter++;
 	if (has_moving ||
 	    (fReNeighborDisp > 0.0 && fDmax > fReNeighborDisp) || 
-		(fReNeighborIncr != -1 && fReNeighborCounter >= fReNeighborIncr))
+		(fReNeighborIncr > 0 && fReNeighborCounter >= fReNeighborIncr))
 	{
 		/* output stream */
 		ofstreamT& out = ElementSupport().Output();
 		if (fReNeighborDisp > 0.0 && fDmax > fReNeighborDisp)
 			out << "\n ParticleT::RelaxSystem: max displacement since re-neighboring "
 			    << fDmax << " > " << fReNeighborDisp << '\n';
-		if (fReNeighborIncr != -1 && fReNeighborCounter >= fReNeighborIncr)
+		if (fReNeighborIncr > 0 && fReNeighborCounter >= fReNeighborIncr)
 			out << "\n ParticleT::RelaxSystem: number of steps since re-neighboring "
 			    << fReNeighborCounter << " >= " << fReNeighborIncr << '\n';
 	
@@ -958,12 +959,12 @@ void ParticleT::DefineParameters(ParameterListT& list) const
 
 	ParameterT re_neighbor_disp(fReNeighborDisp, "re-neighbor_displacement");
 	re_neighbor_disp.AddLimit(0.0, LimitT::Lower);
-	list.AddParameter(re_neighbor_disp, ParameterListT::ZeroOrOnce);
+	list.AddParameter(re_neighbor_disp);
 
 	ParameterT re_neighbor_incr(fReNeighborIncr, "re-neighbor_increment");
 	re_neighbor_incr.AddLimit(0, LimitT::LowerInclusive);
 	re_neighbor_incr.SetDefault(0);
-	list.AddParameter(re_neighbor_incr, ParameterListT::ZeroOrOnce);
+	list.AddParameter(re_neighbor_incr);
 }
 
 /* information about subordinate parameter lists */
@@ -1052,7 +1053,7 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 	fReNeighborIncr = list.GetParameter("re-neighbor_increment");
 
 	/* allocate work space */
-	fForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
+	fForce_man.Dimension(ElementSupport().NumNodes(), NumDOF());
 
 	/* periodic boundary conditions */
 	fPeriodicBounds.Dimension(NumSD(), 2);
@@ -1127,7 +1128,7 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 		}
 		
 		/* look for node list */
-		const ParameterListT* node_ID_list = list.List("node_ID_list");
+		const ParameterListT* node_ID_list = particle_type.List("node_ID_list");
 		if (node_ID_list) {
 		
 			/* collect id's */

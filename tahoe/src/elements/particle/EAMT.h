@@ -78,6 +78,10 @@ protected:
 	 * to determine the neighborlists. */
 	virtual void SetConfiguration(void);
 
+	/** extract the properties information from the parameter list. See ParticleT::ExtractProperties */
+	virtual void ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& type_names,
+		ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map);
+
 	/** construct the list of properties from the given input stream */
 	virtual void EchoProperties(ifstreamT& in, ofstreamT& out);
 

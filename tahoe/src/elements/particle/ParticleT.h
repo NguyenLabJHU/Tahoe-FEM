@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.22.2.1 2004-04-07 15:39:16 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.22.2.2 2004-04-08 06:15:51 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -174,7 +174,7 @@ protected: /* for derived classes only */
 		RaggedArray2DT<int>& neighbors, bool double_list, bool full_list);
 
 	/** construct the list of properties from the given input stream */
-	virtual void EchoProperties(ifstreamT& in, ofstreamT& out) = 0;
+	virtual void EchoProperties(ifstreamT& in, ofstreamT& out) {};// = 0;
 
 	/** assemble particle mass matrix into LHS of global equation system
 	 * \param mass mass associated with each particle type */
