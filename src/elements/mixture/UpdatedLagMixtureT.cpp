@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.3 2004-11-07 21:20:32 paklein Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.4 2005-01-04 00:52:16 paklein Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -98,5 +98,8 @@ void UpdatedLagMixtureT::Acceleration(LocalArrayT& acc)
 /* return the body force vector */
 void UpdatedLagMixtureT::BodyForce(dArrayT& body_force) const
 {
-	body_force.SetToScaled(fBodySchedule->Value(), fBody);
+	if (fBodySchedule)
+		body_force.SetToScaled(fBodySchedule->Value(), fBody);
+	else
+		body_force = 0.0;
 }

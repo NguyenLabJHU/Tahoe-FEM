@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.5 2005-01-03 21:55:34 paklein Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.6 2005-01-04 00:52:16 paklein Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
@@ -56,10 +56,10 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::SizeMismatch(caller);
 
 	/* resolve species index */
-	const ArrayT<StringT>& labels = Field().Labels();
-	if (labels.Length() != 1) 
-		ExceptionT::GeneralFail(caller, "field dim 1 not %d", labels.Length());
-	fIndex = fUpdatedLagMixture->SpeciesIndex(labels[0]);
+	fIndex = fUpdatedLagMixture->SpeciesIndex(Field().FieldName());
+	if (fIndex < 0)
+		ExceptionT::GeneralFail(caller, "could not resolve index of field \"%s\"",
+			Field().FieldName().Pointer());
 
 	/* dimension */
 	fFluxVelocity.Dimension(NumElements(), NumIP()*NumSD());
@@ -262,6 +262,9 @@ void MixtureSpeciesT::ComputeMassFlux(void)
 	while (NextElement()) 
 	{
 		int e = CurrElementNumber();
+
+		/* global shape function values */
+		SetGlobalShape();
 	
 		/* set solid element */
 		fUpdatedLagMixture->NextElement();
@@ -312,7 +315,7 @@ void MixtureSpeciesT::ComputeMassFlux(void)
 // add motion of background
 
 			/* compute mass flux */
-			const dMatrixT& F = fUpdatedLagMixture->DeformationGradient();
+			const dMatrixT& F = fUpdatedLagMixture->DeformationGradient(ip);
 			F_inv.Inverse(F);
 			M_e.RowAlias(ip, M);
 			F_inv.Multx(V, M);
