@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.6 2001-10-24 01:58:26 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.7 2001-11-14 00:55:28 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ANISO_T_H_
@@ -10,6 +10,8 @@
 /* direct members */
 #include "pArrayT.h"
 #include "RaggedArray2DT.h"
+#include "dArray2DT.h"
+#include "LocalArrayT.h"
 
 /* forward declarations */
 class SurfacePotentialT;
@@ -98,6 +100,13 @@ protected:
 	/* work space (for tangent) */
 	dMatrixT fnsd_nee_1;
 	dMatrixT fnsd_nee_2;
+
+	/* variables for calculating nodal info */
+	/* Added by cjkimme 11/07/01 */
+	bool fCalcNodalInfo;
+	int fNodalInfoCode;
+        dArray2DT fNodalQuantities;
+	LocalArrayT fNodalValues;
 };
 
 #endif /* _CSE_ANISO_T_H_ */

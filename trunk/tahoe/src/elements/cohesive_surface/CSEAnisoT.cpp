@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.11 2001-11-02 19:35:42 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.12 2001-11-14 00:55:28 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -68,7 +68,7 @@ void CSEAnisoT::Initialize(void)
 		fCurrShapes = new SurfaceShapeT(*fShapes, fLocCurrCoords);
 		if (!fCurrShapes) throw eOutOfMemory;
 		fCurrShapes->Initialize();
-		
+ 		
 		/* allocate work space */
 		fnsd_nee_1.Allocate(fNumSD, fNumElemEqnos);
 		fnsd_nee_2.Allocate(fNumSD, fNumElemEqnos);
@@ -83,6 +83,9 @@ void CSEAnisoT::Initialize(void)
 	ifstreamT& in = fFEManager.Input();
 	ostream&   out = fFEManager.Output();
 		
+
+	fCalcNodalInfo = false;
+
 	/* construct props */
 	int numprops;
 	in >> numprops;
@@ -151,6 +154,16 @@ void CSEAnisoT::Initialize(void)
 		
 		/* get number of state variables */
 		fNumStateVariables[num] = fSurfPots[num]->NumStateVariables();
+
+		/* Initialize things if a potential needs more info than the gap vector */
+		/* Added by cjkimme 11/07/01 */
+		if (fSurfPots[num]->NeedsNodalInfo()) 
+		{
+		    fCalcNodalInfo = true;
+		    fNodalInfoCode = fSurfPots[num]->NodalQuantityNeeded();
+		}
+	  else cout << "\n not needed man";
+		  
 	}
 
 	/* check compatibility of constitutive outputs */
@@ -277,6 +290,17 @@ void CSEAnisoT::LHSDriver(void)
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
+	/* If the potential needs info from the nodes, start to gather it now */
+	/* Added by cjkimme 11/07/01 */
+	if (fCalcNodalInfo) 
+	{
+	        SendOutput(fNodalInfoCode);
+	        iArrayT nodalRowsUsed(fNodes->NumRowsUsed());
+	        fNodes->RowsUsed(nodalRowsUsed);
+		fNodalQuantities.Allocate(fNodes->NumberOfAverageCols(),nodalRowsUsed.Length());
+	        fNodes->OutputAverage(nodalRowsUsed,fNodalQuantities);
+	}
+	
 	AutoArrayT<double> state2;
 	dArrayT state;
 	Top();
@@ -289,14 +313,29 @@ void CSEAnisoT::LHSDriver(void)
 		SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
 		int num_state = fNumStateVariables[element.MaterialNumber()];
 		state2.Allocate(num_state);
-	
+
+		/* Get whatever nodal info the potential needs */
+		/* Added by cjkimme 11/07/01 */
+		if (surfpot->NeedsNodalInfo()) 
+		{
+		    /* just scalars for now. MinorDim() will be changed */
+		    fNodalValues.Allocate(element.NodesX().Length(),1);
+		    dArrayT nodalRow(fNodalQuantities.MinorDim());
+		    for (int iIndex = 0; iIndex < element.NodesX().Length(); iIndex++) 
+		    {
+		       fNodalQuantities.RowCopy(element.NodesX()[iIndex],nodalRow);
+		       fNodalValues[iIndex] = surfpot->ComputeNodalValue(nodalRow);
+	cout << "\n ****** " << fNodalValues[iIndex] << " " << (nodalRow[0]+nodalRow[1])/3;
+		    }
+		}
+
 		/* get ref geometry (1st facet only) */
 		fNodes1.Collect(facet1, element.NodesX());
 		fLocInitCoords1.SetLocal(fNodes1);
 
 		/* get current geometry */
 		SetLocalX(fLocCurrCoords); //EFFECTIVE_DVA
-
+		
 		/* initialize */
 		fLHS = 0.0;
 
@@ -304,7 +343,7 @@ void CSEAnisoT::LHSDriver(void)
 		double* pstate = fStateVariables_last(CurrElementNumber());
 		fShapes->TopIP();
 		while (fShapes->NextIP())
-		{
+		{  
 			/* set state variables */
 			state.Set(num_state, pstate);
 			pstate += num_state;
@@ -325,6 +364,16 @@ void CSEAnisoT::LHSDriver(void)
 			/* check */
 			if (j0 <= 0.0 || j <= 0.0) throw eBadJacobianDet;
 		
+			/* Interpolate nodal info to IPs */
+			/* Added by cjkimme 11/07/01 */
+			if (surfpot->NeedsNodalInfo()) 
+			{
+			  /* compute just a scalar at IP for now */
+			  dArrayT scalarIP(1);
+			  fShapes->Interpolate(fNodalValues,scalarIP);
+			  surfpot->UpdateStateVariables(scalarIP,state);
+			}
+
 			/* gap vector and gradient (facet1 to facet2) */
 			const dArrayT&    delta = fShapes->InterpolateJumpU(fLocCurrCoords);
 			const dMatrixT& d_delta = fShapes->Grad_d();
@@ -338,6 +387,7 @@ void CSEAnisoT::LHSDriver(void)
 			{
 				/* traction in local frame */
 				state2 = state;
+				
 				const dArrayT& T = surfpot->Traction(fdelta, state2);
 
 				/* 1st term */
@@ -360,7 +410,7 @@ void CSEAnisoT::LHSDriver(void)
 			fddU *= j0*w*constK;
 			fLHS.MultQTBQ(d_delta, fddU, format, dMatrixT::kAccumulate);	
 		}
-		
+
 		/* assemble */
 		AssembleLHS();
 	}
@@ -566,6 +616,19 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
+	/* If the potential needs info from the nodes, start to gather it now */
+	/* Added by cjkimme 11/07/01 */
+	if (fCalcNodalInfo) 
+	{
+	  /*Patrick, this call is crashing it, but not the first several times it's 
+            called. I'm confused. */
+	  SendOutput(fNodalInfoCode);
+	  //    iArrayT nodalRowsUsed(fNodes->NumRowsUsed());
+	  //    fNodes->RowsUsed(nodalRowsUsed);
+	  //fNodalQuantities.Allocate(fNodes->NumberOfAverageCols(),nodalRowsUsed.Length());
+	  //    fNodes->OutputAverage(nodalRowsUsed,fNodalQuantities);
+	}
+	
 	AutoArrayT<double> state;
 	Top();
 	while (NextElement())
@@ -615,6 +678,21 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			if (e_codes[Centroid]) centroid = 0.0;
 			if (e_codes[Traction]) traction = 0.0;
 
+			/* Get whatever nodal info the potential needs */
+			/* Added by cjkimme 11/07/01 */
+			/*	if (surfpot->NeedsNodalInfo()) 
+			{*/
+			  /* just scalars for now. MinorDim() will be changed */
+			/* fNodalValues.Allocate(element.NodesX().Length(),1);
+			  dArrayT nodalRow(fNodalQuantities.MinorDim());
+			  for (int iIndex = 0; iIndex < element.NodesX().Length(); iIndex++) 
+			  {
+			    fNodalQuantities.RowCopy(element.NodesX()[iIndex],nodalRow);
+			    fNodalValues[iIndex] = surfpot->ComputeNodalValue(nodalRow);
+			    cout << "\n ****** " << fNodalValues[iIndex] << " " << (nodalRow[0]+nodalRow[1])/3;
+			  }
+			}
+*/
 			/* integrate */
 			fShapes->TopIP();
 			while (fShapes->NextIP())
@@ -636,7 +714,17 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				/* gap */				
 				if (n_codes[NodalDispJump])
 					fShapes->Extrapolate(fdelta, jump);				
-				
+
+				/* Interpolate nodal info to IPs */
+				/* Added by cjkimme 11/07/01 */
+				/*			if (surfpot->NeedsNodalInfo()) 
+				{*/
+				    /* compute just a scalar at IP for now */
+				/* dArrayT scalarIP(1);
+				    fShapes->Interpolate(fNodalValues,scalarIP);
+				    surfpot->UpdateStateVariables(scalarIP,state);
+				}*/
+
 				/* traction */
 				if (n_codes[NodalTraction] || e_codes[Traction])
 				{

@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.h,v 1.2 2001-11-02 19:35:43 cjkimme Exp $ */
+/* $Id: Tijssens2DT.h,v 1.3 2001-11-14 00:55:29 cjkimme Exp $ */
 
 #ifndef _TIJSSENS_2D_T_H_
 #define _TIJSSENS_2D_T_H_
@@ -61,6 +61,12 @@ public:
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
 
+	/** For Tijssens2DT, returns true to compute nodal tractions. */
+	virtual bool NeedsNodalInfo(void);
+	virtual int NodalQuantityNeeded(void);
+        virtual double ComputeNodalValue(const dArrayT &);
+	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
+
 protected:
 
 	/** return true if the potential has compatible (type and sequence)
@@ -83,13 +89,13 @@ private:
 	double fB_0, fB, fQ_B; /* fB = fB_0 exp(fQ_B/fTemp) */
 
 	/* crazing state variables' parameters */
-	double fLambda_0; /* tangential rate constant */
+	double fGamma_0; /* tangential rate constant */
 	double fDelta_0; /* normal rate constant */
 	double fsigma_c; /* critical normal traction */
 	double ftau_c; /* critical tangential traction */
 	double fastar; /* Material parameter */
 	double ftemp; /* Temperature */
-	double fY; /* Bulk yield strength */
+//	double fY; /* Bulk yield strength */
 
 };
 

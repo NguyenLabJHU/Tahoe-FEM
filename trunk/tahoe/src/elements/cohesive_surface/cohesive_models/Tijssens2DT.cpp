@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.3 2001-11-02 19:35:43 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.4 2001-11-14 00:55:29 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -31,22 +31,26 @@ Tijssens2DT::Tijssens2DT(ifstreamT& in, const double& time_step):
 	in >> fQ_B; if (fQ_B < 0) throw eBadInputValue;
 
         /* crazing state variables' parameters */
-	in >> fLambda_0; if (fLambda_0 < 0) throw eBadInputValue;
+	//	in >> fGamma_0; if (fGamma_0 < 0) throw eBadInputValue;
 	in >> fDelta_0; if (fDelta_0 < 0) throw eBadInputValue;
 	in >> fsigma_c; if (fsigma_c < 0) throw eBadInputValue;
-        in >> ftau_c; if (ftau_c < 0) throw eBadInputValue;
+	//        in >> ftau_c; if (ftau_c < 0) throw eBadInputValue;
 	in >> fastar; if (fastar < 0) throw eBadInputValue;
         in >> ftemp; if (ftemp < 0) throw eBadInputValue;
-        in >> fY; if (fY < 0) throw eBadInputValue;
+        //in >> fY; if (fY < 0) throw eBadInputValue;
 
 	fA = fA_0/2.*exp(fQ_A/ftemp);
 	fB = fB_0/6.*exp(fQ_B/ftemp);
         fc_1 /= fDelta_n_ccr;
+	double root3 = sqrt(3.);
+	ftau_c = fsigma_c/root3;
+	fGamma_0 = fDelta_0*root3;
+	fastar /= ftemp;
 
 }
 
 /* return the number of state variables needed by the model */
-int Tijssens2DT::NumStateVariables(void) const { return 3*knumDOF+1; }
+int Tijssens2DT::NumStateVariables(void) const { return 4*knumDOF; }
 
 /* surface potential */ 
 double Tijssens2DT::FractureEnergy(const ArrayT<double>& state) 
@@ -74,31 +78,34 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 
 	double u_t = jump_u[0];
 	double u_n = jump_u[1];
-	double sigma_m = state[1];
-	// I need the trace of the stress tensor
+
 	/* see if crazing has been initiated */
-	double delta_tc, delta_nc;
-	//	if ((1.5*sigma_m - fA + fB/sigma_m - state[1]) > kSmall)
-	// Use a criterium only on the normal traction
-	if (state[1]/fY < .5) 
+	double delta_tc, delta_nc, ddelta_tc;
+	if ((1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall)
         {
 	        delta_tc = 0.;
 		delta_nc = 0.;
+		ddelta_tc = 0.;
 	} 
 	else
 	{
 	        if (state[5] <= fDelta_n_ccr) {
-		  delta_tc = fLambda_0;
+		  delta_tc = fGamma_0;
+		  ddelta_tc = fGamma_0*fastar;
 		  if (state[0] <= ftau_c)
-		    delta_tc *= exp(-fastar*ftau_c/ftemp*(1-state[0]/ftau_c))-exp(-fastar*ftau_c/ftemp*(1+state[0]/ftau_c));
+		  {
+		    delta_tc *= exp(-fastar*(ftau_c-state[0]))-exp(-fastar*(ftau_c+state[0]));
+		    ddelta_tc *= exp(-fastar*(ftau_c-state[0]))+exp(-fastar*(ftau_c+state[0]));
+		  }
 		  delta_nc = fDelta_0;
 		  if (state[1] <= fsigma_c)
-		    delta_nc *= exp(-fastar*fsigma_c/ftemp*(1-state[1]/fsigma_c));
+		    delta_nc *= exp(-fastar*(fsigma_c-state[1]));
 		}
 		else
 		{
 		  delta_tc = 0.;
 		  delta_nc = 0.;
+		  ddelta_tc = 0.;
 		}
 	}
 
@@ -111,17 +118,17 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 	/* calculate traction rate and evolve traction*/
 
         if (state[5] <= fDelta_n_ccr) {
-          state[0] += fk_t0*exp(-fc_1*state[5])* (u_t_dot - delta_tc) * fTimeStep;
+	  double k_t = fk_t0*exp(-fc_1*state[5]);
+          state[0] += k_t/(1+k_t*ddelta_tc*fTimeStep) * (u_t_dot - delta_tc) * fTimeStep;
+	  state[1] += fk_n/(1+fk_n*delta_nc*fastar*fTimeStep) * (u_n_dot - delta_nc) * fTimeStep;
+	  
 	  /* update craze widths */
 	  state[4] += delta_tc*fTimeStep;
 	  state[5] += delta_nc*fTimeStep;
 	}
-	state[1] += fk_n * (u_n_dot - delta_nc) * fTimeStep;
 
 	state[2] = u_t;
 	state[3] = u_n;
-	/* penetration */ //What do I do here?
-	//	if (u_n < 0) fTraction[1] += fK*u_n;
 
 	fTraction[0] = state[0];
 	fTraction[1] = state[1];
@@ -140,15 +147,39 @@ const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif
 
-	double u_t = jump_u[0];
-	double u_n = jump_u[1];
+	double delta_nc, ddelta_tc;
+
+	if ((1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall)
+        {
+		delta_nc = 0.;
+		ddelta_tc = 0.;
+	} 
+	else
+	{
+	        if (state[5] <= fDelta_n_ccr) {
+		  ddelta_tc = fGamma_0*fastar;
+		  if (state[0] <= ftau_c)
+		    ddelta_tc *= exp(-fastar*(ftau_c-state[0]))+exp(-fastar*(ftau_c+state[0]));
+		  delta_nc = fDelta_0;
+		  if (state[1] <= fsigma_c)
+		    delta_nc *= exp(-fastar*(fsigma_c-state[1]));
+		}
+		else
+		{
+		  delta_nc = 0.;
+		  ddelta_tc = 0.;
+		}
+	}
 
 	fStiffness[1] = fStiffness[2] = 0.;
 	if (state[5] <= fDelta_n_ccr) 
-	  fStiffness[0] = fk_t0*exp(-fc_1*state[4]);
+	{
+	  double k_t = fk_t0*exp(-fc_1*state[5]);
+	  fStiffness[0] = k_t/(1+k_t*ddelta_tc*fTimeStep);
+	}	
 	else 
-	  fStiffness[0] = 0.;
-	fStiffness[3] = fk_n;
+	  fStiffness[0] = fk_t0*exp(-fc_1);
+	fStiffness[3] = fk_n/(1+fk_n*fastar*delta_nc*fTimeStep);
 	
 	return fStiffness;
 }
@@ -160,15 +191,13 @@ SurfacePotentialT::StatusT Tijssens2DT::Status(const dArrayT& jump_u,
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 #endif
-	double sigma_m = state[1];
 
-	if ((1.5*sigma_m - fA + fB/sigma_m - state[1]) > kSmall)
+	if ((1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall)
 	         return Precritical;
 	else 
 	  //	         if (state[5] > fDelta_n_ccr) 
-	  //        return Failed;
-	  // else
-	  // Don't let it fail yet
+	  //            return Failed;
+	  //     else
 		        return Critical;
 
 }
@@ -189,25 +218,24 @@ void Tijssens2DT::Print(ostream& out) const
 	out << " Crazing initiation parameter B. . . . . . . . . = " << fB_0    << '\n';
 	out << " Thermal activation for A. . . . . . . . . . . . = " << fQ_A << '\n';
 	out << " Thermal activation for B. . . . . . . . . . . . = " << fQ_B << '\n';
-	out << " Tangential crazing rate constant. . . . . . . . = " << fLambda_0      << '\n';
+	//	out << " Tangential crazing rate constant. . . . . . . . = " << fGamma_0      << '\n';
 	out << " Normal crazing rate constant. . . . . . . . . . = " << fDelta_0   << '\n';
 	out << " Critical normal traction for crazing. . . . . . = " << fsigma_c  << '\n';
-	out << " Critical tangential traction for crazing. . . . = " << ftau_c   << '\n';
-	out << " Material parameter. . . . . . . . . . . . . . . = " << fastar   << '\n';
+	//	out << " Critical tangential traction for crazing. . . . = " << ftau_c   << '\n';
+	out << " Material parameter. . . . . . . . . . . . . . . = " << fastar*ftemp   << '\n';
 	out << " Temperature . . . . . . . . . . . . . . . . . . = " << ftemp   << '\n';
-	out << " Bulk Yield Stress . . . . . . . . . . . . . . . = " << fY << '\n';
+	//	out << " Bulk Yield Stress . . . . . . . . . . . . . . . = " << fY << '\n';
 }
 
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
 * by default */
-int Tijssens2DT::NumOutputVariables(void) const { return 2; }
+int Tijssens2DT::NumOutputVariables(void) const { return 1; }
 
 void Tijssens2DT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(2);
-	labels[0] = "lambda";
-	labels[1] = "dw_visc";
+	labels.Allocate(1);
+	labels[0] = "sigma_m";
 }
 
 void Tijssens2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
@@ -215,38 +243,25 @@ void Tijssens2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& sta
 {
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
-#endif
-/*
-	double u_t = jump_u[0];
-	double u_n = jump_u[1];
+#endif	
+	output[0] = state[7];
+}
 
-	double r_t = u_t/fd_c_t;
-	double r_n = u_n/fd_c_n;
-	double   L = sqrt(r_t*r_t + r_n*r_n); // (1.1)
-	output[0] = L;
-*/	
-	/* approximate incremental viscous dissipation, assuming a constant
-	 * average viscosity over the increment */
-/*	if (L < 1)
-	{*/
-		/* increment displacement */
-	/*	double d_t = u_t - state[0];
-		double d_n = u_n - state[1];
-*/
-		/* previous lambda */
-/*		r_t = state[0]/fd_c_t;
-		r_n = state[1]/fd_c_n;
-		double L_last = sqrt(r_t*r_t + r_n*r_n); // (1.1)
-*/		
-		/* average viscosity */
-/*		double eta = feta0*(1.0 - 0.5*(L + L_last));
-		
-*/		/* approximate incremental dissipation */
-/*		output[1] = 0.5*eta*(d_t*d_t + d_n*d_n)/fTimeStep;
-	}
-	else
-		output[1] = 0.0;*/
-	output[1] = 0.0;
+bool Tijssens2DT::NeedsNodalInfo(void) { return true; }
+
+int Tijssens2DT::NodalQuantityNeeded(void) 
+{ 
+        return 3; 
+}
+
+double Tijssens2DT::ComputeNodalValue(const dArrayT& nodalRow) 
+{
+        return (nodalRow[0]+nodalRow[1])/3;
+}
+
+void Tijssens2DT::UpdateStateVariables(const dArrayT& IPdata, ArrayT<double>& state)
+{
+        state[7] = IPdata[0];
 }
 
 bool Tijssens2DT::CompatibleOutput(const SurfacePotentialT& potential) const
