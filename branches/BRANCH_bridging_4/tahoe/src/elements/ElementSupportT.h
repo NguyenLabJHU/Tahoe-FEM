@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.27.8.1 2004-02-25 07:45:15 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.27.8.2 2004-03-01 19:07:39 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -312,6 +312,10 @@ public:
 	
 	/** return true if output is going to be written for the current time step */
 	bool WriteOutput(void) const;
+
+	/** write a snapshot */
+	void WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
+		const dArray2DT& values, const ArrayT<StringT>& labels) const;
 	
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/** return a reference to the output set with the given ID */
