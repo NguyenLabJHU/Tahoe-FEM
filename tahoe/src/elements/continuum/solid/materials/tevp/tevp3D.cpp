@@ -1,4 +1,4 @@
-/* $Id: tevp3D.cpp,v 1.16.4.1 2004-01-21 19:10:28 paklein Exp $ */
+/* $Id: tevp3D.cpp,v 1.16.4.2 2004-02-19 19:59:55 paklein Exp $ */
 /* created:  Harold Park (06/25/2001) */
 #include "tevp3D.h"
 #include <iostream.h>
@@ -21,8 +21,6 @@ static const char* Labels[kNumOutput] = {
 /* constructor */
 tevp3D::tevp3D(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("tevp_3D"),
-  FSSolidMatT(in, support),
-  IsotropicT(in),
   /* initialize references */
 //  fRunState(ContinuumElement().RunState()),
 //  fDt(ContinuumElement().ElementSupport().TimeStep()),

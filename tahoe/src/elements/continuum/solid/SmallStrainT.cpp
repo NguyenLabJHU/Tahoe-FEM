@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13.2.5 2004-02-12 17:19:13 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.2.6 2004-02-19 19:59:48 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -123,7 +123,7 @@ ParameterInterfaceT* SmallStrainT::NewSub(const StringT& list_name) const
 		return block;
 	}
 	else /* inherited */
-		return ContinuumElementT::NewSub(list_name);
+		return SolidElementT::NewSub(list_name);
 }
 
 /* return the description of the given inline subordinate parameter list. */

@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.12.4.1 2004-01-21 19:10:11 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.12.4.2 2004-02-19 19:59:51 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -15,7 +15,6 @@ const int kSIERRA_stress_dim = 6;
 /* constructor */
 SIERRA_Material_BaseT::SIERRA_Material_BaseT(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("SIERRA_material"),
-	FSSolidMatT(in, support),
 	fTangentType(GlobalT::kSymmetric),
 	fSIERRA_Material_Data(NULL),
 	fModulus(dSymMatrixT::NumValues(NumSD())),

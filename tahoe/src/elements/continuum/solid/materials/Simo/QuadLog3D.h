@@ -1,17 +1,16 @@
-/* $Id: QuadLog3D.h,v 1.9.30.1 2004-02-18 16:33:47 paklein Exp $ */
+/* $Id: QuadLog3D.h,v 1.9.30.2 2004-02-19 19:59:52 paklein Exp $ */
 /* created: paklein (06/27/1997) */
 #ifndef _QUAD_LOG_3D_H_
 #define _QUAD_LOG_3D_H_
 
 /* base classes */
-#include "FSSolidMatT.h"
-#include "IsotropicT.h"
+#include "FSIsotropicMatT.h"
 #include "SpectralDecompT.h"
 
 namespace Tahoe {
 
 /** hyperelastic material governed by quadratic logarithmic potential */
-class QuadLog3D: public FSSolidMatT, public IsotropicT
+class QuadLog3D: public FSIsotropicMatT
 {
 public:
 
@@ -44,18 +43,6 @@ public:
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
 
 protected:
 
