@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.16.2.2 2002-12-18 09:52:22 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.16.2.3 2003-01-05 23:42:22 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -215,15 +215,6 @@ public:
 	 * Returns NULL if there is no list, indicating \e all nodes are owned by 
 	 * this partition */
 	const ArrayT<int>* BorderNodes(void) const;
-
-	/** send data out.
-	 * \param all_out_data outgoing data for \e every node on this processor: [nnd] x [nvals] */
-	void SendExternalData(const dArray2DT& all_out_data) const;
-
-	/** receive incoming data.
-	 * \param external_data data from other processors for each node in 
-	 *        the ElementSupport::IncomingNodes array */
-	void RecvExternalData(dArray2DT& external_data) const;
 	/*@}*/	
 #endif
 	

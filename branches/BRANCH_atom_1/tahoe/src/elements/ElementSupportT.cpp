@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.16.2.2 2002-12-18 09:52:22 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.16.2.3 2003-01-05 23:42:22 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -475,25 +475,6 @@ const ArrayT<int>* ElementSupportT::BorderNodes(void) const
 	return NULL;
 #endif
 }
-
-void ElementSupportT::SendExternalData(const dArray2DT& all_out_data) const
-{
-#ifndef _SIERRA_TEST_
-	FEManager().SendExternalData(all_out_data);
-#else
-#pragma unused(all_out_data)
-#endif
-}
-
-void ElementSupportT::RecvExternalData(dArray2DT& external_data) const
-{
-#ifndef _SIERRA_TEST_
-	FEManager().RecvExternalData(external_data);
-#else
-#pragma unused(external_data)
-#endif
-}
-
 #endif
 
 void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat, 
