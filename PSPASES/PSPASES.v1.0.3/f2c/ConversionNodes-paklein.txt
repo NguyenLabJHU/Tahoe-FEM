@@ -27,5 +27,9 @@ Things that needed to be addressed when running the code through f2c
 (8) f2c assumes functions called will also be fortran (not C), so check
     all arguments to see if they are supposed to be pointers or values.
 
+(9) MPI constants are replaced with their integer definitions by f2c, which 
+	are specific to the MPI headers provided when f2c was run. The integer
+	constants must be replaced with their names.
+
 Potential issues:
 (1) lbit_shift translated from ishft in moveai.c. What does this do?
