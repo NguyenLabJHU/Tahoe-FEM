@@ -1,9 +1,8 @@
-/* $Id: EAM_particle.cpp,v 1.1.2.4 2004-02-26 14:20:47 hspark Exp $ */
+/* $Id: EAM_particle.cpp,v 1.1.2.5 2004-02-26 19:08:16 hspark Exp $ */
 /* created: hspark(02/25/2004) */
 #include "EAM_particle.h"
 #include <iostream.h> //TEMP
 #include "CBLatticeT.h"
-#include "C1FunctionT.h"
 
 /* EAM property types */
 #include "ParadynEAMT.h"
@@ -58,6 +57,9 @@ void EAM_particle::SetGlueFunctions(const StringT& param_file)
 	fEmbedEnergy   = fEAMProperty->getEmbedEnergy();
 	fEmbedForce    = fEAMProperty->getEmbedForce();
 	fEmbedStiffness = fEAMProperty->getEmbedStiffness();
+	
+	/* set lattice parameter */
+	fLatticeParameter = fEAMProperty->GetLatticeParameter();
 }
 
 /*
@@ -77,7 +79,7 @@ double EAM_particle::ComputeUnitEnergy(void)
 
 		double  ri = fBonds[i];
 		double phi = fPairEnergy(ri, NULL, NULL);
-		double rho = fEDEnergy(ri, NULL, NULL);	// Using ElectronDensityEnergy - could be wrong
+		double rho = fEDEnergy(ri, NULL, NULL);
 
 		rho    += ci*rho;
 		energy += ci*0.5*phi;
@@ -134,6 +136,11 @@ void EAM_particle::ComputeUnitModuli(dMatrixT& moduli)
 	FormSingleBondContribution(rho, moduli);
 }
 
+/* lattice parameter */
+double EAM_particle::LatticeParameter(void) const
+{
+	return fLatticeParameter;
+}
 /**********************************************************************
 * Private
 **********************************************************************/
