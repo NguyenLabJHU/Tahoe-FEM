@@ -880,17 +880,50 @@ void AbaqusResultsT::WriteNodeVariables (int& i, const iArrayT& key, const dArra
   
   // account for node number
   if (VariableWrittenWithNodeNumber (key[i])) length++;
-  
+
   // write data for this variable
+  int index = VariableKeyIndex (key[i]);
   for (int n=0; n < nodes_used.Length(); n++)
     {
-      // for element integration point data (typically node averaged)
-      WriteElementHeader (key[i], nodes_used[n], 0, 0, kElementNodeAveraged, numdir, numshear, 0, 0);
+      // for element integration point data (assume node averaged)
+      if (fVariableTable[index].Point() != AbaqusVariablesT::kNodePoint)
+	WriteElementHeader (key[i], nodes_used[n], 0, 0, kElementNodeAveraged, numdir, numshear, 0, 0);
       
       // write record
       WriteASCII (fMarker);
       Write (length);
       if (VariableWrittenWithNodeNumber (key[i])) Write (nodes_used[n]);
+      for (int m=i; m < i + count; m++)
+	Write (values (n, m));
+    }
+
+  i += count - 1;
+}
+
+void AbaqusResultsT::WriteElementVariables (int& i, const iArrayT& key, const dArray2DT& values, const iArrayT& els_used, int numdir, int numshear)
+{
+  // determine record length
+  int count = 0;
+  for (int j=i; j < key.Length(); j++)
+    if (key[j] == key[i])
+      count ++;
+  int length = 2 + count;
+  
+  // write data for this variable
+  int index = VariableKeyIndex (key[i]);
+  for (int n=0; n < els_used.Length(); n++)
+    {
+      // all element variables must have element header
+      // no element data originates at node points
+      if (fVariableTable[index].Point() != AbaqusVariablesT::kNodePoint)
+	WriteElementHeader (key[i], els_used[n], 0, 0, kElementWhole, numdir, numshear, 0, 0);
+      else
+	throw eDatabaseFail;
+      
+      // write record
+      WriteASCII (fMarker);
+      Write (length);
+      Write (els_used[n]);
       for (int m=i; m < i + count; m++)
 	Write (values (n, m));
     }
@@ -1089,6 +1122,20 @@ void AbaqusResultsT::WriteElementHeader (int key, int number, int intpt, int sec
 					 AbaqusResultsT::ElementVarType flag, int numdirect, 
 					 int numshear, int numdir, int numsecforc)
 {
+  int index = VariableKeyIndex (key);
+  int rebarname = 0;
+  WriteASCII ("*");
+  Write (11);
+  Write (ELEMENTHEADER);
+  Write (number);
+  Write (intpt);
+  Write (secpt);
+  Write (flag);
+  Write (rebarname);
+  Write (numdirect);
+  Write (numshear);
+  Write (numdir);
+  Write (numsecforc);
 }
 
 /* this function tells the variable read function if there is an additional
