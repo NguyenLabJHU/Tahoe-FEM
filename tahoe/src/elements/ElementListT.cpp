@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.101 2004-08-08 02:06:27 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.102 2004-08-19 20:38:30 raregue Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -489,12 +489,12 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #endif
 */
 
-/*
+
 #ifdef MESHFREE_GRAD_PLAST_DEV
 	else if (name == "meshfree_grad_plast")
 		return new MFGP_AssemblyT(fSupport);
 #endif
-*/
+
 
 
 #ifdef ENHANCED_STRAIN_LOC_DEV
