@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.58 2004-07-30 18:11:23 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.59 2004-08-02 18:51:33 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "APS_MatlT.h"
@@ -299,6 +299,13 @@ void APS_AssemblyT::CloseStep(void)
 	/* store more recently updated values */
 	fdState = fdState_new;
 	fiState = fiState_new;
+}
+
+
+void APS_AssemblyT::SendOutput(int kincode)
+{
+#pragma unused(kincode)
+//not implemented
 }
 
 
@@ -1131,6 +1138,8 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	
 	iPlastModelType = list.GetParameter("plast_mod_type");
 	
+	fMaterial_Data.Dimension ( kNUM_FMAT_TERMS );
+	
 	fMaterial_Data[kMu] = list.GetParameter("shear_modulus");
 	
 	fMaterial_Data[km_rate] = list.GetParameter("rate_param");
@@ -1202,8 +1211,6 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	}
 	
 	Echo_Input_Data();
-
-	fMaterial_Data.Dimension ( kNUM_FMAT_TERMS );
 	
 	knum_d_state = 9; // double's needed per ip, state variables
 	knum_i_state = 0; // int's needed per ip, state variables
@@ -1265,25 +1272,7 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 
 	n_el = NumElements();	
 	n_sd_surf = n_sd;
-
-	/* set local arrays for displacement field */
-	int dum=1;
-	u.Dimension (n_en_displ, dum);
-	u_n.Dimension (n_en_displ, dum);
-	del_u.Dimension (n_en_displ, dum);
-	del_u_vec.Dimension (n_en_displ);
-	fDispl->RegisterLocal(u);
-	fDispl->RegisterLocal(u_n);
-
-	/* set local arrays for plastic gradient field */
-	gamma_p.Dimension (n_en_plast, n_sd);
-	gamma_p_n.Dimension (n_en_plast, n_sd);
-	del_gamma_p.Dimension (n_en_plast, n_sd);
-	n_en_plast_x_n_sd = n_en_plast*n_sd;
-	del_gamma_p_vec.Dimension (n_en_plast_x_n_sd);
-	fPlast->RegisterLocal(gamma_p);
-	fPlast->RegisterLocal(gamma_p_n);
-
+	
 	/* set shape functions */
 	// u
 	fInitCoords_displ.Dimension(n_en_displ, n_sd);
@@ -1298,6 +1287,26 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	fShapes_plast = new ShapeFunctionT(fGeometryCode_plast, fNumIP_plast, fCurrCoords_plast);
 	//fShapes_plast = new ShapeFunctionT(fGeometryCode_plast, fNumIP_plast, fCurrCoords_displ);
 	//fShapes_plast->Initialize();
+
+	/* set local arrays for displacement field */
+	int dum=1;
+	u.Dimension (n_en_displ, dum);
+	u_n.Dimension (n_en_displ, dum);
+	del_u.Dimension (n_en_displ, dum);
+	del_u_vec.Dimension (n_en_displ);
+	//ElementSupport().RegisterCoordinates(fInitCoords_displ);
+	fDispl->RegisterLocal(u);
+	fDispl->RegisterLocal(u_n);
+
+	/* set local arrays for plastic gradient field */
+	gamma_p.Dimension (n_en_plast, n_sd);
+	gamma_p_n.Dimension (n_en_plast, n_sd);
+	del_gamma_p.Dimension (n_en_plast, n_sd);
+	n_en_plast_x_n_sd = n_en_plast*n_sd;
+	del_gamma_p_vec.Dimension (n_en_plast_x_n_sd);
+	//ElementSupport().RegisterCoordinates(fInitCoords_plast);
+	fPlast->RegisterLocal(gamma_p);
+	fPlast->RegisterLocal(gamma_p_n);
 	
 	/* allocate state variable storage */
 	// state variables are calculated at IPs for gamma_p field

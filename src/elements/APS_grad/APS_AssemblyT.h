@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.30 2004-07-30 18:11:24 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.31 2004-08-02 18:51:33 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -91,7 +91,7 @@ public:
 	virtual bool InGroup(int group) const;
 
 	/* initialize/finalize time increment */
-	virtual void InitStep(void);
+	//virtual void InitStep(void);
 	virtual void CloseStep(void);
 	//virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
 
@@ -116,6 +116,10 @@ public:
 
 	/** write element output */
 	virtual void WriteOutput(void);	
+	
+	/** compute specified output parameter and send for smoothing */
+	virtual void SendOutput(int kincode);
+	/*@}*/
 
 	/** \name restart functions */
 	/*@{*/
@@ -284,7 +288,7 @@ private:
 	const FieldT* fDispl;
 	
 	/** the plastic gradient field */
-	const FieldT* fPlast;	
+	const FieldT* fPlast;
 
 	/** \name state variable storage *
 	 * State variables are handled ABAQUS-style. For every iteration, the state 
