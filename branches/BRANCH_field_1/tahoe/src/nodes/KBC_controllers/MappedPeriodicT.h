@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.h,v 1.3.4.1 2002-04-23 01:25:52 paklein Exp $ */
+/* $Id: MappedPeriodicT.h,v 1.3.4.2 2002-04-24 01:29:27 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 
 #ifndef _MAPPED_PERIODIC_T_H
@@ -12,7 +12,7 @@
 #include "iArrayT.h"
 #include "iArray2DT.h"
 #include "dArrayT.h"
-#include "LoadTime.h"
+#include "ScheduleT.h"
 
 /** boundary condition class for finite deformation elasto-static with 2 
  * additional types of kinematic boundary conditions:
@@ -23,7 +23,7 @@
  * The deformation gradient is specified by the perturbation from
  * an identity mapping:
  * \f[
- * \mathbf{F}(t) = \mathbf{1} + LTf(t) \mathbf{F}_{perturb}
+ * \mathbf{F}(t) = \mathbf{1} + s(t) \mathbf{F}_{perturb}
  * \f]
  */
 class MappedPeriodicT: public KBC_ControllerT
@@ -50,7 +50,7 @@ protected:
 
 	/* schedule for fFperturb */
 	int fnumLTf;
-	const LoadTime* fLTf;   	
+	const ScheduleT* fLTf;   	
 	
 	/* specified deformation gradient */
 	dMatrixT fFperturb;
@@ -64,7 +64,7 @@ protected:
 	dArrayT   fD_sm; //used in SlaveNodes, (X_s - X_m)	
 	
 	/* dummy schedule for slave nodes */
-	LoadTime fDummySchedule;
+	ScheduleT fDummySchedule;
 
 	/* shallow copies to main list */
 	ArrayT<KBC_CardT> fMappedCards;

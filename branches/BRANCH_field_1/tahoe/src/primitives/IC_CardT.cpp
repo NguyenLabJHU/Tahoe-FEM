@@ -1,4 +1,4 @@
-/* $Id: IC_CardT.cpp,v 1.6.2.1 2002-04-22 07:06:07 paklein Exp $ */
+/* $Id: IC_CardT.cpp,v 1.6.2.2 2002-04-24 01:29:28 paklein Exp $ */
 /* created: paklein (07/16/1997) */
 #include "IC_CardT.h"
 
@@ -52,7 +52,7 @@ void IC_CardT::SetValues(int node, int dof, int order, double value)
 }
 
 /* I/O */
-void IC_CardT::WriteHeader(ostream& out) const
+void IC_CardT::WriteHeader(ostream& out)
 {
 	int d_width = out.precision() + kDoubleExtra;
 	out << setw(kIntWidth)    << "node";

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.32 2002-04-21 07:16:32 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.32.2.1 2002-04-24 01:29:23 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -105,6 +105,10 @@ FEManagerT::~FEManagerT(void)
 	delete fTimeManager;
 	delete fNodeManager;
 	delete fSolutionDriver;
+	
+	for (int i = 0; i < fControllers.Length(); i++)
+		delete fControllers[i];
+
 	delete fController;
 	delete fIOManager;
 	delete fModelManager;
@@ -204,11 +208,13 @@ void FEManagerT::Reinitialize(void)
 }
 
 /* manager messaging */
-LoadTime* FEManagerT::GetLTfPtr(int num) const
+ScheduleT* FEManagerT::Schedule(int num) const
 {
-	return fTimeManager->GetLTf(num);
+	return fTimeManager->Schedule(num);
 }
 
+#pragma message("FEManagerT::LoadFactor - need this??")
+#if 0
 double FEManagerT::LoadFactor(int nLTf) const
 {
 	return fTimeManager->LoadFactor(nLTf);
@@ -218,6 +224,7 @@ int FEManagerT::NumberOfLTf(void) const
 {
 	return fTimeManager->NumberOfLTf();
 }
+#endif
 
 GlobalT::AnalysisCodeT FEManagerT::Analysis(void) const { return fAnalysisCode; }
 bool FEManagerT::PrintInput(void) const { return fPrintInput; }
@@ -696,28 +703,28 @@ int FEManagerT::GetGlobalNumEquations(void) const
 }
 
 /* access to controllers */
-eControllerT* FEManagerT::eController(void) const
+eControllerT* FEManagerT::eController(int index) const
 {
 	/* cast to eControllerT */
 #ifdef __NO_RTTI__
-	eControllerT* e_controller = (eControllerT*) fController;
+	eControllerT* e_controller = (eControllerT*) fControllers[index];
 		//NOTE: cast should be safe for all cases
 #else
-	eControllerT* e_controller = dynamic_cast<eControllerT*>(fController);
+	eControllerT* e_controller = dynamic_cast<eControllerT*>(fController[index]);
 	if (!e_controller) throw eGeneralFail;
 #endif
 
 	return e_controller;
 }
 
-nControllerT* FEManagerT::nController(void) const
+nControllerT* FEManagerT::nController(int index) const
 {
 	/* cast to eControllerT */
 #ifdef __NO_RTTI__
-	nControllerT* n_controller = (nControllerT*) fController;
+	nControllerT* n_controller = (nControllerT*) fControllers[index];
 		//NOTE: cast should be safe for all cases
 #else
-	nControllerT* n_controller = dynamic_cast<nControllerT*>(fController);
+	nControllerT* n_controller = dynamic_cast<nControllerT*>(fControllers[index]);
 	if (!n_controller) throw eGeneralFail;
 #endif
 
@@ -1141,51 +1148,86 @@ void FEManagerT::ReadParameters(InitCodeT init)
 * interface. */
 void FEManagerT::SetController(void)
 {
-	fMainOut << "\n T i m e   I n t e g r a t i o n   C o n t r o l l e r:\n";
-
-	switch (fAnalysisCode)
+	fMainOut << "\n T i m e   I n t e g r a t o r s:\n";
+	
+	/* no predefined integrators */
+	if (fAnalysisCode == kMultiField)
 	{
-		case GlobalT::kLinStatic:
-		{
-			fController = fTimeManager->New_Controller(TimeManagerT::kLinearStatic);
-			break;
-		}
-		case GlobalT::kNLStatic:
-		case GlobalT::kNLStaticKfield:
-		case GlobalT::kVarNodeNLStatic:
-		case GlobalT::kLinStaticHeat:
-		{
-			fController = fTimeManager->New_Controller(TimeManagerT::kStatic);
-			break;
-		}
-		case GlobalT::kLinTransHeat:
-		{
-			fController = fTimeManager->New_Controller(TimeManagerT::kTrapezoid);
-			break;
-		}
-		case GlobalT::kLinDynamic:
-		{
-			fController = fTimeManager->New_Controller(TimeManagerT::kLinearHHT);
-			break;
-		}
-		case GlobalT::kNLDynamic:
-		{
-			fController = fTimeManager->New_Controller(TimeManagerT::kNonlinearHHT);
-			break;
-		}
-		case GlobalT::kLinExpDynamic:
-		case GlobalT::kNLExpDynamic:
-		case GlobalT::kVarNodeNLExpDyn:
-		case GlobalT::kNLExpDynKfield:
-		case GlobalT::kPML:
-		{
-			fController = fTimeManager->New_Controller(TimeManagerT::kExplicitCD);
-			break;
-		}			
-		default:
+		/* construct from stream */
+		ifstreamT& in = Input();
+
+		int n_int = -1;
+		in >> n_int;
 		
-			cout << "\nFEManagerT::SetController: unknown controller type\n" << endl;
-			throw eBadInputValue;
+		fControllers.Dimension(n_int);
+		for (int i = 0; i < fControllers.Length(); i++)
+		{
+			int dex = -1;
+			TimeManageT::CodeT code;
+			in >> dex >> code;
+			
+			ControllerT* controller = fTimeManager->New_Controller(code);
+			if (!controller) {
+				cout << "\n FEManagerT::SetController: exception constructing controller " 
+				     << i+1 << " of " << fControllers.Length() << endl;
+				throw eBadInputValue;
+			}
+			fControllers[i] = controller;
+		}
+	}
+	else /* legacy code - a single predefined integrator */
+	{
+		/* just one */
+		fControllers.Dimension(1);
+		
+		/* set by analysis type */
+		ControllerT controller = NULL;
+		switch (fAnalysisCode)
+		{
+			case GlobalT::kLinStatic:
+			{
+				controller = fTimeManager->New_Controller(TimeManagerT::kLinearStatic);
+				break;
+			}
+			case GlobalT::kNLStatic:
+			case GlobalT::kNLStaticKfield:
+			case GlobalT::kVarNodeNLStatic:
+			case GlobalT::kLinStaticHeat:
+			{
+				controller = fTimeManager->New_Controller(TimeManagerT::kStatic);
+				break;
+			}
+			case GlobalT::kLinTransHeat:
+			{
+				controller = fTimeManager->New_Controller(TimeManagerT::kTrapezoid);
+				break;
+			}
+			case GlobalT::kLinDynamic:
+			{
+				controller = fTimeManager->New_Controller(TimeManagerT::kLinearHHT);
+				break;
+			}
+			case GlobalT::kNLDynamic:
+			{
+				controller = fTimeManager->New_Controller(TimeManagerT::kNonlinearHHT);
+				break;
+			}
+			case GlobalT::kLinExpDynamic:
+			case GlobalT::kNLExpDynamic:
+			case GlobalT::kVarNodeNLExpDyn:
+			case GlobalT::kNLExpDynKfield:
+			case GlobalT::kPML:
+			{
+				controller = fTimeManager->New_Controller(TimeManagerT::kExplicitCD);
+				break;
+			}			
+			default:
+				cout << "\nFEManagerT::SetController: unknown controller type\n" << endl;
+				throw eBadInputValue;
+		}
+		
+		if (!controller) throw eGeneralFail;
+		fControllers[0] = controller;
 	}
 }
 

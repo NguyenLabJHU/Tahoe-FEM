@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.cpp,v 1.4 2002-01-27 18:51:12 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.4.2.1 2002-04-24 01:29:27 paklein Exp $ */
 /* created: paklein (04/07/1997)                                          */
 
 #include "MappedPeriodicT.h"
@@ -30,7 +30,7 @@ void MappedPeriodicT::Initialize(ifstreamT& in)
 	/* schedule for fFperturb */
 	in >> fnumLTf; fnumLTf--;
 	if (fnumLTf < 0) throw eBadInputValue;
-	fLTf = fNodeManager.GetLTfPtr(fnumLTf);	
+	fLTf = fNodeManager.Schedule(fnumLTf);	
 	if (!fLTf) throw eBadInputValue;
 
 	/* specified deformation gradient */
@@ -157,17 +157,21 @@ void MappedPeriodicT::InitStep(void)
 	if (fSlaveMasterPairs.MajorDim() == 0)
 	{
 		/* compute F - 1  = fFperturb */
-		fF.SetToScaled(fLTf->LoadFactor(), fFperturb);
+		fF.SetToScaled(fLTf->Value(), fFperturb);
 		fF.PlusIdentity();
 	}
 	else /* apply mapping */
 	{
 		/* nodal information */
 		const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
-		const dArray2DT& disp = fNodeManager.Displacements();	
+
+#pragma message("MappedPeriodicT::InitStep: need displacements here")
+throw;
+dArray2DT disp;
+//		const dArray2DT& disp = fNodeManager.Displacements();	
 
 		/* compute F - 1  = fFperturb */
-		fF.SetToScaled(fLTf->LoadFactor(), fFperturb);
+		fF.SetToScaled(fLTf->Value(), fFperturb);
 
 		int dex = 0;
 		int nsd = fF.Rows();

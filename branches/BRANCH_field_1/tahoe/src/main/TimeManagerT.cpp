@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.7.2.1 2002-04-23 01:25:50 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.7.2.2 2002-04-24 01:29:23 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "TimeManagerT.h"
@@ -22,6 +22,49 @@
 #include "LinearHHTalpha.h"
 #include "NLHHTalpha.h"
 #include "ExplicitCDController.h"
+
+	/** enum of integrator types */
+	enum CodeT {
+		kLinearStatic = 0,
+		      kStatic = 1,
+           kTrapezoid = 2,
+           kLinearHHT = 3,
+		kNonlinearHHT = 4,
+		  kExplicitCD = 5
+	};
+
+/* stream extraction operator */
+istream& operator>>(istream& in, TimeManagerT::CodeT& code)
+{
+	int i_code = -1;
+	in >> i_code;
+	switch (i_code)
+	{
+		case TimeManagerT::kLinearStatic:
+			code = TimeManagerT::kLinearStatic;
+			break;
+		case TimeManagerT::kStatic:
+			code = TimeManagerT::kStatic;
+			break;
+		case TimeManagerT::kTrapezoid:
+			code = TimeManagerT::kTrapezoid;
+			break;
+		case TimeManagerT::kLinearHHT:
+			code = TimeManagerT::kLinearHHT;
+			break;
+		case TimeManagerT::kNonlinearHHT:
+			code = TimeManagerT::kNonlinearHHT;
+			break;
+		case TimeManagerT::kExplicitCD:
+			code = TimeManagerT::kExplicitCD;
+			break;
+		default:
+			cout << "\n operator>>TimeManagerT::CodeT: unknown code: "
+			<< i_code<< endl;
+			throw eBadInputValue;
+	}
+	return in;
+}
 
 /* constructor */
 TimeManagerT::TimeManagerT(FEManagerT& FEM):

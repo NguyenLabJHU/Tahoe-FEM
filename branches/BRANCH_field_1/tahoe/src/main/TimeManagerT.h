@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.2.2.1 2002-04-23 01:25:50 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.2.2.2 2002-04-24 01:29:24 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _TIMEMANAGER_T_H_
@@ -40,6 +40,9 @@ public:
 		kNonlinearHHT = 4,
 		  kExplicitCD = 5
 	};
+
+	/** stream extraction operator */
+	friend istream& operator>>(istream& in, TimeManagerT::CodeT& code);
 
 	/* constructor */
 	TimeManagerT(FEManagerT& FEM);

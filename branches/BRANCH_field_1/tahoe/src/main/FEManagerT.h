@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.13.2.1 2002-04-23 01:25:50 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.13.2.2 2002-04-24 01:29:23 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -25,7 +25,7 @@ class NodeManagerT;
 class ControllerT;
 class nControllerT;
 class eControllerT;
-class LoadTime;
+class ScheduleT;
 class SolverT;
 class dMatrixT;
 class LocalArrayT;
@@ -70,10 +70,12 @@ public:
 	GlobalT::SystemTypeT GlobalSystemType(void) const;
 	const GlobalT::StateT& RunState(void) const;
 
-	/* functions of time */
-	LoadTime* GetLTfPtr(int num) const;
-	double LoadFactor(int nLTf) const;
-	int NumberOfLTf(void) const;
+	/** get schedule function */
+	const ScheduleT* Schedule(int num) const;
+
+//NOTE - NEED THESE?
+//	int NumberOfLTf(void) const;
+//	double LoadFactor(int nLTf) const;
 
 	/** \name equation system */
 	/*@{*/
@@ -218,10 +220,10 @@ public:
 
 	/** \name access to controllers */
 	/*@{*/
-	ControllerT* Controller(void) { return fController; };
-	const ControllerT* Controller(void) const { return fController; };
-	eControllerT* eController(void) const;
-	nControllerT* nController(void) const;
+	ControllerT* Controller(int index) { return fControllers[index]; };
+	const ControllerT* Controller(int index) const { return fControllers[index]; };
+	eControllerT* eController(int index) const;
+	nControllerT* nController(int index) const;
 	/*@}*/
 
 	/* returns 1 of ALL element groups have interpolant DOF's */
@@ -313,7 +315,7 @@ protected:
 	NodeManagerT* fNodeManager;
 	ElementListT  fElementGroups;
 	SolverT*      fSolutionDriver;
-	ControllerT*  fController;
+	ArrayT<ControllerT*> fControllers;
 	IOManager*    fIOManager;
 	ModelManagerT* fModelManager;
 	

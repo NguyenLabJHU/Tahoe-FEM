@@ -1,4 +1,4 @@
-/* $Id: IC_CardT.h,v 1.2.2.1 2002-04-22 07:06:07 paklein Exp $ */
+/* $Id: IC_CardT.h,v 1.2.2.2 2002-04-24 01:29:28 paklein Exp $ */
 /* created: paklein (07/16/1997) */
 
 #ifndef _IC_CARD_T_H_
@@ -35,7 +35,7 @@ public:
 
 	/** \name I/O methods */
 	/*@{*/
-	void WriteHeader(ostream& out) const;
+	static void WriteHeader(ostream& out);
 	void WriteValues(ostream& out) const;
 	/*@}*/
 	

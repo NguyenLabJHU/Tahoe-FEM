@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.cpp,v 1.3.2.1 2002-04-23 01:24:15 paklein Exp $ */
+/* $Id: nLinearHHTalpha.cpp,v 1.3.2.2 2002-04-24 01:29:19 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nLinearHHTalpha.h"
@@ -7,34 +7,24 @@
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 #include "KBC_CardT.h"
+#include "BasicFieldT.h"
 
 /* constructor */
 nLinearHHTalpha::nLinearHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder):
-	HHTalpha(in, out, auto2ndorder),
-	nControllerT(2)
+	HHTalpha(in, out, auto2ndorder)
 {
 
 }
 
 /* consistent BC's - updates predictors and acceleration only */
-void nLinearHHTalpha::ConsistentKBC(const KBC_CardT& KBC)
+void nLinearHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 {
-#if __option(extended_errorcheck)
-	if (fU[0] == NULL ||
-	    fU[1] == NULL ||
-	    fU[2] == NULL)
-	{
-		cout << "\n nLinearHHTalpha::ConsistentKBC: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-#endif
-
 	/* destinations */
 	int node = KBC.Node();
 	int dof  = KBC.DOF();
-	double& d = (*fU[0])(node, dof);
-	double& v = (*fU[1])(node, dof);
-	double& a = (*fU[2])(node, dof);
+	double& d = (field[0])(node, dof);
+	double& v = (field[1])(node, dof);
+	double& a = (field[2])(node, dof);
 
 	switch (KBC.Code())
 	{
@@ -78,64 +68,38 @@ void nLinearHHTalpha::ConsistentKBC(const KBC_CardT& KBC)
 }		
 
 /* predictors - map ALL */
-void nLinearHHTalpha::Predictor(void)
+void nLinearHHTalpha::Predictor(BasicFieldT& field)
 {
-#if __option (extended_errorcheck)
-	if (fU[0] == NULL ||
-	    fU[1] == NULL ||
-	    fU[2] == NULL)
-	{
-		cout << "\n nLinearHHTalpha::Predictor: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-	if (fU[0]->Length() != fU[1]->Length() ||
-	    fU[1]->Length() != fU[2]->Length()) throw eGeneralFail;
-#endif
-	
 	/* save values from t_n (need by HHT-alpha) */
-	dn = *fU[0];
-	vn = *fU[1];
+	dn = field[0];
+	vn = field[1];
 
 	/* displacement predictor */
-	fU[0]->AddCombination(dpred_v, *fU[1], dpred_a, *fU[2]);
+	field[0].AddCombination(dpred_v, field[1], dpred_a, field[2]);
 
 	/* velocity predictor */
-	fU[1]->AddScaled(vpred_a, *fU[2]);
+	field[1].AddScaled(vpred_a, field[2]);
 }		
 
 /* correctors - map ACTIVE */
-void nLinearHHTalpha::Corrector(const iArray2DT& eqnos, const dArrayT& update,
+void nLinearHHTalpha::Corrector(BasicFieldT& field, const dArrayT& update, 
 	int eq_start, int num_eq)
 {
-#if __option (extended_errorcheck)
-	if (fU[0] == NULL ||
-	    fU[1] == NULL ||
-	    fU[2] == NULL)
-	{
-		cout << "\n nLinearHHTalpha::Corrector: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-	if (eqnos.Length() != fU[0]->Length()   ||
-	   fU[0]->Length() != fU[1]->Length()  ||
-	   fU[1]->Length() != fU[2]->Length() ||
-       fU[2]->Length() != dn.Length()    ||
-		   dn.Length() != vn.Length()) throw eGeneralFail;		
-	/* note: no check on length of update. */
-#endif
-
 	/* displacement */
-	(*fU[0]) *= dcorr_dpred;
-	fU[0]->AddScaled(dcorr_d, dn);
+	field[0] *= dcorr_dpred;
+	field[0].AddScaled(dcorr_d, dn);
 
 	/* velocity */
-	(*fU[1]) *= vcorr_vpred;
-	fU[1]->AddScaled(vcorr_v, vn);
+	field[1] *= vcorr_vpred;
+	field[1].AddScaled(vcorr_v, vn);
 
 	/* add update - assumes that fEqnos maps directly into dva */
-	int    *peq = eqnos.Pointer();
-	double *pd  = fU[0]->Pointer();
-	double *pv  = fU[1]->Pointer();
-	double *pa  = fU[2]->Pointer();
+	const iArray2DT& eqnos = field.Equations();
+	
+	int   *peq = eqnos.Pointer();
+	double *pd = field[0].Pointer();
+	double *pv = field[1].Pointer();
+	double *pa = field[2].Pointer();
 	for (int i = 0; i < eqnos.Length(); i++)
 	{
 		int eq = *peq++ - eq_start;
@@ -148,33 +112,19 @@ void nLinearHHTalpha::Corrector(const iArray2DT& eqnos, const dArrayT& update,
 			*pd += dcorr_a*a;
 			*pv += vcorr_a*a;
 			*pa = a;
-		}
-			
+		}		
 		pd++;
 		pv++;
 		pa++;
 	}
-
 }
 
-void nLinearHHTalpha::MappedCorrector(const iArrayT& map, const iArray2DT& flags,
-	const dArray2DT& update, int eq_start, int eq_stop)
+void nLinearHHTalpha::MappedCorrector(BasicFieldT& field, const iArrayT& map,
+		const iArray2DT& flags, const dArray2DT& update)
 {
-#if __option (extended_errorcheck)
-	if (fU[0] == NULL ||
-	    fU[1] == NULL ||
-	    fU[2] == NULL)
-	{
-		cout << "\n nLinearHHTalpha::MappedCorrector: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-#endif
-
-	/* checks */
-	if (flags.MajorDim() != map.Length() ||
-	    flags.MajorDim() != update.MajorDim() ||
-	    flags.MinorDim() != update.MinorDim() ||
-	    flags.MinorDim() != fU[0]->MinorDim()) throw eSizeMismatch;
+	/* check dimensions */
+	if (flags.MajorDim() != update.MajorDim() ||
+	    flags.MinorDim() != update.MinorDim()) throw eSizeMismatch;
 
 	/* run through map */
 	int minordim = flags.MinorDim();
@@ -185,13 +135,13 @@ void nLinearHHTalpha::MappedCorrector(const iArrayT& map, const iArray2DT& flags
 		int row = map[i];
 		int* pflags = flags(i);
 
-		double* pd = (*fU[0])(row);
-		double* pv = (*fU[1])(row);
-		double* pa = (*fU[2])(row);
+		double* pd = (field[0])(row);
+		double* pv = (field[1])(row);
+		double* pa = (field[2])(row);
 		for (int j = 0; j < minordim; j++)
 		{
 			/* active */
-			if (*pflag >= eq_start && *pflag <= eq_stop)
+			if (*pflag > 0)
 			{
 				double a = *pupdate;
 			
@@ -207,17 +157,9 @@ void nLinearHHTalpha::MappedCorrector(const iArrayT& map, const iArray2DT& flags
 }
 
 /* return the field array needed by nControllerT::MappedCorrector. */
-const dArray2DT& nLinearHHTalpha::MappedCorrectorField(void) const
+const dArray2DT& nLinearHHTalpha::MappedCorrectorField(BasicFieldT& field) const
 {
-#if __option (extended_errorcheck)
-	if (fU[2] == NULL)
-	{
-		cout << "\n nLinearHHTalpha::MappedCorrectorField: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-#endif
-
-	return *fU[2];
+	return field[2];
 }
 
 /* pseudo-boundary conditions for external nodes */
