@@ -1,4 +1,4 @@
-/* $Id: TriaL3FaceT.cpp,v 1.3 2002-03-18 23:29:31 rjones Exp $ */
+/* $Id: TriaL3FaceT.cpp,v 1.4 2002-03-22 01:44:57 rjones Exp $ */
 
 #include "TriaL3FaceT.h"
 
@@ -267,7 +267,7 @@ TriaL3FaceT::LocalBasis
 {
 	double t2[3];
 	/* calculate (approx) face tangent */
-	Diff(fx[0],fx[3],t2); 	
+	Diff(fx[0],fx[1],t2); 	
 	/* calculate tangents */
 	Cross(normal,t2,tangent1);
 	Normalize(tangent1);
