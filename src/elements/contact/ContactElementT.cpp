@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.16 2001-08-06 20:55:12 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.17 2001-08-09 15:12:12 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -21,7 +21,16 @@
 ContactElementT::ContactElementT(FEManagerT& fe_manager):
 	ElementBaseT(fe_manager)
 {
+	fXDOF_Nodes = NULL;
 }
+
+ContactElementT::ContactElementT
+(FEManagerT& fe_manager, XDOF_ManagerT* xdof_nodes):
+        ElementBaseT(fe_manager),
+	fXDOF_Nodes(xdof_nodes)
+{
+}
+
 
 /* destructor */
 ContactElementT::~ContactElementT(void) 
@@ -33,22 +42,6 @@ ContactElementT::~ContactElementT(void)
 GlobalT::SystemTypeT ContactElementT::TangentType(void) const
 {
 	return GlobalT::kNonSymmetric; 
-}
-
-/* element level reconfiguration for the current solution */
-GlobalT::RelaxCodeT ContactElementT::RelaxSystem(void)
-{
-	/* inherited */
-	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
-
-	/* generate contact element data */
-	bool contact_changed = SetContactConfiguration();
-
-	/* minimal test of new-ness */
-	if (!contact_changed)
-		return relax;
-	else
-		return GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
 }
 
 /* initialization after constructor */
@@ -84,6 +77,126 @@ void ContactElementT::Initialize(void)
 	/* set initial contact configuration */
 	bool changed = SetContactConfiguration();	
 }
+
+GlobalT::RelaxCodeT ContactElementT::RelaxSystem(void)
+{
+        /* inherited */
+        GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
+
+        /* generate contact element data */
+        bool contact_changed = SetContactConfiguration();
+
+        /* minimal test of new-ness */
+        if (!contact_changed)
+                return relax;
+        else
+                return GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
+}
+
+/* returns the array for the DOF tags needed for the current config */
+iArrayT& ContactElementT::SetDOFTags(void)
+{
+#if 0
+        /* store history */
+        int old_length = fActiveStrikers.Length();
+        fLastActiveMap = fActiveMap;
+        dArrayT constraints;
+        constraints.Alias(fXDOF_Nodes->XDOF(this));
+        fLastDOF = constraints;
+
+        /* resize DOF tags array */
+        fContactDOFtags.Allocate(fActiveStrikers.Length());
+
+        /* write list of active strikers */
+        iArrayT tmp;
+        tmp.Alias(fActiveStrikers);
+        ostream& out = fFEManager.Output();
+        out << "\nold: " << old_length << '\n';
+        out << "new: " << fActiveStrikers.Length() << endl;
+        out << "\n            time: " << fFEManager.Time() << '\n';
+        out <<   " active strikers: " << tmp.Length()   << '\n';
+        tmp++;
+        out << tmp.wrap(8) << '\n';
+        tmp--;
+
+        return fContactDOFtags;
+#endif
+}
+
+const iArrayT& ContactElementT::DOFTags(void) const
+{
+#if 0
+        return fContactDOFtags;
+#endif
+}
+
+/* generate element data (based on current striker/body data) */
+void ContactElementT::GenerateElementData(void)
+{
+#if 0
+        /* inherited - set nodal connectivities */
+        Contact2DT::SetConnectivities();
+
+        /* dimension */
+        int num_active = fConnectivities.MajorDim();
+
+        /* resize work space */
+        fXDOFConnectivities_man.SetMajorDimension(num_active, false);
+        fXDOFEqnos_man.SetMajorDimension(num_active, false);
+        for (int i = 0; i < num_active; i++)
+        {
+                int*  pelem = fConnectivities(i);
+                int* pxelem = fXDOFConnectivities(i);
+
+                /* XDOF element tags */
+                pxelem[0] = pelem[0]; // 1st facet node
+                pxelem[1] = pelem[1]; // 2nd facet node
+                pxelem[2] = pelem[2]; // striker node
+                pxelem[3] = fContactDOFtags[i]; // contact DOF tag
+        }
+#endif
+}
+
+/* return the contact elements */
+const iArray2DT& ContactElementT::DOFConnects(void) const
+{
+#if 0
+        return fXDOFConnectivities;
+#endif
+}
+
+
+/* restore the DOF values to the last converged solution */
+void ContactElementT::ResetDOF(dArray2DT& DOF) const
+{
+#if 0
+        /* alias */
+        dArrayT constraints;
+        constraints.Alias(DOF);
+        constraints = 0.0;
+        for (int i = 0; i < fLastActiveMap.Length(); i++)
+        {
+                int old_map = fLastActiveMap[i];
+                int new_map = fActiveMap[i];
+                if (old_map > -1 && new_map > -1)
+                        constraints[new_map] = fLastDOF[old_map];
+        }
+#endif
+}
+
+/* returns 1 if group needs to reconfigure DOF's, else 0 */
+int ContactElementT::Reconfigure(void)
+{
+#if 0
+        /* inherited */
+        GlobalT::RelaxCodeT relax = Contact2DT::RelaxSystem();
+        if (relax != GlobalT::kNoRelax)
+                return 1;
+        else
+                return 0;
+#endif
+}
+
 
 /* solution calls */
 void ContactElementT::AddNodalForce(int node, dArrayT& force)

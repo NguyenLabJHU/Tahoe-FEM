@@ -1,10 +1,11 @@
-/* $Id: ContactElementT.h,v 1.10 2001-08-06 20:55:12 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.11 2001-08-09 15:12:12 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
 
 /* base class */
 #include "ElementBaseT.h"
+#include "DOFElementT.h"
 
 /* direct members */
 #include "pArrayT.h"
@@ -16,13 +17,18 @@
 #include "ContactSurfaceT.h"
 #include "ContactSearchT.h"
 
+/* forward declarations */
+class XDOF_ManagerT;
 
-class ContactElementT: public ElementBaseT
+class ContactElementT: public ElementBaseT, public DOFElementT
 {
 public:
 
 	/* constructor */
 	ContactElementT(FEManagerT& fe_manager);
+
+	/* constructor for elements with multipliers */
+	ContactElementT(FEManagerT& fe_manager, XDOF_ManagerT* xdof_nodes);
 
 	/* destructor */
 	virtual ~ContactElementT(void);
@@ -77,7 +83,28 @@ public:
 			kNormals,
 			kStatus,
 			kNumOutputFlags};
-	
+
+        /* returns the array for the DOF tags needed for the current config */
+        virtual iArrayT& SetDOFTags(void);
+        virtual const iArrayT& DOFTags(void) const;
+
+        /* generate nodal connectivities */
+        virtual void GenerateElementData(void);
+        // NOTE: since the sequence of setting global equation
+        //       number is controlled externally, responsibility
+        //       for calling the element group to (self-) configure
+        //       is also left to calls from the outside. otherwise
+        //       it's tough to say whether data requested by the group
+        //       is current.
+
+        /* return the contact elements */
+        virtual const iArray2DT& DOFConnects(void) const;
+
+        /* restore the DOF values to the last converged solution */
+        virtual void ResetDOF(dArray2DT& DOF) const;
+
+        /* returns 1 if group needs to reconfigure DOF's, else 0 */
+        virtual int Reconfigure(void);
 
 protected:
 	/* contact surfaces */
@@ -109,6 +136,10 @@ protected:
 
 	/* link surfaces in ConnectsU - for graph */
 	iArray2DT fSurfaceLinks;
+
+	/* nodemanager with external DOF's for multipliers */
+        XDOF_ManagerT* fXDOF_Nodes;
+
 	
 private:
         /* surface specification modes */
