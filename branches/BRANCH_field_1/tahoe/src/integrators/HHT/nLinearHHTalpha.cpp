@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.cpp,v 1.3.2.2 2002-04-24 01:29:19 paklein Exp $ */
+/* $Id: nLinearHHTalpha.cpp,v 1.3.2.3 2002-06-05 09:21:30 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nLinearHHTalpha.h"
@@ -79,6 +79,9 @@ void nLinearHHTalpha::Predictor(BasicFieldT& field)
 
 	/* velocity predictor */
 	field[1].AddScaled(vpred_a, field[2]);
+	
+	/* acceleration predictor */
+	field[2] = 0.0;	
 }		
 
 /* correctors - map ACTIVE */
