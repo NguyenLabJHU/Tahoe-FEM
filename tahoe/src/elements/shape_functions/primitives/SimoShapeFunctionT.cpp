@@ -1,4 +1,4 @@
-/* $Id: SimoShapeFunctionT.cpp,v 1.3 2001-07-25 05:57:06 paklein Exp $ */
+/* $Id: SimoShapeFunctionT.cpp,v 1.4 2001-08-20 06:52:10 paklein Exp $ */
 
 #include "SimoShapeFunctionT.h"
 #include "LocalArrayT.h"
@@ -10,6 +10,14 @@ SimoShapeFunctionT::SimoShapeFunctionT(GeometryT::CodeT geometry_code,
 	fElementModes(element_modes),
 	fHas3DIncompressibleMode(false)
 {
+	/* check coordinates type */
+	if (fCoords.Type() != LocalArrayT::kInitCoords)
+	{
+		cout << "\n SimoShapeFunctionT::SimoShapeFunctionT: expecting local reference coordinates: "
+		     << fCoords.Type() << endl;
+		throw eGeneralFail;
+	}
+
 	/* checks */
 	if (geometry_code == GeometryT::kQuadrilateral)
 	{
@@ -61,8 +69,12 @@ SimoShapeFunctionT::SimoShapeFunctionT(GeometryT::CodeT geometry_code,
 	int num_bubble_modes = NumSD();
 	int num_derivatives  = NumSD();
 	fDNaX_bubble.Allocate(NumIP());
+	fDNa_bubble.Allocate(NumIP());
 	for (int i = 0; i < NumIP(); i++)
+	{
 		fDNaX_bubble[i].Allocate(num_derivatives, num_bubble_modes);
+		fDNa_bubble[i].Allocate(num_derivatives, num_bubble_modes);
+	}
 	
 	/* 3D incompressible mode */	
 	if (fHas3DIncompressibleMode)
@@ -70,6 +82,25 @@ SimoShapeFunctionT::SimoShapeFunctionT(GeometryT::CodeT geometry_code,
 		/* derivatives of 1 mode */
 		fDNaX_inc.Allocate(NumIP(), num_derivatives);
 	}
+	
+	/* allocate work space */
+	fNa_0.Allocate(fCoords.NumberOfNodes());
+	fDNa_0.Allocate(NumSD(), fCoords.NumberOfNodes());
+	fJ.Allocate(NumSD());
+	fJ_0_inv.Allocate(NumSD());
+}
+
+/* initialization class. */
+void SimoShapeFunctionT::Initialize(void)
+{
+	/* inherited */
+	ShapeFunctionT::Initialize();
+	
+	/* reference to the parent domain geometry */
+	const GeometryBaseT& geometry = ParentDomain().Geometry();
+	
+	/* compute/store gradients of the bubble modes */
+	geometry.BubbleModeGradients(fDNa_bubble);
 }
 
 /* compute local shape functions and derivatives */ 	
@@ -87,10 +118,51 @@ void SimoShapeFunctionT::SetDerivatives(void)
 	{
 		/* inherited - set Galerkin part */
 		ShapeFunctionT::SetDerivatives();
+
+		/* number of integration points */
+		int nip = NumIP();
+		
+		/* for 2D:5/3D:9 point rules, assume the final point is at the origin */
+		bool has_center_point = (NumSD() == 2 && nip == 5) || (NumSD() == 3 && nip == 9);
 	
-		//compute derivatives of enhanced modes in current config - here or will this
-		//   happen within the shape functions themselves
-		//compute enhancement to the deformation gradient
+		/* Jacobian at the origin of the parent domain */
+		if (has_center_point)
+		{
+			/* assume last ip is at the origin */
+			fDomain->DomainJacobian(fCoords, nip - 1, fJ_0_inv);
+		}
+		else
+		{
+			/* compute shape function derivatives at the origin */
+			double px[3] = {0.0, 0.0, 0.0};
+			dArrayT coords_0(NumSD(), px);
+			fDomain->EvaluateShapeFunctions(coords_0, fNa_0, fDNa_0);
+
+			/* compute jacobian */
+			fDomain->Jacobian(fCoords, fDNa_0, fJ_0_inv);
+		}
+		
+		/* set Jacobians */
+		double j_0 = fJ_0_inv.Det();
+		fJ_0_inv.Inverse();
+		
+		/* transform derivatives */
+		int i_centroid = (has_center_point) ? nip - 1 : -1;
+		for (int i = 0; i < nip; i++)
+		{
+			/* apply change of variables to the shape function derivatives */
+			DoTransformDerivatives(fJ_0_inv, fDNa_bubble[i], fDNaX_bubble[i]);
+			
+			/* skip for point at centroid */
+			if (i != i_centroid)
+			{
+				/* compute jacobian */
+				fDomain->DomainJacobian(fCoords, i, fJ);
+
+				/* scale */
+				fDNaX_bubble[i] *= j_0/fJ.Det();
+			}
+		}
 	}
 }
 
