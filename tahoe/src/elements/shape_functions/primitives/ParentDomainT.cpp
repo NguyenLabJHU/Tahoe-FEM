@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.8 2002-07-19 20:17:22 hspark Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.9 2002-07-20 00:33:20 hspark Exp $ */
 /* created: paklein (07/03/1996)                                          */
 
 #include "ParentDomainT.h"
@@ -571,10 +571,10 @@ void ParentDomainT::Print(ostream& out) const
 }
 
 /* return true if the given point is within the domain */
-bool ParentDomainT::PointInDomain(const dArray2DT& coords, const dArrayT& point) const
+bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
 {
   int dim = point.Length();
-  int numpoints = coords.MajorDim();
+  int numpoints = coords.Length();
   if (dim == 1) /* 1D case */
   {
     dArrayT temp(2);
