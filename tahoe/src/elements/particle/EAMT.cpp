@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.61.2.2 2004-07-07 15:28:33 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.61.2.3 2004-07-07 21:50:44 paklein Exp $ */
 #include "EAMT.h"
 
 #include "ofstreamT.h"
@@ -23,43 +23,50 @@ const int kMemoryHeadRoom = 15; /* percent */
 
 /* constructor */
 EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
-  ParticleT(support, field),
-  fNeighbors(kMemoryHeadRoom),
-  fNearestNeighbors(kMemoryHeadRoom),
-  fRefNearestNeighbors(kMemoryHeadRoom),
-  fEqnos(kMemoryHeadRoom),
-  fForce_list_man(0, fForce_list),
-  fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
-  fEmbeddingEnergy_man(kMemoryHeadRoom, fEmbeddingEnergy, 1),
-  fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
-  fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
-  frhop_r_man(kMemoryHeadRoom, frhop_r, NumDOF()),
-  fElectronDensityMessageID(CommManagerT::kNULLMessageID),
-  fEmbeddingEnergyMessageID(CommManagerT::kNULLMessageID),
-  fEmbeddingForceMessageID(CommManagerT::kNULLMessageID),
-  fEmbeddingStiffMessageID(CommManagerT::kNULLMessageID),
-  frhop_rMessageID(CommManagerT::kNULLMessageID)
+	ParticleT(support, field),
+	fNeighbors(kMemoryHeadRoom),
+	fNearestNeighbors(kMemoryHeadRoom),
+	fRefNearestNeighbors(kMemoryHeadRoom),
+	fEqnos(kMemoryHeadRoom),
+	fForce_list_man(0, fForce_list),
+	fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
+	fEmbeddingEnergy_man(kMemoryHeadRoom, fEmbeddingEnergy, 1),
+	fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
+	fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
+	frhop_r_man(kMemoryHeadRoom, frhop_r, NumDOF()),
+	fElectronDensityMessageID(CommManagerT::kNULLMessageID),
+	fEmbeddingEnergyMessageID(CommManagerT::kNULLMessageID),
+	fEmbeddingForceMessageID(CommManagerT::kNULLMessageID),
+	fEmbeddingStiffMessageID(CommManagerT::kNULLMessageID),
+	frhop_rMessageID(CommManagerT::kNULLMessageID),
+	fExternalEmbedForce(NULL),
+	fExternalElecDensity(NULL),
+	fExternalEmbedForceNodes(NULL),
+	fExternalElecDensityNodes(NULL)
 {
 	SetName("particle_EAM");
 }
 
 EAMT::EAMT(const ElementSupportT& support):
-  ParticleT(support),
-  fNeighbors(kMemoryHeadRoom),
-  fNearestNeighbors(kMemoryHeadRoom),
-  fRefNearestNeighbors(kMemoryHeadRoom),
-  fEqnos(kMemoryHeadRoom),
-  fForce_list_man(0, fForce_list),
-  fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
-  fEmbeddingEnergy_man(kMemoryHeadRoom, fEmbeddingEnergy, 1),
-  fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
-  fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
-  fElectronDensityMessageID(CommManagerT::kNULLMessageID),
-  fEmbeddingEnergyMessageID(CommManagerT::kNULLMessageID),
-  fEmbeddingForceMessageID(CommManagerT::kNULLMessageID),
-  fEmbeddingStiffMessageID(CommManagerT::kNULLMessageID),
-  frhop_rMessageID(CommManagerT::kNULLMessageID)  
-{
+	ParticleT(support),
+	fNeighbors(kMemoryHeadRoom),
+	fNearestNeighbors(kMemoryHeadRoom),
+	fRefNearestNeighbors(kMemoryHeadRoom),
+	fEqnos(kMemoryHeadRoom),
+	fForce_list_man(0, fForce_list),
+	fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
+	fEmbeddingEnergy_man(kMemoryHeadRoom, fEmbeddingEnergy, 1),
+	fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
+	fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
+	fElectronDensityMessageID(CommManagerT::kNULLMessageID),
+	fEmbeddingEnergyMessageID(CommManagerT::kNULLMessageID),
+	fEmbeddingForceMessageID(CommManagerT::kNULLMessageID),
+	fEmbeddingStiffMessageID(CommManagerT::kNULLMessageID),
+	frhop_rMessageID(CommManagerT::kNULLMessageID),
+	fExternalEmbedForce(NULL),
+	fExternalElecDensity(NULL),
+	fExternalEmbedForceNodes(NULL),
+	fExternalElecDensityNodes(NULL){
 	SetName("particle_EAM");
 }
 

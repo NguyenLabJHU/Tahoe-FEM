@@ -1,4 +1,4 @@
-/* $Id: FCC3D.cpp,v 1.6.2.2 2004-07-07 18:02:46 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.6.2.3 2004-07-07 21:50:42 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 
@@ -110,15 +110,19 @@ void FCC3D::TakeParameterList(const ParameterListT& list)
 	fPairProperty = PairPropertyT::New(pair_prop.Name(), &(MaterialSupport()));
 	if (!fPairProperty) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", pair_prop.Name().Pointer());
 	fPairProperty->TakeParameterList(pair_prop);
+
+	/* check */
 	fNearestNeighbor = fPairProperty->NearestNeighbor();
+	if (fNearestNeighbor < kSmall)
+		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
 
 	/* construct lattice */
 	fFCCLattice = new FCCLatticeT(nshells);
 	fFCCLattice->TakeParameterList(list.GetList("CB_lattice_FCC"));
 
-	/* check */
-	if (fNearestNeighbor < kSmall)
-		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
+	/* construct default bond density array */
+	fFullDensity.Dimension(fFCCLattice->NumberOfBonds());
+	fFullDensity = 1.0;
 		
 	/* compute the (approx) cell volume */
 	double cube_edge = fNearestNeighbor*sqrt(2.0);
