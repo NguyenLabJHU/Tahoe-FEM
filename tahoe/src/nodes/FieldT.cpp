@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.8.2.1 2002-12-18 09:48:33 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.8.2.2 2003-01-05 23:44:04 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -342,26 +342,6 @@ void FieldT::FinalizeEquations(int eq_start, int num_eq)
 	  fKBC_Controllers[j]->SetEquations();
 }
 
-/* dimension storage and mark equation numbers for external nodes */
-void FieldT::InitExternalEquations(const iArrayT& ex_nodes)
-{
-//TEMP
-#pragma message("number of external nodes has not been set")
-
-	/* check */
-	if (NumNodes() < ex_nodes.Length()) 
-		ExceptionT::GeneralFail("FieldT::InitExternalEquations",
-			"inconsistent number of field nodes. Dimension must be called first."); 
-
-	/* allocate */
-	fExEqnos.Dimension(ex_nodes.Length(), NumDOF());
-	fExUpdate.Dimension(ex_nodes.Length(), NumDOF());
-
-	/* mark all external as inactive for setting local equation numbers */
-	for (int j = 0; j < ex_nodes.Length(); j++)
-		fEqnos.SetRow(ex_nodes[j], kExternal);
-}
-
 /* Collect the local element lists */
 void FieldT::SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const
 {
@@ -442,7 +422,7 @@ void FieldT::SetLocalEqnos(const RaggedArray2DT<int>& nodes,
 	}
 }
 
-void FieldT::ReadRestart(ifstreamT& in)
+void FieldT::ReadRestart(ifstreamT& in, const ArrayT<int>* nodes)
 {
 	/* external file */
 	StringT file;
@@ -461,7 +441,15 @@ void FieldT::ReadRestart(ifstreamT& in)
 		u_in.open(file);
 		if (u_in.is_open()) 
 		{
-			u_in >> fField[i];
+			if (nodes) /* select nodes */
+			{
+				dArray2DT tmp(nodes->Length(), NumDOF());
+				u_in >> tmp;
+				fField[i].Assemble(*nodes, tmp);
+			}
+			else /* all nodes */
+				u_in >> fField[i];
+
 			u_in.close();
 		} 
 		else 
@@ -475,10 +463,6 @@ void FieldT::ReadRestart(ifstreamT& in)
 		deriv.Append("D");
 	}
 
-	/* initialize history */
-	fField_last = fField;
-
-
 	/* KBC controllers */
 	for (int j = 0; j < fKBC_Controllers.Length(); j++)
 		fKBC_Controllers[j]->ReadRestart(in);
@@ -488,7 +472,7 @@ void FieldT::ReadRestart(ifstreamT& in)
 		fFBC_Controllers[i]->ReadRestart(in);
 }
 
-void FieldT::WriteRestart(ofstreamT& out) const
+void FieldT::WriteRestart(ofstreamT& out, const ArrayT<int>* nodes) const
 {
 	/* external file */
 	ofstreamT u_out;
@@ -505,7 +489,14 @@ void FieldT::WriteRestart(ofstreamT& out) const
 
 		/* write */
 		u_out.open(file);
-		u_out << fField[i] << '\n';
+		if (nodes) /* select nodes */
+		{
+			dArray2DT tmp(nodes->Length(), NumDOF());
+			tmp.RowCollect(*nodes, fField[i]);
+			u_out << tmp << '\n';
+		}
+		else /* all nodes */
+			u_out << fField[i] << '\n';
 		u_out.close();
 	
 		/* next */

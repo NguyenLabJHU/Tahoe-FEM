@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.18.2.7 2002-12-27 23:22:21 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.18.2.8 2003-01-05 23:44:04 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -347,7 +347,7 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 			/* assemble contribution from local solver */
 			fFields[i]->AssembleUpdate(update);
 		
-			/* gather external contribution */
+			/* gather/distribute external contribution */
 			fCommManager.AllGather(fMessageID[i], fFields[i]->Update());
 			
 			/* apply the update */
@@ -388,16 +388,32 @@ void NodeManagerT::InitialCondition(void)
 
 void NodeManagerT::ReadRestart(ifstreamT& in)
 {
+	/* nodes owned by this partition */
+	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+
 	/* apply to fields */
 	for (int i = 0; i < fFields.Length(); i++)
-		fFields[i]->ReadRestart(in);
+	{
+		FieldT& field = *(fFields[i]);
+		field.ReadRestart(in, part_nodes);
+		
+		/* gather/distribute external contribution */
+		for (int j = 0; j <= field.Order(); j++)
+			fCommManager.AllGather(fMessageID[i], field[j]);
+		
+		/* reset history */
+		field.CloseStep();
+	}
 }
 
 void NodeManagerT::WriteRestart(ofstreamT& out) const
 {
+	/* nodes owned by this partition */
+	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+
 	/* apply to fields */
 	for (int i = 0; i < fFields.Length(); i++)
-		fFields[i]->WriteRestart(out);
+		fFields[i]->WriteRestart(out, part_nodes);
 }
 
 /* reset displacements (and configuration to the last known solution) */

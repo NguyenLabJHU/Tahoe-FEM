@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.10.2.5 2002-12-27 23:22:21 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.10.2.6 2003-01-05 23:44:05 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -318,10 +318,6 @@ protected:
 	iArray2DT fHistoryOutputID;
 	/*@}*/
 	
-	/** "ghost" node numbers */
-//	iArrayT fExNodes;
-//DEV - moved to CommManagerT
-
 private:
 
 	/** \name nodal coordinates */
