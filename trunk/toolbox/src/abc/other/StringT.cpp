@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.30 2003-03-08 01:59:52 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.31 2003-03-09 17:09:02 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -966,6 +966,28 @@ bool StringT::Tail(char key, double& value) const
 		return true;
 	}
 	return false;
+}
+
+/* return the position of the first occurrence of the character */
+int StringT::FirstPositionOf(char a) const
+{
+	int len = StringLength();
+	char* p = Pointer();
+	for (int i = 0; i < len; i++)
+		if (*p++ == a)
+			return i;
+	return -1;
+}
+
+/* return the position of the last occurrence of the character */
+int StringT::LastPositionOf(char a) const
+{
+	int len = StringLength();
+	char* p = Pointer(len - 1);
+	for (int i = len - 1; i > -1; i--)
+		if (*p-- == a)
+			return i;
+	return -1;
 }
 
 /* extract integer */
