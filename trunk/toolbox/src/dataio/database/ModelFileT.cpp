@@ -1,6 +1,5 @@
-/* $Id: ModelFileT.cpp,v 1.12 2004-01-31 07:19:54 paklein Exp $ */
-/* created: paklein (12/15/1999)                                          */
-
+/* $Id: ModelFileT.cpp,v 1.13 2004-06-17 06:38:21 paklein Exp $ */
+/* created: paklein (12/15/1999)  */
 #include "ModelFileT.h"
 
 #include <iostream.h>
@@ -8,14 +7,13 @@
 #include <ctype.h>
 #include <float.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "iArray2DT.h"
 #include "ExodusT.h"
 
-/* parameters */
-
 using namespace Tahoe;
 
+/* parameters */
 const char  sComment = '#';
 const char* sVersion = "1.0";
 

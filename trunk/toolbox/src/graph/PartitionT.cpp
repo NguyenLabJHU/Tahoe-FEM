@@ -1,8 +1,8 @@
-/* $Id: PartitionT.cpp,v 1.11 2003-11-21 22:41:54 paklein Exp $ */
+/* $Id: PartitionT.cpp,v 1.12 2004-06-17 06:38:27 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 #include "PartitionT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "GraphT.h"
 #include "AutoArrayT.h"
 #include "iArray2DT.h"

@@ -1,8 +1,7 @@
-/* $Id: EnSightInputT.cpp,v 1.15 2003-11-25 19:49:43 paklein Exp $ */
+/* $Id: EnSightInputT.cpp,v 1.16 2004-06-17 06:38:24 paklein Exp $ */
 /* created: sawimme (05/18/1998) */
 #include "EnSightInputT.h"
-#include "ios_fwd_decl.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "dArray2DT.h"
 #include "dArrayT.h"
 #include "AutoArrayT.h"
