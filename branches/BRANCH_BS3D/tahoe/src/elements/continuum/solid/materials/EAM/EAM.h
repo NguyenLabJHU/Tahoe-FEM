@@ -1,4 +1,4 @@
-/* $Id: EAM.h,v 1.3 2002-07-05 22:28:10 paklein Exp $ */
+/* $Id: EAM.h,v 1.3.42.1 2004-02-28 02:23:37 paklein Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAM.h                                                                  */
 
@@ -52,6 +52,13 @@ public:
 	/* unstressed lattice parameter */
 	 virtual double LatticeParameter(void) const = 0;
 
+	/** \name access glue functions */
+	/*@{*/
+	const C1FunctionT* PairPotential(void) { return fPairPotential; };
+	const C1FunctionT* EmbeddingEnergy(void) { return fEmbeddingEnergy; };
+	const C1FunctionT* ElectronDensity(void) { return fElectronDensity; };
+	/*@}*/
+	
 private:
 
 	/* form matrix of mixed pair potential and embedding
