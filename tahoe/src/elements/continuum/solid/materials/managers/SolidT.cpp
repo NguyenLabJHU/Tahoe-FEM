@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.36.4.1 2004-08-26 04:23:01 thao Exp $ */
+/* $Id: SolidT.cpp,v 1.36.4.2 2005-02-24 01:10:51 thao Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 
@@ -134,9 +134,6 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 		case SolidT::kRGVIB:
 			code = SolidT::kRGVIB;
 			break;
-		case SolidT::kRGSplit:
-			code = SolidT::kRGSplit;
-			break;
 		case SolidT::kFDSVKStV:
 			code = SolidT::kFDSVKStV;
 			break;
@@ -179,6 +176,9 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 		case SolidT::kFCCEAM:
 			code = SolidT::kFCCEAM;
 			break;
+		case SolidT::kWLC:
+			code = SolidT::kWLC;
+			break;		
 		default:
 			ExceptionT::BadInputValue("operator>>SolidT::TypeT", "unknown code %d", i_code);
 	}

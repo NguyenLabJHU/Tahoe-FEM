@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.38.4.1 2004-08-26 04:23:01 thao Exp $ */
+/* $Id: SolidT.h,v 1.38.4.2 2005-02-24 01:10:51 thao Exp $ */
 /* created: paklein (03/10/2001) */
 #ifndef _MATERIAL_T_H_
 #define _MATERIAL_T_H_
@@ -53,7 +53,6 @@ kBCJHypoIsoDmgYC = 47,
 kLocXtalPlastFp_C = 56,
  kGrdXtalPlastFp = 57,
           kRGVIB = 60,
-	kRGSplit = 61,
        kFDSVKStV = 63,
        kSSSVKStV = 64,
        kOgdenMat = 65,
@@ -68,7 +67,8 @@ kSSLinearVEShear = 68,
  kABAQUS_BCJ_ISO = 81, /**< implicit integration */
 kABAQUS_VUMAT_BCJ = 90,
 kSIERRA_Hypoelastic = 110,
- kSIERRA_Iso_Geomat = 111
+ kSIERRA_Iso_Geomat = 111,
+ kWLC = 120
 };
 
 	/* stream extraction operator */ 
