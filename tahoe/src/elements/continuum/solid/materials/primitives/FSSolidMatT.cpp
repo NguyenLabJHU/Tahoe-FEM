@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.16 2005-01-29 01:28:40 raregue Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.17 2005-02-10 17:59:55 raregue Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
@@ -42,6 +42,11 @@ void FSSolidMatT::SetFSMatSupport(const FSMatSupportT* support)
 	fF_therm_inv.Identity();
 	fF_therm_inv_last.Identity();	
 	fF_mechanical.Identity();
+}
+
+/* spatial elastic modulus */
+const dMatrixT& FSSolidMatT::ce_ijkl(void) {
+	return c_ijkl();
 }
 
 const dMatrixT& FSSolidMatT::c_ijkl(void)

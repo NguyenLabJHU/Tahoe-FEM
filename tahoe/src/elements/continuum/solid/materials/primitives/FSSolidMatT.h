@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.18 2005-01-29 01:28:40 raregue Exp $ */
+/* $Id: FSSolidMatT.h,v 1.19 2005-02-10 17:59:56 raregue Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -48,6 +48,9 @@ public:
 	virtual const dMatrixT& c_ijkl(void);
 	virtual const dMatrixT& C_IJKL(void);
 	/*@}*/
+	
+	/** just returns full modulus by default */
+	virtual const dMatrixT& ce_ijkl(void);
 
 	/** compute the 2nd Piola-Kirchhoff stress by pulling back the result computed with
 	 * SolidMaterialT::s_ij */
