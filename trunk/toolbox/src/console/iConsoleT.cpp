@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.4 2001-11-28 22:05:44 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.5 2001-12-10 12:41:08 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -438,7 +438,7 @@ void iConsoleT::DoInteractive(void)
 						else
 						{
 							/* fetch command specification */
-							const CommandSpecT* command_spec = ResolveCommand(command_name, line);
+							const CommandSpecT* command_spec = iResolveCommand(command_name, line);
 
 							/* execute */
 							if (command_spec) 
@@ -474,7 +474,7 @@ void iConsoleT::DoInteractive(void)
 					case kScopeCommand:
 					{
 						/* fetch command specification */
-						const CommandSpecT* command_spec = fCurrent->ResolveCommand(command_name, line);
+						const CommandSpecT* command_spec = fCurrent->iResolveCommand(command_name, line);
 
 						/* execute */
 						if (command_spec) {

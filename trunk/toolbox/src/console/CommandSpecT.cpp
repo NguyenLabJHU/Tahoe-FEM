@@ -1,4 +1,4 @@
-/* $Id: CommandSpecT.cpp,v 1.1 2001-11-28 22:05:44 paklein Exp $ */
+/* $Id: CommandSpecT.cpp,v 1.2 2001-12-10 12:41:07 paklein Exp $ */
 
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
@@ -32,6 +32,34 @@ CommandSpecT::~CommandSpecT(void)
 {
 	for (int i = 0; i < fArguments.Length(); i++)
 		delete fArguments[i];
+}
+
+/* return a reference to a specific argument */
+ArgSpecT& CommandSpecT::Argument(const char* name)
+{
+	int index = -1;
+	for (int i = 0; index == -1 && i < fArguments.Length(); i++)
+		if (fArguments[i]->Name() == name)
+			index = i;
+	if (index == -1) {
+		cout << "CommandSpecT::Argument: not found \"" << name << '\"' << endl;
+		throw eGeneralFail;
+	}
+	return Argument(index);
+}
+
+/* return a reference to a specific argument */
+const ArgSpecT& CommandSpecT::Argument(const char* name) const
+{
+	int index = -1;
+	for (int i = 0; index == -1 && i < fArguments.Length(); i++)
+		if (fArguments[i]->Name() == name)
+			index = i;
+	if (index == -1) {
+		cout << "CommandSpecT::Argument: not found \"" << name << '\"' << endl;
+		throw eGeneralFail;
+	}
+	return Argument(index);
 }
 
 /* add an argument to the function */
