@@ -1,6 +1,5 @@
-/* $Id: GraphBaseT.cpp,v 1.2 2001-04-18 23:54:17 paklein Exp $ */
-/* created: paklein (04/13/1999)                                          */
-/* base class for graph class. does not handle making the graph.          */
+/* $Id: GraphBaseT.cpp,v 1.3 2001-07-19 01:01:23 paklein Exp $ */
+/* created: paklein (04/13/1999) */
 
 #include "GraphBaseT.h"
 
@@ -13,6 +12,11 @@
 #include "AutoFill2DT.h"
 #include "AutoArrayT.h"
 #include "iArray2DT.h"
+
+#ifdef __METIS__
+/* partitioning package */
+#include "metis.h"
+#endif
 
 /* rounding floating point numbers */
 static inline int rnd(double number) { return int((2.0*number + 1.0)/2); }
@@ -172,6 +176,237 @@ void GraphBaseT::Partition(const iArrayT& config, const iArrayT& weight,
 		delete maps[j];
 		delete weights[j];
 	}
+}	
+
+/* generate partition using METIS */
+void GraphBaseT::Partition_METIS(int num_partitions, const iArrayT& weight,
+	iArrayT& partition, int volume_or_edgecut)
+{
+#ifndef __METIS__
+#pragma unused(num_partitions)
+#pragma unused(weight)
+#pragma unused(partition)
+#pragma unused(volume_or_edgecut)
+	/* error message */
+	cout << "\n GraphBaseT::Partition_METIS: requires metis module" << endl;
+	throw eGeneralFail;
+#else
+
+	/* dimension check */
+	if (weight.Length() != fEdgeList.MajorDim()) throw eSizeMismatch;
+
+	/* options check */
+	if (volume_or_edgecut != 0 && volume_or_edgecut != 1)
+	{
+		cout << "\n GraphBaseT::Partition_METIS: volume_or_edgecut must be 0 or 1: " 
+		     << volume_or_edgecut << endl;
+		throw eGeneralFail;
+	}
+
+	/* initialize partition map */
+	partition.Allocate(fEdgeList.MajorDim());
+	partition = 0;
+	if (num_partitions < 2) return;
+
+//need to convert fEdgeList to metis graph format
+//
+
+//  int i, nparts, options[10];
+//  idxtype *part;
+//  float rubvec[MAXNCON], lbvec[MAXNCON];
+//  GraphType graph;
+//  char filename[256];
+//  int numflag = 0, wgtflag = 0, edgecut;
+
+	timer TOTALTmr, METISTmr;    
+  	cleartimer(TOTALTmr);
+  	cleartimer(METISTmr);
+  	cleartimer(IOTmr);
+
+	starttimer(TOTALTmr);
+
+	cout << "**********************************************************************\n";
+	cout << METISTITLE;
+	cout << "Graph Information ---------------------------------------------------\n";
+	cout << "#Vertices: " << fEdgeList.MajorDim() << '\n';
+	cout << "   #Edges: " << fEdgeList.Length()/2 << '\n';
+	cout << "   #Parts: " << num_partitions << '\n';
+	cout << "  Balancing Constraints: " << 0 << '\n';
+	cout << "\nK-way Partitioning... -----------------------------------------------\n" << endl;
+
+  	/* METIS options */
+	int options[5];
+	options[0] = 0; /* use all default values */
+
+	/* offset vector for adjacency list */
+	iArrayT offsets;
+	fEdgeList.GenerateOffsetVector(offsets);
+
+
+	starttimer(METISTmr);
+	//part = idxmalloc(graph.nvtxs, "main: part");
+
+	/* partitioning method */
+	if (volume_or_edgecut == 0)
+		METIS_WPartGraphVKway(int *, idxtype *, idxtype *, idxtype *, idxtype *, int *, int *, int *, float *, int *, int *, idxtype *);
+	else if (volume_or_edgecut == 1)
+		METIS_WPartGraphKway(int *, idxtype *, idxtype *, idxtype *, idxtype *, int *, int *, int *, float *, int *, int *, idxtype *); 
+
+(&graph.nvtxs, graph.xadj, graph.adjncy, graph.vwgt, graph.adjwgt, &wgtflag, &numflag, &nparts, options, &edgecut, part)
+
+  if (graph.ncon == 1) {
+    METIS_PartGraphKway(&graph.nvtxs, graph.xadj, graph.adjncy, graph.vwgt, graph.adjwgt, 
+          &wgtflag, &numflag, &nparts, options, &edgecut, part);
+  }
+  else {
+    for (i=0; i<graph.ncon; i++)
+      rubvec[i] = HORIZONTAL_IMBALANCE;
+
+    METIS_mCPartGraphKway(&graph.nvtxs, &graph.ncon, graph.xadj, graph.adjncy, graph.vwgt, 
+          graph.adjwgt, &wgtflag, &numflag, &nparts, rubvec, options, &edgecut, part);
+  }
+  stoptimer(METISTmr);
+
+  ComputePartitionBalance(&graph, nparts, part, lbvec);
+
+  printf("  %d-way Edge-Cut: %7d, Balance: ", nparts, edgecut);
+  for (i=0; i<graph.ncon; i++)
+    printf("%5.2f ", lbvec[i]);
+  printf("\n");
+
+  starttimer(IOTmr);
+  WritePartition(filename, part, graph.nvtxs, nparts); 
+  stoptimer(IOTmr);
+  stoptimer(TOTALTmr);
+
+  printf("\nTiming Information --------------------------------------------------\n");
+  printf("  I/O:          \t\t %7.3f\n", gettimer(IOTmr));
+  printf("  Partitioning: \t\t %7.3f   (KMETIS time)\n", gettimer(METISTmr));
+  printf("  Total:        \t\t %7.3f\n", gettimer(TOTALTmr));
+  printf("**********************************************************************\n");
+
+
+  GKfree(&graph.xadj, &graph.adjncy, &graph.vwgt, &graph.adjwgt, &part, LTERM);
+//########################################
+
+	/* dimension check */
+	if (weight.Length() != fEdgeList.MajorDim()) throw eSizeMismatch;
+
+	/* initialize partition map */
+	partition.Allocate(fEdgeList.MajorDim());
+	partition = 0;
+	
+	/* total number of partitions */
+	int num_parts = config.Product();
+
+	/* time */
+	clock_t t0 = clock();
+	
+	/* contract down */
+	AutoArrayT<GraphBaseT*> graphs;
+	AutoArrayT<iArrayT*> maps;
+	AutoArrayT<iArrayT*> weights;
+	const GraphBaseT* graph = this;
+	int depth = 0;	
+	while (graph->NumNodes() > num_parts)
+	{
+		depth++;
+	
+		/* next contracted graph */
+		GraphBaseT* new_graph = new GraphBaseT(fVerbose);
+		if (!new_graph) throw eOutOfMemory;
+		graphs.Append(new_graph);
+		
+		iArrayT* new_map = new iArrayT();
+		if (!new_map) throw eOutOfMemory;
+		maps.Append(new_map);
+	
+		/* generate contracted graph */	
+		new_graph->Contract(*graph, *new_map);
+		if (!new_graph->Verify(cout)) throw eGeneralFail; //TEMP
+
+		/* generated contracted nodal weights */
+		iArrayT* new_weight = new iArrayT(new_graph->NumNodes());
+		weights.Append(new_weight);
+		const iArrayT* last_weight = (depth == 1) ? &weight : weights[depth - 2];
+		(*new_weight) = 0;
+		for (int i = 0; i < new_map->Length(); i++)
+			(*new_weight)[(*new_map)[i]] += (*last_weight)[i];
+
+		/* next */
+		graph = new_graph;
+	}
+
+	/* time */
+	clock_t t1 = clock();
+	if (verbose)
+		cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
+		     << " sec: GraphBaseT::Partition: contract graph" << endl;
+	
+	/* initialize partitions */
+	int curr_num_parts = graphs[depth-1]->NumNodes();
+	partition.Allocate(curr_num_parts);
+	partition.SetValueToPosition();
+
+	/* header */
+	double* junk = NULL;
+	int d_width = OutputWidth(cout, junk);
+	if (verbose)
+	{
+		cout << "    Optimization:\n";
+		cout << setw(kIntWidth) << "depth"
+		     << setw(kIntWidth) << "reps."
+		     << setw(int(1.5*kIntWidth)) << "cuts"
+		     << setw(d_width)   << "time" << '\n';
+	}
+
+	iArrayT last_part_map;
+	for (int i = depth-1; i > -1; i--)
+	{	
+		const GraphBaseT& next_graph = (i == 0) ? *this : *graphs[i-1];
+		const iArrayT& map = *maps[i];
+		const iArrayT& next_weight = (i == 0) ? weight: *weights[i-1];
+		if (map.Length() != next_graph.NumNodes()) throw eSizeMismatch; //TEMP
+		
+		int dim = map.Length();
+		last_part_map.Swap(partition);
+		partition.Allocate(map.Length());
+	
+		/* propagate partitions out */
+		for (int j = 0; j < dim; j++)
+			partition[j] = last_part_map[map[j]];
+			
+		/* optimize partitions */
+		if (1 || i == 0)
+		{			
+			int reps, cuts;
+			clock_t ta = clock();
+			OptimizeParts(next_graph, next_weight, partition, num_parts, reps, cuts);
+			clock_t tb = clock();
+			if (verbose)
+				cout << setw(kIntWidth) << i
+			    	 << setw(kIntWidth) << reps
+			    	 << setw(int(1.5*kIntWidth)) << cuts
+			    	 << setw(d_width)   << double(tb - ta)/CLOCKS_PER_SEC << endl;
+
+			if (fVerbose) cout << "cuts = " << cuts << endl; //TEMP			
+		}
+	}
+
+	/* time */
+	clock_t t2 = clock();
+	if (verbose)
+		cout << setw(kDoubleWidth) << double(t2 - t1)/CLOCKS_PER_SEC
+		     << " sec: GraphBaseT::Partition: balance partitions" << endl;
+	
+	/* free memory */
+	for (int j = 0; j < graphs.Length(); j++)
+	{
+		delete graphs[j];
+		delete maps[j];
+		delete weights[j];
+	}
+#endif
 }	
 
 /* fill in the degrees for the specified nodes */
