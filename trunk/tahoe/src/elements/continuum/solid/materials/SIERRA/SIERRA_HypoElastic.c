@@ -1,4 +1,4 @@
-/* $Id: SIERRA_HypoElastic.c,v 1.7 2003-04-14 23:04:02 paklein Exp $ */
+/* $Id: SIERRA_HypoElastic.c,v 1.8 2003-04-23 16:56:11 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include <stdio.h>
 
@@ -22,33 +22,34 @@ void SIERRA_HypoElastic_calc(int* nelem, double* dt,
 void SIERRA_HypoElastic_reg(void)
 {
 	const char model_name[] = "HYPOELASTIC";
+	const char var_name[] = "rot_strain_increment";
 	int num_state = 1;
 	int iflag = 1;
 	int material_code = 9999;
 
 	/* register the material model */
-	FORTRAN_NAME(register_material)(&material_code, SIERRA_HypoElastic_check, &iflag, model_name);
+	FORTRAN_NAME(register_material)(&material_code, SIERRA_HypoElastic_check, &iflag, model_name, strlen(model_name));
 
 	/* register function to do material computations */
-	FORTRAN_NAME(register_process_func)(SIERRA_HypoElastic_calc, model_name);
+	FORTRAN_NAME(register_process_func)(SIERRA_HypoElastic_calc, model_name, strlen(model_name));
 
 	/* register function to do material initialization */
-	FORTRAN_NAME(register_init_func)(SIERRA_HypoElastic_init, model_name);
+	FORTRAN_NAME(register_init_func)(SIERRA_HypoElastic_init, model_name, strlen(model_name));
 
 	/* register the number of state variables that the model needs */
-	FORTRAN_NAME(register_num_state_vars)(&num_state, model_name);
+	FORTRAN_NAME(register_num_state_vars)(&num_state, model_name, strlen(model_name));
 
 	/* register the data that the material model needs from the element in
 	 * order to do its computations */
-	FORTRAN_NAME(register_input_var)("rot_strain_increment", model_name);
+	FORTRAN_NAME(register_input_var)(var_name, model_name, strlen(var_name), strlen(model_name));
 }
 
 void SIERRA_HypoElastic_check(int* matvals)
 {
 	/* fetch material properties */
 	double bulk_modulus, two_mu;
-	FORTRAN_NAME(get_real_constant)(&bulk_modulus, matvals, "BULK_MODULUS");
-	FORTRAN_NAME(get_real_constant)(&two_mu, matvals,"TWO_MU");
+	FORTRAN_NAME(get_real_constant)(&bulk_modulus, matvals, "BULK_MODULUS", strlen("BULK_MODULUS"));
+	FORTRAN_NAME(get_real_constant)(&two_mu, matvals,"TWO_MU", strlen("TWO_MU"));
 	
 	if (bulk_modulus < 0.0 || two_mu < 0.0) {
 		printf("{kappa, 2 mu} = {%g, %g}\n", bulk_modulus, two_mu);
@@ -93,13 +94,14 @@ void SIERRA_HypoElastic_calc(int* nelem, double* dt,
 	double kappa_minus_2_mu_by_3, kappa_plus_4_mu_by_3;
 	
 	/* fetch material properties */
-	FORTRAN_NAME(get_real_constant)(&bulk_modulus, matvals, "BULK_MODULUS");
-	FORTRAN_NAME(get_real_constant)(&two_mu, matvals,"TWO_MU");
+	FORTRAN_NAME(get_real_constant)(&bulk_modulus, matvals, "BULK_MODULUS", strlen("BULK_MODULUS"));
+	FORTRAN_NAME(get_real_constant)(&two_mu, matvals, "TWO_MU", strlen("TWO_MU"));
 	kappa_minus_2_mu_by_3 = bulk_modulus - two_mu/3.0;
 	kappa_plus_4_mu_by_3 = bulk_modulus + 2.0*two_mu/3.0;
 
 	/* offset to strain variable - starts at 1 by Fortran numbering convention */
-	FORTRAN_NAME(get_var_index)(&istrain, nelem, "rot_strain_increment", model_name);
+	FORTRAN_NAME(get_var_index)(&istrain, nelem, "rot_strain_increment", model_name,
+		strlen("rot_strain_increment"), strlen(model_name));
 	dstrain = vars_input + istrain - 1;
 	
 	/* loop over stress points */
