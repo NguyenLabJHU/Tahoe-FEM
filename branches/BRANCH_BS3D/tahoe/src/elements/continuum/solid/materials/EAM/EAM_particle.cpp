@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.cpp,v 1.1.2.2 2004-02-25 17:24:46 paklein Exp $ */
+/* $Id: EAM_particle.cpp,v 1.1.2.3 2004-02-26 00:19:23 hspark Exp $ */
 /* created: hspark(02/25/2004) */
 #include "EAM_particle.h"
 #include <iostream.h> //TEMP
@@ -25,7 +25,11 @@ EAM_particle::EAM_particle(CBLatticeT& lattice): fLattice(lattice),
 	fPairForce(NULL),
 	fPairStiffness(NULL),
 	fEmbedEnergy(NULL),
-	fEDFunction(NULL)
+	fEmbedForce(NULL),
+	fEmbedStiffness(NULL),
+	fEDEnergy(NULL),
+	fEDForce(NULL),
+	fEDStiffness(NULL)
 {
 	/* dimension checks */
 	if (fCounts.Length() != fNumBonds ||
@@ -48,10 +52,12 @@ void EAM_particle::SetGlueFunctions(const StringT& param_file)
 	fPairEnergy    = fEAMProperty->getPairEnergy();
 	fPairForce     = fEAMProperty->getPairForce();
 	fPairStiffness = fEAMProperty->getPairStiffness();
-
-	fEDFunction    = fEAMProperty->getElecDensEnergy();
-	
+	fEDEnergy      = fEAMProperty->getElecDensEnergy();
+	fEDForce       = fEAMProperty->getElecDensForce();
+	fEDStiffness   = fEAMProperty->getElecDensStiffness();
 	fEmbedEnergy   = fEAMProperty->getEmbedEnergy();
+	fEmbedForce    = fEAMProperty->getEmbedForce();
+	fEmbedStiffness = fEAMProperty->getEmbedStiffness();
 }
 
 /*
@@ -71,7 +77,7 @@ double EAM_particle::ComputeUnitEnergy(void)
 
 		double   r = fBonds[i];
 		double phi = fPairEnergy(r, NULL, NULL);
-		double rho = fDensity(r, NULL, NULL);
+		double rho = fEDEnergy(r, NULL, NULL);	// WHICH EDEnergyFunction?
 
 		rho    += ci*rho;
 		energy += ci*0.5*phi;
