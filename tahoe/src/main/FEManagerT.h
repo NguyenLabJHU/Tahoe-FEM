@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.21 2002-11-09 01:48:36 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.22 2002-11-09 18:08:23 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -421,7 +421,7 @@ inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
 inline int FEManagerT::IterationNumber(void) const
 {
 	int curr_group = CurrentGroup();
-	if (curr_group > 0)
+	if (curr_group >= 0)
 		return IterationNumber(curr_group);
 	else
 		return -1;
