@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.20 2003-02-12 02:47:19 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.21 2003-06-09 06:05:50 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _NMATRIX_T_H_
 #define _NMATRIX_T_H_
@@ -155,10 +155,10 @@ public:
 	 * \param x vector contracted with this matrix
 	 * \param b returns with results of product */
 	/*@{*/
-	void Multx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b) const;
-	void Multx(const nTYPE* x, nTYPE* b) const;
-	void MultTx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b) const;
-	void MultTx(const nTYPE* x, nTYPE* b) const;
+	void Multx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b, const nTYPE& scale = nTYPE(1.0), int fillmode = kOverwrite) const;
+	void Multx(const nTYPE* x, nTYPE* b, const nTYPE& scale = nTYPE(1.0), int fillmode = kOverwrite) const;
+	void MultTx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b, const nTYPE& scale = nTYPE(1.0), int fillmode = kOverwrite) const;
+	void MultTx(const nTYPE* x, nTYPE* b, const nTYPE& scale = nTYPE(1.0), int fillmode = kOverwrite) const;
 	/*@}*/
 
 	/** vector-matrix-vector product */
@@ -1388,18 +1388,19 @@ void nMatrixT<nTYPE>::MultQTBQ(const nMatrixT& q,
 
 /* b_i = A_ij*x_j */
 template <class nTYPE>
-inline void nMatrixT<nTYPE>::Multx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b) const
+inline void nMatrixT<nTYPE>::Multx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b, 
+	const nTYPE& scale, int fillmode) const
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)	
-	if (fRows != b.Length() || fCols != x.Length()) throw ExceptionT::kSizeMismatch;
+	if (fRows != b.Length() || fCols != x.Length()) ExceptionT::SizeMismatch("nMatrixT::Multx");
 #endif
 
-	Multx(x.Pointer(), b.Pointer());
+	Multx(x.Pointer(), b.Pointer(), scale, fillmode);
 }
 
 template <class nTYPE>
-void nMatrixT<nTYPE>::Multx(const nTYPE* x, nTYPE* b) const
+void nMatrixT<nTYPE>::Multx(const nTYPE* x, nTYPE* b, const nTYPE& scale, int fillmode) const
 {
 	nTYPE* ARow = Pointer();
 	const nTYPE* px0 = x;
@@ -1408,40 +1409,64 @@ void nMatrixT<nTYPE>::Multx(const nTYPE* x, nTYPE* b) const
 	register nTYPE temp;
 	register nTYPE sum;
 
-	for (int i = 0; i < fRows; i++)
+	if (fillmode == kOverwrite)
 	{
-		sum = 0.0;
-		const nTYPE *px = px0;
-		nTYPE *AR = ARow;
-	
-		for (int j = 0; j < fCols; j++)
+		for (int i = 0; i < fRows; i++)
 		{
-			temp  = *px++;
-			temp *= *AR;		
-			 sum += temp;
+			sum = 0.0;
+			const nTYPE *px = px0;
+			nTYPE *AR = ARow;
+			for (int j = 0; j < fCols; j++)
+			{
+				temp  = *px++;
+				temp *= *AR;		
+				 sum += temp;
 			
-			AR += fRows;	
+				AR += fRows;	
+			}
+			sum *= scale;
+			*pb++ = sum;
+			ARow++;
 		}
-
-		*pb++ = sum;
-		ARow++;
 	}
+	else if (fillmode == kAccumulate)
+	{
+		for (int i = 0; i < fRows; i++)
+		{
+			sum = 0.0;
+			const nTYPE *px = px0;
+			nTYPE *AR = ARow;
+			for (int j = 0; j < fCols; j++)
+			{
+				temp  = *px++;
+				temp *= *AR;		
+				 sum += temp;
+			
+				AR += fRows;	
+			}
+			sum *= scale;
+			*pb++ += sum;
+			ARow++;
+		}
+	}
+	else ExceptionT::GeneralFail("nMatrixT::Multx");
 }
 
 /* b_i = A_ji*x_j */
 template <class nTYPE>
-inline void nMatrixT<nTYPE>::MultTx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b) const
+inline void nMatrixT<nTYPE>::MultTx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b,
+	const nTYPE& scale, int fillmode) const
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)
-	if (fRows != x.Length() && fCols != b.Length()) throw ExceptionT::kSizeMismatch;
+	if (fRows != x.Length() && fCols != b.Length()) ExceptionT::SizeMismatch("nMatrixT::MultTx");
 #endif
 
-	MultTx(x.Pointer(), b.Pointer());
+	MultTx(x.Pointer(), b.Pointer(), scale, fillmode);
 }
 
 template <class nTYPE>
-void nMatrixT<nTYPE>::MultTx(const nTYPE* x, nTYPE* b) const
+void nMatrixT<nTYPE>::MultTx(const nTYPE* x, nTYPE* b, const nTYPE& scale, int fillmode) const
 {
 	nTYPE* ARow = Pointer();
 	const nTYPE* px0 = x;
@@ -1450,22 +1475,45 @@ void nMatrixT<nTYPE>::MultTx(const nTYPE* x, nTYPE* b) const
 	register nTYPE temp;
 	register nTYPE sum;
 
-	for (int i = 0; i < fCols; i++)
+	if (fillmode == kOverwrite)
 	{
-		sum = 0.0;
-		const nTYPE *px = px0;
-		nTYPE *AR = ARow;
-	
-		for (int j = 0; j < fRows; j++)
+		for (int i = 0; i < fCols; i++)
 		{
-			temp  = *px++;
-			temp *= *AR++;
-			sum  += temp;
+			sum = 0.0;
+			const nTYPE *px = px0;
+			nTYPE *AR = ARow;
+	
+			for (int j = 0; j < fRows; j++)
+			{
+				temp  = *px++;
+				temp *= *AR++;
+				sum  += temp;
+			}
+			sum *= scale;
+			*pb++ = sum;
+			ARow += fRows;
 		}
-
-		*pb++ = sum;
-		ARow += fRows;
 	}
+	else if (fillmode == kAccumulate)
+	{
+		for (int i = 0; i < fCols; i++)
+		{
+			sum = 0.0;
+			const nTYPE *px = px0;
+			nTYPE *AR = ARow;
+	
+			for (int j = 0; j < fRows; j++)
+			{
+				temp  = *px++;
+				temp *= *AR++;
+				sum  += temp;
+			}
+			sum *= scale;
+			*pb++ += sum;
+			ARow += fRows;
+		}
+	}
+	else ExceptionT::GeneralFail("nMatrixT::Multx");
 }
 
 /* vector-matrix-vector product */
