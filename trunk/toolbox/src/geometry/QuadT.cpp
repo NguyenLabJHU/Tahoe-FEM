@@ -1,4 +1,4 @@
-/* $Id: QuadT.cpp,v 1.3 2002-10-20 22:32:08 paklein Exp $ */
+/* $Id: QuadT.cpp,v 1.4 2003-06-05 18:46:11 thao Exp $ */
 /* created: paklein (07/03/1996) */
 
 #include "QuadT.h"
@@ -32,7 +32,7 @@ void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 	if (coords.Length() != 2 ||
 	        Na.Length() != fNumNodes) throw ExceptionT::kSizeMismatch;
 	if (fNumNodes < kNumVertexNodes && 
-	    fNumNodes > 8) throw ExceptionT::kGeneralFail;
+	    fNumNodes > 9) throw ExceptionT::kGeneralFail;
 #endif
 
 	/* coordinates */	
@@ -44,17 +44,19 @@ void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 	/* destinations */
 	double* na  = Na.Pointer();
 
-	/* corner nodes */
-	for (int lnd = 0; lnd < kNumVertexNodes; lnd++)	
-	{
+    if(fNumNodes < 9)
+    {
+      /* corner nodes */
+	  for (int lnd = 0; lnd < kNumVertexNodes; lnd++)	
+	  {
 		double tempr1 = 1.0 + ra[lnd]*r;
 		double temps1 = 1.0 + sa[lnd]*s;		
 		*na++  = 0.25*tempr1*temps1;
-	}
+	  }
 
-	/* mid-side nodes */
-	if (fNumNodes > kNumVertexNodes)
-	{
+	  /* mid-side nodes */
+	  if (fNumNodes > kNumVertexNodes)
+	  {
 		for (int lnd = kNumVertexNodes; lnd < fNumNodes; lnd++)
 		{
 			int off1 =-kNumVertexNodes;
@@ -82,7 +84,28 @@ void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 
 			/* next */
 			na++;
-		}
+	    }
+      }
+	}
+	else
+	{	
+	  double lr1 = 0.5*r*(r-1);
+	  double lr2 = 1.0-r*r;
+	  double lr3 = 0.5*r*(r+1);
+
+	  double ls1 = 0.5*s*(s-1);
+	  double ls2 = 1.0-s*s;
+	  double ls3 = 0.5*s*(s+1);
+	    
+      na[0] = lr1*ls1;
+      na[1] = lr3*ls1;
+      na[2] = lr3*ls3;
+      na[3] = lr1*ls3;
+      na[4] = lr2*ls1;
+      na[5] = lr3*ls2;
+      na[6] = lr2*ls3;
+      na[7] = lr1*ls2;
+      na[8] = lr2*ls2;
 	}
 }
 
@@ -95,7 +118,7 @@ void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT
 	     DNa.MajorDim() != 2 ||
 	     DNa.MinorDim() != fNumNodes) throw ExceptionT::kSizeMismatch;
 	if (fNumNodes < kNumVertexNodes && 
-	    fNumNodes > 8) throw ExceptionT::kGeneralFail;
+	    fNumNodes > 9) throw ExceptionT::kGeneralFail;
 #endif
 
 	/* coordinates */	
@@ -110,22 +133,24 @@ void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT
 	double* nay = DNa(1);
 
 	/* corner nodes */
-	for (int lnd = 0; lnd < kNumVertexNodes; lnd++)	
-	{
+	if (fNumNodes < 9)
+    {	
+      for (int lnd = 0; lnd < kNumVertexNodes; lnd++)	
+	  {
 		double tempr1 = 1.0 + ra[lnd]*r;
 		double temps1 = 1.0 + sa[lnd]*s;
 		
 		*na++  = 0.25*tempr1*temps1;
 		*nax++ = 0.25*ra[lnd]*temps1;
 		*nay++ = 0.25*tempr1*sa[lnd];
-	}
+	  }
 
-	/* mid-side nodes */
-	if (fNumNodes > kNumVertexNodes)
-	{
+	  /* mid-side nodes */
+	  if (fNumNodes > kNumVertexNodes)
+	  {
 		for (int lnd = kNumVertexNodes; lnd < fNumNodes; lnd++)
 		{
-			int off1 =-kNumVertexNodes;
+		    int off1 =-kNumVertexNodes;
 			int off2 = off1 + 1;
 			if (lnd == 7) /* the 8th node is the 0th */
 				off2 =-7;
@@ -175,8 +200,30 @@ void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT
 			na++;
 			nax++;
 			nay++;
-		}
+	    }
+	  }
 	}
+	else
+	{
+	    double lr1 = 0.5*r*(r-1.0);
+	    double lr2 = 1.0-r*r;
+	    double lr3 = 0.5*r*(r+1.0);
+
+	    double ls1 = 0.5*s*(s-1.0);
+	    double ls2 = 1.0-s*s;
+	    double ls3 = 0.5*s*(s+1.0);
+	    
+	    
+        na[0] = lr1*ls1; nax[0]=(r-0.5)*ls1;  nay[0]=lr1*(s-0.5);
+        na[1] = lr3*ls1; nax[1]=(r+0.5)*ls1;  nay[1]=lr3*(s-0.5);
+        na[2] = lr3*ls3; nax[2]=(r+0.5)*ls3;  nay[2]=lr3*(s+0.5);
+        na[3] = lr1*ls3; nax[3]=(r-0.5)*ls3;  nay[3]=lr1*(s+0.5);
+        na[4] = lr2*ls1; nax[4]=(-2.0*r)*ls1; nay[4]=lr2*(s-0.5);
+        na[5] = lr3*ls2; nax[5]=(r+0.5)*ls2;  nay[5]=lr3*(-2.0*s);
+        na[6] = lr2*ls3; nax[6]=(-2.0*r)*ls3; nay[6]=lr2*(s+0.5);
+        na[7] = lr1*ls2; nax[7]=(r-0.5)*ls2;  nay[7]=lr1*(-2.0*s);
+        na[8] = lr2*ls2; nax[8]=(-2.0*r)*ls2; nay[8]=lr2*(-2.0*s);
+    }
 }
 
 /* compute local shape functions and derivatives */
@@ -189,7 +236,7 @@ void QuadT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	int nsd       = Na_x[0].MajorDim();
 
 	/* dimension checks */
-	if (numnodes < 4 || numnodes > 8)
+	if (numnodes < 4 || numnodes >9)
 	{
 		cout << "\n QuadT::SetLocalShape: unsupported number of element nodes: "
 		     << numnodes << endl;
@@ -205,6 +252,12 @@ void QuadT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 		     << numint << endl;
 		throw ExceptionT::kGeneralFail;
 	}
+	if(numnodes == 9 && (numint !=4 && numint != 9))
+	{
+	    cout << "\n QuadT::SetLocalShape: The requested number of integration points is not supported by quadratic Lagrange element." << endl;
+	    throw ExceptionT::kGeneralFail;
+	} 
+	
 	if (nsd != kQuadnsd) throw ExceptionT::kGeneralFail;
 
 	/* initialize */
@@ -382,8 +435,14 @@ void QuadT::SetExtrapolation(dMatrixT& extrap) const
 	int numint   = extrap.Cols();
 
 	/* dimension checks */
-	if (numnodes < 4 || numnodes > 8) throw ExceptionT::kGeneralFail;
-
+	if (numnodes < 4 || numnodes > 9) throw ExceptionT::kGeneralFail;
+    
+	if(numnodes == 9 && (numint !=4 && numint != 9))
+	{
+	    cout << "\n QuadT::SetExtrapolation: The requested number of integration points is not supported by quadratic Lagrange element." << endl;
+	    throw ExceptionT::kGeneralFail;
+	} 
+	
 	/* initialize */
 	extrap = 0.0;
 	
@@ -426,11 +485,13 @@ void QuadT::SetExtrapolation(dMatrixT& extrap) const
 			{
 				double d = (1.0 + sqrt3)/4.0;
 				double e = (1.0 - sqrt3)/4.0;
-			
-				double smooth[4][4] = {{d,d,e,e},
+                double f = 0.25;
+                			
+				double smooth[5][4] = {{d,d,e,e},
 				                       {e,d,d,e},
 				                       {e,e,d,d},
-				                       {d,e,e,d}};
+				                       {d,e,e,d},
+				                       {f,f,f,f}};
 			
 				for (int i = kNumVertexNodes; i < numnodes; i++)
 					for (int j = 0; j < numint; j++)
@@ -515,10 +576,11 @@ void QuadT::SetExtrapolation(dMatrixT& extrap) const
 				double g = (5.0 - sqrt(15.0))/6.0;
 				double h =-2.0/3.0;
 			
-				double smooth[4][9] = {{0,0,0,0,f,0,g,0,h},
+				double smooth[5][9] = {{0,0,0,0,f,0,g,0,h},
 				                       {0,0,0,0,0,f,0,g,h},
 				                       {0,0,0,0,g,0,f,0,h},
-				                       {0,0,0,0,0,g,0,f,h}};
+				                       {0,0,0,0,0,g,0,f,h},
+				                       {0,0,0,0,0,0,0,0,1}};
 			
 				for (int i = kNumVertexNodes; i < numnodes; i++)
 					for (int j = 0; j < numint; j++)
@@ -582,9 +644,9 @@ void QuadT::SetExtrapolation(dMatrixT& extrap) const
 void QuadT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 {
 // TEMP: not implemented with midside nodes
-	if (fNumNodes != 4 && fNumNodes != 8)
+	if (fNumNodes != 4 && fNumNodes != 8 && fNumNodes != 9)
 	{
-		cout << "\n QuadT::NodesOnFacet: only implemented for 4 and 8 element nodes" << endl;
+		cout << "\n QuadT::NodesOnFacet: only implemented for 4, 8, and 9 element nodes" << endl;
 		throw ExceptionT::kGeneralFail;
 	}
 
@@ -610,9 +672,9 @@ void QuadT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 void QuadT::NumNodesOnFacets(iArrayT& num_nodes) const
 {
 // TEMP: not implemented with midside nodes
-	if (fNumNodes != 4 && fNumNodes != 8)
+	if (fNumNodes != 4 && fNumNodes != 8 && fNumNodes != 9)
 	{
-		cout << "\n QuadT::NumNodesOnFacets: only implemented for 4 and 8 element nodes" << endl;
+		cout << "\n QuadT::NumNodesOnFacet: only implemented for 4, 8, and 9 element nodes" << endl;
 		throw ExceptionT::kGeneralFail;
 	}
 
@@ -641,6 +703,8 @@ void QuadT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes) const
 	
 	facet_nodes.Dimension(fNumFacets);
 	facet_nodes = 2;
-	for (int i = 0; i < (fNumNodes - kNumVertexNodes); i++)
-		facet_nodes[i] = 3;
+/*	for (int i = 0; i < (fNumNodes - kNumVertexNodes); i++)
+		facet_nodes[i] = 3;*/
+	if (fNumNodes==8||fNumNodes==9)
+	    facet_nodes=3;
 }
