@@ -1,4 +1,4 @@
-/* $Id: FCC3D.cpp,v 1.4 2004-06-17 07:40:15 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.5 2004-06-26 06:02:24 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 #include "ElementsConfig.h"
@@ -29,7 +29,8 @@ FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
 	fPairProperty(NULL),
 	fAtomicVolume(0),
 	fBondTensor4(dSymMatrixT::NumValues(3)),
-	fBondTensor2(dSymMatrixT::NumValues(3))	
+	fBondTensor2(dSymMatrixT::NumValues(3)),
+	fFullDensityForStressOutput(true)	
 {
 	const char caller[] = "FCC3D::FCC3D";
 
@@ -67,7 +68,11 @@ FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
 	fQ.Identity();
 	fFCCLattice = new FCCLatticeT(fQ, nshells);
 	fFCCLattice->Initialize();
-	
+
+	/* construct default bond density array */
+	fFullDensity.Dimension(fFCCLattice->NumberOfBonds());
+	fFullDensity = 1.0;
+
 	/* check */
 	if (fNearestNeighbor < kSmall)
 		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
@@ -105,6 +110,10 @@ void FCC3D::Print(ostream& out) const
 	/* inherited */
 	NL_E_MatT::Print(out);
 
+	/* higher precision */
+	int prec = out.precision();
+	out.precision(12);
+
 	/* lattice parameters */
 	out << " Number of neighbor shells . . . . . . . . . . . = " << fFCCLattice->NumShells() << '\n';
 	out << " Number of neighbors . . . . . . . . . . . . . . = " << fFCCLattice->NumberOfBonds() << '\n';
@@ -113,6 +122,15 @@ void FCC3D::Print(ostream& out) const
 	/* write pair properties to output */
 	out << " Interaction potential parameters:\n";
 	fPairProperty->Write(out);
+
+	/* restore precision */
+	out.precision(prec);
+}
+
+/* return a reference to the bond lattice */
+const BondLatticeT& FCC3D::BondLattice(void) const {
+	if (!fFCCLattice) ExceptionT::GeneralFail("FCC3D::BondLattice", "pointer not set");
+	return *fFCCLattice;
 }
 
 /*************************************************************************
@@ -127,14 +145,23 @@ void FCC3D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 	/* fetch function pointers */
 	PairPropertyT::ForceFunction force = fPairProperty->getForceFunction();
 	PairPropertyT::StiffnessFunction stiffness = fPairProperty->getStiffnessFunction();
-	
-	moduli = 0.0; 
+
+	/* bond density */
+	const double* density = fFullDensity.Pointer();
 	int nb = fFCCLattice->NumberOfBonds();
+	const ElementCardT* element = MaterialSupport().CurrentElement();
+	if (element && element->IsAllocated()) {
+		const dArrayT& d_array = element->DoubleData();
+		density = d_array.Pointer(CurrIP()*nb);
+	}
+	
+	/* sum over bonds */
+	moduli = 0.0; 
 	double R4byV = fNearestNeighbor*fNearestNeighbor*fNearestNeighbor*fNearestNeighbor/fAtomicVolume;
 	for (int i = 0; i < nb; i++)
 	{
 		double ri = bond_length[i]*fNearestNeighbor;
-		double coeff = (stiffness(ri, NULL, NULL) - force(ri, NULL, NULL)/ri)/ri/ri;
+		double coeff = (*density++)*(stiffness(ri, NULL, NULL) - force(ri, NULL, NULL)/ri)/ri/ri;
 		fFCCLattice->BondComponentTensor4(i, fBondTensor4);
 		moduli.AddScaled(R4byV*coeff, fBondTensor4);
 	}
@@ -152,13 +179,23 @@ void FCC3D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 	/* fetch function pointer */
 	PairPropertyT::ForceFunction force = fPairProperty->getForceFunction();
 	
-	PK2 = 0.0;
+	/* bond density */
+	const double* density = fFullDensity.Pointer();
 	int nb = fFCCLattice->NumberOfBonds();
+	const ElementCardT* element = MaterialSupport().CurrentElement();
+	bool keep_full_density = MaterialSupport().RunState() == GlobalT::kWriteOutput && fFullDensityForStressOutput;
+	if (!keep_full_density && element && element->IsAllocated()) {
+		const dArrayT& d_array = element->DoubleData();
+		density = d_array.Pointer(CurrIP()*nb);
+	}
+
+	/* sum over bonds */
+	PK2 = 0.0;
 	double R2byV = fNearestNeighbor*fNearestNeighbor/fAtomicVolume;
 	for (int i = 0; i < nb; i++)
 	{
 		double ri = bond_length[i]*fNearestNeighbor;
-		double coeff = force(ri, NULL, NULL)/ri;
+		double coeff = (*density++)*force(ri, NULL, NULL)/ri;
 		fFCCLattice->BondComponentTensor2(i, fBondTensor2);
 		PK2.AddScaled(R2byV*coeff, fBondTensor2);
 	}
@@ -173,12 +210,21 @@ double FCC3D::ComputeEnergyDensity(const dSymMatrixT& E)
 	/* fetch function pointer */
 	PairPropertyT::EnergyFunction energy = fPairProperty->getEnergyFunction();
 
-	double tmpSum  = 0.;	
+	/* bond density */
+	const double* density = fFullDensity.Pointer();
 	int nb = fFCCLattice->NumberOfBonds();
+	const ElementCardT* element = MaterialSupport().CurrentElement();
+	if (element && element->IsAllocated()) {
+		const dArrayT& d_array = element->DoubleData();
+		density = d_array.Pointer(CurrIP()*nb);
+	}
+
+	/* sum over bonds */
+	double tmpSum  = 0.;	
 	for (int i = 0; i < nb; i++)
 	{
 		double r = bond_length[i]*fNearestNeighbor;
-		tmpSum += energy(r, NULL, NULL);
+		tmpSum += (*density++)*energy(r, NULL, NULL);
 	}
 	tmpSum /= fAtomicVolume;
 	

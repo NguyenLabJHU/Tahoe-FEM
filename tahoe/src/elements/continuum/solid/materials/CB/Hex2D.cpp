@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.3 2004-06-17 07:40:15 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.4 2004-06-26 06:02:24 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -30,7 +30,8 @@ Hex2D::Hex2D(ifstreamT& in, const FSMatSupportT& support):
 	fHexLattice2D(NULL),
 	fPairProperty(NULL),
 	fBondTensor4(dSymMatrixT::NumValues(2)),
-	fBondTensor2(dSymMatrixT::NumValues(2))	
+	fBondTensor2(dSymMatrixT::NumValues(2)),
+	fFullDensityForStressOutput(true)
 {
 	const char caller[] = "Hex2D::Hex2D";
 
@@ -68,6 +69,10 @@ Hex2D::Hex2D(ifstreamT& in, const FSMatSupportT& support):
 	fQ.Identity();
 	fHexLattice2D = new HexLattice2DT(fQ, nshells);
 	fHexLattice2D->Initialize();
+
+	/* construct default bond density array */
+	fFullDensity.Dimension(fHexLattice2D->NumberOfBonds());
+	fFullDensity = 1.0;
 	
 	/* check */
 	if (fNearestNeighbor < kSmall)
@@ -104,6 +109,10 @@ void Hex2D::Print(ostream& out) const
 	/* inherited */
 	NL_E_Mat2DT::Print(out);
 
+	/* higher precision */
+	int prec = out.precision();
+	out.precision(12);
+
 	/* lattice parameters */
 	out << " Number of neighbor shells . . . . . . . . . . . = " << fHexLattice2D->NumShells() << '\n';
 	out << " Number of neighbors . . . . . . . . . . . . . . = " << fHexLattice2D->NumberOfBonds() << '\n';
@@ -112,6 +121,15 @@ void Hex2D::Print(ostream& out) const
 	/* write pair properties to output */
 	out << " Interaction potential parameters:\n";
 	fPairProperty->Write(out);
+
+	/* restore precision */
+	out.precision(prec);
+}
+
+/* return a reference to the bond lattice */
+const BondLatticeT& Hex2D::BondLattice(void) const {
+	if (!fHexLattice2D) ExceptionT::GeneralFail("Hex2D::BondLattice", "pointer not set");
+	return *fHexLattice2D;
 }
 
 /*************************************************************************
@@ -126,14 +144,23 @@ void Hex2D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 	/* fetch function pointers */
 	PairPropertyT::ForceFunction force = fPairProperty->getForceFunction();
 	PairPropertyT::StiffnessFunction stiffness = fPairProperty->getStiffnessFunction();
-	
-	moduli = 0.0; 
+
+	/* bond density */
+	const double* density = fFullDensity.Pointer();
 	int nb = fHexLattice2D->NumberOfBonds();
+	const ElementCardT* element = MaterialSupport().CurrentElement();
+	if (element && element->IsAllocated()) {
+		const dArrayT& d_array = element->DoubleData();
+		density = d_array.Pointer(CurrIP()*nb);
+	}
+	
+	/* sum over bonds */
+	moduli = 0.0; 
 	double R4byV = fNearestNeighbor*fNearestNeighbor*fNearestNeighbor*fNearestNeighbor/fCellVolume;
-	for (int i = 0; i < nb; i++)
+	for (int i = 0; i < nb; i++) 
 	{
 		double ri = bond_length[i]*fNearestNeighbor;
-		double coeff = (stiffness(ri, NULL, NULL) - force(ri, NULL, NULL)/ri)/ri/ri;
+		double coeff = (*density++)*(stiffness(ri, NULL, NULL) - force(ri, NULL, NULL)/ri)/ri/ri;
 		fHexLattice2D->BondComponentTensor4(i, fBondTensor4);
 		moduli.AddScaled(R4byV*coeff, fBondTensor4);
 	}
@@ -150,14 +177,24 @@ void Hex2D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 
 	/* fetch function pointer */
 	PairPropertyT::ForceFunction force = fPairProperty->getForceFunction();
-	
-	PK2 = 0.0;
+
+	/* bond density */
+	const double* density = fFullDensity.Pointer();
 	int nb = fHexLattice2D->NumberOfBonds();
+	const ElementCardT* element = MaterialSupport().CurrentElement();
+	bool keep_full_density = MaterialSupport().RunState() == GlobalT::kWriteOutput && fFullDensityForStressOutput;
+	if (!keep_full_density && element && element->IsAllocated()) {
+		const dArrayT& d_array = element->DoubleData();
+		density = d_array.Pointer(CurrIP()*nb);
+	}
+	
+	/* sum over bonds */
+	PK2 = 0.0;
 	double R2byV = fNearestNeighbor*fNearestNeighbor/fCellVolume;
 	for (int i = 0; i < nb; i++)
 	{
 		double ri = bond_length[i]*fNearestNeighbor;
-		double coeff = force(ri, NULL, NULL)/ri;
+		double coeff = (*density++)*force(ri, NULL, NULL)/ri;
 		fHexLattice2D->BondComponentTensor2(i, fBondTensor2);
 		PK2.AddScaled(R2byV*coeff, fBondTensor2);
 	}
@@ -172,12 +209,21 @@ double Hex2D::ComputeEnergyDensity(const dSymMatrixT& E)
 	/* fetch function pointer */
 	PairPropertyT::EnergyFunction energy = fPairProperty->getEnergyFunction();
 
-	double tmpSum  = 0.;	
+	/* bond density */
+	const double* density = fFullDensity.Pointer();
 	int nb = fHexLattice2D->NumberOfBonds();
-	for (int i = 0; i < nb; i++)
+	const ElementCardT* element = MaterialSupport().CurrentElement();
+	if (element && element->IsAllocated()) {
+		const dArrayT& d_array = element->DoubleData();
+		density = d_array.Pointer(CurrIP()*nb);
+	}
+
+	/* sum over bonds */
+	double tmpSum  = 0.;	
+	for (int i = 0; i < nb; i++) 
 	{
 		double r = bond_length[i]*fNearestNeighbor;
-		tmpSum += energy(r, NULL, NULL);
+		tmpSum += (*density++)*energy(r, NULL, NULL);
 	}
 	tmpSum /= fCellVolume;
 	
