@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.22 2003-02-08 01:16:28 paklein Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.23 2003-11-25 19:55:48 paklein Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -215,7 +215,7 @@ protected:
 inline void VTKBodyDataT::double_to_float(const ArrayT<double>& d, float* f) const
 {
 	int len = d.Length();
-	double* pd = d.Pointer(); 
+	const double* pd = d.Pointer(); 
  	for (int i = 0; i < len; i++)
  		*f++ = float(*pd++);
 }

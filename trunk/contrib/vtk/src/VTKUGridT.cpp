@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.28 2003-01-09 00:46:00 paklein Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.29 2003-11-25 19:55:49 paklein Exp $ */
 #include "VTKUGridT.h"
 
 /* Tahoe toolbox headers */
@@ -198,7 +198,7 @@ void VTKUGridT::SetConnectivities(GeometryT::CodeT code, const iArray2DT& connec
 		/* copy 1st 4 nodes */
 		for (int i = 0; i < connects.MajorDim(); i++)
 		{
-			int* a = connects(i);
+			const int* a = connects(i);
 			int* b = vtk_connects(i) + 1; /* first value in each row is row size */
 			
 			memcpy(b, a, 4*sizeof(int));
