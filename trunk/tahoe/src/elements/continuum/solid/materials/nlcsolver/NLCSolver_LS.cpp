@@ -86,9 +86,9 @@ void NLCSolver_LS::ComputeTrialPoint(dArrayT& X)
   if ( is_NaN(tempLambda) || (fabs(tempLambda) <= 1.e-150 && fRejectionCount > 0) )
   //if ( is_NaN(tempLambda) )
     {
-      writeMessage("NLCSolver_LS::ComputeTrialPoint: lambda is NaN or < 1.e-150");
       //writeMessage("NLCSolver_LS::ComputeTrialPoint: lambda = NaN");
       if (NLCS_MESSAGES) {
+         writeMessage("NLCSolver_LS::ComputeTrialPoint: lambda is NaN or < 1.e-150");
          cout << "* tempLambda = * = " << tempLambda << endl
               << "  fLambda        = " << fLambda   << endl
               << "  fPrevLambda    = " << fPrevLambda << endl
@@ -125,8 +125,10 @@ void NLCSolver_LS::TestTrialPoint(dArrayT& trialX)
   // check value of Lambda
   if (fLambda < fMinLambda) 
     {
-      cout << "   lambda, minlambda = " << fLambda << " " << fMinLambda << endl; 
-      throwRunTimeError("NLCSolver_LS::TestTrialPoint: lambda < minlambda");
+      if (NLCS_MESSAGES){ 
+        cout << "   lambda, minlambda = " << fLambda << " " << fMinLambda << endl; 
+        throwRunTimeError("NLCSolver_LS::TestTrialPoint: lambda < minlambda");
+      }
     }
   
   // check sufficient function decrease

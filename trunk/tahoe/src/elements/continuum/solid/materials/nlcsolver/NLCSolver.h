@@ -128,10 +128,11 @@ class NLCSolver
   void FiniteDifferenceJac(NLCSolverWrapperPtr theModel, dArrayT& X);
   void SecantUpdateJac(NLCSolverWrapperPtr theModel, dArrayT& X);
 
- protected:
+ public:
   // bool variable to print messages
   static bool NLCS_MESSAGES;
 
+ protected:
   // trial-point related bool variable 
   bool fTrialPointAccepted;
 

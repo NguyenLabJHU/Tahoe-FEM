@@ -18,7 +18,8 @@ void NewtonMethodBase::GetNewtonStep(NLCSolver& nlcsolve, dArrayT& step) const
 
   catch(int error)
     {
-      writeMessage("NewtonMethodBase::GetNewtonStep: Problems in LinearSolve");
+      if (NLCSolver::NLCS_MESSAGES) 
+         writeMessage("NewtonMethodBase::GetNewtonStep: Problems in LinearSolve");
       throw;
     }
 }
