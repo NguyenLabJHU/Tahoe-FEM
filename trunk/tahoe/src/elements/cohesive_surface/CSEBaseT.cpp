@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.5 2001-04-04 22:13:24 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.6 2001-04-04 22:17:23 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 
 #include "CSEBaseT.h"
@@ -142,7 +142,7 @@ void CSEBaseT::Initialize(void)
 		}
 	
 		/* read in at a time to allow comments */
-		for (int j = 0; j < fElementOutputCodes.Length(); j++)
+		for (int j = 0; j < num_codes; j++)
 		{
 			in >> fElementOutputCodes[j];
 		
