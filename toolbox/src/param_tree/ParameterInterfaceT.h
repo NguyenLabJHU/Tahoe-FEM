@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.h,v 1.10 2004-03-28 09:51:11 paklein Exp $ */
+/* $Id: ParameterInterfaceT.h,v 1.11 2004-04-04 03:01:41 paklein Exp $ */
 #ifndef _PARAMETER_INTERFACE_T_H_
 #define _PARAMETER_INTERFACE_T_H_
 
@@ -62,9 +62,6 @@ public:
 	/*@{*/
 	/** the order of subordinate lists */
 	virtual ParameterListT::ListOrderT ListOrder(void) const;
-
-	/** return true if the interface is inline */
-//	virtual bool Inline(void) const { return false; };
 
 	/** information about subordinate parameter lists
 	 * \param sub_lists description of subordinate parameter lists */
