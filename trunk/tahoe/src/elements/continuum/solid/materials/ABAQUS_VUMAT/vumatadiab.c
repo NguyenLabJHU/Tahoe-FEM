@@ -12,7 +12,7 @@
 
 static doublereal c_b17 = .5;
 
-/* $Id: vumatadiab.c,v 1.5 2002-01-06 06:58:41 cbhovey Exp $ */
+/* $Id: vumatadiab.c,v 1.6 2002-06-27 22:15:37 paklein Exp $ */
 
 /* 23456789012345678901234567890123456789012345678901234567890123456789012 */
 /* revision a  2000/12/6  correct problems */
@@ -230,27 +230,27 @@ static doublereal c_b17 = .5;
 	    sv[ie + (sv_dim1 << 4)] = props[2];
 	    sv[ie + sv_dim1 * 17] = props[2];
 	    if (sv[ie + sv_dim1] != 0.f) {
-		s_stop("", 0L);
+		s_stop("vumatadiab: bad state variable", 0L);
 	    }
 	    if (sv[ie + (sv_dim1 << 1)] != 0.f) {
-		s_stop("", 0L);
+		s_stop("vumatadiab: bad state variable", 0L);
 	    }
 	    if (sv[ie + sv_dim1 * 3] != 0.f) {
-		s_stop("", 0L);
+		s_stop("vumatadiab: bad state variable", 0L);
 	    }
 	    if (sv[ie + (sv_dim1 << 2)] != 0.f) {
-		s_stop("", 0L);
+		s_stop("vumatadiab: bad state variable", 0L);
 	    }
 	    if (sv[ie + sv_dim1 * 5] != 0.f) {
-		s_stop("", 0L);
+		s_stop("vumatadiab: bad state variable", 0L);
 	    }
 	    if (sv[ie + sv_dim1 * 6] != 0.f) {
-		s_stop("", 0L);
+		s_stop("vumatadiab: bad state variable", 0L);
 	    }
 	    i__2 = ndirnshr;
 	    for (isv = 1; isv <= i__2; ++isv) {
 		if (sigold[ie + isv * sigold_dim1] != 0.f) {
-		    s_stop("", 0L);
+		    s_stop("vumatadiab: bad state variable", 0L);
 		}
 /* L3: */
 	    }
@@ -305,7 +305,7 @@ static doublereal c_b17 = .5;
 /* ***  TEMPERATURE */
 	    theta = sv[ie + (sv_dim1 << 3)];
 	    if (theta == 0.f) {
-		s_stop("", 0L);
+		s_stop("vumatadiab: bad temperature", 0L);
 	    }
 
 /* ***  temperatured dependent parameters */
