@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.32 2004-06-09 23:14:42 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.33 2004-08-01 00:52:39 paklein Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -82,27 +82,6 @@ const double& dSymMatrixT::operator()(int row, int col) const
 	}
 	else
 		return fArray[map1D[row][col]];
-}
-
-void dSymMatrixT::ExpandIndex(DimensionT nsd, int dex, int& dex_1, int& dex_2)
-{
-	const char caller[] = "dSymMatrixT::ExpandIndex";
-
-#if __option(extended_errorcheck)
-	/* consistency check */
-	if (dex >= NumValues(nsd)) ExceptionT::OutOfRange(caller, "bad index %d", dex);
-#endif	
-	
-	if (nsd == 1) ExceptionT::GeneralFail(caller, "not implemented yet for 1D");
-
-	int  map_2D[6] = {0,0,1,1,0,1};
-	int map_3D[18] = {0,0,1,1,2,2,
-	                  1,2,0,2,0,1};
-	int* map = (nsd == 2) ? map_2D : map_3D;
-
-	int* p = map + 2*dex;
-	dex_1 = p[0];
-	dex_2 = p[1];
 }
 
 namespace Tahoe {
