@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.h,v 1.3 2001-06-15 14:45:47 hspark Exp $ */
+/* $Id: GaussianWindowT.h,v 1.4 2001-06-18 17:04:18 hspark Exp $ */
 
 #ifndef _GAUSSIAN_WINDOW_T_H_
 #define _GAUSSIAN_WINDOW_T_H_
@@ -37,10 +37,11 @@ class GaussianWindowT
 
 	/* coverage tests */
 	/* single point */
-	virtual bool Covers(const dArrayT& x_n, const dArrayT& x);
+	virtual bool Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n);
 
 	/* multiple points */
-	virtual void Covers(const dArray2DT& x_n, const dArrayT& x, const ArrayT<bool>& covers);
+	virtual void Covers(const dArray2DT& x_n, const dArrayT& x, 
+			    const dArray2DT& param_n, const ArrayT<bool>& covers);
 	
 	//etc...
 	
