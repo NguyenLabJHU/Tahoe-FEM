@@ -1,4 +1,4 @@
-/* $Id: main_cpp.cpp,v 1.2 2003-03-09 04:17:13 paklein Exp $ */
+/* $Id: main_cpp.cpp,v 1.3 2003-03-14 21:21:05 paklein Exp $ */
 #include <iostream.h>
 #include <math.h>
 #include <iomanip.h>
@@ -74,5 +74,6 @@ int main (int, char**)
 	FORTRAN_NAME(print_double)(&d1);
 	FORTRAN_NAME(print_int)(&i1);
 		
+	cout << "Done." << endl;
 	return 0;
 }
