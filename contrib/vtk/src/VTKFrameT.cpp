@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.7 2001-11-01 19:16:44 recampb Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.8 2001-11-06 02:39:51 recampb Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -14,8 +14,8 @@
 #include "vtkScalarBarActor.h"
 #include "vtkCubeAxesActor2D.h"
 #include "vtkRendererSource.h"
-#include "vtkTIFFWriter.h"
-#include "vtkWindowToImageFilter.h"
+//#include "vtkTIFFWriter.h"
+//#include "vtkWindowToImageFilter.h"
 #include "vtkLookupTable.h"
 #include "vtkIdFilter.h"
 #include "vtkSelectVisiblePoints.h"
@@ -33,16 +33,14 @@
 #include "iArray2DT.h"
 #include "dArrayT.h"
 #include "GeometryT.h"
+#include "VTKConsoleT.h"
 
 /* constructor */
 VTKFrameT::VTKFrameT(void):
-  renderer(NULL),
-  renSrc(NULL)
+  renderer(NULL)
 {
   /* set up display classes */
   renderer = vtkRenderer::New();
-  renSrc = vtkRendererSource::New();
-  writer = vtkTIFFWriter::New();
  
   /* set up console modifiable variables */
 //   iAddVariable("age", fAge);
@@ -69,7 +67,7 @@ VTKFrameT::VTKFrameT(void):
   iAddCommand("Reset_to_Default_Values");
   iAddCommand("Reset_view");
   iAddCommand("Save");
-  iAddCommand("Save_flip_book_images");
+  //iAddCommand("Save_flip_book_images");
 
   iAddCommand("Show_Node_Numbers");
   iAddCommand("Hide_Node_Numbers");
@@ -78,15 +76,15 @@ VTKFrameT::VTKFrameT(void):
   iAddCommand("X_axis_rotation");
   iAddCommand("Y_axis_rotation");
   iAddCommand("Z_axis_rotation");
-  iAddCommand("Flip_book");
+  //iAddCommand("Flip_book");
   iAddCommand("Change_background_color");
   iAddCommand("Select_time_step");
   iAddCommand("Show_axes");
   iAddCommand("Hide_axes");
   iAddCommand("Choose_variable");
 
-
-
+  iAddCommand("Add_body");
+  iAddCommand("Remove_body");
 }
 
 /* destructor */
@@ -94,7 +92,6 @@ VTKFrameT::~VTKFrameT(void)
 {
   /* free display classes */
   renderer->Delete(); renderer = NULL;
-  renSrc->Delete(); renSrc = NULL;
 }
 
 void VTKFrameT::ResetView(void)
@@ -104,7 +101,43 @@ void VTKFrameT::ResetView(void)
   renderer->GetActiveCamera()->ComputeViewPlaneNormal();
   renderer->GetActiveCamera()->SetViewUp(0,1,0);
   renderer->GetActiveCamera()->OrthogonalizeViewUp();
+  renderer->ResetCamera();
+}
 
+bool VTKFrameT::AddBody(VTKBodyT* body)
+{
+  if (bodies.AppendUnique(body))
+    {
+      renderer->AddActor(body->Actor());
+      renderer->AddActor(body->SBActor());
+      // frame needs to keep track of the current visible scalar bar
+      // so that at most one is visible and SBActors() can be exhanged
+      // in renderer
+      ResetView();
+      return true;
+    }
+  else
+    return false;
+}
+
+bool VTKFrameT::RemoveBody(VTKBodyT* body)
+{
+  int index = bodies.PositionOf(body);
+  if (index == -1)
+    return false;
+  else
+    {
+      VTKBodyT* body = bodies[index];
+      
+      /* remove from renderer */
+      renderer->RemoveActor(body->Actor());
+      renderer->RemoveActor(body->SBActor()); // if added to the renderer earlier
+      ResetView();
+
+      /* remove from body list */
+      bodies.DeleteAt(index);
+      return true;
+    }
 }
 
 /* execute given command - returns false on fail */
@@ -116,9 +149,9 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
   double timeStep;
 
   if (command == "Start_Rendering")
-    {    
-      bodies[0]->UpdateData();
-      //bodies[1]->UpdateData();
+    {
+      for (int i = 0; i < bodies.Length(); i++)
+	bodies[i]->UpdateData();
       fRenWin->Render();
       cout << getName() << endl;
       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
@@ -128,14 +161,69 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 
   else if (command == "Update_Rendering")
   {
-
-    bodies[0]->UpdateData();
-    // bodies[1]->UpdateData();
+    for (int i = 0; i < bodies.Length(); i++)
+      bodies[i]->UpdateData();
     fRenWin->Render();
     cout << "type 'e' in the graphics window to exit interactive mode" << endl;   
     fIren->Start();
     return true;
   }
+  else if (command == "Add_body")
+    {
+      /* list of bodies */
+      const ArrayT<VTKBodyT*>& bodies = fConsole->Bodies();
+
+      cout << "body to add (0," << bodies.Length()-1 << "): ";
+      int body = -99;
+      cin >> body;
+      char line[255];
+      cin.getline(line, 254);
+      if (body >= 0 && body < bodies.Length())
+	{
+	  if (AddBody(bodies[body]))
+	    {
+	      
+	      fRenWin->Render();
+	      return true;
+	    }
+	  else
+	    {
+	      cout << "body already added to frame" << endl;
+	      return false;
+	    }
+	}
+      else
+	{
+	  cout << "body number out of range" << endl;
+	  return false;
+	}
+    }
+  else if (command == "Remove_body")
+    {
+      cout << "body to remove (0," << bodies.Length()-1 << "): ";
+      int body = -99;
+      cin >> body;
+      char line[255];
+      cin.getline(line, 254);
+      if (body >= 0 && body < bodies.Length())
+	{
+	  if (RemoveBody(bodies[body]))
+	    {
+	      fRenWin->Render();
+	      return true;
+	    }
+	  else
+	    {
+	      cout << "frame did not contain the body" << endl;
+	      return false;
+	    }
+	}
+      else
+	{
+	  cout << "body number out of range" << endl;
+	  return false;
+	}
+    }
     
 //   else if (command == "Reset_to_Default_Values")
 //     {
@@ -296,102 +384,13 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 //       return true;
 //     }
 
-//   else if (command == "Flip_book")
-//     {
- 
-//       cout << "Enter time step in seconds: ";
-//       cin >> timeStep;
-//       char line[255];
-//       cin.getline(line, 254);
-//       cout << "Show images at: \n 1: current view\n 2: default view: ";
-//       cin >> sfbTest;
-//       cin.getline(line, 254);
-	
-//       /* if default camera angle desired */
-// 	if (sfbTest == 2) {
-// 	  cam->SetFocalPoint(0,0,0);
-// 	  cam->SetPosition(0,0,1);
-// 	  cam->ComputeViewPlaneNormal();
-// 	  cam->SetViewUp(0,1,0);
-// 	  cam->OrthogonalizeViewUp();
-// 	  renderer->SetActiveCamera(cam);
-// 	  renderer->ResetCamera();
-// 	  renWin->Render();
-// 	}
+  //  else if (command == "Flip_book")
+  //{
+  //}
 
-//       for (int j = 0; j<num_time_steps; j++){
-// 	/* time delay */
-//         clock_t start_time, cur_time;
-//          start_time = clock();
-//          while((clock() - start_time) < timeStep * CLOCKS_PER_SEC)
-//          {
-//          }
-// 	 // sbTitle = "";
-// 	 // sbTitle.Append(node_labels(0)); 
-// 	 // sbTitle.Append(" for frame ");
-// 	 // sbTitle = "Temperature for frame ";
-// 	 sbTitle.Drop(-3);
-// 	  sbTitle.Append(j,3);
-// 	 scalarBar->SetTitle(sbTitle);
-// 	 ugrid->GetPointData()->SetScalars(scalars[j][currentVarNum]);
-// 	 if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
-// 	   ugrid->GetPointData()->SetVectors(vectors[j][currentVarNum]);
-// 	 // ugrid->GetPointData()->SetScalars(scalars[j]);
-// 	 renWin->Render();
-
-//       }
-
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;
-//     }
-
-  else if (command== "Save_flip_book_images")
-    {
-      StringT fbName;
-      cout << "Enter name for flipbook to be saved (without .tif extension): ";
-      cin >> fbName;
-      char line[255];
-      cin.getline(line,254);
-      cout << "Save images at: \n 1: current view\n 2: default view: ";
-      cin >> sfbTest;
-      cin.getline(line, 254);
-      /* if default camera desired */
-      if (sfbTest == 2) {
-	ResetView();
-	renderer->ResetCamera();
-	fRenWin->Render();
-      }	
-      
-      for (int j = 0; j<bodies[0]->num_time_steps; j++){
-
-// 	sbTitle.Drop(-3);
-// 	sbTitle.Append(j,3);
-// 	scalarBar->SetTitle(sbTitle);	 
-// 	ugrid->GetPointData()->SetScalars(scalars[j][currentVarNum]);
-	
-// 	if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
-// 	  ugrid->GetPointData()->SetVectors(vectors[j][currentVarNum]);
-	bodies[0]->SelectTimeStep(j);
-
-	fRenWin->Render();  
-	renSrc->SetInput(renderer);
-	renSrc->WholeWindowOn();
-	writer->SetInput(renSrc->GetOutput());
-	bodies[0]->outFileName = fbName;
-	bodies[0]->outFileName.Append(j,3); // pad to a width of 3 digits
-	bodies[0]->outFileName.Append(".tif");
-	writer->SetFileName(bodies[0]->outFileName);
-	writer->Write();
-	cout << bodies[0]->outFileName << " has been saved" << endl;
-	fRenWin->Render();
-      }
-      cout << "Flip book images have been saved." << endl;
-      fRenWin->Render();
-      //    iren->Start();
-      return true;
-    }
+  //  else if (command== "Save_flip_book_images")
+  //{
+  //}
 	 
 //   else if (command=="Change_background_color")
 //     {

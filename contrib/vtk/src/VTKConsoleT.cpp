@@ -1,11 +1,12 @@
-/* $Id: VTKConsoleT.cpp,v 1.22 2001-11-01 19:16:44 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.23 2001-11-06 02:39:51 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
-#include "vtkRendererSource.h"
+//#include "vtkRendererSource.h"
 #include "vtkRenderWindowInteractor.h"
+#include "vtkWindowToImageFilter.h"
 #include "vtkTIFFWriter.h"
 #include "vtkScalarBarActor.h"
 #include "vtkDataSetMapper.h"
@@ -138,38 +139,20 @@ VTKConsoleT::VTKConsoleT(void)
       temp.Append("frame",i,2);
       fFrames[i].iSetName(temp);
       iAddSub(fFrames[i]);
-      fFrames[i].fRenWin = renWin;
-      fFrames[i].fIren = iren;
+      fFrames[i].setRenWin(renWin);
+      fFrames[i].setIren(iren);
+      fFrames[i].setConsole(this);
   //     for (int j = 0; j<1; j++)
 // 	fFrames[i].bodies[j] = fBodies[j];
     }
-  fFrames[0].bodies[0] = fBodies[0];
-  fFrames[1].bodies[0] = fBodies[1];
-
-// 	  ids = vtkIdFilter::New();
-// 	  visPts = vtkSelectVisiblePoints::New();
-// 	  ldm = vtkLabeledDataMapper::New();
-// 	  pointLabels = vtkActor2D::New();
-// 	  cam = vtkCamera::New();
-// 	  axes = vtkCubeAxesActor2D::New();
-	 
-	  	  
-// 	  fFrames[0].renderer->SetBackground(0,0,0);
   
 	  
   //fBodies[0]->SetLookupTable();	  
-fFrames[0].Renderer()->AddActor(fBodies[0]->SBActor());
-fFrames[1].Renderer()->AddActor(fBodies[0]->SBActor());
-fFrames[2].Renderer()->AddActor(fBodies[0]->SBActor());
-fFrames[3].Renderer()->AddActor(fBodies[0]->SBActor());
-  //  renSrc = vtkRendererSource::New();
-  /* divide window into 4 parts */
-
- fFrames[0].Renderer()->AddActor(fBodies[0]->Actor());
- fFrames[1].Renderer()->AddActor(fBodies[0]->Actor());
- fFrames[2].Renderer()->AddActor(fBodies[0]->Actor());
- fFrames[3].Renderer()->AddActor(fBodies[0]->Actor());
- renWin->AddRenderer(fFrames[0].Renderer());
+  fFrames[0].AddBody(fBodies[0]);
+  fFrames[1].AddBody(fBodies[0]);
+  fFrames[2].AddBody(fBodies[0]);
+  fFrames[3].AddBody(fBodies[0]);
+  renWin->AddRenderer(fFrames[0].Renderer());
  //renWin->AddRenderer(fFrames[1].Renderer());
   if (numRen ==4){
     fFrames[0].Renderer()->SetViewport(0,0,.5,.5);
@@ -189,14 +172,11 @@ fFrames[3].Renderer()->AddActor(fBodies[0]->SBActor());
   }
   iren->SetRenderWindow(renWin);
   
-
   renWin->SetPosition(668, 0);
   renWin->SetSize(600,700);
 
   //renWin->Render();
   //iren->Start();
-
-
 }
 
 /* destructor*/
@@ -393,106 +373,91 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       return true;
 //     }
 
-//   else if (command == "Flip_book")
-//     {
- 
-//       cout << "Enter time step in seconds: ";
-//       cin >> timeStep;
-//       char line[255];
-//       cin.getline(line, 254);
-//       cout << "Show images at: \n 1: current view\n 2: default view: ";
-//       cin >> sfbTest;
-//       cin.getline(line, 254);
+  else if (command == "Flip_book")
+    {
+      double timeStep;
+      cout << "Enter time step in seconds: ";
+      cin >> timeStep;
+      char line[255];
+      cin.getline(line, 254);
+      cout << "Show images at: \n 1: current view\n 2: default view: ";
+     
+      int sfbTest;
+      cin >> sfbTest;
+      cin.getline(line, 254);
+      /* if default camera desired */
+      if (sfbTest == 2) {
+	for (int i = 0; i < fFrames.Length(); i++)
+	  fFrames[i].ResetView();
+	renWin->Render();
+      }	
+
+      /* assume all the bodies have the same number of steps as body 0 */
+      for (int j = 0; j<fBodies[0]->num_time_steps; j++){
+        /* time delay */
+	clock_t start_time, cur_time;
+         start_time = clock();
+         while((clock() - start_time) < timeStep * CLOCKS_PER_SEC)
+         {
+         }
+	 for (int i = 0; i < fBodies.Length(); i++)
+	   fBodies[i]->SelectTimeStep(j);
+	renWin->Render();
+      }
+      return true;
+    }
+
+   else if (command== "Save_flip_book_images")
+     {
+      StringT fbName;
+      cout << "Enter name for flipbook to be saved (without .tif extension): ";
+      cin >> fbName;
+      char line[255];
+      cin.getline(line,254);
+      cout << "Save images at: \n 1: current view\n 2: default view: ";
+      int sfbTest;
+      cin >> sfbTest;
+      cin.getline(line, 254);
+      /* if default camera desired */
+      if (sfbTest == 2) {
+	for (int i = 0; i < fFrames.Length(); i++)
+	  fFrames[i].ResetView();
+	renWin->Render();
+      }	
+
+      /* window to image filter */
+      vtkWindowToImageFilter* image = vtkWindowToImageFilter::New();
+      image->SetInput(renWin);
+
+      /* construct TIFF writer */
+      vtkTIFFWriter* writer = vtkTIFFWriter::New();
+      writer->SetInput(image->GetOutput());
+
+      /* assume all the bodies have the same number of steps as body 0 */
+      for (int j = 0; j<fBodies[0]->num_time_steps; j++){
+
+	for (int i = 0; i < fBodies.Length(); i++)
+	  fBodies[i]->SelectTimeStep(j);
+	renWin->Render();  
+
+	StringT name = fbName;
+	name.Append(j,3); // pad to a width of 3 digits
+	name.Append(".tif");
+	writer->SetFileName(name);
+	writer->Write();
 	
-//       /* if default camera angle desired */
-// 	if (sfbTest == 2) {
-// 	  cam->SetFocalPoint(0,0,0);
-// 	  cam->SetPosition(0,0,1);
-// 	  cam->ComputeViewPlaneNormal();
-// 	  cam->SetViewUp(0,1,0);
-// 	  cam->OrthogonalizeViewUp();
-// 	  renderer->SetActiveCamera(cam);
-// 	  renderer->ResetCamera();
-// 	  renWin->Render();
-// 	}
-
-//       for (int j = 0; j<num_time_steps; j++){
-// 	/* time delay */
-//         clock_t start_time, cur_time;
-//          start_time = clock();
-//          while((clock() - start_time) < timeStep * CLOCKS_PER_SEC)
-//          {
-//          }
-// 	 // sbTitle = "";
-// 	 // sbTitle.Append(node_labels(0)); 
-// 	 // sbTitle.Append(" for frame ");
-// 	 // sbTitle = "Temperature for frame ";
-// 	 sbTitle.Drop(-3);
-// 	  sbTitle.Append(j,3);
-// 	 scalarBar->SetTitle(sbTitle);
-// 	 ugrid->GetPointData()->SetScalars(scalars[j][currentVarNum]);
-// 	 if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
-// 	   ugrid->GetPointData()->SetVectors(vectors[j][currentVarNum]);
-// 	 // ugrid->GetPointData()->SetScalars(scalars[j]);
-// 	 renWin->Render();
-
-//       }
-
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;
-//     }
-
-//   else if (command== "Save_flip_book_images")
-//     {
-//       StringT fbName;
-//       cout << "Enter name for flipbook to be saved (without .tif extension): ";
-//       cin >> fbName;
-//       char line[255];
-//       cin.getline(line,254);
-//       cout << "Save images at: \n 1: current view\n 2: default view: ";
-//       cin >> sfbTest;
-//       cin.getline(line, 254);
-//       /* if default camera desired */
-//       if (sfbTest == 2) {
-// 	cam->SetFocalPoint(0,0,0);
-// 	cam->SetPosition(0,0,1);
-// 	cam->ComputeViewPlaneNormal();
-// 	cam->SetViewUp(0,1,0);
-// 	cam->OrthogonalizeViewUp();
-// 	renderer->SetActiveCamera(cam);
-// 	renderer->ResetCamera();
-// 	renWin->Render();
-//       }	
+	cout << fbName << " has been saved" << endl;
+	renWin->Render();
+      }
       
-//       for (int j = 0; j<num_time_steps; j++){
+      /* clean up */
+      writer->Delete();
+      image->Delete();
 
-// 	sbTitle.Drop(-3);
-// 	sbTitle.Append(j,3);
-// 	scalarBar->SetTitle(sbTitle);	 
-// 	ugrid->GetPointData()->SetScalars(scalars[j][currentVarNum]);
-	
-// 	if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
-// 	  ugrid->GetPointData()->SetVectors(vectors[j][currentVarNum]);
-	
-// 	renWin->Render();  
-// 	renSrc->SetInput(renderer);
-// 	renSrc->WholeWindowOn();
-// 	writer->SetInput(renSrc->GetOutput());
-// 	outFileName = fbName;
-// 	outFileName.Append(j,3); // pad to a width of 3 digits
-// 	outFileName.Append(".tif");
-// 	writer->SetFileName(outFileName);
-// 	writer->Write();
-// 	cout << outFileName << " has been saved" << endl;
-// 	renWin->Render();
-//       }
-//       cout << "Flip book images have been saved." << endl;
-//       renWin->Render();
-//       //    iren->Start();
-//       return true;
-//     }
+      cout << "Flip book images have been saved." << endl;
+      renWin->Render();
+      return true;
+     }
 	 
 //   else if (command=="Change_background_color")
 //     {
