@@ -1,38 +1,36 @@
-#/* $Id: makefile,v 1.2 2002-12-04 17:09:35 creigh Exp $ */
+#/* $Id: makefile,v 1.1 2002-12-04 17:09:39 creigh Exp $ */
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
 include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
-OBJ = all_depend.o 
+OBJ = \
+	VMF_MaterialT.o 	
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
-#OBJ = dummy
-#OBJ_LINK =
-#DEP = /dev/null
 
 # sources
-SRC = all_depend.cpp 
+SRC = \
+	VMF_MaterialT.cpp 	
 
 # headers
-HDR = FEA.h 
+HDR =	VMF_MaterialT.h	\
+			E_Pr_MatlT.h \
+			Iso_MatlT.h \
+			BCJ_MatlT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
-SUB_DIR = \
-	matrix \
-	integration \
-	data_processing \
-	shape_functions \
-	multiscale_elements 
+SUB_DIR = 
 
-subdir_driver: subdir_loop
+subdir_driver: 
 
 # instructions for subdirectories
 include $(MACRO_DIR)/subdir.targets
 
-# dependencies (none this directory)
+# dependencies
 DEPEND = /dev/null
 include $(DEPEND)

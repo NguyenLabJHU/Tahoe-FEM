@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.7 2002-12-03 19:25:11 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.8 2002-12-04 17:09:34 creigh Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -85,26 +85,25 @@ void StaggeredMultiScaleT::Initialize(void)
 	cout << "############### In Initialize ############### \n";
 
 	/* set local arrays for coarse scale */
-	ua.Dimension (n_en, n_df);
-	ua_n.Dimension (n_en, n_df);
-	del_ua.Dimension (n_en, n_df);
-	del_ua_vec.Dimension (n_en_x_n_df);
-	fCoarse.RegisterLocal(ua);
-	fCoarse.RegisterLocal(ua_n);
-
-	/* set local arrays for fine scale */
 	ub.Dimension (n_en, n_df);
 	ub_n.Dimension (n_en, n_df);
 	del_ub.Dimension (n_en, n_df);
 	del_ub_vec.Dimension (n_en_x_n_df);
-	fFine.RegisterLocal(ub);
-	fFine.RegisterLocal(ub_n);
+	fCoarse.RegisterLocal(ub);
+	fCoarse.RegisterLocal(ub_n);
+
+	/* set local arrays for fine scale */
+	ua.Dimension (n_en, n_df);
+	ua_n.Dimension (n_en, n_df);
+	del_ua.Dimension (n_en, n_df);
+	del_ua_vec.Dimension (n_en_x_n_df);
+	fFine.RegisterLocal(ua);
+	fFine.RegisterLocal(ua_n);
 
 	/* set shape functions */
 	fInitCoords.Dimension(n_en, n_sd);
 	ElementSupport().RegisterCoordinates(fInitCoords);	
 	fCurrCoords.Dimension(n_en, n_sd);
-//	ElementSupport().RegisterCoordinates(fCurrCoords); // <---- cannot do this if current coordinates are not computed globally
 	fShapes = new ShapeFunctionT(fGeometryCode, fNumIP, fCurrCoords);
 	fShapes->Initialize();
 	
@@ -148,7 +147,8 @@ void StaggeredMultiScaleT::Initialize(void)
 
 	fFint_I.Dimension 	( n_en_x_n_df );
 	fFint_II.Dimension 	( n_en_x_n_df );
-	
+
+	fFEA_Shapes.Construct( fNumIP,n_sd,n_en );
 }
 
 //---------------------------------------------------------------------
@@ -159,7 +159,7 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 	/* which equations are being solved? */
 	int curr_group = ElementSupport().CurrentGroup();
 
-	cout << "############### In RHS Driver ############### \n";
+	//cout << "############### In RHS Driver ############### \n";
 
 	/** Time Step Increment */
 	double delta_t = 0.1;
@@ -167,30 +167,30 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 
 	/* loop over elements */
 
+	int e=0;
 	Top();
 	while (NextElement())
 	{
+		e++;
 		SetLocalU (ua);			 SetLocalU (ua_n);
 		SetLocalU (ub);			 SetLocalU (ub_n);
 
-		cout << "ua = \n" << ua << "\n\n";
-		cout << "ub = \n" << ub << "\n\n";
+		//cout << "ua = \n" << ua << "\n\n";
+		//cout << "ub = \n" << ub << "\n\n";
 
 		del_ua.DiffOf (ua, ua_n);
 		del_ub.DiffOf (ub, ub_n);
 
-		/* get current coordinates and set shape functions and derivatives */
-		SetLocalX(fInitCoords); // dNdX
-		//fCurrCoords.SetToCombination(1.0, fInitCoords, 1.0, ua, 1.0, ub); // <--- compute current coordinates for the element
-	cout << "############### In RHS Driver 1 ############### \n";
-		fShapes->SetDerivatives();
-	cout << "############### In RHS Driver 2 ############### \n";
+	 	SetLocalX(fInitCoords); // dNdX
+		fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, ua, 1.0, ub); 
+		fShapes->SetDerivatives(); 
+	
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, ua, ua_n, fGRAD_ua, fGRAD_ua_n );
-		Convert.Gradiants 		( fShapes, ub, ub_n, fGRAD_ub, fGRAD_ub_n );
-		Convert.Shapes				(	fShapes, fFEA_Shapes);
-		Convert.Displacements	(	del_ua, del_ua_vec);
-		Convert.Displacements	(	del_ub, del_ub_vec);
+		Convert.Gradiants 		( fShapes, 	ua, ua_n, fGRAD_ua, fGRAD_ua_n );
+		Convert.Gradiants 		( fShapes, 	ub, ub_n, fGRAD_ub, fGRAD_ub_n );
+		Convert.Shapes				(	fShapes, 	fFEA_Shapes );
+		Convert.Displacements	(	del_ua, 	del_ua_vec  );
+		Convert.Displacements	(	del_ub, 	del_ub_vec  );
 
 		/** Construct data used in BOTH FineScaleT and CoarseScaleT (F,Fa,Fb,grad_ua,...etc.)
 		 * 	Presently, Tahoe cannot exploit this fact.  n and np1 are calculated for coarse field, then
@@ -198,19 +198,26 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 		 *  Note: n is last time step (known data), no subscript,np1 or (n+1) is the 
 		 *  next time step (what were solving for)   */
 
-		fGRAD_ua.Print("fGRAD_ua");
-		fGRAD_ub.Print("fGRAD_ub");
-
-		np1.Construct (	fGRAD_ua, 	fGRAD_ub 	 ); // Many variables at time-step n+1
-		n.Construct 	(	fGRAD_ua_n, fGRAD_ub_n );	// Many variables at time-step n
+		VMS_VariableT np1(	fGRAD_ua, 	fGRAD_ub 	 ); // Many variables at time-step n+1
+		VMS_VariableT   n(	fGRAD_ua_n, fGRAD_ub_n );	// Many variables at time-step n
+		cout << "############## In RHS Driver: {np1,n} BOTH DONE for Elmt number = "<<e<<" ############### \n";
 		
 		/* which field */
 		if (curr_group == fCoarse.Group())  // <-- ub (obtained by a rearranged Equation I)
 		{
+		cout << "|||||||||||||||||| COARSE ||||||||||||||||| \n";
+
 			/** Compute N-R matrix equations */
 			fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, FEA::kBackward_Euler );
+		cout << " >>> COARSE <<<< \n";
 			fEquation_I -> Form_LHS_Ka_Kb ( fKa_I, fKb_I );
 			fEquation_I -> Form_RHS_F_int ( fFint_I );
+
+			if (e==1) {
+				cout << "  fKa_I = \n" << fKa_I << "\n\n";
+				cout << "  fKb_I = \n" << fKb_I << "\n\n";
+				cout << "  fFint_I = \n" << fFint_I << "\n\n";
+			}
 
 			/** Set coarse LHS */
 			fLHS = fKb_I;
@@ -220,16 +227,26 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 			fRHS += fFint_I; 
 			fRHS *= -1.0; 
 		
+		//cout << "############### In RHS Driver 2 ############### \n";
+
 			/* add to global equations */
 			ElementSupport().AssembleLHS	( fCoarse.Group(), fLHS, CurrentElement().Equations() );
 			ElementSupport().AssembleRHS 	( fCoarse.Group(), fRHS, CurrentElement().Equations() );
 		}
 		else if (curr_group == fFine.Group())	// <-- ua (obtained by a rearranged Equation II)
 		{
+		cout << "------------------ FINE ----------------- \n";
+
 			/** Compute N-R matrix equations */
 			fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, FEA::kBackward_Euler );
 			fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II, delta_t );
 			fEquation_II -> Form_RHS_F_int ( fFint_II, delta_t );
+
+			if (e==1) {
+				cout << "  fKa_II = \n" << fKa_II << "\n\n";
+				cout << "  fKb_II = \n" << fKb_II << "\n\n";
+				cout << "  fFint_II = \n" << fFint_II << "\n\n";
+			}
 
 			/** Set LHS */
 			fLHS = fKa_II;	
@@ -242,6 +259,8 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 			/* fine scale equation numbers */
 			fEqnos_fine.RowAlias ( CurrElementNumber(), fine_eq );
 		
+		//cout << "############### In RHS Driver 4 ############### \n";
+
 			/* add to global equations */
 			ElementSupport().AssembleLHS ( fFine.Group(), fLHS, fine_eq );
 			ElementSupport().AssembleRHS ( fFine.Group(), fRHS, fine_eq );

@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.4 2002-12-01 19:54:07 paklein Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.5 2002-12-04 17:09:34 creigh Exp $ */ 
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
 //DEVELOPMENT
@@ -112,7 +112,7 @@ protected:
 private:
 
 	/** Data at time steps n and n+1 used by both Coarse and Fine */
-	VMS_VariableT n,np1;
+	//VMS_VariableT n,np1; // <-- keep local scope in elmt loop for now 
 
 	/** Gradients with respect to reference coodinates */
 	FEA_dMatrixT fGRAD_ua, fGRAD_ua_n, fGRAD_ub, fGRAD_ub_n;

@@ -114,17 +114,19 @@ void VMF_Virtual_Work_EqT::Form_B_List (void)
 //NOTE: np1 := "n+1" time step; n := "n" time step; npt := "n+theta" time step
 //      *** No subscript implies n+theta time step ***
 
-void VMF_Virtual_Work_EqT::Form_A_S_Lists (VMS_VariableT &np1,VMS_VariableT &n,int Integration_Scheme)
+void VMF_Virtual_Work_EqT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n,int Integration_Scheme)
 {
-	//---- Developer cheat: put npt in function door in-lieu-of np1 or np for speed
 
-VMS_VariableT npt(	n.Get(VMS::kGRAD_ua), n.Get(VMS::kGRAD_ub)	);  
+#if 0
+	//---- Developer cheat: put npt in function door in-lieu-of np1 or n for speed 
+	VMS_VariableT npt(	n.Get(VMS::kGRAD_ua), n.Get(VMS::kGRAD_ub)	);  
 
 	if 			(	Integration_Scheme == FEA::kForward_Euler		)		npt = n;
-	else if (	Integration_Scheme == FEA::kBackward_Euler		)		npt = np1;
+	else if (	Integration_Scheme == FEA::kBackward_Euler	)		npt = np1;
 	else if (	Integration_Scheme == FEA::kCrank_Nicholson	) { npt.SumOf(np1,n); npt *= 0.5; }
 	else 	cout << " ...ERROR >> VMF_Virtual_Work_EqT::Form_A_List() : Bad theta value for time stepping \n";
-		
+#endif
+
 	A.Construct ( kNUM_A_TERMS, n_ip, n_sd, n_sd);
 	S.Construct ( kNUM_S_TERMS, n_ip);
 

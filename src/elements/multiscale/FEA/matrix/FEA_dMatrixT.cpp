@@ -45,10 +45,10 @@ void FEA_dMatrixT::FEA_Dimension (int ips,int rows,int cols)
 	n_rows_x_n_cols = n_rows * n_cols;
 	n_ip_x_n_rows_x_n_cols = n_ip * n_rows * n_cols;
 
-	Block_Memory.Allocate(n_ip*rows*cols); // Dont need to do this way but just keep
+	Block_Memory.Allocate(n_ip*rows*cols); 
   Allocate(n_ip); // Allocate fArray
 	for (int i=0; i<n_ip; i++)
-		fArray[i].Set(rows, cols, Block_Memory.Pointer(i*rows*cols));
+		fArray[i].Set(rows, cols, Block_Memory.Pointer(i*n_rows_x_n_cols));
 
 }		
 
@@ -88,9 +88,22 @@ void FEA_dMatrixT::FEA_UnSet ( void ) { for (int l=0; l<n_ip; l++) fArray[l].Set
 
 //----------------------------------------------------
 
-void FEA_dMatrixT::Print() { Print(" "); } 
+void FEA_dMatrixT::FEA_Delete ( void ) 
+{
+  //Block_Memory.Free();
+	for (int i=0; i<n_ip; i++)
+		(*this)[i].Free();
 
-void FEA_dMatrixT::Print(char *c) { // overload << later
+	Free();
+	n_ip = n_rows = n_cols = n_rows_x_n_cols = n_ip_x_n_rows_x_n_cols = 0;
+}	
+
+//----------------------------------------------------
+
+void FEA_dMatrixT::Print() const { Print(" "); } 
+
+void FEA_dMatrixT::Print(char *c) const
+{ 
 
 	if (fLength==0)
 		cout << "...ERROR >> FEA_dMatrixT::Print() : "<<c<<" Unallocated \n\n";

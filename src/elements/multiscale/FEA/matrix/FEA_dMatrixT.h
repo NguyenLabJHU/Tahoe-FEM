@@ -38,10 +38,10 @@ class FEA_dMatrixT: public ArrayT <dMatrixT>
 		void FEA_Dimension (int ips,int n);
 		void FEA_Dimension (int ips,int rows,int cols);
 		void FEA_Set			 (int rows,int cols,const FEA_dMatrixT &A,int i,int j);
-		void FEA_Free			 (void) { for (int i=0; i<n_ip; i++) (*this)[i].Free(); }
 		void FEA_UnSet		 (void); 
-		void Print  (void);
-		void Print  (char*);
+		void FEA_Delete		 (void);  
+		void Print  (void)  const;
+		void Print  (char*) const;
 		void Random (int seed=1);
 		void Random (double high_val, double low_val=0, int seed=1);
 

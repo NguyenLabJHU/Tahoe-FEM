@@ -9,7 +9,6 @@ void FEA_FormatT::Shapes	(ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA_Shape
 	FEA_Shapes.j = fShapes->IPDets(); 		// IPDets() returns double*
 	FEA_Shapes.W = fShapes->IPWeights(); 	// IPWeights() returns double*
 	
-
 	for	(int l=0; l<fShapes->NumIP(); l++) {
 		fShapes->SetIP(l);
 		fShapes->GradNa		( FEA_Shapes.dNdx[l] 	); 

@@ -18,25 +18,20 @@ VMS_VariableT::VMS_VariableT (const FEA_dMatrixT& GRAD_ua, const FEA_dMatrixT& G
 
 void VMS_VariableT::Construct (const FEA_dMatrixT& GRAD_ua, const FEA_dMatrixT& GRAD_ub) 
 {
-	if (fVars.Length()==0) {
-  	n_vars = VMS::kNUM_VMS_VARS;  
-  	fVars.Dimension( n_vars );  // Allocate ArrayT <FEA_dMatrixT> fVars;
-	}
+  n_vars = VMS::kNUM_VMS_VARS;  
+  fVars.Dimension( n_vars );  
 
-	if (fVars[VMS::kGRAD_ua].Length() != 0)
-		Delete_Vars();
-
-	fVars[VMS::kGRAD_ua] = GRAD_ua; // Recall, equation opr allocates is Length=0
+	fVars[VMS::kGRAD_ua] = GRAD_ua; // This = opr allocates if LHS Length=0
 	fVars[VMS::kGRAD_ub] = GRAD_ub; 
-	fVars[VMS::kGRAD_u].SumOf(GRAD_ua, GRAD_ub);  // Check here, will Sum() allocate ?
+	fVars[VMS::kGRAD_u].SumOf(GRAD_ua, GRAD_ub);  // This SumOf() checks and allocates if LHS Length=0 
 }
 
 //----------------------------------------------------
 
 void VMS_VariableT::Delete_Vars	( void )
 {
-	for (int i=0; i<n_vars; i++)
-		fVars[i].FEA_Free(); // ArrayT will check to see if fLength=0 before deleting
+	for (int i=0; i<n_vars; i++) 
+		fVars[i].FEA_Delete(); // ArrayT checks if fLength=0 before deleting
 }
 
 //----------------------------------------------------
@@ -149,13 +144,14 @@ void VMS_VariableT::Allocate_and_Compute_Variables(VMS::VarT kVariable)
 
 void VMS_VariableT::operator  =  (const VMS_VariableT &a)	// Initializes
 {
-n_vars = a.n_vars;
-fVars.Dimension( n_vars );
+	n_vars = a.n_vars;
+	fVars.Dimension( n_vars );
 
-for (int i=0; i<n_vars; i++) {
-  fVars[i].FEA_Dimension( a.fVars[i].n_ip, a.fVars[i].n_rows, a.fVars[i].n_cols );
-  fVars[i] = a.fVars[i];
-}
+	for (int i=0; i<n_vars; i++) {
+  	fVars[i].FEA_Dimension( a.fVars[i].n_ip, a.fVars[i].n_rows, a.fVars[i].n_cols );
+  	fVars[i] = a.fVars[i];
+	}
+
 };
 
 //---------------------------------------------------------------------
