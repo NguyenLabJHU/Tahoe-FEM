@@ -1,4 +1,4 @@
-/* $Id: LineT.cpp,v 1.8 2004-05-20 14:55:29 paklein Exp $ */
+/* $Id: LineT.cpp,v 1.9 2005-03-02 02:27:14 paklein Exp $ */
 /* created: paklein (04/25/1999) */
 #include "LineT.h"
 
@@ -25,23 +25,29 @@ LineT::LineT(int numnodes): GeometryBaseT(numnodes, kNumVertexNodes) { }
 /* evaluate the shape functions and gradients. */
 void LineT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 {
-  /** Implemented by HSP 7-29-02 - linear case only */
-  //cout << "\n LineT::EvaluateShapeFunctions: not implemented" << endl;
-  //throw ExceptionT::kGeneralFail;
-  /* set shape functions */
-  Na[0] = 0.5*(1.0 - coords[0]);
-  Na[1] = 0.5*(1.0 + coords[0]);
+	/* linear only */
+	if (fNumNodes > 2)
+		ExceptionT::GeneralFail("LineT::EvaluateShapeFunctions", "linear only");
+
+	/* set shape functions */
+	Na[0] = 0.5*(1.0 - coords[0]);
+	Na[1] = 0.5*(1.0 + coords[0]);
 }
 
 /* evaluate the shape functions and gradients. */
 void LineT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa) const
 {
-#pragma unused(coords)
-#pragma unused(Na)
-#pragma unused(DNa)
+	/* linear only */
+	if (fNumNodes > 2)
+		ExceptionT::GeneralFail("LineT::EvaluateShapeFunctions", "linear only");
 
-	cout << "\n LineT::EvaluateShapeFunctions: not implemented" << endl;
-	throw ExceptionT::kGeneralFail;
+	/* set shape functions */
+	Na[0] = 0.5*(1.0 - coords[0]);
+	Na[1] = 0.5*(1.0 + coords[0]);
+
+	/* shape function derivatives */
+	DNa(0,0) = -0.5*coords[0];
+	DNa(0,1) = 0.5*coords[0];
 }
 
 /* compute local shape functions and derivatives */
@@ -54,7 +60,7 @@ void LineT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	int nsd = Na_x[0].MajorDim();
 
 	/* dimension checks */
-	if (nsd != kLinensd) throw ExceptionT::kGeneralFail;
+	if (nsd != kLinensd) ExceptionT::GeneralFail("LineT::SetLocalShape");
 
 	/* initialize */
 	Na = 0.0;
