@@ -1,4 +1,4 @@
-/* $Id: ygentree.c,v 1.1 2004-12-13 00:39:36 paklein Exp $ */
+/* $Id: ygentree.c,v 1.2 2004-12-13 00:45:37 paklein Exp $ */
 /* ygentree.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -52,7 +52,7 @@ static integer c__11 = 11;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: ygentree.c,v 1.1 2004-12-13 00:39:36 paklein Exp $ +/ */
+/* /+ $Id: ygentree.c,v 1.2 2004-12-13 00:45:37 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 /*<    >*/
 /* Subroutine */ int ygentree_(integer *n, integer *aptrs, integer *ainds, 
@@ -122,7 +122,7 @@ static integer c__11 = 11;
      +                    MPI_INTEGER,comm,ierr) */
 /*  mpi_allgatherv__(&parent[*beginleafnode], &sizes[*myid], &c__11, parent, 
 	    sizes, wrkint, &c__11, comm, &ierr); */
-	MPI_Allgatherv(&parent[*beginleafnode], &sizes[*myid], MPI_INT, 
+	MPI_Allgatherv(&parent[*beginleafnode], sizes[*myid], MPI_INT, 
 	               parent, sizes, wrkint, MPI_INT, *comm);
 
 /*     +                    MPI_INTEGER,parent,sizes,wrkint(N), */
