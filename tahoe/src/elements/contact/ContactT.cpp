@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.1.1.1.6.1 2001-10-16 22:20:03 sawimme Exp $ */
 /* created: paklein (12/11/1997)                                          */
 
 #include "ContactT.h"
@@ -12,8 +12,6 @@
 #include "FEManagerT.h"
 #include "NodeManagerT.h"
 #include "iGridManager2DT.h"
-#include "ExodusT.h"
-#include "ModelFileT.h"
 #include "ContinuumElementT.h" // For conversion of side sets to facets.
 // Do directly or add call to FEManagerT?
 
@@ -360,86 +358,32 @@ void ContactT::InputSideSets(ifstreamT& in, ostream& out, iArray2DT& facets)
 		throw eBadInputValue;
 	}
 	
+	/* read data from parameter file */
+	iArrayT indexes;
+	bool multidatabasesets = false; /* change to positive and the parameter file format changes */
+	ModelManagerT* model = fFEManager.ModelManager();
+	model->SideSetList (in, indexes, multidatabasesets);
+
+	if (indexes.Length () != 1) 
+	  {
+	    cout << "\n\nContactT::InputSideSets: Model Manager read more than one side set, not programmed for this.\n\n";
+	    throw eBadInputValue;
+	  }
+
 	/* read side set */
+	iArray2DT temp = model->SideSet (indexes[0]);
 	iArray2DT side_set;
-	int block_ID;
-	int input_format = fFEManager.InputFormat();
-	switch (input_format)
-	{
-		case IOBaseT::kExodusII:
-		{
-			/* ExodusII database info */
-			const StringT& file = fFEManager.ModelFile();
-			ostream& out = fFEManager.Output();
-			ExodusT database(out);
-			if (!database.OpenRead(file))
-			{
-				cout << "\n ContactT::InputSideSets: error opening file: "
-		     		 << file << endl;
-				throw eGeneralFail;
-			}		
+	int elemindex;
+	if (model->IsSideSetLocal(indexes[0]))
+	  {
+	    side_set = temp;
+	    elemindex = model->SideSetGroupIndex (indexes[0]);
+	  }
+	else
+	  model->SideSetGlobalToLocal (elemindex, side_set, temp);
+	temp.Free();
+	int block_ID = elemindex + 1;
 
-			/* read side set info */
-			int set_ID;
-			in >> set_ID;
-			int num_sides = database.NumSidesInSet(set_ID);
-			side_set.Allocate(num_sides, 2);
-			database.ReadSideSet(set_ID, block_ID, side_set);
-
-			/* correct offset */
-			side_set--;
-
-			/* echo dimensions */
-			out << " side set ID: " << set_ID << '\n';
-			out << "  element ID: " << block_ID << '\n';
-			out << "       sides: " << side_set.MajorDim() << '\n';
-			break;
-		}
-		case IOBaseT::kTahoe:
-		{	
-			/* read */
-			int num_facets;
-			in >> block_ID >> num_facets;
-			if (num_facets < 0) throw eBadInputValue;
-			side_set.Allocate(num_facets, 2);
-			in >> side_set;
-			
-			/* correct offset */
-			block_ID--;
-			side_set--;
-			break;
-		}
-		case IOBaseT::kTahoeII:
-		{
-			/* open database */
-			ModelFileT database;
-			if (database.OpenRead(fFEManager.ModelFile()) != ModelFileT::kOK)
-			{
-				cout << "\n ContactT::InputSideSets: error opening file: "
-		     		 << fFEManager.ModelFile() << endl;
-				throw eGeneralFail;
-			}		
-
-			/* read side set info */
-			int set_ID;
-			in >> set_ID;			
-			database.GetSideSet(set_ID, block_ID, side_set);
-			
-			/* correct offset */
-			side_set--;
-
-			/* echo dimensions */
-			out << " side set ID: " << set_ID << '\n';
-			out << "  element ID: " << block_ID << '\n';
-			out << "       sides: " << side_set.MajorDim() << '\n';
-			break;
-		}
-		default:		
-			cout << "\n ContactT::InputSideSets: input format not supported: ";
-			cout << input_format << endl;
-			throw eGeneralFail;
-	}
-	
 	/* numbers from element group */
 	pelem_group->SideSetToFacets(block_ID, side_set, facets);
 }
@@ -534,72 +478,12 @@ void ContactT::StrikersFromSurfaces(void)
 
 void ContactT::ReadStrikers(ifstreamT& in, ostream& out)
 {
-	switch (fFEManager.InputFormat())
-	{
-		case IOBaseT::kTahoe:
-		{
-			ifstreamT tmp;
-			ifstreamT& in2 = fFEManager.OpenExternal(in, tmp, out, true,
-				"ContactT::ReadNodes: could not open file");
+  ModelManagerT* model = fFEManager.ModelManager();
 
-			int num_nodes;
-			in2 >> num_nodes;
-			fStrikerTags.Allocate(num_nodes);
-			in2 >> fStrikerTags;
-			break;
-		}
-		case IOBaseT::kTahoeII:
-		{
-			/* number of node sets */
-			int num_sets;
-			in >> num_sets;
-			out << " Number of node set ID's: " << num_sets << endl;
-			if (num_sets > 0)
-			{
-				/* open database */
-				ModelFileT model_file;
-				model_file.OpenRead(fFEManager.ModelFile());
+  /* read list of node set id indexes */
+  iArrayT indexes;
+  model->NodeSetList (in, indexes);
 
-				/* echo set ID's */
-				iArrayT ID_list(num_sets);
-				in >> ID_list;
-				out << ID_list.wrap(10) << '\n';
-				
-				/* collect */
-				if (model_file.GetNodeSets(ID_list, fStrikerTags) !=
-				    ModelFileT::kOK) throw eBadInputValue;
-			}
-			break;
-		}
-		case IOBaseT::kExodusII:
-		{
-			/* number of node sets */
-			int num_sets;
-			in >> num_sets;
-			out << " Number of node set ID's: " << num_sets << endl;
-			if (num_sets > 0)
-			{
-				/* echo set ID's */
-				iArrayT ID_list(num_sets);
-				in >> ID_list;
-				out << ID_list.wrap(10) << '\n';
-
-				/* open database */
-				ExodusT database(out);
-				database.OpenRead(fFEManager.ModelFile());
-				
-				/* read collect all nodes in sets */
-				database.ReadNodeSets(ID_list, fStrikerTags);
-			}
-			break;
-		}
-		default:
-
-			cout << "\n ContactT::ReadNodes: unsupported input format: ";
-			cout << fFEManager.InputFormat() << endl;
-			throw eGeneralFail;
-	}
-
-	/* correct offset */
-	fStrikerTags--;
+  /* collect nodes from those indexes */
+  model->ManyNodeSets (indexes, fStrikerTags);
 }
