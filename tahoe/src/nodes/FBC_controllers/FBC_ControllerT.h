@@ -1,6 +1,5 @@
-/* $Id: FBC_ControllerT.h,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
-/* created: paklein (11/17/1997)                                          */
-/* Base class for all force BC controllers                                */
+/* $Id: FBC_ControllerT.h,v 1.2 2001-09-11 23:43:48 paklein Exp $ */
+/* created: paklein (11/17/1997) */
 
 #ifndef _FBC_CONTROLLER_T_H_
 #define _FBC_CONTROLLER_T_H_
@@ -19,6 +18,7 @@ template <class TYPE> class RaggedArray2DT;
 class eControllerT;
 class StringT;
 
+/** base class for all force BC controllers */
 class FBC_ControllerT
 {
 public:
@@ -27,7 +27,8 @@ public:
 	enum CodeT {kPenaltyWall = 0,
 	          kPenaltySphere = 1,
                kAugLagSphere = 2,
-            kMFPenaltySphere = 3}; //sphere for meshfree
+            kMFPenaltySphere = 3,
+                 kAugLagWall = 4}; //sphere for meshfree
 
 	/* constructor */
 	FBC_ControllerT(FEManagerT& fe_manager);
