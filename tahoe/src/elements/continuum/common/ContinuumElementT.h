@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.5 2001-07-11 01:02:14 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.6 2001-08-13 23:24:01 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 /* Interface for a general continuum element type, meaning the presence   */
 /* of shape functions, and the implied presence of a continuum mechanics  */
@@ -43,6 +43,9 @@ public:
 	
 	/** the coordinates of the current integration point */
 	void IP_Coords(dArrayT& ip_coords) const;
+
+	/** interpolate the nodal field values to the current integration point */
+    void IP_Interpolate(const LocalArrayT& nodal_u, dArrayT& ip_u) const;
 
 	/** field gradients.
 	 * compute the gradient of the field at the current integration point 
