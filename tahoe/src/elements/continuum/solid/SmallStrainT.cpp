@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.6.2.2 2002-09-22 23:08:57 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.6.2.3 2002-09-23 06:29:51 paklein Exp $ */
 
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
@@ -95,7 +95,7 @@ void SmallStrainT::SetLocalArrays(void)
 	/* using B-bar */
 	if (fStrainDispOpt == kMeanDilBbar) {
 		fLocDispTranspose.Dimension(fLocDisp.Length());
-		fMeanDilatation.Dimension(NumSD(), NumElementNodes());
+		fMeanGradient.Dimension(NumSD(), NumElementNodes());
 	}
 }
 
@@ -113,7 +113,7 @@ void SmallStrainT::FormKd(double constK)
 	{
 		/* strain displacement matrix */
 		if (fStrainDispOpt == kMeanDilBbar)
-			Set_B_bar(fShapes->Derivatives_U(), fMeanDilatation, fB);
+			Set_B_bar(fShapes->Derivatives_U(), fMeanGradient, fB);
 		else
 			Set_B(fShapes->Derivatives_U(), fB);
 
@@ -149,7 +149,7 @@ void SmallStrainT::FormStiffness(double constK)
 	
 		/* strain displacement matrix */
 		if (fStrainDispOpt == kMeanDilBbar)
-			Set_B_bar(fShapes->Derivatives_U(), fMeanDilatation, fB);
+			Set_B_bar(fShapes->Derivatives_U(), fMeanGradient, fB);
 		else
 			Set_B(fShapes->Derivatives_U(), fB);
 
@@ -175,8 +175,8 @@ void SmallStrainT::SetGlobalShape(void)
 	/* using B-bar */
 	if (fStrainDispOpt == kMeanDilBbar)
 	{
-		/* compute mean dilatation */
-		SetMeanDilatation(fMeanDilatation);
+		/* compute mean of shape function gradients */
+		SetMeanGradient(fMeanGradient);
 
 		/* loop over integration points */
 		fShapes->TopIP();
@@ -184,7 +184,7 @@ void SmallStrainT::SetGlobalShape(void)
 		{
 			/* set B-bar */
 			int ip = fShapes->CurrIP();
-			Set_B_bar(fShapes->Derivatives_U(ip), fMeanDilatation, fB);
+			Set_B_bar(fShapes->Derivatives_U(ip), fMeanGradient, fB);
 	
 			/* deformation gradient */
 			if (needs[fNeedsOffset + kstrain])
@@ -243,8 +243,8 @@ void SmallStrainT::SetGlobalShape(void)
  * Private
  ***********************************************************************/
 
-/* compute mean dilatation, Hughes (4.5.23) */
-void SmallStrainT::SetMeanDilatation(dArray2DT& mean_dilatation) const
+/* compute mean shape function gradient, Hughes (4.5.23) */
+void SmallStrainT::SetMeanGradient(dArray2DT& mean_gradient) const
 {
 	int nip = NumIP();
 	const double* det = fShapes->IPDets();
@@ -256,100 +256,9 @@ void SmallStrainT::SetMeanDilatation(dArray2DT& mean_dilatation) const
 		vol += w[i]*det[i];
 
 	/* initialize */
-	mean_dilatation = 0.0;			
+	mean_gradient = 0.0;			
 
 	/* integrate */
 	for (int i = 0; i < nip; i++)
-		mean_dilatation.AddScaled(w[i]*det[i]/vol, fShapes->Derivatives_U(i));
-}
-
-/* set B-bar as given by Hughes (4.5.11-16) */
-void SmallStrainT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_dilatation, 
-	dMatrixT& B)
-{
-#if __option(extended_errorcheck)
-	if (B.Rows() != dSymMatrixT::NumValues(DNa.MajorDim()) ||
-	    B.Cols() != DNa.Length() ||
-	    mean_dilatation.MinorDim() != DNa.MinorDim() ||
-	    mean_dilatation.MajorDim() != DNa.MajorDim())
-	    throw eSizeMismatch;
-#endif
-
-	int nnd = DNa.MinorDim();
-	double* pB = B.Pointer();
-
-	/* 1D */
-	if (DNa.MajorDim() == 1)
-	{
-		cout << "\n SmallStrainT::Set_B_bar: not implemented yet for 1D B-bar" << endl;
-		throw eGeneralFail;
-	}
-	/* 2D */
-	else if (DNa.MajorDim() == 2)
-	{
-		double* pNax = DNa(0);
-		double* pNay = DNa(1);
-			
-		double* pBmx = mean_dilatation(0);
-		double* pBmy = mean_dilatation(1);
-			
-		for (int i = 0; i < nnd; i++)
-		{
-			double factx = ((*pBmx++) - (*pNax))/3.0;
-			double facty = ((*pBmy++) - (*pNay))/3.0;
-			
-			/* Hughes (4.5.11-16) */
-			*pB++ = *pNax + factx;
-			*pB++ = factx;
-			*pB++ = *pNay;
-	
-			*pB++ = facty;
-			*pB++ = *pNay + facty;
-			*pB++ = *pNax;
-				
-			pNax++; pNay++;
-		}
-	}
-	/* 3D */
-	else		
-	{
-		double* pNax = DNa(0);
-		double* pNay = DNa(1);
-		double* pNaz = DNa(2);
-
-		double* pBmx = mean_dilatation(0);
-		double* pBmy = mean_dilatation(1);
-		double* pBmz = mean_dilatation(2);
-			
-		for (int i = 0; i < nnd; i++)
-		{
-			double factx = ((*pBmx++) - (*pNax))/3.0;
-			double facty = ((*pBmy++) - (*pNay))/3.0;
-			double factz = ((*pBmz++) - (*pNaz))/3.0;
-
-			/* Hughes (4.5.11-16) */
-			*pB++ = *pNax + factx;
-			*pB++ = factx;
-			*pB++ = factx;
-			*pB++ = 0.0;
-			*pB++ = *pNaz;
-			*pB++ = *pNay;
-
-			*pB++ = facty;
-			*pB++ = *pNay + facty;
-			*pB++ = facty;
-			*pB++ = *pNaz;
-			*pB++ = 0.0;
-			*pB++ = *pNax;
-	
-			*pB++ = factz;
-			*pB++ = factz;
-			*pB++ = *pNaz + factz;
-			*pB++ = *pNay;
-			*pB++ = *pNax;
-			*pB++ = 0.0;
-				
-			pNax++; pNay++; pNaz++;
-		}
-	}
+		mean_gradient.AddScaled(w[i]*det[i]/vol, fShapes->Derivatives_U(i));
 }
