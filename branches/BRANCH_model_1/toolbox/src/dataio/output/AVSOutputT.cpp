@@ -120,13 +120,18 @@ void AVSOutputT::WriteCoordinates (ostream &avsout, AVST &avs, int index, iArray
 
 void AVSOutputT::WriteConnectivity (ostream &avsout, AVST &avs, int index, iArrayT &nodes_used) const
 {
-  const iArray2DT& connects = fElementSets[index]->Connectivities();
-  iArray2DT localconn (connects.MajorDim(), connects.MinorDim());
-  LocalConnectivity (nodes_used, connects, localconn);
-  localconn++;
-
+  int num_blocks = fElementSets[index]->NumBlocks();
   int firstelemID = 1;
-  avs.WriteCells (avsout, fElementSets[index]->Geometry(), localconn, fElementSets[index]->ID(), firstelemID);
+  for (int i=0; i < num_blocks; i++)
+    {
+      const iArray2DT* connects = fElementSets[index]->Connectivities(i);
+      iArray2DT localconn (connects->MajorDim(), connects->MinorDim());
+      LocalConnectivity (nodes_used, *connects, localconn);
+      localconn++;
+
+      avs.WriteCells (avsout, fElementSets[index]->Geometry(), localconn, fElementSets[index]->ID(), firstelemID);
+      firstelemID += connects->MajorDim();
+    }
 }
 
 void AVSOutputT::WriteVariable (ostream &avsout, AVST &avs, const ArrayT<StringT>& labels, const dArray2DT& values, int num_vars) const

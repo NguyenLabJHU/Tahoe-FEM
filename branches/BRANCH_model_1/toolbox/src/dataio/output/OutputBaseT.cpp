@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.1.1.1.2.1 2001-10-25 19:49:01 sawimme Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "OutputBaseT.h"
@@ -124,7 +124,10 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 		/* element set data */
 		for (int i = 0; i < fElementSets.Length(); i++)
 		{
-			const iArray2DT& connects = fElementSets[i]->Connectivities();
+		  const iArray2DT* c = fElementSets[i]->Connectivities(0);
+		  iArray2DT connects (fElementSets[i]->NumElements(), c->MinorDim());
+		  fElementSets[i]->AllConnectivities (connects);
+
 			iArrayT tmp(connects.Length(), connects.Pointer());
 			tmp++;
 			tahoeII.PutElementSet(i, connects);
@@ -146,7 +149,10 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 		for (int i = 0; i < fElementSets.Length(); i++)
 		{
 			/* write connectivities */
-			const iArray2DT& connects = fElementSets[i]->Connectivities();
+		  const iArray2DT* c = fElementSets[i]->Connectivities(0);
+		  iArray2DT connects (fElementSets[i]->NumElements(), c->MinorDim());
+		  fElementSets[i]->AllConnectivities (connects);
+
 			iArrayT tmp(connects.Length(), connects.Pointer());
 			tmp++;
 			exo.WriteConnectivities(i+1, fElementSets[i]->Geometry(), connects); // ID cannot be 0

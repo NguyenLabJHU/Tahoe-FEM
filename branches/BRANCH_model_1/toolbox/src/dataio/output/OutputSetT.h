@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.5 2001-08-23 01:04:16 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.5.2.1 2001-10-25 19:49:01 sawimme Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -59,7 +59,7 @@ public:
 	 * \param changing flag to indicate whether the connectivities may change
 	 *        from output step to output step. */
 	OutputSetT(int ID, GeometryT::CodeT geometry_code,
-		const iArrayT& block_ID, const iArray2DT& connectivities, 
+		const iArrayT& block_ID, const ArrayT<const iArray2DT*> connectivities, 
 		const ArrayT<StringT>& n_labels, const ArrayT<StringT>& e_labels, 
 		bool changing);
 
@@ -75,8 +75,10 @@ public:
 	int ID(void) const;
 	bool Changing(void) const;
 	GeometryT::CodeT Geometry(void) const;
-	const iArrayT& BlockID(void) const;
-	const iArray2DT& Connectivities(void) const;
+	int NumBlocks (void) const;
+	int BlockID(int index) const;
+	const iArray2DT* Connectivities(int index) const;
+	void AllConnectivities (iArray2DT& connects) const;
 	const ArrayT<StringT>& NodeOutputLabels(void) const;
 	const ArrayT<StringT>& ElementOutputLabels(void) const;
 
@@ -88,6 +90,7 @@ public:
 	int NumNodes(void) const;
 	int NumNodeValues(void) const;
 	int NumElements(void) const;
+	int NumBlockElements (int index) const;
 	int NumElementValues(void) const;
 
 private:
@@ -109,7 +112,7 @@ private:
 
 	/* connectivities */
 	const iArrayT fBlockID;
-	const iArray2DT& fConnectivities;
+	const ArrayT<const iArray2DT*> fConnectivities;
 	
 	/* output labels */
 	ArrayT<StringT> fNodeOutputLabels;
@@ -127,37 +130,20 @@ inline void OutputSetT::IncrementPrintStep(void) { fPrintStep++; }
 inline int OutputSetT::ID(void) const { return fID; }
 inline bool OutputSetT::Changing(void) const { return fChanging; }
 inline GeometryT::CodeT OutputSetT::Geometry(void) const { return fGeometry; }
-inline const iArrayT& OutputSetT::BlockID(void) const { return fBlockID; }
-inline const iArray2DT& OutputSetT::Connectivities(void) const
-{
-	return fConnectivities;
-}
-
+inline int OutputSetT::NumBlocks (void) const { return fBlockID.Length(); }
 inline const iArrayT& OutputSetT::NodesUsed(void)
 {
 	if (fChanging) SetNodesUsed();
 	return fNodesUsed;
 }
 
-inline const ArrayT<StringT>& OutputSetT::NodeOutputLabels(void) const
-{
-	return fNodeOutputLabels;
-}
+inline const ArrayT<StringT>& OutputSetT::NodeOutputLabels(void) const { return fNodeOutputLabels; }
 
-inline const ArrayT<StringT>& OutputSetT::ElementOutputLabels(void) const
-{
-	return fElementOutputLabels;
-}
+inline const ArrayT<StringT>& OutputSetT::ElementOutputLabels(void) const { return fElementOutputLabels; }
 
 /* dimensions */
-inline int OutputSetT::NumNodeValues(void) const
-{
-	return fNodeOutputLabels.Length();
-}
-
-inline int OutputSetT::NumElementValues(void) const
-{
-	return fElementOutputLabels.Length();
-}
+inline int OutputSetT::NumNodes(void) const { return fNodesUsed.Length(); }
+inline int OutputSetT::NumNodeValues(void) const { return fNodeOutputLabels.Length(); }
+inline int OutputSetT::NumElementValues(void) const { return fElementOutputLabels.Length(); }
 
 #endif /* _OUTPUTSET_T_H_ */
