@@ -1,5 +1,5 @@
-/* $Id: main.cpp,v 1.3 2002-07-02 21:24:56 cjkimme Exp $ */
-/* created: paklein (05/22/1996)                                          */
+/* $Id: main.cpp,v 1.4 2002-09-12 20:53:33 paklein Exp $ */
+/* created: paklein (05/22/1996) */
 
 #include <iostream.h>
 #include <fstream.h>
@@ -23,7 +23,7 @@ using namespace Tahoe;
 static void StartUp(int* argc, char*** argv);
 static void ShutDown(void);
 
-void main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 	StartUp(&argc, &argv);
 
@@ -31,6 +31,7 @@ void main(int argc, char* argv[])
 	compare.Run();		
 
 	ShutDown();
+	return 0;
 }
 
 static void StartUp(int* argc, char*** argv)
