@@ -28,7 +28,7 @@ HEXT::HEXT(int nlsd,int nuca,dArrayT alat,
       vBasis(0,0) = 0.0;
       vBasis(1,0) = 0.0;
 
-      vBasis(0,1) = 0.5;
+      vBasis(0,1) =-0.5;
       vBasis(1,1) = 0.5;
 
 
@@ -36,7 +36,7 @@ HEXT::HEXT(int nlsd,int nuca,dArrayT alat,
       vAxis(1,0) = 0.0;
       
       vAxis(0,1) = 0.0;
-      vAxis(1,1) = vLatticeParameters[1];
+      vAxis(1,1) = 0.5*sqrt(3.0)*vLatticeParameters[1];
 
       // Rotate axis if necessary
       if (fabs(angle_rotation) >=1.e-5) 
@@ -52,7 +52,7 @@ HEXT::HEXT(int nlsd,int nuca,dArrayT alat,
       vBasis(1,0) = 0.0;
       vBasis(2,0) = 0.0;
 
-      vBasis(0,1) = 0.5;
+      vBasis(0,1) = -0.5;
       vBasis(1,1) = 0.5;
       vBasis(2,1) = 0.0;
 
@@ -67,7 +67,7 @@ HEXT::HEXT(int nlsd,int nuca,dArrayT alat,
       vAxis(2,0) = 0.0;
 
       vAxis(0,1) = 0.0;
-      vAxis(1,1) = vLatticeParameters[1];
+      vAxis(1,1) = 0.5*sqrt(3.0)*vLatticeParameters[1];
       vAxis(2,1) = 0.0;
 
       vAxis(0,2) = 0.0;
