@@ -1,4 +1,4 @@
-/* $Id: PMLT.cpp,v 1.7 2002-09-12 17:49:52 paklein Exp $ */
+/* $Id: PMLT.cpp,v 1.8 2002-09-23 06:58:24 paklein Exp $ */
 
 #include "PMLT.h"
 
@@ -39,7 +39,7 @@ PMLT::PMLT(const ElementSupportT& support, const FieldT& field):
 		throw eBadInputValue;
 	} 
 #endif
-	if (fStrainDispOpt != ShapeFunctionT::kStandardB ) throw eBadInputValue;
+	if (fStrainDispOpt != kStandardB ) throw eBadInputValue;
 
 //NumDOF() set correctly from the nodes
 //	NumDOF() = NumSD()*NumSD();             
@@ -532,7 +532,7 @@ void PMLT::FormStiffness(double constK)
 		double scale = constK*(*Det++)*(*Weight++);
 	
 		/* strain displacement matrix */
-		fShapes->B(fB);
+		Set_B(fShapes->Derivatives_U() , fB);
 		Ba(fBa,fB);
 		Bb(fBb,fB);
 
@@ -848,7 +848,7 @@ void PMLT::FormKd(double constK)
 	while ( fShapes->NextIP() )
 	{
 		/* get strain-displacement matrix */
-		fShapes->B(fB);
+		Set_B(fShapes->Derivatives_U(), fB);
 		Ba(fBa,fB);
 		Bb(fBb,fB);
 		/* B^T * Cauchy stress */
