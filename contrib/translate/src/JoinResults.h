@@ -1,4 +1,4 @@
-/* $Id: JoinResults.h,v 1.1 2004-05-10 01:28:48 paklein Exp $ */
+/* $Id: JoinResults.h,v 1.2 2004-11-11 03:57:24 paklein Exp $ */
 #ifndef _TRANSLATE_JOIN_H_
 #define _TRANSLATE_JOIN_H_
 
@@ -38,7 +38,7 @@ private:
 	ArrayT<IOBaseT::FileTypeT> fFileTypes;
 
 	/** output ID's */
-	iArrayT fOutputID;
+	int fOutputID;
 };
 
 } /* namespace Tahoe */

@@ -1,4 +1,4 @@
-/* $Id: JoinResults.cpp,v 1.1 2004-05-10 01:28:48 paklein Exp $ */
+/* $Id: JoinResults.cpp,v 1.2 2004-11-11 03:57:24 paklein Exp $ */
 #include "JoinResults.h"
 #include "ExceptionT.h"
 #include "OutputSetT.h"
@@ -53,23 +53,17 @@ void JoinResults::Translate(const StringT& program, const StringT& version, cons
 		for (int j = 0; j < time_steps.Length(); j++) {
 
 			/* steps must be sequential */
-			bool write_step = false;
-			if (i == 0 ||(i > 0 && time_steps[j] > last_time)) {
-				write_step = true;
-				num_written++;
-			}
+			if (i == 0 || (i > 0 && time_steps[j] > last_time)) {
 
-			/* run through groups */
-			for (int k = 0; write_step && k < ids.Length(); k++) {
-			
-			    /* read node values */
-				input->ReadNodeVariables(j, ids[k], n_values);
+			    /* read node values (across all blocks) */
+				input->ReadAllNodeVariables(j, n_values);
 
-			    /* read element values */
-			    input->ReadElementVariables(j, ids[k], e_values);
-		
+			    /* read element values (across all blocks) */
+				input->ReadAllElementVariables(j, e_values);
+
 				/* concat to output */
-				fOutput->WriteOutput(time_steps[j], fOutputID[k], n_values, e_values);
+				fOutput->WriteOutput(time_steps[j], fOutputID, n_values, e_values);
+				num_written++;				
 			}
 		}
 		
@@ -128,33 +122,25 @@ void JoinResults::InitOutputSets(void)
 	if (fSources.Length() < 1) ExceptionT::GeneralFail(caller);
 	if (!fOutput) ExceptionT::GeneralFail(caller);
 
-	/* use first source to define output sets */
+	/* use first source to define output set */
 	InputBaseT* input = IOBaseT::NewInput(fFileTypes[0], cout);
 	input->Open(fSources[0]);
-
-	/* generate one output set per block ID */
-	const ArrayT<StringT>& ids = fModel.ElementGroupIDs();
-	fOutputID.Dimension(ids.Length());
-	for (int i = 0; i < ids.Length(); i++)
-	{
-		/* construct new output set */
-		ArrayT<StringT> block_ID(1);
-		block_ID[0] = ids[i];
-		ArrayT<const iArray2DT*> connectivities(1);
-		connectivities[0] = fModel.ElementGroupPointer(ids[i]);
-  		ArrayT<StringT> n_labels(fModel.NumNodeVariables());
-		ArrayT<StringT> e_labels(fModel.NumElementVariables());
-		fModel.NodeLabels(n_labels);
-		fModel.ElementLabels(e_labels);
-		
-		/* define output */
-		OutputSetT output_set(fModel.ElementGroupGeometry(ids[i]), block_ID, connectivities, 
-			n_labels, e_labels, false);
-
-		/* register output */
-		fOutputID[i] = fOutput->AddElementSet(output_set);
-	}
 	
+	/* construct new output set */
+	const ArrayT<StringT>& ids = fModel.ElementGroupIDs();
+	ArrayT<const iArray2DT*> connectivities;
+	fModel.ElementGroupPointers(ids, connectivities);
+	ArrayT<StringT> n_labels, e_labels;
+	fModel.NodeLabels(n_labels);
+	fModel.ElementLabels(e_labels);
+	
+	/* define output */
+	OutputSetT output_set(fModel.ElementGroupGeometry(ids[0]), ids, connectivities, 
+		n_labels, e_labels, false);
+
+	/* register output */
+	fOutputID = fOutput->AddElementSet(output_set);
+
 	/* clean up */
 	delete input;
 }
