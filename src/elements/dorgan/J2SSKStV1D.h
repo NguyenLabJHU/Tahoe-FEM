@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV1D.h,v 1.9 2004-07-20 23:16:50 rdorgan Exp $ */
+/* $Id: J2SSKStV1D.h,v 1.10 2004-07-22 21:10:23 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_1D_H_
 #define _J2_SS_KSTV_1D_H_
@@ -21,9 +21,6 @@ public:
 
 	/** constructor */
 	J2SSKStV1D(void);
-
-	/* initialization */
-	virtual void Initialize(void);
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
@@ -58,6 +55,10 @@ public:
 	/*@{*/
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& name) const;

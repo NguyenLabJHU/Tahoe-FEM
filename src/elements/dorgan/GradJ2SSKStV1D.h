@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSKStV1D.h,v 1.2 2004-07-21 21:23:45 rdorgan Exp $ */
+/* $Id: GradJ2SSKStV1D.h,v 1.3 2004-07-22 21:10:23 paklein Exp $ */
 #ifndef _GRAD_J2_SS_KSTV_1D_H_
 #define _GRAD_J2_SS_KSTV_1D_H_
 
@@ -92,6 +92,10 @@ public:
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
+	/** return the description of the given inline subordinate parameter list */
+	void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
+	
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 

@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV1D.cpp,v 1.10 2004-07-20 23:16:50 rdorgan Exp $ */
+/* $Id: J2SSKStV1D.cpp,v 1.11 2004-07-22 21:10:23 paklein Exp $ */
 #include "J2SSKStV1D.h"
 #include "SSMatSupportT.h"
 #include "ElementCardT.h"
@@ -26,13 +26,6 @@ J2SSKStV1D::J2SSKStV1D(void):
 	fStress_3D(3)
 {
 
-}
-
-/* initialization */
-void J2SSKStV1D::Initialize(void)
-{
-	/* inherited */
-	HookeanMatT::Initialize();
 }
 
 /* update internal variables */
@@ -138,6 +131,7 @@ void J2SSKStV1D::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	SSSolidMatT::DefineSubs(sub_list);
 	IsotropicT::DefineSubs(sub_list);
+	HookeanMatT::DefineSubs(sub_list);
 	J2SSC0Hardening1DT::DefineSubs(sub_list);
 }
 
@@ -152,6 +146,9 @@ ParameterInterfaceT* J2SSKStV1D::NewSub(const StringT& name) const
 
 	sub = IsotropicT::NewSub(name);
 	if (sub) return sub;
+
+	sub = HookeanMatT::NewSub(name);
+	if (sub) return sub;
 	
 	return J2SSC0Hardening1DT::NewSub(name);
 }
@@ -162,10 +159,23 @@ void J2SSKStV1D::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	SSSolidMatT::TakeParameterList(list);
 	IsotropicT::TakeParameterList(list);
+	HookeanMatT::TakeParameterList(list);
 	J2SSC0Hardening1DT::TakeParameterList(list);
-	
-	/* initialize modulus */
-	HookeanMatT::Initialize();
+}
+
+/* return the description of the given inline subordinate parameter list */
+void J2SSKStV1D::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
+{
+	/* inherited */
+	if (sub_lists.Length() == 0)
+		SSSolidMatT::DefineInlineSub(name, order, sub_lists);
+	if (sub_lists.Length() == 0)
+		IsotropicT::DefineInlineSub(name, order, sub_lists);
+	if (sub_lists.Length() == 0)
+		HookeanMatT::DefineInlineSub(name, order, sub_lists);
+	if (sub_lists.Length() == 0)
+		J2SSC0Hardening1DT::DefineInlineSub(name, order, sub_lists);
 }
 
 /*************************************************************************

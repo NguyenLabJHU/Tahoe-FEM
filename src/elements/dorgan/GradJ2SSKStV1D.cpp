@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSKStV1D.cpp,v 1.2 2004-07-21 21:23:45 rdorgan Exp $ */
+/* $Id: GradJ2SSKStV1D.cpp,v 1.3 2004-07-22 21:10:23 paklein Exp $ */
 #include "GradJ2SSKStV1D.h"
 #include "GradSSMatSupportT.h"
 #include "ElementCardT.h"
@@ -212,6 +212,7 @@ void GradJ2SSKStV1D::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	IsotropicT::DefineParameters(list);
+	HookeanMatT::DefineParameters(list);
 	GradJ2SSC0Hardening1DT::DefineParameters(list);
 
 	ParameterT isotropic_hardening_length_scale(fc_r, "isotropic_hardening_length_scale");
@@ -230,7 +231,21 @@ void GradJ2SSKStV1D::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
 	IsotropicT::DefineSubs(sub_list);
+	HookeanMatT::DefineSubs(sub_list);
 	GradJ2SSC0Hardening1DT::DefineSubs(sub_list);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void GradJ2SSKStV1D::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
+{
+	/* inherited */
+	if (sub_lists.Length() == 0)
+		IsotropicT::DefineInlineSub(name, order, sub_lists);
+	if (sub_lists.Length() == 0)
+		HookeanMatT::DefineInlineSub(name, order, sub_lists);
+	if (sub_lists.Length() == 0)
+		GradJ2SSC0Hardening1DT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -239,6 +254,9 @@ ParameterInterfaceT* GradJ2SSKStV1D::NewSub(const StringT& name) const
 	ParameterInterfaceT* sub = NULL;
 
 	sub = IsotropicT::NewSub(name);
+	if (sub) return sub;
+
+	sub = HookeanMatT::NewSub(name);
 	if (sub) return sub;
 	
 	return GradJ2SSC0Hardening1DT::NewSub(name);
@@ -249,11 +267,9 @@ void GradJ2SSKStV1D::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	IsotropicT::TakeParameterList(list);
+	HookeanMatT::TakeParameterList(list);
 	GradJ2SSC0Hardening1DT::TakeParameterList(list);
 	
-	/* initialize modulus */
-	HookeanMatT::Initialize();
-
 	/* length scale in nonlocal measure of isotropic hardening */
 	fc_r = list.GetParameter("isotropic_hardening_length_scale");
 	

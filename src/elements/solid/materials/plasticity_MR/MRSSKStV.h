@@ -3,8 +3,7 @@
 #define _MR_SS_KSTV_H_
 
 /* base classes */
-#include "SSSolidMatT.h"
-#include "IsotropicT.h"
+#include "SSIsotropicMatT.h"
 #include "HookeanMatT.h"
 
 namespace Tahoe {
@@ -12,9 +11,7 @@ namespace Tahoe {
 /* forward declarations */
 class MRSSNLHardT;
 
-class MRSSKStV: public SSSolidMatT,
-				public IsotropicT,
-				public HookeanMatT
+class MRSSKStV: public SSIsotropicMatT, public HookeanMatT
 {
   public:
 

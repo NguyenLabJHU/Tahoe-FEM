@@ -157,16 +157,16 @@ void MRSSKStV::ComputeOutput(dArrayT& output)
 void MRSSKStV::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	SSSolidMatT::DefineParameters(list);
-	IsotropicT::DefineParameters(list);
+	SSIsotropicMatT::DefineParameters(list);
+	HookeanMatT::DefineParameters(list);
 }
 
 /* information about subordinate parameter lists */
 void MRSSKStV::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	IsotropicT::DefineSubs(sub_list);
-	SSSolidMatT::DefineSubs(sub_list);
+	SSIsotropicMatT::DefineSubs(sub_list);
+	HookeanMatT::DefineSubs(sub_list);
 	
 	/* parameters for pressure sensitive plasticity with localization */
 	sub_list.AddSub("MR_SS_nonlinear_hardening");
@@ -180,11 +180,11 @@ ParameterInterfaceT* MRSSKStV::NewSub(const StringT& name) const
 	else
 	{
 		/* inherited */
-		ParameterInterfaceT* params = SSSolidMatT::NewSub(name);
+		ParameterInterfaceT* params = SSIsotropicMatT::NewSub(name);
 		if (params) 
 			return params;
 		else
-			return IsotropicT::NewSub(name);
+			return HookeanMatT::NewSub(name);
 	}
 }
 
@@ -192,22 +192,18 @@ ParameterInterfaceT* MRSSKStV::NewSub(const StringT& name) const
 void MRSSKStV::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	IsotropicT::TakeParameterList(list);
-	SSSolidMatT::TakeParameterList(list);
+	SSIsotropicMatT::TakeParameterList(list);
+	HookeanMatT::TakeParameterList(list);
 	
 	fStress.Dimension(3);
 	fModulus.Dimension(dSymMatrixT::NumValues(3));
 	fModulusCe.Dimension(dSymMatrixT::NumValues(3));
 	fModulusPerfPlas.Dimension(dSymMatrixT::NumValues(3));
 
-	/* set modulus */
-	HookeanMatT::Initialize();
-
 	/* construct MR solver */
 	fMR = new MRSSNLHardT(NumIP(), Mu(), Lambda());
 	fMR->TakeParameterList(list.GetList("MR_SS_nonlinear_hardening"));
 }
-
 
 /*************************************************************************
 * Protected
