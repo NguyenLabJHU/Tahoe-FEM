@@ -1,4 +1,4 @@
-/* $Id: Contact3DT_K.cpp,v 1.1 2003-03-02 18:53:50 paklein Exp $ */
+/* $Id: Contact3DT_K.cpp,v 1.2 2003-03-02 19:35:07 paklein Exp $ */
 #include "Contact3DT.h"
 
 void Contact3DT::DDg_tri_facet(
@@ -1134,3 +1134,4 @@ void Contact3DT::DDg_tri_facet(
 	K(10,11) = 0;
 	K(11,11) = 0;
 }
+
