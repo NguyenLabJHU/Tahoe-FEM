@@ -17,6 +17,8 @@
 #include "GradSSMatSupportT.h"
 #include "ParameterContainerT.h"
 #include "ModelManagerT.h"
+#include "NodeManagerT.h"
+#include "KBC_ControllerT.h"
 
 #include "FieldT.h"
 #include "FieldSupportT.h"
@@ -78,7 +80,7 @@ GradSmallStrainT::~GradSmallStrainT(void)
 	
 #if 1
 	for (int i = 0; i < fFixedPMultiplier.Length(); i++)
-		delete fFixedPMultiplier;
+		delete fFixedPMultiplier[i];
 #endif
 }
 
@@ -429,7 +431,7 @@ void GradSmallStrainT::DefineElements(const ArrayT<StringT>& block_ID, const Arr
 
 #if 1
 			/* prescribe fixed multiplier field at center node */
-			FieldT* non_constPMultiplier = const_cast<FieldT*>fPMultiplier;
+			FieldT* non_constPMultiplier = const_cast<FieldT*>(fPMultiplier);
 
 			/* construct new contoller */
 			fFixedPMultiplier[i] = ElementSupport().NodeManager().NewKBC_Controller(*non_constPMultiplier, KBC_ControllerT::kPrescribed);
