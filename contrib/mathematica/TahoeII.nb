@@ -40,9 +40,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[     10277,        264]*)
-(*NotebookOutlinePosition[     10941,        287]*)
-(*  CellTagsIndexPosition[     10897,        283]*)
+(*NotebookOptionsPosition[      9818,        254]*)
+(*NotebookOutlinePosition[     10483,        277]*)
+(*  CellTagsIndexPosition[     10439,        273]*)
 (*WindowFrame->Normal*)
 
 
@@ -50,7 +50,7 @@ NotebookFileLineBreakTest*)
 Notebook[{
 
 Cell[CellGroupData[{
-Cell["$Id: TahoeII.nb,v 1.2 2002-04-17 01:16:10 paklein Exp $", "Subsection"],
+Cell["$Id: TahoeII.nb,v 1.3 2004-05-07 22:59:59 paklein Exp $", "Subsection"],
 
 Cell["\<\
 This notebook contains functions to read data from a TahoeII \
@@ -192,29 +192,26 @@ $Failed)\)\), \[IndentingNewLine]str\  = \
               fp]\[IndentingNewLine]]; \[IndentingNewLine]labels\
 \[IndentingNewLine]];\)\)], "Input"],
 
-Cell["Return the simulation times for the output data.", "Text"],
+Cell["Return the simulation time for the output data.", "Text"],
 
 Cell[BoxData[
-    \(\(OutputTimes[filename_String]\  := \ 
+    \(\(OutputTime[filename_String]\  := \ 
         Module[\[IndentingNewLine]{fp, \ str, \ 
-            tlist}, \[IndentingNewLine]tlist\  = \ {}; \[IndentingNewLine]fp\ \
- = \ OpenRead[
+            tlist}, \[IndentingNewLine]t\  = \ {}; \[IndentingNewLine]fp\  = \
+\ OpenRead[
               filename]; \[IndentingNewLine]If[\(! \((fp\  === \ \
-$Failed)\)\), \[IndentingNewLine]FindString[
-              fp, \ "\<O U T P U T   D A T A\>"]; \[IndentingNewLine]str\  = \
-\ FindString[fp, \ "\<Time\>"]; \[IndentingNewLine]While[\(! \((str\  === \ 
-                    EndOfFile)\)\), \[IndentingNewLine]tlist\  = \ 
-                Append[tlist, \ 
-                  GetNumber[str, "\<=\>"]]; \[IndentingNewLine]str = 
-                FindString[
-                  fp, \ "\<Time\>"]\[IndentingNewLine]]; \
-\[IndentingNewLine]Close[
-              fp]\[IndentingNewLine]]; \[IndentingNewLine]tlist\
-\[IndentingNewLine]];\)\)], "Input"],
+$Failed)\)\), \[IndentingNewLine]str\  = \ 
+              FindString[
+                fp, \ "\<Time\>"]; \[IndentingNewLine]If[\(! \((str\  === \ 
+                    EndOfFile)\)\), \[IndentingNewLine]t\  = \ 
+                GetNumber[
+                  str, "\<=\>"]\[IndentingNewLine]]; \[IndentingNewLine]Close[
+              fp]\[IndentingNewLine]]; \
+\[IndentingNewLine]t\[IndentingNewLine]];\)\)], "Input"],
 
 Cell["\<\
-Read all nodal values. Each line of data includes the node \
-number.\
+Read the nodal values from the data for a given output step. Each \
+line of data includes the node number.\
 \>", "Text"],
 
 Cell[BoxData[
@@ -224,49 +221,42 @@ Cell[BoxData[
 \[IndentingNewLine]fp\  = \ 
             OpenRead[
               filename]; \[IndentingNewLine]If[\(! \((fp\  === \ \
-$Failed)\)\), \[IndentingNewLine]FindString[
-              fp, \ "\<O U T P U T   D A T A\>"]; \[IndentingNewLine]str\  = \
-\ FindString[fp, \ "\<Time\>"]; \[IndentingNewLine]While[\(! \((str\  === \ 
+$Failed)\)\), \[IndentingNewLine]str\  = \ 
+              FindString[
+                fp, \ "\<Time\>"]; \[IndentingNewLine]If[\(! \((str\  === \ 
                     EndOfFile)\)\), \[IndentingNewLine]nvalues = 
-                Append[nvalues, \ 
-                  ReadNodalDataBlock[fp]]; \[IndentingNewLine]str = 
-                FindString[
-                  fp, \ "\<Time\>"]\[IndentingNewLine]]; \
-\[IndentingNewLine]Close[
+                ReadNodalDataBlock[
+                  fp]\[IndentingNewLine]]; \[IndentingNewLine]Close[
               fp]\[IndentingNewLine]]; \[IndentingNewLine]nvalues\
 \[IndentingNewLine]];\)\)], "Input"],
 
 Cell["\<\
-Read all element values. Each line of data includes the element \
-number.\
+Read element values from the data for a given output step. Each \
+line of data includes the element number.\
 \>", "Text"],
 
 Cell[BoxData[
     \(\(ElementValues[filename_String]\  := \ 
-        Module[\[IndentingNewLine]{fp, \ str, \ 
-            nvalues}, \[IndentingNewLine]nvalues\  = \ {}; \
-\[IndentingNewLine]fp\  = \ 
+        Module[\[IndentingNewLine]{fp, \ str, 
+            nvalues}, \[IndentingNewLine]fp\  = \ 
             OpenRead[
-              filename]; \[IndentingNewLine]If[\(! \((fp\  === \ \
-$Failed)\)\), \[IndentingNewLine]FindString[
-              fp, \ "\<O U T P U T   D A T A\>"]; \[IndentingNewLine]str\  = \
-\ FindString[fp, \ "\<Time\>"]; \[IndentingNewLine]While[\(! \((str\  === \ 
+              filename]; \[IndentingNewLine]nvalues = {}; \
+\[IndentingNewLine]If[\(! \((fp\  === \ $Failed)\)\), \[IndentingNewLine]str\ \
+ = \ FindString[
+                fp, \ "\<Time\>"]; \[IndentingNewLine]If[\(! \((str\  === \ 
                     EndOfFile)\)\), \[IndentingNewLine]nvalues = 
-                Append[nvalues, \ 
-                  ReadElementDataBlock[fp]]; \[IndentingNewLine]str = 
-                FindString[
-                  fp, \ "\<Time\>"]\[IndentingNewLine]]; \
-\[IndentingNewLine]Close[
+                ReadElementDataBlock[
+                  fp]\[IndentingNewLine]]; \[IndentingNewLine]Close[
               fp]\[IndentingNewLine]]; \[IndentingNewLine]nvalues\
 \[IndentingNewLine]];\)\)], "Input"]
 }, Closed]]
 }, Open  ]]
 },
 FrontEndVersion->"4.1 for Macintosh",
-ScreenRectangle->{{0, 1152}, {0, 848}},
+ScreenRectangle->{{0, 1280}, {0, 832}},
 AutoGeneratedPackage->None,
 WindowSize->{687, 712},
-WindowMargins->{{23, Automatic}, {Automatic, 0}}
+WindowMargins->{{Automatic, 281}, {Automatic, 0}}
 ]
 
 (*******************************************************************
@@ -298,9 +288,9 @@ Cell[2182, 69, 379, 7, 123, "Input"],
 Cell[2564, 78, 75, 0, 30, "Text"],
 Cell[2642, 80, 514, 10, 107, "Input"],
 Cell[3159, 92, 121, 3, 30, "Text"],
-Cell[3283, 97, 915, 19, 219, "Input"],
+Cell[3283, 97, 915, 19, 203, "Input"],
 Cell[4201, 118, 123, 3, 30, "Text"],
-Cell[4327, 123, 915, 19, 219, "Input"]
+Cell[4327, 123, 915, 19, 203, "Input"]
 }, Closed]],
 
 Cell[CellGroupData[{
@@ -309,12 +299,12 @@ Cell[5322, 149, 60, 0, 30, "Text"],
 Cell[5385, 151, 967, 19, 283, "Input"],
 Cell[6355, 172, 62, 0, 30, "Text"],
 Cell[6420, 174, 951, 18, 283, "Input"],
-Cell[7374, 194, 64, 0, 30, "Text"],
-Cell[7441, 196, 856, 16, 251, "Input"],
-Cell[8300, 214, 92, 3, 30, "Text"],
-Cell[8395, 219, 873, 17, 251, "Input"],
-Cell[9271, 238, 97, 3, 30, "Text"],
-Cell[9371, 243, 878, 17, 251, "Input"]
+Cell[7374, 194, 63, 0, 30, "Text"],
+Cell[7440, 196, 679, 13, 219, "Input"],
+Cell[8122, 211, 130, 3, 30, "Text"],
+Cell[8255, 216, 707, 14, 219, "Input"],
+Cell[8965, 232, 131, 3, 30, "Text"],
+Cell[9099, 237, 691, 13, 219, "Input"]
 }, Closed]]
 }, Open  ]]
 }
