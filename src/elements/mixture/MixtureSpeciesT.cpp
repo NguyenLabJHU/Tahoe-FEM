@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.4 2004-11-10 02:00:13 paklein Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.5 2005-01-03 21:55:34 paklein Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
@@ -64,6 +64,9 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 	/* dimension */
 	fFluxVelocity.Dimension(NumElements(), NumIP()*NumSD());
 	fMassFlux.Dimension(NumElements(), NumIP()*NumSD());	
+
+	fFluxVelocity_tmp.Dimension(NumElements(), NumIP()*NumSD());
+	fDMassFlux.Dimension(NumElements(), NumIP()*NumSD());	
 }
 
 /***********************************************************************
@@ -80,6 +83,41 @@ void MixtureSpeciesT::RHSDriver(void)
 	NLDiffusionElementT::RHSDriver();
 }
 
+/* form group contribution to the stiffness matrix */
+void MixtureSpeciesT::LHSDriver(GlobalT::SystemTypeT sys_type)
+{
+#pragma unused(sys_type)
+
+	/* store values from the last call to MixtureSpeciesT::RHSDriver */
+	fFluxVelocity_tmp = fFluxVelocity;
+	fDMassFlux = fMassFlux;
+
+	/* perturb the concentration field */
+	double conc_perturb = 1.0e-08;
+	const dArray2DT& conc_const = (Field())[0];
+	dArray2DT& conc = const_cast<dArray2DT&>(conc_const);
+	conc += conc_perturb;
+
+	/* compute the perturbed flux velocities */
+	ComputeMassFlux();
+
+	/* restore field */
+	conc -= conc_perturb;
+	fFluxVelocity = fFluxVelocity_tmp;
+
+	/* compute finite difference (and restore mass flux) */
+	int len = fMassFlux.Length();
+	double*  m = fMassFlux.Pointer();
+	double* Dm = fDMassFlux.Pointer();
+	conc_perturb = 1.0/conc_perturb;
+	for (int i = 0; i < len; i++) {
+		double m0 = *Dm;
+		*Dm = conc_perturb*((*m) - (*Dm));
+		*m = m0;
+		m++; Dm++;
+	}
+}
+
 /* calculate the internal force contribution ("-k*d") */
 void MixtureSpeciesT::FormKd(double constK)
 {
@@ -88,16 +126,28 @@ void MixtureSpeciesT::FormKd(double constK)
  * (2) divergence of flux
  */
 
+	/* dimensions */
+	int nsd = NumSD();
+	int nip = NumIP();
+
 	/* integration parameters */
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
+
+	/* mass flux */
+	dArray2DT M_e(nip, nsd, fMassFlux(CurrElementNumber()));
+	dArrayT M;
 	
-	int nsd = NumSD();
 	dMatrixT grad;
 	dArrayT field;
 	fShapes->TopIP();
 	while (fShapes->NextIP())
 	{
+		int ip = fShapes->CurrIP();
+	
+		/* retrieve the mass flux */
+		M_e.RowAlias(ip, M);
+	
 		/* set field gradient */
 		grad.Set(1, nsd, fGradient_list[CurrIP()].Pointer());
 		IP_ComputeGradient(fLocDisp, grad);
@@ -109,12 +159,68 @@ void MixtureSpeciesT::FormKd(double constK)
 		/* get strain-displacement matrix */
 		B(fShapes->CurrIP(), fB);
 
-		/* compute heat flow */
-//		fB.MultTx(fCurrMaterial->q_i(), fNEEvec);
+		/* (div) flux contribution */
+		fB.MultTx(M, fNEEvec);
 
 		/* accumulate */
 		fRHS.AddScaled(-constK*(*Weight++)*(*Det++), fNEEvec);
 	}	
+}
+
+/* form the element stiffness matrix */
+void MixtureSpeciesT::FormStiffness(double constK)
+{
+	/* must be nonsymmetric */
+	if (fLHS.Format() != ElementMatrixT::kNonSymmetric)
+		ExceptionT::GeneralFail("MixtureSpeciesT::FormStiffness",
+			"LHS matrix must be nonsymmetric");
+
+	/* integration parameters */
+	const double* Det    = fShapes->IPDets();
+	const double* Weight = fShapes->IPWeights();
+
+	/* dimensions */
+	int nsd = NumSD();
+	int nip = NumIP();
+	int nen = NumElementNodes();	
+
+	/* (linearization) mass flux */
+	dArray2DT DM_e(nip, nsd, fDMassFlux(CurrElementNumber()));
+	dArrayT DM;
+	
+	/* integrate element stiffness */
+	dMatrixT grad;
+	dArrayT field;
+	dArrayT Na;
+	fShapes->TopIP();
+	dArrayT dfield(1);
+	while (fShapes->NextIP())
+	{
+		int ip = fShapes->CurrIP();
+		
+		/* retrieve the mass flux derivative */
+		DM_e.RowAlias(ip, DM);
+	
+		double scale = constK*(*Det++)*(*Weight++);
+
+		/* set field gradient */
+		grad.Set(1, nsd, fGradient_list[CurrIP()].Pointer());
+		IP_ComputeGradient(fLocDisp, grad);
+		
+		/* interpolate field */
+		field.Set(1, fField_list.Pointer(CurrIP()));
+		IP_Interpolate(fLocDisp, field);
+
+		/* shape function array */
+		Na.Set(nen, (double*) fShapes->IPShapeU());
+
+		/* strain displacement matrix */
+		B(fShapes->CurrIP(), fB);
+	
+		/* (divergence) mass flux contribution */
+		fB.MultTx(DM, fNEEvec);
+		fLHS.Outer(fNEEvec, Na, -scale, dMatrixT::kAccumulate);
+	}
 }
 
 /* compute the flux velocities */
