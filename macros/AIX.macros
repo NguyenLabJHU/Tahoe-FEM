@@ -1,4 +1,4 @@
-# $Id: AIX.macros,v 1.6 2003-02-08 17:33:13 paklein Exp $
+# $Id: AIX.macros,v 1.7 2003-03-15 16:54:30 paklein Exp $
 # DEC
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -20,7 +20,7 @@ MORE_CFLAGS = -O -DNDEBUG -qsuppress=1500-036
 DEFINES     = -D__AIX__ 
 LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -qmaxmem=10000
 CFLAGS_C    = $(LOC_CFLAGS)
-CFLAGS_CC   = $(LOC_CFLAGS) -qrtti -qsuppress=1540-0080
+CFLAGS_CC   = $(LOC_CFLAGS) -qrtti -qsuppress=1540-0080 -qsuppress=1540-1401
 CFLAGS_F    = $(LOC_CFLAGS)
 F2C_LFLAG   =
 LINK        = $(COMP_CC)
@@ -34,6 +34,7 @@ LN          = ln -sf
 ECHO        = echo
 CAT         = cat
 PERL        = perl -w
+PRINTF      = printf
 
 # command needed build library
 #BUILD_LIBRARY = BUILD_LIBRARY_RANLIB

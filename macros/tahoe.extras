@@ -1,65 +1,63 @@
-# $Id: tahoe.extras,v 1.9 2003-03-11 19:01:10 paklein Exp $
+# $Id: tahoe.extras,v 1.10 2003-03-15 16:54:31 paklein Exp $
 #
 # additional make commands for the tahoe module
 #
 
 default:
 	@ $(MAKE) help
-	@ $(ECHO) " "
-	@ $(ECHO) " additional targets for configuration:"
-	@ $(ECHO) "   update_config - update config files in src/config"
-	@ $(ECHO) "    clean_config - remove config files in src/config"
-	@ $(ECHO) " "
-	@ $(ECHO) " additional targets for (un-)installing optional modules:"
-	@ $(ECHO) "   touch_spooles - sparse, direct solver library"
-	@ $(ECHO) "     touch_Aztec - sparse, iterative solver library"
-	@ $(ECHO) "       touch_f2c - f2c support"
-	@ $(ECHO) "    touch_SEACAS - Sandia tools"
-	@ $(ECHO) "       touch_MPI - support for parallel execution"
-	@ $(ECHO) "     touch_METIS - domain decomposition using METIS"
-	@ $(ECHO) "       touch_NOX - NOX nonlinear solver library"
-	@ $(ECHO) "    touch_fossum - geomaterial development module"
+	@ $(PRINTF) "\n additional targets for configuration:\n"
+	@ $(PRINTF) "   update_config - update config files in src/config\n"
+	@ $(PRINTF) "    clean_config - remove config files in src/config\n"
+	@ $(PRINTF) "\n additional targets for (un-)installing optional modules:\n"
+	@ $(PRINTF) "   touch_spooles - sparse, direct solver library\n"
+	@ $(PRINTF) "     touch_Aztec - sparse, iterative solver library\n"
+	@ $(PRINTF) "       touch_f2c - f2c support\n"
+	@ $(PRINTF) "    touch_SEACAS - Sandia tools\n"
+	@ $(PRINTF) "       touch_MPI - support for parallel execution\n"
+	@ $(PRINTF) "     touch_METIS - domain decomposition using METIS\n"
+	@ $(PRINTF) "       touch_NOX - NOX nonlinear solver library\n"
+	@ $(PRINTF) "    touch_fossum - geomaterial development module\n"
 
 touch_spooles:
-	@ $(ECHO) "removing object files depending on SPOOLES"
+	@ $(PRINTF) "removing object files depending on SPOOLES\n"
 	-@ $(RM) $(SRC_DIR)/solvers/SolverT.o
 	-@ $(RM) $(SRC_DIR)/solvers/NLSolver.o
 	-@ $(RM) $(SRC_DIR)/primitives/globalmatrix/SPOOLES/*.o
 
 touch_Aztec:
-	@ $(ECHO) "removing object files depending on Aztec"
+	@ $(PRINTF) "removing object files depending on Aztec\n"
 	-@ $(RM) $(SRC_DIR)/solvers/SolverT.o
 	-@ $(RM) $(SRC_DIR)/solvers/NLSolver.o
 	-@ $(RM) $(SRC_DIR)/primitives/globalmatrix/aztec/*.o
 
 touch_f2c:
-	@ $(ECHO) "removing object files depending on f2c"
+	@ $(PRINTF) "removing object files depending on f2c\n"
 	-@ $(RM) $(SRC_DIR)/elements/continuum/solid/materials/managers/*.o
 	-@ $(RM) $(SRC_DIR)/elements/continuum/solid/materials/ABAQUS_UMAT/*.o
 	-@ $(RM) $(SRC_DIR)/elements/continuum/solid/materials/ABAQUS_VUMAT/*.o
 
 touch_SEACAS:
-	@ $(ECHO) "removing object files depending on SEACAS"
+	@ $(PRINTF) "removing object files depending on SEACAS\n"
 	-@ $(RM) $(SRC_DIR)/main/IO*.o
-	@ $(ECHO) "NOTE: toolbox must also be up to date"
+	@ $(PRINTF) "NOTE: toolbox must also be up to date\n"
 
 touch_MPI:
-	@ $(ECHO) "removing object files depending on MPI"
+	@ $(PRINTF) "removing object files depending on MPI\n"
 	-@ $(RM) $(SRC_DIR)/main/*.o
 	-@ $(MAKE) touch_spooles touch_Aztec
-	@ $(ECHO) "NOTE: toolbox must also be up to date"
+	@ $(PRINTF) "NOTE: toolbox must also be up to date\n"
 	
 touch_METIS:
-	@ $(ECHO) "removing object files depending on METIS"
+	@ $(PRINTF) "removing object files depending on METIS\n"
 	-@ $(RM) $(SRC_DIR)/main/FEExecutionManagerT.o
-	@ $(ECHO) "NOTE: dependent modules must also be up to date"
+	@ $(PRINTF) "NOTE: dependent modules must also be up to date\n"
 
 touch_NOX:
-	@ $(ECHO) "removing object files depending on NOX"
+	@ $(PRINTF) "removing object files depending on NOX\n"
 	-@ $(RM) $(SRC_DIR)/main/FEManagerT.o
 	-@ $(RM) $(SRC_DIR)/solvers/NOX/*.o
 
 touch_fossum:
-	@ $(ECHO) "removing object files depending on the fossum module"
+	@ $(PRINTF) "removing object files depending on the fossum module\n"
 	-@ $(RM) $(SRC_DIR)/elements/continuum/solid/materials/managers/*.o	
 	-@ $(RM) $(SRC_DIR)/elements/continuum/solid/materials/SIERRA/*.o

@@ -1,28 +1,28 @@
-# $Id: ROSS.macros,v 1.8 2003-03-15 16:54:31 paklein Exp $
+# $Id: QT.mpi.macros,v 1.2 2003-03-15 16:54:31 paklein Exp $
 # MPI
-MPI_CFLAGS = -D__TAHOE_MPI__ -DAZTEC_MPI
+MPI_CFLAGS = -D__TAHOE_MPI__  -DAZTEC_MPI
 MPI_LFLAGS = -lmpi
 
-# Ross (DEC)
+# DEC
 MAKE        = make
 MAKE_DEPEND = makedepend
-DEPENDFLAGS = -I/usr/include/cxx -I/usr/local/cplant/ross/current/include
-COMP_CC     = c++
-COMP_C      = cc
+DEPENDFLAGS = -I/usr/include/cxx
+COMP_C      = cxx
+COMP_CC     = cxx
 COMP_F      = f77
 TR          = $(MACRO_DIR)/cxx_repository
-MORE_CFLAGS = -O3 -DNDEBUG
-#MORE_CFLAGS = -g
-DEFINES     = -D__DEC__ -D__CPLANT__ -D__ROSS__ -U__IEEE_FLOAT
-LOC_CFLAGS  = -c -I$(INC_DIR) -I/usr/local/cplant/ross/current/include $(DEFINES) $(MORE_CFLAGS)
+DEFINES     = -D__DEC__ -D__USE_STD_IOSTREAM
+MORE_CFLAGS = -O3 -DNDEBUG 
+#MORE_CFLAGS = -g 
+LOC_CFLAGS  = -c -arch host -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -ptr $(TR) -distinguish_nested_enums -msg_disable 161,111
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
-LFLAGS      = $(MPI_LFLAGS) -lm -ptr $(TR) -L/usr/local/cplant/ross/current/lib
+LFLAGS      = $(MPI_LFLAGS) -lm -ptr $(TR)
 AR          = ar
 ARFLAGS     = -cruv
-MAKE_OPTS   = 
+MAKE_OPTS   =
 RM          = rm
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
