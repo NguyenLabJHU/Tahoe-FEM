@@ -1,10 +1,11 @@
-/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.8 2004-07-15 08:30:07 paklein Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.9 2004-12-27 20:17:17 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeShapeFunctionT.h"
 #include "D2MeshFreeSupport2DT.h"
 //#include "MeshFreeSupport3DT.h"
 #include "LocalArrayT.h"
 #include "dSymMatrixT.h"
+#include "ParameterListT.h"
 
 using namespace Tahoe;
 
@@ -20,16 +21,21 @@ D2MeshFreeShapeFunctionT::D2MeshFreeShapeFunctionT(GeometryT::CodeT geometry_cod
 {
 	const char caller[] = "D2MeshFreeShapeFunctionT::D2MeshFreeShapeFunctionT";
 
+	/* construct MLS support */
 	if (all_coords.MinorDim() == 2)
 		fD2MFSupport = new D2MeshFreeSupport2DT(fDomain, all_coords, connects, nongridnodes);
 	else
 		ExceptionT::BadInputValue(caller, "2D only");
 	if (!fD2MFSupport) ExceptionT::OutOfMemory(caller);
 
+	/* initialize */
+	ParameterListT D2_mf_support_params(mf_support_params);
+	D2_mf_support_params.SetName(fD2MFSupport->Name());
+	fD2MFSupport->TakeParameterList(D2_mf_support_params);
+
 	/* delete MLS support for base class */
 	delete fMFSupport;
 	fMFSupport = fD2MFSupport;
-	//TEMP - need to destruct the MLS support from the base class
 }
 
 /* compute local shape functions and derivatives */ 	
