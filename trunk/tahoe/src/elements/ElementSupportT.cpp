@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.7 2002-10-25 00:06:50 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.8 2002-11-09 01:42:48 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -164,32 +164,20 @@ const int& ElementSupportT::IterationNumber(int group) const
 #endif
 }
 
+/* return the iteration number for the current solver group. */
+int ElementSupportT::IterationNumber(void) const
+{
+#ifndef _SIERRA_TEST_
+	return FEManager().IterationNumber(); 
+#else
+	return fItNum;
+#endif
+}
+
 const char* ElementSupportT::Exception(ExceptionT::CodeT exception) const
 {
 	return ExceptionT::ToString(exception);
 }
-
-//const char* ElementSupportT::Exception(int exception) const
-//{
-#ifndef _SIERRA_TEST_
-//	return FEManager().Exception(exception);
-#else
-//	const char* sbntma[] = {
- /* 0 */ //"no error",
- /* 1 */ //"general fail",
- /* 2 */ //"stop",
- /* 3 */ //"out of memory",
- /* 4 */ //"index out of range",
- /* 5 */ //"dimension mismatch",
- /* 6 */ //"invalid value read from input",
- /* 7 */ //"zero or negative jacobian",
- /* 8 */ //"MPI message passing error",
- /* 9 */ //"database read failure",
- /*10 */ //"bad MP heartbeat",
- /*11 */ //"unknown"}; 
-//	return sbntma[exception];
-#endif
-//}
 
 int ElementSupportT::ElementGroupNumber(const ElementBaseT* element) const
 { 

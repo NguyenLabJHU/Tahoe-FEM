@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.8 2002-10-25 00:06:50 cjkimme Exp $ */
+/* $Id: ElementSupportT.h,v 1.9 2002-11-09 01:42:48 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -144,8 +144,12 @@ public:
 	 * NULL if the number is out of range. */
 	const ScheduleT* Schedule(int num) const;
 
-	/** solver iteration numbers */
+	/** solver iteration number for the specified group */
 	const int& IterationNumber(int group) const;
+	
+	/** return the iteration number for the current solver group. Returns
+	 * -1 of no solver group is current */
+	int IterationNumber(void) const;
 	
 	/** exception string */
 	const char* Exception(ExceptionT::CodeT exception) const;
