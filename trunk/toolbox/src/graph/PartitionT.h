@@ -1,4 +1,4 @@
-/* $Id: PartitionT.h,v 1.10 2003-01-27 06:42:47 paklein Exp $ */
+/* $Id: PartitionT.h,v 1.11 2004-10-06 21:05:05 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 #ifndef _PARTITION_T_H_
 #define _PARTITION_T_H_
@@ -41,7 +41,7 @@ public:
 	enum DecompTypeT {
 	kUndefined =-1, /**< undefined partition type */
         kGraph = 0, /**< partition based on connectivities */
-         kAtom = 1, /**< partition based on index */
+        kIndex = 1, /**< partition based on node index */
       kSpatial = 2  /**< partition based on position */
 	};
 

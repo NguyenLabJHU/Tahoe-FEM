@@ -1,4 +1,4 @@
-/* $Id: PartitionT.cpp,v 1.13 2004-08-14 05:10:37 paklein Exp $ */
+/* $Id: PartitionT.cpp,v 1.14 2004-10-06 21:05:05 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 #include "PartitionT.h"
 
@@ -717,8 +717,8 @@ istream& operator>>(istream& in, PartitionT::DecompTypeT& t)
 		case PartitionT::kGraph:
 			t = PartitionT::kGraph;
 			break;
-		case PartitionT::kAtom:
-			t = PartitionT::kAtom;
+		case PartitionT::kIndex:
+			t = PartitionT::kIndex;
 			break;
 		case PartitionT::kSpatial:
 			t = PartitionT::kSpatial;
