@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.cpp,v 1.7.2.2 2002-10-18 01:25:49 paklein Exp $ */
+/* $Id: SurfaceShapeT.cpp,v 1.7.2.3 2002-10-19 17:46:44 paklein Exp $ */
 /* created: paklein (11/21/1997) */
 #include "SurfaceShapeT.h"
 
@@ -93,8 +93,7 @@ void SurfaceShapeT::Initialize(void)
 
 		/* shape function tables */
 		dMatrixT shNaMat(1, fTotalNodes, fjumpNa(i));
-		fgrad_d[i] = 0.0;
-		fgrad_d[i].Expand(shNaMat, fFieldDim);
+		fgrad_d[i].Expand(shNaMat, fFieldDim, dMatrixT::kOverwrite);
 		fgrad_dTgrad_d[i].MultATB(fgrad_d[i], fgrad_d[i]);
 		
 		/* shape function derivative tables */
@@ -113,8 +112,7 @@ void SurfaceShapeT::Initialize(void)
 			}
 			
 			shNaMat.Set(1, fTotalNodes, dshape.Pointer());
-			fgrad_dd(i,j) = 0.0;
-			fgrad_dd(i,j).Expand(shNaMat, fFieldDim);
+			fgrad_dd(i,j).Expand(shNaMat, fFieldDim, dMatrixT::kOverwrite);
 		}
 	}	
 }
@@ -288,6 +286,21 @@ double SurfaceShapeT::Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ)
 	}	
 
 	return j;
+}
+
+void SurfaceShapeT::Shapes(dArrayT& Na) const
+{
+	/* nodes from both faces */
+	if (Na.Length() == fNa.MinorDim())
+		fNa.RowAlias(fCurrIP, Na);
+	else if (Na.Length() == fFacetNodes.MinorDim()) /* just nodes from the first face */
+	{
+		double* pNa = fNa(fCurrIP);
+		int* lnd = fFacetNodes(0);
+		for (int i = 0; i < Na.Length(); i++)
+			Na[i] = pNa[lnd[i]];
+	}
+	else throw ExceptionT::kBadInputValue;
 }
 
 /*******************************************/
