@@ -1,4 +1,4 @@
-# $Id: SUN.macros,v 1.12 2002-09-27 16:31:33 sawimme Exp $
+# $Id: SUN.macros,v 1.12.2.1 2002-12-08 20:54:58 paklein Exp $
 #
 ## Load GNU file utilities to get ln -sf to work properly (sunfreeware.com)
 #
@@ -38,6 +38,7 @@ RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = /usr/local/bin/ln -sf
 ECHO        = echo
 CAT         = cat
+PERL        = perl -w
 
 # command needed build library
 #BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
