@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.16.4.1 2004-03-08 17:13:19 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.16.4.2 2004-03-17 18:37:05 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -75,10 +75,10 @@ void FEManagerT_bridging::ResetCumulativeUpdate(int group)
 }
 
 /* (re-)set the equation number for the given group */
-void FEManagerT_bridging::SetEquationSystem(int group)
+void FEManagerT_bridging::SetEquationSystem(int group, int start_eq_shift)
 {
 	/* inherited */
-	FEManagerT::SetEquationSystem(group);
+	FEManagerT::SetEquationSystem(group, start_eq_shift);
 
 	//NOTE: this is going to break if the equation numbers has changed since the force was set
 	if (fExternalForce2D[group])
@@ -442,6 +442,83 @@ void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& ac
 	}
 }
 
+/* compute the product with transpose of the interpolation matrix */
+void FEManagerT_bridging::MultNTf(const PointInCellDataT& N, const dArray2DT& f, const iArrayT& f_rows, dArray2DT& NTf) const
+{
+	/* coarse scale element group */
+	const ContinuumElementT* continuum = N.ContinuumElement();
+
+	/* interpolation "matrix" */
+	const InverseMapT& f_rows_map = N.GlobalToLocal();
+	const dArray2DT& interpolation_weights = N.InterpolationWeights(); 
+	const iArrayT& cell = N.InterpolatingCell();
+	
+	/* loop over active rows in f and accumulate */
+	dArrayT weights;
+	dArrayT f_row;
+	dArrayT NTf_row;
+	for (int i = 0; i < f_rows.Length(); i++) {
+	
+		/* mappings */
+		int f_row_i = f_rows[i];
+		int f_row_i_map = f_rows_map.Map(f_row_i);
+		f.RowAlias(f_row_i, f_row);
+		
+		/* cell nodes */
+		const iArrayT& NTf_rows = continuum->ElementCard(cell[f_row_i_map]).NodesU();
+		
+		/* interpolation weights */
+		interpolation_weights.RowAlias(f_row_i_map, weights);
+		
+		/* loop over neighbors */
+		for (int j = 0; j < weights.Length(); j++) {
+		
+			/* row in output */
+			NTf.RowAlias(NTf_rows[j], NTf_row);
+		
+			/* accumulate contribution */
+			NTf_row.AddScaled(weights[j], f_row);
+		}
+	}
+}
+
+void FEManagerT_bridging::MultNTf(const InterpolationDataT& N, const dArray2DT& f, const iArrayT& f_rows, dArray2DT& NTf) const
+{
+	/* interpolation "matrix" */
+	const InverseMapT& f_rows_map = N.Map();
+	const RaggedArray2DT<double>& neighbor_weights = N.NeighborWeights(); 
+	const RaggedArray2DT<int>& neighbors = N.Neighbors();
+	
+	/* loop over active rows in f and accumulate */
+	dArrayT weights;
+	dArrayT f_row;
+	iArrayT NTf_rows;
+	dArrayT NTf_row;
+	for (int i = 0; i < f_rows.Length(); i++) {
+	
+		/* mappings */
+		int f_row_i = f_rows[i];
+		int f_row_i_map = f_rows_map.Map(f_row_i);
+		f.RowAlias(f_row_i, f_row);
+		
+		/* neigbors */
+		neighbors.RowAlias(f_row_i_map, NTf_rows);
+		
+		/* interpolation weights */
+		neighbor_weights.RowAlias(f_row_i_map, weights);
+		
+		/* loop over neighbors */
+		for (int j = 0; j < weights.Length(); j++) {
+		
+			/* row in output */
+			NTf.RowAlias(NTf_rows[j], NTf_row);
+		
+			/* accumulate contribution */
+			NTf_row.AddScaled(weights[j], f_row);
+		}
+	}
+}
+
 /* initialize data for the driving field */
 void FEManagerT_bridging::InitProjection(CommManagerT& comm, const iArrayT& nodes, const StringT& field, 
 	NodeManagerT& node_manager, bool make_inactive)
@@ -575,12 +652,12 @@ void FEManagerT_bridging::TransposeFollowerCellData(InterpolationDataT& transpos
 	/* collect connectivities */
 	iArray2DT neighbors(neighbor_weights.MajorDim(), neighbor_weights.MinorDim());
 	const iArrayT& cell = fFollowerCellData.InterpolatingCell();
-	const SolidElementT& solid = BridgingScale().Solid();
+	const ContinuumElementT* continuum = fFollowerCellData.ContinuumElement();
 	for (int i = 0; i < neighbors.MajorDim(); i++) {
 
 		/* element nodes */
 		int element = cell[i];
-		const iArrayT& nodes = solid.ElementCard(element).NodesU();
+		const iArrayT& nodes = continuum->ElementCard(element).NodesU();
 
 		/* copy */
 		neighbors.SetRow(i, nodes);
@@ -607,13 +684,15 @@ const dArray2DT& FEManagerT_bridging::InternalForce(int group) const
 
 	/* search through element groups */
 	ElementBaseT* element = NULL;
-	for (int i = 0; i < fElementGroups->Length(); i++)
-		if ((*fElementGroups)[i]->InGroup(group))
+	for (int i = 0; i < fElementGroups->Length(); i++) {
+		ElementBaseT* element_tmp = (*fElementGroups)[i];
+		if (element_tmp != fBridgingScale && element_tmp->InGroup(group))
 		{
 			/* already found element group */
 			if (element) ExceptionT::GeneralFail(caller, "solver group %d contains more than one element group", group);
-			element = (*fElementGroups)[i];
+			element = element_tmp;
 		}
+	}
 	
 	/* no elements in the group */
 	if (!element) ExceptionT::GeneralFail(caller, "no elements in solver group %d", group);

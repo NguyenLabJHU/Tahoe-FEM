@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11.4.1 2004-03-08 17:13:19 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.4.2 2004-03-17 18:37:05 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -109,6 +109,24 @@ public:
 	 *  region, i.e. N_{I}(X_{\alpha}) */
 	void Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& activefenodes) const;
 
+	/** compute the product with transpose of the interpolation matrix 
+	 * \param N data for interpolating from rows in NTf to rows in f
+	 * \param f multi-vector in columns
+	 * \param f_rows rows if f to include in the product
+	 * \param NTf returns with matrix-vector product added to the vectors in columns. Global ids
+	 *        in N map directly to rows in NTf.
+	 */
+	void MultNTf(const PointInCellDataT& N, const dArray2DT& f, const iArrayT& f_rows, dArray2DT& NTf) const;
+
+	/** compute the product with transpose of the interpolation matrix 
+	 * \param N data for interpolating from rows in NTf to rows in f
+	 * \param f multi-vector in columns
+	 * \param f_rows rows if f to include in the product
+	 * \param NTf returns with matrix-vector product added to the vectors in columns. Global ids
+	 *        in N map directly to rows in NTf.
+	 */
+	void MultNTf(const InterpolationDataT& N, const dArray2DT& f, const iArrayT& f_rows, dArray2DT& NTf) const;
+
 	/** initialize projection data. Initialize data structures needed to project
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
@@ -139,10 +157,16 @@ public:
 
 	/** transpose follower cell data */
 	void TransposeFollowerCellData(InterpolationDataT& transpose);
+
+	/** interpolation data */
+	const PointInCellDataT& InterpolationData(void) { return fFollowerCellData;	};
+	
+	/** projection data */
+	const PointInCellDataT& ProjectionData(void) { return fDrivenCellData; };
 	/*@}*/
 
 	/** (re-)set the equation number for the given group */
-	virtual void SetEquationSystem(int group);
+	virtual void SetEquationSystem(int group, int start_eq_shift = 0);
 
 	/** set the reference error for the given group */
 	void SetReferenceError(int group, double error) const;
