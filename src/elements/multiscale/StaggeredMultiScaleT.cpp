@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.6 2002-12-02 07:11:01 paklein Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.7 2002-12-03 19:25:11 creigh Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -44,6 +44,7 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support,
 	in >> fGeometryCode; //TEMP - should actually come from the geometry database
 	in >> fNumIP;
 
+	cout << "############### In Constructor ############### \n";
 	/* allocate the global stack object (once) */
 	extern FEA_StackT* fStack;
 	if (!fStack) fStack = new FEA_StackT;
@@ -80,6 +81,8 @@ void StaggeredMultiScaleT::Initialize(void)
 	int n_df = NumDOF(); 
 	int n_en = NumElementNodes();
 	int n_en_x_n_df = n_en*n_df;
+
+	cout << "############### In Initialize ############### \n";
 
 	/* set local arrays for coarse scale */
 	ua.Dimension (n_en, n_df);
@@ -151,10 +154,12 @@ void StaggeredMultiScaleT::Initialize(void)
 //---------------------------------------------------------------------
 
 /* form group contribution to the stiffness matrix and RHS */
-void StaggeredMultiScaleT::LHSDriver(GlobalT::SystemTypeT)	// RHS too!	
+void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!	
 {
 	/* which equations are being solved? */
 	int curr_group = ElementSupport().CurrentGroup();
+
+	cout << "############### In RHS Driver ############### \n";
 
 	/** Time Step Increment */
 	double delta_t = 0.1;
@@ -168,14 +173,18 @@ void StaggeredMultiScaleT::LHSDriver(GlobalT::SystemTypeT)	// RHS too!
 		SetLocalU (ua);			 SetLocalU (ua_n);
 		SetLocalU (ub);			 SetLocalU (ub_n);
 
+		cout << "ua = \n" << ua << "\n\n";
+		cout << "ub = \n" << ub << "\n\n";
+
 		del_ua.DiffOf (ua, ua_n);
 		del_ub.DiffOf (ub, ub_n);
 
 		/* get current coordinates and set shape functions and derivatives */
 		SetLocalX(fInitCoords); // dNdX
 		//fCurrCoords.SetToCombination(1.0, fInitCoords, 1.0, ua, 1.0, ub); // <--- compute current coordinates for the element
+	cout << "############### In RHS Driver 1 ############### \n";
 		fShapes->SetDerivatives();
-
+	cout << "############### In RHS Driver 2 ############### \n";
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
 		Convert.Gradiants 		( fShapes, ua, ua_n, fGRAD_ua, fGRAD_ua_n );
 		Convert.Gradiants 		( fShapes, ub, ub_n, fGRAD_ub, fGRAD_ub_n );
@@ -188,6 +197,9 @@ void StaggeredMultiScaleT::LHSDriver(GlobalT::SystemTypeT)	// RHS too!
 		 * 	calculated again for fine field -- this is a waste and defeats the putpose of VMS_VariableT. 
 		 *  Note: n is last time step (known data), no subscript,np1 or (n+1) is the 
 		 *  next time step (what were solving for)   */
+
+		fGRAD_ua.Print("fGRAD_ua");
+		fGRAD_ub.Print("fGRAD_ub");
 
 		np1.Construct (	fGRAD_ua, 	fGRAD_ub 	 ); // Many variables at time-step n+1
 		n.Construct 	(	fGRAD_ua_n, fGRAD_ub_n );	// Many variables at time-step n
@@ -240,9 +252,11 @@ void StaggeredMultiScaleT::LHSDriver(GlobalT::SystemTypeT)	// RHS too!
 
 //---------------------------------------------------------------------
 
-void StaggeredMultiScaleT::RHSDriver(void)
+void StaggeredMultiScaleT::LHSDriver(GlobalT::SystemTypeT)
 {
-  /** Everything done in LHSDriver for efficiency */
+  /** Everything done in RHSDriver for efficiency */
+	cout << "############### In LHS Driver ############### \n";
+
 }
 
 //---------------------------------------------------------------------
