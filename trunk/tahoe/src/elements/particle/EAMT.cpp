@@ -111,6 +111,8 @@ void EAMT::WriteOutput(void)
 	/* pair properties function pointers */
 	int current_property = -1;
 	ParadynT::PairEnergyFunction pair_energy = NULL;
+	ParadynT::EmbedEnergyFunction embed_energy = NULL;
+	ParadynT::EDEnergyFunction ed_energy = NULL;
 	
 	/* the field */
 	const FieldT& field = Field();
@@ -163,6 +165,50 @@ void EAMT::WriteOutput(void)
 		/* run though neighbors for one atom - first neighbor is self
 		 * to compute potential energy */
 		coords.RowAlias(tag_i, x_i);
+
+		/** Get Electron Density  **/
+		dArrayT electron_density_j;
+		electron_density_j.Dimension(neighbors.Length());
+		for (int j = 1; j < neighbors.Length(); j++)
+		{
+			/* tags */
+			int   tag_j = neighbors[j];
+			int  type_j = fType[tag_j];		
+			
+			/* set pair property (if not already set) */
+			int property = fPropertiesMap(type_i, type_j);
+			if (property != current_property)
+			  {
+			    ed_energy = fParadynProperties[property]->getElecDensEnergy();
+			    current_property = property;
+			  }
+		
+			/* global coordinates */
+			coords.RowAlias(tag_j, x_j);
+		
+			/* connecting vector */
+			r_ij.DiffOf(x_j, x_i);
+			double r = r_ij.Magnitude();
+			
+			/* split interaction energy */
+			electron_density_j[j] = ed_energy(r, NULL, NULL);
+		}
+		
+		
+		/** Get Embedding energy  **/
+		double embedding_i = 0.0;
+		int property = fPropertiesMap(type_i, type_i);
+		if (property != current_property)
+		  {
+		    embed_energy= fParadynProperties[property]->getEmbedEnergy();
+		    current_property = property;
+		  }
+		embedding_i = embed_energy(electron_density_j[i], NULL, NULL);
+
+
+		/** Get Pair Energy **/
+		dArrayT pair_j;
+		pair_j.Dimension(neighbors.Length());
 		for (int j = 1; j < neighbors.Length(); j++)
 		{
 			/* tags */
@@ -185,8 +231,20 @@ void EAMT::WriteOutput(void)
 			double r = r_ij.Magnitude();
 			
 			/* split interaction energy */
-			double uby2 = 0.5*pair_energy(r, NULL, NULL);
-			values_i[ndof] += uby2;
+			pair_j[j] = 0.5*pair_energy(r, NULL, NULL);
+		}
+
+
+	        // Potential Energy
+	        values_i[ndof] = embedding_i;
+		n_values(local_i, ndof) = embedding_i;
+		for (int j = 1; j < neighbors.Length(); j++)
+		{
+			/* tags */
+			int   tag_j = neighbors[j];
+			int  type_j = fType[tag_j];		
+			
+			values_i[ndof] += pair_j[j];
 			
 			/* second node may not be on processor */
 			if (!proc_map || (*proc_map)[tag_j] == rank) {
@@ -195,7 +253,7 @@ void EAMT::WriteOutput(void)
 				if (local_j < 0 || local_j >= n_values.MajorDim())
 					cout << caller << ": out of range: " << local_j << '\n';
 				else
-					n_values(local_j, ndof) += uby2;
+					n_values(local_j, ndof) += pair_j[j];
 
 			}
 		}
