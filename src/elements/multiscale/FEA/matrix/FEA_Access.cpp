@@ -4,7 +4,7 @@
 
 #include "FEA.h"
 
-#ifdef __DEC__
+#if defined (__DEC__) || defined (__SUN__)
 
 /* declare "global" within the Tahoe namespace */
 namespace Tahoe {
