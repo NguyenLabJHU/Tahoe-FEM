@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.5 2001-04-02 22:25:12 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.6 2001-04-06 02:55:29 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -112,7 +112,10 @@ bool ExodusT::Create(const StringT& filename, const StringT& title,
 
 	/* create Exodus file */
 	io_ws = comp_ws;
-	file_name.Take(filename, MAX_LINE_LENGTH - 1);
+	if (strlen(filename) >= MAX_LINE_LENGTH)
+		file_name.Take(filename, MAX_LINE_LENGTH - 1);
+	else
+		file_name = filename;
 	exoid = ex_create(file_name, EX_CLOBBER, &comp_ws, &io_ws);
 	if (exoid < 0)
 		return false;
@@ -828,7 +831,11 @@ void ExodusT::WriteQA(const ArrayT<StringT>& qa_records_) const
 	/* truncate QA records */
 	ArrayT<StringT> qa_records(qa_records_.Length());
 		for (int k = 0; k < qa_records.Length(); k++)
-			qa_records[k].Take(qa_records_[k], MAX_STR_LENGTH - 1);
+			if (strlen(qa_records_[k]) >= MAX_STR_LENGTH)
+				qa_records[k].Take(qa_records_[k], MAX_STR_LENGTH - 1);
+			else
+				qa_records[k] = qa_records_[k];
+			
 
 	/* DEC will not allow allocation based on passed constant */
 	int num_recs = qa_records.Length()/4;
@@ -848,7 +855,10 @@ void ExodusT::WriteInfo(const ArrayT<StringT>& info_records_) const
 	/* truncate info records */
 	ArrayT<StringT> info_records(info_records_.Length());
 	for (int k = 0; k < info_records.Length(); k++)
-		info_records[k].Take(info_records_[k], MAX_LINE_LENGTH - 1);
+		if (strlen(info_records_[k]) >= MAX_LINE_LENGTH)
+			info_records[k].Take(info_records_[k], MAX_LINE_LENGTH - 1);
+		else
+			info_records[k] = info_records_[k];
 	
 	/* DEC will not allow allocation based on passed constant */
 	int num_recs = info_records.Length();
