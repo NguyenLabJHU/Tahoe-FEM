@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.23 2003-02-07 21:50:52 cjkimme Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.24 2003-05-28 23:15:23 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -21,7 +21,7 @@ using namespace Tahoe;
 const int CSEBaseT::NumNodalOutputCodes = 5;
 const int CSEBaseT::NumElementOutputCodes = 3;
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
 CSEBaseT::CSEBaseT(const ElementSupportT& support, const FieldT& field):
 	ElementBaseT(support, field),
@@ -120,7 +120,7 @@ CSEBaseT::CSEBaseT(ElementSupportT& support):
 	if (fOutputArea != 0 &&
 	    fOutputArea != 1) throw ExceptionT::kBadInputValue;
 }
-#endif // _SIERRA_TEST_
+#endif // _FRACTURE_INTERFACE_LIBRARY_
 
 /* destructor */
 CSEBaseT::~CSEBaseT(void)
@@ -158,7 +158,7 @@ void CSEBaseT::Initialize(void)
 
 	/* echo output codes (one at a time to allow comments) */
 	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
-#ifndef _SIERRA_TEST_	
+#ifndef _FRACTURE_INTERFACE_LIBRARY_	
 	ifstreamT& in = ElementSupport().Input();
 	ostream&   out = ElementSupport().Output();
 	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
@@ -186,7 +186,7 @@ void CSEBaseT::Initialize(void)
 	fElementOutputCodes.Dimension(NumElementOutputCodes);
 	fElementOutputCodes = IOBaseT::kAtNever;
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 //TEMP - backward compatibility
 
 	if (StringT::versioncmp(ElementSupport().Version(), "v3.01") < 1)
@@ -237,7 +237,7 @@ void CSEBaseT::Initialize(void)
 	
 	/* close surfaces */
 	if (fCloseSurfaces) CloseSurfaces();
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* output stream */
 	if (fOutputArea == 1)
 	{
@@ -265,7 +265,7 @@ void CSEBaseT::InitialCondition(void)
 		fElementCards[i].Flag() = kON;
 }
 
-#ifdef _SIERRA_TEST_	
+#ifdef _FRACTURE_INTERFACE_LIBRARY_	
 	/* Initialize fields passed in from the outside */
 void CSEBaseT::InitStep(void) {};
 #endif
@@ -300,7 +300,7 @@ void CSEBaseT::ResetStep(void)
 	}
 }
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* solution calls */
 void CSEBaseT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
@@ -339,7 +339,7 @@ void CSEBaseT::RegisterOutput(void)
 			break;
 
 		default:	
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		cout << "\n CSEBaseT::RegisterOutput: could not translate\n";
 		cout << "     geometry code " << fGeometryCode
 			 << " to a pseudo-geometry code for the volume." << endl;
@@ -360,7 +360,7 @@ void CSEBaseT::RegisterOutput(void)
 	ArrayT<StringT> e_labels(e_counts.Sum());
 	GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	ArrayT<StringT> block_ID(fBlockData.Length());
 	for (int i = 0; i < block_ID.Length(); i++)
 		block_ID[i] = fBlockData[i].ID();
@@ -381,7 +381,7 @@ void CSEBaseT::WriteOutput(void)
 	/* fracture area */
 	if (fOutputArea)
 	{
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		farea_out << setw(kDoubleWidth) << ElementSupport().Time();
 		farea_out << setw(kDoubleWidth) << fFractureArea << endl;
 #endif
@@ -426,7 +426,7 @@ void CSEBaseT::SendOutput(int kincode)
 		    flags[NodalTraction] = 1;
 			break;
 		default:
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 			cout << "\n CSEBaseT::SendKinematic: invalid output code: ";
 			cout << kincode << endl;
 #else
@@ -457,7 +457,7 @@ void CSEBaseT::SendOutput(int kincode)
 /* print element group data */
 void CSEBaseT::PrintControlData(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* inherited */
 	ElementBaseT::PrintControlData(out);
 
@@ -475,7 +475,7 @@ void CSEBaseT::PrintControlData(ostream& out) const
 #endif
 }
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* read element connectivity data */
 void CSEBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 {
@@ -497,7 +497,7 @@ void CSEBaseT::ReadConnectivity(void)
 	if ((nsd == 2 && nen != 4 && nen != 6) || 
 	    (nsd == 3 && nen != 8 && nen != 16))
 	{
-#ifndef _SIERRA_TEST_	
+#ifndef _FRACTURE_INTERFACE_LIBRARY_	
 		/* message */
 		ostream& out = ElementSupport().Output();
 		cout << "\n CSEBaseT::ReadConnectivity: detected higher order elements\n";
@@ -528,7 +528,7 @@ void CSEBaseT::ReadConnectivity(void)
 			int new_dex = model.ElementGroupIndex(new_id);
 			if (new_dex == ModelManagerT::kNotFound)
 			{
-#ifndef _SIERRA_TEST_	
+#ifndef _FRACTURE_INTERFACE_LIBRARY_	
 				/* message */
 		     	cout << "     translating element block ID " << id << endl;	     	
 		     	out  << "     translating element block ID " << id << endl;
@@ -550,14 +550,14 @@ void CSEBaseT::ReadConnectivity(void)
 				StringT new_id = id;
 				new_id.Append(b+1, 3);
 				if (!model.RegisterElementGroup (new_id, dest, GeometryT::kNone, true)) {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 					cout << "\n CSEBaseT::ReadConnectivity: could not register element block ID: " << new_id << endl;
 #endif
 					throw ExceptionT::kGeneralFail;
 				}
 			}
 
-#ifndef _SIERRA_TEST_	
+#ifndef _FRACTURE_INTERFACE_LIBRARY_	
 			/* message */
 			cout << "     block ID " << id << " replaced by ID " << new_id << endl;		
 			out  << "     block ID " << id << " replaced by ID " << new_id << endl;
@@ -616,7 +616,7 @@ void CSEBaseT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_l
 	int count = 0;
 	if (n_codes[NodalDisp])
 	{
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		/* labels from the field */
 		const ArrayT<StringT>& labels = Field().Labels();
 		for (int i = 0; i < labels.Length(); i++)
@@ -654,7 +654,7 @@ void CSEBaseT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_l
 /* write all current element information to the stream */
 void CSEBaseT::CurrElementInfo(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* inherited */
 	ElementBaseT::CurrElementInfo(out);
 	dArray2DT temp;
@@ -724,7 +724,7 @@ int CSEBaseT::DefaultNumElemNodes(void) const
 		case GeometryT::kTriangle:
 			return 6;
 		default:
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 			cout << "\n CSEBaseT::DefaultNumElemNodes: unknown geometry code: "
 			     << fGeometryCode << endl;
 #endif

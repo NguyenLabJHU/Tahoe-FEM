@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.18 2003-05-26 01:51:46 paklein Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.19 2003-05-28 23:15:27 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch2DT.h"
@@ -210,7 +210,7 @@ SurfacePotentialT::StatusT TvergHutch2DT::Status(const dArrayT& jump_u,
 
 void TvergHutch2DT::PrintName(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	out << "    Tvergaard-Hutchinson 2D\n";
 #endif
 }
@@ -218,7 +218,7 @@ void TvergHutch2DT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void TvergHutch2DT::Print(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_max << '\n';
 	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';

@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.48 2003-05-27 07:04:18 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.49 2003-05-28 23:15:23 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -14,7 +14,7 @@
 #include "toolboxConstants.h"
 #include "SurfaceShapeT.h"
 #include "SurfacePotentialT.h"
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "eIntegratorT.h"
 #include "NodeManagerT.h"
 #endif
@@ -22,7 +22,7 @@
 #include "dSymMatrixT.h"
 
 /* potential functions */
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "XuNeedleman2DT.h"
 #include "TvergHutch2DT.h"
 #include "ViscTvergHutch2DT.h"
@@ -31,6 +31,7 @@
 #include "TiedPotentialT.h"
 #include "TiedPotentialBaseT.h"
 #include "YoonAllen2DT.h"
+#include "From2Dto3DT.h"
 #endif
 
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
@@ -45,7 +46,7 @@
 
 using namespace Tahoe;
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
 CSEAnisoT::CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate):
 	CSEBaseT(support, field),
@@ -124,7 +125,7 @@ void CSEAnisoT::Initialize(void)
 	/* streams */
 	ifstreamT& in = ElementSupport().Input();
 	ostream&   out = ElementSupport().Output();
-#ifndef _SIERRA_TEST_		
+#ifndef _FRACTURE_INTERFACE_LIBRARY_		
 	fCalcNodalInfo = false;
 
 	/* construct props */
@@ -145,7 +146,7 @@ void CSEAnisoT::Initialize(void)
 	for (int i = 0; i < fSurfPots.Length(); i++)
 	{
 		int num, code;
-#ifndef _SIERRA_TEST_		
+#ifndef _FRACTURE_INTERFACE_LIBRARY_		
 		in >> num >> code;
 #else
 		num = 1; 
@@ -162,7 +163,7 @@ void CSEAnisoT::Initialize(void)
 			{			
 				if (NumDOF() == 2)
 				{
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 					fSurfPots[num] = new XuNeedleman2DT(in);			
 #else
 					throw ExceptionT::kBadInputValue;
@@ -170,8 +171,8 @@ void CSEAnisoT::Initialize(void)
 				}
 				else
 				{
-#ifndef _SIERRA_TEST_
-					fSurfPots[num] = new XuNeedleman3DT(in);
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+					fSurfPots[num] = new From2Dto3DT(in, code, ElementSupport().TimeStep());
 #else
 					dArrayT *params = ElementSupport().FloatInput();
 					fSurfPots[num] = new XuNeedleman3DT(*params);
@@ -183,7 +184,7 @@ void CSEAnisoT::Initialize(void)
 			{
 				if (NumDOF() == 2)
 				{
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 					fSurfPots[num] = new TvergHutch2DT(in);
 #else
 					throw ExceptionT::kBadInputValue;
@@ -191,8 +192,8 @@ void CSEAnisoT::Initialize(void)
 				}
 				else
 				{
-#ifndef _SIERRA_TEST_
-					fSurfPots[num] = new TvergHutch3DT(in);
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+					fSurfPots[num] = new From2Dto3DT(in, code, ElementSupport().TimeStep());
 #else
 					dArrayT *params = ElementSupport().FloatInput();
 					fSurfPots[num] = new TvergHutch3DT(*params);				
@@ -200,13 +201,13 @@ void CSEAnisoT::Initialize(void)
 				}
 				break;
 			}
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 			case SurfacePotentialT::kViscTvergaardHutchinson:
 			{
 				if (NumDOF() == 2)
 					fSurfPots[num] = new ViscTvergHutch2DT(in, ElementSupport().TimeStep());
 				else
-					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
+					fSurfPots[num] = new From2Dto3DT(in, code, ElementSupport().TimeStep());
 				break;
 			}
 			case SurfacePotentialT::kTijssens:
@@ -230,7 +231,7 @@ void CSEAnisoT::Initialize(void)
 			{	
 				if (NumDOF() == 2)
 				{
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 					fSurfPots[num] = new YoonAllen2DT(in, ElementSupport().TimeStep());
 #else
 					throw ExceptionT::kBadInputValue;
@@ -238,8 +239,8 @@ void CSEAnisoT::Initialize(void)
 				}
 				else
 				{
-#ifndef _SIERRA_TEST_
-					fSurfPots[num] = new YoonAllen3DT(in, ElementSupport().TimeStep());
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+					fSurfPots[num] = new From2Dto3DT(in, code, ElementSupport().TimeStep());
 #else
 					dArrayT *fparams = ElementSupport().FloatInput();
 					iArrayT *iparams = ElementSupport().IntInput();
@@ -272,7 +273,7 @@ void CSEAnisoT::Initialize(void)
 				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT_DEV not enabled: %d", code);
 #endif
 			}
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 			// Handle all tied potentials here till the code is finalized.
 			case SurfacePotentialT::kTiedPotential:
 			{	
@@ -280,12 +281,10 @@ void CSEAnisoT::Initialize(void)
 					fSurfPots[num] = new TiedPotentialT(in);
 				else
 					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
-				//Fall through
+				break;
 			} 
 			case SurfacePotentialT::kMR_RP:
 			{
-				if (code != SurfacePotentialT::kTiedPotential)
-				{
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 				if (NumDOF() == 2)
 					fSurfPots[num] = new MR_RP2DT(in);
@@ -294,59 +293,18 @@ void CSEAnisoT::Initialize(void)
 #else
 				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT_DEV not enabled: %d", code);
 #endif
-				}
-
-#if 0
-				// Common allocation for tied potentials. 
-				SurfacePotentialT* surfpot = fSurfPots[num];
-				fTiedPots[num] = new TiedPotentialBaseT*;
-				*fTiedPots[num] = dynamic_cast<TiedPotentialBaseT*>(surfpot);
-				if (!fTiedPots[num]) // bad cast
-					ExceptionT::GeneralFail(caller,"Unable to case tied potential");
-				iTiedFlagIndex = surfpot->NumStateVariables()-1;
-
-				freeNodeQ.Dimension(NumElements(),NumElementNodes());
-				freeNodeQ = 0.;
-				freeNodeQ_last = freeNodeQ;
-					 
-				/* Initialize things if a potential needs more info than the gap vector */
-				if ((*fTiedPots[num])->NeedsNodalInfo()) 
-				{
-					fCalcNodalInfo = true;
-					fNodalInfoCode = (*fTiedPots[num])->NodalQuantityNeeded();
-					iBulkGroups = (*fTiedPots[num])->BulkGroups();
-				}
-				if ((*fTiedPots[num])->NodesMayRetie())
-					qRetieNodes = true;
-				else 
-					qRetieNodes = false;
-				
-				/* utility array for stress smoothing over tied node pairs */
-				otherInds.Dimension(NumElementNodes());
-			  	if (NumSD() == 2)
-			  	{
-			  		otherInds[0] = 3; otherInds[1] = 2; otherInds[2] = 1; otherInds[3] = 0;
-			  	} 
-			  	else // 3D
-			  	{
-			  		otherInds[0] = 4; otherInds[1] = 5; otherInds[2] = 6; otherInds[3] = 7;
-			  		otherInds[4] = 0; otherInds[5] = 1; otherInds[6] = 2; otherInds[7] = 3;
-			  	}
-#endif
 			
 				break;
 			}
-#endif // ndef _SIERRA_TEST_
+#endif // ndef _FRACTURE_INTERFACE_LIBRARY_
 			default:
-#ifndef _SIERRA_TEST_
-				cout << "\n CSEAnisoT::Initialize: unknown potential code: " << code << endl;
-#endif
-				throw ExceptionT::kBadInputValue;
+				ExceptionT::BadInputValue(caller," unknown potential code %d \n",code);
 		}
 		if (!fSurfPots[num]) ExceptionT::OutOfMemory(caller);
 		
 		/* check for tied potential */
 		SurfacePotentialT* surfpot = fSurfPots[num];
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		TiedPotentialBaseT* tiedpot = dynamic_cast<TiedPotentialBaseT*>(surfpot);
 		if (tiedpot)
 		{
@@ -388,13 +346,14 @@ void CSEAnisoT::Initialize(void)
 
 			/* store */
 			fTiedPots[num] = tiedpot;
-		}		
+		}
+#endif		
 		
 		/* get number of state variables */
 		fNumStateVariables[num] = fSurfPots[num]->NumStateVariables(); 
 	}
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* check compatibility of constitutive outputs */
 	if (fSurfPots.Length() > 1 && fNodalOutputCodes[MaterialData])
 		for (int k = 0; k < fSurfPots.Length(); k++)
@@ -439,7 +398,7 @@ void CSEAnisoT::Initialize(void)
 		for (int i = 0; i < num_elements; i++)
 			num_elem_state[i] = num_ip*fNumStateVariables[fElementCards[i].MaterialNumber()];
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		/* allocate space */
 		fStateVariables.Configure(num_elem_state);
 #else
@@ -467,7 +426,7 @@ void CSEAnisoT::Initialize(void)
 	else /* set dimensions to zero */
 		fStateVariables.Dimension(fElementCards.Length(), 0);
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* set history */
 	fStateVariables_last = fStateVariables;
 	/* For SIERRA, don't do anything. Wait until InitStep. */
@@ -475,7 +434,7 @@ void CSEAnisoT::Initialize(void)
 
 }
 
-#ifdef _SIERRA_TEST_	
+#ifdef _FRACTURE_INTERFACE_LIBRARY_	
 /* Get state variables from ElementSupportT here */
 void CSEAnisoT::InitStep(void) 
 {
@@ -491,7 +450,7 @@ void CSEAnisoT::CloseStep(void)
 	/* inherited */
 	CSEBaseT::CloseStep();
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* reset state variables from history */
 	fStateVariables_last = fStateVariables;
 
@@ -500,7 +459,7 @@ void CSEAnisoT::CloseStep(void)
 #endif
 }
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* write restart data to the output stream. */
 void CSEAnisoT::WriteRestart(ostream& out) const
 {
@@ -580,7 +539,7 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 
 	/* time-integration parameters */
 	double constK = 1.0;
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	int formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 #endif
@@ -607,7 +566,7 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 		SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
 		int num_state = fNumStateVariables[element.MaterialNumber()];
 		state2.Dimension(num_state);
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		TiedPotentialBaseT* tiedpot = fTiedPots[element.MaterialNumber()];
 #endif
 
@@ -621,8 +580,7 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 		/* initialize */
 		fLHS = 0.0;
 
-		bool nodalReleaseQ = false;
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 		{
 		  	ndIndices = element.NodesX();
@@ -675,7 +633,7 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 			
 			/* Interpolate nodal info to IPs */
 			/* stress tensor in local frame */
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 			{
 				tensorIP.Dimension(nodal_values.MinorDim());
@@ -731,7 +689,7 @@ void CSEAnisoT::RHSDriver(void)
 
 	/* time-integration parameters */
 	double constKd = 1.0;
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	int formKd = fIntegrator->FormKd(constKd);
 	if (!formKd) return;
 
@@ -759,7 +717,7 @@ void CSEAnisoT::RHSDriver(void)
 		for (int i = 0; i < fIncrementalHeat.Length(); i++)
 			fIncrementalHeat[i] = 0.0;
 	}
-#else // _SIERRA_TEST_ defined
+#else // _FRACTURE_INTERFACE_LIBRARY_ defined
     /*Read in SIERRA's new state variables. We need their memory. */	
 	fStateVariables.Set(fStateVariables.MajorDim(),fStateVariables.MinorDim(),
 		ElementSupport().StateVariableArray());
@@ -773,7 +731,7 @@ void CSEAnisoT::RHSDriver(void)
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 	
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* If the potential needs info from the nodes, start to gather it now */
 	if (fCalcNodalInfo) 
 	{
@@ -826,8 +784,7 @@ void CSEAnisoT::RHSDriver(void)
 	  		/* initialize */
 	  		fRHS = 0.0;
 
-#ifndef _SIERRA_TEST_
-			bool nodalReleaseQ = false;
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 			TiedPotentialBaseT* tiedpot = fTiedPots[element.MaterialNumber()];
 
 			int currElNum = CurrElementNumber();
@@ -883,7 +840,7 @@ void CSEAnisoT::RHSDriver(void)
 					
 				/* Interpolate nodal info to IPs */
 				/* stress tensor in local frame */
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 				if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 				{
 					int numElemNodes = ndIndices.Length();
@@ -902,7 +859,6 @@ void CSEAnisoT::RHSDriver(void)
 					{
 						for (int i = 0; i < numElemNodes; i++) 
 							freeNodeQ(currElNum,i) = 1.;
-						nodalReleaseQ = true;
 						state[iTiedFlagIndex] = TiedPotentialBaseT::kReleaseNextStep;
 					}
 					else
@@ -933,7 +889,7 @@ void CSEAnisoT::RHSDriver(void)
 				if (fOutputArea && status != SurfacePotentialT::Precritical)
 					fFractureArea += j0*w;
 					
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 				/* incremental heat */
 				if (temperature) 
 					fIncrementalHeat[block_dex](block_count, fShapes->CurrIP()) = 
@@ -1033,7 +989,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, nen, nsd);
 	LocalArrayT loc_disp(LocalArrayT::kDisp, nen, ndof);
 	ElementSupport().RegisterCoordinates(loc_init_coords);
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	Field().RegisterLocal(loc_disp);
 #else
 #pragma message("This routine needs displacements from SIERRA.")
@@ -1124,8 +1080,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			if (e_codes[Centroid]) centroid = 0.0;
 			if (e_codes[Traction]) traction = 0.0;
 
-			bool nodalReleaseQ = false;
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 			TiedPotentialBaseT* tiedpot = fTiedPots[element.MaterialNumber()];
 			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 			{
@@ -1175,7 +1130,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 					/* Interpolate nodal info to IPs */
 					/* stress tensor in local frame */
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 					if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 					{
 						tensorIP.Dimension(nodal_values.MinorDim());
@@ -1313,7 +1268,7 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 	int count = 0;
 	if (n_codes[NodalDisp])
 	{
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		/* labels from the field */
 		const ArrayT<StringT>& labels = Field().Labels();
 		for (int i = 0; i < labels.Length(); i++)
@@ -1404,7 +1359,7 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 void CSEAnisoT::CurrElementInfo(ostream& out) const
 {
 #pragma unused(out)
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* inherited */
 	CSEBaseT::CurrElementInfo(out);
 	

@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.18 2003-05-26 01:51:46 paklein Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.19 2003-05-28 23:15:27 cjkimme Exp $ */
 /* created: paklein (06/23/1999)*/
 
 #include "XuNeedleman3DT.h"
@@ -16,7 +16,7 @@ using namespace Tahoe;
 const int    knumDOF = 3;
 const double kExpMax = 20;
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
 XuNeedleman3DT::XuNeedleman3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 {
@@ -149,7 +149,7 @@ const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	// limit compressive deformation
 	if (z8 > kExpMax)
 	{
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		cout << "\n XuNeedleman2DT::Traction: exp(x): x = " << z8 << " > kExpMax" << endl;
 #endif
 		throw ExceptionT::kBadJacobianDet;
@@ -303,7 +303,7 @@ SurfacePotentialT::StatusT XuNeedleman3DT::Status(const dArrayT& jump_u, const A
 	
 void XuNeedleman3DT::PrintName(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	out << "    Xu-Needleman 3D\n";
 #else
 #pragma unused(out)
@@ -313,7 +313,7 @@ void XuNeedleman3DT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void XuNeedleman3DT::Print(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	out << " Surface energy ratio (phi_t/phi_n). . . . . . . = " << q       << '\n';
 	out << " Critical opening ratio (delta_n* /d_n). . . . . = " << r       << '\n';
 	out << " Characteristic normal opening to failure. . . . = " << d_n     << '\n';

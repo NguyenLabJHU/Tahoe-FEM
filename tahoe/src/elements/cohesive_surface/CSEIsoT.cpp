@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.15 2003-01-29 07:34:29 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.16 2003-05-28 23:15:23 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -11,7 +11,7 @@
 #include "toolboxConstants.h"
 #include "SurfaceShapeT.h"
 #include "C1FunctionT.h"
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "eIntegratorT.h"
 #endif
 
@@ -21,7 +21,7 @@
 
 using namespace Tahoe;
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
 CSEIsoT::CSEIsoT(const ElementSupportT& support, const FieldT& field):
 	CSEBaseT(support, field)
@@ -51,7 +51,7 @@ void CSEIsoT::Initialize(void)
 	/* check output codes */
 	if (fNodalOutputCodes[MaterialData])
 	{
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		cout << "\n CSEIsoT::Initialize: material outputs not supported, overriding" << endl;
 #endif
 		fNodalOutputCodes[MaterialData] = IOBaseT::kAtNever;
@@ -63,7 +63,7 @@ void CSEIsoT::Initialize(void)
 	
 	/* construct props */
 	int numpots;
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	in >> numpots;
 #else
 	numpots = 1;
@@ -72,7 +72,7 @@ void CSEIsoT::Initialize(void)
 	for (int i = 0; i < fSurfPots.Length(); i++)
 	{
 		int num, code;
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		in >> num >> code;
 #else
 		num = 1; 
@@ -88,7 +88,7 @@ void CSEIsoT::Initialize(void)
 			case C1FunctionT::kLennardJones:
 			{	
 				double A;
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 				in >> A;
 #else
 #endif				
@@ -98,7 +98,7 @@ void CSEIsoT::Initialize(void)
 			case C1FunctionT::kSmithFerrante:
 			{
 				double A, B;
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 				in >> A >> B;
 #else
 #endif			
@@ -113,7 +113,7 @@ void CSEIsoT::Initialize(void)
 		if (!fSurfPots[num]) throw ExceptionT::kOutOfMemory;
 	}
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* echo */
 	out << "\n Cohesive surface potentials:\n";
 	out << " Number of potentials. . . . . . . . . . . . . . = ";
@@ -138,7 +138,7 @@ void CSEIsoT::LHSDriver(GlobalT::SystemTypeT)
 {
 	/* time-stepping parameters */
 	double constK = 0.0;
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	int     formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 #endif
@@ -206,7 +206,7 @@ void CSEIsoT::RHSDriver(void)
 {
 	/* time-stepping parameters */
 	double constKd = 0.0;
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	int     formKd = fIntegrator->FormKd(constKd);
 	if (!formKd) return;
 #endif
@@ -263,7 +263,7 @@ void CSEIsoT::RHSDriver(void)
 void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	const iArrayT& e_codes, dArray2DT& e_values)
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* number of nodally smoothed values */
 	int n_out = n_codes.Sum();
 	int e_out = e_codes.Sum();
@@ -297,7 +297,7 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, nen, nsd);
 	LocalArrayT loc_disp(LocalArrayT::kDisp, nen, ndof);
 	ElementSupport().RegisterCoordinates(loc_init_coords);
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	Field().RegisterLocal(loc_disp);
 #else
 #pragma message("What to do with loc_disp?")
