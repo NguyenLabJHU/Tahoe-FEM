@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.34 2004-01-14 22:04:44 rdorgan Exp $ */
+/* $Id: SolidT.cpp,v 1.34.10.1 2004-04-15 21:12:31 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 
@@ -80,9 +80,12 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 		case SolidT::kRGSplitVE:
 			code = SolidT::kRGSplitVE;
 			break;
-	        case SolidT::kFossumSSIso:
-		        code = SolidT::kFossumSSIso;
-		        break;
+		case SolidT::kChain1D:
+			code = SolidT::kChain1D;
+			break;
+		case SolidT::kFossumSSIso:
+			code = SolidT::kFossumSSIso;
+			break;
 		case SolidT::kFCC:
 			code = SolidT::kFCC;
 			break;
