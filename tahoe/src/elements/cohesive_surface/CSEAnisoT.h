@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.16 2002-10-23 00:18:02 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.17 2002-11-26 00:17:34 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -95,10 +95,21 @@ protected:
 	iArrayT fNumStateVariables;
 	pArrayT<SurfacePotentialT*> fSurfPots;
 
+#ifndef _SIERRA_TEST_
 	/** state variable storage array. 
 	 * Array has dimensions: [nel] x [nip * nvar] */
 	RaggedArray2DT<double> fStateVariables;
 	RaggedArray2DT<double> fStateVariables_last;
+#else
+	/*In SIERRA, we're assuming only one cohesive law per element
+	 *block, but keeping the array 2D so we can loop over its
+	 *minorDim of 1. Most importantly, SIERRA controls and allocates
+	 *state variables, so these should just point to the data they
+	 *give us. 
+	 */
+	dArray2DT fStateVariables;
+	dArray2DT fStateVariables_last;
+#endif
 
 	/** incremental heat sources for each element block */
 	ArrayT<dArray2DT> fIncrementalHeat;

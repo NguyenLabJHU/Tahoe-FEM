@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.10 2002-10-20 22:48:17 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.11 2002-11-26 00:17:34 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -19,12 +19,20 @@
 
 using namespace Tahoe;
 
+#ifndef _SIERRA_TEST_
 /* constructor */
 CSEIsoT::CSEIsoT(const ElementSupportT& support, const FieldT& field):
 	CSEBaseT(support, field)
 {
 
 }
+#else
+CSEIsoT::CSEIsoT(const ElementSupportT& support):
+	CSEBaseT(support)
+{
+
+}
+#endif
 
 /* form of tangent matrix */
 GlobalT::SystemTypeT CSEIsoT::TangentType(void) const
@@ -38,12 +46,14 @@ void CSEIsoT::Initialize(void)
 	/* inherited */
 	CSEBaseT::Initialize();
 
+#ifndef _SIERRA_TEST_
 	/* check output codes */
 	if (fNodalOutputCodes[MaterialData])
 	{
 		cout << "\n CSEIsoT::Initialize: material outputs not supported, overriding" << endl;
 		fNodalOutputCodes[MaterialData] = IOBaseT::kAtNever;
 	}
+#endif
 
 	/* streams */
 	ifstreamT& in = ElementSupport().Input();
@@ -51,7 +61,11 @@ void CSEIsoT::Initialize(void)
 	
 	/* construct props */
 	int numpots;
+#ifndef _SIERRA_TEST_
 	in >> numpots;
+#else
+	numpots = 1;
+#endif
 	fSurfPots.Dimension(numpots);
 	for (int i = 0; i < fSurfPots.Length(); i++)
 	{

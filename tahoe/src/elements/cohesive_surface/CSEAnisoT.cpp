@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.28 2002-10-30 17:43:29 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.29 2002-11-26 00:17:34 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -122,6 +122,11 @@ void CSEAnisoT::Initialize(void)
 	fSurfPots.Dimension(numprops);
 	fNumStateVariables.Dimension(numprops);
 
+#ifdef _SIERRA_TEST_
+	ElementSupportT* nonConstEST = const_cast<ElementSupportT*>(&(ElementSupport()));	
+#endif
+
+
 	for (int i = 0; i < fSurfPots.Length(); i++)
 	{
 		int num, code;
@@ -129,8 +134,7 @@ void CSEAnisoT::Initialize(void)
 		in >> num >> code;
 #else
 		num = 1; 
-		ElementSupportT* nonConstEst = const_cast<ElementSupportT*>(&(ElementSupport()));	
-		code = nonConstEst->ReturnInputInt("COHESIVE POTENTIAL CODE");
+		code = nonConstEST->ReturnInputInt("COHESIVE POTENTIAL CODE");
 #endif
 		num--;
 
@@ -324,8 +328,12 @@ void CSEAnisoT::Initialize(void)
 		for (int i = 0; i < num_elements; i++)
 			num_elem_state[i] = num_ip*fNumStateVariables[fElementCards[i].MaterialNumber()];
 
+#ifndef _SIERRA_TEST_
 		/* allocate space */
 		fStateVariables.Configure(num_elem_state);
+#else
+		fStateVariables.Set(1,num_elem_state[0],nonConstEST->StateVariableArray());
+#endif
 
 		/* initialize state variable space */
 		dArrayT state;
@@ -348,13 +356,22 @@ void CSEAnisoT::Initialize(void)
 	else /* set dimensions to zero */
 		fStateVariables.Dimension(fElementCards.Length(), 0);
 
+#ifndef _SIERRA_TEST_
 	/* set history */
 	fStateVariables_last = fStateVariables;
+	/* In Sierra, don't do anything. Wait until InitStep. */
+#endif
 }
 
 #ifdef _SIERRA_TEST_	
-	/* Initialize fields passed in from the outside */
-	void CSEAnisoT::InitStep(void) {};
+/* Get state variables from ElementSupportT here */
+void CSEAnisoT::InitStep(void) 
+{
+	ElementSupportT* nonConstEST = const_cast<ElementSupportT*>(&(ElementSupport()));
+	
+	fStateVariables_last.Set(fStateVariables.MajorDim(),fStateVariables.MinorDim(),
+		nonConstEST->StateVariableArray());
+};
 #endif
 
 /* close current time increment */
@@ -365,6 +382,7 @@ void CSEAnisoT::CloseStep(void)
 
 	/* reset state variables from history */
 	fStateVariables_last = fStateVariables;
+
 	if (freeNodeQ.IsAllocated())
 		freeNodeQ_last = freeNodeQ;
 }
@@ -430,7 +448,6 @@ void CSEAnisoT::LHSDriver(void)
 	
 	if (freeNodeQ.IsAllocated())
 	freeNodeQ = freeNodeQ_last;
-
 
 	AutoArrayT<double> state2;
 	dArrayT state;
@@ -596,6 +613,14 @@ void CSEAnisoT::RHSDriver(void)
 	}
 #endif
 	
+#ifdef _SIERRA_TEST_
+    /*Read in SIERRA's new state variables. We need their memory. */
+    ElementSupportT* nonConstEST = const_cast<ElementSupportT*>(&(ElementSupport()));
+	
+	fStateVariables.Set(fStateVariables.MajorDim(),fStateVariables.MinorDim(),
+		nonConstEST->StateVariableArray());
+#endif
+
 	/* set state to start of current step */
 	fStateVariables = fStateVariables_last;
 	if (freeNodeQ.IsAllocated())

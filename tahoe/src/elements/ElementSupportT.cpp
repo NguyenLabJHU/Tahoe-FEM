@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.10 2002-11-25 07:24:07 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.11 2002-11-26 00:17:33 cjkimme Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -19,6 +19,7 @@
 #endif
 
 using namespace Tahoe;
+using namespace std;
 
 /* constructor */
 ElementSupportT::ElementSupportT(void)
@@ -34,13 +35,7 @@ ElementSupportT::ElementSupportT(void)
 	fInitialCoordinates = NULL;
 	ieqnos = NULL;
 	iparams = NULL;
-	fparams = new double[7];
-	fparams[0] = 1.;
-	fparams[1] = 0.;
-	fparams[2] = fparams[3] = .05;
-	fparams[4] = 1.;
-	fparams[5] = 100.;
-	fparams[6] = 10.;
+	fparams = NULL;
 #endif
 }
 
@@ -160,16 +155,6 @@ const int& ElementSupportT::IterationNumber(int group) const
 	return FEManager().IterationNumber(group); 
 #else
 #pragma unused(group)
-	return fItNum;
-#endif
-}
-
-/* return the iteration number for the current solver group. */
-int ElementSupportT::IterationNumber(void) const
-{
-#ifndef _SIERRA_TEST_
-	return FEManager().IterationNumber(); 
-#else
 	return fItNum;
 #endif
 }
@@ -373,6 +358,56 @@ void ElementSupportT::SetEqnos(int *conn, const int& nElem, const int& nElemNode
 	fStiffness->Dimension(fNumSD*nNodes);
 }
 
+void ElementSupportT::SetInput(map<string,double>& inputParams)
+{
+	fparams = new double[7];
+	
+	fparams[0] = inputParams["FRACTURE ENERGY RATIO"];
+	fparams[1] = inputParams["DELTA_N STAR"];
+	fparams[2] = inputParams["DELTA_N"];
+	fparams[3] = inputParams["DELTA_T"];
+	fparams[4] = inputParams["PHI_N"];
+	fparams[5] = inputParams["FAILURE RATIO"];
+	fparams[6] = inputParams["STIFFNESS PENALTY MULTIPLIER"];
+}
+
+void ElementSupportT::Setfmap(map<string,double>& inputDoubles)
+{
+	fmap = inputDoubles;
+}
+	
+void ElementSupportT::Setimap(map<string,int>& inputInts)
+{
+	imap = inputInts;
+}
+
+double ElementSupportT::ReturnInputDouble(string label) 
+{ 
+	if (fmap.find(label) != fmap.end())
+		return fmap[label];
+	else 
+		return 0.;
+}
+
+
+int ElementSupportT::ReturnInputInt(string label) 
+{ 
+	if (imap.find(label) != imap.end())
+		return imap[label];
+	else
+		return 0;
+}
+
+void ElementSupportT::SetStateVariableArray(double *incomingArray)
+{
+	fStateVars = incomingArray;
+}
+
+double *ElementSupportT::StateVariableArray(void)
+{
+	return fStateVars;
+}
+	
 #endif
 
 /* element number map for the given block ID */
@@ -450,16 +485,23 @@ void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat,
 #ifndef _SIERRA_TEST_
 	FEManager().AssembleLHS(group, elMat, eqnos);
 #else
-#pragma unused(group)
-#pragma unused(elMat)
 #pragma unused(eqnos)
+#pragma message("ElementSupportT::AssembleLHS only fullMatrix so far")
+/* NB that group is really the element number; it's an offset in my eq array */
 	double *fp = elMat.Pointer();
-	int *ip = ieqnos->Pointer() + group*elMat.Rows();
+	int *ip1 = ieqnos->Pointer() + group*elMat.Rows();
+	int nElemDOF = elMat.Rows();
 	
-	for (int i = 0;i < elMat.Length();i++)
-		(*fStiffness)[*ip++] += *fp++;
+	for (int i = 0;i < elMat.Rows();i++)
+	{
+		int *ip2 = ieqnos->Pointer() + nElemDOF*group;
+
+		/* go to right row of stiffness matrix */
+		double *fstiffptr = fStiffness->Pointer()+(*ip1++)*fStiffness->Rows();
+		*(fstiffptr + *ip2++) += *fp++;
+	}
 	fp = fStiffness->Pointer();
-	for (int i = 0;i < fResidual->Length(); i++)
+	for (int i = 0;i < fStiffness->Length(); i++)
 		cout <<"i = "<<i<<" "<<*fp++<<"\n";
 #endif
 }
@@ -496,8 +538,8 @@ void ElementSupportT::AssembleRHS(int group, const dArrayT& elRes,
 #ifndef _SIERRA_TEST_
 	FEManager().AssembleRHS(group, elRes, eqnos);
 #else
-#pragma unused(elRes)
 #pragma unused(eqnos)
+/* NB that group is really the element number; it's an offset in my eq array */
 	cout <<"elRes.Length() = "<<group<<"\n";
 	double *fp = elRes.Pointer();
 	int *ip = ieqnos->Pointer() + group*elRes.Length();
