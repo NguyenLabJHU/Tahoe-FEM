@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.10.2.3 2003-01-05 23:41:45 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.10.2.4 2003-01-11 01:15:25 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -196,7 +196,8 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 
 	/* generate contact element data */
 	fReNeighborCounter++;
-	if (fReNeighborIncr != -1 && fReNeighborCounter >= fReNeighborIncr)
+	if ((fReNeighborDisp > 0.0 && fDmax > fReNeighborDisp) || 
+		(fReNeighborIncr != -1 && fReNeighborCounter >= fReNeighborIncr))
 	{
 		/* (re-)set the neighborlists */
 		SetConfiguration();
