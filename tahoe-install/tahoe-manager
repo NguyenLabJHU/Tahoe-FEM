@@ -20,6 +20,8 @@ blas	BLAS_
 access	AX_
 );
 
+@definedmodules = keys (%module2define);
+
 %syslib2module = qw(
 ACCESS	access
 );
@@ -164,7 +166,7 @@ foreach $key (sort(keys %ENV)) {
 unless(defined($connection)){ 
 @connections = ("cvs", "http");
 $i=0;foreach $choice (@connections) { print "$i $choice\n"; $i++; }
-print "select connection type [cvs]: ";
+print "connection type? [0]: ";
 $i = <STDIN>; chomp($i);
 if (length($i) == 0) { # default
 	$i = 0;
@@ -216,12 +218,25 @@ foreach $choice (@macros) { $choice =~ s/\.macros//; push(@choices,$choice);}
 chdir "..";
 print "no default build architecture, choices:\n";
 $i=0;foreach $choice (@choices) { print "$i $choice\n"; $i++;}
-print "? "; $i = <STDIN>; $arch = $choices[$i]; 
+print "macro ? "; $i = <STDIN>; $arch = $choices[$i]; 
 print "* you chose : $arch\n";
 }
 
 # modules
 @modules = @defaultmodules;
+print "do want to add optional modules ? (y/n) [n] :"; $choice = <STDIN>;
+if ( $choice =~ /y/ ) {
+print "\noptional modules:\n";
+$i=0;foreach $choice (@definedmodules) { print "$i $choice\n"; $i++;}
+print "modules ? "; $choice = <STDIN>; chomp($choice);
+@choices = split(/ +/,$choice);
+foreach $choice (@choices) { push (@modules,$definedmodules[$choice]) ;}
+print "* you chose : @modules \n";
+}
+
+print "\n";
+
+
 open(CONFIG,">$config_file") || die "cannot open file $config_file for writing : $!";
 print CONFIG  "# CONNECTION\n$connection\n\n";
 print CONFIG  "# PROXY\n$proxy\n\n";
