@@ -3,7 +3,6 @@
 // created: SAW 10/06/99
 
 #include "MakeCSE_ElementBaseT.h"
-#include "MakeCSE_FEManager.h"
 #include "OutputSetT.h"
 #include "GeometryBaseT.h"
 #include "TriT.h"
@@ -11,10 +10,13 @@
 #include "HexahedronT.h"
 #include "TetrahedronT.h"
 #include "PentahedronT.h"
+#include "CSEConstants.h"
+#include "ModelManagerT.h"
+#include "MakeCSE_IOManager.h"
 
 using namespace Tahoe;
 
-MakeCSE_ElementBaseT::MakeCSE_ElementBaseT (ostream& fMainOut, int ID) :
+MakeCSE_ElementBaseT::MakeCSE_ElementBaseT (ostream& fMainOut, const StringT& ID) :
   out (fMainOut),
   fNumElemNodes (0),
   fGeometryCode (GeometryT::kNone),
@@ -28,10 +30,10 @@ MakeCSE_ElementBaseT::~MakeCSE_ElementBaseT (void)
 }
 
 // use this initialize for preexisting data
-void MakeCSE_ElementBaseT::Initialize (MakeCSE_IOManager& theInput)
+void MakeCSE_ElementBaseT::Initialize (ModelManagerT& model, MakeCSE_IOManager& theInput)
 {
-  EchoConnectivity (theInput);
-  EchoSideSets (theInput);
+  EchoConnectivity (model);
+  EchoSideSets (model, theInput);
 }
 
 void MakeCSE_ElementBaseT::Initialize (GeometryT::CodeT geocode, int numnodes)
@@ -53,10 +55,10 @@ void MakeCSE_ElementBaseT::AddElements (int numelems)
   if (fNodeNums.Length() == 0)
     {
       fNodeNums.Allocate (numelems, fNumElemNodes);
-      fNodeNums = MakeCSE_FEManager::kNotSet;
+      fNodeNums = CSEConstants::kNotSet;
     }
   else
-    fNodeNums.Resize (num + numelems, MakeCSE_FEManager::kNotSet);
+    fNodeNums.Resize (num + numelems, CSEConstants::kNotSet);
 }
 
 void MakeCSE_ElementBaseT::SetNodes (int e1local, const iArrayT& nodes)
@@ -158,7 +160,7 @@ void MakeCSE_ElementBaseT::FaceNodes (int e1local, int f1, iArrayT& nodes) const
     if (*pfN > -1) // account for ragged array (penta)
       nodes [i] = fNodeNums (e1local, *pfN++);
     else
-      nodes [i] = MakeCSE_FEManager::kNotSet;
+      nodes [i] = CSEConstants::kNotSet;
 }
 
 void MakeCSE_ElementBaseT::AbbrFaceNodes (int e1local, int f1, iArrayT& nodes) const
@@ -175,7 +177,7 @@ void MakeCSE_ElementBaseT::AbbrFaceNodes (int e1local, int f1, iArrayT& nodes) c
     if (vertexfacenodes [i] > -1) // account for ragged array (penta)
       nodes [i] = fNodeNums (e1local, vertexfacenodes[i]);
     else
-      nodes [i] = MakeCSE_FEManager::kNotSet;
+      nodes [i] = CSEConstants::kNotSet;
 }
 
 bool MakeCSE_ElementBaseT::CheckSideSet (const iArray2DT& sides) const
@@ -203,7 +205,7 @@ bool MakeCSE_ElementBaseT::CheckSideSet (const iArray2DT& sides) const
   return true;
 }
 
-void MakeCSE_ElementBaseT::AddSideSet (int setID, const iArray2DT& sides)
+void MakeCSE_ElementBaseT::AddSideSet (const StringT& setID, const iArray2DT& sides)
 {
   int dex;
   fSideSetID.HasValue (setID, dex);
@@ -211,14 +213,14 @@ void MakeCSE_ElementBaseT::AddSideSet (int setID, const iArray2DT& sides)
     {
       int length = fSideSetData[dex].MajorDim();
       int num = sides.MajorDim();
-      fSideSetData[dex].Resize (length + num, MakeCSE_FEManager::kNotSet);
+      fSideSetData[dex].Resize (length + num, CSEConstants::kNotSet);
       fSideSetData[dex].BlockRowCopyAt (sides, length);
     }
   else
     {
       int length = fSideSetID.Length();
       fSideSetData.Resize (length + 1);
-      fSideSetID.Resize (length + 1, MakeCSE_FEManager::kNotSet);
+      fSideSetID.Resize (length + 1, "");
       fSideSetData[length] = sides;
       fSideSetID[length] = setID;
       out << "\n  Element Group ID . . . . . . . . . . . . . . . = " 
@@ -286,7 +288,7 @@ void MakeCSE_ElementBaseT::RegisterOutput (MakeCSE_IOManager& theIO)
     //theIO.AddSideSet (fSideSetData[s], fSideSetID[s], fOutputID);
 }
 
-void MakeCSE_ElementBaseT::WriteOutput (MakeCSE_IOManager& theIO, IOBaseT::OutputModeT mode) const
+void MakeCSE_ElementBaseT::WriteOutput (void) const
 {
   // send variable data
   /*iArrayT codes;
@@ -332,19 +334,20 @@ bool MakeCSE_ElementBaseT::IsFaceValid (int face) const
 
 // *********** PROTECTED *************
 
-void MakeCSE_ElementBaseT::EchoConnectivity (MakeCSE_IOManager& theInput)
+void MakeCSE_ElementBaseT::EchoConnectivity (ModelManagerT& theInput)
 {
   ReadConnectivity (theInput, fGeometryCode, fNodeNums);
   InitializeConnectivity ();
 }
 
-void MakeCSE_ElementBaseT::ReadConnectivity (MakeCSE_IOManager& theInput, GeometryT::CodeT& geocode, iArray2DT& conn) const
+void MakeCSE_ElementBaseT::ReadConnectivity (ModelManagerT& theInput, GeometryT::CodeT& geocode, iArray2DT& conn) const
 {
   iArrayT map;
   StringT id;
   id.Append (fGroupID);
   geocode = theInput.ElementGroupGeometry (id);
   conn = theInput.ElementGroup (id);
+  map.Dimension (conn.MajorDim());
   theInput.ElementIDs (id, map);
 }
 
@@ -358,18 +361,18 @@ void MakeCSE_ElementBaseT::InitializeConnectivity (void)
   PrintControlData ();
 }
 
-void MakeCSE_ElementBaseT::EchoSideSets (MakeCSE_IOManager& theInput)
+void MakeCSE_ElementBaseT::EchoSideSets (ModelManagerT& model, MakeCSE_IOManager& theInput)
 {
-  ReadSideSetData (theInput, fSideSetData);
+  ReadSideSetData (model, theInput, fSideSetData);
   CheckAllSideSets ();
 }
 
-void MakeCSE_ElementBaseT::ReadSideSetData (MakeCSE_IOManager& theInput, ArrayT<iArray2DT>& Data)
+void MakeCSE_ElementBaseT::ReadSideSetData (ModelManagerT& model, MakeCSE_IOManager& theInput, ArrayT<iArray2DT>& Data)
 {
   /* read in side sets that are to be transferred */
-  iArrayT sides;
-  theInput.InputData (sides, MakeCSE_IOManager::kCopySide);
-  iAutoArrayT ids;
+  sArrayT sides;
+  theInput.SideSetsMapped (sides);
+  AutoArrayT<StringT> ids;
 
   /* list side sets in this element group */
   for (int s=0; s < sides.Length(); s += 2)
@@ -388,10 +391,10 @@ void MakeCSE_ElementBaseT::ReadSideSetData (MakeCSE_IOManager& theInput, ArrayT<
     {
       StringT sid;
       sid.Append (ids[i]);
-      const iArray2DT temp = theInput.SideSet (sid);
-      bool local = theInput.IsSideSetLocal (sid);
+      const iArray2DT temp = model.SideSet (sid);
+      bool local = model.IsSideSetLocal (sid);
       if (local)
-	theInput.SideSetLocalToGlobal (sid, temp, Data[i]);
+	model.SideSetLocalToGlobal (sid, temp, Data[i]);
       else
 	Data[i] = temp;
       out << "    Side Set . . . . . . . . . . . . . . . . . . = " 

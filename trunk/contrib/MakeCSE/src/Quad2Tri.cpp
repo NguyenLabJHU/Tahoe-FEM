@@ -1,4 +1,5 @@
-// $Id: Quad2Tri.cpp,v 1.3 2002-10-08 20:51:50 paklein Exp $
+// file: Quad2Tri.cpp
+
 // created: SAW 12/21/99
 
 #include "Quad2Tri.h"
@@ -12,17 +13,16 @@ const char* fMethodName [] = { "X-Method",
 
 using namespace Tahoe;
 
-Quad2Tri::Quad2Tri (ostream& fMainOut, NodeManagerPrimitive& NMP, int method, int ID) :
-	MakeCSE_ElementBaseT (fMainOut, ID),
-	theNodes (&NMP),
-	fMethod (method)
+Quad2Tri::Quad2Tri (ostream& fMainOut, NodeManagerPrimitive& NMP, CSEConstants::SplitMethodT method, const StringT& ID) :
+  MakeCSE_ElementBaseT (fMainOut, ID),
+  theNodes (&NMP),
+  fMethod (method)
 {
-
 }
 
 // *********** PROTECTED *************
 
-void Quad2Tri::EchoConnectivity (MakeCSE_IOManager& theInput)
+void Quad2Tri::EchoConnectivity (ModelManagerT& theInput)
 {
   // read quadrilateral data
   GeometryT::CodeT geocode;
@@ -39,23 +39,23 @@ void Quad2Tri::EchoConnectivity (MakeCSE_IOManager& theInput)
   InitializeConnectivity ();
 }
 
-void Quad2Tri::EchoSideSets (MakeCSE_IOManager& theInput)
+void Quad2Tri::EchoSideSets (ModelManagerT& model, MakeCSE_IOManager& theInput)
 {
   ArrayT<iArray2DT> sidesets;
-  ReadSideSetData (theInput, sidesets);
+  ReadSideSetData (model, theInput, sidesets);
 
   switch (fMethod)
     {
-    case kXMethod:
+    case CSEConstants::kXMethod:
       XMethodSideSets (sidesets);
       break;
-    case kSlashMethod:
+    case CSEConstants::kSlashMethod:
       SlashSideSets (sidesets);
       break;
-    case kBackSlashMethod:
+    case CSEConstants::kBackSlashMethod:
       BackSlashSideSets (sidesets);
       break;
-    case kStarMethod:
+    case CSEConstants::kStarMethod:
       StarSideSets (sidesets);
       break;
     default:
@@ -83,19 +83,19 @@ void Quad2Tri::Translate (void)
     {
       switch (fMethod)
 	{
-	case kXMethod:
+	case CSEConstants::kXMethod:
 	  {
 	    int newnode = ElementCentroid (quad, numQuadNodes, coords);
 	    XMethodNumbering (count, newnode, quad);
 	    break;
 	  }
-	case kSlashMethod:
+	case CSEConstants::kSlashMethod:
 	  SlashNumbering (count, quad);
 	  break;
-	case kBackSlashMethod:
+	case CSEConstants::kBackSlashMethod:
 	  BackSlashNumbering (count, quad);
 	  break;
-	case kStarMethod:
+	case CSEConstants::kStarMethod:
 	  {
 	    int newnode = ElementCentroid (quad, numQuadNodes, coords);
 	    StarNumbering (count, newnode, quad);
@@ -125,18 +125,18 @@ void Quad2Tri::Allocate (int numQuadNodes)
   // determine necessary space
   switch (fMethod)
     {
-    case kXMethod:
+    case CSEConstants::kXMethod:
       numTriNodes = 3;
       numCreated = 4;
       quadnodesrequired = 4;
       break;
-    case kSlashMethod:
-    case kBackSlashMethod:
+    case CSEConstants::kSlashMethod:
+    case CSEConstants::kBackSlashMethod:
       numTriNodes = 3;
       numCreated = 2;
       quadnodesrequired = 4;
       break;
-    case kStarMethod:
+    case CSEConstants::kStarMethod:
       numTriNodes = 3;
       numCreated = 8;
       quadnodesrequired = 8;
@@ -157,7 +157,7 @@ void Quad2Tri::Allocate (int numQuadNodes)
 
   // allocate space
   fNodeNums.Allocate (fConn.MajorDim() *numCreated, numTriNodes);
-  fNodeNums = MakeCSE_FEManager::kNotSet;
+  fNodeNums = CSEConstants::kNotSet;
 }
 
 /* find centroid of element */

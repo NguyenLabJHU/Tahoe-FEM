@@ -1,5 +1,13 @@
-/* $Id: MakeCSE.h,v 1.4 2002-10-08 20:51:50 paklein Exp $ */
-/* created      : SAW (04/22/99) */
+/*
+ * File: MakeCSEPrimitive.h
+ *
+ */
+
+/*
+ * created      : SAW (04/22/99)
+ * last modified: SAW (07/11/99)
+ */
+
 #ifndef _MAKECSEPRIMITIVE_H_
 #define _MAKECSEPRIMITIVE_H_
 
@@ -8,37 +16,30 @@
 #include "GlobalEdgeFinderT.h"
 #include "MakeCSE_ElementBaseT.h"
 
+namespace Tahoe {
+
 class MakeCSE_FEManager;
 
-using namespace Tahoe;
-
-/** This class uses the regular mesh to put CSEs into the specified
- * element block, tacks the created nodes on the end of the coordinate list. */
 class MakeCSE
 {
  public:
 
-  enum ZoneEdgeType { kSingleZE = 1,
-		      kDoubleZE = 2,
-		      kMixSingZE = 3,
-		      kMixDoubZE = 4 };
-
   MakeCSE (ostream& log, GlobalEdgeFinderT& Edger);
   ~MakeCSE (void);
 
-  void Initialize (MakeCSE_IOManager& theInput, MakeCSE_FEManager& FEM, int comments);
+  void Initialize (ModelManagerT& model, MakeCSE_IOManager& theInput, MakeCSE_FEManager& FEM, int comments);
   void Create (void);
 
  private:
 
   // gather and initialze data
   void SetFE (MakeCSE_FEManager& FEM);
-  void SetInput (MakeCSE_IOManager& theInput);
+  void SetInput (ModelManagerT& model, MakeCSE_IOManager& theInput);
   void InitializeContact (MakeCSE_IOManager& theInput);
-  void CollectFacets (MakeCSE_IOManager& theInput, const iArrayT& facetdata);
-  void CollectSingleNodes (MakeCSE_IOManager& theInput);
-  void CollectZones (MakeCSE_IOManager& theInput, const iArrayT& zonedata);
-  void CollectBoundaries (const iArrayT& boundarydata);
+  void CollectFacets (ModelManagerT& theInput, const sArrayT& facetdata);
+  void CollectSingleNodes (ModelManagerT& model, MakeCSE_IOManager& theInput);
+  void CollectZones (ModelManagerT& model, MakeCSE_IOManager& theInput, const sArrayT& zonedata);
+  void CollectBoundaries (const sArrayT& boundarydata);
 
   void InitializeSet (int group, int CSEgroup);
   void AddElements (int num, int CSEgroup);
@@ -84,11 +85,12 @@ class MakeCSE
   iAutoArrayT           fNoMassNodes;
 
   // list of CSE block ID's to prep for contact surfaces 
-  iArrayT               fContact;
+  sArrayT               fContact;
 
   // current id value for adding a set
   int                   fNSetID;
   int                   fSSetID;
 };
+}//namespace Tahoe
 
 #endif

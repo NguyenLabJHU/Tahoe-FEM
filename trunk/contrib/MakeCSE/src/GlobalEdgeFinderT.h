@@ -13,10 +13,11 @@
 #define _GLOBAL_EDGE_FINDER_T_H_
 
 #include "MakeCSE_ElementBaseT.h"
+#include "sArrayT.h"
+
+namespace Tahoe {
 
 class MakeCSE_FEManager;
-
-using namespace Tahoe;
 
 class GlobalEdgeFinderT
 {
@@ -31,7 +32,7 @@ class GlobalEdgeFinderT
 	void Initialize (MakeCSE_FEManager& theBoss, int num_nodes);
 
 	// element group data
-	int ElementGroup (int groupid) const;
+	int ElementGroup (const StringT& groupid) const;
 	int WhichGroup (int elem) const;
 
 	// neighbor data
@@ -49,8 +50,8 @@ class GlobalEdgeFinderT
 	int GlobalElement (int local, int group) const;
 
 	// node and facet data
-	void ZoneFacets (int groupid, const iArrayT& zonegroupids, iArray2DT& sideset, iAutoArrayT& boundarynodes);
-	void BoundaryFacets (int groupid, const iArrayT& bordergroupids, iArray2DT& sideset);
+	void ZoneFacets (const StringT& groupid, const sArrayT& zonegroupids, iArray2DT& sideset, iAutoArrayT& boundarynodes);
+	void BoundaryFacets (const StringT& groupid, const StringT& bordergroupid, iArray2DT& sideset);
 
 	bool HasNode (int node, const ArrayT<int>& facets);
 	bool AnotherNode (int node, const ArrayT<int>& facets, const iArrayT& nodes);
@@ -66,7 +67,7 @@ class GlobalEdgeFinderT
 	ArrayT<MakeCSE_ElementBaseT*> theElements;
 
 	/* element maps */
-	iArrayT fElementID;
+	sArrayT fElementID; /**< element group id */
 	ArrayT<iArrayT> fElementMap;
 	iArray2DT fRevElementMap;     // group, local element
 
@@ -92,4 +93,5 @@ inline void GlobalEdgeFinderT::ResetInvConnects (int numnodes)
   SetInverseConnects ();
 }
 
+}// namespace Tahoe
 #endif /* _GLBOAL_EDGE_FINDER_T_H_ */

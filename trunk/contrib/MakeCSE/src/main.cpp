@@ -1,9 +1,10 @@
-// $Id: main.cpp,v 1.4 2002-10-08 20:51:51 paklein Exp $
+// main.cpp
+
 // created: 6 Oct 1999 by S. A. Wimmer
+
 // program reads input file, runs MakeCSE, writes output file
 
 #include "MakeCSE_FEManager.h"
-#include "MakeCSE_IOManager.h"
 #include "ifstreamT.h"
 
 using namespace Tahoe;
@@ -16,7 +17,7 @@ int main (void)
     {
       /* determine input file */
       const char *program_name = "MakeCSE";
-      const char *program_version = "v5 (3 May 2000)";
+      const char *program_version = "v5.1 (Oct 2002)";
  
       /* create input/output manager and read input file */
       cout << "\n Welcome to: " << program_name << " " << program_version;
@@ -39,18 +40,18 @@ int main (void)
 	}
      
       ofstream log (outfile);
-      MakeCSE_IOManager iodata (log);
-      iodata.ReadParameters (in, interactive, program_name, program_version);
+      log << "\n Welcome to: " << program_name << " " << program_version;
+      log << "\n\n Build Date: " << __DATE__ " " << __TIME__ << "\n\n";
+      MakeCSE_FEManager maker (log);
 
-      /* set up node and element data */
-      MakeCSE_FEManager maker (log, iodata);
+      /* read geometry and parameters */
+      maker.InitializeInput (in, interactive);
 
       /* make cohesive surfaces */
       maker.CreateCSE ();
 
       /* print output data */
-      maker.SetIO (iodata);
-      iodata.WriteGeometry ();
+      maker.WriteOutput ();
       
       cout << "\n Program Complete\n\n" << endl;
     }
@@ -85,10 +86,9 @@ bool IsInteractive (ifstreamT& in)
   bool file = false;
   while (file == false)
     {
-		cout << "\nEnter input file name: \n" 
-             << "(\"quit\" to exit, \"nothing\" for interactive): ";
-		infile.GetLineFromStream(cin);
-//		cin.getline (infile.Pointer(), 80, '\n');
+      cout << "\nEnter input file name: \n" 
+	   << "(\"quit\" to exit, \"nothing\" for interactive): ";
+      cin.getline (infile.Pointer(), 80, '\n');
   
       if (strncmp (infile, "nothing", 7) == 0)
 	return true;
