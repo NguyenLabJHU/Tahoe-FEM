@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.14 2004-07-27 03:16:05 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.15 2004-08-01 01:00:59 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -114,20 +114,11 @@ void SIERRA_Material_BaseT::ResetHistory(void)
 	}
 }
 
-/* spatial description */
-const dMatrixT& SIERRA_Material_BaseT::c_ijkl(void)
-{
-	IsotropicT::ComputeModuli(fModulus);
-	return fModulus;
-	
-//NOTE: could do better here using the stress_old, stress_new, and
-//      incremental strain to give an estimate of the tangent modulus
-}
-
 const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 {
 	/* call calc function */
-	if (MaterialSupport().RunState() == GlobalT::kFormRHS)
+	if (MaterialSupport().RunState() == GlobalT::kFormRHS ||
+		MaterialSupport().RunState() == GlobalT::kFormLHS)
 	{
 		/* load stored data */
 		Load(CurrentElement(), CurrIP());
@@ -157,7 +148,7 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 		/* call the calc function */
 		Sierra_function_material_calc calc_func = fSIERRA_Material_Data->CalcFunction();
 		calc_func(&nelem, &dt, fdstran.Pointer(), &ivars_size,
-			fstress_old.Pointer(), fstress_new.Pointer(), 
+			fstress_old_rotated.Pointer(), fstress_new.Pointer(), 
 			&nsv, fstate_old.Pointer(), fstate_new.Pointer(), 
 			&matvals, &ncd);
 
@@ -178,28 +169,6 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 	/* copy/convert stress */
 	SIERRA_to_dSymMatrixT(fstress_new.Pointer(), fStress);
 	fPressure = fStress.Trace()/3.0;
-	return fStress;
-}
-
-/* material description */
-const dMatrixT& SIERRA_Material_BaseT::C_IJKL(void)
-{
-	/* spatial -> material */
-	const dMatrixT& Fmat = F();
-	fModulus.SetToScaled(Fmat.Det(), PullBack(Fmat, c_ijkl()));	
-	return fModulus;
-	
-//NOTE: could do better here using the stress_old, stress_new, and
-//      incremental strain to give an estimate of the tangent modulus
-}
-
-const dSymMatrixT& SIERRA_Material_BaseT::S_IJ(void)
-{
-	/* Cauchy stress */
-	const dSymMatrixT& s = SIERRA_Material_BaseT::s_ij();
-
-	/* spatial -> material */
-	fStress.SetToScaled(F().Det(), PullBack(F(), s));	
 	return fStress;
 }
 
@@ -283,8 +252,7 @@ void SIERRA_Material_BaseT::TakeParameterList(const ParameterListT& list)
 	if (nsd != 3) ExceptionT::GeneralFail(caller, "3D only");
 
 	/* dimension work space */
-	fModulus.Dimension(dSymMatrixT::NumValues(nsd));
-	fStress.Dimension(nsd);
+	fstress_old_rotated.Dimension(kSIERRA_stress_dim);
 	fF_rel.Dimension(nsd);
 	fA_nsd.Dimension(nsd);
 	fU1.Dimension(nsd);
@@ -337,7 +305,6 @@ void SIERRA_Material_BaseT::TakeParameterList(const ParameterListT& list)
 	double kappa  = fSIERRA_Material_Data->Property("BULK_MODULUS");
 	double mu = fSIERRA_Material_Data->Property("TWO_MU")/2.0;
 	IsotropicT::Set_mu_kappa(mu, kappa);
-	IsotropicT::ComputeModuli(fModulus);
 
 	/* storage block size (per ip) */
 	int nsv = fSIERRA_Material_Data->NumStateVariables();
@@ -603,5 +570,5 @@ if (input.Length() != 1)
 	/* rotate old stress to current configuration */
 	SIERRA_to_dSymMatrixT(fstress_old.Pointer(), fU1);
 	fU2.MultQBQT(fA_nsd, fU1);
-	dSymMatrixT_to_SIERRA(fU2, fstress_old.Pointer());
+	dSymMatrixT_to_SIERRA(fU2, fstress_old_rotated.Pointer());
 }

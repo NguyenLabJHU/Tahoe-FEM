@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.h,v 1.6 2004-07-27 03:16:05 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.h,v 1.7 2004-08-01 01:00:59 paklein Exp $ */
 #ifndef _SIERRA_MAT_BASE_T_H_
 #define _SIERRA_MAT_BASE_T_H_
 
@@ -68,9 +68,6 @@ public:
 
 	/** \name spatial description */
 	/*@{*/
-	/** spatial tangent modulus */
-	virtual const dMatrixT& c_ijkl(void);
-
 	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
 
@@ -81,15 +78,6 @@ public:
 	 * stress tensor, regardless of the dimensionality of the
 	 * problem. */
 	virtual double Pressure(void) const;
-	/*@}*/
-
-	/** \name material description */
-	/*@{*/
-	/** material tangent moduli */
-	virtual const dMatrixT& C_IJKL(void);
-
-	/** 2nd Piola-Kirchhoff stress */
-	virtual const dSymMatrixT& S_IJ(void);
 	/*@}*/
 
 	/** returns the strain energy density for the specified strain */
@@ -163,10 +151,11 @@ protected:
 	/** \name Sierra_function_material_calc arguments */
 	/*@{*/
 	nArrayT<double> fdstran;     /**< rotated strain increment */
-	nArrayT<double> fstress_old; /**< (rotated) stress from the previous time increment */
+	nArrayT<double> fstress_old; /**< stress from the previous time increment */
 	nArrayT<double> fstress_new; /**< destination for updated stress */
 	nArrayT<double> fstate_old;  /**< state variables from the previous time increment */
 	nArrayT<double> fstate_new;  /**< destination for updated state variables */
+	nArrayT<double> fstress_old_rotated; /**< rotated stress from the previous time increment */
 	nArrayT<double> fmatvals;    /**< array of material parameters */
 	/*@}*/
 
@@ -188,8 +177,6 @@ private:
 	SIERRA_Material_Data* fSIERRA_Material_Data;
 
 	/* work space */
-	dMatrixT    fModulus;            // return value
-	dSymMatrixT fStress;             // return value
 	double fPressure; /**< pressure for the most recent calculation of the stress */
 	
 	/** \name polar decomposition work space */
