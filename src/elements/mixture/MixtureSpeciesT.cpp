@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.6 2005-01-04 00:52:16 paklein Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.7 2005-01-05 01:27:24 paklein Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
@@ -116,6 +116,9 @@ void MixtureSpeciesT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		*m = m0;
 		m++; Dm++;
 	}
+
+	/* inherited */
+	NLDiffusionElementT::LHSDriver(sys_type);
 }
 
 /* calculate the internal force contribution ("-k*d") */
@@ -219,7 +222,7 @@ void MixtureSpeciesT::FormStiffness(double constK)
 	
 		/* (divergence) mass flux contribution */
 		fB.MultTx(DM, fNEEvec);
-		fLHS.Outer(fNEEvec, Na, -scale, dMatrixT::kAccumulate);
+		fLHS.Outer(fNEEvec, Na, scale, dMatrixT::kAccumulate);
 	}
 }
 

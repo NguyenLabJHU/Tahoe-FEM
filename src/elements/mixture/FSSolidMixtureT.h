@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.h,v 1.2 2004-11-05 22:53:49 paklein Exp $ */
+/* $Id: FSSolidMixtureT.h,v 1.3 2005-01-05 01:27:24 paklein Exp $ */
 #ifndef _FS_SOLID_MIX_T_H_
 #define _FS_SOLID_MIX_T_H_
 
@@ -36,6 +36,9 @@ public:
 	/** return the index of the species associated with the given field name, or
 	 * -1 if the field is not found */
 	int SpeciesIndex(const StringT& field_name) const;
+
+	/** density varies with position */
+	virtual bool HasChangingDensity(void) const { return true; };
 
 	/** mass density. Method does retrieve current values of the nodal concentrations. */
 	virtual double Density(void);
