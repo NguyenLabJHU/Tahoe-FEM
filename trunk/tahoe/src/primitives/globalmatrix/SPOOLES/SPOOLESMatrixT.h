@@ -1,5 +1,5 @@
-/* $Id: SPOOLESMatrixT.h,v 1.3 2001-09-17 22:01:01 strohban Exp $ */
-/* created: paklein (09/13/2000)                                          */
+/* $Id: SPOOLESMatrixT.h,v 1.4 2002-03-04 06:43:16 paklein Exp $ */
+/* created: paklein (09/13/2000) */
 
 #ifndef _SPOOLES_MATRIX_T_H_
 #define _SPOOLES_MATRIX_T_H_
@@ -20,6 +20,7 @@
 /* forward declarations */
 class MSRBuilderT;
 
+/** interface to SPOOLES sparse, direct linear solver */
 class SPOOLESMatrixT: public GlobalMatrixT
 {
 public:
@@ -75,8 +76,11 @@ protected:
 	virtual void PrintZeroPivots(void) const;
 	virtual void PrintLHS(void) const;
 
-	/* copy MSR data to RCV */
-	void GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v);
+	/** convert MSR data in SPOOLESMatrixT::fMSRBuilder to RCV format
+	 * \param drop_tol tolerance to drop values if absolute value is smaller
+	 *        than the tolerance. Passing a negative value causes no
+	 *        values to be dropped. */
+	void GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v, double drop_tol);
 
 private:
 
