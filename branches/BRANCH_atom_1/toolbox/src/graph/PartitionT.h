@@ -1,4 +1,4 @@
-/* $Id: PartitionT.h,v 1.9.2.1 2002-12-16 09:13:11 paklein Exp $ */
+/* $Id: PartitionT.h,v 1.9.2.2 2003-01-05 23:37:18 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 #ifndef _PARTITION_T_H_
 #define _PARTITION_T_H_
@@ -198,10 +198,13 @@ public:
 	void ReturnPartitionNodes(const iArrayT& global_nodes,
 		iArrayT& partition_indices) const;
 
-	/* returns indeces of (block) global elements that lie within
+	/** returns indeces of (block) global elements that lie within
 	 * the partition */
 	void ReturnPartitionElements(const StringT& blockID, const iArrayT& global_elements,
 		iArrayT& partition_indices) const;
+		
+	/** return the node to processor map for nodes listed in PartitionT::NodeMap */
+	void ReturnProcessorMap(ArrayT<int>& n2p) const;
 
 	/** \name mapping functions
 	 * The mapping functions assumes the scope of the node and elements
