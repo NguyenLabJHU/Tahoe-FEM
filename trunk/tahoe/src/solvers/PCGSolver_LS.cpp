@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.13 2003-04-08 22:59:24 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.14 2003-08-18 03:37:23 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -15,11 +15,26 @@
 using namespace Tahoe;
 
 /* constructor */
+PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager):
+	NLSolver(fe_manager),
+	fRestart_count(-1)
+{
+	SetName("PCG_solver");
+
+	/* set console */
+	iAddVariable("search_iterations", fSearchIterations);
+	iAddVariable("line_search_tolerance", fOrthogTolerance);
+	iAddVariable("max_step_size", fMaxStepSize);
+	iAddVariable("restart_count", fRestart);
+}
+
 PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	NLSolver(fe_manager, group),
 	fRestart_count(-1)
 //	,fPreconditioner(0) //TEMP
 {
+	SetName("PCG_solver");
+
 	/* check */
 	if (fMatrixType != kDiagonalMatrix)
 	{
@@ -87,6 +102,33 @@ void PCGSolver_LS::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	
 	/* set flag */
 	fRestart_count = -1;
+}
+
+/* describe the parameters needed by the interface */
+void PCGSolver_LS::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	NLSolver::DefineParameters(list);
+
+	/* restart iterations */
+	ParameterT restart(ParameterT::Integer, "restart");
+	restart.AddLimit(0, LimitT::LowerInclusive);
+	list.AddParameter(restart);
+
+	/* line search iterations */
+	ParameterT line_search_iterations(ParameterT::Integer, "line_search_iterations");
+	line_search_iterations.SetDefault(3);
+	list.AddParameter(line_search_iterations);
+
+	/* line search orthogonality tolerance */
+	ParameterT line_search_tolerance(ParameterT::Double, "line_search_tolerance");
+	line_search_tolerance.SetDefault(0.25);
+	list.AddParameter(line_search_tolerance);
+
+	/* maximum step size */
+	ParameterT max_step(ParameterT::Double, "max_step");
+	max_step.SetDefault(2.5);
+	list.AddParameter(max_step);
 }
 
 /*************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.h,v 1.5 2003-03-31 22:59:32 paklein Exp $ */
+/* $Id: PCGSolver_LS.h,v 1.6 2003-08-18 03:37:24 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #ifndef _PCG_SOLVER_LS_H_
 #define _PCG_SOLVER_LS_H_
@@ -11,17 +11,27 @@
 
 namespace Tahoe {
 
+/** nonlinear preconditioned conjugate gradient solver with line search */
 class PCGSolver_LS: public NLSolver
 {
 public:
 
-	/** constructor */
+	/** \name constructors */
+	/*@{*/
+	PCGSolver_LS(FEManagerT& fe_manager);
 	PCGSolver_LS(FEManagerT& fe_manager, int group);
+	/*@}*/
 
 	/** (re-)configure the global equation system */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
 
 	virtual SolutionStatusT Solve(int max_iterations);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 
