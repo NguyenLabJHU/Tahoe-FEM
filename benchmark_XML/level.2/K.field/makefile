@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2004-05-20 15:10:27 paklein Exp $
+# $Id: makefile,v 1.1 2004-05-20 15:10:26 paklein Exp $
 #
 # type "make clean" to remove test results
 #
