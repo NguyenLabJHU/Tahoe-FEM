@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.7.2.4 2003-01-06 18:37:51 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.7.2.5 2003-01-07 19:35:25 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
@@ -272,7 +272,7 @@ void CommunicatorT::Gather(const nArrayT<int>& my_values, nArrayT<int>& gather,
 	if (displacements.Length() != Size()) ExceptionT::SizeMismatch(caller);
 	if (counts[Rank()] != my_values.Length()) ExceptionT::SizeMismatch(caller);
 	if (counts.Length() != displacements.Length()) ExceptionT::SizeMismatch(caller);
-	if (displacements.Last() + counts.Last() >= gather.Length()) ExceptionT::SizeMismatch(caller);
+	if (displacements.Last() + counts.Last() > gather.Length()) ExceptionT::SizeMismatch(caller);
 		/* assume counts and displacements are OK interms of overlap and assume the
 		 * displacements are monotonically increasing */
 #endif
@@ -415,7 +415,8 @@ void CommunicatorT::AllGather(const nArrayT<int>& my, nArrayT<int>& gather) cons
 void CommunicatorT::AllGather(const nArrayT<double>& my, nArrayT<double>& gather,
 	const nArrayT<int>& counts, const nArrayT<int>& displacements) const
 {
-	Log(kModerate, "AllGather", "sending %d", my.Length());
+	const char caller[] = "CommunicatorT::Gather";
+	Log(kModerate, caller, "sending %d", my.Length());
 	if (LogLevel() == kLow)
 	{
 		Log() << "counts = \n" << counts.wrap(5) << '\n';
@@ -424,10 +425,9 @@ void CommunicatorT::AllGather(const nArrayT<double>& my, nArrayT<double>& gather
 	}
 
 #if __option(extended_errorcheck)
-	if (counts[Rank()] != my.Length()) ExceptionT::SizeMismatch();
-	if (counts.Length() != displacements.Length()) ExceptionT::SizeMismatch();
-	if (gather.Length() > 1 && 
-		(displacements.Last() + counts.Last() >= gather.Length())) ExceptionT::SizeMismatch();
+	if (counts[Rank()] != my.Length()) ExceptionT::SizeMismatch(caller);
+	if (counts.Length() != displacements.Length()) ExceptionT::SizeMismatch(caller);
+	if (displacements.Last() + counts.Last() > gather.Length()) ExceptionT::SizeMismatch(caller);
 		/* assume counts and displacements are OK interms of overlap and assume the
 		 * displacements are monotonically increasing */
 #endif
@@ -436,7 +436,7 @@ void CommunicatorT::AllGather(const nArrayT<double>& my, nArrayT<double>& gather
 	int len = my.Length();
 	if (MPI_Allgatherv(my.Pointer(), len, MPI_DOUBLE, 
 		gather.Pointer(), counts.Pointer(), displacements.Pointer(), MPI_DOUBLE, fComm) != MPI_SUCCESS)
-		Log(kFail, "CommunicatorT::Gather", "MPI_Allgatherv failed");
+		Log(kFail, caller, "MPI_Allgatherv failed");
 #else
 	/* write my into gather */
 	int len = my.Length();
@@ -447,7 +447,7 @@ void CommunicatorT::AllGather(const nArrayT<double>& my, nArrayT<double>& gather
 //NOTE: need to implement gather with sends and receives for CPLANT and other
 //      platforms where Allgather seems to be troublesome.
 
-	Log(kModerate, "AllGather", "gathered %d", gather.Length());
+	Log(kModerate, caller, "gathered %d", gather.Length());
 	if (LogLevel() == kLow) Log() << gather.wrap(5) << '\n';
 }
 
@@ -455,7 +455,8 @@ void CommunicatorT::AllGather(const nArrayT<double>& my, nArrayT<double>& gather
 void CommunicatorT::AllGather(const nArrayT<int>& my, nArrayT<int>& gather,
 	const nArrayT<int>& counts, const nArrayT<int>& displacements) const
 {
-	Log(kModerate, "AllGather", "sending %d", my.Length());
+	const char caller[] = "CommunicatorT::Gather";
+	Log(kModerate, caller, "sending %d", my.Length());
 	if (LogLevel() == kLow)
 	{
 		Log() << "counts = \n" << counts.wrap(5) << '\n';
@@ -464,10 +465,9 @@ void CommunicatorT::AllGather(const nArrayT<int>& my, nArrayT<int>& gather,
 	}
 
 #if __option(extended_errorcheck)
-	if (counts[Rank()] != my.Length()) ExceptionT::SizeMismatch();
-	if (counts.Length() != displacements.Length()) ExceptionT::SizeMismatch();
-	if (gather.Length() > 1 && 
-		(displacements.Last() + counts.Last() >= gather.Length())) ExceptionT::SizeMismatch();
+	if (counts[Rank()] != my.Length()) ExceptionT::SizeMismatch(caller);
+	if (counts.Length() != displacements.Length()) ExceptionT::SizeMismatch(caller);
+	if (displacements.Last() + counts.Last() > gather.Length()) ExceptionT::SizeMismatch(caller);
 		/* assume counts and displacements are OK interms of overlap and assume the
 		 * displacements are monotonically increasing */
 #endif
@@ -476,7 +476,7 @@ void CommunicatorT::AllGather(const nArrayT<int>& my, nArrayT<int>& gather,
 	int len = my.Length();
 	if (MPI_Allgatherv(my.Pointer(), len, MPI_INT, 
 		gather.Pointer(), counts.Pointer(), displacements.Pointer(), MPI_INT, fComm) != MPI_SUCCESS)
-		Log(kFail, "CommunicatorT::Gather", "MPI_Allgatherv failed");
+		Log(kFail, caller, "MPI_Allgatherv failed");
 #else
 	/* write my into gather */
 	int len = my.Length();
@@ -487,7 +487,7 @@ void CommunicatorT::AllGather(const nArrayT<int>& my, nArrayT<int>& gather,
 //NOTE: need to implement gather with sends and receives for CPLANT and other
 //      platforms where Allgather seems to be troublesome.
 
-	Log(kModerate, "AllGather", "gathered %d", gather.Length());
+	Log(kModerate, caller, "gathered %d", gather.Length());
 	if (LogLevel() == kLow) Log() << gather.wrap(5) << '\n';
 }
 
