@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.9.16.5 2004-05-17 05:14:14 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.9.16.6 2004-05-22 03:07:09 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -119,11 +119,13 @@ void MultiManagerT::Initialize(InitCodeT)
 		if (!particle_pair) ExceptionT::GeneralFail(caller, "could not resolve ParticlePairT");
 		
 		if (fCorrectOverlap == 1)
-			fCoarse->CorrectOverlap_ghost(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2);
+			fCoarse->CorrectOverlap_1(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2);
 		else if (fCorrectOverlap == 2)
 			fCoarse->CorrectOverlap_2(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2, nip);
 		else if (fCorrectOverlap == 3)
 			fCoarse->CorrectOverlap_3(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2, nip);
+		else if (fCorrectOverlap == 4)
+			fCoarse->CorrectOverlap_4(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2, nip);
 		else
 			ExceptionT::GeneralFail(caller, "unrecognized overlap correction method %d", fCorrectOverlap);
 	}

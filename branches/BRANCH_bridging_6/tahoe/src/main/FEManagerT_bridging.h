@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.12.4.4 2004-05-17 05:14:14 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.12.4.5 2004-05-22 03:07:09 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -178,16 +178,17 @@ public:
 	/*@{*/
 	/** compute internal correction for the overlap region accounting for ghost node bonds
 	 * extending into the coarse scale region */
-	void CorrectOverlap_ghost(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
+	void CorrectOverlap_1(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
 
-	/** compute internal correction for the overlap region accounting for ghost node bonds
-	 * extending into the coarse scale region and elements which are partially filled with
-	 * crystal */
-	void CorrectOverlap_all(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
-
+	/** solve bond densities one at a time */
 	void CorrectOverlap_2(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2, int nip);
 
+	/** solve bond densities one at a time activating unknowns at integration points only if
+	 * the associated domain contains the terminus of a ghost node bond. */
 	void CorrectOverlap_3(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2, int nip);
+
+	/** solve bond densities one shell at a time */
+	void CorrectOverlap_4(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2, int nip);
 
 	/** enforce zero bond density in projected cells */
 	void DeactivateFollowerCells(void);
@@ -256,6 +257,10 @@ protected:
 		const RaggedArray2DT<int>& ghost_neighbors_all, RaggedArray2DT<int>& ghost_neighbors_i, 
 		AutoArrayT<int>& overlap_cell_i, AutoArrayT<int>& overlap_node_i) const;
 
+	void GhostNodeBonds_4(double R_i, const dArray2DT& point_coords, 
+	const RaggedArray2DT<int>& ghost_neighbors_all, RaggedArray2DT<int>& ghost_neighbors_i, 
+	AutoArrayT<int>& overlap_cell_i, AutoArrayT<int>& overlap_node_i) const;
+
 	/** collect list of cells not containing any active bonds */
 	void BondFreeElements(const RaggedArray2DT<int>& ghost_neighbors_i, AutoArrayT<int>& bondfree_cell_i) const;
 
@@ -291,6 +296,9 @@ protected:
 	void ComputeSum_signR_Na(const dArrayT& R_i, const RaggedArray2DT<int>& ghost_neighbors, 
 		const dArray2DT& point_coords, const InverseMapT& overlap_node_map, dArrayT& sum_R_N) const;
 
+	void ComputeSum_signR_Na_4(const RaggedArray2DT<int>& ghost_neighbors, 
+		const dArray2DT& point_coords, const InverseMapT& overlap_node_map, dArray2DT& sum_R_N) const;
+
 	/** compute Cauchy-Born contribution to the nodal internal force
 	 * \param R bond vector
 	 * \param V_0 Cauchy-Born reference volume
@@ -299,7 +307,7 @@ protected:
 	 * \param overlap_node_map map of global node number to index in sum_R_N for nodes in the
 	 *        overlap region
 	 */
-	void Compute_df_dp(const dArrayT& R, double V_0, const ContinuumElementT& coarse, 
+	void Compute_df_dp_1(const dArrayT& R, double V_0, const ContinuumElementT& coarse, 
 		const ArrayT<int>& overlap_cell, const InverseMapT& overlap_node_map, const dArray2DT& rho, 
 		dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, LAdMatrixT& ddf_dpdp) const;
 
@@ -310,11 +318,14 @@ protected:
 
 	void Compute_df_dp(const dArrayT& R, double V_0, const ArrayT<char>& cell_type, 
 		const InverseMapT& overlap_cell_map, const ArrayT<int>& overlap_node, const InverseMapT& overlap_node_map,
-		const iArray2DT& cell_eq_i,
-		const RaggedArray2DT<int>& inv_connects_i, const RaggedArray2DT<int>& inv_equations_i,
+		const iArray2DT& cell_eq_active_i,
+		const RaggedArray2DT<int>& inv_connects_i, const RaggedArray2DT<int>& inv_equations_all_i, const RaggedArray2DT<int>& inv_equations_active_i,
 		const dArray2DT& rho, dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, 
 		GlobalMatrixT& ddf_dpdp) const;
 	/*@}*/
+
+	/** group bonds into shells */
+	int NumberShells(const dArray2DT& bonds, iArrayT& shell, dArrayT& shell_bond_length) const;
 
 private:
 
