@@ -1,4 +1,4 @@
-# $Id: GNU.SHASTA.mpi.debug.macros,v 1.1 2004-08-10 19:02:18 paklein Exp $
+# $Id: GNU.SHASTA.mpi.debug.macros,v 1.2 2004-08-10 20:33:54 paklein Exp $
 # GNU
 COMP_DIR    = /apps/mpich-gcc-3.1
 GNU_DIR     = /projects/gnu/bin
@@ -15,10 +15,10 @@ CFLAGS_F    = $(LOC_CFLAGS) -DEIGHT_BYTE_REAL
 LINK        = $(COMP_CC)
 LFLAGS      = -L$(COMP_DIR)/lib -lmpich -lgm -static
 MAKEDEPEND_C         = $(GNU_DIR)/gcc -MM
-MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES) -I$(COMP_DIR)/include
 MAKEDEPEND_OUTPUT_C  = -MF
 MAKEDEPEND_CC        = $(GNU_DIR)/g++ -MM
-MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES) -Wno-deprecated
+MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES) -I$(COMP_DIR)/include -Wno-deprecated
 MAKEDEPEND_OUTPUT_CC = -MF
 MAKEDEPEND_F         = echo
 MAKEDEPENDFLAGS_F    =
