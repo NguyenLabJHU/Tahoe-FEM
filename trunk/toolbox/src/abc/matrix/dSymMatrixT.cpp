@@ -1,11 +1,11 @@
-/* $Id: dSymMatrixT.cpp,v 1.12 2002-09-03 21:45:53 cfoster Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.13 2002-09-12 16:32:38 paklein Exp $ */
 /* created: paklein (03/03/1997)                                          */
 
 #include "dSymMatrixT.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include <math.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "dMatrixT.h"
 
 using namespace Tahoe;
@@ -37,7 +37,7 @@ void dSymMatrixT::Dimension(int nsd)
 {
 	/* check  */
 	fNumSD = nsd;
-	if (fNumSD < 1 && fNumSD > 3) throw eGeneralFail;
+	if (fNumSD < 1 || fNumSD > 3) throw eGeneralFail;
 
 	/* inherited */
 	dArrayT::Dimension(NumValues(fNumSD));
@@ -47,7 +47,7 @@ void dSymMatrixT::Dimension(int nsd)
 void dSymMatrixT::Set(int nsd, double* array)
 {
 	fNumSD = nsd;
-	if (fNumSD < 1 && fNumSD > 3) throw eGeneralFail;
+	if (fNumSD < 1 || fNumSD > 3) throw eGeneralFail;
 	
 	/* inherited */
 	dArrayT::Set(NumValues(fNumSD), array);
