@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.cpp,v 1.6 2002-10-20 22:49:47 paklein Exp $ */
+/* $Id: NLSolver_LS.cpp,v 1.7 2002-10-25 05:28:18 paklein Exp $ */
 /* created: paklein (08/18/1999) */
 
 #include "NLSolver_LS.h"
@@ -127,9 +127,19 @@ void NLSolver_LS::Update(const dArrayT& update, const dArrayT* residual)
 	fSearchData(0,0) = s_a;
 	fSearchData(0,1) = G_a;
 
-	/* check full step */
+	/* start with check full step */
 	double s_b = 1.0;
 	double G_b = GValue(s_b);
+#if 1
+	int cuts = 0;
+	while (cuts++ < 10 && fabs(G_a) > kSmall && fabs(G_b/G_a) > 1.0e6) /* too big */
+	{
+		s_b = 0.5*(s_b + s_a);
+		G_b = GValue(s_b);
+	}
+	cout << " init:" << setw(2) << cuts - 1;
+	if (cuts == 10) throw ExceptionT::kBadJacobianDet;
+#endif
 	fSearchData(1,0) = s_b;
 	fSearchData(1,1) = G_b;
 
@@ -188,12 +198,13 @@ void NLSolver_LS::Update(const dArrayT& update, const dArrayT* residual)
 		
 		}
 		
-		/* max iterations */
-		if (++count >= fSearchIterations) give_up = true;
+		/* max iterations or s_a == s_b */
+		if (++count >= fSearchIterations || fabs(s_a - s_b) < kSmall) 
+			give_up = true;
 		
 	} while (fabs(G_new) > fZeroTolerance &&
 	         fabs(G_new/G_0) > fOrthogTolerance &&
-!give_up);
+			!give_up);
 
 	/* best step on fail */
 	if (give_up)
@@ -215,6 +226,9 @@ void NLSolver_LS::Update(const dArrayT& update, const dArrayT* residual)
 		/* set to "best" */
 		GValue(fSearchData(best,0));
 	}
+	
+	/* no good */
+	if (fabs(s_current) < kSmall) throw ExceptionT::kBadJacobianDet;
 
 	/* write results */
 	cout << " LS: " << count << setw(kDoubleWidth) << s_current << " | ";
@@ -244,6 +258,6 @@ double NLSolver_LS::GValue(double step)
 		cout << "\n NLSolver_LS::GValue: caught exception: " << error << endl;
 		throw error;
 	}
-
+	
 	return InnerProduct(fUpdate, fRHS);
 }
