@@ -1,37 +1,21 @@
-/* $Id: MF_dMatrixT.h,kyonten*/
+/* $Id: MF_dMatrixT.cpp,kyonten*/
 /* created: kyonten */
-#ifndef _MF_D_MATRIX_T_H_
-#define _MF_D_MATRIX_T_H_
+#include "MF_dMatrixT.h"
+//#include "toolboxConstants.h"
+
+using namespace Tahoe;
 
 namespace Tahoe {
-
-/** interface for a 1D/2D/3D unsymmetric matrix stored as 
- * an index vector; resolve components */  
-/* Note: out of 27 (8 in 2D) components of the matrix, only 9 (4 in 2D) are needed.  kyonten */
-
-class MF_dMatrixT
-{
-	public:
-	/* constructor */
-	MF_dMatrixT(void);
-	
-	/* destructor */
-	~MF_dMatrixT(void);
-
-	static void ExpandIndex3(int nsd, int dex, int& dex_1, int& dex_2, int& dex_3);
-    static void ExpandIndex2(int nsd, int dex_1, int dex_2, int dex_3, int& dex_12, 
-                             int& dex_23, int& dex_31);
-    
-};
+DEFINE_TEMPLATE_STATIC const bool ArrayT<MF_dMatrixT*>::fByteCopy = true; 
+DEFINE_TEMPLATE_STATIC const bool ArrayT<MF_dMatrixT>::fByteCopy = false; 
+}
 
 
-/* inlines */
-		
-/*inline void MF_dMatrixT::ExpandIndex3(int nsd, int dex, int& dex_1, int& dex_2, int& dex_3)
+void MF_dMatrixT::ExpandIndex3(int nsd, int dex, int& dex_1, int& dex_2, int& dex_3)
 {
 #if __option(extended_errorcheck)
 	/* consistency check */
-/*	const char caller[] = "MF_dMatrixT::ExpandIndex3";
+	const char caller[] = "MF_dMatrixT::ExpandIndex3";
 	if (dex >= nsd*nsd) ExceptionT::OutOfRange(caller, "bad index %d", dex);
 #endif
 	
@@ -49,12 +33,12 @@ class MF_dMatrixT
 }
 
 
-inline void MF_dMatrixT::ExpandIndex2(int nsd, int dex_1, int dex_2, int dex_3, 
+void MF_dMatrixT::ExpandIndex2(int nsd, int dex_1, int dex_2, int dex_3, 
             int& dex_12, int& dex_23, int& dex_31)
 {
 #if __option(extended_errorcheck)
 	/* consistency check */
-/*	const char caller[] = "MF_dMatrixT::ExpandIndex2";
+	const char caller[] = "MF_dMatrixT::ExpandIndex2";
 #endif	
 	switch (nsd)
 	{
@@ -71,7 +55,7 @@ inline void MF_dMatrixT::ExpandIndex2(int nsd, int dex_1, int dex_2, int dex_3,
 		{
 			if (dex_1==0 && dex_2==0 && dex_3==0)
 		 	{
-		 		dex_12=0; dex_23=0;	dex_31=0;
+		 		dex_12=0; dex_23=0; dex_31=0;
 		 	}
 		 	if (dex_1==1 && dex_2==1 && dex_3==0)
 		 	{
@@ -132,8 +116,6 @@ inline void MF_dMatrixT::ExpandIndex2(int nsd, int dex_1, int dex_2, int dex_3,
 		{
 			ExceptionT::BadInputValue(caller, " unsupported spatial dimensions %d", nsd);
 		}
-				
-}*/
+	}			
+}
 
-} /* namespace Tahoe */
-#endif /* _MF_D_MATRIX_T_H_ */
