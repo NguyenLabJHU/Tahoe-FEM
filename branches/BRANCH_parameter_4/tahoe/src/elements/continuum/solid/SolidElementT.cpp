@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.62.2.7 2004-07-12 16:06:05 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.62.2.8 2004-07-13 19:04:33 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -344,11 +344,12 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "SolidElementT::TakeParameterList";
 
+	/* set mass type before calling ContinuumElementT::TakeParameterList because
+	 * it's needed for SolidElementT::TangentType */
+	list.GetParameter("mass_type", enum2int<ContinuumElementT::MassTypeT>(fMassType));
+
 	/* inherited */
 	ContinuumElementT::TakeParameterList(list);
-
-	/* set mass type */
-	list.GetParameter("mass_type", enum2int<ContinuumElementT::MassTypeT>(fMassType));
 
 	/* allocate work space */
 //	fB_list.Dimension(NumIP());
