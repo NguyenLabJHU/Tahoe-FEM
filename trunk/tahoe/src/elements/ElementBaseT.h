@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.16 2002-10-23 00:18:01 cjkimme Exp $ */
+/* $Id: ElementBaseT.h,v 1.17 2002-11-09 01:45:13 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -78,11 +78,6 @@ public:
 	 * the connectivies have been dimensioned. */
 	int NumElementNodes(void) const;
 
-#ifndef _SIERRA_TEST_
-	/** solver group */
-	int Group(void) const { return fField.Group(); };
-#endif
-
 	/** form of tangent matrix, symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const = 0;
 	
@@ -101,6 +96,11 @@ public:
 
 	/** the iteration number for the current time increment */
 	const int& IterationNumber(void) const;
+	
+	/** return true if the element contributes to the solution of the
+	 * given group. ElementBaseT::InGroup returns true if group is the
+	 * same as the group of the FieldT passed in to ElementBaseT::ElementBaseT. */
+	virtual bool InGroup(int group) const;
 #endif
 
 	/** return a pointer to the specified LoadTime function */
@@ -251,6 +251,15 @@ protected: /* for derived classes only */
 
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
 	/*@{*/
+	/** solver group */
+	int Group(void) const {
+#ifndef _SIERRA_TEST_
+		return fField.Group(); 
+#else
+		return 0;
+#endif
+	};
+
 	/** form group contribution to the stiffness matrix */
 	virtual void LHSDriver(void) = 0;
 
