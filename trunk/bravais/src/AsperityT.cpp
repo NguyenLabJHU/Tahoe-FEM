@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.cpp,v 1.11 2003-07-25 18:18:34 jzimmer Exp $ */
+/* $Id: AsperityT.cpp,v 1.12 2003-08-01 23:40:31 saubry Exp $ */
 #include "AsperityT.h"
 #include "VolumeT.h"
 
@@ -15,8 +15,9 @@
 #include "CrystalLatticeT.h"
 
 AsperityT::AsperityT(int dim, dArray2DT len,
-	   dArrayT lattice_parameter,
-	   iArrayT which_sort, iArrayT per) : VolumeT(dim) 
+		     dArrayT lattice_parameter,
+		     iArrayT which_sort, StringT slt,
+		     iArrayT per) : VolumeT(dim) 
 {
   nSD = dim;
   length.Dimension(nSD,2);
@@ -27,6 +28,8 @@ AsperityT::AsperityT(int dim, dArray2DT len,
 
   pbc.Dimension(nSD);
   pbc = per;
+
+  sLATTYPE = slt;
 
   for(int i=0;i<nSD;i++)
     {
@@ -42,26 +45,47 @@ AsperityT::AsperityT(int dim, dArray2DT len,
       ncells[i] = static_cast<int>(dist/lattice_parameter[i]);
     }
 
-  for(int i=0;i<nSD;i++)
+  if (sLATTYPE == "CORUN")
     {
-      double dist = ncells[i]*lattice_parameter[i]*0.5;
-      length(i,0) = -dist;
-      length(i,1) = length(i,0) + (dist - length(i,0));
+      double dist[3];
+      dist[0] = 3.0*ncells[0]*lattice_parameter[0];
+      dist[1] = sqrt(3.0)*ncells[1]*lattice_parameter[1];
+      dist[2] = ncells[2]*lattice_parameter[2];
+      for(int i=0;i<nSD;i++)
+        {
+          dist[i] = 0.5*dist[i];
+          length(i,0) = -dist[i];
+          length(i,1) = length(i,0) + (dist[i] - length(i,0));
+        }
     }
-
-
-  /*for(int i=0;i<nSD;i++)
+  else if (sLATTYPE == "HEX")
     {
-      length(i,0) = len(i,0);
-      double dist = len(i,1)-len(i,0)+1;
-      length(i,1) = len(i,0) + ncells[i]*lattice_parameter[i];
+      double dist[3]; 
+      dist[0] = ncells[0]*lattice_parameter[0];
+      dist[1] = sqrt(3.0)*ncells[1]*lattice_parameter[1];
+      if (nSD==3) dist[2] = ncells[2]*lattice_parameter[2];
+      for(int i=0;i<nSD;i++)
+        {
+          dist[i] = 0.5*dist[i];                           
+          length(i,0) = -dist[i];
+          length(i,1) = length(i,0) + (dist[i] - length(i,0)); 
+        }
+    }    
+  else
+    {
+      for(int i=0;i<nSD;i++)
+        {
+          double dist = ncells[i]*lattice_parameter[i]*0.5;
+          length(i,0) = -dist;
+          length(i,1) = length(i,0) + (dist - length(i,0));
+        }
     }
-  */  
 }
 
 AsperityT::AsperityT(int dim, iArrayT cel,
-	   dArrayT lattice_parameter,
-	   iArrayT which_sort, iArrayT per) : VolumeT(dim) 
+		     dArrayT lattice_parameter,
+		     iArrayT which_sort, StringT slt,
+		     iArrayT per) : VolumeT(dim) 
 {
   nSD = dim;
   length.Dimension(nSD,2);
@@ -73,14 +97,45 @@ AsperityT::AsperityT(int dim, iArrayT cel,
   pbc.Dimension(nSD);
   pbc = per;
 
+  sLATTYPE = slt;
+
   for(int i=0;i<nSD;i++)
       ncells[i] = cel[i];
 
-  for(int i=0;i<nSD;i++)
+  if (sLATTYPE == "CORUN")
     {
-      double dist = ncells[i]*lattice_parameter[i]*0.5;
-      length(i,0) = -dist;
-      length(i,1) = length(i,0) + (dist - length(i,0));
+      double dist[3];
+      dist[0] = 3.0*ncells[0]*lattice_parameter[0];
+      dist[1] = sqrt(3.0)*ncells[1]*lattice_parameter[1];
+      dist[2] = ncells[2]*lattice_parameter[2];
+      for(int i=0;i<nSD;i++)
+        {
+          dist[i] = 0.5*dist[i];
+          length(i,0) = -dist[i];
+          length(i,1) = length(i,0) + (dist[i] - length(i,0));
+        }
+    }
+  else if (sLATTYPE == "HEX")
+    {
+      double dist[3];
+      dist[0] = ncells[0]*lattice_parameter[0];
+      dist[1] = sqrt(3.0)*ncells[1]*lattice_parameter[1];
+      if (nSD==3) dist[2] = ncells[2]*lattice_parameter[2];
+      for(int i=0;i<nSD;i++)
+        {
+          dist[i] = 0.5*dist[i];
+          length(i,0) = -dist[i];
+          length(i,1) = length(i,0) + (dist[i] - length(i,0));
+        }
+    }
+  else
+    {
+      for(int i=0;i<nSD;i++)
+        {
+          double dist = ncells[i]*lattice_parameter[i]*0.5;
+          length(i,0) = -dist;
+          length(i,1) = length(i,0) + (dist - length(i,0));
+        }
     }
 }
 
@@ -98,7 +153,7 @@ AsperityT::AsperityT(const AsperityT& source) : VolumeT(source.nSD)
   WhichSort = source.WhichSort;
 
   pbc.Dimension(source.nSD);
-  pbc = source.pbc; 
+  pbc = source.pbc;
 
   atom_names = source.atom_names;
 
@@ -108,6 +163,8 @@ AsperityT::AsperityT(const AsperityT& source) : VolumeT(source.nSD)
   atom_coord.Dimension(source.nATOMS,source.nSD);
   atom_coord = source.atom_coord;
 
+  atom_types.Dimension(source.nATOMS);
+  atom_types = source.atom_types;
 
   atom_connectivities.Dimension(source.nATOMS,source.nSD);
   atom_connectivities = source.atom_connectivities;
@@ -117,10 +174,12 @@ void AsperityT::CreateLattice(CrystalLatticeT* pcl)
 {
   int nlsd = pcl->GetNLSD();
   int nuca = pcl->GetNUCA();
+  int ntype = pcl->GetNTYPE();
 
   int natoms=0;
   int temp_nat=0;
   dArray2DT temp_atom;
+  iArrayT temp_type;
   iArrayT temp_parts;
 
   if(pcl->GetRotMeth() == 0) 
@@ -135,30 +194,67 @@ void AsperityT::CreateLattice(CrystalLatticeT* pcl)
     }
   temp_atom.Dimension(temp_nat,nlsd);
   temp_parts.Dimension(temp_nat);
+  temp_type.Dimension(temp_nat);
 
   if(pcl->GetRotMeth() == 0)
-    nATOMS = RotateAtomInBox(pcl,&temp_atom,&temp_parts,temp_nat);
+    nATOMS = RotateAtomInBox(pcl,&temp_atom,&temp_type,&temp_parts,temp_nat);
   else
-    nATOMS = RotateBoxOfAtom(pcl,&temp_atom,&temp_parts,temp_nat);
+    nATOMS = RotateBoxOfAtom(pcl,&temp_atom,&temp_type,&temp_parts,temp_nat);
 
   // Get atoms coordinates
   atom_ID.Dimension(nATOMS);
   atom_coord.Dimension(nATOMS,nlsd);
+  atom_types.Dimension(nATOMS);
   atom_connectivities.Dimension(nATOMS,1);
 
   for(int m=0; m < nATOMS ; m++) 
     for (int k=0;k< nlsd;k++)
-      atom_coord(m)[k] = temp_atom(m)[k];
-  
+      {
+	atom_coord(m)[k] = temp_atom(m)[k];
+	atom_types[m] = temp_type[m];
+      }
   atom_names = "Box";
+
+  // Create connectivities and IDs
   for (int p=0;p<nATOMS;p++)
     {
       atom_ID[p] = p;
       atom_connectivities(p)[0] = p;
     }
-  // Create types
-  atom_types.Dimension(nATOMS);
-  atom_types = 1;
+
+
+  if(ntype > 2) 
+    cout << "WARNING: ** nTypes == 2  maximum for ensight output ** \n";
+
+  atom_array_ID.Dimension(ntype);
+  atom_array_connect.Dimension(ntype);
+
+
+  type1.Dimension(nATOMS,1);type1 = 0;
+  type2.Dimension(nATOMS,1);type2 = 0;
+
+  int n=0,m=0;
+  for (int p=0;p<nATOMS;p++)
+    {
+      if ( atom_types[p] == 1) 
+	{
+	  type1(n)[0] = p;
+	  n++;
+	}
+      else
+	{
+	  type2(m)[0] = p;
+	  m++;
+	}	
+    }
+
+  atom_array_ID[0] = "type1";
+  if (ntype > 1) atom_array_ID[1] = "type2";
+
+  if (n < nATOMS && n > 0) type1.Resize(n);
+  if (m < nATOMS && m > 0) type2.Resize(m);
+  atom_array_connect[0] = &type1;
+  if (ntype > 1) atom_array_connect[1] = &type2;
 
   // Create parts
   atom_parts.Dimension(nATOMS);
@@ -192,21 +288,24 @@ void AsperityT::SortLattice(CrystalLatticeT* pcl)
   new_coord.Dimension(atom_coord.MajorDim(),nlsd);   
   new_coord = 0.0;
 
+  iArrayT new_type;
+  new_type.Dimension(nATOMS);  
+  new_type = 0;
+
   dArrayT x(atom_coord.MajorDim()); x = 0.0;
   dArrayT y(atom_coord.MajorDim()); y = 0.0;
   dArrayT z(atom_coord.MajorDim()); z = 0.0;
 
-  iArrayT type(atom_types.Length()); type = 0;
   iArrayT part(atom_parts.Length()); part = 0;
 
-  iArrayT Map(atom_coord.MajorDim());
-  Map = 0;
+  iArrayT Map(atom_coord.MajorDim()); Map = 0;
 
   for(int m=0; m < nATOMS ; m++) 
     {
       x[m] = atom_coord(m)[WhichSort[0]];
       y[m] = atom_coord(m)[WhichSort[1]];
       if (nlsd == 3) z[m] = atom_coord(m)[WhichSort[2]];
+      new_type[m] = atom_types[Map[m]];
     }
 
   // Sort 1st criterium
@@ -219,18 +318,18 @@ void AsperityT::SortLattice(CrystalLatticeT* pcl)
       new_coord(m)[WhichSort[1]] = y[Map[m]];
       if (nlsd == 3)  new_coord(m)[WhichSort[2]] = z[Map[m]];
 
-      type[m] = atom_types[Map[m]];
+      new_type[m] = atom_types[Map[m]];
       part[m] = atom_parts[Map[m]];
     } 
 
   // Update sorted atoms
   atom_coord = new_coord;
-  atom_types = type;
+  atom_types = new_type;
   atom_parts = part;
 
   // Sort 2nd criterium
   new_coord = 0.0;
-  type = 0;
+  new_type = 0;
   part = 0;
 
   iArrayT Ind(atom_coord.MajorDim());
@@ -261,8 +360,6 @@ void AsperityT::SortLattice(CrystalLatticeT* pcl)
       dArrayT aux2(Ind[n+1]-Ind[n]);
       aux = 0.0;
       aux2= 0.0;
-
-      iArrayT aux_typ(Ind[n+1]-Ind[n]); aux_typ = 0;
       iArrayT aux_par(Ind[n+1]-Ind[n]); aux_par = 0;
 
       int isa = 0;
@@ -270,7 +367,6 @@ void AsperityT::SortLattice(CrystalLatticeT* pcl)
 	{
 	  aux[isa] = atom_coord(m)[WhichSort[1]];
 	  if(nlsd == 3) aux2[isa]= atom_coord(m)[WhichSort[2]];
-	  aux_typ[isa] = atom_types[m];
 	  aux_par[isa] = atom_parts[m];
 	  isa++;
 	}
@@ -283,8 +379,7 @@ void AsperityT::SortLattice(CrystalLatticeT* pcl)
 	{
 	  y[p] = aux[m];
 	  if(nlsd == 3) z[p] = aux2[Map2[m]];
-
-	  type[p] = aux_typ[Map2[m]];
+	  new_type[p] = atom_types[Map2[m]];
 	  part[p] = aux_par[Map2[m]];
 	  p++;
 	}
@@ -299,14 +394,14 @@ void AsperityT::SortLattice(CrystalLatticeT* pcl)
 
   // Update sorted atoms
   atom_coord = new_coord;
-  atom_types = type;
+  atom_types = new_type;
   atom_parts = part;
 
   // Sort 3nd criterium
   if(nlsd == 3)
   {
     new_coord = 0.0;
-    type = 0;
+    new_type = 0;
     part = 0;
 
     iArrayT Ind(atom_coord.MajorDim());
@@ -335,15 +430,12 @@ void AsperityT::SortLattice(CrystalLatticeT* pcl)
       {
 	dArrayT aux(Ind[n+1]-Ind[n]);
 	aux = 0.0;
-
-	iArrayT aux_typ(Ind[n+1]-Ind[n]); aux_typ = 0;
 	iArrayT aux_par(Ind[n+1]-Ind[n]); aux_par = 0;
 
 	int isa = 0;
 	for(int m = Ind[n]; m < Ind[n+1]; m++)
 	  {
 	    aux[isa] = atom_coord(m)[WhichSort[2]];
-	    aux_typ[isa] = atom_types[m];
 	    aux_par[isa] = atom_parts[m];
 	    isa++;
 	  }
@@ -355,7 +447,7 @@ void AsperityT::SortLattice(CrystalLatticeT* pcl)
 	for(int m = 0; m < isa; m++)
 	  {
 	    z[p] = aux[m];
-	    type[p] = aux_typ[Map2[m]];
+	    new_type[p] = atom_types[m];
 	    part[p] = aux_par[Map2[m]];
 	    p++;
 	  }
@@ -371,13 +463,14 @@ void AsperityT::SortLattice(CrystalLatticeT* pcl)
 
   // Update sorted atoms
   atom_coord = new_coord;
-  atom_types = type;
+  atom_types = new_type;
   atom_parts = part;
 }
 
 void AsperityT::CalculateBounds(CrystalLatticeT* pcl)
 {
-  const dArrayT& vLP = pcl->GetLatticeParameters();
+  // const dArrayT& vLP = pcl->GetLatticeParameters();
+  // const dArray2DT& vAX = pcl->GetAxis();
 
   atom_bounds.Dimension(nSD,2);
 
@@ -386,15 +479,18 @@ void AsperityT::CalculateBounds(CrystalLatticeT* pcl)
       if (pbc[i]==0) 
 	{
 	  // non-periodic conditions
-	  atom_bounds(i,0) =  length(i)[0];    //-10000.;
-	  atom_bounds(i,1) =  length(i)[1] + 0.5*vLP[1];    //10000.;
+	  atom_bounds(i,0) = -10000.;
+	  atom_bounds(i,1) =  10000.;
 	}
       else if (pbc[i]==1)
 	{
 	  // periodic conditions
-	  atom_bounds(i,0) = length(i)[0];
+	  // atom_bounds(i,0) = length(i)[0];
 	  // atom_bounds(i,1) = length(i)[1] + 0.5*vLP[1];
-	  atom_bounds(i,1) = length(i)[1];
+	  // atom_bounds(i,1) = length(i)[1] + 0.5*vAX(i,i);
+          // cout << vAX(i,i) << "\n";
+          atom_bounds(i,0) = length(i,0);
+          atom_bounds(i,1) = length(i,1);
 	}
       else
 	throw eBadInputValue;
@@ -430,7 +526,7 @@ double AsperityT::ComputeCircleParameters()
 }
 
 int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
-			       iArrayT* temp_parts,int temp_nat)
+			       iArrayT* temp_type,iArrayT* temp_parts,int temp_nat)
 {
   int nlsd = pcl->GetNLSD();
   int nuca = pcl->GetNUCA();
@@ -438,6 +534,7 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
   const dArrayT& vLP = pcl->GetLatticeParameters();
   const dArray2DT& vB = pcl->GetBasis();
   const dArray2DT& vA = pcl->GetAxis();
+  const iArrayT& vT = pcl->GetType();
 
   double x,y,z;
   double eps = 1.e-6;
@@ -446,6 +543,7 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
   double h0 = ComputeCircleParameters();
 
   int natom= 0;
+  int type= 0;
 
   // Define a slightly shorter box
   double l00,l01,l10,l11;
@@ -473,8 +571,9 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 		  {
 		    x += (c[k] + vB(k,m))*vA(k,0);
 		    y += (c[k] + vB(k,m))*vA(k,1);
+		    type = vT[m];
 		  }
-
+		    
 		double r0 = x - fCenterPlus[0]; 
 		double r1 = y - fCenterPlus[1]; 
 		double R = r0*r0 + r1*r1;
@@ -484,6 +583,7 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 		  {
 		    (*temp_atom)(natom)[0] = x;
 		    (*temp_atom)(natom)[1] = y;
+		    (*temp_type)[natom] = type;
 		    (*temp_parts)[natom] = 1; 
 		    natom++;
 		  }
@@ -516,6 +616,7 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 		      x += (c[k] + vB(k,m))*vA(k,0);
 		      y += (c[k] + vB(k,m))*vA(k,1);
 		      z += (c[k] + vB(k,m))*vA(k,2);
+		      type = vT[m];
 		    }
 
 		  // Asperity against a block
@@ -532,6 +633,7 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 			    (*temp_atom)(natom)[0] = x;
 			    (*temp_atom)(natom)[1] = y;
 			    (*temp_atom)(natom)[2] = z;
+			    (*temp_type)[natom] = type;
 			    (*temp_parts)[natom] = 1; 
 			    if (z<= h0 + eps) (*temp_parts)[natom] = -1; 
 			    if ( fabs(z-length(2,0)) <= 1.e-5 ) 
@@ -595,7 +697,7 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 }
 
 int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
-			       iArrayT* temp_parts,int temp_nat)
+			       iArrayT* temp_type,iArrayT* temp_parts,int temp_nat)
 {
   int natom= 0;
 
@@ -604,6 +706,7 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
   const dArrayT& vLP = pcl->GetLatticeParameters();
   const dArray2DT& vA = pcl->GetAxis();
   const dArray2DT& vB = pcl->GetBasis();
+  const iArrayT& vT = pcl->GetType();
 
   double eps = 1.e-6;
   double x,y,z;
@@ -641,6 +744,7 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 		  {
 		    (*temp_atom)(natom)[0] = x;
 		    (*temp_atom)(natom)[1] = y;
+		    (*temp_type)[natom] = vT[m];
 		    (*temp_parts)[natom] = 1; 
 		    natom++;
 		  }
@@ -682,6 +786,7 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 		      (*temp_atom)(natom)[0] = x;
 		      (*temp_atom)(natom)[1] = y;
 		      (*temp_atom)(natom)[2] = z;
+		      (*temp_type)[natom] = vT[m];
 		      (*temp_parts)[natom] = 1;
 		      if (z<= h0 + eps) (*temp_parts)[natom] = -1; 
 		      if ( fabs(z-length(2,0)) <= 1.e-5 ) 
@@ -708,6 +813,7 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 			(*temp_atom)(natom)[0] = x;
 			(*temp_atom)(natom)[1] = y;
 			(*temp_atom)(natom)[2] = z;
+			(*temp_type)[natom] = vT[m];
 			(*temp_parts)[natom] = 1;
 			if (Rmin <= fRadius*fRadius && z <= h0 + eps) 
 			     (*temp_parts)[natom] = -1;
@@ -760,6 +866,16 @@ dArray2DT AsperityT::ComputeMinMax()
 
   for (int i=0; i < nSD; i++)
     {
+      if (pbc[i]==1)
+        {
+          minmax(i,0) = length(i,0);
+          minmax(i,1) = length(i,1);
+        }
+    }
+
+
+  /*  for (int i=0; i < nSD; i++)
+    {
       if(minmax(i,0) > minmax(i,1)) 
 	{
 	  double temp = minmax(i,0);
@@ -767,6 +883,7 @@ dArray2DT AsperityT::ComputeMinMax()
 	  minmax(i,1) = temp;
 	}
     }
+  */
 
   return minmax;  
 }

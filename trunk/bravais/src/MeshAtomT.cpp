@@ -61,9 +61,9 @@ MeshAtomT::MeshAtomT(StringT which_latticetype,int nsd,int nuca,
   else if(which_shape == "ASPERITY")
     {
       if(whichunit==1) 
-	Shape = new AsperityT(nsd,len,latticeparameter,isort,per);
+	Shape = new AsperityT(nsd,len,latticeparameter,isort,slt,per);
       else
-	Shape = new AsperityT(nsd,cel,latticeparameter,isort,per);
+	Shape = new AsperityT(nsd,cel,latticeparameter,isort,slt,per);
     }
   else
     {
