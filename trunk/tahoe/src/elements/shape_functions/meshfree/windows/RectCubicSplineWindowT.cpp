@@ -169,7 +169,6 @@ bool RectCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, 
 	else
 	  Dw[1] = 0.0;
 
-	cout << "Derivatives of window function are" << Dw << '\n';
       }
     }
     else if (x.Length() == 3)     // 3D calculation
