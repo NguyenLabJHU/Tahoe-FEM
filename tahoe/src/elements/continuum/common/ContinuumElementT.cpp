@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.40 2004-06-17 07:13:48 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.40.4.1 2004-11-09 18:23:51 thao Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -357,6 +357,39 @@ void ContinuumElementT::FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry,
 	ShapeFunction().FacetGeometry(facet_geometry, num_facet_nodes);
 }
 
+void ContinuumElementT::SetStatus(const ArrayT<StatusT>& status)
+{
+	/* work space */
+	dArrayT state;
+	dArrayT t_in;
+
+	/* loop over elements and initial state variables */
+	int elem_num = 0;
+	Top();
+	while (NextElement())
+	{
+		/* current element */
+		int& flag = CurrentElement().Flag();
+		flag = status[elem_num++];
+		/* material pointer */
+		ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
+
+		if (flag == kMarkON){
+			if (pmat->NeedsPointInitialization()){
+				/* global shape function values */
+				SetGlobalShape();
+
+				fShapes->TopIP();
+				while (fShapes->NextIP())
+					pmat->PointInitialize();
+			}
+			flag = kON;
+		}
+		else if (flag == kMarkOFF)
+			flag = kOFF;
+	}
+}
+
 /* initial condition/restart functions (per time sequence) */
 void ContinuumElementT::InitialCondition(void)
 {
@@ -375,10 +408,11 @@ void ContinuumElementT::InitialCondition(void)
 		Top();
 		while (NextElement())
 		{
+			const ElementCardT& element = CurrentElement();
 			/* material pointer */
 			ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
 		
-			if (pmat->NeedsPointInitialization())
+			if (pmat->NeedsPointInitialization() && element.Flag() == kON)
 			{
 				/* global shape function values */
 				SetGlobalShape();

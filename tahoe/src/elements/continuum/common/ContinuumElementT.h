@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.26 2004-02-02 23:46:43 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.26.24.1 2004-11-09 18:23:51 thao Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -89,7 +89,7 @@ public:
 
 	/** form of tangent matrix - symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
-
+	
 	/* initialize/finalize time increment */
 	virtual void InitStep(void);
 	virtual void CloseStep(void);
@@ -112,6 +112,9 @@ public:
 	
 	/** return the geometry code */
 	GeometryT::CodeT GeometryCode(void) const;
+
+	/*set active elements*/
+	virtual void SetStatus(const ArrayT<StatusT>& status);
 
 	/** initial condition/restart functions (per time sequence) */
 	virtual void InitialCondition(void);
