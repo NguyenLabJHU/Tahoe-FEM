@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.38 2004-12-21 17:24:45 thao Exp $ */
+/* $Id: FieldT.cpp,v 1.39 2004-12-25 05:38:55 paklein Exp $ */
 #include "FieldT.h"
 
 #include "ElementsConfig.h"
@@ -839,7 +839,7 @@ void FieldT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& or
 		sub_lists.AddSub("tied_nodes");
 		sub_lists.AddSub("periodic_nodes");
 		sub_lists.AddSub("conveyor");
-		sub_lists.AddSub("symmetric_conveyor");
+//		sub_lists.AddSub("symmetric_conveyor");
 	}
 	else if (name == "FBC_controllers")
 	{
