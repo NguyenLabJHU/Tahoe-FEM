@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.14 2002-10-20 22:49:25 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.15 2002-10-23 05:01:23 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -17,7 +17,6 @@
 #include "RaggedArray2DT.h"
 #include "PartitionT.h"
 #include "ReLabellerT.h"
-//#include "DOFElementT.h"
 #include "OutputSetT.h"
 
 #include "FieldSupportT.h"
