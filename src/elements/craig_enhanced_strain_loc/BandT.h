@@ -18,15 +18,28 @@ class BandT
   {
   public:
 
-    BandT(const dArrayT normal, const dArrayT slipDir, const dArrayT perpSlipDir, dArrayT &coord, SSEnhLocCraigT *element); 
+    BandT(const dArrayT normal, const dArrayT slipDir, const dArrayT
+    perpSlipDir, dArrayT &coord, double h_delta, double residCohesion, ArrayT<dSymMatrixT> stressList, SSEnhLocCraigT *element); 
     
     const iAutoArrayT& ActiveNodes() const;
     const dArrayT& Normal() const;
     const dArrayT& SlipDir() const;
     const dArrayT& PerpSlipDir() const;
+    double H_delta() const;
+    double ResidualCohesion() const;
     double Jump() const;
-    void IncrementJump (const double increment);
-
+    double JumpIncrement() const;
+    void IncrementJump ();
+    void StoreJumpIncrement(double increment);
+    //void CloseStep();
+    dSymMatrixT Stress_List(int ip);
+    void IncrementStress(dSymMatrixT stressIncr, int ip);
+    void UpdateCohesion();
+    void SetEffectiveSoftening(double effectiveSoftening);
+    double EffectiveSoftening();
+    void SetActive(bool active);
+    bool IsActive();
+    void FlipSlipDir();
 
 
   private:
@@ -41,10 +54,16 @@ class BandT
     dArrayT fPerpSlipDir;
     double fLength; //not used ?
     double fJump;
-    double fJumpIncrement; //not used ?
+    double fJumpIncrement;
     ArrayT <dArrayT> fEndPoints; //not used yet
     iAutoArrayT fActiveNodes;
     SSEnhLocCraigT *currentElement;
+    ArrayT<dSymMatrixT> fStress_List;
+    double fResidualCohesion;
+    double fH_delta;
+    double fEffectiveSoftening;
+    double fIsBandActive;
+
   };
   
 }

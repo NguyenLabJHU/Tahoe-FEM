@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.h,v 1.4 2005-02-25 03:22:40 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.h,v 1.5 2005-03-14 22:24:36 cfoster Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_CF_T_H_
 #define _SMALL_STRAIN_ENH_LOC_CF_T_H_
 
@@ -8,6 +8,8 @@
 #include "BandT.h"
 
 #include "HookeanMatT.h"
+#include "MapT.h"
+
 
 namespace Tahoe {
 
@@ -90,18 +92,20 @@ protected:
 
 	/** compute mean shape function gradient, Hughes (4.5.23) */
 	//void SetMeanGradient(dArray2DT& mean_gradient) const;
+	MapT<int, BandT*> fTracedElements;
+
 
   protected:
     
-	bool isLocalizedTemp;
-	bool isLocalized;
+	//bool isLocalizedTemp;
+	//bool isLocalized;
 	BandT *fBand;
-	double fH_Delta;
+	double fH_delta_0;
 	bool fNoBandDilation;
 	double fLocalizedFrictionCoeff;
-	double fJumpIncrement;
-	dMatrixT fInitialModulus;
-	ArrayT<dSymMatrixT> fStress_List;
+	//double fJumpIncrement;
+	//dMatrixT fInitialModulus;
+	//ArrayT<dSymMatrixT> fStress_List;
 
 	/** driver for calculating output values */
 	/* Used to check localization - is there a more appropriate fn? */
@@ -111,9 +115,14 @@ protected:
 	virtual void CloseStep(void);
   protected:
 
+	virtual double CalculateJumpIncrement();
+	virtual bool IsBandActive();
+	virtual void LoadBand(int elementNumber);
+
 //move to surface mat model?
 	dSymMatrixT FormdGdSigma(int ndof);
 	dSymMatrixT FormGradActiveTensorFlowDir(int ndof);
+	bool IsElementTraced();
 	bool IsElementLocalized();
 	void ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipDirs);
 	dArrayT Centroid();
