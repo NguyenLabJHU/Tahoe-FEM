@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-01-31 09:46:44 paklein Exp $
+# $Id: makefile,v 1.2 2003-04-05 08:38:37 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -22,6 +22,7 @@ DEP = /dev/null
 # subdirectories
 SUB_DIR = \
 	config \
+	main \
 	elements \
 	C1functions
 
