@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.3 2001-03-01 01:17:50 hspark Exp $ */
+/* $Id: ifstreamT.cpp,v 1.4 2001-04-10 17:56:12 paklein Exp $ */
 /* created: paklein (03/03/1999)                                          */
 /* interface                                                              */
 
@@ -12,53 +12,39 @@
 #include "Environment.h"
 #include "ExceptionCodes.h"
 
-#include "StringT.h"
-
 /* parameter */
 const int kLineLength = 255;
 
 /* static variables */
-const char ifstreamT::fNULLFileName = '\0';
 const bool ArrayT<ifstreamT*>::fByteCopy = true; // array behavior
 
 /* constructors */
 ifstreamT::ifstreamT(void):
 	fSkipComments(0),
-	fMarker('0'),
-	fFileName(NULL)
+	fMarker('0')
 {
 
 }	
 
 ifstreamT::ifstreamT(const char* file_name):
 	fSkipComments(0),
-	fMarker('0'),
-	fFileName(NULL)
+	fMarker('0')
 {
 	open(file_name);
 }
 
 ifstreamT::ifstreamT(char marker):
 	fSkipComments(1),
-	fMarker(marker),
-	fFileName(NULL)
+	fMarker(marker)
 {
 
 }	
 
 ifstreamT::ifstreamT(char marker, const char* file_name):
 	fSkipComments(1),
-	fMarker(marker),
-	fFileName(NULL)
+	fMarker(marker)
 {
 	open(file_name);
-}
-
-/* destructor */
-ifstreamT::~ifstreamT(void)
-{
-	delete[] fFileName;
-	fFileName = NULL;
 }
 
 /* open stream */
@@ -67,11 +53,12 @@ void ifstreamT::open(const char* file_name)
 	/* close stream if already open */
 	if (is_open()) close();
 
+	/* translate name */
+	fFileName = file_name;
+	fFileName.ToNativePathName();
+
 	/* ANSI */
-	ifstream::open(file_name);
-	
-	/* store file name */
-	CopyName(file_name);
+	ifstream::open(fFileName);
 }
 
 int ifstreamT::open(const char* prompt, const char* skipname,
@@ -104,8 +91,7 @@ void ifstreamT::close(void)
 	ifstream::close();
 
 	/* clear name */
-	delete[] fFileName;
-	fFileName = NULL;
+	fFileName.Clear();
 }
 
 /* return the next character (skipping whitespace and comments)
@@ -130,7 +116,8 @@ char ifstreamT::next_char(void)
 void ifstreamT::set_filename(const char* name)
 {
 	/* store file name */
-	CopyName(name);
+	fFileName = name;
+	fFileName.ToNativePathName();
 }
 
 /* adjusting stream position, returns the number of lines rewound */
@@ -240,34 +227,6 @@ ifstreamT& ifstreamT::operator>>(bool& a)
 * Private
 *************************************************************************/
 
-/* copy the string to fFileName */
-void ifstreamT::CopyName(const char* filename)
-{
-	/* no copies to self */
-	if (filename == fFileName) return;
-
-	/* free existing memory */
-	delete[] fFileName;
-	
-	/* check file name */
-	if (strlen(filename) == 0)
-	{
-		cout << "\n ifstreamT::CopyName: zero length filename" << endl;
-		throw eGeneralFail;
-	}
-	
-	/* allocate new memory */
-	fFileName = new char[strlen(filename) + 1];
-	if (!fFileName)
-	{
-		cout << "\n ifstreamT::CopyName: out of memory" << endl;
-		throw eOutOfMemory;
-	}
-	
-	/* copy in */
-	memcpy(fFileName, filename, sizeof(char)*(strlen(filename) + 1));
-}
-
 /* open stream with prompt - return 1 if successful */
 int ifstreamT::OpenWithPrompt(const char* prompt, const char* skipname,
 	const char* defaultname)
@@ -329,8 +288,7 @@ int ifstreamT::OpenWithPrompt(const char* prompt, const char* skipname,
 			if (is_open())
 			{
 				/* store file name */
-				CopyName(newfilename);
-			
+				fFileName = newfilename;
 				return 1;	
 			}
 			else

@@ -1,4 +1,4 @@
-/* $Id: ofstreamT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: ofstreamT.h,v 1.2 2001-04-10 17:56:13 paklein Exp $ */
 /* created: paklein (12/30/2000)                                          */
 
 #ifndef _OFSTREAM_T_H_
@@ -9,6 +9,9 @@
 #include <fstream.h>
 #include <stddef.h>
 
+/* direct members */
+#include "StringT.h"
+
 class ofstreamT: public ofstream
 {
 public:
@@ -16,9 +19,6 @@ public:
 	/* constructors */
 	ofstreamT(void);
 	ofstreamT(const char* file_name, bool append = false);
-
-	/* destructor */
-	~ofstreamT(void);
 
 	/* open stream */
 	void open(const char* file_name);
@@ -36,22 +36,11 @@ public:
 
 private:
 
-	/* copy the string to fFileName */
-	void CopyName(const char* filename);
-
-private:
-
 	/* the filename */
-	char* fFileName;
-
-	/* NULL file name */
-	static const char fNULLFileName;
+	StringT fFileName;
 };
 
 /* inlines */
-inline const char* ofstreamT::filename(void) const
-{
-	return (fFileName != NULL) ? fFileName : &fNULLFileName;
-}
+inline const char* ofstreamT::filename(void) const { return fFileName; }
 
 #endif /* _OFSTREAM_T_H_ */
