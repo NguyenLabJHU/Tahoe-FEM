@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.3.2.1 2003-05-06 22:14:05 hspark Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.3.2.2 2003-05-09 08:50:26 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -113,6 +113,10 @@ public:
 	/** set the reference error for the given group */
 	void SetReferenceError(int group, double error) const;
 	/*@}*/
+
+	/** return the internal forces for the given solver group associated with the
+	 * most recent call to FEManagerT_bridging::FormRHS. */
+	const dArray2DT& InternalForce(int group) const;
 
 protected:
 
