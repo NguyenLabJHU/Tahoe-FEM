@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.12 2002-07-02 19:57:07 cjkimme Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.13 2002-07-08 12:17:23 sawimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "ExodusOutputT.h"
@@ -38,9 +38,10 @@ void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 
 	/* ExodusII database */
 	ExodusT exo(cout);
-	if (fElementSets[ID]->PrintStep() == 0)
+	if (fElementSets[ID]->PrintStep() == 0 ||
+	    fElementSets[ID]->Changing())
 		/* create new file */
-		CreateResultsFile(ID, exo);
+	        CreateResultsFile(ID, exo);
 	else
 	{
 		/* database file name */
@@ -48,7 +49,14 @@ void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		FileName(ID, filename);
 	
 		/* append output to existing results */
-		exo.OpenWrite(filename);
+		if (!exo.OpenWrite(filename))
+		  {
+		    cout << "\n\nExodusOutputT::WriteOutput call to ExodusT::OpenWrite failed\n";
+		    cout << "filename = " << filename << "\n";
+		    cout << "time = " << time << "\n";
+		    cout << "output ID = " << ID << "\n\n";
+		    throw eDatabaseFail;
+		  }
 	}
 
 	/* write time */
@@ -142,8 +150,13 @@ void ExodusOutputT::CreateResultsFile(int ID, ExodusT& exo)
 	/* create new file */
 	ArrayT<StringT> info, qa;
 	AssembleQA (qa);
-	exo.Create(filename, fTitle, info, qa, dim, num_nodes,
-		num_elem, num_blks, num_node_sets, num_side_sets);
+	if (!exo.Create(filename, fTitle, info, qa, dim, num_nodes,
+			num_elem, num_blks, num_node_sets, num_side_sets))
+	  {
+	    cout << "\n\nExodusOutputT::WriteOutput call to ExodusT::Create failed\n";
+	    cout << "output ID = " << ID << "\n\n";
+	    throw eDatabaseFail;
+	  }
 
 	/* write geometry */
 	iArrayT nodes_used;
