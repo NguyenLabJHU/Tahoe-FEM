@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.18.2.1 2002-12-05 21:48:42 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.18.2.2 2002-12-10 17:09:37 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -246,11 +246,13 @@ void NodeManagerT::RegisterCoordinates(LocalArrayT& array) const
 			break;					
 		}
 		default:
-			cout << "\n NodeManagerT::RegisterCoordinates: not a coordinate type: " 
-			     << array.Type() << endl;
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail("NodeManagerT::RegisterCoordinates", 
+				"not a coordinate type: %d", array.Type());
 	}
 }
+
+/* the local node to home processor map */
+const iArrayT& NodeManagerT::ProcessorMap(void) const { return fFEManager.ProcessorMap(); }
 
 GlobalT::SystemTypeT NodeManagerT::TangentType(int group) const
 {
@@ -276,10 +278,8 @@ void NodeManagerT::InitStep(int group)
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
 	{
 		/* should be allocated */
-		if (!fCurrentCoords) {
-			cout << "\n NodeManagerT::Update: current coords not initialized" << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+		if (!fCurrentCoords)
+			ExceptionT::GeneralFail("NodeManagerT::Update", "current coords not initialized");
 	
 		/* update */
 		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
@@ -371,10 +371,8 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
 	{
 		/* should be allocated */
-		if (!fCurrentCoords) {
-			cout << "\n NodeManagerT::Update: current coords not initialized" << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+		if (!fCurrentCoords)
+			ExceptionT::GeneralFail("NodeManagerT::Update", "current coords not initialized");
 	
 		/* update */
 		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
@@ -473,11 +471,9 @@ void NodeManagerT::SetEquationNumbers(int group)
 	/* collect fields in the group */
 	ArrayT<FieldT*> fields;
 	CollectFields(group, fields);
-	if (fields.Length() == 0) {
-		cout << "\n NodeManagerT::SetEquationNumbers: group has not fields: " 
-		     << group << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (fields.Length() == 0)
+		ExceptionT::GeneralFail("NodeManagerT::SetEquationNumbers", 
+			"group has no fields: %d", group);
 	
 	/* initialize equations numbers arrays */
 	ArrayT<iArray2DT> group_eqnos(fields.Length());
@@ -560,12 +556,8 @@ void NodeManagerT::RenumberEquations(int group,
 
 	int numtest = relabel.Renumber(eqnos);
 	if (numtest != NumEquations(group))
-	{
-		cout << "\n NodeManagerT::RenumberEquations: expecting to renumber "
-		     << NumEquations(group) << '\n'
-		     <<   "     equations, but hit " << numtest << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("NodeManagerT::RenumberEquations", 
+			"expecting to renumber %d eqns, but hit %d", NumEquations(group), numtest);
 	
 	/* rearrange equations if needed */
 	CheckEquationNumbers(group);
@@ -577,11 +569,8 @@ void NodeManagerT::SetEquationNumberScope(int group, GlobalT::EquationNumberScop
 {
 	//TEMP - external DOF's no tested with other scopes
 	if (scope != GlobalT::kLocal && fExNodes.Length() > 0 && NumTagSets() > 0)
-	{
-		cout << "\n NodeManagerT::SetEquationNumberScope: external DOF only\n"
-		     <<   "     verified with local numbering" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("NodeManagerT::SetEquationNumberScope", 
+			"external DOF only verified with local numbering");
 
 	/* switch numbering scope - with external nodes */
 	if (scope == GlobalT::kGlobal && fExNodes.Length() > 0)
@@ -1096,12 +1085,6 @@ void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
 	/* set pointer */	
 	fInitCoords = &(model->Coordinates());
 
-	/* set node to processor map */
-	iArrayT full_range(NumNodes());
-	full_range.SetValueToPosition();
-	fFEManager.NodeToProcessorMap(full_range, fProcessor);
-	full_range.Free();
-
 	/* check element groups to see if node data should be 
 	   adjusted to be 2D, some element groups require
 	   fNumSD == fNumDOF */
@@ -1132,13 +1115,14 @@ void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
 		out << '\n';
 
 		/* arrays */
+		const iArrayT& processor = ProcessorMap();
 		const dArray2DT& init_coords = InitialCoordinates();
 		const iArrayT* node_map = fFEManager.NodeMap();
 		for (int i = 0; i < init_coords.MajorDim(); i++)
 		{
 			out << setw(kIntWidth) << i+1
 			    << setw(kIntWidth) << ((node_map) ? (*node_map)[i]+1 : i+1)
-			    << setw(kIntWidth) << fProcessor[i];		
+			    << setw(kIntWidth) << processor[i];		
 			for (int j = 0; j < NumSD(); j++)
 				out << setw(d_width) << init_coords(i,j);
 			out << '\n';
@@ -1468,6 +1452,7 @@ void NodeManagerT::EchoExternalNodes(ostream& out)
 	fFEManager.IncomingNodes(fExNodes);
 	
 	int num_ex = fExNodes.Length();
+	out << " Number of external nodes. . . . . . . . . . . . = " << num_ex << '\n';
 	if (num_ex > 0)
 	{
 		/* echo nodes */
