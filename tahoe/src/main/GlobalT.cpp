@@ -1,4 +1,4 @@
-/* $Id: GlobalT.cpp,v 1.2 2001-08-27 17:17:29 paklein Exp $ */
+/* $Id: GlobalT.cpp,v 1.1.1.1 2001-01-29 08:20:21 paklein Exp $ */
 /* created: paklein (04/01/2000)                                          */
 /* GlobalT.cpp                                                            */
 
@@ -50,11 +50,8 @@ istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 			code = GlobalT::kVarNodeNLExpDyn;
 			break;
 		case GlobalT::kAugLagStatic:
-		{
-			cout << "\n operator>>GlobalT::AnalysisCodeT: external degrees of freedom no longer\n" 
-			     <<   "     require a specific analysis code: " << GlobalT::kAugLagStatic << endl;
-			throw eBadInputValue;
-		}
+			code = GlobalT::kAugLagStatic;
+			break;
 		case GlobalT::kNLExpDynKfield:
 		{
 			cout << "\n operator>>GlobalT::AnalysisCodeT: K-field converted to KBC controller" << endl;

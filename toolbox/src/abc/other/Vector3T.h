@@ -1,5 +1,7 @@
-/* $Id: Vector3T.h,v 1.2 2001-09-11 05:55:33 paklein Exp $ */
-/* created: paklein (02/11/2000) */
+/* $Id: Vector3T.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* created: paklein (02/11/2000)                                          */
+/* utility class for 3D vector functions                                  */
+/* NOTE: some functions do create temporary nTYPE's                       */
 
 #ifndef _VECTOR_3_T_H_
 #define _VECTOR_3_T_H_
@@ -7,26 +9,20 @@
 /* Environmental */
 #include "Environment.h"
 
-/** utility class for 3D vector functions.
-/* \note some functions do create temporary nTYPE instances */
 template <class nTYPE>
 class Vector3T
 {
   public:
 
-	/** default constructor */
+	/* constructors */
 	Vector3T(void);
-
-	/** "copy" constructor. Copy the first 3 values from source */
 	Vector3T(const nTYPE* source);
 
-	/** element accessor */
+	/* accessor */
 	nTYPE& operator[](int dex) const;
 
-	/** type conversion operator. Convert a Vector3T to a (const nTYPE*) */
+	/* type conversion operators */
 	operator const nTYPE*() const;
-
-	/** type conversion operator. Convert a Vector3T to a (nTYPE*) */
 	operator nTYPE*() const;
 
 	/* assignment operator */
@@ -64,13 +60,8 @@ class Vector3T
 	Vector3T<nTYPE>& Combine(const nTYPE& a, const nTYPE* A,
 	                         const nTYPE& b, const nTYPE* B);
 
-	/** fill vector with random numbers in the range [-1 1]
-	 * \param seed random number seed */
-	void Random(int seed);
-
 private:
 
-	/** statically allocated data */
 	nTYPE v[3];
 };
 
@@ -223,18 +214,6 @@ inline Vector3T<nTYPE>& Vector3T<nTYPE>::Cross(const nTYPE* a,
 	v[1] = a[2]*b[0] - a[0]*b[2];
 	v[2] = a[0]*b[1] - a[1]*b[0];
 	return *this;
-}
-
-/* fill the array with random numbers in the range [-1 1] */
-template <class nTYPE>
-inline void Vector3T<nTYPE>::Random(int seed)
-{
-	/* set random number seed */
-	srand(seed);
-
-	v[0] = nTYPE(rand() - RAND_MAX/2)/nTYPE(RAND_MAX);
-	v[1] = nTYPE(rand() - RAND_MAX/2)/nTYPE(RAND_MAX);
-	v[2] = nTYPE(rand() - RAND_MAX/2)/nTYPE(RAND_MAX);
 }
 
 /* inner product */

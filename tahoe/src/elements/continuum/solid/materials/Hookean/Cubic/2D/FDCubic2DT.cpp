@@ -1,4 +1,4 @@
-/* $Id: FDCubic2DT.cpp,v 1.3 2001-09-15 01:19:24 paklein Exp $ */
+/* $Id: FDCubic2DT.cpp,v 1.2 2001-07-03 01:35:08 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "FDCubic2DT.h"
@@ -47,7 +47,6 @@ bool FDCubic2DT::SetInverseThermalTransformation(dMatrixT& F_trans_inv)
 {
 	if (fThermal->IsActive())
 	{
-		/* note - this is approximate at finite strains */
 		double factor = CubicT::DilatationFactor2D(fConstraintOption);
 
 		/* assuming isotropic expansion */

@@ -1,4 +1,4 @@
-# $Id: GNU.troi.macros,v 1.8 2001-09-20 14:57:05 rjones Exp $
+# $Id: GNU.troi.macros,v 1.7 2001-08-14 00:34:27 paklein Exp $
 # GNU
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -18,7 +18,7 @@ LFLAGS      = -static
 AR          = ar
 ARFLAGS     = -cruv
 MAKE_OPTS   = -s
-RM          = /bin/rm
+RM          = rm
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = /home/paklein/bin/ln -sf
 ECHO        = echo

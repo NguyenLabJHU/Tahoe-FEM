@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.h,v 1.3 2001-09-17 22:01:01 strohban Exp $ */
+/* $Id: SPOOLESMatrixT.h,v 1.2 2001-05-01 23:22:57 paklein Exp $ */
 /* created: paklein (09/13/2000)                                          */
 
 #ifndef _SPOOLES_MATRIX_T_H_
@@ -136,7 +136,3 @@ protected:
 
 #endif /*__SPOOLES__ */
 #endif /* _SPOOLES_MATRIX_T_H_ */
-
-
-
-

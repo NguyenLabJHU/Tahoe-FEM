@@ -1,4 +1,4 @@
-/* $Id: SimoShapeFunctionT.h,v 1.5 2001-08-20 06:52:10 paklein Exp $ */
+/* $Id: SimoShapeFunctionT.h,v 1.4 2001-07-20 00:58:39 paklein Exp $ */
 
 #ifndef _SIMO_SHAPE_FUNCTION_T_H_
 #define _SIMO_SHAPE_FUNCTION_T_H_
@@ -17,21 +17,8 @@ public:
 	SimoShapeFunctionT(GeometryT::CodeT geometry_code, int numIP, 
 		const LocalArrayT& coords, const LocalArrayT& element_modes);
 
-	/** initialization class. */
-	virtual void Initialize(void);
-
 	/** compute global shape derivatives */ 	
 	virtual void SetDerivatives(void);
-
-	/** convert derivatives of the enhanced modes by applying a chain rule
-	 * transformation:
-	 *
-	 *      d Na / d x_i = (d Na / d X_J) (d X_J/d x_i)
-	 *
-	 * \param changeofvar jacobian matrix of the coordinate transformation
-	 * \param derivatives transformed shape function derivatives. This array is
-	 *        dimensioned during the call: [nsd] x [num_modes] */
-	void TransformDerivatives_enhanced(const dMatrixT& changeofvar, dArray2DT& derivatives);
 
 	/** strain displacement matrix associated with the enhanced modes (4.11)
 	 * at the current integration point */
@@ -68,25 +55,11 @@ private:
 	/** gradients of the enhanced bubble modes */
 	ArrayT<dArray2DT> fDNaX_bubble;
 
-	/** gradient of bubble modes in the parent domain */
-	ArrayT<dArray2DT> fDNa_bubble;
-
 	/** gradients of the enhanced incompressible modes (3D only) */
 	dArray2DT fDNaX_inc;
-	
-	/* work space */
-	dArrayT   fNa_0;
-	dArray2DT fDNa_0;
-	dMatrixT  fJ, fJ_0_inv;
 };
 
 /* inlines */
-
-inline void SimoShapeFunctionT::TransformDerivatives_enhanced(const dMatrixT& changeofvar, 
-	dArray2DT& derivatives)
-{
-	DoTransformDerivatives(changeofvar, fDNaX_bubble[fCurrIP], derivatives);
-}
 
 /* strain displacement matrix associated with the enhanced modes (4.11) */
 inline void SimoShapeFunctionT::B_enhanced(dMatrixT& B_matrix) const

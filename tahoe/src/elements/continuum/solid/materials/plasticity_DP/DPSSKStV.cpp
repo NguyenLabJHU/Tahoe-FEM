@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.11 2001-08-17 00:51:03 cfoster Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.10 2001-08-15 00:34:44 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 
@@ -81,9 +81,44 @@ void DPSSKStV::PrintName(ostream& out) const
 /* modulus */
 const dMatrixT& DPSSKStV::c_ijkl(void)
 {
-
+	/* elastoplastic correction */
+  // CurrentElement().IntegerData()[CurrIP()] = kIsPlastic;
+        //UpdateHistory();
 	fModulus.SumOf(HookeanMatT::Modulus(),
 		ModuliCorrection(CurrentElement(), CurrIP()));
+
+//TEMP - remove after loc check in ComputeOutput is working		
+#if _CFOSTER_DEBUG_
+	/* check for localization and store */
+	if (CurrentElement().IsAllocated())
+	{
+		/* stress tensor - updates state variables */
+		const dSymMatrixT& stress = s_ij();
+		cout << " stress= \n";
+		cout << stress << '\n';
+	
+		/* compute modulus (using last internal state) */
+//		const dMatrixT& modulus = c_ijkl();
+		const dMatrixT& modulus = fModulus;
+		cout << "modulus=\n";
+		cout << modulus << '\n';
+
+		/* compute discontinuous bifurcation modulus */
+		const dMatrixT& modulusdisc = cdisc_ijkl();
+		cout << "modulusdisc=\n";
+		cout << modulusdisc << '\n';
+
+		/* continuous localization condition checker */
+		DetCheckT checker(stress, modulus);
+		dArrayT normal(stress.Rows());
+		fInternal[kLocCheck] = checker.IsLocalized_SPINLOC(normal);
+   
+		/* discontinuous localization condition checker */
+		DetCheckT checkerdisc(stress, modulusdisc);
+		dArrayT normaldisc(stress.Rows());
+		fInternal[kLocCheckDisc] = checkerdisc.IsLocalized_SPINLOC(normaldisc);
+	}	
+#endif
 	
 	return fModulus;
 }
@@ -154,33 +189,39 @@ void DPSSKStV::OutputLabels(ArrayT<StringT>& labels) const
 
 void DPSSKStV::ComputeOutput(dArrayT& output)
 {
-	
 	/* stress tensor (load state) */
 	const dSymMatrixT& stress = s_ij();
 
 	/* pressure */
-	output[2] = fStress.Trace()/3.0;
-
+	output[2] = fStress.Trace()/3.0;	
+#if _CFOSTER_DEBUG_
+	cout << " stress= \n";
+	cout << stress << '\n';
+#endif
 
 	/* compute modulus */
-
 	const dMatrixT& modulus = c_ijkl();
-
-        /* continuous localization condition checker */
-	DetCheckT checker(stress, modulus);
-	dArrayT normal(stress.Rows());
-	output[3] = checker.IsLocalized_SS(normal);
+#if _CFOSTER_DEBUG_
+	cout << "modulus=\n";
+	cout << modulus << '\n';
+#endif
 
 	/* compute discontinuous bifurcation modulus */
 	const dMatrixT& modulusdisc = cdisc_ijkl();
-	
+#if _CFOSTER_DEBUG_
+	cout << "modulusdisc=\n";
+	cout << modulusdisc << '\n';
+#endif
 
+    /* continuous localization condition checker */
+	DetCheckT checker(stress, modulus);
+	dArrayT normal(stress.Rows());
+	output[3] = checker.IsLocalized_SPINLOC(normal);
+   
 	/* discontinuous localization condition checker */
-
 	DetCheckT checkerdisc(stress, modulusdisc);
 	dArrayT normaldisc(stress.Rows());
-	output[4] = checkerdisc.IsLocalized_SS(normaldisc);
-
+	output[4] = checkerdisc.IsLocalized_SPINLOC(normaldisc);
    
 	/* deviatoric Von Mises stress */
 	fStress.Deviatoric();

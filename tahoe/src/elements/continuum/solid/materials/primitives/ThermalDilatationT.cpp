@@ -1,5 +1,5 @@
-/* $Id: ThermalDilatationT.cpp,v 1.2 2001-09-15 01:17:36 paklein Exp $ */
-/* created: paklein (08/25/1996) */
+/* $Id: ThermalDilatationT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (08/25/1996)                                          */
 
 #include "ThermalDilatationT.h"
 
@@ -18,6 +18,10 @@ ThermalDilatationT::ThermalDilatationT(ifstreamT& in):
 	/* overwrite */
 	if (LTfnum == -1) fPercentElongation = 0.0;
 }
+
+/* set LTf pointer */
+int ThermalDilatationT::LTfNumber(void) const { return LTfnum; }
+void ThermalDilatationT::SetLTfPtr(const LoadTime* LTf) { LTfPtr = LTf; }
 
 /* I/O functions */
 void ThermalDilatationT::Print(ostream& out) const

@@ -1,15 +1,19 @@
-/* $Id: nNLHHTalpha.h,v 1.2 2001-08-27 17:12:11 paklein Exp $ */
-/* created: paklein (10/17/1996) */
+/* $Id: nNLHHTalpha.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/17/1996)                                          */
 
 #ifndef _N_NL_HHT_A_H_
 #define _N_NL_HHT_A_H_
 
 /* base classes */
 #include "HHTalpha.h"
-#include "nControllerT.h"
+#include "nDDtControllerT.h"
 
-/** HHT alpha integration for linear systems */
-class nNLHHTalpha: public virtual HHTalpha, public nControllerT
+/* forward declarations */
+class dArrayT;
+class dArray2DT;
+class KBC_CardT;
+
+class nNLHHTalpha: public virtual HHTalpha, public nDDtControllerT
 {
 public:
 
@@ -22,18 +26,10 @@ public:
 	/* predictors - map ALL */
 	virtual void Predictor(void);
 
-	/** corrector - map ACTIVE. See nControllerT::Corrector for more
-	 * documentation */
-	virtual void Corrector(const iArray2DT& eqnos, const dArrayT& update,
-		int eq_start, int eq_stop);
-
-	/** corrector with node number map - map ACTIVE. See 
-	 * nControllerT::MappedCorrector for more documentation */
-	virtual void MappedCorrector(const iArrayT& map, const iArray2DT& eqnos,
-		const dArray2DT& update, int eq_start, int eq_stop);
-
-	/** return the field array needed by nControllerT::MappedCorrector. */
-	virtual const dArray2DT& MappedCorrectorField(void) const;
+	/* correctors - map ACTIVE */
+	virtual void Corrector(const iArray2DT& eqnos, const dArrayT& update);
+	virtual void MappedCorrector(const iArrayT& map, const iArray2DT& flags,
+		const dArray2DT& update);
 
 	/* pseudo-boundary conditions for external nodes */
 	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;

@@ -1,4 +1,4 @@
-/* $Id: SSHookeanMatT.cpp,v 1.3 2001-08-21 19:14:08 paklein Exp $ */
+/* $Id: SSHookeanMatT.cpp,v 1.2 2001-07-03 01:35:05 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "SSHookeanMatT.h"
@@ -16,7 +16,6 @@ SSHookeanMatT::SSHookeanMatT(ifstreamT& in, const SmallStrainT& element):
 void SSHookeanMatT::Initialize(void)
 {
 	/* inherited */
-	SSStructMatT::Initialize();
 	HookeanMatT::Initialize();
 }
 

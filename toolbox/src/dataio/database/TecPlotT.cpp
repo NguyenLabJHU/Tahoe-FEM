@@ -1,13 +1,11 @@
-/* $Id: TecPlotT.cpp,v 1.3 2001-09-10 20:30:23 sawimme Exp $ */
+/* $Id: TecPlotT.cpp,v 1.2 2001-07-06 17:08:33 sawimme Exp $ */
 /* created: saw (06.06.2000)                                              */
 /* version 7.5                                                            */
 /* rules:                                                                 */
 /* 1. Maximum 32,766 zone records                                         */
-/* 2. Maximum 10 custom label records (does not refer to variable labels) */
-/*    (Custom labels are for axis labels, text tick marks, etc ...)       */
-/*    Custom labels are not currently used.                               */
-/* 3. Maximum ascii line length is 4000 characters                        */
-/* 4. Don't wrap amid a "" string                                         */
+/* 	 2. Maximum 10 custom label records (does not refer to variable labels) */
+/* 	 3. Maximum ascii line length is 4000 characters                      */
+/* 	 4. Don't wrap amid a "" string                                       */
 
 #include "TecPlotT.h"
 #include "ios_fwd_decl.h"
@@ -26,6 +24,8 @@ void TecPlotT::WriteHeader (ostream& out, const StringT& title, const ArrayT<Str
 {
 if (title.Length() > 1)
 out << "TITLE = \"" << title << "\"\n";
+if (variablenames.Length() > 10)
+cout << "\n\nTecPlot: Warning: TecPlot will only support 10 variables\n\n";
 
 if (variablenames.Length() > 0)
 out << "VARIABLES = ";
@@ -125,18 +125,16 @@ void TecPlotT::WriteData (ostream& out, const ArrayT<double>& data, const int ro
     }
   else
     {
-      for (int j=0; j < cols; j++)
+      // keep row length under 4000 characters
+      for (int i=0, j=0; j < cols; j++)
 	{
 	  double *p = data.Pointer(j);
-	  for (int k=0; k < rows; k++)
+	  for (int k=0; k < rows; k++, i++)
 	    {
 	      out << *p << " ";
-	      // keep row length under 4000 characters
-	      if ((k+1)%100 == 0) 
-		out << '\n';
+	      if ((i+1)%100 == 0 || i == data.Length() - 1) out << '\n';
 	      p += cols;
 	    }
-	  out << '\n';
 	}
     }
 }

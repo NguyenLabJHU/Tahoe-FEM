@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.11 2001-09-05 22:29:16 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.9 2001-08-13 23:24:02 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 
 #include "ContinuumElementT.h"
@@ -225,11 +225,12 @@ void ContinuumElementT::ReadRestart(istream& in)
 	/* update element level internal variables */
 	if (fMaterialList->HasHistoryMaterials())
 	{
-		for (int i = 0; i < fElementCards.Length(); i++)
+		Top();
+		while (NextElement())
 		{
 			int isallocated;
 			in >> isallocated;
-			if (isallocated) fElementCards[i].ReadRestart(in);
+			if (isallocated) CurrentElement().ReadRestart(in);
 		}
 	}
 }
@@ -245,7 +246,7 @@ void ContinuumElementT::WriteRestart(ostream& out) const
 		for (int i = 0; i < fElementCards.Length(); i++)
 		{
 			const ElementCardT& element = fElementCards[i];
-			out << element.IsAllocated() << '\n';
+			out << setw(kIntWidth) << element.IsAllocated() << '\n';
 			if (element.IsAllocated()) element.WriteRestart(out);
 		}
 	}

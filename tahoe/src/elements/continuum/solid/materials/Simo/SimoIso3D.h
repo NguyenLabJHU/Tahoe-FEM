@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.h,v 1.4 2001-09-15 01:19:42 paklein Exp $ */
+/* $Id: SimoIso3D.h,v 1.3 2001-07-03 01:35:14 paklein Exp $ */
 /* created: paklein (03/02/1997)                                          */
 /* Hyperelastic material governed by Simo's split volumetric/deviatoric   */
 /* stored energy function.                                                */
@@ -47,13 +47,6 @@ protected:
 	double  dU(double J) const;
 	double ddU(double J) const;
 
-private:
-
-	/** return true if material implementation supports imposed thermal
-	 * strains. This material does support multiplicative thermal
-	 * strains. */
-	virtual bool SupportsThermalStrain(void) const { return true; };
-
 protected:
 
 	/* return values */
@@ -66,6 +59,7 @@ protected:
 
 private:
 
+//	dSymMatrixT	fnorm;
 	dMatrixT	frank4;
 	
 	/* fixed forms */
@@ -74,21 +68,5 @@ private:
 	dMatrixT	fIdentity4;
 	dMatrixT	fDevOp4;
 };
-
-/* inlines */
-inline double SimoIso3D::U(double J) const
-{
-	return 0.5*Kappa()*(0.5*(J*J - 1.0) - log(J));
-}
-
-inline double SimoIso3D::dU(double J) const
-{
-	return 0.5*Kappa()*(J - 1.0/J);
-}
-
-inline double SimoIso3D::ddU(double J) const
-{
-	return 0.5*Kappa()*(1.0 + 1.0/(J*J));
-}
 
 #endif /* _SIMO_ISO_3D_H_ */

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-08-27 17:15:16 paklein Exp $
+# $Id: makefile,v 1.4 2001-02-22 23:46:48 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -10,6 +10,7 @@ OBJ = \
 	DynNodeManager.o \
 	FDDynNodeManagerT.o \
 	FDNodeManager.o \
+	LinStaticNodes.o \
 	NodeManagerPrimitive.o \
 	NodeManagerT.o
 OBJ_LINK = $(OBJ)
@@ -24,6 +25,7 @@ SRC = \
 	DynNodeManager.cpp \
 	FDDynNodeManagerT.cpp \
 	FDNodeManager.cpp \
+	LinStaticNodes.cpp \
 	NodeManagerPrimitive.cpp \
 	NodeManagerT.cpp
 
@@ -33,6 +35,7 @@ HDR = \
 	DynNodeManager.h \
 	FDDynNodeManagerT.h \
 	FDNodeManager.h \
+	LinStaticNodes.h \
 	NodeManagerPrimitive.h \
 	NodeManagerT.h
 HDR_LINK = $(HDR:.h=.h_link)

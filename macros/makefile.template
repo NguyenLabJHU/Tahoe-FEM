@@ -1,11 +1,11 @@
-# $Id: makefile.template,v 1.12 2001-09-19 19:04:54 paklein Exp $
+# $Id: makefile.template,v 1.10 2001-07-19 18:20:22 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
 # (1) set HOME_DIR to the full path to this makefile.
 # (2) set MACRO_DIR to the full path to directory
 #     containing the machine specific compiler macros.
-# (3) select ARCH from those in the macros directory.
+# (3) select ARCH from list of supported platforms.
 # (4) select installed "build options".
 # (5) "make init" to (re-)initialize headers and file
 #     dependencies.
@@ -22,7 +22,18 @@ LIB_DIR = $(HOME_DIR)/lib
 
 # build architecture
 ARCH =
-# see macros directory for choices $(ARCH).macros
+# choices:
+#     ALASKA - DEC OSF
+#  CA-CPLANT - DEC OSF
+#        DEC - DEC OSF
+#    DEC.mpi - DEC OSF with MPI
+#        GNU - egcs
+#      JANUS - ASCI Red
+#        SGI - IRIX
+#  SGI.mpich - IRIX with MPICH
+#    SGI.mpi - IRIX with MPI
+#    SIBERIA - DEC OSF
+#        SUN - SUNWSpro
 
 # default target name - root of library name or executable name
 TARGET  =
@@ -105,12 +116,6 @@ MACRO_DIR = $(HOME_DIR)/../macros
 #ACME_LIB_NAME = acme
 #ACME_LIB      = $(ACME_DIR)/lib$(ACME_LIB_NAME).a
 #ACME_LFLAGS   = -L$(ACME_DIR) -l$(ACME_LIB_NAME)
-
-#### VTK graphics library
-#VTK_DIR    =
-#VTK_INC    = -I$(VTK_DIR)/common -I$(VTK_DIR) -I$(VTK_DIR)/graphics -I$(VTK_DIR)/imaging -I$(VTK_DIR)/contrib
-#VTK_CFLAGS = $(VTK_INC) -D__VTK__
-#VTK_LFLAGS = $(VTK_DIR)/patented/libVTKPatented.a $(VTK_DIR)/imaging/libVTKImaging.a $(VTK_DIR)/graphics/libVTKGraphics.a $(VTK_DIR)/common/libVTKCommon.a $(VTK_DIR)/patented/libVTKPatented${VTK_LIB_EXT} ${VTK_HOME}/imaging/libVTKImaging.a $(VTK_DIR)/graphics/libVTKGraphics.a $(VTK_DIR)/common/libVTKCommon.a
 
 ##### SEACAS/ACCESS software
 #AX_INC    = -I$(ACCESS)/inc

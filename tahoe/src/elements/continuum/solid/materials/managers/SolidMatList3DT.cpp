@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.12 2001-09-15 01:20:34 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.10 2001-07-19 18:55:05 hspark Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -29,7 +29,6 @@
 #include "SKStVT3D.h"
 #include "HyperEVP3D.h"
 #include "BCJHypo3D.h"
-#include "FDCrystalElast.h"
 #include "LocalCrystalPlast.h"
 #include "LocalCrystalPlast_C.h"
 #include "GradCrystalPlast.h"
@@ -291,14 +290,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 			}
-                        case kFDXtalElast:
-                        {
-                                /* check */
-                                if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
-
-                                fArray[matnum] = new FDCrystalElast(in, *fFiniteStrain);
-                                break;
-                        }
 			case kLocXtalPlast:
 			{
 				/* check */
@@ -385,10 +376,10 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		if (!pmat) throw eOutOfMemory;
 		
 		/* set thermal LTf pointer */
-		int LTfnum = pmat->ThermalStrainSchedule();
+		int LTfnum = pmat->ThermalLTfNumber();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalSchedule(fElementGroup.GetLTfPtr(LTfnum));
+			pmat->SetThermalLTfPtr(fElementGroup.GetLTfPtr(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;

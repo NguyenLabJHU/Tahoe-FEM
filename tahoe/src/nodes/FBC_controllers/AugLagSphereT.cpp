@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.cpp,v 1.3 2001-08-29 07:10:52 paklein Exp $ */
+/* $Id: AugLagSphereT.cpp,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
 /* created: paklein (03/24/1999)                                          */
 
 #include "AugLagSphereT.h"
@@ -44,9 +44,7 @@ void AugLagSphereT::Initialize(void)
 	fContactForce2D = 0.0;
 
 	/* register with node manager - sets initial fContactDOFtags */
-	iArrayT set_dims(1);
-	set_dims = kNumAugLagDOF;
-	fXDOF_Nodes->XDOF_Register(this, set_dims);	
+	fXDOF_Nodes->Register(this, kNumAugLagDOF);	
 }
 
 void AugLagSphereT::SetEquationNumbers(void)
@@ -80,7 +78,7 @@ void AugLagSphereT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	}
 
 	/* constraint equations */
-	const iArray2DT& auglageqs = fXDOF_Nodes->XDOF_Eqnos(this, 0);
+	const iArray2DT& auglageqs = fXDOF_Nodes->XDOF_Eqnos(this);
 	for (int j = 0; j < auglageqs.MinorDim(); j++)
 	{
 		auglageqs.ColumnCopy(j, eq_temp);
@@ -121,15 +119,13 @@ void AugLagSphereT::CloseStep(void)
 
 	/* store last converged DOF array */
 	dArrayT constraints;
-	constraints.Alias(fXDOF_Nodes->XDOF(this, 0));
+	constraints.Alias(fXDOF_Nodes->XDOF(this));
 	fLastDOF = constraints;
 }
 
 /* restore the DOF values to the last converged solution */
-void AugLagSphereT::ResetDOF(dArray2DT& DOF, int tag_set) const
+void AugLagSphereT::ResetDOF(dArray2DT& DOF) const
 {
-#pragma unused (tag_set)
-
 	dArrayT constraints;
 	constraints.Alias(DOF);
 	constraints = fLastDOF;
@@ -144,7 +140,7 @@ void AugLagSphereT::ApplyLHS(void)
 	if (!formK) return;
 
 	/* get current values of constraints */
-	const dArray2DT& constr = fXDOF_Nodes->XDOF(this, 0);
+	const dArray2DT& constr = fXDOF_Nodes->XDOF(this);
 	const dArrayT force(constr.MajorDim(), constr.Pointer());
 
 	/* workspace */
@@ -204,18 +200,19 @@ void AugLagSphereT::ApplyLHS(void)
 }
 
 /* returns the array for the DOF tags needed for the current config */
-void AugLagSphereT::SetDOFTags(void)
+iArrayT& AugLagSphereT::SetDOFTags(void)
 {
 // NOTE: this would be the place to determine the contact configuration
 //       and collect the list of active nodes
 
 	/* ALL constraints ALWAYS active */
 	fContactDOFtags.Allocate(fContactNodes.Length());
+
+	return fContactDOFtags;
 }
 
-iArrayT& AugLagSphereT::DOFTags(int tag_set)
+const iArrayT& AugLagSphereT::DOFTags(void) const
 {
-#pragma unused (tag_set)
 	return fContactDOFtags;
 }
 
@@ -231,9 +228,8 @@ void AugLagSphereT::GenerateElementData(void)
 }
 
 /* return the contact elements */
-const iArray2DT& AugLagSphereT::DOFConnects(int tag_set) const
+const iArray2DT& AugLagSphereT::DOFConnects(void) const
 {
-#pragma unused (tag_set)
 	return fContactTags;
 }
 
@@ -255,7 +251,7 @@ void AugLagSphereT::ComputeContactForce(double kforce)
 	fContactForce2D = 0.0;	
 
 	/* get current values of constraints */
-	const dArray2DT& constr = fXDOF_Nodes->XDOF(this, 0);
+	const dArray2DT& constr = fXDOF_Nodes->XDOF(this);
 	const dArrayT force(constr.MajorDim(), constr.Pointer());
 
 	dArrayT f_u;

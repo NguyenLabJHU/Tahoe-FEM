@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.10 2001-09-15 01:20:34 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.8 2001-07-19 18:55:05 hspark Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList2DT.h"
@@ -38,7 +38,6 @@
 #include "OgdenViscVIB2D.h"
 #include "SKStVT2D.h"
 #include "tevp2D.h"
-#include "povirk2D.h"
 
 #include "HyperEVP2D.h"
 #include "BCJHypo2D.h"
@@ -297,15 +296,6 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 			}
-		        case kPovirk2D:
-			{
-				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
-			
-				fArray[matnum] = new povirk2D(in, *fFiniteStrain);
-				fHasHistory = true;
-				break;
-			}
 			case kHyperEVP:
 			{
 				/* check */
@@ -439,10 +429,10 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 		if (!pmat) throw eOutOfMemory;
 		
 		/* set thermal LTf pointer */
-		int LTfnum = pmat->ThermalStrainSchedule();
+		int LTfnum = pmat->ThermalLTfNumber();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalSchedule(fElementGroup.GetLTfPtr(LTfnum));
+			pmat->SetThermalLTfPtr(fElementGroup.GetLTfPtr(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;

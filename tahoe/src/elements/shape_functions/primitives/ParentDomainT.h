@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.3 2001-08-20 06:54:24 paklein Exp $ */
+/* $Id: ParentDomainT.h,v 1.2 2001-06-02 02:20:43 paklein Exp $ */
 /* created: paklein (07/03/1996)                                          */
 /* interface for a finite element parent domain. manages integration      */
 /* information (points, weights, etc..) and mapping between the real      */
@@ -39,9 +39,6 @@ class ParentDomainT
 	int NumIP(void) const;
 	int NumNodes(void) const;
 	GeometryT::CodeT GeometryCode(void) const;
-
-	/** reference to the parent domain geometry */
-	const GeometryBaseT& Geometry(void) const;
 
 	/** reference to the entire shape function array.
 	 * \return 2D array: [nip] x [nnd] */
@@ -118,17 +115,6 @@ class ParentDomainT
 	void NodalValues(const dArrayT& IPvalues, dArray2DT& nodalvalues,
 		int IPnum) const; 	
 
-	/** evaluate the shape functions and gradients. Compute the values of the
-	 * shape functions and their gradients at an arbirary point in the
-	 * in the parent domain. Coordinates must fall within the domain.
-	 * \param coords point in the parent domain
-	 * \param Na destination for shape function values for each of the domain
-	 *        nodes. Must be dimensioned: [nnd]
-	 * \param DNa destination for shape function derivatives. Must be 
-	 *        dimensioned: [nsd] x [nnd] */
-	void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
-		dArray2DT& DNa) const;
-
 	/** print the shape function values to the output stream */
 	void Print(ostream& out) const;
 	
@@ -181,12 +167,6 @@ inline int ParentDomainT::NumIP(void)        const { return fNumIP;        }
 inline int ParentDomainT::NumNodes(void)     const { return fNumNodes;     }
 inline GeometryT::CodeT ParentDomainT::GeometryCode(void) const { return fGeometryCode; }
 
-/* reference to the parent domain geometry */
-inline const GeometryBaseT& ParentDomainT::Geometry(void) const
-{
-	return *fGeometry;
-}
-
 /* access to domain shape functions */
 inline const dArray2DT& ParentDomainT::Na(void) const { return fNa; }
 inline const double* ParentDomainT::Shape(int IPnum) const { return fNa(IPnum); }
@@ -202,13 +182,6 @@ inline void ParentDomainT::DomainJacobian(const LocalArrayT& nodal, int numIP,
 dMatrixT& jacobian) const
 {
 	Jacobian(nodal, fDNa[numIP] , jacobian);
-}
-
-/* evaluate the shape functions and gradients. */
-inline void ParentDomainT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
-	dArray2DT& DNa) const
-{
-	fGeometry->EvaluateShapeFunctions(coords, Na, DNa);
 }
 
 /* return the local node numbers for each facet of the element
