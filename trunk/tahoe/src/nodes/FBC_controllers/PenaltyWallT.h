@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.h,v 1.2 2001-09-07 00:54:13 paklein Exp $ */
+/* $Id: PenaltyWallT.h,v 1.3 2001-09-11 06:01:44 paklein Exp $ */
 /* created: paklein (02/25/1997)                                          */
 
 #ifndef _PENATLY_WALL_T_H_
@@ -35,17 +35,17 @@ private:
 private:
 
 	/* wall parameters */
-	double fmu;    //coefficient of friction
+	dArrayT 	fnormal;
+//	double fmu;    //coefficient of friction
 	
 	/* wall normal and tangents */
-	dArrayT 	fnormal;
 	dArrayT		fntforce;
 	dArrayT		fxyforce;
 	dMatrixT	fQ;
 
-/* relative displacements */
-dArray2DT	fp_i; //relative displacement
-dArray2DT	fv_i; //relative velocity
+	/* relative displacements */
+	dArray2DT	fp_i; //relative displacement
+	dArray2DT	fv_i; //relative velocity
 
 	/* workspace */
 	ElementMatrixT fLHS;  //tangent matrix
