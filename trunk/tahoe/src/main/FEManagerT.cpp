@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.10 2001-05-01 23:22:52 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.11 2001-05-21 17:10:23 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -206,9 +206,14 @@ ifstreamT& FEManagerT::OpenExternal(ifstreamT& in,  ifstreamT& in2, ostream& out
 		StringT file;
 		in >> file;
 		if (verbose) out << " external file: " << file << '\n';
+		file.ToNativePathName();
+
+		/* path to source file */
+		StringT path;
+		path.FilePath(in.filename());
+		file.Prepend(path);
 			
 		/* open stream */
-		file.ToNativePathName();
 		in2.open(file);
 		if (!in2.is_open())
 		{
