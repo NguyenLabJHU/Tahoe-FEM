@@ -1,4 +1,4 @@
-/* $Id: NLK0Solver.cpp,v 1.10 2003-03-31 22:59:32 paklein Exp $ */
+/* $Id: NLK0Solver.cpp,v 1.10.10.1 2003-12-09 21:43:29 paklein Exp $ */
 /* created: paklein (10/01/1996) */
 #include "NLK0Solver.h"
 #include <iostream.h>
@@ -35,7 +35,7 @@ NLK0Solver::NLK0Solver(FEManagerT& fe_manager, int group):
 ***********************************************************************/
 
 /* form and solve - returns the magnitude of the residual */
-double NLK0Solver::SolveAndForm(void)
+double NLK0Solver::SolveAndForm(int& iteration)
 {		
 	const char caller[] = "NLK0Solver::SolveAndForm";
 
@@ -72,7 +72,7 @@ double NLK0Solver::SolveAndForm(void)
 	fFEManager.Update(Group(), fRHS);
 								
 	/* compute new residual */
-	fNumIteration++;
+	iteration++;
 	fRHS = 0.0;
 	fFEManager.FormRHS(Group());
 
