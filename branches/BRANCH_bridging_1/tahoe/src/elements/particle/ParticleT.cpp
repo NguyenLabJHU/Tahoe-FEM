@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.12.2.2 2003-02-19 19:57:36 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.12.2.3 2003-02-20 07:12:16 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -418,6 +418,19 @@ void ParticleT::GenerateNeighborList(const ArrayT<int>* particle_tags,
 	int num_chunks = num_tags/250;
 	num_chunks = (num_chunks < 1) ? 1 : num_chunks; 
 	AutoFill2DT<int> auto_neighbors(num_tags, num_chunks, 20, init_num_neighbors);
+
+	/* mark nodes owned by this processor, but skipped and still needed to
+	 * ensure a full neighbor list of nodes in particle_tags */
+	if (double_list) full_list = false;
+	ArrayT<int> skipped;
+	const ArrayT<int>* partition_nodes = fCommManager.PartitionNodes();
+	int npn = (partition_nodes) ? partition_nodes->Length() : ElementSupport().NumNodes();
+	if (full_list && particle_tags && npn > num_tags) {
+		skipped.Dimension(npn);
+		skipped = 1;
+		for (int i = 0; i < particle_tags->Length(); i++)
+			skipped[(*particle_tags)[i]] = 0; /* not skipped */
+	}
 	
 	/* loop over tags */
 	int nsd = coords.MinorDim();
@@ -441,7 +454,10 @@ void ParticleT::GenerateNeighborList(const ArrayT<int>* particle_tags,
 			int tag_j = hits[j].Tag();
 			int  pr_j = (n2p_map) ? (*n2p_map)[tag_j] : 0;
 			
-			if (double_list || tag_j > tag_i || (full_list && pr_i != pr_j && tag_j != tag_i))
+			if (double_list || /* double-linked neighbors */
+				tag_j > tag_i || /* upper half */
+				(full_list && tag_j < tag_i && skipped.Length() > 0 && skipped[tag_j]) || /* lower half + bonds to skipped nodes */
+				(full_list && pr_i != pr_j && tag_j != tag_i)) /* lower half + off-processor bonds */
 			{
 				/* hit info */
 				const double* coords_hit = hits[j].Coords();
@@ -460,7 +476,7 @@ void ParticleT::GenerateNeighborList(const ArrayT<int>* particle_tags,
 			}
 		}
 	}
-
+	
 	/* copy/compress into return array */
 	neighbors.Copy(auto_neighbors);
 }
