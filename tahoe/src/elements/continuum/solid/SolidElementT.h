@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.30 2005-02-25 15:38:17 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.31 2005-03-16 10:20:10 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -31,7 +31,8 @@ public:
          iPrincipal = 3, /**< extrapolated principal stresses */
      iEnergyDensity = 4, /**< extrapolated strain energy density */
         iWaveSpeeds = 5, /**< extrapolated local wave speeds */
-      iMaterialData = 6 /**< extrapolated model output */
+      iMaterialData = 6, /**< extrapolated model output */
+    iPoyntingVector = 7  /**< extrapolated Poynting vector */
 		};
 	
 	/** list/index of element outputs */
@@ -199,8 +200,11 @@ protected:
 	/** mass type */
 	MassTypeT fMassType;	
 
-	/* propagation direction for wave speeds */
+	/** propagation direction for output of wave speeds */
 	dArrayT fNormal;
+	
+	/** steady state speed, along the x-axis, for calculation of Poynting vector */
+	double fv_ss;
 
 	/** mass density
 	 * The contents of the array depends on how the constitutive models respond to
