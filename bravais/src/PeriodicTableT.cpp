@@ -1,4 +1,4 @@
-/* $Id: PeriodicTableT.cpp,v 1.2 2002-06-03 22:20:43 jzimmer Exp $ */
+/* $Id: PeriodicTableT.cpp,v 1.3 2002-06-04 00:12:47 jzimmer Exp $ */
 
 #include "PeriodicTableT.h"
 
@@ -317,8 +317,8 @@ PerTabEntryT PeriodicTableT::operator[] (const char * s) {
 		if (s == PT[i].GetSymbol()) loc = i;
 	}
 
-	if (i>0) {
-		return PT[i];
+	if (loc>0) {
+		return PT[loc];
 	}
 	else {
 		throw eBadInputValue;
