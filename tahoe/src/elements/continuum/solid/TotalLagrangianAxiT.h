@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianAxiT.h,v 1.1 2004-02-02 23:48:38 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.h,v 1.2 2004-02-03 08:24:57 paklein Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_AXI_T_H_
 #define _TOTAL_LAGRANGRIAN_AXI_T_H_
 
@@ -34,7 +34,6 @@ protected:
 	/** \name workspace */
 	/*@{*/
 	dMatrixT fStressMat;   /**< space for a stress 3D tensor */
-	dMatrixT fMat2D;       /**< space for a 2D tensors */
 	dMatrixT fStressStiff; /**< compact stress stiffness contribution */
 	dMatrixT fGradNa;      /**< shape function gradients matrix */
 	

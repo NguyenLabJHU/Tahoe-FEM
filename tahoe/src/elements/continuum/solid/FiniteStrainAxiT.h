@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainAxiT.h,v 1.1 2004-02-02 23:48:38 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.h,v 1.2 2004-02-03 08:24:57 paklein Exp $ */
 #ifndef _FINITE_STRAIN_AXI_T_H_
 #define _FINITE_STRAIN_AXI_T_H_
 
@@ -7,7 +7,7 @@
 
 namespace Tahoe {
 
-/** Interface for linear strain deformation and field gradients */
+/** finite strain, axisymmetric solid */
 class FiniteStrainAxiT: public FiniteStrainT
 {
   public:
@@ -20,7 +20,7 @@ class FiniteStrainAxiT: public FiniteStrainT
 
   protected:
 
-	/** initial local arrays */
+	/** allocate and initialize local arrays */
 	virtual void SetLocalArrays(void);
 
 	/** construct a new material support and return a pointer. Recipient is responsible for
@@ -40,8 +40,8 @@ class FiniteStrainAxiT: public FiniteStrainT
 
   protected:
  
-   	/** 2D deformation gradient */
-  	dMatrixT fF2D; 
+	/** 2D tensor workspace */
+	dMatrixT fMat2D;       
 
 	/** current coords with local ordering */
 	LocalArrayT fLocCurrCoords;	

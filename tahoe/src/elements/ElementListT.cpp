@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.82 2004-02-03 01:47:41 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.83 2004-02-03 08:24:48 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -37,12 +37,14 @@
 #include "SmallStrainT.h"
 #include "SmallStrainAxiT.h"
 #include "UpdatedLagrangianT.h"
+#include "UpdatedLagrangianAxiT.h"
 #include "UpLagAdaptiveT.h"
 #include "TotalLagrangianT.h"
 #include "TotalLagrangianAxiT.h"
 #include "LocalizerT.h"
 #include "SimoFiniteStrainT.h"
 #include "SimoQ1P0.h"
+#include "SimoQ1P0Axi.h"
 #include "DiffusionElementT.h"
 #include "NLDiffusionElementT.h"
 #include "MeshFreeSSSolidT.h"
@@ -320,6 +322,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
 #endif
 			}
+			case ElementT::kHyperElasticAxi:
+			{
+#ifdef CONTINUUM_ELEMENT
+				fArray[group] = new UpdatedLagrangianAxiT(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kHyperElasticInitCSE:
 			{
 #if defined(CONTINUUM_ELEMENT) && defined(COHESIVE_SURFACE_ELEMENT)
@@ -369,6 +380,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			{
 #ifdef CONTINUUM_ELEMENT
 				fArray[group] = new SimoQ1P0(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
+			case ElementT::kSimoQ1P0Axi:
+			{
+#ifdef CONTINUUM_ELEMENT
+				fArray[group] = new SimoQ1P0Axi(fSupport, *field);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
