@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.7 2002-06-04 17:09:44 recampb Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.8 2002-06-04 21:49:08 recampb Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -14,6 +14,7 @@
 #include "iArray2DT.h"
 #include "vtkOutlineFilter.h"
 #include "vtkExtractEdges.h"
+
 
 /* array behavior */
 const bool ArrayT<VTKUGridT*>::fByteCopy = true;
@@ -59,8 +60,20 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 	edgesMapper = vtkDataSetMapper::New();
 	edges->SetInput(fUGrid);
 	edgesMapper->SetInput(edges->GetOutput());
+	
 	edgesActor = vtkActor::New();
+	edgesActor->GetProperty()->SetColor(1,1,1);
 	edgesActor->SetMapper(edgesMapper);
+
+	boundBoxMapper = vtkDataSetMapper::New();
+	boundBoxMapper->SetInput(fUGrid);
+	boundBoxMapper->ScalarVisibilityOff();
+
+	boundBoxActor = vtkActor::New();
+	boundBoxActor->SetMapper(boundBoxMapper);
+	boundBoxActor->GetProperty()->SetOpacity(.27);
+	boundBoxActor->SetVisibility(false);
+	boundBoxActor->GetProperty()->SetColor(1,1,1);
 	
 	/* change color range from blue to red */
 	fLookUpTable = vtkLookupTable::New();
@@ -234,6 +247,7 @@ void VTKUGridT::ShowContours(vtkFloatArray* scalars, int numContours)
   fContour->GenerateValues(numContours, scalars->GetRange());
   fContourMapper->SetScalarRange(scalars->GetRange());
   fActor->SetMapper(fContourMapper);
+  boundBoxActor->SetVisibility(true);
   cout << "Contour Values:" << endl;
   for (int i=0; i<numContours; i++)
     cout << i <<"  " << fContour->GetValue(i) << endl;
@@ -246,8 +260,12 @@ void VTKUGridT::HideContours(vtkFloatArray* scalars)
   
   contours = false;
   fActor->SetMapper(fMapper);
+  boundBoxActor->SetVisibility(false);
 
 }
+
+
+
 
 
 /* set the scalar data range */
@@ -291,6 +309,7 @@ void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors)
       fContourMapper->SetInput(fContour->GetOutput());
       edges->SetInput(fWarp->GetOutput());
       edgesMapper->SetInput(edges->GetOutput());
+      boundBoxMapper->SetInput(fWarp->GetOutput());
     }  
 
 }
@@ -334,6 +353,16 @@ void VTKUGridT::SetOpacity(double opacity)
 
 	/* set */
 	fActor->GetProperty()->SetOpacity(opacity);
+}
+
+void VTKUGridT::SetBoundingOpacity(double opacity)
+{
+  	/* bounds */
+	if (opacity > 1) opacity = 1;
+	else if (opacity < 0 ) opacity = 0;
+
+	/* set */
+	boundBoxActor->GetProperty()->SetOpacity(opacity);
 }
 
 

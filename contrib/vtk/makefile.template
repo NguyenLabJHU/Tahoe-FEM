@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.9 2002-04-08 16:21:09 paklein Exp $
+# $Id: makefile.template,v 1.10 2002-06-04 21:49:03 recampb Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -12,7 +12,7 @@
 # (6) "make build" to (re-)compiler binaries.
 
 # full path to current directory
-HOME_DIR =
+HOME_DIR = 
 
 # working directories:
 OBJ_DIR = $(HOME_DIR)/obj
@@ -21,7 +21,7 @@ SRC_DIR = $(HOME_DIR)/src
 LIB_DIR = $(HOME_DIR)/lib
 
 # build architecture
-ARCH =
+ARCH = 
 # see macros directory for choices $(ARCH).macros
 
 # default target name - root of library name or executable name

@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.44 2002-06-04 17:09:44 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.45 2002-06-04 21:49:07 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -30,6 +30,8 @@
 
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
+#include "vtkPointPicker.h"
+#include "vtkFloatArray.h"
 
 VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   fArguments(arguments),
@@ -42,6 +44,7 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   /* add console commands */
   iAddCommand(CommandSpecT("Interactive"));
   iAddCommand(CommandSpecT("Update"));
+  //iAddCommand(CommandSpecT("PickPoints"));
 
   CommandSpecT addbody("AddBody");
   ArgSpecT file(ArgSpecT::string_);
@@ -137,6 +140,11 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 //  renWin->SetSize(600,700);
 	iren = vtkRenderWindowInteractor::New();
 	iren->SetRenderWindow(renWin);
+
+	picker = vtkPointPicker::New();
+	picker->SetTolerance(0.01);
+	iren->SetPicker(picker);
+	//	iren->SetEndPickMethod(PickPoints,(void *)iren);  
 	
 	/* set interator style to trackball instead of joystick in the
 	 * same way it occurs from the window */
@@ -242,6 +250,9 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 		iDoCommand(*iCommand("Update"), tmp);
 		return OK;
 	}
+
+
+
 	else if (command.Name() == "SelectTimeStep")	
 	{
 		/* no bodies */
@@ -688,6 +699,8 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 		StringT tmp;
 		return iDoCommand(*iCommand("Update"), tmp);
 	}
+
+
   else
     /* drop through to inherited */
     return iConsoleObjectT::iDoCommand(command, line);
@@ -810,6 +823,15 @@ void VTKConsoleT::SetFrameLayout(int num_x, int num_y)
 		/* add to console */
 		iAddSub(*fFrames(i,j));
 	  }
+}
+
+void VTKConsoleT::PickPoints(void *arg)
+{
+  
+
+  cout <<"Point: " << picker->GetPointId() << endl;
+  //cout <<"Value: " << scalars->GetValue(picker->GetPointId()) << endl;
+  
 }
 
 /* returns the index of the requested option */

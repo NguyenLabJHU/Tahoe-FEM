@@ -1,5 +1,5 @@
 
-/* $Id: VTKConsoleT.h,v 1.24 2002-01-02 06:38:50 paklein Exp $ */
+/* $Id: VTKConsoleT.h,v 1.25 2002-06-04 21:49:08 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -19,6 +19,7 @@
 /* forward declarations */
 class VTKBodyT;
 class VTKBodyDataT;
+class vtkPointPicker;
 
 class VTKConsoleT: public iConsoleObjectT
 {
@@ -54,6 +55,8 @@ class VTKConsoleT: public iConsoleObjectT
    * \param num_y number of frames in the vertical direction */
   void SetFrameLayout(int num_x, int num_y);
 
+  void PickPoints(void *);
+
   /** returns the index of the requested option */
   bool CommandLineOption(const char* str, int& index, int start = 0) const;
 
@@ -75,6 +78,8 @@ class VTKConsoleT: public iConsoleObjectT
   /** list of display objects */
   int fBodyCount;
   AutoArrayT<VTKBodyDataT*> fBodies;
+  vtkPointPicker* picker;
+
 };
 
 #endif

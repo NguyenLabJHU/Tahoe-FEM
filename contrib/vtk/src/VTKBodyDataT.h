@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.10 2002-06-04 17:09:44 recampb Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.11 2002-06-04 21:49:07 recampb Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -91,6 +91,7 @@ public:
 	 * nothing is done. If the data is not already stored, it is read from
 	 * the database file. */
 	void LoadData(int step);
+	Array2DT<vtkFloatArray*> fScalars; /**< dimension: [time_steps] x [num_vars] : [num_nodes] x [1] */
 	  
  private:
  
@@ -108,7 +109,7 @@ public:
 
 	/* scalar data per node */
 	ArrayT<StringT> fNodeLabels; /**< labels for the nodal output variables */
-	Array2DT<vtkFloatArray*> fScalars; /**< dimension: [time_steps] x [num_vars] : [num_nodes] x [1] */
+
 	
 	/** vector data per node. 
 	 * dimension: [time_steps] : [num_nodes] x [ndof] */
@@ -131,6 +132,7 @@ public:
 	int numContours;
 	int numColorBarLabels;
 	double opacity;
+	double boundingOpacity;
 };
 
 /* type conversion */
