@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.70 2004-01-05 07:14:40 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.71 2004-03-04 08:54:38 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -767,6 +767,13 @@ void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values,
 	const dArray2DT& e_values)
 {
 	fIOManager->WriteOutput(ID, n_values, e_values);
+}
+
+/* write a snapshot */
+void FEManagerT::WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
+	const dArray2DT& values, const ArrayT<StringT>& labels) const
+{
+	fIOManager->WriteOutput(file, coords, node_map, values, labels);
 }
 
 int FEManagerT::RegisterOutput(const OutputSetT& output_set) const

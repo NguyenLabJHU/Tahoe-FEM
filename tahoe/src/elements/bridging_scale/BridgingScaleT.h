@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.30 2004-02-22 00:19:46 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.31 2004-03-04 08:54:20 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -59,7 +59,7 @@ public:
 	 * \param curr_coords point to the initial coordinates array if available
 	 * \param point_in_cell destination for map data
 	 */
-	virtual void InitProjection(const iArrayT& points_used, const dArray2DT* init_coords, 
+	virtual void InitProjection(CommManagerT& comm, const iArrayT& points_used, const dArray2DT* init_coords, 
 		const dArray2DT* curr_coords, PointInCellDataT& cell_data);
 
 	/** project the point values onto the mesh. Requires a previous call to
