@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.16 2002-10-20 22:40:46 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.17 2002-11-09 18:15:20 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _CONTINUUM_ELEMENT_T_H_
@@ -231,8 +231,6 @@ protected:
 	/*@{*/
 	LocalArrayT fLocInitCoords;   /**< initial coords with local ordering */
 	LocalArrayT fLocDisp;	      /**< displacements with local ordering  */ 
-	LocalArrayT fLocDispAlpha;    /**< multi-scale u^alpha */
-	LocalArrayT fLocDispBeta;     /**< multi-scale u^alpha */
 	/*@}*/
 	
 	/** \name work space */
