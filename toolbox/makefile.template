@@ -1,11 +1,11 @@
-# $Id: makefile.template,v 1.4 2001-01-31 04:08:34 paklein Exp $
+# $Id: makefile.template,v 1.5 2001-07-19 06:46:20 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
 # (1) set HOME_DIR to the full path to this makefile.
 # (2) set MACRO_DIR to the full path to directory
 #     containing the machine specific compiler macros.
-# (3) select ARCH from list of supported platforms.
+# (3) select ARCH from those in the macros directory.
 # (4) select installed "build options".
 # (5) "make init" to (re-)initialize headers and file
 #     dependencies.
@@ -22,18 +22,7 @@ LIB_DIR = $(HOME_DIR)/lib
 
 # build architecture
 ARCH =
-# choices:
-#     ALASKA - DEC OSF
-#  CA-CPLANT - DEC OSF
-#        DEC - DEC OSF
-#    DEC.mpi - DEC OSF with MPI
-#        GNU - egcs
-#      JANUS - ASCI Red
-#        SGI - IRIX
-#  SGI.mpich - IRIX with MPICH
-#    SGI.mpi - IRIX with MPI
-#    SIBERIA - DEC OSF
-#        SUN - SUNWSpro
+# see macros directory for choices $(ARCH).macros
 
 # default target name - root of library name or executable name
 TARGET  = toolbox
@@ -68,6 +57,14 @@ MACRO_DIR = $(HOME_DIR)/../macros
 #BLAS_LIB_NAME = CBLAS
 #BLAS_LIB      = $(BLAS_DIR)/lib/lib$(BLAS_LIB_NAME).a
 #BLAS_LFLAGS   = -L$(BLAS_DIR)/lib -l$(BLAS_LIB_NAME)
+
+#### METIS
+#METIS_DIR      = $(HOME_DIR)/../metis
+#METIS_INC      = -I$(METIS_DIR)/inc
+#METIS_CFLAGS   = $(METIS_DIR) -D__METIS__
+#METIS_LIB_NAME = metis
+#METIS_LIB      = $(METIS_DIR)/lib/lib$(METIS_LIB_NAME).a
+#METIS_LFLAGS   = -L$(METIS_DIR)/lib -l$(METIS_LIB_NAME)
 
 ##### SEACAS/ACCESS software
 #AX_INC    = -I$(ACCESS)/inc
