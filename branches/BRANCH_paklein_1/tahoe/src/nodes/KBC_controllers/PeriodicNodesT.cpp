@@ -1,4 +1,4 @@
-/* $Id: PeriodicNodesT.cpp,v 1.1.2.1 2002-10-17 04:40:06 paklein Exp $ */
+/* $Id: PeriodicNodesT.cpp,v 1.1.2.2 2002-10-20 18:03:04 paklein Exp $ */
 #include "PeriodicNodesT.h"
 #include "NodeManagerT.h"
 #include "ifstreamT.h"
@@ -82,7 +82,11 @@ void PeriodicNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 	/* periodic strides */
 	dArrayT dx(nsd);
 	for (int i = 0; i < dx.Length(); i++)
-		dx[i] = (fIsPeriodic[i]) ? fPeriodicStride[i] : 0.0;
+//		dx[i] = (fIsPeriodic[i]) ? fPeriodicStride[i] : 0.0; // for some reason this doesn't
+		if (fIsPeriodic[i])                                  // compile correctly on GNU-Darwin
+			dx[i] = fPeriodicStride[i];
+		else
+			dx[i] = 0.0;
 
 	for (int i = 0; i <= FLength; i++)
 	{
