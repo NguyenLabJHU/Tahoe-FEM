@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.h,v 1.2 2003-06-05 17:47:41 saubry Exp $ */
+/* $Id: ParadynEAMT.h,v 1.3 2003-06-24 23:46:06 saubry Exp $ */
 #ifndef _PARADYN_EAM_T_H_
 #define _PARADYN_EAM_T_H_
 
@@ -22,7 +22,7 @@ public:
 	 * coefficients of a cubic spline through the evenly spaced
 	 * values of the potential,electron density read from the 
          * file. */
-	ParadynEAMT(int type_file, const StringT& param_file);
+	ParadynEAMT(const StringT& param_file);
 
 	/** write properties to output */
 	virtual void Write(ostream& out) const;

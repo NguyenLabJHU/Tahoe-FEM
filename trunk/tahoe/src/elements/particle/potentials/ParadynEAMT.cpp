@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.cpp,v 1.7 2003-06-05 18:00:34 saubry Exp $ */
+/* $Id: ParadynEAMT.cpp,v 1.8 2003-06-24 23:46:06 saubry Exp $ */
 #include "ParadynEAMT.h"
 
 #include "toolboxConstants.h"
@@ -7,18 +7,6 @@
 #include "AutoArrayT.h"
 
 using namespace Tahoe;
-
-/*  Potential files are in either "funcfl" files or one "setfl" formats.
-    "funcfl" files each contain one element
-    this version assumes that type 1 is on funcfl(1)
-                              type 2 is on funcfl(2)  and so forth
-    for these files, the geometric mean is assumed to be valid for
-    the pair interaction
-
-    "setfl" is a file describing a set of functions
-    for this set, the geometric mean can be violated
-*/
-
 
 /* utility */
 static inline int Min(int a, int b) { return (a < b) ? a : b; };
@@ -39,7 +27,7 @@ double* ParadynEAMT::s_ElecDenscoeff = NULL;
 const int knum_coeff = 9;
 
 /* constructor */
-ParadynEAMT::ParadynEAMT(int type_of_file,const StringT& param_file):
+ParadynEAMT::ParadynEAMT(const StringT& param_file):
   fParams(param_file),
   f_cut(0.0)
 {
@@ -51,132 +39,60 @@ ParadynEAMT::ParadynEAMT(int type_of_file,const StringT& param_file):
     ExceptionT::BadInputValue(caller, "error opening file: %s", fParams.Pointer());
   
   dArrayT tmp;	
-  if (type_of_file == 2) 
-    {
 
-      /* read comment line */
-      fDescription.GetLineFromStream(in);
-      
-      /* lattice information */
-      double mass;
-      in >> fAtomicNumber >> mass 
-	 >> fLatticeParameter >> fStructure;
-      
-      /* Adjust mass like in interpolate.F of ParaDyn */
-      double conmas = 1.0365e-4;
-      mass *= conmas;
-      
-      
-      /* read dimensions */
-      int np, nr;
-      double dp, dr;
-      in >> np >> dp >> nr >> dr >> f_cut;
-      if (np < 2   ||
-	  dp < 0.0 ||
-	  nr < 2   ||
-	  dr < 0.0 ||
-	  f_cut < 0.0) ExceptionT::BadInputValue(caller);
-      
-      /* Embedding Energy, frhoin in ParaDyn */
-      tmp.Dimension(np);
-      in >> tmp;
-      /* compute spline coefficients for Embedded energy */
-      ComputeCoefficients(tmp, dp, fEmbedCoeff);
-      rho_inc = 1.0/dp;
-      
-      /* Pair Energy, zrin in ParaDyn 
-	 Note: It is only z at this point, not phi = z^2/r */
-      tmp.Dimension(nr);
-      in >> tmp;
-      
-      /* adjust units */
-      for (int j = 0; j < nr; j++)
-	tmp[j] *= sqrt(27.2*0.529);
-      
-      f_inc = 1.0/dr;
-      
-      /* compute spline coefficients for z */
-      ComputeCoefficients(tmp, dr, fPairCoeff);
-      
-      /* Electron Density, rhoin in ParaDyn, 
-	 assume that z and rho grids coincide */
-      in >> tmp;
-      /* compute spline coefficients for Electron Density  */
-      ComputeCoefficients(tmp, dr, fElectronDensityCoeff);
-
-      /* inherited */
-      SetMass(mass);
-      SetRange(f_cut);
-    }
-  else
-    {
-     /* read comment line */
-      fDescription.GetLineFromStream(in);
-      fDescription.GetLineFromStream(in);
-      fDescription.GetLineFromStream(in);
-      
-      /* read number of types */
-      int number_of_types;
-      in >> number_of_types;
-      
-      /* read dimensions */
-      int np, nr;
-      double dp, dr;
-      in >> np >> dp >> nr >> dr >> f_cut;
-      if (np < 2   ||
-	  dp < 0.0 ||
-	  nr < 2   ||
-	  dr < 0.0 ||
-	  f_cut < 0.0) ExceptionT::BadInputValue(caller);
-      
-      for (int k = 0; k < number_of_types; k++)
-	{   
-	  /* lattice information */
-	  double mass;
-	  in >> fAtomicNumber >> mass 
-	     >> fLatticeParameter >> fStructure;
-	  
-	  /* Adjust mass like in interpolate.F of ParaDyn */
-	  double conmas = 1.0365e-4;
-	  mass *= conmas;
-	  
-	  /* Embedding Energy, frhoin in ParaDyn */
-	  tmp.Dimension(np);
-	  in >> tmp;
-	  /* compute spline coefficients for Embedded energy */
-	  ComputeCoefficients(tmp, dp, fEmbedCoeff);
-	  rho_inc = 1.0/dp;
-           
-	  /* Electron Density, rhoin in ParaDyn, 
-	     assume that z and rho grids coincide */
-	  in >> tmp;
-	  /* compute spline coefficients for Electron Density  */
-	  ComputeCoefficients(tmp, dr, fElectronDensityCoeff);
-
-	  /* inherited */
-	  SetMass(mass);
-	  SetRange(f_cut);
-	}
-
-      for (int k = 0; k < number_of_types; k++)
-	for (int l = k+1; l < number_of_types; l++)
-	  {   
-
-	    /* Pair Energy, zrin in ParaDyn 
-	       Note: Here it is z^2, not z */
-	    tmp.Dimension(nr);
-	    in >> tmp;
-	    
-	    /* adjust units */
-	    for (int j = 0; j < nr; j++)
-	      tmp[j] *= 27.2*0.529;
-	    
-	    f_inc = 1.0/dr;
-	    
-	    /* compute spline coefficients for z*z */
-	    ComputeCoefficients(tmp, dr, fPairCoeff);
-	  }
-    }
+  /* read comment line */
+  fDescription.GetLineFromStream(in);
+  
+  /* lattice information */
+  double mass;
+  in >> fAtomicNumber >> mass 
+     >> fLatticeParameter >> fStructure;
+  
+  /* Adjust mass like in interpolate.F of ParaDyn */
+  double conmas = 1.0365e-4;
+  mass *= conmas;
+  
+  
+  /* read dimensions */
+  int np, nr;
+  double dp, dr;
+  in >> np >> dp >> nr >> dr >> f_cut;
+  if (np < 2   ||
+      dp < 0.0 ||
+      nr < 2   ||
+      dr < 0.0 ||
+      f_cut < 0.0) ExceptionT::BadInputValue(caller);
+  
+  /* Embedding Energy, frhoin in ParaDyn */
+  tmp.Dimension(np);
+  in >> tmp;
+  /* compute spline coefficients for Embedded energy */
+  ComputeCoefficients(tmp, dp, fEmbedCoeff);
+  rho_inc = 1.0/dp;
+  
+  /* Pair Energy, zrin in ParaDyn 
+     Note: It is only z at this point, not phi = z^2/r */
+  tmp.Dimension(nr);
+  in >> tmp;
+  
+  /* adjust units */
+  for (int j = 0; j < nr; j++)
+    tmp[j] *= sqrt(27.2*0.529);
+  
+  f_inc = 1.0/dr;
+  
+  /* compute spline coefficients for z */
+  ComputeCoefficients(tmp, dr, fPairCoeff);
+  
+  /* Electron Density, rhoin in ParaDyn, 
+     assume that z and rho grids coincide */
+  in >> tmp;
+  /* compute spline coefficients for Electron Density  */
+  ComputeCoefficients(tmp, dr, fElectronDensityCoeff);
+  
+  /* inherited */
+  SetMass(mass);
+  SetRange(f_cut);
 }
 
 /* write properties to output */
