@@ -28,10 +28,10 @@ class LatticeOrient
 
   // assign Euler angles to grain/elem/IPs 
   void AssignEulerAngles(int kcode, int nelem, int nint, int ngrn,
-			 ArrayT<Array2DT<dArrayT> >& euler) const; 
+			 ArrayT<Array2DT<dArrayT> >& euler); 
 
   // output Euler angles 
-  void WriteTexture(int elem, int intpt, int ngrn, int step,
+  void WriteTexture(int group, int elem, int intpt, int ngrn, int step,
 		    const ArrayT<dArrayT>& angle);
 
   // compute rotation matrix from Euler angles

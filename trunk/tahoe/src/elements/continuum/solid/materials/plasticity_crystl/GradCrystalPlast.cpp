@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.cpp,v 1.10 2003-01-29 07:35:04 paklein Exp $ */
+/* $Id: GradCrystalPlast.cpp,v 1.11 2003-12-18 22:22:01 ebmarin Exp $ */
 #include "GradCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -266,6 +266,7 @@ void GradCrystalPlast::ComputeOutput(dArrayT& output)
 {
   // gather element/integ point information
   ElementCardT& element = CurrentElement();
+  int group = ContinuumElement().ElementGroupNumber();
   int elem  = CurrElementNumber();
   int intpt = CurrIP();
 
@@ -312,7 +313,7 @@ void GradCrystalPlast::ComputeOutput(dArrayT& output)
     fLatticeOrient->RotMatrixToAngles(fmatx1, angles);
 
     // write euler angles at IP/ELE
-    fLatticeOrient->WriteTexture(elem, intpt, fNumGrain, step, fangles);
+    fLatticeOrient->WriteTexture(group, elem, intpt, fNumGrain, step, fangles);
   }
 }
 
