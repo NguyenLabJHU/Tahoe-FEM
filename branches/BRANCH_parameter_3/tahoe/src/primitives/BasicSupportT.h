@@ -1,9 +1,10 @@
-/* $Id: BasicSupportT.h,v 1.1.4.1 2004-04-08 07:33:55 paklein Exp $ */
+/* $Id: BasicSupportT.h,v 1.1.4.2 2004-05-06 16:01:18 paklein Exp $ */
 #ifndef _TAHOE_SUPPORT_T_H_
 #define _TAHOE_SUPPORT_T_H_
 
 /* direct members */
 #include "GlobalT.h"
+#include "dArray2DT.h"
 
 namespace Tahoe {
 
