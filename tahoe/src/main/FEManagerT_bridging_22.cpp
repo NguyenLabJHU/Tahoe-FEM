@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_22.cpp,v 1.8 2005-02-06 01:24:17 paklein Exp $ */
+/* $Id: FEManagerT_bridging_22.cpp,v 1.9 2005-02-13 22:16:25 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -51,7 +51,7 @@ const double sqrt2 = sqrt(2.0);
 
 using namespace Tahoe;
 
-void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_neighbors, const dArray2DT& point_coords, 
+void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_neighbors, const dArray2DT& point_coords,
 	const StringT& overlap_file, double smoothing, double k2, double bound_tol, double scale_jump_0, int nip)
 {
 	const char caller[] = "FEManagerT_bridging::CorrectOverlap_22";
@@ -662,6 +662,39 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 		}	
 	}
 	else ExceptionT::GeneralFail(caller);	
+
+	/* collect current element status */
+	coarse->GetStatus(fElementStatus);
+
+	/* finding free vs projected nodes */
+	int nnd = fNodeManager->NumNodes();
+	ArrayT<char> node_type(nnd);
+	node_type = free_;
+	for (int i = 0; i < fProjectedNodes.Length(); i++) /* mark projected nodes */
+		node_type[fProjectedNodes[i]] = not_free_;
+
+	/* disable elements without any free nodes - preserve previously disabled element */
+	for (int i = 0; i < nel; i++)
+	{
+		/* element information */
+		const ElementCardT& element = coarse->ElementCard(i);
+	
+		/* look for free node */
+		bool has_free = false;
+		const iArrayT& nodes = element.NodesU();
+		for (int j = 0; !has_free && j < nodes.Length(); j++)
+			has_free = (node_type[nodes[j]] == free_);
+		
+		/* disable element */
+		if (!has_free) fElementStatus[i] = ElementCardT::kOFF;
+	}
+
+	/* re-enable any overlap cells - overrides previously disabled elements */
+	for (int i = 0; i < overlap_cell_all.Length(); i++)
+		fElementStatus[overlap_cell_all[i]] = ElementCardT::kON;
+
+	/* set element status */
+	non_const_coarse->SetStatus(fElementStatus);
 }
 
 #endif  /* BRIDGING_ELEMENT */

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.47 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.48 2005-02-13 22:16:25 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -279,7 +279,7 @@ public:
 	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
 
 	/** write a snapshot */
-	void WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
+	virtual void WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
 		const dArray2DT& values, const ArrayT<StringT>& labels) const;
 
 	/** write a geometry file for the current model */

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.7 2005-02-03 17:33:37 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.8 2005-02-13 22:16:25 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -69,7 +69,7 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 	else if (nip != 1)
 		ExceptionT::GeneralFail(caller, "number of integration points needs to be 1 or %d: %d",
 			coarse->NumIP(), nip);
-
+	
 	/* Cauchy-Born constitutive model */
 	const MaterialListT& mat_list = coarse->MaterialsList();
 	if (mat_list.Length() > 1) ExceptionT::GeneralFail(caller, "expecting only 1 material not %d", mat_list.Length());
@@ -130,13 +130,6 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 	if (solve_density) /* solve for bond densities */
 	{
 #if 0
-	/* finding free vs projected nodes */
-	int nnd = fNodeManager->NumNodes();
-	ArrayT<char> node_type(nnd);
-	node_type = free_;
-	for (int i = 0; i < fProjectedNodes.Length(); i++) /* mark projected nodes */
-		node_type[fProjectedNodes[i]] = not_free_;
-
 	/* map describing free or ghost points */
 	ArrayT<char> point_type(point_coords.MajorDim());
 	point_type = free_;
@@ -720,6 +713,39 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 		}	
 	}
 	else ExceptionT::GeneralFail(caller);	
+
+	/* collect current element status */
+	coarse->GetStatus(fElementStatus);
+
+	/* finding free vs projected nodes */
+	int nnd = fNodeManager->NumNodes();
+	ArrayT<char> node_type(nnd);
+	node_type = free_;
+	for (int i = 0; i < fProjectedNodes.Length(); i++) /* mark projected nodes */
+		node_type[fProjectedNodes[i]] = not_free_;
+
+	/* disable elements without any free nodes - preserve previously disabled element */
+	for (int i = 0; i < nel; i++)
+	{
+		/* element information */
+		const ElementCardT& element = coarse->ElementCard(i);
+	
+		/* look for free node */
+		bool has_free = false;
+		const iArrayT& nodes = element.NodesU();
+		for (int j = 0; !has_free && j < nodes.Length(); j++)
+			has_free = (node_type[nodes[j]] == free_);
+		
+		/* disable element */
+		if (!has_free) fElementStatus[i] = ElementCardT::kOFF;
+	}
+
+	/* re-enable any overlap cells - overrides previously disabled elements */
+	for (int i = 0; i < overlap_cell_all.Length(); i++)
+		fElementStatus[overlap_cell_all[i]] = ElementCardT::kON;
+
+	/* set element status */
+	non_const_coarse->SetStatus(fElementStatus);
 }
 
 void FEManagerT_bridging::GhostNodeBonds_2(const dArrayT& R_i, const dArray2DT& point_coords, 

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.28 2004-11-06 01:49:49 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.29 2005-02-13 22:16:25 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -181,6 +181,42 @@ void FEManagerT_bridging::SetExternalForce(const StringT& field, const dArray2DT
 	iArray2DT& eqnos = fExternalForce2DEquations[group];
 	eqnos.Dimension(activefenodes.Length(), thefield->NumDOF());
 	thefield->SetLocalEqnos(activefenodes, eqnos);	// crashes here if not nodes and atoms everywhere
+}
+
+/* initiate the process of writing output from all output sets */
+void FEManagerT_bridging::WriteOutput(double time)
+{
+	/* the continuum element solving the coarse scale */
+	const ContinuumElementT* coarse = fDrivenCellData.ContinuumElement();
+	ContinuumElementT* non_const_coarse = const_cast<ContinuumElementT*>(coarse);
+	if (non_const_coarse)
+	{
+		/* enable all coarse scale elements for output */
+		ArrayT<ElementCardT::StatusT> status(non_const_coarse->NumElements());
+		status = ElementCardT::kON;
+		non_const_coarse->SetStatus(status);
+	}
+
+	/* inherited - write output */
+	FEManagerT::WriteOutput(time);
+
+	/* restore active element map */
+	if (non_const_coarse) non_const_coarse->SetStatus(fElementStatus);
+}
+
+/* write results for a single output set */
+void FEManagerT_bridging::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const
+{
+	/* inherited */
+	FEManagerT::WriteOutput(ID, n_values, e_values);
+}
+
+/* write a snapshot */
+void FEManagerT_bridging::WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
+	const dArray2DT& values, const ArrayT<StringT>& labels) const
+{
+	/* inherited */
+	FEManagerT::WriteOutput(file, coords, node_map, values, labels);
 }
 
 /* initialize the ghost node information */
