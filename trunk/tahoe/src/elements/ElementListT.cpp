@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.2 2001-02-27 00:10:25 paklein Exp $ */
 /* created: paklein (04/20/1998)                                          */
 
 #include "ElementListT.h"
@@ -193,11 +193,14 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 				out << " Cohesive surface formulation code . . . . . . . = " << CSEcode << '\n';
 				out << "    eq. " << CSEBaseT::Isotropic   << ", isotropic\n";
 				out << "    eq. " << CSEBaseT::Anisotropic << ", anisotropic\n";
+				out << "    eq. " << CSEBaseT::NoRotateAnisotropic << ", fixed-frame anisotropic\n";
 
 				if (CSEcode == CSEBaseT::Isotropic)
 					fArray[group] = new CSEIsoT(fFEManager);	
 				else if (CSEcode == CSEBaseT::Anisotropic)
-					fArray[group] = new CSEAnisoT(fFEManager);
+					fArray[group] = new CSEAnisoT(fFEManager, true);
+				else if (CSEcode == CSEBaseT::NoRotateAnisotropic)
+					fArray[group] = new CSEAnisoT(fFEManager, false);
 				else
 				{
 					cout << "\n ElementListT::EchoElementData: unknown CSE formulation: ";
