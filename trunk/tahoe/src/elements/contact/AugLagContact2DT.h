@@ -1,5 +1,5 @@
-/* $Id: AugLagContact2DT.h,v 1.2 2001-08-15 18:37:10 paklein Exp $ */
-/* created: paklein (05/31/1998)                                          */
+/* $Id: AugLagContact2DT.h,v 1.3 2001-08-29 07:12:02 paklein Exp $ */
+/* created: paklein (05/31/1998) */
 
 #ifndef _AUGLAG_CONTACT2D_T_H_
 #define _AUGLAG_CONTACT2D_T_H_
@@ -13,14 +13,15 @@
 
 /* forward declarations */
 class iGridManager2DT;
-class XDOF_ManagerT;
 
+/** contact enforcement in 2D using an augmented Lagrangian formulation.
+ * Formulation by J. Heegaard and A. Curnier, IJNME \b 36, 569-593, 1993. */
 class AugLagContact2DT: public Contact2DT, public DOFElementT
 {
 public:
 
 	/* constructor */
-	AugLagContact2DT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes);
+	AugLagContact2DT(FEManagerT& fe_manager);
 
 	/* allocates space and reads connectivity data */
 	virtual void Initialize(void);
@@ -76,9 +77,6 @@ protected:
 	/* extended interaction data */
 	iArray2DT fXDOFConnectivities;
 	iArray2DT fXDOFEqnos;
-	
-	/* nodemanager with external DOF's */
-	XDOF_ManagerT* fXDOF_Nodes;
 	
 	/* contact DOF tags */
 	iArrayT fContactDOFtags; // VARIABLE

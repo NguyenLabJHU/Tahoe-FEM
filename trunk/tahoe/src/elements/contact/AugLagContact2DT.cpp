@@ -1,5 +1,5 @@
-/* $Id: AugLagContact2DT.cpp,v 1.2 2001-08-15 18:37:10 paklein Exp $ */
-/* created: paklein (05/31/1998)                                          */
+/* $Id: AugLagContact2DT.cpp,v 1.3 2001-08-29 07:12:02 paklein Exp $ */
+/* created: paklein (05/31/1998) */
 
 #include "AugLagContact2DT.h"
 
@@ -11,18 +11,14 @@
 #include "FEManagerT.h"
 #include "eControllerT.h"
 #include "NodeManagerT.h"
-#include "XDOF_ManagerT.h"
 
 /* parameters */
 const int kNumAugLagDOF  = 1;
 
 /* constructor */
-AugLagContact2DT::AugLagContact2DT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes):
-	Contact2DT(fe_manager),
-	fXDOF_Nodes(XDOF_nodes)
+AugLagContact2DT::AugLagContact2DT(FEManagerT& fe_manager):
+	Contact2DT(fe_manager)
 {
-	if (!fXDOF_Nodes) throw eGeneralFail;
-
 	/* regularization parameter */
 	fFEManager.Input() >> fr;
 	if (fr < 0.0) throw eBadInputValue;
@@ -50,7 +46,7 @@ void AugLagContact2DT::Initialize(void)
 	numDOF = kNumAugLagDOF;
 
 	/* register with node manager - sets initial fContactDOFtags */
-	fXDOF_Nodes->Register(this, numDOF);
+	fNodes->XDOF_Register(this, numDOF);
 }
 
 /* append element equations numbers to the list */
@@ -64,9 +60,13 @@ void AugLagContact2DT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 //other types of dof's when collecting local equation
 //equation numbers -> change this?
 
+	/* collect using method allowing mixed node/tag numbers */
+	fNodes->XDOF_SetLocalEqnos(fXDOFConnectivities, fXDOFEqnos);
+
+#if 0
 	/* get local equations numbers */
 	fNodes->SetLocalEqnos(fConnectivities, fXDOFEqnos);
-	const iArray2DT& auglageqs = fXDOF_Nodes->XDOF_Eqnos(this, 0);
+	const iArray2DT& auglageqs = fNodes->XDOF_Eqnos(this, 0);
 	
 	/* add last equation to each element */
 	int* pauglageqns = auglageqs.Pointer();
@@ -76,6 +76,7 @@ void AugLagContact2DT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		*pelemeqnos = *pauglageqns++;
 		pelemeqnos += fNumElemEqnos;
 	}
+#endif
 
 	/* add to list */
 	eq_1.Append(&fXDOFEqnos);
@@ -88,7 +89,7 @@ void AugLagContact2DT::SetDOFTags(void)
 	int old_length = fActiveStrikers.Length();
 	fLastActiveMap = fActiveMap;
 	dArrayT constraints;
-	constraints.Alias(fXDOF_Nodes->XDOF(this, 0));
+	constraints.Alias(fNodes->XDOF(this, 0));
 	fLastDOF = constraints;
 
 	/* resize DOF tags array */
@@ -268,7 +269,7 @@ void AugLagContact2DT::LHSDriver(void)
 
 	/* get reference to global coordinates and constrain force vector */
 	const dArray2DT& coords = fNodes->CurrentCoordinates();
-	const dArray2DT& constr = fXDOF_Nodes->XDOF(this, 0);
+	const dArray2DT& constr = fNodes->XDOF(this, 0);
 	const dArrayT force(constr.MajorDim(),constr.Pointer());
 
 	/* loop over active elements */
@@ -386,7 +387,7 @@ void AugLagContact2DT::RHSDriver(void)
 
 	/* get reference to global coordinates and constrain force vector */
 	const dArray2DT& coords = fNodes->CurrentCoordinates(); //EFFECTIVE_DVA
-	const dArray2DT& constr = fXDOF_Nodes->XDOF(this, 0);
+	const dArray2DT& constr = fNodes->XDOF(this, 0);
 	const dArrayT force(constr.MajorDim(), constr.Pointer()); // general for all
 	                                                          // value of kNumAugLagDOF
 
