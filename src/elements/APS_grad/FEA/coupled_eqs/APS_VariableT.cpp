@@ -1,4 +1,4 @@
-// $Id: APS_VariableT.cpp,v 1.10 2003-09-29 23:28:51 raregue Exp $
+// $Id: APS_VariableT.cpp,v 1.11 2003-10-02 19:13:20 raregue Exp $
 #include "APS_VariableT.h"
 
 //---------------------------------------------------------------------
@@ -78,6 +78,13 @@ void APS_VariableT::Print(char *c) { // overload << later
 void APS_VariableT::Put(APS::VarT_vector variable, FEA_dVectorT& var)  
 {
   fVars_vector[variable] = var;
+} 
+
+//---------------------------------------------------------------------
+//** Update variable from class work space
+void APS_VariableT::Update(APS::VarT_vector variable, FEA_dVectorT& var)  
+{
+  var = fVars_vector[variable];
 } 
 
 //---------------------------------------------------------------------

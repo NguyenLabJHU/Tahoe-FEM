@@ -1,4 +1,4 @@
-// $Id: APS_VariableT.h,v 1.7 2003-09-29 23:28:51 raregue Exp $
+// $Id: APS_VariableT.h,v 1.8 2003-10-02 19:13:20 raregue Exp $
 #ifndef _APS_VARIABLE_T_H_ 
 #define _APS_VARIABLE_T_H_ 
 
@@ -41,7 +41,11 @@ class APS_VariableT
 		const FEA_dVectorT& Get(APS::VarT_vector variable); 
 		const FEA_dMatrixT& Get(APS::VarT_matrix variable); 
 		
+		/** Put state variables in class workspace **/
 		void Put(APS::VarT_vector variable, FEA_dVectorT&); 
+		
+		/** Update state variables from class workspace **/
+		void Update(APS::VarT_vector variable, FEA_dVectorT&); 
 
 		/** Fill (*this) with a+b */
 		void SumOf (APS_VariableT &a, APS_VariableT &b); 

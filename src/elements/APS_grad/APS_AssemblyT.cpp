@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.22 2003-10-02 00:28:11 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.23 2003-10-02 19:13:18 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -47,7 +47,6 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	fEquation_eps(NULL),
 	bStep_Complete(0)
 {
-	int i;
 	
 	knum_d_state = 2; // double's needed per ip
 	knum_i_state = 0; // int's needed per ip
@@ -119,7 +118,6 @@ APS_AssemblyT::~APS_AssemblyT(void)
 
 void APS_AssemblyT::Echo_Input_Data(void) {
 
-	int i;
 	cout << "#######################################################" << endl; 
 	cout << "############### ECHO APS DATA #########################" << endl; 
 	cout << "#######################################################" << endl; 
@@ -507,9 +505,11 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 
 	/* temp for nodal force */
 	dArrayT nodalforce;
+	
+	dArray2DT fdstatenew_all, fdstate_all;
 
 	/* loop over elements */
-	int e,v,l;
+	int e;
 	Top();
 	while (NextElement())
 	{
@@ -533,12 +533,9 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		fCurrCoords = fInitCoords;
 		fShapes->SetDerivatives(); 
 		
-		int a, n_state = fNumIP*knum_d_state;
-		dArrayT fdstatenew(n_state), fdstate(n_state);
-		for (a=0; a<n_state; a++) {
-				fdstatenew[a] = fdState_new[CurrElementNumber(),a];
-				fdstate[a] = fdState[CurrElementNumber(),a];
-				}
+		//update state variables
+		fdstatenew_all.Alias(fNumIP, knum_d_state, fdState_new(CurrElementNumber()));
+		fdstate_all.Alias(fNumIP, knum_d_state, fdState(CurrElementNumber()));
 		
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
 		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
@@ -548,8 +545,8 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
 		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
-		Convert.State			(	fNumIP, knum_d_state, fdstatenew, fstate );
-		Convert.State			(	fNumIP, knum_d_state, fdstate, fstate_n );
+		Convert.Copy			(	fNumIP, knum_d_state, fdstatenew_all, fstate );
+		Convert.Copy			(	fNumIP, knum_d_state, fdstate_all, fstate_n );
 		
 		APS_VariableT np1(	fgrad_u, fgamma_p, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
 		APS_VariableT   n(	fgrad_u_n, fgamma_p_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n	 
@@ -744,18 +741,18 @@ void APS_AssemblyT::WriteOutput(void)
 	int n_stress = knumstress;
 	ElementSupport().ResetAverage(n_stress+knum_d_state);
 	dArray2DT out_variable_all;
-	dSymMatrixT out_variable;
+	dArrayT out_variable;
 	dArray2DT nd_var(NumElementNodes(), n_stress+knum_d_state);
 	Top();
 	while (NextElement())
 	{
 		/* extrapolate */
 		nd_var = 0.0;
-		out_variable_all.Set(fNumIP, n_stress+knum_d_state, fIPVariable(CurrElementNumber()));
+		out_variable_all.Alias(fNumIP, n_stress+knum_d_state, fIPVariable(CurrElementNumber()));
 		fShapes->TopIP();
 		while (fShapes->NextIP())
 		{
-			out_variable.Set(knumstress+knum_d_state, out_variable_all(fShapes->CurrIP()));
+			out_variable.Alias(knumstress+knum_d_state, out_variable_all(fShapes->CurrIP()));
 			fShapes->Extrapolate(out_variable, nd_var);
 		}
 	
@@ -831,8 +828,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 	/* stress output work space */
 	//int n_stress = dSymMatrixT::NumValues(NumSD());
 	int n_stress = knumstress;
-	dArray2DT   out_variable_all;
-	dSymMatrixT out_variable;
+	dArray2DT out_variable_all, fdstatenew_all, fdstate_all;
+	dArrayT out_variable;
 
 	/* time Step Increment */
 	double delta_t = ElementSupport().TimeStep();
@@ -846,7 +843,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		formBody = 1;
 
 	/* loop over elements */
-	int e,v,l;
+	int e,l;
 	Top();
 	while (NextElement())
 	{
@@ -865,13 +862,10 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		//fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u);
 		fCurrCoords = fInitCoords; 
 		fShapes->SetDerivatives(); 
-		
-		int n_state = fNumIP*knum_d_state;
-		dArrayT fdstatenew(n_state), fdstate(n_state);
-		for (int a=0; a<n_state; a++) {
-				fdstatenew[a] = fdState_new[CurrElementNumber(),a];
-				fdstate[a] = fdState[CurrElementNumber(),a];
-				}
+				
+		//-- Alias to update state variables and pass past ones to model subroutine 
+		fdstatenew_all.Alias(fNumIP, knum_d_state, fdState_new(CurrElementNumber()));
+		fdstate_all.Alias(fNumIP, knum_d_state, fdState(CurrElementNumber()));	
 		
 		//repackage data to forms compatible with FEA classes (very little cost in big picture)
 		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
@@ -881,8 +875,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
 		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
-		Convert.State			(	fNumIP, knum_d_state, fdstatenew, fstate );
-		Convert.State			(	fNumIP, knum_d_state, fdstate, fstate_n );
+		Convert.Copy			(	fNumIP, knum_d_state, fdstatenew_all, fstate );
+		Convert.Copy			(	fNumIP, knum_d_state, fdstate_all, fstate_n );
 		
 		APS_VariableT np1(	fgrad_u, fgamma_p, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
 		APS_VariableT   n(	fgrad_u_n, fgamma_p_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n
@@ -893,17 +887,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		{
 
 			if (bStep_Complete) {
-			
-				fEquation_eps -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, step_number, delta_t );
-				fEquation_eps -> Get ( output, Render_Vector[e][0] );
-			
-				//-- Store/Register data in classic tahoe manner 
-				out_variable_all.Set(fNumIP, n_stress+knum_d_state, fIPVariable(CurrElementNumber()));
-				for (l=0; l < fNumIP; l++) {
-					out_variable.Set(n_stress+knum_d_state, out_variable_all(l));
-					//??out_variable.Set(Render_Vector[e][0][l]);
-					} 
-			
+			//do nothing here
 			}
 			else { //-- Still Iterating
 
@@ -946,14 +930,14 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 
 			if (bStep_Complete) { 
 			
-				fEquation_eps -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, step_number, delta_t );
+				fEquation_eps -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, step_number, delta_t );
 				fEquation_eps -> Get ( output, Render_Vector[e][0] );
 			
 				//-- Store/Register data in classic tahoe manner 
-				out_variable_all.Set(fNumIP, n_stress+knum_d_state, fIPVariable(CurrElementNumber()));
+				out_variable_all.Alias(fNumIP, n_stress+knum_d_state, fIPVariable(CurrElementNumber()));
 				for (l=0; l < fNumIP; l++) {
-					out_variable.Set(n_stress+knum_d_state, out_variable_all(l));
-					//??out_variable.Set(Render_Vector[e][0][l]);
+					out_variable.Alias(n_stress+knum_d_state, out_variable_all(l));
+					out_variable=Render_Vector[e][0][l];
 					} 
 			
 			}
@@ -965,10 +949,9 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 				fEquation_eps -> Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
 				fEquation_eps -> Form_RHS_F_int ( fFeps_int );
 				
-				for (int a=0; a<fNumIP; a++)
-					for (int i=0; i<knum_d_state; i++)
-						fdstatenew[a*knum_d_state+i] = fstate[a][i];
-				for (int a=0; a<n_state; a++)  fdState_new[CurrElementNumber(),a] = fdstatenew[a];
+				// update state variables
+				np1.Update( APS::kstate, fstate );		
+				Convert.Copy ( fNumIP, knum_d_state, fstate, fdstatenew_all );
 
 				/** Set LHS */
 				fLHS = fKepseps;	
@@ -1005,8 +988,8 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 	/* stress output work space */
 	//int n_stress = dSymMatrixT::NumValues(NumSD());
 	int n_stress = knumstress;
-	dArray2DT   out_variable_all;
-	dSymMatrixT out_variable;
+	dArray2DT	out_variable_all, fdstatenew_all, fdstate_all;
+	dArrayT		out_variable;
 
 	/* time Step Increment */
 	double delta_t = ElementSupport().TimeStep();
@@ -1020,7 +1003,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		formBody = 1;
 
 	/* loop over elements */
-	int e,v,l;
+	int e,l;
 	Top();
 	while (NextElement())
 	{
@@ -1040,12 +1023,9 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		fCurrCoords = fInitCoords;
 		fShapes->SetDerivatives(); 
 		
-		int n_state = fNumIP*knum_d_state;
-		dArrayT fdstatenew(n_state), fdstate(n_state);
-		for (int a=0; a<n_state; a++) {
-				fdstatenew[a] = fdState_new[CurrElementNumber(),a];
-				fdstate[a] = fdState[CurrElementNumber(),a];
-				}
+		//update state variables
+		fdstatenew_all.Alias(fNumIP, knum_d_state, fdState_new(CurrElementNumber()));
+		fdstate_all.Alias(fNumIP, knum_d_state, fdState(CurrElementNumber()));
 		
 		/* repackage data to forms compatible with FEA classes (very little cost in big picture) */
 		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
@@ -1055,22 +1035,22 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
 		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
-		Convert.State			(	fNumIP, knum_d_state, fdstatenew, fstate );
-		Convert.State			(	fNumIP, knum_d_state, fdstate, fstate_n );
+		Convert.Copy			(	fNumIP, knum_d_state, fdstatenew_all, fstate );
+		Convert.Copy			(	fNumIP, knum_d_state, fdstate_all, fstate_n );
 		
 		APS_VariableT np1(	fgrad_u, fgamma_p, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
 		APS_VariableT   n(	fgrad_u_n, fgamma_p_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n
 		
 		if (bStep_Complete) { 
 		
-			fEquation_eps -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, step_number, delta_t );
+			fEquation_eps -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, step_number, delta_t );
 			fEquation_eps -> Get ( output, Render_Vector[e][0] );
 			
 			//-- Store/Register data in classic tahoe manner 
-			out_variable_all.Set(fNumIP, n_stress+knum_d_state, fIPVariable(CurrElementNumber()));
+			out_variable_all.Alias(fNumIP, n_stress+knum_d_state, fIPVariable(CurrElementNumber()));
 			for (l=0; l < fNumIP; l++) {
-				out_variable.Set(n_stress+knum_d_state, out_variable_all(l));
-				//??out_variable.Set(Render_Vector[e][0][l]);
+				out_variable.Alias(n_stress+knum_d_state, out_variable_all(l));
+				out_variable=Render_Vector[e][0][l];
 			} 
 	
 		}
@@ -1103,10 +1083,9 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 			fEquation_eps -> Form_RHS_F_int ( fFeps_int );
 			fFeps_int *= -1.0;
 			
-			for (int a=0; a<fNumIP; a++)
-				for (int i=0; i<knum_d_state; i++)
-					fdstatenew[a*knum_d_state+i] = fstate[a][i];
-			for (int a=0; a<n_state; a++)  fdState_new[CurrElementNumber(),a] = fdstatenew[a];
+			// update state variables
+			np1.Update( APS::kstate, fstate );
+			Convert.Copy ( fNumIP, knum_d_state, fstate, fdstatenew_all );
 
 			/* equations numbers */
 			const iArrayT& all_eq = CurrentElement().Equations();
