@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.8 2002-02-07 23:28:33 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.9 2002-02-12 02:10:03 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -34,27 +34,38 @@ class iArray2DT;
  *
  * Outside of the constructor, the remainder of the interface is intended
  * for use by the output formatter, not the class sending the data for
- * output\n */
+ * output. 
+ *
+ * There are two modes for output sets, denoted by the OutputSetT::ModeT
+ * enum:
+ * (1) OutputSetT::kElementBlock - data written over element blocks defined
+ *     in the global geometry database. Both nodal and element output is
+ *     supported in this mode since local element numbers can be mapped to
+ *     global element numbers.
+ * (2) OutputSetT::kFreeSet - data written over an arbitrary set of nodes.
+ *     Only nodal output is supported in this mode since no map from local
+ *     to global elements is available in the PartitionT files.
+ */
 class OutputSetT
 {
 public:
+
+	/** set mode */
+	enum ModeT {kElementBlock = 0, /**< writing data over element blocks defined in the
+	                                * global geometry file */
+	            kFreeSet = 1 /**< writing data over arbitrary sets of nodes */
+	            };
 
 	/** generate output data record.
 	 * \param ID identifier to denote the class generating the OutputSetT
 	 * \param geometry_code GeometryT::CodeT defining the geometry associated
 	 *        with the connectivities.
-	 * \param block_ID list of ID's comprising the connectivities. This list is 
-	 *        used to declare that the connectivities passed in are actually a union 
-	 *        of connectivities defined by ID's declared in an associated geometry 
-	 *        database file. These values are used internally to refer to the data 
-	 *        associated with each member of the connectivities list. If data is only
-	 *        written per node, these ID's have no other use. If there is data per
-	 *        element, these values are also used by JoinOutputT when joining "element"
-	 *        data, in which case the ID must correspond to the ID for the element
-	 *        block in the geometry database.
+	 * \param block_ID list of element block ID's comprising the connectivities.
+	 *        These ID's must correspond with the block ID's of the element blocks
+	 *        in the global geometry database.
 	 * \param connectivities elements over which data will be written. The
 	 *        output formatters retain a reference to these connectivities
-	 *        for use during output.
+	 *        for use during output. These connectivities are not copied.
 	 * \param n_labels list of labels for the nodal variables. The length of
 	 *        this list defines the number of nodal output variables.
 	 * \param e_labels list of labels for the element variables. The length of
@@ -66,8 +77,23 @@ public:
 		const ArrayT<StringT>& n_labels, const ArrayT<StringT>& e_labels, 
 		bool changing);
 
+	/** generate output data record.
+	 * \param ID identifier to denote the class generating the OutputSetT
+	 * \param geometry_code GeometryT::CodeT defining the geometry associated
+	 *        with the connectivities.
+	 * \param connectivities elements over which data will be written. The
+	 *        output formatters retain a reference to these connectivities
+	 *        for use during output. These connectivities are not copied.
+	 * \param n_labels list of labels for the nodal variables. The length of
+	 *        this list defines the number of nodal output variables */
+	OutputSetT(const StringT& ID, GeometryT::CodeT geometry_code,
+		const iArray2DT& connectivities, const ArrayT<StringT>& n_labels);
+
 	/** copy constructor */
 	OutputSetT(const OutputSetT& source);
+	
+	/** output set mode */
+	ModeT Mode(void) const { return fMode; }; 
 	
 	/* dimensions */
 	int NumNodes(void) const; /**< return the number of nodes used by the set */
@@ -99,11 +125,6 @@ public:
 
 	/** return a pointer to the connectivities for the specified block */
 	const iArray2DT* Connectivities(const StringT& ID) const;
-
-//TEMP - used to write all set connectivities at once
-#if 0
-	void AllConnectivities(iArray2DT& connects) const;
-#endif
 
 	/** return the labels for the nodal output variables */
 	const ArrayT<StringT>& NodeOutputLabels(void) const;
@@ -144,6 +165,9 @@ private:
 		iArrayT& nodes_used);
 	
 private:
+
+	/** output set mode */
+	ModeT fMode;
 
 	/** count of number of output steps */
 	int fPrintStep;
