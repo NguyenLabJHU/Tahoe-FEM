@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: execution.tex,v 1.3 2001-03-26 09:12:19 paklein Exp $
+% $Id: execution.tex,v 1.4 2001-04-23 05:07:41 paklein Exp $
 
 \section{Execution procedures}
 \tahoe has be ported to a number of platforms.  The code can be executed in
@@ -8,10 +8,10 @@ that have been added to support execution in parallel.  These modes are
 listed below.  Only the Parallel Analysis mode actually runs in parallel,
 the other modes run in serial.
 \begin{itemize}
-\item[\ref{sect.serial.analysis}] Serial analysis
-\item[\ref{sect.parallel.analysis}] Parallel analysis
-\item[\ref{sect.domain.decomp}] Domain decomposition
-\item[\ref{sect.joining}] Joining results data
+\item[(\ref{sect.serial.analysis})] Serial analysis
+\item[(\ref{sect.parallel.analysis})] Parallel analysis
+\item[(\ref{sect.domain.decomp})] Domain decomposition
+\item[(\ref{sect.joining})] Joining results data
 \end{itemize}
 The procedure for running in serial and parallel has been made as similar
 as possible.  The only differences arise from machine-dependent
@@ -104,7 +104,7 @@ decomposition files already exist.  \tahoe creates a domain decomposition
 based on the connectivities seen at run time.  If the geometry file
 contains blocks of elements that are not referenced in the parameters file,
 these blocks are not considered during decomposition.  Additionally,
-meshfree methods generate connectivites at run time the depend on
+meshfree methods generate connectivities at run time the depend on
 parameters defining the shape functions.  \tahoe does not keep track of
 which values in the parameters file affect the domain decomposition.  If
 any of these parameters are changed, the user must delete any of the

@@ -1,7 +1,8 @@
 %&LaTeX
-% $Id: analysis.tex,v 1.1 2001-03-13 02:20:50 paklein Exp $
+% $Id: analysis.tex,v 1.2 2001-04-23 05:07:41 paklein Exp $
 
 \section{Analysis types}
+\label{sect.analysis.types}
 Table~\ref{tab.analysis.types} shows a list of analysis available in \tahoe.
 \begin{table}[h]
 \caption{\label{tab.analysis.types} This is the list of types.}
@@ -67,12 +68,12 @@ full &2\\
 \end{table}
 
 \subsubsection{Elastostatic analysis}
-This analysis can be used wtih profile, full, \textsf{Aztec}, or 
+This analysis can be used with profile, full, \textsf{Aztec}, or 
 \textsf{SPOOLES} global matrix types.
 
 \subsubsection{Implicit elastodynamic analysis}
 This analysis uses HHT-$\alpha$ time integration developed by Hilber 
-\etal~\cite{Hughes1977} and can be used wtih
+\etal~\cite{Hughes1977} and can be used with
 profile, full, \textsf{Aztec}, 
 or \textsf{SPOOLES}  global matrix types.
 
@@ -83,7 +84,7 @@ from the classic Newmark family of methods. In order to make this method
 
 \subsubsection{Steady-state and transient diffusion}
 Transient head conduction uses a trapezoidal time integration scheme, and
-can be used wtih profile, full, \textsf{Aztec}, or 
+can be used with profile, full, \textsf{Aztec}, or 
 \textsf{SPOOLES}  global
 matrix types.
 
@@ -92,7 +93,7 @@ matrix types.
 \subsubsection{Linear}
 The linear solution technique is used with all of the linear analyses and
 with explicit dynamic analysis.  Explicit dynamic analysis may involve
-large, nonlinear kinematics of deformation, nonlinear constitituve
+large, nonlinear kinematics of deformation, nonlinear constitutive
 response, and contact; however, as a result of the time discretization, the
 incremental accelerations are linearly related to the driving forces over a
 single time increment.

@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: tahoe.user.tex,v 1.5 2001-04-10 01:57:49 paklein Exp $
+% $Id: tahoe.user.tex,v 1.6 2001-04-23 05:07:42 paklein Exp $
 \documentclass[12pt]{article}
 %\documentclass[11pt,twoside]{article}
 \usepackage{amsmath}
@@ -10,7 +10,6 @@
 \usepackage{hhline}
 \usepackage{longtable}
 \usepackage{ulem}
-%\usepackage{boldmath}
 \usepackage{graphicx}
 \usepackage{color}
 %\usepackage{overcite}
@@ -21,17 +20,18 @@
 	colorlinks=true,%
 	bookmarksnumbered=true]{hyperref}
 %-------------------------- macros ----------------------
+%- NOTE: latex2html has trouble expanding nested macros -
 \newcommand{\mathvec}[1]{\mbox{\boldmath $#1$}}
 \newcommand{\labeleq}[2]{\begin{equation} \label{#1} #2 \end{equation}}
 \newcommand{\rbrkt}[1]{\left(#1\right)}
 \newcommand{\sbrkt}[1]{\left[#1\right]}
 \newcommand{\cbrkt}[1]{\left\{#1\right\}}
 \newcommand{\abrkt}[1]{\left<#1\right>}
-\newcommand{\farg}[1]{\negmedspace\rbrkt{#1}}
+\newcommand{\farg}[1]{\negmedspace \left(#1\right)}
 \newcommand{\etal}[0]{\textit{et al.}\@ }
 \newcommand{\dbyd}[2]{\frac{\partial#1}{\partial#2}}
 \newcommand{\ddbydd}[3]{\frac{\partial^{2}#1}{\partial#2\partial#3}}
-\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\newcommand{\invar}[1]{\textrm{[\textit{#1}]}}
 %-------------------------- macros ----------------------
 
 %----------------------- environments -------------------
@@ -71,9 +71,8 @@
 %---------------------- table macros --------------------
 
 %---------------------- editing macros ------------------
-\newcommand{\temp}[1]{\textcolor{red}{\textit{[author's note: #1]}}}
+\newcommand{\todo}[1]{\textcolor{red}{\textit{[To do: #1]}}}
 \newcommand{\strike}[1]{\textcolor{red}{\sout{#1}}}
-\newcommand{\stefref}[1]{\temp{Wimmer:#1}}
 %---------------------- editing macros ------------------
 
 %----------------------- figure path --------------------
@@ -107,8 +106,7 @@
 %------------------------- format -----------------------
 
 %------------------ selective typesetting ---------------
-%\includeonly{\filepath{ICandBC}}
-%\includeonly{\filepath{execution}}
+%\includeonly{\filepath{input}, \filepath{files}, \filepath{ICandBC}}
 %------------------ selective typesetting ---------------
 
 %------------------- document variables -----------------
