@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Data.cpp,v 1.8 2004-08-08 02:02:57 paklein Exp $ */
+/* $Id: SIERRA_Material_Data.cpp,v 1.9 2004-08-16 17:27:17 paklein Exp $ */
 #include "SIERRA_Material_Data.h"
 
 using namespace Tahoe;
@@ -42,6 +42,12 @@ void SIERRA_Material_Data::AddInputVariable(const StringT& input_var)
 			ExceptionT::GeneralFail(caller, "strain type is already set"); 
 		fStrainMeasure = krot_strain_increment;
 		size = 6;
+	}
+	else if (input_var == "velocity_gradient") {
+		if (fStrainMeasure != kundefined)
+			ExceptionT::GeneralFail(caller, "strain type is already set"); 
+		fStrainMeasure = kvelocity_gradient;
+		size = 9;
 	}
 	else if (input_var == "temperature_old")
 		size = 1;

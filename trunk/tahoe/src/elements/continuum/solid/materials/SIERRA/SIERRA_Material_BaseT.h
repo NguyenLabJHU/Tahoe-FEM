@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.h,v 1.8 2004-08-08 02:02:57 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.h,v 1.9 2004-08-16 17:27:17 paklein Exp $ */
 #ifndef _SIERRA_MAT_BASE_T_H_
 #define _SIERRA_MAT_BASE_T_H_
 
@@ -193,6 +193,11 @@ private:
 	dMatrixT fF_rel;
 	dMatrixT fA_nsd;
 	dSymMatrixT fU1, fU2, fU1U2;
+	/*@}*/
+
+	/** \name velocity gradient work space */
+	/*@{*/
+	dMatrixT fdudX, fh, fhTh;
 	/*@}*/
 
 	/** \name material output data */
