@@ -1,4 +1,4 @@
-/* $Id: fortran_names.h,v 1.4 2003-10-03 01:00:40 paklein Exp $ */
+/* $Id: fortran_names.h,v 1.5 2005-01-16 19:42:39 paklein Exp $ */
 #ifndef _FORTRAN_NAMES_H_
 #define _FORTRAN_NAMES_H_
 /*
@@ -34,8 +34,8 @@
 #elif defined(__DEC__)
 #define FORTRAN_NAME(n_)	n_ ## _
 
-/* AIX - no mangling */
-#elif defined(__AIX__)
+/* IBM XL compilers - no mangling */
+#elif defined(__AIX__) || defined(__XL__)
 #define FORTRAN_NAME(n_)	n_
 
 /* Intel compilers */
@@ -43,7 +43,7 @@
 #define FORTRAN_NAME(n_)        n_ ## _
 
 /* Sun not GNU - single trailing underscore */
-#elif defined(__SUN__) && !defined(__GNU__)
+#elif defined(__SUN__) && !defined(__GNUC__)
 #ifdef __STDC__
 #define FORTRAN_NAME(n_)	n_ ## _
 #else
@@ -51,11 +51,19 @@
 #endif
 
 /* GNU - double trailing underscore */
-#elif defined(__GNU__)
+#elif defined(__GNUC__) /* GCC predefined macro */
 #ifdef __STDC__
+#ifdef NO_SECOND_UNDERSCORE
+#define FORTRAN_NAME(n_)	n_ ## _
+#else
 #define FORTRAN_NAME(n_)	n_ ## __
+#endif
+#else
+#ifdef NO_SECOND_UNDERSCORE
+#define FORTRAN_NAME(n_)	n_/**/_
 #else
 #define FORTRAN_NAME(n_)	n_/**/__
+#endif
 #endif
 
 /* Metrowerks - assume GNU linkage */

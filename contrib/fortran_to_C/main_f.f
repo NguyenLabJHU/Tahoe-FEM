@@ -1,6 +1,6 @@
       program test
       implicit double precision (a-h,o-z)
-	  
+
 	  a_double = 1.1E+00
 	  i_integer = 2
 
