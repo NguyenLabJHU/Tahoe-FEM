@@ -1,4 +1,4 @@
-/* $Id: SmallStrainMF.h,v 1.3 2003-04-10 22:03:07 thao Exp $ */
+/* $Id: SmallStrainMF.h,v 1.4 2003-04-14 22:30:46 thao Exp $ */
 
 #ifndef _SMALL_STRAIN_MF_H_
 #define _SMALL_STRAIN_MF_H_
@@ -12,6 +12,7 @@ namespace Tahoe {
 class SSMatSupportT;
 class SSSolidMatT;
 class OutputSetT;
+class ifstreamT;
 class StringT;
 
 /** Interface for linear strain deformation and field gradients */
@@ -72,8 +73,8 @@ class SmallStrainMF: public SmallStrainT
  private:
     ArrayT<dMatrixT> fGradU_List;
     dArrayT fgrad_viscstretch;
-    dSymMatrixT fdevQ;
-    dSymMatrixT fviscstress;
+    dArrayT fviscstress;
+    dArrayT fviscstretch;
 };
 
 /* inlines */
