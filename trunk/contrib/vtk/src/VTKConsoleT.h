@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.h,v 1.3 2001-09-26 18:07:58 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.4 2001-09-28 00:18:06 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -20,7 +20,10 @@ class vtkRendererSource;
 class vtkTIFFWriter;
 class vtkWindowToImageFilter;
 class vtkLookupTable;
-
+class vtkIdFilter;
+class vtkSelectVisiblePoints;
+class vtkLabeledDataMapper;
+class vtkActor2D;
 
 
 class VTKConsoleT: public iConsoleObjectT
@@ -32,8 +35,6 @@ class VTKConsoleT: public iConsoleObjectT
 
   /* execute given command - returns false on fail */
   virtual bool iDoCommand(const StringT& command, StringT& line);
-
-  /* void dataUpdate(void); */
 
  private:
   double valRange1, valRange2;
@@ -55,8 +56,11 @@ class VTKConsoleT: public iConsoleObjectT
   vtkScalarBarActor *scalarBar;
   vtkRendererSource *renSrc;
   vtkTIFFWriter *writer;
+  vtkIdFilter *ids;
+  vtkSelectVisiblePoints *visPts;
+  vtkLabeledDataMapper *ldm;
+  vtkActor2D *pointLabels;
   
-
 };
 
 #endif

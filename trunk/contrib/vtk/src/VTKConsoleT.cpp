@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.3 2001-09-26 18:07:57 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.4 2001-09-28 00:18:06 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "vtkRenderer.h"
@@ -15,10 +15,17 @@
 #include "vtkTIFFWriter.h"
 #include "vtkWindowToImageFilter.h"
 #include "vtkLookupTable.h"
+#include "vtkIdFilter.h"
+#include "vtkSelectVisiblePoints.h"
+#include "vtkLabeledDataMapper.h"
+#include "vtkActor2D.h"
 
-
-//void VTKConsoleT::dataUpdate(void) {
-  
+#include <iostream.h>
+#include <iomanip.h>
+#include "ExodusT.h"
+#include "dArray2DT.h"
+#include "iArray2DT.h"
+#include "dArrayT.h"
 
 VTKConsoleT::VTKConsoleT(void)
 {
@@ -26,8 +33,6 @@ VTKConsoleT::VTKConsoleT(void)
   iSetName("vtk");
 
   /* add variables to the console */
-
-
   iAddVariable("min_Hue_Range", hueRange1);
   iAddVariable("max_Hue_Range", hueRange2);
   iAddVariable("min_Value_Range", valRange1);
@@ -41,24 +46,116 @@ VTKConsoleT::VTKConsoleT(void)
   iAddVariable("numColors", numColors);
   iAddVariable("source_file", source_file);
   iAddVariable("output_file", output_file);
-//   iAddVariable("ugr", ugr);
-//   iAddVariable("renderer", renderer);
-//   iAddVariable("renWin", renWin);
-//   iAddVariable("iren", iren);
-//   iAddVariable("lut", lut);
-//   iAddVariable("ugridMapper", ugridMapper);
-//   iAddVariable("ugridActor", ugridActor);
-//   iAddVariable("wireActor", wireActor);
-//   iAddVariable("scalarBar", scalarBar);
-//   iAddVariable("renSrc", renSrc);
-  
+
   /* add console commands */
-//   iAddCommand("Integer_Print");
-//   iAddCommand("String_Print");
   iAddCommand("Start_Rendering");
   iAddCommand("Update_Rendering");
   iAddCommand("Reset_to_Default_Values");
   iAddCommand("Save");
+  iAddCommand("Show_Node_Numbers");
+  //  iAddCommand("Hide_Node_Numbers");
+
+  StringT file = "../../example_files/heat/heat.io0.exo";
+
+   ExodusT exo(cout);
+  if (!exo.OpenRead(file))
+	{
+	  cout << " ERROR: could not open file: " << file << endl;
+	  throw;
+	}
+  else
+	cout << "read database file: " << file << endl;
+
+
+
+  /* read coordinates */
+  int num_nodes = exo.NumNodes();
+  int num_dim   = exo.NumDimensions();
+  dArray2DT coordinates(num_nodes, num_dim);
+  exo.ReadCoordinates(coordinates);
+
+  /* read element block ID's */
+  int num_elem_blocks = exo.NumElementBlocks();
+  iArrayT element_ID(num_elem_blocks);
+  exo.ElementBlockID(element_ID);
+
+  /* read element connectivities */
+  ArrayT<iArray2DT> connectivities(num_elem_blocks);
+  for (int i = 0 ; i < num_elem_blocks; i++)
+	{
+	  /* read dimensions */
+	  int num_elements, num_element_nodes;
+	  exo.ReadElementBlockDims(element_ID[i], num_elements, num_element_nodes);
+
+	  /* read connectivities */
+	  connectivities[i].Allocate(num_elements, num_element_nodes);
+	  GeometryT::CodeT geometry;
+	  exo.ReadConnectivities(element_ID[i], geometry, connectivities[i]);
+
+
+	}
+
+  /* look for results data */
+  int num_time_steps = exo.NumTimeSteps();
+  //if (num_time_steps > 0)
+  //	{
+	  /* variables defined at the nodes */
+	  int num_node_variables = exo.NumNodeVariables();
+	  ArrayT<StringT> node_labels(num_node_variables);
+	  exo.ReadNodeLabels(node_labels);
+	  cout << " nodal variables:\n";
+	  for (int i = 0; i < node_labels.Length(); i++)
+		cout << node_labels[i] << '\n';
+
+	  /* variables defined over the elements */
+	  int num_element_variables = exo.NumElementVariables();
+	  ArrayT<StringT> element_labels;
+	  exo.ReadElementLabels(element_labels);
+	  cout << " element variables:\n" << endl;
+	  for (int i = 0; i < element_labels.Length(); i++)
+		cout << element_labels[i] << '\n';
+	  cout.flush();
+
+	  /* read nodal data */
+	  dArray2DT nodal_data(num_nodes, num_node_variables);
+	  dArrayT ndata(num_nodes);
+
+	  if (num_time_steps > 0)
+	    {
+	      for (int i = 0; i < num_time_steps; i++)
+		{
+		  double time;
+		  exo.ReadTime(i+1, time);
+		  
+		  /* loop over variables */
+		  for (int j = 0; j < num_node_variables; j++)
+		    {
+		      exo.ReadNodalVariable(i+1, j+1, ndata);
+		      nodal_data.SetColumn(j, ndata);
+		    }
+		  
+		  cout << " time: " << time << endl;
+		  cout << " nodal data:\n" << nodal_data << endl;
+		}
+	
+	    }
+
+
+  vtkPoints *points = vtkPoints::New();
+ for (int i=0; i<num_nodes; i++) points->InsertPoint(i,coordinates[i]);
+  
+  vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
+    ugrid->Allocate(num_elem_blocks);
+  for (int i=0; i<num_elem_blocks; i++) 
+    ugrid->InsertNextCell(VTK_TETRA, 4, connectivities[i]);
+
+  vtkScalars *scalars = vtkScalars::New(VTK_DOUBLE);
+  for (int i=0; i<num_nodes; i++) scalars->InsertScalar(i,nodal_data[i]);
+
+  ugrid->SetPoints(points);
+  points->Delete();
+  ugrid->GetPointData()->SetScalars(scalars);
+
 
   source_file = "../../example_files/heat/data_file1.vtk";
   output_file = "A.tif";
@@ -79,6 +176,11 @@ VTKConsoleT::VTKConsoleT(void)
   scalarBar = vtkScalarBarActor::New();
   writer = vtkTIFFWriter::New();
   renSrc = vtkRendererSource::New();
+  ids = vtkIdFilter::New();
+  visPts = vtkSelectVisiblePoints::New();
+  ldm = vtkLabeledDataMapper::New();
+  pointLabels = vtkActor2D::New();
+
 
   ugr->SetFileName(source_file);
 
@@ -92,17 +194,14 @@ VTKConsoleT::VTKConsoleT(void)
   lut->SetAlphaRange(alphaRange1,alphaRange2);
   lut->SetNumberOfColors(numColors);
   lut->Build();
-
   
   ugridMapper->SetInput(ugr->GetOutput());
   ugridMapper->SetScalarRange(scalarRange1,scalarRange2);
   ugridMapper->SetLookupTable(lut);
-   ugridMapper->ImmediateModeRenderingOn();
-
+  ugridMapper->ImmediateModeRenderingOn();
 
   ugridActor->SetMapper(ugridMapper);
   ugridActor->AddPosition(0,0.001,0);
-
   
   wireActor->SetMapper(ugridMapper);
   wireActor->GetProperty()->SetRepresentationToWireframe();
@@ -115,7 +214,6 @@ VTKConsoleT::VTKConsoleT(void)
   renWin->SetPosition(668, 0);
   renWin->SetSize(600, 700);
 
-  
   scalarBar->SetLookupTable(ugridMapper->GetLookupTable());
   scalarBar->SetTitle("Temperature for time .50000");
   scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
@@ -124,13 +222,8 @@ VTKConsoleT::VTKConsoleT(void)
   scalarBar->SetWidth(0.8);
   scalarBar->SetHeight(0.17);
   renderer->AddActor(scalarBar);
-
-
-
-  // dataUpdate();
+ 
 }
-
-
 
 /* execute given command - returns false on fail */
 bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
@@ -140,11 +233,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       cout << "int = " << fInteger << endl;
 //       return true;
 //     }
-//   else if (command == "String_Print")
-//     {
-//       cout << "string = " << fString << endl;
-//       return true;
-//     }
+
 
   if (command == "Start_Rendering")
   {
@@ -155,9 +244,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 
   else if (command == "Update_Rendering")
   {
-
     ugridMapper->SetScalarRange(scalarRange1,scalarRange2);
-
     lut->SetHueRange(hueRange1, hueRange2);
     lut->SetSaturationRange(satRange1,satRange2);
     lut->SetValueRange(valRange1,valRange2);
@@ -166,7 +253,6 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
     ugr->SetFileName(source_file);
     renWin->Render();
     iren->Start();
-    // dataUpdate();
     return true;
   }
     
@@ -194,6 +280,52 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       writer->Write();
       return true;
     }
+
+  else if (command == "Show_Node_Numbers")
+    {
+    
+      ids->SetInput(ugr->GetOutput());
+      ids->PointIdsOn();
+      ids->CellIdsOn();
+      ids->FieldDataOn();
+      visPts->SetInput(ids->GetOutput());
+      visPts->SetRenderer(renderer);
+      //visPts->SelectionWindowOn();
+      //  visPts->SetSelection();
+      ldm->SetInput(visPts->GetOutput());
+      // ldm->SetlabelFormat();
+      ldm->SetLabelModeToLabelFieldData();
+      pointLabels->SetMapper(ldm);
+      renderer->AddActor2D(pointLabels);
+      renWin->Render();
+      iren->Start();
+      return true;      
+
+    }
+
+//   else if (command == "Hide_Node_Numbers")
+//     {
+//      ids->SetInput(ugr->GetOutput());
+      
+//       ids->CellIdsOff();
+//       ids->FieldDataOff();
+//       ids->PointIdsOff();
+//       ids->Update();
+
+//       visPts->SetInput(ids->GetOutput());
+//       visPts->SetRenderer(renderer);
+//       //visPts->SelectionWindowOn();
+//       //  visPts->SetSelection();
+//       ldm->SetInput(visPts->GetOutput());
+//       // ldm->SetlabelFormat();
+//       ldm->SetLabelModeToLabelFieldData();
+//       pointLabels->SetMapper(ldm);
+//       renderer->AddActor2D(pointLabels);
+//       renWin->Render();
+//       iren->Start();
+//       return true;   
+ 
+//     }
 
   else
     /* drop through to inherited */
