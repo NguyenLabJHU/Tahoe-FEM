@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.12.20.2 2004-05-04 15:49:59 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.12.20.3 2004-05-06 16:00:22 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeFSSolidT.h"
 #include "SolidMaterialsConfig.h"
@@ -11,6 +11,7 @@
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 #include "D2MeshFreeShapeFunctionT.h"
+#include "MeshFreeFractureSupportT.h"
 
 #ifdef VIB_MATERIAL
 #include "D2VIB2D.h"
@@ -191,7 +192,7 @@ bool D2MeshFreeFSSolidT::NextElement(void)
 	int OK = MeshFreeFSSolidT::NextElement();
 	
 	/* resize */
-	fD2GradNa_wrap.SetDimensions(fD2GradNa.Rows(), fMeshFreeFractureSupport->NumElementNodes());
+	fD2GradNa_wrap.SetDimensions(fD2GradNa.Rows(), fMFFractureSupport->NumElementNodes());
 
 	/* set material pointer (cast checked above) */
 	if (OK) pD2VIB2D = (D2VIB2D*) fCurrMaterial;

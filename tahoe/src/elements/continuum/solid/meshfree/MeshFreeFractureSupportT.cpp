@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.11.18.2 2004-05-04 15:50:00 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.11.18.3 2004-05-06 16:00:22 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 #include "MeshFreeFractureSupportT.h"
 
@@ -100,17 +100,16 @@ istream& operator>>(istream& in, MeshFreeFractureSupportT::FractureCriterionT& c
 } // namespace Tahoe
 
 /* initialization */
-void MeshFreeFractureSupportT::InitSupport(ifstreamT& in, ostream& out,
-	AutoArrayT<ElementCardT>& elem_cards, const iArrayT& surface_nodes,
-	int numDOF, int max_node_num, ModelManagerT* model)
+void MeshFreeFractureSupportT::InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards, 
+	const iArrayT& surface_nodes, int numDOF, int max_node_num, ModelManagerT* model)
 {
 	/* inherited */
-	MeshFreeElementSupportT::InitSupport(in, out, elem_cards, surface_nodes,
-		numDOF, max_node_num, model);
+	MeshFreeElementSupportT::InitSupport(out, elem_cards, surface_nodes, numDOF, max_node_num, model);
 
 	/* unitialized */
 	fNumFacetNodes = -1;
 
+#if 0
 	/* field cutting facets (and active crack fronts) */
 	InitCuttingFacetsAndFronts(in, out);
 
@@ -138,6 +137,7 @@ void MeshFreeFractureSupportT::InitSupport(ifstreamT& in, ostream& out,
 		int nsd = fMFShapes->NumSD();
 		ftmp_nsd.Dimension(nsd);
 	}
+#endif
 }
 
 bool MeshFreeFractureSupportT::CheckGrowth(SolidMaterialT* material, 

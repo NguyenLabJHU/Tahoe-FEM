@@ -1,16 +1,20 @@
-/* $Id: MeshFreeSSSolidT.h,v 1.8.18.2 2004-05-04 15:50:00 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.h,v 1.8.18.3 2004-05-06 16:00:22 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #ifndef _MF_SMALLSTRAIN_T_H_
 #define _MF_SMALLSTRAIN_T_H_
 
 /* base classes */
 #include "SmallStrainT.h"
-#include "MeshFreeFractureSupportT.h"
 
 /* direct members */
 #include "nVariMatrixT.h"
 
 namespace Tahoe {
+
+/* forward declarations */
+class MeshFreeSupportT;
+class MeshFreeShapeFunctionT;
+class MeshFreeFractureSupportT;
 
 /** small strain elasticity with MLS shapefunctions for the
  * field (displacement) representation
@@ -24,9 +28,6 @@ public:
 	MeshFreeSSSolidT(const ElementSupportT& support, const FieldT& field);
 	MeshFreeSSSolidT(const ElementSupportT& support);
 	
-	/* data initialization */
-	virtual void Initialize(void);
-
 	/* append element equations numbers to the list */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
@@ -55,6 +56,9 @@ public:
 	virtual void InitStep(void);
 	virtual void CloseStep(void);
 	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
+
+	/** accessors */
+	MeshFreeSupportT& MeshFreeSupport(void) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
