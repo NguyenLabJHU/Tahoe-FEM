@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.3 2002-07-18 17:45:23 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.4 2002-07-19 00:58:26 paklein Exp $ */
 #include "BridgingScaleT.h"
 #include "ShapeFunctionT.h"
 #include "RodT.h"
@@ -48,7 +48,6 @@ void BridgingScaleT::Initialize(void)
 	ostream&  out = ElementSupport().Output();
 
 	/* output print specifications */
-	EchoOutputCodes(in, out);
 }
 
 void BridgingScaleT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -127,14 +126,14 @@ void BridgingScaleT::WriteOutput(IOBaseT::OutputModeT mode)
 
 	/* map output flags to count of values */
 	iArrayT n_counts;
-	SetNodalOutputCodes(mode, fNodalOutputCodes, n_counts);
+//	SetNodalOutputCodes(mode, fNodalOutputCodes, n_counts);
 	iArrayT e_counts;
-	SetElementOutputCodes(mode, fElementOutputCodes, e_counts);
+//	SetElementOutputCodes(mode, fElementOutputCodes, e_counts);
 
 	/* calculate output values */
 	dArray2DT n_values;
 	dArray2DT e_values;
-	ComputeOutput(n_counts, n_values, e_counts, e_values);
+//	ComputeOutput(n_counts, n_values, e_counts, e_values);
 
 	/* send to output */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
@@ -155,12 +154,6 @@ void BridgingScaleT::SetLocalArrays(void)
 	/* set source */
 	ElementSupport().RegisterCoordinates(fLocInitCoords);
 	Field().RegisterLocal(fLocDisp);	
-}
-
-/* form the residual force vector */
-void BridgingScaleT::RHSDriver(void)
-{
-	// should call derived class function here	
 }
 
 /* print element group data */

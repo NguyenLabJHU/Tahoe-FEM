@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.3 2002-07-18 17:45:23 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.4 2002-07-19 00:58:26 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -56,48 +56,46 @@ public:
 	/** send output */
 	virtual void WriteOutput(IOBaseT::OutputModeT mode);
 
+	/** form of tangent matrix, symmetric by default */
+	virtual GlobalT::SystemTypeT TangentType(void) const { return GlobalT::kSymmetric; };
+
+	/** accumulate the residual force on the specified node
+	 * \param node test node
+	 * \param force array into which to assemble to the residual force */
+	virtual void AddNodalForce(const FieldT&, int, dArrayT&) {};
+
+	/** returns the energy as defined by the derived class types */
+	virtual double InternalEnergy(void) { return 0; };
+
+	/** compute specified output parameter and send for smoothing */
+	virtual void SendOutput(int) {};
+
 protected:
+
+	/* called by FormRHS and FormLHS */
+	virtual void LHSDriver(void) {};
+	virtual void RHSDriver(void) {};
 
 	/** allocate and initialize local arrays */
 	virtual void SetLocalArrays(void);
 
-	/** form the residual force vector. computes contribution from natural
-	 * boundary conditions */
-	virtual void RHSDriver(void);
-
 	/** write element group parameters to out */
 	virtual void PrintControlData(ostream& out) const;
-	
-	/* element data */
-	virtual void EchoOutputCodes(ifstreamT& in, ostream& out) = 0;
 
 	/** write all current element information to the stream. used to generate
 	 * debugging information after runtime errors */
 	virtual void CurrElementInfo(ostream& out) const;
 
-	/* driver for calculating output values */
-	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-		iArrayT& counts) const = 0;
-	virtual void SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-		iArrayT& counts) const = 0;
-	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-	                           const iArrayT& e_codes, dArray2DT& e_values) = 0;
-
-
 private:
 
-	/* construct output labels array */
-	virtual void GenerateOutputLabels(
-		const iArrayT& n_codes, ArrayT<StringT>& n_labels, 
-		const iArrayT& e_codes, ArrayT<StringT>& e_labels) const = 0;
-
-	/* bridging scale-related computational functions */
-	
-	/* computes error caused by projecting solution onto FEM basis space */
+	/** \name bridging scale-related computational functions */
+	/*@{*/
+	/** computes error caused by projecting solution onto FEM basis space */
 	void ComputeError(void);
 
-	/* computes "fine scale" displacement, ie MD - overlap due to FEM */
+	/** computes "fine scale" displacement, ie MD - overlap due to FEM */
 	void ComputeFineScaleU(void);
+	/*@}*/
 
 protected:
 
