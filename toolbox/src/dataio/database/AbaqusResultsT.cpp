@@ -378,10 +378,10 @@ void AbaqusResultsT::GeometryCode (StringT& name, GeometryT::CodeT& code)
       if (!Read (cel)) throw eDatabaseFail;
     }
 
-  int numpts;
+  int numintpts;
   StringT elname;
   if (!Read (elname, 1)) throw eDatabaseFail;
-  if (TranslateElementName (elname.Pointer(), code, numpts) == BAD)
+  if (TranslateElementName (elname.Pointer(), code, numintpts) == BAD)
     {
       fMessage << "\nAbaqusResultsT::GeometryCode Unable to translate element name.\n\n";
       throw eDatabaseFail;
@@ -703,25 +703,34 @@ bool AbaqusResultsT::NextCoordinate (int &number, dArrayT &nodes)
 
 bool AbaqusResultsT::NextElement (int &number, GeometryT::CodeT &type, iArrayT &nodes)
 {
-  StringT name;
-
   AdvanceTo (ELEMENT);
 
+  StringT name;
   if (!Read (number) || !Read (name, 1) )
     throw eDatabaseFail;
 
-  int numpts;
-  if (TranslateElementName (name.Pointer(), type, numpts) == BAD) 
+  //cout << number << " " << name << endl;
+
+  int numintpts;
+  if (TranslateElementName (name.Pointer(), type, numintpts) == BAD) 
     {
       fMessage << "\nAbaqusResultsT::NextElement Unable to translate element name.\n\n";
       throw eDatabaseFail;
     }
+  //cout << type << " " << numintpts << endl;
 
-  nodes.Allocate (fCurrentLength);
   int numnodes = fCurrentLength;
+  //cout << numnodes << endl;
+  nodes.Allocate (numnodes);
+  nodes = 300;
+  //cout << nodes << endl;
   for (int i=0; i < numnodes; i++)
-    if (!Read (nodes[i]))
+    {
+      int temp;
+      if (!Read (temp))
       throw eDatabaseFail;
+      nodes[i] = temp;
+    }
   return true;
 }
 
@@ -804,12 +813,12 @@ void AbaqusResultsT::ScanElement (void)
 {
   StringT name;
   GeometryT::CodeT type = GeometryT::kNone;
-  int number, numpts = 0;
+  int number, numintpts = 0;
 
   if (!Read (number) || !Read (name, 1)) 
     throw eDatabaseFail;
 
-  if (TranslateElementName (name.Pointer(), type, numpts) == BAD) 
+  if (TranslateElementName (name.Pointer(), type, numintpts) == BAD) 
     {
       fMessage << "\nAbaqusResultsT::ScanElement Encountered unknown element type\n\n";
       throw eDatabaseFail;
@@ -967,134 +976,134 @@ bool AbaqusResultsT::CorrectType (int outputmode, int objnum, int intpt, int loc
   return false;
 }
 
-int AbaqusResultsT::TranslateElementName (char *name, GeometryT::CodeT &type, int &numpts)
+int AbaqusResultsT::TranslateElementName (char *name, GeometryT::CodeT &type, int &numintpts)
 {
   if (strncmp (name, "C", 1) == 0)
-    return TranslateContinuum (name+1, type, numpts);
+    return TranslateContinuum (name+1, type, numintpts);
   else if (strncmp (name, "DC", 2) == 0)
-    return TranslateContinuum (name+2, type, numpts);
+    return TranslateContinuum (name+2, type, numintpts);
   else if (strncmp (name, "AC", 2) == 0)
-    return TranslateContinuum (name+2, type, numpts);
+    return TranslateContinuum (name+2, type, numintpts);
   else if (strncmp (name, "DCC", 3) == 0)
-    return TranslateContinuum (name+3, type, numpts);
+    return TranslateContinuum (name+3, type, numintpts);
   else if (strncmp (name, "S", 1) == 0)
-    return TranslateShell (name+1, type, numpts);
+    return TranslateShell (name+1, type, numintpts);
   return BAD;
 }
 
-int AbaqusResultsT::TranslateContinuum (char *name, GeometryT::CodeT &type, int &numpts)
+int AbaqusResultsT::TranslateContinuum (char *name, GeometryT::CodeT &type, int &numintpts)
 {
   if (strncmp (name, "PE", 2) == 0)
-    return Translate2D (name+2, type, numpts);
+    return Translate2D (name+2, type, numintpts);
   else if (strncmp (name, "PS", 2) == 0)
-    return Translate2D (name+2, type, numpts);
+    return Translate2D (name+2, type, numintpts);
   else if (strncmp (name, "2D", 2) == 0)
-    return Translate2D (name+2, type, numpts);
+    return Translate2D (name+2, type, numintpts);
   else if (strncmp (name, "GPE", 3) == 0)
-    return Translate2D (name+3, type, numpts);
+    return Translate2D (name+3, type, numintpts);
   else if (strncmp (name, "3D", 2) == 0)
-    return Translate3D (name+2, type, numpts);
+    return Translate3D (name+2, type, numintpts);
   return BAD;
 }
 
-int AbaqusResultsT::Translate2D (char *name, GeometryT::CodeT &type, int &numpts)
+int AbaqusResultsT::Translate2D (char *name, GeometryT::CodeT &type, int &numintpts)
 {
   if (strncmp (name, "3", 1) == 0)
     {
       type = GeometryT::kTriangle;
-      numpts = 1;
+      numintpts = 1;
       return OKAY;
     }
   else if (strncmp (name, "4", 1) == 0)
     {
       type = GeometryT::kQuadrilateral;
-      numpts = 4;
+      numintpts = 4;
       if (strchr (name, 'R') != NULL)
-	numpts = 1;
+	numintpts = 1;
       return OKAY;
     }
   else if (strncmp (name, "6", 1) == 0)
     {
       type = GeometryT::kTriangle;
-      numpts = 3;
+      numintpts = 3;
       return OKAY;
     }
   else if (strncmp (name, "8", 1) == 0)
     {
       type = GeometryT::kQuadrilateral;
-      numpts = 9;
+      numintpts = 9;
       if (strchr (name, 'R') != NULL)
-	numpts = 4;
+	numintpts = 4;
       return OKAY;
     }
   return BAD;
 }
 
-int AbaqusResultsT::Translate3D (char *name, GeometryT::CodeT &type, int &numpts)
+int AbaqusResultsT::Translate3D (char *name, GeometryT::CodeT &type, int &numintpts)
 {
   if (strncmp (name, "4", 1) == 0)
     {
       type = GeometryT::kTetrahedron;
-      numpts = 1;
+      numintpts = 1;
       return OKAY;
     }
   else if (strncmp (name, "6", 1) == 0)
     {
       type = GeometryT::kPentahedron;
-      numpts = 2;
+      numintpts = 2;
       return OKAY;
     }
   else if (strncmp (name, "8", 1) == 0)
     {
       type = GeometryT::kHexahedron;
-      numpts = 8;
+      numintpts = 8;
       if (strchr (name, 'R') != NULL)
-	numpts = 2;
+	numintpts = 2;
       return OKAY;
     }
   else if (strncmp (name, "10", 2) == 0)
     {
       type = GeometryT::kTetrahedron;
-      numpts = 4;
+      numintpts = 4;
       return OKAY;
     }
   else if (strncmp (name, "15", 2) == 0)
     {
       type = GeometryT::kPentahedron;
-      numpts = 6;
+      numintpts = 6;
       return OKAY;
     }
   else if (strncmp (name, "20", 2) == 0)
     {
       type = GeometryT::kHexahedron;
-      numpts = 18;
+      numintpts = 18;
       if (strchr (name, 'R') != NULL)
-	numpts = 8;
+	numintpts = 8;
       return OKAY;
     }
   return BAD;
 }
 
-int AbaqusResultsT::TranslateShell (char *name, GeometryT::CodeT &type, int &numpts)
+int AbaqusResultsT::TranslateShell (char *name, GeometryT::CodeT &type, int &numintpts)
 {
   if (strncmp (name, "3", 1) == 0)
     {
       type = GeometryT::kTriangle;
-      numpts = 1;
+      numintpts = 1;
       return OKAY;
     }
   else if (strncmp (name, "4", 1) == 0)
     {
       type = GeometryT::kQuadrilateral;
-      numpts = 4;
+      numintpts = 4;
       if (strchr (name, 'R') != NULL)
-	numpts = 1;
+	numintpts = 1;
       return OKAY;
     }
   else if (strncmp (name, "8R", 2) == 0)
     {
       type = GeometryT::kQuadrilateral;
-      numpts = 4;
+      numintpts = 4;
       return OKAY;
     }
   return BAD;
