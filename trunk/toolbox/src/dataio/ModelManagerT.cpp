@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.16 2002-02-08 22:01:34 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.17 2002-02-12 02:05:35 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -765,7 +765,7 @@ void ModelManagerT::ElementMap (const StringT& ID, iArrayT& map)
 		const iArray2DT& connects = ElementGroup(ID);
 		if (map.Length() != connects.MajorDim()) {
     		cout << "\n ModelManagerT::ElementMap: map array is length " << map.Length()
-    	         << ", expecting length " << connects.MajorDim() << endl;
+    	         << ", expecting length " << connects.MajorDim() << " for ID " << ID << endl;
 			throw eSizeMismatch;		
 		}
 		
@@ -780,7 +780,7 @@ void ModelManagerT::ElementMap (const StringT& ID, iArrayT& map)
 		}
 		if (map.Length() != fInput->NumElements(ID)) {
     		cout << "\n ModelManagerT::ElementMap: map array is length " << map.Length()
-    	         << ", expecting length " << fInput->NumElements(ID) << endl;
+    	         << ", expecting length " << fInput->NumElements(ID) << " for ID " << ID << endl;
 			throw eSizeMismatch;	
 		}
 		fInput->ReadGlobalElementMap (ID, map);
