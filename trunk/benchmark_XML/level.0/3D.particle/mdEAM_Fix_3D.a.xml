@@ -23,9 +23,8 @@
             <EAM_particle_interaction label_1="Ni" label_2="Ni">
                 <Paradyn_EAM mass="1.0" parameter_file="./FCN/niu3"/>
             </EAM_particle_interaction>
-            <particle_EAM_output centrosymmetry="1" displacement="1"
-                kinetic_energy="1" potential_energy="1" slip_vector="1"
-                strain="1" stress="1"/>
+            <particle_EAM_output centrosymmetry="1"
+                potential_energy="1" stress="1"/>
         </particle_EAM>
     </element_list>
     <linear_solver><diagonal_matrix/></linear_solver>

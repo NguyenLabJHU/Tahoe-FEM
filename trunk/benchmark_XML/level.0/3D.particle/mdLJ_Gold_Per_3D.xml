@@ -26,6 +26,9 @@
             <pair_particle_interaction label_1="Au" label_2="Au">
                 <Paradyn_pair parameter_file="./FCN/lj_au_3D"/>
             </pair_particle_interaction>
+            <particle_pair_output centrosymmetry="1" displacement="1"
+                kinetic_energy="1" potential_energy="1" slip_vector="1"
+                strain="1" stress="1"/>
         </particle_pair>
     </element_list>
     <linear_solver><diagonal_matrix/></linear_solver>
