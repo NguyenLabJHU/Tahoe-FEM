@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.9.2.1 2002-10-17 01:51:22 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.9.2.2 2002-10-18 01:23:30 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 
 #ifndef _RAGGED_ARRAY_2D_T_H_
@@ -76,8 +76,14 @@ public:
 	/** shallow copy from nArray2DT */
 	void Alias(const nArray2DT<TYPE>& source);
 
+	/** \name assignment operators */
+	/*@{*/
 	/** assigment operator from another RaggedArray2DT */
 	RaggedArray2DT<TYPE>& operator=(const RaggedArray2DT& source);
+
+	/** set entire array to the same value */
+	RaggedArray2DT<TYPE>& operator=(const TYPE& value);
+	/*@}*/
 
 	/** configure and construct using a AutoFill2DT */
 	void Copy(const AutoFill2DT<TYPE>& source);
@@ -417,6 +423,15 @@ RaggedArray2DT<TYPE>& RaggedArray2DT<TYPE>::operator=(const RaggedArray2DT& sour
 			}
 		}
 	}
+	return *this;
+}
+
+/* assigment operator */
+template <class TYPE>
+RaggedArray2DT<TYPE>& RaggedArray2DT<TYPE>::operator=(const TYPE& value)
+{
+	/* set array */
+	fData = value;
 	return *this;
 }
 
