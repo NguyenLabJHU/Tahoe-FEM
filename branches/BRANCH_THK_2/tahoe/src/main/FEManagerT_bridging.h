@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.4.2.4 2003-05-25 19:26:53 hspark Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.4.2.5 2003-06-17 07:20:07 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -75,7 +75,7 @@ public:
 	const iArrayT& NonGhostNodes(void) const { return fNonGhostNodes; };
 
 	/** compute the ghost-nonghost part of the stiffness matrix */
-	void Form_G_NG_Stiffness(const StringT& field, dSPMatrixT& K_G_NG);
+	void Form_G_NG_Stiffness(const StringT& field, int element_group, dSPMatrixT& K_G_NG);
 	/*@}*/
 
 	/** write field values for the given nodes */
@@ -151,9 +151,6 @@ protected:
 	void MaptoCells(const iArrayT& nodes, const dArray2DT& coords, iArrayT& cell_num,
 		dArray2DT& cell_coords) const;
 
-	/** the particle element group */
-	ParticleT& Particle(void) const;
-
 	/** the bridging scale element group */
 	BridgingScaleT& BridgingScale(void) const;
 
@@ -164,8 +161,6 @@ private:
 
 	/** \name ghost node information */
 	/*@{*/
-	ParticleT* fParticle;
-	
 	/** list of my ghost nodes */
 	iArrayT fGhostNodes;
 

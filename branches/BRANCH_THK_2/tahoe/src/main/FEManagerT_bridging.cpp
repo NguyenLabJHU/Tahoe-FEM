@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.5.2.7 2003-05-28 15:43:01 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.5.2.8 2003-06-17 07:20:07 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -21,7 +21,6 @@ FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, Co
 	ifstreamT& bridging_input):
 	FEManagerT(input, output, comm),
 	fBridgingIn(bridging_input),
-	fParticle(NULL),
 	fBridgingScale(NULL),
 	fSolutionDriver(NULL)
 {
@@ -141,11 +140,24 @@ void FEManagerT_bridging::InitGhostNodes(void)
 	for (int j = 0; j < ndof; j++)
 		for (int i = 0; i < fGhostNodes.Length(); i++)
 			KBC_cards[dex++].SetValues(fGhostNodes[i], j, KBC_CardT::kDsp, 0, 0.0);
-	
-	/* reset neighbor lists */
-	ParticleT& particle = Particle();
-	particle.SetSkipParticles(fGhostNodes);
-	particle.SetConfiguration();
+
+	/* search through element groups for particles */
+	bool found = false;
+	for (int i = 0; i < fElementGroups.Length(); i++)
+	{
+		/* pointer to element group */
+		ElementBaseT* element_base = fElementGroups[i];
+		
+		/* attempt cast to particle type */
+		ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
+		if (particle) 
+		{
+			found = true;
+			particle->SetSkipParticles(fGhostNodes);
+			particle->SetConfiguration();
+		}
+	}
+	if (!found) ExceptionT::GeneralFail(caller, "no particle group found");
 	
 	/* reset the group equations numbers */
 	SetEquationSystem(the_field->Group());
@@ -209,7 +221,7 @@ void FEManagerT_bridging::SetGhostNodeKBC(KBC_CardT::CodeT code, const dArray2DT
 }
 
 /* compute the ghost-nonghost part of the stiffness matrix */
-void FEManagerT_bridging::Form_G_NG_Stiffness(const StringT& field, dSPMatrixT& K_G_NG)
+void FEManagerT_bridging::Form_G_NG_Stiffness(const StringT& field, int element_group, dSPMatrixT& K_G_NG)
 {
 	const char caller[] = "FEManagerT_bridging::Form_G_NG_Stiffness";
 
@@ -238,8 +250,13 @@ void FEManagerT_bridging::Form_G_NG_Stiffness(const StringT& field, dSPMatrixT& 
 	/* clear values */
 	K_G_NG = 0.0;
 
+	/* try cast */
+	ElementBaseT* element_base = fElementGroups[element_group];
+	ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
+	if (!particle) ExceptionT::GeneralFail(caller, "element group %d is not a particle group", element_group);
+
 	/* form matrix */
-	Particle().FormStiffness(fGhostIdToIndex, fGhostNodesEquations, K_G_NG);
+	particle->FormStiffness(fGhostIdToIndex, fGhostNodesEquations, K_G_NG);
 }
 
 /* set the field at the ghost nodes */
@@ -527,14 +544,22 @@ void FEManagerT_bridging::SetReferenceError(int group, double error) const
  * most recent call to FEManagerT_bridging::FormRHS. */
 const dArray2DT& FEManagerT_bridging::InternalForce(int group) const
 {
-//TEMP - only look for the contribution from the particle group
 	const char caller[] = "FEManagerT_bridging::InternalForce";
-	if (!fParticle)
-		ExceptionT::GeneralFail(caller, "particle group not set");
-	else if (!fParticle->InGroup(group))
-		ExceptionT::GeneralFail(caller, "particles are not in group %d", group);
-		
-	return fParticle->InternalForce(group);
+
+	/* search through element groups */
+	ElementBaseT* element = NULL;
+	for (int i = 0; i < fElementGroups.Length(); i++)
+		if (fElementGroups[i]->InGroup(group))
+		{
+			/* already found element group */
+			if (element) ExceptionT::GeneralFail(caller, "solver group %d contains more than one element group", group);
+			element = fElementGroups[i];
+		}
+	
+	/* no elements in the group */
+	if (!element) ExceptionT::GeneralFail(caller, "no elements in solver group %d", group);
+
+	return element->InternalForce(group);
 }
 
 /*************************************************************************
@@ -564,32 +589,6 @@ void FEManagerT_bridging::SetSolver(void)
 /*************************************************************************
  * Private
  *************************************************************************/
-
-/* the particle group */
-ParticleT& FEManagerT_bridging::Particle(void) const
-{
-	/* find bridging scale group */
-	if (!fParticle) {
-	
-		/* search through element groups */
-		for (int i = 0; !fParticle && i < fElementGroups.Length(); i++)
-		{
-			/* try cast */
-			ElementBaseT* element_base = fElementGroups[i];
-			
-			/* need non-const pointer to this */
-			FEManagerT_bridging* fe = (FEManagerT_bridging*) this;
-			fe->fParticle = dynamic_cast<ParticleT*>(element_base);
-		}
-		
-		/* not found */
-		if (!fParticle)
-			ExceptionT::GeneralFail("FEManagerT_bridging::Particle",
-				"did not find ParticleT group");
-	}
-	
-	return *fParticle;
-}
 
 /* the bridging scale element group */
 BridgingScaleT& FEManagerT_bridging::BridgingScale(void) const
