@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.45 2005-01-19 08:59:25 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.46 2005-01-19 17:46:18 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -737,13 +737,9 @@ void SCNIMFT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>&
 	}
 
 	/* convert to local numbering for qhull */
-	InverseMapT inv_map;
-	inv_map.SetMap(fNodes);
-	for (int i = 0; i < fBoundaryNodes.Length(); i++)
-	  fBoundaryNodes[i] = inv_map.Map(fBoundaryNodes[i]);
-	int* fbcptr = fBoundaryConnectivity.Pointer();
-	for (int i = 0; i < fBoundaryConnectivity.Length(); i++, fbcptr++)
-	  *fbcptr = inv_map.Map(*fbcptr);
+	GlobalToLocalNumbering(fBoundaryNodes);
+	iArrayT trickArray(fBoundaryConnectivity.Length(), fBoundaryConnectivity.Pointer());
+	GlobalToLocalNumbering(trickArray);
 	
 	/* don't need this information */
 	facet_numbers.Free();
@@ -831,49 +827,12 @@ void SCNIMFT::RHSDriver(void)
 
 int SCNIMFT::GlobalToLocalNumbering(iArrayT& nodes) const
 {
-	if (!fNodes.Length())
-		if (!nodes.Length())
-			return 1;
-		else 
-			ExceptionT::GeneralFail("SCNIMFT::GlobalToLocalNumbering","No nodes exist\n");
+	InverseMapT inv_map;
+	inv_map.SetMap(fNodes);
+	for (int i = 0; i < nodes.Length(); i++)
+	  nodes[i] = inv_map.Map(nodes[i]);
 	
-	// Basic Idea: fNodes is sorted (it came from ModelManagerT::ManyNodeSets)
-	// So, sort nodes with a key array and march down and compare. 
-	iArrayT nodeMap(nodes.Length());
-	nodeMap.SetValueToPosition();
-	iArrayT nodeCopy(nodes.Length());
-	nodeCopy = nodes;
-	nodeMap.SortAscending(nodeCopy);
-
-	// nodes[nodeMap[0]] is the smallest node in global numbering scheme
-	// nodes[nodeMap[0]] should be that global node's position in fNodes
-	int fNodesLen = fNodes.Length();
-	int nodeMapLen = nodeMap.Length();
-	int fNodesCtr = 0;
-	int nodeMapCtr = 0;
-	const int *fNodesPtr = fNodes.Pointer();
-	const int *nodeMapPtr = nodeCopy.Pointer();
-	
-	if (*nodeMapPtr > *fNodesPtr)
-		return 0;
-	
-	while (fNodesCtr < fNodesLen && nodeMapCtr < nodeMapLen) {
-		while (*nodeMapPtr != *fNodesPtr && fNodesCtr < fNodesLen) {
-			fNodesPtr++; 
-			fNodesCtr++;
-		}
-		
-		if (fNodesCtr != fNodesLen) {
-			nodes[nodeMap[nodeMapCtr]] = fNodesCtr; // local numbering!
-			nodeMapCtr++;
-			nodeMapPtr++;
-		}
-	}
-	
-	if (nodeMapCtr != nodeMapLen)
-		return 0;
-	else
-		return 1;
+	return 1;
 }
 
 int SCNIMFT::GlobalToLocalNumbering(RaggedArray2DT<int>& nodes)
