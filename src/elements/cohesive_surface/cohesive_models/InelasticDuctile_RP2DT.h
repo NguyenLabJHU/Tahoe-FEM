@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile_RP2DT.h,v 1.5 2003-09-04 23:57:55 paklein Exp $ */
+/* $Id: InelasticDuctile_RP2DT.h,v 1.6 2003-11-04 17:35:11 cjkimme Exp $ */
 #ifndef _INELASTIC_DUCTILE_RP_2D_T_H_
 #define _INELASTIC_DUCTILE_RP_2D_T_H_
 
@@ -10,6 +10,8 @@
 #include "LAdMatrixT.h"
 #include "nVariMatrixT.h"
 #include "VariArrayT.h"
+
+#include "GlobalT.h"
 
 namespace Tahoe {
 
@@ -55,6 +57,9 @@ public:
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
+
+	/** form of stiffness matrix */
+	virtual GlobalT::SystemTypeT TangentType(void) const { return GlobalT::kNonSymmetric; }
 
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);

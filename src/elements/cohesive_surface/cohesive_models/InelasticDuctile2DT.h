@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile2DT.h,v 1.10 2003-08-18 01:05:59 paklein Exp $ */
+/* $Id: InelasticDuctile2DT.h,v 1.11 2003-11-04 17:35:11 cjkimme Exp $ */
 #ifndef _INELASTIC_DUCTILE_2D_T_H_
 #define _INELASTIC_DUCTILE_2D_T_H_
 
@@ -8,6 +8,8 @@
 
 /* direct members */
 #include "LAdMatrixT.h"
+
+#include "GlobalT.h"
 
 namespace Tahoe {
 
@@ -48,6 +50,9 @@ public:
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
+
+	/** form of stiffness matrix */
+	virtual GlobalT::SystemTypeT TangentType(void) const { return GlobalT::kNonSymmetric; }
 
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);

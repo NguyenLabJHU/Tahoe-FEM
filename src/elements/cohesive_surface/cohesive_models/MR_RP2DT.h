@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.h,v 1.10 2003-06-09 07:21:25 paklein Exp $*/
+/*$Id: MR_RP2DT.h,v 1.11 2003-11-04 17:35:11 cjkimme Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #ifndef _MR_RP_2D_T_H_
@@ -45,6 +45,9 @@ public:
     
 	/** algorithmic tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
+
+	/** form of stiffness matrix */
+	virtual GlobalT::SystemTypeT TangentType(void) const { return GlobalT::kNonSymmetric; }
 
 	/** write model name to output */
 	virtual void PrintName(ostream& out) const;
