@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.13 2003-06-11 21:07:04 manzari Exp $*/
+/*$Id: MR2DT.cpp,v 1.14 2003-09-04 23:56:28 paklein Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -425,6 +425,7 @@ dArrayT& MR2DT::qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar)
 
 dMatrixT& MR2DT::dQdSig2_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQdSig2)
 {
+#pragma unused(Sig)
   dQdSig2(0,0) = 2.;
   dQdSig2(1,1) = -2.*qn[3]*qn[3];
   dQdSig2(0,1) = 0.;
