@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.31 2002-11-21 01:13:32 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.32 2002-11-25 07:22:49 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 
@@ -54,6 +54,9 @@
 
 /* class to read external field from file */
 #include "UpLagr_ExternalFieldT.h"
+
+/* particle classes */
+//#include "ParticlePairT.h"
 
 using namespace Tahoe;
 
@@ -379,6 +382,13 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			fArray[group] = new AdhesionT(fSupport, *field);
 			break;
 		}
+#if 0
+		case ElementT::kParticlePair:
+		{
+			fArray[group] = new ParticlePairT(fSupport, *field);
+			break;
+		}
+#endif
 		default:
 		  
 		  cout << "\n ElementListT::EchoElementData: unknown element type:" << code << endl;
