@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianAxiT.cpp,v 1.1 2004-02-03 08:24:57 paklein Exp $ */
+/* $Id: UpdatedLagrangianAxiT.cpp,v 1.1.14.1 2004-05-11 03:59:45 paklein Exp $ */
 #include "UpdatedLagrangianAxiT.h"
 
 #include <math.h>
@@ -21,6 +21,8 @@ UpdatedLagrangianAxiT::UpdatedLagrangianAxiT(const ElementSupportT& support, con
 	fStress2D_axi(dSymMatrixT::k3D_plane),
 	fStressMat(3)
 {
+	SetName("updated_lagrangian_axi");
+
 	/* consistency check */
 	if (ElementSupport().Analysis() == GlobalT::kLinStatic ||
 	    ElementSupport().Analysis() == GlobalT::kLinDynamic)
@@ -30,6 +32,14 @@ UpdatedLagrangianAxiT::UpdatedLagrangianAxiT(const ElementSupportT& support, con
 	}	
 }
 
+UpdatedLagrangianAxiT::UpdatedLagrangianAxiT(const ElementSupportT& support):
+	FiniteStrainAxiT(support),
+	fStress2D_axi(dSymMatrixT::k3D_plane),
+	fStressMat(3)
+{
+	SetName("updated_lagrangian_axi");
+}
+
 /* destructors */
 UpdatedLagrangianAxiT::~UpdatedLagrangianAxiT(void)
 {
@@ -37,11 +47,11 @@ UpdatedLagrangianAxiT::~UpdatedLagrangianAxiT(void)
 	fCurrShapes = NULL;
 }
 
-/* data initialization */
-void UpdatedLagrangianAxiT::Initialize(void)
+/* accept parameter list */
+void UpdatedLagrangianAxiT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	FiniteStrainAxiT::Initialize();
+	FiniteStrainAxiT::TakeParameterList(list);
 
 	/* dimension */
 	fGradNa.Dimension(NumSD(), NumElementNodes());

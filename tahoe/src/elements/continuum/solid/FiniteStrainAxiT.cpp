@@ -1,9 +1,10 @@
-/* $Id: FiniteStrainAxiT.cpp,v 1.3.14.1 2004-05-06 16:03:20 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.cpp,v 1.3.14.2 2004-05-11 03:59:45 paklein Exp $ */
 #include "FiniteStrainAxiT.h"
 
 #include "ShapeFunctionT.h"
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
+#include "ParameterContainerT.h"
 
 /* materials lists */
 #include "SolidMatList3DT.h"
@@ -31,11 +32,52 @@ FiniteStrainAxiT::FiniteStrainAxiT(const ElementSupportT& support):
 	SetName("large_strain_axi");
 }
 
-/* called immediately after constructor */
-void FiniteStrainAxiT::Initialize(void)
+/* information about subordinate parameter lists */
+void FiniteStrainAxiT::DefineSubs(SubListT& sub_list) const
 {
+	const char caller[] = "FiniteStrainAxiT::DefineSubs";
+
 	/* inherited */
-	FiniteStrainT::Initialize();
+	FiniteStrainT::DefineSubs(sub_list);
+
+	/* remove previous block definition */
+	const char old_block_def[] = "large_strain_element_block";
+	if (!sub_list.RemoveSub(old_block_def))
+		ExceptionT::GeneralFail(caller, "did not find \"%s\"", old_block_def);
+
+	/* element block/material specification */
+	sub_list.AddSub("large_strain_axi_element_block", ParameterListT::OnePlus);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* FiniteStrainAxiT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "large_strain_axi_element_block")
+	{
+		ParameterContainerT* block = new ParameterContainerT(list_name);
+		
+		/* list of element block ID's (defined by ElementBaseT) */
+		block->AddSub("block_ID_list", ParameterListT::Once);
+	
+		/* choice of materials lists (inline) */
+		block->AddSub("large_strain_material_3D");
+	
+		/* set this as source of subs */
+		block->SetSubSource(this);
+		
+		return block;
+	}
+	else /* inherited */
+		return FiniteStrainT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void FiniteStrainAxiT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "FiniteStrainAxiT::TakeParameterList";
+
+	/* inherited */
+	FiniteStrainT::TakeParameterList(list);
 
 	/* dimensions */
 	int nip = NumIP();
@@ -64,6 +106,29 @@ void FiniteStrainAxiT::Initialize(void)
 	}
 }
 
+/* extract the list of material parameters */
+void FiniteStrainAxiT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
+{
+	const char caller[] = "FiniteStrainAxiT::CollectMaterialInfo";
+	
+	/* initialize */
+	mat_params.Clear();
+	mat_params.SetName("large_strain_material_3D");
+	
+	/* collected material parameters */
+	int num_blocks = all_params.NumLists("large_strain_axi_element_block");
+	for (int i = 0; i < num_blocks; i++) {
+
+		/* block information */	
+		const ParameterListT& block = all_params.GetList("large_strain_axi_element_block", i);
+		
+		/* collect material parameters */
+		const ParameterListT& mat_list = block.GetList(mat_params.Name());
+		const ArrayT<ParameterListT>& mat = mat_list.Lists();
+		mat_params.AddList(mat[0]);
+	}
+}
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
@@ -89,25 +154,6 @@ MaterialSupportT* FiniteStrainAxiT::NewMaterialSupport(MaterialSupportT* p) cons
 	FiniteStrainT::NewMaterialSupport(p);
 
 	return p;
-}
-
-/* construct materials manager and read data */
-MaterialListT* FiniteStrainAxiT::NewMaterialList(const StringT& name, int size)
-{
-#pragma message("fix me")
-
-	if (size > 0)
-	{
-		/* material support */
-		if (!fFSMatSupport) {
-			fFSMatSupport = TB_DYNAMIC_CAST(FSMatSupportT*, NewMaterialSupport());
-			if (!fFSMatSupport) ExceptionT::GeneralFail("FiniteStrainAxiT::NewMaterialList");
-		}
-
-		return new SolidMatList3DT(size, *fFSMatSupport);
-	}
-	else
-		return new SolidMatList3DT;
 }
 
 /* form shape functions and derivatives */

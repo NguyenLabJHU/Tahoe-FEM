@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianAxiT.h,v 1.2.14.1 2004-05-06 16:03:20 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.h,v 1.2.14.2 2004-05-11 03:59:45 paklein Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_AXI_T_H_
 #define _TOTAL_LAGRANGRIAN_AXI_T_H_
 
@@ -16,8 +16,11 @@ public:
 	TotalLagrangianAxiT(const ElementSupportT& support, const FieldT& field);
 	TotalLagrangianAxiT(const ElementSupportT& support);
 
-	/** data initialization */
-	virtual void Initialize(void);
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 		
 protected:
 

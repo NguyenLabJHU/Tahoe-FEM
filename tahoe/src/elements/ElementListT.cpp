@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.85.12.6 2004-05-06 16:03:19 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.85.12.7 2004-05-11 03:59:44 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -1066,6 +1066,8 @@ void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 		sub_sub_list.AddSub("small_strain_meshfree");
 		sub_sub_list.AddSub("large_strain_meshfree");
 		sub_sub_list.AddSub("small_strain_axi");
+		sub_sub_list.AddSub("updated_lagrangian_axi");
+		sub_sub_list.AddSub("total_lagrangian_axi");
 #endif
 	}
 	else /* inherited */
@@ -1179,6 +1181,10 @@ ElementBaseT* ElementListT::NewElement(const StringT& list_name) const
 		return new MeshFreeFSSolidT(fSupport);
 	else if (list_name == "small_strain_axi")
 		return new SmallStrainAxiT(fSupport);
+	else if (list_name == "updated_lagrangian_axi")
+		return new UpdatedLagrangianAxiT(fSupport);
+	else if (list_name == "total_lagrangian_axi")
+		return new TotalLagrangianAxiT(fSupport);
 #endif
 
 	/* default */	

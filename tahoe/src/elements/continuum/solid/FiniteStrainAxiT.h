@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainAxiT.h,v 1.4.14.2 2004-05-06 16:03:20 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.h,v 1.4.14.3 2004-05-11 03:59:45 paklein Exp $ */
 #ifndef _FINITE_STRAIN_AXI_T_H_
 #define _FINITE_STRAIN_AXI_T_H_
 
@@ -16,8 +16,20 @@ class FiniteStrainAxiT: public FiniteStrainT
 	FiniteStrainAxiT(const ElementSupportT& support, const FieldT& field);
 	FiniteStrainAxiT(const ElementSupportT& support);
 
-	/** initialization. called immediately after constructor */
-	virtual void Initialize(void);
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
+	/** extract the list of material parameters */
+	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
 
   protected:
 
@@ -32,12 +44,6 @@ class FiniteStrainAxiT: public FiniteStrainT
 	 * \param p an existing MaterialSupportT to be initialized. If NULL, allocate
 	 *        a new MaterialSupportT and initialize it. */
 	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
-
-	/** return a pointer to a new material list. Recipient is responsible for freeing 
-	 * the pointer. 
-	 * \param nsd number of spatial dimensions
-	 * \param size length of the list */
-	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
