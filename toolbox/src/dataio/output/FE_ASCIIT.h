@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.h,v 1.2 2001-12-16 23:57:06 paklein Exp $ */
+/* $Id: FE_ASCIIT.h,v 1.3 2002-02-09 19:20:20 paklein Exp $ */
 /* created: sawimme (05/20/1999)                                          */
 
 #ifndef _FE_ASCII_T_H_
@@ -19,6 +19,9 @@ public:
    * \param external flag to write array data in external files
    * \param out_strings see OutputBaseT::OutputBaseT */
 	FE_ASCIIT(ostream& out, bool external, const ArrayT<StringT>& out_strings);
+
+	/** register the output for an element set. returns the output ID */
+	virtual int AddElementSet(const OutputSetT& output_set);
 
 	/** increment sequence, create new output file series */
 	virtual void NextTimeSequence(int sequence_number);
@@ -55,8 +58,8 @@ private:
 private:
 
 	bool fExternTahoeII; /**< flag to write array data to external files */
-	bool fInitGeom; /**< flag to determine if appending or creating a file */
-	bool fInitRun; /**< flag to determine if appending or creating a file */
+	AutoArrayT<bool> fInitGeom; /**< flags to determine if appending or creating a file */
+	AutoArrayT<bool> fInitRun; /**< flags to determine if appending or creating a file */
 };
 
 #endif // _FE_ASCII_T_H_

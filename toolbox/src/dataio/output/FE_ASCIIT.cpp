@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.5 2002-01-27 18:38:14 paklein Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.6 2002-02-09 19:20:20 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 
 #include "FE_ASCIIT.h"
@@ -15,11 +15,20 @@
 /* constructor */
 FE_ASCIIT::FE_ASCIIT(ostream& out, bool external, const ArrayT<StringT>& out_strings):
 	OutputBaseT(out, out_strings),
-	fExternTahoeII(external),
-	fInitGeom(false),
-	fInitRun(false)
+	fExternTahoeII(external)
 {
 
+}
+
+/* register the output for an element set. returns the output ID */
+int FE_ASCIIT::AddElementSet(const OutputSetT& output_set)
+{
+	/* set flags */
+	fInitGeom.Append(false);
+	fInitRun.Append(false);
+
+	/* inherited */
+	return OutputBaseT::AddElementSet(output_set);
 }
 
 /* increment sequence, create new output file series */
@@ -99,19 +108,20 @@ void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		/* file name */
 		StringT geom_file(fOutroot);
 		if (fSequence > 0) geom_file.Append(".seq", fSequence + 1);
+		geom_file.Append(".io", ID);
 		geom_file.Append(".geo");
 
 		/* open stream */
 		ofstreamT out;
 		SetStreamPrefs(out);
-		if (!fInitGeom)
+		if (!fInitGeom[ID])
 		{
 			/* initialize geometry file */
 			out.open(geom_file);
 			out << "\n G E O M E T R Y   D A T A:\n\n";
 	
 			/* set flag */
-			fInitGeom = true;
+			fInitGeom[ID] = true;
 		}
 		else /* re-open file */
 			out.open_append(geom_file);
@@ -145,19 +155,20 @@ void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	/* file name */
 	StringT dat_file(fOutroot);
 	if (fSequence > 0) dat_file.Append(".seq", fSequence + 1);
+	dat_file.Append(".io", ID);
 	dat_file.Append(".run");
 
 	/* open stream */
 	ofstreamT out;
 	SetStreamPrefs(out);
-	if (!fInitRun)
+	if (!fInitRun[ID])
 	{
 		/* initialize geometry file */
 		out.open(dat_file);
 		out << "\n O U T P U T   D A T A :\n\n";
 	
 		/* set flag */
-		fInitRun = true;
+		fInitRun[ID] = true;
 	}
 	else /* re-open file */
 		out.open_append(dat_file);
