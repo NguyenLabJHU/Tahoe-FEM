@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.10.1 2004-04-02 18:58:30 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -28,7 +28,7 @@ public:
 
 	/** constructor */
 	FEManagerT_bridging(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
-		ifstreamT& bridging_input);
+		const ArrayT<StringT>& argv, ifstreamT& bridging_input);
 
 	/** \name solution update */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.71 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.71.10.1 2004-04-02 18:58:30 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -50,8 +50,9 @@ const char kProgramName[] = "tahoe";
 const char* FEManagerT::Version(void) { return kCurrentVersion; }
 
 /* constructor */
-FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm):
+FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm, const ArrayT<StringT>& argv):
 	ParameterInterfaceT("tahoe"),
+	fArgv(argv),
 	fMainIn(input),
 	fMainOut(output),
 	fComm(comm),
@@ -1260,6 +1261,20 @@ void FEManagerT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT&
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* returns true if the option was passed on the command line */
+bool FEManagerT::CommandLineOption(const char* str, int& index) const
+{
+	for (int i = 0; i < fArgv.Length(); i++)
+		if (fArgv[i] == str) {
+			index = i;
+			return true;
+		}
+
+	/* dummy */
+	index = -1;
+	return false;
 }
 
 /*************************************************************************

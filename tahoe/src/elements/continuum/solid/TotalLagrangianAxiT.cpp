@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianAxiT.cpp,v 1.2.12.1 2004-03-30 19:09:39 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.cpp,v 1.2.12.2 2004-04-02 18:58:28 paklein Exp $ */
 #include "TotalLagrangianAxiT.h"
 
 #include "ShapeFunctionT.h"
@@ -17,7 +17,8 @@ TotalLagrangianAxiT::TotalLagrangianAxiT(const ElementSupportT& support, const F
 	fStressMat(3),
 	fTempMat1(3),
 	fTempMat2(3),
-	fOutputInit(false)
+	fOutputInit(false),
+	fOutputCell(-1)
 {
 
 }
@@ -32,6 +33,17 @@ void TotalLagrangianAxiT::Initialize(void)
 	fGradNa.Dimension(NumSD(), NumElementNodes());
 	fStressStiff.Dimension(NumElementNodes());
 	fTemp2.Dimension(NumElementNodes()*NumDOF());
+
+	/* check cell output */
+	int index;
+	if (ElementSupport().CommandLineOption("-track_group", index)) {
+		const ArrayT<StringT>& argv = ElementSupport().Argv();
+		int group = -99;
+		group = atoi(argv[index+1]) - 1;
+		if (group == ElementSupport().ElementGroupNumber(this))
+			if (ElementSupport().CommandLineOption("-track_cell", index))
+				fOutputCell = atoi(argv[index+1]) - 1;
+	}
 }
 
 /***********************************************************************
@@ -185,7 +197,7 @@ void TotalLagrangianAxiT::FormKd(double constK)
 		}
 
 		/* debugging output */
-		int output_element = 2574; /* or 2575 */
+		int output_element = fOutputCell;
 		if (CurrElementNumber() == output_element) {
 
 			/* collect nodal velocities */

@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.59.4.1 2004-03-30 19:09:44 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.59.4.2 2004-04-02 18:58:29 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -1130,7 +1130,7 @@ void FEExecutionManagerT::RunWriteDescription(int doc_type) const
 //TEMP
 
 	/* parameter source */
-	FEManagerT fe_man(input, output, comm);
+	FEManagerT fe_man(input, output, comm, fCommandLineOptions);
 
 	/* collect parameters */
 	cout << " collecting parameters..." << endl;
@@ -1204,7 +1204,7 @@ void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
 		/* construction */
 		phase = 0;
 		in.set_marker('#');
-		FEManagerT analysis1(in, out, fComm);
+		FEManagerT analysis1(in, out, fComm, fCommandLineOptions);
 		analysis1.Initialize();
 
 		t1 = clock();
@@ -1393,7 +1393,7 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status, Communi
 
 		/* to read file parameters */
 		ofstreamT out;
-		FEManagerT fe_man(in, out, comm);
+		FEManagerT fe_man(in, out, comm, fCommandLineOptions);
 		fe_man.Initialize(FEManagerT::kParametersOnly);
 		
 		/* model file parameters */
@@ -1578,7 +1578,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		char filetypechar;
 		in_loc >> filetypechar;
 	}
-	FEManagerT_mpi FEman(in_loc, out, fComm, &partition, FEManagerT_mpi::kRun);
+	FEManagerT_mpi FEman(in_loc, out, fComm, fCommandLineOptions, &partition, FEManagerT_mpi::kRun);
 	try { FEman.Initialize(); }
 	catch (ExceptionT::CodeT code)
 	{
@@ -1751,7 +1751,7 @@ void FEExecutionManagerT::GetModelFile(ifstreamT& in, StringT& model_file,
 	}
 
 	ofstreamT out;
-	FEManagerT fe_temp(in_temp, out, fComm);
+	FEManagerT fe_temp(in_temp, out, fComm, fCommandLineOptions);
 	fe_temp.Initialize(FEManagerT::kParametersOnly);
 
 	ModelManagerT* model = fe_temp.ModelManager();
@@ -1916,7 +1916,7 @@ void FEExecutionManagerT::Decompose_graph(ifstreamT& in, int size,
 		}
 
 		/* construct global problem */
-		FEManagerT_mpi global_FEman(in_decomp, decomp_out, comm, NULL, FEManagerT_mpi::kDecompose);
+		FEManagerT_mpi global_FEman(in_decomp, decomp_out, comm, fCommandLineOptions, NULL, FEManagerT_mpi::kDecompose);
 		try { global_FEman.Initialize(FEManagerT::kAllButSolver); }
 		catch (ExceptionT::CodeT code)
 		{

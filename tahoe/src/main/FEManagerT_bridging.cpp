@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.18 2004-03-18 01:20:32 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.18.4.1 2004-04-02 18:58:30 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -19,8 +19,8 @@ using namespace Tahoe;
 
 /* constructor */
 FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
-	ifstreamT& bridging_input):
-	FEManagerT(input, output, comm),
+	const ArrayT<StringT>& argv, ifstreamT& bridging_input):
+	FEManagerT(input, output, comm, argv),
 	fBridgingIn(bridging_input),
 	fBridgingScale(NULL),
 	fSolutionDriver(NULL)

@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.31 2004-03-04 08:54:17 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.31.10.1 2004-04-02 18:58:27 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -719,4 +719,10 @@ const OutputSetT& ElementSupportT::OutputSet(int ID) const
 {
 	return FEManager().OutputSet(ID);
 }
+#endif
+
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+const ArrayT<StringT>& ElementSupportT::Argv(void) const { return FEManager().Argv(); }
+bool ElementSupportT::CommandLineOption(const char* str) const { return FEManager().CommandLineOption(str); }
+bool ElementSupportT::CommandLineOption(const char* str, int& index) const { return FEManager().CommandLineOption(str, index); }
 #endif
