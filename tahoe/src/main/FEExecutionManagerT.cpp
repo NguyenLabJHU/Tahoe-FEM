@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.44.4.2 2003-08-13 19:44:49 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.44.4.3 2003-08-21 03:53:37 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -57,6 +57,7 @@ FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
 	/* if not prescribed as joined, write separate files */
 	if (!CommandLineOption("-join_io")) AddCommandLineOption("-split_io");
 #endif
+	fopen = false;
 
 	/* set communicator log level */
 	if (CommandLineOption("-verbose")) comm.SetLogLevel(CommunicatorT::kLow);
@@ -340,7 +341,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		/* initialize FEManager_THK using atom values */
 		FEManagerT_THK atoms(atom_in, atom_out, fComm, bridge_atom_in);
 		atoms.Initialize();
-	    	continuum_in >> job_char;
+		continuum_in >> job_char;
 		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, bridge_continuum_in);
 		continuum.Initialize();
 		t1 = clock();
@@ -577,6 +578,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	int order1 = 0;	// For InterpolateField, 3 calls to obtain displacement/velocity/acceleration
 	int order2 = 1;
 	int order3 = 2;
+	double dissipation = 0.0;
 	dArray2DT field_at_ghosts, totalu, fubig, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
 	dArray2DT thkforce, gaussdisp;
 	dSPMatrixT ntf;
@@ -590,7 +592,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	int numgatoms = (atoms.GhostNodes()).Length();	// total number of ghost atoms
 	int numbatoms = boundaryghostatoms.Length() - numgatoms;	// total number of boundary atoms
 	dArray2DT gadisp(numgatoms,2), gavel(numgatoms,2), gaacc(numgatoms,2);
-	dArray2DT badisp(numbatoms,2), bavel(numbatoms,2), baacc(numbatoms,2);
+	dArray2DT badisp(numbatoms,2), bavel(numbatoms,2), baacc(numbatoms,2), mdu0(numbatoms,2), mdu1(numbatoms,2);
 	iArrayT allatoms(boundaryghostatoms.Length()), gatoms(numgatoms), batoms(numbatoms), boundatoms(numbatoms);
 	allatoms.SetValueToPosition();
 	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);
@@ -612,6 +614,12 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	//ghostoffmap(1,3) = ghostoffmap(3,1) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
 	//ghostonmap(1,0) = ghostonmap(0,1) = 1;
 
+	/* temporary code to output dissipation due to THK forces */
+	ifstreamT& in = atoms.Input();
+	const StringT& input_file = in.filename();
+	fsummary_file.Root(input_file);
+	fsummary_file.Append(".sum");
+
 	/* time managers */
 	TimeManagerT* atom_time = atoms.TimeManager();
 	TimeManagerT* continuum_time = continuum.TimeManager();
@@ -623,7 +631,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	{	
 		/* set to initial condition */
 		atoms.InitialCondition();
-
+		
 		/* calculate fine scale part of MD displacement and total displacement u */
 		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu, order1);
 		
@@ -685,6 +693,10 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		/* running status flag */
 		ExceptionT::CodeT error = ExceptionT::kNoError;	
 		
+		/* first obtain the MD displacement field */
+		FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
+		dArray2DT mddisplast = (*atomfield)[0];	
+		
 		/* now loop over continuum and atoms after initialization */
 		for (int i = 0; i < nfesteps; i++)	
 		{
@@ -711,6 +723,45 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				if (1 || error == ExceptionT::kNoError) {
 						atoms.ResetCumulativeUpdate(group);
 						error = atoms.SolveStep();
+				}
+				
+				/* first obtain the MD displacement field */
+				FieldT* atomfielda = atoms.NodeManager()->Field(bridging_field);
+				dArray2DT mddispcurr = (*atomfielda)[0];	
+				mdu0.RowCollect(batoms,mddisplast);
+				mdu1.RowCollect(batoms,mddispcurr);  // may need to change batoms for global boundary atoms
+				dArrayT aa, ab, ac, ad, sub1, sub2;
+				mdu0.ColumnCopy(0,aa);
+				mdu0.ColumnCopy(1,ab);
+				mdu1.ColumnCopy(0,ac);
+				mdu1.ColumnCopy(1,ad);
+				sub1.DiffOf(ac,aa);
+				sub2.DiffOf(ad,ab);
+				double d0 = thkforce.DotColumn(0,sub1);
+				double d1 = thkforce.DotColumn(1,sub2);
+				dissipation += d0;
+				dissipation += d1;
+				
+				const double& time = atoms.Time();
+				if (fopen)
+				{
+					fout.open_append(fsummary_file);
+					fout.precision(13);
+					fout << dissipation
+						 << setw(25) << time
+						 << endl;
+				}
+				else
+				{
+					fout.open(fsummary_file);
+					//fopen = true;
+					fout.precision(13);
+					fout << "Dissipation"
+					     << setw(25) << "Time"
+				         << endl;
+					fout << dissipation
+					     << setw(25) << time
+				         << endl;
 				}
 				
 				/* close  md step */

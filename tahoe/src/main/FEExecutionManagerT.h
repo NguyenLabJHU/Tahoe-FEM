@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.16 2003-07-11 16:46:07 hspark Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.16.4.1 2003-08-21 03:53:37 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -12,6 +12,7 @@
 
 /* direct members */
 #include "IOBaseT.h"
+#include "ofstreamT.h"
 
 namespace Tahoe {
 
@@ -186,6 +187,10 @@ private:
 	/** write partial model file in TahoeII format */
 	void EchoPartialGeometry_TahoeII(const PartitionT& partition,
 		ModelManagerT& model_ALL, const StringT& partial_file) const;
+		
+	bool fopen;
+	ofstreamT fout;
+	StringT fsummary_file;
 	/*@}*/
 };
 
