@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.58.14.5 2004-06-16 07:15:04 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.58.14.6 2004-06-23 00:53:36 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -417,7 +417,7 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 	
 	/* nodal output codes */
 	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
-	fNodalOutputCodes = 0;
+	fNodalOutputCodes = IOBaseT::kAtNever;
 	qUseSimo = qNoExtrap = false;	
 	const ParameterListT* node_output = list.List("solid_element_nodal_output");
 	if (node_output) 
@@ -433,14 +433,14 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 				/* Additional smoothing flags */
 				if (!qUseSimo && do_write == 3) {
 	    			qUseSimo = qNoExtrap = true;
-	    			fNodalOutputCodes[i] = 3;
+	    			fNodalOutputCodes[i] = IOBaseT::kAtInc;
 	    		}
 	    		else if (!qNoExtrap && do_write == 2) {
 	    			qNoExtrap = true;
-	    			fNodalOutputCodes[i] = 2;
+	    			fNodalOutputCodes[i] = IOBaseT::kAtInc;
 	    		}
 	    		else if (do_write == 1)
-	    			fNodalOutputCodes[i] = 1;
+	    			fNodalOutputCodes[i] = IOBaseT::kAtInc;
 			}
 		}
 	
@@ -462,7 +462,7 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 
 	/* element output codes */
 	fElementOutputCodes.Dimension(NumElementOutputCodes);
-	fElementOutputCodes = 0;
+	fElementOutputCodes = IOBaseT::kAtNever;
 	const ParameterListT* element_output = list.List("solid_element_element_output");
 	if (element_output)
 		for (int i = 0; i < NumElementOutputCodes; i++)
@@ -472,7 +472,7 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 			if (element_value) {
 				int do_write = *element_value;
 				if (do_write == 1)
-					fElementOutputCodes[i] = 1;
+					fElementOutputCodes[i] = IOBaseT::kAtInc;
 			}
 		}
 
