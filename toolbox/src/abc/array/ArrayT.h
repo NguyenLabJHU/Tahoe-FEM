@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.11 2002-09-12 16:40:16 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.11.2.1 2002-10-17 01:48:44 paklein Exp $ */
 /* created: paklein (06/19/1996) */
 
 #ifndef _ARRAY_T_H_
@@ -15,7 +15,7 @@
 #include <new.h>
 #endif
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 namespace Tahoe {
 
@@ -133,11 +133,14 @@ public:
 	 * \param length number of elements copied from source. */
 	void CopyPart(int offset, const ArrayT<TYPE>& source, int source_offset, int length);
 
-	/** copy selected values of source into this array
+	/** \name copy selected values of source into this array
 	 * \param keys indicies of the source array to copy. The number of
 	 *        keys must be the same as the length of this array
 	 * \param source source array. */
+	/*@{*/
 	void Collect(const ArrayT<int>& keys, const ArrayT<TYPE>& source);
+	void Collect(const ArrayT<int>& keys, const TYPE* source);
+	/*@}*/
 	
 	/** exchange data with the source array. Exchanges all fields of the arrays. */
 	void Swap(ArrayT<TYPE>& source);
@@ -247,7 +250,7 @@ inline ArrayT<TYPE>::~ArrayT(void)
 }
 
 /* return allocate memory and return a pointer (new C++ error handling)
-* throws eOutOfMemory on fail */
+* throws ExceptionT::kOutOfMemory on fail */
 template <class TYPE>
 #if ! __option(extended_errorcheck)
 inline
@@ -267,13 +270,13 @@ TYPE* ArrayT<TYPE>::New(int size) const
 		if (!p)
 		{
 			cout << "\n ArrayT<TYPE>::New: out of memory" << endl;
-			throw eOutOfMemory;
+			throw ExceptionT::kOutOfMemory;
 		}
 	}
 	else if (size < 0)
 	{
 		cout << "\n ArrayT<TYPE>::New: invalid size: " << size << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	return p;
@@ -336,7 +339,7 @@ template <class TYPE>
 void ArrayT<TYPE>::Dimension(int length)
 {
 	/* abort on negative lengths */
-	if (length < 0) throw eGeneralFail;
+	if (length < 0) throw ExceptionT::kGeneralFail;
 
 	/* do nothing if the correct length already */
 	if (length != fLength)
@@ -379,7 +382,7 @@ void ArrayT<TYPE>::Resize(int new_length)
 	if (new_length == fLength) return;
 
 	/* abort on negative lengths */
-	if (new_length < 0) throw eGeneralFail;
+	if (new_length < 0) throw ExceptionT::kGeneralFail;
 	
 	/* allocate new space */
 	TYPE* new_data = New(new_length);
@@ -419,7 +422,7 @@ inline TYPE* ArrayT<TYPE>::Pointer(int offset) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (offset < 0 || offset > fLength) throw eOutOfRange;
+	if (offset < 0 || offset > fLength) throw ExceptionT::kOutOfRange;
 #endif
 	return fArray + offset;
 }
@@ -433,7 +436,7 @@ inline TYPE& ArrayT<TYPE>::operator[](int index) const
 	if (index < 0 || index >= fLength) {
 		cout << "\n ArrayT<TYPE>::operator[]: index " << index 
 		     << " is out of range {0," << Length()-1 << "}" << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 		}
 #endif
 	return fArray[index];
@@ -443,7 +446,7 @@ template <class TYPE>
 TYPE& ArrayT<TYPE>::First(void) const
 {
 #if __option(extended_errorcheck)
-	if (fArray == NULL) throw eGeneralFail;
+	if (fArray == NULL) throw ExceptionT::kGeneralFail;
 #endif	
 	return *fArray;
 }
@@ -452,7 +455,7 @@ template <class TYPE>
 inline TYPE& ArrayT<TYPE>::Last(void) const
 {
 #if __option(extended_errorcheck)
-	if (fArray == NULL) throw eGeneralFail;
+	if (fArray == NULL) throw ExceptionT::kGeneralFail;
 #endif	
 	return *(fArray + fLength - 1);
 }
@@ -502,8 +505,8 @@ void ArrayT<TYPE>::CopyPart(int offset, const ArrayT<TYPE>& source,
 {
 #if __option(extended_errorcheck)
 	/* dimension checks */
-	if (offset + length > fLength) throw eSizeMismatch;
-	if (source_offset + length > source.fLength) throw eOutOfRange;
+	if (offset + length > fLength) throw ExceptionT::kSizeMismatch;
+	if (source_offset + length > source.fLength) throw ExceptionT::kOutOfRange;
 #endif
 
 	/* copy */
@@ -512,12 +515,17 @@ void ArrayT<TYPE>::CopyPart(int offset, const ArrayT<TYPE>& source,
 
 /* collect prescribed values from source */
 template <class TYPE>
-void ArrayT<TYPE>::Collect(const ArrayT<int>& keys, const ArrayT<TYPE>& source)
+inline void ArrayT<TYPE>::Collect(const ArrayT<int>& keys, const ArrayT<TYPE>& source)
 {
 #if __option (extended_errorcheck)
-	if (keys.Length() != Length()) throw eSizeMismatch;
+	if (keys.Length() != Length()) throw ExceptionT::kSizeMismatch;
 #endif
+	Collect(keys, source.Pointer());
+}
 
+template <class TYPE>
+inline void ArrayT<TYPE>::Collect(const ArrayT<int>& keys, const TYPE* source)
+{
 	int*  pkeys = keys.Pointer();
 	TYPE* pthis = Pointer();
 	for (int i = 0; i < Length(); i++)
@@ -549,12 +557,12 @@ void ArrayT<TYPE>::ReleasePointer(TYPE** array)
 	if (fArray != NULL && !fDelete)
 	{
 		cout << "\n ArrayT<TYPE>::ReleasePointer: array is shallow" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	else if (array == NULL)
 	{
 		cout << "\n ArrayT<TYPE>::ReleasePointer: cannot release pointer to NULL" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	else
 		fDelete = 0;
