@@ -1,4 +1,4 @@
-/* $Id: WindowT.h,v 1.1 2001-06-13 20:53:57 paklein Exp $ */
+/* $Id: WindowT.h,v 1.2 2001-06-14 22:08:15 paklein Exp $ */
 
 #ifndef _WINDOW_T_H_
 #define _WINDOW_T_H_
@@ -34,7 +34,7 @@ class WindowT
 	/** shared parameters.
 	 * \return the number of nodal parameters associated
 	 * with the window function */
-	virtual int NumberOfParameters(void) const = 0;
+	virtual int NumberOfNodalParameters(void) const = 0;
 
 	/** window function name */
 	virtual const char* Name(void) const = 0;
@@ -48,25 +48,12 @@ class WindowT
 	 * \param x_0 center of the window function
 	 * \param param array of window function parameters associated with x_0
 	 * \param x field point
-	 * \param w the value at x of the window function centered at x_0 */
-	virtual void window(const dArrayT& x_0, const dArrayT& param, const dArrayT& x,
-		double& w) = 0;
-
-	/** window function derivatives.
-	 * \param x_0 center of the window function
-	 * \param param array of window function parameters associated with x_0
-	 * \param x field point
-	 * \param Dw window function derivatives: [nsd] */
-	virtual void Dwindow(const dArrayT& x_0, const dArrayT& param, const dArrayT& x,
-		dArrayT& Dw) = 0;
-
-	/** window function second derivatives.
-	 * \param x_0 center of the window function
-	 * \param param array of window function parameters associated with x_0
-	 * \param x field point
+	 * \param order highest order derivative to be calculated
+	 * \param w the value at x of the window function centered at x_0
+	 * \param Dw window function derivatives: [nsd]
 	 * \param DDw window function second derivatives: [nstr] */
-	virtual void DDwindow(const dArrayT& x_0, const dArrayT& param, const dArrayT& x,
-		dArrayT& DDw) = 0;
+	virtual void window(const dArrayT& x_0, const dArrayT& param, const dArrayT& x,
+		int order, double& w, dArrayT& Dw, dArrayT& DDw) = 0;
 
 	/* multi-point evaluations */
 	
@@ -74,25 +61,13 @@ class WindowT
 	 * \param x_0 center of the window function
 	 * \param param array of window function parameters: [npts] x [nparam]
 	 * \param x array of field point coordinates: [npts] x [nsd]
-	 * \param w values of the window function: [npts] */
-	virtual void window(const dArrayT& x_0, const dArray2DT& param, const dArray2DT& x,
-		dArrayT& w) = 0;	
-
-	/** window function derivatives. 
-	 * \param x_0 center of the window function
-	 * \param param array of window function parameters: [npts] x [nparam]
-	 * \param x array of field point coordinates: [npts] x [nsd]
-	 * \param w values of the window function derivaties: [npts] x [nsd] */
-	virtual void Dwindow(const dArrayT& x_0, const dArray2DT& param, const dArray2DT& x,
-		dArray2DT& Dw) = 0;	
-
-	/** window function second derivatives. 
-	 * \param x_0 center of the window function
-	 * \param param array of window function parameters: [npts] x [nparam]
-	 * \param x array of field point coordinates: [npts] x [nsd]
-	 * \param w values of the window function derivaties: [npts] x [nstr] */
-	virtual void DDwindow(const dArrayT& x_0, const dArray2DT& param, const dArray2DT& x,
-		dArray2DT& DDw) = 0;	
+	 * \param order highest order derivative to be calculated
+	 * \param w values of the window function: [npts]
+	 * \param w values of the window function derivaties: [npts] x [nsd]
+	 * \param w values of the window function derivaties: [npts] x [nstr] 
+	 * \return the number of points covered by the window function */
+	virtual int window(const dArrayT& x_0, const dArray2DT& param, const dArray2DT& x,
+		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw) = 0;	
 	
 	/** coverage test.
 	 * \return true if the window function centered at x_0 covers the
