@@ -1,10 +1,17 @@
-/* $Id: MLSSolverT.cpp,v 1.2 2004-08-25 00:33:19 kyonten Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.3 2004-08-25 17:42:05 raregue Exp $ */
 /* created: paklein (12/08/1999) */
 #include "MLSSolverT.h"
 
 #include "ExceptionT.h"
 #include "dSymMatrixT.h"
+
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
+#endif
+
+#ifdef MESHFREE_GRAD_PLAST_DEV
 #include "MF_dMatrixT.h"  //kyonten
+#endif
 
 /* basis functions */
 #include "PolyBasis1DT.h"
@@ -234,7 +241,7 @@ int MLSSolverT::SetField(const dArray2DT& coords, const dArray2DT& nodal_param,
 	fBasis->SetBasis(fLocCoords, fOrder);
 	
 	/* set moment matrix, inverse, and derivatives */
-	if (!SetMomentMartrix(volume))
+	if (!SetMomentMatrix(volume))
 	{
 		cout << "\n MLSSolverT::SetField: error in momentum matrix: ";
 		return 0;
@@ -293,7 +300,7 @@ void MLSSolverT::Dimension(void)
 }
 
 /* set moment matrix, inverse, and derivatives */
-int MLSSolverT::SetMomentMartrix(const dArrayT& volume)
+int MLSSolverT::SetMomentMatrix(const dArrayT& volume)
 {
 	/* moment matrix */
 	ComputeM(volume);

@@ -3,24 +3,29 @@
 #ifndef _MF_D_MATRIX_T_H_
 #define _MF_D_MATRIX_T_H_
 
-/* base class */
-#include "dArrayT.h"
-#include "dSymMatrixT.h"
-
 namespace Tahoe {
-
-/* forward declarations */
-class dMatrixT;
 
 /** interface for a 1D/2D/3D unsymmetric matrix stored as 
  * an index vector */
 /* Note: out of 27 components of the matrix, only 9 are needed.  kyonten */
-class MF_dMatrixT: public dArrayT
+
+class MF_dMatrixT
 {
 public:
+
+	/* constructor */
+	MF_dMatrixT(void);
+	
+	/* destructor */
+	~MF_dMatrixT(void);
+
 	static void ExpandIndex3(int nsd, int dex, int& dex_1, int& dex_2, int& dex_3);
     static void ExpandIndex2(int dex_1, int dex_2, int& dex);
+    
+};
 
+
+/* inlines */
 		
 inline void MF_dMatrixT::ExpandIndex3(int nsd, int dex, int& dex_1, int& dex_2, int& dex_3)
 {
@@ -32,7 +37,7 @@ inline void MF_dMatrixT::ExpandIndex3(int nsd, int dex, int& dex_1, int& dex_2, 
 	
 	int  map_1D[3] = {0,0,0};
 	int  map_2D[12] = {0,0,0,0,1,0,1,0,0,1,1,0};
-	int map_3D[27] = {0,0,0,1,1,0,2,2,0,0,0,1,1,1,1,2,2,1
+	int map_3D[27] = {0,0,0,1,1,0,2,2,0,0,0,1,1,1,1,2,2,1,
 	                  0,0,2,1,1,2,2,2,2};
 	int* map_list[4] = {NULL, map_1D, map_2D, map_3D};
 	int* map = map_list[nsd];
@@ -41,6 +46,7 @@ inline void MF_dMatrixT::ExpandIndex3(int nsd, int dex, int& dex_1, int& dex_2, 
 	dex_2 = p[1];
 	dex_3 = p[2];
 }
+
 
 inline void MF_dMatrixT::ExpandIndex2(int dex_1, int dex_2, int& dex)
 {	
@@ -68,8 +74,8 @@ inline void MF_dMatrixT::ExpandIndex2(int dex_1, int dex_2, int& dex)
 	{
 		dex = 6;
 	}
-	
 }
-} /* namespace Tahoe */
 
+
+} /* namespace Tahoe */
 #endif /* _MF_D_MATRIX_T_H_ */
