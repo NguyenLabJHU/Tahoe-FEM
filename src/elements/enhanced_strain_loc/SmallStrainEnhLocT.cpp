@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.3 2004-07-29 00:23:37 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.4 2005-02-02 21:12:57 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -12,6 +12,9 @@
 #include "ModelManagerT.h"
 
 using namespace Tahoe;
+
+/* initialize static variables */
+bool SmallStrainEnhLocT::fFirstPass = true;
 
 /* constructor */
 SmallStrainEnhLocT::SmallStrainEnhLocT(const ElementSupportT& support):
@@ -28,6 +31,76 @@ SmallStrainEnhLocT::~SmallStrainEnhLocT(void)
 	delete fSSMatSupport;
 }
 
+/* finalize current step - step is solved */
+void SmallStrainEnhLocT::CloseStep(void)
+{
+	/* inherited */
+	SolidElementT::CloseStep();
+	
+	/* store converged solution */
+	fElementLocScalars_last = fElementLocScalars;
+	fElementLocSlipDir_last = fElementLocSlipDir;
+	fElementLocMuDir_last = fElementLocMuDir;
+	fElementLocInternalVars_last = fElementLocInternalVars;
+	fElementVolume_last = fElementVolume;
+	
+	ss_enh_out	<< setw(outputFileWidth) << "\n\n time_step    element " << setw(outputFileWidth) << "?" 
+			<< setw(outputFileWidth) << "?" << endl;
+	ss_enh_out	<< endl << "----------------------------------------------------------------------------------------------" << endl;
+
+}
+	
+/* restore last converged state */
+GlobalT::RelaxCodeT SmallStrainEnhLocT::ResetStep(void)
+{
+	/* inherited */
+	GlobalT::RelaxCodeT relax = SolidElementT::ResetStep();
+	
+	/* restore converged solution */
+	fElementLocScalars = fElementLocScalars_last;
+	fElementLocSlipDir = fElementLocSlipDir_last;
+	fElementLocMuDir = fElementLocMuDir_last;
+	fElementLocInternalVars = fElementLocInternalVars_last;
+	fElementVolume = fElementVolume_last;
+	
+	return relax;
+}
+
+/* read restart information from stream */
+void SmallStrainEnhLocT::ReadRestart(istream& in)
+{
+	/* inherited */
+	SolidElementT::ReadRestart(in);
+	
+	/* read restart data */
+	in >> fElementLocScalars;
+	in >> fElementLocSlipDir;
+	in >> fElementLocMuDir;
+	in >> fElementLocInternalVars;
+	in >> fElementVolume;
+	
+	/* reset last state */
+	fElementLocScalars_last = fElementLocScalars;
+	fElementLocSlipDir_last = fElementLocSlipDir;
+	fElementLocMuDir_last = fElementLocMuDir;
+	fElementLocInternalVars_last = fElementLocInternalVars;
+	fElementVolume_last = fElementVolume;
+}
+
+/* write restart information from stream */
+void SmallStrainEnhLocT::WriteRestart(ostream& out) const
+{
+	/* inherited */
+	SolidElementT::WriteRestart(out);
+	
+	/* write restart data */
+	out << fElementLocScalars << '\n';
+	out << fElementLocSlipDir << '\n';
+	out << fElementLocMuDir << '\n';
+	out << fElementLocInternalVars << '\n';
+	out << fElementVolume << '\n';
+}
+
 /* implementation of the ParameterInterfaceT interface */
 void SmallStrainEnhLocT::DefineParameters(ParameterListT& list) const
 {
@@ -40,6 +113,18 @@ void SmallStrainEnhLocT::DefineParameters(ParameterListT& list) const
     strain_displacement.AddEnumeration("B-bar", kMeanDilBbar);
     strain_displacement.SetDefault(kStandardB);
 	list.AddParameter(strain_displacement);
+	
+	/* cohesive surface model constants */
+	double cohesion_r, cohesion_p, alpha_c, phi_r, phi_p, alpha_phi, psi_p, alpha_psi;
+	list.AddParameter(cohesion_r, "residual_cohesion");
+	list.AddParameter(cohesion_p, "peak_cohesion");
+	list.AddParameter(alpha_c, "cohesion_softening_coefficient");
+	list.AddParameter(phi_r, "residual_friction_angle_rad");
+	list.AddParameter(phi_p, "peak_friction_angle_rad");
+	list.AddParameter(alpha_phi, "friction_softening_coefficient");
+	list.AddParameter(psi_p, "peak_dilation_angle_rad");
+	list.AddParameter(alpha_psi, "dilation_softening_coefficient");
+	
 }
 
 /* information about subordinate parameter lists */
@@ -106,8 +191,9 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	fGradU.Dimension(NumSD());	
 	if (fStrainDispOpt == kMeanDilBbar) {
 		fLocDispTranspose.Dimension(fLocDisp.Length());
-		fMeanGradient.Dimension(NumSD(), NumElementNodes());
+		//fMeanGradient.Dimension(NumSD(), NumElementNodes());
 	}	
+	fMeanGradient.Dimension(NumSD(), NumElementNodes());
 
 	/* offset to class needs flags */
 	fNeedsOffset = fMaterialNeeds[0].Length();
@@ -156,6 +242,115 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 		for (int i = 0; i < NumIP(); i++)
 			fStrain_last_List[i].Dimension(NumSD());
 	}
+	
+	
+	/** \name localization element info storage */
+	/*@{*/
+	/** fixed values */
+	fElementLocNormal.Dimension(NumElements(),NumSD());
+	fElementLocNormal = 0.0;
+	fElementLocTangent.Dimension(NumElements(),NumSD());
+	fElementLocTangent = 0.0;
+	fElementLocNormal1.Dimension(NumElements(),NumSD());
+	fElementLocNormal1 = 0.0;
+	fElementLocNormal2.Dimension(NumElements(),NumSD());
+	fElementLocNormal2 = 0.0;
+	fElementLocNormal3.Dimension(NumElements(),NumSD());
+	fElementLocNormal3 = 0.0;
+	fElementLocSlipDir1.Dimension(NumElements(),NumSD());
+	fElementLocSlipDir1 = 0.0;
+	fElementLocSlipDir2.Dimension(NumElements(),NumSD());
+	fElementLocSlipDir2 = 0.0;
+	fElementLocSlipDir3.Dimension(NumElements(),NumSD());
+	fElementLocSlipDir3 = 0.0;
+	fElementLocTangent1.Dimension(NumElements(),NumSD());
+	fElementLocTangent1 = 0.0;
+	fElementLocTangent2.Dimension(NumElements(),NumSD());
+	fElementLocTangent2 = 0.0;
+	fElementLocTangent3.Dimension(NumElements(),NumSD());
+	fElementLocTangent3 = 0.0;
+	fElementLocGradEnh.Dimension(NumElements(),NumSD());
+	fElementLocGradEnh = 0.0;
+	//hardcode element edge number for hex element for now
+	int numedges = 12;
+	fElementLocEdgeIntersect.Dimension(NumElements(),numedges);
+	fElementLocEdgeIntersect = 0.0;
+	
+	/** variable from time step to time step */
+	fElementLocScalars.Dimension(NumElements(),kNUM_SCALAR_TERMS);	
+	fElementLocScalars = 0.0;
+	fElementLocScalars_last.Dimension(NumElements(),kNUM_SCALAR_TERMS);
+	fElementLocScalars_last = 0.0;
+	fElementLocSlipDir.Dimension(NumElements(),NumSD());
+	fElementLocSlipDir = 0.0;
+	fElementLocSlipDir_last.Dimension(NumElements(),NumSD());
+	fElementLocSlipDir_last = 0.0;
+	fElementLocMuDir.Dimension(NumElements(),NumSD());
+	fElementLocMuDir = 0.0;
+	fElementLocMuDir_last.Dimension(NumElements(),NumSD());
+	fElementLocMuDir_last = 0.0;
+	fElementLocInternalVars.Dimension(NumElements(),kNUM_ISV_TERMS);	
+	fElementLocInternalVars = 0.0;
+	fElementLocInternalVars_last.Dimension(NumElements(),kNUM_ISV_TERMS);
+	fElementLocInternalVars_last = 0.0;
+	fElementVolume.Dimension(NumElements());
+	fElementVolume = 0.0;
+	fElementVolume_last.Dimension(NumElements());
+	fElementVolume_last = 0.0;
+	/*@}*/
+	
+	/* localization element arrays */
+	normals.Dimension(NumSD());
+	slipdirs.Dimension(NumSD());
+	
+	normal1.Dimension(NumSD());
+	normal2.Dimension(NumSD());
+	normal3.Dimension(NumSD());
+	normal_chosen.Dimension(NumSD());
+	slipdir1.Dimension(NumSD());
+	slipdir2.Dimension(NumSD());
+	slipdir3.Dimension(NumSD());
+	slipdir_chosen.Dimension(NumSD());
+	tangent1.Dimension(NumSD());
+	tangent2.Dimension(NumSD());
+	tangent3.Dimension(NumSD());
+	tangent_chosen.Dimension(NumSD());
+	
+	/* need to initialize previous volume */
+	Top();
+	while (NextElement())
+	{
+		/* inherited - computes gradients and standard 
+		 * deformation gradients */
+		SolidElementT::SetGlobalShape();
+
+		/* compute mean of shape function gradients */
+		double& vol = fElementVolume_last[CurrElementNumber()];
+		SetMeanGradient(fMeanGradient, vol);
+	}
+	
+	/* cohesive surface material parameters */
+	fCohesiveSurface_Params.Dimension ( kNUM_CS_TERMS );
+	fCohesiveSurface_Params[kc_r] = list.GetParameter("residual_cohesion");
+	fCohesiveSurface_Params[kc_p] = list.GetParameter("peak_cohesion");
+	fCohesiveSurface_Params[kalpha_c] = list.GetParameter("cohesion_softening_coefficient");
+	fCohesiveSurface_Params[kphi_r] = list.GetParameter("residual_friction_angle_rad");
+	fCohesiveSurface_Params[kphi_p] = list.GetParameter("peak_friction_angle_rad");
+	fCohesiveSurface_Params[kalpha_phi] = list.GetParameter("friction_softening_coefficient");
+	fCohesiveSurface_Params[kpsi_p] = list.GetParameter("peak_dilation_angle_rad");
+	fCohesiveSurface_Params[kalpha_psi] = list.GetParameter("dilation_softening_coefficient");
+	
+	
+	outputPrecision = 10;
+	outputFileWidth = outputPrecision + 8;
+	
+	if (fFirstPass) 
+	{
+		ss_enh_out.open("ss_enh.info");
+		fFirstPass = false;
+	}
+	else ss_enh_out.open_append("ss_enh.info");
+	
 }
 
 /* extract the list of material parameters */
@@ -254,6 +449,72 @@ MaterialListT* SmallStrainEnhLocT::NewMaterialList(const StringT& name, int size
 }
 
 
+/* choose the normal and slipdir given normals and slipdirs from bifurcation condition */
+void SmallStrainEnhLocT::ChooseNormalAndSlipDir(void)
+{
+	/* current element number */
+	int elem = CurrElementNumber();
+	loc_flag = fElementLocScalars[elem,kLocFlag];
+	
+	/* fetch normals and slipdirs for element */
+	fElementLocNormal1.RowAlias(elem, normal1);
+	fElementLocNormal2.RowAlias(elem, normal2);
+	fElementLocNormal3.RowAlias(elem, normal3);
+	fElementLocTangent1.RowAlias(elem, tangent1);
+	fElementLocTangent2.RowAlias(elem, tangent2);
+	fElementLocTangent3.RowAlias(elem, tangent3);
+	fElementLocSlipDir1.RowAlias(elem, slipdir1);
+	fElementLocSlipDir2.RowAlias(elem, slipdir2);
+	fElementLocSlipDir3.RowAlias(elem, slipdir3);
+	
+	/* loop through nodes as inner product of nodal displacements and each normal */
+	/*
+	fShapes->TopNode??();
+	while (fShapes->NextNode??())
+	{
+		
+	}	
+	*/
+	
+	/*
+	normal_chosen = ?;
+	slipdir_chosen = ?;
+	tangent_chosen = ?;
+	*/
+	
+	/* store chosen normal and slip direction vectors */
+	fElementLocNormal.SetRow(elem, normal_chosen);
+	fElementLocSlipDir.SetRow(elem, slipdir_chosen);
+	fElementLocTangent.SetRow(elem, tangent_chosen);
+}
+
+/* given the normal and one point, determine active nodes */
+void SmallStrainEnhLocT::DetermineActiveNodes(void)
+{
+	/* current element number */
+	int elem = CurrElementNumber();
+	loc_flag = fElementLocScalars[elem,kLocFlag];
+	
+	/* fetch chosen normal */
+	fElementLocNormal.RowAlias(elem, normal_chosen);
+	
+	/* loop through nodes and determine active nodes */
+	
+	/* loop through nodes and determine edge intersectons */
+	/*
+	for (int i = 0; i < numedges; i++)
+	{
+		//grab associated nodes with edges??
+		fElementLocEdgeIntersect[elem,i] = ?;
+	}
+	*/
+	
+	/*
+	see function SetGlobalShape to see how to grab Grad of shape function and assemble GradEnh
+	knowing active nodes
+	*/
+}
+
 /* calculate the internal force contribution ("-k*d") */
 void SmallStrainEnhLocT::FormKd(double constK)
 {
@@ -263,6 +524,15 @@ void SmallStrainEnhLocT::FormKd(double constK)
 	/* collect incremental heat */
 	bool need_heat = fElementHeat.Length() == fShapes->NumIP();
 
+	/* current element number */
+	int elem = CurrElementNumber();
+	loc_flag = fElementLocScalars[elem,kLocFlag];
+	
+	/* fetch normal and slipdir for element */
+	fElementLocNormal.RowAlias(elem, normal_chosen);
+	fElementLocSlipDir.RowAlias(elem, slipdir_chosen);
+	fElementLocTangent.RowAlias(elem, tangent_chosen);
+	
 	fShapes->TopIP();
 	while (fShapes->NextIP())
 	{
@@ -277,6 +547,12 @@ void SmallStrainEnhLocT::FormKd(double constK)
 
 		/* accumulate */
 		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
+		
+		if (loc_flag == 2) 
+		{
+			//modify stiffness matrix
+			
+		}
 		
 		/* incremental heat generation */
 		if (need_heat) 
@@ -304,10 +580,14 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 	  print = true; 
 	/*******************/
 	
+	/* current element info */
+	int elem = CurrElementNumber();
+	loc_flag = fElementLocScalars[elem,kLocFlag];
+	double vol = fElementVolume[elem];
+	
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
 	{
-
 		double scale = constK*(*Det++)*(*Weight++);
 	
 		/* strain displacement matrix */
@@ -323,15 +603,118 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 		/* multiply b(transpose) * db, taking account of symmetry, */
 		/* and accumulate in elstif */
 		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);	
+		
+		/*
+		check for localization if element has not localized, or has localized
+		but not yet traced (the stress state will change when elements are traced
+		and the cohesive surface model is activated)
+		*/
+		if (loc_flag == 2) 
+		{
+			//modify stiffness matrix
+			
+		}
+		else
+		{
+			//check for localization
+			bool checkloc = fCurrMaterial->IsLocalized(normals,slipdirs);
+			if (checkloc) 
+			{
+				loc_flag = 1;
+				fElementLocScalars[elem,kLocFlag] = loc_flag;
+				normals.Top();
+				slipdirs.Top();
+				int num_normals = normals.Length();
+				if (num_normals == 2)
+				{
+					normals.Next();
+					normal1 = normals.Current();
+					fElementLocNormal1.SetRow(elem, normal1);
+					normals.Next();
+					normal2 = normals.Current();
+					fElementLocNormal2.SetRow(elem, normal2);
+					normal3 = 0.0;
+					fElementLocNormal3.SetRow(elem, normal3);
+					
+					slipdirs.Next();
+					slipdir1 = slipdirs.Current();
+					fElementLocSlipDir1.SetRow(elem, slipdir1);
+					slipdirs.Next();
+					slipdir2 = slipdirs.Current();
+					fElementLocSlipDir2.SetRow(elem, slipdir2);
+					slipdir3 = 0.0;
+					fElementLocSlipDir3.SetRow(elem, slipdir3);
+					
+					//calculate tangent
+				}
+				else if (num_normals == 3)
+				{
+					normals.Next();
+					normal1 = normals.Current();
+					fElementLocNormal1.SetRow(elem, normal1);
+					normals.Next();
+					normal2 = normals.Current();
+					fElementLocNormal2.SetRow(elem, normal2);
+					normals.Next();
+					normal3 = normals.Current();
+					fElementLocNormal3.SetRow(elem, normal3);
+					
+					slipdirs.Next();
+					slipdir1 = slipdirs.Current();
+					fElementLocSlipDir1.SetRow(elem, slipdir1);
+					slipdirs.Next();
+					slipdir2 = slipdirs.Current();
+					fElementLocSlipDir2.SetRow(elem, slipdir2);
+					slipdirs.Next();
+					slipdir3 = slipdirs.Current();
+					fElementLocSlipDir3.SetRow(elem, slipdir3);
+				
+					//calculate tangent
+				}
+				else
+				{
+					ExceptionT::GeneralFail("SmallStrainEnhLocT::FormStiffness - incorrect number of normals");
+				}
+				
+				
+				ss_enh_out	<< endl << "  " << endl << "normal1: " << setw(outputFileWidth) << normal1[0] 
+							<< setw(outputFileWidth) << normal1[1] <<  setw(outputFileWidth) << normal1[2]
+							<< setw(outputFileWidth) << "slipdir1: " << setw(outputFileWidth) << slipdir1[0] 
+							<< setw(outputFileWidth) << slipdir1[1] <<  setw(outputFileWidth) << slipdir1[2]; 
+				ss_enh_out	<< endl << "normal2: " << setw(outputFileWidth) << normal2[0] 
+							<< setw(outputFileWidth) << normal2[1] <<  setw(outputFileWidth) << normal2[2]
+							<< setw(outputFileWidth) << "slipdir2: " << setw(outputFileWidth) << slipdir2[0] 
+							<< setw(outputFileWidth) << slipdir2[1] <<  setw(outputFileWidth) << slipdir2[2]; 
+				ss_enh_out	<< endl << "normal3: " << setw(outputFileWidth) << normal3[0] 
+							<< setw(outputFileWidth) << normal3[1] <<  setw(outputFileWidth) << normal3[2]
+							<< setw(outputFileWidth) << "slipdir3: " << setw(outputFileWidth) << slipdir3[0] 
+							<< setw(outputFileWidth) << slipdir3[1] <<  setw(outputFileWidth) << slipdir3[2]; 						
+
+
+				//do band tracing somewhere else in the element, and only when the stress state is converged
+
+			}
+			
+		}
 	}
 }
 
 /* compute the measures of strain/deformation over the element */
 void SmallStrainEnhLocT::SetGlobalShape(void)
 {
+	/* current element number */
+	int elem = CurrElementNumber();
+	
 	/* inherited */
 	SolidElementT::SetGlobalShape();
 
+	/* compute mean of shape function gradients */
+	double& vol = fElementVolume[elem];
+	SetMeanGradient(fMeanGradient, vol);
+	
+	/* last deformed volume */
+	double& vol_last = fElementVolume_last[elem];
+	
 	/* material information */
 	int material_number = CurrentElement().MaterialNumber();
 	const ArrayT<bool>& needs = fMaterialNeeds[material_number];
@@ -340,7 +723,7 @@ void SmallStrainEnhLocT::SetGlobalShape(void)
 	if (fStrainDispOpt == kMeanDilBbar)
 	{
 		/* compute mean of shape function gradients */
-		SetMeanGradient(fMeanGradient);
+		//SetMeanGradient(fMeanGradient, vol);
 
 		/* loop over integration points */
 		fShapes->TopIP();
@@ -408,14 +791,14 @@ void SmallStrainEnhLocT::SetGlobalShape(void)
  ***********************************************************************/
 
 /* compute mean shape function gradient, Hughes (4.5.23) */
-void SmallStrainEnhLocT::SetMeanGradient(dArray2DT& mean_gradient) const
+void SmallStrainEnhLocT::SetMeanGradient(dArray2DT& mean_gradient, double& vol) const
 {
 	int nip = NumIP();
 	const double* det = fShapes->IPDets();
 	const double*   w = fShapes->IPWeights();
 
 	/* volume */
-	double vol = 0.0;
+	vol = 0.0;
 	for (int i = 0; i < nip; i++)
 		vol += w[i]*det[i];
 
@@ -426,3 +809,4 @@ void SmallStrainEnhLocT::SetMeanGradient(dArray2DT& mean_gradient) const
 	for (int i = 0; i < nip; i++)
 		mean_gradient.AddScaled(w[i]*det[i]/vol, fShapes->Derivatives_U(i));
 }
+

@@ -1,9 +1,11 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.3 2004-07-29 00:23:37 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.4 2005-02-02 21:12:57 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
 /* base class */
 #include "SolidElementT.h"
+
+#include "ofstreamT.h"
 
 namespace Tahoe {
 
@@ -13,13 +15,57 @@ class SSMatSupportT;
 /** Interface for linear strain deformation and field gradients */
 class SmallStrainEnhLocT: public SolidElementT
 {
-  public:
-      
+
+public:
+
+	enum fElementLocScalars {
+							kLocFlag,
+							kJumpDispl,
+							kgamma_delta,
+							kQ,
+							kP,
+							kq_St,
+							kq_Sn,
+							kp_S,
+							kNUM_SCALAR_TERMS 
+							};
+							
+	enum fElementLocInternalVars {
+							kcohesion,
+							kfriction,
+							kdilation,
+							kNUM_ISV_TERMS 
+							};					
+							
+	enum fElementLocCohesiveSurfaceParams {
+							kc_r,
+							kc_p,
+							kalpha_c,
+							kphi_r,
+							kphi_p,
+							kalpha_phi,
+							kpsi_p,
+							kalpha_psi,
+							kNUM_CS_TERMS 
+							};												
+
 	/** constructor */
 	SmallStrainEnhLocT(const ElementSupportT& support);
 
 	/** destructor */
 	~SmallStrainEnhLocT(void);
+	
+	/** finalize current step - step is solved */
+	virtual void CloseStep(void);
+	
+	/** restore last converged state */
+	virtual GlobalT::RelaxCodeT ResetStep(void);
+
+	/** read restart information from stream */
+	virtual void ReadRestart(istream& in);
+
+	/** write restart information from stream */
+	virtual void WriteRestart(ostream& out) const;
 
 	/** \name total strain */
 	/*@{*/
@@ -78,6 +124,12 @@ protected:
 	 * \param size length of the list */
 	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
+	/* choose the normal and slipdir given normals and slipdirs from bifurcation condition */
+	void ChooseNormalAndSlipDir(void);
+	
+	/* given the normal and one point, determine active nodes */
+	void DetermineActiveNodes(void);
+
 	/** calculate the internal force contribution ("-k*d") */
 	void FormKd(double constK);
 
@@ -87,12 +139,24 @@ protected:
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
 
-  private:
+private:
 
 	/** compute mean shape function gradient, Hughes (4.5.23) */
-	void SetMeanGradient(dArray2DT& mean_gradient) const;
+	//void SetMeanGradient(dArray2DT& mean_gradient) const;
+	/** compute mean shape function gradient, and element volume, equation (2.20) */
+	void SetMeanGradient(dArray2DT& mean_gradient, double& v) const;
+	
+	/** write output for debugging */
+	/*@{*/
+	/** flag to indicate first pass */
+	static bool fFirstPass;
+	/** output file stream */
+	ofstreamT ss_enh_out;
+	/** line output formating variables */
+	int outputPrecision, outputFileWidth;
+	/*@}*/
 
-  protected:
+protected:
     
 	/** offset to material needs */
 	int fNeedsOffset; //NOTE - better to have this or a separate array?
@@ -116,6 +180,50 @@ protected:
   	/** the material support used to construct materials lists. This pointer
   	 * is only set the first time SmallStrainEnhLocT::NewMaterialList is called. */
 	SSMatSupportT* fSSMatSupport;
+	
+/* for post-localization */
+protected:
+
+	/** \name element localization info */
+	/*@{*/
+	/** current time step */
+	dArray2DT fElementLocScalars;
+	dArray2DT fElementLocNormal;
+	dArray2DT fElementLocNormal1;
+	dArray2DT fElementLocNormal2;
+	dArray2DT fElementLocNormal3;
+	dArray2DT fElementLocTangent;
+	dArray2DT fElementLocTangent1;
+	dArray2DT fElementLocTangent2;
+	dArray2DT fElementLocTangent3;
+	dArray2DT fElementLocSlipDir;
+	dArray2DT fElementLocSlipDir1;
+	dArray2DT fElementLocSlipDir2;
+	dArray2DT fElementLocSlipDir3;
+	dArray2DT fElementLocMuDir;
+	dArray2DT fElementLocInternalVars;
+	dArray2DT fElementLocGradEnh; // varies for each IP
+	dArray2DT fElementLocEdgeIntersect;
+	dArrayT fElementVolume;
+
+	/** from the last time step */
+	dArray2DT fElementLocScalars_last;
+	dArray2DT fElementLocSlipDir_last;
+	dArray2DT fElementLocMuDir_last;
+	dArray2DT fElementLocInternalVars_last;
+	dArrayT fElementVolume_last;
+	/*@}*/
+	
+	dArrayT fCohesiveSurface_Params;
+	
+	AutoArrayT <dArrayT> normals;
+	AutoArrayT <dArrayT> slipdirs;
+	dArrayT gradenh;
+	dArrayT normal1, normal2, normal3, normal_chosen;
+	dArrayT slipdir1, slipdir2, slipdir3, slipdir_chosen;
+	dArrayT tangent1, tangent2, tangent3, tangent_chosen;
+	int loc_flag, numedges;
+
 };
 
 /* inlines */
