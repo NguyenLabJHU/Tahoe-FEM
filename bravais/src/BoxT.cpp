@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.20 2003-04-18 00:07:18 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.21 2003-04-18 00:37:28 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -251,6 +251,9 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
       new_coord(m)[WhichSort[1]] = y[m];
       if (nlsd == 3) new_coord(m)[WhichSort[2]] = z[m];
     } 
+
+  // Update sorted atoms
+  atom_coord = new_coord;
 
   // Sort 3nd criterium
   if(nlsd == 3)
