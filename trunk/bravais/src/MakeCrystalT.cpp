@@ -1,4 +1,11 @@
-/* $Id: MakeCrystalT.cpp,v 1.2 2002-03-06 01:55:43 jzimmer Exp $ */
+/* $Id: MakeCrystalT.cpp,v 1.3 2002-07-24 01:14:59 saubry Exp $ */
+
+
+/* Build a mesh of atoms with a format-independent output
+ * (saubry, Tue Jul 23 15:31 UTC 2002)
+*/
+
+
 #include "MakeCrystalT.h"
 
 #include <iostream>
@@ -11,72 +18,113 @@
 #include "CrystalLatticeT.h"
 #include "FCCT.h"
 
+#include "OutputSetT.h"
+#include "OutputBaseT.h"
+#include "OutPutLatticeT.h"
+
+#include "MeshAtom.h"
+
 void MakeCrystalT::Run() {
-	cout << "Name of input file?" << "\n";
-	StringT inputfile;
-	cin >> inputfile;
 
-	ifstreamT in('%');
-	in.open(inputfile);
+  // Read and store data from "data" file	
+  StringT inputfile;
+  inputfile = "data";
+  
+  ifstreamT in('%');
+  in.open(inputfile);
 
-	int nsd; 
-	StringT shape;
+  int nsd; 
+  in >> nsd;
+  cout << "Dimension:" << nsd << "\n";
 
-	in >> nsd >> shape;
+  int whichunit;
+  dArrayT length;
+  length.Dimension(nsd);
 
-	VolumeT* pv1;
+  in >> whichunit;
+  if(nsd==2) 
+    in >> length[0] >>length[1];
+  else if (nsd==3)
+    in >> length[0] >>length[1] >> length[2];
 
-	switch(nsd) {
-	 case 2:
-	  if (shape=="box") {
-		pv1 = new BoxT(nsd); 
-	  }
-	  else { 
-		throw eBadInputValue;
-	  }
-         break;
-         case 3:
-	  if (shape=="box") {
-		pv1 = new BoxT(nsd); 
-	  }
-	  else { 
-		throw eBadInputValue;
-	  }
-         break;
-	 default :
-	  throw eBadInputValue;
-	}
+  StringT latticetype;
+  in >> latticetype;
+  cout << "Lattice Type:" << latticetype <<  "\n";
+  
+  int a,b;
+  if (latticetype=="FCC") {
+    if(nsd ==2) {a=2;b=2;}
+    if(nsd ==3) {a=3;b=4;}
+  }
+  else {
+    cout << "Lattice type has to be FCC...\n";
+    throw eBadInputValue;
+  }
 
-	pv1->SetSize(in);
+  double alat;
+  in >> alat;
 
-	StringT latticetype;
+  // Define a crystal lattice: class CrystalLatticeT, FCCT	
+  FCCT* crystal_lattice;
+  crystal_lattice = new FCCT(a,b,alat);
+	
+  cout << "Lattice parameter\n" << crystal_lattice->GetLatticeParameters() 
+       << "\n";
+  crystal_lattice->CalculateDensity();
 
-	in >> latticetype;
+  // Define a shape: class VolumeT, BoxT
+  StringT shape;
+  in >> shape;
+  cout << "Shape of the domain:" << shape <<  "\n";
 
-	CrystalLatticeT* pl1;
+  BoxT* crystal_shape;
+  if (shape=="box")
+    crystal_shape=new BoxT(nsd,whichunit,length,
+			crystal_lattice->GetLatticeParameters());
+  else 
+    {
+      cout << "only shape = box is defined so far..\n";
+      throw eBadInputValue;
+    }
 
-	if (latticetype=="FCC") {
-		pl1 = new FCCT;
-	}
-	else {
-		throw eBadInputValue;
-	}	
+  switch(crystal_shape->GetDimensions()) {
+  case 2:
+    cout << "Lengths of box: " 
+	 << (crystal_shape->GetLength())[0] << " " 
+	 << (crystal_shape->GetLength())[1] << "\n";
+    break;
+  case 3:
+    cout << "Lengths of box: " 
+	 << (crystal_shape->GetLength())[0] << " " 
+	 << (crystal_shape->GetLength())[1] << " " 
+	 << (crystal_shape->GetLength())[2] << "\n";
+    break;
+  default :
+    throw eBadInputValue;
+  }
 
-	pl1->SetBasis();
-	pl1->SetLatticeParameters(in);
-	pl1->CalculateDensity();
+  crystal_shape->CalculateVolume();
+  cout << "Volume equals " 
+       << crystal_shape->GetVolume() << " cubic angstroms" << endl;
+  
+  crystal_shape->CreateLattice(crystal_lattice);
+  cout << "Number of Atoms:" << crystal_shape->GetNumberAtoms() <<  "\n";
+ 
+  in.close();
+  
+  //Define Mesh
+  MeshAtom mesh_atom(*crystal_lattice,*crystal_shape);
 
-	pv1->DefineBoundary(pl1);
-	pv1->CalculateVolume();
-        cout << "Volume equals " << pv1->GetVolume() << " cubic angstroms" << endl;
-
-	pv1->FillVolume(pl1);
-	pv1->WriteFile();
-
-
-	in.close();
-
-
+  StringT program = "bravais";
+  StringT version = "v1.0";
+  StringT title = "Lattice for Atoms";
+  StringT input = "example";
+  
+  mesh_atom.CreateMeshAtom(0,NULL,0,NULL,0,NULL,
+			   1,program,version,title,input,
+			   IOBaseT::kEnSight);
+  
 
 }
+
 

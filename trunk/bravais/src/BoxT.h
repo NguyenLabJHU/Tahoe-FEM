@@ -1,4 +1,4 @@
-/* $Id: BoxT.h,v 1.1 2002-03-06 01:55:43 jzimmer Exp $ */
+/* $Id: BoxT.h,v 1.2 2002-07-24 01:15:15 saubry Exp $ */
 
 #ifndef _BOX_T_H_
 #define _BOX_T_H_
@@ -9,24 +9,36 @@
 #include "dArray2DT.h"
 #include "VolumeT.h"
 #include "CrystalLatticeT.h"
+#include "ifstreamT.h"
 
-class ifstreamT;
+using namespace Tahoe;
 
 class BoxT : public VolumeT {
+
 protected:
+
 	iArrayT ncells;
         dArrayT length;
-        dArray2DT surfaces;
+
 public:
-        BoxT(int n);
-        ~BoxT();
-	void SetSize(ifstreamT& in);
-        void DefineBoundary(CrystalLatticeT* pcl);
+
+	//Constructor
+        BoxT(int dim, int whichunit, dArrayT len_cel, 
+	     dArrayT lattice_parameter);
+
+	//Destructor
+        ~BoxT(){};
+
+	// Copy constructor
+        BoxT(const BoxT& source);
+
         void CalculateVolume();
-        void FillVolume(CrystalLatticeT* pcl);
+        void CreateLattice(CrystalLatticeT* pcl);
+
+	iArrayT GetNCells();
+        dArrayT GetLength();
 };
 
 
 
 #endif
-
