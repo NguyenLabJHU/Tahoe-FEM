@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.9 2003-09-08 13:04:34 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.10 2003-09-24 23:58:26 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
@@ -6,7 +6,7 @@
 #include "ofstreamT.h"
 
 /* to handle the variable number of arguments in Throw() */
-#if defined(__SGI__) || defined(__DELMAR__) || defined(__PGI__)
+#if defined(__SGI__) || defined(__DELMAR__) || defined(__PGI__) || defined(__JANUS__)
 #include <stdio.h>
 #include <stdarg.h>
 #else
