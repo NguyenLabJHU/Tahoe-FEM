@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.6 2002-06-08 20:20:53 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.6.2.1 2002-06-27 18:04:02 cjkimme Exp $ */
 /* created: paklein (06/15/1996) */
 
 #include "FBC_CardT.h"
@@ -12,6 +12,9 @@
 #include "ScheduleT.h"
 
 /* copy behavior for arrays FBC_CardT's */
+
+using namespace Tahoe;
+
 const bool ArrayT<FBC_CardT*>::fByteCopy = true;
 const bool ArrayT<FBC_CardT>::fByteCopy = false;
 

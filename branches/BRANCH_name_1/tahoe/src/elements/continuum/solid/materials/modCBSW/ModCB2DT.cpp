@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.cpp,v 1.3 2001-07-03 01:35:29 paklein Exp $ */
+/* $Id: ModCB2DT.cpp,v 1.3.6.1 2002-06-27 18:03:30 cjkimme Exp $ */
 /* created: paklein (05/31/1997)                                          */
 
 #include "ModCB2DT.h"
@@ -13,6 +13,9 @@
 #include "dMatrixT.h"
 
 /* material parameters */
+
+using namespace Tahoe;
+
 const int knsd = 2;
 
 const double sqrt2 = sqrt(2.0);

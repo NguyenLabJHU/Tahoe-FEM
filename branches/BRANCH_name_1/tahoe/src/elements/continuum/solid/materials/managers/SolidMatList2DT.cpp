@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.19 2002-06-20 01:18:58 thao Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.19.2.1 2002-06-27 18:03:28 cjkimme Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList2DT.h"
@@ -52,6 +52,9 @@
 #include "GradCrystalPlastFp2D.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 SolidMatList2DT::SolidMatList2DT(int length, const ElasticT& element_group):
 	StructuralMatListT(length),
 	fElementGroup(element_group)

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.3 2001-07-13 02:17:37 paklein Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.3.6.1 2002-06-27 18:04:12 cjkimme Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeShapeFunctionT.h"
@@ -8,6 +8,9 @@
 #include "dSymMatrixT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 D2MeshFreeShapeFunctionT::D2MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 	const LocalArrayT& coords, const dArray2DT& all_coords,
 	const iArray2DT& connects, const iArrayT& nongridnodes,

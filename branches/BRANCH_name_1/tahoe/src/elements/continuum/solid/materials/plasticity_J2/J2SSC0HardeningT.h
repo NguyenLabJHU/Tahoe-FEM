@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.h,v 1.2 2002-04-21 19:43:56 paklein Exp $ */
+/* $Id: J2SSC0HardeningT.h,v 1.2.2.1 2002-06-27 18:03:35 cjkimme Exp $ */
 
 #ifndef _J2_SS_C0_HARD_T_H_
 #define _J2_SS_C0_HARD_T_H_
@@ -10,6 +10,9 @@
 #include "C1FunctionT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ElementCardT;
 class ifstreamT;
 #include "ios_fwd_decl.h"
@@ -139,4 +142,5 @@ private:
 inline double J2SSC0HardeningT::K(double a) const { return fK->Function(a); }
 inline double J2SSC0HardeningT::dK(double a) const { return fK->DFunction(a); }
 
+} // namespace Tahoe 
 #endif /* _J2_SS_C0_HARD_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: SymmetricNodesT.h,v 1.2 2002-06-08 20:20:51 paklein Exp $ */
+/* $Id: SymmetricNodesT.h,v 1.2.2.1 2002-06-27 18:04:00 cjkimme Exp $ */
 
 #ifndef _SYMMETRIC_NODES_T_H_
 #define _SYMMETRIC_NODES_T_H_
@@ -10,6 +10,9 @@
 #include "dArray2DT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dArray2DT;
 class FEManagerT;
 
@@ -17,7 +20,7 @@ class FEManagerT;
  * symmetry constraints along the line(plane) in 2D(3D) determined by 
  * follower and leader nodes. This symmetry is enforced in function
  * CopyKinematics. */
-class SymmetricNodesT: public TiedNodesT
+class SymmetricNodesT: public Tahoe::TiedNodesT
 {
 public:	
 
@@ -125,4 +128,5 @@ protected:
 	
 };
 
+} // namespace Tahoe 
 #endif /* _SYMMETRIC_NODES_T_H_ */

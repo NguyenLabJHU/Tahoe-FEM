@@ -1,4 +1,4 @@
-/* $Id: UpLagr_ExternalFieldT.h,v 1.2 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: UpLagr_ExternalFieldT.h,v 1.2.2.1 2002-06-27 18:02:47 cjkimme Exp $ */
 
 #ifndef _UPDATED_LAGR_EX_FIELD_T_H_
 #define _UPDATED_LAGR_EX_FIELD_T_H_
@@ -15,6 +15,9 @@
  * to the current time. \note the class currently
  * requires an ExodusII database for the external field
  * variables. */
+
+namespace Tahoe {
+
 class UpLagr_ExternalFieldT: public UpdatedLagrangianT
 {
 public:
@@ -77,4 +80,5 @@ inline const LocalArrayT& UpLagr_ExternalFieldT::ExternalField(void) const
 	return fLocExternalField;
 }
 
+} // namespace Tahoe 
 #endif /* _UPDATED_LAGR_EX_FIELD_T_H_ */

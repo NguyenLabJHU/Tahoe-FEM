@@ -1,4 +1,4 @@
-/* $Id: J2SimoLinHardT.cpp,v 1.8 2001-12-17 00:11:57 paklein Exp $ */
+/* $Id: J2SimoLinHardT.cpp,v 1.8.4.1 2002-06-27 18:03:35 cjkimme Exp $ */
 /* created: paklein (06/19/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -16,6 +16,9 @@
 #include "ElementCardT.h"
 
 /* flags */
+
+using namespace Tahoe;
+
 const int kNumFlags = 2;
 const int kEP   = 0;
 const int kInit = 1;

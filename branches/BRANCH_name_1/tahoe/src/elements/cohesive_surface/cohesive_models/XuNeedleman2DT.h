@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman2DT.h,v 1.6 2002-04-16 21:19:33 cjkimme Exp $ */
+/* $Id: XuNeedleman2DT.h,v 1.6.4.1 2002-06-27 18:02:38 cjkimme Exp $ */
 /* created: paklein (11/14/1997) */
 
 #ifndef _XU_NEEDLE_2D_T_H_
@@ -8,6 +8,9 @@
 #include "SurfacePotentialT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ifstreamT;
 
 /** Xu-Needleman 2D cohesive surface potential */
@@ -60,4 +63,5 @@ double fKratio; // stiffening ratio
 double fK;
 };
 
+} // namespace Tahoe 
 #endif /* _XU_NEEDLE_2D_T_H_ */

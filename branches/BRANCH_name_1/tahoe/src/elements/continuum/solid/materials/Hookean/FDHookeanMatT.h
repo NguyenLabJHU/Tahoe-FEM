@@ -1,4 +1,4 @@
-/* $Id: FDHookeanMatT.h,v 1.3 2001-09-15 01:19:23 paklein Exp $ */
+/* $Id: FDHookeanMatT.h,v 1.3.6.1 2002-06-27 18:03:09 cjkimme Exp $ */
 /* created: paklein (06/10/1997) */
 
 #ifndef _FD_HOOKEAN_MAT_H_
@@ -7,6 +7,9 @@
 /* base classes */
 #include "FDStructMatT.h"
 #include "HookeanMatT.h"
+
+
+namespace Tahoe {
 
 class FDHookeanMatT: public FDStructMatT, public HookeanMatT
 {
@@ -46,4 +49,5 @@ private:
 	dMatrixT    fModulus;	
 };
 
+} // namespace Tahoe 
 #endif /* _FD_HOOKEAN_MAT_H_ */

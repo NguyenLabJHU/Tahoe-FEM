@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.9 2002-06-08 20:20:16 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.9.2.1 2002-06-27 18:02:36 cjkimme Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -27,6 +27,9 @@
 #include "MeshFreeFractureSupportT.h"
 
 /* array behavior */
+
+using namespace Tahoe;
+
 const bool ArrayT<MeshFreeCSEAnisoT::StatusFlagT>::fByteCopy = true;
 
 /* parameters */

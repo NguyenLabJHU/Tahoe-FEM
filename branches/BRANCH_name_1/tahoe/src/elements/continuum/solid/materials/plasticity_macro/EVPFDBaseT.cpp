@@ -1,4 +1,4 @@
-/* $Id: EVPFDBaseT.cpp,v 1.7 2002-06-08 20:20:44 paklein Exp $ */
+/* $Id: EVPFDBaseT.cpp,v 1.7.2.1 2002-06-27 18:03:46 cjkimme Exp $ */
 #include "EVPFDBaseT.h"
 #include "NLCSolver.h"
 #include "NLCSolver_LS.h"
@@ -8,6 +8,9 @@
 #include "StringT.h"
 
 /* initialization flag value */
+
+using namespace Tahoe;
+
 const int kIsInit = 1;
 
 /* spatial dimensions of the problem */

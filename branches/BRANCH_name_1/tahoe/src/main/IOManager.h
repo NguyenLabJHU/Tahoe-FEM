@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.12 2002-06-25 14:14:12 sawimme Exp $ */
+/* $Id: IOManager.h,v 1.12.2.1 2002-06-27 18:02:53 cjkimme Exp $ */
 /* created: sawimme (10/12/1999) */
 
 #ifndef _IOMANAGER_H_
@@ -16,6 +16,9 @@
 #include "GeometryT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ifstreamT;
 class OutputBaseT;
 class iArray2DT;
@@ -137,4 +140,5 @@ private:
 /* inlines */
 inline void IOManager::SetOutputTime(double time) { fOutputTime = time; }
 
+} // namespace Tahoe 
 #endif

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.h,v 1.6 2001-08-15 16:54:41 cfoster Exp $ */
+/* $Id: DPSSKStV2D.h,v 1.6.6.1 2002-06-27 18:03:34 cjkimme Exp $ */
 /* created: myip (06/01/1999)                                    */
 
 #ifndef _DP_SS_KSTV_2D_H_
@@ -7,6 +7,9 @@
 /* base class */
 #include "Material2DT.h"
 #include "DPSSKStV.h"
+
+
+namespace Tahoe {
 
 class DPSSKStV2D: public DPSSKStV, public Material2DT
 {
@@ -47,4 +50,5 @@ class DPSSKStV2D: public DPSSKStV, public Material2DT
 	dSymMatrixT	fTotalStrain3D;
 };
 
+} // namespace Tahoe 
 #endif /* _DP_SS_KSTV_2D_H_ */

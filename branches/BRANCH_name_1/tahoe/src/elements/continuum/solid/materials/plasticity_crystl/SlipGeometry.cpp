@@ -7,6 +7,9 @@
 
 /* Base Class */
 
+
+using namespace Tahoe;
+
 SlipGeometry::SlipGeometry(int numslip) :
   fNumSlip(numslip)
 {

@@ -1,4 +1,4 @@
-/* $Id: nNLHHTalpha.h,v 1.5 2002-06-08 20:20:10 paklein Exp $ */
+/* $Id: nNLHHTalpha.h,v 1.5.2.1 2002-06-27 18:02:28 cjkimme Exp $ */
 /* created: paklein (10/17/1996) */
 
 #ifndef _N_NL_HHT_A_H_
@@ -9,6 +9,9 @@
 #include "nControllerT.h"
 
 /** HHT alpha integration for linear systems */
+
+namespace Tahoe {
+
 class nNLHHTalpha: public virtual HHTalpha, public nControllerT
 {
 public:
@@ -55,4 +58,5 @@ private:
 	double	vcorr_a;
 };
 
+} // namespace Tahoe 
 #endif /* _N_NL_HHT_A_H_ */

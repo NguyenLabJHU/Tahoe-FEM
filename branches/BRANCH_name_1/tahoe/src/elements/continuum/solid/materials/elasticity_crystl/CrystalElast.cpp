@@ -1,4 +1,4 @@
-/* $Id: CrystalElast.cpp,v 1.5 2002-06-08 20:20:39 paklein Exp $ */
+/* $Id: CrystalElast.cpp,v 1.5.2.1 2002-06-27 18:03:26 cjkimme Exp $ */
 
 #include "CrystalElast.h"
 #include "CrystalElastMat.h"
@@ -10,6 +10,9 @@
 #include "StringT.h"
 
 /* number of elastic material properties used in computations */
+
+using namespace Tahoe;
+
 const int kNumMatProp = 3;
 
 /* initialization flag value */

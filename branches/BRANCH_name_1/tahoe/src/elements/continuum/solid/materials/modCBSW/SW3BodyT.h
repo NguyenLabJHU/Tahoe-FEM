@@ -1,4 +1,4 @@
-/* $Id: SW3BodyT.h,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* $Id: SW3BodyT.h,v 1.1.1.1.10.1 2002-06-27 18:03:30 cjkimme Exp $ */
 /* created: paklein (05/22/1997)                                          */
 
 #ifndef _SW3_BODY_T_H_
@@ -8,6 +8,9 @@
 #include "ThreeBodyT.h"
 
 /* forward declaration */
+
+namespace Tahoe {
+
 class SWDataT;
 
 class SW3BodyT: public ThreeBodyT
@@ -42,4 +45,5 @@ private:
 
 };
 
+} // namespace Tahoe 
 #endif /* _SW3_BODY_T_H_ */

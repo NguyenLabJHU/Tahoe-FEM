@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.9 2002-06-09 22:44:01 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.9.2.1 2002-06-27 18:03:56 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "NodeManagerT.h"
@@ -39,6 +39,9 @@
 #include "SymmetricNodesT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 NodeManagerT::NodeManagerT(FEManagerT& fe_manager):
 	fFEManager(fe_manager),
 //	fNumNodes(0),

@@ -1,4 +1,4 @@
-/* $Id: ACME_Contact3DT.h,v 1.2 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: ACME_Contact3DT.h,v 1.2.2.1 2002-06-27 18:02:40 cjkimme Exp $ */
 /* created: paklein (10/15/2000) */
 
 #ifndef _ACME_PENALTY_CONTACT3D_T_H_
@@ -12,6 +12,9 @@
 
 /* direct members */
 #include "ContactSearch.h"
+
+
+namespace Tahoe {
 
 class ACME_Contact3DT: public PenaltyContact3DT
 {
@@ -73,5 +76,6 @@ protected:
 	AutoArrayT<double> fdata;
 };
 
+} // namespace Tahoe
 #endif /* __ACME__ */
 #endif /* _ACME_PENALTY_CONTACT3D_T_H_ */

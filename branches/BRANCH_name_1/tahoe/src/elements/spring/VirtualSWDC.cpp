@@ -1,4 +1,4 @@
-/* $Id: VirtualSWDC.cpp,v 1.2 2002-06-08 20:20:26 paklein Exp $ */
+/* $Id: VirtualSWDC.cpp,v 1.2.2.1 2002-06-27 18:02:51 cjkimme Exp $ */
 /* created: paklein (05/05/1997) */
 #include "VirtualSWDC.h"
 
@@ -8,6 +8,9 @@
 #include "Constants.h"
 
 /* fVNodePair decoding */
+
+using namespace Tahoe;
+
 const int kVirtualNode = 0;
 const int kActiveNode  = 1;
 

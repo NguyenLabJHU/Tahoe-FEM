@@ -1,4 +1,4 @@
-/* $Id: RodMaterialT.cpp,v 1.4 2002-06-08 20:20:46 paklein Exp $ */
+/* $Id: RodMaterialT.cpp,v 1.4.2.1 2002-06-27 18:03:54 cjkimme Exp $ */
 /* created: paklein (11/20/1996) */
 
 #include "RodMaterialT.h"
@@ -7,6 +7,9 @@
 #include "ThermalDilatationT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 RodMaterialT::RodMaterialT(ifstreamT& in)
 {
 	fThermal = new ThermalDilatationT(in);

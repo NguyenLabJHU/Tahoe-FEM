@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.8 2002-06-08 20:20:28 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.8.2.1 2002-06-27 18:02:53 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "TimeManagerT.h"
@@ -33,6 +33,11 @@
 	};
 
 /* stream extraction operator */
+
+using namespace Tahoe;
+
+namespace Tahoe {
+
 istream& operator>>(istream& in, TimeManagerT::CodeT& code)
 {
 	int i_code = -1;
@@ -64,6 +69,8 @@ istream& operator>>(istream& in, TimeManagerT::CodeT& code)
 	}
 	return in;
 }
+
+} // namespace Tahoe
 
 /* constructor */
 TimeManagerT::TimeManagerT(FEManagerT& FEM):

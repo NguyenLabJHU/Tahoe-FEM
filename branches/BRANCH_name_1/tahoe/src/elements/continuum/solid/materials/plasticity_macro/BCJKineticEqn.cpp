@@ -6,6 +6,9 @@
 #include "EVPFDBaseT.h"
 #include "ifstreamT.h"
 
+
+using namespace Tahoe;
+
 const int kNumMatProp = 3;
 
 BCJKineticEqn::BCJKineticEqn(EVPFDBaseT& model)

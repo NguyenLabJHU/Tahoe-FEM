@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.h,v 1.2 2001-07-03 01:35:17 paklein Exp $ */
+/* $Id: IsoVIB2D.h,v 1.2.6.1 2002-06-27 18:03:20 cjkimme Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 2D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -14,6 +14,9 @@
 #include "SpectralDecompT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class CirclePointsT;
 
 class IsoVIB2D: public FDStructMatT, public Material2DT, public VIB
@@ -78,4 +81,5 @@ private:
 	dSymMatrixT fStress;
 };
 
+} // namespace Tahoe 
 #endif /* _ISO_VIB_2D_H_ */

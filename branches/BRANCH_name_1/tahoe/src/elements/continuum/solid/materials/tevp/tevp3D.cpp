@@ -1,4 +1,4 @@
-/* $Id: tevp3D.cpp,v 1.9 2002-06-08 20:20:46 paklein Exp $ */
+/* $Id: tevp3D.cpp,v 1.9.2.1 2002-06-27 18:03:55 cjkimme Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (06/25/2001) */
 
@@ -10,6 +10,9 @@
 #include "ElementCardT.h"
 
 /* element output data */
+
+using namespace Tahoe;
+
 const int kNumOutput = 3;   // # of internal variables
 const double kYieldTol = 1.0e-16;   // Yield stress criteria
 const int kVoigt = 6;    // 6 stress components in 3D voigt notation

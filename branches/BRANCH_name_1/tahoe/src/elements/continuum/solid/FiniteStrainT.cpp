@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.8 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.8.2.1 2002-06-27 18:02:46 cjkimme Exp $ */
 
 #include "FiniteStrainT.h"
 #include "ShapeFunctionT.h"
@@ -7,6 +7,9 @@
 #include "MaterialList3DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 FiniteStrainT::FiniteStrainT(const ElementSupportT& support, const FieldT& field):
 	ElasticT(support, field),
 	fNeedsOffset(-1)

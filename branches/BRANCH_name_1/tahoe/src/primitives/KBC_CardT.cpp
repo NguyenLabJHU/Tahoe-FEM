@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.cpp,v 1.6 2002-06-08 20:20:53 paklein Exp $ */
+/* $Id: KBC_CardT.cpp,v 1.6.2.1 2002-06-27 18:04:02 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "KBC_CardT.h"
@@ -12,6 +12,9 @@
 #include "ScheduleT.h"
 
 /* copy behavior for arrays KBC_CardT's */
+
+using namespace Tahoe;
+
 const bool ArrayT<KBC_CardT*>::fByteCopy = true;
 const bool ArrayT<KBC_CardT>::fByteCopy = false;
 
@@ -123,6 +126,8 @@ KBC_CardT::CodeT KBC_CardT::int_to_CodeT (int i_code)
 	return KBC_CardT::kAcc;
 }
 
+namespace Tahoe {
+
 /* input operator for codes */
 istream& operator>>(istream& in, KBC_CardT::CodeT& code)
 {
@@ -151,4 +156,6 @@ istream& operator>>(istream& in, KBC_CardT::CodeT& code)
 	}
 
 	return in;
+}
+
 }

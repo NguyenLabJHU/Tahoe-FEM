@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.5 2002-06-08 20:20:17 paklein Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.5.2.1 2002-06-27 18:02:38 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "ViscTvergHutch2DT.h"
@@ -11,6 +11,9 @@
 #include "StringT.h"
 
 /* class parameters */
+
+using namespace Tahoe;
+
 const int knumDOF = 2;
 
 /* constructor */

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.17 2002-06-08 20:20:21 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.17.2.1 2002-06-27 18:02:46 cjkimme Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "ContinuumElementT.h"
@@ -32,6 +32,9 @@
 #include "Material2DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 ContinuumElementT::ContinuumElementT(const ElementSupportT& support, 
 	const FieldT& field):
 	ElementBaseT(support, field),
@@ -617,6 +620,8 @@ void ContinuumElementT::SurfaceNodes(iArrayT& surface_nodes) const
 * Protected
 ***********************************************************************/
 
+namespace Tahoe {
+
 /* stream extraction operator */
 istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type)
 {
@@ -639,6 +644,8 @@ istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type)
 			throw eBadInputValue;	
 	}
 	return in;
+}
+
 }
 
 /* initialize local arrays */

@@ -8,6 +8,9 @@
 #include <iostream.h>
 #include "ArrayT.h"
 
+
+namespace Tahoe {
+
 class ifstreamT;
 class StringT;
 class LocalArrayT;
@@ -59,5 +62,6 @@ inline double min(double d1, double d2) {return d1 <= d2 ? d1 : d2;}
 inline int sign(int x) {return x > 0 ? 1 : (x == 0 ? 0 : -1);}
 #endif
 
+} // namespace Tahoe 
 #endif /* _UTILS_H_ */
 

@@ -1,4 +1,4 @@
-/* $Id: BasicFieldT.h,v 1.2 2002-06-08 20:20:47 paklein Exp $ */
+/* $Id: BasicFieldT.h,v 1.2.2.1 2002-06-27 18:03:56 cjkimme Exp $ */
 
 #ifndef _BASIC_FIELD_T_H_
 #define _BASIC_FIELD_T_H_
@@ -9,6 +9,9 @@
 #include "iArray2DT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class iArrayT;
 
 /** basic container for field data */
@@ -82,4 +85,5 @@ protected:
 	iArray2DT fEqnos;
 };
 
+} // namespace Tahoe 
 #endif /* _BASIC_FIELD_T_H_ */

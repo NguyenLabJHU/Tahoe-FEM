@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.h,v 1.3 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: LocalizerT.h,v 1.3.2.1 2002-06-27 18:02:46 cjkimme Exp $ */
 /* created: paklein (02/19/1998) */
 
 #ifndef _LOCALIZER_T_H_
@@ -12,6 +12,9 @@
 #include "MonitorT.h"
 #include "AutoArrayT.h"
 #include "dMatrixEXT.h"
+
+
+namespace Tahoe {
 
 class LocalizerT: public UpdatedLagrangianT
 {
@@ -125,4 +128,5 @@ private: /* localization workspace */
 //	int fLocalizerConnects;
 };
 
+} // namespace Tahoe 
 #endif /* _LOCALIZER_H_ */

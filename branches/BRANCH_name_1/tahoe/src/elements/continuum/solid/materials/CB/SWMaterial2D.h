@@ -1,4 +1,4 @@
-/* $Id: SWMaterial2D.h,v 1.2 2001-07-03 01:35:00 paklein Exp $ */
+/* $Id: SWMaterial2D.h,v 1.2.6.1 2002-06-27 18:03:01 cjkimme Exp $ */
 /* created: paklein (08/25/1996)                                          */
 
 #ifndef _SWMATERIAL2D_H_
@@ -7,6 +7,9 @@
 /* base classes */
 #include "NL_E_RotMat2DT.h"
 #include "SWDataT.h"
+
+
+namespace Tahoe {
 
 class SWMaterial2D: public NL_E_RotMat2DT, public SWDataT
 {
@@ -20,4 +23,5 @@ public:
 	
 };
 
+} // namespace Tahoe 
 #endif /* _SWMATERIAL2D_H_ */

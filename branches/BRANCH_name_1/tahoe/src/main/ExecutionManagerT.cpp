@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.cpp,v 1.7 2002-03-02 20:17:14 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.7.4.1 2002-06-27 18:02:53 cjkimme Exp $ */
 /* created: paklein (08/27/1997) */
 
 #include "ExecutionManagerT.h"
@@ -17,6 +17,9 @@
 #include "StringT.h"
 
 /* maximum batch file recursion depth */
+
+using namespace Tahoe;
+
 const int kMaxRecursionDepth = 10;
 
 /* Constructor */

@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.9 2002-06-08 20:20:43 paklein Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.9.2.1 2002-06-27 18:03:39 cjkimme Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -13,6 +13,9 @@
 #include "StringT.h"
 
 /* number of elastic material properties : isotropic and cubic */
+
+using namespace Tahoe;
+
 const int kNumMatProp = 3;
 
 /* number of slip systems based on crystal structure */

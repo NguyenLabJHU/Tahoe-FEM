@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.4 2001-07-13 02:17:36 paklein Exp $ */
+/* $Id: MLSSolverT.h,v 1.4.6.1 2002-06-27 18:04:09 cjkimme Exp $ */
 /* created: paklein (12/08/1999) */
 
 #ifndef _MLS_SOLVER_T_H_
@@ -17,6 +17,9 @@
 #include "MeshFreeT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class BasisT;
 
 /** class to calculate MLS shape functions and derivatives */
@@ -249,4 +252,5 @@ inline const dArrayT& MLSSolverT::DDb(int component) const
 	return fDDb[component];
 }
 
+} // namespace Tahoe 
 #endif /* _MLS_SOLVER_T_H_ */

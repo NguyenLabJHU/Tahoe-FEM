@@ -15,6 +15,9 @@
 #include "dArray2DT.h"
 #include "dMatrixT.h"
 
+
+using namespace Tahoe;
+
 const int     kNSD = 3;
 const double sqrt3 = sqrt(3.0);
 

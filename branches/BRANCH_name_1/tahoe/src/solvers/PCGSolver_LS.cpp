@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.5 2002-06-08 20:20:55 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.5.2.1 2002-06-27 18:04:18 cjkimme Exp $ */
 /* created: paklein (08/19/1999) */
 
 #include "PCGSolver_LS.h"
@@ -14,6 +14,9 @@
 #include "DiagonalMatrixT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	NLSolver(fe_manager, group),
 	fPreconditioner(0) //TEMP

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.2 2001-07-03 01:35:42 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.2.6.1 2002-06-27 18:03:51 cjkimme Exp $ */
 /* created: paklein (06/09/1997)                                          */
 
 #include "SSSolidMatT.h"
@@ -8,6 +8,9 @@
 #include "ThermalDilatationT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 SSSolidMatT::SSSolidMatT(ifstreamT& in, const SmallStrainT& element):
 	StructuralMaterialT(in, element),
 	fSmallStrain(element),

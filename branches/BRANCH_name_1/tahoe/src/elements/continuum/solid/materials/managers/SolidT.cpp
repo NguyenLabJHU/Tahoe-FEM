@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.14 2002-06-20 01:18:58 thao Exp $ */
+/* $Id: SolidT.cpp,v 1.14.2.1 2002-06-27 18:03:29 cjkimme Exp $ */
 /* created: paklein (03/10/2001)                                          */
 
 #include "SolidT.h"
@@ -7,6 +7,9 @@
 #include "ExceptionCodes.h"
 
 /* stream extraction operator */ 
+
+namespace Tahoe {
+
 istream& operator>>(istream& in, SolidT::SolidT& code)
 {
 	int i_code;
@@ -130,4 +133,6 @@ istream& operator>>(istream& in, SolidT::SolidT& code)
 			throw eBadInputValue;	
 	}
 	return in;
+}
+
 }

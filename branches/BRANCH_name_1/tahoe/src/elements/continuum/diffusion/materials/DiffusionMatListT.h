@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatListT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: DiffusionMatListT.h,v 1.1.1.1.10.1 2002-06-27 18:03:28 cjkimme Exp $ */
 /* created: paklein (10/02/1999)                                          */
 
 #ifndef _DIFFUSE_MAT_LIST_T_H_
@@ -8,6 +8,9 @@
 #include "MaterialListT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class DiffusionT;
 
 class DiffusionMatListT: public MaterialListT
@@ -27,4 +30,5 @@ private:
 
 };
 
+} // namespace Tahoe 
 #endif /* _DIFFUSE_MAT_LIST_T_H_ */

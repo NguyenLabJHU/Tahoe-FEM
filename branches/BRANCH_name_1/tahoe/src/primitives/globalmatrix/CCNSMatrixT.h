@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.h,v 1.6 2002-04-02 23:38:43 paklein Exp $ */
+/* $Id: CCNSMatrixT.h,v 1.6.4.1 2002-06-27 18:04:04 cjkimme Exp $ */
 /* created: paklein (03/04/1998)                                          */
 /* This is the interface for a non-symmetric matrix stored in             */
 /* Compact Column form.                                                   */
@@ -44,6 +44,8 @@
 
 /* direct members */
 #include "LinkedListT.h"
+
+namespace Tahoe {
 
 class CCNSMatrixT: public GlobalMatrixT
 {
@@ -196,4 +198,5 @@ inline int CCNSMatrixT::BandWidth(int eqnum) const
 	return (eqnum == 0) ? 0 : famax[eqnum+1] - famax[eqnum];
 }
 
+} // namespace Tahoe 
 #endif /* _CCNSMATRIX_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: PolyBasis3DT.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: PolyBasis3DT.h,v 1.1.1.1.10.1 2002-06-27 18:04:13 cjkimme Exp $ */
 /* created: paklein (04/19/2000)                                          */
 
 #ifndef _POLYBASIS_3D_T_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "BasisT.h"
+
+
+namespace Tahoe {
 
 class PolyBasis3DT: public BasisT
 {
@@ -22,4 +25,5 @@ public:
 
 };
 
+} // namespace Tahoe 
 #endif /* _POLYBASIS_3D_T_H_ */

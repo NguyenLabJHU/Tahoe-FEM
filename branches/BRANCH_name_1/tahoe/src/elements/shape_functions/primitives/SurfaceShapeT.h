@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.h,v 1.5 2002-06-08 20:20:54 paklein Exp $ */
+/* $Id: SurfaceShapeT.h,v 1.5.2.1 2002-06-27 18:04:16 cjkimme Exp $ */
 /* created: paklein (11/21/1997) */
 
 #ifndef _SURFACE_SHAPE_T_H_
@@ -23,6 +23,9 @@
  * (2) coords.NumNodes() == fTotalNodes: the facet geometry
  * is assumed to be the average of the coordinates
  * on the upper and lower facets. */
+
+namespace Tahoe {
+
 class SurfaceShapeT: public DomainIntegrationT
 {
 public:
@@ -252,4 +255,5 @@ inline const dArrayT& SurfaceShapeT::InterpolateJumpU(const LocalArrayT& nodal)
 	return fInterp;
 }
 
+} // namespace Tahoe 
 #endif /* _SURFACE_SHAPE_T_H_ */

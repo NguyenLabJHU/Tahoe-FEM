@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: EAMFCC3D.h,v 1.1.1.1.10.1 2002-06-27 18:03:07 cjkimme Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAMFCC3D.h                                                             */
 
@@ -9,6 +9,9 @@
 #include "CBLatticeT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ifstreamT;
 class dMatrixT;
 class dSymMatrixT;
@@ -71,4 +74,5 @@ protected:
 	    	
 };
 
+} // namespace Tahoe 
 #endif /* _EAMFCC3D_H_ */

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.2 2001-07-03 01:34:58 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.2.6.1 2002-06-27 18:02:55 cjkimme Exp $ */
 /* created: paklein (05/09/2000)                                          */
 /* NOTE: pick the base class for this based on the                        */
 /* weak form equations it's supposed to fit into                          */
@@ -26,6 +26,9 @@
 #include "f2c.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class SpectralDecompT;
 
 class ABAQUS_UMAT_BaseT: public FDStructMatT
@@ -201,5 +204,6 @@ inline GlobalT::SystemTypeT ABAQUS_UMAT_BaseT::TangentType(void) const
 	return fTangentType;
 }
 
+} // namespace Tahoe 
 #endif /* __F2C__ */
 #endif /* _ABAQUS_UMAT_BASE_T_H_ */

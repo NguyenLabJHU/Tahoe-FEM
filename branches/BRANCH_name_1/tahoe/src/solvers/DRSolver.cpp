@@ -1,4 +1,4 @@
-/* $Id: DRSolver.cpp,v 1.3 2002-06-08 20:20:55 paklein Exp $ */
+/* $Id: DRSolver.cpp,v 1.3.2.1 2002-06-27 18:04:17 cjkimme Exp $ */
 /* created: PAK/CBH (10/03/1996) */
 
 #include "DRSolver.h"
@@ -12,6 +12,9 @@
 #include "CCSMatrixT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 DRSolver::DRSolver(FEManagerT& fe_manager, int group): 
 	NLSolver(fe_manager, group)
 {

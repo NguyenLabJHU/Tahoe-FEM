@@ -27,6 +27,9 @@
 #include "KineticEqnBase.h"
 #include "dArrayT.h"
 
+
+namespace Tahoe {
+
 class EVPFDBaseT;
 
 class BCJKineticEqn : public KineticEqnBase
@@ -68,4 +71,5 @@ class BCJKineticEqn : public KineticEqnBase
   double fC19, fC20, fC21;
 };
 
+} // namespace Tahoe 
 #endif  /* _BCJ_KINETIC_EQN_H_ */

@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.7 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.7.2.1 2002-06-27 18:02:41 cjkimme Exp $ */
 /* created: paklein (12/11/1997) */
 
 #include "ContactT.h"
@@ -15,6 +15,9 @@
 // Do directly or add call to FEManagerT?
 
 /* constructor */
+
+using namespace Tahoe;
+
 ContactT::ContactT(const ElementSupportT& support, const FieldT& field, int numfacetnodes):
 	ElementBaseT(support, field),
 	fNumFacetNodes(numfacetnodes)

@@ -1,4 +1,4 @@
-/* $Id: SSKStV2D.cpp,v 1.2 2001-07-03 01:35:11 paklein Exp $ */
+/* $Id: SSKStV2D.cpp,v 1.2.6.1 2002-06-27 18:03:13 cjkimme Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "SSKStV2D.h"
@@ -6,6 +6,9 @@
 #include "ThermalDilatationT.h"
 
 /* element output data */
+
+using namespace Tahoe;
+
 const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {"phi", "J2_dev", "p"};
 

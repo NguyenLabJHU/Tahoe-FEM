@@ -1,4 +1,4 @@
-/* $Id: HookeanMatT.h,v 1.2 2001-07-03 01:35:05 paklein Exp $ */
+/* $Id: HookeanMatT.h,v 1.2.6.1 2002-06-27 18:03:10 cjkimme Exp $ */
 /* created: paklein (06/09/1997)                                          */
 /* Base class for all Hookean materials, defined as:                      */
 /* 	stress_ij = moduli_ijkl strain_kl                                     */
@@ -7,10 +7,17 @@
 #define _HOOKEAN_MAT_H_
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dSymMatrixT;
+
+}
 
 /* direct members */
 #include "dMatrixT.h"
+
+namespace Tahoe {
 
 class HookeanMatT
 {
@@ -43,4 +50,5 @@ private:
 	dMatrixT fModulus;
 };
 
+} // namespace Tahoe 
 #endif /* _HOOKEAN_MAT_H_ */

@@ -12,6 +12,9 @@
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 
+
+namespace Tahoe {
+
 class ifstreamT;
 class ElasticT;
 
@@ -43,4 +46,5 @@ class LocalCrystalPlastFp2D : public LocalCrystalPlastFp, public Material2DT
   dMatrixT f2Dcavg_ijkl;
 };
 
+} // namespace Tahoe 
 #endif /* _LOCAL_CRYSTAL_PLAST_FP_2D_H_ */

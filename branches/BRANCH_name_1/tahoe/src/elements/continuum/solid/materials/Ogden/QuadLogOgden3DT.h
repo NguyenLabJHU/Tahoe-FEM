@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden3DT.h,v 1.2 2001-07-03 01:35:13 paklein Exp $ */
+/* $Id: QuadLogOgden3DT.h,v 1.2.6.1 2002-06-27 18:03:14 cjkimme Exp $ */
 /* created: paklein (02/17/2001)                                          */
 /* principal stretch version of Quad Log model                            */
 
@@ -7,6 +7,9 @@
 
 /* base class */
 #include "OgdenIsotropicT.h"
+
+
+namespace Tahoe {
 
 class QuadLogOgden3DT: public OgdenIsotropicT
 {
@@ -35,4 +38,5 @@ protected:
 	dArrayT flogE;
 };
 
+} // namespace Tahoe 
 #endif /* _QUAD_LOG_ISO_3D_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupport2DT.cpp,v 1.5 2002-02-21 02:42:08 paklein Exp $ */
+/* $Id: MeshFreeSupport2DT.cpp,v 1.5.4.1 2002-06-27 18:04:09 cjkimme Exp $ */
 /* created: paklein (09/10/1998)                                          */
 /* MLS shape function support for 2D                                      */
 
@@ -11,6 +11,9 @@
 #include "Constants.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
+
+
+using namespace Tahoe;
 
 static    int Max(int a, int b) { return (a > b) ? a : b; };
 static double Max(double a, double b) { return (a > b) ? a : b; };

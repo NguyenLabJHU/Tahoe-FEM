@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.16 2002-03-04 17:22:01 raregue Exp $ */
+/* $Id: DetCheckT.cpp,v 1.16.4.1 2002-06-27 18:03:50 cjkimme Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -11,6 +11,9 @@
 #include "dTensor4DT.h"
 
 /* constants */
+
+using namespace Tahoe;
+
 const double Pi = acos(-1.0);
 
 /* constructor */

@@ -1,4 +1,4 @@
-/* $Id: eTrapezoid.cpp,v 1.2 2002-04-02 23:19:25 paklein Exp $ */
+/* $Id: eTrapezoid.cpp,v 1.2.4.1 2002-06-27 18:02:32 cjkimme Exp $ */
 /* created: paklein (10/03/1999)                                          */
 
 #include "eTrapezoid.h"
@@ -7,6 +7,9 @@
 #include "ExceptionCodes.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 eTrapezoid::eTrapezoid(void) { }
 
 /* returns 1 if the algorithm requires M, C, or K and sets const equal

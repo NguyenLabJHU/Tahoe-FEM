@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.h,v 1.4 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.h,v 1.4.2.1 2002-06-27 18:02:47 cjkimme Exp $ */
 /* created: paklein (07/03/1996) */
 
 #ifndef _UPDATED_LAGRANGIAN_T_H_
@@ -11,6 +11,9 @@
 #include "dMatrixT.h"
 
 /** update Lagrangian, finite strain solid */
+
+namespace Tahoe {
+
 class UpdatedLagrangianT: public FiniteStrainT
 {
 public:
@@ -53,6 +56,7 @@ protected:
 	virtual void ComputeEffectiveDVA(int formBody,
 		int formMa, double constMa, int formCv, double constCv,
 		int formKd, double constKd);
+} // namespace Tahoe 
 #endif
 
 	/* calculate the internal force contribution ("-k*d") */
@@ -74,4 +78,5 @@ protected:
 	dArrayT fTemp2;
 };
 
+} // namespace Tahoe 
 #endif /* _UPDATED_LAGRANGIAN_T_H_ */

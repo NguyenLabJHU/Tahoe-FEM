@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.5 2002-02-20 23:06:30 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.5.4.1 2002-06-27 18:02:50 cjkimme Exp $ */
 /* created: paklein (02/15/2000) */
 
 #include "MeshFreeFractureSupportT.h"
@@ -16,6 +16,9 @@
 #include "SamplingSurfaceT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 MeshFreeFractureSupportT::MeshFreeFractureSupportT(ifstreamT& in):
 	MeshFreeElementSupportT(in),
 	fCriterion(kNoCriterion)
@@ -69,6 +72,8 @@ void MeshFreeFractureSupportT::ResetStep(void)
 * Protected
 ***********************************************************************/
 
+namespace Tahoe {
+
 istream& operator>>(istream& in, MeshFreeFractureSupportT::FractureCriterionT& criterion)
 {
 	int i_criterion = -1;
@@ -94,6 +99,8 @@ istream& operator>>(istream& in, MeshFreeFractureSupportT::FractureCriterionT& c
 	}
 	return in;
 }
+
+} // namespace Tahoe
 
 /* initialization */
 void MeshFreeFractureSupportT::InitSupport(ifstreamT& in, ostream& out,

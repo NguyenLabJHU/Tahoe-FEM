@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.cpp,v 1.4 2002-06-08 20:20:49 paklein Exp $ */
+/* $Id: AugLagSphereT.cpp,v 1.4.2.1 2002-06-27 18:03:57 cjkimme Exp $ */
 /* created: paklein (03/24/1999) */
 
 #include "AugLagSphereT.h"
@@ -13,6 +13,9 @@
 #include "FieldT.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 const int kNumAugLagDOF = 1;
 
 /* constructor */

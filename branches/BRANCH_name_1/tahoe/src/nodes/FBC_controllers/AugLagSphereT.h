@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.h,v 1.3 2002-06-08 20:20:49 paklein Exp $ */
+/* $Id: AugLagSphereT.h,v 1.3.2.1 2002-06-27 18:03:57 cjkimme Exp $ */
 /* created: paklein (03/24/1999) */
 
 #ifndef _AUGLAG_SPHERE_T_H_
@@ -9,6 +9,9 @@
 #include "DOFElementT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class XDOF_ManagerT;
 class FieldT;
 
@@ -82,4 +85,5 @@ private:
 	dArrayT fLastDOF;
 };
 
+} // namespace Tahoe 
 #endif /* _AUGLAG_SPHERE_T_H_ */

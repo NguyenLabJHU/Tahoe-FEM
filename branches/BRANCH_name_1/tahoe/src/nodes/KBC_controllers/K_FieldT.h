@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.h,v 1.4 2002-06-08 20:20:51 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.4.2.1 2002-06-27 18:03:59 cjkimme Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _K_FIELD_T_H_
@@ -14,6 +14,9 @@
 #include "dArray2DT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ElementBaseT;
 class IsotropicT;
 class Material2DT;
@@ -110,4 +113,5 @@ protected:
 	dArrayT fLastTipCoords;
 };
 
+} // namespace Tahoe 
 #endif /* _K_FIELD_T_H_ */

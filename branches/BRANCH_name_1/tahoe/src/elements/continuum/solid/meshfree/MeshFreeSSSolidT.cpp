@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.9 2002-06-08 20:20:25 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.9.2.1 2002-06-27 18:02:49 cjkimme Exp $ */
 /* created: paklein (09/11/1998) */
 
 #include "MeshFreeSSSolidT.h"
@@ -17,6 +17,9 @@
 #include "StructuralMaterialT.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 const double Pi = acos(-1.0);
 
 /* constructor */

@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.cpp,v 1.2 2001-07-03 01:35:14 paklein Exp $ */
+/* $Id: QuadLog2D.cpp,v 1.2.6.1 2002-06-27 18:03:16 cjkimme Exp $ */
 /* created: paklein (06/28/1997)                                          */
 /* (2D <-> 3D) translator for the QuadLog3D.                              */
 
@@ -7,6 +7,9 @@
 #include <iostream.h>
 
 /* constructor */
+
+using namespace Tahoe;
+
 QuadLog2D::QuadLog2D(ifstreamT& in, const FiniteStrainT& element):
 	QuadLog3D(in, element),
 	Material2DT(in, kPlaneStrain),

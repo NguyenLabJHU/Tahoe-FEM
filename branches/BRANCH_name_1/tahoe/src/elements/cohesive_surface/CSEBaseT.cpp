@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.9 2002-06-08 20:20:16 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.9.2.1 2002-06-27 18:02:36 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -16,6 +16,9 @@
 #include "ModelManagerT.h"
 
 /* initialize static data */
+
+using namespace Tahoe;
+
 const int CSEBaseT::NumNodalOutputCodes = 5;
 const int CSEBaseT::NumElementOutputCodes = 3;
 

@@ -7,6 +7,9 @@
 
 #include "SlipKinetics.h"
 
+
+namespace Tahoe {
+
 class PolyCrystalMatT;
 
 class HaasenKinetics: public SlipKinetics
@@ -40,4 +43,5 @@ class HaasenKinetics: public SlipKinetics
   double ComputeInternalQnts(double& tau, const int is);
 };
 
+} // namespace Tahoe 
 #endif  /* _HAASEN_KINETICS_H_ */

@@ -8,6 +8,9 @@
 #include "ifstreamT.h"
 
 // base class
+
+using namespace Tahoe;
+
 VoidGrowthModelImp::VoidGrowthModelImp():
   fm (0.0)
 { }

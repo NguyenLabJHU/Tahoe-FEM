@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.3 2002-06-11 15:18:56 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.3.2.1 2002-06-27 18:02:33 cjkimme Exp $ */
 #include "ElementSupportT.h"
 #include "FEManagerT.h"
 #include "NodeManagerT.h"
@@ -7,6 +7,9 @@
 #include "FieldT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 ElementSupportT::ElementSupportT(void)
 {
 	/* clear */

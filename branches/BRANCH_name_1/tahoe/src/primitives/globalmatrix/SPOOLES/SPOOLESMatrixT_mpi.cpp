@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.6 2002-03-22 01:33:40 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.6.4.1 2002-06-27 18:04:06 cjkimme Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT_mpi.h"
@@ -11,6 +11,9 @@
 #include "MSRBuilderT.h"
 
 /* message file name */
+
+using namespace Tahoe;
+
 const char SPOOLES_FILE_ROOT[] = "SPOOLES";
 const char  SPOOLES_FILE_EXT[] = ".out";
 

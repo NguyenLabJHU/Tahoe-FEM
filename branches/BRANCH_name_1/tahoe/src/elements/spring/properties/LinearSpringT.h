@@ -1,4 +1,4 @@
-/* $Id: LinearSpringT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: LinearSpringT.h,v 1.1.1.1.10.1 2002-06-27 18:03:54 cjkimme Exp $ */
 /* created: paklein (11/20/1996)                                          */
 
 #ifndef _LINEARSPRINGT_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "RodMaterialT.h"
+
+
+namespace Tahoe {
 
 class LinearSpringT: public RodMaterialT
 {
@@ -28,4 +31,5 @@ private:
 	double	fSpringConstant;
 };
 
+} // namespace Tahoe 
 #endif /* _LINEARSPRINGT_H_ */

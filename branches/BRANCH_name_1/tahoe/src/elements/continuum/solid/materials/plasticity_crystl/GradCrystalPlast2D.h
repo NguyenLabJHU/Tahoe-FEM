@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast2D.h,v 1.2 2001-07-03 01:35:34 paklein Exp $ */
+/* $Id: GradCrystalPlast2D.h,v 1.2.6.1 2002-06-27 18:03:38 cjkimme Exp $ */
 /*
   File: GradCrystalPlast2D.h
 */
@@ -12,6 +12,9 @@
 #include "ArrayT.h"
 #include "dArray2DT.h"
 #include "LocalArrayT.h"
+
+
+namespace Tahoe {
 
 class GradCrystalPlast2D: public GradCrystalPlast, public Material2DT
 {
@@ -42,4 +45,5 @@ class GradCrystalPlast2D: public GradCrystalPlast, public Material2DT
 
 };
 
+} // namespace Tahoe 
 #endif /* _GRAD_CRYSTAL_PLAST_2D_H_ */

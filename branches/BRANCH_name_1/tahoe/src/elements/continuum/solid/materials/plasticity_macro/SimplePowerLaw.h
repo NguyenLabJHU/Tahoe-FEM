@@ -16,6 +16,9 @@
 #include "ifstreamT.h"
 #include "dArrayT.h"
 
+
+namespace Tahoe {
+
 class EVPFDBaseT;
 
 class SimplePowerLaw : public KineticEqnBase
@@ -49,4 +52,5 @@ class SimplePowerLaw : public KineticEqnBase
 
 };
 
+} // namespace Tahoe 
 #endif  /* _SIMPLE_POWER_LAW */

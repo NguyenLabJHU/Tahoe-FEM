@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.h,v 1.4 2002-03-26 17:48:17 paklein Exp $ */
+/* $Id: GradCrystalPlast.h,v 1.4.4.1 2002-06-27 18:03:38 cjkimme Exp $ */
 #ifndef _GRAD_CRYSTAL_PLAST_H_
 #define _GRAD_CRYSTAL_PLAST_H_
 
@@ -9,6 +9,9 @@
 #include "ArrayT.h"
 #include "dArray2DT.h"
 #include "LocalArrayT.h"
+
+
+namespace Tahoe {
 
 class GradCrystalPlast : public LocalCrystalPlast
 {
@@ -124,5 +127,6 @@ class GradCrystalPlast : public LocalCrystalPlast
   dArrayT fnormHard;
 };
 
+} // namespace Tahoe 
 #endif /* _GRAD_CRYSTAL_PLAST_H_ */
 

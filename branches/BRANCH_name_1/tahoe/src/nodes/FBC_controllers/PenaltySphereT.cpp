@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.cpp,v 1.2 2002-06-08 20:20:49 paklein Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.2.2.1 2002-06-27 18:03:58 cjkimme Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltySphereT.h"
@@ -12,6 +12,9 @@
 #include "eControllerT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 PenaltySphereT::PenaltySphereT(FEManagerT& fe_manager,
 	int group,
 	const iArray2DT& eqnos,

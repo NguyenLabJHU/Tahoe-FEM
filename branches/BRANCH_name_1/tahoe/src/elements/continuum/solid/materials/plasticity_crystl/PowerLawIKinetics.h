@@ -7,6 +7,9 @@
 
 #include "SlipKinetics.h"
 
+
+namespace Tahoe {
+
 class PolyCrystalMatT;
 
 class PowerLawIKinetics: public SlipKinetics
@@ -48,4 +51,5 @@ class PowerLawIKinetics: public SlipKinetics
   double fkmax;
 };
 
+} // namespace Tahoe 
 #endif  /* _POWER_LAW_I_KINETICS_H_ */

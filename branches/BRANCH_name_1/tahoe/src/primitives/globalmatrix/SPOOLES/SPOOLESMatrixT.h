@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.h,v 1.7 2002-04-02 23:38:44 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.h,v 1.7.4.1 2002-06-27 18:04:06 cjkimme Exp $ */
 /* created: paklein (09/13/2000) */
 
 #ifndef _SPOOLES_MATRIX_T_H_
@@ -18,6 +18,9 @@
 #include "nVariMatrixT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class MSRBuilderT;
 
 /** interface to SPOOLES sparse, direct linear solver */
@@ -150,6 +153,7 @@ protected:
 	int fSolveCount;
 };
 
+} // namespace Tahoe 
 #endif /*__SPOOLES__ */
 #endif /* _SPOOLES_MATRIX_T_H_ */
 

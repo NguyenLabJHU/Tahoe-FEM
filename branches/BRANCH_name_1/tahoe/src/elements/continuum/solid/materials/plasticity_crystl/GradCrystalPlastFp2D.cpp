@@ -8,6 +8,9 @@
 #include "ifstreamT.h"
 
 /* spatial dimensions of the problem */
+
+using namespace Tahoe;
+
 const int kNSD = 2;
 
 GradCrystalPlastFp2D::GradCrystalPlastFp2D(ifstreamT& in, const FiniteStrainT& element) :

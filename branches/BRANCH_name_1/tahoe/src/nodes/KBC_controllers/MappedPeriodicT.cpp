@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.cpp,v 1.5 2002-06-08 20:20:51 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.5.2.1 2002-06-27 18:03:59 cjkimme Exp $ */
 /* created: paklein (04/07/1997) */
 
 #include "MappedPeriodicT.h"
@@ -9,6 +9,9 @@
 #include "BasicFieldT.h"
 
 /* column indeces */
+
+using namespace Tahoe;
+
 const int kMaster = 0;
 const int kSlave  = 1;
 

@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.h,v 1.4 2002-06-08 20:20:51 paklein Exp $ */
+/* $Id: MappedPeriodicT.h,v 1.4.2.1 2002-06-27 18:03:59 cjkimme Exp $ */
 /* created: paklein (04/07/1997) */
 
 #ifndef _MAPPED_PERIODIC_T_H
@@ -15,6 +15,9 @@
 #include "ScheduleT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class BasicFieldT;
 
 /** boundary condition class for finite deformation elasto-static with 2 
@@ -77,4 +80,5 @@ protected:
 	ArrayT<KBC_CardT> fSlaveCards;
 };
 
+} // namespace Tahoe 
 #endif /* _MAPPED_PERIODIC_T_H */

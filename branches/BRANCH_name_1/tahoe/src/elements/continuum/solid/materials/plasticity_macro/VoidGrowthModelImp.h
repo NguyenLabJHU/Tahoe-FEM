@@ -8,6 +8,9 @@
 #include "ios_fwd_decl.h"
 #include "EVPFDBaseT.h"
 
+
+namespace Tahoe {
+
 class VoidGrowthModelImp
 {
  public:
@@ -102,4 +105,5 @@ class SofronisVGModel: public VoidGrowthModelImp
  private:
 };
 
+} // namespace Tahoe 
 #endif /*  _VOID_GROWTH_MODEL_IMP_H_ */

@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.4 2002-06-08 20:20:49 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.4.2.1 2002-06-27 18:03:58 cjkimme Exp $ */
 /* created: paklein (02/25/1997)                                          */
 
 #include "PenaltyWallT.h"
@@ -12,6 +12,9 @@
 #include "FEManagerT.h"
 #include "eControllerT.h"
 #include "Vector3T.h"
+
+
+using namespace Tahoe;
 
 const double Pi = acos(-1.0);
 

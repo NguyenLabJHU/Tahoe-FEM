@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.2 2002-06-08 20:20:47 paklein Exp $ */
+/* $Id: FieldT.h,v 1.2.2.1 2002-06-27 18:03:56 cjkimme Exp $ */
 
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
@@ -17,6 +17,9 @@
 #include "AutoArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class LocalArrayT;
 class nControllerT;
 class KBC_ControllerT;
@@ -300,4 +303,5 @@ inline void FieldT::SetLocalEqnos(const iArrayT& tags,
 	eqnos.RowCollect(tags,fEqnos);
 }
 
+} // namespace Tahoe 
 #endif /* _FIELD_T_H_ */

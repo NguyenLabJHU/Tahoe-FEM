@@ -1,4 +1,4 @@
-/* $Id: povirk2D.cpp,v 1.2 2002-06-08 20:20:46 paklein Exp $ */
+/* $Id: povirk2D.cpp,v 1.2.2.1 2002-06-27 18:03:55 cjkimme Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (09/10/2001) */
 
@@ -11,6 +11,9 @@
 #include "ElementCardT.h"
 
 /* element output data */
+
+using namespace Tahoe;
+
 const int kNumOutput = 4;   // # of internal variables
 const double kYieldTol = 1.0e-16;   // Yield stress criteria
 const int kVoigt = 4;    // 4 components in 2D voigt notation

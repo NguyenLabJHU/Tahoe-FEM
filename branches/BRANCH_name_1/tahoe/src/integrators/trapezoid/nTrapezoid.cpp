@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.cpp,v 1.3 2002-06-08 20:20:13 paklein Exp $ */
+/* $Id: nTrapezoid.cpp,v 1.3.2.1 2002-06-27 18:02:32 cjkimme Exp $ */
 /* created: paklein (10/03/1999) */
 
 #include "nTrapezoid.h"
@@ -10,6 +10,9 @@
 #include "BasicFieldT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 nTrapezoid::nTrapezoid(void) { }
 
 /* consistent BC's */

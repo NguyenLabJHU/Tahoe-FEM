@@ -1,10 +1,13 @@
-/* $Id: VirtualSWDC.h,v 1.2 2002-06-08 20:20:26 paklein Exp $ */
+/* $Id: VirtualSWDC.h,v 1.2.2.1 2002-06-27 18:02:51 cjkimme Exp $ */
 /* created: paklein (05/05/1997) */
 #ifndef _VIRTUAL_SWDC_H_
 #define _VIRTUAL_SWDC_H_
 
 /* base class */
 #include "SWDiamondT.h"
+
+
+namespace Tahoe {
 
 class VirtualSWDC: public SWDiamondT
 {
@@ -37,4 +40,5 @@ private:
 	iArray2DT fVNodePairs;
 };
 
+} // namespace Tahoe 
 #endif /* _VIRTUAL_SWDC_H_ */

@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.h,v 1.3 2002-03-22 01:33:39 paklein Exp $ */
+/* $Id: SLUMatrix.h,v 1.3.4.1 2002-06-27 18:04:04 cjkimme Exp $ */
 /* created: rbridson (06/30/2000) */
 
 #ifndef _SLU_MATRIX_H_
@@ -20,6 +20,9 @@
 #include "superlu.h"
 
 /** interface to SuperLU solver library */
+
+namespace Tahoe {
+
 class SLUMatrix: public GlobalMatrixT
 {
 public:
@@ -132,5 +135,6 @@ protected:
 	LinkedListT<const RaggedArray2DT<int>*> fRaggedEqnos;
 };
 
+} // namespace Tahoe 
 #endif /* __SUPERLU__ */
 #endif /* _SLU_MATRIX_H_ */

@@ -1,4 +1,4 @@
-/* $Id: VirtualRodT.h,v 1.2 2002-06-08 20:20:27 paklein Exp $ */
+/* $Id: VirtualRodT.h,v 1.2.2.1 2002-06-27 18:02:52 cjkimme Exp $ */
 /* created: paklein (05/01/1997) */
 
 #ifndef _UNCON_VROD_T_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "UnConnectedRodT.h"
+
+
+namespace Tahoe {
 
 class VirtualRodT: public UnConnectedRodT
 {
@@ -36,4 +39,5 @@ private:
 	                            //virtual node pair applies
 };
 
+} // namespace Tahoe 
 #endif /* _UNCON_VROD_T_H_ */

@@ -7,6 +7,9 @@
 #include "Utils.h"
 
 /* spatial dimension of problem */
+
+using namespace Tahoe;
+
 const int kNSD = 2;
 
 BCJHypo2D::BCJHypo2D(ifstreamT& in, const FiniteStrainT& element) :

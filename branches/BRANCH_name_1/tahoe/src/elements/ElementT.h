@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.7 2002-06-17 17:15:06 rjones Exp $ */
+/* $Id: ElementT.h,v 1.7.2.1 2002-06-27 18:02:34 cjkimme Exp $ */
 
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
@@ -7,6 +7,9 @@
 #include "ios_fwd_decl.h"
 
 /** class to define element type enumeration. */
+
+namespace Tahoe {
+
 class ElementT
 {
 public:
@@ -53,4 +56,5 @@ kPenaltyContactElement3D = 34
 	friend istream& operator>>(istream& in, ElementT::TypeT& type);
 };
 
+} // namespace Tahoe 
 #endif /* _ELEMENT_T_H_ */

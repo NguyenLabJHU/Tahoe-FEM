@@ -1,4 +1,4 @@
-/* $Id: FCCPtsT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: FCCPtsT.h,v 1.1.1.1.10.1 2002-06-27 18:03:24 cjkimme Exp $ */
 /* created: paklein (03/26/1999)                                          */
 /* FCC lattice of points                                                  */
 
@@ -7,6 +7,9 @@
 
 /* base class */
 #include "SpherePointsT.h"
+
+
+namespace Tahoe {
 
 class FCCPtsT: public SpherePointsT
 {
@@ -42,4 +45,5 @@ private:
 	double fBondLength;	// nearest neighbor bond length		
 };
 
+} // namespace Tahoe 
 #endif /* _FCC_PTS_T_H_ */

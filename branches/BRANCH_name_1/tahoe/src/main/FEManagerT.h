@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.14 2002-06-08 20:20:28 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.14.2.1 2002-06-27 18:02:53 cjkimme Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -18,6 +18,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 class ofstreamT;
 class ModelManagerT;
@@ -405,4 +408,5 @@ inline int FEManagerT::GlobalEquationStart(int group) const { return fGlobalEqua
 inline int FEManagerT::ActiveEquationStart(int group) const { return fActiveEquationStart[group]; };
 inline int FEManagerT::GlobalNumEquations(int group) const { return fGlobalNumEquations[group]; }
 
+} // namespace Tahoe 
 #endif /* _FE_MANAGER_H_ */

@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.3 2002-06-11 15:18:56 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.3.2.1 2002-06-27 18:02:34 cjkimme Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -10,6 +10,9 @@
 #include "GlobalT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class FEManagerT;
 class NodeManagerT;
 class GroupAverageT;
@@ -257,4 +260,5 @@ inline const GlobalT::StateT& ElementSupportT::RunState(void) const
 	return *fRunState;
 }
 
+} // namespace Tahoe 
 #endif /* _ELEMENT_SUPPORT_T_H_ */

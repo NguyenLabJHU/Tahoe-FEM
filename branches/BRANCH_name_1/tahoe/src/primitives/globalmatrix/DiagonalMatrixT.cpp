@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.7 2002-04-02 23:38:43 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.7.4.1 2002-06-27 18:04:04 cjkimme Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "DiagonalMatrixT.h"
@@ -9,6 +9,9 @@
 #include "ElementMatrixT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 DiagonalMatrixT::DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mode):
 	GlobalMatrixT(out, check_code)
 {

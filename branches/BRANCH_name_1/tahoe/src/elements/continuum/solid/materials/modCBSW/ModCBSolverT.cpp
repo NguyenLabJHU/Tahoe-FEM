@@ -1,4 +1,4 @@
-/* $Id: ModCBSolverT.cpp,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* $Id: ModCBSolverT.cpp,v 1.1.1.1.10.1 2002-06-27 18:03:30 cjkimme Exp $ */
 /* created: paklein (05/27/1997)                                          */
 /* Q defines the orientation of the crystals' natural coordinates         */
 /* and the global coordinate frame. Q is defined as:                      */
@@ -18,6 +18,9 @@
 #include "SW3BodyT.h"
 #include "PTHT2BodyT.h"
 #include "PTHT3BodyT.h"
+
+
+using namespace Tahoe;
 
 const int kNSD       = 3;
 const int kNumDOF    = 3;

@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.cpp,v 1.8 2002-06-08 20:20:17 paklein Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.8.2.1 2002-06-27 18:02:37 cjkimme Exp $ */
 /* created: paklein (08/21/2000) */
 
 #include "LinearDamageT.h"
@@ -10,6 +10,9 @@
 #include "fstreamT.h"
 
 /* map to internal variables */
+
+using namespace Tahoe;
+
 const int   kMaxOpening = 0;
 const int kTrialOpening = 1;
 const int kInitTraction = 2;

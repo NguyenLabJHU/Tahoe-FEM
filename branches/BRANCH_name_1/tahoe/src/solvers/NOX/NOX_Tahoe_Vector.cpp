@@ -1,10 +1,13 @@
-// $Id: NOX_Tahoe_Vector.cpp,v 1.3 2002-04-03 00:21:46 paklein Exp $
+// $Id: NOX_Tahoe_Vector.cpp,v 1.3.4.1 2002-06-27 18:04:20 cjkimme Exp $
 #include "NOX_Tahoe_Vector.h"
 
 /* optional */
 #ifdef __NOX__
 
 #include "dArrayT.h"
+
+
+using namespace Tahoe;
 
 using namespace NOX;
 using namespace NOX::Tahoe;

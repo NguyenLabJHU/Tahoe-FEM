@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.cpp,v 1.8 2002-06-08 20:20:41 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.cpp,v 1.8.2.1 2002-06-27 18:03:35 cjkimme Exp $ */
 /* created: paklein (05/01/2001) */
 
 #include "J2SimoC0HardeningT.h"
@@ -13,6 +13,9 @@
 /* hardening functions */
 #include "CubicSplineT.h"
 #include "LinearExponentialT.h"
+
+
+using namespace Tahoe;
 
 const double sqrt23    = sqrt(2.0/3.0);
 const double kYieldTol = 1.0e-10;

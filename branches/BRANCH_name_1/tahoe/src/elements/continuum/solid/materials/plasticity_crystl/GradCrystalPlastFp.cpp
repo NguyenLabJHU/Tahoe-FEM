@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.cpp,v 1.8 2002-06-08 20:20:42 paklein Exp $ */
+/* $Id: GradCrystalPlastFp.cpp,v 1.8.2.1 2002-06-27 18:03:38 cjkimme Exp $ */
 #include "GradCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -13,6 +13,9 @@
 #include "ContinuumElementT.h"
 
 /* spatial dimensions of the problem */
+
+using namespace Tahoe;
+
 const int kNSD = 3;
 
 /* useful constant */

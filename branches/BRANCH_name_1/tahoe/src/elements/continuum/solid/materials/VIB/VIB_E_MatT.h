@@ -1,4 +1,4 @@
-/* $Id: VIB_E_MatT.h,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* $Id: VIB_E_MatT.h,v 1.1.1.1.10.1 2002-06-27 18:03:19 cjkimme Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* Base class for isotropic VIB_E_MatT solvers.                           */
 
@@ -7,6 +7,9 @@
 
 /* base class */
 #include "VIB.h"
+
+
+namespace Tahoe {
 
 class VIB_E_MatT: public VIB
 {
@@ -39,4 +42,5 @@ protected:
 
 };
 
+} // namespace Tahoe 
 #endif /* _VIB_E_H_ */

@@ -1,4 +1,4 @@
-/* $Id: AztecBaseT.cpp,v 1.2 2002-03-22 19:04:18 paklein Exp $ */
+/* $Id: AztecBaseT.cpp,v 1.2.4.1 2002-06-27 18:04:06 cjkimme Exp $ */
 /* created: paklein (07/28/1998) */
 
 #include "AztecBaseT.h"
@@ -21,6 +21,9 @@
 #endif
 
 /* constructor */
+
+using namespace Tahoe;
+
 AztecBaseT::AztecBaseT(ostream& msg): 
 	fMessage(msg),
 	N_update(0), update_index(NULL),

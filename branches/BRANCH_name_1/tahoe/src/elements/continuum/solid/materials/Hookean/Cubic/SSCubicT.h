@@ -1,4 +1,4 @@
-/* $Id: SSCubicT.h,v 1.2 2001-07-03 01:35:06 paklein Exp $ */
+/* $Id: SSCubicT.h,v 1.2.6.1 2002-06-27 18:03:11 cjkimme Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #ifndef _SS_CUBIC_T_H_
@@ -7,6 +7,9 @@
 /* base classes */
 #include "SSHookeanMatT.h"
 #include "CubicT.h"
+
+
+namespace Tahoe {
 
 class SSCubicT: public SSHookeanMatT, public CubicT
 {
@@ -25,4 +28,5 @@ protected:
 	virtual void SetModulus(dMatrixT& modulus);
 };
 
+} // namespace Tahoe 
 #endif /* _SS_CUBIC_T_H_ */

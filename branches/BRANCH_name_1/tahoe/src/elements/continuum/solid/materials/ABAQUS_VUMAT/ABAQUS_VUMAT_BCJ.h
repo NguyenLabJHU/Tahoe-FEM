@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BCJ.h,v 1.3 2001-07-19 20:32:10 hspark Exp $ */
+/* $Id: ABAQUS_VUMAT_BCJ.h,v 1.3.6.1 2002-06-27 18:02:57 cjkimme Exp $ */
 
 #ifndef _ABAQUS_VUMAT_BCJ_H_
 #define _ABAQUS_VUMAT_BCJ_H_
@@ -8,6 +8,9 @@
 
 /* library support options */
 #ifdef __F2C__
+
+
+namespace Tahoe {
 
 class ABAQUS_VUMAT_BCJ: public ABAQUS_VUMAT_BaseT
 {
@@ -45,5 +48,6 @@ private:
 		ArrayT<StringT>& output_labels);
 };
 
+} // namespace Tahoe 
 #endif /* __F2C__ */
 #endif /* _ABAQUS_VUMAT_BCJ_H_ */

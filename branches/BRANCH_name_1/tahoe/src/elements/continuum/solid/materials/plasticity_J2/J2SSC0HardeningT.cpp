@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.cpp,v 1.2 2002-04-21 19:43:54 paklein Exp $ */
+/* $Id: J2SSC0HardeningT.cpp,v 1.2.2.1 2002-06-27 18:03:35 cjkimme Exp $ */
 #include "J2SSC0HardeningT.h"
 
 #include <iostream.h>
@@ -14,6 +14,9 @@
 #include "LinearExponentialT.h"
 
 /* class constants */
+
+using namespace Tahoe;
+
 const int    kNumInternal = 4; // number of internal variables
 const double sqrt23       = sqrt(2.0/3.0);
 const double kYieldTol    = 1.0e-10;

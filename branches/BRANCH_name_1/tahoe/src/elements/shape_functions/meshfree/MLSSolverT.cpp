@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.cpp,v 1.7 2001-07-03 01:35:49 paklein Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.7.6.1 2002-06-27 18:04:09 cjkimme Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #include "MLSSolverT.h"
@@ -17,6 +17,9 @@
 #include "RectCubicSplineWindowT.h"
 
 /* constants */
+
+using namespace Tahoe;
+
 const double sqrtPi = sqrt(acos(-1.0));
 
 /* constructor */

@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.5 2002-06-10 06:57:50 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.5.2.1 2002-06-27 18:02:46 cjkimme Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -21,6 +21,9 @@
 #include "DiffusionMatListT.h"
 
 /* initialize static data */
+
+using namespace Tahoe;
+
 const int DiffusionElementT::NumOutputCodes = 3;
 
 /* parameters */

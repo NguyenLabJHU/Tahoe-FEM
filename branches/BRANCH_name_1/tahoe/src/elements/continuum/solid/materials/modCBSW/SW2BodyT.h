@@ -1,4 +1,4 @@
-/* $Id: SW2BodyT.h,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* $Id: SW2BodyT.h,v 1.1.1.1.10.1 2002-06-27 18:03:30 cjkimme Exp $ */
 /* created: paklein (05/20/1997)                                          */
 
 #ifndef _SW2_BODY_T_H_
@@ -8,6 +8,9 @@
 #include "TwoBodyT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class SWDataT;
 
 class SW2BodyT: public TwoBodyT
@@ -35,4 +38,5 @@ private:
 
 };
 
+} // namespace Tahoe 
 #endif /* _SW2_BODY_T_H_ */

@@ -1,6 +1,9 @@
-/* $Id: FieldSupportT.cpp,v 1.2 2002-06-08 20:20:47 paklein Exp $ */
+/* $Id: FieldSupportT.cpp,v 1.2.2.1 2002-06-27 18:03:56 cjkimme Exp $ */
 #include "FieldSupportT.h"
 #include "FEManagerT.h"
+
+
+using namespace Tahoe;
 
 void FieldSupportT::AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const
 {

@@ -13,6 +13,9 @@
 
 /* Base Class */
 
+
+namespace Tahoe {
+
 class SlipGeometry
 {
  public:
@@ -112,5 +115,6 @@ class HCPGeometry: public SlipGeometry
   void SetSlipVectors();
 };
 
+} // namespace Tahoe 
 #endif /* _SLIP_GEOMETRY_H_ */
 

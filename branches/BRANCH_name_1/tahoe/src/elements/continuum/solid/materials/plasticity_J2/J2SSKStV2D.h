@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV2D.h,v 1.2 2001-07-03 01:35:31 paklein Exp $ */
+/* $Id: J2SSKStV2D.h,v 1.2.6.1 2002-06-27 18:03:35 cjkimme Exp $ */
 /* created: paklein (06/18/1997)                                          */
 
 #ifndef _J2_SS_KSTV_2D_H_
@@ -7,6 +7,9 @@
 /* base classes */
 #include "J2SSKStV.h"
 #include "Material2DT.h"
+
+
+namespace Tahoe {
 
 class J2SSKStV2D: public J2SSKStV, public Material2DT
 {
@@ -45,4 +48,5 @@ private:
 	dSymMatrixT	fTotalStrain3D;
 };
 
+} // namespace Tahoe 
 #endif /* _J2_SS_KSTV_2D_H_ */

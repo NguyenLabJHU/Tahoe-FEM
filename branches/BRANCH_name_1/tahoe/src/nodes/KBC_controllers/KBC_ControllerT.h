@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.6 2002-06-08 20:20:51 paklein Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.6.2.1 2002-06-27 18:03:59 cjkimme Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _KBC_CONTROLLER_T_H_
@@ -13,6 +13,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 class NodeManagerT;
 class nControllerT;
@@ -139,4 +142,5 @@ inline void KBC_ControllerT::Initialize(ifstreamT& in)
 #pragma unused(in)
 }
 
+} // namespace Tahoe 
 #endif /* _KBC_CONTROLLER_T_H_ */

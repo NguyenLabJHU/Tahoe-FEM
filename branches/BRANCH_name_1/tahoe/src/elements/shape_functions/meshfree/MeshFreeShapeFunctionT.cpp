@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.4 2001-07-13 02:17:36 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.4.6.1 2002-06-27 18:04:09 cjkimme Exp $ */
 /* created: paklein (09/10/1998)                                          */
 
 #include "MeshFreeShapeFunctionT.h"
@@ -8,6 +8,9 @@
 #include "LocalArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 	const LocalArrayT& coords, const dArray2DT& all_coords,
 	const iArray2DT& connects, const iArrayT& nongridnodes,

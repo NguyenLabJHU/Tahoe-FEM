@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.6 2001-08-14 22:28:09 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.6.6.1 2002-06-27 18:02:57 cjkimme Exp $ */
 
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
@@ -22,6 +22,9 @@
 #include "f2c.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class SpectralDecompT;
 
 /** interface for ABAQUS/Explicit VUMAT's. The class is derived
@@ -201,5 +204,6 @@ inline GlobalT::SystemTypeT ABAQUS_VUMAT_BaseT::TangentType(void) const
 	return fTangentType;
 }
 
+} // namespace Tahoe 
 #endif /* __F2C__ */
 #endif /* _ABAQUS_VUMAT_BASE_T_H_ */

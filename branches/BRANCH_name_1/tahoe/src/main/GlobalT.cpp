@@ -1,9 +1,14 @@
-/* $Id: GlobalT.cpp,v 1.5 2002-06-08 20:20:28 paklein Exp $ */
+/* $Id: GlobalT.cpp,v 1.5.2.1 2002-06-27 18:02:53 cjkimme Exp $ */
 /* created: paklein (04/01/2000) */
 
 #include "GlobalT.h"
 #include <iostream.h>
 #include "ExceptionCodes.h"
+
+
+using namespace Tahoe;
+
+namespace Tahoe {
 
 istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 {
@@ -82,6 +87,8 @@ istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 			throw eBadInputValue;	
 	}
 	return in;
+}
+
 }
 
 /* returns flag with precedence */

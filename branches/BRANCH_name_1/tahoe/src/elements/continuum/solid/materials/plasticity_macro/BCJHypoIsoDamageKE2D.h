@@ -12,6 +12,9 @@
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 
+
+namespace Tahoe {
+
 class ifstreamT;
 class ElasticT;
 
@@ -43,4 +46,5 @@ class BCJHypoIsoDamageKE2D : public BCJHypoIsoDamageKE3D, public Material2DT
   dMatrixT f2Dc_ijkl; 
 };
 
+} // namespace Tahoe 
 #endif /* _BCJ_HYPO_ISO_DAMAGE_KE_2D_ */

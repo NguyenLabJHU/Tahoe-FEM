@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.4 2002-06-08 20:20:48 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.4.2.1 2002-06-27 18:03:57 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _NODEMANAGER_T_H_
@@ -19,6 +19,9 @@
 #include "GlobalT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class FEManagerT;
 class ScheduleT;
 class LocalArrayT;
@@ -355,4 +358,5 @@ inline int NodeManagerT::NumSD(void) const
 //	return fEqnos(nodenum, dofnum);
 //}
 
+} // namespace Tahoe 
 #endif /* _NODEMANAGER_T_H_ */

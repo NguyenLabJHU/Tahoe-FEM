@@ -1,9 +1,12 @@
-/* $Id: TensorTransformT.cpp,v 1.3 2001-07-03 01:35:42 paklein Exp $ */
+/* $Id: TensorTransformT.cpp,v 1.3.6.1 2002-06-27 18:03:51 cjkimme Exp $ */
 /* created: paklein (07/02/1996)                                          */
 
 #include "TensorTransformT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 TensorTransformT::TensorTransformT(int dim):
 	fRank2(dim),
 	fRank4(dSymMatrixT::NumValues(dim)),

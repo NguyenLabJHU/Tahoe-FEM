@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.6 2002-06-08 20:20:51 paklein Exp $ */
+/* $Id: TiedNodesT.h,v 1.6.2.1 2002-06-27 18:04:00 cjkimme Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -14,12 +14,19 @@
 #include "AutoArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dArray2DT;
 class BasicFieldT;
 class FEManagerT;
 
+} 
+
 /* friends */
 #include "TiedPotentialT.h"
+
+namespace Tahoe {
 
 /** class to tie nodes together and release them under specified conditions.
  * The class accomplishes this in the following way, most of which rely on the
@@ -151,4 +158,5 @@ protected:
 	const FEManagerT& fFEManager;
 };
 
+} // namespace Tahoe 
 #endif /* _TIED_NODES_T_H_ */

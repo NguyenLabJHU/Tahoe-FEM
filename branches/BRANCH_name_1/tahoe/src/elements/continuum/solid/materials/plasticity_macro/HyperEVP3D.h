@@ -1,4 +1,4 @@
-/* $Id: HyperEVP3D.h,v 1.3 2002-03-26 17:48:18 paklein Exp $ */
+/* $Id: HyperEVP3D.h,v 1.3.4.1 2002-06-27 18:03:46 cjkimme Exp $ */
 #ifndef _HYPER_EVP_3D_H_
 #define _HYPER_EVP_3D_H_
 
@@ -10,6 +10,9 @@
 #include "dSymMatrixT.h"
 #include "dMatrixT.h"
 #include "SpectralDecompT.h"
+
+
+namespace Tahoe {
 
 class ifstreamT;
 class ElasticT;
@@ -156,4 +159,5 @@ class HyperEVP3D : public EVPFDBaseT
   dSymMatrixT fsymmatx2;
 };
 
+} // namespace Tahoe 
 #endif /* _HYPER_EVP_3D_ */
