@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.85.12.7 2004-05-11 03:59:44 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.85.12.8 2004-06-24 04:55:53 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -175,8 +175,9 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		group--;
 
 		/* read code */
-		ElementT::TypeT code;
-		in >> code;
+		int i_code;
+		in >> i_code;
+		ElementT::TypeT code = ElementT::int2TypeT(i_code);
 
 		/* check */
 		if (group < 0 || group >= Length())
