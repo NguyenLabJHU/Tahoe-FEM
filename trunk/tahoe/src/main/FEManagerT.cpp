@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.62 2003-09-02 07:03:09 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.63 2003-09-09 22:43:48 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -38,6 +38,7 @@
 #include "PCGSolver_LS.h"
 #include "iNLSolver_LS.h"
 #include "NOXSolverT.h"
+#include "NLSolver_LSX.h" //TEMP
 
 using namespace Tahoe;
 
@@ -1870,6 +1871,11 @@ SolverT* FEManagerT::New_Solver(int code, int group)
 
 		case GlobalT::kNewtonSolver_LS:				
 			solver = new NLSolver_LS(*this, group);
+			break;
+
+		//TEMP
+		case GlobalT::kNewtonSolver_LSX:				
+			solver = new NLSolver_LSX(*this, group);
 			break;
 
 		case GlobalT::kPCGSolver_LS:				
