@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.13 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.14 2003-10-04 20:32:30 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -302,7 +302,9 @@ void PenaltyRegionT::WriteOutput(ostream& out) const
 {
 	int d_width = out.precision() + kDoubleExtra;
 
-	double h_max = fGap.Min();
+	double h_max = 0.0;
+	if (fContactNodes.Length() > 0)
+		fGap.Min();
 	out << "\n P e n a l t y   R e g i o n   D a t a :\n\n";
 	out << " Maximum penetration. . . . . . . . . . . . =\n"
 	    << setw(d_width) << h_max << '\n';
