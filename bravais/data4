@@ -5,38 +5,30 @@ FCC
 3.52
 BOX
 3
-#
+1 1 0
+1 0 0
+0 1 0
+0 0 1 
+mesh3D
 
+
+------------------------------------------------------------
 * nsd
-* dimunits: length(1) or ncell(0)
-* dimensions: nsd numbers
+* whichunit: length(1) or ncell(0)
+* if (1), enter length(nsd,2) ; if (0) enter ncell(nsd)
 * latticetype
 * alat
 * shape
-* format of the output (see below)
-  if format output = 12, then give nsd periodic conditions
-* either
-  # 
-  or 
-  ROT
-  or
-  OUTPUT
-* if # stop
-  else if ROT then continue to **
-  else if OUTPUT then continue to ***
-**  rotation matrix, 9 components on 3 lines (in 3D) 
-    or 
-    rotation angle in degree (in 2D)
-*** input (default is example)
+* format output (see below)
+* periodic condition: per(nsd)
+* read either rotation angle in 2D or rotation matrix in 3D.
+(rk: if no rotation put either 0 or identity matrix).
+* name of output file
+
+Test of rotation in 3D : cells, no rotation. 
 
 
-
-
------------------------------------------------------------
-Test of coordinates in 3D (cells) 
-		
-
-                case 0:
+		case 0:
 			return IOBaseT::kTahoe;
 		case 1:
 			return IOBaseT::kTahoeII;

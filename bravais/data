@@ -5,24 +5,27 @@ FCC
 3.52
 BOX
 3
-ROT
+1 0
 45
-#
-
-nsd
-dimunits: length(1) or ncell(0)
-dimensions: nsd numbers
-latticetype
-alat
-shape
-format output (see below)
-# or rotation angle in degree
-
-Test of rotation in 2D
+mesh2D
 
 
-	switch (i)
-	{
+------------------------------------------------------------
+* nsd
+* whichunit: length(1) or ncell(0)
+* if (1), enter length(nsd,2) ; if (0) enter ncell(nsd)
+* latticetype
+* alat
+* shape
+* format output (see below)
+* periodic condition: per(nsd)
+* read either rotation angle in 2D or rotation matrix in 3D.
+(rk: if no rotation put either 0 or identity matrix).
+* name of output file
+
+Test of rotation in 2D:cells, rotation. 
+
+
 		case 0:
 			return IOBaseT::kTahoe;
 		case 1:
@@ -49,4 +52,3 @@ Test of rotation in 2D
 	                return IOBaseT::kTahoeResults;
 	       case 12:
 	                return IOBaseT::kParaDyn;
-        }

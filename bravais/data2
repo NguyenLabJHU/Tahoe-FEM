@@ -5,10 +5,12 @@ FCC
 3.52
 BOX
 5
-ROT
+1 1
 45
-#
+mesh2D
 
+
+------------------------------------------------------------
 * nsd
 * whichunit: length(1) or ncell(0)
 * if (1), enter length(nsd,2) ; if (0) enter ncell(nsd)
@@ -16,13 +18,12 @@ ROT
 * alat
 * shape
 * format output (see below)
-     if 12,  enter periodic condition per(nsd)
-* either
-     ROT then rotation angle in degree
-  or 
-     #
+* periodic condition: per(nsd)
+* read either rotation angle in 2D or rotation matrix in 3D.
+(rk: if no rotation put either 0 or identity matrix).
+* name of output file
 
-Test of rotation in 2D (cells). 
+Test of rotation in 2D: cells,rotation. 
 
 
 		case 0:
