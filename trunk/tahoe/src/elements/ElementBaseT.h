@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.12 2002-07-05 22:27:56 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.13 2002-07-19 20:17:20 hspark Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -200,6 +200,9 @@ public:
 	 * \param weight array length number of nodes */
 	virtual void WeightNodalCost(iArrayT& weight) const;
 
+	/** moved from protected to public by HSP on 7-19-02 */
+	void NodesUsed(ArrayT<int>& nodes_used) const;
+
 protected: /* for derived classes only */
 
 	/* get local element data, X for geometry, U for
@@ -246,8 +249,6 @@ protected: /* for derived classes only */
      * returns the number of nodes used by the element group */
 	int MakeLocalConnects(iArray2DT& localconnects);
 #endif
-
-	void NodesUsed(ArrayT<int>& nodes_used) const;
 
 	/* return pointer to block data given the ID */
 	const ElementBlockDataT& BlockData(const StringT& ID) const;

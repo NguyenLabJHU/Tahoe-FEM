@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.19 2002-07-05 17:18:04 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.20 2002-07-19 20:17:20 hspark Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -264,6 +264,44 @@ void ElementBaseT::WeightNodalCost(iArrayT& weight) const
 	}
 }
 
+/* moved from protected to public by HSP on 7-19-02 */
+void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
+{
+       int num_blocks = fBlockData.Length();
+
+       iArrayT mins (num_blocks);
+       iArrayT maxes (num_blocks);
+       for (int i = 0; i < fBlockData.Length(); i++)
+	 {
+	   mins[i] = fConnectivities[i]->Min();
+	   maxes[i] = fConnectivities[i]->Max();
+	 }
+
+	/* compressed number range */
+	int min   = mins.Min();
+	int range = maxes.Max() - min + 1;
+
+	/* local map */
+	iArrayT node_map(range);
+
+	/* determine used nodes */
+	node_map = 0;
+	for (int b=0; b < num_blocks; b++)
+	  {
+	    const iArray2DT* conn = fConnectivities[b];
+	    int *pc = conn->Pointer();
+	    for (int i = 0; i < conn->Length(); i++)
+	      node_map[*pc++ - min] = 1;
+	  }
+
+	/* collect list */
+	nodes_used.Allocate(node_map.Count(1));
+	int dex = 0;
+	int*  p = node_map.Pointer();
+	for (int j = 0; j < node_map.Length(); j++)
+		if (*p++ == 1) nodes_used[dex++] = j + min;
+}
+
 /***********************************************************************
 * Protected
 ***********************************************************************/
@@ -489,43 +527,6 @@ int ElementBaseT::MakeLocalConnects(iArray2DT& localconnects)
 	return localnum;
 }
 #endif
-
-void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
-{
-       int num_blocks = fBlockData.Length();
-
-       iArrayT mins (num_blocks);
-       iArrayT maxes (num_blocks);
-       for (int i = 0; i < fBlockData.Length(); i++)
-	 {
-	   mins[i] = fConnectivities[i]->Min();
-	   maxes[i] = fConnectivities[i]->Max();
-	 }
-
-	/* compressed number range */
-	int min   = mins.Min();
-	int range = maxes.Max() - min + 1;
-
-	/* local map */
-	iArrayT node_map(range);
-
-	/* determine used nodes */
-	node_map = 0;
-	for (int b=0; b < num_blocks; b++)
-	  {
-	    const iArray2DT* conn = fConnectivities[b];
-	    int *pc = conn->Pointer();
-	    for (int i = 0; i < conn->Length(); i++)
-	      node_map[*pc++ - min] = 1;
-	  }
-
-	/* collect list */
-	nodes_used.Allocate(node_map.Count(1));
-	int dex = 0;
-	int*  p = node_map.Pointer();
-	for (int j = 0; j < node_map.Length(); j++)
-		if (*p++ == 1) nodes_used[dex++] = j + min;
-}
 
 /* return pointer to block data given the ID */
 const ElementBlockDataT& ElementBaseT::BlockData(const StringT& block_ID) const
