@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.h,v 1.10 2002-06-04 01:05:54 paklein Exp $ */
+/* $Id: ComparatorT.h,v 1.11 2002-07-02 21:24:56 cjkimme Exp $ */
 
 #ifndef _COMPARATOR_T_H_
 #define _COMPARATOR_T_H_
@@ -8,6 +8,8 @@
 
 /* direct members */
 #include "AutoArrayT.h"
+
+namespace Tahoe {
 
 /* forward declarations */
 class dArray2DT;
@@ -95,5 +97,7 @@ private:
 	/* labels to skip */
 	AutoArrayT<StringT> fSkipLabels;
 };
+
+} //namespace Tahoe
 
 #endif /* _COMPARATOR_T_H_ */

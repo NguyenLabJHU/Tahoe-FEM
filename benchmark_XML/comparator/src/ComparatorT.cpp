@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.16 2002-06-04 01:05:54 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.17 2002-07-02 21:24:56 cjkimme Exp $ */
 
 #include "ComparatorT.h"
 
@@ -12,6 +12,7 @@
 #include "dArrayT.h"
 
 const char kBenchmarkDirectory[] = "benchmark";
+using namespace Tahoe;
 
 /* default tolerances */
 double abs_tol = 1.0e-10;

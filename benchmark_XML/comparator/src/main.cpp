@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.2 2001-06-12 19:01:40 paklein Exp $ */
+/* $Id: main.cpp,v 1.3 2002-07-02 21:24:56 cjkimme Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include <iostream.h>
@@ -17,6 +17,8 @@ extern "C" int ccommand(char ***arg);
 #endif
 
 #include "ComparatorT.h"
+
+using namespace Tahoe;
 
 static void StartUp(int* argc, char*** argv);
 static void ShutDown(void);
