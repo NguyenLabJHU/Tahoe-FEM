@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.h,v 1.4 2005-01-19 09:01:34 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.h,v 1.5 2005-01-19 17:37:51 cjkimme Exp $ */
 #ifndef _MF_PENALTY_CONTACT2D_T_H_
 #define _MF_PENALTY_CONTACT2D_T_H_
 
@@ -9,6 +9,7 @@
 #include "nMatrixGroupT.h"
 #include "VariArrayT.h"
 #include "InverseMapT.h"
+#include "RaggedArray2DT.h"
 
 namespace Tahoe {
 
