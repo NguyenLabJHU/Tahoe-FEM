@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.43 2002-11-21 08:44:43 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.44 2002-11-25 07:27:35 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -302,10 +302,8 @@ const int& FEManagerT::IterationNumber(int group) const
 {
 #if __option(extended_errorcheck)
 	/* range check */
-	if (group < 0 || group >= fSolvers.Length()) {
-		cout << "\n FEManagerT::IterationNumber: group is out of range: " << group << endl;
-		throw ExceptionT::kOutOfRange;
-	}
+	if (group < 0 || group >= fSolvers.Length()) 
+		ExceptionT::OutOfRange("FEManagerT::IterationNumber", "group is out of range: %d", group);
 #endif
 	return fSolvers[group]->IterationNumber(); 
 }
@@ -549,6 +547,12 @@ void FEManagerT::AssembleLHS(int group, const ElementMatrixT& elMat,
 	fSolvers[group]->AssembleLHS(elMat, row_eqnos, col_eqnos);
 }
 
+void FEManagerT::AssembleLHS(int group, const nArrayT<double>& diagonal_elMat, 
+	const nArrayT<int>& eqnos) const
+{
+	fSolvers[group]->AssembleLHS(diagonal_elMat, eqnos);
+}
+
 void FEManagerT::OverWriteLHS(int group, const ElementMatrixT& elMat,
 	const nArrayT<int>& eqnos) const
 {
@@ -600,10 +604,7 @@ void FEManagerT::WriteOutput(double time)
 			fElementGroups[i]->WriteOutput();
 	}
 	
-	catch (ExceptionT::CodeT error) { 
-		cout << "\n FEManagerT::WriteOutput: caught exception: " << ExceptionT::ToString(error) << endl;
-		throw error; 
-	}
+	catch (ExceptionT::CodeT error) { ExceptionT::Throw(error, "FEManagerT::WriteOutput"); }
 }
 
 void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values,
@@ -615,17 +616,12 @@ void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values,
 int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 {
 	/* check */
-	if (!fIOManager) {
-		cout << "\n FEManagerT::RegisterOutput: I/O manager not yet initialized" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (!fIOManager) 
+		ExceptionT::GeneralFail("FEManagerT::RegisterOutput", "I/O manager not initialized");
 
 	/* limit registering output to initialization stage */
-	if (fStatus != GlobalT::kInitialization) {
-		cout << "\n FEManagerT::RegisterOutput: output sets can only be registered\n"
-		     <<   "     during initialization" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (fStatus != GlobalT::kInitialization) 
+		ExceptionT::GeneralFail("FEManagerT::RegisterOutput", "output sets can only be registered during initialization");
 
 	int ID = fIOManager->AddElementSet(output_set);
 	if (Size() > 1 && Rank() == 0)
@@ -662,11 +658,7 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 			/* no ID's for free sets */
 			io << ID << " 0\n";
 		}
-		else {
-			cout << "\n FEManagerT::RegisterOutput: unrecognized output set mode: "
-			     << output_set.Mode() << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+		else ExceptionT::GeneralFail("FEManagerT::RegisterOutput", "unrecognized output set mode: %d", output_set.Mode());
 	}
 	
 	return ID;
@@ -681,11 +673,7 @@ void FEManagerT::WriteGeometryFile(const StringT& file_name,
 const OutputSetT& FEManagerT::OutputSet(int ID) const
 {
 	/* check */
-	if (!fIOManager) {
-		cout << "\n FEManagerT::OutputSet: I/O manager not yet initialized" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-
+	if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::OutputSet", "I/O manager not initialized");
 	return fIOManager->OutputSet(ID);
 }
 
@@ -693,22 +681,14 @@ const OutputSetT& FEManagerT::OutputSet(int ID) const
 void FEManagerT::DivertOutput(const StringT& outfile)
 {
 	/* check */
-	if (!fIOManager) {
-		cout << "\n FEManagerT::DivertOutput: I/O manager not yet initialized" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-
+	if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::DivertOutput", "I/O manager not initialized");
 	fIOManager->DivertOutput(outfile);
 }
 
 void FEManagerT::RestoreOutput(void)
 {
 	/* check */
-	if (!fIOManager) {
-		cout << "\n FEManagerT::RestoreOutput: I/O manager not yet initialized" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-
+	if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::RestoreOutput", "I/O manager not initialized");
 	fIOManager->RestoreOutput();
 }
 
