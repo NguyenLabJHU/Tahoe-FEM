@@ -1,5 +1,6 @@
-/* $Id: main_cpp.cpp,v 1.1 2003-03-09 03:59:57 paklein Exp $ */
+/* $Id: main_cpp.cpp,v 1.2 2003-03-09 04:17:13 paklein Exp $ */
 #include <iostream.h>
+#include <math.h>
 #include <iomanip.h>
 #include "fortran_names.h"
 
