@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.31 2002-04-02 23:34:06 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.32 2002-04-21 07:16:32 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -20,6 +20,8 @@
 #include "OutputSetT.h"
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
+#include "eControllerT.h"
+#include "nControllerT.h"
 
 /* nodes */
 #include "NodeManagerT.h"
@@ -27,14 +29,6 @@
 #include "DynNodeManager.h"
 #include "FDDynNodeManagerT.h"
 #include "DuNodeManager.h"
-
-/* controllers */
-#include "StaticController.h"
-#include "LinearStaticController.h"
-#include "TrapezoidController.h"
-#include "LinearHHTalpha.h"
-#include "NLHHTalpha.h"
-#include "ExplicitCDController.h"
 
 /* solvers */
 #include "LinearSolver.h"
@@ -1153,7 +1147,7 @@ void FEManagerT::SetController(void)
 	{
 		case GlobalT::kLinStatic:
 		{
-			fController = new LinearStaticController(fMainOut);
+			fController = fTimeManager->New_Controller(TimeManagerT::kLinearStatic);
 			break;
 		}
 		case GlobalT::kNLStatic:
@@ -1161,22 +1155,22 @@ void FEManagerT::SetController(void)
 		case GlobalT::kVarNodeNLStatic:
 		case GlobalT::kLinStaticHeat:
 		{
-			fController = new StaticController(fMainOut);
+			fController = fTimeManager->New_Controller(TimeManagerT::kStatic);
 			break;
 		}
 		case GlobalT::kLinTransHeat:
 		{
-			fController = new TrapezoidController(fMainOut);
+			fController = fTimeManager->New_Controller(TimeManagerT::kTrapezoid);
 			break;
 		}
 		case GlobalT::kLinDynamic:
 		{
-			fController = new LinearHHTalpha(*fTimeManager, fMainIn, fMainOut, true);
+			fController = fTimeManager->New_Controller(TimeManagerT::kLinearHHT);
 			break;
 		}
 		case GlobalT::kNLDynamic:
 		{
-			fController = new NLHHTalpha(*fTimeManager, fMainIn, fMainOut, true);
+			fController = fTimeManager->New_Controller(TimeManagerT::kNonlinearHHT);
 			break;
 		}
 		case GlobalT::kLinExpDynamic:
@@ -1185,7 +1179,7 @@ void FEManagerT::SetController(void)
 		case GlobalT::kNLExpDynKfield:
 		case GlobalT::kPML:
 		{
-			fController = new ExplicitCDController(fMainOut);
+			fController = fTimeManager->New_Controller(TimeManagerT::kExplicitCD);
 			break;
 		}			
 		default:
@@ -1193,8 +1187,6 @@ void FEManagerT::SetController(void)
 			cout << "\nFEManagerT::SetController: unknown controller type\n" << endl;
 			throw eBadInputValue;
 	}
-	
-	if (!fController) throw eOutOfMemory;
 }
 
 /* construct output */
