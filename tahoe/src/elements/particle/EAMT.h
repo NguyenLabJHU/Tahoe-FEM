@@ -1,4 +1,4 @@
-
+/* $Id: EAMT.h,v 1.18 2004-01-23 19:47:37 paklein Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
