@@ -1,4 +1,4 @@
-/* $Id: ParameterTreeT.cpp,v 1.6 2004-03-22 18:34:54 paklein Exp $ */
+/* $Id: ParameterTreeT.cpp,v 1.7 2004-03-24 19:27:46 paklein Exp $ */
 #include "ParameterTreeT.h"
 #include "ParameterInterfaceT.h"
 
@@ -408,6 +408,15 @@ void ParameterTreeT::BuildBranch(const ParameterInterfaceT& source, ParameterLis
 		/* collect information on subordinate lists */
 		source.DefineSubs(sub_list);
 		params.SetListOrder(source.ListOrder());
+		
+		//params.SetInline(source.Inline());
+		//NOTE: lists must be defined inline during the call to ParameterInterfaceT::DefineSubs.
+		//      Changing the inline flag at any other time can result in inconsistent behavior.
+		//      Specifically, an inline list which appears multiple times within the same tree
+		//      will not be reproduced correctly throughout the tree unless it is declared as
+		//      inline in ParameterInterfaceT::DefineSubs. This is noted below, where the sublists
+		//      are being defined. (paklein 03/24/2004) 
+		//      and not at any other time.
 	}
 	else /* defining inlined list */
 	{
@@ -428,7 +437,7 @@ void ParameterTreeT::BuildBranch(const ParameterInterfaceT& source, ParameterLis
 		/* sub list info */
 		const SubListDescriptionT& sub = sub_list[i];
 
-		/* list is inline */
+		/* list is inline - NOTE: lists MUST be defined inline during ParameterInterfaceT::DefineSubs */
 		if (sub.IsInline())
 		{
 			/* source builds inline list */
