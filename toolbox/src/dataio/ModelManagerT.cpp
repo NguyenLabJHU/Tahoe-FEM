@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.4.2.3 2001-10-04 22:06:28 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.4.2.4 2001-10-10 20:06:38 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -63,6 +63,8 @@ bool ModelManagerT::RegisterNodes (int length, int dof)
 
 bool ModelManagerT::RegisterElementGroup (const StringT& name, int numelems, int numelemnodes, GeometryT::CodeT code)
 {
+  if (!CheckName (fElementNames, name, "Element Group")) return false;
+  
   fElementNames.Append (name);
   fElementLengths.Append (numelems);
   fElementNodes.Append (numelemnodes);
@@ -83,6 +85,8 @@ bool ModelManagerT::RegisterElementGroup (const StringT& name, int numelems, int
 
 bool ModelManagerT::RegisterNodeSet (const StringT& name, int length)
 {
+  if (!CheckName (fElementNames, name, "Node Set")) return false;
+  
   fNodeSetNames.Append (name);
   fNodeSetDimensions.Append (length);
 
@@ -99,6 +103,8 @@ bool ModelManagerT::RegisterNodeSet (const StringT& name, int length)
 
 bool ModelManagerT::RegisterSideSet (const StringT& name, int length, bool local, int elemgroupindex)
 {
+  if (!CheckName (fElementNames, name, "Side Set")) return false;
+  
   fSideSetNames.Append (name);
   fSideSetDimensions.Append (length);
   fSideSetIsLocal.Append (local);
@@ -122,14 +128,16 @@ bool ModelManagerT::RegisterSideSet (const StringT& name, int length, bool local
 
 bool ModelManagerT::RegisterNodes (dArray2DT& coords)
 {
-  fCoordinateDimensions[0] = coords.MajorDim();
-  fCoordinateDimensions[1] = coords.MinorDim();
+  if (!RegisterNodes (coords.MajorDim(), coords.MinorDim())) 
+    return false;
   fCoordinates = coords;
   return true;
 }
 
 bool ModelManagerT::RegisterElementGroup (const StringT& name, iArray2DT& conn, GeometryT::CodeT code)
 {
+  if (!CheckName (fElementNames, name, "Element Group")) return false;
+  
   fElementNames.Append (name);
   fElementLengths.Append (conn.MajorDim());
   fElementNodes.Append (conn.MinorDim());
@@ -148,6 +156,8 @@ bool ModelManagerT::RegisterElementGroup (const StringT& name, iArray2DT& conn, 
 
 bool ModelManagerT::RegisterNodeSet (const StringT& name, iArrayT& set)
 {
+  if (!CheckName (fElementNames, name, "Node Set")) return false;
+  
   fNodeSetNames.Append (name);
   fNodeSetDimensions.Append (set.Length());
   fNodeSets.Append (set);
@@ -162,6 +172,8 @@ bool ModelManagerT::RegisterNodeSet (const StringT& name, iArrayT& set)
 
 bool ModelManagerT::RegisterSideSet (const StringT& name, iArray2DT& set, bool local, int groupindex)
 {
+  if (!CheckName (fElementNames, name, "Side Set")) return false;
+  
   fSideSetNames.Append (name);
   fSideSetDimensions.Append (set.MajorDim());
   fSideSets.Append (set);
@@ -179,6 +191,61 @@ bool ModelManagerT::RegisterSideSet (const StringT& name, iArray2DT& set, bool l
       fNumSideSets != fSideSetGroupIndex.Length() )
     return false;
   return true;
+}
+
+/* reads dimensions and numbered array, then offsets array */
+bool ModelManagerT::RegisterNodes (ifstreamT& in)
+{
+  ifstreamT tmp;
+  ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterNodes: count not open file");
+
+  in2 >> fCoordinateDimensions[0] >> fCoordinateDimensions[1];
+  fCoordinates.Allocate (fCoordinateDimensions[0], fCoordinateDimensions[1]);
+  fCoordinates.ReadNumbered (in2);
+  fCoordinates--;
+  return true;
+}
+
+/* read dimensions and numbered array, then offsets array */
+bool ModelManagerT::RegisterElementGroup (ifstreamT& in, const StringT& name, GeometryT::CodeT code)
+{
+  ifstreamT tmp;
+  ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterNodes: count not open file");
+
+  int length, numnodes;
+  in2 >> length >> numnodes;
+  iArray2DT temp (length, numnodes);
+  temp.ReadNumbered (in2);
+  temp += -1;
+  return RegisterElementGroup (name, temp, code);
+}
+
+/* read dimensions and array, then offsets array */
+bool ModelManagerT::RegisterNodeSet (ifstreamT& in, const StringT& name)
+{
+  ifstreamT tmp;
+  ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterNodes: count not open file");
+
+  int length;
+  in2 >> length;
+  iArrayT n (length);
+  in2 >> n;
+  n--;
+  return RegisterNodeSet (name, n);
+}
+
+/* read dimensions and array, then offsets array */
+bool ModelManagerT::RegisterSideSet (ifstreamT& in, const StringT& name, bool local, int groupindex)
+{
+  ifstreamT tmp;
+  ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterNodes: count not open file");
+
+  int length;
+  in2 >> length;
+  iArray2DT s (length, 2);
+  in2 >> s;
+  s += -1;
+  return RegisterSideSet (name, s, local, groupindex);
 }
 
 void ModelManagerT::CoordinateDimensions (int& length, int& dof) const
@@ -463,6 +530,40 @@ void ModelManagerT::CloseModel (void)
   fInput = NULL;
 }
 
+ifstreamT& ModelManagerT::OpenExternal (ifstreamT& in, ifstreamT& in2, ostream& out, bool verbose, const char* fail) const
+{
+	/* check for external file */
+	char nextchar = in.next_char();
+	if (isdigit(nextchar))
+		return in;
+	else
+	{
+		/* open external file */
+		StringT file;
+		in >> file;
+		if (verbose) out << " external file: " << file << '\n';
+		file.ToNativePathName();
+
+		/* path to source file */
+		StringT path;
+		path.FilePath(in.filename());
+		file.Prepend(path);
+			
+		/* open stream */
+		in2.open(file);
+		if (!in2.is_open())
+		{
+			if (verbose && fail) cout << "\n " << fail << ": " << file << endl;
+			throw eBadInputValue;
+		}
+
+		/* set comments */
+		if (in.skip_comments()) in2.set_marker(in.comment_marker());
+
+		return in2;
+	}  
+}
+
 /*********** PRIVATE **************/
 
 void ModelManagerT::ScanModel (const StringT& database)
@@ -581,5 +682,24 @@ bool ModelManagerT::ScanSideSets (void)
       if (fSideSetIsLocal[i])
 	fInput->SideSetGroupIndex (fSideSetNames[i]);
     }
+  return true;
+}
+
+
+bool ModelManagerT::CheckName (const ArrayT<StringT>& list, const StringT& name, const char *type) const
+{
+  int l = name.Length();
+
+  for (int i=0; i < list.Length(); i++)
+    if (strncmp (list[i].Pointer(), name.Pointer(), l) == 0)
+      {
+	fMessage << "\nModelManagerT::CheckName\n";
+	fMessage << "   " << type << " already has a registered set called " << name << "\n\n";
+	fMessage << "  Sets: \n";
+	for (int j=0; j < list.Length(); j++)
+	  fMessage << "       " << list[i] << "\n";
+	fMessage << "\n";
+	return false;
+      }
   return true;
 }

@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.4.2.2 2001-10-04 20:40:40 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.4.2.3 2001-10-10 20:06:38 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -46,6 +46,12 @@ class ModelManagerT
   bool RegisterNodeSet (const StringT& name, iArrayT& set);
   bool RegisterSideSet (const StringT& name, iArray2DT& set, bool local, int groupindex);
 
+  /* register the actual array from a file */
+  bool RegisterNodes (ifstreamT& in);
+  bool RegisterElementGroup (ifstreamT& in, const StringT& name, GeometryT::CodeT code);
+  bool RegisterNodeSet (ifstreamT& in, const StringT& name);
+  bool RegisterSideSet (ifstreamT& in, const StringT& name, bool local, int groupindex);
+
   /* access */
   void CoordinateDimensions (int& length, int& dof) const;
   const dArray2DT& CoordinateReference (void) const; /* return coords */
@@ -83,13 +89,18 @@ class ModelManagerT
   void AddNodes (const dArray2DT& newcoords, iArrayT& new_node_tags, int& newtotalnumnodes);
   void DuplicateNodes (const iArrayT& nodes, iArrayT& new_node_tags, int& newtotalnumnodes);
 
+  /* This closes link to InputBaseT, it does not clear data */
   void CloseModel (void);
+
+  /* checks to see if external file or actual data */
+  ifstreamT& OpenExternal (ifstreamT& in, ifstreamT& in2, ostream& out, bool verbose, const char* fail) const;
   
  private:
   void ScanModel (const StringT& database);
   bool ScanElements (void);
   bool ScanNodeSets (void);
   bool ScanSideSets (void);
+  bool CheckName (const ArrayT<StringT>& list, const StringT& name, const char *type) const;
 
  protected:
   ostream& fMessage;
