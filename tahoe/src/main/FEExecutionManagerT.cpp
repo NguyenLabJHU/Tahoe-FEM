@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.69.2.8 2004-09-15 02:14:15 d-farrell2 Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.69.2.9 2004-09-27 23:35:36 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -31,8 +31,7 @@
 #include "dArrayT.h"
 #include "OutputBaseT.h"
 #include "CommunicatorT.h"
-// for decomposition
-#include "FEDecomposeT.h"
+#include "DecomposeT.h"
 
 /* parameters */
 #include "ParameterListT.h"
@@ -386,8 +385,8 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 	}
 #endif
 
-	int phase; // job phase
-	int token = 1; // for run time check sums
+	int phase;
+	int token = 1; /* for run time check sums */
 	
 	FEManagerT* tahoe = NULL;
 	try
@@ -397,7 +396,8 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 
 		/* generate validated parameter list */
 		ParameterListT valid_list;
-		FEManagerT::ParseInput(input_file, valid_list, true, true, true, fCommandLineOptions); // in the old parallel version, the bools were true, false, false
+		FEManagerT::ParseInput(input_file, valid_list, true, true, true, fCommandLineOptions);
+
 		/* write the validated list as formatted text */
 		if (true) {
 			DotLine_FormatterT pp_format;
@@ -432,8 +432,8 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 			ExceptionT::GeneralFail(caller);
 		}
 
-		IOManager_mpi* IOMan = NULL; // declaration moved out from below
-		if (fComm.Size() > 1 && valid_list.Name() == "tahoe") // if straight atomistic or continuum calculation use decompose information from above
+		IOManager_mpi* IOMan = NULL;
+		if (fComm.Size() > 1 && valid_list.Name() == "tahoe")
 		{
 			/* partition information */
 			const PartitionT* partition = tahoe->Partition();
@@ -509,7 +509,7 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 		/* stop recording profiler information */
 		ProfilerSetStatus(0);
 #endif
-		if (valid_list.Name() == "tahoe") // if straight atomistic or continuum calculation use decompose information from above
+		if (valid_list.Name() == "tahoe")
 		{
 			/* free external IO */
 			delete IOMan;
@@ -671,8 +671,8 @@ void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& s
 		model_file.ToNativePathName();      
 		model_file.Prepend(path);
 		
-		// set output map and and generate decomposition
-		FEDecomposeT decompose;
+		/* set output map and and generate decomposition */
+		DecomposeT decompose;
 		decompose.CheckDecompose(input_file, size, method, comm, model_file, format, fCommandLineOptions);
 
 		t1 = clock();

@@ -1,79 +1,34 @@
-/* $Id: FEDecomposeT.cpp,v 1.1.2.6 2004-09-15 02:14:15 d-farrell2 Exp $ */
-/* created: d-farrell2 (08/03/2004) */
-#include "FEDecomposeT.h"
+/* $Id: DecomposeT.cpp,v 1.1.2.1 2004-09-27 23:35:36 paklein Exp $ */
+#include "DecomposeT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <time.h>
-#include <ctype.h>
-#include <stdlib.h>
-
-#if defined(__MWERKS__) && __option(profile)
-#include <Profiler.h>
-#endif
-
-/* element configuration header */
-#include "ElementsConfig.h"
-
-#include "ifstreamT.h"
 #include "ofstreamT.h"
-#include "FEManagerT.h" // ?
-#include "FEExecutionManagerT.h" // ? DEF 4 Aug 04
-#include "IOManager_mpi.h"
+#include "ifstreamT.h"
+
 #include "ModelManagerT.h"
-#include "CommManagerT.h"
-#include "StringT.h"
-#include "GraphT.h"
-#include "PartitionT.h"
-#include "OutputSetT.h"
 #include "ModelFileT.h"
 #include "ExodusT.h"
-#include "JoinOutputT.h"
-#include "dArrayT.h"
-#include "OutputBaseT.h"
-#include "CommunicatorT.h"
-
-/* parameters */
+#include "PartitionT.h"
 #include "ParameterListT.h"
-#include "ParameterTreeT.h"
-#include "XML_Attribute_FormatterT.h"
-#include "DotLine_FormatterT.h"
+#include "FEManagerT.h"
+#include "GraphT.h"
 
-/* needed for bridging calculations FEExecutionManagerT::RunBridging */
-#ifdef BRIDGING_ELEMENT
-#include "FEManagerT_bridging.h"
-#include "MultiManagerT.h"
-#ifdef __DEVELOPMENT__
-#include "BridgingScaleManagerT.h"
-#include "FEManagerT_THK.h"
-#endif
-#include "TimeManagerT.h"
-#include "NodeManagerT.h"
-#include "dSPMatrixT.h"
-#include "FieldT.h"
-#include "IntegratorT.h"
-#include "ElementBaseT.h"
-#include "EAMFCC3D.h"
-#endif /* BRIDGING_ELEMENT */
+#include <time.h>
 
 using namespace Tahoe;
 #pragma message("clear out unneeded headers")
 
-// constructor
-FEDecomposeT::FEDecomposeT()
+/* constructor */
+DecomposeT::DecomposeT()
 {
 	// should take values of command line
 }
-FEDecomposeT::~FEDecomposeT()
-{
-	// should free up the allocated memory
-}
+
 /*****************************************
  * Public
  *****************************************/
  
 /* returns true if the global output model file is not found */
-bool FEDecomposeT::NeedModelFile(const StringT& model_file,
+bool DecomposeT::NeedModelFile(const StringT& model_file,
 	IOBaseT::FileTypeT format) const
 {
 	switch (format)
@@ -106,7 +61,7 @@ bool FEDecomposeT::NeedModelFile(const StringT& model_file,
 }
  
 /* returns 1 if a new decomposition is needed */
-bool FEDecomposeT::NeedDecomposition(const StringT& model_file,
+bool DecomposeT::NeedDecomposition(const StringT& model_file,
 	int size) const
 {
 	/* model file root */
@@ -142,7 +97,7 @@ bool FEDecomposeT::NeedDecomposition(const StringT& model_file,
 }
  
  
-void FEDecomposeT::CheckDecompose(const StringT& input_file, int size, int decomp_type, CommunicatorT& comm,
+void DecomposeT::CheckDecompose(const StringT& input_file, int size, int decomp_type, CommunicatorT& comm,
 	const StringT& model_file, IOBaseT::FileTypeT format, const ArrayT<StringT>& commandlineoptions) const
 {	
 	/* dispatch */
@@ -157,119 +112,18 @@ void FEDecomposeT::CheckDecompose(const StringT& input_file, int size, int decom
 			break;
 			
 		case PartitionT::kSpatial:
-			cout << "\n FEDecomposeT::Decompose: spatial decomposition not implemented yet" << endl;
+			cout << "\n DecomposeT::Decompose: spatial decomposition not implemented yet" << endl;
 			break;
 						
 		default:
-			cout << "\n FEDecomposeT::Decompose: unrecognized method: " << decomp_type << endl;
+			cout << "\n DecomposeT::Decompose: unrecognized method: " << decomp_type << endl;
 	}
-}
-
-// The domain decomposition, pulled directly from FEManagerT_mpi.cpp, FEManagerT.cpp
-/* domain decomposition */
-void FEDecomposeT::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
-	bool verbose, int method, const FEManagerT& feman) const
-{
-	const char caller[] = "FEDecomposeT::Decompose";
-
-	//TEMP
-	//TimeStamp("FEManagerT_mpi::Decompose");
-
-	/* check */
-	if (partition.Length() == 1)
-		ExceptionT::GeneralFail(caller, "expecting more than 1 partition");
-	
-	IOBaseT::FileTypeT modelformat = feman.ModelFormat();
-	/* geometry file must be ascii external */
-	if (modelformat != IOBaseT::kTahoeII && modelformat != IOBaseT::kExodusII)
-		ExceptionT::BadInputValue(caller, "expecting file format %d or %d, not %d",
-			IOBaseT::kTahoeII, IOBaseT::kExodusII, modelformat);
-
-	/* decomposition method */
-	bool use_new_methods = false; //TEMP
-	bool dual_graph = (feman.InterpolantDOFs() == 0);
-	if (dual_graph && use_new_methods)
-		DoDecompose_2(partition, graphU, verbose, method, feman);
-	else
-		DoDecompose_1(partition, graphU, verbose, method, feman);
-	
-	ModelManagerT* modelmanager = feman.ModelManager();
-	const StringT& modelfile = modelmanager->DatabaseName();
-	
-	if (modelformat == IOBaseT::kTahoeII)
-	{
-		/* label element sets in partition data */
-		for (int j = 0; j < partition.Length(); j++)
-		{
-			/* original model file */
-			ModelFileT model_ALL;
-			model_ALL.OpenRead(modelfile);
-			
-			/* set number of element sets */
-			iArrayT elementID;
-			if (model_ALL.GetElementSetID(elementID) != ModelFileT::kOK) ExceptionT::GeneralFail(caller);
-			ArrayT<StringT> IDlist(elementID.Length());
-			for (int i = 0; i < IDlist.Length(); i++)
-				IDlist[i].Append(elementID[i]);
-			partition[j].InitElementBlocks(IDlist);	
-			for (int i = 0; i < elementID.Length(); i++)
-			{
-				/* get element set */
-				iArray2DT set;
-				if (model_ALL.GetElementSet(elementID[i], set) != ModelFileT::kOK)
-					ExceptionT::GeneralFail(caller);
-					
-				/* correct node numbering offset */
-				set--;	
-				
-				/* set partition */
-				partition[j].SetElements(IDlist[i], set);
-			}
-		}
-	}
-	else if (modelformat == IOBaseT::kExodusII)
-	{
-		/* label element sets in partition data */
-		for (int j = 0; j < partition.Length(); j++)
-		{
-			/* original model file */
-			ExodusT model_ALL(cout);
-			model_ALL.OpenRead(modelfile);
-			
-			/* set number of element sets */
-			iArrayT elementID(model_ALL.NumElementBlocks());
-			model_ALL.ElementBlockID(elementID);
-			ArrayT<StringT> IDlist(elementID.Length());
-			for (int i = 0; i < IDlist.Length(); i++)
-				IDlist[i].Append(elementID[i]);
-			partition[j].InitElementBlocks(IDlist);	
-			for (int i = 0; i < elementID.Length(); i++)
-			{
-				/* get set dimensions */
-				int num_elems;
-				int num_elem_nodes;
-				model_ALL.ReadElementBlockDims(elementID[i], num_elems, num_elem_nodes);
-
-				/* get element set */
-				iArray2DT set(num_elems, num_elem_nodes);
-				GeometryT::CodeT geometry_code;
-				model_ALL.ReadConnectivities(elementID[i], geometry_code, set);
-					
-				/* correct node numbering offset */
-				set--;	
-				
-				/* set partition */
-				partition[j].SetElements(IDlist[i], set);
-			}
-		}
-	}
-	else ExceptionT::GeneralFail(caller);
 }
 
 /**********************************************************************
  * Private
  **********************************************************************/
- void FEDecomposeT::Decompose_atom(const StringT& input_file, int size,
+ void DecomposeT::Decompose_atom(const StringT& input_file, int size,
 	const StringT& model_file, IOBaseT::FileTypeT format, const ArrayT<StringT>& commandlineoptions) const
 {
 #pragma unused(input_file)
@@ -371,21 +225,21 @@ void FEDecomposeT::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 	}
 }
 
-void FEDecomposeT::Decompose_spatial(const StringT& input_file, int size,
+void DecomposeT::Decompose_spatial(const StringT& input_file, int size,
 	const StringT& model_file, IOBaseT::FileTypeT format) const
 {
 #pragma unused(input_file)
 #pragma unused(size)
 #pragma unused(model_file)
 #pragma unused(format)
-	cout << "\n FEDecomposeT::Decompose_spatial: not implemented" << endl;
+	cout << "\n DecomposeT::Decompose_spatial: not implemented" << endl;
 }
 
 /* graph-based decomposition */
-void FEDecomposeT::Decompose_graph(const StringT& input_file, int size,
+void DecomposeT::Decompose_graph(const StringT& input_file, int size,
 	CommunicatorT& comm, const StringT& model_file, IOBaseT::FileTypeT format, const ArrayT<StringT>& commandlineoptions) const
 {
-	const char caller[] = "FEDecomposeT::Decompose_graph";
+	const char caller[] = "DecomposeT::Decompose_graph";
 
 	bool need_decomp = NeedDecomposition(model_file, size);
 	if (need_decomp)
@@ -432,7 +286,7 @@ void FEDecomposeT::Decompose_graph(const StringT& input_file, int size,
 			GraphT graph;	
 			try {
 				cout << "\n Decomposing: " << model_file << endl;
-				Decompose(partition, graph, true, method, global_FEman);
+				DoDecompose_graph(partition, graph, true, method, global_FEman);
 				cout << " Decomposing: " << model_file << ": DONE"<< endl;
 			}
 			catch (ExceptionT::CodeT code) {
@@ -613,8 +467,108 @@ void FEDecomposeT::Decompose_graph(const StringT& input_file, int size,
 		cout << "\n " << caller << ": decomposition files exist" << endl;
 }
 
+/* domain decomposition */
+void DecomposeT::DoDecompose_graph(ArrayT<PartitionT>& partition, GraphT& graphU,
+	bool verbose, int method, const FEManagerT& feman) const
+{
+	const char caller[] = "DecomposeT::Decompose";
+
+	//TEMP
+	//TimeStamp("FEManagerT_mpi::Decompose");
+
+	/* check */
+	if (partition.Length() == 1)
+		ExceptionT::GeneralFail(caller, "expecting more than 1 partition");
+	
+	IOBaseT::FileTypeT modelformat = feman.ModelFormat();
+	/* geometry file must be ascii external */
+	if (modelformat != IOBaseT::kTahoeII && modelformat != IOBaseT::kExodusII)
+		ExceptionT::BadInputValue(caller, "expecting file format %d or %d, not %d",
+			IOBaseT::kTahoeII, IOBaseT::kExodusII, modelformat);
+
+	/* decomposition method */
+	bool use_new_methods = false; //TEMP
+	bool dual_graph = (feman.InterpolantDOFs() == 0);
+	if (dual_graph && use_new_methods)
+		DoDecompose_graph_2(partition, graphU, verbose, method, feman);
+	else
+		DoDecompose_graph_1(partition, graphU, verbose, method, feman);
+	
+	ModelManagerT* modelmanager = feman.ModelManager();
+	const StringT& modelfile = modelmanager->DatabaseName();
+	
+	if (modelformat == IOBaseT::kTahoeII)
+	{
+		/* label element sets in partition data */
+		for (int j = 0; j < partition.Length(); j++)
+		{
+			/* original model file */
+			ModelFileT model_ALL;
+			model_ALL.OpenRead(modelfile);
+			
+			/* set number of element sets */
+			iArrayT elementID;
+			if (model_ALL.GetElementSetID(elementID) != ModelFileT::kOK) ExceptionT::GeneralFail(caller);
+			ArrayT<StringT> IDlist(elementID.Length());
+			for (int i = 0; i < IDlist.Length(); i++)
+				IDlist[i].Append(elementID[i]);
+			partition[j].InitElementBlocks(IDlist);	
+			for (int i = 0; i < elementID.Length(); i++)
+			{
+				/* get element set */
+				iArray2DT set;
+				if (model_ALL.GetElementSet(elementID[i], set) != ModelFileT::kOK)
+					ExceptionT::GeneralFail(caller);
+					
+				/* correct node numbering offset */
+				set--;	
+				
+				/* set partition */
+				partition[j].SetElements(IDlist[i], set);
+			}
+		}
+	}
+	else if (modelformat == IOBaseT::kExodusII)
+	{
+		/* label element sets in partition data */
+		for (int j = 0; j < partition.Length(); j++)
+		{
+			/* original model file */
+			ExodusT model_ALL(cout);
+			model_ALL.OpenRead(modelfile);
+			
+			/* set number of element sets */
+			iArrayT elementID(model_ALL.NumElementBlocks());
+			model_ALL.ElementBlockID(elementID);
+			ArrayT<StringT> IDlist(elementID.Length());
+			for (int i = 0; i < IDlist.Length(); i++)
+				IDlist[i].Append(elementID[i]);
+			partition[j].InitElementBlocks(IDlist);	
+			for (int i = 0; i < elementID.Length(); i++)
+			{
+				/* get set dimensions */
+				int num_elems;
+				int num_elem_nodes;
+				model_ALL.ReadElementBlockDims(elementID[i], num_elems, num_elem_nodes);
+
+				/* get element set */
+				iArray2DT set(num_elems, num_elem_nodes);
+				GeometryT::CodeT geometry_code;
+				model_ALL.ReadConnectivities(elementID[i], geometry_code, set);
+					
+				/* correct node numbering offset */
+				set--;	
+				
+				/* set partition */
+				partition[j].SetElements(IDlist[i], set);
+			}
+		}
+	}
+	else ExceptionT::GeneralFail(caller);
+}
+
 /* decomposition methods */
-void FEDecomposeT::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph, 
+void DecomposeT::DoDecompose_graph_1(ArrayT<PartitionT>& partition, GraphT& graph, 
 	bool verbose, int method, const FEManagerT& feman) const
 {
 	/* connectivities for partititioning */
@@ -638,12 +592,12 @@ void FEDecomposeT::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph,
 		
 	/* make graph */
 	clock_t t0 = clock();
-	if (verbose) cout << " FEDecomposeT::DoDecompose_1: constructing graph" << endl;
+	if (verbose) cout << " DecomposeT::DoDecompose_graph_1: constructing graph" << endl;
 	graphU.MakeGraph();
 	clock_t t1 = clock();
 	if (verbose)
 		cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
-		     << " sec: FEDecomposeT::DoDecompose_1: construct graph" << endl;
+		     << " sec: DecomposeT::DoDecompose_graph_1: construct graph" << endl;
 	
 	/* dual graph partitioning graph */
 	int dual_graph = (feman.InterpolantDOFs() == 0) ? 1 : 0;
@@ -651,7 +605,7 @@ void FEDecomposeT::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph,
 	GraphT graphX;
 	if (dual_graph == 1)
 	{
-		if (verbose) cout << " FEDecomposeT::DoDecompose_1: constructing dual graph" << endl;
+		if (verbose) cout << " DecomposeT::DoDecompose_graph_1: constructing dual graph" << endl;
 		
 		/* collect element groups */
 			feman.ConnectsX(connectsX_1);
@@ -666,7 +620,7 @@ void FEDecomposeT::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph,
 		clock_t t1 = clock();
 		if (verbose)
 			cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
-		     << " sec: FEDecomposeT::DoDecompose_1: construct X graph" << endl;
+		     << " sec: DecomposeT::DoDecompose_graph_1: construct X graph" << endl;
 	}
 	
 	/* generate partition */
@@ -680,7 +634,7 @@ void FEDecomposeT::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph,
 		graphU.Partition(config, weight, partition, true, method);
 }
 
-void FEDecomposeT::DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int
+void DecomposeT::DoDecompose_graph_2(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int
 	method, const FEManagerT& feman) const
 {
 	/* connectivities for partititioning */
@@ -705,13 +659,13 @@ void FEDecomposeT::DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph, b
 		graphX.AddEquivalentNodes(*(equivalent_nodes[k]));
 		
 	/* make graph */
-	if (verbose) cout << " FEDecomposeT::DoDecompose_2: constructing dual graph" << endl;
+	if (verbose) cout << " DecomposeT::DoDecompose_graph_2: constructing dual graph" << endl;
 	clock_t t0 = clock();		
 	graphX.MakeGraph();
 	clock_t t1 = clock();
 	if (verbose)
 		cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
-	     << " sec: FEDecomposeT::DoDecompose_2: construct graph" << endl;
+	     << " sec: DecomposeT::DoDecompose_graph_2: construct graph" << endl;
 	
 	/* generate partition */
 	iArrayT config(1); //TEMP - will be scalar soon?
@@ -722,7 +676,7 @@ void FEDecomposeT::DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph, b
 }
 
 /* write partial geometry files */
-void FEDecomposeT::EchoPartialGeometry(const PartitionT& partition,
+void DecomposeT::EchoPartialGeometry(const PartitionT& partition,
 	ModelManagerT& model_ALL, const StringT& partial_file,
 	IOBaseT::FileTypeT format) const
 {
@@ -742,7 +696,7 @@ void FEDecomposeT::EchoPartialGeometry(const PartitionT& partition,
 	}
 }
 
-void FEDecomposeT::EchoPartialGeometry_ExodusII(const PartitionT& partition,
+void DecomposeT::EchoPartialGeometry_ExodusII(const PartitionT& partition,
 	ModelManagerT& model_ALL, const StringT& partial_file) const
 {
 	/* partition */
@@ -861,7 +815,7 @@ void FEDecomposeT::EchoPartialGeometry_ExodusII(const PartitionT& partition,
 	}
 }
 
-void FEDecomposeT::EchoPartialGeometry_TahoeII(const PartitionT& partition,
+void DecomposeT::EchoPartialGeometry_TahoeII(const PartitionT& partition,
 	ModelManagerT& model_ALL, const StringT& partial_file) const
 {
 	/* partition */
