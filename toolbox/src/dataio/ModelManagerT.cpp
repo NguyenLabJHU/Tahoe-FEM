@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.24 2002-03-26 17:24:08 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.24.2.1 2002-04-25 01:23:15 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -500,10 +500,13 @@ void ModelManagerT::CoordinateDimensions (int& length, int& dof) const
 	dof = fCoordinateDimensions[1];
 }
 
+#pragma message("ModelManagerT::CoordinateReference: delete me")
+#if 0
 const dArray2DT& ModelManagerT::CoordinateReference (void) const
 {
   return fCoordinates;
 }
+#endif
 
 const dArray2DT& ModelManagerT::Coordinates (void)
 {
