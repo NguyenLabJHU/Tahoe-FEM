@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: regression.csh.template,v 1.9 2003-02-03 20:19:42 paklein Exp $
+# $Id: regression.csh.template,v 1.10 2003-02-03 21:47:51 paklein Exp $
 
 # username on Tahoe server
 set TAHOE_USER =
@@ -10,18 +10,15 @@ set W_DIR =
 # host name - used only for subject line of test report
 set HOST =
 
-# need an echo that handles escape characters \n
+# need an echo
 set ECHO = 'echo'
 
 # SEACAS - Sandia-only, ignore otherwise  
-setenv ACCESS 
+setenv ACCESS
 
 # installed modules
 set MODULES = (macros toolbox tahoe benchmark)
 #set MODULES= (macros toolbox tahoe benchmark development)
-
-# build modules (in build order)
-set BUILD_MODULES = (toolbox tahoe)
 
 ######### hopefully no changes will be required below #########
 
@@ -33,6 +30,9 @@ setenv CVS_RSH ssh
 
 # name of the Tahoe executable
 set TAHOE = tahoe
+
+# build modules (in build order)
+set BUILD_MODULES = (toolbox tahoe)
 
 ###################### regression test ########################
 # clear log files
@@ -97,23 +97,27 @@ if (-x ${W_DIR}/tahoe/${TAHOE} && -x ${W_DIR}/benchmark/comparator/compare) then
     if (! -e ${W_DIR}/benchmark/compare.summary) then
     	# benchmarks did not run
 		${ECHO} "BENCHMARKs failed"
-		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}\nTAHOE regression FAIL:" `date` > ${W_DIR}/benchmark/tmp
+		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}" > ${W_DIR}/benchmark/tmp
+		${ECHO} "TAHOE regression FAIL:" `date` >> ${W_DIR}/benchmark/tmp
 		cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.console > ${W_DIR}/benchmark/tmp_mail
 	else if (`grep -c "FAIL" ${W_DIR}/benchmark/compare.summary` ) then
 		# test/s failed
 		${ECHO} "BENCHMARKs failed"
-		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}\nTAHOE regression FAIL:" `date` > ${W_DIR}/benchmark/tmp
+		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}" > ${W_DIR}/benchmark/tmp
+		${ECHO} "TAHOE regression FAIL:" `date` >> ${W_DIR}/benchmark/tmp
 		cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_mail
     else
     	# tests passed
 		${ECHO} "BENCHMARKs passed"
-		${ECHO} "Subject: TAHOE: regression PASS ${HOST}\nTAHOE regression PASS:" `date` > ${W_DIR}/benchmark/tmp
+		${ECHO} "Subject: TAHOE: regression PASS ${HOST}" > ${W_DIR}/benchmark/tmp
+		${ECHO} "TAHOE regression PASS:" `date` >> ${W_DIR}/benchmark/tmp
 		cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_mail
 	endif
 	
 # build failed
 else
-	${ECHO} "Subject: TAHOE: build FAIL ${HOST}\nTAHOE build FAIL:" `date` > ${W_DIR}/benchmark/tmp
+	${ECHO} "Subject: TAHOE: build FAIL ${HOST}" > ${W_DIR}/benchmark/tmp
+	${ECHO} "TAHOE build FAIL:" `date` >> ${W_DIR}/benchmark/tmp
 	cat ${W_DIR}/benchmark/tmp ${W_DIR}/make.stderr > ${W_DIR}/benchmark/tmp_mail
 endif
 #
