@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.16 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.17 2005-02-04 22:01:54 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #ifndef _GLOBAL_MATRIX_H_
 #define _GLOBAL_MATRIX_H_
@@ -126,16 +126,17 @@ public:
 	/** matrix-vector product. Derived classes should reimplement this
 	 * function if the product is supported. 
 	 * \param x vector to use for calculating the product
-	 * \param b destination for the result 
-	 * \return true if the product was calculated successful */
-	virtual bool Multx(const dArrayT& x, dArrayT& b) const;
+	 * \param b destination for the result */
+	virtual void Multx(const dArrayT& x, dArrayT& b) const;
 
 	/** Tranpose[matrix]-vector product. Derived classes should reimplement this
 	 * function if the product is supported.
 	 * \param x vector to use for calculating the product
-	 * \param b destination for the result
-	 * \return true if the product was calculated successful */
-	virtual bool MultTx(const dArrayT& x, dArrayT& b) const;
+	 * \param b destination for the result */
+	virtual void MultTx(const dArrayT& x, dArrayT& b) const;
+
+	/** vector-matrix-vector product */
+	virtual double MultmBn(const dArrayT& m, const dArrayT& n) const;
 
 	/** return the values along the diagonal of the matrix. Derived classes
 	 * must reimplement this function to extrat the diagonals from the

@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.h,v 1.16 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: FullMatrixT.h,v 1.17 2005-02-04 22:01:54 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #ifndef _FULL_MATRIX_T_H_
@@ -67,11 +67,14 @@ public:
 	virtual GlobalMatrixT* Clone(void) const;
 
 	/** matrix-vector product. Cannot be called after the matrix is factorized. */
-	virtual bool Multx(const dArrayT& x, dArrayT& b) const;
+	virtual void Multx(const dArrayT& x, dArrayT& b) const;
 
 	/** Tranpose[matrix]-vector product. Cannot be called after the matrix is 
 	 * factorized. */
-	virtual bool MultTx(const dArrayT& x, dArrayT& b) const;
+	virtual void MultTx(const dArrayT& x, dArrayT& b) const;
+
+	/** vector-matrix-vector product */
+	virtual double MultmBn(const dArrayT& m, const dArrayT& n) const;
 	
 protected:
 	

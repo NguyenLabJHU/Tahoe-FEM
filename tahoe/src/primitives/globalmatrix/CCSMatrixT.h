@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.h,v 1.16 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: CCSMatrixT.h,v 1.17 2005-02-04 22:01:54 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #ifndef _CCSMATRIX_T_H_
 #define _CCSMATRIX_T_H_
@@ -100,14 +100,14 @@ public:
 	 * \param x vector to use for calculating the product
 	 * \param b destination for the result 
 	 * \return true if the product was calculated successful */
-	virtual bool Multx(const dArrayT& x, dArrayT& b) const;
+	virtual void Multx(const dArrayT& x, dArrayT& b) const;
 
 	/** Tranpose[matrix]-vector product. Works only if called before the matrix 
 	 * has been factorized. 
 	 * \param x vector to use for calculating the product
 	 * \param b destination for the result
 	 * \return true if the product was calculated successful */
-	virtual bool MultTx(const dArrayT& x, dArrayT& b) const;
+	virtual void MultTx(const dArrayT& x, dArrayT& b) const;
 
 	/** return the values along the diagonal of the matrix. Derived classes
 	 * must reimplement this function to extrat the diagonals from the
@@ -192,8 +192,7 @@ inline int CCSMatrixT::ColumnHeight(int col) const
 }
 
 /* Tranpose[matrix]-vector product */
-inline bool CCSMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
-{
+inline void CCSMatrixT::MultTx(const dArrayT& x, dArrayT& b) const {
 	return CCSMatrixT::Multx(x, b);
 }
 
