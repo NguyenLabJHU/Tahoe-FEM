@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="paklein" geometry_file="geometry/lattice.geom"
+    title="small hex lattice" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time num_steps="2" output_inc="1" time_step="0.5">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="1.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+        </field>
+    </nodes>
+    <element_list>
+        <particle_pair field_name="displacement" lattice_parameter="1.0"
+            max_neighbor_distance="1.1" re-neighbor_displacement="1.0">
+            <particle_type all_particles="true" label="A"/>
+            <pair_particle_interaction label_1="A" label_2="A">
+                <harmonic mass="1.0" rest_length="1.0" stiffness="1.0"/>
+            </pair_particle_interaction>
+        </particle_pair>
+    </element_list>
+    <PCG_solver abs_tolerance="1.0e-12" divergence_tolerance="1.0e+15"
+        line_search_iterations="10" line_search_tolerance="0.1"
+        max_iterations="10000" max_step="2.5" quick_solve_iter="500"
+        rel_tolerance="1.0e-12" restart="50">
+        <diagonal_matrix/>
+    </PCG_solver>
+</tahoe>

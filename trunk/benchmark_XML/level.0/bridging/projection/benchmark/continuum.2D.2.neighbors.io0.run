@@ -1,0 +1,18 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodal values. . . . . . . . . . . . . = 1
+ Labels:
+	n
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodes . . . . . . . . . . . . . . . . = 4
+ Number of elements. . . . . . . . . . . . . . . = 4
+
+ O U T P U T   D A T A :  T O C
+continuum.2D.2.neighbors.io0.run.ps0000
