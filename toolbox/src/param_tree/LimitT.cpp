@@ -1,4 +1,4 @@
-/* $Id: LimitT.cpp,v 1.9 2004-01-21 17:17:40 paklein Exp $ */
+/* $Id: LimitT.cpp,v 1.10 2004-09-14 18:13:31 paklein Exp $ */
 #include "LimitT.h"
 
 /* array behavior */
@@ -108,10 +108,16 @@ bool LimitT::CheckUpper(const ValueT& value) const
 			/* type check */
 			if (value.Type() != Integer && value.Type() != Double)
 				ExceptionT::GeneralFail(caller, "type mismatch");
-		
-			int a = value;
+			
 			int b = *this;
-			return b > a;
+			if (value.Type() == Integer) {
+				int a = value;
+				return b > a;
+			}
+			else /* double */ {
+				double a = value;
+				return b > a;
+			}
 		}
 		case Double:
 		{
@@ -119,9 +125,15 @@ bool LimitT::CheckUpper(const ValueT& value) const
 			if (value.Type() != Integer && value.Type() != Double)
 				ExceptionT::GeneralFail(caller, "type mismatch");
 
-			double a = value;
 			double b = *this;
-			return b > a;
+			if (value.Type() == Integer) {
+				int a = value;
+				return b > a;
+			}
+			else /* double */ {
+				double a = value;
+				return b > a;
+			}
 		}
 		case String:
 		{
@@ -150,10 +162,16 @@ bool LimitT::CheckUpperInclusive(const ValueT& value) const
 			/* type check */
 			if (value.Type() != Integer && value.Type() != Double)
 				ExceptionT::GeneralFail(caller, "type mismatch");
-
-			int a = value;
+			
 			int b = *this;
-			return b >= a;
+			if (value.Type() == Integer) {
+				int a = value;
+				return b >= a;
+			}
+			else /* double */ {
+				double a = value;
+				return b >= a;
+			}
 		}
 		case Double:
 		{
@@ -161,9 +179,15 @@ bool LimitT::CheckUpperInclusive(const ValueT& value) const
 			if (value.Type() != Integer && value.Type() != Double)
 				ExceptionT::GeneralFail(caller, "type mismatch");
 
-			double a = value;
 			double b = *this;
-			return b >= a;
+			if (value.Type() == Integer) {
+				int a = value;
+				return b >= a;
+			}
+			else /* double */ {
+				double a = value;
+				return b >= a;
+			}
 		}
 		case String:
 		{
@@ -192,20 +216,32 @@ bool LimitT::CheckLower(const ValueT& value) const
 			/* type check */
 			if (value.Type() != Integer && value.Type() != Double)
 				ExceptionT::GeneralFail(caller, "type mismatch");
-
-			int a = value;
+			
 			int b = *this;
-			return b < a;
+			if (value.Type() == Integer) {
+				int a = value;
+				return b < a;
+			}
+			else /* double */ {
+				double a = value;
+				return b < a;
+			}
 		}
 		case Double:
 		{
 			/* type check */
 			if (value.Type() != Integer && value.Type() != Double)
 				ExceptionT::GeneralFail(caller, "type mismatch");
-
-			double a = value;
+			
 			double b = *this;
-			return b < a;
+			if (value.Type() == Integer) {
+				int a = value;
+				return b < a;
+			}
+			else /* double */ {
+				double a = value;
+				return b < a;
+			}
 		}
 		case String:
 		{
@@ -234,10 +270,16 @@ bool LimitT::CheckLowerInclusive(const ValueT& value) const
 			/* type check */
 			if (value.Type() != Integer && value.Type() != Double)
 				ExceptionT::GeneralFail(caller, "type mismatch");
-
-			int a = value;
+			
 			int b = *this;
-			return b <= a;
+			if (value.Type() == Integer) {
+				int a = value;
+				return b <= a;
+			}
+			else /* double */ {
+				double a = value;
+				return b <= a;
+			}
 		}
 		case Double:
 		{
@@ -245,9 +287,15 @@ bool LimitT::CheckLowerInclusive(const ValueT& value) const
 			if (value.Type() != Integer && value.Type() != Double)
 				ExceptionT::GeneralFail(caller, "type mismatch");
 
-			double a = value;
 			double b = *this;
-			return b <= a;
+			if (value.Type() == Integer) {
+				int a = value;
+				return b <= a;
+			}
+			else /* double */ {
+				double a = value;
+				return b <= a;
+			}
 		}
 		case String:
 		{
