@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.14 2003-12-28 08:24:01 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.15 2004-03-14 02:51:32 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
 #include <iostream.h>
@@ -344,16 +344,9 @@ bool FullMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
 }
 
 /**************************************************************************
-* Protected
-**************************************************************************/
+ * Protected
+ **************************************************************************/
 
-/* precondition matrix */
-void FullMatrixT::Factorize(void)
-{
-//TEMP: no full, nonsymmetric factorization implemented
-	fIsFactorized = 0; // undo GlobalMatrixT flag set
-}
-	
 /* determine new search direction and put the results in result */
 void FullMatrixT::BackSubstitute(dArrayT& result)
 {

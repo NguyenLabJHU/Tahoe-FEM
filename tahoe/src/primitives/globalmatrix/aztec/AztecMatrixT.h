@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.h,v 1.10 2003-10-31 20:53:20 paklein Exp $ */
+/* $Id: AztecMatrixT.h,v 1.11 2004-03-14 02:51:38 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #ifndef _AZTEC_MATRIX_T_H_
 #define _AZTEC_MATRIX_T_H_
@@ -75,9 +75,6 @@ public:
 	virtual GlobalMatrixT* Clone(void) const;
 
 protected:
-
-	/* precondition matrix */
-	virtual void Factorize(void);
 	
 	/* determine new search direction and put the results in result */
 	virtual void BackSubstitute(dArrayT& result);

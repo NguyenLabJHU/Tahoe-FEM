@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.h,v 1.12 2003-10-31 20:53:14 paklein Exp $ */
+/* $Id: FullMatrixT.h,v 1.13 2004-03-14 02:51:32 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #ifndef _FULL_MATRIX_T_H_
@@ -77,9 +77,6 @@ public:
 	virtual bool MultTx(const dArrayT& x, dArrayT& b) const;
 	
 protected:
-
-	/* precondition matrix */
-	virtual void Factorize(void);
 	
 	/* solution driver */
 	virtual void BackSubstitute(dArrayT& result);

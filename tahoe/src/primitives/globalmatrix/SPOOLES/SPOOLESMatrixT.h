@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.h,v 1.14 2004-03-14 00:10:42 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.h,v 1.15 2004-03-14 02:51:35 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #ifndef _SPOOLES_MATRIX_T_H_
 #define _SPOOLES_MATRIX_T_H_
@@ -49,9 +49,6 @@ public:
 	virtual GlobalMatrixT* Clone(void) const;
 
 protected:
-
-	/* precondition matrix */
-	virtual void Factorize(void);
 	
 	/* determine new search direction and put the results in result */
 	virtual void BackSubstitute(dArrayT& result);
