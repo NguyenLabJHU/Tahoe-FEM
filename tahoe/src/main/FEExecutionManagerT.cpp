@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.35 2003-01-27 07:00:27 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.36 2003-01-27 23:10:20 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -130,6 +130,21 @@ bool FEExecutionManagerT::AddCommandLineOption(const char* str)
 		RemoveCommandLineOption("-split_io");
 	else if (option == "-split_io")
 		RemoveCommandLineOption("-join_io");
+	else if (option == "-decomp_method") {
+	
+		/* clear existing setting */
+		int index;
+		if (CommandLineOption("-decomp_method", index))
+		{
+			/* clear option */
+			fCommandLineOptions.DeleteAt(index);
+
+			/* clear number */
+			const StringT& opt = fCommandLineOptions[index];
+			if (strlen(opt) > 1 && isdigit(opt[1]))
+				fCommandLineOptions.DeleteAt(index);
+		}
+	}
 	
 	/* inherited */
 	return ExecutionManagerT::AddCommandLineOption(option);
@@ -678,7 +693,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		ExceptionT::GeneralFail(caller);
 	}
 	
-	/* external IO - only for graph decomposition */
+	/* external IO */
 	token = 1;
 	IOManager_mpi* IOMan = NULL;
 	if (partition.DecompType() == PartitionT::kGraph && !CommandLineOption("-split_io"))
