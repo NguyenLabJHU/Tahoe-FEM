@@ -23,7 +23,7 @@
     </nodes>
     <element_list>
         <large_strain_meshfree field_name="displacement">
-            <quadrilateral/>
+            <quadrilateral num_ip='16'/>
             <solid_element_nodal_output displacements="1" stress="1"/>
             <large_strain_element_block>
                 <block_ID_list>
