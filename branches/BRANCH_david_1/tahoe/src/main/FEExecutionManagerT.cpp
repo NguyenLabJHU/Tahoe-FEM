@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.69.2.4 2004-08-07 18:44:06 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.69.2.5 2004-08-09 16:46:04 d-farrell2 Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -514,7 +514,7 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 		/* generate validated parameter list */
 		ParameterListT valid_list;
 		FEManagerT::ParseInput(input_file, valid_list, true, true, true, fCommandLineOptions);
-
+// in the parallel version, the bools are true, false, false
 		/* write the validated list as formatted text */
 		if (true) {
 			DotLine_FormatterT pp_format;
@@ -625,7 +625,7 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 		} // end if (valid_list.Name() == "tahoe")
 		
 		/* construction */
-		tahoe = FEManagerT::New(valid_list.Name(), input_file, out, fComm, fCommandLineOptions, task);		
+		tahoe = FEManagerT::New(valid_list.Name(), input_file, out, fComm, fCommandLineOptions, FEManagerT::kRun);	// FEManagerT::kRun	??
 		
 		tahoe->TakeParameterList(valid_list);
 
@@ -880,7 +880,7 @@ void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& s
 		model_file.ToNativePathName();      
 		model_file.Prepend(path);
 		
-		// set output map and and generate decomposition, This should become the appropriate call to FEDecompose::CheckDecompose
+		// set output map and and generate decomposition
 		FEDecomposeT decompose;
 		decompose.CheckDecompose(input_file, size, method, comm, model_file, format, fCommandLineOptions);
 
