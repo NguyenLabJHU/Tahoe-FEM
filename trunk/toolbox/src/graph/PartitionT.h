@@ -1,4 +1,4 @@
-/* $Id: PartitionT.h,v 1.11 2004-10-06 21:05:05 paklein Exp $ */
+/* $Id: PartitionT.h,v 1.12 2004-11-17 23:21:29 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 #ifndef _PARTITION_T_H_
 #define _PARTITION_T_H_
@@ -166,6 +166,16 @@ public:
 	/** check cross-references - returns 1 if OK */
 	int CrossCheck(const PartitionT& that) const;
 
+	/** \name parameters for spatial decomposition only
+	 * Methods throw exception if decomposition type is not PartitionT::kSpatial */
+	/*@{*/
+	void SetGridDimensions(const iArrayT& grid_dims) { fGridDims = grid_dims; };
+	void SetGridPosition(const iArrayT& grid_position) { fGridPosition = grid_position; };
+	
+	const iArrayT& GridDimensions(void) const { return fGridDims; };
+	const iArrayT& GridPosition(void) const { return fGridPosition; };
+	/*@}*/
+
 	/** \name I/O */
 	/*@{*/
 	/** stream extraction */
@@ -301,6 +311,15 @@ private:
 	ArrayT<iArrayT> fElementMap; // block_global[block_local]
 	iArrayT fElementMapShift;
 	ArrayT<iArrayT> fInvElementMap;
+	/*@}*/
+
+	/** \name additional information for spatial decomposition */
+	/*@{*/
+	/** number of grid cells in each coordinate dimension */
+	iArrayT fGridDims;
+	
+	/** location of this partition in the grid */
+	iArrayT fGridPosition;
 	/*@}*/
 };
 

@@ -1,4 +1,4 @@
-/* $Id: PartitionT.cpp,v 1.14 2004-10-06 21:05:05 paklein Exp $ */
+/* $Id: PartitionT.cpp,v 1.15 2004-11-17 23:21:29 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 #include "PartitionT.h"
 
@@ -343,11 +343,30 @@ namespace Tahoe {
 /* I/O */
 ostream& operator<<(ostream& out, const PartitionT& partition)
 {
+	const char caller[] = "operator<<PartitionT";
+
 	out << sPartitionTVersion << '\n';
 	out << setw(6) << partition.fNumPartitions << " # number of parts\n";
 	out << setw(6) << partition.fID            << " # partition number\n";
 	out << setw(6) << partition.fScope         << " # numbering scope\n";
 	out << setw(6) << partition.fDecompType    << " # decomposition type\n";
+
+	// additional grid parameters for spatial decomposition
+	if (partition.fDecompType == PartitionT::kSpatial) {
+
+		// must be set
+		if (partition.fGridDims.Length() == 0) 
+			ExceptionT::GeneralFail(caller, "grid dimensions not set");
+		if (partition.fGridPosition.Length() == 0) 
+			ExceptionT::GeneralFail(caller, "grid position not set");
+		if (partition.fGridDims.Length() != partition.fGridPosition.Length()) 
+			ExceptionT::SizeMismatch(caller, "position not consistent with grid");
+
+		out << "# type " <<  PartitionT::kSpatial << " decomposition parameters:\n";
+		out << partition.fGridDims.Length()           << " # grid dimensions\n";
+		out << partition.fGridDims.wrap_tight(10)     << " # grid topology\n";
+		out << partition.fGridPosition.wrap_tight(10) << " # grid position\n";
+	}
 	
 	// nodal information
 	out << "# internal nodes:\n";
@@ -449,6 +468,15 @@ ifstreamT& PartitionT::Read(ifstreamT& in)
 	in >> fDecompType;    // decomposition type
 
 	int length;
+
+	// read grid parameters for spatial decomposition
+	if (fDecompType == PartitionT::kSpatial) {
+		in >> length;
+		fGridDims.Dimension(length);
+		in >> fGridDims;
+		fGridPosition.Dimension(length);
+		in >> fGridPosition;
+	}
 	
 	// nodal information
 	in >> length;
