@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: element.tex,v 1.3 2001-04-10 01:57:48 paklein Exp $
+% $Id: element.tex,v 1.4 2001-04-23 05:07:41 paklein Exp $
 
 \section{Element types}
 Within the structure of \tahoe, any formulation that relates nodal 
@@ -22,7 +22,7 @@ schemes are discussed in this chapter.
 &\parbox[b]{0.75in}{\centering \textbf{code}}
 &\parbox[b]{0.75in}{\centering \textbf{sub-code}}\\
 \hline
-% finite elememt continuum
+% finite element continuum
 \multirow{4}{1.5in}{\centering finite element continuum} & small deformation & 2 &
 \multirow{4}{0.75in}{\centering N/A}\\
 \hhline{~--~}
@@ -82,6 +82,7 @@ anisotropic with rotating frame & 22 & N/A\\
 \end{table}
 
 \subsection{Integration domains}
+\label{sect.integration.domains}
 \tahoe supports a number of Gaussian integration rules for the finite 
 element types listed in Table~\ref{tab.element.types}. These rules 
 are defined for the geometries listed in Table~\ref{tab.domain.types}.
@@ -128,7 +129,7 @@ the three-dimensional domains, the local numbering of the facet nodes
 is always defined in a sense, or line direction, consistent with the 
 outward normal to the face. Finally, the local node numbering for the 
 follows the convention used by 
-\textsf{ABAQUS}~\cite{ABAQUS} and \textsf{EnSight}~\cite{EnSight6}, 
+\textsf{ABAQUS}~\cite{ABAQUSv56} and \textsf{EnSight}~\cite{EnSight6}, 
 which is not the same as the 
 convention used by the \textsf{ExodusII}~\cite{ExodusII} database format
 for some domain geometries.
@@ -278,7 +279,7 @@ domains.}
 \end{center}
 \hangcaption{Node, face, and node-on-face numbering for tetrahedral integration 
 domains.}
-\label{fig.hex.element}
+\label{fig.tet.element}
 \end{figure}
 
 %% hex
@@ -317,7 +318,7 @@ Recently, there has been intense interest in the development of
 meshfree numerical simulation methods. 
 The methods used in \tahoe
 have their origins in Smoothed Particle Hydrodynamics (SPH) 
-proposed by Gingold and Monaghan\cite{Gingold1977}.
+proposed by Gringold and Monaghan\cite{Gingold1977}.
 A number of methods have developed that employ
 variants of the Moving Least Squares fitting procedure
 of Lancaster and Salkauskas\cite{Lancaster1981}.
@@ -512,7 +513,7 @@ boundary conditions. Furthermore, this characteristic affects the
 enforcement of contact constraint and the imposition of cohesive 
 tractions.
 
-\temp{User must specify\\
+\todo{User must specify\\
 (1) the window function\\
 (2) basis functions\\
 (3) order of completeness for polynomial basis functions}
@@ -713,7 +714,7 @@ cohesive surface elements.}
 \hline
 1 & $\overline{\mathbf{X}}$ 
   & \parbox[b]{2.5in}{\raggedright centroid in reference coordinates} 
-  & \parbox[b]{2.0in}{\raggedright \texttt{xc\_[$i$} 
+  & \parbox[b]{2.0in}{\raggedright \texttt{xc\_[$i$]} 
     $i$ = 0, \ldots, $n_{\textit{sd}}$  }\\
 \hline
 2 & $\phi$ 

@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: material.solid.tex,v 1.2 2001-04-10 01:57:49 paklein Exp $
+% $Id: material.solid.tex,v 1.3 2001-04-23 05:07:42 paklein Exp $
 
 \section{Constitutive models for solid mechanics}
 This section of the guide describes the constitutive models available 
@@ -70,7 +70,7 @@ Internal Bond model (Ogden)}\\
 19 & \parbox[c]{4.5in}{\raggedright isotropic Virtual 
 Internal Bond model with $J_{2}$ plasticity}\\
 \hline
-80 & \parbox[c]{4.5in}{\raggedright \textsf{ABAQUS/Standard~\cite{ABAQUSNNNN} UMAT} BCJ}\\
+80 & \parbox[c]{4.5in}{\raggedright \textsf{ABAQUS/Standard~\cite{ABAQUSv56} UMAT} BCJ}\\
 \hline
 \end{longtable}
 \end{center}
@@ -96,7 +96,7 @@ The force for Rayleigh damping is defined as
 	\mathbf{F}_{R} = \mathbf{C}_{R}\,\mathbf{v}
 \end{equation}
 where the damping matrix $\mathbf{C}_{R}$ is a linear combination
-of the mass and stiffness matricies
+of the mass and stiffness matrices
 \begin{equation}
 	\mathbf{C}_{R} = a\,\mathbf{M} + b\,\mathbf{K},
 \end{equation}
@@ -148,7 +148,7 @@ as
 \begin{equation}
 	d\Omega = t\,dx_{1}\,dx_{2}.
 \end{equation}
-The acceptable values for the constaint option are shown in 
+The acceptable values for the constraint option are shown in 
 Table~\ref{tab.2Dconstraint}.
 \begin{table}[h]
 \caption{\label{tab.2Dconstraint} Constraint options for 
@@ -170,7 +170,7 @@ two-dimensional analysis.}
 \end{table}
 Some materials models have been specifically formulated as plane 
 stress or plane strain. These materials will silently 
-override the user-specifed value of the constraint option.
+override the user-specified value of the constraint option.
 
 \subsection{Material 1: small deformation Kirchhoff-St.~Venant}
 \label{sect.mat.SSKStV}
@@ -514,7 +514,7 @@ and
 An example of input parameters for three-dimensional analysis is shown 
 below:
 \begin{inputfile}
-####### uncoupled volumetic/deviatoric model
+####### uncoupled volumetric/deviatoric model
 5     # material code
 ####### common material parameters
 0.0    0.0    1.0
@@ -532,7 +532,7 @@ $E$ and Poisson's ratio $\nu$.
 An example of input parameters for two-dimensional analysis is shown 
 below:
 \begin{inputfile}
-####### uncoupled volumetic/deviatoric model
+####### uncoupled volumetric/deviatoric model
 5     # material code
 ####### common material parameters
 0.0    0.0    1.0
@@ -1081,7 +1081,7 @@ The material thickness and
 constraint option from Table~\ref{tab.2Dconstraint} 
 follow the parameters for three-dimensional analysis.
 This two-dimensional model is formulated in plane strain,
-so other values for the constaint option are silently
+so other values for the constraint option are silently
 overridden.
 Following these parameters, 
 the user defines the initial 
@@ -1300,7 +1300,7 @@ volumetric part of stress-like plastic variable
 {Deformation of the underlying microstructure as
 prescribed by the Cauchy-Born rule.\label{fig.CB}}
 \end{figure}
-\temp{this is a pure plane stress material}
+\todo{this is a pure plane stress material}
 The stress response of this material is calculated from an
 underlying lattice structure and bonding potential by
 making use of the Cauchy-Born rule.
@@ -1598,7 +1598,7 @@ file \texttt{auu3} with the potential data in \textsf{ParaDyn}~\cite{PARADYN} fo
 \end{center}
 \end{table}
 
-\temp{print tables of modulus values and units for each potential.}
+\todo{print tables of modulus values and units for each potential.}
 
 \subsubsection{3D input parameters}
 An example of input parameters for three-dimensional analysis is shown 
@@ -1755,7 +1755,7 @@ $\mathbf{e}_{3}$: [ 1\,1\,1 ]
 \end{center}
 \end{table}
 
-\temp{with and withouth internal equilibration.}
+\todo{with and without internal equilibration.}
 
 \subsubsection{3D input parameters}
 An example of input parameters for three-dimensional analysis is shown 
@@ -1799,7 +1799,7 @@ the bonding potential, $D_{\Omega}$ is the volumetric bond density function,
 and $\Omega_0^{*}$ is the integration volume defined by the range of influence
 of $U$.
 
-\temp{show results for the fracture energy, cohesive strength, and 
+\todo{show results for the fracture energy, cohesive strength, and 
 modulus in terms of potential, and then show specific results for the
 Smith-Ferrante potential. Is the potential selectable?}
 
@@ -1880,7 +1880,7 @@ Figure~\ref{fig.icosahedralpoints}.
 [Integration point arrangements in three dimensions]
 {Integration point arrangements in
    three dimensions based on the icosahedron.\label{fig.icosahedralpoints}
-   \temp{get picture of lat-long points.}}
+   \todo{get picture of lat-long points.}}
 \end{figure}
 These arrangements are created by successively bisecting the edges of the
 triangular facets and projecting the vertex points onto the sphere. 
@@ -1929,7 +1929,7 @@ spectral formulation developed by Simo and Taylor~\cite{Simo1991}.
 Expressed in principal stretches, the model displays
 exactly isotropic response regardless of the accuracy of the
 scheme used to integrate the bond distribution.
-\temp{However, the model will not display the modulus, fracture
+\todo{However, the model will not display the modulus, fracture
 energy, or cohesive strength developed from analysis of the
 model.}
 
@@ -1952,7 +1952,7 @@ spectral formulation developed by Ogden~\cite{Ogden1983}.
 Expressed in principal stretches, the model displays
 exactly isotropic response regardless of the accuracy of the
 scheme used to integrate the bond distribution.
-\temp{However, the model will not display the modulus, fracture
+\todo{However, the model will not display the modulus, fracture
 energy, or cohesive strength developed from analysis of the
 model.}
 
@@ -1979,7 +1979,7 @@ Section~\ref{sect.mat.J2.QL.LinearHardening}.
 Expressed in principal stretches, the model displays
 exactly isotropic response regardless of the accuracy of the
 scheme used to integrate the bond distribution.
-\temp{However, the model will not display the modulus, fracture
+\todo{However, the model will not display the modulus, fracture
 energy, or cohesive strength developed from analysis of the
 model.}
 
@@ -2026,14 +2026,14 @@ isotropic to kinematic hardening, with $\theta = 1$ indicating purely
 isotropic hardening.
 
 \subsubsection{Output values}
-\temp{output values}
+\todo{output values}
 
 % jump to section 80 for ABAQUS/Standard UMAT materials
 \setcounter{subsection}{79}
 % jump to section 80 for ABAQUS/Standard UMAT materials
 \subsection{Material 80: \textsf{ABAQUS/Standard UMAT} BCJ}
 \label{sect.mat.ABAQUS.BCJ}
-This model makes of the the \textsf{ABAQUS/Standard}~\cite{ABAQUSNNNN}
+This model makes of the the \textsf{ABAQUS/Standard}~\cite{ABAQUSv56}
 \textsf{UMAT} interface in \tahoe. This model is due to Bammann, 
 Chiesa, and Johnson~\cite{BammannNNNN}.
 The \textsf{ABAQUS/Standard UMAT} interface in \tahoe parses
@@ -2089,16 +2089,16 @@ below:
  25
 \end{verbatim}
 	
-\temp{This is for A356}
+\todo{This is for A356}
 
 \subsubsection{2D input parameters}
 The parameters for using the 
-\temp{same as for three-dimensional analysis. Since this model is 
+\todo{same as for three-dimensional analysis. Since this model is 
 formulated in three-dimensions, the thing will be plane strain when 
 used for two dimensional analysis. Mention this above in the general 
 description of the \textsf{UMAT} interface.}
 
 \subsubsection{Output values}
-\temp{output values determined by the implemenation of the 
+\todo{output values determined by the implementation of the 
 \textsf{UMAT}. Show output parameters for A356.}
 

@@ -1,26 +1,222 @@
 %&LaTeX
-% $Id: ICandBC.tex,v 1.2 2001-04-10 01:57:48 paklein Exp $
+% $Id: ICandBC.tex,v 1.3 2001-04-23 05:07:41 paklein Exp $
 
 \section{Initial conditions and boundary conditions}
 \label{set.ICandBC}
-\subsection{Initial conditions}
-\subsection{Nodal force conditions}
+Initial conditions and boundary conditions may be specified on 
+selected nodes. Additionally, the variational form 
+of governing equations leads to natural boundary conditions that may 
+be specified on selected parts of the domain boundary. \tahoe 
+supports a number of geometry database types. These are listed in 
+Table~\ref{tab.input.file.type}. The database format determines how 
+nodes or sets of nodes are identified and how parts of the domain 
+boundary are identified.
+\begin{table}[h]
+\begin{center}
+\caption{\label{tab.BC.type} Identification of nodes and 
+boundaries.}
+\begin{tabular}[c]{|c|c|c|}
+\hline
+ \parbox[b]{1.25in}{\centering \textbf{database}}
+&\parbox[b]{1.5in}{\centering \textbf{node ID}}
+&\parbox[b]{1.5in}{\centering \textbf{side ID}}\\
+\hline
+  \parbox[b]{1.25in}{\centering TahoeI}
+& \parbox[b]{1.5in}{\centering node}
+& \parbox[b]{1.5in}{\centering element,facet} \\
+\hline
+  \parbox[b]{1.25in}{\centering TahoeII}
+& \parbox[b]{1.5in}{\centering node set ID}
+& \parbox[b]{1.5in}{\centering side set ID} \\
+\hline
+  \parbox[b]{1.25in}{\centering \textsf{ExodusII}~\cite{ExodusII}}
+& \parbox[b]{1.5in}{\centering node set ID}
+& \parbox[b]{1.5in}{\centering side set ID} \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+Table~\ref{tab.BC.type} lists how nodes and element side are 
+identified for the different database types. Their use will be 
+explained with examples below. For the TahoeI format, boundary 
+segments are explicitly specified with an element and facet number. 
+Canonical facet numbering for the different integration domain 
+geometries supported by \tahoe are listed in 
+Section~\ref{sect.integration.domains}. For TahoeII and 
+\textsf{ExodusII} databases, groups of nodes may be collected into 
+node sets and groups of element facets are collected into side sets. 
+Both types of sets are identified with ID numbers.
+
+Many of the boundary conditions may be specified as functions of 
+time. Their values have the form
+\begin{equation}
+\label{eq.func.time}
+    g\farg{t} = g\,f^{\rbrkt{i}}\farg{t},
+\end{equation}
+where $g$ is a scalar coefficient and $f^{\rbrkt{i}}\farg{t}$ is a
+schedule function. Schedule functions are explained in 
+Section~\ref{sect.sched.param}. Time varying functions in the input 
+file are specified by providing $g$ and $i$, as defined 
+in~\eqref{eq.func.time}.
+
+\subsection{Nodal initial conditions}
+\label{set.ICandBC.IC}
+Each initial condition is specified as
+\[
+\sbrkt{\textit{node ID}} \quad 
+\sbrkt{\textit{degree of freedom}} \quad
+\sbrkt{\textit{value}}
+\]
+The definition of the \textit{node ID} depends on the geometry 
+database type as listed in Table~\ref{tab.BC.type}. A \textit{node ID} 
+of \texttt{-1} applies the boundary condition to \textit{all} nodes.
+
+\subsection{Nodal kinematic boundary conditions}
+\label{set.ICandBC.KBC}
+Each nodal kinematic boundary condition is specified as
+\[
+\sbrkt{\textit{node ID}} \quad 
+\sbrkt{\textit{degree of freedom}} \quad
+\sbrkt{\textit{code}} \quad
+\sbrkt{\textit{schedule}} \quad
+\sbrkt{\textit{value}} 
+\]
+The definition of the \textit{node ID} depends on the geometry 
+database type as listed in Table~\ref{tab.BC.type}. The \textit{code} 
+specifies if the condition is applied to the nodal unknown $u$, or one 
+of its time derivatives $\dot{u}$, $\ddot{u}$, or higher. The codes 
+are listed in Table~\ref{tab.KBC.code}.
+\begin{table}[h]
+\begin{center}
+\caption{\label{tab.KBC.code} Codes for nodal kinematic boundary 
+conditions.}
+\begin{tabular}[c]{|c|c|}
+\hline
+ \parbox[b]{0.75in}{\centering \textbf{code}}
+&\parbox[b]{0.75in}{\centering \textbf{type}}\\
+\hline
+ \parbox[b]{0.75in}{\centering 0}
+&\parbox[b]{0.75in}{\centering \textit{fixed}}\\
+\hline
+ \parbox[b]{0.75in}{\centering 1}
+&\parbox[b]{0.75in}{\centering $u$}\\
+\hline
+ \parbox[b]{0.75in}{\centering 2}
+&\parbox[b]{0.75in}{\centering $\dot{u}$}\\
+\hline
+ \parbox[b]{0.75in}{\centering 3}
+&\parbox[b]{0.75in}{\centering $\ddot{u}$}\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+The \textit{value} and \textit{schedule} in the nodal kinematic 
+boundary condition specification refer to 
+$g$ and $i$ in~\eqref{eq.func.time}, respectively, for the variation 
+of the boundary condition in time.
+
+\subsection{Kinematic boundary condition controllers}
+\label{set.ICandBC.KBC.controller}
+\todo{table of codes}
+\subsubsection{K-field}
+\subsubsection{Interface K-field}
+\subsubsection{Periodic displacement}
+\subsection{Applied nodal forces}
+\label{set.ICandBC.FBC}
+Each nodal force boundary condition is specified as
+\[
+\sbrkt{\textit{node ID}} \quad 
+\sbrkt{\textit{degree of freedom}} \quad
+\sbrkt{\textit{schedule}} \quad
+\sbrkt{\textit{value}}
+\]
+The definition of the \textit{node ID} depends on the geometry 
+database type as listed in Table~\ref{tab.BC.type}. 
+The \textit{value} and \textit{schedule} in the nodal kinematic 
+boundary condition specification refer to 
+$g$ and $i$ in~\eqref{eq.func.time}, respectively, for the variation 
+of the boundary condition in time.
+
 \subsection{Force controllers}
-\temp{This boundary conditions types actually behavior more like 
+\label{set.ICandBC.FBC.controller}
+\todo{mention that this boundary condition type actually behaves more like 
 ``elements'' because they do produce a contribution to the stiffness
 matrix, i.e., they act as ``follower forces'' and are not simply 
-defined as functions of time.}
-
-\temp{table of codes}
+defined as functions of time.}\\
+\todo{table of codes}
 \subsubsection{Rigid wall (penalty method)}
 \subsubsection{Rigid sphere (penalty method)}
 \subsubsection{Rigid sphere (augmented Lagrangian method)}
 \subsubsection{Rigid sphere for meshfree domains (penalty method)}
-\subsection{Nodal kinematic boundary conditions}
-\subsection{Kinematic boundary condition controllers}
-\temp{table of codes}
-\subsubsection{K-field}
-\subsubsection{Interface K-field}
-\subsubsection{Periodic displacement}
+
 \subsection{Body forces}
+\label{set.ICandBC.body}
+Certain element formulations include body forces.
+Applied body forces are specified with the vector analog 
+of~\eqref{eq.func.time}.
+Their values have the form
+\begin{equation}
+\label{eq.func.time}
+    \mathbf{b}\farg{t} = \mathbf{b}\,f^{\rbrkt{i}}\farg{t},
+\end{equation}
+where $\mathbf{b}$ is a vector coefficient of length $n_{dof}$, the 
+number of degrees of freedom per node, and $f^{\rbrkt{i}}\farg{t}$ 
+is a scalar schedule function. Schedule functions are explained in 
+Section~\ref{sect.sched.param}.
+Body forces are specified as
+\[  
+\sbrkt{\textit{schedule}} \quad 
+\sbrkt{b_{1}} \quad \ldots \quad
+\sbrkt{b_{n_{dof}}}
+\]
+
 \subsection{Natural boundary conditions}
+\label{set.ICandBC.traction}
+Recasting balance laws in weak form leads to natural boundary 
+conditions involving flux terms across domain surfaces. These fluxes
+are specified as part of the input of element parameters. Fluxes are 
+associated with the faces of elements. As shown in Table~\ref{tab.BC.type}, 
+the description of element faces differs depending on the geometry 
+database format. Each natural boundary condition requires specification
+of the flux vector at every node on the selected element face, or set 
+of faces. Canonical number of element faces and node numbering over 
+each face are described in Section~\ref{sect.integration.domains}.
+Natural boundary conditions are specified as
+\begin{align}
+& \sbrkt{\textit{side ID}} \quad 
+\sbrkt{\textit{schedule}} \quad 
+\sbrkt{\textit{coordinate system}} \notag \\
+& \begin{matrix}
+\sbrkt{t_{11}} & \ldots & \sbrkt{t_{1n_{dof}}} \\
+\vdots \\
+\sbrkt{t_{n_{fn}1}} & \ldots & \sbrkt{t_{n_{fn}n_{dof}}}
+\end{matrix} \notag
+\end{align}
+Each flux vector is length $n_{dof}$, and a vector must be specified 
+for all $n_{fn}$ nodes on the element face.
+The \textit{coordinate system} is identified by the values listed in 
+Table~\ref{tab.BC.coord.sys}.
+\begin{table}[h]
+\begin{center}
+\caption{\label{tab.BC.coord.sys} Coordinate systems for natural 
+boundary conditions.}
+\begin{tabular}[c]{|c|c|}
+\hline
+ \parbox[b]{0.75in}{\centering \textbf{code}}
+&\parbox[b]{1.5in}{\centering \textbf{description}} \\
+\hline
+ \parbox[b]{0.75in}{\centering 0}
+&\parbox[b]{1.5in}{\centering Cartesian} \\
+\hline
+ \parbox[b]{0.75in}{\centering 1}
+&\parbox[b]{1.5in}{\centering facet local} \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+The facet local coordinate frame is constructed such that the last 
+component of the flux vector $t_{n_{dof}}$ corresponds to flux in the 
+outward normal direction. The tangential components of the flux vector a 
+constructed from the mapping of the face to its corresponding parent 
+integration domain.
+

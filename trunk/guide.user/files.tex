@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: files.tex,v 1.3 2001-03-26 09:12:19 paklein Exp $
+% $Id: files.tex,v 1.4 2001-04-23 05:07:41 paklein Exp $
 
 \section{Geometry and results files}
 \label{sect.files}
@@ -82,7 +82,7 @@ This format allows random access to the geometry
 data which is stored in platform independent binary file.
 \end{itemize}
 All \tahoe plain text input files are white space delineated, that is, 
-values are seperated by white space, but the arrangement of white space
+values are separated by white space, but the arrangement of white space
 is ignored.
 The \texttt{\#} symbol denotes that the remainder of a given line of text 
 should be ignored, or treated as a comment.
@@ -113,7 +113,7 @@ The format of coordinate data is shown below:
 & \begin{matrix}
 \texttt{1} & \sbrkt{x_{11}} & \dots  & \sbrkt{x_{1n_{sd}}} \\
 \vdots \\
-n_{nd} & \sbrkt{x_{n_{nd}1}} & \dots & \sbrkt{x_{n_{nd}n_{sd}}}
+\sbrkt{n_{nd}}  & \sbrkt{x_{n_{nd}1}} & \dots & \sbrkt{x_{n_{nd}n_{sd}}}
 \end{matrix} \notag
 \end{align}
 The coordinate of each point is preceded by its index. Coordinates 
@@ -131,7 +131,7 @@ The format of element block data is shown below:
 & \begin{matrix}
 \texttt{1} & \sbrkt{n_{11}} & \dots  & \sbrkt{n_{1n_{en}}} \\
 \vdots \\
-n_{el} & \sbrkt{n_{n_{el}1}} & \dots & \sbrkt{n_{n_{el}n_{en}}}
+\sbrkt{n_{el}} & \sbrkt{n_{n_{el}1}} & \dots & \sbrkt{n_{n_{el}n_{en}}}
 \end{matrix} \notag
 \end{align}
 The connectivity of each element is preceded by its index. 
@@ -210,7 +210,7 @@ identified by an ID. ID's may be any positive integer and do not need
 to be consecutive. ID's for each type of set are stored separately.
 As mentioned above, TahoeII files are plain text and
 white space delineated, that is, 
-values are seperated by white space, but the arrangement of white space
+values are separated by white space, but the arrangement of white space
 is ignored.
 The \texttt{\#} symbol denotes that the remainder of a given line of text 
 should be ignored, or treated as a comment.
@@ -223,19 +223,19 @@ database with the current version of the TahoeII code.
 The current version is \texttt{1.0}.
 An example of 
 this section is shown below:
-\begin{inputfile}
-# TahoeII file version
-*version 1.0
-\end{inputfile}
+\begin{align}
+& \texttt{\# TahoeII file version} \notag \\
+& \texttt{*version 1.0} \notag
+\end{align}
 
 \paragraph{Title}
 This section begins with the \texttt{version} keyword.
 A one line title may be assigned to the database:
-\begin{inputfile}
-# database title
-*title
-\(\sbrkt{\textrm{\textit{one line title}}}\)
-\end{inputfile}
+\begin{align}
+& \texttt{\# database title} \notag \\
+& \texttt{*title} \notag \\
+& \sbrkt{\textrm{\textit{one line title of 254 characters or less}}}
+\end{align}
 \paragraph{Dimensions}
 \label{section.TahoeII.dimensions}
 This section begins with the \texttt{dimensions} keyword.
@@ -311,9 +311,9 @@ Note that the dimensions of the set are from the from the dimensions
 section are repeated but that the ID of each set is not repeated.
 When specifying the data for a node set in an external file, the 
 primary TahoeII contains the path to the external file, as shown below:
-\begin{inputfile}
-*set \(\sbrkt{\textrm{\textit{path to external file}}}\)
-\end{inputfile}
+\[
+\texttt{*set~} \sbrkt{\textrm{\textit{path to external file}}}
+\]
 
 \paragraph{Side sets}
 This section begins with the \texttt{sidesets} keyword.
@@ -358,9 +358,9 @@ Note that the dimensions of the set are from the from the dimensions
 section are repeated but that the ID of each set is not repeated.
 When specifying the data for a side set in an external file, the 
 primary TahoeII contains the path to the external file, as shown below:
-\begin{inputfile}
-*set \(\sbrkt{\textrm{\textit{path to external file}}}\)
-\end{inputfile}
+\begin{align}
+\texttt{*set~} \sbrkt{\textrm{\textit{path to external file}}}
+\end{align}
 
 \paragraph{Element sets}
 This section begins with the \texttt{elements} keyword.
@@ -406,9 +406,9 @@ Note that the dimensions of the set are from the from the dimensions
 section are repeated but that the ID of each set is not repeated.
 When specifying the data for a side set in an external file, the 
 primary TahoeII contains the path to the external file, as shown below:
-\begin{inputfile}
-*set \(\sbrkt{\textrm{\textit{path to external file}}}\)
-\end{inputfile}
+\[
+\texttt{*set~} \sbrkt{\textrm{\textit{path to external file}}}
+\]
 
 \paragraph{Nodal coordinates}
 The coordinate specification is marked by the \texttt{nodes} keyword.
@@ -425,7 +425,7 @@ An example is shown below:
 & \begin{matrix}
 \texttt{1} & \sbrkt{x_{11}} & \dots  & \sbrkt{x_{1n_{sd}}} \\
 \vdots \\
-n_{nd} & \sbrkt{x_{n_{nd}1}} & \dots & \sbrkt{x_{n_{nd}n_{sd}}}
+\sbrkt{n_{nd}}  & \sbrkt{x_{n_{nd}1}} & \dots & \sbrkt{x_{n_{nd}n_{sd}}}
 \end{matrix} \notag
 \end{align}
 The coordinate of each point is preceded by its index. Coordinates 
@@ -435,10 +435,10 @@ Coordinate data may be specified in the primary TahoeII file or in an
 external file.
 When specifying the data for a side set in an external file, the 
 primary TahoeII contains the path to the external file, as shown below:
-\begin{inputfile}
-# nodal coordinates	
-*nodes \(\sbrkt{\textrm{\textit{path to external file}}}\)
-\end{inputfile}
+\begin{align}
+& \texttt{\# nodal coordinates} \notag \\
+& \texttt{*nodes~} \sbrkt{\textrm{\textit{path to external file}}}
+\end{align}
 
 \subsubsection{\textsf{ExodusII/Genesis} format}
 \label{sect.file.exodusII}
@@ -606,7 +606,7 @@ produced so that nodal data from different output groups does not need to
 be merged.  Element numbering and ordering maps are not given.  The nodes
 are broken up into those used by the connectivities.  
 \textsf{ExodusII} files, from
-multiple restarts, can be joined together using the conex executable.
+multiple restarts, can be joined together using the \texttt{conex} executable.
 
 \subsubsection{Fracture surface area}
 The fracture surface area file contains columnar data, in the order listed
@@ -617,6 +617,7 @@ as follows:
 \end{itemize}
 
 \subsubsection{Node history output}
+\label{sect.file.node.history}
 The history node file contains columnar data, in the order listed as 
 follows. \\
 \begin{itemize}
