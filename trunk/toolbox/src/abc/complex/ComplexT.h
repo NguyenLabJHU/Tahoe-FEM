@@ -15,6 +15,7 @@ public:
 
 	/* Constructors */
 	ComplexT(void);  				//default needed to making arrays
+	ComplexT(int i);                //type conversion: int -> ComplexT
 	ComplexT(double re);			//type conversion: double -> ComplexT
 	ComplexT(double re, double im);
 
@@ -83,6 +84,7 @@ private:
 
 /* Constructors */
 inline ComplexT::ComplexT(void): fRe(0.0), fIm(0.0) { }
+inline ComplexT::ComplexT(int i): fRe(i), fIm(0.0) { }
 inline ComplexT::ComplexT(double re): fRe(re), fIm(0.0) { }
 inline ComplexT::ComplexT(double re, double im): fRe(re), fIm(im) { }
 
