@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.55.2.12 2004-03-15 01:19:49 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.55.2.13 2004-03-18 18:27:37 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -1982,7 +1982,7 @@ void FEExecutionManagerT::Decompose_graph(ifstreamT& in, int size,
 				int n_border = 0;
 				int n_external = 0;
 				dArrayT part(nnd); part = -1;
-				dArrayT inex(nnd); inex = 0;
+				dArrayT inex(nnd); inex = 0.0;
 				for (int i = 0; i < size; i++)
 				{
 					/* "owned" nodes */
