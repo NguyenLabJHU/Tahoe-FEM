@@ -1,4 +1,4 @@
-/* $Id: dSPMatrixT.cpp,v 1.7 2003-11-21 22:41:36 paklein Exp $ */
+/* $Id: dSPMatrixT.cpp,v 1.8 2004-03-16 05:37:16 paklein Exp $ */
 /* created MLK 10/3/00 */
 #include "dSPMatrixT.h"
 
@@ -174,7 +174,7 @@ void dSPMatrixT::CopyRow(int i, dArrayT& row) const
 		ExceptionT::OutOfRange();
 #endif
 	
-	row = 0;
+	row = 0.0;
 	
 	/* pointers to beginning of rows */
 	const double* pV = fVal_Matrix(i);
@@ -198,7 +198,7 @@ void dSPMatrixT::CopyColumn(int j, dArrayT& col) const
 	dSPMatrixT MT( fCols, fRows, Width() );
 	MT.Transpose((*this));
 	
-	col = 0;
+	col = 0.0;
 	
 	/* pointers to beginning of rows of MT */
 	double* pV = MT.ValPointer(j);
@@ -367,7 +367,7 @@ void dSPMatrixT::Multx(const dArrayT& x, dArrayT& b) const
 		ExceptionT::SizeMismatch();
 #endif
 	
-	b = 0;
+	b = 0.0;
 	
 	/* for each nonzero element of the matrix, perform a multiplication
 		with the appropriate element of x and place in the appropriate
@@ -394,7 +394,7 @@ void dSPMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
 		ExceptionT::SizeMismatch();
 #endif
 
-	b = 0;
+	b = 0.0;
 	
 	/* for each nonzero element of the matrix, perform a multiplication
 		with the appropriate element of x and place in the appropriate
@@ -457,7 +457,7 @@ void dSPMatrixT::MultABT(const dSPMatrixT& A, const dSPMatrixT& B)
 		int Anumrowvals = A.RowNnz(i);
 		
 		/* record elements of row i of A in vector, arowvec */
-		arowvec = 0;
+		arowvec = 0.0;
 		const int* pC_A = A.ColPointer(i);    // pointer to column numbers of row i of A
 		const double* pV_A = A.ValPointer(i); // pointer to values of entries in row i of A
 		for(int kk = 0; kk < Anumrowvals; kk++ )
@@ -530,7 +530,7 @@ void dSPMatrixT::MultAB(const dSPMatrixT& A, const dSPMatrixT& B)
 		int Anumrowvals = A.RowNnz(i);
 		
 		/* record elements of row i of A in vector, arowvec */
-		arowvec = 0;
+		arowvec = 0.0;
 		const int* pC_A = A.ColPointer(i);    // pointer to column numbers of row i of A
 		const double* pV_A = A.ValPointer(i); // pointer to values of entries in row i of A
 		for(int kk = 0; kk < Anumrowvals; kk++ )

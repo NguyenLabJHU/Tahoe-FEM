@@ -1,4 +1,4 @@
-/* $Id: dArrayT.h,v 1.7 2003-11-21 22:41:30 paklein Exp $ */
+/* $Id: dArrayT.h,v 1.8 2004-03-16 05:37:14 paklein Exp $ */
 /* created: paklein (08/11/1996) */
 #ifndef _DARRAY_T_H_
 #define _DARRAY_T_H_
@@ -24,8 +24,9 @@ public:
 
 	/** \name assigment operators */
 	/*@{*/
-	dArrayT& operator=(const dArrayT& RHS);
-	dArrayT& operator=(const double value);
+	dArrayT& operator=(const dArrayT& RHS); /**< assignment operator. Redimensions the array too match the source. */
+	dArrayT& operator=(const double* pRHS); /**< assignment operator. Copy as many values as fit. */
+	dArrayT& operator=(double value);       /**< set all elements in the array to value */
 	/*@}*/
 
 	/** L2 norm of the vector */
@@ -49,7 +50,13 @@ inline dArrayT& dArrayT::operator=(const dArrayT& RHS)
 	return *this;
 }
 
-inline dArrayT& dArrayT::operator=(const double value)
+inline dArrayT& dArrayT::operator=(const double* pRHS)
+{
+	nArrayT<double>::operator=(pRHS);
+	return *this;
+}
+
+inline dArrayT& dArrayT::operator=(double value)
 {
 	nArrayT<double>::operator=(value);
 	return *this;

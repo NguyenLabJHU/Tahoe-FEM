@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.cpp,v 1.17 2003-11-21 22:41:39 paklein Exp $ */
+/* $Id: LocalArrayT.cpp,v 1.18 2004-03-16 05:37:18 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 #include "LocalArrayT.h"
 #include "dArray2DT.h"
@@ -97,7 +97,7 @@ void LocalArrayT::Average(dArrayT& avg) const
 {
 	/* dimension */
 	avg.Dimension(MinorDim());
-	avg = 0;
+	avg = 0.0;
 	for (int i = 0; i < MinorDim(); i++)
 	{
 		const double* p = (*this)(i);

@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.41 2003-11-25 18:59:35 cjkimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.42 2004-03-16 05:37:20 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -388,7 +388,7 @@ int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& node
 	if (data.MajorDim() != numc || nodes.Length () != numc ) 
 		ExceptionT::SizeMismatch("ModelManagerT::ReadCards");
 	data = 0;
-	value = 0;
+	value = 0.0;
 
   int count = 0;
   int *pd = data.Pointer();
