@@ -1,9 +1,10 @@
-/* $Id: TranslateIOManager.cpp,v 1.39 2003-11-18 19:36:27 paklein Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.40 2003-11-18 19:44:56 paklein Exp $  */
 #include "TranslateIOManager.h"
 
 #include "ExceptionT.h"
 #include "IOBaseT.h"
 #include "OutputSetT.h"
+#include "fstreamT.h"
 
 using namespace Tahoe;
 
@@ -584,7 +585,7 @@ void TranslateIOManager::TranslateVariables(void)
 			/* filter nodal values */
 			if (n_values_all.MinorDim() != n_values.MinorDim()) {
 				int index = 0;
-				for (int i = 0; i < n_values_all.MajorDim(); i++)
+				for (int i = 0; i < n_values_all.MinorDim(); i++)
 					if (fKeepNodeLabels[i]) 
 						n_values.ColumnCopy(index++, n_values_all, i);	
 			}
@@ -592,7 +593,7 @@ void TranslateIOManager::TranslateVariables(void)
 			/* filter nodal values */
 			if (e_values_all.MinorDim() != e_values.MinorDim()) {
 				int index = 0;
-				for (int i = 0; i < e_values_all.MajorDim(); i++)
+				for (int i = 0; i < e_values_all.MinorDim(); i++)
 					if (fKeepElementLabels[i]) 
 						e_values.ColumnCopy(index++, e_values_all, i);	
 			}
