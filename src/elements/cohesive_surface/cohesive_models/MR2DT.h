@@ -9,7 +9,7 @@ namespace Tahoe {
 /* forward declarations */
 class ifstreamT;
 
-/** An elastoplastic Traction-Displacement Modelfor Geometrials.*/
+/** An elastoplastic Traction-Displacement Model for Geometrials.*/
 
 class MR2DT: public SurfacePotentialT
 {
@@ -25,6 +25,16 @@ public:
 	int NumStateVariables(void) const;
 	
 	virtual void InitStateVariables(ArrayT<double>& state);	
+	
+	/** dissipated energy. Total amount of energy dissipated reaching
+	 * the current state. */
+	virtual double FractureEnergy(const ArrayT<double>& state);
+	
+	/** potential energy */
+	virtual double Potential(const dArrayT& jump, const ArrayT<double>& state);
+	
+	/** surface status */
+	virtual StatusT Status(const dArrayT& jump, const ArrayT<double>& state);
 	
 	/** dissipated energy */
 	virtual double YFValue(const ArrayT<double>& state);

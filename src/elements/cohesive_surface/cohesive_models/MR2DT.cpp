@@ -39,6 +39,7 @@ MR2DT::MR2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 	in >> falpha_psi; if (falpha_psi < 0) throw ExceptionT::kBadInputValue;
 	in >> fTol_1; if (fTol_1 < 0) throw ExceptionT::kBadInputValue;
 	in >> fTol_2; if (fTol_2 < 0) throw ExceptionT::kBadInputValue;
+	
 	double esp = 0.;
 	double enp = 0.;
 	fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
@@ -65,10 +66,10 @@ void MR2DT::InitStateVariables(ArrayT<double>& state)
 	/* clear */
 	if (num_state > 0) state = 0.0;
 	
-	state[1] = fchi;
-	state[2] = fc ;
-    state[3] = tan(fphi);
-    state[4] = tan(fpsi);	
+	state[6] = fchi;
+	state[7] = fc ;
+    state[8] = tan(fphi);
+    state[9] = tan(fpsi);	
 }
 
 /* Value of the Yield Function */ 
@@ -77,7 +78,46 @@ double MR2DT::YFValue(const ArrayT<double>& state)
 	return state[12]; 
 }	
 
-	
+/** dissipated energy. Total amount of energy dissipated reaching
+	 * the current state. */
+double MR2DT::FractureEnergy(const ArrayT<double>& state)
+{
+    double FE = state[0]*state[4] + state[1]*state[5];
+    return FE;
+}
+
+/** potential energy */
+double MR2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
+{
+    double PT = (jump_u[0]*state[0] + jump_u[1]*state[1]);
+    return PT;
+}
+/* surface status */
+SurfacePotentialT::StatusT MR2DT::Status(const dArrayT& jump_u, 
+	const ArrayT<double>& state)
+{
+    if (state[12]<0.){
+       int Status = 0;
+    }
+    if (state[12]>0) {
+       int StatusT = 1;
+    }
+    if ((jump_u[0]*jump_u[0] + jump_u[1]*jump_u[1])>100000.) {
+       int StatusT = 2;
+    }
+      
+    /*return SurfacePotentialT::Precritical;*/
+    return StatusT();
+}
+
+void MR2DT::PrintName(ostream& out) const
+{
+#ifndef _SIERRA_TEST_
+	out << "    MR process zone 2D \n";
+#endif
+}
+
+		
 /* traction vector given displacement jump vector */	
 const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
 {
@@ -95,11 +135,6 @@ dMatrixT A_qu(4,2); dMatrixT ZMAT(2,4); dMatrixT ZMATP(4,2);
 dMatrixT dQdSig2(2,2); dMatrixT dqbardq(4,4); dMatrixT dQdSigdq(2,4);
 dMatrixT dqbardSig(4,2); dMatrixT AA_inv(6,6);
 
-/*dMatrixT AA[6][6]; dMatrixT KE[2][2]; dMatrixT KE_Inv[2][2]; dMatrixT I_mat[4][4]; 
-dMatrixT CMAT[4][4]; dMatrixT A_qq[4][4]; dMatrixT A_uu[2][2]; dMatrixT A_uq[2][4];
-dMatrixT A_qu[4][2]; dMatrixT ZMAT[4][4]; dMatrixT ZMATP[4][4];
-dMatrixT dqdSig2[2][2]; dMatrixT dqdbar[4][4];*/
-
 dArrayT u(2); dArrayT up(2); dArrayT du(2); dArrayT dup(2); dArrayT qn(4);
 dArrayT qo(4); dArrayT Rvec(6); dArrayT Cvec(6); dArrayT upo(2);
 dArrayT R(6); dArrayT Rmod(6); dArrayT Sig(2); dArrayT Sig_I(2);
@@ -107,12 +142,6 @@ dArrayT dQdSig(2); dArrayT dfdq(4); dArrayT qbar(4);
 dArrayT R2(6); dMatrixT X(6,1); dArrayT V_sig(2); dArrayT V_q(4); 
 dArrayT dfdSig(2); dArrayT dq(4);
 
-/*dArrayT u[2]; dArrayT up[2];dArrayT du[2]; dArrayT dup[2];
-dArrayT qn[4];dArrayT qo[4]; dArrayT Rvec[6]; dArrayT Cvec[6]; 
-dArrayT upo[2]; dArrayT R[6]; dArrayT Rmod[6]; dArrayT Sig[2];
-dArrayT Sig_I[2]; dArrayT dqdSig[2]; dArrayT dfdq[4]; dArrayT qbar[4];
-dArrayT R2[6]; dArrayT X[6]; dArrayT V_sig[2]; dArrayT V_q[4]; 
-dArrayT dfdSig[2];*/
 
 double ff; double dlam; double dlam2; double normr;
 
@@ -160,7 +189,7 @@ double ff; double dlam; double dlam2; double normr;
         if (kk > 500) {
         	ExceptionT::GeneralFail("MR2DT::Traction","Too Many Iterations");
         }
-        for (i = 0; i<=1; ++i) {
+        for (i = 1; i<=1; ++i) {
           for (j = 1; j<=2; ++i) { 
            Sig[i] = KE(i,j)*(u[j] - up[j]) + Sig_I[i];
           }
@@ -181,7 +210,7 @@ double ff; double dlam; double dlam2; double normr;
         dqbardSig_f(Sig, qn, A_qu);
         dqbardq_f(Sig, qn, A_qq);
         for (i = 1; i<=6; ++i) {
-          for (j = 0; j<=6; ++i) {
+          for (j = 1; j<=6; ++i) {
             if (i<=2 & j<=2)
              AA_inv(i,j) = KE_Inv(i,j) + dlam*dQdSig2(i,j);
             if (i<=2 & j>2)
@@ -212,7 +241,7 @@ double ff; double dlam; double dlam2; double normr;
         double bott = Rvec.Dot(Rvec,tmpVec); 		
         double dlam2 = topp/bott;
         for (i = 1; i<=6; ++i) {
-          for (j = 0; j<=6; ++i) {
+          for (j = 1; j<=6; ++i) {
             if (i<=2 & j<=2)
              CMAT(i,j) = KE_Inv(i,j);
             if (i<=2 & j>2)
@@ -287,7 +316,8 @@ dArrayT& MR2DT::qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar)
    double DQDT2 = 2.;
    double DQDTN = 0.;
    double DQDNT = 0.;
-   double DB1DN = B1;
+   double SN = sign(Sig[2]);
+   double DB1DN = (SN +abs(SN))/2./fGf_I;
    DQDSIG[1] = DQDT;
    DQDSIG[2] = DQDN;
    AMAT(1,1) = A1;
@@ -383,7 +413,8 @@ dMatrixT& MR2DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dq
    double DQDT2 = 2.;
    double DQDTN = 0.;
    double DQDNT = 0.;
-   double DB1DN = B1;
+   double SN = sign(Sig[2]);
+   double DB1DN = (SN +abs(SN))/2./fGf_I;
    
    dqbardSig(1,1) = A1*B2*DQDT2 + A1*DQDT/fGf_I;
    dqbardSig(1,2) = A1*B1*DQDN2 + A1*DQDN*DB1DN;
@@ -419,7 +450,8 @@ dMatrixT& MR2DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqba
    double DQDT2 = 2.;
    double DQDTN = 0.;
    double DQDNT = 0.;
-   double DB1DN = B1;
+   double SN = sign(Sig[2]);
+   double DB1DN = (SN +abs(SN))/2./fGf_I;
    
    dqbardq(1,1) = -falpha_chi*(B1*DQDN + B2*DQDT);
    dqbardq(1,2) =  A1*B1*(2.*qn[4]);
@@ -492,7 +524,7 @@ dArrayT  u(2), up(2), du(2), dup(2), qn(4), qo(4), Rvec(6),Cvec(6),
 	   		KEA.MultAB(R_Inv, KE);
 	   		KEA_Inv.Inverse(KEA);
             for (i = 1; i<=6; ++i) {
-             for (j = 0; j<=6; ++i) {
+             for (j = 1; j<=6; ++i) {
                if (i<=2 & j<=2)
                  AA_inv(i,j) = KE_Inv(i,j);
                if (i<=2 & j>2)
@@ -531,14 +563,10 @@ dArrayT  u(2), up(2), du(2), dup(2), qn(4), qo(4), Rvec(6),Cvec(6),
             KP /=bott;
             KEP = KEA;
             KEP -= KP;
-	   		for (i = 1; i<=2; ++i) {
-	   		    for (j = 1; j<=2; ++i) {
-	   		      fStiffness[0] = KEP(1,1);
-	   		      fStiffness[1] = KEP(1,2);
-	   		      fStiffness[2] = KEP(2,1);
-	   		      fStiffness[3] = KEP(2,2);
-                }
-	        }
+	   		fStiffness[0] = KEP(1,1);
+	   		fStiffness[1] = KEP(1,2);
+	   		fStiffness[2] = KEP(2,1);
+	   		fStiffness[3] = KEP(2,2);
 	       }
 	      
 
