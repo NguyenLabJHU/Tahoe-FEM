@@ -1,0 +1,29 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodal values. . . . . . . . . . . . . = 11
+ Labels:
+	X
+	Y
+	D_X
+	D_Y
+	mass
+	E11
+	E22
+	E12
+	s11
+	s22
+	s12
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodes . . . . . . . . . . . . . . . . = 36
+ Number of elements. . . . . . . . . . . . . . . = 36
+
+ O U T P U T   D A T A :  T O C
+fd_mfparticle.cell.io0.run.ps0000
+fd_mfparticle.cell.io0.run.ps0001
