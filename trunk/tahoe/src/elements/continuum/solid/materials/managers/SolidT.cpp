@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.32 2003-08-16 01:33:20 rdorgan Exp $ */
+/* $Id: SolidT.cpp,v 1.33 2004-01-05 07:18:21 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 
@@ -164,6 +164,9 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 		case SolidT::kABAQUS_BCJ:
 			code = SolidT::kABAQUS_BCJ;
 			break;
+		case SolidT::kABAQUS_BCJ_ISO:
+			code = SolidT::kABAQUS_BCJ_ISO;
+			break;
 		case SolidT::kABAQUS_VUMAT_BCJ:
 			code = SolidT::kABAQUS_VUMAT_BCJ;
 			break;
@@ -171,9 +174,7 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 			code = SolidT::kFCCEAM;
 			break;
 		default:
-			cout << "\n operator>>SolidT::TypeT: unknown code: "
-			<< i_code<< endl;
-			throw ExceptionT::kBadInputValue;	
+			ExceptionT::BadInputValue("operator>>SolidT::TypeT", "unknown code %d", i_code);
 	}
 	return in;
 }
