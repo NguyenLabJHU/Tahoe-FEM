@@ -1,0 +1,62 @@
+#include "GradSSMatSupportT.h"
+#include "ElementsConfig.h"
+
+#ifdef CONTINUUM_ELEMENT
+#include "DorganVoyiadjisMarin.h"
+#endif
+
+using namespace Tahoe;
+
+/* constructor */
+GradSSMatSupportT::GradSSMatSupportT(int nsd, int ndof, int nip):
+        SSMatSupportT(nsd, ndof, nip),
+	fDorganVoyiadjisMarin(NULL)
+{
+
+}
+ 
+/* destructor */
+GradSSMatSupportT::~GradSSMatSupportT(void)
+{
+
+}
+
+/* set source for the isotropic hadening */
+void GradSSMatSupportT::SetLinearR(const dArrayT* r_List)
+{
+	/* keep pointer */
+	fR_List = r_List;
+}
+
+/** set source for the isotropic hardening from the end of the previous time step */
+void GradSSMatSupportT::SetLinearR_last(const dArrayT* r_last_List)
+{
+	/* keep pointer */
+	fR_last_List = r_last_List;
+}
+
+/* set source for the laplacian of isotropic hadening */
+void GradSSMatSupportT::SetLinearLaplacianR(const dArrayT* lapr_List)
+{
+	/* keep pointer */
+	fLapR_List = lapr_List;
+}
+
+/** set source for the laplacian of isotropic hardening from the end of the previous time step */
+void GradSSMatSupportT::SetLinearLaplacianR_last(const dArrayT* lapr_last_List)
+{
+	/* keep pointer */
+	fLapR_last_List = lapr_last_List;
+}
+
+/* set the element group pointer */
+void GradSSMatSupportT::SetContinuumElement(const ContinuumElementT* p)
+{
+	/* inherited */
+	SSMatSupportT::SetContinuumElement(p);
+
+#ifdef CONTINUUM_ELEMENT
+	/* cast to DorganVoyiadjisMarin pointer */
+	fDorganVoyiadjisMarin = dynamic_cast<const DorganVoyiadjisMarin*>(p);
+#endif
+}

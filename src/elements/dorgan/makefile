@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-07-09 23:15:07 paklein Exp $
+# $Id: makefile,v 1.2 2003-07-29 21:02:08 rdorgan Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,7 +21,10 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	DorganVoyiadjisMarin.o
+	DorganVoyiadjisMarin.o\
+        GradJ2SS1D.o\
+	GradSSSolidMatT.o\
+	GradSSMatSupportT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -41,7 +44,10 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	DorganVoyiadjisMarin.cpp
+	DorganVoyiadjisMarin.cpp\
+        GradJ2SS1D.cpp\
+	GradSSSolidMatT.cpp\
+	GradSSMatSupportT.cpp
 
 ##################### (3) headers
 #
@@ -53,7 +59,10 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	DorganVoyiadjisMarin.h
+	DorganVoyiadjisMarin.h\
+        GradJ2SS1D.h\
+	GradSSSolidMatT.h\
+	GradSSMatSupportT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
