@@ -1,4 +1,4 @@
-/* $Id: FrontSegmentT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: FrontSegmentT.cpp,v 1.2 2002-02-27 01:24:04 paklein Exp $ */
 /* created: paklein (03/19/1999)                                          */
 
 #include "FrontSegmentT.h"
@@ -23,7 +23,7 @@ inline static void Normalize(double* A)
 };
 
 /* array behavior */
-const bool ArrayT<FrontSegmentT*>::fByteCopy = true;
+template<> const bool ArrayT<FrontSegmentT*>::fByteCopy = true;
 
 /* constructor */
 FrontSegmentT::FrontSegmentT(const double* A, const double* B, const double* C)

@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.18 2002-02-18 09:09:39 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.19 2002-02-27 01:24:02 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -15,7 +15,7 @@
 #include "InputFEASCIIT.h"
 
 /* array behavior */
-const bool ArrayT<ModelManagerT::SideSetScopeT>::fByteCopy = true;
+template<> const bool ArrayT<ModelManagerT::SideSetScopeT>::fByteCopy = true;
 
 ModelManagerT::ModelManagerT (ostream& message):
 	fMessage(message),

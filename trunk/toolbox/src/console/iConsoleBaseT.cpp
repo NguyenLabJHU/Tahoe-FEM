@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.cpp,v 1.9 2002-01-06 06:57:52 cbhovey Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.10 2002-02-27 01:24:02 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleBaseT.h"
@@ -14,7 +14,7 @@
 #include <ctype.h>
 
 /* array behavior */
-const bool ArrayT<iConsoleBaseT::VariableType>::fByteCopy = true;
+template<> const bool ArrayT<iConsoleBaseT::VariableType>::fByteCopy = true;
 
 /* constructor */
 iConsoleBaseT::iConsoleBaseT(void):

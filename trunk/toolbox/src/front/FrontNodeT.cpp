@@ -1,4 +1,4 @@
-/* $Id: FrontNodeT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: FrontNodeT.cpp,v 1.2 2002-02-27 01:24:04 paklein Exp $ */
 /* created: paklein (03/19/1999)                                          */
 
 #include "FrontNodeT.h"
@@ -29,7 +29,7 @@ inline static void Normalize(double* A)
 };
 
 /* array behavior */
-const bool ArrayT<FrontNodeT*>::fByteCopy = true;
+template<> const bool ArrayT<FrontNodeT*>::fByteCopy = true;
 
 /* constructor */
 FrontNodeT::FrontNodeT(int dim, const double* x, const double* v_n,

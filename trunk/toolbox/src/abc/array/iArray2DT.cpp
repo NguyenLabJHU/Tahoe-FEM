@@ -1,5 +1,5 @@
-/* $Id: iArray2DT.cpp,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
-/* created: paklein (09/23/1996)                                          */
+/* $Id: iArray2DT.cpp,v 1.2 2002-02-27 01:23:58 paklein Exp $ */
+/* created: paklein (09/23/1996) */
 
 #include "iArray2DT.h"
 #include <iostream.h>
@@ -7,9 +7,9 @@
 #include "Constants.h"
 
 /* array behavior */
-const bool ArrayT<iArray2DT>::fByteCopy = false;
-const bool ArrayT<iArray2DT*>::fByteCopy = true;
-const bool ArrayT<const iArray2DT*>::fByteCopy = true;
+template<> const bool ArrayT<iArray2DT>::fByteCopy = false;
+template<> const bool ArrayT<iArray2DT*>::fByteCopy = true;
+template<> const bool ArrayT<const iArray2DT*>::fByteCopy = true;
 
 /* constructor */
 iArray2DT::iArray2DT(void) { }

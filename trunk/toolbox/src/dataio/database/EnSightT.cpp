@@ -1,6 +1,5 @@
-/* $Id: EnSightT.cpp,v 1.3 2001-09-04 14:38:54 sawimme Exp $ */
-/* created: sawimme (05/13/1999)                                          */
-/* ******EnSight6 Format Gold, ASCII or Binary******                      */
+/* $Id: EnSightT.cpp,v 1.4 2002-02-27 01:24:03 paklein Exp $ */
+/* created: sawimme (05/13/1999) */
 
 #include "EnSightT.h"
 
@@ -16,7 +15,7 @@
 #include "AutoArrayT.h"
 
 /* array behavior */
-const bool ArrayT<EnSightT::VariableTypeT>::fByteCopy = true;
+template<> const bool ArrayT<EnSightT::VariableTypeT>::fByteCopy = true;
 
 EnSightT::EnSightT (ostream& out, bool binary, int dof) :
 fBinary (binary),
