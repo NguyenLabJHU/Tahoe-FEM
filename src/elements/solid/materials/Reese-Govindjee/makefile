@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-03-19 19:00:55 thao Exp $
+# $Id: makefile,v 1.2 2003-03-27 00:56:22 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,7 +20,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = RGBaseT.o \
-	RGSplit2D.o \
 	RGSplit3D.o
 
 OBJ_LINK = $(OBJ)
@@ -42,7 +41,6 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = RGBaseT.cpp \
-	RGSplit2D.cpp \
 	RGSplit3D.cpp
 
 ##################### (3) headers
@@ -55,7 +53,6 @@ SRC = RGBaseT.cpp \
 # HDR and HDR_LINK macro   
 #
 HDR = RGBaseT.h \
-	RGSplit2D.h \
 	RGSplit3D.h
 
 
