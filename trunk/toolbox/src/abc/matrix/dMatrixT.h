@@ -1,5 +1,5 @@
-/* $Id: dMatrixT.h,v 1.3 2001-06-23 00:53:45 thao Exp $ */
-/* created: paklein (05/24/1996)                                          */
+/* $Id: dMatrixT.h,v 1.4 2001-09-04 06:46:37 paklein Exp $ */
+/* created: paklein (05/24/1996) */
 
 #ifndef _DMATRIX_T_H_
 #define _DMATRIX_T_H_
@@ -9,46 +9,85 @@
 
 class dSymMatrixT;
 
+/** double precision matrix. See nMatrixT for documentation on
+ * inherited matrix operations and nArrayT for documentation on
+ * additional mathematical operators */
 class dMatrixT: public nMatrixT<double>
 {
 public:
 
-	/* constructor */
+	/** default constructor. Matrix has zero entries. */
 	dMatrixT(void);
+
+	/** constructor for generally dimensioned constructor. Matrix entries
+	 * are not initialized. */
 	dMatrixT(int numrows, int numcols);
+
+	/** constructor for square matrix. Matrix entries are not initialized. 
+	 * This constructor is declared explicit to avoid automatic int to
+	 * dMatrixT type conversion */
 	explicit dMatrixT(int squaredim);
+
+	/** constructor for shallow matrix. Matrix will not free memory
+	 * during destructor.
+	 * \param numrows number of rows in the matrix
+	 * \param numcols number of cols in the matrix
+	 * \param p pointer to an array of length numrows*numcols */
 	dMatrixT(int numrows, int numcols, double* p);
+
+	/** copy constructor */
 	dMatrixT(const dMatrixT& source);
 
-	/* assignment operators */
+	/* assignment operator. Operator will re-dimension matrix as needed.
+	 * \param RHS source
+	 * \return reference to *this */
 	dMatrixT& operator=(const dMatrixT& RHS);
+
+	/* assignment operator. Set all entries in the matrix to value
+	 * \return reference to *this */
 	dMatrixT& operator=(const double value);
 
-	/* matrix inverse functions - only implemented for (2 x 2)
-	 * and (3 x 3) matrices */
+	/** set this to the matrix inverse.
+	 * \param matrix source matrix to inverse 
+	 * \return reference to *this */
 	dMatrixT& Inverse(const dMatrixT& matrix);
+
+	/** set this its matrix inverse.
+	 * \return reference to *this */
 	dMatrixT& Inverse(void);
 
-	/* matrix determinants - only implemented for (2 x 2) and (3 x 3)
-	 * matrices */
+	/* matrix determinant.
+	 * \note only implemented for (2 x 2) and (3 x 3) matrices */
 	double Det(void) const;
 
-	/* returns the Trace of the matrix.  Matrix must be square */
+	/* trace of the matrix.  
+	 * \note The matrix must be square. */
 	double Trace(void) const;
 
 	/* 2D/3D dimension transformations */
 	void Rank2ExpandFrom2D(const dMatrixT& mat2D); /* fill with zeroes */
 	void Rank2ReduceFrom3D(const dMatrixT& mat3D);
 
-	/* symmetrization */
+	/** set this to the symmetric part of matrix.
+	 * \param matrix source matrix
+	 * \return reference to *this */
 	dMatrixT& Symmetrize(const dMatrixT& matrix);
+
+	/** set this to its part.
+	 * \return reference to *this */
 	dMatrixT& Symmetrize(void);
 
-	/* transposition */
+	/** set this to the matrix transpose.
+	 * \param matrix source matrix to transpose
+	 * \return reference to *this */
 	dMatrixT& Transpose(const dMatrixT& matrix);
+
+	/** set this its matrix transpose.
+	 * \return reference to *this */
 	dMatrixT& Transpose(void);
 
-	/*special matrix multiplication TDN: 3/4/01*/
+	/** special matrix multiplication.
+	 * \author thao */
 	void MultSymAB(const dSymMatrixT& A, const dMatrixT& B);
 	
 /***********************************************
