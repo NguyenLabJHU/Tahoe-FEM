@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.25 2002-07-18 21:58:21 hspark Exp $ */
+/* $Id: ElementListT.cpp,v 1.26 2002-07-19 00:58:25 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -345,10 +345,26 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		    break;
 		  }
 		case ElementT::kBridgingScale:
-		  {
-		    //fArray[group] = new BridgingScale(fSupport, *field);
+		{
+			/* associated group numbers */
+			int particle_group = -99;
+			int solid_group = -99;
+			in >> particle_group >> solid_group;
+			const RodT* particle = dynamic_cast<const RodT*>(&(fSupport.ElementGroup(--particle_group)));
+			if (!particle) {
+				cout << "\n ElementListT::EchoElementData: unable to cast pointer to group " << particle_group+1 << '\n'
+				     <<   "     to type RodT" << endl;
+				throw eBadInputValue;
+			}
+			const ElasticT* solid = dynamic_cast<const ElasticT*>(&(fSupport.ElementGroup(--solid_group)));
+			if (!solid) {
+				cout << "\n ElementListT::EchoElementData: unable to cast pointer to group " << solid_group+1 << '\n'
+				     <<   "     to type ElasticT" << endl;
+				throw eBadInputValue;
+			}
+			fArray[group] = new BridgingScaleT(fSupport, *field, *particle, *solid);
 		    break;
-		  }
+		}
 		default:
 		  
 		  cout << "\n ElementListT::EchoElementData: unknown element type:" << code << endl;
