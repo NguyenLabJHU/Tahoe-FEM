@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.4.2.2 2001-10-29 00:00:16 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.4.2.3 2001-10-29 21:48:10 sawimme Exp $ */
 /* created: paklein (09/16/1998)                                          */
 /* large deformation elasticity with MLS shapefunctions for the           */
 /* field (displacement) representation                                    */
@@ -315,7 +315,7 @@ void MeshFreeFSSolidT::PrintControlData(ostream& out) const
 void MeshFreeFSSolidT::SetShape(void)
 {
 	/* only support single list of integration cells for now */
-	if (fConnectivities.Length() > 0) {
+	if (fConnectivities.Length() > 1) {
 		cout << "\n MeshFreeFSSolidT::SetShape: multiple element blocks within an"
 		     <<   "     element group not supported. Number of blocks: " 
 		     << fConnectivities.Length() << endl;

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.3.2.1 2001-10-29 00:00:16 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.3.2.2 2001-10-29 21:48:10 sawimme Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeFSSolidT.h"
@@ -146,7 +146,7 @@ void D2MeshFreeFSSolidT::ElementRHSDriver(void)
 void D2MeshFreeFSSolidT::SetShape(void)
 {
 	/* only support single list of integration cells for now */
-	if (fConnectivities.Length() > 0) {
+	if (fConnectivities.Length() > 1) {
 		cout << "\n D2MeshFreeFSSolidT::SetShape: multiple element blocks within an"
 		     <<   "     element group not supported. Number of blocks: " 
 		     << fConnectivities.Length() << endl;
