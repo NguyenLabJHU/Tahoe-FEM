@@ -68,7 +68,7 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
 		/* distance */
 		Dw.DiffOf(x_n, x);
 		double dist = Dw.Magnitude();
-		double a = param_n[0];
+		double a = param_n[0]*fDilationScaling;
 		double r = dist/a;
 		if (r > 2.0) {
 			w = 0.0;
@@ -142,7 +142,7 @@ int CubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, c
 bool CubicSplineWindowT::Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n) const
 {
 	double dist = dArrayT::Distance(x, x_n);
-	return (dist/param_n[0] < 2.0);
+	return (dist/(param_n[0]*fDilationScaling) < 2.0);
 }
 
 int CubicSplineWindowT::Covers(const dArray2DT& x_n, const dArrayT& x, 
@@ -153,7 +153,7 @@ int CubicSplineWindowT::Covers(const dArray2DT& x_n, const dArrayT& x,
 	for (int i = 0; i < numwindowpoints; i++)
 	{
 		double dist = dArrayT::Distance(x, x_n);
-		if (dist/param_n[0] < 2.0) {
+		if (dist/(param_n[0]*fDilationScaling) < 2.0) {
 			count++;
 			covers[i] = true;
 		} 
