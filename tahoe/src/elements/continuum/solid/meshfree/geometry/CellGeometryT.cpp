@@ -1,4 +1,4 @@
-/* $Id: CellGeometryT.cpp,v 1.5 2005-01-28 00:38:02 cjkimme Exp $ */
+/* $Id: CellGeometryT.cpp,v 1.6 2005-01-31 17:47:20 cjkimme Exp $ */
 #include "CellGeometryT.h"
 #include "dArrayT.h"
 
@@ -123,7 +123,7 @@ void CellGeometryT::MergeFacetIntegral(int node_num, double weight, dArrayT& fac
 	int* c = cover.Pointer();
 	int* c_j = cover_key.Pointer();
 	int nsd = facetNormal.Length();
-	dArrayT facetIntegral(nsd), zeroFacet(3);
+	dArrayT facetIntegral(nsd), zeroFacet(nsd);
 	zeroFacet = 0.;
 	for (int j = 0; j < n_cover; j++, c++, c_j++) {
 		
