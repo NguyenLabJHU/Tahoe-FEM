@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.cpp,v 1.6 2004-01-14 19:33:16 rdorgan Exp $ */ 
+/* $Id: GradSSSolidMatT.cpp,v 1.7 2004-04-01 22:46:54 rdorgan Exp $ */ 
 #include "GradSSSolidMatT.h"
 #include <iostream.h>
 #include "GradSSMatSupportT.h"
@@ -8,21 +8,21 @@ using namespace Tahoe;
 
 /* constructor */
 GradSSSolidMatT::GradSSSolidMatT(ifstreamT& in, const GradSSMatSupportT& support):
-        SSSolidMatT(in, support),
-        fGradSSMatSupport(&support),
+	SSSolidMatT(in, support),
+	fGradSSMatSupport(&support),
 
-        fNumDOF_R(support.NumDOF_R()),
-        fNumDOF_Total(support.NumDOF() + fNumDOF_R),
+	fNumDOF_Field(support.NumDOF_Field()),
+	fNumDOF_Total(support.NumDOF() + fNumDOF_Field),
 
-        fNumIP_R(support.NumIP_R())
+	fNumIP_Field(support.NumIP_Field())
 {
-        SetName("gradient_small_strain_solid_material");
+	SetName("gradient_small_strain_solid_material");
 }
 
 GradSSSolidMatT::GradSSSolidMatT(void):
-        fGradSSMatSupport(NULL)
+	fGradSSMatSupport(NULL)
 {
-        SetName("gradient_small_strain_solid_material");
+	SetName("gradient_small_strain_solid_material");
 }
 
 /* destructor */
@@ -31,66 +31,66 @@ GradSSSolidMatT::~GradSSSolidMatT(void) { }
 /* initialization */
 void GradSSSolidMatT::Initialize(void)
 {
-        /* inherited */
-        SSSolidMatT::Initialize();
+	/* inherited */
+	SSSolidMatT::Initialize();
 }
 
 /* I/O */
 void GradSSSolidMatT::PrintName(ostream& out) const
 {
-        /* inherited */
-        SSSolidMatT::PrintName(out);
+	/* inherited */
+	SSSolidMatT::PrintName(out);
 	
-        out << "    Gradient Enhanced\n";
+	out << "    Gradient Enhanced\n";
 }
 
-/* isotropic hardening */
-const double& GradSSSolidMatT::R(void) const
+/* field */
+const double& GradSSSolidMatT::Field(void) const
 {
-        return fGradSSMatSupport->LinearR(); 
+	return fGradSSMatSupport->LinearField(); 
 }
 
-const double& GradSSSolidMatT::R(int ip) const
+const double& GradSSSolidMatT::Field(int ip) const
 {
-        return fGradSSMatSupport->LinearR(ip); 
+	return fGradSSMatSupport->LinearField(ip); 
 }
 
-/* isotropic hardening from the end of the previous time step */
-const double& GradSSSolidMatT::R_last(void) const
+/* field from the end of the previous time step */
+const double& GradSSSolidMatT::Field_last(void) const
 {
-        return fGradSSMatSupport->LinearR_last(); 
+	return fGradSSMatSupport->LinearField_last(); 
 }
 
-const double& GradSSSolidMatT::R_last(int ip) const
+const double& GradSSSolidMatT::Field_last(int ip) const
 {
-        return fGradSSMatSupport->LinearR_last(ip); 
+	return fGradSSMatSupport->LinearField_last(ip); 
 }
 
-/* Laplacian isotropic hardening */
-const double& GradSSSolidMatT::LaplacianR(void) const
+/* Laplacian field */
+const double& GradSSSolidMatT::LaplacianField(void) const
 {
-        return fGradSSMatSupport->LinearLaplacianR(); 
+	return fGradSSMatSupport->LinearLaplacianField(); 
 }
 
-const double& GradSSSolidMatT::LaplacianR(int ip) const
+const double& GradSSSolidMatT::LaplacianField(int ip) const
 {
-        return fGradSSMatSupport->LinearLaplacianR(ip); 
+	return fGradSSMatSupport->LinearLaplacianField(ip); 
 }
 
-/* Laplacian isotropic hardening from the end of the previous time step */
-const double& GradSSSolidMatT::LaplacianR_last(void) const
+/* Laplacian field from the end of the previous time step */
+const double& GradSSSolidMatT::LaplacianField_last(void) const
 {
-        return fGradSSMatSupport->LinearLaplacianR_last(); 
+	return fGradSSMatSupport->LinearLaplacianField_last(); 
 }
 
-const double& GradSSSolidMatT::LaplacianR_last(int ip) const
+const double& GradSSSolidMatT::LaplacianField_last(int ip) const
 {
-        return fGradSSMatSupport->LinearLaplacianR_last(ip); 
+	return fGradSSMatSupport->LinearLaplacianField_last(ip); 
 }
 
 /* apply pre-conditions at the current time step */
 void GradSSSolidMatT::InitStep(void)
 {
-        /* inherited */
-        SSSolidMatT::InitStep();
+	/* inherited */
+	SSSolidMatT::InitStep();
 }

@@ -1,4 +1,4 @@
-/* $Id: GradSSMatSupportT.h,v 1.5 2003-11-21 22:54:37 paklein Exp $ */
+/* $Id: GradSSMatSupportT.h,v 1.6 2004-04-01 22:46:54 rdorgan Exp $ */
 #ifndef _GRAD_SS_MAT_SUPPORT_T_H_
 #define _GRAD_SS_MAT_SUPPORT_T_H_
 
@@ -11,153 +11,140 @@
 
 namespace Tahoe {
 
-/* forward declarations */
-class GradSmallStrainT;
-
 /** support for the small strain Tahoe materials classes */
 class GradSSMatSupportT: public SSMatSupportT
 {
 public:
 
-        /** constructor */
-        GradSSMatSupportT(int nsd, int ndof_disp, int ndor_r, int nip_disp, int nip_r);
-        
-        /** destructor */
-        ~GradSSMatSupportT(void);
-        
-        /** \name isotropic hardening */
-        /*@{*/
-        const double& LinearR(void) const;
-        const double& LinearR(int ip) const;
-        /*@}*/
-        
-        /** \name isotropic hardening from the end of the previous time step */
-        /*@{*/
-        const double& LinearR_last(void) const;
-        const double& LinearR_last(int ip) const;
-        /*@}*/
-        
-        /** \name Laplacian isotropic hardening */
-        /*@{*/
-        const double& LinearLaplacianR(void) const;
-        const double& LinearLaplacianR(int ip) const;
-        /*@}*/
-        
-        /** \name Laplacian isotropic hardening from the end of the previous time step */
-        /*@{*/
-        const double& LinearLaplacianR_last(void) const;
-        const double& LinearLaplacianR_last(int ip) const;
-        /*@}*/
-        
-        /** set source for the isotropic hardening */
-        void SetLinearR(const dArrayT* r_List);
-        
-        /** set source for the isotropic hardening from the end of the previous time step */
-        void SetLinearR_last(const dArrayT* r_last_List);
-        
-        /** set source for the Laplacian of isotropic hardening */
-        void SetLinearLaplacianR(const dArrayT* lapr_List);
-        
-        /** set source for the Laplacian of isotropic hardening from the end of the previous time step */
-        void SetLinearLaplacianR_last(const dArrayT* lapr_last_List);
-        
-        /** \name dimensions */
-        /*@{*/
-        /** number of degrees of freedom of iso_hard field (per node) */
-        int NumDOF_R(void) const { return fNumDOF_R; };
-        
-        /** total number of degrees of freedom (per node) */
-        int NumDOF_Total(void) const { return fNumDOF_Total; };
-        
-        /** stress evaluation points per element for iso_hard field */
-        int NumIP_R(void) const { return fNumIP_R; };
-        /*@}*/
-        
-        /** \name host code information */
-        /*@{*/
-        /** return a pointer to the host element. Returns NULL if no
-         * no element information in available. The ContinuumElementT
-         * pointer is set using MaterialSupportT::SetContinuumElement. */
-        const GradSmallStrainT* DVM(void) const { return fGradSmallStrainT; };
-        
-        /** set the element group pointer */
-        virtual void SetContinuumElement(const ContinuumElementT* p);
-        /*@}*/
-        
+	/** constructor */
+	GradSSMatSupportT(int nsd, int ndof_disp, int ndor_field, int nip_disp, int nip_field);
+	
+	/** destructor */
+	~GradSSMatSupportT(void);
+	
+	/** \name field */
+	/*@{*/
+	const double& LinearField(void) const;
+	const double& LinearField(int ip) const;
+	/*@}*/
+	
+	/** \name field from the end of the previous time step */
+	/*@{*/
+	const double& LinearField_last(void) const;
+	const double& LinearField_last(int ip) const;
+	/*@}*/
+	
+	/** \name Laplacian field */
+	/*@{*/
+	const double& LinearLaplacianField(void) const;
+	const double& LinearLaplacianField(int ip) const;
+	/*@}*/
+	
+	/** \name Laplacian field from the end of the previous time step */
+	/*@{*/
+	const double& LinearLaplacianField_last(void) const;
+	const double& LinearLaplacianField_last(int ip) const;
+	/*@}*/
+	
+	/** set source for the field */
+	void SetLinearField(const dArrayT* field_List);
+	
+	/** set source for the field from the end of the previous time step */
+	void SetLinearField_last(const dArrayT* field_last_List);
+	
+	/** set source for the Laplacian of field */
+	void SetLinearLaplacianField(const dArrayT* lapfield_List);
+	
+	/** set source for the Laplacian of field from the end of the previous time step */
+	void SetLinearLaplacianField_last(const dArrayT* lapfield_last_List);
+	
+	/** \name dimensions */
+	/*@{*/
+	/** number of degrees of freedom of field (per node) */
+	int NumDOF_Field(void) const { return fNumDOF_Field; };
+	
+	/** total number of degrees of freedom (per node) */
+	int NumDOF_Total(void) const { return fNumDOF_Total; };
+	
+	/** stress evaluation points per element for field */
+	int NumIP_Field(void) const { return fNumIP_Field; };
+	/*@}*/
+	
+	/** set the element group pointer */
+	virtual void SetContinuumElement(const ContinuumElementT* p);
+	/*@}*/
+	
 private:
-        
-        /** \name return values */
-        /*@{*/
-        const dArrayT* fR_List;
-        const dArrayT* fR_last_List;
-        
-        const dArrayT* fLapR_List;
-        const dArrayT* fLapR_last_List;
-        /*@}*/
-        
-        /** \name dimensions */
-        /*@{*/
-        /** number of degrees of freedom for iso_hard field */
-        int fNumDOF_R;
 	
-        /** total number of degrees of freedom */
-        int fNumDOF_Total;
+	/** \name return values */
+	/*@{*/
+	const dArrayT* fField_List;
+	const dArrayT* fField_last_List;
 	
-        /** number of integration points for iso_hard field */
-        int fNumIP_R;
-        /*@}*/
-  	
-        /** pointer to the small strain element */
-        const GradSmallStrainT* fGradSmallStrainT;	
+	const dArrayT* fLapField_List;
+	const dArrayT* fLapField_last_List;
+	/*@}*/
+	
+	/** \name dimensions */
+	/*@{*/
+	/** number of degrees of freedom for field */
+	int fNumDOF_Field;
+	
+	/** total number of degrees of freedom */
+	int fNumDOF_Total;
+	
+	/** number of integration points for field */
+	int fNumIP_Field;
+	/*@}*/
 };
 
 /* inlines */
-inline const double& GradSSMatSupportT::LinearR(void) const
+inline const double& GradSSMatSupportT::LinearField(void) const
 {
-        if (!fR_List) throw ExceptionT::kGeneralFail;
-        return (*fR_List)[CurrIP()]; 
+	if (!fField_List) throw ExceptionT::kGeneralFail;
+	return (*fField_List)[CurrIP()]; 
 }
 
-inline const double& GradSSMatSupportT::LinearR(int ip) const
+inline const double& GradSSMatSupportT::LinearField(int ip) const
 {
-        if (!fR_List) throw ExceptionT::kGeneralFail;
-        return (*fR_List)[ip]; 
+	if (!fField_List) throw ExceptionT::kGeneralFail;
+	return (*fField_List)[ip]; 
 }
 
-inline const double& GradSSMatSupportT::LinearR_last(void) const
+inline const double& GradSSMatSupportT::LinearField_last(void) const
 {
-        if (!fR_last_List) throw ExceptionT::kGeneralFail;
-        return (*fR_last_List)[CurrIP()]; 
+	if (!fField_last_List) throw ExceptionT::kGeneralFail;
+	return (*fField_last_List)[CurrIP()]; 
 }
 
-inline const double& GradSSMatSupportT::LinearR_last(int ip) const
+inline const double& GradSSMatSupportT::LinearField_last(int ip) const
 {
-        if (!fR_last_List) throw ExceptionT::kGeneralFail;
-        return (*fR_last_List)[ip]; 
+	if (!fField_last_List) throw ExceptionT::kGeneralFail;
+	return (*fField_last_List)[ip]; 
 }
 
-inline const double& GradSSMatSupportT::LinearLaplacianR(void) const
+inline const double& GradSSMatSupportT::LinearLaplacianField(void) const
 {
-        if (!fLapR_List) throw ExceptionT::kGeneralFail;
-        return (*fLapR_List)[CurrIP()]; 
+	if (!fLapField_List) throw ExceptionT::kGeneralFail;
+	return (*fLapField_List)[CurrIP()]; 
 }
 
-inline const double& GradSSMatSupportT::LinearLaplacianR(int ip) const
+inline const double& GradSSMatSupportT::LinearLaplacianField(int ip) const
 {
-        if (!fLapR_List) throw ExceptionT::kGeneralFail;
-        return (*fLapR_List)[ip]; 
+	if (!fLapField_List) throw ExceptionT::kGeneralFail;
+	return (*fLapField_List)[ip]; 
 }
 
-inline const double& GradSSMatSupportT::LinearLaplacianR_last(void) const
+inline const double& GradSSMatSupportT::LinearLaplacianField_last(void) const
 {
-        if (!fLapR_last_List) throw ExceptionT::kGeneralFail;
-        return (*fLapR_last_List)[CurrIP()]; 
+	if (!fLapField_last_List) throw ExceptionT::kGeneralFail;
+	return (*fLapField_last_List)[CurrIP()]; 
 }
 
-inline const double& GradSSMatSupportT::LinearLaplacianR_last(int ip) const
+inline const double& GradSSMatSupportT::LinearLaplacianField_last(int ip) const
 {
-        if (!fLapR_last_List) throw ExceptionT::kGeneralFail;
-        return (*fLapR_last_List)[ip]; 
+	if (!fLapField_last_List) throw ExceptionT::kGeneralFail;
+	return (*fLapField_last_List)[ip]; 
 }
 
 } /* namespace Tahoe */
