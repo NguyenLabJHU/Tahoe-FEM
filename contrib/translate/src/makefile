@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2001-09-01 00:05:37 paklein Exp $
+# $Id: makefile,v 1.2 2001-09-07 13:25:29 sawimme Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -21,7 +21,8 @@ SRC = \
 
 # headers
 HDR = \
-	TranslateIOManager.h
+	TranslateIOManager.h \
+	DataManagerT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
