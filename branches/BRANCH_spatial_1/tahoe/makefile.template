@@ -1,0 +1,282 @@
+# $Id: makefile.template,v 1.41 2004-11-09 21:56:32 paklein Exp $
+# INSTALLATION INSTRUCTIONS
+#
+# (1) copy makefile.template to a local makefile
+# (2) set HOME_DIR to the full path to this makefile
+# (3) set ARCH from the ARCH.macros files in the macros directory
+# (4) comment/uncomment the macros in the "build options" below based
+#     on the installed optional components
+# (5) "make init" to (re-)initialize headers and file dependencies.
+# (6) "make build" to (re-)compiler binaries
+#
+# Type "make" to see a list of available targets
+#
+
+# full path to the top level of this module
+HOME_DIR =
+
+# build architecture - see macros directory for choices $(ARCH).macros
+ARCH =
+
+# destination for the build - this can be set to something other than HOME_DIR
+# to produce multiple builds from the same source distribution. If BLD_DIR is
+# modified, the macros in other modules depending in this one will also need to 
+# be modified to reflect the location of the build files.
+BLD_DIR = $(HOME_DIR)
+
+# working directories:
+INC_DIR = $(BLD_DIR)/inc
+SRC_DIR = $(HOME_DIR)/src
+OBJ_DIR = $(BLD_DIR)/obj
+BLD_SRC_DIR = $(BLD_DIR)/src-mirror
+LIB_DIR = $(BLD_DIR)/lib
+
+# default target name - root of library name or executable name
+TARGET  = tahoe
+LIBRARY = $(LIB_DIR)/lib$(TARGET).a
+PCH     = $(TARGET)Prefix.h
+
+# path to main, needed if primary target is an executable (not 
+# a library)
+MAIN = $(BLD_SRC_DIR)/main/main.o
+
+# target of "make build", i.e., the library $(LIBRARY) or
+# the executable $(TARGET)
+BUILD = $(TARGET)
+
+# full path to compiler macros
+MACRO_DIR = $(HOME_DIR)/../macros
+
+############################### build options ###########################
+# uncomment macros for installed models
+
+##### any additional C, C++, fortran, or linker flags specific to the module
+MOD_CFLAGS_C  =
+MOD_CFLAGS_CC =
+MOD_CFLAGS_F  =
+MOD_LFLAGS    =
+
+##### toolbox
+TB_DIR      = $(HOME_DIR)/../toolbox
+TB_INC      = -I$(TB_DIR)/inc
+TB_DEFINES  = 
+TB_CFLAGS   = $(TB_INC) $(TB_DEFINES)
+TB_LIB_NAME = toolbox
+TB_LIB      = $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
+TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
+
+##### expat XML parsing library
+EXPAT_PREFIX   = $(HOME_DIR)/../expat
+EXPAT_DEFINES  = -D__EXPAT__
+EXPAT_INC      = -I$(EXPAT_PREFIX)/include
+EXPAT_CFLAGS   = $(EXPAT_INC) $(EXPAT_DEFINES)
+EXPAT_LIB_NAME = expat
+EXPAT_LIB      = $(EXPAT_PREFIX)/lib/lib$(EXPAT_LIB_NAME).a
+EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
+
+##### development
+#DEV_DIR      = $(HOME_DIR)/../development
+#DEV_INC      = -I$(DEV_DIR)/inc
+#DEV_DEFINES  = -D__DEVELOPMENT__
+#DEV_CFLAGS   = $(DEV_INC) $(DEV_DEFINES)
+#DEV_LIB_NAME = development
+#DEV_LIB      = $(DEV_DIR)/lib/lib$(DEV_LIB_NAME).a
+#DEV_LFLAGS   = -L$(DEV_DIR)/lib -l$(DEV_LIB_NAME) -l$(TARGET)
+
+##### Sierra models module
+#SIERRA_DIR      = $(HOME_DIR)/../Sierra
+#SIERRA_INC      = -I$(SIERRA_DIR)/inc
+#SIERRA_DEFINES  = -D__SIERRA__
+#SIERRA_CFLAGS   = $(SIERRA_INC) $(SIERRA_DEFINES)
+#SIERRA_LIB_NAME = Sierra
+#SIERRA_LIB      = $(SIERRA_DIR)/lib/lib$(SIERRA_LIB_NAME).a
+#SIERRA_LFLAGS   = -L$(SIERRA_DIR)/lib -l$(SIERRA_LIB_NAME)
+
+##### F2C 1.4.3
+#F2C_DIR      = $(HOME_DIR)/../f2c
+#F2C_INC      = -I$(F2C_DIR)/inc
+#F2C_DEFINES  = -D__F2C__
+#F2C_CFLAGS   = $(F2C_INC) $(F2C_DEFINES)
+#F2C_LIB_NAME = f2c_
+#F2C_LIB      = $(F2C_DIR)/lib/lib$(F2C_LIB_NAME).a
+#F2C_LFLAGS   = -L$(F2C_DIR)/lib -l$(F2C_LIB_NAME)
+
+#### BLAS
+#BLAS_DIR      = $(HOME_DIR)/../CBLAS
+#BLAS_INC      = -I$(BLAS_DIR)/inc
+#BLAS_CFLAGS   = $(BLAS_INC) -D__BLAS__
+#BLAS_LIB_NAME = CBLAS
+#BLAS_LIB      = $(BLAS_DIR)/lib/lib$(BLAS_LIB_NAME).a
+#BLAS_LFLAGS   = -L$(BLAS_DIR)/lib -l$(BLAS_LIB_NAME)
+
+##### Aztec iterative linear algebra library
+#AZ_DIR      = $(HOME_DIR)/../aztec
+#AZ_INC      = -I$(AZ_DIR)/inc
+#AZ_DEFINES  = -D__AZTEC__
+#AZ_CFLAGS   = $(AZ_INC) $(AZ_DEFINES)
+#AZ_LIB_NAME = aztec
+#AZ_LIB      = $(AZ_DIR)/lib/lib$(AZ_LIB_NAME).a
+#AZ_LFLAGS   = -L$(AZ_DIR)/lib -l$(AZ_LIB_NAME)
+
+#### SPOOLES
+#SPOOLES_DIR      = $(HOME_DIR)/../spooles
+#SPOOLES_INC      = -I$(SPOOLES_DIR)/inc
+#SPOOLES_DEFINES  = -D__SPOOLES__
+#SPOOLES_CFLAGS   = $(SPOOLES_INC) $(SPOOLES_DEFINES)
+#SPOOLES_LIB_NAME = spooles
+#SPOOLES_LIB      = $(SPOOLES_DIR)/lib/lib$(SPOOLES_LIB_NAME).a
+#SPOOLES_LFLAGS   = -L$(SPOOLES_DIR)/lib -l$(SPOOLES_LIB_NAME)
+
+#### SPOOLES MT
+#SPOOLESMT_DIR      = $(HOME_DIR)/../spoolesMT
+#SPOOLESMT_INC      = -I$(SPOOLESMT_DIR)/inc
+#SPOOLESMT_DEFINES  = -D__SPOOLES_MT__
+#SPOOLESMT_CFLAGS   = $(SPOOLESMT_INC) $(SPOOLESMT_DEFINES)
+#SPOOLESMT_LIB_NAME = spoolesMT
+#SPOOLESMT_LIB      = $(SPOOLESMT_DIR)/lib/lib$(SPOOLESMT_LIB_NAME).a
+#SPOOLESMT_LFLAGS   = -L$(SPOOLESMT_DIR)/lib -l$(SPOOLESMT_LIB_NAME)
+
+#### SPOOLES MPI
+#SPOOLESMPI_DIR      = $(HOME_DIR)/../spoolesMPI
+#SPOOLESMPI_INC      = -I$(SPOOLESMPI_DIR)/inc
+#SPOOLESMPI_DEFINES  = -D__SPOOLES_MPI__
+#SPOOLESMPI_CFLAGS   = $(SPOOLESMPI_INC) $(SPOOLESMPI_DEFINES)
+#SPOOLESMPI_LIB_NAME = spoolesMPI
+#SPOOLESMPI_LIB      = $(SPOOLESMPI_DIR)/lib/lib$(SPOOLESMPI_LIB_NAME).a
+#SPOOLESMPI_LFLAGS   = -L$(SPOOLESMPI_DIR)/lib -l$(SPOOLESMPI_LIB_NAME)
+
+#### PSPASES
+#PSPASES_DIR      = $(HOME_DIR)/../PSPASES.v1.0.3
+#PSPASES_INC      = -I$(PSPASES_DIR)/PSPASES
+#PSPASES_DEFINES  = -D__PSPASES__
+#PSPASES_CFLAGS   = $(PSPASES_INC) $(PSPASES_DEFINES)
+#PSPASES_LIB_NAME =
+#PSPASES_LIB      = $(PSPASES_DIR)/PSPASES/libpspases.a
+#PSPASES_LFLAGS   = -L$(PSPASES_DIR)/PSPASES -lpspases -L$(PSPASES_DIR)/parMetis -lparmetis -lblas
+
+#### SuperLU
+#SUPERLU_DIR      = $(HOME_DIR)/../../SuperLU_3.0
+#SUPERLU_INC      = -I$(SUPERLU_DIR)/SRC
+#SUPERLU_DEFINES  = -D__SUPERLU__
+#SUPERLU_CFLAGS   = $(SUPERLU_INC) $(SUPERLU_DEFINES)
+#SUPERLU_LIB_NAME = superlu_darwin
+#SUPERLU_LIB      = $(SUPERLU_DIR)/lib$(SUPERLU_LIB_NAME).a
+#SUPERLU_LFLAGS   = -L$(SUPERLU_DIR) -l$(SUPERLU_LIB_NAME) -lblas_darwin
+
+#### SuperLU_DIST
+#SUPERLU_DIST_DIR      = $(HOME_DIR)/../../SuperLU_DIST_2.0
+#SUPERLU_DIST_INC      = -I$(SUPERLU_DIST_DIR)/SRC
+#SUPERLU_DIST_DEFINES  = -D__SUPERLU_DIST__
+#SUPERLU_DIST_CFLAGS   = $(SUPERLU_DIST_INC) $(SUPERLU_DIST_DEFINES)
+#SUPERLU_DIST_LIB_NAME = superlu_darwinLAM
+#SUPERLU_DIST_LIB      = $(SUPERLU_DIST_DIR)/lib$(SUPERLU_DIST_LIB_NAME).a
+#SUPERLU_DIST_LFLAGS   = -L$(SUPERLU_DIST_DIR) -l$(SUPERLU_DIST_LIB_NAME) -lblas_darwinLAM $(F2C_LFLAG)
+
+#### METIS
+#METIS_DIR      = $(HOME_DIR)/../metis
+#METIS_INC      = -I$(METIS_DIR)/inc
+#METIS_CFLAGS   = $(METIS_INC) -D__METIS__
+#METIS_LIB_NAME = metis
+#METIS_LIB      = $(METIS_DIR)/lib/lib$(METIS_LIB_NAME).a
+#METIS_LFLAGS   = -L$(METIS_DIR)/lib -l$(METIS_LIB_NAME)
+
+#### ACME
+#ACME_DIR      = $(HOME_DIR)/../libs/acme-0.2a
+#ACME_INC      = -I$(ACME_DIR)/search -I$(ACME_DIR)/enforcement
+#ACME_DEFINES  = -D__ACME__
+#ACME_CFLAGS   = $(ACME_INC) $(ACME_DEFINES)
+#ACME_LIB_NAME = acme
+#ACME_LIB      = $(ACME_DIR)/lib$(ACME_LIB_NAME).a
+#ACME_LFLAGS   = -L$(ACME_DIR) -l$(ACME_LIB_NAME)
+
+#### QHULL
+#QHULL_DIR      = $(HOME_DIR)/../qhull
+#QHULL_INC      = -I$(QHULL_DIR)/inc
+#QHULL_DEFINES  = -D__QHULL__
+#QHULL_CFLAGS   = $(QHULL_INC) $(QHULL_DEFINES)
+#QHULL_LIB_NAME = qhull
+#QHULL_LIB      = $(QHULL_DIR)/lib/lib$(QHULL_LIB_NAME).a
+#QHULL_LFLAGS   = -L$(QHULL_DIR)/lib -l$(QHULL_LIB_NAME)
+
+##### SEACAS/ACCESS software
+#AX_INC     = -I$(ACCESS)/inc
+#AX_DEFINES = -D__ACCESS__
+#AX_CFLAGS  = $(AX_INC) $(AX_DEFINES)
+#AX_LFLAGS  = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
+
+#### NOX nonlinear solver
+#NOX_DIR      = $(HOME_DIR)/../nox
+#NOX_INC      = -I$(NOX_DIR)/include -I$(NOX_DIR)/include/nox
+#NOX_DEFINES  = -D__NOX__
+#NOX_CFLAGS   = $(NOX_INC) $(NOX_DEFINES)
+#NOX_LIB_NAME = nox
+#NOX_LIB      = $(NOX_DIR)/lib/lib$(NOX_LIB_NAME).a
+#NOX_LFLAGS   = -L$(NOX_DIR)/lib -l$(NOX_LIB_NAME)
+
+##### keeping optional modules up to date
+UP_TO_DATE = NONE
+#UP_TO_DATE = $(DEV_DIR) $(SIERRA_DIR)
+
+############################### build options ###########################
+
+# extra macros for specific modules
+include $(MACRO_DIR)/tahoe.extras
+
+# "make build" extras - target brought up to date before other makefile
+# targets associated with "make build"
+MOD_MAKE_INIT_XTRAS        = update_config
+MOD_MAKE_HEADERS_XTRAS     = make_headers_extras
+MOD_MAKE_DEPEND_INIT_XTRAS = make_depend_init_extras
+MOD_MAKE_CLEAN_XTRAS       = clean_config
+MOD_MAKE_BUILD_XTRAS       = make_build_extras
+
+# include common target definitions
+include $(MACRO_DIR)/make.targets
+
+# init extras target
+update_config:
+	@ if test -f $(BLD_DIR)/src-mirror/config/SolidMaterialsConfig.make; then rm $(BLD_DIR)/src-mirror/config/SolidMaterialsConfig.make; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/ElementsConfig.make;       then rm $(BLD_DIR)/src-mirror/config/ElementsConfig.make;  fi
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl SolidMaterialsConfig.conf $(BLD_DIR)/src-mirror/config
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl ElementsConfig.conf       $(BLD_DIR)/src-mirror/config
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   SolidMaterialsConfig.conf $(BLD_DIR)/src-mirror/config
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   ElementsConfig.conf       $(BLD_DIR)/src-mirror/config
+	@ make do_up_to_date "COMMAND = update_config"
+
+# create symbolic links
+make_headers_extras:
+	@ make do_up_to_date "COMMAND = setup headers"
+
+# update file dependencies
+make_depend_init_extras:
+	@ make do_up_to_date "COMMAND = depend_init object_list"
+
+# build extras target
+make_build_extras:
+	@ make do_up_to_date "COMMAND = build"
+
+# clean extras target - clean config files out of src/config
+clean_config:
+	@ if test -f $(BLD_DIR)/src-mirror/config/SolidMaterialsConfig.h;          then rm $(BLD_DIR)/src-mirror/config/SolidMaterialsConfig.h; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/SolidMaterialsConfig.make;       then rm $(BLD_DIR)/src-mirror/config/SolidMaterialsConfig.make; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/ElementsConfig.h;                then rm $(BLD_DIR)/src-mirror/config/ElementsConfig.h; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/ElementsConfig.make;             then rm $(BLD_DIR)/src-mirror/config/ElementsConfig.make; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.h;     then rm $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.h; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.make;  then rm $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.make; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.h;    then rm $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.h; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.make; then rm $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.make; fi
+
+# loop over up-to-date list - must define $(COMMAND)
+do_up_to_date:
+	@ for module in $(UP_TO_DATE); do \
+		if test -d $$module; then \
+			$(ECHO) "executing \"make $(COMMAND)\" in $$module"; \
+			cd $$module; \
+			$(MAKE) $(COMMAND) "HOME_DIR = $$module" || exit 1; \
+		else \
+			if test $$module != "NONE"; then \
+				$(ECHO) "\n*** module not found: $$module"; \
+				exit 1; \
+			fi; \
+		fi; \
+	done
