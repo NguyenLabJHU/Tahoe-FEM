@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.11 2002-11-25 07:01:25 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.11.6.1 2003-05-22 20:28:27 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
@@ -220,7 +220,8 @@ inline RaggedArray2DT<TYPE>::RaggedArray2DT(int headroom):
 	fPtrs(headroom),
 	fData(headroom)
 {
-
+	/* length is majordim + 1 */
+	fPtrs.Append(NULL);
 }
 
 template <class TYPE>
