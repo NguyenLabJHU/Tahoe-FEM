@@ -236,6 +236,11 @@ bool PatranT::ReadElementBlockDims (const StringT& title, int& num_elems, int& n
       return false;
     }
   num_elems = elems.Length();
+  if (num_elems == 0) 
+    {
+      num_elem_nodes = 0;
+      return true;
+    }
   ifstream in (file_name);
   while (AdvanceTo (in, kElement, ID, IV, KC))
     {
