@@ -1,4 +1,4 @@
-/* $Id: Contact3DT.cpp,v 1.7 2003-03-02 18:57:31 paklein Exp $ */
+/* $Id: Contact3DT.cpp,v 1.8 2003-11-13 22:16:54 paklein Exp $ */
 /* created: paklein (07/17/1999) */
 #include "Contact3DT.h"
 
@@ -17,6 +17,9 @@ using namespace Tahoe;
 /* parameters */
 const int kNumFacetNodes = 3;
 const int kMaxNumGrid    = 50;
+
+/* debugging */
+#undef DEBUG
 
 /* constructor */
 Contact3DT::Contact3DT(const ElementSupportT& support, const FieldT& field):
@@ -271,16 +274,40 @@ void Contact3DT::SetActiveStrikers(void)
 				int tag = hits[k].Tag();
 				int strikertag = (fStrikerTags.Length() == 0) ?
 					tag : fStrikerTags[tag];
-				
+
+#ifdef DEBUG
+/* print information about following striker node */
+double follow_tag = 311;
+bool print_all = false;
+if (print_all || strikertag == follow_tag)
+{
+	ostream& out = ElementSupport().Output();
+	out << "\n stiker: " << strikertag+1 << '\n';
+	out << " surf index: " << i+1 << '\n';
+	out << " face index: " << j+1 << '\n';
+	out << " face nodes: " << pfacet[0]+1 << " " << pfacet[1]+1 << " " << pfacet[2]+1 << '\n';
+}
+#endif
 				/* no self contact (per surface) */
 				if (!surface.HasValue(strikertag))
 				{
 					/* possible striker */
 					fStriker.Set(NumSD(), hits[k].Coords());
-				
+
 					double h;
 					if (Intersect(fx1, fx2, fx3, fStriker, h))
 					{
+#ifdef DEBUG
+if (print_all || strikertag == follow_tag)
+{
+	ostream& out = ElementSupport().Output();
+	out << "  x = " << fStriker.no_wrap() << '\n';
+	out << " x1 = " << fx1.no_wrap() << '\n';
+	out << " x2 = " << fx2.no_wrap() << '\n';
+	out << " x3 = " << fx3.no_wrap() << '\n';
+	out << " h = " << h << '\n';
+}
+#endif
 						/* first time to facet */
 						if (fActiveMap[tag] == -1)
 						{
@@ -312,7 +339,7 @@ bool Contact3DT::Intersect(const dArrayT& x1, const dArrayT& x2,
 	const dArrayT& x3, const dArrayT& xs, double& h) const
 {
 	/* workspace vectors */
-	Vector3T<double> a, b, c, n;
+	Vector3T<double> a, b, c, n, xsp;
 	a.Diff(x2.Pointer(), x1.Pointer());
 	b.Diff(x3.Pointer(), x1.Pointer());
 	c.Diff(xs.Pointer(), x1.Pointer());
@@ -325,35 +352,40 @@ bool Contact3DT::Intersect(const dArrayT& x1, const dArrayT& x2,
 	/* height */
 	h = Vector3T<double>::Dot(n, c);
 
-	/* no eminent contact */
-	double close_by = sqrt(mag)/10.0;
-	if (fabs(h) > close_by)
+	/* projection of striker into the plane of the face */
+	xsp.Combine(1.0, xs.Pointer(), -h, n);
+
+	/* tolerances */
+	double dist_tol = sqrt(mag)/2.0; /* tolerance on perpendicular distance to the face */
+	double area_tol = mag/50.0; /* tolerance on node falling "within" the area of the face */
+	if (fabs(h) > dist_tol)
 		return false;
 	else /* check projection onto facet */
 	{
-		Vector3T<double> ni;
+		Vector3T<double> xis, ni;
 	
 		/* edge 1 */
-		ni.Cross(a, c);
-		if (Vector3T<double>::Dot(n, ni) < 0.0)
+		xis.Diff(xsp, x1.Pointer());
+		ni.Cross(a, xis);
+		if (Vector3T<double>::Dot(n, ni) < -area_tol)
 			return false;
 		else
 		{
-			Vector3T<double> xis, edge;
+			Vector3T<double> edge;
 		
 			/* edge 2 */
 			edge.Diff(x3.Pointer(), x2.Pointer());
-			 xis.Diff(xs.Pointer(), x2.Pointer());
+			 xis.Diff(xsp, x2.Pointer());
 			ni.Cross(edge, xis);
-			if (Vector3T<double>::Dot(n, ni) < 0.0)
+			if (Vector3T<double>::Dot(n, ni) < -area_tol)
 				return false;
 			else
 			{
 				/* edge 3 */
 				edge.Diff(x1.Pointer(), x3.Pointer());
-				 xis.Diff(xs.Pointer(), x3.Pointer());
+				 xis.Diff(xsp, x3.Pointer());
 				ni.Cross(edge, xis);
-				if (Vector3T<double>::Dot(n, ni) < 0.0)
+				if (Vector3T<double>::Dot(n, ni) < -area_tol)
 					return false;
 				else
 					return true;
