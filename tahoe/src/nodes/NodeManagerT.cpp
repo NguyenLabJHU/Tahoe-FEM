@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.48.2.2 2004-07-07 15:28:44 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.48.2.3 2004-07-08 07:50:21 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -1574,6 +1574,12 @@ ExceptionT::GeneralFail("NodeManagerT::EchoFields", "remove me");
 
 void NodeManagerT::EchoInitialConditions(FieldT& field, ifstreamT& in, ostream& out)
 {
+#pragma unused(field)
+#pragma unused(in)
+#pragma unused(out)
+ExceptionT::Stop("NodeManagerT::EchoInitialConditions");
+
+#if 0
 	out << "\n Initial conditions:\n\n";
 
 	/* model manager */
@@ -1633,10 +1639,17 @@ void NodeManagerT::EchoInitialConditions(FieldT& field, ifstreamT& in, ostream& 
 		for (int i = 0; i < cards.Length(); i++)
 			cards[i].WriteValues(out);
 	}
+#endif
 }
 
 void NodeManagerT::EchoKinematicBC(FieldT& field, ifstreamT& in, ostream& out)
 {
+#pragma unused(field)
+#pragma unused(in)
+#pragma unused(out)
+ExceptionT::Stop("NodeManagerT::EchoKinematicBC");
+
+#if 0
 	out << "\n Kinematic boundary conditions:\n\n";
 
 	/* model manager */
@@ -1715,10 +1728,17 @@ void NodeManagerT::EchoKinematicBC(FieldT& field, ifstreamT& in, ostream& out)
 			     << cards[i].Node() + 1 << endl;
 			throw ExceptionT::kOutOfRange;
 		}
+#endif
 }
 
 void NodeManagerT::EchoForceBC(FieldT& field, ifstreamT& in, ostream& out)
 {
+#pragma unused(field)
+#pragma unused(in)
+#pragma unused(out)
+ExceptionT::Stop("NodeManagerT::EchoForceBC");
+
+#if 0
 	const char caller[] = "NodeManagerT::EchoForceBC";
 
 	/* print header */
@@ -1791,6 +1811,7 @@ void NodeManagerT::EchoForceBC(FieldT& field, ifstreamT& in, ostream& out)
 	for (int i = 0; i < cards.Length(); i++)
 		if (cards[i].Node() < 0 || cards[i].Node() >= NumNodes()) 
 			ExceptionT::OutOfRange(caller, "node number is out of range: %d", cards[i].Node() + 1);
+#endif
 }
 
 void NodeManagerT::EchoHistoryNodes(ifstreamT& in, ostream &out)
@@ -1963,11 +1984,9 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(int code)
 			fbc = new MFPenaltySphereT;
 			break;
 
-#if 0
 	    case FBC_ControllerT::kMFAugLagMult:
-	    	fbc = new MFAugLagMultT(fFEManager, this, field, coords, disp);
+	    	fbc = new MFAugLagMultT;
 	    	break;
-#endif
 
 		default:
 			ExceptionT::BadInputValue(caller, "FBC controller code %d is not supported", code);

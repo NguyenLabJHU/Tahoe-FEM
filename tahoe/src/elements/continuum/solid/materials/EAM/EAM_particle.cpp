@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.cpp,v 1.2.8.1 2004-07-07 15:28:11 paklein Exp $ */
+/* $Id: EAM_particle.cpp,v 1.2.8.2 2004-07-08 07:50:16 paklein Exp $ */
 /* created: hspark(02/25/2004) */
 #include "EAM_particle.h"
 #include <iostream.h> //TEMP
@@ -10,15 +10,23 @@
 using namespace Tahoe;
 
 /* constructor */
-EAM_particle::EAM_particle(CBLatticeT& lattice): fLattice(lattice),
-	fCounts( fLattice.BondCounts() ), fBonds( fLattice.DeformedLengths() ),
-	fNumSpatialDim( fLattice.NumberOfSpatialDim() ),
-	fNumBonds( fLattice.NumberOfBonds() ),
-	fModuliDim(dSymMatrixT::NumValues(fNumSpatialDim)),
-	fBondTensor4(fModuliDim), fAmn(fNumBonds),
-	fBondTensor2(fModuliDim), //fBondTensor2b(fModuliDim),
+EAM_particle::EAM_particle(CBLatticeT& lattice): 
+	fLattice(lattice),
+//	fCounts( fLattice.BondCounts() ), 
+//	fBonds( fLattice.DeformedLengths() ),
+//	fNumSpatialDim( fLattice.NumberOfSpatialDim() ),
+//	fNumBonds( fLattice.NumberOfBonds() ),
+//	fModuliDim(dSymMatrixT::NumValues(fNumSpatialDim)),
+
+#if 0
+	fBondTensor4(fModuliDim), 
+	fAmn(fNumBonds),
+	fBondTensor2(fModuliDim), 
+	//fBondTensor2b(fModuliDim),
 	fTensor2Table(fNumBonds,fModuliDim),
 	fBond1(fNumBonds), fBond2(fNumBonds), fBond3(fNumBonds),
+#endif
+
 	fEAMProperty(NULL),
 	fPairEnergy(NULL),
 	fPairForce(NULL),
@@ -30,21 +38,17 @@ EAM_particle::EAM_particle(CBLatticeT& lattice): fLattice(lattice),
 	fEDForce(NULL),
 	fEDStiffness(NULL)
 {
-	/* dimension checks */
-	if (fCounts.Length() != fNumBonds ||
-	     fBonds.Length() != fNumBonds) throw ExceptionT::kGeneralFail;
+
 }
 
 /* Destructor */
-EAM_particle::~EAM_particle(void) 
-{
+EAM_particle::~EAM_particle(void) {
 	delete fEAMProperty;
 }
 
-/* Set "glue" functions */
-void EAM_particle::SetGlueFunctions(const StringT& param_file)
+/* set "glue" functions and dimension work space */
+void EAM_particle::Initialize(int nsd, int numbonds, const StringT& param_file)
 {
-#if 0
 	/* construct EAM property - only the Paradyn EAM potentials are implemented */
 	fEAMProperty = new ParadynEAMT(param_file);
 
@@ -61,7 +65,16 @@ void EAM_particle::SetGlueFunctions(const StringT& param_file)
 	
 	/* set lattice parameter */
 	fLatticeParameter = fEAMProperty->GetLatticeParameter();
-#endif
+
+	/* dimension work space */
+	int nstrs = dSymMatrixT::NumValues(nsd);
+	fBondTensor4.Dimension(nstrs);
+	fAmn.Dimension(numbonds);
+	fBondTensor2.Dimension(nstrs);
+	fTensor2Table.Dimension(numbonds, nstrs);
+	fBond1.Dimension(numbonds);
+	fBond2.Dimension(numbonds);
+	fBond3.Dimension(numbonds);
 }
 
 /*

@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.h,v 1.2 2004-04-09 02:02:58 hspark Exp $ */
+/* $Id: EAM_particle.h,v 1.2.8.1 2004-07-08 07:50:16 paklein Exp $ */
 /* created: hspark(02/25/2004) */
 #ifndef _EAM_PARTICLE_H_
 #define _EAM_PARTICLE_H_
@@ -28,8 +28,8 @@ public:
 	/* destructor */
 	virtual ~EAM_particle(void);
 
-	/** set "glue" functions */
-	void SetGlueFunctions(const StringT& param_file);
+	/** set "glue" functions and dimension work space */
+	void Initialize(int nsd, int numbonds, const StringT& param_file);
 
 	/* compute unit strain energy density:
 	 *
@@ -83,17 +83,16 @@ private:
 	EAMPropertyT::EDEnergyFunction fEDEnergy;
 	EAMPropertyT::EDForceFunction fEDForce;
 	EAMPropertyT::EDStiffnessFunction fEDStiffness;
-	
 	/*@{*/
 
 	CBLatticeT&	fLattice;
-	const iArrayT&	fCounts;		
-	const dArrayT&	fBonds;
+//	const iArrayT&	fCounts;
+//	const dArrayT&	fBonds;
 
 	/* parameters */
-	int		fNumSpatialDim;
-	int		fNumBonds;
-	int		fModuliDim;
+//	int		fNumSpatialDim;
+//	int		fNumBonds;
+//	int		fModuliDim;
 	double  fLatticeParameter;
 	
 	dMatrixT	fBondTensor4;

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.40.2.2 2004-07-07 15:28:01 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.40.2.3 2004-07-08 07:50:13 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -1144,6 +1144,10 @@ void ContinuumElementT::TakeNaturalBC(const ParameterListT& list)
 
 void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 {
+#pragma unused(in)
+#pragma unused(out)
+ExceptionT::Stop("ContinuumElementT::EchoTractionBC");
+#if 0
 	const char caller[] = "ContinuumElementT::EchoTractionBC";
 	out << "\n Traction boundary conditions:\n";
 	
@@ -1276,6 +1280,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 				throw ExceptionT::kBadInputValue;
 			}
 	}
+#endif
 }
 
 /* construct a new material support and return a pointer */
