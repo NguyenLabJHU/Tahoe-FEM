@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BaseT.h,v 1.1.2.1 2003-11-22 22:23:51 paklein Exp $ */
+/* $Id: ABAQUS_BaseT.h,v 1.1.2.2 2003-11-24 17:54:28 paklein Exp $ */
 #ifndef _ABAQUS_BASE_T_H_
 #define _ABAQUS_BASE_T_H_
 
@@ -35,7 +35,7 @@ protected:
 	/** \name read ABAQUS-format input */
 	/*@{*/
 	void Read_ABAQUS_Input(ifstreamT& in, StringT& name, nArrayT<doublereal>& properties,
-		integer& nstatv) const;
+		integer& nstatv, bool& nonsym) const;
 	bool Next_ABAQUS_Keyword(ifstreamT& in) const;
 	bool Skip_ABAQUS_Symbol(ifstreamT& in, char c) const;
 	void Skip_ABAQUS_Comments(ifstreamT& in) const;
