@@ -1,14 +1,14 @@
-/* $Id: FDKStV2D.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: FDKStV2D.h,v 1.1.1.1.2.1 2001-06-06 16:20:45 paklein Exp $ */
 /* created: paklein (06/10/97)                                            */
 
 #ifndef _FD_KSTV_2D_H_
 #define _FD_KSTV_2D_H_
 
 /* base classes */
-#include "FDHookeanMatT.h"
-#include "KStV2D.h"
+#include "FDKStV.h"
+#include "IsotropicT.h"
 
-class FDKStV2D: public FDHookeanMatT, public KStV2D
+class FDKStV2D: public FDKStV, public Material2DT
 {
 public:
 
@@ -17,7 +17,11 @@ public:
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
+
+protected:
+
+	/* set modulus */
+	virtual void SetModulus(dMatrixT& modulus);
 
 private:
 
