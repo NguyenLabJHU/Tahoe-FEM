@@ -1,18 +1,16 @@
-/* $Id: EAM_particle.cpp,v 1.1.2.1 2004-02-25 16:08:00 hspark Exp $ */
-/* created: hspark(02/25/2004)                                          */
-/* EAM_particle.cpp                                                                */
-
-/* Calculate EAM glue properties using EAM particle class */
-
+/* $Id: EAM_particle.cpp,v 1.1.2.2 2004-02-25 17:24:46 paklein Exp $ */
+/* created: hspark(02/25/2004) */
 #include "EAM_particle.h"
 #include <iostream.h> //TEMP
 #include "CBLatticeT.h"
 #include "C1FunctionT.h"
 
-/* Constructor */
+/* EAM property types */
+#include "ParadynEAMT.h"
 
 using namespace Tahoe;
 
+/* constructor */
 EAM_particle::EAM_particle(CBLatticeT& lattice): fLattice(lattice),
 	fCounts( fLattice.BondCounts() ), fBonds( fLattice.DeformedLengths() ),
 	fNumSpatialDim( fLattice.NumberOfSpatialDim() ),
@@ -22,7 +20,12 @@ EAM_particle::EAM_particle(CBLatticeT& lattice): fLattice(lattice),
 	fBondTensor2(fModuliDim), //fBondTensor2b(fModuliDim),
 	fTensor2Table(fNumBonds,fModuliDim),
 	fBond1(fNumBonds), fBond2(fNumBonds), fBond3(fNumBonds),
-	fPairPotential(NULL), fEmbeddingEnergy(NULL), fElectronDensity(NULL)
+	fEAMProperty(NULL),
+	fPairEnergy(NULL),
+	fPairForce(NULL),
+	fPairStiffness(NULL),
+	fEmbedEnergy(NULL),
+	fEDFunction(NULL)
 {
 	/* dimension checks */
 	if (fCounts.Length() != fNumBonds ||
@@ -30,19 +33,25 @@ EAM_particle::EAM_particle(CBLatticeT& lattice): fLattice(lattice),
 }
 
 /* Destructor */
-EAM_particle::~EAM_particle(void)
+EAM_particle::~EAM_particle(void) 
 {
-	delete fPairPotential;
-	delete fEmbeddingEnergy;
-	delete fElectronDensity;
+	delete fEAMProperty;
 }
 
 /* Set "glue" functions */
-void EAM_particle::SetGlueFunctions(void)
+void EAM_particle::SetGlueFunctions(const StringT& param_file)
 {
-	SetPairPotential();
-	SetEmbeddingEnergy();
-	SetElectronDensity(); 		
+	/* construct EAM property - only the Paradyn EAM potentials are implemented */
+	fEAMProperty = new ParadynEAMT(param_file);
+
+	/* cache function pointers */
+	fPairEnergy    = fEAMProperty->getPairEnergy();
+	fPairForce     = fEAMProperty->getPairForce();
+	fPairStiffness = fEAMProperty->getPairStiffness();
+
+	fEDFunction    = fEAMProperty->getElecDensEnergy();
+	
+	fEmbedEnergy   = fEAMProperty->getEmbedEnergy();
 }
 
 /*
@@ -52,25 +61,23 @@ void EAM_particle::SetGlueFunctions(void)
 */
 double EAM_particle::ComputeUnitEnergy(void)
 {
-	/* compute total atomic density */	
-	dArrayT& ElectronDensity = fElectronDensity->MapFunction(fBonds, fBond1);
-	dArrayT& PairPotential   = fPairPotential->MapFunction(fBonds, fBond2);
-
 	double rho = 0.0;
 	double energy = 0.0;
 	
 	const int* pcount = fCounts.Pointer();
-	double* prho = ElectronDensity.Pointer();
-	double* pphi = PairPotential.Pointer();
 	for (int i = 0; i < fNumBonds; i++)
 	{
-		int    ci = *pcount++;
-		
-		rho    += ci*(*prho++);
-		energy += ci*0.5*(*pphi++);
+		int ci = *pcount++;
+
+		double   r = fBonds[i];
+		double phi = fPairEnergy(r, NULL, NULL);
+		double rho = fDensity(r, NULL, NULL);
+
+		rho    += ci*rho;
+		energy += ci*0.5*phi;
 	}
 	
-	energy += fEmbeddingEnergy->Function(rho);
+	energy += fEmbedEnergy(rho, NULL, NULL);
 
 	return energy;
 }

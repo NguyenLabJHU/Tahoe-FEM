@@ -1,7 +1,5 @@
-/* $Id: EAM_particle.h,v 1.1.2.1 2004-02-25 16:08:00 hspark Exp $ */
-/* created: hspark(02/25/2004)                                          */
-/* EAM_particle.h                                                                  */
-
+/* $Id: EAM_particle.h,v 1.1.2.2 2004-02-25 17:24:46 paklein Exp $ */
+/* created: hspark(02/25/2004) */
 #ifndef _EAM_PARTICLE_H_
 #define _EAM_PARTICLE_H_
 
@@ -9,6 +7,7 @@
 #include "dMatrixT.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
+#include "EAMPropertyT.h"
 
 namespace Tahoe {
 
@@ -18,6 +17,8 @@ class C1FunctionT;
 class iArrayT;
 class dSymMatrixT;
 
+/** EAM calculations for Cauchy-Born constitutive models using the EAMPropertyT
+ * potential functions */
 class EAM_particle
 {
 public:
@@ -28,8 +29,8 @@ public:
 	/* destructor */
 	virtual ~EAM_particle(void);
 
-	/* set "glue" functions */
-	void SetGlueFunctions(void);
+	/** set "glue" functions */
+	void SetGlueFunctions(const StringT& param_file);
 
 	/* compute unit strain energy density:
 	 *
@@ -65,20 +66,21 @@ private:
 	/* Moduli tensor contributions */
 	void FormSingleBondContribution(double rho, dMatrixT& moduli);
 	void FormMixedBondContribution(double rho, dMatrixT& moduli);
-
-	/* set the glue function pointers - called by Initialize() */
-	virtual void SetPairPotential(void) = 0;
-	virtual void SetEmbeddingEnergy(void) = 0;
-	virtual void SetElectronDensity(void) = 0; 	
-
-protected:
-
-	/* glue functions */
-	C1FunctionT*	fPairPotential;
-	C1FunctionT*	fEmbeddingEnergy;
-	C1FunctionT*	fElectronDensity;
 	
 private:   	
+
+	/** EAM property and function pointers */
+	/*@{*/
+	EAMPropertyT* fEAMProperty;
+
+	PairEnergyFunction    fPairEnergy;
+	PairForceFunction     fPairForce;
+	PairStiffnessFunction fPairStiffness;
+	
+	EmbedEnergyFunction   fEmbedEnergy;
+
+	EDEnergyFunction      fEDFunction;
+	/*@{*/
 
 	CBLatticeT&	fLattice;
 	const iArrayT&	fCounts;		
