@@ -1,7 +1,8 @@
+/* $Id: InputFEASCIIT.cpp,v 1.3 2001-12-17 00:39:15 paklein Exp $ */
 #include "InputFEASCIIT.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
-#include <sstream>
+#include <strstream.h>
 
 InputFEASCIIT::InputFEASCIIT (ostream& out) :
   InputBaseT (out),
@@ -249,7 +250,7 @@ void InputFEASCIIT::ReadGeometryCode (StringT& name, GeometryT::CodeT& geocode)
   // either this or write an operator= for Geometry::CodeT
   char *h = strstr ((const char*) s, "=");
   h++;
-  istringstream istr (h);
+  istrstream istr (h);
   istr >> geocode;
 }
 
