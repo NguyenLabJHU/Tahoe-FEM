@@ -1,4 +1,4 @@
-/* $Id: zMatrixT.cpp,v 1.4 2001-06-16 01:41:23 paklein Exp $ */
+/* $ Id $ */
 /* created: paklein (05/19/1997)                                          */
 /* 2 dimensional matrix mathematics object.                               */
 

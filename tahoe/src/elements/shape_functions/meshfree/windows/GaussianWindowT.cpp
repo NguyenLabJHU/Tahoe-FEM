@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.cpp,v 1.6 2001-06-18 18:21:27 paklein Exp $ */
+/* $Id: GaussianWindowT.cpp,v 1.2 2001-06-14 17:18:35 hspark Exp $ */
 
 #include "GaussianWindowT.h"
 #include "ExceptionCodes.h"
@@ -17,133 +17,155 @@ GaussianWindowT::GaussianWindowT(double dilation_scaling, double sharpening_fact
 
 void GaussianWindowT::WriteParameters(ostream& out) const
 {
-	/* Not sure what to do here */
-	out << "Dilation scaling factor = " << fDilationScaling << '\n';
-	out << "Fudge factor used = " << fSharpeningFudgeFactor << '\n';
+  /* Not sure what to do here */
+
+
 }
 
 /* Single point evaluations */
-void GaussianWindowT::window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dArrayT& DDw)
+void GaussianWindowT::window(const dArrayT& x_0, const dArrayT& param, const dArrayT& x,
+		double& w)
 {
-  /* Compute second derivative of the window function */
-  dArrayT dx(x.Length());
-  dSymMatrixT NSDsym(x.Length());
-  dx.DiffOf(x, x_n);
+  /* Compute the window function */
+  dArrayT dx(x_0.Length());
+  dx.DiffOf(x_0, x);
   double dist = dx.Magnitude();
 
   /* check out of influence range */
-  if (!Covers(x_n, x, param_n))    // WARNING:  param_n[0] may not be correct with only 1 value!
-  {
+  if (dist > 4.0 * fDilationScaling)
     w = 0.0;
-    if (order > 0)
-    {
-      Dw = 0.0;
-      if (order > 1)
-	DDw = 0.0;
-    }
-  }
   else
   {
-    double adm = param_n[0] * fSharpeningFudgeFactor;
+    double adm = fDilationScaling * fSharpeningFudgeFactor;
+    double q = dist / adm;
+    w = exp(-q*q)/(sqrtPi*adm);
+  }
+}
+
+void GaussianWindowT::Dwindow(const dArrayT& x_0, const dArrayT& param, const dArrayT& x,
+		dArrayT& Dw)
+{
+  /* Compute derivative of the window function */
+  dArrayT dx(x_0.Length());
+  dx.DiffOf(x_0, x);
+  double dist = dx.Magnitude();
+
+  /* check out of influence range */
+  if (dist > 4.0 * fDilationScaling)
+    Dw = 0.0;
+  else
+  {
+    double adm = fDilationScaling * fSharpeningFudgeFactor;
     double adm2 = adm * adm;
     double q = dist / adm;
-    w = exp(-q * q) / (sqrtPi * adm);
-    if (order > 0)
-    {
-      Dw.SetToScaled(-2.0 * w / adm2, dx);
-      if (order > 1)
-      {
-	  NSDsym.Outer(dx);
-	  NSDsym *= 4.0 * w / (adm2 * adm2);
-	  NSDsym.PlusIdentity(-2.0 * w / adm2);
-	  DDw = NSDsym;    // THIS COULD BE WRONG!!
-      }
-    }
+    double w = exp(-q * q) / (sqrtPi * adm);
+    Dw.SetToScaled(-2.0 * w / adm2, dx);
+  }
+}
+
+void GaussianWindowT::DDwindow(const dArrayT& x_0, const dArrayT& param, const dArrayT& x,
+		dArrayT& DDw)
+{
+  /* Compute second derivative of the window function */
+  dArrayT dx(x_0.Length());
+  dx.DiffOf(x_0, x);
+  double dist = dx.Magnitude();
+
+  /* check out of influence range */
+  if (dist > 4.0 * fDilationScaling)
+    DDw = 0.0;
+  else
+  {
+    dSymMatrixT NSDsym(x_0.Length());
+    double adm = fDilationScaling * fSharpeningFudgeFactor;
+    double adm2 = adm * adm;
+    double q = dist / adm;
+    double w = exp(-q * q) / (sqrtPi * adm);
+    NSDsym.Outer(dx);
+    NSDsym *= 4.0 * w / (adm2 * adm2);
+    NSDsym.PlusIdentity(-2.0 * w / adm2);
+    //DDw.SetColumn(0, NSDsym);
   }
 }
 
 /* multiple point calculations */
-int GaussianWindowT::window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
-		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw)
+void GaussianWindowT::window(const dArrayT& x_0, const dArray2DT& param, const dArray2DT& x,
+		dArrayT& w)
 {
-  /* compute window function and derivatives for multiple field points */
-  int count = 0;    // # of point covered...
-  int numwindows = x_n.MinorDim();        // Could be MajorDim!
-  dArrayT dx(x.Length()), row(x.Length()), tempDw(x.Length());
-  dSymMatrixT NSDsym(x.Length());
-  ArrayT<bool> covers(x.Length());
-  Covers(x_n, x, param_n, covers);
-  for (int i = 0; i < numwindows; i++)
+  /* compute window function for multiple field points */
+  int numneighbors = x.MinorDim();        // Could be major dim!
+  dArrayT dx(x_0.Length()), row(x_0.Length());
+  for (int i = 0; i < numneighbors; i++)
   {
-    x_n.RowCopy(i, row);
-    dx.DiffOf(x, x_n);
+    x.RowCopy(i, row);
+    dx.DiffOf(x, x_0);
     double dist = dx.Magnitude();
 
     /* check out of influence range */
-    if (!covers[i])
-    {
-      w[i] = 0.0;
-      if (order > 0)
-      {
-	Dw.SetColumn(i, 0.0);
-	if (order > 1)
-	  DDw.SetColumn(i, 0.0);
-      }
-    }
+    if (dist > 4.0 * fDilationScaling)
+      w = 0.0;
     else
     {
-      double adm = param_n[i] * fSharpeningFudgeFactor;
+      double adm = fDilationScaling * fSharpeningFudgeFactor;
       double q = dist / adm;
-      double adm2 = adm * adm;
-      w[i] = (-q * q) / (sqrtPi * adm);
-      if (order > 0)
-      {
-	tempDw.SetToScaled(-2.0 * w[i] / adm2, dx);
-	Dw.SetColumn(i, tempDw);
-	if (order > 1)
-	{
-	  NSDsym.Outer(dx);
-	  NSDsym *= 4.0 * w[i] / (adm2 * adm2);
-	  NSDsym.PlusIdentity(-2.0 * w[i] / adm2);
-	  DDw.SetColumn(i, NSDsym);
-	}
-      }
-      count++;
+      w[i] = exp(-q*q)/(sqrtPi*adm);
     }
   }
-  return count;
 }
 
-bool GaussianWindowT::Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n)
+void GaussianWindowT::Dwindow(const dArrayT& x_0, const dArray2DT& param, const dArray2DT& x,
+		dArray2DT& Dw)
 {
-  /* is this necessary? */
-  dArrayT dx(x.Length());
-  dx.DiffOf(x, x_n);
-  double dist = dx.Magnitude();
-  if (dist > 4.0 * param_n[0])
-    return false;
-  else
-    return true;
-}
-
-void GaussianWindowT::Covers(const dArray2DT& x_n, const dArrayT& x, 
-			     const dArray2DT& param_n, ArrayT<bool>& covers)
-{
-  int count = 0;    // # of point covered...
-  int numwindows = x_n.MinorDim();        // Could be MajorDim!
-  dArrayT dx(x.Length()), row(x.Length()), tempDw(x.Length());
-  dSymMatrixT NSDsym(x.Length());
-  for (int i = 0; i < numwindows; i++)
+  /* compute derivative of window function for multiple field points */
+  int numneighbors = x.MinorDim();        // Could be major dim!
+  dArrayT dx(x_0.Length()), row(x_0.Length()), tempDw(x_0.Length());  
+  for (int i = 0; i < numneighbors; i++)
   {
-    x_n.RowCopy(i, row);
-    dx.DiffOf(x, x_n);
+    x.RowCopy(i, row);
+    dx.DiffOf(x, x_0);
     double dist = dx.Magnitude();
 
     /* check out of influence range */
-    if (dist > 4.0 * param_n[i])
-      covers[i] = false;
+    if (dist > 4.0 * fDilationScaling)
+      Dw.SetColumn(i, 0.0);
     else
-      covers[i] = true;
+    {
+      double adm = fDilationScaling * fSharpeningFudgeFactor;
+      double q = dist / adm;
+      double w = exp(-q * q) / (sqrtPi * adm);
+      double adm2 = adm * adm;
+      tempDw.SetToScaled(-2.0 * w / adm2, dx);
+      Dw.SetColumn(i, tempDw);
+    }
+  }
+}
+
+void GaussianWindowT::DDwindow(const dArrayT& x_0, const dArray2DT& param, const dArray2DT& x,
+		dArray2DT& DDw)
+{
+  /* compute second derivative of window function for multiple field points */
+   int numneighbors = x.MinorDim();        // Could be major dim!
+  dArrayT dx(x_0.Length()), row(x_0.Length());  
+  dSymMatrixT NSDsym(x_0.Length());
+  for (int i = 0; i < numneighbors; i++)
+  {
+    x.RowCopy(i, row);
+    dx.DiffOf(x, x_0);
+    double dist = dx.Magnitude();
+
+    /* check out of influence range */
+    if (dist > 4.0 * fDilationScaling)
+      DDw.SetColumn(i, 0.0);
+    else
+    {
+      double adm = fDilationScaling * fSharpeningFudgeFactor;
+      double q = dist / adm;
+      double adm2 = adm * adm;
+      double w = (-q * q) / (sqrtPi * adm);
+      NSDsym.Outer(dx);
+      NSDsym *= 4.0 * w / (adm2 * adm2);
+      NSDsym.PlusIdentity(-2.0 * w / adm2);
+      DDw.SetColumn(i, NSDsym);
+    }
   }
 }
