@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: parallel.csh.template,v 1.4 2003-02-03 22:16:13 paklein Exp $
+# $Id: parallel.csh.template,v 1.5 2003-02-03 22:44:37 paklein Exp $
 # 
 # template for running the parallel benchmarks - this script only runs
 # the benchmarks and verifies them with the comparator. It does not
@@ -15,13 +15,13 @@ set W_DIR =
 # host name - used only for subject line of test report
 set HOST =
 
-# need an echo that handles escape characters \n
-set ECHO = 'echo'
-
 ######### hopefully no changes will be required below #########
 
 # set path
 set path=(${W_DIR}/benchmark/scripts /bin /usr/bin /usr/local/bin /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /usr/openwin/bin /project/local/bin $path)
+
+# need an echo that handles escape characters \n
+set ECHO = 'echo'
 
 # CVS
 setenv CVS_RSH ssh
@@ -34,19 +34,10 @@ set MPI_EXE      = ${W_DIR}/tahoe/tahoe
 set MPI_LAUNCH   = 'mpirun -np 4 '
 set MPI_TEST_DIR = ${W_DIR}/benchmark/level.3/parallel
 
+# results summary file
+set COMPARE_RESULTS = ${MPI_TEST_DIR}/compare.summary
+
 ###################### regression test ########################
-
-# update and run regression tests
-if (-e ${MPI_EXE} && -e ${W_DIR}/benchmark/comparator/compare) then
-    ${ECHO}  "running BENCHMARKs"
-    cd ${MPI_TEST_DIR}; \
-	make -s clean; \
-	${MPI_LAUNCH} ${MPI_EXE} -f run.batch >&! test.stdout
-    ${ECHO}  "running COMPARATOR"
-    cd ${MPI_TEST_DIR}; \
-    rm compare.summary compare.console; \
-    ${W_DIR}/benchmark/comparator/compare -f run.batch >&! compare.console
-
 #
 # run tests
 #
@@ -60,30 +51,29 @@ if (-x ${W_DIR}/tahoe/${TAHOE} && -x ${W_DIR}/benchmark/comparator/compare) then
 
 	# test results 
     ${ECHO}  "running COMPARATOR..."
-	cd ${W_DIR}/benchmark
-	if (-e compare.summary) rm compare.summary
+	if (-e ${COMPARE_RESULTS}) rm ${COMPARE_RESULTS}
 	if (-e compare.console) rm compare.console
     ${W_DIR}/benchmark/comparator/compare -f run.batch >&! compare.console
 
 	# assess results
-    if (! -e ${W_DIR}/benchmark/compare.summary) then
+    if (! -e ${COMPARE_RESULTS}) then
     	# benchmarks did not run
 		${ECHO} "BENCHMARKs failed"
 		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}" > ${W_DIR}/benchmark/tmp_para
 		${ECHO} "TAHOE regression FAIL:" `date` >> ${W_DIR}/benchmark/tmp_para
-		cat ${W_DIR}/benchmark/tmp_para ${W_DIR}/benchmark/compare.console > ${W_DIR}/benchmark/tmp_para_mail
-	else if (`grep -c "FAIL" ${W_DIR}/benchmark/compare.summary` ) then
+		cat ${W_DIR}/benchmark/tmp_para ${MPI_TEST_DIR}/compare.console > ${W_DIR}/benchmark/tmp_para_mail
+	else if (`grep -c "FAIL" ${COMPARE_RESULTS}` ) then
 		# test/s failed
 		${ECHO} "BENCHMARKs failed"
 		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}" > ${W_DIR}/benchmark/tmp_para
 		${ECHO} "TAHOE regression FAIL:" `date` >> ${W_DIR}/benchmark/tmp_para
-		cat ${W_DIR}/benchmark/tmp_para ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_para_mail
+		cat ${W_DIR}/benchmark/tmp_para ${COMPARE_RESULTS} > ${W_DIR}/benchmark/tmp_para_mail
     else
     	# tests passed
 		${ECHO} "BENCHMARKs passed"
 		${ECHO} "Subject: TAHOE: regression PASS ${HOST}" > ${W_DIR}/benchmark/tmp_para
 		${ECHO} "TAHOE regression PASS:" `date` >> ${W_DIR}/benchmark/tmp_para
-		cat ${W_DIR}/benchmark/tmp_para ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_para_mail
+		cat ${W_DIR}/benchmark/tmp_para ${COMPARE_RESULTS} > ${W_DIR}/benchmark/tmp_para_mail
 	endif
 	
 # build failed
