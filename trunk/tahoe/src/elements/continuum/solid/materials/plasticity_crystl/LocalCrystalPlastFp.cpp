@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.15 2004-01-08 01:14:15 ebmarin Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.16 2004-01-10 17:15:08 paklein Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -472,7 +472,7 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
   // cout << "    fAvgStress = " << endl << fAvgStress << endl;
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
 	{
-	const CommunicatorT* comm = fFSMatSupport.Communicator();
+	const CommunicatorT* comm = fFSMatSupport.GroupCommunicator();
 	dArrayT stress_sum(fAvgStress.Length());
 	comm->Sum(fAvgStress, stress_sum);
 

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.34 2004-01-05 07:31:03 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.35 2004-01-10 17:15:05 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -15,6 +15,7 @@
 #include "OutputSetT.h"
 #include "ScheduleT.h"
 #include "ParameterContainerT.h"
+#include "CommunicatorT.h"
 
 //TEMP: all this for general traction BC implementation?
 #include "VariArrayT.h"
@@ -32,6 +33,7 @@ using namespace Tahoe;
 ContinuumElementT::ContinuumElementT(const ElementSupportT& support, 
 	const FieldT& field):
 	ElementBaseT(support, field),
+	fGroupCommunicator(NULL),
 	fMaterialList(NULL),
 	fBodySchedule(NULL),
 	fBody(NumDOF()),
@@ -53,6 +55,7 @@ ContinuumElementT::ContinuumElementT(const ElementSupportT& support,
 /* constructor */
 ContinuumElementT::ContinuumElementT(const ElementSupportT& support):
 	ElementBaseT(support),
+	fGroupCommunicator(NULL),
 	fMaterialList(NULL),
 	fBodySchedule(NULL),
 	fTractionBCSet(0),
@@ -65,9 +68,10 @@ ContinuumElementT::ContinuumElementT(const ElementSupportT& support):
 
 /* destructor */
 ContinuumElementT::~ContinuumElementT(void)
-{	
-	delete fShapes;
+{
+	delete fGroupCommunicator;
 	delete fMaterialList;
+	delete fShapes;
 }
 
 /* accessors */
@@ -412,6 +416,18 @@ istream& operator>>(istream& in, ContinuumElementT::MassTypeT& mtype)
 	return in;
 }
 
+}
+
+/* echo element connectivity data */
+void ContinuumElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
+{
+	/* inherited */
+	ElementBaseT::EchoConnectivityData(in, out);
+
+	/* construct group communicator */
+	const CommunicatorT& comm = ElementSupport().Communicator();
+	int color = (NumElements() > 0) ? 1 : CommunicatorT::kNoColor;
+	fGroupCommunicator = new CommunicatorT(comm, color, comm.Rank());
 }
 
 /* initialize local arrays */

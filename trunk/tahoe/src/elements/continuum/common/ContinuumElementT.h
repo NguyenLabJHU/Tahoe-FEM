@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.23 2004-01-05 07:31:03 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.24 2004-01-10 17:15:06 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -39,6 +39,9 @@ public:
 
 	/** reference to the current integration point number */
 	const int& CurrIP(void) const;
+
+	/** communicator over the group */
+	const CommunicatorT& GroupCommunicator(void) const;
 	
 	/** the coordinates of the current integration point */
 	void IP_Coords(dArrayT& ip_coords) const;
@@ -125,6 +128,11 @@ protected:
 
 	/** stream extraction operator */
 	friend istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type);
+
+	/** echo element connectivity data. Calls the inherited ElementBaseT::ElementBaseT
+	 * and then constructs the communicator for the processes with non-zero numbers
+	 * of elements in this group */
+	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 
 	/** allocate and initialize local arrays */
 	virtual void SetLocalArrays(void);
@@ -232,6 +240,9 @@ private:
 
 protected:
 
+	/** communicator over processes with elements in this group */
+	CommunicatorT* fGroupCommunicator;
+
 	/** list of materials */
 	MaterialListT* fMaterialList;
 	
@@ -275,6 +286,15 @@ private:
 };
 
 /* inlines */
+/* communicator over the group */
+inline const CommunicatorT& ContinuumElementT::GroupCommunicator(void) const
+{
+#if __option(extended_errorcheck)
+	if (!fGroupCommunicator)
+		ExceptionT::GeneralFail("ContinuumElementT::GroupCommunicator", "pointer not set");
+#endif
+	return *fGroupCommunicator;
+}
 
 /* return the geometry code */
 inline GeometryT::CodeT ContinuumElementT::GeometryCode(void) const
