@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.20 2003-05-23 22:51:57 paklein Exp $ */
+/* $Id: ElementT.h,v 1.21 2003-06-09 06:35:28 paklein Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -51,6 +51,7 @@ kPenaltyContactElement3D = 34,
                kAdhesion = 37, /**< adhesive tractions between surfaces */
            kParticlePair = 38, /**< particles with pair interactions */
                     kEAM = 39, /**< particles with EAM potental */
+     kNonLinearDiffusion = 41,
        kMeshfreeBridging = 45,
 	     kFSMatForce = 60,     /**< UpLag with material force calculation*/
 	     kSSMatForce = 61};    /**< small strain with mat force calculation*/
