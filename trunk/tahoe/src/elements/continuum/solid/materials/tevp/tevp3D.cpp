@@ -1,4 +1,4 @@
-/* $Id: tevp3D.cpp,v 1.5 2001-07-13 16:27:20 paklein Exp $ */
+/* $Id: tevp3D.cpp,v 1.6 2001-07-22 21:25:11 hspark Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (06/25/2001) */
 
@@ -213,7 +213,10 @@ const dSymMatrixT& tevp3D::s_ij(void)
       const double temp = fInternal[kTemp];   // Use the PREVIOUS temperature
       double cm = -Gamma_d * El_E * (1.0 - fJ + Alpha_T * (temp - Temp_0));
       cm /= (fJ * (1.0 - El_V));
-
+      
+      /* add dynamic viscosity */
+      double *mu_d = &Mu_d;
+      *mu_d = Mu_d * exp((temp - Temp_0) / Temp_0);
       dMatrixT eye_cm(3), dtemp(3);
       eye_cm = 0.0;
       eye_cm.PlusIdentity(1.0);
