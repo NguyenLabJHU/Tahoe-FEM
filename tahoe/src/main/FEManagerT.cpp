@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.5 2001-02-28 02:36:24 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.6 2001-03-12 18:36:29 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -1299,10 +1299,7 @@ void FEManagerT::WriteRestart(const StringT* file_name) const
 
 		/* resolve restart flag */
 		bool write = false;
-		if (fWriteRestart == 1 && StepNumber() == fTimeManager->NumberOfSteps())
-			write = true;
-		else if (fWriteRestart> 1 && ++counter == fWriteRestart)
-			write = true;
+		if (fWriteRestart > 0 && ++counter == fWriteRestart) write = true;
 
 		/* write file */
 		if (write)
