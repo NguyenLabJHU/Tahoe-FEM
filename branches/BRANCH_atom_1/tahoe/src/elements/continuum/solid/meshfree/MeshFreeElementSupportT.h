@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.h,v 1.7 2002-07-05 22:28:04 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.h,v 1.7.10.1 2002-12-27 23:08:30 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 
 #ifndef _MFREE_SUPPORT_T_H_
@@ -34,6 +34,9 @@ public:
 
 	/* accessors */
 	MeshFreeSupportT& MeshFreeSupport(void) const;
+
+	/** return the auto-border flag */
+	int AutoBorder(void) const { return fAutoBorder; };
 
 protected:
 
