@@ -1,4 +1,4 @@
-/* $Id: EnSightOutputT.cpp,v 1.10 2002-07-02 19:57:07 cjkimme Exp $ */
+/* $Id: EnSightOutputT.cpp,v 1.11 2002-07-18 11:35:21 sawimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "EnSightOutputT.h"
@@ -110,15 +110,19 @@ StringT EnSightOutputT::OpenGeometryFile (EnSightT& ens, ofstream& geo, int ID) 
   StringT geofile, geocase;
   bool change = false;
   for (int j=0; j < fElementSets.Length() && !change; j++)
-    if (fElementSets[j]->Changing()) change = true;
+    if (fElementSets[j]->Changing()) 
+      change = true;
+
+  int group = (ID > 0) ? fElementBlockIDs[ID][0] : -1;
+
   if (change)
     {
-      geofile = CreateFileName (label, fElementSets[0]->PrintStep(), fElementBlockIDs[ID][0]);
-      geocase = CreateFileName (label, kWildFile, fElementBlockIDs[ID][0]);
+      geofile = CreateFileName (label, fElementSets[0]->PrintStep(), group);
+      geocase = CreateFileName (label, kWildFile, group);
     }
   else
     {
-      geofile = CreateFileName (label, kNoIncFile, fElementBlockIDs[ID][0]);
+      geofile = CreateFileName (label, kNoIncFile, group);
       geocase = geofile;
     }
   
