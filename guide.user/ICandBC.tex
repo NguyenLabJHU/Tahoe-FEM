@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: ICandBC.tex,v 1.4 2001-04-27 22:43:55 paklein Exp $
+% $Id: ICandBC.tex,v 1.5 2002-10-30 00:34:02 paklein Exp $
 
 \section{Initial conditions and boundary conditions}
 \label{set.ICandBC}
@@ -36,7 +36,7 @@ boundaries.}
 \end{tabular}
 \end{center}
 \end{table}
-Table~\ref{tab.BC.type} lists how nodes and element side are 
+Table~\ref{tab.BC.type} lists how nodes and element sides are 
 identified for the different database types. Their use will be 
 explained with examples below. For the TahoeI format, boundary 
 segments are explicitly specified with an element and facet number. 
@@ -65,11 +65,11 @@ Each initial condition is specified as
 \[
 \sbrkt{\textit{node ID}} \quad 
 \sbrkt{\textit{degree of freedom}} \quad
+\sbrkt{\textit{order}} \quad
 \sbrkt{\textit{value}}
 \]
 The definition of the \textit{node ID} depends on the geometry 
-database type as listed in Table~\ref{tab.BC.type}. A \textit{node ID} 
-of \texttt{-1} applies the boundary condition to \textit{all} nodes.
+database type as listed in Table~\ref{tab.BC.type}. The \textit{order} refers to the time derivative of the field variable to which the initial conditions applies. A \textit{node ID} of \texttt{-1} applies the boundary condition to \textit{all} nodes.
 
 \subsection{Nodal kinematic boundary conditions}
 \label{set.ICandBC.KBC}
@@ -117,10 +117,44 @@ of the boundary condition in time.
 
 \subsection{Kinematic boundary condition controllers}
 \label{set.ICandBC.KBC.controller}
-\todo{table of codes}
+
+\begin{table}[h]
+\caption{\label{tab.KBC.controller.type} Kinematic boundary condition controllers.}
+\begin{center}
+\begin{tabular}[c]{|c|c|}
+\hline
+ \parbox[b]{0.75in}{\centering \textbf{code}}
+&\parbox[b]{2.0in}{\raggedright \textbf{description}}\\
+\hline
+\parbox[b]{0.75in}{\centering 0} & 
+\parbox[b]{2.0in}{\raggedright K-field}\\
+\hline
+\parbox[b]{0.75in}{\centering 1}  & 
+\parbox[b]{2.0in}{\raggedright bimaterial K-field}\\
+\hline
+\parbox[b]{0.75in}{\centering 2}  & 
+\parbox[b]{2.0in}{\raggedright Mapped displacements}\\
+\hline
+\parbox[b]{0.75in}{\centering 3}  & 
+\parbox[b]{2.0in}{\raggedright Tied displacements}\\
+\hline
+\parbox[b]{0.75in}{\centering 4}  & 
+\parbox[b]{2.0in}{\raggedright Symmetry line}\\
+\hline
+\parbox[b]{0.75in}{\centering 5}  & 
+\parbox[b]{2.0in}{\raggedright Periodic displacements}\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
 \subsubsection{K-field}
 \subsubsection{Interface K-field}
-\subsubsection{Periodic displacement}
+\subsubsection{Mapped displacements}
+\subsubsection{Tied displacements}
+\subsubsection{Symmetry line}
+\subsubsection{Periodic displacements}
+
 \subsection{Applied nodal forces}
 \label{set.ICandBC.FBC}
 Each nodal force boundary condition is specified as
@@ -139,15 +173,44 @@ of the boundary condition in time.
 
 \subsection{Force controllers}
 \label{set.ICandBC.FBC.controller}
-\todo{mention that this boundary condition type actually behaves more like 
+
+\begin{table}[h]
+\caption{\label{tab.KBC.controller.type} Kinematic boundary condition controllers.}
+\begin{center}
+\begin{tabular}[c]{|c|c|}
+\hline
+ \parbox[b]{0.75in}{\centering \textbf{code}}
+&\parbox[b]{4.0in}{\raggedright \textbf{description}}\\
+\hline
+\parbox[b]{0.75in}{\centering 0} & 
+\parbox[b]{4.0in}{\raggedright Rigid barrier (penalty)}\\
+\hline
+\parbox[b]{0.75in}{\centering 1}  & 
+\parbox[b]{4.0in}{\raggedright Rigid sphere (penalty)}\\
+\hline
+\parbox[b]{0.75in}{\centering 2}  & 
+\parbox[b]{4.0in}{\raggedright Rigid sphere (augmented Lagrangian)}\\
+\hline
+\parbox[b]{0.75in}{\centering 3}  & 
+\parbox[b]{4.0in}{\raggedright Rigid sphere for meshfree domains (penalty)}\\
+\hline
+\parbox[b]{0.75in}{\centering 4}  & 
+\parbox[b]{4.0in}{\raggedright Rigid barrier (augmented Lagrangian)}\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\todo{This boundary condition type actually behaves more like 
 ``elements'' because they do produce a contribution to the stiffness
 matrix, i.e., they act as ``follower forces'' and are not simply 
 defined as functions of time.}\\
-\todo{table of codes}
-\subsubsection{Rigid wall (penalty method)}
+
+\subsubsection{Rigid barrier (penalty method)}
 \subsubsection{Rigid sphere (penalty method)}
 \subsubsection{Rigid sphere (augmented Lagrangian method)}
 \subsubsection{Rigid sphere for meshfree domains (penalty method)}
+\subsubsection{Rigid barrier (augmented Lagrangian method)}
 
 \subsection{Body forces}
 \label{set.ICandBC.body}
@@ -219,4 +282,17 @@ component of the flux vector $t_{n_{dof}}$ corresponds to flux in the
 outward normal direction. The tangential components of the flux vector a 
 constructed from the mapping of the face to its corresponding parent 
 integration domain.
+
+An example specification of two-dimensional, traction boundary conditions appears below:
+\begin{inputfile}
+1	# number of traction boundary conditions
+####
+1  # side ID
+1  # schedule number
+0  # coordinate system 
+# traction vectors
+0.0  1.0   
+0.0  1.0
+\end{inputfile}
+The example shows a single specification. As shown in Table~\ref{tab.BC.type}, the format of the \textit{side ID} specification depends on the geometry database format. In the example, a single integer is used to define the element edges where the boundary conditions are applied. This format would be appropriate for geometry database types that support definition of side sets. Two traction vectors, each with two components, are given indicating that the element edges specified by the \textit{side ID} have two nodes per edge. The traction vectors are specified with respect to the global Cartesian coordinate frame, meaning the values for each vector correspond to $\cbrkt{t_x, t_y}$.
 
