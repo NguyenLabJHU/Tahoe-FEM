@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.9.32.3 2004-11-10 04:13:39 d-farrell2 Exp $ */
+/* $Id: CommManagerT.cpp,v 1.9.32.4 2004-11-24 15:06:34 d-farrell2 Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -708,6 +708,7 @@ void CommManagerT::FirstConfigure(void)
 			fPartEndNum = fPartitionNodes.Last();
 			fPartFieldStart = (nsd*fPartStartNum); // start point in field arrays
 			fPartFieldEnd = (nsd*fPartEndNum)+(nsd - 1); // end point in field arrays
+			
 			// check that (End - Start) + 1 is the same as the number of nodes in partition
 			if ((fPartEndNum - fPartStartNum + 1) != npn )
 			{
