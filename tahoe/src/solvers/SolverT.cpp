@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.4.2.3 2002-04-30 01:30:23 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.4.2.4 2002-05-05 23:33:10 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "SolverT.h"
@@ -41,6 +41,7 @@ SolverT::SolverT(FEManagerT& fe_manager, int group):
 
 	ostream& out = fFEManager.Output();
 	out << "\n S o l v e r   p a r a m e t e r s:\n\n";
+	out << " Group . . . . . . . . . . . . . . . . . . . . . = " << fGroup << '\n';
 	out << " Global equation type. . . . . . . . . . . . . . = " << fMatrixType << '\n';
 	out << "    eq. " << kDiagonalMatrix   << ", diagonal matrix\n";
 	out << "    eq. " << kProfileSolver    << ", profile solver (symmetric and nonsymmetric)\n";
