@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.5 2001-09-21 01:08:47 paklein Exp $
+# $Id: makefile.template,v 1.6 2001-10-03 18:23:35 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -54,7 +54,7 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 VTK_DIR    = /scr/paklein/vtk3.2
 VTK_INC    = $(X_INC_FLAGS) -I$(VTK_DIR)/common -I$(VTK_DIR) -I$(VTK_DIR)/graphics -I$(VTK_DIR)/imaging -I$(VTK_DIR)/contrib
 VTK_CFLAGS = $(X_CFLAGS) $(THREAD_CFLAGS) $(VTK_INC) -D__VTK__
-VTK_LFLAGS = -L$(VTK_DIR)/patented -lVTKPatented -L$(VTK_DIR)/imaging -lVTKImaging -L$(VTK_DIR)/graphics -lVTKGraphics -L$(VTK_DIR)/common -lVTKCommon $(X_LIBS) $(THREAD_LFLAGS)
+VTK_LFLAGS =  -L$(VTK_DIR)/contrib -lVTKContrib -L$(VTK_DIR)/patented -lVTKPatented -L$(VTK_DIR)/imaging -lVTKImaging -L$(VTK_DIR)/graphics -lVTKGraphics -L$(VTK_DIR)/common -lVTKCommon $(X_LIBS) $(THREAD_LFLAGS)
 
 ##### SEACAS/ACCESS software
 #AX_INC    = -I$(ACCESS)/inc
