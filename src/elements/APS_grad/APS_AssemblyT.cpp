@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.13 2003-09-25 15:39:15 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.14 2003-09-25 17:57:01 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -213,11 +213,11 @@ void APS_AssemblyT::Initialize(void)
 	
 	//fgrad_u.FEA_Dimension 			( fNumIP, n_sd );
 	dum=1;
-	fgrad_u.FEA_Dimension 			( fNumIP, n_sd, dum );
+	fgrad_u.FEA_Dimension 			( fNumIP, dum, n_sd );
 	fgamma_p.FEA_Dimension 			( fNumIP, n_sd );
 	fgrad_gamma_p.FEA_Dimension 	( fNumIP, n_sd,n_sd );
 	//fgrad_u_n.FEA_Dimension 		( fNumIP, n_sd );
-	fgrad_u_n.FEA_Dimension 		( fNumIP, n_sd, dum );
+	fgrad_u_n.FEA_Dimension 		( fNumIP, dum, n_sd );
 	fgamma_p_n.FEA_Dimension 		( fNumIP, n_sd );
 	fgrad_gamma_p_n.FEA_Dimension 	( fNumIP, n_sd,n_sd );
 
@@ -963,6 +963,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 	 	SetLocalX(fInitCoords); 
 	 	// no change in coordinates
 		//fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
+		fCurrCoords = fInitCoords;
 		fShapes->SetDerivatives(); 
 		
 		/* repackage data to forms compatible with FEA classes (very little cost in big picture) */
