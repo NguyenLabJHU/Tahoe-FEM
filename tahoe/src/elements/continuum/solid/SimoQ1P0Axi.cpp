@@ -1,9 +1,11 @@
-/* $Id: SimoQ1P0Axi.cpp,v 1.3 2004-04-27 07:24:47 paklein Exp $ */
+/* $Id: SimoQ1P0Axi.cpp,v 1.4 2004-06-26 18:31:43 paklein Exp $ */
 #include "SimoQ1P0Axi.h"
 
 #include "ShapeFunctionT.h"
 #include "SolidMaterialT.h"
 #include "SolidMatListT.h"
+#include "ofstreamT.h"
+#include "ifstreamT.h"
 
 const double Pi2 = 2.0*acos(-1.0);
 const int kRadialDirection = 0; /* x <-> r */
@@ -13,7 +15,9 @@ using namespace Tahoe;
 /* constructor */
 SimoQ1P0Axi::SimoQ1P0Axi(const ElementSupportT& support, const FieldT& field):
 	UpdatedLagrangianAxiT(support, field),
-	fF_tmp(NumSD())
+	fF_tmp(NumSD()),
+	fOutputInit(false),
+	fOutputCell(-1)
 {
 
 }
@@ -71,6 +75,17 @@ void SimoQ1P0Axi::Initialize(void)
 		double H; /* reference volume */
 		double& v = fElementVolume_last[CurrElementNumber()];
 		SetMeanGradient(fMeanGradient, H, v);
+	}
+
+	/* check cell output */
+	int index;
+	if (ElementSupport().CommandLineOption("-track_group", index)) {
+		const ArrayT<StringT>& argv = ElementSupport().Argv();
+		int group = -99;
+		group = atoi(argv[index+1]) - 1;
+		if (group == ElementSupport().ElementGroupNumber(this))
+			if (ElementSupport().CommandLineOption("-track_cell", index))
+				fOutputCell = atoi(argv[index+1]) - 1;
 	}
 }
 
@@ -155,7 +170,7 @@ void SimoQ1P0Axi::SetGlobalShape(void)
 			/* "replace" dilatation */
 			dMatrixT& F = fF_List[i];
 			double J = F.Det();
-			if (J <= 0.0) ExceptionT::BadJacobianDet("SimoQ1P0Axi::SetGlobalShape");			
+			if (J <= 0.0) ExceptionT::BadJacobianDet("SimoQ1P0Axi::SetGlobalShape");
 			F *= pow(v/(H*J), 1.0/3.0);
 			
 			/* store Jacobian */
@@ -302,6 +317,7 @@ void SimoQ1P0Axi::FormKd(double constK)
 	double& p_bar = fPressure[elem];
 	p_bar = 0.0;
 
+	bool hit_cell = false;
 	int nen = NumElementNodes();
 	fCurrShapes->TopIP();
 	while ( fCurrShapes->NextIP() )
@@ -338,8 +354,88 @@ void SimoQ1P0Axi::FormKd(double constK)
 		/* incremental heat generation */
 		if (need_heat) 
 			fElementHeat[fShapes->CurrIP()] += fCurrMaterial->IncrementalHeat();
-	}
+
+		/* debugging output */
+		int output_element = fOutputCell;
+		if (CurrElementNumber() == output_element) {
+
+			/* collect nodal velocities */
+			if (CurrIP() == 0) 
+				SetLocalU(fLocVel);
+
+			/* step information */
+			int step_number = ElementSupport().StepNumber();
+			double time = ElementSupport().Time();
+		
+			/* acoustic wave speeds */
+			dArrayT normal(3), speeds(3);
+			normal[0] = 1.0;
+			normal[1] = 0.0;
+			normal[2] = 0.0;
+			fCurrMaterial->WaveSpeeds(normal, speeds);
+
+			/* neighborhood nodes */
+			const iArrayT& nodes_u = CurrentElement().NodesU();
+
+			/* get matrix of shape function gradients */
+			fShapes->GradNa(fGradNa);
+
+			/* include out-of-plane influence */
+			const double* NaU = fShapes->IPShapeU();
+			double r = fRadius_x[CurrIP()];
+			for (int i = 0; i < nodes_u.Length(); i++)
+				fGradNa(0,i) += (*NaU++)/r;
+			
+			/* file path */
+			StringT path;
+			path.FilePath(ElementSupport().Input().filename());
+			
+			/* write info for neighborhood nodes */
+			for (int i = 0; i < nodes_u.Length(); i++) {
+
+				/* file name */
+				StringT node_file;
+				node_file.Append("cell", output_element + 1);
+				node_file.Append(".ip", CurrIP() + 1);
+				node_file.Append(".nd", nodes_u[i] + 1);
+				node_file.Append(".dat");
+				node_file.Prepend(path);
+				
+				/* (re-)open stream */
+				ofstreamT out;
+				if (fOutputInit)
+					out.open_append(node_file);
+				else {
+					out.open(node_file);
+
+					/* Tecplot style data headers */				
+					out << "VARIABLES = \"step\" \"time\" \"J\" \"J_bar\" \"Na_r\" \"Na_z\" \"v_r\" \"v_z\" \"c_d\" \"c_s1\" \"c_s2\"" << endl;
+				}
+					
+				/* write output */
+				int d_width = OutputWidth(out, &time);
+				out << setw(kIntWidth) << step_number
+				    << setw(d_width) << time
+				    << setw(d_width) << fJacobian[CurrIP()] 
+				    << setw(d_width) << J_bar
+				    << setw(d_width) << fGradNa(0,i)
+				    << setw(d_width) << fGradNa(1,i)
+				    << setw(d_width) << fLocVel(i,0)
+				    << setw(d_width) << fLocVel(i,1)
+				    << speeds.no_wrap() << '\n';
+				    
+				/* close stream */
+				out.close();
+			}
+
+			/* set flag */
+			hit_cell = true;
+		}
+	}	
 	
+	/* append to results files */
+	if (hit_cell) fOutputInit = true;	
+
 	/* volume averaged */
 	p_bar /= fElementVolume[CurrElementNumber()];
 }
