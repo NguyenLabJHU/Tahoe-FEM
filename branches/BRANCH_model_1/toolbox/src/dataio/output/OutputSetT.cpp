@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.3.2.3 2001-10-29 21:10:27 sawimme Exp $ */
+/* $Id: OutputSetT.cpp,v 1.3.2.4 2001-10-31 20:59:40 sawimme Exp $ */
 /* created: paklein (03/07/2000)                                          */
 
 #include "OutputSetT.h"
@@ -92,7 +92,7 @@ const iArray2DT* OutputSetT::Connectivities(int index) const
 }
 
 //TEMP - used to write all set connectivities at once
-//#if 0
+#if 0
 void  OutputSetT::AllConnectivities (iArray2DT& connects) const
 {
   if (fConnectivities.Length() == 1)
@@ -107,7 +107,37 @@ void  OutputSetT::AllConnectivities (iArray2DT& connects) const
 	}
     }
 }
-//#endif
+#endif
+
+void OutputSetT::BlockNodesUsed (int index, iArrayT& nodesused) const
+{
+        if (index < 0 || index > fConnectivities.Length()) throw eOutOfRange;
+	const iArray2DT* conn = fConnectivities[index];
+
+  	/* quick exit */
+	if (conn->Length() == 0) return;
+
+	/* compressed number range */
+	int min, max;
+	conn->MinMax(min, max);
+	int range = max - min + 1;
+
+	/* local map */
+	iArrayT node_map(range);
+
+	/* determine used nodes */
+	node_map = 0;
+	int *pc = conn->Pointer();
+	for (int i = 0; i < conn->Length(); i++)
+		node_map[*pc++ - min] = 1;
+
+	/* collect list */
+	nodesused.Allocate(node_map.Count(1));
+	int dex = 0;
+	int*  p = node_map.Pointer();
+	for (int j = 0; j < node_map.Length(); j++)
+		if (*p++ == 1) nodesused[dex++] = j + min;
+}
 
 /* set nodes used */
 void OutputSetT::SetNodesUsed(void)

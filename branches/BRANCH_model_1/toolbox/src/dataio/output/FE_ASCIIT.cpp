@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.2.2.1 2001-10-25 19:49:01 sawimme Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.2.2.2 2001-10-31 20:59:40 sawimme Exp $ */
 /* created: sawimme (05/20/1999)                                          */
 
 #include "FE_ASCIIT.h"
@@ -53,14 +53,17 @@ void FE_ASCIIT::WriteGeometry(void)
 	
 	for (int e=0; e < fElementSets.Length(); e++)
 	  {
-	    const iArray2DT* c = fElementSets[e]->Connectivities(0);
-	    iArray2DT conn (fElementSets[e]->NumElements(), c->MinorDim());
-	    fElementSets[e]->AllConnectivities (conn);
-
-	    iArrayT tmp(conn.Length(), conn.Pointer());
-	    tmp++;
-	    mf.PutElementSet (fElementSets[e]->ID(), conn);
-	    tmp--;
+	    const iArrayT& blockIDs = fElementSets[e]->BlockID();
+	    for (int b=0; b < fElementSets[e]->NumBlocks(); b++)
+	      {
+		const iArray2DT* c = fElementSets[e]->Connectivities(b);
+		iArray2DT conn = *c;
+		
+		iArrayT tmp(conn.Length(), conn.Pointer());
+		tmp++;
+		mf.PutElementSet (blockIDs[b], conn);
+		tmp--;
+	      }
 	  }
 	
 	for (int n=0; n < fNodeSets.Length(); n++)
@@ -205,27 +208,31 @@ void FE_ASCIIT::WriteGeometryData(ostream& out, int ID)
 	WriteNodeValues(out, nodes_used, local_coordinates);
 	
 	/* write connectivities */
-	const iArray2DT* c = fElementSets[ID]->Connectivities(0);
-	iArray2DT connectivities (fElementSets[ID]->NumElements(), c->MinorDim());
-	fElementSets[ID]->AllConnectivities (connectivities);
-	out << "\n Connectivities:\n";
-	out << " Number of elements .  . . . . . . . . . . . . . = "
-	    << connectivities.MajorDim() << '\n';
-	out << " Number of element nodes . . . . . . . . . . . . = "
-	    << connectivities.MinorDim() << '\n';
-	out << " Geometry code . . . . . . . . . . . . . . . . . = "
-	    << fElementSets[ID]->Geometry() << "\n\n";
-	out << setw(kIntWidth) << "element";
-	for (int j = 0; j < connectivities.MinorDim(); j++)
-		out << setw(kIntWidth - 1) << "n" << j+1;
-	out << '\n';
+	const iArrayT& blockIDs = fElementSets[ID]->BlockID();
+	for (int b=0; b < fElementSets[ID]->NumBlocks(); b++)
+	  {
+	    const iArray2DT* c = fElementSets[ID]->Connectivities(b);
+	    out << "\n Connectivities:\n";
+	    out << " Block number . . . .  . . . . . . . . . . . . . = "
+		<< blockIDs[b] << '\n';
+	    out << " Number of elements .  . . . . . . . . . . . . . = "
+		<< c->MajorDim() << '\n';
+	    out << " Number of element nodes . . . . . . . . . . . . = "
+		<< c->MinorDim() << '\n';
+	    out << " Geometry code . . . . . . . . . . . . . . . . . = "
+		<< fElementSets[ID]->Geometry() << "\n\n";
+	    out << setw(kIntWidth) << "element";
+	    for (int j = 0; j < c->MinorDim(); j++)
+	      out << setw(kIntWidth - 1) << "n" << j+1;
+	    out << '\n';
 			
-	/* correct offset for output */
-	iArray2DT connects_temp;
-	connects_temp.Alias(connectivities);	
-	connects_temp++;
-	connects_temp.WriteNumbered(out);
-	connects_temp--;
+	    /* correct offset for output */
+	    iArray2DT connects_temp;
+	    connects_temp.Alias(*c);	
+	    connects_temp++;
+	    connects_temp.WriteNumbered(out);
+	    connects_temp--;
+	  }
 	out.flush();
 }
 

@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.1.1.1.2.1 2001-10-25 19:49:01 sawimme Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.1.1.1.2.2 2001-10-31 20:59:40 sawimme Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "OutputBaseT.h"
@@ -124,14 +124,17 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 		/* element set data */
 		for (int i = 0; i < fElementSets.Length(); i++)
 		{
-		  const iArray2DT* c = fElementSets[i]->Connectivities(0);
-		  iArray2DT connects (fElementSets[i]->NumElements(), c->MinorDim());
-		  fElementSets[i]->AllConnectivities (connects);
-
-			iArrayT tmp(connects.Length(), connects.Pointer());
-			tmp++;
-			tahoeII.PutElementSet(i, connects);
-			tmp--;
+		  const iArrayT& blockIDs = fElementSets[i]->BlockID();
+		  for (int b=0; b < fElementSets[i]->NumBlocks(); b++)
+		    {
+		      const iArray2DT* c = fElementSets[i]->Connectivities(b);
+		      iArray2DT conn = *c;
+		      
+		      iArrayT tmp(conn.Length(), conn.Pointer());
+		      tmp++;
+		      tahoeII.PutElementSet (blockIDs[b], conn);
+		      tmp--;
+		    }
 		}
 	}
 	else if (format == IOBaseT::kExodusII)
@@ -149,14 +152,18 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 		for (int i = 0; i < fElementSets.Length(); i++)
 		{
 			/* write connectivities */
-		  const iArray2DT* c = fElementSets[i]->Connectivities(0);
-		  iArray2DT connects (fElementSets[i]->NumElements(), c->MinorDim());
-		  fElementSets[i]->AllConnectivities (connects);
+		  const iArrayT& blockIDs = fElementSets[i]->BlockID ();
+		  for (int b=0; b < fElementSets[i]->NumBlocks (); b++)
+		    {
+		      const iArray2DT* c = fElementSets[i]->Connectivities(b);
+		      iArray2DT local_connects(c->MajorDim(), c->MinorDim());
+		      iArray2DT conn = *c;
+	
+		      conn++;
+		      exo.WriteConnectivities(blockIDs[b], fElementSets[i]->Geometry(), conn);
+		      conn--;
+		    }
 
-			iArrayT tmp(connects.Length(), connects.Pointer());
-			tmp++;
-			exo.WriteConnectivities(i+1, fElementSets[i]->Geometry(), connects); // ID cannot be 0
-			tmp--;
 		}
 	}
 	else
@@ -225,5 +232,25 @@ void OutputBaseT::LocalConnectivity(const iArrayT& node_map,
 	int* p_glb = connects.Pointer();
 	for (int j = 0; j < length; j++)
 		*p_loc++ = inv_node_map[*p_glb++ - shift];
+}
+
+void OutputBaseT::ElementBlockValues (int ID, int block, const dArray2DT& allvalues, dArray2DT& blockvalues) const
+{
+  int length = fElementSets[ID]->NumBlockElements(block);
+  if (blockvalues.MajorDim() != length ||
+      blockvalues.MinorDim() != allvalues.MinorDim()) throw eSizeMismatch;
+
+  /* find start point */
+  int start = 0;
+  for (int s=0; s < block; s++)
+    start += fElementSets[ID]->NumBlockElements(s);
+
+  /* set row tags */
+  iArrayT rows (length);
+  rows.SetValueToPosition ();
+  rows += start;
+
+  /* copy certain rows */
+  blockvalues.RowCollect (rows, allvalues);
 }
 

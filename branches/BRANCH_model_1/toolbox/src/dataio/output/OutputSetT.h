@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.5.2.3 2001-10-29 21:10:27 sawimme Exp $ */
+/* $Id: OutputSetT.h,v 1.5.2.4 2001-10-31 20:59:40 sawimme Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -95,9 +95,9 @@ public:
 	const iArray2DT* Connectivities(int index) const;
 
 //TEMP - used to write all set connectivities at once
-	//#if 0
+#if 0
 	void AllConnectivities(iArray2DT& connects) const;
-	//#endif
+#endif
 
 	/** return the labels for the nodal output variables */
 	const ArrayT<StringT>& NodeOutputLabels(void) const;
@@ -105,9 +105,10 @@ public:
 	/** return the labels for the element output variables */
 	const ArrayT<StringT>& ElementOutputLabels(void) const;
 
-	/** return the nodes used by the output set. If the geometry if
+	/** return the nodes used by the output set. If the geometry is
 	 * changing, the nodes used are recalculated with every call. */
 	const iArrayT& NodesUsed(void);
+	void BlockNodesUsed (int index, iArrayT& nodesused) const;
 
 private:
 
