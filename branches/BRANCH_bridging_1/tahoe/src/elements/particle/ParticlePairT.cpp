@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.14.2.1 2003-02-19 01:14:46 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.14.2.2 2003-02-19 19:57:36 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -518,6 +518,8 @@ void ParticlePairT::SetConfiguration(void)
 
 	/* reset neighbor lists */
 	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+	if (fActiveParticles) 
+		part_nodes = fActiveParticles;
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
 	
 	ofstreamT& out = ElementSupport().Output();
