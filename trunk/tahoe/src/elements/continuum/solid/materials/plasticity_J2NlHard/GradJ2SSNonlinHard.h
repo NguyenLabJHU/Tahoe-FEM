@@ -65,6 +65,8 @@ protected:
 	/* returns elastic strain */
 	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain,
 		const ElementCardT& element, int ip);
+			
+	
 
 	/* solve for the state at selected ip */
 	void SolveState(ElementCardT& element);
@@ -91,16 +93,16 @@ private:
 	void LoadData(const ElementCardT& element, int ip);
 
 	/* computes the increment in the plasticity parameter */
-	void IncrementPlasticParameter(const ElementCardT& element, int ip, double& varLambda);
+	void IncrementPlasticParameter(double& varLambda);
 
 	/* computes the increments in the stress and internal variables */
-	void IncrementState(const ElementCardT& element, int ip, const double& varLambda);
+	void IncrementState(const double& varLambda);
 
 	/* computes the unit normal and the yield condition */
-	void UpdateState(const ElementCardT& element, int ip);
+	void UpdateState();
 
 	/* computes the consistent tangent moduli */
-	void TangentModuli(const ElementCardT& element, int ip);
+	void TangentModuli();
 
 	/* check convergence of solution for all ip of element */
 	bool CheckElementState(const ElementCardT& element);

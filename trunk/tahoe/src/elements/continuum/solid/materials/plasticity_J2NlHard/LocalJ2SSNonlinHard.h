@@ -89,9 +89,6 @@ private:
 	/* load element data for the specified integration point */
 	void LoadData(const ElementCardT& element, int ip);
 
-	/* checks element state at ip for plastic state and sets initial yield/unit norm */
-	void PlasticLoading(const dSymMatrixT& trialstrain, const ElementCardT& element, int ip);
-
 	/* computes the increment in the plasticity parameter */
 	void IncrementPlasticParameter(double& varLambda);
 

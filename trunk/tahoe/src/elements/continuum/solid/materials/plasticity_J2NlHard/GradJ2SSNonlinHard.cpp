@@ -59,11 +59,6 @@ GradJ2SSNonlinHard::GradJ2SSNonlinHard(ifstreamT& in, const SmallStrainT& elemen
 	        cout << "\n GradJ2SSNonlinHard: bad hardening parameter k1, k2, k3, or k4" << endl;
 		throw eBadInputValue;
 	}
-	if (c1 < 0 || c2 < 0)
-	{
-	        cout << "\n GradJ2SSNonlinHard: bad nonlocal parameter c1 or c2" << endl;
-		throw eBadInputValue;
-	}
 }
 
 /* initialization */
@@ -170,7 +165,7 @@ const dSymMatrixT& GradJ2SSNonlinHard::s_ij(void)
 	int fCurrIP = CurrIP();
 	ElementCardT& element = CurrentElement();
 
-        int iteration = ContinuumElement().IterationNumber();
+	int iteration = ContinuumElement().IterationNumber();
 
 	if (fStatus == GlobalT::kFormRHS && fCurrIP == 0)
 	{
@@ -179,15 +174,15 @@ const dSymMatrixT& GradJ2SSNonlinHard::s_ij(void)
 		        SolveState(element);
 		else
 		{
-		        for (int ip = 0; ip < fNumIP; ip ++)
-		  	{
+		        for (int ip = 0; ip < fNumIP; ip++)
+			{
 			        /* load internal variables */
-		                LoadData(element, ip);
+			        LoadData(element, ip);
 
-			        /* compute elastic stress */
+				/* compute elastic stress */
 				const dSymMatrixT& e_tot = e(ip);
 				const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
-			        HookeanStress(e_els, fStress);
+				HookeanStress(e_els, fStress);
 
 				/* compute elastic moduli */
 				fModulus = HookeanMatT::Modulus();
@@ -285,18 +280,16 @@ void GradJ2SSNonlinHard::SolveState(ElementCardT& element)
 	        /* load internal variables */
 	        LoadData(element, ip);
 
-	        /* step 2. evaluate elastic trial stresses */
-	        const dSymMatrixT& e_tot = e(ip);
-	        const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
+		/* step 2. evaluate elastic trial stresses */
+		const dSymMatrixT& e_tot = e(ip);
+		const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
 		HookeanStress(e_els, fStress);
 
-		/* step 3. initialize unit normal and yield criteria*/
-		UpdateState(element, ip);
+		/* step 3. initialize unit normal and yield criteria */
+		UpdateState();
 
 		if (fInternal[kYieldCrt] > kYieldTol)
 		        flags[ip] = kIsPlastic;
-		else 
-		        flags[ip] = kIsElastic;
 	}
 
         /* check for inelastic processes at any ip in element */
@@ -304,38 +297,40 @@ void GradJ2SSNonlinHard::SolveState(ElementCardT& element)
 
 	if (!Converged)
 	{
-		/* step 4. zero the increment in plasticity parameter for all ip*/
-		for (int ip = 0; ip < fNumIP; ip ++)
-		{
-		        LoadData(element, ip);
-			fInternal[kdelLmbda] = 0;
-		}
-
 	        /* local Newton iteration */
 	        int max_iteration = 30;
-		int count = 0;
+	        int count = 0;
 
-	        while (!Converged && ++count <= max_iteration)
+	        for (int ip = 0; ip < fNumIP; ip ++)
 		{
-			/*array of IsotHard at all ip in current element */
+		        /* load internal variables */
+		        LoadData(element, ip);
+
+		        /* step 4. zero the increment in plasticity parameter */
+		        fInternal[kdelLmbda] = 0.;
+		}
+
+		while (!Converged && ++count <= max_iteration)
+		{
+			/*array of IsotHard at all ip in current element used to compute Laplacian*/
 			dArrayT  ip_IsotHard(fNumIP);
 			ip_IsotHard = 0.;
 
-			for (int ip = 0; ip < fNumIP; ip ++)
+		        for (int ip = 0; ip < fNumIP; ip ++)
 			{
 			        /* load internal variables */
 			        LoadData(element, ip);
 
-				/* check for inelastic processes at ip */
-				if (fInternal[kYieldCrt] > kYieldTol)
+				/* check for inelastic processes */
+				if (flags[ip] == kIsPlastic && fInternal[kYieldCrt] > kYieldTol)
 				{
 				        double varLambda;
 
 					/* step 5. increment plasticity parameter */
-					IncrementPlasticParameter(element, ip, varLambda);
+					IncrementPlasticParameter(varLambda);
 
 					/* step 6. increment stress and state variables */
-					IncrementState(element, ip, varLambda);
+					IncrementState(varLambda);
 
 					ip_IsotHard[ip] = fInternal[kIsotHard];
 				}
@@ -344,59 +339,53 @@ void GradJ2SSNonlinHard::SolveState(ElementCardT& element)
 			dArrayT ip_LapIsotHard(fNumIP);
 			ip_LapIsotHard = Laplacian(ip_IsotHard, 1);
 
-			for (int ip = 0; ip < fNumIP; ip ++)
+		        for (int ip = 0; ip < fNumIP; ip ++)
 			{
 			        /* load internal variables */
 			        LoadData(element, ip);
 
-				/* check for inelastic processes at ip */
-				if (fInternal[kYieldCrt] > kYieldTol)
-				{
-				        /* update nonlocal variables */
-				        fInternal[kNlIsotHard] = fInternal[kIsotHard] + c2 * ip_LapIsotHard[ip];
-					fNlKineHard = fKineHard;
+			        /* update nonlocal variables */
+			        fInternal[kNlIsotHard] = fInternal[kIsotHard] + c2 * ip_LapIsotHard[ip];
+				fNlKineHard = fKineHard;
 
-					/* step 7. update unit normal and yield criteria */
-					UpdateState(element, ip);
-				}
+				/* step 7. update unit normal and yield criteria */
+				UpdateState();
+
+				if (fInternal[kYieldCrt] > kYieldTol)
+				        flags[ip] = kIsPlastic;
 			}
 
 			/* check if stress state for all ip is elastic or returned to yield surface */
 			Converged = CheckElementState(element);
-	       	}
+		}
 
-	       	/* check for failure */
-	       	if (count == max_iteration)
-	       	{
-	       		cout << "\n GradJ2SSNonlinHard::StressCorrection: local iteration failed after " 
-	       		     << max_iteration << " iterations" << endl;
-	       		throw eGeneralFail;
-	       	}
-
+		/* check for failure */
+		if (count == max_iteration)
+		{
+		        cout << "\n GradJ2SSNonlinHard::SolveState: local iteration failed after " 
+			     << max_iteration << " iterations" << endl;
+			throw eGeneralFail;
+		}
 	}
 
-	for (int ip = 0; ip < fNumIP; ip ++)
+        for (int ip = 0; ip < fNumIP; ip ++)
 	{
-	        /* plastic process */
-	        if (flags[ip] == kIsPlastic)
-		{
-		        /* load internal variables */
-		        LoadData(element, ip);
+	        /* load internal variables */
+	        LoadData(element, ip);
 
-			/* step 8. compute consistent tangent moduli */
-			TangentModuli(element, ip);
-		}
-		/* elastic process */
+		/* check for inelastic processes */
+		if (flags[ip] == kIsPlastic)
+		        /* step 8. compute consistent tangent moduli */
+		        TangentModuli();
+
 		else if (flags[ip] == kIsElastic)
-		{
 		        /* step 4. compute elastic modulus */
 		        fModulus = HookeanMatT::Modulus();
-		}
 		else
-		{
+	        {
 		        cout << "\n GradJ2SSNonlinHard::SolveState: bad flag value " ;
-	       		throw eGeneralFail;
-	       	}
+		        throw eGeneralFail;
+		}
 	}
 }
 
@@ -450,7 +439,7 @@ double GradJ2SSNonlinHard::YieldCondition(const dSymMatrixT& relstress,
 ***********************************************************************/
 
 /* load element data for the specified integration point */
-void GradJ2SSNonlinHard::LoadData(const ElementCardT& element, int ip)
+void GradJ2SSNonlinHard::LoadData(const ElementCardT& element, int fCurrIP)
 {
 	/* fetch arrays */
 	dArrayT& d_array = element.DoubleData();
@@ -458,7 +447,7 @@ void GradJ2SSNonlinHard::LoadData(const ElementCardT& element, int ip)
 	/* decode */
 	int dim   = dSymMatrixT::NumValues(kNSD);
 	int block = 10*dim + 2*kNumInternal + dim*dim;
-	int dex   = ip*block;
+	int dex   = fCurrIP*block;
 
         fStress.Set      (kNSD,         &d_array[dex                ]);
         fStress_n.Set    (kNSD,         &d_array[dex += dim         ]);
@@ -476,11 +465,8 @@ void GradJ2SSNonlinHard::LoadData(const ElementCardT& element, int ip)
 }
 
 /* computes the increment in the plasticity parameter */
-void GradJ2SSNonlinHard::IncrementPlasticParameter(const ElementCardT& element, int ip, double& varLambda)
+void GradJ2SSNonlinHard::IncrementPlasticParameter(double& varLambda)
 {
-	/* load internal variables */
-	LoadData(element, ip);
-
         /* operations to compute dot product for varLambda */
         fUnitNorm.ToMatrix(fmatx1);
         fUnitNorm_n.ToMatrix(fmatx2);
@@ -494,7 +480,7 @@ void GradJ2SSNonlinHard::IncrementPlasticParameter(const ElementCardT& element, 
 
 	if (dYieldCrt < kSmall)
 	{
-		cout << "\n GradJ2SSNonlinHardT::IncrementPlasticParameter: consistency function is nonconvex" << endl;
+		cout << "\n GradJ2SSNonlinHardT::StressCorrection: consistency function is nonconvex" << endl;
 		throw eGeneralFail;
 	}
 		
@@ -506,11 +492,8 @@ void GradJ2SSNonlinHard::IncrementPlasticParameter(const ElementCardT& element, 
 }
 
 /* computes the increments in the stress and internal variables */
-void GradJ2SSNonlinHard::IncrementState(const ElementCardT& element, int ip, const double& varLambda)
+void GradJ2SSNonlinHard::IncrementState(const double& varLambda)
 {
-	/* load internal variables */
-	LoadData(element, ip);
-
 	/* increment stress */
 	fsymmatx1.SetToScaled(-2.0*fmu*varLambda, fUnitNorm_n);
 	fStress += fsymmatx1;
@@ -529,11 +512,8 @@ void GradJ2SSNonlinHard::IncrementState(const ElementCardT& element, int ip, con
 }
 
 /* computes the unit normal and the yield condition */
-void GradJ2SSNonlinHard::UpdateState(const ElementCardT& element, int ip)
+void GradJ2SSNonlinHard::UpdateState()
 {
-	/* load internal variables */
-	LoadData(element, ip);
-
         /* compute relative stress */
 	fRelStress.Deviatoric(fStress);
 	fRelStress.AddScaled(-1.0, fNlKineHard);
@@ -546,11 +526,8 @@ void GradJ2SSNonlinHard::UpdateState(const ElementCardT& element, int ip)
 }
 
 /* computes the consistent tangent moduli */
-void GradJ2SSNonlinHard::TangentModuli(const ElementCardT& element, int ip)
+void GradJ2SSNonlinHard::TangentModuli()
 {
-	/* load internal variables */
-	LoadData(element, ip);
-
 	/* initialize moduli correction */
 	fModuliCorr = 0.0;
 
@@ -629,7 +606,7 @@ dArrayT GradJ2SSNonlinHard::Laplacian(const dArrayT& ip_field, int field_length)
 		        ContinuumElement().IP_ExtrapolateAll(A_dA_ip_grad_field[sd],dA_nd_grad_field);
 
 			/* move nodal data from dArrayT to LocalArrayT */
-			LA_nd_grad_field.Copy(fNumNodes, 1, dA_nd_field);
+			LA_nd_grad_field.Copy(fNumNodes, 1, dA_nd_grad_field);
 
 			for (int ip = 0; ip < fNumIP; ip ++)
 			{
