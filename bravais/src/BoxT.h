@@ -1,4 +1,4 @@
-/* $Id: BoxT.h,v 1.5 2002-10-16 22:15:51 saubry Exp $ */
+/* $Id: BoxT.h,v 1.6 2002-10-31 00:41:42 saubry Exp $ */
 
 #ifndef _BOX_T_H_
 #define _BOX_T_H_
@@ -20,12 +20,13 @@ class BoxT : public VolumeT
   
   iArrayT ncells;
   dArray2DT length; // lower and upper bounds
+  int WhichRot;
   
  public:
   
   //Constructor
-  BoxT(int dim, dArray2DT len, dArrayT lattice_parameter);
-  BoxT(int dim, iArrayT cel, dArrayT lattice_parameter);
+  BoxT(int dim, dArray2DT len, dArrayT lattice_parameter,int irot);
+  BoxT(int dim, iArrayT cel, dArrayT lattice_parameter,int irot);
   
   //Destructor
   ~BoxT(){};

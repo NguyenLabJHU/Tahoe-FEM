@@ -1,4 +1,4 @@
-/* $Id: BoxT.cpp,v 1.8 2002-10-18 01:16:02 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.9 2002-10-31 00:41:42 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -14,11 +14,13 @@
 #include "CrystalLatticeT.h"
 
 BoxT::BoxT(int dim, dArray2DT len,
-	   dArrayT lattice_parameter) : VolumeT(dim) 
+	   dArrayT lattice_parameter,
+	   int irot) : VolumeT(dim) 
 {
   nSD = dim;
   length.Dimension(nSD,2);
   ncells.Dimension(nSD);
+  WhichRot = irot;
 
   for(int i=0;i<nSD;i++)
     {
@@ -38,11 +40,13 @@ BoxT::BoxT(int dim, dArray2DT len,
 }
 
 BoxT::BoxT(int dim, iArrayT cel,
-	   dArrayT lattice_parameter) : VolumeT(dim) 
+	   dArrayT lattice_parameter,
+	   int irot) : VolumeT(dim) 
 {
   nSD = dim;
   length.Dimension(nSD,2);
   ncells.Dimension(nSD);
+  WhichRot = irot;
 
   for(int i=0;i<nSD;i++)
       ncells[i] = cel[i];
@@ -58,6 +62,7 @@ BoxT::BoxT(const BoxT& source) : VolumeT(source.nSD)
 {
   ncells.Dimension(source.nSD);
   ncells = source.ncells;
+  WhichRot = source.WhichRot;
 
   length.Dimension(source.nSD,2);
   length = source.length;
@@ -87,25 +92,22 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
   int temp_nat=0;
   dArray2DT temp_atom;
 
-  // irotate = 0: rotate atoms in box
-  //         = 1: rotate box of atoms
+  // WhichRot = 0: rotate atoms in box
+  //          = 1: rotate box of atoms
 
-  int irotate = 0;
-
-
-  if(irotate == 0) 
+  if(WhichRot == 0) 
     {
       if (nlsd==2) temp_nat = 16*nuca*ncells[0]*ncells[1];
       if (nlsd==3) temp_nat = 64*nuca*ncells[0]*ncells[1]*ncells[2];
     }
   else
     {
-      if (nlsd==2) temp_nat = 4*nuca*ncells[0]*ncells[1];
+      if (nlsd==2) temp_nat =  8*nuca*ncells[0]*ncells[1];
       if (nlsd==3) temp_nat = 16*nuca*ncells[0]*ncells[1]*ncells[2];
     }
   temp_atom.Dimension(temp_nat,nlsd);
 
-  if(irotate == 0)
+  if(WhichRot == 0)
     nATOMS = RotateAtomInBox(pcl,&temp_atom,temp_nat);
   else
     nATOMS = RotateBoxOfAtom(pcl,&temp_atom,temp_nat);
@@ -210,7 +212,7 @@ int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
 	      c[0] = (double)r; c[1] = (double)q; c[2] = (double)p;
 	      for (int m=0;m<nuca;m++) 
 		{
-		  if (natom > temp_nat) {cout << "natoms wrong";throw eSizeMismatch;}
+		  if (natom > temp_nat) {cout << "natoms wrong ";throw eSizeMismatch;}
 
 		  x = length(0,0);
 		  y = length(1,0);

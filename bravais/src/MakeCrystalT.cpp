@@ -117,6 +117,7 @@ void MakeCrystalT::Run() {
   //read output format
   int intformat = 0;
   in >> intformat;
+
   IOBaseT::FileTypeT kformat = IOBaseT::int_to_FileTypeT(intformat);
   cout << "Output Format: " << kformat << "\n";
  
@@ -129,14 +130,10 @@ void MakeCrystalT::Run() {
   //rotation -- default value is zero rotation
   double angle = 0.0;
   dArray2DT mat_rot(nsd,nsd);
+  mat_rot = 0.0;
+  
   for(int i=0;i<nsd;i++) 
-  { 
-    for(int j=0;j<nsd;j++) 
-    {
-      if(i==j) mat_rot = 1.0;
-      if(i!=j) mat_rot = 0.0;
-    }
-  }
+    mat_rot(i,i) = 1.0;
 
   //output filename prefix
   StringT input = "example";
@@ -146,6 +143,8 @@ void MakeCrystalT::Run() {
 
   StringT misc;
   in >> misc;
+
+  int irot= 0;
 
   while (misc!="#")
   {
@@ -166,6 +165,10 @@ void MakeCrystalT::Run() {
     }
     else if (misc=="ROTATION")
     {
+      in >> irot;
+      if (irot == 0) cout << "Rotation atoms in box\n";
+      if (irot == 1) cout << "Rotation box of atoms\n";
+
       if(nsd==2) 
       {
         in >> angle;
@@ -206,7 +209,8 @@ void MakeCrystalT::Run() {
     latticeparameter[i] = alat;
 
   MeshAtom mesh_atom(latticetype,nsd,b,latticeparameter,
-		     shape,whichunit,len,cel,mat_rot,angle);
+		     shape,whichunit,len,cel,irot,mat_rot,
+		     angle);
 
   StringT program = "bravais";
   StringT version = "v1.0";

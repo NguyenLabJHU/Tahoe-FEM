@@ -6,6 +6,8 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 
+#include "ExceptionCodes.h"
+
 // output
 #include "FE_ASCIIT.h"
 #include "ExodusOutputT.h"
