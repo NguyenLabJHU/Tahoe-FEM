@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.h,v 1.4 2001-06-11 02:02:40 paklein Exp $ */
+/* $Id: ifstreamT.h,v 1.5 2001-06-14 20:45:38 paklein Exp $ */
 /* created: paklein (03/03/1999)                                          */
 
 #ifndef _IFSTREAM_T_H_
@@ -39,6 +39,9 @@ public:
 	void clear_marker(void);
 	char comment_marker(void) const;
 	int skip_comments(void) const;
+	
+	/* put a character back in the stream */
+	istream& putback(char a);
 	
 	/* return the next character (skipping whitespace and comments)
 	 * without removing it from the stream */

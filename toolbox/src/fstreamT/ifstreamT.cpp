@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.6 2001-06-11 02:02:40 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.7 2001-06-14 20:45:38 paklein Exp $ */
 /* created: paklein (03/03/1999)                                          */
 /* interface                                                              */
 
@@ -110,6 +110,21 @@ char ifstreamT::next_char(void)
 	if (good()) putback(c);
 
 	return c;
+}
+
+/* put a character back in the stream */
+istream& ifstreamT::putback(char a)
+{
+	/* do not allow putback with skip comments activated since
+	 * the stream has probably been advanced */
+	if (fSkipComments)
+	{
+		cout << "\n ifstreamT::putback: not allowed while comment skipping is enabled" << endl;
+		throw eGeneralFail;
+	}
+	
+	/* inherited */
+	return ifstream::putback(a);
 }
 
 /* set file name string - does not change stream */
