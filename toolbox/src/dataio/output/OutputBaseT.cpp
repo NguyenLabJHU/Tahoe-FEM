@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.14 2002-11-25 07:09:13 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.15 2003-04-18 23:46:45 saubry Exp $ */
 /* created: sawimme (05/18/1999) */
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
@@ -6,6 +6,7 @@
 /* database types */
 #include "ExodusT.h"
 #include "ModelFileT.h"
+#include "dArrayT.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 #include "AutoArrayT.h"
@@ -17,7 +18,9 @@ OutputBaseT::OutputBaseT(ostream& out, const ArrayT<StringT>& out_strings):
 	IOBaseT(out),
 	fCoordinates(NULL),
 	fNodeID(NULL),
-	fSequence(0)
+	fSequence(0),
+	fBounds(NULL),
+	fTypes(NULL)
 {
 	if (out_strings.Length() > 3)
 {
@@ -73,6 +76,17 @@ void OutputBaseT::SetCoordinates(const dArray2DT& coordinates, const iArrayT* no
 		     <<   "     match the number of nodes " << fCoordinates->MajorDim() << endl;
 		throw ExceptionT::kSizeMismatch;
 	}
+}
+
+/* SA: add definition of special arrays for ParaDyn Format Output */
+void OutputBaseT::SetBounds(const dArray2DT& bounds)
+{
+  fBounds = &bounds;
+}
+
+void OutputBaseT::SetTypes(const iArrayT& types)
+{
+  fTypes = &types;
 }
 
 int OutputBaseT::AddElementSet(const OutputSetT& output_set)

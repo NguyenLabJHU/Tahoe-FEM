@@ -16,8 +16,7 @@ class ParaDynOutputT : public OutputBaseT
   {
   public:
     ParaDynOutputT (ostream& out, 
-		    const ArrayT<StringT>& out_strings,
-		    dArray2DT bounds,iArrayT types);
+		    const ArrayT<StringT>& out_strings);
     void WriteGeometry (void);
     
   private:
@@ -30,11 +29,6 @@ class ParaDynOutputT : public OutputBaseT
     void WriteCoordinates (ostream& geo, ParaDynT& par, 
 			   const iArrayT& nodes_used) const;
     void WritePart (ostream& geo, ParaDynT& par, int index) const;
-
-  private:
-
-    iArrayT fTypes;
-    dArray2DT fBounds;
 
   };
  

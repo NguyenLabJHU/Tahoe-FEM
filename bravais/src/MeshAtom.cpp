@@ -16,10 +16,13 @@
 #include "BCCT.h"
 #include "DIAT.h"
 #include "HEXT.h"
+
 #include "VolumeT.h"
 #include "BoxT.h"
+
 #include "OutputSetT.h"
 #include "OutPutLatticeT.h"
+#include "OutputBaseT.h"
 
 using namespace Tahoe;
 
@@ -118,7 +121,7 @@ void MeshAtom::BuildIOFile(StringT& program_name,
   IOLattice = new OutPutLatticeT(cout,program_name,version,title,
 				 input_file,output_format,
 				 *(Shape->GetAtomBounds()),
-				 *(Shape->GetAtomType()));
+				 *(Shape->GetAtomTypes()));
   ArrayT<StringT> n_labels(1);
   n_labels[0] = "Atom";
 
@@ -127,7 +130,12 @@ void MeshAtom::BuildIOFile(StringT& program_name,
   Set=new OutputSetT(GeometryT::kPoint, 
 		     *(Shape->GetAtomConnectivities()), n_labels);
   
+
   IOLattice->SetCoordinates(*(Shape->GetAtomCoordinates()),(Shape->GetAtomID()));
+
+  IOLattice->SetBounds(*(Shape->GetAtomBounds()));
+  IOLattice->SetTypes(*(Shape->GetAtomTypes()));
+
   IOLattice->AddElementSet(*Set);
   
   IOLattice->WriteGeometry();
