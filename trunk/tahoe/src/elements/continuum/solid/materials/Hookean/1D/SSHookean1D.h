@@ -5,6 +5,8 @@
 #include "IsotropicT.h"
 #include "SSHookeanMatT.h"
 
+namespace Tahoe {
+
 class SSHookean1D: public SSHookeanMatT, public IsotropicT
 {
 public:
@@ -21,5 +23,7 @@ protected:
 	/* set modulus */
 	virtual void SetModulus(dMatrixT& modulus);
 };
+
+}//namespace Tahoe
 
 #endif /* _SS_HOOKEAN_1D_H_ */

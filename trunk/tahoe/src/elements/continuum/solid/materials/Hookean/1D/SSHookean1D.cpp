@@ -1,5 +1,7 @@
 #include "SSHookean1D.h"
 
+using namespace Tahoe;
+
 /* constructor */
 SSHookean1D::SSHookean1D(ifstreamT& in, const SmallStrainT& element):
 	SSHookeanMatT(in, element),
