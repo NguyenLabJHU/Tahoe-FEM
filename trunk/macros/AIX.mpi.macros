@@ -1,7 +1,7 @@
-# $Id: AIX.mpi.macros,v 1.3 2002-03-19 17:18:52 paklein Exp $
+# $Id: AIX.mpi.macros,v 1.4 2002-03-19 18:17:47 paklein Exp $
 # DEC
 MPI_CFLAGS  = -D__MPI__
-MPI_LFLAGS  = -lmpi
+MPI_LFLAGS  =
 
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -21,7 +21,7 @@ MORE_CFLAGS = -O -DNDEBUG -qsuppress=1500-036
 #
 #MORE_CFLAGS = -g 
 DEFINES     = -D__AIX__ 
-MY_CFLAGS   = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+MY_CFLAGS   = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -qmaxmem=10000
 CFLAGS_C    = $(MPI_CFLAGS) $(MY_CFLAGS)
 CFLAGS_CC   = $(MPI_CFLAGS) $(MY_CFLAGS) -qrtti
 CFLAGS_F    = $(MPI_CFLAGS) $(MY_CFLAGS)
