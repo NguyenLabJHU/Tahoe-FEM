@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.11 2002-08-11 01:29:41 hspark Exp $ */
+/* $Id: BridgingScaleT.h,v 1.12 2002-08-13 17:30:53 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -123,9 +123,10 @@ protected:
 
 	/** Nodal degrees of freedom */
 	//dArray2DT fWtemp, fW, fError, fFineScaleU, fCoarseScaleU, fTotalU;
-	dArrayT fWtempU, fWU, fErrorU, fFineScaleU, fCoarseScaleU, fTotalU;
-	dArrayT fWtempV, fWV, fErrorV, fFineScaleV, fCoarseScaleV, fTotalV;
-        dArrayT fWtempA, fWA, fErrorA, fFineScaleA, fCoarseScaleA, fTotalA;
+	dArrayT fWU, fErrorU, fFineScaleU, fCoarseScaleU, fTotalU;
+	dArrayT fWV, fErrorV, fFineScaleV, fCoarseScaleV, fTotalV;
+        dArrayT fWA, fErrorA, fFineScaleA, fCoarseScaleA, fTotalA;
+	dMatrixT fWtempU, fWtempV, fWtempA;
 
 	int fTotalNodes;
 
