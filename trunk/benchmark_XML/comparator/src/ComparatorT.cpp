@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.15 2002-03-21 20:06:58 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.16 2002-06-04 01:05:54 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -22,7 +22,9 @@ ComparatorT::ComparatorT(int argc, char* argv[], char job_char, char batch_char)
 	FileCrawlerT(argc, argv, job_char, batch_char),
 	fAbsTol(abs_tol),
 	fRelTol(rel_tol),
-	fIsRoot(true)
+	fIsRoot(true),
+	fAbsTol_batch(-1.0),
+	fRelTol_batch(-1.0)
 {
 	/* tolerances reset on command line */
 	int index;
@@ -73,6 +75,39 @@ void ComparatorT::Run(void)
 * Protected
 **********************************************************************/
 
+/* handle batch file command */
+void ComparatorT::BatchFileCommand(const StringT& command, ifstreamT& batch)
+{
+	/* check */
+	if (command[0] != '-') {
+		cout << "\n ComparatorT::BatchFileCommand: commands must start with \"-\": \""
+		     << command << '\"' << endl;
+		throw eGeneralFail;
+	}
+
+	if (command == "-abs_tol")
+	{
+		double tol = -99;
+		batch >> tol;
+		if (tol > 0) 
+			fAbsTol_batch = tol;
+		else
+			cout << "\n ComparatorT::BatchFileCommand: error reading abs_tol" << endl;
+	}
+	else if (command == "-rel_tol")
+	{
+		double tol = -99;
+		batch >> tol;
+		if (tol > 0) 
+			fRelTol_batch = tol;
+		else
+			cout << "\n ComparatorT::BatchFileCommand: error reading rel_tol" << endl;
+	}
+	else
+		cout << "\n ComparatorT::BatchFileCommand: ignoring unrecognized command \"" 
+		     << command << '\"' << endl;
+}
+
 void ComparatorT::RunJob(ifstreamT& in, ostream& status)
 {
 #pragma unused(status)
@@ -91,6 +126,10 @@ void ComparatorT::RunJob(ifstreamT& in, ostream& status)
 	fPassFail.Append(result);
 	cout << in.filename() << ": " << ((result) ? "PASS" : "FAIL") << '\n';
 	cout << "\nEND: " << in.filename() << '\n';
+	
+	/* clear values passed in batch file */
+	fAbsTol_batch = -1.0;
+	fRelTol_batch = -1.0;
 }
 
 /* batch file processing */
@@ -167,53 +206,69 @@ bool ComparatorT::PassOrFail(ifstreamT& in) //const
 	fAbsTol = abs_tol;	
 	fRelTol = rel_tol;
 
-	/* look for local tolerance file */
-	StringT tol_file = "compare.tol";
-	tol_file.ToNativePathName();
-	tol_file.Prepend(path);
-	ifstreamT tol_in(in.comment_marker(), tol_file);
-
-	/* clear skip list */
-	fSkipLabels.Resize(0);
-
-	/* set comparison method */
+	/* default comparison method */
 	bool do_relative = true;
 	bool do_absolute = false;
-	if (tol_in.is_open())
-	{
-		cout << "found local tolerance file: " << tol_file << '\n';
-		StringT key;
-		tol_in >> key;
-		while (tol_in.good())
-		{
-			
-			if (key == "abs_tol")
-			{
-				tol_in >> fAbsTol;
-			
-				/* for now, disable relative tolerance if found */	
-				do_relative = false;
-				do_absolute = true;
-			}
-			else if (key == "rel_tol")
-			{
-				tol_in >> fRelTol;
-
-				/* for now, disable relative tolerance if found */	
-				do_relative = true;
-				do_absolute = false;
-			}
-			else if (key == "skip")
-			{
-				StringT skip_label;
-				tol_in >> skip_label;
-				fSkipLabels.Append(skip_label);
-			}
-			tol_in >> key;
-		}
+	
+	/* override local tolerance file */
+	if (fAbsTol_batch > 0) {
+		fAbsTol = fAbsTol_batch;
+		do_absolute = true;
+		do_relative = false;
+	}
+	else if (fRelTol_batch > 0) {
+		fRelTol = fRelTol_batch;
+		do_absolute = false;
+		do_relative = true;
 	}
 	else
-		cout << "did not find local tolerance file: " << tol_file << '\n';
+	{
+		/* look for local tolerance file */
+		StringT tol_file = "compare.tol";
+		tol_file.ToNativePathName();
+		tol_file.Prepend(path);
+		ifstreamT tol_in(in.comment_marker(), tol_file);
+
+		/* clear skip list */
+		fSkipLabels.Resize(0);
+
+		/* read */
+		if (tol_in.is_open())
+		{
+			cout << "found local tolerance file: " << tol_file << '\n';
+			StringT key;
+			tol_in >> key;
+			while (tol_in.good())
+			{			
+				if (key == "abs_tol")
+				{
+					tol_in >> fAbsTol;
+			
+					/* for now, disable relative tolerance if found */	
+					do_relative = false;
+					do_absolute = true;
+				}
+				else if (key == "rel_tol")
+				{
+					tol_in >> fRelTol;
+
+					/* for now, disable relative tolerance if found */	
+					do_relative = true;
+					do_absolute = false;
+				}
+				else if (key == "skip")
+				{
+					StringT skip_label;
+					tol_in >> skip_label;
+					fSkipLabels.Append(skip_label);
+				}
+				tol_in >> key;
+			}
+		}
+		else
+			cout << "did not find local tolerance file: " << tol_file << '\n';
+	}	
+		
 	cout << "using tolerances:\n";
 	if (do_absolute) cout << "    abs_tol = " << fAbsTol << '\n';
 	if (do_relative) cout << "    rel_tol = " << fRelTol << '\n';
