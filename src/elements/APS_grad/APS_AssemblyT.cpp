@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.56 2004-07-29 18:49:51 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.57 2004-07-30 15:39:29 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "APS_MatlT.h"
@@ -28,6 +28,8 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support):
 	fPlast(NULL),
 	fShapes_displ(NULL),
 	fShapes_plast(NULL),
+	fBalLinMomMaterial(NULL),
+	fPlastMaterial(NULL),
 	fKdd(ElementMatrixT::kNonSymmetric),
 	fKdd_face(ElementMatrixT::kNonSymmetric),
 	fKdeps(ElementMatrixT::kNonSymmetric),
@@ -1394,7 +1396,7 @@ void APS_AssemblyT::DefineSubs(SubListT& sub_list) const
 	ElementBaseT::DefineSubs(sub_list);
 	
 	/* tractions */
-	sub_list.AddSub("natural_bc", ParameterListT::Any);
+	sub_list.AddSub("aps_natural_bc", ParameterListT::Any);
 }
 
 /* return the description of the given inline subordinate parameter list */
@@ -1410,7 +1412,7 @@ ParameterInterfaceT* APS_AssemblyT::NewSub(const StringT& name) const
 	/* create non-const this */
 	APS_AssemblyT* non_const_this = const_cast<APS_AssemblyT*>(this);
 
-	if (name == "natural_bc") /* traction bc */
+	if (name == "aps_natural_bc") /* traction bc */
 	{
 		ParameterContainerT* natural_bc = new ParameterContainerT(name);
 
