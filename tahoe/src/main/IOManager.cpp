@@ -1,10 +1,11 @@
-/* $Id: IOManager.cpp,v 1.7 2001-09-07 13:22:32 sawimme Exp $ */
+/* $Id: IOManager.cpp,v 1.8 2001-09-07 14:19:54 sawimme Exp $ */
 /* created: sawimme (10/12/1999)                                          */
 /* this class creates InputBaseT and OutputBaseT pointers                 */
 
 #include "IOManager.h"
 
 #include "fstreamT.h"
+#include "ifstreamT.h"
 #include "OutputSetT.h"
 #include "dArrayT.h"
 
@@ -181,12 +182,12 @@ const OutputSetT& IOManager::OutputSet(int ID) const
 
 void IOManager::SetInput (ifstreamT& in)
 {
-  fModel.Initialize (ifstreamT& in);
+  fModel->Initialize (in);
 }
 
 void IOManager::SetInput (const IOBaseT::FileTypeT format, const StringT& database)
 {
-  fModel.Initialize (format, database);
+  fModel->Initialize (format, database);
 }
 
 
