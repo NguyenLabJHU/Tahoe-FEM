@@ -1,4 +1,4 @@
-# $Id: tahoe.extras,v 1.12 2004-01-02 01:17:40 paklein Exp $
+# $Id: tahoe.extras,v 1.13 2004-07-12 18:23:49 paklein Exp $
 #
 # additional make commands for the tahoe module
 #
@@ -17,6 +17,7 @@ default:
 	@ $(PRINTF) "     touch_METIS - domain decomposition using METIS\n"
 	@ $(PRINTF) "       touch_NOX - NOX nonlinear solver library\n"
 	@ $(PRINTF) "    touch_fossum - geomaterial development module\n"
+	@ $(PRINTF) "     touch_expat - XML parsing\n"
 
 touch_spooles:
 	@ $(PRINTF) "removing object files depending on SPOOLES\n"
@@ -61,3 +62,8 @@ touch_fossum:
 	@ $(PRINTF) "removing object files depending on the fossum module\n"
 	- $(RM) $(BLD_SRC_DIR)/elements/continuum/solid/materials/managers/*.o	
 	- $(RM) $(BLD_SRC_DIR)/elements/continuum/solid/materials/SIERRA/*.o
+
+touch_expat:
+	@ $(PRINTF) "removing object files depending on expat\n"
+	- $(RM) $(BLD_SRC_DIR)/main/FEExecutionManagerT.o
+	@ $(PRINTF) "NOTE: dependent modules must also be up to date\n"
