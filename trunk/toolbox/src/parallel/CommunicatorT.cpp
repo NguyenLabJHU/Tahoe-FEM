@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.15 2004-03-16 05:35:51 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.16 2004-07-13 22:12:59 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
@@ -63,7 +63,8 @@ CommunicatorT::CommunicatorT(const CommunicatorT& source):
 	fSize(1),
 	fRank(0),
 	fLogLevel(source.fLogLevel),
-	fLog(source.fLog)
+	fLog(source.fLog),
+	fLastTime(source.fLastTime)
 {
 	/* check MPI environment */
 	Init();
@@ -96,7 +97,8 @@ CommunicatorT::CommunicatorT(const CommunicatorT& source, int color, int rank_ke
 	fSize(1),
 	fRank(0),
 	fLogLevel(source.fLogLevel),
-	fLog(source.fLog)
+	fLog(source.fLog),
+	fLastTime(source.fLastTime)	
 {
 	/* check MPI environment */
 	Init();
