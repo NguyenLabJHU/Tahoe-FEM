@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.24 2002-06-10 18:55:11 recampb Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.25 2002-06-13 22:47:24 recampb Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -73,6 +73,8 @@ VTKFrameT::VTKFrameT(VTKConsoleT& console):
   iAddCommand(CommandSpecT("HideAxes"));
   iAddCommand(CommandSpecT("ShowContours"));
   iAddCommand(CommandSpecT("HideContours"));
+//   iAddCommand(CommandSpecT("ShowCuttingPlane"));
+//   iAddCommand(CommandSpecT("HideCuttingPlane"));
 
 
 
@@ -793,7 +795,57 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 			Render();
 			return true;
     	}    
-	}
+    }
+
+
+ //  else if (command.Name() == "ShowCuttingPlane")
+//     {
+//     	if (bodies.Length() == 0)
+//     		return false;
+//     	else
+//     	{
+//     		/* command spec */
+//     		CommandSpecT* hide = bodies[0]->iCommand("ShowCuttingPlane");
+//     		if (!hide)
+//     		{
+//     			cout << "command not found" << endl;
+//     			return false;
+//     		}
+    	
+//     		/* labels OFF */
+//     		StringT tmp;
+//     		for (int i = 0; i < bodies.Length(); i++)
+//     			bodies[i]->iDoCommand(*hide, tmp);
+
+// 			Render();
+// 			return true;
+//     	}    
+//     }
+
+
+//   else if (command.Name() == "HideCuttingPlane")
+//     {
+//     	if (bodies.Length() == 0)
+//     		return false;
+//     	else
+//     	{
+//     		/* command spec */
+//     		CommandSpecT* hide = bodies[0]->iCommand("HideCuttingPlane");
+//     		if (!hide)
+//     		{
+//     			cout << "command not found" << endl;
+//     			return false;
+//     		}
+    	
+//     		/* labels OFF */
+//     		StringT tmp;
+//     		for (int i = 0; i < bodies.Length(); i++)
+//     			bodies[i]->iDoCommand(*hide, tmp);
+
+// 			Render();
+// 			return true;
+//     	}    
+//     }
 
 
 

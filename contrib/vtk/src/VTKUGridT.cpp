@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.11 2002-06-11 20:26:56 paklein Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.12 2002-06-13 22:47:24 recampb Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -15,6 +15,10 @@
 #include "vtkOutlineFilter.h"
 #include "vtkExtractEdges.h"
 #include "vtkLODActor.h"
+#include "vtkSmoothPolyDataFilter.h"
+#include "vtkDataSetToPolyDataFilter.h"
+#include "vtkPlane.h"
+#include "vtkCutter.h"
 
 /* array behavior */
 const bool ArrayT<VTKUGridT*>::fByteCopy = true;
@@ -46,11 +50,12 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 	fContour->SetInput(fUGrid);
 	fContourMapper->SetInput(fContour->GetOutput());
 	
-	//vtkTriangleFilter* tri = vtkTriangleFilter::New();
-	//tri->SetInput(fUGrid);
-	//deci = vtkDecimatePro::New();
-	//smoother = vtkSmoothPolyDataFilter::New();
-	//deci->SetInput(tri->GetOutput()); 
+// 	dsToPd = vtkDataSetToPolyDataFilter::New();
+// 	dsToPd->SetInput(fUGrid);
+// 	smoother = vtkSmoothPolyDataFilter::New();
+// 	smoother->SetInput(dsToPd->GetOutput());
+// 	smoother->SetNumberOfIterations(1000);
+// 	fMapper->SetInput(smoother->GetOutput());
 
 	outline = vtkOutlineFilter::New();
 	outline->SetInput(fUGrid);
@@ -75,6 +80,15 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 	boundBoxActor->GetProperty()->SetOpacity(.27);
 	boundBoxActor->SetVisibility(false);
 	boundBoxActor->GetProperty()->SetColor(1,1,1);
+	
+	plane = vtkPlane::New();
+	cutter = vtkCutter::New();
+	cutterMapper = vtkPolyDataMapper::New();
+	//cut = vtkActor::New();
+	cutter->SetInput(fUGrid);
+	cutter->SetCutFunction(plane);
+	cutterMapper->SetInput(cutter->GetOutput());
+	cutterMapper->SetLookupTable(fLookUpTable);
 	
 	/* change color range from blue to red */
 	fLookUpTable = vtkLookupTable::New();
@@ -289,8 +303,23 @@ void VTKUGridT::HideContours(vtkFloatArray* scalars)
 }
 
 
+void VTKUGridT::CuttingPlane(vtkFloatArray* scalars, double oX, double oY, double oZ,double nX, double nY, double nZ)
+{
+  
+  boundBoxActor->SetVisibility(true);
+  boundBoxActor->PickableOff();
+  plane->SetOrigin(oX, oY, oZ);
+  plane->SetNormal(nX, nY, nZ);
 
+  fActor->SetMapper(cutterMapper);
+  
+}
 
+void VTKUGridT::HideCuttingPlane(void)
+{
+  fActor->SetMapper(fMapper);
+  boundBoxActor->SetVisibility(false);
+}
 
 /* set the scalar data range */
 void VTKUGridT::SetScalarRange(double min, double max)
@@ -327,14 +356,17 @@ void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors)
     outlineMapper->SetInput(outline->GetOutput());
 
     
-    if (contours){
+    cutter->SetInput(fWarp->GetOutput());
+    cutterMapper->SetInput(cutter->GetOutput());
+
+    //if (contours){
       
       fContour->SetInput(fWarp->GetOutput());
       fContourMapper->SetInput(fContour->GetOutput());
       edges->SetInput(fWarp->GetOutput());
       edgesMapper->SetInput(edges->GetOutput());
       boundBoxMapper->SetInput(fWarp->GetOutput());
-    }  
+      //  }  
 
 }
 
