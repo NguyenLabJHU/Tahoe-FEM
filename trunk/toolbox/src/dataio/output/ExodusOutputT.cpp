@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.14 2002-10-20 22:36:55 paklein Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.15 2003-08-08 00:27:55 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "ExodusOutputT.h"
@@ -58,20 +58,22 @@ void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		    throw ExceptionT::kDatabaseFail;
 		  }
 	}
+	
+	/* print step - changing implies 1 result per file */
+	int print_step = (fElementSets[ID]->Changing()) ? 1 : fElementSets[ID]->PrintStep() + 1;
 
 	/* write time */
-	exo.WriteTime(fElementSets[ID]->PrintStep() + 1, time);
+	exo.WriteTime(print_step, time);
 
 	/* write nodal data */
 	if (n_values.Length() > 0)
 	{
-	        /* separate values by variable */
+		/* separate values by variable */
 		dArrayT values(n_values.MajorDim());
 		for (int i = 0; i < n_values.MinorDim(); i++)
 		{
 			n_values.ColumnCopy(i, values);
-			exo.WriteNodalVariable(fElementSets[ID]->PrintStep() + 1,
-				i + 1, values);
+			exo.WriteNodalVariable(print_step, i + 1, values);
 		}
 	}
 
@@ -91,8 +93,7 @@ void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 			for (int i = 0; i < e_block.MinorDim(); i++)
 			{
 				e_block.ColumnCopy(i, values);
-				exo.WriteElementVariable(fElementSets[ID]->PrintStep() + 1, 
-							 fElementBlockIDs[ID][b], i + 1, values);
+				exo.WriteElementVariable(print_step, fElementBlockIDs[ID][b], i + 1, values);
 			}
 	    }
 	}
