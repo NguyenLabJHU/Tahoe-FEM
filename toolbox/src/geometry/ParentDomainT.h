@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.14 2004-03-04 08:54:35 paklein Exp $ */
+/* $Id: ParentDomainT.h,v 1.14.4.1 2004-04-06 01:00:13 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _PARENT_DOMAIN_T_H_
 #define _PARENT_DOMAIN_T_H_
@@ -94,6 +94,10 @@ class ParentDomainT
 	 *  of dimension 2 x num_nodes.
 	 *  Note: Return curl(T) will be 3x3 */
 	void Curl(const ArrayT<dMatrixT>& T, const dArray2DT& DNa,dMatrixT& curl) const;
+
+	/** integration point gradient matrix. See GeometryBaseT::IPGradientTransform for
+	 * more information. */
+	void IPGradientTransform(int ip, dMatrixT& transform) const;
 
 	/** compute the jacobian of the nodal values with respect to domain coordinates.
 	 * \param nodal values at the nodes: [nnd] x [nu]
@@ -254,6 +258,11 @@ inline const double* ParentDomainT::DShape(int IPnum, int dim) const
 	return (fDNa[IPnum])(dim);	
 }
 inline const double* ParentDomainT::Weight(void)     const { return fWeights.Pointer(); }
+
+/* integration point gradient matrix */
+inline void ParentDomainT::IPGradientTransform(int ip, dMatrixT& transform) const {
+	fGeometry->IPGradientTransform(ip, transform);
+}
 
 /* returns jacobian of the nodal values with respect
 * to the variables of the shape function derivaties */
