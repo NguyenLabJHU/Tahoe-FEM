@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.cpp,v 1.11.18.1 2004-05-25 16:36:43 paklein Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.11.18.2 2004-05-26 03:56:15 paklein Exp $ */
 #include "ThermostatBaseT.h"
 
 #include "BasicSupportT.h"
@@ -16,28 +16,20 @@ const double fkB = 0.00008617385;
 
 using namespace Tahoe;
 
-/* constructor */
-#if 0
-ThermostatBaseT::ThermostatBaseT(ifstreamT& in, const int& nsd, 
-	const double& dt):
-	ParameterInterfaceT("velocity_damping"),
-	fBeta(0.0),
-	fTemperature(-1.),
-	fTimeStep(dt),
-	fSD(nsd),
-	fTemperatureSchedule(NULL)
-{
-	in >> fBeta;
-}
-#endif
+/* copy behavior for arrays ThermostatBaseT*'s */
+namespace Tahoe {
+DEFINE_TEMPLATE_STATIC const bool ArrayT<ThermostatBaseT*>::fByteCopy = true;
+} /* namespace Tahoe */
 
+/* constructor */
 ThermostatBaseT::ThermostatBaseT(const BasicSupportT& support):
 	ParameterInterfaceT("velocity_damping"),
 	fSupport(support),
 	fBeta(0.0),
 	fTemperature(0.0),
 	fAllNodes(false),
-	fTemperatureSchedule(NULL)
+	fTemperatureSchedule(NULL),
+	fTemperatureScale(0.0)
 {
 
 }
@@ -125,6 +117,9 @@ void ThermostatBaseT::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	ParameterInterfaceT::DefineSubs(sub_list);
 
+	/* prescribed temperature */
+	sub_list.AddSub("thermostat_temperature");
+
 	/* method for defining affected particles */
 	sub_list.AddSub("particle_pick_choice", ParameterListT::Once, true);
 }
@@ -132,7 +127,14 @@ void ThermostatBaseT::DefineSubs(SubListT& sub_list) const
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* ThermostatBaseT::NewSub(const StringT& list_name) const
 {
-	if (list_name == "particle_pick_choice") 
+	if (list_name == "thermostat_temperature")
+	{
+		ParameterContainerT* temp = new ParameterContainerT(list_name);	
+		temp->AddParameter(ParameterT::Integer, "schedule");
+		temp->AddParameter(ParameterT::Double, "value");	
+		return temp;
+	}
+	else if (list_name == "particle_pick_choice") 
 	{
 		ParameterContainerT* pick = new ParameterContainerT(list_name);
 		pick->SetSubSource(this);
@@ -189,6 +191,12 @@ void ThermostatBaseT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
 
+	/* temperature schedule */
+	const ParameterListT& temp_schedule = list.GetList("thermostat_temperature");
+	fTemperatureScale = temp_schedule.GetParameter("value");
+	int schedule = temp_schedule.GetParameter("schedule");
+	fTemperatureSchedule = fSupport.Schedule(--schedule);
+
 	/* damping parameter */
 	fBeta = list.GetParameter("beta");
 	
@@ -210,12 +218,6 @@ void ThermostatBaseT::TakeParameterList(const ParameterListT& list)
 	else
 		ExceptionT::GeneralFail(caller, "could not resolve choice \"%s\"", choice);
 }
-
-void ThermostatBaseT::SetTemperatureSchedule(const ScheduleT* schedule, const double& value)
-{
-	fTemperatureSchedule = schedule;
-	fTemperatureScale = value;
-}	
 
 #if 0
 namespace Tahoe {
