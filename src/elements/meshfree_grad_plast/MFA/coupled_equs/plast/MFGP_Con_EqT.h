@@ -42,14 +42,10 @@ public:
 	
 protected:
 
-		// check the dimensions!!
 	  	dMatrixT B1_d, B3_d; 
-		dMatrixT B4_lam, phi_lam; //dimension??
-		//dArrayT phi_lam;
-		//double B4_lam, phi_lam; //dimension??
+		dMatrixT B4_lam, phi_lam; 
 	  	dMatrixT Cuu1, Cuu2, Culam1, Culam2;
   		dMatrixT Clamu1, Clamu2;
-  		//double Clamlam1, Clamlam2;
   		dMatrixT Clamlam1, Clamlam2;
   		double yield;
   		dMatrixT moduli;

@@ -37,7 +37,7 @@ void MFGP_Con_EqT::Initialize(int& curr_ip, D3MeshFreeShapeFunctionT *Shapes_dis
 	n_en_plast = Shapes_plast->Derivatives_U(curr_ip).MinorDim(); 
 	n_sd = Shapes_displ->Derivatives_U(curr_ip).MajorDim(); 
 	//n_sd = n_rows_vector;
-	int n_str = dSymMatrixT::NumValues(n_sd);	
+	n_str = dSymMatrixT::NumValues(n_sd);	
 	n_sd_x_n_sd = n_sd * n_sd;
 	n_sd_x_n_en_displ = n_sd * n_en_displ;
 	n_sd_x_n_en_plast = n_sd * n_en_plast;
@@ -57,8 +57,8 @@ void MFGP_Con_EqT::Initialize(int& curr_ip, D3MeshFreeShapeFunctionT *Shapes_dis
 	yield = GRAD_MR_Plast_Mat->YieldF();
 	moduli = GRAD_MR_Plast_Mat->c_ijkl();
 
-	Form_C_List(GRAD_MR_Plast_Mat );
-	Form_B_List(  );
+	Form_C_List(GRAD_MR_Plast_Mat);
+	Form_B_List( );
 }
 
 
@@ -69,27 +69,26 @@ void MFGP_Con_EqT::Form_LHS_Ku_Klambda(dMatrixT& Ku, dMatrixT& Klambda )
 	n_rows = Ku.Rows();
 	n_cols = Ku.Cols();
 	dMatrixT Kutemp(n_rows,n_cols);
-	Ku.MultATBC(phi_lam, Clamu1, B1_d );
-	Kutemp.MultATBC(phi_lam, Clamu2, B3_d );
-	Ku += Kutemp;
+	Ku.MultATBC(phi_lam, Clamu1, B1_d);
+	Kutemp.MultATBC(phi_lam, Clamu2, B3_d);
+	Ku += Kutemp;	// Ku :[nnd]x[nsd*nnd]
 
 	n_rows = Klambda.Rows();
 	n_cols = Klambda.Cols();
 	dMatrixT Klambdatemp(n_rows,n_cols);
-	Klambda.MultATBC(phi_lam, Clamlam1, phi_lam );
-	Klambdatemp.MultATBC(phi_lam, Clamlam2, B4_lam );
-	Klambda += Klambdatemp;	
+	Klambda.MultATBC(phi_lam, Clamlam1, phi_lam);
+	Klambdatemp.MultATBC(phi_lam, Clamlam2, B4_lam);
+	Klambda += Klambdatemp;	//Klambda: [nnd]x[nnd]
 }
 
 //---------------------------------------------------------------------
 
-void MFGP_Con_EqT::Form_RHS_F_int (dArrayT& F_int) 
+void MFGP_Con_EqT::Form_RHS_F_int(dArrayT& F_int) 
 {
 		//pass column of phi_lam to F_int
 		F_int = phi_lam[0];
-		F_int *= yield; 
+		F_int *= yield; // F_int: [1]x[nnd]
 		//updated failure function passed from the constitutive model
-		//note: there is no F_int or F_ext in this case, but simply F
 }
 
 
@@ -98,23 +97,22 @@ void MFGP_Con_EqT::Form_RHS_F_int (dArrayT& F_int)
 	             				
 void MFGP_Con_EqT::Form_B_List(void)
 {
-		B1_d.Dimension(n_sd, n_en_displ);
-		B3_d.Dimension(n_sd, n_en_displ);
+		B1_d.Dimension(n_str, n_sd_x_n_en_displ);
+		B3_d.Dimension(n_str, n_sd_x_n_en_displ);
 		int dum=1;
 		phi_lam.Dimension(dum, n_en_plast);
-		B4_lam.Dimension(dum, n_sd_x_n_en_plast);
-		//NTS: check the allocation of phi_lam and B4	
+		B4_lam.Dimension(dum, n_en_plast);	
 		
 		/*
 		fData_Pro_Displ->Set_B1(B1_d);
 		fData_Pro_Displ->Set_B3(B3_d);
 		fData_Pro_Plast->Set_phi(phi_lam);
- 		fData_Pro_Plast->Set_B4(B4_lam); //B4 is scalar
+ 		fData_Pro_Plast->Set_B4(B4_lam); 
  		*/
  		Data_Pro_Displ.Set_B1(B1_d);
 		Data_Pro_Displ.Set_B3(B3_d);
 		Data_Pro_Plast.Set_phi(phi_lam);
- 		Data_Pro_Plast.Set_B4(B4_lam); //B4 is scalar
+ 		Data_Pro_Plast.Set_B4(B4_lam); 
 }
 
 
@@ -129,8 +127,8 @@ void MFGP_Con_EqT::Form_C_List(GRAD_MRSSKStV *GRAD_MR_Plast)
 		Culam2.Dimension(n_str,1);
 		Clamu1.Dimension(1,n_str); 
 		Clamu2.Dimension(1,n_str);
-		//Clamlam1.Dimension(1); 
-		//Clamlam2.Dimension(1);
+		Clamlam1.Dimension(1); 
+		Clamlam2.Dimension(1);
 		
 		/* retrive Cgep/fmoduli: 2D: [4]x[8]; 3D: [7]x[14] 
 		*  and form the 8 C matrices
