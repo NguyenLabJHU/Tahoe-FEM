@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.33 2003-02-08 01:16:28 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.34 2003-11-25 19:54:45 paklein Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -724,7 +724,16 @@ void VTKBodyDataT::SetVectorFields(const ArrayT<StringT>& labels, ArrayT<StringT
 	{
 		StringT suffix;
 		suffix.Suffix(labels[i], '_');
-		if (suffix.StringLength() > 0)
+		bool is_123 = false;
+		bool is_xyz = false;
+		if (suffix.StringLength() > 0) {
+			is_123 = (suffix[1] == '1' || suffix[1] == '2' || suffix[1] == '3');
+			if (!is_123)		
+				is_xyz = (suffix[1] == 'x' || suffix[1] == 'y' || suffix[1] == 'y' ||
+				          suffix[1] == 'X' || suffix[1] == 'Y' || suffix[1] == 'Z');
+		}
+		
+		if (is_123 || is_xyz)
 		{
 			StringT root, next_root;
 			root.Root(labels[i], '_');
