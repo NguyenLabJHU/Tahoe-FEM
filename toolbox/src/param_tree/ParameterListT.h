@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.20 2004-03-24 19:21:17 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.21 2004-03-28 09:47:16 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -16,7 +16,6 @@ class ParameterInterfaceT;
  * A ParameterListT can contain three types of entries:
  *    -# plain ParameterT's
  *    -# nested lists of ParameterListT's reproduced in entirety
- *    -# references to ParameterListT's which are referred to by name and are not reproduced
  */
 class ParameterListT
 {
@@ -82,9 +81,6 @@ public:
 
 	/** number of nested parameter lists with the given name */
 	int NumLists(const char* name) const;
-
-	/** number of references to parameter lists */
-	int NumReferences(void) const { return fReferences.Length(); };
 	/*@}*/
 
 	/** \name adding items to the list */
@@ -112,11 +108,6 @@ public:
 	/** remove the first instance of a parameter list. Returns true if the given list 
 	 * was found and removed. */
 	bool RemoveList(const char* name); 
-
-	/** add a reference. Returns true of there where no conflicts with
-	 * existing references. The names of reference cannot be repeated.
-	 * By default, the ParameterListT::OccurrenceT is ParameterListT::Once. */
-	bool AddReference(const char* ref, OccurrenceT occur = Once);
 	/*@}*/
 
 	/** \name access to the list entries and occurrences */
@@ -125,8 +116,6 @@ public:
 	const ArrayT<ParameterListT::OccurrenceT>& ParameterOccurrences(void) const { return fParametersOccur; };
 	const ArrayT<ParameterListT>&              Lists(void) const { return fParameterLists; };
 	const ArrayT<ParameterListT::OccurrenceT>& ListOccurrences(void) const { return fParameterListsOccur; };
-	const ArrayT<StringT>&                     References(void) const { return fReferences; };
-	const ArrayT<ParameterListT::OccurrenceT>& ReferenceOccurrences(void) const { return fReferencesOccur; };
 	/*@}*/
 
 	/** \name query access to parameters and sublists. Methods return NULL if the request
@@ -226,12 +215,6 @@ protected:
 	/*@{*/
 	AutoArrayT<ParameterListT> fParameterLists;
 	AutoArrayT<OccurrenceT>    fParameterListsOccur;
-	/*@}*/
-
-	/** \name references to parameters lists */
-	/*@{*/
-	AutoArrayT<StringT>     fReferences;
-	AutoArrayT<OccurrenceT> fReferencesOccur;
 	/*@}*/
 };
 

@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.cpp,v 1.17 2004-03-24 17:23:09 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.18 2004-03-28 09:47:16 paklein Exp $ */
 #include "ParameterListT.h"
 #include "ParameterInterfaceT.h"
 #include <string.h>
@@ -145,20 +145,6 @@ bool ParameterListT::RemoveList(const char* name)
 	}
 	else
 		return false;
-}
-
-/* add a reference */
-bool ParameterListT::AddReference(const char* ref, OccurrenceT occur)
-{
-	/* scan name */
-	for (int i = 0; i < fReferences.Length(); i++)
-		if (fReferences[i] == ref)
-			return false;
-	
-	/* add if no matches */
-	fReferences.Append(ref);
-	fReferencesOccur.Append(occur);
-	return true;
 }
 
 /* search for list by name */
@@ -357,6 +343,4 @@ void ParameterListT::Clear(void)
 	fParametersOccur.Dimension(0);
 	fParameterLists.Dimension(0);
 	fParameterListsOccur.Dimension(0);
-	fReferences.Dimension(0);
-	fReferencesOccur.Dimension(0);
 }
