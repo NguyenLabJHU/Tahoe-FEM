@@ -1,11 +1,11 @@
-/* $Id: ElementBaseT.h,v 1.30 2003-08-08 00:46:49 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.31 2003-08-14 05:57:04 paklein Exp $ */
 /* created: paklein (05/24/1996) */
-
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
 
 /* base class */
 #include "iConsoleObjectT.h"
+#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "GlobalT.h"
@@ -54,7 +54,7 @@ class FieldT;
  * ElementBaseT::ResetStep must return the element to its state at the start 
  * of the current time increment. There are number of purely virtual
  * functions that must be implemented by derived classes. */
-class ElementBaseT: public iConsoleObjectT
+class ElementBaseT: public iConsoleObjectT, public ParameterInterfaceT
 {
 public:
 
@@ -68,6 +68,7 @@ public:
 	/** constructors */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	ElementBaseT(const ElementSupportT& support, const FieldT& field);
+	ElementBaseT(const ElementSupportT& support);
 #else
 	ElementBaseT(ElementSupportT& support);
 #endif
@@ -102,7 +103,7 @@ public:
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/** field information */
-	const FieldT& Field(void) const { return fField; };
+	const FieldT& Field(void) const;
 
 	/** return a const reference to the run state flag */
 	const GlobalT::StateT& RunState(void) const { return fSupport.RunState(); };
@@ -126,14 +127,7 @@ public:
 	void ElementBlockIDs(ArrayT<StringT>& IDs) const;
 	
 	/** return the number of degrees of freedom per node */
-	int NumDOF(void) const 
-	{ 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		return fField.NumDOF();
-#else
-		return fSupport.NumSD();
-#endif 
-	};
+	int NumDOF(void) const;
 	/*@}*/
 
 	/** class initialization. Among other things, element work space
@@ -287,19 +281,25 @@ public:
 	 *       group and could replace the current approach implemented through ElementBaseT::FormRHS. */
 	virtual const dArray2DT& InternalForce(int group);
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	/*@}*/
+
 protected: /* for derived classes only */
 
 	/** map the element numbers from block to group numbering */
 	void BlockToGroupElementNumbers(iArrayT& elems, const StringT& block_ID) const;
 
 	/** solver group */
-	int Group(void) const {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		return fField.Group(); 
-#else
-		return 0;
-#endif
-	};
+	int Group(void) const;
 
 	/** get local element data, X for geometry, U for
 	 * field variables */
@@ -427,7 +427,7 @@ private:
 #endif
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	const FieldT& fField;
+	const FieldT* fField;
 #endif
 	/*@}*/
 };
@@ -461,5 +461,35 @@ inline int ElementBaseT::NumElementNodes(void) const
 #endif
 }
 
-} // namespace Tahoe 
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+/* field information */
+inline const FieldT& ElementBaseT::Field(void) const {
+#if __option(extended_errorcheck)
+	if (!fField) ExceptionT::GeneralFail("ElementBaseT::Field", "field not set");
+#endif
+	return *fField;
+}
+#endif
+
+/* solver group */
+inline int ElementBaseT::Group(void) const {
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+	return Field().Group(); 
+#else
+	return 0;
+#endif
+};
+
+/* return the number of degrees of freedom per node */
+inline int ElementBaseT::NumDOF(void) const
+{ 
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+	return Field().NumDOF();
+#else
+	return fSupport.NumSD();
+#endif 
+};
+
+} /* namespace Tahoe */
+
 #endif /* _ELEMENTBASE_T_H_ */
