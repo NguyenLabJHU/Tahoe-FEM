@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.12 2005-01-10 07:38:33 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.13 2005-01-19 08:56:44 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -12,6 +12,7 @@
 #include "ofstreamT.h"
 #include "ContinuumElementT.h"
 #include "CSEAnisoT.h"
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
@@ -268,7 +269,7 @@ void ConveyorT::CloseStep(void)
 	KBC_ControllerT::CloseStep();
 
 	/* report tracking point */
-	if (fTrackingCount == fTrackingInterval) {
+	if (fSupport.Rank() == 0 && fTrackingCount == fTrackingInterval) {
 	
 		/* boundary displacement */
 		dArray2DT& u_field = fField[0];
@@ -676,6 +677,10 @@ void ConveyorT::TakeParameterList(const ParameterListT& list)
 	init_coords.ColumnCopy(0, X2);
 	X2.MinMax(fX_Left, fX_Right);
 	X2.Free();
+	
+	/* exchange bounds */
+	fX_Left  = fSupport.Communicator().Min(fX_Left );
+	fX_Right = fSupport.Communicator().Max(fX_Right);
 
 	/* check */
 	if (fX_Right - fTipX_0 < fRightMinSpacing)
@@ -688,10 +693,12 @@ void ConveyorT::TakeParameterList(const ParameterListT& list)
 	if (fWidthDeadZone > fRightMinSpacing) ExceptionT::GeneralFail(caller);
 
 	/* open file for tracking information */
-	StringT file;
-	file.Root(fSupport.InputFile());
-	file.Append(".tracking");
-	fTrackingOutput.open(file);
+	if (fSupport.Rank() == 0) {
+		StringT file;
+		file.Root(fSupport.InputFile());
+		file.Append(".tracking");
+		fTrackingOutput.open(file);
+	}
 
 	/* create controller for the right edge of the domain */
 	fRightEdge = new KBC_ControllerT(fSupport);
@@ -768,6 +775,10 @@ double ConveyorT::TrackPoint(TrackingTypeT tracking_type, double threshold)
 	/* tracking type */
 	if (tracking_type == kMax)
 	{
+//TEMP
+if (fSupport.Size() != 1)
+	ExceptionT::GeneralFail(caller, "tracking method %d not parallelized", tracking_type);
+
 		/* find the node with max opening stress */
 		int maxrow;
 		double maxval;
@@ -798,6 +809,9 @@ double ConveyorT::TrackPoint(TrackingTypeT tracking_type, double threshold)
 			node = node_manager.NextAverageRow(values);
 		}
 
+		/* exchange result */
+		right_most = fSupport.Communicator().Max(right_most);
+
 		return right_most;
 	}
 	else if (tracking_type == kLeftMost)
@@ -818,6 +832,9 @@ double ConveyorT::TrackPoint(TrackingTypeT tracking_type, double threshold)
 			node = node_manager.NextAverageRow(values);
 		}
 
+		/* exchange result */
+		left_most = fSupport.Communicator().Min(left_most);
+
 		return left_most;
 	}
 	else 
@@ -831,6 +848,10 @@ bool ConveyorT::SetSystemFocus(double focus)
 {
 	/* no need to shift the window */
 	if (fX_Right - focus > fRightMinSpacing) return false;
+
+//TEMP - not parallelized
+if (fSupport.Size() > 1)
+	ExceptionT::GeneralFail("ConveyorT::SetSystemFocus", "not parallelized");
 
 	/* shift window */
 	fX_Left  += fWindowShiftDistance;
