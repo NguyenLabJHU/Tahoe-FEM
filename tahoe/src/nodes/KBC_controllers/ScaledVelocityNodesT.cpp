@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.8 2004-07-15 08:31:21 paklein Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.9 2005-02-16 23:30:20 cjkimme Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -35,7 +35,7 @@ void ScaledVelocityNodesT::InitStep(void)
 {
 	/* really bad, this */
 	if (qIConly)
-	{
+	{ 
 		if (!qFirstTime)
 			qFirstTime = true;
 		else
@@ -54,7 +54,7 @@ void ScaledVelocityNodesT::InitStep(void)
 	/* inherited */
 	KBC_ControllerT::InitStep();
 	
-	if (qIConly && !qFirstTime)
+	if ((qIConly && !qFirstTime) || (!qIConly && fIncCt != fIncs))
 		fKBC_Cards.Dimension(0);
 }
 
@@ -278,6 +278,7 @@ void ScaledVelocityNodesT::TakeParameterList(const ParameterListT& list)
 		fTempSchedule = fSupport.Schedule(schedule);
 		if (!fTempSchedule) ExceptionT::BadInputValue(caller);
 		qIConly = false;
+		fIncs = bc_or_ic.GetParameter("increments");
 	}
 	else if (bc_or_ic.Name() == "scale_as_IC") {
 		fT_0 = bc_or_ic.GetParameter("temperature");
