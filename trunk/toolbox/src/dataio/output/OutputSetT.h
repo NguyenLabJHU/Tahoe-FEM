@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.2 2001-02-27 00:16:27 paklein Exp $ */
 /* created: paklein (03/07/2000)                                          */
 
 #ifndef _OUTPUTSET_T_H_
@@ -18,8 +18,9 @@ public:
 
 	/* constructor */
 	OutputSetT(int ID, GeometryT::CodeT geometry_code,
-		const iArray2DT& connectivities, const ArrayT<StringT>& n_labels,
-		const ArrayT<StringT>& e_labels, bool changing);
+		const iArrayT& block_ID, const iArray2DT& connectivities, 
+		const ArrayT<StringT>& n_labels, const ArrayT<StringT>& e_labels, 
+		bool changing);
 	OutputSetT(const OutputSetT& source);
 
 	/* print step counter */
@@ -31,6 +32,7 @@ public:
 	int ID(void) const;
 	bool Changing(void) const;
 	GeometryT::CodeT Geometry(void) const;
+	const iArrayT& BlockID(void) const;
 	const iArray2DT& Connectivities(void) const;
 	const iArrayT& NodesUsed(void) const;
 	const ArrayT<StringT>& NodeOutputLabels(void) const;
@@ -59,7 +61,8 @@ private:
 	bool fChanging;
 	GeometryT::CodeT fGeometry;
 
-	/* set nodes */
+	/* connectivities */
+	const iArrayT fBlockID;
 	const iArray2DT& fConnectivities;
 	
 	/* output labels */
@@ -78,6 +81,7 @@ inline void OutputSetT::IncrementPrintStep(void) { fPrintStep++; }
 inline int OutputSetT::ID(void) const { return fID; }
 inline bool OutputSetT::Changing(void) const { return fChanging; }
 inline GeometryT::CodeT OutputSetT::Geometry(void) const { return fGeometry; }
+inline const iArrayT& OutputSetT::BlockID(void) const { return fBlockID; }
 inline const iArray2DT& OutputSetT::Connectivities(void) const
 {
 	return fConnectivities;

@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.2 2001-02-27 00:16:26 paklein Exp $ */
 /* created: paklein (03/07/2000)                                          */
 
 #include "OutputSetT.h"
@@ -10,12 +10,13 @@ const bool ArrayT<OutputSetT*>::fByteCopy = true;
 
 /* constructor */
 OutputSetT::OutputSetT(int ID, GeometryT::CodeT geometry_code,
-	const iArray2DT& connectivities, const ArrayT<StringT>& n_labels,
-	const ArrayT<StringT>& e_labels, bool changing):
+	const iArrayT& block_ID, const iArray2DT& connectivities, 
+	const ArrayT<StringT>& n_labels, const ArrayT<StringT>& e_labels, bool changing):
 	fPrintStep(-1),
 	fID(ID),
 	fChanging(changing),
 	fGeometry(geometry_code),
+	fBlockID(block_ID),
 	fConnectivities(connectivities)
 {
 	fNodeOutputLabels.Allocate(n_labels.Length());
@@ -35,6 +36,7 @@ OutputSetT::OutputSetT(const OutputSetT& source):
 	fID(source.fID),
 	fChanging(source.fChanging),
 	fGeometry(source.fGeometry),
+	fBlockID(source.fBlockID),
 	fConnectivities(source.fConnectivities),
 	fNodesUsed(source.fNodesUsed)
 {

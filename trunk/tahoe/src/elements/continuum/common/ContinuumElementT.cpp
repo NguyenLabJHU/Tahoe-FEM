@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.2 2001-02-20 00:42:12 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.3 2001-02-27 00:16:13 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 
 #include "ContinuumElementT.h"
@@ -246,6 +246,8 @@ void ContinuumElementT::RegisterOutput(void)
 	/* element output */
 	iArrayT e_counts;
 	SetElementOutputCodes(IOBaseT::kAtInc, fElementOutputCodes, e_counts);
+	iArrayT block_ID(fBlockData.MajorDim());
+	fBlockData.ColumnCopy(kID, block_ID);
 
 	/* collect variable labels */
 	ArrayT<StringT> n_labels(n_counts.Sum());
@@ -254,7 +256,7 @@ void ContinuumElementT::RegisterOutput(void)
 
 	/* set output specifier */
 	int ID = fFEManager.ElementGroupNumber(this) + 1;
-	OutputSetT output_set(ID, fGeometryCode, fConnectivities,
+	OutputSetT output_set(ID, fGeometryCode, block_ID, fConnectivities,
 		n_labels, e_labels, false);
 		
 	/* register and get output ID */
