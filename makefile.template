@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.8 2004-07-15 08:27:46 paklein Exp $
+# $Id: makefile.template,v 1.9 2004-11-09 21:56:57 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -98,16 +98,16 @@ include $(MACRO_DIR)/make.targets
 
 # init extras target
 update_config:
-	@ if test -f $(SRC_DIR)/config/DevelopmentElementsConfig.make; then rm $(SRC_DIR)/config/DevelopmentElementsConfig.make; fi
-	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl DevelopmentElementsConfig.conf $(SRC_DIR)/config
-	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   DevelopmentElementsConfig.conf $(SRC_DIR)/config
-	@ if test -f $(SRC_DIR)/config/DevelopmentMaterialsConfig.make; then rm $(SRC_DIR)/config/DevelopmentMaterialsConfig.make; fi
-	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl DevelopmentMaterialsConfig.conf $(SRC_DIR)/config
-	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   DevelopmentMaterialsConfig.conf $(SRC_DIR)/config
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.make; then rm $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.make; fi
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl DevelopmentElementsConfig.conf $(BLD_DIR)/src-mirror/config
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   DevelopmentElementsConfig.conf $(BLD_DIR)/src-mirror/config
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.make; then rm $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.make; fi
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl DevelopmentMaterialsConfig.conf $(BLD_DIR)/src-mirror/config
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   DevelopmentMaterialsConfig.conf $(BLD_DIR)/src-mirror/config
 
 # clean extras target - clean config files out of src/config
 clean_config:
-	@ if test -f $(SRC_DIR)/config/DevelopmentElementsConfig.h; then rm $(SRC_DIR)/config/DevelopmentElementsConfig.h; fi
-	@ if test -f $(SRC_DIR)/config/DevelopmentElementsConfig.make; then rm $(SRC_DIR)/config/DevelopmentElementsConfig.make; fi
-	@ if test -f $(SRC_DIR)/config/DevelopmentMaterialsConfig.h; then rm $(SRC_DIR)/config/DevelopmentMaterialsConfig.h; fi
-	@ if test -f $(SRC_DIR)/config/DevelopmentMaterialsConfig.make; then rm $(SRC_DIR)/config/DevelopmentMaterialsConfig.make; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.h;     then rm $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.h; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.make;  then rm $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.make; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.h;    then rm $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.h; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.make; then rm $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.make; fi
