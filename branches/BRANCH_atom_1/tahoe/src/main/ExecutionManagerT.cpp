@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.cpp,v 1.13.2.1 2002-12-10 17:13:02 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.13.2.2 2003-01-05 23:48:39 paklein Exp $ */
 /* created: paklein (08/27/1997) */
 #include "ExecutionManagerT.h"
 
@@ -109,7 +109,7 @@ void ExecutionManagerT::Run_parallel(void)
 		file.ToNativePathName();
 
 		/* open stream */
-		ifstreamT input(file);
+		ifstreamT input('#', file);
 		if (!input.is_open())
 		{
 			cout << "\n ExecutionManagerT::Run_parallel: unable to open file: \""
@@ -127,7 +127,7 @@ void ExecutionManagerT::Run_parallel(void)
 		while (1)
 		{
 			/* prompt for input filename and open stream */
-			ifstreamT input;
+			ifstreamT input('#');
 			StringT file(255);
 			if (rank == 0)
 			{
