@@ -2,6 +2,7 @@
 #define __vtkTahoeGlyph3D_h
 
 #include "vtkDataSetToPolyDataFilter.h"
+#include "StringT.h"
 
 class VTKBodyDataT;
 
@@ -21,6 +22,7 @@ class VTKBodyDataT;
 #define VTK_INDEXING_OFF 0
 #define VTK_INDEXING_BY_SCALAR 1
 #define VTK_INDEXING_BY_VECTOR 2
+
 
 class VTK_GRAPHICS_EXPORT vtkTahoeGlyph3D : public vtkDataSetToPolyDataFilter
 {
@@ -144,7 +146,7 @@ public:
   vtkSetStringMacro(PointIdsName);
   vtkGetStringMacro(PointIdsName);
 
-  void SetVectors(VTKBodyDataT* body, const StringT& field);
+  void SetVectors(VTKBodyDataT* body, const Tahoe::StringT& field);
 
 protected:
   vtkTahoeGlyph3D();
@@ -175,7 +177,7 @@ private:
 	/** \name vector field information */
 	/*@{*/
 	VTKBodyDataT* fSourceBody;
-	StringT fVectorField;
+	Tahoe::StringT fVectorField;
 	/*@}*/
 };
 
