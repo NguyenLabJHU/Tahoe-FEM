@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.cpp,v 1.11 2004-01-27 19:10:03 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.12 2004-01-31 07:15:57 paklein Exp $ */
 #include "ParameterListT.h"
 
 using namespace Tahoe;
@@ -87,6 +87,25 @@ bool ParameterListT::AddParameter(const ParameterT& param, OccurrenceT occur)
 	return true;
 }
 
+/* remove parameter */
+bool ParameterListT::RemoveParameter(const char* name)
+{
+	/* scan name */
+	int index = -1;
+	for (int i = 0; index == -1 && i < fParameters.Length(); i++)
+		if (fParameters[i].Name() == name)
+			index = i;
+	
+	/* remove if found */
+	if (index != -1) {
+		fParameters.DeleteAt(index);
+		fParametersOccur.DeleteAt(index);
+		return true;
+	}
+	else
+		return false;
+}
+
 /* add a parameter list */
 bool ParameterListT::AddList(const ParameterListT& param_list, OccurrenceT occur)
 {	
@@ -105,6 +124,25 @@ bool ParameterListT::AddList(const ParameterListT& param_list, OccurrenceT occur
 	fParameterLists.Append(param_list);
 	fParameterListsOccur.Append(occur);
 	return true;
+}
+
+/* remove a parameter list */
+bool ParameterListT::RemoveList(const char* name)
+{	
+	/* scan name */
+	int index = -1;
+	for (int i = 0; index == -1 && i < fParameterLists.Length(); i++)
+		if (fParameterLists[i].Name() == name)
+			index = i;
+
+	/* remove from to list */
+	if (index != -1) {
+		fParameterLists.DeleteAt(index);
+		fParameterListsOccur.DeleteAt(index);
+		return true;
+	}
+	else
+		return false;
 }
 
 /* add a reference */
