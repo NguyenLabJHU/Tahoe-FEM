@@ -1,4 +1,4 @@
-/* $Id: LangevinT.cpp,v 1.6.20.2 2004-05-26 03:56:15 paklein Exp $ */
+/* $Id: LangevinT.cpp,v 1.6.20.3 2004-05-26 18:07:46 paklein Exp $ */
 #include "LangevinT.h"
 
 #include <math.h>
@@ -25,6 +25,9 @@ void LangevinT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2
 {
 	int nsd = fSupport.NumSD();
 	double dt = fSupport.TimeStep();
+
+	/* quick exit */
+	if (fabs(dt) < kSmall) return;
 	
 	dArrayT rArray(nsd); // random force
 	double* rf_i;
