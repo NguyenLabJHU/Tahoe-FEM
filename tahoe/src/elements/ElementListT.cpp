@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.94 2004-07-16 00:17:48 cjkimme Exp $ */
+/* $Id: ElementListT.cpp,v 1.95 2004-07-20 23:21:24 rdorgan Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -279,6 +279,10 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("updated_lagrangian_Q1P0_inv_axi");
 		sub_lists.AddSub("large_strain_meshfree_axi");
 #endif
+
+#ifdef GRAD_SMALL_STRAIN_DEV
+		sub_lists.AddSub("grad_small_strain");
+#endif
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
@@ -411,6 +415,11 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 	else if (name == "large_strain_meshfree_axi")
 		return new MeshFreeFSSolidAxiT(fSupport);
 #endif
+
+#ifdef GRAD_SMALL_STRAIN_DEV
+	else if (name == "grad_small_strain")
+		return new GradSmallStrainT(fSupport);
+#endif	
 
 	/* default */	
 	else

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList1DT.cpp,v 1.2 2004-07-15 08:28:28 paklein Exp $ */
+/* $Id: SSSolidMatList1DT.cpp,v 1.3 2004-07-20 23:21:30 rdorgan Exp $ */
 #include "SSSolidMatList1DT.h"
 #include "SSMatSupportT.h"
 
@@ -12,9 +12,7 @@
 #endif
 
 #ifdef GRAD_SMALL_STRAIN_DEV
-#include "GradJ2SS1D.h"
 #include "J2SSKStV1D.h"
-#include "GradSSMatSupportT.h"
 #endif
 
 using namespace Tahoe;
@@ -22,20 +20,13 @@ using namespace Tahoe;
 /* constructor */
 SSSolidMatList1DT::SSSolidMatList1DT(int length, const SSMatSupportT& support):
 	SolidMatListT(length, support),
-	fSSMatSupport(&support),
-	fGradSSMatSupport(NULL)
+	fSSMatSupport(&support)
 {
 	SetName("small_strain_material_1D");
-
-#ifdef GRAD_SMALL_STRAIN_DEV
-	/* cast to gradient enhanced small strain support */
-	fGradSSMatSupport = TB_DYNAMIC_CAST(const GradSSMatSupportT*, fSSMatSupport);
-#endif
 }
 
 SSSolidMatList1DT::SSSolidMatList1DT(void):
-	fSSMatSupport(NULL),
-	fGradSSMatSupport(NULL)	
+	fSSMatSupport(NULL)
 {
 	SetName("small_strain_material_1D");
 }
@@ -59,6 +50,10 @@ void SSSolidMatList1DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 		order = ParameterListT::Choice;
 	
 		sub_lists.AddSub("linear_material_1D");
+
+#ifdef GRAD_SMALL_STRAIN_DEV
+		sub_lists.AddSub("small_strain_StVenant_J2_1D");
+#endif
 	}
 	else /* inherited */
 		SolidMatListT::DefineInlineSub(name, order, sub_lists);
@@ -112,6 +107,11 @@ SSSolidMatT* SSSolidMatList1DT::NewSSSolidMat(const StringT& name) const
 
 	if (name == "linear_material_1D")
 		mat = new SSHookean1D;
+
+#ifdef GRAD_SMALL_STRAIN_DEV
+	else if (name == "small_strain_StVenant_J2_1D")
+		mat = new J2SSKStV1D;
+#endif
 
 	/* set support */
 	if (mat) mat->SetSSMatSupport(fSSMatSupport);
