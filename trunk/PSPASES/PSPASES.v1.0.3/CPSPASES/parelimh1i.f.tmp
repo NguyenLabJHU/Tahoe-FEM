@@ -40,7 +40,7 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: parelimh1i.f.tmp,v 1.1 2005-01-05 08:12:48 paklein Exp $ */
+C/* $Id: parelimh1i.f.tmp,v 1.2 2005-01-15 00:22:29 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine PARELIMH1(wmem,vbuf_s,hbuf_s,vbuf_r,hbuf_r,supinds,
@@ -66,6 +66,8 @@ C/*****************************************************************************/
       include 'mpif.h'
       integer mpistat(MPI_STATUS_SIZE),req(4),ierr
       integer statall(MPI_STATUS_SIZE,4)
+
+      write (*,*) 'parelimh1: IN'
 
       do ireq=1,4
         req(ireq) = MPI_REQUEST_NULL
@@ -178,9 +180,12 @@ C/*****************************************************************************/
 
           call dpack(wmem(fptr),vbuf_s,rank,ldf,rank)
           call dpotrf('l',rank,vbuf_s,rank,info)
-        if (info.gt.0) goto 1
+      
+      print *, 'dpotrf return info =', info 
+
+       if (info.gt.0) goto 1
           if (myid .ne. mydown) then
-            call mpi_send(vbuf_s,ishft(rank*rank,3),MPI_BYTE,mydown,
+            call my_mpi_send(vbuf_s,ishft(rank*rank,3),MPI_BYTE,mydown,
      +                    myid,comm,ierr)
           end if
           call dtrsm('R','L','T','N',nrows-rank,rank,1.d0,vbuf_s,rank,
@@ -198,7 +203,7 @@ C/*****************************************************************************/
             jj = jj + nrows - rank
             uptr = uptr + rank + 1
 50        continue
-          call mpi_isend(hbuf_s,ishft(rank*(nrows-rank),3),MPI_BYTE,
+          call my_mpi_isend(hbuf_s,ishft(rank*(nrows-rank),3),MPI_BYTE,
      1         myright,myid,comm,req(1),ierr)
 
           i = i + csuptr
@@ -219,7 +224,7 @@ C/*****************************************************************************/
           csuptr = csuptr + rank
           ncols = ncols - rank
 
-          call mpi_isend(hbuf_s,ishft(rank*nrows,3),MPI_BYTE,mydown,
+          call my_mpi_isend(hbuf_s,ishft(rank*nrows,3),MPI_BYTE,mydown,
      1         myid,comm,req(2),ierr)
 
           call mpi_waitall(4,req,statall,ierr)
@@ -231,10 +236,10 @@ C/*****************************************************************************/
           msgtype = MPI_ANY_TAG
           call mpi_recv(vbuf_r,buflen,MPI_BYTE,myup,msgtype,
      +                  comm,mpistat,ierr)
-          call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr)
+          call my_mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr)
           msgtype = mpistat(MPI_TAG)
           if (msgtype .ne. mydown) then
-            call mpi_send(vbuf_r,nbytes,MPI_BYTE,mydown,msgtype,
+            call my_mpi_send(vbuf_r,nbytes,MPI_BYTE,mydown,msgtype,
      +                    comm,ierr)
           end if
           if (ncols .gt. 0) then
@@ -242,7 +247,7 @@ C/*****************************************************************************/
      1           wmem(fptr),ldf)
           end if
           call dpack(wmem(fptr),hbuf_s,nrows,ldf,rank)
-          call mpi_isend(hbuf_s,ishft(nrows*rank,3),MPI_BYTE,myright,
+          call my_mpi_isend(hbuf_s,ishft(nrows*rank,3),MPI_BYTE,myright,
      +                   myid,comm,req(1),ierr)
           msgtype1 = MPI_ANY_TAG
           call mpi_irecv(vbuf_r,buflen,MPI_BYTE,myup,msgtype1,
@@ -251,12 +256,12 @@ C/*****************************************************************************/
           nsent1 = 0
           do while (npending .gt. 0)
             call mpi_waitany(4,req,msgid,mpistat,ierr)
-            call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr)
+            call my_mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr)
             if (msgid .eq. 2 .and. nsent1 .eq. 0) then
               ldb = ishft(nbytes/rank,-3)
               msgtype1 = mpistat(MPI_TAG)
               if (msgtype1 .ne. mydown) then
-                call mpi_isend(vbuf_r,nbytes,MPI_BYTE,mydown,msgtype1,
+                call my_mpi_isend(vbuf_r,nbytes,MPI_BYTE,mydown,msgtype1,
      +                         comm,req(3),ierr)
                 npending = npending + 1
               end if
@@ -338,23 +343,23 @@ C/*****************************************************************************/
           msgtype = MPI_ANY_TAG 
           call mpi_recv(hbuf_r,buflen,MPI_BYTE,myleft,msgtype,
      +                  comm,mpistat,ierr)
-          call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr)
+          call my_mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr)
           msgtype = mpistat(MPI_TAG)
           ldb = ishft(nbytes/rank,-3)
 
           uptr = 1 + ldb - nrows
           if (myid .ne. mydown) then
             if (ldb .eq. nrows) then
-              call mpi_isend(hbuf_r,nbytes,MPI_BYTE,mydown,myid,
+              call my_mpi_isend(hbuf_r,nbytes,MPI_BYTE,mydown,myid,
      +                       comm,req(1),ierr)
             else
               call dpack(hbuf_r(uptr),vbuf_s,nrows,ldb,rank)
-              call mpi_isend(vbuf_s,ishft(nrows*rank,3),MPI_BYTE,mydown,
+              call my_mpi_isend(vbuf_s,ishft(nrows*rank,3),MPI_BYTE,mydown,
      1             myid,comm,req(1),ierr)
             end if
           end if
           if (myright .ne. msgtype) then
-            call mpi_isend(hbuf_r,nbytes,MPI_BYTE,myright,msgtype,
+            call my_mpi_isend(hbuf_r,nbytes,MPI_BYTE,myright,msgtype,
      +                     comm,req(2),ierr)
           end if
           call mpi_waitall(4,req,statall,ierr)
@@ -375,14 +380,14 @@ C/*****************************************************************************/
         nsent2 = 0
           do while (npending .ne. 0)
             call mpi_waitany(4,req,msgid,mpistat,ierr)
-            call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr)
+            call my_mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr)
             npending = npending - 1
             if (msgid .eq. 1 .and. nsent1 .eq. 0) then
               lda = ishft(nbytes/rank,-3)
               msgtype1 = mpistat(MPI_TAG)
 
               if (msgtype1 .ne. myright) then
-                call mpi_isend(hbuf_r,nbytes,MPI_BYTE,myright,msgtype1,
+                call my_mpi_isend(hbuf_r,nbytes,MPI_BYTE,myright,msgtype1,
      +                         comm,req(3),ierr)
                 npending = npending + 1
               end if
@@ -392,7 +397,7 @@ C/*****************************************************************************/
               ldb = ishft(nbytes/rank,-3)
               msgtype2 = mpistat(MPI_TAG)
               if (msgtype2 .ne. mydown) then
-                call mpi_isend(vbuf_r,nbytes,MPI_BYTE,mydown,msgtype2,
+                call my_mpi_isend(vbuf_r,nbytes,MPI_BYTE,mydown,msgtype2,
      +                         comm,req(4),ierr)
                 npending = npending + 1
               end if

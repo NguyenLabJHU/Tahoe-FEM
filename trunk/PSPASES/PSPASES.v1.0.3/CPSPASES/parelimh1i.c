@@ -1,4 +1,4 @@
-/* $Id: parelimh1i.c,v 1.4 2005-01-05 16:51:31 paklein Exp $ */
+/* $Id: parelimh1i.c,v 1.5 2005-01-15 00:22:29 paklein Exp $ */
 /* parelimh1i.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -64,7 +64,7 @@ static integer c__27 = 27;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: parelimh1i.c,v 1.4 2005-01-05 16:51:31 paklein Exp $ +/ */
+/* /+ $Id: parelimh1i.c,v 1.5 2005-01-15 00:22:29 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -396,6 +396,11 @@ L135:
 /*<           call dpotrf('l',rank,vbuf_s,rank,info) >*/
 	    dpotrf_("l", &rank, &vbuf_s__[1], &rank, &info, (ftnlen)1);
 /*<         if (info.gt.0) goto 1 >*/
+
+#ifdef __DO_DEBUG__
+		printf("dpotrf returned info = %d\n", info);
+#endif
+
 	    if (info > 0) {
 		goto L1;
 	    }
@@ -403,7 +408,7 @@ L135:
 	    if (*myid != *mydown) {
 /*<    >*/
 		i__1 = rank * rank << 3;
-		MPI_Send(&vbuf_s__[1], i__1, MPI_BYTE, *mydown, *myid, *comm);
+		myMPI_Send(&vbuf_s__[1], i__1, MPI_BYTE, *mydown, *myid, *comm);
 /*<           end if >*/
 	    }
 /*<    >*/
@@ -503,7 +508,7 @@ L135:
 /*<           if (msgtype .ne. mydown) then >*/
 	    if (msgtype != *mydown) {
 /*<    >*/
-		MPI_Send(&vbuf_r__[1], nbytes, MPI_BYTE, *mydown, msgtype, *comm);
+		myMPI_Send(&vbuf_r__[1], nbytes, MPI_BYTE, *mydown, msgtype, *comm);
 /*<           end if >*/
 	    }
 /*<           if (ncols .gt. 0) then >*/
