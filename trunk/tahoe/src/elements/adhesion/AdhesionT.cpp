@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.19 2004-07-15 08:25:48 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.20 2005-03-11 20:41:55 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -134,7 +134,7 @@ void AdhesionT::WriteOutput(void)
 	out << "\n Surface adhesion: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
 	out << " Time                           = " << ElementSupport().Time() << '\n';
 	out << " Active face pairs              = " << fSurface1.Length() << '\n';
-	if (fSurface1.Length() > 0 && ElementSupport().PrintInput())
+	if (fSurface1.Length() > 0 && ElementSupport().Logging() == GlobalT::kVerbose)
 	{
 		out << setw(kIntWidth) << "surf 1";
 		out << setw(kIntWidth) << "facet";
@@ -158,9 +158,11 @@ void AdhesionT::WriteOutput(void)
 		out << endl;
 	}
 	
-	out << " Search grid statistics:\n";
-	fGrid->WriteStatistics(out);
-	out.flush();
+	if (ElementSupport().Logging() != GlobalT::kSilent) {
+		out << " Search grid statistics:\n";
+		fGrid->WriteStatistics(out);
+		out.flush();
+	}
 	
 	/* loop over surfaces */
 	int ndof = NumDOF();

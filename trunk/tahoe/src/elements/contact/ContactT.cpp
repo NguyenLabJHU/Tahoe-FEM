@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.20 2004-07-15 08:26:08 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.21 2005-03-11 20:42:03 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -345,7 +345,7 @@ void ContactT::WriteContactInfo(ostream& out) const
 	out << "\n Contact tracking: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
 	out << " Time                           = " << ElementSupport().Time() << '\n';
 	out << " Active strikers                = " << fActiveStrikers.Length() << '\n';
-	if (fActiveStrikers.Length() > 0)
+	if (fActiveStrikers.Length() > 0 && ElementSupport().Logging() == GlobalT::kVerbose)
 	{
 		out << setw(kIntWidth) << "striker" 
 		    << setw(kIntWidth) << "surface"
@@ -402,20 +402,22 @@ bool ContactT::SetContactConfiguration(void)
 	}
 
 	/* write list of active strikers */
-	iArrayT tmp;
-	tmp.Alias(fActiveStrikers);	
-	ostream& out = ElementSupport().Output();
-	out << "\n            time: " << ElementSupport().Time() << '\n';
-	out <<   " previous active: " << last_num_active << '\n';
-	out <<   "  current active: " << fActiveStrikers.Length() << '\n';
-	if (fActiveStrikers.Length() > 0 && ElementSupport().PrintInput()) {
-		out << setw(kIntWidth) << "node" 
-		    << setw(kIntWidth) << "surface" 
-		    << setw(kIntWidth) << "face" << '\n';
-		for (int i = 0; i < fActiveStrikers.Length(); i++)
-			out << setw(kIntWidth) << fActiveStrikers[i]+1
-			    << setw(kIntWidth) << fHitSurface[i]+1
-			    << setw(kIntWidth) << fHitFacets[i]+1 << '\n';
+	if (ElementSupport().Logging() != GlobalT::kSilent) {
+		iArrayT tmp;
+		tmp.Alias(fActiveStrikers);	
+		ostream& out = ElementSupport().Output();
+		out << "\n            time: " << ElementSupport().Time() << '\n';
+		out <<   " previous active: " << last_num_active << '\n';
+		out <<   "  current active: " << fActiveStrikers.Length() << '\n';
+		if (fActiveStrikers.Length() > 0 && ElementSupport().Logging() == GlobalT::kVerbose) {
+			out << setw(kIntWidth) << "node" 
+			    << setw(kIntWidth) << "surface" 
+			    << setw(kIntWidth) << "face" << '\n';
+			for (int i = 0; i < fActiveStrikers.Length(); i++)
+				out << setw(kIntWidth) << fActiveStrikers[i]+1
+				    << setw(kIntWidth) << fHitSurface[i]+1
+				    << setw(kIntWidth) << fHitFacets[i]+1 << '\n';
+		}
 	}
 
 	return contact_changed;

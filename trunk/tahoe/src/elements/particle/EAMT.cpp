@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.63 2004-12-09 09:19:45 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.64 2005-03-11 20:42:10 paklein Exp $ */
 #include "EAMT.h"
 
 #include "ofstreamT.h"
@@ -1826,7 +1826,7 @@ void EAMT::SetConfiguration(void)
 		out << " Average number of neighbors . . . . . . . . . . = " << 0 << '\n';
 
 	/* verbose */
-	if (ElementSupport().PrintInput()) {
+	if (ElementSupport().Logging() == GlobalT::kVerbose) {
 		out << " Neighbor lists (self as leading neighbor):\n";
 		out << setw(kIntWidth) << "row" << "  n..." << '\n';
 		iArrayT tmp(fNeighbors.Length(), fNeighbors.Pointer());

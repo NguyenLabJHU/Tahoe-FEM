@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.27 2005-02-25 15:41:54 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.28 2005-03-11 20:42:18 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -69,7 +69,8 @@ void SolverT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		fLHS->Initialize(tot_num_eq, loc_num_eq, start_eq);
 		
 		/* write information */
-		fLHS->Info(fFEManager.Output());
+		if (fFEManager.Logging() != GlobalT::kSilent)
+			fLHS->Info(fFEManager.Output());
 	
 		/* output global equation number for each DOF */
 		if (fPrintEquationNumbers) fFEManager.WriteEquationNumbers(fGroup);

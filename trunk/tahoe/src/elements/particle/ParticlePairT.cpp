@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.41 2004-12-26 21:08:24 d-farrell2 Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.42 2005-03-11 20:42:10 paklein Exp $ */
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
@@ -1304,7 +1304,7 @@ void ParticlePairT::SetConfiguration(void)
 	out << " Average number of neighbors . . . . . . . . . . = " << 0 << '\n';
 
 	/* verbose */
-	if (ElementSupport().PrintInput())
+	if (ElementSupport().Logging() == GlobalT::kVerbose)
 	{
 		out << " Neighbor lists (self as leading neighbor):\n";
 		out << setw(kIntWidth) << "row" << "  n..." << '\n';

@@ -1,4 +1,4 @@
-/* $Id: ParticleThreeBodyT.cpp,v 1.5 2004-12-09 09:19:09 paklein Exp $ */
+/* $Id: ParticleThreeBodyT.cpp,v 1.6 2005-03-11 20:42:10 paklein Exp $ */
 #include "ParticleThreeBodyT.h"
 
 #include "ThreeBodyPropertyT.h"
@@ -1083,7 +1083,7 @@ void ParticleThreeBodyT::SetConfiguration(void)
 	out << " Average number of neighbors . . . . . . . . . . = " << 0 << '\n';
 
 	/* verbose */
-	if (ElementSupport().PrintInput())
+	if (ElementSupport().Logging() == GlobalT::kVerbose)
 	{
 		out << " Neighbor lists (self as leading neighbor):\n";
 		out << setw(kIntWidth) << "row" << "  n..." << '\n';
