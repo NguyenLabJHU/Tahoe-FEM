@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.22 2002-06-18 21:49:00 recampb Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.23 2002-06-22 01:56:13 paklein Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -43,29 +43,28 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 	}
 	cout << "initialized database file: " << fInFile << endl;
   
-	/* read coordinates */
-	// dArray2DT coords;
-	coords.Alias(model.Coordinates());
-	if (coords.MinorDim() == 2) /* fill to 3D */
+	/* read and store coordinates */
+	fCoords = model.Coordinates();
+	if (fCoords.MinorDim() == 2) /* fill to 3D */
     {
 		/* temp space */ 
-		dArray2DT tmp(coords.MajorDim(), 3); 
+		dArray2DT tmp(fCoords.MajorDim(), 3); 
       
 		/* write in */ 
-		tmp.BlockColumnCopyAt(coords, 0);    
+		tmp.BlockColumnCopyAt(fCoords, 0);    
 		tmp.SetColumn(2, 0.0); 
       
 		/* swap memory */
-		coords.Free();
-		tmp.Swap(coords); 
+		fCoords.Free();
+		tmp.Swap(fCoords); 
     }
     
     /* read the node numbering map */
-    fPointNumberMap.Allocate(coords.MajorDim());
+    fPointNumberMap.Allocate(fCoords.MajorDim());
 	model.AllNodeIDs(fPointNumberMap);
 
 //TEMP
-	if (fPointNumberMap.Length() != coords.MajorDim()) {
+	if (fPointNumberMap.Length() != fCoords.MajorDim()) {
 		cout << "VTKBodyDataT: no node number map?" << endl;
 		throw eGeneralFail;
 	}
@@ -78,7 +77,7 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
   	//fPoints->SetNumberOfPoints(num_nodes + 1);
   	for (int i=0; i < num_nodes; i++) 
 //		fPoints->InsertPoint(i+1, coords(i));
-		fPoints->InsertPoint(i, coords(i)); //SHIFT
+		fPoints->InsertPoint(i, fCoords(i)); //SHIFT
 #endif
 
 #if 0
@@ -87,13 +86,13 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 
 	/* convert to float */
 	nArray2DT<float> coords_float(num_nodes+1, 3);
-	double_to_float(coords, coords_float(1));
+	double_to_float(fCoords, coords_float(1));
 
 	coordinates = vtkFloatArray::New();
 	coordinates->SetNumberOfComponents(3);
 	float* pcoords;
 	coords_float.ReleasePointer(&pcoords);
-	coordinates->SetArray(pcoords, coords.Length(), 0);
+	coordinates->SetArray(pcoords, fCoords.Length(), 0);
 	fPoints = vtkPoints::New();
 	fPoints->SetData(coordinates);
 #endif
@@ -389,7 +388,7 @@ bool VTKBodyDataT::SelectTimeStep(int stepNum)
 	  			/* displaced shape */
 				if (fVectors.Length() > 0){
 					if (!fVectors[stepNum]) throw eGeneralFail;
-		  			fUGrids[i]->SetWarpVectors(fVectors[stepNum], coords);
+		  			fUGrids[i]->SetWarpVectors(fVectors[stepNum], fCoords);
 		  		}
 	  		}
 			currentStepNum = stepNum;
