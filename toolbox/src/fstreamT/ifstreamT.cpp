@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.7 2001-06-14 20:45:38 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.8 2001-06-14 20:55:30 paklein Exp $ */
 /* created: paklein (03/03/1999)                                          */
 /* interface                                                              */
 
@@ -107,7 +107,7 @@ char ifstreamT::next_char(void)
 	while (good() && isspace(c)) get(c);	
 
 	/* restore last character */
-	if (good()) putback(c);
+	if (good()) ifstream::putback(c);
 
 	return c;
 }
@@ -213,7 +213,7 @@ void ifstreamT::do_skip_comments(void)
 
 	/* don't die while skipping comments */
 	if (good())
-		putback(c);
+		ifstream::putback(c);
 	else
 		clear();
 }
