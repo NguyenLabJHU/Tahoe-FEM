@@ -1,9 +1,12 @@
-/* $Id: J2SSKStV.cpp,v 1.2 2001-07-03 01:35:31 paklein Exp $ */
-/* created: paklein (06/18/1997)                                          */
+/* $Id: J2SSKStV.cpp,v 1.3 2002-04-17 23:58:18 paklein Exp $ */
+/* created: paklein (06/18/1997) */
 
 #include "J2SSKStV.h"
 #include "ElementCardT.h"
 #include "StringT.h"
+
+/* getting the iteration number */
+#include "ContinuumElementT.h"
 
 /* parameters */
 const double sqrt23 = sqrt(2.0/3.0);
@@ -20,7 +23,8 @@ J2SSKStV::J2SSKStV(ifstreamT& in, const SmallStrainT& element):
 	SSStructMatT(in, element),
 	IsotropicT(in),
 	HookeanMatT(3),
-	J2SSLinHardT(in, NumIP(), Mu()),
+//	J2SSLinHardT(in, NumIP(), Mu()),
+	J2SSC0HardeningT(in, NumIP(), Mu()),
 	fStress(3),
 	fModulus(dSymMatrixT::NumValues(3))
 {
@@ -56,7 +60,8 @@ void J2SSKStV::Print(ostream& out) const
 	/* inherited */
 	SSStructMatT::Print(out);
 	IsotropicT::Print(out);
-	J2SSLinHardT::Print(out);
+//	J2SSLinHardT::Print(out);
+	J2SSC0HardeningT::Print(out);
 }
 
 /* print name */
@@ -64,7 +69,8 @@ void J2SSKStV::PrintName(ostream& out) const
 {
 	/* inherited */
 	SSStructMatT::PrintName(out);
-	J2SSLinHardT::PrintName(out);
+//	J2SSLinHardT::PrintName(out);
+	J2SSC0HardeningT::PrintName(out);
 	out << "    Kirchhoff-St.Venant\n";
 }
 
@@ -88,7 +94,9 @@ const dSymMatrixT& J2SSKStV::s_ij(void)
 	HookeanStress(e_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
-	fStress += StressCorrection(e_els, element, ip);
+	int iteration = ContinuumElement().IterationNumber();
+	if (iteration > -1) /* elastic iteration */
+		fStress += StressCorrection(e_els, element, ip);
 	return fStress;	
 }
 

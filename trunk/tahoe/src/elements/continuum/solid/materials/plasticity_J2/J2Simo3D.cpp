@@ -1,9 +1,10 @@
-/* $Id: J2Simo3D.cpp,v 1.7 2001-10-24 02:23:08 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.8 2002-04-17 23:58:18 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 
 #include "J2Simo3D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
+#include "ContinuumElementT.h"
 
 /* constants */
 const double sqrt23 = sqrt(2.0/3.0);
@@ -101,7 +102,9 @@ const dSymMatrixT& J2Simo3D::s_ij(void)
 	ComputeCauchy(J, b_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
-	if (PlasticLoading(element, ip))
+	int iteration = ContinuumElement().IterationNumber();
+	if (iteration > -1 && PlasticLoading(element, ip)) /* 1st iteration is elastic */
+//	if (PlasticLoading(element, ip)) /* no iteration is elastic */
 	{
 		/* element not yet plastic */
 		if (!element.IsAllocated())
