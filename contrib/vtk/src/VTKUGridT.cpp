@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.29 2003-11-25 19:55:49 paklein Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.30 2004-01-02 04:26:34 paklein Exp $ */
 #include "VTKUGridT.h"
 
 /* Tahoe toolbox headers */
@@ -32,6 +32,9 @@
 #include "vtkTahoeGlyph3D.h"
 #include "vtkActorCollection.h"
 #include "vtkPolyDataMapper.h"
+#include "vtkPolyData.h"
+#include "vtkCellArray.h"
+#include "vtkPointData.h"
 
 using namespace Tahoe;
 
