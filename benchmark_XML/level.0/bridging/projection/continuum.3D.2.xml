@@ -31,7 +31,7 @@
         </updated_lagrangian>
         <meshfree_bridging field_name="displacement" solid_element_group="1">
             <RKPM>
-                <cubic_spline_window support_scaling="1.0"/>
+                <cubic_spline_window support_scaling="2.0"/>
             </RKPM>
         </meshfree_bridging>
     </element_list>
