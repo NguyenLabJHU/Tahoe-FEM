@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.62 2004-08-04 01:18:46 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.63 2004-08-04 22:07:58 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "APS_MatlT.h"
@@ -1410,6 +1410,9 @@ void APS_AssemblyT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
 	ElementBaseT::DefineSubs(sub_list);
+
+	/* element blocks */
+	sub_list.AddSub("aps_element_block");
 	
 	/* tractions */
 	sub_list.AddSub("aps_natural_bc", ParameterListT::Any);
@@ -1444,6 +1447,12 @@ ParameterInterfaceT* APS_AssemblyT::NewSub(const StringT& name) const
 		natural_bc->AddSub("DoubleList", ParameterListT::OnePlus); 		
 		
 		return natural_bc;
+	}
+	else if (name == "aps_element_block")
+	{
+		ParameterContainerT* element_block = new ParameterContainerT(name);
+		element_block->AddSub("block_ID_list");
+		return element_block;
 	}
 	else /* inherited */
 		return ElementBaseT::NewSub(name);
