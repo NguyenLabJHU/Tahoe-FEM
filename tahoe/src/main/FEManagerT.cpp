@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.70.2.7 2004-02-24 19:09:41 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.70.2.8 2004-02-26 08:59:32 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1204,6 +1204,8 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	IOBaseT::FileTypeT format = IOBaseT::int_to_FileTypeT(list.GetParameter("geometry_format"));
 	StringT database;
 	database = list.GetParameter("geometry_file");
+	if (database.StringLength() == 0)
+		ExceptionT::BadInputValue(caller, "\"geometry_file\" is empty");
 	database.ToNativePathName();      
 	database.Prepend(path);
 
