@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.2 2001-05-09 17:27:27 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.2.2.1 2001-06-06 16:22:53 paklein Exp $ */
 /* created: paklein (05/14/2000)                                          */
 
 #include "ABAQUS_UMAT_BaseT.h"
@@ -143,7 +143,7 @@ void ABAQUS_UMAT_BaseT::Initialize(void)
 		     <<   "    be handled within the UMAT\n" << endl;
 	
 	/* disable thermal transform */
-	SetFmodMult(NULL);	
+	//SetFmodMult(NULL);	
 }
 
 
@@ -318,20 +318,22 @@ const dSymMatrixT& ABAQUS_UMAT_BaseT::s_ij(void)
 /* material description */
 const dMatrixT& ABAQUS_UMAT_BaseT::C_IJKL(void)
 {
-	/* set deformation gradient */
-	F();
+	/* spatial tangent moduli */
+	const dMatrixT& c = ABAQUS_UMAT_BaseT::c_ijkl();
 
-	/* transform */
-	return c_to_C(ABAQUS_UMAT_BaseT::c_ijkl());
+	/* spatial -> material */
+	fModulus.SetToScaled(F().Det(), PushForward(F(), c));	
+	return fModulus;
 }
 
 const dSymMatrixT& ABAQUS_UMAT_BaseT::S_IJ(void)
 {
-//NOTE: F(), the current deformation gradient must be the last
-//      one computed in s_ij()
+	/* Cauchy stress */
+	const dSymMatrixT& s = ABAQUS_UMAT_BaseT::s_ij();
 
-	/* transform */
-	return  s_to_S(ABAQUS_UMAT_BaseT::s_ij());
+	/* spatial -> material */
+	fStress.SetToScaled(F().Det(), PushForward(F(), s));	
+	return fStress;
 }
 
 /* returns the strain energy density for the specified strain */
