@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.41 2002-03-21 18:59:21 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.42 2002-04-07 19:15:41 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -68,6 +68,15 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   layout.AddArgument(nx);
   layout.AddArgument(ny);
   iAddCommand(layout);
+
+  CommandSpecT window_size("WindowSize", false);
+  ArgSpecT width(ArgSpecT::int_, "w");
+  width.SetPrompt("width");
+  ArgSpecT height(ArgSpecT::int_, "h");
+  height.SetPrompt("height");
+  window_size.AddArgument(width);
+  window_size.AddArgument(height);
+  iAddCommand(window_size);
   
   iAddCommand(CommandSpecT("ShowFrameNumbers"));
   iAddCommand(CommandSpecT("HideFrameNumbers"));
@@ -375,17 +384,37 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
     {
     	if (fBodies.Length() == 0) return false;
     
-      StringT name;
+      StringT name, format;
       command.Argument(0).GetValue(name);
+      command.Argument(1).GetValue(format);
             
       vtkRendererSource* image = vtkRendererSource::New();
       image->SetInput(fFrames[0]->Renderer());
       image->WholeWindowOn();
-      
-      /* construct TIFF writer */
-      vtkTIFFWriter* writer = vtkTIFFWriter::New();
-      //vtkPostScriptWriter* writer = vtkPostScriptWriter::New();
-      writer->SetInput(image->GetOutput());
+
+		/* set writer (set file name extension) */
+		StringT ext;
+		ext.Suffix(name, '.');
+		ext.ToUpper();
+		vtkImageWriter* writer;
+		StringT suffix;
+		if (format == "TIFF" || format == "TIF")
+		{
+			/* construct TIFF writer */
+			writer = vtkTIFFWriter::New();
+
+			/* add extension */
+			if (ext != ".TIF" && ext != ".TIFF") suffix.Append(".tif");
+		}
+		else /* use jpg for all others */
+		{
+			/* construct JPEG writer */
+			writer = vtkJPEGWriter::New();
+			
+			/* add extension */
+			if (ext != ".JPG" && ext != ".JPEG") suffix.Append(".jpg");
+		}
+		writer->SetInput(image->GetOutput());
       
 		/* assume all the bodies have the same number of steps as body 0 */
 		for (int j = 0; j < fBodies[0]->NumTimeSteps(); j++) {
@@ -396,7 +425,7 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 			renWin->Render();  
 			StringT frame_name = name;
 			frame_name.Append(j,3); // pad to a width of 3 digits
-			frame_name.Append(".tif");
+			frame_name.Append(suffix);
 			writer->SetFileName(frame_name);
 			writer->Write();
 			cout << frame_name << " has been saved" << endl;
@@ -526,7 +555,23 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
       cout << name << " has been saved" << endl;   
       return true;
     }
+	else if (command.Name() == "WindowSize") {
+	
+		int w, h;
+		command.Argument("w").GetValue(w);
+		command.Argument("h").GetValue(h);
+		
+		/* limit minimum window size */
+		h = (h < 100) ? 100 : h;
+		w = (w < 100) ? 100 : w; 
+		
+		/* set size */	
+		renWin->SetSize(w, h);
 
+		/* update */
+		StringT tmp;
+		return iDoCommand(*iCommand("Update"), tmp);
+	}
   else
     /* drop through to inherited */
     return iConsoleObjectT::iDoCommand(command, line);
