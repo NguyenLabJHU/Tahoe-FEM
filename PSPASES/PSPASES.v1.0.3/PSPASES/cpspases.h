@@ -1,5 +1,9 @@
 /* Include this file in C applications which use PSPASES calls. */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void PSPACEO(int *rowdista,int *aptrs,int *ainds,int *order,
              int *sizes,int *options,MPI_Comm *pcomm);
 
@@ -20,4 +24,8 @@ void PSPACEC(long *pspcomm,int *option);
 void CHECKB_AX(int *rowdista,int *aptrs,int *ainds,double *avals,
                int *rowdistb,int *pnrhs,double *b,int *pldb,double *x,
                int *pldx,double *perr,MPI_Comm *pcomm);
+
+#ifdef __cplusplus
+}
+#endif
 
