@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.78 2004-08-08 02:06:37 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.79 2004-09-14 18:17:22 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -170,7 +170,7 @@ GlobalT::SystemTypeT FEManagerT::GlobalSystemType(int group) const
 		GlobalT::SystemTypeT e_type = (*fElementGroups)[i]->TangentType();
 
 		/* using precedence */
-		type = (e_type > type) ? e_type : type;
+		type = GlobalT::MaxPrecedence(e_type, type);
 	}
 	
 	return type;
