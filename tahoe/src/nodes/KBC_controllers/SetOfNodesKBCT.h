@@ -1,4 +1,4 @@
-/* $Id: SetOfNodesKBCT.h,v 1.2 2003-05-30 23:18:58 cjkimme Exp $ */
+/* $Id: SetOfNodesKBCT.h,v 1.2.34.1 2004-05-13 16:43:36 paklein Exp $ */
 #ifndef _SET_OF_NODES_KBC_T_H_
 #define _SET_OF_NODES_KBC_T_H_
 
@@ -29,8 +29,6 @@ public:
 	virtual void Initialize(ifstreamT& in);
 
 	virtual void InitialCondition(void) { } ;
-	
-	virtual void WriteParameters(ostream& out) const;
 
 protected:
 	

@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.h,v 1.3 2003-05-06 19:59:44 cjkimme Exp $ */
+/* $Id: ScaledVelocityNodesT.h,v 1.3.38.1 2004-05-13 16:43:36 paklein Exp $ */
 #ifndef _SCALED_VELOCITY_NODES_T_H_
 #define _SCALED_VELOCITY_NODES_T_H_
 
@@ -31,9 +31,6 @@ public:
 
 	/** initialize data. Must be called immediately after construction */
 	virtual void Initialize(ifstreamT& in);
-
-	/** write class parameters */
-	void WriteParameters(ostream& out) const;
 
 	/** do at start of timestep */
 	virtual void InitStep(void);

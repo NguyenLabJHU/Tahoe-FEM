@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.7.20.1 2004-04-08 07:33:54 paklein Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.7.20.2 2004-05-13 16:43:35 paklein Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -32,13 +32,6 @@ ScaledVelocityNodesT::~ScaledVelocityNodesT(void)
 {
    if (fRandom)
       delete fRandom;
-}
-
-void ScaledVelocityNodesT::WriteParameters(ostream& out) const
-{
-	/* inherited */
-	KBC_ControllerT::WriteParameters(out);
-
 }
 
 void ScaledVelocityNodesT::Initialize(ifstreamT& in)

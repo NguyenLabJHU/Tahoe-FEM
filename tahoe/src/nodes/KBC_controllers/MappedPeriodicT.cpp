@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.cpp,v 1.7.50.1 2004-04-08 07:33:54 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.7.50.2 2004-05-13 16:43:35 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 #include "MappedPeriodicT.h"
 
@@ -92,7 +92,7 @@ void MappedPeriodicT::Initialize(ifstreamT& in)
 void MappedPeriodicT::WriteParameters(ostream& out) const
 {
 	/* inherited */
-	KBC_ControllerT::WriteParameters(out);
+//	KBC_ControllerT::WriteParameters(out);
 
 #if 0
 	iArrayT tmp;

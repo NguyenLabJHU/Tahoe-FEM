@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.11.18.4 2004-05-12 17:51:36 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.11.18.5 2004-05-13 16:43:33 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 #include "MeshFreeFractureSupportT.h"
 
@@ -69,14 +69,11 @@ void MeshFreeFractureSupportT::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	MeshFreeElementSupportT::DefineSubs(sub_list);
 
-	/* fracture criterion */
-	sub_list.AddSub("fracture_criterion", ParameterListT::ZeroOrOnce);
-
 	/* cutting surfaces */
-	sub_list.AddSub("cutting_surfaces", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("cutting_surface", ParameterListT::Any);
 
 	/* sampling surfaces */
-	sub_list.AddSub("sampling_surfaces", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("sampling_surface", ParameterListT::Any);
 
 #pragma message("define cutting surfaces")
 #pragma message("define sampling surfaces")
@@ -102,6 +99,45 @@ ParameterInterfaceT* MeshFreeFractureSupportT::NewSub(const StringT& list_name) 
 		crit->AddParameter(ParameterT::Double, "critical_value");
 	
 		return crit;
+	}
+	else if (list_name == "cutting_surface") {
+
+		ParameterContainerT* cutting_surface = new ParameterContainerT(list_name);
+		cutting_surface->SetSubSource(this);
+		cutting_surface->AddParameter(ParameterT::Word, "geometry_file");
+		cutting_surface->AddSub("block_ID_list");
+		
+		/* one or more advancing fronts */
+		cutting_surface->AddSub("advancing_front", ParameterListT::Any);
+		
+		return cutting_surface;
+	}
+	else if (list_name == "sampling_surface") {
+		ParameterContainerT* sampling_surface = new ParameterContainerT(list_name);
+		sampling_surface->AddParameter(ParameterT::Integer, "num_sampling_points");
+		sampling_surface->AddParameter(ParameterT::Word, "geometry_file");
+		sampling_surface->AddSub("block_ID_list");
+		return sampling_surface;
+	}
+	else if (list_name == "advancing_front") {
+
+		ParameterContainerT* advancing_front = new ParameterContainerT(list_name);
+		advancing_front->SetSubSource(this);
+
+		/* fracture criterion */
+		advancing_front->AddSub("fracture_criterion", ParameterListT::ZeroOrOnce);
+	
+		/* sampling parameters */
+		advancing_front->AddParameter(ParameterT::Double, "extension_increment");
+		advancing_front->AddParameter(ParameterT::Integer, "num_side_sampling_points");
+		advancing_front->AddParameter(ParameterT::Double, "sampling_cone_angle");
+		advancing_front->AddParameter(ParameterT::Double, "sampling_distance_fraction");
+		advancing_front->AddParameter(ParameterT::Double, "insertion_threshold");
+	
+		/* fronts are side sets to the element blocks defining the surfaces */
+		advancing_front->AddSub("side_set_ID_list");
+		
+		return advancing_front;
 	}
 	else /* inherited */
 		return MeshFreeElementSupportT::NewSub(list_name);

@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.26.20.1 2004-04-08 07:33:54 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.26.20.2 2004-05-13 16:43:36 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -137,7 +137,7 @@ void TiedNodesT::SetExternalNodes(const ArrayT<int>& ex_nodes) const
 void TiedNodesT::WriteParameters(ostream& out) const
 {
 	/* inherited */
-	KBC_ControllerT::WriteParameters(out);
+//	KBC_ControllerT::WriteParameters(out);
 
 	out << "\n T i e d   n o d e   p a r a m e t e r s :\n\n";
 	out << " Number of leader node set ids . . . . . . . . . = " << fLeaderIds.Length() << '\n';

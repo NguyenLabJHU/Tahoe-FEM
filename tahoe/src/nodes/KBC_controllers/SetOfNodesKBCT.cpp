@@ -1,4 +1,4 @@
-/* $Id: SetOfNodesKBCT.cpp,v 1.3.20.1 2004-04-08 07:33:54 paklein Exp $ */
+/* $Id: SetOfNodesKBCT.cpp,v 1.3.20.2 2004-05-13 16:43:36 paklein Exp $ */
 #include "SetOfNodesKBCT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -22,13 +22,6 @@ SetOfNodesKBCT::SetOfNodesKBCT(NodeManagerT& node_manager, BasicFieldT& field):
 SetOfNodesKBCT::~SetOfNodesKBCT(void)
 {
    
-}
-
-void SetOfNodesKBCT::WriteParameters(ostream& out) const
-{
-	/* inherited */
-	KBC_ControllerT::WriteParameters(out);
-
 }
 
 void SetOfNodesKBCT::Initialize(ifstreamT& in)

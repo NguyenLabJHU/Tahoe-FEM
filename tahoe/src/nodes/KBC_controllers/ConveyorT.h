@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.h,v 1.2 2003-08-08 16:33:55 paklein Exp $ */
+/* $Id: ConveyorT.h,v 1.2.32.1 2004-05-13 16:43:35 paklein Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
 
@@ -28,9 +28,6 @@ public:
 
 	/** initialization */
 	virtual void Initialize(ifstreamT& in);
-
-	/** write parameters */
-	virtual void WriteParameters(ostream& out) const;
 
 	/** not implemented - there's no going back */
 	virtual void Reset(void);
