@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.13 2004-08-01 00:56:58 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.14 2004-08-01 20:40:42 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
@@ -56,10 +56,9 @@ const dMatrixT& FSSolidMatT::c_ijkl(void)
 
 	/* work space */
 	dMatrixT& F = const_cast<dMatrixT&>(fFSMatSupport->DeformationGradient());
-	dMatrixT F_0 = F;
-	double J_0 = F_0.Det();
-	dArrayT vec(nsd), e_c, e_d;
-	dSymMatrixT stress(nsd);
+	F_0_ = F;
+	double J_0 = F_0_.Det();
+	dArrayT e_c, e_d;
 
 	/* compute perturbed stress (in columns) */
 	double eps = 1.0e-08;
@@ -72,23 +71,23 @@ const dMatrixT& FSSolidMatT::c_ijkl(void)
 		basis.RowAlias(d, e_d);
 
 		/* perturbed deformation gradient (2.17) */
-		F = F_0;
-		F_0.MultTx(e_d, vec);
-		F.Outer(e_c, vec, 0.5*eps, dMatrixT::kAccumulate); 
-		F_0.MultTx(e_c, vec);
-		F.Outer(e_d, vec, 0.5*eps, dMatrixT::kAccumulate); 
+		F = F_0_;
+		F_0_.MultTx(e_d, vec_);
+		F.Outer(e_c, vec_, 0.5*eps, dMatrixT::kAccumulate); 
+		F_0_.MultTx(e_c, vec_);
+		F.Outer(e_d, vec_, 0.5*eps, dMatrixT::kAccumulate); 
 		double J = F.Det();
 
 		/* compute stress */
-		stress.SetToScaled(J, s_ij());
+		stress_.SetToScaled(J, s_ij());
 	
 		/* write into modulus */
-		fModulus.SetCol(i, stress);
+		fModulus.SetCol(i, stress_);
 	}
 	
 	/* restore nominal state of deformation and stress */
-	F = F_0;
-	stress.SetToScaled(J_0, s_ij());
+	F = F_0_;
+	stress_.SetToScaled(J_0, s_ij());
 	
 	/* compute finite difference and geometric contribution (2.18) */
 	for (int i = 0; i < fModulus.Cols(); i++) {
@@ -100,19 +99,19 @@ const dMatrixT& FSSolidMatT::c_ijkl(void)
 		basis.RowAlias(d, e_d);
 
 		/* geometric contribution */
-		stress.Multx(e_d, vec);
-		F_0.Outer(e_c, vec, 0.5, dMatrixT::kOverwrite); 
-		F_0.Outer(vec, e_c, 0.5, dMatrixT::kAccumulate); 
-		stress.Multx(e_c, vec);
-		F_0.Outer(e_d, vec, 0.5, dMatrixT::kAccumulate); 
-		F_0.Outer(vec, e_d, 0.5, dMatrixT::kAccumulate); 
+		stress_.Multx(e_d, vec_);
+		F_0_.Outer(e_c, vec_, 0.5, dMatrixT::kOverwrite); 
+		F_0_.Outer(vec_, e_c, 0.5, dMatrixT::kAccumulate); 
+		stress_.Multx(e_c, vec_);
+		F_0_.Outer(e_d, vec_, 0.5, dMatrixT::kAccumulate); 
+		F_0_.Outer(vec_, e_d, 0.5, dMatrixT::kAccumulate); 
 		
 		/* combine results */
 		for (int j = 0; j < fModulus.Rows(); j++)
 		{
 			int a, b;
 			dSymMatrixT::ExpandIndex(nsd, j, a, b);
-			fModulus(j,i) = (fModulus(j,i) - stress[j])/eps - F_0(a,b);
+			fModulus(j,i) = (fModulus(j,i) - stress_[j])/eps - F_0_(a,b);
 		}
 	}
 
@@ -322,8 +321,14 @@ void FSSolidMatT::TakeParameterList(const ParameterListT& list)
 	SolidMaterialT::TakeParameterList(list);
 
 	/* dimension return values */
-	fStress.Dimension(NumSD());
-	fModulus.Dimension(dSymMatrixT::NumValues(NumSD()));
+	int nsd = NumSD();
+	fStress.Dimension(nsd);
+	fModulus.Dimension(dSymMatrixT::NumValues(nsd));
+
+	/* FSSolidMatT::c_ijkl work space */
+	F_0_.Dimension(nsd);
+	vec_.Dimension(nsd);
+	stress_.Dimension(nsd);
 
 	/* set multiplicative thermal transformation */
 	SetInverseThermalTransformation(fF_therm_inv);
