@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.26 2002-12-05 08:31:13 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.27 2003-01-03 03:31:04 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -69,57 +69,8 @@ FEManagerT_mpi::~FEManagerT_mpi(void)
 	//TEMP
 	TimeStamp("FEManagerT_mpi::~FEManagerT_mpi");
 
-#ifdef __TAHOE_MPI__
-	if (fTask == kRun)
-	{
-		const iArrayT& commID = fPartition->CommID();
-
-		/* free any uncompleted receive requests */
-		for (int i = 0; i < fRecvRequest.Length(); i++)
-			if (fRecvRequest[i] != MPI_REQUEST_NULL)
-			{
-				flog << " FEManagerT_mpi::~FEManagerT_mpi: cancelling Recv from: "
-				     << commID[i] << endl;
-				
-				/* cancel request */
-				MPI_Cancel(&fRecvRequest[i]);
-				MPI_Status status;
-				MPI_Wait(&fRecvRequest[i], &status);
-				int flag;
-				MPI_Test_cancelled(&status, &flag);
-				if (flag == true)
-					flog << " FEManagerT_mpi::~FEManagerT_mpi: cancelling Recv from: "
-					     << commID[i] << ": DONE" <<endl;
-				else	
-					flog << " FEManagerT_mpi::~FEManagerT_mpi: cancelling Recv from: "
-					     << commID[i] << ": FAIL" <<endl;		
-			}
-
-		/* free any uncompleted send requests */
-		for (int ii = 0; ii < fSendRequest.Length(); ii++)
-			if (fSendRequest[ii] != MPI_REQUEST_NULL)
-			{
-				flog << " FEManagerT_mpi::~FEManagerT_mpi: cancelling Send from: "
-				     << commID[ii] << endl;
-				
-				/* cancel request */
-				MPI_Cancel(&fSendRequest[ii]);
-				MPI_Status status;
-				MPI_Wait(&fSendRequest[ii], &status);
-				int flag;
-				MPI_Test_cancelled(&status, &flag);
-				if (flag == true)
-					flog << " FEManagerT_mpi::~FEManagerT_mpi: cancelling Send from: "
-					     << commID[ii] << ": DONE" <<endl;
-				else	
-					flog << " FEManagerT_mpi::~FEManagerT_mpi: cancelling Send from: "
-					     << commID[ii] << ": FAIL" <<endl;		
-			}
-	}
-#endif /* __TAHOE_MPI__ */
-
-		/* restore log messages */
-		fComm.SetLog(cout);
+	/* restore log messages */
+	fComm.SetLog(cout);
 }
 
 ExceptionT::CodeT FEManagerT_mpi::InitStep(void)
