@@ -1,4 +1,4 @@
-/* $Id: XML_Attribute_FormatterT.h,v 1.6 2004-03-18 17:40:49 paklein Exp $ */
+/* $Id: XML_Attribute_FormatterT.h,v 1.7 2004-03-28 09:53:29 paklein Exp $ */
 #ifndef _XML_ATTRIBUTE_FORMATTER_T_H_
 #define _XML_ATTRIBUTE_FORMATTER_T_H_
 
@@ -94,7 +94,7 @@ private:
 	int ListWidth(const ParameterListT& list) const;
 
 	/** return the length of the longest reference name */
-	int ReferenceWidth(const ParameterListT& list) const;
+	//int ReferenceWidth(const ParameterListT& list) const;
 	/*@}*/
 
 private:

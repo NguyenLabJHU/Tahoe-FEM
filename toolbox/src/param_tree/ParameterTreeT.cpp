@@ -1,4 +1,4 @@
-/* $Id: ParameterTreeT.cpp,v 1.8 2004-03-27 04:07:17 paklein Exp $ */
+/* $Id: ParameterTreeT.cpp,v 1.9 2004-03-28 09:53:29 paklein Exp $ */
 #include "ParameterTreeT.h"
 #include "ParameterInterfaceT.h"
 
@@ -42,7 +42,7 @@ void ParameterTreeT::Validate(const ParameterInterfaceT& source, const Parameter
 	try { /* catch all exceptions */
 
 	/* clear destination */
-	valid_list.Clear();
+	//valid_list.Clear();
 
 	/* contents of subordinates */
 	SubListT sub_list;
@@ -117,11 +117,6 @@ bool ParameterTreeT::ValidateChoice(
 	const ArrayT<ParameterListT>& raw_sub_list, 
 	ParameterListT& valid_list,
 	const AutoArrayT<SubListDescriptionT>& sub_lists,
-#if 0
-	const AutoArrayT<StringT>& sub_name,
-	const AutoArrayT<ParameterListT::OccurrenceT>& sub_occur,
-	const AutoArrayT<bool>& sub_is_inline,
-#endif
 	bool throw_on_error)
 {
 	const char caller[] = "ParameterTreeT::ValidateChoice";
@@ -163,6 +158,12 @@ bool ParameterTreeT::ValidateChoice(
 				sub = fDictionary[name_0];
 			else {
 				sub = source.NewSub(name_0);
+				if (!sub)
+					ExceptionT::GeneralFail(caller, "\"%s\" did not return \"%s\"", 
+						source.Name().Pointer(), name_0.Pointer());
+				else if (sub->Name() != name_0)
+					ExceptionT::GeneralFail(caller, "\"%s\" returned \"%s\" not \"%s\"", 
+						source.Name().Pointer(), sub->Name().Pointer(), name_0.Pointer());
 				fDeleteMe.Append(sub);
 			}
 		
@@ -187,11 +188,6 @@ bool ParameterTreeT::ValidateSequence(
 	const ArrayT<ParameterListT>& raw_sub_list, 
 	ParameterListT& valid_list,
 	const AutoArrayT<SubListDescriptionT>& sub_lists,
-#if 0
-	const AutoArrayT<StringT>& sub_name,
-	const AutoArrayT<ParameterListT::OccurrenceT>& sub_occur,
-	const AutoArrayT<bool>& sub_is_inline,
-#endif
 	bool throw_on_error)
 {
 	const char caller[] = "ParameterTreeT::ValidateSequence";
@@ -209,10 +205,32 @@ bool ParameterTreeT::ValidateSequence(
 		/* inlined sub list */
 		if (is_inline)
 		{
+			/* look for source for inlined list */
+			const ParameterInterfaceT* inline_source = NULL;
+			if (fDictionary.HasKey(name))
+				inline_source = fDictionary[name];
+			else {
+				inline_source = source.NewSub(name);
+				if (inline_source) {
+					if (inline_source->Name() != name)
+						ExceptionT::GeneralFail(caller, "\"%s\" returned \"%s\" not \"%s\"", 
+							source.Name().Pointer(), inline_source->Name().Pointer(), name.Pointer());
+					fDeleteMe.Append(inline_source);
+				}
+			}
+
 			/* get sub-list description */
 			ParameterListT::ListOrderT in_order;
 			SubListT in_sub;
-			source.DefineInlineSub(name, in_order, in_sub);
+			if (inline_source) {
+				in_order = inline_source->ListOrder();
+				inline_source->DefineSubs(in_sub);
+			} 
+			else /* source must construct inlined list */
+			{ 
+				source.DefineInlineSub(name, in_order, in_sub);
+				inline_source = &source;
+			}
 
 			switch (occur)
 			{
@@ -228,9 +246,9 @@ bool ParameterTreeT::ValidateSequence(
 					/* must have one */
 					int last_list_count = valid_list.NumLists();
 					if (in_order == ParameterListT::Sequence)
-						check_OK = ValidateSequence(source, raw_sub_list_tail, valid_list, in_sub, in_throw_on_error);
+						check_OK = ValidateSequence(*inline_source, raw_sub_list_tail, valid_list, in_sub, in_throw_on_error);
 					else if (in_order == ParameterListT::Choice)
-						check_OK = ValidateChoice(source, raw_sub_list_tail, valid_list, in_sub, in_throw_on_error);
+						check_OK = ValidateChoice(*inline_source, raw_sub_list_tail, valid_list, in_sub, in_throw_on_error);
 					else
 						ExceptionT::GeneralFail(caller, "unrecognized list order %d", in_order);
 
@@ -259,9 +277,9 @@ bool ParameterTreeT::ValidateSequence(
 						/* search */
 						int last_list_count = valid_list.NumLists();
 						if (in_order == ParameterListT::Sequence)
-							check_OK = ValidateSequence(source, raw_sub_list_tail, valid_list, in_sub, in_throw_on_error);
+							check_OK = ValidateSequence(*inline_source, raw_sub_list_tail, valid_list, in_sub, in_throw_on_error);
 						else if (in_order == ParameterListT::Choice)
-							check_OK = ValidateChoice(source, raw_sub_list_tail, valid_list, in_sub, in_throw_on_error);
+							check_OK = ValidateChoice(*inline_source, raw_sub_list_tail, valid_list, in_sub, in_throw_on_error);
 						else
 							ExceptionT::GeneralFail(caller, "unrecognized list order %d", in_order);
 
@@ -306,6 +324,12 @@ bool ParameterTreeT::ValidateSequence(
 							sub = fDictionary[name];
 						else {
 							sub = source.NewSub(name);
+							if (!sub)
+								ExceptionT::GeneralFail(caller, "\"%s\" did not return \"%s\"", 
+									source.Name().Pointer(), name.Pointer());
+							else if (sub->Name() != name)
+								ExceptionT::GeneralFail(caller, "\"%s\" returned \"%s\" not \"%s\"", 
+									source.Name().Pointer(), sub->Name().Pointer(), name.Pointer());
 							fDeleteMe.Append(sub);
 						}
 
@@ -343,6 +367,12 @@ bool ParameterTreeT::ValidateSequence(
 							sub = fDictionary[name];
 						else {
 							sub = source.NewSub(name);
+							if (!sub)
+								ExceptionT::GeneralFail(caller, "\"%s\" did not return \"%s\"", 
+									source.Name().Pointer(), name.Pointer());
+							else if (sub->Name() != name)
+								ExceptionT::GeneralFail(caller, "\"%s\" returned \"%s\" not \"%s\"", 
+									source.Name().Pointer(), sub->Name().Pointer(), name.Pointer());
 							fDeleteMe.Append(sub);
 						}
 
@@ -394,13 +424,13 @@ void ParameterTreeT::BuildBranch(const ParameterInterfaceT& source, ParameterLis
 	SubListT sub_list;
 
 	/* defining self */
-	if (source.Name() == params.Name()) 
+	if (source.Name() == params.Name())
 	{	
 		/* collect parameters */
 		source.DefineParameters(params);
 			
-		/* add list to the dictionary */
-		if (!fDictionary.Insert(source.Name(), &source))
+		/* add list to the dictionary - inlined lists may be reproduced */
+		if (!fDictionary.Insert(source.Name(), &source) && !params.Inline())
 			ExceptionT::GeneralFail(caller, "dictionary already contains \"%s\"",
 				source.Name().Pointer());
 
@@ -442,7 +472,19 @@ void ParameterTreeT::BuildBranch(const ParameterInterfaceT& source, ParameterLis
 			/* source builds inline list */
 			ParameterListT inline_params(sub.Name());
 			inline_params.SetInline(true);
-			BuildBranch(source, inline_params);
+
+			/* inline list has interface */ 
+			ParameterInterfaceT* sub_interface = source.NewSub(sub.Name());
+			if (sub_interface) {
+			
+				/* build list */
+				BuildBranch(*sub_interface, inline_params);
+			
+				/* add to list of items to delete */
+				fDeleteMe.Append(sub_interface);
+			}
+			else /* source builds inline list */
+				BuildBranch(source, inline_params);
 			
 			/* add list */
 			if (!params.AddList(inline_params, sub.Occurrence()))
