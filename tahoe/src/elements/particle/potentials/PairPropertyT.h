@@ -1,4 +1,4 @@
-/* $Id: PairPropertyT.h,v 1.1 2002-11-25 07:19:46 paklein Exp $ */
+/* $Id: PairPropertyT.h,v 1.2 2002-12-04 18:55:30 paklein Exp $ */
 #ifndef _PAIR_PROPERTY_T_H_
 #define _PAIR_PROPERTY_T_H_
 
@@ -52,6 +52,11 @@ public:
 
 	/** return a pointer to the stiffness function */
 	virtual StiffnessFunction getStiffnessFunction(void) = 0;
+
+	/** return Paradyn-style coefficients table.
+	 * returns false if no table is available. */
+	virtual bool getParadynTable(const double** coeff, double& dr, 
+		int& row_size, int& num_rows) const;
 	/*@}*/
 };
 

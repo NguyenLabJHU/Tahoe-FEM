@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.cpp,v 1.2 2002-12-04 06:25:58 paklein Exp $ */
+/* $Id: ParadynPairT.cpp,v 1.3 2002-12-04 18:55:30 paklein Exp $ */
 #include "ParadynPairT.h"
 #include "toolboxConstants.h"
 #include "ifstreamT.h"
@@ -112,6 +112,16 @@ PairPropertyT::StiffnessFunction ParadynPairT::getStiffnessFunction(void)
 
 	/* return function pointer */
 	return ParadynPairT::Stiffness;
+}
+
+/* return Paradyn-style coefficients table */
+bool ParadynPairT::getParadynTable(const double** coeff, double& dr, int& row_size, int& num_rows) const
+{
+	*coeff = fCoefficients.Pointer();
+	dr = f_1bydr;
+	row_size = 9;
+	num_rows = fCoefficients.MajorDim();
+	return true;
 }
 
 /***********************************************************************
