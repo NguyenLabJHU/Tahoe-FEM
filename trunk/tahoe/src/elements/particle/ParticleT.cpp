@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.20 2003-05-06 19:55:46 cjkimme Exp $ */
+/* $Id: ParticleT.cpp,v 1.21 2003-05-09 18:39:13 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -682,6 +682,7 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 	
 	in >> nThermostats;
 	fThermostats.Dimension(nThermostats);
+	fThermostats = NULL;
 	
 	for (int i = 0; i < nThermostats; i++)
 	{
