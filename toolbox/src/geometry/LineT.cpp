@@ -1,4 +1,4 @@
-/* $Id: LineT.cpp,v 1.5 2004-02-28 21:52:26 paklein Exp $ */
+/* $Id: LineT.cpp,v 1.6 2004-04-16 03:19:16 paklein Exp $ */
 /* created: paklein (04/25/1999) */
 #include "LineT.h"
 
@@ -237,13 +237,30 @@ void LineT::SetExtrapolation(dMatrixT& extrap) const
 			extrap_4.CopyBlock(0, 0, extrap);
 		break;
 		}
-	default:		
-			
-			cout << "\n LineT::SetExtrapolation: unsupported number of integration points: " << nip << endl;
-			throw ExceptionT::kGeneralFail;
+	default:
+		ExceptionT::GeneralFail("LineT::SetExtrapolation", "unsupported integration rule %d", nip);
 	}
 }
 
+/* integration point gradient matrix */
+void LineT::IPGradientTransform(int ip, dMatrixT& transform) const
+{
+	const char caller[] = "LineT::IPGradientTransform";
+
+	/* dimensions */
+	int nsd = transform.Rows();
+	int nip = transform.Cols();
+	if (nsd != 1) ExceptionT::SizeMismatch(caller);
+
+	//TEMP - only implemented for 2 integration points
+	if (nip != 2) ExceptionT::GeneralFail("QuadT::IPGradientTransform");
+
+	/* constant gradient */
+#pragma unused(ip)
+	double a = sqrt(3.0)/2.0;
+	transform(0,0) =-a;
+	transform(0,1) = a;
+}
 /* return the local node numbers for each facet of the element
 * numbered to produce at outward normal in the order: vertex
 * nodes, mid-edge nodes, mid-face nodes */
