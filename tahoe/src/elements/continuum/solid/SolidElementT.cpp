@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.40 2003-01-29 07:34:34 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.41 2003-02-18 08:44:18 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -451,7 +451,7 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 	out << "    [" << fElementOutputCodes[iStrainEnergy  ] << "]: strain energy\n";
 	out << "    [" << fElementOutputCodes[iKineticEnergy ] << "]: kinetic energy\n";
 	out << "    [" << fElementOutputCodes[iLinearMomentum] << "]: linear momentum\n";
-	out << "    [" << fElementOutputCodes[iIPStress      ] << "]: ip stresses\n";
+	out << "    [" << fElementOutputCodes[iIPStress      ] << "]: ip stresses and strains\n";
 	out << "    [" << fElementOutputCodes[iIPMaterialData] << "]: ip material output parameters\n";
 }
 
@@ -493,7 +493,7 @@ void SolidElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArra
 	if (fElementOutputCodes[iStrainEnergy] == mode) counts[iStrainEnergy] = 1;
 	if (fElementOutputCodes[iKineticEnergy] == mode) counts[iKineticEnergy] = 1;
 	if (fElementOutputCodes[iLinearMomentum] == mode) counts[iLinearMomentum] = NumDOF();
-	if (fElementOutputCodes[iIPStress] == mode) counts[iIPStress] = dSymMatrixT::NumValues(NumSD())*NumIP();
+	if (fElementOutputCodes[iIPStress] == mode) counts[iIPStress] = 2*dSymMatrixT::NumValues(NumSD())*NumIP();
 	if (fElementOutputCodes[iIPMaterialData] == mode) 
 		counts[iIPMaterialData] = (*fMaterialList)[0]->NumOutputVariables()*NumIP();
 }
@@ -997,7 +997,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         dArray2DT energy, speed;
 
         /* ip values */
-        dSymMatrixT cauchy(nsd);
+        dSymMatrixT cauchy(nsd), nstr_tmp;
         dArrayT ipmat(n_codes[iMaterialData]), ipenergy(1);
         dArrayT ipspeed(nsd), ipprincipal(nsd);
 
@@ -1156,7 +1156,14 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
                                         fShapes->Extrapolate(cauchy, nodalstress);
                         }
                         
-                        if (e_codes[iIPStress]) ip_stress.SetRow(fShapes->CurrIP(), cauchy);
+                        if (e_codes[iIPStress]) {
+                        	double* row = ip_stress(fShapes->CurrIP());
+                        	nstr_tmp.Set(nsd, row);
+                        	nstr_tmp = cauchy;
+                        	row += cauchy.Length();
+                        	nstr_tmp.Set(nsd, row);
+                        	fCurrMaterial->Strain(nstr_tmp);
+                        }
 
                         /* wave speeds */
                         if (n_codes[iWaveSpeeds])
@@ -1418,8 +1425,8 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 	}
 	if (e_codes[iIPStress])
 	{
-		const char* slabels2D[] = {"s11", "s22", "s12"};
-		const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12"};
+		const char* slabels2D[] = {"s11", "s22", "s12","e11", "e22", "e12"};
+		const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12", "e11", "e22", "e33", "e23", "e13", "e12"};
 		const char**    slabels = (NumSD() == 2) ? slabels2D : slabels3D;
 
 		/* over integration points */
@@ -1428,8 +1435,8 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 			StringT ip_label;
 			ip_label.Append("ip", j+1);
 			
-			/* over stress components */
-			for (int i = 0; i < dSymMatrixT::NumValues(NumSD()); i++)
+			/* over stress/strain components */
+			for (int i = 0; i < 2*dSymMatrixT::NumValues(NumSD()); i++)
 			{
 				e_labels[count].Clear();
 				e_labels[count].Append(ip_label, ".", slabels[i]);
