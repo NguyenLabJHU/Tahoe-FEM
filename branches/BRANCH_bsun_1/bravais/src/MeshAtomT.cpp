@@ -52,10 +52,14 @@
             Shape = new AsperityT(nsd,cel,latticeparameter,isort,which_latticetype,per);
       }
       else if (which_shape=="POLY") {
-         if (whichunit==1)
-            Shape = new PolyT(nsd,len,latticeparameter,isort,which_latticetype,per, NumberofGrains);
-         else
-            Shape = new PolyT(nsd,cel,latticeparameter,isort,which_latticetype,per, NumberofGrains);
+         if (whichunit==1) {
+			len*=2;
+			Shape = new PolyT(nsd,len,latticeparameter,isort,which_latticetype,per, NumberofGrains);
+         }
+         else{
+			cel*=2;
+			Shape = new PolyT(nsd,cel,latticeparameter,isort,which_latticetype,per, NumberofGrains);
+         }
       }
       else
       {
