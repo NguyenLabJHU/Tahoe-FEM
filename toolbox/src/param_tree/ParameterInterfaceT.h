@@ -1,9 +1,9 @@
-/* $Id: ParameterInterfaceT.h,v 1.2 2003-04-26 19:10:35 paklein Exp $ */
+/* $Id: ParameterInterfaceT.h,v 1.2.2.1 2003-04-27 22:13:45 paklein Exp $ */
 #ifndef _PARAMETER_INTERFACE_T_H_
 #define _PARAMETER_INTERFACE_T_H_
 
 /* direct members */
-#include "ParameterListT.h";
+#include "ParameterListT.h"
 
 namespace Tahoe {
 
@@ -16,30 +16,41 @@ class ParameterInterfaceT
 public:
 
 	/** constructor */
-	ParameterInterfaceT(void) {};
+	ParameterInterfaceT(const StringT& name);
 
 	/** identifier */
-	virtual const StringT& Name(void) const = 0;
+	const StringT& Name(void) const { return fName; };
 
 	/** \name parameters */
 	/*@{*/
 	/** accept completed parameter list */
 	virtual void SetParameters(const ParameterListT& list);
 	
-	/** build complete parameter list description */
+	/** build parameter list description.
+	 * \param list destination for parameter description. The list will have the
+	 *        name either of ParameterInterfaceT::Name or of any sub-list, returned
+	 *        by ParameterInterfaceT::SubNames that is defined as inline. */
 	virtual void DefineParameters(ParameterListT& list) const;
 	/*@}*/
 
-	/** \name sub-lists */
+	/** \name subordinates that define parameters lists */
 	/*@{*/
-	/** return the list of sub-list names */
-	virtual void SubListNames(ArrayT<StringT>& list, ArrayT<ParameterListT::OccurrenceT>& occur) const;
+	/** information about subordinate parameter lists
+	 * \param names list of subordinate list names
+	 * \param occur occurrence specifier of subordinate list names 
+	 * \param is_inline flag indicating if list is inline */
+	virtual void SubNames(ArrayT<StringT>& names, ArrayT<ParameterListT::OccurrenceT>& occur,
+		ArrayT<bool>& is_inline) const;
 	
-	/** a pointer to the ParameterInterfaceT of the given sublist
-	 * or NULL if the name is invalid. The objects returned must remain
-	 * valid as long as this. */
-	virtual ParameterInterfaceT* SubList(const StringT& list_name);
+	/** a pointer to the ParameterInterfaceT of the given subordinate
+	 * or NULL if the name is invalid. Responsibility for deleteting instantiations
+	 * resides with the client who requested them. */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name);
 	/*@}*/
+
+private:
+
+	StringT fName;
 };
 
 } /* namespace Tahoe */
