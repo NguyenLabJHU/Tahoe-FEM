@@ -1,11 +1,10 @@
-/* $Id: ParameterListT.h,v 1.22 2004-06-16 07:11:58 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.23 2005-03-11 20:51:30 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
 /* direct members */
 #include "ParameterT.h"
 #include "AutoArrayT.h"
-#include "enum2int.h"
 
 namespace Tahoe {
 
