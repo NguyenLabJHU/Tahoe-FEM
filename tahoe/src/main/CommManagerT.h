@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.6 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.7 2004-10-14 20:21:09 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -9,6 +9,7 @@
 #include "InverseMapT.h"
 #include "MessageT.h" /* message enum's */
 #include "dArrayT.h"
+#include "nVariArray2DT.h"
 
 namespace Tahoe {
 
@@ -42,6 +43,12 @@ public:
 	/** rank of this process */
 	int Rank(void) const { return fRank; };
 
+	/** width of the communication skin */
+	double Skin(void) const { return fSkin; };
+
+	/** set the width of the communication skin */
+	void SetSkin(double skin) { fSkin = skin; };
+
 	/** set or clear partition information. Needs to be set before calling 
 	 * CommManagerT::Configure. */
 	void SetPartition(PartitionT* partition);
@@ -60,11 +67,8 @@ public:
 	/** accessor */
 	const dArray2DT& PeriodicBoundaries(void) { return fPeriodicBoundaries; };
 	
-	/** enforce the periodic boundary conditions.
-	 * Enforcement involves the following steps:
-	 * -# reset the ghost nodes
-	 * \param field field which provides the displacements of the nodes */
-	void EnforcePeriodicBoundaries(double skin);
+	/** enforce the periodic boundary conditions */
+	void EnforcePeriodicBoundaries(void);
 
 	/** return the number of real nodes */
 	int NumRealNodes(void) const { return fNumRealNodes; };
@@ -168,6 +172,15 @@ private:
 	/** perform actions needed the first time CommManagerT::Configure is called. */
 	void FirstConfigure(void);
 
+	/** \name methods for configuring computation with a spatial decomposition */
+	/*@{*/
+	/** distribute nodes on spatial grid */
+	void Distribute(void);
+	
+	/** set border information */
+	void SetExchange(void);
+	/*@}*/
+
 	/** determine the local coordinate bounds 
 	 * \param coords coordinate list
 	 * \param local rows of coords to use in determining bounds
@@ -193,6 +206,9 @@ private:
 
 	int fSize;
 	int fRank;
+
+	/** width of communication layer for non-graph based decompositions */
+	double fSkin;
 
 	/** \name periodic boundaries */
 	/*@{*/
@@ -255,13 +271,23 @@ private:
 	/** communications for ghost nodes associated with the communications
 	 * in CommManagerT::fCommunications */
 	AutoArrayT<MessageT*> fGhostCommunications;
-	
-	/** dummy array for double exchanges */
-	dArray2DT fdExchange;
-
-	/** dummy array for double exchanges */
-	iArray2DT fiExchange;
 	/*@}*/
+
+	/** \name communication buffers */
+	/*@{*/
+	dArray2DT fd_send_buffer;
+	dArray2DT fd_recv_buffer;
+	nVariArray2DT<double> fd_send_buffer_man;
+	nVariArray2DT<double> fd_recv_buffer_man;
+
+	iArray2DT fi_send_buffer;
+	iArray2DT fi_recv_buffer;
+	nVariArray2DT<int> fi_send_buffer_man;
+	nVariArray2DT<int> fi_recv_buffer_man;
+	/*@}*/
+
+	/** ID of surrounding processors needed for spatial decomposition only */
+	iArray2DT fAdjacentCommID; /* [nsd] x {low, high} */
 };
 
 /* processor map */
