@@ -127,6 +127,7 @@ void AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	    if (!Read (name, 1))
 	      throw eDatabaseFail;
 	    fNodeSetNames.Append (name);
+	    //cout << "node set name " << name << ". " << endl;
 	    fNumNodeSets++; 
 	    break;
 	  }
@@ -136,6 +137,7 @@ void AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	    if (!Read (name, 1))
 	      throw eDatabaseFail;
 	    fElementSetNames.Append (name);
+	    //cout << "element set name " << name << ". " << endl;
 	    fNumElementSets++; 
 	    break;
 	  }
@@ -196,8 +198,12 @@ void AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
   numtimesteps = fStartCount;
   nummodes = fModalCount;
 
-  //cout << " NumNodeSets: " << fNumNodeSets 
-  //<< "\n NumElemSets: " << fNumElementSets << "\n\n";
+  /*cout << "\n NumElemSets: " << fNumElementSets << endl;
+  for (int i=0; i < fNumNodeSets; i++)
+    cout << "   " << fNodeSetNames[i] << ". " << endl;
+  cout << " NumNodeSets: " << fNumNodeSets << endl;
+  for (int i=0; i < fNumElementSets; i++)
+  cout << "   " << fElementSetNames[i] << ". " << endl;*/
 }
 
 void AbaqusResultsT::ElementSetNames (ArrayT<StringT>& names) const
@@ -807,7 +813,7 @@ void AbaqusResultsT::ResetFile (void)
 
 bool AbaqusResultsT::ReadVersion (void)
 {
-  //  cout << "ReadVersion: " << fCurrentLength << endl;
+  // cout << "ReadVersion: " << fCurrentLength << endl;
   StringT version, date, time;
   int numelems, numnodes;
   double elemleng;
@@ -1225,8 +1231,10 @@ bool AbaqusResultsT::Read (StringT& s, int n)
 	}
       else
 	{
+	  //cout << "BUFFER: " << fBuffer << endl;
 	  if (!CheckBufferSize (fIn, 9)) return false;
-	      
+	  //cout << "BUFFER: " << fBuffer << endl;
+	  
 	  char c = fBuffer [fBufferDone++];
 	  if (c != 'A') return false;
 
@@ -1329,10 +1337,13 @@ bool AbaqusResultsT::CheckBufferSize (istream& in, int numchars)
     {
       //cout << "Updating Buffer" << endl;
       char temp [200];
+      temp[0] = '\0';
       if (fBufferSize > 0) 
 	strcpy (&temp[0], fBuffer.Pointer (fBufferDone));
+      //cout << "  temp: " << temp << ". " << endl;
       char nextline [90];
       if (!fIn.getline (&nextline[0], 89, '\n')) return false;
+      //cout << "  nextline: " << nextline << ". " << endl;
       
       strcat (temp, &nextline[0]);
       fBuffer = temp;
