@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.2 2003-11-21 22:49:52 paklein Exp $ */
+/* $Id: main.cpp,v 1.3 2004-10-14 06:50:52 thao Exp $ */
 #include "ModelManagerT.h"
 #include "iArray2DT.h"
 #include "OutputBaseT.h"
@@ -135,36 +135,85 @@ int main (int argc, char* argv[])
 		}
 	iArrayT map_keepers(map);
 
+        /* By here, map either contains -1 for all nodes on the right edge or node numbers for nodes not on the right edge*/
+
+        iAutoArrayT all_left_nodes(0);
 	/* map node numbers of wrapper nodes */
 	for (int k = 0; k < left_ID.Length(); k++)
 	{
 		const iArrayT& left_nodes = model.NodeSet(left_ID[k]);
 		const iArrayT& match = n_min_match[k];
-		for (int i = 0; i < left_nodes.Length(); i++)
+		for (int i = 0; i < left_nodes.Length(); i++) {
 			map[match[i]] = map[left_nodes[i]];
+			all_left_nodes.Append(left_nodes[i]);
+		}
 	}
+	/*copied the leftnodes onto -1 map entries (i.e. right nodes)*/
 
 	/* renumber connectivities */
 	cout << " renumbering connectivities:\n";
-	ArrayT<iArray2DT> connects(model.NumElementGroups());
-	const ArrayT<StringT>& elem_ID = model.ElementGroupIDs();
-	for (int i = 0; i < elem_ID.Length(); i++)
-	{
-		cout << '\t' << elem_ID[i] << endl;
+	int num_groups = model.NumElementGroups();
+	ArrayT<iArray2DT> connects(num_groups);
 
+	ArrayT<AutoArrayT<iArrayT> > split_connects(num_groups*2);
+
+	const ArrayT<StringT>& elem_ID = model.ElementGroupIDs();
+	for (int i = 0; i < num_groups; i++)
+	{
 		/* read element group */
 		connects[i] = model.ElementGroup(elem_ID[i]);
-		
-		/* map */
-		int* p = connects[i].Pointer();
-		int len = connects[i].Length();
-		for (int j = 0; j < len; j++)
-		{
-			*p = map[*p];
-			p++;
+
+		/*workspace*/
+	        split_connects[i].Dimension(0);
+	        split_connects[i+num_groups].Dimension(0);
+		iArrayT tmp(connects[i].MinorDim());
+
+		/*map connectivites*/
+		for (int j = 0; j < connects[i].MajorDim(); j++) {
+		  int match_q = 0;
+		  for (int k = 0; match_q == 0 && k < connects[i].MinorDim(); k++) {
+		    for (int l = 0; match_q == 0 && l < all_left_nodes.Length(); l++) 
+		      match_q = connects[i](j,k) == all_left_nodes[l];
+		  }
+		  connects[i].RowCopy(j, tmp.Pointer());
+		  if (match_q == 1) split_connects[i+num_groups].Append(tmp);
+		  else split_connects[i].Append(tmp);
 		}
 	}
 
+	/*update the number of groups*/
+	int update_num_groups = num_groups;
+	for (int i = num_groups; i < 2*num_groups; i++) {
+	   update_num_groups += split_connects[i].Length() > 0;
+	}
+	/*copy into updated connectivities array*/
+	ArrayT<iArray2DT> update_connects(update_num_groups);
+	int index =0;
+	for (int i = 0; i < num_groups*2; i++) 
+	{
+	  cout << '\t' << index << endl;
+	  if (split_connects[i].Length() > 0) {
+	    if (index > update_num_groups)
+	      ExceptionT::GeneralFail(caller, "index is greater than update_num_grops");
+	    update_connects[index].Dimension(split_connects[i].Length(), split_connects[i][0].Length());
+	    for (int j = 0; j < update_connects[index].MajorDim(); j++) {
+	      for (int k = 0; k < update_connects[index].MinorDim(); k++) {
+		/*map connectivities*/
+	      		update_connects[index](j,k) = map[split_connects[i][j][k]];
+	      }
+	    }
+	    index++;
+	  }
+	}
+        
+	/*assign elem_ID to new groups*/
+	ArrayT<StringT> update_elem_ID(update_num_groups);
+	for (int i = 0; i < num_groups; i++)
+	  update_elem_ID[i] = elem_ID[i];
+	for (int i = num_groups; i<update_num_groups; i++) {
+	  update_elem_ID[i] = "100";
+	  update_elem_ID[i].Append(i);
+	}
 	/* renumber/union node sets */
 	const ArrayT<StringT>& node_ID = model.NodeSetIDs();
 	ArrayT<iArrayT> node_sets(node_ID.Length());
@@ -199,16 +248,18 @@ int main (int argc, char* argv[])
 	OutputBaseT* output = IOBaseT::NewOutput(program_name, version, title, output_file, IOBaseT::kTahoeII, cout);
 	output->SetCoordinates(coords_wrap, NULL);
 	ArrayT<StringT> labels;
-	for (int i = 0; i < elem_ID.Length(); i++)
+	for (int i = 0; i < update_elem_ID.Length(); i++)
 	{
 		ArrayT<StringT> block_ID(1);
-		block_ID[0] = elem_ID[i];
+		block_ID[0] = update_elem_ID[i];
 
 		ArrayT<const iArray2DT*> conn (1);
-		conn[0] = connects.Pointer(i);
+		conn[0] = update_connects.Pointer(i);
 
 		/* block information */
-		OutputSetT set(model.ElementGroupGeometry(elem_ID[i]), block_ID, conn, labels, labels, false);
+		/*		OutputSetT set(model.ElementGroupGeometry(update_elem_ID[i]), block_ID, conn, labels, labels, false);
+		 for now hard wire geometry code to quads*/
+		OutputSetT set(GeometryT::kQuadrilateral, block_ID, conn, labels, labels, false);
 
 		/* register */
 		output->AddElementSet(set);
@@ -239,16 +290,18 @@ int main (int argc, char* argv[])
 	output_file_3D.Append(".3D", ext);
 	OutputBaseT* output_3D = IOBaseT::NewOutput(program_name, version, title, output_file_3D, IOBaseT::kTahoeII, cout);
 	output_3D->SetCoordinates(coords_wrap_3D, NULL);
-	for (int i = 0; i < elem_ID.Length(); i++)
+	for (int i = 0; i < update_elem_ID.Length(); i++)
 	{
 		ArrayT<StringT> block_ID(1);
-		block_ID[0] = elem_ID[i];
+		block_ID[0] = update_elem_ID[i];
 
 		ArrayT<const iArray2DT*> conn (1);
-		conn[0] = connects.Pointer(i);
+		conn[0] = update_connects.Pointer(i);
 
 		/* block information */
-		OutputSetT set(model.ElementGroupGeometry(elem_ID[i]), block_ID, conn, labels, labels, false);
+		/*		OutputSetT set(model.ElementGroupGeometry(update_elem_ID[i]), block_ID, conn, labels, labels, false);
+		 for now hard wire geometry code to quads*/
+		OutputSetT set(GeometryT::kQuadrilateral, block_ID, conn, labels, labels, false);
 
 		/* register */
 		output_3D->AddElementSet(set);
