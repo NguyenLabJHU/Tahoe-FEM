@@ -1,4 +1,4 @@
-/* $Id: SV_NeoHookean2D.h,v 1.2 2002-10-05 18:10:26 paklein Exp $ */
+/* $Id: SV_NeoHookean2D.h,v 1.3 2002-10-09 18:01:05 sawimme Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #ifndef _SV_NEOHOOKEAN2D_H_
@@ -6,9 +6,9 @@
 
 #include "FDSimoVisco2D.h"
 
-class ifstreamT;
-
 namespace Tahoe {
+
+class ifstreamT;
 
 /*Compressible Neo-Hookean2D Potential*/
 class SV_NeoHookean2D: public FDSimoVisco2D
