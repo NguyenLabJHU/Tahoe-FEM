@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.19 2002-12-14 03:51:42 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.20 2002-12-17 08:56:37 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -89,7 +89,7 @@ SolverT::SolutionStatusT NLSolver::Solve(int num_iterations)
 	if (fLHS->CheckCode() != GlobalMatrixT::kNoCheck) {
 		ofstreamT& out = fFEManager.Output();
 		out << " NLSolver::Solve:\n"
-		    << "      group = " << fGroup << '\n'
+		    << "      group = " << fGroup+1 << '\n'
 		    << " iterations = " << num_iterations << '\n';	
 	}
 
