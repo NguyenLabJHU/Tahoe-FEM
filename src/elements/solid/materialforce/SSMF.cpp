@@ -1,4 +1,4 @@
-/* $Id: SSMF.cpp,v 1.11 2004-07-15 08:28:31 paklein Exp $ */
+/* $Id: SSMF.cpp,v 1.12 2004-07-22 08:51:12 paklein Exp $ */
 #include "SSMF.h"
 
 #include "OutputSetT.h"
@@ -231,11 +231,14 @@ void SSMF::ComputeMatForce(dArray2DT& output)
   }
 
   /*check for dynamic analysis*/
+  ExceptionT::GeneralFail(caller, "check field's integrator for implicit/explicit");
+#if 0  
   int analysiscode = ElementSupport().FEManager().Analysis();
   if (analysiscode ==  GlobalT::kLinExpDynamic  ||
       analysiscode == GlobalT::kNLExpDynamic    ||
       analysiscode == GlobalT::kVarNodeNLExpDyn ||
       analysiscode == GlobalT::kPML)
+#endif
     fdynamic = true;
 
   /*evaluate volume contributions to material and dissipation force*/

@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.cpp,v 1.17 2004-07-15 08:28:31 paklein Exp $ */
+/* $Id: UpLagMF.cpp,v 1.18 2004-07-22 08:51:12 paklein Exp $ */
 #include <ctype.h>
 
 #include "UpLagMF.h"
@@ -310,12 +310,16 @@ void UpLagMF::ComputeMatForce(dArray2DT& output)
     Extrapolate();
   }
 
+
   /*check for dynamic analysis*/
+  ExceptionT::GeneralFail(caller, "check field's integrator for implicit/explicit");
+#if 0  
   int analysiscode = ElementSupport().FEManager().Analysis();
   if (analysiscode ==  GlobalT::kLinExpDynamic  ||
       analysiscode == GlobalT::kNLExpDynamic    ||
       analysiscode == GlobalT::kVarNodeNLExpDyn ||
       analysiscode == GlobalT::kPML)
+#endif
     fdynamic = true;
 
   /*evaluate volume contributions to material and dissipation force*/
