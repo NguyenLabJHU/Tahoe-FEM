@@ -1,4 +1,4 @@
-/* $Id: BondLatticeT.h,v 1.2 2002-07-02 19:55:33 cjkimme Exp $ */
+/* $Id: BondLatticeT.h,v 1.3 2003-03-31 23:14:38 paklein Exp $ */
 /* created: paklein (01/07/1997)                                          */
 /* BondLatticeT.h                                                         */
 
@@ -50,13 +50,13 @@ public:
 	int NumberOfSpatialDim(void) const;
 	int NumberOfBonds(void) const;
 
+	/* compute deformed bond lengths from the given Green strain */
+	void ComputeDeformedLengths(const dSymMatrixT& strain);
+
 protected:
 
 	/* initialize bond table values */
 	virtual void LoadBondTable(void) = 0;
-	
-	/* compute deformed bond lengths from the given Green strain */
-	void ComputeDeformedLengths(const dSymMatrixT& strain);
 	
 protected:
 

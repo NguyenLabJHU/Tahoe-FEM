@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.34 2003-03-27 16:53:25 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.35 2003-03-31 23:14:40 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "fstreamT.h"
@@ -18,6 +18,7 @@
 
 #ifdef CAUCHY_BORN_MATERIAL
 #include "EAMFCC3DMatT.h"
+#include "FCC3D.h"
 #endif
 
 #ifdef MODCBSW_MATERIAL
@@ -129,7 +130,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		switch (matcode)
 		{
 			case kLJTr2D:
-			case kLJFCC111:
+			case kHex2D:
 			{
 				ExceptionT::BadInputValue(caller, "material is 2D only: %d", matcode);
 			}
@@ -248,6 +249,18 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new EAMFCC3DMatT(in, *fFSMatSupport);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);
+#endif
+			}
+			case kFCC:
+			{
+#ifdef CAUCHY_BORN_MATERIAL
+				/* check */
+				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new FCC3D(in, *fFSMatSupport);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);
