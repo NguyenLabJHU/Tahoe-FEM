@@ -292,7 +292,7 @@ double d2fdSigmaCdKappa (double I1, double kappa);
 double d2FcdI1dKappa(double I1, double kappa);
 double dGalphadSigmaB (dSymMatrixT workingStress, dSymMatrixT principalDirectionB ,double principalEqStressB, double I1, double J2);
 //double dGalphadAlphaB (double J2, double principalEqStressB, double principalEqStress3);
-double dGalphadAlphaB (dSymMatrixT alpha, dArrayT principalEqStress, double B, ArrayT<dSymMatrixT> m);
+double dGalphadAlphaB (dSymMatrixT alpha, dArrayT principalEqStress, int B, ArrayT<dSymMatrixT> m);
 double d2fdI1dKappa (double I1, double kappa);
 double dFcdKappa (double I1, double kappa);
 double dLdKappa (double kappa);

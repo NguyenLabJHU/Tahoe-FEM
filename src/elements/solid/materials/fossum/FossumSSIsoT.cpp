@@ -1600,7 +1600,7 @@ double FossumSSIsoT::dGalphadSigmaB (dSymMatrixT workingStress, dSymMatrixT prin
 
 }
 
-double FossumSSIsoT::dGalphadAlphaB (dSymMatrixT alpha, dArrayT principalEqStress, double B, ArrayT<dSymMatrixT> m)
+double FossumSSIsoT::dGalphadAlphaB (dSymMatrixT alpha, dArrayT principalEqStress, int B, ArrayT<dSymMatrixT> m)
 {
 
 /* N = 0 => Galpha is identically 0, does not change with stress or alpha */
@@ -1909,7 +1909,10 @@ const dMatrixT& FossumSSIsoT::c_ijkl(void)
 	 for (int j=0; j<6; j++)
 	   fModulus(i,j) = generalizedModulus(i,j);
 
-     
+     	 /* pull out modulus */
+       for (int i=0; i<6; i++)
+	 for (int j=3; j<6; j++)
+	   fModulus(i,j) *= 0.5;
   
   //cout << "fModulus = \n" << fModulus << endl;
   
