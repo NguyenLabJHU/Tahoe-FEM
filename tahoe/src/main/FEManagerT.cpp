@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.2 2001-02-20 00:16:33 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.3 2001-02-22 23:46:22 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -863,12 +863,13 @@ void FEManagerT::CheckInputFile(void)
 	{
 //TEMP - until input is parsed, we will only have spotty support for backward
 //       compatibility of input files
-		cout << "\n #!!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n";
-		cout << "\n FEManagerT::CheckInputFile: input file version is not current. See\n"
+		cout << "\n !!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+		cout << " FEManagerT::CheckInputFile: input file version is not current. See\n"
 		     <<   "     VERSION_NOTES for description of changes:\n";
 		cout << "     file version: " << fVersion << '\n';
 		cout << "  current version: " << kCurrentVersion << '\n';
-		cout << "\n WARNING: backward compatibility is not completely supported" << endl;
+		cout << " WARNING: backward compatibility is not completely supported\n";
+		cout << " !!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
 	}	
 	else
 		cout    << "\n Input file version: " << fVersion << '\n';
