@@ -1,4 +1,3 @@
-/* $Id: ParadynT.cpp,v 1.2 2003-04-04 02:38:14 saubry Exp $ */
 #include "ParadynT.h"
 
 #include "toolboxConstants.h"
@@ -27,6 +26,7 @@ double* ParadynT::s_ElecDenscoeff = NULL;
 const int knum_coeff = 9;
 
 /* constructor */
+
 ParadynT::ParadynT(const StringT& param_file):
   fParams(param_file),
   f_cut(0.0)
@@ -115,7 +115,7 @@ ParadynT::PairEnergyFunction ParadynT::getPairEnergy(void)
   s_Paircoeff = fPairCoeff.Pointer();
 
   /* return function pointer */
-  return ParadynT::PairEnergy;
+  return PairEnergy;
 }
 
 ParadynT::EmbedEnergyFunction ParadynT::getEmbedEnergy(void)
