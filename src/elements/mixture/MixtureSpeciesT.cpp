@@ -1,7 +1,8 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.3 2004-11-07 21:20:32 paklein Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.4 2004-11-10 02:00:13 paklein Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
+#include "NLDiffusionMaterialT.h"
 
 using namespace Tahoe;
 
@@ -129,6 +130,7 @@ void MixtureSpeciesT::ComputeMassFlux(void)
 	
 	/* work space */
 	int nsd = NumSD();
+	int nip = NumIP();
 	dArrayT force(nsd);
 	dMatrixT F_inv(nsd);
 	
@@ -144,12 +146,17 @@ void MixtureSpeciesT::ComputeMassFlux(void)
 	/* integration point values */
 	dArrayT ip_conc(1);
 	dArrayT ip_acc(nsd);
-	dMatrixT ip_Grad_P(nsd*nsd, nsd);
+	dMatrixT ip_Grad_P(nsd*nsd, nsd), ip_Grad_P_j;
+	
+	dArray2DT V_e, M_e;
+	dArrayT V, M;
 
 	Top();
 	fUpdatedLagMixture->Top();
 	while (NextElement()) 
 	{
+		int e = CurrElementNumber();
+	
 		/* set solid element */
 		fUpdatedLagMixture->NextElement();
 		fUpdatedLagMixture->SetGlobalShape();
@@ -162,29 +169,50 @@ void MixtureSpeciesT::ComputeMassFlux(void)
 
 		/* collect nodal stresses */
 		SetLocalU(P);
+		
+		/* mass flux and velocity */
+		V_e.Alias(nip, nsd, fFluxVelocity(e));
+		M_e.Alias(nip, nsd, fMassFlux(e));
 
 		/* loop over integration points */
 		fShapes->TopIP();
 		while (fShapes->NextIP())
 		{
+			int ip = fShapes->CurrIP();
+		
 			/* ip values */
 			IP_Interpolate(fLocDisp, ip_conc);		
 			IP_Interpolate(acc, ip_acc);		
 		
 			/* inertial forces */
-			force.SetToCombination(-ip_conc[0], ip_acc, ip_conc[0], body_force);
+			force.SetToCombination(-1.0, ip_acc, 1.0, body_force);
 						
 			/* stress divergence */
 			IP_ComputeGradient(P, ip_Grad_P);
-			for (int i = 0; i < nsd; i++)
-				for (int j = 0; j < nsd; j++)
-					force[i] += ip_Grad_P(j*nsd + i,j);
+			for (int j = 0; j < nsd; j++) {
+				ip_Grad_P_j.Alias(nsd, nsd, ip_Grad_P(j));
+				for (int i = 0; i < nsd; i++)
+					force[i] += ip_Grad_P_j(i,j)/ip_conc[0];
+			}
 			
-			/* compute relative flux velocity */
 			
-			/* compute flux velocity */
-			
+			/* compute (scaled) relative flux velocity */
+			const dMatrixT& D = fCurrMaterial->k_ij();
+			V_e.RowAlias(ip, V);
+			D.Multx(force, V); /* c*V */
+
+			/* compute (scaled) flux velocity */
+//			V.AddScaled(ip_conc[0], [velocity of background]);
+// add motion of background
+
 			/* compute mass flux */
+			const dMatrixT& F = fUpdatedLagMixture->DeformationGradient();
+			F_inv.Inverse(F);
+			M_e.RowAlias(ip, M);
+			F_inv.Multx(V, M);
+			
+			/* compute velocity */
+			V /= ip_conc[0];
 		}
 	}	
 }
