@@ -1,4 +1,4 @@
-/* $Id: AztecBaseT.cpp,v 1.4 2002-09-12 17:50:09 paklein Exp $ */
+/* $Id: AztecBaseT.cpp,v 1.5 2002-10-20 22:49:35 paklein Exp $ */
 /* created: paklein (07/28/1998) */
 
 #include "AztecBaseT.h"
@@ -12,7 +12,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "toolboxConstants.h"
 #include "az_aztec.h"
 
@@ -40,7 +40,7 @@ AztecBaseT::AztecBaseT(ostream& msg):
 	
 	/* check */
 	if (!proc_config || !options || !params || !status)
-		throw eOutOfMemory;
+		throw ExceptionT::kOutOfMemory;
 		
 	/* get number of processors and the name of this processor */
 	AZ_processor_info(proc_config);
@@ -121,8 +121,8 @@ void AztecBaseT::Initialize(int num_eq, int start_eq)
 	N_update = num_eq;
 
 	/* checks */
-	if (Start_update < 1) throw eBadInputValue;
-	if (N_update < 1) throw eBadInputValue;
+	if (Start_update < 1) throw ExceptionT::kBadInputValue;
+	if (N_update < 1) throw ExceptionT::kBadInputValue;
 
 	/* free existing memory */
 	FreeAztecMemory();
@@ -149,7 +149,7 @@ void AztecBaseT::Initialize(int num_eq, int start_eq)
 		if (!bindx_transform)
 		{
 			cout << "\n AztecBaseT::Initialize: out of memory" << endl;
-			throw eOutOfMemory;
+			throw ExceptionT::kOutOfMemory;
 		}
 		memcpy(bindx_transform, bindx, (numterms+1)*sizeof(int));
 	}
@@ -173,7 +173,7 @@ void AztecBaseT::Initialize(int num_eq, int start_eq)
 	if (error_code)
 	{
 		AZ_print_error(error_code);
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}	
 }
 
@@ -350,7 +350,7 @@ void AztecBaseT::SetUpQuickFind(void)
 	/* quick find bin */
 	delete[] update_bin;
 	update_bin = new int[2 + (N_update + 4)/4]; /* oversize */
-	if (!update_bin) throw eOutOfMemory;
+	if (!update_bin) throw ExceptionT::kOutOfMemory;
 
 	/* initialize shift and bin */
 	AZ_init_quick_find(update, N_update, &QF_shift, update_bin);
@@ -368,10 +368,10 @@ void AztecBaseT::SetUpQuickFind(void)
 
 	/* allocate space for sorted row data */
 	srow_dex = new int[maxlength];
-	if (!srow_dex) throw eOutOfMemory;
+	if (!srow_dex) throw ExceptionT::kOutOfMemory;
 	
 	srow_val = new double[maxlength];
-	if (!srow_val) throw eOutOfMemory;
+	if (!srow_val) throw ExceptionT::kOutOfMemory;
 }
 
 /* free memory allocated by Aztec.lib */

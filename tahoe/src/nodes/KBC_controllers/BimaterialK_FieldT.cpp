@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.7 2002-07-02 19:56:35 cjkimme Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.8 2002-10-20 22:49:29 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "BimaterialK_FieldT.h"
@@ -31,40 +31,40 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 	if (nsd != 2)
 	{
 		cout << "\n BimaterialK_FieldT::Initialize: must be 2D: " << nsd << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* K1 */
 	in >> fnumLTf1 >> fK1; fnumLTf1--;
 	fLTf1 = fNodeManager.Schedule(fnumLTf1);	
-	if (!fLTf1) throw eBadInputValue;
+	if (!fLTf1) throw ExceptionT::kBadInputValue;
 
 	/* K2 */
 	in >> fnumLTf2 >> fK2; fnumLTf2--;
 	fLTf2 = fNodeManager.Schedule(fnumLTf2);	
-	if (!fLTf2) throw eBadInputValue;
+	if (!fLTf2) throw ExceptionT::kBadInputValue;
 
 	/* coordinates of the crack tip */
-	fInitTipCoords.Allocate(nsd);
+	fInitTipCoords.Dimension(nsd);
 	in >> fInitTipCoords;
 	fLastTipCoords = fTipCoords = fInitTipCoords;
 
 	/* crack extension parameters */
-	fGrowthDirection.Allocate(nsd);
+	fGrowthDirection.Dimension(nsd);
 	in >> fGrowthDirection; fGrowthDirection.UnitVector();
 
 	/* near tip group */
 	in >> fNearTipGroupNum;   // -1: no nearfield group
 	in >> fNearTipOutputCode; // variable to locate crack tip
 	in >> fTipColumnNum;      // column of output variable to locate tip
-	in >> fMaxGrowthDistance; if (fMaxGrowthDistance < 0.0) throw eBadInputValue;
-	in >> fMaxGrowthSteps; if (fMaxGrowthSteps < 1) throw eBadInputValue;
+	in >> fMaxGrowthDistance; if (fMaxGrowthDistance < 0.0) throw ExceptionT::kBadInputValue;
+	in >> fMaxGrowthSteps; if (fMaxGrowthSteps < 1) throw ExceptionT::kBadInputValue;
 
 	/* offsets and checks */
 	fNearTipOutputCode--;
 	if (fNearTipGroupNum != -1) fNearTipGroupNum--;
 	fTipColumnNum--;
-	if (fNearTipGroupNum <  -1) throw eBadInputValue;
+	if (fNearTipGroupNum <  -1) throw ExceptionT::kBadInputValue;
 
 	/* nodes */
 	in >> fFarFieldGroupNum;
@@ -76,8 +76,8 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 		/* checks and offsets */
 		fFarFieldGroupNum--;
 		fFarFieldMaterialNum--;
-		if (fFarFieldGroupNum < 0) throw eBadInputValue;
-		if (fFarFieldMaterialNum < 0) throw eBadInputValue;
+		if (fFarFieldGroupNum < 0) throw ExceptionT::kBadInputValue;
+		if (fFarFieldMaterialNum < 0) throw ExceptionT::kBadInputValue;
 	}
 	else
 		fFarFieldMaterialNum = -1;
@@ -91,8 +91,8 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 		/* offsets and checks */
 		fFarFieldGroupNum_2--;
 		fFarFieldMaterialNum_2--;
-		if (fFarFieldGroupNum_2 < 0) throw eBadInputValue;
-		if (fFarFieldMaterialNum_2 < 0) throw eBadInputValue;
+		if (fFarFieldGroupNum_2 < 0) throw ExceptionT::kBadInputValue;
+		if (fFarFieldMaterialNum_2 < 0) throw ExceptionT::kBadInputValue;
 	}
 	else
 		fFarFieldMaterialNum_2 = -1;
@@ -101,7 +101,7 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 	if (fFarFieldGroupNum == -1 && fFarFieldGroupNum_2 == -1)
 	{
 		cout << "\n BimaterialK_FieldT::Initialize: at least one half plane must be specified" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	/* create overall ID lists */
@@ -111,7 +111,7 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 		fID_List.Alias(fID_List_1);
 	else
 	{
-		fID_List.Allocate(fID_List_1.Length() + fID_List_2.Length());
+		fID_List.Dimension(fID_List_1.Length() + fID_List_2.Length());
 		fID_List.CopyIn(0, fID_List_1);
 		fID_List.CopyIn(fID_List_1.Length(), fID_List_2);
 		fID_List_1.Set(fID_List_1.Length(), fID_List.Pointer());
@@ -125,7 +125,7 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 		fNodes.Alias(fNodes_1);
 	else
 	{
-		fNodes.Allocate(fNodes_1.Length() + fNodes_2.Length());
+		fNodes.Dimension(fNodes_1.Length() + fNodes_2.Length());
 		fNodes.CopyIn(0, fNodes_1);
 		fNodes.CopyIn(fNodes_1.Length(), fNodes_2);
 		fNodes_1.Set(fNodes_1.Length(), fNodes.Pointer());
@@ -133,7 +133,7 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 	}
 
 	/* generate BC cards */
-	fKBC_Cards.Allocate(fNodes.Length()*nsd);
+	fKBC_Cards.Dimension(fNodes.Length()*nsd);
 	KBC_CardT* pcard = fKBC_Cards.Pointer();
 	for (int i = 0; i < fNodes.Length(); i++)
 		for (int j = 0; j < nsd; j++)
@@ -147,8 +147,8 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 		}	
 
 	/* allocate displacement field factors */
-	fK1Disp.Allocate(fNodes.Length(), nsd);
-	fK2Disp.Allocate(fNodes.Length(), nsd);
+	fK1Disp.Dimension(fNodes.Length(), nsd);
+	fK2Disp.Dimension(fNodes.Length(), nsd);
 	if (fNodes_1.Length() == 0)
 	{
 		fK1Disp_2.Alias(fK1Disp);
@@ -174,7 +174,7 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 //TEMP - tip tracking not supporting for parallel execution
 	if (fNearTipGroupNum != -1 && fNodeManager.Size() > 1) {
 		cout << "\n BimaterialK_FieldT::Initialize: tip tracking not implemented in parallel" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}	
 }
 
@@ -357,7 +357,7 @@ void BimaterialK_FieldT::SetFieldFactors(int side, double eps, double mu,
 	double G, const dArrayT& tip_coords, const iArrayT& nodes,
 	dArray2DT& K1_disp, dArray2DT& K2_disp)
 {
-	if (side != 1 && side != -1) throw eGeneralFail;
+	if (side != 1 && side != -1) throw ExceptionT::kGeneralFail;
 
 	/* (initial) nodal coordinates */
 	int nsd = fNodeManager.NumSD();
@@ -491,7 +491,7 @@ int BimaterialK_FieldT::UpperHalfPlane(void) const
 		{
 			cout << "\n BimaterialK_FieldT::UpperHalfPlane: could not determine group in the\n"
 			     <<   "     upper half plane" << endl;		
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	
 		if (t_1 >= 0.0)

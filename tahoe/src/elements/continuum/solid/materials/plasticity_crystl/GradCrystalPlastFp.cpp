@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.cpp,v 1.9 2002-07-02 19:56:14 cjkimme Exp $ */
+/* $Id: GradCrystalPlastFp.cpp,v 1.10 2002-10-20 22:49:07 paklein Exp $ */
 #include "GradCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -61,19 +61,19 @@ GradCrystalPlastFp::GradCrystalPlastFp(ifstreamT& in, const FiniteStrainT& eleme
   // allocate space for ...
   // ... Fp values at integration points
   for (int i = 0; i < NumIP(); i++)
-    fFpIP[i].Allocate(kNSD,kNSD);
+    fFpIP[i].Dimension(kNSD,kNSD);
 
   // ... Fp values at nodal points
-  fFpNodes.Allocate(fNumNodes);
+  fFpNodes.Dimension(fNumNodes);
   for (int i = 0; i < fNumNodes; i++) 
-    fFpNodes[i].Allocate(kNSD,kNSD);
+    fFpNodes[i].Dimension(kNSD,kNSD);
 
   // ... spatial gradients of Fp (note: kNSD instead of NumSD())
   for (int i = 0; i < kNSD; i++)
-    fGradFp[i].Allocate(kNSD,kNSD);
+    fGradFp[i].Dimension(kNSD,kNSD);
 
   // ... current coordinates
-  fLocCurrX.Allocate(fLocInitX.NumberOfNodes(), NumSD());
+  fLocCurrX.Dimension(fLocInitX.NumberOfNodes(), NumSD());
 
   // create Gradient Tool object
   fGradTool = new GradientTools(NumIP(), fNumNodes, NumSD());
@@ -273,7 +273,7 @@ int GradCrystalPlastFp::NumOutputVariables() const {return kNumOutput;}
 void GradCrystalPlastFp::OutputLabels(ArrayT<StringT>& labels) const
 {
   // allocate space for labels
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   // copy labels
   for (int i = 0; i < kNumOutput; i++)
@@ -654,7 +654,7 @@ void GradCrystalPlastFp::SolveCrystalState()
   // check if did not converge in max iterations
   if (!stateConverged) {
     writeWarning("... in GradCrystalPlastFp::SolveCrystalState: iters > MaxIters\n ...... will throw 'eBadJacobianDet' to cut dtime");
-    throw eBadJacobianDet;
+    throw ExceptionT::kBadJacobianDet;
   }
 
   // update iteration count for state
@@ -676,18 +676,18 @@ void GradCrystalPlastFp::SolveForPlasticDefGradient(int& ierr)
  
        // solve for incremental shear strain
        try { fSolver->Solve(fSolverPtr, fFpArray, ierr); }
-       catch(int code)
+       catch(ExceptionT::CodeT code)
            {
              fKinetics->RestoreRateSensitivity();
              writeWarning("... in GradCrystalPlastFp::SolveForPlasticDefGradient: caugth exception\n ...... will throw 'eBadJacobianDet' to cut dtime");
-             throw eBadJacobianDet;
+             throw ExceptionT::kBadJacobianDet;
            }
 
-       // throw exception if problems in NCLSolver
+       // throw ExceptionT::xception if problems in NCLSolver
        if (ierr != 0) {
           fKinetics->RestoreRateSensitivity();
           writeWarning("... in GradCrystalPlastFp::SolveForPlasticDefGradient: ierr!=0\n ...... will throw 'eBadJacobianDet' to cut dtime");
-          throw eBadJacobianDet;
+          throw ExceptionT::kBadJacobianDet;
        }
 
      } while (!fKinetics->IsMaxRateSensitivity());

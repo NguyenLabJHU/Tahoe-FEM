@@ -1,8 +1,8 @@
-/* $Id: VariViscT.cpp,v 1.1 2002-10-04 23:59:03 thao Exp $ */
+/* $Id: VariViscT.cpp,v 1.2 2002-10-20 22:48:48 paklein Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "VariViscT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 using namespace Tahoe;
 

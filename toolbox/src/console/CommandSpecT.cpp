@@ -1,4 +1,4 @@
-/* $Id: CommandSpecT.cpp,v 1.8 2002-07-05 17:16:01 paklein Exp $ */
+/* $Id: CommandSpecT.cpp,v 1.9 2002-10-20 22:38:59 paklein Exp $ */
 
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
@@ -50,7 +50,7 @@ ArgSpecT& CommandSpecT::Argument(const char* name)
 			index = i;
 	if (index == -1) {
 		cout << "CommandSpecT::Argument: not found \"" << name << '\"' << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return Argument(index);
 }
@@ -64,7 +64,7 @@ const ArgSpecT& CommandSpecT::Argument(const char* name) const
 			index = i;
 	if (index == -1) {
 		cout << "CommandSpecT::Argument: not found \"" << name << '\"' << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return Argument(index);
 }
@@ -76,7 +76,7 @@ void CommandSpecT::AddArgument(const ArgSpecT& arg)
 	if (!fOrdered && arg.Name().StringLength() == 0)
 	{
 		cout << "\n CommandSpecT::AddArgument: unordered arguments must be named" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* new argument spec */

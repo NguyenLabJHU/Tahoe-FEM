@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.cpp,v 1.5 2002-09-12 17:49:57 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.6 2002-10-20 22:48:39 paklein Exp $ */
 /* created: paklein (12/09/1996)                                          */
 /* Plane strain EAM material                                              */
 
@@ -84,11 +84,11 @@ EAMFCC2D::EAMFCC2D(ifstreamT& in, const FiniteStrainT& element, PlaneCodeT plane
 		{
 			cout << "\nEAMFCC2D::EAMFCC2D: unknown plane code:" << fPlaneCode;
 			cout << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 	}
 	
-	if (!fEAM) throw eOutOfMemory;
+	if (!fEAM) throw ExceptionT::kOutOfMemory;
 	
 	fEAM->Initialize();	
 }

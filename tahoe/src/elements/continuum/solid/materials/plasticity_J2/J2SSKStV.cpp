@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.4 2002-07-02 19:56:11 cjkimme Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.5 2002-10-20 22:49:05 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 
 #include "J2SSKStV.h"
@@ -116,7 +116,7 @@ int J2SSKStV::NumOutputVariables(void) const  { return kNumOutput; }
 void J2SSKStV::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set size */
-	labels.Allocate(kNumOutput);
+	labels.Dimension(kNumOutput);
 	
 	/* copy labels */
 	for (int i = 0; i < kNumOutput; i++)

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast_C.cpp,v 1.6 2002-07-02 19:56:14 cjkimme Exp $ */
+/* $Id: LocalCrystalPlast_C.cpp,v 1.7 2002-10-20 22:49:07 paklein Exp $ */
 #include "LocalCrystalPlast_C.h"
 #include "LatticeOrient.h"
 #include "VoceHardening.h"
@@ -184,7 +184,7 @@ int LocalCrystalPlast_C::NumOutputVariables() const {return kNumOutput;}
 void LocalCrystalPlast_C::OutputLabels(ArrayT<StringT>& labels) const
 {
   // allocate space for labels
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   // copy labels
   for (int i = 0; i < kNumOutput; i++)

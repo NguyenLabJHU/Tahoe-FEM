@@ -1,4 +1,4 @@
-/* $Id: FrontNodeT.h,v 1.2 2002-07-02 19:57:10 cjkimme Exp $ */
+/* $Id: FrontNodeT.h,v 1.3 2002-10-20 22:39:00 paklein Exp $ */
 /* created: paklein (03/19/1999)                                          */
 
 #ifndef _FRONT_NODE_T_H_
@@ -74,7 +74,7 @@ inline void FrontNodeT::Reset(int dim, const double* x, const double* v_n,
 	else if (fdim == 3)
 		Reset3D(x, v_n, v_t, cone, da, num_pts);
 	else
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 }
 
 inline const double* FrontNodeT::Coords(void) const { return fx; }

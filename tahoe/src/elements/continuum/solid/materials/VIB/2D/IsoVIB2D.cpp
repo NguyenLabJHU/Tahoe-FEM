@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.cpp,v 1.5 2002-10-05 20:04:14 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.6 2002-10-20 22:48:55 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVIB2D.h"
 
@@ -346,7 +346,7 @@ void IsoVIB2D::Construct(void)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Allocate(numpoints);
+	Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fCircle->Jacobians();

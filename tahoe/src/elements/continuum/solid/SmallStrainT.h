@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.8 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.9 2002-10-20 22:48:23 paklein Exp $ */
 
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
@@ -82,7 +82,7 @@ inline const dSymMatrixT& SmallStrainT::LinearStrain(void) const
 	{
 		cout << "\n SmallStrainT::LinearStrain: material " << mat_num + 1 
 		     << " did not specify this need" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 
@@ -99,7 +99,7 @@ inline const dSymMatrixT& SmallStrainT::LinearStrain(int ip) const
 	{
 		cout << "\n SmallStrainT::LinearStrain: material " << mat_num + 1 
 		     << " did not specify this need" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 
@@ -116,7 +116,7 @@ inline const dSymMatrixT& SmallStrainT::LinearStrain_last(void) const
 	{
 		cout << "\n SmallStrainT::LinearStrain_last: material " << mat_num + 1 
 		     << " did not specify this need" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 
@@ -133,7 +133,7 @@ inline const dSymMatrixT& SmallStrainT::LinearStrain_last(int ip) const
 	{
 		cout << "\n SmallStrainT::LinearStrain_last: material " << mat_num + 1 
 		     << " did not specify this need" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 

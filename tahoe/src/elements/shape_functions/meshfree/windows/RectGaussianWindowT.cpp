@@ -1,7 +1,7 @@
-/* $Id: RectGaussianWindowT.cpp,v 1.2 2002-07-02 19:57:07 cjkimme Exp $ */
+/* $Id: RectGaussianWindowT.cpp,v 1.3 2002-10-20 22:49:44 paklein Exp $ */
 
 #include "RectGaussianWindowT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include <math.h>
 
 
@@ -24,7 +24,7 @@ RectGaussianWindowT::RectGaussianWindowT(const dArrayT& dilation_scaling, double
 	    count++;
 	}
 	if (count > 0 || fSharpeningFactor < 0.0)
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 }
 
 /* "synchronization" of nodal field parameters. */
@@ -38,7 +38,7 @@ void RectGaussianWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 	{
 		cout << "\n RectGaussianWindowT::SynchronizeSupportParameters: nodal\n"
 		     << " parameters dimension mismatch" << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 		
 	/* "synchronize" means take max of dmax */
@@ -141,7 +141,7 @@ bool RectGaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, con
       }
     }
     else
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
       
 		return true;
   }
@@ -156,8 +156,8 @@ int RectGaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, 
 
   /* allocate */
   int nsd = x.Length();
-  fNSD.Allocate(nsd);
-  fNSDsym.Allocate(nsd);
+  fNSD.Dimension(nsd);
+  fNSDsym.Dimension(nsd);
 
   /* work space */
   dArrayT x_node, param_node;

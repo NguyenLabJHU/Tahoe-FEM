@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.15 2002-10-10 17:28:07 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.16 2002-10-20 22:49:46 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -211,7 +211,7 @@ inline double ShapeFunctionT::IPDet(void) const
 {
 #if __option(extended_errorcheck)
 /* range checking */
-if (fCurrIP < 0 || fCurrIP >= fNumIP) throw eOutOfRange;
+if (fCurrIP < 0 || fCurrIP >= fNumIP) throw ExceptionT::kOutOfRange;
 #endif
 
 	return *(fDet.Pointer() + fCurrIP);
@@ -307,7 +307,7 @@ inline void ShapeFunctionT::SetUShapeFunctions(const dArray2DT& NaU,
 	const ArrayT<dArray2DT>& DNaU)
 {
 #if __option(extended_errorcheck)
-	if (DNaU.Length() != NumIP()) throw eSizeMismatch;
+	if (DNaU.Length() != NumIP()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* set pointers to external data */

@@ -1,9 +1,9 @@
-/* $Id: ErrorFunc.cpp,v 1.4 2002-07-02 19:56:31 cjkimme Exp $ */
+/* $Id: ErrorFunc.cpp,v 1.5 2002-10-20 22:38:47 paklein Exp $ */
 
 #include "ErrorFunc.h"
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 #include "Gamma.h"
 
@@ -60,14 +60,14 @@ double ErrorFunc::Function(double x) const
 double ErrorFunc::DFunction(double x) const
 {
 	cout << "\n Derivative of the Error Function not provided!\n";
-	throw eBadInputValue;
+	throw ExceptionT::kBadInputValue;
 	return 0.0*x;	// to avoid generating warning messages
 }
 
 double ErrorFunc::DDFunction(double x) const
 {
 	cout << "\n Second derivative of the Error Function not provided!\n";
-	throw eBadInputValue;
+	throw ExceptionT::kBadInputValue;
 	return 0.0*x;	// to avoid generating warning messages
 }
 
@@ -81,7 +81,7 @@ double ErrorFunc::DDFunction(double x) const
 dArrayT& ErrorFunc::MapFunction(const dArrayT& in,  dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 	
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
@@ -98,7 +98,7 @@ dArrayT& ErrorFunc::MapFunction(const dArrayT& in,  dArrayT& out) const
 dArrayT& ErrorFunc::MapDFunction(const dArrayT& in,  dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
@@ -115,7 +115,7 @@ dArrayT& ErrorFunc::MapDFunction(const dArrayT& in,  dArrayT& out) const
 dArrayT& ErrorFunc::MapDDFunction(const dArrayT& in,  dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();
@@ -143,7 +143,7 @@ void ErrorFunc::gser(double *gamser, double a, double x, double *gln) const
 		if (x < 0.0)
 		{
 			cout << "\n*** x less than 0 in method gser.\n";
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		*gamser = 0.0;
 		return;
@@ -164,7 +164,7 @@ void ErrorFunc::gser(double *gamser, double a, double x, double *gln) const
 			}
 		}
 		cout << "\n*** a too large, ITMAX too small in method gser.\n";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 }
 
@@ -201,7 +201,7 @@ void ErrorFunc::gcf(double *gammcf, double a, double x, double *gln) const
 	if (i > ITMAX)
 	{
 		cout << "\n*** a too large, ITMAX too small in method gcf.\n";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	*gammcf = exp(-x+a*log(x)-(*gln))*h;
 }
@@ -215,7 +215,7 @@ double ErrorFunc::gammp(double a, double x) const
 	if (x < 0.0 || a <= 0.0)
 	{
 		cout << "\n*** Invalid arguments in method gammp.\n";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	if (x < (a+1.0))
 	{

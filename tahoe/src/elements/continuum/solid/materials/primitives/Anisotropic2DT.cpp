@@ -1,4 +1,4 @@
-/* $Id: Anisotropic2DT.cpp,v 1.2 2002-07-02 19:56:21 cjkimme Exp $ */
+/* $Id: Anisotropic2DT.cpp,v 1.3 2002-10-20 22:49:11 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 /* Base class for 2D anisotropic materials                                */
 
@@ -18,7 +18,7 @@ Anisotropic2DT::Anisotropic2DT(ifstreamT& in): fRotator(NULL)
 	double theta12;
 	
 	in >> fIsRotated;
-	if (fIsRotated != 0 && fIsRotated != 1) throw eBadInputValue;
+	if (fIsRotated != 0 && fIsRotated != 1) throw ExceptionT::kBadInputValue;
 	
 	in >> theta12;	/* read in degrees */
 		
@@ -26,7 +26,7 @@ Anisotropic2DT::Anisotropic2DT(ifstreamT& in): fRotator(NULL)
 	if (!fIsRotated) theta12 = 0.0;	
 	
 	fRotator = new Rotate2DT(theta12);		
-	if (!fRotator) throw eOutOfMemory;
+	if (!fRotator) throw ExceptionT::kOutOfMemory;
 }
 
 /* destructor */

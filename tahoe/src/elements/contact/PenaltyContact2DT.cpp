@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.4 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.5 2002-10-20 22:48:21 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 
 #include "PenaltyContact2DT.h"
@@ -27,7 +27,7 @@ PenaltyContact2DT::PenaltyContact2DT(const ElementSupportT& support, const Field
 	{
 		cout << "\n PenaltyContact2DT::PenaltyContact2DT: reguralization must be > 0: "
 		     << fK << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.12 2002-09-12 17:50:08 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.13 2002-10-20 22:49:33 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "GlobalMatrixT.h"
@@ -21,7 +21,7 @@ GlobalMatrixT::GlobalMatrixT(ostream& out, int check_code):
 	fIsFactorized(0)
 {
 	if (fCheckCode < kNoCheck ||
-	    fCheckCode > kPrintSolution) throw eBadInputValue;
+	    fCheckCode > kPrintSolution) throw ExceptionT::kBadInputValue;
 }
 
 GlobalMatrixT::GlobalMatrixT(const GlobalMatrixT& source):
@@ -60,7 +60,7 @@ void GlobalMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		cout << "\n GlobalMatrixT::Initialize: local number of equations " << fLocNumEQ << '\n'
 		     <<   "     cannot be greater than the total number of equations "
 		     << fTotNumEQ << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* must have at least 1 active equation */
@@ -72,7 +72,7 @@ void GlobalMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	else if (fStartEQ < 1) /* active equation numbers must be > 0 */
 	{
 		cout << "\n GlobalMatrixT::Initialize: active equation must be > 0" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -118,7 +118,7 @@ bool GlobalMatrixT::Solve(dArrayT& result)
 		/* output after solution */
 		PrintSolution(result);
 	}
-	catch (int error) {
+	catch (ExceptionT::CodeT error) {
 		cout << "\n GlobalMatrixT::Solve: caught exception: " << error << endl;
 		return false;
 	}
@@ -127,14 +127,14 @@ bool GlobalMatrixT::Solve(dArrayT& result)
 
 /* strong manipulation functions 
  * NOTE: These must be overridden to provide support for these functions.
- *       By default, these all throw exceptions. These could be pure
+ *       By default, these all throw ExceptionT::xceptions. These could be pure
  *       virtual, but that requires updating all derived matrix types */
 void GlobalMatrixT::OverWrite(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 #pragma unused(elMat)
 #pragma unused(eqnos)
 	cout << "\n GlobalMatrixT::OverWrite: not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 void GlobalMatrixT::Disassemble(dMatrixT& elMat, const nArrayT<int>& eqnos) const
@@ -142,7 +142,7 @@ void GlobalMatrixT::Disassemble(dMatrixT& elMat, const nArrayT<int>& eqnos) cons
 #pragma unused(elMat)
 #pragma unused(eqnos)
 	cout << "\n GlobalMatrixT::Disassemble: not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 void GlobalMatrixT::DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const
@@ -150,7 +150,7 @@ void GlobalMatrixT::DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& 
 #pragma unused(diagonals)
 #pragma unused(eqnos)
 	cout << "\n GlobalMatrixT::DisassembleDiagonal: not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 /* assignment operator */

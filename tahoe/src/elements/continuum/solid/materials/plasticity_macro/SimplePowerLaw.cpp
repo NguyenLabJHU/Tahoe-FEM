@@ -16,7 +16,7 @@ SimplePowerLaw::SimplePowerLaw(EVPFDBaseT& model)
   ifstreamT& in = model.Input();
 
   // allocate space for matl's property array
-  fMatProp.Allocate(kNumMatProp);
+  fMatProp.Dimension(kNumMatProp);
 
   // read material properties for kinetic equation
   in >> fMatProp[0];   // s0
@@ -59,7 +59,7 @@ double SimplePowerLaw::h(double eqpdot, double kappa)
 #pragma unused(eqpdot)
 #pragma unused(kappa)
 
-  throw eGeneralFail;
+  throw ExceptionT::kGeneralFail;
 }
 
 double SimplePowerLaw::DhDeqpdot(double eqpdot, double kappa)
@@ -67,7 +67,7 @@ double SimplePowerLaw::DhDeqpdot(double eqpdot, double kappa)
 #pragma unused(eqpdot)
 #pragma unused(kappa)
 
-  throw eGeneralFail;
+  throw ExceptionT::kGeneralFail;
 }
 
 double SimplePowerLaw::DhDs(double eqpdot, double kappa)
@@ -75,7 +75,7 @@ double SimplePowerLaw::DhDs(double eqpdot, double kappa)
 #pragma unused(eqpdot)
 #pragma unused(kappa)
 
-  throw eGeneralFail;
+  throw ExceptionT::kGeneralFail;
 }
 
 void SimplePowerLaw::Print(ostream& out) const

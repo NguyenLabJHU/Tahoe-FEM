@@ -1,9 +1,9 @@
-/* $Id: nIntegratorT.cpp,v 1.4 2002-07-02 19:55:07 cjkimme Exp $ */
+/* $Id: nIntegratorT.cpp,v 1.5 2002-10-20 22:48:09 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nIntegratorT.h"
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 /* constructor */
 

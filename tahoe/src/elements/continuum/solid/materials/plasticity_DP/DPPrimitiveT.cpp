@@ -1,5 +1,5 @@
 
-/* $Id: DPPrimitiveT.cpp,v 1.6 2002-07-02 19:56:09 cjkimme Exp $ */
+/* $Id: DPPrimitiveT.cpp,v 1.7 2002-10-20 22:49:04 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 /* Base class for Druker-Prager, nonassociative, small strain,        */
 /* pressure dependent plasticity model with linear isotropic hardening.*/
@@ -28,11 +28,11 @@ DPPrimitiveT::DPPrimitiveT(ifstreamT& in):
 	fH_delta(1.0)
 {
 	/* read parameters */
-        in >> falpha_bar;  if (falpha_bar < 0.0 ) throw eBadInputValue;
-	in >> ffriction;   if (ffriction < 0.0 ) throw eBadInputValue;
+        in >> falpha_bar;  if (falpha_bar < 0.0 ) throw ExceptionT::kBadInputValue;
+	in >> ffriction;   if (ffriction < 0.0 ) throw ExceptionT::kBadInputValue;
 	in >> fdilation;
 	in >> fH_prime;
-	in >> fH_delta;    if (fH_delta > 0.0 ) throw eBadInputValue;
+	in >> fH_delta;    if (fH_delta > 0.0 ) throw ExceptionT::kBadInputValue;
 }
 
 /* destructor */

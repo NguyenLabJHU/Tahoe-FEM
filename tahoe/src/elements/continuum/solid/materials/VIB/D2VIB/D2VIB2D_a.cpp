@@ -1,4 +1,4 @@
-/* $Id: D2VIB2D_a.cpp,v 1.4 2002-09-12 17:50:01 paklein Exp $ */
+/* $Id: D2VIB2D_a.cpp,v 1.5 2002-10-20 22:48:58 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2VIB2D_a.h"
@@ -26,7 +26,7 @@ D2VIB2D_a::D2VIB2D_a(ifstreamT& in, const D2MeshFreeFDElasticT& element):
 {
 	/* gradient term coefficient */
 	in >> fD2coeff;
-	if (fD2coeff < 0.0) throw eBadInputValue;
+	if (fD2coeff < 0.0) throw ExceptionT::kBadInputValue;
 }
 
 /* print parameters */

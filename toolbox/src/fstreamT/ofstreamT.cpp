@@ -1,4 +1,4 @@
-/* $Id: ofstreamT.cpp,v 1.4 2002-07-02 19:57:13 cjkimme Exp $ */
+/* $Id: ofstreamT.cpp,v 1.5 2002-10-20 22:39:00 paklein Exp $ */
 /* created: paklein (12/30/2000) */
 
 #include "ofstreamT.h"
@@ -9,7 +9,7 @@
 
 #include "fstreamT.h"
 #include "Environment.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 #include "StringT.h"
 

@@ -1,11 +1,11 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.17 2002-09-12 17:50:10 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.18 2002-10-20 22:49:40 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
 
 #include <math.h>
 #include <string.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "toolboxConstants.h"
 #include "dArray2DT.h"
 #include "fstreamT.h"
@@ -66,7 +66,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 {
 	/* checks */
 	if (fDomain.NumSD()    !=   fCoords.MinorDim() ||
-	    fDomain.NumNodes() != fConnects.MinorDim()) throw eBadInputValue;
+	    fDomain.NumNodes() != fConnects.MinorDim()) throw ExceptionT::kBadInputValue;
 
 	/* read common parameters */
 	in >> fStoreShape;
@@ -82,7 +82,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 		in >> complete;
 		
 		/* checks */
-		if (fDextra < 1.0 || complete <= 1) throw eBadInputValue;
+		if (fDextra < 1.0 || complete <= 1) throw ExceptionT::kBadInputValue;
 		
 		/* construct MLS solver */	
 		if (fDomain.NumSD() == 2)
@@ -93,16 +93,16 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 		{
 			cout << "\n MeshFreeSupportT::MeshFreeSupportT: unsupported spatial dimensions: "
 			     << fDomain.NumSD() << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
-		if (!fEFG) throw eOutOfMemory;	
+		if (!fEFG) throw ExceptionT::kOutOfMemory;	
 		
 		/* initialize */
 		fEFG->Initialize();
 		
 		/* just one nodal field parameter */
 		fnodal_param_man.SetMinorDimension(1);
-		fNodalParameters.Allocate(fCoords.MajorDim(), 1);
+		fNodalParameters.Dimension(fCoords.MajorDim(), 1);
 		fNodalParameters = -1;
 	}
 	else if (fMeshfreeType == kRKPM)
@@ -114,7 +114,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 		in >> window_type;
 		
 		/* check */
-		if (complete < 0) throw eBadInputValue;
+		if (complete < 0) throw ExceptionT::kBadInputValue;
 		
 		/* resolve window function parameters */
 		dArrayT window_params;
@@ -123,7 +123,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 			case kGaussian:
 			{
 				/* 3 parameter */
-				window_params.Allocate(3);
+				window_params.Dimension(3);
 				in >> window_params[0]; // support size scaling
 				in >> window_params[1]; // sharpening factor
 				in >> window_params[2]; // cut-off factor
@@ -134,7 +134,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 				/* parameters = dilation scaling in each direction
 				 *             + sharpening factor
 				 *             + cut-off factor */
-				window_params.Allocate(fDomain.NumSD() + 2);
+				window_params.Dimension(fDomain.NumSD() + 2);
 				
 				/* allow for line-by-line comments */
 				for (int i = 0; i < window_params.Length(); i++)
@@ -147,7 +147,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 				/* parameters = dilation scaling in each direction
 				 *             + sharpening factor
 				 *             + cut-off factor */
-				window_params.Allocate(fDomain.NumSD() + 2);
+				window_params.Dimension(fDomain.NumSD() + 2);
 				
 				/* allow for line-by-line comments */
 				for (int i = 0; i < window_params.Length(); i++)
@@ -158,12 +158,12 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 			default:
 				cout << "\n MeshFreeSupportT::MeshFreeSupportT: unsupported window function type: "
 				     << window_type << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 		}
 
 		/* construct MLS solver */
 		fRKPM = new MLSSolverT(fDomain.NumSD(), complete, window_type, window_params);
-		if (!fRKPM) throw eOutOfMemory;	
+		if (!fRKPM) throw ExceptionT::kOutOfMemory;	
 
 		/* initialize */
 		fRKPM->Initialize();
@@ -172,16 +172,16 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 		fnodal_param_man.SetMinorDimension(fRKPM->NumberOfSupportParameters());
 		
 		/* allocate work space */
-		fVolume.Allocate(fCoords.MajorDim());
+		fVolume.Dimension(fCoords.MajorDim());
 		fVolume = 1.0;
-		fNodalParameters.Allocate(fCoords.MajorDim(), fRKPM->NumberOfSupportParameters());
+		fNodalParameters.Dimension(fCoords.MajorDim(), fRKPM->NumberOfSupportParameters());
 		fNodalParameters = -1;
 	}
 	else
 	{
 		cout << "\n MeshFreeSupportT::MeshFreeSupportT: unsupported spatial dimensions: "
 		     << fMeshfreeType << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	/* variable size manager */
@@ -216,7 +216,7 @@ void MeshFreeSupportT::WriteParameters(ostream& out) const
 	{
 		fRKPM->WriteParameters(out);
 	}
-	else throw eGeneralFail;
+	else throw ExceptionT::kGeneralFail;
 	out << '\n';
 }
 
@@ -243,7 +243,7 @@ void MeshFreeSupportT::InitSupportParameters(void)
 		cout << "\n MeshFreeSupportT::InitSupportParameters: connectivity search" << endl;
 		SetSupport_Cartesian_Connectivities();
 	} 
-	else throw eGeneralFail;
+	else throw ExceptionT::kGeneralFail;
 	
 	/* post-modify support size */
 	if (fMeshfreeType == kEFG)
@@ -251,7 +251,7 @@ void MeshFreeSupportT::InitSupportParameters(void)
 	else if (fMeshfreeType == kRKPM)
 		fRKPM->ModifySupportParameters(fNodalParameters);
 	else 
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 }
 
 void MeshFreeSupportT::InitNeighborData(void)
@@ -274,7 +274,7 @@ void MeshFreeSupportT::SetSkipNodes(const iArrayT& skip_nodes)
 		fSkipNode.Free();
 	else
 	{
-		fSkipNode.Allocate(fCoords.MajorDim());
+		fSkipNode.Dimension(fCoords.MajorDim());
 		fSkipNode = 0;
 		for (int i = 0; i < skip_nodes.Length(); i++)
 			fSkipNode[skip_nodes[i]] = 1;
@@ -287,7 +287,7 @@ void MeshFreeSupportT::SetSkipElements(const iArrayT& skip_elements)
 		fSkipElement.Free();
 	else
 	{
-		fSkipElement.Allocate(fConnects.MajorDim());
+		fSkipElement.Dimension(fConnects.MajorDim());
 		fSkipElement = 0;
 		for (int i = 0; i < skip_elements.Length(); i++)
 			fSkipElement[skip_elements[i]] = 1;
@@ -304,7 +304,7 @@ void MeshFreeSupportT::SynchronizeSupportParameters(dArray2DT& nodal_params)
 		{
 			cout << "\n MeshFreeSupportT::SynchronizeSupportParameters: list of nodal\n"
 			     << " parameters must the same length over the global node set" << endl;
-			throw eSizeMismatch;
+			throw ExceptionT::kSizeMismatch;
 		}
 		
 		/* "synchronize" means take max of dmax */
@@ -320,7 +320,7 @@ void MeshFreeSupportT::SynchronizeSupportParameters(dArray2DT& nodal_params)
 	else if (fMeshfreeType == kRKPM)
 		/* handled by the MLS solver */
 		fRKPM->SynchronizeSupportParameters(fNodalParameters, nodal_params);
-	else throw eGeneralFail;
+	else throw ExceptionT::kGeneralFail;
 }
 
 void MeshFreeSupportT::SetSupportParameters(const iArrayT& node, const dArray2DT& nodal_params)
@@ -328,7 +328,7 @@ void MeshFreeSupportT::SetSupportParameters(const iArrayT& node, const dArray2DT
 	/* make sure grid is set - not a good place for this */
 	if (!fGrid)
 	{
-		fNodesUsed.Allocate(fCoords.MajorDim());
+		fNodesUsed.Dimension(fCoords.MajorDim());
 		fNodesUsed.SetValueToPosition();
 		SetSearchGrid();
 	}
@@ -363,7 +363,7 @@ void MeshFreeSupportT::ResetFacets(const ArrayT<int>& facets)
 	else if (fCutCoords == NULL)
 	{
 		cout << "\n MeshFreeSupportT::ResetFacets: facet coordinates not set" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* collect nodes to reset.
@@ -491,7 +491,7 @@ void MeshFreeSupportT::LoadNodalData(int node, iArrayT& neighbors, dArrayT& phi,
 		{
 			cout << "\n MeshFreeSupportT::LoadNodalData: requesting empty data for node: ";
 			cout << node << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 #endif
 
@@ -505,7 +505,7 @@ void MeshFreeSupportT::LoadNodalData(int node, iArrayT& neighbors, dArrayT& phi,
 		if (fndShapespace.Length() < nnd*(nsd + 1))
 		{
 			cout << " MeshFreeSupportT::LoadNodalData: work space is not allocated" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	
 		/* set shallow data */
@@ -524,7 +524,7 @@ void MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 	dArray2DT& phi, ArrayT<dArray2DT>& Dphi)
 {
 #if __option(extended_errorcheck)
-	if (Dphi.Length() != fDomain.NumIP()) throw eSizeMismatch;
+	if (Dphi.Length() != fDomain.NumIP()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* element neighbors */
@@ -586,7 +586,7 @@ void MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 		if (pelspace - felShapespace.Pointer() > felShapespace.Length())
 		{
 			cout << " MeshFreeSupportT::LoadElementData: element work space is not allocated" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		
 		/* compute */
@@ -804,7 +804,7 @@ void MeshFreeSupportT::SetSearchGrid(void)
 	if (fNodesUsed.Length() == 0)
 	{
 		cout << "\n MeshFreeSupportT::SetSearchGrid: must set used nodes first" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* try to get roughly least 10 per grid */
@@ -819,7 +819,7 @@ void MeshFreeSupportT::SetSearchGrid(void)
 	iArrayT n_grid(fDomain.NumSD());
 	n_grid = ngrid;
 	fGrid = new iGridManagerT(n_grid, fCoords, &fNodesUsed);	
-	if (!fGrid) throw eOutOfMemory;
+	if (!fGrid) throw ExceptionT::kOutOfMemory;
 
 	/* reset search grid bounds */
 	fGrid->Reset();
@@ -830,14 +830,14 @@ void MeshFreeSupportT::SetSearchGrid(void)
 void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 {
 #if __option(extended_errorcheck)
-	if (coords.MajorDim() != fNodalParameters.MajorDim()) throw eSizeMismatch;
+	if (coords.MajorDim() != fNodalParameters.MajorDim()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int numnodes = fNodalParameters.MajorDim();
 	int nsd      = coords.MinorDim();
 	
 	/* initialize neighbor counts */
-	fnNeighborCount.Allocate(numnodes);
+	fnNeighborCount.Dimension(numnodes);
 	fnNeighborCount = 0;
 
 	/* work space */
@@ -857,7 +857,7 @@ void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 	{
 		cout << "\n MeshFreeSupportT::SetNodeNeighborData: could not determine\n" 
 		     <<   "     search type" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* loop over "active" nodes */
@@ -884,7 +884,7 @@ void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 		int count = neighbors.Length();
 		if (count > (*pthis).MinorDim())
 		{
-			(*pnext).Allocate(numnodes, count + kListSizeinc);
+			(*pnext).Dimension(numnodes, count + kListSizeinc);
 					
 			/* copy and swap */
 			SwapData(fnNeighborCount, &pthis, &pnext);
@@ -904,20 +904,20 @@ void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 
 	/* space for nodal calculations */
 	int maxsize = fnNeighborData.MaxMinorDim();
-	fndShapespace.Allocate(maxsize*(1 + nsd));
+	fndShapespace.Dimension(maxsize*(1 + nsd));
 }
 
 void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 {
 #if __option(extended_errorcheck)
-	if (coords.MajorDim() != fNodalParameters.MajorDim()) throw eSizeMismatch;
+	if (coords.MajorDim() != fNodalParameters.MajorDim()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int numnodes = fNodalParameters.MajorDim();
 	int nsd      = coords.MinorDim();
 	
 	/* initialize neighbor counts */
-	fnNeighborCount.Allocate(numnodes);
+	fnNeighborCount.Dimension(numnodes);
 	fnNeighborCount = 0;
 
 	/* work space */
@@ -937,7 +937,7 @@ void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 	{
 		cout << "\n MeshFreeSupportT::SetNodeNeighborData_2: could not determine\n" 
 		     <<   "     search type" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* loop over "active" nodes */
@@ -988,7 +988,7 @@ void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 		/* write data to disk */
 		ArrayT<int> dump;
 		ofstreamT tmp_out(file);
-		if (!tmp_out.is_open()) throw eGeneralFail;
+		if (!tmp_out.is_open()) throw ExceptionT::kGeneralFail;
 		for (int j = 0; j < numnodes; j++)
 		{
 			dump.Set(fnNeighborCount[j], pointers[j]);
@@ -1006,7 +1006,7 @@ void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 
 		/* read contents of */
 		ifstreamT tmp_in(file);
-		if (!tmp_in.is_open()) throw eGeneralFail;
+		if (!tmp_in.is_open()) throw ExceptionT::kGeneralFail;
 		fnNeighborData.ReadDataBinary(tmp_in);
 		tmp_in.close();
 	}
@@ -1026,7 +1026,7 @@ void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 		
 	/* space for nodal calculations */
 	int maxsize = fnNeighborData.MaxMinorDim();
-	fndShapespace.Allocate(maxsize*(1 + nsd));
+	fndShapespace.Dimension(maxsize*(1 + nsd));
 }
 
 /* generate lists of all nodes that fall within Dmax of the
@@ -1040,7 +1040,7 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 	int nip      = fDomain.NumIP();
 	
 	/* initialize neighbor counts */
-	feNeighborCount.Allocate(numelems);
+	feNeighborCount.Dimension(numelems);
 	feNeighborCount = 0;
 
 	/* work space */
@@ -1093,7 +1093,7 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 		fDomain.Interpolate(loccoords, x_ip_table);
 	
 		/* collect unique list of neighboring nodes */
-		nodeset.Allocate(0);
+		nodeset.Dimension(0);
 		for (int j = 0; j < nen; j++)
 		{
 			int node = pelem[j];
@@ -1133,7 +1133,7 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 			int newsize = Max(setlength,(*pthis).MinorDim() + kListSizeinc);
 
 			/* allocate */		
-			(*pnext).Allocate(numelems, newsize);
+			(*pnext).Dimension(numelems, newsize);
 
 			/* copy and swap */
 			SwapData(feNeighborCount, &pthis, &pnext);		
@@ -1163,7 +1163,7 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 		
 	/* space element calculation */
 	int maxsize = feNeighborData.MaxMinorDim();
-	felShapespace.Allocate(nip*maxsize*(1 + nsd));
+	felShapespace.Dimension(nip*maxsize*(1 + nsd));
 }
 
 /* generate lists of all nodes that fall within Dmax of the
@@ -1177,7 +1177,7 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 	int nip      = fDomain.NumIP();
 	
 	/* initialize neighbor counts */
-	feNeighborCount.Allocate(numelems);
+	feNeighborCount.Dimension(numelems);
 	feNeighborCount = 0;
 
 	/* work space */
@@ -1230,7 +1230,7 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 		fDomain.Interpolate(loccoords, x_ip_table);
 	
 		/* collect unique list of neighboring nodes */
-		nodeset.Allocate(0);
+		nodeset.Dimension(0);
 		for (int j = 0; j < nen; j++)
 		{
 			int node = pelem[j];
@@ -1301,7 +1301,7 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 		/* write data to disk */
 		ArrayT<int> dump;
 		ofstreamT tmp_out(file);
-		if (!tmp_out.is_open()) throw eGeneralFail;
+		if (!tmp_out.is_open()) throw ExceptionT::kGeneralFail;
 		for (int j = 0; j < numelems; j++)
 		{
 			dump.Set(feNeighborCount[j], pointers[j]);
@@ -1319,7 +1319,7 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 
 		/* read contents of */
 		ifstreamT tmp_in(file);
-		if (!tmp_in.is_open()) throw eGeneralFail;
+		if (!tmp_in.is_open()) throw ExceptionT::kGeneralFail;
 		feNeighborData.ReadDataBinary(tmp_in);
 		tmp_in.close();
 	}
@@ -1339,7 +1339,7 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 		
 	/* space element calculation */
 	int maxsize = feNeighborData.MaxMinorDim();
-	felShapespace.Allocate(nip*maxsize*(1 + nsd));
+	felShapespace.Dimension(nip*maxsize*(1 + nsd));
 }
 
 /* (re-)compute some/all nodal shape functions and derivatives */
@@ -1385,7 +1385,7 @@ void MeshFreeSupportT::SetNodalShapeFunctions(void)
 	}
 	
 	/* clear */
-	fResetNodes.Allocate(0);
+	fResetNodes.Dimension(0);
 }
 
 /* compute all integration point shape functions and derivatives */
@@ -1429,7 +1429,7 @@ void MeshFreeSupportT::SetElementShapeFunctions(void)
 	     << lim << endl;		
 
 	/* clear */
-	fResetElems.Allocate(0);	
+	fResetElems.Dimension(0);	
 }
 
 /*************************************************************************
@@ -1465,7 +1465,7 @@ bool MeshFreeSupportT::Covers(const dArrayT& field_x, const dArrayT& node_x,
 	{
 		cout << "\n MeshFreeSupportT::Covers: unexpected meshfree type: " 
 		     << fMeshfreeType << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return covers;
 }
@@ -1539,7 +1539,7 @@ void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 			phi.SetRow(i, fRKPM->phi());
 			Dphi[i] = fRKPM->Dphi();
 		}
-		else throw eGeneralFail;
+		else throw ExceptionT::kGeneralFail;
 
 		/* error */
 		ostream& err = cout;
@@ -1565,7 +1565,7 @@ void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 				fcoords.PrintRow(j, err);				
 			}
 			err.flush();
-			throw eGeneralFail;	
+			throw ExceptionT::kGeneralFail;	
 		}	
 	}
 }
@@ -1646,7 +1646,7 @@ void MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 			fcoords.PrintRow(i, cout);
 		}
 		cout.flush();		
-		throw eGeneralFail;	
+		throw ExceptionT::kGeneralFail;	
 	}
 }
 
@@ -1663,7 +1663,7 @@ void MeshFreeSupportT::SetSupport_Spherical_Search(void)
 		cout << "\n MeshFreeSupportT::SetSupport_Spherical_Search: expecting only 1\n" 
 		     <<   "     nodal support size parameter:" << fRKPM->NumberOfSupportParameters() 
 		     << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	int min_neighbors = (fEFG) ? fEFG->NumberOfMonomials() :
@@ -1675,7 +1675,7 @@ void MeshFreeSupportT::SetSupport_Spherical_Search(void)
 	if (fNodesUsed.Length() < min_neighbors)
 	{
 		cout << " MeshFreeSupportT::SetDmax: not enough meshfree nodes" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* "big" system */
@@ -1728,8 +1728,8 @@ void MeshFreeSupportT::SetSupport_Spherical_Search(void)
 				fGrid->HitsInRegion(target, tol);
 
 			/* set valid neighborhood */
-			dists.Allocate(0);
-			nodes.Allocate(0);
+			dists.Dimension(0);
+			nodes.Dimension(0);
 		
 			/* collect visible nodes */
 			num_neighbors = inodes.Length();
@@ -1786,7 +1786,7 @@ void MeshFreeSupportT::SetSupport_Spherical_Search(void)
 			cout << "     " << i << " after " << max_iterations << " iterations:\n";
 			cout << "      x: ";
 			fCoords.PrintRow(i, cout);
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		else
 		{
@@ -1939,7 +1939,7 @@ void MeshFreeSupportT::SetNodesUsed(void)
 
 	/* count nodes used */
 	int numused = used.Count(1);
-	fNodesUsed.Allocate(numused);
+	fNodesUsed.Dimension(numused);
 		
 	/* collect node numbers (ascending order) */	
 	int* pnused = fNodesUsed.Pointer();
@@ -1964,7 +1964,7 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 	{
 		cout << "\n MeshFreeSupportT::BuildNeighborhood: failed to find any nodes around:\n";
 		cout << x << "\n     after 4 iterations" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* collect support nodes */
@@ -1999,15 +1999,15 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 		/* re-collect using max support */
 		inodes = &fGrid->HitsInRegion(target, support_max);
 	}
-	else throw eGeneralFail;
+	else throw ExceptionT::kGeneralFail;
 
 	/* work space */	
 	int nsd = fCoords.MinorDim();
 	AutoArrayT<int> out_nodes; // make as class workspace?
 
 	/* initialize */
-	nodes.Allocate(0);
-	out_nodes.Allocate(0);
+	nodes.Dimension(0);
+	out_nodes.Dimension(0);
 				
 	/* run through nodes */
 	dArrayT x_node, nodal_params;
@@ -2092,9 +2092,9 @@ void MeshFreeSupportT::InitNodalShapeData(void)
 	}
 	
 	/* write memory information */
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
-		if (error == eOutOfMemory)
+		if (error == ExceptionT::kOutOfMemory)
 		{
 			cout << "\n MeshFreeSupportT::InitNodalShapeData: out of memory for nodal shape data: "
 			     << ((step == 0) ? "phi" : "Dphi") << '\n';
@@ -2122,9 +2122,9 @@ void MeshFreeSupportT::InitElementShapeData(void)
 	}
 
 	/* write memory information */
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
-		if (error == eOutOfMemory)
+		if (error == ExceptionT::kOutOfMemory)
 		{
 			cout << "\n MeshFreeSupportT::InitNodalShapeData: out of memory for nodal shape data: "
 			     << ((step == 0) ? "phi" : "Dphi") << '\n';
@@ -2141,8 +2141,8 @@ void MeshFreeSupportT::SwapData(const iArrayT& counts, iArray2DT** pfrom,
 	iArray2DT** pto)
 {
 #if __option(extended_errorcheck)
-	if ((**pfrom).MajorDim() != (**pto).MajorDim()) throw eSizeMismatch;
-	if ((**pfrom).MinorDim() >= (**pto).MinorDim()) throw eGeneralFail;
+	if ((**pfrom).MajorDim() != (**pto).MajorDim()) throw ExceptionT::kSizeMismatch;
+	if ((**pfrom).MinorDim() >= (**pto).MinorDim()) throw ExceptionT::kGeneralFail;
 #endif
 
 	iArray2DT& from = **pfrom;

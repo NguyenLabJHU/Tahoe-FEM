@@ -1,11 +1,10 @@
-/* $Id: iGridManagerT.h,v 1.7 2002-07-20 07:59:51 paklein Exp $ */
+/* $Id: iGridManagerT.h,v 1.8 2002-10-20 22:39:13 paklein Exp $ */
 /* created: paklein (09/13/1998) */
 #ifndef _I_GRIDMANAGER_T_H_
 #define _I_GRIDMANAGER_T_H_
 
 /* environment */
 #include "Environment.h"
-
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {

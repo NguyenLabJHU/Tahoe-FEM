@@ -1,4 +1,4 @@
-// $Id: NOX_Tahoe_Vector.cpp,v 1.5 2002-07-03 23:11:12 paklein Exp $
+// $Id: NOX_Tahoe_Vector.cpp,v 1.6 2002-10-20 22:49:48 paklein Exp $
 #include "NOX_Tahoe_Vector.h"
 
 /* optional */
@@ -60,7 +60,7 @@ NOX::Abstract::Vector& Vector::abs(const Vector& base)
 {
 	const dArrayT& src = base;
 #if __option(extended_errorcheck)
-	if (fArray->Length() != src.Length()) throw eSizeMismatch;
+	if (fArray->Length() != src.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 	for (int i = 0; i < src.Length(); i++)
 		(*fArray)[i] = fabs(src[i]);
@@ -76,7 +76,7 @@ NOX::Abstract::Vector& Vector::reciprocal(const Vector& base)
 {
 	const dArrayT& src = base;
 #if __option(extended_errorcheck)
-	if (fArray->Length() != src.Length()) throw eSizeMismatch;
+	if (fArray->Length() != src.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 	for (int i = 0; i < src.Length(); i++)
 		(*fArray)[i] = 1.0/src[i];
@@ -153,7 +153,7 @@ double Vector::norm(const Vector& weights, NOX::Abstract::Vector::NormType type)
 		case INF:
 		case ONE:
 			cerr << "\n Vector::norm: type not supported: " << type << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 			break;
 		case TWO:
 		default:

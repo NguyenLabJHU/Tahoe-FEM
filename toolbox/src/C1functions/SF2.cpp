@@ -1,10 +1,10 @@
-/* $Id: SF2.cpp,v 1.1 2002-10-04 20:51:05 thao Exp $ */
+/* $Id: SF2.cpp,v 1.2 2002-10-20 22:38:48 paklein Exp $ */
 /* created: paklein (10/30/1997)                                          */
 
 #include "SF2.h"
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 
 /*
@@ -73,7 +73,7 @@ double SF2::DDFunction(double x) const
 dArrayT& SF2::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
@@ -89,7 +89,7 @@ dArrayT& SF2::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& SF2::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
@@ -105,7 +105,7 @@ dArrayT& SF2::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& SF2::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();

@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.cpp,v 1.4 2002-07-02 19:57:11 cjkimme Exp $ */
+/* $Id: LinearSolver.cpp,v 1.5 2002-10-20 22:49:47 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 
 #include "LinearSolver.h"
@@ -49,7 +49,7 @@ SolverT::SolutionStatusT LinearSolver::Solve(int)
 	}
 
 	/* determine update vector */
-	if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
+	if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
 	fNumIteration = 1;
 
 	/* update displacements */
@@ -74,10 +74,10 @@ SolverT::SolutionStatusT LinearSolver::Solve(int)
 	} /* end try */
 	
 	/* not OK */
-	catch (int exception)
+	catch (ExceptionT::CodeT exception)
 	{
 		cout << "\n LinearSolver::Solve: caught exception: " 
-		     << fFEManager.Exception(exception) << endl;
+		     << ExceptionT::ToString(exception) << endl;
 		return kFailed;
 	}
 }

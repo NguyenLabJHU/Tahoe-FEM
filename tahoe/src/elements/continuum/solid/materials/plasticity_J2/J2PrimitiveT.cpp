@@ -1,4 +1,4 @@
-/* $Id: J2PrimitiveT.cpp,v 1.2 2002-07-02 19:56:11 cjkimme Exp $ */
+/* $Id: J2PrimitiveT.cpp,v 1.3 2002-10-20 22:49:05 paklein Exp $ */
 /* created: paklein (02/17/1997)                                          */
 /* Base class for a J2 plastic material with linear kinematic/            */
 /* isotropic hardening laws defined by:                                   */
@@ -26,9 +26,9 @@ J2PrimitiveT::J2PrimitiveT(ifstreamT& in):
 	fH_bar(-1.0)
 {
 	/* read parameters */
-	in >> fYield;	if (fYield <= 0.0) throw eBadInputValue;
-	in >> fH_bar;	if (fH_bar < 0.0) throw eBadInputValue;
-	in >> ftheta;	if (ftheta < 0.0 || ftheta > 1.0) throw eBadInputValue;
+	in >> fYield;	if (fYield <= 0.0) throw ExceptionT::kBadInputValue;
+	in >> fH_bar;	if (fH_bar < 0.0) throw ExceptionT::kBadInputValue;
+	in >> ftheta;	if (ftheta < 0.0 || ftheta > 1.0) throw ExceptionT::kBadInputValue;
 }
 
 /* destructor */

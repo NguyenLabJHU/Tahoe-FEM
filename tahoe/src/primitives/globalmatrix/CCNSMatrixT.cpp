@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.10 2002-09-12 17:50:08 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.11 2002-10-20 22:49:32 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 
 #include "CCNSMatrixT.h"
@@ -65,19 +65,19 @@ void CCNSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		cout << "\n CCNSMatrixT::Initialize: expecting total number of equations\n"
 		     <<   "     " << tot_num_eq
 		     << " to be equal to the local number of equations " << loc_num_eq << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* allocate */	
 	if (famax != NULL) delete[] famax;
 	iArrayT i_memory;
 	try {
-		i_memory.Allocate(fLocNumEQ + 1);
+		i_memory.Dimension(fLocNumEQ + 1);
 		i_memory.ReleasePointer(&famax);
 	}	
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
-		if (error == eOutOfMemory)
+		if (error == ExceptionT::kOutOfMemory)
 		{
 			cout << "\n CCNSMatrixT::Initialize: not enough memory" << endl;
 			fOut << "\n CCNSMatrixT::Initialize: not enough memory" << endl;
@@ -101,15 +101,15 @@ void CCNSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	if (fMatrix != NULL) delete[] fMatrix;
 	dArrayT d_memory;
 	try {
-		d_memory.Allocate(fLocNumEQ);
+		d_memory.Dimension(fLocNumEQ);
 		d_memory.ReleasePointer(&fu);
 
-		d_memory.Allocate(fNumberOfTerms);
+		d_memory.Dimension(fNumberOfTerms);
 		d_memory.ReleasePointer(&fMatrix);
 	}	
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
-		if (error == eOutOfMemory)
+		if (error == ExceptionT::kOutOfMemory)
 		{
 			cout << "\n CCNSMatrixT::Initialize: not enough memory" << endl;
 			fOut << "\n CCNSMatrixT::Initialize: not enough memory" << endl;
@@ -190,7 +190,7 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqno
 				if (eqno < 0 || eqno >= fLocNumEQ)
 				{
 					cout << "\n CCNSMatrixT::Assemble: index out of range: " << eqno << endl;
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 #endif
 				/* assemble */
@@ -227,7 +227,7 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_
 #if __option(extended_errorcheck)
 	/* dimension check */
 	if (elMat.Rows() != row_eqnos.Length() ||
-	    elMat.Cols() != col_eqnos.Length()) throw eSizeMismatch;
+	    elMat.Cols() != col_eqnos.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* element matrix format */
@@ -236,7 +236,7 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_
 	if (format == ElementMatrixT::kDiagonal)
 	{
 		cout << "\n CCNSMatrixT::Assemble(m, r, c): cannot assemble diagonal matrix" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	else
 	{   	
@@ -314,7 +314,7 @@ GlobalMatrixT& CCNSMatrixT::operator=(const CCNSMatrixT& rhs)
 {
 #pragma unused(rhs)
 	cout << "\n CCNSMatrixT::operator= : not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 /* assignment operator */
@@ -322,13 +322,13 @@ GlobalMatrixT& CCNSMatrixT::operator=(const GlobalMatrixT& rhs)
 {
 #ifdef __NO_RTTI__
 	cout << "\n CCNSMatrixT::operator= : requires RTTI" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 #endif
 
 	const CCNSMatrixT* ccns = dynamic_cast<const CCNSMatrixT*>(&rhs);
 	if (!ccns) {
 		cout << "\n CCNSMatrixT::operator= : cast failed" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return operator=(*ccns);
 }
@@ -476,8 +476,8 @@ void CCNSMatrixT::PrintLHS(void) const
 int CCNSMatrixT::InSkyline(int row, int col) const
 {
 	/* range checks */
-	if (row < 0 || row >= fLocNumEQ) throw eGeneralFail;
-	if (col < 0 || col >= fLocNumEQ) throw eGeneralFail;
+	if (row < 0 || row >= fLocNumEQ) throw ExceptionT::kGeneralFail;
+	if (col < 0 || col >= fLocNumEQ) throw ExceptionT::kGeneralFail;
 
 	if (row == col)      /* element on diagonal */
 		return 1;
@@ -507,8 +507,8 @@ int CCNSMatrixT::InSkyline(int row, int col) const
 double& CCNSMatrixT::operator()(int row, int col) const
 {
 	/* range checks */
-	if (row < 0 || row >= fLocNumEQ) throw eGeneralFail;
-	if (col < 0 || col >= fLocNumEQ) throw eGeneralFail;
+	if (row < 0 || row >= fLocNumEQ) throw ExceptionT::kGeneralFail;
+	if (col < 0 || col >= fLocNumEQ) throw ExceptionT::kGeneralFail;
 
 	if (row == col)      /* element on diagonal */
 		return fKD[row];
@@ -518,7 +518,7 @@ double& CCNSMatrixT::operator()(int row, int col) const
 		int offset    = row - col;
 		
 		/* over skyline */
-		if (offset > bandwidth) throw eOutOfRange;
+		if (offset > bandwidth) throw ExceptionT::kOutOfRange;
 
 // row major storage below the diagonal
 		return fKL[famax[row] + bandwidth - offset];
@@ -529,7 +529,7 @@ double& CCNSMatrixT::operator()(int row, int col) const
 		int offset    = col - row;
 		
 		/* over skyline */
-		if (offset > bandwidth) throw eOutOfRange;
+		if (offset > bandwidth) throw ExceptionT::kOutOfRange;
 		
 // col major storage above the diagonal
 		return fKU[famax[col] + bandwidth - offset];

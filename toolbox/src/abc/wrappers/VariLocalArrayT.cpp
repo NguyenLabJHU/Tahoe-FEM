@@ -1,4 +1,4 @@
-/* $Id: VariLocalArrayT.cpp,v 1.2 2002-07-02 19:56:54 cjkimme Exp $ */
+/* $Id: VariLocalArrayT.cpp,v 1.3 2002-10-20 22:38:57 paklein Exp $ */
 /* created: paklein (04/26/1999)                                          */
 /* Wrapper for dynamically re-sizing the number of nodes in               */
 /* a LocalArrayT's.                                                       */
@@ -37,21 +37,21 @@ void VariLocalArrayT::SetWard(int headroom, LocalArrayT& ward,
 		if (fWard->MinorDim() > 0)
 		{
 			/* consistency check */
-			if (fWard->MinorDim() != fMinorDim) throw eSizeMismatch;
+			if (fWard->MinorDim() != fMinorDim) throw ExceptionT::kSizeMismatch;
 		}
 		else
 			/* set minor dimension */
 			fWard->Set(0, fMinorDim, NULL);
 	}
 	else
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 }
 
 /* set number of nodes */
 void VariLocalArrayT::SetNumberOfNodes(int numnodes)
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	if (numnodes != fWard->NumberOfNodes())
 	{

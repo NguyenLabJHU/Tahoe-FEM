@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.cpp,v 1.4 2002-07-02 19:55:10 cjkimme Exp $ */
+/* $Id: nTrapezoid.cpp,v 1.5 2002-10-20 22:48:13 paklein Exp $ */
 /* created: paklein (10/03/1999) */
 
 #include "nTrapezoid.h"
@@ -42,7 +42,7 @@ void nTrapezoid::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		}
 		default:
 			cout << "\n nTrapezoid::ConsistentKBC:unknown BC code\n" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 }		
 

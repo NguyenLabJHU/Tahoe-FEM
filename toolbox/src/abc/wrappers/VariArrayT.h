@@ -1,44 +1,46 @@
-/* $Id: VariArrayT.h,v 1.2 2002-07-02 19:56:54 cjkimme Exp $ */
-/* created: paklein (04/18/1998)                                          */
-/* WRAPPER for ArrayT<>'s to add dynamic sizing using                     */
-/* some headroom to cut down calls for memory                             */
-/* de/re-allocation                                                       */
-
+/* $Id: VariArrayT.h,v 1.3 2002-10-20 22:38:57 paklein Exp $ */
+/* created: paklein (04/18/1998) */
 #ifndef _VARI_ARRAY_T_H_
 #define _VARI_ARRAY_T_H_
 
 /* base class */
 #include "VariBaseT.h"
 
-
 namespace Tahoe {
 
+/** wrapper for ArrayT<>'s to add dynamic sizing.
+ * Implemented efficient dynamic resizing of an ArrayT using
+ * some headroom to cut down calls for memory de/re-allocation */
 template <class TYPE>
 class VariArrayT: public VariBaseT<TYPE>
 {
 public:
 
-	/* constructors */
+	/** \name constructors */
+	/*@{*/
 	VariArrayT(void);
 	VariArrayT(int headroom, ArrayT<TYPE>& ward);
+	/*@}*/
 
-	/* set the managed array - can only be set ONCE */
+	/** set the managed array. \note can only be set once. */
 	void SetWard(int headroom, ArrayT<TYPE>& ward);
 	
-	/* set length of the ward, fill extra space and copy in old
-	 * data if specified */
+	/** \name set length of the ward
+	 * Fill extra space and copy in old data if specified */
+	/*@{*/	
 	void SetLength(int length, bool copy_in);
 	void SetLength(int length, const TYPE& fill, bool copy_in);
+	/*@}*/	
 
-	/* return the current length of the ward */
+	/** return the current length of the ward */
 	int Length(void) const;
 
-	/* free memory of self and ward */
+	/** free memory of self and ward */
 	void Free(void);
 
 private:
 
-	/* the managed array */
+	/** the managed array */
 	ArrayT<TYPE>* fWard;
 };
 
@@ -68,7 +70,7 @@ void VariArrayT<TYPE>::SetWard(int headroom, ArrayT<TYPE>& ward)
 	if (!fWard)
 		fWard = &ward;
 	else
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 }
 	
 /* set length of the ward, fill extra space if specified */
@@ -76,7 +78,7 @@ template <class TYPE>
 inline void VariArrayT<TYPE>::SetLength(int length, bool copy_in)
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	/* use inherited function */
 	SetAlias(*fWard, length, copy_in);
@@ -86,7 +88,7 @@ template <class TYPE>
 inline void VariArrayT<TYPE>::SetLength(int length, const TYPE& fill, bool copy_in)
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	/* use inherited function */
 	SetAlias(*fWard, length, fill, copy_in);
@@ -97,7 +99,7 @@ template <class TYPE>
 inline int VariArrayT<TYPE>::Length(void) const
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	return(fWard->Length());
 }

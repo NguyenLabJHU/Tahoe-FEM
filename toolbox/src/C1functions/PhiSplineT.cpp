@@ -1,4 +1,4 @@
-/* $Id: PhiSplineT.cpp,v 1.2 2002-07-02 19:56:32 cjkimme Exp $ */
+/* $Id: PhiSplineT.cpp,v 1.3 2002-10-20 22:38:48 paklein Exp $ */
 /* created: paklein (01/30/2000)                                          */
 /* PhiSplineT.h                                                           */
 
@@ -60,7 +60,7 @@ double PhiSplineT::DDFunction(double r) const
 dArrayT& PhiSplineT::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw eGeneralFail;
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
 	double *pin   = in.Pointer();
 	double *pout  = out.Pointer();
@@ -76,7 +76,7 @@ dArrayT& PhiSplineT::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& PhiSplineT::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw eGeneralFail;
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
 	double *pin   =  in.Pointer();
 	double *pout  = out.Pointer();
@@ -92,7 +92,7 @@ dArrayT& PhiSplineT::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& PhiSplineT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw eGeneralFail;
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
 	double *pin   =  in.Pointer();
 	double *pout  = out.Pointer();

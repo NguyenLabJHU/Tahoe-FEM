@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.7 2002-09-12 17:50:09 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.8 2002-10-20 22:49:35 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 
 #include "AztecMatrixT.h"
@@ -11,7 +11,7 @@
 #include <stdlib.h>
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 #include "Aztec_fe.h"
 #include "iArray2DT.h"
@@ -28,7 +28,7 @@ AztecMatrixT::AztecMatrixT(ifstreamT& in, ostream& out, int check_code):
 {
 	/* set and verify Aztec data structures */
 	fAztec = new Aztec_fe(fInput, out);
-	if (!fAztec) throw eOutOfMemory;
+	if (!fAztec) throw ExceptionT::kOutOfMemory;
 }	
 
 /* copy constructor */
@@ -38,7 +38,7 @@ AztecMatrixT::AztecMatrixT(const AztecMatrixT& source):
 {
 #pragma unused(source)
 	cout << "\n AztecMatrixT::AztecMatrixT: not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 /* destuctor */
@@ -64,7 +64,7 @@ void AztecMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		cout << "\n AztecMatrixT::Initialize: no MPI: expecting the total number\n"
 		     <<   "     of equations " << fTotNumEQ
 		     << " to be equal to the local number of equations " << fLocNumEQ << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 	
@@ -99,7 +99,7 @@ void AztecMatrixT::AddEquationSet(const iArray2DT& eqset)
 	/* dimension workspace */
 	int dim = eqset.MinorDim();
 	if (dim > fValMat.Rows())
-		fValMat.Allocate(dim);
+		fValMat.Dimension(dim);
 }
 
 void AztecMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
@@ -110,7 +110,7 @@ void AztecMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 	/* dimension workspace */
 	int dim = eqset.MaxMinorDim();
 	if (dim > fValMat.Rows())
-		fValMat.Allocate(dim);
+		fValMat.Dimension(dim);
 }
 
 /* assemble the element contribution into the LHS matrix - assumes
@@ -125,8 +125,8 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqn
 	if (format == ElementMatrixT::kDiagonal)
 	{
 		/* extract values for active equation numbers */
-		fRowDexVec.Allocate(0);	
-		fValVec.Allocate(0);
+		fRowDexVec.Dimension(0);	
+		fValVec.Dimension(0);
 		int end_update = fStartEQ + fLocNumEQ - 1;
 		for (int i = 0; i < eqnos.Length(); i++)
 		{
@@ -149,14 +149,14 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqn
 		{
 			cout << "\n AztecMatrixT::Assemble: ERROR with equations:\n";
 			cout << eqnos << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	}
 	else
 	{
 		/* equation numbers -> local active rows and all active columns */
-		fRowDexVec.Allocate(0);
-		fColDexVec.Allocate(0);
+		fRowDexVec.Dimension(0);
+		fColDexVec.Dimension(0);
 		int end_update = fStartEQ + fLocNumEQ - 1;
 		for (int j = 0; j < eqnos.Length(); j++)
 		{
@@ -187,7 +187,7 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqn
 			fColDexVec[c] = eqnos[fColDexVec[c]] - 1; //OFFSET
 
 		/* row-by-row assembly */
-		fValVec.Allocate(num_cols);
+		fValVec.Dimension(num_cols);
 		int status = 1;
 		for (int i = 0; i < num_rows && status; i++)
 		{
@@ -204,7 +204,7 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqn
 		{
 			cout << "\n AztecMatrixT::Assemble: ERROR with equations:\n";
 			cout << eqnos << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	}
 }
@@ -218,14 +218,14 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row
 	if (format == ElementMatrixT::kDiagonal)
 	{
 		cout << "\n AztecMatrixT::Assemble(m, r, c): cannot assemble diagonal matrix" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	else
 	{
 		int end_update = fStartEQ + fLocNumEQ - 1;
 
 		/* equation numbers -> local active rows */
-		fRowDexVec.Allocate(0);
+		fRowDexVec.Dimension(0);
 		for (int j = 0; j < row_eqnos.Length(); j++)
 		{
 			int eq = row_eqnos[j];
@@ -234,7 +234,7 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row
 		}
 
 		/* equation numbers -> local active rows */
-		fColDexVec.Allocate(0);
+		fColDexVec.Dimension(0);
 		for (int j = 0; j < col_eqnos.Length(); j++)
 			if (col_eqnos[j] > 0)
 				fColDexVec.Append(j);
@@ -259,7 +259,7 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row
 			fColDexVec[c] = col_eqnos[fColDexVec[c]] - 1; //OFFSET
 
 		/* row-by-row assembly */
-		fValVec.Allocate(num_cols);
+		fValVec.Dimension(num_cols);
 		int status = 1;
 		for (int i = 0; i < num_rows && status; i++)
 		{
@@ -277,7 +277,7 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row
 			cout << "\n AztecMatrixT::Assemble: ERROR with equations:\n";
 			cout << " row:\n" << row_eqnos << '\n';
 			cout << " col:\n" << col_eqnos << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	}
 }
@@ -294,7 +294,7 @@ bool AztecMatrixT::RenumberEquations(void) const { return false; }
 GlobalMatrixT& AztecMatrixT::operator=(const AztecMatrixT& rhs)
 {
 	cout <<  "\n AztecMatrixT::operator= : not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 	return *this;
 }
 
@@ -303,13 +303,13 @@ GlobalMatrixT& AztecMatrixT::operator=(const GlobalMatrixT& rhs)
 {
 #ifdef __NO_RTTI__
 	cout << "\n AztecMatrixT::operator= : requires RTTI" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 #endif
 
 	const AztecMatrixT* az = dynamic_cast<const AztecMatrixT*>(&rhs);
 	if (!az) {
 		cout << "\n AztecMatrixT::operator= : cast failed" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return operator=(*az);
 }
@@ -336,7 +336,7 @@ void AztecMatrixT::Factorize(void)
 void AztecMatrixT::BackSubstitute(dArrayT& result)
 {
 	/* flag should not be set */
-	if (fIsFactorized) throw eGeneralFail;
+	if (fIsFactorized) throw ExceptionT::kGeneralFail;
 
 	/* inherited - no initial guess */
 	fAztec->Solve(result);

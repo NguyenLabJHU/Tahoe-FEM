@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.9 2002-09-12 17:50:04 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.10 2002-10-20 22:49:05 paklein Exp $ */
 /* created: paklein (10/26/2000)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -256,7 +256,7 @@ int J2QLLinHardT::NumOutputVariables(void) const { return kNumOutput; }
 void J2QLLinHardT::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set size */
-	labels.Allocate(kNumOutput);
+	labels.Dimension(kNumOutput);
 	
 	/* copy labels */
 	for (int i = 0; i < kNumOutput; i++)
@@ -467,7 +467,7 @@ void J2QLLinHardT::AllocateElement(ElementCardT& element)
 	d_size += kNumInternal*numint;          //fInternal
 
 	/* construct new plastic element */
-	element.Allocate(i_size, d_size);
+	element.Dimension(i_size, d_size);
 
 	/* initialize values */
 	element.IntegerData() = kNotInit;

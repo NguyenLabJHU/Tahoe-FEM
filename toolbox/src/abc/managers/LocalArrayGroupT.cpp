@@ -1,4 +1,4 @@
-/* $Id: LocalArrayGroupT.cpp,v 1.2 2002-07-02 19:56:45 cjkimme Exp $ */
+/* $Id: LocalArrayGroupT.cpp,v 1.3 2002-10-20 22:38:53 paklein Exp $ */
 /* created: paklein (09/11/1998)                                          */
 /* Class to manage a list of group of dynamically changing size           */
 /* LocalArrayT's                                                          */
@@ -31,7 +31,7 @@ void LocalArrayGroupT::Register(LocalArrayT& localarray)
 			cout << "\n LocalArrayGroupT::Register: all arrays must";
 			cout << " be of the same minor dimension: ";
 			cout << fMinorDim << endl;
-			throw eSizeMismatch;
+			throw ExceptionT::kSizeMismatch;
 		}
 	}
 	else

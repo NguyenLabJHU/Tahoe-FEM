@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.7 2002-10-05 20:04:09 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.8 2002-10-20 22:48:35 paklein Exp $ */
 /* created: paklein (05/14/2000) */
 
 #include "ABAQUS_UMAT_BaseT.h"
@@ -43,7 +43,7 @@ ABAQUS_UMAT_BaseT::	ABAQUS_UMAT_BaseT(ifstreamT& in, const FiniteStrainT& elemen
 	else if (nsd == 3)
 		nshr = 3;
 	else
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	ntens = ndi + nshr;
 
 	/* modulus storage */
@@ -53,12 +53,12 @@ ABAQUS_UMAT_BaseT::	ABAQUS_UMAT_BaseT(ifstreamT& in, const FiniteStrainT& elemen
 	{
 		if (nsd == 2) fModulusDim = 10;
 		else if (nsd == 3) fModulusDim = 21;
-		else throw eGeneralFail;
+		else throw ExceptionT::kGeneralFail;
 	}
 	else if (fTangentType == GlobalT::kNonSymmetric)
 		fModulusDim = ntens*ntens;
 	else
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 
 	/* storage block size (per ip) */
 	fBlockSize = 0;
@@ -73,7 +73,7 @@ ABAQUS_UMAT_BaseT::	ABAQUS_UMAT_BaseT(ifstreamT& in, const FiniteStrainT& elemen
 	fBlockSize += nstatv;      // fstatv_last
 	
 	/* argument array */
-	fArgsArray.Allocate(fBlockSize);
+	fArgsArray.Dimension(fBlockSize);
 
 	/* assign pointers */
 	doublereal* parg = fArgsArray.Pointer();
@@ -89,20 +89,20 @@ ABAQUS_UMAT_BaseT::	ABAQUS_UMAT_BaseT(ifstreamT& in, const FiniteStrainT& elemen
 	
 
 	/* UMAT array arguments */
-	fddsdde.Allocate(ntens);
-	fdstran.Allocate(ntens);
+	fddsdde.Dimension(ntens);
+	fdstran.Dimension(ntens);
 	fdstran = 0.0;
-	fdrot.Allocate(3);   // always 3
+	fdrot.Dimension(3);   // always 3
 	fdrot.Identity();
-	fdfgrd0.Allocate(3); // always 3
+	fdfgrd0.Dimension(3); // always 3
 	fdfgrd0.Identity();
-	fdfgrd1.Allocate(3); // always 3
+	fdfgrd1.Dimension(3); // always 3
 	fdfgrd1.Identity();
-	fcoords.Allocate(nsd);
+	fcoords.Dimension(nsd);
 	
 	/* spectral decomp */
 	fDecomp = new SpectralDecompT(NumSD());
-	if (!fDecomp) throw eOutOfMemory;
+	if (!fDecomp) throw ExceptionT::kOutOfMemory;
 
 //DEBUG
 #if 1
@@ -157,7 +157,7 @@ void ABAQUS_UMAT_BaseT::PointInitialize(void)
 	if (CurrIP() == 0)
 	{
 		ElementCardT& element = CurrentElement();
-		element.Allocate(0, fBlockSize*NumIP());
+		element.Dimension(0, fBlockSize*NumIP());
 	
 		/* initialize */
 		element.DoubleData() = 0.0;
@@ -218,7 +218,7 @@ const dMatrixT& ABAQUS_UMAT_BaseT::c_ijkl(void)
 	Load(CurrentElement(), CurrIP());
 
 	int nsd = NumSD();
-	if (nsd != 2 && nsd != 3) throw eGeneralFail;
+	if (nsd != 2 && nsd != 3) throw ExceptionT::kGeneralFail;
 	if (fTangentType == GlobalT::kDiagonal)
 	{
 		if (nsd == 2)
@@ -284,9 +284,9 @@ const dMatrixT& ABAQUS_UMAT_BaseT::c_ijkl(void)
 	{
 		cout << "\n ABAQUS_UMAT_BaseT::c_ijkl: index mapping for nonsymmetric\n"
 		     <<   "     tangent is not implemented" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
-	else throw eGeneralFail;	
+	else throw ExceptionT::kGeneralFail;	
 
 	return fModulus;
 }
@@ -362,7 +362,7 @@ int ABAQUS_UMAT_BaseT::NumOutputVariables(void) const
 
 void ABAQUS_UMAT_BaseT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(fOutputLabels.Length());
+	labels.Dimension(fOutputLabels.Length());
 	for (int i = 0; i < labels.Length(); i++)
 		labels[i] = fOutputLabels[i];
 }
@@ -375,7 +375,7 @@ void ABAQUS_UMAT_BaseT::ComputeOutput(dArrayT& output)
 		cout << "\n ABAQUS_UMAT_BaseT::ComputeOutput: not enough space to return\n"
 		     <<   "     output variables: given " << output.Length()
 		     << ". expecting " << fOutputIndex.Length() << "." << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 
 	/* load stored data */
@@ -414,7 +414,7 @@ void ABAQUS_UMAT_BaseT::dMatrixT_to_ABAQUS(const dMatrixT& A,
 #if __option(extended_errorcheck)
 	/* expecting ABAQUS matrix to be 3D always */
 	if (B.Rows() != 3 ||
-	    B.Cols() != 3) throw eGeneralFail;
+	    B.Cols() != 3) throw ExceptionT::kGeneralFail;
 #endif
 
 	if (NumSD() == 2)
@@ -536,7 +536,7 @@ void ABAQUS_UMAT_BaseT::Read_ABAQUS_Input(ifstreamT& in)
 					if (next_parameter == "NAME")
 					{
 						/* skip '=' */
-						if (!Skip_ABAQUS_Symbol(in, '=')) throw eBadInputValue;
+						if (!Skip_ABAQUS_Symbol(in, '=')) throw ExceptionT::kBadInputValue;
 						
 						/* read name */
 						Read_ABAQUS_Word(in, fUMAT_name, false);
@@ -550,7 +550,7 @@ void ABAQUS_UMAT_BaseT::Read_ABAQUS_Input(ifstreamT& in)
 			{
 				cout << "\n ABAQUS_UMAT_BaseT::Read_ABAQUS_Input: first keyword must be\n"
 				     <<   "     *MATERIAL not *" << next_word << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 		}
 		/* other keywords */
@@ -568,7 +568,7 @@ void ABAQUS_UMAT_BaseT::Read_ABAQUS_Input(ifstreamT& in)
 					if (next_parameter == "CONSTANTS")
 					{
 						/* skip '=' */
-						if (!Skip_ABAQUS_Symbol(in, '=')) throw eBadInputValue;
+						if (!Skip_ABAQUS_Symbol(in, '=')) throw ExceptionT::kBadInputValue;
 
 						int nprops = -1;
 						in >> nprops;
@@ -576,11 +576,11 @@ void ABAQUS_UMAT_BaseT::Read_ABAQUS_Input(ifstreamT& in)
 						{
 							cout << "\n ABAQUS_UMAT_BaseT::Read_ABAQUS_Input: error reading "
 							     << next_parameter << ": " << nprops << endl;
-							throw eBadInputValue;
+							throw ExceptionT::kBadInputValue;
 						}
 						
 						/* read properties */
-						fProperties.Allocate(nprops);
+						fProperties.Dimension(nprops);
 						in.clear_line();
 						Skip_ABAQUS_Comments(in);
 						for (int i = 0; i < nprops && in.good(); i++)
@@ -594,7 +594,7 @@ void ABAQUS_UMAT_BaseT::Read_ABAQUS_Input(ifstreamT& in)
 						{
 							cout << "\n ABAQUS_UMAT_BaseT::Read_ABAQUS_Input: error reading "
 							     << next_parameter << endl;
-							throw eBadInputValue;
+							throw ExceptionT::kBadInputValue;
 						}
 					}
 					else
@@ -607,7 +607,7 @@ void ABAQUS_UMAT_BaseT::Read_ABAQUS_Input(ifstreamT& in)
 			{
 				cout << "\n ABAQUS_UMAT_BaseT::Read_ABAQUS_Input: expecting MATERIAL after\n"
 				     <<   "     keyword *USER not " << next_word << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 		
 		
@@ -620,7 +620,7 @@ void ABAQUS_UMAT_BaseT::Read_ABAQUS_Input(ifstreamT& in)
 			{
 				cout << "\n ABAQUS_UMAT_BaseT::Read_ABAQUS_Input: error reading "
 				     << next_word << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 
 			/* clear trailing comma */
@@ -644,7 +644,7 @@ void ABAQUS_UMAT_BaseT::Read_ABAQUS_Input(ifstreamT& in)
 		if (!found_USER)
 			cout << " ABAQUS_UMAT_BaseT::Read_ABAQUS_Input: missing keyword: *USER MATERIAL\n";
 		cout.flush();
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	/* restore comment skipping */
@@ -991,6 +991,6 @@ void ABAQUS_UMAT_BaseT::Store_UMAT_Modulus(void)
 		/* store everything */
 		fmodulus = fddsdde;
 	}
-	else throw eGeneralFail;	
+	else throw ExceptionT::kGeneralFail;	
 }
 #endif /* __F2C__ */

@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.h,v 1.3 2002-07-05 22:28:33 paklein Exp $ */
+/* $Id: ElementCardT.h,v 1.4 2002-10-20 22:49:31 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 /* Empty organizer class - needs manager class to control data.           */
 
@@ -53,7 +53,7 @@ public:
 
 	/* element storage accessors/modifiers */
 	int IsAllocated(void) const;
-	void Allocate(int i_size, int d_size);
+	void Dimension(int i_size, int d_size);
 	iArrayT& IntegerData(void) const;
 	dArrayT& DoubleData(void) const;
 	

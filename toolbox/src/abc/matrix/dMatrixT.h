@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.h,v 1.8 2002-10-04 01:36:34 thao Exp $ */
+/* $Id: dMatrixT.h,v 1.9 2002-10-20 22:38:54 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _DMATRIX_T_H_
@@ -41,12 +41,12 @@ public:
 	/** copy constructor */
 	dMatrixT(const dMatrixT& source);
 
-	/* assignment operator. Operator will re-dimension matrix as needed.
+	/** assignment operator. Operator will re-dimension matrix as needed.
 	 * \param RHS source
 	 * \return reference to *this */
 	dMatrixT& operator=(const dMatrixT& RHS);
 
-	/* assignment operator. Set all entries in the matrix to value
+	/** assignment operator. Set all entries in the matrix to value
 	 * \return reference to *this */
 	dMatrixT& operator=(const double value);
 
@@ -59,11 +59,11 @@ public:
 	 * \return reference to *this */
 	dMatrixT& Inverse(void);
 
-	/* matrix determinant.
+	/** matrix determinant.
 	 * \note only implemented for (2 x 2) and (3 x 3) matrices */
 	double Det(void) const;
 
-	/* trace of the matrix.  
+	/** trace of the matrix.  
 	 * \note The matrix must be square. */
 	double Trace(void) const;
 
@@ -71,9 +71,12 @@ public:
 	 * define as T:T = T_ij T_ij */
 	double ScalarProduct(void) const { return Dot(*this, *this); };
 
-	/* 2D/3D dimension transformations */
-	void Rank2ExpandFrom2D(const dMatrixT& mat2D); /* fill with zeroes */
+	/** \name 2D/3D dimension transformations */
+	/*@{*/
+	/** fill undefined elements with zeroes */
+	void Rank2ExpandFrom2D(const dMatrixT& mat2D);
 	void Rank2ReduceFrom3D(const dMatrixT& mat3D);
+	/*@}*/
 
 	/** set this to the symmetric part of matrix.
 	 * \param matrix source matrix
@@ -88,54 +91,59 @@ public:
 * Symmetric matrix specializations
 **********************************************/
 	
-	/* reduced index Rank 4 translations */
+	/** reduced index Rank 4 translations */
 	void Rank4ReduceFrom3D(const dMatrixT& mat3D);
 
-	/* returns the Rank 4 devatoric operator in reduced index form and
+	/** returns the Rank 4 devatoric operator in reduced index form and
 	 * returns a reference to *this.
-	 *
-	 * Note: This operator cannot be used with a reduced index
+	 * \note This operator cannot be used with a reduced index
 	 *       vector to extract the deviatoric part by a simple Rank 2
 	 *       matrix-vector operation because the terms in the vector
 	 *       corresponding to the off-diagonal terms must be weighted
 	 *       with a 2.  Use the dArrayT functions Deviatoric to do this */
 	dMatrixT& ReducedIndexDeviatoric(void);
 
-	/*
-	 * Symmetric 4th rank tensor:
-	 *
-	 *	I_ijkl = 1/2 (d_ik d_jl + d_il d_jk)
-	 *
+	/** symmetric 4th rank tensor:
+	\f[
+		I_{ijkl} = \frac{1}{2} \left(\delta_{ik} \delta_{jl} + 
+		                             \delta_{il} \delta_{jk} \right)
+	\f]
 	 * Returns a reference to this.
-	 *
 	 */
 	dMatrixT& ReducedIndexI(void);
 
-	/*
-	 *	IxI = d_ij d_kl 
-	 *
+	/** special 4th rank form:
+	\f[
+		\mathbf{1} \otimes \mathbf{1} = \delta_{ij} \delta_{kl}
+	\f]
 	 */
 	dMatrixT& ReducedIndexII(void);
+
 /***********************************************
-* Specializations added for element stiffness matrices - new class?
-**********************************************/
-	/*multiplies symmetric A with non symmetric B*/
-	/*used to calculate Calg in OgdenViscVIB2D*/
+ * Specializations added for element stiffness matrices - new class?
+ **********************************************/
+
+	/** multiplies symmetric A with non symmetric B*/
+	/* used to calculate Calg in OgdenViscVIB2D*/
 	void MultSymAB(const dSymMatrixT& A, const dMatrixT& B);
 
-	/*Reduced symmetric 4th rank tensor formed from general symmetric 
+	/** reduced symmetric 4th rank tensor formed from general symmetric 
 	 * matrix
-         *
-	 *     I_Cijkl = 1/2(C_ik C_jl + C_il C_jk)
+	 \f[
+		\left[ \mathbf{I}_\mathbf{C} \right]_{ijkl} =
+			\frac{1}{2} \left(
+				C_{ik} C_{jl} + C_{il} C_{jk}
+			\right)
+	\f]
 	 */
 	void ReducedI_C(const dSymMatrixT& C);
   
-	/*dyad symmetric A with symmetric B*/
+	/** dyad symmetric A with symmetric B = \f$ \mathbf{A} \otimes \mathbf{B} \f$ */
 	dMatrixT& DyadAB(const dSymMatrixT& A, const dSymMatrixT& B);
 	
-	/* expand into block by block diagonal submatrices - factor made
+	/** expand into block by block diagonal submatrices - factor made
 	 * argument to save division to calculate it */
-	void Expand(const dMatrixT& B, int factor); 	
+	void Expand(const dMatrixT& B, int factor, AssemblyModeT mode);
 };
 
 /* inlines */
@@ -161,8 +169,8 @@ inline void dMatrixT::Rank2ExpandFrom2D(const dMatrixT& mat2D)
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)	
-	if (fRows != fCols || fRows != 3) throw eGeneralFail;
-	if (mat2D.fRows != mat2D.fCols || mat2D.fRows != 2) throw eSizeMismatch;
+	if (fRows != fCols || fRows != 3) throw ExceptionT::kGeneralFail;
+	if (mat2D.fRows != mat2D.fCols || mat2D.fRows != 2) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double* p = fArray;
@@ -183,8 +191,8 @@ inline void dMatrixT::Rank2ReduceFrom3D(const dMatrixT& mat3D)
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)	
-	if (fRows != fCols || fRows != 2) throw eGeneralFail;
-	if (mat3D.fRows != mat3D.fCols || mat3D.fRows != 3) throw eSizeMismatch;
+	if (fRows != fCols || fRows != 2) throw ExceptionT::kGeneralFail;
+	if (mat3D.fRows != mat3D.fCols || mat3D.fRows != 3) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double* p = fArray;

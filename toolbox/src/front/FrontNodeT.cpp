@@ -1,4 +1,4 @@
-/* $Id: FrontNodeT.cpp,v 1.5 2002-07-05 17:16:08 paklein Exp $ */
+/* $Id: FrontNodeT.cpp,v 1.6 2002-10-20 22:39:00 paklein Exp $ */
 /* created: paklein (03/19/1999)                                          */
 
 #include "FrontNodeT.h"
@@ -80,8 +80,8 @@ void FrontNodeT::Reset2D(const double* x, const double* v_n, const double* v_t,
 	fx[2] = 0.0;
 
 	/* allocate space - points symmetric about straight ahead */
-	ftip_pts.Allocate(2*num_pts + 1, 2);
-	fQ.Allocate(2*num_pts + 1, 2*2);
+	ftip_pts.Dimension(2*num_pts + 1, 2);
+	fQ.Dimension(2*num_pts + 1, 2*2);
 
 	/* relative angle */
 	double t0 = atan2(v_n[1], v_n[0]);
@@ -150,13 +150,13 @@ void FrontNodeT::Reset3D(const double* x, const double* v_n, const double* v_t,
 	if ((det - 1.0) > 1.0e-10)
 	{
 		cout << "\n FrontNodeT::Reset: local coordinate basis error: det = " << det;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif	
 
 	/* allocate space - points symmetric about straight ahead */
-	ftip_pts.Allocate(2*num_pts + 1, 3);
-	fQ.Allocate(2*num_pts + 1, 3*3);
+	ftip_pts.Dimension(2*num_pts + 1, 3);
+	fQ.Dimension(2*num_pts + 1, 3*3);
 
 	/* temp space for coordinate transforms */
 	dMatrixT Q_x(3); // in local frame

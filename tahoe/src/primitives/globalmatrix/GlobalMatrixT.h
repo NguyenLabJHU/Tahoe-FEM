@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.8 2002-07-05 22:28:34 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.9 2002-10-20 22:49:33 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _GLOBAL_MATRIX_H_
@@ -78,7 +78,7 @@ public:
 
 	/* strong manipulation functions 
 	 * NOTE: These must be overridden to provide support for these functions.
-	 *       By default, these all throw exceptions. These could be pure
+	 *       By default, these all throw ExceptionT::xceptions. These could be pure
 	 *       virtual, but that requires updating all derived matrix types */
 	virtual void OverWrite(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
 	virtual void Disassemble(dMatrixT& matrix, const nArrayT<int>& eqnos) const;

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.3 2002-07-02 19:56:22 cjkimme Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.4 2002-10-20 22:49:11 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 
 #include "SSSolidMatT.h"
@@ -68,7 +68,7 @@ const dSymMatrixT& SSSolidMatT::e_last(void)
 	if (fHasThermalStrain)
 	{
 		cout << "\n SSSolidMatT::e_last: not available with thermal strains" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	return fSmallStrain.LinearStrain_last();
@@ -81,7 +81,7 @@ const dSymMatrixT& SSSolidMatT::e_last(int ip)
 	if (fHasThermalStrain)
 	{
 		cout << "\n SSSolidMatT::e_last: not available with thermal strains" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	return fSmallStrain.LinearStrain_last(ip);
@@ -122,7 +122,7 @@ bool SSSolidMatT::SetThermalStrain(dSymMatrixT& thermal_strain)
 const dSymMatrixT& SSSolidMatT::AcousticalTensor(const dArrayT& normal)
 {
 #if __option(extended_errorcheck)
-	if (fQ.Rows() != normal.Length()) throw eSizeMismatch;
+	if (fQ.Rows() != normal.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* fetch modulus */
@@ -133,7 +133,7 @@ const dSymMatrixT& SSSolidMatT::AcousticalTensor(const dArrayT& normal)
 	else if (normal.Length() == 3)
 		Q_3D(c_, normal, fQ);
 	else
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 
 	return fQ;
 }

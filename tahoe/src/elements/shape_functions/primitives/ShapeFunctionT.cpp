@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.10 2002-09-23 06:58:29 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.11 2002-10-20 22:49:46 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #include "ShapeFunctionT.h"
@@ -22,7 +22,7 @@ ShapeFunctionT::ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 		     << geometry_code << " does not match\n"
 		     <<   "     the number of spatial dimensions of the coordinates "
 		     << fCoords.MinorDim() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* configure workspace */
@@ -52,7 +52,7 @@ void ShapeFunctionT::GradU(const LocalArrayT& nodal, dMatrixT& grad_U,
 #pragma unused(grad_U)
 #pragma unused(coord)
 	cout << "\n ShapeFunctionT::GradU: not implemented yet" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 /************************ for the current integration point *********************/
@@ -61,7 +61,7 @@ void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
 {
 #if __option(extended_errorcheck)
 	if (nodal.MinorDim() != u.Length() ||
-	    nodal.NumberOfNodes() != pNaU->MinorDim()) throw eSizeMismatch;
+	    nodal.NumberOfNodes() != pNaU->MinorDim()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int num_u = nodal.MinorDim();
@@ -74,7 +74,7 @@ void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
 {
 #if __option(extended_errorcheck)
 	if (nodal.MinorDim() != u.Length() ||
-	    nodal.NumberOfNodes() != pNaU->MinorDim()) throw eSizeMismatch;
+	    nodal.NumberOfNodes() != pNaU->MinorDim()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int num_u = nodal.MinorDim();
@@ -88,7 +88,7 @@ void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 #if __option(extended_errorcheck)
 	if (DNa.MajorDim() != grad_Na.Rows() ||
 	    DNa.MinorDim() != grad_Na.Cols())
-	    throw eSizeMismatch;
+	    throw ExceptionT::kSizeMismatch;
 #endif
 
 	int numsd    = DNa.MajorDim();
@@ -157,7 +157,7 @@ void ShapeFunctionT::DoTransformDerivatives(const dMatrixT& changeofvar,
 	int  numnodes = original.MinorDim();
 
 	/* allocate memory */
-	transformed.Allocate(original.MajorDim(),numnodes);
+	transformed.Dimension(original.MajorDim(),numnodes);
 
 	/* apply chain rule derivative */
 	for (int i = 0; i < numnodes; i++)
@@ -183,7 +183,7 @@ void ShapeFunctionT::Construct(void)
 {
 	/* check local array type (ambiguous for linear geometry) */
 	if (fCoords.Type() != LocalArrayT::kInitCoords &&
-	    fCoords.Type() != LocalArrayT::kCurrCoords) throw eGeneralFail;
+	    fCoords.Type() != LocalArrayT::kCurrCoords) throw ExceptionT::kGeneralFail;
 
 	/* dimensions */
 	int numXnodes = fCoords.NumberOfNodes();
@@ -191,18 +191,18 @@ void ShapeFunctionT::Construct(void)
 	int numsd     = fCoords.MinorDim();
 
 	/* parent domain jacobian */
-	fDet.Allocate(fNumIP),
+	fDet.Dimension(fNumIP),
 
 	/* memory for the derivatives */
-	fDNaX.Allocate(fNumIP);
+	fDNaX.Dimension(fNumIP);
 	for (int i = 0; i < fNumIP; i++)
-		fDNaX[i].Allocate(numsd, numXnodes);		
+		fDNaX[i].Dimension(numsd, numXnodes);		
 
 	/* initialize to isoparametric */
 	pNaU  = &(fDomain->Na());
 	pDNaU = &fDNaX;
 	
 	/* work space */
-	fv1.Allocate(numsd);
-	fv2.Allocate(numsd);
+	fv1.Dimension(numsd);
+	fv2.Dimension(numsd);
 }

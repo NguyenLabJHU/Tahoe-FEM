@@ -1,6 +1,5 @@
-/* $Id: NodeManagerT.cpp,v 1.13 2002-09-12 17:48:12 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.14 2002-10-20 22:49:25 paklein Exp $ */
 /* created: paklein (05/23/1996) */
-
 #include "NodeManagerT.h"
 
 #include <iostream.h>
@@ -37,27 +36,19 @@
 #include "MappedPeriodicT.h"
 #include "TiedNodesT.h"
 #include "SymmetricNodesT.h"
-
-/* constructor */
+#include "PeriodicNodesT.h"
 
 using namespace Tahoe;
 
+/* constructor */
 NodeManagerT::NodeManagerT(FEManagerT& fe_manager):
 	fFEManager(fe_manager),
-//	fNumNodes(0),
-//	fNumSD(0),
-//	fNumDOF(0),
-//	fnController(NULL),
-//	fNumEquations(0),
 	fInitCoords(NULL),
 	fCoordUpdate(NULL),
 	fCurrentCoords(NULL)
 {
 	/* set console */
 	iSetName("nodes");
-//	iAddVariable("num_nodes", *((const int*) &fNumNodes));
-//	iAddVariable("num_sd", *((const int*) &fNumSD));
-//	iAddVariable("num_dof", *((const int*) &fNumDOF));
 }
 
 /* destructor */
@@ -245,7 +236,7 @@ void NodeManagerT::RegisterCoordinates(LocalArrayT& array) const
 		default:
 			cout << "\n NodeManagerT::RegisterCoordinates: not a coordinate type: " 
 			     << array.Type() << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -275,7 +266,7 @@ void NodeManagerT::InitStep(int group)
 		/* should be allocated */
 		if (!fCurrentCoords) {
 			cout << "\n NodeManagerT::Update: current coords not initialized" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	
 		/* update */
@@ -370,7 +361,7 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 		/* should be allocated */
 		if (!fCurrentCoords) {
 			cout << "\n NodeManagerT::Update: current coords not initialized" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	
 		/* update */
@@ -473,7 +464,7 @@ void NodeManagerT::SetEquationNumbers(int group)
 	if (fields.Length() == 0) {
 		cout << "\n NodeManagerT::SetEquationNumbers: group has not fields: " 
 		     << group << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* initialize equations numbers arrays */
@@ -561,7 +552,7 @@ void NodeManagerT::RenumberEquations(int group,
 		cout << "\n NodeManagerT::RenumberEquations: expecting to renumber "
 		     << NumEquations(group) << '\n'
 		     <<   "     equations, but hit " << numtest << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* rearrange equations if needed */
@@ -577,7 +568,7 @@ void NodeManagerT::SetEquationNumberScope(int group, GlobalT::EquationNumberScop
 	{
 		cout << "\n NodeManagerT::SetEquationNumberScope: external DOF only\n"
 		     <<   "     verified with local numbering" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* switch numbering scope - with external nodes */
@@ -648,12 +639,12 @@ void NodeManagerT::GetUnknowns(int group, int order, dArrayT& unknowns) const
 //TEMP - not fully implemented
 	if (NumTagSets() > 0) {
 		cout << "\n NodeManagerT::GetUnknowns: not implemented for XDOF tags" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* check */
 	int num_eq = NumEquations(group);
-	if (unknowns.Length() != num_eq) throw eGeneralFail;
+	if (unknowns.Length() != num_eq) throw ExceptionT::kGeneralFail;
 
 	/* loop over groups */
 	int checksum = 0;
@@ -667,7 +658,7 @@ void NodeManagerT::GetUnknowns(int group, int order, dArrayT& unknowns) const
 			if (field.Order() < order) {
 				cout << "\n NodeManagerT::GetUnknowns: order " << order 
 				     << " is out of range {0," << field.Order() << "}" << endl;
-				throw eOutOfRange;
+				throw ExceptionT::kOutOfRange;
 			}
 			
 			const dArray2DT& u = field[order];
@@ -690,7 +681,7 @@ void NodeManagerT::GetUnknowns(int group, int order, dArrayT& unknowns) const
 		}
 
 	/* check */
-	if (checksum != num_eq) throw eGeneralFail;
+	if (checksum != num_eq) throw ExceptionT::kGeneralFail;
 }
 
 /* weight the computational effort of every node */
@@ -712,12 +703,12 @@ void NodeManagerT::DuplicateNodes(const iArrayT& nodes,
 {
 //TEMP
 cout << "\n NodeManagerT::DuplicateNodes: not implemented" << endl;
-throw eGeneralFail;
+throw ExceptionT::kGeneralFail;
 #pragma unused(nodes)
 #pragma unused(new_node_tags)
 
 	/* check */
-	if (nodes.Length() != new_node_tags.Length()) throw eSizeMismatch;
+	if (nodes.Length() != new_node_tags.Length()) throw ExceptionT::kSizeMismatch;
 	int InitialLength;
 	
 	/* generate the nodes */
@@ -791,7 +782,7 @@ void NodeManagerT::XDOF_Register(DOFElementT* group, const iArrayT& numDOF)
 	if (fFEManager.Size() > 1)
 	{
 		cout << "\n NodeManagerT::NodeManagerT: not for parallel execution" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 //NOTE: to parallelize XDOF:
 // (1) analyze external nodes to see if they interact with any element-generated DOF's
@@ -811,7 +802,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArrayT& nodes,
 	if (fields.Length() == 0) {
 		cout << "\n NodeManagerT::XDOF_SetLocalEqnos: group has not fields: " 
 		     << group << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* dimensions */
@@ -856,7 +847,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArrayT& nodes,
 				{
 					cout << "\n NodeManagerT::XDOF_SetLocalEqnos: could not resolve tag into set: " 
 					     << tag << endl;
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 
 				/* equations from tag set */
@@ -871,7 +862,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArrayT& nodes,
 			if (eq_count > neq)
 			{
 				cout << "\n NodeManagerT::XDOF_SetLocalEqnos: error assigning equations" << endl;
-				throw eSizeMismatch;
+				throw ExceptionT::kSizeMismatch;
 			}
 		
 			/* copy equations */
@@ -888,7 +879,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArray2DT& nodes,
 	iArray2DT& eqnos) const
 {
 	/* check */
-	if (nodes.MajorDim() != eqnos.MajorDim()) throw eSizeMismatch;
+	if (nodes.MajorDim() != eqnos.MajorDim()) throw ExceptionT::kSizeMismatch;
 
 	/* collect fields in the group */
 	ArrayT<FieldT*> fields;
@@ -896,7 +887,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArray2DT& nodes,
 	if (fields.Length() == 0) {
 		cout << "\n NodeManagerT::XDOF_SetLocalEqnos: group has not fields: " 
 		     << group << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* dimensions */
@@ -943,7 +934,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArray2DT& nodes,
 					{
 						cout << "\n NodeManagerT::XDOF_SetLocalEqnos: could not resolve tag into set: " 
 						     << tag << endl;
-						throw eGeneralFail;
+						throw ExceptionT::kGeneralFail;
 					}
 				
 					/* equations from tag set */
@@ -958,7 +949,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArray2DT& nodes,
 				if (eq_count > neq)
 				{
 					cout << "\n NodeManagerT::XDOF_SetLocalEqnos: error assigning equations" << endl;
-					throw eSizeMismatch;
+					throw ExceptionT::kSizeMismatch;
 				}
 
 				/* copy equations */
@@ -973,7 +964,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArray2DT& nodes,
 		if (eq_count != neq) {
 			cout << "\n NodeManagerT::XDOF_SetLocalEqnos: the number of assigned equations " << eq_count 
 			     << "\n     is not equal to the number of element equations " << neq << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	}
 }
@@ -983,7 +974,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& node
 	RaggedArray2DT<int>& eqnos) const
 {
 	/* check */
-	if (nodes.MajorDim() != eqnos.MajorDim()) throw eSizeMismatch;
+	if (nodes.MajorDim() != eqnos.MajorDim()) throw ExceptionT::kSizeMismatch;
 
 	/* collect fields in the group */
 	ArrayT<FieldT*> fields;
@@ -991,7 +982,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& node
 	if (fields.Length() == 0) {
 		cout << "\n NodeManagerT::XDOF_SetLocalEqnos: group has not fields: " 
 		     << group << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* dimensions */
@@ -1040,7 +1031,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& node
 					{
 						cout << "\n NodeManagerT::XDOF_SetLocalEqnos: could not resolve tag into set: " 
 						     << tag << endl;
-						throw eGeneralFail;
+						throw ExceptionT::kGeneralFail;
 					}
 				
 					/* equations from tag set */
@@ -1055,7 +1046,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& node
 				if (eq_count > neq)
 				{	
 					cout << "\n NodeManagerT::XDOF_SetLocalEqnos: error assigning equations" << endl;
-					throw eSizeMismatch;
+					throw ExceptionT::kSizeMismatch;
 				}
 
 				/* copy equations */
@@ -1070,7 +1061,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& node
 		if (eq_count != neq) {
 			cout << "\n NodeManagerT::XDOF_SetLocalEqnos: the number of assigned equations " << eq_count 
 			     << "\n     is not equal to the number of element equations " << neq << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}		
 	}
 }
@@ -1180,14 +1171,14 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			if (fFields[index] != NULL) {
 				cout << "\n NodeManagerT::EchoFields: field at index "
 				     << index+1 <<   "     is already set" << endl;
-				throw eBadInputValue; 
+				throw ExceptionT::kBadInputValue; 
 			}
 
 			/* check for field with same name */
 			if (Field(name)) {
 				cout << "\n NodeManagerT::EchoFields: field with name " << name 
 				     << " already exists" << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 			
 			/* read: dof labels */
@@ -1197,7 +1188,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			
 			/* get integrator */
 			nControllerT* controller = fFEManager.nController(cont_num);
-			if (!controller) throw eGeneralFail;
+			if (!controller) throw ExceptionT::kGeneralFail;
 
 			/* new field */			
 			FieldT* field = new FieldT(name, ndof, *controller);
@@ -1210,7 +1201,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			if (name == "displacement") {
 				if (fCoordUpdate) {
 					cout << "\n NodeManagerT::EchoFields: \"displacement\" field already set" << endl;
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 				fCoordUpdate = field;
 				fCurrentCoords = new dArray2DT(InitialCoordinates());
@@ -1233,7 +1224,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		fFields.Dimension(1);
 		fFields = NULL;
 		nControllerT* controller = fFEManager.nController(0);
-		if (!controller) throw eGeneralFail;
+		if (!controller) throw ExceptionT::kGeneralFail;
 		
 		/* field config set by analysis type */
 		FieldT* field = NULL;
@@ -1275,15 +1266,15 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			{
 				cout << "\n NodeManagerT::EchoFields: don't know how to configure\n"
 				     <<   "     fields for PML analysis code: " << GlobalT::kPML << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}			
 			default:
 				cout << "\nFEManagerT::SetController: unknown controller type\n" << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 		}
 		
 		/* check */
-		if (!field) throw eGeneralFail;
+		if (!field) throw ExceptionT::kGeneralFail;
 		
 		/* just one group */
 		field->SetGroup(0);
@@ -1298,7 +1289,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		if (field->Name() == "displacement") {
 			if (fCoordUpdate) {
 				cout << "\n NodeManagerT::EchoFields: \"displacement\" field already set" << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 			fCoordUpdate = field;
 			fCurrentCoords = new dArray2DT(InitialCoordinates());
@@ -1454,7 +1445,7 @@ void NodeManagerT::EchoKinematicBC(FieldT& field, ifstreamT& in, ostream& out)
 		if (cards[i].Node() < 0 || cards[i].Node() >= NumNodes()) {
 			cout << "\n NodeManagerT::EchoKinematicBC: node number is out of range: " 
 			     << cards[i].Node() + 1 << endl;
-			throw eOutOfRange;
+			throw ExceptionT::kOutOfRange;
 		}
 }
 
@@ -1504,7 +1495,7 @@ void NodeManagerT::EchoForceBC(FieldT& field, ifstreamT& in, ostream& out)
 	{
 		cout << "\n NodeManagerT::EchoForceBC: expecting numFBC_sets > 0: " 
 		     << numFBCsets << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	if (numFBCsets > 0)
@@ -1557,7 +1548,7 @@ void NodeManagerT::EchoForceBC(FieldT& field, ifstreamT& in, ostream& out)
 		if (cards[i].Node() < 0 || cards[i].Node() >= NumNodes()) {
 			cout << "\n NodeManagerT::EchoForceBC: node number is out of range: " 
 			     << cards[i].Node() + 1 << endl;
-			throw eOutOfRange;
+			throw ExceptionT::kOutOfRange;
 		}
 }
 
@@ -1605,7 +1596,7 @@ void NodeManagerT::EchoHistoryNodes(ifstreamT& in, ostream &out)
 		if (!model->RegisterElementGroup(ID, set, GeometryT::kPoint, true)) {
 			cout << "\n NodeManagerT::EchoHistoryNodes: error initializing node set "
 			     << node_set_ID[i] << " as model element ID " << ID << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		fHistoryNodeSetIDs[i] = ID;
 	}
@@ -1655,7 +1646,7 @@ void NodeManagerT::WriteData(ostream& out, const char* title,
 	if (rowlabels)
 	{
 		/* check */
-		if (rowlabels->Length() != data.MajorDim()) throw eSizeMismatch;
+		if (rowlabels->Length() != data.MajorDim()) throw ExceptionT::kSizeMismatch;
 	
 		for (int i = 0; i < data.MajorDim(); i++)
 		{
@@ -1690,10 +1681,15 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 			SymmetricNodesT* kbc = new SymmetricNodesT(*this, field);
 			return kbc;
 		}
+		case KBC_ControllerT::kPeriodicNodes:
+		{
+			PeriodicNodesT* kbc = new PeriodicNodesT(*this, field);
+			return kbc;
+		}
 		default:
 			cout << "\n NodeManagerT::NewKBC_Controller: KBC controller code "
 			     << code <<   "     is not supported" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 	return NULL;
 }
@@ -1737,7 +1733,7 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 		default:
 			cout << "\n NodeManagerT::NewFBC_Controller: FBC controller code "
 			     << code <<   "     is not supported" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 	
 	/* set time integrator */
@@ -1803,7 +1799,7 @@ void NodeManagerT::EchoKinematicBCControllers(FieldT& field, ifstreamT& in, ostr
 		
 		/* construct */
 		controllers[num] = NewKBC_Controller(field, type);
-		if (!controllers[num]) throw eOutOfMemory;
+		if (!controllers[num]) throw ExceptionT::kOutOfMemory;
 		
 		/* initialize */
 		controllers[num]->Initialize(in2);
@@ -1852,7 +1848,7 @@ void NodeManagerT::EchoForceBCControllers(FieldT& field, ifstreamT& in, ostream&
 		
 		/* construct */
 		controllers[num] = NewFBC_Controller(field, type);
-		if (!controllers[num]) throw eOutOfMemory;
+		if (!controllers[num]) throw ExceptionT::kOutOfMemory;
 		
 		/* echo data */
 		controllers[num]->EchoData(in2, out);

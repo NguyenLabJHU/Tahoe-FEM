@@ -1,4 +1,4 @@
-/* $Id: ElementMatrixT.cpp,v 1.3 2002-09-12 17:50:06 paklein Exp $ */
+/* $Id: ElementMatrixT.cpp,v 1.4 2002-10-20 22:49:31 paklein Exp $ */
 /* created: paklein (03/17/1998)                                          */
 
 #include "ElementMatrixT.h"
@@ -43,7 +43,7 @@ ElementMatrixT::ElementMatrixT(const ElementMatrixT& source):
 void ElementMatrixT::CopySymmetric(void) const
 {
 #if __option (extended_errorcheck)
-	if (fFormat == kNonSymmetric) throw eGeneralFail;
+	if (fFormat == kNonSymmetric) throw ExceptionT::kGeneralFail;
 #endif
 
 	if (fFormat == kDiagonal)

@@ -1,20 +1,12 @@
-/* $Id: IOManager.cpp,v 1.16 2002-07-02 19:55:30 cjkimme Exp $ */
+/* $Id: IOManager.cpp,v 1.17 2002-10-20 22:48:32 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
-
 #include "IOManager.h"
 
 #include "fstreamT.h"
 #include "ifstreamT.h"
 #include "OutputSetT.h"
 #include "dArrayT.h"
-
-// output
-#include "FE_ASCIIT.h"
-#include "ExodusOutputT.h"
-#include "EnSightOutputT.h"
-#include "AbaqusOutputT.h"
-#include "TecPlotOutputT.h"
-
+#include "OutputBaseT.h"
 
 using namespace Tahoe;
 
@@ -29,7 +21,7 @@ IOManager::IOManager(ostream& outfile, const StringT& program_name,
 	fOutput_tmp(NULL)
 {
 	/* construct output formatter */
-	fOutput = NewOutput(program_name, version, title, input_file, fOutputFormat, fLog);
+	fOutput = IOBaseT::NewOutput(program_name, version, title, input_file, fOutputFormat, fLog);
 }
 
 IOManager::IOManager(ifstreamT& in, const IOManager& io_man):
@@ -41,21 +33,10 @@ IOManager::IOManager(ifstreamT& in, const IOManager& io_man):
 	fOutput_tmp(NULL)
 {
 	/* construct output formatter */
-	fOutput = NewOutput((io_man.fOutput)->CodeName(),
+	fOutput = IOBaseT::NewOutput((io_man.fOutput)->CodeName(),
 				(io_man.fOutput)->Version(),
 				(io_man.fOutput)->Title(), in.filename(), fOutputFormat, fLog);
 }
-
-#if 0
-IOManager::IOManager (ostream& out) :
-	fLog (out),
-	fOutput(NULL),
-	fOutputFormat (IOBaseT::kExodusII),
-	fEcho (false)
-{
-
-}
-#endif
 
 IOManager::~IOManager(void)
 {
@@ -120,7 +101,7 @@ void IOManager::WriteGeometryFile(const StringT& file_name,
 	if (!fOutput)
 	{
 		cout << "\n IOManager::WriteGeometryFile: output must be configured" << endl;
-		throw eGeneralFail;		
+		throw ExceptionT::kGeneralFail;		
 	}
 
 	fOutput->WriteGeometryFile(file_name, format);
@@ -151,7 +132,7 @@ void IOManager::DivertOutput(const StringT& outfile)
 		/* construct temporary output formatter */
 		StringT tmp(outfile);
 		tmp.Append(".ext"); //OutputBaseT takes root of name passed in
-		fOutput = NewOutput(fOutput_tmp->CodeName(), fOutput_tmp->Version(),
+		fOutput = IOBaseT::NewOutput(fOutput_tmp->CodeName(), fOutput_tmp->Version(),
 			fOutput_tmp->Title(), tmp, fOutputFormat, fLog);
 		
 		/* add all output sets */
@@ -180,56 +161,5 @@ void IOManager::RestoreOutput(void)
 const OutputSetT& IOManager::OutputSet(int ID) const
 {
 	return fOutput->OutputSet(ID);
-}
-
-/* construct and return new output formatter */
-OutputBaseT* IOManager::NewOutput(const StringT& program_name,
-	const StringT& version, const StringT& title, const StringT& input_file,
-	IOBaseT::FileTypeT output_format, ostream& log)
-{
-	ArrayT<StringT> outstrings (4);
-	outstrings[0] = input_file;
-	outstrings[1] = title;
-	outstrings[2] = program_name;
-	outstrings[3] = version;
-
-	const int kdigits = 4;
-	OutputBaseT* output = NULL;
-	switch (output_format)
-	  {
-	  case IOBaseT::kExodusII:
-	    output = new ExodusOutputT(log, outstrings);
-	    break;
-	  case IOBaseT::kTahoe:
-	  case IOBaseT::kTahoeII:
-	  case IOBaseT::kTahoeResults:
-	    output = new FE_ASCIIT(log, true, outstrings);
-	    break;
-	  case IOBaseT::kEnSight:
-	    output = new EnSightOutputT(log, outstrings, kdigits, false);
-	    break;
-	  case IOBaseT::kEnSightBinary:
-	    output = new EnSightOutputT(log, outstrings, kdigits, true);
-	    break;
-	  case IOBaseT::kAbaqus:
-	    output = new AbaqusOutputT(log, outstrings, false);
-	    break;
-	  case IOBaseT::kAbaqusBinary:
-	    output = new AbaqusOutputT(log, outstrings, true);
-	    break;
-	  case IOBaseT::kTecPlot:
-	    output = new TecPlotOutputT(log, outstrings, kdigits);
-	    break;
-	  default:
-	    {			
-	      cout << "\n IOManager::SetOutput unknown output format:"
-		   << output_format << endl;
-	      log  << "\n IOManager::SetOutput unknown output format:"
-		    << output_format << endl;
-	      throw eBadInputValue;
-	    }
-	  }	
-	if (!output) throw eOutOfMemory;
-	return output;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: VariRaggedArray2DT.h,v 1.2 2002-07-02 19:56:39 cjkimme Exp $ */
+/* $Id: VariRaggedArray2DT.h,v 1.3 2002-10-20 22:38:51 paklein Exp $ */
 /* created: paklein (02/17/2000)                                          */
 /* VariRaggedArray2DT with dynamics resizing functions                    */
 
@@ -148,7 +148,7 @@ template <class TYPE>
 void VariRaggedArray2DT<TYPE>::AddRow(int row, const ArrayT<TYPE>& row_data)
 {
 	/* check */
-	if (row < 0 || row > MajorDim()) throw eOutOfRange;
+	if (row < 0 || row > MajorDim()) throw ExceptionT::kOutOfRange;
 
 	/* dimensions */
 	int size = row_data.Length();
@@ -211,7 +211,7 @@ void VariRaggedArray2DT<TYPE>::AddRow(int row, const ArrayT<TYPE>& row_data)
 	    fPtrs.Last() - fPtrs.First() != fData.Length())
 	{
 		cout << "\n VariRaggedArray2DT<TYPE>::AddRow: pointer reassignment error" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 }
@@ -298,7 +298,7 @@ void VariRaggedArray2DT<TYPE>::SetRow(int row, const ArrayT<TYPE>& array) // wit
 	    fPtrs.Last() - fPtrs.First() != fData.Length())
 	{
 		cout << "\n VariRaggedArray2DT<TYPE>::SetRow: pointer reassignment error" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 }

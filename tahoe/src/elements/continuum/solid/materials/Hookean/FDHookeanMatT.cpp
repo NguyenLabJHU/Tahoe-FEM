@@ -1,4 +1,4 @@
-/* $Id: FDHookeanMatT.cpp,v 1.6 2002-10-05 20:04:11 paklein Exp $ */
+/* $Id: FDHookeanMatT.cpp,v 1.7 2002-10-20 22:48:41 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "FDHookeanMatT.h"
 
@@ -58,7 +58,7 @@ double FDHookeanMatT::Pressure(void) const
 	if (fLastCall != kSpatial) {
 		cout << "\n FDHookeanMatT::Pressure: last call to stress must be in\n"
 		     <<   "     the spatial representaion" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return fStress.Trace()/3.0;
 }

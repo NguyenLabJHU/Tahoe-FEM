@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceSupportT.h,v 1.3 2002-07-05 22:28:37 paklein Exp $ */
+/* $Id: MeshFreeSurfaceSupportT.h,v 1.4 2002-10-20 22:49:41 paklein Exp $ */
 /* created: paklein (02/22/2000)                                          */
 
 #ifndef _MF_SURFACE_SUPPORT_T_H_
@@ -116,7 +116,7 @@ inline const dArray2DT& MeshFreeSurfaceSupportT::FacetCoords(void) const
 inline const ArrayT<int>& MeshFreeSurfaceSupportT::NeighborCounts(int side) const
 {
 #if __option(extended_errorcheck)
-	if (side != 0 && side != 1) throw eOutOfRange;
+	if (side != 0 && side != 1) throw ExceptionT::kOutOfRange;
 #endif
 
 	if (side == 0)
@@ -128,7 +128,7 @@ inline const ArrayT<int>& MeshFreeSurfaceSupportT::NeighborCounts(int side) cons
 inline const RaggedArray2DT<int>& MeshFreeSurfaceSupportT::Neighbors(int side) const
 {
 #if __option(extended_errorcheck)
-	if (side != 0 && side != 1) throw eOutOfRange;
+	if (side != 0 && side != 1) throw ExceptionT::kOutOfRange;
 #endif
 
 	if (side == 0)

@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.h,v 1.10 2002-07-24 14:56:28 paklein Exp $ */
+/* $Id: LocalArrayT.h,v 1.11 2002-10-20 22:38:55 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #ifndef _LOCALARRAY_T_H_
@@ -179,7 +179,7 @@ inline double& LocalArrayT::operator()(int majordim, int minordim) const
 	if (majordim < 0 ||
 	    majordim >= fNumNodes ||
 	    minordim < 0 ||
-	    minordim >= fMinorDim) throw eOutOfRange;
+	    minordim >= fMinorDim) throw ExceptionT::kOutOfRange;
 #endif
 
 	return (fArray[minordim*fNumNodes + majordim]);
@@ -188,7 +188,7 @@ inline double& LocalArrayT::operator()(int majordim, int minordim) const
 inline double* LocalArrayT::operator()(int majordim) const
 {
 #if __option (extended_errorcheck)
-	if (majordim < 0 || majordim >= fNumNodes) throw eOutOfRange;
+	if (majordim < 0 || majordim >= fNumNodes) throw ExceptionT::kOutOfRange;
 #endif
 
 	return (fArray + majordim*fNumNodes);
@@ -222,7 +222,7 @@ inline void LocalArrayT::FromTranspose(const nArrayT<double>& transpose)
 {
 #if __option (extended_errorcheck)
 	/* dimension check */
-	if(fLength != transpose.Length()) throw eSizeMismatch;
+	if(fLength != transpose.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* call primitive function */

@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.14 2002-09-12 17:44:12 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.15 2002-10-20 22:48:17 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -42,7 +42,7 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support, const FieldT& field):
 	{
 		cout << "\n CSEBaseT::CSEBaseT: expecting geometry code "
 		     << GeometryT::kLine<< " for 2D: " << fGeometryCode << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	else if (NumSD() == 3 &&
 	         fGeometryCode != GeometryT::kQuadrilateral &&
@@ -51,13 +51,13 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support, const FieldT& field):
 		cout << "\n CSEBaseT::CSEBaseT: expecting geometry code " << GeometryT::kQuadrilateral
 		     << " or\n" <<   "     " << GeometryT::kTriangle << " for 3D: "
 		     << fGeometryCode << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	
 	if (fCloseSurfaces != 0 &&
-	    fCloseSurfaces != 1) throw eBadInputValue;
+	    fCloseSurfaces != 1) throw ExceptionT::kBadInputValue;
 	if (fOutputArea != 0 &&
-	    fOutputArea != 1) throw eBadInputValue;
+	    fOutputArea != 1) throw ExceptionT::kBadInputValue;
 }
 
 /* destructor */
@@ -77,25 +77,25 @@ void CSEBaseT::Initialize(void)
 	int num_facet_nodes = NumElementNodes()/2;
 
 	/* initialize local arrays */
-	fLocInitCoords1.Allocate(num_facet_nodes, NumSD());
-	fLocCurrCoords.Allocate(NumElementNodes(), NumSD());
+	fLocInitCoords1.Dimension(num_facet_nodes, NumSD());
+	fLocCurrCoords.Dimension(NumElementNodes(), NumSD());
 	ElementSupport().RegisterCoordinates(fLocInitCoords1);
 	ElementSupport().RegisterCoordinates(fLocCurrCoords);
 
 	/* construct surface shape functions */
 	fShapes = new SurfaceShapeT(fGeometryCode, fNumIntPts, NumElementNodes(), NumDOF(),
 		fLocInitCoords1);
-	if (!fShapes) throw eOutOfMemory;
+	if (!fShapes) throw ExceptionT::kOutOfMemory;
 	fShapes->Initialize();
 
 	/* work space */
-	fNodes1.Allocate(num_facet_nodes);
+	fNodes1.Dimension(num_facet_nodes);
 	int nee = NumElementNodes()*NumDOF();
-	fNEEvec.Allocate(nee);
-	fNEEmat.Allocate(nee);
+	fNEEvec.Dimension(nee);
+	fNEEmat.Dimension(nee);
 
 	/* echo output codes (one at a time to allow comments) */
-	fNodalOutputCodes.Allocate(NumNodalOutputCodes);
+	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
 	ifstreamT& in = ElementSupport().Input();
 	ostream&   out = ElementSupport().Output();
 	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
@@ -117,9 +117,9 @@ void CSEBaseT::Initialize(void)
 
 	/* check */
 	if (fNodalOutputCodes.Min() < IOBaseT::kAtFinal ||
-	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
+	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
 
-	fElementOutputCodes.Allocate(NumElementOutputCodes);
+	fElementOutputCodes.Dimension(NumElementOutputCodes);
 	fElementOutputCodes = IOBaseT::kAtNever;
 
 //TEMP - backward compatibility
@@ -156,7 +156,7 @@ void CSEBaseT::Initialize(void)
 
 		/* checks */
 		if (fElementOutputCodes.Min() < IOBaseT::kAtFail ||
-		    fElementOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
+		    fElementOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
 	}
 
 	/* echo */
@@ -265,7 +265,7 @@ void CSEBaseT::RegisterOutput(void)
 		cout << "\n CSEBaseT::RegisterOutput: could not translate\n";
 		cout << "     geometry code " << fGeometryCode
 			 << " to a pseudo-geometry code for the volume." << endl;
-		throw eGeneralFail;	
+		throw ExceptionT::kGeneralFail;	
 	}	
 
 	/* nodal output */
@@ -451,7 +451,7 @@ void CSEBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 				new_id.Append(b+1, 3);
 				if (!model.RegisterElementGroup (new_id, dest, GeometryT::kNone, true)) {
 					cout << "\n CSEBaseT::ReadConnectivity: could not register element block ID: " << new_id << endl;
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 			}
 
@@ -475,7 +475,7 @@ void CSEBaseT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& fla
 		iArrayT& counts) const
 {
 	/* initialize */
-	counts.Allocate(flags.Length());
+	counts.Dimension(flags.Length());
 	counts = 0;
 	
 	if (flags[NodalCoord] == mode)
@@ -492,7 +492,7 @@ void CSEBaseT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& f
 	iArrayT& counts) const
 {
 	/* initialize */
-	counts.Allocate(flags.Length());
+	counts.Dimension(flags.Length());
 	counts = 0;
 
 	if (flags[Centroid] == mode)
@@ -508,7 +508,7 @@ void CSEBaseT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_l
 	const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
 {
 	/* allocate nodal output labels */
-	n_labels.Allocate(n_codes.Sum());
+	n_labels.Dimension(n_codes.Sum());
 
 	int count = 0;
 	if (n_codes[NodalDisp])
@@ -530,7 +530,7 @@ void CSEBaseT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_l
 	if (n_codes[NodalTraction]) n_labels[count++] = "Tmag";
 	
 	/* allocate nodal output labels */
-	e_labels.Allocate(e_codes.Sum());
+	e_labels.Dimension(e_codes.Sum());
 	count = 0;
 	if (e_codes[Centroid])
 	{
@@ -550,12 +550,12 @@ void CSEBaseT::CurrElementInfo(ostream& out) const
 	dArray2DT temp;
 
 	out <<   " initial coords:\n";
-	temp.Allocate(fLocInitCoords1.NumberOfNodes(), fLocInitCoords1.MinorDim());
+	temp.Dimension(fLocInitCoords1.NumberOfNodes(), fLocInitCoords1.MinorDim());
 	fLocInitCoords1.ReturnTranspose(temp);
 	temp.WriteNumbered(out);
 
 	out <<   " current coords:\n";
-	temp.Allocate(fLocCurrCoords.NumberOfNodes(), fLocCurrCoords.MinorDim());
+	temp.Dimension(fLocCurrCoords.NumberOfNodes(), fLocCurrCoords.MinorDim());
 	fLocCurrCoords.ReturnTranspose(temp);
 	temp.WriteNumbered(out);
 }

@@ -1,4 +1,4 @@
-/* $Id: EvenSpacePtsT.cpp,v 1.3 2002-09-12 17:50:01 paklein Exp $ */
+/* $Id: EvenSpacePtsT.cpp,v 1.4 2002-10-20 22:48:59 paklein Exp $ */
 /* created: paklein (11/02/1997)                                          */
 
 #include "EvenSpacePtsT.h"
@@ -7,7 +7,7 @@
 #include <iostream.h>
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "fstreamT.h"
 
 
@@ -22,10 +22,10 @@ EvenSpacePtsT::EvenSpacePtsT(ifstreamT& in)
 {
 	/* number of integration points */
 	in >> fNtheta;
-	if (fNtheta < 1) throw eBadInputValue;
+	if (fNtheta < 1) throw ExceptionT::kBadInputValue;
 	
-	fPoints.Allocate(fNtheta,2);
-	fJacobians.Allocate(fNtheta);
+	fPoints.Dimension(fNtheta,2);
+	fJacobians.Dimension(fNtheta);
 	
 	/* all same weight */
 	fJacobians = (2.0*Pi/fNtheta);

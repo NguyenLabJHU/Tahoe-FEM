@@ -1,10 +1,10 @@
-/* $Id: LinearSpringT.cpp,v 1.3 2002-08-10 02:37:59 paklein Exp $ */
+/* $Id: LinearSpringT.cpp,v 1.4 2002-10-20 22:49:15 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 #include "LinearSpringT.h"
 
 #include <iostream.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "fstreamT.h"
 #include "ThermalDilatationT.h"
 
@@ -13,7 +13,7 @@ using namespace Tahoe;
 /* constructor */
 LinearSpringT::LinearSpringT(ifstreamT& in): RodMaterialT(in)
 {
-	in >> fSpringConstant;	if (fSpringConstant < 0.0) throw eBadInputValue;
+	in >> fSpringConstant;	if (fSpringConstant < 0.0) throw ExceptionT::kBadInputValue;
 }
 
 /* I/O functions */

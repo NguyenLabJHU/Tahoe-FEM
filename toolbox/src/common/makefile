@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.10 2002-10-17 23:54:50 cjkimme Exp $
+# $Id: makefile,v 1.11 2002-10-20 22:38:58 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,7 +6,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	GeometryT.o
+	ExceptionT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -15,14 +16,14 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	GeometryT.cpp
+	ExceptionT.cpp
 
 # headers
 HDR = \
 	toolboxConstants.h \
 	Environment.h \
 	ExceptionCodes.h \
-	GeometryT.h \
+	ExceptionT.h \
 	ios_fwd_decl.h \
 	NewMemory.h
 

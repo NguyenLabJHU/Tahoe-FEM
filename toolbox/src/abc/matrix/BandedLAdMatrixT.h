@@ -1,4 +1,4 @@
-/* $Id: BandedLAdMatrixT.h,v 1.3 2002-07-05 22:26:18 paklein Exp $ */
+/* $Id: BandedLAdMatrixT.h,v 1.4 2002-10-20 22:38:54 paklein Exp $ */
 /* created: MLK (05/21/1997)                                              */
 /* square banded matrix operations                                        */
 /* banded matrix elements stored in columns                               */
@@ -81,10 +81,10 @@ inline double& BandedLAdMatrixT::operator()(int row, int col) const
 /* range checking */
 #if __option (extended_errorcheck)
 	if (row < 0 || row >= fRows || col < 0 || col >= fCols)
-		throw(eOutOfRange);
+		throw ExceptionT::kOutOfRange;
 
 	/* don't allow access to non banded elements */
-	if(row-col > fLband || col-row > fRband) throw(eOutOfRange);
+	if(row-col > fLband || col-row > fRband) throw ExceptionT::kOutOfRange;
 #endif
 	
 	return (fArray[col*fColumnHeight + fRband + row - col]);
@@ -96,7 +96,7 @@ inline double* BandedLAdMatrixT::operator()(int col) const
 /* range checking */
 #if __option (extended_errorcheck)
 	if (col < 0 || col >= fCols)
-		throw(eOutOfRange);
+		throw ExceptionT::kOutOfRange;
 #endif
 	
 	return (fArray + col*fColumnHeight);

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.34 2002-10-05 20:07:44 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.35 2002-10-20 22:48:23 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -21,7 +21,8 @@
 #include "MaterialList3DT.h"
 
 /* exception codes */
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
+
 
 using namespace Tahoe;
 
@@ -41,7 +42,7 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	fD(dSymMatrixT::NumValues(NumSD()))
 {
 	/* check base class initializations */
-	if (NumDOF() != NumSD()) throw eGeneralFail;
+	if (NumDOF() != NumSD()) throw ExceptionT::kGeneralFail;
 
 	ifstreamT& in = ElementSupport().Input();
 	ostream&  out = ElementSupport().Output();
@@ -51,7 +52,7 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	in >> fStrainDispOpt;
 	
 	if (fStrainDispOpt != kStandardB &&
-	    fStrainDispOpt != kMeanDilBbar) throw eBadInputValue;
+	    fStrainDispOpt != kMeanDilBbar) throw ExceptionT::kBadInputValue;
 
 	/* checks for dynamic analysis */
 	if (fController->Order() > 0 &&
@@ -85,7 +86,7 @@ void SolidElementT::Initialize(void)
 		if (!CheckMaterialOutput())
 		{
 			cout << "\n SolidElementT::Initialize: error with material output" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		/* no material output variables */
 		else if ((*fMaterialList)[0]->NumOutputVariables() == 0)
@@ -178,7 +179,7 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 void SolidElementT::AddLinearMomentum(dArrayT& momentum)
 {
 	/* check */
-	if (momentum.Length() != NumDOF()) throw eSizeMismatch;
+	if (momentum.Length() != NumDOF()) throw ExceptionT::kSizeMismatch;
 		
 	/* loop over elements */
 	Top();
@@ -304,7 +305,7 @@ istream& operator>>(istream& in, SolidElementT::StrainOptionT& opt)
 		default:
 			cout << "\n SolidElementT::StrainOptionT: unknown option: "
 			<< i_type<< endl;
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
 	return in;
 }
@@ -318,12 +319,12 @@ void SolidElementT::ReadMaterialData(ifstreamT& in)
 	ContinuumElementT::ReadMaterialData(in);
 	
 	/* generate list of material needs */
-	fMaterialNeeds.Allocate(fMaterialList->Length());
+	fMaterialNeeds.Dimension(fMaterialList->Length());
 	for (int i = 0; i < fMaterialNeeds.Length(); i++)
 	{
 		/* allocate */
 		ArrayT<bool>& needs = fMaterialNeeds[i];
-		needs.Allocate(3);
+		needs.Dimension(3);
 
 		/* casts are safe since class contructs materials list */
 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
@@ -355,7 +356,7 @@ void SolidElementT::PrintControlData(ostream& out) const
 void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 {
 	/* allocate nodal output codes */
-	fNodalOutputCodes.Allocate(NumNodalOutputCodes);
+	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
 
 	qUseSimo = qNoExtrap = false;
 
@@ -380,7 +381,7 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 	
 		if (i == iWaveSpeeds && fNodalOutputCodes[iWaveSpeeds] != IOBaseT::kAtNever)
 		{
-			fNormal.Allocate(NumSD());
+			fNormal.Dimension(NumSD());
 			in >> fNormal;
 			fNormal.UnitVector();
 		}
@@ -388,7 +389,7 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 		
 	/* checks */
 	if (fNodalOutputCodes.Min() < IOBaseT::kAtFail ||
-	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
+	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
 
 	/* echo */
 	out << " Number of nodal output codes. . . . . . . . . . = " << fNodalOutputCodes.Length() << '\n';
@@ -408,7 +409,7 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 	}
 
 	/* allocate nodal output codes */
-	fElementOutputCodes.Allocate(NumElementOutputCodes);
+	fElementOutputCodes.Dimension(NumElementOutputCodes);
 	fElementOutputCodes = IOBaseT::kAtNever;
 
 //TEMP - backward compatibility
@@ -443,7 +444,7 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 
 		/* checks */
 		if (fElementOutputCodes.Min() < IOBaseT::kAtFail ||
-		    fElementOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
+		    fElementOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
 	}
 
 	/* echo */
@@ -462,7 +463,7 @@ void SolidElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT
 	iArrayT& counts) const
 {
 	/* initialize */
-	counts.Allocate(flags.Length());
+	counts.Dimension(flags.Length());
 	counts = 0;
 
 	/* set output flags */
@@ -486,7 +487,7 @@ void SolidElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArra
 	iArrayT& counts) const
 {
 	/* initialize */
-	counts.Allocate(flags.Length());
+	counts.Dimension(flags.Length());
 	counts = 0;
 
 	/* set output flags */
@@ -508,9 +509,9 @@ void SolidElementT::SetLocalArrays(void)
 
 	/* allocate */
 	int nen = NumElementNodes();
-	fLocLastDisp.Allocate(nen, NumDOF());
-	fLocAcc.Allocate(nen, NumDOF());
-	fLocVel.Allocate(nen, NumDOF());
+	fLocLastDisp.Dimension(nen, NumDOF());
+	fLocAcc.Dimension(nen, NumDOF());
+	fLocVel.Dimension(nen, NumDOF());
 
 	/* register */
 	Field().RegisterLocal(fLocLastDisp);
@@ -539,7 +540,7 @@ void SolidElementT::SetShape(void)
 {
 	/* construct shape functions */
 	fShapes = new ShapeFunctionT(GeometryCode(), NumIP(), fLocInitCoords);
-	if (!fShapes) throw eOutOfMemory;
+	if (!fShapes) throw ExceptionT::kOutOfMemory;
 
 	/* initialize */
 	fShapes->Initialize();
@@ -580,7 +581,7 @@ void SolidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 #if __option(extended_errorcheck)
 	if (B.Rows() != dSymMatrixT::NumValues(DNa.MajorDim()) ||
 	    B.Cols() != DNa.Length())
-	    throw eSizeMismatch;
+	    throw ExceptionT::kSizeMismatch;
 #endif
 
 	int nnd = DNa.MinorDim();
@@ -652,7 +653,7 @@ void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradie
 	    B.Cols() != DNa.Length() ||
 	    mean_gradient.MinorDim() != DNa.MinorDim() ||
 	    mean_gradient.MajorDim() != DNa.MajorDim())
-	    throw eSizeMismatch;
+	    throw ExceptionT::kSizeMismatch;
 #endif
 
 	int nnd = DNa.MinorDim();
@@ -662,7 +663,7 @@ void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradie
 	if (DNa.MajorDim() == 1)
 	{
 		cout << "\n SolidElementT::Set_B_bar: not implemented yet for 1D B-bar" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	/* 2D */
 	else if (DNa.MajorDim() == 2)
@@ -978,7 +979,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         ElementSupport().ResetAverage(n_extrap);
 
         /* allocate element results space */
-        e_values.Allocate(NumElements(), e_out);
+        e_values.Dimension(NumElements(), e_out);
 
         /* nodal work arrays */
         dArray2DT nodal_space(nen, n_extrap);
@@ -1016,9 +1017,9 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         }
         else
         {
-                simo_force.Allocate(ElementSupport().NumNodes(),qUseSimo ? n_simo : 0);
-                simo_mass.Allocate(ElementSupport().NumNodes(),qUseSimo ? 1 : 0);
-                simo_counts.Allocate(ElementSupport().NumNodes());
+                simo_force.Dimension(ElementSupport().NumNodes(),qUseSimo ? n_simo : 0);
+                simo_mass.Dimension(ElementSupport().NumNodes(),qUseSimo ? 1 : 0);
+                simo_counts.Dimension(ElementSupport().NumNodes());
         
                 pall = simo_space.Pointer();
                 nodalstress.Set(nen, n_codes[iNodalStress], pall); pall += nodalstress.Length();
@@ -1039,7 +1040,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         if (e_codes[iCentroid])
         {
                 centroid.Set(nsd, pall); pall += nsd;
-                ip_centroid.Allocate(nsd);
+                ip_centroid.Dimension(nsd);
         }
         if (e_codes[iMass]) {
                 ip_mass.Set(NumIP(), pall); 
@@ -1053,7 +1054,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         if (e_codes[iLinearMomentum])
         {
                 linear_momentum.Set(ndof, pall); pall += ndof;
-                ip_velocity.Allocate(ndof);
+                ip_velocity.Dimension(ndof);
         }
         dArray2DT ip_stress;
         if (e_codes[iIPStress])
@@ -1066,7 +1067,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         {
                 ip_material_data.Set(NumIP(), e_codes[iIPMaterialData]/NumIP(), pall);
                 pall += ip_material_data.Length();
-                ipmat.Allocate(ip_material_data.MinorDim());
+                ipmat.Dimension(ip_material_data.MinorDim());
         }
 
         /* check that degrees are displacements */
@@ -1118,7 +1119,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
                         double ip_w = (*j++)*(*w++);
                         if (qUseSimo || qNoExtrap)
                         {
-                          Na_X_ip_w.Allocate(nen,1);
+                          Na_X_ip_w.Dimension(nen,1);
                           if (qUseSimo)
                             {
                                 const double* Na_X = fShapes->IPShapeX();
@@ -1300,7 +1301,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         ElementSupport().OutputUsedAverage(extrap_values);
 
 	int tmpDim = extrap_values.MajorDim();
-        n_values.Allocate(tmpDim,n_out);
+        n_values.Dimension(tmpDim,n_out);
         n_values.BlockColumnCopyAt(extrap_values,0);
         if (qUseSimo)
         {        
@@ -1325,7 +1326,7 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 	const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
 {
 	/* allocate */
-	n_labels.Allocate(n_codes.Sum());
+	n_labels.Dimension(n_codes.Sum());
 
 	int count = 0;
 	if (n_codes[iNodalDisp])
@@ -1380,7 +1381,7 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 	}
 
 	/* allocate */
-	e_labels.Allocate(e_codes.Sum());
+	e_labels.Dimension(e_codes.Sum());
 	count = 0;
 	if (e_codes[iCentroid])
 	{

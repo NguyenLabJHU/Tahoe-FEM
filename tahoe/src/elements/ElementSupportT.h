@@ -1,10 +1,10 @@
-/* $Id: ElementSupportT.h,v 1.5 2002-07-05 22:27:56 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.6 2002-10-20 22:48:15 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
 /* headers */
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 /* direct members */
 #include "GlobalT.h"
@@ -88,7 +88,7 @@ public:
 	const int& IterationNumber(int group) const;
 	
 	/** exception string */
-	const char* Exception(int exception) const;
+	const char* Exception(ExceptionT::CodeT exception) const;
 	
 	/** simulation time */
 	const double& Time(void) const;
@@ -234,7 +234,7 @@ inline FEManagerT& ElementSupportT::FEManager(void) const
 {
 	if (!fFEManager) {
 		cout << "\n ElementSupportT::FEManager: pointer not set" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return *fFEManager;
 }
@@ -244,7 +244,7 @@ inline NodeManagerT& ElementSupportT::Nodes(void) const
 {
 	if (!fNodes) {
 		cout << "\n ElementSupportT::Nodes: pointer not set" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return *fNodes;
 }
@@ -254,7 +254,7 @@ inline const GlobalT::StateT& ElementSupportT::RunState(void) const
 {
 	if (!fRunState) {
 		cout << "\n ElementSupportT::RunState: not set" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return *fRunState;
 }

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BCJ.cpp,v 1.6 2002-07-02 19:55:33 cjkimme Exp $ */
+/* $Id: ABAQUS_VUMAT_BCJ.cpp,v 1.7 2002-10-20 22:48:37 paklein Exp $ */
 /* created: paklein (05/09/2000)                                          */
 
 #include "ABAQUS_VUMAT_BCJ.h"
@@ -96,7 +96,7 @@ void ABAQUS_VUMAT_BCJ::SetOutputVariables(iArrayT& variable_index,
 	int num_output = 5;
 
 	/* number of output */
-	variable_index.Allocate(num_output);
+	variable_index.Dimension(num_output);
 	variable_index[0] = 6;
 	variable_index[1] = 7;
 	variable_index[2] = 11;
@@ -104,7 +104,7 @@ void ABAQUS_VUMAT_BCJ::SetOutputVariables(iArrayT& variable_index,
 	variable_index[4] = 8;
 
 	/* labels */
-	output_labels.Allocate(num_output);
+	output_labels.Dimension(num_output);
 	output_labels[0] = "kappa";
 	output_labels[1] = "temp";
 	output_labels[2] = "pl_strn";

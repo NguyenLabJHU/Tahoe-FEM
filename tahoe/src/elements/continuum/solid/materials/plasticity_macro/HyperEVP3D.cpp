@@ -1,4 +1,4 @@
-/* $Id: HyperEVP3D.cpp,v 1.7 2002-07-02 19:56:19 cjkimme Exp $ */
+/* $Id: HyperEVP3D.cpp,v 1.8 2002-10-20 22:49:09 paklein Exp $ */
 #include "HyperEVP3D.h"
 
 #include "ContinuumElementT.h"
@@ -212,7 +212,7 @@ int HyperEVP3D::NumOutputVariables() const {return kNumOutput;}
 void HyperEVP3D::OutputLabels(ArrayT<StringT>& labels) const
 {
   // allocate space for labels
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   // copy labels
   for (int i = 0; i < kNumOutput; i++)
@@ -468,7 +468,7 @@ void HyperEVP3D::Solve()
   if (ierr == 1) {
     writeMessage("HyperEVP3D::Solve: Convergence problems");
     writeWarning("HyperEVP3D::Solve: Will use unconverged DEQP");
-    //    throw eGeneralFail;	
+    //    throw ExceptionT::kGeneralFail;	
   }
 
   // update iteration count from NLCSolver

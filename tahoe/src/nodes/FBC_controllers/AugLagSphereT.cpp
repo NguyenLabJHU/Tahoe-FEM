@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.cpp,v 1.6 2002-09-12 17:50:05 paklein Exp $ */
+/* $Id: AugLagSphereT.cpp,v 1.7 2002-10-20 22:49:27 paklein Exp $ */
 /* created: paklein (03/24/1999) */
 
 #include "AugLagSphereT.h"
@@ -30,7 +30,7 @@ AugLagSphereT::AugLagSphereT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
 	fField(field)
 {
 	/* (re-)dimension the tangent matrix */
-	fLHS.Allocate(rEqnos.MinorDim() + 1); // additional DOF
+	fLHS.Dimension(rEqnos.MinorDim() + 1); // additional DOF
 }
 
 /* initialize data */
@@ -41,11 +41,11 @@ void AugLagSphereT::Initialize(void)
 	
 	/* set dimensions */
 	int numDOF = rEqnos.MinorDim() + 1; // additional DOF
-	fContactEqnos.Allocate(fNumContactNodes*numDOF);
+	fContactEqnos.Dimension(fNumContactNodes*numDOF);
 	fContactEqnos2D.Set(fNumContactNodes, numDOF, fContactEqnos.Pointer());
 	
 	/* allocate memory for force vector */
-	fContactForce2D.Allocate(fNumContactNodes, numDOF);
+	fContactForce2D.Dimension(fNumContactNodes, numDOF);
 	fContactForce.Set(fNumContactNodes*numDOF, fContactForce2D.Pointer());
 	fContactForce2D = 0.0;
 
@@ -215,7 +215,7 @@ void AugLagSphereT::SetDOFTags(void)
 //       and collect the list of active nodes
 
 	/* ALL constraints ALWAYS active */
-	fContactDOFtags.Allocate(fContactNodes.Length());
+	fContactDOFtags.Dimension(fContactNodes.Length());
 }
 
 iArrayT& AugLagSphereT::DOFTags(int tag_set)
@@ -228,7 +228,7 @@ iArrayT& AugLagSphereT::DOFTags(int tag_set)
 void AugLagSphereT::GenerateElementData(void)
 {
 	/* allocate space */
-	fContactTags.Allocate(fContactNodes.Length(), 2);
+	fContactTags.Dimension(fContactNodes.Length(), 2);
 	
 	/* collect tags - {contact node, DOF tag} */
 	fContactTags.SetColumn(0, fContactNodes);

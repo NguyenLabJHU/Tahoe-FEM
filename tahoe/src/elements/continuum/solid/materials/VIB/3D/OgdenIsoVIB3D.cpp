@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.cpp,v 1.5 2002-09-12 17:50:00 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.cpp,v 1.6 2002-10-20 22:48:56 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 3D Isotropic VIB using Ogden's spectral formulation                    */
 
@@ -39,9 +39,9 @@ OgdenIsoVIB3D::OgdenIsoVIB3D(ifstreamT& in, const FiniteStrainT& element):
 			break;
 			
 		default:
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
-	if (!fSphere) throw eOutOfMemory;
+	if (!fSphere) throw ExceptionT::kOutOfMemory;
 
 	/* set tables */
 	Construct();
@@ -224,7 +224,7 @@ void OgdenIsoVIB3D::Construct(void)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Allocate(numpoints);
+	Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fSphere->Jacobians();

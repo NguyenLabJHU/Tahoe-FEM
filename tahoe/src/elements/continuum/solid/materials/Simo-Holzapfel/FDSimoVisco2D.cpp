@@ -1,4 +1,4 @@
-/* $Id: FDSimoVisco2D.cpp,v 1.4 2002-10-14 18:28:08 thao Exp $ */
+/* $Id: FDSimoVisco2D.cpp,v 1.5 2002-10-20 22:48:51 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSimoVisco2D.h"
@@ -6,7 +6,7 @@
 #include <math.h>
 #include <iostream.h>
 #include "fstreamT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 using namespace Tahoe;
 

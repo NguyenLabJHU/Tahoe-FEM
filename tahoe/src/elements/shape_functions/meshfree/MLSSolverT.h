@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.6 2002-07-05 22:28:36 paklein Exp $ */
+/* $Id: MLSSolverT.h,v 1.7 2002-10-20 22:49:40 paklein Exp $ */
 /* created: paklein (12/08/1999) */
 
 #ifndef _MLS_SOLVER_T_H_
@@ -197,7 +197,7 @@ private:
 inline int MLSSolverT::NumberOfSupportParameters(void) const
 {
 #if __option(extended_errorcheck)
-	if (!fWindow) throw eGeneralFail;
+	if (!fWindow) throw ExceptionT::kGeneralFail;
 #endif
 	return fWindow->NumberOfSupportParameters();
 }
@@ -207,7 +207,7 @@ inline bool MLSSolverT::Covers(const dArrayT& x_n, const dArrayT& x,
 	const dArrayT& param_n) const
 {
 #if __option(extended_errorcheck)
-	if (!fWindow) throw eGeneralFail;
+	if (!fWindow) throw ExceptionT::kGeneralFail;
 #endif
 	return fWindow->Covers(x_n, x, param_n);
 }
@@ -216,7 +216,7 @@ inline bool MLSSolverT::Covers(const dArrayT& x_n, const dArrayT& x,
 inline WindowT::SearchTypeT MLSSolverT::SearchType(void) const
 {
 #if __option(extended_errorcheck)
-	if (!fWindow) throw eGeneralFail;
+	if (!fWindow) throw ExceptionT::kGeneralFail;
 #endif
 	return fWindow->SearchType();
 }

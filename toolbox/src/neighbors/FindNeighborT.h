@@ -1,4 +1,4 @@
-/* $Id: FindNeighborT.h,v 1.4 2002-07-05 22:26:32 paklein Exp $ */
+/* $Id: FindNeighborT.h,v 1.5 2002-10-20 22:39:06 paklein Exp $ */
 /* created: paklein (03/21/1997)                                          */
 /* FindNeighborT.h                                                        */
 
@@ -47,7 +47,7 @@ private:
 	void FindNeighors3D(double tolerance);
 	
 	/* allocate memory */
-	void Allocate(int numpts, int nsd);
+	void Dimension(int numpts, int nsd);
 
 	/* Determine number of 2 body interactions */
 	int Count2Body(void) const;

@@ -1,4 +1,4 @@
-/* $Id: BondLatticeT.cpp,v 1.2 2002-07-02 19:55:33 cjkimme Exp $ */
+/* $Id: BondLatticeT.cpp,v 1.3 2002-10-20 22:48:38 paklein Exp $ */
 /* created: paklein (01/07/1997)                                          */
 /* BondLatticeT.cpp                                                       */
 
@@ -18,13 +18,13 @@ BondLatticeT::BondLatticeT(int numlatticedim, int numspatialdim,
 {
 	/* dimension checks */
 	if (fNumLatticeDim == 3)
-		if (fNumSpatialDim != 2 && fNumSpatialDim != 3) throw eGeneralFail;
+		if (fNumSpatialDim != 2 && fNumSpatialDim != 3) throw ExceptionT::kGeneralFail;
 	else if (fNumLatticeDim == 2)
-		if (fNumSpatialDim != 2) throw eGeneralFail;
+		if (fNumSpatialDim != 2) throw ExceptionT::kGeneralFail;
 	else
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 
-	if (fNumBonds < 1) throw eGeneralFail;
+	if (fNumBonds < 1) throw ExceptionT::kGeneralFail;
 }
 
 /*
@@ -48,20 +48,20 @@ BondLatticeT::BondLatticeT(const dMatrixT& Q, int numspatialdim,
 	fLatDimMatrix(fNumLatticeDim), fStrain(fNumLatticeDim)
 {
 	/* check transformation matrix dimensions */
-	if (Q.Rows() != Q.Cols()) throw eGeneralFail;
+	if (Q.Rows() != Q.Cols()) throw ExceptionT::kGeneralFail;
 	
 	/* deep copy */
 	fQ = Q;
 
 	/* dimension checks */
 	if (fNumLatticeDim == 3)
-		if (fNumSpatialDim != 2 && fNumSpatialDim != 3) throw eGeneralFail;
+		if (fNumSpatialDim != 2 && fNumSpatialDim != 3) throw ExceptionT::kGeneralFail;
 	else if (fNumLatticeDim == 2)
-		if (fNumSpatialDim != 2) throw eGeneralFail;
+		if (fNumSpatialDim != 2) throw ExceptionT::kGeneralFail;
 	else
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 
-	if (fNumBonds < 1) throw eGeneralFail;
+	if (fNumBonds < 1) throw ExceptionT::kGeneralFail;
 }
 	
 /* Destructor */
@@ -118,7 +118,7 @@ int BondLatticeT::NumberOfBonds(void) const { return fNumBonds; }
 void BondLatticeT::ComputeDeformedLengths(const dSymMatrixT& strain)
 {
 	/* check fBonds has been set */
-	if (!fIsInitialized) throw eGeneralFail;
+	if (!fIsInitialized) throw ExceptionT::kGeneralFail;
 	
 	/* spatial vs. lattice dimension translation */
 	if (fNumLatticeDim == 3 && fNumSpatialDim == 2)

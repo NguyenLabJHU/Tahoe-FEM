@@ -1,16 +1,12 @@
-/* $Id: IntegratorT.cpp,v 1.4 2002-07-02 19:55:07 cjkimme Exp $ */
+/* $Id: IntegratorT.cpp,v 1.5 2002-10-20 22:48:09 paklein Exp $ */
 /* created: paklein (10/14/1996) */
-
 #include "IntegratorT.h"
-
-#include <iostream.h>
-
 #include "dArrayT.h"
-
-/* constructor */
+#include <iostream.h>
 
 using namespace Tahoe;
 
+/* constructor */
 IntegratorT::IntegratorT(void): fdt(-1.0) { }
 
 /* destructor */
@@ -20,7 +16,7 @@ IntegratorT::~IntegratorT(void) { }
 void IntegratorT::SetTimeStep(double timestep)
 {
 	/* check */
-	if (timestep <= 0.0) throw eGeneralFail;
+	if (timestep <= 0.0) throw ExceptionT::kGeneralFail;
 	
 	/* re-calculate time-stepping parameters */
 	fdt = timestep;

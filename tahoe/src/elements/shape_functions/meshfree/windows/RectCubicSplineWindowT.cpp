@@ -1,5 +1,5 @@
 #include "RectCubicSplineWindowT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include <math.h>
 
 
@@ -22,7 +22,7 @@ RectCubicSplineWindowT::RectCubicSplineWindowT(const dArrayT& dilation_scaling, 
 	    count++;
 	}
 	if (count > 0 || fSharpeningFactor < 0.0)
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 }
 
 /* "synchronization" of nodal field parameters. */
@@ -36,7 +36,7 @@ void RectCubicSplineWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 	{
 		cout << "\n RectCubicSplineWindowT::SynchronizeSupportParameters: nodal\n"
 		     << " parameters dimension mismatch" << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 		
 	/* "synchronize" means take max of dmax */
@@ -297,7 +297,7 @@ bool RectCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, 
       }
     }
     else
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
       
     return true;
   }
@@ -312,8 +312,8 @@ int RectCubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_
 
   /* allocate */
   int nsd = x.Length();
-  fNSD.Allocate(nsd);
-  fNSDsym.Allocate(nsd);
+  fNSD.Dimension(nsd);
+  fNSDsym.Dimension(nsd);
 
   /* work space */
   dArrayT x_node, param_node;

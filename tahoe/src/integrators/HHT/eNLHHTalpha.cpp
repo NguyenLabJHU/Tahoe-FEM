@@ -1,8 +1,8 @@
-/* $Id: eNLHHTalpha.cpp,v 1.3 2002-07-02 19:55:05 cjkimme Exp $ */
+/* $Id: eNLHHTalpha.cpp,v 1.4 2002-10-20 22:48:08 paklein Exp $ */
 /* created: paklein (10/17/1996) */
 
 #include "eNLHHTalpha.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 /* constructor */
 

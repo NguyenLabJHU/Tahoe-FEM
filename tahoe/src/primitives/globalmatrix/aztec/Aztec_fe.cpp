@@ -1,4 +1,4 @@
-/* $Id: Aztec_fe.cpp,v 1.5 2002-09-12 17:50:09 paklein Exp $ */
+/* $Id: Aztec_fe.cpp,v 1.6 2002-10-20 22:49:35 paklein Exp $ */
 /* created: paklein (08/01/1998) */
 
 #include "Aztec_fe.h"
@@ -11,7 +11,7 @@
 #include <stdlib.h>
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "az_aztec.h"
 
 #include "fstreamT.h"
@@ -33,7 +33,7 @@ Aztec_fe::Aztec_fe(ifstreamT& in, ostream& msg):
 
 	/* construct MSR data builder */
 	fMSRBuilder = new MSRBuilderT(false);
-	if (!fMSRBuilder) throw eOutOfMemory;
+	if (!fMSRBuilder) throw ExceptionT::kOutOfMemory;
 }
 
 /* destructor */
@@ -83,11 +83,11 @@ void Aztec_fe::Solve(dArrayT& rhs2result)
 void Aztec_fe::Solve(const dArrayT& initguess, dArrayT& rhs2result)
 {
 	/* checks */
-	if (!fMSRSet) throw eGeneralFail;
-	if (rhs2result.Length() != fupdate.Length()) throw eSizeMismatch;
+	if (!fMSRSet) throw ExceptionT::kGeneralFail;
+	if (rhs2result.Length() != fupdate.Length()) throw ExceptionT::kSizeMismatch;
 
 	/* allocate initial guess */
-	finitguess.Allocate(InitGuessLength());
+	finitguess.Dimension(InitGuessLength());
 	
 	/* set initial guess */	
 	if (&initguess == &finitguess)
@@ -103,7 +103,7 @@ void Aztec_fe::Solve(const dArrayT& initguess, dArrayT& rhs2result)
 	else
 	{
 		/* check dimension */
-		if (initguess.Length() != rhs2result.Length()) throw eSizeMismatch;
+		if (initguess.Length() != rhs2result.Length()) throw ExceptionT::kSizeMismatch;
 	
 		/* copy guess */
 		finitguess.CopyPart(0, initguess, 0, initguess.Length());
@@ -128,7 +128,7 @@ void Aztec_fe::Solve(const dArrayT& initguess, dArrayT& rhs2result)
 	if (int(status[AZ_why]) != AZ_normal)
 	{
 		cout << "\n Aztec_fe::Solve: solver failed to converge" << endl;
-		throw eBadJacobianDet;
+		throw ExceptionT::kBadJacobianDet;
 	}
 	else
 		cout << endl;	
@@ -148,7 +148,7 @@ int Aztec_fe::SetMSRData(int** update, int** bindx, double** val,
 	int& is_sorted)
 {
 	/* set update vector - global numbering */
-	fupdate.Allocate(N_update);
+	fupdate.Dimension(N_update);
 	int* pupdate = fupdate.Pointer();
 	int n_update = Start_update; //OFFSET
 	for (int i = 0; i < N_update; i++)
@@ -180,7 +180,7 @@ fMSRBuilder->WriteMSRData(fMessage, fupdate, fbindx);
 #endif
 	
 	/* allocate the matrix and initialize to 0.0 */
-	fval.Allocate(fbindx.Length());
+	fval.Dimension(fbindx.Length());
 	fval = 0.0;
 	
 	/* set pointers */
@@ -205,12 +205,12 @@ void Aztec_fe::ReadOptionsParameters(ifstreamT& in)
 	int num_options;
 	in >> num_options;
 	if (num_options < 0 || num_options > AZ_OPTIONS_SIZE)
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 //TEMP - num_options strictly can't be AZ_OPTIONS_SIZE, should
 //       get this limit from AztecReaderT
 	
-	AZ_options_dex.Allocate(num_options);
-	AZ_options.Allocate(num_options);
+	AZ_options_dex.Dimension(num_options);
+	AZ_options.Dimension(num_options);
 	for (int i = 0; i < num_options; i++)
 	{
 		/* read */
@@ -226,12 +226,12 @@ void Aztec_fe::ReadOptionsParameters(ifstreamT& in)
 	int num_params;
 	in >> num_params;
 	if (num_params < 0 || num_params > AZ_PARAMS_SIZE)
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 //TEMP - num_params strictly can't be AZ_PARAMS_SIZE, should
 //       get this limit from AztecReaderT
 
-	AZ_params_dex.Allocate(num_params);
-	AZ_params.Allocate(num_params);
+	AZ_params_dex.Dimension(num_params);
+	AZ_params.Dimension(num_params);
 	for (int j = 0; j < num_params; j++)
 	{
 		/* read */
@@ -250,9 +250,9 @@ void Aztec_fe::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v)
 {
 	/* overall dimension */
 	int num_vals = fval.Length() - 1; // MSR format has 1 unused value
-	r.Allocate(num_vals);
-	c.Allocate(num_vals);
-	v.Allocate(num_vals);
+	r.Dimension(num_vals);
+	c.Dimension(num_vals);
+	v.Dimension(num_vals);
 
 	/* start of off-diagonal data (MSR) */
 	int*    pcol = fbindx.Pointer(N_update + 1);
@@ -285,7 +285,7 @@ void Aztec_fe::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v)
 		cout << "\n SPOOLESMatrixT::GenerateRCV: translation error:\n"
 		     <<   "   expected number of values = " << num_vals << '\n'
 		     <<   "            number of values = " << count << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
