@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.37 2005-03-11 21:29:28 paklein Exp $
+# $Id: tahoe-manager,v 1.38 2005-04-04 17:11:01 rjones Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -772,6 +772,10 @@ sub test{
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $pass = $_;   
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $fail = $_;   
 	print "* $pass,  $fail, see benchmark_XML/compare.summary for more details\n";
+	while(<IN>) {
+		if (/FAIL/) {print "* $_" ;}
+	}
+	close(IN);
 }
 
 ##############################################################################
