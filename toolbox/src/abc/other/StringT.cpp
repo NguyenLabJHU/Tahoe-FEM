@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.2 2001-02-19 23:20:06 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.3 2001-02-20 10:52:34 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -716,19 +716,41 @@ void StringT::PrintCodes(ostream& out) const
 
 /* version number comparison - returns 0 if the versions numbers are
  * the same, -1 if v1 is older than v2, 1 if v1 is newer than v2 */
-int StringT::versioncmp(const char* v1, const char* v2)
+int StringT::versioncmp(const char* v1_, const char* v2_)
 {
-	while (!isdigit(*v1) && !isdigit(*v2))
+	/* skip leading char's */
+	while (!isdigit(*v1_) && !isdigit(*v2_))
 	{
-		if (*v1 != *v2)
+		if (*v1_ != *v2_)
 		{
 			cout << "\n StringT::versioncmp: incompatible version numbers:\n" 
-			     << '\t' << v1 << '\n'
-			     << '\t' << v2 << endl;
+			     << '\t' << v1_ << '\n'
+			     << '\t' << v2_ << endl;
 			throw eGeneralFail;
 		}
-		v1++; v2++;
+		v1_++; v2_++;
 	}
+
+	/* check */
+	int l1 = strlen(v1_);
+	int l2 = strlen(v2_);	
+	if (l1 > 50 || l2 > 50)
+	{
+		cout << "StringT::versioncmp: exceeded maximum version string length: 50" << endl;
+		throw eGeneralFail;
+	}
+
+	/* copy in and pad with trailing space:
+	 * SGI, GNU, ?: hit EOF after reading last value
+	 *  DEC, CW, ?: hit EOF when reading last value */
+	char v1[52];
+	memcpy(v1, v1_, l1);
+	v1[l1] = '#'; // my EOF
+	v1[l1+1] = '\0';
+	char v2[52];
+	memcpy(v2, v2_, l2);
+	v2[l2] = '#'; // my EOF
+	v2[l2+1] = '\0';
 
 	istrstream s1(v1), s2(v2);
 	while (true)
@@ -756,21 +778,25 @@ int StringT::versioncmp(const char* v1, const char* v2)
 			return 1;
 		else if (i2 > i1)
 			return -1;
-		else if (!s1.good() && !s2.good()) /* the same */
-			return 0;
 		else /* the same so far */
 		{
-			/* end of string */
-			if (!s1.good())
+			/* get next char */
+			char a1, a2;
+			s1.get(a1);
+			s2.get(a2);
+			
+			/* same */
+			if (a1 == '#' && a2 == '#')
+				return 0;
+			else if (a1 == '#')
 				return -1;
-			else if (!s2.good())
+			else if (a2 == '#')
 				return 1;
-			else /* next branch */
+			/* check */
+			else if (a1 != '.' || a2 != '.')
 			{
-				/* clear "." */
-				char a;
-				s1.get(a); if (a != '.') throw eGeneralFail;
-				s2.get(a); if (a != '.') throw eGeneralFail;
+				cout << "\n StringT::versioncmp: illegal character" << endl;
+				throw eGeneralFail;
 			}
 		}
 	}
