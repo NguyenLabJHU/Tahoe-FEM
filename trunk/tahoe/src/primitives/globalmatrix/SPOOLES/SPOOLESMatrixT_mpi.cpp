@@ -1,11 +1,11 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.2 2001-02-28 00:29:37 paklein Exp $ */
 /* created: paklein (09/13/2000)                                          */
 /* SPOOLES matrix solver                                                  */
 
 #include "SPOOLESMatrixT_mpi.h"
 
 /* library support options */
-#ifdef __SPOOLES__
+#ifdef __SPOOLES_MPI__
 #ifdef __MPI__
 #include "SPOOLESMPI.h"
 #include "StringT.h"
@@ -121,4 +121,4 @@ throw;
 	}
 }
 #endif /* __MPI__ */
-#endif /* __SPOOLES__ */
+#endif /* __SPOOLES_MPI__ */
