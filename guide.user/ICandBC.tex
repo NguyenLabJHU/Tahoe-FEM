@@ -1,14 +1,26 @@
 %&LaTeX
-% $Id: ICandBC.tex,v 1.1 2001-03-26 09:12:19 paklein Exp $
+% $Id: ICandBC.tex,v 1.2 2001-04-10 01:57:48 paklein Exp $
 
 \section{Initial conditions and boundary conditions}
 \label{set.ICandBC}
 \subsection{Initial conditions}
-\subsection{Force boundary conditions}
-\subsubsection{Nodal force conditions}
-\subsubsection{Force controllers}
-\subsection{Essential boundary conditions}
-\subsubsection{Nodal kinematic boundary conditions}
-\subsubsection{Kinematic boundary condition controllers}
+\subsection{Nodal force conditions}
+\subsection{Force controllers}
+\temp{This boundary conditions types actually behavior more like 
+``elements'' because they do produce a contribution to the stiffness
+matrix, i.e., they act as ``follower forces'' and are not simply 
+defined as functions of time.}
+
+\temp{table of codes}
+\subsubsection{Rigid wall (penalty method)}
+\subsubsection{Rigid sphere (penalty method)}
+\subsubsection{Rigid sphere (augmented Lagrangian method)}
+\subsubsection{Rigid sphere for meshfree domains (penalty method)}
+\subsection{Nodal kinematic boundary conditions}
+\subsection{Kinematic boundary condition controllers}
+\temp{table of codes}
+\subsubsection{K-field}
+\subsubsection{Interface K-field}
+\subsubsection{Periodic displacement}
 \subsection{Body forces}
 \subsection{Natural boundary conditions}

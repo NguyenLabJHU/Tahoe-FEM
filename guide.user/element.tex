@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: element.tex,v 1.2 2001-03-26 09:12:19 paklein Exp $
+% $Id: element.tex,v 1.3 2001-04-10 01:57:48 paklein Exp $
 
 \section{Element types}
 Within the structure of \tahoe, any formulation that relates nodal 
@@ -104,7 +104,7 @@ point & 1 & 1 & -1 \\
 \hline
 line & 2, 3 & 1, 2, 3, 4 & 0 \\
 \hline
-quadrilateral & 4-8 & 1, 4, 9, 16 & 1 \\
+quadrilateral & 4--8 & 1, 4, 9, 16 & 1 \\
 \hline
 triangle & 3, 6 & 1, 4, 6 & 2 \\
 \hline
@@ -120,12 +120,23 @@ pentahedron & 6, 15 & N/A & 5 \\
 Each of these geometries has a corresponding local node numbering. 
 The local node numbering, as well as the local ordering of the facets 
 is shown in Figures~\ref{fig.line.element} 
-through~\ref{fig.pent.element}.
-
-\temp{mention the rational behind the numbering\\
-vetrex nodes then midside nodes\\
-numbering of nodes on 3D elements makes outward normal\\
-facet numbering for 3D domains chosen arbitrarily}
+through~\ref{fig.pent.element}. Although the pattern of local node 
+numbering is not derived from a set of rules, it does display several 
+common characteristics for all domain geometries. The vertex 
+nodes always have lower local numbers that the mid-side nodes. For 
+the three-dimensional domains, the local numbering of the facet nodes 
+is always defined in a sense, or line direction, consistent with the 
+outward normal to the face. Finally, the local node numbering for the 
+follows the convention used by 
+\textsf{ABAQUS}~\cite{ABAQUS} and \textsf{EnSight}~\cite{EnSight6}, 
+which is not the same as the 
+convention used by the \textsf{ExodusII}~\cite{ExodusII} database format
+for some domain geometries.
+However, the numbering of nodes on facets differs from the convention used
+by \textsf{ABAQUS} in that element normals point outward.
+When reading from or writing to 
+an \textsf{ExodusII} database, \tahoe adjusts for 
+any differences in the numbering convention.
 
 %% line
 \begin{figure}
@@ -299,16 +310,6 @@ domains.}
 domains.}
 \label{fig.pent.element}
 \end{figure}
-
-\tahoe supports a number of solid continuum elements.  Table ?? lists the
-shapes and the number of integration points supported.  Internal element
-numbering follows the convention of \textsf{ABAQUS}~\cite{abaqus} 
-and \textsf{EnSight}~\cite{EnSight6}.  The
-numbering of individual facets is slightly different from Abaqus, in that
-element normals will point outward.  The numbering convention used in \tahoe
-is shown in Figure ??.  All \tahoe style database files use this convention. 
-Differences between the \tahoe numbering scheme and other databases are
-accounted for when reading or writing databases.
 
 \subsection{Meshfree methods}
 \label{section.meshfree.methods}
@@ -511,9 +512,10 @@ boundary conditions. Furthermore, this characteristic affects the
 enforcement of contact constraint and the imposition of cohesive 
 tractions.
 
-\temp{mention that \tahoe allows you to pick\\
-the window function\\
-basis functions}
+\temp{User must specify\\
+(1) the window function\\
+(2) basis functions\\
+(3) order of completeness for polynomial basis functions}
 
 \subsection{Solid deformation}
 
@@ -616,13 +618,13 @@ cohesive surface elements.}
 \hline
 1 & $\mathbf{X}$ 
   & \parbox[b]{2.5in}{\raggedright reference coordinates} 
-  & \parbox[b]{2.0in}{\raggedright \texttt{x[\textsl{i}]} 
-    \texttt{\textsl{i}} = 0, \ldots, $n_{\textit{sd}}$  }\\
+  & \parbox[b]{2.0in}{\raggedright \texttt{x[$i$]} 
+    $i$ = 0, \ldots, $n_{\textit{sd}}$  }\\
 \hline
 2 & $\mathbf{d}$ 
   & \parbox[b]{2.5in}{\raggedright displacements} 
-  & \parbox[b]{2.0in}{\raggedright \texttt{D\_[\textsl{i}]} 
-    \texttt{\textsl{i}} = \texttt{X}, \texttt{Y}, \ldots, 
+  & \parbox[b]{2.0in}{\raggedright \texttt{D\_[$i$]} 
+    $i$ = \texttt{X}, \texttt{Y}, \ldots, 
     $n_{\textit{dof}}$  }\\
 \hline
 3 & $||\Delta||$ 
@@ -655,13 +657,13 @@ cohesive surface elements.}
 \hline
 1 & $\mathbf{X}$ 
   & \parbox[b]{2.5in}{\raggedright reference coordinates} 
-  & \parbox[b]{2.0in}{\raggedright \texttt{x[\textsl{i}]} 
-    \texttt{\textsl{i}} = 0, \ldots, $n_{\textit{sd}}$  }\\
+  & \parbox[b]{2.0in}{\raggedright \texttt{x[$i$]} 
+    $i$ = 0, \ldots, $n_{\textit{sd}}$  }\\
 \hline
 2 & $\mathbf{d}$ 
   & \parbox[b]{2.5in}{\raggedright displacements} 
-  & \parbox[b]{2.0in}{\raggedright \texttt{D\_[\textsl{i}]} 
-    \texttt{\textsl{i}} = \texttt{X}, \texttt{Y}, \ldots, 
+  & \parbox[b]{2.0in}{\raggedright \texttt{D\_[$i$]} 
+    $i$ = \texttt{X}, \texttt{Y}, \ldots, 
     $n_{\textit{dof}}$  }\\
 \hline
 3 & $\tilde{\mathbf{\Delta}}$ 
@@ -711,8 +713,8 @@ cohesive surface elements.}
 \hline
 1 & $\overline{\mathbf{X}}$ 
   & \parbox[b]{2.5in}{\raggedright centroid in reference coordinates} 
-  & \parbox[b]{2.0in}{\raggedright \texttt{xc\_[\textsl{i}]} 
-    \texttt{\textsl{i}} = 0, \ldots, $n_{\textit{sd}}$  }\\
+  & \parbox[b]{2.0in}{\raggedright \texttt{xc\_[$i$} 
+    $i$ = 0, \ldots, $n_{\textit{sd}}$  }\\
 \hline
 2 & $\phi$ 
   & \parbox[b]{2.5in}{\raggedright integrated cohesive energy} 
@@ -830,6 +832,12 @@ For the three-dimensional model, we did not attempt to incorporate any
 additional effects from the relative rotation of the surfaces about
 the normal.
 
+\subsection{Cohesive surface elements for meshfree domains}
+\label{section.element.CSE.MF}
+
+\subsubsection{Constitutive models}
+\subsubsection{Parameters for adaptive insertion}
+
 \subsection{Contact}
 In the input section for contact elements, the user
 specifies a regularization constant and the entities involved with 
@@ -851,7 +859,7 @@ k_{c}=k_{\text{CSE}}\,A,
 where $A$ is the area of the cohesive surface element, and 
 $k_{\text{CSE}}$ is the tangent stiffness of the surface 
 constitutive relation. For the potential proposed by 
-Xu-Needleman potential~\cite{eq.XN.1},
+Xu-Needleman potential~\ref{eq.XN.1},
 this stiffness is
 \begin{equation}
 k_{\text{CSE}} = \frac{\phi}{\delta_{n}^{2}}.
@@ -860,6 +868,7 @@ k_{\text{CSE}} = \frac{\phi}{\delta_{n}^{2}}.
 \subsubsection{Augmented Lagrangian formulation}
 The augmented Lagrangian formulation in \tahoe is based on the 
 formulation by Heegaard and Curnier~\cite{Heegaard1993}.
+
 \subsection{Pair-potential}
 
 \subsection{Two- and three-body potential}

@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: material.solid.tex,v 1.1 2001-03-13 02:20:52 paklein Exp $
+% $Id: material.solid.tex,v 1.2 2001-04-10 01:57:49 paklein Exp $
 
 \section{Constitutive models for solid mechanics}
 This section of the guide describes the constitutive models available 
@@ -7,6 +7,14 @@ for analysis of displacements and stresses. A separate section is
 dedicated to each material model. Each section provides some 
 background information about the model, followed up a description of 
 the input required for three- and two-dimensional analysis.
+All materials support both implicit as well as explicit 
+analysis. That is, most models implement consistent tangent matrix 
+that should produce locally quadratic convergence when used with 
+Newton-type, nonlinear solution algorithms 
+(see Section~\ref{sect.solver.nonlinear}).
+As will be noted in the sections that follow, some models only provide 
+approximate tangents that will result in
+slower convergence rates with Newton-type solvers.
 
 \begin{table}[h]
 \caption{\label{tab.mat.solid} Materials for analysis of 
@@ -68,14 +76,6 @@ Internal Bond model with $J_{2}$ plasticity}\\
 \end{center}
 \end{table}
 
-\temp{table of material models and codes???}
-
-\temp{mention that all materials support both implicit and explicit 
-analysis. All models implement consistent tangent matrix that should 
-produce locally quadratic convergence when used with Newton-type,
-nonlinear solution algorithms 
-(see Section~\ref{sect.solver.nonlinear}).}
-
 \subsubsection{Common input parameters}
 \label{sect.material.solid.common}
 All constitutive models for solid mechanics share some common input 
@@ -105,12 +105,13 @@ where $a$ and $b$ are the parameters specified in the input file.
 Thermal expansion may be defined as a function of time with 
 two parameters. The schedule number 
 corresponds to the schedules defined in the time parameters block of 
-the input file~\ref{time.section}. The second parameter defines the 
+the input file~\ref{sect.time.parameters}. The second parameter defines the 
 volume change as a percentage. Thermal expansion is disabled by 
-specifying a value of 0 for the schedule number. \temp{mention that 
-thermal strains are imposed differently for small strain and finite 
-strain material models. For small strains, an additive decomposition 
-of the strain is assumed}
+specifying a value of \texttt{0} for the schedule number. 
+Thermal strains are imposed 
+differently for small strain and finite 
+strain material models. For small strain materials, an additive decomposition 
+of the strain is assumed
 \begin{equation}
 \boldsymbol{\epsilon} = 
     \boldsymbol{\epsilon}^{\theta} + 
@@ -120,12 +121,13 @@ where the thermal strain is
 \begin{equation}
 \boldsymbol{\epsilon}^{\theta}\farg{t} = \varepsilon\farg{t} \mathbf{1}
 \end{equation}
-\temp{for finite strain, a multiplicative split of the deformation 
-gradient is assumed}
+For materials formulated at finite strains, the multiplicative split 
 \begin{equation}
 \mathbf{F} = \mathbf{F}^{\mathrm{mechanical}}\,
 \mathbf{F}^{\theta},
 \end{equation}
+of the deformation 
+gradient is assumed,
 where the thermal deformation gradient is
 \begin{equation}
 \mathbf{F}^{\theta}\farg{t} = \rbrkt{1 + \varepsilon\farg{t}} \mathbf{1}.
@@ -969,8 +971,10 @@ for which $\theta = 1$ produces purely isotropic hardening.
 \subsubsection{Output values}
 This constitutive model does not have any output values.
 
-\subsection{Material 10: finite deformation $J_{2}$ plasticity in 
-principal stretches}
+\subsection[Material 10: finite deformation $J_{2}$ plasticity in 
+principal stretches]
+{Material 10: finite deformation $J_{2}$ plasticity in 
+principal\\ stretches}
 \label{sect.mat.J2.QL.LinearHardening}
 This model combines the isotropic stored energy function from 
 Section~\ref{sect.mat.QuadLog.Simo} with
@@ -1594,7 +1598,7 @@ file \texttt{auu3} with the potential data in \textsf{ParaDyn}~\cite{PARADYN} fo
 \end{center}
 \end{table}
 
-\temp{print tables of modulus values and units.}
+\temp{print tables of modulus values and units for each potential.}
 
 \subsubsection{3D input parameters}
 An example of input parameters for three-dimensional analysis is shown 
@@ -1660,11 +1664,7 @@ of two contributions,
 Here, $\Phi_2$ represents the contribution from standard inverse-power pair potentials,
 and $\Phi_3$ represents the contribution from three-body
 potentials which are needed to stabilize the tetrahedral structures that compose
-the lattice. Figure~\ref{fig.SWDCbonds} shows the arrangement
-of bonds for the Stillinger-Weber potentials. Without the action of the
-three-body potentials, this crystal structure does not display any
-stiffness to shear deformations. The two face-centered cubic sub-lattices
-are denoted by labels $A$ and $B$. For a range of deformations around the
+the lattice. For a range of deformations around the
 undeformed state, these potentials involve only nearest neighbor bonds.
 In the original formulation\cite{Stillinger1985}, the two-body potential is
 given by
@@ -1686,10 +1686,10 @@ U_3 \farg{r^{(ji)},r^{(jk)},\theta^{(ijk)}} \\
    \exp \sbrkt{\gamma \over r^{(jk)} - r_{cut}} &
    r^{(ji)} , r^{(jk)} < r_{cut} \\
    0 &
-   r^{(ji)} , r^{(jk)} \geq r_{cut},
+   r^{(ji)} , r^{(jk)} \geq r_{cut}.
    \end{cases}
 \end{multline}
-where the geometry is detailed in Figure~\ref{fig.SWDCbonds}. Both potentials make 
+Both potentials make 
 use of an exponential cut-off term which causes the potentials, and
 all derivatives of the potentials, to vanish smoothly when the atomic spacing $r$ 
 reaches $r_{cut}$. This cut-off term is advantageous because it clearly defines the
@@ -1803,40 +1803,22 @@ of $U$.
 modulus in terms of potential, and then show specific results for the
 Smith-Ferrante potential. Is the potential selectable?}
 
-Unlike the constitutive models based on the
+Unlike constitutive models based on the
 Cauchy-Born rule for crystalline
-materials developed in Chapter~\ref{ch.CBmodels}, implementations
-of the VIB model may suffer significant numerical errors
+materials described in Section~\ref{sect.mat.FCC.EAM}, 
+the VIB model may suffer significant numerical errors
 when evaluating integrals of the bond
-distribution to determine the strain energy density~\eqref{eq.4.8}, 
-stress response~\eqref{eq.4.11}, and modulus~\eqref{eq.4.12}.
-With the models for single crystal materials, the number and
-orientation of the bonds in the representative volume may be captured exactly
-in the numerical implementation. Therefore, the behavior of the model in numerical
-simulation will be essentially the same as the theoretically predicted model
-behavior. Because of the errors associated with evaluating integrals
-over the bond density, this character is not preserved in extension
-of the Cauchy-Born rule to the VIB model.
-
+distribution to determine the strain energy density~\eqref{eq.4.1}
+and the resulting stress response and moduli.
 Many different schemes could be developed for evaluating the VIB
 model integrals. As with any numerical procedure, the optimal
 scheme represents a compromise between accuracy and speed
 of execution. The primary concern with the implementation of the
 isotropic VIB model is that the response in numerical calculations 
 is indeed lacking in any orientational dependence resulting from 
-the integration procedure. As discussed in
-Section~\ref{sec.isoelastic}, an isotropic stored energy function
-${\cal W}$ displays a response which is invariant to rigid body
-rotations of the undeformed configuration before undergoing a
-particular deformation. This condition is expressed by the relation
-\begin{equation}
-{\cal W} \farg{\mathbf{F}} =
-{\cal W} \farg{\mathbf{F} \, \mathbf{R}^{-1}} 
-  \tag{\ref{eq.b.0.e}},
-\end{equation}
-where $\mathbf{F}$ is the deformation gradient and $\mathbf{R}$ is
-a proper orthogonal transformation. For the plane stress, isotropic
-VIB model~\eqref{eq.4.23}, the integral of the volumetric bond density 
+the integration procedure.
+For the plane stress, isotropic
+VIB model, the integral of the volumetric bond density 
 function reduces to an integral over the interval $-\pi \le \phi \le \pi$.
 A simple scheme for evaluating these integrals is shown in 
 Figure~\ref{fig.VIB2Derrorplot}.
@@ -1883,7 +1865,7 @@ integration schemes based on Gaussian quadrature.
 
 For the three-dimensional isotropic VIB model, the task of generating
 isotropic response is significantly more difficult. This case
-requires evaluating the VIB integrals over a sphere~\eqref{eq.4.20}.
+requires evaluating the VIB integrals over a sphere.
 Unlike the two-dimensional case, there are no schemes for arranging
 an arbitrary number of points on a sphere in a evenly-spaced manner.
 The icosahedron with its 20 equilateral triangular faces presents a
@@ -2054,7 +2036,6 @@ isotropic hardening.
 This model makes of the the \textsf{ABAQUS/Standard}~\cite{ABAQUSNNNN}
 \textsf{UMAT} interface in \tahoe. This model is due to Bammann, 
 Chiesa, and Johnson~\cite{BammannNNNN}.
-
 The \textsf{ABAQUS/Standard UMAT} interface in \tahoe parses
 \textsf{ABAQUS}-format input. The specifications for
 \textsf{UMAT}'s in \tahoe may be taken directly from an
