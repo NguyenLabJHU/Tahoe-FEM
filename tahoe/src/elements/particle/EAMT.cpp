@@ -119,6 +119,8 @@ void EAMT::WriteOutput(void)
 
   /* output arrays length number of active nodes */
   dArray2DT n_values(non, num_output), e_values;
+
+
   n_values = 0.0;
 
   /* global coordinates */
@@ -197,11 +199,7 @@ void EAMT::WriteOutput(void)
       coords.RowAlias(tag_i, x_i);
 
       /* Embedding Energy: E_i(rho_i) */
-      if(iEmb == 1)
-	{     
-	  values_i[ndof] += fEmbeddingEnergy(tag_i,0);
-	  n_values(local_i, ndof) += fEmbeddingEnergy(tag_i,0);
-	}
+      if(iEmb == 1) values_i[ndof] += fEmbeddingEnergy(tag_i,0);
       
       for (int j = 1; j < neighbors.Length(); j++)
 	{
@@ -251,10 +249,9 @@ void EAMT::WriteOutput(void)
 		cout << caller << ": out of range: " << local_j << '\n';
 	      else
 		n_values(local_j, ndof) += phiby2;
-	    }
+	    }	  
 	}
     }	
-    
 
   /* send */
   ElementSupport().WriteOutput(fOutputID, n_values, e_values);
@@ -1681,8 +1678,8 @@ void EAMT::GetRho2D(const dArray2DT& coords,dArray2DT& rho)
 	  double r_ij_1 = x_j[1] - x_i[1];
 	  double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
 		
-	  rho(i,0) += ed_energy(r,NULL,NULL); 
-	  rho(j,0) += ed_energy(r,NULL,NULL);
+	  rho(tag_i,0) += ed_energy(r,NULL,NULL); 
+	  rho(tag_j,0) += ed_energy(r,NULL,NULL);
 	}
     }
 }
@@ -1744,13 +1741,28 @@ void EAMT::GetEmb(const dArray2DT& coords,const dArray2DT rho,
 
   Emb = 0.0;
 
-  for (int i = 0; i < fNeighbors.MajorDim(); i++)
+  /* for (int i = 0; i < ElementSupport().NumNodes(); i++)
     {
-      /* row of neighbor list */
       fNeighbors.RowAlias(i, neighbors);
       
-      /* type */
-      int   tag_i = neighbors[0]; /* self is 1st spot */
+      int   tag_i = neighbors[0]; 
+      int  type_i = fType[tag_i];
+      
+      int property = fPropertiesMap(type_i, type_i);
+      {
+	emb_energy  = fEAMProperties[property]->getEmbedEnergy();
+	current_property = property;
+      }
+      Emb(i,0) = emb_energy(rho(i,0),NULL,NULL); 
+    }
+  */
+
+  
+  for (int i = 0; i < fNeighbors.MajorDim(); i++)
+    {
+      fNeighbors.RowAlias(i, neighbors);
+      
+      int   tag_i = neighbors[0]; 
       int  type_i = fType[tag_i];
       
       int property = fPropertiesMap(type_i, type_i);
@@ -1760,5 +1772,6 @@ void EAMT::GetEmb(const dArray2DT& coords,const dArray2DT rho,
       }
       Emb(tag_i,0) = emb_energy(rho(tag_i,0),NULL,NULL); 
     }
+  
 }
 
