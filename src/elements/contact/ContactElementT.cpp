@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.2 2001-04-09 22:28:54 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.3 2001-04-11 14:48:57 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -50,16 +50,23 @@ GlobalT::RelaxCodeT ContactElementT::RelaxSystem(void)
 /* initialization after constructor */
 void ContactElementT::Initialize(void)
 {
-	/* inherited */
+	/* inherited, calls EchoConnectivityData */
 	ElementBaseT::Initialize();
 
 	/* set up work space */
 //SetWorkSpace();
-	// intialize surfaces
-	// surface.Initialize(ElementBaseT::fNodes);
+
+	/* initialize surfaces */
+	for (int i = 0; i < fSurfaces.Length(); i++) {
+		SurfaceT& surface = fSurfaces[i];
+		surface.Initialize(ElementBaseT::fNodes);
+	}
 	
 	/* set initial contact configuration */
 	SetContactConfiguration();	
+	cout << "\nTHROWING EXCEPTION in ContactElementT::Initialize"
+	     << " to stop execution before getting into more trouble\n";
+	throw; //HACK
 }
 
 /* solution calls */
@@ -155,7 +162,7 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
                                      << " for surface " << i+1 << '\n';
 				throw eBadInputValue;
 		}
-//surface.Initialize();
+		surface.PrintData(out);
 	}
 }
 

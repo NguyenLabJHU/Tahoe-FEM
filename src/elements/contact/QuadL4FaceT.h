@@ -1,4 +1,4 @@
-/* $Id */
+/* $Id: QuadL4FaceT.h,v 1.3 2001-04-11 14:48:58 rjones Exp $ */
 
 #ifndef _QUADL4_FACE_T_H_
 #define _QUADL4_FACE_T_H_
@@ -37,6 +37,10 @@ public:
         /* destructor */
         ~QuadL4FaceT(void);
 
+        /* initialization after construction */
+        void Initialize(void);
+
+        /* geometric computation */
         void ComputeCentroid(double& centroid); 
 	double ComputeRadius();
         void ComputeNormal(dArrayT& local_coordinates, double& normal);

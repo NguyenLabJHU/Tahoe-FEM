@@ -1,4 +1,4 @@
-/* $Id: SurfaceT.h,v 1.3 2001-04-09 22:28:56 rjones Exp $ */
+/* $Id: SurfaceT.h,v 1.4 2001-04-11 14:48:58 rjones Exp $ */
 
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
@@ -8,7 +8,6 @@
 class ifstreamT;
 class FEManagerT;
 class NodeManagerT;
-class FaceT;
 
 /* direct members */
 #include "iArrayT.h"
@@ -17,6 +16,7 @@ class FaceT;
 #include "dArray2DT.h"
 #include "ArrayT.h"
 #include "RaggedArray2DT.h"
+#include "FaceT.h"
 #include "GeometryT.h"
 
 class SurfaceT
@@ -42,16 +42,16 @@ class SurfaceT
 	void UpdateConfiguration();
 
 	/* access functions */
-	inline int NumNodes(void) {return fNumNodes;}
-	inline int NumFaces(void) {return fNumFaces;}
+	inline int NumNodes(void) {return fNodes.Length();}
+	inline int NumFaces(void) {return fFaces.Length();}
 	inline int NumSD(void) {return fNumSD;}
 	inline dArray2DT& Coordinates(void) {return fCoordinates;}
+
 	/* these are predicated on the surfaces being homogeneous */
 	inline int NumNodesPerFace(void)
-		{return 2;}
-//{return fFaces[0]->NumNodes();}
-//inline GeometryT::CodeT GeometryType(void)
-//{return fFaces[0]->GeometryType();}
+		{return fFaces[0]->NumNodes();}
+	inline GeometryT::CodeT GeometryType(void)
+		{return fFaces[0]->GeometryType();}
 
 
   protected:
@@ -82,8 +82,6 @@ class SurfaceT
 
 	const NodeManagerT* kNodeManager;
 
-	int fNumNodes;
-	int fNumFaces;
 	int fNumSD;
 
 };

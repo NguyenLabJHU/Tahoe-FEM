@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.2 2001-04-09 22:28:55 rjones Exp $ */
+/* $Id: FaceT.h,v 1.3 2001-04-11 14:48:58 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -30,6 +30,9 @@ public:
         /* (virtual) destructor */
         virtual ~FaceT(void);
 
+	/* initialization after construction */
+	virtual void Initialize(void)=0;
+
 	/* geometric computation */
         virtual void ComputeCentroid(double& centroid) =0; 
 	virtual double ComputeRadius(void)=0;
@@ -47,17 +50,13 @@ public:
 
 	/* access functions */
 	inline int NumNodes(void) const 
-		{return fNumNodes;}
+		{return fConnectivity.Length();}
 	inline GeometryT::CodeT GeometryType(void) const 
 		{return fGeometryType;}
  	inline const iArrayT& Connectivity(void) const 
 		{return fConnectivity;} 
 
 protected:
-
-	/* number of nodes */
-	int fNumNodes;
-
 	/* geometry type */
 	GeometryT::CodeT fGeometryType;
 

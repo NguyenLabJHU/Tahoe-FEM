@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.4 2001-04-10 00:13:57 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.5 2001-04-11 14:48:58 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
@@ -63,13 +63,18 @@ int number_of_face_nodes, int* connectivity):
         FaceT(surface,surface_coordinates,
 	number_of_face_nodes,connectivity)
 {
-	for (int i = 0; i < fNumNodes; i++) {
-		fx[i] = fSurfaceCoordinates(fConnectivity[i]);
-	}
 }
 
 QuadL4FaceT::~QuadL4FaceT (void)
 {
+}
+
+void
+QuadL4FaceT::Initialize(void)
+{
+        for (int i = 0; i < fConnectivity.Length(); i++) {
+                fx[i] = fSurfaceCoordinates(fConnectivity[i]);
+        }
 }
 
 void

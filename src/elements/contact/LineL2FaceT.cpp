@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.3 2001-04-10 00:13:56 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.4 2001-04-11 14:48:58 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
@@ -58,14 +58,20 @@ int number_of_face_nodes, int* connectivity):
 	FaceT(surface,surface_coordinates,
 	number_of_face_nodes,connectivity)
 {
-	for (int i = 0; i < fNumNodes; i++) {
-	fx[i] = fSurfaceCoordinates(fConnectivity[i]);
-	}
 }
 
 LineL2FaceT::~LineL2FaceT (void)
 {
 }
+
+void
+LineL2FaceT::Initialize(void)
+{
+        for (int i = 0; i < fConnectivity.Length(); i++) {
+                fx[i] = fSurfaceCoordinates(fConnectivity[i]);
+        }
+}
+
 
 void
 LineL2FaceT::ComputeCentroid(double& centroid)

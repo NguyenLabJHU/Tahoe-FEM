@@ -1,4 +1,4 @@
-/* $Id */
+/* $Id: LineL2FaceT.h,v 1.3 2001-04-11 14:48:58 rjones Exp $ */
 
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
@@ -32,6 +32,10 @@ public:
         /* destructor */
         ~LineL2FaceT(void);
 
+        /* initialization after construction */
+        void Initialize(void);
+
+        /* geometric computation */
         void ComputeCentroid(double& centroid); 
 	double ComputeRadius();
         void ComputeNormal(dArrayT& local_coordinates, double& normal); 

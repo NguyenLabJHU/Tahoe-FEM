@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.4 2001-04-09 23:42:20 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.5 2001-04-11 14:48:58 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -24,7 +24,7 @@ SurfaceT::SurfaceT(void)
 
 SurfaceT::~SurfaceT(void)
 {
-	for (int i=0 ; i < fNumFaces ; i++) {
+	for (int i=0 ; i < fFaces.Length() ; i++) {
 		delete fFaces[i];
 	}
 }
@@ -33,28 +33,23 @@ SurfaceT::~SurfaceT(void)
 void SurfaceT::PrintData(ostream& out)
 {
         /* echo data and correct numbering offset */
-        out << setw(kIntWidth) << "surface"
-            << setw(kIntWidth) << "faces"
-            << setw(kIntWidth) << "size" << '\n';
- 
-	out << setw(kIntWidth) << "X"
-	<< setw(kIntWidth) << fFaces.Length() << "\n\n";
-
-	/* set offset for output */
-	{
-
-#if 0
-// need iArray connectivities
-                        fFaces++;
-                        fFaces.WriteNumbered(out);
-                        fFaces--;
-                        out << '\n';
-# endif
-	}
-	out << "\n Surface nodes:\n";
+	/* nodes */
+	out << "\n Surface nodes:" << setw(kIntWidth) 
+	    << fNodes.Length() << '\n' ;
 	fNodes++;
 	out << fNodes.wrap(8) << '\n';
 	fNodes--;
+
+	/* face connectivities */
+	out << "\n Faces :" << setw(kIntWidth) 
+	    << fFaces.Length() 
+	    << ", geometry type :" << GeometryType() <<  '\n' ;
+	for (int i = 0 ; i < fFaces.Length() ; i++) {
+		iArrayT& connectivity = fFaces[i]->Connectivity();
+		connectivity++;
+        	out << connectivity.wrap(8) << '\n';
+        	connectivity--;
+	}
 
 }
 
@@ -175,7 +170,7 @@ void SurfaceT::InputSideSets
 	/* allocates to number of nodes per face */
 	iArray2DT faces_tmp;
 	pelem_group->SideSetToFacets(block_ID, side_set, faces_tmp);
-	fNumFaces = faces_tmp.MajorDim();
+	int num_faces = faces_tmp.MajorDim();
 
 	/* make node list and convert connectivities to local numbering */
         int num_nodes = (fe_manager.NodeManager())->NumNodes();
@@ -223,11 +218,11 @@ void SurfaceT::InputSideSets
 	ArrayT <GeometryT::CodeT> geometry_code;
 	iArrayT num_face_nodes;
 	pelem_group->FacetGeometry(geometry_code, num_face_nodes);
-        fFaces.Allocate(fNumFaces);
+        fFaces.Allocate(num_faces);
 	/* assuming all faces have same code */
 	int number_of_face_nodes = num_face_nodes[0];
 	GeometryT::CodeT face_geometry_code = geometry_code[0];
-	for (int i = 0 ; i < fNumFaces ; i++) 
+	for (int i = 0 ; i < num_faces ; i++) 
 	{
 	  switch (face_geometry_code) //
 	  {
@@ -289,19 +284,26 @@ void SurfaceT::InputSideSets
 	  }
 	}
 
-        // allocate space for add'l data members
- 	int fNumNodes = fNodes.Length();
-
-
 }
 
 void SurfaceT::Initialize (const NodeManagerT* node_manager) 
 {
-	ComputeNeighbors();
+
 	kNodeManager = node_manager;
-//fNumSD = fe_manager.NodeManager()->NumSD();
 	fNumSD = kNodeManager->NumSD();
-        fNormals.Allocate(fNumNodes,fNumSD);
+
+	int num_nodes = fNodes.Length();
+        fCoordinates.Allocate(num_nodes,fNumSD);
+        fNormals.Allocate(num_nodes,fNumSD);
+
+	/* initialize faces */
+	for (int i=0 ; i < fFaces.Length() ; i++) {
+		FaceT*  pface = fFaces[i];
+ 		pface->Initialize();
+	}
+
+	ComputeNeighbors();
+
 	UpdateConfiguration();
 }
 
@@ -309,6 +311,7 @@ void SurfaceT::UpdateConfiguration ()
 {
  	/* update current coordinates */ 
 	fCoordinates.RowCollect(fNodes,kNodeManager->CurrentCoordinates());
+
 	/* update averaged outward normals */
 	ComputeSurfaceNormals();
 }
@@ -327,7 +330,7 @@ void SurfaceT::ComputeNeighbors (void)
         //HACK : need type and 2d storage for each node
 	iArray2DT ahead;
 	iArray2DT behind;
-	for (i = 0; i < fNumFaces ; i++) {
+	for (i = 0; i < fFaces.Length() ; i++) {
 		face = fFace[i];
 		conn = face.Connectivity();
 		for (j = 0; j < nVNodes; j++) {
