@@ -1,4 +1,4 @@
-/* $Id: SIERRA_HypoElastic.c,v 1.6 2003-03-11 16:10:26 paklein Exp $ */
+/* $Id: SIERRA_HypoElastic.c,v 1.7 2003-04-14 23:04:02 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include <stdio.h>
 
@@ -40,7 +40,7 @@ void SIERRA_HypoElastic_reg(void)
 
 	/* register the data that the material model needs from the element in
 	 * order to do its computations */
-	FORTRAN_NAME(register_input_var)("rot_strain_inc", model_name);
+	FORTRAN_NAME(register_input_var)("rot_strain_increment", model_name);
 }
 
 void SIERRA_HypoElastic_check(int* matvals)
@@ -99,7 +99,7 @@ void SIERRA_HypoElastic_calc(int* nelem, double* dt,
 	kappa_plus_4_mu_by_3 = bulk_modulus + 2.0*two_mu/3.0;
 
 	/* offset to strain variable - starts at 1 by Fortran numbering convention */
-	FORTRAN_NAME(get_var_index)(&istrain, nelem, "rot_strain_inc", model_name);
+	FORTRAN_NAME(get_var_index)(&istrain, nelem, "rot_strain_increment", model_name);
 	dstrain = vars_input + istrain - 1;
 	
 	/* loop over stress points */
