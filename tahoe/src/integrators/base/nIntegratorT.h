@@ -1,4 +1,4 @@
-/* $Id: nIntegratorT.h,v 1.8 2003-05-20 10:27:06 paklein Exp $ */
+/* $Id: nIntegratorT.h,v 1.7 2003-01-27 07:00:23 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_CONTROLLERT_H_
@@ -21,7 +21,7 @@ class dArrayT;
 class iArrayT;
 
 /** defines the interface for time integrators of field data. All
- * field arrays must be registered with nIntegratorT::Dimension
+ * field arrays must be set with nIntegratorT::RegisterField
  * before calling predictors, correctors, or boundary condition
  * calculations. Note that the predictor is applied to all
  * degrees of freedom, while the correctors are only applied to
@@ -35,10 +35,6 @@ public:
 
 	/** destructor */
 	virtual ~nIntegratorT(void);
-
-	/** indicate field dimension to integrator. Allows integrator to redimension
-	 * any internal work space. */
-	virtual void Dimension(const BasicFieldT& field);
 
 	/** pseudo-boundary conditions for external nodes. For parallel
 	 * calculations, external nodes, or "ghost" nodes, are assigned

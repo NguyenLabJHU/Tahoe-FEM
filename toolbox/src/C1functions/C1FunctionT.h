@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT.h,v 1.14 2003-05-21 16:04:08 thao Exp $ */
+/* $Id: C1FunctionT.h,v 1.13 2003-01-10 16:52:28 paklein Exp $ */
 /* created: paklein (12/04/1996) */
 
 #ifndef _C2_FUNCTION_T_H_
@@ -30,8 +30,7 @@ public:
                        kGaoJi2 = 11,
 	                 kGaoVicky = 12,
                           kSF2 = 13,
-             kModSmithFerrante = 14,
-		     kQuadraticPot = 15};
+             kModSmithFerrante = 14};
 
 	/** constructor */
 	C1FunctionT(void);

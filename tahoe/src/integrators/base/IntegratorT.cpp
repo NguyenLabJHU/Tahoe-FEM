@@ -1,4 +1,4 @@
-/* $Id: IntegratorT.cpp,v 1.6 2003-05-20 10:26:13 paklein Exp $ */
+/* $Id: IntegratorT.cpp,v 1.5 2002-10-20 22:48:09 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 #include "IntegratorT.h"
 #include "dArrayT.h"
@@ -16,7 +16,7 @@ IntegratorT::~IntegratorT(void) { }
 void IntegratorT::SetTimeStep(double timestep)
 {
 	/* check */
-	if (timestep < 0.0) throw ExceptionT::kGeneralFail;
+	if (timestep <= 0.0) throw ExceptionT::kGeneralFail;
 	
 	/* re-calculate time-stepping parameters */
 	fdt = timestep;

@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.18 2003-05-20 10:30:33 paklein Exp $ */
+/* $Id: RodT.h,v 1.17 2002-11-30 16:41:30 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -11,6 +11,7 @@
 #include "RodMaterialT.h"
 #include "LocalArrayT.h"
 #include "dSymMatrixT.h"
+/* templates */
 #include "pArrayT.h"
 
 namespace Tahoe {
@@ -129,10 +130,6 @@ private:
 
 	/** current coordinates for one pair bond */
 //	dArray2DT fPairCoords;
-
-	/** local accelerations */
-	LocalArrayT fLocAcc;
-	dArrayT fNEE_vec;
 	/*@}*/
 
 	/* MD related variables */
@@ -144,6 +141,7 @@ private:
 	const int& fStepNumber;
 	dMatrixT fHardyStress;
 	dArrayT fHardyHeatFlux;
+
 };
 
 } // namespace Tahoe 

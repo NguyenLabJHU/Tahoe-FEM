@@ -1,4 +1,4 @@
-/* $Id: BasicFieldT.h,v 1.7 2003-05-20 10:22:59 paklein Exp $ */
+/* $Id: BasicFieldT.h,v 1.6 2003-03-04 08:37:16 paklein Exp $ */
 #ifndef _BASIC_FIELD_T_H_
 #define _BASIC_FIELD_T_H_
 
@@ -21,9 +21,6 @@ public:
 	/** constructor */
 	BasicFieldT(const StringT& name, int ndof, int order);
 
-	/** destructor */
-	virtual ~BasicFieldT(void) {};
-
 	/** \name initialization */
 	/*@{*/
 	/** set field labels */
@@ -35,7 +32,7 @@ public:
 	 * \param nnd number of nodes 
 	 * \param copy_in if true, values that fit are copied in. Otherwise,
 	 *        new array is unititalized */
-	virtual void Dimension(int nnd, bool copy_in);
+	void Dimension(int nnd, bool copy_in);
 	
 	/** set all field values to 0.0 */
 	virtual void Clear(void);

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.27 2003-05-21 23:48:05 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.26.8.1 2003-05-12 16:35:55 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -265,7 +265,7 @@ public:
 	 * \param weight array length number of nodes */
 	virtual void WeightNodalCost(iArrayT& weight) const;
 
-	/** array of nodes used by the element group */
+	/** moved from protected to public by HSP on 7-19-02 */
 	void NodesUsed(ArrayT<int>& nodes_used) const;
 
 	/** contribution to the nodal residual forces. Return the contribution of this element

@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.21 2003-05-20 10:15:48 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.20 2003-03-31 23:22:35 paklein Exp $ */
 #include "ComparatorT.h"
 
 #include <iostream.h>
@@ -464,7 +464,7 @@ bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2,
 {
 	/* header */
 	cout << "\n file 1: " << file_1 << '\n'
-	     <<   " file 2: " << file_2 << " (reference)" << endl;
+	     <<   " file 2: " << file_2 << endl;
 
 	/* open file_1 -> "current" */
 	ModelManagerT res_1(cout);
@@ -834,10 +834,10 @@ bool ComparatorT::CompareDataBlocks(const ArrayT<StringT>& labels_1, const dArra
 			{
 				/* error */
 				double abs_error = data_2(i,j) - data_1(i,j);
-				double rel_error = (fabs(data_2(i,j)) > kSmall) ? abs_error/data_2(i,j) : 0.0;
+				double rel_error = (fabs(data_1(i,j)) > kSmall) ? abs_error/data_1(i,j) : 0.0;
 
 				/* norms */
-				bench_norm += data_2(i,j)*data_2(i,j);
+				bench_norm += data_1(i,j)*data_1(i,j);
 				error_norm += abs_error*abs_error;
 			
 				/* track maximums */

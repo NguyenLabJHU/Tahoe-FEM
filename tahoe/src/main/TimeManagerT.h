@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.9 2003-05-20 10:37:45 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.8 2003-01-29 07:35:20 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _TIMEMANAGER_T_H_
@@ -62,12 +62,6 @@ public:
 	const int& NumberOfSteps(void) const;
 	const double& Time(void) const;
 	const double& TimeStep(void) const;
-
-	/** set the time step. Use at your own risk. TimeManagerT manages its
-	 * own time step. This method can be used to override this time step
-	 * control. However, the TimeManagerT's state will be inconsistent until
-	 * the step is restored. */
-	void SetTimeStep(double dt) { fTimeStep = dt; };
 
 	/* load control functions (returns true if successful) */
 	bool DecreaseLoadStep(void);

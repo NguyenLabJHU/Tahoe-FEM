@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.29 2003-05-22 09:05:46 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.27 2003-01-29 07:35:13 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -24,7 +24,6 @@ const int RodT::kRodTnsd = 2; /* number of spatial dimensions */
 RodT::RodT(const ElementSupportT& support, const FieldT& field):
 	ElementBaseT(support, field),
 	fCurrMaterial(NULL),
-	fLocAcc(LocalArrayT::kAcc),
 	fInstKE(0.0),
 	fInstPE(0.0),
 	fInstTotalE(0.0),
@@ -55,11 +54,6 @@ void RodT::Initialize(void)
 {
 	/* inherited */
 	ElementBaseT::Initialize();
-	
-	/* local arrays */
-	fLocAcc.Dimension(2, NumDOF());
-	if (fIntegrator->Order() == 2) Field().RegisterLocal(fLocAcc);
-	fNEE_vec.Dimension(fLocAcc.Length());
 	
 	/* constant matrix needed to calculate stiffness */
 	fOneOne.Dimension(fLHS);
@@ -304,6 +298,12 @@ void RodT::RHSDriver(void)
 	int formMa = fIntegrator->FormMa(constMa);
 	int formKd = fIntegrator->FormKd(constKd);
 	
+//TEMP - inertia term in residual
+if (formMa) {
+	cout << "\n ParticleT::RHSDriver: M*a term not implemented" << endl;
+	throw ExceptionT::kGeneralFail;
+}
+
 	/* coordinates arrays */
 	const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
 	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
@@ -334,13 +334,6 @@ void RodT::RHSDriver(void)
 		/* particle forces (extra -1 since moved to the RHS) */
 		f0.SetToScaled(constKd*dU/l, fBond);
 		f1.SetToScaled(-1.0, f0);
-
-		/* inertial force */
-		if (formMa) {		
-			SetLocalU(fLocAcc);
-			fLocAcc.ReturnTranspose(fNEE_vec);
-			fRHS.AddScaled(-constMa*fCurrMaterial->Mass(), fNEE_vec);
-		}
 
 		/* add to global equations */
 		AssembleRHS();
@@ -521,11 +514,8 @@ void RodT::ComputeInstKE(void)
 
 void RodT::ComputeAvgKE(void)
 {
-	double& tempavg = fAvgKE;
-	if (fStepNumber) /* only for positive steps */
-  		tempavg = fSumKE / fStepNumber;
-	else
-		tempavg = 0.0;
+  double& tempavg = fAvgKE;
+  tempavg = fSumKE / fStepNumber;
 }
 
 void RodT::ComputeInstPE(void)
@@ -556,11 +546,8 @@ void RodT::ComputeInstPE(void)
 
 void RodT::ComputeAvgPE(void)
 {
-	double& tempavg = fAvgPE;
-  	if (fStepNumber > 0) /* only for positive steps */
-  		tempavg = fSumPE / fStepNumber;
-	else
-		tempavg = 0.0;
+  double& tempavg = fAvgPE;
+  tempavg = fSumPE / fStepNumber;
 }
 
 void RodT::ComputeInstTotalE(void)
@@ -575,11 +562,9 @@ void RodT::ComputeInstTotalE(void)
 
 void RodT::ComputeAvgTotalE(void)
 {
-  	double& tempavg = fAvgTotalE;
-	if (fStepNumber > 0) /* only for positive steps */
-		tempavg = fSumTotalE / fStepNumber;
-	else
-		tempavg;
+  double& tempavg = fAvgTotalE;
+  tempavg = fSumTotalE / fStepNumber;
+
 }
 
 void RodT::ComputeInstTemperature(void)

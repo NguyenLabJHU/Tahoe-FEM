@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSNonlinHard.h,v 1.9 2003-05-15 22:39:47 rdorgan Exp $ */
+/* $Id: GradJ2SSNonlinHard.h,v 1.8 2003-01-29 07:35:03 paklein Exp $ */
 #ifndef _GRAD_J2_SS_NONLIN_HARD_H_
 #define _GRAD_J2_SS_NONLIN_HARD_H_
 
@@ -85,11 +85,12 @@ protected:
 	void AllocateAllElements();
 
 	/* indexes to access internal variable (scalars) array */
-	enum InternalVariablesT {kIsoHardCF   = 0,  // isotropic hardening conjugate force
-				 kNLIsoHardCF = 1,  // nonlocal isotropic hardening conjugate force
+	enum InternalVariablesT {kIsotHard    = 0,  // isotropic hardening
+				 kNlIsotHard  = 1,  // nonlocal isotropic hardening
                                  kdelLmbda    = 2,  // consistency parameter
 			         kYieldCrt    = 3,  // yield criteria
-	                         kLapIsoCF   = 4}; // laplacian of isotropic hardening conjugate force
+				 kIsotHard0   = 4,  // isotropic hardening at previous iteration
+				 kNlIsotHard0 = 5}; // nonlocal syisotropic hardening at previous iteration
 
 	/* returns the value of the yield function given the relative stress and isotropic hardening */
 	double YieldCondition(const dSymMatrixT& relstress, double isotropic) const;
@@ -104,22 +105,22 @@ private:
 	void LoadData(const ElementCardT& element, int fCurrIP);
 
 	/* computes the increment in the plasticity parameter */
-	void IncrementPlasticParameter(double& varLambda);
+	void IncrementPlasticParameter(double& varLambda, const ElementCardT& element, int ip);
 
 	/* computes the increments in the stress and internal variables */
-	void IncrementState(const double& varLambda);
+	void IncrementState(const double& varLambda, const ElementCardT& element, int ip);
 
 	/* computes the unit normal and the yield condition */
-	void UpdateState();
+	void UpdateState(const ElementCardT& element, int ip);
 
 	/* computes the consistent tangent moduli */
-	void TangentModuli();
+	void TangentModuli(const ElementCardT& element, int ip);
 
 	/* check convergence of solution for all ip of element */
 	bool CheckElementState(const ElementCardT& element);
 
 	/* returns the laplacian of the field passed */
-	void Laplacian(dArrayT& ip_laplacian_field, const dArrayT& ip_field, int field_length);
+	dArrayT Laplacian(const dArrayT& ip_field, int field_length);
 
 protected:
 
@@ -127,16 +128,16 @@ protected:
 	dSymMatrixT fStress;        //stress
 	dSymMatrixT fPlstStrn;      //plastic strain
 	dSymMatrixT fUnitNorm;      //unit normal to the stress surface
-	dSymMatrixT fKinHardCF;      //stress surface "center", kinematic hardening
-	dSymMatrixT fNLKinHardCF;      //stress surface "center", kinematic hardening
+	dSymMatrixT fKineHard;      //stress surface "center", kinematic hardening
+	dSymMatrixT fNlKineHard;      //stress surface "center", kinematic hardening
 	dArrayT     fInternal;      //internal variables
 
 	/* element level internal variables at previous time step*/
 	dSymMatrixT fStress_n;      //stress
 	dSymMatrixT fPlstStrn_n;    //plastic strain
 	dSymMatrixT fUnitNorm_n;    //unit normal to the stress surface
-	dSymMatrixT fKinHardCF_n;    //stress surface "center", kinematic hardening
-	dSymMatrixT fNLKinHardCF_n;    //stress surface "center", kinematic hardening
+	dSymMatrixT fKineHard_n;    //stress surface "center", kinematic hardening
+	dSymMatrixT fNlKineHard_n;    //stress surface "center", kinematic hardening
 	dArrayT     fInternal_n;    //internal variables
 
 private:

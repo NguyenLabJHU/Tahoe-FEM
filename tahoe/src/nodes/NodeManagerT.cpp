@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.30 2003-05-21 23:48:17 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.28 2003-04-24 20:40:23 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -89,17 +89,6 @@ int NodeManagerT::NumFields(int group) const
 		if (fFields[i]->Group() == group)
 			num_fields++;
 	return num_fields; 
-}
-
-int NodeManagerT::NumDOF(int group) const
-{
-	/* sum over fields */
-	int ndof = 0;
-	for (int i = 0; i < fFields.Length(); i++)
-		if (fFields[i]->Group() == group)
-			ndof += fFields[i]->NumDOF();
-			
-	return ndof; 
 }
 
 /* return a pointer to the specified load time function */
@@ -436,9 +425,6 @@ void NodeManagerT::InitialCondition(void)
 		for (int j = 0; j <= field.Order(); j++)
 			fCommManager.AllGather(fMessageID[i], field[j]);
 	}
-
-	/* update current configurations */
-	if (fCoordUpdate) fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
 }
 
 void NodeManagerT::ReadRestart(ifstreamT& in)

@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.h,v 1.5 2003-05-20 10:18:09 paklein Exp $ */
+/* $Id: LinearSolver.h,v 1.4 2002-07-05 22:28:41 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 
 #ifndef _LINEAR_SOLVER_H_
@@ -26,12 +26,6 @@ public:
 	 *        also indicate the solution procedure has failed.
 	 * \return one of SolverT::IterationsStatusT */
 	virtual SolutionStatusT Solve(int num_iterations);
-
-	/** signal time step change. Chance to clear cached values that may depend on the
-	 * time increment. LinearSolver::SetTimeStep triggers recalculation of the LHS
-	 * matrix because some time integrators use an effective mass matrix that is a function
-	 * of the time increment. */
-	virtual void SetTimeStep(double dt);
 	
 private:
 
@@ -40,7 +34,6 @@ private:
 		// reform conditions:
 		// (1) initially
 		// (2) if equation system is reconfigured
-		// (3) when the time step changes
 };
 
 } // namespace Tahoe 

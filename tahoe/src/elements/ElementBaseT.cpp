@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.35 2003-05-21 23:48:05 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.34.8.1 2003-05-12 16:35:55 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -324,12 +324,10 @@ void ElementBaseT::WeightNodalCost(iArrayT& weight) const
 	}
 }
 
-/* array of nodes used by the element group */
+/* moved from protected to public by HSP on 7-19-02 */
 void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
 {
-	int num_blocks = fBlockData.Length();
-	if (num_blocks == 0)
-		ExceptionT::GeneralFail("ElementBaseT::NodesUsed", "fBlockData is not set");
+       int num_blocks = fBlockData.Length();
 
        iArrayT mins (num_blocks);
        iArrayT maxes (num_blocks);

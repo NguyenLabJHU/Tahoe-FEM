@@ -1,4 +1,4 @@
-/* $Id: nExplicitCD.cpp,v 1.10 2003-05-20 10:29:34 paklein Exp $ */
+/* $Id: nExplicitCD.cpp,v 1.9 2003-04-16 20:34:02 cjkimme Exp $ */
 /* created: paklein (03/23/1997) */
 #include "nExplicitCD.h"
 #include "iArrayT.h"
@@ -38,30 +38,33 @@ void nExplicitCD::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 			a = 0.0; //NOTE: there is only one equation here to determine both a and v
                      //      so we'll just make this zero.
 			break;
-		}		
+		}
+		
 		case KBC_CardT::kVel: /* prescribed velocity */
 		{
 			double v_next = KBC.Value();
 	
-			if (fabs(vcorr_a) > kSmall) /* for dt -> 0.0 */
-				a = (v_next - v)/vcorr_a;
-			else
-				a = 0.0;
+			a = (v_next - v)/vcorr_a;
 			v = v_next;
 			break;
 		}
+		
 		case KBC_CardT::kAcc: /* prescribed acceleration */
 		{
 			a  = KBC.Value();
 			v += vcorr_a*a;
 			break;
 		}
+
 		case KBC_CardT::kNull: /* do nothing */
 		{
 			break;
 		}
+
 		default:
-			ExceptionT::GeneralFail("nExplicitCD::ConsistentKBC","unknown BC code %d", KBC.Code());
+		
+			cout << "\n nExplicitCD::ConsistentKBC:unknown BC code\n" << endl;
+			throw ExceptionT::kBadInputValue;
 	}
 }		
 

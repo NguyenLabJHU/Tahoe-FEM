@@ -1,11 +1,8 @@
-/* $Id: FEExecutionManagerT.h,v 1.15 2003-05-22 01:29:33 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.13 2003-03-31 23:20:27 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
-
-/* element configuration header */
-#include "ElementsConfig.h"
 
 /* base class */
 #include "ExecutionManagerT.h"
@@ -23,8 +20,6 @@ class IOManager;
 class FEManagerT;
 class PartitionT;
 class ModelManagerT;
-class FEManagerT_bridging;
-class dArray2DT;
 
 /** class to handle file driven finite element simulations */
 class FEExecutionManagerT: public ExecutionManagerT
@@ -63,8 +58,7 @@ private:
         kJob = 0,
   kDecompose = 1,
        kJoin = 2,
-   kBridging = 3,
-        kTHK = 4
+   kBridging = 3
 	};
 	
 	/** standard serial driver */
@@ -81,28 +75,7 @@ private:
 
 	/** multi-Tahoe, bridging scale test */
 	void RunBridging(ifstreamT& in, ostream& status) const;
-
-#ifdef __DEVELOPMENT__
-	/** time history kernel tests */
-	void RunTHK(ifstreamT& in, ostream& status) const;
-#endif
 	/*@}*/
-
-#ifdef BRIDGING_ELEMENT
-	/** \name bridging scale with different integrators */
-	/*@{*/
-	/** quasistatic multi-Tahoe bridging scale */
-	void RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
-		ofstream& log_out) const;
-        
-	/** dynamic multi-Tahoe bridging scale */
-	void RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
-                ofstream& log_out) const;
-				
-	/** calculate MD internal force as a function of total displacement u */
-	const dArray2DT& InternalForce(dArray2DT& totalu, FEManagerT_bridging& atoms) const;
-	/*@}*/
-#endif
 
 	/** print message on exception */
 	void Rewind(ifstreamT& in, ostream& status) const;

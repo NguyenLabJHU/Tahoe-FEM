@@ -575,9 +575,9 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 		  double zpp_i = pair_stiffness_i(r,NULL,NULL);
 		  double zpp_j = pair_stiffness_j(r,NULL,NULL);
 		  
-		  double E = 0.5*z_i * z_j/r;
-		  double F = 0.5*(z_i * zp_j + zp_i * z_j)/r -E/r;
-		  double K = 0.5*(zpp_i*z_j + 2*zp_i * zp_j + z_i * zpp_j)/r - 2*F/r;
+		  double E =  0.5*z_i * z_j/r;
+		  double F = (z_i * zp_j + zp_i * z_j)/r -E/r;
+		  double K = (zpp_i*z_j + 2*zp_i * zp_j + z_i * zpp_j)/r - 2*F/r;
 		  
 		  double Fbyr = F/r;
 
@@ -879,9 +879,9 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		  double zpp_i = pair_stiffness_i(r,NULL,NULL);
 		  double zpp_j = pair_stiffness_j(r,NULL,NULL);
 		  
-		  double E = 0.5*z_i * z_j/r;
-		  double F = 0.5*(z_i * zp_j + zp_i * z_j)/r - E/r;
-		  double K = 0.5*(zpp_i*z_j + 2*zp_i * zp_j + z_i * zpp_j)/r - 2*F/r;
+		  double E =  0.5*z_i * z_j/r;
+		  double F = (z_i * zp_j + zp_i * z_j)/r - E/r;
+		  double K = (zpp_i*z_j + 2*zp_i * zp_j + z_i * zpp_j)/r - 2*F/r;
 
 		  double Fbyr = F/r;
 		  
@@ -1162,9 +1162,9 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		double zpp_i = pair_stiffness_i(r,NULL,NULL);
 		double zpp_j = pair_stiffness_j(r,NULL,NULL);
 		
-		double E = 0.5*z_i * z_j/r;
-		double F = 0.5*(z_i * zp_j + zp_i * z_j)/r - E/r;
-		double K = 0.5*(zpp_i*z_j + 2*zp_i * zp_j + z_i * zpp_j)/r - 2*F/r;
+		double E =  0.5*z_i * z_j/r;
+		double F = (z_i * zp_j + zp_i * z_j)/r - E/r;
+		double K = (zpp_i*z_j + 2*zp_i * zp_j + z_i * zpp_j)/r - 2*F/r;
 		
 		double Fbyr = F/r;
 		
@@ -1371,7 +1371,7 @@ void EAMT::RHSDriver2D(void)
 	      double zp_j = pair_force_j(r,NULL,NULL);
 	      
 	      double E = 0.5*z_i*z_j/r;
-	      double F = 0.5*(z_i*zp_j + zp_i*z_j)/r - E/r;
+	      double F = (z_i*zp_j + zp_i*z_j)/r - E/r;
 	      
 	      double Fbyr = formKd*F/r;
 	      
@@ -1387,6 +1387,21 @@ void EAMT::RHSDriver2D(void)
 	  /* Component of force coming from Embedding energy */
 	  if(iEmb == 1)
 	    {
+	      /*
+	      {
+		double pp = r*dr;
+		int kk = int(pp);
+		int max_row = num_rows-2;
+		kk = (kk < max_row) ? kk : max_row;
+		pp -= kk;
+		pp = (pp < 1.0) ? pp : 1.0;				
+		const double* c = Paradyn_table + kk*row_size;
+		F = c[4] + pp*(c[5] + pp*c[6]);
+	      }
+	      */
+
+
+
 	      double Ep_i   = fEmbeddingForce(tag_i,0); 
 	      double rhop_i = ed_force_i(r,NULL,NULL);
 	      
@@ -1520,7 +1535,7 @@ void EAMT::RHSDriver3D(void)
 	      double zp_j = pair_force_j(r,NULL,NULL);
 	      
 	      double E = 0.5*z_i*z_j/r;
-	      double F = 0.5*(z_i*zp_j + zp_i*z_j)/r - E/r;
+	      double F = (z_i*zp_j + zp_i*z_j)/r - E/r;
 	      
 	      double Fbyr = formKd*F/r;
 	      

@@ -1,4 +1,4 @@
-/* $Id: SSViscoelasticityT.h,v 1.2 2003-05-12 16:50:29 thao Exp $ */
+/* $Id: SSViscoelasticityT.h,v 1.1 2003-04-05 20:05:37 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_VISCO_H_
 #define _SS_VISCO_H_
@@ -29,19 +29,19 @@ class SSViscoelasticityT: public SSSolidMatT
 	};
 	
 	/*print parameters*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
+	void Print(ostream& out) const;
+	void PrintName(ostream& out) const;
 		
 	/* apply pre-conditions at the current time step */
-	virtual void InitStep(void){SSSolidMatT::InitStep();}
+	void InitStep(void){SSSolidMatT::InitStep();}
 
 	/*initialize history variable*/
-	virtual bool NeedsPointInitialization(void) const {return true;}; // declare true
-	virtual void PointInitialize(void);                               // assigns storage space
+	bool NeedsPointInitialization(void) const {return true;}; // declare true
+	void PointInitialize(void);                               // assigns storage space
 	
 	/* update/reset internal variables */
-	virtual void UpdateHistory(void); // element at a time
-	virtual void ResetHistory(void);  // element at a time
+	void UpdateHistory(void); // element at a time
+	void ResetHistory(void);  // element at a time
 	void Load(ElementCardT& element, int ip);
 	void Store(ElementCardT& element, int ip);
 

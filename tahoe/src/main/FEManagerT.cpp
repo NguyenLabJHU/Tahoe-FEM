@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.57 2003-05-20 10:48:35 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.55 2003-04-08 23:03:15 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -43,7 +43,7 @@ using namespace Tahoe;
 
 /* File/Version Control */
 const char kCurrentVersion[] = "v3.4.1";
-const char kProgramName[] = "tahoe";
+const char kProgramName[]    = "tahoe";
 
 /* static methods */
 const char* FEManagerT::Version(void) { return kCurrentVersion; }
@@ -53,8 +53,6 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm)
 	fMainIn(input),
 	fMainOut(output),
 	fComm(comm),
-	fPrintInput(false),
-	fComputeInitialCondition(true),
 	fStatus(GlobalT::kConstruction),
 	fTimeManager(NULL),
 	fNodeManager(NULL),
@@ -197,11 +195,18 @@ void FEManagerT::Solve(void)
 	while (fTimeManager->NextSequence())
 	{	
 		/* set to initial condition */
-		ExceptionT::CodeT error = InitialCondition();
+		InitialCondition();
+
+		/* read kinematic data from restart file */
+		ReadRestart();
 
 		/* loop over time increments */
-		while (error == ExceptionT::kNoError && fTimeManager->Step())
+		bool seq_OK = true;
+		while (seq_OK && fTimeManager->Step())
 		{
+			/* running status flag */
+			ExceptionT::CodeT error = ExceptionT::kNoError;		
+
 			/* initialize the current time step */
 			if (error == ExceptionT::kNoError) 
 				error = InitStep();
@@ -229,15 +234,16 @@ void FEManagerT::Solve(void)
 					/* reset system configuration */
 					error = ResetStep();
 					
-					/* cut time step */
 					if (error == ExceptionT::kNoError)
-						if (!DecreaseLoadStep())
-							error = ExceptionT::kGeneralFail;
-
+						/* cut time increment */
+						seq_OK = DecreaseLoadStep();
+					else
+						seq_OK = false;
 					break;
 				}
 				default:
 					cout << '\n' << caller <<  ": no recovery for error: " << ExceptionT::ToString(error) << endl;
+					seq_OK = false;
 			}
 		}
 	}
@@ -822,16 +828,9 @@ nIntegratorT* FEManagerT::nIntegrator(int index) const
 
 void FEManagerT::SetTimeStep(double dt) const
 {
-	/* update the time manager */
-	fTimeManager->SetTimeStep(dt);
-
-	/* update all integrators */
+	//TEMP - for ALL integrators
 	for (int i = 0; i < fIntegrators.Length(); i++)
 		fIntegrators[i]->SetTimeStep(dt);
-
-	/* update all solvers */
-	for (int i = 0; i < fSolvers.Length(); i++)
-		fSolvers[i]->SetTimeStep(dt);
 }
 
 /* returns 1 of ALL element groups have interpolant DOF's */
@@ -1419,7 +1418,7 @@ void FEManagerT::SetOutput(void)
 }
 
 /* (re-)set system to initial conditions */
-ExceptionT::CodeT FEManagerT::InitialCondition(void)
+void FEManagerT::InitialCondition(void)
 {
 	/* state */
 	fStatus = GlobalT::kInitialCondition;	
@@ -1431,46 +1430,14 @@ ExceptionT::CodeT FEManagerT::InitialCondition(void)
 	fNodeManager->InitialCondition();
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
 		fElementGroups[i]->InitialCondition();
-
-	/* initialize state: solve (t = 0) or read from restart file */
-	ExceptionT::CodeT error = ExceptionT::kNoError;
-	if (!ReadRestart() && fComputeInitialCondition)
-	{
-		cout << "\n FEManagerT::InitialCondition: computing initial conditions" << endl;
-	
-		/* current step size */
-		double dt = TimeStep();
-		
-		/* override time step */
-		SetTimeStep(0.0);
-	
-		/* initialize the current time step */
-		if (error == ExceptionT::kNoError) error = InitStep();
-			
-		/* solve the current time step */
-		if (error == ExceptionT::kNoError) error = SolveStep();
-			
-		/* close the current time step */
-		if (error == ExceptionT::kNoError) error = CloseStep();
-
-		/* restore time step */
-		SetTimeStep(dt);
-
-		if (error != ExceptionT::kNoError)
-			cout << "\n FEManagerT::InitialCondition: error encountered" << endl;
-		cout << "\n FEManagerT::InitialCondition: computing initial conditions: DONE" << endl;
-	}
-	
-	return error;
 }
 
 /* restart file functions */
-bool FEManagerT::ReadRestart(const StringT* file_name)
+void FEManagerT::ReadRestart(const StringT* file_name)
 {
 	/* state */
 	fStatus = GlobalT::kReadRestart;	
 
-	/* do the read */
 	if (fReadRestart || file_name != NULL)
 	{
 		const StringT& rs_file = (file_name != NULL) ?
@@ -1517,13 +1484,10 @@ bool FEManagerT::ReadRestart(const StringT* file_name)
 				cout << "\n FEManagerT::ReadRestart: will not resolve group " << fCurrentGroup+1 << endl;
 		}
 		fCurrentGroup = -1;
-		return true;
 	}
-	else /* no file read */
-		return false;
 }
 
-bool FEManagerT::WriteRestart(const StringT* file_name) const
+void FEManagerT::WriteRestart(const StringT* file_name) const
 {
 	/* state */
 	SetStatus(GlobalT::kWriteRestart);
@@ -1537,8 +1501,7 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 
 		/* resolve restart flag */
 		bool write = false;
-		if (fabs(TimeStep()) > kSmall && /* no output if clock is not running */
-			fWriteRestart > 0 && ++counter == fWriteRestart) write = true;
+		if (fWriteRestart > 0 && ++counter == fWriteRestart) write = true;
 
 		/* write file */
 		if (write)
@@ -1562,18 +1525,11 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 				fNodeManager->WriteRestart(restart);			
 				for (int i = 0 ; i < fElementGroups.Length(); i++)
 					fElementGroups[i]->WriteRestart(restart);
-					
-				return true;
 			}
 			else
-			{
 				cout <<  "\n FEManagerT::WriteRestart: could not open restart file: "
-				     << rs_file << endl;	     
-				return false;
-			}
+				     << rs_file << endl;
 		}
-		else /* no write */
-			return false;
 	}
 	else
 	{
@@ -1590,15 +1546,10 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 			fNodeManager->WriteRestart(restart);			
 			for (int i = 0 ; i < fElementGroups.Length(); i++)
 				fElementGroups[i]->WriteRestart(restart);
-				
-			return true;
 		}
 		else
-		{
 			cout <<  "\n FEManagerT::WriteRestart: could not open restart file: "
 			     << *file_name << endl;	
-			return false;
-		}
 	}	
 }
 

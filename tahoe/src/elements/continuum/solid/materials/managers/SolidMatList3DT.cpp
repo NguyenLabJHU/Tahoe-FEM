@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.38 2003-05-12 23:44:05 thao Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.37 2003-04-07 18:13:43 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "fstreamT.h"
@@ -45,10 +45,6 @@
 
 #ifdef ELASTIC_OGDEN_MATERIAL_DEV
 #include "OgdenMaterialT.h"
-#endif
-
-#ifdef J2PLASTICITY_MATERIALS_DEV
-#include "SSJ2LinHardT.h"
 #endif
 
 #ifdef PLASTICITY_CRYSTAL_MATERIAL
@@ -642,19 +638,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "ELASTIC_OGDEN_MATERIAL_DEV not enabled: %d", matcode);
-#endif
-			}
-			case kSSJ2LinHard:
-			{
-#if J2PLASTICITY_MATERIALS_DEV
-				/* check */
-				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
-
-				fArray[matnum] = new SSJ2LinHardT(in, *fSSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "J2PLASTICITY_MATERIALS_DEV not enabled: %d", matcode);
 #endif
 			}
 			case kSIERRA_Hypoelastic:

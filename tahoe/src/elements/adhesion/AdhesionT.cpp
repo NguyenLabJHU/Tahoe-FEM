@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.13 2003-05-20 10:35:33 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.12 2003-01-29 07:34:28 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -106,16 +106,8 @@ GlobalT::RelaxCodeT AdhesionT::RelaxSystem(void)
 	/* minimal test of new-ness */
 	if (!changed)
 		return relax;
-	else {
-
-		/* write statistics */
-		ostream& out = ElementSupport().Output();
-		out << "\n Surface adhesion: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
-		out << " Time                           = " << ElementSupport().Time() << '\n';
-		out << " Active face pairs              = " << fSurface1.Length() << '\n';
-
+	else
 		return GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
-	}
 }
 
 /* initialization after constructor */
@@ -129,12 +121,6 @@ void AdhesionT::Initialize(void)
 	
 	/* set initial configuration */
 	SetConfiguration();	
-
-	/* write statistics */
-	ostream& out = ElementSupport().Output();
-	out << "\n Surface adhesion: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
-	out << " Time                           = " << ElementSupport().Time() << '\n';
-	out << " Active face pairs              = " << fSurface1.Length() << '\n';
 }
 
 /* solution calls */

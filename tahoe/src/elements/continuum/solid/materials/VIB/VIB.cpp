@@ -1,4 +1,4 @@
-/* $Id: VIB.cpp,v 1.10 2003-05-21 16:08:55 thao Exp $ */
+/* $Id: VIB.cpp,v 1.7 2002-10-20 22:48:54 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #include "VIB.h"
 
@@ -18,9 +18,8 @@
 #include "GaoJi.h"
 #include "GaoJi2.h"
 #include "GaoVicky.h"
-#include "ParabolaPotT.h"
+#include "ParabolaT.h"
 #include "Triantafyllidis.h"
-#include "SF2.h"
 
 using namespace Tahoe;
 
@@ -56,12 +55,11 @@ VIB::VIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
 			fPotential = new GaoKlein(A,B,C);
 			break;
 		}
-		case C1FunctionT::kQuadraticPot:
+		case C1FunctionT::kQuadratic:
 		{
-			double A, B;
+			double A;
 			in >> A;		
-	                in >> B;
-			fPotential = new ParabolaPotT(A,B);
+			fPotential = new ParabolaT(A);
 			break;
 		}
 		case C1FunctionT::kTriantafyllidis:
@@ -92,14 +90,8 @@ VIB::VIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
 			fPotential = new GaoVicky(A,B,C,D);
 			break;
 		}
-		case C1FunctionT::kSF2:
-		{
-			double A, B;
-			in >> A >> B;		
-			fPotential = new SF2(A,B);
-			break;
-		}
-		default:		
+		default:
+		
 			throw ExceptionT::kBadInputValue;	
 	}
 	if (!fPotential) throw ExceptionT::kOutOfMemory;

@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.11 2003-05-20 10:20:06 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.10 2003-01-27 07:00:30 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 #include "NodeManagerT.h"
@@ -20,7 +20,6 @@ using namespace Tahoe;
 
 /* parameters */
 const double Pi = acos(-1.0);
-const double TipNoise = 1.0e-06;
 
 /* constructor */
 K_FieldT::K_FieldT(NodeManagerT& node_manager):
@@ -39,21 +38,23 @@ K_FieldT::K_FieldT(NodeManagerT& node_manager):
 /* initialize data - called immediately after construction */
 void K_FieldT::Initialize(ifstreamT& in)
 {
-	const char caller[] = "K_FieldT::Initialize";
-
 	/* only 2D for now */
 	int nsd = fNodeManager.NumSD();
-	if (nsd != 2) ExceptionT::GeneralFail(caller, "must be 2D: %d", nsd);
+	if (nsd != 2)
+	{
+		cout << "\n K_FieldT::Initialize: must be 2D: " << nsd << endl;
+		throw ExceptionT::kGeneralFail;
+	}
 
 	/* K1 */
 	in >> fnumLTf1 >> fK1; fnumLTf1--;
 	fLTf1 = fNodeManager.Schedule(fnumLTf1);	
-	if (!fLTf1) ExceptionT::BadInputValue(caller);
+	if (!fLTf1) throw ExceptionT::kBadInputValue;
 
 	/* K2 */
 	in >> fnumLTf2 >> fK2; fnumLTf2--;
 	fLTf2 = fNodeManager.Schedule(fnumLTf2);	
-	if (!fLTf2) ExceptionT::BadInputValue(caller);
+	if (!fLTf2) throw ExceptionT::kBadInputValue;
 
 	/* coordinates of the crack tip */
 	fInitTipCoords.Dimension(nsd);
@@ -68,14 +69,14 @@ void K_FieldT::Initialize(ifstreamT& in)
 	in >> fNearTipGroupNum;   // -1: no nearfield group
 	in >> fNearTipOutputCode; // variable to locate crack tip
 	in >> fTipColumnNum;      // column of output variable to locate tip
-	in >> fMaxGrowthDistance; if (fMaxGrowthDistance < 0.0) ExceptionT::BadInputValue(caller);
-	in >> fMaxGrowthSteps; if (fMaxGrowthSteps < 1) ExceptionT::BadInputValue(caller);
+	in >> fMaxGrowthDistance; if (fMaxGrowthDistance < 0.0) throw ExceptionT::kBadInputValue;
+	in >> fMaxGrowthSteps; if (fMaxGrowthSteps < 1) throw ExceptionT::kBadInputValue;
 
 	/* offsets and checks */
 	fNearTipOutputCode--;
 	if (fNearTipGroupNum != -1) fNearTipGroupNum--;
 	fTipColumnNum--;
-	if (fNearTipGroupNum <  -1) ExceptionT::BadInputValue(caller);
+	if (fNearTipGroupNum <  -1) throw ExceptionT::kBadInputValue;
 
 	/* nodes */
 	in >> fFarFieldGroupNum;
@@ -85,8 +86,8 @@ void K_FieldT::Initialize(ifstreamT& in)
 	/* offsets and checks */
 	fFarFieldGroupNum--;
 	fFarFieldMaterialNum--;
-	if (fFarFieldGroupNum < 0) ExceptionT::BadInputValue(caller);
-	if (fFarFieldMaterialNum < 0) ExceptionT::BadInputValue(caller);
+	if (fFarFieldGroupNum < 0) throw ExceptionT::kBadInputValue;
+	if (fFarFieldMaterialNum < 0) throw ExceptionT::kBadInputValue;
 
 	/* generate BC cards */
 	fKBC_Cards.Dimension(fNodes.Length()*nsd);
@@ -107,8 +108,10 @@ void K_FieldT::Initialize(ifstreamT& in)
 	fK2Disp.Dimension(fNodes.Length(), nsd);
 	
 //TEMP - tip tracking not supporting for parallel execution
-	if (fNearTipGroupNum != -1 && fNodeManager.Size() > 1) 
-		ExceptionT::BadInputValue(caller, "tip tracking not implemented in parallel");
+	if (fNearTipGroupNum != -1 && fNodeManager.Size() > 1) {
+		cout << "\n K_FieldT::Initialize: tip tracking not implemented in parallel" << endl;
+		throw ExceptionT::kBadInputValue;
+	}	
 }
 
 void K_FieldT::WriteParameters(ostream& out) const
@@ -304,13 +307,15 @@ void K_FieldT::WriteOutput(ostream& out) const
 /* determine the new tip coordinates */
 void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 {
-	const char caller[] = "K_FieldT::GetNewTipCoordinates";
-
 	/* near tip element group */
 	const FEManagerT& fe_man = fNodeManager.FEManager();
 	ElementBaseT* neartip_group = fe_man.ElementGroup(fNearTipGroupNum);
 	if (!neartip_group)
-		ExceptionT::GeneralFail(caller, "could not resolve near tip element group number %d", fNearTipGroupNum+1);
+	{
+		cout << "\n K_FieldT::GetNewTipCoordinates: could not resolve near tip element\n"
+		     <<   "    group number:" << fNearTipGroupNum+1 << endl;
+		throw ExceptionT::kGeneralFail;
+	}
 
 	/* signal to accumulate nodal values */
 	neartip_group->SendOutput(fNearTipOutputCode);
@@ -319,13 +324,10 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 	int maxrow;
 	double maxval;
 	fNodeManager.MaxInColumn(fTipColumnNum, maxrow, maxval);
-	if (maxrow == -1) ExceptionT::GeneralFail(caller);
-
+	if (maxrow == -1) throw ExceptionT::kGeneralFail;	
+		
 	/* get new tip coordinates */
-	if (maxval > TipNoise)
-		fNodeManager.InitialCoordinates().RowAlias(maxrow, tip_coords);
-	else /* keep current tip position */
-		tip_coords = fTipCoords;
+	fNodeManager.InitialCoordinates().RowAlias(maxrow, tip_coords);
 }
 
 /* resolve element info to isotropic material */

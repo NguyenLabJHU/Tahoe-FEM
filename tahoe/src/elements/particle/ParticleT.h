@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.14 2003-05-21 23:48:14 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.13.2.1 2003-05-12 16:27:12 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -13,7 +13,7 @@
 
 namespace Tahoe {
 
-/** forward declarations */
+/* forward declarations */
 class iGridManagerT;
 class CommManagerT;
 class ParticlePropertyT;

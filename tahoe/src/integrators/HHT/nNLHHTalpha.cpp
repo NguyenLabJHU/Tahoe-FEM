@@ -1,4 +1,4 @@
-/* $Id: nNLHHTalpha.cpp,v 1.11 2003-05-20 10:28:44 paklein Exp $ */
+/* $Id: nNLHHTalpha.cpp,v 1.10 2003-04-16 20:34:00 cjkimme Exp $ */
 /* created: paklein (10/17/1996) */
 #include "nNLHHTalpha.h"
 #include "dArrayT.h"
@@ -34,26 +34,20 @@ void nNLHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		{
 			double temp = KBC.Value();
 			
-			if (fabs(dcorr_a) > kSmall) /* for dt -> 0.0 */
-				a = (temp - d)/dcorr_a;
-			else
-				a = 0.0;
+			a  = (temp - d)/dcorr_a;
 			d  = temp;
 			v += vcorr_a*a;
-
+		
 			break;
 		}
 		case KBC_CardT::kVel: /* prescribed velocity */
 		{
 			double temp = KBC.Value();
 			
-			if (fabs(vcorr_a) > kSmall) /* for dt -> 0.0 */
-				a = (temp - v)/vcorr_a;
-			else
-				a = 0.0;
+			a  = (temp - v)/vcorr_a;
 			d += dcorr_a*a;
 			v  = temp;
-
+	
 			break;
 		}
 		case KBC_CardT::kAcc: /* prescribed acceleration */

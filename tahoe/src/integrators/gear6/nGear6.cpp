@@ -123,34 +123,21 @@ void nGear6::Corrector(BasicFieldT& field, const dArray2DT& update)
 	double* p5 = field[5].Pointer();
 	double* pu = update.Pointer();
 
-	if (fabs(fdt) > kSmall)
-	{
-		/* run through arrays */
-		int len = field[0].Length();
-		for (int i = 0; i < len; i++)
-		{		
-			double error = ((*p2) - (*pu++))*fdt2;
+	/* run through arrays */
+	int len = field[0].Length();
+	for (int i = 0; i < len; i++)
+	{		
+		double error = ((*p2) - (*pu++))*fdt2;
 
-			*p0 -= (error*F02);
-			*p1 -= (error*F12)/fdt;
-			*p2 -= (error*F22)/fdt2;
-			*p3 -= (error*F32)/fdt3; 
-			*p4 -= (error*F42)/fdt4;
-			*p5 -= (error*F52)/fdt5;
-
-			/* next */
-			p0++; p1++; p2++; p3++; p4++; p5++;
-		}
-	}
-	else /* for dt -> 0.0 */
-	{
-		/* run through arrays */
-		int len = field[0].Length();
-		for (int i = 0; i < len; i++)
-		{
-			*p2 -= ((*p2) - (*pu++))*F22;
-			p2++;
-		}
+		*p0 -= (error*F02);
+		*p1 -= (error*F12)/fdt;
+		*p2 -= (error*F22)/fdt2;
+		*p3 -= (error*F32)/fdt3; 
+		*p4 -= (error*F42)/fdt4;
+		*p5 -= (error*F52)/fdt5;
+		
+		/* next */
+		p0++; p1++; p2++; p3++; p4++; p5++;
 	}
 }
 
@@ -175,45 +162,25 @@ void nGear6::Corrector(BasicFieldT& field, const dArrayT& update,
 	double* p4 = field[4].Pointer();
 	double* p5 = field[5].Pointer();
 
-	if (fabs(fdt) > kSmall)
+	for (int i = 0; i < eqnos.Length(); i++)
 	{
-		for (int i = 0; i < eqnos.Length(); i++)
+		int eq = *peq++ - eq_start;
+		
+		/* active dof */
+		if (eq > -1 && eq < num_eq)
 		{
-			int eq = *peq++ - eq_start;
-		
-			/* active dof */
-			if (eq > -1 && eq < num_eq)
-			{
-				double a = update[eq];
-				double error = ((*p2) - a)*fdt2;
-				*p0 -= (error*F02);
-				*p1 -= (error*F12)/fdt;
-				*p2 -= (error*F22)/fdt2;
-				*p3 -= (error*F32)/fdt3; 
-				*p4 -= (error*F42)/fdt4;
-				*p5 -= (error*F52)/fdt5;
-			}
-		
-			/* next */
-			p0++; p1++; p2++; p3++; p4++; p5++;
+			double a = update[eq];
+			double error = ((*p2) - a)*fdt2;
+			*p0 -= (error*F02);
+			*p1 -= (error*F12)/fdt;
+			*p2 -= (error*F22)/fdt2;
+			*p3 -= (error*F32)/fdt3; 
+			*p4 -= (error*F42)/fdt4;
+			*p5 -= (error*F52)/fdt5;
 		}
-	}
-	else /* for dt -> 0.0 */
-	{
-		for (int i = 0; i < eqnos.Length(); i++)
-		{
-			int eq = *peq++ - eq_start;
 		
-			/* active dof */
-			if (eq > -1 && eq < num_eq)
-			{
-				double a = update[eq];
-				*p2 -= ((*p2) - a)*F22;
-			}
-		
-			/* next */
-			p2++;
-		}
+		/* next */
+		p0++; p1++; p2++; p3++; p4++; p5++;
 	}
 }
 

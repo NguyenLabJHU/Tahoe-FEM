@@ -1,4 +1,4 @@
-/* $Id: dSPMatrixT.cpp,v 1.5 2003-05-22 16:49:05 paklein Exp $ */
+/* $Id: dSPMatrixT.cpp,v 1.3 2003-03-04 00:40:36 cjkimme Exp $ */
 /* created MLK 10/3/00 */
 #include "dSPMatrixT.h"
 
@@ -9,6 +9,7 @@
 #include "dMatrixT.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
+//#include "dLACOOMatrixT.h"
 
 const int kheadroom = 25;
 
@@ -320,7 +321,7 @@ void dSPMatrixT::AddBlockT(int row, int col, const dSPMatrixT& block)
 }
 
 /* Pre multiplication by a diagonal matrix, D.  M = D.M
- * (*this) = D.(*this)	*/
+/* (*this) = D.(*this)	*/
 void dSPMatrixT::MultDM(const dArrayT& D)
 {	
 #if __option (extended_errorcheck)
@@ -341,7 +342,7 @@ void dSPMatrixT::MultDM(const dArrayT& D)
 }
 
 /* Post multiplication by a diagonal matrix, D.  M = M.D
- * (*this) = (*this).D	*/
+/* (*this) = (*this).D	*/
 void dSPMatrixT::MultMD(const dArrayT& D)
 {	
 #if __option (extended_errorcheck)
@@ -594,42 +595,41 @@ void dSPMatrixT::Convert2dLACOOMatrixT(dLACOOMatrixT& dLACOOmatrix) const
 }
 #endif
 
-#if 0
 /* this(i,j) = A(i,k)*B(k,j) , (this = A * B) 	*/
-void dSPMatrixT::MultAB(dSPMatrixT& A, dSPMatrixT& B)
+/*void dSPMatrixT::MultAB(dSPMatrixT& A, dSPMatrixT& B)
 {
 	/* dimension checks */
-#if __option (extended_errorcheck)	
+/*	#if __option (extended_errorcheck)	
 		if (A.Rows() != fRows || B.Cols() != fCols || A.Cols() != B.Rows()) throw(eGeneralFail);
-#endif
+	#endif
 	
 	dSPMatrixT BT( B.Cols(), B.Rows(), B.Width() );
 	BT.Transpose( B );
-
+	
+	
 	int numrows_A = A.Rows();
 	int numcols_B = B.Cols();
 	dArrayT bcolvec(B.Rows());
 	iArrayT Bnumcolvals(B.Cols());
 	/* record number of nonzero entries in each column of B */
-	for( int jj = 0; jj < numcols_B; jj++ )
+/*	for( int jj = 0; jj < numcols_B; jj++ )
 	{
 		Bnumcolvals[jj] = BT.RowNnz(jj);
 	}
 	
 	/* iterate over rows of A */
-	for(int i = 0; i < numrows_A; i++)
+/*	for(int i = 0; i < numrows_A; i++)
 	{	
 		int Anumrowvals = A.RowNnz(i);
-		
 		/* iterate over columns of B (rows of B^T) */
-		for(int j = 0; j < numcols_B; j++)
+/*		for(int j = 0; j < numcols_B; j++)
 		{	
 			double sum = 0.0;
 			int* pC_A = A.ColPointer(i);    // pointer to col nums of nonzero entries of row i in A
 			double* pV_A = A.ValPointer(i); // pointer to values of nonzero entries of row i in A
 			
 			/* record elements of column j of B in vector, bcolvec */
-			bcolvec = 0;
+/*			bcolvec = 0;
 			int* pR_B = BT.ColPointer(j);    // pointer to row numbers of column j of B
 			double* pV_B = BT.ValPointer(j); // pointer to values of entries in column j of B
 			//int Bnumcolvals = BT.RowNnz(j);
@@ -640,7 +640,7 @@ void dSPMatrixT::MultAB(dSPMatrixT& A, dSPMatrixT& B)
 			}
 			
 			/* iterate over nonzero values of A in row i */
-			for(int k = 0; k < Anumrowvals; k++)
+/*			for(int k = 0; k < Anumrowvals; k++)
 			{
 				double bval = bcolvec[*pC_A++];
 				if( bval != 0.0 )
@@ -655,25 +655,24 @@ void dSPMatrixT::MultAB(dSPMatrixT& A, dSPMatrixT& B)
 		}
 	}
 }
-#endif
+*/
 
-#if 0
 /* this(i,j) = A(i,k)*B(k,j) , (this = A * B) 	*/
-/*void dSPMatrixT::MultAB(dSPMatrixT& A, dSPMatrixT& B) */
+/*void dSPMatrixT::MultAB(dSPMatrixT& A, dSPMatrixT& B)
 {
 	/* dimension checks */
-#if __option (extended_errorcheck)	
+/*	#if __option (extended_errorcheck)	
 		if (A.Rows() != fRows || B.Cols() != fCols || A.Cols() != B.Rows()) throw(eGeneralFail);
-#endif
+	#endif
 	
 	dSPMatrixT BT( B.Cols(), B.Rows(), B.Width() );
 	BT.Transpose( B );
 	
 	/* iterate over rows of A */
-	for(int i = 0; i < A.Rows(); i++)
+/*	for(int i = 0; i < A.Rows(); i++)
 	{
 		/* iterate over columns of B (rows of B^T) */
-		for(int j = 0; j < B.Cols(); j++)
+/*		for(int j = 0; j < B.Cols(); j++)
 		{
 			int maxrow_B;  // maximum row number of column j of B (max col num of row j of BT)
 			double sum = 0.0;
@@ -686,18 +685,18 @@ void dSPMatrixT::MultAB(dSPMatrixT& A, dSPMatrixT& B)
 			double* pV_A = A.ValPointer(i); // pointer to values of nonzero entries of row i in A
 			
 			/* iterate over nonzero values of A in row i */
-			int startrow = 0;
+/*			int startrow = 0;
 			for(int k = 0; k < A.RowNnz(i); k++)
 			{
 				
 				/* if the current column number of A is greater than the maximum row number
 					of the B column, then skip to next column of B */
-				if( *pC_A > maxrow_B )
+/*				if( *pC_A > maxrow_B )
 					break;
 				
 				/* iterate over values of rows for nonzero entries in column j of B 
 					to see if any row number matches column number of i row of A */
-				int* pR_B = BT.ColPointer(j);    // pointer to row numbers of column j of B
+/*				int* pR_B = BT.ColPointer(j);    // pointer to row numbers of column j of B
 				double* pV_B = BT.ValPointer(j); // pointer to values of entries in column j of B
 				pR_B += startrow;
 				pV_B += startrow;
@@ -705,16 +704,16 @@ void dSPMatrixT::MultAB(dSPMatrixT& A, dSPMatrixT& B)
 				{
 					/* if the column number of A is less than the current row number of B,
 						then skip to next column number in row i of A */
-					if( *pC_A < *pR_B )
+/*					if( *pC_A < *pR_B )
 						break;
 						
 					/* if column number of A is greater than current row number of B,
 						then set startrow to kk+1 */
-					if( *pC_A > *pR_B )
+/*					if( *pC_A > *pR_B )
 						startrow = kk+1;
 					
 					/* if column number of A matches row number of B, augment sum */
-					if( *pC_A == *pR_B )
+/*					if( *pC_A == *pR_B )
 					{
 						sum += (*pV_A)*(*pV_B);
 						startrow = kk+1;
@@ -734,7 +733,8 @@ void dSPMatrixT::MultAB(dSPMatrixT& A, dSPMatrixT& B)
 		}
 	}
 }
-#endif
+*/
+
 
 /***********/
 /* private */
@@ -770,16 +770,15 @@ double* dSPMatrixT::ValPointer(int row) const
 	return fVal_Matrix(row);
 }
 
-#if 0
 /* returns fCol_Matrix */
-iAutoFill2DT& dSPMatrixT::ColMatrix(void) const
+/*iAutoFill2DT& dSPMatrixT::ColMatrix(void) const
 {
 	return( fCol_Matrix );
 }
-
+*/
 /* returns fVal_Matrix */
-dAutoFill2DT& dSPMatrixT::ValMatrix(void) const
+/*dAutoFill2DT& dSPMatrixT::ValMatrix(void) const
 {
 	return( fVal_Matrix );
 }
-#endif
+*/

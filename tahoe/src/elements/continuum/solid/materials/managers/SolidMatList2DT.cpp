@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.39 2003-05-12 23:44:05 thao Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.38 2003-04-05 19:51:55 thao Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
@@ -76,10 +76,6 @@
 
 #ifdef ELASTIC_OGDEN_MATERIAL_DEV
 #include "OgdenMaterialT.h"
-#endif
-
-#ifdef J2PLASTICITY_MATERIALS_DEV
-#include "SSJ2LinHard2D.h"
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -657,19 +653,6 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "ELASTIC_OGDEN_MATERIAL_DEV not enabled: %d", matcode);
-#endif
-			}
-			case kSSJ2LinHard:
-			{
-#ifdef J2PLASTICITY_MATERIALS_DEV
-				/* check */
-				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
-
-				fArray[matnum] = new SSJ2LinHard2D(in, *fSSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "J2PLASITICITY_MATERIALS_DEV not enabled: %d", matcode);
 #endif
 			}
 //TEMP
