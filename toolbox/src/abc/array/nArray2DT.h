@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.21 2003-11-21 22:41:30 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.22 2004-10-14 18:57:25 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #ifndef _NARRAY2D_T_H_
 #define _NARRAY2D_T_H_
@@ -191,12 +191,13 @@ public:
 	void AddToColumnScaled(int col, const nTYPE& scale, const nTYPE* array);
 	/*@}*/
 
-	/** copy all values from source into this array. This array must be
+	/** copy rows from source into this array. This array must be
 	 * large enough to copy the contents of the source array at the
 	 * specified location
-	 * \param source source of data. All values are copied
-	 * \param start row in this array where data will start being written */
-	void BlockRowCopyAt(const nArray2DT& source, int start);
+	 * \param source source of data
+	 * \param start row in this array where data will start being written 
+	 * \param nrows number of rows to copy, passing -1 means all */
+	void BlockRowCopyAt(const nArray2DT& source, int start, int nrows = -1);
 
 	/** copy all values from source into this array. This array must be
 	 * large enough to copy the contents of the source array at the
@@ -1007,7 +1008,7 @@ void nArray2DT<nTYPE>::AddToColumnScaled(int col, const nTYPE& scale, const nTYP
 
 /* copy all rows/columns from source at start */
 template <class nTYPE>
-void nArray2DT<nTYPE>::BlockRowCopyAt(const nArray2DT& source, int start)
+void nArray2DT<nTYPE>::BlockRowCopyAt(const nArray2DT& source, int start, int nrows)
 {
 	/* quick exit */
 	if (source.Length() == 0) return;
@@ -1019,7 +1020,8 @@ void nArray2DT<nTYPE>::BlockRowCopyAt(const nArray2DT& source, int start)
 #endif
 
 	/* copy */
-	MemCopy((*this)(start), source.Pointer(), source.Length());
+	nrows = (nrows == -1) ? source.MajorDim() : nrows;
+	MemCopy((*this)(start), source.Pointer(), nrows*source.MinorDim());
 }
 
 /* copy all rows/columns from source at start */
