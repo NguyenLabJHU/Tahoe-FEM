@@ -1,13 +1,15 @@
-/* $Id: ArgSpecT.cpp,v 1.12 2003-11-04 01:21:05 paklein Exp $ */
+/* $Id: ArgSpecT.cpp,v 1.10.8.1 2003-09-25 17:29:25 cjkimme Exp $ */
+
 #include "ArgSpecT.h"
 #include <ctype.h>
 
+/* array copy behavior */
+
 using namespace Tahoe;
 
-/* array copy behavior */
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<ArgSpecT*>::fByteCopy = true; 
-DEFINE_TEMPLATE_STATIC const bool ArrayT<ArgSpecT>::fByteCopy = false;
+const bool ArrayT<ArgSpecT*>::fByteCopy = true; 
+const bool ArrayT<ArgSpecT>::fByteCopy = false;
 } /* namespace Tahoe */
 
 /* type names */
@@ -29,8 +31,8 @@ ArgSpecT::ArgSpecT(ArgTypeT t):
 
 /* constructor */
 ArgSpecT::ArgSpecT(ArgTypeT type, const StringT& name):
-	fType(type),
 	fName(name),
+	fType(type),
 	fDefault(NULL),
 	fValue(NULL)
 {

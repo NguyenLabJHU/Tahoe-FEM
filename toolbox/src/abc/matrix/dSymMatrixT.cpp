@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.26 2003-11-07 20:14:08 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.23.2.2 2003-11-10 21:14:01 cjkimme Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -10,8 +10,8 @@
 using namespace Tahoe;
 
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<dSymMatrixT*>::fByteCopy = true; 
-DEFINE_TEMPLATE_STATIC const bool ArrayT<dSymMatrixT>::fByteCopy = false; 
+const bool ArrayT<dSymMatrixT*>::fByteCopy = true; 
+const bool ArrayT<dSymMatrixT>::fByteCopy = false; 
 }
 
 const double kEigenSmall = 1.0e-16;
@@ -45,6 +45,17 @@ void dSymMatrixT::Dimension(DimensionT nsd)
 
 	/* inherited */
 	dArrayT::Dimension(NumValues(fNumSD));
+}
+
+/* set fields */
+void dSymMatrixT::Set(DimensionT nsd, double* array)
+{
+	fNumSD = int2DimensionT(nsd);
+	if (fNumSD < 1 || fNumSD > 4) 
+		ExceptionT::GeneralFail("dSymMatrixT::Set", "invalid dimension %d", nsd);
+	
+	/* inherited */
+	dArrayT::Set(NumValues(fNumSD), array);
 }
 
 /* accessor */
@@ -251,7 +262,7 @@ void dSymMatrixT::Eigensystem(dArrayT& val, dMatrixT& vec, bool sort_descending)
 	else
 	{
 		double tau = .5*(c-a)/b;
-		double r = sqrt(1.0+tau*tau);
+		//double r = sqrt(1.0+tau*tau);
 		//		double t = (tau >= 0) ? (-tau + r) : (-tau - r);
 		double t = (tau >= 0) ? 1.0/(tau+sqrt(1+tau*tau)):-1.0/(-tau+sqrt(1+tau*tau));
 		cos = 1.0/sqrt(1+t*t);

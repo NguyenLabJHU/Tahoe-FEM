@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2003-11-01 21:10:37 paklein Exp $
+# $Id: makefile,v 1.6 2003-08-14 01:22:03 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -31,8 +31,7 @@ OBJ = \
 	DotLine_FormatterT.o \
 	ParameterInterfaceT.o \
 	ParameterTreeT.o \
-	ParameterUtils.o \
-	ParameterContainerT.o
+	ParameterUtils.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -63,8 +62,7 @@ SRC = \
 	DotLine_FormatterT.cpp \
 	ParameterInterfaceT.cpp \
 	ParameterTreeT.cpp \
-	ParameterUtils.cpp \
-	ParameterContainerT.cpp
+	ParameterUtils.cpp
 
 ##################### (3) headers
 #
@@ -88,7 +86,6 @@ HDR = \
 	DotLine_FormatterT.h \
 	ParameterTreeT.h \
 	ParameterUtils.h \
-	ParameterContainerT.h \
 	enum2int.h
 
 HDR_LINK = $(HDR:.h=.h_link)

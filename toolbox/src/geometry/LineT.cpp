@@ -1,4 +1,4 @@
-/* $Id: LineT.cpp,v 1.3 2002-10-20 22:32:08 paklein Exp $ */
+/* $Id: LineT.cpp,v 1.3.8.2 2003-11-10 21:14:08 cjkimme Exp $ */
 /* created: paklein (04/25/1999) */
 #include "LineT.h"
 
@@ -39,6 +39,7 @@ void LineT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT
 #pragma unused(coords)
 #pragma unused(Na)
 #pragma unused(DNa)
+
 	cout << "\n LineT::EvaluateShapeFunctions: not implemented" << endl;
 	throw ExceptionT::kGeneralFail;
 }

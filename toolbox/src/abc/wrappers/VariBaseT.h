@@ -1,4 +1,4 @@
-/* $Id: VariBaseT.h,v 1.6 2003-11-05 22:16:32 paklein Exp $ */
+/* $Id: VariBaseT.h,v 1.5 2003-01-27 06:42:46 paklein Exp $ */
 /* created: paklein (04/18/1998) */
 #ifndef _VARI_BASE_T_H_
 #define _VARI_BASE_T_H_
@@ -91,7 +91,7 @@ inline void VariBaseT<TYPE>::SetHeadRoom(int headroom)
 template <class TYPE>
 void VariBaseT<TYPE>::SetAlias(ArrayT<TYPE>& array, int length, bool copy_in)
 {
-	if (array.Length() != length || array.IsAllocated())
+	if (array.Length() != length)
 	{
 		/* need more memory (no criteria to reallocate smaller) */
 		if (length > fMemory.Length())

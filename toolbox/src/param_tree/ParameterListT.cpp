@@ -1,13 +1,13 @@
-/* $Id: ParameterListT.cpp,v 1.10 2003-11-04 01:21:25 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.8 2003-08-14 01:22:03 paklein Exp $ */
 #include "ParameterListT.h"
 
 using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<ParameterListT>::fByteCopy = false;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<ParameterListT*>::fByteCopy = true;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<ParameterListT::OccurrenceT>::fByteCopy = false;
+const bool ArrayT<ParameterListT>::fByteCopy = false;
+const bool ArrayT<ParameterListT*>::fByteCopy = true;
+const bool ArrayT<ParameterListT::OccurrenceT>::fByteCopy = false;
 }
 
 /* constructor */

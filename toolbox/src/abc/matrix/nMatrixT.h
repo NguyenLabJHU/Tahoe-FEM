@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.26 2003-11-07 20:08:38 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.23 2003-09-04 23:55:26 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _NMATRIX_T_H_
 #define _NMATRIX_T_H_
@@ -47,7 +47,6 @@ public:
 	/** \name convert to a shallow object */
 	/*@{*/
 	void Alias(int numrows, int numcols, nTYPE* p);
-	void Alias(int dim, nTYPE* p) { Alias(dim, dim, p); };
 	void Alias(const nMatrixT& RHS);
 	/*@}*/
 
@@ -766,36 +765,9 @@ void nMatrixT<nTYPE>::MultAB(const nMatrixT& A, const nMatrixT& B, int upper)
 	if (fRows != A.fRows ||
 	    fCols != B.fCols ||
 	  A.fCols != B.fRows) throw ExceptionT::kSizeMismatch;
-#endif
+#endif		
 
-	/* 2 x 2 specialization */
-	if (fRows == 2 && fCols == 2 && A.fCols == 2) {
-		nTYPE* c = Pointer();
-		nTYPE* a = A.Pointer();
-		nTYPE* b = B.Pointer();
-
-		c[0] = a[0]*b[0] + a[2]*b[1];
-		c[1] = a[1]*b[0] + a[3]*b[1];
-		c[2] = a[0]*b[2] + a[2]*b[3]; 
-		c[3] = a[1]*b[2] + a[3]*b[3];
-	}	
-	/* 3 x 3 specialization */
-	else if (fRows == 3 && fCols == 3 && A.fCols == 3) {
-		nTYPE* c = Pointer();
-		nTYPE* a = A.Pointer();
-		nTYPE* b = B.Pointer();
-
-		c[0] = a[0]*b[0] + a[3]*b[1] + a[6]*b[2];
-		c[1] = a[1]*b[0] + a[4]*b[1] + a[7]*b[2];
-		c[2] = a[2]*b[0] + a[5]*b[1] + a[8]*b[2];
-		c[3] = a[0]*b[3] + a[3]*b[4] + a[6]*b[5];
-		c[4] = a[1]*b[3] + a[4]*b[4] + a[7]*b[5];
-		c[5] = a[2]*b[3] + a[5]*b[4] + a[8]*b[5];
-		c[6] = a[0]*b[6] + a[3]*b[7] + a[6]*b[8];
-		c[7] = a[1]*b[6] + a[4]*b[7] + a[7]*b[8]; 
-		c[8] = a[2]*b[6] + a[5]*b[7] + a[8]*b[8];
-	}
-	else if (!upper)	/* entire matrix */		
+	if (!upper)	/* entire matrix */		
 	{		
 		int        dotcount = A.fCols;
 		nTYPE*	c       = Pointer();
@@ -1279,8 +1251,8 @@ void nMatrixT<nTYPE>::MultATBC(const nMatrixT& p, const nMatrixT& b, const nMatr
 	}
 }
 
-//TEMP - debugging
-#if 0
+//TEMP
+#if 1
 /* this_ij = q_iI b_IJ q_jJ */
 template <class nTYPE>
 inline void nMatrixT<nTYPE>::MultQBQT(const nMatrixT& q,
@@ -1375,91 +1347,54 @@ void nMatrixT<nTYPE>::MultQTBQ(const nMatrixT& q,
 	  b.fCols != q.fRows) throw ExceptionT::kSizeMismatch;
 #endif
 
-	if (fRows == 3 && fCols == 3)
+	/* initialize */
+	if (fillmode == kOverwrite) *this = 0;
+
+	register nTYPE temp;
+	register nTYPE bq_iJ;
+	
+	nTYPE* pthisJ =   Pointer();
+	nTYPE* pqJ    = q.Pointer();
+
+	for (int J = 0; J < fCols; J++)
 	{
-		nTYPE* A = Pointer();
-		nTYPE* Q = q.Pointer();
-		nTYPE* B = b.Pointer();
-
-		/* initialize */
-		if (fillmode == kOverwrite) {
-			*A++ = 0.0;
-			*A++ = 0.0;
-			*A++ = 0.0;
-			*A++ = 0.0;
-			*A++ = 0.0;
-			*A++ = 0.0;
-			*A++ = 0.0;
-			*A++ = 0.0;
-			*A   = 0.0;
-			A = Pointer();
-		}
-
-		/* diagonal and upper triangle */
-		A[0] += Q[0]*(B[0]*Q[0] + B[1]*Q[1] + B[2]*Q[2]) + Q[1]*(B[3]*Q[0] + B[4]*Q[1] + B[5]*Q[2]) + Q[2]*(B[6]*Q[0] + B[7]*Q[1] + B[8]*Q[2]);
-		A[3] += (B[0]*Q[0] + B[1]*Q[1] + B[2]*Q[2])*Q[3] + (B[3]*Q[0] + B[4]*Q[1] + B[5]*Q[2])*Q[4] + (B[6]*Q[0] + B[7]*Q[1] + B[8]*Q[2])*Q[5];
-		A[4] += Q[3]*(B[0]*Q[3] + B[1]*Q[4] + B[2]*Q[5]) + Q[4]*(B[3]*Q[3] + B[4]*Q[4] + B[5]*Q[5]) + Q[5]*(B[6]*Q[3] + B[7]*Q[4] + B[8]*Q[5]);
-		A[6] += (B[0]*Q[0] + B[1]*Q[1] + B[2]*Q[2])*Q[6] + (B[3]*Q[0] + B[4]*Q[1] + B[5]*Q[2])*Q[7] + (B[6]*Q[0] + B[7]*Q[1] + B[8]*Q[2])*Q[8];
-		A[7] += (B[0]*Q[3] + B[1]*Q[4] + B[2]*Q[5])*Q[6] + (B[3]*Q[3] + B[4]*Q[4] + B[5]*Q[5])*Q[7] + (B[6]*Q[3] + B[7]*Q[4] + B[8]*Q[5])*Q[8];
-		A[8] += Q[6]*(B[0]*Q[6] + B[1]*Q[7] + B[2]*Q[8]) + Q[7]*(B[3]*Q[6] + B[4]*Q[7] + B[5]*Q[8]) + Q[8]*(B[6]*Q[6] + B[7]*Q[7] + B[8]*Q[8]);
+		int Istop = (range == kUpperOnly) ? J + 1 : fRows;
 	
-		/* lower triangle */
-		if (range == kWhole) {
-			A[1] += Q[0]*(B[0]*Q[3] + B[1]*Q[4] + B[2]*Q[5]) + Q[1]*(B[3]*Q[3] + B[4]*Q[4] + B[5]*Q[5]) + Q[2]*(B[6]*Q[3] + B[7]*Q[4] + B[8]*Q[5]);
-			A[2] += Q[0]*(B[0]*Q[6] + B[1]*Q[7] + B[2]*Q[8]) + Q[1]*(B[3]*Q[6] + B[4]*Q[7] + B[5]*Q[8]) + Q[2]*(B[6]*Q[6] + B[7]*Q[7] + B[8]*Q[8]);
-			A[5] += Q[3]*(B[0]*Q[6] + B[1]*Q[7] + B[2]*Q[8]) + Q[4]*(B[3]*Q[6] + B[4]*Q[7] + B[5]*Q[8]) + Q[5]*(B[6]*Q[6] + B[7]*Q[7] + B[8]*Q[8]);
-		}
-	}
-	else
-	{
-		/* initialize */
-		if (fillmode == kOverwrite) *this = 0;
-
-		register nTYPE temp;
-		register nTYPE bq_iJ;
+		nTYPE* pqi = q.Pointer();
+		nTYPE* pbi = b.Pointer();
 	
-		nTYPE* pthisJ =   Pointer();
-		nTYPE* pqJ    = q.Pointer();
-
-		for (int J = 0; J < fCols; J++)
-		{
-			int Istop = (range == kUpperOnly) ? J + 1 : fRows;
-	
-			nTYPE* pqi = q.Pointer();
-			nTYPE* pbi = b.Pointer();
-	
-			for (int i = 0; i < b.fRows; i++)
-			{			
-				nTYPE* pbj = pbi++;
-				nTYPE* pqj = pqJ;
+		for (int i = 0; i < b.fRows; i++)
+		{			
+			nTYPE* pbj = pbi++;
+			nTYPE* pqj = pqJ;
 			
-				bq_iJ = 0.0;
-				for (int j = 0; j < b.fCols; j++)
-				{
-					temp  = *pbj;
-					temp *= *pqj++;
-					bq_iJ += temp;
+			bq_iJ = 0.0;
+			for (int j = 0; j < b.fCols; j++)
+			{
+				temp  = *pbj;
+				temp *= *pqj++;
 				
-					pbj += b.fRows;
-				}
-
-				nTYPE* pqI    = pqi++;
-				nTYPE* pthisI = pthisJ;
-			
-				for (int I = 0; I < Istop; I++)
-				{
-					temp  = *pqI;
-					temp *= bq_iJ;
+				bq_iJ += temp;
 				
-					*pthisI++ += temp;
-				
-					pqI += q.fRows;
-				}
+				pbj += b.fRows;
 			}
-		
-			pthisJ += fRows;
-			pqJ    += q.fRows;
+
+			nTYPE* pqI    = pqi++;
+			nTYPE* pthisI = pthisJ;
+			
+			for (int I = 0; I < Istop; I++)
+			{
+				temp  = *pqI;
+				temp *= bq_iJ;
+				
+				*pthisI++ += temp;
+				
+				pqI += q.fRows;
+			}
 		}
+		
+		pthisJ += fRows;
+		pqJ    += q.fRows;
 	}
 }
 #endif

@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.h,v 1.12 2002-07-25 19:47:29 sawimme Exp $ */
+/* $Id: PatranInputT.h,v 1.12.10.2 2003-11-10 21:14:05 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _PATRANINPUT_T_H_

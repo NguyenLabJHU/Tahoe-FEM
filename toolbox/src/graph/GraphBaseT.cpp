@@ -1,5 +1,6 @@
-/* $Id: GraphBaseT.cpp,v 1.13 2003-11-04 01:21:20 paklein Exp $ */
+/* $Id: GraphBaseT.cpp,v 1.11.2.2 2003-11-10 21:14:08 cjkimme Exp $ */
 /* created: paklein (04/13/1999) */
+
 #include "GraphBaseT.h"
 
 #include <iostream.h>
@@ -17,14 +18,15 @@
 #include "metis.h"
 #endif
 
+/* rounding floating point numbers */
+
 using namespace Tahoe;
 
-/* rounding floating point numbers */
 static inline int rnd(double number) { return int((2.0*number + 1.0)/2); }
 
 /* array behavior */
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<GraphBaseT*>::fByteCopy = true;
+const bool ArrayT<GraphBaseT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */
@@ -190,6 +192,7 @@ void GraphBaseT::Partition_METIS(int num_partitions, const iArrayT& weight,
 #pragma unused(weight)
 #pragma unused(partition)
 #pragma unused(volume_or_edgecut)
+
 	/* error message */
 	cout << "\n GraphBaseT::Partition_METIS: requires metis module" << endl;
 	throw ExceptionT::kGeneralFail;
@@ -485,7 +488,7 @@ int GraphBaseT::SelectCollapse(const ArrayT<int>& edges, const ArrayT<int>& degr
 		throw ExceptionT::kGeneralFail;
 	}
 
-	int node = -1, degree;
+	int node = -1, degree = -1;
 	for (int i = 0; i < edges.Length(); i++)
 	{
 		int node_i = edges[i];
@@ -578,7 +581,7 @@ void GraphBaseT::SetMoves(const iArray2DT& gain, const iArrayT& partition,
 	{
 		int* gain_k = gain(k);
 		int  part_k = partition[k];
-		int   dim_k = gain_k[part_k];
+//		int   dim_k = gain_k[part_k];
 		for (int j = 0; j < dim; j++)
 		{
 			int gain_kj = gain_k[j];

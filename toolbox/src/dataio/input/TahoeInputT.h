@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.h,v 1.12 2002-07-02 19:57:04 cjkimme Exp $ */
+/* $Id: TahoeInputT.h,v 1.12.10.2 2003-11-10 21:14:05 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _TAHOEINPUT_T_H_
@@ -106,7 +106,6 @@ inline int TahoeInputT::NumElementQuadPoints (const StringT& name)
 }
 inline void TahoeInputT::QARecords (ArrayT<StringT>& records)
 {
-//TEMP
 #pragma unused(records)
 }
 

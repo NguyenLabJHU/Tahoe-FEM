@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.cpp,v 1.13 2002-10-20 22:36:54 paklein Exp $ */
+/* $Id: PatranInputT.cpp,v 1.13.8.2 2003-11-10 21:14:05 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "PatranInputT.h"
@@ -210,6 +210,7 @@ void PatranInputT::ReadNodeSet (const StringT& name, iArrayT& nodes)
 int PatranInputT::NumSidesInSet (const StringT& anme) const
 {
 #pragma unused(anme)
+
   cout << "\n\n PatranInputT::Not programmed to read side sets\n\n";
   return 0;
 }
@@ -217,6 +218,7 @@ int PatranInputT::NumSidesInSet (const StringT& anme) const
 StringT PatranInputT::SideSetGroupName (const StringT& name) const
 {
 #pragma unused(name)
+
   cout << "\n\n PatranInputT::Not programmed to read side sets\n\n";
   StringT elname ("");
   return elname; 
@@ -226,6 +228,7 @@ void PatranInputT::ReadSideSetLocal (const StringT& name, iArray2DT& sides) cons
 {
 #pragma unused(name)
 #pragma unused(sides)
+
   cout << "\n\n PatranInputT::Not programmed to read side sets\n\n";
   throw ExceptionT::kDatabaseFail;
 }
@@ -234,6 +237,7 @@ void PatranInputT::ReadSideSetGlobal (const StringT& name, iArray2DT& sides) con
 {
 #pragma unused(name)
 #pragma unused(sides)
+
   cout << "\n\n PatranInputT::Not programmed to read side sets\n\n";
   throw ExceptionT::kDatabaseFail;
 }

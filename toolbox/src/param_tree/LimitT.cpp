@@ -1,9 +1,9 @@
-/* $Id: LimitT.cpp,v 1.8 2003-11-04 01:21:25 paklein Exp $ */
+/* $Id: LimitT.cpp,v 1.6 2003-05-04 22:59:53 paklein Exp $ */
 #include "LimitT.h"
 
 /* array behavior */
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<LimitT>::fByteCopy = false;
+const bool ArrayT<LimitT>::fByteCopy = false;
 
 /* exceptions strings */
 const char* LimitT::fBoundStrings[7] = 

@@ -1,4 +1,4 @@
-/* $Id: MessageT.cpp,v 1.4 2003-11-04 01:21:23 paklein Exp $ */
+/* $Id: MessageT.cpp,v 1.2 2003-01-27 06:42:48 paklein Exp $ */
 #include "MessageT.h"
 #include "ArrayT.h"
 
@@ -6,8 +6,8 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<MessageT>::fByteCopy = false;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<MessageT*>::fByteCopy = true;
+const bool ArrayT<MessageT>::fByteCopy = false;
+const bool ArrayT<MessageT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */

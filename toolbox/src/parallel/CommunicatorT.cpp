@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.10 2003-09-24 23:58:26 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.10.2.2 2003-11-10 21:14:10 cjkimme Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>

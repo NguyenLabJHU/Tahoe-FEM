@@ -1,13 +1,16 @@
-/* $Id: FrontNodeT.cpp,v 1.8 2003-11-04 01:21:14 paklein Exp $ */
-/* created: paklein (03/19/1999) */
+/* $Id: FrontNodeT.cpp,v 1.6.8.2 2003-11-10 21:14:07 cjkimme Exp $ */
+/* created: paklein (03/19/1999)                                          */
+
 #include "FrontNodeT.h"
 
 #include <math.h>
+
 #include "dMatrixT.h"
+
+/* constants */
 
 using namespace Tahoe;
 
-/* constants */
 const double Pi = acos(-1.0);
 
 /* vector functions */
@@ -30,7 +33,7 @@ inline static void Normalize(double* A)
 
 /* array behavior */
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<FrontNodeT*>::fByteCopy = true;
+const bool ArrayT<FrontNodeT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */

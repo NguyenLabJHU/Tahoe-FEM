@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.h,v 1.19 2003-10-28 07:50:41 paklein Exp $ */
+/* $Id: OutputBaseT.h,v 1.18 2003-09-20 23:25:38 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 #ifndef _OUTPUTBASE_T_H_
 #define _OUTPUTBASE_T_H_
@@ -160,7 +160,10 @@ inline const StringT& OutputBaseT::OutputRoot(void) const { return fOutroot; }
 inline const dArray2DT& OutputBaseT::Coordinates(void) const
 {
 	if (!fCoordinates)
-		ExceptionT::GeneralFail("OutputBaseT::Coordinates", "pointer to coordinates not set");
+	{
+		cout << "\n OutputBaseT::Coordinates: pointer coordinates not set" << endl;
+		throw ExceptionT::kGeneralFail;
+	}
 	return *fCoordinates;
 }
 

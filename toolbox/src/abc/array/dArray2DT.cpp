@@ -1,4 +1,4 @@
-/* $Id: dArray2DT.cpp,v 1.9 2003-11-04 01:20:54 paklein Exp $ */
+/* $Id: dArray2DT.cpp,v 1.7 2002-09-12 16:40:16 paklein Exp $ */
 /* created: paklein (07/16/1996) */
 
 #include "dArray2DT.h"
@@ -14,9 +14,9 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<dArray2DT*>::fByteCopy = true;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<const dArray2DT*>::fByteCopy = true;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<dArray2DT>::fByteCopy  = false;
+const bool ArrayT<dArray2DT*>::fByteCopy = true;
+const bool ArrayT<const dArray2DT*>::fByteCopy = true;
+const bool ArrayT<dArray2DT>::fByteCopy  = false;
 } /* namespace Tahoe */
 
 /* constructor */

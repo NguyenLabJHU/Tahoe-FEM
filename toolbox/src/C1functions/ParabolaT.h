@@ -1,4 +1,4 @@
-/* $Id: ParabolaT.h,v 1.5 2003-08-04 01:27:27 thao Exp $ */
+/* $Id: ParabolaT.h,v 1.5.2.2 2003-11-10 21:13:59 cjkimme Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #ifndef _PARABOLA_T_H_

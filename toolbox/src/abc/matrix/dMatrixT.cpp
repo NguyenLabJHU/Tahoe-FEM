@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.cpp,v 1.16 2003-11-04 01:20:59 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.14 2002-12-05 08:23:02 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "dMatrixT.h"
 #include <iostream.h>
@@ -10,8 +10,8 @@ using namespace Tahoe;
 
 /* copy behavior for arrays of dMatrixT's */
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<dMatrixT*>::fByteCopy = true;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<dMatrixT>::fByteCopy = false;
+const bool ArrayT<dMatrixT*>::fByteCopy = true;
+const bool ArrayT<dMatrixT>::fByteCopy = false;
 } /* namespace Tahoe */
 
 /* constructor */

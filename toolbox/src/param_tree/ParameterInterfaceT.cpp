@@ -1,15 +1,14 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.8 2003-11-04 01:21:25 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.5.2.1 2003-09-25 17:29:35 cjkimme Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
-#include "ParameterUtils.h"
 
 using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<ParameterInterfaceT*>::fByteCopy = true;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<const ParameterInterfaceT*>::fByteCopy = true;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<SubListDescriptionT>::fByteCopy = false;
+const bool ArrayT<ParameterInterfaceT*>::fByteCopy = true;
+const bool ArrayT<const ParameterInterfaceT*>::fByteCopy = true;
+const bool ArrayT<SubListDescriptionT>::fByteCopy = false;
 }
 
 /* constructor */
@@ -166,7 +165,9 @@ void ParameterInterfaceT::DefineSubs(SubListT& sub_list) const
 void ParameterInterfaceT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order,
 	SubListT& sub_sub_list) const
 {
+#ifdef __MWERKS__
 #pragma unused(sub)
+#endif
 	order = ParameterListT::Sequence;
 	sub_sub_list.Dimension(0);
 }
@@ -174,14 +175,8 @@ void ParameterInterfaceT::DefineInlineSub(const StringT& sub, ParameterListT::Li
 /* return a pointer to the ParameterInterfaceT */
 ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name) const
 {
-	if (list_name == "Integer")
-		return new IntegerT;
-	else if (list_name == "IntegerList")
-		return new IntegerListT;
-	else if (list_name == "Double")
-		return new DoubleT;
-	else if (list_name == "DoubleList")
-		return new DoubleListT;
-	else
-		return NULL;
+#ifdef __MWERKS__
+#pragma unused(list_name)
+#endif
+	return NULL;
 }

@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.h,v 1.14 2002-07-05 22:26:26 paklein Exp $ */
+/* $Id: AbaqusInputT.h,v 1.14.10.2 2003-11-10 21:14:05 cjkimme Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _ABAQUSINPUT_T_H_
@@ -124,7 +124,7 @@ inline int AbaqusInputT::NumNodes (void) const { return fNumNodes; }
 inline int AbaqusInputT::NumGlobalElements (void) const { return fNumElements; }
 inline bool AbaqusInputT::AreSideSetsLocal (void) const { return false; }
 inline  int  AbaqusInputT::NumSidesInSet (const StringT& setname)  const
-{ 
+{
 #pragma unused (setname)
   return 0; 
 }

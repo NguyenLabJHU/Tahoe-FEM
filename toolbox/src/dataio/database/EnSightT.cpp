@@ -1,5 +1,6 @@
-/* $Id: EnSightT.cpp,v 1.14 2003-11-04 01:21:10 paklein Exp $ */
+/* $Id: EnSightT.cpp,v 1.12.8.1 2003-09-25 17:29:27 cjkimme Exp $ */
 /* created: sawimme (05/13/1999) */
+
 #include "EnSightT.h"
 
 #include <ctype.h>
@@ -13,16 +14,17 @@
 #include "ios_fwd_decl.h"
 #include "AutoArrayT.h"
 
+/* array behavior */
+
 using namespace Tahoe;
 
-/* array behavior */
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<EnSightT::VariableTypeT>::fByteCopy = true;
+const bool ArrayT<EnSightT::VariableTypeT>::fByteCopy = true;
 } /* namespace Tahoe */
 
 EnSightT::EnSightT (ostream& out, bool binary, int dof) :
+fOut(out),
 fBinary (binary),
-fOut (out),
 fDOF (dof)
 {
 }

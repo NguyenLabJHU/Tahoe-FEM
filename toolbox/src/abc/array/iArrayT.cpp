@@ -1,17 +1,19 @@
-/* $Id: iArrayT.cpp,v 1.17 2003-11-04 01:20:54 paklein Exp $ */
+/* $Id: iArrayT.cpp,v 1.15 2002-12-05 08:23:01 paklein Exp $ */
 /* created: paklein (08/10/1996) */
+
 #include "iArrayT.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include "toolboxConstants.h"
 
+
 using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<iArrayT*>::fByteCopy = true;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<const iArrayT*>::fByteCopy = true;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<iArrayT>::fByteCopy = false; 
+const bool ArrayT<iArrayT*>::fByteCopy = true;
+const bool ArrayT<const iArrayT*>::fByteCopy = true;
+const bool ArrayT<iArrayT>::fByteCopy = false; 
 } /* namespace Tahoe */
 
 /* constructor */

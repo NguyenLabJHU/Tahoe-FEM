@@ -1,4 +1,4 @@
-/* $Id: PointToPointT.cpp,v 1.2 2003-01-27 06:42:48 paklein Exp $ */
+/* $Id: PointToPointT.cpp,v 1.2.6.1 2003-09-25 17:29:34 cjkimme Exp $ */
 #include "PointToPointT.h"
 #include "CommunicatorT.h"
 #include "PartitionT.h"
@@ -120,7 +120,7 @@ void PointToPointT::AllGather(nArray2DT<double>& gather)
 	const iArrayT& commID = fPartition.CommID();
 
 	/* post receives */
-	int rank = fComm.Rank();
+//	int rank = fComm.Rank();
 	for (int i = 0; i < commID.Length(); i++)
 		fComm.PostReceive(fdRecvBuffer[i], commID[i], fTag, fRecvRequest[i]);
 		
@@ -179,7 +179,7 @@ void PointToPointT::AllGather(nArray2DT<int>& gather)
 	const iArrayT& commID = fPartition.CommID();
 
 	/* post receives */
-	int rank = fComm.Rank();
+//	int rank = fComm.Rank();
 	for (int i = 0; i < commID.Length(); i++)
 		fComm.PostReceive(fiRecvBuffer[i], commID[i], fTag, fRecvRequest[i]);
 		

@@ -1,4 +1,4 @@
-/* $Id: RandomNumberT.cpp,v 1.6 2003-04-24 20:49:06 cjkimme Exp $ */
+/* $Id: RandomNumberT.cpp,v 1.6.6.2 2003-11-10 21:14:02 cjkimme Exp $ */
 #include "RandomNumberT.h"
 #include "ifstreamT.h"
 #include <math.h>

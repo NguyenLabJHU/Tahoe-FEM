@@ -1,4 +1,3 @@
-/* $Id: ParaDynT.cpp,v 1.8 2003-11-04 01:21:10 paklein Exp $ */
 #include "ParaDynT.h"
 
 #include <ctype.h>
@@ -12,11 +11,14 @@
 #include "ios_fwd_decl.h"
 #include "AutoArrayT.h"
 
+/* array behavior */
+
 using namespace Tahoe;
 
-/* array behavior */
-namespace Tahoe  {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<ParaDynT::VariableTypeT>::fByteCopy = true;
+namespace Tahoe 
+{
+
+const bool ArrayT<ParaDynT::VariableTypeT>::fByteCopy = true;
 } /* namespace Tahoe */
 
 ParaDynT::ParaDynT (ostream& out) : fOut (out)

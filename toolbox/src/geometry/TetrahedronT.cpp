@@ -1,4 +1,4 @@
-/* $Id: TetrahedronT.cpp,v 1.3 2002-10-20 22:32:08 paklein Exp $ */
+/* $Id: TetrahedronT.cpp,v 1.3.8.2 2003-11-10 21:14:08 cjkimme Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "TetrahedronT.h"
@@ -24,6 +24,7 @@ void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) co
 {
 #pragma unused(coords)
 #pragma unused(Na)
+
 	cout << "\n TetrahedronT::EvaluateShapeFunctions: not implemented" << endl;
 	throw ExceptionT::kGeneralFail;
 }
@@ -34,6 +35,7 @@ void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dA
 #pragma unused(coords)
 #pragma unused(Na)
 #pragma unused(DNa)
+
 	cout << "\n TetrahedronT::EvaluateShapeFunctions: not implemented" << endl;
 	throw ExceptionT::kGeneralFail;
 }

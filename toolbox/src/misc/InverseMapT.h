@@ -1,14 +1,14 @@
-/* $Id: InverseMapT.h,v 1.7 2003-11-04 23:19:45 paklein Exp $ */
+/* $Id: InverseMapT.h,v 1.4 2003-03-02 18:50:53 paklein Exp $ */
 #ifndef _INVERSE_MAP_T_H_
 #define _INVERSE_MAP_T_H_
 
 /* base class */
 #include "AutoArrayT.h"
 
-/* forward declarations */
-#include "nArrayT.h"
-
 namespace Tahoe {
+
+/* forward declarations */
+template <class TYPE> class nArrayT;
 
 /** class to construct and access an inverse map. Given a forward map
  * \f$ j = g(i) \f$, the class constructs and handles access to the inverse
@@ -30,11 +30,8 @@ public:
 	/** constructor */
 	InverseMapT(void);
 
-	/** \name construct the inverse map */
-	/*@{*/
+	/** construct the inverse map */
 	void SetMap(const nArrayT<int>& forward);
-	void SetMap(const ArrayT<int>& forward);
-	/*@}*/
 	
 	/** set the flag for handling calls to InverseMapT::Map that
 	 * are out of range */
@@ -76,12 +73,6 @@ inline InverseMapT::InverseMapT(void):
 	fOutOfRange(Throw)
 {
 
-}
-
-inline void InverseMapT::SetMap(const ArrayT<int>& forward) {
-	nArrayT<int> fwd;
-	fwd.Alias(forward);
-	SetMap(fwd);
 }
 
 /* map the global index to the local index */

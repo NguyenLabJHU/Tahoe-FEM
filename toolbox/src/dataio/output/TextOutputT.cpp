@@ -1,4 +1,4 @@
-/* $Id: TextOutputT.cpp,v 1.2 2003-10-09 16:33:39 cjkimme Exp $ */
+/* $Id: TextOutputT.cpp,v 1.1.2.1 2003-09-25 17:29:29 cjkimme Exp $ */
 /* created: sawimme (05/20/1999) */
 #include "TextOutputT.h"
 
@@ -185,16 +185,9 @@ void TextOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		toc.open_append(toc_file);
 
 	/* data file name */
-#ifndef __USE_CONSTANT_SUFFIX__
 	StringT dat_file(toc_file);
 	dat_file.Append(".ps", fElementSets[ID]->PrintStep(), 4);
-#else // for Windows, it's nice to have a suffix to associate with output files
-	StringT dat_file(fOutroot);
-	if (fSequence > 0) dat_file.Append(".seq",fSequence + 1);
-	dat_file.Append(".io", ID);
-	dat_file.Append(".ps", fElementSets[ID]->PrintStep(), 4);
-	dat_file.Append(".run");
-#endif
+
 	/* write toc entry - drop the file path */
 	StringT file_path;
 	file_path.FilePath(dat_file);
@@ -246,7 +239,7 @@ void TextOutputT::InitResultsFile(ostream& out, int ID)
 	if (set.NumNodeValues() > 0)
 	{
 		out << " Labels:\n";
-		int count = 0;
+		//int count = 0;
 		const ArrayT<StringT>& n_labels = set.NodeOutputLabels();
 		for (int i = 0; i < n_labels.Length(); i++)
 			out << '\t' << n_labels[i] << '\n';
@@ -256,7 +249,7 @@ void TextOutputT::InitResultsFile(ostream& out, int ID)
 	if (set.NumElementValues() > 0)
 	{
 		out << " Labels:\n";
-		int count = 0;
+		//int count = 0;
 		const ArrayT<StringT>& e_labels = set.ElementOutputLabels();
 		for (int i = 0; i < e_labels.Length(); i++)
 			out << '\t' << e_labels[i] << '\n';

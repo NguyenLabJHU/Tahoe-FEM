@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.h,v 1.12 2002-07-05 22:26:26 paklein Exp $ */
+/* $Id: EnSightInputT.h,v 1.12.10.2 2003-11-10 21:14:05 cjkimme Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _ENSIGHTINPUT_T_H_

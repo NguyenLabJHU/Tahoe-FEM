@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.cpp,v 1.10 2002-10-20 22:39:04 paklein Exp $ */
+/* $Id: SpectralDecompT.cpp,v 1.10.8.2 2003-11-10 21:14:09 cjkimme Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 

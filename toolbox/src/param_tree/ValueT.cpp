@@ -1,4 +1,4 @@
-/* $Id: ValueT.cpp,v 1.9 2003-11-04 01:21:25 paklein Exp $ */
+/* $Id: ValueT.cpp,v 1.7 2003-05-04 22:59:53 paklein Exp $ */
 #include "ValueT.h"
 #include <stdlib.h>
 #include <ctype.h>
@@ -14,7 +14,7 @@ static const char* type_names[6] = {
 
 /* array behavior */
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<ValueT>::fByteCopy = false;
+const bool ArrayT<ValueT>::fByteCopy = false;
 }
 
 using namespace Tahoe;

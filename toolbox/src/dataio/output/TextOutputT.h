@@ -1,4 +1,4 @@
-/* $Id: TextOutputT.h,v 1.3 2003-10-09 17:11:14 cjkimme Exp $ */
+/* $Id: TextOutputT.h,v 1.1 2003-09-10 00:14:17 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 #ifndef _TEXT_OUTPUT_T_H_
 #define _TEXT_OUTPUT_T_H_

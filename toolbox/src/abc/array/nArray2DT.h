@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.20 2003-10-09 07:29:34 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.18 2003-09-04 23:55:24 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #ifndef _NARRAY2D_T_H_
 #define _NARRAY2D_T_H_
@@ -85,12 +85,6 @@ public:
 
 	/** copy the specified column into array without range checking. */
 	void ColumnCopy(int col, nTYPE* array) const;
-
-	/** copy the specified column out of the source array. 
-	 * \param col destination in this of the column
-	 * \param a source array
-	 * \param col_a column to copy out of the source array */
-	void ColumnCopy(int col, const nArray2DT<nTYPE>& a, int col_a) const;
 
 	/** shallow copy of a row.
 	 * \param row row number to alias
@@ -495,10 +489,12 @@ template <class nTYPE>
 inline void nArray2DT<nTYPE>::ColumnCopy(int col, nTYPE* array) const
 {
 	/* don't do anything if empty */
-	if (fMajorDim > 0) {
+	if (fMajorDim > 0)
+	{
 		nTYPE* pout = array;
 		nTYPE* pcol = &(*this)(0,col);
-		for (int i = 0; i < fMajorDim; i++) {
+		for (int i = 0; i < fMajorDim; i++)
+		{
 			*pout++ = *pcol;
 			pcol   += fMinorDim;
 		}
@@ -514,26 +510,6 @@ inline void nArray2DT<nTYPE>::ColumnCopy(int col, nArrayT<nTYPE>& array) const
 
 	/* call wrapper */
 	ColumnCopy(col, array.Pointer());
-}
-
-/* copy the specified column out of the source array */
-template <class nTYPE>
-void nArray2DT<nTYPE>::ColumnCopy(int col, const nArray2DT<nTYPE>& a, int col_a) const
-{
-#if __option (extended_errorcheck)
-	if (a.MajorDim() != fMajorDim) ExceptionT::SizeMismatch("nArray2DT<nTYPE>::ColumnCopy");
-#endif
-
-	if (fMajorDim > 0) {
-		int a_dim = a.MinorDim();
-		nTYPE* pthis = Pointer(col);
-		nTYPE* pthat = a.Pointer(col_a);
-		for (int i = 0; i < fMajorDim; i++) {
-			*pthis = *pthat;
-			pthis += fMinorDim;
-			pthat += a_dim;
-		}
-	}
 }
 
 template <class nTYPE>
@@ -574,39 +550,44 @@ inline void nArray2DT<nTYPE>::SetRow(int row, const nArrayT<nTYPE>& array)
 template <class nTYPE>
 void nArray2DT<nTYPE>::SetColumn(int col, const nTYPE& value)
 {
-	if (fMajorDim > 0) {
-		nTYPE* pcol = &(*this)(0,col);
-		for (int i = 0; i < fMajorDim; i++) {
-			*pcol = value;
-			pcol += fMinorDim;
-		}
+	nTYPE* pcol = &(*this)(0,col);
+
+	for (int i = 0; i < fMajorDim; i++)
+	{
+		*pcol = value;
+		pcol += fMinorDim;
+	}
+}
+
+template <class nTYPE>
+void nArray2DT<nTYPE>::SetColumn(int col,
+	const nArrayT<nTYPE>& array)
+{
+	/* dimension check */
+	if (array.Length() != fMajorDim)
+		ExceptionT::SizeMismatch();
+	else if (fMajorDim == 0)
+		return;
+	
+	nTYPE* pcol = &(*this)(0,col);
+	nTYPE* prhs = array.Pointer();
+	for (int i = 0; i < fMajorDim; i++)
+	{
+		*pcol = *prhs++;
+		pcol += fMinorDim;
 	}
 }
 
 template <class nTYPE>
 void nArray2DT<nTYPE>::SetColumn(int col, const nTYPE* array)
 {
-	if (fMajorDim > 0) {
-		nTYPE* pcol = &(*this)(0,col);
-		for (int i = 0; i < fMajorDim; i++) {
-			*pcol = *array++;
-			pcol += fMinorDim;
-		}
+	nTYPE* pcol = &(*this)(0,col);
+	for (int i = 0; i < fMajorDim; i++)
+	{
+		*pcol = *array++;
+		pcol += fMinorDim;
 	}
 }
-
-template <class nTYPE>
-inline void nArray2DT<nTYPE>::SetColumn(int col, const nArrayT<nTYPE>& array)
-{
-/* range checking */
-#if __option (extended_errorcheck)
-	if (array.Length() != fMajorDim) ExceptionT::SizeMismatch();
-#endif
-
-	/* wrapper */
-	SetColumn(col, array.Pointer());
-}
-
 
 /* row and column sums */
 template <class nTYPE>
@@ -622,18 +603,14 @@ nTYPE nArray2DT<nTYPE>::RowSum(int row) const
 template <class nTYPE>
 nTYPE nArray2DT<nTYPE>::ColumnSum(int col) const
 {
-	if (fMajorDim == 0)
-		return 0.0;
-	else 
+	nTYPE sum = 0.0;
+	nTYPE* p  = &(*this)(0,col);
+	for (int i = 0; i < fMajorDim; i++)
 	{
-		nTYPE sum = 0.0;
-		nTYPE* p  = &(*this)(0,col);
-		for (int i = 0; i < fMajorDim; i++) {
-			sum += *p;
-			p   += fMinorDim;
-		}
-		return sum;
+		sum += *p;
+		p   += fMinorDim;
 	}
+	return sum;
 }
 
 /* row scaling */	
@@ -648,12 +625,11 @@ inline void nArray2DT<nTYPE>::ScaleRow(int row, const nTYPE& scale)
 template <class nTYPE>
 inline void nArray2DT<nTYPE>::ScaleColumn(int col, const nTYPE& scale)
 {
-	if (fMajorDim > 0) {
-		nTYPE* p = &(*this)(0,col);
-		for (int i = 0; i < fMajorDim; i++)	{
-			*p *= scale;
-			p += fMinorDim;
-		}
+	nTYPE* p  = &(*this)(0,col);
+	for (int i = 0; i < fMajorDim; i++)
+	{
+		*p *= scale;
+		p += fMinorDim;
 	}
 }
 
@@ -695,22 +671,18 @@ nTYPE nArray2DT<nTYPE>::DotColumn(int col, const nArrayT<nTYPE>& array) const
 	if (array.Length() != fMajorDim) ExceptionT::SizeMismatch();
 #endif
 	
-	if (fMajorDim == 0)
-		return 0.0;
-	else
+	nTYPE *p = Pointer(col);
+	nTYPE *parray = array.Pointer();
+	register nTYPE sum = 0.0;
+	register nTYPE temp;
+	for (int i = 0; i < fMajorDim; i++)
 	{
-		nTYPE *p = Pointer(col);
-		nTYPE *parray = array.Pointer();
-		register nTYPE sum = 0.0;
-		register nTYPE temp;
-		for (int i = 0; i < fMajorDim; i++) {
-			temp  = *p;
-			temp *= *parray++;
-			sum += temp;
-			p += fMinorDim;
-		}
-		return sum;
+		temp  = *p;
+		temp *= *parray++;
+		sum += temp;
+		p += fMinorDim;
 	}
+	return sum;
 }
 
 /* row to row operations */
@@ -952,16 +924,15 @@ inline void nArray2DT<nTYPE>::AddToColumnScaled(int col, const nTYPE& scale,
 template <class nTYPE>
 void nArray2DT<nTYPE>::AddToColumnScaled(int col, const nTYPE& scale, const nTYPE* array)
 {
-	if (fMajorDim > 0) {
-		nTYPE temp;
-		const nTYPE* parray = array;	
-		nTYPE* pcol = Pointer(col);
-		for (int i = 0; i < fMajorDim; i++) {
-			temp = *parray++;
-			temp *= scale;
-			*pcol += temp;
-			pcol += fMinorDim;
-		}
+	nTYPE temp;
+	const nTYPE* parray = array;	
+	nTYPE* pcol = Pointer(col);
+	for (int i = 0; i < fMajorDim; i++)
+	{
+		temp = *parray++;
+		temp *= scale;
+		*pcol += temp;
+		pcol += fMinorDim;
 	}
 }	
 
