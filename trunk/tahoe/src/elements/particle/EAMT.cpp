@@ -172,7 +172,7 @@ void EAMT::WriteOutput(void)
   for (int i = 0; i < fNumTypes; i++)
     mass[i] = fEAMProperties[fPropertiesMap(i,i)]->Mass();
 
-  if(iEmb = 1)
+  if(iEmb == 1)
     {
       /* get electron density */
       if(ndof == 2) GetRho2D(coords,fElectronDensity);
@@ -1285,7 +1285,7 @@ void EAMT::RHSDriver2D(void)
   /* global coordinates */
   const dArray2DT& coords = support.CurrentCoordinates();
 
-  if(iEmb = 1)
+  if(iEmb == 1)
     {
       /* get electron density */
       GetRho2D(coords,fElectronDensity);
@@ -1387,6 +1387,21 @@ void EAMT::RHSDriver2D(void)
 	  /* Component of force coming from Embedding energy */
 	  if(iEmb == 1)
 	    {
+	      /*
+	      {
+		double pp = r*dr;
+		int kk = int(pp);
+		int max_row = num_rows-2;
+		kk = (kk < max_row) ? kk : max_row;
+		pp -= kk;
+		pp = (pp < 1.0) ? pp : 1.0;				
+		const double* c = Paradyn_table + kk*row_size;
+		F = c[4] + pp*(c[5] + pp*c[6]);
+	      }
+	      */
+
+
+
 	      double Ep_i   = fEmbeddingForce(tag_i,0); 
 	      double rhop_i = ed_force_i(r,NULL,NULL);
 	      
@@ -1433,7 +1448,7 @@ void EAMT::RHSDriver3D(void)
   /* global coordinates */
   const dArray2DT& coords = support.CurrentCoordinates();
   
-  if(iEmb = 1)
+  if(iEmb == 1)
     {
       /* get electron density */
       GetRho3D(coords,fElectronDensity);
