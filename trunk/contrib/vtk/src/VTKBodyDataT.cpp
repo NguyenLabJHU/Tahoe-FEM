@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.10 2002-01-16 00:33:57 cjkimme Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.11 2002-01-19 03:03:31 paklein Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -89,8 +89,8 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 	/* dimensions */
 	int num_elem_blocks = model.NumElementGroups();
 	int num_node_sets = model.NumNodeSets();
-//	fUGrids.Allocate(num_elem_blocks + num_node_sets);	
-	fUGrids.Allocate(num_elem_blocks);
+	fUGrids.Allocate(num_elem_blocks + num_node_sets);	
+	//fUGrids.Allocate(num_elem_blocks);
   
 	/* load element connectivities */
 	for (int i = 0 ; i < num_elem_blocks; i++)
@@ -113,16 +113,14 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
     cout << "read element blocks" << endl;
 
 	/* load node sets */
-//TEMP - since switching to the model manager, node sets cause the console to crash.
-//       it's probably something to do with the node numbering offset. Before the model
-//       manager, nodes where numbered from 1, and how they're numbering from 0.
-#if 0
+#if 1
 	for (int i = 0; i < num_node_sets; i++)
     {
 		/* read nodes */
 		GeometryT::CodeT geom_code = GeometryT::kPoint;
 		const iArrayT& nodes = model.NodeSet(i);
-		iArray2DT connectivities(num_nodes, 1, nodes.Pointer());
+		
+		iArray2DT connectivities(nodes.Length(), 1, nodes.Pointer());
 	
 #if __option(extended_errorcheck)
 		cout << "VTKBodyDataT::VTKBodyDataT: reading node set: " 
