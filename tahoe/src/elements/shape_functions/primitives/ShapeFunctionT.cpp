@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.3 2001-08-06 22:08:16 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.4 2001-08-20 06:53:54 paklein Exp $ */
 /* created: paklein (06/26/1996)                                          */
 
 #include "ShapeFunctionT.h"
@@ -313,34 +313,6 @@ double*   pB = B_matrix.Pointer();
 	}
 }
 
-/* convert shape function derivatives by applying a chain rule
-* transformation:
-*
-*      d Na / d x_i = (d Na / d X_J) (d X_J/d x_i)
-*/
-void ShapeFunctionT::SetChainRule(const dMatrixT& changeofvar,
-	dArray2DT& derivatives)
-{
-	dArray2DT& DNa = (*pDNaU)[fCurrIP];
-	int   numnodes = DNa.MinorDim();
-
-	/* allocate memory */
-	derivatives.Allocate(DNa.MajorDim(),numnodes);
-
-	/* apply chain rule derivative */
-	for (int i = 0; i < numnodes; i++)
-	{
-		/* fetch values */
-		DNa.ColumnCopy(i,fv1);
-
-		/* transform */
-		changeofvar.MultTx(fv1,fv2);
-		
-		/* write back */	
-		derivatives.SetColumn(i,fv2);
-	}
-}
-
 /********************************************************************************/
 
 /* print the shape function values to the output stream */
@@ -359,6 +331,32 @@ void ShapeFunctionT::Print(ostream& out) const
 	else	
 	    for (int i = 0; i < pDNaU->Length(); i++)
 			(*pDNaU)[i].WriteNumbered(out);
+}
+
+/***********************************************************************
+* Protected
+***********************************************************************/
+
+void ShapeFunctionT::DoTransformDerivatives(const dMatrixT& changeofvar, 
+	const dArray2DT& original, dArray2DT& transformed)
+{
+	int  numnodes = original.MinorDim();
+
+	/* allocate memory */
+	transformed.Allocate(original.MajorDim(),numnodes);
+
+	/* apply chain rule derivative */
+	for (int i = 0; i < numnodes; i++)
+	{
+		/* fetch values */
+		original.ColumnCopy(i,fv1);
+
+		/* transform */
+		changeofvar.MultTx(fv1,fv2);
+		
+		/* write back */	
+		transformed.SetColumn(i,fv2);
+	}
 }
 
 /***********************************************************************

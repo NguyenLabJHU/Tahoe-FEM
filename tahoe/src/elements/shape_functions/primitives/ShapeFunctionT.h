@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.7 2001-08-06 22:08:16 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.8 2001-08-20 06:53:54 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -81,12 +81,15 @@ public:
 	 * \param coord coordinates in the parent domain */
 	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, const dArrayT& coord) const;
 
-	/** convert shape function derivatives by applying a chain rule
+	/** convert derivatives of the enhanced modes by applying a chain rule
 	 * transformation:
 	 *
 	 *      d Na / d x_i = (d Na / d X_J) (d X_J/d x_i)
-	 */
-	void SetChainRule(const dMatrixT& changeofvar, dArray2DT& derivatives);
+	 *
+	 * \param changeofvar jacobian matrix of the coordinate transformation
+	 * \param derivatives transformed shape function derivatives. This array is
+	 *        dimensioned during the call: [nsd] x [num_modes] */
+	void TransformDerivatives(const dMatrixT& changeofvar, dArray2DT& derivatives);
 
 	/** set strain displacement matrix as in Hughes (2.8.20) */
 	void B(dMatrixT& B_matrix) const;
@@ -114,6 +117,10 @@ public:
 
 protected:
 
+	/** apply change of variables to the shape function derivatives */
+	void DoTransformDerivatives(const dMatrixT& changeofvar, const dArray2DT& original,
+		dArray2DT& transformed);
+
 	/** set Grad_x matrix. used by the meshfree classes to substitutite a set
 	 * of shape function derivatives. the set values are retained until the next 
 	 * TopIP/NextIP loop */
@@ -137,14 +144,16 @@ private:
 	/** compute mean dilatation, Hughes (4.5.23) */
 	void SetMeanDilatation(void);
 
+protected:
+
+	/* local coordinates */
+	const LocalArrayT& fCoords;
+
 private:
 
 	/* strain-displacement option */
 	StrainOptionT fB_option;
 	dArray2DT     fB_workspace;
-
-	/* local coordinates */
-	const LocalArrayT& fCoords;
 
 	/* global shape function derivatives */
 	dArrayT	fDet;	         // d(fCoords) = j d(parent domain)
@@ -233,6 +242,11 @@ inline void ShapeFunctionT::GradNa(dMatrixT& grad_Na) const
 inline void ShapeFunctionT::B_q(dMatrixT& B_matrix) const
 {
 	B_q((*pDNaU)[fCurrIP], B_matrix);
+}
+
+inline void ShapeFunctionT::TransformDerivatives(const dMatrixT& changeofvar, dArray2DT& derivatives)
+{
+	DoTransformDerivatives(changeofvar, (*pDNaU)[fCurrIP], derivatives);
 }
 
 /********************************************************************************/
