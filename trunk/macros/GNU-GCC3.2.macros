@@ -1,11 +1,11 @@
-# $Id: GNU-GCC3.2.macros,v 1.6 2004-01-02 01:37:20 paklein Exp $
+# $Id: GNU-GCC3.2.macros,v 1.7 2004-01-06 00:16:52 paklein Exp $
 # GNU
 #
 MAKE        = make
 DEFINES     = -D__GNU__ -DNON_UNIX_STDIO -D__GCC_3__ 
-MAKEDEPEND = makedepend
-MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/include/c++/3.2 -I/usr/include/c++/3.2/backward -I/usr/include/c++/3.2/i386-redhat-linux/ $(DEFINES)
+MAKEDEPEND = g++ -MM
+MAKEDEPEND_OUTPUT = -MF
+MAKEDEPENDFLAGS = -I$(INC_DIR) $(DEFINES) -Wno-deprecated
 #
 COMP_C      = gcc
 COMP_CC     = g++
