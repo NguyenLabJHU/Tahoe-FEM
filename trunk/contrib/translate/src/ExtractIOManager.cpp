@@ -30,8 +30,8 @@ void ExtractIOManager::Translate (const StringT& program, const StringT& version
     }
   // keep user informed
   if (fNumTS < 10) fCheck = fNumTS;
-  else if (fNumTS < 100) fCheck = fNumTS * 0.1;
-  else if (fNumTS < 1000) fCheck = fNumTS * 0.05;
+  else if (fNumTS < 100) fCheck = int(fNumTS * 0.1);
+  else if (fNumTS < 1000) fCheck = int(fNumTS * 0.05);
   else fCheck = 100;
 
   // set variables

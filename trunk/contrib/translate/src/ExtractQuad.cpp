@@ -19,7 +19,7 @@ void ExtractQuad::Initialize (void)
 
   int numelems, numelemnodes;
   InitializeElements(fElementGroup, fElementName);
-  fModel.ElementGroupDimensions (fElementGroup, numelems, numelemnodes);
+  fModel.ElementGroupDimensions (fElementName, numelems, numelemnodes);
   if (numelems < 1)
     {
       fMessage << "\n No elements found.";
@@ -51,7 +51,7 @@ void ExtractQuad::TranslateVariables (void)
 
   // need to allocate correct number of quad points
   int numelems, numelemnodes;
-  fModel.ElementGroupDimensions (fElementGroup, numelems, numelemnodes);
+  fModel.ElementGroupDimensions (fElementName, numelems, numelemnodes);
   int numquadpts = fModel.NumElementQuadPoints (fElementName);
 
   fVarData.Allocate (numelems * numquadpts, fNumQV);
