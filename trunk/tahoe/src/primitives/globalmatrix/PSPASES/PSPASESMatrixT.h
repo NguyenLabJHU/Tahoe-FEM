@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.h,v 1.4 2004-03-14 06:11:13 paklein Exp $ */
+/* $Id: PSPASESMatrixT.h,v 1.5 2004-03-16 06:56:32 paklein Exp $ */
 #ifndef _PSPASES_MATRIX_T_H_
 #define _PSPASES_MATRIX_T_H_
 
@@ -122,8 +122,14 @@ protected:
 	/** matrix structure builder */
 	MSRBuilderT* fBuilder;
 
-	/** runtime flag */
-	int fIsSymFactorized;
+	/** \name factorization flags */
+	/*@{*/
+	/** true if matrix has been symbolically factorized */
+	bool fIsSymFactorized;
+
+	/** true if matrix has been numerically factorized */
+	bool fIsNumFactorized;
+	/*@}*/
 
 	/** \name matrix structure and data */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.h,v 1.12 2003-10-31 20:53:14 paklein Exp $ */
+/* $Id: DiagonalMatrixT.h,v 1.13 2004-03-16 06:56:28 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _DIAGONAL_MATRIX_H_
@@ -102,8 +102,12 @@ protected:
 	
 private:
 
+	/** the matrix */
 	dArrayT	fMatrix;
-	
+
+	/** runtime flag */
+	bool fIsFactorized;
+
 	/* mode flag */
 	AssemblyModeT fMode;
 };

@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.h,v 1.12 2004-02-11 16:46:30 paklein Exp $ */
+/* $Id: CCSMatrixT.h,v 1.13 2004-03-16 06:56:28 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #ifndef _CCSMATRIX_T_H_
 #define _CCSMATRIX_T_H_
@@ -165,13 +165,21 @@ private:
 		
 protected:
 
-	/* equations sets */
+	/** \name equations sets */
+	/*@{*/
 	LinkedListT<const iArray2DT*> fEqnos;
 	LinkedListT<const RaggedArray2DT<int>*> fRaggedEqnos;
+	/*@}*/
 
+	/** \name the matrix */
+	/*@{*/
 	int*    fDiags; 	
 	int     fNumberOfTerms;
 	double* fMatrix;
+	/*@}*/
+	
+	/** runtime flag */
+	bool fIsFactorized;
 };
 
 /* Returns the number of elements ABOVE the diagonal in col */

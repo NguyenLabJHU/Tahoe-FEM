@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.h,v 1.13 2004-03-14 02:51:32 paklein Exp $ */
+/* $Id: FullMatrixT.h,v 1.14 2004-03-16 06:56:28 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #ifndef _FULL_MATRIX_T_H_
@@ -88,8 +88,11 @@ protected:
 
 protected:
 
-	/* the matrix */
+	/** the matrix */
 	LAdMatrixT fMatrix;
+	
+	/** runtime flag */
+	bool fIsFactorized;
 };
 
 } // namespace Tahoe 

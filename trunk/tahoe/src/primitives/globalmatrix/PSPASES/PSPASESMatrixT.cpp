@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.7 2004-03-14 07:12:04 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.8 2004-03-16 06:56:32 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -19,7 +19,8 @@ PSPASESMatrixT::PSPASESMatrixT(ostream& out, int check_code, CommunicatorT& comm
 	fComm(comm),
 	fBuilder(NULL),
 	faptrs_man(10, faptrs, 2),
-	fIsSymFactorized(0)
+	fIsSymFactorized(false),
+	fIsNumFactorized(false)
 {
 	const char caller[] = "PSPASESMatrixT::PSPASESMatrixT";
 
@@ -38,7 +39,9 @@ PSPASESMatrixT::PSPASESMatrixT(ostream& out, int check_code, CommunicatorT& comm
 
 PSPASESMatrixT::PSPASESMatrixT(const PSPASESMatrixT& source):
 	GlobalMatrixT(source),
-	fComm(source.fComm)
+	fComm(source.fComm),
+	fIsSymFactorized(source.fIsSymFactorized),
+	fIsNumFactorized(source.fIsNumFactorized)
 {
 	ExceptionT::GeneralFail("PSPASESMatrixT::PSPASESMatrixT", "not implemented");
 }
@@ -50,7 +53,7 @@ PSPASESMatrixT::~PSPASESMatrixT(void)
 
 	/* free storage (order matters) */
 	int option_0 = 0;
-	if (fIsFactorized) PSPACEC(&fNcomm, &option_0);
+	if (fIsNumFactorized) PSPACEC(&fNcomm, &option_0);
 	if (fIsSymFactorized) PSPACEC(&fYcomm, &option_0);
 }
 
@@ -61,17 +64,18 @@ void PSPASESMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqnos) { fBuilder
 /* set the internal matrix structure */
 void PSPASESMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 {
-	/* free space */
-	int option_0 = 0;
-	if (fIsFactorized) PSPACEC(&fNcomm, &option_0);
-
 	/* inherited - initialize MSR data */
 	GlobalMatrixT::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
-	fIsFactorized = 0;
+	/* free space */
+	int option_0 = 0;
+	if (fIsNumFactorized) {
+		PSPACEC(&fNcomm, &option_0);
+		fIsNumFactorized = false;
+	}
 	if (fIsSymFactorized) {
 		PSPACEC(&fYcomm, &option_0);
-		fIsSymFactorized = 0;
+		fIsSymFactorized = false;
 	}
 
 	/* exchange number of equations per processor */
@@ -124,9 +128,9 @@ void PSPASESMatrixT::Clear(void) {
 	tmp = 0.0;
 	
 	int option_0 = 0;
-	if (fIsFactorized) {
+	if (fIsNumFactorized) {
 		PSPACEC(&fNcomm, &option_0);	
-		fIsFactorized = 0;
+		fIsNumFactorized = 0;
 	}
 }
 
@@ -272,6 +276,9 @@ void PSPASESMatrixT::PrintLHS(bool force) const
 /* precondition matrix */
 void PSPASESMatrixT::Factorize(void)
 {
+	/* quick exit */
+	if (fIsNumFactorized) return;
+
 	const char caller[] = "PSPASESMatrixT::Factorize";
 
 	/* MPI communicator */
@@ -295,11 +302,11 @@ void PSPASESMatrixT::Factorize(void)
 		/* make time stamp */
 		fComm.Log(CommunicatorT::kUrgent, caller, "end symbolic factorization");
 
-		fIsSymFactorized = 1;
+		fIsSymFactorized = true;
 	}
 
 	/* compute numerical factorization */
-	if (!fIsFactorized) {
+	if (!fIsNumFactorized) {
 
 		/* make time stamp */
 		fComm.Log(CommunicatorT::kUrgent, caller, "start numerical factorization");
@@ -311,7 +318,7 @@ void PSPASESMatrixT::Factorize(void)
 		/* make time stamp */
 		fComm.Log(CommunicatorT::kUrgent, caller, "end numerical factorization");
 
-		fIsFactorized = 1;
+		fIsNumFactorized = true;
 	}
 }
 	
@@ -320,8 +327,8 @@ void PSPASESMatrixT::BackSubstitute(dArrayT& result)
 {
 	const char caller[] = "PSPASESMatrixT::BackSubstitute";
 
-	/* flag should not be set */
-	if (!fIsFactorized) ExceptionT::GeneralFail(caller);
+	/* check */
+	if (!fIsNumFactorized) ExceptionT::GeneralFail(caller, "matrix is not factorized");
 
 	/* MPI communicator */
 	MPI_Comm comm = fComm.Comm();
