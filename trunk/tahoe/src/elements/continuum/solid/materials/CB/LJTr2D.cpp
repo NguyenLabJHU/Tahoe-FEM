@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.cpp,v 1.5 2002-11-14 17:06:00 paklein Exp $ */
+/* $Id: LJTr2D.cpp,v 1.6 2002-12-17 18:53:55 cjkimme Exp $ */
 /* created: paklein (07/01/1996) */
 #include "LJTr2D.h"
 
@@ -13,7 +13,7 @@ const double sqrt3 = sqrt(3.0);
 
 /* constructor */
 LJTr2D::LJTr2D(ifstreamT& in, const FDMatSupportT& support):
-	NL_E_RotMat2DT(in, support, kPlaneStress),
+	NL_E_Mat2DT(in, support, kPlaneStress),
 	fBondVectors(3,2)
 {
 	in >> fScale;	if (fScale < 0.0) throw ExceptionT::kBadInputValue;
@@ -30,7 +30,7 @@ LJTr2D::LJTr2D(ifstreamT& in, const FDMatSupportT& support):
 		shbond_nat.Set(2, bonds[i]);
 		fBondVectors.RowAlias(i,shbond);
 	
-		shbond = TransformOut(shbond_nat);
+		//shbond = TransformOut(shbond_nat);
 	}
 }
 
@@ -38,7 +38,7 @@ LJTr2D::LJTr2D(ifstreamT& in, const FDMatSupportT& support):
 void LJTr2D::Print(ostream& out) const
 {
 	/* inherited */
-	NL_E_RotMat2DT::Print(out);
+	NL_E_Mat2DT::Print(out);
 
 	out << " Lennard-Jones scaling constant. . . . . . . . . = " << fScale << '\n';
 }
@@ -49,7 +49,7 @@ void LJTr2D::Print(ostream& out) const
 
 void LJTr2D::PrintName(ostream& out) const
 {
-	NL_E_RotMat2DT::PrintName(out);
+	NL_E_Mat2DT::PrintName(out);
 
 	out << "    LJ triangular 2D\n";
 }
