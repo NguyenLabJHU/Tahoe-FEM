@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.h,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* $Id: IOBaseT.h,v 1.2 2001-06-14 12:55:10 sawimme Exp $ */
 /* created: sawimme (09/28/1999)                                          */
 /* Base class for InputBaseT and OutputBaseT                              */
 
@@ -21,10 +21,13 @@ public:
 	              kTahoeII = 1,
 	              kTecPlot = 2,
 	              kEnSight = 3,
-            kEnSightBinary = 4,
+                kEnSightBinary = 4,
 	             kExodusII = 5,
-                   kAbaqus = 6,
-             kAbaqusBinary = 7};
+                       kAbaqus = 6,
+                 kAbaqusBinary = 7,
+                          kAVS = 8,
+                    kAVSBinary = 9,
+  	        kPatranNeutral = 10 };
 	
 	/* constructor */
 	IOBaseT(ostream& out);
@@ -35,6 +38,8 @@ public:
 	/* convert integer to FileTypeT */
 	static FileTypeT int_to_FileTypeT(int i);
 	friend istream& operator>>(istream& in, IOBaseT::FileTypeT& file_type);
+
+	void PrintFormat (ostream &log) const;
 
 protected:
 
