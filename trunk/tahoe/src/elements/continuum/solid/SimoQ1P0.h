@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.h,v 1.4 2002-10-10 01:40:56 paklein Exp $ */
+/* $Id: SimoQ1P0.h,v 1.5 2002-10-10 15:50:16 sawimme Exp $ */
 #ifndef _SIMO_Q1_P0_H_
 #define _SIMO_Q1_P0_H_
 
@@ -23,6 +23,9 @@ public:
 
 	/** constructor */
 	SimoQ1P0(const ElementSupportT& support, const FieldT& field);
+
+	/** destructor */
+	~SimoQ1P0(void);
 
 	/** data initialization */
 	virtual void Initialize(void);
