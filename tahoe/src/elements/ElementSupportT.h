@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.11 2002-11-14 17:05:49 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.12 2002-11-25 07:24:07 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -226,6 +226,7 @@ public:
 	void AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const;
 	void AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos) const;
+	void AssembleLHS(int group, const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos) const;
 	void AssembleRHS(int group, const dArrayT& elRes, const nArrayT<int>& eqnos) const;
 	/*@}*/
 
@@ -281,8 +282,6 @@ private:
 	NodeManagerT& Nodes(void) const;
 	/*@}*/
 
-//	FieldT* fField;
-	
 	/** the boss */
 	FEManagerT* fFEManager;
 	

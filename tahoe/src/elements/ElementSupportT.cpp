@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.9 2002-11-09 18:20:46 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.10 2002-11-25 07:24:07 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -475,6 +475,18 @@ void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat,
 #pragma unused(elMat)
 #pragma unused(row_eqnos)
 #pragma unused(col_eqnos)
+#endif
+}
+
+void ElementSupportT::AssembleLHS(int group, const nArrayT<double>& diagonal_elMat, 
+	const nArrayT<int>& eqnos) const
+{
+#ifndef _SIERRA_TEST_
+	FEManager().AssembleLHS(group, diagonal_elMat, eqnos);
+#else
+#pragma unused(group)
+#pragma unused(diagonal_elMat)
+#pragma unused(eqnos)
 #endif
 }
 
