@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.27 2003-10-06 18:57:53 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.28 2003-10-06 19:21:48 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -218,7 +218,7 @@ void APS_AssemblyT::Initialize(void)
 	fShapes = new ShapeFunctionT(fGeometryCode, fNumIP, fCurrCoords);
 	fShapes->Initialize();
 	//fCurrSurfCoords??
-	fCurrCoordsSurf.Dimension(n_en/2, n_sd-1);
+	fCurrCoordsSurf.Dimension(n_en/2, n_sd);
 	fSurfShapes = new ShapeFunctionT(fGeometryCodeSurf, fNumIPSurf, fCurrCoordsSurf);
 	fSurfShapes->Initialize();
 	
@@ -566,7 +566,7 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		const iArrayT& nodes_u = CurrentElement().NodesU();
 		if (nodes_u.HasValue(node, nodeposition))
 		{
-			e = CurrElementNumber();
+		e = CurrElementNumber();
 
 		SetLocalU (u);
 		SetLocalU (u_n);
@@ -1083,7 +1083,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
 		Convert.Interpolate 	( fShapes, 	gamma_p, gamma_p_n, fgamma_p, fgamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
-		Convert.SurfShapes		(	fSurfShapes, fFEA_SurfShapes );
+
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
 		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
@@ -1139,7 +1139,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 							//??set nodes and nodal coords for fSurfShapes??
 							fCurrCoordsSurf = "coords of this e's facet nodes";
 							fSurfShapes->SetDerivatives(); 
-							fCoords = fCurrCoordsSurf;
+							//fCoords = fCurrCoordsSurf;
 						
 							//taken from SurfaceShapeT to find fNormal
 							/* compute facet coordinates */
@@ -1155,7 +1155,8 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 							fNormal = Q(1);
 							
 							iArrayT fFacetNodes = ?;
-						
+							
+							Convert.SurfShapes	( fSurfShapes, fFEA_SurfShapes );
 							Convert.Gradients 	( fSurfShapes, 	u, u_n, fgrad_u_surf, fgrad_u_surf_n );
 							APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgrad_gamma_p, fstate ); 
 							fEquation_d -> Form_LHS_Kd_Surf ( fKdd, fFEA_SurfShapes, fNormal );
