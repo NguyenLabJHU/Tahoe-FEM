@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.cpp,v 1.16 2003-03-03 20:45:13 ebmarin Exp $ */
+/* $Id: BCJHypo3D.cpp,v 1.17 2003-05-22 09:06:27 paklein Exp $ */
 #include "BCJHypo3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -569,7 +569,7 @@ void BCJHypo3D::IntegrateConstitutiveEqns(bool& converged, int subIncr,
   ElasticTrialStress();
 
   // check for inelastic process
-  if ( fEQXiTr > (1.+1.e-6)*fKineticEqn->h(fInternal_n[kDEQP]/fdt,fInternalTr[kKAPP]) )
+  if ( fEQXiTr > (1.+1.e-6)*fKineticEqn->h(((fabs(fdt) > kSmall) ? fInternal_n[kDEQP]/fdt : 0.0),fInternalTr[kKAPP]) )
     {
       // step 5. forward gradient estimate
       if (subIncr == 1) ForwardGradientEstimate();
