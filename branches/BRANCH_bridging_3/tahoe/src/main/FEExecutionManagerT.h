@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.21 2003-10-02 21:05:17 hspark Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.21.6.1 2003-10-16 12:56:14 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
@@ -100,8 +100,12 @@ private:
 #ifdef BRIDGING_ELEMENT
 	/** \name bridging scale with different integrators */
 	/*@{*/
-	/** quasistatic multi-Tahoe bridging scale */
-	void RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
+	/** quasistatic multi-Tahoe bridging scale using a staggered solution strategy */
+	void RunStaticBridging_staggered(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
+		ofstream& log_out) const;
+
+	/** quasistatic multi-Tahoe bridging scale using a monolithic solution strategy */
+	void RunStaticBridging_monolithic(ifstreamT& in, FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
 		ofstream& log_out) const;
         
 #ifdef __DEVELOPMENT__

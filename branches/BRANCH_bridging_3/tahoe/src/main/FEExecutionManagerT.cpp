@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.51 2003-10-12 01:39:32 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.51.2.1 2003-10-16 12:56:14 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -42,6 +42,7 @@
 /* needed for bridging calculations FEExecutionManagerT::RunBridging */
 #ifdef BRIDGING_ELEMENT
 #include "FEManagerT_bridging.h"
+#include "MultiManagerT.h"
 #ifdef __DEVELOPMENT__
 #include "FEManagerT_THK.h"
 #endif
@@ -376,7 +377,16 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 
 			t1 = clock();
 			phase = 1;
-			RunStaticBridging(continuum, atoms, log_out);	
+			
+			/* check for multi solver */
+			int multi = -99;
+			in >> multi;
+			if (multi == 0)
+				RunStaticBridging_staggered(continuum, atoms, log_out);	
+			else if (multi == 1)
+				RunStaticBridging_monolithic(in, continuum, atoms, log_out);	
+			else
+				ExceptionT::BadInputValue(caller, "expecting 1|0 for multi-solver: %d", multi);
 		}
 		else if (impexp == IntegratorT::kExplicit)
 		{
@@ -433,9 +443,9 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 	status << "\n End Execution\n" << endl;
 }
 
-void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
+void FEExecutionManagerT::RunStaticBridging_staggered(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
 {
-	const char caller[] = "FEExecutionManagerT::RunStaticBridging";
+	const char caller[] = "FEExecutionManagerT::RunStaticBridging_staggered";
 	    
 	/* configure ghost nodes */
 	int group = 0;
@@ -536,7 +546,7 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 				continuum.SetExternalForce(group_num, F_C);
 #endif
 				continuum.FormRHS(group_num);
-				continuum_res = continuum.Residual(group_num).Magnitude(); //serial
+				continuum_res = continuum.RHS(group_num).Magnitude(); //serial
 					
 				/* solve continuum */
 				if (1 || error == ExceptionT::kNoError) {
@@ -554,7 +564,7 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 				atoms.SetExternalForce(group_num, F_A);
 #endif
 				atoms.FormRHS(group_num);
-				atoms_res = atoms.Residual(group_num).Magnitude(); //serial
+				atoms_res = atoms.RHS(group_num).Magnitude(); //serial
 
 				/* reset the reference errors */
 				if (count == 1) {
@@ -605,6 +615,73 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 				<< setw(kIntWidth) << loop_count[i]
 				<< setw(kIntWidth) << atom_iter_count[i]
 				<< setw(kIntWidth) << continuum_iter_count[i] << '\n';
+	}
+}
+
+void FEExecutionManagerT::RunStaticBridging_monolithic(ifstreamT& in, FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
+{
+	const char caller[] = "FEExecutionManagerT::RunStaticBridging_monolithic";
+	    
+	/* configure ghost nodes */
+	int group = 0;
+	int order1 = 0;
+	StringT bridging_field = "displacement";
+	bool make_inactive = true;
+	bool active = false;
+	atoms.InitGhostNodes();
+	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
+	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), make_inactive);
+
+	/* manage multiple FEManagerT's */
+	CommunicatorT multi_comm;
+	StringT multi_out_file;
+	multi_out_file.Root(in.filename());
+	multi_out_file.Append(".out");
+	ofstreamT multi_out;
+	multi_out.open(multi_out_file);
+	MultiManagerT multi_manager(in, multi_out, multi_comm, &atoms, &continuum);
+	multi_manager.Initialize();
+
+	/* time managers */
+	TimeManagerT* atom_time = atoms.TimeManager();
+	TimeManagerT* continuum_time = continuum.TimeManager();
+ 
+	dArray2DT field_at_ghosts;
+	atom_time->Top();
+	continuum_time->Top();
+	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
+	while (atom_time->NextSequence() && continuum_time->NextSequence())
+	{	
+		/* set to initial condition */
+		atoms.InitialCondition();
+		continuum.InitialCondition();
+
+		/* loop over time increments */
+		AutoArrayT<int> loop_count, atom_iter_count, continuum_iter_count;
+		bool seq_OK = true;
+		while (seq_OK && 
+			atom_time->Step() &&
+			continuum_time->Step()) //TEMP - same clock
+		{
+			/* running status flag */
+			ExceptionT::CodeT error = ExceptionT::kNoError;		
+
+			/* initialize the current time step */
+			if (error == ExceptionT::kNoError) 
+				error = multi_manager.InitStep();
+
+			/* solve the current time step */
+			if (error == ExceptionT::kNoError) 
+				error = multi_manager.SolveStep();
+			
+			/* close the current time step */
+			if (error == ExceptionT::kNoError)
+				error = multi_manager.CloseStep();
+				
+			/* handle errors */
+			if (error != ExceptionT::kNoError)
+				ExceptionT::GeneralFail(caller, "no recovery");
+		}
 	}
 }
 

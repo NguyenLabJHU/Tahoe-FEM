@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.63 2003-09-09 22:43:48 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.63.8.1 2003-10-16 12:56:14 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -382,6 +382,18 @@ void FEManagerT::FormRHS(int group) const
 
 	/* lock assembly into RHS */
 	fSolvers[group]->LockRHS();
+}
+
+/* the residual for the given group */
+const dArrayT& FEManagerT::RHS(int group) const 
+{
+	return fSolvers[group]->RHS(); 
+}
+
+/* the residual for the given group */
+const GlobalMatrixT& FEManagerT::LHS(int group) const 
+{
+	return fSolvers[group]->LHS(); 
 }
 
 /* collect the internal force on the specified node */

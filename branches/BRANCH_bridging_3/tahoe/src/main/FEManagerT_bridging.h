@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.5 2003-07-11 16:46:07 hspark Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.5.12.1 2003-10-16 12:56:14 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -128,16 +128,9 @@ public:
 
 	/** (re-)set the equation number for the given group */
 	virtual void SetEquationSystem(int group);
-	
-	/** \name solver control */
-	/*@{*/
-	/** the residual for the given group. The array contains the residual from
-	 * the latest call to FEManagerT::FormRHS */
-	const dArrayT& Residual(int group) const;
 
 	/** set the reference error for the given group */
 	void SetReferenceError(int group, double error) const;
-	/*@}*/
 
 	/** return the internal forces for the given solver group associated with the
 	 * most recent call to FEManagerT_bridging::FormRHS. */

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.9 2003-08-14 06:34:49 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.9.10.1 2003-10-16 12:56:14 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -505,13 +505,6 @@ void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& ato
 	const dArray2DT& atom_values = (*atom_field)[0];
 	const dArray2DT& fem_values = (*fem_field)[0];
 	BridgingScale().BridgingFields(field, fDrivenCellData, atom_values, fem_values, fProjection, totalu);
-}
-
-
-/* the residual for the given group */
-const dArrayT& FEManagerT_bridging::Residual(int group) const 
-{
-	return fSolvers[group]->RHS(); 
 }
 
 /* set the reference error for the given group */
