@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.11 2002-08-05 19:27:55 cjkimme Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.12 2002-08-07 23:45:24 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch2DT.h"
@@ -101,13 +101,13 @@ const dArrayT& TvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		sigbyL = fsigma_max/fL_1;
 	else if (L < fL_2)
 		sigbyL = fsigma_max/L;
-	else if (L < 1)
-		sigbyL = fsigma_max*(1 - (L - fL_2)/(1 - fL_2))/L;
+	else if (L < fL_fail)
+		sigbyL = fsigma_max*(1. - L)/(1. - fL_2)/L;
 	else
 		sigbyL = 0.0;	
 
-	fTraction[0] = sigbyL*(u_t/fd_c_t)*(fd_c_n/fd_c_t);
-	fTraction[1] = sigbyL*(u_n/fd_c_n);
+	fTraction[0] = sigbyL*r_t*(fd_c_n/fd_c_t);
+	fTraction[1] = sigbyL*r_n;
 
 	/* penetration */
 	if (u_n < 0) fTraction[1] += fK*u_n;
@@ -126,20 +126,13 @@ const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif
 
+	/*double u_t = jump_u[0];*/
 	double u_t = jump_u[0];
 	double u_n = jump_u[1];
 
-	double z1, z2, z3, z4, z5, z6;	
-
-	/* effective opening */
-	z1 = u_n*u_n;
-	z2 = 1./(fd_c_n*fd_c_n);
-	z3 = u_t*u_t;
-	z4 = 1./(fd_c_t*fd_c_t);
-	z5 = z1*z2;
-	z6 = z3*z4;
-	z5 = z5 + z6;
-	double L = sqrt(z5);
+	double dtm1 = 1./fd_c_t/fd_c_t;
+	double dnm1 = 1./fd_c_n/fd_c_n;
+	double L = sqrt(u_t*u_t*dtm1 + u_n*u_n*dnm1);
 
 	if (L < fL_1) // K1
 	{
@@ -148,27 +141,22 @@ const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		fStiffness[2] = 0.0;
 		fStiffness[3] = fsigma_max/(fL_1*fd_c_n);
 	}
-	else if (L < fL_2) // K2
+	else 
 	{
-		z5 = 1./fd_c_n;
-		z2 = z1*z2;
-		z3 = z3*z4;
-		z2 = z2 + z3;
-		z2 = pow(z2,-1.5);
-		z2 = fsigma_max*z2*z5;
-		z3 = z2*z3;
-		z2 = z2*z4;
-		z4 = -u_n*u_t*z2;
-		z1 = z1*z2;
-
-		//{{z1, z4},
-		// {z4, z3}}
-		fStiffness[0] = z1;
-		fStiffness[1] = z4;
-		fStiffness[2] = z4;
-		fStiffness[3] = z3;
+		double lt_0 = jump_u[0]*dtm1;
+		double lt_2 = jump_u[1]*dnm1;
 		
-
+		if (L < fL_2) // K2
+		{
+			double dijTerm = fsigma_max/L*fd_c_n;
+			
+			fStiffness[0] = dijTerm*dtm1;
+			fStiffness[3] = dijTerm*dnm1;
+			dijTerm /= -L*L;
+			fStiffness[0] += dijTerm*lt_0*lt_0;
+			fStiffness[2] = fStiffness[1] = dijTerm*lt_0*lt_2;
+			fStiffness[3] += dijTerm*lt_2*lt_2;
+	
 /*		Keeping tangent stiffness 
 		
 		if (fabs(z1) < kSmall)
@@ -181,63 +169,25 @@ const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		else
 			fStiffness[3] = z3;  */
 	}
-	else if (L < 1) // K3
-	{
-		double z7, z8, z9, z10, z11, z12, z13, z14, z15, z16;
-
-		z5 = -1. + fL_2;
-		z6 = -fL_2;
-		z7 = pow(fd_c_n,-3.);
-		z8 = 1./fd_c_n;
-		z9 = fd_c_n*fd_c_n;
-		z10 = pow(fd_c_n,3.);
-		z11 = pow(fd_c_t,-4.);
-		z12 = fd_c_t*fd_c_t;
-		z2 = z1*z2;
-		z13 = z3*z4;
-		z6 = 1. + z6;
-		z12 = z1*z12;
-		z2 = z13 + z2;
-		z9 = z3*z9;
-		z5 = 1./z5;
-		z6 = 1./z6;
-		z14 = pow(z2,-1.5);
-		z15 = 1./z2;
-		z16 = 1./sqrt(z2);
-		z2 = sqrt(z2);
-		z9 = z12 + z9;
-		z12 = -fsigma_max*z1*z15*z6*z7;
-		z2 = -z2;
-		z9 = 1./z9;
-		z2 = fL_2 + z2;
-		z5 = fsigma_max*z5*z9;
-		z9 = u_n*fd_c_n*u_t*z5;
-		z5 = z10*z13*z5;
-		z2 = z2*z6;
-		z2 = 1. + z2;
-		z2 = fsigma_max*z2;
-		z1 = -z1*z14*z2*z7;
-		z6 = z16*z2*z8;
-		z3 = -fd_c_n*z11*z14*z2*z3;
-		z7 = -u_n*u_t*z14*z2*z4*z8;
-		z2 = fd_c_n*z16*z2*z4;
-		z1 = z1 + z12 + z6;
-		z4 = z7 + z9;
-		z2 = z2 + z3 + z5;
-	
-		//{{z2, z4},
-		// {z4, z1}}
-		fStiffness[0] = z2;
-		fStiffness[1] = z4;
-		fStiffness[2] = z4;
-		fStiffness[3] = z1;
-	}
-	else
-	{
-		fStiffness[0] = 0.0;
-		fStiffness[1] = 0.0;
-		fStiffness[2] = 0.0;
-		fStiffness[3] = 0.0;	
+	else 
+		if (L < fL_fail) // K3
+		{
+			double dijTerm = fsigma_max*(1./L-1.)/(1.-fL_2)*fd_c_n;
+			
+			fStiffness[0] = dijTerm*dtm1;
+			fStiffness[3] = dijTerm*dnm1;
+			dijTerm = -fsigma_max/(1.-fL_2)*fd_c_n/L/L/L;
+			fStiffness[0] += dijTerm*lt_0*lt_0;
+			fStiffness[3] += dijTerm*lt_2*lt_2;
+			fStiffness[1] = fStiffness[2] = dijTerm*lt_0*lt_2;
+		}
+		else
+		{
+			fStiffness[0] = 0.0;
+			fStiffness[1] = 0.0;
+			fStiffness[2] = 0.0;
+			fStiffness[3] = 0.0;	
+		}
 	}
 
 	/* penetration */

@@ -1,4 +1,4 @@
-/* $Id: TvergHutch3DT.cpp,v 1.1 2002-08-05 19:27:55 cjkimme Exp $ */
+/* $Id: TvergHutch3DT.cpp,v 1.2 2002-08-07 23:45:24 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch3DT.h"
@@ -97,24 +97,24 @@ const dArrayT& TvergHutch3DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 	
 	/*Change the below*/
 
-	double r_t = 1./fd_c_t/fd_c_t;
-	r_t *= u_t1*u_t1 + u_t2*u_t2;
+	double r_t1 = u_t1/fd_c_t;
+	double r_t2 = u_t2/fd_c_t;
 	double r_n = u_n/fd_c_n;
-	double L = sqrt(r_t + r_n*r_n); // (1.1)
+	double L = sqrt(r_t1*r_t1 + r_t2*r_t2 + r_n*r_n); // (1.1)
 
 	double sigbyL;
 	if (L < fL_1)
 		sigbyL = fsigma_max/fL_1;
 	else if (L < fL_2)
 		sigbyL = fsigma_max/L;
-	else if (L < 1)
-		sigbyL = fsigma_max*(1 - (L - fL_2)/(1 - fL_2))/L;
+	else if (L < fL_fail)
+		sigbyL = fsigma_max*(1. - L)/(1. - fL_2)/L;
 	else
 		sigbyL = 0.0;	
 
-	fTraction[0] = sigbyL*(u_t1/fd_c_t)*(fd_c_n/fd_c_t);
-	fTraction[1] = sigbyL*(u_t2/fd_c_t)*(fd_c_n/fd_c_t);
-	fTraction[2] = sigbyL*(u_n/fd_c_n);
+	fTraction[0] = sigbyL*r_t1*(fd_c_n/fd_c_t);
+	fTraction[1] = sigbyL*r_t2*(fd_c_n/fd_c_t);
+	fTraction[2] = sigbyL*r_n;
 
 	/* penetration */
 	if (u_n < 0) fTraction[2] += fK*u_n;
@@ -143,7 +143,7 @@ const dMatrixT& TvergHutch3DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 
 	if (L < fL_1) // K1
 	{
-		fStiffness[0] = fStiffness[4] = (fd_c_n/fd_c_t)*fsigma_max/(fL_1*fd_c_t);
+		fStiffness[0] = fStiffness[4] = fd_c_n/fd_c_t*fsigma_max/(fL_1*fd_c_t);
 		fStiffness[1] = fStiffness[2] = fStiffness[3] = fStiffness[5] = 0.0;
 		fStiffness[6] = fStiffness[7] = 0.0;
 		fStiffness[8] = fsigma_max/(fL_1*fd_c_n);
@@ -167,26 +167,29 @@ const dMatrixT& TvergHutch3DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 			fStiffness[4] += dijTerm*lt_1*lt_1;
 			fStiffness[5] = fStiffness[7] = dijTerm*lt_1*lt_2;
 			fStiffness[8] += dijTerm*lt_2*lt_2;
-		}
-		else if (L < 1) // K3
+		} 
+		else 
 		{
-			double dijTerm = fsigma_max*(1./L-1.)/(1.-fL_2)*fd_c_n;
+			if (L < fL_fail) // K3
+			{
+				double dijTerm = fsigma_max*(1./L-1.)/(1.-fL_2)*fd_c_n;
 
-			fStiffness[0] = fStiffness[4] = dijTerm*dtm1;
-			fStiffness[8] = dijTerm*dnm1;
-			dijTerm = -fsigma_max/(1.-fL_2)*fd_c_n/L/L/L;
-			fStiffness[0] += dijTerm*lt_0*lt_0;
-			fStiffness[4] += dijTerm*lt_1*lt_1;
-			fStiffness[8] += dijTerm*lt_2*lt_2;
-			fStiffness[1] = fStiffness[3] = dijTerm*lt_0*lt_1;
-			fStiffness[2] = fStiffness[6] = dijTerm*lt_0*lt_2;
-			fStiffness[5] = fStiffness[7] = dijTerm*lt_1*lt_2;
-		}
-		else /*Failure*/
-		{
-			fStiffness[0] = fStiffness[1] = fStiffness[2] = fStiffness[3] = 0.0;
-			fStiffness[4] = fStiffness[5] = fStiffness[6] = fStiffness[7] = 0.;
-			fStiffness[8] = 0.0;
+				fStiffness[0] = fStiffness[4] = dijTerm*dtm1;
+				fStiffness[8] = dijTerm*dnm1;
+				dijTerm = -fsigma_max/(1.-fL_2)*fd_c_n/L/L/L;
+				fStiffness[0] += dijTerm*lt_0*lt_0;
+				fStiffness[4] += dijTerm*lt_1*lt_1;
+				fStiffness[8] += dijTerm*lt_2*lt_2;
+				fStiffness[1] = fStiffness[3] = dijTerm*lt_0*lt_1;
+				fStiffness[2] = fStiffness[6] = dijTerm*lt_0*lt_2;
+				fStiffness[5] = fStiffness[7] = dijTerm*lt_1*lt_2;
+			}
+			else /*Failure*/
+			{
+				fStiffness[0] = fStiffness[1] = fStiffness[2] = fStiffness[3] = 0.0;
+				fStiffness[4] = fStiffness[5] = fStiffness[6] = fStiffness[7] = 0.;
+				fStiffness[8] = 0.0;
+			}
 		}
 	}
 
