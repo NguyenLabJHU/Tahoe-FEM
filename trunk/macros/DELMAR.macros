@@ -1,4 +1,7 @@
-# $Id: DELMAR.macros,v 1.16 2004-01-02 01:37:20 paklein Exp $
+# $Id: DELMAR.macros,v 1.17 2004-03-11 17:51:21 paklein Exp $
+#
+# build me on alc3
+#
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__  -DAZTEC_MPI
 MPI_LFLAGS = -lmpich -lgm
@@ -8,7 +11,7 @@ MAKE        = make
 DEFINES     = -D__DEC__ -D__CPLANT__ -D__CA_CPLANT__ -D__DELMAR__ -D__ALPHA_LINUX__ -D__TAHOE_MPI__ -DAZTEC_MPI
 MAKEDEPEND = makedepend
 MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/local/delmar/build/LINUX/ch_gm/include -I/usr/local/delmar/build/LINUX/ch_gm/include/c++ -I/usr/lib/compaq/cxx-6.5.9.28/alpha-linux/include/cxx -I$(MACRO_DIR)/extras $(DEFINES)
+MAKEDEPENDFLAGS = -I/usr/local/delmar/include -I$(MACRO_DIR)/extras -I$(INC_DIR) $(DEFINES) -I/usr/lib/compaq/cxx-6.5.9.28/alpha-linux/include -I/usr/lib/compaq/cxx-6.5.9.28/alpha-linux/include/cxx
 COMP_C      = cxx
 COMP_CC     = cxx
 COMP_F      = f77
