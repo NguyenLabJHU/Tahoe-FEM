@@ -1,4 +1,4 @@
-/* $Id: getmysnodes.c,v 1.1 2005-01-03 00:33:58 paklein Exp $ */
+/* $Id: getmysnodes.c,v 1.2 2005-01-03 00:35:20 paklein Exp $ */
 /* getmysnodes.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -47,12 +47,16 @@
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: getmysnodes.c,v 1.1 2005-01-03 00:33:58 paklein Exp $ +/ */
+/* /+ $Id: getmysnodes.c,v 1.2 2005-01-03 00:35:20 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
 	return b >= 0 ? a << b : (integer)((uinteger)a >> -b);
 };
+
+static integer max(integer a, integer b) {
+	return (a > b) ? a : b;
+}
 
 /*<    >*/
 /* Subroutine */ int getmysnodes_(integer *root, integer *sup, integer *tinds,
