@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.14 2004-07-15 08:29:20 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.15 2004-08-01 00:54:59 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -144,6 +144,13 @@ public:
 	 * being imposed and if the material supports thermal strain, using 
 	 * SolidMaterialT::SupportsThermalStrain. */
 	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
+	/** \name internal variables */
+	/*@{*/
+	virtual const iArrayT& InternalDOF(void) const;
+	virtual const dArrayT& InternalStressVars(void);
+	virtual const dArrayT& InternalStrainVars(void);
 	/*@}*/
 	
 private:
