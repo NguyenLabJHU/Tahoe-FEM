@@ -1,6 +1,11 @@
-/* $Id: FossumSSIsoT.h,v 1.7 2003-02-03 04:40:29 paklein Exp $ */
+/* 3-invariant, single-surface dilation/compaction plasticity model
+ * with isotropic and kinematic hardeneing
+ * Implemented 8/02 Craig Foster
+ */
+
 #ifndef _FOSSUM_SS_ISOT_H_
 #define _FOSSUM_SS_ISOT_H_
+
 
 #include "SolidMaterialT.h"
 #include "SSSolidMatT.h"
@@ -14,6 +19,8 @@
 #include "dArrayT.h"
 #include "LAdMatrixT.h"
 
+// Primitive-like fns
+
 namespace Tahoe {
 
 /* forward declarations */
@@ -23,10 +30,6 @@ class dSymMatrixT;
 /* forward declarations */
 class ElementCardT;
 
-/** 3-invariant, single-surface dilation/compaction plasticity model
- * with isotropic and kinematic hardeneing
- * Implemented 8/02 Craig Foster
- */
 class FossumSSIsoT: public SSSolidMatT,
                     public IsotropicT,
                     public HookeanMatT
@@ -34,8 +37,10 @@ class FossumSSIsoT: public SSSolidMatT,
   public:
 
         /* constructor */
+
+
+  // FossumSSIsoT(ifstreamT& in, const SmallStrainT& element, int num_ip, double mu, double lambda);
         FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support);
-//      FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support, int num_ip, double mu, double lambda);
 
         /* destructor */
         virtual ~FossumSSIsoT(void);
@@ -96,9 +101,9 @@ virtual void ResetHistory(void);
         /* stress */
         virtual const dSymMatrixT& s_ij(void);
 
-	/** return the pressure associated with the last call to 
-	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
-	 * for more information. */
+  /** return the pressure associated with the last call to 
+   * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
+   * for more information. */
 	virtual double Pressure(void) const { return fStress.Trace()/3.0; };
 
         /* returns the strain energy density for the specified strain */
@@ -287,13 +292,11 @@ double InnerProduct(dSymMatrixT A, dSymMatrixT B);
 dMatrixT D2fdSigmadSigma(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
 dMatrixT D2fdSigmadq(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
 dMatrixT D2fdqdq(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
-double d2fdAlphaBdAlphaC(double I1, double J2, double J3, dArrayT
-principalEqStress, int B, int C, double kappa);
+double d2fdAlphaBdAlphaC(double I1, double J2, double J3, dArrayT principalEqStress, int B, int C, double kappa);
 double D2fdKappadKappa(double I1, double kappa);
 double D2FcdKappadKappa(double I1, double kappa);
 dSymMatrixT DfdSigma(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
 dSymMatrixT DfdAlpha(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
- dArrayT Dfdq(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
 
 dArrayT Hardening(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m, dSymMatrixT stress);
 dMatrixT DhdSigma(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m, dSymMatrixT stress);
