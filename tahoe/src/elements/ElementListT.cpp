@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.3 2001-04-09 22:28:54 rjones Exp $ */
+/* $Id: ElementListT.cpp,v 1.4 2001-04-25 17:26:43 rjones Exp $ */
 /* created: paklein (04/20/1998)                                          */
 
 #include "ElementListT.h"
@@ -32,6 +32,7 @@
 #include "AugLagContact2DT.h"
 #include "ACME_Contact3DT.h"
 #include "MultiplierContact3DT.h"
+#include "MultiplierContact2DT.h"
 
 //TEMP
 #include "MeshFreeElasticT.h"
@@ -72,6 +73,7 @@ const int kMFCohesiveSurface  = 22;
 
 const int kACME_Contact       = 23;
 const int kMultiplierContact3D= 24;
+const int kMultiplierContact2D= 25;
 
 /* constructors */
 ElementListT::ElementListT(FEManagerT& fe_manager):
@@ -119,6 +121,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 
 		out << "    eq. " << kACME_Contact       << ", 3D contact using ACME\n";
 		out << "    eq. " << kMultiplierContact3D       << ", 3D contact using NON-WORKING SKELETON code\n";
+		out << "    eq. " << kMultiplierContact2D       << ", 2D contact using NON-WORKING SKELETON code\n";
 		
 		
 		/* check */
@@ -271,6 +274,13 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 				     << " MultiplierContact3DT\n";
                                 fArray[group] 
 				    = new MultiplierContact3DT(fFEManager);
+                                break;
+
+                        case kMultiplierContact2D:
+                                cout << "\nWARNING: USING SKELETON CODE,"
+                                     << " MultiplierContact2DT\n";
+                                fArray[group]
+                                    = new MultiplierContact2DT(fFEManager);
                                 break;
 
 
