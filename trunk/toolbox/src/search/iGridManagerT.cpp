@@ -1,20 +1,17 @@
-/* $Id: iGridManagerT.cpp,v 1.4 2002-07-02 19:57:24 cjkimme Exp $ */
-/* created: paklein (09/13/1998)                                          */
-/* iNodeT grid with unified interface for 2D/3D                           */
-
+/* $Id: iGridManagerT.cpp,v 1.5 2002-07-20 07:59:51 paklein Exp $ */
+/* created: paklein (09/13/1998) */
 #include "iGridManagerT.h"
 #include "iGridManager1DT.h"
 #include "iGridManager2DT.h"
 #include "iGridManager3DT.h"
 #include "iArrayT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 iGridManagerT::iGridManagerT(const iArrayT& n_grid, const dArray2DT& coords,
 	const iArrayT* nodes_used):
-        fGrid1D(NULL),
+	fGrid1D(NULL),
 	fGrid2D(NULL),
 	fGrid3D(NULL)
 {
@@ -39,11 +36,48 @@ iGridManagerT::iGridManagerT(const iArrayT& n_grid, const dArray2DT& coords,
 		throw eOutOfRange;
 }
 
+/* constructor */
+iGridManagerT::iGridManagerT(int avg_cell_nodes, int max_cells, const dArray2DT& coords,
+	const iArrayT* nodes_used):
+	fGrid1D(NULL),
+	fGrid2D(NULL),
+	fGrid3D(NULL)
+{
+	/* checks */
+	if (avg_cell_nodes < 1 || coords.MinorDim() < 1) throw eGeneralFail;
+
+	/* try to get roughly least avg_cell_nodes per grid */
+	int count = (nodes_used) ? nodes_used->Length() : coords.MajorDim();
+	int ngrid = int(pow(count/double(avg_cell_nodes), 1.0/coords.MinorDim())) + 1;
+	ngrid = (ngrid < 2) ? 2 : ngrid;
+	if (max_cells > 0)
+		ngrid = (ngrid > max_cells) ? max_cells : ngrid;
+
+	iArrayT n_grid(coords.MinorDim());
+	n_grid = ngrid;
+	if (n_grid.Length() == 1)
+	{
+		fGrid1D = new iGridManager1DT(n_grid[0], coords, nodes_used);
+		if (!fGrid1D) throw eOutOfMemory;	
+	}
+	else if (n_grid.Length() == 2)
+	{
+		fGrid2D = new iGridManager2DT(n_grid[0], n_grid[1], coords, nodes_used);
+		if (!fGrid2D) throw eOutOfMemory;	
+	}
+	else if (n_grid.Length() == 3)
+	{
+		fGrid3D = new iGridManager3DT(n_grid[0], n_grid[1], n_grid[2], coords, nodes_used);
+		if (!fGrid3D) throw eOutOfMemory;
+	}
+	else
+		throw eOutOfRange;
+}
 	
 /* destructor */
 iGridManagerT::~iGridManagerT(void)
 {
-        delete fGrid1D;
+	delete fGrid1D;
 	delete fGrid2D;
 	delete fGrid3D;
 }
