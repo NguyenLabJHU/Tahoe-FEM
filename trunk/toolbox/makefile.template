@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.8 2002-09-12 16:38:58 paklein Exp $
+# $Id: makefile.template,v 1.9 2002-09-12 16:46:16 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -83,7 +83,7 @@ include $(MACRO_DIR)/toolbox.extras
 
 # "make build" extras - target brought up to date before other makefile
 # targets associated with "make build"
-MAKE_BUILD_XTRAS = make_build_extras
+#MAKE_BUILD_XTRAS = make_build_extras
 make_build_extras:
 
 # include common target definitions
