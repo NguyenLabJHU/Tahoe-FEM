@@ -1,4 +1,4 @@
-/* $Id: SpatialGridT.h,v 1.3 2004-11-17 23:36:27 paklein Exp $ */
+/* $Id: SpatialGridT.h,v 1.4 2004-11-18 00:17:25 paklein Exp $ */
 #ifndef _SPATIAL_GRID_T_H_
 #define _SPATIAL_GRID_T_H_
 
@@ -123,11 +123,11 @@ inline void SpatialGridT::Processor2Grid(int p, ArrayT<int>& grid_position) cons
 	int nsd = grid_position.Length();
 	int* gp = grid_position.Pointer();
 	if (nsd == 1)
-		return Processor2Grid(p, gp[0]);
+		Processor2Grid(p, gp[0]);
 	else if (nsd == 2)
-		return Processor2Grid(p, gp[0], gp[1]);
+		Processor2Grid(p, gp[0], gp[1]);
 	else if (nsd == 3)
-		return Processor2Grid(p, gp[0], gp[1], gp[2]);
+		Processor2Grid(p, gp[0], gp[1], gp[2]);
 	else
 		ExceptionT::GeneralFail("SpatialGridT::Processor2Grid", "unsupported dimension %d", nsd);
 }
