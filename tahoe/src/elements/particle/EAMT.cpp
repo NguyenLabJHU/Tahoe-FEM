@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.45.6.1 2003-10-15 22:18:25 bsun Exp $ */
+/* $Id: EAMT.cpp,v 1.45.6.2 2003-10-27 21:49:04 bsun Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -1670,8 +1670,6 @@ void EAMT::EchoProperties(ifstreamT& in, ofstreamT& out)
       fEAMProperties[i] = new ParadynEAMT(file);
     }
 
-  in >> latticeParameter;
-  NearestNeighborDistance=latticeParameter*.79;
 
   /* echo particle properties */
   out << "\n Particle properties:\n\n";

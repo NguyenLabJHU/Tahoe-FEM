@@ -1,5 +1,5 @@
 
-/* $Id: ParticlePairT.cpp,v 1.23.2.3 2003-10-15 22:18:25 bsun Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.23.2.4 2003-10-27 21:49:04 bsun Exp $ */
 
 
 #include "ParticlePairT.h"
@@ -1074,8 +1074,7 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 					"unrecognized property type: %d", property);
 		}
 		
-		in >> latticeParameter;
-		NearestNeighborDistance=latticeParameter*.79;
+
 	}
 
 	/* echo particle properties */
