@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.29 2002-03-04 06:52:35 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.30 2002-03-22 02:25:48 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -397,6 +397,9 @@ void FEManagerT::InitStep(void) const
 {
 	/* state */
 	SetStatus(GlobalT::kInitStep);
+	
+	/* set the default value for the output time stamp */
+	fIOManager->SetOutputTime(Time());
 
 	/* nodes */
 	fNodeManager->InitStep();

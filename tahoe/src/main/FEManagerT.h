@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.10 2002-01-27 18:51:08 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.11 2002-03-22 02:25:48 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -147,14 +147,32 @@ public:
 	void AssembleRHS(const dArrayT& elRes, const nArrayT<int>& eqnos) const;
 	void OverWriteRHS(const dArrayT& elRes, const nArrayT<int>& eqnos) const;
 	void DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const;
-	
-	/* writing results */
-	void WriteOutput(double time, IOBaseT::OutputModeT mode);
-	virtual int RegisterOutput(const OutputSetT& output_set);
-	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
+
+	/** pointer to the I/O manager */
 	IOManager* OutputManager(void) const;
-	void WriteGeometryFile(const StringT& file_name, IOBaseT::FileTypeT output_format) const;
+	
+	/** register an output set to write output data. See OutputSetT for more information.
+	 * \return the ID for the output set. This value is needed to send data to the
+	 *         correct destination with a subsequent call to FEManagerT::WriteOutput */
+	virtual int RegisterOutput(const OutputSetT& output_set);
+
+	/** return a reference to the output set with the given output ID
+	 * \param ID ID of the output set that was returned when the set was
+	 *        registered with FEManagerT::RegisterOutput */
 	const OutputSetT& OutputSet(int ID) const;
+
+	/** initiate the process of writing output from all output sets 
+	 * \param time time label associated with the output data */
+	virtual void WriteOutput(double time, IOBaseT::OutputModeT mode);
+	
+	/** write results for a single output set
+	 * \param ID output set ID for the given data
+	 * \param n_values nodal output values
+	 * \param e_values element output values */
+	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
+
+	/** write a geometry file for the current model */
+	void WriteGeometryFile(const StringT& file_name, IOBaseT::FileTypeT output_format) const;
 
 	/* (temporarily) direct output away from main out */
 	virtual void DivertOutput(const StringT& outfile);

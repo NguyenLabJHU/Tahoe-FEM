@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.20 2002-03-11 20:14:52 sawimme Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.21 2002-03-22 02:25:47 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #include "FEExecutionManagerT.h"
@@ -356,7 +356,7 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 
 		/* output map file */
 		StringT map_file;
-		map_file.Root(model_file);
+		map_file.Root(in.filename());
 		map_file.Append(".n", size);
 		map_file.Append(".io.map");
 
@@ -529,7 +529,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	
 	/* output map file */
 	StringT map_file;
-	map_file.Root(model_file);
+	map_file.Root(in.filename());
 	map_file.Append(".n", size);
 	map_file.Append(".io.map");
 
@@ -856,7 +856,7 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 			map_out << size << '\n';
 			map_out << "# number of output sets\n";
 			map_out << output_map.Length() << '\n';
-			map_out << "# part to processor output map\n";
+			map_out << "# set to processor output map\n";
 			map_out << output_map.wrap(8) << '\n';
 			cout << " Generating output map: " << output_map_file << ": DONE"<< endl;
 		}
