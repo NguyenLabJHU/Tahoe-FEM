@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.h,v 1.13 2003-11-21 22:41:39 paklein Exp $ */
+/* $Id: LocalArrayT.h,v 1.14 2005-01-26 19:53:27 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #ifndef _LOCALARRAY_T_H_
@@ -134,6 +134,11 @@ public:
 
 	/** combining arrays - inserts all of source at start_node */
 	void BlockCopyAt(const LocalArrayT& source, int start_node);
+
+	/** collect subset 
+	 * \param nodes indicies of nodes within the source to collect 
+	 * \param source source array */
+	void Collect(const ArrayT<int>& nodes, const LocalArrayT& source);
 
 	/** compute the array average value
 	 * \param avg returns with the average value: [minor dim] */
