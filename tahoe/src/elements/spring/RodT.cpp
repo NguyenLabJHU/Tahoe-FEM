@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.33 2004-07-15 08:30:17 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.34 2004-07-22 09:12:53 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -422,7 +422,7 @@ void RodT::ReadMaterialData(ifstreamT& in)
 void RodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
 	/* inherited */
-	ElementBaseT::EchoConnectivityData(in, out);
+	//ElementBaseT::EchoConnectivityData(in, out);
 	
 	/* determine the nodes used strictly based on those in the connectivities */
 	NodesUsed(fGroupNodes);
