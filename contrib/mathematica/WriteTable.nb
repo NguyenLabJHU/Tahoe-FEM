@@ -1,0 +1,370 @@
+(************** Content-type: application/mathematica **************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[      6128,        269]*)
+(*NotebookOutlinePosition[      6765,        291]*)
+(*  CellTagsIndexPosition[      6721,        287]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+Cell["$Id: WriteTable.nb,v 1.1 2002-11-18 17:47:33 paklein Exp $", "Subsubsection",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell[CellGroupData[{
+
+Cell["utilities:", "Subsubsection",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["\<\
+Routines that convert numbers to strings with a specific format for \
+writing to plain text files.\
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell["kPrecision = 10;", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    \(General::"spell1" \(\(:\)\(\ \)\) 
+      "Possible spelling error: new symbol name \"\!\(kPrecision\)\" is \
+similar to existing symbol \"\!\(Precision\)\"."\)], "Message"]
+}, Open  ]],
+
+Cell["\<\
+CPPString[man_,exp_] := \
+StringJoin[ToString[PaddedForm[man,{kPrecision+3,kPrecision}]],\"e\",
+\tToString[PaddedForm[exp,2,NumberSigns -> {\"-\",\"+\"},
+\tSignPadding -> True,
+\tNumberPadding -> {\"0\",\"0\"}]]]\
+\>", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["CPPForm[num_Integer] := CPPForm[num + 0.]", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["\<\
+CPPForm[0.] := Module[ 
+
+\t{man, exp},
+
+\texp = 0;
+\tman = 0;
+\t
+\tCPPString[man,exp]
+\t];\
+\>", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["\<\
+CPPForm[num_Real] := Module[ 
+
+\t{man, exp},
+
+\texp = Floor[Log[10,Abs[num]]];
+\tman = num/(10^exp) //N;
+\t
+\tCPPString[man,exp]
+\t];\
+\>", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["\<\
+ToDataLine[data_List] := StringJoin[Append[Map[StringJoin[#, \"  \
+\"]& ,Map[CPPForm, data]],\"\\n\"]]\
+\>", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["functions:", "Subsubsection",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["Write the table to a file with the given name:", "Text"],
+
+Cell["\<\
+WriteTable[data_List,filename_String] := Module[
+
+\t{fp},
+\t
+\tIf[Length[Dimensions[data]]==1,
+\t\tWriteTable[{data},filename],
+\t\tfp = OpenWrite[filename];
+\t\tMap[WriteString[fp,ToDataLine[#]]&, data];
+\t\tClose[fp]
+\t\t]
+\t];\
+\>", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["\<\
+Write list to a file wrapped at the given number of entries per \
+line:\
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+WriteWrapped[data_List, file_String, wrap_Integer] := Module[
+
+\t{fp, count, i, datflat},
+\t
+\tfp = OpenWrite[file];
+\tdatflat = Flatten[data];
+\tcount = 0;
+\tDo[
+\t\tWriteString[fp, ToString[ PaddedForm[datflat[[i]],8] ] ];
+\t\tIf[++count == wrap, WriteString[fp, \"\\n\"]; count = 0],
+\t
+\t\t{i, Length[datflat]} ];
+\t
+\tClose[fp]
+\t
+\t]\
+\>", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    \(General::"spell1" \(\(:\)\(\ \)\) 
+      "Possible spelling error: new symbol name \"\!\(count\)\" is similar to \
+existing symbol \"\!\(Count\)\"."\)], "Message"]
+}, Open  ]],
+
+Cell[TextData[{
+  "Like ",
+  StyleBox["Partition", "Input"],
+  " but it doesn't drop the remainder if the number of elements isn't a \
+multiple of ",
+  StyleBox["wrap", "Input"],
+  "."
+}], "Text"],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Wrap[data_List, wrap_Integer] := Module[
+
+\t{wrapped, remainder},
+\t
+\twrapped = Partition[data, wrap];
+\tremainder = Mod[Length[data], wrap];
+\tIf[ remainder != 0,
+\t\twrapped = Append[wrapped, Take[data,-remainder]]
+\t\t];
+\twrapped
+\t]\
+\>", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    \(General::"spell1" \(\(:\)\(\ \)\) 
+      "Possible spelling error: new symbol name \"\!\(Wrap\)\" is similar to \
+existing symbol \"\!\(wrap\)\"."\)], "Message"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["examples:", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Directory[]\)], "Input"],
+
+Cell[BoxData[
+    \("/Volumes/Uster/USERS/paklein"\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Length[test1\  = \ Range[100]]\)], "Input"],
+
+Cell[BoxData[
+    \(100\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(WriteWrapped[test1, "\<test1.dat\>", 8]\)], "Input"],
+
+Cell[BoxData[
+    \("test1.dat"\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Dimensions[
+      test2\  = 
+        Partition[Table[Cos[i]\  // N, \ {i, 0, \ Pi, \ Pi/19}], \ 
+          5]]\)], "Input"],
+
+Cell[BoxData[
+    \({4, 5}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(WriteTable[test2, \ "\<test2.dat\>"]\)], "Input"],
+
+Cell[BoxData[
+    \("test2.dat"\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(WriteTable[test2[\([1]\)], \ "\<test2_1.dat\>"]\)], "Input"],
+
+Cell[BoxData[
+    \("test2_1.dat"\)], "Output"]
+}, Open  ]]
+}, Closed]]
+},
+FrontEndVersion->"4.1 for Macintosh",
+ScreenRectangle->{{0, 1152}, {0, 848}},
+WindowSize->{753, 727},
+WindowMargins->{{61, Automatic}, {Automatic, 19}}
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+Cell[1705, 50, 62, 1, 42, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[1792, 55, 68, 1, 28, "Subsubsection"],
+Cell[1863, 58, 122, 3, 32, "Text"],
+
+Cell[CellGroupData[{
+Cell[2010, 65, 66, 1, 27, "Input"],
+Cell[2079, 68, 192, 3, 39, "Message"]
+}, Open  ]],
+Cell[2286, 74, 270, 7, 87, "Input"],
+Cell[2559, 83, 91, 1, 27, "Input"],
+Cell[2653, 86, 148, 11, 147, "Input"],
+Cell[2804, 99, 191, 11, 147, "Input"],
+Cell[2998, 112, 160, 4, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[3195, 121, 68, 1, 28, "Subsubsection"],
+Cell[3266, 124, 62, 0, 32, "Text"],
+Cell[3331, 126, 287, 13, 177, "Input"],
+Cell[3621, 141, 95, 3, 32, "Text"],
+
+Cell[CellGroupData[{
+Cell[3741, 148, 397, 18, 252, "Input"],
+Cell[4141, 168, 183, 3, 39, "Message"]
+}, Open  ]],
+Cell[4339, 174, 196, 7, 32, "Text"],
+
+Cell[CellGroupData[{
+Cell[4560, 185, 296, 13, 177, "Input"],
+Cell[4859, 200, 181, 3, 39, "Message"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[5089, 209, 34, 0, 28, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[5148, 213, 44, 1, 27, "Input"],
+Cell[5195, 216, 64, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5296, 222, 63, 1, 27, "Input"],
+Cell[5362, 225, 37, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5436, 231, 72, 1, 27, "Input"],
+Cell[5511, 234, 45, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5593, 240, 143, 4, 27, "Input"],
+Cell[5739, 246, 40, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5816, 252, 69, 1, 27, "Input"],
+Cell[5888, 255, 45, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5970, 261, 80, 1, 27, "Input"],
+Cell[6053, 264, 47, 1, 27, "Output"]
+}, Open  ]]
+}, Closed]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+
