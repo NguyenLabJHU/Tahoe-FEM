@@ -1,4 +1,4 @@
-/* $Id: PartitionT.cpp,v 1.12 2004-06-17 06:38:27 paklein Exp $ */
+/* $Id: PartitionT.cpp,v 1.13 2004-08-14 05:10:37 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 #include "PartitionT.h"
 
@@ -547,9 +547,8 @@ int PartitionT::ElementBlockIndex(const StringT& blockID, const char* caller) co
 	{
 		const char* this_routine = "ElementBlockIndex";
 		const char* str = (caller != NULL) ? caller : this_routine;
-		cout << "\n PartitionT::" << str << ": block ID not found: "
-		     << blockID << endl;
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail("PartitionT::ElementBlockIndex", "block ID \"%s\" not found",
+			blockID.Pointer());
 	}
 	return dex;
 }
@@ -565,13 +564,9 @@ void PartitionT::MapValues(const iArrayT& map, int shift, ArrayT<int>& values) c
 		//TEMP ?
 		int value = *pn - shift;
 		if (value < 0 || value >= n_map)
-		{
-			cout << "\n PartitionT::MapValues: value " << value
-			     << " at position " << i << " is out of\n"
-			     <<   "     range {0," << n_map << "}" << endl;
-			throw ExceptionT::kOutOfRange;
-		}
-	
+			ExceptionT::OutOfRange("PartitionT::MapValues", "value %d at position %d is out of range {0, %d}",
+				value, i, n_map);
+
 		*pn = map[value];
 		pn++;
 	}
