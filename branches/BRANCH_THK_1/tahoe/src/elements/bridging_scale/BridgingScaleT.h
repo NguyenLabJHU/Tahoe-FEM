@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.23.2.2 2003-05-06 22:14:04 hspark Exp $ */
+/* $Id: BridgingScaleT.h,v 1.23.2.3 2003-05-13 20:46:31 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -69,7 +69,7 @@ public:
 	 *  and fine scale part of MD solution.  values = MD displacements, values2 = 
 	 *  fem displacements */
 	void BridgingFields(const StringT& field, const PointInCellDataT& cell_data,
-		const dArray2DT& values, const dArray2DT& values2, dArray2DT& fine_scale,
+		const dArray2DT& mddisp, const dArray2DT& fedisp, dArray2DT& projectedu,
 		dArray2DT& projection, dArray2DT& totalu);
 	/*@}*/
 	
