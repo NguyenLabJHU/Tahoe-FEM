@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.h,v 1.3.2.1 2004-03-06 17:30:12 paklein Exp $ */
+/* $Id: NLDiffusionElementT.h,v 1.3.2.2 2004-03-15 19:45:40 paklein Exp $ */
 #ifndef _NL_DIFFUSE_T_H_
 #define _NL_DIFFUSE_T_H_
 
@@ -32,6 +32,12 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
@@ -60,6 +66,8 @@ private:
 
 	/** \name mixed boundary conditions */
 	/*@{*/
+	void TakeTractionBC(const ParameterListT& list);
+
 	void EchoTractionBC(ifstreamT& in, ostream& out);
 
 	/** compute contribution to RHS from mixed BC's */
