@@ -1,6 +1,5 @@
-/* $Id: OutputBaseT.h,v 1.13 2002-10-20 22:36:55 paklein Exp $ */
+/* $Id: OutputBaseT.h,v 1.14 2002-12-02 09:39:10 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
-
 #ifndef _OUTPUTBASE_T_H_
 #define _OUTPUTBASE_T_H_
 
@@ -20,26 +19,30 @@ class dArray2DT;
 class iArray2DT;
 class OutputSetT;
 
-/** initialization:\n
- * 1. construct\n
- * 2. SetCoordinates\n
- * 3. AddElementSet */
+/** base class for output formatter.
+ * initialization:\n
+ * -# construct
+ * -# SetCoordinates
+ * -# AddElementSet 
+ */
 class OutputBaseT: public IOBaseT
 {
 public:
 	
-	/* constructor */
+	/** constructor */
 	OutputBaseT(ostream& out, const ArrayT<StringT>& outstrings);
 
-	/* destructor */
+	/** destructor */
 	~OutputBaseT(void);
 
-	/* accessors */
+	/** \name accessors */
+	/*@{*/
 	const StringT& Title(void) const;
 	const StringT& CodeName(void) const;
 	const StringT& Version(void) const;
 	const StringT& OutputRoot(void) const;
 	const OutputSetT& OutputSet(int ID) const;
+	/*@}*/
 	
 	/** return the array of nodes used by the specified output set
 	 * \param ID set ID returned from the call to OutputBaseT::AddElementSet */

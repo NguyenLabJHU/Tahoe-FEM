@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.23 2002-10-20 22:36:52 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.24 2002-12-02 09:39:09 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -770,7 +770,7 @@ inline void ModelManagerT::QuadratureVariables(int stepindex, const StringT& ID,
 }
 
 inline void ModelManagerT::QARecords (ArrayT<StringT>& records) { 
-	Input("QuadratureVariables").QARecords(records); 
+	Input("QARecords").QARecords(records); 
 }
 
 inline const StringT& ModelManagerT::ElementGroupID(int index) const {

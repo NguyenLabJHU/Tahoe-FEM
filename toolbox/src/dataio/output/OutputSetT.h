@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.14 2002-11-21 01:07:40 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.15 2002-12-02 09:39:10 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -15,9 +15,9 @@ namespace Tahoe {
 class iArray2DT;
 
 /** class to act as specifier for output data. A class that would
- * like to write output, needs to use the following procedure:\n
- * (1) construct an OutputSetT with its output data specifications\n
- * (2) register this output data specification with an output formatter.
+ * like to write output, needs to use the following procedure:
+ * -# construct an OutputSetT with its output data specifications.
+ * -# register this output data specification with an output formatter.
  *     Output formatters are classes derived from OutputBaseT. Output
  *     is registered using OutputBaseT::AddElementSet. Note that this
  *     function is accessed in Tahoe through FEManagerT::RegisterOutput
@@ -27,12 +27,12 @@ class iArray2DT;
  *     obtained during registration is generally not the same as the ID 
  *     passed into the OutputSetT constructor. A class with a single ID 
  *     may register an arbitary number of output sets, receiving a unique
- *     OID for each set\n
- * (3) write output by sending output data to the output formatter using
+ *     OID for each set.
+ * -# write output by sending output data to the output formatter using
  *     OutputBaseT::WriteOutput with the ID obtained during registration
  *     in step (2). Note that this function is accessed in Tahoe through 
  *     FEManagerT::WriteOutput which passes the call through 
- *     IOManager::AddElementSet to the output formatter\n
+ *     IOManager::AddElementSet to the output formatter.
  *
  * Outside of the constructor, the remainder of the interface is intended
  * for use by the output formatter, not the class sending the data for
@@ -40,11 +40,11 @@ class iArray2DT;
  *
  * There are two modes for output sets, denoted by the OutputSetT::ModeT
  * enum:
- * (1) OutputSetT::kElementBlock - data written over element blocks defined
+ * - OutputSetT::kElementBlock - data written over element blocks defined
  *     in the global geometry database. Both nodal and element output is
  *     supported in this mode since local element numbers can be mapped to
  *     global element numbers.
- * (2) OutputSetT::kFreeSet - data written over an arbitrary set of nodes.
+ * - OutputSetT::kFreeSet - data written over an arbitrary set of nodes.
  *     Only nodal output is supported in this mode since no map from local
  *     to global elements is available in the PartitionT files.
  */
