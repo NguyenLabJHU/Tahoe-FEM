@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.14 2004-01-31 07:20:48 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.14.26.1 2005-02-24 01:14:18 thao Exp $ */
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
 
@@ -90,8 +90,6 @@ class SmallStrainT: public SolidElementT
 
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
-
-  private:
 
 	/** compute mean shape function gradient, Hughes (4.5.23) */
 	void SetMeanGradient(dArray2DT& mean_gradient) const;

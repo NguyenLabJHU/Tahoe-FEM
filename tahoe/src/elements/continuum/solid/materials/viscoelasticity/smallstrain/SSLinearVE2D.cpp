@@ -1,4 +1,4 @@
-/* $Id: SSLinearVE2D.cpp,v 1.4 2004-06-17 07:41:22 paklein Exp $ */
+/* $Id: SSLinearVE2D.cpp,v 1.4.4.1 2005-02-24 01:14:20 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSLinearVE2D.h"
 #include "SSMatSupportT.h"
@@ -44,10 +44,10 @@ void SSLinearVE2D::Print(ostream& out) const
 {
 	/* inherited */
 	SSViscoelasticityT::Print(out);
-	out << "Equilibrium Potential:\n";
+	out << "Equilibrium:\n";
 	out << "     Shear Modulus: "<<fMu[0]<<'\n';
 	out << "     Bulk Modulus: "<<fKappa[0]<<'\n';
-	out << "Non-Equilibrium Potential:\n";
+	out << "Non-Equilibrium:\n";
 	out << "     Shear Modulus: "<<fMu[1]<<'\n';
 	out << "     Bulk Modulus: "<<fKappa[1]<<'\n';
 	out << "Relaxation time: \n";
@@ -59,10 +59,7 @@ void SSLinearVE2D::PrintName(ostream& out) const
 {
 	/* inherited */
 	SSViscoelasticityT::PrintName(out);
-	out << "2D plane strain formulation\n";
-	out << "Equilibrium/Non-Equilibrium Potential:\n";
-	out << "Kirchoff St. Venant\n";
-	out << "Kirchoff St. Venant\n";
+	out << "2D linear, plane strain formulation\n";
 }
 
 double SSLinearVE2D::StrainEnergyDensity(void)

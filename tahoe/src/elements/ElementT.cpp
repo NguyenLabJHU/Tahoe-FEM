@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.46 2004-06-26 18:28:50 paklein Exp $ */
+/* $Id: ElementT.cpp,v 1.46.4.1 2005-02-24 01:14:14 thao Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -154,26 +154,11 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kEAM:
 			type = ElementT::kEAM;
 			break;
-		case ElementT::kFSMatForce:
-		    type = ElementT::kFSMatForce;
-		    break;
-		case ElementT::kSSMatForceD:
-		    type = ElementT::kSSMatForceD;
+		case ElementT::kFSMatForceS:
+		    type = ElementT::kFSMatForceS;
 		    break;
 		case ElementT::kSSMatForceS:
 		    type = ElementT::kSSMatForceS;
-		    break;
-		case ElementT::kSmallStrainQ2P1:
-		    type = ElementT::kSmallStrainQ2P1;
-		    break;
-		case ElementT::kSSQ2P1MF:
-		    type = ElementT::kSSQ2P1MF;
-		    break;
-		case ElementT::kSmallStrainQ1P0:
-		    type = ElementT::kSmallStrainQ1P0;
-		    break;
-		case ElementT::kSSQ1P0MF:
-		    type = ElementT::kSSQ1P0MF;
 		    break;
 		case ElementT::kGradSmallStrain:
 		    type = ElementT::kGradSmallStrain;

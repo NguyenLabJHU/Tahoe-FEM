@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.47 2004-06-26 18:28:50 paklein Exp $ */
+/* $Id: ElementT.h,v 1.47.4.1 2005-02-24 01:14:14 thao Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -54,13 +54,8 @@ kPenaltyContactElement3D = 34,
                     kEAM = 39,  /**< particles with EAM potental */
      kNonLinearDiffusion = 41,
        kMeshfreeBridging = 45,
-			 kFSMatForce = 60,    /*UpLag with material force calculation*/
-			kSSMatForceD = 61,
+			kFSMatForceS = 61,
 			kSSMatForceS = 62,
-		kSmallStrainQ2P1 = 64, /*small strain with mat force calculation*/		     
-			   kSSQ2P1MF = 65,
-		kSmallStrainQ1P0 = 66,
-			   kSSQ1P0MF = 67,
 				kAPSgrad = 68, /* anti-plane shear gradient plasticity */
 			  kSS_SCNIMF = 70, /**< small strain stabilized, conforming nodally-integrated Galerkin MF */
 			  kFS_SCNIMF = 71, /**< finite deformation ditto */

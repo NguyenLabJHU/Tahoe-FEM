@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.92 2004-06-26 18:27:45 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.92.4.1 2005-02-24 01:14:14 thao Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -130,13 +130,8 @@
 
 #ifdef SOLID_ELEMENT_DEV
 #ifdef MATERIAL_FORCE_ELEMENT_DEV
-#include "SmallStrainQ2P1.h"
-#include "UpLagMF.h"
-#include "SmallStrainMF.h"
+#include "FSMF.h"
 #include "SSMF.h"
-#include "SSQ2P1MF.h"
-#include "SmallStrainQ1P0.h"
-#include "SSQ1P0MF.h"
 #endif /* MATERIAL_FORCE_ELEMENT_DEV */
 
 #ifdef SPLIT_INTEGRATION_DEV
@@ -877,20 +872,11 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			ExceptionT::BadInputValue(caller, "PARTICLE_ELEMENT not enabled: %d", code);
 #endif				
 		}
-		case ElementT::kFSMatForce:
+		case ElementT::kFSMatForceS:
 	        {
 #if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
-		        fArray[group] = new UpLagMF(fSupport, *field);
+		        fArray[group] = new FSMF(fSupport, *field);
 			break;
-#else
-			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
-#endif
-		}
-		case ElementT::kSSMatForceD:
-		{
-#if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
-		  fArray[group] = new SmallStrainMF(fSupport, *field);
-		  break;
 #else
 			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
 #endif
@@ -903,42 +889,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 #else
 			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
 #endif
-		}
-		case ElementT::kSmallStrainQ2P1:
-		{
-#if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
-		  fArray[group] = new SmallStrainQ2P1(fSupport, *field);
-		  break;
-#else
-			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
-#endif
-		}
-		case ElementT::kSmallStrainQ1P0:
-		{
-#if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
-		  fArray[group] = new SmallStrainQ1P0(fSupport, *field);
-		  break;
-#else
-			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
-#endif
-		}
-		case ElementT::kSSQ2P1MF:
-		{
-#if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
-		  fArray[group] = new SSQ2P1MF(fSupport, *field);
-		  break;
-#else
-			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
-#endif
-		}
-		case ElementT::kSSQ1P0MF:
-		{
-#if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
-		  fArray[group] = new SSQ1P0MF(fSupport, *field);
-		  break;
-#else
-			ExceptionT::BadInputValue(caller, "GRAD_SMALL_STRAIN_DEV not enabled: %d", code);
-#endif			
 		}
 		case ElementT::kTotLagSplitIntegration:
 		{
