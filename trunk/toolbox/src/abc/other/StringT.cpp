@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.7 2001-06-01 16:42:28 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.8 2001-06-11 01:57:47 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -619,6 +619,7 @@ StringT& StringT::DropTrailingSpace(void)
 	return *this;
 }
 
+#if 0
 /* return a string with the extension and suffix tacked into
 * the root of this.  The default extension for this is ".in" */
 StringT& StringT::DefaultName(const StringT& sourcename, const char* extint,
@@ -656,6 +657,7 @@ StringT& StringT::DefaultName(const StringT& sourcename, const char* extint,
 	
 	return *this;
 }
+#endif
 
 /* convert string to native, relative file path */
 void StringT::ToNativePathName(void)
@@ -875,6 +877,39 @@ int StringT::versioncmp(const char* v1_, const char* v2_)
 			}
 		}
 	}
+}
+
+/* extract double */
+bool StringT::Tail(char key, double& value) const
+{
+	char* p = Pointer();
+	while (*p != '\0' && *p != key) p++;
+
+	value = 0.0;
+	if (*p == key)
+	{
+		istrstream in(p + 1);
+		in >> value;
+		return true;
+	}
+	return false;
+}
+
+/* extract integer */
+bool StringT::Tail(char key, int& value) const
+{
+	char* p = Pointer();
+	while (*p != '\0' && *p != key) p++;
+
+	value = 0;
+	if (*p == key)
+	{
+		istrstream in(p + 1);
+		in >> value;
+		return true;
+		
+	}
+	return false;
 }
 
 /**********************************************************************
