@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.12 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.12.12.1 2004-01-28 01:34:13 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #ifndef _FBC_CONTROLLER_T_H_
 #define _FBC_CONTROLLER_T_H_
@@ -28,13 +28,17 @@ class FBC_ControllerT: public ParameterInterfaceT
 {
 public:
 
-	/* controller codes - derived classes */
-	enum CodeT {kPenaltyWall = 0,
+	/** controller codes - derived classes */
+	enum CodeT {       kNone =-1,
+	            kPenaltyWall = 0,
 	          kPenaltySphere = 1,
                kAugLagSphere = 2,
             kMFPenaltySphere = 3,
                  kAugLagWall = 4,
             kPenaltyCylinder = 5};
+
+	/** converts strings to FBC_ControllerT::CodeT */
+	static CodeT Code(const char* name);
 
 	/* constructor */
 	FBC_ControllerT(FEManagerT& fe_manager, int group);

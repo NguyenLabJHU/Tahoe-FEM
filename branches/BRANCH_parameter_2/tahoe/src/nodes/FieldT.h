@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.18 2004-01-05 07:12:36 paklein Exp $ */
+/* $Id: FieldT.h,v 1.18.2.1 2004-01-28 01:34:12 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -19,6 +19,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class LocalArrayT;
+class IntegratorT;
 class nIntegratorT;
 class KBC_ControllerT;
 class FBC_ControllerT;
@@ -48,7 +49,7 @@ public:
 	/** \name initialization */
 	/*@{*/
 	/** configure the field */
-	void Initialize(const StringT& name, int ndof, const nIntegratorT& controller);
+	void Initialize(const StringT& name, int ndof, int order);
 	
 	/** register the local array with its source */
 	void RegisterLocal(LocalArrayT& array) const;
@@ -72,9 +73,6 @@ public:
 
 	/** const reference to the specified derivative of the field at given step */ 
 	const dArray2DT& operator()(int step, int order) const;
-
-	/** field name */
-	const StringT& Name(void) const { return BasicFieldT::Name(); };
 
 	/** set the group number */
 	int Group(void) const { return fGroup; };	
@@ -297,6 +295,9 @@ public:
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 private:
@@ -324,6 +325,9 @@ private:
 	int fGroup;
 
 	/** time integrator */
+	const IntegratorT* fIntegrator;
+
+	/** nodal interface to time integrator in FieldT::fIntegrator */
 	const nIntegratorT* fnIntegrator;
 	
 	/** field history. BasicFieldT::fField from the previous time step. */
@@ -421,5 +425,7 @@ inline nIntegratorT& FieldT::nIntegrator(void) {
 	return const_cast<nIntegratorT&>(*fnIntegrator);
 }
 
-} // namespace Tahoe 
+
+} /* namespace Tahoe */
+
 #endif /* _FIELD_T_H_ */

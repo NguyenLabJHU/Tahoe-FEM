@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.19 2003-10-28 07:36:49 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.19.6.1 2004-01-28 01:34:11 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -13,60 +13,7 @@
 #include "TimeSequence.h"
 #include "dArrayT.h"
 
-/* controllers */
-#include "StaticIntegrator.h"
-#include "LinearStaticIntegrator.h"
-#include "TrapezoidIntegrator.h"
-#include "LinearHHTalpha.h"
-#include "NLHHTalpha.h"
-#include "ExplicitCDIntegrator.h"
-#include "VerletIntegrator.h"
-#include "Gear6Integrator.h"
-
 using namespace Tahoe;
-
-namespace Tahoe {
-
-/* stream extraction operator */
-istream& operator>>(istream& in, TimeManagerT::CodeT& code)
-{
-	int i_code = -1;
-	in >> i_code;
-	switch (i_code)
-	{
-		case TimeManagerT::kLinearStatic:
-			code = TimeManagerT::kLinearStatic;
-			break;
-		case TimeManagerT::kStatic:
-			code = TimeManagerT::kStatic;
-			break;
-		case TimeManagerT::kTrapezoid:
-			code = TimeManagerT::kTrapezoid;
-			break;
-		case TimeManagerT::kLinearHHT:
-			code = TimeManagerT::kLinearHHT;
-			break;
-		case TimeManagerT::kNonlinearHHT:
-			code = TimeManagerT::kNonlinearHHT;
-			break;
-		case TimeManagerT::kExplicitCD:
-			code = TimeManagerT::kExplicitCD;
-			break;
-	        case TimeManagerT::kVerlet:
-	                code = TimeManagerT::kVerlet;
-	                break;
-		case TimeManagerT::kGear6:
-			code = TimeManagerT::kGear6;
-			break;
-		default:
-			cout << "\n operator>>TimeManagerT::CodeT: unknown code: "
-			<< i_code<< endl;
-			throw ExceptionT::kBadInputValue;
-	}
-	return in;
-}
-
-} // namespace Tahoe
 
 /* constructor */
 TimeManagerT::TimeManagerT(FEManagerT& FEM):
@@ -105,7 +52,7 @@ void TimeManagerT::Initialize(void)
 	if (num_LTf < 0) throw ExceptionT::kBadInputValue;
 	fSchedule.Dimension(num_LTf); // add: f(t) = 1.0
 
-	EchoSchedule(in, out);
+//	EchoSchedule(in, out);
 	
 	/* console variables */
 	iSetName("time");
@@ -119,11 +66,13 @@ void TimeManagerT::Initialize(void)
 * if there are no more time sequences */
 void TimeManagerT::Top(void)
 {
+#pragma message("remove me")
 	fCurrentSequence = -1;
 }
 
 bool TimeManagerT::NextSequence(void)
 {
+#pragma message("remove me")
 	fCurrentSequence++;
 	
 	/* initialize next sequence */
@@ -346,76 +295,6 @@ bool TimeManagerT::WriteOutput(void) const
 		return false;
 }
 
-/* return a pointer to a integrator of the specified type */
-IntegratorT* TimeManagerT::New_Integrator(CodeT type) const
-{
-	IntegratorT* integrator = NULL;
-	try {
-	switch (type)
-	{
-		case kLinearStatic:
-		{
-			integrator = new LinearStaticIntegrator(theBoss.Output());
-			break;		
-		}
-		case kStatic:
-		{
-			integrator = new StaticIntegrator(theBoss.Output());
-			break;		
-		}
-		case kTrapezoid:
-		{
-			integrator = new TrapezoidIntegrator(theBoss.Output());
-			break;		
-		}
-		case kLinearHHT:
-		{
-			TimeManagerT* tm = const_cast<TimeManagerT*>(this);
-			integrator = new LinearHHTalpha(*tm, theBoss.Input(), theBoss.Output(), true);
-			break;				
-		}
-		case kNonlinearHHT:
-		{
-			TimeManagerT* tm = const_cast<TimeManagerT*>(this);
-			integrator = new NLHHTalpha(*tm, theBoss.Input(), theBoss.Output(), true);
-			break;
-		}
-		case kExplicitCD:
-		{
-			integrator = new ExplicitCDIntegrator(theBoss.Output());
-			break;		
-		}
-		case kVerlet:
-		{
-			integrator = new VerletIntegrator(theBoss.Output());
-			break;
-		}
-		case kGear6:
-		{
-			integrator = new Gear6Integrator(theBoss.Output());
-			break;
-		}
-		default:
-		{
-			cout << "\n TimeManagerT::New_Integrator: unrecognized type: " << type << endl;
-			throw ExceptionT::kGeneralFail;
-		}
-	} }
-#ifdef __NEW_THROWS__
-	catch (bad_alloc) { integrator = NULL; }
-#else
-	catch (ExceptionT::CodeT) { integrator = NULL; }
-#endif	
-	
-	/* fail */
-	if (!integrator) {
-		cout << "\n TimeManagerT::New_Integrator: failed" << endl;
-		throw ExceptionT::kGeneralFail;	
-	}
-
-	return integrator;
-}
-
 /* describe the parameters needed by the interface */
 void TimeManagerT::DefineParameters(ParameterListT& list) const
 {
@@ -450,7 +329,47 @@ void TimeManagerT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
 
-	//not implemented
+	//TEMP - remove multiple time sequences
+	fSequences.Dimension(1);
+	TimeSequence& seq = fSequences[0];
+	seq.fNumSteps  = list.GetParameter("num_steps");
+	seq.fOutputInc = list.GetParameter("output_inc");
+	seq.fMaxCuts   = list.GetParameter("max_step_cuts");
+	seq.fTimeStep  = list.GetParameter("time_step");	
+
+	/* console variables */
+	iSetName("time");
+	iAddVariable("num_steps", fNumSteps);
+	iAddVariable("output_inc", fOutputInc);
+	iAddVariable("max_step_cuts", fMaxCuts);
+	iAddVariable("time_step", fTimeStep);
+
+	/* construct schedule functions */
+	fSchedule.Dimension(list.NumLists("schedule_function"));
+	for (int i = 0; i < fSchedule.Length(); i++)
+	{
+		fSchedule[i] = new ScheduleT;
+		fSchedule[i]->TakeParameterList(*(list.List("schedule_function", i)));
+	}
+}
+
+/* information about subordinate parameter lists */
+void TimeManagerT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineSubs(sub_list);
+
+	/* schedule function */
+	sub_list.AddSub("schedule_function", ParameterListT::Any);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* TimeManagerT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "schedule_function")
+		return new ScheduleT;
+	else /* inherited */
+		return ParameterInterfaceT::NewSub(list_name);
 }
 
 /************************************************************************
@@ -482,6 +401,7 @@ void TimeManagerT::EchoTimeSequences(ifstreamT& in, ostream& out)
 	}
 }
 
+#if 0
 void TimeManagerT::EchoSchedule(ifstreamT& in, ostream& out)
 {
 	int num_LTf = fSchedule.Length();
@@ -513,6 +433,7 @@ void TimeManagerT::EchoSchedule(ifstreamT& in, ostream& out)
 		fSchedule[LTfnum]->SetTime(0.0);
 	}
 }
+#endif
 
 /* increment the time and reset the load factors */
 void TimeManagerT::IncrementTime(double dt)

@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.29 2004-01-05 07:07:19 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.29.2.1 2004-01-28 01:34:16 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -299,7 +299,11 @@ void NLSolver::DefineParameters(ParameterListT& list) const
 
 	/* additional parameters */
 	list.AddParameter(fMaxIterations, "max_iterations");
-	list.AddParameter(fMinIterations, "min_iterations", ParameterListT::ZeroOrOnce);
+
+	ParameterT min_iterations(fMinIterations, "min_iterations");
+	min_iterations.SetDefault(0);
+	list.AddParameter(min_iterations);
+
 	list.AddParameter(fZeroTolerance, "abs_tolerance");
 	list.AddParameter(fTolerance, "rel_tolerance");
 	list.AddParameter(fDivTolerance, "divergence_tolerance");

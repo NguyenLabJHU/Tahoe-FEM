@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.70.2.1 2004-01-21 19:10:31 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.70.2.2 2004-01-28 01:34:11 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1189,6 +1189,7 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 void FEManagerT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "FEManagerT::TakeParameterList";
+
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
 
@@ -1232,18 +1233,70 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	/* construct IO manager - configure in SetOutput below */
 	StringT file_name(fMainIn.filename());
 	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle, file_name, fOutputFormat);	
-	if (!fIOManager) throw ExceptionT::kOutOfMemory;
+	if (!fIOManager) ExceptionT::OutOfMemory(caller);
 
 	/* set communication manager */
 	fCommManager = New_CommManager();
-	if (!fCommManager) throw ExceptionT::kOutOfMemory;
+	if (!fCommManager) ExceptionT::OutOfMemory(caller);
 
-	/* count solvers and allocate so that NumGroups is correct */
-	int num_groups = 0;
-	while (list.List("solvers", num_groups+1) != NULL)
-		num_groups++;
-	fSolvers.Dimension(num_groups);
-	fSolvers = NULL;	
+	/* construct solvers */
+	const ArrayT<ParameterListT>& lists = list.Lists();
+	AutoArrayT<SolverT*> solvers_tmp;
+	for (int i = 0; i < lists.Length(); i++)
+	{
+		SolverT* solver = SolverT::New(*this, lists[i].Name());
+		if (solver)
+			solvers_tmp.Append(solver);
+	}
+	fSolvers.Swap(solvers_tmp);
+
+	/* construct time manager */
+	const ParameterListT* time_params = list.List("time");
+	if (!time_params)
+		ExceptionT::GeneralFail(caller, "missing \"time\" parameters");
+	fTimeManager = new TimeManagerT(*this);
+	if (!fTimeManager) ExceptionT::OutOfMemory(caller);
+	fTimeManager->TakeParameterList(*time_params);
+	iAddSub(*fTimeManager);	
+
+#if 0
+	/* set time integration integrator */
+	SetIntegrator();
+	if (verbose) cout << "    FEManagerT::Initialize: integrator" << endl;
+
+	/* initial configuration of communication manager */
+	if (fModelManager->DatabaseFormat() != IOBaseT::kTahoe)
+		fCommManager->Configure();
+#endif
+
+	/* set fields */
+	const ParameterListT* node_params = list.List("nodes");
+	if (!node_params) ExceptionT::BadInputValue(caller);
+	fNodeManager = new NodeManagerT(*this, *fCommManager);
+	fNodeManager->TakeParameterList(*node_params);
+	iAddSub(*fNodeManager);
+	fCommManager->SetNodeManager(fNodeManager);
+
+#if 0	
+	/* construct element groups */
+	SetElementGroups();
+	if (verbose) cout << "    FEManagerT::Initialize: element groups" << endl;
+
+	/* initial configuration of communication manager */
+	if (0 && fModelManager->DatabaseFormat() == IOBaseT::kTahoe)
+	{
+		//TEMP
+		ExceptionT::Stop("FEManagerT::Initialize", "kTahoe format not supported");
+	
+		fCommManager->Configure();
+		//call to tell everything to reconfigure
+	}
+
+	/* set output manager */
+	SetOutput();
+	if (verbose) cout << "    FEManagerT::Initialize: io" << endl;
+	if (init == kAllButSolver) return;
+#endif
 }
 
 /* information about subordinate parameter lists */
@@ -1270,18 +1323,16 @@ ParameterInterfaceT* FEManagerT::NewSub(const StringT& list_name) const
 {
 	FEManagerT* non_const_this = (FEManagerT*) this;
 
-	if (list_name == "time")
+	/* try to construct solver */
+	SolverT* solver = SolverT::New(*non_const_this, list_name);
+	if (solver)
+		return solver;
+	else if (list_name == "time")
 		return new TimeManagerT(*non_const_this);
 	else if (list_name == "nodes")
 		return new NodeManagerT(*non_const_this, *fCommManager);
 	else if (list_name == "element_list")
 		return new ElementListT(*non_const_this);
-	else if (list_name == "linear_solver")
-		return non_const_this->New_Solver(GlobalT::kLinearSolver);
-	else if (list_name == "nonlinear_solver")
-		return non_const_this->New_Solver(GlobalT::kNewtonSolver);	
-	else if (list_name == "PCG_solver")
-		return non_const_this->New_Solver(GlobalT::kPCGSolver_LS);	
 	else /* inherited */
 		return ParameterInterfaceT::NewSub(list_name);
 }
@@ -1681,6 +1732,9 @@ void FEManagerT::ReadParameters(InitCodeT init)
 * interface. */
 void FEManagerT::SetIntegrator(void)
 {
+#pragma message("what just collect integrators from FieldT's???")
+#if 0
+
 	fMainOut << "\n T i m e   I n t e g r a t o r s:\n";
 	
 	/* no predefined integrators */
@@ -1764,6 +1818,7 @@ void FEManagerT::SetIntegrator(void)
 		if (!integrator) throw ExceptionT::kGeneralFail;
 		fIntegrators[0] = integrator;
 	}
+#endif
 }
 
 /* construct output */
@@ -2164,31 +2219,5 @@ SolverT* FEManagerT::New_Solver(int code, int group)
 	/* fail */
 	if (!solver) ExceptionT::GeneralFail(caller, "failed");
 
-	return solver;
-}
-
-SolverT* FEManagerT::New_Solver(GlobalT::SolverTypeT solver_type)
-{
-	const char caller[] = "FEManagerT::New_Solver";
-
-	/* construct solver */
-	SolverT* solver = NULL;
-	switch (solver_type)
-	{
-		case GlobalT::kLinearSolver:
-			solver = new LinearSolver(*this);
-			break;
-			
-		case GlobalT::kNewtonSolver:
-			solver = new NLSolver(*this);
-			break;
-
-		case GlobalT::kPCGSolver_LS:				
-			solver = new PCGSolver_LS(*this);
-			break;
-
-		default:
-			ExceptionT::BadInputValue(caller, "unknown nonlinear solver code: %d", solver_type);
-	}
 	return solver;
 }

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.40 2004-01-05 07:14:40 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.40.2.1 2004-01-28 01:34:11 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -425,7 +425,6 @@ private:
 	 * FEManagerT is passed to the solvers. */
 	/*@{*/
 	SolverT* New_Solver(int code, int group);
-	SolverT* New_Solver(GlobalT::SolverTypeT solver_type);
 	/*@}*/
 		
 protected:

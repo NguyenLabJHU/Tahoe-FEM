@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.h,v 1.9 2003-05-20 10:28:44 paklein Exp $ */
+/* $Id: nLinearHHTalpha.h,v 1.9.20.1 2004-01-28 01:34:03 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 #ifndef _N_LINEARHHT_A_H_
 #define _N_LINEARHHT_A_H_
@@ -18,7 +18,7 @@ class nLinearHHTalpha: virtual public HHTalpha, public nIntegratorT
 public:
 
 	/** constructor */
-	nLinearHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder);
+	nLinearHHTalpha(double alpha);
 
 	/** declare field dimensions to the integrator */
 	virtual void Dimension(const BasicFieldT& field);

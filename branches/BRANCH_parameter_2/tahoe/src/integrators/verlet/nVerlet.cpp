@@ -1,3 +1,4 @@
+/* $Id: nVerlet.cpp,v 1.10.4.1 2004-01-28 01:34:10 paklein Exp $ */
 #include "nVerlet.h"
 #include "iArrayT.h"
 #include "dArrayT.h"

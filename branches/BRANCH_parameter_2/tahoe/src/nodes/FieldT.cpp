@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.24 2004-01-05 07:12:36 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.24.2.1 2004-01-28 01:34:12 paklein Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -15,7 +15,8 @@ using namespace Tahoe;
 FieldT::FieldT(const FieldSupportT& field_support):
 	ParameterInterfaceT("field"),
 	fFieldSupport(field_support),
-	fnIntegrator(NULL),
+	fIntegrator(NULL),	
+//	fnIntegrator(NULL),
 	fEquationStart(0),
 	fNumEquations(0)
 {
@@ -23,13 +24,13 @@ FieldT::FieldT(const FieldSupportT& field_support):
 }
 
 /* configure the field */
-void FieldT::Initialize(const StringT& name, int ndof, const nIntegratorT& controller)
+void FieldT::Initialize(const StringT& name, int ndof, int order)
 {
 	/* initialize base class */
-	BasicFieldT::Initialize(name, ndof, controller.Order());
+	BasicFieldT::Initialize(name, ndof, order);
 
-	fnIntegrator = &controller;
-	fField_last.Dimension(fnIntegrator->Order()+1);
+	/* allocate history */
+	fField_last.Dimension(order + 1);
 
 	/* register arrays */
 	for (int i = 0; i < fField_last.Length(); i++)
@@ -39,7 +40,9 @@ void FieldT::Initialize(const StringT& name, int ndof, const nIntegratorT& contr
 
 /* destructor */
 FieldT::~FieldT(void)
-{ 
+{
+	delete fIntegrator;
+
 	for (int i = 0; i < fSourceOutput.Length(); i++)
 		delete fSourceOutput[i];
 		
@@ -170,7 +173,7 @@ void FieldT::InitialCondition(void)
 			all_active = false;
 	if (!all_active)
 		cout << "\n FieldT::InitialCondition: initial conditions applied to prescribed\n" 
-		     <<   "     equations in field \"" << BasicFieldT::Name() << "\" are being ignored" << endl;
+		     <<   "     equations in field \"" << FieldName() << "\" are being ignored" << endl;
 
 	/* KBC controllers */
 	for (int k = 0; k < fKBC_Controllers.Length(); k++)
@@ -509,7 +512,7 @@ void FieldT::ReadRestart(ifstreamT& in, const ArrayT<int>* nodes)
 	{
 		/* file name */
 		StringT file = in.filename();
-		file.Append(".", BasicFieldT::Name());
+		file.Append(".", FieldName());
 		file.Append(".", deriv, "u");
 
 		/* read */
@@ -559,7 +562,7 @@ void FieldT::WriteRestart(ofstreamT& out, const ArrayT<int>* nodes) const
 	{
 		/* file name */
 		StringT file = out.filename();
-		file.Append(".", BasicFieldT::Name());
+		file.Append(".", FieldName());
 		file.Append(".", deriv, "u");
 
 		/* write */
@@ -610,7 +613,7 @@ void FieldT::WriteOutput(ostream& out) const
 /* write field parameters to output stream */
 void FieldT::WriteParameters(ostream& out) const
 {
-	out << "\n F i e l d : \"" << BasicFieldT::Name() << "\"\n\n";
+	out << "\n F i e l d : \"" << FieldName() << "\"\n\n";
 	out << " Number of degrees of freedom. . . . . . . . . . = " << NumDOF() << '\n';
 	for (int i = 0; i < fLabels.Length(); i++)
 		out << '\t' << fLabels[i] << '\n';
@@ -682,7 +685,7 @@ void FieldT::DefineParameters(ParameterListT& list) const
 	ParameterInterfaceT::DefineParameters(list);
 
 	/* field name */
-	list.AddParameter(ParameterT(ParameterT::String, "name"));
+	list.AddParameter(ParameterT(ParameterT::String, "field_name"));
 
 	/* degrees of freedom */
 	ParameterT ndof(ParameterT::Integer, "ndof");
@@ -691,8 +694,16 @@ void FieldT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(ndof);
 	
 	/* integrator number */
-	ParameterT integrator(ParameterT::Integer, "integrator");
-	integrator.AddLimit(0, LimitT::LowerInclusive);
+	ParameterT integrator(ParameterT::Enumeration, "integrator");
+	integrator.AddEnumeration(     "linear_static", IntegratorT::kLinearStatic);
+	integrator.AddEnumeration(            "static", IntegratorT::kStatic);
+	integrator.AddEnumeration(         "trapezoid", IntegratorT::kTrapezoid);
+	integrator.AddEnumeration(        "linear_HHT", IntegratorT::kLinearHHT);
+	integrator.AddEnumeration(     "nonlinear_HHT", IntegratorT::kNonlinearHHT);
+	integrator.AddEnumeration("central_difference", IntegratorT::kExplicitCD);
+	integrator.AddEnumeration(            "Verlet", IntegratorT::kVerlet);
+	integrator.AddEnumeration(             "Gear6", IntegratorT::kGear6);
+	integrator.SetDefault(IntegratorT::kStatic);
 	list.AddParameter(integrator);
 }
 
@@ -701,12 +712,13 @@ void FieldT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
 	ParameterInterfaceT::DefineSubs(sub_list);
-	
+
 	/* KBC controllers */
 	sub_list.AddSub("KBC_controllers", ParameterListT::Any, true);
 	
 	/* FBC controllers */
-//	sub_list.AddSub("FBC_controllers", ParameterListT::Any, true);
+	//sub_list.AddSub("FBC_controllers", ParameterListT::Any, true);
+#pragma message("NewFBC_Controller needs changes")
 }
 
 /* return the description of the given inline subordinate parameter list */
@@ -746,20 +758,69 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
 	/* non-const this */
 	FieldT* non_const_this = (FieldT*) this;
 
-	if (list_name == "K_field")
-		return fFieldSupport.NewKBC_Controller(*non_const_this, KBC_ControllerT::kK_Field);
+	/* (try to) translate to KBC code */
+	KBC_ControllerT::CodeT KBC_code = KBC_ControllerT::Code(list_name);
+	if (KBC_code != KBC_ControllerT::kNone)
+		return fFieldSupport.NewKBC_Controller(*non_const_this, KBC_code);
 
-	else if (list_name == "torsion")
-		return fFieldSupport.NewKBC_Controller(*non_const_this, KBC_ControllerT::kTorsion);
+	/* (try to) translate to FBC code */
+	FBC_ControllerT::CodeT FBC_code = FBC_ControllerT::Code(list_name);
+	if (FBC_code != FBC_ControllerT::kNone)
+		return fFieldSupport.NewFBC_Controller(*non_const_this, FBC_code);
 	
-	else if (list_name == "sphere_penalty")
-		return fFieldSupport.NewFBC_Controller(*non_const_this, FBC_ControllerT::kPenaltySphere);
+	/* inherited */
+	return ParameterInterfaceT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void FieldT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	/* field name */
+	const StringT& field_name = list.GetParameter("field_name");
+
+	/* number of degrees of freedom per node */
+	int ndof = list.GetParameter("ndof");
+
+	/* construct integrator */
+	int integrator_type = list.GetParameter("integrator");
+	IntegratorT* fIntegrator = IntegratorT::New(integrator_type, true);
 	
-	else if (list_name == "wall_penalty")
-		return fFieldSupport.NewFBC_Controller(*non_const_this, FBC_ControllerT::kPenaltyWall);
+	/* cast to nodal interface */
+	fnIntegrator = TB_DYNAMIC_CAST(const nIntegratorT*, fIntegrator);
+	if (!fnIntegrator) ExceptionT::GeneralFail("FieldT::TakeParameterList");
+
+	/* configure the field */
+	int order = fIntegrator->Order();
+	Initialize(field_name, ndof, order);
 	
-	else /* inherited */
-		return ParameterInterfaceT::NewSub(list_name);
+	/* construct KBC's and FBC's */
+	const ArrayT<ParameterListT>& subs = list.Lists();
+	for (int i = 0; i < subs.Length(); i++)
+	{
+		const StringT& name = subs[i].Name();
+	
+		/* try KBC */
+		KBC_ControllerT::CodeT KBC_code = KBC_ControllerT::Code(name);
+		if (KBC_code != KBC_ControllerT::kNone)
+		{
+			KBC_ControllerT* KBC_controller = fFieldSupport.NewKBC_Controller(*this, KBC_code);
+			KBC_controller->TakeParameterList(subs[i]);
+			AddKBCController(KBC_controller);
+		}
+		else /* try FBC */
+		{
+			FBC_ControllerT::CodeT FBC_code = FBC_ControllerT::Code(name);
+			if (FBC_code != FBC_ControllerT::kNone)
+			{
+				FBC_ControllerT* FBC_controller = fFieldSupport.NewFBC_Controller(*this, FBC_code);
+				FBC_controller->TakeParameterList(subs[i]);
+				AddFBCController(FBC_controller);
+			}
+		}
+	}
 }
 
 /**********************************************************************

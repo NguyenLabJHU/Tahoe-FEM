@@ -1,13 +1,11 @@
+/* $Id: VerletIntegrator.cpp,v 1.3.40.1 2004-01-28 01:34:10 paklein Exp $ */
 #include "VerletIntegrator.h"
 #include <iostream.h>
 
 using namespace Tahoe;
 
 /* constructor */
-VerletIntegrator::VerletIntegrator(ostream& out)
-{
-	out << "\n Verlet parameters: NONE" << endl;
-}
+VerletIntegrator::VerletIntegrator(void) { }
 
 /***********************************************************************
 * Protected
