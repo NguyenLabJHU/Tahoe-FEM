@@ -20,7 +20,8 @@
 #include "vtkWarpVector.h"
 #include "vtkVectors.h"
 #include "vtkScalarBarActor.h"
-#include "StringT.h"
+#include "vtkScalars.h"
+#include "vtkIdTypeArray.h"
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -29,6 +30,7 @@
 #include "iArray2DT.h"
 #include "dArrayT.h"
 #include "GeometryT.h"
+#include "StringT.h"
 
 /* array behavior */
 const bool ArrayT<VTKBodyDataT*>::fByteCopy = true;
@@ -132,12 +134,37 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
 	    {
 	      exo.ReadNodalVariable(i+1, j+1, ndata);
 	      nodal_data.SetColumn(j, ndata);
+
+#ifdef __VTK_NEW__
+          scalars[i][j] =  vtkDataArray::CreateDataArray(VTK_DOUBLE);
+          scalars[i][j]->SetNumberOfComponents(1);
+//          scalars[i][j]->SetNumberOfTuples(num_nodes);
+//		  scalars[i][j]->PrintSelf(cout, 4);
+#else
 	      scalars[i][j] =  vtkScalars::New(VTK_DOUBLE);
+#endif
 	      
 	      /* instantiate displacement vector if needed */
 	      if (node_labels.Length() > 0 && (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z"))
-		vectors[i][j] = vtkVectors::New(VTK_DOUBLE);
-	      
+#ifdef __VTK_NEW__
+			vectors[i][j] = vtkDataArray::CreateDataArray(VTK_DOUBLE);
+			int vec_dim = 0;
+			if (node_labels[0] == "D_X")
+			{
+				vec_dim++;
+				if (node_labels[1] == "D_Y")
+				{
+					vec_dim++;
+					if (node_labels[2] == "D_Z")
+						vec_dim++;
+				}
+			}
+			vectors[i][j]->SetNumberOfComponents(vec_dim);
+//			vectors[i][j]->PrintSelf(cout, 4);
+//			vectors[i][j]->SetNumberOfTuples(num_nodes);            
+#else
+			vectors[i][j] = vtkVectors::New(VTK_DOUBLE);
+#endif     
 	      /* initialize min and max scalar range values */
 	      scalarRange1[j] = 10000;
 	      scalarRange2[j] = -10000;
@@ -147,17 +174,32 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
 		if (nodal_data(k,j) < scalarRange1[j]) scalarRange1[j] = nodal_data(k,j);
 		if (nodal_data(k,j) > scalarRange2[j]) scalarRange2[j] = nodal_data(k,j);
 		/* insert scalar value at each node for each variable and time step */
+#ifdef __VTK_NEW__
+		//scalars[i][j]->SetTuple1(k+1, nodal_data(k,j));
+		scalars[i][j]->InsertTuple1(k+1, nodal_data(k,j));
+#else
 		scalars[i][j]->InsertScalar(k+1, nodal_data(k,j));
+#endif
 		//InsertVector(k,...)?????
 		/* if displacement vector needed then insert vector at each node for each time step */
+#ifdef __VTK_NEW__
+		if (node_labels.Length() > 0 &&(node_labels[0] == "D_X" && node_labels[1] == "D_Y" && node_labels[2] == "D_Z"))              
+//		  vectors[i][j]->SetTuple3(k+1, nodal_data(k,0),nodal_data(k,1),nodal_data(k,2));
+		  vectors[i][j]->InsertTuple3(k+1, nodal_data(k,0),nodal_data(k,1),nodal_data(k,2));
+		else if (node_labels.Length() > 0 &&(node_labels[0] == "D_X" && node_labels[1] == "D_Y"))
+//		  vectors[i][j]->SetTuple3(k+1, nodal_data(k,0), nodal_data(k,1),0);
+		  vectors[i][j]->InsertTuple3(k+1, nodal_data(k,0), nodal_data(k,1),0);
+		else if (node_labels.Length() > 0 &&(node_labels[0] == "D_X"))
+//		  vectors[i][j]->SetTuple3(k+1, nodal_data(k,0),0,0);
+		  vectors[i][j]->InsertTuple3(k+1, nodal_data(k,0),0,0);
+#else
 		if (node_labels.Length() > 0 &&(node_labels[0] == "D_X" && node_labels[1] == "D_Y" && node_labels[2] == "D_Z"))              
 		  vectors[i][j]->InsertVector(k+1, nodal_data(k,0),nodal_data(k,1),nodal_data(k,2));
 		else if (node_labels.Length() > 0 &&(node_labels[0] == "D_X" && node_labels[1] == "D_Y"))
 		  vectors[i][j]->InsertVector(k+1, nodal_data(k,0), nodal_data(k,1),0);
 		else if (node_labels.Length() > 0 &&(node_labels[0] == "D_X"))
 		  vectors[i][j]->InsertVector(k+1, nodal_data(k,0),0,0);
-		else;
-		
+#endif	
 	      }
 	    }
 	}
@@ -187,7 +229,11 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
   vtk_connects.ReleasePointer(&p_vtk_connects);
   
   /* create VTK integer array */
+#ifdef __VTK_NEW__
+  vtkIdTypeArray* intArray = vtkIdTypeArray::New();
+#else
   vtkIntArray* intArray = vtkIntArray::New();
+#endif
   intArray->SetNumberOfComponents(vtk_connects.MinorDim()); //is this needed???
   intArray->SetArray(p_vtk_connects, vtk_connects.Length(), 0);
   
