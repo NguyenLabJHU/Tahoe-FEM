@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.cpp,v 1.2 2001-09-20 23:52:05 cfoster Exp $ */
+/* $Id: dMatrixEXT.cpp,v 1.3 2001-10-05 18:54:47 paklein Exp $ */
 /* created: paklein (03/06/1998)                                          */
 
 #include "dMatrixEXT.h"
@@ -14,6 +14,8 @@ static double sqrarg;
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
 #define SWAP(g,h) {y=(g);(g)=(h);(h)=y;}
 
+static inline double FMAX(double a, double b) { return (a > b) ? a : b; };
+static inline int IMIN(int a, int b) { return (a > b) ? b : a; };
 
 /* constructor */
 dMatrixEXT::dMatrixEXT(void): v1(NULL), v2(NULL) { }
@@ -145,6 +147,62 @@ void dMatrixEXT::Eigenvector(double& eig_guess, dArrayT& eigenvector) const
 	}
 }
 
+/* generate singular value decomposition of *this = U*W*V^T */
+void dMatrixEXT::Compute_SVD(dMatrixT& U, dArrayT& W, dMatrixT& V, double threshold, 
+	int max_its) const
+{
+#if __option(extended_errorcheck)
+	if (fRows != U.Rows()  || 
+	    fCols != U.Cols()  ||
+	    fCols != W.Length() ||
+	    fCols != V.Rows()  ||
+	    fCols != V.Cols()) throw eSizeMismatch;
+	if (threshold > 1 || threshold < 0) throw eGeneralFail;
+#endif
+
+	/* copy */
+	U = *this;
+	
+	/* clear */
+	W = 0.0;
+	V = 0.0;
+
+	/* call driver */
+	if (!svdcmp(U.Pointer(), fRows, fCols, W.Pointer(), V.Pointer(), v1, max_its))
+	{
+		cout << " dMatrixEXT::Compute_SVD: failed to converge" << endl;
+		throw eGeneralFail;
+	}
+	
+	/* find max singular value */
+	double w_max = W.Max();
+	
+	/* drop smaller values */
+	W.Chop(w_max*threshold);
+}
+
+/* back substitute given a decomposition computed with dMatrixEXT::Compute_SVD */
+void dMatrixEXT::BackSubstitute_SVD(const dMatrixT& U, const dArrayT& W, 
+	const dMatrixT& V, dArrayT& RHS) const
+{
+#if __option(extended_errorcheck)
+	if (fRows != U.Rows()  || 
+	    fCols != U.Cols()  ||
+	    fCols != W.Length() ||
+	    fRows != RHS.Length()) throw eSizeMismatch;
+#endif
+
+	/* call driver */
+	svbksb(U.Pointer(), W.Pointer(), V.Pointer(), fRows, fCols, RHS.Pointer(), v1, v2);
+
+	/* copy in */
+	RHS = v1;
+}
+
+/*************************************************************************
+* Private
+*************************************************************************/
+
 /* compute tridiagonal decomposition */
 void dMatrixEXT::TriDiagonalForm(void)
 {
@@ -238,7 +296,7 @@ void dMatrixEXT::HouseholderVector(const double* x, double* v, double& beta,
 	}
 }
 
-double dMatrixEXT::pythag(double a, double b)
+double dMatrixEXT::pythag(double a, double b) const
 {
 	double absa=fabs(a);
 	double absb=fabs(b);
@@ -358,8 +416,253 @@ void dMatrixEXT::elmhes(dMatrixEXT& a,int n)
 	}
 }
 
+/* void svdcmp(double **a, int m, int n, double w[], double **v) */
+int dMatrixEXT::svdcmp(double* a, int m, int n, double* w, double* v, double* rv1, int max_its) const
+{
+//	double pythag(double a, double b);
+	int flag,i,its,j,jj,k,l,nm;
+	double anorm,c,f,g,h,s,scale,x,y,z;
 
+//	rv1=vector(1,n);
+	g=scale=anorm=0.0;
+//	for (i=1;i<=n;i++) {
+	for (i=0;i<n;i++) {
+		l=i+1;
+		rv1[i]=scale*g;
+		g=s=scale=0.0;
+//		if (i <= m) {
+		if (i < m) {
+//			for (k=i;k<=m;k++) scale += fabs(a[i*m + k]);
+			for (k=i;k<m;k++) scale += fabs(a[i*m + k]);
+			if (scale) {
+//				for (k=i;k<=m;k++) {
+				for (k=i;k<m;k++) {
+					a[i*m + k] /= scale;
+					s += a[i*m + k]*a[i*m + k];
+				}
+				f=a[i*m + i];
+				g = -SIGN(sqrt(s),f);
+				h=f*g-s;
+				a[i*m + i]=f-g;
+//				for (j=l;j<=n;j++) {
+				for (j=l;j<n;j++) {
+//					for (s=0.0,k=i;k<=m;k++) s += a[i*m + k]*a[j*m + k];
+					for (s=0.0,k=i;k<m;k++) s += a[i*m + k]*a[j*m + k];
+					f=s/h;
+//					for (k=i;k<=m;k++) a[j*m + k] += f*a[i*m + k];
+					for (k=i;k<m;k++) a[j*m + k] += f*a[i*m + k];
+				}
+//				for (k=i;k<=m;k++) a[i*m + k] *= scale;
+				for (k=i;k<m;k++) a[i*m + k] *= scale;
+			}
+		}
+		w[i]=scale *g;
+		g=s=scale=0.0;
+//		if (i <= m && i != n) {
+		if (i < m && i != n) {
+//			for (k=l;k<=n;k++) scale += fabs(a[k*m + i]);
+			for (k=l;k<n;k++) scale += fabs(a[k*m + i]);
+			if (scale) {
+//				for (k=l;k<=n;k++) {
+				for (k=l;k<n;k++) {
+					a[k*m + i] /= scale;
+					s += a[k*m + i]*a[k*m + i];
+				}
+				f=a[l*m + i];
+				g = -SIGN(sqrt(s),f);
+				h=f*g-s;
+				a[l*m + i]=f-g;
+//				for (k=l;k<=n;k++) rv1[k]=a[k*m + i]/h;
+				for (k=l;k<n;k++) rv1[k]=a[k*m + i]/h;
+//				for (j=l;j<=m;j++) {
+				for (j=l;j<m;j++) {
+//					for (s=0.0,k=l;k<=n;k++) s += a[k*m + j]*a[k*m + i];
+					for (s=0.0,k=l;k<n;k++) s += a[k*m + j]*a[k*m + i];
+//					for (k=l;k<=n;k++) a[k*m + j] += s*rv1[k];
+					for (k=l;k<n;k++) a[k*m + j] += s*rv1[k];
+				}
+//				for (k=l;k<=n;k++) a[k*m + i] *= scale;
+				for (k=l;k<n;k++) a[k*m + i] *= scale;
+			}
+		}
+		anorm=FMAX(anorm,(fabs(w[i])+fabs(rv1[i])));
+	}
+//	for (i=n;i>=1;i--) {
+	for (i=n-1;i>-1;i--) {
+//		if (i < n) {
+		if (i < n-1) {
+			if (g) {
+//				for (j=l;j<=n;j++)
+				for (j=l;j<n;j++)
+					v[i*n + j]=(a[j*m + i]/a[l*m + i])/g;
+//				for (j=l;j<=n;j++) {
+				for (j=l;j<n;j++) {
+//					for (s=0.0,k=l;k<=n;k++) s += a[k*m + i]*v[j*n + k];
+					for (s=0.0,k=l;k<n;k++) s += a[k*m + i]*v[j*n + k];
+//					for (k=l;k<=n;k++) v[j*n + k] += s*v[i*n + k];
+					for (k=l;k<n;k++) v[j*n + k] += s*v[i*n + k];
+				}
+			}
+//			for (j=l;j<=n;j++) v[j*n + i]=v[i*n + j]=0.0;
+			for (j=l;j<n;j++) v[j*n + i]=v[i*n + j]=0.0;
+		}
+		v[i*n + i]=1.0;
+		g=rv1[i];
+		l=i;
+	}
+//	for (i=IMIN(m,n);i>=1;i--) {
+	for (i=IMIN(m,n) - 1; i> -1;i--) {
+		l=i+1;
+		g=w[i];
+//		for (j=l;j<=n;j++) a[j*m + i]=0.0;
+		for (j=l;j<n;j++) a[j*m + i]=0.0;
+		if (g) {
+			g=1.0/g;
+//			for (j=l;j<=n;j++) {
+			for (j=l;j<n;j++) {
+//				for (s=0.0,k=l;k<=m;k++) s += a[i*m + k]*a[j*m + k];
+				for (s=0.0,k=l;k<m;k++) s += a[i*m + k]*a[j*m + k];
+				f=(s/a[i*m + i])*g;
+//				for (k=i;k<=m;k++) a[j*m + k] += f*a[i*m + k];
+				for (k=i;k<m;k++) a[j*m + k] += f*a[i*m + k];
+			}
+//			for (j=i;j<=m;j++) a[i*m + j] *= g;
+			for (j=i;j<m;j++) a[i*m + j] *= g;
+//		} else for (j=i;j<=m;j++) a[i*m + j]=0.0;
+		} else for (j=i;j<m;j++) a[i*m + j]=0.0;
+		++a[i*m + i];
+	}
+//	for (k=n;k>=1;k--) {
+	for (k=n-1;k > -1;k--) {
+		for (its=1;its<=max_its;its++) {
+			flag=1;
+//			for (l=k;l>=1;l--) {
+			for (l=k;l > -1;l--) {
+				nm=l-1;
+				if ((double)(fabs(rv1[l])+anorm) == anorm) {
+					flag=0;
+					break;
+				}
+				if ((double)(fabs(w[nm])+anorm) == anorm) break;
+			}
+			if (flag) {
+				c=0.0;
+				s=1.0;
+				for (i=l;i<=k;i++) { //keep
+					f=s*rv1[i];
+					rv1[i]=c*rv1[i];
+					if ((double)(fabs(f)+anorm) == anorm) break;
+					g=w[i];
+					h=pythag(f,g);
+					w[i]=h;
+					h=1.0/h;
+					c=g*h;
+					s = -f*h;
+//					for (j=1;j<=m;j++) {
+					for (j=0;j<m;j++) {
+						y=a[nm*m + j];
+						z=a[i*m + j];
+						a[nm*m + j]=y*c+z*s;
+						a[i*m + j]=z*c-y*s;
+					}
+				}
+			}
+			z=w[k];
+			if (l == k) {
+				if (z < 0.0) {
+					w[k] = -z;
+//					for (j=1;j<=n;j++) v[k*n + j] = -v[k*n + j];
+					for (j=0;j<n;j++) v[k*n + j] = -v[k*n + j];
+				}
+				break;
+			}
+			if (its == max_its)
+			{
+				cout << " dMatrixEXT:svdcmp: no convergence in " << max_its << " svdcmp iterations" << endl;
+				return 0;
+			}
+			x=w[l];
+			nm=k-1;
+			y=w[nm];
+			g=rv1[nm];
+			h=rv1[k];
+			f=((y-z)*(y+z)+(g-h)*(g+h))/(2.0*h*y);
+			g=pythag(f,1.0);
+			f=((x-z)*(x+z)+h*((y/(f+SIGN(g,f)))-h))/x;
+			c=s=1.0;
+			for (j=l;j<=nm;j++) { //keep
+				i=j+1;
+				g=rv1[i];
+				y=w[i];
+				h=s*g;
+				g=c*g;
+				z=pythag(f,h);
+				rv1[j]=z;
+				c=f/z;
+				s=h/z;
+				f=x*c+g*s;
+				g = g*c-x*s;
+				h=y*s;
+				y *= c;
+//				for (jj=1;jj<=n;jj++) {
+				for (jj=0;jj<n;jj++) {
+					x=v[j*n + jj];
+					z=v[i*n + jj];
+					v[j*n + jj]=x*c+z*s;
+					v[i*n + jj]=z*c-x*s;
+				}
+				z=pythag(f,h);
+				w[j]=z;
+				if (z) {
+					z=1.0/z;
+					c=f*z;
+					s=h*z;
+				}
+				f=c*g+s*y;
+				x=c*y-s*g;
+//				for (jj=1;jj<=m;jj++) {
+				for (jj=0;jj<m;jj++) {
+					y=a[j*m + jj];
+					z=a[i*m + jj];
+					a[j*m + jj]=y*c+z*s;
+					a[i*m + jj]=z*c-y*s;
+				}
+			}
+			rv1[l]=0.0;
+			rv1[k]=f;
+			w[k]=x;
+		}
+	}
+//	free_vector(rv1,1,n);
+	return 1;
+}
 
+/* void svbksb(double **u, double w[], double **v, int m, int n, double b[], double x[]) */
+void dMatrixEXT::svbksb(double* u, double* w, double* v, int m, int n, double* b, double* x, double* tmp) const
+{
+	int jj,j,i;
+	double s;
+
+	//tmp=vector(1,n);
+//	for (j=1;j<=n;j++) {
+	for (j=0;j<n;j++) {
+		s=0.0;
+		if (w[j]) {
+//			for (i=1;i<=m;i++) s += u[j*m + i]*b[i];
+			for (i=0;i<m;i++) s += u[j*m + i]*b[i];
+			s /= w[j];
+		}
+		tmp[j]=s;
+	}
+//	for (j=1;j<=n;j++) {
+	for (j=0;j<n;j++) {
+		s=0.0;
+//		for (jj=1;jj<=n;jj++) s += v[jj*n + j]*tmp[jj];
+		for (jj=0;jj<n;jj++) s += v[jj*n + j]*tmp[jj];
+		x[j]=s;
+	}
+	//free_vector(tmp,1,n);
+}
 
 void dMatrixEXT::hqr(dMatrixEXT& a, int n, dArrayT& wr, dArrayT& wi)
   //float **a,wi[],wr[];
@@ -649,7 +952,7 @@ double tol =1.0e-10;
 double det;
 double Jdet=J.Det();
 dMatrixEXT matrix(3);
-int rnk;
+//int rnk;
 
 matrix=J;
 
