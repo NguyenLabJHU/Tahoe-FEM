@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.11 2001-09-05 07:12:15 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.12 2001-09-06 02:13:14 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -43,7 +43,14 @@ SimoFiniteStrainT::SimoFiniteStrainT(FEManagerT& fe_manager):
 	int solver_method = -1;
 	in >> solver_method;
 	if (solver_method == kStaticCondensation)
+	{
 		fModeSolveMethod = kStaticCondensation;
+		
+		//TEMP
+		cout << "\n SimoFiniteStrainT::SimoFiniteStrainT: solution method not implemented: " 
+		     << fModeSolveMethod << endl;
+		throw eBadInputValue;
+	}
 	else if (solver_method == kLocalIteration)
 		fModeSolveMethod = kLocalIteration;
 	else if (solver_method == kMonolithic)
@@ -197,6 +204,9 @@ void SimoFiniteStrainT::Initialize(void)
 		/* allocate memory for incompressible modes */
 		fElementModes.Allocate(NumElements(), fNumModeShapes*NumSD());
 		fElementModes = 0;
+		
+		/* element modes increment */
+		fElementModesInc.Allocate(fCurrElementModes.Length());
 	}
 
 	/* allocate memory for last incompressible modes */
@@ -453,6 +463,7 @@ void SimoFiniteStrainT::SetGlobalShape(void)
 	else /* modification is strictly additive */
 	{
 		/* what needs to get computed */
+		int current_element_number = CurrElementNumber();
 		int material_number = CurrentElement().MaterialNumber();
 		bool needs_F = Needs_F(material_number);
 		bool needs_F_last = Needs_F_last(material_number);
@@ -473,9 +484,12 @@ void SimoFiniteStrainT::SetGlobalShape(void)
 		ComputeEnhancedDeformation(needs_F, needs_F_last);
 		
 		/* calculate the residual from the internal force */
-		if (fModeSolveMethod == kLocalIteration &&
-		          RunState() == GlobalT::kFormRHS)
+		if (fModeSolveMethod == kLocalIteration && RunState() == GlobalT::kFormRHS)
 		{
+			/* element modes at the start of the local iteration */
+			fElementModes.RowCopy(current_element_number, fElementModesInc);
+
+			/* residual of element modes */
 			fRHS_enh = 0.0;
 			FormKd_enhanced(fPK1_list, fRHS_enh);
 		
@@ -486,9 +500,6 @@ void SimoFiniteStrainT::SetGlobalShape(void)
 			res_rel = 1.0;
 			int iter_enh = 1;
 			
-			//TEMP - how much is the enhanced mode changing
-			//LocalArrayT mode_start(fCurrElementModes);
-
 //#ifdef _SIMO_FINITE_STRAIN_DEBUG_
 #if 1
 			cout << "\n SimoFiniteStrainT::SetGlobalShape: solve internal modes\n";
@@ -519,8 +530,6 @@ void SimoFiniteStrainT::SetGlobalShape(void)
 #endif	
 			
 				/* update element modes */
-				//fCurrElementModes.AddScaledTranspose(-1.0, fRHS_enh);
-				//fCurrElementModes -= fRHS_enh;
 				fElementModes.AddToRowScaled(CurrElementNumber(), -1.0, fRHS_enh);
 		
 				/* compute enhanced part of F and total F */
@@ -537,16 +546,15 @@ void SimoFiniteStrainT::SetGlobalShape(void)
 //#ifdef _SIMO_FINITE_STRAIN_DEBUG_
 #if 1
 			cout << setw(kIntWidth) << iter_enh << setw(kDoubleWidth) << res << '\n';
-			
-			//TEMP - change in the internal modes
-			//mode_start -= fCurrElementModes;
-			//cout << " increment in internal modes:\n" << mode_start << endl;
 #endif
 		
 			/* form the stiffness associated with the enhanced modes */
 			fK22 = 0.0;
 			fK12 = 0.0;
-			FormStiffness_enhanced(fK22, &fK12); /* also stores c_ijkl */
+			FormStiffness_enhanced(fK22, &fK12); /* also sets/stores c_ijkl */
+			
+			/* set to the (negative) increment of the element modes */
+			fElementModesInc -= fElementModes(current_element_number);
 		}
 	}
 }
@@ -608,12 +616,21 @@ void SimoFiniteStrainT::FormStiffness_Galerkin(double constK)
 		dMatrixT::kWhole :
 		dMatrixT::kUpperOnly;
 
+//TEMP - nonsymmetric not supported yet
+if (format != dMatrixT::kUpperOnly) {
+	cout << "\n SimoFiniteStrainT::FormStiffness_Galerkin: no nonsymmetric tangent" << endl;
+	throw eGeneralFail;
+}
 	/* integration */
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
 
 	/* initialize */
 	fStressStiff_11 = 0.0;
+	fStressStiff_22 = 0.0;
+	fStressStiff_12 = 0.0;
+	fK22 = 0.0;
+	fK12 = 0.0;
 	
 	fShapes->TopIP();
 	while (fShapes->NextIP())
@@ -625,40 +642,46 @@ void SimoFiniteStrainT::FormStiffness_Galerkin(double constK)
 		/* scale factor */
 		double scale = constK*(*Det++)*(*Weight++)*J;
 
-	/* S T R E S S   S T I F F N E S S */
-		
-		/* Cauchy stress */
-		const dMatrixT& PK1 = fPK1_list[CurrIP()]; /* retrieve */
+		/* (retrieve) Cauchy stress */
+		const dMatrixT& PK1 = fPK1_list[CurrIP()];
 		fStressMat.MultABT(PK1, fTempMat1);
 		fStressMat *= scale/J;
-		
-		/* chain rule shape function derivatives */
-		fTempMat1.Inverse();
+
+		/* (retrieve) D matrix */
+		fD.SetToScaled(scale, fc_ijkl_list[CurrIP()]);
+
+		/* transform derivatives to current coordinates */
+		fTempMat1.Inverse(); /* F^-1 */
 		fShapes->TransformDerivatives(fTempMat1, fDNa_x);
 
-		/* get shape function gradients matrix */
+		/* get shape function gradients matricies */
 		fShapes->GradNa(fDNa_x, fGradNa);
-
-		/* integration constants */		
-		fStressMat *= scale;
-	
-		/* using the stress symmetry */
-		fStressStiff_11.MultQTBQ(fGradNa, fStressMat, format, dMatrixT::kAccumulate);
-
-	/* M A T E R I A L   S T I F F N E S S */									
-	
-		/* strain displacement matrix */
+		fShapes->GradNa(fDNa_x_enh, fGradNa_enh);
+		
+		/* strain displacement matricies */
 		fShapes->B(fDNa_x, fB);
+		fShapes->B(fDNa_x_enh, fB_enh);
 
-		/* get D matrix */
-		fD.SetToScaled(scale, fc_ijkl_list[CurrIP()]);
-						
-		/* accumulate */
+		/* stress stiffness (4.18) */
+		fStressStiff_11.MultQTBQ(fGradNa, fStressMat, format, dMatrixT::kAccumulate);
+		fStressStiff_22.MultQTBQ(fGradNa_enh, fStressMat, dMatrixT::kWhole, dMatrixT::kAccumulate);
+		fStressStiff_12.MultATBC(fGradNa, fStressMat, fGradNa_enh, dMatrixT::kWhole, dMatrixT::kAccumulate);
+
+		/* material stiffness (4.14) */
 		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);
+		fK22.MultQTBQ(fB_enh, fD, dMatrixT::kWhole, dMatrixT::kAccumulate);
+		fK12.MultATBC(fB, fD, fB_enh, dMatrixT::kWhole, dMatrixT::kAccumulate);		
 	}
 						
 	/* stress stiffness into fLHS */
 	fLHS.Expand(fStressStiff_11, fNumDOF);
+	fK22.Expand(fStressStiff_22, fNumDOF);
+	fK12.Expand(fStressStiff_12, fNumDOF);
+	
+	/* condensation of element modes */
+	//fK22.Inverse();
+	//fK22 *= -1.0;
+	//fLHS.MultQBQT(fK12, fK22, dMatrixT::kWhole, dMatrixT::kAccumulate); //symmetry
 }
 
 /* compute and assemble the element stiffness for the monolithic
@@ -685,8 +708,8 @@ if (format != dMatrixT::kUpperOnly) {
 	fStressStiff_11 = 0.0;
 	fStressStiff_22 = 0.0;
 	fStressStiff_12 = 0.0;
-	fK22 = 0.0;
 	fK11 = 0.0;
+	fK22 = 0.0;
 	fK12 = 0.0;
 	
 	/* integrate over element */
@@ -718,16 +741,12 @@ if (format != dMatrixT::kUpperOnly) {
 		fShapes->B(fDNa_x, fB);
 		fShapes->B(fDNa_x_enh, fB_enh);
 
-	/* S T R E S S   S T I F F N E S S */
-	
-		/* using the stress symmetry */
+		/* stress stiffness (4.18) */
 		fStressStiff_11.MultQTBQ(fGradNa, fStressMat, format, dMatrixT::kAccumulate);
 		fStressStiff_22.MultQTBQ(fGradNa_enh, fStressMat, format, dMatrixT::kAccumulate);
 		fStressStiff_12.MultATBC(fGradNa, fStressMat, fGradNa_enh, dMatrixT::kWhole, dMatrixT::kAccumulate);
 
-	/* M A T E R I A L   S T I F F N E S S */									
-
-		/* accumulate */
+		/* material stiffness (4.14) */
 		fK11.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);
 		fK22.MultQTBQ(fB_enh, fD, format, dMatrixT::kAccumulate);
 		fK12.MultATBC(fB, fD, fB_enh, dMatrixT::kWhole, dMatrixT::kAccumulate);
@@ -779,6 +798,10 @@ void SimoFiniteStrainT::FormKd_Galerkin(double constK)
 		fK12.Multx(fRHS_enh, fNEEvec);
 		fRHS.AddScaled(-constK, fNEEvec);
 	}
+	
+	/* contribution from the increment in the element modes */
+	fK12.Multx(fElementModesInc, fNEEvec);
+	fRHS += fNEEvec);
 }
 
 /* compute and assemble the residual force for the monolithic

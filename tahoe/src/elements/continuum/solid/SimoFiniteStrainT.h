@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.h,v 1.7 2001-09-05 07:12:15 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.h,v 1.8 2001-09-06 02:13:14 paklein Exp $ */
 
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
@@ -168,9 +168,17 @@ protected:
 	 * node number of the elements. */
 	iArray2DT fEnhancedConnectivities;
 	
-	/* element degrees of freedom */
-	dArray2DT   fElementModes;     /**< all element modes stored in \a local \a ordering */
-	LocalArrayT fCurrElementModes; /**< modes for current element */
+	/** all element modes stored in \a local \a ordering */	
+	dArray2DT fElementModes;
+
+	/** modes for current element */
+	LocalArrayT fCurrElementModes; 
+
+	/** increment in the element modes. Total increment in the element modes
+	 * over the local iteration phase. The incement is used by the local 
+	 * iteration solution method. The array is set to the negative of the
+	 * increment during SimoFiniteStrainT::SetGlobalShape. */
+	dArrayT fElementModesInc;
 
 	/* element degrees of freedom from last time step */
 	dArray2DT   fElementModes_last;     /**< all element modes stored in \a local \a ordering */
