@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.cpp,v 1.13 2002-07-05 17:16:01 paklein Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.13.2.1 2002-10-17 01:54:45 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleBaseT.h"
@@ -373,7 +373,7 @@ bool iConsoleBaseT::ResolveValue(CommandSpecT& command, int index, StringT& line
 		istrstream s((const char *) first);
 #endif
 		try { found_arg = arg.ReadValue(s); }
-		catch (int) { return false; }
+		catch (ExceptionT::CodeT) { return false; }
 		
 		/* eat line */
 		if (found_arg) line.Drop(count);
@@ -542,7 +542,7 @@ void iConsoleBaseT::WriteList(ostream& out, const ArrayT<StringT>& list,
 	int tab, int wrap) const
 {
 	/* checks */
-	if (tab < 0 || wrap < 0) throw eGeneralFail;
+	if (tab < 0 || wrap < 0) throw ExceptionT::kGeneralFail;
 	if (tab > 0) out << setw(tab-1) << " ";
 	int count = tab;
 	for (int i = 0; i < list.Length(); i++)
@@ -563,7 +563,7 @@ void iConsoleBaseT::WriteList(ostream& out, const ArrayT<CommandSpecT*>& list,
 	int tab, int wrap) const
 {
 	/* checks */
-	if (tab < 0 || wrap < 0) throw eGeneralFail;
+	if (tab < 0 || wrap < 0) throw ExceptionT::kGeneralFail;
 	if (tab > 0) out << setw(tab-1) << " ";
 	int count = tab;
 	for (int i = 0; i < list.Length(); i++)
@@ -603,7 +603,7 @@ void iConsoleBaseT::WriteVariable(ostream& out, int i) const
 		default:
 			cout << "unrecognized variable type: "
 			    << fVariableTypes[i] << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 }
 

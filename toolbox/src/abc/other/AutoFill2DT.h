@@ -1,4 +1,4 @@
-/* $Id: AutoFill2DT.h,v 1.4 2002-07-02 19:56:50 cjkimme Exp $ */
+/* $Id: AutoFill2DT.h,v 1.4.2.1 2002-10-17 01:51:26 paklein Exp $ */
 /* created: paklein (01/19/1999)                                          */
 /* NOTE: going to use this with a manager to help count and               */
 /* store edges in a graph. There have to be 2 modes of                    */
@@ -20,7 +20,7 @@
 #include <string.h>
 
 #include "Environment.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 
 namespace Tahoe {
@@ -107,7 +107,7 @@ inline AutoFill2DT<TYPE>::AutoFill2DT(int majordim, int headroom):
 {
 	/* check */
 	if (fMajorDim < 0 ||
-	    fHeadRoom < 0) throw eGeneralFail;
+	    fHeadRoom < 0) throw ExceptionT::kGeneralFail;
 	    
 	/* initialize memory */
 	Allocate(0,0);	    
@@ -124,7 +124,7 @@ AutoFill2DT<TYPE>::AutoFill2DT(int majordim, int headroom, int maxminordim):
 	/* check */
 	if (fMajorDim < 0 ||
 		fMaxMinorDim < 0 ||
-	    fHeadRoom < 0) throw eGeneralFail;	
+	    fHeadRoom < 0) throw ExceptionT::kGeneralFail;	
 
 	/* initialize memory */
 	Allocate(maxminordim, 0);
@@ -167,7 +167,7 @@ inline int AutoFill2DT<TYPE>::MinorDim(int majordim) const
 {
 #if __option(extended_errorcheck)
 	/* range check */
-	if (majordim < 0 || majordim >= fMajorDim) throw eOutOfRange;
+	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
 #endif
 
 	return fCounts[majordim];
@@ -219,7 +219,7 @@ template <class TYPE>
 inline void AutoFill2DT<TYPE>::SetMaxMinorDim(int maxminordim, int make_headroom)
 {
 	//TEMP - size can only grow for now
-	if (maxminordim < fMaxMinorDim) throw eGeneralFail;
+	if (maxminordim < fMaxMinorDim) throw ExceptionT::kGeneralFail;
 
 	/* set memory */
 	Allocate(maxminordim, (make_headroom == 1) ? fHeadRoom : 0);
@@ -228,7 +228,7 @@ inline void AutoFill2DT<TYPE>::SetMaxMinorDim(int maxminordim, int make_headroom
 template <class TYPE>
 inline void AutoFill2DT<TYPE>::SetHeadRoom(int headroom)
 {
-	if (headroom < 0) throw eGeneralFail;
+	if (headroom < 0) throw ExceptionT::kGeneralFail;
 	fHeadRoom = headroom;
 }
 
@@ -238,8 +238,8 @@ inline TYPE& AutoFill2DT<TYPE>::operator()(int majordim, int minordim) const
 {
 #if __option(extended_errorcheck)
 	/* checks */
-	if (majordim < 0 || majordim >= fMajorDim) throw eOutOfRange;
-	if (minordim < 0 || minordim >= fCounts[majordim]) throw eOutOfRange;
+	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
+	if (minordim < 0 || minordim >= fCounts[majordim]) throw ExceptionT::kOutOfRange;
 #endif
 
 	return fArray[majordim*fMaxMinorDim + minordim];
@@ -250,7 +250,7 @@ inline TYPE* AutoFill2DT<TYPE>::operator()(int majordim) const
 {
 #if __option(extended_errorcheck)
 	/* checks */
-	if (majordim < 0 || majordim >= fMajorDim) throw eOutOfRange;
+	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
 #endif
 
 	return fArray + majordim*fMaxMinorDim;
@@ -269,7 +269,7 @@ inline void AutoFill2DT<TYPE>::Reset(int majordim)
 {
 #if __option(extended_errorcheck)
 	/* checks */
-	if (majordim < 0 || majordim >= fMajorDim) throw eOutOfRange;
+	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
 #endif
 
 	fCounts[majordim] = 0;
@@ -284,7 +284,7 @@ void AutoFill2DT<TYPE>::Copy(const AutoFill2DT<TYPE>& source)
 	{
 		/* dimensions must match */
 		if (fMajorDim    != source.fMajorDim ||
-		    fMaxMinorDim != source.fMaxMinorDim) throw eSizeMismatch;
+		    fMaxMinorDim != source.fMaxMinorDim) throw ExceptionT::kSizeMismatch;
 		
 		/* copy counts */
 		memcpy(fCounts, source.fCounts, sizeof(int)*fMajorDim);
@@ -299,7 +299,7 @@ template <class TYPE>
 inline void AutoFill2DT<TYPE>::Append(int majordim, const TYPE& value)
 {
 #if __option(extended_errorcheck)
-	if (majordim < 0 || majordim >= fMajorDim) throw eOutOfRange;
+	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
 #endif
 
 	int& count = fCounts[majordim];
@@ -315,7 +315,7 @@ template <class TYPE>
 void AutoFill2DT<TYPE>::Append(int majordim, const ArrayT<TYPE>& source)
 {
 #if __option(extended_errorcheck)
-	if (majordim < 0 || majordim >= fMajorDim) throw eOutOfRange;
+	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
 #endif
 
 	int length = source.Length();
@@ -337,7 +337,7 @@ template <class TYPE>
 int AutoFill2DT<TYPE>::AppendUnique(int majordim, const TYPE& value)
 {
 #if __option(extended_errorcheck)
-	if (majordim < 0 || majordim >= fMajorDim) throw eOutOfRange;
+	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
 #endif
 
 	/* scan logical size for duplicates */
@@ -386,7 +386,7 @@ void AutoFill2DT<TYPE>::Allocate(int maxminordim, int headroom)
 		if (!fCounts)
 		{
 			cout << "\n AutoFill2DT<TYPE>::Allocate: out of memory"<< endl;
-			throw eOutOfMemory;
+			throw ExceptionT::kOutOfMemory;
 		}
 
 		memset(fCounts, 0, sizeof(int)*fMajorDim);
@@ -411,7 +411,7 @@ void AutoFill2DT<TYPE>::Allocate(int maxminordim, int headroom)
 	if (!newfArray)
 	{
 		cout << "\n AutoFill2DT<TYPE>::Allocate: out of memory"<< endl;
-		throw eOutOfMemory;
+		throw ExceptionT::kOutOfMemory;
 	}
 
 	/* keep current data */

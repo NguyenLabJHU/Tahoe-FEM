@@ -1,4 +1,4 @@
-/* $Id: TriDiagdMatrixT.h,v 1.3 2002-07-05 22:26:19 paklein Exp $ */
+/* $Id: TriDiagdMatrixT.h,v 1.3.2.1 2002-10-17 01:51:25 paklein Exp $ */
 /* created: paklein (01/15/1998)                                          */
 /* Triadiagonal matrix with Gauss elimination.                            */
 
@@ -50,7 +50,7 @@ inline void TriDiagdMatrixT::SetRow(int row, double L, double D, double R)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (row < 0 || row >= fRows) throw(eOutOfRange);
+	if (row < 0 || row >= fRows) throw ExceptionT::kOutOfRange;
 #endif
 
 	pL[row] = L;	
@@ -62,7 +62,7 @@ inline void TriDiagdMatrixT::AddToRow(int row, double L, double D, double R)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (row < 0 || row >= fRows) throw(eOutOfRange);
+	if (row < 0 || row >= fRows) throw ExceptionT::kOutOfRange;
 #endif
 
 	pL[row] += L;	

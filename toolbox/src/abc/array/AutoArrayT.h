@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.11 2002-07-05 22:26:17 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.11.2.1 2002-10-17 01:51:22 paklein Exp $ */
 /* created: paklein (12/05/1997) */
 #ifndef _AUTO_ARRAY_T_H_
 #define _AUTO_ARRAY_T_H_
@@ -199,7 +199,7 @@ inline AutoArrayT<TYPE>::AutoArrayT(int headroom):
 	fCurrElement(-1)
 {
 	/* check flags */
-	if (fHeadRoom < 0) throw eGeneralFail;
+	if (fHeadRoom < 0) throw ExceptionT::kGeneralFail;
 }
 
 template <class TYPE>
@@ -209,7 +209,7 @@ inline AutoArrayT<TYPE>::AutoArrayT(int length, int headroom):
 	fCurrElement(-1)
 {
 	/* check flags */
-	if (fHeadRoom < 0) throw eGeneralFail;
+	if (fHeadRoom < 0) throw ExceptionT::kGeneralFail;
 	Dimension(length);	
 }
 
@@ -229,7 +229,7 @@ inline AutoArrayT<TYPE>::AutoArrayT(const ArrayT<TYPE>& source, int headroom):
 	fCurrElement(-1)
 {
 	/* check flags */
-	if (fHeadRoom < 0) throw eGeneralFail;
+	if (fHeadRoom < 0) throw ExceptionT::kGeneralFail;
 
 	operator=(source);	
 }
@@ -306,7 +306,7 @@ inline void AutoArrayT<TYPE>::SetHeadRoom(int headroom)
 	fHeadRoom = headroom;
 	
 	/* check value */
-	if (fHeadRoom < 0) throw eGeneralFail;
+	if (fHeadRoom < 0) throw ExceptionT::kGeneralFail;
 }
 
 /*
@@ -437,7 +437,7 @@ template <class TYPE>
 void AutoArrayT<TYPE>::InsertAt(const TYPE& value, int position)
 {
 	/* range check */
-	if (position < 0 || position > fLength) throw eOutOfRange;
+	if (position < 0 || position > fLength) throw ExceptionT::kOutOfRange;
 
 	/* empty or at end */
 	if (position == fLength)
@@ -462,7 +462,7 @@ template <class TYPE>
 void AutoArrayT<TYPE>::DeleteAt(int position)
 {
 	/* range check */
-	if (position < 0 || position >= fLength) throw eOutOfRange;
+	if (position < 0 || position >= fLength) throw ExceptionT::kOutOfRange;
 
 	/* move data */
 	TYPE*   to = fArray + position;
@@ -550,7 +550,7 @@ inline void AutoArrayT<TYPE>::CopyInto(ArrayT<TYPE>& RHS) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (fLength > RHS.Length()) throw eSizeMismatch;
+	if (fLength > RHS.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 	
 	/* copy logical size */
@@ -594,7 +594,7 @@ inline TYPE& AutoArrayT<TYPE>::Current(void) const
 	{
 		cout << "\n AutoArrayT<TYPE>::Current: current element is out of range: "
 		     << fCurrElement << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 #endif
 	return *(fArray + fCurrElement);
@@ -609,7 +609,7 @@ inline TYPE& AutoArrayT<TYPE>::Current(int position)
 	{
 		cout << "\n AutoArrayT<TYPE>::Current: position is out of range: "
 		     << fCurrElement << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 #endif
 	fCurrElement = position;

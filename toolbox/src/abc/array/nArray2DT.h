@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.13 2002-07-08 11:20:19 sawimme Exp $ */
+/* $Id: nArray2DT.h,v 1.13.2.1 2002-10-17 01:51:22 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NARRAY2D_T_H_
@@ -306,7 +306,7 @@ inline nTYPE& nArray2DT<nTYPE>::operator()(int majordim, int minordim) const
 			cout << "\n nArray2DT<TYPE>::operator(int,int): out of range\n"
 			     <<   "    major {0," << fMajorDim-1 << "}: " << majordim << '\n'
 			     <<   "    minor {0," << fMinorDim-1 << "}: " << minordim << endl;
-			throw eOutOfRange;
+			throw ExceptionT::kOutOfRange;
 		}
 #endif
 	return fArray[majordim*fMinorDim + minordim];
@@ -320,7 +320,7 @@ inline nTYPE* nArray2DT<nTYPE>::operator()(int majordim) const
 	if (majordim < 0 || majordim >= fMajorDim) {
 		cout << "\n nArray2DT<TYPE>::operator(int): major dimension " << majordim 
 		     << " is out of range {0," << fMajorDim-1 << "}" << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 #endif
 	return fArray + majordim*fMinorDim;
@@ -417,7 +417,7 @@ void nArray2DT<nTYPE>::SetLocal(const ArrayT<int>& rows,
 #if __option(extended_errorcheck)
 	/* dimension checks */
 	if (rows.Length()*fMinorDim != sublist.Length())
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 //NOTE: could unroll loops for speed with
@@ -475,7 +475,7 @@ template <class nTYPE>
 inline void nArray2DT<nTYPE>::ColumnCopy(int col, nArrayT<nTYPE>& array) const
 {
 #if __option (extended_errorcheck)
-	if (array.Length() != fMajorDim) throw eSizeMismatch;
+	if (array.Length() != fMajorDim) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* call wrapper */
@@ -510,7 +510,7 @@ inline void nArray2DT<nTYPE>::SetRow(int row, const nArrayT<nTYPE>& array)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (array.Length() != fMinorDim) throw eSizeMismatch;
+	if (array.Length() != fMinorDim) throw ExceptionT::kSizeMismatch;
 #endif
 	
 	/* copy */	
@@ -535,7 +535,7 @@ void nArray2DT<nTYPE>::SetColumn(int col,
 {
 	/* dimension check */
 	if (array.Length() != fMajorDim)
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	else if (fMajorDim == 0)
 		return;
 	
@@ -627,7 +627,7 @@ inline nTYPE nArray2DT<nTYPE>::DotRow(int row,
 {
 #if __option (extended_errorcheck)
 	/* check */
-	if (array.Length() != fMinorDim) throw eSizeMismatch;
+	if (array.Length() != fMinorDim) throw ExceptionT::kSizeMismatch;
 #endif
 
 	return DotRow(row, array.Pointer());
@@ -638,7 +638,7 @@ nTYPE nArray2DT<nTYPE>::DotColumn(int col, const nArrayT<nTYPE>& array) const
 {
 #if __option (extended_errorcheck)
 	/* check */
-	if (array.Length() != fMajorDim) throw eSizeMismatch;
+	if (array.Length() != fMajorDim) throw ExceptionT::kSizeMismatch;
 #endif
 	
 	nTYPE *p = Pointer(col);
@@ -689,7 +689,7 @@ void nArray2DT<nTYPE>::RowCollect(const ArrayT<int>& rows,
 /* must have same minor dimension */
 #if __option (extended_errorcheck)
 	if (fMinorDim != array2D.fMinorDim || rows.Length() != fMajorDim)
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* shallow wrapper */
@@ -704,7 +704,7 @@ void nArray2DT<nTYPE>::RowCollect(const int* rows,
 {
 /* must have same minor dimension */
 #if __option (extended_errorcheck)
-	if (fMinorDim != array2D.fMinorDim) throw eSizeMismatch;
+	if (fMinorDim != array2D.fMinorDim) throw ExceptionT::kSizeMismatch;
 #endif
 
 	for (int i = 0; i < fMajorDim; i++)
@@ -755,7 +755,7 @@ void nArray2DT<nTYPE>::SetToRowScaled(int row, const nTYPE& scale,
 {
 	/* dimension checks */
 #if __option(extended_errorcheck)	
-	if (fMinorDim != RHS.fMinorDim) throw eSizeMismatch;
+	if (fMinorDim != RHS.fMinorDim) throw ExceptionT::kSizeMismatch;
 #endif
 
 	nTYPE* pthis = (*this)(row);
@@ -774,7 +774,7 @@ void nArray2DT<nTYPE>::AddRowScaled(int row, const nTYPE& scale,
 {
 	/* dimension checks */
 #if __option(extended_errorcheck)	
-	if (fMinorDim != RHS.fMinorDim) throw eSizeMismatch;
+	if (fMinorDim != RHS.fMinorDim) throw ExceptionT::kSizeMismatch;
 #endif
 
 	nTYPE* pthis = (*this)(row);
@@ -798,7 +798,7 @@ void nArray2DT<nTYPE>::AddToRowScaled(int row, const nTYPE& scale,
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (array.Length() != fMinorDim) throw eSizeMismatch;
+	if (array.Length() != fMinorDim) throw ExceptionT::kSizeMismatch;
 #endif
 
 	nTYPE  temp;
@@ -818,7 +818,7 @@ void nArray2DT<nTYPE>::AddToRowsScaled(const nTYPE& scale,
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (array.Length() != fMinorDim) throw eSizeMismatch;
+	if (array.Length() != fMinorDim) throw ExceptionT::kSizeMismatch;
 #endif
 
 	if (fMajorDim > fMinorDim)
@@ -865,8 +865,8 @@ void nArray2DT<nTYPE>::BlockRowCopyAt(const nArray2DT& source, int start)
 
 #if __option(extended_errorcheck)
 	/* dimensions check */
-	if (fMinorDim != source.fMinorDim) throw eSizeMismatch;
-	if (start + source.fMajorDim > fMajorDim) throw eOutOfRange;
+	if (fMinorDim != source.fMinorDim) throw ExceptionT::kSizeMismatch;
+	if (start + source.fMajorDim > fMajorDim) throw ExceptionT::kOutOfRange;
 #endif
 
 	/* copy */
@@ -882,8 +882,8 @@ void nArray2DT<nTYPE>::BlockColumnCopyAt(const nArray2DT& source, int start)
 
 #if __option(extended_errorcheck)
 	/* dimension checks */
-	if (fMajorDim != source.fMajorDim) throw eSizeMismatch;
-	if (start + source.fMinorDim > fMinorDim) throw eOutOfRange;
+	if (fMajorDim != source.fMajorDim) throw ExceptionT::kSizeMismatch;
+	if (start + source.fMinorDim > fMinorDim) throw ExceptionT::kOutOfRange;
 #endif
 
 	for (int i = 0; i < fMajorDim; i++)
@@ -930,7 +930,7 @@ void nArray2DT<nTYPE>::PrintRow(int row, int rowlength, ostream& out) const
 {
 #if __option(extended_errorcheck)
 	/* no more than the whole row */
-	if (rowlength > fMinorDim) throw eOutOfRange;
+	if (rowlength > fMinorDim) throw ExceptionT::kOutOfRange;
 #endif
 
 	nTYPE* p = (*this)(row);

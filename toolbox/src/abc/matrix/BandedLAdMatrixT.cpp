@@ -1,4 +1,4 @@
-/* $Id: BandedLAdMatrixT.cpp,v 1.3 2002-09-12 16:40:17 paklein Exp $ */
+/* $Id: BandedLAdMatrixT.cpp,v 1.3.2.1 2002-10-17 01:51:25 paklein Exp $ */
 /* created: MLK (05/21/1997)                                              */
 /* square banded matrix operations                                        */
 /* banded matrix elements stored in columns                               */
@@ -32,7 +32,7 @@ double BandedLAdMatrixT::GetElement(int row, int col) const
 /* range checking */
 #if __option (extended_errorcheck)
 	if (row < 0 || row >= fRows || col < 0 || col >= fCols)
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 #endif
 	
 	if(row-col > fLband || col-row > fRband)
@@ -70,11 +70,11 @@ void BandedLAdMatrixT::AddBlock(int row, int col, const dMatrixT& block)
 #if __option(extended_errorcheck)
 	/* within bounds */
 	if (row < 0 || row + block.Rows() > fRows ||
-	    col < 0 || row + block.Cols() > fCols) throw eOutOfRange;
+	    col < 0 || row + block.Cols() > fCols) throw ExceptionT::kOutOfRange;
 
 	/* within the band */
 	if ((row + block.Rows() - col) > fLband + 1 ||
-	    (col + block.Cols() - row) > fRband + 1 ) throw eOutOfRange;
+	    (col + block.Cols() - row) > fRband + 1 ) throw ExceptionT::kOutOfRange;
 #endif
 
 	double* pblock = block.Pointer();
@@ -96,7 +96,7 @@ void BandedLAdMatrixT::Transpose(const BandedLAdMatrixT& matrix)
 #if __option(extended_errorcheck)
 	/* dimension checks */
 	if( fRband != matrix.Lband() || fLband != matrix.Rband() )
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	int mincol, maxcol;
@@ -132,7 +132,7 @@ void BandedLAdMatrixT::LinearSolve(dArrayT& RHS)
 	{
 		double diagvalue = (*this)(col,col);
 		if(fabs( diagvalue/mean ) < 1.0e-12)
-			throw (eGeneralFail);
+			throw ExceptionT::kGeneralFail;
 		
 		int maxrow = fRows-1;
 		if(col + fLband < maxrow)
@@ -167,7 +167,7 @@ void BandedLAdMatrixT::LinearSolve(dArrayT& RHS)
 	
 	/* back substitution */
 	if(fabs( (*this)(fRows-1,fCols-1)/mean ) < 1.0e-12)
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 
 	RHS[fRows-1] /= (*this)(fRows-1,fCols-1); 	
 			
@@ -202,7 +202,7 @@ void BandedLAdMatrixT::LinearSolve(dMatrixT& RHS)
 {
 	/* dimension checks */
 	if(fRows != fCols || RHS.Rows() != fRows)
-		throw (eSizeMismatch);
+		throw ExceptionT::kSizeMismatch;
 
 	/* compute mean value of elements contained in bands */
 	double* pA = (*this)(0);
@@ -218,7 +218,7 @@ void BandedLAdMatrixT::LinearSolve(dMatrixT& RHS)
 	{
 		double diagvalue = (*this)(col,col);
 		if(fabs( diagvalue/mean ) < 1.0e-12)
-			throw (eGeneralFail);
+			throw ExceptionT::kGeneralFail;
 		
 		int maxrow = fRows-1;
 		if(col + fLband < maxrow)
@@ -257,7 +257,7 @@ void BandedLAdMatrixT::LinearSolve(dMatrixT& RHS)
 	
 	/* back substitution */
 	if(fabs( (*this)(fRows-1,fCols-1)/mean ) < 1.0e-12)
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 
 	for (int k = 0; k < RHS.Cols(); k++)
 	{
@@ -299,7 +299,7 @@ void BandedLAdMatrixT::BandedInverse(dMatrixT& RHS)
 {
 	/* dimension checks */
 	if(fRows != fCols || RHS.Rows() != fRows)
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 
 	/* compute mean value of elements contained in bands */
 	double* pA = (*this)(0);
@@ -318,7 +318,7 @@ void BandedLAdMatrixT::BandedInverse(dMatrixT& RHS)
 	{
 		double diagvalue = (*this)(col,col);
 		if(fabs( diagvalue/mean ) < 1.0e-12)
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		
 		int maxrow = fRows-1;
 		if(col + fLband < maxrow)
@@ -357,7 +357,7 @@ void BandedLAdMatrixT::BandedInverse(dMatrixT& RHS)
 	
 	/* back substitution */
 	if(fabs( (*this)(fRows-1,fCols-1)/mean ) < 1.0e-12)
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 
 	for (int colRHS1 = 0; colRHS1 < RHS.Cols(); colRHS1++)
 	{
@@ -398,7 +398,7 @@ void BandedLAdMatrixT::Multx(const dArrayT& x,
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)	
-	if (fRows != b.Length() || fCols != x.Length()) throw eSizeMismatch;
+	if (fRows != b.Length() || fCols != x.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	//double* ARow = Pointer() + fRband;
@@ -458,7 +458,7 @@ void BandedLAdMatrixT::MultM(const dMatrixT& M,
 	/* dimension checks */
 #if __option (extended_errorcheck)	
 	if ( ( fRows != B.Rows() || B.Cols() != M.Cols() ) || fCols != M.Rows() )
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	for (int col = 0; col < B.Cols(); col++) {
@@ -517,7 +517,7 @@ void BandedLAdMatrixT::MultTx(const dArrayT& x,
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)	
-	if (fRows != x.Length() || fCols != b.Length()) throw eSizeMismatch;
+	if (fRows != x.Length() || fCols != b.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double* px0  = x.Pointer();
@@ -577,7 +577,7 @@ void BandedLAdMatrixT::MultTM(const dMatrixT& M,
 	/* dimension checks */
 #if __option (extended_errorcheck)	
 	if ( ( fRows != B.Cols() || B.Rows() != M.Cols() ) || fCols != M.Rows() )
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	for (int row = 0; row < B.Rows(); row++) {

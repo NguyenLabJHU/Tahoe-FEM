@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.9 2002-07-02 19:56:39 cjkimme Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.9.2.1 2002-10-17 01:51:22 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 
 #ifndef _RAGGED_ARRAY_2D_T_H_
@@ -243,7 +243,7 @@ template <class TYPE>
 inline int RaggedArray2DT<TYPE>::MinorDim(int row) const
 {
 #if __option(extended_errorcheck)
-	if (row < 0 || row >= fMajorDim) throw eOutOfRange;
+	if (row < 0 || row >= fMajorDim) throw ExceptionT::kOutOfRange;
 #endif
 
 	TYPE** p = fPtrs.Pointer() + row;
@@ -254,7 +254,7 @@ template <class TYPE>
 inline void RaggedArray2DT<TYPE>::MinorDim(ArrayT<int>& minordim) const
 {
 #if __option(extended_errorcheck)
-	if (minordim.Length() != fMajorDim) throw eSizeMismatch;
+	if (minordim.Length() != fMajorDim) throw ExceptionT::kSizeMismatch;
 #endif
 
 	TYPE**  p = fPtrs.Pointer();
@@ -458,7 +458,7 @@ void RaggedArray2DT<TYPE>::Copy(const AutoFill2DT<TYPE>& source)
 	if (pdata - fData.Pointer() != fData.Length())
 	{
 		cout << "\n RaggedArray2DT<TYPE>::Copy: memory partitioning error" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -500,7 +500,7 @@ void RaggedArray2DT<TYPE>::Copy(const RowAutoFill2DT<TYPE>& source)
 	if (pdata - fData.Pointer() != fData.Length())
 	{
 		cout << "\n RaggedArray2DT<TYPE>::Copy: memory partitioning error" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -560,7 +560,7 @@ void RaggedArray2DT<TYPE>::CopyCompressed(const AutoFill2DT<TYPE>& source) // re
 	if (pdata - fData.Pointer() != fData.Length())
 	{
 		cout << "\n RaggedArray2DT<TYPE>::CopyCompressed: memory partitioning error" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -589,7 +589,7 @@ template <class TYPE>
 inline void RaggedArray2DT<TYPE>::SetRow(int row, const ArrayT<TYPE>& array)
 {
 #if __option(extended_errorcheck)
-	if (array.Length() != MinorDim(row)) throw eSizeMismatch;
+	if (array.Length() != MinorDim(row)) throw ExceptionT::kSizeMismatch;
 #endif
 
 	SetRow(row, array.Pointer());

@@ -1,4 +1,4 @@
-/* $Id: LAdMatrixT.cpp,v 1.4 2002-09-12 16:40:17 paklein Exp $ */
+/* $Id: LAdMatrixT.cpp,v 1.4.2.1 2002-10-17 01:51:25 paklein Exp $ */
 /* created: paklein (12/05/1996)                                          */
 /* Matrix2D with some linear algebra functions                            */
 
@@ -16,7 +16,7 @@ LAdMatrixT::LAdMatrixT(int squaredim): dMatrixT(squaredim) { }
 LAdMatrixT::LAdMatrixT(const LAdMatrixT& source): dMatrixT(source)
 { 	
 	/* must be square */
-	if (fRows != fCols) throw eGeneralFail;
+	if (fRows != fCols) throw ExceptionT::kGeneralFail;
 }
 
 /* pivoting functions */
@@ -25,7 +25,7 @@ void LAdMatrixT::RowPivot(int row1, int row2)
 /* dimension checks */
 #if __option (extended_errorcheck)
 	if (row1 < 0 || row1 >= fRows ||
-	    row2 < 0 || row2 >= fRows) throw eOutOfRange;
+	    row2 < 0 || row2 >= fRows) throw ExceptionT::kOutOfRange;
 #endif
 
 	double* p1 = (*this)(0) + row1;
@@ -47,7 +47,7 @@ void LAdMatrixT::ColumnPivot(int col1, int col2)
 /* dimension checks */
 #if __option (extended_errorcheck)
 	if (col1 < 0 || col1 >= fCols ||
-	    col2 < 0 || col2 >= fCols) throw eOutOfRange;
+	    col2 < 0 || col2 >= fCols) throw ExceptionT::kOutOfRange;
 #endif
 
 	double* p1 = (*this)(col1);
@@ -72,7 +72,7 @@ void LAdMatrixT::LinearSolve(dArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (RHS.Length() != fRows) throw eSizeMismatch;
+	if (RHS.Length() != fRows) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* mean matrix value */
@@ -115,7 +115,7 @@ void LAdMatrixT::LinearSolve(dArrayT& RHS)
 			
 		/* forward reduction */
 		double diagvalue = (*this)(col,col);
-		if (fabs( diagvalue/mean ) < kSmall) throw eGeneralFail;
+		if (fabs( diagvalue/mean ) < kSmall) throw ExceptionT::kGeneralFail;
 
 		for (int row1 = col + 1; row1 < fRows; row1++)
 		{
@@ -140,7 +140,7 @@ void LAdMatrixT::LinearSolve(dArrayT& RHS)
 	
 	/* back substitution */
 	if (fabs( (*this)(fRows-1,fCols-1)/mean ) < kSmall)
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 
 	RHS[fRows-1] /= (*this)(fRows-1,fCols-1); 		
 	for (int row = fRows-2; row > -1; row--)
@@ -164,7 +164,7 @@ void LAdMatrixT::LinearSolve2(dArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (RHS.Length() != fRows) throw eSizeMismatch;
+	if (RHS.Length() != fRows) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* mean matrix value */
@@ -174,7 +174,7 @@ void LAdMatrixT::LinearSolve2(dArrayT& RHS)
 	for (int col = 0; col < fCols-1; col++)
 	{
 		double diagvalue = (*this)(col,col);
-		if (fabs( diagvalue/mean ) < kSmall) throw eGeneralFail;
+		if (fabs( diagvalue/mean ) < kSmall) throw ExceptionT::kGeneralFail;
 		
 		for (int row = col + 1; row < fRows; row++)
 		{
@@ -200,7 +200,7 @@ void LAdMatrixT::LinearSolve2(dArrayT& RHS)
 	}
 	
 	/* back substitution */
-	if (fabs( (*this)(fRows-1,fCols-1)/mean ) > kSmall) throw eGeneralFail;
+	if (fabs( (*this)(fRows-1,fCols-1)/mean ) > kSmall) throw ExceptionT::kGeneralFail;
 
 	RHS[fRows-1] /= (*this)(fRows-1,fCols-1); 		
 	for (int row = fRows-2; row > -1; row--)
@@ -228,7 +228,7 @@ int LAdMatrixT::BiCGStab(dArrayT& x ,const dArrayT& RHS ,const double M , int ma
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (RHS.Length() != fRows) throw eSizeMismatch;
+	if (RHS.Length() != fRows) throw ExceptionT::kSizeMismatch;
 #endif
 
 
@@ -343,8 +343,8 @@ int LAdMatrixT::BiCGStab(dArrayT& x ,const dArrayT& RHS ,const dArrayT& M , int 
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (RHS.Length() != fRows) throw eSizeMismatch;
-	if (  M.Length() != fRows) throw eSizeMismatch;
+	if (RHS.Length() != fRows) throw ExceptionT::kSizeMismatch;
+	if (  M.Length() != fRows) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int j;

@@ -1,4 +1,4 @@
-/* $Id: TriDiagdMatrixT.cpp,v 1.4 2002-09-12 16:40:17 paklein Exp $ */
+/* $Id: TriDiagdMatrixT.cpp,v 1.4.2.1 2002-10-17 01:51:25 paklein Exp $ */
 /* created: paklein (01/15/1998)                                          */
 /* Triadiagonal matrix with Gauss elimination. The                        */
 /* matrix is stored in row major form.                                    */
@@ -26,7 +26,7 @@ TriDiagdMatrixT::TriDiagdMatrixT(int rows):
 void TriDiagdMatrixT::LinearSolve(dArrayT& RHS)
 {
 	/* dimension check */
-	if (RHS.Length() != fRows) throw eSizeMismatch;
+	if (RHS.Length() != fRows) throw ExceptionT::kSizeMismatch;
 	
 	/* quick exit */
 	if (fRows == 0) return;
@@ -43,7 +43,7 @@ void TriDiagdMatrixT::LinearSolve(dArrayT& RHS)
 	for (int i = 1; i < fRows; i++)
 	{
 #if __option(extended_errorcheck)
-		if (fabs(*pdiag) < kSmall) throw eGeneralFail;
+		if (fabs(*pdiag) < kSmall) throw ExceptionT::kGeneralFail;
 #endif
 
 		double factor = (*pzero++)/(*pdiag++);
@@ -61,13 +61,13 @@ void TriDiagdMatrixT::LinearSolve(dArrayT& RHS)
 	
 	/* back substitution */
 #if __option(extended_errorcheck)
-	if (fabs(*pdiag1) < kSmall) throw eGeneralFail;
+	if (fabs(*pdiag1) < kSmall) throw ExceptionT::kGeneralFail;
 #endif
 	*pRHS1 /= *pdiag1;
 	for (int j = 1; j < fRows; j++)
 	{
 #if __option(extended_errorcheck)
-	if (fabs(*pdiag) < kSmall) throw eGeneralFail;
+	if (fabs(*pdiag) < kSmall) throw ExceptionT::kGeneralFail;
 #endif
 
 		(*pRHS)   -= (*upper--)*(*pRHS1--);
