@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.11 2002-08-15 16:49:57 sawimme Exp $ */
+/* $Id: main.cpp,v 1.12 2002-09-10 22:48:44 cjkimme Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -56,7 +56,7 @@ void main(int argc, char* argv[])
 
 static void StartUp(int* argc, char*** argv, CommunicatorT& comm)
 {
-#if !defined(_MACOS_)
+#if !defined(_MACOS_) && !defined(__INTEL__)
 #if defined (__DEC__) || defined (__SUN__)
 	/* redirect cout and cerr */
 	if (comm.Rank() > 0)
@@ -84,9 +84,9 @@ static void StartUp(int* argc, char*** argv, CommunicatorT& comm)
 		cerr = console;
 	}
 #endif /* __DEC__ */
-#else /* __MACOS__ */
+#else /* __MACOS__ && __INTEL__ */
 #pragma unused(comm)
-#endif /* __MACOS__ */
+#endif /* __MACOS__ && __INTEL__ */
 
 	/* output build date and time */
 	cout << "\n build: " __TIME__ ", " << __DATE__ << '\n';
