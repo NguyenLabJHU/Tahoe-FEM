@@ -57,6 +57,17 @@ void CubicSplineWindowGPT::WriteParameters(ostream& out) const
 bool CubicSplineWindowGPT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
 		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw) // added KY (3rd derivative)
 {
+	/* allocate */
+	int len;
+	int nsd = x.Length();
+	if (nsd == 2)
+	{
+		len = 3; // upper triangle only (symmetry)
+	}
+	else if (nsd == 3)
+	{
+	  	len = 6; // upper triangle only (symmetry)
+	}
 	/* outside the range of influence */
 	if (!CubicSplineWindowGPT::Covers(x_n, x, param_n))
 	{
@@ -104,47 +115,25 @@ bool CubicSplineWindowGPT::Window(const dArrayT& x_n, const dArrayT& param_n, co
 					DDw.Outer(Dw, (ddw/a - dw/dist)/(dist*dist*a));
 					DDw.PlusIdentity(dw/(dist*a));
 					if (order > 2) // kyonten (DDDw)
-	  				{
-	  			    	if (nsd == 2)
-	  			    	{
-	  			     	 len = 3.; // upper triangle only (symmetry)
-	  			    	}
-	  			    	else if (nsd == 3)
-	  			    	{
-	  			     	 len = 6.; // upper triangle only (symmetry)
-	  			    	}
-	  					dMatrixT AA(1, len), II(1, len); 
-	  					dMatrixT DDDw1(nsd, nsd), I(nsd, nsd);
-	  					I = 0.; II = 0.;
+	  				{ 
+	  					dSymMatrixT DDDw1(nsd), I(nsd);
+	  					dMatrixT DDDw2(nsd,len);
+	  					I = 0.; 
 	  					double const1, const2;
 	  					DDDw1.Outer(Dw);
-	  					if (nsd == 2)
-	  					{
-	  				 	 AA(1,1) = DDDw1(1,1); AA(1,2) = DDDw1(2,2); AA(1,3) = DDDw1(1,2);
-	  				 	 I(1,1) = I(2,2) = 1.;
-	  				 	 II(1,1) = I(1,1); II(1,2) = I(2,2); II(1,3) = I(1,2);
-	  					}
-	  					else if (nsd == 3)
-	  					{
-	  				 	 AA(1,1) = DDDw1(1,1); AA(1,2) = DDDw1(2,2); AA(1,3) = DDDw1(3,3);
-	  				 	 AA(1,4) = DDDw1(2,3); AA(1,5) = DDDw1(1,3): AA(1,6) = DDDw1(1,2);
-	  				 	 I(1,1) = I(2,2) = I(3,3) = 1.;
-	  				 	 II(1,1) = I(1,1); II(1,2) = I(2,2); II(1,3) = I(3,3);
-	  				 	 II(1,4) = I(2,3); II(1,5) = I(1,3): II(1,6) = II(1,2);
-	  					}
-	  					 DDDw.MultAB(Dw,DDDw1); // 3x6
-	  					 const1 = (ddw/a - dw/dist);
-	  					 const1 *= -2./(dist*dist);
-	  					 const1 -= 1./(a*a*a*dist);
-	  					 const1 -= dr/(a*a*dist*dist);
-	  					 const1 += dw/(dist*dist*dist);
-	  					 DDDw *= const1/(dist*dist*a);
-	  					 const2 = (ddw/a - dw/dist)/(dist*dist*a);
-	  					 DDDw2.MultAB(Dw,II); // 3x6
-	  					 DDDw2 += DDDw2;
-	  					 DDDw2 += DDDw2;
-	  					 DDDw2 *= const2;
-	  					 DDDw += DDDw2;
+	  					DDDw.Outer(Dw,DDDw1); // 3x6(symmetric), 3x9(non-symmetric)
+	  					const1 = (ddw/a - dw/dist);
+	  					const1 *= -2./(dist*dist);
+	  					const1 -= 1./(a*a*a*dist);
+	  					const1 -= dr/(a*a*dist*dist);
+	  					const1 += dw/(dist*dist*dist);
+	  					DDDw *= const1/(dist*dist*a);
+	  					const2 = (ddw/a - dw/dist)/(dist*dist*a);
+	  					DDDw2.Outer(Dw,I); // 3x6(symmetric), 3x9(non-symmetric)
+	  					DDDw2 += DDDw2;
+	  					DDDw2 += DDDw2;
+	  					DDDw2 *= const2;
+	  					DDDw += DDDw2;
 	  				}
 				}
 				Dw *= dw/(dist*a);
@@ -164,46 +153,24 @@ bool CubicSplineWindowGPT::Window(const dArrayT& x_n, const dArrayT& param_n, co
 					DDw.PlusIdentity(dw_by_r*r/(dist*a));
 					if (order > 2) // kyonten (DDDw)
 	  				{
-	  			    	if (nsd == 2)
-	  			    	{
-	  			     	 len = 3.; // upper triangle only (symmetry)
-	  			    	}
-	  			    	else if (nsd == 3)
-	  			    	{
-	  			     	 len = 6.; // upper triangle only (symmetry)
-	  			    	}
-	  					dMatrixT AA(1, len), II(1, len); 
-	  					dMatrixT DDDw1(nsd, nsd), I(nsd, nsd);
-	  					I = 0.; II = 0.;
+	  					dSymMatrixT DDDw1(nsd), I(nsd);
+	  					dMatrixT DDDw2(nsd,len);
+	  					I = 0.;
 	  					double const1, const2;
 	  					DDDw1.Outer(Dw);
-	  					if (nsd == 2)
-	  					{
-	  				 	 AA(1,1) = DDDw1(1,1); AA(1,2) = DDDw1(2,2); AA(1,3) = DDDw1(1,2);
-	  				 	 I(1,1) = I(2,2) = 1.;
-	  				 	 II(1,1) = I(1,1); II(1,2) = I(2,2); II(1,3) = I(1,2);
-	  					}
-	  					else if (nsd == 3)
-	  					{
-	  				 	 AA(1,1) = DDDw1(1,1); AA(1,2) = DDDw1(2,2); AA(1,3) = DDDw1(3,3);
-	  				 	 AA(1,4) = DDDw1(2,3); AA(1,5) = DDDw1(1,3): AA(1,6) = DDDw1(1,2);
-	  				 	 I(1,1) = I(2,2) = I(3,3) = 1.;
-	  				 	 II(1,1) = I(1,1); II(1,2) = I(2,2); II(1,3) = I(3,3);
-	  				 	 II(1,4) = I(2,3); II(1,5) = I(1,3): II(1,6) = II(1,2);
-	  					}
-	  					 DDDw.MultAB(Dw,DDDw1); // 3x6
-	  					 const1 = (ddw/a - dw_by_r*r/dist);
-	  					 const1 *= -2./(dist*dist);
-	  					 const1 += 3./(a*a*a*dist);
-	  					 const1 -= (3.*r-1.)/(a*a*dist*dist);
-	  					 const1 += dw_by_r * r/(dist*dist*dist);
-	  					 DDDw *= const1/(dist*dist*a);
-	  					 const2 = (ddw/a - dw_by_r*r/dist)/(dist*dist*a);
-	  					 DDDw2.MultAB(Dw,II); // 3x6
-	  					 DDDw2 += DDDw2;
-	  					 DDDw2 += DDDw2;
-	  					 DDDw2 *= const2;
-	  					 DDDw += DDDw2;
+	  					DDDw.Outer(Dw,DDDw1); // 3x6(symmetric), 3x9(non-symmetric)
+	  					const1 = (ddw/a - dw_by_r*r/dist);
+	  					const1 *= -2./(dist*dist);
+	  					const1 += 3./(a*a*a*dist);
+	  					const1 -= (3.*r-1.)/(a*a*dist*dist);
+	  					const1 += dw_by_r * r/(dist*dist*dist);
+	  					DDDw *= const1/(dist*dist*a);
+	  					const2 = (ddw/a - dw_by_r*r/dist)/(dist*dist*a);
+	  					DDDw2.Outer(Dw,I); // 3x6(symmetric), 3x9(non-symmetric)
+	  					DDDw2 += DDDw2;
+	  					DDDw2 += DDDw2;
+	  					DDDw2 *= const2;
+	  					DDDw += DDDw2;
 	  				}
 				}
 				Dw *= dw_by_r/(a*a);
@@ -222,7 +189,9 @@ int CubicSplineWindowGPT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 	/* allocate */
 	int nsd = x.Length();
 	fNSD.Dimension(nsd);
-	fNSDsym.Dimension(nsd); // this is for DDw, what about for DDDw??
+	fNSDsym.Dimension(nsd);
+	int len = fNSDsym.Length(); // len=3 (2D); len=6 (3D)
+	fNSD3X6(nsd,len); // this is for DDw, what about for DDDw??
 
 	/* work space */
 	dArrayT x_node, param_node;
@@ -235,7 +204,7 @@ int CubicSplineWindowGPT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 		x_n.RowAlias(i, x_node);
 		param_n.RowAlias(i, param_node);
       
-		if (CubicSplineWindowGPT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym))
+		if (CubicSplineWindowGPT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym, fNSD3X6))
 			count++;
 
 		/* store derivatives */
@@ -247,7 +216,7 @@ int CubicSplineWindowGPT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 				DDw.SetColumn(i, fNSDsym);
 				if (order > 2)
 				{
-					DDDw.SetColumn(i, fNSDsym); // fNSDsym different for DDDw??
+					DDDw.SetColumn(i, fNSD3X6); // fNSDsym different for DDDw??
 				}
 			}
 		}

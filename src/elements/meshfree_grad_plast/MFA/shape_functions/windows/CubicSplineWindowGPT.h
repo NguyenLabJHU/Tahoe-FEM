@@ -71,7 +71,8 @@ class CubicSplineWindowGPT: public WindowGPT
   	
 	/* work space */
 	dArrayT     fNSD;
-	dSymMatrixT fNSDsym; // need to add work space for DDDw??
+	dSymMatrixT fNSDsym; 
+	dMatrixT    fNSD3X6; // need to add work space for DDDw??
 
 };
 
