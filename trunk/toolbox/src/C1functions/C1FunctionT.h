@@ -1,12 +1,10 @@
-/* $Id: C1FunctionT.h,v 1.14 2003-05-21 16:04:08 thao Exp $ */
+/* $Id: C1FunctionT.h,v 1.15 2004-01-27 19:07:23 paklein Exp $ */
 /* created: paklein (12/04/1996) */
+#ifndef _C1_FUNCTION_T_H_
+#define _C1_FUNCTION_T_H_
 
-#ifndef _C2_FUNCTION_T_H_
-#define _C2_FUNCTION_T_H_
-
-#include "Environment.h"
-
-#include "ios_fwd_decl.h"
+/* base class */
+#include "ParameterInterfaceT.h"
 
 namespace Tahoe {
 
@@ -14,7 +12,7 @@ namespace Tahoe {
 class dArrayT;
 
 /** interface for a twice differentiable function */
-class C1FunctionT
+class C1FunctionT: public ParameterInterfaceT
 {
 public:
 
@@ -31,18 +29,24 @@ public:
 	                 kGaoVicky = 12,
                           kSF2 = 13,
              kModSmithFerrante = 14,
-		     kQuadraticPot = 15};
+		         kQuadraticPot = 15,
+		             kPowerLaw = 16};
 
 	/** constructor */
 	C1FunctionT(void);
 
 	/** destructor */
 	virtual ~C1FunctionT(void);
+
+	/** factory method. Construct a new instance of a sub-class of C1FunctionT
+	 * with the given ParameterInterfaceT name, or return NULL if the name is
+	 * not recognized. */
+	static C1FunctionT* New(const char* name);
 	
 	/** \name I/O */
 	/*@{*/
-	virtual void Print(ostream& out) const = 0;     	    	   	
-	virtual void PrintName(ostream& out) const = 0;     	    	   	
+	virtual void Print(ostream&) const {};
+	virtual void PrintName(ostream&) const {};
 	/*@}*/
 	    	   	    	
 	/** \name returning values */
@@ -76,4 +80,5 @@ public:
 };
 
 } // namespace Tahoe 
-#endif /* _C2_FUNCTION_T_H_ */
+
+#endif /* _C1_FUNCTION_T_H_ */

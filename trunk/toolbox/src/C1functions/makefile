@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.26 2003-08-04 01:27:27 thao Exp $
+# $Id: makefile,v 1.27 2004-01-27 19:07:23 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,6 +22,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	CubicSplineT.o \
 	C1FunctionT.o \
+	C1FunctionT_factory.o \
 	ErrorFunc.o \
 	GaoKlein.o \
 	Gamma.o \
@@ -37,7 +38,9 @@ OBJ = \
 	GaoVicky.o \
 	GaoJi.o \
 	GaoJi2.o \
-	SF2.o
+	SF2.o \
+	PiecewiseLinearT.o \
+	PowerLawT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -59,6 +62,7 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	CubicSplineT.cpp \
 	C1FunctionT.cpp \
+	C1FunctionT_factory.cpp \
 	ErrorFunc.cpp \
 	Gamma.cpp \
 	GaoKlein.cpp \
@@ -74,7 +78,10 @@ SRC = \
 	GaoVicky.cpp \
 	GaoJi.cpp \
 	GaoJi2.cpp \
-	SF2.cpp
+	SF2.cpp \
+	PiecewiseLinearT.cpp \
+	PowerLawT.cpp
+
 ##################### (3) headers
 #
 # (3) If there are header files in this directory:
@@ -102,7 +109,9 @@ HDR = \
 	GaoVicky.h \
 	GaoJi.h \
 	GaoJi2.h \
-	SF2.h
+	SF2.h \
+	PiecewiseLinearT.h \
+	PowerLawT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
