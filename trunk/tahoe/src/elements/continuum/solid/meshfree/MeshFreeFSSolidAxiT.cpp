@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.3 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.4 2005-02-27 00:02:25 paklein Exp $ */
 #include "MeshFreeFSSolidAxiT.h"
 
 #include <iostream.h>
@@ -200,7 +200,10 @@ void MeshFreeFSSolidAxiT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	TotalLagrangianAxiT::DefineParameters(list);
-	
+
+	/* shape function storage handled by meshless classes */
+	list.RemoveParameter("store_shapefunctions");
+
 	ParameterT auto_border(fAutoBorder, "auto_border");
 	auto_border.SetDefault(false);
 	list.AddParameter(auto_border);
