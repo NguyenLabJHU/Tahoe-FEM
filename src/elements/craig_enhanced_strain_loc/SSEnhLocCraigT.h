@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.h,v 1.5 2005-03-14 22:24:36 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.h,v 1.6 2005-03-17 21:35:54 cfoster Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_CF_T_H_
 #define _SMALL_STRAIN_ENH_LOC_CF_T_H_
 
@@ -10,15 +10,14 @@
 #include "HookeanMatT.h"
 #include "MapT.h"
 
+namespace Tahoe{
 
-namespace Tahoe {
-
-/* forward declarations */
-class SSMatSupportT;
+  /* forward declarations */
+  class SSMatSupportT;
 
 /** Interface for linear strain deformation and field gradients */
  class SSEnhLocCraigT: public SmallStrainT //, public HookeanMatT
-{
+   {
   public:
       
 	/** constructor */
@@ -83,7 +82,7 @@ protected:
 	void FormKd(double constK);
 
 	/** form the element stiffness matrix */
-	void FormStiffness(double constK);
+	virtual void FormStiffness(double constK);
 
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
@@ -118,13 +117,16 @@ protected:
 	virtual double CalculateJumpIncrement();
 	virtual bool IsBandActive();
 	virtual void LoadBand(int elementNumber);
+	virtual BandT* FormNewBand(dArrayT normal, dArrayT slipDir,
+				   dArrayT perpSlipDir, dArrayT coords, double residCohesion, ArrayT<dSymMatrixT>
+stressList);
 
 //move to surface mat model?
 	dSymMatrixT FormdGdSigma(int ndof);
 	dSymMatrixT FormGradActiveTensorFlowDir(int ndof);
 	bool IsElementTraced();
 	bool IsElementLocalized();
-	void ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipDirs);
+	virtual void ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipDirs);
 	dArrayT Centroid();
 
 };

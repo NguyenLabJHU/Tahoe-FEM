@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2004-08-31 16:41:19 cfoster Exp $
+# $Id: makefile,v 1.2 2005-03-17 21:35:55 cfoster Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,7 +21,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	SSEnhLocCraigT.o \
-	BandT.o	
+	BandT.o	\
+	SSEnhLocDieterichT.o \
+	DieterichBandT.o 	
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -42,7 +44,10 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	SSEnhLocCraigT.cpp \
-	BandT.cpp	
+	BandT.cpp \
+	SSEnhLocDieterichT.cpp \
+	DieterichBandT.cpp 
+
 
 ##################### (3) headers
 #
@@ -55,7 +60,9 @@ SRC = \
 #
 HDR = \
 	SSEnhLocCraigT.h \
-	BandT.h
+	BandT.h \
+	SSEnhLocDieterichT.h \
+	DieterichBandT.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 

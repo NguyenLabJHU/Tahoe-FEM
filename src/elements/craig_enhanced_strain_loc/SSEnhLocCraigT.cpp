@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.9 2005-03-16 00:34:50 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.10 2005-03-17 21:35:54 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -827,7 +827,7 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
 
   double residCohesion = shearStress + normalStress * fLocalizedFrictionCoeff;
 
-  fBand = new BandT(normal, slipDir, perpSlipDir, centroid, fH_delta_0, residCohesion, stressList, this);
+  fBand = FormNewBand(normal, slipDir, perpSlipDir, centroid, residCohesion, stressList);
   //fBand = new BandT(slipDir, normal, normal, centroid, this);
 
   fTracedElements.Insert(CurrElementNumber(), fBand);
@@ -840,6 +840,13 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
   cout << fBand->Jump() << endl << endl;
   */
 
+}
+
+BandT* SSEnhLocCraigT::FormNewBand(dArrayT normal, dArrayT slipDir,
+dArrayT perpSlipDir, dArrayT coords, double residCohesion, ArrayT<dSymMatrixT>
+stressList)
+{
+return new BandT(normal, slipDir, perpSlipDir, coords, fH_delta_0, residCohesion, stressList, this);
 }
 
 dArrayT SSEnhLocCraigT::Centroid()
