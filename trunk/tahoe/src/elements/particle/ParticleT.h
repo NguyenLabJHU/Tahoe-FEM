@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.30 2004-12-09 09:19:45 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.31 2005-04-04 17:15:33 rjones Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -134,6 +134,10 @@ public:
 	 * properties information. */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+	/** atomic kinetic energies */
+	void ParticleT::AtomicKineticEnergies(dArrayT& ke);
+
 
 protected: /* for derived classes only */
 

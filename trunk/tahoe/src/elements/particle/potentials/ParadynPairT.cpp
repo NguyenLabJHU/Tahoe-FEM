@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.cpp,v 1.9 2004-07-15 08:29:49 paklein Exp $ */
+/* $Id: ParadynPairT.cpp,v 1.10 2005-04-04 17:15:39 rjones Exp $ */
 #include "ParadynPairT.h"
 
 #include "ifstreamT.h"
@@ -245,6 +245,8 @@ void ParadynPairT::ReadParameters(const StringT& param_file)
 	/* Adjust mass like in interpolate_pair.F of ParaDyn */
 	double conmas = 1.0365e-4;
 	mass *= conmas;
+
+	cout << "ParadynPairT::ReadParameters, adjusted mass : " << mass << "\n";
 
 	/* table dimensions */
 	int np, nr;
