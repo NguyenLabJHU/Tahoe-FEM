@@ -1,4 +1,5 @@
-// $Id: APS_MaterialT.cpp,v 1.1 2003-07-10 17:26:55 raregue Exp $
+// $Id: APS_MaterialT.cpp,v 1.2 2004-02-04 00:40:52 raregue Exp $
+
 #include "APS_MaterialT.h"
 
 using namespace Tahoe;

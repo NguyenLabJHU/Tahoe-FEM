@@ -1,4 +1,4 @@
-// $Id: APS_VariableT.cpp,v 1.14 2003-10-11 01:29:34 raregue Exp $
+// $Id: APS_VariableT.cpp,v 1.15 2004-02-04 00:40:44 raregue Exp $
 #include "APS_VariableT.h"
 
 //---------------------------------------------------------------------
@@ -6,26 +6,23 @@
 
 using namespace Tahoe;
 
-//APS_VariableT::APS_VariableT (const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap, const FEA_dMatrixT& grad_gammap) 
 APS_VariableT::APS_VariableT (const FEA_dMatrixT& grad_u, const FEA_dMatrixT& grad_u_surf, const FEA_dVectorT& gammap, 
-								const FEA_dVectorT& gamma_p_surf, const FEA_dMatrixT& grad_gammap, FEA_dVectorT& state)
+							  const FEA_dVectorT& gamma_p_surf, const FEA_dMatrixT& grad_gammap, FEA_dVectorT& state)
 {
 	Construct	(grad_u, grad_u_surf, gammap, gamma_p_surf, grad_gammap, state);
 }
 
 //---------------------------------------------------------------------
 /** Data initialization: Allocate space for grad_u, gammap, grad_gammap  */
-
-//void APS_VariableT::Construct (const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap,const FEA_dMatrixT& grad_gammap) 
+ 
 void APS_VariableT::Construct (const FEA_dMatrixT& grad_u, const FEA_dMatrixT& grad_u_surf, const FEA_dVectorT& gammap,
-								const FEA_dVectorT& gamma_p_surf, const FEA_dMatrixT& grad_gammap, FEA_dVectorT& state)
+							   const FEA_dVectorT& gamma_p_surf, const FEA_dMatrixT& grad_gammap, FEA_dVectorT& state)
 {
   	n_vars_vector = APS::kNUM_APS_VECTOR_VARS;  
   	n_vars_matrix = APS::kNUM_APS_MATRIX_VARS; 
   	fVars_vector.Dimension( n_vars_vector );
   	fVars_matrix.Dimension( n_vars_matrix );  
 
-	//fVars_vector[APS::kgrad_u] = grad_u; // This = opr allocates if LHS Length=0
 	fVars_matrix[APS::kgrad_u] = grad_u; 
 	fVars_matrix[APS::kgrad_u_surf] = grad_u_surf; 
 	fVars_vector[APS::kgammap] = gammap; 
@@ -93,24 +90,20 @@ void APS_VariableT::Update(APS::VarT_vector variable, FEA_dVectorT& var)
 //** Retrieve/Fetch/Get either grad_u or gammap from class work space
 const FEA_dVectorT& APS_VariableT::Get(APS::VarT_vector variable)  
 {
-
   if (!fVars_vector[variable].Length())  // 0 rows indicated un-allocation
     Allocate_and_Compute_Variables(variable);
 
   return fVars_vector[variable];
-  
 } 
 
 //---------------------------------------------------------------------
 //** Retrieve/Fetch/Get either grad_u or gammap from class work space
 const FEA_dMatrixT& APS_VariableT::Get(APS::VarT_matrix variable)  
 {
-
   if (!fVars_matrix[variable].Length())  // 0 rows indicated un-allocation
     Allocate_and_Compute_Variables(variable);
 
   return fVars_matrix[variable];
-  
 } 
 
 
@@ -118,27 +111,21 @@ const FEA_dMatrixT& APS_VariableT::Get(APS::VarT_matrix variable)
 /** Compute and store ... : recursive routine */ 
 void APS_VariableT::Allocate_and_Compute_Variables(APS::VarT_vector kVariable)
 {
-
     switch (kVariable) {
 
-      /*case APS::kgrad_u : // grad_u 
-        fVars_vector[APS::kgrad_u]; 
-				break;
-				*/
-
-      case APS::kgammap : // gammap   
+	case APS::kgammap : // gammap   
         fVars_vector[APS::kgammap]; 
 				break;
 				
-		case APS::kgammap_surf : // gammap_surf
+	case APS::kgammap_surf : // gammap_surf
         fVars_vector[APS::kgammap_surf]; 
 				break;		
 				
-	  case APS::kstate : // ISVs   
+	case APS::kstate : // ISVs   
         fVars_vector[APS::kstate]; 
 				break;		
 				
-      default:
+	default:
         cout << "\n APS_VariableT:::Allocate_and_Compute_Variables() bad VarT type" << endl;
 				//throw eGeneralFail;
 				break;
@@ -150,22 +137,21 @@ void APS_VariableT::Allocate_and_Compute_Variables(APS::VarT_vector kVariable)
 /** Compute and store ... : recursive routine */ 
 void APS_VariableT::Allocate_and_Compute_Variables(APS::VarT_matrix kVariable)
 {
-
     switch (kVariable) {
     
-    	case APS::kgrad_u : // grad_u 
+	case APS::kgrad_u : // grad_u 
         fVars_matrix[APS::kgrad_u]; 
 				break;
 				
-		case APS::kgrad_u_surf : // grad_u 
+	case APS::kgrad_u_surf : // grad_u 
         fVars_matrix[APS::kgrad_u_surf]; 
 				break;
 				
-      case APS::kgrad_gammap : // grad_gammap   
+	case APS::kgrad_gammap : // grad_gammap   
         fVars_matrix[APS::kgrad_gammap]; 
 				break;
 
-      default:
+	default:
         cout << "\n APS_VariableT:::Allocate_and_Compute_Variables() bad VarT type" << endl;
 				//throw eGeneralFail;
 				break;
@@ -177,7 +163,6 @@ void APS_VariableT::Allocate_and_Compute_Variables(APS::VarT_matrix kVariable)
 
 void APS_VariableT::operator=(const APS_VariableT &a)	// Initializes
 {
-
 	n_vars_vector = a.n_vars_vector;
 	fVars_vector[ n_vars_vector ];
 

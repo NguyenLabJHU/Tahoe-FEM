@@ -1,10 +1,9 @@
-/* $Id: APS_AssemblyT.h,v 1.22 2003-10-28 01:52:12 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.23 2004-02-04 00:40:42 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
 
 #include "ContinuumT.h"
-
 #include "ModelManagerT.h"
 
 /* base classes */
@@ -49,12 +48,16 @@ class APS_AssemblyT: public ElementBaseT
 									kH,
 									kgamma0_dot_1,
 									kgamma0_dot_2,
+									kgamma0_dot_3,
 									km1_x,
 									km1_y,
 									km2_x,
 									km2_y,
+									km3_x,
+									km3_y,									
 									kkappa0_1,
 									kkappa0_2,
+									kkappa0_3,
 									kNUM_FMAT_TERMS	}; // MAT for material here, not matrix
 
 	/** constructor */
@@ -152,10 +155,9 @@ private:
 	/** Data at time steps n and n+1 used by both Coarse and Fine */
 	//APS_VariableT n,np1; // <-- keep local scope in elmt loop for now 
 
-	/** Gradients with respect to reference coodinates */
+	/** Gradients and other matrices */
 	FEA_dMatrixT fgrad_gamma_p, fgrad_gamma_p_n, fVars_matrix, fgrad_u, fgrad_u_n, 
 				fgrad_u_surf, fgrad_u_surf_n;
-	//FEA_dVectorT fgrad_u, fgrad_u_n, fgamma_p, fgamma_p_n, fVars_vector;
 	FEA_dVectorT fgamma_p, fgamma_p_n, fgamma_p_surf, fgamma_p_surf_n, fVars_vector, fstate, fstate_n;
 
 	/** \name  values read from input in the constructor */
@@ -201,8 +203,8 @@ private:
 	
 
 	//-- Material Parameters 
-
 	dArrayT fMaterial_Data;
+	
 	/** \name shape functions wrt to current coordinates */
 	/*@{*/
 	/** shape functions and derivatives. The derivatives are wrt to the 
@@ -213,12 +215,13 @@ private:
 	
 	//dArrayT fNormal;
 	
+	// shape functions in FEA class type
 	FEA_ShapeFunctionT fFEA_Shapes_displ, fFEA_Shapes_plast;
 	FEA_SurfShapeFunctionT fFEA_SurfShapes;
 
+	// reference and current coordinates are the same for anti-plane shear
 	/** reference coordinates */
 	LocalArrayT fInitCoords_displ, fInitCoords_plast;     
-
 	/** current coordinates */
 	LocalArrayT fCurrCoords_displ, fCurrCoords_plast;
 	/*@}*/
@@ -249,7 +252,7 @@ private:
 	const FieldT& fPlast;	
 
 	/** equations per element for gradient plasticity. The balance equation is
-	 * in ElementBaseT::fEqnos and are handled by ElementBaseT. */
+	 * in ElementBaseT::fEqnos and is handled by ElementBaseT. */
 	iArray2DT fEqnos_plast;
 
 	/** \name state variable storage *

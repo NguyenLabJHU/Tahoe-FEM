@@ -1,14 +1,13 @@
-// $Id: APS_EnumT.h,v 1.7 2003-10-10 22:09:40 raregue Exp $
+// $Id: APS_EnumT.h,v 1.8 2004-02-04 00:40:44 raregue Exp $
 #ifndef _APS_ENUM_H_ 
 #define _APS_ENUM_H_ 
 
 namespace Tahoe {
 
 /** APS_Variable_ListT: This class contains the names of the variables used in 
- * APS formulation. Enums 
- * can be accessed from anyone/anywhere by APS::kgrad_u etc. 
+ * APS formulation. Enums can be accessed from anyone/anywhere by APS::kgrad_u etc. 
  * The APS:: is always mandatory since the enums are members of this class
- * only (there not global).
+ * only (they're not global).
 **/
 
 class APS
@@ -17,8 +16,6 @@ class APS
   public:
 
     enum VarT_vector {  
-    				//grad_u must be treated as a matrix given the GradU operation in ShapeFunctionT	
-					//kgrad_u, 
 					kgammap, 
 					kgammap_surf, 
 					kstate,

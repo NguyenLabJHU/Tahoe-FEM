@@ -1,4 +1,4 @@
-// $Id: APS_VariableT.h,v 1.10 2003-10-10 22:09:40 raregue Exp $
+// $Id: APS_VariableT.h,v 1.11 2004-02-04 00:40:44 raregue Exp $
 #ifndef _APS_VARIABLE_T_H_ 
 #define _APS_VARIABLE_T_H_ 
 
@@ -17,14 +17,12 @@ class APS_VariableT
 
 		/** constructor */
 		APS_VariableT 	(void) { }
-		//APS_VariableT (const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap, const FEA_dMatrixT& grad_gammap);
 		APS_VariableT 	(const FEA_dMatrixT& grad_u, const FEA_dMatrixT& grad_u_surf, const FEA_dVectorT& gammap, 
-						const FEA_dVectorT& gamma_p_surf, const FEA_dMatrixT& grad_gammap, FEA_dVectorT& state);
+						 const FEA_dVectorT& gamma_p_surf, const FEA_dMatrixT& grad_gammap, FEA_dVectorT& state);
 
 		/** data initialization */
-		//void Construct (const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap, const FEA_dMatrixT& grad_gammap);
 		void Construct 	(const FEA_dMatrixT& grad_u, const FEA_dMatrixT& grad_u_surf, const FEA_dVectorT& gammap, 
-						const FEA_dVectorT& gamma_p_surf, const FEA_dMatrixT& grad_gammap, FEA_dVectorT& state);
+						 const FEA_dVectorT& gamma_p_surf, const FEA_dMatrixT& grad_gammap, FEA_dVectorT& state);
 
 		/** delete variables */
 		void Delete_Vars	( void );

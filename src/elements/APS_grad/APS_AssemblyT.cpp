@@ -1,4 +1,5 @@
-/* $Id: APS_AssemblyT.cpp,v 1.44 2003-12-01 22:15:06 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.45 2004-02-04 00:40:42 raregue Exp $ */
+
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -47,11 +48,11 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	bStep_Complete(0)
 {
 	
-	knum_d_state = 6; // double's needed per ip
-	knum_i_state = 0; // int's needed per ip
+	knum_d_state = 9; // double's needed per ip, state variables
+	knum_i_state = 0; // int's needed per ip, state variables
 	
-	knumstrain = 4; 
-	knumstress = 3; 
+	knumstrain = 4; // number of strain outputs
+	knumstress = 3; // number of stress outputs
 	
 	output = "out";
 
@@ -62,13 +63,13 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 
 	/* read parameters from input */
 	ifstreamT& in = ElementSupport().Input();
-	in >> fGeometryCode_displ; //TEMP - should actually come from the geometry database
+	in >> fGeometryCode_displ; 
 	in >> fNumIP_displ;
-	in >> fGeometryCodeSurf_displ; //TEMP - should actually come from the geometry database
+	in >> fGeometryCodeSurf_displ; 
 	in >> fNumIPSurf_displ;
-	in >> fGeometryCode_plast; //TEMP - should actually come from the geometry database
+	in >> fGeometryCode_plast; 
 	in >> fNumIP_plast;
-	in >> fGeometryCodeSurf_plast; //TEMP - should actually come from the geometry database
+	in >> fGeometryCodeSurf_plast;
 	in >> fNumIPSurf_plast;
 
 	fMaterial_Data.Dimension ( kNUM_FMAT_TERMS );
@@ -82,20 +83,24 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	in >> fMaterial_Data[km_rate];
 	in >> fMaterial_Data[kgamma0_dot_1];
 	in >> fMaterial_Data[kgamma0_dot_2];
+	in >> fMaterial_Data[kgamma0_dot_3];
 	in >> fMaterial_Data[km1_x];
 	in >> fMaterial_Data[km1_y];
 	in >> fMaterial_Data[km2_x];
 	in >> fMaterial_Data[km2_y];
+	in >> fMaterial_Data[km3_x];
+	in >> fMaterial_Data[km3_y];
 
-	//-- Backstress Parameters
+	//-- length scale, Backstress Parameter
 	in >> fMaterial_Data[kl];
 
-	//-- Isotropic Hardening Parameters
+	//-- Isotropic Hardening Parameter
 	in >> fMaterial_Data[kH];
 	
-	//-- Initial value of state variable
+	//-- Initial values of state variable along various slip systems
 	in >> fMaterial_Data[kkappa0_1];
 	in >> fMaterial_Data[kkappa0_2];
+	in >> fMaterial_Data[kkappa0_3];
 	
 	/* allocate the global stack object (once) */
 	extern FEA_StackT* fStack;
@@ -171,7 +176,7 @@ void APS_AssemblyT::Echo_Input_Data(void) {
 
 	//################## material data ##################
 
-	cout << "iPlastModelType " 						<< iPlastModelType 				<< endl; 
+	cout << "iPlastModelType " 						<< iPlastModelType 			<< endl; 
 	
 	//-- Elasticity parameters 
 	cout << "fMaterial_Data[kMu] "  				<< fMaterial_Data[kMu] 		<< endl;
@@ -180,20 +185,24 @@ void APS_AssemblyT::Echo_Input_Data(void) {
 	cout << "fMaterial_Data[km_rate] " 				<< fMaterial_Data[km_rate] 	<< endl;
 	cout << "fMaterial_Data[kgamma0_dot_1] " 		<< fMaterial_Data[kgamma0_dot_1] << endl;
 	cout << "fMaterial_Data[kgamma0_dot_2] " 		<< fMaterial_Data[kgamma0_dot_2] << endl;
+	cout << "fMaterial_Data[kgamma0_dot_3] " 		<< fMaterial_Data[kgamma0_dot_3] << endl;
 	cout << "fMaterial_Data[km1_x] " 				<< fMaterial_Data[km1_x] 		<< endl;
 	cout << "fMaterial_Data[km1_y] " 				<< fMaterial_Data[km1_y] 		<< endl;
 	cout << "fMaterial_Data[km2_x] " 				<< fMaterial_Data[km2_x] 		<< endl;
 	cout << "fMaterial_Data[km2_y] " 				<< fMaterial_Data[km2_y] 		<< endl;
+	cout << "fMaterial_Data[km3_x] " 				<< fMaterial_Data[km3_x] 		<< endl;
+	cout << "fMaterial_Data[km3_y] " 				<< fMaterial_Data[km3_y] 		<< endl;
 
-	//-- Backstress Parameters
+	//-- Backstress Parameter
 	cout << "fMaterial_Data[kl] " 					<< fMaterial_Data[kl]			<< endl;
 
-	//-- Isotropic Hardening Parameters
+	//-- Isotropic Hardening Parameter
 	cout << "fMaterial_Data[kH] "					<< fMaterial_Data[kH]			<< endl;
 	
-	//-- Initial state variable
+	//-- Initial state variables
 	cout << "fMaterial_Data[kkappa0_1] "			<< fMaterial_Data[kkappa0_1]	<< endl;
 	cout << "fMaterial_Data[kkappa0_2] "			<< fMaterial_Data[kkappa0_2]	<< endl;
+	cout << "fMaterial_Data[kkappa0_3] "			<< fMaterial_Data[kkappa0_3]	<< endl;
 	
 }
 
@@ -283,11 +292,7 @@ void APS_AssemblyT::Initialize(void)
 	//step_number_last_iter = ElementSupport().StepNumber();  // This may crash or not work
 
 	/* FEA Allocation */
-
-	// these dimensions should be different since want to use quadratic interp for u
-	// and linear interp for gamma_p
 	
-	//fgrad_u.FEA_Dimension 			( fNumIP, n_sd );
 	dum=1;
 	fgrad_u.FEA_Dimension 			( fNumIP_displ, dum, n_sd );
 	fgrad_u_surf.FEA_Dimension 		( fNumIPSurf_displ, dum, n_sd );
@@ -295,7 +300,6 @@ void APS_AssemblyT::Initialize(void)
 	//need gamma_p at the surface of the displ eqs
 	fgamma_p_surf.FEA_Dimension 	( fNumIPSurf_displ, n_sd );
 	fgrad_gamma_p.FEA_Dimension 	( fNumIP_plast, n_sd, n_sd );
-	//fgrad_u_n.FEA_Dimension 		( fNumIP, n_sd );
 	fgrad_u_n.FEA_Dimension 		( fNumIP_displ, dum, n_sd );
 	fgrad_u_surf_n.FEA_Dimension 	( fNumIPSurf_displ, dum, n_sd );
 	fgamma_p_n.FEA_Dimension 		( fNumIP_plast, n_sd );
@@ -473,15 +477,19 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 			fPlastMaterial->Assign (	APS_MatlT::kMu, 		fMaterial_Data[kMu] 		); 	
 			fPlastMaterial->Assign ( 	APS_MatlT::km_rate, 	fMaterial_Data[km_rate] 	); 	
 			fPlastMaterial->Assign ( 	APS_MatlT::kgamma0_dot_1, fMaterial_Data[kgamma0_dot_1]); 
-			fPlastMaterial->Assign ( 	APS_MatlT::kgamma0_dot_2, fMaterial_Data[kgamma0_dot_2]); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kgamma0_dot_2, fMaterial_Data[kgamma0_dot_2]);
+			fPlastMaterial->Assign ( 	APS_MatlT::kgamma0_dot_3, fMaterial_Data[kgamma0_dot_3]); 	
 			fPlastMaterial->Assign ( 	APS_MatlT::km1_x, 		fMaterial_Data[km1_x] 		); 
 			fPlastMaterial->Assign ( 	APS_MatlT::km1_y, 		fMaterial_Data[km1_y] 		); 	
 			fPlastMaterial->Assign ( 	APS_MatlT::km2_x, 		fMaterial_Data[km2_x] 		); 
-			fPlastMaterial->Assign ( 	APS_MatlT::km2_y, 		fMaterial_Data[km2_y] 		); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::km2_y, 		fMaterial_Data[km2_y] 		); 
+			fPlastMaterial->Assign ( 	APS_MatlT::km3_x, 		fMaterial_Data[km3_x] 		); 
+			fPlastMaterial->Assign ( 	APS_MatlT::km3_y, 		fMaterial_Data[km3_y] 		); 	
 			fPlastMaterial->Assign ( 	APS_MatlT::kl, 			fMaterial_Data[kl] 			); 	
 			fPlastMaterial->Assign ( 	APS_MatlT::kH, 			fMaterial_Data[kH] 			);
 			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_1, 	fMaterial_Data[kkappa0_1] 	); 	
 			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_2, 	fMaterial_Data[kkappa0_2] 	); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_3, 	fMaterial_Data[kkappa0_3] 	); 	
 			break;
 			
 		default :
@@ -643,8 +651,8 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		Convert.Copy			(	fNumIP_plast, knum_d_state, fdstatenew_all, fstate );
 		Convert.Copy			(	fNumIP_plast, knum_d_state, fdstate_all, fstate_n );
 		
-		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
-		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n,fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n	 
+		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); // variables at time-step n+1
+		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n,fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );	// variables at time-step n	 
 
 			/* calculate coarse scale nodal force */
 			if (is_coarse)
@@ -674,7 +682,7 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 				/* residual and tangent for fine scale */
 				fEquation_eps->Construct ( fFEA_Shapes_plast, fPlastMaterial, np1, n, 
 											step_number, delta_t, FEA::kBackward_Euler );
-				fEquation_eps->Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
+				fEquation_eps->Form_LHS_Keps_Kd ( fKepseps, fKepsd );
 				fEquation_eps->Form_RHS_F_int ( fFeps_int );
 				fFeps_int *= -1.0;
 			}
@@ -744,7 +752,7 @@ void APS_AssemblyT::RegisterOutput(void)
 
 	/* over integration points */
 	const char* slabels2D[] = {"gamma_x", "gamma_y", "gammap_curl", "effstr", "s_xz", "s_yz", "J2"};
-	const char* svlabels2D[] = {"xi_1", "kappa_1", "gamma_dot_1", "xi_2", "kappa_2", "gamma_dot_2"};
+	const char* svlabels2D[] = {"xi_1", "kappa_1", "gamma_dot_1", "xi_2", "kappa_2", "gamma_dot_2", "xi_3", "kappa_3", "gamma_dot_3"};
 	int count = 0;
 	for (int j = 0; j < fNumIP_plast; j++)
 	{
@@ -965,8 +973,10 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		Convert.Copy			(	fNumIP_plast, knum_d_state, fdstatenew_all, fstate );
 		Convert.Copy			(	fNumIP_plast, knum_d_state, fdstate_all, fstate_n );
 		
-		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
-		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n,fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n	 
+		// variables at time-step n+1
+		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); 
+		// variables at time-step n
+		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n,fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );		 
 
 		/* which field */
 	  	//SolverGroup 1 (gets field 1) <-- u (obtained by a rearranged Equation_d)
@@ -979,8 +989,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_d->Construct ( fNumIPSurf_displ, n_en_surf, fFEA_Shapes_displ, fBalLinMomMaterial, fPlastMaterial, np1, n, 
-											step_number, delta_t );
+				fEquation_d->Construct ( fNumIPSurf_displ, n_en_surf, fFEA_Shapes_displ, fBalLinMomMaterial, 
+											fPlastMaterial, np1, n, step_number, delta_t );
 				fEquation_d->Form_LHS_Keps_Kd ( fKdeps, fKdd );
 				fEquation_d->Form_RHS_F_int ( fFd_int, np1 );
 
@@ -998,7 +1008,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 				
 				/* add body forces */
 				if (formBody) {
-//					double density = fBalLinMomMaterial->Retrieve(Iso_MatlT::kDensity);
+//					//double density = fBalLinMomMaterial->Retrieve(Iso_MatlT::kDensity);
 					double density = 1.0;
 					DDu = 0.0;
 					AddBodyForce(DDu);
@@ -1138,8 +1148,10 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		Convert.Copy			( fNumIP_plast, knum_d_state, fdstatenew_all, fstate );
 		Convert.Copy			( fNumIP_plast, knum_d_state, fdstate_all, fstate_n );
 		
-		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
-		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n,fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n	 
+		// variables at time-step n+1
+		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); 
+		// variables at time-step n
+		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n,fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );		 
 
 				
 		if (bStep_Complete) { 
@@ -1179,8 +1191,6 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 						face_gamma_p.SetLocal(face_nodes);
 						
 						/* shape functions over the given face */
-
-						//int face = fSideSetElements[i][j];
 						int face = fSideSetFaces[i][j];
 						const ParentDomainT& surf_shape = fShapes_displ->FacetShapeFunction(face);
 						const ParentDomainT& parent = ShapeFunction().ParentDomain();
@@ -1190,9 +1200,9 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 						/* equations for the nodes on the face */
 						fPlasticGradientFaceEqnos[i].RowAlias(j, face_equations);
 						
-						Convert.SurfShapeGradient	( n_en_surf, surf_shape, fFEA_SurfShapes, face_coords,
-													parent, fInitCoords_displ, *fShapes_displ, u, u_n, fgrad_u_surf, fgrad_u_surf_n,
-													face_gamma_p, fgamma_p_surf, face_local_nodes );
+						Convert.SurfShapeGradient ( n_en_surf, surf_shape, fFEA_SurfShapes, face_coords,
+													parent, fInitCoords_displ, *fShapes_displ, u, u_n, fgrad_u_surf, 
+													fgrad_u_surf_n, face_gamma_p, fgamma_p_surf, face_local_nodes );
 						APS_VariableT np1_surf(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); 
 						fEquation_d->Form_LHS_Kd_Surf ( fKdd_face, fFEA_SurfShapes );
 						double wght = fPlasticGradientWght[i];

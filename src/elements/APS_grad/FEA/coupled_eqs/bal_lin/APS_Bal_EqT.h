@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.h,v 1.17 2003-10-28 01:52:14 raregue Exp $
+// $Id: APS_Bal_EqT.h,v 1.18 2004-02-04 00:40:46 raregue Exp $
 #ifndef _APS_BALEQ_T_H_ 
 #define _APS_BALEQ_T_H_ 
 
@@ -9,8 +9,8 @@ namespace Tahoe {
 /** APS_Bal_EqT: This class contains methods which build stiffness matricies 
  *  and formulate the non-linear Newton-Raphson equations Kd = -R
  *  for a coupled approach to implementation of 
- *  the Balance of Linear Momentum in weak form (i.e. the Virtual Work 
- *  Equation. **/
+ *  the Balance of Linear Momentum in weak form 
+ **/
 
 class APS_Bal_EqT	: public BalLinMomT
 {
@@ -37,7 +37,6 @@ class APS_Bal_EqT	: public BalLinMomT
 						   		kgrad_u_surf,
 	             				kNUM_B_gradu_surf_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)	             				
 
-
 	enum VB_d_T {
 								kN,
 								knuB,
@@ -50,8 +49,7 @@ class APS_Bal_EqT	: public BalLinMomT
 								kVB_eps_Temp1,
 								kVB_eps_Temp2,
 	             				kNUM_VB_eps_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
-
-	             					
+          					
 	enum V_T {
 								kgammap,
 								kV_Temp1,
@@ -89,12 +87,12 @@ class APS_Bal_EqT	: public BalLinMomT
 		
 		APS_Bal_EqT 	( void ) { } 
 
-		APS_Bal_EqT 	( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_MaterialT *APS_Matl, 
-						APS_VariableT &np1, APS_VariableT &n, 
+		APS_Bal_EqT 	( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, 
+						APS_MaterialT *APS_Matl, APS_VariableT &np1, APS_VariableT &n, 
 						int &fTime_Step, double fdelta_t = 0.0, int Integration_Scheme=FEA::kBackward_Euler);
 
-		void 	Construct 	( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_MaterialT *APS_Matl, 
-							APS_VariableT &np1, APS_VariableT &n, 
+		void 	Construct 	( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, 
+							APS_MaterialT *APS_Matl, APS_VariableT &np1, APS_VariableT &n, 
 							int &fTime_Step, double fdelta_t = 0.0, int Integration_Scheme=FEA::kBackward_Euler); 
 
   		void 	Form_LHS_Keps_Kd	( dMatrixT &Keps, dMatrixT &Kd ); // add delta_t for dynamics
