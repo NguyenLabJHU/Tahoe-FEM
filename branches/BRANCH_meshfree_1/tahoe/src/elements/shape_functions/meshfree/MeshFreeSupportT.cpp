@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.1.1.1.4.3 2001-06-19 18:27:49 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.1.1.1.4.4 2001-06-19 20:23:23 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -104,7 +104,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 		in >> window_type;
 		
 		/* check */
-		if (complete <= 1) throw eBadInputValue;
+		if (complete < 0) throw eBadInputValue;
 		
 		/* resolve window function parameters */
 		dArrayT window_params;
@@ -1510,7 +1510,7 @@ void MeshFreeSupportT::SetSupport_Spherical_Connectivities(void)
 					fCoords.RowAlias(pelem[k], x_i);
 			
 					/* separating distance */
-					double dist = Distance(x_i, x_0);
+					double dist = dArrayT::Distance(x_i, x_0);
 					
 					/* keep max */
 					maxdist = Max(dist, maxdist);
