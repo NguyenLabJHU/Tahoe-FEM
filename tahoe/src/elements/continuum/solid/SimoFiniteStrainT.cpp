@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.5 2001-07-25 05:57:06 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.6 2001-08-20 06:47:16 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -67,28 +67,19 @@ void SimoFiniteStrainT::Initialize(void)
 	/* inherited */
 	FiniteStrainT::Initialize();
 
-//TEMP
-	if (fMaterialList->HasThermalStrains())
-	{
-		cout << "\n SimoFiniteStrainT::Initialize: element group ";
-		cout << fFEManager.ElementGroupNumber(this) + 1 << ": total Lagrangian\n";
-		cout << "     formulation has a bug associated with the multiplicative treatment\n";
-		cout << "     of thermal strains. The solutions appear correct, but the convergence\n";
-		cout << "     is not quadratic. Use updated Lagrangian formulation." << endl;
-		throw eGeneralFail;
-	}
-	
-//Allocate element modes
-#if 0
-	dArray2DT   fElementModes;     /**< all element modes */
-	dArray2DT   fElementModes_last;     /**< all element modes */
-#endif	
+	/* dimensions */
+	int nip = NumIP();
+	int nsd = NumSD();
+	int nst = dSymMatrixT::NumValues(nsd);
+
+	/* allocate storage for stress and modulus at the integration
+	 * points of all the elements */
+	fPK1_storage.Allocate(NumElements(), nip*nsd*nsd);
+	fc_ijkl_storage.Allocate(NumElements(), nip*nst*nst);
 
 	/* space for enhanced part of the deformation gradient */
 	if (Needs_F())
 	{
-		int nip = NumIP();
-		int nsd = NumSD();
 		fF_enh_all.Allocate(nip*nsd*nsd);
 		fF_Galerkin_all.Allocate(nip*nsd*nsd);
 		fF_enh_List.Allocate(NumIP());
@@ -104,8 +95,6 @@ void SimoFiniteStrainT::Initialize(void)
 	/* space for enhanced part of the "last" deformation gradient */
 	if (Needs_F_last())
 	{
-		int nip = NumIP();
-		int nsd = NumSD();
 		fF_enh_last_all.Allocate(nip*nsd*nsd);
 		fF_Galerkin_last_all.Allocate(nip*nsd*nsd);
 		fF_enh_last_List.Allocate(NumIP());
@@ -118,10 +107,15 @@ void SimoFiniteStrainT::Initialize(void)
 		}
 	}
 
-	/* dimension */
+	/* dimension work space */
 	fGradNa.Allocate(fNumSD, fNumElemNodes);
-	fStressStiff.Allocate(fNumElemNodes);
-	fTemp2.Allocate(fNumElemNodes*fNumDOF);
+	fStressStiff_11.Allocate(fNumElemNodes);
+	fStressStiff_12(fNumElemNodes, fNumModeShapes);
+	fStressStiff_22(fNumModeShapes, fNumModeShapes);
+	fWP_enh.Allocate(fNumSD, fNumModeShapes);
+	
+//TEMP
+//	fTemp2.Allocate(fNumElemNodes*fNumDOF);
 }
 
 /* finalize current step - step is solved */
@@ -170,6 +164,39 @@ void SimoFiniteStrainT::WriteRestart(ostream& out) const
 /***********************************************************************
 * Protected
 ***********************************************************************/
+
+/* increment current element */
+bool SimoFiniteStrainT::NextElement(void)
+{
+	/* inherited */
+	bool next = FiniteStrainT::NextElement();
+	
+	/* set references to element arrays */
+	if (next)
+	{
+		/* get pointer to current element data */
+		int element = CurrElementNumber();
+		double* s = fPK1_storage(element);
+		double* c = fc_ijkl_storage(element);
+	
+		/* dimensions */
+		int nip = NumIP();
+		int nsd = NumSD();
+		int nst = dSymMatrixT::NumValues(nsd);
+	
+		/* set references */
+		int nsd_2 = nsd*nsd;
+		int nst_2 = nst*nst;
+		for (int i = 0; i < nip; i++)
+		{
+			fPK1_list[i].Set(nsd, nsd, s);
+			fc_ijkl_list[i].Set(nst, nst, c);
+			s += nsd;
+			c += nst;
+		}
+	}
+	return next;
+}
 
 /* write element parameter to out */
 void SimoFiniteStrainT::PrintControlData(ostream& out) const
@@ -256,7 +283,7 @@ cout << setw(kIntWidth) << "iter" << setw(kDoubleWidth) << "error" << '\n';
 cout << setw(kIntWidth) << iter_enh << setw(kDoubleWidth) << res << '\n';
 
 			/* form the stiffness associated with the enhanced modes */
-			FormStiffness_enhanced(fK22);
+			FormStiffness_enhanced(fK22, NULL);
 
 			/* update enhanced modes */
 			fK22.LinearSolve(fRHS_enh);			
@@ -277,6 +304,9 @@ cout << setw(kIntWidth) << iter_enh << setw(kDoubleWidth) << res << '\n';
 //TEMP
 cout << setw(kIntWidth) << iter_enh << setw(kDoubleWidth) << res << '\n';
 	}
+	
+	/* form the stiffness associated with the enhanced modes */
+	FormStiffness_enhanced(fK22, &fK12);
 }
 
 /* form the element stiffness matrix */
@@ -293,34 +323,40 @@ void SimoFiniteStrainT::FormStiffness(double constK)
 	const double* Weight = fShapes->IPWeights();
 
 	/* initialize */
-	fStressStiff = 0.0;
+	fStressStiff_11 = 0.0;
 	
 	fShapes->TopIP();
-	while ( fShapes->NextIP() )
+	while (fShapes->NextIP())
 	{
-	/* S T R E S S   S T I F F N E S S */
-				
-		/* PK2 stress (and set deformation gradient) */
-		(fCurrMaterial->s_ij()).ToMatrix(fStressMat);
-	
-		/* change rule shape function derivatives */
+		/* deformation gradient */
 		fTempMat1 = DeformationGradient();
 		double J = fTempMat1.Det();
-		fTempMat1.Inverse();
-		fShapes->SetChainRule(fTempMat1, fDNa_x);
-
-		/* get shape function gradients matrix */
-		fShapes->GradNa(fDNa_x, fGradNa);
 
 		/* scale factor */
 		double scale = constK*(*Det++)*(*Weight++)*J;
+
+	/* S T R E S S   S T I F F N E S S */
+		
+		/* Cauchy stress */
+		const dMatrixT& PK1 = fPK1_list[CurrIP()]; /* retrieve */
+		fStressMat.MultABT(PK1, fTempMat1);
+		fStressMat *= scale/J;
+		
+		/* PK2 stress (and set deformation gradient) */
+		(fCurrMaterial->s_ij()).ToMatrix(fStressMat);
+	
+		/* chain rule shape function derivatives */
+		fTempMat1.Inverse();
+		fShapes->TransformDerivatives(fTempMat1, fDNa_x);
+
+		/* get shape function gradients matrix */
+		fShapes->GradNa(fDNa_x, fGradNa);
 
 		/* integration constants */		
 		fStressMat *= scale;
 	
 		/* using the stress symmetry */
-		fStressStiff.MultQTBQ(fGradNa, fStressMat, format,
-			dMatrixT::kAccumulate);
+		fStressStiff_11.MultQTBQ(fGradNa, fStressMat, format, dMatrixT::kAccumulate);
 
 	/* M A T E R I A L   S T I F F N E S S */									
 	
@@ -328,21 +364,21 @@ void SimoFiniteStrainT::FormStiffness(double constK)
 		fShapes->B(fDNa_x, fB);
 
 		/* get D matrix */
-		fD.SetToScaled(scale, fCurrMaterial->c_ijkl());
+		fD.SetToScaled(scale, fc_ijkl_list[CurrIP()]);
 						
 		/* accumulate */
 		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);	
 	}
 						
 	/* stress stiffness into fLHS */
-	fLHS.Expand(fStressStiff, fNumDOF);
+	fLHS.Expand(fStressStiff_11, fNumDOF);
 }
 
 /* calculate the internal force contribution ("-k*d") */
 void SimoFiniteStrainT::FormKd(double constK)
 {
 	/* matrix alias to fTemp */
-	dMatrixT WP(fNumSD, fStressStiff.Rows(), fNEEvec.Pointer());
+	dMatrixT WP(fNumSD, fStressStiff_11.Rows(), fNEEvec.Pointer());
 
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
@@ -350,26 +386,6 @@ void SimoFiniteStrainT::FormKd(double constK)
 	fShapes->TopIP();
 	while (fShapes->NextIP())
 	{
-//TEMP: compute 1st PK stress based on Cauchy stress since most materials
-//      have not been optimized to compute PK2 directly.	
-	
-		/* get Cauchy stress */
-		//(fCurrMaterial->s_ij()).ToMatrix(fTempMat1);
-
-		/* F^(-1) */
-		//fTempMat2 = DeformationGradient();
-		double J = DeformationGradient().Det();
-		if (J <= 0.0)
-		{
-			cout << "\n SimoFiniteStrainT::FormKd: negative jacobian determinant" << endl;
-			throw eBadJacobianDet;
-		}
-		//else
-		//	fTempMat2.Inverse();
-
-		/* compute PK1 */
-		//fStressMat.MultABT(fTempMat1, fTempMat2);
-
 		/* get matrix of shape function gradients */
 		fShapes->GradNa(fGradNa);
 
@@ -377,11 +393,17 @@ void SimoFiniteStrainT::FormKd(double constK)
 		WP.MultAB(fPK1_list[CurrIP()], fGradNa);
 
 		/* accumulate */
-		fRHS.AddScaled(J*constK*(*Weight++)*(*Det++), fNEEvec);
-		
-		//need to add contribution from (4.20) using the update vector
-		//calculated by the last pass through the iterations -> make
-		//a separate data array
+		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
+	}
+	
+	/* apply correction for unequilibrated element modes */
+	bool correct_force = true; //TEMP
+	if (correct_force)
+	{
+		/* "project" to nodal force using (4.20) */
+		fK22.LinearSolve(fRHS_enh);
+		fK12.Multx(fRHS_enh, fNEEvec);
+		fRHS.AddScaled(-constK, fNEEvec);
 	}	
 }
 
@@ -461,6 +483,7 @@ void SimoFiniteStrainT::FormKd_enhanced(ArrayT<dMatrixT>& PK1_list, dArrayT& RHS
 		/* compute PK1 */
 		dMatrixT& PK1 = PK1_list[CurrIP()];
 		PK1.MultABT(fTempMat1, fTempMat2);
+		PK1 *= J;
 
 		/* enhanced shape function gradients */
 		fEnhancedShapes->GradNa_enhanced(fGradNa_enh);
@@ -469,12 +492,88 @@ void SimoFiniteStrainT::FormKd_enhanced(ArrayT<dMatrixT>& PK1_list, dArrayT& RHS
 		fWP_enh.MultAB(PK1, fGradNa_enh);
 
 		/* accumulate */
-		RHS_enh.AddScaled(J*(*Weight++)*(*Det++), fWP_enh);
+		RHS_enh.AddScaled((*Weight++)*(*Det++), fWP_enh);
 	}
 }
 
 /* form the stiffness associated with the enhanced modes */
-void SimoFiniteStrainT::FormStiffness_enhanced(dMatrixT& K_22)
+void SimoFiniteStrainT::FormStiffness_enhanced(dMatrixT& K_22, dMatrixT* K_12)
 {
-	K_22 = 0.0;
+	/* integration */
+	const double* Det    = fShapes->IPDets();
+	const double* Weight = fShapes->IPWeights();
+
+	/* initialize */
+	fStressStiff_22 = 0.0;
+	if (K_12) fStressStiff_12 = 0.0;
+	
+	fEnhancedShapes->TopIP();
+	while (fEnhancedShapes->NextIP())
+	{
+		/* deformation gradient */
+		fTempMat1 = DeformationGradient();
+		double J = fTempMat1.Det();
+
+		/* integration weight (current configuration) */
+		double scale = (*Det++)*(*Weight++)*J;
+
+		/* Cauchy stress */
+		const dMatrixT& PK1 = fPK1_list[CurrIP()]; /* retrieve */
+		fStressMat.MultABT(PK1, fTempMat1);
+		fStressMat *= scale/J;
+
+		/* material tangent modulus */
+		fc_ijkl_list[CurrIP()] = fCurrMaterial->c_ijkl(); /* calculate and store */
+
+		/* transform shape functions to derivatives wrt. current coords */
+		fTempMat1.Inverse(); /* F^-1 */
+		fEnhancedShapes->TransformDerivatives_enhanced(fTempMat1, fDNa_x_enh);
+
+	/* S T R E S S   S T I F F N E S S */
+	
+		/* get shape function gradients matrix */
+		fShapes->GradNa(fDNa_x_enh, fGradNa_enh);
+	
+		/* using the stress symmetry */
+		fStressStiff_22.MultQTBQ(fGradNa_enh, fStressMat, dMatrixT::kWhole, dMatrixT::kAccumulate);
+
+	/* M A T E R I A L   S T I F F N E S S */									
+	
+		/* strain displacement matrix */
+		fShapes->B(fDNa_x_enh, fB_enh);
+
+		/* get D matrix */
+		fD.SetToScaled(scale, fc_ijkl_list[CurrIP()]);
+						
+		/* accumulate */
+		K_22.MultQTBQ(fB_enh, fD, dMatrixT::kWhole, dMatrixT::kAccumulate);
+		
+		/* mixed shape function part */
+		if (K_12)
+		{
+			/* transform Galerkin shape function derivatives */
+			fShapes->TransformDerivatives(fTempMat1, fDNa_x);
+		
+	/* S T R E S S   S T I F F N E S S */
+	
+			/* get shape function gradients matrix */
+			fShapes->GradNa(fDNa_x, fGradNa);
+	
+			/* using the stress symmetry */
+			fStressStiff_12.MultATBC(fGradNa, fStressMat, fGradNa_enh, 
+				dMatrixT::kWhole, dMatrixT::kAccumulate);
+
+	/* M A T E R I A L   S T I F F N E S S */									
+	
+			/* strain displacement matrix */
+			fShapes->B(fDNa_x, fB);
+
+			/* accumulate */
+			K_12->MultATBC(fB, fD, fB_enh, dMatrixT::kWhole, dMatrixT::kAccumulate);
+		}
+	}
+						
+	/* expand and add in stress stiffness parts */
+	K_22.Expand(fStressStiff_22, fNumDOF);
+	if (K_12) K_12->Expand(fStressStiff_12, fNumDOF);
 }

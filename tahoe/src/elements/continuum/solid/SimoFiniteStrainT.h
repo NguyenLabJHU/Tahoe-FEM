@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.h,v 1.3 2001-07-20 00:58:01 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.h,v 1.4 2001-08-20 06:47:16 paklein Exp $ */
 
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
@@ -44,13 +44,19 @@ protected:
 	/** write element parameter to out */
 	virtual void PrintControlData(ostream& out) const;
 
+	/** increment current element */
+	virtual bool NextElement(void);	
+
 	/** construct shape function */
 	virtual void SetShape(void);
 
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
 
-	/** form the element stiffness matrix */
+	/** form the element stiffness matrix. \note This function is very
+	 * similar to TotalLagrangianT::FormStiffness, except that the stress
+	 * and material tangent are retrieved from fPK1_list and fc_ijkl_list,
+	 * respectively instead of being calculated in place. */
 	virtual void FormStiffness(double constK);
 
 	/** calculate the internal force contribution ("-k*d"). Uses the
@@ -76,9 +82,12 @@ private:
 	/** calculate the residual from the internal force */
 	void FormKd_enhanced(ArrayT<dMatrixT>& PK1_list, dArrayT& RHS_enh);
 
-	/** form the stiffness associated with the enhanced modes */
-	void FormStiffness_enhanced(dMatrixT& K_22);
-
+	/** form the stiffness associated with the enhanced modes
+	 * \param K_22 destination for the 2,2 block of the stiffness matrix
+	 * \param K_12 destination for the 1,2 (or transposed 2,1) block of 
+	 *             the stiffness matrix. Passing NULL skips calculation */
+	void FormStiffness_enhanced(dMatrixT& K_22, dMatrixT* K_12);
+	
 protected:
 
 	/* user-defined parameters */
@@ -88,7 +97,7 @@ protected:
 	double fRelTol; /**< relative tolerance on residual of enhanced modes */
 	
 	/* derived parameters */
-	int  fNumModeShapes; /**< number of mode shapes per element */
+	int fNumModeShapes; /**< number of mode shapes per element */
 	
 	/* element degrees of freedom */
 	dArray2DT   fElementModes;     /**< all element modes */
@@ -122,23 +131,46 @@ protected:
 //(4) internal iteration for enhanced modes
 //(5) element output of enhanced mode information??
 
-	/* list of IP stresses used my FormKd */
+	/** storage for the 1st Piola-Kirchhoff stresses at all integration points
+	 * of all elements. These are "loaded" fPK1_list for element calculations
+	 * during SimoFiniteStrainT::NextElement. */
+	dArray2DT fPK1_storage;
+
+	/** 1st Piola-Kirchhoff stresses at the integration points of the current 
+	 * element. These are computed during SimoFiniteStrainT::SetGlobalShape in
+	 * SimoFiniteStrainT::FormKd_enhanced while solving for the
+	 * enhanced modes */
 	ArrayT<dMatrixT> fPK1_list;
 
+	/** storage for the 1st Piola-Kirchhoff stresses at all integration points
+	 * of all elements. These are "loaded" fc_ijkl_list for element calculations
+	 * during SimoFiniteStrainT::NextElement. */
+	dArray2DT fc_ijkl_storage;
+
+	/** material tangent moduli at the integration points of the current 
+	 * element. These are computed during SimoFiniteStrainT::SetGlobalShape in
+	 * SimoFiniteStrainT::FormStiffness_enhanced while solving for the
+	 * enhanced modes */
+	ArrayT<dMatrixT> fc_ijkl_list;
+
 	/* workspace */
-	dMatrixT fStressMat;   /**< space for a stress tensor */
-	dMatrixT fStressStiff; /**< compact stress stiffness contribution */
-	dMatrixT fGradNa;      /**< shape function gradients matrix */
+	dMatrixT fStressMat;      /**< space for a stress tensor */
+	dMatrixT fStressStiff_11; /**< compact stress stiffness contribution */
+	dMatrixT fStressStiff_12; /**< compact stress stiffness contribution */
+	dMatrixT fStressStiff_22; /**< compact stress stiffness contribution */
+	dMatrixT fGradNa;         /**< shape function gradients matrix */
 	
-	dArrayT   fTemp2;
+//	dArrayT   fTemp2;
 	dMatrixT  fTempMat1, fTempMat2;
-	dArray2DT fDNa_x;
+	dArray2DT fDNa_x, fDNa_x_enh;
 	
 	/* work space for enhanced modes */
 	dMatrixT fWP_enh;
 	dMatrixT fGradNa_enh;
-	dArrayT  fRHS_enh; 
-	LAdMatrixT fK22;
+	dArrayT  fRHS_enh;
+	dMatrixT fB_enh;
+	LAdMatrixT fK22;	
+	dMatrixT   fK12;
 };
 
 #endif /* _SIMO_FINITE_STRAIN_T_H_ */
