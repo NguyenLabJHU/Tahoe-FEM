@@ -1,4 +1,4 @@
-# $Id: SGI.mpich.macros,v 1.12 2002-12-04 19:02:10 paklein Exp $
+# $Id: SGI.mpich.debug.macros,v 1.1 2002-12-04 19:02:10 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = 
@@ -10,7 +10,8 @@ DEPENDFLAGS = -I/usr/include/CC -I/usr/local/mpich/include
 COMP_C      = /usr/local/mpich/bin/mpicc
 COMP_CC     = /usr/local/mpich/bin/mpiCC
 COMP_F      = /usr/local/mpich/bin/mpif77
-MORE_CFLAGS = -O3 -OPT:Olimit=10000 -DNDEBUG 
+#MORE_CFLAGS = -O3 -OPT:Olimit=10000 -DNDEBUG 
+MORE_CFLAGS = -g -O -OPT:Olimit=10000
 MY_CFLAGS   = -c -mips4 -D__SGI__ -I$(INC_DIR) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(MY_CFLAGS) -woff 1110,1116
 CFLAGS_CC   = $(MPI_CFLAGS) $(MY_CFLAGS) -ptused -woff 1110,1155,1174,1188,1682,3303 -LANG:exceptions=ON -LANG:ansi-for-init-scope=ON
