@@ -1,4 +1,4 @@
-/* $Id: psp_debug.c,v 1.2 2005-01-05 17:17:17 paklein Exp $ */
+/* $Id: psp_debug.c,v 1.3 2005-01-05 17:26:39 paklein Exp $ */
 #include <stdio.h>
 #include "pspases_f2c.h"
 #include "mpi.h"
@@ -63,11 +63,19 @@ int myMPI_Isend(void* buf, int count, MPI_Datatype datatype, int dest, int tag, 
 
 int myMPI_Get_count(MPI_Status *status, MPI_Datatype datatype, int *count)
 {
+	int ret;
+
 	/* report */
-	printf("MPI_Get_count: status = %x, source = %d, tag = %d, datatype = %s\n",
+	printf("MPI_Get_count: status = %x, source = %d, tag = %d, datatype = %s",
 		status, status->MPI_SOURCE, status->MPI_TAG, t2s(datatype));
 	fflush(stdout);
 
 	/* call */
-	return MPI_Get_count(status, datatype, count);
+	ret = MPI_Get_count(status, datatype, count);
+
+	/* result */
+	printf(", count = %d\n", *count);
+	fflush(stdout);
+
+	return ret;
 }
