@@ -1,4 +1,4 @@
-/* $Id: WindowGPT.h,v 1.1 2004-06-22 23:17:51 kyonten Exp $ */
+/* $Id: WindowGPT.h,v 1.2 2004-07-14 19:50:31 kyonten Exp $ */
 
 #ifndef _WINDOW_GP_T_H_
 #define _WINDOW_GP_T_H_
@@ -11,6 +11,7 @@ namespace Tahoe {
 class ifstreamT;
 class dArrayT;
 class dArray2DT;
+class dMatrixT;  // for DDDw
 class dSymMatrixT;
 template <class TYPE> class ArrayT;
 
@@ -70,7 +71,7 @@ class WindowGPT
 	 * \param DDDw window function third derivatives: [nstr]
 	 * \return true if the support covers the field point */
 	virtual bool Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dSymMatrixT& DDDw) = 0;
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw) = 0;
 															// kyonten (DDDw)
 
 	/* multi-point evaluations */

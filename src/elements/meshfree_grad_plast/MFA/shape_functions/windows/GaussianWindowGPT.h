@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowGPT.h,v 1.2 2004-06-30 16:56:21 kyonten Exp $ */
+/* $Id: GaussianWindowGPT.h,v 1.3 2004-07-14 19:50:31 kyonten Exp $ */
 
 #ifndef _GAUSSIAN_WINDOW_GP_T_H_
 #define _GAUSSIAN_WINDOW_GP_T_H_
@@ -74,6 +74,7 @@ class GaussianWindowGPT: public WindowGPT
 	/* work space */
 	dArrayT     fNSD;
 	dSymMatrixT fNSDsym;
+	dMatrixT    fNSDunsym;
 	
 };
 

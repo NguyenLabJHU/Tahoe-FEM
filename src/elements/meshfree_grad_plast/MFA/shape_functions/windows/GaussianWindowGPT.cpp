@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowGPT.cpp,v 1.2 2004-06-30 16:56:21 kyonten Exp $ */
+/* $Id: GaussianWindowGPT.cpp,v 1.3 2004-07-14 19:50:31 kyonten Exp $ */
 
 #include "GaussianWindowGPT.h"
 #include "ExceptionT.h"
@@ -65,6 +65,8 @@ void GaussianWindowGPT::WriteParameters(ostream& out) const
 bool GaussianWindowGPT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
 		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw)
 {
+	/* allocate */  //kyonten
+	int nsd = x.Length();
 	/* check out of influence range */
 	if (!Covers(x_n, x, param_n))
 	{
@@ -106,39 +108,35 @@ bool GaussianWindowGPT::Window(const dArrayT& x_n, const dArrayT& param_n, const
 	  			DDw.PlusIdentity(-2.0 * w / adm2);
 	  			if (order > 2) // kyonten (DDDw)
 	  			{
-	  			    if (nsd == 2)
-	  			    {
-	  			     len = 3.; // upper triangle only (symmetry)
-	  			    }
-	  			    else if (nsd == 3)
-	  			    {
-	  			     len = 6.; // upper triangle only (symmetry)
-	  			    }
-	  				dMatrixT AA(1, len), II(1, len); 
-	  				dMatrixT DDDw1(nsd, nsd), I(nsd, nsd);
-	  				I = 0.; II = 0.;
+	  				dSymMatrixT DDDw1(nsd);
+	  				dMatrixT DDDw2(nsd,dSymMatrixT::NumValues(nsd));
+	  				dMatrixT DDDw3(nsd,dSymMatrixT::NumValues(nsd));
+	  				dArrayT DDDw1_vec(nsd), I(nsd);
+	  				// In 3D case: DDDw is a 3x9 matrix (non-symmetric) or a 3x6 (symmetric)
+	  				// out of 27 (non-symmetric) or 18 (symmetric) components only 9
+	  				// of them are needed for forming B3
+	  				// DDDw, thus, becomes a 3x3 unsymmetric matrix
 	  				DDDw1.Outer(Dw);
 	  				if (nsd == 2)
 	  				{
-	  				 AA(1,1) = DDDw1(1,1); AA(1,2) = DDDw1(2,2); AA(1,3) = DDDw1(1,2);
-	  				 I(1,1) = I(2,2) = 1.;
-	  				 II(1,1) = I(1,1); II(1,2) = I(2,2); II(1,3) = I(1,2);
+	  					DDDw1_vec[0] = DDDw1(0,0);
+	  					DDDw1_vec[1] = DDDw1(1,1);
+	  					I[0] = 1.0; I[1] = 1.0;
 	  				}
 	  				else if (nsd == 3)
 	  				{
-	  				 AA(1,1) = DDDw1(1,1); AA(1,2) = DDDw1(2,2); AA(1,3) = DDDw1(3,3);
-	  				 AA(1,4) = DDDw1(2,3); AA(1,5) = DDDw1(1,3): AA(1,6) = DDDw1(1,2);
-	  				 I(1,1) = I(2,2) = I(3,3) = 1.;
-	  				 II(1,1) = I(1,1); II(1,2) = I(2,2); II(1,3) = I(3,3);
-	  				 II(1,4) = I(2,3); II(1,5) = I(1,3): II(1,6) = II(1,2);
+	  					DDDw1_vec[0]=DDDw1(0,0);
+	  					DDDw1_vec[1]=DDDw1(1,1);
+	  					DDDw1_vec[2]=DDDw1(2,2);
+	  					I[0] = 1.0; I[1] = 1.0; I[2] = 1.0;
 	  				}
-	  				DDDw.MultAB(Dw,DDDw1); // 3x6
+	  				DDDw.Outer(Dw,DDDw1_vec);
 	  				DDDw *= -8.0*w/(adm2*adm2*adm2);
-	  				DDDw2.MultAB(Dw,II); // 3x6
+	  				DDDw2.Outer(Dw,I);
 	  				DDDw2 += DDDw2;
 	  				DDDw2 *= 4.0*w/(adm2*adm2);
 	  				DDDw += DDDw2;
-	  				DDDw3.MultAB(Dw,II); // 3x6
+	  				DDDw3.Outer(Dw,I); 
 	  				DDDw3 *= 4.0*w/(adm2*adm2);
 	  				DDDw += DDDw3;
 	  			}
@@ -160,7 +158,8 @@ int GaussianWindowGPT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 	/* allocate */
 	int nsd = x.Length();
 	fNSD.Dimension(nsd);
-	fNSDsym.Dimension(nsd); 
+	fNSDsym.Dimension(nsd);
+	fNSDunsym(nsd,nsd); 
 	
 	/* work space */
 	dArrayT x_node, param_node;
@@ -174,7 +173,7 @@ int GaussianWindowGPT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 		param_n.RowAlias(i, param_node);
 	
 		/* single point evaluation (override virtual) */
-		if (GaussianWindowGPT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym))
+		if (GaussianWindowGPT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym, fNSDunsym))
 			count++;
 			
 		/* store derivatives */
@@ -186,7 +185,7 @@ int GaussianWindowGPT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 				DDw.SetColumn(i, fNSDsym);
 				if (order > 2) //kyonten
 				{
-					DDDw.SetColumn(i, fNSDsym); 
+					DDDw.SetColumn(i, fNSDunsym); 
 				}	
 			}
 		}

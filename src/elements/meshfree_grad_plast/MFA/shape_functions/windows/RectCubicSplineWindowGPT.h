@@ -9,6 +9,7 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "dSymMatrixT.h"
+#include "dMatrixT.h"   //for DDDw
 
 namespace Tahoe {
 
@@ -48,7 +49,7 @@ class RectCubicSplineWindowGPT: public WindowGPT
 
 	/* single point evaluations */
 	virtual bool Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dSymMatrixT& DDDw); // kyonten (DDDw)
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw); // kyonten (DDDw)
 
 	/* multiple point evaluations */
 	virtual int Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
@@ -72,7 +73,7 @@ class RectCubicSplineWindowGPT: public WindowGPT
 	/* work space */
 	dArrayT     fNSD;
 	dSymMatrixT fNSDsym;
-	//work space for DDDw??
+	dMatrixT    fNSDunsym; //work space for DDDw??
 
 };
 

@@ -1,9 +1,9 @@
-/* $Id: BasisGPT.h,v 1.1 2004-06-22 23:17:48 kyonten Exp $ */
+/* $Id: BasisGPT.h,v 1.2 2004-07-14 19:51:08 kyonten Exp $ */
 /* created: paklein (12/10/1999)                                          */
 /* base class for basis functions                                         */
 
 #ifndef _BASIS_GP_T_H_
-#define _BASIS_T_GP_H_
+#define _BASIS_GP_T_H_
 
 /* direct members */
 #include "dMatrixT.h"

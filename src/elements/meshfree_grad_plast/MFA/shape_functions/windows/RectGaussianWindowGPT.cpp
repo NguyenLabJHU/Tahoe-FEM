@@ -1,4 +1,4 @@
-/* $Id: RectGaussianWindowGPT.cpp,v 1.1 2004-06-22 23:17:51 kyonten Exp $ */
+/* $Id: RectGaussianWindowGPT.cpp,v 1.2 2004-07-14 19:50:31 kyonten Exp $ */
 
 #include "RectGaussianWindowGPT.h"
 #include "ExceptionT.h"
@@ -70,7 +70,7 @@ void RectGaussianWindowGPT::WriteParameters(ostream& out) const
 
 /* Single point evaluations */
 bool RectGaussianWindowGPT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dSymMatrixT& DDDw) // kyonten (DDDw)
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw) // kyonten (DDDw)
 {
   /* Compute window function and its derivatives - accomplish by scalar product of individual
    * window functions in x/y/z directions */
@@ -180,7 +180,7 @@ int RectGaussianWindowGPT::Window(const dArray2DT& x_n, const dArray2DT& param_n
   int nsd = x.Length();
   fNSD.Dimension(nsd);
   fNSDsym.Dimension(nsd);
-  // allocation for DDDw??
+  fNSDunsym(nsd,nsd); // allocation for DDDw??
 
   /* work space */
   dArrayT x_node, param_node;
@@ -193,7 +193,7 @@ int RectGaussianWindowGPT::Window(const dArray2DT& x_n, const dArray2DT& param_n
     x_n.RowAlias(i, x_node);
     param_n.RowAlias(i, param_node);
       
-    if (RectGaussianWindowGPT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym))
+    if (RectGaussianWindowGPT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym, fNSDunsym)) //last fNSDsym??
       count ++;
 
     /* store derivatives */
@@ -205,7 +205,7 @@ int RectGaussianWindowGPT::Window(const dArray2DT& x_n, const dArray2DT& param_n
       	DDw.SetColumn(i, fNSDsym);
       	if (order > 2)
 	  	{
-	  		DDDw.SetColumn(i, fNSDsym);	// dimension correct??
+	  		DDDw.SetColumn(i, fNSDunsym);	// dimension correct??
 	  	}	
       }
     }

@@ -68,7 +68,7 @@ void RectCubicSplineWindowGPT::WriteParameters(ostream& out) const
 
 /* Single point evaluations */
 bool RectCubicSplineWindowGPT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dSymMatrixT& DDDw) // kyonten (DDDw)
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw) // kyonten (DDDw)
 {
   /* Compute window function and its derivatives - accomplish by scalar product of individual
    * window functions in x/y/z directions */
@@ -384,7 +384,7 @@ int RectCubicSplineWindowGPT::Window(const dArray2DT& x_n, const dArray2DT& para
   int nsd = x.Length();
   fNSD.Dimension(nsd);
   fNSDsym.Dimension(nsd);
-  // allocation for DDDw??
+  fNSDunsym(nsd,nsd);  //for DDDw
 
   /* work space */
   dArrayT x_node, param_node;
@@ -397,7 +397,7 @@ int RectCubicSplineWindowGPT::Window(const dArray2DT& x_n, const dArray2DT& para
     x_n.RowAlias(i, x_node);
     param_n.RowAlias(i, param_node);
       
-    if (RectCubicSplineWindowGPT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym))
+    if (RectCubicSplineWindowGPT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym, fNSDunsym))
       count ++;
 
     /* store derivatives */
@@ -410,7 +410,7 @@ int RectCubicSplineWindowGPT::Window(const dArray2DT& x_n, const dArray2DT& para
       }
 	  	if (order > 2)
 	  	{
-	  		DDDw.SetColumn(i, fNSDsym); // double check!!
+	  		DDDw.SetColumn(i, fNSDunsym); // double check!!
 	  	}
     }
   }
