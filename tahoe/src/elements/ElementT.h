@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.17 2003-03-19 17:11:21 thao Exp $ */
+/* $Id: ElementT.h,v 1.18 2003-04-03 01:09:07 saubry Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -50,6 +50,7 @@ kPenaltyContactElement3D = 34,
                kSimoQ1P0 = 36, /**< Q1P0, finite strain, mixed element */
                kAdhesion = 37, /**< adhesive tractions between surfaces */
            kParticlePair = 38,  /**< particles with pair interactions */
+                    kEAM = 39,  /**< particles with EAM potental */
 /***************************************/
 	     kFSMatForce = 60,    /*UpLag with material force calculation*/
 	     kSSMatForce = 61};   /*small strain with mat force calculation*/

@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.17 2003-03-19 17:11:21 thao Exp $ */
+/* $Id: ElementT.cpp,v 1.18 2003-04-03 01:09:07 saubry Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -120,6 +120,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;	
 		case ElementT::kParticlePair:
 			type = ElementT::kParticlePair;
+			break;
+		case ElementT::kEAM:
+			type = ElementT::kEAM;
 			break;
 		case ElementT::kFSMatForce:
 		    type = ElementT::kFSMatForce;

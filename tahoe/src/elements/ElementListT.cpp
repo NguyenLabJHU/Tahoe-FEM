@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.45 2003-03-31 23:18:44 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.46 2003-04-03 01:09:07 saubry Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -55,6 +55,7 @@
 
 #ifdef PARTICLE_ELEMENT
 #include "ParticlePairT.h"
+#include "EAMT.h"
 #endif
 
 #ifdef SPRING_ELEMENT
@@ -549,6 +550,21 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			ExceptionT::BadInputValue(caller, "PARTICLE_ELEMENT not enabled: %d", code);
 #endif				
 		}
+
+		// SA
+		case ElementT::kEAM:
+		{
+#ifdef PARTICLE_ELEMENT
+			fArray[group] = new EAMT(fSupport, *field);
+			break;
+#else
+			ExceptionT::BadInputValue(caller, "PARTICLE_ELEMENT not enabled: %d", code);
+#endif				
+		}
+
+
+
+
 		/********************************************************/
 			case ElementT::kFSMatForce:
 			{
