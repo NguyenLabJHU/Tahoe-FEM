@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.11 2001-12-10 12:40:10 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.12 2002-01-23 20:27:01 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -816,7 +816,7 @@ void ExodusT::GlobalToBlockElementNumbers(int& block_ID, nArrayT<int>& elements)
 	ReadElementBlockDims(block_ID, num_elems, num_elem_nodes);
 	int min, max;
 	elements.MinMax(min, max);
-	if (min < 1 && max > num_elems)
+	if (min < 1 || max > num_elems)
 	{
 		cout << "\n ExodusT::BlockElementNumbers: side set specification error:\n";
 		cout <<   "     element number {min, max} = {" << min << "," << max;
