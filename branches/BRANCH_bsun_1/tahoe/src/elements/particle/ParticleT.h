@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.15.8.2 2003-10-07 21:54:14 bsun Exp $ */
+/* $Id: ParticleT.h,v 1.15.8.3 2003-10-09 23:58:17 bsun Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -242,7 +242,7 @@ protected:
 	/** constant matrix needed to compute the stiffness */
 	dMatrixT fOneOne;
 	/*@}*/
-
+	
 
 	/*linked list node for holding elements of the centrosymmetry parameter*/
 	struct CSymmParamNode {
@@ -258,6 +258,9 @@ protected:
         static void LLInsert (CSymmParamNode *ListStart, double value);
 	/*given linked list, generate centrosymmetry value*/
 	double GenCSymmValue (CSymmParamNode *CSymmParam, int ndof);
+	void CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CParamStart, dMatrixT *Strain, dArrayT *SlipVector, RaggedArray2DT<int> *NearestNeighbors);
+
+
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.23.2.1 2003-10-07 21:54:14 bsun Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.23.2.2 2003-10-09 23:58:17 bsun Exp $ */
 
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
@@ -33,7 +33,7 @@ const int kMemoryHeadRoom = 15; /* percent */
 ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field):
 	ParticleT(support, field),
 	fNeighbors(kMemoryHeadRoom),
-	fNearestNeighbors(kMemoryHeadRoom),
+	NearestNeighbors(kMemoryHeadRoom),
 	fEqnos(kMemoryHeadRoom),
 	fForce_list_man(0, fForce_list)
 {
@@ -130,8 +130,7 @@ void ParticlePairT::WriteOutput(void)
 
 	/* global coordinates */
 	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
-	/* global reference coordinates*/
-	const dArray2DT&  refcoords = ElementSupport().InitialCoordinates();
+
 
 	/* pair properties function pointers */
 	int current_property = -1;
@@ -179,10 +178,9 @@ void ParticlePairT::WriteOutput(void)
 	
 	/* run through neighbor list */
 	iArrayT neighbors;
-	dArrayT x_i, x_j, x_k, r_ij(ndof), r_ik(ndof), DispVector(ndof), deltaX(ndof), X_i(ndof), X_j(ndof);
-	AutoArrayT<dArrayT> *NearestNeighbors=new AutoArrayT<dArrayT> [fNeighbors.MajorDim()];
-	AutoArrayT<int> *NearestNeighborList=new AutoArrayT<int>[fNeighbors.MajorDim()];
-	dMatrixT Omega(ndof), Eta(ndof), OmegaTemp(ndof), EtaTemp(ndof), Strain(ndof), b_ij(ndof), F_iI(ndof);
+	dArrayT x_i, x_j, r_ij(ndof), SlipVector(ndof);
+
+	dMatrixT Strain(ndof);
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
 	  { //run through neighbor list
 	  
@@ -205,12 +203,8 @@ void ParticlePairT::WriteOutput(void)
  		CParamStart->Next=NULL;
  		CParamStart->value=0.0;
 
-		Omega=0;
-		Eta=0;
-		
-		dArrayT SlipVector(ndof), SlipVectorTemp(ndof);
 		SlipVector=0;
-		int NNCount=0; //number of nearest neighbors
+		
 		/* kinetic energy */
 		if (velocities)
 		{
@@ -221,7 +215,7 @@ void ParticlePairT::WriteOutput(void)
 		/* run though neighbors for one atom - first neighbor is self
 		 * to compute potential energy */
 		coords.RowAlias(tag_i, x_i);
-		refcoords.RowAlias(tag_i, X_i);
+
 		for (int j = 1; j < neighbors.Length(); j++)
 		  { //run through j
 			/* tags */
@@ -246,56 +240,6 @@ void ParticlePairT::WriteOutput(void)
 			r_ij.DiffOf(x_j, x_i);
 			double r = r_ij.Magnitude();
 			
-
- 			if (r<=NearestNeighborDistance) {
-			  dArrayT r_ji(ndof);
-			  r_ji.DiffOf(x_i,x_j);
-
-			  refcoords.RowAlias(tag_j, X_j);
-			  deltaX.DiffOf(X_i, X_j);
-			  OmegaTemp.Outer(r_ji, deltaX);
-			  EtaTemp.Outer(deltaX, deltaX);
-			  Omega+=OmegaTemp;
-			  Eta+=EtaTemp;
-			  
-			  NNCount++;
-			  SlipVectorTemp.DiffOf(deltaX, r_ji);
-			  SlipVector+=SlipVectorTemp;
-			  /*add the vector pointing from j to i into the jth location in the array*/
-			  /*this is needed since the neighbor list only contains B as a neighbor of A for B>A*/
-			  NearestNeighbors[tag_j].Append(r_ji);
-			  NearestNeighborList[tag_j].Append(tag_i);
-
-			  /*for each i-j and i-k for k>j, sum the vectors, and added the magnitude of the pair into the list*/
-			  for (int k = j+1; k<neighbors.Length(); k++)
-			    {
-			      int tag_k = neighbors[k];
-			      coords.RowAlias(tag_k, x_k);
-			      r_ik.DiffOf(x_k, x_i);
-			      DispVector.SumOf(r_ij, r_ik);
-			      
-			      if(r_ik.Magnitude()<=NearestNeighborDistance)
-				{
-				  DispVector.SumOf(r_ij, r_ik);
-				  LLInsert(CParamStart, DispVector.Magnitude());
-				}
-			    }
-			  /*for each j, add r_ij to the neighbors which are not included in the neighbor list*/
-			  NearestNeighbors[tag_i].Top();
-			  while( NearestNeighbors[tag_i].Next())
-			    {
-			  
-			      DispVector.SumOf(NearestNeighbors[tag_i].Current(), r_ij);
-			      LLInsert(CParamStart, DispVector.Magnitude());
-			 
-			      
-			    }
-
-			}
- 
-
-
- 			  
 
 			/* split interaction energy */
 			double uby2 = 0.5*energy_function(r, NULL, NULL); 
@@ -334,53 +278,10 @@ void ParticlePairT::WriteOutput(void)
 		}
 
 		 
-		/*loop through the neighbors of i which are not included in the neighbor list, summing up vector pairs*/
-		NearestNeighbors[tag_i].Top();
-		NearestNeighborList[tag_i].Top();
-		
-		while (NearestNeighbors[tag_i].Next())
-		  {
-		    NearestNeighborList[tag_i].Next();
-		    dArrayT MajorAlias = NearestNeighbors[tag_i].Current();
-		    int currentPosition = NearestNeighbors[tag_i].Position();
-		    while(NearestNeighbors[tag_i].Next()) 
-		      {
-			DispVector.SumOf(MajorAlias, NearestNeighbors[tag_i].Current());
-			LLInsert(CParamStart, DispVector.Magnitude());
-		      }
-		    NearestNeighbors[tag_i].Current(currentPosition);
-		    coords.RowAlias(NearestNeighborList[tag_i].Current(), x_j);
-		    dArrayT r_ji(ndof);
-		    r_ji.DiffOf(x_i, x_j);
-		    refcoords.RowAlias(NearestNeighborList[tag_i].Current(), X_j);
-		    deltaX.DiffOf(X_i, X_j);
-		    OmegaTemp.Outer(r_ji, deltaX);
-		    EtaTemp.Outer(deltaX, deltaX);
-		    Omega+=OmegaTemp;
-		    Eta+=EtaTemp; 
-		    SlipVectorTemp.DiffOf(deltaX, r_ji);
-		    SlipVector += SlipVectorTemp;
-		    NNCount++;
-		  }
+	
 
-		NearestNeighbors[tag_i].Free();
-		NearestNeighborList[tag_i].Free();
-		if(Eta.Det()==0) Strain=0;
-		else 
-		  {
-		    dMatrixT EtaInverse = Eta.Inverse();
-		    F_iI.MultAB(Omega, EtaInverse);
-		    b_ij.MultABT(F_iI, F_iI);
-		    if(b_ij.Det()!=0) {
-		      dMatrixT Id(ndof);
-		      Id=0;
-		      for(int i=0; i<ndof;i++) Id(i,i)=1;
-		      Strain.DiffOf(Id,b_ij.Inverse());
-		      // cout<<Strain<<"\n\n";
-		      Strain/=2;
-		    }
-		  }
-		SlipVector /= NNCount;
+
+		CalcValues(i, coords, CParamStart, &Strain, &SlipVector, &NearestNeighbors);
 		int valuep=0;
 		for(int n=0; n<ndof;n++)
 		  for(int m=n;m<ndof;m++)
@@ -394,8 +295,6 @@ void ParticlePairT::WriteOutput(void)
 	      
 	}//end of run through neighbor list
 
-	delete []NearestNeighbors;
-	delete []NearestNeighborList;
 
 
 
@@ -1087,7 +986,7 @@ void ParticlePairT::SetConfiguration(void)
 	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
 	if (fActiveParticles) 
 		part_nodes = fActiveParticles;
-	GenerateNeighborList(part_nodes, NearestNeighborDistance, fNearestNeighbors, true, true);
+	GenerateNeighborList(part_nodes, NearestNeighborDistance, NearestNeighbors, true, true);
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
 
 

@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.23.2.2 2003-10-07 21:54:14 bsun Exp $ */
+/* $Id: ParticleT.cpp,v 1.23.2.3 2003-10-09 23:58:17 bsun Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -42,6 +42,7 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	fCommManager(support.CommManager()),
 	fDmax(0),
 	fForce_man(0, fForce, field.NumDOF()),
+
 
 	fActiveParticles(NULL),
 	fRandom(NULL)
@@ -861,4 +862,78 @@ double ParticleT::GenCSymmValue (CSymmParamNode *CSymmParam, int ndof)
   }
   CSymmValue /=latticeParameter;
   return CSymmValue;
+}
+
+
+void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CParamStart, dMatrixT *Strain, dArrayT *SlipVector, RaggedArray2DT<int> *NearestNeighbors) {
+  int ndof = NumDOF();
+  /* run through neighbor list */
+  iArrayT neighbors;
+  dArrayT x_i, x_j, x_k, r_ij(ndof), r_ik(ndof), DispVector(ndof), deltaX(ndof), X_i(ndof), X_j(ndof);  
+  dMatrixT Omega(ndof), Eta(ndof), OmegaTemp(ndof), EtaTemp(ndof), b_ij(ndof), F_iI(ndof), SlipVectorTemp(ndof) ;
+  /* row of neighbor list */
+  NearestNeighbors->RowAlias(i, neighbors);
+  const dArray2DT&  refcoords = ElementSupport().InitialCoordinates();
+  int   tag_i = neighbors[0]; /* self is 1st spot */
+  
+
+
+  coords.RowAlias(tag_i, x_i);
+  refcoords.RowAlias(tag_i, X_i);
+  for (int j = 1; j < neighbors.Length(); j++)
+    { //run through j
+      /* tags */
+      int   tag_j = neighbors[j];
+      
+      
+      /* global coordinates */
+      coords.RowAlias(tag_j, x_j);
+  
+      /* connecting vector */
+      r_ij.DiffOf(x_j, x_i);
+      
+      dArrayT r_ji(ndof);
+      r_ji.DiffOf(x_i,x_j);
+      
+      refcoords.RowAlias(tag_j, X_j);
+      deltaX.DiffOf(X_i, X_j);
+      OmegaTemp.Outer(r_ji, deltaX);
+      EtaTemp.Outer(deltaX, deltaX);
+      Omega+=OmegaTemp;
+      Eta+=EtaTemp;
+  
+
+      SlipVectorTemp.DiffOf(deltaX, r_ji);
+      *SlipVector+=SlipVectorTemp;
+
+		    
+      /*for each i-j and i-k for k>j, sum the vectors, and added the magnitude of the pair into the list*/
+      for (int k = j+1; k<neighbors.Length(); k++)
+	{
+	  int tag_k = neighbors[k];
+	  coords.RowAlias(tag_k, x_k);
+	  r_ik.DiffOf(x_k, x_i);
+	  DispVector.SumOf(r_ij, r_ik);
+	  
+	  LLInsert(CParamStart, DispVector.Magnitude());
+      
+	}
+
+    }
+  if(Eta.Det()==0) *Strain=0;
+  else 
+    {
+      dMatrixT EtaInverse = Eta.Inverse();
+      F_iI.MultAB(Omega, EtaInverse);
+      b_ij.MultABT(F_iI, F_iI);
+      if(b_ij.Det()!=0) {
+	dMatrixT Id(ndof);
+	Id=0;
+	for(int i=0; i<ndof;i++) Id(i,i)=1;
+	Strain->DiffOf(Id,b_ij.Inverse());
+	*Strain/=2;
+      }
+    }
+  *SlipVector /= neighbors.Length()-1;
+
 }
