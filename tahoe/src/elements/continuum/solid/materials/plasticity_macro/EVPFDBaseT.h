@@ -1,4 +1,4 @@
-/* $Id: EVPFDBaseT.h,v 1.3 2001-07-03 01:35:39 paklein Exp $ */
+/* $Id: EVPFDBaseT.h,v 1.4 2001-09-15 01:21:03 paklein Exp $ */
 /*
   File: EVPFDBaseT.h
 */
@@ -79,6 +79,13 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
 	void Compute_Ftot_last_3D(dMatrixT& F_3D) const;	
 
  private:
+
+ 	/** return true if material implementation supports imposed thermal
+	 * strains. This material does not support multiplicative thermal
+	 * strains. FDHookeanMatT has been updated, but this class needs
+	 * another look. */
+	virtual bool SupportsThermalStrain(void) const { return false; };
+
   // solver for nonlinear constitutive equations
   void SetConstitutiveSolver();
 

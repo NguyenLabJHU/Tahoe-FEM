@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.cpp,v 1.5 2001-08-15 00:36:01 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.6 2001-09-15 01:21:01 paklein Exp $ */
 /* created: paklein (06/22/1997)                                          */
 
 #include "J2Simo3D.h"
@@ -216,7 +216,7 @@ void J2Simo3D::PrintName(ostream& out) const
 void J2Simo3D::ComputeGradients(void)
 {
 	/* total deformation gradient */
-	fFtot = F();
+	fFtot = F_total();
 
 	/* relative deformation gradient */
 	fF_temp.Inverse(F_last());
