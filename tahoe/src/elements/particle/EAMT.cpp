@@ -1,5 +1,4 @@
-
-/* $Id */
+/* $Id: EAMT.cpp,v 1.34 2003-06-06 01:02:03 paklein Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -1522,7 +1521,7 @@ void EAMT::EchoProperties(ifstreamT& in, ofstreamT& out)
     {
       int type_of_file;
       in >> type_of_file;
-      if (type_of_files == 2) 
+      if (type_of_file == 2) 
 	{
 	  cout << "More than one potential. Not implemented yet.\n";
 	  exit(0);
