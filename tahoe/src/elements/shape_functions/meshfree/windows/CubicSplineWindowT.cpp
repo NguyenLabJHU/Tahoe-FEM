@@ -97,13 +97,14 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
 		} else {
 			w = (2.0/3.0 + r*r*(r/2.0 - 1.0))/a;
 			if (order > 0) {
-				double dw = r*(3.0*r/2.0 - 2.0)/a;
+				//double dw = r*(3.0*r/2.0 - 2.0)/a; re-write to avoid division by zero when r = 0.
+				double dw_by_r = (3.0*r/2.0 - 2.0)/a;
 				if (order > 1) {
 					double ddw = (3.0*r - 2.0)/a;
-					DDw.Outer(Dw, (ddw/a - dw/dist)/(dist*dist*a));
-					DDw.PlusIdentity(dw/(dist*a));
+					DDw.Outer(Dw, (ddw/a - dw_by_r*r/dist)/(dist*dist*a));
+					DDw.PlusIdentity(dw_by_r*r/(dist*a));
 				}
-				Dw *= dw/(dist*a);
+				Dw *= dw_by_r/(a*a);
 			}
 		}
 	
