@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.12 2002-10-31 21:07:55 cjkimme Exp $ */
+/* $Id: TiedNodesT.h,v 1.12.2.1 2002-12-10 17:08:52 paklein Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -21,9 +21,6 @@ class BasicFieldT;
 class FEManagerT;
 
 } 
-
-/* friends */
-#include "TiedPotentialT.h"
 
 namespace Tahoe {
 

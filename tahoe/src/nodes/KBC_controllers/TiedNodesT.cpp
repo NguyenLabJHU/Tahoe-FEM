@@ -1,10 +1,15 @@
-/* $Id: TiedNodesT.cpp,v 1.16 2002-11-06 21:54:55 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.16.2.1 2002-12-10 17:08:52 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
 #include "ElementBaseT.h"
 #include "BasicFieldT.h"
 #include "FEManagerT.h"
+#include "ElementsConfig.h"
+
+#ifdef COHESIVE_SURFACE_ELEMENT
+#include "TiedPotentialT.h"
+#endif
 
 //TEMP
 #include "ofstreamT.h"
@@ -19,7 +24,9 @@ TiedNodesT::TiedNodesT(NodeManagerT& node_manager, BasicFieldT& field):
 	fDummySchedule(1.0),
 	fFEManager(node_manager.FEManager())
 {
-
+#ifndef COHESIVE_SURFACE_ELEMENT
+	ExceptionT::BadInputValue("TiedNodesT::TiedNodesT", "COHESIVE_SURFACE_ELEMENT not enabled");
+#endif
 }
 
 /* initialize data. Must be called immediately after construction */
@@ -370,6 +377,9 @@ bool TiedNodesT::ChangeStatus(void)
     	return false;
     else
     {
+#ifndef COHESIVE_SURFACE_ELEMENT
+		return false;
+#else
       bool changeQ = false;
 	ElementBaseT* surroundingGroup = fFEManager.ElementGroup(TiedPotentialT::BulkGroup());
   		if (!surroundingGroup)
@@ -388,11 +398,10 @@ bool TiedNodesT::ChangeStatus(void)
 		  		fPairStatus[i] = kFree;
 		  		changeQ = true;
 			}
-        }
-        
+        }   
         return changeQ;
+#endif
     }	
-
 }
 
 /**********************************************************************
