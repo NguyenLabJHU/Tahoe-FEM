@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.24 2002-11-25 07:27:35 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.25 2002-11-26 01:11:13 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -73,7 +73,7 @@ public:
 	GlobalT::AnalysisCodeT Analysis(void) const;
 	GlobalT::SystemTypeT GlobalSystemType(int group) const;
 	const GlobalT::StateT& RunState(void) const;
-
+	
 	/** get schedule function */
 	const ScheduleT* Schedule(int num) const;
 
@@ -236,6 +236,7 @@ public:
 
 	/** \name access to controllers */
 	/*@{*/
+	int NumControllers(void) const { return fControllers.Length(); };
 	ControllerT* Controller(int index) { return fControllers[index]; };
 	const ControllerT* Controller(int index) const { return fControllers[index]; };
 	eControllerT* eController(int index) const;
