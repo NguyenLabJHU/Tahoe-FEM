@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.27 2004-07-25 06:44:12 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.27.2.1 2004-08-03 00:08:40 d-farrell2 Exp $ */
 /* created: paklein (09/21/1997) */
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
@@ -137,6 +137,7 @@ private:
 	void EchoPartialGeometry_TahoeII(const PartitionT& partition,
 		ModelManagerT& model_ALL, const StringT& partial_file) const;
 	/*@}*/
+	
 };
 
 } // namespace Tahoe 

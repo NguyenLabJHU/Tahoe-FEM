@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.ParseInput.cpp,v 1.2 2004-07-25 06:44:12 paklein Exp $ */
+/* $Id: FEManagerT.ParseInput.cpp,v 1.2.2.1 2004-08-03 00:10:28 d-farrell2 Exp $ */
 #include "FEManagerT.h"
 
 #include "ofstreamT.h"
@@ -42,12 +42,13 @@ void FEManagerT::ParseInput(const StringT& path, ParameterListT& params, bool va
 		/* parameters currently needed to construct an FEManagerT */
 		ofstreamT output;
 		CommunicatorT comm;
+		TaskT task;
 		
 		FEManagerT* fe = NULL;
 		try {
 
 			/* construct FEManagerT */
-			fe = FEManagerT::New(raw_list.Name(), path, output, comm, argv);
+			fe = FEManagerT::New(raw_list.Name(), path, output, comm, argv, task);
 			if (!fe) 
 				ExceptionT::GeneralFail(caller, "failed to construct \"%s\"",
 					raw_list.Name().Pointer());

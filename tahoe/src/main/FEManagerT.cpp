@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.76.2.2 2004-08-01 18:32:50 d-farrell2 Exp $ */
+/* $Id: FEManagerT.cpp,v 1.76.2.3 2004-08-03 00:10:46 d-farrell2 Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1545,7 +1545,7 @@ if (fInitCode == kAllButSolver) return;
 		fModelFile = fModelManager->DatabaseName();
 	
 		/* correct restart file name */
-		if (fReadRestart) {
+		if (fReadRestart)
 		{
 			StringT suffix;
 			suffix.Suffix(fRestartFile);
