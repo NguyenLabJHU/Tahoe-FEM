@@ -315,6 +315,7 @@ dArrayT Hardening(double I1, double J2, double J3, double kappa, dArrayT princip
 dMatrixT DhdSigma(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m, dSymMatrixT alpha);
 dMatrixT Dhdq(double I1, double J2, double J3, double kappa, dArrayT principalEqStress, ArrayT<dSymMatrixT> m, dSymMatrixT alpha);
 dSymMatrixT DfdDevStress(double I1, double J2, double J3, dArrayT principalEqStress, ArrayT<dSymMatrixT> m);
+dMatrixT D2fdDevStressdAlpha(double I1, double J2, double J3, dArrayT principalEqStress);
 
 };
 
