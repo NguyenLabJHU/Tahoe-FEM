@@ -1,16 +1,9 @@
-/* $Id: TranslateIOManager.cpp,v 1.37 2003-09-05 20:35:49 paklein Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.38 2003-09-10 00:17:42 paklein Exp $  */
 #include "TranslateIOManager.h"
 
 #include "ExceptionT.h"
 #include "IOBaseT.h"
 #include "OutputSetT.h"
-#include "AbaqusOutputT.h"
-#include "AVSOutputT.h"
-#include "EnSightOutputT.h"
-#include "ExodusOutputT.h"
-#include "TecPlotOutputT.h"
-#include "FE_ASCIIT.h"
-#include "PatranOutputT.h"
 
 using namespace Tahoe;
 
@@ -104,67 +97,29 @@ void TranslateIOManager::SetInput (void)
 
 void TranslateIOManager::SetOutput (const StringT& program_name, const StringT& version, const StringT& title)
 {
-  IOBaseT temp (cout);
-  int outputformat = -1;
-  if (fWrite)
-    {
-      cout << "\n\n";
-      temp.OutputFormats (cout);
-      cout << "\n Enter the Output Format: ";
-    }
-  fIn >> outputformat;
+	if (fWrite)
+	{
+		cout << "\n\n";
+		IOBaseT::OutputFormats (cout);
+		cout << "\n Enter the Output Format: ";
+	}
+	IOBaseT::FileTypeT file_type;
+	fIn >> file_type;
 
   if (fWrite)
     cout << "\n Enter the root of the output files: ";
   fIn >> fOutputName;
-  cout << "\n Output format: " << outputformat << "\n File: " << fOutputName << endl; 
+  cout << "\n Output format: " << file_type << "\n File: " << fOutputName << endl; 
   
   // echo
-  if (fEcho) fEchoOut << outputformat << " " << fOutputName << endl;
+  if (fEcho) fEchoOut << file_type << " " << fOutputName << endl;
 
   fOutputName.ToNativePathName();
   fOutputName.Append(".ext"); //trimmed off by fOutput
-
-  ArrayT<StringT> outstrings (4);
-  outstrings[0] = fOutputName;
-  outstrings[1] = title;
-  outstrings[2] = program_name;
-  outstrings[3] = version;
-
-  switch (outputformat)
-    {
-    case IOBaseT::kExodusII:
-      fOutput = new ExodusOutputT (fMessage, outstrings);
-      break;
-    case IOBaseT::kTahoeII:
-      fOutput = new FE_ASCIIT (fMessage, true, outstrings);
-      break;
-    case IOBaseT::kEnSight:
-      fOutput = new EnSightOutputT (fMessage, outstrings, 4, false);
-      break;
-    case IOBaseT::kEnSightBinary:
-      fOutput = new EnSightOutputT (fMessage, outstrings, 4, true);
-      break;
-    case IOBaseT::kAbaqus:
-      fOutput = new AbaqusOutputT (fMessage, outstrings, false);
-      break;
-    case IOBaseT::kAbaqusBinary:
-      fOutput = new AbaqusOutputT (fMessage, outstrings, true);
-      break;
-    case IOBaseT::kTecPlot:
-      fOutput = new TecPlotOutputT (fMessage, outstrings, 4);
-      break;
-      case IOBaseT::kPatranNeutral:
-	fOutput = new PatranOutputT (fMessage, outstrings, false);
-	break;
-    case IOBaseT::kAVS:
-    case IOBaseT::kAVSBinary:
-      fOutput = new AVSOutputT (fMessage, outstrings, false);
-      break;
-    default:
-      ExceptionT::DatabaseFail ("TranslateIOManager::SetOutput","Unknown output format %i", outputformat);
-    }
-  if (!fOutput) ExceptionT::OutOfMemory ("TranslateIOManager::SetOutput");
+  
+	/* construct output formatter */
+	fOutput = IOBaseT::NewOutput(program_name, version, title, fOutputName, file_type, cout);
+	if (!fOutput) ExceptionT::OutOfMemory ("TranslateIOManager::SetOutput");
 }
 
 void TranslateIOManager::InitializeVariables (void)
