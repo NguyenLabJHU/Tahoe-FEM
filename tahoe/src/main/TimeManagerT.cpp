@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.18.10.1 2003-10-21 18:56:06 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.18.10.2 2003-10-26 03:40:08 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -338,7 +338,7 @@ bool TimeManagerT::WriteOutput(void) const
 {
 	if (fabs(fTimeStep) > kSmall && /* no output if clock is not running */
 		fOutputInc != 0 &&
-	   		(fmod(fStepNum, fOutputInc) == 0 || /* at increment */
+	   		(fmod(double(fStepNum), fOutputInc) == 0 || /* at increment */
 	    	fStepNum == fNumSteps) /* at end */
 	)
 		return true;
