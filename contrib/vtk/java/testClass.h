@@ -2,7 +2,7 @@
 #ifndef _TEST_CLASS_H_
 #define _TEST_CLASS_H_
 
-#include <iostream>
+#include <iostream.h>
 
 class testClass {
 

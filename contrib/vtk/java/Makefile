@@ -4,18 +4,25 @@ JAVA_OBJ = test.class app.class
 
 CPP_OBJ = testClass.o testImpl.o
 
+JAVA_H = test.h
+
 # macros for Mac OS X
 #COMP_CC = c++
 #CC_FLAGS = -c -I /System/Library/Frameworks/JavaVM.framework/Headers
-
 #LD       = c++
 #LD_FLAGS = -dynamiclib -v
 #DSO_EXT  = dylib
 
 # macros for wallaby2
-COMP_CC = CC
-CC_FLAGS = -c
+#COMP_CC = CC
+#CC_FLAGS = -c
+#LD       = CC
+#LD_FLAGS = -shared
+#DSO_EXT  = so
 
+# macros for Sun-troi
+COMP_CC = CC
+CC_FLAGS = -c -I/usr/java/include -I/usr/java/include/solaris
 LD       = CC
 LD_FLAGS = -shared
 DSO_EXT  = so
@@ -24,7 +31,6 @@ all: $(JAVA_OBJ) java_native cpp_dso
 
 java_native:
 	javah test
-	javah -stubs test
 
 # not needed by JNI on Mac OS X
 #javah -stubs test
@@ -36,7 +42,7 @@ run:
 	java app
 
 clean:
-	rm *.class *.$(DSO_EXT) *.o
+	rm *.class *.$(DSO_EXT) *.o $(JAVA_H)
 
 .java.class:
 	javac $<
