@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.74.2.2 2004-07-07 15:28:43 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.74.2.3 2004-07-12 05:10:57 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -48,10 +48,10 @@ const char kProgramName[] = "tahoe";
 const char* FEManagerT::Version(void) { return kCurrentVersion; }
 
 /* constructor */
-FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm, const ArrayT<StringT>& argv):
+FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm, const ArrayT<StringT>& argv):
 	ParameterInterfaceT("tahoe"),
 	fArgv(argv),
-	fMainIn(input),
+	fInputFile(input_file),
 	fMainOut(output),
 	fComm(comm),
 	fPrintInput(false),
@@ -144,7 +144,7 @@ void FEManagerT::Initialize(InitCodeT init)
 	if (verbose) cout << "    FEManagerT::Initialize: execution parameters" << endl;
 
 	/* construct IO manager - configure in SetOutput below */
-	StringT file_name(fMainIn.filename());
+	StringT file_name(fInputFile);
 	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle,
 		file_name, fOutputFormat);	
 	if (!fIOManager) throw ExceptionT::kOutOfMemory;
@@ -790,7 +790,7 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 	{
 		/* file name */
 		StringT io_file;
-		io_file.Root(fMainIn.filename()); // drop ".in"
+		io_file.Root(fInputFile); // drop ".in"
 		io_file.Root();                   // drop ".p0"
 		io_file.Append(".io.ID");
 
@@ -1210,7 +1210,7 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 
 	/* path to parameters file */
 	StringT path;
-	path.FilePath(fMainIn.filename());
+	path.FilePath(fInputFile);
 
 	/* geometry database parameters */
 	IOBaseT::FileTypeT format = IOBaseT::int_to_FileTypeT(list.GetParameter("geometry_format"));
@@ -1220,6 +1220,14 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::BadInputValue(caller, "\"geometry_file\" is empty");
 	database.ToNativePathName();      
 	database.Prepend(path);
+	if (Size() > 1) /* decomposed geometry file */ {
+		StringT suffix;
+		suffix.Suffix(database);
+		database.Root();
+		database.Append(".n", Size());
+		database.Append(".p", Rank());
+		database.Append(suffix);
+	}
 
 	/* output format */
 	fOutputFormat = IOBaseT::int_to_FileTypeT(list.GetParameter("output_format"));
@@ -1250,7 +1258,7 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::BadInputValue(caller, "error initializing model manager");
 
 	/* construct IO manager - configure in SetOutput below */
-	StringT file_name(fMainIn.filename());
+	StringT file_name(fInputFile);
 	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle, file_name, fOutputFormat);	
 	if (!fIOManager) ExceptionT::OutOfMemory(caller);
 
@@ -1470,6 +1478,7 @@ void FEManagerT::SetStatus(GlobalT::StateT status) const
 	non_const_this->fStatus = status;
 }
 
+#if 0
 /* look for input file key and check file version */
 void FEManagerT::CheckInputFile(void)
 {
@@ -1493,6 +1502,7 @@ void FEManagerT::CheckInputFile(void)
 
 	fMainOut << "\n Input file version: " << version << '\n';
 }
+#endif
 
 void FEManagerT::WriteParameters(void) const
 {
@@ -1755,11 +1765,12 @@ void FEManagerT::SetSolver(void)
 	fCurrentGroup = -1;
 }
 
+#if 0
 void FEManagerT::ReadParameters(InitCodeT init)
 {
 	/* path to parameters file */
 	StringT path;
-	path.FilePath(fMainIn.filename());
+	path.FilePath(fInputFile);
 
 	IOBaseT::FileTypeT format;
 	StringT database;
@@ -1813,6 +1824,7 @@ void FEManagerT::ReadParameters(InitCodeT init)
 	fSolvers.Dimension(num_groups);
 	fSolvers = NULL;
 }
+#endif
 
 /* set the execution integrator and send to nodes and elements.
 * This function constructs the proper drived class integrator
@@ -1935,6 +1947,9 @@ ExceptionT::CodeT FEManagerT::InitialCondition(void)
 	/* set I/O */		
 	fIOManager->NextTimeSequence(SequenceNumber());
 
+	/* time manager */
+	fTimeManager->InitialCondition();
+
 	/* set system to initial state */
 	fNodeManager->InitialCondition();
 	for (int i = 0 ; i < fElementGroups->Length(); i++)
@@ -2056,7 +2071,7 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 		if (write)
 		{
 			StringT rs_file;
-			rs_file.Root(fMainIn.filename());
+			rs_file.Root(fInputFile);
 			rs_file.Append(".rs", StepNumber());
 			rs_file.Append("of", NumberOfSteps());
 			ofstreamT restart(rs_file);

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.43.2.1 2004-07-06 06:30:29 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.43.2.2 2004-07-12 05:10:57 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -57,7 +57,7 @@ public:
 	        };
 
 	/** constructor */
-	FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm, const ArrayT<StringT>& argv);
+	FEManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm, const ArrayT<StringT>& argv);
 
 	/** destructor */
 	virtual ~FEManagerT(void);
@@ -70,7 +70,7 @@ public:
 	
 	/** \name accessors */
 	/*@{*/
-	ifstreamT& Input(void) const;
+	const StringT& InputFile(void) const;
 	ofstreamT& Output(void) const;
 	GlobalT::AnalysisCodeT Analysis(void) const;
 	GlobalT::SystemTypeT GlobalSystemType(int group) const;
@@ -398,11 +398,11 @@ protected:
 	void SetStatus(GlobalT::StateT status) const;
 
 	/** look for input file key and check file version */
-	void CheckInputFile(void);
+//	void CheckInputFile(void);
 
 	/** \name phases of FEManagerT::Initialize. */
 	/*@{*/
-	virtual void ReadParameters(InitCodeT init);
+//	virtual void ReadParameters(InitCodeT init);
 	virtual void WriteParameters(void) const;
 	void SetIntegrator(void);
 	virtual void SetNodeManager(void);
@@ -456,7 +456,7 @@ protected:
 
 	/** \name I/O streams */
 	/*@{*/
-	ifstreamT& fMainIn;
+	StringT fInputFile;
 	ofstreamT& fMainOut;
 	/*@}*/
 	
@@ -536,7 +536,7 @@ protected:
 };
 
 /* inlines */
-inline ifstreamT& FEManagerT::Input(void) const { return fMainIn;  }
+inline const StringT& FEManagerT::InputFile(void) const { return fInputFile;  }
 inline ofstreamT& FEManagerT::Output(void) const { return fMainOut; }
 inline const GlobalT::StateT& FEManagerT::RunState(void) const { return fStatus; }
 inline IOBaseT::FileTypeT FEManagerT::OutputFormat(void) const { return fOutputFormat; }
