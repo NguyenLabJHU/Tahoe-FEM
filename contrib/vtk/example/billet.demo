@@ -1,4 +1,4 @@
-# $Id: billet.demo,v 1.2 2002-04-08 16:14:09 paklein Exp $
+# $Id: billet.demo,v 1.3 2002-07-16 16:37:47 recampb Exp $
 :root
 Layout nx 2 ny 2
 WindowSize w 500 h 500
@@ -136,10 +136,11 @@ end
 
 echo
 echo "Within a frame, the 'ShowColorBar' command displays a key to the"
-echo "color contours."
+echo "color contours.  The location can be specified by entering 'l'"
+echo "for left, 'r' for right, 't' for top, or 'b' for bottom of frame."
 echo
-echo "':root:1.0; ShowC'..."
-:root:1.0; ShowC
+echo "':root:1.0; ShowCol'..."
+:root:1.0; ShowCol
 wait 2
 echo "'FlipBook delay 0.1'..."
 FlipBook delay 0.1
@@ -185,11 +186,125 @@ echo
 echo "Enter 'y' to stop now, 'n' to continue"
 end
 
+echo
+echo "Moving back into the body scope, cutting planes can be displayed"
+echo "using the 'ShowCuttingPlane' command"
+echo "':root:1.0:0.body; help ShowCut'"
+:root:1.0:0.body; help ShowCut
+wait 3
+echo
+echo "'ShowCut oX .5 oY .5 oZ .2'..."
+:root:1.0:0.body; ShowCut oX .5 oY .5 oZ .2
+
+echo
+wait 2
+echo "ShowCut oX .5 oY .5 oZ .2 nX 0 nY 0 nZ 1
+ShowCut oX .5 oY .5 oZ .2 nX 0 nY 0 nZ 1
+wait 2
+echo "Rotate x 20"
+Rot x 20
+echo "Rotate x 20"
+Rot x 20
+echo
+wait 2
+
+echo "':: ; FlipBook delay 0.1'..."
+:: ; FlipBook delay 0.1
+echo
+echo "Enter 'y' to stop now, 'n' to continue"
+end
+
+:0.body; HideCut
+echo
+echo "While in the body scope, contour surfaces can also be displayed"
+echo "using the 'ShowContours' command."
+echo "':root:1.0:0.body; ShowCont'..."
+:root:1.0:0.body; ShowCont
+echo
+
+wait 5
+
+echo "':: ; FlipBook delay 0.1'..."
+:: ; FlipBook delay 0.1
+echo
+echo "Enter 'y' to stop now, 'n' to continue"
+end
+
+:0.body; HideCont
+echo
+echo "You can show cutting planes with contour lines on them as well by"
+echo "using the 'ShowCuttingPlane' followed by the 'ShowContours' command"
+wait 2
+echo "ShowCut oX .5 oY .5 oZ .2"
+ShowCut oX .5 oY .5 oZ .2
+echo
+wait 2
+echo "ShowCut oX .5 oY .5 oZ .2 nX 0 nY 0 nZ 1"
+ShowCut oX .5 oY .5 oZ .2 nX 0 nY 0 nZ 1
+Upd
+wait 2
+echo
+echo "ShowCont"
+ShowCont
+echo "Upd"
+Upd
+wait 3
+echo
+echo "':: ; FlipBook delay 0.1'..."
+:: ; FlipBook delay 0.1
+echo "Enter 'y' to stop now, 'n' to continue"
+end
+
+:root:1.0:0.body; HideCont; HideCut
+echo
+echo "Vector glyphs can be displayed from the body scope."
+help ShowGlyphs
+wait 3
+echo "ShowGlyphs"
+ShowGlyphs
+echo "Update"
+Update
+wait 5
+echo
+echo "To show all the glyphs set filter to false"
+echo "ShowGlyphs filter false"
+ShowGlyphs filter false
+echo "Update"
+Update
+wait 5
+echo
+echo "Set whether the head/tail of the arrow is at the node using the base variable"
+echo "ShowGlyphs filter false base "head"
+ShowGlyph filter false base "head"
+echo "Update"
+Update
+wait 5
+echo
+echo "Scaling for the glyphs can be turned off"
+echo "ShowGlyphs scale false"
+ShowG scale false
+echo "Update"
+Update
+wait 5
+echo
+echo "Coloring of the glyphs can be turned off as well"
+echo "ShowGlyphs color false"
+ShowG color false
+echo "Update"
+Update
+echo
+echo "Enter 'y' to stop now, 'n' to continue"
+end
+
+
 # clean up
-:root:1.0
-HideC
+:root:1.0:0.body;HideGlyphs
 ::
+HideColorBar
+::
+HideFram
 Rem 0
+Layout nx 1 ny 1
 Upd
 
 
