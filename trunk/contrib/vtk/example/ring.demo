@@ -1,4 +1,4 @@
-# $Id: ring.demo,v 1.4 2002-07-16 16:37:47 recampb Exp $
+# $Id: ring.demo,v 1.5 2003-11-07 04:49:32 paklein Exp $
 :root
 Layout nx 1 ny 1
 WindowSize w 400 h 400
@@ -14,7 +14,7 @@ echo
 echo "Typing 'AddBody ./ring/ring.geom' loads our example file..."
 echo
 wait 5
-AddBody example/ring/ring.geom
+AddBody ./ring/ring.geom
 Upd
 echo
 echo "Enter 'y' to stop now, 'n' to continue"
@@ -46,6 +46,7 @@ Upd
 wait 2
 echo
 echo "Node sets are shown as blue points."
+echo "Side sets are shown as green surfaces."
 echo
 echo "Enter 'y' to stop now, 'n' to continue"
 end
@@ -264,6 +265,8 @@ echo "The 'ShowAxes' and 'HideAxes' commands draw coordinates axes around"
 echo "every body."
 echo
 wait 2
+echo "'ChangeBackgroundColor 1'..."
+ChangeBackgroundColor 1
 echo "'ShowAx'..." 
 ShowAx
 wait 2
