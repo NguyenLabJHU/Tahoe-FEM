@@ -1,4 +1,4 @@
-/* $Id: SS_SCNIMFT.cpp,v 1.8 2004-08-04 22:00:23 cjkimme Exp $ */
+/* $Id: SS_SCNIMFT.cpp,v 1.9 2004-09-23 00:49:28 cjkimme Exp $ */
 #include "SS_SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -411,6 +411,12 @@ void SS_SCNIMFT::RHSDriver(void)
 	dSymMatrixT& strain = strainList[0];
 	dMatrixT BJ(fSD == 2 ? 3 : 6, fSD);
 	
+#ifdef VERIFY_INTEGRATION_CONSTRAINT
+	// TEMP -- verify that \sum_L \mathbf{B}_{Ii} = 0
+	dArray2DT test_sum(nNodes,2);
+	test_sum = 0.;
+#endif
+	
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
 	for (int i = 0; i < nNodes; i++) {
@@ -426,10 +432,13 @@ void SS_SCNIMFT::RHSDriver(void)
 		for (int j = 0; j < n_supp; j++) { 
 			bVectorToMatrix(bVec_i->Pointer(), BJ);
 			bVec_i++;
+#ifdef VERIFY_INTEGRATION_CONSTRAINT
+			test_sum(*supp_i,0) += BJ[0] * w_i;
+			test_sum(*supp_i,1) += BJ[4] * w_i;
+#endif
 			BJ.Multx(u(*supp_i++), strain.Pointer(), 1.0, dMatrixT::kAccumulate);
 		}	
 		fSSMatSupport->SetLinearStrain(&strainList);
-		
 		const double* stress = fCurrMaterial->s_ij().Pointer();
 		
 		supp_i = nodalCellSupports(i);
@@ -441,7 +450,15 @@ void SS_SCNIMFT::RHSDriver(void)
 			BJ.MultTx(stress, fint, w_i, dMatrixT::kAccumulate);
 		}
 	}
-	
+#ifdef VERIFY_INTEGRATION_CONSTRAINT
+	static int firstTime = 0;
+	if (!firstTime) {
+		firstTime++;
+		for (int i = 0; i < nNodes; i++) { 
+			cout << " i = " 	<< i << " ts " << test_sum(i,0) << " " << test_sum(i,1) << "\n";
+		}
+	}	
+#endif
 	fForce *= -constKd;
 
 	/* assemble */
