@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.h,v 1.2.42.2 2004-11-08 23:44:10 thao Exp $ */
+/* $Id: ConveyorT.h,v 1.2.42.3 2004-11-09 18:29:07 thao Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
 
@@ -75,9 +75,6 @@ protected:
 	/** mark elements linking left to right edge as inactive */
 	void MarkElements(void);
 	
-	/*finds elements on the right edge and resets their state variables*/
-	void ResetStateVariables(void);
-
 	/** deactivate elements to create a pre-crack */
 	void CreatePrecrack(void);
 	
