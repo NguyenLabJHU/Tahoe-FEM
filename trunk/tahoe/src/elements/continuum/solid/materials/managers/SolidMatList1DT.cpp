@@ -1,4 +1,4 @@
-/* $Id: SolidMatList1DT.cpp,v 1.10 2003-08-07 17:09:39 paklein Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.11 2003-08-16 01:33:20 rdorgan Exp $ */
 #include "SolidMatList1DT.h"
 #include "SolidMatSupportT.h"
 #include "fstreamT.h"
@@ -13,6 +13,7 @@
 
 #ifdef DORGAN_VOYIADJIS_MARIN_DEV
 #include "GradJ2SS1D.h"
+#include "J2SSKStV1D.h"
 #endif
 
 using namespace Tahoe;
@@ -65,6 +66,19 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 
 				fArray[matnum] = new GradJ2SS1D(in, *fGradSSMatSupport);
 				fHasHistory = true;
+				break;
+#else
+				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", matcode);
+#endif
+			}
+			case kJ2SSKStV1D:
+			{
+#ifdef DORGAN_VOYIADJIS_MARIN_DEV
+				/* check */
+				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
+			
+				fArray[matnum] = new J2SSKStV1D(in, *fSSMatSupport);
+				fHasHistory = true;															
 				break;
 #else
 				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", matcode);
