@@ -1,0 +1,14 @@
+
+The ParMETIS version supplied here is 2.0-a3. 
+
+Following changes have been made to the code picked up from the Metis site:
+
+a. ParMETISLib directory has been renamed as parMetis.
+b. METISLib directory has been renamed as metis.
+c. Makefiles in the metis and parMetis directories have been modified.
+d. pspases.c file in parMetis directory has been modified to utilize 
+   options[2] as the number of parts for partitioning. This can be used to
+   force the number of partitions to a fixed number independent of the number
+   of processors when the serial ordering option is used.
+   (refer to codes in pspaceo.c, dpspacef.c, and order.f).
+
