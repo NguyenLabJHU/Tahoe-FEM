@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.40 2003-10-12 23:48:53 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.41 2003-10-28 01:52:12 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -32,8 +32,10 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	DDu(LocalArrayT::kAcc),
 	gamma_p(LocalArrayT::kDisp),
 	gamma_p_n(LocalArrayT::kLastDisp),
-	fInitCoords(LocalArrayT::kInitCoords),
-	fCurrCoords(LocalArrayT::kCurrCoords),
+	fInitCoords_displ(LocalArrayT::kInitCoords),
+	fCurrCoords_displ(LocalArrayT::kCurrCoords),
+	fInitCoords_plast(LocalArrayT::kInitCoords),
+	fCurrCoords_plast(LocalArrayT::kCurrCoords),
 	fBodySchedule(NULL),
 	fBody(NumDOF()),
 	fTractionBCSet(0),
@@ -52,8 +54,8 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	knum_d_state = 6; // double's needed per ip
 	knum_i_state = 0; // int's needed per ip
 	
-	knumstrain = 3; 
-	knumstress = 2; 
+	knumstrain = 4; 
+	knumstress = 3; 
 	
 	output = "out";
 
@@ -64,10 +66,14 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 
 	/* read parameters from input */
 	ifstreamT& in = ElementSupport().Input();
-	in >> fGeometryCode; //TEMP - should actually come from the geometry database
-	in >> fNumIP;
-	in >> fGeometryCodeSurf; //TEMP - should actually come from the geometry database
-	in >> fNumIPSurf;
+	in >> fGeometryCode_displ; //TEMP - should actually come from the geometry database
+	in >> fNumIP_displ;
+	in >> fGeometryCodeSurf_displ; //TEMP - should actually come from the geometry database
+	in >> fNumIPSurf_displ;
+	in >> fGeometryCode_plast; //TEMP - should actually come from the geometry database
+	in >> fNumIP_plast;
+	in >> fGeometryCodeSurf_plast; //TEMP - should actually come from the geometry database
+	in >> fNumIPSurf_plast;
 
 	fMaterial_Data.Dimension ( kNUM_FMAT_TERMS );
 
@@ -120,6 +126,8 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	
 		// get nodes-on-faces
 		model.SideSet(fSideSetID[i], facet_geom, facet_nodes, fPlasticGradientFaces[i]);
+		// get number of facet nodes, assuming each facet has an equal number
+		n_en_surf=facet_nodes[0];
 		
 		// get the side set information {element, face number} for each
 		// face in the set
@@ -140,7 +148,8 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 /* destructor */
 APS_AssemblyT::~APS_AssemblyT(void) 
 {  
-	delete fShapes;
+	delete fShapes_displ;
+	delete fShapes_plast;
 	delete fEquation_d; 
 	delete fEquation_eps; 
 	delete fBalLinMomMaterial; 
@@ -197,57 +206,67 @@ void APS_AssemblyT::Initialize(void)
 	ElementBaseT::Initialize();
 	
 	/* dimensions (notation as per Hughes' Book) */
-	n_ip = fNumIP;
+	n_ip_displ = fNumIP_displ;
+	n_ip_plast = fNumIP_plast;
 	n_sd = NumSD();
 	//n_df = NumDOF(); 
-	n_df = 1+n_sd; 
-	n_en = NumElementNodes();
-	n_np = ElementSupport().NumNodes();
+	//n_df = 1+n_sd; 
+	n_en_displ = NumElementNodes();
+	//n_en_plast = ??;
+	#pragma message("APS_AssemblyT::Initialize: n_en_plast=4 hardcoded ")
+	n_en_plast = 4;
+	//n_np = ElementSupport().NumNodes();
 	n_el = NumElements();
 	
 	n_sd_surf = n_sd;
-	n_en_surf = 2;
+	//n_en_surf = 2;
 
-	n_en_x_n_df = n_en*n_df;
-	n_en_x_n_sd = n_en*n_sd;
+	//n_en_x_n_df = n_en*n_df;
+	//n_en_x_n_sd = n_en*n_sd;
 
 	/* set local arrays for coarse scale */
 	int dum=1;
-	u.Dimension (n_en, dum);
-	u_n.Dimension (n_en, dum);
-	DDu.Dimension (n_en, dum);
-	del_u.Dimension (n_en, dum);
-	del_u_vec.Dimension (n_en);
+	u.Dimension (n_en_displ, dum);
+	u_n.Dimension (n_en_displ, dum);
+	DDu.Dimension (n_en_displ, dum);
+	del_u.Dimension (n_en_displ, dum);
+	del_u_vec.Dimension (n_en_displ);
 	fDispl.RegisterLocal(u);
 	fDispl.RegisterLocal(u_n);
 
 	/* set local arrays for fine scale */
-	gamma_p.Dimension (n_en, n_sd);
-	gamma_p_n.Dimension (n_en, n_sd);
-	del_gamma_p.Dimension (n_en, n_sd);
-	dum = n_en*n_sd;
-	del_gamma_p_vec.Dimension (dum);
+	gamma_p.Dimension (n_en_plast, n_sd);
+	gamma_p_n.Dimension (n_en_plast, n_sd);
+	del_gamma_p.Dimension (n_en_plast, n_sd);
+	n_en_plast_x_n_sd = n_en_plast*n_sd;
+	del_gamma_p_vec.Dimension (n_en_plast_x_n_sd);
 	fPlast.RegisterLocal(gamma_p);
 	fPlast.RegisterLocal(gamma_p_n);
 
 	/* set shape functions */
-	fInitCoords.Dimension(n_en, n_sd);
-	ElementSupport().RegisterCoordinates(fInitCoords);	
-	fCurrCoords.Dimension(n_en, n_sd);
-	fShapes = new ShapeFunctionT(fGeometryCode, fNumIP, fCurrCoords);
-	fShapes->Initialize();
-	
-	//fNormal.Dimension ( n_sd );
+	// u
+	fInitCoords_displ.Dimension(n_en_displ, n_sd);
+	ElementSupport().RegisterCoordinates(fInitCoords_displ);	
+	fCurrCoords_displ.Dimension(n_en_displ, n_sd);
+	fShapes_displ = new ShapeFunctionT(fGeometryCode_displ, fNumIP_displ, fCurrCoords_displ);
+	fShapes_displ->Initialize();
+	// gamma_p
+	fInitCoords_plast.Dimension(n_en_plast, n_sd);
+	ElementSupport().RegisterCoordinates(fInitCoords_plast);	
+	fCurrCoords_plast.Dimension(n_en_plast, n_sd);
+	fShapes_plast = new ShapeFunctionT(fGeometryCode_plast, fNumIP_plast, fCurrCoords_plast);
+	fShapes_plast->Initialize();
 	
 	/* allocate state variable storage */
-	int num_ip = fNumIP;
+	// state variables are calculated at IPs for gamma_p field
+	int num_ip = fNumIP_plast;
 	fdState_new.Dimension(n_el, num_ip*knum_d_state);
 	fdState.Dimension(n_el, num_ip*knum_d_state);
 	fiState_new.Dimension(n_el, num_ip*knum_i_state);
 	fiState.Dimension(n_el, num_ip*knum_i_state);
 	
 	/* storage for the fine scale equation numbers */
-	fEqnos_plast.Dimension(n_el, n_en*n_sd);
+	fEqnos_plast.Dimension(n_el, n_en_plast*n_sd);
 	fEqnos_plast = -1;
 
 	/* initialize state variables */
@@ -265,7 +284,7 @@ void APS_AssemblyT::Initialize(void)
 
 	Select_Equations ( BalLinMomT::kAPS_Bal_Eq, iPlastModelType );
 	dum=knumstrain+knumstress;
-	fEquation_eps -> Initialize ( n_ip, n_sd, n_en, knum_d_state, dum, ElementSupport().StepNumber() );
+	fEquation_eps->Initialize ( n_ip_plast, n_sd, n_en_plast, knum_d_state, dum, ElementSupport().StepNumber() );
 	//step_number_last_iter = 0; 
 	//step_number_last_iter = ElementSupport().StepNumber();  // This may crash or not work
 
@@ -276,41 +295,43 @@ void APS_AssemblyT::Initialize(void)
 	
 	//fgrad_u.FEA_Dimension 			( fNumIP, n_sd );
 	dum=1;
-	fgrad_u.FEA_Dimension 			( fNumIP, dum, n_sd );
-	fgrad_u_surf.FEA_Dimension 		( fNumIPSurf, dum, n_sd );
-	fgamma_p.FEA_Dimension 			( fNumIP, n_sd );
-	fgamma_p_surf.FEA_Dimension 	( fNumIPSurf, n_sd );
-	fgrad_gamma_p.FEA_Dimension 	( fNumIP, n_sd,n_sd );
+	fgrad_u.FEA_Dimension 			( fNumIP_displ, dum, n_sd );
+	fgrad_u_surf.FEA_Dimension 		( fNumIPSurf_displ, dum, n_sd );
+	fgamma_p.FEA_Dimension 			( fNumIP_plast, n_sd );
+	//need gamma_p at the surface of the displ eqs
+	fgamma_p_surf.FEA_Dimension 	( fNumIPSurf_displ, n_sd );
+	fgrad_gamma_p.FEA_Dimension 	( fNumIP_plast, n_sd, n_sd );
 	//fgrad_u_n.FEA_Dimension 		( fNumIP, n_sd );
-	fgrad_u_n.FEA_Dimension 		( fNumIP, dum, n_sd );
-	fgrad_u_surf_n.FEA_Dimension 	( fNumIPSurf, dum, n_sd );
-	fgamma_p_n.FEA_Dimension 		( fNumIP, n_sd );
-	fgamma_p_surf_n.FEA_Dimension 	( fNumIPSurf, n_sd );
-	fgrad_gamma_p_n.FEA_Dimension 	( fNumIP, n_sd,n_sd );
+	fgrad_u_n.FEA_Dimension 		( fNumIP_displ, dum, n_sd );
+	fgrad_u_surf_n.FEA_Dimension 	( fNumIPSurf_displ, dum, n_sd );
+	fgamma_p_n.FEA_Dimension 		( fNumIP_plast, n_sd );
+	fgamma_p_surf_n.FEA_Dimension 	( fNumIPSurf_displ, n_sd );
+	fgrad_gamma_p_n.FEA_Dimension 	( fNumIP_plast, n_sd,n_sd );
 	
-	fstate.FEA_Dimension 			( fNumIP, knum_d_state );
-	fstate_n.FEA_Dimension 			( fNumIP, knum_d_state );
+	fstate.FEA_Dimension 			( fNumIP_plast, knum_d_state );
+	fstate_n.FEA_Dimension 			( fNumIP_plast, knum_d_state );
 
 	//check these dims
-	fKdd.Dimension 			( n_en, n_en );
-	fKdeps.Dimension 		( n_en, n_en_x_n_sd );
-	fKepsd.Dimension 		( n_en_x_n_sd, n_en );
-	fKepseps.Dimension 		( n_en_x_n_sd, n_en_x_n_sd );
+	fKdd.Dimension 			( n_en_displ, n_en_displ );
+	fKdeps.Dimension 		( n_en_displ, n_en_plast_x_n_sd );
+	fKepsd.Dimension 		( n_en_plast_x_n_sd, n_en_displ );
+	fKepseps.Dimension 		( n_en_plast_x_n_sd, n_en_plast_x_n_sd );
 
-	fFd_int.Dimension 		( n_en );
-	fFd_ext.Dimension 		( n_en );
-	fFeps_int.Dimension 	( n_en_x_n_sd );
-	fFeps_ext.Dimension 	( n_en_x_n_sd );
+	fFd_int.Dimension 		( n_en_displ );
+	fFd_ext.Dimension 		( n_en_displ );
+	fFeps_int.Dimension 	( n_en_plast_x_n_sd );
+	fFeps_ext.Dimension 	( n_en_plast_x_n_sd );
 	
 	fKdd_face.Dimension 		( n_en_surf, n_en_surf );
 	fFd_int_face.Dimension 		( n_en_surf );
 
-	fFEA_Shapes.Construct	( fNumIP,n_sd,n_en );
-	fFEA_SurfShapes.Construct	( fNumIPSurf,n_sd_surf,n_en_surf );
+	fFEA_Shapes_displ.Construct	( fNumIP_displ,n_sd,n_en_displ );
+	fFEA_Shapes_plast.Construct	( fNumIP_plast,n_sd,n_en_plast );
+	fFEA_SurfShapes.Construct	( fNumIPSurf_displ,n_sd_surf,n_en_surf );
 	
 	Render_Vector.Dimension ( n_el );
 	for (int e=0; e<n_el; e++) {
-		Render_Vector[e].Construct ( 1, n_ip, knumstrain+knumstress+knum_d_state );	
+		Render_Vector[e].Construct ( 1, n_ip_plast, knumstrain+knumstress+knum_d_state );	
 	}
 
 
@@ -319,15 +340,15 @@ void APS_AssemblyT::Initialize(void)
 	ofstreamT& out = ElementSupport().Output();
 
 	/* storage for integration point strain, stress, and ISVs*/
-	fIPVariable.Dimension (n_el, fNumIP*(knumstrain+knumstress+knum_d_state));
+	fIPVariable.Dimension (n_el, fNumIP_plast*(knumstrain+knumstress+knum_d_state));
 	fIPVariable = 0.0;
 
 	/* allocate storage for nodal forces */
 	//fForces_at_Node.Dimension ( n_sd );
 
 	/* body force specification */
-	#pragma message("APS_AssemblyT::Initialize: careful, no body force for gammap ")
-	fDOFvec.Dimension(n_df);
+	//#pragma message("APS_AssemblyT::Initialize: careful, no body force for gammap ")
+	//fDOFvec.Dimension(n_df);
 	EchoBodyForce(in, out);
 
 	/* echo traction B.C.'s */
@@ -361,7 +382,7 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 		#pragma message("APS_AssemblyT::Equations: how determine NumDOF for each field?")
 		int ndof_plast = fPlast.NumDOF();
 		int ndof_displ = fDispl.NumDOF();
-		int nen = NumElementNodes();
+		//int nen = NumElementNodes();
 	
 		/* loop over connectivity blocks */
 		for (int i = 0; i < fEqnos.Length(); i++)
@@ -371,9 +392,9 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 			int nel = connects.MajorDim();
 		
 			/* dimension */ 
-			fEqnos[i].Dimension(nel, nen*(ndof_displ + ndof_plast));
-			iArray2DT displ_eq(nel, nen*ndof_displ);
-			iArray2DT plast_eq(nel, nen*ndof_plast);
+			fEqnos[i].Dimension(nel, n_en_displ*ndof_displ + n_en_plast*ndof_plast);
+			iArray2DT displ_eq(nel, n_en_displ*ndof_displ);
+			iArray2DT plast_eq(nel, n_en_plast*ndof_plast);
 			
 			/* get equation numbers */
 			fDispl.SetLocalEqnos(connects, displ_eq);
@@ -438,7 +459,7 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 		case BalLinMomT::kAPS_Bal_Eq :
 			fEquation_d = new APS_Bal_EqT;
 			fBalLinMomMaterial = new Shear_MatlT;
-			fBalLinMomMaterial -> Assign ( Shear_MatlT::kMu, fMaterial_Data[kMu] );
+			fBalLinMomMaterial->Assign ( Shear_MatlT::kMu, fMaterial_Data[kMu] );
 			break;
 
 		default :
@@ -453,18 +474,18 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 		case PlastT::kAPS_BCJ :
 			fEquation_eps	= new APS_BCJT;
 			fPlastMaterial	= new APS_MatlT;		
-			fPlastMaterial -> Assign (	APS_MatlT::kMu, 		fMaterial_Data[kMu] 		); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::km_rate, 	fMaterial_Data[km_rate] 	); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::kgamma0_dot_1, fMaterial_Data[kgamma0_dot_1]); 
-			fPlastMaterial -> Assign ( 	APS_MatlT::kgamma0_dot_2, fMaterial_Data[kgamma0_dot_2]); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::km1_x, 		fMaterial_Data[km1_x] 		); 
-			fPlastMaterial -> Assign ( 	APS_MatlT::km1_y, 		fMaterial_Data[km1_y] 		); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::km2_x, 		fMaterial_Data[km2_x] 		); 
-			fPlastMaterial -> Assign ( 	APS_MatlT::km2_y, 		fMaterial_Data[km2_y] 		); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::kl, 			fMaterial_Data[kl] 		); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::kH, 			fMaterial_Data[kH] 		);
-			fPlastMaterial -> Assign ( 	APS_MatlT::kkappa0_1, 	fMaterial_Data[kkappa0_1] 	); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::kkappa0_2, 	fMaterial_Data[kkappa0_2] 	); 	
+			fPlastMaterial->Assign (		APS_MatlT::kMu, 		fMaterial_Data[kMu] 		); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::km_rate, 	fMaterial_Data[km_rate] 	); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kgamma0_dot_1, fMaterial_Data[kgamma0_dot_1]); 
+			fPlastMaterial->Assign ( 	APS_MatlT::kgamma0_dot_2, fMaterial_Data[kgamma0_dot_2]); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::km1_x, 		fMaterial_Data[km1_x] 		); 
+			fPlastMaterial->Assign ( 	APS_MatlT::km1_y, 		fMaterial_Data[km1_y] 		); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::km2_x, 		fMaterial_Data[km2_x] 		); 
+			fPlastMaterial->Assign ( 	APS_MatlT::km2_y, 		fMaterial_Data[km2_y] 		); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kl, 			fMaterial_Data[kl] 		); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kH, 			fMaterial_Data[kH] 		);
+			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_1, 	fMaterial_Data[kkappa0_1] 	); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_2, 	fMaterial_Data[kkappa0_2] 	); 	
 			break;
 			
 		default :
@@ -507,14 +528,14 @@ void APS_AssemblyT::PrintControlData(ostream& out) const
 
 	out << " Displacement field. . . . . . . . . . . . . . . = \"" << fDispl.Name() << "\"\n";
 	out << " Plastic gradient field. . . . . . . . . . . . . = \"" << fPlast.Name() << "\"\n";
-	out << " Element geometry code . . . . . . . . . . . . . = " << fGeometryCode << '\n';
+	out << " Element geometry code . . . . . . . . . . . . . = " << fGeometryCode_displ << '\n';
 	out << "    eq." << GeometryT::kPoint         << ", point\n";
 	out << "    eq." << GeometryT::kLine          << ", line\n";
 	out << "    eq." << GeometryT::kQuadrilateral << ", quadrilateral\n";
 	out << "    eq." << GeometryT::kTriangle	  << ", triangle\n";
 	out << "    eq." << GeometryT::kHexahedron	  << ", hexahedron\n";
 	out << "    eq." << GeometryT::kTetrahedron   << ", tetrahedron\n";
-	out << " Number of integration points. . . . . . . . . . = " << fNumIP    << '\n';
+	out << " Number of integration points. . . . . . . . . . = " << fNumIP_plast    << '\n';
 
 }
 
@@ -599,26 +620,32 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		del_u.DiffOf (u, u_n);
 		del_gamma_p.DiffOf (gamma_p, gamma_p_n);
 
-	 	SetLocalX(fInitCoords); 
 	 	// coordinates do not change for anti-plane shear
 		//fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
-		fCurrCoords = fInitCoords;
-		fShapes->SetDerivatives(); 
+	 	SetLocalX(fInitCoords_displ); 
+		fCurrCoords_displ = fInitCoords_displ;
+		fShapes_displ->SetDerivatives(); 
+		//
+		SetLocalX(fInitCoords_plast); 
+		fCurrCoords_plast = fInitCoords_plast;
+		fShapes_plast->SetDerivatives(); 
 		
 		//update state variables
-		fdstatenew_all.Alias(fNumIP, knum_d_state, fdState_new(CurrElementNumber()));
-		fdstate_all.Alias(fNumIP, knum_d_state, fdState(CurrElementNumber()));
+		fdstatenew_all.Alias(fNumIP_plast, knum_d_state, fdState_new(CurrElementNumber()));
+		fdstate_all.Alias(fNumIP_plast, knum_d_state, fdState(CurrElementNumber()));
 		
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
-		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
-		Convert.Interpolate 	( fShapes, 	gamma_p, gamma_p_n, fgamma_p, fgamma_p_n );
-		Convert.Shapes			(	fShapes, fFEA_Shapes );
+		Convert.Gradients 		( fShapes_displ, 	u, u_n, fgrad_u, fgrad_u_n );
+		Convert.Gradients 		( fShapes_plast, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
+		Convert.Interpolate 	( fShapes_plast, 	gamma_p, gamma_p_n, fgamma_p, fgamma_p_n );
+		Convert.Shapes			(	fShapes_displ, fFEA_Shapes_displ );
+		Convert.Shapes			(	fShapes_plast, fFEA_Shapes_plast );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
-		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
-		Convert.Copy			(	fNumIP, knum_d_state, fdstatenew_all, fstate );
-		Convert.Copy			(	fNumIP, knum_d_state, fdstate_all, fstate_n );
+		Convert.Na				(	n_en_displ, fShapes_displ, 	fFEA_Shapes_displ );
+		Convert.Na				(	n_en_plast, fShapes_plast, 	fFEA_Shapes_plast );
+		Convert.Copy			(	fNumIP_plast, knum_d_state, fdstatenew_all, fstate );
+		Convert.Copy			(	fNumIP_plast, knum_d_state, fdstate_all, fstate_n );
 		
 		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
 		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n,fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n	 
@@ -627,10 +654,10 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 			if (is_coarse)
 			{
 				/* residual and tangent for coarse scale */
-				fEquation_d -> Construct ( fFEA_Shapes, fBalLinMomMaterial, fPlastMaterial, np1, n, 
-											step_number, delta_t );
-				fEquation_d -> Form_LHS_Keps_Kd ( fKdeps, fKdd );
-				fEquation_d -> Form_RHS_F_int ( fFd_int, np1 );
+				fEquation_d->Construct ( fNumIPSurf_displ, n_en_surf, fFEA_Shapes_displ, fBalLinMomMaterial, 
+										fPlastMaterial, np1, n, step_number, delta_t );
+				fEquation_d->Form_LHS_Keps_Kd ( fKdeps, fKdd );
+				fEquation_d->Form_RHS_F_int ( fFd_int, np1 );
 				fFd_int *= -1.0;  
 
 				/* add body force */
@@ -649,10 +676,10 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 			else /* fine scale nodal force */
 			{
 				/* residual and tangent for fine scale */
-				fEquation_eps -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, 
+				fEquation_eps->Construct ( fFEA_Shapes_plast, fPlastMaterial, np1, n, 
 											step_number, delta_t, FEA::kBackward_Euler );
-				fEquation_eps -> Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
-				fEquation_eps -> Form_RHS_F_int ( fFeps_int );
+				fEquation_eps->Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
+				fEquation_eps->Form_RHS_F_int ( fFeps_int );
 				fFeps_int *= -1.0;
 			}
 
@@ -717,13 +744,13 @@ void APS_AssemblyT::RegisterOutput(void)
 		block_ID[i] = fBlockData[i].ID();
 
 	/* output per element - strain, stress, and ISVs at the integration points */
-	ArrayT<StringT> e_labels(fNumIP*(knumstrain+knumstress+knum_d_state));
+	ArrayT<StringT> e_labels(fNumIP_plast*(knumstrain+knumstress+knum_d_state));
 
 	/* over integration points */
-	const char* slabels2D[] = {"gamma_x", "gamma_y", "gammap_curl", "s_xz", "s_yz"};
+	const char* slabels2D[] = {"gamma_x", "gamma_y", "gammap_curl", "effstr", "s_xz", "s_yz", "J2"};
 	const char* svlabels2D[] = {"xi_1", "kappa_1", "gamma_dot_1", "xi_2", "kappa_2", "gamma_dot_2"};
 	int count = 0;
-	for (int j = 0; j < fNumIP; j++)
+	for (int j = 0; j < fNumIP_plast; j++)
 	{
 		StringT ip_label;
 		ip_label.Append("ip", j+1);
@@ -769,7 +796,8 @@ void APS_AssemblyT::RegisterOutput(void)
 		n_labels[count++] = svlabels2D[i];
 
 	/* set output specifier */
-	OutputSetT output_set(fGeometryCode, block_ID, fConnectivities, n_labels, e_labels, false);
+	#pragma message("APS_AssemblyT::RegisterOutput: is this right? ")
+	OutputSetT output_set(fGeometryCode_displ, block_ID, fConnectivities, n_labels, e_labels, false);
 		
 	/* register and get output ID */
 	fOutputID = ElementSupport().RegisterOutput(output_set);
@@ -807,12 +835,12 @@ void APS_AssemblyT::WriteOutput(void)
 	{
 		/* extrapolate */
 		nd_var = 0.0;
-		out_variable_all.Alias(fNumIP, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
-		fShapes->TopIP();
-		while (fShapes->NextIP())
+		out_variable_all.Alias(fNumIP_plast, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
+		fShapes_plast->TopIP();
+		while (fShapes_plast->NextIP())
 		{
-			out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(fShapes->CurrIP()));
-			fShapes->Extrapolate(out_variable, nd_var);
+			out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(fShapes_plast->CurrIP()));
+			fShapes_plast->Extrapolate(out_variable, nd_var);
 		}
 	
 		/* accumulate - extrapolation done from ip's to corners => X nodes  */
@@ -913,31 +941,37 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 
 		del_u.DiffOf (u, u_n);
 		del_gamma_p.DiffOf (gamma_p, gamma_p_n);
-
-	 	SetLocalX(fInitCoords); 
-	 	// for anti-plane shear, coordinates do not change
-		//fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u);
-		fCurrCoords = fInitCoords; 
-		fShapes->SetDerivatives(); 
-				
-		//-- Alias to update state variables and pass past ones to model subroutine 
-		fdstatenew_all.Alias(fNumIP, knum_d_state, fdState_new(CurrElementNumber()));
-		fdstate_all.Alias(fNumIP, knum_d_state, fdState(CurrElementNumber()));	
 		
-		//repackage data to forms compatible with FEA classes (very little cost in big picture)
-		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
-		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
-		Convert.Interpolate 	( fShapes, 	gamma_p, gamma_p_n, fgamma_p, fgamma_p_n );
-		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
+		// coordinates do not change for anti-plane shear
+		//fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
+	 	SetLocalX(fInitCoords_displ); 
+		fCurrCoords_displ = fInitCoords_displ;
+		fShapes_displ->SetDerivatives(); 
+		//
+		SetLocalX(fInitCoords_plast); 
+		fCurrCoords_plast = fInitCoords_plast;
+		fShapes_plast->SetDerivatives(); 
+		
+		//update state variables
+		fdstatenew_all.Alias(fNumIP_plast, knum_d_state, fdState_new(CurrElementNumber()));
+		fdstate_all.Alias(fNumIP_plast, knum_d_state, fdState(CurrElementNumber()));
+		
+		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
+		Convert.Gradients 		( fShapes_displ, 	u, u_n, fgrad_u, fgrad_u_n );
+		Convert.Gradients 		( fShapes_plast, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
+		Convert.Interpolate 	( fShapes_plast, 	gamma_p, gamma_p_n, fgamma_p, fgamma_p_n );
+		Convert.Shapes			(	fShapes_displ, fFEA_Shapes_displ );
+		Convert.Shapes			(	fShapes_plast, fFEA_Shapes_plast );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
-		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
-		Convert.Copy			(	fNumIP, knum_d_state, fdstatenew_all, fstate );
-		Convert.Copy			(	fNumIP, knum_d_state, fdstate_all, fstate_n );
+		Convert.Na				(	n_en_displ, fShapes_displ, 	fFEA_Shapes_displ );
+		Convert.Na				(	n_en_plast, fShapes_plast, 	fFEA_Shapes_plast );
+		Convert.Copy			(	fNumIP_plast, knum_d_state, fdstatenew_all, fstate );
+		Convert.Copy			(	fNumIP_plast, knum_d_state, fdstate_all, fstate_n );
 		
 		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
-		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n, fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n
-		
+		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n,fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n	 
+
 		/* which field */
 	  	//SolverGroup 1 (gets field 1) <-- u (obtained by a rearranged Equation_d)
 		if ( curr_group == fDispl.Group()  )	
@@ -949,10 +983,10 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_d -> Construct ( fFEA_Shapes, fBalLinMomMaterial, fPlastMaterial, np1, n, 
+				fEquation_d->Construct ( fNumIPSurf_displ, n_en_surf, fFEA_Shapes_displ, fBalLinMomMaterial, fPlastMaterial, np1, n, 
 											step_number, delta_t );
-				fEquation_d -> Form_LHS_Keps_Kd ( fKdeps, fKdd );
-				fEquation_d -> Form_RHS_F_int ( fFd_int, np1 );
+				fEquation_d->Form_LHS_Keps_Kd ( fKdeps, fKdd );
+				fEquation_d->Form_RHS_F_int ( fFd_int, np1 );
 
 				/** Set coarse LHS */
 				fLHS = fKdd;
@@ -987,12 +1021,12 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 
 			if (bStep_Complete) { 
 			
-				fEquation_eps -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, step_number, delta_t );
-				fEquation_eps -> Get ( output, Render_Vector[e][0] );
+				fEquation_eps->Construct ( fFEA_Shapes_plast, fPlastMaterial, np1, n, step_number, delta_t );
+				fEquation_eps->Get ( output, Render_Vector[e][0] );
 			
 				//-- Store/Register data in classic tahoe manner 
-				out_variable_all.Alias(fNumIP, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
-				for (l=0; l < fNumIP; l++) {
+				out_variable_all.Alias(fNumIP_plast, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
+				for (l=0; l < fNumIP_plast; l++) {
 					out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(l));
 					out_variable=Render_Vector[e][0][l];
 					} 
@@ -1001,14 +1035,14 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_eps -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, 
+				fEquation_eps->Construct ( fFEA_Shapes_plast, fPlastMaterial, np1, n, 
 											step_number, delta_t, FEA::kBackward_Euler );
-				fEquation_eps -> Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
-				fEquation_eps -> Form_RHS_F_int ( fFeps_int );
+				fEquation_eps->Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
+				fEquation_eps->Form_RHS_F_int ( fFeps_int );
 				
 				// update state variables
 				np1.Update( APS::kstate, fstate );		
-				Convert.Copy ( fNumIP, knum_d_state, fstate, fdstatenew_all );
+				Convert.Copy ( fNumIP_plast, knum_d_state, fstate, fdstatenew_all );
 
 				/** Set LHS */
 				fLHS = fKepseps;	
@@ -1080,39 +1114,46 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 
 		del_u.DiffOf (u, u_n);
 		del_gamma_p.DiffOf (gamma_p, gamma_p_n);
-
-	 	SetLocalX(fInitCoords); 
-	 	// no change in coordinates
+		
+		// coordinates do not change for anti-plane shear
 		//fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
-		fCurrCoords = fInitCoords;
-		fShapes->SetDerivatives(); 
+	 	SetLocalX(fInitCoords_displ); 
+		fCurrCoords_displ = fInitCoords_displ;
+		fShapes_displ->SetDerivatives(); 
+		//
+		SetLocalX(fInitCoords_plast); 
+		fCurrCoords_plast = fInitCoords_plast;
+		fShapes_plast->SetDerivatives(); 
 		
 		//update state variables
-		fdstatenew_all.Alias(fNumIP, knum_d_state, fdState_new(CurrElementNumber()));
-		fdstate_all.Alias(fNumIP, knum_d_state, fdState(CurrElementNumber()));
+		fdstatenew_all.Alias(fNumIP_plast, knum_d_state, fdState_new(CurrElementNumber()));
+		fdstate_all.Alias(fNumIP_plast, knum_d_state, fdState(CurrElementNumber()));
 		
-		/* repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
-		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
-		Convert.Interpolate 	( fShapes, 	gamma_p, gamma_p_n, fgamma_p, fgamma_p_n );
-		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
+		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
+		Convert.Gradients 		( fShapes_displ, 	u, u_n, fgrad_u, fgrad_u_n );
+		Convert.Gradients 		( fShapes_plast, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
+		Convert.Interpolate 	( fShapes_plast, 	gamma_p, gamma_p_n, fgamma_p, fgamma_p_n );
+		Convert.Shapes			(	fShapes_displ, fFEA_Shapes_displ );
+		Convert.Shapes			(	fShapes_plast, fFEA_Shapes_plast );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
-		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
-		Convert.Copy			(	fNumIP, knum_d_state, fdstatenew_all, fstate );
-		Convert.Copy			(	fNumIP, knum_d_state, fdstate_all, fstate_n );
+		Convert.Na				(	n_en_displ, fShapes_displ, 	fFEA_Shapes_displ );
+		Convert.Na				(	n_en_plast, fShapes_plast, 	fFEA_Shapes_plast );
+		Convert.Copy			(	fNumIP_plast, knum_d_state, fdstatenew_all, fstate );
+		Convert.Copy			(	fNumIP_plast, knum_d_state, fdstate_all, fstate_n );
 		
 		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
-		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n, fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n
-		
+		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n,fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n	 
+
+				
 		if (bStep_Complete) { 
 		
-			fEquation_eps -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, step_number, delta_t );
-			fEquation_eps -> Get ( output, Render_Vector[e][0] );
+			fEquation_eps->Construct ( fFEA_Shapes_plast, fPlastMaterial, np1, n, step_number, delta_t );
+			fEquation_eps->Get ( output, Render_Vector[e][0] );
 			
 			//-- Store/Register data in classic tahoe manner 
-			out_variable_all.Alias(fNumIP, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
-			for (l=0; l < fNumIP; l++) {
+			out_variable_all.Alias(fNumIP_plast, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
+			for (l=0; l < fNumIP_plast; l++) {
 				out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(l));
 				out_variable=Render_Vector[e][0][l];
 			} 
@@ -1121,10 +1162,10 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		else { //-- Still Iterating
 		
 			/* residual and tangent for coarse scale */
-			fEquation_d -> Construct (	fFEA_Shapes, fBalLinMomMaterial, fPlastMaterial, np1, n, 
+			fEquation_d->Construct (	fNumIPSurf_displ, n_en_surf, fFEA_Shapes_displ, fBalLinMomMaterial, fPlastMaterial, np1, n, 
 										step_number, delta_t );
-			fEquation_d -> Form_LHS_Keps_Kd ( fKdeps, fKdd );
-			fEquation_d -> Form_RHS_F_int ( fFd_int, np1 );
+			fEquation_d->Form_LHS_Keps_Kd ( fKdeps, fKdd );
+			fEquation_d->Form_RHS_F_int ( fFd_int, np1 );
 			fFd_int *= -1.0;
 			
 			// add contribution from sidesets								
@@ -1145,7 +1186,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 
 						//int face = fSideSetElements[i][j];
 						int face = fSideSetFaces[i][j];
-						const ParentDomainT& surf_shape = fShapes->FacetShapeFunction(face);
+						const ParentDomainT& surf_shape = fShapes_displ->FacetShapeFunction(face);
 						const ParentDomainT& parent = ShapeFunction().ParentDomain();
 						iArrayT face_local_nodes(2);
 						parent.NodesOnFacet(face, face_local_nodes);
@@ -1154,12 +1195,12 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 						fPlasticGradientFaceEqnos[i].RowAlias(j, face_equations);
 						
 						Convert.SurfShapeGradient	( n_en_surf, surf_shape, fFEA_SurfShapes, face_coords,
-													parent, fInitCoords, *fShapes, u, u_n, fgrad_u_surf, fgrad_u_surf_n,
+													parent, fInitCoords_displ, *fShapes_displ, u, u_n, fgrad_u_surf, fgrad_u_surf_n,
 													face_gamma_p, fgamma_p_surf, face_local_nodes );
 						APS_VariableT np1_surf(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); 
-						fEquation_d -> Form_LHS_Kd_Surf ( fKdd_face, fFEA_SurfShapes );
+						fEquation_d->Form_LHS_Kd_Surf ( fKdd_face, fFEA_SurfShapes );
 						double wght = fPlasticGradientWght[i];
-						fEquation_d -> Form_RHS_F_int_Surf ( fFd_int_face, np1_surf, wght );
+						fEquation_d->Form_RHS_F_int_Surf ( fFd_int_face, np1_surf, wght );
 						
 						ElementSupport().AssembleRHS(curr_group, fFd_int_face, face_equations);
 						ElementSupport().AssembleLHS(curr_group, fKdd_face, face_equations);
@@ -1182,15 +1223,15 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 			}
 
 			/* residual and tangent for fine scale */
-			fEquation_eps -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, step_number, 
+			fEquation_eps->Construct ( fFEA_Shapes_plast, fPlastMaterial, np1, n, step_number, 
 										delta_t, FEA::kBackward_Euler );
-			fEquation_eps -> Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
-			fEquation_eps -> Form_RHS_F_int ( fFeps_int );
+			fEquation_eps->Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
+			fEquation_eps->Form_RHS_F_int ( fFeps_int );
 			fFeps_int *= -1.0;
 			
 			// update state variables
 			np1.Update( APS::kstate, fstate );
-			Convert.Copy ( fNumIP, knum_d_state, fstate, fdstatenew_all );
+			Convert.Copy ( fNumIP_plast, knum_d_state, fstate, fdstatenew_all );
 
 			/* equations numbers */
 			const iArrayT& all_eq = CurrentElement().Equations();

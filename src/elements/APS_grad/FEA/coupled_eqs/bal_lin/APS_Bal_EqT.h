@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.h,v 1.16 2003-10-13 01:40:42 raregue Exp $
+// $Id: APS_Bal_EqT.h,v 1.17 2003-10-28 01:52:14 raregue Exp $
 #ifndef _APS_BALEQ_T_H_ 
 #define _APS_BALEQ_T_H_ 
 
@@ -89,11 +89,11 @@ class APS_Bal_EqT	: public BalLinMomT
 		
 		APS_Bal_EqT 	( void ) { } 
 
-		APS_Bal_EqT 	( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_MaterialT *APS_Matl, 
+		APS_Bal_EqT 	( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_MaterialT *APS_Matl, 
 						APS_VariableT &np1, APS_VariableT &n, 
 						int &fTime_Step, double fdelta_t = 0.0, int Integration_Scheme=FEA::kBackward_Euler);
 
-		void 	Construct 	( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_MaterialT *APS_Matl, 
+		void 	Construct 	( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_MaterialT *APS_Matl, 
 							APS_VariableT &np1, APS_VariableT &n, 
 							int &fTime_Step, double fdelta_t = 0.0, int Integration_Scheme=FEA::kBackward_Euler); 
 

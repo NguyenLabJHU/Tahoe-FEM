@@ -1,13 +1,13 @@
-// $Id: APS_Bal_EqT.cpp,v 1.22 2003-10-13 01:40:42 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.23 2003-10-28 01:52:14 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
 
-APS_Bal_EqT::APS_Bal_EqT ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_MaterialT *APS_Matl,
+APS_Bal_EqT::APS_Bal_EqT ( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_MaterialT *APS_Matl,
 								APS_VariableT &np1, APS_VariableT &n, 
 								int &fTime_Step, double fdelta_t, int Integration_Scheme) 
 {
-	Construct (Shapes, Shear_Matl, APS_Matl, np1, n, Integration_Scheme);
+	Construct (nipsurf, nensurf, Shapes, Shear_Matl, APS_Matl, np1, n, Integration_Scheme);
 }
 
 /* destructor */
@@ -16,7 +16,7 @@ APS_Bal_EqT::APS_Bal_EqT ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl
 
 //---------------------------------------------------------------------
 
-void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl,
+void APS_Bal_EqT::Construct ( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl,
 							APS_MaterialT *APS_Matl, APS_VariableT &np1, APS_VariableT &n, 
 							int &fTime_Step, double fdelta_t, int Integration_Scheme) 
 {
@@ -35,9 +35,8 @@ void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_M
 	n_sd_x_n_sd = n_sd * n_sd;
 	n_sd_x_n_en = n_sd * n_en;
 	
-	//tmp
-	n_ip_surf=2;
-	n_en_surf=2;
+	n_ip_surf=nipsurf;
+	n_en_surf=nensurf;
 
 	delta_t = fdelta_t;
 	
@@ -78,7 +77,7 @@ void APS_Bal_EqT::Form_RHS_F_int ( dArrayT &F_int, APS_VariableT &npt )
 //---------------------------------------------------------------------
 
 void APS_Bal_EqT::Form_LHS_Kd_Surf	( dMatrixT &Kd_face, FEA_SurfShapeFunctionT &SurfShapes )  
-{	
+{		
 		Data_Pro_Surf.Construct ( SurfShapes.dNdx	);
 		Data_Pro_Surf.Insert_N_surf  ( SurfShapes.N );
 		SurfIntegral.Construct ( SurfShapes.j, SurfShapes.W );

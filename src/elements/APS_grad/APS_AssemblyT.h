@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.21 2003-10-12 02:51:19 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.22 2003-10-28 01:52:12 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -161,10 +161,11 @@ private:
 	/** \name  values read from input in the constructor */
 	/*@{*/
 	/** element geometry */
-	GeometryT::CodeT fGeometryCode, fGeometryCodeSurf;
+	GeometryT::CodeT fGeometryCode_displ, fGeometryCodeSurf_displ, fGeometryCode_plast, fGeometryCodeSurf_plast;
 
 	/** number of integration points */
-	int	fNumIP, fNumIPSurf, knum_d_state, knum_i_state, knumstress, knumstrain, num_sidesets;
+	int	fNumIP_displ, fNumIPSurf_displ, fNumIP_plast, fNumIPSurf_plast, 
+		knum_d_state, knum_i_state, knumstress, knumstrain, num_sidesets;
 	/*@}*/
 
 	/** \name element displacements in local ordering */
@@ -180,9 +181,8 @@ private:
 	dArrayT		del_gamma_p_vec;	// vector form
 	/*@}*/
 
-	int n_ip, n_sd, n_df, n_en, n_en_x_n_df, n_en_x_n_sd; 
-	int n_np, n_el, n_comps;
-	int n_sd_surf, n_en_surf;
+	int n_ip_displ, n_ip_plast, n_en_displ, n_en_plast, n_en_plast_x_n_sd;
+	int n_el, n_sd, n_sd_surf, n_en_surf;
 	//int step_number_last_iter;
 	//bool New_Step;
 	int step_number;
@@ -208,18 +208,19 @@ private:
 	/** shape functions and derivatives. The derivatives are wrt to the 
 	 * coordinates in APS_AssemblyT::fCurrCoords, which are the
 	 * current coordinates */
-	ShapeFunctionT* fShapes;
+	ShapeFunctionT* fShapes_displ;
+	ShapeFunctionT* fShapes_plast;
 	
 	//dArrayT fNormal;
 	
-	FEA_ShapeFunctionT fFEA_Shapes;
+	FEA_ShapeFunctionT fFEA_Shapes_displ, fFEA_Shapes_plast;
 	FEA_SurfShapeFunctionT fFEA_SurfShapes;
 
 	/** reference coordinates */
-	LocalArrayT fInitCoords;     
+	LocalArrayT fInitCoords_displ, fInitCoords_plast;     
 
 	/** current coordinates */
-	LocalArrayT fCurrCoords;
+	LocalArrayT fCurrCoords_displ, fCurrCoords_plast;
 	/*@}*/
 
 	/* Data Storage */
@@ -349,11 +350,15 @@ private:
 inline const ShapeFunctionT& APS_AssemblyT::ShapeFunction(void) const 
 {
 #if __option(extended_errorcheck)
-	if (!fShapes)
-		ExceptionT::GeneralFail("APS_AssemblyT::ShapeFunction", "no shape functions");
+	if (!fShapes_displ)
+		ExceptionT::GeneralFail("APS_AssemblyT::ShapeFunction", "no displ shape functions");
+	if (!fShapes_plast)
+		ExceptionT::GeneralFail("APS_AssemblyT::ShapeFunction", "no plast shape functions");
 #endif
-	return *fShapes;
+	return *fShapes_displ;
+	return *fShapes_plast;
 }
+
 
 
 } // namespace Tahoe 
