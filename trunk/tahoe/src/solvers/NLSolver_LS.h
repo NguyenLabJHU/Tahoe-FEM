@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.h,v 1.8 2004-07-15 08:31:50 paklein Exp $ */
+/* $Id: NLSolver_LS.h,v 1.9 2004-09-09 23:54:55 paklein Exp $ */
 /* created: paklein (08/18/1999) */
 #ifndef _NL_SOLVER_LS_H_
 #define _NL_SOLVER_LS_H_
@@ -19,9 +19,8 @@ public:
 	/** constructor */
 	NLSolver_LS(FEManagerT& fe_manager, int group);
 
-	/* form and solve the equation system - returns the magnitude of the
-	 * residual */
-	virtual double SolveAndForm(int& iteration);
+	/** do one iteration of the solution procedure */
+	virtual void Iterate(void);
 
 	/* console */
 	virtual bool iDoVariable(const StringT& variable, StringT& line);

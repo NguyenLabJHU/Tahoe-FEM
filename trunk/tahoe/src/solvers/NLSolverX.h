@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.h,v 1.7 2004-07-15 08:31:50 paklein Exp $ */
+/* $Id: NLSolverX.h,v 1.8 2004-09-09 23:54:55 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #ifndef _NL_SOLVER_X_H_
 #define _NL_SOLVER_X_H_
@@ -32,8 +32,10 @@ public:
 
 protected:
 
+#if 0
 	/* relax system - reform tangent at newtancount intervals */
-	virtual SolutionStatusT Relax(int newtancount = 1);  	
+	virtual SolutionStatusT Relax(int newtancount = 1); 
+#endif
 
 	/** things to do if the solver converges */
 	SolutionStatusT DoConverged(void);

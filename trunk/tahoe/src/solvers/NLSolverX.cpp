@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.13 2004-07-15 08:31:50 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.14 2004-09-09 23:54:55 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
@@ -106,8 +106,45 @@ SolverT::SolutionStatusT NLSolverX::Solve(int num_iterations)
 			reuse_count++;
 			cout << " re-use :" << setw(3) << reuse_count <<  ": ";
 		}
-				
-		error = SolveAndForm(fNumIteration);
+
+		/* reform the LHS matrix */
+		if (fFormNewTangent) {
+		
+			/* recalculate */
+			fLHS_lock = kOpen;
+			fFEManager.FormLHS(Group(), fLHS->MatrixType());
+			fLHS_lock = kLocked;
+		
+			/* compare with approxumate LHS */
+			if (fLHS->CheckCode() == GlobalMatrixT::kCheckLHS) {
+				const GlobalMatrixT* approx_LHS = ApproximateLHS(*fLHS);
+				CompareLHS(*fLHS, *approx_LHS);
+				delete approx_LHS;
+			}
+		}
+
+		/* update solution */
+		Iterate();
+		fNumIteration++;
+
+		/* tangent reformed next iteration? */
+		if (fFormNewTangent)
+			fLHS_update = true;
+
+		/* recalculate residual */
+		if (fLHS_update) {
+			fLHS->Clear();
+			fLHS_lock = kOpen; /* LHS open for assembly, too! */
+		}
+		else
+			fLHS_lock = kIgnore; /* ignore assembled values */
+		fRHS = 0.0;
+		fFEManager.FormRHS(Group());	
+		fLHS_lock = kLocked;
+		fRHS_lock = kLocked;
+		
+		/* new error */
+		error = Residual(fRHS);
 		solutionflag = ExitIteration(error, fNumIteration);
 
 		/* check for negative pivots */
@@ -188,6 +225,7 @@ SolverT::SolutionStatusT NLSolverX::Solve(int num_iterations)
  * Protected
  *************************************************************************/
 
+#if 0
 /* relax system */
 NLSolver::SolutionStatusT NLSolverX::Relax(int newtancount)
 {	
@@ -254,6 +292,7 @@ NLSolver::SolutionStatusT NLSolverX::Relax(int newtancount)
 	}
 	return solutionflag;
 }
+#endif
 
 /* handlers */
 NLSolver::SolutionStatusT NLSolverX::DoConverged(void)

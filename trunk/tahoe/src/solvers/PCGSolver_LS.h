@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.h,v 1.8 2004-07-15 08:31:50 paklein Exp $ */
+/* $Id: PCGSolver_LS.h,v 1.9 2004-09-09 23:54:55 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #ifndef _PCG_SOLVER_LS_H_
 #define _PCG_SOLVER_LS_H_
@@ -36,12 +36,10 @@ public:
 protected:
 
 	/** apply system update (socket for line searching) */
-	virtual void Update(const dArrayT& update,
-		const dArrayT* residual);
+	virtual void Update(const dArrayT& update, const dArrayT* residual);
 
-	/** form and solve the equation system - returns the magnitude
-	 * of the residual */
-	virtual double SolveAndForm(int& iteration);
+	/** do one iteration of the solution procedure */
+	virtual void Iterate(void);
 
 private:
 

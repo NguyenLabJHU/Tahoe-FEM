@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.31 2004-07-15 08:31:50 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.32 2004-09-09 23:54:55 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -16,15 +16,16 @@ using namespace Tahoe;
 NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 	SolverT(fe_manager, group),
 	fMaxIterations(-1),
-	fMinIterations(-1),
+	fMinIterations(0),
+	fReformTangentIterations(1),
 	fZeroTolerance(0.0),
 	fTolerance(0.0),
 	fDivTolerance(-1.0),
 	fQuickConvCount(0),
 	fIterationOutputCount(0),
 	fVerbose(1),
-	fQuickSolveTol(-1),
-	fQuickSeriesTol(-1),
+	fQuickSolveTol(6),
+	fQuickSeriesTol(3),
 	fIterationOutputIncrement(0)
 {
 	SetName("nonlinear_solver");
@@ -78,10 +79,63 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 	double error = Residual(fRHS);
 	SolutionStatusT solutionflag = ExitIteration(error, fNumIteration);
 	int num_iterations = 0;
+	int tan_iterations = 0;
 	while (solutionflag == kContinue &&
-		(max_iterations == -1 || num_iterations++ < max_iterations))
+		(max_iterations == -1 || num_iterations < max_iterations))
 	{
-		error = SolveAndForm(fNumIteration);
+		/* increment counters */
+		num_iterations++;
+		tan_iterations++;
+	
+		/* recompute LHS? */
+		if (num_iterations == 1 || tan_iterations >= fReformTangentIterations) {
+			fLHS_update = true;
+			tan_iterations = 0;
+		}
+		else fLHS_update = false;
+
+		/* reform the LHS matrix */
+		if (fLHS_update) {
+		
+			/* recalculate */
+			fLHS_lock = kOpen;
+			fFEManager.FormLHS(Group(), fLHS->MatrixType());
+			fLHS_lock = kLocked;
+		
+			/* compare with approxumate LHS */
+			if (fLHS->CheckCode() == GlobalMatrixT::kCheckLHS) {
+				const GlobalMatrixT* approx_LHS = ApproximateLHS(*fLHS);
+				CompareLHS(*fLHS, *approx_LHS);
+				delete approx_LHS;
+			}
+		}
+
+		/* update solution */
+		Iterate();
+		fNumIteration++;
+
+		/* tangent reformed next iteration? */
+		if (tan_iterations + 1 == fReformTangentIterations)
+			fLHS_update = true;
+		else
+			fLHS_update = false;
+
+		/* recalculate residual */
+		if (fLHS_update) {
+			fLHS->Clear();
+			fLHS_lock = kOpen; /* LHS open for assembly, too! */
+		}
+		else
+			fLHS_lock = kIgnore; /* ignore assembled values */
+		fRHS = 0.0;
+		fFEManager.FormRHS(Group());	
+		fLHS_lock = kLocked;
+		fRHS_lock = kLocked;
+		
+		/* new error */
+		error = Residual(fRHS);		
+
+		/* test for convergence */
 		solutionflag = ExitIteration(error, fNumIteration);
 	}
 
@@ -125,6 +179,9 @@ void NLSolver::ResetStep(void)
 
 	/* reset count to increase load step */
 	fQuickConvCount = 0;
+
+	/* reset flag */
+	fLHS_update = true;
 
 	/* restore output */
 	CloseIterationOutput();
@@ -228,23 +285,27 @@ void NLSolver::DefineParameters(ParameterListT& list) const
 	list.AddParameter(fMaxIterations, "max_iterations");
 
 	ParameterT min_iterations(fMinIterations, "min_iterations");
-	min_iterations.SetDefault(0);
+	min_iterations.SetDefault(fMinIterations);
 	list.AddParameter(min_iterations);
+
+	ParameterT reform_tangent_its(fReformTangentIterations, "reform_tangent_iterations");
+	reform_tangent_its.SetDefault(fReformTangentIterations);
+	list.AddParameter(reform_tangent_its);
 
 	list.AddParameter(fZeroTolerance, "abs_tolerance");
 	list.AddParameter(fTolerance, "rel_tolerance");
 	list.AddParameter(fDivTolerance, "divergence_tolerance");
 
 	ParameterT quick_solve_iter(fQuickSolveTol, "quick_solve_iter");
-	quick_solve_iter.SetDefault(6);
+	quick_solve_iter.SetDefault(fQuickSolveTol);
 	list.AddParameter(quick_solve_iter);
 
 	ParameterT quick_solve_count(fQuickSeriesTol, "quick_solve_count");
-	quick_solve_count.SetDefault(3);
+	quick_solve_count.SetDefault(fQuickSeriesTol);
 	list.AddParameter(quick_solve_count);
 
 	ParameterT output_inc(fIterationOutputIncrement, "output_inc");
-	output_inc.SetDefault(0);
+	output_inc.SetDefault(fIterationOutputIncrement);
 	output_inc.AddLimit(0, LimitT::LowerInclusive);
 	list.AddParameter(output_inc);
 }
@@ -258,6 +319,7 @@ void NLSolver::TakeParameterList(const ParameterListT& list)
 	/* extract parameters */
 	fMaxIterations = list.GetParameter("max_iterations");
 	fMinIterations = list.GetParameter("min_iterations");
+	fReformTangentIterations = list.GetParameter("reform_tangent_iterations");
 	fZeroTolerance = list.GetParameter("abs_tolerance");
 	fTolerance     = list.GetParameter("rel_tolerance");
 	fDivTolerance  = list.GetParameter("divergence_tolerance");
@@ -281,38 +343,22 @@ void NLSolver::Update(const dArrayT& update, const dArrayT* residual)
 
 /* relax system */
 NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
-{	
+{
+#pragma unused(newtancount)
+
 	cout <<   "\n Relaxation:" << '\n';
 
-	/* iteration count */
-	int iteration = -1;
-	int count = newtancount - 1;
+	/* keep current iteration count */
+	int iteration = fNumIteration;
+	fNumIteration = -1;
 
-	/* form the first residual force vector */
-	fLHS_lock = kOpen; /* LHS open for assembly, too! */
-	fRHS_lock = kOpen;
-	fRHS = 0.0;
-	fFEManager.FormRHS(Group());	
-	fLHS_lock = kLocked;
-	fRHS_lock = kLocked;
+	/* re-solve equilibrium */
+	SolutionStatusT status = Solve(-1);
 
-	double error = Residual(fRHS);
-		
-	/* loop on error */
-	SolutionStatusT solutionflag = ExitIteration(error, iteration);
-	while (solutionflag == kContinue)
-	{
-		if (++count == newtancount) {	
-			fLHS_update = true;
-			count      = 0;
-		}
-		else fLHS_update = false;
-			
-		error = SolveAndForm(iteration);
-		solutionflag = ExitIteration(error, iteration);
-	}
+	/* restore the iteration count */
+	fNumIteration = iteration;
 
-	return solutionflag;
+	return status;
 }
 
 /* returns 1 if the iteration loop should be left, otherwise
@@ -405,50 +451,12 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error, int iteration)
 	return status;
 }
 
-/* form and solve the equation system */
-double NLSolver::SolveAndForm(int& iteration)
-{		
-	/* form the stiffness matrix (must be cleared previously) */
-	if (fLHS_update) {
-		fLHS_lock = kOpen;
-		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);
-		fLHS_lock = kLocked;
-		
-		/* compare with approxumate LHS */
-		if (fLHS->CheckCode() == GlobalMatrixT::kCheckLHS) {
-		
-			/* compute approximate LHS */
-			const GlobalMatrixT* approx_LHS = ApproximateLHS(*fLHS);
-			
-			/* compare */
-			CompareLHS(*fLHS, *approx_LHS);
-			
-			/* clean-up */
-			delete approx_LHS;
-		}
-	}
-
+/* do one iteration of the solution procedure */
+void NLSolver::Iterate(void)
+{
 	/* solve equation system */
-	if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet("NLSolver::SolveAndForm");
+	if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet("NLSolver::Iterate");
 
 	/* apply update to system */
 	Update(fRHS, NULL);
-
-	/* recalculate residual */
-	iteration++;
-	fRHS_lock = kOpen;
-	if (fLHS_update) {
-		fLHS->Clear();
-		fLHS_lock = kOpen; /* LHS open for assembly, too! */
-	}
-	else
-		fLHS_lock = kIgnore; /* ignore assembled values */
-	fRHS = 0.0;
-	fFEManager.FormRHS(Group());	
-	fLHS_lock = kLocked;
-	fRHS_lock = kLocked;
-
-	/* could combine residual magnitude with update magnitude
-	 * e = a1 |R| + a2 |delta_d|  --> not implemented */	
-	return Residual(fRHS);
 }

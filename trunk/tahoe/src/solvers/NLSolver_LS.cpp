@@ -1,11 +1,9 @@
-/* $Id: NLSolver_LS.cpp,v 1.14 2004-07-15 08:31:50 paklein Exp $ */
+/* $Id: NLSolver_LS.cpp,v 1.15 2004-09-09 23:54:55 paklein Exp $ */
 /* created: paklein (08/18/1999) */
 #include "NLSolver_LS.h"
 
 #include <iostream.h>
 #include <math.h>
-
-
 
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
@@ -16,9 +14,9 @@ using namespace Tahoe;
 /* constructor */
 NLSolver_LS::NLSolver_LS(FEManagerT& fe_manager, int group):
 	NLSolver(fe_manager, group),
-	fSearchIterations(0),
-	fOrthogTolerance(0.0),
-	fMaxStepSize(0.0)
+	fSearchIterations(3),
+	fOrthogTolerance(0.25),
+	fMaxStepSize(2.5)
 {
 	SetName("nonlinear_solver_LS");
 
@@ -28,42 +26,18 @@ NLSolver_LS::NLSolver_LS(FEManagerT& fe_manager, int group):
 	iAddVariable("max_step_size", fMaxStepSize);
 }
 
-/* form and solve the equation system */
-double NLSolver_LS::SolveAndForm(int& iteration)
+/* do one iteration of the solution procedure */
+void NLSolver_LS::Iterate(void)
 {	
-	/* form the stiffness matrix (must be cleared previously) */
-	if (fLHS_update) {
-		fLHS_lock = kOpen;
-		fFEManager.FormLHS(Group(), fLHS->MatrixType());
-		fLHS_lock = kLocked;
-	}
-	
 	/* store residual */
 	fR = fRHS;
 
 	/* solve equation system */
-	if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet("NLSolver_LS::SolveAndForm");
+	if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet("NLSolver_LS::Iterate");
 
-	/* apply update to system */
+	/* apply update to system - using line search */
 	fRHS_lock = kOpen;
-	Update(fRHS, &fR);
-									
-	/* recalculate residual */
-	iteration++;
-	if (fLHS_update) {
-		fLHS->Clear();
-		fLHS_lock = kOpen; /* LHS open for assembly, too! */
-	}
-	else
-		fLHS_lock = kIgnore; /* ignore assembled values */
-	fRHS = 0.0;
-	fFEManager.FormRHS(Group());	
-	fLHS_lock = kLocked;
-	fRHS_lock = kLocked;
-	
-	/* could combine residual magnitude with update magnitude
-	 * e = a1 |R| + a2 |delta_d|  --> not implemented */	
-	return Residual(fRHS);
+	Update(fRHS, &fR);									
 }
 
 /* console */
@@ -87,18 +61,18 @@ void NLSolver_LS::DefineParameters(ParameterListT& list) const
 	NLSolver::DefineParameters(list);
 
 	/* line search iterations */
-	ParameterT line_search_iterations(ParameterT::Integer, "line_search_iterations");
-	line_search_iterations.SetDefault(3);
+	ParameterT line_search_iterations(fSearchIterations, "line_search_iterations");
+	line_search_iterations.SetDefault(fSearchIterations);
 	list.AddParameter(line_search_iterations);
 
 	/* line search orthogonality tolerance */
-	ParameterT line_search_tolerance(ParameterT::Double, "line_search_tolerance");
-	line_search_tolerance.SetDefault(0.25);
+	ParameterT line_search_tolerance(fOrthogTolerance, "line_search_tolerance");
+	line_search_tolerance.SetDefault(fOrthogTolerance);
 	list.AddParameter(line_search_tolerance);
 
 	/* maximum step size */
-	ParameterT max_step(ParameterT::Double, "max_step");
-	max_step.SetDefault(2.5);
+	ParameterT max_step(fMaxStepSize, "max_step");
+	max_step.SetDefault(fMaxStepSize);
 	list.AddParameter(max_step);
 }
 
