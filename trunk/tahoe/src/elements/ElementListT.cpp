@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.49 2003-04-07 15:59:28 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.50 2003-04-22 01:20:42 saubry Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -201,6 +201,9 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		out << "    eq. " << ElementT::kBridgingScale      << ", Bridging Scale\n";
 		out << "    eq. " << ElementT::kSimoQ1P0           << ", Q1P0 mixed element\n";
 		out << "    eq. " << ElementT::kAdhesion           << ", surface adhesion\n";
+		out << "    eq. " << ElementT::kParticlePair       << ", Pair Potential\n";
+		out << "    eq. " << ElementT::kEAM                << ", EAM Potential\n";
+
 
 		/* create new element group - read control parameters
 		   and allocate space in the contructors */
