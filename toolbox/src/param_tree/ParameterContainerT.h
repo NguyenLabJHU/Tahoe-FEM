@@ -1,4 +1,4 @@
-/* $Id: ParameterContainerT.h,v 1.5 2004-03-28 09:53:29 paklein Exp $ */
+/* $Id: ParameterContainerT.h,v 1.6 2004-04-28 15:41:35 paklein Exp $ */
 #ifndef _PARAMETER_CONTAINER_T_H_
 #define _PARAMETER_CONTAINER_T_H_
 
@@ -49,7 +49,8 @@ public:
 		ParameterListT::OccurrenceT occur = ParameterListT::Once, 
 		bool is_inline = false); 
 	void AddSub(const SubListDescriptionT& sub);
-	void AddSub(const ParameterContainerT& sub, ParameterListT::OccurrenceT occur = ParameterListT::Once);
+	void AddSub(const ParameterContainerT& sub, ParameterListT::OccurrenceT occur = ParameterListT::Once,
+		bool is_inline = false);
 	/*@}*/
 
 	/** set source for subs not defined by the container. The source must remain
@@ -129,6 +130,7 @@ protected:
 	/** nested ParameterContainerT's registered ParameterContainerT::AddSub */
 	AutoArrayT<ParameterContainerT> fContainers;
 	AutoArrayT<ParameterListT::OccurrenceT> fContainersOccur;
+	AutoArrayT<bool> fContainersInline;
 	
 	/** source for subs that are not defined by the container */
 	const ParameterInterfaceT* fSubSource;
