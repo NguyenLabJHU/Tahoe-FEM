@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.5 2003-05-21 23:48:15 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.6 2003-05-22 00:48:40 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -326,7 +326,7 @@ void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& ac
 	/* obtain global node numbers of nodes whose support intersects MD, create inverse map */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();	// list of active nodes
 	activefenodes = cell_nodes;
-	const InverseMapT gtlnodes, gtlatoms;
+	InverseMapT gtlnodes, gtlatoms;
 	gtlnodes.SetMap(cell_nodes);	// create global to local map for active nodes
 	gtlatoms.SetMap(atoms);		// create global to local map for all atoms - redundant?
 	int numactivenodes = cell_nodes.Length();	// number of projected nodes
