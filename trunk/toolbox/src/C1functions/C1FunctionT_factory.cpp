@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT_factory.cpp,v 1.2 2004-03-06 17:28:32 paklein Exp $ */
+/* $Id: C1FunctionT_factory.cpp,v 1.3 2004-03-17 17:55:41 paklein Exp $ */
 #include "C1FunctionT.h"
 #include <string.h>
 
@@ -7,6 +7,8 @@
 #include "CubicSplineT.h"
 #include "PowerLawT.h"
 #include "LinearT.h"
+#include "LennardJones612.h"
+#include "SmithFerrante.h"
 
 using namespace Tahoe;
 
@@ -21,6 +23,10 @@ C1FunctionT* C1FunctionT::New(const char* name)
 		return new PowerLawT;
 	else if (strcmp(name, "linear_function") == 0)
 		return new LinearT;
+	else if (strcmp(name, "Lennard_Jones_6-12") == 0)
+		return new LennardJones612;
+	else if (strcmp(name, "Smith_Ferrante") == 0)
+		return new SmithFerrante;
 	else
 		return NULL;
 }
