@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.27.2.1 2002-10-17 04:28:47 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.27.2.2 2002-10-18 17:43:08 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 
@@ -31,6 +31,7 @@
 #include "FinePhestT.h"
 #include "BridgingScaleT.h"
 #include "SimoQ1P0.h"
+#include "AdhesionT.h"
 
 /* contact */
 #include "PenaltyContact2DT.h"
@@ -56,10 +57,9 @@
 /* class to read external field from file */
 #include "UpLagr_ExternalFieldT.h"
 
-/* constructors */
-
 using namespace Tahoe;
 
+/* constructors */
 ElementListT::ElementListT(void)
 {
 
@@ -168,6 +168,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		out << "    eq. " << ElementT::kPenaltyContactElement3D       << ", 3D penalty contact elements\n";
 		out << "    eq. " << ElementT::kBridgingScale      << ", Bridging Scale\n";
 		out << "    eq. " << ElementT::kSimoQ1P0           << ", Q1P0 mixed element\n";
+		out << "    eq. " << ElementT::kAdhesion           << ", surface adhesion\n";
 		/* check */
 		if (group < 0 || group >= Length())
 		{
@@ -370,6 +371,11 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			fArray[group] = new BridgingScaleT(fSupport, *field, *particle, *solid);
 		    break;
 		}
+		case ElementT::kAdhesion:
+		{
+			fArray[group] = new AdhesionT(fSupport, *field);
+			break;
+		}
 		default:
 		  
 		  cout << "\n ElementListT::EchoElementData: unknown element type:" << code << endl;
@@ -377,8 +383,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		}
 		
 		if (!fArray[group]) throw ExceptionT::kOutOfMemory;
-//		fArray[group]->SetController(e_controller); //TEMP: this is dangerous. should pass
-		fArray[group]->Initialize();                //      controller in during construction
+		fArray[group]->Initialize();
 	}
 }
 
