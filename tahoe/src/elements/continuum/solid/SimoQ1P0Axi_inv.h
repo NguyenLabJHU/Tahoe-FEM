@@ -1,19 +1,20 @@
-/* $Id: SimoQ1P0Axi.h,v 1.1.12.1 2004-04-21 18:57:54 paklein Exp $ */
-#ifndef _SIMO_Q1_P0_AXI_H_
-#define _SIMO_Q1_P0_AXI_H_
+/* $Id: SimoQ1P0Axi_inv.h,v 1.1.2.1 2004-05-05 18:37:40 paklein Exp $ */
+#ifndef _SIMO_Q1_P0_AXI_INV_H_
+#define _SIMO_Q1_P0_AXI_INV_H_
 
 /* base classes */
 #include "UpdatedLagrangianAxiT.h"
 
 namespace Tahoe {
 
-/** axisymmetric implementation of SimoQ1P0 */
-class SimoQ1P0Axi: public UpdatedLagrangianAxiT
+/** finite strain, mixed element formulation. Using (dilation)^-1 instead
+ * of the dilation. */
+class SimoQ1P0Axi_inv: public UpdatedLagrangianAxiT
 {
 public:
 
 	/** constructor */
-	SimoQ1P0Axi(const ElementSupportT& support, const FieldT& field);
+	SimoQ1P0Axi_inv(const ElementSupportT& support, const FieldT& field);
 
 	/** data initialization */
 	virtual void Initialize(void);
@@ -47,10 +48,10 @@ protected:
 	
 private:
 
-	/** compute mean shape function gradient, H (reference volume), and
-	 * current element volume, equation (2.20) */
-	void SetMeanGradient(dArray2DT& mean_gradient, double& H, double& v) const;
-	
+	/** compute mean shape function gradient, V (reference volume), and
+	 * the inverse dilation */
+	void SetMeanGradient(dArray2DT& mean_gradient, double& V, double& Gamma) const;
+
 	/** special mixed index term in the tangent. Needed to compute
 	 * the term in the tangent resulting from
 	 * \f$ \nabla \mathbf{u} \textrm{:} \left( \nabla \boldsymbol{\eta} \right)^T \f$.
@@ -61,14 +62,17 @@ protected:
 
 	/** \name element volume */
 	/*@{*/
-	/** deformed element volume */
+	/** reference element volume */
 	dArrayT fElementVolume;
 
-	/** deformed element volume from the last time step */
-	dArrayT fElementVolume_last;
+	/** inverse dilation */
+	dArrayT fGamma;
+
+	/** inverse dilation from the previous time increment */
+	dArrayT fGamma_last;
 	/*@}*/
 	
-	/** element pressure. Calculated during SimoQ1P0Axi::FormKd. */
+	/** element pressure. Calculated during SimoQ1P0Axi_inv::FormKd. */
 	dArrayT fPressure;
 
 	/** determinant of the deformation gradient for the current element */
@@ -92,5 +96,4 @@ protected:
 };
 
 } /* namespace Tahoe */
-
-#endif /* _SIMO_Q1_P0_AXI_H_ */
+#endif /* _SIMO_Q1_P0_AXI_INV_H_ */

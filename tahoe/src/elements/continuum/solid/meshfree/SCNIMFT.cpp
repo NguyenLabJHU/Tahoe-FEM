@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.14 2004-05-06 18:58:15 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.9 2004-02-26 22:14:42 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -77,7 +77,7 @@ void SCNIMFT::Initialize(void)
 
 	/* inherited */
 	ElementBaseT::Initialize();
-
+	
 	/* re-dimension "element" force and stiffness contributions */
 	fLHS.Dimension(fSD);
 	
@@ -94,19 +94,14 @@ void SCNIMFT::Initialize(void)
 	if (qComputeVoronoiCell)
 	{
 #ifndef __QHULL__
-	        ExceptionT::GeneralFail(caller,"Requires the QHull library\n");
+	ExceptionT::GeneralFail(caller,"Requires the QHull library\n");
 #else 
 
 		// Do the heavy lifting for the Voronoi Diagram now
 		fVoronoi = new CompGeomT(fDeloneVertices);
 		fVoronoi->ComputeVoronoiDiagram();
-		cout << " Computed\n";cout.flush();
-		// Determine which cells are clipped by the boundary
-		// Must be done before accessing data from the qhull library!!!
-		fVoronoi->GenerateBoundaryCells(fBoundaryNodes, fBoundaryConnectivity,
-			fBoundaryIsTriangulated);
-
-		fVoronoiVertices.Alias(fVoronoi->VoronoiVertices());
+		dArray2DT& vorVerts = fVoronoi->VoronoiVertices();
+		fVoronoiVertices.Alias(vorVerts);
 		fVoronoiCells.Alias(fVoronoi->VoronoiCells()); 		
 		fVoronoiFacetIndices.Alias(fVoronoi->VoronoiFacetIndices());
 
@@ -114,15 +109,12 @@ void SCNIMFT::Initialize(void)
 		fVoronoiFacetAreas.Alias(fVoronoi->VoronoiFacetAreas());
 		fVoronoiFacetNormals.Alias(fVoronoi->VoronoiFacetNormals());
 		fVoronoiCellVolumes.Alias(fVoronoi->VoronoiCellVolumes());
+		
+		// Determine which cells are clipped by the boundary
+		fVoronoi->GenerateBoundaryCells(fBoundaryNodes, fBoundaryConnectivity,
+			fBoundaryIsTriangulated);
 
-		fDeloneEdges.Alias(fVoronoi->DeloneEdges());
-		fDualFacets.Alias(fVoronoi->DualFacets());
-		fNumClippedFacets = fVoronoi->NumClippedFacets();
-		fSelfDuals.Alias(fVoronoi->SelfDualFacets());
-		fNumSelfDuals = fVoronoi->NumSelfDualFacets();
-
-	
-  		// Write output to file
+		// Write output to file
 		StringT vCellFile;
 		in >> vCellFile;
 		
@@ -137,19 +129,19 @@ void SCNIMFT::Initialize(void)
   			cout  << " Unable to save data to file " << vCellFile << ". Ignoring error \n"; 
 #endif
 	} 
-	else 
-	{	// read in Voronoi information from a file
+    else 
+    {	// read in Voronoi information from a file
 	  	StringT vCellFile;
 		in >> vCellFile;
 	    
 		ifstreamT vin(vCellFile);
 
-		if (!vin.is_open())
-		  ExceptionT::GeneralFail(caller,"Unable to open file for reading");
+    	if (!vin.is_open())
+	    	ExceptionT::GeneralFail(caller,"Unable to open file for reading");
 	    
-		VoronoiDiagramFromFile(vin);  
+	    VoronoiDiagramFromFile(vin);  
 	    
-		vin.close();
+	    vin.close();
 	}
 	
 	/* shape functions */
@@ -169,6 +161,8 @@ void SCNIMFT::Initialize(void)
 	
 	/* initialize */
 //	fNodalShapes->Initialize();
+
+	/* Set nodal integration weights -- ?? */
 
 	/* MLS stuff */
 	fNodalShapes->SetSupportSize();
@@ -224,25 +218,6 @@ void SCNIMFT::Initialize(void)
 	
 	/* initialize workspace for strain smoothing */
 	ComputeBMatrices();	
-	
-	/** store shape functions at nodes */
-	int nNodes = fNodes.Length();
-	dArrayT nodalCoords;
-	fNodalPhi.Dimension(nNodes);
-	fNodalSupports.Dimension(nNodes);
-	for (int i = 0; i < nNodes; i++)
-	{
-		nodalCoords.Set(fSD, fDeloneVertices(fNodes[i]));
-	
-		if (!fNodalShapes->SetFieldAt(nodalCoords, NULL)) // shift = 0 or not ?
-			ExceptionT::GeneralFail("SCNIMFT::Initialize","Shape Function evaluation"
-				"failed at Delone edge %d\n",fNodes[i]);		
-		
-		fNodalPhi[i].AppendArray(fNodalShapes->FieldAt().Length(),
-									const_cast <double *> (fNodalShapes->FieldAt().Pointer()));
-		fNodalSupports[i].AppendArray(fNodalShapes->Neighbors().Length(),
-										const_cast <int *> (fNodalShapes->Neighbors().Pointer()));
-	}
 	
 	/** Material Data */
 	ReadMaterialData(in);
@@ -522,7 +497,12 @@ void SCNIMFT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 #pragma unused(eq_1)
 
 	/* dimension equations array */
-	fEqnos.Configure(nodeWorkSpace, NumDOF());
+	//fEqnos.Configure(fNodalShapes->NodeNeighbors(), NumDOF());
+	iArrayT numBVectors(fNodes.Length());
+	for (int i = 0; i < fNodes.Length(); i++)
+		numBVectors[i] = nodeWorkSpace[i].Length();
+		
+	fEqnos.Configure(numBVectors, NumDOF());
 
 	/* get local equations numbers */
 	Field().SetLocalEqnos(nodeWorkSpace, fEqnos);
@@ -586,108 +566,10 @@ void SCNIMFT::WriteMaterialData(ostream& out) const
 	out.flush();
 }
 
-int SCNIMFT::GlobalToLocalNumbering(iArrayT& nodes)
-{
-	if (!fNodes.Length())
-		if (!nodes.Length())
-			return 1;
-		else 
-			ExceptionT::GeneralFail("SCNIMFT::GlobalToLocalNumbering","No nodes exist\n");
-	
-	// Basic Idea: fNodes is sorted (it came from ModelManagerT::ManyNodeSets)
-	// So, sort nodes with a key array and march down and compare. 
-	iArrayT nodeMap(nodes.Length());
-	nodeMap.SetValueToPosition();
-	iArrayT nodeCopy(nodes.Length());
-	nodeCopy = nodes;
-	nodeMap.SortAscending(nodeCopy);
-
-	// nodes[nodeMap[0]] is the smallest node in global numbering scheme
-	// nodes[nodeMap[0]] should be that global node's position in fNodes
-	int fNodesLen = fNodes.Length();
-	int nodeMapLen = nodeMap.Length();
-	int fNodesCtr = 0;
-	int nodeMapCtr = 0.;
-	int *fNodesPtr = fNodes.Pointer();
-	int *nodeMapPtr = nodeCopy.Pointer();
-	
-	if (*nodeMapPtr > *fNodesPtr)
-		return 0;
-	
-	while (fNodesCtr < fNodesLen && nodeMapCtr < nodeMapLen) {
-		while (*nodeMapPtr != *fNodesPtr && fNodesCtr < fNodesLen) {
-			fNodesPtr++; 
-			fNodesCtr++;
-		}
-		
-		if (fNodesCtr != fNodesLen) {
-			nodes[nodeMap[nodeMapCtr]] = fNodesCtr; // local numbering!
-			nodeMapCtr++;
-			nodeMapPtr++;
-		}
-	}
-	
-	if (nodeMapCtr != nodeMapLen)
-		return 0;
-	else
-		return 1;
-}
-
-int SCNIMFT::GlobalToLocalNumbering(RaggedArray2DT<int>& nodes)
-{
-	iArrayT row_i;
-	for (int i = 0; i < nodes.MajorDim(); i++) {
-		row_i.Set(nodes.MinorDim(i), nodes(i)); 
-		if (!GlobalToLocalNumbering(row_i))
-			return 0;
-	}
-	
-	return 1;
-}
-
-void SCNIMFT::InterpolatedFieldAtNodes(iArrayT& nodes, dArray2DT& fieldAtNodes)
-{
-	/* displacements */
-	const dArray2DT& u = Field()(0,0);
-	dArrayT vec, values_i;
-	for (int i = 0; i < nodes.Length(); i++) 
-	{
-		/* copy in */
-		vec.Set(fSD, fieldAtNodes.Pointer() + i*fSD);
-		vec = 0.;	
-			
-		LinkedListT<int>& supp_i = fNodalSupports[i];
-		LinkedListT<double>& phi_i = fNodalPhi[i];
-		supp_i.Top(); phi_i.Top();
-		while (supp_i.Next() && phi_i.Next()) 
-			vec.AddScaled(*(phi_i.CurrentValue()), u(*(supp_i.CurrentValue())));
-
-	}
-
-}
-
-/** localNode is a local Number, so GlobalToLocalNumbering needs to have been called in whatever class 
-  * calls this function. The node number returned in support are global. 
-  */
-void SCNIMFT::NodalSupportAndPhi(int localNode, LinkedListT<int>& support, LinkedListT<double>& phi)
-{
-#if __option(extended_errorcheck)
-	if (localNode < 0 || localNode >= fNodes.Length()) throw ExceptionT::kSizeMismatch;
-#endif
-
-	support.Alias(fNodalSupports[localNode]);
-	phi.Alias(fNodalPhi[localNode]);
-}
-
-int SCNIMFT::SupportSize(int localNode) 
-{
-	return fNodalPhi[localNode].Length();
-}
-
 void SCNIMFT::ComputeBMatrices(void)
 {
-	/* possible best implementation is to loop over all Delone edges
-	 * and compute all the necessary values only once per Voronoi
+	/* possible best implementation is to loop over all Delone edge
+	 * centroids and compute all the necessary values only once per Voronoi
 	 * facet. This approach minimizes number of times that the support of
 	 * an arbitrary point in space (the Voronoi facet centroid) has to be
 	 * found.
@@ -721,7 +603,13 @@ void SCNIMFT::ComputeBMatrices(void)
 		facetCentroid = 0.; 
 		n_0 = fDeloneEdges(i,0);
 		n_1 = fDeloneEdges(i,1);
-		facetCentroid.Set(fSD, fDualFacetCentroids(i)); 
+		if (i < nInteriorDeloneEdges)
+		{
+			facetCentroid.SumOf(fDeloneVertices(n_0),fDeloneVertices(n_1));
+			facetCentroid /= 2.;
+		}
+		else
+			facetCentroid.Set(fSD, fBoundaryDeloneCentroids(i-nInteriorDeloneEdges)); 
 		facetNormal.DiffOf(fDeloneVertices(n_1), fDeloneVertices(n_0));
 		facetNormal.UnitVector();
 		
@@ -759,8 +647,8 @@ void SCNIMFT::ComputeBMatrices(void)
 		for (int j = 0; j < n_centroid_cover; j++, c++, c_j++)
 		{
 			facetIntegral = facetNormal;
-			facetIntegral *= fDualAreas[i]*phiValues[*c_j];	
-			
+			facetIntegral *= fDualAreas[i]*phiValues[*c_j];		
+		
 			if (next_0)
 				traverseQ_0 = *next_0 <= *c;
 			else
@@ -911,6 +799,7 @@ void SCNIMFT::ComputeBMatrices(void)
 		while ((currFacetIntegral = bVectors_i.Next()))
 			*currFacetIntegral *= 1./fVoronoiCellVolumes[i];
 	}
+
 }
 
 void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
@@ -939,7 +828,7 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
 		// number of vertices on its boundary
 		vout << fVoronoiCells[i].Length() << " ";
 		for (int j = 0; j < fVoronoiCells[i].Length(); j++)
-		  vout << fVoronoiCells[i][j] << " ";
+	    	vout << fVoronoiCells[i][j] << " ";
 		vout << "\n";
 
 		// number of facets
@@ -964,95 +853,6 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
 		// cell volume
 		vout << fVoronoiCellVolumes[i] << "\n";
     }
-
-    // write out Delone edge information
-    int nDelone = fDeloneEdges.MajorDim();
-    vout << nDelone << "\n"; // number of Delone edges
-    for (int i = 0; i < nDelone; i++)
-    {
-                vout << fDeloneEdges(i,0) << " " << fDeloneEdges(i,1) << "\n";
-    }
-
-    // write out areas and centroids of Voronoi facets dual to Delone edge
-    // this assumes a 1-point integration scheme over the boundary of each node's cell
-    if (fDualFacets.MajorDim() != nDelone)
-      ExceptionT::GeneralFail("SCNIMFT::VoronoiDiagramToFile","Dual edge/facet dimension mismatch\n");
-
-    fDualAreas.Dimension(nDelone);
-    fDualFacetCentroids.Dimension(nDelone, fSD);
-    double *v1, *v2;
-    for (int i = 0; i < fDualFacets.MajorDim(); i++) {
-      v1 = fVoronoiVertices(fDualFacets(i,0));
-      v2 = fVoronoiVertices(fDualFacets(i,1));
-      fDualAreas[i] = sqrt((v1[0]-v2[0])*(v1[0]-v2[0])+(v1[1]-v2[1])*(v1[1]-v2[1]));
-      vout << fDualAreas[i] << " ";
-      for (int j = 0; j < fSD; j++) {
-	fDualFacetCentroids(i,j) = .5*(v1[j] + v2[j]);
-	vout << fDualFacetCentroids(i,j) << " ";
-      }
-      vout << "\n";
-    }
-  
-    // write out self-duals and allocate storage for them
-    fNonDeloneEdges.Dimension(fNumSelfDuals);
-    fNonDeloneNormals.Dimension(fNumSelfDuals, fSD);
-    fNonDeloneCentroids.Dimension(fNumSelfDuals, fSD);
-    fBoundaryIntegrationWeights.Dimension(fNumSelfDuals);
-    vout << fNumSelfDuals << "\n";
-    int ctr = 0;
-    for (int i = 0; i < fSelfDuals.Length(); i++)
-      for (int j = 0; j < fSelfDuals[i].Length(); j++) {
-	vout << fBoundaryNodes[i] << " ";
-	fNonDeloneEdges[ctr++] = fBoundaryNodes[i];
-      }
-    vout << "\n";
-
-    // list of centroids of self-dual facets
-    iArrayT* thisFacet;
-    int thisFacetLength;
-    dArrayT ptArray(fSD); // workspace for centroids
-    double *pt = ptArray.Pointer(); 
-    
-    ctr = 0;
-    for (int i = 0; i < fSelfDuals.Length(); i++)
-      for (int j = 0; j < fSelfDuals[i].Length(); j++) {
-	thisFacet = &fVoronoiFacetIndices[fBoundaryNodes[i]][fSelfDuals[i][j]];
-	thisFacetLength = thisFacet->Length();
-	for (int l = 0; l < fSD; l++)
-	  pt[l] = 0.;
-	for (int k = 0; k < thisFacetLength; k++) {
-	  v1 = fVoronoiVertices(fVoronoiCells[fBoundaryNodes[i]][(*thisFacet)[k]]);
-	  for (int l = 0; l < fSD; l++)
-	    pt[l] += v1[l];
-	}
-	for (int l = 0; l < fSD; l++) {
-	  pt[l] /= thisFacetLength;
-	  vout << pt[l] << " ";
-	  fNonDeloneCentroids(ctr,l) = pt[l];
-	}
-	ctr++;
-	vout << "\n";
-      }
-
-    // list of normals of self-dual facets
-    ctr = 0;
-    for (int i = 0; i < fSelfDuals.Length(); i++)
-      for (int j = 0; j < fSelfDuals[i].Length(); j++) {
-	for (int k = 0; k < fSD; k++) {
-	  fNonDeloneNormals(ctr,k) =  fVoronoiFacetNormals[fBoundaryNodes[i]](fSelfDuals[i][j],k);
-	  vout << fNonDeloneNormals(ctr,k) << " ";
-	}
-	vout << "\n";
-	ctr++;
-      }
-
-    // list of areas of self-dual facets
-    ctr = 0;
-    for (int i = 0; i < fSelfDuals.Length(); i++)
-      for (int j = 0; j < fSelfDuals[i].Length(); j++) {
-	fBoundaryIntegrationWeights[ctr] =  fVoronoiFacetAreas[fBoundaryNodes[i]][fSelfDuals[i][j]];
-	vout << fBoundaryIntegrationWeights[ctr++] << "\n";
-      }
 }	
 	
 void SCNIMFT::VoronoiDiagramFromFile(ifstreamT& vin)
@@ -1097,7 +897,7 @@ void SCNIMFT::VoronoiDiagramFromFile(ifstreamT& vin)
 		if (itmp != i)
 	  		ExceptionT::GeneralFail(caller,"Bad Input Voronoi file\n");
 
-		// read in number of vertices on Voronoi cell i
+		// read in number of vertices
 		vin >> itmp;
 		fVoronoiCells[i].Dimension(itmp);
 		for (int j = 0; j < itmp; j++)
@@ -1132,24 +932,28 @@ void SCNIMFT::VoronoiDiagramFromFile(ifstreamT& vin)
 
 	}
 	
-	/* Read in all DeloneEdges in or on the body */
-	int nDelone;
-	vin >> nDelone; 
-	fDeloneEdges.Dimension(nDelone, 2);
-	fDualAreas.Dimension(nDelone);
-	fDualFacetCentroids.Dimension(nDelone, 2);
+	/* Read in all DeloneEdges, but store the number temporarily in nInteriorDeloneEdges */
+	vin >> nInteriorDeloneEdges; 
+	fDeloneEdges.Dimension(nInteriorDeloneEdges, 2);
+	fDualAreas.Dimension(nInteriorDeloneEdges);
 	
-	for (int i = 0; i < nDelone; i++)
+	for (int i = 0; i < nInteriorDeloneEdges; i++)
 		vin >> fDeloneEdges(i,0) >> fDeloneEdges(i,1);
 		
-	for (int i = 0; i < nDelone; i++) {
+	for (int i = 0; i < nInteriorDeloneEdges; i++)
 		vin >> fDualAreas[i];
-		for (int j = 0; j < fSD; j++)
-			vin >> fDualFacetCentroids(i,j);
-	}
 		
 	int nCentroids;
-	vin >> nCentroids; // number of boundary facets (self-duals)
+	vin >> nCentroids;
+	
+	fBoundaryDeloneCentroids.Dimension(nCentroids, fSD);
+	nInteriorDeloneEdges -= nCentroids; // Compute number of facets whose centroids are known
+	
+	for (int i = 0; i < nCentroids; i++)
+		for (int j = 0; j < fSD; j++)
+			vin >> fBoundaryDeloneCentroids(i,j);
+			
+	vin >> nCentroids; // number of boundary facets
 	fNonDeloneEdges.Dimension(nCentroids);
 	fNonDeloneNormals.Dimension(nCentroids,fSD);
 	fNonDeloneCentroids.Dimension(nCentroids,fSD);

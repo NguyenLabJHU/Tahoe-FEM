@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.41 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.41.10.1 2004-04-02 18:58:30 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -57,7 +57,7 @@ public:
 	        };
 
 	/** constructor */
-	FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm);
+	FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm, const ArrayT<StringT>& argv);
 
 	/** destructor */
 	virtual ~FEManagerT(void);
@@ -381,6 +381,15 @@ public:
 		SubListT& sub_sub_list) const;
 	/*@}*/
 
+	/** \name command line flags */
+	/*@{*/
+	const ArrayT<StringT>& Argv(void) const;
+	bool CommandLineOption(const char* str) const;
+
+	/** returns the index of the requested option or -1 if not bound */
+	bool CommandLineOption(const char* str, int& index) const;
+	/*@}*/
+
 protected:
 
 	/** "const" function that sets the status flag */
@@ -433,6 +442,9 @@ private:
 	/*@}*/
 		
 protected:
+
+	/** command line options */
+	const ArrayT<StringT>& fArgv;
 
 	/** \name I/O streams */
 	/*@{*/
@@ -530,6 +542,12 @@ inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
 {
 #pragma unused(block_ID)
 	return NULL;
+}
+
+inline const ArrayT<StringT>& FEManagerT::Argv(void) const { return fArgv; };
+inline bool FEManagerT::CommandLineOption(const char* str) const {
+	int index;
+	return CommandLineOption(str, index);
 }
 
 inline int FEManagerT::IterationNumber(void) const

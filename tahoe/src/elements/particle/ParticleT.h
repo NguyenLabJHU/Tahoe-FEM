@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.28 2004-04-19 22:08:07 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.26 2004-03-19 00:14:51 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -298,18 +298,22 @@ protected:
 	dMatrixT fOneOne;
 	/*@}*/
 
+	/*linked list node for holding elements of the centrosymmetry parameter*/
+	struct CSymmParamNode {
+       	  double value;
+       	  CSymmParamNode *Next;
+	};
+	
 	/*This parameter is defined at input, and is used to determine the nearest neighbors in the neighbor list*/
 	double fLatticeParameter;
 	double NearestNeighborDistance; 
 	
-	/* calculate slip vector and strain tensor */
-	void Calc_Slip_and_Strain(dArray2DT &s_values, RaggedArray2DT<int> &RefNearestNeighbors, const int &kEulerLagr) ;
-
-	int Combination(int n, int k);
-
-	void Calc_CSP(dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighbors);
-    
-	void SetRefNN(RaggedArray2DT<int> &NearestNeighbors,RaggedArray2DT<int> &RefNearestNeighbors);
+	/*insert into linked list*/
+        static void LLInsert (CSymmParamNode *ListStart, double value);
+	/*given linked list, generate centrosymmetry value*/
+	double GenCSymmValue (CSymmParamNode *CSymmParam, int ndof);
+	void CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CParamStart, dMatrixT *Strain, dArrayT *SlipVector, 
+		RaggedArray2DT<int> *NearestNeighbors, double& J);
 
 private:
 

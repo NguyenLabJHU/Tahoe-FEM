@@ -1,4 +1,4 @@
-/* $Id: Traction_CardT.cpp,v 1.6 2004-04-02 16:48:31 jzimmer Exp $ */
+/* $Id: Traction_CardT.cpp,v 1.5 2002-10-20 22:49:31 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "Traction_CardT.h"
 
@@ -10,16 +10,13 @@
 #include "fstreamT.h"
 #include "dArray2DT.h"
 #include "ScheduleT.h"
+#include "DomainIntegrationT.h"
 #include "ElementSupportT.h"
 
-#include "ElementsConfig.h"
-#ifdef SHAPE_FUNCTION_CLASSES
-#include "DomainIntegrationT.h"
-#endif
+/* constructor */
 
 using namespace Tahoe;
 
-/* constructor */
 Traction_CardT::Traction_CardT(void):
 	fElemNum(0),
 	fFacetNum(0),
@@ -27,13 +24,10 @@ Traction_CardT::Traction_CardT(void):
 	fLTfPtr(NULL),
 	fValues(LocalArrayT::kUnspecified)
 {
-#ifndef SHAPE_FUNCTION_CLASSES
-	ExceptionT::GeneralFail("Traction_CardT::Traction_CardT", "SHAPE_FUNCTION_CLASSES not enabled");
-#endif
+
 }	
 
 /* modifiers */
-#ifdef SHAPE_FUNCTION_CLASSES
 void Traction_CardT::EchoValues(const ElementSupportT& support, const DomainIntegrationT& domain,
 	int elem, int ndof, ifstreamT& in, ostream& out)
 {
@@ -59,10 +53,7 @@ void Traction_CardT::EchoValues(const ElementSupportT& support, const DomainInte
 	
 	/* set and echo */
 	EchoValues(support, elem, facet, nLTf, coord_sys, fLocNodeNums, valuesT, out);
-}
-#else
-void Traction_CardT::EchoValues(const ElementSupportT&, const DomainIntegrationT&, int, int, ifstreamT&, ostream&) {}
-#endif	
+}	
 
 void Traction_CardT::EchoValues(const ElementSupportT& support, int elem, int facet,
 	int nLTf, CoordSystemT coord_sys, const iArrayT& locnodenums,

@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.17 2004-04-27 07:25:27 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.16.16.1 2004-04-27 07:27:32 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -140,7 +140,7 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	in >> num_surfaces;
 	out << " Number of contact surfaces. . . . . . . . . . . = "
 	    << num_surfaces << '\n';
-	if (num_surfaces < 1) ExceptionT::BadInputValue(caller);
+	if (num_surfaces < 1) throw ExceptionT::kBadInputValue;
 
 	/* read contact bodies */
 	fSurfaces.Dimension(num_surfaces);

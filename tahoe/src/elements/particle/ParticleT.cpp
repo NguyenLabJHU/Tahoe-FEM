@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.39 2004-04-21 08:14:39 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.35 2004-03-04 08:54:26 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -13,7 +13,6 @@
 #include "RaggedArray2DT.h"
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
-#include "ExceptionCodes.h"
 
 /* Thermostatting stuff */
 #include "RandomNumberT.h"
@@ -193,24 +192,9 @@ void ParticleT::Initialize(void)
 	else
 	  {
 	    in.rewind();
-	    fLatticeParameter = 0.0; //defaults to nothing
+	    fLatticeParameter = 4.08; //defaults to gold
 	  }
-	if (NumSD()==1)
-	{
-	 NearestNeighborDistance=fLatticeParameter*1.1;
-	} 
-    else if (NumSD()==2)
-	{
-	 NearestNeighborDistance=fLatticeParameter*1.1;
-    }
-    else if (NumSD()==3)
-    { 
-	 NearestNeighborDistance=fLatticeParameter*.78;
-    }
-	else
-	{ 
-	 throw eBadInputValue;
-	}
+	NearestNeighborDistance = fLatticeParameter*.79;
 
 	/* set up communication of type information */
 	fTypeMessageID = ElementSupport().CommManager().Init_AllGather(MessageT::Integer, 1);
@@ -960,6 +944,18 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 }
 
 
+
+void ParticleT::LLInsert (CSymmParamNode *ListStart, double value)
+{
+  while(ListStart->Next!=NULL && ListStart->Next->value <value) ListStart=ListStart->Next;
+  CSymmParamNode *newNode = new CSymmParamNode;
+  newNode->Next = ListStart->Next;
+  newNode->value=value;
+  ListStart->Next=newNode;
+
+}
+
+
 /* describe the parameters needed by the interface */
 void ParticleT::DefineParameters(ParameterListT& list) const
 {
@@ -1038,283 +1034,113 @@ ThermostatBaseT* ParticleT::New_Thermostat(const StringT& name, bool throw_on_fa
 	return NULL;
 }
 
-void ParticleT::Calc_Slip_and_Strain(dArray2DT &s_values, RaggedArray2DT<int> &RefNearestNeighbors, const int &kEulerLagr)
+double ParticleT::GenCSymmValue (CSymmParamNode *CSymmParam, int ndof) 
 {
-  int non = s_values.MajorDim();
-  int num_s_vals = s_values.MinorDim();
-  int ndof = NumDOF();
-  int num_strains = num_s_vals - ndof - 1;
-  iArrayT neighbors;
-  dArrayT x_i(ndof), x_j(ndof), r_ij(ndof), R_ij(ndof), X_i(ndof), X_j(ndof);  
-  dArrayT slipvector(ndof), svtemp(ndof);
-  dMatrixT omega(ndof), eta(ndof), omegatemp(ndof), etatemp(ndof); 
-  dMatrixT C_IJ(ndof), b_ij(ndof), F_iI(ndof), strain(ndof);
-  dMatrixT etainverse(ndof), Id(ndof);
-  int nslip;
-  double J, svtol;
-
-  /* set slip vector tolerance for either 1-D (chain), 
-   * 2-D (triangular lattice), or 3-D (FCC lattice) systems */
-  if (NumSD()==1)
-  {
-   svtol = 0.25*NearestNeighborDistance;
-  }
-  else if (NumSD()==2)
-  {
-   svtol = 0.5*NearestNeighborDistance;
-  }
-  else if (NumSD()==3)
-  {
-   svtol =  0.5*NearestNeighborDistance/sqrt(3.0);
-  }
-  else
-  {
-   throw eBadInputValue;
-  } 
-  /* multi-processor information */
-  CommManagerT& comm_manager = ElementSupport().CommManager();
-  const ArrayT<int>* proc_map = comm_manager.ProcessorMap();
-  int rank = ElementSupport().Rank();
-  const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
-  const dArray2DT& refcoords = ElementSupport().InitialCoordinates();
-  const dArray2DT& coords = ElementSupport().CurrentCoordinates();
-
-  /* row of neighbor list */
-  for (int i = 0; i < RefNearestNeighbors.MajorDim(); i++)
-  {
-   RefNearestNeighbors.RowAlias(i,neighbors);
-   int tag_i = neighbors[0];
-   int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
-
-   eta = 0.0; omega = 0.0; strain = 0.0; slipvector = 0.0; nslip = 0;
-   J = 1.0;
-
-   coords.RowAlias(tag_i,x_i);
-   refcoords.RowAlias(tag_i,X_i);
-   for (int j = 1; j<neighbors.Length(); j++)
-   {
-    int tag_j = neighbors[j];
-    coords.RowAlias(tag_j,x_j);
-    refcoords.RowAlias(tag_j,X_j);
-    r_ij.DiffOf(x_j,x_i);
-    R_ij.DiffOf(X_j,X_i);
-    svtemp.DiffOf(r_ij,R_ij);
-    if (fhas_periodic && (svtemp.Magnitude() > 0.5*fPeriodicLengths.Max()))
+#pragma unused(ndof)
+  
+  int counter=0;
+  double CSymmValue=0.0;
+  CSymmParamNode *CurrentAlias;
+  /* this loop adds up the first seven vector pairs (the first one is always zero) to form the centrosymmetry value*/
+  while (counter <= 6 && CSymmParam!=NULL ) 
     {
-     for (int m = 0; m < ndof;m++)
-     {
-      if (R_ij[m] > 0.5*fPeriodicLengths[m]) R_ij[m] -=fPeriodicLengths[m]; 
-      if (R_ij[m] < -0.5*fPeriodicLengths[m]) R_ij[m] +=fPeriodicLengths[m]; 
-      if (r_ij[m] > 0.5*fPeriodicLengths[m]) r_ij[m] -=fPeriodicLengths[m]; 
-      if (r_ij[m] < -0.5*fPeriodicLengths[m]) r_ij[m] +=fPeriodicLengths[m]; 
-     }
-     svtemp.DiffOf(r_ij,R_ij);
+      CSymmValue+=CSymmParam->value;  
+      CurrentAlias=CSymmParam;
+      CSymmParam = CSymmParam->Next;
+      delete CurrentAlias;
+      counter++;
     }
-    slipvector -= svtemp; /* "-" sign is used so that slip is attributed in the correct direction */
-    if (svtemp.Magnitude()>svtol) nslip += 1;
-
-    omegatemp.Outer(r_ij,R_ij);
-    etatemp.Outer(R_ij,R_ij);
-    omega += omegatemp;
-    eta += etatemp;
-   } /* end of j loop */
-
-   if (nslip>0) slipvector /= double(nslip);
-
-   if (fabs(eta.Det())>kSmall)
-   {
-    etainverse = eta.Inverse();
-    F_iI.MultAB(omega,etainverse);
-    if (kEulerLagr)
-    {
-     b_ij.MultABT(F_iI,F_iI);
-     double J2 = b_ij.Det();
-     if (fabs(J2)>kSmall)
-     {
-      J = sqrt(J2);
-      Id = 0.0;
-      for (int m=0; m<ndof; m++) Id(m,m) = 1.0;
-      strain.DiffOf(Id,b_ij.Inverse());
-      strain *= 0.5;
-     }
-    }
-    else
-    {
-     C_IJ.MultATB(F_iI,F_iI); 
-     double J2 = C_IJ.Det();
-     if (fabs(J2)>kSmall)
-     {
-      J = sqrt(J2);
-      Id = 0.0;
-      for (int m=0; m<ndof; m++) Id(m,m) = 1.0;
-      strain.DiffOf(C_IJ,Id);
-      strain *= 0.5;
-     }
-    }
-   }
-
-   /* put slip vector and strain info into global s_values array */
-   int valuep = 0;
-   for (int m = 0; m < ndof; m++)
-   {
-    for (int n = m; n < ndof; n++)
-    {
-     s_values(local_i,valuep++) = strain(m,n);
-    }
-   }
-
-   s_values(local_i,valuep++) = J;
-
-   for (int m = 0; m < ndof; m++)
-   {
-    s_values(local_i,valuep++) = slipvector[m];
-   }
-   //cout << i << "   " << strain(1,1) << endl;
-  } /* end of i loop */
- 
-} 
-
-int ParticleT::Combination(int n,int k)
-  {
-   int num_nk = 1; 
-   int denom_nk = 1;
-   int combo_nk;
-   for (int i=(n-k+1); i<=n; i++) num_nk *= i;
-   for (int i=1; i<=k; i++) denom_nk *=i;
-   combo_nk = num_nk / denom_nk;
-   return combo_nk;
+  //  cout<<counter<<"\n";
+  /*deletes the rest of our data structure*/
+  while (CSymmParam!=NULL) {
+    CurrentAlias=CSymmParam;
+    CSymmParam = CSymmParam->Next;
+    delete CurrentAlias;
   }
+  CSymmValue /= fLatticeParameter;
+  return CSymmValue;
+}
 
-void ParticleT::Calc_CSP(dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighbors)
+
+void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CParamStart, dMatrixT *Strain, 
+	dArrayT *SlipVector, RaggedArray2DT<int> *NearestNeighbors, double& J) 
 {
-  int non = s_values.MajorDim();
-  int num_s_vals = s_values.MinorDim();
   int ndof = NumDOF();
+  /* run through neighbor list */
   iArrayT neighbors;
-  dArrayT x_i(ndof), x_j(ndof), r_ij(ndof), rvec(ndof);  
-  int ncspairs;
-
-  /* set number of centrosymmetry pairs to be added up
-   * according to the number of spatial dimensions */
-
-  if (NumSD()==1)
-  {
-   ncspairs = 2; 
-  }
-  else if (NumSD()==2)
-  {
-   ncspairs = 3; 
-  }
-  else if (NumSD()==3)
-  {
-   ncspairs = 6;
-  }
-  else
-  {
-   throw eBadInputValue;
-  }
-
-  /* multi-processor information */
-  CommManagerT& comm_manager = ElementSupport().CommManager();
-  const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
-  const dArray2DT& coords = ElementSupport().CurrentCoordinates();
-
+  dArrayT x_i, x_j, x_k, r_ij(ndof), r_ik(ndof), DispVector(ndof), deltaX(ndof), X_i(ndof), X_j(ndof),SlipVectorTemp(ndof);  
+  dMatrixT Omega(ndof), Eta(ndof), OmegaTemp(ndof), EtaTemp(ndof), b_ij(ndof), F_iI(ndof) ;
   /* row of neighbor list */
-  for (int i = 0; i < NearestNeighbors.MajorDim(); i++)
-  {
-   NearestNeighbors.RowAlias(i,neighbors);
-   int tag_i = neighbors[0];
-   int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
+  NearestNeighbors->RowAlias(i, neighbors);
+  const dArray2DT&  refcoords = ElementSupport().InitialCoordinates();
+  int   tag_i = neighbors[0]; /* self is 1st spot */
+  Eta=0.0;
+  Omega=0.0;
 
-   int nlen = neighbors.Length();
-   dArray2DT neighdisp(nlen,ndof);
-   int ncombos = Combination(nlen-1,2); 
-   dArrayT ndsum(ncombos);
 
-   coords.RowAlias(tag_i,x_i);
-   for (int j = 1; j < nlen; j++)
-   {
-    int tag_j = neighbors[j];
-    coords.RowAlias(tag_j,x_j);
-    r_ij.DiffOf(x_j,x_i);
-    if (fhas_periodic && (r_ij.Magnitude() > 0.5*fPeriodicLengths.Max()))
-    {
-     for (int m = 0; m < ndof; m++)
-     {
-      if (r_ij[m] > 0.5*fPeriodicLengths[m]) r_ij[m] -=fPeriodicLengths[m]; 
-      if (r_ij[m] < -0.5*fPeriodicLengths[m]) r_ij[m] +=fPeriodicLengths[m]; 
-     }
-    }
-    for (int m = 0; m < ndof; m++)
+  coords.RowAlias(tag_i, x_i);
+  refcoords.RowAlias(tag_i, X_i);
+  for (int j = 1; j < neighbors.Length(); j++)
+    { //run through j
+      /* tags */
+      int   tag_j = neighbors[j];
+   
+      
+      /* global coordinates */
+      coords.RowAlias(tag_j, x_j);
+  
+      /* connecting vector */
+      r_ij.DiffOf(x_j, x_i);
+      refcoords.RowAlias(tag_j, X_j);
+      deltaX.DiffOf(X_i, X_j);
+      dArrayT r_ji(ndof);
+      r_ji.DiffOf(x_i,x_j);
+      SlipVectorTemp.DiffOf(deltaX, r_ji);
+      if (fhas_periodic&& (SlipVectorTemp.Magnitude() > fPeriodicLengths.Max()/2.0)) 
 	{
-	 neighdisp(j,m) = r_ij[m];
+	  for (int i=0; i<ndof; i++) 
+	    {
+	      if (deltaX[i] > fPeriodicLengths[i]/2.0) deltaX[i]-=fPeriodicLengths[i];
+	      if (deltaX[i] < fPeriodicLengths[i]/-2.0) deltaX[i]+=fPeriodicLengths[i];
+	    }
+	  SlipVectorTemp.DiffOf(deltaX, r_ji);     
 	}
-   }  /* end of j loop */
+      *SlipVector+=SlipVectorTemp;
 
-   int icombos = 0;
-   for (int j = 1; j < nlen-1; j++)
-   {
-	for (int k = j+1; k < nlen; k++)
-	{
-	  for (int m = 0; m < ndof; m++) 
-	  {
-	   rvec[m] = neighdisp(j,m) + neighdisp(k,m);
-	  } /* end of m loop */
-	  ndsum[icombos++] = pow(rvec.Magnitude(),2);
-	} /* end of k loop */
-   } /* end of j looop */
-   if (icombos != ncombos) throw eSizeMismatch;
-   ndsum.SortAscending();
-   double csp = 0.0;
-   if (ncspairs >= ncombos) ncspairs = ncombos;
-   for (int m = 0; m < ncspairs; m++) csp += ndsum[m];
-   if (fabs(fLatticeParameter) > kSmall) csp /= pow(fLatticeParameter,2);  
-
-   /* put centrosymmetry parameter into global s_values array */
-   s_values(local_i, num_s_vals-1) = csp;
-  //cout << i << "   " << csp << endl;
-  } /* end of i loop */
+      
  
-}
+      OmegaTemp.Outer(r_ji, deltaX);
+      EtaTemp.Outer(deltaX, deltaX);
+      Omega+=OmegaTemp;
+      Eta+=EtaTemp;
+     
+      /*for each i-j and i-k for k>j, sum the vectors, and added the magnitude of the pair into the list*/
+      for (int k = j+1; k<neighbors.Length(); k++)
+	{
+	  int tag_k = neighbors[k];
+	  coords.RowAlias(tag_k, x_k);
+	  r_ik.DiffOf(x_k, x_i);
+	  DispVector.SumOf(r_ij, r_ik);
+	  
+	  LLInsert(CParamStart, DispVector.Magnitude());
+      
+	}
 
-void ParticleT::SetRefNN(RaggedArray2DT<int> &NearestNeighbors,RaggedArray2DT<int> &RefNearestNeighbors)
-{
-  int ndof = NumDOF();
-  iArrayT neighbors;
-  CommManagerT& comm_manager = ElementSupport().CommManager();
-
-  /* copy NearestNeighbors list to a ReferenceNN list */
-  RefNearestNeighbors = NearestNeighbors;
-
-  const ArrayT<int>* GN = comm_manager.GhostNodes();
-  const ArrayT<int>* NWG = comm_manager.NodesWithGhosts();
-
-  if (NWG != NULL)
-  {
-   InverseMapT map;
-   map.SetMap(*GN);
-   map.SetOutOfRange(InverseMapT::MinusOne);
-
-   /* looking at all atoms with nearest neighbors that are 
-	* image/ghost atoms, replace the identity of those
-	* ghost atoms with the ID of the actual atom it is a 
-	* ghost of */
-   for (int i = 0; i < RefNearestNeighbors.MajorDim(); i++)
-   {
-    RefNearestNeighbors.RowAlias(i,neighbors);
-    for (int j = 1; j<neighbors.Length(); j++)
-    {
-     int tag_j = neighbors[j];
-     int GN_num = map.Map(tag_j);
-	 if (GN_num != -1)
-	 {
-	  int real_num = (*NWG)[GN_num];
-	  //cout << i << "   " << tag_j << "   " << real_num << endl;
-	  neighbors[j] = real_num;
-	 }
     }
-	//cout << i << "   " << neighbors.Length() << endl;
-   }
-  }
-}
+  if(fabs(Eta.Det())>kSmall)
+    {
+      dMatrixT EtaInverse = Eta.Inverse();
+      F_iI.MultAB(Omega, EtaInverse);
+      b_ij.MultABT(F_iI, F_iI);
+      double J2 = b_ij.Det();
+      if(fabs(J2) > kSmall) {
+      J = sqrt(J2);
+	dMatrixT Id(ndof);
+	Id=0.0;
+	for(int i=0; i<ndof;i++) Id(i,i)=1.0;
+	Strain->DiffOf(Id,b_ij.Inverse());
+      }
+    }
+  *SlipVector /= neighbors.Length()-1;
 
+}

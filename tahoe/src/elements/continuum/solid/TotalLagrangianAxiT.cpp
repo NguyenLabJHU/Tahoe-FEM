@@ -1,8 +1,10 @@
-/* $Id: TotalLagrangianAxiT.cpp,v 1.2 2004-02-03 08:24:57 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.cpp,v 1.2.12.5 2004-05-04 16:47:28 paklein Exp $ */
 #include "TotalLagrangianAxiT.h"
 
 #include "ShapeFunctionT.h"
 #include "SolidMaterialT.h"
+#include "ofstreamT.h"
+#include "ifstreamT.h"
 
 const double Pi2 = 2.0*acos(-1.0);
 const int kRadialDirection = 0; /* x <-> r */
@@ -14,7 +16,9 @@ TotalLagrangianAxiT::TotalLagrangianAxiT(const ElementSupportT& support, const F
 	FiniteStrainAxiT(support, field),
 	fStressMat(3),
 	fTempMat1(3),
-	fTempMat2(3)
+	fTempMat2(3),
+	fOutputInit(false),
+	fOutputCell(-1)
 {
 
 }
@@ -29,6 +33,17 @@ void TotalLagrangianAxiT::Initialize(void)
 	fGradNa.Dimension(NumSD(), NumElementNodes());
 	fStressStiff.Dimension(NumElementNodes());
 	fTemp2.Dimension(NumElementNodes()*NumDOF());
+
+	/* check cell output */
+	int index;
+	if (ElementSupport().CommandLineOption("-track_group", index)) {
+		const ArrayT<StringT>& argv = ElementSupport().Argv();
+		int group = -99;
+		group = atoi(argv[index+1]) - 1;
+		if (group == ElementSupport().ElementGroupNumber(this))
+			if (ElementSupport().CommandLineOption("-track_cell", index))
+				fOutputCell = atoi(argv[index+1]) - 1;
+	}
 }
 
 /***********************************************************************
@@ -84,7 +99,7 @@ void TotalLagrangianAxiT::FormStiffness(double constK)
 		double J = fMat2D.Det()*F_33;
 		fMat2D.Inverse();
 		fTempMat1.Rank2ExpandFrom2D(fMat2D);
-		 fTempMat1(2,2) = 1.0/F_33;
+		fTempMat1(2,2) = 1.0/F_33;
 
 		/* chain rule shape function derivatives */
 		fShapes->TransformDerivatives(fMat2D, fDNa_x);
@@ -114,6 +129,8 @@ void TotalLagrangianAxiT::FormStiffness(double constK)
 		/* get D matrix */
 		fD.Rank4ReduceFrom3D(fCurrMaterial->c_ijkl());
 		fD *= scale;
+		
+		
 						
 		/* accumulate */
 		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);	
@@ -132,6 +149,7 @@ void TotalLagrangianAxiT::FormKd(double constK)
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
 
+	bool hit_cell = false;
 	int ndof = NumSD();
 	int nun  = fLocDisp.NumberOfNodes();
 	fShapes->TopIP();
@@ -177,5 +195,101 @@ void TotalLagrangianAxiT::FormKd(double constK)
 			*pRHS += scale*(*NaU++);
 			pRHS += ndof;
 		}
+
+		/* debugging output */
+		int output_element = fOutputCell;
+		if (CurrElementNumber() == output_element) {
+
+//TEMP - write stress and modulus to output to compare with ".ip4." output
+if (CurrIP() == -99) {
+	cout << "reporting stress at ip 0" << endl;
+	ofstreamT& out = ElementSupport().Output();
+	int prec = out.precision();
+	out.precision(12);
+	out << "time = " << ElementSupport().Time() << '\n';
+	out << "F = \n" << DeformationGradient() << '\n';
+	out << "s = \n" << fCurrMaterial->s_ij() << '\n';
+	out << "c = \n" << fCurrMaterial->c_ijkl() << endl;
+	out.precision(prec);	
+}
+
+			/* collect nodal velocities */
+			if (CurrIP() == 0) 
+				SetLocalU(fLocVel);
+
+			/* step information */
+			int step_number = ElementSupport().StepNumber();
+			double time = ElementSupport().Time();
+		
+			/* acoustic wave speeds */
+			dArrayT normal(3), speeds(3);
+			normal[0] = 1.0;
+			normal[1] = 0.0;
+			normal[2] = 0.0;
+			fCurrMaterial->WaveSpeeds(normal, speeds);
+
+			/* neighborhood nodes */
+			const iArrayT& nodes_u = CurrentElement().NodesU();
+
+			/* include out-of-plane influence */
+			const double* NaU = fShapes->IPShapeU();
+			double R = fRadius_X[CurrIP()];
+			for (int i = 0; i < nodes_u.Length(); i++)
+				fGradNa(0,i) += (*NaU++)/R;
+
+			/* transform shape function derivatives */
+			dMatrixT gradNa(NumSD(), nodes_u.Length());
+			const dMatrixT& F_3D = DeformationGradient();
+			fMat2D.Rank2ReduceFrom3D(F_3D);
+			fMat2D.Inverse();
+			gradNa.MultATB(fMat2D, fGradNa);
+			
+			/* file path */
+			StringT path;
+			path.FilePath(ElementSupport().Input().filename());
+			
+			/* write info for neighborhood nodes */
+			for (int i = 0; i < nodes_u.Length(); i++) {
+
+				/* file name */
+				StringT node_file;
+				node_file.Append("cell", output_element + 1);
+				node_file.Append(".ip", CurrIP() + 1);
+				node_file.Append(".nd", nodes_u[i] + 1);
+				node_file.Append(".dat");
+				node_file.Prepend(path);
+				
+				/* (re-)open stream */
+				ofstreamT out;
+				if (fOutputInit)
+					out.open_append(node_file);				
+				else {
+					out.open(node_file);					
+
+					/* Tecplot style data headers */				
+					out << "VARIABLES = \"step\" \"time\" \"J\" \"Na_r\" \"Na_z\" \"v_r\" \"v_z\" \"c_d\" \"c_s1\" \"c_s2\"" << endl;
+				}					
+					
+				/* write output */
+				int d_width = OutputWidth(out, &time);
+				out << setw(kIntWidth) << step_number
+				    << setw(d_width) << time
+				    << setw(d_width) << J
+				    << setw(d_width) << gradNa(0,i)
+				    << setw(d_width) << gradNa(1,i)
+				    << setw(d_width) << fLocVel(i,0)
+				    << setw(d_width) << fLocVel(i,1)
+				    << speeds.no_wrap() << '\n';
+				    
+				/* close stream */
+				out.close();
+			}
+
+			/* set flag */
+			hit_cell = true;
+		}
 	}	
+	
+	/* append to results files */
+	if (hit_cell) fOutputInit = true;
 }

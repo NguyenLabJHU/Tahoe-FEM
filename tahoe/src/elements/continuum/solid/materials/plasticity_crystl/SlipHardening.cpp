@@ -23,7 +23,6 @@ SlipHardening::SlipHardening(PolyCrystalMatT& poly):
   // if needed, these allocations are overridden in derived classes
   fTauIso.Dimension(1);
   fTauKin.Dimension(1);
-  fTauInc.Dimension(1);
 
   // other allocations are carried out in derived classes
 }

@@ -1,4 +1,4 @@
-/* $Id: MSRMatrixT.cpp,v 1.3 2004-04-19 18:37:11 paklein Exp $ */
+/* $Id: MSRMatrixT.cpp,v 1.2 2004-03-14 02:28:09 paklein Exp $ */
 #include "MSRMatrixT.h"
 
 #include "MSRBuilderT.h"
@@ -332,7 +332,7 @@ void MSRMatrixT::PrintZeroPivots(void) const
 
 void MSRMatrixT::PrintLHS(bool force) const
 {
-	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
+#pragma unused(force)
 
 	/* convert to RCV */
 	iArrayT r, c;

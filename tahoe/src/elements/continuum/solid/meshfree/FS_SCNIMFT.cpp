@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.2 2004-04-12 16:51:47 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.1 2004-02-26 22:14:42 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -173,15 +173,7 @@ void FS_SCNIMFT::WriteOutput(void)
 		vec.Set(ndof, values_i.Pointer());
 		coords.RowCopy(tag_i, vec);
 		vec.Set(ndof, values_i.Pointer() + ndof);
-		vec = 0.;
-			
-		LinkedListT<int>& supp_i = fNodalSupports[i];
-		LinkedListT<double>& phi_i = fNodalPhi[i];
-		supp_i.Top(); phi_i.Top();
-		while (supp_i.Next() && phi_i.Next()) 
-		{
-			vec.AddScaled(*(phi_i.CurrentValue()), u(*(supp_i.CurrentValue())));
-		}
+		u.RowCopy(tag_i, vec);
 		
 		// Compute smoothed deformation gradient
 		Fdef = 0.0;

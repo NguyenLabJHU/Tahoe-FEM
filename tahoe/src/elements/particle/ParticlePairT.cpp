@@ -1,5 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.36 2004-04-21 08:14:39 paklein Exp $ */
-
+/* $Id: ParticlePairT.cpp,v 1.32 2004-03-16 06:58:51 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -33,7 +32,6 @@ ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field
 	ParticleT(support, field),
 	fNeighbors(kMemoryHeadRoom),
 	NearestNeighbors(kMemoryHeadRoom),
-	RefNearestNeighbors(kMemoryHeadRoom),
 	fEqnos(kMemoryHeadRoom),
 	fForce_list_man(0, fForce_list)
 {
@@ -45,8 +43,6 @@ ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field
 ParticlePairT::ParticlePairT(const ElementSupportT& support):
 	ParticleT(support),
 	fNeighbors(kMemoryHeadRoom),
-	NearestNeighbors(kMemoryHeadRoom),
-	RefNearestNeighbors(kMemoryHeadRoom),
 	fEqnos(kMemoryHeadRoom),
 	fForce_list_man(0, fForce_list)
 {
@@ -75,8 +71,6 @@ void ParticlePairT::Initialize(void)
 {
 	/* inherited */
 	ParticleT::Initialize();
-
-	ParticleT::SetRefNN(NearestNeighbors,RefNearestNeighbors);
 
 	/* dimension */
 	int ndof = NumDOF();
@@ -200,7 +194,7 @@ void ParticlePairT::WriteOutput(void)
 			temp.Outer(vec);
 		 	for (int cc = 0; cc < num_stresses; cc++) {
 				int ndex = ndof+2+cc;
-		   		values_i[ndex] = (fabs(V0) > kSmall) ? -mass[type_i]*temp[cc]/V0 : 0.0;
+		   		values_i[ndex] = -mass[type_i]*temp[cc]/V0;
 		 	}
 		}
 #endif
@@ -228,7 +222,13 @@ void ParticlePairT::WriteOutput(void)
 		n_values.RowAlias(local_i, values_i);
 
 #ifndef NO_PARTICLE_STRESS_OUTPUT
+		/* linked list for holding vector pair magnitudes */
+		CSymmParamNode *CParamStart = new CSymmParamNode;
+ 		CParamStart->Next = NULL;
+ 		CParamStart->value = 0.0;
+		Strain = 0;
 		vs_i = 0.0;
+		SlipVector = 0.0;
 #endif
 		
 		/* kinetic energy */
@@ -292,64 +292,37 @@ void ParticlePairT::WriteOutput(void)
 			 		/* accumulate into stress into array */
 		 			for (int cc = 0; cc < num_stresses; cc++) {
 						int ndex = ndof+2+cc;
-		   				n_values(local_j, ndex) += (fabs(V0) > kSmall) ? 0.5*Fbyr*temp[cc]/V0 : 0.0;
+		   				n_values(local_j, ndex) += 0.5*Fbyr*temp[cc]/V0;		   
 		 			}
 #endif
 				}
 			}
 		}
 
-
 #ifndef NO_PARTICLE_STRESS_OUTPUT
+		/* calculate strain */
+		double J = 1.0;
+		CalcValues(i, coords, CParamStart, &Strain, &SlipVector, &NearestNeighbors, J);
+
 		/* copy stress into array */
 		for (int cc = 0; cc < num_stresses; cc++) {
 		  int ndex = ndof+2+cc;
-		  values_i[ndex] += (fabs(V0) > kSmall) ? vs_i[cc]/V0 : 0.0;
+		  values_i[ndex] += (vs_i[cc]/V0);
 		}
-#endif
-	}
-#ifndef NO_PARTICLE_STRESS_OUTPUT
-    int num_s_vals = num_stresses+1+ndof+1;
-    dArray2DT s_values(non,num_s_vals);
-    s_values = 0.0;
 
-    /* flag for specifying Lagrangian (0) or Eulerian (1) strain */ 
-    const int kEulerLagr = 0;
-	/* calculate slip vector and strain */
-	Calc_Slip_and_Strain(s_values,RefNearestNeighbors,kEulerLagr);
-
-    /* calculate centrosymmetry parameter */
-	Calc_CSP(s_values,NearestNeighbors);
-
-	/* combine strain, slip vector and centrosymmetry parameter into n_values list */
-	for (int i = 0; i < fNeighbors.MajorDim(); i++)
-	{
-		/* row of neighbor list */
-		fNeighbors.RowAlias(i, neighbors);
-
-		/* tags */
-		int   tag_i = neighbors[0]; /* self is 1st spot */
-		int  type_i = fType[tag_i];
-		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
-									            
 		int valuep = 0;
-		for (int is = 0; is < num_stresses; is++)
-		{
-			n_values(local_i,ndof+2+num_stresses+valuep++) = s_values(local_i,is);
-		}
-
-		/* recover J, the determinant of the deformation gradient, for atom i
-		 * and divide stress values by it */
-		double J = s_values(local_i,num_stresses);
-	    for (int is = 0; is < num_stresses; is++) 
-	    	n_values(local_i,ndof+2+is) /= J;
+		Strain /= 2.0;
+		for (int n = 0; n < ndof; n++)
+			for (int m = n;m < ndof; m++)
+				n_values(local_i,ndof+2+num_stresses+valuep++) = Strain(n,m);
 
 		for (int n = 0; n < ndof; n++)
-			n_values(local_i, ndof+2+num_stresses+num_stresses+n) = s_values(local_i,num_stresses+1+n);
+			n_values(local_i, ndof+2+num_stresses+num_stresses+n) = SlipVector[n];
 
-		n_values(local_i, num_output-1) = s_values(local_i,num_s_vals-1);
-	}
+		/*given the list of vector pair magnitudes, returns first seven*/
+		n_values(local_i,num_output-1) = GenCSymmValue(CParamStart,ndof);
 #endif
+	}
 
 #if 0
 	/* temporary to calculate crack propagation velocity */

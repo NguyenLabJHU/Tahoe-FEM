@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.12 2004-04-27 07:25:27 paklein Exp $ */
+/* $Id: ContactT.h,v 1.11.18.1 2004-04-27 07:27:32 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #ifndef _CONTACT_T_H_
 #define _CONTACT_T_H_

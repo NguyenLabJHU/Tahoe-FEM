@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.60 2004-04-09 02:03:11 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.59.4.2 2004-04-02 18:58:29 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -23,7 +23,6 @@
 #include "FEManagerT_mpi.h"
 #include "IOManager_mpi.h"
 #include "ModelManagerT.h"
-#include "CommManagerT.h"
 #include "StringT.h"
 #include "GraphT.h"
 #include "PartitionT.h"
@@ -53,7 +52,6 @@
 #include "FieldT.h"
 #include "IntegratorT.h"
 #include "ElementBaseT.h"
-#include "EAMFCC3D.h"
 #endif
 
 using namespace Tahoe;
@@ -408,7 +406,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		
 			t1 = clock();
 			phase = 1;
-			RunDynamicBridging(continuum, atoms, log_out, atom_in);
+			RunDynamicBridging(continuum, atoms, log_out);
 #else
 			ExceptionT::GeneralFail(caller, "dynamic bridging requires the DEVELOPMENT module");
 #endif
@@ -686,42 +684,37 @@ void FEExecutionManagerT::RunStaticBridging_monolithic(ifstreamT& in, FEManagerT
 }
 
 #ifdef __DEVELOPMENT__
-void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms, ofstream& log_out, ifstreamT& in) const
+void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms, ofstream& log_out) const
 {
 	const char caller[] = "FEExecutionManagerT::RunDynamicBridging";
 	/* configure ghost nodes */
 	ModelManagerT* model = continuum.ModelManager();
-	int nsd = model->NumDimensions();		
+	int nsd = model->NumDimensions();
 	int group = 0;
 	int order1 = 0;	// For InterpolateField, 3 calls to obtain displacement/velocity/acceleration
 	int order2 = 1;
 	int order3 = 2;
 	double dissipation = 0.0;
 	dArray2DT field_at_ghosts, totalu, fubig, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
-	dArray2DT thkforce, totaldisp, elecdens, embforce, wavedisp;
+	dArray2DT thkforce, gaussdisp;
 	dSPMatrixT ntf;
-	iArrayT activefenodes, boundaryghostatoms;
+	iArrayT activefenodes;
 	StringT bridging_field = "displacement";
 	atoms.InitGhostNodes(continuum.ProjectImagePoints());
 	bool makeinactive = false;	
 	/* figure out boundary atoms for use with THK boundary conditions, 
 	   ghost atoms for usage with MD force calculations */
-	if (nsd == 2)
-		boundaryghostatoms = atoms.InterpolationNodes2D();
-	else
-		boundaryghostatoms = atoms.InterpolationNodes3D();
-		
+	const iArrayT& boundaryghostatoms = atoms.InterpolationNodes();
 	int numgatoms = (atoms.GhostNodes()).Length();	// total number of ghost atoms
 	int numbatoms = boundaryghostatoms.Length() - numgatoms;	// total number of boundary atoms
 	dArray2DT gadisp(numgatoms,nsd), gavel(numgatoms,nsd), gaacc(numgatoms,nsd);
-	dArray2DT badisp(numbatoms,nsd), bavel(numbatoms,nsd), baacc(numbatoms,nsd);
+	dArray2DT badisp(numbatoms,nsd), bavel(numbatoms,nsd), baacc(numbatoms,nsd), mdu0(numbatoms,nsd), mdu1(numbatoms,nsd);
+	dArray2DT bdisplast(numbatoms,nsd), bdispcurr(numbatoms,nsd);
 	iArrayT allatoms(boundaryghostatoms.Length()), gatoms(numgatoms), batoms(numbatoms), boundatoms(numbatoms);
 	allatoms.SetValueToPosition();
 	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);
-	gatoms.CopyPart(0, allatoms, 0, numgatoms);      
+	gatoms.CopyPart(0, allatoms, 0, numgatoms);        
 	boundatoms.CopyPart(0, boundaryghostatoms, numgatoms, numbatoms);
-	elecdens.Dimension(gatoms.Length(), 1);
-	embforce.Dimension(gatoms.Length(), 1);
 	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
 	//dArrayT mdmass;
 	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
@@ -729,10 +722,8 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	//nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
 	nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for fracture problem
 	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
-	//nMatrixT<int> ghostonmap(7), ghostoffmap(7);	// 3D fracture problem
 	ghostonmap = 0;
 	ghostoffmap = 0;
-	//ghostonmap(4,5) = ghostonmap(5,4) = 1;
 	//ghostoffmap(1,0) = ghostoffmap(0,1) = 1;  // for wave propagation problem
 	ghostoffmap(4,0) = ghostoffmap(0,4) = ghostoffmap(4,1) = ghostoffmap(1,4) = 1;  // center MD crack
 	ghostoffmap(4,2) = ghostoffmap(2,4) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
@@ -742,13 +733,16 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	//ghostoffmap(1,3) = ghostoffmap(3,1) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
 	//ghostonmap(1,0) = ghostonmap(0,1) = 1;
 
-	if (nsd == 3)
-	{
-		/* set pointers to embedding force/electron density in FEManagerT_bridging atoms */
-		atoms.SetExternalElecDensity(elecdens, atoms.GhostNodes());
-		atoms.SetExternalEmbedForce(embforce, atoms.GhostNodes());
-		continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
-	}
+#if 0
+	/* temporary code to output dissipation due to THK forces */
+	bool fopen = false;
+	ofstreamT fout;
+	StringT fsummary_file;
+	ifstreamT& in = atoms.Input();
+	const StringT& input_file = in.filename();
+	fsummary_file.Root(input_file);
+	fsummary_file.Append(".diss");
+#endif
 	
 	/* time managers */
 	TimeManagerT* atom_time = atoms.TimeManager();
@@ -757,25 +751,24 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	atom_time->Top();
 	continuum_time->Top();
 	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
-	
 	while (atom_time->NextSequence() && continuum_time->NextSequence())
-	{		
+	{	
 		/* set to initial condition */
 		atoms.InitialCondition();
 		
 		/* calculate fine scale part of MD displacement and total displacement u */
 		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu, order1);
-	
+			
 		/* solve for initial FEM force f(u) as function of fine scale + FEM */
 		/* use projected totalu instead of totalu for initial FEM displacements */
 		nMatrixT<int>& promap = atoms.PropertiesMap(0);   // element group for particles = 0
 		promap = ghostoffmap;  // turn ghost atoms off for f(u) calculation
 		fubig = InternalForce(projectedu, atoms);
 		promap = ghostonmap;   // turn ghost atoms back on for MD force calculations
-		
+	
 		/* calculate global interpolation matrix ntf */
 		continuum.Ntf(ntf, atoms.NonGhostNodes(), activefenodes);
-		
+			
 		/* compute FEM RHS force as product of ntf and fu */
 		dArrayT fx(ntf.Rows()), fy(ntf.Rows()), fz(ntf.Rows()), tempx(ntf.Cols()), tempy(ntf.Cols()), tempz(ntf.Cols());
 		dArray2DT ntfproduct(ntf.Rows(), nsd);
@@ -793,24 +786,18 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			ntf.Multx(tempz,fz);
 			ntfproduct.SetColumn(2,fz);
 		}
-
+		
 		/* Add FEM RHS force to RHS using SetExternalForce */
 		continuum.SetExternalForce(bridging_field, ntfproduct, activefenodes);
 	
 		/* now d0, v0 and a0 are known after InitialCondition */
 		continuum.InitialCondition();
 		
-		if (nsd == 3)
-		{
-			/* Calculate EAM electron density/embedding terms for ghost atoms using continuum information */
-			continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
-		}
-		
 		/* Interpolate FEM values to MD ghost nodes which will act as MD boundary conditions */
 		continuum.InterpolateField(bridging_field, order1, boundghostdisp);
 		continuum.InterpolateField(bridging_field, order2, boundghostvel);
 		continuum.InterpolateField(bridging_field, order3, boundghostacc);
-		
+
 		/* sort boundary + ghost atom info into separate arrays */
 		gadisp.RowCollect(gatoms, boundghostdisp);
 		gavel.RowCollect(gatoms, boundghostvel);
@@ -818,22 +805,13 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		badisp.RowCollect(batoms, boundghostdisp);
 		bavel.RowCollect(batoms, boundghostvel);
 		baacc.RowCollect(batoms, boundghostacc);
+	
+		/* Write interpolated FEM values at MD ghost nodes into MD field - displacement only */
+		atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
 		
-		/* Removed atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp); here */	
-			
-		if (nsd == 2)
-		{
-			/* store initial MD boundary displacement histories */
-			thkforce = atoms.THKForce(badisp);
-			atoms.SetExternalForce(bridging_field, thkforce, boundatoms);  // sets pointer to thkforce 
-		}
-		else
-		{
-			/* thkdisp = fine scale part of ghost atom displacement */
-			totaldisp = atoms.THKDisp(badisp);
-			totaldisp+=gadisp;	// add FEM coarse scale part of displacement
-			atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, totaldisp);
-		}
+		/* store initial MD boundary displacement histories */
+		thkforce = atoms.THKForce(badisp);
+		//atoms.SetExternalForce(bridging_field, thkforce, boundatoms);  // sets pointer to thkforce 
 		
 		/* figure out timestep ratio between fem and md simulations */
 		int nfesteps = continuum_time->NumberOfSteps();
@@ -844,7 +822,17 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		
 		/* running status flag */
 		ExceptionT::CodeT error = ExceptionT::kNoError;	
-
+		
+#if 0
+		/* first obtain the MD displacement field */
+		FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
+		dArray2DT mddisplast = (*atomfield)[0];	
+		dArrayT aa(boundatoms.Length()), ab(boundatoms.Length()), sub1(boundatoms.Length()); 
+		dArrayT ac(boundatoms.Length()), ad(boundatoms.Length()), sub2(boundatoms.Length());
+		dArrayT ua(boundatoms.Length()), ub(boundatoms.Length()), uc(boundatoms.Length()), ud(boundatoms.Length());
+		dArrayT sub3(boundatoms.Length()), sub4(boundatoms.Length()), sub5(boundatoms.Length()), sub6(boundatoms.Length());
+#endif
+			
 		for (int i = 0; i < nfesteps; i++)	
 		{
 			for (int j = 0; j < ratio; j++)	// MD update first
@@ -857,32 +845,70 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				/* update FEM solution interpolated at boundary atoms and ghost atoms assuming 
 				constant acceleration - because of constant acceleration assumption, predictor and 
 				corrector are combined into one function */
+				bdisplast = badisp;
 				atoms.BAPredictAndCorrect(mddt, badisp, bavel, baacc);
 				atoms.BAPredictAndCorrect(mddt, gadisp, gavel, gaacc);
-
-				if (nsd == 2)
-				{
-					/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
-					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);	
 				
-					/* calculate THK force on boundary atoms, update displacement histories */
-					thkforce = atoms.THKForce(badisp);  // SetExternalForce set via pointer
-				}
-				else
-				{
-					/* calculate fine scale part of MD ghost atom displacements */
-					totaldisp = atoms.THKDisp(badisp);
-					totaldisp+=gadisp;	// FEM solution interpolated to ghost atom positions
-					
-					/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
-					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, totaldisp);
-				}
+				/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
+				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);				
 				
+				/* calculate THK force on boundary atoms, update displacement histories */
+				thkforce = atoms.THKForce(badisp);  // SetExternalForce set via pointer
+																			
 				/* solve MD equations of motion */
 				if (1 || error == ExceptionT::kNoError) {
 						atoms.ResetCumulativeUpdate(group);
 						error = atoms.SolveStep();
 				}
+
+#if 0
+				/* first obtain the MD displacement field */
+				FieldT* atomfielda = atoms.NodeManager()->Field(bridging_field);
+				dArray2DT mddispcurr = (*atomfielda)[0];	
+				mdu0.RowCollect(boundatoms,mddisplast);
+				mdu1.RowCollect(boundatoms,mddispcurr); 
+				mdu0.ColumnCopy(0,aa);
+				mdu0.ColumnCopy(1,ab);
+				mdu1.ColumnCopy(0,ac);
+				mdu1.ColumnCopy(1,ad);
+				sub1.DiffOf(ac,aa); // q(n+1)-q(n) (x-comp)
+				sub2.DiffOf(ad,ab); // q(n+1)-q(n) (y-comp)
+				bdisplast.ColumnCopy(0,ua);
+				bdisplast.ColumnCopy(1,ub);
+				badisp.ColumnCopy(0,uc);
+				badisp.ColumnCopy(1,ud);
+				sub3.DiffOf(ua,uc);  // ubar(n)-ubar(n+1) (x-comp)
+				sub4.DiffOf(ub,ud);  // ubar(n)-ubar(n+1) (x-comp)
+				sub5.SumOf(sub1,sub3);
+				sub6.SumOf(sub2,sub4);
+				double d0 = thkforce.DotColumn(0,sub5);
+				double d1 = thkforce.DotColumn(1,sub6);
+				dissipation += d0;
+				dissipation += d1;
+				
+				const double& time = atoms.Time();
+				if (fopen)
+				{
+					fout.open_append(fsummary_file);
+					fout.precision(13);
+					fout << dissipation
+					     << setw(25) << time
+					     << endl;
+				}
+				else
+				{
+					fout.open(fsummary_file);
+					fopen = true;
+					fout.precision(13);
+					fout << "Dissipation"
+					     << setw(25) << "Time"
+					     << endl;
+					fout << dissipation
+					     << setw(25) << time
+					     << endl;
+				}
+				mddisplast = mddispcurr;
+#endif
 
 				/* close  md step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
@@ -934,12 +960,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			bavel.RowCollect(batoms, boundghostvel);
 			baacc.RowCollect(batoms, boundghostacc);
 			
-			if (nsd == 3)
-			{
-				/* Calculate EAM electron density/embedding terms for ghost atoms using updated continuum information */
-				continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
-			}
-			
+			/* Write interpolated FEM values at MD ghost nodes into MD field - displacement only */
+			//atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
+
 			/* close fe step */
 			if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
                         
@@ -966,7 +989,7 @@ const dArray2DT& FEExecutionManagerT::InternalForce(dArray2DT& totalu, FEManager
 	int nnd = totalu.MajorDim();
 	iArrayT nodes(nnd);
 	nodes.SetValueToPosition();
-		
+
 	/* now write total bridging scale displacement u into field */
 	int order = 0;	// write displacement only
 	atoms.SetFieldValues(bridging_field, nodes, order, totalu);
@@ -1107,7 +1130,7 @@ void FEExecutionManagerT::RunWriteDescription(int doc_type) const
 //TEMP
 
 	/* parameter source */
-	FEManagerT fe_man(input, output, comm);
+	FEManagerT fe_man(input, output, comm, fCommandLineOptions);
 
 	/* collect parameters */
 	cout << " collecting parameters..." << endl;
@@ -1181,7 +1204,7 @@ void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
 		/* construction */
 		phase = 0;
 		in.set_marker('#');
-		FEManagerT analysis1(in, out, fComm);
+		FEManagerT analysis1(in, out, fComm, fCommandLineOptions);
 		analysis1.Initialize();
 
 		t1 = clock();
@@ -1370,7 +1393,7 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status, Communi
 
 		/* to read file parameters */
 		ofstreamT out;
-		FEManagerT fe_man(in, out, comm);
+		FEManagerT fe_man(in, out, comm, fCommandLineOptions);
 		fe_man.Initialize(FEManagerT::kParametersOnly);
 		
 		/* model file parameters */
@@ -1555,7 +1578,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		char filetypechar;
 		in_loc >> filetypechar;
 	}
-	FEManagerT_mpi FEman(in_loc, out, fComm, &partition, FEManagerT_mpi::kRun);
+	FEManagerT_mpi FEman(in_loc, out, fComm, fCommandLineOptions, &partition, FEManagerT_mpi::kRun);
 	try { FEman.Initialize(); }
 	catch (ExceptionT::CodeT code)
 	{
@@ -1728,7 +1751,7 @@ void FEExecutionManagerT::GetModelFile(ifstreamT& in, StringT& model_file,
 	}
 
 	ofstreamT out;
-	FEManagerT fe_temp(in_temp, out, fComm);
+	FEManagerT fe_temp(in_temp, out, fComm, fCommandLineOptions);
 	fe_temp.Initialize(FEManagerT::kParametersOnly);
 
 	ModelManagerT* model = fe_temp.ModelManager();
@@ -1893,7 +1916,7 @@ void FEExecutionManagerT::Decompose_graph(ifstreamT& in, int size,
 		}
 
 		/* construct global problem */
-		FEManagerT_mpi global_FEman(in_decomp, decomp_out, comm, NULL, FEManagerT_mpi::kDecompose);
+		FEManagerT_mpi global_FEman(in_decomp, decomp_out, comm, fCommandLineOptions, NULL, FEManagerT_mpi::kDecompose);
 		try { global_FEman.Initialize(FEManagerT::kAllButSolver); }
 		catch (ExceptionT::CodeT code)
 		{

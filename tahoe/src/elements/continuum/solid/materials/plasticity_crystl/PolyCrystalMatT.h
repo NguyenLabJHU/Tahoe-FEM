@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.h,v 1.10 2004-04-13 20:37:32 ebmarin Exp $ */
+/* $Id: PolyCrystalMatT.h,v 1.9 2004-01-08 01:14:15 ebmarin Exp $ */
 #ifndef _POLY_CRYSTAL_MAT_T_H_
 #define _POLY_CRYSTAL_MAT_T_H_
 
@@ -199,12 +199,6 @@ class PolyCrystalMatT : public FDHookeanMatT
   // Schmidt tensor in crystal/sample coords
   ArrayT<dMatrixT> fZc;
   ArrayT<dMatrixT> fZ;
-
-  // slip tensors in crystal/sample coords
-  ArrayT<dArrayT> fSlipSc;   // slip direction
-  ArrayT<dArrayT> fSlipMc;   // slip plane normal
-  ArrayT<dArrayT> fSlipS;
-  ArrayT<dArrayT> fSlipM;
 
   // array for Euler angles at integration point
   ArrayT<dArrayT> fangles;

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.59 2004-04-09 00:30:11 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.58.12.1 2004-04-09 00:33:47 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -1114,7 +1114,7 @@ const SolidMatListT& SolidElementT::StructuralMaterialList(void) const
 
 /* extrapolate the integration point stresses and strains and extrapolate */
 void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-	const iArrayT& e_codes, dArray2DT& e_values)
+        const iArrayT& e_codes, dArray2DT& e_values)
 {
 	/* number of output values */
 	int n_out = n_codes.Sum();
@@ -1204,7 +1204,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         dArrayT element_values(e_values.MinorDim());
         pall = element_values.Pointer();
         dArrayT centroid, ip_centroid, ip_mass;
-        dArrayT ip_coords(nsd);        
+        dArrayT ip_coords(nsd);
         if (e_codes[iCentroid])
         {
                 centroid.Set(nsd, pall); pall += nsd;
@@ -1248,12 +1248,12 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	Top();
 	while (NextElement())
 		if (CurrentElement().Flag() != kOFF)
-        {
+		{
 			/* initialize */
-            nodal_space = 0.0;
-            simo_space = 0.;
-            simo_all = 0.;
-            simoNa_bar = 0.;
+			nodal_space = 0.0;
+			simo_space = 0.;
+			simo_all = 0.;
+			simoNa_bar = 0.;
 
 			/* global shape function values */
 			SetGlobalShape();
@@ -1291,7 +1291,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					fShapes->IPCoords(ip_coords);
 					ip_w *= Pi2*ip_coords[0]; /* radius is the x1 coordinate */
 				}
-
+                        
                         if (qUseSimo || qNoExtrap)
                         {
                           Na_X_ip_w.Dimension(nen,1);

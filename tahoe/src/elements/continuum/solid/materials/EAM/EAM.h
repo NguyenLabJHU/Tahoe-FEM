@@ -1,4 +1,4 @@
-/* $Id: EAM.h,v 1.4 2004-04-09 02:02:58 hspark Exp $ */
+/* $Id: EAM.h,v 1.3 2002-07-05 22:28:10 paklein Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAM.h                                                                  */
 
@@ -52,22 +52,15 @@ public:
 	/* unstressed lattice parameter */
 	 virtual double LatticeParameter(void) const = 0;
 
-	/** \name access glue functions */
-	/*@{*/
-	const C1FunctionT* PairPotential(void) { return fPairPotential; };
-	const C1FunctionT* EmbeddingEnergy(void) { return fEmbeddingEnergy; };
-	const C1FunctionT* ElectronDensity(void) { return fElectronDensity; };
-	/*@}*/
-	
-	/* compute the total electron density - moved public by HSP 3/5/04 */
-	double TotalElectronDensity(void);
-	
 private:
 
 	/* form matrix of mixed pair potential and embedding
 	 * energy derivatives.  NOTE: computes the UPPER triangle
 	 * ONLY */
 	void FormMixedDerivatives(double rho);	
+
+	/* compute the total electron density */
+	double TotalElectronDensity(void);
 
 	/* Moduli tensor contributions */
 	void FormSingleBondContribution(double rho, dMatrixT& moduli);

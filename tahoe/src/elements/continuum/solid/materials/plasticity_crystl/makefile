@@ -32,8 +32,7 @@ OBJ = \
 	VoceHardening.o \
 	HaasenHardening.o \
 	VoceGradHardening.o \
-	GradientTools.o \
-	GradientTools_C.o
+	GradientTools.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -75,8 +74,7 @@ SRC = \
 	VoceHardening.cpp \
 	HaasenHardening.cpp \
 	VoceGradHardening.cpp \
-	GradientTools.cpp \
-	GradientTools_C.cpp
+	GradientTools.cpp
 
 ##################### (3) headers
 #
@@ -110,8 +108,7 @@ HDR = \
 	VoceHardening.h \
 	HaasenHardening.h \
 	VoceGradHardening.h \
-	GradientTools.h \
-	GradientTools_C.h
+	GradientTools.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 

@@ -1,4 +1,4 @@
-/* $Id: SS_SCNIMFT.cpp,v 1.2 2004-04-12 16:51:47 cjkimme Exp $ */
+/* $Id: SS_SCNIMFT.cpp,v 1.1 2004-02-26 22:14:42 cjkimme Exp $ */
 #include "SS_SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -11,7 +11,6 @@
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "BasicFieldT.h"
-#include "LinkedListT.h"
 
 #include "MeshFreeNodalShapeFunctionT.h"
 #include "ContinuumMaterialT.h"
@@ -172,13 +171,7 @@ void SS_SCNIMFT::WriteOutput(void)
 		vec.Set(ndof, values_i.Pointer());
 		coords.RowCopy(tag_i, vec);
 		vec.Set(ndof, values_i.Pointer() + ndof);
-		vec = 0.;	
-			
-		LinkedListT<int>& supp_i = fNodalSupports[i];
-		LinkedListT<double>& phi_i = fNodalPhi[i];
-		supp_i.Top(); phi_i.Top();
-		while (supp_i.Next() && phi_i.Next()) 
-			vec.AddScaled(*(phi_i.CurrentValue()), u(*(supp_i.CurrentValue())));
+		u.RowCopy(tag_i, vec);
 		
 		// Compute smoothed strain
 		strain = 0.0;

@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.86 2004-04-11 22:29:06 raregue Exp $ */
+/* $Id: ElementListT.cpp,v 1.85.10.1 2004-05-05 18:42:27 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -44,7 +44,9 @@
 #include "LocalizerT.h"
 #include "SimoFiniteStrainT.h"
 #include "SimoQ1P0.h"
+#include "SimoQ1P0_inv.h"
 #include "SimoQ1P0Axi.h"
+#include "SimoQ1P0Axi_inv.h"
 #include "DiffusionElementT.h"
 #include "NLDiffusionElementT.h"
 #include "MeshFreeSSSolidT.h"
@@ -112,10 +114,6 @@
 
 #ifdef MULTISCALE_APS_V_DEV
 #include "APS_V_AssemblyT.h"
-#endif
-
-#ifdef MESHFREE_GRAD_PLAST_DEV
-#include "MeshfreeGradP_AssemblyT.h"
 #endif
 
 #ifdef GRAD_SMALL_STRAIN_DEV
@@ -260,7 +258,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		out << "    eq. " << ElementT::kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
 		out << "    eq. " << ElementT::kStaggeredMultiScale << ", Staggered MultiScale Element (for VMS) \n";
 		out << "    eq. " << ElementT::kAPSgrad 			<< ", Strict Anti-plane Shear gradient plasticity \n";
-		out << "    eq. " << ElementT::kMeshfreeGradP 		<< ", Meshfree gradient plasticity \n";
 		out << "    eq. " << ElementT::kSS_SCNIMF 			<< ", Small Strain Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free \n";
 		out << "    eq. " << ElementT::kFS_SCNIMF           << ", Finite Strain Stabilized Conforming Nodally-Integrated Galerkin Mesh-free \n";
 		out << "    eq. " << ElementT::kACME_Contact       << ", 3D contact using ACME\n";
@@ -396,10 +393,28 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
 #endif
 			}
+			case ElementT::kSimoQ1P0Inv:
+			{
+#ifdef CONTINUUM_ELEMENT
+				fArray[group] = new SimoQ1P0_inv(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kSimoQ1P0Axi:
 			{
 #ifdef CONTINUUM_ELEMENT
 				fArray[group] = new SimoQ1P0Axi(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
+			case ElementT::kSimoQ1P0InvAxi:
+			{
+#ifdef CONTINUUM_ELEMENT
+				fArray[group] = new SimoQ1P0Axi_inv(fSupport, *field);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
@@ -472,29 +487,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "MULTISCALE_APS_V_DEV not enabled: %d", code);
-#endif
-			}
-			case ElementT::kMeshfreeGradP:
-			{
-#ifdef MESHFREE_GRAD_PLAST_DEV
-				/* must be using multi-field solver */
-				if (fSupport.Analysis() != GlobalT::kMultiField)				
-					ExceptionT::BadInputValue(caller, "multi field required");
-			
-				/* displacement field read above */
-				const FieldT* displ = field;
-
-				/* plastic multiplier field */				
-				StringT plast_name;
-				in >> plast_name;
-				const FieldT* plast = fSupport.Field(plast_name);
-				if (!displ || !plast)
-					ExceptionT::BadInputValue(caller, "error resolving field names");
-			
-				fArray[group] = new MeshfreeGradP_AssemblyT(fSupport, *displ, *plast);
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "MESHFREE_GRAD_PLAST_DEV not enabled: %d", code);
 #endif
 			}
 			case ElementT::kMeshFreeFDElastic:

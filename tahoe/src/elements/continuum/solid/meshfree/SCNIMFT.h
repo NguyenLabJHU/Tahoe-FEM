@@ -96,22 +96,6 @@ public:
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 						AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
-	/** Translate global node numbers to local ones -- communication routine for MFLagMultT */
-	/** returns 0 if unsucessful, i.e. nodes not contained in fNodes */
-	int GlobalToLocalNumbering(iArrayT& nodes);
-	
-	/* Translate global node numbers to local ones -- communication routine for MFLagMultT */
-	int GlobalToLocalNumbering(RaggedArray2DT<int>& nodes);
-
-	/** Return interpolated displacement field at selected nodes -- communication routine for MFLagMultT */
-	void InterpolatedFieldAtNodes(iArrayT& nodes, dArray2DT& fieldAtNodes);
-
-	/** Return the data structure holding the support of the localNode and it's window function values 
-		-- communication routine for for MFLagMultT */
-	void NodalSupportAndPhi(int localNode, LinkedListT<int>& support, LinkedListT<double>& phi);
-	
-	int SupportSize(int localNode);
-
 	/** \name types needed for the Voronoi diagram calculation */
 	/*@{*/
 #ifndef __QHULL__
@@ -195,20 +179,11 @@ protected:
 	/** \name Geometrical Data Structures */
 	/*@{*/
 	
-	/** these are dual to Voronoi facets. They have minor dimension of 2 . Difference in the two points is parallel to the normal vector of the dual facet. */
+	/** midpoints of each of these are centroids of Voronoi facets */
 	iArray2DT fDeloneEdges;
-
-	/** Voronoi facets dual to the Delone Edges */
-	iArray2DT fDualFacets;
-
-	/** Self-dual facet information. I.E. facets that contribute only to one integral over one boundary node's cell */
-#ifdef __QHULL__
-	CompGeomT::ConvexHullMap fSelfDuals;
-#else
-	ConvexHullMap fSelfDuals;
-#endif
-	int fNumSelfDuals;
-	int fNumClippedFacets;
+	
+	/** Number of Delone edges that are not on the body bounday */
+	int nInteriorDeloneEdges;
 
 	/** connectivity of boundary nodes. Currently determined from an underlying 
 	    element connectivity */
@@ -220,8 +195,8 @@ protected:
 	/** true if boundary connectivity is simplicial */
 	bool fBoundaryIsTriangulated;
 	
-	/** centroids of the facets dual to Delone edges */
-	dArray2DT fDualFacetCentroids;
+	/** centroids of the facets corresponding to those edges */
+	dArray2DT fBoundaryDeloneCentroids;
 	
 	/** additional edges associated only with one node */
 	iArrayT fNonDeloneEdges;
@@ -261,10 +236,6 @@ protected:
 	/** workspaces for strain smoothing */
 	ArrayT< LinkedListT<int> > nodeWorkSpace;
 	ArrayT< LinkedListT<dArrayT> > facetWorkSpace;
-	
-	/** workspace for nodal shape functions */
-	ArrayT< LinkedListT<double> > fNodalPhi;
-	ArrayT< LinkedListT<int> > fNodalSupports;
 	  	
 	/* body force vector */
 	const ScheduleT* fBodySchedule; /**< body force schedule */

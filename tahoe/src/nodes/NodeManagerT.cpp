@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.47 2004-05-06 18:54:44 cjkimme Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.45 2004-01-05 07:12:36 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -31,7 +31,6 @@
 #include "AugLagSphereT.h"
 #include "MFPenaltySphereT.h"
 #include "PenaltyCylinderT.h"
-#include "MFAugLagMultT.h"
 
 /* kinematic BC controllers */
 #include "K_FieldT.h"
@@ -1873,9 +1872,7 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 		case FBC_ControllerT::kMFPenaltySphere:	
 			fbc = new MFPenaltySphereT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
 			break;
-	    case FBC_ControllerT::kMFAugLagMult:
-	    	fbc = new MFAugLagMultT(fFEManager, this, field, coords, disp);
-	    	break;
+
 		default:
 			ExceptionT::BadInputValue(caller, "FBC controller code %d is not supported", code);
 	}

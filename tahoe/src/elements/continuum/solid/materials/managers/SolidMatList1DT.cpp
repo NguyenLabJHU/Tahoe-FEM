@@ -1,4 +1,4 @@
-/* $Id: SolidMatList1DT.cpp,v 1.17 2004-04-26 23:06:30 paklein Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.16 2004-01-14 22:04:44 rdorgan Exp $ */
 #include "SolidMatList1DT.h"
 #include "SolidMatSupportT.h"
 #include "fstreamT.h"
@@ -34,8 +34,6 @@ SolidMatList1DT::SolidMatList1DT(void)
 /* read material data from the input stream */
 void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 {
-	const char caller[] = "SolidMatList1DT::ReadMaterialData";
-
 	int i, matnum;
 	SolidT::TypeT matcode;
 	try {
@@ -45,15 +43,16 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
  	{
 		in >> matnum; matnum--;
 		in >> matcode;
-
 		/* checks */
-		if (matnum < 0 || matnum >= fLength) 
-			ExceptionT::BadInputValue(caller, "material number %d is out of range [1, %d]",
-				matnum+1, fLength);
+		if (matnum < 0  || matnum >= fLength) throw ExceptionT::kBadInputValue;
 		
 		/* repeated material number */
 		if (fArray[matnum] != NULL)
-			ExceptionT::BadInputValue(caller, "repeated material number %d", matnum+1);
+		{
+			cout << "\n SolidMatList1DT::ReadMaterialData: repeated material number: ";
+			cout << matnum + 1 << endl;
+			throw ExceptionT::kBadInputValue;
+		}
 		
 		/* add to the list of matxxerials */
 		switch (matcode)

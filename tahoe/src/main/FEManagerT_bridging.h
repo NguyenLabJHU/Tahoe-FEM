@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.12 2004-04-09 02:03:11 hspark Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.10.1 2004-04-02 18:58:30 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -20,8 +20,6 @@ class ParticleT;
 class BridgingScaleT;
 class KBC_PrescribedT;
 class dSPMatrixT;
-class EAMFCC3D;
-class EAMT;
 
 /** extension of FEManagerT for bridging scale calculations */
 class FEManagerT_bridging: public FEManagerT
@@ -30,10 +28,7 @@ public:
 
 	/** constructor */
 	FEManagerT_bridging(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
-		ifstreamT& bridging_input);
-
-	/** destructor */
-	~FEManagerT_bridging(void);
+		const ArrayT<StringT>& argv, ifstreamT& bridging_input);
 
 	/** \name solution update */
 	/*@{*/
@@ -157,15 +152,6 @@ public:
 	 * a particle type; otherwise, an exception will be thrown. */
 	nMatrixT<int>& PropertiesMap(int element_group);
 
-	/** calculate EAM total electron density at ghost atoms */
-	void ElecDensity(int length, dArray2DT& elecdens, dArray2DT& embforce);
-
-	/** add external electron density contribution to ghost atoms */
-	void SetExternalElecDensity(const dArray2DT& elecdens, const iArrayT& ghostatoms);
-	
-	/** add external embedding force contribution to ghost atoms */
-	void SetExternalEmbedForce(const dArray2DT& embforce, const iArrayT& ghostatoms);
-
 protected:
 
 	/** initialize solver information */
@@ -178,9 +164,6 @@ protected:
 
 	/** the bridging scale element group */
 	BridgingScaleT& BridgingScale(void) const;
-	
-	/** the EAMT element group */
-	EAMT& EAM(void) const;
 
 private:
 
@@ -205,12 +188,6 @@ private:
 	/** projection/interpolation operator */
 	BridgingScaleT* fBridgingScale;
 	
-	/** EAMFCC class */
-	EAMFCC3D* fEAMFCC3D;
-	
-	/** EAMT class */
-	EAMT* fEAMT;
-	
 	/** \name follower node information */
 	/*@{*/
 	/** map data of follower points into the mesh */
@@ -234,7 +211,8 @@ private:
 	
 	/** \name external force vector by group */
 	/*@{*/
-	ArrayT<const dArrayT*> fExternalForce;	
+	ArrayT<const dArrayT*> fExternalForce;
+	
 	ArrayT<const dArray2DT*> fExternalForce2D;
 	ArrayT<const iArrayT*>   fExternalForce2DNodes;
 	ArrayT<iArray2DT>        fExternalForce2DEquations;

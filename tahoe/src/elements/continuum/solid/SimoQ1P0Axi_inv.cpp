@@ -1,5 +1,5 @@
-/* $Id: SimoQ1P0Axi.cpp,v 1.2.12.4 2004-05-05 18:37:40 paklein Exp $ */
-#include "SimoQ1P0Axi.h"
+/* $Id: SimoQ1P0Axi_inv.cpp,v 1.1.2.6 2004-05-08 02:19:05 paklein Exp $ */
+#include "SimoQ1P0Axi_inv.h"
 
 #include "ShapeFunctionT.h"
 #include "SolidMaterialT.h"
@@ -13,7 +13,7 @@ const int kRadialDirection = 0; /* x <-> r */
 using namespace Tahoe;
 
 /* constructor */
-SimoQ1P0Axi::SimoQ1P0Axi(const ElementSupportT& support, const FieldT& field):
+SimoQ1P0Axi_inv::SimoQ1P0Axi_inv(const ElementSupportT& support, const FieldT& field):
 	UpdatedLagrangianAxiT(support, field),
 	fF_tmp(NumSD()),
 	fOutputInit(false),
@@ -23,9 +23,9 @@ SimoQ1P0Axi::SimoQ1P0Axi(const ElementSupportT& support, const FieldT& field):
 }
 
 /* data initialization */
-void SimoQ1P0Axi::Initialize(void)
+void SimoQ1P0Axi_inv::Initialize(void)
 {
-	const char caller[] = "SimoQ1P0Axi::Initialize";
+	const char caller[] = "SimoQ1P0Axi_inv::Initialize";
 
 	/* inherited */
 	UpdatedLagrangianAxiT::Initialize();
@@ -45,8 +45,10 @@ void SimoQ1P0Axi::Initialize(void)
 	/* need to store last deformed element volume */
 	fElementVolume.Dimension(NumElements());	
 	fElementVolume = 0.0;
-	fElementVolume_last.Dimension(NumElements());
-	fElementVolume_last = 0.0;
+	fGamma.Dimension(NumElements());
+	fGamma = 0.0;
+	fGamma_last.Dimension(NumElements());
+	fGamma_last = 0.0;
 	
 	/* element pressure */
 	fPressure.Dimension(NumElements());
@@ -63,7 +65,7 @@ void SimoQ1P0Axi::Initialize(void)
 	fb_bar.Dimension(fGradNa);
 	fb_sig.Dimension(fGradNa);
 
-	/* need to initialize previous volume */
+	/* need to initialize previous Gamma */
 	Top();
 	while (NextElement())
 	{
@@ -72,9 +74,9 @@ void SimoQ1P0Axi::Initialize(void)
 		UpdatedLagrangianAxiT::SetGlobalShape();
 
 		/* compute mean of shape function gradients */
-		double H; /* reference volume */
-		double& v = fElementVolume_last[CurrElementNumber()];
-		SetMeanGradient(fMeanGradient, H, v);
+		double& V = fElementVolume[CurrElementNumber()]; /* reference volume */
+		double& Gamma = fGamma_last[CurrElementNumber()];
+		SetMeanGradient(fMeanGradient, V, Gamma);
 	}
 
 	/* check cell output */
@@ -90,48 +92,48 @@ void SimoQ1P0Axi::Initialize(void)
 }
 
 /* finalize current step - step is solved */
-void SimoQ1P0Axi::CloseStep(void)
+void SimoQ1P0Axi_inv::CloseStep(void)
 {
 	/* inherited */
 	UpdatedLagrangianAxiT::CloseStep();
 	
 	/* store converged solution */
-	fElementVolume_last = fElementVolume;
+	fGamma_last = fGamma;
 }
 	
 /* restore last converged state */
-GlobalT::RelaxCodeT SimoQ1P0Axi::ResetStep(void)
+GlobalT::RelaxCodeT SimoQ1P0Axi_inv::ResetStep(void)
 {
 	/* inherited */
 	GlobalT::RelaxCodeT relax = UpdatedLagrangianAxiT::ResetStep();
 	
 	/* store converged solution */
-	fElementVolume = fElementVolume_last;
+	fGamma = fGamma_last;
 
 	return relax;
 }
 
 /* read restart information from stream */
-void SimoQ1P0Axi::ReadRestart(istream& in)
+void SimoQ1P0Axi_inv::ReadRestart(istream& in)
 {
 	/* inherited */
 	UpdatedLagrangianAxiT::ReadRestart(in);
 	
 	/* read restart data */
-	in >> fElementVolume;
+	in >> fGamma;
 	
 	/* reset last state */
-	fElementVolume_last = fElementVolume;
+	fGamma_last = fGamma;
 }
 
 /* write restart information from stream */
-void SimoQ1P0Axi::WriteRestart(ostream& out) const
+void SimoQ1P0Axi_inv::WriteRestart(ostream& out) const
 {
 	/* inherited */
 	UpdatedLagrangianAxiT::WriteRestart(out);
 	
 	/* read restart data */
-	out << fElementVolume << '\n';
+	out << fGamma << '\n';
 }
 
 /***********************************************************************
@@ -139,8 +141,10 @@ void SimoQ1P0Axi::WriteRestart(ostream& out) const
  ***********************************************************************/
 
 /* form shape functions and derivatives */
-void SimoQ1P0Axi::SetGlobalShape(void)
+void SimoQ1P0Axi_inv::SetGlobalShape(void)
 {
+	const char caller[] = "SimoQ1P0Axi_inv::SetGlobalShape";
+
 	/* current element number */
 	int elem = CurrElementNumber();
 
@@ -149,12 +153,12 @@ void SimoQ1P0Axi::SetGlobalShape(void)
 	UpdatedLagrangianAxiT::SetGlobalShape();
 
 	/* compute mean of shape function gradients */
-	double H; /* reference volume */
-	double& v = fElementVolume[elem];
-	SetMeanGradient(fMeanGradient, H, v);
+	double& V = fElementVolume[elem]; /* reference volume */
+	double& Gamma = fGamma[elem];
+	SetMeanGradient(fMeanGradient, V, Gamma);
 	
-	/* last deformed volume */
-	double& v_last = fElementVolume_last[elem];
+	/* last Gamma */
+	double& Gamma_last = fGamma_last[elem];
 
 	/* what needs to get computed */
 	int material_number = CurrentElement().MaterialNumber();
@@ -170,8 +174,8 @@ void SimoQ1P0Axi::SetGlobalShape(void)
 			/* "replace" dilatation */
 			dMatrixT& F = fF_List[i];
 			double J = F.Det();
-			if (J <= 0.0) ExceptionT::BadJacobianDet("SimoQ1P0Axi::SetGlobalShape");
-			F *= pow(v/(H*J), 1.0/3.0);
+			if (J < 0.0) ExceptionT::BadJacobianDet(caller, "J = %g", J);
+			F *= pow(1.0/(Gamma*J), 1.0/3.0);
 			
 			/* store Jacobian */
 			fJacobian[i] = J;
@@ -183,13 +187,13 @@ void SimoQ1P0Axi::SetGlobalShape(void)
 			/* "replace" dilatation */
 			dMatrixT& F = fF_last_List[i];
 			double J = F.Det();
-			F *= pow(v_last/(H*J), 1.0/3.0);
+			F *= pow(1.0/(Gamma_last*J), 1.0/3.0);
 		}
 	}
 }
 
 /* form the element stiffness matrix */
-void SimoQ1P0Axi::FormStiffness(double constK)
+void SimoQ1P0Axi_inv::FormStiffness(double constK)
 {
 	/* matrix format */
 	dMatrixT::SymmetryFlagT format =
@@ -219,7 +223,7 @@ void SimoQ1P0Axi::FormStiffness(double constK)
 	{
 		int ip = fShapes->CurrIP();
 		double r = fRadius_x[ip];
-
+	
 		/* scale factor */
 		double scale = Pi2*r*constK*(*Det++)*(*Weight++);
 
@@ -231,7 +235,7 @@ void SimoQ1P0Axi::FormStiffness(double constK)
 			*u_r = *Na_u++;
 			u_r += ndof;
 		}
-
+	
 	/* S T R E S S   S T I F F N E S S */			
 		/* compute Cauchy stress */
 		const dSymMatrixT& cauchy = fCurrMaterial->s_ij();
@@ -247,7 +251,7 @@ void SimoQ1P0Axi::FormStiffness(double constK)
 
 		/* get shape function gradients matrix */
 		fCurrShapes->GradNa(fGradNa);
-		fb_sig.MultAB(fMat2D, fGradNa); //contribution from out-of-plane stress??
+		fb_sig.MultAB(fMat2D, fGradNa);
 
 		/* integration constants */		
 		fMat2D *= scale*J_correction;
@@ -276,7 +280,7 @@ void SimoQ1P0Axi::FormStiffness(double constK)
 			*b_r += (*Na_u++)/r;
 			b_r += nsd;
 		}
-		
+
 		/* $div div$ term */	
 		fNEEmat.Outer(fGradNa, fGradNa);
 		fLHS.AddScaled(p_bar*scale, fNEEmat);
@@ -302,9 +306,10 @@ void SimoQ1P0Axi::FormStiffness(double constK)
 }
 
 /* calculate the internal force contribution ("-k*d") */
-void SimoQ1P0Axi::FormKd(double constK)
+void SimoQ1P0Axi_inv::FormKd(double constK)
 {
 	const double* Det    = fCurrShapes->IPDets();
+	const double* Det0   = fShapes->IPDets();
 	const double* Weight = fCurrShapes->IPWeights();
 
 	/* collect incremental heat */
@@ -324,7 +329,8 @@ void SimoQ1P0Axi::FormKd(double constK)
 	{
 		int ip = fShapes->CurrIP();
 		double r = fRadius_x[ip];
-
+		double R = fRadius_X[ip];
+	
 		/* collect array of nodal shape functions */
 		fIPShape.Alias(nen, fShapes->IPShapeU());
 	
@@ -343,13 +349,12 @@ void SimoQ1P0Axi::FormKd(double constK)
 		
 		/* detF correction */
 		double J_correction = J_bar/fJacobian[CurrIP()];
-		double vol = Pi2*r*(*Weight++)*(*Det++)*J_correction;
 		
 		/* integrate pressure */
-		p_bar += vol*cauchy.Trace()/3.0;
+		p_bar += Pi2*R*(*Weight)*(*Det0)*J_correction*cauchy.Trace()/3.0;
 		
 		/* accumulate */
-		fRHS.AddScaled(constK*vol, fNEEvec);
+		fRHS.AddScaled(constK*Pi2*r*(*Weight)*(*Det)*J_correction, fNEEvec);
 
 		/* incremental heat generation */
 		if (need_heat) 
@@ -431,32 +436,35 @@ void SimoQ1P0Axi::FormKd(double constK)
 			/* set flag */
 			hit_cell = true;
 		}
-	}	
-	
+
+		/* next integration points */
+		Det++; Det0++; Weight++;
+	}
+
 	/* append to results files */
 	if (hit_cell) fOutputInit = true;	
-
+	
 	/* volume averaged */
 	p_bar /= fElementVolume[CurrElementNumber()];
 }
 
 /* read materials data */
-void SimoQ1P0Axi::ReadMaterialData(ifstreamT& in)
+void SimoQ1P0Axi_inv::ReadMaterialData(ifstreamT& in)
 {
 	/* inherited */
 	UpdatedLagrangianAxiT::ReadMaterialData(in);
 
 	/* make sure 2D materials are plane strain */
 	if (StructuralMaterialList().HasPlaneStress()) 
-		ExceptionT::BadInputValue("SimoQ1P0Axi::ReadMaterialData", "2D materials must be plane strain");
+		ExceptionT::BadInputValue("SimoQ1P0Axi_inv::ReadMaterialData", "2D materials must be plane strain");
 }
 
 /***********************************************************************
  * Private
  ***********************************************************************/
 
-/* compute mean shape function gradient, Hughes (4.5.23) */
-void SimoQ1P0Axi::SetMeanGradient(dArray2DT& mean_gradient, double& H, double& v) const
+/* compute mean shape function gradient */
+void SimoQ1P0Axi_inv::SetMeanGradient(dArray2DT& mean_gradient, double& V, double& Gamma) const
 {
 	/* assume same integration rule defined for current and references
 	 * shape functions */
@@ -465,40 +473,55 @@ void SimoQ1P0Axi::SetMeanGradient(dArray2DT& mean_gradient, double& H, double& v
 	const double* det_0 = fShapes->IPDets();
 	const double*     w = fShapes->IPWeights();
 
-	/* H and current volume */
-	H = 0.0;
-	v = 0.0;
+	/* V and the inverse dilation */
+	V = 0.0;
+	Gamma = 0.0;
 	for (int i = 0; i < nip; i++) {
-		H += Pi2*fRadius_X[i]*w[i]*det_0[i];
-		v += Pi2*fRadius_x[i]*w[i]*det[i];
+
+		double R = fRadius_X[i];
+		double r = fRadius_x[i];
+
+		double dV = Pi2*R*w[i]*det_0[i];
+		double dv = Pi2*r*w[i]*det[i];
+	
+		V += dV;
+		double J = dv/dV;
+		Gamma += dV/J;
 	}
+	Gamma /= V;
 
 	/* initialize */
 	mean_gradient = 0.0;			
 
 	/* integrate */
-	int nen = mean_gradient.MinorDim();
+	int nen = mean_gradient.MinorDim();	
 	for (int i = 0; i < nip; i++) {
+	
+		double R = fRadius_X[i];
+		double r = fRadius_x[i];		
 
-		double r = fRadius_x[i];
-		double dv_by_v = Pi2*r*w[i]*det[i]/v;
+		double dV = Pi2*R*w[i]*det_0[i];
+		double dv = Pi2*r*w[i]*det[i];
 
-		mean_gradient.AddScaled(dv_by_v, fCurrShapes->Derivatives_U(i));
+		double J = dv/dV;
+		double dV_by_JVGamma = dV/(V*Gamma*J);
+		
+		mean_gradient.AddScaled(dV_by_JVGamma, fCurrShapes->Derivatives_U(i));
 		
 		/* contribution from out-of-plane component */
 		double* mean_r = mean_gradient(kRadialDirection);
 		const double* pNaU = fCurrShapes->IPShapeU(i);
 		for (int a = 0; a < nen; a++)
-			*mean_r++ += dv_by_v*(*pNaU++)/r;
+			*mean_r++ += dV_by_JVGamma*(*pNaU++)/r;		
 	}
 }
 
-void SimoQ1P0Axi::bSp_bRq_to_KSqRp(const dMatrixT& b, dMatrixT& K) const
+void SimoQ1P0Axi_inv::bSp_bRq_to_KSqRp(const dMatrixT& b, dMatrixT& K) const
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
 	if (b.Length() != K.Rows() ||
-	    K.Rows() != K.Cols()) ExceptionT::SizeMismatch("SimoQ1P0Axi::bSp_bRq_to_KSqRp");
+	    K.Rows() != K.Cols()) ExceptionT::SizeMismatch("SimoQ1P0Axi_inv::bSp_bRq_to_KSqRp");
 #endif
 
 	int dim = K.Rows();

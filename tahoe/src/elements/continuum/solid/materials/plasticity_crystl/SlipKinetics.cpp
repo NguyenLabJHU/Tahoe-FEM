@@ -19,14 +19,6 @@ SlipKinetics::~SlipKinetics()
 
 }
 
-void SlipKinetics::MaxMinArgPowerLaw(const double &xm)
-{
-   double EXPON = 300.0;
-
-   fArgMax = exp( EXPON/(1./xm-1.0)*log(10.0));
-   fArgMin = exp(-EXPON/(1./xm-1.0)*log(10.0));
-}
-
 /*  evaluates  x^y */
 double SlipKinetics::Power(const double &x, const double &y)
 {
@@ -51,14 +43,6 @@ double SlipKinetics::Power(const double &x, const double &y)
 
    return power;
 } 
-
-void SlipKinetics::CheckArgumentRange(double &arg, const double &sign)
-{
-   if (fabs(arg) < fArgMin) 
-      arg = fArgMin*sign;
-   else if (fabs(arg) > fArgMax) 
-      arg = fArgMax*sign;
-}
 
 void SlipKinetics::SetUpRateSensitivity()
 {  }
