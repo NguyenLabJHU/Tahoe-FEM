@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.9 2002-07-02 19:55:29 cjkimme Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.10 2002-07-03 22:26:07 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #include "UnConnectedRodT.h"
@@ -130,6 +130,10 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	
 		/* connect nodes - dimensions lists */
 		Connector.GetNeighors(rodconnects, fNeighborDist);
+		
+		/* list of all the nodes in the model */
+		fGroupNodes.Dimension(ElementSupport().NumNodes());
+		fGroupNodes.SetValueToPosition();
 	}
 	else //only use specified nodes
 	{
@@ -137,13 +141,12 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		ModelManagerT& model = ElementSupport().Model();
 	
 		/* model format specific */
-		iArrayT nodesused;
 		if (model.DatabaseFormat() == IOBaseT::kTahoe)
 		{
 			/* read specified nodes */
-			nodesused.Dimension(fNumNodesUsed);
-			in >> nodesused;
-			nodesused--;
+			fGroupNodes.Dimension(fNumNodesUsed);
+			in >> fGroupNodes;
+			fGroupNodes--;
 		}
 		else 
 		{
@@ -153,19 +156,19 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 				in >> node_ids[i];
 		
 			/* collect nodes */
-			model.ManyNodeSets (node_ids, nodesused);
+			model.ManyNodeSets (node_ids, fGroupNodes);
 		}	
 	
 		/* echo data */
-		nodesused++;
+		fGroupNodes++;
 		out << "\n Number of search nodes. . . . . . . . . . . . . = ";
-		out << nodesused.Length() << "\n\n";
-		out << nodesused.wrap(5) << '\n';
+		out << fGroupNodes.Length() << "\n\n";
+		out << fGroupNodes.wrap(5) << '\n';
 		out << '\n';
-		nodesused--;
+		fGroupNodes--;
 		
 		/* connector */
-		FindNeighborT Connector(nodesused, 
+		FindNeighborT Connector(fGroupNodes, 
 			ElementSupport().CurrentCoordinates(), 
 			fMaxNeighborCount);
 	
