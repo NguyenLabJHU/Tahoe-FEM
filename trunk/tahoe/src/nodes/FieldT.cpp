@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.3 2002-07-02 19:56:26 cjkimme Exp $ */
+/* $Id: FieldT.cpp,v 1.4 2002-08-21 08:32:40 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -428,6 +428,10 @@ void FieldT::ReadRestart(ifstreamT& in)
 		/* next */
 		deriv.Append("D");
 	}
+
+	/* initialize history */
+	fField_last = fField;
+
 
 	/* KBC controllers */
 	for (int j = 0; j < fKBC_Controllers.Length(); j++)
