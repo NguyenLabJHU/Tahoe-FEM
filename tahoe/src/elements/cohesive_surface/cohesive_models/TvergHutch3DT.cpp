@@ -1,4 +1,4 @@
-/* $Id: TvergHutch3DT.cpp,v 1.7 2002-12-11 23:13:18 cjkimme Exp $ */
+/* $Id: TvergHutch3DT.cpp,v 1.8 2003-01-24 18:01:30 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch3DT.h"
@@ -16,6 +16,7 @@ using namespace Tahoe;
 
 const int knumDOF = 3;
 
+#ifndef _SIERRA_TEST_
 /* constructor */
 TvergHutch3DT::TvergHutch3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 {
@@ -35,6 +36,7 @@ TvergHutch3DT::TvergHutch3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 	/* penetration stiffness */
 	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
 }
+#endif
 
 TvergHutch3DT::TvergHutch3DT(dArrayT& params): SurfacePotentialT(knumDOF)
 {

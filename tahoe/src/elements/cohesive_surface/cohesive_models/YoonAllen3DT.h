@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.h,v 1.6 2002-12-11 23:13:19 cjkimme Exp $ */
+/* $Id: YoonAllen3DT.h,v 1.7 2003-01-24 18:01:30 cjkimme Exp $ */
 /* created: cjkimme (05/28/2002) */
 
 #ifndef _YOON_ALLEN_3D_T_H_
@@ -20,7 +20,9 @@ class YoonAllen3DT: public SurfacePotentialT
 public:
 
 	/** constructors */
+#ifndef _SIERRA_TEST_
 	YoonAllen3DT(ifstreamT& in, const double &fTimeStep);
+#endif
 	YoonAllen3DT(dArrayT& fparams, iArrayT& iparams, const double &fTimeStep);
 
 	virtual void InitStateVariables(ArrayT<double>& state);
