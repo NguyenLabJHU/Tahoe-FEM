@@ -5,9 +5,11 @@
 
 /* direct members */
 #include "OutputBaseT.h"
+#include "PatranT.h"
 
 /* forward declarations */
 
+namespace Tahoe {
 
 class PatranOutputT : public OutputBaseT
 {
@@ -18,10 +20,14 @@ class PatranOutputT : public OutputBaseT
 
  private:
   void FileName (int ID, StringT& filename, const char* ext) const;
+  void WriteConnectivity (ostream& patout, int& firstID, int ID, iArrayT& nodes_used) const;
+  void WriteNamedComponents (ostream& patout, int& firstID, int ID) const;
   int GetPatranElementType (GeometryT::CodeT geom) const;
 
  private:
   bool fBinary;
+  PatranT fPatran;
 };
 
+} // namespace Tahoe 
 #endif

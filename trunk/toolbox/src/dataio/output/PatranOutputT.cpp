@@ -1,14 +1,16 @@
 /* created: sawimme April 2002 */
 
 #include "PatranOutputT.h"
-#include "PatranT.h"
 #include "ofstreamT.h"
 #include "OutputSetT.h"
 #include "dArray2DT.h"
 
+using namespace Tahoe;
+
 PatranOutputT::PatranOutputT (ostream& out, const ArrayT<StringT>& out_strings, bool binary) :
   OutputBaseT (out, out_strings),
-  fBinary (binary)
+  fBinary (binary),
+  fPatran (fout)
 {
   /* binary format not implemented yet */
   fBinary = false;
@@ -16,7 +18,6 @@ PatranOutputT::PatranOutputT (ostream& out, const ArrayT<StringT>& out_strings, 
 
 void PatranOutputT::WriteGeometry (void)
 {
-  PatranT pat (fout);
   StringT file;
   FileName (0, file, ".pao");
   ofstreamT out (file);
@@ -26,63 +27,43 @@ void PatranOutputT::WriteGeometry (void)
   for (int e=0; e < num_sets; e++)
     num_elems += fElementSets[e]->NumElements();
 
-  pat.WriteHeader (out, fCoordinates->MajorDim(), num_elems, fTitle);
+  fPatran.WriteHeader (out, fCoordinates->MajorDim(), num_elems, fTitle);
   int firstID = 1;
-  pat.WriteCoordinates (out, *fCoordinates, firstID);
+  fPatran.WriteCoordinates (out, *fCoordinates, firstID);
 
   // write elements
+  firstID = 1;
+  iArrayT nodes_used (fCoordinates->MajorDim());
+  nodes_used.SetValueToPosition();
   for (int e=0; e < num_sets; e++)
     if (fElementSets[e]->NumNodes() > 0)
-      {
-	int num_blocks = fElementSets[e]->NumBlocks();
-	for (int i=0; i < num_blocks; i++)
-	  {
-	    StringT blockid = fElementSets[e]->BlockID(i);
-	    iArrayT types (fElementSets[e]->NumElements());
-	    types = GetPatranElementType (fElementSets[e]->Geometry());
-	    pat.WriteElements (out, *(fElementSets[e]->Connectivities (blockid)), types, firstID);
-	    firstID += fElementSets[e]->NumElements();
-	  }
-      }
+      WriteConnectivity (out, firstID, e, nodes_used);
 
   // write named components
+  CreateElementBlockIDs ();
   firstID = 1;
-  for (int e=0, id=0; e < num_sets; e++)
+  for (int e=0; e < num_sets; e++)
     if (fElementSets[e]->NumNodes() > 0)
-      {
-	int num_blocks = fElementSets[e]->NumBlocks();
-	for (int i=0; i < num_blocks; i++, id++)
-	  {
-	    int types = GetPatranElementType (fElementSets[e]->Geometry());
-	    iArrayT eids (fElementSets[e]->NumElements());
-	    eids.SetValueToPosition();
-	    eids += firstID;
-	    iArray2DT comps (fElementSets[e]->NumElements(), 2);
-	    comps.SetColumn (0, types);
-	    comps.SetColumn (1, eids);
-	    pat.WriteNamedComponent (out, fElementSets[e]->BlockID(i), id, comps);
-	    firstID += fElementSets[e]->NumElements();
-	  }
-      }
+      WriteNamedComponents (out, firstID, e);
 
-  pat.WriteClosure(out);
+  fPatran.WriteClosure(out);
 }
 
 void PatranOutputT::WriteOutput (double time, int ID, const dArray2DT& n_values, const dArray2DT& e_values)
 {
   OutputBaseT::WriteOutput (time, ID, n_values, e_values);
-
-  PatranT pat (fout);
   StringT patfile;
 
   if (fElementSets[ID]->NumNodes() > 0)
     {
-      // write geometry file
+      CreateElementBlockIDs ();
+
+      // open geometry file
       FileName (ID, patfile, "_geo.pao");
       ofstreamT patout (patfile);
       int numnodes = fElementSets[ID]->NumNodes();
       int numelems = fElementSets[ID]->NumElements();
-      pat.WriteHeader (patout, numnodes, numelems, fTitle);
+      fPatran.WriteHeader (patout, numnodes, numelems, fTitle);
 
       // write nodes
       int firstID = 1;
@@ -90,35 +71,18 @@ void PatranOutputT::WriteOutput (double time, int ID, const dArray2DT& n_values,
       nodes_used.Alias (fElementSets[ID]->NodesUsed());
       dArray2DT coords (nodes_used.Length(), fCoordinates->MinorDim());
       coords.RowCollect (nodes_used, *fCoordinates);
-      pat.WriteCoordinates (patout, coords, firstID);
+      fPatran.WriteCoordinates (patout, coords, firstID);
 
       // write elements
-      int num_blocks = fElementSets[ID]->NumBlocks();
-      for (int i=0; i < num_blocks; i++)
-	{
-	  StringT blockid = fElementSets[ID]->BlockID(i);
-	  iArrayT types (fElementSets[ID]->NumElements());
-	  types = GetPatranElementType (fElementSets[ID]->Geometry());
+      WriteConnectivity (patout, firstID, ID, nodes_used);
 
-	  // write connectivity
-	  const iArray2DT* connects = fElementSets[ID]->Connectivities(blockid);
-	  iArray2DT localconn (connects->MajorDim(), connects->MinorDim());
-	  LocalConnectivity (nodes_used, *connects, localconn);
-	  localconn++;
-	  pat.WriteElements (patout, localconn, types, firstID);
+      // write named components
+      firstID = 1;
+      WriteNamedComponents (patout, firstID, ID);
 
-	  // write named components
-	  iArrayT eids (fElementSets[ID]->NumElements());
-	  eids.SetValueToPosition();
-	  eids += firstID;
-	  iArray2DT comps (fElementSets[ID]->NumElements(), 2);
-	  comps.SetColumn (0, types);
-	  comps.SetColumn (0, eids);
-	  pat.WriteNamedComponent (patout, blockid, i+1, comps);
+      // write variable data
 
-	  // increment element ID
-	  firstID += connects->MajorDim();
-	}
+      fPatran.WriteClosure(patout);
     }
 }
 
@@ -144,6 +108,48 @@ void PatranOutputT::FileName (int ID, StringT& filename, const char* ext) const
 
   /* extension */
   filename.Append (ext);
+}
+
+void PatranOutputT::WriteConnectivity (ostream& patout, int& firstID, int ID, iArrayT& nodes_used) const
+{
+  int num_blocks = fElementSets[ID]->NumBlocks();
+  for (int i=0; i < num_blocks; i++)
+    {
+      StringT blockid = fElementSets[ID]->BlockID(i);
+      iArrayT types (fElementSets[ID]->NumElements());
+      types = GetPatranElementType (fElementSets[ID]->Geometry());
+      
+      // write connectivity
+      const iArray2DT* connects = fElementSets[ID]->Connectivities(blockid);
+      iArray2DT localconn (connects->MajorDim(), connects->MinorDim());
+      LocalConnectivity (nodes_used, *connects, localconn);
+      localconn++;
+      fPatran.WriteElements (patout, localconn, types, firstID);
+      
+      // increment element ID
+      firstID += connects->MajorDim();
+    }
+}
+
+void PatranOutputT::WriteNamedComponents (ostream& patout, int& firstID, int ID) const
+{
+  int num_blocks = fElementSets[ID]->NumBlocks();
+  for (int i=0; i < num_blocks; i++)
+    {
+      int types = GetPatranElementType (fElementSets[ID]->Geometry());
+      iArrayT eids (fElementSets[ID]->NumElements());
+      eids.SetValueToPosition();
+      eids += firstID;
+      iArray2DT comps (fElementSets[ID]->NumElements(), 2);
+      comps.SetColumn (0, types);
+      comps.SetColumn (1, eids);
+      
+      int bid = fElementBlockIDs[ID][i];
+      fPatran.WriteNamedComponent (patout, fElementSets[ID]->BlockID(i), bid, comps);
+      
+      // increment element ID
+      firstID += fElementSets[ID]->NumElements();
+    }  
 }
 
 int PatranOutputT::GetPatranElementType (GeometryT::CodeT geom) const
