@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11.4.3 2004-04-03 03:18:39 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.4.4 2004-04-03 20:18:58 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -200,6 +200,23 @@ protected:
 
 	/** collect nodes and cells in the overlap region */
 	void CollectOverlapRegion(iArrayT& overlap_cell, iArrayT& overlap_node) const;
+
+	/** collect bonds between real points and follower points */
+	void GhostNodeBonds(const RaggedArray2DT<int>& neighbors, RaggedArray2DT<int>& ghost_neighbors, 
+		InverseMapT& overlap_cell_map) const;
+
+	/** compute bond contribution to the nodal internal force
+	 * \param R_i bond vector
+	 * \param ghost_neighbors neighbor list containing only bond from free points to
+	 *        follower points. The follower points only appear in the neighbor lists of the
+	 *        free points. The followers do not have neighbors in this list.
+	 * \param coords global coordinates of all points
+	 * \param overlap_node_map map of global node number to index in sum_R_N for nodes in the
+	 *        overlap region
+	 * \param sum_R_N returns with the bond contribution to all the nodes in the overlap region
+	 */
+	void ComputeSum_R_dot_Na(const dArrayT& R_i, const RaggedArray2DT<int>& ghost_neighbors, 
+		const dArray2DT& coords, const InverseMapT& overlap_node_map, dArrayT& sum_R_N) const;
 
 private:
 
