@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.h,v 1.7.4.1 2002-10-17 04:21:56 paklein Exp $ */
+/* $Id: SurfaceShapeT.h,v 1.7.4.2 2002-10-19 17:46:44 paklein Exp $ */
 /* created: paklein (11/21/1997) */
 
 #ifndef _SURFACE_SHAPE_T_H_
@@ -122,9 +122,10 @@ public:
 	 *        if the linearization of a column vector of Q. */
 	double Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ);
 
-	/** nodal shape functions at the current integration point. This is the
-	 * this is the number of nodes on both faces */
-	void Shapes(dArrayT& Na) const { fNa.RowAlias(fCurrIP, Na); };
+	/** nodal shape functions at the current integration point.
+	 * \param Na destination for the nodal shape function. Must have length either
+	 *        the number of nodes on one face or the number of nodes on both faces. */
+	void Shapes(dArrayT& Na) const;
 
 	/** nodal jump shape functions at the current integration point. This is the
 	 * this is the number of nodes on both faces */
