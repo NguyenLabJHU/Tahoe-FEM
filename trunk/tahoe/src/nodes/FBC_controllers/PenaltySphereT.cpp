@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.cpp,v 1.13 2004-09-16 16:49:57 paklein Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.14 2005-02-22 00:10:19 rjones Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltySphereT.h"
 #include "FieldT.h"
@@ -6,6 +6,8 @@
 #include "FieldSupportT.h"
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
+#include "GeometryT.h"
+#include "ModelManagerT.h"
 
 using namespace Tahoe;
 
@@ -83,6 +85,7 @@ void PenaltySphereT::TakeParameterList(const ParameterListT& list)
 	/* dimension work space */
 	fv_OP.Dimension(Field().NumDOF());
 	fLHS.Dimension(FieldSupport().NumSD());
+
 }
 
 /**********************************************************************
@@ -97,6 +100,7 @@ void PenaltySphereT::ComputeContactForce(double kforce)
 
 	/* loop over strikers */
 	fContactForce2D = 0.0;	
+	fContactArea = 0.0;	
 	for (int i = 0; i < fNumContactNodes; i++)
 	{
 		/* center to striker */
@@ -113,6 +117,10 @@ void PenaltySphereT::ComputeContactForce(double kforce)
 		
 			/* accumulate */
 			fContactForce2D.SetRow(i, fv_OP);
+
+			/* compute contact area */
+			int index = fGlobal2Local.Map(fContactNodes[i]);
+			fContactArea += fNodalAreas[index];
 		}
 
 		/* store */

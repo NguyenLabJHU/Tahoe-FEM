@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.h,v 1.7 2004-07-15 08:31:15 paklein Exp $ */
+/* $Id: PenaltySphereT.h,v 1.8 2005-02-22 00:10:19 rjones Exp $ */
 /* created: paklein (04/30/1998) */
 #ifndef _PENATLY_SPHERE_T_H_
 #define _PENATLY_SPHERE_T_H_
@@ -10,6 +10,7 @@
 #include "ElementMatrixT.h"
 
 namespace Tahoe {
+
 
 /** spherical rigid barrier enforced with a penalized constraint */
 class PenaltySphereT: public PenaltyRegionT
@@ -43,10 +44,9 @@ protected:
 	virtual void ComputeContactForce(double kforce);
 
 protected:
-
-	/** sphere radius */
+	/** nodal areas */
 	double fRadius;
-	
+
 	/** \name workspace */
 	/*@{*/
 	dArrayT        fv_OP; /**< vector from center to contact node */

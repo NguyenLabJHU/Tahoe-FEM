@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.19 2004-09-29 23:20:28 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.20 2005-02-22 00:10:19 rjones Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -34,7 +34,8 @@ PenaltyRegionT::PenaltyRegionT(void):
 	fOutputID(-1),
 	fk(-1.0),
 	fRollerDirection(-1),
-	fSecantSearch(NULL)
+	fSecantSearch(NULL),
+	fContactArea(0.0)
 {
 
 }
@@ -280,6 +281,8 @@ void PenaltyRegionT::WriteOutput(ostream& out) const
 	for (int i = 0; i < global_sum.Length(); i++)
 		out << setw(kDoubleWidth) << global_sum[i] << '\n';
 
+	out << " Contact Area . . . . . . . . . . . . . . . =\n" << fContactArea << '\n';
+
 	/* collect output data */
 	const dArray2DT& disp = Field()[0];
 	int ndof = disp.MinorDim();
@@ -506,6 +509,26 @@ void PenaltyRegionT::TakeParameterList(const ParameterListT& list)
 		out << fContactNodes.wrap(6) << '\n';
 		fContactNodes--;				
 	}	
+
+        /* collect volume element block ID's containing the strikers */
+        ModelManagerT& model = FieldSupport().ModelManager();
+        ArrayT<StringT> element_id_all;
+        model.ElementGroupIDsWithNodes(fContactNodes, element_id_all);
+        iArrayT volume_element(element_id_all.Length());
+        for (int i = 0; i < element_id_all.Length(); i++) {
+                GeometryT::CodeT geom = model.ElementGroupGeometry(element_id_all[i]);
+                volume_element[i] = (GeometryT::GeometryToNumSD(geom) == FieldSupport().NumSD()) ? 1 : 0;
+        }
+        int count = 0;
+        ArrayT<StringT> element_id(volume_element.Count(1));
+        for (int i = 0; i < element_id_all.Length(); i++)
+                if (volume_element[i])
+                        element_id[count++] = element_id_all[i];
+
+        /* compute nodal areas */
+        FieldSupport().ModelManager().ComputeNodalArea(fContactNodes,
+        element_id, fNodalAreas, fGlobal2Local);
+
 
 	/* allocate memory for equation numbers */
 	int ndof = Field().NumDOF();
