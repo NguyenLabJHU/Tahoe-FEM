@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.6 2001-12-17 00:15:51 paklein Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.7 2001-12-17 20:03:51 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -31,14 +31,12 @@ Tijssens2DT::Tijssens2DT(ifstreamT& in, const double& time_step):
 	in >> fQ_B; if (fQ_B < 0) throw eBadInputValue;
 
         /* crazing state variables' parameters */
-	//	in >> fGamma_0; if (fGamma_0 < 0) throw eBadInputValue;
 	in >> fDelta_0; if (fDelta_0 < 0) throw eBadInputValue;
 	in >> fsigma_c; if (fsigma_c < 0) throw eBadInputValue;
-	//        in >> ftau_c; if (ftau_c < 0) throw eBadInputValue;
 	in >> fastar; if (fastar < 0) throw eBadInputValue;
         in >> ftemp; if (ftemp < 0) throw eBadInputValue;
 	in >> fGroup; if (fGroup <= 0) throw eBadInputValue;
-        //in >> fY; if (fY < 0) throw eBadInputValue;
+	in >> fSteps; if (fSteps < 0) throw eBadInputValue;
 
 	fA = fA_0/2.*exp(fQ_A/ftemp);
 	fB = fB_0/6.*exp(fQ_B/ftemp);
@@ -51,7 +49,7 @@ Tijssens2DT::Tijssens2DT(ifstreamT& in, const double& time_step):
 }
 
 /* return the number of state variables needed by the model */
-int Tijssens2DT::NumStateVariables(void) const { return 4*knumDOF; }
+int Tijssens2DT::NumStateVariables(void) const { return 3*knumDOF+4; }
 
 /* surface potential */ 
 double Tijssens2DT::FractureEnergy(const ArrayT<double>& state) 
@@ -82,35 +80,33 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 	double u_t = jump_u[0];
 	double u_n = jump_u[1];
 
-	/* see if crazing has been initiated */
+	double dTn = 0.;
+
 	double delta_tc, delta_nc, ddelta_tc;
-//	if ((1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall)
-	if (state[1]*state[1]+fA*state[1] < -fA*state[0]+fB+state[0]*state[0])
-        {
+	double keff = fk_n;
+
+	/* see if crazing has been initiated */
+	if (state[7] < kSmall || (state[8] <= kSmall && (1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall) || (state[5] >= fDelta_n_ccr && state[9] <= kSmall))
+	//	if ((state[8] <= kSmall && state[1] <= .9*fsigma_c) || (state[5] >= fDelta_n_ccr && state[9] <= kSmall))
+	{
 	        delta_tc = 0.;
 		delta_nc = 0.;
 		ddelta_tc = 0.;
 	} 
 	else
 	{
-	        if (state[5] <= fDelta_n_ccr) {
-		  delta_tc = fGamma_0;
-		  ddelta_tc = fGamma_0*fastar;
-		  if (state[0] <= ftau_c)
-		  {
-		    delta_tc *= exp(-fastar*(ftau_c-state[0]))-exp(-fastar*(ftau_c+state[0]));
-		    ddelta_tc *= exp(-fastar*(ftau_c-state[0]))+exp(-fastar*(ftau_c+state[0]));
-		  }
-		  delta_nc = fDelta_0;
-		  if (state[1] <= fsigma_c)
-		    delta_nc *= exp(-fastar*(fsigma_c-state[1]));
-		}
-		else
+	        if (state[8] <= kSmall) 
 		{
-		  delta_tc = 0.;
-		  delta_nc = 0.;
-		  ddelta_tc = 0.;
+		  /*		  cout << "\n Initiation !! "<< state[3] << " " << state[1] << " "<<state[7] <<"\n";*/
+		  state[8] = 1.;
+		  state[9] = (double) fSteps;
 		}
+		delta_tc = fGamma_0;
+		ddelta_tc = fGamma_0*fastar;
+		delta_tc *= exp(-fastar*(ftau_c-state[0]))-exp(-fastar*(ftau_c+state[0]));
+		ddelta_tc *= exp(-fastar*(ftau_c-state[0]))+exp(-fastar*(ftau_c+state[0]));
+		delta_nc = fDelta_0*exp(-fastar*(fsigma_c-state[1]));
+		
 	}
 
 	/* calculate gap vector rates */
@@ -120,16 +116,48 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
         double u_n_dot = (du_n)/fTimeStep;
 
 	/* calculate traction rate and evolve traction*/
-
-        if (state[5] <= fDelta_n_ccr) {
-	  double k_t = fk_t0*exp(-fc_1*state[5]);
-          state[0] += k_t/(1+k_t*ddelta_tc*fTimeStep) * (u_t_dot - delta_tc) * fTimeStep;
-	  state[1] += fk_n/(1+fk_n*delta_nc*fastar*fTimeStep) * (u_n_dot - delta_nc) * fTimeStep;
-	  
-	  /* update craze widths */
-	  state[4] += delta_tc*fTimeStep;
-	  state[5] += delta_nc*fTimeStep;
+	
+	if (state[8] <= kSmall) 
+	{
+	  state[0] += fk_t0*u_t_dot*fTimeStep;
+	  state[1] += fk_n*u_n_dot*fTimeStep;
 	}
+	else
+	{
+          if (state[5] <= fDelta_n_ccr || state[9] > kSmall) 
+	  {
+	    if (fSteps != 0)
+	      keff *= state[9]/fSteps;
+	    if (state[9] > kSmall && state[5] >= fDelta_n_ccr) 
+	      state[9]--;
+	    double k_t = fk_t0*exp(-fc_1*state[5]);
+            state[0] += k_t/*/(1+k_t*ddelta_tc*fTimeStep/2.)*/ * (u_t_dot - delta_tc) * fTimeStep;
+
+	    if (u_n_dot <= kSmall) 
+	    {
+	      dTn = keff/*/(1+keff*delta_nc*fastar*fTimeStep/2.)*/ * (u_n_dot - delta_nc) * fTimeStep;
+	      state[1] += dTn;
+	    }
+	    else
+	    {
+	      double dod = delta_nc/u_n_dot;
+	      double fex = exp(-fastar*keff*fTimeStep*u_n_dot);
+	      dTn = -log((1-dod)*fex+dod)/fastar;
+	      state[1] += dTn;
+	    }
+
+	    /* update craze widths */
+	    state[4] += delta_tc*fTimeStep;
+	    state[5] += delta_nc*fTimeStep;
+	  } 
+	  else
+	  {
+	    state[0] = state[1] = 0.;
+	    state[8] = 100.;
+	  }
+	}
+
+	/*	cout << "u_n_dot " << u_n_dot << " delta_nc " << delta_nc << " " << state[7] << " " << dTn/fsigma_c<< " " << state[2] << " " << u_n << "\n";*/
 
 	state[2] = u_t;
 	state[3] = u_n;
@@ -139,7 +167,6 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 
 	/* add to integrated energy */
         state[6] += fTraction[0]*du_t + fTraction[1]*du_n;
-	state[7] = (state[0]+state[1])/3.;
 	
 	return fTraction;
 }
@@ -152,41 +179,68 @@ const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif
 
-	double delta_nc, ddelta_tc;
+	double delta_nc, ddelta_tc, delta_tc;
+	bool initFlag = false;
+	double keff = fk_n;
 
-	if ((1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall)
+	//	if ((state[8] <= kSmall && state[1] <= 1.25*fsigma_c) || state[5] >= fDelta_n_ccr)
+	if (state[7] < kSmall || (state[8] <= kSmall && (1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall) || (state[5] >= fDelta_n_ccr && state[9] <= kSmall))
         {
 		delta_nc = 0.;
 		ddelta_tc = 0.;
+		if (state[5] >= fDelta_n_ccr)
+		{
+		  if (fSteps != 0)
+		    keff *= state[9]/fSteps;
+		  else 
+		    keff = 0.;
+		}
 	} 
 	else
 	{
-	        if (state[5] <= fDelta_n_ccr) {
-		  ddelta_tc = fGamma_0*fastar;
-		  if (state[0] <= ftau_c)
-		    ddelta_tc *= exp(-fastar*(ftau_c-state[0]))+exp(-fastar*(ftau_c+state[0]));
-		  delta_nc = fDelta_0;
-		  if (state[1] <= fsigma_c)
-		    delta_nc *= exp(-fastar*(fsigma_c-state[1]));
-		}
-		else
-		{
-		  delta_nc = 0.;
-		  ddelta_tc = 0.;
-		}
+	        initFlag = true;
+		ddelta_tc = fGamma_0*fastar;
+		ddelta_tc *= exp(-fastar*(ftau_c-state[0]))+exp(-fastar*(ftau_c+state[0]));
+		delta_tc = fGamma_0*(exp(-fastar*(ftau_c-state[0]))-exp(-fastar*(ftau_c+state[0])));
+		delta_nc = fDelta_0;
+		delta_nc *= exp(-fastar*(fsigma_c-state[1]));
 	}
 
+	double u_n_dot = (jump_u[1] - state[3])/fTimeStep;
+	double u_t_dot = (jump_u[0] - state[2])/fTimeStep;
+
 	fStiffness[1] = fStiffness[2] = 0.;
-	if (state[5] <= fDelta_n_ccr) 
+	if (!initFlag || u_n_dot <= kSmall) 
 	{
-	  double k_t = fk_t0*exp(-fc_1*state[5]);
-	  fStiffness[0] = k_t/(1+k_t*ddelta_tc*fTimeStep);
-	}	
-	else 
-	  fStiffness[0] = fk_t0*exp(-fc_1);
-	fStiffness[3] = fk_n/(1+fk_n*fastar*delta_nc*fTimeStep);
+	   double k_t = fk_t0*exp(-fc_1*state[5]);
+	   fStiffness[0] = k_t/*/(1+k_t*ddelta_tc*fTimeStep/2.)*/;
+	   fStiffness[3] = keff/*/(1+keff*fastar*delta_nc*fTimeStep/2.)*/;
+	}
+	else
+	{
+	  if (state[5] <= fDelta_n_ccr || state[9] >= kSmall) 
+	  {
+	    double k_t = fk_t0*exp(-fc_1*state[5]);
+	    if (u_t_dot > kSmall)
+	    fStiffness[0] = k_t*(1.-delta_tc/u_t_dot)/*/(1+k_t*ddelta_tc*fTimeStep/2.)*/;
+	    else
+	      fStiffness[0] = k_t;
+	  
+	    //double dod = delta_nc/u_n_dot;
+	    //double akt = fastar*keff*fTimeStep;
+	  
+	    //fStiffness[3] = -akt*(1-dod)*exp(-akt*u_n_dot)+dod/u_n_dot*(exp(-akt*u_n_dot)-1);
+	    //fStiffness[3] /= -fastar*((1-dod)*exp(-akt*u_n_dot)+dod);
+	    fStiffness[3] = fk_n*(1.-delta_nc/u_n_dot)/*/(1+fk_n*fastar*delta_nc*fTimeStep/2.)*/;/*This part should be keff*/
+	  }	
+	  else 
+	    fStiffness[0] = fStiffness[3] = 0.;
+	}
+
+	//cout << "stiffness " << fStiffness[0] << " " << fStiffness[3] << "\n";
 	
 	return fStiffness;
+
 }
 
 /* surface status */
@@ -198,13 +252,14 @@ SurfacePotentialT::StatusT Tijssens2DT::Status(const dArrayT& jump_u,
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 #endif
 
-	if ((1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall)
+	//	if ((1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall)
+	if (state[8] < kSmall)
 	         return Precritical;
 	else 
-	  //	         if (state[5] > fDelta_n_ccr) 
-	  //            return Failed;
-	  //     else
-		        return Critical;
+	  if (state[5] > fDelta_n_ccr) 
+	       return Failed;
+	  else
+	       return Critical;
 
 }
 
@@ -236,12 +291,14 @@ void Tijssens2DT::Print(ostream& out) const
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
 * by default */
-int Tijssens2DT::NumOutputVariables(void) const { return 1; }
+int Tijssens2DT::NumOutputVariables(void) const { return 3; }
 
 void Tijssens2DT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(1);
+	labels.Allocate(3);
 	labels[0] = "sigma_m";
+	labels[1] = "Delta_t_c";
+	labels[2] = "Delta_n_c";
 }
 
 void Tijssens2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
@@ -252,6 +309,8 @@ void Tijssens2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& sta
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif	
 	output[0] = state[7];
+	output[1] = state[4];
+	output[2] = state[5];
 }
 
 bool Tijssens2DT::NeedsNodalInfo(void) { return true; }
