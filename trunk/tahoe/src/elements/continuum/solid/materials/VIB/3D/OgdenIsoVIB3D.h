@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.h,v 1.2 2001-02-20 00:28:21 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 3D Isotropic VIB using Ogden's spectral formulation                    */
 
@@ -31,9 +31,10 @@ public:
 
 protected:
 
-	/* principal values given principal stretches */
-	virtual void dWdE(const dArrayT& eigenstretch, dArrayT& eigenstress);
-	virtual void ddWddE(const dArrayT& eigenstretch, dArrayT& eigenstress,
+	/* principal values given principal values of the stretch tensors,
+	 * i.e., the principal stretches squared */
+	virtual void dWdE(const dArrayT& eigenstretch2, dArrayT& eigenstress);
+	virtual void ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress,
 		dSymMatrixT& eigenmod);
 
 	/* strained lengths in terms of the Lagrangian stretch eigenvalues */
