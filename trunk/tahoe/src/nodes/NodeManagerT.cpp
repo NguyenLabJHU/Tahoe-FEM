@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.57 2004-12-26 21:09:42 d-farrell2 Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.58 2004-12-27 07:39:09 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -1392,17 +1392,13 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 			fCurrentCoords_man.SetWard(0, *fCurrentCoords, NumSD());
 			fCurrentCoords_man.SetMajorDimension(NumNodes(), false);
 			(*fCurrentCoords) = InitialCoordinates();
-//DEBUG
-cout << "NodeManagerT::TakeParameterList, before InitAllGather" << endl;
-			// set up communication of the current coordinates
+
+			/* set up communication of the current coordinates */
 			fMessageCurrCoordsID = fCommManager.Init_AllGather(*fCurrentCoords);
-#pragma message("need another ID for the updated coords communication??")
 		}
 			
 		/* set up communication of field */
 		fMessageID[i] = fCommManager.Init_AllGather(fFields[i]->Update());
-//DEBUG
-cout << "NodeManagerT::TakeParameterList, after InitAllGather" << endl;			
 	}
 }
 
