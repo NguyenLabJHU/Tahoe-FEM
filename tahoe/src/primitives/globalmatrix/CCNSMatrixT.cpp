@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.12 2002-11-25 07:13:40 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.13 2003-04-08 23:00:17 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -519,9 +519,11 @@ int CCNSMatrixT::InSkyline(int row, int col) const
 /* element accessor - for assembly */
 double& CCNSMatrixT::operator()(int row, int col) const
 {
+	const char caller[] = "CCNSMatrixT::operator()";
+
 	/* range checks */
-	if (row < 0 || row >= fLocNumEQ) throw ExceptionT::kGeneralFail;
-	if (col < 0 || col >= fLocNumEQ) throw ExceptionT::kGeneralFail;
+	if (row < 0 || row >= fLocNumEQ) ExceptionT::GeneralFail(caller);
+	if (col < 0 || col >= fLocNumEQ) ExceptionT::GeneralFail(caller);
 
 	if (row == col)      /* element on diagonal */
 		return fKD[row];
@@ -531,9 +533,9 @@ double& CCNSMatrixT::operator()(int row, int col) const
 		int offset    = row - col;
 		
 		/* over skyline */
-		if (offset > bandwidth) throw ExceptionT::kOutOfRange;
+		if (offset > bandwidth) ExceptionT::OutOfRange(caller);
 
-// row major storage below the diagonal
+		/* row major storage below the diagonal */
 		return fKL[famax[row] + bandwidth - offset];
 	}
 	else                 /* element in upper triangle */
@@ -542,9 +544,9 @@ double& CCNSMatrixT::operator()(int row, int col) const
 		int offset    = col - row;
 		
 		/* over skyline */
-		if (offset > bandwidth) throw ExceptionT::kOutOfRange;
+		if (offset > bandwidth) ExceptionT::OutOfRange(caller);
 		
-// col major storage above the diagonal
+		/* col major storage above the diagonal */
 		return fKU[famax[col] + bandwidth - offset];
 	}
 }
