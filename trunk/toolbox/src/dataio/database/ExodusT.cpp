@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.4 2001-02-27 00:16:26 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.5 2001-04-02 22:25:12 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -112,7 +112,7 @@ bool ExodusT::Create(const StringT& filename, const StringT& title,
 
 	/* create Exodus file */
 	io_ws = comp_ws;
-	file_name = filename;
+	file_name.Take(filename, MAX_LINE_LENGTH - 1);
 	exoid = ex_create(file_name, EX_CLOBBER, &comp_ws, &io_ws);
 	if (exoid < 0)
 		return false;
@@ -273,7 +273,7 @@ void ExodusT::ReadElementBlockDims(int block_ID, int& num_elems, int& num_elem_n
 	if (exoid < 0) throw eGeneralFail;
 
 	/* read block parameters */
-	ArrayT<char> type(MAX_STR_LENGTH + 1);
+	ArrayT<char> type(MAX_STR_LENGTH);
 	int num_attr;
 	Try("ExodusT::ElementBlockDims",
 		ex_get_elem_block(exoid, block_ID, type.Pointer(),
@@ -287,7 +287,7 @@ void ExodusT::ReadConnectivities(int block_ID, GeometryT::CodeT& code,
 	if (exoid < 0) throw eGeneralFail;
 
 	/* read attributues */		
-	char elem_type[MAX_STR_LENGTH + 1];
+	char elem_type[MAX_STR_LENGTH];
 	int num_elems;
 	int num_elem_nodes;
 	int num_attr;
@@ -492,7 +492,7 @@ void ExodusT::ReadSideSet(int set_ID, int& block_ID, iArray2DT& sides) const
 		GlobalToBlockElementNumbers(block_ID, elements);
 
 		/* read block parameters */
-		char type[MAX_STR_LENGTH + 1];
+		char type[MAX_STR_LENGTH];
 		int nel, nen, num_attr;
 		Try("ExodusT::ReadSideSet: ex_get_elem_block",
 			ex_get_elem_block(exoid, block_ID, type,
@@ -529,7 +529,7 @@ void ExodusT::WriteSideSet(int set_ID, int block_ID, const iArray2DT& sides) con
 		temp.Transpose(sides);
 
 		/* read block parameters */
-		char type[MAX_STR_LENGTH + 1];
+		char type[MAX_STR_LENGTH];
 		int nel, nen, num_attr;
 		Try("ExodusT::WriteSideSet: ex_get_elem_block",
 			ex_get_elem_block(exoid, block_ID, type,
@@ -713,7 +713,7 @@ if (num_qa_rec > MAX_QA_REC)
 char *recs[MAX_QA_REC][4];
 	for (int i = 0; i < num_qa_rec; i++)
 	  for (int j = 0; j < 4; j++)
-	    recs[i][j] = new char[MAX_STR_LENGTH + 1];
+	    recs[i][j] = new char[MAX_STR_LENGTH];
 
 	/* read records */
 	Try("ExodusBaseT::ReadQA", ex_get_qa(exoid, recs), 1);
@@ -739,7 +739,7 @@ if (num_info > MAX_INFO)
 	  cout << "\nExodusT::ReadInfo, num records > MAX_INFO\n";
 	char *info[MAX_INFO];
 	for (int i = 0; i < num_info; i++)
-	  info[i] = new char[MAX_LINE_LENGTH + 1];
+	  info[i] = new char[MAX_LINE_LENGTH];
 
 	/* read records */
 	Try("ExodusT::ReadInfo", ex_get_info(exoid, info), 1);
@@ -823,27 +823,37 @@ void ExodusT::BlockToGlobalElementNumbers(int block_ID, iArrayT& elements) const
 * Protected
 *************************************************************************/
 
-void ExodusT::WriteQA(const ArrayT<StringT>& qa_records) const
+void ExodusT::WriteQA(const ArrayT<StringT>& qa_records_) const
 {
-/* DEC will not allow allocation based on passed constant */
-int num_recs = qa_records.Length()/4;
-if (num_recs > MAX_QA_REC)
-	  cout << "\nExodusT::WriteQA, num records > MAX_QA_REC\n";
+	/* truncate QA records */
+	ArrayT<StringT> qa_records(qa_records_.Length());
+		for (int k = 0; k < qa_records.Length(); k++)
+			qa_records[k].Take(qa_records_[k], MAX_STR_LENGTH - 1);
+
+	/* DEC will not allow allocation based on passed constant */
+	int num_recs = qa_records.Length()/4;
+	if (num_recs > MAX_QA_REC)
+		cout << "\nExodusT::WriteQA, num records > MAX_QA_REC\n";
 	char *recs[MAX_QA_REC][4];
 	int m=0;
 	for (int i=0; i < num_recs; i++)
-	  for (int j=0; j < 4; j++)
-	    recs[i][j] = qa_records[m++].Pointer();
+		for (int j=0; j < 4; j++)
+			recs[i][j] = qa_records[m++].Pointer();
 	/* you must send char *(*)[] */
 	Try("ExodusT::WriteQA", ex_put_qa(exoid, num_recs, recs), 1);
 }
 
-void ExodusT::WriteInfo(const ArrayT<StringT>& info_records) const
+void ExodusT::WriteInfo(const ArrayT<StringT>& info_records_) const
 {
-/* DEC will not allow allocation based on passed constant */
-int num_recs = info_records.Length();
-if (num_recs > MAX_INFO)
-	  cout << "\nExodusT::WriteInfo, num records > MAX_INFO\n";
+	/* truncate info records */
+	ArrayT<StringT> info_records(info_records_.Length());
+	for (int k = 0; k < info_records.Length(); k++)
+		info_records[k].Take(info_records_[k], MAX_LINE_LENGTH - 1);
+	
+	/* DEC will not allow allocation based on passed constant */
+	int num_recs = info_records.Length();
+	if (num_recs > MAX_INFO)
+		cout << "\nExodusT::WriteInfo, num records > MAX_INFO\n";
 	char *recs[MAX_INFO];
 	for (int i=0; i < num_recs; i++)
 	  recs[i] = info_records[i++].Pointer();
@@ -1071,7 +1081,7 @@ void ExodusT::ReadLabels(ArrayT<StringT>& labels, char *type) const
 		pArrayT<char*> var_names(num_labels);
 		for (int i = 0; i < num_labels; i++)
 		{
-			char* str = new char[MAX_STR_LENGTH + 1];
+			char* str = new char[MAX_STR_LENGTH];
 			if (!str) throw eOutOfMemory;
 			var_names[i] = str;
 		}
