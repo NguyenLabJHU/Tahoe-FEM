@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.20 2003-09-30 16:09:29 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.21 2003-09-30 20:00:35 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -18,8 +18,8 @@
 using namespace Tahoe;
 
 /* parameters */
-static int knum_d_state = 2; // double's needed per ip
-static int knum_i_state = 0; // int's needed per ip
+//static int knum_d_state = 2; // double's needed per ip
+//static int knum_i_state = 0; // int's needed per ip
 
 //---------------------------------------------------------------------
 
@@ -48,6 +48,10 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	bStep_Complete(0)
 {
 	int i;
+	
+	knum_d_state = 2; // double's needed per ip
+	knum_i_state = 0; // int's needed per ip
+
 	/* check - some code below assumes that both fields have the
 	 * same dimension. TEMP?  get rid of this!!!!!! */ 
 	/*    if (fDispl.NumDOF() != fPlast.NumDOF()) 
@@ -198,7 +202,9 @@ void APS_AssemblyT::Initialize(void)
 
 	/* initialize state variables */
 	fdState = 0;
+	fdState_new = 0;
 	fiState = 0;
+	fiState_new = 0;
 	
 	/* set cards to data in array - NOT NEEDED IF YOU'RE NOT
 	 * GOING TO USE THE ElementCardT ARRAY? */
@@ -718,12 +724,10 @@ void APS_AssemblyT::WriteOutput(void)
 
 	/* smooth stresses to nodes */
 	int n_stress = dSymMatrixT::NumValues(NumSD());
-	//int n_state = fNumIP*knum_d_state;
-	//int n_stress = 2;
 	ElementSupport().ResetAverage(n_stress);
+	//ElementSupport().ResetAverage(knum_d_state);
 	dArray2DT out_variable_all, out_state_all;
 	dSymMatrixT out_variable, out_state;
-	//dMatrixT out_state;
 	dArray2DT nd_stress(NumElementNodes(), n_stress), nd_state(NumElementNodes(), knum_d_state);
 	Top();
 	while (NextElement())
@@ -738,13 +742,14 @@ void APS_AssemblyT::WriteOutput(void)
 		{
 			out_variable.Set(NumSD(), out_variable_all(fShapes->CurrIP()));
 			fShapes->Extrapolate(out_variable, nd_stress);
-			out_state.Set(NumSD(), out_state_all(fShapes->CurrIP()));
-			fShapes->Extrapolate(out_state, nd_state);
+			//out_state.Set(NumSD(), out_state_all(fShapes->CurrIP()));
+			out_state.Set(knum_d_state, out_state_all(fShapes->CurrIP()));
+			//fShapes->Extrapolate(out_state, nd_state);
 		}
 	
 		/* accumulate - extrapolation done from ip's to corners => X nodes  */
 		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nd_stress);
-		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nd_state);
+		//ElementSupport().AssembleAverage(CurrentElement().NodesX(), nd_state);
 	}
 
 	/* get nodally averaged values */
@@ -752,7 +757,8 @@ void APS_AssemblyT::WriteOutput(void)
 	ElementSupport().OutputUsedAverage(extrap_values);
 
 	/* temp space for group displacements */
-	int num_node_output = fDispl.NumDOF() + fPlast.NumDOF() + n_stress + knum_d_state;
+	//int num_node_output = fDispl.NumDOF() + fPlast.NumDOF() + n_stress + knum_d_state;
+	int num_node_output = fDispl.NumDOF() + fPlast.NumDOF() + n_stress;
 	dArray2DT n_values(nodes_used.Length(), num_node_output);
 
 	/* collect nodal values */
@@ -815,7 +821,6 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 
 	/* stress output work space */
 	int n_stress = dSymMatrixT::NumValues(NumSD());
-	//int n_stress = 2;
 	int n_state = fNumIP*knum_d_state;
 	dArray2DT   out_variable_all, out_state_all;
 	dSymMatrixT out_variable, out_state;
@@ -933,7 +938,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 				for (int a=0; a<fNumIP; a++)
 					for (int i=0; i<knum_d_state; i++)
 						fdstatenew[a*knum_d_state+i] = fstate[a][i];
-				//for (int a=0; a<n_state; a++)  fdState_new[CurrElementNumber(),a] = fdstatenew[a];
+				for (int a=0; a<n_state; a++)  fdState_new[CurrElementNumber(),a] = fdstatenew[a];
 
 				/** Set LHS */
 				fLHS = fKepseps;	
@@ -969,7 +974,6 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 
 	/* stress output work space */
 	int n_stress = dSymMatrixT::NumValues(NumSD());
-	//int n_stress = 2;
 	int n_state = fNumIP*knum_d_state;
 	dArray2DT   out_variable_all, out_state_all;
 	dSymMatrixT out_variable, out_state;
@@ -1061,7 +1065,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 			for (int a=0; a<fNumIP; a++)
 				for (int i=0; i<knum_d_state; i++)
 					fdstatenew[a*knum_d_state+i] = fstate[a][i];
-			//for (int a=0; a<n_state; a++)  fdState_new[CurrElementNumber(),a] = fdstatenew[a];
+			for (int a=0; a<n_state; a++)  fdState_new[CurrElementNumber(),a] = fdstatenew[a];
 
 			/* equations numbers */
 			const iArrayT& all_eq = CurrentElement().Equations();

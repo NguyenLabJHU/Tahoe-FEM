@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.10 2003-09-30 16:09:29 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.11 2003-09-30 20:00:35 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -157,7 +157,7 @@ private:
 	GeometryT::CodeT fGeometryCode;
 
 	/** number of integration points */
-	int	fNumIP;
+	int	fNumIP, knum_d_state, knum_i_state;
 	/*@}*/
 
 	/** \name element displacements in local ordering */
