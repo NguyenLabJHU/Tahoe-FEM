@@ -1,14 +1,12 @@
-/* */
-/* created: sawimme (05/10/2001)                                          */
-
+/* $Id: AVSOutputT.cpp,v 1.7 2004-06-17 06:41:07 paklein Exp $ */
+/* created: sawimme (05/10/2001) */
 #include "AVSOutputT.h"
+
 #include "AVST.h"
 #include "OutputSetT.h"
 #include "dArray2DT.h"
-#include "fstreamT.h"
-#include "ios_fwd_decl.h"
+#include "ifstreamT.h"
 #include "iArray2DT.h"
-
 
 using namespace Tahoe;
 
