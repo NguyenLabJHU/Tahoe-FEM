@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.10.2.1 2003-05-09 08:28:03 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.10.2.2 2003-05-09 08:47:25 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -90,9 +90,9 @@ public:
 		const iArray2DT& col_eq, dSPMatrixT& stiffness) = 0;
 
 	/** contribution to the nodal residual forces. Return the contribution of this element
-	 * group to the residual for the given solver group. ParticleT::ResidualForce 
+	 * group to the residual for the given solver group. ParticleT::InternalForce 
 	 * returns the internal force calculated with the latest call to ElementBaseT::FormRHS. */
-	virtual const dArray2DT& ResidualForce(int group);
+	virtual const dArray2DT& InternalForce(int group);
 
 protected: /* for derived classes only */
 

@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.13.2.1 2003-05-09 08:28:03 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.13.2.2 2003-05-09 08:47:25 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -332,11 +332,11 @@ void ParticleT::SetConfiguration(void)
 }
 
 /* contribution to the nodal residual forces */
-const dArray2DT& ParticleT::ResidualForce(int group)
+const dArray2DT& ParticleT::InternalForce(int group)
 {
 	/* check */
 	if (group != Group())
-		ExceptionT::GeneralFail("ParticleT::ResidualForce", 
+		ExceptionT::GeneralFail("ParticleT::InternalForce", 
 			"expecting solver group %d not %d", Group(), group);
 	return fForce;
 }

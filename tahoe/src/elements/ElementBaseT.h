@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.26.4.1 2003-05-09 08:28:02 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.26.4.2 2003-05-09 08:47:24 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -270,11 +270,11 @@ public:
 
 	/** contribution to the nodal residual forces. Return the contribution of this element
 	 * group to the residual for the given solver group. 
-	 * \note ElementBaseT::ResidualForce is not implemented and throws ExceptionT::kGeneralFail. 
+	 * \note ElementBaseT::InternalForce is not implemented and throws ExceptionT::kGeneralFail. 
 	 *       Subclasses need to implemented this method if it is required. This may turn out to
 	 *       be a more general approach for collecting the total residual for the given solver
 	 *       group and could replace the current approach implemented through ElementBaseT::FormRHS. */
-	virtual const dArray2DT& ResidualForce(int group);
+	virtual const dArray2DT& InternalForce(int group);
 
 protected: /* for derived classes only */
 
