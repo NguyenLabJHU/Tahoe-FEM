@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.13 2003-12-18 22:22:01 ebmarin Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.14 2004-01-07 22:55:28 paklein Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -12,6 +12,7 @@
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 #include "Utils.h"
+#include "CommunicatorT.h"
 
 #include "ContinuumElementT.h"
 
@@ -460,15 +461,24 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
 
   // compute averaged equivalent stress
   if (elem == 0 && intpt == 0) fAvgStress = 0.0;
-  fAvgStress.AddScaled(1./(NumIP()*NumElements()), fsavg_ij);
+  fAvgStress += fsavg_ij;
+
   // cout << " elem = " << elem << "   intpt = " << intpt << endl;
   // cout << "    fsavg_ij = " << endl << fsavg_ij << endl;
   // cout << "    fAvgStress = " << endl << fAvgStress << endl;
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
+	{
+	const CommunicatorT* comm = fFSMatSupport.Communicator();
+	dArrayT stress_sum(fAvgStress.Length());
+	comm->Sum(fAvgStress, stress_sum);
+
+	int total_denominator = comm->Sum(NumIP()*NumElements());
+	fAvgStress.SetToScaled(1.0/total_denominator, stress_sum);
+	
      cerr << " step # " << fFSMatSupport.StepNumber() 
           << "    group # " << group
           << "    S_eq_avg = " 
-          << sqrt(fSymMatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 
+          << sqrt(fSymMatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 	}
 
   // iteration counter for nlcsolver and state
   output[1] = fIterCount;
