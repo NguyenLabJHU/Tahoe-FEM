@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: files.tex,v 1.4 2001-04-23 05:07:41 paklein Exp $
+% $Id: files.tex,v 1.5 2002-04-05 19:01:23 sawimme Exp $
 
 \section{Geometry and results files}
 \label{sect.files}
@@ -29,8 +29,25 @@ input and results, while others are limited to one or the other.
 \parbox[b]{0.75in}{\centering 1}  & 
 \parbox[b]{2.0in}{\raggedright TahoeII}\\
 \hline
+\parbox[c]{0.75in}{\centering 3}  & 
+\parbox[c]{2.0in}{\raggedright \vspace{2pt} \textsf{EnSight}~\cite{EnSight6} Gold ASCII 
+version 6 \vspace{2pt}}\\
+\hline
+\parbox[c]{0.75in}{\centering 4}  & 
+\parbox[c]{2.0in}{\raggedright \vspace{2pt} \textsf{EnSight} Gold 
+Binary version 6 \vspace{2pt}}\\
+\hline
 \parbox[b]{0.75in}{\centering 5}  & 
 \parbox[b]{2.0in}{\raggedright \textsf{ExodusII}~\cite{ExodusII}}\\
+\hline
+\parbox[b]{0.75in}{\centering 6}  & 
+\parbox[b]{2.0in}{\raggedright \textsf{ABAQUS ASCII}~\cite{ABAQUS62}}\\
+\hline
+\parbox[b]{0.75in}{\centering 7}  & 
+\parbox[b]{2.0in}{\raggedright \textsf{ABAQUS Binary}\\
+\hline
+\parbox[b]{0.75in}{\centering 10}  & 
+\parbox[b]{2.0in}{\raggedright \textsf{PATRAN}~\cite{PATRAN2001}}\\
 \hline
 \end{tabular}
 \end{center}
@@ -40,8 +57,8 @@ input and results, while others are limited to one or the other.
 \begin{center}
 \begin{tabular}[c]{|c|c|}
 \hline
- \parbox[c]{0.75in}{\centering \textbf{code}}
-&\parbox[c]{2.0in}{\raggedright \textbf{description}}\\
+ \parbox[c]{0.75in}{\centering \textbf{code}} &
+\parbox[c]{2.0in}{\raggedright \textbf{description}}\\
 \hline
 \parbox[c]{0.75in}{\centering 0} & 
 \parbox[c]{2.0in}{\raggedright TahoeI}\\
@@ -59,6 +76,15 @@ Binary version 6 \vspace{2pt}}\\
 \hline
 \parbox[c]{0.75in}{\centering 5}  & 
 \parbox[c]{2.0in}{\raggedright \textsf{ExodusII}~\cite{ExodusII}}\\
+\hline
+\parbox[b]{0.75in}{\centering 6}  & 
+\parbox[b]{2.0in}{\raggedright \textsf{ABAQUS ASCII}~\cite{ABAQUS62}}\\
+\hline
+\parbox[b]{0.75in}{\centering 7}  & 
+\parbox[b]{2.0in}{\raggedright \textsf{ABAQUS Binary}\\
+\hline
+\parbox[b]{0.75in}{\centering 10}  & 
+\parbox[b]{2.0in}{\raggedright \textsf{PATRAN}~\cite{PATRAN2001}}\\
 \hline
 \end{tabular}
 \end{center}
@@ -440,6 +466,14 @@ primary TahoeII contains the path to the external file, as shown below:
 & \texttt{*nodes~} \sbrkt{\textrm{\textit{path to external file}}}
 \end{align}
 
+\subsubsection{\textsf{EnSight Gold} format}
+\label{sect.file.ensight}
+\textsf{EnSight Gold}~\cite{EnSight6} files can be read in version 6 Gold 
+plain text or binary format. The EnSight binary files are portable between 
+some platforms. When an EnSight database is read, the user should enter the 
+case file name, including the extension, when prompted for a database 
+filename. 
+
 \subsubsection{\textsf{ExodusII/Genesis} format}
 \label{sect.file.exodusII}
 The \textsf{ExodusII}~\cite{ExodusII} finite element geometry and results file 
@@ -453,6 +487,40 @@ Node and element maps are currently ignored and items are assumed to be
 consecutively numbered.  To refer to a specific set or block in the
 database use the ID value.  The blocks and sets do not need to have
 consecutive ID values.
+
+\subsubsection{\textsf{ABAQUS Results Files} format}
+\label{sect.file.abaqus}
+\textsf{ABAQUS}~\cite{ABAQUS62} results files in ASCII or binary (*.fil/*.fin) 
+are provided as an input option. Typically as an input option for translating 
+database information. The Tahoe interface supports 5.8 and 6.2 versions and 
+maybe others, depending upon version variations. A given database should 
+contain a coordinate list, element list, node sets, and element sets. Nodes 
+and elements do not have to be consecutively numbered. ABAQUS results files 
+have sets for both elements and nodes. The toolbox interface only reads 
+the first eight characters of the set name. No spaces are allowed. ABAQUS 
+does not have database records pertaining to side sets. 
+
+\subsubsection{\textsf{MSC PATRAN Neutral} format}
+\label{sect.file.patran}
+\textsf{MSC PATRAN}~\cite{PATRAN2001} neutral files are created using the 
+export command within PATRAN. A given database should contain a coordinate 
+list, element list, named component groups that contain element blocks 
+and/or node sets. Nodes and elements do not have to be consecutively 
+numbered. To refer to an element block or node set, use the group name. 
+PATRAN group names are created from the Group pull down menu and are 
+typically used for posting different layers. They are exported to a Neutral 
+file as Named Components. When writing the Neutral file, PATRAN will 
+truncate the group name to 12 characters and write it in upper case. The
+group names must not contain spaces. The Neutral files do not have anything 
+explicitly pertaining to side sets, but if desired, a pseudo side set could 
+be established using contact surface boundaries.
+
+\subsubsection{\textsf{Tahoe Results} format}
+\label{sect.file.patran}
+Tahoe results files are the output files written in Tahoe format. This format 
+differs from Tahoe I or Tahoe II input file format and contains variable 
+results. When prompted for the database filename, the user should supply the 
+geometry (*.geo) or results (*.run) file including the extension. 
 
 \subsection{Results file formats}
 \label{sect.file.results}
@@ -599,14 +667,27 @@ vector variable file instead of a scalar variable file.
 
 \subsubsection{\textsf{ExodusII}}
 \textsf{ExodusII} files are portable to all platforms that have the library
-installed on them.  Each output group is treated as a block and is written
-to a separate file.  Separate files are produced so only the block that
+installed on them.  Each block within an output group is treated as a block. 
+Separate files are written for each output group. Separate files are produced 
+so only the block that
 changes will be printed at each print increment.  Separate files are also
 produced so that nodal data from different output groups does not need to
 be merged.  Element numbering and ordering maps are not given.  The nodes
 are broken up into those used by the connectivities.  
 \textsf{ExodusII} files, from
 multiple restarts, can be joined together using the \texttt{conex} executable.
+
+\subsubsection{\textsf{ABAQUS Results}}
+\textsf{ABAQUS} results files are created for version 5.8. These files could 
+be used in Post. Each block withan an output group is treated as an element 
+set. Separate files are written for each output group. 
+
+\subsubsection{\textsf{PATRAN Results}}
+\textsf{PATRAN} results files are created following the format for version 2001. 
+These files could be used in Post. Each block withan an output group is treated 
+as a Named Component. For each output group, a geometry file, displacement file, 
+force file, node variable file and element variable file is written (if variable 
+data exists). 
 
 \subsubsection{Fracture surface area}
 The fracture surface area file contains columnar data, in the order listed
