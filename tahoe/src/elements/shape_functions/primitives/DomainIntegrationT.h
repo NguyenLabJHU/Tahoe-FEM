@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.h,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: DomainIntegrationT.h,v 1.2 2001-03-15 17:48:46 paklein Exp $ */
 /* created: paklein (09/04/1998)                                          */
 /* class to manage the parent domain including construction for           */
 /* shared parent domains, integration point iterations, and some          */
@@ -154,8 +154,7 @@ inline int DomainIntegrationT::NumFacets(void) const
 	return fDomain->NumFacets();
 }
 
-inline void DomainIntegrationT::NodesOnFacet(int facet,
-	iArrayT& facetnodes) const
+inline void DomainIntegrationT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 {
 	fDomain->NodesOnFacet(facet, facetnodes);
 }
