@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.h,v 1.13 2004-03-16 06:56:28 paklein Exp $ */
+/* $Id: CCSMatrixT.h,v 1.14 2004-06-26 06:28:18 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #ifndef _CCSMATRIX_T_H_
 #define _CCSMATRIX_T_H_
@@ -120,6 +120,13 @@ public:
 	 * \return true if the diagonal values where collected successfully */
 	virtual bool CopyDiagonal(dArrayT& diags) const;
 
+	/** \name check functions */
+	/*@{*/
+	virtual void PrintAllPivots(void) const;
+	virtual void PrintZeroPivots(void) const;
+	virtual void PrintLHS(bool force = false) const;
+	/*@}*/
+
 protected:
 
 	/** \name element accessors */
@@ -139,11 +146,6 @@ protected:
 	
 	/* determine new search direction and put the results in result */
 	virtual void BackSubstitute(dArrayT& result);
-
-	/* rank check functions */
-	virtual void PrintAllPivots(void) const;
-	virtual void PrintZeroPivots(void) const;
-	virtual void PrintLHS(bool force = false) const;
 
 	/* Returns the number of elements ABOVE the diagonal in col */
 	int ColumnHeight(int col) const;
