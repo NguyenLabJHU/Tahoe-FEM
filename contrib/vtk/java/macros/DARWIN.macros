@@ -1,7 +1,0 @@
-# $Id: DARWIN.macros,v 1.4 2002-09-22 18:13:07 paklein Exp $
-# macros for Mac OS X
-COMP_CC = c++
-CC_FLAGS = -c -I /System/Library/Frameworks/JavaVM.framework/Headers -D__GCC_3__
-LD       = c++
-LD_FLAGS = -dynamiclib
-DSO_EXT  = jnilib
