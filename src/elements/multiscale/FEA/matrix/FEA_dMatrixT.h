@@ -53,7 +53,7 @@ class FEA_dMatrixT: public ArrayT <dMatrixT>
 		void Inverse   		(void);
 		void Inverse   		(const FEA_dMatrixT& fea_matrix);
 		void SumOf     		(const FEA_dMatrixT &a, const FEA_dMatrixT &b);
-		void DiffOf    		(const FEA_dMatrixT &b, const FEA_dMatrixT &b);
+		void DiffOf    		(const FEA_dMatrixT &a, const FEA_dMatrixT &b);
 		void Identity 		(double value=1.0);
 		void PlusIdentity (double value=1.0);
 		void Determinant	(FEA_dScalarT &det);
