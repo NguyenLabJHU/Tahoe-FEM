@@ -1,4 +1,4 @@
-/* $Id: RowAutoFill2DT.h,v 1.1 2001-07-06 22:22:35 paklein Exp $ */
+/* $Id: RowAutoFill2DT.h,v 1.2 2001-07-07 19:04:24 paklein Exp $ */
 
 #ifndef _ROW_AUTO_ARRAY2D_T_H_
 #define _ROW_AUTO_ARRAY2D_T_H_
@@ -30,8 +30,11 @@ public:
 	int LogicalSize(void) const;
 	int MinorDimCount(int dim) const; // returns number of rows with the specified size
 
-	/* re-sizing */
+	/** re-sizing */
 	void SetHeadRoom(int head_room);
+	
+	/** flush size */
+	void SetFlushSize(int flush_size);	
 	
 	/* accessors */
 	TYPE& operator()(int major_dim, int minor_dim) const;
@@ -63,11 +66,17 @@ private:
 	/** no assigment operator */
 	RowAutoFill2DT& operator=(RowAutoFill2DT&);
 	
+	/** flush memory. write all data to a disk file, free all memory,
+	 * reallocate, and read from disk */
+	void FlushMemory(void);
+	 
 private:
 
 	/* dimensions */
 	int fHeadRoom; /**< amount of overallocation, as a percentage */
-	int fTotalMemorySize;  /**< running count of total allocation */
+	int fTotalMemorySize; /**< running count of total allocation */
+	int fFlushSize; /**< memory allocation disk flush interval in bytes */
+	int fFlushCount; /**< allocation count */
 
 	/** logical size of each row */
 	ArrayT<int> fLogicalSize;
@@ -88,6 +97,8 @@ template <class TYPE>
 inline RowAutoFill2DT<TYPE>::RowAutoFill2DT(int major_dim, int head_room):
 	fHeadRoom(head_room),
 	fTotalMemorySize(0),
+	fFlushSize(-1),
+	fFlushCount(0),
 	fLogicalSize(major_dim),
 	fMemorySize(major_dim),
 	fRowData(major_dim)
@@ -107,6 +118,8 @@ template <class TYPE>
 RowAutoFill2DT<TYPE>::RowAutoFill2DT(int major_dim, int head_room, int init_row_memory):
 	fHeadRoom(head_room),
 	fTotalMemorySize(0),
+	fFlushSize(-1),
+	fFlushCount(0),
 	fLogicalSize(major_dim),
 	fMemorySize(major_dim),
 	fRowData(major_dim)
@@ -176,6 +189,14 @@ inline void RowAutoFill2DT<TYPE>::SetHeadRoom(int head_room)
 {
 	if (head_room < 0) throw eGeneralFail;
 	fHeadRoom = head_room;
+}
+
+/* flush size */
+template <class TYPE>
+inline void RowAutoFill2DT<TYPE>::SetFlushSize(int flush_size)
+{
+	fFlushSize = flush_size;
+	fFlushCount = 0;
 }
 
 /* accessors */
@@ -296,6 +317,9 @@ inline int RowAutoFill2DT<TYPE>::AppendUnique(int major_dim, const ArrayT<TYPE>&
 template <class TYPE>
 void RowAutoFill2DT<TYPE>::SetLogicalSize(int row, int length)
 {
+	/* flush */
+	if (fFlushSize > 0 && fFlushCount > fFlushSize) FlushMemory();
+
 	/* need more space? */
 	if (length > fMemorySize[row])
 	{
@@ -320,6 +344,7 @@ void RowAutoFill2DT<TYPE>::SetLogicalSize(int row, int length)
 		}
 		fMemorySize[row] = mem_size;
 		fTotalMemorySize += (mem_size - old_size);
+		fFlushCount += mem_size*sizeof(TYPE);
 
 		/* copy old data */
 		if (fLogicalSize[row] > 0) 
@@ -334,6 +359,53 @@ void RowAutoFill2DT<TYPE>::SetLogicalSize(int row, int length)
 	
 	/* set logical size */
 	fLogicalSize[row] = length;
+}
+
+/* flush memory */
+template <class TYPE>
+void RowAutoFill2DT<TYPE>::FlushMemory(void)
+{
+	const char file[] = "RowAutoFill2DT.tmp";
+	cout << "\n RowAutoFill2DT<TYPE>::FlushMemory: flushing memory to disk file: \"" 
+	     << file << '\"' << endl; 
+	ArrayT<TYPE> dump;
+
+	/* dump data */
+	ofstream out(file);
+	for (int i = 0; i < fRowData.Length(); i++)
+	{
+		dump.Set(fLogicalSize[i], fRowData[i]);
+		dump.WriteBinary(out);
+	}
+	out.close();
+
+	/* free data memory */
+	for (int j = 0; j < fRowData.Length(); j++)
+		delete[] fRowData[j];
+	fRowData = NULL;
+	fMemorySize = 0;
+	fTotalMemorySize = 0;
+
+	/* re-allocate/read from file */
+	int flush_size = fFlushSize;
+	fFlushSize = -1;
+	ifstream in(file);
+	for (int k = 0; k < fRowData.Length(); k++)
+	{
+		/* set logical size */
+		SetLogicalSize(k, fLogicalSize[k]);
+		
+		/* read */
+		dump.Set(fLogicalSize[k], fRowData[k]);
+		dump.ReadBinary(in);
+	}
+	in.close();
+
+	/* reset */
+	fFlushSize = flush_size;
+	fFlushCount = 0;
+
+	cout << "\n RowAutoFill2DT<TYPE>::FlushMemory: flushing memory: DONE" << endl; 
 }
 
 #endif /* _ROW_AUTO_ARRAY2D_T_H_ */
