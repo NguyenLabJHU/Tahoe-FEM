@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.h,v 1.7 2004-07-15 08:31:15 paklein Exp $ */
+/* $Id: PenaltyRegionT.h,v 1.8 2004-09-29 23:20:28 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #ifndef _PENALTY_REGION_T_H_
@@ -18,6 +18,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class ScheduleT;
+class SecantMethodT;
 
 /** base class for moving rigid, penalty regions. contact nodes
  * that enter the region are expelled by a quadratic penetration
@@ -37,6 +38,9 @@ public:
 
 	/** constructor */
 	PenaltyRegionT(void);
+
+	/** destructor */
+	virtual ~PenaltyRegionT(void);
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -63,6 +67,10 @@ public:
 
 	/* reset displacements (and configuration to the last known solution) */
 	virtual void Reset(void);
+
+	/** returns true if the internal force has been changed since
+	 * the last time step */
+	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
 	/** \name writing results */
 	/*@{*/
@@ -112,6 +120,12 @@ protected:
 	dArrayT fv;     /**< velocity */
 	dArrayT fxlast; /**< last converged position */
 	dArrayT fvlast; /**< last converged velocity */
+	/*@}*/
+
+	/** \name "roller" boundary condition */
+	/*@{*/
+	int fRollerDirection;
+	SecantMethodT* fSecantSearch;
 	/*@}*/
 
 	/** \name contact force node and equation numbers */
