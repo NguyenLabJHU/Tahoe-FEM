@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.57 2004-04-19 22:08:07 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.58 2004-04-21 08:14:39 paklein Exp $ */
 
 #include "EAMT.h"
 
@@ -226,7 +226,7 @@ void EAMT::WriteOutput(void)
 			temp.Outer(vec);
 		 	for (int cc = 0; cc < num_stresses; cc++) {
 				int ndex = ndof+2+cc;
-		   		values_i[ndex] = -mass[type_i]*temp[cc]/V0;
+		   		values_i[ndex] = (fabs(V0) > kSmall) ? -mass[type_i]*temp[cc]/V0 : 0.0;
 		 	}
 		}
 #endif /* NO_PARTICLE_STRESS_OUTPUT */
@@ -390,7 +390,7 @@ void EAMT::WriteOutput(void)
 				/* accumulate into stress into array */
 				for (int cc = 0; cc < num_stresses; cc++) {
 					int ndex = ndof+2+cc;
-					n_values(local_j, ndex) += 0.5*Fbyr*temp[cc]/V0;
+					n_values(local_j, ndex) += (fabs(V0) > kSmall) ? 0.5*Fbyr*temp[cc]/V0 : 0.0;
 				}
 #endif /* NO_PARTICLE_STRESS_OUTPUT */
 			}	  
@@ -401,7 +401,7 @@ void EAMT::WriteOutput(void)
 	          /* copy stress into array */
 	          for (int cc = 0; cc < num_stresses; cc++) {
 	            int ndex = ndof+2+cc;
-                values_i[ndex] += (vs_i[cc]/V0);
+                values_i[ndex] += (fabs(V0) > kSmall) ? vs_i[cc]/V0 : 0.0;
 	          }
 #endif
 	}
@@ -437,7 +437,8 @@ void EAMT::WriteOutput(void)
         /* recover J, the determinant of the deformation gradient, for atom i
 		 * and divide stress values by it */
 		double J = s_values(local_i,num_stresses);
-		for (int is = 0; is < num_stresses; is++) n_values(local_i,ndof+2+is) /= J;
+		for (int is = 0; is < num_stresses; is++) 
+			n_values(local_i,ndof+2+is) /= J;
 
         for (int n = 0; n < ndof; n++)
             n_values(local_i, ndof+2+num_stresses+num_stresses+n) = s_values(local_i,num_stresses+1+n);

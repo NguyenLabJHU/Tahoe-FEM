@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.38 2004-04-20 17:01:23 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.39 2004-04-21 08:14:39 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -1268,7 +1268,7 @@ void ParticleT::Calc_CSP(dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighb
    double csp = 0.0;
    if (ncspairs >= ncombos) ncspairs = ncombos;
    for (int m = 0; m < ncspairs; m++) csp += ndsum[m];
-   csp /= pow(fLatticeParameter,2);  
+   if (fabs(fLatticeParameter) > kSmall) csp /= pow(fLatticeParameter,2);  
 
    /* put centrosymmetry parameter into global s_values array */
    s_values(local_i, num_s_vals-1) = csp;
