@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11.4.6 2004-04-07 06:22:06 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.4.7 2004-04-10 23:22:15 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -217,9 +217,11 @@ protected:
 	 * \param overlap_node_map map of global node number to index in sum_R_N for nodes in the
 	 *        overlap region
 	 * \param sum_R_N returns with the bond contribution to all the nodes in the overlap region
+	 * \param overlap_cell_i list of cells containing bonds to ghost nodes
 	 */
 	void ComputeSum_signR_Na(const dArrayT& R_i, const RaggedArray2DT<int>& ghost_neighbors, 
-		const dArray2DT& coords, const InverseMapT& overlap_node_map, dArrayT& sum_R_N) const;
+		const dArray2DT& coords, const InverseMapT& overlap_node_map, dArrayT& sum_R_N,
+		AutoArrayT<int>& overlap_cell_i) const;
 
 	/** compute Cauchy-Born contribution to the nodal internal force
 	 * \param R bond vector
@@ -231,11 +233,11 @@ protected:
 	 */
 #if 0
 	void Compute_df_dp(const dArrayT& R, double V_0, const ContinuumElementT& coarse, 
-		const iArrayT& overlap_cell, const InverseMapT& overlap_node_map, const dArray2DT& rho, 
+		const ArrayT<int>& overlap_cell, const InverseMapT& overlap_node_map, const dArray2DT& rho, 
 		dArrayT& f_a, double smoothing, dArray2DT& df_dp, dArray2DT& ddf_dpdp) const;
 #endif
 	void Compute_df_dp(const dArrayT& R, double V_0, const ContinuumElementT& coarse, 
-		const iArrayT& overlap_cell, const InverseMapT& overlap_node_map, const dArray2DT& rho, 
+		const ArrayT<int>& overlap_cell, const InverseMapT& overlap_node_map, const dArray2DT& rho, 
 		dArrayT& f_a, double smoothing, dArray2DT& df_dp, LAdMatrixT& ddf_dpdp) const;
 	/*@}*/
 
