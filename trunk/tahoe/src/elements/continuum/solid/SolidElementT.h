@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.2 2001-02-20 00:42:13 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #ifndef _ELASTIC_T_H_
@@ -21,14 +21,22 @@ class SolidElementT: public ContinuumElementT
 {
 public:
 	
-	enum OutputCodeT {iNodalCoord = 0, // (reference) nodal coordinates
-                       iNodalDisp = 1, // nodal displacements
-                     iNodalStress = 2, // nodal stresses
-                       iPrincipal = 3, // principal stresses
-                   iEnergyDensity = 4, // nodal strain energy density
-                      iWaveSpeeds = 5, // wave speeds
-                    iMaterialData = 6};// material model output
+	enum NodalOutputCodeT {
+		iNodalCoord = 0, // (reference) nodal coordinates
+ 	     iNodalDisp = 1, // nodal displacements
+       iNodalStress = 2, // nodal stresses
+         iPrincipal = 3, // principal stresses
+     iEnergyDensity = 4, // nodal strain energy density
+        iWaveSpeeds = 5, // wave speeds
+      iMaterialData = 6};// material model output
 
+	enum ElementOutputCodeT {
+	      iCentroid = 0, // (reference) coordinates
+		      iMass = 1, // element mass
+	  iStrainEnergy = 2, // strain energy
+	 iKineticEnergy = 3, // strain energy
+    iLinearMomentum = 4};// linear momentum
+      
 	/* constructor */
 	SolidElementT(FEManagerT& fe_manager);
 
@@ -111,16 +119,19 @@ protected:
 	/* return a pointer to a new material list */
 	virtual MaterialListT* NewMaterialList(int size) const;
 
-	/* driver for nodal value calculations */
-	virtual void ComputeNodalValues(const iArrayT& codes);
+	/* driver for calculating output values */
+	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+	                           const iArrayT& e_codes, dArray2DT& e_values);
 
 private:
 
 	/* construct output labels array */
-	virtual void SetOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-		iArrayT& counts);
-	virtual void GenerateOutputLabels(const iArrayT& counts,
-		ArrayT<StringT>& labels) const;
+	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+		iArrayT& counts) const;
+	virtual void SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+		iArrayT& counts) const;
+	virtual void GenerateOutputLabels(const iArrayT& n_counts, ArrayT<StringT>& n_labels, 
+		const iArrayT& e_counts, ArrayT<StringT>& e_labels) const;
 
 protected:
 
@@ -135,8 +146,6 @@ protected:
 	LocalArrayT fLocLastDisp; // last converged disp's local ordering
 	LocalArrayT fLocVel;      // velocities with local ordering
 	LocalArrayT fLocAcc;      // accelerations with local ordering
-// NOTE: compute approximate velocities and accelerations for the
-//       for quasi-static case????
 
 	/* run time */
 	StructuralMaterialT* fCurrMaterial;
@@ -147,7 +156,8 @@ protected:
 	dSymMatrixT fStress; /* stress vector              */	
 
 	/* parameters */
-	static const int NumOutputCodes;
+	static const int NumNodalOutputCodes;
+	static const int NumElementOutputCodes;
 };
 
 /* accessors */
