@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.30.2.3 2004-03-18 17:51:45 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.30.2.4 2004-03-22 18:40:19 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -483,13 +483,6 @@ void CSEBaseT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	ElementBaseT::DefineParameters(list);
 
-	/* geometry code */
-	ParameterT geometry(ParameterT::Enumeration, "geometry");
-	geometry.AddEnumeration("line", GeometryT::kLine);
-	geometry.AddEnumeration("quadrilateral", GeometryT::kQuadrilateral);
-	geometry.AddEnumeration("triangle", GeometryT::kTriangle);
-	list.AddParameter(geometry);
-
 	ParameterT close_surfaces(ParameterT::Boolean, "close_surfaces");
 	close_surfaces.SetDefault(false);
 	list.AddParameter(close_surfaces);
@@ -572,8 +565,6 @@ void CSEBaseT::TakeParameterList(const ParameterListT& list)
 	ElementBaseT::TakeParameterList(list);
 
 	/* take parameters */
-	fGeometryCode = GeometryT::int2CodeT(list.GetParameter("geometry"));
-	fNumIntPts = list.GetParameter("integration_points");
 	fCloseSurfaces = list.GetParameter("close_surfaces");
 	fOutputArea = list.GetParameter("output_area");
 
