@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.21 2003-04-07 17:25:50 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.22 2003-04-07 23:39:41 cjkimme Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -6,20 +6,13 @@
 #include "BasicFieldT.h"
 #include "FEManagerT.h"
 #include "ElementsConfig.h"
-#include "SolidElementT.h"
 
 #ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
 #endif
 
 #ifdef COHESIVE_SURFACE_ELEMENT
-#include "SurfacePotentialT.h"
-#include "TiedPotentialT.h"
-#include "TiedPotentialBaseT.h"
-#endif
-
-#ifdef COHESIVE_SURFACE_ELEMENT_DEV
-#include "MR_RP2DT.h"
+#include "CSEBaseT.h"
 #endif
 
 //TEMP
@@ -33,9 +26,7 @@ TiedNodesT::TiedNodesT(NodeManagerT& node_manager, BasicFieldT& field):
 	KBC_ControllerT(node_manager),
 	fField(field),
 	fDummySchedule(1.0),
-	fFEManager(node_manager.FEManager()),
-	fPairSpace(),
-	iPairSpace()
+	fFEManager(node_manager.FEManager())
 {
 #ifndef COHESIVE_SURFACE_ELEMENT
 	ExceptionT::BadInputValue("TiedNodesT::TiedNodesT", "COHESIVE_SURFACE_ELEMENT not enabled");
@@ -70,38 +61,15 @@ void TiedNodesT::Initialize(ifstreamT& in)
 	{
 #ifdef COHESIVE_SURFACE_ELEMENT
 		qNoTiedPotential = false;
-		int code;
-		in >> code;
-		switch (code)
-		{
-			case SurfacePotentialT::kTiedPotential:
-			{	
-				if (fNodeManager.NumSD() == 2)
-					fSurfPot = new TiedPotentialT(in);
-				else
-					ExceptionT::BadInputValue("TiedNodesT", "potential not implemented for 3D: %d", code);
-				break;
-			}
-			case SurfacePotentialT::kMR_RP:
-			{
-#ifdef COHESIVE_SURFACE_ELEMENT_DEV
-				if (fNodeManager.NumSD() == 2)
-					fSurfPot = new MR_RP2DT(in);
-				else
-					ExceptionT::BadInputValue("TiedNodesT", "potential not implemented for 3D: %d", code);
-				break;
-#else
-				ExceptionT::BadInputValue("TiedNodesT", "COHESIVE_SURFACE_ELEMENT_DEV not enabled: %d", code);
-#endif
-			}
-			default:
-				throw ExceptionT::kBadInputValue;
-		}
-		fTiedPot = dynamic_cast<TiedPotentialBaseT*>(fSurfPot);
-		if (fTiedPot == 0)
-		{
-			ExceptionT::GeneralFail("TiedNodesT","Cannot access TiedPotentialBase functions");
-		}
+		int nBulkGroups;
+    	in >> nBulkGroups; if (nBulkGroups != 1) throw ExceptionT::kBadInputValue;
+    	iElemGroups.Dimension(nBulkGroups);
+    	for (int i = 0; i < nBulkGroups; i++)
+    	{
+    		in >> iElemGroups[i]; 
+    		if (iElemGroups[i] < 0) throw ExceptionT::kBadInputValue;
+    		iElemGroups[i]--;
+    	}
 #else
 		ExceptionT::BadInputValue("TiedNodesT","Cohesive Surface Elements Not Defined");
 #endif
@@ -439,46 +407,28 @@ bool TiedNodesT::ChangeStatus(void)
 		return false;
 #else
       	bool changeQ = false;
-      	iArrayT& qGroups = fTiedPot->BulkGroups();
-      	for (int j = 0; j < qGroups.Length(); j++) 
+      	dArray2DT freeNodeQ;
+      	for (int j = 0; j < iElemGroups.Length(); j++) 
       	{
-			ElementBaseT* surroundingGroup = fFEManager.ElementGroup(qGroups[j]);
+			ElementBaseT* surroundingGroup = fFEManager.ElementGroup(iElemGroups[j]);
   			if (!surroundingGroup)
         	{
-           		cout <<"TiedPotentialT::ChangeStatus: Element group "<<qGroups[j]<<" doesn't exist \n";
+           		cout <<"TiedPotentialT::ChangeStatus: Element group "<<iElemGroups[j]<<" doesn't exist \n";
       	  		throw ExceptionT::kGeneralFail;
        	 	}
-	  		surroundingGroup->SendOutput(SolidElementT::iNodalStress);
-	  		dArray2DT fNodalQs = fNodeManager.OutputAverage();
-
-			if (j == 0)
-			{
-				if (!fPairSpace.IsAllocated())
-				{
-					fPairSpace.Dimension(fNodePairs.MajorDim(),fNodalQs.MinorDim());
-					iPairSpace.Dimension(fNodePairs.MajorDim());
-				}
-				fPairSpace = 0.;
-				iPairSpace = 0;
-			}
-
-		  	for (int i = 0; i < fNodePairs.MajorDim();i++) 
-		    {  
-			    fPairSpace.AddToRowScaled(i,1.,fNodalQs(fNodePairs(i,1)));
-	        }   
+	  		surroundingGroup->SendOutput(CSEBaseT::InternalData);
+	  		freeNodeQ = fNodeManager.OutputAverage();
 	    }
 	    
 	    for (int i = 0; i < fNodePairs.MajorDim();i++) 
-		{  
-			dArrayT sigma(fPairSpace.MinorDim(),fPairSpace(i));
-			    
-			if (fPairStatus[i] == kTied && fTiedPot->InitiationQ(sigma.Pointer()))     
+		{      
+			if (fPairStatus[i] == kTied && freeNodeQ(fNodePairs(i,1),0) > 0.)     
 			{ 
 			  	fPairStatus[i] = kFree;
 			  	changeQ = true;
 			}
 	   	}   
-	        
+	     
         return changeQ;
 #endif
     }	
@@ -495,7 +445,6 @@ void TiedNodesT::SetBCCards(void)
 	int n_tied = fPairStatus.Count(kTied);
 	int ndof = fField.NumDOF();
 	fKBC_Cards.Dimension(n_tied*ndof);
-	//	cout<<"TiedNodesT::SetBCCards "<<n_tied<<" tied nodes\n"; 
 
 	/* generate BC cards */
 	if (n_tied > 0)
