@@ -1,3 +1,4 @@
+
 /* $Id */
 #include "EAMT.h"
 
@@ -26,14 +27,18 @@ EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
   fEqnos(kMemoryHeadRoom),
   fForce_list_man(0, fForce_list),
   fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
-  fElectronDensityForce_man(kMemoryHeadRoom, fElectronDensityForce, 1),
-  fElectronDensityStiff_man(kMemoryHeadRoom, fElectronDensityStiff, 1),
   fEmbeddingEnergy_man(kMemoryHeadRoom, fEmbeddingEnergy, 1),
   fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
-  fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1)
-{
+  fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
+  frhop_r_man(kMemoryHeadRoom, frhop_r,NumDOF()),
 
-}
+  /* check derivatives */
+  fdFdx_man(kMemoryHeadRoom, fdFdx, 2*NumDOF()),
+  fEmbeddingForce_i_man(kMemoryHeadRoom, fEmbeddingForce_i, 2*NumDOF()),
+  frho_i_man(kMemoryHeadRoom, frho_i, 2*NumDOF()),
+  fEmb_man(kMemoryHeadRoom, fEmb, NumDOF()),
+  fEmb_i_man(kMemoryHeadRoom, fEmb_i, 2*NumDOF())
+{}
 
 /* collecting element group equation numbers */
 void EAMT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -54,6 +59,8 @@ void EAMT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 /* class initialization */
 void EAMT::Initialize(void)
 {
+  cout << "ENTER EAMT::Initialize\n";
+
   /* inherited */
   ParticleT::Initialize();
 
@@ -76,14 +83,6 @@ void EAMT::Initialize(void)
   fElectronDensityMessageID = fCommManager.Init_AllGather(MessageT::Double, 1);
   fElectronDensity_man.SetMajorDimension(ElementSupport().NumNodes(), false);
 
-  /* set up communication of electron density force information */
-  fElectronDensityForceMessageID = fCommManager.Init_AllGather(MessageT::Double, 1);
-  fElectronDensityForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-  /* set up communication of electron density stiffness information */
-  fElectronDensityStiffMessageID = fCommManager.Init_AllGather(MessageT::Double, 1);
-  fElectronDensityStiff_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
   /* set up communication of embedding energy information */
   fEmbeddingEnergyMessageID = fCommManager.Init_AllGather(MessageT::Double, 1);
   fEmbeddingEnergy_man.SetMajorDimension(ElementSupport().NumNodes(), false);
@@ -95,6 +94,26 @@ void EAMT::Initialize(void)
   /* set up communication of embedding stiffness information */
   fEmbeddingStiffMessageID = fCommManager.Init_AllGather(MessageT::Double, 1);
   fEmbeddingStiff_man.SetMajorDimension(ElementSupport().NumNodes(), false);
+
+  /* set up communication of rhop * r information */
+  frhop_rMessageID = fCommManager.Init_AllGather(MessageT::Double, NumDOF());
+  frhop_r_man.SetMajorDimension(ElementSupport().NumNodes(), false);
+
+  /** Check Derivatives **/
+  fEmbMessageID = fCommManager.Init_AllGather(MessageT::Double, NumDOF());
+  fEmb_man.SetMajorDimension(ElementSupport().NumNodes(), false);  
+
+  fEmb_iMessageID = fCommManager.Init_AllGather(MessageT::Double, 2*NumDOF());
+  fEmb_i_man.SetMajorDimension(ElementSupport().NumNodes(), false);  
+
+  fdFdxMessageID = fCommManager.Init_AllGather(MessageT::Double,2*NumDOF());
+  fdFdx_man.SetMajorDimension(ElementSupport().NumNodes(), false);  
+
+  frho_iMessageID = fCommManager.Init_AllGather(MessageT::Double, 2*NumDOF());
+  frho_i_man.SetMajorDimension(ElementSupport().NumNodes(), false);  
+
+  fEmbeddingForce_iMessageID = fCommManager.Init_AllGather(MessageT::Double, 2*NumDOF());
+  fEmbeddingForce_i_man.SetMajorDimension(ElementSupport().NumNodes(), false);  
 }
 
 /* collecting element geometry connectivities */
@@ -115,7 +134,6 @@ void EAMT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 void EAMT::WriteOutput(void)
 {
   cout << "ENTER EAMT::WriteOutput\n";
-
   const char caller[] = "EAMT::WriteOutput";
 
   /* inherited */
@@ -139,7 +157,6 @@ void EAMT::WriteOutput(void)
 
   /* output arrays length number of active nodes */
   dArray2DT n_values(non, num_output), e_values;
-
 
   n_values = 0.0;
 
@@ -248,13 +265,13 @@ void EAMT::WriteOutput(void)
 	  r_ij.DiffOf(x_j, x_i);
 	  double r = r_ij.Magnitude();
 	  
-	  /* Pair Potential : phi = z_i z_j /r */
+	  /* Pair Potential : phi = 0.5 * z_i z_j /r */
 	  double phiby2 = 0.0;
 	  if(ipair == 1) 
 	  {
 	    double z_i =  pair_energy_i(r, NULL, NULL);
 	    double z_j =  pair_energy_j(r, NULL, NULL);
-	    double phi = z_i * z_j/r;
+	    double phi =  z_i * z_j/r;
 	    phiby2 = 0.5*phi;
 	  }
 
@@ -281,7 +298,6 @@ void EAMT::WriteOutput(void)
 void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 			 const iArray2DT& col_eq, dSPMatrixT& stiffness)
 {
-
   cout << "ENTER EAMT::FormStiffness\n";
 
   const char caller[] = "EAMT::FormStiffness";
@@ -313,8 +329,11 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
   int current_property = -1;      
   EAMPropertyT::EDEnergyFunction ed_energy = NULL;
 
+  EAMPropertyT::EDForceFunction ed_force_i = NULL;
+  EAMPropertyT::EDForceFunction ed_force_j = NULL;
+
   fElectronDensity = 0.0;
-  /* Loop i : run through neighbor list */
+  frhop_r = 0.0;
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
       /* row of neighbor list */
@@ -323,6 +342,7 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
       /* type */
       int  tag_i = neighbors[0]; /* self is 1st spot */
       int type_i = fType[tag_i];
+      double* rp_i = frhop_r(tag_i);
 		
       /* particle equations */
       field_eqnos.RowAlias(tag_i, row_eqnos);
@@ -332,6 +352,7 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 	{
 	  /* global tag */
 	  int tag_j = neighbors[j];
+	  double* rp_j = frhop_r(tag_j);
 			
 	  /* particle is a target column */
 	  int col_eq_index = col_to_col_eq_row_map.Map(tag_j);
@@ -359,6 +380,14 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 
 	      fElectronDensity(tag_i,0) += ed_energy(r,NULL,NULL);	      
 	      fElectronDensity(tag_j,0) += ed_energy(r,NULL,NULL);	      
+
+	      double rhop_i = ed_force_i(r,NULL,NULL)/r;
+	      double rhop_j = ed_force_j(r,NULL,NULL)/r;
+	      for (int k = 0; k < ndof; k++)
+		{
+		  rp_i[k] += rhop_i * r_ij[k]; 
+		  rp_j[k] += rhop_j * r_ij[k]; 
+		}
 	    }
 	}
     }
@@ -366,17 +395,8 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
   /* exchange electron density information */
   fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
 
-  int current_property_i = -1;
-  int current_property_j = -1;
-  int current_property_k = -1;
-  
-  dArrayT x_k; 
-  dArrayT r_ik(ndof);
-  dArrayT r_kj(ndof);
-
-  EAMPropertyT::EDForceFunction ed_force_i = NULL;
-  EAMPropertyT::EDForceFunction ed_force_j = NULL;
-
+  /* exchange rhop * r information */
+  fCommManager.AllGather(frhop_rMessageID, frhop_r);
 
   /* get embedding force */
   GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
@@ -387,115 +407,16 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
   GetEmbStiff(coords,fElectronDensity,fEmbeddingStiff);
   /* exchange embedding stiffness information */
   fCommManager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
+
+  int current_property_i = -1;
+  int current_property_j = -1;
   
-  /* Get \sum_{k} [rho(r_ik)]' r_ik/r */
-  dArray2DT rhop_r(fNeighbors.MajorDim(),ndof);
-  rhop_r = 0.0;
-
-  /* Get \sum_{k} [rho_i(r_ik)]'[rho_j(r_kj)]' F_k'' r_ik/r r_kj/r */
-  dArray2DT rhop_rhop_Epp_r_r_0(ElementSupport().NumNodes(),ElementSupport().NumNodes());
-  rhop_rhop_Epp_r_r_0 = 0.0;
-  dArray2DT rhop_rhop_Epp_r_r_1(ElementSupport().NumNodes(),ElementSupport().NumNodes());
-  rhop_rhop_Epp_r_r_1 = 0.0;
-  dArray2DT rhop_rhop_Epp_r_r_2(ElementSupport().NumNodes(),ElementSupport().NumNodes());
-  rhop_rhop_Epp_r_r_2 = 0.0;
-  /* Loop i : run through neighbor list */
-  for (int i = 0; i < fNeighbors.MajorDim(); i++)
-    {
-      /* row of neighbor list */
-      fNeighbors.RowAlias(i, neighbors);
-
-      /* type */
-      int  tag_i = neighbors[0]; /* self is 1st spot */
-      int type_i = fType[tag_i];
-		
-      /* particle equations */
-      field_eqnos.RowAlias(tag_i, row_eqnos);
-
-      coords.RowAlias(tag_i, x_i);
-      for (int j = 1; j < neighbors.Length(); j++)
-	{
-	  /* global tag */
-	  int tag_j = neighbors[j];
-			
-	  /* particle is a target column */
-	  int col_eq_index = col_to_col_eq_row_map.Map(tag_j);
-	  if (col_eq_index != -1)
-	    {
-	      /* more particle info */
-	      int type_j = fType[tag_j];
-
-	      /* particle equations */
-	      col_eq.RowAlias(col_eq_index, col_eqnos);
-
-	      /* global coordinates */
-	      coords.RowAlias(tag_j, x_j);
-
-	      for (int k = 1; k < neighbors.Length(); k++)
-		{
-		  int  tag_k = neighbors[k];
-		  int type_k = fType[tag_k];
-		  
-		  /* global coordinates */
-		  coords.RowAlias(tag_k, x_k);
-
-		  /* connecting vectors */
-		  r_ik.DiffOf(x_k,x_i);
-		  double r_i = r_ik.Magnitude();
-		  r_kj.DiffOf(x_j,x_k);
-		  double r_j = r_kj.Magnitude();
- 
-
-		  int property_i = fPropertiesMap(type_i, type_k); 
-		  if (property_i != current_property_i)
-		    {
-		      ed_force_i = fEAMProperties[property_i]->getElecDensForce();
-		      current_property_i = property_i;
-		    }
-
-		  int property_j = fPropertiesMap(type_j, type_k); 
-		  if (property_j != current_property_j)
-		    {
-		      ed_force_j = fEAMProperties[property_j]->getElecDensForce();
-		      current_property_j = property_j;
-		    }
-
-		  double Epp    = fEmbeddingStiff(tag_k,0);
-		  double rhop_i = ed_force_i(r_i,NULL,NULL);
-		  double rhop_j = ed_force_j(r_j,NULL,NULL);
-
-
-		  for (int l = 0; l < ndof; l++)
-		    {
-		      rhop_r(tag_i,l) +=  rhop_i * r_ik[l];
-		      rhop_r(tag_j,l) +=  rhop_i * r_kj[l];
-		    }
-
-		  double Coeff = rhop_j * rhop_i * Epp / (r_i * r_j);
-
-		  rhop_rhop_Epp_r_r_0(tag_i,tag_j) += Coeff * r_ik[0] * r_kj[0]; // sum over k
-		  rhop_rhop_Epp_r_r_1(tag_i,tag_j) += Coeff * r_ik[1] * r_kj[1];
-		  if(ndof == 3) rhop_rhop_Epp_r_r_2(tag_i,tag_j) += Coeff * r_ik[2] * r_kj[2];
-		}
-	    }
-	}
-    }
-      
-  current_property_i = -1;
-  current_property_j = -1;
-  current_property_k = -1;
-
   EAMPropertyT::PairEnergyFunction pair_energy_i = NULL;
   EAMPropertyT::PairEnergyFunction pair_energy_j = NULL;
   EAMPropertyT::PairForceFunction pair_force_i = NULL;
   EAMPropertyT::PairForceFunction pair_force_j = NULL;
   EAMPropertyT::PairStiffnessFunction pair_stiffness_i = NULL;
   EAMPropertyT::PairStiffnessFunction pair_stiffness_j = NULL;
-  
-  EAMPropertyT::EmbedForceFunction embed_force_i = NULL;
-  EAMPropertyT::EmbedForceFunction embed_force_j = NULL;
-  EAMPropertyT::EmbedStiffnessFunction embed_stiffness_i = NULL; 
-  EAMPropertyT::EmbedStiffnessFunction embed_stiffness_j = NULL;
   
   EAMPropertyT::EDStiffnessFunction ed_stiffness_i = NULL;
   EAMPropertyT::EDStiffnessFunction ed_stiffness_j = NULL;
@@ -509,6 +430,7 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
       /* type */
       int  tag_i = neighbors[0]; /* self is 1st spot */
       int type_i = fType[tag_i];
+      double* rp_i = frhop_r(tag_i);
 		
       /* particle equations */
       field_eqnos.RowAlias(tag_i, row_eqnos);
@@ -519,6 +441,7 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 	{
 	  /* global tag */
 	  int tag_j = neighbors[j];
+	  double* rp_j = frhop_r(tag_j);
 			
 	  /* particle is a target column */
 	  int col_eq_index = col_to_col_eq_row_map.Map(tag_j);
@@ -568,6 +491,7 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 	      /* Component of force coming from Pair potential */
 	      if(ipair == 1)
 		{
+		  fLHS  = 0.0;
 		  double z_i  = pair_energy_i(r, NULL, NULL);
 		  double z_j  = pair_energy_j(r, NULL, NULL);
 		  double zp_i = pair_force_i(r,NULL,NULL);
@@ -575,82 +499,84 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 		  double zpp_i = pair_stiffness_i(r,NULL,NULL);
 		  double zpp_j = pair_stiffness_j(r,NULL,NULL);
 		  
-		  double E = 0.5*z_i * z_j/r;
-		  double F = 0.5*(z_i * zp_j + zp_i * z_j)/r -E/r;
-		  double K = 0.5*(zpp_i*z_j + 2*zp_i * zp_j + z_i * zpp_j)/r - 2*F/r;
+		  double E =  0.5* z_i * z_j/r;
+		  double F =  0.5*(z_i * zp_j + zp_i * z_j)/r - E/r;
+		  double K =  0.5*(zpp_i*z_j + 2*zp_i * zp_j + z_i * zpp_j)/r - 2*F/r;
 		  
 		  double Fbyr = F/r;
-
+		  
 		  /* 1st term */
 		  fLHS.Outer(fRHS, fRHS, (K - Fbyr)/r/r);
-		  
-		  /* 2nd term */				
+		
+		  /* 2nd term */
 		  fLHS.AddScaled(Fbyr, fOneOne);
-		}
 
+		  /* assemble */
+		  for (int p = 0; p < row_eqnos.Length(); p++)
+		    for (int q = 0; q < col_eqnos.Length(); q++)
+		      stiffness.AddElement(row_eqnos[p]-1, col_eqnos[q]-1, fLHS(p,q));
+
+		}
 
 	      /* Component of force coming from Embedding Energy */
 	      if(iEmb == 1)
 		{
-		  double Ep_i = fEmbeddingForce(tag_i,0);
-		  double Ep_j = fEmbeddingForce(tag_j,0);
+		  fLHS  = 0.0;
+		  double Ep_i   = fEmbeddingForce(tag_i,0); 
+		  double Epp_i  = fEmbeddingStiff(tag_i,0); 
 		  
-		  double Epp_i = fEmbeddingStiff(tag_i,0);
-		  double Epp_j = fEmbeddingStiff(tag_j,0);
-		  
-		  double rhop_i = ed_force_i(r,NULL,NULL);
-		  double rhop_j = ed_force_j(r,NULL,NULL);
-		  
+		  double rhop_i  = ed_force_i(r,NULL,NULL);
 		  double rhopp_i = ed_stiffness_i(r,NULL,NULL);
+		  
+		  double Ep_j   = fEmbeddingForce(tag_j,0); 
+		  double Epp_j  = fEmbeddingStiff(tag_j,0); 
+		  
+		  double rhop_j  = ed_force_j(r,NULL,NULL);
 		  double rhopp_j = ed_stiffness_j(r,NULL,NULL);
 		  
-		  double F = rhop_i * Ep_j + rhop_j * Ep_i;
-		  double Fbyr = F/r;
-		  double K = rhopp_i * Epp_j + rhopp_j * Epp_i;
-		  
-		  double K2_1 = rhopp_j * Epp_i - rhopp_i * Epp_j;
-		  
-		  dArrayT rhopr(2*ndof);
-		  for (int k = 0; k < ndof; k++) rhopr[k] = rhop_r(tag_i,k);
-		  for (int k = ndof; k < 2*ndof; k++)  rhopr[k] =-rhop_r(tag_i,k-ndof);
-		  
-		  dArrayT K2_2(2*ndof);
-		  if(ndof == 3)
-		    {
-		      K2_2[0] = rhop_rhop_Epp_r_r_0(tag_i,tag_j);
-		      K2_2[1] = rhop_rhop_Epp_r_r_1(tag_i,tag_j);
-		      K2_2[2] = rhop_rhop_Epp_r_r_2(tag_i,tag_j);
-		      
-		      K2_2[3] =-rhop_rhop_Epp_r_r_0(tag_i,tag_j);
-		      K2_2[4] =-rhop_rhop_Epp_r_r_1(tag_i,tag_j);
-		      K2_2[5] =-rhop_rhop_Epp_r_r_2(tag_i,tag_j);
-		      
-		    }
-		  else if (ndof == 2)
-		    {
-		      K2_2[0] = rhop_rhop_Epp_r_r_0(tag_i,tag_j);
-		      K2_2[1] = rhop_rhop_Epp_r_r_1(tag_i,tag_j);
-		      
-		      K2_2[2] =-rhop_rhop_Epp_r_r_0(tag_i,tag_j);
-		      K2_2[3] =-rhop_rhop_Epp_r_r_1(tag_i,tag_j);
-		    }
-		  
-		  /* 1st term */
-		  fLHS.Outer(fRHS, fRHS, (K - Fbyr)/r/r);
-		  
-		  /* 2nd term */
-		  fLHS.AddScaled(Fbyr, fOneOne);
-		  
-		  /* last terms */
-		  fLHS.Outer(rhopr,fRHS,K2_1);
-		  for (int k = 0; k < 2*ndof; k++)
-		    fLHS[k] += K2_2[k];
-		}
+		  double F_i = rhop_j * Ep_i;
+		  double F_i_byr = F_i/r;
 
-	      /* assemble */
-	      for (int p = 0; p < row_eqnos.Length(); p++)
-		for (int q = 0; q < col_eqnos.Length(); q++)
-		  stiffness.AddElement(row_eqnos[p]-1, col_eqnos[q]-1, fLHS(p,q));
+		  double F_j = rhop_i * Ep_j;
+		  double F_j_byr = F_j/r;
+
+		  double K_i = Ep_i * rhopp_j;
+		  double K_j = Ep_j * rhopp_i;
+
+		  double K2_i = Epp_i * rhop_j;
+		  double K2_j = Epp_j * rhop_i;
+
+		  dMatrixT El_i(ndof);
+		  dMatrixT El_j(ndof);
+		  for (int k = 0; k < ndof; k++)
+		    {
+		      double r2_k = r_ij[k]/r;
+		      for (int l = 0; l < ndof; l++)
+			{
+			  double r_kl = r2_k * r_ij[l]/r;
+			  
+			  double F_ik = F_i_byr*(1.0 - r_kl);
+			  double F_jk = F_j_byr*(1.0 - r_kl);
+			  
+			  double K_ik = K_i*r_kl + K2_i*rp_i[l]*r2_k;
+			  double K_jk = K_j*r_kl + K2_j*rp_j[l]*r2_k;
+
+			  El_i(k,l) =  F_ik + K_ik;
+			  El_j(k,l) =  F_jk + K_jk;
+			}		  
+		    }
+		  
+		  fLHS.SetBlock(0,0,El_i); 
+		  fLHS.SetBlock(ndof,ndof,El_j); 
+		  fLHS.SetBlock(0,ndof,El_i); 
+		  fLHS.SetBlock(ndof,0,El_j);
+
+
+		  /* assemble */
+		  for (int p = 0; p < row_eqnos.Length(); p++)
+		    for (int q = 0; q < col_eqnos.Length(); q++)
+		      stiffness.AddElement(row_eqnos[p]-1, col_eqnos[q]-1, fLHS(p,q));
+		}
 	    }
 	}
     }
@@ -704,6 +630,8 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
   /* assemble diagonal stiffness */
   if (formK && sys_type == GlobalT::kDiagonal)
     {
+      cout << "ENTER EAMT::LHSDriver - Diagonal Form\n";
+
       /* assembly information */
       const ElementSupportT& support = ElementSupport();
       int group = Group();
@@ -713,25 +641,13 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
       const dArray2DT& coords = support.CurrentCoordinates();
 
       iArrayT neighbors;
-      dArrayT x_i, x_j, r_ij(ndof), r_ji(ndof);
-
-      /* EAM properties function pointers */
-      int current_property_i = -1;
-      int current_property_j = -1;
-
-      EAMPropertyT::EDForceFunction ed_force_i  = NULL;    
+      dArrayT x_i, x_j, r_ij(ndof);
 
       /* get electron density */
       if(ndof == 2) GetRho2D(coords,fElectronDensity);
       if(ndof == 3) GetRho3D(coords,fElectronDensity);
       /* exchange electron density information */
       fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
-
-      /* get electron density force*/
-      if(ndof == 2) GetRhoForce2D(coords,fElectronDensityForce);
-      if(ndof == 3) GetRhoForce3D(coords,fElectronDensityForce);
-      /* exchange electron density force information */
-      fCommManager.AllGather(fElectronDensityForceMessageID, fElectronDensityForce);
 
       /* get embedding force */
       GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
@@ -742,59 +658,16 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
       GetEmbStiff(coords,fElectronDensity,fEmbeddingStiff);
       /* exchange embedding stiffness information */
       fCommManager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
+   
+      /* get rhop * r */
+      frhop_r = 0.0;
+      GetRhop_r(coords,frhop_r);
+      /* exchange rhop * r information */
+      fCommManager.AllGather(frhop_rMessageID, frhop_r);
 
+      int current_property_i = -1;
+      int current_property_j = -1;
 
-      /* Get rhop_r(l) = \sum_{k=1,neighbor(i) rhop_k(r_ik) r_ik(l)/r */
-      dArray2DT rhop_r(ElementSupport().NumNodes(),ndof);
-      rhop_r = 0.0;
-
-      /* Loop i : run through neighbor list */
-      for (int i = 0; i < fNeighbors.MajorDim(); i++)
-	{
-	  fNeighbors.RowAlias(i, neighbors);
-
-	  int  tag_i = neighbors[0]; 
-	  int type_i = fType[tag_i];
-	  double* rp_i = rhop_r(tag_i);
-		
-	  coords.RowAlias(tag_i, x_i);
-
-	  for (int j = 1; j < neighbors.Length(); j++)
-	    {
-	      int  tag_j = neighbors[j];
-	      int type_j = fType[tag_j];
-	      double* rp_j = rhop_r(tag_j);
-	      
-	      coords.RowAlias(tag_j, x_j);
-			
-	      int property_i = fPropertiesMap(type_i, type_j);
-	      if (property_i != current_property_i)
-		{
-		  ed_force_i  = fEAMProperties[property_i]->getElecDensForce();
-		  current_property_i = property_i;
-		}	      
-		
-	      r_ij.DiffOf(x_j, x_i);
-	      r_ji.DiffOf(x_i, x_j);
-	      double r = r_ij.Magnitude();
-
-	      double rhop = fElectronDensityForce(tag_i,0)/r; // ed_force_i(r,NULL,NULL)/r;
-	      for (int k = 0; k < ndof; k++)
-		{
-		  rp_i[k] +=  rhop * r_ij[k]; 
-		  rp_j[k] +=  rhop * r_ji[k]; 
-		}
-	    }
-	}
-
-
-      current_property_i = -1;
-      current_property_j = -1;
-
-      EAMPropertyT::EDForceFunction ed_force_j = NULL;
-      EAMPropertyT::EDStiffnessFunction ed_stiffness_i = NULL;
-      EAMPropertyT::EDStiffnessFunction ed_stiffness_j = NULL;
-      
       EAMPropertyT::PairEnergyFunction pair_energy_i = NULL;
       EAMPropertyT::PairEnergyFunction pair_energy_j = NULL;
       EAMPropertyT::PairForceFunction pair_force_i = NULL;
@@ -802,11 +675,11 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
       EAMPropertyT::PairStiffnessFunction pair_stiffness_i = NULL;
       EAMPropertyT::PairStiffnessFunction pair_stiffness_j = NULL;
 
-      EAMPropertyT::EmbedForceFunction embed_force_i = NULL;
-      EAMPropertyT::EmbedForceFunction embed_force_j = NULL;
-      EAMPropertyT::EmbedStiffnessFunction embed_stiffness_i = NULL;
-      EAMPropertyT::EmbedStiffnessFunction embed_stiffness_j = NULL;
-
+      EAMPropertyT::EDForceFunction ed_force_i  = NULL;    
+      EAMPropertyT::EDForceFunction ed_force_j  = NULL; 
+      EAMPropertyT::EDStiffnessFunction ed_stiffness_i = NULL;
+      EAMPropertyT::EDStiffnessFunction ed_stiffness_j = NULL;
+      
       fForce = 0.0;
       /* Loop i : run through neighbor list */
       for (int i = 0; i < fNeighbors.MajorDim(); i++)
@@ -818,16 +691,17 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	  int  tag_i = neighbors[0]; /* self is 1st spot */
 	  int type_i = fType[tag_i];
 	  double* k_i = fForce(tag_i);
-	  double* rp_i = rhop_r(tag_i);
+	  double* rp_i = frhop_r(tag_i);
 		
 	  coords.RowAlias(tag_i, x_i);
+
 	  for (int j = 1; j < neighbors.Length(); j++)
 	    {
 	      /* global tag */
 	      int  tag_j = neighbors[j];
 	      int type_j = fType[tag_j];
 	      double* k_j = fForce(tag_j);
-	      double* rp_j = rhop_r(tag_j);
+	      double* rp_j = frhop_r(tag_j);
 			
 	      /* set EAM properties (if not already set) */
 	      int property_i = fPropertiesMap(type_i, type_j);
@@ -836,9 +710,6 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		  pair_energy_i    = fEAMProperties[property_i]->getPairEnergy();
 		  pair_force_i     = fEAMProperties[property_i]->getPairForce();
 		  pair_stiffness_i = fEAMProperties[property_i]->getPairStiffness();
-
-		  embed_force_i    = fEAMProperties[property_i]->getEmbedForce();
-		  embed_stiffness_i= fEAMProperties[property_i]->getEmbedStiffness();
 
 		  ed_force_i    = fEAMProperties[property_i]->getElecDensForce();
 		  ed_stiffness_i= fEAMProperties[property_i]->getElecDensStiffness();
@@ -852,9 +723,6 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		  pair_energy_j    = fEAMProperties[property_j]->getPairEnergy();
 		  pair_force_j     = fEAMProperties[property_j]->getPairForce();
 		  pair_stiffness_j = fEAMProperties[property_j]->getPairStiffness();
-
-		  embed_force_j    = fEAMProperties[property_j]->getEmbedForce();
-		  embed_stiffness_j= fEAMProperties[property_j]->getEmbedStiffness();
 
 		  ed_force_j    = fEAMProperties[property_j]->getElecDensForce();
 		  ed_stiffness_j= fEAMProperties[property_j]->getElecDensStiffness();
@@ -872,10 +740,10 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	      /* Component of force coming from Pair potential */
 	      if(ipair == 1)
 		{
-		  double z_i  = pair_energy_i(r, NULL, NULL);
-		  double z_j  = pair_energy_j(r, NULL, NULL);
-		  double zp_i = pair_force_i(r,NULL,NULL);
-		  double zp_j = pair_force_j(r,NULL,NULL);
+		  double z_i   = pair_energy_i(r, NULL, NULL);
+		  double z_j   = pair_energy_j(r, NULL, NULL);
+		  double zp_i  = pair_force_i(r,NULL,NULL);
+		  double zp_j  = pair_force_j(r,NULL,NULL);
 		  double zpp_i = pair_stiffness_i(r,NULL,NULL);
 		  double zpp_j = pair_stiffness_j(r,NULL,NULL);
 		  
@@ -899,7 +767,6 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	      /* Component of force coming from Embedding Energy */
 	      if(iEmb == 1)
 		{
-
 		  double Ep_i   = fEmbeddingForce(tag_i,0); 
 		  double Epp_i  = fEmbeddingStiff(tag_i,0); 
 
@@ -912,21 +779,31 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		  double rhop_j  = ed_force_j(r,NULL,NULL);
 		  double rhopp_j = ed_stiffness_j(r,NULL,NULL);
 		  
-		  double K  = rhopp_i * Ep_j + rhopp_j * Ep_i + rhop_i * rhop_i * Epp_j;		  
-		  double K2 = rhop_j * Epp_i/r;
+		  double F_i = rhop_j * Ep_i;
+		  double F_i_byr = F_i/r;
 
-		  double F = rhop_i * Ep_j + rhop_j * Ep_i;
-		  double Fbyr = F/r;
+		  double F_j = rhop_i * Ep_j;
+		  double F_j_byr = F_j/r;
+
+		  double K_i = Ep_i * rhopp_j;
+		  double K_j = Ep_j * rhopp_i;
+
+		  double K2_i = Epp_i * rhop_j;
+		  double K2_j = Epp_j * rhop_i;
 
 		  for (int k = 0; k < ndof; k++)
 		    {
-		      double r_k = r_ij[k]*r_ij[k]/r/r;
+		      double r_k  = r_ij[k]*r_ij[k]/(r*r);
+		      double r2_k = r_ij[k]/r;
 
-		      double K_k = constK*(K*r_k + Fbyr*(1.0 - r_k));
-		      double K2_k = constK*(K2*rp_i[k]*r_ij[k]);
-	      	      
-		      k_i[k] += K_k + K2_k;  
-		      k_j[k] += K_k + K2_k;
+		      double Fi = F_i_byr*(1.0 - r_k);
+		      double Fj = F_j_byr*(1.0 - r_k);
+
+		      double K_ik = K_i*r_k + K2_i*rp_i[k]*r2_k;
+		      double K_jk = K_j*r_k + K2_j*rp_j[k]*r2_k;
+		      
+		      k_i[k] += constK*(Fi + K_ik);
+		      k_j[k] += constK*(Fj + K_jk);
 		    }
 		}
 	    }
@@ -934,6 +811,7 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
       /* assemble */
       support.AssembleLHS(group, fForce, Field().Equations());
+      //CheckDiagonalStiffnesses();
     }
   else if (formK)
     {
@@ -958,6 +836,25 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
       iArrayT neighbors;
       dArrayT x_i, x_j;
 
+      /* component 11 */
+      dArrayT D2fDx2_0(ElementSupport().NumNodes());
+      D2fDx2_0 = 0.0;
+      /* component 22 */
+      dArrayT D2fDx2_1(ElementSupport().NumNodes());
+      D2fDx2_1 = 0.0;
+      /* component 33 */
+      dArrayT D2fDx2_2(ElementSupport().NumNodes());
+      D2fDx2_2 = 0.0;
+      /* component 12 */
+      dArrayT D2fDx2_3(ElementSupport().NumNodes());
+      D2fDx2_3 = 0.0;
+      /* component 13 */
+      dArrayT D2fDx2_4(ElementSupport().NumNodes());
+      D2fDx2_4 = 0.0;
+      /* component 23 */
+      dArrayT D2fDx2_5(ElementSupport().NumNodes());
+      D2fDx2_5 = 0.0;
+
       /* EAM properties function pointers */
       if(ndof == 2) GetRho2D(coords,fElectronDensity);
       if(ndof == 3) GetRho3D(coords,fElectronDensity);
@@ -974,108 +871,14 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
       /* exchange embedding stiffness information */
       fCommManager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
 
+      /* get rhop * r */
+      frhop_r = 0.0;
+      GetRhop_r(coords,frhop_r);
+      /* exchange rhop * r information */
+      fCommManager.AllGather(frhop_rMessageID, frhop_r);
+
       int current_property_i = -1;
       int current_property_j = -1;
-      int current_property_k = -1;
-
-      dArrayT x_k;
-      dArrayT r_ik(ndof);
-      dArrayT r_kj(ndof);
-
-      EAMPropertyT::EDForceFunction ed_force_i = NULL;
-      EAMPropertyT::EDForceFunction ed_force_j = NULL;
-      EAMPropertyT::EmbedStiffnessFunction embed_stiffness_k = NULL;
-
-      /* Get \sum_{k} [rho(r_ik)]' r_ik/r */
-      dArray2DT rhop_r(ElementSupport().NumNodes(),ndof);
-      rhop_r = 0.0;
-
-      /* Get \sum_{k} [rho_i(r_ik)]'[rho_j(r_kj)]' F_k'' r_ik/r r_kj/r */
-      dArray2DT rhop_rhop_Epp_r_r_0(ElementSupport().NumNodes(),ElementSupport().NumNodes());
-      rhop_rhop_Epp_r_r_0 = 0.0;
-      dArray2DT rhop_rhop_Epp_r_r_1(ElementSupport().NumNodes(),ElementSupport().NumNodes());
-      rhop_rhop_Epp_r_r_1 = 0.0;
-      dArray2DT rhop_rhop_Epp_r_r_2(ElementSupport().NumNodes(),ElementSupport().NumNodes());
-      rhop_rhop_Epp_r_r_2 = 0.0;
-      /* Loop i : run through neighbor list */
-      for (int i = 0; i < fNeighbors.MajorDim(); i++)
-	{
-	  /* row of neighbor list */
-	  fNeighbors.RowAlias(i, neighbors);
-
-	  /* type */
-	  int  tag_i = neighbors[0]; /* self is 1st spot */
-	  int type_i = fType[tag_i];
-		
-	  coords.RowAlias(tag_i, x_i);
-	  for (int j = 1; j < neighbors.Length(); j++)
-	    {
-	      /* global tag */
-	      int  tag_j = neighbors[j];
-	      int type_j = fType[tag_j];
-			
-	      /* global coordinates */
-	      coords.RowAlias(tag_j, x_j);
-
-	      for (int k = 1; k < neighbors.Length(); k++)
-		{
-		  int  tag_k = neighbors[k];
-		  int type_k = fType[tag_k];
-
-		  /* global coordinates */
-		  coords.RowAlias(tag_k, x_k);
-
-		  /* connecting vectors */
-		  r_ik.DiffOf(x_k,x_i);
-		  double r_i = r_ik.Magnitude();
-		  r_kj.DiffOf(x_j,x_k);
-		  double r_j = r_kj.Magnitude();
- 
-		  int property_i = fPropertiesMap(type_i, type_k); 
-		  if (property_i != current_property_i)
-		    {
-		      ed_force_i = fEAMProperties[property_i]->getElecDensForce();
-		      current_property_i = property_i;
-		    }
-
-		  int property_j = fPropertiesMap(type_j, type_k); 
-		  if (property_j != current_property_j)
-		    {
-		      ed_force_j = fEAMProperties[property_j]->getElecDensForce();
-		      current_property_j = property_j;
-		    }
-
-		  int property_k = fPropertiesMap(type_k, type_j); 
-		  if (property_k != current_property_k)
-		    {
-		      embed_stiffness_k=fEAMProperties[property_k]->getEmbedStiffness();
-		      current_property_k = property_k;
-		    }
-
-		  double Epp    = fEmbeddingStiff(tag_k,0); //embed_stiffness_k(fElectronDensity(k,0),NULL,NULL);
-		  double rhop_i = ed_force_i(r_i,NULL,NULL);
-		  double rhop_j = ed_force_j(r_j,NULL,NULL);
-
-
-		  for (int l = 0; l < ndof; l++)
-		    {
-		      rhop_r(tag_i,l) += rhop_i * r_ij[l];
-		      rhop_r(tag_j,l) += rhop_i * r_ij[l];
-		    }
-
-		  double Coeff = rhop_j * rhop_i * Epp / (r_i * r_j);
-
-		  rhop_rhop_Epp_r_r_0(tag_i,tag_j) += Coeff * r_ik[0] * r_kj[0]; 
-		  rhop_rhop_Epp_r_r_1(tag_i,tag_j) += Coeff * r_ik[1] * r_kj[1];
-		  if(ndof == 3) rhop_rhop_Epp_r_r_2(tag_i,tag_j) += Coeff * r_ik[2] * r_kj[2];
-		}
-
-	    }
-	}
-
-      current_property_i = -1;
-      current_property_j = -1;
-      current_property_k = -1;
 
       EAMPropertyT::PairEnergyFunction pair_energy_i = NULL;
       EAMPropertyT::PairEnergyFunction pair_energy_j = NULL;
@@ -1084,11 +887,8 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
       EAMPropertyT::PairStiffnessFunction pair_stiffness_i = NULL;
       EAMPropertyT::PairStiffnessFunction pair_stiffness_j = NULL;
 
-      EAMPropertyT::EmbedForceFunction embed_force_i = NULL;
-      EAMPropertyT::EmbedForceFunction embed_force_j = NULL;
-      EAMPropertyT::EmbedStiffnessFunction embed_stiffness_i = NULL; 
-      EAMPropertyT::EmbedStiffnessFunction embed_stiffness_j = NULL;
-
+      EAMPropertyT::EDForceFunction ed_force_i = NULL;
+      EAMPropertyT::EDForceFunction ed_force_j = NULL;
       EAMPropertyT::EDStiffnessFunction ed_stiffness_i = NULL;
       EAMPropertyT::EDStiffnessFunction ed_stiffness_j = NULL;
 
@@ -1101,6 +901,7 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	  /* type */
 	  int  tag_i = neighbors[0]; /* self is 1st spot */
 	  int type_i = fType[tag_i];
+	  double* rp_i = frhop_r(tag_i);
 	  pair[0] = tag_i;
 
 	  coords.RowAlias(tag_i, x_i);
@@ -1110,6 +911,8 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	      /* global tag */
 	      int  tag_j = neighbors[j];
 	      int type_j = fType[tag_j];
+	      double* rp_j = frhop_r(tag_j);
+
 	      pair[1] = tag_j;
 			
 	      int property_i = fPropertiesMap(type_i, type_j);
@@ -1118,9 +921,6 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		  pair_energy_i    = fEAMProperties[property_i]->getPairEnergy();
 		  pair_force_i     = fEAMProperties[property_i]->getPairForce();
 		  pair_stiffness_i = fEAMProperties[property_i]->getPairStiffness();
-
-		  embed_force_i    = fEAMProperties[property_i]->getEmbedForce();
-		  embed_stiffness_i= fEAMProperties[property_i]->getEmbedStiffness();
 
 		  ed_force_i       = fEAMProperties[property_i]->getElecDensForce();
 		  ed_stiffness_i   = fEAMProperties[property_i]->getElecDensStiffness();
@@ -1135,9 +935,6 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		  pair_force_j     = fEAMProperties[property_j]->getPairForce();
 		  pair_stiffness_j = fEAMProperties[property_j]->getPairStiffness();
 
-		  embed_force_j    = fEAMProperties[property_j]->getEmbedForce();
-		  embed_stiffness_j= fEAMProperties[property_j]->getEmbedStiffness();
-
 		  ed_force_j       = fEAMProperties[property_j]->getElecDensForce();
 		  ed_stiffness_j   = fEAMProperties[property_j]->getElecDensStiffness();
 
@@ -1151,10 +948,11 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	      r_ij.DiffOf(x_j, x_i);
 	      double r = r_ij.Magnitude();
 	      r_ji.SetToScaled(-1.0, r_ij);
-			
+
 	      /* Component of force coming from Pair potential */
 	      if(ipair == 1)
 	      {
+		fLHS = 0.0;
 		double z_i  = pair_energy_i(r, NULL, NULL);
 		double z_j  = pair_energy_j(r, NULL, NULL);
 		double zp_i = pair_force_i(r,NULL,NULL);
@@ -1162,102 +960,144 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		double zpp_i = pair_stiffness_i(r,NULL,NULL);
 		double zpp_j = pair_stiffness_j(r,NULL,NULL);
 		
-		double E = 0.5*z_i * z_j/r;
-		double F = 0.5*(z_i * zp_j + zp_i * z_j)/r - E/r;
-		double K = 0.5*(zpp_i*z_j + 2*zp_i * zp_j + z_i * zpp_j)/r - 2*F/r;
-		
+		double E =  0.5* z_i * z_j/r;
+		double F =  0.5*(z_i * zp_j + zp_i * z_j)/r - E/r;
+		double K =  0.5*(zpp_i*z_j + 2*zp_i * zp_j + z_i * zpp_j)/r - 2*F/r;
 		double Fbyr = F/r;
-		
+
 		/* 1st term */
 		fLHS.Outer(fRHS, fRHS, (K - Fbyr)/r/r);
 		
 		/* 2nd term */
 		fLHS.AddScaled(Fbyr, fOneOne);
+
+		/* assemble */
+		pair_eqnos.RowCollect(pair, field_eqnos);
+		support.AssembleLHS(group, fLHS, pair_eqnos);
+
+		/* check derivatives */
+		D2fDx2_0[tag_i] += fLHS(0,0);
+		D2fDx2_0[tag_j] += fLHS(0+ndof,0+ndof);
+		
+		D2fDx2_1[tag_i] += fLHS(1,1);
+		D2fDx2_1[tag_j] += fLHS(1+ndof,1+ndof);
+		
+		D2fDx2_2[tag_i] += fLHS(2,2);
+		D2fDx2_2[tag_j] += fLHS(2+ndof,2+ndof);
+		  
+		D2fDx2_3[tag_i] += fLHS(0,1);
+		D2fDx2_3[tag_j] += fLHS(0+ndof,1+ndof);
+		
+		D2fDx2_4[tag_i] += fLHS(0,2);
+		D2fDx2_4[tag_j] += fLHS(0+ndof,2+ndof);
+		  
+		D2fDx2_5[tag_i] += fLHS(1,2);
+		D2fDx2_5[tag_j] += fLHS(1+ndof,2+ndof);
 	      }
 	      
 	      /* Component of force coming from Embedding Energy */
-		if(iEmb == 1)
-		  {
-		    double Ep_i = fEmbeddingForce(tag_i,0);
-		    double Ep_j = fEmbeddingForce(tag_j,0);
-		    
-		    double Epp_i = fEmbeddingStiff(tag_i,0);
-		    double Epp_j = fEmbeddingStiff(tag_j,0);
-		    
-		    double rhop_i = ed_force_i(r,NULL,NULL);
-		    double rhop_j = ed_force_j(r,NULL,NULL);
-		    
-		    double rhopp_i = ed_stiffness_i(r,NULL,NULL);
-		    double rhopp_j = ed_stiffness_j(r,NULL,NULL);
-		    
-		    double F = rhop_i * Ep_j + rhop_j * Ep_i;
-		    double Fbyr = F/r;
-		    double K = rhopp_i * Epp_j + rhopp_j * Epp_i;
-		    
-		    double K2_1 = rhopp_j * Epp_i - rhopp_i * Epp_j;
-		    
-		    dArrayT rhopr(2*ndof);
-		    for (int k = 0; k < ndof; k++)  rhopr[k] = rhop_r(i,k);
-		    for (int k = ndof; k < 2*ndof; k++) rhopr[k] =-rhop_r(i,k-ndof);
-		    
-		    dArrayT K2_2(2*ndof);
-		    if(ndof == 3)
-		      {
-			K2_2[0] = rhop_rhop_Epp_r_r_0(tag_i,tag_j);
-			K2_2[1] = rhop_rhop_Epp_r_r_1(tag_i,tag_j);
-			K2_2[2] = rhop_rhop_Epp_r_r_2(tag_i,tag_j);
-			
-			K2_2[3] =-rhop_rhop_Epp_r_r_0(tag_i,tag_j);
-			K2_2[4] =-rhop_rhop_Epp_r_r_1(tag_i,tag_j);
-			K2_2[5] =-rhop_rhop_Epp_r_r_2(tag_i,tag_j);
-			
-		      }
-		    else if (ndof == 2)
-		      {
-			K2_2[0] = rhop_rhop_Epp_r_r_0(tag_i,tag_j);
-			K2_2[1] = rhop_rhop_Epp_r_r_1(tag_i,tag_j);
-			
-			K2_2[2] =-rhop_rhop_Epp_r_r_0(tag_i,tag_j);
-			K2_2[3] =-rhop_rhop_Epp_r_r_1(tag_i,tag_j);
-		      }
-		    
-		    /* 1st term */
-		    fLHS.Outer(fRHS, fRHS, (K - Fbyr)/r/r);
-		    
-		    /* 2nd term */
-		    fLHS.AddScaled(Fbyr, fOneOne);
-		    
-		    /* last terms */
-		    fLHS.Outer(rhopr,fRHS,K2_1);
-		    for (int k = 0; k < 2*ndof; k++)
-		      fLHS[k] += K2_2[k];
-		  }
-				
-	      /* assemble */
-	      pair_eqnos.RowCollect(pair, field_eqnos);
-	      support.AssembleLHS(group, fLHS, pair_eqnos);
+	      if(iEmb == 1)
+		{
+		  fLHS  = 0.0;
+		  double Ep_i   = fEmbeddingForce(tag_i,0); 
+		  double Epp_i  = fEmbeddingStiff(tag_i,0); 
+		  
+		  double rhop_i  = ed_force_i(r,NULL,NULL);
+		  double rhopp_i = ed_stiffness_i(r,NULL,NULL);
+		  
+		  double Ep_j   = fEmbeddingForce(tag_j,0); 
+		  double Epp_j  = fEmbeddingStiff(tag_j,0); 
+		  
+		  double rhop_j  = ed_force_j(r,NULL,NULL);
+		  double rhopp_j = ed_stiffness_j(r,NULL,NULL);
+		  
+		  double F_i = rhop_j * Ep_i;
+		  double F_i_byr = F_i/r;
 
+		  double F_j = rhop_i * Ep_j;
+		  double F_j_byr = F_j/r;
 
+		  double K_i = Ep_i * rhopp_j;
+		  double K_j = Ep_j * rhopp_i;
+
+		  double K2_i = Epp_i * rhop_j;
+		  double K2_j = Epp_j * rhop_i;
+
+		  dMatrixT El_i(ndof);
+		  dMatrixT El_j(ndof);
+		  for (int k = 0; k < ndof; k++)
+		    {
+		      double r2_k = r_ij[k]/r;
+		      for (int l = 0; l < ndof; l++)
+			{
+			  double r_kl = r2_k * r_ij[l]/r;
+			  
+			  double F_ik = F_i_byr*(1.0 - r_kl);
+			  double F_jk = F_j_byr*(1.0 - r_kl);
+			  
+			  double K_ik = K_i*r_kl + K2_i*rp_i[l]*r2_k;
+			  double K_jk = K_j*r_kl + K2_j*rp_j[l]*r2_k;
+
+			  El_i(k,l) =  F_ik + K_ik;
+			  El_j(k,l) =  F_jk + K_jk;
+			}		  
+		    }
+		  
+		  fLHS.SetBlock(0,0,El_i); 
+		  fLHS.SetBlock(ndof,ndof,El_j); 
+		  fLHS.SetBlock(0,ndof,El_i); 
+		  fLHS.SetBlock(ndof,0,El_j);
+
+		  /* assemble */
+		  pair_eqnos.RowCollect(pair, field_eqnos);
+		  support.AssembleLHS(group, fLHS, pair_eqnos);
+
+		  /* check derivatives */
+		  D2fDx2_0[tag_i] += fLHS(0,0);
+		  D2fDx2_0[tag_j] += fLHS(0+ndof,0+ndof);
+		  
+		  D2fDx2_1[tag_i] += fLHS(1,1);
+		  D2fDx2_1[tag_j] += fLHS(1+ndof,1+ndof);
+		  
+		  D2fDx2_2[tag_i] += fLHS(2,2);
+		  D2fDx2_2[tag_j] += fLHS(2+ndof,2+ndof);
+		  
+		  D2fDx2_3[tag_i] += fLHS(0,1);
+		  D2fDx2_3[tag_j] += fLHS(0+ndof,1+ndof);
+		  
+		  D2fDx2_4[tag_i] += fLHS(0,2);
+		  D2fDx2_4[tag_j] += fLHS(0+ndof,2+ndof);
+		  
+		  D2fDx2_5[tag_i] += fLHS(1,2);
+		  D2fDx2_5[tag_j] += fLHS(1+ndof,2+ndof);
+		}
 	    }
-	}
+	} 
+      //CheckStiffnesses(D2fDx2_0,D2fDx2_1,D2fDx2_2,
+      //		       D2fDx2_3,D2fDx2_4,D2fDx2_5);  
     }
 }
+
+
 
 /* form group contribution to the residual */
 void EAMT::RHSDriver(void)
 {
-	int nsd = NumSD();
-	if (nsd == 3)
-		RHSDriver3D();
-	else if (nsd == 2)
-		RHSDriver2D();
-	else
-		ExceptionT::GeneralFail("EAMT::RHSDriver");
-		
-	ApplyDamping(fNeighbors);
+  int nsd = NumSD();
+  if (nsd == 3)
+    RHSDriver3D();
+  else if (nsd == 2)
+    RHSDriver2D();
+  else
+    ExceptionT::GeneralFail("EAMT::RHSDriver");
+  
+  ApplyDamping(fNeighbors);
 	
-	/* assemble */
-	ElementSupport().AssembleRHS(Group(), fForce, Field().Equations());
+  /* assemble */
+  ElementSupport().AssembleRHS(Group(), fForce, Field().Equations());
+
+  /* check derivatives using numerical derivatives */
+  //CheckDerivatives();
 }
 
 void EAMT::RHSDriver2D(void)
@@ -1356,15 +1196,14 @@ void EAMT::RHSDriver2D(void)
 
 	      current_property_j = property_j;
 	    }
-
-	  /* connecting vector */
-	  double r_ij_0 = x_j[0] - x_i[0];
-	  double r_ij_1 = x_j[1] - x_i[1];
-	  double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
 			
 	  /* Component of force coming from Pair potential */
 	  if(ipair == 1)
 	    {
+	      double r_ij_0 = x_j[0] - x_i[0];
+	      double r_ij_1 = x_j[1] - x_i[1];
+	      double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
+
 	      double z_i = pair_energy_i(r,NULL,NULL);
 	      double z_j = pair_energy_j(r,NULL,NULL);
 	      double zp_i = pair_force_i(r,NULL,NULL);
@@ -1387,22 +1226,27 @@ void EAMT::RHSDriver2D(void)
 	  /* Component of force coming from Embedding energy */
 	  if(iEmb == 1)
 	    {
+	      double r_ij_0 = x_j[0] - x_i[0];
+	      double r_ij_1 = x_j[1] - x_i[1];
+	      double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
+
 	      double Ep_i   = fEmbeddingForce(tag_i,0); 
 	      double rhop_i = ed_force_i(r,NULL,NULL);
 	      
-	      double Ep_j   = fEmbeddingForce(tag_j,0); 
+	      double Ep_j   = fEmbeddingForce(tag_j,0);
 	      double rhop_j = ed_force_j(r,NULL,NULL);
-
-	      double F = rhop_i * Ep_j + rhop_j * Ep_i;
-	      double Fbyr = formKd*F/r;
 	      
-	      r_ij_0 *= Fbyr;
-	      f_i[0] += r_ij_0; 
-	      f_j[0] +=-r_ij_0; 
+	      double F1 =  rhop_j * Ep_i;
+	      double F1byr = formKd*F1/r;
 
-	      r_ij_1 *= Fbyr;
-	      f_i[1] += r_ij_1;
-	      f_j[1] +=-r_ij_1;
+	      double F2 =  rhop_i * Ep_j ;
+	      double F2byr = formKd*F2/r;
+
+	      f_i[0] += r_ij_0 * F1byr;
+	      f_j[0] += r_ij_0 * F2byr;
+	      
+	      f_i[1] += r_ij_1 * F1byr;
+	      f_j[1] += r_ij_1 * F2byr;
 	    }
 	}
     }
@@ -1436,11 +1280,13 @@ void EAMT::RHSDriver3D(void)
   if(iEmb == 1)
     {
       /* get electron density */
+      fElectronDensity = 0.0;
       GetRho3D(coords,fElectronDensity);
       /* exchange electron density information */
       fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
       
       /* get embedding force */
+      fEmbeddingForce = 0.0;
       GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
       /* exchange embedding energy information */
       fCommManager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
@@ -1456,12 +1302,11 @@ void EAMT::RHSDriver3D(void)
   EAMPropertyT::PairForceFunction  pair_force_i  = NULL;
   EAMPropertyT::PairForceFunction  pair_force_j  = NULL;
 
-  EAMPropertyT::EDForceFunction  ed_force_i  = NULL;
-  EAMPropertyT::EDForceFunction  ed_force_j  = NULL;
+  EAMPropertyT::EDForceFunction ed_force_i = NULL;
+  EAMPropertyT::EDForceFunction ed_force_j = NULL;
 
   iArrayT neighbors;
   fForce = 0.0;
-
 
   /* Loop i : run through neighbor list */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
@@ -1490,7 +1335,8 @@ void EAMT::RHSDriver3D(void)
 	    {
 	      pair_energy_i = fEAMProperties[property_i]->getPairEnergy();
 	      pair_force_i  = fEAMProperties[property_i]->getPairForce();
-	      ed_force_i  = fEAMProperties[property_i]->getElecDensForce();
+
+	      ed_force_i    = fEAMProperties[property_i]->getElecDensForce();
 
 	      current_property_i = property_i;
 	    }
@@ -1500,20 +1346,20 @@ void EAMT::RHSDriver3D(void)
 	    {
 	      pair_energy_j = fEAMProperties[property_j]->getPairEnergy();
 	      pair_force_j  = fEAMProperties[property_j]->getPairForce();
-	      ed_force_j  = fEAMProperties[property_j]->getElecDensForce();
+
+	      ed_force_j    = fEAMProperties[property_j]->getElecDensForce();
 
 	      current_property_j = property_j;
 	    }
 		
-	  /* connecting vector */
-	  double r_ij_0 = x_j[0] - x_i[0];
-	  double r_ij_1 = x_j[1] - x_i[1];
-	  double r_ij_2 = x_j[2] - x_i[2];
-	  double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
-			
 	  /* Component of force coming from Pair potential */
 	  if(ipair == 1)
 	    {
+	      double r_ij_0 = x_j[0] - x_i[0];
+	      double r_ij_1 = x_j[1] - x_i[1];
+	      double r_ij_2 = x_j[2] - x_i[2];
+	      double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
+
 	      double z_i = pair_energy_i(r,NULL,NULL);
 	      double z_j = pair_energy_j(r,NULL,NULL);
 	      double zp_i = pair_force_i(r,NULL,NULL);
@@ -1541,26 +1387,32 @@ void EAMT::RHSDriver3D(void)
 	  /* Component of force coming from Embedding energy */
 	  if(iEmb == 1)
 	    {
+	      double r_ij_0 = x_j[0] - x_i[0];
+	      double r_ij_1 = x_j[1] - x_i[1];
+	      double r_ij_2 = x_j[2] - x_i[2];
+	      double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
+
 	      double Ep_i   = fEmbeddingForce(tag_i,0); 
 	      double rhop_i = ed_force_i(r,NULL,NULL);
 	      
-	      double Ep_j   = fEmbeddingForce(tag_j,0); 
+	      double Ep_j   = fEmbeddingForce(tag_j,0);
 	      double rhop_j = ed_force_j(r,NULL,NULL);
 	      
-	      double F = rhop_j * Ep_i + rhop_i * Ep_j;
-	      double Fbyr = formKd*F/r;
+	      double F1 =  rhop_j * Ep_i;
+	      double F1byr = formKd*F1/r;
+
+	      double F2 =  rhop_i * Ep_j ;
+	      double F2byr = formKd*F2/r;
+
+	      f_i[0] += r_ij_0 * F1byr;
+	      f_j[0] += r_ij_0 * F2byr;
+	      
+	      f_i[1] += r_ij_1 * F1byr;
+	      f_j[1] += r_ij_1 * F2byr;
+
+	      f_i[2] += r_ij_2 * F1byr;
+	      f_j[2] += r_ij_2 * F2byr;	  
 	  
-	      r_ij_0 *= Fbyr;
-	      f_i[0] += r_ij_0;
-	      f_j[0] +=-r_ij_0;
-	      
-	      r_ij_1 *= Fbyr;
-	      f_i[1] += r_ij_1;
-	      f_j[1] +=-r_ij_1;
-	      
-	      r_ij_2 *= Fbyr;
-	      f_i[2] += r_ij_2;
-	      f_j[2] +=-r_ij_2; 	  
 	    }
 	}
     }
@@ -1612,18 +1464,6 @@ void EAMT::SetConfiguration(void)
   /* exchange type information */
   fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
 
-  /* reset the electron density force array */
-  fElectronDensityForce_man.SetMajorDimension(nnd, true);
-  fElectronDensityForce.Resize(nnd);
-  /* exchange type information */
-  fCommManager.AllGather(fElectronDensityForceMessageID, fElectronDensityForce);
-
-  /* reset the electron density stiffness array */
-  fElectronDensityStiff_man.SetMajorDimension(nnd, true);
-  fElectronDensityStiff.Resize(nnd);
-  /* exchange type information */
-  fCommManager.AllGather(fElectronDensityStiffMessageID, fElectronDensityStiff);
-
   // EMBEDDING ENERGY //
   /* reset the embedding energy array */
   fEmbeddingEnergy_man.SetMajorDimension(nnd, true);
@@ -1642,6 +1482,39 @@ void EAMT::SetConfiguration(void)
   fEmbeddingStiff.Resize(nnd);
   /* exchange type information */
   fCommManager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
+
+  // OTHER  //
+  /* reset the rhop * r array */
+  frhop_r_man.SetMajorDimension(nnd, true);
+  frhop_r.Resize(nnd);
+  /* exchange type information */
+  fCommManager.AllGather(frhop_rMessageID, frhop_r);
+
+  // CHECK DERIVATIVES
+  fEmb_man.SetMajorDimension(nnd, true);
+  fEmb.Resize(nnd);
+  /* exchange type information */
+  fCommManager.AllGather(fEmbMessageID, fEmb);
+
+  fEmb_i_man.SetMajorDimension(nnd, true);
+  fEmb_i.Resize(nnd);
+  /* exchange type information */
+  fCommManager.AllGather(fEmb_iMessageID, fEmb_i);
+
+  frho_i_man.SetMajorDimension(nnd, true);
+  frho_i.Resize(nnd);
+  /* exchange type information */
+  fCommManager.AllGather(frho_iMessageID, frho_i);
+
+  fdFdx_man.SetMajorDimension(nnd, true);
+  fdFdx.Resize(nnd);
+  /* exchange type information */
+  fCommManager.AllGather(fdFdxMessageID, fdFdx);
+
+  fEmbeddingForce_i_man.SetMajorDimension(nnd, true);
+  fEmbeddingForce_i.Resize(nnd);
+  /* exchange type information */
+  fCommManager.AllGather(fEmbeddingForce_iMessageID, fEmbeddingForce_i);
 }
 
 /* construct the list of properties from the given input stream */
@@ -1701,9 +1574,7 @@ void EAMT::GetRho2D(const dArray2DT& coords,dArray2DT& rho)
 {
   int current_property = -1;
   EAMPropertyT::EDEnergyFunction ed_energy = NULL;
-	
   iArrayT neighbors;
-
   rho = 0.0;
 
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
@@ -1724,10 +1595,11 @@ void EAMT::GetRho2D(const dArray2DT& coords,dArray2DT& rho)
 	  double* x_j = coords(tag_j);
 
 	  int property = fPropertiesMap(type_i, type_j);
-	  {
-	    ed_energy  = fEAMProperties[property]->getElecDensEnergy();
-	    current_property = property;
-	  }
+	  if (property != current_property)
+	    {
+	      ed_energy  = fEAMProperties[property]->getElecDensEnergy();
+	      current_property = property;
+	    }
 
 	  /* connecting vector */
 	  double r_ij_0 = x_j[0] - x_i[0];
@@ -1745,9 +1617,7 @@ void EAMT::GetRho3D(const dArray2DT& coords,dArray2DT& rho)
 {
   int current_property = -1;
   EAMPropertyT::EDEnergyFunction ed_energy = NULL;
-	
   iArrayT neighbors;
-
   rho = 0.0;
 
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
@@ -1787,191 +1657,73 @@ void EAMT::GetRho3D(const dArray2DT& coords,dArray2DT& rho)
 }
 
 
-void EAMT::GetRhoForce2D(const dArray2DT& coords,dArray2DT& rho)
+void EAMT::GetRhop_r(const dArray2DT& coords,dArray2DT& rho)
 {
-  int current_property = -1;
-  EAMPropertyT::EDForceFunction ed_force = NULL;
-	
+
+  int ndof = NumDOF();
+  int current_property_i = -1;
+  int current_property_j = -1;
+  
+  EAMPropertyT::EDForceFunction ed_force_i  = NULL;    
+  EAMPropertyT::EDForceFunction ed_force_j  = NULL; 
+
   iArrayT neighbors;
-
+  dArrayT x_i, x_j, r_ij(ndof);
+  
   rho = 0.0;
-
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
-      /* row of neighbor list */
       fNeighbors.RowAlias(i, neighbors);
-      
-      /* type */
-      int   tag_i = neighbors[0]; /* self is 1st spot */
-      int  type_i = fType[tag_i];
-      double* x_i = coords(tag_i);
 
-      for (int j = 1; j < neighbors.Length(); j++)
-	{
-	  /* global tag */
-	  int   tag_j = neighbors[j];
-	  int  type_j = fType[tag_j];
-	  double* x_j = coords(tag_j);
-
-	  int property = fPropertiesMap(type_i, type_j);
-	  {
-	    ed_force  = fEAMProperties[property]->getElecDensForce();
-	    current_property = property;
-	  }
-
-	  /* connecting vector */
-	  double r_ij_0 = x_j[0] - x_i[0];
-	  double r_ij_1 = x_j[1] - x_i[1];
-	  double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
+	  int  tag_i = neighbors[0]; 
+	  int type_i = fType[tag_i];
+	  double* rp_i = rho(tag_i);
 		
-	  rho(tag_i,0) = ed_force(r,NULL,NULL); 
-	}
-    }
-}
+	  coords.RowAlias(tag_i, x_i);
 
-
-void EAMT::GetRhoForce3D(const dArray2DT& coords,dArray2DT& rho)
-{
-  int current_property = -1;
-  EAMPropertyT::EDForceFunction ed_force = NULL;
-	
-  iArrayT neighbors;
-
-  rho = 0.0;
-
-  for (int i = 0; i < fNeighbors.MajorDim(); i++)
-    {
-      /* row of neighbor list */
-      fNeighbors.RowAlias(i, neighbors);
-      
-      /* type */
-      int   tag_i = neighbors[0]; /* self is 1st spot */
-      int  type_i = fType[tag_i];
-      double* x_i = coords(tag_i);
-
-      for (int j = 1; j < neighbors.Length(); j++)
-	{
-	  /* global tag */
-	  int   tag_j = neighbors[j];
-	  int  type_j = fType[tag_j];
-	  double* x_j = coords(tag_j);
-
-	  int property = fPropertiesMap(type_i, type_j);
-	  if (property != current_property)
+	  for (int j = 1; j < neighbors.Length(); j++)
 	    {
-	      ed_force  = fEAMProperties[property]->getElecDensForce();
-	      current_property = property;
-	    }
+	      int  tag_j = neighbors[j];
+	      int type_j = fType[tag_j];
+	      double* rp_j = rho(tag_j);
+	      
+	      coords.RowAlias(tag_j, x_j);
+			
+	      int property_i = fPropertiesMap(type_i, type_j);
+	      if (property_i != current_property_i)
+		{
+		  ed_force_i  = fEAMProperties[property_i]->getElecDensForce();
+		  current_property_i = property_i;
+		}
+
+	      int property_j = fPropertiesMap(type_j, type_i);
+	      if (property_j != current_property_j)
+		{
+		  ed_force_j  = fEAMProperties[property_j]->getElecDensForce();
+		  current_property_j = property_j;
+		}	      	      
 		
-	  /* connecting vector */
-	  double r_ij_0 = x_j[0] - x_i[0];
-	  double r_ij_1 = x_j[1] - x_i[1];
-	  double r_ij_2 = x_j[2] - x_i[2];
-	  double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
-	  
-	  rho(tag_i,0) = ed_force(r,NULL,NULL); 
-	  //rho(tag_j,0) += ed_force(r,NULL,NULL); 
+	      r_ij.DiffOf(x_j, x_i);
+	      double r = r_ij.Magnitude();
+
+	      double rhop_i = ed_force_i(r,NULL,NULL)/r;
+	      double rhop_j = ed_force_j(r,NULL,NULL)/r;
+	      for (int k = 0; k < ndof; k++)
+		{
+		  rp_i[k] += rhop_i * r_ij[k]; 
+		  rp_j[k] += rhop_j * r_ij[k]; 
+		}
+	    }
 	}
-    }
 }
 
-
-
-void EAMT::GetRhoStiff2D(const dArray2DT& coords,dArray2DT& rho)
-{
-  int current_property = -1;
-  EAMPropertyT::EDStiffnessFunction ed_stiffness = NULL;
-	
-  iArrayT neighbors;
-
-  rho = 0.0;
-
-  for (int i = 0; i < fNeighbors.MajorDim(); i++)
-    {
-      /* row of neighbor list */
-      fNeighbors.RowAlias(i, neighbors);
-      
-      /* type */
-      int   tag_i = neighbors[0]; /* self is 1st spot */
-      int  type_i = fType[tag_i];
-      double* x_i = coords(tag_i);
-
-      for (int j = 1; j < neighbors.Length(); j++)
-	{
-	  /* global tag */
-	  int   tag_j = neighbors[j];
-	  int  type_j = fType[tag_j];
-	  double* x_j = coords(tag_j);
-
-	  int property = fPropertiesMap(type_i, type_j);
-	  if (property != current_property)
-	    {
-	      ed_stiffness  = fEAMProperties[property]->getElecDensForce();
-	      current_property = property;
-	    }
-		
-	  /* connecting vector */
-	  double r_ij_0 = x_j[0] - x_i[0];
-	  double r_ij_1 = x_j[1] - x_i[1];
-	  double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
-	  
-	  rho(tag_i,0) = ed_stiffness(r,NULL,NULL); 
-	}
-    }
-}
-
-void EAMT::GetRhoStiff3D(const dArray2DT& coords,dArray2DT& rho)
-{
-  int current_property = -1;
-  EAMPropertyT::EDStiffnessFunction ed_stiffness = NULL;
-	
-  iArrayT neighbors;
-
-  rho = 0.0;
-
-  for (int i = 0; i < fNeighbors.MajorDim(); i++)
-    {
-      /* row of neighbor list */
-      fNeighbors.RowAlias(i, neighbors);
-      
-      /* type */
-      int   tag_i = neighbors[0]; /* self is 1st spot */
-      int  type_i = fType[tag_i];
-      double* x_i = coords(tag_i);
-
-      for (int j = 1; j < neighbors.Length(); j++)
-	{
-	  /* global tag */
-	  int   tag_j = neighbors[j];
-	  int  type_j = fType[tag_j];
-	  double* x_j = coords(tag_j);
-
-	  int property = fPropertiesMap(type_i, type_j);
-	  if (property != current_property)
-	    {
-	      ed_stiffness  = fEAMProperties[property]->getElecDensForce();
-	      current_property = property;
-	    }
-		
-	  /* connecting vector */
-	  double r_ij_0 = x_j[0] - x_i[0];
-	  double r_ij_1 = x_j[1] - x_i[1];
-	  double r_ij_2 = x_j[2] - x_i[2];
-	  double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
-	  
-	  rho(tag_i,0) = ed_stiffness(r,NULL,NULL); 
-	}
-    }
-}
 
 void EAMT::GetEmbEnergy(const dArray2DT& coords,const dArray2DT rho,
 		  dArray2DT& Emb)
 {
   int current_property = -1;
   EAMPropertyT::EmbedEnergyFunction emb_energy = NULL;
-	
   iArrayT neighbors;
-
   Emb = 0.0;
   
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
@@ -1982,24 +1734,22 @@ void EAMT::GetEmbEnergy(const dArray2DT& coords,const dArray2DT rho,
       int  type_i = fType[tag_i];
       
       int property = fPropertiesMap(type_i, type_i);
-      {
-	emb_energy  = fEAMProperties[property]->getEmbedEnergy();
-	current_property = property;
-      }
+      if (property != current_property)
+	{
+	  emb_energy  = fEAMProperties[property]->getEmbedEnergy();
+	  current_property = property;
+	}
+
       Emb(tag_i,0) = emb_energy(rho(tag_i,0),NULL,NULL); 
     }
-  
 }
 
 
 void EAMT::GetEmbForce(const dArray2DT& coords,const dArray2DT rho,
-		  dArray2DT& Emb)
+	  	       dArray2DT& Emb)
 {
-  int current_property = -1;
   EAMPropertyT::EmbedForceFunction emb_force = NULL;
-	
   iArrayT neighbors;
-
   Emb = 0.0;
   
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
@@ -2008,13 +1758,16 @@ void EAMT::GetEmbForce(const dArray2DT& coords,const dArray2DT rho,
       
       int   tag_i = neighbors[0]; 
       int  type_i = fType[tag_i];
+
+      emb_force  = fEAMProperties[type_i]->getEmbedForce();
       
-      int property = fPropertiesMap(type_i, type_i);
-      {
-	emb_force  = fEAMProperties[property]->getEmbedForce();
-	current_property = property;
-      }
       Emb(tag_i,0) = emb_force(rho(tag_i,0),NULL,NULL); 
+
+      //if(Emb.MinorDim() > 1) 
+      //	{
+      //  for (int j = 1; j < 2*NumDOF(); j++)
+      //    Emb(tag_i,j) = emb_force(rho(tag_i,j),NULL,NULL); 
+      //}
     }  
 }
 
@@ -2023,9 +1776,7 @@ void EAMT::GetEmbStiff(const dArray2DT& coords,const dArray2DT rho,
 {
   int current_property = -1;
   EAMPropertyT::EmbedStiffnessFunction emb_stiffness = NULL;
-	
   iArrayT neighbors;
-
   Emb = 0.0;
   
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
@@ -2036,11 +1787,1098 @@ void EAMT::GetEmbStiff(const dArray2DT& coords,const dArray2DT rho,
       int  type_i = fType[tag_i];
       
       int property = fPropertiesMap(type_i, type_i);
-      {
-	emb_stiffness  = fEAMProperties[property]->getEmbedStiffness();
-	current_property = property;
-      }
+      if (property != current_property)
+	{
+	  emb_stiffness  = fEAMProperties[property]->getEmbedStiffness();
+	  current_property = property;
+	}
+ 
       Emb(tag_i,0) = emb_stiffness(rho(tag_i,0),NULL,NULL); 
     }  
 }
+
+
+void EAMT::CheckDerivatives()
+{
+  cout << "ENTER EAMT::NumericalDerivatives3D\n";
+
+  /* assembly information */
+  const ElementSupportT& support = ElementSupport();
+  int group = Group();
+  int ndof = NumDOF();
+	
+  /* global coordinates */
+  const dArray2DT& coords = support.CurrentCoordinates();
+  
+  if(iEmb == 1)
+    {
+      /* get electron density */
+      GetRho3D(coords,fElectronDensity);
+      /* exchange electron density information */
+      fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
+    }
+
+  int current_property_i = -1;
+  int current_property_j = -1;
+
+  double delta = 1.e-9;
+  iArrayT neighbors;
+  fdFdx  = 0.0;
+  frho_i = 0.0;
+
+  /* Embedding Energy */
+  if(iEmb == 1) 
+    {
+
+      GetNumRho3D(coords,frho_i);
+      /* exchange electron density information */
+      fCommManager.AllGather(frho_iMessageID, frho_i);
+
+           
+      EAMPropertyT::EmbedEnergyFunction embed_energy_i = NULL;
+      EAMPropertyT::EmbedEnergyFunction embed_energy_j = NULL;
+
+      for (int i = 0; i < fNeighbors.MajorDim(); i++)
+	{
+	  fNeighbors.RowAlias(i, neighbors);
+	  
+	  int   tag_i = neighbors[0]; 
+	  int  type_i = fType[tag_i];
+	  double* x_i = coords(tag_i);
+	  
+	  int property_i = fPropertiesMap(type_i, type_i);  
+	  embed_energy_i = fEAMProperties[property_i]->getEmbedEnergy();
+
+	  fEmb(tag_i,0)   = embed_energy_i(fElectronDensity(tag_i,0),NULL,NULL);
+	  fEmb_i(tag_i,0) = embed_energy_i(frho_i(tag_i,0),NULL,NULL);
+	  fEmb_i(tag_i,1) = embed_energy_i(frho_i(tag_i,1),NULL,NULL);
+	  fEmb_i(tag_i,2) = embed_energy_i(frho_i(tag_i,2),NULL,NULL);
+	}
+
+      /* exchange embedded energy information */
+      fCommManager.AllGather(fEmb_iMessageID, fEmb_i);
+      fCommManager.AllGather(fEmbMessageID, fEmb);
+           
+      for (int i = 0; i < fNeighbors.MajorDim(); i++)
+	{
+	  fNeighbors.RowAlias(i, neighbors);
+	  
+	  int   tag_i = neighbors[0]; 
+	  double* dF_i = fdFdx(tag_i);
+	  
+	  dF_i[0] += (fEmb_i(tag_i,0) - fEmb(tag_i,0))/delta;
+	  dF_i[1] += (fEmb_i(tag_i,1) - fEmb(tag_i,0))/delta;
+	  dF_i[2] += (fEmb_i(tag_i,2) - fEmb(tag_i,0))/delta; 
+	}
+    }
+
+
+  if(ipair == 1)
+    {
+      /* Pair Energy */
+      EAMPropertyT::PairEnergyFunction pair_energy_i = NULL;
+      EAMPropertyT::PairEnergyFunction pair_energy_j = NULL;
+      current_property_i = -1;
+      current_property_j = -1;      
+
+      for (int i = 0; i < fNeighbors.MajorDim(); i++)
+	{
+	  fNeighbors.RowAlias(i, neighbors);
+	  
+	  int   tag_i = neighbors[0]; 
+	  int  type_i = fType[tag_i];
+	  double* x_i = coords(tag_i);
+	  double* dF_i = fdFdx(tag_i);
+
+	  for (int j = 1; j < neighbors.Length(); j++)
+	    {
+	      int   tag_j = neighbors[j];
+	      int  type_j = fType[tag_j];
+	      double* x_j = coords(tag_j);
+	      double* dF_j = fdFdx(tag_j);
+	      
+	      int property_i = fPropertiesMap(type_i, type_j);  
+	      if (property_i != current_property_i)
+		{
+		  pair_energy_i  = fEAMProperties[property_i]->getPairEnergy();
+		  current_property_i = property_i;
+		}
+	      
+	      int property_j = fPropertiesMap(type_j, type_i);  
+	      if (property_j != current_property_j)
+		{
+		  pair_energy_j  = fEAMProperties[property_j]->getPairEnergy();
+		  current_property_j = property_j;
+		}
+	      
+	      double r_ij_0  = x_j[0] - x_i[0];
+	      double r_ij_1  = x_j[1] - x_i[1];
+	      double r_ij_2  = x_j[2] - x_i[2];
+	      double r       = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + + r_ij_2*r_ij_2);
+	      
+	      double r0_ij_0 =  x_j[0]+delta - x_i[0];
+	      double r0_ij_1 =  x_j[1]       - x_i[1];
+	      double r0_ij_2 =  x_j[2]       - x_i[2];
+	      double r0      = sqrt(r0_ij_0*r0_ij_0 + r0_ij_1*r0_ij_1 + r0_ij_2*r0_ij_2);
+	      
+	      double r1_ij_0 =  x_j[0]       - x_i[0];
+	      double r1_ij_1 =  x_j[1]+delta - x_i[1];
+	      double r1_ij_2 =  x_j[2]       - x_i[2];
+	      double r1      = sqrt(r1_ij_0*r1_ij_0 + r1_ij_1*r1_ij_1 + r1_ij_2*r1_ij_2);
+	      
+	      double r2_ij_0 =  x_j[0]       - x_i[0];
+	      double r2_ij_1 =  x_j[1]       - x_i[1];
+	      double r2_ij_2 =  x_j[2]+delta - x_i[2];
+	      double r2      = sqrt(r2_ij_0*r2_ij_0 + r2_ij_1*r2_ij_1 + r2_ij_2*r2_ij_2);
+	      
+	      double phi   = 0.5*pair_energy_i(r ,NULL,NULL)*pair_energy_j(r ,NULL,NULL)/r; 
+	      double phi_0 = 0.5*pair_energy_i(r0,NULL,NULL)*pair_energy_j(r0,NULL,NULL)/r0;
+	      double phi_1 = 0.5*pair_energy_i(r1,NULL,NULL)*pair_energy_j(r1,NULL,NULL)/r1;
+	      double phi_2 = 0.5*pair_energy_i(r2,NULL,NULL)*pair_energy_j(r2,NULL,NULL)/r2;
+	      
+	      dF_i[0] +=  (phi_0 -phi)/delta;
+	      dF_i[1] +=  (phi_1 -phi)/delta;
+	      dF_i[2] +=  (phi_2 -phi)/delta;
+	      
+	      dF_j[0] += -(phi_0 -phi)/delta;
+	      dF_j[1] += -(phi_1 -phi)/delta;
+	      dF_j[2] += -(phi_2 -phi)/delta;
+	    } 
+	}
+    }
+
+  /* exchange numerical derivatives information */
+  fCommManager.AllGather(fdFdxMessageID, fdFdx);
+      
+  StringT outfile = "Derivatives.out";
+  ofstreamT outD;
+  outD.open(outfile);  
+
+  for (int i = 0; i < fNeighbors.MajorDim(); i++)
+    {
+      fNeighbors.RowAlias(i, neighbors);
+      int   tag_i = neighbors[0];
+      double* f_i = fForce(tag_i);
+      double* df_i= fdFdx(tag_i);
+
+      outD << i << " " << df_i[0] << " " << f_i[0] << " " <<  df_i[0] - f_i[0]<< "\n";
+      outD << i << " " << df_i[1] << " " << f_i[1] << " " <<  df_i[1] - f_i[1]<< "\n";
+      outD << i << " " << df_i[2] << " " << f_i[2] << " " <<  df_i[2] - f_i[2]<< "\n\n";
+    }
+
+  outD.close();
+
+  exit(0);
+}
+
+
+void EAMT::CheckDiagonalStiffnesses()
+{
+  cout << "ENTER EAMT::NumericalDerivatives3D\n";
+
+  /* assembly information */
+  const ElementSupportT& support = ElementSupport();
+  int group = Group();
+  int ndof = NumDOF();
+	
+  /* global coordinates */
+  const dArray2DT& coords = support.CurrentCoordinates();
+
+  double delta = 1.e-9;
+  iArrayT neighbors;
+  fdFdx  = 0.0;
+
+  /* Embedding Force */
+  if(iEmb == 1) 
+    {
+      frho_i = 0.0;
+      fEmb_i = 0.0;
+      fEmb = 0.0;
+
+      /* get electron density */
+      fElectronDensity = 0.0;
+      GetRho3D(coords,fElectronDensity);
+      /* exchange electron density information */
+      fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
+
+      /* get embedding force */
+      fEmbeddingForce = 0.0;
+      GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
+      /* exchange embedding energy information */
+      fCommManager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
+
+      /* get electron density + delta */
+      frho_i = 0.0;
+      GetNumRho3D(coords,frho_i);
+      /* exchange electron density information */
+      fCommManager.AllGather(frho_iMessageID, frho_i);
+
+      /* get embedding force + delta */
+      fEmbeddingForce_i = 0.0;
+      GetEmbForce(coords,frho_i,fEmbeddingForce_i);
+      /* exchange embedding energy information */
+      fCommManager.AllGather(fEmbeddingForce_iMessageID, fEmbeddingForce_i);
+
+      EAMPropertyT::EDForceFunction ed_force_i = NULL;
+      EAMPropertyT::EDForceFunction ed_force_j = NULL;
+      
+      fdFdx = 0.0;
+
+      int current_property_i = -1;
+      int current_property_j = -1;
+
+      for (int i = 0; i < fNeighbors.MajorDim(); i++)
+	{
+	  fNeighbors.RowAlias(i, neighbors);
+	  
+	  int   tag_i = neighbors[0]; 
+	  int  type_i = fType[tag_i];
+	  double* x_i = coords(tag_i);
+	  
+	  for (int j = 1; j < neighbors.Length(); j++)
+	    {
+	      int   tag_j = neighbors[j];
+	      int  type_j = fType[tag_j];
+	      double* x_j = coords(tag_j);
+	      
+	      int property_i = fPropertiesMap(type_i, type_j);
+	      if (property_i != current_property_i)
+		{
+		  ed_force_i = fEAMProperties[property_i]->getElecDensForce();
+		  current_property_i = property_i;
+		}
+
+	      int property_j = fPropertiesMap(type_j, type_i);
+	      if (property_j != current_property_j)
+		{
+		  ed_force_j  = fEAMProperties[property_j]->getElecDensForce();
+		  current_property_j = property_j;
+		}
+	      
+	      double r_ij_0 = x_j[0] - x_i[0];
+	      double r_ij_1 = x_j[1] - x_i[1];
+	      double r_ij_2 = x_j[2] - x_i[2];
+	      double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
+
+	      double Ep_i   = fEmbeddingForce(tag_i,0); 
+	      double rhop_i = ed_force_i(r,NULL,NULL);
+	      
+	      double Ep_j   = fEmbeddingForce(tag_j,0);
+	      double rhop_j = ed_force_j(r,NULL,NULL);
+	      
+	      double F1 =  rhop_j * Ep_i;
+	      double F1byr = F1/r;
+
+	      double F2 =  rhop_i * Ep_j ;
+	      double F2byr = F2/r;
+
+	      fEmb(tag_i,0) += F1byr * r_ij_0;
+	      fEmb(tag_j,0) += F2byr * r_ij_0;
+
+	      fEmb(tag_i,1) += F1byr * r_ij_1;
+	      fEmb(tag_j,1) += F2byr * r_ij_1;
+
+	      fEmb(tag_i,2) += F1byr * r_ij_2;
+	      fEmb(tag_j,2) += F2byr * r_ij_2;
+
+	      /* Component 11 */
+      	      double r0_ij_0 =  x_j[0]+delta  - x_i[0];
+	      double r0_ij_1 =  x_j[1]        - x_i[1];
+	      double r0_ij_2 =  x_j[2]        - x_i[2];
+	      double r0      = sqrt(r0_ij_0*r0_ij_0 + r0_ij_1*r0_ij_1 + r0_ij_2*r0_ij_2);
+	      
+	      Ep_i = fEmbeddingForce_i(tag_i,0);
+	      Ep_j = fEmbeddingForce_i(tag_j,0);
+	      rhop_i= ed_force_i(r0,NULL,NULL);
+	      rhop_j= ed_force_j(r0,NULL,NULL);
+	      
+	      F1 = Ep_i * rhop_j;
+	      F1byr = F1/r0;
+	      F2 = Ep_j * rhop_i;
+	      F2byr = F2/r0;
+
+	      fEmb_i(tag_i,0) += F1byr * r0_ij_0;
+	      fEmb_i(tag_j,0) += F2byr * r0_ij_0;
+
+	      /* Component 22 */
+	      double r1_ij_0 =  x_j[0]        - x_i[0];
+	      double r1_ij_1 =  x_j[1]+delta  - x_i[1];
+	      double r1_ij_2 =  x_j[2]        - x_i[2];
+	      double r1      = sqrt(r1_ij_0*r1_ij_0 + r1_ij_1*r1_ij_1 + r1_ij_2*r1_ij_2);
+	      
+	      Ep_i = fEmbeddingForce_i(tag_i,1);
+	      Ep_j = fEmbeddingForce_i(tag_j,1);
+	      rhop_i= ed_force_i(r1,NULL,NULL);
+	      rhop_j= ed_force_j(r1,NULL,NULL);
+	      
+	      F1 = Ep_i * rhop_j;
+	      F1byr = F1/r1;
+	      F2 = Ep_j * rhop_i;
+	      F2byr = F2/r1;
+
+	      fEmb_i(tag_i,1) += F1byr * r1_ij_1;
+	      fEmb_i(tag_j,1) += F2byr * r1_ij_1;
+
+	      /* Component 33 */
+	      double r2_ij_0 =  x_j[0]        - x_i[0];
+	      double r2_ij_1 =  x_j[1]        - x_i[1];
+	      double r2_ij_2 =  x_j[2]+delta  - x_i[2];
+	      double r2      = sqrt(r2_ij_0*r2_ij_0 + r2_ij_1*r2_ij_1 + r2_ij_2*r2_ij_2);
+
+	      Ep_i = fEmbeddingForce_i(tag_i,2);
+	      Ep_j = fEmbeddingForce_i(tag_j,2);
+	      rhop_i= ed_force_i(r2,NULL,NULL);
+	      rhop_j= ed_force_j(r2,NULL,NULL);
+	      
+	      F1 = Ep_i * rhop_j;
+	      F1byr = F1/r2;
+	      F2 = Ep_j * rhop_i;
+	      F2byr = F2/r2;
+
+	      fEmb_i(tag_i,2) += F1byr * r2_ij_2;
+	      fEmb_i(tag_j,2) += F2byr * r2_ij_2;
+	    }
+ 	}
+
+      /* exchange embedded energy information */
+      fCommManager.AllGather(fEmbMessageID, fEmb);
+      fCommManager.AllGather(fEmb_iMessageID, fEmb_i);
+
+      for (int i = 0; i < fNeighbors.MajorDim(); i++)
+	{
+	  fNeighbors.RowAlias(i, neighbors);
+	  
+	  int   tag_i = neighbors[0]; 
+	  double* dF_i= fdFdx(tag_i);
+	  
+	  dF_i[0] = (fEmb_i(tag_i,0) - fEmb(tag_i,0))/delta;
+	  dF_i[1] = (fEmb_i(tag_i,1) - fEmb(tag_i,1))/delta;
+	  dF_i[2] = (fEmb_i(tag_i,2) - fEmb(tag_i,2))/delta; 
+	}
+    }
+
+  if(ipair == 1)
+    {
+      /* Pair Energy */
+      EAMPropertyT::PairEnergyFunction pair_energy_i = NULL;
+      EAMPropertyT::PairEnergyFunction pair_energy_j = NULL;
+
+      EAMPropertyT::PairForceFunction pair_force_i = NULL;    
+      EAMPropertyT::PairForceFunction pair_force_j = NULL;
+
+      int current_property_i = -1;
+      int current_property_j = -1;      
+
+      for (int i = 0; i < fNeighbors.MajorDim(); i++)
+	{
+	  fNeighbors.RowAlias(i, neighbors);
+	  
+	  int   tag_i = neighbors[0]; 
+	  int  type_i = fType[tag_i];
+	  double* x_i = coords(tag_i);
+	  double* dF_i = fdFdx(tag_i);
+
+	  for (int j = 1; j < neighbors.Length(); j++)
+	    {
+	      int   tag_j = neighbors[j];
+	      int  type_j = fType[tag_j];
+	      double* x_j = coords(tag_j);
+	      double* dF_j = fdFdx(tag_j);
+	      
+	      int property_i = fPropertiesMap(type_i, type_j);  
+	      if (property_i != current_property_i)
+		{
+		  pair_energy_i = fEAMProperties[property_i]->getPairEnergy();
+		  pair_force_i  = fEAMProperties[property_i]->getPairForce();
+		  current_property_i = property_i;
+		}
+	      
+	      int property_j = fPropertiesMap(type_j, type_i);  
+	      if (property_j != current_property_j)
+		{
+		  pair_energy_j = fEAMProperties[property_j]->getPairEnergy();
+		  pair_force_j  = fEAMProperties[property_j]->getPairForce();
+		  current_property_j = property_j;
+		}
+	      
+	      double r_ij_0  = x_j[0] - x_i[0];
+	      double r_ij_1  = x_j[1] - x_i[1];
+	      double r_ij_2  = x_j[2] - x_i[2];
+	      double r       = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
+	      
+	      double r0_ij_0 =  x_j[0]+delta - x_i[0];
+	      double r0_ij_1 =  x_j[1]       - x_i[1];
+	      double r0_ij_2 =  x_j[2]       - x_i[2];
+	      double r0      = sqrt(r0_ij_0*r0_ij_0 + r0_ij_1*r0_ij_1 + r0_ij_2*r0_ij_2);
+	      
+	      double r1_ij_0 =  x_j[0]       - x_i[0];
+	      double r1_ij_1 =  x_j[1]+delta - x_i[1];
+	      double r1_ij_2 =  x_j[2]       - x_i[2];
+	      double r1      = sqrt(r1_ij_0*r1_ij_0 + r1_ij_1*r1_ij_1 + r1_ij_2*r1_ij_2);
+	      
+	      double r2_ij_0 =  x_j[0]       - x_i[0];
+	      double r2_ij_1 =  x_j[1]       - x_i[1];
+	      double r2_ij_2 =  x_j[2]+delta - x_i[2];
+	      double r2      = sqrt(r2_ij_0*r2_ij_0 + r2_ij_1*r2_ij_1 + r2_ij_2*r2_ij_2);
+	      
+	      double z_i = pair_energy_i(r,NULL,NULL);
+	      double z_j = pair_energy_j(r,NULL,NULL);
+
+	      double zp_i= pair_force_i(r,NULL,NULL);
+	      double zp_j= pair_force_j(r,NULL,NULL);
+
+	      double phi_0   = 0.5*z_i*z_j/r;
+	      double phip_0  = 0.5*(zp_i * z_j + z_i * zp_j)/r - phi_0/r;
+	      phip_0 *= r_ij_0/r;
+
+	      double phi_1   = 0.5*z_i*z_j/r;
+	      double phip_1  = 0.5*(zp_i * z_j + z_i * zp_j)/r - phi_1/r;
+	      phip_1 *= r_ij_1/r;
+
+	      double phi_2   = 0.5*z_i*z_j/r;
+	      double phip_2  = 0.5*(zp_i * z_j + z_i * zp_j)/r - phi_2/r;
+	      phip_2 *= r_ij_2/r;
+
+	      /* Component 11 */
+	      z_i = pair_energy_i(r0,NULL,NULL);
+	      z_j = pair_energy_j(r0,NULL,NULL);
+
+	      zp_i= pair_force_i(r0,NULL,NULL);
+	      zp_j= pair_force_j(r0,NULL,NULL);
+ 
+	      double phi_i_0 = 0.5*z_i*z_j/r0;
+	      double phip_i_0= 0.5*(zp_i * z_j + z_i * zp_j)/r0 - phi_i_0/r0;
+	      phip_i_0 *= r0_ij_0/r0;
+
+	      /* Component 22 */
+	      z_i = pair_energy_i(r1,NULL,NULL);
+	      z_j = pair_energy_j(r1,NULL,NULL);
+
+	      zp_i= pair_force_i(r1,NULL,NULL);
+	      zp_j= pair_force_j(r1,NULL,NULL);
+
+
+	      double phi_i_1 = 0.5*z_i*z_j/r1;
+	      double phip_i_1= 0.5*(zp_i * z_j + z_i * zp_j)/r1 - phi_i_1/r1;
+	      phip_i_1 *= r1_ij_1/r1;
+
+
+	      /* Component 33 */
+	      z_i = pair_energy_i(r2,NULL,NULL);
+	      z_j = pair_energy_j(r2,NULL,NULL);
+
+	      zp_i= pair_force_i(r2,NULL,NULL);
+	      zp_j= pair_force_j(r2,NULL,NULL);
+
+
+	      double phi_i_2 = 0.5*z_i*z_j/r2;
+	      double phip_i_2= 0.5*(zp_i * z_j + z_i * zp_j)/r2 - phi_i_2/r2;
+	      phip_i_2 *= r2_ij_2/r2; 
+	      
+	      dF_i[0] +=  (phip_i_0 -phip_0)/delta;
+	      dF_i[1] +=  (phip_i_1 -phip_1)/delta;
+	      dF_i[2] +=  (phip_i_2 -phip_2)/delta;
+	      
+	      dF_j[0] += (phip_i_0 -phip_0)/delta;
+	      dF_j[1] += (phip_i_1 -phip_1)/delta;
+	      dF_j[2] += (phip_i_2 -phip_2)/delta;
+
+	    } 
+	}
+    }
+
+  /* exchange numerical derivatives information */
+  fCommManager.AllGather(fdFdxMessageID, fdFdx);
+      
+  StringT outfile = "Derivatives.out";
+  ofstreamT outD;
+  outD.open(outfile);  
+
+  for (int i = 0; i < fNeighbors.MajorDim(); i++)
+    {
+      fNeighbors.RowAlias(i, neighbors);
+      int   tag_i = neighbors[0];
+      double* f_i = fForce(tag_i);
+      double* df_i= fdFdx(tag_i);
+
+      outD << i << " " << df_i[0] << " " << f_i[0] << " " <<  df_i[0] - f_i[0]<< "\n";
+      outD << i << " " << df_i[1] << " " << f_i[1] << " " <<  df_i[1] - f_i[1]<< "\n";
+      outD << i << " " << df_i[2] << " " << f_i[2] << " " <<  df_i[2] - f_i[2]<< "\n\n";
+    }
+
+  outD.close();
+
+  exit(0);
+}
+
+
+
+void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
+			    dArrayT& d3,dArrayT& d4,dArrayT& d5)
+{
+  cout << "ENTER EAMT::NumericalDerivatives3D\n";
+
+  /* assembly information */
+  const ElementSupportT& support = ElementSupport();
+  int group = Group();
+  int ndof = NumDOF();
+	
+  /* global coordinates */
+  const dArray2DT& coords = support.CurrentCoordinates();
+
+  double delta = 1.e-9;
+  iArrayT neighbors;
+  fdFdx  = 0.0;
+
+  /* Embedding Force */
+  if(iEmb == 1) 
+    {
+      frho_i = 0.0;
+      fEmb_i = 0.0;
+      fEmb = 0.0;
+
+      /* get electron density */
+      fElectronDensity = 0.0;
+      GetRho3D(coords,fElectronDensity);
+      /* exchange electron density information */
+      fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
+
+      /* get embedding force */
+      fEmbeddingForce = 0.0;
+      GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
+      /* exchange embedding energy information */
+      fCommManager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
+
+      /* get electron density + delta */
+      frho_i = 0.0;
+      GetNumRho3D(coords,frho_i);
+      /* exchange electron density information */
+      fCommManager.AllGather(frho_iMessageID, frho_i);
+
+      /* get embedding force + delta */
+      fEmbeddingForce_i = 0.0;
+      GetEmbForce(coords,frho_i,fEmbeddingForce_i);
+      /* exchange embedding energy information */
+      fCommManager.AllGather(fEmbeddingForce_iMessageID, fEmbeddingForce_i);
+
+      EAMPropertyT::EDForceFunction ed_force_i = NULL;
+      EAMPropertyT::EDForceFunction ed_force_j = NULL;
+      
+      fdFdx = 0.0;
+
+      int current_property_i = -1;
+      int current_property_j = -1;
+
+      for (int i = 0; i < fNeighbors.MajorDim(); i++)
+	{
+	  fNeighbors.RowAlias(i, neighbors);
+	  
+	  int   tag_i = neighbors[0]; 
+	  int  type_i = fType[tag_i];
+	  double* x_i = coords(tag_i);
+	  
+	  for (int j = 1; j < neighbors.Length(); j++)
+	    {
+	      int   tag_j = neighbors[j];
+	      int  type_j = fType[tag_j];
+	      double* x_j = coords(tag_j);
+	      
+	      int property_i = fPropertiesMap(type_i, type_j);
+	      if (property_i != current_property_i)
+		{
+		  ed_force_i = fEAMProperties[property_i]->getElecDensForce();
+		  current_property_i = property_i;
+		}
+
+	      int property_j = fPropertiesMap(type_j, type_i);
+	      if (property_j != current_property_j)
+		{
+		  ed_force_j  = fEAMProperties[property_j]->getElecDensForce();
+		  current_property_j = property_j;
+		}
+	      
+	      double r_ij_0 = x_j[0] - x_i[0];
+	      double r_ij_1 = x_j[1] - x_i[1];
+	      double r_ij_2 = x_j[2] - x_i[2];
+	      double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
+
+	      double Ep_i   = fEmbeddingForce(tag_i,0); 
+	      double rhop_i = ed_force_i(r,NULL,NULL);
+	      
+	      double Ep_j   = fEmbeddingForce(tag_j,0);
+	      double rhop_j = ed_force_j(r,NULL,NULL);
+	      
+	      double F1 =  rhop_j * Ep_i;
+	      double F1byr = F1/r;
+
+	      double F2 =  rhop_i * Ep_j ;
+	      double F2byr = F2/r;
+
+	      fEmb(tag_i,0) += F1byr * r_ij_0;
+	      fEmb(tag_j,0) += F2byr * r_ij_0;
+
+	      fEmb(tag_i,1) += F1byr * r_ij_1;
+	      fEmb(tag_j,1) += F2byr * r_ij_1;
+
+	      fEmb(tag_i,2) += F1byr * r_ij_2;
+	      fEmb(tag_j,2) += F2byr * r_ij_2;
+
+	      /* Component 11 */
+      	      double r0_ij_0 =  x_j[0]+delta  - x_i[0];
+	      double r0_ij_1 =  x_j[1]        - x_i[1];
+	      double r0_ij_2 =  x_j[2]        - x_i[2];
+	      double r0      = sqrt(r0_ij_0*r0_ij_0 + r0_ij_1*r0_ij_1 + r0_ij_2*r0_ij_2);
+	      
+	      Ep_i = fEmbeddingForce_i(tag_i,0);
+	      Ep_j = fEmbeddingForce_i(tag_j,0);
+	      rhop_i= ed_force_i(r0,NULL,NULL);
+	      rhop_j= ed_force_j(r0,NULL,NULL);
+	      
+	      F1 = Ep_i * rhop_j;
+	      F1byr = F1/r0;
+	      F2 = Ep_j * rhop_i;
+	      F2byr = F2/r0;
+
+	      fEmb_i(tag_i,0) += F1byr * r0_ij_0;
+	      fEmb_i(tag_j,0) += F2byr * r0_ij_0;
+
+	      /* Component 22 */
+	      double r1_ij_0 =  x_j[0]        - x_i[0];
+	      double r1_ij_1 =  x_j[1]+delta  - x_i[1];
+	      double r1_ij_2 =  x_j[2]        - x_i[2];
+	      double r1      = sqrt(r1_ij_0*r1_ij_0 + r1_ij_1*r1_ij_1 + r1_ij_2*r1_ij_2);
+	      
+	      Ep_i = fEmbeddingForce_i(tag_i,1);
+	      Ep_j = fEmbeddingForce_i(tag_j,1);
+	      rhop_i= ed_force_i(r1,NULL,NULL);
+	      rhop_j= ed_force_j(r1,NULL,NULL);
+	      
+	      F1 = Ep_i * rhop_j;
+	      F1byr = F1/r1;
+	      F2 = Ep_j * rhop_i;
+	      F2byr = F2/r1;
+
+	      fEmb_i(tag_i,1) += F1byr * r1_ij_1;
+	      fEmb_i(tag_j,1) += F2byr * r1_ij_1;
+
+	      /* Component 33 */
+	      double r2_ij_0 =  x_j[0]        - x_i[0];
+	      double r2_ij_1 =  x_j[1]        - x_i[1];
+	      double r2_ij_2 =  x_j[2]+delta  - x_i[2];
+	      double r2      = sqrt(r2_ij_0*r2_ij_0 + r2_ij_1*r2_ij_1 + r2_ij_2*r2_ij_2);
+
+	      Ep_i = fEmbeddingForce_i(tag_i,2);
+	      Ep_j = fEmbeddingForce_i(tag_j,2);
+	      rhop_i= ed_force_i(r2,NULL,NULL);
+	      rhop_j= ed_force_j(r2,NULL,NULL);
+	      
+	      F1 = Ep_i * rhop_j;
+	      F1byr = F1/r2;
+	      F2 = Ep_j * rhop_i;
+	      F2byr = F2/r2;
+
+	      fEmb_i(tag_i,2) += F1byr * r2_ij_2;
+	      fEmb_i(tag_j,2) += F2byr * r2_ij_2;
+
+
+	      /* Component 12 */
+      	      double r3_ij_0 =  x_j[0] - x_i[0] - delta;
+	      double r3_ij_1 =  x_j[1] - x_i[1];
+	      double r3_ij_2 =  x_j[2] - x_i[2];
+	      double r3      = sqrt(r3_ij_0*r3_ij_0 + r3_ij_1*r3_ij_1 + r3_ij_2*r3_ij_2);
+	      
+	      Ep_i = fEmbeddingForce_i(tag_i,3);
+	      Ep_j = fEmbeddingForce_i(tag_j,3);
+	      rhop_i= ed_force_i(r3,NULL,NULL);
+	      rhop_j= ed_force_j(r3,NULL,NULL);
+	      
+	      F1 = Ep_i * rhop_j;
+	      F1byr = F1/r3;
+	      F2 = Ep_j * rhop_i;
+	      F2byr = F2/r3;
+
+	      fEmb_i(tag_i,3) += F1byr * r3_ij_0;
+	      fEmb_i(tag_j,3) += F2byr * r3_ij_0;
+
+
+	      /* Component 13 */
+	      double r4_ij_0 =  x_j[0] - x_i[0];
+	      double r4_ij_1 =  x_j[1] - x_i[1] - delta;
+	      double r4_ij_2 =  x_j[2] - x_i[2];
+	      double r4      = sqrt(r4_ij_0*r4_ij_0 + r4_ij_1*r4_ij_1 + r4_ij_2*r4_ij_2);
+	      
+	      Ep_i = fEmbeddingForce_i(tag_i,4);
+	      Ep_j = fEmbeddingForce_i(tag_j,4);
+	      rhop_i= ed_force_i(r4,NULL,NULL);
+	      rhop_j= ed_force_j(r4,NULL,NULL);
+	      
+	      F1 = Ep_i * rhop_j;
+	      F1byr = F1/r4;
+	      F2 = Ep_j * rhop_i;
+	      F2byr = F2/r4;
+
+	      fEmb_i(tag_i,4) += F1byr * r4_ij_1;
+	      fEmb_i(tag_j,4) += F2byr * r4_ij_1;
+
+	      /* Component 23 */
+	      double r5_ij_0 =  x_j[0] - x_i[0];
+	      double r5_ij_1 =  x_j[1] - x_i[1];
+	      double r5_ij_2 =  x_j[2] - x_i[2] - delta;
+	      double r5      = sqrt(r5_ij_0*r5_ij_0 + r5_ij_1*r5_ij_1 + r5_ij_2*r5_ij_2);
+
+	      Ep_i = fEmbeddingForce_i(tag_i,5);
+	      Ep_j = fEmbeddingForce_i(tag_j,5);
+	      rhop_i= ed_force_i(r5,NULL,NULL);
+	      rhop_j= ed_force_j(r5,NULL,NULL);
+	      
+	      F1 = Ep_i * rhop_j;
+	      F1byr = F1/r5;
+	      F2 = Ep_j * rhop_i;
+	      F2byr = F2/r5;
+
+	      fEmb_i(tag_i,5) += F1byr * r5_ij_2;
+	      fEmb_i(tag_j,5) += F2byr * r5_ij_2;
+	    }
+ 	}
+
+      /* exchange embedded energy information */
+      fCommManager.AllGather(fEmbMessageID, fEmb);
+      fCommManager.AllGather(fEmb_iMessageID, fEmb_i);
+
+      for (int i = 0; i < fNeighbors.MajorDim(); i++)
+	{
+	  fNeighbors.RowAlias(i, neighbors);
+	  
+	  int   tag_i = neighbors[0]; 
+	  double* dF_i= fdFdx(tag_i);
+	  
+	  dF_i[0] = (fEmb_i(tag_i,0) - fEmb(tag_i,0))/delta;
+	  dF_i[1] = (fEmb_i(tag_i,1) - fEmb(tag_i,1))/delta;
+	  dF_i[2] = (fEmb_i(tag_i,2) - fEmb(tag_i,2))/delta; 
+
+	  dF_i[3] = (fEmb_i(tag_i,3) - fEmb(tag_i,0))/delta;
+	  dF_i[4] = (fEmb_i(tag_i,4) - fEmb(tag_i,1))/delta;
+	  dF_i[5] = (fEmb_i(tag_i,5) - fEmb(tag_i,2))/delta; 
+	}
+    }
+
+  if(ipair == 1)
+    {
+      /* Pair Energy */
+      EAMPropertyT::PairEnergyFunction pair_energy_i = NULL;
+      EAMPropertyT::PairEnergyFunction pair_energy_j = NULL;
+
+      EAMPropertyT::PairForceFunction pair_force_i = NULL;    
+      EAMPropertyT::PairForceFunction pair_force_j = NULL;
+
+      int current_property_i = -1;
+      int current_property_j = -1;      
+
+      for (int i = 0; i < fNeighbors.MajorDim(); i++)
+	{
+	  fNeighbors.RowAlias(i, neighbors);
+	  
+	  int   tag_i = neighbors[0]; 
+	  int  type_i = fType[tag_i];
+	  double* x_i = coords(tag_i);
+	  double* dF_i = fdFdx(tag_i);
+
+	  for (int j = 1; j < neighbors.Length(); j++)
+	    {
+	      int   tag_j = neighbors[j];
+	      int  type_j = fType[tag_j];
+	      double* x_j = coords(tag_j);
+	      double* dF_j = fdFdx(tag_j);
+	      
+	      int property_i = fPropertiesMap(type_i, type_j);  
+	      if (property_i != current_property_i)
+		{
+		  pair_energy_i = fEAMProperties[property_i]->getPairEnergy();
+		  pair_force_i  = fEAMProperties[property_i]->getPairForce();
+		  current_property_i = property_i;
+		}
+	      
+	      int property_j = fPropertiesMap(type_j, type_i);  
+	      if (property_j != current_property_j)
+		{
+		  pair_energy_j = fEAMProperties[property_j]->getPairEnergy();
+		  pair_force_j  = fEAMProperties[property_j]->getPairForce();
+		  current_property_j = property_j;
+		}
+	      
+	      double r_ij_0  = x_j[0] - x_i[0];
+	      double r_ij_1  = x_j[1] - x_i[1];
+	      double r_ij_2  = x_j[2] - x_i[2];
+	      double r       = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
+	      
+	      double r0_ij_0 =  x_j[0]+delta - x_i[0];
+	      double r0_ij_1 =  x_j[1]       - x_i[1];
+	      double r0_ij_2 =  x_j[2]       - x_i[2];
+	      double r0      = sqrt(r0_ij_0*r0_ij_0 + r0_ij_1*r0_ij_1 + r0_ij_2*r0_ij_2);
+	      
+	      double r1_ij_0 =  x_j[0]       - x_i[0];
+	      double r1_ij_1 =  x_j[1]+delta - x_i[1];
+	      double r1_ij_2 =  x_j[2]       - x_i[2];
+	      double r1      = sqrt(r1_ij_0*r1_ij_0 + r1_ij_1*r1_ij_1 + r1_ij_2*r1_ij_2);
+	      
+	      double r2_ij_0 =  x_j[0]       - x_i[0];
+	      double r2_ij_1 =  x_j[1]       - x_i[1];
+	      double r2_ij_2 =  x_j[2]+delta - x_i[2];
+	      double r2      = sqrt(r2_ij_0*r2_ij_0 + r2_ij_1*r2_ij_1 + r2_ij_2*r2_ij_2);
+	      
+	      double r3_ij_0 =  x_j[0] - x_i[0] -delta;
+	      double r3_ij_1 =  x_j[1] - x_i[1];
+	      double r3_ij_2 =  x_j[2] - x_i[2];
+	      double r3      = sqrt(r3_ij_0*r3_ij_0 + r3_ij_1*r3_ij_1 + r3_ij_2*r3_ij_2);
+
+	      double r4_ij_0 =  x_j[0] - x_i[0];
+	      double r4_ij_1 =  x_j[1] - x_i[1] - delta;
+	      double r4_ij_2 =  x_j[2] - x_i[2];
+	      double r4      = sqrt(r4_ij_0*r4_ij_0 + r4_ij_1*r4_ij_1 + r4_ij_2*r4_ij_2);
+	      
+	      double r5_ij_0 =  x_j[0] - x_i[0];
+	      double r5_ij_1 =  x_j[1] - x_i[1];
+	      double r5_ij_2 =  x_j[2] - x_i[2] - delta;
+	      double r5      = sqrt(r5_ij_0*r5_ij_0 + r5_ij_1*r5_ij_1 + r5_ij_2*r5_ij_2);
+
+	      double z_i = pair_energy_i(r,NULL,NULL);
+	      double z_j = pair_energy_j(r,NULL,NULL);
+
+	      double zp_i= pair_force_i(r,NULL,NULL);
+	      double zp_j= pair_force_j(r,NULL,NULL);
+
+	      double phi_0   = 0.5*z_i*z_j/r;
+	      double phip_0  = 0.5*(zp_i * z_j + z_i * zp_j)/r - phi_0/r;
+	      phip_0 *= r_ij_0/r;
+
+	      double phi_1   = 0.5*z_i*z_j/r;
+	      double phip_1  = 0.5*(zp_i * z_j + z_i * zp_j)/r - phi_1/r;
+	      phip_1 *= r_ij_1/r;
+
+	      double phi_2   = 0.5*z_i*z_j/r;
+	      double phip_2  = 0.5*(zp_i * z_j + z_i * zp_j)/r - phi_2/r;
+	      phip_2 *= r_ij_2/r;
+
+	      /* Component 11 */
+	      z_i = pair_energy_i(r0,NULL,NULL);
+	      z_j = pair_energy_j(r0,NULL,NULL);
+
+	      zp_i= pair_force_i(r0,NULL,NULL);
+	      zp_j= pair_force_j(r0,NULL,NULL);
+ 
+	      double phi_i_0 = 0.5*z_i*z_j/r0;
+	      double phip_i_0= 0.5*(zp_i * z_j + z_i * zp_j)/r0 - phi_i_0/r0;
+	      phip_i_0 *= r0_ij_0/r0;
+
+	      /* Component 22 */
+	      z_i = pair_energy_i(r1,NULL,NULL);
+	      z_j = pair_energy_j(r1,NULL,NULL);
+
+	      zp_i= pair_force_i(r1,NULL,NULL);
+	      zp_j= pair_force_j(r1,NULL,NULL);
+
+
+	      double phi_i_1 = 0.5*z_i*z_j/r1;
+	      double phip_i_1= 0.5*(zp_i * z_j + z_i * zp_j)/r1 - phi_i_1/r1;
+	      phip_i_1 *= r1_ij_1/r1;
+
+	      /* Component 33 */
+	      z_i = pair_energy_i(r2,NULL,NULL);
+	      z_j = pair_energy_j(r2,NULL,NULL);
+
+	      zp_i= pair_force_i(r2,NULL,NULL);
+	      zp_j= pair_force_j(r2,NULL,NULL);
+
+	      double phi_i_2 = 0.5*z_i*z_j/r2;
+	      double phip_i_2= 0.5*(zp_i * z_j + z_i * zp_j)/r2 - phi_i_2/r2;
+	      phip_i_2 *= r2_ij_1/r2;
+
+	      /* Component 12 */
+	      z_i = pair_energy_i(r3,NULL,NULL);
+	      z_j = pair_energy_j(r3,NULL,NULL);
+
+	      zp_i= pair_force_i(r3,NULL,NULL);
+	      zp_j= pair_force_j(r3,NULL,NULL);
+
+	      double phi_i_3 = 0.5*z_i*z_j/r3;
+	      double phip_i_3= 0.5*(zp_i * z_j + z_i * zp_j)/r3 - phi_i_3/r3;
+	      phip_i_3 *= r3_ij_0/r3; 
+
+	      
+	      /* Component 13 */
+	      z_i = pair_energy_i(r4,NULL,NULL);
+	      z_j = pair_energy_j(r4,NULL,NULL);
+
+	      zp_i= pair_force_i(r4,NULL,NULL);
+	      zp_j= pair_force_j(r4,NULL,NULL);
+
+	      double phi_i_4 = 0.5*z_i*z_j/r4;
+	      double phip_i_4= 0.5*(zp_i * z_j + z_i * zp_j)/r4 - phi_i_4/r4;
+	      phip_i_4 *= r4_ij_1/r4; 
+
+
+	      /* Component 23 */
+	      z_i = pair_energy_i(r5,NULL,NULL);
+	      z_j = pair_energy_j(r5,NULL,NULL);
+
+	      zp_i= pair_force_i(r5,NULL,NULL);
+	      zp_j= pair_force_j(r5,NULL,NULL);
+
+	      double phi_i_5 = 0.5*z_i*z_j/r5;
+	      double phip_i_5= 0.5*(zp_i * z_j + z_i * zp_j)/r5 - phi_i_5/r5;
+	      phip_i_5 *= r5_ij_2/r5; 
+	      /* sum up */
+	      dF_i[0] += (phip_i_0 -phip_0)/delta;
+	      dF_i[1] += (phip_i_1 -phip_1)/delta;
+	      dF_i[2] += (phip_i_2 -phip_2)/delta;
+	      dF_i[3] += (phip_i_3 -phip_0)/delta;
+	      dF_i[4] += (phip_i_4 -phip_1)/delta;
+	      dF_i[5] += (phip_i_5 -phip_2)/delta;
+
+	      dF_j[0] += (phip_i_0 -phip_0)/delta;
+	      dF_j[1] += (phip_i_1 -phip_1)/delta;
+	      dF_j[2] += (phip_i_2 -phip_2)/delta;
+	      dF_j[3] += (phip_i_3 -phip_0)/delta;
+	      dF_j[3] += (phip_i_4 -phip_1)/delta;
+	      dF_j[3] += (phip_i_5 -phip_2)/delta;
+
+	    } 
+	}
+    }
+
+  /* exchange numerical derivatives information */
+  fCommManager.AllGather(fdFdxMessageID, fdFdx);
+      
+  StringT outfile = "Derivatives.out";
+  ofstreamT outD;
+  outD.open(outfile);  
+
+  /* Diagonal */
+  /*for (int i = 0; i < fNeighbors.MajorDim(); i++)
+    {
+      fNeighbors.RowAlias(i, neighbors);
+      int   tag_i = neighbors[0];
+      double* df_i= fdFdx(tag_i);
+
+      outD << i << " " << df_i[0] << " " << d0[tag_i] << " " <<  df_i[0] - d0[tag_i]<< "\n";
+      outD << i << " " << df_i[1] << " " << d1[tag_i] << " " <<  df_i[1] - d1[tag_i]<< "\n";
+      outD << i << " " << df_i[2] << " " << d2[tag_i] << " " <<  df_i[2] - d2[tag_i]<< "\n\n";
+    }
+  */
+
+  /* Upper Diagonal */
+  for (int i = 0; i < fNeighbors.MajorDim(); i++)
+    {
+      fNeighbors.RowAlias(i, neighbors);
+      int   tag_i = neighbors[0];
+      double* df_i= fdFdx(tag_i);
+
+      outD << i << " " << df_i[3] << " " << d3[tag_i] << " " <<  df_i[3] - d3[tag_i]<< "\n";
+      outD << i << " " << df_i[4] << " " << d4[tag_i] << " " <<  df_i[4] - d4[tag_i]<< "\n";
+      outD << i << " " << df_i[5] << " " << d5[tag_i] << " " <<  df_i[5] - d5[tag_i]<< "\n\n";
+    }
+  
+  outD.close();
+  
+  exit(0);
+}
+
+
+void EAMT::GetNumRho3D(const dArray2DT& coords,dArray2DT& frho_i)
+  { 
+    int current_property_i = -1;
+    int current_property_j = -1;
+    
+    double delta = 1.e-9;
+    iArrayT neighbors;
+
+    EAMPropertyT::EDEnergyFunction ed_energy_i = NULL;
+    EAMPropertyT::EDEnergyFunction ed_energy_j = NULL;
+      
+    frho_i = 0.0;
+    
+    for (int i = 0; i < fNeighbors.MajorDim(); i++)
+      {
+	/* row of neighbor list */
+	fNeighbors.RowAlias(i, neighbors);
+	
+	/* type */
+	int   tag_i = neighbors[0]; /* self is 1st spot */
+	int  type_i = fType[tag_i];
+	double* x_i = coords(tag_i);
+	
+	for (int j = 1; j < neighbors.Length(); j++)
+	  {
+	    /* global tag */
+	    int   tag_j = neighbors[j];
+	    int  type_j = fType[tag_j];
+	    double* x_j = coords(tag_j);
+	    
+	    int property_i = fPropertiesMap(type_i, type_j);
+	    if (property_i != current_property_i)
+	      {
+		ed_energy_i  = fEAMProperties[property_i]->getElecDensEnergy();
+		current_property_i = property_i;
+	      }
+	    
+	    int property_j = fPropertiesMap(type_j, type_i);
+	    if (property_j != current_property_j)
+	      {
+		ed_energy_j  = fEAMProperties[property_j]->getElecDensEnergy();
+		current_property_j = property_j;
+	      }
+	    
+	    double r0_ij_0 =  x_j[0]+delta  - x_i[0];
+	    double r0_ij_1 =  x_j[1]        - x_i[1];
+	    double r0_ij_2 =  x_j[2]        - x_i[2];
+	    double r0      = sqrt(r0_ij_0*r0_ij_0 + r0_ij_1*r0_ij_1 + r0_ij_2*r0_ij_2);
+	    
+	    frho_i(tag_i,0) += ed_energy_i(r0,NULL,NULL); 
+	    frho_i(tag_j,0) += ed_energy_j(r0,NULL,NULL); 
+
+	    double r1_ij_0 =  x_j[0]        - x_i[0];
+	    double r1_ij_1 =  x_j[1]+delta  - x_i[1];
+	    double r1_ij_2 =  x_j[2]        - x_i[2];
+	    double r1      = sqrt(r1_ij_0*r1_ij_0 + r1_ij_1*r1_ij_1 + r1_ij_2*r1_ij_2);
+	      
+	    frho_i(tag_i,1) += ed_energy_i(r1,NULL,NULL); 
+	    frho_i(tag_j,1) += ed_energy_j(r1,NULL,NULL); 
+
+	    double r2_ij_0 =  x_j[0]        - x_i[0];
+	    double r2_ij_1 =  x_j[1]        - x_i[1];
+	    double r2_ij_2 =  x_j[2]+delta  - x_i[2];
+	    double r2      = sqrt(r2_ij_0*r2_ij_0 + r2_ij_1*r2_ij_1 + r2_ij_2*r2_ij_2);
+	    
+	    frho_i(tag_i,2) += ed_energy_i(r2,NULL,NULL); 
+	    frho_i(tag_j,2) += ed_energy_j(r2,NULL,NULL); 
+
+	    double r3_ij_0 =  x_j[0] - x_i[0] - delta;
+	    double r3_ij_1 =  x_j[1] - x_i[1];
+	    double r3_ij_2 =  x_j[2] - x_i[2];
+	    double r3      = sqrt(r3_ij_0*r3_ij_0 + r3_ij_1*r3_ij_1 + r3_ij_2*r3_ij_2);
+	    
+	    frho_i(tag_i,3) += ed_energy_i(r3,NULL,NULL); 
+	    frho_i(tag_j,3) += ed_energy_j(r3,NULL,NULL); 
+
+	    double r4_ij_0 =  x_j[0] - x_i[0];
+	    double r4_ij_1 =  x_j[1] - x_i[1] - delta;
+	    double r4_ij_2 =  x_j[2] - x_i[2];
+	    double r4      = sqrt(r4_ij_0*r4_ij_0 + r4_ij_1*r4_ij_1 + r4_ij_2*r4_ij_2);
+	      
+	    frho_i(tag_i,4) += ed_energy_i(r4,NULL,NULL); 
+	    frho_i(tag_j,4) += ed_energy_j(r4,NULL,NULL); 
+
+	    double r5_ij_0 =  x_j[0] - x_i[0];
+	    double r5_ij_1 =  x_j[1] - x_i[1];
+	    double r5_ij_2 =  x_j[2] - x_i[2] - delta;
+	    double r5      = sqrt(r5_ij_0*r5_ij_0 + r5_ij_1*r5_ij_1 + r5_ij_2*r5_ij_2);
+
+	    frho_i(tag_i,5) += ed_energy_i(r5,NULL,NULL); 
+	    frho_i(tag_j,5) += ed_energy_j(r5,NULL,NULL); 
+	  }
+      }
+  }
+      
+
+
 
