@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.6 2002-07-18 17:44:40 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.7 2002-07-18 23:42:20 hspark Exp $ */
 /* created: paklein (07/03/1996)                                          */
 
 #include "ParentDomainT.h"
@@ -573,19 +573,57 @@ void ParentDomainT::Print(ostream& out) const
 /* return true if the given point is within the domain */
 bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
 {
-//TEMP - not implemented
+  int dim = point.Length();
+  int numpoints = coords.Length();
+  if (dim == 1) /* 1D case */
+  {
+    dArrayT temp(2);
+    for (int i = 0; i < 2; i++) 
+      temp[i]=coords[i];
+
+    temp.SortAscending();
+    /* if atom and node coincide, return true */
+    if (point[0] >= temp[0] && point[0] <= temp[1])
+      return true;
+    else
+      return false;
+  }
+  else if (dim == 2)
+    int blah=0;
+  else if (dim == 3)
+    int blah2=0;
+  else
+    int blah3=0;
 #pragma unused(coords)
 #pragma unused(point)
-	return false;
+  return false;
 }
 
 /* map domain coordinates into the parent coordinates */
 bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& point,
 	dArrayT& mapped) const
 {
-//TEMP - not implemented
+  int dim = point.Length();
+  int numpoints = coords.Length();
+  if (dim == 1) 
+    {
+      dArrayT temp(2);
+      for (int i = 0; i < 2; i++)
+	temp[i]=coords[i];
+
+      temp.SortAscending();
+      mapped[0]=2*point[0]/(temp[1]-temp[0])-(temp[0]+temp[1])/(temp[1]-temp[0]);
+      /* mapped[0] = value in psi space, assuming parent coordinates go from -1 to 1 */
+    }
+  if (dim == 2)
+    {
+      
+
+
+
+    }
 #pragma unused(coords)
 #pragma unused(point)
 #pragma unused(mapped)
-	return false;
+	return true;
 }
