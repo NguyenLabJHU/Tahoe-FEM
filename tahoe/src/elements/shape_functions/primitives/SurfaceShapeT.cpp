@@ -1,23 +1,13 @@
-/* $Id: SurfaceShapeT.cpp,v 1.6 2002-09-12 17:50:11 paklein Exp $ */
-/* created: paklein (11/21/1997)                                          */
-/* Class to manage CSE integrals, where the dimension of                  */
-/* the field variable is 1 greater than the dimension of the parent       */
-/* domain. Jump quantities imply jump between any field variable          */
-/* across the CSE. Revised for new shape function object model            */
-/* PAK (09/04/98)                                                         */
-/* NOTE:                                                                  */
-/* numnodes = total number of element nodes                               */
-/* coords = coordinates of nodes on 1st facet (numnodes/2)                */
-
+/* $Id: SurfaceShapeT.cpp,v 1.7 2002-10-05 19:17:06 paklein Exp $ */
+/* created: paklein (11/21/1997) */
 #include "SurfaceShapeT.h"
 
 #include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 
-/* vector functions */
-
 using namespace Tahoe;
 
+/* vector functions */
 inline static void CrossProduct(const double* A, const double* B, double* AxB)
 {   AxB[0] = A[1]*B[2] - A[2]*B[1];
 	AxB[1] = A[2]*B[0] - A[0]*B[2];
@@ -232,15 +222,15 @@ double SurfaceShapeT::Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ)
 		dQ1 -= dtan_du;
 		dQ1 /= -j;
 		
-		/* second component - multiply dQ1 by Q^(pi/2) */
+		/* second component - multiply dQ1 by Q^(-pi/2) */
 		int num_cols = dQ1.Cols();
 		double* row1 = dQ1.Pointer();
 		double* row2 = row1 + 1;
 		double* pdQ2 = dQ2.Pointer();
 		for (int i = 0; i < num_cols; i++)
 		{
-			*pdQ2++ =-(*row2);
-			*pdQ2++ =  *row1;
+			*pdQ2++ = *row2;
+			*pdQ2++ =-(*row1);
 			
 			row1 += 2;
 			row2 += 2;	
@@ -319,15 +309,19 @@ void SurfaceShapeT::SetNodesOnFacets(iArray2DT& facetnodes)
 		{
 			if (fTotalNodes == 4)
 			{
-				int dat_4[4] = {0, 1,
-				                3, 2};
+//				int dat_4[4] = {0, 1,
+//				                3, 2};
+				int dat_4[4] = {1, 0,
+				                2, 3};
 				iArray2DT temp(2, 2, dat_4);
 				facetnodes = temp;
 			}
 			else if (fTotalNodes == 6)
 			{
-				int dat_6[6] = {0, 1, 4,
-				                3, 2, 5};
+//				int dat_6[6] = {0, 1, 4,
+//				                3, 2, 5};
+				int dat_6[6] = {1, 0, 4,
+				                2, 3, 5};
 				iArray2DT temp(2, 3, dat_6);
 				facetnodes = temp;
 			}
