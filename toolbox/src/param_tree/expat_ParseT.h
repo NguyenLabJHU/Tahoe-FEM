@@ -1,4 +1,4 @@
-/* $Id: expat_ParseT.h,v 1.2 2003-05-04 22:59:53 paklein Exp $ */
+/* $Id: expat_ParseT.h,v 1.3 2004-07-08 22:53:28 paklein Exp $ */
 #ifndef _EXPAT_PARSE_T_H_
 #define _EXPAT_PARSE_T_H_
 
@@ -17,13 +17,15 @@ class StringT;
 class ParameterListT;
 
 /** interface to the expat parser library. More information about expat is
- * available from here: http://expat.sourceforge.net/ */
+ * available from here: http://expat.sourceforge.net/. The parser uses a
+ * makes use of a stack that is a static data member, so only a single
+ * instance can be active at any time. */
 class expat_ParseT
 {
 public:
 
 	/** constructor */
-	expat_ParseT(void) {};
+	expat_ParseT(void);
 
 	/** parse the given file placing values into the given parameter tree. If
 	 * parsing fails, parser will throw ExceptionT::kBadInputValue. 
