@@ -1,4 +1,4 @@
-/* $Id: InverseMapT.h,v 1.6 2003-11-04 18:17:05 paklein Exp $ */
+/* $Id: InverseMapT.h,v 1.7 2003-11-04 23:19:45 paklein Exp $ */
 #ifndef _INVERSE_MAP_T_H_
 #define _INVERSE_MAP_T_H_
 
@@ -6,7 +6,7 @@
 #include "AutoArrayT.h"
 
 /* forward declarations */
-#include "nArrayT.h";
+#include "nArrayT.h"
 
 namespace Tahoe {
 
