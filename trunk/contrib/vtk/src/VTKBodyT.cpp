@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.29 2002-06-19 21:38:22 recampb Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.30 2002-06-23 03:39:34 paklein Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -589,35 +589,34 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 			return true;
 		}
 	}
-
-
 	else if (command.Name() == "ShowGlyphs")
-	  {
-      
-	    bool filter;
-	    bool warpArrows = true;
-	    StringT temp;
-	    command.Argument("base").GetValue(temp);
-	    if (temp == "head")
-	      warpArrows = false;
-	    command.Argument("filter").GetValue(filter);
-	    ArrayT<VTKUGridT*> fUGrids = fBodyData->UGrids();
-	       for (int i = 0; i < fBodyData->UGrids().Length(); i++)
-		 {
-		   fUGrids[i]->Glyphing(fBodyData->GetVectors(), fFrame->Renderer(), filter, warpArrows);
-
-		 }
-	     return true;
+	{  
+		bool filter;
+		bool warpArrows = true;
+		StringT temp;
+		command.Argument("base").GetValue(temp);
+		if (temp == "head") warpArrows = false;
+		command.Argument("filter").GetValue(filter);
+		ArrayT<VTKUGridT*> fUGrids = fBodyData->UGrids();
 	    
-	  }
+		/* glyph vector */
+		vtkFloatArray* vector_field = fBodyData->VectorField("D");
 
+		/* found requested field */
+		if (vector_field) {
+			for (int i = 0; i < fBodyData->UGrids().Length(); i++)
+				fUGrids[i]->Glyphing(vector_field, fFrame->Renderer(), filter, warpArrows);
+			return true;
+		}
+		else /* no such field */ 
+			return false;
+	}
 	else if (command.Name() == "ShowCuttingPlane")
 	  {
 	    ArrayT<VTKUGridT*> fUGrids = fBodyData->UGrids();
 	    double oX, oY, oZ, nX, nY, nZ;
 	    bool warp = false;
-	    if (fBodyData->NumVectors() > 0)
-	      warp = true;
+	    if (fBodyData->VectorField("D")) warp = true;
 	    
 	    for (int i = 0; i < fBodyData->UGrids().Length(); i++)
 	      {
