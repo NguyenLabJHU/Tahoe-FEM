@@ -36,7 +36,7 @@ EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
   /* check derivatives */
   fdFdx_man(kMemoryHeadRoom, fdFdx, 2*NumDOF()),
   fEmbeddingForce_i_man(kMemoryHeadRoom, fEmbeddingForce_i, 2*NumDOF()),
-  frho_i_man(kMemoryHeadRoom, frho_i, 2*NumDOF()),
+  frho_i_man(kMemoryHeadRoom, frho_i, NumDOF()),
   fEmb_man(kMemoryHeadRoom, fEmb, NumDOF()),
   fEmb_i_man(kMemoryHeadRoom, fEmb_i, 2*NumDOF())
 {}
@@ -110,10 +110,10 @@ void EAMT::Initialize(void)
   fdFdxMessageID = fCommManager.Init_AllGather(MessageT::Double,2*NumDOF());
   fdFdx_man.SetMajorDimension(ElementSupport().NumNodes(), false);  
 
-  frho_iMessageID = fCommManager.Init_AllGather(MessageT::Double, 2*NumDOF());
+  frho_iMessageID = fCommManager.Init_AllGather(MessageT::Double, NumDOF());
   frho_i_man.SetMajorDimension(ElementSupport().NumNodes(), false);  
 
-  fEmbeddingForce_iMessageID = fCommManager.Init_AllGather(MessageT::Double, 2*NumDOF());
+  fEmbeddingForce_iMessageID = fCommManager.Init_AllGather(MessageT::Double, NumDOF());
   fEmbeddingForce_i_man.SetMajorDimension(ElementSupport().NumNodes(), false);  
 }
 
@@ -984,11 +984,11 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		    D2fDx2_3[tag_i] += fLHS(0,1);
 		    D2fDx2_3[tag_j] += fLHS(0+ndof,1+ndof);
 		    
-		    D2fDx2_4[tag_i] += fLHS(0,2);
-		    D2fDx2_4[tag_j] += fLHS(0+ndof,2+ndof);
-		    
-		    D2fDx2_5[tag_i] += fLHS(1,2);
-		    D2fDx2_5[tag_j] += fLHS(1+ndof,2+ndof);
+		    D2fDx2_4[tag_i] += fLHS(1,2);
+		    D2fDx2_4[tag_j] += fLHS(1+ndof,2+ndof);
+
+		    D2fDx2_5[tag_i] += fLHS(0,2);
+		    D2fDx2_5[tag_j] += fLHS(0+ndof,2+ndof);
 		  }
 	      }
 	      
@@ -1024,19 +1024,20 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		  dMatrixT El_j(ndof);
 		  for (int k = 0; k < ndof; k++)
 		    {
-		      double r2_k = r_ij[k]/r;
+		      double r_k = r_ij[k]/r;
 		      for (int l = 0; l < ndof; l++)
 			{
-			  double r_kl = r2_k * r_ij[l]/r;
+			  double r_l = r_ij[l]/r;
+			  double r_kl = r_k * r_l;
 			  
-			  double F_ik = F_i_byr*(1.0 - r_kl);
-			  double F_jk = F_j_byr*(1.0 - r_kl);
+			  double Fi = F_i_byr*(1.0 - r_kl);
+			  double Fj = F_j_byr*(1.0 - r_kl);
 			  
-			  double K_ik = K_i*r_kl + K2_i*rp_i[l]*r2_k;
-			  double K_jk = K_j*r_kl + K2_j*rp_j[l]*r2_k;
+			  double K_ik = K_i*r_k*r_l + K2_i*rp_i[l]*r_k;
+			  double K_jk = K_j*r_k*r_l + K2_j*rp_j[l]*r_k;
 
-			  El_i(k,l) =  F_ik + K_ik;
-			  El_j(k,l) =  F_jk + K_jk;
+			  El_i(k,l) =  Fi + K_ik;
+			  El_j(k,l) =  Fj + K_jk;
 			}		  
 		    }
 		  
@@ -1064,11 +1065,11 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		      D2fDx2_3[tag_i] += fLHS(0,1);
 		      D2fDx2_3[tag_j] += fLHS(0+ndof,1+ndof);
 		      
-		      D2fDx2_4[tag_i] += fLHS(0,2);
-		      D2fDx2_4[tag_j] += fLHS(0+ndof,2+ndof);
-		      
-		      D2fDx2_5[tag_i] += fLHS(1,2);
-		      D2fDx2_5[tag_j] += fLHS(1+ndof,2+ndof);
+		      D2fDx2_4[tag_i] += fLHS(1,2);
+		      D2fDx2_4[tag_j] += fLHS(1+ndof,2+ndof);
+
+		      D2fDx2_5[tag_i] += fLHS(0,2);
+		      D2fDx2_5[tag_j] += fLHS(0+ndof,2+ndof);		      
 		    }
 		}
 	    }
@@ -2417,7 +2418,7 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 	      fEmb(tag_i,2) += F1byr * r_ij_2;
 	      fEmb(tag_j,2) += F2byr * r_ij_2;
 
-	      /* Component 11 */
+	      /* Component 00 and 02 */
       	      double r0_ij_0 =  x_j[0]+delta  - x_i[0];
 	      double r0_ij_1 =  x_j[1]        - x_i[1];
 	      double r0_ij_2 =  x_j[2]        - x_i[2];
@@ -2436,7 +2437,10 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 	      fEmb_i(tag_i,0) += F1byr * r0_ij_0;
 	      fEmb_i(tag_j,0) += F2byr * r0_ij_0;
 
-	      /* Component 22 */
+	      fEmb_i(tag_i,5) += F1byr * r0_ij_2;
+	      fEmb_i(tag_j,5) += F2byr * r0_ij_2;
+
+	      /* Component 11 and 01 */
 	      double r1_ij_0 =  x_j[0]        - x_i[0];
 	      double r1_ij_1 =  x_j[1]+delta  - x_i[1];
 	      double r1_ij_2 =  x_j[2]        - x_i[2];
@@ -2455,7 +2459,10 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 	      fEmb_i(tag_i,1) += F1byr * r1_ij_1;
 	      fEmb_i(tag_j,1) += F2byr * r1_ij_1;
 
-	      /* Component 33 */
+	      fEmb_i(tag_i,3) += F1byr * r1_ij_0;
+	      fEmb_i(tag_j,3) += F2byr * r1_ij_0;
+
+	      /* Component 22 and 12 */
 	      double r2_ij_0 =  x_j[0]        - x_i[0];
 	      double r2_ij_1 =  x_j[1]        - x_i[1];
 	      double r2_ij_2 =  x_j[2]+delta  - x_i[2];
@@ -2474,64 +2481,8 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 	      fEmb_i(tag_i,2) += F1byr * r2_ij_2;
 	      fEmb_i(tag_j,2) += F2byr * r2_ij_2;
 
-
-	      /* Component 12 */
-      	      double r3_ij_0 =  x_j[0] - x_i[0] - delta;
-	      double r3_ij_1 =  x_j[1] - x_i[1];
-	      double r3_ij_2 =  x_j[2] - x_i[2];
-	      double r3      = sqrt(r3_ij_0*r3_ij_0 + r3_ij_1*r3_ij_1 + r3_ij_2*r3_ij_2);
-	      
-	      Ep_i = fEmbeddingForce_i(tag_i,3);
-	      Ep_j = fEmbeddingForce_i(tag_j,3);
-	      rhop_i= ed_force_i(r3,NULL,NULL);
-	      rhop_j= ed_force_j(r3,NULL,NULL);
-	      
-	      F1 = Ep_i * rhop_j;
-	      F1byr = F1/r3;
-	      F2 = Ep_j * rhop_i;
-	      F2byr = F2/r3;
-
-	      fEmb_i(tag_i,3) += F1byr * r3_ij_0;
-	      fEmb_i(tag_j,3) += F2byr * r3_ij_0;
-
-
-	      /* Component 13 */
-	      double r4_ij_0 =  x_j[0] - x_i[0];
-	      double r4_ij_1 =  x_j[1] - x_i[1] - delta;
-	      double r4_ij_2 =  x_j[2] - x_i[2];
-	      double r4      = sqrt(r4_ij_0*r4_ij_0 + r4_ij_1*r4_ij_1 + r4_ij_2*r4_ij_2);
-	      
-	      Ep_i = fEmbeddingForce_i(tag_i,4);
-	      Ep_j = fEmbeddingForce_i(tag_j,4);
-	      rhop_i= ed_force_i(r4,NULL,NULL);
-	      rhop_j= ed_force_j(r4,NULL,NULL);
-	      
-	      F1 = Ep_i * rhop_j;
-	      F1byr = F1/r4;
-	      F2 = Ep_j * rhop_i;
-	      F2byr = F2/r4;
-
-	      fEmb_i(tag_i,4) += F1byr * r4_ij_1;
-	      fEmb_i(tag_j,4) += F2byr * r4_ij_1;
-
-	      /* Component 23 */
-	      double r5_ij_0 =  x_j[0] - x_i[0];
-	      double r5_ij_1 =  x_j[1] - x_i[1];
-	      double r5_ij_2 =  x_j[2] - x_i[2] - delta;
-	      double r5      = sqrt(r5_ij_0*r5_ij_0 + r5_ij_1*r5_ij_1 + r5_ij_2*r5_ij_2);
-
-	      Ep_i = fEmbeddingForce_i(tag_i,5);
-	      Ep_j = fEmbeddingForce_i(tag_j,5);
-	      rhop_i= ed_force_i(r5,NULL,NULL);
-	      rhop_j= ed_force_j(r5,NULL,NULL);
-	      
-	      F1 = Ep_i * rhop_j;
-	      F1byr = F1/r5;
-	      F2 = Ep_j * rhop_i;
-	      F2byr = F2/r5;
-
-	      fEmb_i(tag_i,5) += F1byr * r5_ij_2;
-	      fEmb_i(tag_j,5) += F2byr * r5_ij_2;
+	      fEmb_i(tag_i,4) += F1byr * r2_ij_1;
+	      fEmb_i(tag_j,4) += F2byr * r2_ij_1;
 	    }
  	}
 
@@ -2623,7 +2574,7 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 	      double phip_2  = 0.5*(zp_i * z_j + z_i * zp_j)/r - phi_2/r;
 	      phip_2 *= r_ij_2/r;
 
-	      /* Component 11 */
+	      /* Component 00 and 02*/
 	      double r0_ij_0 =  x_j[0]+delta - x_i[0];
 	      double r0_ij_1 =  x_j[1]       - x_i[1];
 	      double r0_ij_2 =  x_j[2]       - x_i[2];
@@ -2635,12 +2586,15 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 	      zp_i= pair_force_i(r0,NULL,NULL);
 	      zp_j= pair_force_j(r0,NULL,NULL);
  
-	      /* Component 22 */
 	      double phi_i_0 = 0.5*z_i*z_j/r0;
 	      double phip_i_0= 0.5*(zp_i * z_j + z_i * zp_j)/r0 - phi_i_0/r0;
 	      phip_i_0 *= r0_ij_0/r0;
 
+	      double phi_i_5 = 0.5*z_i*z_j/r0;
+	      double phip_i_5= 0.5*(zp_i * z_j + z_i * zp_j)/r0 - phi_i_5/r0;
+	      phip_i_5 *= r0_ij_2/r0; 
 
+	      /* Component 11 and 01 */
 	      double r1_ij_0 =  x_j[0]       - x_i[0];
 	      double r1_ij_1 =  x_j[1]+delta - x_i[1];
 	      double r1_ij_2 =  x_j[2]       - x_i[2];
@@ -2657,8 +2611,11 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 	      double phip_i_1= 0.5*(zp_i * z_j + z_i * zp_j)/r1 - phi_i_1/r1;
 	      phip_i_1 *= r1_ij_1/r1;
 
+	      double phi_i_3 = 0.5*z_i*z_j/r1;
+	      double phip_i_3= 0.5*(zp_i * z_j + z_i * zp_j)/r1 - phi_i_3/r1;
+	      phip_i_3 *= r1_ij_0/r1; 
 
-	      /* Component 33 */
+	      /* Component 22 and 12 */
 	      double r2_ij_0 =  x_j[0]       - x_i[0];
 	      double r2_ij_1 =  x_j[1]       - x_i[1];
 	      double r2_ij_2 =  x_j[2]+delta - x_i[2];
@@ -2675,55 +2632,10 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 	      phip_i_2 *= r2_ij_2/r2;
 
 
-	      /* Component 12 */
-	      double r3_ij_0 =  x_j[0] - x_i[0] -delta;
-	      double r3_ij_1 =  x_j[1] - x_i[1];
-	      double r3_ij_2 =  x_j[2] - x_i[2];
-	      double r3      = sqrt(r3_ij_0*r3_ij_0 + r3_ij_1*r3_ij_1 + r3_ij_2*r3_ij_2);
+	      double phi_i_4 = 0.5*z_i*z_j/r2;
+	      double phip_i_4= 0.5*(zp_i * z_j + z_i * zp_j)/r2 - phi_i_4/r2;
+	      phip_i_4 *= r2_ij_1/r2; 
 
-	      z_i = pair_energy_i(r3,NULL,NULL);
-	      z_j = pair_energy_j(r3,NULL,NULL);
-
-	      zp_i= pair_force_i(r3,NULL,NULL);
-	      zp_j= pair_force_j(r3,NULL,NULL);
-
-	      double phi_i_3 = 0.5*z_i*z_j/r3;
-	      double phip_i_3= 0.5*(zp_i * z_j + z_i * zp_j)/r3 - phi_i_3/r3;
-	      phip_i_3 *= r3_ij_0/r3; 
-
-
-	      /* Component 13 */
-	      double r4_ij_0 =  x_j[0] - x_i[0];
-	      double r4_ij_1 =  x_j[1] - x_i[1] - delta;
-	      double r4_ij_2 =  x_j[2] - x_i[2];
-	      double r4      = sqrt(r4_ij_0*r4_ij_0 + r4_ij_1*r4_ij_1 + r4_ij_2*r4_ij_2);
-	      
-	      z_i = pair_energy_i(r4,NULL,NULL);
-	      z_j = pair_energy_j(r4,NULL,NULL);
-
-	      zp_i= pair_force_i(r4,NULL,NULL);
-	      zp_j= pair_force_j(r4,NULL,NULL);
-
-	      double phi_i_4 = 0.5*z_i*z_j/r4;
-	      double phip_i_4= 0.5*(zp_i * z_j + z_i * zp_j)/r4 - phi_i_4/r4;
-	      phip_i_4 *= r4_ij_1/r4; 
-
-
-	      /* Component 23 */
-	      double r5_ij_0 =  x_j[0] - x_i[0];
-	      double r5_ij_1 =  x_j[1] - x_i[1];
-	      double r5_ij_2 =  x_j[2] - x_i[2] - delta;
-	      double r5      = sqrt(r5_ij_0*r5_ij_0 + r5_ij_1*r5_ij_1 + r5_ij_2*r5_ij_2);
-
-	      z_i = pair_energy_i(r5,NULL,NULL);
-	      z_j = pair_energy_j(r5,NULL,NULL);
-
-	      zp_i= pair_force_i(r5,NULL,NULL);
-	      zp_j= pair_force_j(r5,NULL,NULL);
-
-	      double phi_i_5 = 0.5*z_i*z_j/r5;
-	      double phip_i_5= 0.5*(zp_i * z_j + z_i * zp_j)/r5 - phi_i_5/r5;
-	      phip_i_5 *= r5_ij_2/r5; 
 
 	      /* sum up */
 	      dF_i[0] += (phip_i_0 -phip_0)/delta;
@@ -2760,8 +2672,8 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
       outD << i << "/  11:  " << df_i[1] << " " << d1[tag_i] << " " <<  df_i[1] - d1[tag_i]<< "\n";
       outD << i << "/  22:  " << df_i[2] << " " << d2[tag_i] << " " <<  df_i[2] - d2[tag_i]<< "\n";
       outD << i << "/  01:  " << df_i[3] << " " << d3[tag_i] << " " <<  df_i[3] - d3[tag_i]<< "\n";
-      outD << i << "/  02:  " << df_i[4] << " " << d4[tag_i] << " " <<  df_i[4] - d4[tag_i]<< "\n";
-      outD << i << "/  12:  " << df_i[5] << " " << d5[tag_i] << " " <<  df_i[5] - d5[tag_i]<< "\n\n";
+      outD << i << "/  12:  " << df_i[4] << " " << d4[tag_i] << " " <<  df_i[4] - d4[tag_i]<< "\n";
+      outD << i << "/  02:  " << df_i[5] << " " << d5[tag_i] << " " <<  df_i[5] - d5[tag_i]<< "\n\n";
     }
   
   outD.close();
@@ -2837,30 +2749,6 @@ void EAMT::GetNumRho3D(const dArray2DT& coords,dArray2DT& frho_i)
 	    
 	    frho_i(tag_i,2) += ed_energy_i(r2,NULL,NULL); 
 	    frho_i(tag_j,2) += ed_energy_j(r2,NULL,NULL); 
-
-	    double r3_ij_0 =  x_j[0] - x_i[0] - delta;
-	    double r3_ij_1 =  x_j[1] - x_i[1];
-	    double r3_ij_2 =  x_j[2] - x_i[2];
-	    double r3      = sqrt(r3_ij_0*r3_ij_0 + r3_ij_1*r3_ij_1 + r3_ij_2*r3_ij_2);
-	    
-	    frho_i(tag_i,3) += ed_energy_i(r3,NULL,NULL); 
-	    frho_i(tag_j,3) += ed_energy_j(r3,NULL,NULL); 
-
-	    double r4_ij_0 =  x_j[0] - x_i[0];
-	    double r4_ij_1 =  x_j[1] - x_i[1] - delta;
-	    double r4_ij_2 =  x_j[2] - x_i[2];
-	    double r4      = sqrt(r4_ij_0*r4_ij_0 + r4_ij_1*r4_ij_1 + r4_ij_2*r4_ij_2);
-	      
-	    frho_i(tag_i,4) += ed_energy_i(r4,NULL,NULL); 
-	    frho_i(tag_j,4) += ed_energy_j(r4,NULL,NULL); 
-
-	    double r5_ij_0 =  x_j[0] - x_i[0];
-	    double r5_ij_1 =  x_j[1] - x_i[1];
-	    double r5_ij_2 =  x_j[2] - x_i[2] - delta;
-	    double r5      = sqrt(r5_ij_0*r5_ij_0 + r5_ij_1*r5_ij_1 + r5_ij_2*r5_ij_2);
-
-	    frho_i(tag_i,5) += ed_energy_i(r5,NULL,NULL); 
-	    frho_i(tag_j,5) += ed_energy_j(r5,NULL,NULL); 
 	  }
       }
   }
@@ -2882,7 +2770,7 @@ void EAMT::GetNumEmbForce(const dArray2DT& coords,const dArray2DT rho,
 
       emb_force  = fEAMProperties[type_i]->getEmbedForce();
       
-      for (int j = 0; j < 2*NumDOF(); j++)
+      for (int j = 0; j < NumDOF(); j++)
 	Emb(tag_i,j) = emb_force(rho(tag_i,j),NULL,NULL);
     }  
 }
