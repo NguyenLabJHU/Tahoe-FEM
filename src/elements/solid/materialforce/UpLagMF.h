@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.h,v 1.4 2003-11-12 19:21:19 thao Exp $ */
+/* $Id: UpLagMF.h,v 1.5 2003-11-14 03:17:42 thao Exp $ */
 
 #ifndef _UpLagMF_H_
 #define _UpLagMF_H_
@@ -38,7 +38,7 @@ class UpLagMF: public UpdatedLagrangianT, public MFSupportT, public LocalizeT
 			   AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
 
     /*form right hand side*/
-    virtual void FormKd(double constK);
+    virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
  protected:
     /*material force evaluation*/
@@ -60,7 +60,7 @@ class UpLagMF: public UpdatedLagrangianT, public MFSupportT, public LocalizeT
     RaggedArray2DT<int> fXConnects;
 
     /*localization check*/
-    iArrayT floc_flags;
+    iArray2DT fLocCheckFlags;
     dArray2DT felem_centers;
     dArray2DT fnormals;
     

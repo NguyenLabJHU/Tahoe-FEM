@@ -1,4 +1,4 @@
-/* $Id: LocalizeT.h,v 1.1 2003-11-12 19:21:55 thao Exp $ */
+/* $Id: LocalizeT.h,v 1.2 2003-11-14 03:17:42 thao Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _LOCALIZET_H_
@@ -7,6 +7,7 @@
 #include "dSymMatrixT.h"
 #include "dMatrixT.h"
 #include "dArrayT.h"
+#include "iArrayT.h"
 #include "ofstreamT.h"
 
 namespace Tahoe {
@@ -24,7 +25,7 @@ public:
 	LocalizeT(const ElementSupportT& support);
 
 	/*print localization results*/
-	void WriteLocalize(const iArrayT& loc_flags, const dArray2DT& elem_center, const dArray2DT& normal);
+	void WriteLocalize(const iArrayT& locflags, const dArray2DT& elem_center, const dArray2DT& normal);
 	void WriteLocalize (void);
 
 	/*check localization*/
@@ -61,8 +62,8 @@ public:
 	
  protected:
 	/*check localization flag*/
-	int fCheck;
-
+	int fCheck;	
+	iArrayT fBlockList;
  private:
 	
 	/*member data*/

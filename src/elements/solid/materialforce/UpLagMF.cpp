@@ -1,6 +1,7 @@
-/* $Id: UpLagMF.cpp,v 1.5 2003-11-12 19:21:19 thao Exp $ */
-#include "UpLagMF.h"
+/* $Id: UpLagMF.cpp,v 1.6 2003-11-14 03:17:42 thao Exp $ */
+#include <ctype.h>
 
+#include "UpLagMF.h"
 #include "OutputSetT.h"
 #include "Traction_CardT.h"
 #include "ScheduleT.h"
@@ -11,16 +12,12 @@
 #include "CommunicatorT.h"
 #include "GraphT.h"
 #include "ifstreamT.h"
-#include "ofstreamT.h"
 
 /* materials lists */
 #include "SolidMatList1DT.h"
 #include "SolidMatList2DT.h"
 #include "SolidMatList3DT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <stdlib.h>
 using namespace Tahoe;
 
 /* constructor */
@@ -40,13 +37,42 @@ void UpLagMF::Initialize(void)
   int nel = fElementCards.Length();
 
   /*localization*/
-  floc_flags.Dimension(nel);
+  fLocCheckFlags.Dimension(2,nel);
   felem_centers.Dimension(nel,NumSD());
   fnormals.Dimension(nel, NumSD());
-  floc_flags = 0;
-  felem_centers = 0;
-  fnormals = 0;
-
+  fLocCheckFlags = 0;
+  felem_centers = 0.0;
+  fnormals = 0.0;
+  
+  if (fCheck == 1)
+  {
+    /*set check localization flags*/
+    int* pcheckflag = fLocCheckFlags(0);
+    for (int i = 0; i < nel; i++)
+    {
+      int cnt = 0;
+      bool match=false;
+      while (cnt < fBlockList.Length() && !match)
+      {
+	if (fBlockList[cnt]+1 > fBlockData.Length()) {
+	  cout<<"\nUpLagMF::Initialize:Block number exceeds group dimensions.";
+	  throw ExceptionT::kGeneralFail;
+	}
+	const StringT& A = fBlockData[fBlockList[cnt]].ID();
+	const StringT& B = ElementBlockID(i);
+	//	cout << "\nblockcheck: "<<A;
+	//	cout << "\n elemblock: "<<B;
+	if (strlen(A) == strlen(B) && strncmp(A,B,strlen(A)) == 0)
+	  match = true;
+	cnt ++;
+      }
+      if (match)
+	pcheckflag[i] = 1;
+    }
+    //    cout << "\nList of blocks to check: "<<fBlockList;
+    //    cout << "\nCheckflags: "<< fLocCheckFlags;
+  }
+    
   /*dimension workspace for bulk quantities*/
   fEshelby.Dimension(NumSD());
   fC.Dimension(NumSD());
@@ -104,7 +130,12 @@ void UpLagMF::WriteOutput(void)
   dArray2DT n_values; 
   dArray2DT e_values;
   
-  WriteLocalize(floc_flags, felem_centers, fnormals);
+  iArrayT locflag;
+  fLocCheckFlags.RowAlias(1,locflag);
+
+  //  cout << "\nlocflag: "<<locflag<<endl;
+  if (fCheck==1)
+    WriteLocalize(locflag, felem_centers, fnormals);
   MapOutput();
   ComputeMatForce(n_values);
 
@@ -164,30 +195,43 @@ void UpLagMF::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
   connects_2.Append(&fXConnects);
 }
 
-void UpLagMF::FormKd(double constK)
+GlobalT::RelaxCodeT UpLagMF::RelaxSystem(void)
 {
-  const char caller[] = "UpLagMF::FormKd";
+  const char caller[] = "UpLagMF::RelaxSystem";
  
   /*inherited function*/
-  UpdatedLagrangianT::FormKd(constK);
+  GlobalT::RelaxCodeT relax = UpdatedLagrangianT::RelaxSystem();
 
-  int elem = CurrElementNumber();
+  const int* pcheckflag = fLocCheckFlags(0);
+  int* plocflag = fLocCheckFlags(1);
 
-  fCurrShapes->TopIP();
-  while (LocalizeT::fCheck && floc_flags[elem]==0 && fCurrShapes->NextIP())
+  ostream& out = ElementSupport().Output();
+  out << "\nRelaxation: Localization Check";
+  Top();
+  while (NextElement() && fCheck == 1)
   {
-    const dSymMatrixT& stress = fCurrMaterial->s_ij();
-    const dMatrixT& modulus = fCurrMaterial->c_ijkl();
-
-    int loc = CheckLocalizeFS(stress, modulus,fLocInitCoords);
-    cout <<"\nLocalize? "<<loc<<endl;
-    if (loc)
+    int elem = CurrElementNumber();
+    if (pcheckflag[elem] == 1)
     {
-      floc_flags[elem] = 1;
-      felem_centers.SetRow(elem, LocalizedElemCenter());
-      fnormals.SetRow(elem, LocalizedNormal());
+      fCurrShapes->TopIP();
+      while (fCurrShapes->NextIP() && plocflag[elem] == 0)
+      {
+	const dSymMatrixT& stress = fCurrMaterial->s_ij();
+	const dMatrixT& modulus = fCurrMaterial->c_ijkl();
+	
+	int loc = CheckLocalizeFS(stress, modulus,fLocInitCoords);
+	//	cout <<"\nElem "<<elem<<" Localize? "<<loc<<endl;
+	if (loc)
+	{
+	  plocflag[elem] = 1;
+	  felem_centers.SetRow(elem, LocalizedElemCenter());
+	  fnormals.SetRow(elem, LocalizedNormal());
+	  out << "\nElem: "<<elem;
+	}
+      }
     }
   }
+  return(GlobalT::MaxPrecedence(relax, GlobalT::kNoRelax));
 }
 /**********************Material Force Driver**************/
 /*driver*/
@@ -247,11 +291,14 @@ void UpLagMF::ComputeMatForce(dArray2DT& output)
 
   /*evaluate volume contributions to material and dissipation force*/
   Top();
+  const int* plocflag = fLocCheckFlags(1);
   while (NextElement())
   {
     int elem = CurrElementNumber();
-    if (floc_flags[elem] == 0)
+    //    cout << "\nelem: "<<plocflag[elem]<<endl;
+    if (plocflag[elem] == 0)
     {
+      //      cout << "\n Elem "<<elem<<" MatForceVol"<<endl;
       ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
       fCurrFSMat = dynamic_cast<FSSolidMatT*>(pmat);
       if (!fCurrFSMat) ExceptionT::GeneralFail(caller);
@@ -568,8 +615,9 @@ void UpLagMF::MatForceSurfMech(dArrayT& global_val)
       fsurf_coords.SetLocal(surf_nodes);
       fsurf_disp.SetLocal(surf_nodes);
 
-      if (floc_flags[elem]==0)
+      if (fLocCheckFlags(elem,1)==0)
       {
+	//	cout << "\n Elem "<<elem<<" MatSurfVol";
 	/*get surface shape function*/
 	const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(facet);
 	int nip = surf_shape.NumIP();
@@ -607,7 +655,7 @@ void UpLagMF::MatForceSurfMech(dArrayT& global_val)
 	    double jac = (t[0]*fjacobian[0]+t[1]*fjacobian[1]);
 	    if (jac <= 0.0)
 	    {
-	      cout <<"\nUplagMF::MatForceSurfMech";
+	      //	      cout <<"\nUplagMF::MatForceSurf"<<endl;
 	      throw ExceptionT::kBadJacobianDet;
 	    }
 	    fjac_loc[0] = 1.0/jac;

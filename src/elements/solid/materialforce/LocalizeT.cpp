@@ -1,4 +1,4 @@
-/* $Id: LocalizeT.cpp,v 1.1 2003-11-12 19:21:55 thao Exp $ */
+/* $Id: LocalizeT.cpp,v 1.2 2003-11-14 03:17:42 thao Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "LocalizeT.h"
@@ -9,11 +9,6 @@
 #include "iArrayT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
-
-#include <iostream.h>
-#include <iomanip.h>
-#include <stdlib.h>
-#include <math.h>
 
 using namespace Tahoe;
 
@@ -38,6 +33,19 @@ LocalizeT::LocalizeT(const ElementSupportT& support):
   in >> fCheck;
   if (fCheck == 1){
     out << "\nCheck Localization"<<endl;
+
+    int numblocks;
+    in >> numblocks;
+    fBlockList.Dimension(numblocks);
+    for (int i = 0; i < numblocks; i++)
+    {
+      int index;
+      in >> index;
+      fBlockList[i] = index -1;
+    }
+    //    cout << "In Blocks:\n"<<fBlockList;
+    out << "\nIn Blocks\n"<<fBlockList;
+
     const StringT& input_file = in.filename();
     flocalize_file.Root(input_file);
 
@@ -45,7 +53,6 @@ LocalizeT::LocalizeT(const ElementSupportT& support):
       int rank = support.Rank();
       flocalize_file.Append(rank);
       }*/
-
     flocalize_file.Append(".loc");
  
     fout.open(flocalize_file);
@@ -54,7 +61,7 @@ LocalizeT::LocalizeT(const ElementSupportT& support):
 	 << setw(16) << "Coord_Y"
 	 << setw(16) << "Normal_X"
 	 << setw(16) << "Normal_Y"
-	 << endl;
+	   << endl;
     fout.close();
   }
   else if (fCheck == 0) {
@@ -68,14 +75,14 @@ LocalizeT::LocalizeT(const ElementSupportT& support):
 }
 
 
-void LocalizeT::WriteLocalize(const iArrayT& loc_flags, const dArray2DT& elem_center,const dArray2DT& normal)
+void LocalizeT::WriteLocalize(const iArrayT& flags, const dArray2DT& elem_center,const dArray2DT& normal)
 {
-  int nel = loc_flags.Length();
-
+  int nel = flags.Length();
+  
   fout.open_append(flocalize_file);
   for (int i = 0; i < nel; i++)
   {
-    if (loc_flags[i])
+    if (flags[i] == 1)
       fout << setw(8) << fTime
 	   << setw(16) << elem_center(i,0)
 	   << setw(16) << elem_center(i,1)
@@ -240,9 +247,6 @@ void LocalizeT::ComputeCoefficients(void)
 {
 	/* moduli components */
 
-        cout << "\nmodulus: "<< fModulus;
-	cout << "\nstress: "<<fStress;
-
 	double c11 = fModulus(0,0);
 	double c22 = fModulus(1,1);
 	double c33 = fModulus(2,2);
@@ -271,9 +275,14 @@ void LocalizeT::ComputeCoefficients(void)
 			+ s22*s22)/8;
 
 	/* phase shifts */
-	fphi2 = atan2(c2t,s2t)/2.0;
-	fphi4 = atan2(c4t,s4t)/4.0;
+	if (c2t > 1e-10 || s2t > 1e-10)
+	  fphi2 = atan2(c2t,s2t)/2.0;
+	else fphi2 = fPi/4.0;
 	
+	if (c4t > 1e-10 || s4t > 1e-10)
+	  fphi4 = atan2(c4t,s4t)/4.0;
+	else fphi4 = fPi/4.0;
+
 	/* amplitudes */
 	fA0 = (-c12*c12 - 3*c13*c13 + c11*c22 + 2*c13*c23 - 3*c23*c23 +
 			3*c11*c33 - 2*c12*c33 + 3*c22*c33 + 3*c11*s11 + c22*s11 +
@@ -283,7 +292,7 @@ void LocalizeT::ComputeCoefficients(void)
 	fA2 = c2t/sin(2.0*fphi2);
 	fA4 = c4t/sin(4.0*fphi4);
 
-	cout << "\nstress: "<<fStress;
+	/*	cout << "\nstress: "<<fStress;
 	cout << "\nmodulus: " <<fModulus;
 
 	cout << "\ns2t: "<<s2t
@@ -295,7 +304,7 @@ void LocalizeT::ComputeCoefficients(void)
 	cout << "\nA2: "<<fA2;
 	cout << "\nA4: "<<fA4;
 	cout << "\nphi2: "<<fphi2;
-	cout << "\nphi4: "<<fphi4;
+	cout << "\nphi4: "<<fphi4;*/
 }
 
 
