@@ -1,33 +1,36 @@
-/* $Id: VTKFrameT.cpp,v 1.29 2002-09-03 07:10:36 paklein Exp $ */
-
+/* $Id: VTKFrameT.cpp,v 1.30 2002-09-22 19:54:59 paklein Exp $ */
 #include "VTKFrameT.h"
-#include "VTKConsoleT.h"
-#include "VTKBodyT.h"
-#include "VTKBodyDataT.h"
-#include "VTKUGridT.h"
 
+/* ANSI headers */
+//#include <iostream.h>
+//#include <iomanip.h>
+
+/* tahoe toolbox headers */
+#include "ExodusT.h"
+#include "dArray2DT.h"
+#include "iArray2DT.h"
+#include "dArrayT.h"
+#include "GeometryT.h"
+#include "CommandSpecT.h"
+#include "ArgSpecT.h"
+
+/* VTK headers */
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkPoints.h"
 #include "vtkActor.h"
 #include "vtkScalarBarActor.h"
-//#include "vtkLookupTable.h"
 #include "vtkTextMapper.h"
+#include "vtkCamera.h"
+#include "vtkProperty2D.h"
+//#include "vtkUnstructuredGrid.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include "ExodusT.h"
-#include "dArray2DT.h"
-#include "iArray2DT.h"
-#include "dArrayT.h"
-#include "GeometryT.h"
+/* VTK console headers */
 #include "VTKConsoleT.h"
-#include "CommandSpecT.h"
-#include "ArgSpecT.h"
-
-//DEBUG
-#include "vtkUnstructuredGrid.h"
+#include "VTKBodyT.h"
+#include "VTKBodyDataT.h"
+#include "VTKUGridT.h"
 
 using namespace Tahoe;
 
