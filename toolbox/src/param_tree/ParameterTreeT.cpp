@@ -1,4 +1,4 @@
-/* $Id: ParameterTreeT.cpp,v 1.10 2004-07-22 21:05:49 paklein Exp $ */
+/* $Id: ParameterTreeT.cpp,v 1.11 2004-07-27 00:56:19 paklein Exp $ */
 #include "ParameterTreeT.h"
 #include "ParameterInterfaceT.h"
 
@@ -196,7 +196,7 @@ bool ParameterTreeT::ValidateSequence(
 	int raw_dex = 0;
 	int sub_dex = 0;
 	for (sub_dex = 0; check_OK && sub_dex < sub_lists.Length() && raw_dex < raw_sub_list.Length(); sub_dex++)
-	{
+	{ 
 		/* next list entry */
 		bool is_inline = sub_lists[sub_dex].IsInline();
 		const StringT& name = sub_lists[sub_dex].Name();
@@ -414,6 +414,17 @@ bool ParameterTreeT::ValidateSequence(
 				ExceptionT::GeneralFail(caller, "\"%s\" required at position %d in \"%s\"",
 					sub_lists[sub_dex].Name().Pointer(), valid_list.NumLists()+1, valid_list.Name().Pointer());
 		}
+
+	/* did use all of the input */
+	if (raw_dex != raw_sub_list.Length())
+	{
+		if (raw_dex < raw_sub_list.Length())
+			ExceptionT::GeneralFail(caller, "\"%s\" is not a valid entry in \"%s\"",
+				raw_sub_list[raw_dex].Name().Pointer(), valid_list.Name().Pointer());
+		else
+			ExceptionT::GeneralFail(caller, "internal error: expecting only %d not %d new entries in \"%s\"",
+				raw_sub_list.Length(), raw_dex, valid_list.Name().Pointer());
+	}
 
 	return check_OK;
 }
