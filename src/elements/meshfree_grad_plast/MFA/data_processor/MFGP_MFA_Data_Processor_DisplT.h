@@ -2,8 +2,11 @@
 #ifndef _MFGP_MFA_DATAPROCESSOR_DISPLT_H_
 #define _MFGP_MFA_DATAPROCESSOR_DISPLT_H_
 
-#include "MeshFreeT.h"
-#include "MLSSolverT.h"
+#include "ArrayT.h"
+#include "dArrayT.h"
+#include "dArray2DT.h"
+#include "dMatrixT.h"
+#include "dSymMatrixT.h"
 
 // Pass nodal info, first and third derivatives
 // of the shape function of displacement to this class. 
@@ -20,7 +23,7 @@ class MFGP_MFA_Data_Processor_DisplT
 		MFGP_MFA_Data_Processor_DisplT(void);
 		
 		/* destructor */
-		~MFGP_MFA_Data_Processor_DisplT(void);
+		//~MFGP_MFA_Data_Processor_DisplT(void);
 		
 		void Initialize ( const dArray2DT &fdNdx, const dArray2DT &fd3Ndx3 );
         

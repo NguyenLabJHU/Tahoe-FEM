@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2004-06-19 01:23:46 raregue Exp $
+# $Id: makefile,v 1.2 2004-08-20 04:38:54 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -50,7 +50,6 @@ SRC = MFGP_Bal_EqT.cpp
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	MFGP_BalLinMomT.h \
 	MFGP_Bal_EqT.h
 
 HDR_LINK = $(HDR:.h=.h_link)

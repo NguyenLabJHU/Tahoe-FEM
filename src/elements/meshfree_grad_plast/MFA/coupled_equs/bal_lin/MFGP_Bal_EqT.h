@@ -1,10 +1,14 @@
-// $Id: MFGP_Bal_EqT.h,v 1.7 2004-08-20 00:20:30 raregue Exp $
+// $Id: MFGP_Bal_EqT.h,v 1.8 2004-08-20 04:38:54 raregue Exp $
 #ifndef _MFGP_BAL_EQ_T_H_ 
 #define _MFGP_BAL_EQ_T_H_ 
 
-#include "MFGP_BalLinMomT.h"
+#include "StringT.h"
 #include "MFGP_MFA_Data_Processor_DisplT.h"
 #include "MFGP_MFA_Data_Processor_PlastT.h"
+#include "GRAD_MRSSKStV.h"
+#include "D3MeshFreeShapeFunctionT.h"
+#include "D3MeshFreeSupportT.h"
+
 
 namespace Tahoe 
 {
@@ -15,15 +19,17 @@ namespace Tahoe
  *  the Balance of Linear Momentum in weak form 
  **/
 
-class MFGP_Bal_EqT	: public MFGP_BalLinMomT
+class MFGP_Bal_EqT
 {
 	public:
+	
+		enum Eqn_TypeT { kMFGP_Bal_Eq };
 
 		/* constructors */
 		MFGP_Bal_EqT(void);
 		
 		/* destructor */				
-		~MFGP_Bal_EqT(void);
+		virtual ~MFGP_Bal_EqT(void);
 
 		void 	Initialize 	( int&, D3MeshFreeShapeFunctionT*, D3MeshFreeShapeFunctionT*, 
 							GRAD_MRSSKStV*, 
@@ -46,8 +52,11 @@ class MFGP_Bal_EqT	: public MFGP_BalLinMomT
   		
 	protected:
 
-		MFGP_MFA_Data_Processor_DisplT *fData_Pro_Displ;
-		MFGP_MFA_Data_Processor_PlastT *fData_Pro_Plast;
+		//MFGP_MFA_Data_Processor_DisplT *fData_Pro_Displ;
+		//MFGP_MFA_Data_Processor_PlastT *fData_Pro_Plast;
+		MFGP_MFA_Data_Processor_DisplT Data_Pro_Displ;
+		MFGP_MFA_Data_Processor_PlastT Data_Pro_Plast;
+
 
 		double delta_t;
 		int time_step;

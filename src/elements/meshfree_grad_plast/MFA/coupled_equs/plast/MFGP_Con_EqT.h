@@ -2,9 +2,12 @@
 #ifndef _MFGP_CON_EQ_T_H_ 
 #define _MFGP_CON_EQ_T_H_ 
 
-#include "MFGP_PlastT.h"
+#include "StringT.h"
 #include "MFGP_MFA_Data_Processor_DisplT.h"
 #include "MFGP_MFA_Data_Processor_PlastT.h"
+#include "GRAD_MRSSKStV.h"
+#include "D3MeshFreeShapeFunctionT.h"
+#include "D3MeshFreeSupportT.h"
 
 
 namespace Tahoe 
@@ -16,16 +19,18 @@ namespace Tahoe
  *  the Consistency Condition in weak form 
  **/
 
-class MFGP_Con_EqT : public MFGP_PlastT
+class MFGP_Con_EqT
 {
 
 public:
+
+	enum Eqn_TypeT 	{ kMFGP_Con_Eq};
 	
 	/* constructors */
 	MFGP_Con_EqT(void);
  	
  	/* destructor */
- 	~MFGP_Con_EqT(void);
+ 	virtual ~MFGP_Con_EqT(void);
 								
 	void 	Initialize 	( int&, D3MeshFreeShapeFunctionT*, D3MeshFreeShapeFunctionT*, GRAD_MRSSKStV*,  
 						int &fTime_Step, double fdelta_t = 0.0); 
@@ -35,7 +40,7 @@ public:
  	void 	Form_C_List 		( GRAD_MRSSKStV *GRAD_MR_Plast_Mat);  // Constant List
 
 	
-	protected:
+protected:
 
 		// check the dimensions!!
 	  	dMatrixT B1_d, B3_d; 
@@ -52,8 +57,10 @@ public:
 			
 	protected:
 
-		MFGP_MFA_Data_Processor_DisplT *fData_Pro_Displ; 
-		MFGP_MFA_Data_Processor_PlastT *fData_Pro_Plast; 
+		//MFGP_MFA_Data_Processor_DisplT *fData_Pro_Displ; 
+		//MFGP_MFA_Data_Processor_PlastT *fData_Pro_Plast; 
+		MFGP_MFA_Data_Processor_DisplT Data_Pro_Displ; 
+		MFGP_MFA_Data_Processor_PlastT Data_Pro_Plast; 
 
 		int ip, n_rows, n_cols, n_sd, n_en_displ, n_en_plast, n_sd_x_n_sd, n_sd_x_n_en_plast, n_sd_x_n_en_displ;
 		int time_step, n_state, n_str, Time_Integration_Scheme;
