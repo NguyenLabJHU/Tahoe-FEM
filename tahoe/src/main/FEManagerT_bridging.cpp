@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.26.2.1 2004-08-03 00:11:38 d-farrell2 Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.26.2.2 2004-08-11 01:11:29 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -242,8 +242,8 @@ void FEManagerT_bridging::InitGhostNodes(const StringT& field, const ArrayT<Stri
 	/* echo ghost nodes */
 	if (fPrintInput) {
 		fGhostNodes++;
-		fMainOut << "\n Ghost nodes:\n";
-		fMainOut << fGhostNodes.wrap(5) << '\n';
+		fMainOut << "\n Ghost nodes: " << fGhostNodes.Length() << '\n';
+		fMainOut << fGhostNodes.wrap(5) << endl;
 		fGhostNodes--;
 	}
 
@@ -258,13 +258,18 @@ void FEManagerT_bridging::InitGhostNodes(const StringT& field, const ArrayT<Stri
 		is_ghost = 0;	
 	} else { /* remove image nodes */
 		is_ghost.Dimension(fModelManager->NumNodes());
-		is_ghost = 1;
+		is_ghost = 0;
 
+//NOTE: for atom decomp, reproducing crystal everywhere means we cannot
+//      leave atoms not owned by this processor marked with 1
+#if 0
 		/* initialize potential non-ghost nodes */		
+		is_ghost = 1;
 		const int* p = part_nodes->Pointer();
 		int npn = part_nodes->Length();
 		for (int i = 0; i < npn; i++)
 			is_ghost[*p++] = 0;
+#endif
 	}	
 
 	/* mark nodes as ghost */
