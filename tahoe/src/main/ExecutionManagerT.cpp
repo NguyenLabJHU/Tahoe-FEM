@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.cpp,v 1.10 2002-09-12 17:49:56 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.11 2002-09-23 06:58:28 paklein Exp $ */
 /* created: paklein (08/27/1997) */
 #include "ExecutionManagerT.h"
 
@@ -331,7 +331,17 @@ int ExecutionManagerT::OpenWithPrompt(const char* prompt, const char* skipname,
 		
 		/* clear to end of line */
 		char line[255];
+#ifdef __GCC_3__
+		int ct = 0;
+		line[ct] = cin.get();
+		while (cin.good() && ct < 254 && line[ct] != '\n') {
+			ct++;
+			line[ct] = cin.get();
+		}
+		line[ct] = '\0';
+#else
 		cin.getline(line, 254);
+#endif
 
 		/* check exit */
 		if (strcmp(newfilename, skipname) == 0)

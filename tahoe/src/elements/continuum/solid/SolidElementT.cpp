@@ -1,5 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.32 2002-09-12 17:49:53 paklein Exp $ */
-
+/* $Id: SolidElementT.cpp,v 1.33 2002-09-23 06:58:25 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -24,10 +23,9 @@
 /* exception codes */
 #include "ExceptionCodes.h"
 
-/* initialize static data */
-
 using namespace Tahoe;
 
+/* initialize static data */
 const int SolidElementT::NumNodalOutputCodes = 7;
 const int SolidElementT::NumElementOutputCodes = 7;
 
@@ -52,8 +50,8 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	in >> fMassType;		
 	in >> fStrainDispOpt;
 	
-	if (fStrainDispOpt != ShapeFunctionT::kStandardB &&
-	    fStrainDispOpt != ShapeFunctionT::kMeanDilBbar) throw eBadInputValue;
+	if (fStrainDispOpt != kStandardB &&
+	    fStrainDispOpt != kMeanDilBbar) throw eBadInputValue;
 
 	/* checks for dynamic analysis */
 	if (fController->Order() > 0 &&
@@ -75,7 +73,10 @@ void SolidElementT::Initialize(void)
 	ContinuumElementT::Initialize();
 
 	/* allocate strain-displacement matrix */
-	fB.Allocate(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
+//	fB_list.Dimension(NumIP());
+//	for (int i = 0; i < fB_list.Length(); i++)
+//		fB_list[i].Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
+	fB.Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
 
 	/* setup for material output */
 	if (fNodalOutputCodes[iMaterialData] || fElementOutputCodes[iIPMaterialData])
@@ -110,12 +111,10 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 
 	/* set components and weights */
 	double constMa = 0.0;
-	double constCv = 0.0;
 	double constKd = 0.0;
 	
 	/* components dicated by the algorithm */
 	int formMa = fController->FormMa(constMa);
-	int formCv = fController->FormCv(constCv);
 	int formKd = fController->FormKd(constKd);
 
 	/* body forces */
@@ -141,20 +140,15 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		{
 			/* initialize */
 			fRHS = 0.0;
-	
-			/* effective accelerations and displacements */
-			//ComputeEffectiveDVA(formBody, formMa, constMa, formCv, constCv, formKd, constKd);
-			//DEV - Rayleigh damping is poorly formulated
 
 			/* global shape function values */
 			SetGlobalShape();
+
+			/* compute strain and B matricies */
+			//SetDeformation();
 	
 			/* internal force contribution */	
 			if (formKd) FormKd(constKd);
-				
-			/* damping */
-			//if (formCv) FormCv(1.0);
-			//DEV - computed at constitutive level
 
 			/* inertia forces */
 			if (formMa || formBody)
@@ -229,6 +223,9 @@ double SolidElementT::InternalEnergy(void)
 	{
 		/* global shape function derivatives, jacobians, local coords */
 		SetGlobalShape();
+
+		/* compute strain and B matricies */
+		//SetDeformation();
 		
 		/* integration */
 		const double* Det    = fShapes->IPDets();
@@ -288,6 +285,31 @@ void SolidElementT::SendOutput(int kincode)
 /***********************************************************************
 * Protected
 ***********************************************************************/
+
+namespace Tahoe {
+
+/* stream extraction operator */
+istream& operator>>(istream& in, SolidElementT::StrainOptionT& opt)
+{
+	int i_type;
+	in >> i_type;
+	switch (i_type)
+	{
+		case SolidElementT::kStandardB:
+			opt = SolidElementT::kStandardB;
+			break;
+		case SolidElementT::kMeanDilBbar:
+			opt = SolidElementT::kMeanDilBbar;
+			break;
+		default:
+			cout << "\n SolidElementT::StrainOptionT: unknown option: "
+			<< i_type<< endl;
+			throw eBadInputValue;	
+	}
+	return in;
+}
+
+}
 
 /* construct list of materials from the input stream */
 void SolidElementT::ReadMaterialData(ifstreamT& in)
@@ -516,10 +538,7 @@ void SolidElementT::SetLocalArrays(void)
 void SolidElementT::SetShape(void)
 {
 	/* construct shape functions */
-	ShapeFunctionT::StrainOptionT strain_opt = (fStrainDispOpt == 0) ? 
-		ShapeFunctionT::kStandardB : ShapeFunctionT::kMeanDilBbar;
-	fShapes = new ShapeFunctionT(GeometryCode(), NumIP(),
-		fLocInitCoords, strain_opt);
+	fShapes = new ShapeFunctionT(GeometryCode(), NumIP(), fLocInitCoords);
 	if (!fShapes) throw eOutOfMemory;
 
 	/* initialize */
@@ -555,6 +574,166 @@ void SolidElementT::SetGlobalShape(void)
 	if (fLocTemp_last) SetLocalU(*fLocTemp_last);
 }
 
+/* set the \e B matrix using the given shape function derivatives */
+void SolidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
+{
+#if __option(extended_errorcheck)
+	if (B.Rows() != dSymMatrixT::NumValues(DNa.MajorDim()) ||
+	    B.Cols() != DNa.Length())
+	    throw eSizeMismatch;
+#endif
+
+	int nnd = DNa.MinorDim();
+	double* pB = B.Pointer();
+
+	/* 1D */
+	if (DNa.MajorDim() == 1)
+	{
+		double* pNax = DNa(0);
+		for (int i = 0; i < nnd; i++)
+			*pB++ = *pNax++;
+	}
+	/* 2D */
+	else if (DNa.MajorDim() == 2)
+	{
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
+		for (int i = 0; i < nnd; i++)
+		{
+			/* see Hughes (2.8.20) */
+			*pB++ = *pNax;
+			*pB++ = 0.0;
+			*pB++ = *pNay;
+
+			*pB++ = 0.0;
+			*pB++ = *pNay++;
+			*pB++ = *pNax++;
+		}
+	}
+	/* 3D */
+	else		
+	{
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
+		double* pNaz = DNa(2);
+		for (int i = 0; i < nnd; i++)
+		{
+			/* see Hughes (2.8.21) */
+			*pB++ = *pNax;
+			*pB++ = 0.0;
+			*pB++ = 0.0;
+			*pB++ = 0.0;
+			*pB++ = *pNaz;
+			*pB++ = *pNay;
+
+			*pB++ = 0.0;
+			*pB++ = *pNay;
+			*pB++ = 0.0;
+			*pB++ = *pNaz;
+			*pB++ = 0.0;
+			*pB++ = *pNax;
+
+			*pB++ = 0.0;
+			*pB++ = 0.0;
+			*pB++ = *pNaz++;
+			*pB++ = *pNay++;
+			*pB++ = *pNax++;
+			*pB++ = 0.0;
+		}
+	}
+}
+
+/* set B-bar as given by Hughes (4.5.11-16) */
+void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradient, 
+	dMatrixT& B)
+{
+#if __option(extended_errorcheck)
+	if (B.Rows() != dSymMatrixT::NumValues(DNa.MajorDim()) ||
+	    B.Cols() != DNa.Length() ||
+	    mean_gradient.MinorDim() != DNa.MinorDim() ||
+	    mean_gradient.MajorDim() != DNa.MajorDim())
+	    throw eSizeMismatch;
+#endif
+
+	int nnd = DNa.MinorDim();
+	double* pB = B.Pointer();
+
+	/* 1D */
+	if (DNa.MajorDim() == 1)
+	{
+		cout << "\n SolidElementT::Set_B_bar: not implemented yet for 1D B-bar" << endl;
+		throw eGeneralFail;
+	}
+	/* 2D */
+	else if (DNa.MajorDim() == 2)
+	{
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
+			
+		double* pBmx = mean_gradient(0);
+		double* pBmy = mean_gradient(1);
+			
+		for (int i = 0; i < nnd; i++)
+		{
+			double factx = ((*pBmx++) - (*pNax))/3.0;
+			double facty = ((*pBmy++) - (*pNay))/3.0;
+			
+			/* Hughes (4.5.11-16) */
+			*pB++ = *pNax + factx;
+			*pB++ = factx;
+			*pB++ = *pNay;
+	
+			*pB++ = facty;
+			*pB++ = *pNay + facty;
+			*pB++ = *pNax;
+				
+			pNax++; pNay++;
+		}
+	}
+	/* 3D */
+	else		
+	{
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
+		double* pNaz = DNa(2);
+
+		double* pBmx = mean_gradient(0);
+		double* pBmy = mean_gradient(1);
+		double* pBmz = mean_gradient(2);
+			
+		for (int i = 0; i < nnd; i++)
+		{
+			double factx = ((*pBmx++) - (*pNax))/3.0;
+			double facty = ((*pBmy++) - (*pNay))/3.0;
+			double factz = ((*pBmz++) - (*pNaz))/3.0;
+
+			/* Hughes (4.5.11-16) */
+			*pB++ = *pNax + factx;
+			*pB++ = factx;
+			*pB++ = factx;
+			*pB++ = 0.0;
+			*pB++ = *pNaz;
+			*pB++ = *pNay;
+
+			*pB++ = facty;
+			*pB++ = *pNay + facty;
+			*pB++ = facty;
+			*pB++ = *pNaz;
+			*pB++ = 0.0;
+			*pB++ = *pNax;
+	
+			*pB++ = factz;
+			*pB++ = factz;
+			*pB++ = *pNaz + factz;
+			*pB++ = *pNay;
+			*pB++ = *pNax;
+			*pB++ = 0.0;
+				
+			pNax++; pNay++; pNaz++;
+		}
+	}
+}
+
 /* construct the effective mass matrix */
 void SolidElementT::LHSDriver(void)
 {
@@ -569,20 +748,17 @@ void SolidElementT::ElementLHSDriver(void)
 {
 	/* set components and weights */
 	double constM = 0.0;
-	double constC = 0.0;
 	double constK = 0.0;
 	
 	int formM = fController->FormM(constM);
-	int formC = fController->FormC(constC);
 	int formK = fController->FormK(constK);
 
 	/* override algorithm */
 	if (fMassType == kNoMass) formM = 0;
 
 	/* quick exit */
-	if ((formM == 0 && formC == 0 && formK == 0) ||
+	if ((formM == 0 && formK == 0) ||
 	    (fabs(constM) < kSmall &&
-	     fabs(constC) < kSmall &&
 	     fabs(constK) < kSmall)) return;
 
 	/* loop over elements */
@@ -597,15 +773,9 @@ void SolidElementT::ElementLHSDriver(void)
 		
 		/* set shape function derivatives */
 		SetGlobalShape();
-	
-		/* Rayleigh damping */
-//		if (formC)
-//		{
-//			constKe += constC*(fCurrMaterial->StiffnessDamping());
-//			constMe += constC*(fCurrMaterial->MassDamping());
-//		}
-//DEV - Rayleigh damping is too ugly to keep, could add some
-//      phenomenological damping to the constitutive models
+
+		/* compute strain and B matricies */
+		//SetDeformation();
 		
 		/* element mass */
 		if (fabs(constMe) > kSmall)
@@ -655,12 +825,10 @@ void SolidElementT::ElementRHSDriver(void)
 
 	/* set components and weights */
 	double constMa = 0.0;
-	double constCv = 0.0;
 	double constKd = 0.0;
 	
 	/* components dicated by the algorithm */
 	int formMa = fController->FormMa(constMa);
-	int formCv = fController->FormCv(constCv);
 	int formKd = fController->FormKd(constKd);
 
 	/* body forces */
@@ -691,6 +859,9 @@ void SolidElementT::ElementRHSDriver(void)
 		
 		/* global shape function values */
 		SetGlobalShape();
+		
+		/* compute strain and B matricies */
+		//SetDeformation();
 			
 		/* internal force contribution */	
 		if (formKd) FormKd(-constKd);
@@ -740,36 +911,6 @@ bool SolidElementT::NextElement(void)
 	return result;
 }
 
-/* form the element stiffness matrix */
-void SolidElementT::FormStiffness(double constK)
-{
-	/* matrix format */
-	dMatrixT::SymmetryFlagT format =
-		(fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
-		dMatrixT::kWhole :
-		dMatrixT::kUpperOnly;
-
-	/* integrate element stiffness */
-	const double* Det    = fShapes->IPDets();
-	const double* Weight = fShapes->IPWeights();
-	
-	fShapes->TopIP();
-	while ( fShapes->NextIP() )
-	{
-		double scale = constK*(*Det++)*(*Weight++);
-	
-		/* strain displacement matrix */
-		fShapes->B(fB);
-
-		/* get D matrix */
-		fD.SetToScaled(scale, fCurrMaterial->c_ijkl());
-							
-		/* multiply b(transpose) * db, taking account of symmetry, */
-		/* and accumulate in elstif */
-		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);	
-	}
-}
-
 /* form of tangent matrix */
 GlobalT::SystemTypeT SolidElementT::TangentType(void) const
 {
@@ -782,60 +923,6 @@ GlobalT::SystemTypeT SolidElementT::TangentType(void) const
 	else
 		/* inherited */
 		return ContinuumElementT::TangentType();
-}
-
-/* fast approximation to Rayleigh damping for explicit
-* dynamics. approximate mass as equally distributed
-* among the nodes */
-void SolidElementT::FormRayleighMassDamping(double constM)
-{
-	/* compute total mass */
-	const double* Det    = fShapes->IPDets();
-	const double* Weight = fShapes->IPWeights();
-
-	double totmas = 0.0;
-	int    numint = fShapes ->NumIP();
-	for (int i = 0; i < numint; i++)
-		totmas += constM*(*Det++)*(*Weight++);
-		
-	/* equally distributed */
-	double nodalmass = totmas/(fLocAcc.NumberOfNodes());
-	
-	/* assemble into RHS vector */
-	fRHS.AddScaled(nodalmass,fLocAcc);		
-}
-
-/* calculate the damping force contribution ("-c*v") */
-void SolidElementT::FormCv(double constC)
-{
-#pragma unused(constC)
-}
-
-/* calculate the internal force contribution ("-k*d") */
-void SolidElementT::FormKd(double constK)
-{
-	const double* Det    = fShapes->IPDets();
-	const double* Weight = fShapes->IPWeights();
-	
-	/* collect incremental heat */
-	bool need_heat = fElementHeat.Length() == fShapes->NumIP();
-	
-	fShapes->TopIP();
-	while (fShapes->NextIP())
-	{
-		/* get strain-displacement matrix */
-		fShapes->B(fB);
-
-		/* B^T * Cauchy stress */
-		fB.MultTx(fCurrMaterial->s_ij(), fNEEvec);
-		
-		/* accumulate */
-		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
-		
-		/* incremental heat generation */
-		if (need_heat) 
-			fElementHeat[fShapes->CurrIP()] += fCurrMaterial->IncrementalHeat();
-	}	
 }
 
 /* return a pointer to a new material list */
@@ -982,15 +1069,18 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         Top();
         while (NextElement())
         {
-                /* initialize */
+			/* initialize */
             nodal_space = 0.0;
             simo_space = 0.;
             simo_all = 0.;
             simoNa_bar = 0.;
 
-                /* global shape function values */
-                SetGlobalShape();
-                
+			/* global shape function values */
+			SetGlobalShape();
+
+			/* compute strain/deformation */
+			//SetDeformation();
+
                 /* collect nodal values */
                 if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum])
                         SetLocalU(fLocVel);
