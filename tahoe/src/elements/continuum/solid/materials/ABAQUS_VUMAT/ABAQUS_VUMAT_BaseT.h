@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.2 2001-07-19 14:52:51 hspark Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.3 2001-07-19 19:44:35 hspark Exp $ */
 
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
@@ -93,13 +93,13 @@ private:
 	void Load(ElementCardT& element, int ip);
 	void Store(ElementCardT& element, int ip);
 
-	/* make call to the UMAT */
-	void Call_UMAT(double t, double dt, int step, int iter);
-	void Reset_UMAT_Increment(void); // set back to last converged
-	void Set_UMAT_Arguments(void);   // compute strains, rotated stresses, etc.
-	void Store_UMAT_Modulus(void);   // write modulus to storage
+	/* make call to the VUMAT */
+	void Call_VUMAT(double t, double dt, int step, int iter);
+	void Reset_VUMAT_Increment(void); // set back to last converged
+	void Set_VUMAT_Arguments(void);   // compute strains, rotated stresses, etc.
+	void Store_VUMAT_Modulus(void);   // write modulus to storage
 
-	/* UMAT function wrapper */
+	/* VUMAT function wrapper */
 	//virtual void UMAT(doublereal*, doublereal*, doublereal*, doublereal*,
 	//doublereal*, doublereal*, doublereal*, doublereal*,
 	//doublereal*, doublereal*, doublereal*, doublereal*,
@@ -110,7 +110,7 @@ private:
 	//doublereal*, doublereal*, doublereal*, doublereal*,
 	//integer*, integer*, integer*, integer*, integer*,
 	//integer*, ftnlen) = 0;
-	virtual void UMAT(integer*, integer*, integer*, integer*, integer*, integer*, integer*, doublereal*,
+	virtual void VUMAT(integer*, integer*, integer*, integer*, integer*, integer*, integer*, doublereal*,
 		doublereal*, doublereal*, char*, doublereal*, doublereal*, doublereal*,
                 doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
 		doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
@@ -134,7 +134,7 @@ private:
 	ofstream flog;
 	
 	/* material name */
-	StringT fUMAT_name;
+	StringT fVUMAT_name;
 	GlobalT::SystemTypeT fTangentType;
 	//other options:
 	//  strain type
@@ -157,13 +157,13 @@ private:
 	int fModulusDim; // dimension of modulus storage --- need this???
 	int fBlockSize;  // storage block size (per ip)
 
-	/* UMAT dimensions */
+	/* VUMAT dimensions */
 	integer ndi;    // number of direct stress components (always 3)
 	integer nshr;   // number of engineering shear stress components (2D: 1, 3D: 3)
 	integer ntens;  // stress/strain array dimension: ndi + nshr
 	integer nstatv; // number of state variables
 	
-	/* UMAT array arguments */
+	/* VUMAT array arguments */
 	nMatrixT<doublereal> fddsdde;
 	nArrayT<doublereal>  fdstran;
 	nMatrixT<doublereal> fdrot;
@@ -171,7 +171,7 @@ private:
 	nMatrixT<doublereal> fdfgrd1;
 	nArrayT<doublereal>  fcoords;
 	
-	/* UMAT stored array arguments */
+	/* VUMAT stored array arguments */
 	nArrayT<doublereal> fstress;
 	nArrayT<doublereal> fstrain;
 	//nArrayT<doublereal> fsse_pd_cd;
@@ -186,7 +186,7 @@ private:
 	//nArrayT<doublereal> fsse_pd_cd_last;
 	nArrayT<doublereal> fstatv_last;
 	
-	/* UMAT argument array storage */
+	/* VUMAT argument array storage */
 	nArrayT<doublereal> fArgsArray;
 	
 	/* polar decomposition work space */
@@ -197,7 +197,9 @@ private:
 
 	/* relative spin increment */
 	dMatrixT fRelSpin;
-	
+
+	/* density */
+	double fAbDensity;
 };
 
 /* inlines */

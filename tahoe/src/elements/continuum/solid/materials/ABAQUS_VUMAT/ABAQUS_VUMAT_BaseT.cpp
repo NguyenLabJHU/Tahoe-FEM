@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.2 2001-07-19 14:52:51 hspark Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.3 2001-07-19 19:44:35 hspark Exp $ */
 
 #include "ABAQUS_VUMAT_BaseT.h"
 
@@ -28,13 +28,14 @@ ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& elem
 	fRNew(NumSD()),
 	fA_nsd(NumSD()),
 	fRelSpin(NumSD()),
+	fAbDensity(0.0),
 	fU1(NumSD()), fU2(NumSD()), fU1U2(NumSD()), fUOld(NumSD()), fUNew(NumSD())
 {
 	/* read ABAQUS-format input */
 	nstatv = 0;
 	Read_ABAQUS_Input(in);
 	
-	/* UMAT dimensions */
+	/* VUMAT dimensions */
 	ndi = 3; // always 3 direct components
 	int nsd = NumSD();
 	if (nsd == 2)
@@ -89,7 +90,7 @@ ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& elem
 	fstatv_last.Set(nstatv, parg);
 	
 
-	/* UMAT array arguments */
+	/* VUMAT array arguments */
 	fddsdde.Allocate(ntens);
 	fdstran.Allocate(ntens);
 	fdstran = 0.0;
@@ -107,7 +108,7 @@ ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& elem
 
 //DEBUG
 #if 1
-flog.open("UMAT.log");
+flog.open("VUMAT.log");
 flog.precision(DBL_DIG);
 flog.setf(ios::showpoint);
 flog.setf(ios::right, ios::adjustfield);
@@ -129,8 +130,8 @@ void ABAQUS_VUMAT_BaseT::Print(ostream& out) const
 	FDStructMatT::Print(out);
 	
 	/* write properties array */
-	out << " Number of ABAQUS UMAT internal variables. . . . = " << nstatv << '\n';
-	out << " Number of ABAQUS UMAT properties. . . . . . . . = " << fProperties.Length() << '\n';
+	out << " Number of ABAQUS VUMAT internal variables. . . . = " << nstatv << '\n';
+	out << " Number of ABAQUS VUMAT properties. . . . . . . . = " << fProperties.Length() << '\n';
 	PrintProperties(out);
 }
 
@@ -143,7 +144,7 @@ void ABAQUS_VUMAT_BaseT::Initialize(void)
 	/* notify */
 	if (fThermal->IsActive())
 		cout << "\n ABAQUS_VUMAT_BaseT::Initialize: thermal strains must\n"
-		     <<   "    be handled within the UMAT\n" << endl;
+		     <<   "    be handled within the VUMAT\n" << endl;
 	
 	/* disable thermal transform */
 	//SetFmodMult(NULL);	
@@ -165,7 +166,7 @@ void ABAQUS_VUMAT_BaseT::PointInitialize(void)
 	}
 
 	/* call UMAT - time signals initialization */
-	Call_UMAT(0.0, 0.0, 0, 0);
+	Call_VUMAT(0.0, 0.0, 0, 0);
 
 	/* store results as last converged */
 	if (CurrIP() == NumIP() - 1) UpdateHistory();
@@ -294,7 +295,7 @@ const dMatrixT& ABAQUS_VUMAT_BaseT::c_ijkl(void)
 
 const dSymMatrixT& ABAQUS_VUMAT_BaseT::s_ij(void)
 {
-	/* call UMAT */
+	/* call VUMAT */
 	if (fRunState == GlobalT::kFormRHS)
 	{
 		const FEManagerT& fe_man = ContinuumElement().FEManager();
@@ -302,7 +303,7 @@ const dSymMatrixT& ABAQUS_VUMAT_BaseT::s_ij(void)
 		double dt = fe_man.TimeStep();
 		int  step = fe_man.StepNumber();
 		int  iter = fe_man.IterationNumber();
-		Call_UMAT(t, dt, step, iter);
+		Call_VUMAT(t, dt, step, iter);
 	}
 	else
 		/* load stored data */
@@ -396,7 +397,7 @@ void ABAQUS_VUMAT_BaseT::PrintName(ostream& out) const
 {
 	/* inherited */
 	FDStructMatT::PrintName(out);
-	out << "    ABAQUS user material: " << fUMAT_name << '\n';
+	out << "    ABAQUS user material: " << fVUMAT_name << '\n';
 }
 
 void ABAQUS_VUMAT_BaseT::PrintProperties(ostream& out) const
@@ -540,7 +541,7 @@ void ABAQUS_VUMAT_BaseT::Read_ABAQUS_Input(ifstreamT& in)
 						if (!Skip_ABAQUS_Symbol(in, '=')) throw eBadInputValue;
 						
 						/* read name */
-						Read_ABAQUS_Word(in, fUMAT_name, false);
+						Read_ABAQUS_Word(in, fVUMAT_name, false);
 					}
 					else
 						cout << "\n ABAQUS_VUMAT_BaseT::Read_ABAQUS_Input: skipping parameter:"
@@ -618,6 +619,20 @@ void ABAQUS_VUMAT_BaseT::Read_ABAQUS_Input(ifstreamT& in)
 			nstatv = -1;
 			in >> nstatv;
 			if (nstatv < 0)
+			{
+				cout << "\n ABAQUS_VUMAT_BaseT::Read_ABAQUS_Input: error reading "
+				     << next_word << endl;
+				throw eBadInputValue;
+			}
+
+			/* clear trailing comma */
+			Skip_ABAQUS_Symbol(in, ',');
+		}
+		else if (next_word == "DENSITY")
+		{
+		        fAbDensity = -1.0;
+			in >> fAbDensity;
+			if (fAbDensity < 0.0)
 			{
 				cout << "\n ABAQUS_VUMAT_BaseT::Read_ABAQUS_Input: error reading "
 				     << next_word << endl;
@@ -804,18 +819,18 @@ void ABAQUS_VUMAT_BaseT::Store(ElementCardT& element, int ip)
 }
 
 /* make call to the UMAT */
-void ABAQUS_VUMAT_BaseT::Call_UMAT(double t, double dt, int step, int iter)
+void ABAQUS_VUMAT_BaseT::Call_VUMAT(double t, double dt, int step, int iter)
 {	
 	/* load stored data */
 	Load(CurrentElement(), CurrIP());
 
 	/* set stored variables to values at beginning of increment */
-	Reset_UMAT_Increment();
+	Reset_VUMAT_Increment();
 
 	/* compute strain/rotated stress */
-	Set_UMAT_Arguments();
+	Set_VUMAT_Arguments();
 
-	/* map UMAT arguments */
+	/* map VUMAT arguments */
 	doublereal* stressold = fstress_last.Pointer();     // i: Cauchy stress - rotated
 	doublereal* statevold = fstatv_last.Pointer();      // i: state variables
 	doublereal* ddsdde = fddsdde.Pointer();             //   o: constitutive Jacobian
@@ -840,7 +855,7 @@ void ABAQUS_VUMAT_BaseT::Call_UMAT(double t, double dt, int step, int iter)
 	doublereal  dtemp  = 0.0;                           // i: temperature increment
 	doublereal* predef = NULL;                          // i: pre-defined field variables
 	doublereal* dpred  = NULL;                          // i: increment of pre-defined field variables
-	char*       cmname = fUMAT_name.Pointer();          // i: UMAT name
+	char*       cmname = fVUMAT_name.Pointer();          // i: UMAT name
 	doublereal* props  = fProperties.Pointer();         // i: material properties array
 	integer     nprops = integer(fProperties.Length()); // i: number of material properties
 	doublereal* coords = fcoords.Pointer();             // i: coordinates of the integration point
@@ -855,7 +870,7 @@ void ABAQUS_VUMAT_BaseT::Call_UMAT(double t, double dt, int step, int iter)
 	integer     kspt   = 1;                             // i: section point
 	integer     kstep  = integer(step);                 // i: step number
 	integer     kinc   = integer(iter);                 // i: increment number
-	ftnlen      cmname_len = strlen(fUMAT_name);        // f2c: length of cmname string
+	ftnlen      cmname_len = strlen(fVUMAT_name);        // f2c: length of cmname string
 	// below were added by Harold for VUMAT
 	integer     lanneal = 0;                            // i: whether this analysis describes an annealing process
 	integer     nfieldv = 0;                            // i: number of user defined field varibles - default to 0
@@ -870,7 +885,7 @@ void ABAQUS_VUMAT_BaseT::Call_UMAT(double t, double dt, int step, int iter)
 	doublereal* stretchold = fUOld.Pointer();           // i: Stretch tensor at beginning of increment
 	doublereal* stretchnew = fUNew.Pointer();           // i: Stretch tensor at end of increment
 	doublereal* relspininc = fRelSpin.Pointer();        // i: Relative spin increment
-	doublereal  density = fDensity;                     // i: Density of material
+	doublereal  density = fAbDensity;                   // i: Density of material
 	doublereal* stressnew = fstress.Pointer();          // o: This is the stress to be updated
 	doublereal* statevnew = fstatv.Pointer();           // o: This is the state variable array to be updated
 
@@ -888,8 +903,8 @@ flog << fstatv.wrap(5) << '\n';
 }
 //DEBUG
 
-	/* call UMAT wrapper */
-       UMAT(&nblock, &ndi, &nshr, &nstatv, &nfieldv, &nprops, &lanneal, &stime, &totime, &dtime, cmname, coords,
+	/* call VUMAT wrapper */
+       VUMAT(&nblock, &ndi, &nshr, &nstatv, &nfieldv, &nprops, &lanneal, &stime, &totime, &dtime, cmname, coords,
        &celent, props, &density, dstran, relspininc, &tempOld, stretchold, dfgrd0, predef, stressold, statevold,
        &enerInternOld, &enerInelasOld, &tempNew, stretchnew, dfgrd1, dpred, stressnew, statevnew, 
        &enerInternNew, &enerInelasNew);
@@ -913,14 +928,14 @@ flog << fstatv.wrap(5) << endl;
 	fstrain += fdstran;
 
 	/* store modulus */
-	Store_UMAT_Modulus();
+	Store_VUMAT_Modulus();
 	
 	/* write to storage */
 	Store(CurrentElement(), CurrIP());
 }
 
 /* set variables to last converged */
-void ABAQUS_VUMAT_BaseT::Reset_UMAT_Increment(void)
+void ABAQUS_VUMAT_BaseT::Reset_VUMAT_Increment(void)
 {
   ///* assign "last" to "current" */
   //fstress    = fstress_last;
@@ -934,7 +949,7 @@ void ABAQUS_VUMAT_BaseT::Reset_UMAT_Increment(void)
 }
 
 /* set stress/strain arguments */
-void ABAQUS_VUMAT_BaseT::Set_UMAT_Arguments(void)
+void ABAQUS_VUMAT_BaseT::Set_VUMAT_Arguments(void)
 {
 	/* integration point coordinates */
 	ContinuumElement().IP_Coords(fIPCoordinates);	
@@ -1005,7 +1020,7 @@ void ABAQUS_VUMAT_BaseT::Set_UMAT_Arguments(void)
 }
 
 /* store the modulus */
-void ABAQUS_VUMAT_BaseT::Store_UMAT_Modulus(void)
+void ABAQUS_VUMAT_BaseT::Store_VUMAT_Modulus(void)
 {
 	if (fTangentType == GlobalT::kDiagonal)
 	{
