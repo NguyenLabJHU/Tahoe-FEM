@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.49 2005-02-22 00:08:43 rjones Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.50 2005-04-05 16:01:25 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -790,6 +790,42 @@ void ModelManagerT::BoundingElements(const ArrayT<StringT>& IDs, iArrayT& elemen
 	geometry->NeighborNodeMap(nodefacetmap);
 	EdgeFinderT edger(connects, nodefacetmap);
 	edger.BoundingElements(elements, neighbors);
+	
+	/* clean up */
+	if (my_geometry) delete geometry;
+}
+
+/* return element neighbor lists */
+void ModelManagerT::ElementNeighbors(const ArrayT<StringT>& IDs,
+	iArray2DT& neighbors, const GeometryBaseT* geometry)
+{
+	/* quick exit */
+	if (IDs.Length() == 0) {
+		neighbors.Dimension(0,0);
+		return;
+	}
+
+	/* collect list of pointers to element blocks */
+	ArrayT<const iArray2DT*> connects;
+	ElementGroupPointers(IDs, connects);
+
+	/* geometry info */
+	bool my_geometry = false;
+	if (!geometry) {
+		my_geometry = true;
+		geometry = GeometryT::New(ElementGroupGeometry(IDs[0]), connects[0]->MinorDim());
+	} else { /* check */
+		my_geometry = false;
+		if (geometry->Geometry() != ElementGroupGeometry(IDs[0]) ||
+			geometry->NumNodes() != connects[0]->MinorDim()) 
+			ExceptionT::GeneralFail("ModelManagerT::ElementNeighbors", "received inconsistent GeometryBaseT*");
+	}
+
+	/* build element neighbor list */
+	iArray2DT nodefacetmap;
+	geometry->NeighborNodeMap(nodefacetmap);
+	EdgeFinderT edger(connects, nodefacetmap);
+	neighbors = edger.Neighbors();
 	
 	/* clean up */
 	if (my_geometry) delete geometry;

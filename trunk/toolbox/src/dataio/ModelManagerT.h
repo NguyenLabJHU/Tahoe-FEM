@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.33 2005-02-22 00:08:44 rjones Exp $ */
+/* $Id: ModelManagerT.h,v 1.34 2005-04-05 16:01:25 paklein Exp $ */
 /* created: sawimme July 2001 */
 #ifndef _MODELMANAGER_T_H_
 #define _MODELMANAGER_T_H_
@@ -209,6 +209,24 @@ class ModelManagerT
 	 *        construct a temporary */
 	void BoundingElements(const ArrayT<StringT>& IDs, iArrayT& elements, 
 		iArray2DT& neighbors, const GeometryBaseT* geometry = NULL);
+
+	/** return the neighoring elements for each element. For the body comprised of the given
+	 * list of element blocks, determine the neighboring elements for each element . 
+	 * The returned array is dimensioned during the call. Function is non-const because element
+	 * blocks that have not been read yet will be read.
+	 * \param IDs list of element blocks comprising the body
+	 * \param neighbors neighoring elements for each element in the blocks passed in. The major
+	 *        dimension of this array is the total number of elements in the given list of blocks.
+	 *        The minor dimension is the number of neighboring faces for the given element geometry.
+	 *        The element associated with each row in the array and the neighbor numbers in each row
+	 *        are elements numbered with respect to their position in the collection of elements defined
+	 *        by the list of ID's passed in. A neighbor of -1 indicates the element has no neighbor
+	 *        on the given face. The faces are number based on the cannonical face number defined for
+	 *        the given element geometry.
+	 * \param geometry use the supplied GeometryBaseT is non-NULL; otherwise
+	 *        construct a temporary */
+	void ElementNeighbors(const ArrayT<StringT>& IDs, iArray2DT& neighbors, 
+		const GeometryBaseT* geometry = NULL);
 
 	/** return the list of element block ID's containing the given list of nodes 
 	 * \param nodes list of node numbers
