@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.20 2002-08-01 23:13:05 rdorgan Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.21 2002-09-04 16:28:03 cfoster Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList3DT.h"
@@ -25,6 +25,7 @@
 #include "J2QLLinHardT.h"
 #include "OgdenIsoVIB3D.h"
 #include "QuadLogOgden3DT.h"
+#include "FossumSSIsoT.h"
 #include "SSStandardT.h"
 #include "FDStandardT.h"
 #include "HyperEVP3D.h"
@@ -289,6 +290,17 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 			}	
+		        case kFossumSSIso:
+			{
+				/* check */
+				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+
+				fArray[matnum] = new FossumSSIsoT(in, *fSmallStrain);
+				fHasHistory = true;
+				break;
+			}
+
+
 			case kThermoViscoPlastic:
 			{
 				/* check */
