@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.h,v 1.6 2003-01-27 07:00:30 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.h,v 1.7 2004-09-07 06:43:03 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #ifndef _SPOOLES_MATRIX_T_MPI_H_
 #define _SPOOLES_MATRIX_T_MPI_H_
@@ -23,9 +23,18 @@ public:
 	SPOOLESMatrixT_mpi(ostream& out, int check_code, bool symmetric,
 		bool pivoting, CommunicatorT& comm);
 
+	/** destructor */
+	~SPOOLESMatrixT_mpi(void);
+
+	/** clear values for next assembly */
+	virtual void Clear(void);
+
 protected:
 
-	/* determine new search direction and put the results in result */
+	/** precondition matrix */
+	virtual void Factorize(void);
+
+	/** determine new search direction and put the results in result */
 	virtual void BackSubstitute(dArrayT& result);
 	
 private:
