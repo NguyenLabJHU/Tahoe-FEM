@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.cpp,v 1.12 2004-07-22 08:31:56 paklein Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.13 2004-09-16 16:49:57 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltySphereT.h"
 #include "FieldT.h"
@@ -52,9 +52,7 @@ void PenaltySphereT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 			fContactForce2D.RowAlias(i,fd_sh);
 			
 			double dPhi = gap*fk;
-			fLHS.Outer(fd_sh,fd_sh);
-			fLHS *= constK*((fk/dPhi) - (1.0/dist))/dPhi;
-		
+			fLHS.Outer(fd_sh, fd_sh, constK*((fk/dPhi) - (1.0/dist))/dPhi);
 			fLHS.PlusIdentity(constK*dPhi/dist);
 		
 			/* assemble */
