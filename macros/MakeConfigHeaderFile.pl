@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: MakeConfigHeaderFile.pl,v 1.3 2002-12-08 17:33:51 paklein Exp $
+# $Id: MakeConfigHeaderFile.pl,v 1.3.2.1 2002-12-08 20:53:20 paklein Exp $
 #
 # Generates a C/C++ header file from a configuration file which is
 # passed as the command-line argument.
@@ -48,7 +48,7 @@ if (-e $config_header_file) {
 	exit;
 }
 else {
-	print "creating output file root: $config_header_file\n";
+	print "creating output file: $config_header_file\n";
 }
 open(OUT, ">$config_header_file") || die "could not open output file: $config_header_file\n";
 
@@ -68,11 +68,12 @@ FIN
 open (DATE, "date |");
 while (<DATE>) {
 	chomp($_);
-	print OUT "/* created: " . $_ . "*/\n";
+	print OUT "/* created: " . $_ . " */\n";
 }
 close(DATE);
 
 print OUT <<FIN;
+
 /** \\file $out_root.h
  * Configuration of optional components within Tahoe.
  * Sections of the code are included or excluded in the build of Tahoe depending in 
@@ -85,7 +86,7 @@ print OUT <<FIN;
  *
  * The naming convention for the definitions in this file and the macros in
  * $out_root.make are as follows. For the option [OPTION]:
- * -# the symbol in this file will be ENABLE_[OPTION]
+ * -# the symbol in this file will be [OPTION]
  * -# the macro defining the corresponding source directory will be DIRECTORY_[OPTION]
  */
 FIN
@@ -102,7 +103,7 @@ while ($line = <IN>) {
 		# read name
 		if ($scan_line == 1) {
 			$opt_root = $line;
-			print OUT "\n/** \\def ENABLE_$opt_root\n";
+			print OUT "\n/** \\def $opt_root\n";
 			print "processing option: $opt_root\n";
 			$scan_line++;
 		} 
@@ -115,7 +116,7 @@ while ($line = <IN>) {
 			print OUT " * $line\n";
 			print OUT " * This option must be set in conjunction with the DIRECTORY_$opt_root macro\n";
 			print OUT " * in $out_root.make. */\n";
-			print OUT "#define ENABLE_$opt_root 1\n"; # enabled by default
+			print OUT "#define $opt_root 1\n"; # enabled by default
 			$scan_line++;
 		}
 		# read directories
