@@ -1556,20 +1556,6 @@ void EAMT::RHSDriver3D(void)
 	    }
 	}
     }
-
-  for (int i = 0; i < fNeighbors.MajorDim(); i++)
-    {
-      /* row of neighbor list */
-      fNeighbors.RowAlias(i, neighbors);
-
-      /* type */
-      int   tag_i = neighbors[0]; /* self is 1st spot */
-      int  type_i = fType[tag_i];
-      double* f_i = fForce(tag_i);
-
-      cout << i << " " << f_i[0] << " " << f_i[1] 
-	        << " " << f_i[2]  << "\n";
-    }
 }
 
 /* set neighborlists */
