@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.h,v 1.5 2003-03-08 01:55:14 paklein Exp $ */
+/* $Id: MaterialSupportT.h,v 1.6 2003-03-08 03:13:29 paklein Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
@@ -14,6 +14,8 @@ namespace Tahoe {
 class ContinuumElementT;
 class ElementCardT;
 class ScheduleT;
+class ifstreamT;
+class ofstreamT;
 
 /** support for the Tahoe materials classes. */
 class MaterialSupportT
