@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.h,v 1.8 2005-01-25 02:23:58 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.h,v 1.9 2005-02-02 01:59:07 paklein Exp $ */
 #ifndef _FS_SCNIMF_AXI_T_H_
 #define _FS_SCNIMF_AXI_T_H_
 
@@ -83,9 +83,12 @@ protected:
 	int fNeedsOffset;
 	
 private:
-	/* deformation gradients passed to the materials */
+
+	/** \name deformation gradients passed to the materials */
+	/*@{*/
 	ArrayT<dMatrixT> fF_list;
 	ArrayT<dMatrixT> fF_last_list;
+	/*@}*/
 };
 
 } /* namespace Tahoe */
