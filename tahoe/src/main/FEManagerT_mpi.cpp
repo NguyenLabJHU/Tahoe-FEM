@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.3 2001-05-30 23:27:02 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.4 2001-05-31 00:46:05 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #include "FEManagerT_mpi.h"
@@ -287,9 +287,11 @@ void FEManagerT_mpi::WriteOutput(int ID, const dArray2DT& n_values,
 		/* do local IO */
 		FEManagerT::WriteOutput(ID, n_values, e_values);
 	else
+	  {
 		/* distribute/assemble/write */
 		fExternIOManager->SetOutputTime(Time());
 		fExternIOManager->WriteOutput(ID, n_values, e_values);
+	  }
 }
 
 /* (temporarily) direct output away from main out */
@@ -297,7 +299,13 @@ void FEManagerT_mpi::DivertOutput(const StringT& outfile)
 {
 	/* do local IO */
 	if (!fExternIOManager)
-		FEManagerT::DivertOutput(outfile);
+	  {
+		/* need processor designation for split output */
+		StringT outfile_p = outfile;
+		if (Size() > 1) outfile_p.Append(".p", Rank());
+
+		FEManagerT::DivertOutput(outfile_p);
+	  }
 	else /* external I/O */
 		fExternIOManager->DivertOutput(outfile);
 }
