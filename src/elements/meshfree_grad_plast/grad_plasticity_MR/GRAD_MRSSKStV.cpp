@@ -37,7 +37,7 @@ GRAD_MRSSKStV::GRAD_MRSSKStV(ifstreamT& in, const SSMatSupportT& support):
 	HookeanMatT(3),
 	GRAD_MRSSNLHardT(in, NumIP(), Mu(), Lambda()),
 	fStress(3),
-	fFailureFunction,//KY. failure function
+	fFailureFunction, // kyonten
 	fModulus(dSymMatrixT::NumValues(3)),
 	fModulusdisc(dSymMatrixT::NumValues(3))
 {
@@ -104,6 +104,14 @@ const dMatrixT& GRAD_MRSSKStV::cdisc_ijkl(void)
 	return fModulusdisc;
 }
 
+/* yield function */
+const double& GRAD_MRSSKStV::YieldFunction(void)
+{
+
+	fYieldFunction = YieldFunction(CurrentElement(), CurrIP());
+	return fYieldFunction;
+}
+
 /* stress */
 const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 {
@@ -120,13 +128,6 @@ const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 	return fStress;	
 }
 
-/* yield function */
-const double& GRAD_MRSSKStV::yield_function(void)
-{
-
-	fYieldFunction = YieldFunction(CurrentElement(), CurrIP());
-	return fYieldFunction;
-}
 
 
 /*

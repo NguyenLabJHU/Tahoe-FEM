@@ -81,7 +81,7 @@ const dSymMatrixT& GRAD_MRSSKStV2D::s_ij(void)
 }
 
 //include yield function here
-const double GRAD_MRSSKStV2D::yield_function(void)
+const double& GRAD_MRSSKStV2D::YieldFunction(void)
 {
 	
 	fYieldFunction2D = fYieldFunction;

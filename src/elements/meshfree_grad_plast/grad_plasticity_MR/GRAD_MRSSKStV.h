@@ -50,7 +50,7 @@ class MRSSKStV: public SSSolidMatT,
 	/** Yield function */
 	// return the yield function to form the RHS of the 
 	// consistency equation
-	virtual double yield_function(void);
+	virtual double YieldFunction(void);
 
 	/** return the pressure associated with the last call to 
 	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
