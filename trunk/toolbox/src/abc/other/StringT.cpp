@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.10 2001-11-28 22:24:25 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.11 2001-12-10 23:57:03 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -476,6 +476,20 @@ StringT& StringT::Drop(int n)
 	}
 	else if (n < 0)
 		(*this)[strlen(*this) + n] = '\0';
+
+	return *this;
+}
+
+/* delete characters from the string from start to end inclusive */
+StringT& StringT::Delete(int start, int end)
+{
+#if __option(extended_errorcheck)
+	if (end < start || start < 0 || end >= strlen(*this))
+		throw eOutOfRange;
+#endif
+
+	char* str = *this;
+	memmove(str + start, str + end + 1, strlen(str) - end);
 
 	return *this;
 }
