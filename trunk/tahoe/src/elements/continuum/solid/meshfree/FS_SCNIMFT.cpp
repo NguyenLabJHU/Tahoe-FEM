@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.20 2005-02-04 01:29:14 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.21 2005-02-26 22:42:42 paklein Exp $ */
 #include "FS_SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -192,9 +192,8 @@ void FS_SCNIMFT::WriteOutput(void)
 			dArrayT* bVec_i = bVectorArray(i);
 			int* supp_i = nodalCellSupports(i);
 			for (int j = 0; j < nodalCellSupports.MinorDim(i); j++) { 
-				bVectorToMatrix(bVec_i->Pointer(), BJ);
+				Fdef_last.Outer(u_last(*supp_i++), bVec_i->Pointer(), 1.0, dMatrixT::kAccumulate);
 				bVec_i++;
-				BJ.Multx(u_last(*supp_i++), Fdef_last.Pointer(), 1.0, dMatrixT::kAccumulate);
 			}
 			Fdef_last.PlusIdentity();
 		}
@@ -349,9 +348,8 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				dArrayT* bVec_i = bVectorArray(i);
 				int* supp_i = nodalCellSupports(i);
 				for (int j = 0; j < n_supp; j++) { 
-					bVectorToMatrix(bVec_i->Pointer(), BJ);
+					Fdef_last.Outer(u_last(*supp_i++), bVec_i->Pointer(), 1.0, dMatrixT::kAccumulate);
 					bVec_i++;
-					BJ.Multx(u_last(*supp_i++), Fdef_last.Pointer(), 1.0, dMatrixT::kAccumulate);
 				}
 				Fdef_last.PlusIdentity(); // convert to F
 			}
@@ -484,9 +482,8 @@ void FS_SCNIMFT::RHSDriver(void)
 			dArrayT* bVec_i = bVectorArray(i);
 			int* supp_i = nodalCellSupports(i);
 			for (int j = 0; j < n_supp; j++) { 
-				bVectorToMatrix(bVec_i->Pointer(), BJ);
+				Fdef_last.Outer(u_last(*supp_i++), bVec_i->Pointer(), 1.0, dMatrixT::kAccumulate);
 				bVec_i++;
-				BJ.Multx(u_last(*supp_i++), Fdef_last.Pointer(), 1.0, dMatrixT::kAccumulate);
 			}
 			Fdef_last.PlusIdentity(); // convert to F 			
 		}
