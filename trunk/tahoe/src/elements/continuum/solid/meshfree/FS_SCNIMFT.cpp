@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.26 2005-03-05 19:04:07 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.27 2005-03-06 04:02:35 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -448,8 +448,6 @@ void FS_SCNIMFT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 {
 	int nsd = NumSD();
 #if __option(extended_errorcheck)
-	if (BJ.Rows() != nsd*nsd) 
-		ExceptionT::SizeMismatch("SCNIMFT::bVectorToMatrix","Matrix has bad majorDim");
 	if (BJ.Cols() != nsd) 
 		ExceptionT::SizeMismatch("SCNIMFT::bVectorToMatrix","Matrix has bad minorDim");
 #endif
@@ -458,9 +456,15 @@ void FS_SCNIMFT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 	BJ = 0.;
 	Bptr[0] = *bVector;
 	if (nsd == 2) {
-		Bptr[5] = *bVector++;
-		Bptr[2] = *bVector;
-		Bptr[7] = *bVector;
+		if (qIsAxisymmetric) {
+			Bptr[6] = *bVector++;
+			Bptr[2] = *bVector;
+			Bptr[8] = *bVector;
+		} else {
+			Bptr[5] = *bVector++;
+			Bptr[2] = *bVector;
+			Bptr[7] = *bVector;
+		}
 	} else { // nsd == 3
 		Bptr[10] = Bptr[20] = *bVector++;
 		Bptr[3] = *bVector;
