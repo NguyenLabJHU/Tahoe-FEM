@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2003-03-04 07:38:16 paklein Exp $
+# $Id: makefile,v 1.9 2003-03-31 23:02:50 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -26,7 +26,8 @@ OBJ = \
 	MappedPeriodicT.o \
 	SymmetricNodesT.o \
 	TiedNodesT.o \
-	PeriodicNodesT.o
+	PeriodicNodesT.o \
+	KBC_PrescribedT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -52,7 +53,8 @@ SRC = \
 	MappedPeriodicT.cpp \
 	SymmetricNodesT.cpp \
 	TiedNodesT.cpp \
-	PeriodicNodesT.cpp
+	PeriodicNodesT.cpp \
+	KBC_PrescribedT.cpp
 
 ##################### (3) headers
 #
@@ -70,7 +72,8 @@ HDR = \
 	MappedPeriodicT.h \
 	SymmetricNodesT.h \
 	TiedNodesT.h \
-	PeriodicNodesT.h
+	PeriodicNodesT.h \
+	KBC_PrescribedT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
