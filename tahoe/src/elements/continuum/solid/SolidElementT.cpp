@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.58.14.6 2004-06-23 00:53:36 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.58.14.7 2004-06-24 04:56:58 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -1337,6 +1337,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         dArrayT element_values(e_values.MinorDim());
         pall = element_values.Pointer();
         dArrayT centroid, ip_centroid, ip_mass;
+        dArrayT ip_coords(nsd);
         if (e_codes[iCentroid])
         {
                 centroid.Set(nsd, pall); pall += nsd;
@@ -1375,6 +1376,8 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         /* check that degrees are displacements */
         int interpolant_DOF = InterpolantDOFs();
 
+		bool is_axi = Axisymmetric();
+		double Pi2 = 2.0*acos(-1.0);
         Top();
         while (NextElement())
         if (CurrentElement().Flag() != kOFF)
@@ -1417,6 +1420,11 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
                 {
                         /* element integration weight */
                         double ip_w = (*j++)*(*w++);
+				if (is_axi) {
+					fShapes->IPCoords(ip_coords);
+					ip_w *= Pi2*ip_coords[0]; /* radius is the x1 coordinate */
+				}
+				                        
                         if (qUseSimo || qNoExtrap)
                         {
                           Na_X_ip_w.Dimension(nen,1);
