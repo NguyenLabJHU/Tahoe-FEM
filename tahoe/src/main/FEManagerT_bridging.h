@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.12.1 2004-04-08 07:33:48 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -12,6 +12,7 @@
 /* direct members */
 #include "PointInCellDataT.h"
 #include "nMatrixT.h"
+#include "KBC_CardT.h"
 
 namespace Tahoe {
 

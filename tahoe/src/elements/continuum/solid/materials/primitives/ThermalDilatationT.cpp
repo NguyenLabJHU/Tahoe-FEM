@@ -1,32 +1,17 @@
-/* $Id: ThermalDilatationT.cpp,v 1.4 2002-07-02 19:56:22 cjkimme Exp $ */
+/* $Id: ThermalDilatationT.cpp,v 1.4.56.1 2004-04-08 07:33:18 paklein Exp $ */
 /* created: paklein (08/25/1996) */
-
 #include "ThermalDilatationT.h"
-
-#include <iostream.h>
-
-#include "fstreamT.h"
 #include "ScheduleT.h"
-
-/* constructor */
 
 using namespace Tahoe;
 
-ThermalDilatationT::ThermalDilatationT(ifstreamT& in):
-	LTfPtr(NULL)
+/* constructor */
+ThermalDilatationT::ThermalDilatationT(void):
+	LTfPtr(NULL),
+	fPercentElongation(0.0),
+	LTfnum(-1)
 {
-	in >> LTfnum; LTfnum--;
-	in >> fPercentElongation;
-	
-	/* overwrite */
-	if (LTfnum == -1) fPercentElongation = 0.0;
-}
 
-/* I/O functions */
-void ThermalDilatationT::Print(ostream& out) const
-{
-	out << " Dilatation LTf. . . . . . . . . . . . . . . . . = " << LTfnum + 1         << '\n';
-	out << " Percent elongation. . . . . . . . . . . . . . . = " << fPercentElongation << '\n';
 }
 
 /* returns the current elongation factor */

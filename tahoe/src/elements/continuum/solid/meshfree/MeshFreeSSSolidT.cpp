@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.17 2004-01-05 07:16:47 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.17.18.1 2004-04-08 07:33:27 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -96,7 +96,7 @@ void MeshFreeSSSolidT::Initialize(void)
 	if (fAutoBorder) {
 		ArrayT<StringT> IDs;
 		ElementBlockIDs(IDs);
-		ElementSupport().Model().SurfaceNodes(IDs, surface_nodes,
+		ElementSupport().ModelManager().SurfaceNodes(IDs, surface_nodes,
 			&(ShapeFunction().ParentDomain().Geometry()));
 	}
 	MeshFreeFractureSupportT::InitSupport(
@@ -106,7 +106,7 @@ void MeshFreeSSSolidT::Initialize(void)
 		surface_nodes, 
 		NumDOF(), 
 		ElementSupport().NumNodes(),
-		&ElementSupport().Model()
+		&ElementSupport().ModelManager()
 	);
 	
 	/* final MLS initializations */

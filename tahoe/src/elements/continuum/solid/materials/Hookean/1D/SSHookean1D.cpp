@@ -1,19 +1,22 @@
-/* $Id: SSHookean1D.cpp,v 1.6 2004-01-10 04:41:14 paklein Exp $ */
+/* $Id: SSHookean1D.cpp,v 1.6.18.1 2004-04-08 07:32:44 paklein Exp $ */
 #include "SSHookean1D.h"
 
 using namespace Tahoe;
 
 /* constructor */
 SSHookean1D::SSHookean1D(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("small_strain_StVenant_1D"),
 	SSHookeanMatT(in, support),
 	IsotropicT(in)
 {
-	SetName("small_strain_Hookean_1D");
+
 }
 
-SSHookean1D::SSHookean1D(void)
+SSHookean1D::SSHookean1D(void):
+	ParameterInterfaceT("small_strain_StVenant_1D")
+
 {
-	SetName("small_strain_Hookean_1D");
+
 }
 
 /* print parameters */
@@ -30,6 +33,33 @@ void SSHookean1D::PrintName(ostream& out) const
         /* inherited */
         SSHookeanMatT::PrintName(out);
         out << "    1D SS Hookean\n";
+}
+
+/* information about subordinate parameter lists */
+void SSHookean1D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SSHookeanMatT::DefineSubs(sub_list);
+	IsotropicT::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SSHookean1D::NewSub(const StringT& list_name) const
+{
+	/* inherited */
+	ParameterInterfaceT* params = SSHookeanMatT::NewSub(list_name);
+	if (params)
+		return params;
+	else
+		return IsotropicT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void SSHookean1D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SSHookeanMatT::TakeParameterList(list);
+	IsotropicT::TakeParameterList(list);
 }
 
 /*************************************************************************

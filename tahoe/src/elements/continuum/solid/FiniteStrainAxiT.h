@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainAxiT.h,v 1.4 2004-02-06 18:01:40 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.h,v 1.4.14.1 2004-04-08 07:32:34 paklein Exp $ */
 #ifndef _FINITE_STRAIN_AXI_T_H_
 #define _FINITE_STRAIN_AXI_T_H_
 
@@ -36,7 +36,7 @@ class FiniteStrainAxiT: public FiniteStrainT
 	 * the pointer. 
 	 * \param nsd number of spatial dimensions
 	 * \param size length of the list */
-	virtual MaterialListT* NewMaterialList(int nsd, int size);
+	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);

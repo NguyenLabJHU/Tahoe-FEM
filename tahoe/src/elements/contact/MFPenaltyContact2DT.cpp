@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.6 2004-02-06 03:42:53 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.6.14.1 2004-04-08 07:32:28 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -328,7 +328,7 @@ void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	}
 
 	/* set connectivity name */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	StringT name ("Contact");
 	name.Append (ElementSupport().ElementGroupNumber(this) + 1);
 

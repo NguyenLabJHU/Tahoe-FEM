@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.9 2003-12-10 07:14:21 paklein Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.9.18.1 2004-04-08 07:32:30 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "ContinuumMaterialT.h"
 #include "MaterialSupportT.h"
@@ -26,6 +26,22 @@ ContinuumMaterialT::ContinuumMaterialT(void):
 	fNumIP(0)
 {
 
+}
+
+/* set the material support or pass NULL to clear */
+void ContinuumMaterialT::SetMaterialSupport(const MaterialSupportT* support)
+{
+	fMaterialSupport = support;
+	if (fMaterialSupport) {
+		fNumDOF = fMaterialSupport->NumDOF();
+		fNumSD = fMaterialSupport->NumSD();
+		fNumIP = fMaterialSupport->NumIP();
+	}
+	else {
+		fNumDOF = 0;
+		fNumSD = 0;
+		fNumIP = 0;
+	}
 }
 
 /* destructor */

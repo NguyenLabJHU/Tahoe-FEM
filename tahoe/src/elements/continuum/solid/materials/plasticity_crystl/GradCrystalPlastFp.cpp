@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.cpp,v 1.14 2003-12-18 22:22:01 ebmarin Exp $ */
+/* $Id: GradCrystalPlastFp.cpp,v 1.14.18.1 2004-04-08 07:33:13 paklein Exp $ */
 #include "GradCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -29,6 +29,7 @@ const bool XTAL_MESSAGES = false;
 const int ELprnt = 0;
 
 GradCrystalPlastFp::GradCrystalPlastFp(ifstreamT& in, const FSMatSupportT& support) :
+	ParameterInterfaceT("gradient_crystal_plasticity_Fp"),
   LocalCrystalPlastFp(in, support),  
   fLocInitX (ContinuumElement().InitialCoordinates()),
   fLocCurrX (LocalArrayT::kCurrCoords),
@@ -116,12 +117,12 @@ const dSymMatrixT& GradCrystalPlastFp::s_ij()
   int igrn = 0;
 
   // time step
-  fdt = fFSMatSupport.TimeStep();
+  fdt = fFSMatSupport->TimeStep();
 
   // compute crystal stresses (all IPs at once - elastic predictor at first iter)
-  if (fFSMatSupport.RunState() == GlobalT::kFormRHS && CurrIP() == 0)
+  if (fFSMatSupport->RunState() == GlobalT::kFormRHS && CurrIP() == 0)
     {
-       if (fFSMatSupport.IterationNumber() <= -1)
+       if (fFSMatSupport->IterationNumber() <= -1)
          {
            for (int intpt = 0; intpt < NumIP(); intpt++)
              {
@@ -202,7 +203,7 @@ const dMatrixT& GradCrystalPlastFp::c_ijkl()
   else
         fElasticity->ComputeModuli(fcBar_ijkl);
 
-  if (fFSMatSupport.IterationNumber() <= 0)
+  if (fFSMatSupport->IterationNumber() <= 0)
     {
       // elastic crystal stiffness
       FFFFC_3D(fc_ijkl, fcBar_ijkl, fFe);
@@ -301,7 +302,7 @@ void GradCrystalPlastFp::ComputeOutput(dArrayT& output)
   if (elem == 0 && intpt == 0) fAvgStress = 0.0;
   fAvgStress.AddScaled(1./(NumIP()*NumElements()), fs_ij);
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
-     cerr << " step # " << fFSMatSupport.StepNumber()
+     cerr << " step # " << fFSMatSupport->StepNumber()
           << "    S_eq_avg = " 
           << sqrt(fSymMatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23
           << "    Savg_12 = " << fAvgStress(0,1) << endl; 
@@ -311,8 +312,8 @@ void GradCrystalPlastFp::ComputeOutput(dArrayT& output)
   output[2] = fIterState;
 
   // compute euler angles
-  int step = fFSMatSupport.StepNumber();
-  int nsteps = fFSMatSupport.NumberOfSteps();
+  int step = fFSMatSupport->StepNumber();
+  int nsteps = fFSMatSupport->NumberOfSteps();
 
   if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
   {

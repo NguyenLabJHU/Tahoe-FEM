@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.cpp,v 1.9 2003-11-21 22:46:38 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.cpp,v 1.9.20.1 2004-04-08 07:32:59 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB3D.h"
 
@@ -18,6 +18,7 @@ using namespace Tahoe;
 
 /* constructors */
 OgdenIsoVIB3D::OgdenIsoVIB3D(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("Ogden_isotropic_VIB_3D"),
 	OgdenIsotropicT(in, support),
 	VIB(in, 3, 3, 6),
 	fSphere(NULL)
@@ -221,7 +222,7 @@ void OgdenIsoVIB3D::Construct(void)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Dimension(numpoints);
+	VIB::Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fSphere->Jacobians();

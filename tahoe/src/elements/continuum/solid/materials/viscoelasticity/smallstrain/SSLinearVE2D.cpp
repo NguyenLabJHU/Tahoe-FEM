@@ -1,4 +1,4 @@
-/* $Id: SSLinearVE2D.cpp,v 1.3 2004-01-10 04:41:27 paklein Exp $ */
+/* $Id: SSLinearVE2D.cpp,v 1.3.18.1 2004-04-08 07:33:26 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSLinearVE2D.h"
 #include "SSMatSupportT.h"
@@ -14,6 +14,7 @@ const int kNumOutputVar = 1;
 static const char* Labels[kNumOutputVar] = {"Dvisc"};
 
 SSLinearVE2D::SSLinearVE2D(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("linear_viscoelastic_2D"),
 	SSViscoelasticityT(in, support),
 	fStress(2),
 	fModulus(3),

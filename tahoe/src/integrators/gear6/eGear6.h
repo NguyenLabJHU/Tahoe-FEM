@@ -1,3 +1,4 @@
+/* $Id: eGear6.h,v 1.3.46.1 2004-04-08 07:33:41 paklein Exp $ */
 #ifndef _E_GEAR_06_H_
 #define _E_GEAR_06_H_
 

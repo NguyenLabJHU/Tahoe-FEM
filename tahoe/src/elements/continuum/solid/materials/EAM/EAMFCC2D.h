@@ -1,10 +1,10 @@
-/* $Id: EAMFCC2D.h,v 1.7 2003-01-29 07:34:38 paklein Exp $ */
+/* $Id: EAMFCC2D.h,v 1.7.46.1 2004-04-08 07:32:41 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #ifndef _EAMFCC2D_H_
 #define _EAMFCC2D_H_
 
 /* base class */
-#include "NL_E_Mat2DT.h"
+#include "NL_E_MatT.h"
 
 namespace Tahoe {
 
@@ -12,7 +12,7 @@ namespace Tahoe {
 class EAMFCC3DSym;
 
 /** plane strain EAM material */
-class EAMFCC2D: public NL_E_Mat2DT
+class EAMFCC2D: public NL_E_MatT
 {
 public:
 
@@ -30,6 +30,12 @@ public:
 	/* print parameters */
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 

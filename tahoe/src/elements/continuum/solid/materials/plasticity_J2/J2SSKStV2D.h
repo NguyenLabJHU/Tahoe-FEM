@@ -1,15 +1,14 @@
-/* $Id: J2SSKStV2D.h,v 1.4 2002-11-14 17:06:25 paklein Exp $ */
+/* $Id: J2SSKStV2D.h,v 1.4.48.1 2004-04-08 07:33:09 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_2D_H_
 #define _J2_SS_KSTV_2D_H_
 
 /* base classes */
 #include "J2SSKStV.h"
-#include "Material2DT.h"
 
 namespace Tahoe {
 
-class J2SSKStV2D: public J2SSKStV, public Material2DT
+class J2SSKStV2D: public J2SSKStV
 {
 public:
 
@@ -24,7 +23,6 @@ public:
 		const ElementCardT& element, int ip);
 
 	/* print parameters */
-	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
 	
 	/* modulus */
@@ -33,8 +31,11 @@ public:
 	/* stress */
 	virtual const dSymMatrixT& s_ij(void);
 
-	/* returns the strain energy density for the specified strain */
-	virtual double StrainEnergyDensity(void);
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 private:
 

@@ -1,96 +1,99 @@
-/* $Id: ScheduleT.cpp,v 1.5 2003-10-28 07:12:14 paklein Exp $ */
+/* $Id: ScheduleT.cpp,v 1.5.22.1 2004-04-08 07:33:55 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ScheduleT.h"
-#include "fstreamT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
+/* C1 functions */
+#include "PiecewiseLinearT.h"
 
 using namespace Tahoe;
 
-/* constructors */
+/* constructor */
+ScheduleT::ScheduleT(void):
+	ParameterInterfaceT("schedule_function"),
+	fFunction(NULL)
+{
+
+}
+
 ScheduleT::ScheduleT(double value):
-	fCurrentTime(0.0),
-	fCurrentValue(value)
+	ParameterInterfaceT("schedule_function"),
+	fFunction(NULL)
 {
-
+	/* construct constant function */
+	dArray2DT points(1,2);
+	points(0,0) = 0.0;
+	points(0,1) = value;
+	fFunction = new PiecewiseLinearT(points);
 }
 
-ScheduleT::ScheduleT(int numpts):
-	fTime(numpts),
-	fValue(numpts),
-	fCurrentTime(0.0),
-	fCurrentValue(0.0)
-{
-
-}
-
-ScheduleT::ScheduleT(const dArrayT& times, const dArrayT& values):
-	fTime(times),
-	fValue(values),
-	fCurrentTime(0.0),
-	fCurrentValue(0.0)
-{
-	/* check data */
-	CheckSequential();
-}
-
-/* I/O operators */
-void ScheduleT::Read(ifstreamT& in)
-{
-	for (int i = 0; i < fTime.Length(); i++)
-	{
-		in >> fTime[i];
-		in >> fValue[i];
-	}
-
-	/* check data */
-	CheckSequential();
-}
-
-void ScheduleT::Write(ostream& out) const
-{
-	int d_width = out.precision() + kDoubleExtra;
-
-	out << setw(d_width) << "time";
-	out << setw(d_width) << "factor" << '\n';
-
-	for (int i = 0; i < fTime.Length(); i++)
-	{
-		out << setw(d_width) << fTime[i];
-		out << setw(d_width) << fValue[i] << '\n';
-	}
-}
+/* destructor */
+ScheduleT::~ScheduleT(void) { delete fFunction; }
 
 /* set the load factor based on the time given */
 void ScheduleT::SetTime(double time)
 {
 	fCurrentTime = time;
-	int num_pts = fTime.Length();
-	if (num_pts > 1)
-	{
-		if ( time <= fTime[0] )			/* first abscissa */
-			fCurrentValue = fValue[0];
-		else if ( time >= fTime[num_pts-1] )	/* last abscissa  */
-			fCurrentValue = fValue[num_pts-1];
-		else
-			for (int i = 0; i < num_pts; i++)
-				if (fTime[i] >= time)
-				{		
-					fCurrentValue = fValue[i-1] + (time - fTime[i-1])*
-										(fValue[i] - fValue[i-1])/
-										(fTime[i] - fTime[i-1]);
-					i = num_pts;		/* exit */
-				}
-	}
-	else if (num_pts == 1)
-		fCurrentValue = fValue[0];
+	fCurrentValue = fFunction->Function(fCurrentTime);
 }
 
-/* check that times are sequential */
-void ScheduleT::CheckSequential(void) const
+double ScheduleT::Value(double time) const { return fFunction->Function(time); }
+
+/* information about subordinate parameter lists */
+void ScheduleT::DefineSubs(SubListT& sub_list) const
 {
-	if (fTime.Length() == 1) return;
-	for (int i = 1; i < fTime.Length(); i++)
-		if (fTime[i] < fTime[i-1]) throw ExceptionT::kGeneralFail;
+	/* inherited */
+	ParameterInterfaceT::DefineSubs(sub_list);
+	
+	/* C1FunctionT choice */
+	sub_list.AddSub("function_choice", ParameterListT::Once, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void ScheduleT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "function_choice")
+	{
+		order = ParameterListT::Choice;
+	
+		/* function types */
+		sub_sub_list.AddSub("piecewise_linear");
+		sub_sub_list.AddSub("cubic_spline");
+	}
+	else /* inherited */
+		return ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* ScheduleT::NewSub(const StringT& list_name) const
+{
+	/* try to construct C1 function */
+	C1FunctionT* function = C1FunctionT::New(list_name);
+	if (function)
+		return function;
+	else /* inherited */
+		return ParameterInterfaceT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void ScheduleT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	/* clear any previous */
+	delete fFunction;
+	fFunction = NULL;
+
+	/* try to construct C1 function */
+	const ArrayT<ParameterListT>& subs = list.Lists();
+	for (int i = 0; i < subs.Length() && !fFunction; i++)
+	{
+		fFunction = C1FunctionT::New(subs[i].Name());
+		if (fFunction)
+			fFunction->TakeParameterList(subs[i]);
+	}
+
+	/* failed */
+	if (!fFunction) ExceptionT::GeneralFail("ScheduleT::TakeParameterList");
 }

@@ -1,6 +1,5 @@
-/* $Id: XuNeedleman2DT.cpp,v 1.15 2003-05-26 01:51:46 paklein Exp $ */
+/* $Id: XuNeedleman2DT.cpp,v 1.15.34.1 2004-04-08 07:32:27 paklein Exp $ */
 /* created: paklein (11/14/1997) */
-
 #include "XuNeedleman2DT.h"
 
 #include <iostream.h>
@@ -9,16 +8,18 @@
 #include "ExceptionT.h"
 #include "fstreamT.h"
 
-/* class parameters */
-
 using namespace Tahoe;
 
+/* class parameters */
 const int    knumDOF = 2;
 const double kExpMax = 100;
 
 /* constructor */
-XuNeedleman2DT::XuNeedleman2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
+XuNeedleman2DT::XuNeedleman2DT(ifstreamT& in): 
+	SurfacePotentialT(knumDOF)
 {
+	SetName("Xu-Needleman_2D");
+
 	in >> q; // phi_t/phi_n
 	in >> r; // delta_n* /d_n
 	if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
@@ -34,6 +35,20 @@ XuNeedleman2DT::XuNeedleman2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 	in >> fKratio; // stiffening ratio
 	if (fKratio < 0.0) throw ExceptionT::kBadInputValue;
 	fK = fKratio*phi_n/(d_n*d_n);
+}
+
+XuNeedleman2DT::XuNeedleman2DT(void): 
+	SurfacePotentialT(knumDOF),
+	q(0.0),
+	r(0.0),
+	d_n(0.0),
+	d_t(0.0),
+	phi_n(0.0),
+	r_fail(0.0),
+	fKratio(0.0),
+	fK(0.0)
+{
+	SetName("Xu-Needleman_2D");
 }
 
 /* surface potential */
@@ -255,4 +270,61 @@ void XuNeedleman2DT::Print(ostream& out) const
 	out << " Failure ratio (d_n/delta_n or d_t/delta_t). . . = " << r_fail   << '\n';
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fKratio << '\n';
 #endif
+}
+
+/* describe the parameters  */
+void XuNeedleman2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SurfacePotentialT::DefineParameters(list);
+
+	ParameterT q_(q, "q");
+	q_.AddLimit(0.0, LimitT::Lower);
+	q_.AddLimit(1.0, LimitT::UpperInclusive);
+	q_.SetDefault(1.0);
+	list.AddParameter(q_);
+
+	ParameterT r_(r, "r");
+	r_.AddLimit(0.0, LimitT::LowerInclusive);
+	r_.AddLimit(1.0, LimitT::Upper);
+	r_.SetDefault(0.0);
+	list.AddParameter(r_);
+
+	ParameterT d_n_(d_n, "d_n");
+	d_n_.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(d_n_);
+
+	ParameterT d_t_(d_t, "d_t");
+	d_t_.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(d_t_);
+
+	ParameterT phi_n_(d_t, "phi_n");
+	phi_n_.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(phi_n_);
+
+	ParameterT r_fail_(r_fail, "r_fail");
+	r_fail_.AddLimit(1.0, LimitT::Lower);
+	list.AddParameter(r_fail_);
+
+	ParameterT Kratio(fKratio, "K_ratio");
+	Kratio.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(Kratio);
+}
+
+/* accept parameter list */
+void XuNeedleman2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SurfacePotentialT::TakeParameterList(list);
+
+	q = list.GetParameter("q");
+	r = list.GetParameter("r");
+	d_n = list.GetParameter("d_n");
+	d_t = list.GetParameter("d_t");
+	phi_n = list.GetParameter("phi_n");
+	r_fail = list.GetParameter("r_fail");
+	fKratio = list.GetParameter("K_ratio");
+
+	/* penetration stiffness */
+	fK = fKratio*phi_n/(d_n*d_n);
 }

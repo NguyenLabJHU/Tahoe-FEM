@@ -1,4 +1,4 @@
-/* $Id: EVPFDBaseT.h,v 1.8 2003-01-29 07:35:06 paklein Exp $ */
+/* $Id: EVPFDBaseT.h,v 1.8.46.1 2004-04-08 07:33:16 paklein Exp $ */
 #ifndef _EVP_FD_BASE_T_H_
 #define _EVP_FD_BASE_T_H_
 
@@ -65,6 +65,18 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
 
   // print data read
   virtual void Print(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
  protected:
 

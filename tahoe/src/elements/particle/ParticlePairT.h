@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.16 2004-04-02 16:48:22 jzimmer Exp $ */
+/* $Id: ParticlePairT.h,v 1.16.2.1 2004-04-08 07:33:29 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -29,10 +29,6 @@ public:
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
-	/** class initialization. Among other things, element work space
-	 * is allocated and connectivities are read. */
-	virtual void Initialize(void);
-
 	/** \name connectivities.
 	 * See ElementBaseT::ConnectsX and ElementBaseT::ConnectsU for more
 	 * information about what these are used for */
@@ -61,9 +57,6 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
@@ -73,6 +66,9 @@ public:
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 	
 protected:
@@ -93,12 +89,15 @@ protected:
 	 * to determine the neighborlists. */
 	virtual void SetConfiguration(void);
 
+	/** extract the properties information from the parameter list. See ParticleT::ExtractProperties */
+	virtual void ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& type_names,
+		ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map);
+
 	/** construct the list of properties from the given input stream */
-	virtual void EchoProperties(ifstreamT& in, ofstreamT& out);
+	//virtual void EchoProperties(ifstreamT& in, ofstreamT& out);
 
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;
-
 
 	/*nearest neighbor list*/
 	RaggedArray2DT<int> NearestNeighbors;
@@ -114,7 +113,6 @@ private:
 
 	/** neighbor lists */
 	RaggedArray2DT<int> fNeighbors;
-
 
 	/** equation numbers */
 	RaggedArray2DT<int> fEqnos;
@@ -133,9 +131,6 @@ private:
 	ofstreamT fout, fout2;
 	StringT fsummary_file, fsummary_file2;
 	/*@}*/
-
-	
-	
 };
 
 } /* namespace Tahoe */

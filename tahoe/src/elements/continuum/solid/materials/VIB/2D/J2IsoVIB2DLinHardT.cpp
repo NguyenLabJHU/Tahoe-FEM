@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.9 2003-11-21 22:46:35 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.9.20.1 2004-04-08 07:32:57 paklein Exp $ */
 /* created: paklein (10/18/1998) */
 #include "J2IsoVIB2DLinHardT.h"
 
@@ -51,8 +51,8 @@ static const char* Labels[kNumOutput] = {"s_max", "s_min", "VM stress", "alpha"}
 
 /* constructor */
 J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("isotropic_VIB_J2_2D"),
 	IsoVIB3D(in, support),
-	Material2DT(in, kPlaneStrain),
 	J2PrimitiveT(in),
 
 //TEMP
@@ -80,8 +80,7 @@ J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(ifstreamT& in, const FSMatSupportT& suppo
 	fStress2D(2),
 	fb_2D(2)
 {
-	/* 2D */
-	fDensity *= fThickness;
+
 }
 
 /* update internal variables */
@@ -188,7 +187,6 @@ const dSymMatrixT& J2IsoVIB2DLinHardT::s_ij(void)
 
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(fSpectral.EigsToRank2(fBeta));
-	fStress2D *= fThickness;
 	
 	return fStress2D;
 }
@@ -237,7 +235,7 @@ double J2IsoVIB2DLinHardT::StrainEnergyDensity(void)
 	for (int i = 0; i < fLengths.Length(); i++)
 		energy += (*pU++)*(*pj++);
 	
-	return fThickness*energy;
+	return energy;
 }
 
 /* required parameter flags */
@@ -286,6 +284,17 @@ void J2IsoVIB2DLinHardT::ComputeOutput(dArrayT& output)
 		//until Update(), which hasn't occurred yet
 	else
 		output[3] = 0.0;
+}
+
+/* describe the parameters needed by the interface */
+void J2IsoVIB2DLinHardT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	IsoVIB3D::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
 }
 
 /***********************************************************************

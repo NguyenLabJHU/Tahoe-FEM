@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.58 2004-02-16 19:30:55 rdorgan Exp $ */
+/* $Id: SolidElementT.cpp,v 1.58.14.1 2004-04-08 07:32:34 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -12,6 +12,7 @@
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"
 #include "iAutoArrayT.h"
+#include "ParameterContainerT.h"
 
 /* materials */
 #include "SolidMaterialT.h"
@@ -27,7 +28,24 @@ using namespace Tahoe;
 
 /* initialize static data */
 const int SolidElementT::NumNodalOutputCodes = 7;
+static const char* NodalOutputNames[] = {
+	"coordinates",
+	"displacements",
+	"stress",
+	"principal_stress",
+	"strain_energy_density",
+	"wave_speeds",
+	"material_output"};
+
 const int SolidElementT::NumElementOutputCodes = 7;
+static const char* ElementOutputNames[] = {
+	"centroid",
+	"mass",
+	"strain_energy",
+	"kinetic_energy",
+	"linear_momentum",
+	"stress",
+	"material_output"};
 
 /* constructor */
 SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field):
@@ -51,10 +69,6 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	
 	/* control parameters */
 	in >> fMassType;		
-	in >> fStrainDispOpt;
-	
-	if (fStrainDispOpt != kStandardB &&
-	    fStrainDispOpt != kMeanDilBbar) throw ExceptionT::kBadInputValue;
 
 	/* checks for dynamic analysis */
 	if (fIntegrator->Order() > 0 &&
@@ -336,34 +350,125 @@ void SolidElementT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(mass_type);
 }
 
+/* information about subordinate parameter lists */
+void SolidElementT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ContinuumElementT::DefineSubs(sub_list);
+
+	/* nodal output codes (optional) */
+	sub_list.AddSub("solid_element_nodal_output", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("solid_element_element_output", ParameterListT::ZeroOrOnce);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SolidElementT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "solid_element_nodal_output")
+	{
+		ParameterContainerT* node_output = new ParameterContainerT(list_name);
+		
+		/* all false by default */
+		for (int i = 0; i < NumNodalOutputCodes; i++)
+			node_output->AddParameter(ParameterT::Integer, NodalOutputNames[i], ParameterListT::ZeroOrOnce);
+
+		return node_output;
+	}
+	else if (list_name == "solid_element_element_output")
+	{
+		ParameterContainerT* element_output = new ParameterContainerT(list_name);
+		
+		/* all false by default */
+		for (int i = 0; i < NumElementOutputCodes; i++)
+			element_output->AddParameter(ParameterT::Integer, ElementOutputNames[i], ParameterListT::ZeroOrOnce);
+
+		return element_output;	
+	}
+	else /* inherited */
+		return ContinuumElementT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void SolidElementT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ContinuumElementT::TakeParameterList(list);
+
+	/* set mass type */
+	list.GetParameter("mass_type", enum2int<ContinuumElementT::MassTypeT>(fMassType));
+
+	/* allocate work space */
+//	fB_list.Dimension(NumIP());
+//	for (int i = 0; i < fB_list.Length(); i++)
+//		fB_list[i].Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
+	fB.Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
+	fD.Dimension(dSymMatrixT::NumValues(NumSD()));
+	
+	/* nodal output codes */
+	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
+	fNodalOutputCodes = 0;
+	qUseSimo = qNoExtrap = false;	
+	const ParameterListT* node_output = list.List("solid_element_nodal_output");
+	if (node_output)
+		for (int i = 0; i < NumNodalOutputCodes; i++)
+		{
+			/* look for entry */
+			const ParameterT* nodal_value = node_output->Parameter(NodalOutputNames[i]);
+			if (nodal_value) {
+				int do_write = *nodal_value;
+
+				/* Additional smoothing flags */
+				if (!qUseSimo && do_write == 3) {
+	    			qUseSimo = qNoExtrap = true;
+	    			fNodalOutputCodes[i] = 3;
+	    		}
+	    		else if (!qNoExtrap && do_write == 2) {
+	    			qNoExtrap = true;
+	    			fNodalOutputCodes[i] = 2;
+	    		}
+	    		else if (do_write == 1)
+	    			fNodalOutputCodes[i] = 1;
+			}
+		}
+
+	/* element output codes */
+	fElementOutputCodes.Dimension(NumElementOutputCodes);
+	fElementOutputCodes = 0;
+	const ParameterListT* element_output = list.List("solid_element_element_output");
+	if (element_output)
+		for (int i = 0; i < NumElementOutputCodes; i++)
+		{
+			/* look for entry */
+			const ParameterT* element_value = element_output->Parameter(ElementOutputNames[i]);
+			if (element_value) {
+				int do_write = *element_value;
+				if (do_write == 1)
+					fElementOutputCodes[i] = 1;
+			}
+		}
+
+	/* generate list of material needs */
+	fMaterialNeeds.Dimension(fMaterialList->Length());
+	for (int i = 0; i < fMaterialNeeds.Length(); i++)
+	{
+		/* allocate */
+		ArrayT<bool>& needs = fMaterialNeeds[i];
+		needs.Dimension(3);
+
+		/* casts are safe since class contructs materials list */
+		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
+		SolidMaterialT* mat = (SolidMaterialT*) pcont_mat;
+
+		/* collect needs */
+		needs[kNeedDisp] = mat->NeedDisp();
+		needs[kNeedVel] = mat->NeedVel();
+		needs[KNeedLastDisp] = mat->NeedLastDisp();
+	}
+}
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-namespace Tahoe {
-
-/* stream extraction operator */
-istream& operator>>(istream& in, SolidElementT::StrainOptionT& opt)
-{
-	int i_type;
-	in >> i_type;
-	switch (i_type)
-	{
-		case SolidElementT::kStandardB:
-			opt = SolidElementT::kStandardB;
-			break;
-		case SolidElementT::kMeanDilBbar:
-			opt = SolidElementT::kMeanDilBbar;
-			break;
-		default:
-			cout << "\n SolidElementT::StrainOptionT: unknown option: "
-			<< i_type<< endl;
-			throw ExceptionT::kBadInputValue;	
-	}
-	return in;
-}
-
-}
 
 /* construct list of materials from the input stream */
 void SolidElementT::ReadMaterialData(ifstreamT& in)
@@ -401,9 +506,6 @@ void SolidElementT::PrintControlData(ostream& out) const
 	out << "    eq." << kNoMass			<< ", no mass matrix\n";
 	out << "    eq." << kConsistentMass	<< ", consistent mass matrix\n";
 	out << "    eq." << kLumpedMass		<< ", lumped mass matrix\n";
-	out << " Strain-displacement option. . . . . . . . . . . = " << fStrainDispOpt << '\n';
-	out << "    eq.0, standard\n";
-	out << "    eq.1, B-bar (mean dilatation)\n";
 }
 
 void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)

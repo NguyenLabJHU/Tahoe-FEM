@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.cpp,v 1.11 2003-11-21 22:46:35 paklein Exp $ */
+/* $Id: OgdenIsoVIB2D.cpp,v 1.11.20.1 2004-04-08 07:32:57 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB2D.h"
 
@@ -16,8 +16,8 @@ using namespace Tahoe;
 
 /* constructors */
 OgdenIsoVIB2D::OgdenIsoVIB2D(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("Ogden_isotropic_VIB_2D"),
 	OgdenIsotropicT(in, support),
-	Material2DT(in, kPlaneStress),
 	VIB(in, 2, 2, 3),
 	fCircle(NULL)
 {
@@ -39,7 +39,6 @@ void OgdenIsoVIB2D::Print(ostream& out) const
 {
 	/* inherited */
 	OgdenIsotropicT::Print(out);
-	Material2DT::Print(out);
 	VIB::Print(out);
 
 	fCircle->Print(out);
@@ -79,7 +78,18 @@ double OgdenIsoVIB2D::StrainEnergyDensity(void)
 	for (int i = 0; i < fLengths.Length(); i++)
 		energy += (*pU++)*(*pj++);
 	
-	return energy*fThickness;
+	return energy;
+}
+
+/* describe the parameters needed by the interface */
+void OgdenIsoVIB2D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	OgdenIsotropicT::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStress);
 }
 
 /***********************************************************************
@@ -111,10 +121,6 @@ void OgdenIsoVIB2D::dWdE(const dArrayT& eigenstretch2, dArrayT& eigenstress)
 		s0 += factor*(*p0++);
 		s1 += factor*(*p1++);
 	}
-
-	/* thickness */
-	s0 *= fThickness;
-	s1 *= fThickness;
 }
 
 void OgdenIsoVIB2D::ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress,
@@ -163,12 +169,6 @@ void OgdenIsoVIB2D::ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress,
 		c11 += cfactor*(*pc11++);
 		c01 += cfactor*(*pc01++);
 	}
-	/* thickness */
-	s0  *= fThickness;
-	s1  *= fThickness;
-	c00 *= fThickness;
-	c11 *= fThickness;
-	c01 *= fThickness;
 }
 
 /* strained lengths in terms of the Lagrangian stretch eigenvalues */
@@ -198,7 +198,7 @@ void OgdenIsoVIB2D::Construct(void)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Dimension(numpoints);
+	VIB::Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fCircle->Jacobians();

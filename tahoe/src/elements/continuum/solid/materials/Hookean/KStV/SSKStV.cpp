@@ -1,4 +1,4 @@
-/* $Id: SSKStV.cpp,v 1.4 2002-11-14 17:06:06 paklein Exp $ */
+/* $Id: SSKStV.cpp,v 1.4.48.1 2004-04-08 07:32:49 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "SSKStV.h"
 
@@ -6,8 +6,15 @@ using namespace Tahoe;
 
 /* constructor */
 SSKStV::SSKStV(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("small_strain_StVenant"),
 	SSHookeanMatT(in, support),
 	IsotropicT(in)
+{
+
+}
+
+SSKStV::SSKStV(void):
+	ParameterInterfaceT("small_strain_StVenant")
 {
 
 }
@@ -28,9 +35,36 @@ void SSKStV::PrintName(ostream& out) const
 	out << "    Kirchhoff-St.Venant\n";
 }
 
+/* information about subordinate parameter lists */
+void SSKStV::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SSHookeanMatT::DefineSubs(sub_list);
+	IsotropicT::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SSKStV::NewSub(const StringT& list_name) const
+{
+	/* inherited */
+	ParameterInterfaceT* params = SSHookeanMatT::NewSub(list_name);
+	if (params)
+		return params;
+	else
+		return IsotropicT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void SSKStV::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	IsotropicT::TakeParameterList(list); /* need moduli before SSHookeanMatT::TakeParameterList */
+	SSHookeanMatT::TakeParameterList(list);
+}
+
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* set (material) tangent modulus */
 void SSKStV::SetModulus(dMatrixT& modulus)

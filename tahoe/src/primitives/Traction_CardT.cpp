@@ -1,4 +1,4 @@
-/* $Id: Traction_CardT.cpp,v 1.6 2004-04-02 16:48:31 jzimmer Exp $ */
+/* $Id: Traction_CardT.cpp,v 1.6.2.1 2004-04-08 07:33:56 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "Traction_CardT.h"
 
@@ -19,6 +19,19 @@
 
 using namespace Tahoe;
 
+Traction_CardT::CoordSystemT Traction_CardT::int2CoordSystemT(int i)
+{
+	if (i == kCartesian)
+		return kCartesian;
+	else if (i == kLocal)
+		return kLocal;
+	else
+		ExceptionT::GeneralFail("Traction_CardT::int2CoordSystemT", 
+			"could not translate %d", i);
+		
+	return kLocal;
+}
+
 /* constructor */
 Traction_CardT::Traction_CardT(void):
 	fElemNum(0),
@@ -37,6 +50,7 @@ Traction_CardT::Traction_CardT(void):
 void Traction_CardT::EchoValues(const ElementSupportT& support, const DomainIntegrationT& domain,
 	int elem, int ndof, ifstreamT& in, ostream& out)
 {
+#pragma message("delete me")
 	/* parameters */
 	int facet;
 	int nLTf;
@@ -68,6 +82,7 @@ void Traction_CardT::EchoValues(const ElementSupportT& support, int elem, int fa
 	int nLTf, CoordSystemT coord_sys, const iArrayT& locnodenums,
 	const dArray2DT& valuesT, ostream& out)
 {	
+#pragma message("delete me")
 	fValues.Dimension(valuesT.MajorDim(), valuesT.MinorDim());
 
 	/* set */
@@ -88,6 +103,23 @@ void Traction_CardT::EchoValues(const ElementSupportT& support, int elem, int fa
 		if (i > 0) out << setw(5*kIntWidth) << " ";
 		valuesT.PrintRow(i, out);
 	}
+
+	/* resolve the pointer to the LTf */
+	fLTfPtr = support.Schedule(nLTf);
+}	
+
+void Traction_CardT::SetValues(const ElementSupportT& support, int elem, int facet,
+	int nLTf, CoordSystemT coord_sys, const iArrayT& locnodenums,
+	const dArray2DT& valuesT)
+{	
+	fValues.Dimension(valuesT.MajorDim(), valuesT.MinorDim());
+
+	/* set */
+	fElemNum  = elem;
+	fFacetNum = facet;
+	fCoordSystem = coord_sys;
+	fLocNodeNums = locnodenums;
+	fValues.FromTranspose(valuesT);
 
 	/* resolve the pointer to the LTf */
 	fLTfPtr = support.Schedule(nLTf);

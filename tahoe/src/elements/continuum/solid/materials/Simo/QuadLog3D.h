@@ -1,17 +1,16 @@
-/* $Id: QuadLog3D.h,v 1.9 2003-01-29 07:34:48 paklein Exp $ */
+/* $Id: QuadLog3D.h,v 1.9.46.1 2004-04-08 07:32:55 paklein Exp $ */
 /* created: paklein (06/27/1997) */
 #ifndef _QUAD_LOG_3D_H_
 #define _QUAD_LOG_3D_H_
 
 /* base classes */
-#include "FSSolidMatT.h"
-#include "IsotropicT.h"
+#include "FSIsotropicMatT.h"
 #include "SpectralDecompT.h"
 
 namespace Tahoe {
 
 /** hyperelastic material governed by quadratic logarithmic potential */
-class QuadLog3D: public FSSolidMatT, public IsotropicT
+class QuadLog3D: public FSIsotropicMatT
 {
 public:
 

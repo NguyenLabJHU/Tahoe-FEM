@@ -1,11 +1,10 @@
-/* $Id: RGViscoelasticityT.h,v 1.1 2003-04-05 20:06:59 thao Exp $ */
+/* $Id: RGViscoelasticityT.h,v 1.1.40.1 2004-04-08 07:33:25 paklein Exp $ */
 /* created : TDN (1/22/2001) */
 #ifndef _RG_VISCO_T_H_
 #define _RG_VISCO_T_H_
 
 /* base classes */
-#include "FSSolidMatT.h"
-#include "IsotropicT.h"
+#include "FSIsotropicMatT.h"
 
 /* direct members */
 #include "SpectralDecompT.h"
@@ -14,7 +13,7 @@ namespace Tahoe {
 
 /** base class for large deformation isotropic material following
  * Ogden's formulation */
-class RGViscoelasticityT: public FSSolidMatT, public IsotropicT
+class RGViscoelasticityT: public FSIsotropicMatT
 {
   public:
   

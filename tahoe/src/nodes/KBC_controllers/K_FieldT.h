@@ -1,6 +1,5 @@
-/* $Id: K_FieldT.h,v 1.8 2004-01-05 07:12:44 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.8.18.1 2004-04-08 07:33:54 paklein Exp $ */
 /* created: paklein (09/05/2000) */
-
 #ifndef _K_FIELD_T_H_
 #define _K_FIELD_T_H_
 
@@ -18,7 +17,7 @@ namespace Tahoe {
 /* forward declarations */
 class ElementBaseT;
 class IsotropicT;
-class Material2DT;
+class SolidMaterialT;
 
 /** K-field displacements */
 class K_FieldT: public KBC_ControllerT
@@ -73,7 +72,7 @@ protected:
 
 	/* resolve element info to isotropic material */
 	void ResolveMaterialReference(int element_group, int material_num,
-		const IsotropicT** piso, const Material2DT** pmat) const;
+		const IsotropicT** piso, const SolidMaterialT** pmat) const;
 
 	/* compute K-field displacement factors */
 	virtual void ComputeDisplacementFactors(const dArrayT& tip_coords);
@@ -132,7 +131,7 @@ protected:
 	
 	/* external links */
 	const IsotropicT*  fIsotropic;
-	const Material2DT* fMaterial2D;
+	const SolidMaterialT* fSolidMaterial;
 
 	/* runtime data */
 	ScheduleT fDummySchedule;

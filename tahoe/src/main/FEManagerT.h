@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.41 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.41.12.1 2004-04-08 07:33:48 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -259,7 +259,7 @@ public:
 	 * \param ID output set ID for the given data
 	 * \param n_values nodal output values
 	 * \param e_values element output values */
-	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
+	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
 
 	/** write a snapshot */
 	void WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
@@ -280,11 +280,13 @@ public:
 
 	/** \name access to integrators */
 	/*@{*/
+#if 0
 	int NumIntegrators(void) const { return fIntegrators.Length(); };
 	IntegratorT* Integrator(int index) { return fIntegrators[index]; };
 	const IntegratorT* Integrator(int index) const { return fIntegrators[index]; };
 	const eIntegratorT* eIntegrator(int index) const;
 	const nIntegratorT* nIntegrator(int index) const;
+#endif
 	/*@}*/
 
 	/** debugging */
@@ -429,7 +431,6 @@ private:
 	 * FEManagerT is passed to the solvers. */
 	/*@{*/
 	SolverT* New_Solver(int code, int group);
-	SolverT* New_Solver(GlobalT::SolverTypeT solver_type);
 	/*@}*/
 		
 protected:
@@ -465,7 +466,6 @@ protected:
 	NodeManagerT* fNodeManager;
 	ElementListT* fElementGroups;
 	ArrayT<SolverT*> fSolvers;
-	ArrayT<IntegratorT*> fIntegrators;
 	IOManager*    fIOManager;
 	ModelManagerT* fModelManager;
 	CommManagerT* fCommManager;

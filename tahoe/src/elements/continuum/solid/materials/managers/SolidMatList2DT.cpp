@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.46 2004-01-05 07:18:21 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.46.18.1 2004-04-08 07:33:04 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 
@@ -112,12 +112,12 @@ using namespace Tahoe;
 SolidMatList2DT::SolidMatList2DT(int length, const SolidMatSupportT& support):
 	SolidMatListT(length, support)
 {
-	SetName("solid_materials_2D");
+	SetName("solid_material_2D");
 }
 
 SolidMatList2DT::SolidMatList2DT(void)
 {
-	SetName("solid_materials_2D");
+	SetName("solid_material_2D");
 }
 
 /* read material data from the input stream */
@@ -816,6 +816,42 @@ bool SolidMatList2DT::HasPlaneStress(void) const
 	return false;
 }
 
+/* information about subordinate parameter lists */
+void SolidMatList2DT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SolidMatListT::DefineSubs(sub_list);
+	
+	/* choice of 2D materials */
+	sub_list.AddSub("solid_material_list_2D", ParameterListT::Once, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void SolidMatList2DT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const
+{
+	if (sub == "solid_material_list_2D")
+	{
+		order = ParameterListT::Choice;
+	
+		sub_sub_list.AddSub("small_strain_cubic_2D");
+		sub_sub_list.AddSub("large_strain_cubic_2D");
+	}
+	else /* inherited */
+		SolidMatListT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SolidMatList2DT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "small_strain_cubic_2D")
+		return new SSCubic2DT;
+	else if (list_name == "large_strain_cubic_2D")
+		return new FDCubic2DT;
+	else /* inherited */
+		return SolidMatListT::NewSub(list_name);
+}
+	
 /* error messages */
 
 void SolidMatList2DT::Error_no_small_strain(ostream& out, int matcode) const

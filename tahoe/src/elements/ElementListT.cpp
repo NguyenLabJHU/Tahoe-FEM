@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.85 2004-03-02 23:50:28 raregue Exp $ */
+/* $Id: ElementListT.cpp,v 1.85.12.1 2004-04-08 07:32:21 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -1032,6 +1032,8 @@ void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 #ifdef COHESIVE_SURFACE_ELEMENT
 		sub_sub_list.AddSub("isotropic_CSE");
 		sub_sub_list.AddSub("anisotropic_CSE");
+		sub_sub_list.AddSub("anisotropic_symmetry_CSE");
+		sub_sub_list.AddSub("thermal_CSE");
 #endif
 
 #ifdef ADHESION_ELEMENT
@@ -1046,6 +1048,8 @@ void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 		sub_sub_list.AddSub("diffusion");
 		sub_sub_list.AddSub("nonlinear_diffusion");
 		sub_sub_list.AddSub("small_strain");
+		sub_sub_list.AddSub("updated_lagrangian");
+		sub_sub_list.AddSub("updated_lagrangian_Q1P0");
 #endif
 	}
 	else /* inherited */
@@ -1054,6 +1058,45 @@ void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
+{
+	/* try to construct element */
+	ElementBaseT* element = NewElement(list_name);
+	if (element)
+		return element;
+	else /* inherited */	
+		return ParameterInterfaceT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void ElementListT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	/* dimension */
+	const ArrayT<ParameterListT>& subs = list.Lists();
+	Dimension(subs.Length());
+	for (int i = 0; i < Length(); i++) {
+
+		/* construct element */
+		ElementBaseT* element = NewElement(subs[i].Name());
+		if (!element)
+			ExceptionT::GeneralFail("ElementListT::TakeParameterList", "could not construct \"%s\"");
+		
+		/* initialize */
+		element->TakeParameterList(subs[i]);
+		
+		/* store */
+		fArray[i] = element;
+	}
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
+
+/* return a pointer to a new element group or NULL if the request cannot be completed */
+ElementBaseT* ElementListT::NewElement(const StringT& list_name) const
 {
 	if (false) /* dummy */
 		return NULL;
@@ -1064,6 +1107,12 @@ ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
 		
 	else if (list_name == "anisotropic_CSE")
 		return new CSEAnisoT(fSupport);
+
+	else if (list_name == "anisotropic_symmetry_CSE")
+		return new CSESymAnisoT(fSupport);
+
+	else if (list_name == "thermal_CSE")
+		return new ThermalSurfaceT(fSupport);
 #endif
 
 #ifdef ADHESION_ELEMENT
@@ -1083,9 +1132,13 @@ ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
 		return new NLDiffusionElementT(fSupport);
 	else if (list_name == "small_strain")
 		return new SmallStrainT(fSupport);
+	else if (list_name == "updated_lagrangian")
+		return new UpdatedLagrangianT(fSupport);
+	else if (list_name == "updated_lagrangian_Q1P0")
+		return new SimoQ1P0(fSupport);
 #endif
 
-	/* inherited */	
+	/* default */	
 	else
-		return ParameterInterfaceT::NewSub(list_name);
+		return NULL;
 }

@@ -1,11 +1,10 @@
-/* $Id: OgdenIsoVIB2D.h,v 1.9 2003-01-29 07:34:52 paklein Exp $ */
+/* $Id: OgdenIsoVIB2D.h,v 1.9.46.1 2004-04-08 07:32:57 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _OGDEN_ISO_VIB_2D_H_
 #define _OGDEN_ISO_VIB_2D_H_
 
 /* base classes */
 #include "OgdenIsotropicT.h"
-#include "Material2DT.h"
 #include "VIB.h"
 
 namespace Tahoe {
@@ -14,7 +13,7 @@ namespace Tahoe {
 class CirclePointsT;
 
 /** 2D Isotropic VIB using Ogden's spectral formulation */
-class OgdenIsoVIB2D: public OgdenIsotropicT, public Material2DT, public VIB
+class OgdenIsoVIB2D: public OgdenIsotropicT, public VIB
 {
 public:
 
@@ -30,6 +29,12 @@ public:
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 

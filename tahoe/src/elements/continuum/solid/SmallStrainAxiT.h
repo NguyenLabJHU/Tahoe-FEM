@@ -1,4 +1,4 @@
-/* $Id: SmallStrainAxiT.h,v 1.1 2004-01-31 07:20:48 paklein Exp $ */
+/* $Id: SmallStrainAxiT.h,v 1.1.16.1 2004-04-08 07:32:34 paklein Exp $ */
 #ifndef _SMALL_STRAIN_AXI_T_H_
 #define _SMALL_STRAIN_AXI_T_H_
 
@@ -41,7 +41,7 @@ class SmallStrainAxiT: public SmallStrainT
 	 * the pointer. 
 	 * \param nsd number of spatial dimensions
 	 * \param size length of the list */
-	virtual MaterialListT* NewMaterialList(int nsd, int size);
+	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
 	/** initialize local field arrays. Allocate B-bar workspace if needed. */
 	virtual void SetLocalArrays(void);

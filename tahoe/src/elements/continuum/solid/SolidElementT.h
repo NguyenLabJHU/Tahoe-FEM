@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.25 2004-02-04 07:37:52 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.25.14.1 2004-04-08 07:32:34 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -82,12 +82,6 @@ public:
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 
-	/** strain-displacement options.
-	 * \note This really belongs in SmallStrainT; however, will be here for
-	 * not to allow input files to be unchanged. */
-	enum StrainOptionT {kStandardB = 0, /**< standard strain-displacement matrix */
-	                  kMeanDilBbar = 1  /**< mean dilatation for near incompressibility */ };
-
 	/** set storage flag for internal force */
 	void SetStoreInternalForce(bool do_store) { fStoreInternalForce = do_store; };
 
@@ -100,12 +94,18 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
-
-	/** stream extraction operator */
-	friend istream& operator>>(istream& in, SolidElementT::StrainOptionT& type);
 
 	/** construct list of materials from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
@@ -195,11 +195,8 @@ protected:
 
 protected:
 
-	/** \name class parameters */
-	/*@{*/
-	MassTypeT     fMassType;	
-	StrainOptionT fStrainDispOpt;
-	/*@}*/
+	/** mass type */
+	MassTypeT fMassType;	
 
 	/* propagation direction for wave speeds */
 	dArrayT fNormal;

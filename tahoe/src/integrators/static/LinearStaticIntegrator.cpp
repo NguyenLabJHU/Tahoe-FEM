@@ -1,17 +1,11 @@
-/* $Id: LinearStaticIntegrator.cpp,v 1.2 2002-07-02 19:55:09 cjkimme Exp $ */
+/* $Id: LinearStaticIntegrator.cpp,v 1.2.56.1 2004-04-08 07:33:43 paklein Exp $ */
 /* created: paklein (10/14/1996) */
-
 #include "LinearStaticIntegrator.h"
-#include <iostream.h>
-
-/* constructor */
 
 using namespace Tahoe;
 
-LinearStaticIntegrator::LinearStaticIntegrator(ostream& out)
-{
-	out << "\n Linear static controller parameters: NONE" << endl;
-}
+/* constructor */
+LinearStaticIntegrator::LinearStaticIntegrator(void) { }
 
 /***********************************************************************
 * Protected

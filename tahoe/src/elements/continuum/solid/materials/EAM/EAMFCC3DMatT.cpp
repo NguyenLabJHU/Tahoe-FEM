@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.cpp,v 1.7 2003-01-29 07:34:38 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.cpp,v 1.7.46.1 2004-04-08 07:32:41 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT.h"
 
@@ -21,6 +21,7 @@ const double sqrt3 = sqrt(3.0);
 
 /* constructor */
 EAMFCC3DMatT::EAMFCC3DMatT(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("EAM_FCC_3D"),
 	NL_E_MatT(in, support),
 	fEAM(NULL)
 {

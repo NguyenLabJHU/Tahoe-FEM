@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.cpp,v 1.8 2003-10-28 23:31:52 paklein Exp $ */
+/* $Id: ParadynPairT.cpp,v 1.8.22.1 2004-04-08 07:33:31 paklein Exp $ */
 #include "ParadynPairT.h"
 #include "toolboxConstants.h"
 #include "ifstreamT.h"
@@ -99,7 +99,7 @@ void ParadynPairT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	PairPropertyT::DefineParameters(list);
 
-	list.AddParameter(ParameterT::String, "parameter_file");
+	list.AddParameter(ParameterT::Word, "parameter_file");
 }
 
 /* accept parameter list */

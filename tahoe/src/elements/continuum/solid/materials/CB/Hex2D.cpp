@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.2 2003-03-31 23:14:38 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.2.42.1 2004-04-08 07:32:39 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -24,7 +24,8 @@ using namespace Tahoe;
 
 /* constructor */
 Hex2D::Hex2D(ifstreamT& in, const FSMatSupportT& support):
-	NL_E_Mat2DT(in, support, kPlaneStress),
+	ParameterInterfaceT("hex_2D"),
+	NL_E_MatT(in, support),
 	fNearestNeighbor(-1),
 	fQ(2),
 	fHexLattice2D(NULL),
@@ -95,14 +96,14 @@ Hex2D::~Hex2D(void)
 /* I/O functions */
 void Hex2D::PrintName(ostream& out) const
 {
-	NL_E_Mat2DT::PrintName(out);
+	NL_E_MatT::PrintName(out);
 	out << "    2D Hexagonal lattice\n";
 }
 
 void Hex2D::Print(ostream& out) const
 {
 	/* inherited */
-	NL_E_Mat2DT::Print(out);
+	NL_E_MatT::Print(out);
 
 	/* lattice parameters */
 	out << " Number of neighbor shells . . . . . . . . . . . = " << fHexLattice2D->NumShells() << '\n';
@@ -112,6 +113,17 @@ void Hex2D::Print(ostream& out) const
 	/* write pair properties to output */
 	out << " Interaction potential parameters:\n";
 	fPairProperty->Write(out);
+}
+
+/* describe the parameters needed by the interface */
+void Hex2D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStress);
 }
 
 /*************************************************************************
