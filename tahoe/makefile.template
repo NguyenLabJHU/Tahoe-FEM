@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.29 2004-01-02 04:45:55 paklein Exp $
+# $Id: makefile.template,v 1.30 2004-01-02 21:13:46 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -213,7 +213,7 @@ update_config:
 
 # create symbolic links
 make_headers_extras:
-	@ make do_up_to_date "COMMAND = headers"
+	@ make do_up_to_date "COMMAND = setup headers"
 
 # update file dependencies
 make_depend_init_extras:
