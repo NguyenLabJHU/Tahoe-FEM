@@ -1,4 +1,4 @@
-/* $Id: fortran_names.h,v 1.6 2004-11-03 16:50:19 paklein Exp $ */
+/* $Id: fortran_names.h,v 1.7 2004-11-12 20:58:32 paklein Exp $ */
 #ifndef _FORTRAN_NAMES_H_
 #define _FORTRAN_NAMES_H_
 /*
@@ -43,7 +43,7 @@
 #define FORTRAN_NAME(n_)        n_ ## _
 
 /* Sun not GNU - single trailing underscore */
-#elif defined(__SUN__) && !defined(__GNU__)
+#elif defined(__SUN__) && !defined(__GNUC__)
 #ifdef __STDC__
 #define FORTRAN_NAME(n_)	n_ ## _
 #else
@@ -51,7 +51,7 @@
 #endif
 
 /* GNU - double trailing underscore */
-#elif defined(__GNU__)
+#elif defined(__GNUC__) /* GCC predefined macro */
 #ifdef __STDC__
 #ifdef NO_SECOND_UNDERSCORE
 #define FORTRAN_NAME(n_)	n_ ## _

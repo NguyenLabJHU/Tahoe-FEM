@@ -1,11 +1,11 @@
-/* $Id: expat_ParseT.cpp,v 1.12 2004-10-21 22:37:11 paklein Exp $ */
+/* $Id: expat_ParseT.cpp,v 1.13 2004-11-12 20:58:41 paklein Exp $ */
 #include "expat_ParseT.h"
 #ifdef __EXPAT__
 
 #include "ParameterListT.h"
 
 /* C file I/O header - needed for BUFSIZ */
-#if defined(__SGI__) || defined(__GNU__) || defined(__AIX__)
+#if defined(__SGI__) || defined(__GNUC__) || defined(__AIX__)
 #include <stdio.h>
 #else
 //what do others use???
