@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.cpp,v 1.9.42.1 2004-03-20 16:41:55 paklein Exp $ */
+/* $Id: GaussianWindowT.cpp,v 1.9.42.2 2004-04-16 03:23:45 paklein Exp $ */
 #include "GaussianWindowT.h"
 #include "ExceptionT.h"
 #include <math.h>
@@ -77,7 +77,7 @@ bool GaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const d
 		double dist = Dw.Magnitude();
 		
   		/* scalar factors */
-    	double adm = param_n[0] * fSharpeningFactor;
+    	double adm = param_n[0]*fDilationScaling*fSharpeningFactor;
     	double adm2 = adm * adm;
     	double q = dist / adm;
     	w = exp(-q * q) / (sqrtPi * adm);
@@ -138,7 +138,7 @@ int GaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 bool GaussianWindowT::Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n) const
 {
 	double dist = dArrayT::Distance(x_n, x);
-	if (dist > fCutOffFactor*param_n[0])
+	if (dist > fCutOffFactor*fDilationScaling*param_n[0])
 		return false;
 	else
 		return true;
@@ -147,14 +147,14 @@ bool GaussianWindowT::Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT
 int GaussianWindowT::Covers(const dArray2DT& x_n, const dArrayT& x, 
 	const dArray2DT& param_n, ArrayT<bool>& covers) const
 {
-	int count = 0;    // # of point covered...
+	int count = 0; /* # of point covered... */
 	int numwindows = x_n.MajorDim();
 	for (int i = 0; i < numwindows; i++)
   	{
 		double dist = dArrayT::Distance(x, x_n);
 
 		/* check out of influence range */
-		if (dist > fCutOffFactor*param_n[i])
+		if (dist > fCutOffFactor*fDilationScaling*param_n[i])
 			covers[i] = false;
 		else
 		{
