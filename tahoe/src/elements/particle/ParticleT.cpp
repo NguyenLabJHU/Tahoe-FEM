@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.35.8.4 2004-03-21 01:07:34 jzimmer Exp $ */
+/* $Id: ParticleT.cpp,v 1.35.8.5 2004-03-23 19:26:18 jzimmer Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -1093,7 +1093,7 @@ void ParticleT::Calc_Slip_and_Strain(int non, int num_s_vals,dArray2DT &s_values
      }
      svtemp.DiffOf(r_ij,R_ij);
     }
-    slipvector += svtemp;
+    slipvector -= svtemp; /* "-" sign is used so that slip is attributed in the correct direction */
     if (svtemp.Magnitude()>svtol) nslip += 1;
 
     omegatemp.Outer(r_ij,R_ij);
