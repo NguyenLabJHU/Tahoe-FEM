@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.63 2004-07-15 08:25:57 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.64 2004-09-09 16:16:38 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -843,6 +843,37 @@ void CSEAnisoT::SendOutput(int kincode)
 		CSEBaseT::SendOutput(kincode);
 	else // TiedNodesT wants its freeNode info
 		ComputeFreeNodesForOutput();
+}
+
+/* resolve the output variable label into the output code and offset within the output. */
+void CSEAnisoT::ResolveOutputVariable(const StringT& variable, int& code, int& offset)
+{
+	/* search output labels */
+	code = -1;
+	offset = -1;
+	iArrayT e_counts(NumElementOutputCodes);
+	e_counts = 0;
+	iArrayT n_codes(NumNodalOutputCodes);
+	for (int i = 0; code == -1 && i < NumNodalOutputCodes; i++)
+	{
+		ArrayT<StringT> n_labels, e_labels;
+		n_codes = 0;
+		n_codes[i] = 1;
+		
+		iArrayT n_counts;
+		SetNodalOutputCodes(IOBaseT::kAtInc, n_codes, n_counts);
+		GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
+		
+		for (int j = 0; offset == -1 && j < n_labels.Length(); j++)
+			if (n_labels[j] == variable) /* found */ {
+				code = i;
+				offset = j;
+			}
+	}
+	
+	/* inherited */
+	if (code == -1 || offset == -1)
+		ElementBaseT::ResolveOutputVariable(variable, code, offset);
 }
 
 /* set the active elements */
