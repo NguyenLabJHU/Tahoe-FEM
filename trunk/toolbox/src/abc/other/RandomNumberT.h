@@ -1,4 +1,4 @@
-/* $Id: RandomNumberT.h,v 1.2 2003-03-14 16:31:06 paklein Exp $ */
+/* $Id: RandomNumberT.h,v 1.3 2003-04-10 17:13:27 cjkimme Exp $ */
 #ifndef _RANDOM_NUMBER_T_H_
 #define _RANDOM_NUMBER_T_H_
 
@@ -16,13 +16,12 @@ class ifstreamT;
 class RandomNumberT
 {
 public:
-  enum DistributionT 
-  {
-    kUniform = 0,
-    kGaussian = 1,
-    kParadynUniform = 2,
-    kParadynGaussian = 3
-  };
+	enum DistributionT {
+		kUniform = 0,
+		kGaussian = 1,
+		kParadynUniform = 2,
+		kParadynGaussian = 3
+	};
 
 	/** \name constructors */
 	/*@{*/
@@ -33,14 +32,16 @@ public:
 	RandomNumberT(ifstreamT& in);
 	/*@}*/
 	
- public:
-	void sRand(int seed, int a = 16807, int rm = 2147483647);
+	void sRand(long seed, long a = 16807, long rm = 2147483647);
 
 	double Rand(void);
 
+	
 	dArrayT& RandomArray(dArrayT& fillArray);
+	
+	long RandSeed(void);
 
-        // Need some way to write seed to restart. 
+    // Need some way to write seed to restart. 
 
  private:
 
@@ -51,6 +52,7 @@ public:
 	double ParadynUniformRandom(void);
 
 	long fseed, fa, frm; 
+	double dseed, da, drm;
 	DistributionT randomType, uniformType;
 
 	double (RandomNumberT::*randFunc)(void);
@@ -58,10 +60,14 @@ public:
 
 };
 
-/* Is this fast or slow? */
 inline double RandomNumberT::Rand(void)
 {
-  return (this->*randFunc)();
+	return (this->*randFunc)();
+}
+
+inline long RandomNumberT::RandSeed(void)
+{
+	return fseed;
 }
 
 }//namespace Tahoe
