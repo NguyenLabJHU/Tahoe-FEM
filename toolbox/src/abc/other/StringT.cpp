@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.11 2001-12-10 23:57:03 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.12 2001-12-30 20:28:14 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -278,7 +278,7 @@ StringT& StringT::FilePath(void)
 	/* take tail including separator (unless MacOS) */
 	if (*p == separator)
 	{
-#ifdef _MACOS_
+#if defined(_MACOS_) && !defined(__MACH__)
 		int offset = 1;
 #else
 		int offset = 2;		
@@ -664,7 +664,11 @@ StringT& StringT::DropTrailingSpace(void)
 void StringT::ToNativePathName(void)
 {
 #ifdef _MACOS_
+#ifdef __MACH__
+	ToUNIXPath();
+#else
 	ToMacOSPath();
+#endif
 	return;
 #endif
 
