@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.5 2001-07-19 18:21:40 paklein Exp $
+# $Id: makefile.template,v 1.6 2001-08-01 16:06:14 strohban Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -81,6 +81,14 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 #SPOOLES_LIB_NAME = spooles
 #SPOOLES_LIB      = $(SPOOLES_DIR)/lib/lib$(SPOOLES_LIB_NAME).a
 #SPOOLES_LFLAGS   = -L$(SPOOLES_DIR)/lib -l$(SPOOLES_LIB_NAME)
+
+#### SPOOLES MT
+#SPOOLESMT_DIR      = $(HOME_DIR)/../spoolesMT
+#SPOOLESMT_INC      = -I$(SPOOLESMT_DIR)/inc
+#SPOOLESMT_CFLAGS   = $(SPOOLESMT_INC) -D__SPOOLES_MT__
+#SPOOLESMT_LIB_NAME = spoolesMT
+#SPOOLESMT_LIB      = $(SPOOLESMT_DIR)/lib/lib$(SPOOLESMT_LIB_NAME).a
+#SPOOLESMT_LFLAGS   = -L$(SPOOLESMT_DIR)/lib -l$(SPOOLESMT_LIB_NAME)
 
 #### SPOOLES MPI
 #SPOOLESMPI_DIR      = $(HOME_DIR)/../spoolesMPI
