@@ -1,15 +1,12 @@
-/* $Id: C1FunctionT.cpp,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
-/* created: paklein (12/04/1996)                                          */
-/* C1FunctionT.cpp                                                        */
-/* Interface for a twice differentiable function.                         */
-
+/* $Id: C1FunctionT.cpp,v 1.2.2.1 2002-10-17 01:45:51 paklein Exp $ */
+/* created: paklein (12/04/1996) */
 #include "C1FunctionT.h"
 #include "dArrayT.h"
-
-/* constructor */
+#include <float.h>
 
 using namespace Tahoe;
 
+/* constructor */
 C1FunctionT::C1FunctionT(void) { }
 
 /* destructor */
@@ -23,7 +20,7 @@ C1FunctionT::~C1FunctionT(void) { }
 dArrayT& C1FunctionT::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw eGeneralFail;
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
 	double *pin  =  in.Pointer();
 	double *pout = out.Pointer();
@@ -39,7 +36,7 @@ dArrayT& C1FunctionT::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& C1FunctionT::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw eGeneralFail;
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
 	double *pin  =  in.Pointer();
 	double *pout = out.Pointer();
@@ -55,7 +52,7 @@ dArrayT& C1FunctionT::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& C1FunctionT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw eGeneralFail;
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
 	double *pin  =  in.Pointer();
 	double *pout = out.Pointer();
@@ -77,3 +74,7 @@ void C1FunctionT::SetAll(double x, dArrayT& data) const
 	data[1] = DFunction(x);
 	data[2] = DDFunction(x);
 }
+
+/* function domain */
+double C1FunctionT::DomainMin(void) const { return DBL_MIN; }
+double C1FunctionT::DomainMax(void) const { return DBL_MAX; }
