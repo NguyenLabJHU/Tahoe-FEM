@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.cpp,v 1.12 2003-11-21 22:54:35 paklein Exp $ */
+/* $Id: PenaltyContactElement3DT.cpp,v 1.13 2004-03-16 10:05:13 paklein Exp $ */
 #include "PenaltyContactElement3DT.h"
 
 #include <math.h>
@@ -80,7 +80,7 @@ void PenaltyContactElement3DT::Initialize(void)
 
 	/* subsidary data for GW models */
     fRealArea.Dimension(fSurfaces.Length());
-	fRealArea = 0;
+	fRealArea = 0.0;
 }
 
 /* print/compute element output quantities */

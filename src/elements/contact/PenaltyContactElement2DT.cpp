@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.49 2003-11-21 22:54:35 paklein Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.50 2004-03-16 10:05:13 paklein Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -124,12 +124,12 @@ void PenaltyContactElement2DT::Initialize(void)
 	}
 
     fContactArea.Dimension(fSurfaces.Length());
-	fContactArea = 0;
+	fContactArea = 0.0;
 	/* subsidary data for GW models */
     fRealArea.Dimension(fSurfaces.Length());
-	fRealArea = 0;
+	fRealArea = 0.0;
     fPlasticArea.Dimension(fSurfaces.Length());
-	fPlasticArea = 0;
+	fPlasticArea = 0.0;
 }
 
 /* print/compute element output quantities */
@@ -312,9 +312,9 @@ void PenaltyContactElement2DT::RHSDriver(void)
 
   int num_surfaces = fSurfaces.Length(); 
   int nsd = NumSD();
-  fContactArea = 0;
-  fRealArea = 0;
-  fPlasticArea = 0;
+  fContactArea = 0.0;
+  fRealArea = 0.0;
+  fPlasticArea = 0.0;
 
   /* residual */
   for(int s = 0; s < num_surfaces; s++) {

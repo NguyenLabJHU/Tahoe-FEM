@@ -1,4 +1,4 @@
-/* $Id: SmallStrainMF.cpp,v 1.11 2003-11-21 22:54:46 paklein Exp $ */
+/* $Id: SmallStrainMF.cpp,v 1.12 2004-03-16 10:05:15 paklein Exp $ */
 #include "SmallStrainMF.h"
 
 #include "OutputSetT.h"
@@ -146,8 +146,8 @@ void SmallStrainMF::ComputeMatForce(dArray2DT& output)
 
   dArrayT mat_force(nmf);
   dArrayT mat_fdissip(nmf);
-  mat_force = 0;
-  mat_fdissip = 0;
+  mat_force = 0.0;
+  mat_fdissip = 0.0;
   
   /*evaluate volume contributions to material force*/
   dArrayT elem_data(nsd*nen);  
@@ -443,7 +443,7 @@ void SmallStrainMF::MatForceVolMech(dArrayT& elem_val)
   dSymMatrixT C(nsd);
   dArrayT ip_body(nsd);
  
-  elem_val = 0;
+  elem_val = 0.0;
   bodyforce = 0.0;
   
   /*get density*/
@@ -504,7 +504,7 @@ void SmallStrainMF::MatForceVolMech(dArrayT& elem_val)
     if (nsd == 2)
     {
       /*interpolate to ip*/
-      ip_body = 0;
+      ip_body = 0.0;
       for (int i= 0; i<nen; i++)
       {
 	    ip_body[0] += (*pQaU) * (*pbody++);
@@ -534,7 +534,7 @@ void SmallStrainMF::MatForceVolMech(dArrayT& elem_val)
     else if (nsd ==3)
     {
       /*interpolate ip values*/
-      ip_body = 0;
+      ip_body = 0.0;
       for (int i= 0; i<nen; i++)
       {
 		ip_body[0] += (*pQaU) * (*pbody++);
@@ -639,7 +639,7 @@ void SmallStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
   }
   fgrad_viscstretch.Dimension(nsd*numstress);
 
-  elem_val = 0;
+  elem_val = 0.0;
 
   /***************************************************************
       bool print = false;
@@ -717,7 +717,7 @@ void SmallStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
     {
       const double* pDQaX = DQa(0);
       const double* pDQaY = DQa(1);
-      fgrad_viscstretch = 0;
+      fgrad_viscstretch = 0.0;
 
       /*Interpolate grad of iverse inelastic stretch to ip*/
       double* pGradX = fgrad_viscstretch.Pointer();
@@ -764,7 +764,7 @@ void SmallStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
       const double* pDQaX = DQa(0);
       const double* pDQaY = DQa(1);
       const double* pDQaZ = DQa(2);
-      fgrad_viscstretch = 0;
+      fgrad_viscstretch = 0.0;
       
       /*Interpolate grad of iverse inelastic stretch to ip*/
       double* pGradX = fgrad_viscstretch.Pointer();
@@ -867,7 +867,7 @@ void SmallStrainMF::MatForceSurfMech(dArrayT& global_val)
         pval = 0;
       }
       dArrayT ExtrapEnergy(nen);
-      ExtrapEnergy = 0;
+      ExtrapEnergy = 0.0;
       ExtrapMatrix = 0;      
       fShapes->TopIP();
       while(fShapes->NextIP())
@@ -929,7 +929,7 @@ void SmallStrainMF::MatForceSurfMech(dArrayT& global_val)
           double* ptract_X = tract(0);
           double* ptract_Y = tract(1);
           ip_gradU = 0;
-          ip_tract = 0;
+          ip_tract = 0.0;
           double ip_energy = 0;
           const double* pQaU = surf_shape.Shape(j);
 	  for (int i= 0; i<nfn; i++)
@@ -985,7 +985,7 @@ void SmallStrainMF::MatForceSurfMech(dArrayT& global_val)
           double* ptract_Y = tract(1);
           double* ptract_Z = tract(2);
           ip_gradU = 0;
-          ip_tract = 0;
+          ip_tract = 0.0;
           double ip_energy = 0;
           const double* pQaU = surf_shape.Shape(j);
 	  for (int i= 0; i<nfn; i++)

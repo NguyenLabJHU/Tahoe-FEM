@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.cpp,v 1.15 2003-11-26 23:17:05 thao Exp $ */
+/* $Id: UpLagMF.cpp,v 1.16 2004-03-16 10:05:15 paklein Exp $ */
 #include <ctype.h>
 
 #include "UpLagMF.h"
@@ -397,7 +397,7 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
   const char caller[] = "UpLagMF::MatForceVolMech";
   int nen = NumElementNodes();
   int elem = CurrElementNumber();
-  elem_val = 0;
+  elem_val = 0.0;
   
   /*get density*/
   double density = fCurrFSMat->Density();
@@ -436,7 +436,7 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
     if (NumSD() == 2)
     {
       /*interpolate to ip*/
-      fip_body = 0;
+      fip_body = 0.0;
       for (int i= 0; i<nen; i++)
       {
 	fip_body[0] += (*pQaU) * (*pbody++);
@@ -480,7 +480,7 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
     else if (NumSD() ==3)
     {
       /*interpolate ip values*/
-      fip_body = 0;
+      fip_body = 0.0;
       for (int i= 0; i<nen; i++)
       {
 	fip_body[0] += (*pQaU) * (*pbody++);
@@ -547,7 +547,7 @@ void UpLagMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch
   int nip = fShapes->NumIP();
   int varsets = fInternalDOF.Length();
 
-  elem_val = 0;
+  elem_val = 0.0;
 
   const double* jac = fShapes->IPDets();
   const double* weight = fShapes->IPWeights();
@@ -638,7 +638,7 @@ void UpLagMF::MatForceDynamic(dArrayT& elem_val)
   const char caller[] = "UpLagMF::MatForceDynamic";
   int nen = NumElementNodes();
   int elem = CurrElementNumber();
-  elem_val = 0;  
+  elem_val = 0.0;  
 
   double density = fCurrFSMat->Density();
 

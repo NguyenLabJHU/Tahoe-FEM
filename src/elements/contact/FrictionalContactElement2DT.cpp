@@ -1,4 +1,4 @@
-/* $Id: FrictionalContactElement2DT.cpp,v 1.1 2003-12-20 01:22:14 rjones Exp $ */
+/* $Id: FrictionalContactElement2DT.cpp,v 1.2 2004-03-16 10:05:13 paklein Exp $ */
 // created by : rjones 2003
 #include "FrictionalContactElement2DT.h"
 
@@ -159,7 +159,7 @@ iArrayT xc(1);
 iArray2DT xe(1,fNumMultipliers);
 dArrayT xR(fNumMultipliers);
 dArrayT xv(fNumMultipliers);
-xv = 0;
+xv = 0.0;
 
 int nsd = NumSD();
 for(int surf_tag = 0; surf_tag < fSurfaces.Length(); surf_tag++) {

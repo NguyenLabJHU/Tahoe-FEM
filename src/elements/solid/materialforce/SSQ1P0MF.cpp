@@ -1,4 +1,4 @@
-/* $Id: SSQ1P0MF.cpp,v 1.4 2003-11-21 22:54:46 paklein Exp $ */
+/* $Id: SSQ1P0MF.cpp,v 1.5 2004-03-16 10:05:15 paklein Exp $ */
 #include "SSQ1P0MF.h"
 
 #include "OutputSetT.h"
@@ -231,7 +231,7 @@ void SSQ1P0MF::MatForceVolMech(dArrayT& elem_val)
   const char caller[] = "SSQ1P0MF::MatForceVolMech";
   int nen = NumElementNodes();
   int elem = CurrElementNumber();
-  elem_val = 0;
+  elem_val = 0.0;
   
   /*get density*/
   double density = fCurrSSMat->Density();
@@ -276,7 +276,7 @@ void SSQ1P0MF::MatForceVolMech(dArrayT& elem_val)
     if (NumSD() == 2)
     {
       /*interpolate to ip*/
-      fip_body = 0;
+      fip_body = 0.0;
       for (int i= 0; i<nen; i++)
       {
 	    fip_body[0] += (*pQaU) * (*pbody++);
@@ -303,7 +303,7 @@ void SSQ1P0MF::MatForceVolMech(dArrayT& elem_val)
     else if (NumSD() ==3)
     {
       /*interpolate ip values*/
-      fip_body = 0;
+      fip_body = 0.0;
       for (int i= 0; i<nen; i++)
       {
 		fip_body[0] += (*pQaU) * (*pbody++);
@@ -365,7 +365,7 @@ void SSQ1P0MF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretc
   int nip = fShapes->NumIP();
   int varsets = fInternalDOF.Length();
 
-  elem_val = 0;
+  elem_val = 0.0;
 
   const double* jac = fShapes->IPDets();
   const double* weight = fShapes->IPWeights();
@@ -515,7 +515,7 @@ void SSQ1P0MF::MatForceSurfMech(dArrayT& global_val)
         pval = 0;
       }
       dArrayT ExtrapEnergy(nen);
-      ExtrapEnergy = 0;
+      ExtrapEnergy = 0.0;
       ExtrapMatrix = 0;      
       fShapes->TopIP();
       while(fShapes->NextIP())
@@ -578,7 +578,7 @@ void SSQ1P0MF::MatForceSurfMech(dArrayT& global_val)
           double* ptract_X = tract(0);
           double* ptract_Y = tract(1);
           ip_gradU = 0;
-          ip_tract = 0;
+          ip_tract = 0.0;
           double ip_energy = 0;
           const double* pQaU = surf_shape.Shape(j);
 	  for (int i= 0; i<nfn; i++)
@@ -634,7 +634,7 @@ void SSQ1P0MF::MatForceSurfMech(dArrayT& global_val)
           double* ptract_Y = tract(1);
           double* ptract_Z = tract(2);
           ip_gradU = 0;
-          ip_tract = 0;
+          ip_tract = 0.0;
           double ip_energy = 0;
           const double* pQaU = surf_shape.Shape(j);
 	  for (int i= 0; i<nfn; i++)
