@@ -1,8 +1,8 @@
-/* $Id: dMatrixEXT.cpp,v 1.11 2002-07-02 19:56:47 cjkimme Exp $ */
+/* $Id: dMatrixEXT.cpp,v 1.12 2002-09-12 16:40:17 paklein Exp $ */
 /* created: paklein (03/06/1998)                                          */
 
 #include "dMatrixEXT.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "LAdMatrixT.h"
 #include "dArray2DT.h"
 #include <math.h>

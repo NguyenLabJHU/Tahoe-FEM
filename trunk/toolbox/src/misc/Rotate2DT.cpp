@@ -1,11 +1,11 @@
-/* $Id: Rotate2DT.cpp,v 1.2 2002-07-02 19:57:18 cjkimme Exp $ */
+/* $Id: Rotate2DT.cpp,v 1.3 2002-09-12 16:40:20 paklein Exp $ */
 /* created: paklein (07/21/1996)                                          */
 /* This class provides the functionality to do 2D coordinate              */
 /* transformations.                                                       */
 
 #include "Rotate2DT.h"
 #include <math.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 
 /* size parameters */
 

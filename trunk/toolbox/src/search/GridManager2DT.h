@@ -1,4 +1,4 @@
-/* $Id: GridManager2DT.h,v 1.4 2002-07-05 22:26:33 paklein Exp $ */
+/* $Id: GridManager2DT.h,v 1.5 2002-09-12 16:40:21 paklein Exp $ */
 /* created: paklein (12/06/1997)                                          */
 /* Interface for regular rectangular search and storage grid              */
 /* sTYPE requirements:                                                    */
@@ -10,7 +10,7 @@
 #define _GRIDMANAGER2D_T_H_
 
 #include "Environment.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 
 /* language support */
 #include <iostream.h>

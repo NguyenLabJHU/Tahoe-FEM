@@ -1,10 +1,10 @@
-/* $Id: dMatrixT.cpp,v 1.10 2002-07-05 17:15:55 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.11 2002-09-12 16:40:17 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "dMatrixT.h"
 #include <iostream.h>
 #include <iomanip.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "dSymMatrixT.h"
 
 /* copy behavior for arrays of dMatrixT's */

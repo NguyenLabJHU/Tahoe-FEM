@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2001-07-22 20:02:17 paklein Exp $
+# $Id: makefile,v 1.7 2002-09-12 16:40:18 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -19,7 +19,7 @@ SRC = \
 
 # headers
 HDR = \
-	Constants.h \
+	toolboxConstants.h \
 	Environment.h \
 	ExceptionCodes.h \
 	GeometryT.h \

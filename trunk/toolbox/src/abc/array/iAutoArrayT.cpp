@@ -1,4 +1,4 @@
-/* $Id: iAutoArrayT.cpp,v 1.3 2002-07-05 15:05:15 paklein Exp $ */
+/* $Id: iAutoArrayT.cpp,v 1.4 2002-09-12 16:40:16 paklein Exp $ */
 /* created: paklein (02/08/1999)                                          */
 
 #include "iAutoArrayT.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 
 
 using namespace Tahoe;

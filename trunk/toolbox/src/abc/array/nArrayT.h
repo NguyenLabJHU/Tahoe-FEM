@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.13 2002-07-08 11:20:19 sawimme Exp $ */
+/* $Id: nArrayT.h,v 1.14 2002-09-12 16:40:16 paklein Exp $ */
 /* created: paklein (05/23/1997) */
 
 #ifndef _NARRAY_T_H_
@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 
 /* base class */
 #include "ArrayT.h"

@@ -1,9 +1,9 @@
-/* $Id: GridManager1DT.h,v 1.4 2002-07-02 19:57:23 cjkimme Exp $ */
+/* $Id: GridManager1DT.h,v 1.5 2002-09-12 16:40:21 paklein Exp $ */
 #ifndef _GRIDMANAGER1D_T_H_
 #define _GRIDMANAGER1D_T_H_
 
 #include "Environment.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 
 /* language support */
 #include <iostream.h>

@@ -1,4 +1,4 @@
-/* $Id: dArray2DT.cpp,v 1.6 2002-07-05 17:15:48 paklein Exp $ */
+/* $Id: dArray2DT.cpp,v 1.7 2002-09-12 16:40:16 paklein Exp $ */
 /* created: paklein (07/16/1996) */
 
 #include "dArray2DT.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
 

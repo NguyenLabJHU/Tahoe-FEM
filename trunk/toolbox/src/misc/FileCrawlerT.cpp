@@ -1,4 +1,4 @@
-/* $Id: FileCrawlerT.cpp,v 1.4 2002-07-02 19:57:17 cjkimme Exp $ */
+/* $Id: FileCrawlerT.cpp,v 1.5 2002-09-12 16:40:19 paklein Exp $ */
 
 #include "FileCrawlerT.h"
 
@@ -7,7 +7,7 @@
 #include <time.h>
 
 #include "fstreamT.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 #include "StringT.h"
 

@@ -1,11 +1,11 @@
-/* $Id: SecantMethodT.h,v 1.2 2002-07-02 19:57:18 cjkimme Exp $ */
+/* $Id: SecantMethodT.h,v 1.3 2002-09-12 16:40:20 paklein Exp $ */
 /* created: paklein (12/01/1998)                                          */
 /* SecantMethodT.h                                                        */
 
 #ifndef _SECANT_METHOD_T_H_
 #define _SECANT_METHOD_T_H_
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 
 
 namespace Tahoe {
