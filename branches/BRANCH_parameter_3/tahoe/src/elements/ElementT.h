@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.42 2004-03-02 23:50:28 raregue Exp $ */
+/* $Id: ElementT.h,v 1.42.12.1 2004-06-24 04:55:21 paklein Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -79,9 +79,10 @@ kTotLagSplitIntegration = 117,
             kTotLagFlat = 217  /**< simplified total Lagragian solid */
  };
 
-/** stream extraction operator */ 
-	friend istream& operator>>(istream& in, ElementT::TypeT& type);
+	/** convert integer to ElementT::TypeT */
+	static TypeT int2TypeT(int i);
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _ELEMENT_T_H_ */
