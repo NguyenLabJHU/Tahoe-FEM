@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.h,v 1.8 2002-03-04 06:31:06 paklein Exp $ */
+/* $Id: OutputBaseT.h,v 1.9 2002-03-28 16:10:40 sawimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #ifndef _OUTPUTBASE_T_H_
@@ -105,6 +105,7 @@ protected:
 
 	int fSequence; // solution sequence number
 
+	int fCurrentSetID; /**< ID value of the output set being written */
 };
 
 inline const ArrayT<OutputSetT*>& OutputBaseT::ElementSets(void) const

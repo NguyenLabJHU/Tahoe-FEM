@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.9 2002-03-11 20:14:45 sawimme Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.10 2002-03-28 16:10:40 sawimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "ExodusOutputT.h"
@@ -70,7 +70,8 @@ void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		/* separate values by block */
 		for (int b=0; b < blockIDs.Length(); b++)
 	    {
-			dArray2DT e_block (fElementSets[ID]->NumBlockElements(blockIDs[b]), e_values.MinorDim());
+			dArray2DT e_block (fElementSets[ID]->NumBlockElements(blockIDs[b]), 
+					   e_values.MinorDim());
 			ElementBlockValues (ID, b, e_values, e_block);
 	      
 			/* separate values by variable */
@@ -78,8 +79,8 @@ void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 			for (int i = 0; i < e_block.MinorDim(); i++)
 			{
 				e_block.ColumnCopy(i, values);
-				exo.WriteElementVariable(fElementSets[ID]->PrintStep() + 1, atoi(blockIDs[b]),
-					i + 1, values);
+				exo.WriteElementVariable(fElementSets[ID]->PrintStep() + 1, 
+							 fCurrentSetID + b + 1, i + 1, values);
 			}
 	    }
 	}
@@ -262,6 +263,6 @@ void ExodusOutputT::WriteConnectivity (int ID, ExodusT& exo, const iArrayT& node
 		LocalConnectivity(nodes_used, connects, local_connects);
 
 		local_connects++;
-		exo.WriteConnectivities(atoi(blockIDs[i]), fElementSets[ID]->Geometry(), local_connects);
+		exo.WriteConnectivities(fCurrentSetID + i + 1, fElementSets[ID]->Geometry(), local_connects);
     }
 }
