@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.4 2001-05-30 23:27:04 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.5 2001-05-31 00:46:06 paklein Exp $ */
 /* created: paklein (07/09/1996)                                          */
 
 #include "NLSolver.h"
@@ -212,14 +212,11 @@ void NLSolver::InitIterationOutput(void)
 		root.Root(fFEManager.Input().filename());
 		
 		/* remove processor designation */ 
-		if (fFEManager.Size() > 0) root.Root();
+		if (fFEManager.Size() > 1) root.Root();
 		
 		/* increment */
 		root.Append(".", fFEManager.StepNumber());
 		root.Append("of", fFEManager.NumberOfSteps());
-
-		/* append processor designation */ 
-		if (fFEManager.Size() > 1) root.Append(".p", fFEManager.Rank());
 
 		/* set temporary output */
 		fFEManager.DivertOutput(root);
