@@ -1,4 +1,4 @@
-/* $Id: pparfact1i.c,v 1.1 2005-01-03 07:30:55 paklein Exp $ */
+/* $Id: pparfact1i.c,v 1.2 2005-01-04 17:13:00 paklein Exp $ */
 /* pparfact1i.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -63,7 +63,7 @@ static integer c__2 = 2;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: pparfact1i.c,v 1.1 2005-01-03 07:30:55 paklein Exp $ +/ */
+/* /+ $Id: pparfact1i.c,v 1.2 2005-01-04 17:13:00 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -154,6 +154,10 @@ static integer min(integer a, integer b) {
 	
 /*<       double precision dbuf_s(*),wmem(*)       >*/
 /*<       double precision wmem0(*),wmem1(*),dbuf_r(*) >*/
+	doublereal* wmem0 = NULL;
+	doublereal* wmem1 = NULL;
+	doublereal* dbuf_r__ = NULL;
+
 /*     integer, allocatable:: ibuf_s(:) */
 	integer* ibuf_s__ = NULL;
 /*<       integer ibuf_s(*) >*/
@@ -162,7 +166,9 @@ static integer min(integer a, integer b) {
 	integer* locinds = NULL;
 /*<       dimension locinds(0:N-1) >*/
 /*<       integer ibuf_r(*) >*/
+	integer* ibuf_r__ = NULL;
 /*     pointer (pdbufr,dbuf_r),(pibufr,ibuf_r),(pw0,wmem0),(pw1,wmem1) */
+/* {pdbufr, pibufr, pw0, pw1} not needed because can work with pointers directly */
 /*<       integer pdbufr, pibufr, pw0, pw1 >*/
 /*<       integer rsuptr, csuptr, nptr, stakptr, rank, ibufptr, dbufptr >*/
 /*<       integer hdim,vdim,dbuflen,halfbuflen,udim,ldu,wsize1,wsize0 >*/
@@ -198,8 +204,8 @@ static integer min(integer a, integer b) {
 /*    --dbuf_s__; */
 /*    --wmem; */
 /*    --ibuf_s__; */
-    --wmem0;
-    --wmem1;
+/*    --wmem0; */
+/*    --wmem1; */
 /*    --dbuf_r__; */
 /*    --ibuf_r__; */
 
@@ -239,9 +245,13 @@ static integer min(integer a, integer b) {
 	ibuf_s__--;
     
 /*<       pdbufr = loc(dbuf_s(dbuflen+1)) >*/
-    pdbufr = loc_(&dbuf_s__[*dbuflen + 1]);
+/*    pdbufr = loc_(&dbuf_s__[*dbuflen + 1]); */
+	dbuf_r__ = dbuf_s__ + (*dbuflen);
+
 /*<       pibufr = loc(ibuf_s(ibuflen+1)) >*/
-    pibufr = loc_(&ibuf_s__[*ibuflen + 1]);
+/*    pibufr = loc_(&ibuf_s__[*ibuflen + 1]); */
+    ibuf_r__ = ibuf_s__ + (*ibuflen);
+    
 /*     allocate(wmem(iwspace),stat=i) */
 	wmem = (doublereal*) malloc((*iwspace)*sizeof(doublereal));
 	if (!wmem) {
@@ -251,7 +261,8 @@ static integer min(integer a, integer b) {
 	wmem--; /* adjust pointer */
 
 /*<       pw0 = loc(wmem) >*/
-    pw0 = loc_(&wmem[1]);
+/*    pw0 = loc_(&wmem[1]); */
+	wmem0 = wmem;
 /*<       ldu = 0 >*/
     ldu = 0;
 /*<    >*/
@@ -282,10 +293,15 @@ static integer min(integer a, integer b) {
     uptr = kk + rank * (ldu + 1);
 /*<       if (wsize1 .lt. uptr) then >*/
     if (*wsize1 < uptr) {
+
 /*<       pw1 = loc(wmem) >*/
-	pw1 = loc_(&wmem[1]);
+/*	pw1 = loc_(&wmem[1]); */
+	wmem1 = wmem;
+
 /*<       pw0 = loc(wmem(wsize1+1)) >*/
-	pw0 = loc_(&wmem[*wsize1 + 1]);
+/*	pw0 = loc_(&wmem[*wsize1 + 1]); */
+	wmem0 = wmem + (*wsize1);
+
 /*<         uptr = uptr - wsize1 >*/
 	uptr -= *wsize1;
 /*<       else  >*/
@@ -294,12 +310,18 @@ static integer min(integer a, integer b) {
 	j = kk + ldu * udim;
 /*<       if (iwspace-j .ge. wsize1-1) then >*/
 	if (*iwspace - j >= *wsize1 - 1) {
+
 /*<         pw1 = loc(wmem(iwspace-wsize1+1)) >*/
-	    pw1 = loc_(&wmem[*iwspace - *wsize1 + 1]);
+/*	    pw1 = loc_(&wmem[*iwspace - *wsize1 + 1]); */
+	wmem1 = wmem + (*iwspace) - (*wsize1);
+
 /*<       else >*/
 	} else {
+
 /*<         pw1 = loc(wmem(wsize0+1)) >*/
-	    pw1 = loc_(&wmem[*wsize0 + 1]);
+/*	    pw1 = loc_(&wmem[*wsize0 + 1]); */
+		wmem1 = wmem + (*wsize0);
+
 /*<         fptr = 1 >*/
 	    fptr = 1;
 /*<         j = udim - rank  >*/
@@ -711,43 +733,51 @@ L120:
 /*<             msgsize = ibufptr >*/
 		msgsize = ibufptr;
 /*<    >*/
-		mpi_send__(&ibuf_s__[1], &msgsize, &c__11, &partner, &c__1, 
-			comm, &ierr);
+
+		MPI_Send(&ibuf_s__[1], msgsize, MPI_INT, partner, 1, *comm);
+
 /*<             msgsize = ishft(dbufptr-1,3) >*/
 		msgsize = dbufptr - 1 << 3;
 /*<    >*/
-		mpi_send__(&dbuf_s__[1], &msgsize, &c__5, &partner, &c__2, 
-			comm, &ierr);
+
+		MPI_Send(&dbuf_s__[1], msgsize, MPI_BYTE, partner, 2, *comm);
+
 /*<             msgsize = ibuflen >*/
 		msgsize = *ibuflen;
 /*<    >*/
-		mpi_recv__(&ibuf_r__[1], &msgsize, &c__11, &partner, &c__1, 
-			comm, mpistat, &ierr);
+
+		MPI_Recv(&ibuf_r__[1], msgsize, MPI_INT, partner, 1, *comm, mpistat);
+
 /*<    >*/
+
 		i__1 = *dbuflen << 3;
-		mpi_recv__(&dbuf_r__[1], &i__1, &c__5, &partner, &c__2, comm, 
-			mpistat, &ierr);
+		MPI_Recv(&dbuf_r__[1], i__1, MPI_BYTE, partner, 2, *comm, mpistat);
+
 /*<           else >*/
 	    } else {
 /*<             msgsize = ibuflen >*/
 		msgsize = *ibuflen;
 /*<    >*/
-		mpi_recv__(&ibuf_r__[1], &msgsize, &c__11, &partner, &c__1, 
-			comm, mpistat, &ierr);
+
+		MPI_Recv(&ibuf_r__[1], msgsize, MPI_INT, partner, 1, *comm, mpistat);
+
 /*<    >*/
+
 		i__1 = *dbuflen << 3;
-		mpi_recv__(&dbuf_r__[1], &i__1, &c__5, &partner, &c__2, comm, 
-			mpistat, &ierr);
+		MPI_Recv(&dbuf_r__[1], i__1, MPI_BYTE, partner, 2, *comm, mpistat);
+
 /*<             msgsize = ibufptr >*/
 		msgsize = ibufptr;
 /*<    >*/
-		mpi_send__(&ibuf_s__[1], &msgsize, &c__11, &partner, &c__1, 
-			comm, &ierr);
+
+		MPI_Send(&ibuf_s__[1], msgsize, MPI_INT, partner, 1, *comm);
+
 /*<             msgsize = ishft(dbufptr-1,3) >*/
 		msgsize = dbufptr - 1 << 3;
 /*<    >*/
-		mpi_send__(&dbuf_s__[1], &msgsize, &c__5, &partner, &c__2, 
-			comm, &ierr);
+
+		MPI_Send(&dbuf_s__[1], msgsize, MPI_BYTE, partner, 2, *comm);
+
 /*<           end if >*/
 	    }
 /*<    >*/
@@ -1103,43 +1133,51 @@ L270:
 /*<             msgsize = ibufptr >*/
 		msgsize = ibufptr;
 /*<    >*/
-		mpi_send__(&ibuf_s__[1], &msgsize, &c__11, &partner, &c__1, 
-			comm, &ierr);
+
+		MPI_Send(&ibuf_s__[1], msgsize, MPI_INT, partner, 1, *comm);
+
 /*<             msgsize = ishft(dbufptr-1,3) >*/
 		msgsize = dbufptr - 1 << 3;
 /*<    >*/
-		mpi_send__(&dbuf_s__[1], &msgsize, &c__5, &partner, &c__2, 
-			comm, &ierr);
+
+		MPI_Send(&dbuf_s__[1], msgsize, MPI_BYTE, partner, 2, *comm);
+		
 /*<             msgsize = ibuflen >*/
 		msgsize = *ibuflen;
 /*<    >*/
-		mpi_recv__(&ibuf_r__[1], &msgsize, &c__11, &partner, &c__1, 
-			comm, mpistat, &ierr);
+
+		MPI_Recv(&ibuf_r__[1], msgsize, MPI_INT, partner, 1, *comm, mpistat);
+
 /*<    >*/
+
 		i__1 = *dbuflen << 3;
-		mpi_recv__(&dbuf_r__[1], &i__1, &c__5, &partner, &c__2, comm, 
-			mpistat, &ierr);
+		MPI_Recv(&dbuf_r__[1], i__1, MPI_BYTE, partner, 2, *comm, mpistat);
+
 /*<           else >*/
 	    } else {
 /*<             msgsize = ibuflen  >*/
 		msgsize = *ibuflen;
 /*<    >*/
-		mpi_recv__(&ibuf_r__[1], &msgsize, &c__11, &partner, &c__1, 
-			comm, mpistat, &ierr);
+
+		MPI_Recv(&ibuf_r__[1], msgsize, MPI_INT, partner, 1, *comm, mpistat);
+
 /*<    >*/
+
 		i__1 = *dbuflen << 3;
-		mpi_recv__(&dbuf_r__[1], &i__1, &c__5, &partner, &c__2, comm, 
-			mpistat, &ierr);
+		MPI_Recv(&dbuf_r__[1], i__1, MPI_BYTE, partner, 2, *comm, mpistat);
+
 /*<             msgsize = ibufptr >*/
 		msgsize = ibufptr;
 /*<    >*/
-		mpi_send__(&ibuf_s__[1], &msgsize, &c__11, &partner, &c__1, 
-			comm, &ierr);
+
+		MPI_Send(&ibuf_s__[1], msgsize, MPI_INT, partner, 1, *comm);
+
 /*<             msgsize = ishft(dbufptr-1,3) >*/
 		msgsize = dbufptr - 1 << 3;
 /*<    >*/
-		mpi_send__(&dbuf_s__[1], &msgsize, &c__5, &partner, &c__2, 
-			comm, &ierr);
+
+		MPI_Send(&dbuf_s__[1], msgsize, MPI_BYTE, partner, 2, *comm);
+
 /*<           end if >*/
 	    }
 /*<    >*/
