@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BCJ.cpp,v 1.4 2001-07-20 17:03:52 hspark Exp $ */
+/* $Id: ABAQUS_VUMAT_BCJ.cpp,v 1.5 2002-06-27 22:16:41 hspark Exp $ */
 /* created: paklein (05/09/2000)                                          */
 
 #include "ABAQUS_VUMAT_BCJ.h"
@@ -90,7 +90,7 @@ void ABAQUS_VUMAT_BCJ::VUMAT(integer *nblock, integer *ndi, integer *nshr, integ
 void ABAQUS_VUMAT_BCJ::SetOutputVariables(iArrayT& variable_index,
 	ArrayT<StringT>& output_labels)
 {
-	int num_output = 4;
+	int num_output = 5;
 
 	/* number of output */
 	variable_index.Allocate(num_output);
@@ -98,12 +98,14 @@ void ABAQUS_VUMAT_BCJ::SetOutputVariables(iArrayT& variable_index,
 	variable_index[1] = 7;
 	variable_index[2] = 11;
 	variable_index[3] = 9;
-	
+	variable_index[4] = 8;
+
 	/* labels */
 	output_labels.Allocate(num_output);
 	output_labels[0] = "kappa";
 	output_labels[1] = "temp";
 	output_labels[2] = "pl_strn";
 	output_labels[3] = "damage";
+	output_labels[4] = "pl_strn_rate";
 }
 #endif /* __F2C__ */
