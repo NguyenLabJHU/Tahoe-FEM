@@ -1,4 +1,4 @@
-// $Id: FEA_dScalarT.h,v 1.9 2003-10-28 01:52:55 raregue Exp $
+// $Id: FEA_dScalarT.h,v 1.10 2004-03-21 21:18:03 raregue Exp $
 #ifndef _FEA_DSCALART_H_
 #define _FEA_DSCALART_H_
 
@@ -43,7 +43,8 @@ class FEA_dScalarT: public dArrayT // For the name sake only
 		void Pow		( FEA_dScalarT &s, FEA_dScalarT &t ) { for (int i=0; i<fLength; i++) (*this)[i] = pow ( s[i],t[i] ); }
 		void Pow		( FEA_dScalarT &s, double &t ) { for (int i=0; i<fLength; i++) (*this)[i] = pow ( s[i],t ); }
 		void Pow		( double &s, FEA_dScalarT &t ) { for (int i=0; i<fLength; i++) (*this)[i] = pow ( s,t[i] ); }
-		void Abs		( FEA_dScalarT &t ) { for (int i=0; i<fLength; i++) (*this)[i] = abs ( t[i] ); }
+		//void Abs		( FEA_dScalarT &t ) { for (int i=0; i<fLength; i++) (*this)[i] = abs ( t[i] ); }
+		void Abs		( FEA_dScalarT &t ) { for (int i=0; i<fLength; i++) (*this)[i] = fabs ( t[i] ); }
 
 		void Sin			( void ) 	{ for (int i=0; i<fLength; i++) (*this)[i] = sin  	( (*this)[i] ); }
 		void Cos			( void ) 	{ for (int i=0; i<fLength; i++) (*this)[i] = cos  	( (*this)[i] ); }
