@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.14 2003-04-09 20:22:26 cjkimme Exp $ */
+/* $Id: ParticleT.cpp,v 1.15 2003-04-16 18:15:49 cjkimme Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -13,7 +13,12 @@
 #include "RaggedArray2DT.h"
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
+
+/* Thermostatting stuff */
 #include "RandomNumberT.h"
+#include "ThermostatBaseT.h"
+#include "LangevinT.h"
+#include "NoseHooverT.h"
 
 using namespace Tahoe;
 
@@ -21,8 +26,6 @@ using namespace Tahoe;
 /* parameters */
 const int kAvgNodesPerCell = 20;
 const int kMaxNumCells     =- 1; /* -1: no max */
-#pragma message("kB isn't really equal to 1")
-const double fkB = 1.;
 
 /* constructors */
 ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
@@ -136,36 +139,7 @@ void ParticleT::Initialize(void)
 	/* set the neighborlists */
 	SetConfiguration();
 	
-	/* Read in thermostatting/damping parameters */
-	in >> fDampingType;
-	switch (fDampingType)
-	{
-		case ParticlePropertyT::kFreeParticle:
-		{
-			QisDamped = false;
-			break;
-		}
-		case ParticlePropertyT::kDampedParticle:
-		{
-			QisDamped = true;
-			in >> fBeta;
-			break;
-		}
-		case ParticlePropertyT::kLangevinParticle:
-		{
-			QisDamped = true;
-			in >> fBeta;
-			in >> fTemperature; // constant T for now
-			fRandom = new RandomNumberT(RandomNumberT::kParadynGaussian); 
-			fRandom->sRand(1234567); 
-
-			break;
-		}
-		default:
-		{
-			ExceptionT::BadInputValue(caller,"Damping type does not exist");
-		}
-	}
+	EchoDamping(in, out);
 	
 }
 
@@ -256,6 +230,9 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 	 * (across all processes) */
 	fDmax = fCommManager.Communicator().Max(MaxDisplacement());
 
+	/* check damping regions */
+	//fDampingCounters++;
+
 	/* generate contact element data */
 	fReNeighborCounter++;
 	if ((fReNeighborDisp > 0.0 && fDmax > fReNeighborDisp) || 
@@ -278,6 +255,12 @@ void ParticleT::WriteRestart(ostream& out) const
 {
 	/* write counter */
 	out << fReNeighborCounter << '\n';
+	
+	if (fRandom != NULL)
+		out << fRandom->RandSeed() << '\n';
+	
+	for (int i = 0; i < nThermostats; i++)
+		fThermostats[i]->WriteRestart(out);
 }
 
 /* read restart data to the output stream */
@@ -285,6 +268,16 @@ void ParticleT::ReadRestart(istream& in)
 {
 	/* read counter */
 	in >> fReNeighborCounter;
+	
+	if (fRandom != NULL)
+	{
+		long seed;
+		in >> seed;
+		fRandom->sRand(seed);
+	}
+	
+	for (int i = 0; i < nThermostats; i++)
+		fThermostats[i]->ReadRestart(in);
 }
 
 /* define the particles to skip */
@@ -377,54 +370,13 @@ void ParticleT::ApplyDamping(const RaggedArray2DT<int>& fNeighbors)
 	if (QisDamped)
 	{
 		const dArray2DT* velocities = NULL; 
-     	if (Field().Order() > 0) 
+     	if (Field().Order() > 0) // got velocities!
      	{
-     		velocities = &(Field()[1]);          
-			int tag_i;
+     		velocities = &(Field()[1]);
 			int nsd = NumSD();
-			double* f_i;
-			double* v_i;
-
-			switch (fDampingType)
-			{
-				case ParticlePropertyT::kDampedParticle:
-				{
-					for (int i = 0; i < fNeighbors.MajorDim(); i++) 
-	    			{ 
-	    				tag_i = *fNeighbors(i);
-	    				f_i = fForce(i);
-	    				v_i = (*velocities)(tag_i);
-	    				
-	    				for (int j = 0; j < nsd; j++)
-	        				*f_i++ -= fBeta*(*v_i++); 
-	    			}
-	    			
-	    			break;
-				}
-				case ParticlePropertyT::kLangevinParticle:
-				{
-					dArrayT rArray(nsd);
-					double *rf_i;
-					double stochasticAmp = sqrt(2.*fBeta*fkB*fTemperature/
-												ElementSupport().TimeStep());
-					for (int i = 0; i < fNeighbors.MajorDim(); i++) 
-	    			{ 
-	    				tag_i = *fNeighbors(i);
-	    				f_i = fForce(i);
-	    				v_i = (*velocities)(tag_i);
-	    				fRandom->RandomArray(rArray);
-	    				rArray *= stochasticAmp;
-	    				rf_i = rArray.Pointer();
-	    				
-	        			for (int j = 0; j < nsd; j++)
-	        				*f_i++ += -fBeta*(*v_i++) + *rf_i++;
-	    			}
-	    			
-	    			break;
-				}
-				default:
-					ExceptionT::GeneralFail("ParticleT::FormRHS","Damping value has changed!");
-			}
+     		
+     		for (int i = 0; i < nThermostats; i++)
+				fThermostats[i]->ApplyDamping(fNeighbors,velocities,fForce);
 		}
 	}
 		
@@ -703,4 +655,126 @@ double ParticleT::MaxDisplacement(void) const
 	}
 	
 	return sqrt(dmax2);
+}
+
+void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
+{
+#pragma unused(out)
+	
+	const char caller[] = "ParticleT::EchoDamping";
+
+	/* default flag assuming no damping/thermostatting present */
+	QisDamped = false;
+	
+	/* flag for constructing a random number generator */
+	bool QisRandom = false;
+	
+	in >> nThermostats;
+	fThermostats.Dimension(nThermostats);
+	
+	for (int i = 0; i < nThermostats; i++)
+	{
+		bool QisLangevin = false;
+	
+		ThermostatBaseT::ThermostatT thermostat_i;
+		in >> thermostat_i;
+		switch (thermostat_i)
+		{
+			case ThermostatBaseT::kDamped:
+			{
+				QisDamped = true;
+				
+				fThermostats[i] = new ThermostatBaseT(in,
+					ElementSupport().NumSD(),ElementSupport().TimeStep());
+				
+				break;
+			}
+			case ThermostatBaseT::kLangevin:
+			{
+				QisRandom = QisLangevin = true;
+				QisDamped = true;
+				
+				fThermostats[i] = new LangevinT(in,
+					ElementSupport().NumSD(),ElementSupport().TimeStep());
+				
+				break;
+			}
+			case ThermostatBaseT::kNoseHoover:
+			{
+				QisDamped = true;
+				
+				fThermostats[i] = new NoseHooverT(in,
+					ElementSupport().NumSD(), ElementSupport().TimeStep());
+				
+				break;
+			}
+			default:
+			{
+				ExceptionT::BadInputValue(caller,"Damping type does not exist or is not valid");
+			}
+		}
+		int nodesOrRegion;
+		in >> nodesOrRegion;
+		switch (nodesOrRegion)
+		{
+			case ThermostatBaseT::kNodes:
+			{
+				int all_or_some = -99;
+				in >> all_or_some; 
+				if (all_or_some != 0 && all_or_some != 1) ExceptionT::BadInputValue(caller);
+		
+				if (all_or_some == 0) /* ALL */
+				{
+					if (nThermostats != 1)
+						ExceptionT::GeneralFail(caller,"For all particles damped, must have only 1 controller"); 
+	 			
+				}
+				else
+				{
+					/* access to the model database */
+					ModelManagerT& model = ElementSupport().Model();
+
+					/* read node set ids */
+					ArrayT<StringT> ids;
+					model.NodeSetList(in, ids);
+					iArrayT tags;
+					model.ManyNodeSets(ids, fThermostats[i]->NodeList());	
+				}
+				
+				break;
+			}
+			case ThermostatBaseT::kRegion:
+			{
+				break;
+			}
+			default:
+			{
+				ExceptionT::BadInputValue(caller,"Thermostat control type invalid");
+			}
+		}
+		if (QisLangevin)
+		{
+			if (fRandom == 0) // construct a singleton random number generator
+			{	
+				fRandom = new RandomNumberT(RandomNumberT::kParadynGaussian);
+			}
+			LangevinT* tmpPtr = dynamic_cast<LangevinT*>(fThermostats[i]); 
+			
+			if (!tmpPtr)
+				ExceptionT::GeneralFail(caller,"Cannot send random number gen to thermostat");
+			tmpPtr->SetRandNumGenerator(fRandom);
+		}
+	}
+	
+	if (QisRandom)
+	{
+		int randSeed;
+		in >> randSeed;
+		if (randSeed < -1) ExceptionT::BadInputValue(caller,"random seed must be >= -1");
+		if (randSeed == -1) 
+		{
+			ExceptionT::GeneralFail(caller,"No machine-generated random seed available yet");
+		}
+		fRandom->sRand(randSeed);
+	}
 }

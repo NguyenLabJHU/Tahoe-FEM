@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.11 2003-04-09 20:22:26 cjkimme Exp $ */
+/* $Id: ParticleT.h,v 1.12 2003-04-16 18:15:49 cjkimme Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -9,6 +9,7 @@
 #include "VariArrayT.h"
 #include "nVariArray2DT.h"
 #include "InverseMapT.h"
+#include "dArray2DT.h"
 
 namespace Tahoe {
 
@@ -19,6 +20,7 @@ class ParticlePropertyT;
 class dSPMatrixT; //TEMP
 class InverseMapT;
 class RandomNumberT;
+class ThermostatBaseT;
 
 /** base class for particle types */
 class ParticleT: public ElementBaseT
@@ -137,6 +139,10 @@ protected: /* for derived classes only */
 	/** Apply thermostatting/damping constraints to forces */
 	void ApplyDamping(const RaggedArray2DT<int>& fNeighbors);
 
+	/** Read in damping and thermostatting paramters. Called from
+	 *  Initialize */
+	virtual void EchoDamping(ifstreamT& in, ofstreamT& out);
+
 protected:
 
 	/** reference ID for sending output */
@@ -214,10 +220,10 @@ protected:
 	                    This value is computed during ParticleT::RelaxSystem. */
 
 	/* Damping, thermostatting variables */
-	int fDampingType;
 	bool QisDamped;
-	double fBeta, fTemperature;
 	RandomNumberT* fRandom;
+	ArrayT<ThermostatBaseT*> fThermostats;
+	int nThermostats;
 
 	/** \name workspace for ParticlePairT::RHSDriver. Used to accumulate the force for
 	 * a single row of ParticlePairT::fNeighbors. */

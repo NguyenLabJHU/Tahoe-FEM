@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.h,v 1.4 2003-04-09 20:22:28 cjkimme Exp $ */
+/* $Id: ParticlePropertyT.h,v 1.5 2003-04-16 18:15:51 cjkimme Exp $ */
 #ifndef _PARTICLE_PROPERTY_T_H_
 #define _PARTICLE_PROPERTY_T_H_
 
@@ -21,8 +21,10 @@ public:
 	
 	enum ThermostatT {
 	    kFreeParticle = 0, /**< you figure it out */
-      kDampedParticle = 1, /**< velocity-dependent damping */
-    kLangevinParticle = 2  /**< Langevin (stochastic) thermostat */
+     kDampedParticles = 1, /**< velocity-dependent damping */
+   kLangevinParticles = 2, /**< Langevin (stochastic) thermostat */
+    	kDampedRegion = 3, /**< damping in region of space */
+      kLangevinRegion = 4, /**< Langevin thermo. in a region of space */
 	};
 	
 	/** stream extraction operators */

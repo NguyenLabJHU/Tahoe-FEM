@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.cpp,v 1.4 2003-04-09 20:22:28 cjkimme Exp $ */
+/* $Id: ParticlePropertyT.cpp,v 1.5 2003-04-16 18:15:51 cjkimme Exp $ */
 #include "ParticlePropertyT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -61,14 +61,30 @@ istream& operator>>(istream& in, ParticlePropertyT::ThermostatT& property)
 	switch (i_property)
 	{
 		case ParticlePropertyT::kFreeParticle:
+		{
 			property = ParticlePropertyT::kFreeParticle;
 			break;
-		case ParticlePropertyT::kDampedParticle:
-			property = ParticlePropertyT::kDampedParticle;
+		}
+		case ParticlePropertyT::kDampedParticles:
+		{
+			property = ParticlePropertyT::kDampedParticles;
 			break;
-		case ParticlePropertyT::kLangevinParticle:
-			property = ParticlePropertyT::kLangevinParticle;
+		}
+		case ParticlePropertyT::kLangevinParticles:
+		{
+			property = ParticlePropertyT::kLangevinParticles;
 			break;
+		}
+		case ParticlePropertyT::kDampedRegion:
+		{
+			property = ParticlePropertyT::kDampedRegion;
+			break;
+		}
+		case ParticlePropertyT::kLangevinRegion:
+		{
+			property = ParticlePropertyT::kLangevinRegion;
+			break;
+		}
 		default:
 			ExceptionT::BadInputValue("operator>>ParticlePropertyT::ThermostatT", 
 				"unknown code: %d", i_property);

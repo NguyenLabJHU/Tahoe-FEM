@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2003-04-16 18:15:49 cjkimme Exp $
+# $Id: makefile,v 1.1 2003-04-16 18:15:54 cjkimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,9 +20,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	ParticlePairT.o \
-	EAMT.o \
-	ParticleT.o
+	ThermostatBaseT.o \
+	LangevinT.o \
+	NoseHooverT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -42,9 +42,9 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	ParticlePairT.cpp \
-	EAMT.cpp \
-	ParticleT.cpp
+	ThermostatBaseT.cpp \
+	LangevinT.cpp \
+	NoseHooverT.cpp 
 
 ##################### (3) headers
 #
@@ -56,9 +56,9 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	ParticlePairT.h \
-	EAMT.h \
-	ParticleT.h
+	ThermostatBaseT.h \
+	LangevinT.h \
+	NoseHooverT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
@@ -69,19 +69,17 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = \
-	potentials \
-	thermostats
+#SUB_DIR = 
 
-subdir_driver: subdir_loop
+#subdir_driver: subdir_loop
 
 #
 # (4.2) If there are no sub-directories in this directory:
 #    (1) comment the SUB_DIR and subdir_driver in section (4.1)
 #    (2) uncomment the subdir_driver macro below
 #
-#SUB_DIR =
-#subdir_driver: 
+SUB_DIR =
+subdir_driver: 
 
 #####################
 
