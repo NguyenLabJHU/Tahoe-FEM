@@ -33,8 +33,7 @@ GRAD_MRSSNLHardT::GRAD_MRSSNLHardT(int num_ip, double mu, double lambda):
 	fkappa(flambda + (2.0/3.0*fmu)),
 	fmu_ast(flse_s*flse_s*mu),
 	flambda_ast(flse_v*flse_v*lambda+2.*(flse_v*flse_v-flse_s*flse_s)*mu/3.),
-	fkappa_ast(flambda_ast + (2.0/3.0*fmu_ast)),
-	fYieldFunction(0.0)
+	fkappa_ast(flambda_ast + (2.0/3.0*fmu_ast))
 {
 	SetName("GRAD_MR_SS_nonlinear_hardening");
 }
@@ -1071,7 +1070,7 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 	KE_UU1 =0.; KE_UU2 = 0.;
 	KE_ULambda1 = 0.; KE_ULambda2 = 0.;
 	KE_LambdaU1 = 0.; KE_LambdaU2 = 0.;
-	KE_LambdaLambda1 = 0.; KE_LambdaLambda2 = 0.; 
+	KE_LambdaLambda1 = 0.; KE_LambdaLambda2 = 0.;  
 		
 	if(!element.IsAllocated()) 
 	{
@@ -1081,6 +1080,17 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 	  	KE_ULambda1 = 0.; KE_ULambda2 = 0.;
 	  	KE_LambdaU1 =0.; KE_LambdaU2 = 0.;
 	  	KE_LambdaLambda1 = 0.; KE_LambdaLambda2 = 0.;
+	  	
+	  	fModuli_UU1 = KE_UU1;
+		fModuli_UU2 = KE_UU2;
+		fModuli_ULam1 = KE_ULambda1;
+		fModuli_ULam2 = KE_ULambda2;
+		fModuli_LamU1 = KE_LambdaU1;
+		fModuli_LamU2 = KE_LambdaU2;
+		fModuli_LamLam1 = KE_LambdaLambda1;
+		fModuli_LamLam2 = KE_LambdaLambda2;
+		 
+		/* collect the C matrices */
 	  	for (int i=0; i<7; i++)
 	  	{
 	  	 for (int j=0; j<14; j++)
@@ -1154,6 +1164,17 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 	  	KE_ULambda1 = 0.; KE_ULambda2 = 0.;
 	  	KE_LambdaU1 =0.; KE_LambdaU2 = 0.;
 	  	KE_LambdaLambda1 = 0.; KE_LambdaLambda2 = 0.;
+	  	
+	  	fModuli_UU1 = KE_UU1;
+		fModuli_UU2 = KE_UU2;
+		fModuli_ULam1 = KE_ULambda1;
+		fModuli_ULam2 = KE_ULambda2;
+		fModuli_LamU1 = KE_LambdaU1;
+		fModuli_LamU2 = KE_LambdaU2;
+		fModuli_LamLam1 = KE_LambdaLambda1;
+		fModuli_LamLam2 = KE_LambdaLambda2; 
+		
+		/* collect the C matrices */
 	  	for (int i=0; i<7; i++)
 	  	{
 	  	 for (int j=0; j<14; j++)
@@ -1312,6 +1333,15 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 	  	    KE_LambdaLambda1 = -1.* termD1;
 	  	    KE_LambdaLambda2 = termE1; 
 	
+            fModuli_UU1 = KE_UU1;
+			fModuli_UU2 = KE_UU2;
+			fModuli_ULam1 = KE_ULambda1;
+			fModuli_ULam2 = KE_ULambda2;
+			fModuli_LamU1 = KE_LambdaU1;
+			fModuli_LamU2 = KE_LambdaU2;
+			fModuli_LamLam1 = KE_LambdaLambda1;
+			fModuli_LamLam2 = KE_LambdaLambda2; 
+            
             /* Assemble the 8 Cep matrices into a single 7x14 matrix 
                This matrix is passed to the higher level as 
                fModuli 
@@ -1446,6 +1476,14 @@ void GRAD_MRSSNLHardT::TakeParameterList(const ParameterListT& list)
 	fStressCorr.Dimension(kNSD);
 	fModuli.Dimension(dSymMatrixT::NumValues(kNSD));
 	fModuliPerfPlas.Dimension(dSymMatrixT::NumValues(kNSD));
+	fModuli_UU1.Dimension(dSymMatrixT::NumValues(kNSD));
+	fModuli_UU2.Dimension(dSymMatrixT::NumValues(kNSD));
+	fModuli_ULam1.Dimension(dSymMatrixT::NumValues(kNSD),1);
+	fModuli_ULam2.Dimension(dSymMatrixT::NumValues(kNSD),1);
+	fModuli_LamU1.Dimension(1,dSymMatrixT::NumValues(kNSD));
+	fModuli_LamU2.Dimension(1,dSymMatrixT::NumValues(kNSD));
+	fModuli_LamLam1.Dimension(1,1);
+	fModuli_LamLam2.Dimension(1,1);
 	fDevStress.Dimension(kNSD);
 	fLapDevStress.Dimension(kNSD);
 	fDevStrain.Dimension(kNSD);

@@ -99,6 +99,54 @@ const dMatrixT& GRAD_MRSSKStV::c_perfplas_ijkl(void)
 	return fModulusPerfPlas;
 }
 
+const dMatrixT& GRAD_MRSSKStV::c_UU1_ijkl(void)
+{
+	fModulusUU1 = fGRAD_MR->Moduli_UU1();
+	return fModulusUU1;
+}
+
+const dMatrixT& GRAD_MRSSKStV::c_UU2_ijkl(void)
+{
+	fModulusUU2 =	fGRAD_MR->Moduli_UU2();
+	return fModulusUU2;
+}
+
+const dMatrixT& GRAD_MRSSKStV::c_ULam1_ij(void)
+{
+	fModulusULam1 =	fGRAD_MR->Moduli_ULam1();
+	return fModulusULam1;
+}
+
+const dMatrixT& GRAD_MRSSKStV::c_ULam2_ij(void)
+{
+	fModulusULam2 =	fGRAD_MR->Moduli_ULam2();
+	return fModulusULam2;
+}
+
+const dMatrixT& GRAD_MRSSKStV::c_LamU1_ij(void)
+{
+	fModulusLamU1 =	fGRAD_MR->Moduli_LamU1();
+	return fModulusLamU1;
+}
+
+const dMatrixT& GRAD_MRSSKStV::c_LamU2_ij(void)
+{
+	fModulusLamU2 =	fGRAD_MR->Moduli_LamU2();
+	return fModulusLamU2;
+}
+
+const dMatrixT& GRAD_MRSSKStV::c_LamLam1(void)
+{
+	fModulusLamLam1 =	fGRAD_MR->Moduli_LamLam1();
+	return fModulusLamLam1;
+}
+
+const dMatrixT& GRAD_MRSSKStV::c_LamLam2(void)
+{
+	fModulusLamLam2 =	fGRAD_MR->Moduli_LamLam2();
+	return fModulusLamLam2;
+}
+
 /* yield function */
 const double& GRAD_MRSSKStV::YieldF(void)
 {
@@ -112,8 +160,10 @@ const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
 	const dSymMatrixT& e_tot = e();          //remove thermal strain 
+	//const dSymMatrixT& lap_e_tot = lap_e();
 	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
 	const dSymMatrixT& lap_e_els = LapElasticStrain(Strain_Lapl_IP, element, ip);
+	//const dSymMatrixT& lap_e_els = LapElasticStrain(lap_e_tot, element, ip);
 	
 	/* Updated Cauchy stress (return mapping) */
 	fStress = fGRAD_MR->StressCorrection(e_els, lap_e_els, lambdaPM, lambdaPM_Lapl, element, ip);

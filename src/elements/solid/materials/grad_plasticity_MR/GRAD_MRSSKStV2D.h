@@ -31,7 +31,18 @@ class GRAD_MRSSKStV2D: public GRAD_MRSSKStV
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);
 	virtual const dMatrixT& c_perfplas_ijkl(void);
-  	
+	
+  	/*@{*/
+	virtual const dMatrixT& c_UU1_ijkl(void);
+	virtual const dMatrixT& c_UU2_ijkl(void);
+	virtual const dMatrixT& c_ULam1_ij(void);
+	virtual const dMatrixT& c_ULam2_ij(void);
+	virtual const dMatrixT& c_LamU1_ij(void);
+	virtual const dMatrixT& c_LamU2_ij(void);
+	virtual const dMatrixT& c_LamLam1(void);
+	virtual const dMatrixT& c_LamLam2(void);
+	/*@{*/
+	
 	/* stress */
 	virtual const dSymMatrixT& s_ij(void);
 	
@@ -48,15 +59,43 @@ class GRAD_MRSSKStV2D: public GRAD_MRSSKStV
 	/*@}*/
 
   private:
+
+	/** \name 2D/3D dimension transformation for coupled moduli 
+		C_ULambda1, C_ULambda2, C_LambdaU1, C_LambdaU2 */
+	/*@{*/
+	/** fill undefined elements with zeroes */
+	void ReduceOffDiagonalModulus(const dMatrixT& mat3D, dMatrixT& mat2D);
+	/*@}*/
+	
+  private:
   
   	/* return values */
   	dSymMatrixT	fStress2D;
   	dMatrixT	fModulus2D, fModulusPerfPlas2D;
+  	dMatrixT    fModulusUU1_2D, fModulusUU2_2D;
+    dMatrixT    fModulusULam1_2D, fModulusULam2_2D;
+    dMatrixT    fModulusLamU1_2D, fModulusLamU2_2D;
+    dMatrixT    fModulusLamLam1_2D, fModulusLamLam2_2D;
+    dMatrixT    fTemp1, fTemp2, fTemp3, fTemp4;
   	double      fYieldFunction2D; //yield function
 
 	/* work space */
 	dSymMatrixT	fTotalStrain3D;
 };
+
+inline void GRAD_MRSSKStV2D::ReduceOffDiagonalModulus(const dMatrixT& mat3D, dMatrixT& mat2D)
+{
+	/* dimension checks */
+#if __option (extended_errorcheck)	
+	if (mat2D.Rows() != 3 || mat2D.Cols() != 1) throw ExceptionT::kGeneralFail;
+	if (mat3D.Rows() != 6 || mat3D.Cols() != 1) throw ExceptionT::kGeneralFail;
+#endif
+
+	double* p = mat2D.Pointer();
+	*p++ = mat3D[0]; // 1,1
+	*p++ = mat3D[1]; // 2,1
+	*p   = mat3D[5]; // 3,1
+}
 
 } // namespace Tahoe 
 #endif /* _GRAD_MR_SS_KSTV_2D_H_ */

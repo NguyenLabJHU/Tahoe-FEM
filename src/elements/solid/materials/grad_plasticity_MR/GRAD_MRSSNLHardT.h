@@ -79,12 +79,21 @@ public:
 	 *       internal variable values */
 	const dMatrixT& Moduli(const ElementCardT& element, int ip); 
 
-        /* Modulus for checking perfectly plastic bifurcation */
-
+    /* Modulus for checking perfectly plastic bifurcation */
 	const dMatrixT& ModuliPerfPlas(const ElementCardT& element, int ip);
 	
-	/* return yield condition, f */
+	/*@{*/
+	const dMatrixT& Moduli_UU1(void) const { return fModuli_UU1; };
+	const dMatrixT& Moduli_UU2(void) const { return fModuli_UU2; };
+	const dMatrixT& Moduli_ULam1(void) const { return fModuli_ULam1; };
+	const dMatrixT& Moduli_ULam2(void) const { return fModuli_ULam2; };
+	const dMatrixT& Moduli_LamU1(void) const { return fModuli_LamU1; };
+	const dMatrixT& Moduli_LamU2(void) const { return fModuli_LamU2; };
+	const dMatrixT& Moduli_LamLam1(void) const { return fModuli_LamLam1; };
+	const dMatrixT& Moduli_LamLam2(void) const { return fModuli_LamLam2; };
+	/*@{*/
 	
+	/* return yield condition, f */
 	const double& YieldFunction(const ElementCardT & element, int ip);
 
 	/* return a pointer to a new plastic element object constructed with
@@ -166,6 +175,16 @@ public:
   	dSymMatrixT	fStressCorr;
   	dMatrixT	fModuli;
     dMatrixT    fModuliPerfPlas;
+    /*@}*/
+    dMatrixT	fModuli_UU1;
+    dMatrixT	fModuli_UU2;
+    dMatrixT	fModuli_ULam1;
+    dMatrixT	fModuli_ULam2;
+    dMatrixT	fModuli_LamU1;
+    dMatrixT	fModuli_LamU2;
+    dMatrixT	fModuli_LamLam1;
+    dMatrixT	fModuli_LamLam2;
+    /*@}*/
     double fYieldFunction;
   		
 	/* work space */
@@ -179,6 +198,7 @@ public:
 	dSymMatrixT   One;  
   	
 };
+
 
 } // namespace Tahoe 
 #endif /* _GRAD_MR_SS_NL_HARD_T_H_ */

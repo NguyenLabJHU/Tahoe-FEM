@@ -56,6 +56,17 @@ class GRAD_MRSSKStV: public MFGP_SSIsotropicMatT, public HookeanMatT
 	virtual const dMatrixT& c_ijkl(void);
 
 	virtual const dMatrixT& c_perfplas_ijkl(void);
+	
+	/*@{*/
+	virtual const dMatrixT& c_UU1_ijkl(void);
+	virtual const dMatrixT& c_UU2_ijkl(void);
+	virtual const dMatrixT& c_ULam1_ij(void);
+	virtual const dMatrixT& c_ULam2_ij(void);
+	virtual const dMatrixT& c_LamU1_ij(void);
+	virtual const dMatrixT& c_LamU2_ij(void);
+	virtual const dMatrixT& c_LamLam1(void);
+	virtual const dMatrixT& c_LamLam2(void);
+	/*@{*/
 
 	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
@@ -113,6 +124,10 @@ private:
   	dSymMatrixT	fStress;
   	dMatrixT	fModulus, fModulusCe;
     dMatrixT    fModulusPerfPlas;
+    dMatrixT    fModulusUU1, fModulusUU2;
+    dMatrixT    fModulusULam1, fModulusULam2;
+    dMatrixT    fModulusLamU1, fModulusLamU2;
+    dMatrixT    fModulusLamLam1, fModulusLamLam2;
     double      fYieldFunction; //yield function
 
 };
