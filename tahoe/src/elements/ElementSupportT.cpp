@@ -1,8 +1,9 @@
-/* $Id: ElementSupportT.cpp,v 1.8 2002-11-09 01:42:48 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.9 2002-11-09 18:20:46 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
+
 #ifndef _SIERRA_TEST_
 #include "FEManagerT.h"
 #include "NodeManagerT.h"
@@ -17,10 +18,9 @@
 #include "ElementMatrixT.h"
 #endif
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 ElementSupportT::ElementSupportT(void)
 {
 #ifndef _SIERRA_TEST_
@@ -171,6 +171,16 @@ int ElementSupportT::IterationNumber(void) const
 	return FEManager().IterationNumber(); 
 #else
 	return fItNum;
+#endif
+}
+
+/* the group number being solved or -1 if not defined */
+int ElementSupportT::CurrentGroup(void) const
+{
+#ifndef _SIERRA_TEST_
+	return FEManager().CurrentGroup();
+#else
+	return -1;
 #endif
 }
 

@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.9 2002-11-09 01:42:48 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.10 2002-11-09 18:20:46 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -9,7 +9,6 @@
 /* direct members */
 #include "GlobalT.h"
 #include "dArray2DT.h"
-#include "ModelManagerT.h"
 #ifndef _SIERRA_TEST_
 #include "FieldT.h"
 #endif
@@ -150,6 +149,9 @@ public:
 	/** return the iteration number for the current solver group. Returns
 	 * -1 of no solver group is current */
 	int IterationNumber(void) const;
+
+	/** the group number being solved or -1 if not defined */
+	int CurrentGroup(void) const;
 	
 	/** exception string */
 	const char* Exception(ExceptionT::CodeT exception) const;
@@ -280,7 +282,7 @@ private:
 	NodeManagerT& Nodes(void) const;
 	/*@}*/
 
-	FieldT* fField;
+//	FieldT* fField;
 	
 	/** the boss */
 	FEManagerT* fFEManager;
