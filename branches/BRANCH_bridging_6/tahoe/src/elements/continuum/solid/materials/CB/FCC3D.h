@@ -1,4 +1,4 @@
-/* $Id: FCC3D.h,v 1.3.16.1 2004-04-24 19:57:32 paklein Exp $ */
+/* $Id: FCC3D.h,v 1.3.16.2 2004-05-01 18:56:33 paklein Exp $ */
 #ifndef _FCC_3D_H_
 #define _FCC_3D_H_
 
@@ -76,6 +76,13 @@ private:
 
 	/** atomic volume */
 	double fAtomicVolume;
+
+	/** dummy full bond density array */
+	dArrayT fFullDensity;
+	
+	/** flag to indicate whether stress calculation for output should include
+	 * the full bond density */
+	bool fFullDensityForStressOutput;
 };
 
 } /* namespace Tahoe */
