@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.19 2003-03-19 00:53:27 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.20 2003-03-26 20:00:08 cjkimme Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -37,7 +37,8 @@ public:
               	  kYoonAllen = 7, /**< Allen history-dependent law */
 			 kSimoViscoElast = 8, /**< Simo's thermo-visco-elasto model */
            kInelasticDuctile = 9, /**< rate-based ductile fracture model */
-           				kMR = 10  /**< Elastoplastic Cohesive Model for Geomaterials*/}; 
+           				kMR = 10, /**< Elastoplastic Cohesive Model for Geomaterials*/
+           			 kMR_RP = 11};/**< Rigid-plastic Cohesive Model for Geomaterials*/ 
 			 
 	/** surface element status codes */
 	enum StatusT {Precritical = 0, /**< loading phase */
@@ -99,9 +100,8 @@ public:
 
 	/** returns true if the potential needs access to physical quantities
 at the nodes. Returns false by default. */
-	virtual bool NeedsNodalInfo(void);
-	virtual int NodalQuantityNeeded(void);
-	virtual int ElementGroupNeeded(void);
+	//virtual bool NeedsNodalInfo(void);
+	//virtual int NodalQuantityNeeded(void);
 
 	/** returns true if two materials have compatible nodal outputs */
 	static bool CompatibleOutput(const SurfacePotentialT&, const SurfacePotentialT&);
