@@ -1,6 +1,10 @@
-/* $Id: SIERRA_HypoElastic.c,v 1.8 2003-04-23 16:56:11 paklein Exp $ */
+/* $Id: SIERRA_HypoElastic.c,v 1.9 2003-12-28 08:21:22 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include <stdio.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* function prototypes */
 void SIERRA_HypoElastic_reg(void);
@@ -129,3 +133,7 @@ void SIERRA_HypoElastic_calc(int* nelem, double* dt,
 		state_new += *nsv;
 	}
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
