@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:51 paklein Exp $
+# $Id: makefile,v 1.5 2001-08-27 17:14:06 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,7 +6,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	XDOF_FDNodesT.o \
 	XDOF_ManagerT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -16,12 +15,10 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	XDOF_FDNodesT.cpp \
 	XDOF_ManagerT.cpp
 
 # headers
 HDR = \
-	XDOF_FDNodesT.h \
 	XDOF_ManagerT.h
 HDR_LINK = $(HDR:.h=.h_link)
 

@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.h,v 1.2 2001-08-15 18:36:21 paklein Exp $ */
+/* $Id: XDOF_ManagerT.h,v 1.3 2001-08-27 17:14:06 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 
 #ifndef _XDOF_MANAGER_T_H_
@@ -15,7 +15,7 @@ class iArray2DT;
 class dArray2DT;
 class iArrayT;
 
-/** base class for manager of degrees of freedom requested
+/** mix-in class for manager of degrees of freedom requested
  * by DOFElementT's. Element groups must be derived from the
  * DOFElementT class and must register themselves using the
  * XDOF_ManagerT::Register funciton. */
@@ -52,6 +52,17 @@ public:
 
 protected:
 
+	/** set the start tag */
+	void SetStartTag(int start_tag) { fStartTag = start_tag; };
+
+	/** prompt element groups to reset tags.
+	 * \param tag_start first to number to assign
+	 * \return true if tags have been reset */
+	bool ResetTags(void);
+
+	/** return the total number of tag sets */
+	int NumTagSets(void) const { return fXDOF_Eqnos.Length(); };
+
 	/** call groups to reset external DOF's */
 	void Reset(void);
 
@@ -78,6 +89,8 @@ protected:
 	AutoArrayT<DOFElementT*> fDOFElements;
 	
 	/** number of tag sets by group */
+	int fStartTag;
+	int fNumTags;
 	AutoArrayT<int> fNumTagSets;
 
 	/** global equations numbers for each tag set */
