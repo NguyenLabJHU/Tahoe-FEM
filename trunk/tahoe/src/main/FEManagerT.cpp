@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.8 2001-04-06 03:06:13 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.9 2001-04-27 10:50:11 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -48,7 +48,7 @@
 #include "iNLSolver_LS.h"
 
 /* File/Version Control */
-const char* kCurrentVersion = "v3.03"; //version marker
+const char* kCurrentVersion = "v3.4"; //version marker
 const char* kProgramName    = "tahoe";
 
 /* exception strings */
@@ -141,7 +141,7 @@ void FEManagerT::Initialize(InitCodeT init)
 	SetController();
 	if (verbose) cout << "    FEManagerT::Initialize: controller" << endl;
 
-	/* resolve node and element types here */
+	/* resolve node type here */
 	SetNodeManager();
 	if (verbose) cout << "    FEManagerT::Initialize: nodal data" << endl;
 	
@@ -1142,10 +1142,25 @@ void FEManagerT::ReadParameters(void)
 	fMainIn >> fAnalysisCode;
 	fMainIn >> fInputFormat;
 	if (fInputFormat == IOBaseT::kTahoeII ||
-	    fInputFormat == IOBaseT::kExodusII) fMainIn >> fModelFile;
+	    fInputFormat == IOBaseT::kExodusII)
+	{	    
+	    fMainIn >> fModelFile;
+	    fModelFile.ToNativePathName();
+	    
+	    /* path from input file */
+	    StringT path;
+	    path.FilePath(fMainIn.filename());
+	    
+	    /* prepend path */
+	    fModelFile.Prepend(path);
+	}
 	fMainIn >> fOutputFormat;
 	fMainIn >> fReadRestart;
-	if (fReadRestart == 1) fMainIn >> fRestartFile;
+	if (fReadRestart == 1)
+	{
+		fMainIn >> fRestartFile;
+		fRestartFile.ToNativePathName();
+	}
 	fMainIn >> fWriteRestart;
 	fMainIn >> fPrintInput;
 
@@ -1160,7 +1175,7 @@ void FEManagerT::ReadParameters(void)
 	    fOutputFormat != IOBaseT::kExodusII) throw eBadInputValue;
 	if (fReadRestart  != 0 && fReadRestart  != 1) throw eBadInputValue;
 	if (fWriteRestart < 0) throw eBadInputValue;
-	if (fPrintInput   != 0 && fPrintInput   != 1) throw eBadInputValue;
+	if (fPrintInput   != 0 && fPrintInput   != 1) throw eBadInputValue;	
 }
 
 /* set the execution controller and send to nodes and elements.
