@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.14.4.2 2004-03-04 06:45:37 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.14.4.3 2004-03-30 07:50:34 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -139,6 +139,12 @@ public:
 		cout << "\n InternalStressVars not implemented.";
 		throw ExceptionT::kGeneralFail;
 		return  djunk;};
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

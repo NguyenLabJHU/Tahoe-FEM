@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.13.2.2 2004-02-26 17:31:13 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.13.2.3 2004-03-30 07:50:34 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -46,9 +46,6 @@ public:
 	 * checks if thermal strain are being imposed and if the material
 	 * supports thermal strain, using SolidMaterialT::SupportsThermalStrain. */
 	virtual void Initialize(void);
-
-	/** write parameters */
-	virtual void Print(ostream& out) const;
 
 	/** \name spatial description */
 	/*@{*/
@@ -128,12 +125,6 @@ public:
 	 	
 	/** \return mass density */
 	double Density(void) const;
-	
-	/** Rayleigh damping. \return mass proportional damping coefficient */
-	double MassDamping(void) const;
-
-	/** Rayleigh damping. \return stiffness proportional damping coefficient */
-	double StiffnessDamping(void) const;
 
 	/** test for localization. check for bifurcation using current
 	 * Cauchy stress and the spatial tangent moduli.
@@ -174,10 +165,8 @@ protected:
 	/** 2D constrain option */
 	ConstraintT fConstraint;
 
-private:	
-
-	double fMassDamp;
-	double fStiffDamp;
+	/** coefficient of thermal expansion in strain/unit temperature */
+	double fCTE;
 };
 
 /* incremental heat generation */
@@ -186,10 +175,6 @@ inline bool SolidMaterialT::HasIncrementalHeat(void) const { return false; }
 
 /* returns the density */
 inline double SolidMaterialT::Density(void) const { return fDensity; }
-
-/* access to Rayleigh damping parameters */
-inline double SolidMaterialT::MassDamping(void) const { return fMassDamp; }
-inline double SolidMaterialT::StiffnessDamping(void) const { return fStiffDamp;}
 
 /* imposed thermal strains */
 inline int SolidMaterialT::HasThermalStrain(void) const { return fThermal->IsActive(); }

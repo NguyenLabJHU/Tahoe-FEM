@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.10.2.5 2004-03-04 06:45:37 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.10.2.6 2004-03-30 07:50:34 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -34,8 +34,7 @@ SolidMaterialT::SolidMaterialT(void):
 	fThermal(NULL),
 	fDensity(0.0),
 	fConstraint(kNoConstraint),
-	fMassDamp(0.0),
-	fStiffDamp(0.0)
+	fCTE(0.0)
 {
 
 }
@@ -51,24 +50,8 @@ void SolidMaterialT::Initialize(void)
 
 	/* active multiplicative dilatation */
 	if (fThermal->IsActive() && !SupportsThermalStrain())
-	{
-		cout << "\n SolidMaterialT::Initialize: material does not support\n"
-		     <<   "     imposed thermal strain." << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-}
-
-/* I/O functions */
-void SolidMaterialT::Print(ostream& out) const
-{
-	/* inherited */
-	ContinuumMaterialT::Print(out);
-	
-	out << " Mass damping coefficient. . . . . . . . . . . . = " << fMassDamp  << '\n';
-	out << " Stiffness damping coefficient . . . . . . . . . = " << fStiffDamp << '\n';
-	out << " Density . . . . . . . . . . . . . . . . . . . . = " << fDensity   << '\n';
-
-//	fThermal->Print(out);
+		ExceptionT::BadInputValue("SolidMaterialT::Initialize", 
+			"material does not support imposed thermal strain");
 }
 
 /* return the wave speeds */
@@ -174,6 +157,11 @@ void SolidMaterialT::DefineParameters(ParameterListT& list) const
 	constraint.AddEnumeration("plane_strain", kPlaneStrain);
 	constraint.SetDefault(kNoConstraint);
 	list.AddParameter(constraint);
+	
+	/* coefficient of thermal expansion */
+	ParameterT CTE(fCTE, "CTE");
+	CTE.SetDefault(0.0);
+	list.AddParameter(CTE);
 }
 
 /* information about subordinate parameter lists */
@@ -217,6 +205,9 @@ void SolidMaterialT::TakeParameterList(const ParameterListT& list)
 		fConstraint = kNoConstraint;
 	else if (NumSD() == 2 && fConstraint == kNoConstraint)
 		fConstraint = kPlaneStrain;
+
+	/* coefficient of thermal expansion */
+	fCTE = list.GetParameter("CTE");
 
 	/* thermal dilatation */
 	if (!fThermal) fThermal = new ThermalDilatationT;
