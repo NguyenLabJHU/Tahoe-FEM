@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.32 2003-02-18 08:47:23 paklein Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.33 2003-02-20 21:39:02 sawimme Exp $  */
 #include "TranslateIOManager.h"
 
 #include "ExceptionT.h"
@@ -386,6 +386,7 @@ void TranslateIOManager::SelectElements(StringT& ID, iArrayT& elements, iArrayT&
 			
 			elements.Dimension(num_elements);
 			index.Dimension(num_elements);
+			elements = -1;
 			for (int n=0; n < num_elements; n++)
 			{
 				if (fWrite) cout << " Enter element " << n+1 << ": ";
@@ -395,7 +396,7 @@ void TranslateIOManager::SelectElements(StringT& ID, iArrayT& elements, iArrayT&
 				int dex;
 				elementIDs.HasValue(elements[n], dex);
 				if (dex < 0 || dex >= num_elements) 
-					ExceptionT::OutOfRange(caller, "Element %d was not found", elements[n]);
+					ExceptionT::OutOfRange (caller, "Element %d was not found. If -1 EOF found early.", elements[n]);
 				index[n] = dex;
 	  		}
 		break;
@@ -424,7 +425,10 @@ void TranslateIOManager::SelectElements(StringT& ID, iArrayT& elements, iArrayT&
 		break;
 		}
 		default:
-			ExceptionT::GeneralFail(caller);
+		  {
+		    cout << caller << ": Invalid selection " << selection << "\n\n";
+		    ExceptionT::GeneralFail(caller);
+		  }
 	}
 }
 
