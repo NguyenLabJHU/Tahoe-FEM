@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.1.1.1.2.1 2001-06-06 16:31:18 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 
 #include "SSSolidMatT.h"
@@ -10,9 +10,11 @@
 
 /* constructor */
 SSSolidMatT::SSSolidMatT(ifstreamT& in, const ElasticT& element):
-	ContinuumT(element.NumSD()),
+//	ContinuumT(element.NumSD()),
+//DEV
 	StructuralMaterialT(in, element),
-	fShapes(element.ShapeFunction()),
+//	fShapes(element.ShapeFunction()),
+//DEV
 	fLocDisp(element.Displacements()),	
 	fStrainTemp(element.NumSD()),
 	fQ(element.NumSD()),

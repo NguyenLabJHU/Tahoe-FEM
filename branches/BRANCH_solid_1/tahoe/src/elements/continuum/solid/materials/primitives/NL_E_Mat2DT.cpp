@@ -1,4 +1,4 @@
-/* $Id: NL_E_Mat2DT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: NL_E_Mat2DT.cpp,v 1.1.1.1.2.1 2001-06-06 16:31:17 paklein Exp $ */
 /* created: paklein (06/13/1997)                                          */
 /* Base class for materials with 2D nonlinear elastic behavior.           */
 /* (See notes in NL_E_MatT.h)                                             */
@@ -27,12 +27,10 @@ const dMatrixT& NL_E_Mat2DT::c_ijkl(void)
 {
 	/* derived class function */
 	ComputeModuli(E(), fModuli);
-	
-	/* account for thickness */
-	fModuli *= fThickness;
-	
+		
 	/* spatial -> material */
-	return C_to_c(fModuli);
+	fModuli.SetToScaled(fThickness/F().Det(), PushForward(F(), fModuli));	
+	return fModuli;
 }
 	
 /* stress */
@@ -41,11 +39,9 @@ const dSymMatrixT& NL_E_Mat2DT::s_ij(void)
 	/* derived class function */
 	ComputePK2(E(), fPK2);
 
-	/* account for thickness */
-	fPK2 *= fThickness;
-
 	/* spatial -> material */
-	 return S_to_s(fPK2);
+	fPK2.SetToScaled(fThickness/F().Det(), PushForward(F(), fPK2));	
+	return fPK2;
 }
 
 /* strain energy density */

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.1.1.1.2.1 2001-06-06 16:31:17 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 
 #include "FSSolidMatT.h"
@@ -10,9 +10,12 @@
 
 /* constructor */
 FSSolidMatT::FSSolidMatT(ifstreamT& in, const ElasticT& element):
-	FDContinuumT(element.NumSD()),
+//	FDContinuumT(element.NumSD()),
+//DEV
 	StructuralMaterialT(in, element),
-	fShapes(element.ShapeFunction()),
+	TensorTransformT(NumSD()),
+//	fShapes(element.ShapeFunction()),
+//DEV
 	fLocDisp(element.Displacements()),
 	fQ(NumSD()),
 	fGradU(NumSD())
@@ -32,12 +35,16 @@ void FSSolidMatT::Initialize(void)
 	/* active multiplicative dilatation */
 	if (fThermal->IsActive())
 	{
+		//TEMP
+		cout << "\n FSSolidMatT::Initialize: no imposed thermal strain yet" << endl;
+		throw eGeneralFail;
+
 		/* allocate and initialize */
-		fFtherminverse.Allocate(NumSD());
-		fFtherminverse.Identity();
+		//fFtherminverse.Allocate(NumSD());
+		//fFtherminverse.Identity();
 	
 		/* activate continuum level correction */
-		SetFmodMult(&fFtherminverse);
+//		SetFmodMult(&fFtherminverse);
 	}
 }
 
@@ -50,6 +57,17 @@ const dMatrixT& FSSolidMatT::F(void)
 	/* deformation gradient */
 	return FDContinuumT::F(fGradU);
 }
+//NOTE: with enhanced shape function gradients, F won't be
+//  a function of the nodal displacements alone. Better
+//  to pull the continuum out of the constitutive models
+//  and have the models prompt the elements for the deformation.
+//  This also allows consistency checks between the constitutive
+//  models and the element type. Would also need to deal with
+//  the stuff like S_to_s and C_to_c, but should move these
+//  functions into the matrix classes. Also need to take another
+//  look at dealing with the thermal strain. Could also add the
+//  idea of a "needs" array which is passed to the element and
+//  indicates which values the model needs to be calculated.
 
 const dMatrixT& FSSolidMatT::F(const LocalArrayT& disp)
 {
@@ -60,6 +78,8 @@ const dMatrixT& FSSolidMatT::F(const LocalArrayT& disp)
 	return FDContinuumT::F(fGradU);
 }
 
+//DEV
+#if 0
 const dSymMatrixT& FSSolidMatT::C(void)
 {
 	/* displacement gradient */
@@ -86,6 +106,8 @@ const dSymMatrixT& FSSolidMatT::E(void)
 	/* Green-Lagrange strain */
 	return FDContinuumT::E(fGradU);
 }
+#endif
+//DEV
 
 /* test for localization using "current" values for Cauchy
 * stress and the spatial tangent moduli. Returns 1 if the
@@ -94,10 +116,16 @@ const dSymMatrixT& FSSolidMatT::E(void)
 * of the determinant is positive. */
 int FSSolidMatT::IsLocalized(dArrayT& normal)
 {
+cout << "\n FSSolidMatT::IsLocalized: broken" << endl;
+throw eGeneralFail;
+return 0;
+
+#if 0
 	if (FDContinuumT::IsLocalized(normal))
 		return 1;
 	else
-		return 0;	
+		return 0;
+#endif
 }
 
 /* I/O functions */

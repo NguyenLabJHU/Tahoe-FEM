@@ -1,4 +1,4 @@
-/* $Id: NL_E_MatT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: NL_E_MatT.cpp,v 1.1.1.1.2.1 2001-06-06 16:31:17 paklein Exp $ */
 /* created: paklein (06/13/1997)                                          */
 /* Base class for materials with nonlinear elastic behavior               */
 /* which is computed from Langrangian coordinates (by the pure            */
@@ -33,8 +33,9 @@ const dMatrixT& NL_E_MatT::c_ijkl(void)
 	/* derived class function */
 	ComputeModuli(E(), fModuli);
 	
-	/* spatial -> material */
-	return C_to_c(fModuli);
+	/* material -> spatial */
+	fModuli.SetToScaled(1.0/F().Det(), PushForward(F(), fModuli));	
+	return fModuli;
 }
 	
 const dSymMatrixT& NL_E_MatT::s_ij(void)
@@ -42,8 +43,9 @@ const dSymMatrixT& NL_E_MatT::s_ij(void)
 	/* derived class function */
 	ComputePK2(E(), fPK2);
 
-	/* spatial -> material */
-	 return S_to_s(fPK2);
+	/* material -> spatial */
+	fPK2.SetToScaled(1.0/F().Det(), PushForward(F(), fPK2));	
+	return fPK2;
 }
 
 /* material description */

@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.1.1.1.2.1 2001-06-06 16:31:18 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 /* Defines the interface for elastic continuum materials.                 */
 
@@ -88,12 +88,11 @@ public:
 
 protected:
 
-//DEV
-//	dMatrixT fModuli;	
-	double   fDensity;
-
 	/* thermal */
 	ThermalDilatationT*	fThermal;
+
+	/* mass density */
+	double fDensity;
 
 private:	
 
