@@ -1,6 +1,5 @@
-/* $Id: SurfacePotentialT.cpp,v 1.2 2001-02-20 00:42:12 paklein Exp $ */
-/* created: paklein (06/20/1999)                                          */
-/* base class for surface potential with jump vector arguments            */
+/* $Id: SurfacePotentialT.cpp,v 1.3 2001-10-11 00:53:41 paklein Exp $ */
+/* created: paklein (06/20/1999) */
 
 #include "SurfacePotentialT.h"
 
@@ -14,6 +13,20 @@ SurfacePotentialT::SurfacePotentialT(int ndof):
 
 /* destructor */
 SurfacePotentialT::~SurfacePotentialT(void) { }
+
+/* initialize the state variable array */
+void SurfacePotentialT::InitStateVariables(dArrayT& state)
+{
+	int num_state = NumStateVariables();
+	if (state.Length() != num_state) {
+		cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
+		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
+		throw eSizeMismatch;
+	}
+
+	/* clear */
+	if (num_state > 0) state = 0.0;
+}
 
 /* returns true if two materials have compatible nodal outputs */
 bool SurfacePotentialT::CompatibleOutput(const SurfacePotentialT& pot1,
@@ -35,9 +48,11 @@ void SurfacePotentialT::OutputLabels(ArrayT<StringT>& labels) const
 #pragma unused(labels)
 }
 
-void SurfacePotentialT::ComputeOutput(const dArrayT& jump_u, dArrayT& output)
+void SurfacePotentialT::ComputeOutput(const dArrayT& jump, const dArrayT& state, 
+	dArrayT& output)
 {
-#pragma unused(jump_u)
+#pragma unused(jump)
+#pragma unused(state)
 #pragma unused(output)
 }
 
