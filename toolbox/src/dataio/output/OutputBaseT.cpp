@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.2 2001-12-16 23:56:27 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.3 2002-01-05 10:59:25 paklein Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "OutputBaseT.h"
@@ -139,11 +139,16 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 	}
 	else if (format == IOBaseT::kExodusII)
 	{
+		/* total number of element blocks */
+		int num_elem_blocks = 0;
+		for (int i = 0; i < fElementSets.Length(); i++)
+			num_elem_blocks += fElementSets[i]->NumBlocks();
+	
 		/* database file */
 		ExodusT exo(cout);
 		ArrayT<StringT> nothing;
 		exo.Create(file_name, fTitle, nothing, nothing, fCoordinates->MinorDim(),
-			fCoordinates->MajorDim(), NumElements(), fElementSets.Length(), 0, 0);
+			fCoordinates->MajorDim(), NumElements(), num_elem_blocks, 0, 0);
 
 		/* coordinate data */
 		exo.WriteCoordinates(*fCoordinates);
@@ -152,16 +157,16 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 		for (int i = 0; i < fElementSets.Length(); i++)
 		{
 			/* write connectivities */
-		  const iArrayT& blockIDs = fElementSets[i]->BlockID ();
-		  for (int b=0; b < fElementSets[i]->NumBlocks (); b++)
+		  const iArrayT& blockIDs = fElementSets[i]->BlockID();
+		  for (int b=0; b < fElementSets[i]->NumBlocks(); b++)
 		    {
-		      const iArray2DT* c = fElementSets[i]->Connectivities(b);
-		      iArray2DT local_connects(c->MajorDim(), c->MinorDim());
-		      iArray2DT conn = *c;
+				/* cast away const-ness to we can shift numbers */
+				iArray2DT& connects = *((iArray2DT*) fElementSets[i]->Connectivities(b));
 	
-		      conn++;
-		      exo.WriteConnectivities(blockIDs[b], fElementSets[i]->Geometry(), conn);
-		      conn--;
+				/* write to file */
+				connects++;
+				exo.WriteConnectivities(blockIDs[b], fElementSets[i]->Geometry(), connects);
+				connects--;
 		    }
 
 		}
