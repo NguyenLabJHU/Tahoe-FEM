@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.13 2003-04-05 20:09:26 thao Exp $ */
+/* $Id: FSSolidMatT.h,v 1.14 2003-11-10 18:53:59 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -116,12 +116,25 @@ public:
 	 * with an imposed thermal strain. */
 	const dMatrixT& F_mechanical_last(int ip);
 
-	/*inquire if dissipation variables used in material force calculation are needed*/
-	virtual bool HasDissipVar(void) const {return false;}
-
 	/** return the strain in the material at the current integration point. 
 	 * Returns the Green-Lagrangian strain. */
-	virtual void Strain(dSymMatrixT& strain) { Compute_E(F_mechanical(), strain); };
+	virtual void Strain(dSymMatrixT& strain) { Compute_E(F_mechanical(), strain);}
+	virtual void Stretch(dSymMatrixT& stretch) {Compute_C(F_mechanical(), stretch);}
+
+	virtual const iArrayT& InternalDOF(void) const {
+		cout << "\n InternalDOF not implement";
+		throw ExceptionT::kGeneralFail;
+		return  ijunk;};
+
+	virtual const dArrayT& InternalStressVars(void) {
+		cout << "\n InternalStressVars not implemented";
+		throw ExceptionT::kGeneralFail;
+		return  djunk;};
+
+	virtual const dArrayT& InternalStrainVars(void) {
+		cout << "\n InternalStressVars not implemented.";
+		throw ExceptionT::kGeneralFail;
+		return  djunk;};
 
 protected:
 
@@ -222,6 +235,10 @@ private:
 	/** true if temperature field found during FSSolidMatT::Initialize */
 	bool fTemperatureField;
 	dArrayT fTemperature;
+
+	/*junk arrays*/
+	iArrayT ijunk;
+	dArrayT djunk;
 };
 
 } // namespace Tahoe 
