@@ -1,4 +1,4 @@
-/* $Id: TorsionKBCT.cpp,v 1.3.32.3 2004-05-20 14:59:37 paklein Exp $ */
+/* $Id: TorsionKBCT.cpp,v 1.3.32.4 2004-05-21 21:25:57 paklein Exp $ */
 #include "TorsionKBCT.h"
 #include "NodeManagerT.h"
 #include "ifstreamT.h"
@@ -131,7 +131,7 @@ void TorsionKBCT::DefineSubs(SubListT& sub_list) const
 ParameterInterfaceT* TorsionKBCT::NewSub(const StringT& list_name) const
 {
 	if (list_name == "point_on_axis")
-		return new VectorParameterT(list_name, 3);
+		return new VectorParameterT(list_name, 'x', 3);
 	else /* inherited */	
 		return KBC_ControllerT::NewSub(list_name);
 }
@@ -153,7 +153,7 @@ void TorsionKBCT::TakeParameterList(const ParameterListT& list)
 	fAxis--;
 
 	/* point on the axis of rotation */
-	VectorParameterT vec("point_on_axis", 3);
+	VectorParameterT vec("point_on_axis", 'x', 3);
 	vec.TakeParameterList(list.GetList(vec.Name()));
 	fPoint = vec;
 
