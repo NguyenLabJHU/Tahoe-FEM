@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.17 2004-03-14 16:32:56 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.18 2004-10-04 18:41:07 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #include "AztecMatrixT.h"
 
@@ -302,14 +302,6 @@ GlobalMatrixT::EquationNumberScopeT AztecMatrixT::EquationNumberScope(void) cons
 }
 
 bool AztecMatrixT::RenumberEquations(void) const { return false; }
-
-/* assignment operator */
-GlobalMatrixT& AztecMatrixT::operator=(const AztecMatrixT& rhs)
-{
-	cout <<  "\n AztecMatrixT::operator= : not implemented" << endl;
-	throw ExceptionT::kGeneralFail;
-	return *this;
-}
 
 /* assignment operator */
 GlobalMatrixT& AztecMatrixT::operator=(const GlobalMatrixT& rhs)

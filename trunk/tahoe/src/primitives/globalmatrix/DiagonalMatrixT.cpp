@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.17 2004-03-16 06:56:28 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.18 2004-10-04 18:40:51 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "DiagonalMatrixT.h"
 #include <iostream.h>
@@ -205,31 +205,24 @@ GlobalMatrixT::EquationNumberScopeT DiagonalMatrixT::EquationNumberScope(void) c
 bool DiagonalMatrixT::RenumberEquations(void) const { return false; }
 
 /* assignment operator */
-GlobalMatrixT& DiagonalMatrixT::operator=(const DiagonalMatrixT& rhs)
+GlobalMatrixT& DiagonalMatrixT::operator=(const GlobalMatrixT& rhs)
 {
+	const char caller[] = "DiagonalMatrixT::operator=";
+
 	/* inherited */
 	GlobalMatrixT::operator=(rhs);
 
-	fMatrix = rhs.fMatrix;
-	fMode   = rhs.fMode;
-	fIsFactorized = rhs.fIsFactorized;
-	return *this;
-}
-
-/* assignment operator */
-GlobalMatrixT& DiagonalMatrixT::operator=(const GlobalMatrixT& rhs)
-{
 #ifdef __NO_RTTI__
-	cout << "\n DiagonalMatrixT::operator= : requires RTTI" << endl;
-	throw ExceptionT::kGeneralFail;
+	ExceptionT::GeneralFail(caller, "requires RTTI");
 #endif
 
 	const DiagonalMatrixT* dmat = TB_DYNAMIC_CAST(const DiagonalMatrixT*, &rhs);
-	if (!dmat) {
-		cout << "\n DiagonalMatrixT::operator= : cast failed" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-	return operator=(*dmat);
+	if (!dmat) ExceptionT::GeneralFail(caller, "cast failed");
+	fMatrix = dmat->fMatrix;
+	fMode   = dmat->fMode;
+	fIsFactorized = dmat->fIsFactorized;
+
+	return *this;
 }
 
 /** return a clone of self */

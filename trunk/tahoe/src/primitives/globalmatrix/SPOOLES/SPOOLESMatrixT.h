@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.h,v 1.16 2004-09-07 06:43:03 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.h,v 1.17 2004-10-04 18:41:02 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #ifndef _SPOOLES_MATRIX_T_H_
 #define _SPOOLES_MATRIX_T_H_
@@ -47,9 +47,6 @@ public:
 
 	/** return the form of the matrix */
 	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kNonSymmetric; };
-	
-	/** assignment operator */
-	virtual GlobalMatrixT& operator=(const SPOOLESMatrixT& rhs);
 
 	/** assignment operator */
 	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);

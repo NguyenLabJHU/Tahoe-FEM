@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.h,v 1.14 2004-06-26 06:28:18 paklein Exp $ */
+/* $Id: CCSMatrixT.h,v 1.15 2004-10-04 18:40:51 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #ifndef _CCSMATRIX_T_H_
 #define _CCSMATRIX_T_H_
@@ -88,9 +88,6 @@ public:
 
 	/* find the smallest and largest diagonal value */
 	void FindMinMaxPivot(double& min, double& max, double& abs_min, double& abs_max) const;
-
-	/** assignment operator */
-	virtual GlobalMatrixT& operator=(const CCSMatrixT& rhs);
 
 	/** assignment operator */
 	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);

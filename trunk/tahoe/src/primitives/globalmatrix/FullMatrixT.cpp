@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.16 2004-03-16 06:56:28 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.17 2004-10-04 18:40:51 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
 #include <iostream.h>
@@ -291,30 +291,23 @@ GlobalMatrixT::EquationNumberScopeT FullMatrixT::EquationNumberScope(void) const
 bool FullMatrixT::RenumberEquations(void) const { return false; }
 
 /* assignment operator */
-GlobalMatrixT& FullMatrixT::operator=(const FullMatrixT& rhs)
+GlobalMatrixT& FullMatrixT::operator=(const GlobalMatrixT& rhs)
 {
+	const char caller[] = "FullMatrixT::operator=";
+
 	/* inherited */
 	GlobalMatrixT::operator=(rhs);
 
-	fMatrix = rhs.fMatrix;
-	fIsFactorized = rhs.fIsFactorized;
-	return *this;
-}
-
-/* assignment operator */
-GlobalMatrixT& FullMatrixT::operator=(const GlobalMatrixT& rhs)
-{
 #ifdef __NO_RTTI__
-	cout << "\n FullMatrixT::operator= : requires RTTI" << endl;
-	throw ExceptionT::kGeneralFail;
+	ExceptionT::GeneralFail(caller, "requires RTTI");
 #endif
 
 	const FullMatrixT* full = TB_DYNAMIC_CAST(const FullMatrixT*, &rhs);
-	if (!full) {
-		cout << "\n FullMatrixT::operator= : cast failed" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-	return operator=(*full);
+	if (!full) ExceptionT::GeneralFail(caller, "cast failed");
+	fMatrix = full->fMatrix;
+	fIsFactorized = full->fIsFactorized;
+
+	return *this;
 }
 	
 /* return a clone of self. Caller is responsible for disposing of the matrix */

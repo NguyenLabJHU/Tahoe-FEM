@@ -1,4 +1,4 @@
-/* $Id: MSRMatrixT.h,v 1.3 2004-06-26 06:29:14 paklein Exp $ */
+/* $Id: MSRMatrixT.h,v 1.4 2004-10-04 18:40:51 paklein Exp $ */
 #ifndef _MSR_MATRIX_T_H_
 #define _MSR_MATRIX_T_H_
 
@@ -64,15 +64,9 @@ public:
 
 	/** matrix prefers optimal ordering */
 	virtual bool RenumberEquations(void) const { return false; };	
-	
-	/** \name assignment and duplication */	
-	/*@{*/
-	/** assignment operator */
-	virtual GlobalMatrixT& operator=(const MSRMatrixT& rhs);
 
 	/** assignment operator */
 	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);
-	/*@}*/
 
 protected:
 

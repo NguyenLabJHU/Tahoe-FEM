@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.10 2004-03-21 05:18:25 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.11 2004-10-04 18:40:57 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -217,14 +217,6 @@ void PSPASESMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const Array
 #pragma unused(diagonal_elMat)
 #pragma unused(eqnos)
 	ExceptionT::GeneralFail("SLUMatrix::Assemble", "diagonal not implemented");
-}
-
-/* assignment operator */
-GlobalMatrixT& PSPASESMatrixT::operator=(const PSPASESMatrixT& rhs)
-{
-#pragma unused(rhs)
-	ExceptionT::GeneralFail("PSPASESMatrixT::operator=", "not implemented");
-	return *this;
 }
 
 /* assignment operator */

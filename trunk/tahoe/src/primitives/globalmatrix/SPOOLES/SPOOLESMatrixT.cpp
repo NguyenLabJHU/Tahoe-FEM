@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.22 2004-09-07 06:43:03 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.23 2004-10-04 18:41:02 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "SPOOLESMatrixT.h"
 
@@ -77,18 +77,12 @@ void SPOOLESMatrixT::Clear(void)
 }
 
 /* assignment operator */
-GlobalMatrixT& SPOOLESMatrixT::operator=(const SPOOLESMatrixT& rhs)
-{
-#pragma unused(rhs)
-
-	ExceptionT::GeneralFail("SPOOLESMatrixT::operator=", "not implemented");
-	return *this;
-}
-
-/* assignment operator */
 GlobalMatrixT& SPOOLESMatrixT::operator=(const GlobalMatrixT& rhs)
 {
 	const char caller[] = "SPOOLESMatrixT::operator=";
+
+	/* inherited */
+	MSRMatrixT::operator=(rhs);
 
 #ifdef __NO_RTTI__
 	ExceptionT::GeneralFail(caller, "requires RTTI");
@@ -96,7 +90,10 @@ GlobalMatrixT& SPOOLESMatrixT::operator=(const GlobalMatrixT& rhs)
 
 	const SPOOLESMatrixT* sp = TB_DYNAMIC_CAST(const SPOOLESMatrixT*, &rhs);
 	if (!sp)  ExceptionT::GeneralFail(caller, "cast const SPOOLESMatrixT* failed");
-	return operator=(*sp);
+
+	ExceptionT::GeneralFail(caller, "not implemented");
+
+	return *this;
 }
 
 /** return a clone of self */

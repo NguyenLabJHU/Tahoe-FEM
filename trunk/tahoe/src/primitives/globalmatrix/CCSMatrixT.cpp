@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.22 2004-06-26 06:27:24 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.23 2004-10-04 18:40:51 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "CCSMatrixT.h"
 
@@ -389,60 +389,6 @@ int CCSMatrixT::HasNegativePivot(void) const
 }
 
 /* assignment operator */
-GlobalMatrixT& CCSMatrixT::operator=(const CCSMatrixT& RHS)
-{
-/* NOTE: when called by the copy constructor, GlobalMatrixT::operator=
- *       will be called before entering this subroutine; hence the
- *       inherited data will already be copied. This is my a more
- *       complicated test is needed to synch the memory below. */
-
-	/* no copies of self */
-	if (this != &RHS)
-	{
-		/* equation sets */
-		fEqnos = RHS.fEqnos;
-		fRaggedEqnos = RHS.fRaggedEqnos;
-	
-		/* sync memory */
-		if (!fDiags || fLocNumEQ != RHS.fLocNumEQ)
-		{
-			/* free existing */
-			delete[] fDiags;
-				
-			/* reallocate */
-			fLocNumEQ = RHS.fLocNumEQ;
-			fDiags = new int[fLocNumEQ];
-			if (!fDiags) throw ExceptionT::kOutOfMemory;
-		}
-
-		/* copy bytes */	
-		memcpy(fDiags, RHS.fDiags, sizeof(int)*fLocNumEQ);	
-	
-		/* sync memory */
-		if (!fMatrix || fNumberOfTerms != RHS.fNumberOfTerms)
-		{
-			/* free existing */
-			delete[] fMatrix;
-				
-			/* reallocate */
-			fNumberOfTerms = RHS.fNumberOfTerms;
-			fMatrix = new double[fNumberOfTerms];
-			if (!fMatrix) throw ExceptionT::kOutOfMemory;
-		}
-	
-		/* copy bytes */	
-		memcpy(fMatrix, RHS.fMatrix, sizeof(double)*fNumberOfTerms);	
-
-		/* inherited - do after since some dimensions are contained in
-		 * base class */
-		GlobalMatrixT::operator=(RHS);
-		
-		fIsFactorized = RHS.fIsFactorized;
-	}
-	
-	return *this;
-}
-
 GlobalMatrixT& CCSMatrixT::operator=(const GlobalMatrixT& rhs)
 {
 #ifdef __NO_RTTI__
@@ -453,7 +399,50 @@ GlobalMatrixT& CCSMatrixT::operator=(const GlobalMatrixT& rhs)
 	const CCSMatrixT* ccs = TB_DYNAMIC_CAST(const CCSMatrixT*, &rhs);	
 	if (!ccs) ExceptionT::GeneralFail("CCSMatrixT::operator="," cast failed");
 
-	return operator=(*ccs);
+	/* no copies of self */
+	if (this != ccs)
+	{
+		/* equation sets */
+		fEqnos = ccs->fEqnos;
+		fRaggedEqnos = ccs->fRaggedEqnos;
+	
+		/* sync memory */
+		if (!fDiags || fLocNumEQ != ccs->fLocNumEQ)
+		{
+			/* free existing */
+			delete[] fDiags;
+				
+			/* reallocate */
+			fLocNumEQ = ccs->fLocNumEQ;
+			fDiags = new int[fLocNumEQ];
+			if (!fDiags) throw ExceptionT::kOutOfMemory;
+		}
+
+		/* copy bytes */	
+		memcpy(fDiags, ccs->fDiags, sizeof(int)*fLocNumEQ);	
+	
+		/* sync memory */
+		if (!fMatrix || fNumberOfTerms != ccs->fNumberOfTerms)
+		{
+			/* free existing */
+			delete[] fMatrix;
+				
+			/* reallocate */
+			fNumberOfTerms = ccs->fNumberOfTerms;
+			fMatrix = new double[fNumberOfTerms];
+			if (!fMatrix) throw ExceptionT::kOutOfMemory;
+		}
+	
+		/* copy bytes */	
+		memcpy(fMatrix, ccs->fMatrix, sizeof(double)*fNumberOfTerms);
+		
+		/* copy flag */
+		fIsFactorized = ccs->fIsFactorized;
+	}
+
+	/* inherited - do after since some dimensions are contained in
+	 * base class */
+	return GlobalMatrixT::operator=(*ccs);
 }
 
 /* return a clone of self */
