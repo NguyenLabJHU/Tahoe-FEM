@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.18 2003-08-14 05:34:21 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.19 2003-08-18 03:49:16 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nIntegratorT.h"
@@ -11,8 +11,9 @@
 using namespace Tahoe;
 
 /* constructor */
-FieldT::FieldT(void):
+FieldT::FieldT(const FieldSupportT& field_support):
 	ParameterInterfaceT("field"),
+	fFieldSupport(field_support),
 	fnIntegrator(NULL),
 	fEquationStart(0),
 	fNumEquations(0)
@@ -229,7 +230,7 @@ void FieldT::InitStep(void)
 }
 
 /* assemble contributions to the residual */
-void FieldT::FormRHS(const FieldSupportT& support)
+void FieldT::FormRHS(void)
 {
 	/* has force bpundary conditions */
 	if (fFBC.Length() > 0)
@@ -239,7 +240,7 @@ void FieldT::FormRHS(const FieldSupportT& support)
 			fFBCValues[i] = fFBC[i].CurrentValue();	
 	
 		/* assemble */
-		support.AssembleRHS(Group(), fFBCValues, fFBCEqnos);
+		fFieldSupport.AssembleRHS(Group(), fFBCValues, fFBCEqnos);
 	}
 
 	/* KBC controllers */
@@ -252,10 +253,8 @@ void FieldT::FormRHS(const FieldSupportT& support)
 }
 
 /* assemble contributions to the tangent */
-void FieldT::FormLHS(const FieldSupportT& support, GlobalT::SystemTypeT sys_type)
+void FieldT::FormLHS(GlobalT::SystemTypeT sys_type)
 {
-#pragma unused(support)
-
 	/* KBC controllers */
 	for (int i = 0; i < fKBC_Controllers.Length(); i++)
 		fKBC_Controllers[i]->FormLHS(sys_type);
@@ -684,6 +683,69 @@ void FieldT::DefineParameters(ParameterListT& list) const
 	ParameterT integrator(ParameterT::Integer, "integrator");
 	integrator.AddLimit(0, LimitT::LowerInclusive);
 	list.AddParameter(integrator);
+}
+
+/* information about subordinate parameter lists */
+void FieldT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineSubs(sub_list);
+	
+	/* KBC controllers */
+	sub_list.AddSub("KBC_controllers", ParameterListT::Any, true);
+	
+	/* FBC controllers */
+//	sub_list.AddSub("FBC_controllers", ParameterListT::Any, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void FieldT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "KBC_controllers")
+	{
+		order = ParameterListT::Choice;
+		
+		/* K-field */
+		sub_sub_list.AddSub("K_field");	
+
+		/* torsion */
+		sub_sub_list.AddSub("torsion");	
+	}
+	else if (sub == "FBC_controllers")
+	{
+		order = ParameterListT::Choice;
+		
+		/* spherical barrier */
+		sub_sub_list.AddSub("sphere_penalty");
+
+		/* flat barrier */
+		sub_sub_list.AddSub("wall_penalty");
+	}
+	else /* inherited */
+		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
+{
+	/* non-const this */
+	FieldT* non_const_this = (FieldT*) this;
+
+	if (list_name == "K_field")
+		return fFieldSupport.NewKBC_Controller(*non_const_this, KBC_ControllerT::kK_Field);
+
+	else if (list_name == "torsion")
+		return fFieldSupport.NewKBC_Controller(*non_const_this, KBC_ControllerT::kTorsion);
+	
+	else if (list_name == "sphere_penalty")
+		return fFieldSupport.NewFBC_Controller(*non_const_this, FBC_ControllerT::kPenaltySphere);
+	
+	else if (list_name == "wall_penalty")
+		return fFieldSupport.NewFBC_Controller(*non_const_this, FBC_ControllerT::kPenaltyWall);
+	
+	else /* inherited */
+		return ParameterInterfaceT::NewSub(list_name);
 }
 
 /**********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.13 2003-08-14 05:34:21 paklein Exp $ */
+/* $Id: FieldT.h,v 1.14 2003-08-18 03:49:16 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -40,7 +40,7 @@ public:
 	      kExternal =-2  /**< node is external */ };
 
 	/** constructor */
-	FieldT(void);
+	FieldT(const FieldSupportT& field_support);
 	
 	/** destructor */
 	~FieldT(void);
@@ -125,11 +125,11 @@ public:
 	 * \param sys_type "maximum" LHS matrix type needed by the solver. The GlobalT::SystemTypeT
 	 *        enum is ordered by generality. The solver should indicate the most general
 	 *        system type that is actually needed. */
-	void FormLHS(const FieldSupportT& support, GlobalT::SystemTypeT sys_type);
+	void FormLHS(GlobalT::SystemTypeT sys_type);
 
 	/** compute RHS-side, residual force vector and assemble to solver
 	 * \param support host information */
-	void FormRHS(const FieldSupportT& support);
+	void FormRHS(void);
 	/*@}*/
 
 	/** \name update array.
@@ -281,6 +281,16 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
 	/*@}*/
 
 private:
@@ -300,6 +310,9 @@ private:
 	int SourceIndex(const StringT& ID) const;
 
 private:
+
+	/** support class */
+	const FieldSupportT& fFieldSupport;
 
 	/** solution set number */
 	int fGroup;
