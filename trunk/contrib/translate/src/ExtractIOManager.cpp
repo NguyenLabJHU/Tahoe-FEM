@@ -1,9 +1,11 @@
 
 #include "ExtractIOManager.h"
 #include "TecPlotT.h"
+#include <stdio.h>
 
 ExtractIOManager::ExtractIOManager (ostream& out) :
-  TranslateIOManager (out)
+  TranslateIOManager (out),
+  fCoords (0)
 {
 }
 
@@ -57,6 +59,19 @@ void ExtractIOManager::InitializeVariables (void)
 
   // query user as to which variables to translate
   VariableQuery (fNodeLabels, fNVUsed);
+
+  StringT answer;
+  cout << "\n Do you wish to translate coordinate values (y/n) ? ";
+  cin >> answer;
+  
+  if (answer[0] == 'y' || answer[0] == 'Y')
+    {
+      fCoords = true;
+      int numnodes;
+      fModel.CoordinateDimensions (numnodes, fCoords);
+    }
+  else
+    fCoords = 0;
 }
 
 void ExtractIOManager::InitializeNodePoints (void)
@@ -164,6 +179,8 @@ void ExtractIOManager::TranslateVariables (void)
   int numused = fNVUsed.Length();
   fModel.CoordinateDimensions (numnodes, numdims);
   dArray2DT nv (numnodes, fNumNV);
+  const dArray2DT& coords = fModel.Coordinates ();
+
   for (int t=0; t < fNumTS; t++)
     {
       if ((t+1)%check == 0 || t == fNumTS-1)
@@ -181,6 +198,8 @@ void ExtractIOManager::TranslateVariables (void)
 		ofstreamT outfile;
 		OpenFile (outfile, n, digits, ext, true);
 		outfile << fTimeSteps[t] << " ";
+		for (int ic=0; ic < fCoords; ic++)
+		  outfile << coords (fNodePointIndex[n], ic) << " ";
 		for (int g=0; g < numused; g++)
 		  outfile << nv (fNodePointIndex[n], fNVUsed[g]) << " ";
 		outfile << "\n";
@@ -195,6 +214,10 @@ void ExtractIOManager::TranslateVariables (void)
 
 void ExtractIOManager::PrepFiles (StringT& ext, int digits) const
 {
+  int numused = fNVUsed.Length() + 1;
+  if (fCoords > 0)
+    numused += fCoords;
+
   for (int i=0; i < fNumNP; i++)
     {
       ofstreamT outfile;
@@ -207,10 +230,15 @@ void ExtractIOManager::PrepFiles (StringT& ext, int digits) const
 	    ijk[0] = fNumTS;
 	    ijk[1] = 1;
 
-	    ArrayT<StringT> labels (fNVUsed.Length() + 1);
+	    ArrayT<StringT> labels (numused);
 	    labels[0] = "Time";
+	    for (int ic=0; ic < fCoords; ic++)
+	      {
+		labels[ic + 1] = "X";
+		labels[ic + 1].Append (ic+1);
+	      }
 	    for (int il=0; il < fNVUsed.Length(); il++)
-	      labels[il+1] = fNodeLabels [fNVUsed[il]];
+	      labels[il + 1 + fCoords] = fNodeLabels [fNVUsed[il]];
 
 	    TecPlotT tec (fMessage, true);
 	    tec.WriteHeader (outfile, outfile.filename(), labels);
