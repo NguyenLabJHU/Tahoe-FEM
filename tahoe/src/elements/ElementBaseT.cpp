@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.24 2002-10-23 00:18:01 cjkimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.25 2002-11-09 01:45:13 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -18,13 +18,7 @@
 
 #include "LocalArrayT.h"
 
-/* array behavior */
-
 using namespace Tahoe;
-
-namespace Tahoe {
-const bool ArrayT<const RaggedArray2DT<int>*>::fByteCopy = true;
-} /* namespace Tahoe */
 
 /* constructor */
 #ifndef _SIERRA_TEST_
@@ -95,11 +89,19 @@ GlobalT::SystemTypeT ElementBaseT::TangentType(void) const
 }
 
 #ifndef _SIERRA_TEST_
+
 /* the iteration number for the current time increment */
 const int& ElementBaseT::IterationNumber(void) const
 {
 	return ElementSupport().IterationNumber(Group());
 }
+
+/* return true if the element contributes to the group */
+bool ElementBaseT::InGroup(int group) const
+{
+	return fField.Group() == group;
+}
+
 #endif
 
 /* collect the list of element block ID's used by the element group */
