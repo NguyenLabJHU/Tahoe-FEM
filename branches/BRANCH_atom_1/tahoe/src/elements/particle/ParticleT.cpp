@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.10.2.4 2003-01-11 01:15:25 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.10.2.5 2003-01-11 22:11:39 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -223,9 +223,6 @@ void ParticleT::ReadRestart(istream& in)
 {
 	/* read counter */
 	in >> fReNeighborCounter;
-
-	/* (re-)set configuration */
-	SetConfiguration();	
 }
 
 /***********************************************************************
