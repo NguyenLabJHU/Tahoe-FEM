@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.4 2004-08-04 22:00:23 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.5 2004-09-24 23:44:25 cjkimme Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -127,7 +127,7 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 	n_values = 0.0;
 
 	/* global coordinates */
-	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
+	const dArray2DT& coords = ElementSupport().InitialCoordinates();
 
 	/* the field */
 	const FieldT& field = Field();
@@ -179,6 +179,10 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 		{
 			vec.AddScaled(*(phi_i.CurrentValue()), u(*(nodal_supp.CurrentValue())));
 		}
+
+		// Convert initial coordinates to current
+	        for (int j = 0; j < ndof; j++) 
+		  values_i[j] += vec[j];
 		
 		// Compute smoothed deformation gradient
 		Fdef = 0.0; F_33 = 0.;

@@ -1,4 +1,4 @@
-/* $Id: SS_SCNIMFT.cpp,v 1.9 2004-09-23 00:49:28 cjkimme Exp $ */
+/* $Id: SS_SCNIMFT.cpp,v 1.10 2004-09-24 23:44:25 cjkimme Exp $ */
 #include "SS_SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -20,6 +20,7 @@
 #include "SSSolidMatT.h"
 #include "SSMatSupportT.h"
 
+#define  VERIFY_INTEGRATION_CONSTRAINT
 /* materials lists */
 #include "SSSolidMatList1DT.h"
 #include "SSSolidMatList2DT.h"
@@ -130,7 +131,7 @@ void SS_SCNIMFT::WriteOutput(void)
 	n_values = 0.0;
 
 	/* global coordinates */
-	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
+	const dArray2DT& coords = ElementSupport().InitialCoordinates();
 
 	/* the field */
 	const FieldT& field = Field();
@@ -179,6 +180,10 @@ void SS_SCNIMFT::WriteOutput(void)
 		nodal_supp.Top(); phi_i.Top();
 		while (nodal_supp.Next() && phi_i.Next()) 
 			vec.AddScaled(*(phi_i.CurrentValue()), u(*(nodal_supp.CurrentValue())));
+
+		// Convert initial coords to current coordinates
+		for (int j = 0; j < ndof; j++) 
+		  values_i[j] += vec[j];
 		
 		// Compute smoothed strain
 		strain = 0.0;

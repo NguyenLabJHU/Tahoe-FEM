@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.10 2004-08-05 00:53:37 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.11 2004-09-24 23:44:24 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -129,7 +129,7 @@ void FS_SCNIMFT::WriteOutput(void)
 	n_values = 0.0;
 
 	/* global coordinates */
-	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
+	const dArray2DT& coords = ElementSupport().InitialCoordinates();
 
 	/* the field */
 	const FieldT& field = Field();
@@ -179,6 +179,10 @@ void FS_SCNIMFT::WriteOutput(void)
 		nodal_supp.Top(); phi_i.Top();
 		while (nodal_supp.Next() && phi_i.Next()) 
 			vec.AddScaled(*(phi_i.CurrentValue()), u(*(nodal_supp.CurrentValue())));
+
+		// Convert initial coordinates to current coordinates
+	        for (int j = 0; j < ndof; j++) 
+		  values_i[j] += vec[j];
 		
 		// Compute smoothed deformation gradient
 		Fdef = 0.0;
