@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.8 2002-01-02 06:38:49 paklein Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.9 2002-02-01 18:11:40 paklein Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -10,6 +10,7 @@
 #include "Array2DT.h"
 #include "dArrayT.h"
 #include "IOBaseT.h"
+#include "iArrayT.h"
 
 /* forward declarations */
 class vtkPoints;
@@ -35,10 +36,6 @@ public:
  
 	/** return the source file for the body data */
 	const StringT& SourceFile(void) const { return fInFile; };
-  
-#if 0
-	void ChangeDataColor(int);
-#endif 
 
 	/** update the data state */
 	void UpdateData(void);
@@ -76,6 +73,9 @@ public:
  	/** execute console command. \return true is executed normally */
 	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
 
+	/** return a reference to the point numbering map */
+	const iArrayT& PointNumberMap(void) const { return fPointNumberMap; };
+
  private:
  
 	/** array type conversion */
@@ -100,6 +100,9 @@ public:
   
 	/** point coordinates */
 	vtkPoints* fPoints;
+	
+	/** point numbering map */
+	iArrayT fPointNumberMap;
 
 	/* scalar data per node */
 	ArrayT<StringT> fNodeLabels; /**< labels for the nodal output variables */

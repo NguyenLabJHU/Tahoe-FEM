@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.21 2002-01-21 03:29:26 paklein Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.22 2002-02-01 18:11:41 paklein Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -25,6 +25,9 @@
 #include "VTKConsoleT.h"
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
+
+//DEBUG
+#include "vtkUnstructuredGrid.h"
 
 /* constructor */
 VTKFrameT::VTKFrameT(VTKConsoleT& console):
@@ -64,10 +67,19 @@ VTKFrameT::VTKFrameT(VTKConsoleT& console):
   iAddCommand(CommandSpecT("ResetView"));
   iAddCommand(CommandSpecT("ShowNodeNumbers"));
   iAddCommand(CommandSpecT("HideNodeNumbers"));
+  iAddCommand(CommandSpecT("ShowElementNumbers"));
+  iAddCommand(CommandSpecT("HideElementNumbers"));
   iAddCommand(CommandSpecT("ShowAxes"));
   iAddCommand(CommandSpecT("HideAxes"));
 
-	iAddCommand(CommandSpecT("ShowColorBar"));
+
+	CommandSpecT show_color_bar("ShowColorBar");
+	ArgSpecT body(ArgSpecT::string_);
+	body.SetDefault("<DEFAULT>");
+	body.SetPrompt("body to reference scalar range");
+	show_color_bar.AddArgument(body);
+	iAddCommand(show_color_bar);
+
 	iAddCommand(CommandSpecT("HideColorBar"));
 
   CommandSpecT rotate("Rotate", false);
@@ -125,9 +137,14 @@ VTKFrameT::VTKFrameT(VTKConsoleT& console):
   iAddCommand(add_body);
 
   CommandSpecT rem_body("RemoveBody");
-  add_body.SetPrompter(this);
+  rem_body.SetPrompter(this);
   rem_body.AddArgument(body_num);
   iAddCommand(rem_body);
+  
+	/* commands */
+  	iAddCommand(CommandSpecT("Wire"));
+  	iAddCommand(CommandSpecT("Surface"));
+  	iAddCommand(CommandSpecT("Point"));
 }
 
 /* destructor */
@@ -155,16 +172,21 @@ void VTKFrameT::ResetView(void)
   fRenderer->GetActiveCamera()->ComputeViewPlaneNormal();
   fRenderer->GetActiveCamera()->SetViewUp(0,1,0);
   fRenderer->GetActiveCamera()->OrthogonalizeViewUp();
-  fRenderer->GetActiveCamera()->Zoom(0.85);
   fRenderer->ResetCamera();
 }
 
 bool VTKFrameT::AddBody(VTKBodyDataT* body_data)
 {
+	/* look for matching body data */
+	bool match = false;
+	for (int i = 0; !match && i < bodies.Length(); i++)
+		match = bodies[i]->BodyData() == body_data;
+	
 	/* add body to the list */
-	VTKBodyT* new_body = new VTKBodyT(this, body_data);
-	if (bodies.AppendUnique(new_body))
+	if (!match)
 	{
+		VTKBodyT* new_body = new VTKBodyT(this, body_data);
+		bodies.Append(new_body);
 		new_body->AddToFrame();
 		iAddSub(*new_body);
 		
@@ -264,40 +286,104 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
       return fConsole.iDoCommand(command, line);
   else if (command.Name() == "Save")
       return fConsole.iDoCommand(command, line);
+  else if (command.Name() == "Wire")
+  {
+	bool OK = true;
+  	for (int i = 0; OK && i < bodies.Length(); i++)
+  	{
+  		const CommandSpecT* comm = bodies[i]->iResolveCommand(command.Name(), line);
+  		if (!comm) return false;
+  		OK = bodies[i]->iDoCommand(*comm, line);
+  	}
+  	return OK;
+  }  
+  else if (command.Name() == "Surface")
+  {
+	bool OK = true;
+  	for (int i = 0; OK && i < bodies.Length(); i++)
+  	{
+  		const CommandSpecT* comm = bodies[i]->iResolveCommand(command.Name(), line);
+  		if (!comm) return false;
+  		OK = bodies[i]->iDoCommand(*comm, line);
+  	}
+  	return OK;
+  }
+  else if (command.Name() == "Point")
+  {
+	bool OK = true;
+  	for (int i = 0; OK && i < bodies.Length(); i++)
+  	{
+  		const CommandSpecT* comm = bodies[i]->iResolveCommand(command.Name(), line);
+  		if (!comm) return false;
+  		OK = bodies[i]->iDoCommand(*comm, line);
+  	}
+  	return OK;
+  }
   else if (command.Name() == "ShowColorBar")
   {
-  	if (bodies.Length() == 0)
-		return false;
-	else if (scalarBar)
-	{
-		cout << "hide scalar bar first" << endl;
+  	if (bodies.Length() == 0) {
+  		cout << "frame must contain bodies to show color bar" << endl;
 		return false;
 	}
 	else
   	{
-  		/* use the first body */
-  		VTKBodyDataT* body_data = bodies[0]->BodyData();
+  		StringT body;
+		command.Argument(0).GetValue(body);  	
+  	
+  		/* use default */
+  		VTKBodyDataT* body_data = NULL;
+  		if (body == "<DEFAULT>")
+  		{
+  			/* scalar bar is already showing */
+  			if (scalarBar) {
+				cout << "hide scalar bar first or prescribe a body name" << endl;
+  				return false;
+  			}
+  			else
+  			{
+  				body_data = bodies[0]->BodyData();
+  				cout << "using look up table from body " << body_data->iName() << endl;
+  			}
+  		}
+  		else
+  		{
+  			/* loop over bodies */
+  			for (int i = 0;!body_data && i < bodies.Length(); i++)
+				if (body == bodies[i]->BodyData()->iName())
+  					body_data = bodies[i]->BodyData();
+  		
+  			/* failed */
+  			if (!body_data) {
+  				cout << "could not find body " << body << endl;
+  				return false;
+  			}
+  		}
   		
   		/* get grids */
   		const ArrayT<VTKUGridT*>& ugrids = body_data->UGrids();
-  		if (ugrids.Length() == 0) return false;
+  		if (ugrids.Length() == 0) {
+  			cout << "body is empty" << endl;
+  			return false;
+  		}
   	
 		/* new scalar bar */
-  		scalarBar = vtkScalarBarActor::New();
+		if (!scalarBar) {
+			scalarBar = vtkScalarBarActor::New();
+			fRenderer->AddActor(scalarBar);
+		}
 
 		/* get lut from first grid */
 		scalarBar->SetLookupTable(ugrids[0]->GetLookupTable());
 
+		/* set up color bar */
 		const StringT& var_name = (body_data->NodeLabels())[body_data->CurrentVariableNumber()];
 		scalarBar->SetTitle(var_name);
-		
 		scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
 		scalarBar->GetPositionCoordinate()->SetValue(0.1,0.01);
 		scalarBar->SetOrientationToHorizontal();
 		scalarBar->SetWidth(0.8); 
 		scalarBar->SetHeight(0.17);
 		
-		fRenderer->AddActor(scalarBar);
 		Render();
 		return true;
   	}
@@ -398,6 +484,29 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 			return true;
     	}    
     }
+  	else if (command.Name() == "ShowElementNumbers")
+    {
+    	if (bodies.Length() == 0)
+    		return false;
+    	else
+    	{
+    		/* command spec */
+    		CommandSpecT* show = bodies[0]->iCommand("ShowElementNumbers");
+    		if (!show)
+    		{
+    			cout << "command not found" << endl;
+    			return false;
+    		}
+    	
+    		/* labels ON */
+    		StringT tmp;
+    		for (int i = 0; i < bodies.Length(); i++)
+    			bodies[i]->iDoCommand(*show, tmp);
+
+			Render();
+			return true;
+    	}    
+    }
 	else if (command.Name() == "HideNodeNumbers")
     {
     	if (bodies.Length() == 0)
@@ -406,6 +515,29 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
     	{
     		/* command spec */
     		CommandSpecT* hide = bodies[0]->iCommand("HideNodeNumbers");
+    		if (!hide)
+    		{
+    			cout << "command not found" << endl;
+    			return false;
+    		}
+    	
+    		/* labels OFF */
+    		StringT tmp;
+    		for (int i = 0; i < bodies.Length(); i++)
+    			bodies[i]->iDoCommand(*hide, tmp);
+
+			Render();
+			return true;
+    	}    
+	}
+	else if (command.Name() == "HideElementNumbers")
+    {
+    	if (bodies.Length() == 0)
+    		return false;
+    	else
+    	{
+    		/* command spec */
+    		CommandSpecT* hide = bodies[0]->iCommand("HideElementNumbers");
     		if (!hide)
     		{
     			cout << "command not found" << endl;
@@ -487,9 +619,16 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
     {
     	double factor;
     	command.Argument(0).GetValue(factor);
-      fRenderer->GetActiveCamera()->Zoom(factor);
-      Render();
-      return true;
+//      fRenderer->GetActiveCamera()->Zoom(factor); // changes view angle, not distance.
+
+//		double distance = fRenderer->GetActiveCamera()->GetDistance();
+//		fRenderer->GetActiveCamera()->SetDistance(factor*distance);
+
+		fRenderer->GetActiveCamera()->Dolly(factor);
+		fRenderer->ResetCameraClippingRange();
+
+      	Render();
+      	return true;
     }
     /* based on vtkInteractorStyle::PanCamera */
 	else if (command.Name() == "Pan")
@@ -579,8 +718,19 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 		bool changed = false;
 		StringT var;
 		command.Argument(0).GetValue(var);
+
+		cout << "\n variable: " << var << endl;
 		for (int i = 0; i < bodies.Length(); i++)
-			changed = changed || bodies[i]->ChangeVars(var);
+		{
+			cout << setw(15) << bodies[i]->iName() << ": ";
+			if (bodies[i]->ChangeVars(var))
+			{
+				cout << "found" << endl;
+				changed = true;
+			}
+			else
+				cout << "not found" << endl;
+		}
 			
 		/* none found */
 		if (!changed) {

@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.39 2002-01-21 03:29:26 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.40 2002-02-01 18:11:41 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -137,6 +137,11 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 	command = fFrames[0]->iCommand("ResetView");
 	if (!command) throw eGeneralFail;
 	iAddCommand(*command);
+	
+	/* representation */
+  	iAddCommand(CommandSpecT("Wire"));
+  	iAddCommand(CommandSpecT("Surface"));
+  	iAddCommand(CommandSpecT("Point"));
 
 	/* look for command line options */
 	int index, start = 0;
@@ -243,6 +248,39 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
   				return false;
   			}
   		}
+  }
+  else if (command.Name() == "Wire")
+  {
+	bool OK = true;
+  	for (int i = 0; OK && i < fBodies.Length(); i++)
+  	{
+  		const CommandSpecT* comm = fBodies[i]->iResolveCommand(command.Name(), line);
+  		if (!comm) return false;
+  		OK = fBodies[i]->iDoCommand(*comm, line);
+  	}
+  	return OK;
+  }  
+  else if (command.Name() == "Surface")
+  {
+	bool OK = true;
+  	for (int i = 0; OK && i < fBodies.Length(); i++)
+  	{
+  		const CommandSpecT* comm = fBodies[i]->iResolveCommand(command.Name(), line);
+  		if (!comm) return false;
+  		OK = fBodies[i]->iDoCommand(*comm, line);
+  	}
+  	return OK;
+  }
+  else if (command.Name() == "Point")
+  {
+	bool OK = true;
+  	for (int i = 0; OK && i < fBodies.Length(); i++)
+  	{
+  		const CommandSpecT* comm = fBodies[i]->iResolveCommand(command.Name(), line);
+  		if (!comm) return false;
+  		OK = fBodies[i]->iDoCommand(*comm, line);
+  	}
+  	return OK;
   }
   else if (command.Name() == "Layout")
 	{
