@@ -13,21 +13,19 @@ namespace Tahoe
  *  the Consistency Condition in weak form 
  **/
 
-
 class MFGP_Con_EqT : public MFGP_PlastT
 {
 
 public:
 	
- 	MFGP_Con_EqT	( void ) { }
-								
-	MFGP_Con_EqT	( int&, MeshFreeShapeFunctionT&, MeshFreeShapeFunctionT&, GRAD_MRSSKStV&,
+	/* constructor */
+ 	MFGP_Con_EqT ( int&, MeshFreeShapeFunctionT&, MeshFreeShapeFunctionT&, GRAD_MRSSKStV&,
 				int &fTime_Step, double fdelta_t = 0.0);
-
-	void  	Initialize	( int &in_sd, int &in_en_displ, int &in_en_plast, int &in_state, int &in_str, 
-							int Initial_Time_Step=1 );
-
-	void 	Construct 	( int&, MeshFreeShapeFunctionT&, MeshFreeShapeFunctionT&, GRAD_MRSSKStV&,  
+ 	
+ 	/* destructor */
+ 	~MFGP_Con_EqT ( void );
+								
+	void 	Initialize 	( int&, MeshFreeShapeFunctionT&, MeshFreeShapeFunctionT&, GRAD_MRSSKStV&,  
 						int &fTime_Step, double fdelta_t = 0.0); 
   	void 	Form_LHS_Ku_Klambda	( dMatrixT &Ku, dMatrixT &Klambda ); 
   	void 	Form_RHS_F_int		( dArrayT &F_int ); 
@@ -45,6 +43,8 @@ public:
   		dMatrixT Clamu1, Clamu2;
   		double Clamlam1, Clamlam2;
   		double yield;
+  		dMatrixT moduli;
+		dSymMatrixT stress;
 			
 	protected:
 

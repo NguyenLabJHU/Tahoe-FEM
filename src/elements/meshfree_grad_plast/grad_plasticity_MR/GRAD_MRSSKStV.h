@@ -24,6 +24,9 @@ class GRAD_MRSSKStV: public SSIsotropicMatT, public HookeanMatT
 	
 	/* destructor */
 	~GRAD_MRSSKStV(void);
+	
+	/* pass necessary gradients of kinematics */
+	//void GrabGradients ( );
 
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -36,6 +39,9 @@ class GRAD_MRSSKStV: public SSIsotropicMatT, public HookeanMatT
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
+	
+	/* initialize laplacian of strain and lambda, and lambda, all at ip */
+	void Initialize(dSymMatrixT& strain_lapl_ip, dArrayT& lambda_ip, dArrayT& lambda_lapl_ip)
 
 	/** returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(
@@ -95,12 +101,15 @@ class GRAD_MRSSKStV: public SSIsotropicMatT, public HookeanMatT
 protected:
 
 	/* set modulus */
- 	virtual void SetModulus(dMatrixT& modulus); 
-         int loccheck;
+	virtual void SetModulus(dMatrixT& modulus); 
+	int loccheck;
+	
+	dSymMatrixT	Strain_Lapl_IP;
+    dArrayT lambda, lambda_Lapl;
  
-  private:
+private:
   
-  /** pressure sensitive plasticity with nonlinear hardening and localization*/
+	/** pressure sensitive plasticity with nonlinear hardening and localization*/
 	GRAD_MRSSNLHardT* fGRAD_MR;
   
   	/* return values */

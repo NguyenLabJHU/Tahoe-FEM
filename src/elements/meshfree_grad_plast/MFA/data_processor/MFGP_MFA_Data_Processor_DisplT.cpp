@@ -3,29 +3,23 @@
 
 using namespace Tahoe;
 
-//---------------------------------------------------------------------
-
-MFGP_MFA_Data_Processor_DisplT::MFGP_MFA_Data_Processor_DisplT() { };
-
-//---------------------------------------------------------------------
-
-MFGP_MFA_Data_Processor_DisplT::~MFGP_MFA_Data_Processor_DisplT() { };
-
+/* constructor */
 MFGP_MFA_Data_Processor_DisplT::MFGP_MFA_Data_Processor_DisplT( dArray2DT &fdNdx, dArray2DT &fd3Ndx3 ) 
 {
-	Construct ( fdNdx, fd3Ndx3 );
+	//Initialize ( fdNdx, fd3Ndx3 );
 }
 
-//---------------------------------------------------------------------
+/* destructor */
+MFGP_MFA_Data_Processor_DisplT::~MFGP_MFA_Data_Processor_DisplT();
 
-void MFGP_MFA_Data_Processor_DisplT::Construct ( dArray2DT &fdNdx, dArray2DT &fd3Ndx3 )  
+/* initialize local variables */
+void MFGP_MFA_Data_Processor_DisplT::Initialize ( dArray2DT &fdNdx, dArray2DT &fd3Ndx3 )  
 {
 	dN = fdNdx;
 	d3N = fd3Ndx3;
 }
 
 
-//---------------------------------------------------------------------
 /* First Derivative of the Displacement Shape Function: [nsd] x [nnd] */ 
 //fDphi has three components  
 void MFGP_MFA_Data_Processor_DisplT::Set_B1( dMatrixT& B1 )

@@ -16,15 +16,18 @@ class MFGP_MFA_Data_Processor_DisplT
 	{
 	public:
 
-		 MFGP_MFA_Data_Processor_DisplT(); 
-		~MFGP_MFA_Data_Processor_DisplT(); 
-		 
+		/* constructor */
 		MFGP_MFA_Data_Processor_DisplT ( dArray2DT &fdNdx, dArray2DT &fd3Ndx3 ); //   ??MLSSolverGPT::SetShapeFunctions(const dArrayT& volume) )
 		
-		void Construct ( dArray2DT &fdNdx, dArray2DT &fd3Ndx3 ); //   ??MLSSolverGPT::SetShapeFunctions(const dArrayT& volume) )
+		/* destructor */
+		~MFGP_MFA_Data_Processor_DisplT();
+		
+		void Initialize ( dArray2DT &fdNdx, dArray2DT &fd3Ndx3 ); //   ??MLSSolverGPT::SetShapeFunctions(const dArrayT& volume) )
         
 		void Set_B1 (dMatrixT &B1);
 		void Set_B3 (dMatrixT &B3);
+	
+	protected:
 		
 		dArray2DT dN, d3N;
 	};

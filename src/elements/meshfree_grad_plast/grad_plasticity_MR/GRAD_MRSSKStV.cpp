@@ -59,6 +59,14 @@ void GRAD_MRSSKStV::ResetHistory(void)
 	if (element.IsAllocated()) fGRAD_MR->Reset(element);
 }
 
+/* initialize laplacian of strain and lambda, and lambda, all at ip */
+void GRAD_MRSSKStV::Initialize(dSymMatrixT& strain_lapl_ip, dArrayT& lambda_ip, dArrayT& lambda_lapl_ip)
+{
+	Strain_Lapl_IP = strain_lapl_ip;
+    lambda = lambda_ip;
+    lambda_Lapl = lambda_lapl_ip;
+}
+
 const dSymMatrixT& GRAD_MRSSKStV::ElasticStrain(const dSymMatrixT& totalstrain, const ElementCardT& element, int ip) 
 {
 	return fGRAD_MR->ElasticStrain(totalstrain, element, ip);
@@ -68,7 +76,6 @@ const dSymMatrixT& GRAD_MRSSKStV::LapElasticStrain(const dSymMatrixT& lap_totals
 {
 	return fGRAD_MR->LapElasticStrain(lap_totalstrain, element, ip);
 }
-
 
 /* modulus */
 const dMatrixT& GRAD_MRSSKStV::c_ijkl(void)

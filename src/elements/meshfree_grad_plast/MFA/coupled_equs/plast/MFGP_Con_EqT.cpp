@@ -3,18 +3,19 @@
 
 using namespace Tahoe;
 
+/* constructor */
 MFGP_Con_EqT::MFGP_Con_EqT (int &curr_ip, MeshFreeShapeFunctionT &Shapes_displ, MeshFreeShapeFunctionT &Shapes_plast, 
 							GRAD_MRSSKStV &GRAD_MR_Plast_Mat, 
 							int &fTime_Step, double fdelta_t) 
 {
-	Construct (curr_ip, Shapes_displ, Shapes_plast, GRAD_MR_Plast_Mat, fTime_Step, fdelta_t);
+	//Initialize (curr_ip, Shapes_displ, Shapes_plast, GRAD_MR_Plast_Mat, fTime_Step, fdelta_t);
 }
 
 /* destructor */
 MFGP_Con_EqT::~MFGP_Con_EqT(void) { }
 
-/* constructor */
-void MFGP_Con_EqT::Construct (int &curr_ip, MeshFreeShapeFunctionT &Shapes_displ, MeshFreeShapeFunctionT &Shapes_plast, 
+/* set dims, derivs, and variables needed */
+void MFGP_Con_EqT::Initialize (int &curr_ip, MeshFreeShapeFunctionT &Shapes_displ, MeshFreeShapeFunctionT &Shapes_plast, 
 							GRAD_MRSSKStV &GRAD_MR_Plast_Mat,					
 							int &fTime_Step, double fdelta_t) 
 {
@@ -35,11 +36,15 @@ void MFGP_Con_EqT::Construct (int &curr_ip, MeshFreeShapeFunctionT &Shapes_displ
 
 	delta_t = fdelta_t;
 	
-	Data_Pro_Displ.Construct ( Shapes_displ.Derivatives_U(curr_ip), Shapes_displ.DDDerivatives_U(curr_ip) );
+	Data_Pro_Displ.Initialize ( Shapes_displ.Derivatives_U(curr_ip), Shapes_displ.DDDerivatives_U(curr_ip) );
 	//Data_Pro_Displ.Construct ( Shapes_displ.Dphi );
 	
-	Data_Pro_Plast.Construct ( Shapes_displ.IPShapeU(curr_ip), Shapes_displ.DDerivatives_U(curr_ip)	);
+	Data_Pro_Plast.Initialize ( Shapes_displ.IPShapeU(curr_ip), Shapes_displ.DDerivatives_U(curr_ip)	);
 	//Data_Pro_Plast.Construct ( Shapes_plast.Dphi	);
+
+	stress = GRAD_MR_Plast.s_ij();
+	yield = GRAD_MR_Plast.YieldF();
+	moduli = GRAD_MR_Plast.c_ijkl();
 
 	Form_C_List		( GRAD_MR_Plast_Mat );
 	Form_B_List		(  );
@@ -113,11 +118,6 @@ void MFGP_Con_EqT::Form_C_List (GRAD_MRSSKStV &GRAD_MR_Plast)
 		//Clamlam1.Dimension(1); 
 		//Clamlam2.Dimension(1);
 		
-		dMatrixT moduli = GRAD_MR_Plast.c_ijkl();
-		dSymMatrixT stress = GRAD_MR_Plast.s_ij();
-		
-		yield = GRAD_MR_Plast.YieldF();
-
 		//retrive Cgep/fmoduli, and form the 8 C matrices
 		//pass the fModuli from the constitutive model
 		for (i=0; i<=7; ++i)

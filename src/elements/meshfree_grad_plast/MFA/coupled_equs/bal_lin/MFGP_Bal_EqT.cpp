@@ -1,20 +1,20 @@
-// $Id: MFGP_Bal_EqT.cpp,v 1.2 2004-08-09 23:42:30 raregue Exp $
+// $Id: MFGP_Bal_EqT.cpp,v 1.3 2004-08-10 23:14:07 raregue Exp $
 #include "MFGP_Bal_EqT.h" 
 
 using namespace Tahoe;
 
+/* constructor */
 MFGP_Bal_EqT::MFGP_Bal_EqT ( int &curr_ip, MeshFreeShapeFunctionT &Shapes_displ, MeshFreeShapeFunctionT &Shapes_plast, 
 							GRAD_MRSSKStV &GRAD_MR_Plast_Mat, 
 							int &fTime_Step, double fdelta_t) 
 {
-	Construct (curr_ip, Shapes_displ, Shapes_plast, GRAD_MR_Plast_Mat, fTime_Step, fdelta_t);
+	//Initialize (curr_ip, Shapes_displ, Shapes_plast, GRAD_MR_Plast_Mat, fTime_Step, fdelta_t);
 }
 
 /* destructor */
 MFGP_Bal_EqT::~MFGP_Bal_EqT(void) { }
 
-/* constructor */
-void MFGP_Bal_EqT::Construct (int &curr_ip, MeshFreeShapeFunctionT &Shapes_displ, MeshFreeShapeFunctionT &Shapes_plast, 
+void MFGP_Bal_EqT::Initialize (int &curr_ip, MeshFreeShapeFunctionT &Shapes_displ, MeshFreeShapeFunctionT &Shapes_plast, 
 							GRAD_MRSSKStV &GRAD_MR_Plast_Mat,
 							int &fTime_Step, double fdelta_t) 
 {
@@ -27,18 +27,14 @@ void MFGP_Bal_EqT::Construct (int &curr_ip, MeshFreeShapeFunctionT &Shapes_displ
 
 	delta_t = fdelta_t;
 	
-	Data_Pro_Displ.Construct ( Shapes_displ.Derivatives_U(curr_ip), Shapes_displ.DDDerivatives_U(curr_ip) ); //??
-	//Data_Pro_Displ.Construct ( Shapes_displ.Dphi );
+	Data_Pro_Displ.Initialize ( Shapes_displ.Derivatives_U(curr_ip), Shapes_displ.DDDerivatives_U(curr_ip) ); //??
+	//Data_Pro_Displ.Initialize ( Shapes_displ.Dphi );
 	
-	Data_Pro_Plast.Construct ( Shapes_displ.IPShapeU(curr_ip), Shapes_displ.DDerivatives_U(curr_ip)	); //??
-	//Data_Pro_Plast.Construct ( Shapes_plast.Dphi	);
+	Data_Pro_Plast.Initialize ( Shapes_displ.IPShapeU(curr_ip), Shapes_displ.DDerivatives_U(curr_ip)	); //??
+	//Data_Pro_Plast.Initialize ( Shapes_plast.Dphi	);
 	
-	//solve constitutive equations once here in MFGP_Bal_EqT constructor
-	//what gets calculated here since lambda is being solved globally???
-	
-	
-	
-	
+	stress = GRAD_MR_Plast.s_ij();
+	moduli = GRAD_MR_Plast.c_ijkl();
 	
 	Form_C_List		( GRAD_MR_Plast_Mat );
 	Form_B_List		(  );
@@ -95,9 +91,6 @@ void MFGP_Bal_EqT::Form_C_List (GRAD_MRSSKStV &GRAD_MR_Plast)
 		Culam1.Dimension(6,1); Culam2.Dimension(6,1);
 		Clamu1.Dimension(1,6); Clamu2.Dimension(1,6);
 		//Clamlam1.Dimension(1); Clamlam2.Dimension(1);
-		
-		dMatrixT moduli = GRAD_MR_Plast.c_ijkl();
-		stress = GRAD_MR_Plast.s_ij();
 		
 		//retrive Cgep/fmoduli, and form the 8 C matrices
 		//pass the moduli from the constitutive model

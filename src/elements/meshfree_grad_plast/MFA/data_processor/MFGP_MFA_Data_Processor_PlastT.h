@@ -14,15 +14,18 @@ class MFGP_MFA_Data_Processor_PlastT
 	{
 	public:
 
-		 MFGP_MFA_Data_Processor_PlastT(); 
-		~MFGP_MFA_Data_Processor_PlastT(); 
-		
+		/* contructor */
 		MFGP_MFA_Data_Processor_PlastT( double &fN, dArray2DT &fd2Ndx2 );
 
-		void Construct ( double &fN, dArray2DT &fd2Ndx2 );
+		/* destructor */
+		~MFGP_MFA_Data_Processor_PlastT(); 
+		
+		void Initialize ( double &fN, dArray2DT &fd2Ndx2 );
                         
         void Set_phi (dMatrixT &phi);
 		void Set_B4 (dMatrixT &B4);
+		
+	protected:
 		
 		double N;
 		dArray2DT d2N;

@@ -17,12 +17,14 @@ public:
 
 	enum Eqn_TypeT { kMFGP_Bal_Eq };
 
-	MFGP_BalLinMomT ( void ) { }
-	virtual ~MFGP_BalLinMomT ( void ) { }
+	/* constructor */
+	MFGP_BalLinMomT ( void );
+	
+	/* destructor */
+	virtual ~MFGP_BalLinMomT ( void );
 
 	/** Pure virtual functions */
-
-	virtual void Construct (int&, MeshFreeShapeFunctionT&, MeshFreeShapeFunctionT&, GRAD_MRSSKStV&, 
+	virtual void Initialize (int&, MeshFreeShapeFunctionT&, MeshFreeShapeFunctionT&, GRAD_MRSSKStV&, 
 							int	&fTime_Step, double fdelta_t = 0.0) =0;
 	virtual void Form_LHS_Klambda_Ku ( dMatrixT &Klambda, dMatrixT &Ku ) =0; 
   	virtual void Form_RHS_F_int	( dArrayT  &F_int  ) =0; 

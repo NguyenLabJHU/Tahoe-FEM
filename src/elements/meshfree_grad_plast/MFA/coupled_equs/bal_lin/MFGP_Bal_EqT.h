@@ -1,4 +1,4 @@
-// $Id: MFGP_Bal_EqT.h,v 1.2 2004-08-09 23:42:30 raregue Exp $
+// $Id: MFGP_Bal_EqT.h,v 1.3 2004-08-10 23:14:07 raregue Exp $
 #ifndef _MFGP_BAL_EQ_T_H_ 
 #define _MFGP_BAL_EQ_T_H_ 
 
@@ -17,13 +17,15 @@ class MFGP_Bal_EqT	: public MFGP_BalLinMomT
 {
 	public:
 
-		MFGP_Bal_EqT 	( void ) { } 
-
+		/* constructor */
 		MFGP_Bal_EqT 	( int&, MeshFreeShapeFunctionT&, MeshFreeShapeFunctionT&, 
 						GRAD_MRSSKStV&,  
 						int &fTime_Step, double fdelta_t = 0.0);
+		
+		/* destructor */				
+		~MFGP_Bal_EqT 	( void );
 
-		void 	Construct 	( int&, MeshFreeShapeFunctionT&, MeshFreeShapeFunctionT&, 
+		void 	Initialize 	( int&, MeshFreeShapeFunctionT&, MeshFreeShapeFunctionT&, 
 							GRAD_MRSSKStV&, 
 							int &fTime_Step, double fdelta_t = 0.0); 
 
@@ -49,6 +51,7 @@ class MFGP_Bal_EqT	: public MFGP_BalLinMomT
 		int time_step;
 		
 		dSymMatrixT stress;
+		dMatrixT moduli;
 
 		int ip, n_rows_vector, n_rows_matrix, n_cols_matrix, n_sd, n_en_displ, n_en_plast, n_sd_x_n_sd, 
 			n_sd_x_n_en_displ, n_sd_x_n_en_plast, Time_Integration_Scheme;

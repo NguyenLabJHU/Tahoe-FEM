@@ -3,34 +3,27 @@
 
 using namespace Tahoe;
 
-//---------------------------------------------------------------------
-
-MFGP_MFA_Data_Processor_PlastT::MFGP_MFA_Data_Processor_PlastT() { };
-
-//---------------------------------------------------------------------
-
-MFGP_MFA_Data_Processor_PlastT::~MFGP_MFA_Data_Processor_PlastT() { };
-
-
+/* constructor */
 MFGP_MFA_Data_Processor_PlastT::MFGP_MFA_Data_Processor_PlastT( double &fN, dArray2DT &fd2Ndx2 ) 
 {
-	Construct ( fN, fd2Ndx2 );
+	//Initialize ( fN, fd2Ndx2 );
 }
 
-//---------------------------------------------------------------------
+/* destructor */
+MFGP_MFA_Data_Processor_PlastT::~MFGP_MFA_Data_Processor_PlastT();
 
-void MFGP_MFA_Data_Processor_PlastT::Construct ( double &fN, dArray2DT &fd2Ndx2 )  
+
+/* initialize local variables */
+void MFGP_MFA_Data_Processor_PlastT::Initialize ( double &fN, dArray2DT &fd2Ndx2 )  
 {
 	N = fN;
 	d2N = fd2Ndx2;
 }
 
 
-//---------------------------------------------------------------------
 /* shape function of plastic multiplier */
 // dof of lambda = 1 ??
 // could be directly passed from the MLSSolverGP class??
-
 void MFGP_MFA_Data_Processor_PlastT::Set_phi( dMatrixT &phi ) 
 {
 	int nnd = N.MinorDim(); //??
@@ -39,9 +32,7 @@ void MFGP_MFA_Data_Processor_PlastT::Set_phi( dMatrixT &phi )
 	  	*pphi++ = *N++;		
 }
 
-//---------------------------------------------------------------------
 /* Laplacian of the shape function of plastic multiplier */
-
 void MFGP_MFA_Data_Processor_PlastT::Set_B4( dMatrixT &B4 )  
 {
 #if __option(extended_errorcheck)
