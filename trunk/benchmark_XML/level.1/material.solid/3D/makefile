@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.9 2004-07-27 03:17:05 paklein Exp $
+# $Id: makefile,v 1.10 2004-08-01 20:37:08 paklein Exp $
 #
 # type "make clean" to remove test results
 #
@@ -27,6 +27,9 @@ material.21 \
 material.22 \
 material.24 \
 material.25 \
+material.80 \
+material.81 \
+material.90 \
 material.110
 
 all:
