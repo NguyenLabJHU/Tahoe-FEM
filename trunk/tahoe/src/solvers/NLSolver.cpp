@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.25 2003-09-03 23:46:46 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.26 2003-09-22 02:02:49 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -375,7 +375,7 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 	int d_width = cout.precision() + kDoubleExtra;
 
 	/* write convergence output */
-	if (++fIterationOutputCount == fIterationOutputIncrement)
+	if (++fIterationOutputCount >= fIterationOutputIncrement)
 	{
 		fFEManager.WriteOutput(double(fNumIteration));
 		fIterationOutputCount = 0;
