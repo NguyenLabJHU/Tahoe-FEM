@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.35.2.7 2004-03-16 19:33:00 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.35.2.8 2004-03-18 18:03:30 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -1304,8 +1304,8 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 		return material_list;
 		
 	/* try geometry */
-	ParameterInterfaceT* geometry = GeometryT::NewGeometry(list_name);
-	if (list_name)
+	ParameterInterfaceT* geometry = GeometryT::New(list_name);
+	if (geometry)
 		return geometry;
 
 	/* body force */

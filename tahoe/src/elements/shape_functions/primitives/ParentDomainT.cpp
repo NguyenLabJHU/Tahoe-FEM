@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.22 2003-11-22 06:45:56 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.22.4.1 2004-03-18 18:03:31 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -33,7 +33,7 @@ ParentDomainT::ParentDomainT(GeometryT::CodeT geometry_code, int numIP, int numn
 		fDNa[i].Dimension(fNumSD, fNumNodes);
 		
 	/* initialize parent domain geometry */
-	fGeometry = GeometryT::NewGeometry(fGeometryCode, fNumNodes);
+	fGeometry = GeometryT::New(fGeometryCode, fNumNodes);
 }
 
 /* destructor */
