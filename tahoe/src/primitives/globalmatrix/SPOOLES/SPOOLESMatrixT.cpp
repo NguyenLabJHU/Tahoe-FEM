@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.3 2001-09-17 22:01:01 strohban Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.4 2001-09-17 22:37:38 strohban Exp $ */
 /* created: paklein (09/13/2000)                                          */
 /* SPOOLES matrix solver                                                  */
 
@@ -393,7 +393,7 @@ throw;
  
 #ifdef __SPOOLES_MT__
  /* call MT driver, __NUM_THREADS__ comes from make macro */
- cout << "Using MT driver with " << __NUM_THREADS__ << " threads" << endl;
+ //cout << "Using MT driver with " << __NUM_THREADS__ << " threads" << endl;
 
  OK = LU_MT_driver(msglvl, SPOOLES_FILE, matrix_type, symmetry_flag,
 		   pivoting_flag, seed, result.Length(), result.Pointer(),
@@ -402,7 +402,7 @@ throw;
 #endif
  
 #ifndef __SPOOLES_MT__
- cout << "Using SERIAL driver" << endl;
+ //cout << "Using SERIAL driver" << endl;
  OK = LU_serial_driver(msglvl, SPOOLES_FILE, matrix_type, symmetry_flag,
 		       pivoting_flag, seed, result.Length(), result.Pointer(),
 		       r.Length(), r.Pointer(), c.Pointer(), v.Pointer());
