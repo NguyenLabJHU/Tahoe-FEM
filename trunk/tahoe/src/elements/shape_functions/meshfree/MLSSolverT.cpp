@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.cpp,v 1.3 2001-06-20 17:57:57 hspark Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.4 2001-06-20 22:53:18 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #include "MLSSolverT.h"
@@ -71,8 +71,10 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 		}
 		case MeshFreeT::kBrick:
 		{
-			fWindow = new RectangularGaussianWindowT(window_params[0], window_params[1],
-								 window_params[2]);
+			dArrayT scalings(fNumSD, window_params.Pointer());
+			double sharpening_factor = window_params[fNumSD];
+			double cut_off_factor = window_params[fNumSD+1];
+			fWindow = new RectangularGaussianWindowT(scalings, sharpening_factor, cut_off_factor);
 			if (!fWindow) throw eGeneralFail;
 			break;
 		}

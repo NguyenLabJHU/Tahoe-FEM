@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.2 2001-06-19 23:22:04 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.3 2001-06-20 22:53:18 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -35,6 +35,7 @@ const int kListSizeinc  =   5; // list size increment on overflow
 
 static    int Max(int a, int b) { return (a > b) ? a : b; };
 static double Max(double a, double b) { return (a > b) ? a : b; };
+static double AbsMax(double a, double b) { return (fabs(a) > fabs(b)) ? fabs(a) : fabs(b); };
 
 /* constructor */
 MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,  
@@ -113,11 +114,24 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 		{
 			case kGaussian:
 			{
-				/* 2-parameters */
+				/* 3 parameter */
 				window_params.Allocate(3);
 				in >> window_params[0]; // support size scaling
 				in >> window_params[1]; // sharpening factor
 				in >> window_params[2]; // cut-off factor
+				break;
+			}
+			case kBrick:
+			{
+				/* parameters = dilation scaling in each direction
+				 *             + sharpening factor
+				 *             + cut-off factor */
+				window_params.Allocate(fDomain.NumSD() + 2);
+				
+				/* allow for line-by-line comments */
+				for (int i = 0; i < window_params.Length(); i++)
+					in >> window_params[i];
+					
 				break;
 			}
 			default:
@@ -135,6 +149,12 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 		
 		/* dimension nodal field parameter */
 		fnodal_param_man.SetMinorDimension(fRKPM->NumberOfSupportParameters());
+		
+		/* allocate work space */
+		fVolume.Allocate(fCoords.MajorDim());
+		fVolume = 1.0;
+		fNodalParameters.Allocate(fCoords.MajorDim(), fRKPM->NumberOfSupportParameters());
+		fNodalParameters = -1;
 	}
 	else
 	{
@@ -203,6 +223,14 @@ void MeshFreeSupportT::SetSupportSize(void)
 		SetSupport_Cartesian_Connectivities();
 	} 
 	else throw eGeneralFail;
+	
+	/* post-modify support size */
+	if (fMeshfreeType == kEFG)
+		fNodalParameters *= fDextra; /* scale neighborhoods */
+	else if (fMeshfreeType == kRKPM)
+		fRKPM->ModifySupportParameters(fNodalParameters);
+	else 
+		throw eGeneralFail;
 }
 
 void MeshFreeSupportT::SetNeighborData(void)
@@ -294,6 +322,9 @@ void MeshFreeSupportT::SetNodalParameters(const iArrayT& node, const dArray2DT& 
 			SetSearchGrid();
 		}
 
+//NOTE - why were these allocated here? these now allocated
+//       in the constructor.
+#if 0
 		/* dimensions set by MLS solver type */
 		if (fMeshfreeType == kEFG)
 			fNodalParameters.Allocate(fCoords.MajorDim(), 1);
@@ -308,6 +339,7 @@ void MeshFreeSupportT::SetNodalParameters(const iArrayT& node, const dArray2DT& 
 		}
 		else
 			throw eGeneralFail;
+#endif
 
 		/* initialize */
 		fNodalParameters = -1;
@@ -710,24 +742,37 @@ void MeshFreeSupportT::WriteStatistics(ostream& out) const
 	    	<< setw(kIntWidth) << counts[k] << '\n';	
 
 	/* nodal support data */
-	double dmin, dmax;
-	fNodalParameters.MinMax(dmin, dmax, 1);
-
-	double*  pd = fNodalParameters.Pointer();
-	double dsum = 0.0;
-	for (int i = 0; i < fNodalParameters.Length(); i++)
+	int d_width = OutputWidth(out, fNodalParameters.Pointer());
+	out << " Support size distribution:\n";
+	out << setw(d_width) << "min"
+	    << setw(d_width) << "max"
+	    << setw(d_width) << "avg" << '\n';
+	for (int i = 0; i < fNodalParameters.MinorDim(); i++)
 	{
-		if (*pd > 0.0) dsum += *pd;
-		pd++;
+		double min, max, sum;
+		min = -1.0; 
+		max = sum = 0.0;
+		for (int j = 0; j < fNodalParameters.MajorDim(); j++)
+		{
+			double value = fNodalParameters(j,i);
+			if (value > 0.0)
+			{
+				if (min == -1 || value < min)
+					min = value;
+				else if (value > max)
+					max = value;
+				sum += value;
+			}
+		}
+		
+		/* results */
+		out << setw(d_width) << min
+	        << setw(d_width) << max;
+		if (fNodalParameters.MajorDim() > 0)
+			out << setw(d_width) << sum/fNodalParameters.MajorDim() << '\n';
+		else
+			out << setw(d_width) << 0.0 << '\n';
 	}
-
-	out << " Largest support radius (dmax) . . . . . . . . . = " << dmin << '\n';
-	out << " Smallest support radius (dmax). . . . . . . . . = " << dmax << '\n';
-	out << " Average support radius (dmax) . . . . . . . . . = ";
-	if (used != 0)
-		out << dsum/fNodesUsed.Length() << '\n';
-	else
-		out << "-\n";
 
 	/* memory requirements */
 	int nsd = fCoords.MinorDim();
@@ -1312,26 +1357,14 @@ void MeshFreeSupportT::SetSupport_Spherical_Search(void)
 	int nnd = fCoords.MajorDim();
 	int nsd = fCoords.MinorDim();
 
-	/* MLS solver specific */
-	if (fRKPM)
+	/* MLS solver specific check */
+	if (fRKPM && fRKPM->NumberOfSupportParameters() != 1)
 	{
-		//TEMP - set nodal volume all to 1.0
-		fVolume.Allocate(nnd);
-		fVolume = 1.0;
-		
-		/* check */
-		if (fRKPM->NumberOfSupportParameters() != 1)
-		{
-			cout << "\n MeshFreeSupportT::SetSupport_Spherical_Search: expecting only 1\n" 
-			     <<   "     nodal support size parameter:" << fRKPM->NumberOfSupportParameters() 
-			     << endl;
-			throw eGeneralFail;
-		}
+		cout << "\n MeshFreeSupportT::SetSupport_Spherical_Search: expecting only 1\n" 
+		     <<   "     nodal support size parameter:" << fRKPM->NumberOfSupportParameters() 
+		     << endl;
+		throw eGeneralFail;
 	}
-
-	/* initialize nodal parameters to "inactive" */
-	fNodalParameters.Allocate(nnd,1);
-	fNodalParameters = -1.0;
 
 	int min_neighbors = (fEFG) ? fEFG->NumberOfMonomials() :
 	                            fRKPM->BasisDimension();
@@ -1484,14 +1517,7 @@ void MeshFreeSupportT::SetSupport_Spherical_Search(void)
 				sum_count += num_neighbors;
 			}
 		}
-	}
-	
-	/* post-modify support size */
-	if (fMeshfreeType == kEFG)
-		fNodalParameters *= fDextra; /* scale neighborhoods */
-	else if (fMeshfreeType == kRKPM)
-		fRKPM->ModifySupportParameters(fNodalParameters);
-	else throw eGeneralFail;
+	}	
 }
 
 /* set the support for each node in the connectivities */
@@ -1543,15 +1569,6 @@ void MeshFreeSupportT::SetSupport_Spherical_Connectivities(void)
 /* set the support for each node in the connectivities */
 void MeshFreeSupportT::SetSupport_Cartesian_Connectivities(void)
 {
-	/* checks */
-	if (fNodalParameters.MajorDim() != fCoords.MajorDim() ||
-	    fNodalParameters.MinorDim() != fCoords.MinorDim())
-	{
-		cout << "\n MeshFreeSupportT::SetSupport_Cartesian_Connectivities: unexpected\n" 
-		     <<   "     dimension for nodal parameters" << endl;
-		throw eSizeMismatch;
-	}
-
 	/* dimensions */
 	int nnd = fCoords.MajorDim();
 	int nsd = fCoords.MinorDim();
@@ -1589,7 +1606,10 @@ void MeshFreeSupportT::SetSupport_Cartesian_Connectivities(void)
 					
 						/* keep max in each direction */
 						for (int l = 0; l < nsd; l++)
-							support[l] = Max(r[l], support[l]);
+							if (support[l] < 0.0)
+								support[l] = fabs(r[l]);
+							else
+								support[l] = AbsMax(r[l], support[l]);
 					}
 				}
 		}
