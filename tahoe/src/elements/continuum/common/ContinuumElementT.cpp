@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.35.2.4 2004-03-02 17:45:20 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.35.2.5 2004-03-09 08:57:16 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -1129,6 +1129,9 @@ void ContinuumElementT::DefineSubs(SubListT& sub_list) const
 
 	/* optional body force */
 	sub_list.AddSub("body_force", ParameterListT::ZeroOrOnce);
+	
+	/* tractions */
+	sub_list.AddSub("natural_bc", ParameterListT::Any);
 }
 
 /* return the description of the given inline subordinate parameter list */
@@ -1166,7 +1169,7 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 	/* body force */
 	if (list_name == "body_force")
 	{
-		ParameterContainerT* body_force = new ParameterContainerT("body_force");
+		ParameterContainerT* body_force = new ParameterContainerT(list_name);
 	
 		/* schedule number */
 		body_force->AddParameter(ParameterT::Integer, "schedule");
@@ -1176,9 +1179,26 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 		
 		return body_force;
 	}
+	else if (list_name == "natural_bc") /* traction bc */
+	{
+		ParameterContainerT* natural_bc = new ParameterContainerT(list_name);
+
+		natural_bc->AddParameter(ParameterT::String, "side_set_ID");
+		natural_bc->AddParameter(ParameterT::Integer, "schedule");
+
+		ParameterT coord_sys(ParameterT::Enumeration, "coordinate_system");
+		coord_sys.AddEnumeration("global", Traction_CardT::kCartesian);
+		coord_sys.AddEnumeration( "local", Traction_CardT::kLocal);
+		coord_sys.SetDefault(Traction_CardT::kCartesian);
+		natural_bc->AddParameter(coord_sys);
+
+		natural_bc->AddSub("Double", ParameterListT::OnePlus); 		
+		
+		return natural_bc;
+	}
 	else if (list_name == "line")
 	{
-		ParameterContainerT* line = new ParameterContainerT("line");
+		ParameterContainerT* line = new ParameterContainerT(list_name);
 	
 		/* integration rules */
 		ParameterT num_ip(ParameterT::Integer, "num_ip");
