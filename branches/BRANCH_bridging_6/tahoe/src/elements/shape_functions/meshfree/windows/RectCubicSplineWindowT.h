@@ -40,9 +40,6 @@ class RectCubicSplineWindowT: public WindowT
 	virtual void SynchronizeSupportParameters(dArray2DT& params_1, 
 		dArray2DT& params_2) const;
 
-	/** modify nodal shape function parameters */
-	virtual void ModifySupportParameters(dArray2DT& nodal_params) const;
-	
 	/** write parameters to output stream */
 	virtual void WriteParameters(ostream& out) const;
 
@@ -61,6 +58,21 @@ class RectCubicSplineWindowT: public WindowT
 	/* multiple points */
 	virtual int Covers(const dArray2DT& x_n, const dArrayT& x, 
 		const dArray2DT& param_n, ArrayT<bool>& covers) const;
+
+	/** support dimensions */
+	/*@{*/
+	/** spherical upport size */
+	virtual double SphericalSupportSize(const dArrayT& param_n) const;
+
+	/** rectangular support size */
+	virtual const dArrayT& RectangularSupportSize(const dArrayT& param_n) const;
+
+	/** spherical support sizes in batch */
+	virtual void SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const;
+
+	/** rectangular support sizes in batch */
+	virtual void RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const;
+	/*@}*/
 	
   private:
   

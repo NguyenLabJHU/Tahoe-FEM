@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.16 2004-04-02 16:48:22 jzimmer Exp $ */
+/* $Id: ParticlePairT.h,v 1.16.6.1 2004-04-24 19:57:36 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -84,6 +84,7 @@ protected:
 
 	/** form group contribution to the residual */
 	virtual void RHSDriver(void);
+	void RHSDriver1D(void);
 	void RHSDriver2D(void);
 	void RHSDriver3D(void);
 	/*@}*/

@@ -1,8 +1,8 @@
-/* $Id: FCC3D.cpp,v 1.3.16.1 2004-04-24 19:57:32 paklein Exp $ */
+/* $Id: Chain1D.cpp,v 1.1.4.1 2004-04-24 19:57:32 paklein Exp $ */
 /* created: paklein (07/01/1996) */
-#include "FCC3D.h"
+#include "Chain1D.h"
 #include "ElementsConfig.h"
-#include "FCCLatticeT.h"
+#include "Lattice1DT.h"
 
 #include <math.h>
 #include <iostream.h>
@@ -14,24 +14,23 @@
 #include "HarmonicPairT.h"
 #include "LennardJonesPairT.h"
 #else
-#pragma message("FCC3D requires PARTICLE_ELEMENT")
-#error "FCC3D requires PARTICLE_ELEMENT"
+#pragma message("Chain1D requires PARTICLE_ELEMENT")
+#error "Chain1D requires PARTICLE_ELEMENT"
 #endif
 
 using namespace Tahoe;
 
 /* constructor */
-FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
+Chain1D::Chain1D(ifstreamT& in, const FSMatSupportT& support):
 	NL_E_MatT(in, support),
 	fNearestNeighbor(-1),
-	fQ(3),
-	fFCCLattice(NULL),
+	fLattice1D(NULL),
 	fPairProperty(NULL),
 	fAtomicVolume(0),
-	fBondTensor4(dSymMatrixT::NumValues(3)),
-	fBondTensor2(dSymMatrixT::NumValues(3))	
+	fBondTensor4(dSymMatrixT::NumValues(1)),
+	fBondTensor2(dSymMatrixT::NumValues(1))	
 {
-	const char caller[] = "FCC3D::FCC3D";
+	const char caller[] = "Chain1D::Chain1D";
 
 	/* read the number of shells */
 	int nshells;
@@ -64,50 +63,50 @@ FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
 	}
 	
 	/* construct the bond tables */
-	fQ.Identity();
-	fFCCLattice = new FCCLatticeT(fQ, nshells);
-	fFCCLattice->Initialize();
+	fLattice1D = new Lattice1DT(nshells);
+	fLattice1D->Initialize();
+
+	/* construct default bond density array */
+	fFullDensity.Dimension(fLattice1D->NumberOfBonds());
+	fFullDensity = 1.0;
 	
 	/* check */
 	if (fNearestNeighbor < kSmall)
 		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
 		
 	/* compute the (approx) cell volume */
-	double cube_edge = fNearestNeighbor*sqrt(2.0);
-	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
+	fAtomicVolume = fNearestNeighbor;
 
 	/* compute stress-free dilatation */
 	double stretch = ZeroStressStretch();
 	fNearestNeighbor *= stretch;
-	cube_edge = fNearestNeighbor*sqrt(2.0);
-	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
+	fAtomicVolume = fNearestNeighbor;
 
 	/* reset the continuum density (4 atoms per unit cell) */
 	fDensity = fPairProperty->Mass()/fAtomicVolume;
 }
 
 /* destructor */
-FCC3D::~FCC3D(void)
-{
-	delete fFCCLattice;
+Chain1D::~Chain1D(void) {
+	delete fLattice1D;
 	delete fPairProperty;
 }
 
 /* I/O functions */
-void FCC3D::PrintName(ostream& out) const
+void Chain1D::PrintName(ostream& out) const
 {
 	NL_E_MatT::PrintName(out);
-	out << "    FCC lattice\n";
+	out << "    1D lattice\n";
 }
 
-void FCC3D::Print(ostream& out) const
+void Chain1D::Print(ostream& out) const
 {
 	/* inherited */
 	NL_E_MatT::Print(out);
 
 	/* lattice parameters */
-	out << " Number of neighbor shells . . . . . . . . . . . = " << fFCCLattice->NumShells() << '\n';
-	out << " Number of neighbors . . . . . . . . . . . . . . = " << fFCCLattice->NumberOfBonds() << '\n';
+	out << " Number of neighbor shells . . . . . . . . . . . = " << fLattice1D->NumShells() << '\n';
+	out << " Number of neighbors . . . . . . . . . . . . . . = " << fLattice1D->NumberOfBonds() << '\n';
 	out << " Nearest neighbor distance . . . . . . . . . . . = " << fNearestNeighbor << '\n';
 
 	/* write pair properties to output */
@@ -116,32 +115,41 @@ void FCC3D::Print(ostream& out) const
 }
 
 /* return a reference to the bond lattice */
-const BondLatticeT& FCC3D::BondLattice(void) const {
-	if (!fFCCLattice) ExceptionT::GeneralFail("FCC3D::BondLattice", "pointer not set");
-	return *fFCCLattice;
+const BondLatticeT& Chain1D::BondLattice(void) const {
+	if (!fLattice1D) ExceptionT::GeneralFail("Chain1D::BondLattice", "pointer not set");
+	return *fLattice1D;
 }
 
 /*************************************************************************
  * Protected
  *************************************************************************/
 
-void FCC3D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
+void Chain1D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {	
-	fFCCLattice->ComputeDeformedLengths(E);
-	const dArrayT& bond_length = fFCCLattice->DeformedLengths();
+	fLattice1D->ComputeDeformedLengths(E);
+	const dArrayT& bond_length = fLattice1D->DeformedLengths();
 
 	/* fetch function pointers */
 	PairPropertyT::ForceFunction force = fPairProperty->getForceFunction();
 	PairPropertyT::StiffnessFunction stiffness = fPairProperty->getStiffnessFunction();
-	
+
+	/* bond density */
+	const double* density = fFullDensity.Pointer();
+	int nb = fLattice1D->NumberOfBonds();
+	const ElementCardT* element = MaterialSupport().CurrentElement();
+	if (element && element->IsAllocated()) {
+		const dArrayT& d_array = element->DoubleData();
+		density = d_array.Pointer(CurrIP()*nb);
+	}
+
+	/* sum over bonds */	
 	moduli = 0.0; 
-	int nb = fFCCLattice->NumberOfBonds();
 	double R4byV = fNearestNeighbor*fNearestNeighbor*fNearestNeighbor*fNearestNeighbor/fAtomicVolume;
 	for (int i = 0; i < nb; i++)
 	{
 		double ri = bond_length[i]*fNearestNeighbor;
-		double coeff = (stiffness(ri, NULL, NULL) - force(ri, NULL, NULL)/ri)/ri/ri;
-		fFCCLattice->BondComponentTensor4(i, fBondTensor4);
+		double coeff = (*density++)*(stiffness(ri, NULL, NULL) - force(ri, NULL, NULL)/ri)/ri/ri;
+		fLattice1D->BondComponentTensor4(i, fBondTensor4);
 		moduli.AddScaled(R4byV*coeff, fBondTensor4);
 	}
 	
@@ -150,41 +158,59 @@ void FCC3D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 }
 
 /* 2nd Piola-Kirchhoff stress vector */
-void FCC3D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
+void Chain1D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 {
-	fFCCLattice->ComputeDeformedLengths(E);
-	const dArrayT& bond_length = fFCCLattice->DeformedLengths();
+	fLattice1D->ComputeDeformedLengths(E);
+	const dArrayT& bond_length = fLattice1D->DeformedLengths();
 
 	/* fetch function pointer */
 	PairPropertyT::ForceFunction force = fPairProperty->getForceFunction();
+
+	/* bond density */
+	const double* density = fFullDensity.Pointer();
+	int nb = fLattice1D->NumberOfBonds();
+	const ElementCardT* element = MaterialSupport().CurrentElement();
+	if (element && element->IsAllocated()) {
+		const dArrayT& d_array = element->DoubleData();
+		density = d_array.Pointer(CurrIP()*nb);
+	}
 	
+	/* sum over bonds */
 	PK2 = 0.0;
-	int nb = fFCCLattice->NumberOfBonds();
 	double R2byV = fNearestNeighbor*fNearestNeighbor/fAtomicVolume;
 	for (int i = 0; i < nb; i++)
 	{
 		double ri = bond_length[i]*fNearestNeighbor;
-		double coeff = force(ri, NULL, NULL)/ri;
-		fFCCLattice->BondComponentTensor2(i, fBondTensor2);
+		double coeff = (*density++)*force(ri, NULL, NULL)/ri;
+		fLattice1D->BondComponentTensor2(i, fBondTensor2);
 		PK2.AddScaled(R2byV*coeff, fBondTensor2);
 	}
 }
 
 /* strain energy density */
-double FCC3D::ComputeEnergyDensity(const dSymMatrixT& E)
+double Chain1D::ComputeEnergyDensity(const dSymMatrixT& E)
 {
-	fFCCLattice->ComputeDeformedLengths(E);
-	const dArrayT& bond_length = fFCCLattice->DeformedLengths();
+	fLattice1D->ComputeDeformedLengths(E);
+	const dArrayT& bond_length = fLattice1D->DeformedLengths();
 
 	/* fetch function pointer */
 	PairPropertyT::EnergyFunction energy = fPairProperty->getEnergyFunction();
 
+	/* bond density */
+	const double* density = fFullDensity.Pointer();
+	int nb = fLattice1D->NumberOfBonds();
+	const ElementCardT* element = MaterialSupport().CurrentElement();
+	if (element && element->IsAllocated()) {
+		const dArrayT& d_array = element->DoubleData();
+		density = d_array.Pointer(CurrIP()*nb);
+	}
+
+	/* sum over bonds */
 	double tmpSum  = 0.;	
-	int nb = fFCCLattice->NumberOfBonds();
 	for (int i = 0; i < nb; i++)
 	{
 		double r = bond_length[i]*fNearestNeighbor;
-		tmpSum += energy(r, NULL, NULL);
+		tmpSum += (*density++)*energy(r, NULL, NULL);
 	}
 	tmpSum /= fAtomicVolume;
 	
@@ -192,11 +218,11 @@ double FCC3D::ComputeEnergyDensity(const dSymMatrixT& E)
 }
 
 /* return the equitriaxial stretch at which the stress is zero */
-double FCC3D::ZeroStressStretch(void)
+double Chain1D::ZeroStressStretch(void)
 {
-	const char caller[] = "FCC3D::ZeroStress";
+	const char caller[] = "Chain1D::ZeroStress";
 
-	int nsd = 3;
+	int nsd = 1;
 	dSymMatrixT E(nsd), PK2(nsd);
 	dMatrixT C(dSymMatrixT::NumValues(nsd));
 
@@ -210,8 +236,12 @@ double FCC3D::ZeroStressStretch(void)
 	while (count++ < 10 && error0 > kSmall && error/error0 > kSmall)
 	{
 		ComputeModuli(E, C);
-		double dE = -PK2(0,0)/(C(0,0) + 2.0*C(0,1));
+		double dE = -PK2(0,0)/C(0,0);
 		E.PlusIdentity(dE);
+		
+		/* E > -1/2 - go half way to limit */
+		if (E[0] < -0.5)
+			E[0] = ((E[0]-dE) - 0.5)*0.5;
 		
 		ComputePK2(E, PK2);
 		error = fabs(PK2(0,0));

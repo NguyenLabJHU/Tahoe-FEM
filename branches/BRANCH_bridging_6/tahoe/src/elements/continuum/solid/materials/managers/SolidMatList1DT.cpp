@@ -1,7 +1,9 @@
-/* $Id: SolidMatList1DT.cpp,v 1.16 2004-01-14 22:04:44 rdorgan Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.16.22.1 2004-04-24 19:57:33 paklein Exp $ */
 #include "SolidMatList1DT.h"
-#include "SolidMatSupportT.h"
+
+#include "SolidMaterialsConfig.h"
 #include "fstreamT.h"
+#include "SolidMatSupportT.h"
 
 /* 1D material types codes */
 /* Add small strain linear elastic material here */
@@ -15,6 +17,10 @@
 #include "GradJ2SS1D.h"
 #include "J2SSKStV1D.h"
 #include "GradC0J2SS1D.h"
+#endif
+
+#ifdef CAUCHY_BORN_MATERIAL
+#include "Chain1D.h"
 #endif
 
 using namespace Tahoe;
@@ -103,6 +109,19 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "GRAD_SMALL_STRAIN_DEV not enabled: %d", matcode);
 #endif
 			}
+			case kChain1D:
+			{
+#ifdef CAUCHY_BORN_MATERIAL
+				/* check */
+				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new Chain1D(in, *fFSMatSupport);
+				break;
+#else
+				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);
+#endif
+			}
+
 			default:
 			{
 				cout << "\n SolidMatList1DT::ReadMaterialData: unknown material code: ";

@@ -1,5 +1,4 @@
-/* $Id: EAMT.cpp,v 1.58 2004-04-21 08:14:39 paklein Exp $ */
-
+/* $Id: EAMT.cpp,v 1.58.2.1 2004-04-24 19:57:36 paklein Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2003-03-04 07:37:58 paklein Exp $
+# $Id: makefile,v 1.7.48.1 2004-04-24 19:57:38 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,7 +23,8 @@ OBJ = \
 	GaussianWindowT.o \
 	RectCubicSplineWindowT.o \
 	CubicSplineWindowT.o \
-	RectGaussianWindowT.o
+	RectGaussianWindowT.o \
+	WindowT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -46,7 +47,8 @@ SRC = \
 	GaussianWindowT.cpp \
 	RectCubicSplineWindowT.cpp \
 	CubicSplineWindowT.cpp \
-	RectGaussianWindowT.cpp
+	RectGaussianWindowT.cpp \
+	WindowT.cpp
 
 ##################### (3) headers
 #

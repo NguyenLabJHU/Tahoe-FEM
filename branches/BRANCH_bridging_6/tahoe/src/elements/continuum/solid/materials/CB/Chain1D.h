@@ -1,27 +1,27 @@
-/* $Id: Hex2D.h,v 1.2.46.1 2004-04-24 19:57:32 paklein Exp $ */
-#ifndef _HEX_2D_H_
-#define _HEX_2D_H_
+/* $Id: Chain1D.h,v 1.1.4.1 2004-04-24 19:57:32 paklein Exp $ */
+#ifndef _CHAIN_1D_H_
+#define _CHAIN_1D_H_
 
 /* base class */
-#include "NL_E_Mat2DT.h"
+#include "NL_E_MatT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
-class HexLattice2DT;
+class Lattice1DT;
 class PairPropertyT;
 class BondLatticeT;
 
-/** plane stress hexagonal lattice */
-class Hex2D: public NL_E_Mat2DT
+/** 1D Cauchy-Born material with pair potential interactions. */
+class Chain1D: public NL_E_MatT
 {
 public:
 
 	/** constructor */
-	Hex2D(ifstreamT& in, const FSMatSupportT& support);
+	Chain1D(ifstreamT& in, const FSMatSupportT& support);
 	
 	/** destructor */
-	~Hex2D(void);
+	~Chain1D(void);
 	
 	/** \name write parameters */
 	/*@{*/
@@ -35,7 +35,7 @@ public:
 	const BondLatticeT& BondLattice(void) const;
 
 	/** reference volume */
-	double CellVolume(void) const { return fCellVolume; };
+	double CellVolume(void) const { return fAtomicVolume; };
 
 	/** nearest neighbor distance */
 	double NearestNeighbor(void) const { return fNearestNeighbor; };
@@ -62,8 +62,7 @@ private:
 	double fNearestNeighbor;
 
 	/** bond information */
-	dMatrixT fQ;
-	HexLattice2DT* fHexLattice2D;
+	Lattice1DT* fLattice1D;
 
 	/** pair interaction potential */
 	PairPropertyT* fPairProperty;
@@ -74,13 +73,13 @@ private:
 	dArrayT  fBondTensor2;
 	/*@}*/
 
-	/** reference volume */
-	double fCellVolume;
-	
+	/** atomic volume */
+	double fAtomicVolume;
+
 	/** dummy full bond density array */
 	dArrayT fFullDensity;
 };
 
 } /* namespace Tahoe */
 
-#endif /* _HEX_2D_H_ */
+#endif /* _FCC_3D_H_ */

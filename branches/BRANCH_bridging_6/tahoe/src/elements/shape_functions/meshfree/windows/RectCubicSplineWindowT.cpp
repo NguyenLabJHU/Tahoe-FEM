@@ -1,7 +1,7 @@
+/* $Id: RectCubicSplineWindowT.cpp,v 1.8.54.1 2004-04-24 19:57:38 paklein Exp $ */
 #include "RectCubicSplineWindowT.h"
 #include "ExceptionT.h"
 #include <math.h>
-
 
 using namespace Tahoe;
 
@@ -48,14 +48,6 @@ void RectCubicSplineWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 		*p1 = *p2 = Max(*p1, *p2);
 		p1++; p2++;
 	}
-}
-
-/* modify nodal shape function parameters */
-void RectCubicSplineWindowT::ModifySupportParameters(dArray2DT& nodal_params) const
-{
-	/* scale supports */
-	for (int i = 0; i < fDilationScaling.Length(); i++)
-		nodal_params.ScaleColumn(i, fDilationScaling[i]);	
 }
 
 void RectCubicSplineWindowT::WriteParameters(ostream& out) const
@@ -376,4 +368,36 @@ int RectCubicSplineWindowT::Covers(const dArray2DT& x_n, const dArrayT& x,
       covers[i] = false;
   }
   return count;
+}
+
+/* spherical upport size */
+double RectCubicSplineWindowT::SphericalSupportSize(const dArrayT& param_n) const
+{
+#pragma unused(param_n)
+	ExceptionT::GeneralFail("RectCubicSplineWindowT", "not implemented");
+	return 0.0;
+}
+
+/* rectangular support size */
+const dArrayT& RectCubicSplineWindowT::RectangularSupportSize(const dArrayT& param_n) const
+{
+#pragma unused(param_n)
+	ExceptionT::GeneralFail("RectCubicSplineWindowT", "not implemented");
+	return param_n; /* dummy */
+}
+
+/* spherical support sizes in batch */
+void RectCubicSplineWindowT::SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const
+{
+#pragma unused(param_n)
+#pragma unused(support_size)
+	ExceptionT::GeneralFail("RectCubicSplineWindowT", "not implemented");
+}
+
+/* rectangular support sizes in batch */
+void RectCubicSplineWindowT::RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const
+{
+#pragma unused(param_n)
+#pragma unused(support_size)
+	ExceptionT::GeneralFail("RectCubicSplineWindowT", "not implemented");
 }
