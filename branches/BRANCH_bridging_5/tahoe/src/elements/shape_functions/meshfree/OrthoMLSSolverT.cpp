@@ -1,12 +1,10 @@
-/* $Id: OrthoMLSSolverT.cpp,v 1.7 2003-11-21 22:47:14 paklein Exp $ */
-/* created: paklein (07/03/1998)                                          */
-
+/* $Id: OrthoMLSSolverT.cpp,v 1.7.12.1 2004-03-20 16:43:12 paklein Exp $ */
+/* created: paklein (07/03/1998) */
 #include "OrthoMLSSolverT.h"
-
-/* constants */
 
 using namespace Tahoe;
 
+/* constants */
 const double sqrtPi = sqrt(acos(-1.0));
 
 /* constructor */

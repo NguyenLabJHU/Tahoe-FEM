@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.h,v 1.5 2004-03-04 08:54:20 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.h,v 1.5.4.1 2004-03-20 16:43:13 paklein Exp $ */
 #ifndef _MESHFREE_BRIDGING_SCALE_T_H_
 #define _MESHFREE_BRIDGING_SCALE_T_H_
 
@@ -80,8 +80,8 @@ private:
 	/** moving least squares solver */
 	MLSSolverT* fMLS;
 	
-	/** support size of each atom in the crystal, not just the points in cells */
-	dArray2DT fSupport;
+	/** support size parameters of each atom in the crystal, not just the points in cells */
+	dArray2DT fSupportParams;
 };
 
 } /* namespace Tahoe */

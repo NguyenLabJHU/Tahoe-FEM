@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.41 2004-03-04 08:54:20 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.41.4.1 2004-03-20 16:43:13 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -68,6 +68,10 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 	/* configure search grid */
 	iGridManagerT grid(10, 100, point_coordinates, &points_used);
 	grid.Reset();
+	if (ElementSupport().PrintInput()) {
+		grid.WriteStatistics(out);
+		grid.DumpGrid(out);
+	}
 	
 	/* track cell containing each point, so only one cell is associated with each point */
 	iArrayT found_in_cell(points_used.Length());
