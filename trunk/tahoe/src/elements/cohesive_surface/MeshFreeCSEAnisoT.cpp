@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.19 2003-12-28 08:22:59 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.20 2003-12-28 23:35:50 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -58,6 +58,8 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const Field
 	fNEEMatrix(kHeadRoom, true),
 	fMatrixManager(kHeadRoom, true)
 {
+	const char caller[] = "MeshFreeCSEAnisoT::MeshFreeCSEAnisoT";
+
 	/* set format of element stiffness matrix */
 	fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
 
@@ -70,21 +72,13 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const Field
 
 	/* checks */
 	if (NumSD() == 2 && fGeometryCode != GeometryT::kLine)
-	{
-		cout << "\n MeshFreeCSEAnisoT::MeshFreeCSEAnisoT: expecting geometry code "
-		     << GeometryT::kLine<< " for 2D: " << fGeometryCode << endl;
-		throw ExceptionT::kBadInputValue;
-	}
+		ExceptionT::BadInputValue(caller, "expecting geometry code %d for 2D: %d", 
+			GeometryT::kLine, fGeometryCode);
 	else if (NumSD() == 3 &&
 	         fGeometryCode != GeometryT::kQuadrilateral &&
 	         fGeometryCode != GeometryT::kTriangle)
-	{
-		cout << "\n MeshFreeCSEAnisoT::MeshFreeCSEAnisoT: expecting geometry code "
-             << GeometryT::kQuadrilateral
-		     << " or\n" <<   "     " << GeometryT::kTriangle << " for 3D: "
-		     << fGeometryCode << endl;
-		throw ExceptionT::kBadInputValue;
-	}
+		ExceptionT::BadInputValue(caller, "expecting geometry code %d or %d for 3D: %d", 
+			GeometryT::kQuadrilateral, GeometryT::kTriangle , fGeometryCode);
 	if (fOutputArea != 0 && fOutputArea != 1) throw ExceptionT::kBadInputValue;
 
 	/* check element group */
@@ -94,11 +88,12 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const Field
 	/* check cast to meshfree group */
 	fMFFractureSupport = TB_DYNAMIC_CAST(MeshFreeFractureSupportT*, element_group);
 	if (!fMFFractureSupport)
-	{
-		cout << "\n MeshFreeCSEAnisoT::MeshFreeCSEAnisoT: domain element group\n"
-		     <<   "    " << fMFElementGroup + 1 << " is not meshfree" << endl;
-		throw ExceptionT::kBadInputValue;
-	}
+		ExceptionT::BadInputValue(caller, "domain element group %d is not meshfree", fMFElementGroup + 1);
+
+	/* RTTI is required */
+#ifdef __NO_RTTI__
+	ExceptionT::GeneralFail(caller, "requires RTTI");
+#endif
 }
 
 /* destructor */
