@@ -1,0 +1,19 @@
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Print Step. . . . . . . . . . . . . . . . . . . = 0
+ Time. . . . . . . . . . . . . . . . . . . . . . = 1.000000000000e-01
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+
+ Nodal data:
+ Number of nodal points. . . . . . . . . . . . . = 4
+ Number of values. . . . . . . . . . . . . . . . = 0
+
+
+ Element data:
+ Block ID . . . . . .  . . . . . . . . . . . . . = 1
+ Number of elements. . . . . . . . . . . . . . . = 1
+ Number of values. . . . . . . . . . . . . . . . = 7
+
+   index element             ip1.mass             ip2.mass             ip3.mass             ip4.mass                    T                  L_X                  L_Y
+       1       1   3.319483223389e-01   1.238848004456e+00   1.238848004456e+00   3.319483223389e-01   1.570796326795e+00  -1.059261469413e-33  -3.141592653590e+00
