@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.h,v 1.2 2001-07-19 01:05:47 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.h,v 1.3 2001-07-20 00:58:01 paklein Exp $ */
 
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
@@ -7,7 +7,7 @@
 #include "FiniteStrainT.h"
 
 /* direct members */
-#include "dMatrixT.h"
+#include "LAdMatrixT.h"
 
 /* forward declarations */
 class SimoShapeFunctionT;
@@ -21,8 +21,23 @@ public:
 	/** constructor */
 	SimoFiniteStrainT(FEManagerT& fe_manager);
 
+	/** destructor */
+	~SimoFiniteStrainT(void);
+
 	/** data initialization */
 	virtual void Initialize(void);
+
+	/** finalize current step - step is solved */
+	virtual void CloseStep(void);
+	
+	/** restore last converged state */
+	virtual void ResetStep(void);
+
+	/** read restart information from stream */
+	virtual void ReadRestart(istream& in);
+
+	/** write restart information from stream */
+	virtual void WriteRestart(ostream& out) const;
 		
 protected:
 
@@ -38,7 +53,10 @@ protected:
 	/** form the element stiffness matrix */
 	virtual void FormStiffness(double constK);
 
-	/** calculate the internal force contribution ("-k*d") */
+	/** calculate the internal force contribution ("-k*d"). Uses the
+	 * stored values of the stress tensor calculated during solution
+	 * of the internal modes in order to spare evaluations of the
+	 * stress. */
 	virtual void FormKd(double constK);
 
 private:
@@ -52,18 +70,33 @@ private:
      * Section 3.4 */
 	void ModifiedEnhancedDeformation(void);
 
+	/** compute enhanced part of F and total F */
+	void ComputeEnhancedDeformation(bool need_F, bool need_F_last);
+
+	/** calculate the residual from the internal force */
+	void FormKd_enhanced(ArrayT<dMatrixT>& PK1_list, dArrayT& RHS_enh);
+
+	/** form the stiffness associated with the enhanced modes */
+	void FormStiffness_enhanced(dMatrixT& K_22);
+
 protected:
 
 	/* user-defined parameters */
 	bool fIncompressibleMode; /**< flag to include incompressible mode (3D only) */
 	int  fLocalIterationMax;  /**< sub-iterations to solve for the element modes */
+	double fAbsTol; /**< absolute tolerance on residual of enhanced modes */
+	double fRelTol; /**< relative tolerance on residual of enhanced modes */
 	
 	/* derived parameters */
 	int  fNumModeShapes; /**< number of mode shapes per element */
 	
 	/* element degrees of freedom */
-	dArray2DT fElementModes;     /**< all element modes */
-	dArray2DT fCurrElementModes; /**< modes for current element */
+	dArray2DT   fElementModes;     /**< all element modes */
+	LocalArrayT fCurrElementModes; /**< modes for current element */
+
+	/* element degrees of freedom from last time step */
+	dArray2DT   fElementModes_last;     /**< all element modes */
+	LocalArrayT fCurrElementModes_last; /**< modes for current element */
 
 	/** enhanced shape functions */
 	SimoShapeFunctionT* fEnhancedShapes;
@@ -89,6 +122,9 @@ protected:
 //(4) internal iteration for enhanced modes
 //(5) element output of enhanced mode information??
 
+	/* list of IP stresses used my FormKd */
+	ArrayT<dMatrixT> fPK1_list;
+
 	/* workspace */
 	dMatrixT fStressMat;   /**< space for a stress tensor */
 	dMatrixT fStressStiff; /**< compact stress stiffness contribution */
@@ -97,6 +133,12 @@ protected:
 	dArrayT   fTemp2;
 	dMatrixT  fTempMat1, fTempMat2;
 	dArray2DT fDNa_x;
+	
+	/* work space for enhanced modes */
+	dMatrixT fWP_enh;
+	dMatrixT fGradNa_enh;
+	dArrayT  fRHS_enh; 
+	LAdMatrixT fK22;
 };
 
 #endif /* _SIMO_FINITE_STRAIN_T_H_ */
