@@ -1,9 +1,12 @@
-/* $Id: SolidMatList2DT.cpp,v 1.35 2003-03-26 23:08:25 thao Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.36 2003-03-27 16:53:25 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
 #include "SolidMaterialsConfig.h"
+
+#ifdef __DEVELOPMENT__
 #include "DevelopmentMaterialsConfig.h"
+#endif
 
 #include "SSKStV2D.h"
 #include "FDKStV2D.h"
