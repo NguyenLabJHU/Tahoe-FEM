@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.3.4.1 2002-04-26 02:24:18 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.3.4.2 2002-05-11 20:25:38 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 
 #include "UpdatedLagrangianT.h"
@@ -214,6 +214,9 @@ void UpdatedLagrangianT::FormKd(double constK)
 	const double* Det    = fCurrShapes->IPDets();
 	const double* Weight = fCurrShapes->IPWeights();
 
+	/* collect incremental heat */
+	bool need_heat = fElementHeat.Length() == fShapes->NumIP();
+
 	fCurrShapes->TopIP();
 	while ( fCurrShapes->NextIP() )
 	{
@@ -225,5 +228,9 @@ void UpdatedLagrangianT::FormKd(double constK)
 
 		/* accumulate */
 		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
+
+		/* incremental heat generation */
+		if (need_heat) 
+			fElementHeat[fShapes->CurrIP()] += fCurrMaterial->IncrementalHeat();
 	}	
 }
