@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.3 2001-04-27 10:54:35 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.4 2001-05-04 19:16:05 paklein Exp $ */
 /* created: paklein (10/26/2000)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -70,6 +70,7 @@ J2QLLinHardT::J2QLLinHardT(ifstreamT& in, const ElasticT& element):
 	fa_inverse(kNSD),
 	fMatrixTemp1(kNSD),
 	fMatrixTemp2(kNSD),
+	fMatrixTemp3(kNSD),
 	fdev_beta(kNSD),
 	
 	/* deformation gradient stuff */
@@ -111,19 +112,17 @@ void J2QLLinHardT::UpdateHistory(void)
 			/* plastic increment */
 			fInternal[kalpha] += sqrt23*fInternal[kdgamma];
 			
-			/* principal values - plane strain */
-			fb_tr.PrincipalValues(fEigs);
-	
 			/* set spectral decomposition (don't perturb) */
-			SpectralDecomp(fb_tr, fEigs, false);
+			//fSpectral.SpectralDecomp_new(fb_tr, false);
+			fSpectral.SpectralDecomp(fb_tr, false);
 					
 			/* updated log stretches */
 			fa_inverse.Multx(fbeta_tr, floge);
 					
 			/* compute intermediate config */
-			fb_n.SetToCombination(exp(2.0*floge[0]), fn0xn0,
-			                      exp(2.0*floge[1]), fn1xn1,
-			                      exp(2.0*floge[2]), fn2xn2);
+			fb_n.SetToCombination(exp(2.0*floge[0]), fSpectral.Rank1_Principal(0),
+			                      exp(2.0*floge[1]), fSpectral.Rank1_Principal(1),
+			                      exp(2.0*floge[2]), fSpectral.Rank1_Principal(2));
 		}
 }
 
@@ -175,14 +174,12 @@ const dMatrixT& J2QLLinHardT::c_ijkl(void)
 	else
 	{
 		/* spectral decomposition (perturb repeated) */
-		SpectralDecomp(b_tr, fEigs, true);
+		fSpectral.DecompAndModPrep(b_tr, true);
 
 		/* logarithmic stretches */
+		fEigs = fSpectral.Eigenvalues();
 		LogStretches(fEigs);
 		
-		/* spatial tensor component */
-		Set_b_Tensor(b_tr);
-
 		/* principal stresses */
 		fEigMod.Multx(floge,fBeta);
 	
@@ -190,28 +187,13 @@ const dMatrixT& J2QLLinHardT::c_ijkl(void)
 		fEPModuli = fEigMod;
 		ElastoPlasticCorrection(fEPModuli, fBeta, ip);
 
-		/* initialize */
-		fModulus = 0.0;
-
-		/* using symmetry in A and B */
-		for (int B = 0; B < 3; B++)
-			for (int A = B; A < 3; A++)
-			{
-				fRank4.Outer(fm[A],fm[B]);
-				
-				double gamma = 1.0;
-				if (A != B)
-				{
-					gamma = 2.0;
-					fRank4.Symmetrize();
-				}
-			
-				fModulus.AddScaled(gamma*fEPModuli(A,B), fRank4);
-			}
+		/* stiffness part */
+		fModulus = fSpectral.EigsToRank4(fEPModuli);
 		
-		/* principal spatial tensor */
-		for (int A = 0; A < 3; A++)
-			fModulus.AddScaled(2.0*fBeta[A], SpatialTensor(b_tr,A));
+		/* stress part */
+		fModulus.AddScaled(2.0*fBeta[0], fSpectral.SpatialTensor(b_tr, 0));
+		fModulus.AddScaled(2.0*fBeta[1], fSpectral.SpatialTensor(b_tr, 1));
+		fModulus.AddScaled(2.0*fBeta[2], fSpectral.SpatialTensor(b_tr, 2));
 
 		/* factor of J */
 		fModulus /= sqrt(fEigs[0]*fEigs[1]*fEigs[2]);
@@ -229,17 +211,15 @@ const dSymMatrixT& J2QLLinHardT::s_ij(void)
 	int ip = CurrIP();
 	const dSymMatrixT& b_tr = TrialStretch(fFtot, ffrel, ip);
 
-	/* principal values - plane strain */
-	b_tr.PrincipalValues(fEigs);
-
 	/* spectral decomposition (don't perturb repeated) */
-	SpectralDecomp(b_tr, fEigs, false);
+	fSpectral.SpectralDecomp_new(b_tr, false);
 
 	/* logarithmic stretches */
+	fEigs = fSpectral.Eigenvalues();
 	LogStretches(fEigs);
 	
 	/* principal stresses */
-	fEigMod.Multx(floge,fBeta);
+	fEigMod.Multx(floge, fBeta);
 
 	/* plastic correction */
 	ReturnMapping(b_tr, fBeta, ip);
@@ -248,9 +228,8 @@ const dSymMatrixT& J2QLLinHardT::s_ij(void)
 	fBeta /= sqrt(fEigs[0]*fEigs[1]*fEigs[2]);
 
 	/* QuadLog3D stress */
-	fStress.SetToCombination(fBeta[0], fn0xn0,
-	                         fBeta[1], fn1xn1,
-	                         fBeta[2], fn2xn2);
+	fStress = fSpectral.EigsToRank2(fBeta);
+	
 	return fStress;
 }
 
@@ -403,9 +382,28 @@ void J2QLLinHardT::ReturnMapping(const dSymMatrixT& b_tr, dArrayT& beta, int ip)
 		{	
 			/* update internal variables */
 			dgamma = (3.0*ftrial)/(6.0*Mu() + 2.0*fH_bar);
-		
+
 			/* corrected principal stresses */
-			beta.AddScaled(-2.0*Mu()*dgamma,fUnitNorm);
+			beta.AddScaled(-2.0*Mu()*dgamma, fUnitNorm);
+			
+			/* debugging - check the results of the return mapping */
+			bool check_map = false;
+			if (check_map)
+			{
+				/* update variables */
+				double alpha = fInternal[kalpha] + sqrt23*dgamma;
+				
+				/* updated deviatoric principal stresses */
+				dArrayT beta_test = beta;
+				beta_test -= beta_test.Average();
+			
+				/* compute update yield condition */
+				double f = YieldCondition(beta_test, alpha);
+				double t = beta_test.Magnitude()/sqrt23;
+				cout << "\n J2QLLinHardT::ReturnMapping: check\n"
+				     <<   "          f = " << f << '\n'
+				     <<   " ||dev[t]|| = " << t << endl;
+			}
 		}
 		else
 			dgamma = 0.0;
@@ -422,7 +420,7 @@ void J2QLLinHardT::ReturnMapping(const dSymMatrixT& b_tr, dArrayT& beta, int ip)
 *       The element passed in is already assumed to carry current
 *       internal variable values.
 */
-void J2QLLinHardT::ElastoPlasticCorrection(dMatrixT& a_ep, dArrayT& beta,
+void J2QLLinHardT::ElastoPlasticCorrection(dSymMatrixT& a_ep, dArrayT& beta,
 	int ip)
 {
 	/* element pointer */
@@ -447,9 +445,8 @@ void J2QLLinHardT::ElastoPlasticCorrection(dMatrixT& a_ep, dArrayT& beta,
 			double thetabar = (3.0/(3.0 + (dK(alpha) + dH(alpha))/Mu())) - thetahat;
 			
 			/* moduli corrections */
-			fMatrixTemp1.Outer(fUnitNorm,fUnitNorm);
-	
-			a_ep.AddScaled(-2.0*Mu()*thetabar, fMatrixTemp1);
+			fMatrixTemp3.Outer(fUnitNorm);
+			a_ep.AddScaled(-2.0*Mu()*thetabar, fMatrixTemp3);
 			a_ep.AddScaled(-2.0*Mu()*thetahat, fDevOp3);
 		}					
 	}

@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: J2QLLinHardT.h,v 1.2 2001-05-04 19:16:05 paklein Exp $ */
 /* created: paklein (10/26/2000)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -71,7 +71,7 @@ protected:
 	 *       The element passed in is already assumed to carry current
 	 *       internal variable values.
 	 */
-	void ElastoPlasticCorrection(dMatrixT& a_ep, dArrayT& beta, int ip);
+	void ElastoPlasticCorrection(dSymMatrixT& a_ep, dArrayT& beta, int ip);
 
 	/* allocate element storage */
 	void AllocateElement(ElementCardT& elememt);
@@ -103,13 +103,14 @@ private:
 
 	/* return values */
 	dSymMatrixT fb_elastic; //return value
-	dMatrixT    fEPModuli;  //elastoplastic moduli in principal stress space
+	dSymMatrixT fEPModuli;  //elastoplastic moduli in principal stress space
 
 	/* work space */
-	dMatrixT fa_inverse; //inverse of 3 x 3 moduli
-	dMatrixT fMatrixTemp1;
-	dMatrixT fMatrixTemp2;
-	dArrayT  fdev_beta; //deviatoric part of principal stress
+	dSymMatrixT fa_inverse; //inverse of 3 x 3 moduli
+	dMatrixT    fMatrixTemp1;
+	dMatrixT    fMatrixTemp2;
+	dSymMatrixT fMatrixTemp3;
+	dArrayT     fdev_beta; //deviatoric part of principal stress
 
 	dSymMatrixT fb_n;      //last converged elastic state
 	dSymMatrixT fb_tr;     //trial elastic state
