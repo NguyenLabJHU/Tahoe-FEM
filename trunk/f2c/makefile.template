@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.2 2001-01-31 04:11:28 paklein Exp $
+# $Id: makefile.template,v 1.3 2003-02-10 07:45:50 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -22,18 +22,7 @@ LIB_DIR = $(HOME_DIR)/lib
 
 # build architecture
 ARCH =
-# choices:
-#     ALASKA - DEC OSF
-#  CA-CPLANT - DEC OSF
-#        DEC - DEC OSF
-#    DEC.mpi - DEC OSF with MPI
-#        GNU - egcs
-#      JANUS - ASCI Red
-#        SGI - IRIX
-#  SGI.mpich - IRIX with MPICH
-#    SGI.mpi - IRIX with MPI
-#    SIBERIA - DEC OSF
-#        SUN - SUNWSpro
+# see macros directory for choices $(ARCH).macros
 
 # default target name - root of library name or executable name
 TARGET  = f2c_
@@ -51,7 +40,13 @@ BUILD   = $(LIBRARY)
 MACRO_DIR = $(HOME_DIR)/../macros
 
 ############################### build options ###########################
-# no options
+
+##### any additional user C, C++, fortran, or linker flags
+#MY_CFLAGS  = -O3
+MY_CCFLAGS =
+MY_FFLAGS  =
+MY_LFLAGS  =
+
 ############################### build options ###########################
 
 # include common target definitions
