@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.4.2.11 2001-10-30 16:43:14 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.4.2.12 2001-11-06 15:46:49 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -292,7 +292,7 @@ class ModelManagerT
 
   /** call this function if the connectivity group/block/set is altered through the element group pointer
    * the number of elements and element nodes is updated */
-  void UpdateConnectivityDimensions (int index);
+  void UpdateConnectivity (int index, const iArray2DT& connects);
   /** add elements to an element group array
    * \param index element group index
    * \param connects connectivity of elements to add

@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.4.2.11 2001-10-29 21:11:21 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.4.2.12 2001-11-06 15:46:48 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -912,12 +912,13 @@ void ModelManagerT::AdjustCoordinatesto2D (void)
   RegisterNodes (temp);
 }
 
-/* call this function after the connectivity has been changed by outside classes
-   i.e. do not need to call for AddElement */
-void ModelManagerT::UpdateConnectivityDimensions (int index)
+/* call this function after the connectivity has been changed by outside classes */
+void ModelManagerT::UpdateConnectivity (int index, const iArray2DT& connects)
 {
   if (index < 0 && index >= fNumElementSets) throw eOutOfRange;
-  
+
+  fElementSets[index] = connects;
+
   fElementLengths[index] = fElementSets[index].MajorDim();
   fElementNodes[index] = fElementSets[index].MinorDim();
 }
