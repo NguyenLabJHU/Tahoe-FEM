@@ -1,6 +1,5 @@
-/* $Id: RaggedArray2DT.h,v 1.10 2002-10-20 22:38:51 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.11 2002-11-25 07:01:25 paklein Exp $ */
 /* created: paklein (09/10/1998) */
-
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
 
@@ -8,27 +7,28 @@
 #include <iostream.h>
 
 /* direct members */
-#include "ArrayT.h"
+#include "AutoArrayT.h"
 #include "nArray2DT.h"
 #include "AutoFill2DT.h"
 #include "RowAutoFill2DT.h"
 
-
 namespace Tahoe {
 
-/** 2D array with arbitrary "row" lengths. operator()'s provided
- * for data retrieval. */
+/** 2D array with arbitrary row lengths. operator()'s provided for 
+ * data retrieval. Memory is managed using AutoArrayT's to allow
+ * the array to be reconfigured without thrashing memory too much.
+ */
 template <class TYPE>
 class RaggedArray2DT
 {
 public:
 
 	/** constructor. Constructs empty array */
-	RaggedArray2DT(void);
+	RaggedArray2DT(int headroom = 0);
 	
 	/** constructor. Construct array with the same dimensions for
 	 * every row. */
-	RaggedArray2DT(int majordim, int minordim, int blocksize = 1);
+	RaggedArray2DT(int majordim, int minordim, int headroom = 0, int blocksize = 1);
 
 	/** set the array size with fixed row dimensions. No change occurs if the array
 	 * is already the specified size. The previous contents of the array is
@@ -64,11 +64,21 @@ public:
 	 *        row length */
 	int MinMinorDim(int& dex, int floor) const; // smallest minor dimension ( > floor)
 
-	/** configuration the array
+	/** \name configuration methods */
+	/*@{*/
+	/** configuration the array using a list of row dimensions
 	 * \param rowcounts array containing the length of each row
 	 * \param blocksize allocated space is rowcounts[i]*blocksize
 	 *        for each row. */
 	void Configure(const ArrayT<int>& rowcounts, int blocksize = 1);
+
+	/** configuration to be the scaled shape of the source.
+	 * Only the shape of the array is duplicated. No data is copied from the source array
+	 * \param source array providing its shape to this one.
+	 * \param blocksize allocated space is rowcounts[i]*blocksize
+	 *        for each row. */
+	void Configure(const RaggedArray2DT& source, int blocksize = 1);
+	/*@}*/
 
 	/** shallow copy */
 	void Alias(const RaggedArray2DT& source);
@@ -100,7 +110,9 @@ public:
 	 * rows are removed. */
 	void CopyCompressed(const AutoFill2DT<TYPE>& source);
 
-	/** generate adjacency offset vector */
+	/** generate adjacency offset vector
+	 * \param offsets returns with the offset of the start of every
+	 *        of every row from the base address of the data array. */
 	void GenerateOffsetVector(ArrayT<int>& offsets) const;
 
 	/** write data to a row of the array. Dimension of the source
@@ -189,10 +201,10 @@ protected:
 	int fMaxMinorDim;
 
 	/** pointers to the data array. Length is majordim + 1 */
-	ArrayT<TYPE*> fPtrs;
+	AutoArrayT<TYPE*> fPtrs;
 
 	/** data array */
-	ArrayT<TYPE>  fData;
+	AutoArrayT<TYPE>  fData;
 };
 
 /*************************************************************************
@@ -201,16 +213,21 @@ protected:
 
 /* constructors */
 template <class TYPE>
-inline RaggedArray2DT<TYPE>::RaggedArray2DT(void):
+inline RaggedArray2DT<TYPE>::RaggedArray2DT(int headroom):
 	fMajorDim(0),
 	fMinMinorDim(0),
-	fMaxMinorDim(0)
+	fMaxMinorDim(0),
+	fPtrs(headroom),
+	fData(headroom)
 {
 
 }
 
 template <class TYPE>
-RaggedArray2DT<TYPE>::RaggedArray2DT(int majordim, int minordim, int blocksize)
+RaggedArray2DT<TYPE>::RaggedArray2DT(int majordim, int minordim, int headroom, 
+	int blocksize):
+	fPtrs(headroom),
+	fData(headroom)
 {
 	/* configure */
 	Dimension(majordim, minordim*blocksize);
@@ -249,7 +266,7 @@ template <class TYPE>
 inline int RaggedArray2DT<TYPE>::MinorDim(int row) const
 {
 #if __option(extended_errorcheck)
-	if (row < 0 || row >= fMajorDim) throw ExceptionT::kOutOfRange;
+	if (row < 0 || row >= fMajorDim) ExceptionT::OutOfRange();
 #endif
 
 	TYPE** p = fPtrs.Pointer() + row;
@@ -260,7 +277,7 @@ template <class TYPE>
 inline void RaggedArray2DT<TYPE>::MinorDim(ArrayT<int>& minordim) const
 {
 #if __option(extended_errorcheck)
-	if (minordim.Length() != fMajorDim) throw ExceptionT::kSizeMismatch;
+	if (minordim.Length() != fMajorDim) ExceptionT::SizeMismatch();
 #endif
 
 	TYPE**  p = fPtrs.Pointer();
@@ -352,6 +369,30 @@ void RaggedArray2DT<TYPE>::Configure(const ArrayT<int>& rowcounts, int blocksize
 	/* adjust for block size */
 	fMinMinorDim *= blocksize;
 	fMaxMinorDim *= blocksize;
+}
+
+/* configuration to be the scaled shape of the source */
+template <class TYPE>
+void RaggedArray2DT<TYPE>::Configure(const RaggedArray2DT& source, int blocksize)
+{
+	/* (scaled) dimensions */
+	fMajorDim    = source.fMajorDim;
+	fMinMinorDim = source.fMinMinorDim*blocksize;
+	fMaxMinorDim = source.fMaxMinorDim*blocksize;
+
+	/* allocate memory */
+	fPtrs.Dimension(fMajorDim + 1);
+	fData.Dimension(source.fData.Length()*blocksize);		
+
+	/* set pointers */
+	TYPE*  pdata = fData.Pointer();
+	TYPE** p     = fPtrs.Pointer();	
+	for (int i = 0; i < fMajorDim; i++)
+	{	
+		*p++   = pdata;
+		pdata += blocksize*source.MinorDim(i);
+	}
+	fPtrs[fMajorDim] = pdata;
 }
 
 /* shallow copy/conversion */
@@ -471,10 +512,7 @@ void RaggedArray2DT<TYPE>::Copy(const AutoFill2DT<TYPE>& source)
 	
 	/* memory check */
 	if (pdata - fData.Pointer() != fData.Length())
-	{
-		cout << "\n RaggedArray2DT<TYPE>::Copy: memory partitioning error" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("RaggedArray2DT<TYPE>::Copy", "memory partitioning error");
 }
 
 template <class TYPE>
@@ -513,10 +551,7 @@ void RaggedArray2DT<TYPE>::Copy(const RowAutoFill2DT<TYPE>& source)
 	
 	/* memory check */
 	if (pdata - fData.Pointer() != fData.Length())
-	{
-		cout << "\n RaggedArray2DT<TYPE>::Copy: memory partitioning error" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("RaggedArray2DT<TYPE>::Copy", "memory partitioning error");
 }
 
 template <class TYPE>
@@ -573,10 +608,7 @@ void RaggedArray2DT<TYPE>::CopyCompressed(const AutoFill2DT<TYPE>& source) // re
 	
 	/* memory check */
 	if (pdata - fData.Pointer() != fData.Length())
-	{
-		cout << "\n RaggedArray2DT<TYPE>::CopyCompressed: memory partitioning error" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("RaggedArray2DT<TYPE>::CopyCompressed", "memory partitioning error");
 }
 
 /* generate adjacency offset vector */
