@@ -21,11 +21,11 @@
         </field>
     </nodes>
     <element_list>
-        <fd_mfparticle compute_voronoi="false" field_name="displacement">
+        <fd_mfparticle field_name="displacement">
+            <voronoi_diagram/>
             <meshfree_support_2D>
                 <RKPM>
-                    <gaussian_window cutoff_factor="2.0E0"
-                        sharpening_factor="0.4E0" support_scaling="1.5E0"/>
+                    <gaussian_window cutoff_factor="1.5E0" support_scaling="2.0E0"/>
                 </RKPM>
             </meshfree_support_2D>
             <mf_particle_ID_list>
@@ -37,7 +37,7 @@
                 </block_ID_list>
                 <large_strain_material_2D>
                     <large_strain_StVenant_2D density="1.0">
-                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100."/>
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
                     </large_strain_StVenant_2D>
                 </large_strain_material_2D>
             </fd_connectivity_element_block>
