@@ -1,6 +1,5 @@
-/* $Id: PartitionT.cpp,v 1.8 2002-10-20 22:39:01 paklein Exp $ */
+/* $Id: PartitionT.cpp,v 1.9 2002-12-05 08:24:14 paklein Exp $ */
 /* created: paklein (11/16/1999) */
-
 #include "PartitionT.h"
 
 #include "fstreamT.h"
@@ -11,18 +10,18 @@
 #include "RaggedArray2DT.h"
 #include "StringT.h"
 
-/* parameters */
-
 using namespace Tahoe;
 
-const int kHeadRoom = 20;             // percent
-const char* sPartitionTVersion = "v1.0"; // version marker
+/* parameters */
+const int kHeadRoom = 20;                // percent
+const char* sPartitionTVersion = "v1.1"; // version marker
 
 /* constructor */
 PartitionT::PartitionT(void):
 	fNumPartitions(0),
 	fID(-1),
-	fScope(kUnSet)
+	fScope(kUnSet),
+	fDecompType(kUndefined)
 {
 
 }
@@ -345,9 +344,10 @@ namespace Tahoe {
 ostream& operator<<(ostream& out, const PartitionT& partition)
 {
 	out << sPartitionTVersion << '\n';
-	out << partition.fNumPartitions << '\n'; // number of parts
-	out << partition.fID            << '\n'; // partition number
-	out << partition.fScope         << '\n'; // numbering scope
+	out << setw(6) << partition.fNumPartitions << " # number of parts\n";
+	out << setw(6) << partition.fID            << " # partition number\n";
+	out << setw(6) << partition.fScope         << " # numbering scope\n";
+	out << setw(6) << partition.fDecompType    << " # decomposition type\n";
 	
 	// nodal information
 	out << "# internal nodes:\n";
@@ -440,17 +440,15 @@ ifstreamT& PartitionT::Read(ifstreamT& in)
 	StringT version;
 	in >> version;
 	if (version != sPartitionTVersion)
-	{
-		cout << "\n operator>>PartitionT&: file version " << version
-		     << " is not current: " << sPartitionTVersion << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-
-	int length;
+		ExceptionT::BadInputValue("operator>>PartitionT", 
+			"file version %s is not the current %s", version.Pointer(), sPartitionTVersion);
 
 	in >> fNumPartitions; // number of parts
 	in >> fID;            // partition number
 	in >> fScope;         // numbering scope
+	in >> fDecompType;    // decomposition type
+
+	int length;
 	
 	// nodal information
 	in >> length;
@@ -676,7 +674,6 @@ istream& operator>>(istream& in, PartitionT::NumberScopeT& scope)
 {
 	int i_scope;
 	in >> i_scope;
-	
 	switch (i_scope)
 	{
 		case PartitionT::kUnSet:
@@ -688,11 +685,36 @@ istream& operator>>(istream& in, PartitionT::NumberScopeT& scope)
 		case PartitionT::kGlobal:
 			scope = PartitionT::kGlobal;
 			break;
-		default:	
-			cout << "\n operator>>PartitionT::NumberScopeT: unknown value: " << i_scope << endl;
-			throw ExceptionT::kBadInputValue;
+		default:
+			ExceptionT::BadInputValue("operator>>PartitionT::NumberScopeT", 
+				"unrecognized scope: %d", i_scope);	
 	}
+	return in;
+}
 
+/* input operator for scope */
+istream& operator>>(istream& in, PartitionT::DecompTypeT& t)
+{
+	int i_t;
+	in >> i_t;
+	switch (i_t)
+	{
+		case PartitionT::kUndefined:
+			t = PartitionT::kUndefined;
+			break;
+		case PartitionT::kGraph:
+			t = PartitionT::kGraph;
+			break;
+		case PartitionT::kAtom:
+			t = PartitionT::kAtom;
+			break;
+		case PartitionT::kSpatial:
+			t = PartitionT::kSpatial;
+			break;
+		default:
+			ExceptionT::BadInputValue("operator>>PartitionT::DecompTypeT", 
+				"unrecognized scope: %d", i_t);	
+	}
 	return in;
 }
 
