@@ -1,6 +1,5 @@
-/* $Id: FEExecutionManagerT.h,v 1.17 2003-07-12 08:07:42 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.18 2003-08-14 06:04:25 paklein Exp $ */
 /* created: paklein (09/21/1997) */
-
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
 
@@ -29,7 +28,6 @@ class dArray2DT;
 class FEManagerT_THK;
 #endif
 
-
 /** class to handle file driven finite element simulations */
 class FEExecutionManagerT: public ExecutionManagerT
 {
@@ -38,6 +36,9 @@ public:
 	/** constructor */
 	FEExecutionManagerT(int argc, char* argv[], char job_char, char batch_char,
 		CommunicatorT& comm);
+
+	/** prompt for and execute input files until "quit" */
+	virtual void Run(void);
 
 protected:
 
@@ -68,7 +69,8 @@ private:
   kDecompose = 1,
        kJoin = 2,
    kBridging = 3,
-        kTHK = 4
+        kTHK = 4,
+        kDTD = 5
 	};
 	
 	/** standard serial driver */
@@ -90,6 +92,9 @@ private:
 	/** time history kernel tests */
 	void RunTHK(ifstreamT& in, ostream& status) const;
 #endif
+
+	/** dump current DTD file */
+	void RunDTD(void) const;
 	/*@}*/
 
 #ifdef BRIDGING_ELEMENT

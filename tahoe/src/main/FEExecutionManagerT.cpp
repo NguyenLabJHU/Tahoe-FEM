@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.46 2003-07-12 08:23:38 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.47 2003-08-14 06:04:25 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -32,6 +32,11 @@
 #include "OutputBaseT.h"
 #include "CommunicatorT.h"
 
+/* parameters */
+#include "ParameterListT.h"
+#include "ParameterTreeT.h"
+#include "XML_Attribute_FormatterT.h"
+
 /* needed for bridging calculations FEExecutionManagerT::RunBridging */
 #ifdef BRIDGING_ELEMENT
 #include "FEManagerT_bridging.h"
@@ -60,6 +65,19 @@ FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
 
 	/* set communicator log level */
 	if (CommandLineOption("-verbose")) comm.SetLogLevel(CommunicatorT::kLow);
+
+//TEMP
+//	AddCommandLineOption("-dtd");
+}
+
+/* Prompt input files until "quit" */
+void FEExecutionManagerT::Run(void)
+{
+	/* just dump DTD */
+	if (CommandLineOption("-dtd"))
+		RunDTD();
+	else /* inherited */
+		ExecutionManagerT::Run();
 }
 
 /**********************************************************************
@@ -926,6 +944,47 @@ void FEExecutionManagerT::RunTHK(ifstreamT& in, ostream& status) const
 }
 #endif /* BRIDGING_ELEMENT */
 #endif /* __DEVELOPMENT__ */
+
+/* dump current DTD file */
+void FEExecutionManagerT::RunDTD(void) const
+{
+	try {
+//TEMP - parameters currently needed to construct an FEManagerT
+	ifstreamT input;
+	ofstreamT output;
+	CommunicatorT comm;
+//TEMP
+
+	/* parameter source */
+	FEManagerT fe_man(input, output, comm);
+
+	/* collect parameters */
+	cout << " collecting parameters..." << endl;
+	ParameterTreeT tree;
+	tree.BuildDescription(fe_man);
+
+	/* write description */
+	cout << " writing description..." << endl;
+	StringT out_path("tahoe.dtd");
+	ofstreamT out;
+	out.open(out_path);
+	XML_Attribute_FormatterT attribute;
+	attribute.InitDescriptionFile(out);
+	
+	const ArrayT<ParameterListT*>& branches = tree.Branches();
+	for (int i = 0; i < branches.Length(); i++)
+		attribute.WriteDescription(out, *(branches[i]));
+
+	attribute.CloseDescriptionFile(out);
+	out.close();
+	cout << " wrote \"" << out_path << '"' << endl;	
+	}
+	
+	catch (ExceptionT::CodeT exc) {
+		cout << "\n FEExecutionManagerT::RunDTD: caught exception: " 
+		     << ExceptionT::ToString(exc) << endl;
+	}
+}
 
 /* standard serial driver */
 void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
