@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2001-08-03 19:18:21 sawimme Exp $
+# $Id: makefile,v 1.7 2002-01-09 12:09:05 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,6 +7,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	IOBaseT.o \
+	JoinOutputT.o \
 	ModelManagerT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -17,12 +18,15 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	IOBaseT.cpp \
+	JoinOutputT.cpp \
 	ModelManagerT.cpp
 
 # headers
 HDR = \
 	IOBaseT.h \
+	JoinOutputT.h \
 	ModelManagerT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
