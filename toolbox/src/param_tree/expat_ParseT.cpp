@@ -1,10 +1,10 @@
-/* $Id: expat_ParseT.cpp,v 1.4 2003-09-08 13:04:35 paklein Exp $ */
+/* $Id: expat_ParseT.cpp,v 1.5 2004-02-05 18:42:38 paklein Exp $ */
 #include "expat_ParseT.h"
 #ifdef __EXPAT__
 
 #include "ParameterListT.h"
 
-#if defined(__SGI__) || defined(__DELMAR__) || defined(__PGI__)
+#if defined(__SGI__) || defined(__DELMAR__) || defined(__PGI__) || defined(__MWERKS__)
 #include <stdio.h>
 #include <stdarg.h>
 #else
