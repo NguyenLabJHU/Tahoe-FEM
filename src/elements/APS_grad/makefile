@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-07-10 17:14:47 raregue Exp $
+# $Id: makefile,v 1.2 2003-07-10 17:16:39 raregue Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,7 +6,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	APS_Assembly.o \
+	APS_AssemblyT.o \
 	APS_Traction_and_Body_Force.o
 
 OBJ_LINK = $(OBJ)
@@ -17,12 +17,12 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	APS_Assembly.cpp \
+	APS_AssemblyT.cpp \
 	APS_Traction_and_Body_Force.cpp
 
 # headers
 HDR = \
-	APS_Assembly.h
+	APS_AssemblyT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
