@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.22 2003-11-21 22:47:56 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.23 2003-12-28 09:39:49 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nIntegratorT.h"
@@ -22,7 +22,7 @@ FieldT::FieldT(const FieldSupportT& field_support):
 }
 
 /* configure the field */
-void FieldT::Initialize(const StringT& name, int ndof, nIntegratorT& controller)
+void FieldT::Initialize(const StringT& name, int ndof, const nIntegratorT& controller)
 {
 	/* initialize base class */
 	BasicFieldT::Initialize(name, ndof, controller.Order());
