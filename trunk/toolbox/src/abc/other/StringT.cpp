@@ -1,5 +1,5 @@
-/* $Id: StringT.cpp,v 1.16 2002-02-18 08:48:43 paklein Exp $ */
-/* created: paklein (08/01/1996)                                          */
+/* $Id: StringT.cpp,v 1.17 2002-02-21 08:53:15 paklein Exp $ */
+/* created: paklein (08/01/1996) */
 
 #include "StringT.h"
 
@@ -911,6 +911,23 @@ bool StringT::Tail(char key, double& value) const
 
 /* extract integer */
 bool StringT::Tail(char key, int& value) const
+{
+	char* p = Pointer();
+	while (*p != '\0' && *p != key) p++;
+
+	value = 0;
+	if (*p == key)
+	{
+		istrstream in(p + 1);
+		in >> value;
+		return true;
+		
+	}
+	return false;
+}
+
+/* extract string */
+bool StringT::Tail(char key, StringT& value) const
 {
 	char* p = Pointer();
 	while (*p != '\0' && *p != key) p++;
