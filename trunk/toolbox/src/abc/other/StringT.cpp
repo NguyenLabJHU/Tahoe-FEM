@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.42 2004-07-27 00:56:13 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.43 2004-08-08 02:01:16 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -972,8 +972,7 @@ bool StringT::Tail(char key, double& value) const
 	value = 0.0;
 	if (*p == key)
 	{
-		istrstream in(p + 1);
-		in >> value;
+		value = atof(p + 1);
 		return true;
 	}
 	return false;
@@ -982,23 +981,21 @@ bool StringT::Tail(char key, double& value) const
 /* return the position of the first occurrence of the character */
 int StringT::FirstPositionOf(char a) const
 {
-	int len = StringLength();
-	const char* p = Pointer();
-	for (int i = 0; i < len; i++)
-		if (*p++ == a)
-			return i;
-	return -1;
+	const char* tail = strchr(Pointer(), a);
+	if (tail)
+		return StringLength() - strlen(tail);
+	else
+		return -1;
 }
 
 /* return the position of the last occurrence of the character */
 int StringT::LastPositionOf(char a) const
 {
-	int len = StringLength();
-	const char* p = Pointer(len - 1);
-	for (int i = len - 1; i > -1; i--)
-		if (*p-- == a)
-			return i;
-	return -1;
+	const char* tail = strrchr(Pointer(), a);
+	if (tail)
+		return StringLength() - strlen(tail);
+	else
+		return -1;
 }
 
 /* extract integer */
@@ -1011,8 +1008,7 @@ bool StringT::Tail(char key, int& value) const
 	value = 0;
 	if (*p == key)
 	{
-		istrstream in(p + 1);
-		in >> value;
+		value = atoi(p + 1);
 		return true;
 		
 	}
