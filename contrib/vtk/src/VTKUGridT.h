@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.17 2002-07-11 15:57:42 recampb Exp $ */
+/* $Id: VTKUGridT.h,v 1.18 2002-07-17 16:52:22 recampb Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -214,8 +214,10 @@ class VTKUGridT
 	/** cutting plane variables */
 	AutoArrayT<vtkPlane*> plane;
 	AutoArrayT<vtkCutter*> cutter;
+	AutoArrayT<vtkCutter*> cutter2;
 	AutoArrayT<vtkActor*> cut;
 	AutoArrayT<vtkPolyDataMapper*> cutterMapper;
+	AutoArrayT<vtkPolyDataMapper*> boundPlaneMapper;
 	AutoArrayT<vtkContourFilter*> contourA;
 	AutoArrayT<vtkPolyDataMapper*> contourMapperA;
 	AutoArrayT<vtkActor*> boundPlane;

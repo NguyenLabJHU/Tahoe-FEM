@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.22 2002-07-11 15:57:42 recampb Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.23 2002-07-17 16:52:21 recampb Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -381,9 +381,14 @@ void VTKUGridT::HideContours(vtkRenderer* renderer)
 
       for (int i = 0; i < cut.Length(); i++)
 	{
+	  if (warpBool)
+	      cutter[i]->SetInput(fWarp->GetOutput());
+	  else
+	    cutter[i]->SetInput(fUGrid);
 	  cutterMapper[i]->ScalarVisibilityOn();
 	  cut[i]->SetMapper(cutterMapper[i]);
 	  renderer->RemoveActor(boundPlane[i]);
+
 	}
       
 
@@ -445,17 +450,36 @@ else
     warpBool = warp;
     vtkPlane* tplane = vtkPlane::New();
     vtkCutter* tcutter = vtkCutter::New();
+    vtkCutter* tcutter2 = vtkCutter::New();
     vtkPolyDataMapper* tcutterMapper = vtkPolyDataMapper::New();
+    vtkPolyDataMapper* tboundPlaneMapper = vtkPolyDataMapper::New();
     vtkActor* tcut = vtkActor::New();
     tcutter->SetInput(fContour->GetOutput());
     tcutter->SetCutFunction(tplane);
+    tcutter2->SetCutFunction(tplane);
+    if (!warpBool)
+      tcutter2->SetInput(fUGrid);
+    else
+      tcutter2->SetInput(fWarp->GetOutput());
     tcutterMapper->SetInput(tcutter->GetOutput());
     tcutterMapper->SetLookupTable(fLookUpTable);
     tcutterMapper->SetScalarRange(min, max);
+    tboundPlaneMapper->SetInput(tcutter2->GetOutput());
+    tboundPlaneMapper->SetLookupTable(fLookUpTable);
+    tboundPlaneMapper->SetScalarRange(min, max);
+    tboundPlaneMapper->ScalarVisibilityOff();
+    tcutterMapper->ScalarVisibilityOn();
     tcut->SetMapper(tcutterMapper);
     
     if (temp->IsItemPresent(boundBoxActor) == 0)
       renderer->AddActor(boundBoxActor);  
+
+    vtkActor* tActor = vtkActor::New();
+    tActor->SetMapper(tboundPlaneMapper);
+    tActor->GetProperty()->SetOpacity(.20);
+    tActor->GetProperty()->SetColor(1,1,1);    
+    boundPlane.Append(tActor);
+    renderer->AddActor(tActor);
     
     boundBoxActor->SetVisibility(true);
     boundBoxActor->PickableOff();
@@ -463,19 +487,13 @@ else
     tplane->SetNormal(nX, nY, nZ);
     plane.Append(tplane);
     cutter.Append(tcutter);
+    cutter2.Append(tcutter2);
+    boundPlaneMapper.Append(tboundPlaneMapper);
     cutterMapper.Append(tcutterMapper);
-      cut.Append(tcut);
-      
-      //fActor->SetMapper(cutterMapper);
-      
-      
-//       for (int i=0; i<cutter.Length(); i++)
-// 	{
-// 	  cutter[i]->SetInput(contourA[i]->GetOutput());
-// 	  cutterMapper[i]->SetInput(cutter[i]->GetOutput());
-	  
-// 	}
-      
+    cut.Append(tcut);
+    
+    
+    
       renderer->RemoveActor(fActor);
       //fActor->SetVisibility(false);
       renderer->AddActor(tcut);   
@@ -516,6 +534,8 @@ void VTKUGridT::HideCuttingPlane(vtkRenderer* renderer)
      
      cut.Free();
      cutter.Free();
+     cutter2.Free();
+     boundPlaneMapper.Free();
      cutterMapper.Free();
      plane.Free();
       
@@ -535,6 +555,7 @@ void VTKUGridT::Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer, bool fil
     {
       if (warpBool && warpArrows)
 	visPoints->SetInput(fWarp->GetOutput());
+	//visPoints->SetInput(fUGrid);
       else  
 	visPoints->SetInput(fUGrid);
 	  
