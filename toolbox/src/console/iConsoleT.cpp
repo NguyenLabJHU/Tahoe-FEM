@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.1.1.1 2001-01-25 20:56:28 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.2 2001-02-07 22:08:14 paklein Exp $ */
 /* created: paklein (12/21/2000)                                          */
 /* iConsoleT.cpp                                                          */
 
@@ -93,7 +93,7 @@ iConsoleT::~iConsoleT(void)
 bool iConsoleT::iDoCommand(const StringT& command, StringT& line)
 {
 	/* dispatch */
-	if (command == "scope")
+	if (command == (const char*) "scope")
 	{
 		cout << fScope << endl;
 		return true;
@@ -591,7 +591,6 @@ iConsoleT::CommandScope iConsoleT::ResolveCommand(StringT& command) const
 	int word_length = strlen(command);
 	if (word_length == 0) return kNone;
 
-	const StringT* match = NULL;
 	CommandScope scope = kNone;
 	int match_count = 0;
 	int exact_match_count = 0;
