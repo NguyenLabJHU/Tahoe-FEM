@@ -1,4 +1,4 @@
-/* $Id: pfsolvem.c,v 1.5 2005-01-15 02:43:30 paklein Exp $ */
+/* $Id: pfsolvem.c,v 1.6 2005-01-15 08:18:28 paklein Exp $ */
 /* pfsolvem.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -9,7 +9,7 @@
 /* #define __DO_DEBUG__ 1 */
 
 #include "mpi.h"
-#include "pspases_f2c.h"
+#include "pspases_int.h"
 #include <stdio.h>
 
 /* Table of constant values */
@@ -62,7 +62,7 @@ static doublereal c_b58 = -1.;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: pfsolvem.c,v 1.5 2005-01-15 02:43:30 paklein Exp $ +/ */
+/* /+ $Id: pfsolvem.c,v 1.6 2005-01-15 08:18:28 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
