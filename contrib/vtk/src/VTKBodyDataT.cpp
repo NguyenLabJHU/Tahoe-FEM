@@ -1,373 +1,398 @@
-#include "VTKBodyT.h"
+/* $Id: VTKBodyDataT.cpp,v 1.5 2001-12-10 12:44:08 paklein Exp $ */
 #include "VTKBodyDataT.h"
-#include "vtkPoints.h"
 
-#include "vtkUnstructuredGrid.h"
-#include "vtkUnstructuredGridReader.h"
-#include "vtkDataSetMapper.h"
-#include "vtkActor.h"
-#include "vtkScalarBarActor.h"
-#include "vtkCubeAxesActor2D.h"
-#include "vtkRendererSource.h"
-#include "vtkWindowToImageFilter.h"
-#include "vtkLookupTable.h"
-#include "vtkIdFilter.h"
-#include "vtkSelectVisiblePoints.h"
-#include "vtkLabeledDataMapper.h"
-#include "vtkActor2D.h"
-#include "vtkFieldData.h"
-#include "vtkCamera.h"
-#include "vtkWarpVector.h"
-#include "vtkVectors.h"
-#include "vtkScalarBarActor.h"
-#include "vtkScalars.h"
-
-#ifdef __VTK_NEW__
 #include "vtkIdTypeArray.h"
-#endif
 #include <iostream.h>
 #include <iomanip.h>
+#include <float.h>
+
+#include "vtkPoints.h"
+#include "vtkRenderer.h"
+#include "vtkFloatArray.h"
+
+#include "iArray2DT.h"
 #include "ExodusT.h"
 #include "dArray2DT.h"
-#include "iArray2DT.h"
 #include "dArrayT.h"
+#include "iArrayT.h"
 #include "GeometryT.h"
 #include "StringT.h"
+#include "VTKUGridT.h"
 
 /* array behavior */
 const bool ArrayT<VTKBodyDataT*>::fByteCopy = true;
 
 /* constructor */
 VTKBodyDataT::VTKBodyDataT(const StringT& file_name): 
-  inFile(file_name)
+	fInFile(file_name),
+	fPoints(NULL),
+	currentStepNum(0)
 {
-
- /* read exodus file */
-  ExodusT exo(cout);
-  if (!exo.OpenRead(inFile))
+	/* read exodus file */
+	ExodusT exo(cout);
+	if (!exo.OpenRead(fInFile))
     {
-      cout << " ERROR: could not open file: " << inFile << endl;
-      throw eDatabaseFail;;
-    }
-  else
-    cout << "read database file: " << inFile << endl;
-  
-  /* read coordinates */
-  //dArray2DT coordinates;
-  num_nodes = exo.NumNodes();
-  num_dim   = exo.NumDimensions();
-  dArray2DT coordinates(num_nodes, num_dim);
-
-  
-//   // ArrayT<dArray2DT> coordinates(num_time_steps);
-  exo.ReadCoordinates(coordinates); 
-  if (coordinates.MinorDim() == 2) 
-    { 
-      /* temp space */ 
-      dArray2DT tmp(coordinates.MajorDim(), 3); 
-      
-      /* write in */ 
-      tmp.BlockColumnCopyAt(coordinates, 0);    
-      tmp.SetColumn(2, 0.0); 
-      
-      /* swap memory */ 
-      tmp.Swap(coordinates); 
-    } 
-  
-  
-  /* read element block ID's */
-  int num_elem_blocks = exo.NumElementBlocks();
-  iArrayT element_ID(num_elem_blocks);
-  exo.ElementBlockID(element_ID);
-  
-  /* read element connectivities */
-  ArrayT<iArray2DT> connectivities(num_elem_blocks);
-  GeometryT::CodeT geometry;
-  for (int i = 0 ; i < num_elem_blocks; i++)
-    {
-      /* read dimensions */
-      int num_elements, num_element_nodes;
-      exo.ReadElementBlockDims(element_ID[i], num_elements, num_element_nodes);
-      
-      
-      /* read connectivities */
-      connectivities[i].Allocate(num_elements, num_element_nodes);
-      
-      exo.ReadConnectivities(element_ID[i], geometry, connectivities[i]);
-      
-    }
-  
-  num_time_steps = exo.NumTimeSteps();
-  // double time;
-  //if (num_time_steps > 0)
-  //	{
-  /* variables defined at the nodes */
-  num_node_variables = exo.NumNodeVariables();
-  // ArrayT<StringT> node_labels(num_node_variables);
-  exo.ReadNodeLabels(node_labels);
-  // 	  cout << " nodal variables:\n";
-  // 	  for (int i = 0; i < node_labels.Length(); i++)
-  // 		cout << node_labels[i] << '\n';
-  
-  /* variables defined over the elements */
-  int num_element_variables = exo.NumElementVariables();
-  ArrayT<StringT> element_labels;
-  exo.ReadElementLabels(element_labels);
-  //  cout << " element variables:\n" << endl;
-  // 	  for (int i = 0; i < element_labels.Length(); i++)
-  // 		cout << element_labels[i] << '\n';
-  // 	  cout.flush();
-  
-  /* read nodal data */
-  dArray2DT nodal_data(num_nodes, num_node_variables);
-  dArrayT ndata(num_nodes);
-  cout << "num node vars: "<< num_node_variables << endl;
-  cout << "num nodes: " << num_nodes << endl;
-  cout << "num time steps: " << num_time_steps << endl;
-  //num_time_steps =1; //num_node_variables =1; // used to test data
-  if (num_time_steps > 0)
-    {
-      for (int i = 0; i < num_time_steps; i++)
-      //for (int i = 0; i<1; i++)
-      	{
-	  exo.ReadTime(i+1, time);
-	   for (int j = 0; j < num_node_variables; j++)
-	  //for(int j=0; j<1; j++)  
-	    {
-	      exo.ReadNodalVariable(i+1, j+1, ndata);
-	      nodal_data.SetColumn(j, ndata);
-
-#ifdef __VTK_NEW__
-          scalars[i][j] =  vtkDataArray::CreateDataArray(VTK_DOUBLE);
-          scalars[i][j]->SetNumberOfComponents(1);
-//          scalars[i][j]->SetNumberOfTuples(num_nodes);
-//		  scalars[i][j]->PrintSelf(cout, 4);
-#else
-	      scalars[i][j] =  vtkScalars::New(VTK_DOUBLE);
-#endif
-	      
-	      /* instantiate displacement vector if needed */
-
-	      if (node_labels.Length() > 0 && (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z" || node_labels[0] == "d1"))
-		vectors[i][j] = vtkVectors::New(VTK_DOUBLE);
-
-	      if (node_labels.Length() > 0 && (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z"))
-#ifdef __VTK_NEW__
-			vectors[i][j] = vtkDataArray::CreateDataArray(VTK_DOUBLE);
-			int vec_dim = 0;
-			if (node_labels[0] == "D_X")
-			{
-				vec_dim++;
-				if (node_labels[1] == "D_Y")
-				{
-					vec_dim++;
-					if (node_labels[2] == "D_Z")
-						vec_dim++;
-				}
-			}
-			vectors[i][j]->SetNumberOfComponents(vec_dim);
-//			vectors[i][j]->PrintSelf(cout, 4);
-//			vectors[i][j]->SetNumberOfTuples(num_nodes);            
-#else
-			vectors[i][j] = vtkVectors::New(VTK_DOUBLE);
-#endif     
-
-	      /* initialize min and max scalar range values */
-	      scalarRange1[j] = 10000;
-	      scalarRange2[j] = -10000;
-	      
-	      for (int k = 0; k<num_nodes; k++) {	       
-		/* determine min and max scalar range values */
-		if (nodal_data(k,j) < scalarRange1[j]) scalarRange1[j] = nodal_data(k,j);
-		if (nodal_data(k,j) > scalarRange2[j]) scalarRange2[j] = nodal_data(k,j);
-
-		/* insert scalar value at each node for each variable and time step */
-#ifdef __VTK_NEW__
-		//scalars[i][j]->SetTuple1(k+1, nodal_data(k,j));
-		scalars[i][j]->InsertTuple1(k+1, nodal_data(k,j));
-#else
-		scalars[i][j]->InsertScalar(k+1, nodal_data(k,j));
-#endif
-		//InsertVector(k,...)?????
-		/* if displacement vector needed then insert vector at each node for each time step */
-#ifdef __VTK_NEW__
-		if (node_labels.Length() > 0 &&(node_labels[0] == "D_X" && node_labels[1] == "D_Y" && node_labels[2] == "D_Z"))              
-//		  vectors[i][j]->SetTuple3(k+1, nodal_data(k,0),nodal_data(k,1),nodal_data(k,2));
-		  vectors[i][j]->InsertTuple3(k+1, nodal_data(k,0),nodal_data(k,1),nodal_data(k,2));
-		else if (node_labels.Length() > 0 &&(node_labels[0] == "D_X" && node_labels[1] == "D_Y"))
-//		  vectors[i][j]->SetTuple3(k+1, nodal_data(k,0), nodal_data(k,1),0);
-		  vectors[i][j]->InsertTuple3(k+1, nodal_data(k,0), nodal_data(k,1),0);
-		else if (node_labels.Length() > 0 &&(node_labels[0] == "D_X"))
-//		  vectors[i][j]->SetTuple3(k+1, nodal_data(k,0),0,0);
-		  vectors[i][j]->InsertTuple3(k+1, nodal_data(k,0),0,0);
-#else
-		if (node_labels.Length() > 0 &&(node_labels[0] == "D_X" && node_labels[1] == "D_Y" && node_labels[2] == "D_Z"))              
-		  vectors[i][j]->InsertVector(k+1, nodal_data(k,0),nodal_data(k,1),nodal_data(k,2));
-		else if (node_labels.Length() > 0 &&(node_labels[0] == "D_X" && node_labels[1] == "D_Y"))
-		  vectors[i][j]->InsertVector(k+1, nodal_data(k,0), nodal_data(k,1),0);
-		else if (node_labels[0] == "d1" && node_labels[1] == "d2")
-		  vectors[i][j]->InsertVector(k+1, nodal_data(k,0), nodal_data(k,1),0);
-		else if (node_labels.Length() > 0 &&(node_labels[0] == "D_X"))
-		  vectors[i][j]->InsertVector(k+1, nodal_data(k,0),0,0);
-#endif	
-	      }
-	    }
+		cout << " ERROR: could not open file: " << fInFile << endl;
+		throw eDatabaseFail;;
 	}
+	else
+		cout << "read database file: " << fInFile << endl;
+  
+	/* read coordinates */
+	int num_nodes = exo.NumNodes();
+	int num_dim   = exo.NumDimensions();
+  	dArray2DT coords(num_nodes, num_dim);
+	exo.ReadCoordinates(coords); 
+	if (coords.MinorDim() == 2) /* fill to 3D */
+    { 
+		/* temp space */ 
+		dArray2DT tmp(coords.MajorDim(), 3); 
       
+		/* write in */ 
+		tmp.BlockColumnCopyAt(coords, 0);    
+		tmp.SetColumn(2, 0.0); 
+      
+		/* swap memory */ 
+		tmp.Swap(coords); 
+    }
+
+#if 1
+	/* set up points */
+  	fPoints = vtkPoints::New();
+  	for (int i=0; i < num_nodes; i++) 
+		fPoints->InsertPoint(i+1, coords(i));
+//  	fPoints->InsertPoint(i, coords(i)); //SHIFT
+#endif
+
+#if 0
+//NOTE: not the most efficient way to do things, but the code below
+//      doesn't work properly.  		
+
+	/* convert to float */
+	nArray2DT<float> coords_float(num_nodes+1, 3);
+	double_to_float(coords, coords_float(1));
+
+	coordinates = vtkFloatArray::New();
+	coordinates->SetNumberOfComponents(3);
+	float* pcoords;
+	coords_float.ReleasePointer(&pcoords);
+	coordinates->SetArray(pcoords, coords.Length(), 0);
+	fPoints = vtkPoints::New();
+	fPoints->SetData(coordinates);
+#endif
+
+	/* dimensions */
+	int num_elem_blocks = exo.NumElementBlocks();
+	int num_node_sets = exo.NumNodeSets();
+	fUGrids.Allocate(num_elem_blocks + num_node_sets);	
+  
+	/* load element connectivities */
+  	iArrayT element_ID(num_elem_blocks);
+  	exo.ElementBlockID(element_ID);
+	for (int i = 0 ; i < element_ID.Length(); i++)
+    {
+		/* read dimensions */
+		int num_elements, num_element_nodes;
+		exo.ReadElementBlockDims(element_ID[i], num_elements, num_element_nodes);
+
+#if __option(extended_errorcheck)
+		cout << "VTKBodyDataT::VTKBodyDataT: reading element block: " 
+		     << num_elements << " x " << num_element_nodes << endl;
+#endif
+
+		/* read connectivities */
+		iArray2DT connectivities(num_elements, num_element_nodes);
+		GeometryT::CodeT geom_code;
+		exo.ReadConnectivities(element_ID[i], geom_code, connectivities);      
+		//connectivities[i]--; //SHIFT
+		
+		/* construct VTK grid */
+		fUGrids[i] = new VTKUGridT(VTKUGridT::kElementSet, element_ID[i], num_dim);
+		fUGrids[i]->SetPoints(fPoints);
+		fUGrids[i]->SetConnectivities(geom_code, connectivities);
+	}    
+    cout << "read element blocks" << endl;
+
+	/* load node sets */
+	iArrayT node_ID(num_node_sets);
+  	exo.NodeSetID(node_ID);
+	for (int i = 0; i < node_ID.Length(); i++)
+    {
+		/* read dimensions */
+		int num_nodes = exo.NumNodesInSet(node_ID[i]);
+
+#if __option(extended_errorcheck)
+		cout << "VTKBodyDataT::VTKBodyDataT: reading node set: " 
+		     << num_nodes << endl;
+#endif
+
+		/* read nodes */
+		iArray2DT connectivities(num_nodes, 1);
+		GeometryT::CodeT geom_code = GeometryT::kPoint;
+		exo.ReadNodeSet(node_ID[i], connectivities);
+		
+		/* construct VTK grid */
+		int ii = i + num_elem_blocks;
+		fUGrids[ii] = new VTKUGridT(VTKUGridT::kNodeSet, node_ID[i], num_dim);
+		fUGrids[ii]->SetPoints(fPoints);
+		fUGrids[ii]->SetConnectivities(geom_code, connectivities);
+	}    
+    cout << "read node sets" << endl;
+  
+	/* number of results sets */
+	int num_time_steps = exo.NumTimeSteps();
+
+    cout << "read time steps" << endl;
+
+	/* variables defined at the nodes */
+	int num_node_variables = exo.NumNodeVariables();
+	exo.ReadNodeLabels(fNodeLabels);
+	int vec_dim = num_dim;
+	if (fNodeLabels.Length() >= vec_dim)
+	{
+		const char *d[] = {"D_X", "D_Y", "D_Z"};
+		for (int i = 0; vec_dim > 0 && i < vec_dim; i++)
+			if (fNodeLabels[i] != d[i])
+				vec_dim = 0;
+	}
+	else vec_dim = 0;
+	
+	/* results history */
+	fScalars.Allocate(num_time_steps, num_node_variables);
+	fScalars = NULL;
+	if (vec_dim > 0)
+	{
+		fVectors.Allocate(num_time_steps);
+		fVectors = NULL;
+	}
+
+	/* variables defined over the elements */
+	int num_element_variables = exo.NumElementVariables();
+	ArrayT<StringT> element_labels;
+	exo.ReadElementLabels(element_labels);
+  
+	/* read nodal data */
+	cout << "num node vars: "<< num_node_variables << endl;
+	cout << "num nodes: " << num_nodes << endl;
+	cout << "num time steps: " << num_time_steps << endl;
+	
+	/* initialize variable ranges */
+	scalarRange1.Allocate(num_node_variables);
+	scalarRange2.Allocate(num_node_variables);
+	scalarRange1 = DBL_MAX;
+	scalarRange2 = DBL_MIN;
+
+	/* load results data */
+	if (num_time_steps > 0)
+	{
+		for (int i = 0; i < num_time_steps; i++)
+      	{
+      		double time;
+			exo.ReadTime(i+1, time);
+
+			/* load variable data in scalar */
+			for (int j = 0; j < num_node_variables; j++)
+			{
+				/* read variable */
+				dArrayT ndata(num_nodes);
+				exo.ReadNodalVariable(i+1, j+1, ndata);
+
+				/* range over all steps */
+				double min, max;
+				ndata.MinMax(min, max);
+				scalarRange1[j] = (min < scalarRange1[j]) ? min : scalarRange1[j];
+				scalarRange2[j] = (max > scalarRange2[j]) ? max : scalarRange2[j];
+				
+				/* allocate scalars */
+#ifdef __VTK_NEW__
+				fScalars(i,j) = vtkFloatArray::New();
+				fScalars(i,j)->SetNumberOfComponents(1);
+#else
+				fScalars(i,j) =  vtkScalars::New(VTK_DOUBLE);
+#endif	
+
+#if 0
+				/* set one tuple at a time */
+				for (int k = 0; k < num_nodes; k++)
+					fScalars(i,j)->InsertTuple1(k+1, ndata[k]);
+#endif
+					
+#if 1			
+				/* translate to float */
+				ArrayT<float> fdata(num_nodes + 1); /* zeroth tuple is ignored */
+				double_to_float(ndata, fdata.Pointer(1));
+//				double_to_float(ndata, fdata.Pointer(0)); //SHIFT
+				
+				/* load in */
+				float* p;
+				fdata.ReleasePointer(&p);
+				fScalars(i,j)->SetArray(p, ndata.Length(), 0);
+#endif
+			}
+			
+			/* instantiate displacement vector if needed */
+			if (vec_dim > 0)
+			{
+				/* allocate vectors */
+#ifdef __VTK_NEW__
+				fVectors[i] = vtkFloatArray::New();
+				fVectors[i]->SetNumberOfComponents(3);
+#else
+				fVectors[i] = vtkVectors::New(VTK_DOUBLE);
+#endif
+
+
+#if 0
+				/* set one tuple at a time */
+				for (int j = 0; j < num_nodes; j++)
+				{	
+					double* p = disp_tmp(j);
+					fVectors[i]->InsertTuple3(j+1, p[0], p[1], p[2]); //?????????do tuple numbers start at 1?????????
+				}
+#endif
+
+#if 1
+				/* temp space */
+				nArray2DT<float> disp(num_nodes+1, 3);
+				disp = 0.0;
+				for (int j = 0; j < vec_dim; j++)
+					disp.SetColumn(j, fScalars(i,j)->GetPointer(0));
+					
+				/* load into vectors */
+				float* p;
+				disp.ReleasePointer(&p);
+				fVectors[i]->SetArray(p, disp.Length()-3, 0);
+#endif
+			}
+		}
+	}
+	
+	/* set default variable to be displayed */ 
+	if (num_node_variables > 0)  
+		currentVarNum = num_node_variables-1;
+	else
+		currentVarNum = -1;
+
+	//TEMP
+	cout << "loaded data" << endl;
+  
+	/* set grid scalars */
+	if (num_node_variables > 0)
+	{
+		for (int i = 0; i < fUGrids.Length(); i++)
+			if (fUGrids[i]->Type() == VTKUGridT::kElementSet)
+				fUGrids[i]->SetScalars(fScalars(currentStepNum, currentVarNum));
+	}
+
+	//TEMP
+	cout << "set scalars" << endl;
+
+	/* set grid displacements */
+	if (fVectors.Length() > 0)
+	{
+		for (int i = 0; i < fUGrids.Length(); i++)
+			fUGrids[i]->SetWarpVectors(fVectors[currentStepNum]);
     }
   
+	//TEMP
+	cout << "set warp" << endl;
 
+	/* color mapping variables */
+  	if (num_node_variables > 0)
+  	{
+		DefaultValues();
+	
+		/* color mapping stuff */  
+		//lut = vtkLookupTable::New();
+		UpdateData();
+		//lut->Build();
+		//SetLookupTable();
+  	}
 
-  /* allocate points */
-  points = vtkPoints::New();
-  for (int i=0; i<num_nodes; i++) points->InsertPoint(i+1,coordinates(i));
-  
-  /* allocate cells */
-  vtk_cell_array = vtkCellArray::New();
-
-  //NOTE: this code is only for a single block of cells
-  //      the data for visualization will be provided one
-  //      group of cells at a time.
-  iArray2DT& connects = connectivities[0];
-  
-  /* create array of VTK-style connectivities */
-  iArray2DT vtk_connects(connects.MajorDim(), connects.MinorDim()+1); //has 1 extra entry!!!
-  vtk_connects.BlockColumnCopyAt(connects, 1);
-  vtk_connects.SetColumn(0, connects.MinorDim()); //first value in each row is row size 
-  
-  /* release "ownership" of memory */
-  int* p_vtk_connects;
-  vtk_connects.ReleasePointer(&p_vtk_connects);
-  
-  /* create VTK integer array */
-#ifdef __VTK_NEW__
-  vtkIdTypeArray* intArray = vtkIdTypeArray::New();
-#else
-  vtkIntArray* intArray = vtkIntArray::New();
-#endif
-  intArray->SetNumberOfComponents(vtk_connects.MinorDim()); //is this needed???
-  intArray->SetArray(p_vtk_connects, vtk_connects.Length(), 0);
-  
- 
-  
-  /* create VTK array of cells */
-  //vtkCellArray* vtk_cell_array = vtkCellArray::New();
-  vtk_cell_array->SetCells(vtk_connects.MajorDim(), intArray);
-  
-  //NOTE: do all at once for higher efficiency 
-  //ugrid->Allocate(num_elem_blocks);
-  // for (int i=0; i<num_elem_blocks; i++) 
-  //   ugrid->InsertNextCell(VTK_QUAD, 4, connectivities[i]); 
-  
-  
-  //NOTE: the example database has triangles. Generally, you would need
-  //      to determine the cell type from the database, or require that
-  //      the cell type be specified when the data is sent to the visualizer.
-  ArrayT<int> cell_types(vtk_connects.MajorDim());
-  
-  /* convert exodus geometry into appropriate vtk geometry */
-  if (geometry == GeometryT::kPoint) cell_types = VTK_VERTEX;  
-  else if (geometry == GeometryT::kLine ) cell_types =  VTK_LINE;
-  else if (geometry == GeometryT::kQuadrilateral) cell_types= VTK_QUAD; 
-  else if (geometry == GeometryT::kTriangle) cell_types = VTK_TRIANGLE;
-  else if (geometry == GeometryT::kHexahedron) cell_types  = VTK_HEXAHEDRON;
-  else if (geometry == GeometryT::kTetrahedron) cell_types = VTK_TETRA; 
-  else if (geometry == GeometryT::kPentahedron) cell_types = VTK_WEDGE;
-  else cout << "Bad geometry";
- 
-
-  /* set default variable to be displayed */ 
-  if (num_node_variables > 0)  
-    currentVarNum = num_node_variables-1;
-  else
-   currentVarNum = 0;
-  
-  //read model data
-  //set up grid
-  ugrid = vtkUnstructuredGrid::New();
-  currentStepNum = 0;
-  /* insert cells in the grid */
-  ugrid->SetCells(cell_types.Pointer(), vtk_cell_array);
-  ugrid->SetPoints(points);
-  if (num_node_variables > 0) 
-    ugrid->GetPointData()->SetScalars(scalars[currentStepNum][currentVarNum]); 
-  if (node_labels.Length() > 0 && (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z" || node_labels[0] == "d1"))
-    ugrid->GetPointData()->SetVectors(vectors[currentStepNum][currentVarNum]);
-  
- 
-  scalarBar = vtkScalarBarActor::New();
-  warp = vtkWarpVector::New();
-  if (num_node_variables > 0)
-    warp->SetInput(ugrid);
-  scale_factor = 1;
-  
-  //set up mapper
-  ugridMapper = vtkDataSetMapper::New();
-    /* set warping vector if needed */  
-    if (node_labels.Length() > 0 && (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z" || node_labels[0] == "d1"))
-      ugridMapper->SetInput(warp->GetOutput());
-    else
-      ugridMapper->SetInput(ugrid);
-
-  //set up actor
-  ugridActor = vtkActor::New();
-  
-  if (num_node_variables == 0) 
-    ugridActor->GetProperty()->SetColor(1,0,0);
-  ugridActor->SetMapper(ugridMapper);
-  ugridActor->AddPosition(0,0.001,0);
-//   wireActor = vtkActor::New(); 
-//   wireActor->SetMapper(ugridMapper);
-//   wireActor->GetProperty()->SetRepresentationToWireframe();
-//   wireActor->GetProperty()->SetAmbient(1);
-//   wireActor->GetProperty()->SetSpecular(0);
-//   wireActor->GetProperty()->SetDiffuse(0);
-
-
-  /* color mapping variables */
-  if (num_node_variables >0){
-    DefaultValues();
-    /* color mapping stuff */  
-    lut = vtkLookupTable::New();
-    UpdateData();
-    lut->Build();
-    SetLookupTable();
-  }
-  /* assemble a string that is a list of all the variables */
-  varList = "";
-  for (int i = 0; i<num_node_variables; i++){
-    varList.Append(i);
-    varList.Append(":");
-    varList.Append(" ");
-    varList.Append(node_labels[i]);
-    varList.Append("\n");
-  }
-
+	/* add variables to the console */
+	iAddVariable("min_Hue_Range", hueRange1);
+	iAddVariable("max_Hue_Range", hueRange2);
+	iAddVariable("min_Value_Range", valRange1);
+	iAddVariable("max_Value_Range", valRange2);
+	iAddVariable("min_Saturation_Range", satRange1);
+	iAddVariable("max_Saturation_Range", satRange2);
+	iAddVariable("min_Alpha_Range", alphaRange1);
+	iAddVariable("max_Alpha_Range", alphaRange2);
+	if (currentVarNum > 0)
+	{
+		iAddVariable("min_Scalar_Range", scalarRange1[currentVarNum]);
+		iAddVariable("max_Scalar_Range", scalarRange2[currentVarNum]);
+	}
+	iAddVariable("numColors", numColors);
+	iAddVariable("scale_factor", scale_factor);
+  	
 }
 
 /* destructor */
 VTKBodyDataT::~VTKBodyDataT(void)
 {
-  /* clean up */
-  points->Delete();
-  vtk_cell_array->Delete();
-  ugrid->Delete();
-  warp->Delete();
-  ugridMapper->Delete();
-  ugridActor->Delete();
-  lut->Delete();
-  for (int i = 0; i<num_time_steps; i++)
-    for (int j = 0; j<num_node_variables; j++)
-      {
-      scalars[i][j]->Delete();
-      vectors[i][j]->Delete();
-      }
+	/* coordinate point data */
+  	if (fPoints) fPoints->Delete();
+
+	/* unstructured grids */
+	for (int i = 0; i < fUGrids.Length(); i++)
+		if (fUGrids[i])
+			delete fUGrids[i];
+
+	/* free memory for all stored results */
+	for (int i = 0; i <fVectors.Length(); i++)
+	{
+		if (fVectors[i])fVectors[i]->Delete();
+    	for (int j = 0; j < fScalars.MinorDim(); j++)
+    		if (fScalars(i,j)) fScalars(i,j)->Delete();
+	}
+
+#if 0
+	/* node labels */
+	if (idFilter) idFilter->Delete();
+	if (visPoints) visPoints->Delete();
+	if (nodeLabelMapper) nodeLabelMapper->Delete();
+	
+	/* axes */
+	if (axes) axes->Delete();
+#endif
 }
 
+/* return the number of spatial dimensions */
+int VTKBodyDataT::NumSD(void)
+{
+	if (fUGrids.Length() == 0)
+		return 0;
+	else
+		return fUGrids[0]->NumSD();
+}
+
+/* add actors in self to the given renderer */
+void VTKBodyDataT::AddToRenderer(vtkRenderer* renderer) const
+{
+	/* add all actors */
+	for (int i = 0; i < fUGrids.Length(); i++)
+		renderer->AddActor(fUGrids[i]->Actor());
+}
+
+/** remove actors in self to the given renderer */
+void VTKBodyDataT::RemoveFromRenderer(vtkRenderer* renderer) const
+{
+	/* remove all actors */
+	for (int i = 0; i < fUGrids.Length(); i++)
+		renderer->RemoveActor(fUGrids[i]->Actor());
+
+#if 0
+	if (axes) renderer->RemoveActor2D(axes);
+	if (nodeLabelActor) renderer->RemoveActor2D(nodeLabelActor);
+#endif
+}
+
+#if 0
 void VTKBodyDataT::SetLookupTable(void)
 {
-  if (node_labels.Length() > 0) {
-	sbTitle.Append(node_labels[currentVarNum]); 
+  if (fNodeLabels.Length() > 0) {
+	sbTitle.Append(fNodeLabels[currentVarNum]); 
 	sbTitle.Append(" for time step 000");
   }
   scalarBar->SetLookupTable(ugridMapper->GetLookupTable());
@@ -377,73 +402,107 @@ void VTKBodyDataT::SetLookupTable(void)
   scalarBar->GetPositionCoordinate()->SetValue(0.1,0.01);
   scalarBar->SetOrientationToHorizontal();
   scalarBar->SetWidth(0.8); 
-  scalarBar->SetHeight(0.17);  
+  scalarBar->SetHeight(0.17);
 }
+#endif
 
 void VTKBodyDataT::UpdateData(void)
 {
-  if (num_node_variables >0){
-    lut->SetHueRange(hueRange1, hueRange2);
-    lut->SetSaturationRange(satRange1, satRange2);
-    lut->SetValueRange(valRange1, valRange2);
-    lut->SetAlphaRange(alphaRange1, alphaRange2);
-    lut->SetNumberOfColors(numColors);
-    warp->SetScaleFactor(scale_factor);
-    ugridMapper->SetScalarRange(scalarRange1[currentVarNum], scalarRange2[currentVarNum]);
-    ugridMapper->SetLookupTable(lut);
-  }
-}
+	if (fScalars.MinorDim() > 0)
+	{
+#if 0
+		lut->SetHueRange(hueRange1, hueRange2);
+		lut->SetSaturationRange(satRange1, satRange2);
+		lut->SetValueRange(valRange1, valRange2);
+		lut->SetAlphaRange(alphaRange1, alphaRange2);
+		lut->SetNumberOfColors(numColors);
+#endif
 
-void VTKBodyDataT::DefaultValues(void)
-{
-  numColors = 256;
-  hueRange1 = 0.6667; hueRange2 = 0;
-  valRange1 = 1; valRange2 = 1;
-  satRange1 = 1; satRange2 = 1;
-  alphaRange1 = 1; alphaRange2 = 1;
+  		/* update range */
+  		for (int i = 0; i < fUGrids.Length(); i++)
+  			if (fUGrids[i]->Type() == VTKUGridT::kElementSet)
+				fUGrids[i]->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
+
+//		ugridMapper->SetLookupTable(lut);
+	}	
+//	if (warp) warp->SetScaleFactor(scale_factor);
 }
 
 bool VTKBodyDataT::ChangeVars(const StringT& var)
 {
-  /* find variable number */
-  int varNum = -1;
-  for (int i = 0; varNum == -1 && i < node_labels.Length(); i++)
-	if (node_labels[i] == var)
-	  varNum = i;
+	/* find variable number */
+	int varNum = -1;
+	for (int i = 0; varNum == -1 && i < fNodeLabels.Length(); i++)
+		if (fNodeLabels[i] == var)
+			varNum = i;
 
-  /* change if found */
-  if (varNum == -1)
-	return false;
-  else {
-	ugrid->GetPointData()->SetScalars(scalars[currentStepNum][varNum]);
-	ugridMapper->SetScalarRange(scalarRange1[varNum],scalarRange2[varNum]);
-	if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z" || node_labels[0] =="d1")
-	  ugrid->GetPointData()->SetVectors(vectors[currentStepNum][varNum]);
+	/* change if found */
+	if (varNum == -1)
+		return false;
+  	else 
+  	{
+  		for (int i = 0; i < fUGrids.Length(); i++)
+  		{
+  			/* change scalar */
+  			if (fUGrids[i]->Type() == VTKUGridT::kElementSet)
+  			{
+  				fUGrids[i]->SetScalars(fScalars(currentStepNum, varNum));
+				fUGrids[i]->SetScalarRange(scalarRange1[varNum],scalarRange2[varNum]);
+  			}
 
+  			/* change vector */
+			if (fVectors.Length() > 0)
+	  			fUGrids[i]->SetVectors(fVectors[currentStepNum]);
+  		}
+
+#if 0
 	sbTitle = "";
-	sbTitle.Append(node_labels[varNum]); 
+	sbTitle.Append(fNodeLabels[varNum]); 
 	sbTitle.Append(" for time step 000 ");
 	//sbTitle.Append(currentStepNum,3);
 	scalarBar->SetTitle(sbTitle);
+#endif
 	currentVarNum = varNum;
 	return true;
   }
 }
 
-void VTKBodyDataT::SelectTimeStep(int stepNum)
+bool VTKBodyDataT::SelectTimeStep(int stepNum)
 {
-  if (num_node_variables >0){
-    sbTitle.Drop(-3);
-    sbTitle.Append(stepNum,3);
-    scalarBar->SetTitle(sbTitle);
-    // ugrid->GetPointData()->SetScalars(scalars[currentStepNum]);
-    ugrid->GetPointData()->SetScalars(scalars[stepNum][currentVarNum]);
-    if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z" || node_labels[0] =="d1")
-      ugrid->GetPointData()->SetVectors(vectors[stepNum][currentVarNum]);
-    currentStepNum= stepNum;
-  }
+	if (fScalars.MinorDim() > 0) {
+
+#if 0
+		sbTitle.Drop(-3);
+		sbTitle.Append(stepNum, 3);
+		scalarBar->SetTitle(sbTitle);
+#endif	
+
+		if (stepNum >= 0 && stepNum < fScalars.MajorDim())
+		{
+  			for (int i = 0; i < fUGrids.Length(); i++)
+  			{
+  				/* color */
+  				if (fUGrids[i]->Type() == VTKUGridT::kElementSet)
+  					fUGrids[i]->SetScalars(fScalars(stepNum, currentVarNum));
+	
+	  			/* displaced shape */
+				if (fVectors.Length() > 0)
+		  			fUGrids[i]->SetVectors(fVectors[stepNum]);
+	  		}
+			currentStepNum= stepNum;
+			return true;
+		}
+		else
+		{
+			cout << "step number out of range: " << stepNum << endl;
+			return false;
+		}
+  	}
+  	else /* no history */
+  		return true;
 }
 
+#if 0
 void VTKBodyDataT::ChangeDataColor(int color)
 {
   ugridMapper->ScalarVisibilityOff();
@@ -456,22 +515,105 @@ void VTKBodyDataT::ChangeDataColor(int color)
   else
     cout << "invalid color";
 }
+#endif
 
-void VTKBodyDataT::AddVars(void)
+//move
+#if 0
+/* show node numbers */
+void VTKBodyDataT::ShowNodeNumbers(vtkRenderer* renderer)
 {
-  /* add variables to the console */
-  iAddVariable("min_Hue_Range", hueRange1);
-  iAddVariable("max_Hue_Range", hueRange2);
-  iAddVariable("min_Value_Range", valRange1);
-  iAddVariable("max_Value_Range", valRange2);
-  iAddVariable("min_Saturation_Range", satRange1);
-  iAddVariable("max_Saturation_Range", satRange2);
-  iAddVariable("min_Alpha_Range", alphaRange1);
-  iAddVariable("max_Alpha_Range", alphaRange2);
-  iAddVariable("min_Scalar_Range", scalarRange1[currentVarNum]);
-  iAddVariable("max_Scalar_Range", scalarRange2[currentVarNum]);
-  iAddVariable("numColors", numColors);
-  iAddVariable("scale_factor", scale_factor);
-  //iAddVariable("source_file", source_file);
-  //iAddVariable("output_file", output_file);
+	//TEMP
+	cout << "\n VTKBodyDataT::ShowNodeNumbers: MOVED!!!!!" << endl;
+
+	/* already ON */
+	if (nodeNumbers)
+	{
+		//TEMP
+		cout << "\n VTKBodyDataT::ShowNodeNumbers: already ON" << endl;
+		return;
+	}
+	else
+	{
+		/* generate id's */
+		idFilter = vtkIdFilter::New();
+		idFilter->PointIdsOn();
+		idFilter->FieldDataOff();
+		if (warp)
+			idFilter->SetInput(warp->GetOutput());
+		else
+			idFilter->SetInput(ugrid);
+
+		/* label mapper */
+		nodeLabelMapper = vtkLabeledDataMapper::New();
+		//nodeLabelMapper->SetInput(idFilter->GetOutput());
+		//nodeLabelMapper->SetLabelModeToLabelIds();
+		//nodeLabelMapper->SetLabelModeToLabelFieldData();
+		nodeLabelMapper->SetLabelModeToLabelScalars(); /* idFilter output's id's as scalars */
+		nodeLabelMapper->ShadowOff();
+
+		/* visibility */
+		if (num_dim == 3)
+		{
+			/* visibility filter */
+			visPoints = vtkSelectVisiblePoints::New();
+			visPoints->SetInput(idFilter->GetOutput());
+			visPoints->SetRenderer(renderer);
+			//visPoints->SelectionWindowOn(); // this slows things down considerably
+
+			/* label mapper */
+			nodeLabelMapper->SetInput(visPoints->GetOutput());
+		}
+		/* assume ALL visible in 2D */
+		else
+			/* label mapper */
+			nodeLabelMapper->SetInput(idFilter->GetOutput());
+
+		/* labels */
+		nodeLabelActor = vtkActor2D::New();
+		nodeLabelActor->SetMapper(nodeLabelMapper);
+		nodeLabelActor->VisibilityOn();		
+		renderer->AddActor2D(nodeLabelActor);
+
+		/* set flag */
+		nodeNumbers = true;
+	}
+}
+#endif
+
+#if 0
+/* show node numbers */
+void VTKBodyDataT::HideNodeNumbers(vtkRenderer* renderer)
+{
+	/* not ON */
+	if (!nodeNumbers)
+		return;
+	else
+	{
+		/* clean-up */
+		if (nodeLabelActor)
+		{
+			renderer->RemoveActor2D(nodeLabelActor);
+			nodeLabelActor->Delete();
+		}
+		if (idFilter) idFilter->Delete();
+		if (visPoints) visPoints->Delete();
+		if (nodeLabelMapper) nodeLabelMapper->Delete();
+
+		/* set flag */
+		nodeNumbers = false;
+	}
+}
+#endif
+
+/*************************************************************************
+* private
+*************************************************************************/
+
+void VTKBodyDataT::DefaultValues(void)
+{
+  numColors = 256;
+  hueRange1 = 0.6667; hueRange2 = 0;
+  valRange1 = 1; valRange2 = 1;
+  satRange1 = 1; satRange2 = 1;
+  alphaRange1 = 1; alphaRange2 = 1;
 }
