@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.23 2004-02-19 18:51:10 cjkimme Exp $ */
+/* $Id: OutputSetT.cpp,v 1.24 2005-03-12 08:36:48 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 #include "OutputSetT.h"
 #include "iArrayT.h"
@@ -25,15 +25,13 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	fBlockID(block_ID),
 	fConnectivities(connectivities),
 	fBlockNodesUsed(fConnectivities.Length()),
-	fBlockIndexToSetIndexMap(fConnectivities.Length())
+	fBlockIndexToSetIndexMap(fConnectivities.Length()),
+	fPoints(NULL)
 {
 	if (fConnectivities.Length() != fBlockID.Length()) 
-	  {
-	    cout << "\n\nOutputSetT::OutputSetT size mismatch: \n";
-	    cout << " fConnectivities.Length = " << fConnectivities.Length();
-	    cout << "\n    fBlockID.Length = " << fBlockID.Length() << endl;
-	    throw ExceptionT::kSizeMismatch;
-	  }
+		ExceptionT::SizeMismatch("OutputSetT::OutputSetT",
+			"fConnectivities.Length = %d, fBlockID.Length = %d",
+			fConnectivities.Length(), fBlockID.Length());
 
 	fNodeOutputLabels.Dimension(n_labels.Length());
 	for (int i = 0; i < fNodeOutputLabels.Length(); i++)
@@ -67,10 +65,45 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	fBlockID(1),
 	fConnectivities(1),
 	fBlockNodesUsed(1),
-	fBlockIndexToSetIndexMap(1)
+	fBlockIndexToSetIndexMap(1),
+	fPoints(NULL)
 {
 	/* keep reference to connectivities */
 	fConnectivities[0] = &connectivities;
+	fBlockID[0] = fID; /* must give connectivities a reasonable ID for compatibility
+	                    * with the output classes */
+
+	/* copy node labels */
+	fNodeOutputLabels.Dimension(n_labels.Length());
+	for (int i = 0; i < fNodeOutputLabels.Length(); i++)
+	  {
+		fNodeOutputLabels[i] = n_labels[i];
+		fNodeOutputLabels[i].Replace (' ', '_');
+	  }
+
+	/* set the nodes used array */
+	fChanging = true; // force calculation of nodes used
+	NodesUsed();
+	fBlockNodesUsed[0].Alias(fNodesUsed);
+	fChanging = changing;
+}
+
+/* output data record for a set of points */
+OutputSetT::OutputSetT(const iArrayT& points, const ArrayT<StringT>& n_labels, bool changing):
+	fMode(kFreeSet),
+	fPrintStep(-1),
+	fID("1"), /* dummy ID */
+	fChanging(false),
+	fGeometry(GeometryT::kPoint),
+	fBlockID(1),
+	fConnectivities(1),
+	fBlockNodesUsed(1),
+	fBlockIndexToSetIndexMap(1),
+	fPoints(&points),
+	fConnects2D(fPoints->Length(), 1, fPoints->Pointer())
+{
+	/* keep reference to connectivities */
+	fConnectivities[0] = &fConnects2D;
 	fBlockID[0] = fID; /* must give connectivities a reasonable ID for compatibility
 	                    * with the output classes */
 
@@ -103,17 +136,14 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	fSSID(sideset_ID),
 	fConnectivities(connectivities),
 	fBlockNodesUsed(fConnectivities.Length()),
-	fBlockIndexToSetIndexMap(fConnectivities.Length())
+	fBlockIndexToSetIndexMap(fConnectivities.Length()),
+	fPoints(NULL)
 {
 	if (fConnectivities.Length() != fBlockID.Length() &&
-		fBlockID.Length() != fSSID.Length()) 
-	  {
-	    cout << "\n\nOutputSetT::OutputSetT size mismatch: \n";
-	    cout << " fConnectivities.Length = " << fConnectivities.Length();
-	    cout << "\n    fBlockID.Length = " << fBlockID.Length();
-	    cout << "\n    fSSID.Length = " << fSSID.Length() << endl;
-	    throw ExceptionT::kSizeMismatch;
-	  }
+		fBlockID.Length() != fSSID.Length())
+		ExceptionT::SizeMismatch("OutputSetT::OutputSetT",
+			"fConnectivities.Length = %d, fBlockID.Length = %d, fSSID.Length = %d",
+			fConnectivities.Length(), fBlockID.Length(), fSSID.Length());
 
 	fNodeOutputLabels.Dimension(n_labels.Length());
 	for (int i = 0; i < fNodeOutputLabels.Length(); i++)
@@ -144,14 +174,23 @@ OutputSetT::OutputSetT(const OutputSetT& source):
 	fChanging(source.fChanging),
 	fGeometry(source.fGeometry),
 	fBlockID(source.fBlockID),
-        fSSID(source.fSSID),
+	fSSID(source.fSSID),
 	fConnectivities(source.NumBlocks()),
 	fNodesUsed(source.fNodesUsed),
 	fBlockNodesUsed(fConnectivities.Length()),
-	fBlockIndexToSetIndexMap(source.fBlockIndexToSetIndexMap)
+	fBlockIndexToSetIndexMap(source.fBlockIndexToSetIndexMap),
+	fPoints(source.fPoints)
 {
-	for (int i=0; i < fConnectivities.Length(); i++)
-	        fConnectivities[i] = source.fConnectivities[i];
+	if (!fPoints) {
+		for (int i=0; i < fConnectivities.Length(); i++)
+			fConnectivities[i] = source.fConnectivities[i];
+	} else { /* data over list of points */
+		if (fConnectivities.Length() > 1) 
+			ExceptionT::GeneralFail("OutputSetT::OutputSetT",
+				"expecting 1 block not %d", fConnectivities.Length());
+		fConnects2D.Alias(fPoints->Length(), 1, fPoints->Pointer());
+		fConnectivities[0] = &fConnects2D;
+	}
 
 	fNodeOutputLabels.Dimension(source.fNodeOutputLabels.Length());
 	for (int i = 0; i < fNodeOutputLabels.Length(); i++)
@@ -168,7 +207,7 @@ OutputSetT::OutputSetT(const OutputSetT& source):
 	  }
 
 	if (fMode == kElementBlock &&
-	    fConnectivities.Length() != fBlockID.Length()) throw ExceptionT::kSizeMismatch;
+	    fConnectivities.Length() != fBlockID.Length()) ExceptionT::SizeMismatch("OutputSetT::OutputSetT");
 	
 	/* set nodes used by blocks */
 	if (fConnectivities.Length() == 1)
@@ -211,6 +250,9 @@ const iArrayT& OutputSetT::BlockNodesUsed(const StringT& ID)
 	int index = BlockIndex(ID);
 	if (fChanging) /* need to reset data */
 	{
+		/* reset alias */
+		if (fPoints) fConnects2D.Alias(fPoints->Length(), 1, fPoints->Pointer());
+	
 		/* just one set */
 		if (fBlockNodesUsed.Length() == 1)
 		{
@@ -249,11 +291,9 @@ const iArrayT& OutputSetT::BlockNodesUsed(const StringT& ID)
 				for (int i = 0; i < map.Length(); i++)
 				{
 					int dex = sequence[used[i] - min];
-					if (dex < 0) {
-						cout << "\n OutputSetT::BlockNodesUsed: ERROR: block node used " << used[i]+1 
-						     << " is not marked as used by the set" << endl;
-						throw ExceptionT::kGeneralFail;
-					}
+					if (dex < 0)
+						ExceptionT::GeneralFail("OutputSetT::BlockNodesUsed",
+							"block node used %d is not marked as used by the set", used[i]+1);
 					else
 						map[i] = dex;
 				}
@@ -297,10 +337,10 @@ int OutputSetT::BlockIndex(const StringT& ID) const
 			if (fBlockID[i] == ID)
 				index = i;
 
-		if (index == -1) {
-			cout << "\n OutputSetT::BlockIndex: block ID not found: " << ID << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+		if (index == -1)
+			ExceptionT::GeneralFail("OutputSetT::BlockIndex",
+				"block ID %s not found", ID.Pointer());
+
 		return index;
 	}
 }

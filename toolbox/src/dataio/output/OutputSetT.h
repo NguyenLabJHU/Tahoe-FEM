@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.19 2003-12-01 23:51:43 cjkimme Exp $ */
+/* $Id: OutputSetT.h,v 1.20 2005-03-12 08:36:48 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -8,6 +8,7 @@
 #include "GeometryT.h"
 #include "StringT.h"
 #include "iArrayT.h"
+#include "iArray2DT.h"
 
 namespace Tahoe {
 
@@ -95,6 +96,15 @@ public:
 	OutputSetT(GeometryT::CodeT geometry_code,
 		const iArray2DT& connectivities, const ArrayT<StringT>& n_labels, bool changing = false);
 
+	/** output data record for a set of points
+	 * \param points points over which data will be written. The
+	 *        output formatters retain a reference to these points
+	 *        for use during output. This array is not copied.
+	 * \param n_labels list of labels for the nodal variables. The length of
+	 *        this list defines the number of nodal output variables
+	 * \param changing flag to indicate whether the connectivities may change
+	 *        from output step to output step. */
+	OutputSetT(const iArrayT& points, const ArrayT<StringT>& n_labels, bool changing = false);
 
 	/** generate output data record.
 	 * \param geometry_code GeometryT::CodeT defining the geometry associated
@@ -247,6 +257,14 @@ private:
 	ArrayT<iArrayT> fBlockIndexToSetIndexMap; 
 	/**< map telling for the ith block\n
 	 * fBlockNodesUsed_i[j] = fNodesUsed[fBlockIndexToSetIndexMap_i[j]] */
+
+	/** \name writing over set of points */
+	/*@{*/
+	const iArrayT* fPoints;
+	
+	/** dummy 2D connectivity used when writing data over an iArrayT */
+	iArray2DT fConnects2D;
+	/*@}*/
 };
 
 /* inlines */
@@ -260,7 +278,14 @@ inline int OutputSetT::NumBlocks (void) const { return fBlockID.Length(); }
 inline const iArrayT& OutputSetT::NodesUsed(void) const
 {
 	if (fChanging) {
+		
+		/* not so const */
 		OutputSetT* non_const_this = (OutputSetT*) this;
+
+		/* reset alias */
+		if (fPoints) non_const_this->fConnects2D.Alias(fPoints->Length(), 1, fPoints->Pointer());
+
+		/* reset nodes used */
 		non_const_this->SetNodesUsed(fConnectivities, non_const_this->fNodesUsed);
 	}
 	return fNodesUsed;
@@ -284,10 +309,8 @@ inline const iArrayT& OutputSetT::BlockIndexToSetIndexMap(const StringT& ID) con
 /* return the ID of the specified block */
 inline const StringT& OutputSetT::BlockID(int index) const
 {
-	if (index < 0 || index >= fBlockID.Length()) {
-		cout << "\n OutputSetT::BlockID: index out of range: " << index << endl;
-		throw ExceptionT::kOutOfRange;
-	}
+	if (index < 0 || index >= fBlockID.Length())
+		ExceptionT::OutOfRange("OutputSetT::BlockID", "%d out of range %d", index);
 	return fBlockID[index];
 
 }
@@ -295,14 +318,11 @@ inline const StringT& OutputSetT::BlockID(int index) const
 /* return the ID of the specified side set */
 inline const StringT& OutputSetT::SideSetID(int index) const
 {
-	if (index < 0 || index >= fSSID.Length()) {
-		cout << "\n OutputSetT::SideSetID: index out of range: " << index << endl;
-		throw ExceptionT::kOutOfRange;
-	}
+	if (index < 0 || index >= fSSID.Length())
+		ExceptionT::OutOfRange("OutputSetT::SideSetID", "%d out of range", index);
 	return fSSID[index];
 
 }
-
 
 } // namespace Tahoe 
 #endif /* _OUTPUTSET_T_H_ */
