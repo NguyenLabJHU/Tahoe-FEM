@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.33 2003-07-01 04:35:30 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.34 2003-09-04 15:44:53 paklein Exp $ */
 #include "StaggeredMultiScaleT.h"
 
 #include "ShapeFunctionT.h"
@@ -984,8 +984,8 @@ void StaggeredMultiScaleT::AddNodalForce(const FieldT& field, int node, dArrayT&
 			fShapes->SetDerivatives(); 
 		
 			/* repackage data to forms compatible with FEA classes (very little cost in big picture) */
-			Convert.Gradiants 		( fShapes, 	ua, ua_n, fGRAD_ua, fGRAD_ua_n );
-			Convert.Gradiants 		( fShapes, 	ub, ub_n, fGRAD_ub, fGRAD_ub_n );
+			Convert.Gradients 		( fShapes, 	ua, ua_n, fGRAD_ua, fGRAD_ua_n );
+			Convert.Gradients 		( fShapes, 	ub, ub_n, fGRAD_ub, fGRAD_ub_n );
 			Convert.Shapes				(	fShapes, 	fFEA_Shapes );
 			Convert.Displacements	(	del_ua, 	del_ua_vec  );
 			Convert.Displacements	(	del_ub, 	del_ub_vec  );
@@ -1464,8 +1464,8 @@ void StaggeredMultiScaleT::RHSDriver_staggered(void)
 		}
 		
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, 	ua, ua_n, fGRAD_ua, fGRAD_ua_n );
-		Convert.Gradiants 		( fShapes, 	ub, ub_n, fGRAD_ub, fGRAD_ub_n );
+		Convert.Gradients 		( fShapes, 	ua, ua_n, fGRAD_ua, fGRAD_ua_n );
+		Convert.Gradients 		( fShapes, 	ub, ub_n, fGRAD_ub, fGRAD_ub_n );
 		Convert.Shapes				(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_ua, 	del_ua_vec  );
 		Convert.Displacements	(	del_ub, 	del_ub_vec  );
@@ -1640,8 +1640,8 @@ void StaggeredMultiScaleT::RHSDriver_monolithic(void)
 		}
 		
 		/* repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, 	ua, ua_n, fGRAD_ua, fGRAD_ua_n );
-		Convert.Gradiants 		( fShapes, 	ub, ub_n, fGRAD_ub, fGRAD_ub_n );
+		Convert.Gradients 		( fShapes, 	ua, ua_n, fGRAD_ua, fGRAD_ua_n );
+		Convert.Gradients 		( fShapes, 	ub, ub_n, fGRAD_ub, fGRAD_ub_n );
 		Convert.Shapes				(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_ua, 	del_ua_vec  );
 		Convert.Displacements	(	del_ub, 	del_ub_vec  );
