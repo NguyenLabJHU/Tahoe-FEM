@@ -696,27 +696,27 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element,
 	int ip)
 {
 	    
-	    int i; int j;
-	    double bott;
-        dMatrixT AA(10,10); dMatrixT KE(6,6); dMatrixT KE_Inv(6,6); dMatrixT I_mat(4,4); 
-        dMatrixT CMAT(10,10); dMatrixT A_qq(4,4); dMatrixT A_uu(6,6); dMatrixT A_uq(6,4);
-        dMatrixT A_qu(4,6); dMatrixT ZMAT(6,4); dMatrixT ZMATP(4,6), I_m(6,6);
-        dMatrixT Rmat(6,6), dQdSig2(6,6); dMatrixT dqbardq(4,4); dMatrixT dQdSigdq(6,4);
-        dMatrixT dqbardSig(4,6); dMatrixT AA_inv(10,10), R_Inv(6,6), KEA(6,6), KEA_Inv(6,6);
-        dMatrixT KP(6,6); dMatrixT KEP(6,6); dMatrixT K1(6,1); dMatrixT K2(6,1);
-
-        dArrayT u(6); dArrayT up(6); dArrayT du(6); dArrayT dup(6); dArrayT qn(4);
-        dArrayT qo(4); dArrayT Rvec(10); dArrayT Cvec(10); dArrayT upo(6);
-        dArrayT R(10); dArrayT Rmod(10); dArrayT Sig(6); dArrayT Sig_I(6);
-        dArrayT dQdSig(6); dArrayT dfdSig(6); dArrayT dfdq(4); dArrayT qbar(4);
-        dArrayT R2(10); dMatrixT X(10,1); dArrayT V_sig(6); dArrayT V_q(4);
-        	
-        dArrayT state(28);
+	 int i; int j;
+	 double bott, dlam;
+     dMatrixT AA(10,10); dMatrixT KE(6,6); dMatrixT KE_Inv(6,6); dMatrixT I_mat(4,4); 
+     dMatrixT CMAT(10,10); dMatrixT A_qq(4,4); dMatrixT A_uu(6,6); dMatrixT A_uq(6,4);
+     dMatrixT A_qu(4,6); dMatrixT ZMAT(6,4); dMatrixT ZMATP(4,6), I_m(6,6);
+     dMatrixT Rmat(6,6), dQdSig2(6,6); dMatrixT dqbardq(4,4); dMatrixT dQdSigdq(6,4);
+     dMatrixT dqbardSig(4,6); dMatrixT AA_inv(10,10), R_Inv(6,6), KEA(6,6), KEA_Inv(6,6);
+     dMatrixT KP(6,6); dMatrixT KP2(6,6); dMatrixT KEP(6,6); dMatrixT KES(6,6);
+     dMatrixT KES_Inv(6,6);
+    
+     dArrayT state(28);
+        
+     dMatrixT Ch(4,4), Ch_Inv(4,4), KE1(4,6), KE2(6,6), KE3(6,4);
+         
+     dArrayT  u(6), up(6), du(6), dup(6), qn(4), qo(4), Rvec(10), Cvec(10),
+              R(10), Rmod(10), Sig(6), Sig_I(6), dQdSig(6), dfdq(4), qbar(4),
+              R2(10), X(10), V_sig(6), V_q(4), dfdSig(6), K1(6), K2(6);
 
 	KE = 0.;
 	KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
-	KE(1,2) = KE(0,1) = KE(0,2) = flambda;
-	KE(1,0) = KE(2,1) = KE(2,0) = flambda;
+	KE(1,2) = KE(2,1) = KE(1,0) = KE(0,1) = KE(2,0) = KE(0,2) = flambda;
 	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
 	
 	if(!element.IsAllocated()) {
@@ -752,40 +752,60 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element,
 	if (state[24] == 0.) 
 	{
 	    fModuli = KE;
-	    /*fModuli.CopySymmetric();*/
+	    fModuli.CopySymmetric();
 	}
 	else 
 	  	if (state[24] == 1.) 
 	  	{
-	  	    dQdSig2_f(qn,dQdSig2);
-	  	    Rmat = dQdSig2;
-	  	    Rmat *= state[23];
-	   		Rmat += I_m;
-	   		R_Inv.Inverse(Rmat);
-	   		KEA.MultAB(R_Inv, KE);
-	   		KEA_Inv.Inverse(KEA);
+	  	    dlam = state[23];
+	  	    dQdSig2_f(qn, dQdSig2);
+	        dqbardSig_f(Sig, qn, A_qu);
+	        dqbardq_f(Sig, qn, A_qq);
+	        dQdSigdq_f(Sig, qn, A_uq);
+	        Ch  = A_qq;
+	        Ch *= -dlam;
+	        Ch += I_mat;
+	        Ch_Inv.Inverse(Ch);
+	        KE1.MultAB(Ch_Inv,A_qu);
+	        KES.MultAB(A_uq,KE1);
+	        KES *= state[23];
+	        KES *= state[23];
+	        KE2 = dQdSig2;
+	        KE2 *=state[23];
+	        KES += KE2;
+	        KES += KE;
+	        
+	        KES_Inv.Inverse(KES);
+	     
             for (i = 0; i<=9; ++i) {
-             for (j = 0; j<=9; ++j) {
-               if (i<=5 & j<=5) {
-                 AA_inv(i,j) = KEA_Inv(i,j);
-               }
-               if (i<=5 & j>5) {
-                 AA_inv(i,j) = 0.;
-               }
-               if(i>5 & j<=5) {
-                 AA_inv(i,j) = 0.;
-               }
-               if(i>5 & j >5) {
-                 AA_inv(i,j) = -I_mat(i-6,j-6);
-               }
-             }
+              for (j = 0; j<=9; ++j) {
+                if (i<=1 & j<=5){
+                 AA_inv(i,j)  = KE_Inv(i,j);
+                 AA_inv(i,j) += dlam*dQdSig2(i,j);
+                }
+                if (i<=1 & j>5){
+                  AA_inv(i,j) = A_uq(i,j-6);
+                  AA_inv(i,j) *= dlam;
+                } 
+                if(i>1 & j<=5){
+                  AA_inv(i,j) = A_qu(i-6,j);
+                  AA_inv(i,j) *= dlam;
+                } 
+                if(i>1 & j >5) {
+                  AA_inv(i,j)  = I_mat(i-6,j-6);
+                  AA_inv(i,j)  *= -1.; 
+                  AA_inv(i,j) += dlam*A_qq(i-6,j-6);
+                } 
+              }
             }
             AA.Inverse(AA_inv);
+	
             dfdSig_f(Sig, qn, dfdSig);
             V_sig = dfdSig;
             dfdq_f(Sig,qn, dfdq);
             V_q = dfdq;
             dQdSig_f(Sig, qn, dQdSig);
+            qbar_f(Sig, qn, qbar);  
             for (i = 0; i<=9; ++i) {
               if (i<=5) {
                 Rvec[i] = V_sig[i];
@@ -796,24 +816,41 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element,
                 Cvec[i] = qbar[i-6];
               }
             }
-            dArrayT tmpVec(10);
+            dArrayT tmpVec(10), Vvec(6), dVec(4);
             AA.Multx(Cvec,tmpVec);
             bott = dArrayT::Dot(Rvec,tmpVec);
-            KEA.Multx(dQdSig, K1);
-            KEA.Multx(dfdSig, K2);
+            
+            for (i = 0; i<=5; ++i) {
+                  Vvec[i] = 0.;
+	   		    for (j = 0; j<=9; ++j) {
+	   		      Vvec[i] += Rvec[j]*AA(j,i);
+                }
+	        }
+            
             for (i = 0; i<=5; ++i) {
 	   		    for (j = 0; j<=5; ++j) {
-	   		      KP(i,j) = K1[i]*K2[j];
+	   		      KP(i,j) = dQdSig[i]*Vvec[j];
                 }
-	        } 
-            KP /=bott;
-            KEP = KEA;
-            KEP -= KP;
-	   		/*fModuli = KEP;*/
+	        }
+            
+            KE3.MultAB(A_uq, Ch_Inv);
+            KE3.Multx(qbar,dVec);
+            for (i = 0; i<=5; ++i) {
+	   		    for (j = 0; j<=5; ++j) {
+	   		      KP2(i,j) = dVec[i]*Vvec[j];
+                }
+	        }
+	        
+	        KP2 *= state[11];
+	        KP += KP2;
+	        KP /= -bott;
+            KP += I_m;
+            KEP.MultAB(KES_Inv, KP);
+	   		fModuli = KEP;
 	   		
 	       }
 	return fModuli;
-}	
+}
 
 
 /* return the correction to modulus Cep~, checking for discontinuous
