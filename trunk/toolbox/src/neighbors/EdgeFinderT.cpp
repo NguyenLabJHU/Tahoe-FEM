@@ -1,4 +1,4 @@
-/* $Id: EdgeFinderT.cpp,v 1.3 2002-07-02 19:57:20 cjkimme Exp $ */
+/* $Id: EdgeFinderT.cpp,v 1.4 2002-10-12 01:23:06 paklein Exp $ */
 /* created: paklein (02/14/1998)                                          */
 /* Class to determine element neighbors based on the connectivies.        */
 /* The neighboring element numbers (taken from position in the list       */
@@ -75,7 +75,7 @@ const iArray2DT& EdgeFinderT::Neighbors(void)
 
 		/* set elements(node) */
 		SetInverseConnects();
-		
+
 		/* allocate and initialize neighbor data */
 		fNeighbors.Allocate(fNumElements, fNumFacets);
 		fNeighbors = -1;
@@ -212,17 +212,14 @@ void EdgeFinderT::SetInverseConnects(void)
 
 		/* generate map */
 		int  nen = fConnects[0]->MinorDim();
-		int* pel = ElementNodes(0);
 		for (int i = 0; i < fNumElements; i++)
 		{
-			int* pel_i = pel;
+			int* pel = ElementNodes(i);
 			for (int j = 0; j < fKeyNodes; j++)
 			{
-				int row = (*pel_i++) - fMinNum;
+				int row = (*pel++) - fMinNum;
 				invconnects.AppendUnique(row, i);
 			}
-
-			pel = ElementNodes (i+1);
 		}		
 
 		/* copy data */
@@ -285,7 +282,7 @@ int* EdgeFinderT::ElementNodes (int index) const
   /* find the block */
   int block = 0;
   int offset = 0;
-  while (index > fStartNumber[block]) 
+  while (block+1 < fStartNumber.Length() && index >= fStartNumber[block+1])
     {
       block++;
       if (block > fConnects.Length()) throw eOutOfRange;
