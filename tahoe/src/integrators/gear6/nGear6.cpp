@@ -8,12 +8,7 @@
 using namespace Tahoe;
 
 /* constructor */
-nGear6::nGear6(void):
-  fD3(1, 1),
-  fD4(1, 1),
-  fD5(1, 1)
-  // NEED TO DEFINE CONSTRUCTORS - USE NODESUSED FUNCTION FROM ELEMENTBASET.H
-  // LIKE IN RODT.H?  
+nGear6::nGear6(void)
 {
   /* Gear constants */
   F02 = 3.0/16.0;
@@ -21,16 +16,17 @@ nGear6::nGear6(void):
   F32 = 11.0/18.0;
   F42 = 1.0/6.0;
   F52 = 1.0/60.0;
-
-  /* initialize */
-  fD3 = 0.0;
-  fD4 = 0.0;
-  fD5 = 0.0;
 }
 
 /* consistent BC's - updates predictors and acceleration only */
 void nGear6::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 {
+	const char caller[] = "nGear6::ConsistentKBC";
+
+	/* check */
+	if (field.Order() != 6)
+		ExceptionT::GeneralFail(caller, "field must be order 6: %d", field.Order());
+
 	/* destinations */
 	int node = KBC.Node();
 	int dof  = KBC.DOF();
@@ -74,28 +70,31 @@ void nGear6::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		}
 
 		default:
-		
-			cout << "\n nGear6::ConsistentKBC:unknown BC code\n" << endl;
-			throw ExceptionT::kBadInputValue;
+			ExceptionT::BadInputValue(caller, "unknown BC code: %d", KBC.Code() );
 	}
 }		
 
 /* predictors - map ALL */
 void nGear6::Predictor(BasicFieldT& field)
 {
-        const iArray2DT& eqnos = field.Equations();
+	/* check */
+	if (field.Order() != 6)
+		ExceptionT::GeneralFail("nGear6::Predictor", "field must be order 6: %d", field.Order());
+
+	/* unknowns */
+	const iArray2DT& eqnos = field.Equations();
 
 	/* fetch pointers */
 	double* p0 = field[0].Pointer(); 
 	double* p1 = field[1].Pointer();
 	double* p2 = field[2].Pointer();
-	double* p3 = fD3.Pointer();
-	double* p4 = fD4.Pointer();
-	double* p5 = fD5.Pointer();
+	double* p3 = field[3].Pointer();
+	double* p4 = field[4].Pointer();
+	double* p5 = field[5].Pointer();
 
 	for (int i = 0; i < eqnos.Length(); i++)
 	{
-	        (*p0++) += (*p1) + (*p2) + (*p3) + (*p4) + (*p5);
+		(*p0++) += (*p1) + (*p2) + (*p3) + (*p4) + (*p5);
 		(*p1++) += 2.0 * (*p2) + 3.0 * (*p3) + 4.0 * (*p4) + 5.0 * (*p5);
 		(*p2++) += 3.0 * (*p3) + 6.0 * (*p4) + 10.0 * (*p5);
 		(*p3++) += 4.0 * (*p4) + 10.0 * (*p5);
@@ -107,6 +106,10 @@ void nGear6::Predictor(BasicFieldT& field)
 void nGear6::Corrector(BasicFieldT& field, const dArrayT& update, 
 	int eq_start, int num_eq)
 {
+	/* check */
+	if (field.Order() != 6)
+		ExceptionT::GeneralFail("nGear6::Corrector", "field must be order 6: %d", field.Order());
+
 	const iArray2DT& eqnos = field.Equations();
 
 	/* add update - assumes that fEqnos maps directly into dva */
@@ -116,9 +119,9 @@ void nGear6::Corrector(BasicFieldT& field, const dArrayT& update,
 	double* p0 = field[0].Pointer(); 
 	double* p1 = field[1].Pointer();
 	double* p2 = field[2].Pointer();
-	double* p3 = fD3.Pointer();
-	double* p4 = fD4.Pointer();
-	double* p5 = fD5.Pointer();
+	double* p3 = field[3].Pointer();
+	double* p4 = field[4].Pointer();
+	double* p5 = field[5].Pointer();
 
 	for (int i = 0; i < eqnos.Length(); i++)
 	{
@@ -142,15 +145,19 @@ void nGear6::Corrector(BasicFieldT& field, const dArrayT& update,
 void nGear6::MappedCorrector(BasicFieldT& field, const iArrayT& map, 
 	const iArray2DT& flags, const dArray2DT& update)
 {
+	/* check */
+	if (field.Order() != 6)
+		ExceptionT::GeneralFail("nGear6::MappedCorrector", "field must be order 6: %d", field.Order());
+
 	/* run through map */
 	int minordim = flags.MinorDim();
 	const int* pflag = flags.Pointer();
 	const double* pupdate = update.Pointer();
 
 	/* fetch pointers */
-	double* p3 = fD3.Pointer();
-	double* p4 = fD4.Pointer();
-	double* p5 = fD5.Pointer();
+	double* p3 = field[3].Pointer();
+	double* p4 = field[4].Pointer();
+	double* p5 = field[5].Pointer();
 
 	for (int i = 0; i < map.Length(); i++)
 	{
@@ -184,6 +191,10 @@ void nGear6::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 /* return the field array needed by nControllerT::MappedCorrector. */
 const dArray2DT& nGear6::MappedCorrectorField(BasicFieldT& field) const
 {
+	/* check */
+	if (field.Order() != 6)
+		ExceptionT::GeneralFail("nGear6::MappedCorrectorField", "field must be order 6: %d", field.Order());
+
 	return field[2];
 }
 
