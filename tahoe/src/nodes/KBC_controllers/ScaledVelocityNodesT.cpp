@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.7.28.3 2004-07-12 16:06:37 paklein Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.7.28.4 2004-07-13 00:31:45 paklein Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -20,10 +20,12 @@ ScaledVelocityNodesT::ScaledVelocityNodesT(const BasicSupportT& support, BasicFi
 	KBC_ControllerT(support),
 	fField(field),
 	fDummySchedule(1.0),
+	qIConly(false),
 	qFirstTime(false),
 	qAllNodes(false),
 	fIncs(0),
 	fIncCt(0),
+	fTempSchedule(NULL),
 	fRandom(RandomNumberT::kParadynGaussian)
 {
 	SetName("scaled_velocity");
@@ -364,9 +366,12 @@ void ScaledVelocityNodesT::TakeParameterList(const ParameterListT& list)
 		schedule--;
 		fTempSchedule = fSupport.Schedule(schedule);
 		if (!fTempSchedule) ExceptionT::BadInputValue(caller);
+		qIConly = false;
 	}
-	else if (bc_or_ic.Name() == "scale_as_IC")
+	else if (bc_or_ic.Name() == "scale_as_IC") {
 		fT_0 = bc_or_ic.GetParameter("temperature");
+		qIConly = true;
+	}
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized \"BC_or_IC\" \"%s\"",
 			bc_or_ic.Name().Pointer());
@@ -471,9 +476,7 @@ void ScaledVelocityNodesT::TakeParameterList(const ParameterListT& list)
 	if (!fRandom)
 		ExceptionT::GeneralFail("ScaledVelocityNodesT::Initialize","Cannot create random number gen");
 	fRandom->sRand(rseed);
-
 #endif
-
 }
 
 /**********************************************************************
