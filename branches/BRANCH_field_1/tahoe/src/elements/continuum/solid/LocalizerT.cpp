@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.3.4.2 2002-04-30 00:07:08 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.3.4.3 2002-05-17 01:28:09 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 
 #include "LocalizerT.h"
@@ -76,9 +76,12 @@ void LocalizerT::Initialize(void)
 	/* dimension */	
 	fElementMonitor.Resize(NumElements(), false);
 
+//TEMP - needs rethinking
+#if 0
 	/* check material list for localizing materials */
 	if (!fMaterialList->HasLocalizingMaterials())
 		cout << "\n LocalizerT::Initialize: WARNING: no localizing materials" << endl;
+#endif
 
 	/* open output stream for localization data */
 	if (fLocCheckInc != kLocCheckNever)
@@ -355,6 +358,8 @@ void LocalizerT::ReadMaterialData(ifstreamT& in)
 	/* inherited */
 	UpdatedLagrangianT::ReadMaterialData(in);
 	
+//TEMP - needs rethinking
+#if 0
 	/* check for localizing materials */
 	if (!fMaterialList->HasLocalizingMaterials())
 	{
@@ -364,6 +369,7 @@ void LocalizerT::ReadMaterialData(ifstreamT& in)
 		cout << message << endl;
 		ElementSupport().Output() << message << endl;
 	}
+#endif	
 }
 
 /* form the element stiffness matrix */
@@ -514,8 +520,11 @@ void LocalizerT::EchoData(ifstreamT& in, ostream& out)
 /* element localization check driver - loop over all/list */
 void LocalizerT::Localization(void)
 {
+//TEMP - needs rethinking
+#if 0
 	/* check material behavior */
 	if (!fMaterialList->HasLocalizingMaterials()) return;
+#endif
 
 	/* write the time */
 	fLocOut << ElementSupport().Time() << '\n';
