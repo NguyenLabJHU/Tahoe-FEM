@@ -1,4 +1,4 @@
-/* $Id: SSSimoViscoT.h,v 1.1 2002-10-05 02:48:19 thao Exp $ */
+/* $Id: SSSimoViscoT.h,v 1.2 2002-10-09 18:27:18 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 #ifndef _SS_SIMO_VISCO_H_
 #define _SS_SIMO_VISCO_H_
@@ -8,6 +8,7 @@
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 /*small strain linear viscoelastic constitutive law */

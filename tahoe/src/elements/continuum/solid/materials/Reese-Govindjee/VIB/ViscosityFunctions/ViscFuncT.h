@@ -1,16 +1,16 @@
-/* $Id: ViscFuncT.h,v 1.1 2002-10-04 23:59:03 thao Exp $ */
+/* $Id: ViscFuncT.h,v 1.2 2002-10-09 18:27:17 paklein Exp $ */
 /* created: paklein (12/04/1996) */
 
 #ifndef _VISC_FUNC_T_H_
 #define _VISC_FUNC_T_H_
 
 #include "Environment.h"
-
-/* forward declarations */
 #include "ios_fwd_decl.h"
-class dArrayT;
 
 namespace Tahoe {
+
+/* forward declarations */
+class dArrayT;
 
 /** interface for a twice differentiable function */
 class ViscFuncT
