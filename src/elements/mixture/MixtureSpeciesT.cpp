@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.2 2004-11-07 17:08:48 paklein Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.3 2004-11-07 21:20:32 paklein Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
@@ -124,23 +124,27 @@ void MixtureSpeciesT::ComputeMassFlux(void)
 	/* project partial stresses to the nodes */
 	fUpdatedLagMixture->ProjectPartialStress(fIndex);
 
-	/* get the array of nodal (Cauchy) stresses */
-	const dArray2DT& stress = ElementSupport().OutputAverage();
+	/* get the array of nodal stresses (PK1) */
+	const dArray2DT& P_avg = ElementSupport().OutputAverage();
 	
 	/* work space */
-	dArrayT force(NumSD());
-	dMatrixT F_inv(NumSD());
+	int nsd = NumSD();
+	dArrayT force(nsd);
+	dMatrixT F_inv(nsd);
 	
 	/* get the body force */
-	dArrayT body_force(NumSD());
+	dArrayT body_force(nsd);
 	fUpdatedLagMixture->BodyForce(body_force);
 
-	/* nodal accelerations */
-	LocalArrayT acc(LocalArrayT::kAcc, NumElementNodes(), NumSD());
+	/* element values */
+	LocalArrayT acc(LocalArrayT::kAcc, NumElementNodes(), nsd);
+	LocalArrayT P(LocalArrayT::kUnspecified, NumElementNodes(), nsd*nsd);
+	P.SetGlobal(P_avg);
 
-	/* concentration */
+	/* integration point values */
 	dArrayT ip_conc(1);
-	dArrayT ip_acc(NumSD());
+	dArrayT ip_acc(nsd);
+	dMatrixT ip_Grad_P(nsd*nsd, nsd);
 
 	Top();
 	fUpdatedLagMixture->Top();
@@ -157,6 +161,7 @@ void MixtureSpeciesT::ComputeMassFlux(void)
 		SetLocalU(fLocDisp);
 
 		/* collect nodal stresses */
+		SetLocalU(P);
 
 		/* loop over integration points */
 		fShapes->TopIP();
@@ -170,8 +175,10 @@ void MixtureSpeciesT::ComputeMassFlux(void)
 			force.SetToCombination(-ip_conc[0], ip_acc, ip_conc[0], body_force);
 						
 			/* stress divergence */
-			const dMatrixT& F = fUpdatedLagMixture->DeformationGradient(fShapes->CurrIP());
-			F_inv.Inverse(F);
+			IP_ComputeGradient(P, ip_Grad_P);
+			for (int i = 0; i < nsd; i++)
+				for (int j = 0; j < nsd; j++)
+					force[i] += ip_Grad_P(j*nsd + i,j);
 			
 			/* compute relative flux velocity */
 			

@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.2 2004-11-07 17:09:26 paklein Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.3 2004-11-07 21:20:32 paklein Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -35,13 +35,17 @@ void UpdatedLagMixtureT::ProjectPartialStress(int i)
 	/* dimensions */
 	int nen = NumElementNodes();
 	int nsd = NumSD();
-	int nst = dSymMatrixT::NumValues(nsd);
 
 	/* reset averaging workspace */
-	ElementSupport().ResetAverage(nst);
+	ElementSupport().ResetAverage(nsd*nsd);
+
+	/* work space */
+	dMatrixT P(nsd), F_inv(nsd), s(nsd);
+	dArrayT P_1D;
+	P_1D.Alias(P);
 
 	/* loop over elements */
-	dArray2DT nodalstress(nen, nst);
+	dArray2DT nodal_P(nen, nsd*nsd);
 	Top();
 	while (NextElement())
 		if (CurrentElement().Flag() != kOFF)
@@ -57,19 +61,26 @@ void UpdatedLagMixtureT::ProjectPartialStress(int i)
 			mixture->UpdateConcentrations(i);
 
 			/* extrapolate element stresses */
-			nodalstress = 0.0;
+			nodal_P = 0.0;
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{
-				/* get Cauchy stress */
+				/* Cauchy stress */
 				const dSymMatrixT& cauchy = mixture->s_ij(i);
+				
+				/* Cauchy -> 1st PK stress */
+				cauchy.ToMatrix(s);
+				const dMatrixT& F = DeformationGradient();
+				F_inv.Inverse(F);
+				P.MultABT(s, F_inv);
+				P *= F.Det();
 
 				/* extrapolate to the nodes */
-				fShapes->Extrapolate(cauchy, nodalstress);
+				fShapes->Extrapolate(P_1D, nodal_P);
 			}
 
 			/* accumulate - extrapolation done from ip's to corners => X nodes */
-			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodalstress);
+			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_P);
 		}
 }
 
