@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: SLUMatrix.cpp,v 1.2 2001-05-01 23:22:56 paklein Exp $ */
 /* created: rbridson (06/30/2000)                                         */
 /* Implementation of interface to SuperLU solver library.                 */
 
@@ -197,7 +197,7 @@ void SLUMatrix::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fLocNumEQ */
-void SLUMatrix::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
+void SLUMatrix::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
@@ -240,6 +240,17 @@ void SLUMatrix::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
 			}
 		}
 	}
+}
+
+void SLUMatrix::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
+{
+#pragma unused(elMat)
+#pragma unused(row_eqnos)
+#pragma unused(col_eqnos)
+
+	cout << "\n SLUMatrix::Assemble(m,r,c): not implemented" << endl;
+	throw eGeneralFail;
 }
 
 /* assignment operator */

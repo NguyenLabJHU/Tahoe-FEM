@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.2 2001-05-01 23:22:55 paklein Exp $ */
 /* created: paklein (05/29/1996)                                          */
 
 #include "CCSMatrixT.h"
@@ -141,7 +141,7 @@ void CCSMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
+void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
@@ -203,6 +203,32 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
 						fMatrix[dex] += elMat(row,col);
 					}
 			}
+	}
+}
+
+void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
+{
+#if __option(extended_errorcheck)
+	/* dimension check */
+	if (elMat.Rows() != row_eqnos.Length() ||
+	    elMat.Cols() != col_eqnos.Length()) throw eSizeMismatch;
+#endif
+
+	/* element matrix format */
+	ElementMatrixT::FormatT format = elMat.Format();
+
+	if (format == ElementMatrixT::kNonSymmetric)
+		throw eGeneralFail;
+	else if (format == ElementMatrixT::kDiagonal)
+	{
+		cout << "\n CCSMatrixT::Assemble(m, r, c): cannot assemble diagonal matrix" << endl;
+		throw eGeneralFail;
+	}
+	else
+	{
+		cout << "\n CCSMatrixT::Assemble(m, r, c): cannot assemble symmetric matrix" << endl;
+		throw eGeneralFail;
 	}
 }
 

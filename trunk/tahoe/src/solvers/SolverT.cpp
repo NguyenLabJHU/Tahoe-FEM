@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.2 2001-02-28 00:47:05 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.3 2001-05-01 23:22:59 paklein Exp $ */
 /* created: paklein (05/23/1996)                                          */
 
 #include "SolverT.h"
@@ -132,7 +132,7 @@ void SolverT::ReceiveEqns(const RaggedArray2DT<int>& equations) const
 	fLHS->AddEquationSet(equations);
 }
 
-void SolverT::AssembleRHS(const dArrayT& elRes, const iArrayT& eqnos)
+void SolverT::AssembleRHS(const dArrayT& elRes, const nArrayT<int>& eqnos)
 {
 	/* consistency check */
 	if (elRes.Length() != eqnos.Length()) throw eGeneralFail;
@@ -161,7 +161,7 @@ void SolverT::AssembleRHS(const dArrayT& elRes, const iArrayT& eqnos)
 	}	
 }
 
-void SolverT::OverWriteRHS(const dArrayT& elRes, const iArrayT& eqnos)
+void SolverT::OverWriteRHS(const dArrayT& elRes, const nArrayT<int>& eqnos)
 {
 	/* consistency check */
 	if (elRes.Length() != eqnos.Length()) throw eGeneralFail;
@@ -177,7 +177,7 @@ void SolverT::OverWriteRHS(const dArrayT& elRes, const iArrayT& eqnos)
 	}	
 }
 
-void SolverT::DisassembleRHS(dArrayT& elRes, const iArrayT& eqnos) const
+void SolverT::DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const
 {
 	/* consistency check */
 	if (elRes.Length() != eqnos.Length()) throw eGeneralFail;

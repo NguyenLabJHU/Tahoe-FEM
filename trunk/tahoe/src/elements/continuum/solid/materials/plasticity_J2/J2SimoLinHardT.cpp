@@ -1,4 +1,4 @@
-/* $Id: J2SimoLinHardT.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: J2SimoLinHardT.cpp,v 1.2 2001-05-01 23:22:54 paklein Exp $ */
 /* created: paklein (06/19/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -194,7 +194,8 @@ const dMatrixT& J2SimoLinHardT::ModuliCorrection(ElementCardT& element, int ip)
 
 		fRed2Temp.MultAB(fUnitNorm,fUnitNorm);
 		fRed2Temp.Deviatoric();
-		fRed4Temp1.Outer(fUnitNorm,fRed2Temp);
+		//fRed4Temp1.Outer(fUnitNorm,fRed2Temp);
+		fRed4Temp1.Outer(fRed2Temp,fUnitNorm);
 		//fRed4Temp1.Symmetrize();
 		fModuliCorr.AddScaled(-2.0*mu_bar*beta4,fRed4Temp1);
 		//fModuliCorr.AddScaled(-4.0*mu_bar*beta4,fRed4Temp1);
@@ -203,7 +204,7 @@ const dMatrixT& J2SimoLinHardT::ModuliCorrection(ElementCardT& element, int ip)
 		//fModuliCorr.Symmetrize();
 
 		/* J factor */
-		fModuliCorr /= fInternal[kDetF_tot];		
+		//fModuliCorr /= fInternal[kDetF_tot];		
 	}
 
 	return fModuliCorr;
@@ -367,7 +368,8 @@ int J2SimoLinHardT::PlasticLoading(const dMatrixT& F_total,
 								RelativeStress(F_total, f_relative, element),
 								fInternal[kalpha] );
 		fInternal[kstressnorm] = sqrt(fRelStress.ScalarProduct());
-		fInternal[kI_bar]      = f_b_trial.Trace()/3.0;		
+//		fInternal[kI_bar]      = f_b_trial.Trace()/3.0;		
+		fInternal[kI_bar]      = fb_bar.Trace()/3.0;
 		fInternal[kDetF_tot]   = F_total.Det();
 		
 		/* compute unit normal */

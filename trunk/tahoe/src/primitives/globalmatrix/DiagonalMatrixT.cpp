@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.2 2001-02-28 02:36:00 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.3 2001-05-01 23:22:55 paklein Exp $ */
 /* created: paklein (03/23/1997)                                          */
 /* Virtual base class for all global matrix objects                       */
 
@@ -70,7 +70,7 @@ void DiagonalMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
+void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 	if (elMat.Format() == ElementMatrixT::kDiagonal)
 	{
@@ -133,9 +133,20 @@ void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos
 	}
 }
 
+void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
+{
+#pragma unused(elMat)
+#pragma unused(row_eqnos)
+#pragma unused(col_eqnos)
+
+	cout << "\n DiagonalMatrixT::Assemble(m,r,c): not implemented" << endl;
+	throw eGeneralFail;
+}
+
 /* fetch values */
 void DiagonalMatrixT::DisassembleDiagonal(dArrayT& diagonals, 
-	const iArrayT& eqnos) const
+	const nArrayT<int>& eqnos) const
 {
 #if __option(extended_errorcheck)
 	/* dimension check */

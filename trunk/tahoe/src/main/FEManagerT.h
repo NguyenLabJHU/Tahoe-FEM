@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.3 2001-02-28 02:36:24 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.4 2001-05-01 23:22:53 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #ifndef _FE_MANAGER_H_
@@ -141,14 +141,16 @@ public:
 	virtual GlobalT::RelaxCodeT RelaxSystem(void) const;
 
 	/* assembling the global equation system */
-	void AssembleLHS(const ElementMatrixT& elMat, const iArrayT& eqnos) const;
-	void OverWriteLHS(const ElementMatrixT& elMat, const iArrayT& eqnos) const;
-	void DisassembleLHS(dMatrixT& elMat, const iArrayT& eqnos) const;
-	void DisassembleLHSDiagonal(dArrayT& diagonals, const iArrayT& eqnos) const;
+	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const;
+	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+		const nArrayT<int>& col_eqnos) const;
+	void OverWriteLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const;
+	void DisassembleLHS(dMatrixT& elMat, const nArrayT<int>& eqnos) const;
+	void DisassembleLHSDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;
 
-	void AssembleRHS(const dArrayT& elRes, const iArrayT& eqnos) const;
-	void OverWriteRHS(const dArrayT& elRes, const iArrayT& eqnos) const;
-	void DisassembleRHS(dArrayT& elRes, const iArrayT& eqnos) const;
+	void AssembleRHS(const dArrayT& elRes, const nArrayT<int>& eqnos) const;
+	void OverWriteRHS(const dArrayT& elRes, const nArrayT<int>& eqnos) const;
+	void DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const;
 	
 	/* writing results */
 	void WriteOutput(IOBaseT::OutputModeT mode);

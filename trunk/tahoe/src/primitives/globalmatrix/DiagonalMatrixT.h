@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.h,v 1.2 2001-02-28 02:36:00 paklein Exp $ */
+/* $Id: DiagonalMatrixT.h,v 1.3 2001-05-01 23:22:55 paklein Exp $ */
 /* created: paklein (03/23/1997)                                          */
 /* Virtual base class for all global matrix objects                       */
 
@@ -43,10 +43,12 @@ public:
 	/* assemble the element contribution into the LHS matrix - assumes
 	 * that elMat is square (n x n) and that eqnos is also length n.
 	 * NOTE: assembly positions (equation numbers) = 1...fDimension */
-	virtual void Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+		const nArrayT<int>& col_eqnos);
 
 	/* fetch values */
-	virtual void DisassembleDiagonal(dArrayT& diagonals, const iArrayT& eqnos) const;
+	virtual void DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;
 
 	/* assignment operator */
 	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);

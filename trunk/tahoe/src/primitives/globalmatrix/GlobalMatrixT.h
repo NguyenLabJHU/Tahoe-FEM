@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.2 2001-02-28 02:36:00 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.3 2001-05-01 23:22:56 paklein Exp $ */
 /* created: paklein (03/23/1997)                                          */
 /* Virtual base class for all global matrix objects                       */
 
@@ -11,7 +11,7 @@
 #include "ios_fwd_decl.h"
 class dMatrixT;
 class ElementMatrixT;
-class iArrayT;
+template <class nTYPE> class nArrayT;
 class dArrayT;
 class iArray2DT;
 template <class TYPE> class RaggedArray2DT;
@@ -60,15 +60,17 @@ public:
 	/* assemble the element contribution into the LHS matrix - assumes
 	 * that elMat is square (n x n) and that eqnos is also length n.
 	 * NOTE: assembly positions (equation numbers) = 1...fDimension */
-	virtual void Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos) = 0;
+	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos) = 0;
+	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+		const nArrayT<int>& col_eqnos) = 0;
 
 	/* strong manipulation functions 
 	 * NOTE: These must be overridden to provide support for these functions.
 	 *       By default, these all throw exceptions. These could be pure
 	 *       virtual, but that requires updating all derived matrix types */
-	virtual void OverWrite(const ElementMatrixT& elMat, const iArrayT& eqnos);
-	virtual void Disassemble(dMatrixT& matrix, const iArrayT& eqnos) const;
-	virtual void DisassembleDiagonal(dArrayT& diagonals, const iArrayT& eqnos) const;
+	virtual void OverWrite(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
+	virtual void Disassemble(dMatrixT& matrix, const nArrayT<int>& eqnos) const;
+	virtual void DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;
 
 	/* assignment operator */
 	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);

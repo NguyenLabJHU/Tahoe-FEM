@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.2 2001-05-01 23:22:58 paklein Exp $ */
 /* created: paklein (08/10/1998)                                          */
 /* interface using example Aztec example functions                        */
 
@@ -105,7 +105,7 @@ void AztecMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 * that elMat is square (n x n) and that eqnos is also length n.
 *
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
+void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
@@ -192,6 +192,79 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
 		{
 			cout << "\n AztecMatrixT::Assemble: ERROR with equations:\n";
 			cout << eqnos << endl;
+			throw eGeneralFail;
+		}
+	}
+}
+
+void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
+{
+	/* element matrix format */
+	ElementMatrixT::FormatT format = elMat.Format();
+
+	if (format == ElementMatrixT::kDiagonal)
+	{
+		cout << "\n AztecMatrixT::Assemble(m, r, c): cannot assemble diagonal matrix" << endl;
+		throw eGeneralFail;
+	}
+	else
+	{
+		int end_update = fStartEQ + fLocNumEQ - 1;
+
+		/* equation numbers -> local active rows */
+		fRowDexVec.Allocate(0);
+		for (int j = 0; j < row_eqnos.Length(); j++)
+		{
+			int eq = row_eqnos[j];
+			if (eq >= fStartEQ && eq <= end_update)
+				fRowDexVec.Append(j);
+		}
+
+		/* equation numbers -> local active rows */
+		fColDexVec.Allocate(0);
+		for (int j = 0; j < col_eqnos.Length(); j++)
+			if (col_eqnos[j] > 0)
+				fColDexVec.Append(j);
+
+		/* fill element matrix */
+		if (elMat.Format() == ElementMatrixT::kSymmetricUpper)
+			elMat.CopySymmetric();
+	
+		/* copy active block */
+		int num_rows = fRowDexVec.Length();
+		int num_cols = fColDexVec.Length();
+		//TEMP - use nVariMatrixT
+		dMatrixT activeblk(num_rows, num_cols, fValMat.Pointer());
+		elMat.CopyBlock(fRowDexVec, fColDexVec, activeblk);
+	
+		/* active equation numbers -> global row numbers */
+		for (int r = 0; r < num_rows; r++)
+			fRowDexVec[r] = row_eqnos[fRowDexVec[r]] - 1; //OFFSET
+
+		/* active equation numbers -> global col numbers */
+		for (int c = 0; c < num_cols; c++)
+			fColDexVec[c] = col_eqnos[fColDexVec[c]] - 1; //OFFSET
+
+		/* row-by-row assembly */
+		fValVec.Allocate(num_cols);
+		int status = 1;
+		for (int i = 0; i < num_rows && status; i++)
+		{
+			/* copy row values */
+			activeblk.CopyRow(i, fValVec);
+	
+			/* assemble */
+			fAztec->AssembleRow(fRowDexVec[i], num_cols, fColDexVec.Pointer(),
+				fValVec.Pointer(), status);
+		}
+	
+		/* check completion */
+		if (!status)
+		{
+			cout << "\n AztecMatrixT::Assemble: ERROR with equations:\n";
+			cout << " row:\n" << row_eqnos << '\n';
+			cout << " col:\n" << col_eqnos << endl;
 			throw eGeneralFail;
 		}
 	}

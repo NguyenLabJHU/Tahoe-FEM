@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.2 2001-05-01 23:22:55 paklein Exp $ */
 /* created: paklein (03/04/1998)                                          */
 
 #include "CCNSMatrixT.h"
@@ -148,7 +148,7 @@ void CCNSMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fLocNumEQ */
-void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
+void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
@@ -194,6 +194,45 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
 				for (int row = 0; row < size; row++)
 				{
 					int reqno = eqnos[row] - 1;
+					if ( reqno > -1)
+						(*this)(reqno,ceqno) += elMat(row,col);
+				}
+		}
+	}
+}
+
+void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
+{
+#if __option(extended_errorcheck)
+	/* dimension check */
+	if (elMat.Rows() != row_eqnos.Length() ||
+	    elMat.Cols() != col_eqnos.Length()) throw eSizeMismatch;
+#endif
+
+	/* element matrix format */
+	ElementMatrixT::FormatT format = elMat.Format();
+
+	if (format == ElementMatrixT::kDiagonal)
+	{
+		cout << "\n CCNSMatrixT::Assemble(m, r, c): cannot assemble diagonal matrix" << endl;
+		throw eGeneralFail;
+	}
+	else
+	{   	
+		/* copy to full symmetric */
+		if (format == ElementMatrixT::kSymmetricUpper) elMat.CopySymmetric();
+
+		/* assemble active degrees of freedom */
+		int n_c = col_eqnos.Length();
+		int n_r = row_eqnos.Length();
+		for (int col = 0; col < n_c; col++)
+		{
+			int ceqno = col_eqnos[col] - 1;	
+			if (ceqno > -1)	
+				for (int row = 0; row < n_r; row++)
+				{
+					int reqno = row_eqnos[row] - 1;
 					if ( reqno > -1)
 						(*this)(reqno,ceqno) += elMat(row,col);
 				}

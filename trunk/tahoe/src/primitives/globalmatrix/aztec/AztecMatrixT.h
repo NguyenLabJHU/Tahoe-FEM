@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: AztecMatrixT.h,v 1.2 2001-05-01 23:22:58 paklein Exp $ */
 /* created: paklein (08/10/1998)                                          */
 /* interface for using Aztec with fe++                                    */
 
@@ -48,7 +48,9 @@ public:
 	 * that elMat is square (n x n) and that eqnos is also length n.
 	 *
 	 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-	virtual void Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+		const nArrayT<int>& col_eqnos);
 
 	/* assignment operator - not implemented */
 	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);

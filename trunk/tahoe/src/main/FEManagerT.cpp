@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.9 2001-04-27 10:50:11 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.10 2001-05-01 23:22:52 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -467,39 +467,45 @@ GlobalT::RelaxCodeT FEManagerT::RelaxSystem(void) const
 
 /* global equation functions */
 void FEManagerT::AssembleLHS(const ElementMatrixT& elMat,
-	const iArrayT& eqnos) const
+	const nArrayT<int>& eqnos) const
 {
 	fSolutionDriver->AssembleLHS(elMat, eqnos);
 }
 
+void FEManagerT::AssembleLHS(const ElementMatrixT& elMat,
+	const nArrayT<int>& row_eqnos, const nArrayT<int>& col_eqnos) const
+{
+	fSolutionDriver->AssembleLHS(elMat, row_eqnos, col_eqnos);
+}
+
 void FEManagerT::OverWriteLHS(const ElementMatrixT& elMat,
-	const iArrayT& eqnos) const
+	const nArrayT<int>& eqnos) const
 {
 	fSolutionDriver->OverWriteLHS(elMat, eqnos);
 }
 
-void FEManagerT::DisassembleLHS(dMatrixT& elMat, const iArrayT& eqnos) const
+void FEManagerT::DisassembleLHS(dMatrixT& elMat, const nArrayT<int>& eqnos) const
 {
 	fSolutionDriver->DisassembleLHS(elMat, eqnos);
 }
 
-void FEManagerT::DisassembleLHSDiagonal(dArrayT& diagonals, const iArrayT& eqnos) const
+void FEManagerT::DisassembleLHSDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const
 {
 	fSolutionDriver->DisassembleLHSDiagonal(diagonals, eqnos);
 }
 
 void FEManagerT::AssembleRHS(const dArrayT& elRes,
-	const iArrayT& eqnos) const
+	const nArrayT<int>& eqnos) const
 {
 	fSolutionDriver->AssembleRHS(elRes, eqnos);
 }
 
-void FEManagerT::OverWriteRHS(const dArrayT& elRes, const iArrayT& eqnos) const
+void FEManagerT::OverWriteRHS(const dArrayT& elRes, const nArrayT<int>& eqnos) const
 {
 	fSolutionDriver->OverWriteRHS(elRes, eqnos);
 }
 
-void FEManagerT::DisassembleRHS(dArrayT& elRes, const iArrayT& eqnos) const
+void FEManagerT::DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const
 {
 	fSolutionDriver->DisassembleRHS(elRes, eqnos);
 }
