@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.9 2004-01-27 01:21:14 cjkimme Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.10 2004-01-27 19:12:20 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -136,7 +136,7 @@ void D2MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 	dArray2DT& phi, ArrayT<dArray2DT>& Dphi, ArrayT<dArray2DT>& DDphi)
 {
 #if __option(extended_errorcheck)
-	if (Dphi.Length() != fDomain.NumIP()) throw ExceptionT::kSizeMismatch;
+	if (Dphi.Length() != fDomain->NumIP()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* element neighbors */
