@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.21 2003-11-21 22:47:24 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.22 2003-11-22 06:45:56 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -102,26 +102,40 @@ jac.Rows() != nodal.MinorDim()) throw ExceptionT::kSizeMismatch;
 	
 	if (num_d == 2 && num_u == 2)
 	{
-		double& j11 = *pjac++;
-		double& j21 = *pjac++;
-		double& j12 = *pjac++;
-		double& j22 = *pjac;
-	
-		j11 = j21 = j12 = j22 = 0.0;
-
-		const double* pu1 = nodal(0);
-		const double* pu2 = nodal(1);
-		const double* dx1 = DNa(0);
-		const double* dx2 = DNa(1);
-
-		for (int i = 0; i < nnd; i++)
+		if (nnd == 4)
 		{
-			j11 += (*pu1)*(*dx1);
-	    	j21 += (*pu2)*(*dx1);
-			j12 += (*pu1)*(*dx2);
-			j22 += (*pu2)*(*dx2);
-			
-			pu1++; pu2++; dx1++; dx2++;	
+			const double* pu1 = nodal(0);
+			const double* pu2 = nodal(1);
+			const double* dx1 = DNa(0);
+			const double* dx2 = DNa(1);
+			pjac[0] = pu1[0]*dx1[0] + pu1[1]*dx1[1] + pu1[2]*dx1[2] + pu1[3]*dx1[3];
+	    	pjac[1] = pu2[0]*dx1[0] + pu2[1]*dx1[1] + pu2[2]*dx1[2] + pu2[3]*dx1[3];
+			pjac[2] = pu1[0]*dx2[0] + pu1[1]*dx2[1] + pu1[2]*dx2[2] + pu1[3]*dx2[3];
+			pjac[3] = pu2[0]*dx2[0] + pu2[1]*dx2[1] + pu2[2]*dx2[2] + pu2[3]*dx2[3];
+		}
+		else
+		{
+			double& j11 = *pjac++;
+			double& j21 = *pjac++;
+			double& j12 = *pjac++;
+			double& j22 = *pjac;
+	
+			j11 = j21 = j12 = j22 = 0.0;
+
+			const double* pu1 = nodal(0);
+			const double* pu2 = nodal(1);
+			const double* dx1 = DNa(0);
+			const double* dx2 = DNa(1);
+
+			for (int i = 0; i < nnd; i++)
+			{
+				j11 += (*pu1)*(*dx1);
+	    		j21 += (*pu2)*(*dx1);
+				j12 += (*pu1)*(*dx2);
+				j22 += (*pu2)*(*dx2);
+				
+				pu1++; pu2++; dx1++; dx2++;	
+			}
 		}
 	}
 	else if (num_d == 3 && num_u == 3)
@@ -217,6 +231,7 @@ void ParentDomainT::Curl(const ArrayT<dArrayT>& T, const dArray2DT& DNa, dArrayT
 		}
 
 		const double *pT;
+
 		for (int i = 0; i < nnd; i++) {
 	
 		  pT  = T[i].Pointer();
@@ -280,6 +295,7 @@ void ParentDomainT::Curl(const ArrayT<dMatrixT>& T, const dArray2DT& DNa, dMatri
 		}
 
 		const double *pT;
+
 		for (int i = 0; i < nnd; i++) {
 	
 		  pT  = T[i].Pointer();
