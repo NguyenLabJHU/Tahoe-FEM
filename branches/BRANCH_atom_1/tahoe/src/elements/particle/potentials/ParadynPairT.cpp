@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.cpp,v 1.5 2002-12-05 07:50:45 paklein Exp $ */
+/* $Id: ParadynPairT.cpp,v 1.5.2.1 2003-01-06 19:37:54 paklein Exp $ */
 #include "ParadynPairT.h"
 #include "toolboxConstants.h"
 #include "ifstreamT.h"
@@ -133,7 +133,7 @@ double ParadynPairT::Energy(double r_ab, double* data_a, double* data_b)
 #pragma unused(data_a)
 #pragma unused(data_b)
 
-	double pp = r_ab*s_1bydr + 1.0;
+	double pp = r_ab*s_1bydr;
 	int kk = int(pp);
 	kk = Min(kk, s_nr-2);
 	pp -= kk;
@@ -147,7 +147,7 @@ double ParadynPairT::Force(double r_ab, double* data_a, double* data_b)
 #pragma unused(data_a)
 #pragma unused(data_b)
 
-	double pp = r_ab*s_1bydr + 1.0;
+	double pp = r_ab*s_1bydr;
 	int kk = int(pp);
 	kk = Min(kk, s_nr-2);
 	pp -= kk;
@@ -161,7 +161,7 @@ double ParadynPairT::Stiffness(double r_ab, double* data_a, double* data_b)
 #pragma unused(data_a)
 #pragma unused(data_b)
 
-	double pp = r_ab*s_1bydr + 1.0;
+	double pp = r_ab*s_1bydr;
 	int kk = int(pp);
 	kk = Min(kk, s_nr-2);
 	pp -= kk;
