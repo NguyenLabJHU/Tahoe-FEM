@@ -1,8 +1,0 @@
-0    # store shape functions
-1    # mesh-free formulation code (1:RKPM)
-1	 # order of basis function completeness
-0    # window function type: (0:Gaussian)
-# Gaussian window function parameters
-1.5  # support size scaling
-0.4  # support sharpening factor
-2.0  # neighbor cut-off factor
