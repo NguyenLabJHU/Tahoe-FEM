@@ -583,8 +583,12 @@ if (msglvl > 0) {
 if (matrix_type == SPOOLES_REAL)
 {
 	for (irow = 0 ; irow < num_row; irow++) 
-		DenseMtx_realEntry(mtxX, irow, 0, rhs2out + irow);
+		if (DenseMtx_realEntry(mtxX, irow, 0, rhs2out + irow) != 1)
 		/* NOTE: there is no function to copy a column into a vector */
+		{
+			fprintf(stderr, "\n proc %d : factorization error redistributing", myid);
+			return -1;
+		}
 }
 else
 {
