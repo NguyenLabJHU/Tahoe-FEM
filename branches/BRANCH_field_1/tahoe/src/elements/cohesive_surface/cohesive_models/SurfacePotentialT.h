@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.11.2.1 2002-05-07 07:23:41 paklein Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.11.2.2 2002-05-29 00:22:48 cjkimme Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -28,8 +28,9 @@ public:
 	           kLinearDamage = 2, /**< irreversible linear decay */
 	kViscTvergaardHutchinson = 3, /**< T-H with viscous dissipation */
 	               kTijssens = 4, /**< Tjissens rate dependent model */
-	                kRateDep = 5, /**< simplified Tijssens' model */
-                  kTiedPotential = 6  /**< wrapper for models w/o initial load-up */};
+	                kRateDep = 5, /**< simplified rate model */
+              kTiedPotential = 6,  /**< wrapper for models w/o initial load-up */
+              	  kYoonAllen = 7}; /**< Allen history-dependent law */
 
 	/** surface element status codes */
 	enum StatusT {Precritical = 0, /**< loading phase */

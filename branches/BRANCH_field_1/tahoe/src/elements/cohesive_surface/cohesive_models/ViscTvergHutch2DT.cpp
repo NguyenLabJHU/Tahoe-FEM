@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.4.2.1 2002-05-07 07:23:10 paklein Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.4.2.2 2002-05-29 00:22:48 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "ViscTvergHutch2DT.h"
@@ -59,6 +59,7 @@ double ViscTvergHutch2DT::FractureEnergy(const ArrayT<double>& state)
 
 double ViscTvergHutch2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 {
+#pragma unused(state)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
@@ -320,6 +321,7 @@ const dMatrixT& ViscTvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT
 SurfacePotentialT::StatusT ViscTvergHutch2DT::Status(const dArrayT& jump_u, 
 	const ArrayT<double>& state)
 {
+#pragma unused(state)
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 #endif

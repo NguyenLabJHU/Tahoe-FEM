@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.1.2.2 2002-05-11 20:49:19 paklein Exp $ */
+/* $Id: TiedPotentialT.h,v 1.1.2.3 2002-05-29 00:22:48 cjkimme Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -9,6 +9,7 @@
 
 /* forward declarations */
 class ifstreamT;
+class dArray2DT;
 
 /** cohesive potential from Tvergaard and Hutchinson. This model is
  * described in JMPS v41, n6, 1995, 1119-1135. See SurfacePotentialT
@@ -16,6 +17,8 @@ class ifstreamT;
 class TiedPotentialT: public SurfacePotentialT
 {
 public:
+	
+	enum sbntmaT {kAverageCode = 2};
 
 	/** constructor */
 	TiedPotentialT(ifstreamT& in, const double &fTimeStep);
@@ -66,7 +69,7 @@ public:
 	//        virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
 	virtual int ElementGroupNeeded(void);
 	
-	static bool InitiationQ(const dArrayT& sigma);
+	static bool InitiationQ(const double* sigma);
 	
 protected:
 
