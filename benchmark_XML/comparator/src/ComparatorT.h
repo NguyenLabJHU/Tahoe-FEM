@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.h,v 1.11 2002-07-02 21:24:56 cjkimme Exp $ */
+/* $Id: ComparatorT.h,v 1.12 2002-11-07 21:32:01 sawimme Exp $ */
 
 #ifndef _COMPARATOR_T_H_
 #define _COMPARATOR_T_H_
@@ -52,6 +52,18 @@ private:
 	 * in a "benchmark" subdirectory. */
 	bool PassOrFail(ifstreamT& in); //const;
 	// cannot be const until since tolerances are class data that can change
+
+	/** compare results against benchmarks. The input stream is expected
+	 * to be a Tahoe parameters file. The results are expected to be in
+	 * the same directory, while the benchmark results are expected to be
+	 * in a "benchmark" subdirectory. 
+	 * However, the results and benchmark results are expected to have
+	 * an extension to the root (supplied in the command line). 
+	 * Example: root.geom then becomes root{extenstion}.geom */
+	bool PassOrFail_Extension (ifstreamT& in, const StringT& extension);
+
+	/** set the tolerances, read tolerances from file if provided. */
+	void Tolerance (ifstreamT& in, bool& do_relative, bool& do_absolute);
 
 	/** compare results */
 	bool PassOrFail(const StringT& file_1, const StringT& file_2, 
