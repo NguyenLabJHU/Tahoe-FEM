@@ -58,12 +58,12 @@ class AbaqusVariablesT
 
 inline AbaqusVariablesT::AbaqusVariablesT (void) :
   fName (""),
-  fKey (-1),
+  fKey (kNotUsed),
   fNodeNumberFlag (false),
   fPoint (kNodePoint),
-  fDimension (0),
+  fDimension (kNotUsed),
   fType (kNotUsed),
-  fIOIndex (-1)
+  fIOIndex (kNotUsed)
 {
 }
 

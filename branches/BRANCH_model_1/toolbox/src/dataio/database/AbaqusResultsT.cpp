@@ -234,9 +234,11 @@ void AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	  }
 	}
       
-      /* scan variable records */
+      /* scan variable records, but only for the first time step */
       if (fStartCount == 1)
-	ScanVariable (key, outputmode, location);
+	/* if the record key is a variable, scan for variable within */
+	if (VariableKeyIndex (key) > 0)
+	  ScanVariable (key, outputmode, location);
 
       error = ReadNextRecord (key);
     }
@@ -605,31 +607,36 @@ void AbaqusResultsT::ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray
 	  break;
 	default:
 	  {
-	    if (CorrectType (outputmode, objnum, intpt, location, vt, ID))
+	    /* make sure it is a variable */
+	    if (VariableKeyIndex(key) > 0)
 	      {
-		if (VariableWrittenWithNodeNumber (key)) 
-		  if (!Read (ID)) throw eDatabaseFail;
-		
-		bool save = true;
-		int row;
-		set.HasValue (ID, row);
-		if (row < 0 || row > set.Length())
-		  save = false;
-
-		// modify row by 
-		if (vt == AbaqusVariablesT::kQuadrature)
-		  row = row*numquadpts + intpt - 1;
-
-		if (save)
+		/* is the record found, one that you want to read */
+		if (CorrectType (outputmode, objnum, intpt, location, vt, ID))
 		  {
-		    dArrayT v (fCurrentLength);
-		    int num = fCurrentLength;
-		    for (int i=0; i < num; i++)
-		      if (!Read (v[i])) throw eDatabaseFail;
-
-		    int index = VariableKeyIndex (key);
-		    int offset = fVariableTable[index].IOIndex();
-		    values.CopyPart (row*values.MinorDim() + offset, v, 0, v.Length()); 
+		    if (VariableWrittenWithNodeNumber (key)) 
+		      if (!Read (ID)) throw eDatabaseFail;
+		    
+		    bool save = true;
+		    int row;
+		    set.HasValue (ID, row);
+		    if (row < 0 || row > set.Length())
+		      save = false;
+		    
+		    // modify row by 
+		    if (vt == AbaqusVariablesT::kQuadrature)
+		      row = row*numquadpts + intpt - 1;
+		    
+		    if (save)
+		      {
+			int num = fCurrentLength;
+			dArrayT v (num);
+			for (int i=0; i < num; i++)
+			  if (!Read (v[i])) throw eDatabaseFail;
+			
+			int index = VariableKeyIndex (key);
+			int offset = fVariableTable[index].IOIndex();
+			values.CopyPart (row*values.MinorDim() + offset, v, 0, num); 
+		      }
 		  }
 	      }
 	  }
@@ -1058,11 +1065,15 @@ void AbaqusResultsT::ScanVariable (int key, int outputmode, int location)
   int index = VariableKeyIndex (key);
   if (index < 0)
     {
-      fMessage << "\nAbaqusResultsT::ScanVariable Unable to map variable key\n\n";
+      fMessage << "\nAbaqusResultsT::ScanVariable Unable to map variable key: "
+	       << key << "\n\n";
       throw eDatabaseFail;
     }
 
-  if (fVariableTable[index].Dimension () != AbaqusVariablesT::kNotUsed) return;
+  /* quick exit, if we have already done this variable */
+  if (fVariableTable[index].Dimension () != AbaqusVariablesT::kNotUsed &&
+      fVariableTable[index].Type() != AbaqusVariablesT::kNotUsed &&
+      fVariableTable[index].IOIndex() != AbaqusVariablesT::kNotUsed) return;
 
   int dim, ioindex;
   AbaqusVariablesT::TypeT t;
@@ -1747,6 +1758,7 @@ void AbaqusResultsT::SetVariableNames (void)
   fVariableTable.Allocate (NVT);
   
   int i=0;
+  /* Record Type, Record Key, First Attribute is a Node Number, Origin of Data */
   fVariableTable[i++].Set ("S", 11, false, AbaqusVariablesT::kElementIntegration);
   fVariableTable[i++].Set ("SP", 401, false, AbaqusVariablesT::kElementIntegration);
   fVariableTable[i++].Set ("SINV", 12, false, AbaqusVariablesT::kElementIntegration);
