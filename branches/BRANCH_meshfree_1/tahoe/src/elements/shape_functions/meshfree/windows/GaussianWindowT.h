@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.h,v 1.5.2.2 2001-06-19 18:27:53 paklein Exp $ */
+/* $Id: GaussianWindowT.h,v 1.5.2.3 2001-06-19 21:00:20 hspark Exp $ */
 
 #ifndef _GAUSSIAN_WINDOW_T_H_
 #define _GAUSSIAN_WINDOW_T_H_
@@ -59,8 +59,6 @@ class GaussianWindowT: public WindowT
 	/* multiple points */
 	virtual void Covers(const dArray2DT& x_n, const dArrayT& x, 
 		const dArray2DT& param_n, ArrayT<bool>& covers) const;
-	
-	//etc...
 	
   private:
   

@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.cpp,v 1.6.2.2 2001-06-19 18:27:52 paklein Exp $ */
+/* $Id: GaussianWindowT.cpp,v 1.6.2.3 2001-06-19 21:00:19 hspark Exp $ */
 
 #include "GaussianWindowT.h"
 #include "ExceptionCodes.h"
@@ -78,7 +78,7 @@ void GaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const d
   }
   else
   {
-    double adm = param_n[0] * fSharpeningFactor;
+    double adm = param_n[0] * fSharpeningFactor * fDilationScaling;
     double adm2 = adm * adm;
     double q = dist / adm;
     w = exp(-q * q) / (sqrtPi * adm);
@@ -126,7 +126,7 @@ int GaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, cons
     }
     else
     {
-      double adm = param_n[i] * fSharpeningFactor;
+      double adm = param_n[i] * fSharpeningFactor * fDilationScaling;
       double q = dist / adm;
       double adm2 = adm * adm;
       w[i] = (-q * q) / (sqrtPi * adm);
@@ -154,7 +154,7 @@ bool GaussianWindowT::Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT
   dArrayT dx(x.Length());
   dx.DiffOf(x, x_n);
   double dist = dx.Magnitude();
-  if (dist > 4.0 * param_n[0])
+  if (dist > 4.0 * param_n[0] * fDilationScaling)
     return false;
   else
     return true;
@@ -174,7 +174,7 @@ void GaussianWindowT::Covers(const dArray2DT& x_n, const dArrayT& x,
     double dist = dx.Magnitude();
 
     /* check out of influence range */
-    if (dist > 4.0 * param_n[i])
+    if (dist > 4.0 * param_n[i] * fDilationScaling)
       covers[i] = false;
     else
       covers[i] = true;
