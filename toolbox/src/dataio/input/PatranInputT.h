@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.h,v 1.11 2002-07-02 19:57:04 cjkimme Exp $ */
+/* $Id: PatranInputT.h,v 1.12 2002-07-25 19:47:29 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _PATRANINPUT_T_H_
@@ -95,7 +95,7 @@ class PatranInputT : public InputBaseT
   virtual void ReadQuadratureVariables (int step, const StringT& name, dArray2DT& qvalues); 
 
  private:
-  void SetCode (int namedtype, GeometryT::CodeT& code) const;
+  void SetCode (PatranT::NamedTypes namedtype, GeometryT::CodeT& code) const;
 
  private:
   PatranT fPatran;

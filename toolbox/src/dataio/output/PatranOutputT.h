@@ -22,7 +22,8 @@ class PatranOutputT : public OutputBaseT
   void FileName (int ID, StringT& filename, const char* ext) const;
   void WriteConnectivity (ostream& patout, int& firstID, int ID, iArrayT& nodes_used) const;
   void WriteNamedComponents (ostream& patout, int& firstID, int ID) const;
-  int GetPatranElementType (GeometryT::CodeT geom) const;
+  PatranT::NamedTypes GetPatranNamedType (GeometryT::CodeT geom) const;
+  PatranT::ElementTypes GetPatranElementType (GeometryT::CodeT geom) const;
 
  private:
   bool fBinary;
