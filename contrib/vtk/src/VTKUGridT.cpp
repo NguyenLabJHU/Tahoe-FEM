@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.10 2002-06-10 18:55:11 recampb Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.11 2002-06-11 20:26:56 paklein Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -16,9 +16,9 @@
 #include "vtkExtractEdges.h"
 #include "vtkLODActor.h"
 
-
 /* array behavior */
 const bool ArrayT<VTKUGridT*>::fByteCopy = true;
+const bool ArrayT<vtkActor*>::fByteCopy = true;
 
 /* constructor */
 VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
