@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.15 2003-01-29 07:34:34 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.16 2003-12-02 17:13:36 paklein Exp $ */
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
 
@@ -67,10 +67,11 @@ class FiniteStrainT: public SolidElementT
 	 *        a new MaterialSupportT and initialize it. */
 	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
 
-	/** return a pointer to a new material list. Recipient is responsible for
-	 * for freeing the pointer.
-	 * \param size number of materials in the list */
-	virtual MaterialListT* NewMaterialList(int size);
+	/** return a pointer to a new material list. Recipient is responsible for freeing 
+	 * the pointer. 
+	 * \param nsd number of spatial dimensions
+	 * \param size length of the list */
+	virtual MaterialListT* NewMaterialList(int nsd, int size);
 
 	/** construct list of materials from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);

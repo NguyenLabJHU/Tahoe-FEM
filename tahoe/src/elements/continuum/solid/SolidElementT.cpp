@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.52 2003-11-21 22:46:06 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.53 2003-12-02 17:13:36 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -41,6 +41,8 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	fD(dSymMatrixT::NumValues(NumSD())),
 	fStoreInternalForce(false)
 {
+	SetName("solid_element");
+
 	/* check base class initializations */
 	if (NumDOF() != NumSD()) throw ExceptionT::kGeneralFail;
 
@@ -59,6 +61,18 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	    fIntegrator->ImplicitExplicit() == eIntegratorT::kExplicit &&
 	    ElementSupport().Analysis() != GlobalT::kMultiField)
 	    fMassType = kLumpedMass;
+}
+
+SolidElementT::SolidElementT(const ElementSupportT& support):
+	ContinuumElementT(support),
+	fLocLastDisp(LocalArrayT::kLastDisp),
+	fLocVel(LocalArrayT::kVel),
+	fLocAcc(LocalArrayT::kAcc),
+	fLocTemp(NULL),
+	fLocTemp_last(NULL),
+	fStoreInternalForce(false)
+{
+	SetName("solid_element");
 }
 
 /* destructor */
@@ -307,9 +321,24 @@ const dArray2DT& SolidElementT::InternalForce(int group)
 	return fForce;
 }
 
+/* describe the parameters needed by the interface */
+void SolidElementT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ContinuumElementT::DefineParameters(list);
+
+	/* mass type */
+	ParameterT mass_type(ParameterT::Enumeration, "mass_type");
+	mass_type.AddEnumeration("no_mass", kNoMass);
+    mass_type.AddEnumeration("consistent_mass", kConsistentMass);
+    mass_type.AddEnumeration("lumped_mass", kLumpedMass);
+    mass_type.SetDefault(kConsistentMass);
+	list.AddParameter(mass_type);
+}
+
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 namespace Tahoe {
 
