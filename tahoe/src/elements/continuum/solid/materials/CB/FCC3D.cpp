@@ -1,4 +1,4 @@
-/* $Id: FCC3D.cpp,v 1.6 2004-06-28 22:41:18 hspark Exp $ */
+/* $Id: FCC3D.cpp,v 1.7 2004-07-07 18:03:28 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 #include "ElementsConfig.h"
@@ -84,12 +84,6 @@ FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
 	/* compute stress-free dilatation */
 	double stretch = ZeroStressStretch();
 	fNearestNeighbor *= stretch;
-	ofstream blah;
-	blah.open("alpha.dat");
-	blah.precision(15);
-	blah << fNearestNeighbor << endl;
-	blah << fNearestNeighbor/2.0 << endl;
-	blah.close();
 	cube_edge = fNearestNeighbor*sqrt(2.0);
 	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
 
