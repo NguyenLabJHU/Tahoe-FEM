@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.21 2003-06-03 22:40:28 manzari Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.22 2003-06-09 07:21:25 paklein Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -48,6 +48,9 @@ MR_RP2DT::MR_RP2DT(ifstreamT& in): SurfacePotentialT(knumDOF),
 
 /* return the number of state variables needed by the model */
 int MR_RP2DT::NumStateVariables(void) const { return 8*knumDOF +2; }
+
+/* location in state variable array of the state flag */
+int MR_RP2DT::TiedStatusPosition(void) const { return nTiedFlag; }
 
 /* initialize the state variable array */
 void MR_RP2DT::InitStateVariables(ArrayT<double>& state)

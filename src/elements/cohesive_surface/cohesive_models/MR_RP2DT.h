@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.h,v 1.9 2003-05-27 07:08:14 paklein Exp $*/
+/*$Id: MR_RP2DT.h,v 1.10 2003-06-09 07:21:25 paklein Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #ifndef _MR_RP_2D_T_H_
@@ -79,6 +79,9 @@ public:
 	
 	/** Whether or not the nodes will retie */
 	virtual bool NodesMayRetie(void) const;
+
+	/** location in state variable array of the state flag */
+	virtual int TiedStatusPosition(void) const;
 	/*@}*/
 	
 protected:
