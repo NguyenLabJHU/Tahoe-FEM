@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.42 2003-11-21 22:47:56 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.43 2003-12-28 08:23:52 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -1868,7 +1868,7 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 	if (fbc) {
 		const nIntegratorT& n_integrator = field.nIntegrator();
 		const IntegratorT* integrator = &n_integrator;
-		const eIntegratorT* e_integrator = dynamic_cast<const eIntegratorT*>(integrator);
+		const eIntegratorT* e_integrator = TB_DYNAMIC_CAST(const eIntegratorT*, integrator);
 		if (!e_integrator) ExceptionT::GeneralFail(caller, "could not resolve eIntegratorT");
 		fbc->SetController(e_integrator);
 	}

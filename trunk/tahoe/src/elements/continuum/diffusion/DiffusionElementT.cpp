@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.18 2003-12-10 07:14:24 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.19 2003-12-28 08:23:11 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -499,8 +499,8 @@ MaterialSupportT* DiffusionElementT::NewMaterialSupport(MaterialSupportT* p) con
 	/* inherited initializations */
 	ContinuumElementT::NewMaterialSupport(p);
 	
-	/* set SolidMatSupportT fields */
-	DiffusionMatSupportT* ps = dynamic_cast<DiffusionMatSupportT*>(p);
+	/* set DiffusionMatSupportT fields */
+	DiffusionMatSupportT* ps = TB_DYNAMIC_CAST(DiffusionMatSupportT*, p);
 	if (ps) {
 		ps->SetContinuumElement(this);
 		ps->SetGradient(&fGradient_list);
@@ -517,7 +517,7 @@ MaterialListT* DiffusionElementT::NewMaterialList(int nsd, int size)
 	{
 		/* material support */
 		if (!fDiffusionMatSupport) {
-			fDiffusionMatSupport = dynamic_cast<DiffusionMatSupportT*>(NewMaterialSupport());
+			fDiffusionMatSupport = TB_DYNAMIC_CAST(DiffusionMatSupportT*, NewMaterialSupport());
 			if (!fDiffusionMatSupport) ExceptionT::GeneralFail("DiffusionElementT::NewMaterialList");
 		}
 

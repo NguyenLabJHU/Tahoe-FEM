@@ -1,4 +1,4 @@
-/* $Id: SSMatSupportT.cpp,v 1.4 2003-01-29 07:34:57 paklein Exp $ */
+/* $Id: SSMatSupportT.cpp,v 1.5 2003-12-28 08:23:29 paklein Exp $ */
 #include "SSMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -66,6 +66,6 @@ void SSMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 
 #ifdef CONTINUUM_ELEMENT
 	/* cast to small strain pointer */
-	fSmallStrain = dynamic_cast<const SmallStrainT*>(p);
+	fSmallStrain = TB_DYNAMIC_CAST(const SmallStrainT*, p);
 #endif
 }

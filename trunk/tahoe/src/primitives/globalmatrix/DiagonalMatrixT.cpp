@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.15 2003-11-21 22:48:06 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.16 2003-12-28 08:24:00 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "DiagonalMatrixT.h"
 #include <iostream.h>
@@ -219,7 +219,7 @@ GlobalMatrixT& DiagonalMatrixT::operator=(const GlobalMatrixT& rhs)
 	throw ExceptionT::kGeneralFail;
 #endif
 
-	const DiagonalMatrixT* dmat = dynamic_cast<const DiagonalMatrixT*>(&rhs);
+	const DiagonalMatrixT* dmat = TB_DYNAMIC_CAST(const DiagonalMatrixT*, &rhs);
 	if (!dmat) {
 		cout << "\n DiagonalMatrixT::operator= : cast failed" << endl;
 		throw ExceptionT::kGeneralFail;

@@ -1,4 +1,4 @@
-/* $Id: D2FSMatSupportT.cpp,v 1.5 2003-01-29 07:34:57 paklein Exp $ */
+/* $Id: D2FSMatSupportT.cpp,v 1.6 2003-12-28 08:23:29 paklein Exp $ */
 #include "D2FSMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -24,6 +24,6 @@ void D2FSMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 
 #ifdef CONTINUUM_ELEMENT
 	/* cast to finite strain pointer */
-	fD2MeshFreeFDElastic = dynamic_cast<const D2MeshFreeFSSolidT*>(p);
+	fD2MeshFreeFDElastic = TB_DYNAMIC_CAST(const D2MeshFreeFSSolidT*, p);
 #endif
 }

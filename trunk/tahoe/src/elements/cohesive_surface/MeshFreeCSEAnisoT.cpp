@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.18 2003-03-19 00:53:25 cjkimme Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.19 2003-12-28 08:22:59 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -92,20 +92,13 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const Field
 	ElementBaseT* element_group = &(ElementSupport().ElementGroup(fMFElementGroup));
 	
 	/* check cast to meshfree group */
-#ifdef __NO_RTTI__
-	cout << "\n MeshFreeCSEAnisoT::MeshFreeCSEAnisoT: NO RTTI: Domain element\n"
-	     <<   "     group " << fMFElementGroup + 1
-	     << " cannot be verified as meshfree" << endl;
-	fMFFractureSupport = (MeshFreeFractureSupportT*) element_group;
-#else
-	fMFFractureSupport = dynamic_cast<MeshFreeFractureSupportT*>(element_group);
+	fMFFractureSupport = TB_DYNAMIC_CAST(MeshFreeFractureSupportT*, element_group);
 	if (!fMFFractureSupport)
 	{
 		cout << "\n MeshFreeCSEAnisoT::MeshFreeCSEAnisoT: domain element group\n"
 		     <<   "    " << fMFElementGroup + 1 << " is not meshfree" << endl;
 		throw ExceptionT::kBadInputValue;
 	}
-#endif
 }
 
 /* destructor */

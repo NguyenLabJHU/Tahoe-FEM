@@ -1,4 +1,4 @@
-/* $Id: DRSolver.cpp,v 1.7 2002-11-28 17:30:31 paklein Exp $ */
+/* $Id: DRSolver.cpp,v 1.8 2003-12-28 08:24:14 paklein Exp $ */
 /* created: PAK/CBH (10/03/1996) */
 
 #include "DRSolver.h"
@@ -21,7 +21,7 @@ DRSolver::DRSolver(FEManagerT& fe_manager, int group):
 #ifdef __NO_RTTI__
 	fCCSLHS = (CCSMatrixT*) fLHS;
 #else
-	fCCSLHS = dynamic_cast<CCSMatrixT*>(fLHS);
+	fCCSLHS = TB_DYNAMIC_CAST(CCSMatrixT*, fLHS);
 	if (!fCCSLHS) throw ExceptionT::kGeneralFail;
 #endif
 }

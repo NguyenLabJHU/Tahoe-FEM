@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.16 2003-11-01 16:09:36 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.17 2003-12-28 08:24:05 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT.h"
@@ -371,7 +371,7 @@ GlobalMatrixT& SPOOLESMatrixT::operator=(const GlobalMatrixT& rhs)
 	throw ExceptionT::kGeneralFail;
 #endif
 
-	const SPOOLESMatrixT* sp = dynamic_cast<const SPOOLESMatrixT*>(&rhs);
+	const SPOOLESMatrixT* sp = TB_DYNAMIC_CAST(const SPOOLESMatrixT*, &rhs);
 	if (!sp) {
 		cout << "\n SPOOLESMatrixT::operator= : cast failed" << endl;
 		throw ExceptionT::kGeneralFail;

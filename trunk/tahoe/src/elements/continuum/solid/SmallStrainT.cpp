@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.12 2003-12-02 17:13:36 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13 2003-12-28 08:23:20 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -148,7 +148,7 @@ MaterialSupportT* SmallStrainT::NewMaterialSupport(MaterialSupportT* p) const
 	SolidElementT::NewMaterialSupport(p);
 	
 	/* set SolidMatSupportT fields */
-	SSMatSupportT* ps = dynamic_cast<SSMatSupportT*>(p);
+	SSMatSupportT* ps = TB_DYNAMIC_CAST(SSMatSupportT*, p);
 	if (ps) {
 		ps->SetLinearStrain(&fStrain_List);
 		ps->SetLinearStrain_last(&fStrain_last_List);
@@ -165,7 +165,7 @@ MaterialListT* SmallStrainT::NewMaterialList(int nsd, int size)
 	{
 		/* material support */
 		if (!fSSMatSupport) {
-			fSSMatSupport = dynamic_cast<SSMatSupportT*>(NewMaterialSupport());
+			fSSMatSupport = TB_DYNAMIC_CAST(SSMatSupportT*, NewMaterialSupport());
 			if (!fSSMatSupport)
 				ExceptionT::GeneralFail("SmallStrainT::NewMaterialList");
 		}

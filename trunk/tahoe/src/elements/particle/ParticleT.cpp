@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.32 2003-11-21 22:47:08 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.33 2003-12-28 08:23:41 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -902,7 +902,7 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 			{	
 				fRandom = new RandomNumberT(RandomNumberT::kParadynGaussian);
 			}
-			LangevinT* tmpPtr = dynamic_cast<LangevinT*>(fThermostats[i]); 
+			LangevinT* tmpPtr = TB_DYNAMIC_CAST(LangevinT*, fThermostats[i]); 
 			
 			if (!tmpPtr)
 				ExceptionT::GeneralFail(caller,"Cannot send random number gen to thermostat");

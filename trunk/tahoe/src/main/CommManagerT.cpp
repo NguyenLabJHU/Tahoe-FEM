@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.8 2003-11-21 22:47:52 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.9 2003-12-28 08:23:46 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -292,7 +292,7 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 		for (int i = 0; i < fGhostCommunications.Length(); i++)
 		{
 			/* retrieve communications pointer */
-			AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fGhostCommunications[i]);
+			AllGatherT* all_gather = TB_DYNAMIC_CAST(AllGatherT*, fGhostCommunications[i]);
 			if (!all_gather) ExceptionT::GeneralFail(caller, "could not recover ghost communication");
 
 			/* (re-)set message size */
@@ -457,7 +457,7 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 	if (decomp_type == PartitionT::kGraph) /* non-blocking send-receive */
 	{
 		/* retrieve pointer */
-		PointToPointT* p2p = dynamic_cast<PointToPointT*>(fCommunications[id]);
+		PointToPointT* p2p = TB_DYNAMIC_CAST(PointToPointT*, fCommunications[id]);
 		if (!p2p) ExceptionT::GeneralFail(caller);
 
 		/* do it */
@@ -466,7 +466,7 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 	else if (decomp_type == PartitionT::kAtom) /* all gather */
 	{
 		/* retrieve pointer */
-		AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fCommunications[id]);
+		AllGatherT* all_gather = TB_DYNAMIC_CAST(AllGatherT*, fCommunications[id]);
 		if (!all_gather) ExceptionT::GeneralFail(caller);
 		
 		/* exchange */
@@ -482,7 +482,7 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 				values.SetRow(fPBCNodes_ghost[i], values(fPBCNodes[i]));
 
 			/* retrieve communications pointer */
-			AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fGhostCommunications[id]);
+			AllGatherT* all_gather = TB_DYNAMIC_CAST(AllGatherT*, fGhostCommunications[id]);
 			if (!all_gather) ExceptionT::GeneralFail(caller);
 
 			/* exchange */
@@ -518,7 +518,7 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 	if (decomp_type == PartitionT::kGraph) /* non-blocking send-receive */
 	{
 		/* retrieve pointer */
-		PointToPointT* p2p = dynamic_cast<PointToPointT*>(fCommunications[id]);
+		PointToPointT* p2p = TB_DYNAMIC_CAST(PointToPointT*, fCommunications[id]);
 		if (!p2p) ExceptionT::GeneralFail(caller);
 
 		/* do it */
@@ -527,7 +527,7 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 	else if (decomp_type == PartitionT::kAtom) /* all gather */
 	{
 		/* retrieve communications pointer */
-		AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fCommunications[id]);
+		AllGatherT* all_gather = TB_DYNAMIC_CAST(AllGatherT*, fCommunications[id]);
 		if (!all_gather) ExceptionT::GeneralFail(caller);
 		
 		/* exchange */
@@ -543,7 +543,7 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 				values.SetRow(fPBCNodes_ghost[i], values(fPBCNodes[i]));
 
 			/* retrieve communications pointer */
-			AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fGhostCommunications[id]);
+			AllGatherT* all_gather = TB_DYNAMIC_CAST(AllGatherT*, fGhostCommunications[id]);
 			if (!all_gather) ExceptionT::GeneralFail(caller);
 
 			/* exchange */

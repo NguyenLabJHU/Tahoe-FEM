@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.3 2003-12-10 07:14:24 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.4 2003-12-28 08:23:11 paklein Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
@@ -346,8 +346,8 @@ MaterialSupportT* NLDiffusionElementT::NewMaterialSupport(MaterialSupportT* p) c
 	/* inherited initializations */
 	DiffusionElementT::NewMaterialSupport(p);
 	
-	/* set SolidMatSupportT fields */
-	DiffusionMatSupportT* ps = dynamic_cast<DiffusionMatSupportT*>(p);
+	/* set DiffusionMatSupportT fields */
+	DiffusionMatSupportT* ps = TB_DYNAMIC_CAST(DiffusionMatSupportT*, p);
 	if (ps) {
 		ps->SetField(&fField_list);
 	}

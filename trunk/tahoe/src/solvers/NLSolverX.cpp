@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.9 2003-03-31 22:59:32 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.10 2003-12-28 08:24:14 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
@@ -31,7 +31,7 @@ NLSolverX::NLSolverX(FEManagerT& fe_manager, int group):
 	cout << "\n NLSolverX::Initialize: RTTI required" << endl;
 	throw ExceptionT::kGeneralFail;
 #else
-	pCCS = dynamic_cast<CCSMatrixT*>(fLHS);
+	pCCS = TB_DYNAMIC_CAST(CCSMatrixT*, fLHS);
 	if (!pCCS)
 	{
 		cout << "\n NLSolverX::Initialize: expecting CCS global matrix" << endl;

@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.17 2003-11-21 22:48:06 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.18 2003-12-28 08:24:00 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "CCSMatrixT.h"
 
@@ -431,11 +431,9 @@ GlobalMatrixT& CCSMatrixT::operator=(const GlobalMatrixT& rhs)
 	throw ExceptionT::kGeneralFail;
 #endif
 
-	const CCSMatrixT* ccs = dynamic_cast<const CCSMatrixT*>(&rhs);
-	if (!ccs) {
-		cout << "\n CCSMatrixT::operator= : cast failed" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	const CCSMatrixT* ccs = TB_DYNAMIC_CAST(const CCSMatrixT*, &rhs);	
+	if (!ccs) ExceptionT::GeneralFail("CCSMatrixT::operator="," cast failed");
+
 	return operator=(*ccs);
 }
 

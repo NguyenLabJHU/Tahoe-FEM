@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.44 2003-12-02 17:12:22 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.45 2003-12-28 08:23:33 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
@@ -728,7 +728,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				throw ExceptionT::kBadInputValue;
 #endif
 				const D2MeshFreeFSSolidT* D2ElementGroup;
-				D2ElementGroup = dynamic_cast<const D2MeshFreeFSSolidT*>(&fElementGroup);
+				D2ElementGroup = TB_DYNAMIC_CAST(const D2MeshFreeFSSolidT*, &fElementGroup);
 				if (!D2ElementGroup)
 				{
 					cout << "\n SolidMatList2DT::ReadMaterialData: material " << kD2VIB << " requires\n"

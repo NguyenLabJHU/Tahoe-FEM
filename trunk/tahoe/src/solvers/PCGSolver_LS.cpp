@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.17 2003-11-19 23:29:32 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.18 2003-12-28 08:24:14 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -44,17 +44,13 @@ PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	}
 	
 	/* set assembly mode */
-#ifdef __NO_RTTI__
-	DiagonalMatrixT* pdiag = (DiagonalMatrixT*) fLHS;
-#else
-	DiagonalMatrixT* pdiag = dynamic_cast<DiagonalMatrixT*>(fLHS);
+	DiagonalMatrixT* pdiag = TB_DYNAMIC_CAST(DiagonalMatrixT*, fLHS);
 	if (!pdiag)
 	{
 		cout << "\n PCGSolver_LS::PCGSolver_LS: unable to cast LHS matrix to\n"
 		     <<   "     DiagonalMatrixT" << endl;
 		throw ExceptionT::kGeneralFail;
 	}
-#endif
 	pdiag->SetAssemblyMode(DiagonalMatrixT::kDiagOnly);
 
 	ifstreamT& in = fFEManager.Input();

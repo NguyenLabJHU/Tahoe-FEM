@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.3 2003-11-21 22:46:06 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.4 2003-12-28 08:23:20 paklein Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */
@@ -38,7 +38,7 @@ void UpLagAdaptiveT::Initialize(void)
 	in >> cse_group;
 	cse_group--;
 	ElementBaseT& element_base = ElementSupport().ElementGroup(cse_group);
-	fCSE = dynamic_cast<CSEAnisoT*>(&element_base);
+	fCSE = TB_DYNAMIC_CAST(CSEAnisoT*, &element_base);
 	if (!fCSE) ExceptionT::BadInputValue(caller, "could not resolve CSE group at %d", cse_group+1);
 
 	/* release threshold (t > 0) */
