@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.18 2003-09-20 23:25:38 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.19 2003-09-21 15:48:13 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
@@ -224,7 +224,7 @@ void OutputBaseT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 
 	/* dimension checks */
 	const OutputSetT& set = OutputSet(ID);
-	if (set.NumNodes() != n_values.MajorDim()) 
+	if (n_values.MinorDim() > 0 && set.NumNodes() != n_values.MajorDim()) 
 		ExceptionT::SizeMismatch(caller, "expecting %d not %d nodes in set ID %d", set.NumNodes(), n_values.MajorDim(), ID);
 	if (set.NumNodeValues() != n_values.MinorDim()) 
 		ExceptionT::SizeMismatch(caller, "expecting %d not %d nodal values in set ID %d", set.NumNodes(), n_values.MinorDim(), ID);
