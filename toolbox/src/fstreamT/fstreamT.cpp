@@ -1,4 +1,4 @@
-/* $Id: fstreamT.cpp,v 1.9 2002-12-02 09:37:02 paklein Exp $ */
+/* $Id: fstreamT.cpp,v 1.10 2004-06-17 06:37:52 paklein Exp $ */
 
 #include "fstreamT.h"
 #include "Environment.h"
@@ -6,6 +6,9 @@
 #include "ifstreamT.h"
 
 using namespace Tahoe;
+
+/* initialize static variables */
+StringT fstreamT::fRoot;
 
 /* temporary */
 void fstreamT::FixPath(const char* path_old, StringT& path)
@@ -62,6 +65,14 @@ else /* stop */
 #endif
 }
 
+/* set file name string - does not change stream */
+void fstreamT::set_filename(const char* name)
+{
+	/* store file name */
+	fFileName = name;
+	fFileName.ToNativePathName();
+}
+
 /* returns true if the given file is found */
 bool fstreamT::Exists(const char* path)
 {
@@ -80,4 +91,13 @@ int fstreamT::ClearLine(istream& in)
 		a = in.get();
 	}
 	return ct;
+}
+
+/* set the file root, pass NULL to clear */
+void fstreamT::SetRoot(const char* root)
+{
+	if (root)
+		fRoot = root;
+	else
+		fRoot.Clear();
 }

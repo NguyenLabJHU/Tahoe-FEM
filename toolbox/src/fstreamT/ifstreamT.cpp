@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.25 2003-11-10 22:14:27 cjkimme Exp $ */
+/* $Id: ifstreamT.cpp,v 1.26 2004-06-17 06:37:52 paklein Exp $ */
 /* created: paklein (03/03/1999) */
 #include "ifstreamT.h"
 
@@ -142,14 +142,6 @@ istream& ifstreamT::putback(char a)
 	
 	/* inherited */
 	return ifstream::putback(a);
-}
-
-/* set file name string - does not change stream */
-void ifstreamT::set_filename(const char* name)
-{
-	/* store file name */
-	fFileName = name;
-	fFileName.ToNativePathName();
 }
 
 /* adjusting stream position, returns the number of lines rewound */
