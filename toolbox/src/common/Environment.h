@@ -1,4 +1,4 @@
-/* $Id: Environment.h,v 1.4 2001-10-09 04:34:31 rrsettg Exp $ */
+/* $Id: Environment.h,v 1.5 2001-10-09 08:44:55 paklein Exp $ */
 /* created: paklein (02/10/1997)                                          */
 /* Environment.h                                                          */
 /* defining environment-specific preprocessor symbols and options         */
@@ -54,17 +54,22 @@
 /*              CWPro > 3                           CWPro >= 5.3 ? */
 #if defined(MSIPL_USING_NAMESPACE) || defined(_MSL_USING_NAMESPACE)
 #ifdef __cplusplus
-#if (__MWERKS__ < 0x7000)
+#if (__MWERKS__ > 0) && (__MWERKS__ < 0x7000) /* later version predefine */
 using namespace std;
 #endif
 #endif
 #endif
 
 /* using Metrowerks Standard Library */
-//#ifdef __mslGlobals_h
-#if (__MWERKS__ < 0x5999)
+#ifdef __MWERKS__
+#if (__MWERKS__ == 1) /* older versions just define as 0/1 */
+#ifdef __mslGlobals_h
+#define _MW_MSL_
+#endif /* __mslGlobals_h */
+#else /* later versions all use MSL */
 #define _MW_MSL_
 #endif
+#endif /* __MWERKS__ */
 
 /* compiler supports RTTI */
 #ifdef __SUNPRO_CC
