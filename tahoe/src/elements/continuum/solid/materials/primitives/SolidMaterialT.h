@@ -1,6 +1,5 @@
-/* $Id: SolidMaterialT.h,v 1.2 2001-07-03 01:35:42 paklein Exp $ */
-/* created: paklein (11/20/1996)                                          */
-/* Defines the interface for elastic continuum materials.                 */
+/* $Id: SolidMaterialT.h,v 1.3 2001-09-15 01:18:15 paklein Exp $ */
+/* created: paklein (11/20/1996) */
 
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -12,6 +11,7 @@
 
 /* direct members */
 #include "dMatrixT.h"
+#include "ThermalDilatationT.h"
 
 /* forward declarations */
 class ifstreamT;
@@ -33,6 +33,11 @@ public:
 
 	/** destructor */
 	~SolidMaterialT(void);
+
+	/** initialization called immediately after constructor. This function
+	 * checks if thermal strain are being imposed and if the material
+	 * supports thermal strain, using SolidMaterialT::SupportsThermalStrain. */
+	virtual void Initialize(void);
 
 	/** write parameters */
 	virtual void Print(ostream& out) const;
@@ -63,18 +68,18 @@ public:
 	virtual bool NeedLastDisp(void) const { return false; };
 	virtual bool NeedVel(void) const      { return false; };
 
-	/* returns true if the material has internal forces in the unloaded
-	 * configuration, ie thermal strains */
-	virtual int HasInternalStrain(void) const;
+	/** returns true if the material has internal forces in the unloaded
+	 * configuration, i.e. thermal strains */
+	int HasThermalStrain(void) const;
 
-	/* thermal accessors */
-	int ThermalLTfNumber(void) const;
-	void SetThermalLTfPtr(const LoadTime* LTfPtr);
+	/** returns the schedule number for the imposed thermal strain */
+	int ThermalStrainSchedule(void) const;
+
+	/** set the schedule for the prescribed temperature */
+	void SetThermalSchedule(const LoadTime* LTfPtr);
 	
-	double ThermalElongation(void) const; //percentage
-		//wrapper functions exist to complete construction of fThermal
-		//w/o requiring the header file. For efficiency, actual communication
-		//with fThermal is done directly, and therefore requires the header
+	/** return the thermal expansion rate as a percentage */
+	double ThermalElongation(void) const;
 	 	
 	/** \return mass density */
 	double Density(void) const;
@@ -91,6 +96,12 @@ public:
 	 * \return 1 if the determinant of the acoustical tensor is negative
 	 * or 0 if the determinant is positive. */
 	virtual int IsLocalized(dArrayT& normal);
+	
+private:
+
+	/** return true if material implementation supports imposed thermal
+	 * strains. */
+	virtual bool SupportsThermalStrain(void) const { return false; };
 
 protected:
 
@@ -113,5 +124,11 @@ inline double SolidMaterialT::Density(void) const { return fDensity; }
 /* access to Rayleigh damping parameters */
 inline double SolidMaterialT::MassDamping(void) const { return fMassDamp; }
 inline double SolidMaterialT::StiffnessDamping(void) const { return fStiffDamp;}
+
+/* imposed thermal strains */
+inline int SolidMaterialT::HasThermalStrain(void) const { return fThermal->IsActive(); }
+inline int SolidMaterialT::ThermalStrainSchedule(void) const { return fThermal->LTfNumber(); }
+inline void SolidMaterialT::SetThermalSchedule(const LoadTime* LTfPtr) { fThermal->SetLTfPtr(LTfPtr); }
+inline double SolidMaterialT::ThermalElongation(void) const { return fThermal->PercentElongation(); }
 
 #endif /* _STRUCTURAL_MATERIALT_H_ */
