@@ -1,13 +1,15 @@
+/* $Id: InputFEASCIIT.h,v 1.6 2002-02-18 08:54:45 paklein Exp $ */
 #ifndef _INPUTFEASCII_T_H_
 #define _INPUTFEASCII_T_H_
 
+/* base classes */
 #include "InputBaseT.h"
+
+/* direct members */
 #include "StringT.h"
-#include "iAutoArrayT.h"
-#include "iArrayT.h"
-#include "iArray2DT.h"
-#include "dArray2DT.h"
-#include "dArrayT.h"
+#include "AutoArrayT.h"
+
+/* forward declarations */
 class ifstreamT;
 class dArrayT;
 
@@ -102,7 +104,10 @@ public:
  private:
   StringT fFileRoot;
 
-  iAutoArrayT fBlockID;
+  AutoArrayT<int> fBlockID;
+  AutoArrayT<int> fBlockNumElem;
+  AutoArrayT<int> fBlockNumElemNode;
+  AutoArrayT<GeometryT::CodeT> fBlockGeometry;
   int fNumNodes;
   int fNumElements;
   int fNumDOF;
@@ -138,11 +143,6 @@ inline int InputFEASCIIT::NumNodesInSet (const StringT& name)
 #pragma unused (name)
   return 0;
 }
-inline void InputFEASCIIT::ReadNodeSet (const StringT& name, iArrayT& nodes)
-{
-#pragma unused (name)
-  nodes.Free();
-}
 inline bool InputFEASCIIT::AreSideSetsLocal (void) const
 { return true; }
 inline int InputFEASCIIT::NumSidesInSet (const StringT& setname) const
@@ -150,70 +150,25 @@ inline int InputFEASCIIT::NumSidesInSet (const StringT& setname) const
 #pragma unused (setname)
   return 0; 
 }
+
 inline StringT InputFEASCIIT::SideSetGroupName (const StringT& setname) const
 { 
 #pragma unused (setname)
   StringT s = "";
   return s;
 }
-inline void InputFEASCIIT::ReadSideSetLocal (const StringT& setname, iArray2DT& sides) const
-{
-#pragma unused (setname)
-  sides.Free ();
-}
-inline void InputFEASCIIT::ReadSideSetGlobal (const StringT& setname, iArray2DT& sides) const
-{
-#pragma unused (setname)
-  sides.Free ();
-}
+
 inline void InputFEASCIIT::QARecords (ArrayT<StringT>& records)
 {
 #pragma unused (records)
 }
-inline int InputFEASCIIT::NumTimeSteps (void) const
-{ return fTimeSteps.Length(); }
+inline int InputFEASCIIT::NumTimeSteps (void) const { return fTimeSteps.Length(); }
 inline int InputFEASCIIT::NumNodeVariables (void) const
 { return fNodeVariable.Length(); }
 inline int InputFEASCIIT::NumElementVariables (void) const
 { return fElementVariable.Length(); }
 inline int InputFEASCIIT::NumQuadratureVariables (void) const
 { return 0; }
-inline void InputFEASCIIT::QuadratureVariablesUsed (const StringT& name, iArrayT& used)
-{
-#pragma unused (name)
-  used = 0;
-}
-inline void InputFEASCIIT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
-{ qlabels.Free(); }
-inline void InputFEASCIIT::ReadNodeSetVariables (int step, const StringT& name, dArray2DT& nvalues)
-{
-#pragma unused (step)
-#pragma unused (name)
-  nvalues.Free();
-}
-inline void InputFEASCIIT::ReadAllQuadratureVariable (int step, int varindex, dArrayT& values)
-{
-#pragma unused (step)
-#pragma unused (varindex)
-  values.Free();
-}
-inline void InputFEASCIIT::ReadQuadratureVariable (int step, const StringT& name, int varindex, dArrayT& values)
-{
-#pragma unused (step)
-#pragma unused (name)
-#pragma unused (varindex)
-  values.Free();
-}
-inline void InputFEASCIIT::ReadAllQuadratureVariables (int step, dArray2DT& vals)
-{
-#pragma unused (step)
-  vals.Free();
-}
-inline void InputFEASCIIT::ReadQuadratureVariables (int step, const StringT& name, dArray2DT& vals)
-{
-#pragma unused (step)
-#pragma unused (name)
-  vals.Free();
-}
+
 
 #endif
