@@ -1,5 +1,5 @@
-# $Id: GNU.troi.purifyplus.macros,v 1.4 2004-08-10 06:37:03 paklein Exp $
-# GNU
+# $Id: GNU.troi.purifyplus.macros,v 1.5 2004-08-10 07:04:57 paklein Exp $
+# GNU 2.95
 MAKE        = make
 DEFINES     = -D__GNU__ -D__SUN__
 COMP_C      = gcc
@@ -14,15 +14,15 @@ PURIFY      = /scr2/local/Rational/releases/purify.sol.2001a.04.00/purify
 PURECOV     = /scr2/local/Rational/releases/purecov.sol.2001a.04.00/purecov
 LINK        = $(PURIFY) -log-file=%v.purify.log -view-file=%v.pv $(PURECOV) -log-file=%v.purecov.log -counts-file=%v.pcv $(COMP_CC)
 LFLAGS      = -static
-MAKEDEPEND_C         = gcc -MM
-MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
-MAKEDEPEND_OUTPUT_C  = -MF
-MAKEDEPEND_CC        = g++ -MM
-MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES)
-MAKEDEPEND_OUTPUT_CC = -MF
-MAKEDEPEND_F         = g77 -MM
-MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES)
-MAKEDEPEND_OUTPUT_F  = -MF
+MAKEDEPEND_C         = makedepend
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) -I/usr/local/include/g++-3 -I/usr/include/g++-2 -I/usr/include -I/usr/local/sparc-sun-solaris2.7/include $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -f
+MAKEDEPEND_CC        = makedepend
+MAKEDEPENDFLAGS_CC   = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_CC = -f
+MAKEDEPEND_F         = makedepend
+MAKEDEPENDFLAGS_F    = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_F  = -f
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = echo
