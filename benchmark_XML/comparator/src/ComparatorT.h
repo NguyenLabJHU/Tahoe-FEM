@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.h,v 1.6 2001-10-11 16:32:25 paklein Exp $ */
+/* $Id: ComparatorT.h,v 1.7 2002-02-18 09:45:12 paklein Exp $ */
 
 #ifndef _COMPARATOR_T_H_
 #define _COMPARATOR_T_H_
@@ -53,13 +53,13 @@ private:
 		bool do_rel, bool do_abs);
 
 	/* read data block header */
-	bool ReadDataBlockInfo(ifstreamT& in, int& group, double& time) const;
+	bool ReadDataBlockInfo(ifstreamT& in, double& time, int& num_blocks) const;
 
 	/* read block of nodal data */
 	bool ReadNodalData(ifstreamT& in, ArrayT<StringT>& labels, dArray2DT& data) const;
 
 	/* read block of element data */
-	bool ReadElementData(ifstreamT& in, ArrayT<StringT>& labels, dArray2DT& data) const;
+	bool ReadElementData(ifstreamT& in, ArrayT<StringT>& labels, dArray2DT& data, int& block_ID) const;
 
 	/* compare blocks - normalized by set 1 */
 	bool CompareDataBlocks(const ArrayT<StringT>& labels_1, const dArray2DT& data_1,
