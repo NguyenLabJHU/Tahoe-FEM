@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupport2DT.cpp,v 1.3 2001-07-03 01:35:50 paklein Exp $ */
+/* $Id: MeshFreeSupport2DT.cpp,v 1.4 2002-02-20 23:06:30 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 /* MLS shape function support for 2D                                      */
 
@@ -31,11 +31,16 @@ void MeshFreeSupport2DT::SetCuttingFacets(const dArray2DT& facet_coords,
 	MeshFreeSupportT::SetCuttingFacets(facet_coords, num_facet_nodes);
 
 	/* checks */
-	if (fNumFacetNodes != 2)
-	{
+	if (fNumFacetNodes != 0 && fNumFacetNodes != 2) {
 		cout << "\n MeshFreeSupport2DT::SetCuttingFacets: 2D cutting facets must\n"
 		     <<   "     have 2 nodes: " << fNumFacetNodes << endl;
 		throw eSizeMismatch;
+	}
+	if (fNumFacetNodes == 0 && facet_coords.MajorDim() != 0) {
+		cout << "\n MeshFreeSupport2DT::SetCuttingFacets: found facets nodes = 0 with\n" 
+		     <<   "     non-zero number of facets (" << facet_coords.MajorDim()
+		     << ")" << endl;
+		throw eSizeMismatch;	
 	}
 }
 
