@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactDrag3DT.cpp,v 1.1 2003-08-23 16:15:35 paklein Exp $ */
+/* $Id: PenaltyContactDrag3DT.cpp,v 1.2 2003-08-25 04:42:34 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContactDrag3DT.h"
 #include "fstreamT.h"
@@ -159,7 +159,7 @@ void PenaltyContactDrag3DT::RHSDriver(void)
 		/* drag */
 		bool has_drag = false;
 		if (h < fGapTolerance)
-		{
+		{		
 			/* reference facet normal (direction) = a x b */
 			double n_ref[3];
 			Vector(init_coords(pelem[0]), init_coords(pelem[1]), a);
@@ -173,7 +173,7 @@ void PenaltyContactDrag3DT::RHSDriver(void)
 			/* displacement from the last increment */
 			double drag[3];
 			int striker_node = pelem[3];
-			Vector(disp(striker_node), disp_last(striker_node), drag);
+			Vector(disp_last(striker_node), disp(striker_node), drag);
 
 			/* just the tangent part of the drag */
 			double inc_norm = Dot(drag, n_ref);
@@ -184,10 +184,11 @@ void PenaltyContactDrag3DT::RHSDriver(void)
 			if (mag_slip > fSlipTolerance)
 			{
 				has_drag = true;
+				if (!has_contact) fRHS = 0.0;
 
 				/* drag force */
 				int striker_index = fStrikerLocNumber.Map(striker_node);
-				double drag_force = fNodalArea[striker_index]*fDrag;
+				double drag_force = -fNodalArea[striker_index]*fDrag;
 				double f_x = drag_force*drag[0]/mag_slip;
 				double f_y = drag_force*drag[1]/mag_slip;
 				double f_z = drag_force*drag[2]/mag_slip;
@@ -332,7 +333,7 @@ void PenaltyContactDrag3DT::LHSDriver(GlobalT::SystemTypeT)
 			/* displacement from the last increment */
 			double drag[3];
 			int striker_node = pelem[3];
-			Vector(disp(striker_node), disp_last(striker_node), drag);
+			Vector(disp_last(striker_node), disp(striker_node), drag);
 
 			/* just the tangent part of the drag */
 			double inc_norm = Dot(drag, n_ref);
@@ -343,6 +344,7 @@ void PenaltyContactDrag3DT::LHSDriver(GlobalT::SystemTypeT)
 			if (mag_slip > fSlipTolerance)
 			{
 				has_drag = true;
+				if (!has_contact) fLHS = 0.0;
 
 				/* drag force */
 				int striker_index = fStrikerLocNumber.Map(striker_node);
@@ -350,8 +352,8 @@ void PenaltyContactDrag3DT::LHSDriver(GlobalT::SystemTypeT)
 
 				K_drag.Identity();
 				K_drag.Outer(n_ref, n_ref, -1.0, dMatrixT::kAccumulate);
-				K_drag.Outer(drag, drag, -mag_slip*mag_slip, dMatrixT::kAccumulate);
-				K_drag *= drag_force/mag_slip;
+				K_drag.Outer(drag, drag, -1.0/(mag_slip*mag_slip), dMatrixT::kAccumulate);
+				K_drag *= constK*drag_force/mag_slip;
 
 				/* assemble */
 				fLHS.AddBlock(9, 9, K_drag);
@@ -359,7 +361,7 @@ void PenaltyContactDrag3DT::LHSDriver(GlobalT::SystemTypeT)
 		}
 		
 		/* assemble */
-		if (has_contact)
+		if (has_contact || has_drag)
 		{
 			/* get equation numbers */
 			fEqnos[0].RowAlias(i, eqnos);
