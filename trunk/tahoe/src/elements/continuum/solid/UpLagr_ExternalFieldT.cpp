@@ -1,4 +1,4 @@
-/* $Id: UpLagr_ExternalFieldT.cpp,v 1.6 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: UpLagr_ExternalFieldT.cpp,v 1.7 2002-10-20 22:48:23 paklein Exp $ */
 #include "UpLagr_ExternalFieldT.h"
 
 #include "fstreamT.h"
@@ -34,13 +34,13 @@ void UpLagr_ExternalFieldT::Initialize(void)
 	if (fExternalFieldFormat != IOBaseT::kExodusII) {
 		cout << "\n UpLagr_ExternalFieldT::Initialize: external field file format must be ExodusII" 
 		     << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	/* read variable labels */
 	int num_variables = -1;
-	in >> num_variables; if (num_variables < 0) throw eBadInputValue;
-	fExternalFieldLabels.Allocate(num_variables);
+	in >> num_variables; if (num_variables < 0) throw ExceptionT::kBadInputValue;
+	fExternalFieldLabels.Dimension(num_variables);
 	for (int i = 0; i < num_variables; i++)
 		in >> fExternalFieldLabels[i];
 	
@@ -56,7 +56,7 @@ void UpLagr_ExternalFieldT::Initialize(void)
 	{
 		cout << "\n UpLagr_ExternalFieldT::Initialize: error opening external field file: " 
 		     << fExternalFieldFile << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	else /* resolve index of variables in database */
 	{
@@ -65,7 +65,7 @@ void UpLagr_ExternalFieldT::Initialize(void)
 		exo.ReadLabels(labels, ExodusT::kNode);
 		
 		/* index list */
-		fFieldVariableIndex.Allocate(fExternalFieldLabels.Length());
+		fFieldVariableIndex.Dimension(fExternalFieldLabels.Length());
 		fFieldVariableIndex = -1;
 
 		/* resolve location of each field component */
@@ -84,7 +84,7 @@ void UpLagr_ExternalFieldT::Initialize(void)
 			{
 				cout << "\n UpLagr_ExternalFieldT::Initialize: variable not found in\n"
 				     <<   "     external database: " << fExternalFieldLabels[i] << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 		}
 	}
@@ -103,23 +103,23 @@ void UpLagr_ExternalFieldT::Initialize(void)
 	fTimeSteps.SetValues(time_steps);
 
 	/* get node number map */
-	fNodeMap.Allocate(exo.NumNodes());
+	fNodeMap.Dimension(exo.NumNodes());
 	exo.ReadNodeMap(fNodeMap);
 	fNodeMap--; /* offset to internal numbering */
 
 	/* allocate global assembly array */
-	fExternalField.Allocate(ElementSupport().NumNodes(), fExternalFieldLabels.Length());
+	fExternalField.Dimension(ElementSupport().NumNodes(), fExternalFieldLabels.Length());
 //NOTE: This is going to be a big waste of space if this element group
 //      only involves a small fraction of the total number of nodes in
 //      the model, but it makes it much easier to retrieve the values
 //      like other field variables.
 
 	/* allocate local array */
-	fLocExternalField.Allocate(NumElementNodes(), fExternalFieldLabels.Length());
+	fLocExternalField.Dimension(NumElementNodes(), fExternalFieldLabels.Length());
 	fLocExternalField.SetGlobal(fExternalField);
 	
 	/* allocate space for reading nodal values */
-	fNodalValues.Allocate(exo.NumNodes());
+	fNodalValues.Dimension(exo.NumNodes());
 }
 
 /* interpolate external field to the current time step */
@@ -164,7 +164,7 @@ void UpLagr_ExternalFieldT::InitStep(void)
 	{
 		cout << "\n UpLagr_ExternalFieldT::InitStep: error opening file: " 
 		     << fExternalFieldFile << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* loop over variables */
@@ -216,8 +216,8 @@ void UpLagr_ExternalFieldT::AssembleField(int col, double scale,
 	const dArrayT& values)
 {
 	/* checks */
-	if (col < 0 || col >= fExternalField.MinorDim()) throw eOutOfRange;
-	if (values.Length() != fNodeMap.Length()) throw eSizeMismatch;
+	if (col < 0 || col >= fExternalField.MinorDim()) throw ExceptionT::kOutOfRange;
+	if (values.Length() != fNodeMap.Length()) throw ExceptionT::kSizeMismatch;
 
 	for (int i = 0; i < fNodeMap.Length(); i++)
 	{

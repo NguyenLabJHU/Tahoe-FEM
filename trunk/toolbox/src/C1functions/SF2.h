@@ -1,10 +1,4 @@
-/* $Id: SF2.h,v 1.1 2002-10-04 20:51:05 thao Exp $ */
-/* created: paklein (10/30/1997)                                          */
-/* Cohesive force law:                                                    */
-/* F(dr) = A dr Exp[-dr^2/B]                                                */
-/* where: dr = l - l_0                                                    */
-/* 	                                                                      */
-
+/* $Id: SF2.h,v 1.2 2002-10-20 22:38:48 paklein Exp $ */
 #ifndef _SF2_H_
 #define _SF2_H_
 
@@ -13,6 +7,12 @@
 
 namespace Tahoe{
 
+/** cohesive force law
+ * The force is given by
+ \f[
+	F(dr) = A dr \exp \left[ -\frac{dr^2}{B} \right]
+ \f]
+ * where \f$ dr = l - l_0 \f$. */
 class SF2: public C1FunctionT
 {
 public:

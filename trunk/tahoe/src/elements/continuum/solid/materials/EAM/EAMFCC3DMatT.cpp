@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.cpp,v 1.4 2002-09-12 17:49:57 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.cpp,v 1.5 2002-10-20 22:48:39 paklein Exp $ */
 /* created: paklein (10/25/1998)                                          */
 /* Plane strain EAM material                                              */
 
@@ -116,11 +116,11 @@ EAMFCC3DMatT::EAMFCC3DMatT(ifstreamT& in, const FiniteStrainT& element):
 		{
 			cout << "\n EAMFCC3DMatT::EAMFCC3DMatT: unknown orientation code:" << fOrientCode;
 			cout << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 	}
 	
-	if (!fEAM) throw eOutOfMemory;
+	if (!fEAM) throw ExceptionT::kOutOfMemory;
 	fEAM->Initialize();	
 }
 

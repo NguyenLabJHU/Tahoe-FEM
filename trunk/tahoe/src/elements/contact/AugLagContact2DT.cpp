@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.9 2002-10-16 22:55:05 cjkimme Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.10 2002-10-20 22:48:20 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 
 #include "AugLagContact2DT.h"
@@ -24,7 +24,7 @@ AugLagContact2DT::AugLagContact2DT(const ElementSupportT& support, const FieldT&
 {
 	/* regularization parameter */
 	ElementSupport().Input() >> fr;
-	if (fr < 0.0) throw eBadInputValue;
+	if (fr < 0.0) throw ExceptionT::kBadInputValue;
 }
 
 /* allocates space and reads connectivity data */
@@ -37,8 +37,8 @@ void AugLagContact2DT::Initialize(void)
 	int neq = NumElementNodes()*NumDOF() + 1; // 1 additional dof
 
 	/* re-size element results */
-	fLHS.Allocate(neq); // or make new variables?
-	fRHS.Allocate(neq);
+	fLHS.Dimension(neq); // or make new variables?
+	fRHS.Dimension(neq);
 
 	/* dynamic work space managers for element arrays */
 	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, NumElementNodes() + 1);		
@@ -74,7 +74,7 @@ void AugLagContact2DT::SetDOFTags(void)
 	fLastDOF = constraints;
 
 	/* resize DOF tags array */
-	fContactDOFtags.Allocate(fActiveStrikers.Length());
+	fContactDOFtags.Dimension(fActiveStrikers.Length());
 
 	/* write list of active strikers */
 	iArrayT tmp;
@@ -98,7 +98,7 @@ iArrayT& AugLagContact2DT::DOFTags(int tag_set)
 	{
 		cout << "\n AugLagContact2DT::DOFTags: group only has 1 tag set: " 
 		     << tag_set << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 #endif
 	
@@ -141,7 +141,7 @@ const iArray2DT& AugLagContact2DT::DOFConnects(int tag_set) const
 	{
 		cout << "\n AugLagContact2DT::DOFConnects: group only has 1 tag set: " 
 		     << tag_set << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 #endif
 
@@ -158,7 +158,7 @@ void AugLagContact2DT::ResetDOF(dArray2DT& DOF, int tag_set) const
 	{
 		cout << "\n AugLagContact2DT::ResetDOF: group only has 1 tag set: " 
 		     << tag_set << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 #endif
 
@@ -219,17 +219,17 @@ void AugLagContact2DT::ReadRestart(istream& in)
 {
 #pragma unused(in)
 	cout << "\n AugLagContact2DT::ReadRestart: has not been tested" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 void AugLagContact2DT::WriteRestart(ostream& out) const
 {
 #pragma unused(out)
 	cout << "\n AugLagContact2DT::WriteRestart: has not been tested" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 //TEMP - restarts have not been tested. these functions
-//       throw exceptions
+//       throw ExceptionT::xceptions
 
 /***********************************************************************
 * Protected

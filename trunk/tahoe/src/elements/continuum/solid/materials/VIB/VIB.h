@@ -1,4 +1,4 @@
-/* $Id: VIB.h,v 1.3 2002-07-05 22:28:17 paklein Exp $ */
+/* $Id: VIB.h,v 1.4 2002-10-20 22:48:54 paklein Exp $ */
 /* created: paklein (10/30/1997)                                          */
 /* Base class for isotropic VIB solvers.                                  */
 
@@ -35,7 +35,7 @@ public:
 protected:
 
 	/* allocate memory for all the tables */
-	void Allocate(int numbonds);
+	void Dimension(int numbonds);
 
 protected:
 

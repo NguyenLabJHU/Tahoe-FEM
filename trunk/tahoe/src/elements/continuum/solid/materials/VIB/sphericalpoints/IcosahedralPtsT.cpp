@@ -1,4 +1,4 @@
-/* $Id: IcosahedralPtsT.cpp,v 1.3 2002-09-12 17:50:02 paklein Exp $ */
+/* $Id: IcosahedralPtsT.cpp,v 1.4 2002-10-20 22:48:59 paklein Exp $ */
 /* created: paklein (10/31/1997)                                          */
 /* Base class for spherical point generators.                             */
 
@@ -8,7 +8,7 @@
 #include <iostream.h>
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "fstreamT.h"
 
 
@@ -320,7 +320,7 @@ void IcosahedralPtsT::SetCoords(int numint)
 		
 		default:
 			
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 	
 	/* temp vector */
@@ -423,7 +423,7 @@ void IcosahedralPtsT::SetJacobians(int numint)
 		
 		default:
 			
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 	
 	/* temp vector */

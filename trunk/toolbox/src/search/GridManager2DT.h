@@ -1,4 +1,4 @@
-/* $Id: GridManager2DT.h,v 1.5 2002-09-12 16:40:21 paklein Exp $ */
+/* $Id: GridManager2DT.h,v 1.6 2002-10-20 22:39:13 paklein Exp $ */
 /* created: paklein (12/06/1997)                                          */
 /* Interface for regular rectangular search and storage grid              */
 /* sTYPE requirements:                                                    */
@@ -103,7 +103,7 @@ GridManager2DT<sTYPE>::GridManager2DT(double xmin, double xmax, int nx,
 	fGrid(fnx*fny)
 {
 	/* consistency */
-	if (fxmax <= fxmin || fymax <= fymin) throw eGeneralFail;
+	if (fxmax <= fxmin || fymax <= fymin) throw ExceptionT::kGeneralFail;
 
 	/* grid spacings */
 	fdx = (fxmax - fxmin)/fnx;
@@ -134,7 +134,7 @@ void GridManager2DT<sTYPE>::Reset(void)
 
 	for (int i = 0; i < fGrid.Length(); i++)
 	{
-		if (*pgrid) (*pgrid)->Allocate(0);
+		if (*pgrid) (*pgrid)->Dimension(0);
 		pgrid++;
 	}
 
@@ -241,7 +241,7 @@ void GridManager2DT<sTYPE>::Reset(const dArray2DT& coords,
 	}
 
 	/* set grid parameters */
-	fGrid.Allocate(fnx*fny);
+	fGrid.Dimension(fnx*fny);
 }	
 
 /* insert data into the grid */
@@ -255,7 +255,7 @@ void GridManager2DT<sTYPE>::Add(const sTYPE& data)
 	if (!(*griddata))
 	{
 		*griddata = new AutoArrayT<sTYPE>;
-		if (!*griddata) throw(eOutOfMemory);
+		if (!*griddata) throw ExceptionT::kOutOfMemory;
 	}
 
 	/* append value */
@@ -336,7 +336,7 @@ const AutoArrayT<sTYPE>& GridManager2DT<sTYPE>::
 	HitsInRegion(double* coords, double distance)
 {
 	/* empty hit list */
-	fHits.Allocate(0);
+	fHits.Dimension(0);
 
 	/* grid indices */
 	int ixstart = int((coords[0] - fxmin - distance)/fdx);
@@ -377,7 +377,7 @@ const AutoArrayT<sTYPE>& GridManager2DT<sTYPE>::
 	HitsInRegion(double* coords, const ArrayT<double>& dist_xy)
 {
 	/* empty hit list */
-	fHits.Allocate(0);
+	fHits.Dimension(0);
 
 	/* grid indices */
 	int ixstart = int((coords[0] - fxmin - dist_xy[0])/fdx);
@@ -475,7 +475,7 @@ AutoArrayT<sTYPE>** GridManager2DT<sTYPE>::FetchGrid(double* coords)
 	int iy = int((coords[1] - fymin)/fdy);
 	
 	/* range check */
-	if (ix < 0 || ix >= fnx || iy < 0 || iy >= fny ) throw eGeneralFail;		
+	if (ix < 0 || ix >= fnx || iy < 0 || iy >= fny ) throw ExceptionT::kGeneralFail;		
 	
 	/* stored column major */
 	return fGrid.Pointer(ix*fny + iy);

@@ -1,10 +1,10 @@
-/* $Id: SmithFerrante.cpp,v 1.2 2002-07-02 19:56:32 cjkimme Exp $ */
+/* $Id: SmithFerrante.cpp,v 1.3 2002-10-20 22:38:48 paklein Exp $ */
 /* created: paklein (10/30/1997)                                          */
 
 #include "SmithFerrante.h"
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 
 /*
@@ -64,7 +64,7 @@ double SmithFerrante::DDFunction(double x) const
 dArrayT& SmithFerrante::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
@@ -80,7 +80,7 @@ dArrayT& SmithFerrante::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& SmithFerrante::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
@@ -96,7 +96,7 @@ dArrayT& SmithFerrante::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& SmithFerrante::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupport2DT.cpp,v 1.7 2002-09-12 17:50:10 paklein Exp $ */
+/* $Id: MeshFreeSupport2DT.cpp,v 1.8 2002-10-20 22:49:40 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 /* MLS shape function support for 2D                                      */
 
@@ -7,7 +7,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "toolboxConstants.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
@@ -37,13 +37,13 @@ void MeshFreeSupport2DT::SetCuttingFacets(const dArray2DT& facet_coords,
 	if (fNumFacetNodes != 0 && fNumFacetNodes != 2) {
 		cout << "\n MeshFreeSupport2DT::SetCuttingFacets: 2D cutting facets must\n"
 		     <<   "     have 2 nodes: " << fNumFacetNodes << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 	if (fNumFacetNodes == 0 && facet_coords.MajorDim() != 0) {
 		cout << "\n MeshFreeSupport2DT::SetCuttingFacets: found facets nodes = 0 with\n" 
 		     <<   "     non-zero number of facets (" << facet_coords.MajorDim()
 		     << ")" << endl;
-		throw eSizeMismatch;	
+		throw ExceptionT::kSizeMismatch;	
 	}
 }
 
@@ -58,8 +58,8 @@ void MeshFreeSupport2DT::ProcessBoundaries(const dArray2DT& coords,
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
-	if (coords.MajorDim() != nodal_params.MajorDim()) throw eSizeMismatch;
-	if (coords.MinorDim() != x_node.Length()) throw eSizeMismatch;
+	if (coords.MajorDim() != nodal_params.MajorDim()) throw ExceptionT::kSizeMismatch;
+	if (coords.MinorDim() != x_node.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* quick exit */

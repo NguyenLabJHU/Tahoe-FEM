@@ -1,6 +1,5 @@
-/* $Id: CSEIsoT.cpp,v 1.9 2002-09-12 17:49:52 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.10 2002-10-20 22:48:17 paklein Exp $ */
 /* created: paklein (11/19/1997) */
-
 #include "CSEIsoT.h"
 
 #include <math.h>
@@ -18,10 +17,9 @@
 #include "LennardJones612.h"
 #include "SmithFerrante.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 CSEIsoT::CSEIsoT(const ElementSupportT& support, const FieldT& field):
 	CSEBaseT(support, field)
 {
@@ -54,14 +52,14 @@ void CSEIsoT::Initialize(void)
 	/* construct props */
 	int numpots;
 	in >> numpots;
-	fSurfPots.Allocate(numpots);
+	fSurfPots.Dimension(numpots);
 	for (int i = 0; i < fSurfPots.Length(); i++)
 	{
 		int num, code;
 		in >> num >> code;
 		
 		/* check for repeated number */
-		if (fSurfPots[--num] != NULL) throw eBadInputValue;
+		if (fSurfPots[--num] != NULL) throw ExceptionT::kBadInputValue;
 	
 		/* construct surface potential function */
 		switch (code)
@@ -84,10 +82,10 @@ void CSEIsoT::Initialize(void)
 			}
 			default:
 			
-				throw eBadInputValue;	
+				throw ExceptionT::kBadInputValue;	
 		}
 	
-		if (!fSurfPots[num]) throw eOutOfMemory;
+		if (!fSurfPots[num]) throw ExceptionT::kOutOfMemory;
 	}
 
 	/* echo */
@@ -111,7 +109,7 @@ void CSEIsoT::Initialize(void)
 /* called by FormRHS and FormLHS */
 void CSEIsoT::LHSDriver(void)
 {
-	/* algorithmic constants */
+	/* time-stepping parameters */
 	double constK = 0.0;
 	int     formK = fController->FormK(constK);
 	if (!formK) return;
@@ -249,7 +247,7 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	ElementSupport().ResetAverage(n_out);
 
 	/* allocate element results space */
-	e_values.Allocate(NumElements(), e_out);
+	e_values.Dimension(NumElements(), e_out);
 	e_values = 0.0;
 
 	/* work arrays */

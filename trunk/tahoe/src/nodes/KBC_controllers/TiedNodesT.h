@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.10 2002-09-30 23:49:03 cjkimme Exp $ */
+/* $Id: TiedNodesT.h,v 1.11 2002-10-20 22:49:29 paklein Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -122,12 +122,21 @@ protected:
 
 	/** copy kinematic information from the leader nodes to the follower nodes */
 	virtual void CopyKinematics(void);
-	
-
-//	friend bool TiedPotentialT::InitiationQ(const dArrayT& sigma); 
 
 	/** output current configuration */
 	virtual void WriteOutput(ostream& out) const;
+
+	/** \name called by TiedNodesT::Initialize */
+	/*@{*/
+	/** read class parameters. Called after nodes information is read.
+	 * TiedNodesT::ReadParameters does nothing. */
+	virtual void ReadParameters(ifstreamT&) { };
+
+	/** set initial tied node pairs. Initializes the data in TiedNodesT::fLeaderIds,
+	 * TiedNodesT::fFollowerIds, TiedNodesT::fNodePairs, and TiedNodesT::fPairStatus.
+	 * TiedNodesT::InitTiedNodePairs pairs nodes that coincide. */
+	virtual void InitTiedNodePairs(const iArrayT& leader, iArrayT& follower);
+	/*@}*/
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: zTensor3DT.cpp,v 1.4 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: zTensor3DT.cpp,v 1.5 2002-10-20 22:38:52 paklein Exp $ */
 /* created: PAK (05/19/97) */
 
 #include "zTensor3DT.h"
@@ -23,7 +23,7 @@ zTensor3DT::zTensor3DT(const zTensor3DT& source): Tensor3DT<ComplexT>(source) { 
 void zTensor3DT::toRe(dTensor3DT& re) const
 {
 	/* dimension check */
-	if (!SameDimensions(*this,re)) throw(eGeneralFail);
+	if (!SameDimensions(*this,re)) throw ExceptionT::kOutOfRange;
 
 	/* ComplexT function */
 	ComplexT::z_to_Re(*this, re);
@@ -32,7 +32,7 @@ void zTensor3DT::toRe(dTensor3DT& re) const
 void zTensor3DT::toIm(dTensor3DT& im) const
 {
 	/* dimension check */
-	if (!SameDimensions(*this,im)) throw(eGeneralFail);
+	if (!SameDimensions(*this,im)) throw ExceptionT::kOutOfRange;
 
 	/* ComplexT function */
 	ComplexT::z_to_Im(*this, im);
@@ -41,7 +41,7 @@ void zTensor3DT::toIm(dTensor3DT& im) const
 zTensor3DT& zTensor3DT::toZ(const dTensor3DT& re, const dTensor3DT& im)
 {
 	/* dimension check */
-	if (!SameDimensions(re,im)) throw(eGeneralFail);
+	if (!SameDimensions(re,im)) throw ExceptionT::kOutOfRange;
 	
 	/* dimension */
 	Dimension(re.Dim(0), re.Dim(1), re.Dim(2));

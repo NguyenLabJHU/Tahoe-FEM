@@ -1,4 +1,4 @@
-/* $Id: FindNeighbor23T.cpp,v 1.2 2002-07-02 19:57:20 cjkimme Exp $ */
+/* $Id: FindNeighbor23T.cpp,v 1.3 2002-10-20 22:39:06 paklein Exp $ */
 /* created: paklein (03/21/1997)                                          */
 /* FindNeighbor23T.cpp                                                    */
 
@@ -45,7 +45,7 @@ void FindNeighbor23T::GetNeighors(iArray2DT& edges, iArray2DT& angles,
 	FindNeighborT::GetNeighors(edges, tolerance);
 
 	/* count number of 3 body and allocate */
-	angles.Allocate(Count3Body(), 3);
+	angles.Dimension(Count3Body(), 3);
 	
 	/* determine 3 body lists */
 	if (fNodeMap)

@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.cpp,v 1.8 2002-07-02 19:56:11 cjkimme Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.9 2002-10-20 22:49:05 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 
 #include "J2Simo2D.h"
@@ -157,7 +157,7 @@ int J2Simo2D::NumOutputVariables(void) const { return 4; }
 void J2Simo2D::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set labels */
-	labels.Allocate(4);
+	labels.Dimension(4);
 	labels[0] = "alpha";
 	labels[1] = "norm_beta";
 	labels[2] = "VM_Kirch";
@@ -171,7 +171,7 @@ void J2Simo2D::ComputeOutput(dArrayT& output)
 	if (output.Length() < 4) {
 		cout << "\n J2Simo2D::ComputeOutput: expecting 4 output variables: " 
 		     << output.Length() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* compute Cauchy stress (load state variables) */

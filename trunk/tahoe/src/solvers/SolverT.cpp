@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.7 2002-08-21 07:26:03 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.8 2002-10-20 22:49:47 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "SolverT.h"
@@ -79,12 +79,12 @@ SolverT::SolverT(FEManagerT& fe_manager, int group):
 	if (fPrintEquationNumbers != 0 && fPrintEquationNumbers != 1)
 	{	
 		cout << "\n SolverT::SolverT: \"print equation numbers\" out of range: {0,1}" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 //	if (!CheckMatrixType(fMatrixType, fFEManager.Analysis()))
 //	{
 //		cout << "\n SolverT::SolverT: incompatible matrix type: " << fMatrixType << endl;		
-//		throw eBadInputValue;
+//		throw ExceptionT::kBadInputValue;
 //	}
 	
 	/* construct global matrix */
@@ -103,7 +103,7 @@ void SolverT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 {	
 	try {
 		/* allocate rhs vector */
-		fRHS.Allocate(loc_num_eq);
+		fRHS.Dimension(loc_num_eq);
 		fRHS = 0.0;
 		
 		/* set global equation matrix type */
@@ -113,10 +113,10 @@ void SolverT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		if (fPrintEquationNumbers) fFEManager.WriteEquationNumbers(fGroup);
 	}	
 
-	catch (int error_code)
+	catch (ExceptionT::CodeT error_code)
 	{
 		cout << "\n SolverT::Initialize: exception: "
-		     << fFEManager.Exception(error_code) << endl;
+		     << ExceptionT::ToString(error_code) << endl;
 		throw error_code;
 	}
 }
@@ -138,7 +138,7 @@ void SolverT::ReceiveEqns(const RaggedArray2DT<int>& equations) const
 void SolverT::AssembleRHS(const dArrayT& elRes, const nArrayT<int>& eqnos)
 {
 	/* consistency check */
-	if (elRes.Length() != eqnos.Length()) throw eGeneralFail;
+	if (elRes.Length() != eqnos.Length()) throw ExceptionT::kGeneralFail;
 
 #if __option(extended_errorcheck)
 	GlobalT::EquationNumberScopeT scope = (GlobalT::EquationNumberScopeT) fLHS->EquationNumberScope();
@@ -158,7 +158,7 @@ void SolverT::AssembleRHS(const dArrayT& elRes, const nArrayT<int>& eqnos)
 		{
 			cout << "\n SolverT::AssembleRHS: equation number is out of range: "
 			     << eq + start_eq << endl;
-			throw eOutOfRange;
+			throw ExceptionT::kOutOfRange;
 		}
 #endif
 	}	
@@ -167,7 +167,7 @@ void SolverT::AssembleRHS(const dArrayT& elRes, const nArrayT<int>& eqnos)
 void SolverT::OverWriteRHS(const dArrayT& elRes, const nArrayT<int>& eqnos)
 {
 	/* consistency check */
-	if (elRes.Length() != eqnos.Length()) throw eGeneralFail;
+	if (elRes.Length() != eqnos.Length()) throw ExceptionT::kGeneralFail;
 
 	int num_eq = fLHS->NumEquations();
 	int start_eq = fLHS->StartEquation();
@@ -183,7 +183,7 @@ void SolverT::OverWriteRHS(const dArrayT& elRes, const nArrayT<int>& eqnos)
 void SolverT::DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const
 {
 	/* consistency check */
-	if (elRes.Length() != eqnos.Length()) throw eGeneralFail;
+	if (elRes.Length() != eqnos.Length()) throw ExceptionT::kGeneralFail;
 
 	int num_eq = fLHS->NumEquations();
 	int start_eq = fLHS->StartEquation();
@@ -206,7 +206,7 @@ GlobalT::EquationNumberScopeT SolverT::EquationNumberScope(void) const
 	if (!fLHS)
 	{
 		cout << "\n SolverT::EquationNumberScope: invalid LHS" << endl;
-		throw eGeneralFail;	
+		throw ExceptionT::kGeneralFail;	
 	}
 #endif
 
@@ -231,7 +231,7 @@ double SolverT::Residual(const dArrayT& force) const
 double SolverT::InnerProduct(const dArrayT& v1, const dArrayT& v2) const
 {
 	/* check heart beat */
-	if (fFEManager.Communicator().Sum(eNoError) != 0) throw eBadHeartBeat;
+	if (fFEManager.Communicator().Sum(ExceptionT::kNoError) != 0) throw ExceptionT::kBadHeartBeat;
 
 	return fFEManager.Communicator().Sum(dArrayT::Dot(v1, v2));
 }
@@ -336,7 +336,7 @@ int SolverT::CheckMatrixType(int matrix_type, int analysis_code) const
 	{
 		cout << "\n SolverT::CheckMatrixType: matrix type not support in parallel: "
 		     << matrix_type << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return OK;
 }
@@ -385,7 +385,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 #else
 			cout << "\n SolverT::SetGlobalMatrix: Aztec solver not installed: ";
 			cout << fMatrixType << endl;
-			throw eGeneralFail;		
+			throw ExceptionT::kGeneralFail;		
 #endif /* __AZTEC__ */
 			break;
 		}
@@ -400,7 +400,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 #else
 			cout << "\n SolverT::SetGlobalMatrix: SuperLU matrix not installed: ";
 			cout << fMatrixType << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 #endif /* __SUPERLU__ */
 			break;
 		}
@@ -423,7 +423,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 			{
 				cout << "\n SolverT::SetGlobalMatrix: unexpected system type: "
 				     << type << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 
 #ifdef __MPI__
@@ -431,7 +431,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 
 			cout << "\n SolverT::SetGlobalMatrix: SPOOLES requires functions not supported\n"
 			     <<   "     in MacMPI" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 #else
 			/* constuctor */
 			if (fFEManager.Size() > 1)
@@ -441,7 +441,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 #else
 				cout << "\n SolverT::SetGlobalMatrix: SPOOLES MPI not installed: ";
 				cout << matrix_type << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 #endif /* __SPOOLES_MPI__ */
 			}
 			else
@@ -455,7 +455,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 #else
 			cout << "\n SolverT::SetGlobalMatrix: SPOOLES not installed: ";
 			cout << matrix_type << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 #endif /* __SPOOLES__ */
 			break;
 		}
@@ -463,14 +463,14 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 		
 			cout << "\n SolverT::SetGlobalMatrix: unknown matrix type: ";
 			cout << matrix_type << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}	
-	if (!fLHS) throw eOutOfMemory;
+	if (!fLHS) throw ExceptionT::kOutOfMemory;
 }
 
 /* call for equation renumbering */
 bool SolverT::RenumberEquations(void)
 {
-	if (!fLHS) throw eGeneralFail;
+	if (!fLHS) throw ExceptionT::kGeneralFail;
 	return fLHS->RenumberEquations();
 }

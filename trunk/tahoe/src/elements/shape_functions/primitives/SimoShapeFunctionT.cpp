@@ -1,4 +1,4 @@
-/* $Id: SimoShapeFunctionT.cpp,v 1.6 2002-09-23 06:58:29 paklein Exp $ */
+/* $Id: SimoShapeFunctionT.cpp,v 1.7 2002-10-20 22:49:46 paklein Exp $ */
 
 #include "SimoShapeFunctionT.h"
 #include "LocalArrayT.h"
@@ -17,7 +17,7 @@ SimoShapeFunctionT::SimoShapeFunctionT(GeometryT::CodeT geometry_code,
 	{
 		cout << "\n SimoShapeFunctionT::SimoShapeFunctionT: expecting local reference coordinates: "
 		     << fCoords.Type() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* checks */
@@ -28,7 +28,7 @@ SimoShapeFunctionT::SimoShapeFunctionT(GeometryT::CodeT geometry_code,
 		{
 			cout << "\n SimoShapeFunctionT::SimoShapeFunctionT: expecting 4 element nodes: "
 			     << coords.NumberOfNodes() << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		
 		/* check number of enhanced modes */
@@ -36,7 +36,7 @@ SimoShapeFunctionT::SimoShapeFunctionT(GeometryT::CodeT geometry_code,
 		{
 			cout << "\n SimoShapeFunctionT::SimoShapeFunctionT: expecting 2 enhanced modes: "
 			     << element_modes.NumberOfNodes() << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 	}
 	else if (geometry_code == GeometryT::kHexahedron)
@@ -46,7 +46,7 @@ SimoShapeFunctionT::SimoShapeFunctionT(GeometryT::CodeT geometry_code,
 		{
 			cout << "\n SimoShapeFunctionT::SimoShapeFunctionT: expecting 4 element nodes: "
 			     << coords.NumberOfNodes() << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 
 		/* check number of enhanced modes */
@@ -54,7 +54,7 @@ SimoShapeFunctionT::SimoShapeFunctionT(GeometryT::CodeT geometry_code,
 		{
 			cout << "\n SimoShapeFunctionT::SimoShapeFunctionT: expecting 3 enhanced modes: "
 			     << element_modes.NumberOfNodes() << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 			
 			/* set flag */
 			fHas3DIncompressibleMode = true; //TEMP - only set if num_modes = 4
@@ -64,32 +64,32 @@ SimoShapeFunctionT::SimoShapeFunctionT(GeometryT::CodeT geometry_code,
 	{
 		cout << "\n SimoShapeFunctionT::SimoShapeFunctionT: element geometry must be\n" 
 		     <<   "     quad/hex for 2D/3D: " << geometry_code << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	/* allocate derivatives of bubble modes */
 	int num_bubble_modes = NumSD();
 	int num_derivatives  = NumSD();
-	fDNaX_bubble.Allocate(NumIP());
-	fDNa_bubble.Allocate(NumIP());
+	fDNaX_bubble.Dimension(NumIP());
+	fDNa_bubble.Dimension(NumIP());
 	for (int i = 0; i < NumIP(); i++)
 	{
-		fDNaX_bubble[i].Allocate(num_derivatives, num_bubble_modes);
-		fDNa_bubble[i].Allocate(num_derivatives, num_bubble_modes);
+		fDNaX_bubble[i].Dimension(num_derivatives, num_bubble_modes);
+		fDNa_bubble[i].Dimension(num_derivatives, num_bubble_modes);
 	}
 	
 	/* 3D incompressible mode */	
 	if (fHas3DIncompressibleMode)
 	{
 		/* derivatives of 1 mode */
-		fDNaX_inc.Allocate(NumIP(), num_derivatives);
+		fDNaX_inc.Dimension(NumIP(), num_derivatives);
 	}
 	
 	/* allocate work space */
-	fNa_0.Allocate(fCoords.NumberOfNodes());
-	fDNa_0.Allocate(NumSD(), fCoords.NumberOfNodes());
-	fJ.Allocate(NumSD());
-	fJ_0_inv.Allocate(NumSD());
+	fNa_0.Dimension(fCoords.NumberOfNodes());
+	fDNa_0.Dimension(NumSD(), fCoords.NumberOfNodes());
+	fJ.Dimension(NumSD());
+	fJ_0_inv.Dimension(NumSD());
 }
 
 /* initialization class. */
@@ -114,7 +114,7 @@ void SimoShapeFunctionT::SetDerivatives(void)
 		//TEMP
 		cout << "\n SimoShapeFunctionT::SetDerivatives: 3D incompressible mode\n"
 		     <<   "    not supported yet" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	else
 	{

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:54 paklein Exp $
+# $Id: makefile,v 1.5 2002-10-20 22:49:37 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -21,7 +21,6 @@ DEP = /dev/null
 
 # subdirectories
 SUB_DIR = \
-	geometry \
 	meshfree \
 	primitives
 subdir_driver: subdir_loop

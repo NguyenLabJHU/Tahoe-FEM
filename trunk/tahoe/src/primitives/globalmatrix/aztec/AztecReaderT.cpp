@@ -1,4 +1,4 @@
-/* $Id: AztecReaderT.cpp,v 1.2 2002-07-02 19:56:49 cjkimme Exp $ */
+/* $Id: AztecReaderT.cpp,v 1.3 2002-10-20 22:49:35 paklein Exp $ */
 /* created: paklein (08/12/1998)                                          */
 /* utility to read Aztec options and parameters                           */
 
@@ -11,7 +11,7 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "az_aztec_defs.h"
 #include "fstreamT.h"
 
@@ -71,7 +71,7 @@ void AztecReaderT::ReadOption(ifstreamT& in, int& dex, int& value)
 				name[i] = '\0';
 				cout << "\n AztecReaderT::ReadOption: error reading option name: "
 				     << name << endl;
-				throw eBadInputValue;	
+				throw ExceptionT::kBadInputValue;	
 			}
 
 			name[i++] = next_char;
@@ -120,7 +120,7 @@ void AztecReaderT::ReadParameter(ifstreamT& in, int& dex, double& value)
 				name[i] = '\0';
 				cout << "\n AztecReaderT::ReadParameter: error reading parameter name: "
 				     << name << endl;
-				throw eBadInputValue;	
+				throw ExceptionT::kBadInputValue;	
 			}
 		
 			name[i++] = next_char;
@@ -161,7 +161,7 @@ int AztecReaderT::OptionNameToIndex(const char* name) const
 	else
 	{
 		cout << "\n AztecReaderT: unknown option name: " << name << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 		return -1;
 	}
 }
@@ -178,7 +178,7 @@ int AztecReaderT::ParamNameToIndex(const char* name) const
 	else
 	{
 		cout << "\n AztecReaderT: unknown parameter name: " << name << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 		return -1;
 	}
 }

@@ -76,7 +76,7 @@ void nGear6::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		default:
 		
 			cout << "\n nGear6::ConsistentKBC:unknown BC code\n" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 }		
 

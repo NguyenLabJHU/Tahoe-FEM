@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.5 2002-09-12 17:50:12 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.6 2002-10-20 22:49:47 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
@@ -6,7 +6,7 @@
 #include <math.h>
 #include "fstreamT.h"
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "FEManagerT.h"
 #include "CCSMatrixT.h"
 
@@ -29,32 +29,32 @@ NLSolverX::NLSolverX(FEManagerT& fe_manager, int group):
 {
 #ifdef __NO_RTTI__
 	cout << "\n NLSolverX::Initialize: RTTI required" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 #else
 	pCCS = dynamic_cast<CCSMatrixT*>(fLHS);
 	if (!pCCS)
 	{
 		cout << "\n NLSolverX::Initialize: expecting CCS global matrix" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 #endif		
 
 	ifstreamT&  in = fFEManager.Input();
 	ostream& out = fFEManager.Output();
 
-	in >> fMaxNewTangents;  if (fMaxNewTangents  < 1) throw eBadInputValue;
-	in >> fMaxTangentReuse; if (fMaxTangentReuse < 1) throw eBadInputValue;
+	in >> fMaxNewTangents;  if (fMaxNewTangents  < 1) throw ExceptionT::kBadInputValue;
+	in >> fMaxTangentReuse; if (fMaxTangentReuse < 1) throw ExceptionT::kBadInputValue;
 	in >> fMinFreshTangents;if (fMinFreshTangents != -1 && fMinFreshTangents < 1)
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	in >> fCheckNegPivots; if (fCheckNegPivots != 0 && fCheckNegPivots != 1)
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	int trust_exp;
 	in >> trust_exp;
 	if (trust_exp > 0)
 	    cout << "\n NLSolverX::NLSolverX: WARNING: trust tolerance > 1" << endl;
 	fTrustTol = pow(10.0,trust_exp);
 
-	in >> fMinResRatio;     if (fMinResRatio > 1.0)   throw eBadInputValue;
+	in >> fMinResRatio;     if (fMinResRatio > 1.0)   throw ExceptionT::kBadInputValue;
 
 	out << " Maximum number new tangent matrices . . . . . . = " << fMaxNewTangents   << '\n';
 	out << " Maximum number iterations with same tangent . . = " << fMaxTangentReuse  << '\n';
@@ -171,7 +171,7 @@ SolverT::SolutionStatusT NLSolverX::Solve(int num_iterations)
 	} /* end try */
 	
 	/* exceptions */
-	catch (int code) { return kFailed; }
+	catch (ExceptionT::CodeT code) { return kFailed; }
 }
 
 
@@ -186,7 +186,7 @@ double NLSolverX::SolveAndForm(bool newtangent)
 	}
 		 		
 	/* solve equation system */
-	if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
+	if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
 	//double updatemag = fRHS.Magnitude(); //for alternate error measures
 
 	/* update system */

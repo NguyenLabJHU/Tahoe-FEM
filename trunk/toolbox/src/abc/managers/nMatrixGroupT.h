@@ -1,12 +1,5 @@
-/* $Id: nMatrixGroupT.h,v 1.2 2002-07-02 19:56:45 cjkimme Exp $ */
-/* created: paklein (04/17/1998)                                          */
-/* Class to manage a list of equally-size nMatrixT<>'s. Storage           */
-/* is grouped and all matrices added with Register can be set to new      */
-/* length using Dimension. (percentover > 0) sets aside                   */
-/* extra space at memory allocation so that every call to Dimension       */
-/* does not result in memory swapping.                                    */
-/* NOTE: all registered matrices will be shallow.                         */
-
+/* $Id: nMatrixGroupT.h,v 1.3 2002-10-20 22:38:53 paklein Exp $ */
+/* created: paklein (04/17/1998) */
 #ifndef _MATHMATRIX_GROUP_T_H_
 #define _MATHMATRIX_GROUP_T_H_
 
@@ -16,25 +9,32 @@
 /* direct members */
 #include "nMatrixT.h"
 
-
 namespace Tahoe {
 
+/** class to manage a list of equally-size nMatrixT<>'s. Storage
+ * is grouped and all matrices added with Register can be set to new
+ * length using Dimension. (percentover > 0) sets aside
+ * extra space at memory allocation so that every call to Dimension
+ * does not result in memory swapping.
+ * \note all registered matrices will be shallow.
+ */
 template <class TYPE>
 class nMatrixGroupT: public MemoryGroupT<TYPE>
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	nMatrixGroupT(int headroom);
 
-	/* add Array2DT to list of managed */
+	/** add an nMatrixT to list of managed matricies */
 	void Register(nMatrixT<TYPE>& matrix);
 
-	/* (re-) dimension all matrices */
+	/** (re-) dimension all matrices */
 	void Dimension(int rows, int cols);	
 	
 private:
 
+	/** \name dimensions of managed matricies */
 	int fRows;
 	int fCols;		
 };

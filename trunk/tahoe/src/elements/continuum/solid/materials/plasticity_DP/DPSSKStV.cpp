@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.17 2002-07-18 00:47:29 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.18 2002-10-20 22:49:04 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 
@@ -153,7 +153,7 @@ int DPSSKStV::NumOutputVariables(void) const  { return kNumOutput; }
 void DPSSKStV::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set size */
-	labels.Allocate(kNumOutput);
+	labels.Dimension(kNumOutput);
 	
 	/* copy labels */
 	for (int i = 0; i < kNumOutput; i++)

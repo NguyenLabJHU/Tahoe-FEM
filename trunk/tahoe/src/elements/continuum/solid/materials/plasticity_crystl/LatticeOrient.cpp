@@ -166,8 +166,8 @@ void LatticeOrient::ReadTexture(ifstreamT& in, int numgrain)
   fTextOut << "\nINITIAL TEXTURE,  No Euler angles = " << fNumAngle << endl;
 
   // allocate space to read euler angles 
-  fAngles.Allocate(fNumAngle);
-  for (int i = 0; i < fNumAngle; i++) fAngles[i].Allocate(3);
+  fAngles.Dimension(fNumAngle);
+  for (int i = 0; i < fNumAngle; i++) fAngles[i].Dimension(3);
 
   // flags for angle convention
   // iikc = 0 : angles input in Kocks convention :  (psi,the,phi)

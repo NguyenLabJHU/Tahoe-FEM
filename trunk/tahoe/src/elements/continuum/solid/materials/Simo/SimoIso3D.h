@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.h,v 1.6 2002-10-05 20:04:13 paklein Exp $ */
+/* $Id: SimoIso3D.h,v 1.7 2002-10-20 22:48:50 paklein Exp $ */
 /* created: paklein (03/02/1997)                                          */
 /* Hyperelastic material governed by Simo's split volumetric/deviatoric   */
 /* stored energy function.                                                */
@@ -43,7 +43,7 @@ public:
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
 	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
 //TEMP - no reason to use these in total Lagrangian formulation.
-//       calls to these write error message and throw exception
+//       calls to these write error message and throw ExceptionT::xception
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);

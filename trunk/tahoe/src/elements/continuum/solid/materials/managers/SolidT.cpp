@@ -1,10 +1,10 @@
-/* $Id: SolidT.cpp,v 1.20 2002-10-04 20:52:52 thao Exp $ */
+/* $Id: SolidT.cpp,v 1.21 2002-10-20 22:49:02 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 
 #include "SolidT.h"
 
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 /* stream extraction operator */ 
 
@@ -148,7 +148,7 @@ istream& operator>>(istream& in, SolidT::SolidT& code)
 		default:
 			cout << "\n operator>>SolidT::SolidT: unknown code: "
 			<< i_code<< endl;
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
 	return in;
 }

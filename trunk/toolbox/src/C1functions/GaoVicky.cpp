@@ -1,10 +1,10 @@
-/* $Id: GaoVicky.cpp,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
+/* $Id: GaoVicky.cpp,v 1.3 2002-10-20 22:38:48 paklein Exp $ */
 /* created: paklein (12/26/1998)                                          */
 
 #include "GaoVicky.h"
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 
 /* constructor */
@@ -46,7 +46,7 @@ double GaoVicky::Function(double x) const
 	cout << "\n GaoVicky::Function: only f' and f\" have been implemented\n";
 	cout <<   " The function value f is not available in closed form.";
 	
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 	return 0.0;
 }
 
@@ -75,7 +75,7 @@ double GaoVicky::DDFunction(double x) const
 dArrayT& GaoVicky::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
@@ -94,7 +94,7 @@ dArrayT& GaoVicky::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& GaoVicky::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();

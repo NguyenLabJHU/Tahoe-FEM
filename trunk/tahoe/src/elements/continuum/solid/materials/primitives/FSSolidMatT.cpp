@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.6 2002-07-02 19:56:22 cjkimme Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.7 2002-10-20 22:49:11 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 
 #include "FSSolidMatT.h"
@@ -62,7 +62,7 @@ int FSSolidMatT::IsLocalized(dArrayT& normal)
 {
 #pragma unused(normal)
 cout << "\n FSSolidMatT::IsLocalized: broken" << endl;
-throw eGeneralFail;
+throw ExceptionT::kGeneralFail;
 return 0;
 //DEV
 
@@ -295,7 +295,7 @@ void FSSolidMatT::Compute_b(const dMatrixT& F, dSymMatrixT& b) const
 	else
 	{
 		cout << "\n FSSolidMatT::Compute_b: unsupported dimension: " << nsd << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -329,7 +329,7 @@ void FSSolidMatT::Compute_C(const dMatrixT& F, dSymMatrixT& C) const
 	else
 	{
 		cout << "\n FSSolidMatT::Compute_C: unsupported dimension: " << nsd << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -363,7 +363,7 @@ void FSSolidMatT::Compute_E(const dMatrixT& F, dSymMatrixT& E) const
 	else
 	{
 		cout << "\n FSSolidMatT::Compute_E: unsupported dimension: " << nsd << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -371,7 +371,7 @@ void FSSolidMatT::Compute_E(const dMatrixT& F, dSymMatrixT& E) const
 const dSymMatrixT& FSSolidMatT::AcousticalTensor(const dArrayT& normal)
 {
 #if __option(extended_errorcheck)
-	if (fQ.Rows() != normal.Length()) throw eSizeMismatch;
+	if (fQ.Rows() != normal.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* collect matrices */
@@ -386,7 +386,7 @@ const dSymMatrixT& FSSolidMatT::AcousticalTensor(const dArrayT& normal)
 	else if (normal.Length() == 3)
 		ComputeQ_3D(C_, S_, F_, normal, fQ);
 	else
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 
 	return fQ;
 }

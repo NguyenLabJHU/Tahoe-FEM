@@ -1,9 +1,9 @@
-/* $Id: Gamma.cpp,v 1.3 2002-07-02 19:56:31 cjkimme Exp $ */
+/* $Id: Gamma.cpp,v 1.4 2002-10-20 22:38:47 paklein Exp $ */
 
 #include "Gamma.h"
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 
 /*
@@ -65,7 +65,7 @@ double Gamma::Function(double xx) const
 	else
 	{
 		cout << "\n Gamma is infinite at 0.\n";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	
 	return val;
@@ -74,14 +74,14 @@ double Gamma::Function(double xx) const
 double Gamma::DFunction(double x) const
 {
 	cout << "\n First derivative of the Gamma Function not tabulated!\n";
-	throw eBadInputValue;
+	throw ExceptionT::kBadInputValue;
 	return 0*x;	// to avoid generating warning messages
 }
 
 double Gamma::DDFunction(double x) const
 {
 	cout << "\n Second derivative of the Gamma Function not tabulated!\n";
-	throw eBadInputValue;
+	throw ExceptionT::kBadInputValue;
 	return 0.0*x;	// to avoid generating warning messages
 }
 
@@ -95,7 +95,7 @@ double Gamma::DDFunction(double x) const
 dArrayT& Gamma::MapFunction(const dArrayT& in,  dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 	
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
@@ -123,7 +123,7 @@ dArrayT& Gamma::MapFunction(const dArrayT& in,  dArrayT& out) const
 dArrayT& Gamma::MapDFunction(const dArrayT& in,  dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
@@ -140,7 +140,7 @@ dArrayT& Gamma::MapDFunction(const dArrayT& in,  dArrayT& out) const
 dArrayT& Gamma::MapDDFunction(const dArrayT& in,  dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();

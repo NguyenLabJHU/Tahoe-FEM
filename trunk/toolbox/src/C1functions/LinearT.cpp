@@ -1,9 +1,9 @@
-/* $Id: LinearT.cpp,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
+/* $Id: LinearT.cpp,v 1.3 2002-10-20 22:38:48 paklein Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "LinearT.h"
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 
 /* constructors */
@@ -32,7 +32,7 @@ void LinearT::PrintName(ostream& out) const
 dArrayT& LinearT::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
@@ -50,7 +50,7 @@ dArrayT& LinearT::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& LinearT::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
@@ -64,7 +64,7 @@ dArrayT& LinearT::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& LinearT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();

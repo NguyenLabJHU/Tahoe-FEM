@@ -1,4 +1,4 @@
-/* $Id: iGridManagerT.cpp,v 1.5 2002-07-20 07:59:51 paklein Exp $ */
+/* $Id: iGridManagerT.cpp,v 1.6 2002-10-20 22:39:13 paklein Exp $ */
 /* created: paklein (09/13/1998) */
 #include "iGridManagerT.h"
 #include "iGridManager1DT.h"
@@ -15,25 +15,25 @@ iGridManagerT::iGridManagerT(const iArrayT& n_grid, const dArray2DT& coords,
 	fGrid2D(NULL),
 	fGrid3D(NULL)
 {
-	if (n_grid.Length() != coords.MinorDim()) throw eSizeMismatch;
+	if (n_grid.Length() != coords.MinorDim()) throw ExceptionT::kSizeMismatch;
 
 	if (n_grid.Length() == 1)
 	{
 		fGrid1D = new iGridManager1DT(n_grid[0], coords, nodes_used);
-		if (!fGrid1D) throw eOutOfMemory;	
+		if (!fGrid1D) throw ExceptionT::kOutOfMemory;	
 	}
 	else if (n_grid.Length() == 2)
 	{
 		fGrid2D = new iGridManager2DT(n_grid[0], n_grid[1], coords, nodes_used);
-		if (!fGrid2D) throw eOutOfMemory;	
+		if (!fGrid2D) throw ExceptionT::kOutOfMemory;	
 	}
 	else if (n_grid.Length() == 3)
 	{
 		fGrid3D = new iGridManager3DT(n_grid[0], n_grid[1], n_grid[2], coords, nodes_used);
-		if (!fGrid3D) throw eOutOfMemory;
+		if (!fGrid3D) throw ExceptionT::kOutOfMemory;
 	}
 	else
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 }
 
 /* constructor */
@@ -44,7 +44,7 @@ iGridManagerT::iGridManagerT(int avg_cell_nodes, int max_cells, const dArray2DT&
 	fGrid3D(NULL)
 {
 	/* checks */
-	if (avg_cell_nodes < 1 || coords.MinorDim() < 1) throw eGeneralFail;
+	if (avg_cell_nodes < 1 || coords.MinorDim() < 1) throw ExceptionT::kGeneralFail;
 
 	/* try to get roughly least avg_cell_nodes per grid */
 	int count = (nodes_used) ? nodes_used->Length() : coords.MajorDim();
@@ -58,20 +58,20 @@ iGridManagerT::iGridManagerT(int avg_cell_nodes, int max_cells, const dArray2DT&
 	if (n_grid.Length() == 1)
 	{
 		fGrid1D = new iGridManager1DT(n_grid[0], coords, nodes_used);
-		if (!fGrid1D) throw eOutOfMemory;	
+		if (!fGrid1D) throw ExceptionT::kOutOfMemory;	
 	}
 	else if (n_grid.Length() == 2)
 	{
 		fGrid2D = new iGridManager2DT(n_grid[0], n_grid[1], coords, nodes_used);
-		if (!fGrid2D) throw eOutOfMemory;	
+		if (!fGrid2D) throw ExceptionT::kOutOfMemory;	
 	}
 	else if (n_grid.Length() == 3)
 	{
 		fGrid3D = new iGridManager3DT(n_grid[0], n_grid[1], n_grid[2], coords, nodes_used);
-		if (!fGrid3D) throw eOutOfMemory;
+		if (!fGrid3D) throw ExceptionT::kOutOfMemory;
 	}
 	else
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 }
 	
 /* destructor */

@@ -1,7 +1,7 @@
-/* $Id: GaussianWindowT.cpp,v 1.8 2002-07-02 19:57:06 cjkimme Exp $ */
+/* $Id: GaussianWindowT.cpp,v 1.9 2002-10-20 22:49:44 paklein Exp $ */
 
 #include "GaussianWindowT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include <math.h>
 
 
@@ -18,7 +18,7 @@ GaussianWindowT::GaussianWindowT(double dilation_scaling, double sharpening_fact
 	fCutOffFactor(cut_off_factor)
 {
 	if (fDilationScaling < 0.0 || fSharpeningFactor < 0.0 || fCutOffFactor < 1.0)
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 }
 
 /* "synchronization" of nodal field parameters. */
@@ -32,7 +32,7 @@ void GaussianWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 	{
 		cout << "\n GaussianWindowT::SynchronizeSupportParameters: nodal\n"
 		     << " parameters dimension mismatch" << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 		
 	/* "synchronize" means take max of dmax */
@@ -115,8 +115,8 @@ int GaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 {
 	/* allocate */
 	int nsd = x.Length();
-	fNSD.Allocate(nsd);
-	fNSDsym.Allocate(nsd);
+	fNSD.Dimension(nsd);
+	fNSDsym.Dimension(nsd);
 	
 	/* work space */
 	dArrayT x_node, param_node;

@@ -1,4 +1,4 @@
-/* $Id: VIB_E_MatT.cpp,v 1.3 2002-09-12 17:49:58 paklein Exp $ */
+/* $Id: VIB_E_MatT.cpp,v 1.4 2002-10-20 22:48:54 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* Base class for isotropic VIB_E_MatT materials.                         */
 
@@ -8,7 +8,7 @@
 #include <iostream.h>
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dSymMatrixT.h"
 #include "C1FunctionT.h"
 
@@ -103,7 +103,7 @@ void VIB_E_MatT::ComputeLengths(const dSymMatrixT& strain)
 /* convenience */
 void VIB_E_MatT::SetStressPointers2D(double*& p11,double*& p22,double*& p12)
 {
-	if (fStressTable.MajorDim() != 3) throw eGeneralFail;	
+	if (fStressTable.MajorDim() != 3) throw ExceptionT::kGeneralFail;	
 
 	/* pointers to the rows */
 	p11 = fStressTable(0);
@@ -114,7 +114,7 @@ void VIB_E_MatT::SetStressPointers2D(double*& p11,double*& p22,double*& p12)
 void VIB_E_MatT::SetStressPointers3D(double*& p11,double*& p22,double*& p33,
 double*& p23,double*& p13,double*& p12)
 {
-	if (fStressTable.MajorDim() != 6) throw eGeneralFail;	
+	if (fStressTable.MajorDim() != 6) throw ExceptionT::kGeneralFail;	
 
 	/* pointers to the rows */
 	p11 = fStressTable(0);
@@ -128,7 +128,7 @@ double*& p23,double*& p13,double*& p12)
 void VIB_E_MatT::SetModuliPointers2D(double*& p11, double*& p22, double*& p26,
 							  double*& p16, double*& p12)
 {
-	if (fModuliTable.MajorDim() != 5) throw eGeneralFail;	
+	if (fModuliTable.MajorDim() != 5) throw ExceptionT::kGeneralFail;	
 
 	/* pointers to the rows */
 	p11 = fModuliTable(0);
@@ -142,7 +142,7 @@ void VIB_E_MatT::SetModuliPointers3D(double*& p11, double*& p12, double*& p13, d
 double*& p16, double*& p22, double*& p23, double*& p24, double*& p25,
 double*& p26, double*& p33, double*& p34, double*& p35, double*& p36)
 {
-	if (fModuliTable.MajorDim() != 15) throw eGeneralFail;	
+	if (fModuliTable.MajorDim() != 15) throw ExceptionT::kGeneralFail;	
 
 	/* pointers to the rows */
 	p11 = fModuliTable(0);

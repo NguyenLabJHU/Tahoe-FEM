@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.12 2002-09-12 17:50:08 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.13 2002-10-20 22:49:32 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 
 #include "CCSMatrixT.h"
@@ -60,19 +60,19 @@ void CCSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		cout << "\n CCSMatrixT::Initialize: expecting total number of equations\n"
 		     <<   "     " << tot_num_eq
 		     << " to be equal to the local number of equations " << loc_num_eq << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* allocate diagonal index array */
 	if (fDiags != NULL) delete[] fDiags;
 	iArrayT i_memory;
 	try {
-		i_memory.Allocate(fLocNumEQ);
+		i_memory.Dimension(fLocNumEQ);
 		i_memory.ReleasePointer(&fDiags);
 	}	
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
-		if (error == eOutOfMemory)
+		if (error == ExceptionT::kOutOfMemory)
 		{
 			cout << "\n CCSMatrixT::Initialize: not enough memory" << endl;
 			fOut << "\n CCSMatrixT::Initialize: not enough memory" << endl;
@@ -94,12 +94,12 @@ void CCSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	if (fMatrix != NULL) delete[] fMatrix;
 	dArrayT d_memory;
 	try {
-		d_memory.Allocate(fNumberOfTerms);
+		d_memory.Dimension(fNumberOfTerms);
 		d_memory.ReleasePointer(&fMatrix);
 	}	
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
-		if (error == eOutOfMemory)
+		if (error == ExceptionT::kOutOfMemory)
 		{
 			cout << "\n CCSMatrixT::Initialize: not enough memory" << endl;
 			fOut << "\n CCSMatrixT::Initialize: not enough memory" << endl;
@@ -162,7 +162,7 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos
 	ElementMatrixT::FormatT format = elMat.Format();
 
 	if (format == ElementMatrixT::kNonSymmetric)
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	else if (format == ElementMatrixT::kDiagonal)
 	{
 		/* from diagonal only */
@@ -180,7 +180,7 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos
 			if (dex < 0 || dex >= fNumberOfTerms)
 			{
 				cout << "\nCCSMatrixT::Assemble: index out of range: " << dex << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 #endif
 			/* assemble */
@@ -211,7 +211,7 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos
 						if (dex < 0 || dex >= fNumberOfTerms)
 						{
 							cout << "\nCCSMatrixT::Assemble: index out of range: " << dex << endl;
-							throw eGeneralFail;
+							throw ExceptionT::kGeneralFail;
 						}
 #endif
 						/* assemble */
@@ -227,7 +227,7 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_e
 #if __option(extended_errorcheck)
 	/* dimension check */
 	if (elMat.Rows() != row_eqnos.Length() ||
-	    elMat.Cols() != col_eqnos.Length()) throw eSizeMismatch;
+	    elMat.Cols() != col_eqnos.Length()) throw ExceptionT::kSizeMismatch;
 #else
 #pragma unused(row_eqnos)
 #pragma unused(col_eqnos)
@@ -239,17 +239,17 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_e
 	if (format == ElementMatrixT::kNonSymmetric) 
 	{
 		cout << "\n CCSMatrixT::Assemble(m, r, c): element matrix is not symmetric" << endl;
-		throw eGeneralFail;	
+		throw ExceptionT::kGeneralFail;	
 	}
 	else if (format == ElementMatrixT::kDiagonal)
 	{
 		cout << "\n CCSMatrixT::Assemble(m, r, c): cannot assemble diagonal matrix" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	else
 	{
 		cout << "\n CCSMatrixT::Assemble(m, r, c): cannot assemble symmetric matrix" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -258,7 +258,7 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_e
 double CCSMatrixT::ResidualNorm(const dArrayT& result) const
 {
 	/* dimension check */
-	if (result.Length() != fLocNumEQ) throw eGeneralFail;
+	if (result.Length() != fLocNumEQ) throw ExceptionT::kGeneralFail;
 
 	double  norm = 0.0;
 	double* p = result.Pointer();
@@ -276,7 +276,7 @@ double CCSMatrixT::ResidualNorm(const dArrayT& result) const
 double CCSMatrixT::AbsRowSum(int rownum) const
 {
 	/* dimension check */
-	if (rownum < 0 || rownum >= fLocNumEQ) throw eGeneralFail;
+	if (rownum < 0 || rownum >= fLocNumEQ) throw ExceptionT::kGeneralFail;
 
 	register double rowsum = fabs( fMatrix[ fDiags[rownum] ] );
 	
@@ -378,7 +378,7 @@ GlobalMatrixT& CCSMatrixT::operator=(const CCSMatrixT& RHS)
 			/* reallocate */
 			fLocNumEQ = RHS.fLocNumEQ;
 			fDiags = new int[fLocNumEQ];
-			if (!fDiags) throw(eOutOfMemory);
+			if (!fDiags) throw ExceptionT::kOutOfMemory;
 		}
 
 		/* copy bytes */	
@@ -393,7 +393,7 @@ GlobalMatrixT& CCSMatrixT::operator=(const CCSMatrixT& RHS)
 			/* reallocate */
 			fNumberOfTerms = RHS.fNumberOfTerms;
 			fMatrix = new double[fNumberOfTerms];
-			if (!fMatrix) throw(eOutOfMemory);
+			if (!fMatrix) throw ExceptionT::kOutOfMemory;
 		}
 	
 		/* copy bytes */	
@@ -411,13 +411,13 @@ GlobalMatrixT& CCSMatrixT::operator=(const GlobalMatrixT& rhs)
 {
 #ifdef __NO_RTTI__
 	cout << "\n CCSMatrixT::operator= : requires RTTI" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 #endif
 
 	const CCSMatrixT* ccs = dynamic_cast<const CCSMatrixT*>(&rhs);
 	if (!ccs) {
 		cout << "\n CCSMatrixT::operator= : cast failed" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return operator=(*ccs);
 }
@@ -510,8 +510,8 @@ double CCSMatrixT::operator()(int row, int col) const
 	else
 	{
 		/* range checks */
-		if (row < 0 || row >= fLocNumEQ) throw eGeneralFail;
-		if (col < 0 || col >= fLocNumEQ) throw eGeneralFail;
+		if (row < 0 || row >= fLocNumEQ) throw ExceptionT::kGeneralFail;
+		if (col < 0 || col >= fLocNumEQ) throw ExceptionT::kGeneralFail;
 	
 		if (row == col) /* element on the diagonal */
 			return fMatrix[fDiags[col]];
@@ -632,7 +632,7 @@ void CCSMatrixT::BackSubstitute(dArrayT& result)
 	int     fail = 0;
 
 	/* check */
-	if (!fIsFactorized) throw eGeneralFail;
+	if (!fIsFactorized) throw ExceptionT::kGeneralFail;
 		
 	/* forward reduction */
 	jj = -1;
@@ -771,7 +771,7 @@ bool CCSMatrixT::Multx(const dArrayT& d, dArrayT& Kd) const
 
 	/* dimension checks */
 	if ( d.Length() != Kd.Length() ||
-	     d.Length() != fLocNumEQ ) throw eGeneralFail;
+	     d.Length() != fLocNumEQ ) throw ExceptionT::kGeneralFail;
 
 	Kd = 0.0;
 	
@@ -851,7 +851,7 @@ bool CCSMatrixT::CopyDiagonal(dArrayT& diags) const
 void CCSMatrixT::ComputeSize(int& num_nonzero, int& mean_bandwidth, int& bandwidth)
 {
 	/* check */
-	if (fLocNumEQ > 0 && !fDiags) throw eGeneralFail;
+	if (fLocNumEQ > 0 && !fDiags) throw ExceptionT::kGeneralFail;
 
 	/* clear diags/columns heights */
 	for (int i = 0; i < fLocNumEQ; i++)

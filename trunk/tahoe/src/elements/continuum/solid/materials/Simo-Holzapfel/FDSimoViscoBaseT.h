@@ -1,4 +1,4 @@
-/* $Id: FDSimoViscoBaseT.h,v 1.2 2002-10-05 03:44:32 paklein Exp $ */
+/* $Id: FDSimoViscoBaseT.h,v 1.3 2002-10-20 22:48:51 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #ifndef _FD_SIMO_VISCO_BASE_H_
@@ -24,7 +24,7 @@ class FDSimoViscoBaseT: public FDStructMatT
 	 * StructuralMaterialT::s_ij. \note NOT IMPLEMENTED */
 	virtual double Pressure(void) const {
 		cout << "\n FDSimoViscoBaseT::Pressure: not implemented" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 		return 0.0;
 	};
 

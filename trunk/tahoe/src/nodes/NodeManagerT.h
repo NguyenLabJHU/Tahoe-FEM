@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.6 2002-09-10 13:46:20 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.7 2002-10-20 22:49:25 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _NODEMANAGER_T_H_
@@ -330,7 +330,7 @@ inline const dArray2DT& NodeManagerT::InitialCoordinates(void) const
 {
 	if (!fInitCoords) {
 		cout << "\n NodeManagerT::InitialCoordinates: array not set" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return *fInitCoords;
 }

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.12 2002-09-10 13:43:56 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.13 2002-10-20 22:48:32 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 
 #ifndef _FE_MANAGER_MPI_H_
@@ -98,13 +98,13 @@ public:
 protected:
 
 	/** \name solution steps 
-	 * All steps return eNoError = 0 unless a problem occurs. */
+	 * All steps return ExceptionT::kNoError = 0 unless a problem occurs. */
 	/*@{*/
 	/** initialize the new time interval */
-	virtual int InitStep(void);
+	virtual ExceptionT::CodeT InitStep(void);
 
 	/** execute the solution procedure */
-	virtual int SolveStep(void);
+	virtual ExceptionT::CodeT SolveStep(void);
 	/*@}*/
 
 	/* initialization functions */
@@ -166,7 +166,7 @@ private:
 /* return reference to partition data */
 inline const PartitionT& FEManagerT_mpi::Partition(void) const
 {
-	if (!fPartition) throw eGeneralFail;
+	if (!fPartition) throw ExceptionT::kGeneralFail;
 	return *fPartition;
 }
 
@@ -183,7 +183,7 @@ inline const iArrayT* FEManagerT_mpi::NodeMap(void) const
 		return NULL; // assume no map
 	else
 	{
-		if (!fPartition) throw eGeneralFail;
+		if (!fPartition) throw ExceptionT::kGeneralFail;
 		return &(fPartition->NodeMap());
 	}
 }
@@ -194,7 +194,7 @@ inline const iArrayT* FEManagerT_mpi::ElementMap(const StringT& block_ID) const
 		return NULL; // assume no map
 	else
 	{
-		if (!fPartition) throw eGeneralFail;		
+		if (!fPartition) throw ExceptionT::kGeneralFail;		
 		return &(fPartition->ElementMap(block_ID));
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.h,v 1.7 2002-07-16 22:22:57 paklein Exp $ */
+/* $Id: DomainIntegrationT.h,v 1.8 2002-10-20 22:49:46 paklein Exp $ */
 /* created: paklein (09/04/1998) */
 
 #ifndef _DOMAIN_INTEGRATION_T_H_
@@ -162,7 +162,7 @@ inline void DomainIntegrationT::SetIP(int ip)
 	{
 		cout << "\n DomainIntegrationT::SetIP: " << ip
 		     << " is out of range {" << 0 << ", " << fNumIP << "}" << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 #endif
 	fCurrIP = ip;
@@ -178,7 +178,7 @@ inline double DomainIntegrationT::IPWeight(void) const
 {
 #if __option(extended_errorcheck)
 	/* range checking */
-	if (fCurrIP < 0 || fCurrIP >= fNumIP) throw eOutOfRange;
+	if (fCurrIP < 0 || fCurrIP >= fNumIP) throw ExceptionT::kOutOfRange;
 #endif
 	return *(fDomain->Weight() + fCurrIP);
 }
@@ -237,7 +237,7 @@ inline const ParentDomainT& DomainIntegrationT::FacetShapeFunction(int facet) co
 /* reference to the parent domain */
 inline const ParentDomainT& DomainIntegrationT::ParentDomain(void) const
 {
-	if (!fDomain) throw eGeneralFail;
+	if (!fDomain) throw ExceptionT::kGeneralFail;
 	return *fDomain;
 }
 

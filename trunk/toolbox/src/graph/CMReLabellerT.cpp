@@ -1,4 +1,4 @@
-/* $Id: CMReLabellerT.cpp,v 1.2 2002-07-02 19:57:14 cjkimme Exp $ */
+/* $Id: CMReLabellerT.cpp,v 1.3 2002-10-20 22:39:01 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "CMReLabellerT.h"
@@ -136,9 +136,9 @@ void CMReLabellerT::Initialize(void)
 	int numnodes = fGraph.NumNodes();
 
 	/* allocate space */
-	fSequence.Allocate(numnodes);
-	fStatus.Allocate(numnodes);
-	fPriority.Allocate(numnodes);
+	fSequence.Dimension(numnodes);
+	fStatus.Dimension(numnodes);
+	fPriority.Dimension(numnodes);
 
 	/* initialize */
 	fSequence =-1;
@@ -203,7 +203,7 @@ void CMReLabellerT::BuildRootedLevel(void)
 	}
 	
 	/* check all nodes used */
-	if (count != nnd) throw eGeneralFail;
+	if (count != nnd) throw ExceptionT::kGeneralFail;
 	
 	/* set end node from last level */
 	fRootedLevel.NodesOnLevel(nodes_used, fRootedLevel.Depth() - 1);
@@ -230,7 +230,7 @@ void CMReLabellerT::SelectNodes(void)
 
 		/* collect top level info */
 		fRootedLevel.NodesOnLevel(topnodes, h_max - 1);
-		degrees.Allocate(topnodes.Length()); //really want to Allocate() every time?
+		degrees.Dimension(topnodes.Length()); //really want to Dimension() every time?
 		fGraph.ReturnDegrees(topnodes, degrees);
 		
 		/* order and halve */
@@ -278,7 +278,7 @@ void CMReLabellerT::NewSequence(void)
 		NewNumber(currnode);
 	
 	/* check that all nodes got renumbered */
-	if (fCurrLabel != fPriority.Length()) throw eGeneralFail;
+	if (fCurrLabel != fPriority.Length()) throw ExceptionT::kGeneralFail;
 }
 
 /* initialize priorities as specified by Sloan */
@@ -375,7 +375,7 @@ void CMReLabellerT::CMSequence(void)
 		Liactive = active_tmp;
 		
 		// array carrying ordering of Liactive
-		Liordered.Allocate(0);
+		Liordered.Dimension(0);
 		
 		// loop through nodes of level i-1
 		for(int j = 0; j < widthiminus1; j++)
@@ -428,7 +428,7 @@ void CMReLabellerT::ComputeSize(const iArrayT& sequence, int& bandwidth, int& pr
 {
 #if __option(extended_errorcheck)
 	if (fGraph.NumNodes() != sequence.Length() - 1)
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	// create map

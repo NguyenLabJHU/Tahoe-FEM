@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.21 2002-09-22 23:06:12 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.22 2002-10-20 22:38:59 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -639,7 +639,7 @@ void iConsoleT::DoInteractive(void)
 						/* locate */
 						int index = fAlias.PositionOf(command_name);
 						if (index == -1)
-							throw eGeneralFail;
+							throw ExceptionT::kGeneralFail;
 						else
 							line.Prepend(fAliasCommand[index], " ");
 						break;
@@ -1022,8 +1022,8 @@ void iConsoleT::BuildDictionary(bool scope_only)
 	if (!scope_only)
 	{
 		/* resize */
-		fWord.Allocate(0);
-		fWordScope.Allocate(0);
+		fWord.Dimension(0);
+		fWordScope.Dimension(0);
 	
 		/* add commands */
 		for (int i = 0; i < console_commands.Length(); i++)
@@ -1124,8 +1124,8 @@ void iConsoleT::FlushInput(StringT& line)
 			delete fInputStack[i];
 			fInputStack[i] = NULL;
 		}
-		fInputStack.Allocate(0);
-		fDanglingInput.Allocate(0);
+		fInputStack.Dimension(0);
+		fDanglingInput.Dimension(0);
 	}
 }
 
@@ -1140,7 +1140,7 @@ bool iConsoleT::MakeAlias(const StringT& alias, StringT& line)
 	
 		/* find alias */
 		int index = fAlias.PositionOf(alias);
-		if (index == -1) throw eGeneralFail;
+		if (index == -1) throw ExceptionT::kGeneralFail;
 		
 		/* remove */
 		fAlias.DeleteAt(index);

@@ -1,4 +1,4 @@
-/* $Id: NOX_Tahoe_Group.cpp,v 1.4 2002-07-03 23:11:11 paklein Exp $ */
+/* $Id: NOX_Tahoe_Group.cpp,v 1.5 2002-10-20 22:49:48 paklein Exp $ */
 #include "NOX_Tahoe_Group.h"
 
 /* optional */
@@ -49,7 +49,7 @@ NOX::Abstract::Group& Group::operator=(const Group& source)
 	/* should not happen */
 	if (!source.fJ) {
 		cout << "\n Group::operator=: source has no Jacobian" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* copy solution vector and Jacobian */
@@ -64,7 +64,7 @@ NOX::Abstract::Group& Group::operator=(const Group& source)
 		/* should not be */
 		if (!fJ) {
 			cout << "\n Group::operator=: shallow object has no Jacobian" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		
 		/* copy */
@@ -91,13 +91,13 @@ NOX::Abstract::Group& Group::operator=(const NOX::Abstract::Group& source)
 {
 #ifdef __NO_RTTI__
 	cout << "\n Tahoe::Group::operator= : requires RTTI" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 #endif
 
 	const Group* t_group = dynamic_cast<const Group*>(&source);
 	if (!t_group) {
 		cout << "\n Tahoe::Group::operator= : cast failed" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return operator=(*t_group);
 }
@@ -119,21 +119,21 @@ bool Group::computeX(const NOX::Abstract::Group& grp, const NOX::Abstract::Vecto
 {
 #ifdef __NO_RTTI__
 	cout << "\n Tahoe::Group::computeX: requires RTTI" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 #endif
 
 	/* cast group */
 	const Group* t_grp = dynamic_cast<const Group*>(&grp);
 	if (!t_grp) {
 		cout << "\n Tahoe::Group::computeX: Group cast failed" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* cast vector */
 	const Vector* t_d = dynamic_cast<const Vector*>(&d);
 	if (!t_d) {
 		cout << "\n Tahoe::Group::computeX: Vector cast failed" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* do compute */
@@ -216,7 +216,7 @@ bool Group::computeNewton(NOX::Parameter::List& params)
 				/* linear solve */
 				if (!fJ->Solve(fNewton)) {
 					cout << "\n Group::computeNewton: solve failed" << endl;
-					throw eBadJacobianDet;
+					throw ExceptionT::kBadJacobianDet;
 				}
 			}
 			else /* need to make copy */
@@ -227,7 +227,7 @@ bool Group::computeNewton(NOX::Parameter::List& params)
 				/* linear solve */
 				if (!A->Solve(fNewton)) {
 					cout << "\n Group::computeNewton: solve failed" << endl;
-					throw eBadJacobianDet;
+					throw ExceptionT::kBadJacobianDet;
 				}
 
 				/* free */
@@ -257,12 +257,12 @@ bool Group::applyJacobian(const NOX::Abstract::Vector& input, NOX::Abstract::Vec
 		const Vector* t_input = dynamic_cast<const Vector*>(&input);
 		if (!t_input) {
 			cout << "\n Group::applyJacobian: cast of input failed" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		Vector* t_result = dynamic_cast<Vector*>(&result);
 		if (!t_result) {
 			cout << "\n Group::applyJacobian: cast of result failed" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	
 		/* compute */
@@ -282,12 +282,12 @@ bool Group::applyJacobianTranspose(const NOX::Abstract::Vector& input, NOX::Abst
 		const Vector* t_input = dynamic_cast<const Vector*>(&input);
 		if (!t_input) {
 			cout << "\n Group::applyJacobianTranspose: cast of input failed" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		Vector* t_result = dynamic_cast<Vector*>(&result);
 		if (!t_result) {
 			cout << "\n Group::applyJacobianTranspose: cast of result failed" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	
 		/* compute */
@@ -307,7 +307,7 @@ bool Group::applyJacobianDiagonalInverse(const NOX::Abstract::Vector& input, NOX
 		Vector* t_result = dynamic_cast<Vector*>(&result);
 		if (!t_result) {
 			cout << "\n Group::applyJacobianDiagonalInverse: cast of result failed" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 
 		/* collect */

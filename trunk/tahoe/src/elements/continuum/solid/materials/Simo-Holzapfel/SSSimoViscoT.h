@@ -1,4 +1,4 @@
-/* $Id: SSSimoViscoT.h,v 1.2 2002-10-09 18:27:18 paklein Exp $ */
+/* $Id: SSSimoViscoT.h,v 1.3 2002-10-20 22:48:51 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 #ifndef _SS_SIMO_VISCO_H_
 #define _SS_SIMO_VISCO_H_
@@ -23,7 +23,7 @@ class SSSimoViscoT: public SSStructMatT
 	 * StructuralMaterialT::s_ij. \note NOT IMPLEMENTED */
 	virtual double Pressure(void) const {
 		cout << "\n SSSimoViscoT::Pressure: not implemented" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 		return 0.0;
 	};
 	

@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.7 2002-08-05 19:27:55 cjkimme Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.8 2002-10-20 22:48:18 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "ViscTvergHutch2DT.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <math.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "fstreamT.h"
 #include "StringT.h"
 
@@ -22,20 +22,20 @@ ViscTvergHutch2DT::ViscTvergHutch2DT(ifstreamT& in, const double& time_step):
 	fTimeStep(time_step)
 {
 	/* traction potential parameters */
-	in >> fsigma_max; if (fsigma_max < 0) throw eBadInputValue;
-	in >> fd_c_n; if (fd_c_n < 0) throw eBadInputValue;
-	in >> fd_c_t; if (fd_c_t < 0) throw eBadInputValue;
+	in >> fsigma_max; if (fsigma_max < 0) throw ExceptionT::kBadInputValue;
+	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
+	in >> fd_c_t; if (fd_c_t < 0) throw ExceptionT::kBadInputValue;
 	
 	/* non-dimensional opening parameters */
-	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw eBadInputValue;
-	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw eBadInputValue;
+	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw ExceptionT::kBadInputValue;
+	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw ExceptionT::kBadInputValue;
 	in >> fL_fail; if (fL_fail < 1.0) fL_fail = 1.0;
 	
 	/* damping parameter */
-	in >> feta0; if (feta0 < 0) throw eBadInputValue;
+	in >> feta0; if (feta0 < 0) throw ExceptionT::kBadInputValue;
 	
 	/* stiffness multiplier */
-	in >> fpenalty; if (fpenalty < 0) throw eBadInputValue;
+	in >> fpenalty; if (fpenalty < 0) throw ExceptionT::kBadInputValue;
 	
 	/* penetration stiffness */
 	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
@@ -63,8 +63,8 @@ double ViscTvergHutch2DT::Potential(const dArrayT& jump_u, const ArrayT<double>&
 {
 #pragma unused(state)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double u_t = jump_u[0];
@@ -99,14 +99,14 @@ const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 	if (fTimeStep <= 0.0) {
 #ifndef _TAHOE_FRACTURE_INTERFACE_	
 		cout << "\n ViscTvergHutch2DT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
 #endif		     
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 #endif
 
@@ -170,8 +170,8 @@ const dMatrixT& ViscTvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
 
 	double u_t = jump_u[0];
@@ -327,7 +327,7 @@ SurfacePotentialT::StatusT ViscTvergHutch2DT::Status(const dArrayT& jump_u,
 {
 #pragma unused(state)
 #if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double u_t = jump_u[0];
@@ -373,7 +373,7 @@ void ViscTvergHutch2DT::Print(ostream& out) const
 int ViscTvergHutch2DT::NumOutputVariables(void) const { return 2; }
 void ViscTvergHutch2DT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(2);
+	labels.Dimension(2);
 	labels[0] = "lambda";
 	labels[1] = "dw_visc";
 }
@@ -382,7 +382,7 @@ void ViscTvergHutch2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double
 	dArrayT& output)
 {
 #if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
 
 	double u_t = jump_u[0];

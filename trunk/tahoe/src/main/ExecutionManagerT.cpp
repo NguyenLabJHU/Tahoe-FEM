@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.cpp,v 1.11 2002-09-23 06:58:28 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.12 2002-10-20 22:48:32 paklein Exp $ */
 /* created: paklein (08/27/1997) */
 #include "ExecutionManagerT.h"
 
@@ -8,7 +8,7 @@
 
 #include "fstreamT.h"
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "StringT.h"
 #include "CommunicatorT.h"
 
@@ -27,10 +27,10 @@ ExecutionManagerT::ExecutionManagerT(int argc, char* argv[], char job_char, char
 	fJobCharPutBack(jobcharputback),
 	fRecursionDepth(0)
 {
-	if (fJobCharPutBack != 1 && fJobCharPutBack != 0) throw eBadInputValue;
+	if (fJobCharPutBack != 1 && fJobCharPutBack != 0) throw ExceptionT::kBadInputValue;
 
 	/* store command line arguments */
-	fCommandLineOptions.Allocate(argc);
+	fCommandLineOptions.Dimension(argc);
 	for (int i = 0; i < fCommandLineOptions.Length(); i++)
 		fCommandLineOptions[i] = argv[i];
 
@@ -71,7 +71,7 @@ void ExecutionManagerT::Run_serial(void)
 		{
 			cout << "\n ExecutionManagerT::Run_serial: unable to open file: \""
 			     << file  << '\"' << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		
 		/* dispatch */
@@ -114,7 +114,7 @@ void ExecutionManagerT::Run_parallel(void)
 		{
 			cout << "\n ExecutionManagerT::Run_parallel: unable to open file: \""
 			     << file  << '\"' << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		
 		/* dispatch */
@@ -215,7 +215,7 @@ void ExecutionManagerT::JobOrBatch(ifstreamT& in, ostream& status)
 	}
 
 	/* check recursion depth */
-	if (++fRecursionDepth > kMaxRecursionDepth) throw eGeneralFail;
+	if (++fRecursionDepth > kMaxRecursionDepth) throw ExceptionT::kGeneralFail;
 	
 	/* JOB file */
 	if (filetypechar == fJobChar)
@@ -375,7 +375,7 @@ int ExecutionManagerT::OpenWithPrompt(const char* prompt, const char* skipname,
 			{
 				cout << "\n ExecutionManagerT::OpenInputStream: could not find file after ";
 				cout << maxtry << " iterations" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 		}
 	}	

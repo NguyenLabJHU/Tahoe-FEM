@@ -53,12 +53,12 @@ LocalJ2SSNonlinHard::LocalJ2SSNonlinHard(ifstreamT& in, const SmallStrainT& elem
 	if (yield < 0 )
 	{
                 cout << "\n GradJ2SSNonlinHard: yield <0" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	if (k1 < 0 || k2 < 0 || k3 < 0 || k4 <0)
 	{
 	        cout << "\n GradJ2SSNonlinHard: bad hardening parameter k1, k2, k3, or k4" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 }
 
@@ -208,7 +208,7 @@ int LocalJ2SSNonlinHard::NumOutputVariables(void) const  { return kNumOutput; }
 void LocalJ2SSNonlinHard::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set size */
-	labels.Allocate(kNumOutput);
+	labels.Dimension(kNumOutput);
 	
 	/* copy labels */
 	for (int i = 0; i < kNumOutput; i++)
@@ -328,7 +328,7 @@ void LocalJ2SSNonlinHard::SolveState(ElementCardT& element, int fCurrIP)
 	       	{
 	       		cout << "\n LocalJ2SSNonlinHard::SolveState: local iteration failed after " 
 	       		     << max_iteration << " iterations" << endl;
-	       		throw eGeneralFail;
+	       		throw ExceptionT::kGeneralFail;
 	       	}
 
 		/* step 8. compute consistent tangent moduli */
@@ -343,7 +343,7 @@ void LocalJ2SSNonlinHard::SolveState(ElementCardT& element, int fCurrIP)
 	else
 	{
 	        cout << "\n LocalJ2SSNonlinHard::SolveState: bad flag value " ;
-       		throw eGeneralFail;
+       		throw ExceptionT::kGeneralFail;
        	}
 }
 
@@ -376,7 +376,7 @@ void LocalJ2SSNonlinHard::AllocateAllElements(void)
 		ElementCardT& element = ElementCard(el);
 
 	        /* construct new element */
-		element.Allocate(fNumIP, d_size);
+		element.Dimension(fNumIP, d_size);
 	
 		/* initialize values */
 		element.IntegerData() = kIsElastic;
@@ -435,7 +435,7 @@ void LocalJ2SSNonlinHard::IncrementPlasticParameter(double& varLambda)
 	if (dYieldCrt < kSmall)
 	{
 		cout << "\n LocalJ2SSNonlinHardT::StressCorrection: consistency function is nonconvex" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 		
 	/* variation of plasticity multiplier */

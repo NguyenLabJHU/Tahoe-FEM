@@ -1,4 +1,4 @@
-/* $Id: SSKStV2D.cpp,v 1.3 2002-07-02 19:55:46 cjkimme Exp $ */
+/* $Id: SSKStV2D.cpp,v 1.4 2002-10-20 22:48:43 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "SSKStV2D.h"
@@ -35,7 +35,7 @@ int SSKStV2D::NumOutputVariables(void) const { return kNumOutput; }
 void SSKStV2D::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set size */
-	labels.Allocate(kNumOutput);
+	labels.Dimension(kNumOutput);
 	
 	/* copy labels */
 	for (int i = 0; i < kNumOutput; i++)

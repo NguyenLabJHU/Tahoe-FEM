@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.cpp,v 1.1 2002-10-04 23:59:00 thao Exp $ */
+/* $Id: RGBaseT.cpp,v 1.2 2002-10-20 22:48:45 paklein Exp $ */
 /* created: TDN (01/22/2000) */
 
 #include "RGBaseT.h"
@@ -20,7 +20,7 @@ RGBaseT::RGBaseT(ifstreamT& in, const FiniteStrainT& element):
 	fnstatev += numstress;   /*current C_v*/
 	fnstatev += numstress;   /*last C_vn*/
 	
-	fstatev.Allocate(fnstatev);
+	fstatev.Dimension(fnstatev);
 	double* pstatev = fstatev.Pointer();
 
 	/* assign pointers to current and last blocks of 
@@ -55,7 +55,7 @@ void  RGBaseT::PointInitialize(void)
 	if (CurrIP() == 0)
 	{
 		ElementCardT& element = CurrentElement();
-		element.Allocate(0, fnstatev*NumIP());
+		element.Dimension(0, fnstatev*NumIP());
 	
 		/* initialize internal variables to identity*/
 		for (int ip = 0; ip < NumIP(); ip++)
@@ -148,7 +148,7 @@ void RGBaseT::MixedRank4_2D(const dArrayT& a, const dArrayT& b,
 	if (a.Length() != 2 ||
 	    b.Length() != 2 ||
 	    rank4_ab.Rows() != 3 ||
-	    rank4_ab.Cols() != 3) throw eSizeMismatch;
+	    rank4_ab.Cols() != 3) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11;
@@ -207,7 +207,7 @@ void RGBaseT::MixedRank4_3D(const dArrayT& a, const dArrayT& b,
 	if (a.Length() != 3 ||
 	    b.Length() != 3 ||
 	    rank4_ab.Rows() != 6 ||
-	    rank4_ab.Cols() != 6) throw eSizeMismatch;
+	    rank4_ab.Cols() != 6) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12;

@@ -1,4 +1,4 @@
-/* $Id: NOXSolverT.cpp,v 1.5 2002-07-03 23:11:10 paklein Exp $ */
+/* $Id: NOXSolverT.cpp,v 1.6 2002-10-20 22:49:48 paklein Exp $ */
 #include "NOXSolverT.h"
 
 /* optional */
@@ -183,7 +183,7 @@ SolverT::SolutionStatusT NOXSolverT::Solve(int num_iterations)
 	/* check */
 	if (!fLHS) {
 		cout << "\n NOXSolverT::NOXSolverT: global matrix not set" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}	
 
 	/* open iteration output */
@@ -198,7 +198,7 @@ SolverT::SolutionStatusT NOXSolverT::Solve(int num_iterations)
 	/* compute initial residual */
 	if (!group.computeRHS()) {
 		cout << "\n NOXSolverT::Run: unable to compute initial residual" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	double error0 = group.getNormRHS();
 	cout << " Error = " << error0 << endl;
@@ -229,14 +229,14 @@ SolverT::SolutionStatusT NOXSolverT::Solve(int num_iterations)
 		}
 		cout << '\t' << group.getNormRHS()/error0 << endl;
 	}
-	catch (int error) { /* Tahoe throws int's */
+	catch (ExceptionT::CodeT error) { /* Tahoe throws int's */
 		cout << "\n NOXSolverT::Run: exception during solve: " 
-	         << fFEManager.Exception(error) << endl;
+	         << ExceptionT::ToString(error) << endl;
 		throw error;
 	}
 	catch (const char* error) { /* NOX throws strings */
 		cout << "\n NOXSolverT::Run: exception during solve: " << error << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* what to do next */
@@ -253,7 +253,7 @@ SolverT::SolutionStatusT NOXSolverT::Solve(int num_iterations)
 			
 		default:
 			cout << "\n NOXSolverT::Run: unrecognized exit status: " << status << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 				
 	/* close iteration output */	
@@ -264,7 +264,7 @@ SolverT::SolutionStatusT NOXSolverT::Solve(int num_iterations)
 	} /* end try */
 		
 	/* exception */
-	catch (int code)
+	catch (ExceptionT::CodeT code)
 	{
 		cout << "\n NOXSolverT::Run: exception at step number "
 			 << fFEManager.StepNumber() << " with step "
@@ -309,9 +309,9 @@ bool NOXSolverT::computeRHS(const dArrayT& x, dArrayT& rhs)
 		fRHS = 0.0;
 		fFEManager.FormRHS(Group());	
 	}
-	catch (int exception) {
+	catch (ExceptionT::CodeT exception) {
 		cout << "\n NOXSolverT::computeRHS: exception: "
-		     << fFEManager.Exception(exception) << endl;	
+		     << ExceptionT::ToString(exception) << endl;	
 		rhs.Swap(fRHS); /* restore target */
 		return false;
 	}
@@ -333,9 +333,9 @@ bool NOXSolverT::computeJacobian(GlobalMatrixT& jacobian)
 		fLHS->Clear();
 		fFEManager.FormLHS(Group());	
 	}
-	catch (int exception) {
+	catch (ExceptionT::CodeT exception) {
 		cout << "\n NOXSolverT::computeJacobian: exception: "
-		     << fFEManager.Exception(exception) << endl;	
+		     << ExceptionT::ToString(exception) << endl;	
 		fLHS = temp; /* restore target */
 		return false;
 	}

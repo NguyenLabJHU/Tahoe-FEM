@@ -1,4 +1,4 @@
-/* $Id: ArgSpecT.cpp,v 1.9 2002-07-05 17:16:00 paklein Exp $ */
+/* $Id: ArgSpecT.cpp,v 1.10 2002-10-20 22:38:59 paklein Exp $ */
 
 #include "ArgSpecT.h"
 #include <ctype.h>
@@ -69,7 +69,7 @@ void ArgSpecT::ClearDefault(void)
 		delete (bool*) fDefault;
 	else {
 		cout << "\n ArgSpecT::ClearDefault: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	fDefault = NULL;
 }
@@ -92,7 +92,7 @@ void ArgSpecT::ClearValue(void)
 		delete (bool*) fValue;
 	else {
 		cout << "\n ArgSpecT::ClearValue: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	fValue = NULL;
 }
@@ -112,7 +112,7 @@ void ArgSpecT::SetDefault(const int& a)
 		SetDefault(double(a));
 	else {
 		cout << "\n ArgSpecT::SetDefault: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -126,7 +126,7 @@ void ArgSpecT::SetDefault(const double& a)
 	}
 	else {
 		cout << "\n ArgSpecT::SetDefault: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}	
 }
 
@@ -140,7 +140,7 @@ void ArgSpecT::SetDefault(const StringT& a)
 	}
 	else {
 		cout << "\n ArgSpecT::SetDefault: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -154,7 +154,7 @@ void ArgSpecT::SetDefault(const bool& a)
 	}
 	else {
 		cout << "\n ArgSpecT::SetDefault: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -170,7 +170,7 @@ void ArgSpecT::SetDefault(const float& a)
 		SetDefault(double(a));
 	else {
 		cout << "\n ArgSpecT::SetDefault: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -181,7 +181,7 @@ void ArgSpecT::GetDefault(int& a) const
 		a = *((int*) fDefault);
 	else {
 		cout << "\n ArgSpecT::GetDefault: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -191,7 +191,7 @@ void ArgSpecT::GetDefault(double& a) const
 		a = *((double*) fDefault);
 	else {
 		cout << "\n ArgSpecT::GetDefault: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -201,7 +201,7 @@ void ArgSpecT::GetDefault(StringT& a) const
 		a = *((StringT*) fDefault);
 	else {
 		cout << "\n ArgSpecT::GetDefault: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -211,7 +211,7 @@ void ArgSpecT::GetDefault(bool& a) const
 		a = *((bool*) fDefault);
 	else {
 		cout << "\n ArgSpecT::GetDefault: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -221,7 +221,7 @@ void ArgSpecT::GetDefault(float& a) const
 		a = *((float*) fDefault);
 	else {
 		cout << "\n ArgSpecT::GetDefault: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -271,7 +271,7 @@ void ArgSpecT::SetValueToDefault(void)
 			default:
 				cout << "\n ArgSpecT::SetValueToDefault: unknown type: " 
 				     << fType << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 		}	
 	}	
 }
@@ -325,7 +325,7 @@ ArgSpecT& ArgSpecT::operator=(const ArgSpecT& rhs)
 			}
 			default:
 				cout << "\n ArgSpecT::operator=: unknown default type" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 		}	
 	}	
 	else
@@ -373,7 +373,7 @@ ArgSpecT& ArgSpecT::operator=(const ArgSpecT& rhs)
 			}
 			default:
 				cout << "\n ArgSpecT::operator=: unknown value type" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 		}	
 	}	
 	else
@@ -450,7 +450,7 @@ bool ArgSpecT::ReadValue(istream& in)
 		}
 		default:
 			cout << "\n ArgSpecT::operator=: unknown value type" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 
 	/* dummy */
@@ -472,7 +472,7 @@ void ArgSpecT::SetValue(const int& a)
 		SetValue(double(a));
 	else {
 		cout << "\n ArgSpecT::SetValue: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -486,7 +486,7 @@ void ArgSpecT::SetValue(const double& a)
 	}
 	else {
 		cout << "\n ArgSpecT::SetValue: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}	
 }
 
@@ -500,7 +500,7 @@ void ArgSpecT::SetValue(const StringT& a)
 	}
 	else {
 		cout << "\n ArgSpecT::SetValue: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -514,7 +514,7 @@ void ArgSpecT::SetValue(const bool& a)
 	}
 	else {
 		cout << "\n ArgSpecT::SetValue: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -530,7 +530,7 @@ void ArgSpecT::SetValue(const float& a)
 		SetValue(double(a));
 	else {
 		cout << "\n ArgSpecT::SetValue: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -541,7 +541,7 @@ void ArgSpecT::GetValue(int& a) const
 		a = *((int*) fValue);
 	else {
 		cout << "\n ArgSpecT::GetValue: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -551,7 +551,7 @@ void ArgSpecT::GetValue(double& a) const
 		a = *((double*) fValue);
 	else {
 		cout << "\n ArgSpecT::GetValue: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -561,7 +561,7 @@ void ArgSpecT::GetValue(StringT& a) const
 		a = *((StringT*) fValue);
 	else {
 		cout << "\n ArgSpecT::GetValue: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -571,7 +571,7 @@ void ArgSpecT::GetValue(bool& a) const
 		a = *((bool*) fValue);
 	else {
 		cout << "\n ArgSpecT::GetValue: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -581,7 +581,7 @@ void ArgSpecT::GetValue(float& a) const
 		a = *((float*) fValue);
 	else {
 		cout << "\n ArgSpecT::GetValue: type mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -652,7 +652,7 @@ void ArgSpecT::Write(ostream& out) const
 			}
 			default:
 				cout << "\n ArgSpecT::Write: unknown type: " << fType << endl;
-				throw eGeneralFail;	
+				throw ExceptionT::kGeneralFail;	
 		}
 		out << ')';
 	}
@@ -713,7 +713,7 @@ void ArgSpecT::WriteValue(ostream& out) const
 			}
 				default:
 				cout << "\n ArgSpecT::WriteValue: unknown type: " << fType << endl;
-				throw eGeneralFail;	
+				throw ExceptionT::kGeneralFail;	
 		}
 	}
 }

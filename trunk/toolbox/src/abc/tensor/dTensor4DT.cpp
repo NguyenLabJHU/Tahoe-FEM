@@ -34,13 +34,13 @@ int HughesIndexArray [6] [2];
 if (fc_ijkl.Rows() != 6 || fc_ijkl.Cols() != 6)
   {
     cout << "Cannot convert matrix fc_ijkl to rank 4 tensor - matrix wrong size";
-    throw eSizeMismatch;
+    throw ExceptionT::kSizeMismatch;
   }
 
 /*if (fDim0 != 3 || fDim1 != 3 || fDim2 != 3 || fDim3 !=3 )
  * {
  *   cout << "Cannot convert matrix fc_ijkl to rank 4 tensor - tensor wrong size";
- *   throw eSizeMismatch;
+ *   throw ExceptionT::kSizeMismatch;
  * }
  */
 
@@ -78,13 +78,13 @@ int HughesIndexArray [3] [3];
 if (fc_ijkl.Rows() != 6 || fc_ijkl.Cols() != 6)
   {
     cout << "Cannot convert matrix fc_ijkl to rank 4 tensor - matrix wrong size";
-    throw eSizeMismatch;
+    throw ExceptionT::kSizeMismatch;
   }
 
 /*if (fDim0 != 3 || fDim1 != 3 || fDim2 != 3 || fDim3 !=3 )
  * {
  *   cout << "Cannot convert matrix fc_ijkl to rank 4 tensor - tensor wrong size";
- *   throw eSizeMismatch;
+ *   throw ExceptionT::kSizeMismatch;
  * }
  */
 

@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.cpp,v 1.9 2002-08-05 19:27:55 cjkimme Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.10 2002-10-20 22:48:18 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "RateDep2DT.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <math.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "fstreamT.h"
 #include "StringT.h"
 #include "SecantMethodT.h"
@@ -23,17 +23,17 @@ RateDep2DT::RateDep2DT(ifstreamT& in, const double& time_step):
 	fTimeStep(time_step)
 {
 	/* traction potential parameters */
-	in >> fsigma_max; if (fsigma_max < 0) throw eBadInputValue;
-	in >> fd_c_n; if (fd_c_n < 0) throw eBadInputValue;
-	in >> fd_c_t; if (fd_c_t < 0) throw eBadInputValue;
+	in >> fsigma_max; if (fsigma_max < 0) throw ExceptionT::kBadInputValue;
+	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
+	in >> fd_c_t; if (fd_c_t < 0) throw ExceptionT::kBadInputValue;
 	
 	/* non-dimensional opening parameters */
-	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw eBadInputValue;
-	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw eBadInputValue;
+	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw ExceptionT::kBadInputValue;
+	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw ExceptionT::kBadInputValue;
 	in >> fL_fail; if (fL_fail < 1.0) fL_fail = 1.0;
 
 	/* stiffness multiplier */
-	in >> fpenalty; if (fpenalty < 0) throw eBadInputValue;
+	in >> fpenalty; if (fpenalty < 0) throw ExceptionT::kBadInputValue;
 	in >> L_2_b;
 	in >> L_2_m;
   	in >> fslope;	
@@ -53,7 +53,7 @@ void RateDep2DT::InitStateVariables(ArrayT<double>& state)
 	  	cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
 		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
 #endif
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 
 	/* clear */
@@ -91,8 +91,8 @@ double RateDep2DT::FractureEnergy(const ArrayT<double>& state)
 double RateDep2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double u_t = jump_u[0];
@@ -127,14 +127,14 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 	if (fTimeStep <= 0.0) {
 #ifndef _TAHOE_FRACTURE_INTERFACE_	
 		cout << "\n RateDep2DT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
 #endif
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 #endif
 
@@ -203,8 +203,8 @@ const dMatrixT& RateDep2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	
 
 	double u_t = jump_u[0];
@@ -321,7 +321,7 @@ SurfacePotentialT::StatusT RateDep2DT::Status(const dArrayT& jump_u,
 {
 #pragma unused(jump_u)
 #if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
        
 	double u_t = jump_u[0];
@@ -368,7 +368,7 @@ int RateDep2DT::NumOutputVariables(void) const { return 4; }
 
 void RateDep2DT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(4);
+	labels.Dimension(4);
 	labels[0] = "lambda";
 	labels[1] = "D_t_dot";
 	labels[2] = "D_n_dot";
@@ -380,7 +380,7 @@ void RateDep2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& stat
 {
 #pragma unused(jump_u)
 #if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	
 	double u_t = jump_u[0];
 	double u_n = jump_u[1];

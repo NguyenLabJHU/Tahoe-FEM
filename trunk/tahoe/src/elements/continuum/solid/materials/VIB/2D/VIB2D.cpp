@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.4 2002-09-12 17:49:59 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.5 2002-10-20 22:48:55 paklein Exp $ */
 /* created: paklein (04/09/1997)                                          */
 /* 2D VIB solver                                                          */
 
@@ -46,10 +46,10 @@ VIB2D::VIB2D(ifstreamT& in, const FiniteStrainT& element):
 	
 		default:
 		
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 	
-	if (!fCircle) throw(eOutOfMemory);
+	if (!fCircle) throw ExceptionT::kOutOfMemory;
 	
 	/* default construction */
 	SetAngle(0.0);
@@ -79,7 +79,7 @@ void VIB2D::SetAngle(double angleoffset)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Allocate(numpoints);
+	Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fCircle->Jacobians();

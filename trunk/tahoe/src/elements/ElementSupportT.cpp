@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.4 2002-07-02 19:55:13 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.5 2002-10-20 22:48:15 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "FEManagerT.h"
 #include "NodeManagerT.h"
@@ -91,9 +91,9 @@ const int& ElementSupportT::IterationNumber(int group) const
 	return FEManager().IterationNumber(group); 
 }
 
-const char* ElementSupportT::Exception(int exception) const
+const char* ElementSupportT::Exception(ExceptionT::CodeT exception) const
 {
-	return FEManager().Exception(exception);
+	return ExceptionT::ToString(exception);
 }
 
 int ElementSupportT::ElementGroupNumber(const ElementBaseT* element) const
@@ -125,7 +125,7 @@ const int& ElementSupportT::NumberOfSteps(void) const
 ElementBaseT& ElementSupportT::ElementGroup(int index) const
 {
 	ElementBaseT* element = FEManager().ElementGroup(index);
-	if (!element) throw eGeneralFail;
+	if (!element) throw ExceptionT::kGeneralFail;
 	return *element;
 }
 
@@ -133,7 +133,7 @@ ElementBaseT& ElementSupportT::ElementGroup(int index) const
 ModelManagerT& ElementSupportT::Model(void) const
 {
 	ModelManagerT* model = FEManager().ModelManager();
-	if (!model) throw eGeneralFail;
+	if (!model) throw ExceptionT::kGeneralFail;
 	return *model;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: ModCBSolverT.cpp,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
+/* $Id: ModCBSolverT.cpp,v 1.3 2002-10-20 22:49:03 paklein Exp $ */
 /* created: paklein (05/27/1997)                                          */
 /* Q defines the orientation of the crystals' natural coordinates         */
 /* and the global coordinate frame. Q is defined as:                      */
@@ -10,7 +10,7 @@
 
 #include <iostream.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 #include "fstreamT.h"
 #include "dSymMatrixT.h"
@@ -62,7 +62,7 @@ ModCBSolverT::ModCBSolverT(const dMatrixT& Q,
 {
 	/* check */
 	if (fEquilibrate != 0 && fEquilibrate != 1)
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 
 	/* set potentials */
 	in >> fPotential;
@@ -87,17 +87,17 @@ ModCBSolverT::ModCBSolverT(const dMatrixT& Q,
 			
 		case kTersoff:
 		
-			throw eGeneralFail; //not yet implemented
+			throw ExceptionT::kGeneralFail; //not yet implemented
 			break;
 			
 		default:
 
 			cout << "\nModCBSolverT::ModCBSolverT: unknown potential code:";
 			cout << fPotential << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 
-	if (!f2Body || !f3Body) throw(eOutOfMemory);
+	if (!f2Body || !f3Body) throw ExceptionT::kOutOfMemory;
 }
 
 /* Destructor */
@@ -256,7 +256,7 @@ void ModCBSolverT::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 	if (count == 15)
 	{
 		cout << "\n ModCBSolverT::Equilibrate: could not find internal equilibrium" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 

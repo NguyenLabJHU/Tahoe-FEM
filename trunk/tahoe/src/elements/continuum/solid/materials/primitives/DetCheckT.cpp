@@ -1,9 +1,9 @@
-/* $Id: DetCheckT.cpp,v 1.22 2002-07-18 00:46:52 paklein Exp $ */
+/* $Id: DetCheckT.cpp,v 1.23 2002-10-20 22:49:11 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
 #include <math.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dSymMatrixT.h"
 #include "dMatrixT.h"
 #include "dMatrixEXT.h"
@@ -208,14 +208,14 @@ int DetCheckT::DetCheck2D(dArrayT& normal)
 			angle -= dangle;
 			res  = ddet(angle);
 		}
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 	
 	if (det(angle) > 0.0)
 		return 0;
 	else
 	{
-		normal.Allocate(2);
+		normal.Dimension(2);
 
 		/* angle in [0, Pi] */
 		if (angle > Pi) angle -= Pi;

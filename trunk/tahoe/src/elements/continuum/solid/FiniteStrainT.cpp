@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.12 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.13 2002-10-20 22:48:23 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -43,8 +43,8 @@ void FiniteStrainT::Initialize(void)
 	{
 		int nip = NumIP();
 		int nsd = NumSD();
-		fF_all.Allocate(nip*nsd*nsd);
-		fF_List.Allocate(nip);
+		fF_all.Dimension(nip*nsd*nsd);
+		fF_List.Dimension(nip);
 		for (int i = 0; i < nip; i++)
 			fF_List[i].Set(nsd, nsd, fF_all.Pointer(i*nsd*nsd));
 	}
@@ -54,8 +54,8 @@ void FiniteStrainT::Initialize(void)
 	{
 		int nip = NumIP();
 		int nsd = NumSD();
-		fF_last_all.Allocate(nip*nsd*nsd);
-		fF_last_List.Allocate(nip);
+		fF_last_all.Dimension(nip*nsd*nsd);
+		fF_last_List.Dimension(nip);
 		for (int i = 0; i < nip; i++)
 			fF_last_List[i].Set(nsd, nsd, fF_last_all.Pointer(i*nsd*nsd));
 	}
@@ -72,7 +72,7 @@ void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u) cons
 	else
 	{
 		cout << "\n FiniteStrainT::ComputeGradient: shape functions wrt current coords not defined" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -88,7 +88,7 @@ void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u,
 	else
 	{
 		cout << "\n FiniteStrainT::ComputeGradient: shape functions wrt current coords not defined" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 

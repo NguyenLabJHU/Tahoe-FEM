@@ -1,4 +1,4 @@
-/* $Id: PartitionT.cpp,v 1.7 2002-07-02 19:57:14 cjkimme Exp $ */
+/* $Id: PartitionT.cpp,v 1.8 2002-10-20 22:39:01 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 
 #include "PartitionT.h"
@@ -37,7 +37,7 @@ bool PartitionT::CheckVersion(const StringT& version)
 void PartitionT::PartitionNodes(iArrayT& nodes, NumberScopeT scope) const
 {
 	/* allocate */
-	nodes.Allocate(fNodes_i.Length() + fNodes_b.Length());
+	nodes.Dimension(fNodes_i.Length() + fNodes_b.Length());
 
 	/* partition nodes in local numbering */
 	nodes.CopyPart(0, fNodes_i, 0, fNodes_i.Length());
@@ -72,11 +72,11 @@ void PartitionT::Set(int num_parts, int id, const iArrayT& part_map,
 {
 	/* total number of partitions */
 	fNumPartitions = num_parts;
-	if (fNumPartitions < 1) throw eGeneralFail;
+	if (fNumPartitions < 1) throw ExceptionT::kGeneralFail;
 
 	/* set ID */
 	fID = id;
-	if (fID < 0 || fID >= fNumPartitions) throw eOutOfRange;
+	if (fID < 0 || fID >= fNumPartitions) throw ExceptionT::kOutOfRange;
 		
 	/* numbering is global */
 	fScope = kGlobal;
@@ -98,11 +98,11 @@ void PartitionT::Set(int num_parts, int id, const iArrayT& part_map, const Array
 {
 	/* total number of partitions */
 	fNumPartitions = num_parts;
-	if (fNumPartitions < 1) throw eGeneralFail;
+	if (fNumPartitions < 1) throw ExceptionT::kGeneralFail;
 
 	/* set ID */
 	fID = id;
-	if (fID < 0 || fID >= fNumPartitions) throw eOutOfRange;
+	if (fID < 0 || fID >= fNumPartitions) throw ExceptionT::kOutOfRange;
 		
 	/* numbering is global */
 	fScope = kGlobal;
@@ -129,18 +129,18 @@ void PartitionT::SetOutgoing(const ArrayT<iArrayT>& nodes_out)
 		     << nodes_out.Length() << ")\n";
 		cout <<   "     to be the same as the Comm ID list (" << fCommID.Length()
 		     << ")" << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 	
 	/* only at global scope for now */
 	if (fScope != kGlobal)
 	{
 		cout << "\n PartitionT::SetOutgoing: number scope must be global" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* store */
-	fNodes_out.Allocate(nodes_out.Length());
+	fNodes_out.Dimension(nodes_out.Length());
 	for (int i = 0; i < fNodes_out.Length(); i++)
 		fNodes_out[i] = nodes_out[i];
 }
@@ -188,11 +188,11 @@ void PartitionT::InitElementBlocks(const ArrayT<StringT>& blockID)
 	
 	/* allocate memory */
 	int n = fElementBlockID.Length();
-	fElements_i.Allocate(n);
-	fElements_b.Allocate(n);
-	fElementMap.Allocate(n);
-	fElementMapShift.Allocate(n);
-	fInvElementMap.Allocate(n);
+	fElements_i.Dimension(n);
+	fElements_b.Dimension(n);
+	fElementMap.Dimension(n);
+	fElementMapShift.Dimension(n);
+	fInvElementMap.Dimension(n);
 }
 
 /* collect internal and border elements */
@@ -203,7 +203,7 @@ void PartitionT::SetElements(const StringT& blockID, const iArray2DT& connects)
 	{
 		cout << "\n PartitionT::SetElements: number scope must be global"
 		     << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* resolve ID */
@@ -275,15 +275,15 @@ void PartitionT::SetElements(const StringT& blockID, const iArray2DT& connects)
 
 	/* copy in */
 	int n_i = elements_i.Length();
-	fElements_i[dex].Allocate(n_i);
+	fElements_i[dex].Dimension(n_i);
 	elements_i.CopyInto(fElements_i[dex]);
 
 	int n_b = elements_b.Length();
-	fElements_b[dex].Allocate(n_b);
+	fElements_b[dex].Dimension(n_b);
 	elements_b.CopyInto(fElements_b[dex]);
 	
 	/* set map */
-	fElementMap[dex].Allocate(n_i + n_b);
+	fElementMap[dex].Dimension(n_i + n_b);
 	fElementMap[dex].CopyPart(0, fElements_i[dex], 0, n_i);
 	fElementMap[dex].CopyPart(n_i, fElements_b[dex], 0, n_b);
 }
@@ -443,7 +443,7 @@ ifstreamT& PartitionT::Read(ifstreamT& in)
 	{
 		cout << "\n operator>>PartitionT&: file version " << version
 		     << " is not current: " << sPartitionTVersion << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	int length;
@@ -454,43 +454,43 @@ ifstreamT& PartitionT::Read(ifstreamT& in)
 	
 	// nodal information
 	in >> length;
-	fNodes_i.Allocate(length);
+	fNodes_i.Dimension(length);
 	in >> fNodes_i; // internal nodes	
 	
 	in >> length;
-	fNodes_b.Allocate(length);
+	fNodes_b.Dimension(length);
 	in >> fNodes_b; // border nodes	
 
 	in >> length;
-	fNodes_e.Allocate(length);
+	fNodes_e.Dimension(length);
 	in >> fNodes_e; // external nodes
 	
 	// receive/send information
 	in >> length;
-	fCommID.Allocate(length);
+	fCommID.Dimension(length);
 	in >> fCommID; // ID's of communicating partitions
 
-	fNodes_in.Allocate(length);
+	fNodes_in.Dimension(length);
 	for (int i = 0; i < length; i++)
 	{
 		int dim;
 		in >> dim;
-		fNodes_in[i].Allocate(dim);
+		fNodes_in[i].Dimension(dim);
 		in >> fNodes_in[i];
 	}
 
-	fNodes_out.Allocate(length);
+	fNodes_out.Dimension(length);
 	for (int j = 0; j < length; j++)
 	{
 		int dim;
 		in >> dim;
-		fNodes_out[j].Allocate(dim);
+		fNodes_out[j].Dimension(dim);
 		in >> fNodes_out[j];
 	}
 	
 	// element information
 	in >> length;
-	fElementBlockID.Allocate(length);
+	fElementBlockID.Dimension(length);
 	for (int i = 0; i < fElementBlockID.Length(); i++)
 		in >> fElementBlockID[i];
 	InitElementBlocks(fElementBlockID);	
@@ -499,7 +499,7 @@ ifstreamT& PartitionT::Read(ifstreamT& in)
 	{
 		int dim;
 		in >> dim;
-		fElements_i[k].Allocate(dim);
+		fElements_i[k].Dimension(dim);
 		in >> fElements_i[k]; // internal elements
 	}
 
@@ -507,24 +507,24 @@ ifstreamT& PartitionT::Read(ifstreamT& in)
 	{
 		int dim;
 		in >> dim;
-		fElements_b[l].Allocate(dim);
+		fElements_b[l].Dimension(dim);
 		in >> fElements_b[l]; // internal elements
 	}
 	
 	// global node map
 	in >> length;
-	fNodeMap.Allocate(length);
+	fNodeMap.Dimension(length);
 	in >> fNodeMap; // global[local]
 	if (length != (fNodes_i.Length() +
 	               fNodes_b.Length() +
-                   fNodes_e.Length())) throw eBadInputValue;
+                   fNodes_e.Length())) throw ExceptionT::kBadInputValue;
 
 	// block global element numbering map
 	for (int m = 0; m < fElementMap.Length(); m++)
 	{
 		int dim;
 		in >> dim;
-		fElementMap[m].Allocate(dim);
+		fElementMap[m].Dimension(dim);
 		in >> fElementMap[m];
 	}
 
@@ -551,7 +551,7 @@ int PartitionT::ElementBlockIndex(const StringT& blockID, const char* caller) co
 		const char* str = (caller != NULL) ? caller : this_routine;
 		cout << "\n PartitionT::" << str << ": block ID not found: "
 		     << blockID << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return dex;
 }
@@ -571,7 +571,7 @@ void PartitionT::MapValues(const iArrayT& map, int shift, ArrayT<int>& values) c
 			cout << "\n PartitionT::MapValues: value " << value
 			     << " at position " << i << " is out of\n"
 			     <<   "     range {0," << n_map << "}" << endl;
-			throw eOutOfRange;
+			throw ExceptionT::kOutOfRange;
 		}
 	
 		*pn = map[value];
@@ -612,7 +612,7 @@ void PartitionT::ReturnPartitionNodes(const iArrayT& global_nodes,
 	}
 
 	/* copy to return value */
-	partition_indices.Allocate(tmp.Length());
+	partition_indices.Dimension(tmp.Length());
 	tmp.CopyInto(partition_indices);
 }
 
@@ -636,7 +636,7 @@ void PartitionT::ReturnPartitionElements(const StringT& blockID,
 	}
 
 	/* copy to return value */
-	partition_indices.Allocate(tmp.Length());
+	partition_indices.Dimension(tmp.Length());
 	tmp.CopyInto(partition_indices);
 }
 
@@ -690,7 +690,7 @@ istream& operator>>(istream& in, PartitionT::NumberScopeT& scope)
 			break;
 		default:	
 			cout << "\n operator>>PartitionT::NumberScopeT: unknown value: " << i_scope << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 
 	return in;
@@ -709,7 +709,7 @@ void PartitionT::MakeInverseMap(const iArrayT& map, iArrayT& inv_map,
   if (map.Length() == 0)
 	{
 	  shift = 0;
-	  inv_map.Allocate(0);
+	  inv_map.Dimension(0);
 	}
   else
 	{
@@ -719,7 +719,7 @@ void PartitionT::MakeInverseMap(const iArrayT& map, iArrayT& inv_map,
 	int range = max - shift + 1;
 	
 	/* dimension */
-	inv_map.Allocate(range);
+	inv_map.Dimension(range);
 	inv_map = -1;
 
 	/* make map */
@@ -773,16 +773,16 @@ void PartitionT::ClassifyNodes(const iArrayT& part_map,
 	}
 	
 	/* store */
-	fNodes_i.Allocate(nodes_i.Length());
+	fNodes_i.Dimension(nodes_i.Length());
 	nodes_i.CopyInto(fNodes_i);
 
-	fNodes_b.Allocate(nodes_b.Length());
+	fNodes_b.Dimension(nodes_b.Length());
 	nodes_b.CopyInto(fNodes_b);	
 
-	fNodes_e.Allocate(nodes_e.Length());
+	fNodes_e.Dimension(nodes_e.Length());
 	nodes_e.CopyInto(fNodes_e);
 
-	fCommID.Allocate(commID.Length());
+	fCommID.Dimension(commID.Length());
 	commID.CopyInto(fCommID);
 
 #if 0
@@ -797,7 +797,7 @@ void PartitionT::ClassifyNodes(const iArrayT& part_map,
 #endif
 	
 	/* generate node map (just number sequentially through _i, _b, _e) */
-	fNodeMap.Allocate(fNodes_i.Length() +
+	fNodeMap.Dimension(fNodes_i.Length() +
 	                  fNodes_b.Length() +
 	                  fNodes_e.Length()); // sets sequence for local node
 	                                      // numbers - DO NOT CHANGE
@@ -925,16 +925,16 @@ void PartitionT::ClassifyNodes(const iArrayT& part_map, const ArrayT<const iArra
 	}
 
 	/* store (sorted) comm list */
-	fCommID.Allocate(comm_list.Count(1));
+	fCommID.Dimension(comm_list.Count(1));
 	int dex = 0;
 	for (int ll = 0; ll < fNumPartitions; ll++)
 		if (comm_list[ll] == 1)
 			fCommID[dex++] = ll;
 
 	/* allocate node lists */
-	fNodes_i.Allocate(n_i);
-	fNodes_b.Allocate(n_b);
-	fNodes_e.Allocate(n_e);
+	fNodes_i.Dimension(n_i);
+	fNodes_b.Dimension(n_b);
+	fNodes_e.Dimension(n_e);
 
 	/* sort-em out */
 	n_i = n_b = n_e = 0;
@@ -951,7 +951,7 @@ void PartitionT::ClassifyNodes(const iArrayT& part_map, const ArrayT<const iArra
 	}
 	
 	/* generate node map (just number sequentially through _i, _b, _e) */
-	fNodeMap.Allocate(fNodes_i.Length() +
+	fNodeMap.Dimension(fNodes_i.Length() +
 	                  fNodes_b.Length() +
 	                  fNodes_e.Length()); // sets sequence for local node
 	                                      // numbers - DO NOT CHANGE
@@ -996,9 +996,9 @@ void PartitionT::SetReceive(const iArrayT& part_map)
 	}
 	
 	/* allocate communication map */
-	fNodes_in.Allocate(fCommID.Length());
+	fNodes_in.Dimension(fCommID.Length());
 	for (int k = 0; k < fCommID.Length(); k++)
-		fNodes_in[k].Allocate(counts[fCommID[k] - min]);
+		fNodes_in[k].Dimension(counts[fCommID[k] - min]);
 
 	/* store communication map */
 	counts = 0;

@@ -1,4 +1,4 @@
-/* $Id: nNLHHTalpha.cpp,v 1.6 2002-07-02 19:55:06 cjkimme Exp $ */
+/* $Id: nNLHHTalpha.cpp,v 1.7 2002-10-20 22:48:08 paklein Exp $ */
 /* created: paklein (10/17/1996) */
 
 #include "nNLHHTalpha.h"
@@ -66,7 +66,7 @@ void nNLHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		default:
 		
 			cout << "\nnNLHHTalpha::ConsistentKBC:unknown BC code\n" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 }		
 

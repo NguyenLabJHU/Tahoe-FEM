@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.6 2002-09-12 17:50:05 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.7 2002-10-20 22:49:27 paklein Exp $ */
 /* created: paklein (02/25/1997)                                          */
 
 #include "PenaltyWallT.h"
@@ -46,7 +46,7 @@ void PenaltyWallT::ApplyLHS(void)
 	if (fmu > kSmall)
 	{
 		cout << "\n PenaltyWallT::ApplyLHS: tangent is frictionless only" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 
@@ -110,7 +110,7 @@ void PenaltyWallT::EchoData(ifstreamT& in, ostream& out)
 		fQ.SetCol(1,v1);
 		fQ.SetCol(2,v2);
 	}
-	else throw eGeneralFail;
+	else throw ExceptionT::kGeneralFail;
 }
 
 /* initialize data */
@@ -120,8 +120,8 @@ void PenaltyWallT::Initialize(void)
 	PenaltyRegionT::Initialize();
 
 	/* memory relative displacements */
-	fp_i.Allocate(fNumContactNodes, rCoords.MinorDim());
-	fv_i.Allocate(fNumContactNodes, rCoords.MinorDim());	
+	fp_i.Dimension(fNumContactNodes, rCoords.MinorDim());
+	fv_i.Dimension(fNumContactNodes, rCoords.MinorDim());	
 }
 
 /**********************************************************************
@@ -138,13 +138,13 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 		//TEMP
 		cout << "\n PenaltyWallT::ComputeContactForce: general (2D/3D) friction implementation\n";
 		cout <<   "     is not available" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 
 		if (!pVels)
 		{
 			cout << "\n PenaltyWallT::ComputeContactForce: velocities required with friction";
 			cout << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	
 		/* compute relative positions and velocities */

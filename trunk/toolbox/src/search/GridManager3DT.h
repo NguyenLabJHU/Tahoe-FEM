@@ -1,4 +1,4 @@
-/* $Id: GridManager3DT.h,v 1.5 2002-09-12 16:40:21 paklein Exp $ */
+/* $Id: GridManager3DT.h,v 1.6 2002-10-20 22:39:13 paklein Exp $ */
 /* created: paklein (12/06/1997)                                          */
 /* Interface for regular rectangular search and storage grid              */
 /* sTYPE requirements:                                                    */
@@ -119,7 +119,7 @@ double xmin, double xmax, int nx,
 {
 	/* consistency */
 	if (fxmax <= fxmin || fymax <= fymin || fzmax <= fzmin)
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 
 	/* grid spacings */
 	fdx = (fxmax - fxmin)/fnx;
@@ -149,7 +149,7 @@ void GridManager3DT<sTYPE>::Reset(void)
 
 	for (int i = 0; i < fGrid.Length(); i++)
 	{
-		if (*pgrid) (*pgrid)->Allocate(0);
+		if (*pgrid) (*pgrid)->Dimension(0);
 		pgrid++;
 	}
 
@@ -314,7 +314,7 @@ void GridManager3DT<sTYPE>::Reset(const dArray2DT& coords,
 	/* set grid parameters */
 	fxjump = fny*fnz;
 	fyjump = fnz;
-	fGrid.Allocate(fnx*fny*fnz);
+	fGrid.Dimension(fnx*fny*fnz);
 }
 
 /* insert data into the grid */
@@ -328,7 +328,7 @@ void GridManager3DT<sTYPE>::Add(const sTYPE& data)
 	if (!(*griddata))
 	{
 		*griddata = new AutoArrayT<sTYPE>;
-		if (!*griddata) throw(eOutOfMemory);
+		if (!*griddata) throw ExceptionT::kOutOfMemory;
 	}
 
 	/* append value */
@@ -415,7 +415,7 @@ const AutoArrayT<sTYPE>& GridManager3DT<sTYPE>::
 	HitsInRegion(double* coords, double distance)
 {
 	/* empty hit list */
-	fHits.Allocate(0);
+	fHits.Dimension(0);
 
 	/* grid indices */
 	int ixstart = int((coords[0] - fxmin - distance)/fdx);
@@ -463,7 +463,7 @@ const AutoArrayT<sTYPE>& GridManager3DT<sTYPE>::HitsInRegion(double* coords,
 	const ArrayT<double>& dist_xyz)
 {
 	/* empty hit list */
-	fHits.Allocate(0);
+	fHits.Dimension(0);
 
 	/* grid indices */
 	int ixstart = int((coords[0] - fxmin - dist_xyz[0])/fdx);
@@ -591,7 +591,7 @@ AutoArrayT<sTYPE>** GridManager3DT<sTYPE>::FetchGrid(double* coords)
 		     << setw(d_width) << fzmin << ","
 		     << setw(d_width) << fzmax <<  "}" << endl;	
 
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* stored column major */

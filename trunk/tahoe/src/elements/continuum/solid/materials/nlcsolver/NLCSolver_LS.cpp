@@ -1,7 +1,7 @@
-/* $Id: NLCSolver_LS.cpp,v 1.6 2002-09-12 21:18:20 paklein Exp $ */
+/* $Id: NLCSolver_LS.cpp,v 1.7 2002-10-20 22:49:04 paklein Exp $ */
 #include "NLCSolver_LS.h"
 #include "Utils.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 using namespace Tahoe;
 
@@ -104,7 +104,7 @@ void NLCSolver_LS::ComputeTrialPoint(dArrayT& X)
               << "  fRHS           = " << endl << fRHS        << endl
               << "  fLHS           = " << endl << fLHS        << endl;
       }
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
 
   // after first backtrack, be prepared for cubic backtrack

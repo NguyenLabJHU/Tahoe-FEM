@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatListT.cpp,v 1.2 2002-07-02 19:56:05 cjkimme Exp $ */
+/* $Id: DiffusionMatListT.cpp,v 1.3 2002-10-20 22:49:02 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "DiffusionMatListT.h"
@@ -38,16 +38,16 @@ void DiffusionMatListT::ReadMaterialData(ifstreamT& in)
 		in >> matcode;
 		
 		/* checks */
-		if (matnum < 0  || matnum >= fLength) throw eBadInputValue;
+		if (matnum < 0  || matnum >= fLength) throw ExceptionT::kBadInputValue;
 		if (matcode < kMaterialMin ||
-		    matcode > kMaterialMax) throw eBadInputValue;
+		    matcode > kMaterialMax) throw ExceptionT::kBadInputValue;
 
 		/* repeated material number */
 		if (fArray[matnum] != NULL)
 		{
 			cout << "\n DiffusionMatListT::ReadMaterialData: repeated material number: ";
 			cout << matnum + 1 << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		
 		/* add to the list of materials */
@@ -62,10 +62,10 @@ void DiffusionMatListT::ReadMaterialData(ifstreamT& in)
 			
 				cout << "\n DiffusionMatListT::ReadMaterialData: unknown material code: ";
 				cout << matcode << '\n' << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 		}
 
 		/* verify construction */
-		if (!fArray[matnum]) throw eOutOfMemory;
+		if (!fArray[matnum]) throw ExceptionT::kOutOfMemory;
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: povirk2D.cpp,v 1.5 2002-10-05 20:04:20 paklein Exp $ */
+/* $Id: povirk2D.cpp,v 1.6 2002-10-20 22:49:20 paklein Exp $ */
 /* Created:  Harold Park (09/10/2001) */
 #include "povirk2D.h"
 
@@ -271,7 +271,7 @@ int povirk2D::NumOutputVariables(void) const { return kNumOutput; }
 void povirk2D::OutputLabels(ArrayT<StringT>& labels) const
 {
   /* set size */
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   /* copy labels - WHY? */
   for (int i = 0; i < kNumOutput; i++)
@@ -523,7 +523,7 @@ void povirk2D::AllocateElement(ElementCardT& element)
                                       // Sig11, Sig12=Sig21, Sig22 and Sig33
   d_size += kNSD * fNumIP;           // 3 2D symmetric components (Sig11, Sig12, Sig22)
   /* construct new plastic element */
-  element.Allocate(i_size, d_size);
+  element.Dimension(i_size, d_size);
 
   /* first set of flags for plasticity criterion */
   for (int ip = 0; ip < fNumIP; ip++)
@@ -540,7 +540,7 @@ void povirk2D::LoadData(const ElementCardT& element, int ip)
 {
   /* load element data for the specified integration point */
   /* check */
-  if (!element.IsAllocated()) throw eGeneralFail;
+  if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
   int dex = ip * kVoigt;     // 4 non-zero stress components (11, 12, 22, 33)
   int dex2 = ip * kNSD;      // 3 non-zero 2D stress components (11, 12=21, 22)

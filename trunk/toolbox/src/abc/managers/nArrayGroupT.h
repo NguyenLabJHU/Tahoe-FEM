@@ -1,38 +1,38 @@
-/* $Id: nArrayGroupT.h,v 1.2 2002-07-02 19:56:45 cjkimme Exp $ */
-/* created: paklein (04/17/1998)                                          */
-/* Class to manage a list of equally-size nArrayT<>'s. Storage            */
-/* is grouped and all arrays added with Register can be set to new        */
-/* length using Dimension. (percentover > 0) sets aside                   */
-/* extra space at memory allocation so that every call to Dimension       */
-/* does not result in memory swapping.                                    */
-/* NOTE: all registered arrays will be shallow.                           */
-
+/* $Id: nArrayGroupT.h,v 1.3 2002-10-20 22:38:53 paklein Exp $ */
+/* created: paklein (04/17/1998) */
 #ifndef _NARRAY_GROUP_T_H_
 #define _NARRAY_GROUP_T_H_
 
 /* base class */
 #include "MemoryGroupT.h"
 
-
 namespace Tahoe {
 
+/** class to manage a list of equally-size nArrayT<>'s. Storage
+ * is grouped and all arrays added with Register can be set to new 
+ * length using Dimension. (percentover > 0) sets aside extra space
+ * at memory allocation so that every call to nArrayGroupT::Dimension 
+ * does not result in memory swapping.
+ * \note all registered arrays will be shallow.
+ */
 template <class TYPE>
 class nArrayGroupT: public MemoryGroupT<TYPE>
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	nArrayGroupT(int headroom);
 
-	/* add Array2DT to list of managed */
+	/** add an nArrayT to list of managed arrays */
 	void Register(nArrayT<TYPE>& array);
 
-	/* (re-) dimension all arrays and copy in old data if specified */
+	/** (re-)dimension all arrays and copy in old data if specified */
 	void Dimension(int length, bool copy_in);
 	
 private:
 
-	int fLength; // current group length		
+	/** current length of group set by call to nArrayGroupT::Length */
+	int fLength;
 };
 
 /*************************************************************************

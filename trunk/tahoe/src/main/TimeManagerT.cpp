@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.11 2002-09-12 17:49:56 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.12 2002-10-20 22:48:32 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "TimeManagerT.h"
@@ -76,7 +76,7 @@ istream& operator>>(istream& in, TimeManagerT::CodeT& code)
 		default:
 			cout << "\n operator>>TimeManagerT::CodeT: unknown code: "
 			<< i_code<< endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 	return in;
 }
@@ -104,15 +104,15 @@ TimeManagerT::TimeManagerT(FEManagerT& FEM):
 	/* Time sequences - allocate memory and echo */
 	int num_sequences;
 	in >> num_sequences;	
-	if (num_sequences < 1) throw eBadInputValue;
-	fSequences.Allocate(num_sequences);
+	if (num_sequences < 1) throw ExceptionT::kBadInputValue;
+	fSequences.Dimension(num_sequences);
 	EchoTimeSequences(in, out);
 	
 	/* Loadtime functions - allocate memory and echo */	
 	int num_LTf;
 	in >> num_LTf;
-	if (num_LTf < 1) throw eBadInputValue;
-	fSchedule.Allocate(num_LTf); // add: f(t) = 1.0
+	if (num_LTf < 1) throw ExceptionT::kBadInputValue;
+	fSchedule.Dimension(num_LTf); // add: f(t) = 1.0
 
 	EchoSchedule(in, out);
 	
@@ -172,7 +172,7 @@ bool TimeManagerT::NextSequence(void)
 bool TimeManagerT::Step(void)
 {
 	/* check that time has not been shifted */
-	if (fIsTimeShifted) throw eGeneralFail;
+	if (fIsTimeShifted) throw ExceptionT::kGeneralFail;
 
 	if (fStepNum < fNumSteps)
 	{
@@ -220,13 +220,13 @@ bool TimeManagerT::Step(void)
 void TimeManagerT::ResetStep(void)
 {
 	/* check that time has not been shifted */
-	if (fIsTimeShifted) throw eGeneralFail;
+	if (fIsTimeShifted) throw ExceptionT::kGeneralFail;
 
 	/* too far */
 	if (fStepNum == 0)
 	{
 		cout << "\n TimeManagerT::ResetStep: already at the start time"<< endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	/* return to previous time */
 	else
@@ -280,7 +280,7 @@ ScheduleT* TimeManagerT::Schedule(int num) const
 	{
 		cout << "\n TimeManagerT::Schedule: function number " << num << " is out of\n"
 		     <<   "     range {" << 0 << "," << fSchedule.Length() - 1 << "}" << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 
 	return fSchedule[num];
@@ -301,7 +301,7 @@ void TimeManagerT::ReadRestart(istream& restart_in)
 {	
 	int sequencenumber;
 	restart_in >> sequencenumber;
-	if (sequencenumber != fCurrentSequence) throw eBadInputValue;
+	if (sequencenumber != fCurrentSequence) throw ExceptionT::kBadInputValue;
 
 #if 0 
 	/* total desired simulation time */ 
@@ -404,19 +404,19 @@ ControllerT* TimeManagerT::New_Controller(CodeT type) const
 		default:
 		{
 			cout << "\n TimeManagerT::New_Controller: unrecognized type: " << type << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	} }
 #ifdef __NEW_THROWS__
 	catch (bad_alloc) { controller = NULL; }
 #else
-	catch (int) { controller = NULL; }
+	catch (ExceptionT::CodeT) { controller = NULL; }
 #endif	
 	
 	/* fail */
 	if (!controller) {
 		cout << "\n TimeManagerT::New_Controller: failed" << endl;
-		throw eGeneralFail;	
+		throw ExceptionT::kGeneralFail;	
 	}
 
 	return controller;
@@ -438,7 +438,7 @@ void TimeManagerT::EchoTimeSequences(ifstreamT& in, ostream& out)
 		int seqnum;
 		in >> seqnum;	
 		if (seqnum < 1 ||
-		    seqnum > num_seq) throw eBadInputValue;
+		    seqnum > num_seq) throw ExceptionT::kBadInputValue;
 
 		out << " Sequence number . . . . . . . . . . . . . . . . = ";
 		out << seqnum << '\n';
@@ -463,8 +463,8 @@ void TimeManagerT::EchoSchedule(ifstreamT& in, ostream& out)
 		in >> LTfnum >> numpts;
 
 		/* checks */
-		if (LTfnum < 1 || LTfnum > num_LTf) throw eBadInputValue;
-		if (numpts < 1) throw eBadInputValue;
+		if (LTfnum < 1 || LTfnum > num_LTf) throw ExceptionT::kBadInputValue;
+		if (numpts < 1) throw ExceptionT::kBadInputValue;
 
 		out << " Loadtime function number. . . . . . . . . . . . = ";
 		out << LTfnum << "\n\n";
@@ -472,7 +472,7 @@ void TimeManagerT::EchoSchedule(ifstreamT& in, ostream& out)
 		/* echo data */
 		LTfnum--;
 		fSchedule[LTfnum] = new ScheduleT(numpts);
-		if (!fSchedule[LTfnum]) throw(eOutOfMemory);
+		if (!fSchedule[LTfnum]) throw ExceptionT::kOutOfMemory;
 
 		fSchedule[LTfnum]->Read(in);
 		fSchedule[LTfnum]->Write(out);

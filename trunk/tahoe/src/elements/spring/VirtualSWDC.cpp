@@ -1,4 +1,4 @@
-/* $Id: VirtualSWDC.cpp,v 1.4 2002-09-12 17:49:55 paklein Exp $ */
+/* $Id: VirtualSWDC.cpp,v 1.5 2002-10-20 22:48:26 paklein Exp $ */
 /* created: paklein (05/05/1997) */
 #include "VirtualSWDC.h"
 
@@ -78,7 +78,7 @@ void VirtualSWDC::EchoConnectivityData(ifstreamT& in, ostream& out)
 	if (numvpairs > 0)
 	{
 		/* memory */
-		fVNodePairs.Allocate(numvpairs, 2);
+		fVNodePairs.Dimension(numvpairs, 2);
 	
 		/* read data */
 		fVNodePairs.ReadNumbered(in);

@@ -18,7 +18,7 @@ iGridManager1DT::iGridManager1DT(int nx, const dArray2DT& coords,
 void iGridManager1DT::Neighbors(int n, double tol, AutoArrayT<int>& neighbors)
 {
 	/* initialize */
-	neighbors.Allocate(0);
+	neighbors.Dimension(0);
 	
 	/* fetch prospective neighbors */
 	double* target = fCoords(n);
@@ -48,11 +48,11 @@ void iGridManager1DT::Neighbors(int n, const ArrayT<double>& tol_xy,
 	{
 		cout << "\n iGridManager1DT::Neighbors: expecting tolerance list length 1: " 
 		     << tol_xy.Length() << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 
 	/* initialize */
-	neighbors.Allocate(0);
+	neighbors.Dimension(0);
 	
 	/* fetch prospective neighbors */
 	double* target = fCoords(n);

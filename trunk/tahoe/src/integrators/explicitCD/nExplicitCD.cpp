@@ -1,4 +1,4 @@
-/* $Id: nExplicitCD.cpp,v 1.5 2002-07-02 19:55:08 cjkimme Exp $ */
+/* $Id: nExplicitCD.cpp,v 1.6 2002-10-20 22:48:10 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "nExplicitCD.h"
@@ -61,7 +61,7 @@ void nExplicitCD::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		default:
 		
 			cout << "\n nExplicitCD::ConsistentKBC:unknown BC code\n" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 }		
 

@@ -1,4 +1,4 @@
-/* $Id: nStaticIntegrator.cpp,v 1.4 2002-07-02 19:55:09 cjkimme Exp $ */
+/* $Id: nStaticIntegrator.cpp,v 1.5 2002-10-20 22:48:12 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nStaticIntegrator.h"
@@ -36,7 +36,7 @@ void nStaticIntegrator::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		}
 		default:
 			cout << "\n nTrapezoid::ConsistentKBC:unknown BC code\n" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 }		
 
@@ -73,7 +73,7 @@ void nStaticIntegrator::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 {
 	/* check dimensions */
 	if (flags.MajorDim() != update.MajorDim() ||
-	    flags.MinorDim() != update.MinorDim()) throw eSizeMismatch;
+	    flags.MinorDim() != update.MinorDim()) throw ExceptionT::kSizeMismatch;
 
 	/* run through map */
 	int minordim = flags.MinorDim();

@@ -1,4 +1,4 @@
-/* $Id: GroupAverageT.cpp,v 1.5 2002-09-12 16:40:20 paklein Exp $ */
+/* $Id: GroupAverageT.cpp,v 1.6 2002-10-20 22:39:04 paklein Exp $ */
 /* created: paklein (10/03/1996)                                          */
 
 #include "GroupAverageT.h"
@@ -28,8 +28,8 @@ GroupAverageT::GroupAverageT(void):
 void GroupAverageT::ResetAverage(int numcols)
 {
 	/* dimension workspace */
-	fCounts.Allocate(fNumRows);
-	fMemory.Allocate(fNumRows*numcols);
+	fCounts.Dimension(fNumRows);
+	fMemory.Dimension(fNumRows*numcols);
 	fValues.Set(fNumRows, numcols, fMemory.Pointer());
 
 	/* initialize data */
@@ -64,7 +64,7 @@ void GroupAverageT::OutputAverage(const iArrayT& rows,
 	Average();
 
 	/* collect rows */
-	average.Allocate(rows.Length(), fValues.MinorDim());
+	average.Dimension(rows.Length(), fValues.MinorDim());
 	average.RowCollect(rows, fValues);
 }
 
@@ -73,7 +73,7 @@ void GroupAverageT::OutputUsedAverage(dArray2DT& average)
 	/* compute averages */
 	Average();
 
-	average.Allocate(NumRowsUsed(), fValues.MinorDim());
+	average.Dimension(NumRowsUsed(), fValues.MinorDim());
 	int row = 0;
 	int* pcount = fCounts.Pointer();
 	for (int i = 0; i < fNumRows; i++)
@@ -127,7 +127,7 @@ void GroupAverageT::MaxInColumn(int column, int& maxrow, double& maxval)
 	{
 		cout << "\n GroupAverageT::MaxInColumn: column out of range: "
 		     << column << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 
 	/* compute averages */
@@ -158,7 +158,7 @@ void GroupAverageT::RowsUsed(iArrayT& rowsused) const
 {
 	/* allocate */
 	int count = NumRowsUsed();
-	rowsused.Allocate(count);
+	rowsused.Dimension(count);
 
 	/* copy in used rows */
 	int* pcount = fCounts.Pointer();

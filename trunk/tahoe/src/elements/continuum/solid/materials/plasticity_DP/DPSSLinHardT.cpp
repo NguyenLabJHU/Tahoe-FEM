@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.cpp,v 1.14 2002-07-02 19:56:10 cjkimme Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.15 2002-10-20 22:49:04 paklein Exp $ */
 /* created: myip (06/01/1999)                                        */
 /*
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -320,7 +320,7 @@ void DPSSLinHardT::AllocateElement(ElementCardT& element)
 	d_size += kNumInternal*fNumIP;        //fInternal
 
 	/* construct new plastic element */
-	element.Allocate(i_size, d_size);
+	element.Dimension(i_size, d_size);
 	
 	/* initialize values */
 	element.IntegerData() = kIsElastic;
@@ -395,7 +395,7 @@ void DPSSLinHardT::Reset(ElementCardT& element)
 void DPSSLinHardT::LoadData(const ElementCardT& element, int ip)
 {
 	/* check */
-	if (!element.IsAllocated()) throw eGeneralFail;
+	if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
 	/* fetch arrays */
 	dArrayT& d_array = element.DoubleData();

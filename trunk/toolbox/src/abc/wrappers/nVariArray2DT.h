@@ -1,4 +1,4 @@
-/* $Id: nVariArray2DT.h,v 1.5 2002-07-02 19:56:54 cjkimme Exp $ */
+/* $Id: nVariArray2DT.h,v 1.6 2002-10-20 22:38:57 paklein Exp $ */
 /* created: paklein (04/18/1998)                                          */
 /* WRAPPER for nArray2DT<>'s to add dynamic re-sizing of the              */
 /* major dimension, using some headroom to cut down calls for             */
@@ -85,14 +85,14 @@ void nVariArray2DT<nTYPE>::SetWard(int headroom, nArray2DT<nTYPE>& ward,
 		if (fWard->MinorDim() > 0)
 		{
 			/* consistency check */
-			if (fWard->MinorDim() != fMinorDim) throw eSizeMismatch;
+			if (fWard->MinorDim() != fMinorDim) throw ExceptionT::kSizeMismatch;
 		}
 		else
 			/* set minor dimension */
 			fWard->Set(0, fMinorDim, NULL);
 	}
 	else
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 }
 	
 /* set length of the ward, fill extra space if specified */
@@ -110,7 +110,7 @@ template <class nTYPE>
 inline void nVariArray2DT<nTYPE>::SetMajorDimension(int majordim, bool copy_in)
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	/* update ArrayT data */
 	SetAlias(*fWard, majordim*fMinorDim, copy_in);
@@ -124,7 +124,7 @@ inline void nVariArray2DT<nTYPE>::SetMajorDimension(int majordim,
 	const nTYPE& fill, bool copy_in)
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	/* update ArrayT data */
 	SetAlias(*fWard, majordim*fMinorDim, fill, copy_in);
@@ -138,7 +138,7 @@ template <class nTYPE>
 inline int nVariArray2DT<nTYPE>::MajorDim(void) const
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	return(fWard->MajorDim());
 }
@@ -147,7 +147,7 @@ template <class nTYPE>
 inline int nVariArray2DT<nTYPE>::MinorDim(void) const
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	return(fWard->MinorDim());
 }
@@ -157,7 +157,7 @@ template <class nTYPE>
 const nArray2DT<nTYPE>& nVariArray2DT<nTYPE>::TheWard(void) const
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	return(*fWard);
 }

@@ -1,11 +1,11 @@
-/* $Id: GaussPtsT.cpp,v 1.3 2002-09-12 17:50:01 paklein Exp $ */
+/* $Id: GaussPtsT.cpp,v 1.4 2002-10-20 22:48:59 paklein Exp $ */
 /* created: paklein (11/02/1997)                                          */
 
 #include "GaussPtsT.h"
 #include <math.h>
 #include <iostream.h>
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 
 using namespace Tahoe;
@@ -97,11 +97,11 @@ void GaussPtsT::SetCoords(int numint)
 
 		default:
 			
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 
 	/* calculate directions */	
-	fPoints.Allocate(numint,2);
+	fPoints.Dimension(numint,2);
 	for (int i = 0; i < numint; i++)
 	{
 		double *xsi = fPoints(i);
@@ -152,13 +152,13 @@ void GaussPtsT::SetJacobians(int numint)
 
 		default:
 			
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 	
 	/* temp vector */
 	dArrayT temp(numint,p);
 	
 	/* copy in */
-	fJacobians.Allocate(numint);
+	fJacobians.Dimension(numint);
 	fJacobians.SetToScaled(Pi,temp);
 }

@@ -1,4 +1,4 @@
-/* $Id: HHTalpha.cpp,v 1.3 2002-07-02 19:55:04 cjkimme Exp $ */
+/* $Id: HHTalpha.cpp,v 1.4 2002-10-20 22:48:08 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "HHTalpha.h"
@@ -30,7 +30,7 @@ HHTalpha::HHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder):
 	out << " alpha . . . . . . . . . . . . . . . . . . . . . = " << falpha << endl;
 
 	/* range checks (incomplete) */
-	if (falpha < 0.0 || falpha > 1.0) throw eBadInputValue;
+	if (falpha < 0.0 || falpha > 1.0) throw ExceptionT::kBadInputValue;
 }
 
 /*************************************************************************

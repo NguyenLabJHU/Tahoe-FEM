@@ -1,12 +1,5 @@
-/* $Id: nArray2DGroupT.h,v 1.2 2002-07-02 19:56:45 cjkimme Exp $ */
-/* created: paklein (04/16/1998)                                          */
-/* Class to manage a list of equally-size nArray2DT<>'s. Storage          */
-/* is grouped and all arrays added with Register can be set to new        */
-/* major dimensions using Dimension. (percentover > 0) sets aside         */
-/* extra space at memory allocation so that every call to Dimension       */
-/* does not result in memory swapping.                                    */
-/* NOTE: all registered arrays will be shallow.                           */
-
+/* $Id: nArray2DGroupT.h,v 1.3 2002-10-20 22:38:53 paklein Exp $ */
+/* created: paklein (04/16/1998) */
 #ifndef _NARRAY2D_GROUP_T_H_
 #define _NARRAY2D_GROUP_T_H_
 
@@ -16,31 +9,47 @@
 /* direct members */
 #include "nArray2DT.h"
 
-
 namespace Tahoe {
 
+/** class to manage a list of equally-size nArray2DT<>'s. Storage
+ * is grouped and all arrays added with Register can be set to new
+ * major dimensions using Dimension. (percentover > 0) sets aside
+ * extra space at memory allocation so that every call to nArray2DGroupT::Dimension
+ * does not result in memory swapping.
+ * \note all registered arrays will be shallow.
+ */
 template <class TYPE>
 class nArray2DGroupT: public MemoryGroupT<TYPE>
 {
 public:
 
-	/* constructor */
+	/** \name constructors */
+	/*@{*/
 	nArray2DGroupT(int headroom);
 	nArray2DGroupT(int headroom, int minordim);
+	/*@}*/
 
-	/* add Array2DT to list of managed */
+	/** add an nArray2DT to list of managed arrays */
 	void Register(nArray2DT<TYPE>& array);
 
-	/* (re-) dimension all arrays */
+	/** (re-)dimension all arrays */
+	/*@{*/
 	void Dimension(int majordim, int minordim);
-	void SetMinorDimension(int minordim); // does not allocate
 	void SetMajorDimension(int majordim, bool copy_in);
+
+	/** set minor dimension of but does not reset the managed
+	 * arrays. Arrays are dimensioned by the next call to
+	 * nArray2DGroupT::SetMajorDimension. */
+	void SetMinorDimension(int minordim);
+	/*@}*/
 		
 private:
 
-	/* size parameters */
+	/** \name size parameters */
+	/*@{*/
 	int fMajorDim;
 	int fMinorDim;
+	/*@}*/
 };
 
 /*************************************************************************
@@ -64,7 +73,7 @@ nArray2DGroupT<TYPE>::nArray2DGroupT(int headroom, int minordim):
 	fMinorDim(minordim)
 {
 	/* error check */
-	if (fMinorDim < 0) throw eGeneralFail;
+	if (fMinorDim < 0) throw ExceptionT::kGeneralFail;
 }
 
 /* add Array2DT to list of managed - function allows only nArray2DT's
@@ -97,7 +106,7 @@ void nArray2DGroupT<TYPE>::SetMinorDimension(int minordim)
 	fMinorDim = minordim;
 
 	/* error check */
-	if (fMinorDim < 0) throw eGeneralFail;
+	if (fMinorDim < 0) throw ExceptionT::kGeneralFail;
 }
 
 template <class TYPE>

@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.h,v 1.5 2002-10-05 20:04:15 paklein Exp $ */
+/* $Id: IsoVIB3D.h,v 1.6 2002-10-20 22:48:56 paklein Exp $ */
 /* created: paklein (03/15/1998)                                          */
 /* 3D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -49,7 +49,7 @@ public:
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
 	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
 //TEMP - not yet optimized for total Lagrangian formulation.
-//       calls to these write error message and throw exception
+//       calls to these write error message and throw ExceptionT::xception
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);

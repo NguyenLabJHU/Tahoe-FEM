@@ -8,7 +8,7 @@
 #include "Utils.h"
 #include "ifstreamT.h"
 #include "StringT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "toolboxConstants.h"
 
 #include "LocalArrayT.h"
@@ -666,7 +666,7 @@ void throwRunTimeError(const char* msg)
 
   cout << " exiting tahoe with general fail status\n";
 
-  throw eGeneralFail;
+  throw ExceptionT::kGeneralFail;
 }
 
 void throwMemoryError(const char* msg)
@@ -680,7 +680,7 @@ void throwMemoryError(const char* msg)
 
   cout << " exiting tahoe with memory fail status\n";
 
-  throw eOutOfMemory;
+  throw ExceptionT::kOutOfMemory;
 }
 
 } // namespace Tahoe

@@ -1,9 +1,9 @@
-/* $Id: eStaticIntegrator.cpp,v 1.4 2002-07-02 19:55:09 cjkimme Exp $ */
+/* $Id: eStaticIntegrator.cpp,v 1.5 2002-10-20 22:48:12 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "eStaticIntegrator.h"
 #include "Environment.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 /* constructor */
 

@@ -1,11 +1,11 @@
-/* $Id: LocalParabolaT.cpp,v 1.2 2002-07-02 19:57:18 cjkimme Exp $ */
+/* $Id: LocalParabolaT.cpp,v 1.3 2002-10-20 22:39:04 paklein Exp $ */
 /* created: paklein (01/28/1997)                                          */
 /* LocalParabolaT.cpp                                                     */
 /* For a successively fitted parabolic                                    */
 
 #include "LocalParabolaT.h"
 #include <math.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 /*
 * Constructor
@@ -161,7 +161,7 @@ void LocalParabolaT::FitData(void) const
 void LocalParabolaT::FitDataWrapper(void)
 {
 	/* checks */
-	if (fPointCount < 3) throw eGeneralFail;
+	if (fPointCount < 3) throw ExceptionT::kGeneralFail;
 
 	/* status flags */
 	fCurrentCoeffs = 1;

@@ -1,4 +1,4 @@
-/* $Id: OrthoMLSSolverT.cpp,v 1.4 2002-07-02 19:56:56 cjkimme Exp $ */
+/* $Id: OrthoMLSSolverT.cpp,v 1.5 2002-10-20 22:49:41 paklein Exp $ */
 /* created: paklein (07/03/1998)                                          */
 
 #include "OrthoMLSSolverT.h"
@@ -23,7 +23,7 @@ OrthoMLSSolverT::OrthoMLSSolverT(int nsd, int complete):
 	fLocCoords_man(0, fLocCoords, fNumSD)
 {
 	/* error checking */
-	if (fNumSD < 1 && fNumSD > 3) throw eBadInputValue;
+	if (fNumSD < 1 && fNumSD > 3) throw ExceptionT::kBadInputValue;
 }
 	
 /* destructor */
@@ -36,20 +36,20 @@ void OrthoMLSSolverT::Initialize(void)
 	int m = NumberOfMonomials(fComplete);
 
 	/* b (2.11 b) and derivatives */
-	fb.Allocate(m);
-	fDb.Allocate(fNumSD, m);
+	fb.Dimension(m);
+	fDb.Dimension(fNumSD, m);
 
 	/* monomials and derivatives */
-	fp.Allocate(m);
-	fDp.Allocate(fNumSD, m);
+	fp.Dimension(m);
+	fDp.Dimension(fNumSD, m);
 
 	/* (orthogonal) basis functions (2.4) and derivatives */
-	fq.Allocate(m);
-	fDq.Allocate(fNumSD, m);
+	fq.Dimension(m);
+	fDq.Dimension(fNumSD, m);
 
 	/* rows of alpha and derivatives */
-	fa.Allocate(m-1);
-	fDa.Allocate(fNumSD, m-1);
+	fa.Dimension(m-1);
+	fDa.Dimension(fNumSD, m-1);
 	
 	/* register variable length arrays */
 	fArrayGroup.Register(fw);
@@ -69,8 +69,8 @@ int OrthoMLSSolverT::SetField(const dArray2DT& nodalcoords,
 	const nArrayT<double>& dmax, const dArrayT& samplept)
 {
 #if __option(extended_errorcheck)
-	if (dmax.Length() != nodalcoords.MajorDim()) throw eSizeMismatch;
-	if (samplept.Length() != fNumSD) throw eSizeMismatch;
+	if (dmax.Length() != nodalcoords.MajorDim()) throw ExceptionT::kSizeMismatch;
+	if (samplept.Length() != fNumSD) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* set size of current working set */
@@ -160,7 +160,7 @@ void OrthoMLSSolverT::ComputeOrtho(dMatrixT& mat) const
 {
 	/* dimension output matrix */
 	int m = fq.Length();
-	mat.Allocate(m);
+	mat.Dimension(m);
 
 	for (int i = 0; i < m; i++)
 		for (int j = 0; j < m; j++)
@@ -181,7 +181,7 @@ void OrthoMLSSolverT::ComputeDOrtho(int deriv, dMatrixT& mat) const
 {
 	/* dimension output matrix */
 	int m = fq.Length();
-	mat.Allocate(m);
+	mat.Dimension(m);
 
 	for (int i = 0; i < m; i++)
 		for (int j = 0; j < m; j++)

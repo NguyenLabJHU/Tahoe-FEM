@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.3 2002-07-02 19:55:36 cjkimme Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.4 2002-10-20 22:48:39 paklein Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAMFCC3D.cpp                                                           */
 
@@ -38,7 +38,7 @@ EAMFCC3D::EAMFCC3D(ifstreamT& in, const dMatrixT& Q, int EAMcode, int numspatial
 {
 	/* dimension check */
 	if( Q.Rows() != kEAMFCC3DNumLatticeDim ||
-	    Q.Cols() != kEAMFCC3DNumLatticeDim) throw eGeneralFail;
+	    Q.Cols() != kEAMFCC3DNumLatticeDim) throw ExceptionT::kGeneralFail;
 
 	/* set EAM solver functions */
 	SetGlueFunctions(in);
@@ -170,7 +170,7 @@ void EAMFCC3D::LoadBondTable(void)
 
 	/* dimension check */				     		
 	if (fBonds.MajorDim() != fNumBonds ||
-	    fBonds.MinorDim() != kEAMFCC3DNumLatticeDim) throw eGeneralFail;
+	    fBonds.MinorDim() != kEAMFCC3DNumLatticeDim) throw ExceptionT::kGeneralFail;
 				     		
 	/* copy into reference table */
 	for (int i = 0; i < fNumBonds; i++)
@@ -219,7 +219,7 @@ void EAMFCC3D::SetGlueFunctions(ifstreamT& in)
 			{
 				cout << "\n EAMFCC3D::SetGlueFunctions: could not open file: "
 				     << data_file << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 			fEAM = new FBD_EAMGlue(*this, data);
 			break;
@@ -227,9 +227,9 @@ void EAMFCC3D::SetGlueFunctions(ifstreamT& in)
 		default:
 		
 			cout << "\nEAMFCC3D::EAMFCC3D: unknown EAM code: " << fEAMcode << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 	
-	if (!fEAM) throw eOutOfMemory;
+	if (!fEAM) throw ExceptionT::kOutOfMemory;
 	fEAM->SetGlueFunctions();
 }

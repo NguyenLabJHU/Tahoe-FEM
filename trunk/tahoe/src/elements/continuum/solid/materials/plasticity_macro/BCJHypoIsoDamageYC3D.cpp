@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.3 2002-07-02 19:56:19 cjkimme Exp $ */
+/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.4 2002-10-20 22:49:09 paklein Exp $ */
 #include "BCJHypoIsoDamageYC3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -45,17 +45,17 @@ BCJHypoIsoDamageYC3D::BCJHypoIsoDamageYC3D(ifstreamT& in, const FiniteStrainT& e
                                     // fEQP, fEQXie_n, fEQXie, fEQXih_n, fEQXih 
   
   // re-dimensioning some arrays of base class BCJHypo3D
-  fInternal_n.Allocate(fNumInternal);
-  fInternal.Allocate(fNumInternal);
-  fInt_save.Allocate(fNumInternal);
-  fEQValues.Allocate(fNumEQValues);
-  fRHS.Allocate(fNumInternal);
-  fLHS.Allocate(fNumInternal,fNumInternal);
-  farray.Allocate(fNumInternal);
+  fInternal_n.Dimension(fNumInternal);
+  fInternal.Dimension(fNumInternal);
+  fInt_save.Dimension(fNumInternal);
+  fEQValues.Dimension(fNumEQValues);
+  fRHS.Dimension(fNumInternal);
+  fLHS.Dimension(fNumInternal,fNumInternal);
+  farray.Dimension(fNumInternal);
 
   // allocate space for derivatives of effective stresses
-  fdEQXie.Allocate(fNumInternal);
-  fdEQXih.Allocate(fNumInternal);
+  fdEQXie.Dimension(fNumInternal);
+  fdEQXih.Dimension(fNumInternal);
 }
 
 BCJHypoIsoDamageYC3D::~BCJHypoIsoDamageYC3D() 
@@ -232,7 +232,7 @@ int BCJHypoIsoDamageYC3D::NumOutputVariables() const {return kNumOutput;}
 void BCJHypoIsoDamageYC3D::OutputLabels(ArrayT<StringT>& labels) const
 {
   // allocate space for labels
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   // copy labels
   for (int i = 0; i < kNumOutput; i++)

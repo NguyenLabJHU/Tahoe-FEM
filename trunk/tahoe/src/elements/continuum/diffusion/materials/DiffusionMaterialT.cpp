@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.3 2002-07-02 19:56:21 cjkimme Exp $ */
+/* $Id: DiffusionMaterialT.cpp,v 1.4 2002-10-20 22:49:11 paklein Exp $ */
 /* created: paklein (10/02/1999)                                          */
 
 #include "DiffusionMaterialT.h"
@@ -24,8 +24,8 @@ DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionT& element)
 	fT_x(1, NumSD()),
 	fq_i(NumSD())
 {
-	in >> fDensity;		 if (fDensity <= 0.0) throw eBadInputValue;
-	in >> fSpecificHeat; if (fDensity <= 0.0) throw eBadInputValue;
+	in >> fDensity;		 if (fDensity <= 0.0) throw ExceptionT::kBadInputValue;
+	in >> fSpecificHeat; if (fDensity <= 0.0) throw ExceptionT::kBadInputValue;
 	in >> fConductivity;
 
 	fCapacity = fDensity*fSpecificHeat;

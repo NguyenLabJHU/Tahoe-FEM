@@ -1,10 +1,10 @@
-/* $Id: GaoJi2.cpp,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
+/* $Id: GaoJi2.cpp,v 1.3 2002-10-20 22:38:47 paklein Exp $ */
 /* created: Baohua Ji (02/25/2002)                                          */
 
 #include "GaoJi2.h"
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 
 /* constructor */
@@ -92,7 +92,7 @@ double GaoJi2::DDFunction(double x) const
 dArrayT& GaoJi2::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
@@ -113,7 +113,7 @@ dArrayT& GaoJi2::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& GaoJi2::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
@@ -134,7 +134,7 @@ dArrayT& GaoJi2::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& GaoJi2::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();

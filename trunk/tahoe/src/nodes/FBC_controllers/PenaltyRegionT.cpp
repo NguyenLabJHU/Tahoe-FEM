@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.8 2002-09-12 17:50:05 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.9 2002-10-20 22:49:27 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
@@ -85,9 +85,9 @@ void PenaltyRegionT::EchoData(ifstreamT& in, ostream &out)
 		out << " Mass. . . . . . . . . . . . . . . . . . . . . . = " << fMass << '\n';
 
 	/* checks */
-	if (fk <= 0.0) throw eBadInputValue;
-	if (fSlow != kImpulse && fSlow != kConstantVelocity && fSlow != kSchedule) throw eBadInputValue;
-	if (fSlow == kImpulse && fMass <= 0.0) throw eBadInputValue;
+	if (fk <= 0.0) throw ExceptionT::kBadInputValue;
+	if (fSlow != kImpulse && fSlow != kConstantVelocity && fSlow != kSchedule) throw ExceptionT::kBadInputValue;
+	if (fSlow == kImpulse && fMass <= 0.0) throw ExceptionT::kBadInputValue;
 		
 	/* read contact nodes */
 	ModelManagerT* model = fFEManager.ModelManager ();
@@ -156,7 +156,7 @@ void PenaltyRegionT::EchoData(ifstreamT& in, ostream &out)
 
 				cout << "\n PenaltyRegionT::EchoData: unsupported output format: ";
 				cout << fFEManager.OutputFormat() << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 		}
 }
 
@@ -165,10 +165,10 @@ void PenaltyRegionT::Initialize(void)
 {
 	/* allocate memory for equation numbers */
 	int numDOF = rEqnos.MinorDim();
-	fContactEqnos.Allocate(fNumContactNodes*numDOF);
+	fContactEqnos.Dimension(fNumContactNodes*numDOF);
 	
 	/* allocate memory for force vector */
-	fContactForce2D.Allocate(fNumContactNodes,numDOF);
+	fContactForce2D.Dimension(fNumContactNodes,numDOF);
 	fContactForce.Set(fNumContactNodes*numDOF, fContactForce2D.Pointer());
 	fContactForce2D = 0.0; // will be generate impulse at ApplyPreSolve
 }

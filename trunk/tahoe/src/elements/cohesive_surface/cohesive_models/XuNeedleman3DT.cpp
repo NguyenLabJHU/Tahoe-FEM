@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.11 2002-08-23 00:00:54 cjkimme Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.12 2002-10-20 22:48:18 paklein Exp $ */
 /* created: paklein (06/23/1999)*/
 
 #include "XuNeedleman3DT.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <math.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "fstreamT.h"
 
 /* class parameters */
@@ -21,20 +21,20 @@ XuNeedleman3DT::XuNeedleman3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 {
 	in >> q; // phi_t/phi_n
 	in >> r; // delta_n* /d_n
-	if (q < 0.0 || r < 0.0) throw eBadInputValue;
+	if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
 	
 	in >> d_n; // characteristic normal opening
 	in >> d_t; // characteristic tangent opening
-	if (d_n < 0.0 || d_t < 0.0) throw eBadInputValue;
+	if (d_n < 0.0 || d_t < 0.0) throw ExceptionT::kBadInputValue;
 	
 	in >> phi_n; // mode I work to fracture
-	if (phi_n < 0.0) throw eBadInputValue;
+	if (phi_n < 0.0) throw ExceptionT::kBadInputValue;
 
 	in >> r_fail; // d/d_(n/t) for which surface is considered failed
-	if (r_fail < 1.0) throw eBadInputValue;
+	if (r_fail < 1.0) throw ExceptionT::kBadInputValue;
 
 	in >> fKratio; // stiffening ratio
-	if (fKratio < 0.0) throw eBadInputValue;
+	if (fKratio < 0.0) throw ExceptionT::kBadInputValue;
 	
 	fK = fKratio*phi_n/(d_n*d_n);
 }
@@ -43,20 +43,20 @@ XuNeedleman3DT::XuNeedleman3DT(double *params): SurfacePotentialT(knumDOF)
 {
 	q = params[0];; // phi_t/phi_n
 	r = params[1]; // delta_n* /d_n
-	if (q < 0.0 || r < 0.0) throw eBadInputValue;
+	if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
 	
 	d_n = params[2]; // characteristic normal opening
 	d_t = params[3]; // characteristic tangent opening
-	if (d_n < 0.0 || d_t < 0.0) throw eBadInputValue;
+	if (d_n < 0.0 || d_t < 0.0) throw ExceptionT::kBadInputValue;
 	
 	phi_n = params[4]; // mode I work to fracture
-	if (phi_n < 0.0) throw eBadInputValue;
+	if (phi_n < 0.0) throw ExceptionT::kBadInputValue;
 
 	r_fail = params[5]; // d/d_(n/t) for which surface is considered failed
-	if (r_fail < 1.0) throw eBadInputValue;
+	if (r_fail < 1.0) throw ExceptionT::kBadInputValue;
 
 	fKratio = params[6]; // stiffening ratio
-	if (fKratio < 0.0) throw eBadInputValue;
+	if (fKratio < 0.0) throw ExceptionT::kBadInputValue;
 	
 	fK = fKratio*phi_n/(d_n*d_n);
 }
@@ -72,8 +72,8 @@ double XuNeedleman3DT::Potential(const dArrayT& jump_u, const ArrayT<double>& st
 {
 #pragma unused(state)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;	
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;	
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11;
@@ -123,8 +123,8 @@ const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 #pragma unused(state)
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12;
@@ -152,7 +152,7 @@ const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 #ifndef _TAHOE_FRACTURE_INTERFACE_
 		cout << "\n XuNeedleman2DT::Traction: exp(x): x = " << z8 << " > kExpMax" << endl;
 #endif
-		throw eBadJacobianDet;
+		throw ExceptionT::kBadJacobianDet;
 	}	
 	z7 = exp(z8);
 	z11 = z1*z10*z4;
@@ -195,8 +195,8 @@ const dMatrixT& XuNeedleman3DT::Stiffness(const dArrayT& jump_u, const ArrayT<do
 #pragma unused(sigma)
 #pragma unused(state)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12;
@@ -288,7 +288,7 @@ SurfacePotentialT::StatusT XuNeedleman3DT::Status(const dArrayT& jump_u, const A
 {
 #pragma unused(state)
 #if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
 
 	double u_t1 = jump_u[0];

@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.cpp,v 1.5 2002-09-12 17:50:03 paklein Exp $ */
+/* $Id: ModCB2DT.cpp,v 1.6 2002-10-20 22:49:03 paklein Exp $ */
 /* created: paklein (05/31/1997)                                          */
 
 #include "ModCB2DT.h"
@@ -42,7 +42,7 @@ ModCB2DT::ModCB2DT(ifstreamT& in, const FiniteStrainT& element, bool equilibrate
 
 		case kDC101:
 		{
-			Q.Allocate(3);
+			Q.Dimension(3);
 			Q = 0.0;
 			
 			double cos45 = 0.5*sqrt2;
@@ -57,7 +57,7 @@ ModCB2DT::ModCB2DT(ifstreamT& in, const FiniteStrainT& element, bool equilibrate
 		}
 		case kDC111:
 		{
-			Q.Allocate(3);
+			Q.Dimension(3);
 			Q = 0.0;
 			
 			/* transform global xy-plane into [111] */			
@@ -84,11 +84,11 @@ ModCB2DT::ModCB2DT(ifstreamT& in, const FiniteStrainT& element, bool equilibrate
 
 			cout << "\nModCB2DT::ModCB2DT: unknown plane code:" << fPlaneCode;
 			cout << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 
 	fModCBSolver = new ModCBSolverT(Q, fThermal, in, equilibrate);
-	if (!fModCBSolver) throw(eOutOfMemory);
+	if (!fModCBSolver) throw ExceptionT::kOutOfMemory;
 }
 
 /* destructor */
