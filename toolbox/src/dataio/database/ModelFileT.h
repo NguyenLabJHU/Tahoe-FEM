@@ -1,6 +1,5 @@
-/* $Id: ModelFileT.h,v 1.3 2002-07-05 22:26:25 paklein Exp $ */
-/* created: paklein (12/15/1999)                                          */
-
+/* $Id: ModelFileT.h,v 1.4 2004-01-31 07:19:54 paklein Exp $ */
+/* created: paklein (12/15/1999) */
 #ifndef _MODEL_FILE_T_H_
 #define _MODEL_FILE_T_H_
 
@@ -90,8 +89,7 @@ private:
 	void WriteFile(bool extern_file) const;
 
 	/* return reference to external or inline stream */
-	ifstreamT& OpenExternal(ifstreamT& in,  ifstreamT& in2, ostream& out,
-		bool verbose, const char* fail) const;
+	ifstreamT& OpenExternal(ifstreamT& in,  ifstreamT& in2, const char* caller) const;
 
 	/* open output file */
 	ostream& OpenStream(ofstream& out, const StringT& file_name) const;
