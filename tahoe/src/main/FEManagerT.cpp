@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.50.2.5 2002-12-27 23:12:08 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.50.2.6 2003-01-11 01:18:41 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -159,6 +159,7 @@ void FEManagerT::Initialize(InitCodeT init)
 
 	/* set fields */
 	SetNodeManager();
+	fCommManager->SetNodeManager(fNodeManager);
 	if (verbose) cout << "    FEManagerT::Initialize: nodal data" << endl;
 	
 	/* construct element groups */
