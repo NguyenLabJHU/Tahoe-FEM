@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.5 2002-01-06 06:58:38 cbhovey Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.6 2002-01-27 18:45:12 paklein Exp $ */
 /* created: paklein (05/23/1996)                                          */
 
 #include "TimeManagerT.h"
@@ -129,9 +129,7 @@ bool TimeManagerT::Step(void)
 		/* print less often for explicit */
 		GlobalT::AnalysisCodeT analysiscode = theBoss.Analysis();
 		bool is_explicit = (analysiscode == GlobalT::kLinExpDynamic ||
-		                    analysiscode == GlobalT::kNLExpDynamic    ||
-		                    analysiscode == GlobalT::kVarNodeNLExpDyn ||
-		                    analysiscode == GlobalT::kNLExpDynKfield);
+		                    analysiscode == GlobalT::kNLExpDynamic);
 		
 		/* verbose flag */
 		bool write_header = !is_explicit     ||
