@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.15 2002-03-12 14:42:35 sawimme Exp $ */
+/* $Id: ExodusT.cpp,v 1.16 2002-03-12 17:48:55 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -1197,6 +1197,7 @@ void ExodusT::WriteNodalVariable(int step, int index, const dArrayT& fValues) co
 void ExodusT::WriteElementVariable(int step, int block_ID, int index, const dArrayT& fValues) const { throw eGeneralFail; }
 void ExodusT::WriteGlobalVariable(int step, const dArrayT& fValues) const { throw eGeneralFail; }
 void ExodusT::ReadLabels(ArrayT<StringT>& labels, ExodusT::VariableTypeT t) const { throw eGeneralFail; }
+void ExodusT::WriteLabels(const ArrayT<StringT>& labels, ExodusT::VariableTypeT t) const { throw eGeneralFail; }
 int ExodusT::NumTimeSteps(void) const { return 0; }
 void ExodusT::ReadTime(int step, double& time) const { throw eGeneralFail; }
 int ExodusT::NumVariables (ExodusT::VariableTypeT t) const { return 0; }
