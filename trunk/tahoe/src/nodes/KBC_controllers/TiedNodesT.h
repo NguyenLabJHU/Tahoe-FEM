@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.4 2002-04-18 23:18:25 paklein Exp $ */
+/* $Id: TiedNodesT.h,v 1.5 2002-04-19 21:12:58 cjkimme Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -99,7 +99,7 @@ protected:
 	 * \return true if the status of any pair has changed */
 	virtual bool ChangeStatus(void);
 
-private:
+//private:
 
 	/** pair status */
 	enum StatusT {
@@ -111,7 +111,7 @@ private:
 	void SetBCCards(void);
 
 	/** copy kinematic information from the leader nodes to the follower nodes */
-	void CopyKinematics(void);
+	virtual void CopyKinematics(void);
 
 protected:
 

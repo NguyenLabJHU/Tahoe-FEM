@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2002-04-10 16:48:24 paklein Exp $
+# $Id: makefile,v 1.6 2002-04-19 21:12:58 cjkimme Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -10,6 +10,7 @@ OBJ = \
 	KBC_ControllerT.o \
 	K_FieldT.o \
 	MappedPeriodicT.o \
+	SymmetricNodesT.o \
 	TiedNodesT.o
 
 OBJ_LINK = $(OBJ)
@@ -24,6 +25,7 @@ SRC = \
 	KBC_ControllerT.cpp \
 	K_FieldT.cpp \
 	MappedPeriodicT.cpp \
+	SymmetricNodesT.cpp \
 	TiedNodesT.cpp
 
 # headers
@@ -32,6 +34,7 @@ HDR = \
 	KBC_ControllerT.h \
 	K_FieldT.h \
 	MappedPeriodicT.h \
+	SymmetricNodesT.h \
 	TiedNodesT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
