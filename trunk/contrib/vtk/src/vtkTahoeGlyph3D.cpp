@@ -690,7 +690,7 @@ void vtkTahoeGlyph3D::ComputeInputUpdateExtents( vtkDataObject *output )
 }
 
 
-void vtkTahoeGlyph3D::SetVectors(VTKBodyDataT* body, const StringT& field)
+void vtkTahoeGlyph3D::SetVectors(VTKBodyDataT* body, const Tahoe::StringT& field)
 {
 	fSourceBody = body;
 	fVectorField = field;

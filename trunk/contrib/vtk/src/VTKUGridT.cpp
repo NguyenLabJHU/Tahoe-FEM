@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.26 2002-10-23 19:15:29 paklein Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.27 2003-01-08 22:20:15 rjones Exp $ */
 #include "VTKUGridT.h"
 
 /* Tahoe toolbox headers */
@@ -551,7 +551,7 @@ void VTKUGridT::HideCuttingPlane(vtkRenderer* renderer)
 
 }
 
-void VTKUGridT::Glyphing(VTKBodyDataT* body, const StringT& field, vtkRenderer* renderer, bool filter, bool warpA, bool scale, bool color) 
+void VTKUGridT::Glyphing(VTKBodyDataT* body, const Tahoe::StringT& field, vtkRenderer* renderer, bool filter, bool warpA, bool scale, bool color) 
 {
   glyphFilter = filter;
   warpArrows = warpA;
