@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.h,v 1.3 2001-09-04 14:46:38 sawimme Exp $ */
+/* $Id: ExodusInputT.h,v 1.4 2001-09-04 16:37:36 paklein Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #ifndef _EXODUSINPUT_T_H_
@@ -61,11 +61,9 @@ public:
   virtual int  NumTimeSteps (void) const;
   virtual void ReadTimeSteps (dArrayT& steps);
 
-  virtual int  NumNodeVariables (void);
-  virtual int  NumElementVariables (void);
-
   virtual int  NumNodeVariables (void) const;
   virtual int  NumElementVariables (void) const;
+
   virtual int  NumQuadratureVariables (void) const;
 
   virtual void ReadNodeLabels (ArrayT<StringT>& labels) const;
@@ -140,7 +138,7 @@ inline int ExodusInputT::NumQuadratureVariables (void) const
 inline void ExodusInputT::ReadNodeLabels (ArrayT<StringT>& labels) const
 { fData.ReadNodeLabels (labels); }
 
-void ExodusInputT::ReadElementLabels (ArrayT<StringT>& elabels) const
+inline void ExodusInputT::ReadElementLabels (ArrayT<StringT>& elabels) const
 { fData.ReadElementLabels (elabels); }
 
 inline void ExodusInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
