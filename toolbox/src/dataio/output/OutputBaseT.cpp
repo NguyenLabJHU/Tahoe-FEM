@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.4 2002-01-27 18:38:14 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.5 2002-02-12 02:12:54 paklein Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "OutputBaseT.h"
@@ -89,13 +89,6 @@ void OutputBaseT::AddNodeSet(const iArrayT& nodeset, int setID)
 
 void OutputBaseT::AddSideSet(const iArray2DT& sideset, int setID, int group_ID)
 {
-	/* check */
-	if (group_ID < 0 || group_ID >= fElementSets.Length())
-	{
-		cout << "\n OutputBaseT::AddSideSet: group ID out of range: " << group_ID << endl;
-		throw eOutOfRange;
-	}
-
 	fSideSets.Append(&sideset);
 	fSideSetIDs.Append (setID);
 	fSSGroupID.Append(group_ID);
