@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.44 2005-01-14 17:28:43 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.45 2005-01-19 08:59:25 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -657,11 +657,22 @@ GlobalT::RelaxCodeT SCNIMFT::RelaxSystem(void)
 	return relax;
 }
 
+/* construct field */
+void SCNIMFT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
+{
+	/* get local numbers */
+	iArrayT nodes_local = nodes;
+	if (!GlobalToLocalNumbering(nodes_local))
+		ExceptionT::GeneralFail("SCNIMFT::NodalDOFs", "map to local numbering failed");
+
+	/* compute field at nodes */
+	InterpolatedFieldAtNodes(nodes_local, DOFs);
+}
+
 /* write restart data to the output stream */
 void SCNIMFT::WriteRestart(ostream& out) const
 {
 	ElementBaseT::WriteRestart(out);
-	
 }
 
 /* read restart data to the output stream */
@@ -818,7 +829,7 @@ void SCNIMFT::RHSDriver(void)
 	}
 }
 
-int SCNIMFT::GlobalToLocalNumbering(iArrayT& nodes)
+int SCNIMFT::GlobalToLocalNumbering(iArrayT& nodes) const
 {
 	if (!fNodes.Length())
 		if (!nodes.Length())
@@ -840,8 +851,8 @@ int SCNIMFT::GlobalToLocalNumbering(iArrayT& nodes)
 	int nodeMapLen = nodeMap.Length();
 	int fNodesCtr = 0;
 	int nodeMapCtr = 0;
-	int *fNodesPtr = fNodes.Pointer();
-	int *nodeMapPtr = nodeCopy.Pointer();
+	const int *fNodesPtr = fNodes.Pointer();
+	const int *nodeMapPtr = nodeCopy.Pointer();
 	
 	if (*nodeMapPtr > *fNodesPtr)
 		return 0;
@@ -877,7 +888,7 @@ int SCNIMFT::GlobalToLocalNumbering(RaggedArray2DT<int>& nodes)
 	return 1;
 }
 
-void SCNIMFT::InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtNodes)
+void SCNIMFT::InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtNodes) const
 {
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
@@ -888,19 +899,18 @@ void SCNIMFT::InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtN
 		vec = 0.;	
 		
 		int node_i = nodes[i];
-		int* nodal_supp = fNodalSupports(node_i);
-		double* phi_i = fNodalPhi(node_i);
+		const int* nodal_supp = fNodalSupports(node_i);
+		const double* phi_i = fNodalPhi(node_i);
 		for (int j = 0; j < fNodalPhi.MinorDim(node_i); j++)
 			vec.AddScaled(*phi_i++, u(*nodal_supp++));
-
 	}
-
 }
 
 /** localNodes are local Numbers, so GlobalToLocalNumbering needs to have been called in whatever class 
   * calls this function. The node numbers returned in support are global. 
   */
-void SCNIMFT::NodalSupportAndPhi(iArrayT& localNodes, RaggedArray2DT<int>& support, RaggedArray2DT<double>& phi)
+void SCNIMFT::NodalSupportAndPhi(const iArrayT& localNodes, RaggedArray2DT<int>& support, 
+	RaggedArray2DT<double>& phi) const
 {
 	int nlnd = localNodes.Length();
 	iArrayT minorDims(localNodes.Length());
@@ -910,15 +920,14 @@ void SCNIMFT::NodalSupportAndPhi(iArrayT& localNodes, RaggedArray2DT<int>& suppo
 	support.Configure(minorDims);
 	phi.Configure(minorDims);
 	
-	int *lndi = localNodes.Pointer();
+	const int *lndi = localNodes.Pointer();
 	for (int i = 0; i < nlnd; i++) {
 		support.SetRow(i, fNodalSupports(*lndi));
 		phi.SetRow(i, fNodalPhi(*lndi++));
 	}
 }
 
-int SCNIMFT::SupportSize(int localNode) 
-{
+int SCNIMFT::SupportSize(int localNode) const {
 	return fNodalPhi.MinorDim(localNode);
 }
 

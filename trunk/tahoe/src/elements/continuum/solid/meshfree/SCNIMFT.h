@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.24 2005-01-14 00:04:12 cjkimme Exp $ */
+/* $Id: SCNIMFT.h,v 1.25 2005-01-19 08:59:25 paklein Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -74,6 +74,12 @@ public:
 	/** trigger reconfiguration */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
+	/** DOF's are not interpolants of the nodal values */
+	virtual int InterpolantDOFs(void) const { return 0; };
+
+	/** construct field */
+	virtual void NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const;
+
 	/** \name restart functions */
 	/*@{*/
 	/** write restart data to the output stream. Should be paired with
@@ -95,21 +101,24 @@ public:
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 						AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
-	/** Translate global node numbers to local ones -- communication routine for MFLagMultT */
-	/** returns 0 if unsucessful, i.e. nodes not contained in fNodes */
-	int GlobalToLocalNumbering(iArrayT& nodes);
+	/** \name communication routine for MFLagMultT
+	/*@{*/
+	/** Translate global node numbers to local ones,
+	 * returns 0 if unsucessful, i.e. nodes not contained in fNodes */
+	int GlobalToLocalNumbering(iArrayT& nodes) const;
 	
-	/* Translate global node numbers to local ones -- communication routine for MFLagMultT */
+	/** Translate global node numbers to local ones */
 	int GlobalToLocalNumbering(RaggedArray2DT<int>& nodes);
 
-	/** Return interpolated displacement field at selected nodes -- communication routine for MFLagMultT */
-	void InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtNodes);
+	/** Return interpolated displacement field at selected nodes */
+	void InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtNodes) const;
 
-	/** Return the data structure holding the supports of the localNodes and their window function values 
-		-- communication routine for for MFLagMultT */
-	void NodalSupportAndPhi(iArrayT& localNodes, RaggedArray2DT<int>& support, RaggedArray2DT<double>& phi);
+	/** Return the data structure holding the supports of the localNodes and their window function values */
+	void NodalSupportAndPhi(const iArrayT& localNodes, RaggedArray2DT<int>& support, 
+		RaggedArray2DT<double>& phi) const;
 	
-	int SupportSize(int localNode);
+	int SupportSize(int localNode) const;
+	/*@}*/
 
 	/** \name types needed for the Voronoi diagram calculation */
 	/*@{*/
