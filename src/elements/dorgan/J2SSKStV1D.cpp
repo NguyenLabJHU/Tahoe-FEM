@@ -1,3 +1,4 @@
+/* $Id: J2SSKStV1D.cpp,v 1.3 2003-09-29 19:58:57 rdorgan Exp $ */
 #include "J2SSKStV1D.h"
 #include "SSMatSupportT.h"
 #include "ElementCardT.h"

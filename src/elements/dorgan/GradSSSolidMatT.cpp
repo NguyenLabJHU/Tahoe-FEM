@@ -1,3 +1,4 @@
+/* $Id: GradSSSolidMatT.cpp,v 1.3 2003-09-29 19:58:57 rdorgan Exp $ */
 #include "GradSSSolidMatT.h"
 #include <iostream.h>
 #include "GradSSMatSupportT.h"
@@ -8,7 +9,12 @@ using namespace Tahoe;
 /* constructor */
 GradSSSolidMatT::GradSSSolidMatT(ifstreamT& in, const GradSSMatSupportT& support):
 	SSSolidMatT(in, support),
-	fGradSSMatSupport(support)
+	fGradSSMatSupport(support),
+
+ 	fNumDOF_R(support.NumDOF_R()),
+        fNumDOF_Total(support.NumDOF() + fNumDOF_R),
+
+       	fNumIP_R(support.NumIP_R())
 {
 
 }

@@ -1,3 +1,4 @@
+/* $Id: GradSSMatSupportT.h,v 1.2 2003-09-29 19:58:57 rdorgan Exp $ */
 #ifndef _GRAD_SS_MAT_SUPPORT_T_H_
 #define _GRAD_SS_MAT_SUPPORT_T_H_
 
@@ -19,7 +20,7 @@ class GradSSMatSupportT: public SSMatSupportT
 public:
 
 	/** constructor */
-	GradSSMatSupportT(int nsd, int ndof, int nip);
+	GradSSMatSupportT(int nsd, int ndof_disp, int ndor_r, int nip_disp, int nip_r);
 
 	/** destructor */
 	~GradSSMatSupportT(void);
@@ -60,6 +61,18 @@ public:
 	/** set source for the Laplacian of isotropic hardening from the end of the previous time step */
 	void SetLinearLaplacianR_last(const dArrayT* lapr_last_List);
 
+	/** \name dimensions */
+	/*@{*/
+	/** number of degrees of freedom of iso_hard field (per node) */
+	int NumDOF_R(void) const { return fNumDOF_R; };
+
+	/** total number of degrees of freedom (per node) */
+	int NumDOF_Total(void) const { return fNumDOF_Total; };
+
+	/** stress evaluation points per element for iso_hard field */
+	int NumIP_R(void) const { return fNumIP_R; };
+	/*@}*/
+
 	/** \name host code information */
 	/*@{*/
 	/** return a pointer to the host element. Returns NULL if no
@@ -82,7 +95,19 @@ public:
   	const dArrayT* fLapR_last_List;
 	/*@}*/
 
-  	/** pointer to the small strain element */
+  	/** \name dimensions */
+  	/*@{*/
+	/** number of degrees of freedom for iso_hard field */
+	int fNumDOF_R;
+	
+	/** total number of degrees of freedom */
+	int fNumDOF_Total;
+	
+ 	/** number of integration points for iso_hard field */
+	int fNumIP_R;
+  	/*@}*/
+  	
+   	/** pointer to the small strain element */
 	const DorganVoyiadjisMarin* fDorganVoyiadjisMarin;	
 };
 

@@ -1,3 +1,4 @@
+/* $Id: GradSSMatSupportT.cpp,v 1.2 2003-09-29 19:58:57 rdorgan Exp $ */
 #include "GradSSMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -8,8 +9,19 @@
 using namespace Tahoe;
 
 /* constructor */
-GradSSMatSupportT::GradSSMatSupportT(int nsd, int ndof, int nip):
-        SSMatSupportT(nsd, ndof, nip),
+GradSSMatSupportT::GradSSMatSupportT(int nsd, int ndof_disp, int ndof_r, int nip_disp, int nip_r):
+        SSMatSupportT(nsd, ndof_disp, nip_disp),
+
+	fR_List(NULL),
+	fR_last_List(NULL),
+	fLapR_List(NULL),
+	fLapR_last_List(NULL),
+
+        fNumDOF_R(ndof_r),
+	fNumDOF_Total(ndof_disp + ndof_r),
+
+	fNumIP_R(nip_r),
+
 	fDorganVoyiadjisMarin(NULL)
 {
 

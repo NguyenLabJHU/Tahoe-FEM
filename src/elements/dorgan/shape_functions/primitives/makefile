@@ -1,4 +1,3 @@
-# $Id: makefile,v 1.4 2003-09-29 19:58:57 rdorgan Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -8,7 +7,6 @@
 #
 # Instructions for how to define these is given in each section below
 #
-
 include $(MACRO_DIR)/suffix
 include $(MACRO_DIR)/$(ARCH).macros
 
@@ -21,11 +19,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	DorganVoyiadjisMarin.o\
-        J2SSKStV1D.o\
-        GradJ2SS1D.o\
-	GradSSSolidMatT.o\
-	GradSSMatSupportT.o
+	C1DomainIntegrationT.o \
+	C1ParentDomainT.o \
+	C1ShapeFunctionT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -45,11 +41,9 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	DorganVoyiadjisMarin.cpp\
-        J2SSKStV1D.cpp\
-        GradJ2SS1D.cpp\
-	GradSSSolidMatT.cpp\
-	GradSSMatSupportT.cpp
+	C1DomainIntegrationT.cpp \
+	C1ParentDomainT.cpp \
+	C1ShapeFunctionT.cpp
 
 ##################### (3) headers
 #
@@ -61,11 +55,9 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	DorganVoyiadjisMarin.h\
-        J2SSKStV1D.h\
-        GradJ2SS1D.h\
-	GradSSSolidMatT.h\
-	GradSSMatSupportT.h
+	C1DomainIntegrationT.h \
+	C1ParentDomainT.h \
+	C1ShapeFunctionT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
@@ -76,19 +68,16 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = \
-	geometry \
-	shape_functions
-
-subdir_driver: subdir_loop
+#SUB_DIR = 
+#subdir_driver: subdir_loop
 
 #
 # (4.2) If there are no sub-directories in this directory:
 #    (1) comment the SUB_DIR and subdir_driver in section (4.1)
 #    (2) uncomment the subdir_driver macro below
 #
-#SUB_DIR =
-#subdir_driver: 
+SUB_DIR =
+subdir_driver: 
 
 #####################
 
