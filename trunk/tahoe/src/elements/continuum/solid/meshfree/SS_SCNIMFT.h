@@ -1,4 +1,4 @@
-/* $Id: SS_SCNIMFT.h,v 1.5 2005-03-01 08:26:29 paklein Exp $ */
+/* $Id: SS_SCNIMFT.h,v 1.6 2005-03-04 18:31:51 cjkimme Exp $ */
 #ifndef _SS_SCNIMF_T_H_
 #define _SS_SCNIMF_T_H_
 
@@ -51,7 +51,7 @@ public:
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 	
-	//virtual void TakeParameterList(const ParameterListT& list);
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected: /* for derived classes only */
@@ -64,6 +64,12 @@ protected: /* for derived classes only */
 	
 
 	SSMatSupportT* fSSMatSupport;
+	
+	/** \name strain matrices passed to the constitutive models */
+	/*@{*/
+	ArrayT<dSymMatrixT> fStrain_list;
+	ArrayT<dSymMatrixT> fStrain_last_list;
+	/*@}*/
 	
 	/** offset to material needs */
 	int fNeedsOffset; 

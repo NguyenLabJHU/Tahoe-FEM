@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.12 2005-01-25 02:42:30 cjkimme Exp $
+# $Id: makefile,v 1.13 2005-03-04 18:31:50 cjkimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -29,6 +29,7 @@ OBJ = \
 	MeshFreeFSSolidAxiT.o \
 	SS_SCNIMFT.o \
 	FS_SCNIMFT.o \
+	SS_SCNIMF_AxiT.o \
 	FS_SCNIMF_AxiT.o
 
 OBJ_LINK = $(OBJ)
@@ -58,6 +59,7 @@ SRC = \
 	MeshFreeFSSolidAxiT.cpp \
 	SS_SCNIMFT.cpp \
 	FS_SCNIMFT.cpp \
+	SS_SCNIMF_AxiT.cpp \
 	FS_SCNIMF_AxiT.cpp
 
 ##################### (3) headers
@@ -79,6 +81,7 @@ HDR = \
 	MeshFreeFSSolidAxiT.h \
 	SS_SCNIMFT.h \
 	FS_SCNIMFT.h \
+	SS_SCNIMF_AxiT.h \
 	FS_SCNIMF_AxiT.h
 
 HDR_LINK = $(HDR:.h=.h_link)

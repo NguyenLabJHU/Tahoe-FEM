@@ -1,6 +1,6 @@
-/* $Id: SS_SCNIMFT.cpp,v 1.19 2005-03-04 18:31:50 cjkimme Exp $ */
+/* $Id: SS_SCNIMF_AxiT.cpp,v 1.1 2005-03-04 18:31:50 cjkimme Exp $ */
 
-#include "SS_SCNIMFT.h"
+#include "SS_SCNIMF_AxiT.h"
 
 #include "ArrayT.h"
 #include "ofstreamT.h"
@@ -21,44 +21,34 @@
 #include "SSSolidMatT.h"
 #include "SSMatSupportT.h"
 
-//#define  VERIFY_INTEGRATION_CONSTRAINT
-
 /* materials lists */
-#include "SSSolidMatList1DT.h"
-#include "SSSolidMatList2DT.h"
 #include "SSSolidMatList3DT.h"
 
 using namespace Tahoe;
 
+const double twoPi = 2.0*acos(-1.0);
+
 /* constructors */
-SS_SCNIMFT::SS_SCNIMFT(const ElementSupportT& support, const FieldT& field):
-	SCNIMFT(support, field),
-	fSSMatSupport(NULL)
+SS_SCNIMF_AxiT::SS_SCNIMF_AxiT(const ElementSupportT& support, const FieldT& field):
+	SS_SCNIMFT(support, field)
 {
-	SetName("ss_mfparticle");
+	SetName("ss_mfparticle_axi");
 }
 
-SS_SCNIMFT::SS_SCNIMFT(const ElementSupportT& support):
-	SCNIMFT(support),
-	fSSMatSupport(NULL)
+SS_SCNIMF_AxiT::SS_SCNIMF_AxiT(const ElementSupportT& support):
+	SS_SCNIMFT(support)
 {
-	SetName("ss_mfparticle");
+	SetName("ss_mfparticle_axi");
 }
 
-/* destructor */
-SS_SCNIMFT::~SS_SCNIMFT(void)
+void SS_SCNIMF_AxiT::WriteOutput(void)
 {
-	delete fSSMatSupport;
-}
-
-void SS_SCNIMFT::WriteOutput(void)
-{
-	const char caller[] = "SS_SCNIMFT::WriteOutput";
+	const char caller[] = "SS_SCNIMF_AxiT::WriteOutput";
 
 	/* dimensions */
 	int nsd  = NumSD();
 	int ndof = NumDOF();
-	int nstrs = dSymMatrixT::NumValues(nsd);
+	int nstrs = 4;
 	int non = fNodes.Length();
 
 	/* number of output variables */
@@ -91,9 +81,10 @@ void SS_SCNIMFT::WriteOutput(void)
 
 	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
 
-	dSymMatrixT& strain = fStrain_list[0];
+	dSymMatrixT& strain3D = fStrain_list[0];
+	dSymMatrixT s_axi(dSymMatrixT::k3D_plane), e_axi(dSymMatrixT::k3D_plane);
 	dMatrixT asym(nsd);
-
+	
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
 	
@@ -136,12 +127,21 @@ void SS_SCNIMFT::WriteOutput(void)
 		/* compute smoothed strain */
 		if (fOutputFlags[kStrain] || fOutputFlags[kStress] || fOutputFlags[kMaterialOutput]) {
 			asym = 0.0;
-			dArrayT* bVec_i = bVectorArray(i);
-			int* supp_i = nodalCellSupports(i);
+			double e_33 = 0.;
 			int n_supp = nodalCellSupports.MinorDim(i);
-			for (int j = 0; j < n_supp; j++, bVec_i++) 
+			dSymMatrixT& strain3D = fStrain_list[0];
+			dArrayT* bVec_i = bVectorArray(i);
+			double* b_33 = circumferential_B(i);
+			int* supp_i = nodalCellSupports(i);
+			for (int j = 0; j < n_supp; j++, bVec_i++) {
+				e_33 += u(*supp_i,0) * *b_33++;
 				asym.Outer(bVec_i->Pointer(), u(*supp_i++), 1.0, dMatrixT::kAccumulate);
-			strain.Symmetrize(asym);
+			}
+			strain3D[0] = asym[0];
+			strain3D[1] = asym[3];
+			strain3D[2] = e_33;
+			strain3D[5] = (asym[1] + asym[2])/2.;	
+			e_axi.Translate(strain3D);
 			
 			/* last strain tensor */
 			if (fStrain_last_list.Length() > 0) 
@@ -150,15 +150,21 @@ void SS_SCNIMFT::WriteOutput(void)
 				const dArray2DT& u = Field()(-1,0);
 
 				/* destination */
-				dSymMatrixT& strain = fStrain_last_list[0];
+				dSymMatrixT& strain3D = fStrain_last_list[0];
 
-				asym = 0.0; 
-				strain = 0.0;
+				asym = 0.0; e_33 = 0.;
+				strain3D = 0.0;
 				bVec_i = bVectorArray(i);
+				b_33 = circumferential_B(i);
 				supp_i = nodalCellSupports(i);
-				for (int j = 0; j < n_supp; j++, bVec_i++) 
+				for (int j = 0; j < n_supp; j++, bVec_i++) { 
+					e_33 += u(*supp_i,0) * *b_33++;
 					asym.Outer(bVec_i->Pointer(), u(*supp_i++), 1.0, dMatrixT::kAccumulate);
-				strain.Symmetrize(asym);
+				}
+				strain3D[0] = asym[0];
+				strain3D[1] = asym[3];
+				strain3D[2] = e_33;
+				strain3D[5] = (asym[1] + asym[2])/2.;
 			}
 		}
 
@@ -166,16 +172,16 @@ void SS_SCNIMFT::WriteOutput(void)
 		if (fOutputFlags[kStrain]) {
 			int index = offsets[kStrain];
 			for (int j = 0; j < nstrs; j++)
-				values_i[index++] = strain[j];
+				values_i[index++] = e_axi[j];
 		}
 
 		/* stress */
 		if (fOutputFlags[kStress])
 		{
-			const dSymMatrixT& stress = curr_material->s_ij();
+			s_axi.Translate(curr_material->s_ij());
 			int index = offsets[kStress];
 			for (int j = 0; j < nstrs; j++)
-				values_i[index++] = stress[j];		
+				values_i[index++] = s_axi[j];		
 		}
 
 		/* material output parameters */
@@ -197,7 +203,7 @@ void SS_SCNIMFT::WriteOutput(void)
 }
 
 /* trigger reconfiguration */
-GlobalT::RelaxCodeT SS_SCNIMFT::RelaxSystem(void)
+GlobalT::RelaxCodeT SS_SCNIMF_AxiT::RelaxSystem(void)
 {
 	/* inherited */
 	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
@@ -207,12 +213,115 @@ GlobalT::RelaxCodeT SS_SCNIMFT::RelaxSystem(void)
 /***********************************************************************
  * Protected
  ***********************************************************************/
+ 
+/* return number of values for each output variable */
+void SS_SCNIMF_AxiT::SetOutputCount(const iArrayT& flags, iArrayT& counts) const
+{
+	/* inherited */
+	SS_SCNIMFT::SetOutputCount(flags, counts);
+
+	/* redimension stress and strain */
+	if (flags[kStrain]) counts[kStrain] = 4;
+	if (flags[kStress]) counts[kStress] = 4;
+}
+
+/* generate labels for output data */
+void SS_SCNIMF_AxiT::GenerateOutputLabels(ArrayT<StringT>& labels)
+{
+	/* number of output variables */
+	iArrayT counts;
+	SetOutputCount(fOutputFlags, counts);
+	int num_output = counts.Sum();
+
+	/* offsets to the different output values */
+	iArrayT offsets(fOutputFlags.Length());
+	offsets = 0;
+	for (int i = 1; i < offsets.Length(); i++)
+		offsets[i] = offsets[i-1] + counts[i-1];
+
+	/* initialize */
+	labels.Dimension(num_output);
+
+	/* coordinates */
+	if (fOutputFlags[kCoordinates]) {
+		const char* ref[2] = {"R", "Z"};
+		int index = offsets[kCoordinates];
+		for (int i = 0; i < 2; i++)
+			labels[index++] = ref[i];
+	}
+
+	/* displacements */
+	if (fOutputFlags[kDisplacement]) {
+
+		/* labels from the field */
+		const ArrayT<StringT>& field_labels = Field().Labels();
+
+		int index = offsets[kDisplacement];
+		for (int i = 0; i < NumDOF(); i++)
+			labels[index++] = field_labels[i];
+	}
+
+	/* mass */
+	if (fOutputFlags[kMass])
+		labels[offsets[kMass]] = "volume";
+
+	/* strain */
+	if (fOutputFlags[kStrain]) {
+		const char* elabels[4] = {"err", "ezz", "erz", "ett"};
+		int index = offsets[kStrain];
+		for (int i = 0; i < 4; i++)
+			labels[index++] = elabels[i];
+	}
+
+	/* stress */
+	if (fOutputFlags[kStress]) {
+		const char* slabels[4] = {"srr", "szz", "srz", "stt"};
+		int index = offsets[kStress];
+		for (int i = 0; i < 4; i++)
+			labels[index++] = slabels[i];
+	}
+
+	/* material output labels */
+	if (fOutputFlags[kMaterialOutput])
+	{
+		ArrayT<StringT> mat_labels;
+		(*fMaterialList)[0]->OutputLabels(mat_labels);	
+		
+		int index = offsets[kMaterialOutput];
+		for (int i = 0; i < mat_labels.Length(); i++)
+			labels[index++] = mat_labels[i];
+	}
+}
+
+/* assemble particle mass matrix into LHS of global equation system */
+void SS_SCNIMF_AxiT::AssembleParticleMass(const double rho)
+{
+	int nsd = NumSD();
+  	fForce = 0.0;
+  	int* nodes = fNodes.Pointer();
+  	double* volume = fCellVolumes.Pointer();
+  	for (int i = 0; i < fNodes.Length(); i++) {
+
+    	double* m = fForce(fNodes[i]);
+
+    	for (int j = 0; j < nsd; j++)
+      		*m++ = *volume * twoPi * fCellCentroids(i,0);
+
+    	volume++;
+  	}
+
+  	fForce *= rho;
+  
+  	/* assemble all */
+  	ElementSupport().AssembleLHS(Group(), fForce, Field().Equations());
+}
+
 
 /* form group contribution to the stiffness matrix */
-void SS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
+void SS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
 #pragma unused(sys_type)
-	const char caller[] = "SS_SCNIMFT::LHSDriver";
+	const char caller[] = "SS_SCNIMF_AxiT::LHSDriver";
 
 	int nsd = NumSD();
 
@@ -241,7 +350,7 @@ void SS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 	if (formK) {
 		/* hold the smoothed strain */
-		dSymMatrixT& strain = fStrain_list[0];
+		dSymMatrixT& strain3D = fStrain_list[0];
 
 		/* displacements */
 		const dArray2DT& u = Field()(0,0);
@@ -265,31 +374,35 @@ void SS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		const iArray2DT& field_eqnos = Field().Equations();
 		iArrayT row_eqnos(ndof); 
 		iArrayT col_eqnos(ndof);
-		dMatrixT BJ(nsd == 2 ? 3 : 6, ndof), BK(nsd == 2 ? 3 : 6, ndof), K_JK;
-		dMatrixT BJTCijkl(nsd == 2 ? 3 : 6, nsd);
+		dMatrixT BJ(4, ndof), BK(4, ndof), K_JK;
+		dMatrixT BJTCijkl(4, nsd);
+		dMatrixT stress3D(3), moduli2D(4);
 		dMatrixT asym(nsd);
+		double e_33;
 		K_JK.Alias(fLHS);
-
-		LinkedListT<dArrayT> bVectors_j;
-		LinkedListT<int> nodeSupport_j;
-
 		for (int i = 0; i < nNodes; i++) {	
 		
 			/* set current element */
 			fElementCards.Current(i);
 		
-			double w_i = fCellVolumes[i]*constK; // integration weight
+			double w_i = fCellVolumes[i]*constK*twoPi*fNodalCoordinates(i,0); // integration weight
 			int n_supp = nodalCellSupports.MinorDim(i);
 			
-			// Compute smoothed strain 
-			asym = 0.0;
-
+			// Compute smoothed strain
+			asym = 0.0; e_33 = 0.;
+			strain3D = 0.0;
 			dArrayT* bVec_i = bVectorArray(i);
 			int* supp_i = nodalCellSupports(i);
-			for (int j = 0; j < n_supp; j++, bVec_i++) 
+			double* b_33 = circumferential_B(i);
+			for (int j = 0; j < n_supp; j++, bVec_i++) {
+				e_33 += u(*supp_i,0) * *b_33++;
 				asym.Outer(bVec_i->Pointer(), u(*supp_i++), 1.0, dMatrixT::kAccumulate);
-			strain.Symmetrize(asym);
-			
+			}
+			strain3D[0] = asym[0];
+			strain3D[1] = asym[3];
+			strain3D[2] = e_33;
+			strain3D[5] = (asym[1] + asym[2])/2;
+
 			/* last strain tensor */
 			if (fStrain_last_list.Length() > 0) 
 			{
@@ -297,35 +410,46 @@ void SS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				const dArray2DT& u = Field()(-1,0);
 
 				/* destination */
-				dSymMatrixT& strain = fStrain_last_list[0];
+				dSymMatrixT& strain3D = fStrain_last_list[0];
 
-				asym = 0.0; 
-				strain = 0.0;
+				asym = 0.0; e_33 = 0.;
+				strain3D = 0.0;
 				bVec_i = bVectorArray(i);
+				b_33 = circumferential_B(i);
 				supp_i = nodalCellSupports(i);
-				for (int j = 0; j < n_supp; j++, bVec_i++) 
+				for (int j = 0; j < n_supp; j++, bVec_i++) { 
+					e_33 += u(*supp_i,0) * *b_33++;
 					asym.Outer(bVec_i->Pointer(), u(*supp_i++), 1.0, dMatrixT::kAccumulate);
-				strain.Symmetrize(asym);
+				}
+				strain3D[0] = asym[0];
+				strain3D[1] = asym[3];
+				strain3D[2] = e_33;
+				strain3D[5] = (asym[1] + asym[2])/2.;
 			}
-			
+
 			const dMatrixT& cijkl = fCurrMaterial->c_ijkl();
+			moduli2D.Rank4ReduceFrom3D(cijkl);
 
 			// sum over pairs to get contribution to stiffness
 			supp_i = nodalCellSupports(i);
 			bVec_i = bVectorArray(i);
+			b_33 = circumferential_B(i);
 			for (int j = 0; j < n_supp; j++, supp_i++, bVec_i++) {
 				bVectorToMatrix(bVec_i->Pointer(), BJ);
-				BJTCijkl.MultAB(cijkl, BJ, 0);
+				BJ[3] = *b_33++;
+				BJTCijkl.MultAB(moduli2D, BJ, 0);
 				col_eqnos.Copy(field_eqnos(*supp_i));
 
 				dArrayT* bVec_j = bVectorArray(i);
 				int* supp_j = nodalCellSupports(i);
+				double* b_33_k = circumferential_B(i);
 				for (int k = 0; k < n_supp; k++) {
 					bVectorToMatrix(bVec_j->Pointer(), BK);
+					BK[3] = *b_33_k++;
 					bVec_j++;
 
 					// K_JK = BT_K x Cijkl x B_J 
-					K_JK.MultATB(BK,BJTCijkl, 0);
+					K_JK.MultATB(BK, BJTCijkl);
 					K_JK *= w_i;
 
 					/* assemble */
@@ -338,10 +462,10 @@ void SS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 }
 
 
-void SS_SCNIMFT::RHSDriver(void)
+void SS_SCNIMF_AxiT::RHSDriver(void)
 {
 	/* function name */
-	const char caller[] = "SS_SCNIMFT::RHSDriver2D";
+	const char caller[] = "SS_SCNIMF_AxiT::RHSDriver2D";
 
 	/* contribution from natural boundary conditions */
 	SCNIMFT::RHSDriver();
@@ -376,22 +500,18 @@ void SS_SCNIMFT::RHSDriver(void)
 		for (int i = 0; i < nNodes; i++) {
 			acc = a(*nodes++);
 			for (int j = 0; j < nsd; j++)
-				*ma++ = *volume * *acc++;
+				*ma++ = *volume * twoPi * fCellCentroids(i,0) * *acc++;
 			volume++;
 		}
 		fLHS *= fCurrMaterial->Density();
 	}
 
 	fForce = 0.0;
-	dSymMatrixT& strain = fStrain_list[0];
-	dMatrixT BJ(nsd == 2 ? 3 : 6, nsd);
+	dMatrixT stress3D(3), stress_vec(2);
+	dSymMatrixT& strain3D = fStrain_list[0];
+	dMatrixT BJ(4, nsd);
 	dMatrixT asym(nsd);
-
-#ifdef VERIFY_INTEGRATION_CONSTRAINT
-	// TEMP -- verify that \sum_L \mathbf{B}_{Ii} = 0
-	dArray2DT test_sum(nNodes,nsd);
-	test_sum = 0.;
-#endif
+	double e_33;
 
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
@@ -400,23 +520,25 @@ void SS_SCNIMFT::RHSDriver(void)
 		/* set current element */
 		fElementCards.Current(i);
 	
-		double w_i = fCellVolumes[i]; // integration weight
+		double w_i = fCellVolumes[i]*twoPi*fNodalCoordinates(i,0); // integration weight
 
 		int n_supp = nodalCellSupports.MinorDim(i);
 
 		// Compute smoothed strain
-		asym = 0.0;
+		asym = 0.0; e_33 = 0.;
+		strain3D = 0.0;
 		dArrayT* bVec_i = bVectorArray(i);
 		int* supp_i = nodalCellSupports(i);
+		double* b_33 = circumferential_B(i);
 		for (int j = 0; j < n_supp; j++, bVec_i++) {
-#ifdef VERIFY_INTEGRATION_CONSTRAINT
-			test_sum.SetRow(*supp_i, bVec_i->Pointer());
-			test_sum.ScaleRow(*supp_i, w_i);
-#endif
+			e_33 += u(*supp_i,0) * *b_33++;
 			asym.Outer(bVec_i->Pointer(), u(*supp_i++), 1.0, dMatrixT::kAccumulate);
-		}	
-		strain.Symmetrize(asym);	
-		
+		}
+		strain3D[0] = asym[0];
+		strain3D[1] = asym[3];
+		strain3D[2] = e_33;
+		strain3D[5] = (asym[1] + asym[2])/2.;
+
 		/* last strain tensor */
 		if (fStrain_last_list.Length() > 0) 
 		{
@@ -424,42 +546,41 @@ void SS_SCNIMFT::RHSDriver(void)
 			const dArray2DT& u = Field()(-1,0);
 
 			/* destination */
-			dSymMatrixT& strain = fStrain_last_list[0];
+			dSymMatrixT& strain3D = fStrain_last_list[0];
 
-			asym = 0.0; 
-			strain = 0.0;
+			asym = 0.0; e_33 = 0.;
+			strain3D = 0.0;
 			bVec_i = bVectorArray(i);
+			b_33 = circumferential_B(i);
 			supp_i = nodalCellSupports(i);
-			for (int j = 0; j < n_supp; j++, bVec_i++) 
+			for (int j = 0; j < n_supp; j++, bVec_i++) { 
+				e_33 += u(*supp_i,0) * *b_33++;
 				asym.Outer(bVec_i->Pointer(), u(*supp_i++), 1.0, dMatrixT::kAccumulate);
-			strain.Symmetrize(asym);
+			}
+			strain3D[0] = asym[0];
+			strain3D[1] = asym[3];
+			strain3D[2] = e_33;
+			strain3D[5] = (asym[1] + asym[2])/2.;
 		}
 
-		const double* stress = fCurrMaterial->s_ij().Pointer();
+		fCurrMaterial->s_ij().ToMatrix(stress3D);
+		stress_vec[0] = stress3D[0];
+		stress_vec[1] = stress3D[4];
+		stress_vec[2] = stress3D[3];
+		stress_vec[3] = stress3D[8];
 
 		supp_i = nodalCellSupports(i);
 		bVec_i = bVectorArray(i);
+		b_33 = circumferential_B(i);
 		for (int j = 0; j < n_supp; j++) { 
 			bVectorToMatrix(bVec_i->Pointer(), BJ);
+			BJ[3] = *b_33++;
 			bVec_i++;
 			double* fint = fForce(*supp_i++);
-			BJ.MultTx(stress, fint, w_i, dMatrixT::kAccumulate);
+			BJ.MultTx(stress_vec.Pointer(), fint, w_i, dMatrixT::kAccumulate);
 		}
 
 	}
-
-#ifdef VERIFY_INTEGRATION_CONSTRAINT
-	static int firstTime = 0;
-	if (!firstTime) {
-		firstTime++;
-		for (int i = 0; i < nNodes; i++) { 
-			cout << " i = " 	<< i << " ts "; 
-			for (int j = 0; j < nsd; j++) 
-				cout << test_sum(i,j) << " ";
-			cout << "\n";
-		}
-	}	
-#endif
 
 	fForce *= -constKd;
 
@@ -468,62 +589,18 @@ void SS_SCNIMFT::RHSDriver(void)
 }
 
 
-
-void SS_SCNIMFT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
-{
-	int nsd = NumSD();
-	
-#if __option(extended_errorcheck)
-	if (qIsAxisymmetric) {
-		if (BJ.Rows() != 4) 
-			ExceptionT::SizeMismatch("SCNIMFT::bVectorToMatrix","Matrix has bad majorDim");
-	} else { 
-		if (BJ.Rows() != nsd*(nsd+1)/2) 
-			ExceptionT::SizeMismatch("SCNIMFT::bVectorToMatrix","Matrix has bad majorDim");
-	}
-	if (BJ.Cols() != nsd) 
-		ExceptionT::SizeMismatch("SCNIMFT::bVectorToMatrix","Matrix has bad minorDim");
-#endif
-
-	double* Bptr = BJ.Pointer();
-
-	BJ = 0.;
-	Bptr[0] = *bVector;
-	if (nsd == 2) {
-		if (qIsAxisymmetric) {
-			Bptr[6] = *bVector++;
-			Bptr[5] = *bVector;
-			Bptr[2] = *bVector;
-		} else {
-			Bptr[5] = *bVector++;
-			Bptr[4] = *bVector;
-			Bptr[2] = *bVector;
-		}
-	} else { // nsd == 3
-		Bptr[11] = Bptr[16] = *bVector++;
-		Bptr[7] = *bVector;
-		Bptr[5] = Bptr[15] = *bVector++;
-		Bptr[14] = *bVector;
-		Bptr[4] = Bptr[9] = *bVector;
-	}
-}
-
-void SS_SCNIMFT::CollectMaterialInfo(const ParameterListT& all_params,
+void SS_SCNIMF_AxiT::CollectMaterialInfo(const ParameterListT& all_params,
 				  ParameterListT& mat_params) const
 {
-	const char caller[] = "SS_SCNIMFT::CollectMaterialInfo";
+	const char caller[] = "SS_SCNIMF_AxiT::CollectMaterialInfo";
 
 	/* initialize */
 	mat_params.Clear();
+	mat_params.SetName("small_strain_material_3D");
 
-	int num_blocks = all_params.NumLists("ss_connectivity_element_block");
+	int num_blocks = all_params.NumLists("ss_scni_axi_element_block");
 	for (int i = 0; i < num_blocks; i++) {
-	  const ParameterListT& block = all_params.GetList("ss_connectivity_element_block",i);
-
-	  if (i == 0) {
-	    const ParameterListT& mat_list_params = block.GetListChoice(*this, "small_strain_material_choice");
-	    mat_params.SetName(mat_list_params.Name());
-	  }
+	  const ParameterListT& block = all_params.GetList("ss_scni_axi_element_block",i);
 
 	  /* collect material parameters */
 	  const ParameterListT& mat_list = block.GetList(mat_params.Name());
@@ -532,118 +609,53 @@ void SS_SCNIMFT::CollectMaterialInfo(const ParameterListT& all_params,
 	}
 }
 
-/* return a pointer to a new material list */
-MaterialListT* SS_SCNIMFT::NewMaterialList(const StringT& name, int size)
-{
-	/* resolve number of spatial dimensions */
-	int nsd = -1;
-
-	if (name == "small_strain_material_2D")
-		nsd = 2;
-	else if (name == "small_strain_material_3D")
-		nsd = 3;
-
-	/* no match */
-	if (nsd == -1) return NULL;
-
-	if (qIsAxisymmetric && nsd != 3) // need 3D material
-		ExceptionT::GeneralFail("SS_SCNIMFT::NewMaterialList","Axisymmetric formulation needs 3D material\n");
-
-	if (size > 0) {
-		/* material support */
-		 if (!fSSMatSupport) {
-		 	fSSMatSupport = new SSMatSupportT(nsd, 1);     
-		 	if (qIsAxisymmetric)
-				fSSMatSupport->SetNumSD(3); 
-		 	if (!fSSMatSupport)
-		 		ExceptionT::GeneralFail("SS_SCNIMFT::NewMaterialList","Could not instantiate material support\n");
-
-			fSSMatSupport->SetFEManager(&ElementSupport().FEManager());
-			fSSMatSupport->SetLinearStrain(&fStrain_list);
-			fSSMatSupport->SetLinearStrain_last(&fStrain_last_list);
-			fSSMatSupport->SetElementCards(&fElementCards);
-			fSSMatSupport->SetGroup(Group());
-		 }
-
-		if (nsd == 2)
-			return new SSSolidMatList2DT(size, *fSSMatSupport);
-		else if (nsd == 3)
-			return new SSSolidMatList3DT(size, *fSSMatSupport);
-	} else {
-		if (nsd == 2)
-			return new SSSolidMatList2DT;
-		else if (nsd == 3)
-			return new SSSolidMatList3DT;
-	}
-
-	/* no match */
-	return NULL;
-}
-
 // XML stuff below
 
-/* describe the parameters needed by the interface */
-void SS_SCNIMFT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	SCNIMFT::DefineParameters(list);
-}
-
-/* information about subordinate parameter lists */
-void SS_SCNIMFT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	SCNIMFT::DefineSubs(sub_list);
-
-	/* element blocks for underlying connectivity -- TEMP */
-	sub_list.AddSub("ss_connectivity_element_block");
-}
-
-/* return the description of the given inline subordinate parameter list */
-void SS_SCNIMFT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
-	SubListT& sub_lists) const
-{
-	if (name == "small_strain_material_choice") {
-		order = ParameterListT::Choice;
-
-		/* list of choices */
-		sub_lists.AddSub("small_strain_material_2D");
-		sub_lists.AddSub("small_strain_material_3D");
-	} else /* inherited */
-		SCNIMFT::DefineInlineSub(name, order, sub_lists);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* SS_SCNIMFT::NewSub(const StringT& name) const
-{
-  if  (name == "ss_connectivity_element_block") {
-	  ParameterContainerT* block = new ParameterContainerT(name);
-	  block->AddSub("block_ID_list",ParameterListT::Once);
-	  block->AddSub("small_strain_material_choice", ParameterListT::Once, true);
-	  block->SetSubSource(this);
-	  return block;
-  }
-  else /* inherited */
-    return SCNIMFT::NewSub(name);
-}
-
 /* accept parameter list */
-void SS_SCNIMFT::TakeParameterList(const ParameterListT& list)
+void SS_SCNIMF_AxiT::TakeParameterList(const ParameterListT& list)
 {
+	/* we are axisymmetric */
+	qIsAxisymmetric = true;
+
 	/* inherited */
 	SCNIMFT::TakeParameterList(list);
-
+	
 	/* strains */
 	int nsd = NumSD();
 	fStrain_list.Dimension(1);
-	fStrain_list[0].Dimension(nsd);
+	fStrain_list[0].Dimension(3);
 
 	/* casts are safe since class contructs materials list - just one material */
 	ContinuumMaterialT* pcont_mat = (*fMaterialList)[0];
 	SSSolidMatT* mat = (SSSolidMatT*) pcont_mat;
 	if (mat->Need_Strain_last()) {
 		fStrain_last_list.Dimension(1);
-		fStrain_last_list[0].Dimension(nsd);
+		fStrain_last_list[0].Dimension(3);
 	}
+
+}
+
+/* information about subordinate parameter lists */
+void SS_SCNIMF_AxiT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SCNIMFT::DefineSubs(sub_list);
+
+	/* element blocks for underlying connectivity -- TEMP */
+	sub_list.AddSub("ss_scni_axi_element_block");
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SS_SCNIMF_AxiT::NewSub(const StringT& name) const
+{
+  if  (name == "ss_scni_axi_element_block") {
+	  ParameterContainerT* block = new ParameterContainerT(name);
+	  block->AddSub("block_ID_list",ParameterListT::Once);
+	  block->AddSub("small_strain_material_3D");
+	  block->SetSubSource(this);
+	  return block;
+  }
+  else /* inherited */
+    return SCNIMFT::NewSub(name);
 }
 
