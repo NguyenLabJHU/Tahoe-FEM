@@ -1,4 +1,4 @@
-/* $Id: FieldSupportT.h,v 1.5.16.2 2004-02-18 16:33:54 paklein Exp $ */
+/* $Id: FieldSupportT.h,v 1.5.16.3 2004-03-22 18:39:39 paklein Exp $ */
 #ifndef _FIELD_SUPPORT_T_H_
 #define _FIELD_SUPPORT_T_H_
 
@@ -16,6 +16,7 @@ class KBC_ControllerT;
 class FieldT;
 class NodeManagerT;
 class ModelManagerT;
+class ScheduleT;
 
 /** support for FieldT. Limited interface to get information out
  * of a FieldT. Wrapper for functions in FEManagerT. */
@@ -58,6 +59,9 @@ public:
 	KBC_ControllerT* NewKBC_Controller(FieldT& field, int code) const;
 	FBC_ControllerT* NewFBC_Controller(FieldT& field, int code) const;
 	/*@}*/
+
+	/** return a pointer to the specified schedule */
+	const ScheduleT* Schedule(int num) const;
 
 private:
 

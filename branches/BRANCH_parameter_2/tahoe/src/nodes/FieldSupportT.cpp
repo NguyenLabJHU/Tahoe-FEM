@@ -1,4 +1,4 @@
-/* $Id: FieldSupportT.cpp,v 1.4.16.1 2004-02-18 16:33:54 paklein Exp $ */
+/* $Id: FieldSupportT.cpp,v 1.4.16.2 2004-03-22 18:39:39 paklein Exp $ */
 #include "FieldSupportT.h"
 #include "FEManagerT.h"
 #include "NodeManagerT.h"
@@ -50,4 +50,10 @@ FBC_ControllerT* FieldSupportT::NewFBC_Controller(FieldT& field, int code) const
 {
 	/* node manager */
 	return fNodeManager.NewFBC_Controller(field, code);
+}
+
+/* return a pointer to the specified schedule */
+const ScheduleT* FieldSupportT::Schedule(int num) const
+{
+	return fNodeManager.Schedule(num);
 }
