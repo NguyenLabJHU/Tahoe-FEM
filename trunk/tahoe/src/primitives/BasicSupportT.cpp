@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.cpp,v 1.3 2004-07-22 08:31:06 paklein Exp $ */
+/* $Id: BasicSupportT.cpp,v 1.4 2005-02-04 22:02:49 paklein Exp $ */
 #include "BasicSupportT.h"
 
 #include "dArray2DT.h"
@@ -43,6 +43,8 @@ BasicSupportT::BasicSupportT(void):
 	fIterationNumber = 0;
 	fCurrentCoordinates = NULL;
 	fInitialCoordinates = NULL;
+	fRHS = NULL;
+	fLHS = NULL;
 #endif
 }
 
@@ -379,6 +381,28 @@ void BasicSupportT::AssembleRHS(int group, const nArrayT<double>& elRes,
 #pragma unused(eqnos)
 #pragma unused(elRes)
 #pragma unused(eqnos)
+#endif
+}
+
+/* the residual for the given group */
+const dArrayT& BasicSupportT::RHS(int group) const
+{
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+	return FEManager().RHS(group);
+#else
+#pragma unused(group)
+	return *fRHS;
+#endif
+}
+
+/* the LHS matrix for the given group */
+const GlobalMatrixT& BasicSupportT::LHS(int group) const
+{
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+	return FEManager().LHS(group);
+#else
+#pragma unused(group)
+	return *fLHS;
 #endif
 }
 

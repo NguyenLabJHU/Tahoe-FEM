@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.h,v 1.3 2004-07-22 08:31:06 paklein Exp $ */
+/* $Id: BasicSupportT.h,v 1.4 2005-02-04 22:02:49 paklein Exp $ */
 #ifndef _TAHOE_SUPPORT_T_H_
 #define _TAHOE_SUPPORT_T_H_
 
@@ -28,6 +28,7 @@ class CommManagerT;
 class TimeManagerT;
 class ElementBaseT;
 template <class TYPE> class nArrayT;
+class GlobalMatrixT;
 
 /** Base class for support within tahoe. Provides a limited interface to get 
  * information in and out components. */
@@ -153,6 +154,12 @@ public:
 		const nArrayT<int>& col_eqnos) const;
 	void AssembleLHS(int group, const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos) const;
 	void AssembleRHS(int group, const nArrayT<double>& elRes, const nArrayT<int>& eqnos) const;
+
+	/** the residual for the given group */
+	const dArrayT& RHS(int group) const;
+
+	/** the LHS matrix for the given group */
+	const GlobalMatrixT& LHS(int group) const;
 	/*@}*/
 
 	/** \name input/output */
@@ -245,6 +252,8 @@ private:
 	ofstreamT *ofst;	
 	dArray2DT *fInitialCoordinates;
 	dArray2DT *fCurrentCoordinates;
+	dArrayT* fRHS;
+	GlobalMatrixT* fLHS;
 #endif
 	/*@}*/
 };
