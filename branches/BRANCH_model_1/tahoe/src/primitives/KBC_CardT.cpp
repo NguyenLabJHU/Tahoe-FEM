@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.cpp,v 1.2 2001-07-16 20:03:06 paklein Exp $ */
+/* $Id: KBC_CardT.cpp,v 1.2.2.1 2001-10-05 20:37:42 sawimme Exp $ */
 /* created: paklein (05/23/1996)                                          */
 
 #include "KBC_CardT.h"
@@ -94,6 +94,33 @@ void KBC_CardT::WriteValues(ostream& out) const
 	out << setw(kIntWidth) << fnode + 1 << setw(kIntWidth) << fdof + 1;
 	out << setw(kIntWidth) << fcode     << setw(kIntWidth) << fnLTf + 1;
 	out << setw(d_width)   << fvalue    << '\n';
+}
+
+KBC_CardT::CodeT KBC_CardT::int_to_CodeT (int i_code)
+{
+	/* resolve code */
+	switch (i_code)
+	{
+		case KBC_CardT::kFix:
+			return KBC_CardT::kFix;
+			break;
+		case KBC_CardT::kDsp:
+			return KBC_CardT::kDsp;
+			break;
+		case KBC_CardT::kVel:
+			return KBC_CardT::kVel;
+			break;
+		case KBC_CardT::kAcc:
+			return KBC_CardT::kAcc;
+			break;
+		default:
+			cout << "\n KBC_CardT::int_to_CodeT: unknown code: "
+			<< i_code<< endl;
+			throw eBadInputValue;	
+	}
+
+	/* dummy */
+	return KBC_CardT::kAcc;
 }
 
 /* input operator for codes */
