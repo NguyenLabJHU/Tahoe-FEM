@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.5 2002-04-18 21:20:25 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.6 2002-04-18 21:23:38 cjkimme Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -206,6 +206,7 @@ void TiedNodesT::Equations(AutoArrayT<const iArray2DT*>& equations) const
 
 			/* equations */
 			fEqnos->CopyRowFromRow(follower, leader);
+//	                fEqnos[follower] = -1;
 		}
 }
 
@@ -273,7 +274,7 @@ void TiedNodesT::SetBCCards(void)
 				for (int j = 0; j < ndof; j++)
 				{
 					/* set values */
-				  pcard->SetValues(fNodePairs(i,0), j, KBC_CardT::kFixDsp, 0, 0.0);
+				  pcard->SetValues(fNodePairs(i,0), j, KBC_CardT::kDsp, 0, 0.0);
 	
 					/* dummy schedule */
 				  pcard->SetSchedule(&fDummySchedule);
