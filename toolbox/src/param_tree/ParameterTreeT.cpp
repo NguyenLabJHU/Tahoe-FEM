@@ -1,4 +1,4 @@
-/* $Id: ParameterTreeT.cpp,v 1.1.2.2 2003-04-28 08:43:00 paklein Exp $ */
+/* $Id: ParameterTreeT.cpp,v 1.1.2.3 2003-04-28 17:05:30 paklein Exp $ */
 #include "ParameterTreeT.h"
 #include "ParameterInterfaceT.h"
 
@@ -64,77 +64,83 @@ void ParameterTreeT::BuildBranch(ParameterInterfaceT& source, ParameterListT& pa
 {
 	const char caller[] = "ParameterTreeT::BuildBranch";
 	
-	/* inlined list */
-	if (source.Name() != params.Name())
-	{
-		/* list must be inlined */
-		if (!params.Inline())
-			ExceptionT::GeneralFail(caller, "source \"%s\" cannot build list for non-inlined \"%s\"",
-				source.Name().Pointer(), params.Name().Pointer());
+	/* contents of subordinate lists */
+	ArrayT<StringT> sub_lists;
+	ArrayT<ParameterListT::OccurrenceT> occur;
+	ArrayT<bool> is_inline;
 
-		/* source builds inlined lists */
-		source.DefineParameters(params);
-	}
-	else 
-	{
+	/* defining self */
+	if (source.Name() == params.Name()) {
+		
 		/* collect parameters */
 		source.DefineParameters(params);
-
+			
 		/* add list to the dictionary */
 		if (!fDictionary.Insert(source.Name(), &source))
 			ExceptionT::GeneralFail(caller, "dictionary already contains \"%s\"",
 				source.Name().Pointer());
 
-		/* sublists */
-		ArrayT<StringT> sub_lists;
-		ArrayT<ParameterListT::OccurrenceT> occur;
-		ArrayT<bool> is_inline;
+		/* collect information on subordinate lists */
 		source.SubNames(sub_lists, occur, is_inline);
-		for (int i = 0; i < sub_lists.Length(); i++) {
-
-			/* list is inline */
-			if (is_inline[i])
-			{
-				/* source builds inline list */
-				ParameterListT inline_params(sub_lists[i]);
-				inline_params.SetInline(true);
-				BuildBranch(source, inline_params);
-			
-				/* add list */
-				if (!params.AddList(inline_params, occur[i]))
-					ExceptionT::GeneralFail(caller, "could not add inline \"%s\" to list \"%s\"",
-						inline_params.Name().Pointer(), params.Name().Pointer());
-			}
-			/* already in the tree */
-			else if (fDictionary.HasKey(sub_lists[i]))
-			{
-				/* add as reference */
-				if (!params.AddReference(sub_lists[i], occur[i]))
-					ExceptionT::GeneralFail(caller, "could not add reference \"%s\" to list \"%s\"",
-						sub_lists[i].Pointer(), params.Name().Pointer());
-			}
-			else
-			{
-				/* sublist */
-				ParameterInterfaceT* sub = source.NewSub(sub_lists[i]);
-				if (!sub)
-					ExceptionT::GeneralFail(caller, "source \"%s\" did not return sublist \"%s\"",
-						params.Name().Pointer(), sub_lists[i].Pointer());
-					
-				/* build the sublist */
-				ParameterListT sub_params(sub->Name());
-				BuildBranch(*sub, sub_params);
-			
-				/* add list */
-				if (!params.AddList(sub_params, occur[i]))
-					ExceptionT::GeneralFail(caller, "could not add sublist \"%s\" to list \"%s\"",
-						sub_params.Name().Pointer(), params.Name().Pointer());
-	
-				/* add to list of items to delete */
-				fDeleteMe.Append(sub);
-			}
-		}
 	}
+	else /* defining inlined list */
+	{
+		/* list must be inlined */
+		if (!params.Inline())
+			ExceptionT::GeneralFail(caller, "source \"%s\" cannot build list for non-inlined \"%s\"",
+				source.Name().Pointer(), params.Name().Pointer());
+		
+		/* collect information on inlined list */
+		ParameterListT::ListOrderT order;
+		source.DefineInlineSub(params.Name(), order, sub_lists, occur, is_inline);
+		params.SetListOrder(order);
+	}
+
+	/* define sublists */
+	for (int i = 0; i < sub_lists.Length(); i++) {
+
+		/* list is inline */
+		if (is_inline[i])
+		{
+			/* source builds inline list */
+			ParameterListT inline_params(sub_lists[i]);
+			inline_params.SetInline(true);
+			BuildBranch(source, inline_params);
+			
+			/* add list */
+			if (!params.AddList(inline_params, occur[i]))
+				ExceptionT::GeneralFail(caller, "could not add inline \"%s\" to list \"%s\"",
+					inline_params.Name().Pointer(), params.Name().Pointer());
+		}
+		/* already in the tree */
+		else if (fDictionary.HasKey(sub_lists[i]))
+		{
+			/* add as reference */
+			if (!params.AddReference(sub_lists[i], occur[i]))
+				ExceptionT::GeneralFail(caller, "could not add reference \"%s\" to list \"%s\"",
+					sub_lists[i].Pointer(), params.Name().Pointer());
+		}
+		else
+		{
+			/* sublist */
+			ParameterInterfaceT* sub = source.NewSub(sub_lists[i]);
+			if (!sub)
+				ExceptionT::GeneralFail(caller, "source \"%s\" did not return sublist \"%s\"",
+					params.Name().Pointer(), sub_lists[i].Pointer());
+					
+			/* build the sublist */
+			ParameterListT sub_params(sub->Name());
+			BuildBranch(*sub, sub_params);
+			
+			/* add list */
+			if (!params.AddList(sub_params, occur[i]))
+				ExceptionT::GeneralFail(caller, "could not add sublist \"%s\" to list \"%s\"",
+					sub_params.Name().Pointer(), params.Name().Pointer());
+	
+			/* add to list of items to delete */
+			fDeleteMe.Append(sub);
+		}
+	}	
 }
 
 /* build the branch */
