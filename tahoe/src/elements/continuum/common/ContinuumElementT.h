@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.2 2001-02-20 00:42:13 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.3 2001-03-15 17:47:24 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 /* Interface for a general continuum element type, meaning the presence   */
 /* of shape functions, and the implied presence of a continuum mechanics  */
@@ -61,9 +61,11 @@ public:
 	virtual void WriteOutput(IOBaseT::OutputModeT mode);
 
 	/* side set to nodes on facets data - dimensions facets */
-	virtual void SideSetToFacets(int block_ID, const iArray2DT& sideset,
-		iArray2DT& facets);
+	void SideSetToFacets(int block_ID, const iArray2DT& sideset, iArray2DT& facets) const;
 
+	/* return geometry and number of nodes on each facet */
+	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, iArrayT& num_facet_nodes) const;
+	
 	/* return the geometry code */
 	GeometryT::CodeT GeometryCode(void) const;
 
