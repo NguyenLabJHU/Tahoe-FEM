@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.15.2.1 2003-09-17 01:31:24 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.15.2.2 2003-09-19 06:25:55 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -27,7 +27,8 @@ public:
 	enum FormulationT {Isotropic = 0,
 	                 Anisotropic = 1, 
 	         NoRotateAnisotropic = 2,
-	            RigidAnisotropic = 3};
+	            RigidAnisotropic = 3,
+	       NodalRigidAnisotropic = 4};
 
 	/** indicies for nodal output */
 	enum NodalOutputCodeT {
