@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.10 2003-03-19 00:53:27 cjkimme Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.11 2003-05-20 10:34:11 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "ViscTvergHutch2DT.h"
@@ -97,14 +97,14 @@ double ViscTvergHutch2DT::Potential(const dArrayT& jump_u, const ArrayT<double>&
 /* traction vector given displacement jump vector */	
 const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
+	const char caller[] = "ViscTvergHutch2DT::Traction";
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
-	if (fTimeStep <= 0.0) {
-#ifndef _SIERRA_TEST_	
-		cout << "\n ViscTvergHutch2DT::Traction: expecting positive time increment: "
-		     << fTimeStep << endl;
+	if (jump_u.Length() != knumDOF) ExceptionT::SizeMismatch(caller);
+	if (state.Length() != NumStateVariables()) ExceptionT::SizeMismatch(caller);
+	if (fTimeStep < 0.0) {
+#ifndef _SIERRA_TEST_
+		ExceptionT::BadInputValue(caller, "expecting non-negative time increment: %g", fTimeStep);
 #endif		     
 		throw ExceptionT::kBadInputValue;
 	}
@@ -142,23 +142,25 @@ const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>
 	double T_visc_n = 0.0;
 	if (L < 1)
 	{
-		double eta_dt = feta0*(1 - L)/fTimeStep;
+		/* allow dt -> 0 */
+		double eta_dt = 0.0;
+		if (fabs(fTimeStep) > kSmall) eta_dt = feta0*(1 - L)/fTimeStep;
+
 		T_visc_t = eta_dt*dd_t;
 		T_visc_n = eta_dt*dd_n;
 	}
 	
-	/* compute heat generation */
-	double d_heat = T_visc_t*dd_t + T_visc_n*dd_n;
-	if (qIntegrate)
-		state[kIncHeat] = d_heat;
-	if (dd_n > 0) /* only heat on opening */
-		d_heat += fTraction[1]*dd_n;
-	if (u_t*dd_t > 0)
-		d_heat += fabs(fTraction[0]*dd_t); /* too lazy to figure out the correct sign ;) */
-	d_heat *= 0.9; /* work to heat conversion factor */
-	
+	/* update state variables */	
 	if (qIntegrate)
 	{
+		/* compute heat generation */
+		double d_heat = T_visc_t*dd_t + T_visc_n*dd_n;
+		if (dd_n > 0) /* only heat on opening */
+			d_heat += fTraction[1]*dd_n;
+		if (u_t*dd_t > 0)
+			d_heat += fabs(fTraction[0]*dd_t); /* too lazy to figure out the correct sign ;) */
+		state[kIncHeat] = 0.9*d_heat; /* work to heat conversion factor */
+
 		/* integrate rest of state variables */
 		state[2] = state[0];
 		state[3] = state[1];
@@ -300,12 +302,18 @@ const dMatrixT& ViscTvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT
 	if (L < 1)
 	{
 		/* well-behaved viscous part */
-		double eta_dt = feta0*(1 - L)/fTimeStep;
+		double eta_dt = 0.0;
+		if (fabs(fTimeStep) > kSmall) /* allow dt -> 0 */
+			eta_dt = feta0*(1 - L)/fTimeStep;
 		fStiffness.PlusIdentity(eta_dt);
 
 		/* viscous part that needs special treatment near small openings */
-		double v0 = -feta0*(jump_u[0] - state[2])/fTimeStep;
-		double v1 = -feta0*(jump_u[1] - state[3])/fTimeStep;
+		double v0 = 0.0;
+		double v1 = 0.0;
+		if (fabs(fTimeStep) > kSmall) { /* allow dt -> 0 */
+			v0 = -feta0*(jump_u[0] - state[2])/fTimeStep;
+			v1 = -feta0*(jump_u[1] - state[3])/fTimeStep;
+		}
 		if (L < kSmall) /* small openings */
 		{
 			fStiffness[0] += v0/fd_c_t;
@@ -417,7 +425,10 @@ void ViscTvergHutch2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double
 		double eta = feta0*(1.0 - 0.5*(L + L_last));
 		
 		/* approximate incremental dissipation */
-		output[1] = 0.5*eta*(d_t*d_t + d_n*d_n)/fTimeStep;
+		if (fabs(fTimeStep) > kSmall)
+			output[1] = 0.5*eta*(d_t*d_t + d_n*d_n)/fTimeStep;
+		else /* for dt -> 0 */
+			output[1] = 0.0;
 	}
 	else
 		output[1] = 0.0;
