@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.17 2003-01-25 22:08:39 paklein Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.18 2003-03-06 23:40:28 manzari Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -36,7 +36,8 @@ public:
               kTiedPotential = 6, /**< wrapper for models w/o initial load-up */
               	  kYoonAllen = 7, /**< Allen history-dependent law */
 			 kSimoViscoElast = 8, /**< Simo's thermo-visco-elasto model */
-           kInelasticDuctile = 9  /**< rate-based ductile fracture model */}; 
+           kInelasticDuctile = 9, /**< rate-based ductile fracture model */
+           				kMR = 10  /**< Elastoplastic Cohesive Model for Geomaterials*/}; 
 			 
 	/** surface element status codes */
 	enum StatusT {Precritical = 0, /**< loading phase */
