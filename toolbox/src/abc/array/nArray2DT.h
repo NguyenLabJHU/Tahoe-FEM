@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.3 2001-03-08 00:17:15 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.4 2001-04-27 10:45:02 paklein Exp $ */
 /* created: paklein (07/09/1996)                                          */
 /* nArrayT with subdimension - row major storage                          */
 
@@ -201,6 +201,9 @@ inline void nArray2DT<nTYPE>::Set(int majordim, int minordim,
 template <class nTYPE>
 inline void nArray2DT<nTYPE>::Allocate(int majordim, int minordim)
 {
+	/* zero dimensions */
+	fMajorDim = fMinorDim = 0;
+
 	/* inherited */
 	nArrayT<nTYPE>::Allocate(majordim*minordim);
 

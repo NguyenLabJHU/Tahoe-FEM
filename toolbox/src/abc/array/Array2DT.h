@@ -1,4 +1,4 @@
-/* $Id: Array2DT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: Array2DT.h,v 1.2 2001-04-27 10:45:02 paklein Exp $ */
 /* created: paklein (11/02/1998)                                          */
 
 #ifndef _ARRAY2D_T_H_
@@ -121,7 +121,10 @@ inline void Array2DT<TYPE>::Set(int majordim, int minordim,
 template <class TYPE>
 inline void Array2DT<TYPE>::Allocate(int majordim, int minordim)
 {
-	/* inherited */
+	/* zero dimensions */
+	fMajorDim = fMinorDim = 0;
+
+	/* (try) inherited */
 	ArrayT<TYPE>::Allocate(majordim*minordim);
 
 	/* set dimensions */
