@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.12 2002-01-27 18:24:23 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.13 2002-01-27 22:36:33 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -518,16 +518,26 @@ void ModelManagerT::ReadTractionSideSet (ifstreamT& in, StringT& element_ID, iAr
     }
   else
     {
-      StringT ss_ID;
-      in >> ss_ID;
-      element_ID = SideSetGroupID(ss_ID);
- 
-	  /* read set */
-      iArray2DT temp = SideSet (ss_ID);
-      if (!IsSideSetLocal(ss_ID))
-		SideSetGlobalToLocal (element_ID, localsides, temp);
-      else
-		localsides = temp;
+		/* read set */
+		StringT ss_ID;
+		in >> ss_ID; 
+		localsides = SideSet(ss_ID);
+
+		/* non-empty set */
+		if (localsides.MajorDim() > 0)
+		{
+			/* try to resolve associated element group ID */
+			element_ID = SideSetGroupID(ss_ID);
+
+			/* this shouldn't happen */
+			if (!IsSideSetLocal(ss_ID))
+			{
+				iArray2DT temp = localsides;
+				SideSetGlobalToLocal(temp, localsides, element_ID);
+			}
+		}
+		else
+			element_ID.Clear();
 
       fMessage << " Database side set name. . . . . . . . . . . . . = ";
       fMessage << ss_ID << '\n';
@@ -865,10 +875,17 @@ const StringT& ModelManagerT::SideSetGroupID (const StringT& ss_ID) const
     }
 
 	int ss_group_index = fSideSetGroupIndex[index];
+	if (ss_group_index < 0 || ss_group_index >= fElementNames.Length()) {
+		cout << "\n ModelManagerT::SideSetGroupID: group ID for not defined for set " 
+		     << ss_ID << endl;
+		throw eOutOfRange;
+	} 
 	return fElementNames[ss_group_index];
 	
 	/* need to check if group index < 0, then have global side set and
        need to determine correct group index */
+       
+	/* group index not defined if side set is empty */
 }
 
 void ModelManagerT::SideSetLocalToGlobal (const StringT& element_ID, const iArray2DT& local, iArray2DT& global)
@@ -889,7 +906,8 @@ void ModelManagerT::SideSetLocalToGlobal (const StringT& element_ID, const iArra
     *pelem += offset;
 }
 
-void ModelManagerT::SideSetGlobalToLocal (StringT& element_ID, iArray2DT& local, const iArray2DT& global)
+void ModelManagerT::SideSetGlobalToLocal(const iArray2DT& global, iArray2DT& local, 
+	StringT& element_ID)
 {
 #pragma unused(element_ID)
 #pragma unused(local)
@@ -1226,19 +1244,20 @@ bool ModelManagerT::ScanSideSets (void)
       fSideSetIsLocal = t;
       fSideSetGroupIndex = -1;
 
-      for (int i=0; i < fNumSideSets; i++)
-	{
-	  fSideSetDimensions[i] = fInput->NumSidesInSet (fSideSetNames[i]);
-	  if (fSideSetIsLocal[i])
-	    {
-	      StringT name = fInput->SideSetGroupName (fSideSetNames[i]);
-	      fSideSetGroupIndex[i] = ElementGroupIndex (name);
-	    }
-	}
+  		/* gather side set info */
+		for (int i=0; i < fNumSideSets; i++)
+		{
+			fSideSetDimensions[i] = fInput->NumSidesInSet (fSideSetNames[i]);
+			if (fSideSetIsLocal[i] && 
+			    fSideSetDimensions[i] > 0) /* don't try this with an empty set */
+			{
+				const StringT& name = fInput->SideSetGroupName(fSideSetNames[i]);
+				fSideSetGroupIndex[i] = ElementGroupIndex(name);
+			}
+		}
     }
   return true;
 }
-
 
 bool ModelManagerT::CheckID (const ArrayT<StringT>& list, const StringT& ID, const char *type) const
 {
