@@ -1,8 +1,9 @@
-/* $Id: StillingerWeberT.cpp,v 1.1 2004-11-23 01:43:20 cjkimme Exp $ */
+/* $Id: StillingerWeberT.cpp,v 1.2 2004-11-23 01:55:38 cjkimme Exp $ */
 #include "StillingerWeberT.h"
 #include <iostream.h>
 #include <math.h>
 #include "dMatrixT.h"
+#include "dArrayT.h"
 
 using namespace Tahoe;
 
