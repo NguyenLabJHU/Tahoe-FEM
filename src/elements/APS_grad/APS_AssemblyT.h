@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.24 2004-02-09 08:25:50 paklein Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.25 2004-02-17 19:48:41 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -20,7 +20,8 @@
 #include "APS_EnumT.h"
 #include "APS_VariableT.h"
 #include "APS_Bal_EqT.h"
-#include "APS_BCJT.h"
+#include "APS_kappa_alphaT.h"
+#include "APS_kappa_gpT.h"
 #include "FEA_FormatT.h"
 
 namespace Tahoe {

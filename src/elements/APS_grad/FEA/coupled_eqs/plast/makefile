@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2003-12-06 08:01:31 paklein Exp $
+# $Id: makefile,v 1.3 2004-02-17 19:48:47 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,7 +20,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.2).
 #
 OBJ = \
-	APS_BCJT.o
+	APS_BCJT_kappa_alpha.o \
+	APS_BCJT_kappa_gp.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -40,7 +41,8 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	APS_BCJT.cpp
+	APS_BCJT_kappa_alpha.cpp \
+	APS_BCJT_kappa_gp.cpp
 
 ##################### (3) headers
 #
@@ -52,7 +54,8 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	APS_BCJT.h \
+	APS_BCJT_kappa_alpha.h \
+	APS_BCJT_kappa_gp.h \
 	PlastT.h
 
 HDR_LINK = $(HDR:.h=.h_link)

@@ -1,13 +1,14 @@
-// $Id: APS_Bal_EqT.cpp,v 1.24 2004-02-04 00:40:46 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.25 2004-02-17 19:48:45 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
 
-APS_Bal_EqT::APS_Bal_EqT ( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, 
+APS_Bal_EqT::APS_Bal_EqT ( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes_displ, FEA_ShapeFunctionT &Shapes_plast, 
+							APS_MaterialT *Shear_Matl, 
 							APS_MaterialT *APS_Matl, APS_VariableT &np1, APS_VariableT &n, 
 							int &fTime_Step, double fdelta_t, int Integration_Scheme) 
 {
-	Construct (nipsurf, nensurf, Shapes, Shear_Matl, APS_Matl, np1, n, Integration_Scheme);
+	Construct (nipsurf, nensurf, Shapes_displ, Shapes_plast, Shear_Matl, APS_Matl, np1, n, Integration_Scheme);
 }
 
 /* destructor */
@@ -16,7 +17,8 @@ APS_Bal_EqT::APS_Bal_EqT ( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shape
 
 //---------------------------------------------------------------------
 
-void APS_Bal_EqT::Construct ( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl,
+void APS_Bal_EqT::Construct ( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes_displ, FEA_ShapeFunctionT &Shapes_plast, 
+							APS_MaterialT *Shear_Matl,
 							APS_MaterialT *APS_Matl, APS_VariableT &np1, APS_VariableT &n, 
 							int &fTime_Step, double fdelta_t, int Integration_Scheme) 
 {
@@ -29,20 +31,24 @@ void APS_Bal_EqT::Construct ( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Sh
 	*/
 	//#pragma message("APS_Bal_EqT::Construct: FEA_dVectorT has no Cols() function")
 
-	n_en    	= Shapes.dNdx.Cols();
-	n_sd    	= Shapes.dNdx.Rows();
+	n_en_displ    	= Shapes_displ.dNdx.Cols();
+	n_en_plast    	= Shapes_plast.dNdx.Cols();
+	n_sd    	= Shapes_displ.dNdx.Rows();
 	//n_sd 		= n_rows_vector;	
 	n_sd_x_n_sd = n_sd * n_sd;
-	n_sd_x_n_en = n_sd * n_en;
+	n_sd_x_n_en_displ = n_sd * n_en_displ;
+	n_sd_x_n_en_plast = n_sd * n_en_plast;
 	
 	n_ip_surf=nipsurf;
 	n_en_surf=nensurf;
 
 	delta_t = fdelta_t;
 	
-	Data_Pro.Construct ( Shapes.dNdx	);
-	Data_Pro.Insert_N  ( Shapes.N );
-	Integral.Construct ( Shapes.j, Shapes.W ); 
+	Data_Pro_Displ.Construct ( Shapes_displ.dNdx	);
+	Data_Pro_Displ.Insert_N  ( Shapes_displ.N );
+	Integral.Construct ( Shapes_displ.j, Shapes_displ.W ); 
+	Data_Pro_Plast.Construct ( Shapes_plast.dNdx	);
+	Data_Pro_Plast.Insert_N  ( Shapes_plast.N );
 	
 	Form_C_List		( Shear_Matl, APS_Matl );
 	Form_B_List		(  );
@@ -123,22 +129,23 @@ void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int_face, APS_VariableT &npt,
 	             				
 void APS_Bal_EqT::Form_B_List (void)
 {
-		B_d.Construct 	( kNUM_B_d_TERMS, n_ip, n_sd, n_en);
+		B_d.Construct 	( kNUM_B_d_TERMS, n_ip, n_sd, n_en_displ);
 		B_d_surf.Construct 	( kNUM_B_d_surf_TERMS, n_ip_surf, n_sd, n_en_surf);
-		B_eps.Construct ( kNUM_B_eps_TERMS, n_ip, n_sd, n_sd_x_n_en);
+		B_eps.Construct ( kNUM_B_eps_TERMS, n_ip, n_sd, n_sd_x_n_en_plast);
 		int dum=1;
 		B_gradu.Construct ( kNUM_B_gradu_TERMS, n_ip, dum, n_sd);	
 		B_gradu_surf.Construct ( kNUM_B_gradu_surf_TERMS, n_ip_surf, dum, n_sd);		
 		
-		Data_Pro.APS_B(B_d[kB]);
- 		Data_Pro.APS_Ngamma(B_eps[kBgamma]);
+		Data_Pro_Displ.APS_B(B_d[kB]);
+		
+ 		Data_Pro_Plast.APS_Ngamma(B_eps[kBgamma]);
 }
 
 		
 void APS_Bal_EqT::Form_VB_List (void)
 {
-		VB_d.Construct 	( kNUM_VB_d_TERMS, 	n_ip_surf, n_en_surf	);
-		VB_eps.Construct ( kNUM_VB_eps_TERMS, 	n_ip, n_sd_x_n_en 	);				
+		VB_d.Construct 	( kNUM_VB_d_TERMS, n_ip_surf, n_en_surf );
+		VB_eps.Construct ( kNUM_VB_eps_TERMS, n_ip, n_sd_x_n_en_plast );				
 }
 
 

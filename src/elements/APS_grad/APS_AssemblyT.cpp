@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.46 2004-02-09 08:25:50 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.47 2004-02-17 19:48:41 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -9,9 +9,6 @@
 
 #include "APS_MatlT.h"
 #include "Shear_MatlT.h"
-
-#include "APS_Bal_EqT.h"
-#include "APS_BCJT.h"
 
 #include "OutputSetT.h"
 
@@ -66,10 +63,16 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	in >> fNumIP_displ;
 	in >> fGeometryCodeSurf_displ; 
 	in >> fNumIPSurf_displ;
-	in >> fGeometryCode_plast; 
+	in >> n_en_displ;
+	in >> n_en_plast;
+	/* in >> fGeometryCode_plast; 
 	in >> fNumIP_plast;
 	in >> fGeometryCodeSurf_plast;
-	in >> fNumIPSurf_plast;
+	in >> fNumIPSurf_plast; */
+	fGeometryCode_plast = fGeometryCode_displ; 
+	fNumIP_plast = fNumIP_displ;
+	fGeometryCodeSurf_plast = fGeometryCodeSurf_displ;
+	fNumIPSurf_plast = fNumIPSurf_displ;
 
 	fMaterial_Data.Dimension ( kNUM_FMAT_TERMS );
 
@@ -219,7 +222,7 @@ void APS_AssemblyT::Initialize(void)
 	//n_df = NumDOF(); 
 	//n_df = 1+n_sd; 		
 	int nen = NumElementNodes(); /* number of nodes/element in the mesh */
-	n_en_plast = n_en_displ = nen;
+	//n_en_plast = n_en_displ = nen;
 	//n_np = ElementSupport().NumNodes();
 
 	/* initialize connectivities */
@@ -228,21 +231,23 @@ void APS_AssemblyT::Initialize(void)
 
 	/* pick element interpolations based on available number of element nodes
 	 * and the specified number of integration points */
-	if (n_sd == 2 && nen == 8 && fGeometryCode_displ == GeometryT::kQuadrilateral) /* only implemented for 2D, quadratic quads */
+	// only implemented for 2D, quadratic quads
+	//if (n_sd == 2 && nen == 8 && fGeometryCode_displ == GeometryT::kQuadrilateral) 
+	if (n_sd == 2 && n_en_plast != n_en_displ && fGeometryCode_displ == GeometryT::kQuadrilateral) 
 	{
-		/* don't expect reduced integration for both fields */
-		if (n_ip_displ == 4 && n_ip_plast == 4)
-			ExceptionT::GeneralFail(caller, "not expecting 4 ips for both fields");
-		else if (n_ip_displ == 4 || n_ip_plast == 4) /* create reduced connectivities */
-		{
-			/* reduce the number of element nodes based on the number ip's */
+		// don't expect reduced integration for both fields 
+		// if (n_ip_displ == 4 && n_ip_plast == 4)
+		//	ExceptionT::GeneralFail(caller, "not expecting 4 ips for both fields");
+		//else if (n_ip_displ == 4 || n_ip_plast == 4) // create reduced connectivities
+		//{ 
+			// reduce the number of element nodes based on the number ip's
 			int& nen_red = (n_ip_displ == 4) ? n_en_displ : n_en_plast;
 			nen_red = 4;
 			ArrayT<const iArray2DT*>& connects_red = (n_ip_displ == 4) ? 
 				fConnectivities_displ : 
 				fConnectivities_plast;
 		
-			/* create reduced connectivities */
+			//create reduced connectivities
 			connects_red.Dimension(0);
 			connects_red.Dimension(fConnectivities.Length());
 			fConnectivities_reduced.Dimension(fConnectivities.Length());
@@ -252,12 +257,13 @@ void APS_AssemblyT::Initialize(void)
 				connects_red_store.Dimension(connects.MajorDim(), nen_red);				
 				connects_red[i] = &connects_red_store;
 				
-				/* take 1st four element nodes (columns) */
+				//take 1st four element nodes (columns)
 				for (int j = 0; j < nen_red; j++)
 					connects_red_store.ColumnCopy(j, connects, j);
 			}
-		}
+		//}
 	}
+	
 
 	n_el = NumElements();	
 	n_sd_surf = n_sd;
@@ -327,7 +333,7 @@ void APS_AssemblyT::Initialize(void)
 
 	Select_Equations ( BalLinMomT::kAPS_Bal_Eq, iPlastModelType );
 	dum=knumstrain+knumstress;
-	fEquation_eps->Initialize ( n_ip_plast, n_sd, n_en_plast, knum_d_state, dum, ElementSupport().StepNumber() );
+	fEquation_eps->Initialize ( n_ip_plast, n_sd, n_en_displ, n_en_plast, knum_d_state, dum, ElementSupport().StepNumber() );
 	//step_number_last_iter = 0; 
 	//step_number_last_iter = ElementSupport().StepNumber();  // This may crash or not work
 
@@ -517,8 +523,8 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 
 	switch ( iPlastScale )	{
 
-		case PlastT::kAPS_BCJ :
-			fEquation_eps	= new APS_BCJT;
+		case PlastT::kAPS_kappa_alpha :
+			fEquation_eps	= new APS_kappa_alphaT;
 			fPlastMaterial	= new APS_MatlT;		
 			fPlastMaterial->Assign (	APS_MatlT::kMu, 		fMaterial_Data[kMu] 		); 	
 			fPlastMaterial->Assign ( 	APS_MatlT::km_rate, 	fMaterial_Data[km_rate] 	); 	
@@ -537,6 +543,28 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_2, 	fMaterial_Data[kkappa0_2] 	); 	
 			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_3, 	fMaterial_Data[kkappa0_3] 	); 	
 			break;
+
+		case PlastT::kAPS_kappa_gp :
+			fEquation_eps	= new APS_kappa_gpT;
+			fPlastMaterial	= new APS_MatlT;		
+			fPlastMaterial->Assign (	APS_MatlT::kMu, 		fMaterial_Data[kMu] 		); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::km_rate, 	fMaterial_Data[km_rate] 	); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kgamma0_dot_1, fMaterial_Data[kgamma0_dot_1]); 
+			fPlastMaterial->Assign ( 	APS_MatlT::kgamma0_dot_2, fMaterial_Data[kgamma0_dot_2]);
+			fPlastMaterial->Assign ( 	APS_MatlT::kgamma0_dot_3, fMaterial_Data[kgamma0_dot_3]); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::km1_x, 		fMaterial_Data[km1_x] 		); 
+			fPlastMaterial->Assign ( 	APS_MatlT::km1_y, 		fMaterial_Data[km1_y] 		); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::km2_x, 		fMaterial_Data[km2_x] 		); 
+			fPlastMaterial->Assign ( 	APS_MatlT::km2_y, 		fMaterial_Data[km2_y] 		); 
+			fPlastMaterial->Assign ( 	APS_MatlT::km3_x, 		fMaterial_Data[km3_x] 		); 
+			fPlastMaterial->Assign ( 	APS_MatlT::km3_y, 		fMaterial_Data[km3_y] 		); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kl, 			fMaterial_Data[kl] 			); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kH, 			fMaterial_Data[kH] 			);
+			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_1, 	fMaterial_Data[kkappa0_1] 	); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_2, 	fMaterial_Data[kkappa0_2] 	); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_3, 	fMaterial_Data[kkappa0_3] 	); 	
+			break;
+
 			
 		default :
 			cout << "APS_AssemblyT::Select_Equations() .. ERROR >> bad iPlastScale \n";
@@ -704,7 +732,7 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 			if (is_coarse)
 			{
 				/* residual and tangent for coarse scale */
-				fEquation_d->Construct ( fNumIPSurf_displ, n_en_surf, fFEA_Shapes_displ, fBalLinMomMaterial, 
+				fEquation_d->Construct ( fNumIPSurf_displ, n_en_surf, fFEA_Shapes_displ, fFEA_Shapes_plast, fBalLinMomMaterial, 
 										fPlastMaterial, np1, n, step_number, delta_t );
 				fEquation_d->Form_LHS_Keps_Kd ( fKdeps, fKdd );
 				fEquation_d->Form_RHS_F_int ( fFd_int, np1 );
@@ -726,7 +754,7 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 			else /* fine scale nodal force */
 			{
 				/* residual and tangent for fine scale */
-				fEquation_eps->Construct ( fFEA_Shapes_plast, fPlastMaterial, np1, n, 
+				fEquation_eps->Construct ( fFEA_Shapes_displ, fFEA_Shapes_plast, fPlastMaterial, np1, n, 
 											step_number, delta_t, FEA::kBackward_Euler );
 				fEquation_eps->Form_LHS_Keps_Kd ( fKepseps, fKepsd );
 				fEquation_eps->Form_RHS_F_int ( fFeps_int );
@@ -1036,7 +1064,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_d->Construct ( fNumIPSurf_displ, n_en_surf, fFEA_Shapes_displ, fBalLinMomMaterial, 
+				fEquation_d->Construct ( fNumIPSurf_displ, n_en_surf, fFEA_Shapes_displ, fFEA_Shapes_plast, fBalLinMomMaterial, 
 											fPlastMaterial, np1, n, step_number, delta_t );
 				fEquation_d->Form_LHS_Keps_Kd ( fKdeps, fKdd );
 				fEquation_d->Form_RHS_F_int ( fFd_int, np1 );
@@ -1074,7 +1102,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 
 			if (bStep_Complete) { 
 			
-				fEquation_eps->Construct ( fFEA_Shapes_plast, fPlastMaterial, np1, n, step_number, delta_t );
+				fEquation_eps->Construct ( fFEA_Shapes_displ, fFEA_Shapes_plast, fPlastMaterial, np1, n, step_number, delta_t );
 				fEquation_eps->Get ( output, Render_Vector[e][0] );
 			
 				//-- Store/Register data in classic tahoe manner 
@@ -1088,7 +1116,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_eps->Construct ( fFEA_Shapes_plast, fPlastMaterial, np1, n, 
+				fEquation_eps->Construct ( fFEA_Shapes_displ, fFEA_Shapes_plast, fPlastMaterial, np1, n, 
 											step_number, delta_t, FEA::kBackward_Euler );
 				fEquation_eps->Form_LHS_Keps_Kd ( fKepseps, fKepsd );
 				fEquation_eps->Form_RHS_F_int ( fFeps_int );
@@ -1204,7 +1232,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 				
 		if (bStep_Complete) { 
 		
-			fEquation_eps->Construct ( fFEA_Shapes_plast, fPlastMaterial, np1, n, step_number, delta_t );
+			fEquation_eps->Construct ( fFEA_Shapes_displ, fFEA_Shapes_plast, fPlastMaterial, np1, n, step_number, delta_t );
 			fEquation_eps->Get ( output, Render_Vector[e][0] );
 			
 			//-- Store/Register data in classic tahoe manner 
@@ -1218,7 +1246,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		else { //-- Still Iterating
 		
 			/* residual and tangent for coarse scale */
-			fEquation_d->Construct ( fNumIPSurf_displ, n_en_surf, fFEA_Shapes_displ, fBalLinMomMaterial, 
+			fEquation_d->Construct ( fNumIPSurf_displ, n_en_surf, fFEA_Shapes_displ, fFEA_Shapes_plast, fBalLinMomMaterial, 
 									fPlastMaterial, np1, n, step_number, delta_t );
 			fEquation_d->Form_LHS_Keps_Kd ( fKdeps, fKdd );
 			fEquation_d->Form_RHS_F_int ( fFd_int, np1 );
@@ -1277,7 +1305,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 			}
 
 			/* residual and tangent for fine scale */
-			fEquation_eps->Construct ( fFEA_Shapes_plast, fPlastMaterial, np1, n, step_number, 
+			fEquation_eps->Construct ( fFEA_Shapes_displ, fFEA_Shapes_plast, fPlastMaterial, np1, n, step_number, 
 										delta_t, FEA::kBackward_Euler );
 			fEquation_eps->Form_LHS_Keps_Kd ( fKepseps, fKepsd );
 			fEquation_eps->Form_RHS_F_int ( fFeps_int );

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2003-12-06 08:01:35 paklein Exp $
+# $Id: makefile,v 1.4 2004-02-17 19:48:49 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,7 +20,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.2).
 #
 OBJ = \
-	APS_FEA_Data_ProcessorT.o \
+	APS_FEA_Data_Processor_DisplT.o \
+	APS_FEA_Data_Processor_PlastT.o \
 	APS_FEA_Data_Processor_SurfT.o
 
 OBJ_LINK = $(OBJ)
@@ -41,7 +42,8 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	APS_FEA_Data_ProcessorT.cpp \
+	APS_FEA_Data_Processor_DisplT.cpp \
+	APS_FEA_Data_Processor_PlastT.cpp \
 	APS_FEA_Data_Processor_SurfT.cpp
 
 ##################### (3) headers
@@ -54,7 +56,8 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	APS_FEA_Data_ProcessorT.h \
+	APS_FEA_Data_Processor_DisplT.h \
+	APS_FEA_Data_Processor_PlastT.h \
 	APS_FEA_Data_Processor_SurfT.h
  
 HDR_LINK = $(HDR:.h=.h_link)

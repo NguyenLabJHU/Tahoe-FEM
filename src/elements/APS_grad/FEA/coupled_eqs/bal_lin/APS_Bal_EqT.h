@@ -1,6 +1,6 @@
-// $Id: APS_Bal_EqT.h,v 1.18 2004-02-04 00:40:46 raregue Exp $
-#ifndef _APS_BALEQ_T_H_ 
-#define _APS_BALEQ_T_H_ 
+// $Id: APS_Bal_EqT.h,v 1.19 2004-02-17 19:48:45 raregue Exp $
+#ifndef _APS_BAL_EQ_T_H_ 
+#define _APS_BAL_EQ_T_H_ 
 
 #include "BalLinMomT.h"
 
@@ -87,11 +87,13 @@ class APS_Bal_EqT	: public BalLinMomT
 		
 		APS_Bal_EqT 	( void ) { } 
 
-		APS_Bal_EqT 	( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, 
+		APS_Bal_EqT 	( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes_displ, FEA_ShapeFunctionT &Shapes_plast, 
+						APS_MaterialT *Shear_Matl, 
 						APS_MaterialT *APS_Matl, APS_VariableT &np1, APS_VariableT &n, 
 						int &fTime_Step, double fdelta_t = 0.0, int Integration_Scheme=FEA::kBackward_Euler);
 
-		void 	Construct 	( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, 
+		void 	Construct 	( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes_displ, FEA_ShapeFunctionT &Shapes_plast, 
+							APS_MaterialT *Shear_Matl, 
 							APS_MaterialT *APS_Matl, APS_VariableT &np1, APS_VariableT &n, 
 							int &fTime_Step, double fdelta_t = 0.0, int Integration_Scheme=FEA::kBackward_Euler); 
 
@@ -120,15 +122,16 @@ class APS_Bal_EqT	: public BalLinMomT
 
 		FEA_IntegrationT 		Integral;
 		FEA_SurfIntegrationT 	SurfIntegral;
-		APS_FEA_Data_ProcessorT Data_Pro;
+		APS_FEA_Data_Processor_DisplT Data_Pro_Displ;
+		APS_FEA_Data_Processor_PlastT Data_Pro_Plast;
 		APS_FEA_Data_Processor_SurfT Data_Pro_Surf; 
 
 		double delta_t;
 		int time_step;
 		int n_en_surf, n_ip_surf;
 
-		int n_ip, n_rows_vector, n_rows_matrix, n_cols_matrix, n_sd, n_en, n_sd_x_n_sd, 
-			n_sd_x_n_en, Time_Integration_Scheme;
+		int n_ip, n_rows_vector, n_rows_matrix, n_cols_matrix, n_sd, n_en_displ, n_en_plast, n_sd_x_n_sd, 
+			n_sd_x_n_en_displ, n_sd_x_n_en_plast, Time_Integration_Scheme;
   
 };
 
