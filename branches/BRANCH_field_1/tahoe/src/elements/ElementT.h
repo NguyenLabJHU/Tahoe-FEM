@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.5 2002-03-25 19:50:02 creigh Exp $ */
+/* $Id: ElementT.h,v 1.5.2.1 2002-05-04 20:22:02 paklein Exp $ */
 
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
@@ -24,6 +24,8 @@ public:
              kVirtualRod = 9, /**< pair potential with periodic boundary conditions */
             kVirtualSWDC = 10,
         kCohesiveSurface = 11,
+        
+         kThermalSurface = 12,
 
          kPenaltyContact = 14,
              kBEMelement = 15,
