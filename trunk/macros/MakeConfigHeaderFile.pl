@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: MakeConfigHeaderFile.pl,v 1.2 2002-12-08 17:25:50 paklein Exp $
+# $Id: MakeConfigHeaderFile.pl,v 1.3 2002-12-08 17:33:51 paklein Exp $
 #
 # Generates a C/C++ header file from a configuration file which is
 # passed as the command-line argument.
@@ -74,8 +74,8 @@ close(DATE);
 
 print OUT <<FIN;
 /** \\file $out_root.h
- * Configuration of materials models compiled into Tahoe.
- * Materials models are included or excluded in the build of Tahoe depending in 
+ * Configuration of optional components within Tahoe.
+ * Sections of the code are included or excluded in the build of Tahoe depending in 
  * this flags in this file and in the file $out_root.make. Each option has
  * a #define definition in this file and a corresponding directory definition
  * in $out_root.make. The two items must be set consistently to enable or
