@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.31 2005-04-04 17:15:33 rjones Exp $ */
+/* $Id: ParticleT.h,v 1.32 2005-04-05 16:06:09 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -136,8 +136,7 @@ public:
 	/*@}*/
 
 	/** atomic kinetic energies */
-	void ParticleT::AtomicKineticEnergies(dArrayT& ke);
-
+	void AtomicKineticEnergies(dArrayT& ke);
 
 protected: /* for derived classes only */
 
