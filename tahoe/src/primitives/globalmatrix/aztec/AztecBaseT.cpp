@@ -1,4 +1,4 @@
-/* $Id: AztecBaseT.cpp,v 1.5 2002-10-20 22:49:35 paklein Exp $ */
+/* $Id: AztecBaseT.cpp,v 1.6 2003-02-28 02:07:17 paklein Exp $ */
 /* created: paklein (07/28/1998) */
 
 #include "AztecBaseT.h"
@@ -15,17 +15,14 @@
 #include "ExceptionT.h"
 #include "toolboxConstants.h"
 #include "az_aztec.h"
-
-#ifdef __NEW_THROWS__
-#include <new.h>
-#endif
-
-/* constructor */
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
-AztecBaseT::AztecBaseT(ostream& msg): 
+/* constructor */
+AztecBaseT::AztecBaseT(ostream& msg, CommunicatorT& comm): 
 	fMessage(msg),
+	fCommunicator(comm),
 	N_update(0), update_index(NULL),
 	update_bin(NULL), srow_dex(NULL), srow_val(NULL), external(NULL),
 	extern_index(NULL), rpntr(NULL), cpntr(NULL), indx(NULL), bpntr(NULL),
@@ -33,17 +30,21 @@ AztecBaseT::AztecBaseT(ostream& msg):
 	bindx_transform(NULL)
 {
 	/* allocate parameter arrays */
-	proc_config = new int[AZ_PROC_SIZE];
-	options     = new int[AZ_OPTIONS_SIZE];
-	params      = new double[AZ_PARAMS_SIZE];
-	status      = new double[AZ_STATUS_SIZE];
+	proc_config = ArrayT<int>::New(AZ_PROC_SIZE);
+	options     = ArrayT<int>::New(AZ_OPTIONS_SIZE);
+	params      = ArrayT<double>::New(AZ_PARAMS_SIZE);
+	status      = ArrayT<double>::New(AZ_STATUS_SIZE);
 	
 	/* check */
 	if (!proc_config || !options || !params || !status)
 		throw ExceptionT::kOutOfMemory;
 		
 	/* get number of processors and the name of this processor */
+#ifdef AZ_ver2_1_0_9
+	AZ_set_proc_config(proc_config, fCommunicator);
+#else
 	AZ_processor_info(proc_config);
+#endif
 }
 
 /* destructor */
@@ -138,19 +139,8 @@ void AztecBaseT::Initialize(int num_eq, int start_eq)
 	if (bindx_transform != bindx) delete[] bindx_transform;
 	if (proc_config[AZ_N_procs] == 1)
 		bindx_transform = bindx;
-	else
-	{
-#ifdef __NEW_THROWS__
-		try { bindx_transform = new int[numterms+1]; }
-		catch (bad_alloc) { bindx_transform = NULL; }
-#else
-		bindx_transform = new int[numterms+1];
-#endif
-		if (!bindx_transform)
-		{
-			cout << "\n AztecBaseT::Initialize: out of memory" << endl;
-			throw ExceptionT::kOutOfMemory;
-		}
+	else {
+		bindx_transform = ArrayT<int>::New(numterms+1);
 		memcpy(bindx_transform, bindx, (numterms+1)*sizeof(int));
 	}
 
@@ -349,8 +339,7 @@ void AztecBaseT::SetUpQuickFind(void)
 {
 	/* quick find bin */
 	delete[] update_bin;
-	update_bin = new int[2 + (N_update + 4)/4]; /* oversize */
-	if (!update_bin) throw ExceptionT::kOutOfMemory;
+	update_bin = ArrayT<int>::New(2 + (N_update + 4)/4);
 
 	/* initialize shift and bin */
 	AZ_init_quick_find(update, N_update, &QF_shift, update_bin);
@@ -367,11 +356,8 @@ void AztecBaseT::SetUpQuickFind(void)
 	maxlength += 1;
 
 	/* allocate space for sorted row data */
-	srow_dex = new int[maxlength];
-	if (!srow_dex) throw ExceptionT::kOutOfMemory;
-	
-	srow_val = new double[maxlength];
-	if (!srow_val) throw ExceptionT::kOutOfMemory;
+	srow_dex = ArrayT<int>::New(maxlength);	
+	srow_val = ArrayT<double>::New(maxlength);
 }
 
 /* free memory allocated by Aztec.lib */

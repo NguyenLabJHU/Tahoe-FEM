@@ -1,6 +1,5 @@
-/* $Id: AztecMatrixT.cpp,v 1.10 2002-11-28 17:06:32 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.11 2003-02-28 02:07:17 paklein Exp $ */
 /* created: paklein (08/10/1998) */
-
 #include "AztecMatrixT.h"
 
 /* library support options */
@@ -18,16 +17,16 @@
 #include "ElementMatrixT.h"
 #include "RaggedArray2DT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-AztecMatrixT::AztecMatrixT(ifstreamT& in, ostream& out, int check_code):
+/* constructor */
+AztecMatrixT::AztecMatrixT(ifstreamT& in, ostream& out, int check_code,
+	CommunicatorT& comm):
 	GlobalMatrixT(out, check_code),
 	fInput(in)
 {
 	/* set and verify Aztec data structures */
-	fAztec = new Aztec_fe(fInput, out);
+	fAztec = new Aztec_fe(fInput, out, comm);
 	if (!fAztec) throw ExceptionT::kOutOfMemory;
 }	
 

@@ -1,6 +1,5 @@
-/* $Id: Aztec_fe.cpp,v 1.7 2003-02-10 07:32:35 paklein Exp $ */
+/* $Id: Aztec_fe.cpp,v 1.8 2003-02-28 02:07:17 paklein Exp $ */
 /* created: paklein (08/01/1998) */
-
 #include "Aztec_fe.h"
 
 /* library support options */
@@ -19,12 +18,11 @@
 #include "AztecReaderT.h"
 #include "iArray2DT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-Aztec_fe::Aztec_fe(ifstreamT& in, ostream& msg):
-	AztecBaseT(msg),
+/* constructor */
+Aztec_fe::Aztec_fe(ifstreamT& in, ostream& msg, CommunicatorT& comm):
+	AztecBaseT(msg, comm),
 	fMSRBuilder(NULL),
 	fMSRSet(0)
 {

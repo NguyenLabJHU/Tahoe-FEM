@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.h,v 1.8 2002-11-30 16:31:05 paklein Exp $ */
+/* $Id: AztecMatrixT.h,v 1.9 2003-02-28 02:07:17 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #ifndef _AZTEC_MATRIX_T_H_
 #define _AZTEC_MATRIX_T_H_
@@ -18,6 +18,7 @@ namespace Tahoe {
 /* forward declarations */
 class Aztec_fe;
 class ifstreamT;
+class CommunicatorT;
 
 /** interface for Aztec linear solver library */
 class AztecMatrixT: public GlobalMatrixT
@@ -25,7 +26,7 @@ class AztecMatrixT: public GlobalMatrixT
 public:
 
 	/* constuctor */
-	AztecMatrixT(ifstreamT& in, ostream& out, int check_code);
+	AztecMatrixT(ifstreamT& in, ostream& out, int check_code, CommunicatorT& comm);
 
 	/** copy constructor */
 	AztecMatrixT(const AztecMatrixT& source);
