@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2001-05-17 18:05:37 ebmarin Exp $
+# $Id: makefile,v 1.7 2001-05-17 19:25:29 ebmarin Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -35,6 +35,7 @@ SUB_DIR = \
 	rod \
 	Simo \
 	VIB \
+	plasticity_crystl \
 	plasticity_macro \
 	nlcsolver \
 	tevp
