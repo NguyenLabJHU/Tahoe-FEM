@@ -1,4 +1,4 @@
-/* $Id: GlobalT.cpp,v 1.7 2002-10-20 22:48:32 paklein Exp $ */
+/* $Id: GlobalT.cpp,v 1.8 2003-06-09 07:01:17 paklein Exp $ */
 /* created: paklein (04/01/2000) */
 
 #include "GlobalT.h"
@@ -74,6 +74,12 @@ istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 			break;
 		case GlobalT::kLinTransHeat:
 			code = GlobalT::kLinTransHeat;
+			break;
+		case GlobalT::kNLStaticHeat:
+			code = GlobalT::kNLStaticHeat;
+			break;
+		case GlobalT::kNLTransHeat:
+			code = GlobalT::kNLTransHeat;
 			break;
 		case GlobalT::kPML:
 			code = GlobalT::kPML;
