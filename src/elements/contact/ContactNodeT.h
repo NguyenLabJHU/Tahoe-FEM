@@ -1,4 +1,4 @@
-/* $Id: ContactNodeT.h,v 1.7 2001-08-06 20:55:12 rjones Exp $ */
+/* $Id: ContactNodeT.h,v 1.8 2001-09-06 01:03:26 rjones Exp $ */
 
 
 #ifndef _CONTACT_NODE_T_H_
@@ -11,6 +11,7 @@
 
 /* forward declarations */
 class ofstreamT;
+class ContactSurfaceT;
 
 class ContactNodeT 
 {
@@ -54,12 +55,14 @@ class ContactNodeT
 		{fStatus = kNoProjection; fGap = 1.0e8;}
 
 	void ComputeSlip(double* slip);
+
+	bool HasProjection(void) {return fStatus > kNoProjection;}
 				  
   protected:
         /* data */
 	SurfaceT&  fSurface;
 	int        fNodeTag; // need to protect the value of the tag?
-	const SurfaceT*  fOpposingSurface ; 
+	const ContactSurfaceT*  fOpposingSurface ; 
 	const FaceT*     fOpposingFace ; 
 	double     fxi[2] ;
 	double     fGap ;
@@ -81,7 +84,7 @@ class ContactNodeT
 		{return fSurface.Tangent1(fNodeTag);}
 	inline const double* Tangent2(void) const
 		{return fSurface.Tangent2(fNodeTag);}
-        inline const SurfaceT* OpposingSurface(void) const
+        inline const ContactSurfaceT* OpposingSurface(void) const
 		{return fOpposingSurface;}
         inline const FaceT* OpposingFace(void) const 
 		{return fOpposingFace;}

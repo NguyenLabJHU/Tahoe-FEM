@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.18 2001-08-15 18:37:10 paklein Exp $ */
+/* $Id: ContactElementT.cpp,v 1.19 2001-09-06 01:03:25 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -11,24 +11,37 @@
 #include "FEManagerT.h"
 #include "NodeManagerT.h"
 #include "iGridManager2DT.h"
+#include "XDOF_ManagerT.h"
 #include "ExodusT.h"
 #include "ModelFileT.h"
 #include "SurfaceT.h"
 #include "ContactSearchT.h"
 
+/* parameters */ // unfortunately these are also in the derived classes
+static const int kMaxNumFaceNodes = 4;
+static const int kMaxNumFaceDOF   = 12;
 
 /* constructor */
 ContactElementT::ContactElementT(FEManagerT& fe_manager):
-	ElementBaseT(fe_manager)
+	ElementBaseT(fe_manager),
+	LHS(ElementMatrixT::kNonSymmetric),
+	tmp_LHS(ElementMatrixT::kNonSymmetric),
+	opp_LHS(ElementMatrixT::kNonSymmetric)
 {
 	fXDOF_Nodes = NULL;
+	fNumMultipliers = 0;
 }
 
 ContactElementT::ContactElementT
 (FEManagerT& fe_manager, XDOF_ManagerT* xdof_nodes):
         ElementBaseT(fe_manager),
-	fXDOF_Nodes(xdof_nodes)
+	fXDOF_Nodes(xdof_nodes),
+	LHS(ElementMatrixT::kNonSymmetric),
+	tmp_LHS(ElementMatrixT::kNonSymmetric),
+	opp_LHS(ElementMatrixT::kNonSymmetric)
 {
+	if (!fXDOF_Nodes) throw eGeneralFail;
+	fNumMultipliers = 1;
 }
 
 
@@ -44,7 +57,7 @@ GlobalT::SystemTypeT ContactElementT::TangentType(void) const
 	return GlobalT::kNonSymmetric; 
 }
 
-/* initialization after constructor */
+/* initialization after construction */
 void ContactElementT::Initialize(void)
 {
 	/* inherited, calls EchoConnectivityData */
@@ -52,13 +65,19 @@ void ContactElementT::Initialize(void)
 
 	/* initialize surfaces, connect nodes to coordinates */
 	for (int i = 0; i < fSurfaces.Length(); i++) {
-		SurfaceT& surface = fSurfaces[i];
-		surface.Initialize(ElementBaseT::fNodes);
+		fSurfaces[i].Initialize(ElementBaseT::fNodes);
 	}
-	
+#if 0
+        /* set console access */
+        iAddVariable("penalty_parameter", fpenalty);
+#endif
+
 	/* create search object */
 	fContactSearch = 
 	  new ContactSearchT(fSurfaces, fSearchParameters);
+
+        /* workspace matrices */
+	SetWorkspace();
 
         /* for bandwidth reduction in the case of no contact 
 	 * make node-to-node pseudo-connectivities to link all bodies */
@@ -74,12 +93,54 @@ void ContactElementT::Initialize(void)
         }
 
 
-	/* set initial contact configuration */
-	bool changed = SetContactConfiguration();	
+
+	if (fXDOF_Nodes) {
+        	iArrayT numDOF(fSurfaces.Length());
+        	numDOF = fNumMultipliers;
+		/* this calls GenerateElementData */
+        	/* register with node manager */
+        	fNodes->XDOF_Register(this, numDOF);
+	}
+	else {
+		/* set initial contact configuration */
+		bool changed = SetContactConfiguration();	
+	}
 }
 
+void ContactElementT::SetWorkspace(void)
+{
+	// ARE THESE RIGHT?
+        /* workspace matrices */
+	n1.Allocate(fNumSD);
+	l1.Allocate(fNumSD);
+        RHS_man.SetWard(kMaxNumFaceDOF,RHS);
+        tmp_RHS_man.SetWard(kMaxNumFaceDOF,tmp_RHS);
+        LHS_man.SetWard(kMaxNumFaceDOF,LHS);
+        opp_LHS_man.SetWard(kMaxNumFaceDOF,opp_LHS);
+        tmp_LHS_man.SetWard(kMaxNumFaceDOF,tmp_LHS);
+        N1_man.SetWard(kMaxNumFaceDOF,N1);
+        N2_man.SetWard(kMaxNumFaceDOF,N2);
+        N1n_man.SetWard(kMaxNumFaceDOF,N1n);
+        N2n_man.SetWard(kMaxNumFaceDOF,N2n);
+        weights_man.SetWard(kMaxNumFaceNodes,weights);
+        eqnums_man.SetWard(kMaxNumFaceDOF,eqnums,fNumSD);
+        opp_eqnums_man.SetWard(kMaxNumFaceDOF,opp_eqnums,fNumSD);
+#if 0
+        /* dynamic work space managers for element arrays */
+        fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, fNumElemNodes + 1);
+        fXDOFEqnos_man.SetWard(0, fXDOFEqnos, fNumElemEqnos);
+
+#endif
+}
+
+/* done once per time-step */
 GlobalT::RelaxCodeT ContactElementT::RelaxSystem(void)
 {
+   if (fXDOF_Nodes) {
+	/* override - handled by DOFElement::Reconfigure */
+	return GlobalT::kNoRelax;
+   }
+   else {
         /* inherited */
         GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
 
@@ -91,105 +152,24 @@ GlobalT::RelaxCodeT ContactElementT::RelaxSystem(void)
                 return relax;
         else
                 return GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
-}
-
-/* returns the array for the DOF tags needed for the current config */
-void ContactElementT::SetDOFTags(void)
-{
-#if 0
-        /* store history */
-        int old_length = fActiveStrikers.Length();
-        fLastActiveMap = fActiveMap;
-        dArrayT constraints;
-        constraints.Alias(fXDOF_Nodes->XDOF(this));
-        fLastDOF = constraints;
-
-        /* resize DOF tags array */
-        fContactDOFtags.Allocate(fActiveStrikers.Length());
-
-        /* write list of active strikers */
-        iArrayT tmp;
-        tmp.Alias(fActiveStrikers);
-        ostream& out = fFEManager.Output();
-        out << "\nold: " << old_length << '\n';
-        out << "new: " << fActiveStrikers.Length() << endl;
-        out << "\n            time: " << fFEManager.Time() << '\n';
-        out <<   " active strikers: " << tmp.Length()   << '\n';
-        tmp++;
-        out << tmp.wrap(8) << '\n';
-        tmp--;
-
-        return fContactDOFtags;
-#endif
-}
-
-iArrayT& ContactElementT::DOFTags(int tag_set)
-{
-#if 0
-        return fContactDOFtags;
-#endif
-}
-
-/* generate element data (based on current striker/body data) */
-void ContactElementT::GenerateElementData(void)
-{
-#if 0
-        /* inherited - set nodal connectivities */
-        Contact2DT::SetConnectivities();
-
-        /* dimension */
-        int num_active = fConnectivities.MajorDim();
-
-        /* resize work space */
-        fXDOFConnectivities_man.SetMajorDimension(num_active, false);
-        fXDOFEqnos_man.SetMajorDimension(num_active, false);
-        for (int i = 0; i < num_active; i++)
-        {
-                int*  pelem = fConnectivities(i);
-                int* pxelem = fXDOFConnectivities(i);
-
-                /* XDOF element tags */
-                pxelem[0] = pelem[0]; // 1st facet node
-                pxelem[1] = pelem[1]; // 2nd facet node
-                pxelem[2] = pelem[2]; // striker node
-                pxelem[3] = fContactDOFtags[i]; // contact DOF tag
-        }
-#endif
-}
-
-/* return the contact elements */
-const iArray2DT& ContactElementT::DOFConnects(int tag_set) const
-{
-#if 0
-        return fXDOFConnectivities;
-#endif
-}
-
-
-/* restore the DOF values to the last converged solution */
-void ContactElementT::ResetDOF(dArray2DT& DOF, int tag_set) const
-{
-#if 0
-        /* alias */
-        dArrayT constraints;
-        constraints.Alias(DOF);
-        constraints = 0.0;
-        for (int i = 0; i < fLastActiveMap.Length(); i++)
-        {
-                int old_map = fLastActiveMap[i];
-                int new_map = fActiveMap[i];
-                if (old_map > -1 && new_map > -1)
-                        constraints[new_map] = fLastDOF[old_map];
-        }
-#endif
+   }
 }
 
 /* returns 1 if group needs to reconfigure DOF's, else 0 */
 int ContactElementT::Reconfigure(void)
-{
+{ // this overrides Relax
+	return 1; // always reconfigure, since SetCont.Conf. is in Gen.El.Data
 #if 0
-        /* inherited */
-        GlobalT::RelaxCodeT relax = Contact2DT::RelaxSystem();
+	/* inherited */
+        GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
+
+        /* generate contact element data */
+        bool contact_changed = SetContactConfiguration();
+
+        /* minimal test of new-ness */
+        if (contact_changed)
+                relax = GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
+
         if (relax != GlobalT::kNoRelax)
                 return 1;
         else
@@ -197,75 +177,49 @@ int ContactElementT::Reconfigure(void)
 #endif
 }
 
+/* this sequence supplants Relax */
+/* (1) sizes the DOF tags array needed for the current timestep */
+void ContactElementT::SetDOFTags(void)
+{ 
+        bool changed = fContactSearch->SetInteractions();
 
-/* solution calls */
-void ContactElementT::AddNodalForce(int node, dArrayT& force)
-{
-#pragma unused(node)
-#pragma unused(force)
-//not implemented
+        dArray2DT multiplier_values; // this is size NumPotential???
+	for (int i = 0; i < fSurfaces.Length(); i++) {
+		/* number active nodes and total */
+        	/* store last dof tag and value */
+        	/* resize DOF tags array for number of potential contacts */
+        	multiplier_values.Alias(fXDOF_Nodes->XDOF(this,i));
+	        fSurfaces[i].AllocateMultiplierTags(multiplier_values);
+	}
 }
 
-/* Returns the energy as defined by the derived class types */
-double ContactElementT::InternalEnergy(void)
+/* (2) this function allows the external manager to set the Tags */
+iArrayT& ContactElementT::DOFTags(int tag_set)
 {
-//not implemented
-	return 0.0;
+        return fSurfaces[tag_set].MultiplierTags(); 
 }
 
-/* writing output - nothing to write */
-void ContactElementT::RegisterOutput(void) {}
-
-void ContactElementT::WriteOutput(IOBaseT::OutputModeT mode)
-{
-#pragma unused(mode)
-	/* contact statistics */
-	ostream& out = fFEManager.Output();
-	out << "\n Contact tracking: group " 
-		<< fFEManager.ElementGroupNumber(this) + 1 << '\n';
-	out << " Time                           = " 	
-		<< fFEManager.Time() << '\n';
-
-	/* output files */
-	StringT filename;
-	filename.Root(fFEManager.Input().filename());
-	filename.Append(".", fFEManager.StepNumber());
-	filename.Append("of", fFEManager.NumberOfSteps());
-
-	for(int s = 0; s < fSurfaces.Length(); s++) {
-	    const ContactSurfaceT& surface = fSurfaces[s];
-
-	   if (fOutputFlags[kGaps]) {
-		StringT gap_out;
-		gap_out = gap_out.Append(filename,".gap");
-   		gap_out = gap_out.Append(s);
-		ofstream gap_file (gap_out);
-		surface.PrintGap(gap_file);
-	   }
-
-	   if (fOutputFlags[kNormals]) {
-		StringT normal_out;
-		normal_out = normal_out.Append(filename,".normal");
-		normal_out = normal_out.Append(s);
-		ofstream normal_file (normal_out);
-		surface.PrintNormals(normal_file);
-	   }
-
-           if (fOutputFlags[kStatus]) {
-		surface.PrintStatus(cout);
-           }
-
-
-//    		surface.PrintContactArea(cout);
-  }
-
+/* (3) generates connectivity based on current tags */
+void ContactElementT::GenerateElementData(void)
+{ 
+	for (int i = 0; i < fSurfaces.Length(); i++) {
+                /* form potential connectivity for step */
+ 		fSurfaces[i].SetPotentialConnectivity(fNumMultipliers);
+ 	}
 }
 
-/* compute specified output parameter and send for smoothing */
-void ContactElementT::SendOutput(int kincode)
+/* set DOF values to the last converged solution, this is called after SetDOF */
+void ContactElementT::ResetDOF(dArray2DT& XDOF, int tag_set) const
 {
-#pragma unused(kincode)
-//not implemented: contact tractions/forces
+	for (int i = 0; i < fSurfaces.Length(); i++) {
+		fSurfaces[tag_set].ResetMultipliers(XDOF);
+	}
+}
+
+/* return the displacement-ghost node pairs to avoid pivoting*/
+const iArray2DT& ContactElementT::DOFConnects(int tag_set) const
+{ 
+	return fSurfaces[tag_set].RealGhostNodePairs();
 }
 
 /* append element equations numbers to the list */
@@ -280,35 +234,20 @@ void ContactElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		= fSurfaces[i].Connectivities(); 
 	RaggedArray2DT<int>& equation_numbers 
 		= fSurfaces[i].EqNums();
-        /* get local equations numbers from NodeManager */
+        /* get local equations numbers for u nodes from NodeManager */
 	/* Connectivities generated in SetConfiguration */
-        ElementBaseT::fNodes->
+	if (!fXDOF_Nodes ) {
+          ElementBaseT::fNodes->
 		SetLocalEqnos(connectivities, equation_numbers);
-#if 0
-cout << "\n connectivities \n" ;//<< connectivities <<"\n";
-for (int k = 0; k < connectivities.MajorDim(); k++) {
-cout << "(" << k << ")";
-for (int j = 0; j < connectivities.MinorDim(k); j++) {
-cout << connectivities(k)[j] <<" ";
-if ((j+1) == 1) cout << ",";
-}
-cout << "\n";
-}
+	}
+	else {
+          ElementBaseT::fNodes->
+	   XDOF_SetLocalEqnos(connectivities, equation_numbers);
+	}
 
-cout << "\n eq numbers \n" ; // << equation_numbers << "\n";
-for (int k = 0; k < equation_numbers.MajorDim(); k++) {
-cout << "(" << k << ")";
-for (int j = 0; j < equation_numbers.MinorDim(k); j++) {
-cout << equation_numbers(k)[j] <<" ";
-if ((j+1) == fNumSD) cout << ",";
-}
-cout << "\n";
-}
-#endif
         /* add to list */
         eq_2.Append(&equation_numbers);
   }
-
 
 }
 
@@ -329,6 +268,7 @@ void ContactElementT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	for (int i = 0; i < fSurfaces.Length(); i++) {
 	  const RaggedArray2DT<int>& connectivities   
 		= fSurfaces[i].Connectivities(); 
+	  connects_2.Append(&connectivities);
 	}
 }
 
@@ -338,6 +278,79 @@ void ContactElementT::ConnectsX(AutoArrayT<const iArray2DT*>& connects) const
 #pragma unused (connects)
 	connects.Append(NULL);
 }
+
+void ContactElementT::WriteOutput(IOBaseT::OutputModeT mode)
+{
+#pragma unused(mode)
+
+// look at EXODUS output in continuumelementT
+        /* contact statistics */
+        ostream& out = fFEManager.Output();
+        out << "\n Contact tracking: group "
+                << fFEManager.ElementGroupNumber(this) + 1 << '\n';
+        out << " Time                           = "
+                << fFEManager.Time() << '\n';
+
+        /* output files */
+        StringT filename;
+        filename.Root(fFEManager.Input().filename());
+        filename.Append(".", fFEManager.StepNumber());
+        filename.Append("of", fFEManager.NumberOfSteps());
+
+        for(int s = 0; s < fSurfaces.Length(); s++) {
+            const ContactSurfaceT& surface = fSurfaces[s];
+
+           if (fOutputFlags[kGaps]) {
+                StringT gap_out;
+                gap_out = gap_out.Append(filename,".gap");
+                gap_out = gap_out.Append(s);
+                ofstream gap_file (gap_out);
+                surface.PrintGap(gap_file);
+           }
+
+           if (fOutputFlags[kNormals]) {
+                StringT normal_out;
+                normal_out = normal_out.Append(filename,".normal");
+                normal_out = normal_out.Append(s);
+                ofstream normal_file (normal_out);
+                surface.PrintNormals(normal_file);
+           }
+
+           if (fOutputFlags[kStatus]) {
+                surface.PrintStatus(cout);
+           }
+
+
+//              surface.PrintContactArea(cout);
+  }
+
+}
+
+/* compute specified output parameter and send for smoothing */
+void ContactElementT::SendOutput(int kincode)
+{
+#pragma unused(kincode)
+//not implemented: contact tractions/forces
+}
+
+/* writing output - nothing to write */
+void ContactElementT::RegisterOutput(void) {}
+
+/* solution calls */
+void ContactElementT::AddNodalForce(int node, dArrayT& force)
+{
+#pragma unused(node)
+#pragma unused(force)
+//not implemented
+}
+
+/* Returns the energy as defined by the derived class types */
+double ContactElementT::InternalEnergy(void)
+{
+//not implemented
+        return 0.0;
+}
+
 
 /***********************************************************************
 * Protected
@@ -382,7 +395,6 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		}
 		surface.SetTag(i);
 		surface.PrintConnectivityData(out);
-		surface.AllocateContactNodes();
 	}
 
 	/* print flags */
@@ -455,8 +467,8 @@ bool ContactElementT::SetContactConfiguration(void)
         if (changed) { 
 		/* form potential connectivity for step */
   		for (int i = 0; i < fSurfaces.Length(); i++) {
-			fSurfaces[i].SetPotentialConnectivity();
-			fSurfaces[i].SetContactStatus(fEnforcementParameters);
+			fSurfaces[i].SetPotentialConnectivity(fNumMultipliers);
+//			fSurfaces[i].SetContactStatus(fEnforcementParameters);
   		}
 	}
 

@@ -1,7 +1,6 @@
-/*  $Id: ContactNodeT.cpp,v 1.10 2001-08-06 20:55:12 rjones Exp $ */
+/*  $Id: ContactNodeT.cpp,v 1.11 2001-09-06 01:03:26 rjones Exp $ */
 #include "ContactNodeT.h"
 
-#include "SurfaceT.h"
 #include "FaceT.h"
 #include "ContactElementT.h"
 
@@ -39,7 +38,8 @@ ContactNodeT::AssignOpposing
 double* xi, double g)
 { // should compare to see if better, (requires initialization)
 	fStatus = kContact;
-        fOpposingSurface = &opposing_surface ;
+	/* cast SurfaceT to ContactSurfaceT */
+        fOpposingSurface = ((ContactSurfaceT*) &opposing_surface) ;
         fOpposingFace    = &opposing_face ;
         fxi[0] = xi[0] ;
 	if (fOpposingSurface->NumSD() == 3 ) {fxi[1] = xi[1] ; }

@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.11 2001-08-06 20:55:13 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.12 2001-09-06 01:03:26 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -34,14 +34,14 @@ class ContactSurfaceT : public SurfaceT
 	~ContactSurfaceT(void);
 
 	/* allocate contact node array */
-	void AllocateContactNodes(void);
+	void Initialize(const NodeManagerT* node_manager);
 
 	/* set contact status */
 	void SetContactStatus(nMatrixT<dArrayT>& enforcement_parameters);
 	void UpdateContactStatus(nMatrixT<dArrayT>& enforcement_parameters);
 
 	/* potential connectivities based on growing/sliding contact */
-	void SetPotentialConnectivity(void);
+	void SetPotentialConnectivity(int num_multipliers);
 
 	/* access functions */
 	inline ArrayT<ContactNodeT*>& ContactNodes(void) 
@@ -59,9 +59,21 @@ class ContactSurfaceT : public SurfaceT
 	void PrintNormals(ofstream& out) const;
 	void PrintStatus(ostream& out) const;
 
+	inline iArrayT&  MultiplierTags(void) const
+		{return fMultiplierTags;}	
+	inline iArrayT&  MultiplierMap(void) const
+		{return fMultiplierMap;}	
+	void AllocateMultiplierTags(dArray2DT& multiplier_values);
+	void ResetMultipliers(dArray2DT& multiplier_values);
+	void MultiplierTags(iArrayT& local_nodes, iArrayT& multiplier_tags);
+	iArray2DT& RealGhostNodePairs(void);
+
+
   protected:
         /* nodal arrays */
 	ArrayT <ContactNodeT*>  fContactNodes ; 
+
+	int fNumPotentialContactNodes;
 
 	/* potential connectivities for the time step */
 	RaggedArray2DT<int> fConnectivities;
@@ -72,6 +84,16 @@ class ContactSurfaceT : public SurfaceT
 	/* for frictional slip */
 	ArrayT <ContactNodeT*>  fPreviousContactNodes;
 #endif
+	/* Multiplier Data, which is variable size */
+	/* global multiplier "node" tags for active nodes */
+	iArrayT fMultiplierTags; 
+	/* hash for local node to active nodes */
+	iArrayT fMultiplierMap; 
+	/* multiplier history */
+	iArrayT fLastMultiplierMap; 
+	dArray2DT fLastMultiplierValues; 
+	iArray2DT fRealGhostNodePairs;
+
 
 };
 

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.12 2001-08-15 18:37:10 paklein Exp $ */
+/* $Id: ContactElementT.h,v 1.13 2001-09-06 01:03:26 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -10,15 +10,26 @@
 /* direct members */
 #include "pArrayT.h"
 #include "LocalArrayT.h"
+#include "iArrayT.h"
+#include "dArrayT.h"
 #include "dArray2DT.h"
+#include "VariArrayT.h"
 #include "nVariArray2DT.h"
 #include "nMatrixT.h"
-#include "dArrayT.h"
+#include "nVariMatrixT.h"
+#include "ElementMatrixT.h"
 #include "ContactSurfaceT.h"
 #include "ContactSearchT.h"
 
 /* forward declarations */
 class XDOF_ManagerT;
+
+/**
+ContactElementT is a "super element" of sorts since it is is made up
+of smaller entities called ContactSurfaceT's. The connectivities generated
+by this element are variable size and can change from time step to time step.
+...what else would you like to know?
+*/
 
 class ContactElementT: public ElementBaseT, public DOFElementT
 {
@@ -121,9 +132,42 @@ protected:
 	
 	/* initialization steps */
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
-#if 0
-	virtual void SetWorkSpace(void);
-#endif
+
+	/* additional workspace setup */
+	virtual void SetWorkspace(void);
+	/* workspace data */
+	dArrayT n1,l1;
+	/* residual */
+	dArrayT RHS;
+	VariArrayT<double> RHS_man;
+	dArrayT tmp_RHS;
+	VariArrayT<double> tmp_RHS_man;
+	/* stiffness */
+	ElementMatrixT LHS; //should be using fLHS
+	nVariMatrixT <double> LHS_man;
+	ElementMatrixT tmp_LHS; //should be using fLHS
+	nVariMatrixT <double> tmp_LHS_man;
+	ElementMatrixT opp_LHS;
+	nVariMatrixT <double> opp_LHS_man;
+	/* shape functions */
+	dMatrixT N1;
+	nVariMatrixT<double> N1_man;
+	dMatrixT N2;
+	nVariMatrixT<double> N2_man;
+	dArrayT N1n;
+	VariArrayT<double> N1n_man;
+	dArrayT N2n;
+	VariArrayT<double> N2n_man;
+	/* integration weights */
+	dArrayT weights;
+	VariArrayT<double> weights_man;
+	/* integration points */
+	dArray2DT points; // Maybe should be a pointer and const
+	/* equation numbers */
+	iArray2DT eqnums;
+	nVariArray2DT<int> eqnums_man;
+	iArray2DT opp_eqnums;
+	nVariArray2DT<int> opp_eqnums_man;
 
 	/* generate contact element data  */
 	bool SetContactConfiguration(void);
@@ -139,6 +183,7 @@ protected:
 
 	/* nodemanager with external DOF's for multipliers */
         XDOF_ManagerT* fXDOF_Nodes;
+	int fNumMultipliers;
 
 	
 private:
