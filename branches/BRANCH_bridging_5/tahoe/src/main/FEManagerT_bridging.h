@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11.4.12 2004-04-20 23:04:51 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.4.13 2004-04-21 08:07:58 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -271,7 +271,7 @@ protected:
 		const ArrayT<int>& overlap_cell, const InverseMapT& overlap_node_map, const dArray2DT& rho, 
 		dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, LAdMatrixT& ddf_dpdp) const;
 
-	void Compute_df_dp(const dArrayT& R, double V_0, const ContinuumElementT& coarse, 
+	void Compute_df_dp(const dArrayT& R, double V_0,
 		const ArrayT<char>& cell_type, const InverseMapT& overlap_cell_map, const InverseMapT& overlap_node_map,
 		const dArray2DT& rho, dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, 
 		LAdMatrixT& ddf_dpdp) const;
