@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.3.2.2 2003-05-09 08:50:26 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.3.2.3 2003-05-10 21:30:23 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -101,7 +101,7 @@ public:
 
 	/** calculate the fine scale part of MD solution as well as total displacement u */
 	void BridgingFields(const StringT& field, NodeManagerT& atom_node_manager,
-		NodeManagerT& fem_node_manager);
+		NodeManagerT& fem_node_manager, dArray2DT& totalu);
 	/*@}*/
 	
 	/** \name solver control */

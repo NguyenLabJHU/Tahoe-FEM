@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.31.2.3 2003-05-06 22:14:04 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.31.2.4 2003-05-10 21:30:22 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -565,12 +565,12 @@ out << "\n residual =\n" << projection << endl;
 				/* interpolate to point */
 				for (int k = 0; k < projection.MinorDim(); k++)
 				{
-					/* interpolate projected coarse scale to point (gives Nw) */
+					/* interpolate projected coarse scale to point (gives Nw) - always exact? */
 					fCoarseScale(point, k) = cell_projection.DotColumn(k, Na);
 					
 					/* interpolate actual FEM solution to atoms (point) */
 					coarse_scale(point,k) = coarse.DotColumn(k,Na);
-
+					
 					/* error = source - projection = q-Nw*/
 					fine_scale(point, k) = values(point, k) - fCoarseScale(point, k);
 					
@@ -581,9 +581,8 @@ out << "\n residual =\n" << projection << endl;
 		}
 	}
 	cout << "totalu = " << totalu << endl;
-	cout << "fem displacements = " << values2 << endl;
+	cout << "coarse scale = " << coarse_scale << endl;
 	cout << "fine scale = " << fine_scale << endl;
-	cout << "weights = " << weights << endl;
 }
 
 /* writing output */
