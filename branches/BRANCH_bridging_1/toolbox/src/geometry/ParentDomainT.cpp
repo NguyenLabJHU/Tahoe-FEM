@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.16.6.2 2003-02-10 02:19:29 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.16.6.3 2003-02-19 17:50:25 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -804,9 +804,9 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
 				Jacobian(coords, DNa_p, jacobian);
 				jacobian.Inverse();
 				jacobian.Multx(residual, update);
-				point[0] += update[0];
-				point[1] += update[1];
-				point[2] += update[2];
+				mapped[0] += update[0];
+				mapped[1] += update[1];
+				mapped[2] += update[2];
 				
 				/* evaluate shape functions, derivatives at point */
 				EvaluateShapeFunctions(mapped, Na_p, DNa_p);
@@ -821,9 +821,9 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
 					residual[1] -= Na_p[i]*coords(i,1);
 					residual[2] -= Na_p[i]*coords(i,2);
 				}
-				double magres = sqrt(residual[0]*residual[0] + 
-				                     residual[1]*residual[1] +
-				                     residual[2]*residual[2]);
+				magres = sqrt(residual[0]*residual[0] + 
+                              residual[1]*residual[1] +
+                              residual[2]*residual[2]);
 			}
 		}
 		
