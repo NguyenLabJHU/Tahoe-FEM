@@ -1,4 +1,4 @@
-/* $Id: ios_fwd_decl.h,v 1.7 2002-09-12 16:33:52 paklein Exp $ */
+/* $Id: ios_fwd_decl.h,v 1.7.10.1 2003-10-07 18:21:23 cjkimme Exp $ */
 /* created: paklein (08/11/1999) */
 /* Include this header instead of writing forward declarations */
 /* explicitly. Some compilers do not allow forward declarations */
@@ -8,6 +8,10 @@
 
 #include "Environment.h"
 
+#if defined(__JANUS__) && defined(__ROGUE_STL__)
+#include <iosfwd>
+using namespace std; // can put this here now that namespace std is added
+#else
 #ifdef _MW_MSL_ // Metrowerks Standard Library
 #include <iosfwd.h> //MSL C++ header
 #elif defined(__SUNPRO_CC) 
@@ -28,5 +32,5 @@ class ostream;
 class ifstream;
 class ofstream;
 #endif // _MW_MSL_
-
+#endif // __JANUS__ && __ROGUE_STL__
 #endif // _IOSFWD_H_
