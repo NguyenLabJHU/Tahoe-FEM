@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.4 2001-07-19 01:04:36 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.5 2002-01-22 02:14:23 paklein Exp $ */
 /* created: paklein (05/23/1996)                                          */
 /* Field variables plus averging                                          */
 
@@ -78,6 +78,9 @@ int NodeManagerT::DegreesOfFreedom(int nsd) const
 		case GlobalT::kVarNodeNLExpDyn:
 		case GlobalT::kAugLagStatic:
 			return nsd;
+
+		case GlobalT::kPML:
+			return nsd*nsd;
 		
 		case GlobalT::kLinStaticHeat:
 		case GlobalT::kLinTransHeat:

@@ -1,4 +1,4 @@
-/* $Id: GlobalT.cpp,v 1.3 2001-12-17 00:13:00 paklein Exp $ */
+/* $Id: GlobalT.cpp,v 1.4 2002-01-22 02:14:22 paklein Exp $ */
 /* created: paklein (04/01/2000)                                          */
 /* GlobalT.cpp                                                            */
 
@@ -67,6 +67,9 @@ istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 			break;
 		case GlobalT::kLinTransHeat:
 			code = GlobalT::kLinTransHeat;
+			break;
+		case GlobalT::kPML:
+			code = GlobalT::kPML;
 			break;
 		default:
 			cout << "\n operator>>GlobalT::AnalysisCodeT: unknown code: "
