@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.cpp,v 1.13 2002-03-04 18:15:07 paklein Exp $ */
+/* $Id: InputFEASCIIT.cpp,v 1.14 2002-03-06 08:21:05 paklein Exp $ */
 
 #include "InputFEASCIIT.h"
 
@@ -281,8 +281,6 @@ void InputFEASCIIT::ReadGlobalElementSet (const StringT& name, iArrayT& set)
 
 void InputFEASCIIT::ReadConnectivity (const StringT& name, iArray2DT& connects)
 {
-  if (connects.Length() == 0) throw eSizeMismatch;
-
   ifstreamT geo;
   OpenFile (geo, ".geo");
 
@@ -297,7 +295,8 @@ void InputFEASCIIT::ReadConnectivity (const StringT& name, iArray2DT& connects)
       !s.Tail ('=', numelnodes) ||
       !geo.FindString ("element", s)) throw eDatabaseFail;
 
-  if (numelnodes != connects.MinorDim()) throw eSizeMismatch;
+  if (numelms != connects.MajorDim() ||
+      numelnodes != connects.MinorDim()) throw eSizeMismatch;
 
 	for (int i=0; i < numelms; i++)
 	{
