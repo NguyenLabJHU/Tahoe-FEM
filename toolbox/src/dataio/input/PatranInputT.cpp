@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.cpp,v 1.8 2002-01-27 18:38:12 paklein Exp $ */
+/* $Id: PatranInputT.cpp,v 1.9 2002-02-28 16:13:57 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "PatranInputT.h"
@@ -44,12 +44,12 @@ void PatranInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
   int count = 0;
   int numcomps = fPatran.NumNamedComponents ();
   ArrayT<StringT> names (numcomps);
-  iArrayT nodes;
   if (!fPatran.NamedComponents (names)) throw eDatabaseFail;
   for (int i=0; i < numcomps; i++)
     {
-      if (!fPatran.ReadNodeSet (names[i], nodes)) throw eDatabaseFail;
-      if (nodes.Length() > 0)
+      int num = 0;
+      if (!fPatran.NumNodesInSet (names[i], num)) throw eDatabaseFail;
+      if (num > 0)
 	nodenames[count++] = names[i];
     }
 }
@@ -75,12 +75,12 @@ int  PatranInputT::NumNodeSets (void) const
   int count = 0;
   int numcomps = fPatran.NumNamedComponents ();
   ArrayT<StringT> names (numcomps);
-  iArrayT nodes;
   if (!fPatran.NamedComponents (names)) throw eDatabaseFail;
   for (int i=0; i < numcomps; i++)
     {
-      if (!fPatran.ReadNodeSet (names[i], nodes)) throw eDatabaseFail;
-      if (nodes.Length() > 0)
+      int num = 0;
+      if (!fPatran.NumNodesInSet (names[i], num)) throw eDatabaseFail;
+      if (num > 0)
 	count++;
     }
   return count;
