@@ -17,7 +17,7 @@ FC = xlf -g -I/usr/local/lam/include -qextname
 #FC = cc -64
 
 FLINKER = $(FC)
-CLINKER = $(CC) 
+CLINKER = $(CC)
 
 # --------------------- BLAS Selection        -------------------------
 
