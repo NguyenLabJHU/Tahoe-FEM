@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.14 2002-10-31 21:07:55 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.15 2002-11-06 00:43:11 cjkimme Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -275,9 +275,9 @@ void TiedNodesT::WriteOutput(ostream& out) const
 
        	out <<"\n T i e d  N o d e s  O u t p u t  D a t a : \n\n";
 	out  <<"   " << fPairStatus.Count(kTied) << " tied nodes\n";
-	out <<" Index   Pair Status ( 0 = Free, 1 = Tied, 4 = External Pair) \n";
+	out <<" Index , Leader ID , Follower ID, Pair Status ( 0 = Free, 1 = Tied, 4 = External Pair) \n";
 	for (int i = 0; i < fNodePairs.MajorDim(); i++) 
-       	    out <<i+1<<" "<< (fPairStatus[i] == kFree ? 0 : 1 )<<"\n";
+       	    out <<i+1<<" "<<fNodePairs(i,1)+1<<" "<<fNodePairs(i,0)+1<<" "<< (fPairStatus[i] == kFree ? 0 : 1 )<<"\n";
 
 }
 
@@ -377,7 +377,7 @@ bool TiedNodesT::ChangeStatus(void)
            	cout <<"TiedPotentialT::ChangeStatus: Group 0 doesn't exist \n";
       	  	throw ExceptionT::kGeneralFail;
         }
-	  	surroundingGroup->SendOutput(3);
+	  	surroundingGroup->SendOutput(2);
 	  	dArray2DT fNodalQs = fNodeManager.OutputAverage();
 
 	  	for (int i = 0; i < fNodePairs.MajorDim();i++) 
