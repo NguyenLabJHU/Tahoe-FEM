@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_22.cpp,v 1.6 2005-02-03 17:05:58 paklein Exp $ */
+/* $Id: FEManagerT_bridging_22.cpp,v 1.7 2005-02-03 17:33:37 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -31,6 +31,8 @@
 #ifdef __SPOOLES__
 #include "SPOOLESMatrixT.h"
 #endif
+
+#include <float.h>
 
 /* debugging */
 //#define __DEBUG__ 1
