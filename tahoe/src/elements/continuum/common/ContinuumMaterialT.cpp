@@ -1,21 +1,18 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.6 2002-07-02 19:56:21 cjkimme Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.6.8.1 2002-10-26 16:24:59 paklein Exp $ */
 /* created: paklein (11/20/1996) */
-
 #include "ContinuumMaterialT.h"
-#include "ContinuumElementT.h"
+#include "MaterialSupportT.h"
 #include "ArrayT.h"
 #include "StringT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-ContinuumMaterialT::ContinuumMaterialT(const ContinuumElementT& element):
-	fContinuumElement(element),
-	fNumDOF(element.NumDOF()),
-	fNumSD(element.NumSD()),
-	fNumIP(element.NumIP()),
-	fCurrIP(element.CurrIP())
+/* constructor */
+ContinuumMaterialT::ContinuumMaterialT(const MaterialSupportT& support):
+	fMaterialSupport(support),
+	fNumDOF(support.NumDOF()),
+	fNumSD(support.NumSD()),
+	fNumIP(support.NumIP())
 {
 
 }
@@ -26,22 +23,22 @@ ContinuumMaterialT::~ContinuumMaterialT(void) { }
 /* element card data */
 int ContinuumMaterialT::NumElements(void) const
 {
-	return fContinuumElement.NumElements();
+	return fMaterialSupport.NumElements();
 }
 
 int ContinuumMaterialT::CurrElementNumber(void) const
 {
-	return fContinuumElement.CurrElementNumber();
+	return fMaterialSupport.CurrElementNumber();
 }
 
 ElementCardT& ContinuumMaterialT::ElementCard(int card) const
 {
-	return fContinuumElement.ElementCard(card);
+	return fMaterialSupport.ElementCard(card);
 }
 
 ElementCardT& ContinuumMaterialT::CurrentElement(void) const
 {
-	return fContinuumElement.CurrentElement();
+	return fMaterialSupport.CurrentElement();
 }
 
 /* initialization */
