@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.10 2002-07-30 01:35:24 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.11 2002-07-30 21:16:25 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -27,7 +27,17 @@ BridgingScaleT::BridgingScaleT(const ElementSupportT& support,
 	fLocInitCoords(LocalArrayT::kInitCoords),
 	fLocDisp(LocalArrayT::kDisp),
 	fDOFvec(NumDOF()),
-	fMass(ShapeFunction().ParentDomain().NumNodes())
+	fMass(ShapeFunction().ParentDomain().NumNodes()),
+	//fWtemp(support.NumNodes(),ShapeFunction().ParentDomain().NumNodes()),
+	//fW(support.NumNodes(),ShapeFunction().ParentDomain().NumNodes())
+	fWtemp(ShapeFunction().ParentDomain().NumNodes()),
+	fW(ShapeFunction().ParentDomain().NumNodes()),
+	//fError(ShapeFunction().ParentDomain().NumNodes()),
+  	//fFineScaleU(ShapeFunction().ParentDomain().NumNodes()),
+	//fCoarseScaleU(ShapeFunction().ParentDomain().NumNodes()),
+	//fTotalU(ShapeFunction().ParentDomain().NumNodes()),
+	fMassInv(ShapeFunction().ParentDomain().NumNodes())
+	//	fProjection(support.NumNodes())
 {
 
 }
@@ -51,6 +61,8 @@ void BridgingScaleT::Initialize(void)
 	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
 
 	/* distinguish FEM nodes vs. atoms to separate their respective coordinates */
+	fW = 0.0;
+	fWtemp = 0.0;
 	iArrayT atoms_used, nodes_used;
 	fParticle.NodesUsed(atoms_used);
 	fSolid.NodesUsed(nodes_used);
@@ -140,9 +152,6 @@ void BridgingScaleT::Initialize(void)
 	    << setw(kDoubleWidth) << "no." << '\n';
 	fInverseMapInCell.WriteNumbered(out);
 	out.flush();	
-
-	/* compute coarse scale mass matrix */
-	ComputeMass();
 }
 
 void BridgingScaleT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -164,6 +173,10 @@ void BridgingScaleT::CloseStep(void)
 {
 	/* inherited */
 	ElementBaseT::CloseStep();
+	
+	/* Do Bridging scale calculations after MD displacements
+	   computed using RodT */
+	ComputeMass();
 }
 
 /* resets to the last converged solution */
@@ -288,38 +301,84 @@ void BridgingScaleT::ComputeMass(void)
   /* computes the coarse scale mass matrix once inverse map has
    * been performed */
   const ParentDomainT& parent = ShapeFunction().ParentDomain();
+  const FieldT& field = Field();
+  iArrayT atoms;
+  const dArray2DT& displacements = field[0];
   dArrayT map, shape(parent.NumNodes());
-  dArrayT temp(NumSD());
+  dArrayT temp(NumSD()), disp;
+  double dp;
+
   dMatrixT tempmass(parent.NumNodes());
-  fMass = 0.0;            ;
   for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
-    {
+  {
+      fMass = 0.0;
+      fWtemp = 0.0;
+      fParticlesInCell.RowAlias(i,atoms);
       fInverseMapInCell.RowAlias(i,map);
       for (int j = 0; j < fParticlesInCell.MinorDim(i); j++)
-	{
+      {
+	  // still need to access individual atomic masses
+	  displacements.RowAlias(atoms[j],disp);
+	  dp = disp[0];
 	  temp = map[j];
 	  parent.EvaluateShapeFunctions(temp,shape);
 	  tempmass.Outer(shape,shape);
 	  fMass += tempmass;
+	  shape *= dp;
+	  fWtemp += shape;
+	  //fW.SetRow(atoms[j],shape); -> multiD implementation
+      }
+      fMassInv.Inverse(fMass);
+      fMassInv.Multx(fWtemp,fW);
+      ComputeU(displacements);
+  }
+}
+
+void BridgingScaleT::ComputeU(const dArray2DT& displacements)
+{
+  /* compute the coarse scale (FEM) solution by projecting the fine scale
+     (MD) solution onto a finite dimensional basis space */
+  const ParentDomainT& parent = ShapeFunction().ParentDomain();
+  dArrayT map, shape1(parent.NumNodes()), shape2(parent.NumNodes());
+  dArrayT map1(NumSD()), map2(NumSD());
+  iArrayT disp1;
+  dArray2DT disp(fParticlesInCell.MaxMinorDim(),NumDOF());
+  double mult;
+
+  for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
+  {
+      fInverseMapInCell.RowAlias(i,map);
+      fParticlesInCell.RowAlias(i,disp1);
+      disp.RowCollect(disp1,displacements);
+      dMatrixT Projection(fParticlesInCell.MinorDim(i));
+      dArrayT Error(fParticlesInCell.MinorDim(i)), FineScaleU(fParticlesInCell.MinorDim(i));
+      dArrayT CoarseScaleU(fParticlesInCell.MinorDim(i)), TotalU(fParticlesInCell.MinorDim(i));
+      Error = 0.0;
+      FineScaleU = 0.0;
+      CoarseScaleU = 0.0;
+      TotalU = 0.0;
+      Projection = 0.0;
+      for (int j = 0; j < fParticlesInCell.MinorDim(i); j++)
+      {
+	map1 = map[j];
+	parent.EvaluateShapeFunctions(map1,shape1);
+	Error[j] = dArrayT::Dot(shape1,fW);
+	FineScaleU[j] = disp(j,0) - Error[j];
+	for (int k = 0; k < fParticlesInCell.MinorDim(i); k++)
+	{
+	  // still need to access individual atomic masses
+	  map2 = map[k];
+	  parent.EvaluateShapeFunctions(map2,shape2);
+	  mult = fMassInv.MultmBn(shape1,shape2);
+	  Projection(j,k) += mult;
 	}
-    }
-  cout << "Mass matrix = " << fMass << endl;
-}
-
-void BridgingScaleT::ComputeError(void)
-{
-  /* compute the error caused by projecting the "exact" (MD) solution onto a
-   * finite dimensional basis set (FEM basis) */
-
-
-
-}
-
-void BridgingScaleT::ComputeFineScaleU(void)
-{
-  /* compute the fine scale displacement, ie the "exact" (MD) solution minus
-   * error interpolated over a given finite element */
-
-
-
+      }
+      Projection.Multx(disp,CoarseScaleU);
+      TotalU += CoarseScaleU;
+      TotalU += FineScaleU;
+      cout << "MD = \n" << disp << endl;
+      cout << "TotalU = \n" << TotalU << endl;
+      cout << "FEM = \n" << CoarseScaleU << endl;
+      cout << "Fine Scale = \n" << FineScaleU << endl;
+  }
 }
