@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.54 2003-09-03 23:45:50 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.55 2003-09-04 07:16:50 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -293,7 +293,8 @@ void CSEAnisoT::Initialize(void)
 			{
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 				if (NumDOF() == 2)
-					fSurfPots[num] = new InelasticDuctile_RP2DT(in, ElementSupport().TimeStep(),fIPArea);
+//					fSurfPots[num] = new InelasticDuctile_RP2DT(in, ElementSupport().TimeStep(), fIPArea);
+					fSurfPots[num] = new InelasticDuctile_RP2DT(in, ElementSupport().TimeStep(), fIPArea, ElementSupport().Output());
 				else
 					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
 				break;
