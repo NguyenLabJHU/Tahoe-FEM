@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.cpp,v 1.3 2002-03-07 18:44:33 cjkimme Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.4 2002-03-08 16:57:27 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "RateDep2DT.h"
@@ -154,24 +154,16 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
                  */
 		if (state[6] < u_n || state[6] < fd_c_n*fL_1)
 		{
-		  cout <<  "\n RateDep2DT::Traction: rate-dependent length scale is incompatible with rate-independent one. Check your parameters \n ";
+		  cout <<  "\n RateDep2DT::Traction: rate-dependent length scale is incompatible with rate-independent one. Check input parameters. \n ";
 		  throw eBadInputValue;
 		}
-		cout << "state[6] " << state[6] << "\n";
 		r_n = u_n/state[6];
 		L = sqrt(r_t*r_t+r_n*r_n);
-		//if (state[2] > 1.) 
-		//  state[2] = 1.;
-		//if (u_n_dot > .000001)
-		//  state[2] = .5;
-		//else
-		// state[2] = .9;
-		//state[3] = 1.;
 	      }
 	  }
 	  sigbyL = state[4]/L;
 	}
-	else if (L < 1 && state[2] < 1.)
+	else if (L < 1)
 		sigbyL = state[4]*(1 - (L - state[2])/(1 - state[2]))/L;
 	else
 		sigbyL = 0.0;	
@@ -351,15 +343,15 @@ void RateDep2DT::Print(ostream& out) const
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
 * by default */
-int RateDep2DT::NumOutputVariables(void) const { return 3; }
+int RateDep2DT::NumOutputVariables(void) const { return 4; }
 
 void RateDep2DT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(3);
+	labels.Allocate(4);
 	labels[0] = "lambda";
 	labels[1] = "D_t_dot";
 	labels[2] = "D_n_dot";
-	//	labels[3] = "L_2";
+        labels[3] = "fd_c_n";
 }
 
 void RateDep2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
@@ -377,7 +369,7 @@ void RateDep2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& stat
 	output[0]  = sqrt(r_t*r_t + r_n*r_n); // (1.1)
 	output[1] = (u_t-state[8])/fTimeStep;
 	output[2] = (u_n-state[9])/fTimeStep;
-	//	output[3] = state[2];
+	output[3] = state[6];
 
 }
 
