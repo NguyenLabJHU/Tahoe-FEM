@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.12 2003-05-27 21:11:59 saubry Exp $ */
+/* $Id: EAMT.h,v 1.13 2003-07-15 23:31:49 saubry Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -135,31 +135,6 @@ private:
 	dArray2DT frhop_r;
 	nVariArray2DT<double> frhop_r_man;
 	int frhop_rMessageID;
-
-	/** Check Derivatives **/
-	/*@{*/
-	/** embedding force */
-	dArray2DT fEmbeddingForce_i;
-	nVariArray2DT<double> fEmbeddingForce_i_man;
-	int fEmbeddingForce_iMessageID;
-
-	dArray2DT fdFdx;
-	nVariArray2DT<double> fdFdx_man;
-	int fdFdxMessageID;
-
-	dArray2DT frho_i;
-	nVariArray2DT<double> frho_i_man;
-	int frho_iMessageID;
-
-	dArray2DT fEmb;
-	nVariArray2DT<double> fEmb_man;
-	int fEmbMessageID;
-
-	dArray2DT fEmb_i;
-	nVariArray2DT<double> fEmb_i_man;
-	int fEmb_iMessageID;
-	/*@}*/	
-
 
 	/** \name workspace for EAMT::RHSDriver. Used to accumulate the force for
 	 * a single row of EAMT::fNeighbors. */
