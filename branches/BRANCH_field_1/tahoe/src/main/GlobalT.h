@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.5 2002-01-22 02:14:22 paklein Exp $ */
+/* $Id: GlobalT.h,v 1.5.2.1 2002-04-23 01:25:50 paklein Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -65,9 +65,13 @@ public:
 	/** global system types, ordered so n_1 > n_2 implies that n_1 is a
 	 * superset of n_2. */
 	enum SystemTypeT {
+	       kUndefined =-1,
 		    kDiagonal = 0,
 		   kSymmetric = 1,
 		kNonSymmetric = 2};
+
+	/** returns the type with higher restrictions */
+	static SystemTypeT MaxPrecedence(SystemTypeT code1, SystemTypeT code2);
 
 	/** relaxation level */
 	enum RelaxCodeT {
@@ -84,5 +88,11 @@ public:
 		kLocal  = 0, /**< equations numbered per processor */
 		kGlobal = 1  /**< equations numbered over entire system */};
 };
+
+/* inlines */
+inline GlobalT::SystemTypeT GlobalT::MaxPrecedence(SystemTypeT code1, SystemTypeT code2)
+{
+	return (code1 > code2) ? code1 : code2;
+}
 
 #endif // _GLOBAL_T_H_

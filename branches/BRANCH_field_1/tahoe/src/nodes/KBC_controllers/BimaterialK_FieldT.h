@@ -1,7 +1,5 @@
-/* $Id: BimaterialK_FieldT.h,v 1.2 2002-01-27 18:51:11 paklein Exp $ */
-/* created: paklein (09/06/2000)                                          */
-/* Displacements for a bimaterial K-field:                                */
-/* P.P.L.Matos et al (1989), Int. J. of Fract., v40, 235-254.             */
+/* $Id: BimaterialK_FieldT.h,v 1.2.2.1 2002-04-23 01:25:52 paklein Exp $ */
+/* created: paklein (09/06/2000)*/
 
 #ifndef _BIMATERIAL_K_FIELD_T_H_
 #define _BIMATERIAL_K_FIELD_T_H_
@@ -9,6 +7,9 @@
 /* base class */
 #include "K_FieldT.h"
 
+/** Displacements for a bimaterial K-field.
+ * Displacement field taken from\\
+ * P.P.L.Matos et al (1989), Int. J. of Fract. \b 40, 235-254. */
 class BimaterialK_FieldT: public K_FieldT
 {
 public:

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.13 2002-04-21 07:16:32 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.13.2.1 2002-04-23 01:25:50 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -75,18 +75,34 @@ public:
 	double LoadFactor(int nLTf) const;
 	int NumberOfLTf(void) const;
 
-	/* equation system */
-	void WriteEquationNumbers(void) const;
-	GlobalT::EquationNumberScopeT EquationNumberScope(void) const;
-	int GlobalEquationNumber(int nodenum, int dofnum) const;
-	int GlobalEquationStart(void) const;
-	int ActiveEquationStart(void) const;
-	int GlobalNumEquations(void) const;
+	/** \name equation system */
+	/*@{*/
+	/** write the field equations to for the given group to the stream */
+	void WriteEquationNumbers(int group) const;
 
-	/* exception handling */
+	/** determine the numbering scope of the equations for the given group */
+	GlobalT::EquationNumberScopeT EquationNumberScope(int group) const;
+
+//NOTE - NEED THIS?
+//	int GlobalEquationNumber(int nodenum, int dofnum) const;
+
+	/** the global number of the first equation on this processor, regardless of
+	 * the FEManagerT::EquationNumberScope for that group. */
+	int GlobalEquationStart(int group) const;
+
+	/** the first equation number owned by this processor */
+	int ActiveEquationStart(int group) const;
+
+	/** total number of equations in the specified group */
+	int GlobalNumEquations(int group) const;
+	/*@}*/
+
+	/** \name exception handling */
+	/*@{*/
 	virtual void HandleException(int exception);
 	void WriteExceptionCodes(ostream& out) const;
 	const char* Exception(int code) const;
+	/*@}*/
 
 	/* load control functions (returns true if successful) */
 	bool DecreaseLoadStep(void);
@@ -303,9 +319,15 @@ protected:
 	
 	/* restart file counter */
 	int fRestartCount;
-	int fGlobalEquationStart;
-	int fActiveEquationStart;
-	int fGlobalNumEquations;
+	
+	/** \name equation system
+	 * information by group is determined during the call to 
+	 * FEManagerT::SetEquationSystem */
+	/*@{*/
+	iArrayT fGlobalEquationStart;
+	iArrayT fActiveEquationStart;
+	iArrayT fGlobalNumEquations;
+	/*@}*/
 };
 
 /* inlines */
@@ -323,8 +345,8 @@ inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
 	return NULL;
 }
 
-inline int FEManagerT::GlobalEquationStart(void) const { return fGlobalEquationStart; }
-inline int FEManagerT::ActiveEquationStart(void) const { return fActiveEquationStart; }
-inline int FEManagerT::GlobalNumEquations(void) const { return fGlobalNumEquations; }
+inline int FEManagerT::GlobalEquationStart(int group) const { return fGlobalEquationStart[group]; }
+inline int FEManagerT::ActiveEquationStart(int group) const { return fActiveEquationStart[group]; };
+inline int FEManagerT::GlobalNumEquations(int group) const { return fGlobalNumEquations[group]; }
 
 #endif /* _FE_MANAGER_H_ */

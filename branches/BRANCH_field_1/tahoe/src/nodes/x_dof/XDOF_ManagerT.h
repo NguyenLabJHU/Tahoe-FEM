@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.h,v 1.4 2001-08-29 07:08:22 paklein Exp $ */
+/* $Id: XDOF_ManagerT.h,v 1.4.4.1 2002-04-23 01:25:52 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 
 #ifndef _XDOF_MANAGER_T_H_
@@ -55,25 +55,25 @@ protected:
 	/** set the start tag */
 	void SetStartTag(int start_tag) { fStartTag = start_tag; };
 
-	/** prompt element groups to reset tags.
-	 * \param tag_start first to number to assign
+	/** prompt elements in the specified group to reset tags.
 	 * \return true if tags have been reset */
-	bool ResetTags(void);
+	bool ResetTags(int group);
 
 	/** return the total number of tag sets */
 	int NumTagSets(void) const { return fXDOF_Eqnos.Length(); };
 
-	/** call groups to reset external DOF's */
-	void Reset(void);
+	/** call elements in specified group the to reset external DOF's */
+	void Reset(int group);
 
-	/** update DOF's using the global update vector */
-	void Update(const dArrayT& update);
+	/** update DOF's in the specified group using the global 
+	 * update vector */
+	void Update(int group, const dArrayT& update);
 
 	/** (self-)configure element group */
 	void ConfigureElementGroup(int group_number, int& tag_num);
 
 	/** assign equation numbers */
-	void SetEquations(int& num_eq);
+	void SetEquations(int group, int& num_eq);
 
 	/** remove external DOF's from first slot of each row */
 	void CheckEquationNumbers(ostream& out, iArray2DT& eqnos);
@@ -98,6 +98,7 @@ protected:
 protected:
 
 	/** registered element groups */
+	AutoArrayT<int> fDOFGroups;
 	AutoArrayT<DOFElementT*> fDOFElements;
 	
 	/* tag info */
