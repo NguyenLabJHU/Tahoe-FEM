@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: CrystalLatticeT.h,v 1.13 2003-08-04 23:17:36 saubry Exp $ */
+/* $Id: CrystalLatticeT.h,v 1.14 2004-02-06 22:00:13 saubry Exp $ */
 
 #ifndef _CRYSTAL_LATTICE_T_H_
 #define _CRYSTAL_LATTICE_T_H_
@@ -21,6 +21,7 @@ protected:
 	int nType;                   // total number of types
 	StringT sLATTYPE;  
 
+	dArrayT a,b,c;     // Primitive Lattice Vectors
 	dArray2DT vBasis;            // atoms in cell
 	dArrayT vLatticeParameters;  // lattice parameters
 	dArray2DT vAxis;             // Bravais vectors
@@ -53,6 +54,11 @@ public:
 	dArray2DT GetMatrixRotation() { return matrix_rotation;};
 	iArrayT GetType() { return vType; }
 	int GetNumberOfType() { return nType; }
+
+
+	virtual const dArrayT& GetVector_a() = 0;
+	virtual const dArrayT& GetVector_b() = 0;
+	virtual const dArrayT& GetVector_c() = 0;
 
 	virtual const dArrayT& GetLatticeParameters() = 0;
 	virtual const dArray2DT& GetBasis() = 0;

@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.h,v 1.19 2003-09-08 20:14:51 jzimmer Exp $ */
+/* $Id: BoxT.h,v 1.20 2004-02-06 22:00:13 saubry Exp $ */
 
 #ifndef _BOX_T_H_
 #define _BOX_T_H_
@@ -53,6 +53,15 @@ class BoxT : public VolumeT
     dArray2DT ComputeMinMax(); 
     int RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,iArrayT* temp_type,int temp_nat);
     int RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,iArrayT* temp_type,int temp_nat);
+
+    double Mod(double a,double p);
+    double Max(double a,double b,double c);
+    double Min(double a,double b,double c);
+
+    dArrayT CrossProduct(dArrayT,dArrayT);
+    double DotProduct(dArrayT x,dArrayT y);
+
+    double CalculatePeriodicLength(CrystalLatticeT* pcl,dArrayT Rot);
 
 };
 

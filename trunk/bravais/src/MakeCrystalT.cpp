@@ -230,9 +230,12 @@ void MakeCrystalT::Run()
         in >> mat_rot(0,2) >> mat_rot(1,2) >> mat_rot(2,2); 
       
         out << "   Rotation Matrix: " ;
-        out << float(mat_rot(0,0)) << "  " <<  float(mat_rot(0,1)) << "  " << float(mat_rot(0,2)) << "\n";
-        out << "                    " << float(mat_rot(1,0)) << "  " <<  float(mat_rot(1,1)) << "  " << float(mat_rot(1,2)) << "\n";
-        out << "                    " << float(mat_rot(2,0)) << "  " <<  float(mat_rot(2,1)) << "  " << float(mat_rot(2,2)) << "\n";
+        out << float(mat_rot(0,0)) << "  " <<  float(mat_rot(0,1)) 
+	    << "  " << float(mat_rot(0,2)) << "\n";
+        out << "                    " << float(mat_rot(1,0)) 
+	    << "  " <<  float(mat_rot(1,1)) << "  " << float(mat_rot(1,2)) << "\n";
+        out << "                    " << float(mat_rot(2,0)) 
+	    << "  " <<  float(mat_rot(2,1)) << "  " << float(mat_rot(2,2)) << "\n";
         out << "\n";
       }
     }

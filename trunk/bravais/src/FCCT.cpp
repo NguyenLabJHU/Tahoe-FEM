@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: FCCT.cpp,v 1.15 2003-09-08 20:14:51 jzimmer Exp $ */
+/* $Id: FCCT.cpp,v 1.16 2004-02-06 22:00:13 saubry Exp $ */
 #include "FCCT.h"
 #include "CrystalLatticeT.h"
 
@@ -64,6 +64,18 @@ FCCT::FCCT(int nlsd,int nuca,dArrayT alat,
       // Rotate axis
       double norm = sqrt(norm_vec[0] + norm_vec[1] + norm_vec[2]);
       if (norm > 1.e-5) vAxis = AxisRotation(vAxis);
+
+      // Define primitive lattice vectors
+      a[0] = 1.0;a[1]=1.0;a[2]=0.0;
+      b[0] = 0.0;b[1]=1.0;b[2]=1.0;
+      c[0] = 1.0;c[1]=0.0;c[2]=1.0;
+
+      if(norm > 1.e-5) 
+	{
+	  a = VectorRotation(a);
+	  b = VectorRotation(b);
+	  c = VectorRotation(c);
+	}
     }
  
 }

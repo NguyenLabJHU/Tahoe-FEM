@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: CrystalLatticeT.cpp,v 1.21 2003-09-08 20:14:51 jzimmer Exp $ */
+/* $Id: CrystalLatticeT.cpp,v 1.22 2004-02-06 22:00:13 saubry Exp $ */
 #include "CrystalLatticeT.h"
 
 #include "StringT.h"
@@ -17,6 +17,8 @@ CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,int which_rot,
 {
   nLSD = nlsd;
   nUCA = nuca;
+
+  a.Dimension(nLSD);b.Dimension(nLSD);c.Dimension(nLSD);
 
   vBasis.Dimension(nLSD,nUCA);
   vLatticeParameters.Dimension(nLSD);
@@ -131,10 +133,10 @@ double CrystalLatticeT::GetDensity()
 
 dArray2DT  CrystalLatticeT::AxisRotation(dArray2DT A)
 {
-  if(A.MajorDim() != nLSD || A.MinorDim() != nLSD) 
+  if(A.MajorDim() != nLSD) 
     throw eSizeMismatch;
 
-  dArray2DT B(nLSD,nLSD);
+  dArray2DT B(nLSD,A.MinorDim());
   dMatrixT Q(nLSD,nLSD);
 
   B = 0.0;
@@ -145,13 +147,6 @@ dArray2DT  CrystalLatticeT::AxisRotation(dArray2DT A)
       if(fabs(angle_rotation) <= 1.e-5) return A;
       Rotate2DT R(angle_rotation);
       Q = R.Q();
-
-      for (int i=0; i<nLSD; i++)
-	for (int j=0; j<nLSD; j++)
-	  {
-	    for (int k=0; k<nLSD; k++)
-	      B(i,j) += Q(i,k)*A(k,j);
-	  }     
     }
   else if(nLSD==3)
     {
@@ -161,14 +156,16 @@ dArray2DT  CrystalLatticeT::AxisRotation(dArray2DT A)
       Rotate3DT R;
       R.GiveTransfoMatrix(matrix_rotation);
       Q = R.Q();
-      
-      for (int i=0; i<nLSD; i++)
-	for (int j=0; j<nLSD; j++)
-	  {
-	    for (int k=0; k<nLSD; k++)
-	      B(i,j) += Q(i,k)*A(k,j);
-	  }
     }
+
+
+  for (int i=0; i<nLSD; i++)
+    for (int j=0; j<A.MinorDim(); j++)
+      {
+	for (int k=0; k<nLSD; k++)
+	  B(i,j) += Q(k,i)*A(k,j);
+      }
+  
   return B;
 }
 
@@ -191,7 +188,7 @@ dArrayT CrystalLatticeT::VectorRotation(dArrayT v)
 
       for (int i=0; i<nLSD; i++)
 	for (int k=0; k<nLSD; k++)
-	      w[i] += Q(i,k)*v[k];
+	      w[i] += Q(k,i)*v[k];
     }
   else if(nLSD==3)
     {
@@ -204,7 +201,7 @@ dArrayT CrystalLatticeT::VectorRotation(dArrayT v)
       
       for (int i=0; i<nLSD; i++)
 	for (int k=0; k<nLSD; k++)
-	  w[i] += Q(i,k)*v[k];
+	  w[i] += Q(k,i)*v[k];
     }
 
   return w;
