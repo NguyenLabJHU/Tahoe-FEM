@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.41.2.1 2003-02-10 02:20:34 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.41.2.2 2003-02-10 09:25:36 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -504,9 +504,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		{
 #ifdef CONTINUUM_ELEMENT
 			/* associated group numbers */
-			int particle_group = -99;
 			int solid_group = -99;
-			in >> particle_group >> solid_group;
+			in >> solid_group;
 
 			const SolidElementT* solid = dynamic_cast<const SolidElementT*>(&(fSupport.ElementGroup(--solid_group)));
 			if (!solid)

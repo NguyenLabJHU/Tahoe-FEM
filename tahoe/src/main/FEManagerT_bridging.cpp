@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.1.2.2 2003-02-10 02:22:04 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.1.2.3 2003-02-10 09:25:37 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
@@ -48,7 +48,7 @@ void FEManagerT_bridging::InitGhostNodes(void)
 	KBC_cards.Dimension(fGhostNodes.Length()*ndof);
 	int dex = 0;
 	for (int j = 0; j < ndof; j++)
-		for (int i = 0; i < fDrivenCellNodes.Length(); i++)
+		for (int i = 0; i < fGhostNodes.Length(); i++)
 			KBC_cards[dex++].SetValues(fGhostNodes[i], j, KBC_CardT::kDsp, 0, 0.0);
 	
 	/* reset the group equations numbers */
@@ -57,7 +57,7 @@ void FEManagerT_bridging::InitGhostNodes(void)
 	/* echo ghost nodes */
 	if (fPrintInput) {
 		fMainOut << "\n Ghost nodes:\n";
-		fMainOut << fGhostNodes.wrap(10) << '\n';
+		fMainOut << fGhostNodes.wrap(5) << '\n';
 	}
 
 	/* mark nodes as ghost */
@@ -85,6 +85,8 @@ void FEManagerT_bridging::InitInterpolation(const iArrayT& nodes, const StringT&
 {
 #pragma unused(field)
 
+	fMainOut << "\n Number of interpolation points. . . . . . . . . = " << nodes.Length() << '\n';
+
 	/* map nodes into cells (using reference coordinates) */
 	const dArray2DT& init_coords = node_manager.InitialCoordinates();
 	BridgingScale().MaptoCells(nodes, &init_coords, NULL, fFollowerCellData);
@@ -94,6 +96,8 @@ void FEManagerT_bridging::InitInterpolation(const iArrayT& nodes, const StringT&
 void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& field,  NodeManagerT& node_manager)
 {
 	const char caller[] = "FEManagerT_bridging::SetExactSolution";
+
+	fMainOut << "\n Number of projection points . . . . . . . . . . = " << nodes.Length() << '\n';
 
 	/* map nodes into cells (using reference coordinates) */
 	const dArray2DT& init_coords = node_manager.InitialCoordinates();

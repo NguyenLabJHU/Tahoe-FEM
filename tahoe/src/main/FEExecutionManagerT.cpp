@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.36.2.2 2003-02-10 02:22:04 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.36.2.3 2003-02-10 09:25:37 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -112,6 +112,7 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 			if (size > 1) ExceptionT::GeneralFail(caller, "RunBridging for SERIAL ONLY");
 
 			RunBridging(in, status);
+			break;
 		}
 		default:
 			ExceptionT::GeneralFail("FEExecutionManagerT::RunJob", "unknown option: %d", run_option);
@@ -215,6 +216,8 @@ bool FEExecutionManagerT::RemoveCommandLineOption(const char* str)
 void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 {
 	const char caller[] = "FEExecutionManagerT::RunBridging";
+	StringT path;
+	path.FilePath(in.filename());
 
 	/* read atomistic and continuum source files */
 	StringT atom_file, bridge_atom_file;
@@ -227,6 +230,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 
 	/* streams for atomistic Tahoe */
 	atom_file.ToNativePathName();
+	atom_file.Prepend(path);
 	ifstreamT atom_in('#', atom_file);
 	if (atom_in.is_open())
 		cout << " atomistic parameters file: " << atom_file << endl;
@@ -239,6 +243,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 	atom_out.open(atom_out_file);
 
 	bridge_atom_file.ToNativePathName();
+	bridge_atom_file.Prepend(path);
 	ifstreamT bridge_atom_in('#', bridge_atom_file);
 	if (bridge_atom_in.is_open())
 		cout << " atomistic bridging parameters file: " << bridge_atom_file << endl;
@@ -247,6 +252,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 
 	/* streams for continuum Tahoe */
 	continuum_file.ToNativePathName();
+	continuum_file.Prepend(path);
 	ifstreamT continuum_in('#', continuum_file);
 	if (continuum_in.is_open())
 		cout << " continuum parameters file: " << continuum_file << endl;
@@ -259,6 +265,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 	continuum_out.open(continuum_out_file);
 
 	bridge_continuum_file.ToNativePathName();
+	bridge_continuum_file.Prepend(path);
 	ifstreamT bridge_continuum_in('#', bridge_continuum_file);
 	if (bridge_continuum_in.is_open())
 		cout << " continuum bridging parameters file: " << bridge_continuum_file << endl;
@@ -278,9 +285,12 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 
 		/* construction */
 		phase = 0;
-		in.set_marker('#');
+		char jpb_char;
+		atom_in >> jpb_char;
 		FEManagerT_bridging atoms(atom_in, atom_out, fComm, bridge_atom_in);
 		atoms.Initialize();
+
+		continuum_in >> jpb_char;
 		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, bridge_continuum_in);
 		continuum.Initialize();
 

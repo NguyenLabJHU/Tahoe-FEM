@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.30.2.1 2003-02-10 02:18:03 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.30.2.2 2003-02-10 09:25:37 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -157,27 +157,14 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 			inv_coords.Set(np, nsd, point_in_cell_coords(i));
 
 			/* write coordinates */
-			int* p_list = fParticlesInCell(i);
+			int* p_list = point_in_cell(i);
 			for (int j = 0; j < np; j++)
 			{
 				out << setw(kIntWidth) << p_list[j]+1 << ": ";
 				inv_coords.PrintRow(j, out);
-				out << '\n';
 			}
 		}
 	}
-
-#if 0
-	/* store solid nodes used */
-	fSolidNodesUsed.Dimension(fTotalNodes, 1);
-	fSolidNodesUsed.SetColumn(0, nodes_used);
-#endif
-
-#if 0
-	/* store particles used */
-	fParticlesUsed.Dimension(atoms_used.Length(), 1);
-	fParticlesUsed.SetColumn(0, atoms_used);
-#endif
 }
 
 void BridgingScaleT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
