@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.4 2002-10-20 22:48:39 paklein Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.5 2004-04-09 02:02:58 hspark Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAMFCC3D.cpp                                                           */
 
@@ -15,6 +15,7 @@
 #include "VoterChenAl.h"
 #include "VoterChenCu.h"
 #include "FBD_EAMGlue.h"
+#include "EAM_particle.h"
 
 /* constructor */
 
@@ -26,9 +27,13 @@ EAMFCC3D::EAMFCC3D(ifstreamT& in, int EAMcode, int numspatialdim, int numbonds):
 {
 	/* set EAM solver functions */
 	SetGlueFunctions(in);
-	
+
 	/* lattice parameter and cell volume */
-	fLatticeParameter = fEAM->LatticeParameter();
+	if (!fEAM)
+		fLatticeParameter = fEAM_particle->LatticeParameter();
+	else
+		fLatticeParameter = fEAM->LatticeParameter();
+		
 	fCellVolume       = fLatticeParameter*fLatticeParameter*fLatticeParameter;
 }
 
@@ -44,7 +49,11 @@ EAMFCC3D::EAMFCC3D(ifstreamT& in, const dMatrixT& Q, int EAMcode, int numspatial
 	SetGlueFunctions(in);
 	
 	/* lattice parameter and cell volume */
-	fLatticeParameter = fEAM->LatticeParameter();
+	if (!fEAM)
+		fLatticeParameter = fEAM_particle->LatticeParameter();
+	else
+		fLatticeParameter = fEAM->LatticeParameter();
+		
 	fCellVolume       = fLatticeParameter*fLatticeParameter*fLatticeParameter;
 }
 
@@ -57,8 +66,10 @@ double EAMFCC3D::EnergyDensity(const dSymMatrixT& strain)
 	/* compute deformed lattice geometry */
 	ComputeDeformedLengths(strain);
 
-	return  (kEAMFCC3DNumAtomsPerCell/fCellVolume)*
-			 fEAM->ComputeUnitEnergy();
+	if (!fEAM)
+		return (kEAMFCC3DNumAtomsPerCell/fCellVolume)*fEAM_particle->ComputeUnitEnergy();
+	else
+		return  (kEAMFCC3DNumAtomsPerCell/fCellVolume)*fEAM->ComputeUnitEnergy();
 }
 
 /* return the material tangent moduli in Cij */
@@ -68,7 +79,10 @@ void EAMFCC3D::Moduli(dMatrixT& Cij, const dSymMatrixT& strain)
 	ComputeDeformedLengths(strain);
 
 	/* unit moduli */
-	fEAM->ComputeUnitModuli(Cij);
+	if (!fEAM)
+		fEAM_particle->ComputeUnitModuli(Cij);
+	else
+		fEAM->ComputeUnitModuli(Cij);
 	
 	/* scale by atoms per cell/volume per cell */
 	Cij	*= kEAMFCC3DNumAtomsPerCell/fCellVolume;
@@ -81,7 +95,10 @@ void EAMFCC3D::SetStress(const dSymMatrixT& strain, dSymMatrixT& stress)
 	ComputeDeformedLengths(strain);
 
 	/* unit stress */
-	fEAM->ComputeUnitStress(stress);
+	if (!fEAM)
+		fEAM_particle->ComputeUnitStress(stress);
+	else
+		fEAM->ComputeUnitStress(stress);
 	
 	/* scale by atoms per cell/volume per cell */
 	stress *= kEAMFCC3DNumAtomsPerCell/fCellVolume;
@@ -95,6 +112,29 @@ void EAMFCC3D::Print(ostream& out) const
 	out << "    eq. " << kVoterChenAl      << ", Voter & Chen Al\n";   	
 	out << "    eq. " << kVoterChenCu      << ", Voter & Chen Cu\n";   	
 	out << "    eq. " << kFoilesBaskesDaw  << ", Foiles, Baskes, Daw\n";   	
+	out << "    eq. " << kEAMParticle      << ", Foiles, Baskes, Daw(Particle)\n";
+}
+
+/* compute electron density at ghost atom */
+void EAMFCC3D::ElectronDensity(const dSymMatrixT& strain, double& edensity, double& embforce)
+{
+	/* compute deformed lattice geometry */
+	ComputeDeformedLengths(strain);
+	
+	/* get electron density */
+	if (!fEAM)
+	{
+		edensity = fEAM_particle->TotalElectronDensity();
+		embforce = fEAM_particle->ReturnEmbeddingForce(edensity);
+	}
+	else
+		edensity = fEAM->TotalElectronDensity();	
+}
+
+/* initialize bond tables */
+void EAMFCC3D::InitBondTables(void)
+{
+	BondLatticeT::Initialize();
 }
 
 /**********************************************************************
@@ -224,12 +264,30 @@ void EAMFCC3D::SetGlueFunctions(ifstreamT& in)
 			fEAM = new FBD_EAMGlue(*this, data);
 			break;
 		}
+		case kEAMParticle:
+		{
+			fEAM_particle = new EAM_particle(*this);
+			fEAM = NULL;	// initialize fEAM to NULL if using kEAMParticle
+			break;
+		}			
+		
 		default:
 		
 			cout << "\nEAMFCC3D::EAMFCC3D: unknown EAM code: " << fEAMcode << endl;
 			throw ExceptionT::kBadInputValue;
 	}
 	
-	if (!fEAM) throw ExceptionT::kOutOfMemory;
-	fEAM->SetGlueFunctions();
+	//if (!fEAM) throw ExceptionT::kOutOfMemory;
+	if (!fEAM)
+	{
+		StringT path;
+		path.FilePath(in.filename());
+		StringT data_file;
+		in >> data_file;
+		data_file.ToNativePathName();
+		data_file.Prepend(path);
+		fEAM_particle->SetGlueFunctions(data_file);
+	}
+	else
+		fEAM->SetGlueFunctions();		
 }

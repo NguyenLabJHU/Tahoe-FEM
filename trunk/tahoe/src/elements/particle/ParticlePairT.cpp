@@ -1,4 +1,5 @@
-/* $Id: ParticlePairT.cpp,v 1.33 2004-04-02 16:48:22 jzimmer Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.34 2004-04-09 02:03:01 hspark Exp $ */
+
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"

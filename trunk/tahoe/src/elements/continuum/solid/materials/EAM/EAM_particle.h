@@ -1,35 +1,35 @@
-/* $Id: EAM.h,v 1.4 2004-04-09 02:02:58 hspark Exp $ */
-/* created: paklein (12/02/1996)                                          */
-/* EAM.h                                                                  */
-
-#ifndef _EAM_H_
-#define _EAM_H_
+/* $Id: EAM_particle.h,v 1.2 2004-04-09 02:02:58 hspark Exp $ */
+/* created: hspark(02/25/2004) */
+#ifndef _EAM_PARTICLE_H_
+#define _EAM_PARTICLE_H_
 
 /* direct members */
 #include "dMatrixT.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
+#include "EAMPropertyT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class CBLatticeT;
-class C1FunctionT;
 class iArrayT;
 class dSymMatrixT;
 
-class EAM
+/** EAM calculations for Cauchy-Born constitutive models using the EAMPropertyT
+ * potential functions */
+class EAM_particle
 {
 public:
 
 	/* constructor */
-	EAM(CBLatticeT& lattice);
+	EAM_particle(CBLatticeT& lattice);
 
 	/* destructor */
-	virtual ~EAM(void);
+	virtual ~EAM_particle(void);
 
-	/* set "glue" functions */
-	void SetGlueFunctions(void);
+	/** set "glue" functions */
+	void SetGlueFunctions(const StringT& param_file);
 
 	/* compute unit strain energy density:
 	 *
@@ -50,18 +50,14 @@ public:
 	void ComputeUnitModuli(dMatrixT& moduli); 	    	
 
 	/* unstressed lattice parameter */
-	 virtual double LatticeParameter(void) const = 0;
+	virtual double LatticeParameter(void) const;
 
-	/** \name access glue functions */
-	/*@{*/
-	const C1FunctionT* PairPotential(void) { return fPairPotential; };
-	const C1FunctionT* EmbeddingEnergy(void) { return fEmbeddingEnergy; };
-	const C1FunctionT* ElectronDensity(void) { return fElectronDensity; };
-	/*@}*/
-	
 	/* compute the total electron density - moved public by HSP 3/5/04 */
 	double TotalElectronDensity(void);
-	
+
+	/* return the embedding force for a given electron density */
+	double ReturnEmbeddingForce(double rho);
+
 private:
 
 	/* form matrix of mixed pair potential and embedding
@@ -72,20 +68,23 @@ private:
 	/* Moduli tensor contributions */
 	void FormSingleBondContribution(double rho, dMatrixT& moduli);
 	void FormMixedBondContribution(double rho, dMatrixT& moduli);
-
-	/* set the glue function pointers - called by Initialize() */
-	virtual void SetPairPotential(void) = 0;
-	virtual void SetEmbeddingEnergy(void) = 0;
-	virtual void SetElectronDensity(void) = 0; 	
-
-protected:
-
-	/* glue functions */
-	C1FunctionT*	fPairPotential;
-	C1FunctionT*	fEmbeddingEnergy;
-	C1FunctionT*	fElectronDensity;
 	
 private:   	
+
+	/** EAM property and function pointers */
+	/*@{*/
+	EAMPropertyT* fEAMProperty;
+	EAMPropertyT::PairEnergyFunction    fPairEnergy;
+	EAMPropertyT::PairForceFunction     fPairForce;
+	EAMPropertyT::PairStiffnessFunction fPairStiffness;
+	EAMPropertyT::EmbedStiffnessFunction fEmbedStiffness;	
+	EAMPropertyT::EmbedEnergyFunction   fEmbedEnergy;
+	EAMPropertyT::EmbedForceFunction fEmbedForce;
+	EAMPropertyT::EDEnergyFunction fEDEnergy;
+	EAMPropertyT::EDForceFunction fEDForce;
+	EAMPropertyT::EDStiffnessFunction fEDStiffness;
+	
+	/*@{*/
 
 	CBLatticeT&	fLattice;
 	const iArrayT&	fCounts;		
@@ -95,6 +94,7 @@ private:
 	int		fNumSpatialDim;
 	int		fNumBonds;
 	int		fModuliDim;
+	double  fLatticeParameter;
 	
 	dMatrixT	fBondTensor4;
 	dMatrixT	fAmn; /* mixed derivative matrix */
@@ -112,4 +112,4 @@ private:
 };
 
 } // namespace Tahoe 
-#endif /* _EAM_H_ */
+#endif /* _EAM_PARTICLE_H_ */
