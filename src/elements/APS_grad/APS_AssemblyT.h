@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.17 2003-10-08 17:45:09 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.18 2003-10-09 16:40:56 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -206,7 +206,7 @@ private:
 	 * current coordinates */
 	ShapeFunctionT* fShapes;
 	
-	dArrayT fNormal;
+	//dArrayT fNormal;
 	
 	FEA_ShapeFunctionT fFEA_Shapes;
 	FEA_SurfShapeFunctionT fFEA_SurfShapes;

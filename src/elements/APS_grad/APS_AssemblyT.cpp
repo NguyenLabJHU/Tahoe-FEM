@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.31 2003-10-08 23:11:21 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.32 2003-10-09 16:40:56 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -228,7 +228,7 @@ void APS_AssemblyT::Initialize(void)
 	fShapes = new ShapeFunctionT(fGeometryCode, fNumIP, fCurrCoords);
 	fShapes->Initialize();
 	
-	fNormal.Dimension ( n_sd );
+	//fNormal.Dimension ( n_sd );
 	
 	/* allocate state variable storage */
 	int num_ip = fNumIP;
@@ -392,7 +392,6 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 	}
 	
 	/* get the equation number for the nodes on the faces */
-	#pragma message("where set fPlasticGradientFaceEqnos?")
 	for (int i = 0; i < fPlasticGradientFaceEqnos.Length(); i++)
 	{
 		iArray2DT& faces = fPlasticGradientFaces[i];
@@ -1106,13 +1105,11 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 			fEquation_d -> Form_LHS_Keps_Kd ( fKdeps, fKdd );
 			fEquation_d -> Form_RHS_F_int ( fFd_int, np1 );
 			
-			
 			// add on contribution from sidesets								
 			for (int i = 0; i < num_sidesets; i++)
 			{
 				for (int j = 0; j < fSideSetElements[i].Length(); j++)
 				{
-					//??? how check to see if element e is in sideset i??
 					if (e == fSideSetElements[i][j])
 					{
 						/* collect coordinates over the face */
@@ -1120,14 +1117,16 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 						face_coords.SetLocal(face_nodes);
 						
 						/* shape functions over the given face */
-						int face = fSideSetElements[i][j];
+
+						//int face = fSideSetElements[i][j];
+						int face = fSideSetFaces[i][j];
 						const ParentDomainT& surf_shape = fShapes->FacetShapeFunction(face);
 						
 						/* equations for the nodes on the face */
 						fPlasticGradientFaceEqnos[i].RowAlias(j, face_equations);
 						
-						Convert.SurfShapes	( surf_shape, fFEA_SurfShapes, face_coords );
-						Convert.GradientSurface ( surf_shape, u, u_n, fgrad_u_surf, fgrad_u_surf_n );
+						Convert.SurfShapes	( n_en_surf, surf_shape, fFEA_SurfShapes, face_coords );
+						Convert.GradientSurface ( fShapes, surf_shape, u, u_n, fgrad_u_surf, fgrad_u_surf_n );
 						APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgrad_gamma_p, fstate ); 
 						fEquation_d -> Form_LHS_Kd_Surf ( fKdd, fFEA_SurfShapes, face_equations );
 						fEquation_d -> Form_RHS_F_int_Surf ( fFd_int, np1, fPlasticGradientWght[i], face_equations );

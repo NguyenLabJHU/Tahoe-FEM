@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.14 2003-10-08 17:45:13 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.15 2003-10-09 16:40:57 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -27,18 +27,15 @@ void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_M
 	n_rows_matrix = np1.fVars_matrix[0].Rows(); 
 	n_cols_matrix = np1.fVars_matrix[0].Cols(); 
 	*/
-//#pragma message("APS_Bal_EqT::Construct: FEA_dVectorT has no Cols() function")
+	//#pragma message("APS_Bal_EqT::Construct: FEA_dVectorT has no Cols() function")
 
 	n_en    	= Shapes.dNdx.Cols();
 	n_sd    	= Shapes.dNdx.Rows();
 	//n_sd 		= n_rows_vector;	
 	n_sd_x_n_sd = n_sd * n_sd;
 	n_sd_x_n_en = n_sd * n_en;
-
-	if ( fTime_Step != time_step) { 	// New time step
-		// Can put flow rule here: Eventually do this with all the kVar_n and make method Next_Step()
-		time_step = fTime_Step;
-	}
+	
+	n_en_surf=2;
 
 	delta_t = fdelta_t;
 	
@@ -50,8 +47,6 @@ void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_M
 	Form_B_List		(  );
 	Form_V_S_List	( np1 );
 	Form_VB_List	(  );
-
-
 }
 
 //---------------------------------------------------------------------
@@ -86,16 +81,25 @@ void APS_Bal_EqT::Form_LHS_Kd_Surf	( dMatrixT &Kd, FEA_SurfShapeFunctionT &SurfS
 		Data_Pro_Surf.Insert_N_surf  ( SurfShapes.N );
 		SurfIntegral.Construct ( SurfShapes.j, SurfShapes.W );
 		
-		Data_Pro_Surf.APS_B_surf(B_d[kB_surf]);
+		Data_Pro_Surf.APS_B_surf(B_d_surf[kB_surf]);
 		Data_Pro_Surf.APS_N(VB_d[kN]);
 
 		V[knueps] = SurfShapes.normal;
 		//V[knueps](1) = SurfShapes.normal[1];
 
- 		V[knueps].Dot( B_d[kB_surf], VB_d[knuB] ); 
+ 		V[knueps].Dot( B_d_surf[kB_surf], VB_d[knuB] ); 
  		
- 		//use face_equations here, somehow
-		Kd		-= SurfIntegral.of( VB_d[kN], C[kMu], VB_d[knuB] );
+ 		dMatrixT Kd_tmp;
+		Kd_tmp	= SurfIntegral.of( VB_d[kN], C[kMu], VB_d[knuB] );
+		Kd_tmp	*= -1.0;
+		
+		//put Kd_tmp in proper eqnos of Kd
+		if (face_equations.Length() == 2)
+		{
+		for (int i=0; i<face_equations.Length(); i++)
+			for (int j=0; j<face_equations.Length(); j++)
+				Kd[face_equations[i]][face_equations[j]] = Kd_tmp[i][j];
+		}
 }
 
 //---------------------------------------------------------------------
@@ -113,9 +117,17 @@ void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int, APS_VariableT &npt, doub
 		V[knueps].Dot( V[kV_Temp2], S[knuepsgradu] );
 		V[knueps].Dot( V[keps], S[knuepseps] );
 
-		//use face_equations here, somehow
-		F_int -= SurfIntegral.of( VB_d[kN], C[kMu], S[knuepsgradu] ); 
-		F_int += SurfIntegral.of( VB_d[kN], C[kMu], S[knuepseps] );
+		dArrayT F_int_tmp;
+		F_int_tmp = SurfIntegral.of( VB_d[kN], C[kMu], S[knuepsgradu] ); 
+		F_int_tmp *= -1.0;
+		F_int_tmp += SurfIntegral.of( VB_d[kN], C[kMu], S[knuepseps] );
+		
+		//put components of F_int_tmp in proper eqnos of F_int
+		if (face_equations.Length() == 2)
+		{
+		for (int i=0; i<face_equations.Length(); i++)
+			F_int[face_equations[i]] = F_int_tmp[i];
+		}
 }
 
 
@@ -125,6 +137,7 @@ void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int, APS_VariableT &npt, doub
 void APS_Bal_EqT::Form_B_List (void)
 {
 		B_d.Construct 	( kNUM_B_d_TERMS, n_ip, n_sd, n_en);
+		B_d_surf.Construct 	( kNUM_B_d_surf_TERMS, n_ip, n_sd, n_en_surf);
 		B_eps.Construct ( kNUM_B_eps_TERMS, n_ip, n_sd, n_sd_x_n_en);
 		int dum=1;
 		//B_gradu.Construct ( kNUM_B_gradu_TERMS, n_ip, n_sd, dum);
@@ -137,7 +150,7 @@ void APS_Bal_EqT::Form_B_List (void)
 		
 void APS_Bal_EqT::Form_VB_List (void)
 {
-		VB_d.Construct 	( kNUM_VB_d_TERMS, 	n_ip, n_en 	);
+		VB_d.Construct 	( kNUM_VB_d_TERMS, 	n_ip, n_en_surf	);
 		VB_eps.Construct ( kNUM_VB_eps_TERMS, 	n_ip, n_sd_x_n_en 	);				
 }
 

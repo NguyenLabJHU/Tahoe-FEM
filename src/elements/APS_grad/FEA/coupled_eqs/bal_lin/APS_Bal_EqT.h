@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.h,v 1.10 2003-10-08 17:45:13 raregue Exp $
+// $Id: APS_Bal_EqT.h,v 1.11 2003-10-09 16:40:57 raregue Exp $
 #ifndef _APS_BALEQ_T_H_ 
 #define _APS_BALEQ_T_H_ 
 
@@ -19,8 +19,11 @@ class APS_Bal_EqT	: public BalLinMomT
 
   	enum B_d_T { 
 								kB,
-								kB_surf, 
 	             				kNUM_B_d_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
+	             				
+	enum B_d_surf_T { 
+								kB_surf, 
+	             				kNUM_B_d_surf_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)             				
 
   	enum B_eps_T {  
 						   		kBgamma,
@@ -100,7 +103,7 @@ class APS_Bal_EqT	: public BalLinMomT
 
 	protected:
 
-  		FEA_dMatrix_ArrayT B_d, B_eps, B_gradu; 
+  		FEA_dMatrix_ArrayT B_d, B_d_surf, B_eps, B_gradu; 
   		FEA_dVector_ArrayT VB_d, VB_eps, V, VS;
   		FEA_dScalar_ArrayT S; 
   		dArrayT 			C;
@@ -114,6 +117,7 @@ class APS_Bal_EqT	: public BalLinMomT
 
 		double delta_t;
 		int time_step;
+		int n_en_surf;
 
 		int n_ip, n_rows_vector, n_rows_matrix, n_cols_matrix, n_sd, n_en, n_sd_x_n_sd, 
 			n_sd_x_n_en, Time_Integration_Scheme;
