@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.15 2002-10-20 22:36:55 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.16 2002-11-21 01:07:40 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 #include "OutputSetT.h"
 #include "iArrayT.h"
@@ -55,7 +55,7 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 }
 
 OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
-	const iArray2DT& connectivities, const ArrayT<StringT>& n_labels):
+	const iArray2DT& connectivities, const ArrayT<StringT>& n_labels, bool changing):
 	fMode(kFreeSet),
 	fPrintStep(-1),
 	fID("1"), /* dummy ID */
@@ -80,7 +80,7 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	fChanging = true; // force calculation of nodes used
 	NodesUsed();
 	fBlockNodesUsed[0].Alias(fNodesUsed);
-	fChanging = false; // reset
+	fChanging = changing;
 }
 
 OutputSetT::OutputSetT(const OutputSetT& source):
