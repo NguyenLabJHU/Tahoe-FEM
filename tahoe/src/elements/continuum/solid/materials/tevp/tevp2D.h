@@ -1,6 +1,6 @@
 /* Thermoelasto-viscoplastic material used to generate shear bands */
 /* Created:  Harold Park (04/04/2001) */
-/* Last Updated:  Harold Park (04/30/2001) */
+/* Last Updated:  Harold Park (05/01/2001) */
 
 #ifndef _TEVP_2D_H_
 #define _TEVP_2D_H_
@@ -20,10 +20,10 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
  public:
   /* constructor */
   tevp2D(ifstreamT& in, const ElasticT& element);
-
-	/* materials initialization */
-	virtual bool NeedsPointInitialization(void) const { return true; }
-	virtual void PointInitialize(void);
+  
+  /* materials initialization */
+  virtual bool NeedsPointInitialization(void) const { return true; }
+  virtual void PointInitialize(void);
 
   /* required parameter flags */
   virtual bool NeedVel(void) const;
@@ -71,7 +71,7 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
 
   /* deformation gradient, rate of deformation, spin */
   void ComputeGradients(void);
-  dMatrixT& CauchyToKirchoff(dMatrixT Temp_Stress);
+  dMatrixT& CauchyToKirchoff(dMatrixT temp_stress);
   double ComputeEbtot(void);     
   // Computes the incremental effective strain
   double ComputeXxii(void);
@@ -123,12 +123,12 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
 /* element level internal variables */
   dArrayT fInternal;             // Internal variables
   dArrayT fTempStress;      // Store the Kirchoff stress from the previous
-  // timestep (Sig11, Sig12=Sig21, Sig22, Sig33)
+                            // timestep (Sig11, Sig12=Sig21, Sig22, Sig33)
 
  private:
 
-  const double& fDt;   // Current timestep
-  const double& fTime; // Total time elapsed
+  const double& fDt;           // Timestep
+  const double& fTime;         // Total time elapsed
 
   /* work space */
   dMatrixT fFtot_2D;           // Deformation gradient 2D
@@ -149,7 +149,6 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   dArrayT fPP;
   dMatrixT fDmat;              // Original elastic coefficient tensor
   dArrayT fEP_tan;             // Plastic correction to Jaumann stress rate
-  int fPlastic;                // Indicator to see if material has gone plastic
   double fEcc;                 
   dMatrixT fStressMatrix;      // Expand stress array to a matrix
   dArrayT fStressArray;        // Flatten stress matrix to an array
@@ -162,11 +161,11 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   double fSb;                  // Effective stress
   double fEb;                  // Effective strain
   
-  /* Global material constants */
-  double Temp_0, el_E, el_V, el_K, el_G, Sb0, rho0, Eb0, Eb0tot, bigN, smm;
-  double alpha_T, delta, theta, kappa, Cp, chi, ecc, pCp;
-  double epsilon_1, epsilon_2, epsilon_rate, gamma_d, mu_d, sigCr;
-  double xi;
+  /* Global material constants - class scope variables */
+  double Temp_0, El_E, El_V, El_K, El_G, Sb0, Rho0, Eb0, Eb0tot, BigN, Smm;
+  double Alpha_T, Delta, Theta, Kappa, Cp, Chi, Ccc, Pcp;
+  double Epsilon_1, Epsilon_2, Epsilon_rate, Gamma_d, Mu_d, SigCr;
+  double Xi;
 
   /* shape functions */
   const ShapeFunctionT& fShapes;   // Needed to compute velocity gradient
@@ -185,3 +184,8 @@ inline dArrayT tevp2D::GetSmlp(void) const { return fSmlp; }
 
 #endif /* _TEVP_2D_H_ */
 				
+
+
+
+
+
