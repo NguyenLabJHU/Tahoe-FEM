@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.15 2002-11-28 01:11:35 paklein Exp $ */
+/* $Id: main.cpp,v 1.16 2003-01-30 01:33:21 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -29,6 +29,7 @@ using namespace Tahoe;
 
 static void StartUp(int* argc, char*** argv, CommunicatorT& comm);
 static void ShutDown(CommunicatorT& comm);
+static void DumpLicense(void);
 
 /* redirect of cout for parallel execution */
 ofstream console;
@@ -100,6 +101,9 @@ if (getcwd(cwd, 255)) cout << " cwd: " << cwd << endl;
 #pragma unused(comm)
 #endif /* __MACOS__ && __INTEL__ */
 
+	/* write license to screen */
+	DumpLicense();	
+
 	/* output build date and time */
 	cout << "\n build: " __TIME__ ", " << __DATE__ << '\n';
 
@@ -154,4 +158,15 @@ static void ShutDown(CommunicatorT& comm)
 		/* close console file */
 		console.close();
 	}
+}
+
+void DumpLicense(void)
+{
+	cout << "\n Tahoe 1.0\n\n"
+         << " Copyright 2003, Sandia Corporation.\n" 
+	     << " All rights reserved.\n\n"
+	     << " Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive\n"
+	     << " license for use of this work by or on behalf of the U.S. Government. Export\n"
+	     << " of this program may require a license from the United States Government."
+	     << endl;
 }
