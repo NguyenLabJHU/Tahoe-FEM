@@ -1,4 +1,4 @@
-/* $Id: EnSightT.cpp,v 1.4 2002-02-27 01:24:03 paklein Exp $ */
+/* $Id: EnSightT.cpp,v 1.5 2002-02-27 12:50:32 sawimme Exp $ */
 /* created: sawimme (05/13/1999) */
 
 #include "EnSightT.h"
@@ -192,7 +192,7 @@ void EnSightT::WriteCaseGeometry (ostream& fvar, int sequence, StringT& geofile)
 
 void EnSightT::WriteVariableLabels (ostream& fvar, const ArrayT<StringT>& labels, const ArrayT<StringT>& filenames, const ArrayT<EnSightT::VariableTypeT>& t) const
 {
-	char *type [4] = {"scalar per element", "vector per element",
+	const char *type [4] = {"scalar per element", "vector per element",
                       "scalar per node", "vector per node"};
 
 	fvar << "VARIABLE\n";
