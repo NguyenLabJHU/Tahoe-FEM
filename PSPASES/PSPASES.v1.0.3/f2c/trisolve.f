@@ -40,13 +40,19 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: trisolve.f,v 1.1 2004-12-10 20:28:27 paklein Exp $ */
+C/* $Id: trisolve.f,v 1.2 2004-12-13 08:18:17 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine trisolve(N,rowdist,order,lptrs,linds,lvals,
      +                    tptrs,tinds,sup,tsind,lc,iptrs,
      +                    ifopts,nrhs,options,rhso,ldo,rhsc,
-     +                    ldc,ranmasks,comm)
+     +                    ldc,ranmasks,comm,
+     +                    hvbtemp, lrud,
+     +                    wrkord0, wrkord1, wrkord2,
+     +                    ty, dworkmj, ordvals,
+     +                    mynnodes2, bnrhs2, ordvalsiz2, wsolvesize2, 
+     +                    trhsize2, wrkord1siz2, wrkord2siz2, ns2, dd2, 
+     +                    maxvsize2, hvbsize2)
 
       implicit none
       include 'mpif.h'
@@ -68,11 +74,29 @@ C/*****************************************************************************/
       integer piscx,pisdx,pircx,pirdx,pdscx,pdsdx,pdrcx,pdrdx,ppgr
       integer piown,psloc,pslocx
       integer psv,prv,psvx,prvx
-      integer, allocatable :: hvbtemp(:),lrud(:)
-      integer, allocatable :: wrkord0(:), wrkord1(:), wrkord2(:)
+C     integer, allocatable :: hvbtemp(:),lrud(:)
+      integer hvbtemp, lrud
+      integer ns2, dd2, maxvsize2, hvbsize2
+      dimension hvbtemp(hvbsize2 + maxvsize2)
+      dimension lrud(ns2+ 4*dd2)
 
-      double precision, allocatable :: ty(:,:),dworkmj(:)
-      double precision, allocatable :: ordvals(:)
+C     integer, allocatable :: wrkord0(:), wrkord1(:), wrkord2(:)
+      integer wrkord0, wrkord1, wrkord2
+      integer mynnodes2, wrkord1siz2, wrkord2siz2
+      dimension wrkord0(0:mynnodes2-1)
+      dimension wrkord1(0:wrkord1siz2-1)
+      dimension wrkord2(0:wrkord2siz2-1)
+
+C     double precision, allocatable :: ty(:,:),dworkmj(:)
+      double precision ty, dworkmj
+      integer bnrhs2, wsolvesize2, trhsize2
+      dimension ty(0:N-1,bnrhs2)
+      dimension dworkmj(wsolvesize2 + 4*trhsize2)
+
+C     double precision, allocatable :: ordvals(:)
+      double precision ordvals
+      integer ordvalsiz2
+      dimension ordvals(0:ordvalsiz2-1)
 
       N = ifopts(0)
       dd = ifopts(1)
@@ -89,7 +113,7 @@ C/*****************************************************************************/
 
       pp = ishft(1,dd)
 
-      allocate(lrud(ns+4*dd),stat=is1)
+C     allocate(lrud(ns+4*dd),stat=is1)
       if(is1.ne.0) then
         print *,'Allocate error'
         call mpi_abort(comm,112,ierr)
@@ -102,7 +126,7 @@ C/*****************************************************************************/
       maxvsize = max(maxvsize,lptrs(2,i))
 
       hvbsize=nsupnode*(10+maxvsize+3*((maxhsize+1)/2+(maxvsize+1)/2))
-      allocate(hvbtemp(hvbsize+maxvsize),stat=is1)
+C     allocate(hvbtemp(hvbsize+maxvsize),stat=is1)
       if(is1.ne.0) then
         print *,myid,': Cannot allocate memory for hvbtemp',hvbsize
         call mpi_abort(comm,113,ierr)
@@ -115,7 +139,7 @@ C/*****************************************************************************/
 
       wsolvesize = 4 *wsolvesize * nrhs
       trhsize = maxvsize * nrhs
-      allocate(dworkmj(wsolvesize+4*trhsize),stat=is1)
+C     allocate(dworkmj(wsolvesize+4*trhsize),stat=is1)
       if(is1.ne.0) then
         print *,myid,': Memory Allocation Failure'
         call mpi_abort(comm,111,ierr)
@@ -125,21 +149,21 @@ C/*****************************************************************************/
       recvptr = uvlptr+trhsize
       rhsptr  = recvptr+trhsize
 
-      allocate(ty(0:N-1,bnrhs),stat=is1)
+C     allocate(ty(0:N-1,bnrhs),stat=is1)
       if(is1.ne.0) then
         print *,'memory allocation error'
         call mpi_abort(comm,0,ierr)
       end if
 
       mynnodes = rowdist(myid+1)-rowdist(myid)
-      allocate(wrkord0(0:mynnodes-1),stat=is1)
+C     allocate(wrkord0(0:mynnodes-1),stat=is1)
       if(is1.ne.0) then
         print *,'memory allocation error'
         call mpi_abort(comm,0,ierr)
       end if
 
       wrkord1siz = 19*pp
-      allocate(wrkord1(0:wrkord1siz-1),stat=is1)
+C     allocate(wrkord1(0:wrkord1siz-1),stat=is1)
       if(is1.ne.0) then
         print *,'memory allocation error'
         call mpi_abort(comm,0,ierr)
@@ -168,7 +192,7 @@ C/*****************************************************************************/
      +              wrkord1(ppgr),wrkord0,comm)
       
       wrkord2siz = 3*nown+mynnodes
-      allocate(wrkord2(0:wrkord2siz-1),stat=is1)
+C     allocate(wrkord2(0:wrkord2siz-1),stat=is1)
       if(is1.ne.0) then
         print *,'memory allocation error'
         call mpi_abort(comm,0,ierr)
@@ -179,7 +203,7 @@ C/*****************************************************************************/
       pslocx = 2*nown+mynnodes
 
       ordvalsiz = 2*max(mynnodes,nown)*bnrhs
-      allocate(ordvals(0:ordvalsiz-1),stat=is1)
+C     allocate(ordvals(0:ordvalsiz-1),stat=is1)
       if(is1.ne.0) then
         print *,'memory allocation error'
         call mpi_abort(comm,0,ierr)
@@ -331,13 +355,13 @@ C/*****************************************************************************/
 
       end if 
 
-      deallocate(lrud)
-      deallocate(hvbtemp)
-      deallocate(ty)
-      deallocate(dworkmj)
-      deallocate(wrkord0)
-      deallocate(wrkord1)
-      deallocate(wrkord2)
-      deallocate(ordvals)
+C      deallocate(lrud)
+C      deallocate(hvbtemp)
+C      deallocate(ty)
+C      deallocate(dworkmj)
+C      deallocate(wrkord0)
+C      deallocate(wrkord1)
+C      deallocate(wrkord2)
+C      deallocate(ordvals)
 
       end

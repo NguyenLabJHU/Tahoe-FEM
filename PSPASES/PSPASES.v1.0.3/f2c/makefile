@@ -5,7 +5,8 @@ order.c \
 moveai.c \
 moveav.c \
 gen_lc.c \
-ygentree.c
+ygentree.c \
+trisolve.c
 
 F2C_OPTS = -I/usr/local/lam/include -c -w -a
 
