@@ -1,4 +1,4 @@
-/* $Id: MaterialListT.cpp,v 1.2 2001-10-24 02:01:32 paklein Exp $ */
+/* $Id: MaterialListT.cpp,v 1.2.2.1 2002-05-17 01:23:27 paklein Exp $ */
 /* created: paklein (02/16/1997) */
 
 #include "MaterialListT.h"
@@ -7,9 +7,7 @@
 /* constructors */
 MaterialListT::MaterialListT(int length):
 	pArrayT<ContinuumMaterialT*>(length),
-	fHasHistory(false),
-	fHasLocalizers(false),
-	fHasThermal(false)
+	fHasHistory(false)
 {
 
 }
