@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeShapeFunctionT.h,v 1.1 2004-08-13 23:59:55 raregue Exp $ */
+/* $Id: D3MeshFreeShapeFunctionT.h,v 1.2 2004-08-19 18:02:36 raregue Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SHAPE_T_H_
 #define _D3_MF_SHAPE_T_H_
@@ -30,7 +30,7 @@ public:
 	void D3GradNa(dMatrixT& D3_grad_Na) const;
 
 	/* 3rd order spatial gradients */
-	void GradGradGradU(const LocalArrayT& nodal, dMatrixT& gradgrad_U) const;
+	void GradGradGradU(const LocalArrayT& nodal, dMatrixT& gradgradgrad_U) const;
 
 	/* 3rd derivatives of shape functions at IP */
 	const dArray2DT& DDDerivatives_U(int ip) const { return fDDDNaU[ip]; };
