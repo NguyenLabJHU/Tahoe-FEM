@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.2 2002-01-23 00:01:51 rjones Exp $ */
+/* $Id: ElementT.h,v 1.3 2002-03-18 19:24:07 rjones Exp $ */
 
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
@@ -36,10 +36,9 @@ public:
      kMFCohesiveSurface  = 22,
            kACME_Contact = 23,
     kMultiplierContact3D = 24,
-      kAdhesionContact2D = 25,
    kTotLagrExternalField = 26, /**< experimental/temporary for loosely coupled problems */
    kNonsingularContinuum = 27, /**< nonsingular continuum element */ 
-    kMultiplierContact2D = 28,
+    kMultiplierContactElement2D = 28,
        kSimoFiniteStrain = 29,  /**< enhanced strain element */
       kPenaltyContactElement2D = 30
 	};

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.11 2002-01-23 00:01:53 rjones Exp $
+# $Id: makefile,v 1.12 2002-03-18 19:24:23 rjones Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,8 +7,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	PenaltyContactElement2DT.o \
-	AdhesionContact2DT.o \
-	MultiplierContact2DT.o \
+	MultiplierContactElement2DT.o \
 	MultiplierContact3DT.o \
 	ContactElementT.o \
 	ContactSearchT.o \
@@ -19,10 +18,7 @@ OBJ = \
 	LineL2FaceT.o \
 	LineQ3FaceT.o \
 	QuadL4FaceT.o \
-	ContactFaceT.o \
-	ContactLineL2FaceT.o \
-	ContactLineQ3FaceT.o \
-	ContactQuadL4FaceT.o \
+	TriaL3FaceT.o \
 	ACME_Contact3DT.o \
 	AugLagContact2DT.o \
 	ContactT.o \
@@ -40,8 +36,7 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	PenaltyContactElement2DT.cpp \
-	AdhesionContact2DT.cpp \
-	MultiplierContact2DT.cpp \
+	MultiplierContactElement2DT.cpp \
 	MultiplierContact3DT.cpp \
 	ContactElementT.cpp \
 	ContactSearchT.cpp \
@@ -52,10 +47,7 @@ SRC = \
 	LineL2FaceT.cpp \
 	LineQ3FaceT.cpp \
 	QuadL4FaceT.cpp \
-	ContactFaceT.cpp \
-	ContactLineL2FaceT.cpp \
-	ContactLineQ3FaceT.cpp \
-	ContactQuadL4FaceT.cpp \
+	TriaL4FaceT.o \
 	ACME_Contact3DT.cpp \
 	AugLagContact2DT.cpp \
 	ContactT.cpp \
@@ -68,8 +60,7 @@ SRC = \
 # headers
 HDR = \
 	PenaltyContactElement2DT.h \
-	AdhesionContact2DT.h \
-	MultiplierContact2DT.h \
+	MultiplierContactElement2DT.h \
 	MultiplierContact3DT.h \
 	ContactSurfaceT.h \
 	ContactElementT.h \
@@ -81,10 +72,7 @@ HDR = \
 	LineL2FaceT.h \
 	LineQ3FaceT.h \
 	QuadL4FaceT.h \
-	ContactFaceT.cpp \
-	ContactLineL2FaceT.cpp \
-	ContactLineQ3FaceT.cpp \
-	ContactQuadL4FaceT.cpp \
+	TriaL3FaceT.h \
 	vector2D.h \
 	vector3D.h \
 	ACME_Contact3DT.h \
