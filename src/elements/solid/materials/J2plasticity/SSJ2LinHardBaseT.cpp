@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBaseT.cpp,v 1.4 2003-05-15 22:11:29 thao Exp $ */
+/* $Id: SSJ2LinHardBaseT.cpp,v 1.5 2003-05-20 00:16:07 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -137,7 +137,7 @@ void SSJ2LinHardBaseT::UpdateHistory(void)
 		falpha_n = falpha;
 		fBeta_n = fBeta;
 		fPlasticStrain_n = fPlasticStrain;
-
+		
 		/* write to storage */
 		Store(element, ip);
 	}
@@ -203,15 +203,12 @@ double SSJ2LinHardBaseT::YieldCondition(const dSymMatrixT& relstress, double alp
 bool SSJ2LinHardBaseT::PlasticLoading(const dSymMatrixT& devtrialstress)
 {	
   /*evaluate trial stress*/
-  //  cout<<"\ndevtrialstress: "<<devtrialstress;
-  //  cout<<"\nbeta_n: "<<fBeta_n;
   fRelStress = devtrialstress;
   fRelStress -= fBeta_n;
   
   ftrial = YieldCondition(fRelStress, falpha_n[0]);
-  //  cout << "\nftrial: "<<ftrial;
   /* plastic */
-  if (ftrial > 0)
+  if (ftrial > kSmall)
   {		
     fdgamma = ftrial/(2.0*fMu + 2.0*fH_bar/3.0);
     fUnitNorm = fRelStress;
@@ -235,28 +232,21 @@ const dSymMatrixT& SSJ2LinHardBaseT::StressCorrection(const dSymMatrixT& devtria
   {
     if (fSSMatSupport.RunState() == GlobalT::kFormRHS)
     {
-      //      cout << "\nfdgamma: "<<fdgamma;
-      //      cout << "\nfUnitNormal: "<<fUnitNorm;
 
       /* plastic increment */
       falpha[0] = falpha_n[0] + fsqrt23*fdgamma;
-      //      cout << "\nfalpha: "<<falpha;
 
       fBeta = fUnitNorm;
       fBeta *= fsqrt23*(H(falpha[0]) - H(falpha_n[0]));
       fBeta += fBeta_n;
-      //      cout << "\nfBeta: "<<fBeta;
 
       fPlasticStrain = fUnitNorm;
       fPlasticStrain *= fdgamma;
       fPlasticStrain += fPlasticStrain_n;
-      //      cout << "\nfPlasticStrain_n: "<<fPlasticStrain_n;
-      //      cout << "\nfPlasticStrain: "<<fPlasticStrain;
     }
     /* plastic increment stress correction */
     fStressCorr = fUnitNorm;
     fStressCorr *= -2.0*fMu*fdgamma;
-    //    cout << "\nfStressCorr: "<<fStressCorr;
   }
   else fStressCorr = 0.0;
   

@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHard2D.cpp,v 1.3 2003-05-15 22:11:29 thao Exp $ */
+/* $Id: SSJ2LinHard2D.cpp,v 1.4 2003-05-20 00:16:07 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Plane Strain linearly                */
 /* isotropically elasto plastic material model subject to the Huber-von Mises yield             */
@@ -70,8 +70,8 @@ double SSJ2LinHard2D::StrainEnergyDensity(void)
 
 const dMatrixT& SSJ2LinHard2D::c_ijkl(void)
 {
-    s_ij();
-    
+        s_ij();
+     
     /*deviatoric part*/
 	fModulus3D = 0.0;
 	fModulus3D(0,0) = fModulus3D(1,1) =  fModulus3D(2,2) = 2.0*fMu*(1.0 - fthird);
@@ -84,15 +84,18 @@ const dMatrixT& SSJ2LinHard2D::c_ijkl(void)
 	fModulus3D(0,1) += fKappa; fModulus3D(0,2) += fKappa; fModulus3D(1,2) += fKappa;
 	fModulus3D(1,0) += fKappa; fModulus3D(2,0) += fKappa; fModulus3D(2,1) += fKappa;
 
-	int iteration = fSSMatSupport.IterationNumber();
-	if (iteration > -1) /* elastic iteration */
-	  fModulus3D += ModuliCorrection();
+	//	int iteration = fSSMatSupport.IterationNumber();
+	//	if (iteration > -1) /* elastic iteration */
+	const dMatrixT modcorr = ModuliCorrection();
+	fModulus3D += modcorr;
 	
 	fModulus = 0.0;
 	fModulus(0,0) = fModulus3D(0,0); fModulus(1,1) = fModulus3D(1,1);
 	fModulus(0,1) = fModulus3D(0,1); fModulus(1,0) = fModulus3D(1,0);	
 	fModulus(2,2) = fModulus3D(5,5);
-	
+	fModulus(0,2) = fModulus3D(0,5); fModulus(1,2) = fModulus3D(1,5);
+	fModulus(2,0) = fModulus3D(5,0); fModulus(2,1) = fModulus3D(5,1);
+
 	return fModulus;
 }
 
@@ -102,9 +105,9 @@ const dSymMatrixT& SSJ2LinHard2D::s_ij(void)
     const dSymMatrixT& strain = e();
     double I1 = strain.Trace();
     fDevStrain = 0.0;
-    fDevStrain[0] = strain[0] -fthird*I1;
-    fDevStrain[1] = strain[1] -fthird*I1;
-    fDevStrain[2] -= fthird*I1;
+    fDevStrain[0] = strain[0] - fthird*I1;
+    fDevStrain[1] = strain[1] - fthird*I1;
+    fDevStrain[2] = -fthird*I1;
     fDevStrain[5] = strain[2];
         
     ElementCardT& element = CurrentElement();
@@ -115,7 +118,6 @@ const dSymMatrixT& SSJ2LinHard2D::s_ij(void)
     /* deviatoric part of trial stress */
     fStress3D = fDevStrain;
     fStress3D *= 2.0*fMu;
-    
     /* modify trial stress (return mapping) */
     int iteration = fSSMatSupport.IterationNumber();
     if (iteration > -1) /* elastic iteration */
@@ -126,6 +128,7 @@ const dSymMatrixT& SSJ2LinHard2D::s_ij(void)
     fStress3D.PlusIdentity(fKappa*I1);
     
     fStress[0] = fStress3D[0]; fStress[1] = fStress3D[1]; fStress[2] = fStress3D[5];
+
     return fStress;	
 }
 
