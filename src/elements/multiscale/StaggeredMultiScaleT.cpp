@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.19 2002-12-24 19:27:51 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.20 2002-12-26 18:01:34 creigh Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -379,7 +379,7 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kl, 			0.001 			); 
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kc_zeta, 0.001 			); 
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kf, 			0.000016 		); 	// 1.6e-5
-			fFineMaterial -> Assign ( 	BCJ_MatlT::kV, 			1.0     		); 	// 9.78e6 
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kV, 			13.95    		); 	// 9.78e6 
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kY, 			1.0			 		); 	// 2.59e7
 			fFineMaterial -> E_Nu_2_Lamda_Mu	( BCJ_MatlT::kE,			BCJ_MatlT::kPr,	
 																					BCJ_MatlT::kLamda, 	BCJ_MatlT::kMu 	);
@@ -628,5 +628,3 @@ void StaggeredMultiScaleT::ReadRestart(istream& in)
 	/* write state variable data */
 	in >> fdState;
 }
-
-

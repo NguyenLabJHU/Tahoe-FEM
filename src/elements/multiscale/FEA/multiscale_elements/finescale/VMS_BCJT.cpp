@@ -206,22 +206,32 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 	//--- Get Beta
 	S[kBeta]  = S[kMag_DEV_S]; 
 	S[kBeta] *= C[kRoot3by2byV]; 
+	//S[kBeta].Print(">>### kBeta ###<<");
 
 	//--- Get Sinh(Beta) 
 	S[kSinh_Beta].Sinh( S[kBeta] ); 
-	
+	S[kCosh_Beta].Cosh( S[kBeta] ); 
+	//S[kSinh_Beta].Print(">>### kSinh_Beta ###<<");
+	//S[kCosh_Beta].Print(">>### kCosh_Beta ###<<");
+
+	int sinh_ON=1;
 	//--- Get G2
   A[kG2]  = A[kN];
-  A[kG2] *= S[kBeta];  // Use 	S[kSinh_Beta] later
+	if (sinh_ON)
+  	A[kG2] *= S[kSinh_Beta]; 
+	else
+  	A[kG2] *= S[kBeta]; 
   A[kG2] *= C[kNeg_dt_Root3by2_f]; 
   A[kG2] -= A[kDa_m];
   A[kG2] += A[kDa_mp1];
 
+	//=============================== Misc LHS
+	
 	//--- Get Cosh(Beta), Beta2
-	S[kSinh_Beta].Sinh( S[kBeta] ); 
-	S[kBeta2] = C[kNeg_dt_Root3by2_f] * C[kRoot3by2byV];  // * S[kCosh_Beta] later
+ 	S[kBeta2]  = C[kRoot3by2byV]; 
+	if (sinh_ON)
+		S[kBeta2]  *= S[kCosh_Beta];
 
-	//S[kBeta2] *= S[kCosh_Beta];
 }
 
 //##################################################################################
