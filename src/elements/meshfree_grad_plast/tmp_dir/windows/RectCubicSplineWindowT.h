@@ -9,6 +9,7 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "dSymMatrixT.h"
+#include "dMatrixT.h" //kyonten
 
 namespace Tahoe {
 

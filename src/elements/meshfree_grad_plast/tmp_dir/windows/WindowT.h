@@ -1,4 +1,4 @@
-/* $Id: WindowT.h,v 1.1 2004-08-14 00:04:41 raregue Exp $ */
+/* $Id: WindowT.h,v 1.2 2004-08-25 00:34:39 kyonten Exp $ */
 #ifndef _WINDOW_T_H_
 #define _WINDOW_T_H_
 
@@ -10,8 +10,8 @@ namespace Tahoe {
 class ifstreamT;
 class dArrayT;
 class dArray2DT;
-class dMatrixT;  // for DDDw
 class dSymMatrixT;
+class dMatrixT;  // for DDDw
 template <class TYPE> class ArrayT;
 
 /** base class for various support types, and hence different 

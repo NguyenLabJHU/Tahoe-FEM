@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.h,v 1.1 2004-08-14 00:04:41 raregue Exp $ */
+/* $Id: GaussianWindowT.h,v 1.2 2004-08-25 00:34:39 kyonten Exp $ */
 
 #ifndef _GAUSSIAN_WINDOW_T_H_
 #define _GAUSSIAN_WINDOW_T_H_
@@ -9,8 +9,8 @@
 /* direct members */
 #include "dArrayT.h"
 #include "dArray2DT.h"
-#include "dMatrixT.h" // kyonten
 #include "dSymMatrixT.h"
+#include "dMatrixT.h" // kyonten
 
 namespace Tahoe {
 
