@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.18 2003-04-22 19:02:06 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.19 2003-05-26 01:51:46 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -125,7 +125,7 @@ double TiedPotentialT::Potential(const dArrayT& jump_u, const ArrayT<double>& st
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
+const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)

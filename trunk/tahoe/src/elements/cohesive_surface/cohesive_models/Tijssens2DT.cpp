@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.18 2003-03-19 00:53:27 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.19 2003-05-26 01:51:46 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -79,7 +79,7 @@ double Tijssens2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
+const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)

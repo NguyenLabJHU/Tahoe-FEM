@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.12 2003-05-20 23:53:35 cjkimme Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.13 2003-05-26 01:51:46 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "ViscTvergHutch2DT.h"
@@ -95,7 +95,7 @@ double ViscTvergHutch2DT::Potential(const dArrayT& jump_u, const ArrayT<double>&
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
+const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
 {
 	const char caller[] = "ViscTvergHutch2DT::Traction";
 #pragma unused(sigma)
