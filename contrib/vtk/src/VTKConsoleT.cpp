@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.30 2001-11-29 21:22:43 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.31 2001-12-03 21:59:22 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -45,11 +45,11 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 
   /* display objects */
   renWin = vtkRenderWindow::New();
-  renWin->SetPosition(668, 0);
-  renWin->SetSize(600,700);
+  renWin->SetWindowName("VTK for Tahoe");
+//  renWin->SetPosition(668, 0);
+//  renWin->SetSize(600,700);
   iren = vtkRenderWindowInteractor::New();
   iren->SetRenderWindow(renWin);
-
   /* set up single frame */
   SetFrameLayout(1,1);
 

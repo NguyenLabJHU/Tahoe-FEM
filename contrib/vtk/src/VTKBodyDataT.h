@@ -7,7 +7,6 @@
 #include "ExodusT.h"
 #include "VTKBodyT.h"
 
-
 /* forward declarations */
 class vtkPoints;
 class vtkCellArray;
@@ -25,6 +24,8 @@ class vtkVectors;
 class vtkScalarBarActor;
 class ExodusT;
 class VTKBodyT;
+class vtkDataArray;
+
 class VTKBodyDataT: public iConsoleObjectT
 {
  public:
@@ -95,10 +96,13 @@ class VTKBodyDataT: public iConsoleObjectT
   vtkDataSetMapper *ugridMapper;
   vtkActor *ugridActor;
 
-  
+#ifdef __VTK_NEW__
+  vtkDataArray *scalars [100][20];
+  vtkDataArray *vectors [100][20];
+#else 
   vtkScalars *scalars [100][20];
   vtkVectors *vectors [100][20];
- 
+#endif 
 /*   ExodusT exo; */
 };
 
