@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.8.2.8 2002-05-05 23:39:09 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.8.2.9 2002-05-07 07:24:59 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -23,8 +23,6 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 class ifstreamT;
-//class FEManagerT;
-//class NodeManagerT;
 class LocalArrayT;
 class ScheduleT;
 class eControllerT;
@@ -96,9 +94,6 @@ public:
 	/** return the number of degrees of freedom per node */
 	int NumDOF(void) const { return fField.NumDOF(); };
 	/*@}*/
-
-	/** set the time integration controller */
-//	virtual void SetController(eControllerT* controller);
 
 	/** class initialization. Among other things, element work space
 	 * is allocated and connectivities are read. */
@@ -265,21 +260,10 @@ private:
 	
 protected:
 
-//	const FEManagerT& fFEManager;
-//	const NodeManagerT& fNodes;
-
 	/* element controller */
 	const eControllerT* fController;
 
-	/* derived data */
-//	int	fNumSD;
-//	int	fNumDOF;
-//	int	fNumElemEqnos;
-//	GlobalT::AnalysisCodeT fAnalysisCode;
-	
 	/* element-by-element info */
-//	int	fNumElements;
-//NOTE - get rid of this
 	AutoArrayT<ElementCardT> fElementCards;
 	
 	/* grouped element arrays */
@@ -302,24 +286,16 @@ private:
 	/*@{*/
 	const ElementSupportT& fSupport;
 	const FieldT& fField;
-
-//	int fNumElemNodes;
 	/*@}*/
 };
 
 /* inline functions */
-
-/* up */
-//inline const FEManagerT& ElementBaseT::FEManager(void) const { return fFEManager; }
-//inline int ElementBaseT::NumSD(void) const { return fNumSD; }
-//inline int ElementBaseT::NumDOF(void) const { return fNumDOF; }
 
 /* currElement operations */
 inline void ElementBaseT::Top(void) { fElementCards.Top(); }
 inline bool ElementBaseT::NextElement(void) { return fElementCards.Next(); }
 
 /* element card */
-//inline int ElementBaseT::NumElements(void) const { return fNumElements; }
 inline int ElementBaseT::CurrElementNumber(void) const { return fElementCards.Position(); }
 inline ElementCardT& ElementBaseT::CurrentElement(void) const { return fElementCards.Current(); }
 inline ElementCardT& ElementBaseT::ElementCard(int card) const { return fElementCards[card]; }
