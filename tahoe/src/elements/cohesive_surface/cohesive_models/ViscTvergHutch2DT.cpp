@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.11 2003-05-20 10:34:11 paklein Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.12 2003-05-20 23:53:35 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "ViscTvergHutch2DT.h"
@@ -413,12 +413,12 @@ void ViscTvergHutch2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double
 	if (L < 1)
 	{
 		/* increment displacement */
-		double d_t = u_t - state[0];
-		double d_n = u_n - state[1];
+		double d_t = u_t - state[2];
+		double d_n = u_n - state[3];
 
 		/* previous lambda */
-		r_t = state[0]/fd_c_t;
-		r_n = state[1]/fd_c_n;
+		r_t = state[2]/fd_c_t;
+		r_n = state[3]/fd_c_n;
 		double L_last = sqrt(r_t*r_t + r_n*r_n); // (1.1)
 		
 		/* average viscosity */
