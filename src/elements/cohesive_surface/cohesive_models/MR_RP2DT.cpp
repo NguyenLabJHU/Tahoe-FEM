@@ -16,6 +16,7 @@
 using namespace Tahoe;
 
 const int knumDOF = 2;
+const int nTiedFlag = 8*knumDOF+1;
 
 /* constructor */
 MR_RP2DT::MR_RP2DT(ifstreamT& in): SurfacePotentialT(knumDOF),
@@ -45,7 +46,7 @@ MR_RP2DT::MR_RP2DT(ifstreamT& in): SurfacePotentialT(knumDOF),
 }
 
 /* return the number of state variables needed by the model */
-int MR_RP2DT::NumStateVariables(void) const { return 8*knumDOF +1; }
+int MR_RP2DT::NumStateVariables(void) const { return 8*knumDOF +2; }
 
 /* initialize the state variable array */
 void MR_RP2DT::InitStateVariables(ArrayT<double>& state)
@@ -131,6 +132,14 @@ const dArrayT& MR_RP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, 
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
+if (state[nTiedFlag] != 1. && state[nTiedFlag] != -10.)
+{
+	fTraction = 0.;
+
+	return fTraction;
+}
+else
+
 if (! qIntegrate) 
 {
     fTraction[0] = state[0];
@@ -139,6 +148,10 @@ if (! qIntegrate)
 }
 else
 {
+
+if (state[nTiedFlag] == -10.)
+	state[nTiedFlag] = 1.;
+	
 int i; int j; int kk;
 
 dMatrixT AA(6,6); dMatrixT KE(2,2); dMatrixT KE_Inv(2,2); dMatrixT I_mat(4,4); 
