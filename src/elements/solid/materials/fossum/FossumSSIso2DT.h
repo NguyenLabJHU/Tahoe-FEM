@@ -9,7 +9,7 @@
 namespace Tahoe {
 
 class FossumSSIso2DT: public FossumSSIsoT, 
-                      public Material2DT,
+                      public Material2DT
 {
   public:
 
