@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: parallel.csh.template,v 1.6 2003-04-01 18:43:39 paklein Exp $
+# $Id: parallel.csh.template,v 1.7 2004-07-19 04:08:19 paklein Exp $
 # 
 # template for running the parallel benchmarks - this script only runs
 # the benchmarks and verifies them with the comparator. It does not
@@ -17,8 +17,11 @@ set HOST =
 
 ######### hopefully no changes will be required below #########
 
+# benchmark directory
+set BENCHMARK = ${W_DIR}/benchmark_XML
+
 # set path
-set path=(${W_DIR}/benchmark/scripts /bin /usr/bin /usr/local/bin /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /usr/openwin/bin /project/local/bin $path)
+set path=(${BENCHMARK}/scripts /bin /usr/bin /usr/local/bin /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /usr/openwin/bin /project/local/bin $path)
 
 # need an echo that handles escape characters \n
 set ECHO = 'echo'
@@ -32,7 +35,7 @@ set TAHOE = tahoe
 # MPI stuff
 set MPI_EXE      = ${W_DIR}/tahoe/tahoe 
 set MPI_LAUNCH   = 'mpirun -np 4 '
-set MPI_TEST_DIR = ${W_DIR}/benchmark/level.3/parallel
+set MPI_TEST_DIR = ${BENCHMARK}/level.3/parallel
 
 # results summary file
 set COMPARE_RESULTS = ${MPI_TEST_DIR}/compare.summary
@@ -50,7 +53,7 @@ echo "running regression requested by: ${REQUESTOR}"
 #
 # run tests
 #
-if (-x ${W_DIR}/tahoe/${TAHOE} && -x ${W_DIR}/benchmark/comparator/compare) then
+if (-x ${W_DIR}/tahoe/${TAHOE} && -x ${BENCHMARK}/comparator/compare) then
 	
 	# run benchmarks
     cd ${MPI_TEST_DIR}
@@ -62,40 +65,40 @@ if (-x ${W_DIR}/tahoe/${TAHOE} && -x ${W_DIR}/benchmark/comparator/compare) then
     ${ECHO}  "running COMPARATOR..."
 	if (-e ${COMPARE_RESULTS}) rm ${COMPARE_RESULTS}
 	if (-e compare.console) rm compare.console
-    ${W_DIR}/benchmark/comparator/compare -f run.batch >&! compare.console
+    ${BENCHMARK}/comparator/compare -f run.batch >&! compare.console
 
 	# assess results
     if (! -e ${COMPARE_RESULTS}) then
     	# benchmarks did not run
 		${ECHO} "BENCHMARKs failed"
-		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}" > ${W_DIR}/benchmark/tmp_para
-		${ECHO} "TAHOE regression FAIL:" `date` >> ${W_DIR}/benchmark/tmp_para
-		${ECHO} "test requested by: ${REQUESTOR}" >> ${W_DIR}/benchmark/tmp_para
-		cat ${W_DIR}/benchmark/tmp_para ${MPI_TEST_DIR}/compare.console > ${W_DIR}/benchmark/tmp_para_mail
+		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}" > ${BENCHMARK}/tmp_para
+		${ECHO} "TAHOE regression FAIL:" `date` >> ${BENCHMARK}/tmp_para
+		${ECHO} "test requested by: ${REQUESTOR}" >> ${BENCHMARK}/tmp_para
+		cat ${BENCHMARK}/tmp_para ${MPI_TEST_DIR}/compare.console > ${BENCHMARK}/tmp_para_mail
 	else if (`grep -c "FAIL" ${COMPARE_RESULTS}` ) then
 		# test/s failed
 		${ECHO} "BENCHMARKs failed"
-		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}" > ${W_DIR}/benchmark/tmp_para
-		${ECHO} "TAHOE regression FAIL:" `date` >> ${W_DIR}/benchmark/tmp_para
-		${ECHO} "test requested by: ${REQUESTOR}" >> ${W_DIR}/benchmark/tmp_para
-		cat ${W_DIR}/benchmark/tmp_para ${COMPARE_RESULTS} > ${W_DIR}/benchmark/tmp_para_mail
+		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}" > ${BENCHMARK}/tmp_para
+		${ECHO} "TAHOE regression FAIL:" `date` >> ${BENCHMARK}/tmp_para
+		${ECHO} "test requested by: ${REQUESTOR}" >> ${BENCHMARK}/tmp_para
+		cat ${BENCHMARK}/tmp_para ${COMPARE_RESULTS} > ${BENCHMARK}/tmp_para_mail
     else
     	# tests passed
 		${ECHO} "BENCHMARKs passed"
-		${ECHO} "Subject: TAHOE: regression PASS ${HOST}" > ${W_DIR}/benchmark/tmp_para
-		${ECHO} "TAHOE regression PASS:" `date` >> ${W_DIR}/benchmark/tmp_para
-		${ECHO} "test requested by: ${REQUESTOR}" >> ${W_DIR}/benchmark/tmp_para
-		cat ${W_DIR}/benchmark/tmp_para ${COMPARE_RESULTS} > ${W_DIR}/benchmark/tmp_para_mail
+		${ECHO} "Subject: TAHOE: regression PASS ${HOST}" > ${BENCHMARK}/tmp_para
+		${ECHO} "TAHOE regression PASS:" `date` >> ${BENCHMARK}/tmp_para
+		${ECHO} "test requested by: ${REQUESTOR}" >> ${BENCHMARK}/tmp_para
+		cat ${BENCHMARK}/tmp_para ${COMPARE_RESULTS} > ${BENCHMARK}/tmp_para_mail
 	endif
 	
 # build failed
 else
-	${ECHO} "Subject: TAHOE: build FAIL ${HOST}" > ${W_DIR}/benchmark/tmp_para
-	${ECHO} "TAHOE build FAIL:" `date` >> ${W_DIR}/benchmark/tmp_para
-	${ECHO} "test requested by: ${REQUESTOR}" >> ${W_DIR}/benchmark/tmp_para
-	cat ${W_DIR}/benchmark/tmp_para ${W_DIR}/make.stderr > ${W_DIR}/benchmark/tmp_para_mail
+	${ECHO} "Subject: TAHOE: build FAIL ${HOST}" > ${BENCHMARK}/tmp_para
+	${ECHO} "TAHOE build FAIL:" `date` >> ${BENCHMARK}/tmp_para
+	${ECHO} "test requested by: ${REQUESTOR}" >> ${BENCHMARK}/tmp_para
+	cat ${BENCHMARK}/tmp_para ${W_DIR}/make.stderr > ${BENCHMARK}/tmp_para_mail
 endif
 #
 # send it
 #
-scp ${W_DIR}/benchmark/tmp_para_mail ${TAHOE_USER}@tahoe.ca.sandia.gov:/incoming/benchmark/mail.${HOST}
+scp ${BENCHMARK}/tmp_para_mail ${TAHOE_USER}@tahoe.ca.sandia.gov:/incoming/benchmark/mail.${HOST}

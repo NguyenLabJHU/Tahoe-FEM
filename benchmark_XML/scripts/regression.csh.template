@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: regression.csh.template,v 1.14 2003-04-07 19:02:56 paklein Exp $
+# $Id: regression.csh.template,v 1.15 2004-07-19 04:08:19 paklein Exp $
 
 # username on Tahoe server
 set TAHOE_USER =
@@ -14,16 +14,18 @@ set HOST =
 set ECHO = 'echo'
 
 # SEACAS - Sandia-only, ignore otherwise  
-setenv ACCESS
+setenv ACCESS /Users/paklein/Code/ACCESS
 
 # installed modules
-set MODULES = (macros toolbox tahoe benchmark)
-#set MODULES= (macros toolbox tahoe benchmark development)
+set MODULES= (macros toolbox tahoe benchmark_XML development)
 
 ######### hopefully no changes will be required below #########
 
+# benchmark directory
+set BENCHMARK = ${W_DIR}/benchmark_XML
+
 # set path
-set path=(${W_DIR}/benchmark/scripts ${W_DIR}/bin /bin /usr/bin /usr/local/bin /usr/X11R6/bin /usr/bin/X11 /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /usr/openwin/bin /project/local/bin $path)
+set path=(${BENCHMARK}/scripts /bin /usr/bin /usr/local/bin /usr/X11R6/bin /usr/bin/X11 /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /usr/openwin/bin /project/local/bin $path)
 
 # CVS
 setenv CVS_RSH ssh
@@ -34,15 +36,11 @@ set TAHOE = tahoe
 # build modules (in build order)
 set BUILD_MODULES = (toolbox tahoe)
 
-# command
-set RM = 'rm -f'
-set MV = 'mv -f'
-
 ###################### regression test ########################
 # clear log files
 cd ${W_DIR}
-if (-e make.stderr) ${RM} make.stderr
-if (-e make.stdout) ${RM} make.stdout
+if (-e make.stderr) rm make.stderr
+if (-e make.stdout) rm make.stdout
 #
 # resolve test requestor - first command line argument of $TAHOE_USER
 #
@@ -68,11 +66,11 @@ ${ECHO} "removing object code..."
 foreach mod ($BUILD_MODULES)
 	cd ${W_DIR}/$mod
 	if (-e ./lib/lib$mod.a) then
-		${RM} ./lib/lib$mod.a
+		rm ./lib/lib$mod.a
 	endif
 end
 if (-e ${W_DIR}/tahoe/${TAHOE}) then
-	${RM} ${W_DIR}/tahoe/${TAHOE}
+	rm ${W_DIR}/tahoe/${TAHOE}
 endif
 #
 # rebuild libraries and executables
@@ -86,62 +84,62 @@ end
 # update comparator
 #
 ${ECHO} "rebuilding comparator..."
-cd ${W_DIR}/benchmark/comparator
+cd ${BENCHMARK}/comparator
 (make -s init build >>! ${W_DIR}/make.stdout) >>&! ${W_DIR}/make.stderr
 #
 # run tests
 #
-if (-x ${W_DIR}/tahoe/${TAHOE} && -x ${W_DIR}/benchmark/comparator/compare) then
+if (-x ${W_DIR}/tahoe/${TAHOE} && -x ${BENCHMARK}/comparator/compare) then
 
-    cd ${W_DIR}/benchmark
+    cd ${BENCHMARK}
 	
 	# run benchmarks
     ${ECHO}  "running BENCHMARKs..."
 	make -s clean
-	${W_DIR}/tahoe/tahoe -f ${W_DIR}/benchmark/run.batch >&! test.stdout
+	${W_DIR}/tahoe/tahoe -f ${BENCHMARK}/run.batch >&! test.stdout
 
 	# test results 
     ${ECHO}  "running COMPARATOR..."
-	if (-e compare.summary) ${RM} compare.summary
-	if (-e compare.console) ${RM} compare.console
-    ${W_DIR}/benchmark/comparator/compare -f run.batch >&! compare.console
+	if (-e compare.summary) rm compare.summary
+	if (-e compare.console) rm compare.console
+    ${BENCHMARK}/comparator/compare -f run.batch >&! compare.console
 
 	# assess results
-    if (! -e ${W_DIR}/benchmark/compare.summary) then
+    if (! -e ${BENCHMARK}/compare.summary) then
     	# benchmarks did not run
 		${ECHO} "BENCHMARKs failed"
-		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}" > ${W_DIR}/benchmark/tmp
-		${ECHO} "TAHOE regression FAIL:" `date` >> ${W_DIR}/benchmark/tmp
-		${ECHO} "test requested by: ${REQUESTOR}" >> ${W_DIR}/benchmark/tmp
-		cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.console > ${W_DIR}/benchmark/tmp_mail
-	else if (`grep -c "FAIL" ${W_DIR}/benchmark/compare.summary` ) then
+		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}" > ${BENCHMARK}/tmp
+		${ECHO} "TAHOE regression FAIL:" `date` >> ${BENCHMARK}/tmp
+		${ECHO} "test requested by: ${REQUESTOR}" >> ${BENCHMARK}/tmp
+		cat ${BENCHMARK}/tmp ${BENCHMARK}/compare.console > ${BENCHMARK}/tmp_mail
+	else if (`grep -c "FAIL" ${BENCHMARK}/compare.summary` ) then
 		# test/s failed
 		${ECHO} "BENCHMARKs failed"
-		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}" > ${W_DIR}/benchmark/tmp
-		${ECHO} "TAHOE regression FAIL:" `date` >> ${W_DIR}/benchmark/tmp
-		${ECHO} "test requested by: ${REQUESTOR}" >> ${W_DIR}/benchmark/tmp		
-		cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_mail
+		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}" > ${BENCHMARK}/tmp
+		${ECHO} "TAHOE regression FAIL:" `date` >> ${BENCHMARK}/tmp
+		${ECHO} "test requested by: ${REQUESTOR}" >> ${BENCHMARK}/tmp		
+		cat ${BENCHMARK}/tmp ${BENCHMARK}/compare.summary > ${BENCHMARK}/tmp_mail
     else
     	# tests passed
 		${ECHO} "BENCHMARKs passed"
-		${ECHO} "Subject: TAHOE: regression PASS ${HOST}" > ${W_DIR}/benchmark/tmp
-		${ECHO} "TAHOE regression PASS:" `date` >> ${W_DIR}/benchmark/tmp
-		${ECHO} "test requested by: ${REQUESTOR}" >> ${W_DIR}/benchmark/tmp
-		cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_mail
+		${ECHO} "Subject: TAHOE: regression PASS ${HOST}" > ${BENCHMARK}/tmp
+		${ECHO} "TAHOE regression PASS:" `date` >> ${BENCHMARK}/tmp
+		${ECHO} "test requested by: ${REQUESTOR}" >> ${BENCHMARK}/tmp
+		cat ${BENCHMARK}/tmp ${BENCHMARK}/compare.summary > ${BENCHMARK}/tmp_mail
 	endif
 	
 # build failed
 else
-	${ECHO} "Subject: TAHOE: build FAIL ${HOST}" > ${W_DIR}/benchmark/tmp
-	${ECHO} "TAHOE build FAIL:" `date` >> ${W_DIR}/benchmark/tmp
-	${ECHO} "test requested by: ${REQUESTOR}" >> ${W_DIR}/benchmark/tmp
-	cat ${W_DIR}/benchmark/tmp ${W_DIR}/make.stderr > ${W_DIR}/benchmark/tmp_mail
+	${ECHO} "Subject: TAHOE: build FAIL ${HOST}" > ${BENCHMARK}/tmp
+	${ECHO} "TAHOE build FAIL:" `date` >> ${BENCHMARK}/tmp
+	${ECHO} "test requested by: ${REQUESTOR}" >> ${BENCHMARK}/tmp
+	cat ${BENCHMARK}/tmp ${W_DIR}/make.stderr > ${BENCHMARK}/tmp_mail
 endif
 #
 # send it
 #
-scp ${W_DIR}/benchmark/tmp_mail ${TAHOE_USER}@tahoe.ca.sandia.gov:/incoming/benchmark/mail.${HOST}
+scp ${BENCHMARK}/tmp_mail ${TAHOE_USER}@tahoe.ca.sandia.gov:/incoming/benchmark/mail.${HOST}
 #
 # run additional tests
 #
-# cd ${W_DIR}/benchmark/scripts; csh -f parallel.csh ${REQUESTOR} >& parallel.LOG
+cd ${BENCHMARK}/scripts; csh -f parallel.csh ${REQUESTOR} >& parallel.LOG
