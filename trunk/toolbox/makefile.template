@@ -1,15 +1,16 @@
-# $Id: makefile.template,v 1.19 2004-07-12 18:15:02 paklein Exp $
+# $Id: makefile.template,v 1.20 2004-07-15 08:06:23 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
-# (0) copy makefile.template to a local makefile.
-# (1) set HOME_DIR to the full path to this makefile.
-# (2) set MACRO_DIR to the full path to directory
-#     containing the machine specific compiler macros.
-# (3) select ARCH from those in the macros directory.
-# (4) select installed "build options".
-# (5) "make init" to (re-)initialize headers and file
-#     dependencies.
-# (6) "make build" to (re-)compiler binaries.
+# (1) copy makefile.template to a local makefile
+# (2) set HOME_DIR to the full path to this makefile
+# (3) set ARCH from the ARCH.macros files in the macros directory
+# (4) comment/uncomment the macros in the "build options" below based
+#     on the installed optional components
+# (5) "make init" to (re-)initialize headers and file dependencies.
+# (6) "make build" to (re-)compiler binaries
+#
+# Type "make" to see a list of available targets
+#
 
 # full path to the top level of this module
 HOME_DIR =
@@ -17,7 +18,10 @@ HOME_DIR =
 # build architecture - see macros directory for choices $(ARCH).macros
 ARCH =
 
-# destination for the build 
+# destination for the build - this can be set to something other than HOME_DIR
+# to produce multiple builds from the same source distribution. If BLD_DIR is
+# modified, the macros in other modules depending in this one will also need to 
+# be modified to reflect the location of the build files.
 BLD_DIR = $(HOME_DIR)
 
 # working directories:
@@ -53,13 +57,13 @@ MOD_CFLAGS_F  =
 MOD_LFLAGS    =
 
 ##### expat XML parsing library
-#EXPAT_PREFIX   = $(HOME_DIR)/../expat
-#EXPAT_DEFINES  = -D__EXPAT__
-#EXPAT_INC      = -I$(EXPAT_PREFIX)/include
-#EXPAT_CFLAGS   = $(EXPAT_INC) $(EXPAT_DEFINES)
-#EXPAT_LIB_NAME = expat
-#EXPAT_LIB      = $(EXPAT_PREFIX)/lib/lib$(EXPAT_LIB_NAME).a
-#EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
+EXPAT_PREFIX   = $(HOME_DIR)/../expat
+EXPAT_DEFINES  = -D__EXPAT__
+EXPAT_INC      = -I$(EXPAT_PREFIX)/include
+EXPAT_CFLAGS   = $(EXPAT_INC) $(EXPAT_DEFINES)
+EXPAT_LIB_NAME = expat
+EXPAT_LIB      = $(EXPAT_PREFIX)/lib/lib$(EXPAT_LIB_NAME).a
+EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
 
 ##### F2C 1.4.3
 #F2C_DIR      = $(HOME_DIR)/../f2c
