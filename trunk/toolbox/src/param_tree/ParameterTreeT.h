@@ -1,4 +1,4 @@
-/* $Id: ParameterTreeT.h,v 1.3 2003-05-04 22:59:53 paklein Exp $ */
+/* $Id: ParameterTreeT.h,v 1.4 2003-08-14 01:22:03 paklein Exp $ */
 #ifndef _PARAMETER_TREE_T_H_
 #define _PARAMETER_TREE_T_H_
 
@@ -12,6 +12,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class ParameterInterfaceT;
+class SubListDescriptionT;
 
 /** collect and manage parameter lists. There are two major components of this
  * interface:
@@ -62,16 +63,14 @@ private:
 	bool ValidateSequence(const ParameterInterfaceT& source, 
 		const ArrayT<ParameterListT>& raw_sub_list, 
 		ParameterListT& valid_list,
-		const ArrayT<StringT>& sub_name,
-		const ArrayT<ParameterListT::OccurrenceT>& sub_occur,
-		const ArrayT<bool>& sub_is_inline, bool throw_on_error);
+		const AutoArrayT<SubListDescriptionT>& sub_list,
+		bool throw_on_error);
 
 	bool ValidateChoice(const ParameterInterfaceT& source, 
 		const ArrayT<ParameterListT>& raw_sub_list, 
 		ParameterListT& valid_list,
-		const ArrayT<StringT>& sub_name,
-		const ArrayT<ParameterListT::OccurrenceT>& sub_occur,
-		const ArrayT<bool>& sub_is_inline, bool throw_on_error);
+		const AutoArrayT<SubListDescriptionT>& sub_list,
+		bool throw_on_error);
 	/*@}*/
 
 private:

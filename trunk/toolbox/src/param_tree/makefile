@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2003-05-04 22:59:53 paklein Exp $
+# $Id: makefile,v 1.6 2003-08-14 01:22:03 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -30,7 +30,8 @@ OBJ = \
 	XML_Atomic_FormatterT.o \
 	DotLine_FormatterT.o \
 	ParameterInterfaceT.o \
-	ParameterTreeT.o
+	ParameterTreeT.o \
+	ParameterUtils.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -60,7 +61,8 @@ SRC = \
 	XML_Atomic_FormatterT.cpp \
 	DotLine_FormatterT.cpp \
 	ParameterInterfaceT.cpp \
-	ParameterTreeT.cpp
+	ParameterTreeT.cpp \
+	ParameterUtils.cpp
 
 ##################### (3) headers
 #
@@ -83,6 +85,7 @@ HDR = \
 	XML_Atomic_FormatterT.h \
 	DotLine_FormatterT.h \
 	ParameterTreeT.h \
+	ParameterUtils.h \
 	enum2int.h
 
 HDR_LINK = $(HDR:.h=.h_link)

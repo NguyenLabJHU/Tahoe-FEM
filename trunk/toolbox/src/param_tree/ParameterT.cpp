@@ -1,4 +1,4 @@
-/* $Id: ParameterT.cpp,v 1.8 2003-05-04 22:59:53 paklein Exp $ */
+/* $Id: ParameterT.cpp,v 1.9 2003-08-14 01:22:03 paklein Exp $ */
 #include "ParameterT.h"
 
 /* array behavior */
@@ -202,8 +202,7 @@ void ParameterT::SetDefault(int a)
 			}
 			
 			/* error on fall through */
-			ExceptionT::GeneralFail(caller, "value %d does not appear in enumeration \"%s\"",
-				fName.Pointer());
+			ExceptionT::GeneralFail(caller, "value %d does not appear in enumeration \"%s\"", a, fName.Pointer());
 			break;
 		}
 		case Double:
