@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tahoe author="paklein" echo_input="false"
+<tahoe author="paklein" echo_input="true"
     geometry_file="../geometry/two_cubes.2.geom"
-    title="two cubes in contact" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    title="two cubes in contact - Augmented Lagrangian" xmlns:x0="http://www.w3.org/2001/XMLSchema">
     <time num_steps="5" output_inc="5" time_step="0.02">
         <schedule_function>
             <piecewise_linear>
@@ -40,7 +40,7 @@
                 </large_strain_material_3D>
             </large_strain_element_block>
         </updated_lagrangian>
-        <contact_3D_penalty field_name="displacement" penalty_stiffness="50.0">
+        <contact_3D_multiplier field_name="displacement" regularization="50">
             <contact_surface>
                 <surface_side_set side_set_ID="1"/>
             </contact_surface>
@@ -52,7 +52,7 @@
                     <String value="3"/>
                 </node_ID_list>
             </contact_nodes>
-        </contact_3D_penalty>
+        </contact_3D_multiplier>
     </element_list>
     <nonlinear_solver abs_tolerance="1.0e-10"
         divergence_tolerance="1.0e+03" max_iterations="5" rel_tolerance="1.0e-12"/>
