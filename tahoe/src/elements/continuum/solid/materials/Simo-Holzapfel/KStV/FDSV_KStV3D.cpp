@@ -1,4 +1,4 @@
-/* $Id: FDSV_KStV3D.cpp,v 1.2 2002-10-05 03:44:33 paklein Exp $ */
+/* $Id: FDSV_KStV3D.cpp,v 1.3 2002-10-14 16:04:07 thao Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSV_KStV3D.h"
@@ -22,8 +22,8 @@ FDSV_KStV3D::FDSV_KStV3D(ifstreamT& in, const FiniteStrainT& element):
 	in >> ftauS;
 	in >> ftauB;
 
-	int taudtS = fdt/ftauS;
-	int taudtB = fdt/ftauB;
+	double taudtS = fdt/ftauS;
+	double taudtB = fdt/ftauB;
 
 	falphaS = exp(-0.5*taudtS);
 	falphaB = exp(-0.5*taudtB);
