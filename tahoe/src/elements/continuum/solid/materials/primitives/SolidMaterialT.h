@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.11 2003-06-28 17:32:18 thao Exp $ */
+/* $Id: SolidMaterialT.h,v 1.12 2003-08-12 18:57:46 thao Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -59,12 +59,6 @@ public:
 	 * problem. */
 	virtual double Pressure(void) const = 0;
 	/*@}*/
-
-	/*non constant function that returns pressure*/
-	virtual double mPressure(void){
-	  cout << "\nmPressure not implemented.";
-	  throw ExceptionT::kGeneralFail;
-	  return 0;}
 
 	/** \name material description */
 	/*@{*/
