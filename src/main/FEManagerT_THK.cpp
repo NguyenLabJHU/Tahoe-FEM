@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.cpp,v 1.10 2004-02-01 20:38:16 hspark Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.11 2004-02-01 20:44:02 hspark Exp $ */
 #include "FEManagerT_THK.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -45,7 +45,6 @@ void FEManagerT_THK::Initialize(InitCodeT init)
 	//	const char caller[] = "FEManagerT_THK::Initialize";
 	//	ExceptionT::GeneralFail(caller, "1D BRIDGING SCALE NOT ENABLED");
 	//}
-
 	
 	// read other parameters and initialize data
 	ifstreamT& in = Input();
