@@ -40,6 +40,9 @@
             <EAM_particle_interaction label_1="Ni" label_2="Ni">
                 <Paradyn_EAM parameter_file="./FCN/niu3"/>
             </EAM_particle_interaction>
+            <particle_EAM_output centrosymmetry="1" displacement="1"
+                kinetic_energy="1" potential_energy="1" slip_vector="1"
+                strain="1" stress="1"/>
         </particle_EAM>
     </element_list>
     <PCG_solver abs_tolerance="1.0e-12" divergence_tolerance="1.0e+06"
