@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.1.1.1.6.1 2001-10-29 00:01:43 paklein Exp $ */
+/* $Id: ContactT.h,v 1.1.1.1.6.2 2001-11-06 20:31:57 sawimme Exp $ */
 /* created: paklein (12/11/1997)                                          */
 /* Cohesive surface element group - non-directional cohesive              */
 /* energy function, ie. fails in compression.                             */
@@ -99,9 +99,6 @@ protected:
 
 	/* control parameters */
 	int fNumFacetNodes;
-
-	/* connectivities for contact interactions */
-	iArray2DT fContactConnectivities;	
 
 	/* tags on contact surfaces */
 	ArrayT<iArray2DT> fSurfaces; // lists of facets

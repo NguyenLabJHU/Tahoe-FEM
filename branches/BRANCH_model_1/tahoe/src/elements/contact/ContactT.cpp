@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.1.1.1.6.2 2001-10-29 00:01:43 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.1.1.1.6.3 2001-11-06 20:31:57 sawimme Exp $ */
 /* created: paklein (12/11/1997)                                          */
 
 #include "ContactT.h"
@@ -277,10 +277,27 @@ void ContactT::SetWorkSpace(void)
 	fActiveMap.Allocate(fStrikerCoords.MajorDim());
 	fActiveMap = -1;
 
-	/* set the managed connectivities array */
-	fConnectivities_man.SetWard(0, fContactConnectivities, fNumElemNodes);
+	/* register with model manager */
+	ModelManagerT* model = fFEManager.ModelManager();
+	StringT name ("Contact");
+	name.Append (fFEManager.ElementGroupNumber(this) + 1);
+	model->RegisterElementGroup (name, 0, 0, GeometryT::kLine);
+	int index = model->ElementGroupIndex(name);
+
+	/* set up fConnectivities */
 	fConnectivities.Allocate(1);
-	fConnectivities[0] = &fContactConnectivities;
+	fConnectivities[0] = model->ElementGroupPointer (index);
+
+	/* set the managed connectivities array */
+	iArray2DT* contactconns = const_cast<iArray2DT*> (fConnectivities[0]);
+	fConnectivities_man.SetWard(0, *contactconns, fNumElemNodes);
+
+	/* set up fBlockData to store block ID */
+	fBlockData.Allocate (1, ElementBaseT::kBlockDataSize);
+	fBlockData (0, kID) = index + 1;
+	fBlockData (0, kStartNum) = 0;
+	fBlockData (0, kBlockDim) = fConnectivities[0]->MajorDim();
+	fBlockData (0, kBlockMat) = -1;
 
 	/* set managed equation numbers array */
 	fEqnos.Allocate(1);
@@ -315,6 +332,10 @@ bool ContactT::SetContactConfiguration(void)
 
 		/* generate connectivities */
 		SetConnectivities();	
+
+		/* update */
+		fBlockData (0, kBlockDim) = fConnectivities[0]->MinorDim();
+		fNumElements = fConnectivities[0]->MinorDim();
 	}
 	
 	return contact_changed;
