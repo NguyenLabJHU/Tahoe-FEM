@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.1 2003-06-09 06:57:14 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.2 2003-12-02 17:14:53 paklein Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
@@ -25,8 +25,19 @@ NLDiffusionElementT::NLDiffusionElementT(const ElementSupportT& support, const F
 	DiffusionElementT(support, field),
 	feps(0.0), fT0(0.0), falpha(0.0)
 {
+	SetName("nonlinear_diffusion");
+
 	/* reset structure of element stiffness matrix */
 	fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
+}
+
+NLDiffusionElementT::NLDiffusionElementT(const ElementSupportT& support):
+	DiffusionElementT(support),
+	feps(0.0), 
+	fT0(0.0), 
+	falpha(0.0)
+{
+	SetName("nonlinear_diffusion");
 }
 
 /* data initialization */

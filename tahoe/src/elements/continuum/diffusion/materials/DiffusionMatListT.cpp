@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatListT.cpp,v 1.5 2003-06-09 06:53:11 paklein Exp $ */
+/* $Id: DiffusionMatListT.cpp,v 1.6 2003-12-02 17:14:57 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "DiffusionMatListT.h"
 #include "DiffusionMatSupportT.h"
@@ -13,9 +13,15 @@ using namespace Tahoe;
 /* constructors */
 DiffusionMatListT::	DiffusionMatListT(int length, const DiffusionMatSupportT& support):
 	MaterialListT(length),
-	fDiffusionMatSupport(support)
+	fDiffusionMatSupport(&support)
 {
+	SetName("diffusion_materials");
+}
 
+DiffusionMatListT::	DiffusionMatListT(void):
+	fDiffusionMatSupport(NULL)
+{
+	SetName("diffusion_materials");
 }
 
 /* read material data from the input stream */
@@ -42,12 +48,12 @@ void DiffusionMatListT::ReadMaterialData(ifstreamT& in)
 		{
 			case kLinear:
 			{
-				fArray[matnum] = new DiffusionMaterialT(in, fDiffusionMatSupport);
+				fArray[matnum] = new DiffusionMaterialT(in, *fDiffusionMatSupport);
 				break;
 			}
 			case kNonLinear:
 			{
-				fArray[matnum] = new NLDiffusionMaterialT(in, fDiffusionMatSupport);
+				fArray[matnum] = new NLDiffusionMaterialT(in, *fDiffusionMatSupport);
 				break;
 			}
 			default:

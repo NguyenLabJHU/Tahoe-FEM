@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.h,v 1.1 2003-06-09 06:57:14 paklein Exp $ */
+/* $Id: NLDiffusionElementT.h,v 1.2 2003-12-02 17:14:53 paklein Exp $ */
 #ifndef _NL_DIFFUSE_T_H_
 #define _NL_DIFFUSE_T_H_
 
@@ -17,6 +17,7 @@ public:
 	
 	/** constructor */
 	NLDiffusionElementT(const ElementSupportT& support, const FieldT& field);
+	NLDiffusionElementT(const ElementSupportT& support);
 	
 	/** data initialization */
 	virtual void Initialize(void);

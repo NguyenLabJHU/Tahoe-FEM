@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.16 2003-11-21 22:46:03 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.17 2003-12-02 17:14:53 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -35,7 +35,7 @@ DiffusionElementT::DiffusionElementT(const ElementSupportT& support, const Field
 	fq(NumSD()),
 	fDiffusionMatSupport(NULL)
 {
-	SetName("diffusion_element");
+	SetName("diffusion");
 
 	/* check base class initializations */
 	if (NumDOF() != kDiffusionNDOF) {
@@ -50,7 +50,7 @@ DiffusionElementT::DiffusionElementT(const ElementSupportT& support):
 	fLocVel(LocalArrayT::kVel),
 	fDiffusionMatSupport(NULL)
 {
-	SetName("diffusion_element");
+	SetName("diffusion");
 }
 
 /* destructor */
@@ -510,16 +510,22 @@ MaterialSupportT* DiffusionElementT::NewMaterialSupport(MaterialSupportT* p) con
 }
 
 /* return a pointer to a new material list */
-MaterialListT* DiffusionElementT::NewMaterialList(int size)
+MaterialListT* DiffusionElementT::NewMaterialList(int nsd, int size)
 {
-	/* material support */
-	if (!fDiffusionMatSupport) {
-		fDiffusionMatSupport = dynamic_cast<DiffusionMatSupportT*>(NewMaterialSupport());
-		if (!fDiffusionMatSupport) throw ExceptionT::kGeneralFail;
-	}
+#pragma unused(nsd)
+	if (size > 0)
+	{
+		/* material support */
+		if (!fDiffusionMatSupport) {
+			fDiffusionMatSupport = dynamic_cast<DiffusionMatSupportT*>(NewMaterialSupport());
+			if (!fDiffusionMatSupport) ExceptionT::GeneralFail("DiffusionElementT::NewMaterialList");
+		}
 
-	/* allocate */
-	return new DiffusionMatListT(size, *fDiffusionMatSupport);
+		/* allocate */
+		return new DiffusionMatListT(size, *fDiffusionMatSupport);
+	}
+	else
+		return new DiffusionMatListT;
 }
 
 /* driver for calculating output values */
@@ -609,6 +615,28 @@ if (e_out > 0)
 	//const iArrayT& node_used = fFEManager.OutputSet(fOutputID).NodesUsed();
 	//fNodes->OutputAverage(node_used, n_values);
 	ElementSupport().OutputUsedAverage(n_values);
+}
+
+/* information about subordinate parameter lists */
+void DiffusionElementT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ContinuumElementT::DefineSubs(sub_list);
+
+	sub_list.AddSub("diffusion_materials");
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* DiffusionElementT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "diffusion_materials")
+	{
+		/* non-const this */
+		DiffusionElementT* non_const_this = const_cast<DiffusionElementT*>(this);
+		return non_const_this->NewMaterialList(0,0);
+	}
+	else /* inherited */
+		return ContinuumElementT::NewSub(list_name);
 }
 
 /***********************************************************************
