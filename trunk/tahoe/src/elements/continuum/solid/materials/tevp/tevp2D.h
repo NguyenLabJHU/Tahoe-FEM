@@ -1,7 +1,7 @@
-/* $Id: tevp2D.h,v 1.4 2001-05-03 02:48:20 hspark Exp $ */
+/* $Id: tevp2D.h,v 1.5 2001-05-11 14:11:09 hspark Exp $ */
 /* Thermoelasto-viscoplastic material used to generate shear bands */
 /* Created:  Harold Park (04/04/2001) */
-/* Last Updated:  Harold Park (05/02/2001) */
+/* Last Updated:  Harold Park (05/10/2001) */
 
 #ifndef _TEVP_2D_H_
 #define _TEVP_2D_H_
@@ -72,7 +72,6 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
 
   /* deformation gradient, rate of deformation, spin */
   void ComputeGradients(void);
-  dMatrixT& CauchyToKirchoff(dMatrixT temp_stress);
   double ComputeEbtot(void);     
   // Computes the incremental effective strain
   double ComputeXxii(void);
@@ -99,11 +98,11 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
 
   /* Output values/internal variable functions below - these functions
    * should ONLY be called AFTER the stress and modulus have been computed */
-  double ComputeTemperature(ElementCardT& element, int ip);
+  double ComputeTemperature(const ElementCardT& element, int ip);
   double ComputeEffectiveStress(void);
-  double ComputeEffectiveStrain(ElementCardT& element, int ip);
-  int CheckCriticalStrain(ElementCardT& element, int ip);
-  int CheckIfPlastic(ElementCardT& element, int ip);
+  double ComputeEffectiveStrain(const ElementCardT& element, int ip);
+  int CheckCriticalStrain(const ElementCardT& element, int ip);
+  int CheckIfPlastic(const ElementCardT& element, int ip);
   /* load element data for the specified integration point */
   void LoadData(const ElementCardT& element, int ip); 
   /* element level data */
@@ -111,10 +110,10 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   void Reset(ElementCardT& element);
   /* These take the internal variable array and expand it to a matrix, or
    * vice versa */
-  dMatrixT& ArrayToMatrix(dArrayT StressArray);
-  dArrayT& MatrixToArray(dSymMatrixT StressMatrix);  
-  dSymMatrixT& Return3DStress(dMatrixT StressMatrix);
-  dSymMatrixT& ArrayToSymMatrix2D(dArrayT StressArray);
+  dMatrixT& ArrayToMatrix(const dArrayT& StressArray);
+  dArrayT& MatrixToArray(const dSymMatrixT& StressMatrix);  
+  dSymMatrixT& Return3DStress(const dMatrixT& StressMatrix);
+  dSymMatrixT& ArrayToSymMatrix2D(const dArrayT& StressArray);
 
  protected:
   /* return values */
