@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.h,v 1.5 2004-03-04 08:54:20 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.h,v 1.5.16.1 2004-04-24 19:57:28 paklein Exp $ */
 #ifndef _MESHFREE_BRIDGING_SCALE_T_H_
 #define _MESHFREE_BRIDGING_SCALE_T_H_
 
@@ -47,6 +47,9 @@ public:
 
 	/** indicate whether image nodes should be included in the projection */
 	virtual bool ProjectImagePoints(void) const { return false; };
+
+	/** collect the cells without any free nodes */
+	virtual void CollectProjectedCells(const PointInCellDataT& cell_data, iArrayT& cells) const;
 	/*@}*/
 
 protected:
@@ -80,8 +83,8 @@ private:
 	/** moving least squares solver */
 	MLSSolverT* fMLS;
 	
-	/** support size of each atom in the crystal, not just the points in cells */
-	dArray2DT fSupport;
+	/** support size parameters of each atom in the crystal, not just the points in cells */
+	dArray2DT fSupportParams;
 };
 
 } /* namespace Tahoe */

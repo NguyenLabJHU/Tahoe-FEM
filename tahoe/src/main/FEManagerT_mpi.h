@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.18 2003-05-20 10:38:45 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.18.40.1 2004-04-24 19:57:41 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #ifndef _FE_MANAGER_MPI_H_
 #define _FE_MANAGER_MPI_H_
@@ -87,7 +87,7 @@ protected:
 
 	/** \name equation system information */
 	/*@{*/
-	virtual int GetGlobalEquationStart(int group) const;
+	virtual int GetGlobalEquationStart(int group, int start_eq_shift) const;
 	virtual int GetGlobalNumEquations(int group) const;
 	/*@}*/
 
