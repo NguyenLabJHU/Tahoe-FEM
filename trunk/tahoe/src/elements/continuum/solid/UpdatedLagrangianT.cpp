@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.8 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.9 2002-10-10 01:38:22 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpdatedLagrangianT.h"
 
@@ -44,7 +44,6 @@ void UpdatedLagrangianT::Initialize(void)
 	/* dimension */
 	fGradNa.Allocate(NumSD(), NumElementNodes());
 	fStressStiff.Allocate(NumElementNodes());
-	fTemp2.Allocate(NumElementNodes()*NumDOF());
 }
 
 /***********************************************************************
