@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.6 2004-09-29 18:26:52 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.7 2004-10-13 00:20:15 cjkimme Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -660,8 +660,7 @@ void FS_SCNIMF_AxiT::ComputeBMatrices(void)
 	dArrayT zeroFacet(3);
 	zeroFacet = 0.0;
 	double zeroSingle = 0.;
-	for (int i = 0; i < nNodes; i++)
-	{
+	for (int i = 0; i < nNodes; i++) {
 		int l_supp_i = nodeSupport.MinorDim(i);
 		iArrayT supp_i(l_supp_i);
 		supp_i.Copy(nodeSupport(i));
@@ -688,10 +687,10 @@ void FS_SCNIMF_AxiT::ComputeBMatrices(void)
 	int n_0, n_1;
 	bool traverseQ_0, traverseQ_1;
 	int *next_0, *next_1;
-	for (int i = 0; i < fDeloneEdges.MajorDim(); i++)
-	{
+	for (int i = 0; i < fDeloneEdges.MajorDim(); i++) {
 		n_0 = fDeloneEdges(i,0);
 		n_1 = fDeloneEdges(i,1);
+
 		facetNormal.DiffOf(fDeloneVertices(n_1), fDeloneVertices(n_0));
 		facetNormal.UnitVector();
 		
@@ -742,7 +741,7 @@ void FS_SCNIMF_AxiT::ComputeBMatrices(void)
 		for (int j = 0; j < n_ip_cover; j++, c++, c_j++)
 		{
 			facetIntegral = facetNormal;
-			facetIntegral *= fDualAreas[i]*phiValues[*c_j];	
+			facetIntegral *= phiValues[*c_j]*jw;	
 			
 			if (next_0)
 				traverseQ_0 = *next_0 <= *c;
