@@ -1,21 +1,29 @@
-/* $Id: GradJ2SSKStV1D.h,v 1.4 2004-08-04 22:02:13 rdorgan Exp $ */
+/* $Id: GradJ2SSKStV1D.h,v 1.5 2004-08-05 17:26:11 rdorgan Exp $ */
 #ifndef _GRAD_J2_SS_KSTV_1D_H_
 #define _GRAD_J2_SS_KSTV_1D_H_
 
 /* base classes */
-#include "ParameterInterfaceT.h"
+#include "GradSSSolidMatT.h"
 #include "IsotropicT.h"
 #include "HookeanMatT.h"
-#include "GradJ2SSC0Hardening1DT.h"
+#include "ParameterInterfaceT.h"
 
 /* direct members */
+#include "dSymMatrixT.h"
+#include "dMatrixT.h"
+#include "dArrayT.h"
 #include "C1FunctionT.h"
 
 namespace Tahoe {
 
-class GradJ2SSKStV1D: public IsotropicT,
+/* forward declarations */
+class ElementCardT;
+class ifstreamT;
+class dSymMatrixT;
+
+class GradJ2SSKStV1D: public GradSSSolidMatT,
+		public IsotropicT,
 		public HookeanMatT,
-		public GradSSSolidMatT,
 		virtual public ParameterInterfaceT
 {
 public:
@@ -63,6 +71,9 @@ public:
 	
 	/** yield criteria moduli */
 	virtual double yc(void);
+	
+	/** returns 1 if the ip has weakened during the iteration, 0 otherwise */
+	virtual int weakened(void);
 	
 	/** return the pressure associated with the last call to 
 	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure

@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.h,v 1.13 2004-08-04 22:02:13 rdorgan Exp $ */
+/* $Id: GradSSSolidMatT.h,v 1.14 2004-08-05 17:26:11 rdorgan Exp $ */
 #ifndef _GRAD_SS_SOLID_MAT_T_H_
 #define _GRAD_SS_SOLID_MAT_T_H_
 
@@ -60,6 +60,7 @@ public:
 	virtual const dMatrixT& gm_hp(void) = 0;
 	virtual const dMatrixT& gm_hq(void) = 0;
 	virtual double yc(void) = 0;
+	virtual int weakened(void) = 0;
 	/*@}*/
 	
 	/** return the plastic multiplier in the material at the current integration point. 

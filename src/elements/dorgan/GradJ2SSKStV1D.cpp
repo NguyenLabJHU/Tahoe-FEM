@@ -1,9 +1,11 @@
-/* $Id: GradJ2SSKStV1D.cpp,v 1.5 2004-08-04 22:02:13 rdorgan Exp $ */
+/* $Id: GradJ2SSKStV1D.cpp,v 1.6 2004-08-05 17:26:11 rdorgan Exp $ */
 #include "GradJ2SSKStV1D.h"
 #include "GradSSMatSupportT.h"
-#include "iArrayT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
+
+#include "dSymMatrixT.h"
+#include "iArrayT.h"
 
 #include <math.h>
 
@@ -30,7 +32,7 @@ static const char* Labels[kNumOutput] = {
 GradJ2SSKStV1D::GradJ2SSKStV1D(void):
 	ParameterInterfaceT ("grad_small_strain_StVenant_J2_1D"),
 	HookeanMatT(kNSD),
-	GradSSSolidMatT(),  // remove
+	//	GradSSSolidMatT(),  // remove
 
 	fStress(kNSD),
 	fElasticStrain(kNSD),
@@ -94,7 +96,7 @@ const dMatrixT& GradJ2SSKStV1D::c_ijkl(void)
 }
 
 /* off diagonal moduli for Kar */
-const dMatrixT& GradJ2SSKStV1D::odm_bh_ij()
+const dMatrixT& GradJ2SSKStV1D::odm_bh_ij(void)
 {
 	/* load internal variables */
 	int ip = CurrIP();
@@ -108,7 +110,7 @@ const dMatrixT& GradJ2SSKStV1D::odm_bh_ij()
 }
 
 /* off diagonal moduli for K_ra */
-const dMatrixT& GradJ2SSKStV1D::odm_hb_ij()
+const dMatrixT& GradJ2SSKStV1D::odm_hb_ij(void)
 {
 	/* load internal variables */
 	int ip = CurrIP();
@@ -122,7 +124,7 @@ const dMatrixT& GradJ2SSKStV1D::odm_hb_ij()
 }
 
 /* moduli for local term in K_hh */
-const dMatrixT& GradJ2SSKStV1D::gm_hh()
+const dMatrixT& GradJ2SSKStV1D::gm_hh(void)
 {
 	/* load internal variables */
 	int ip = CurrIP();
@@ -162,7 +164,7 @@ const dMatrixT& GradJ2SSKStV1D::gm_hh()
 }
 
 /* moduli for gradient term in K_hp */
-const dMatrixT& GradJ2SSKStV1D::gm_hp()
+const dMatrixT& GradJ2SSKStV1D::gm_hp(void)
 {
 	/* load internal variables */
 	int ip = CurrIP();
@@ -187,7 +189,7 @@ const dMatrixT& GradJ2SSKStV1D::gm_hp()
 }
 
 /* moduli for gradient term in K_hq */
-const dMatrixT& GradJ2SSKStV1D::gm_hq()
+const dMatrixT& GradJ2SSKStV1D::gm_hq(void)
 {
 	/* load internal variables */
 	int ip = CurrIP();
@@ -268,7 +270,7 @@ const dSymMatrixT& GradJ2SSKStV1D::s_ij(void)
 }
 
 /* yield criteria moduli */
-double GradJ2SSKStV1D::yc()
+double GradJ2SSKStV1D::yc(void)
 {
 	/* load internal variables */
 	int ip = CurrIP();
@@ -277,6 +279,17 @@ double GradJ2SSKStV1D::yc()
 
 	/* yield condition */
 	return fInternal_j[kYieldCrt];
+}
+
+/** returns 1 if the ip has weakened during the current time step, 0 otherwise */
+int GradJ2SSKStV1D::weakened(void)
+{
+	/* load internal variables */
+	int ip = CurrIP();
+	ElementCardT& element = CurrentElement();
+	LoadData(element, ip);
+
+	return fInternal_j[kWeakened] - fInternal_0[kWeakened];
 }
 
 /* returns the strain energy density for the specified strain */
@@ -349,8 +362,9 @@ void GradJ2SSKStV1D::ComputeOutput(dArrayT& output)
 void GradJ2SSKStV1D::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	IsotropicT::DefineParameters(list);
 	GradSSSolidMatT::DefineParameters(list);
+	IsotropicT::DefineParameters(list);
+	HookeanMatT::DefineParameters(list);
 	ParameterInterfaceT::DefineParameters(list);
 
 	ParameterT isotropic_hardening_length_scale(fc_r, "isotropic_hardening_length_scale");
@@ -368,9 +382,9 @@ void GradJ2SSKStV1D::DefineParameters(ParameterListT& list) const
 void GradJ2SSKStV1D::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
+	GradSSSolidMatT::DefineSubs(sub_list);
 	IsotropicT::DefineSubs(sub_list);
 	HookeanMatT::DefineSubs(sub_list);
-	GradSSSolidMatT::DefineSubs(sub_list);
 	ParameterInterfaceT::DefineSubs(sub_list);
 
 	/* hardening function */
@@ -383,10 +397,11 @@ void GradJ2SSKStV1D::DefineInlineSub(const StringT& name, ParameterListT::ListOr
 {
 	/* inherited */
 	if (sub_lists.Length() == 0)
+		GradSSSolidMatT::DefineInlineSub(name, order, sub_lists);
+	if (sub_lists.Length() == 0)
 		IsotropicT::DefineInlineSub(name, order, sub_lists);
 	if (sub_lists.Length() == 0)
 		HookeanMatT::DefineInlineSub(name, order, sub_lists);
-
 	if (name == "hardening_function_choice")
 	{
 		order = ParameterListT::Choice;
@@ -407,6 +422,9 @@ ParameterInterfaceT* GradJ2SSKStV1D::NewSub(const StringT& name) const
 {
 	ParameterInterfaceT* sub = NULL;
 
+	sub = GradSSSolidMatT::NewSub(name);
+	if (sub) return sub;
+
 	/* try each base class */
 	sub = IsotropicT::NewSub(name);
 	if (sub) return sub;
@@ -414,9 +432,6 @@ ParameterInterfaceT* GradJ2SSKStV1D::NewSub(const StringT& name) const
 	sub = HookeanMatT::NewSub(name);
 	if (sub) return sub;
 	
-	sub = GradSSSolidMatT::NewSub(name);
-	if (sub) return sub;
-
 	/* try to construct C1 function */
 	C1FunctionT* function = C1FunctionT::New(name);
 	if (function)
@@ -433,24 +448,22 @@ void GradJ2SSKStV1D::TakeParameterList(const ParameterListT& list)
 	fNumIP = NumIP();
 
 	/* inherited */
+	GradSSSolidMatT::TakeParameterList(list);
 	IsotropicT::TakeParameterList(list);
 	HookeanMatT::TakeParameterList(list);
-	GradSSSolidMatT::TakeParameterList(list);
-	
-	/* length scale in nonlocal measure of isotropic hardening */
-	fc_r = list.GetParameter("isotropic_hardening_length_scale");
-	
-	/* coefficient in nonassociative plasticity for isotropic hardening  */
-	fk_r = list.GetParameter("isotropic_hardening_nonassociative");
-
-	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
-
+	
 	/* construct hardening function */
 	const ParameterListT& hardening = list.GetListChoice(*this, "hardening_function_choice");
 	fK = C1FunctionT::New(hardening.Name());
 	if (!fK) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", hardening.Name().Pointer());
 	fK->TakeParameterList(hardening);
+
+	/* length scale in nonlocal measure of isotropic hardening */
+	fc_r = list.GetParameter("isotropic_hardening_length_scale");
+	
+	/* coefficient in nonassociative plasticity for isotropic hardening  */
+	fk_r = list.GetParameter("isotropic_hardening_nonassociative");
 
 	/* allocate space for all elements */
 	AllocateAllElements();
@@ -612,9 +625,7 @@ double GradJ2SSKStV1D::Grad4R(double lambda, double gradlambda, double laplambda
 /* yield criteria moduli */
 double GradJ2SSKStV1D::YieldCondition(double lambda, double laplambda)
 {
-	//	double flambda = GradSSSolidMatT::Lambda();
-
-	if (( K(lambda) < 1e-03 || fInternal_j[kWeakened] ) && 0.)
+	if ( K(lambda) < 1e-03 || fInternal_0[kWeakened] )
 	{			
 		if (!fInternal_0[kWeakened])
 		{				
@@ -622,15 +633,15 @@ double GradJ2SSKStV1D::YieldCondition(double lambda, double laplambda)
 			cout << "Isotropic Hardening: " << lambda;
 			cout << "       Yield Stress: " << K(lambda) << endl;
 		}
-
-		fInternal_j[kWeakened] = 1;
 		
+		fInternal_j[kWeakened] = 1;
+
 		/* check yield strength */
 		return  fabs(fStress[0]) - ( 1e-03 + fc_r*dK(lambda)*laplambda);
 	}
 	else
 	{
-		fInternal_j[kWeakened] = 0;
+		//		fInternal_j[kWeakened] = 0;
 
 		/* check yield strength */
 		return  fabs(fStress[0]) - ( K(lambda) + fc_r*dK(lambda)*laplambda);

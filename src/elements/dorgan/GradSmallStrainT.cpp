@@ -25,9 +25,6 @@
 
 using namespace Tahoe;
 
-#define DISABLE_NODE
-//#undef DISABLE_NODE
-
 /* parameters */
 const double kYieldTol    = 1.0e-10;
 
@@ -35,6 +32,9 @@ const double kYieldTol    = 1.0e-10;
 GradSmallStrainT::GradSmallStrainT(const ElementSupportT& support):
 	SmallStrainT(support), //pass the displacement field to the base class
 	fGradSSMatSupport(NULL),
+
+	fMaxWeakened(-1),
+	fWeakened(0),
 	fHoldTime(false),
 
 	fK_bb(ElementMatrixT::kNonSymmetric),
@@ -87,6 +87,8 @@ GradSmallStrainT::~GradSmallStrainT(void)
 /* adds check for weakening */
 void GradSmallStrainT::RHSDriver(void)
 {
+	fWeakened = 0.;
+
 	/* inherited */
 	SmallStrainT::RHSDriver();
 	
@@ -132,7 +134,7 @@ void GradSmallStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	{
 		/* connectivities */
 		const iArray2DT& connects = *(fConnectivities[i]);
-		const iArray2DT& connects_lambda = fConnectivities_PMultiplier[i];
+		const iArray2DT& connects_pmultiplier = fConnectivities_PMultiplier[i];
 		int fNumElements = connects.MajorDim();
 
 		/* dimension */
@@ -142,7 +144,7 @@ void GradSmallStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 
 		/* get equation numbers */
 		fDisplacement->SetLocalEqnos(connects, fEqnos_Disp);
-		fPMultiplier->SetLocalEqnos(connects_lambda, fEqnos_PMultiplier);
+		fPMultiplier->SetLocalEqnos(connects_pmultiplier, fEqnos_PMultiplier);
 
 		/* write into one array */
 		fEqnos[i].BlockColumnCopyAt(fEqnos_Disp, 0);
@@ -165,11 +167,15 @@ void GradSmallStrainT::DefineParameters(ParameterListT& list) const
 	/* associate field */
 	list.AddParameter(ParameterT::Word, "grad_plasticity_field_name");
 
-	ParameterT degree_of_continuity_lambda(ParameterT::Enumeration, "degree_of_continuity_lambda");
-	degree_of_continuity_lambda.AddEnumeration("C0", kC0);
-	degree_of_continuity_lambda.AddEnumeration("C1", kC1);
-    degree_of_continuity_lambda.SetDefault(kC1);
-	list.AddParameter(degree_of_continuity_lambda);
+	ParameterT degree_of_continuity_pmultiplier(ParameterT::Enumeration, "degree_of_continuity_pmultiplier");
+	degree_of_continuity_pmultiplier.AddEnumeration("C0", kC0);
+	degree_of_continuity_pmultiplier.AddEnumeration("C1", kC1);
+    degree_of_continuity_pmultiplier.SetDefault(kC1);
+	list.AddParameter(degree_of_continuity_pmultiplier);
+
+	ParameterT max_number_of_weakened_ip(fMaxWeakened, "max_number_of_weakened_ip");
+	max_number_of_weakened_ip.SetDefault(1000);
+	list.AddParameter(max_number_of_weakened_ip);
 
 	ParameterT nodal_constraint(fNodalConstraint, "nodal_constraint");
 	nodal_constraint.SetDefault(0.0);
@@ -264,8 +270,9 @@ void GradSmallStrainT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::GeneralFail(caller, "could not resolve \"%s\" grad_plasticity_field", grad_plasticity_field_name.Pointer());
 
 	/* get the element parameters */
-	int b = list.GetParameter("degree_of_continuity_lambda");
+	int b = list.GetParameter("degree_of_continuity_pmultiplier");
 	fDegreeOfContinuity_PMultiplier = (b == kC1) ? kC1 : kC0;
+	fMaxWeakened               = list.GetParameter("max_number_of_weakened_ip");
 	fNodalConstraint           = list.GetParameter("nodal_constraint");
 	fprint_GlobalShape         = list.GetParameter("print_globalShape");
 	fprint_Kd                  = list.GetParameter("print_kd");
@@ -282,10 +289,8 @@ void GradSmallStrainT::TakeParameterList(const ParameterListT& list)
 	fNumDOF_Disp = fDisplacement->NumDOF();
 	fNumDOF_PMultiplier = fPMultiplier->NumDOF();
 
+	// do not know NumElementNodes() at this point, so must be 2 unless set through an input. 
 	fNumElementNodes_PMultiplier = 2;
-	//	if (fNumSD == 1 && fDegreeOfContinuity_PMultiplier == kC1) fNumElementNodes_PMultiplier = 2;
-	//	else if (fNumSD == 1 && fDegreeOfContinuity_PMultiplier == kC0) fNumElementNodes_PMultiplier = fNumElementNodes_Disp;
-	//	else ExceptionT::GeneralFail(caller, " Bad fNumSD or fDegreeOfContinuity_PMultiplier. Unable to assign fNumElementNodes_PMultiplier");
 	
 	/* inherited */
 	SmallStrainT::TakeParameterList(list);
@@ -296,13 +301,13 @@ void GradSmallStrainT::TakeParameterList(const ParameterListT& list)
 	fNumIP_PMultiplier = fNumIP_Disp;
 	
 	/* allocate lists */
-	fPMultiplier_List.Dimension(fNumIP_PMultiplier);           // lambda
-	fPMultiplier_last_List.Dimension(fNumIP_PMultiplier);      // "last" lambda
-	fGradPMultiplier_List.Dimension(fNumIP_PMultiplier);       // gradient lambda
-	fGradPMultiplier_last_List.Dimension(fNumIP_PMultiplier);  // "last" gradient lambda
-	fLapPMultiplier_List.Dimension(fNumIP_PMultiplier);        // Laplacian lambda
-	fLapPMultiplier_last_List.Dimension(fNumIP_PMultiplier);   // "last" Laplacian lambda
-	fYield_List.Dimension(fNumIP_Disp);                        // yield condition lambda
+	fPMultiplier_List.Dimension(fNumIP_PMultiplier);           // pmultiplier
+	fPMultiplier_last_List.Dimension(fNumIP_PMultiplier);      // "last" pmultiplier
+	fGradPMultiplier_List.Dimension(fNumIP_PMultiplier);       // gradient pmultiplier
+	fGradPMultiplier_last_List.Dimension(fNumIP_PMultiplier);  // "last" gradient pmultiplier
+	fLapPMultiplier_List.Dimension(fNumIP_PMultiplier);        // Laplacian pmultiplier
+	fLapPMultiplier_last_List.Dimension(fNumIP_PMultiplier);   // "last" Laplacian pmultiplier
+	fYield_List.Dimension(fNumIP_Disp);                        // yield condition pmultiplier
 
 	/* dimension moduli in workspace */
 	fDM_bb.Dimension(dSymMatrixT::NumValues(fNumSD));
@@ -451,26 +456,24 @@ void GradSmallStrainT::DefineElements(const ArrayT<StringT>& block_ID, const Arr
 			vertex_nodes[1] = 1;
 
 			fConnectivities_All.Dimension(NumElements(), num_vertex_nodes);
-#ifdef DISABLE_NODE
 			fFixedPMultiplier.Dimension(fConnectivities.Length());
 			fFixedPMultiplier = NULL;
-#endif
+
 			/* translate blocks */
 			int count = 0;
 			for (int i = 0; i < fConnectivities.Length(); i++)
 			{
 				const iArray2DT& connects = *(fConnectivities[i]);
-				iArray2DT& connects_lambda = fConnectivities_PMultiplier[i];
-				connects_lambda.Alias(connects.MajorDim(), num_vertex_nodes, fConnectivities_All(count));
+				iArray2DT& connects_pmultiplier = fConnectivities_PMultiplier[i];
+				connects_pmultiplier.Alias(connects.MajorDim(), num_vertex_nodes, fConnectivities_All(count));
 		
 				/* extract */
 				for (int j = 0; j < vertex_nodes.Length(); j++)
-					connects_lambda.ColumnCopy(j, connects, vertex_nodes[j]);
+					connects_pmultiplier.ColumnCopy(j, connects, vertex_nodes[j]);
 				
 				/* next block */
 				count += connects.MajorDim();
 
-#ifdef DISABLE_NODE
 				if (NumElementNodes() == 3)
 				{					
 					/* prescribe fixed multiplier field at center node */
@@ -490,7 +493,6 @@ void GradSmallStrainT::DefineElements(const ArrayT<StringT>& block_ID, const Arr
 						for (int i = 0; i < connects.MajorDim(); i++)
 							KBC_cards[dex++].SetValues(connects(i,2), j, KBC_CardT::kFix, NULL, 0.0);
 				}
-#endif
 			}
 		}
 		else
@@ -588,7 +590,7 @@ void GradSmallStrainT::SetGlobalShape(void)
 		/* setup workspace */
 		dArrayT temp(1);
 
-		/* compute current fields using lambda shape functions */
+		/* compute current fields using pmultiplier shape functions */
 		fLocPMultiplier.ReturnTranspose(fLocPMultiplierTranspose);
 
 		fh.Multx(fLocPMultiplierTranspose, temp);
@@ -600,7 +602,7 @@ void GradSmallStrainT::SetGlobalShape(void)
 		fq.Multx(fLocPMultiplierTranspose, temp);
 		fLapPMultiplier_List[ip] = temp[0];
 
-		/* compute "last" fields using lambda shape functions */
+		/* compute "last" fields using pmultiplier shape functions */
 		fLocLastPMultiplier.ReturnTranspose(fLocPMultiplierTranspose);
 
 		fh.Multx(fLocPMultiplierTranspose, temp);
@@ -848,8 +850,11 @@ void GradSmallStrainT::FormKd(double constK)
 		/* obtain yield condition residual */
 		double yield = fCurrMaterial_Grad->yc();
 
-		/* accumulate in rhs lambda equations */
+		/* accumulate in rhs pmultiplier equations */
 		RHS_PMultiplier.AddScaled(-scale*yield, fhT.Transpose(fh));
+
+		/* increment if the ip leaves the softening branch */
+		fWeakened += fCurrMaterial_Grad->weakened();
 
 		/********DEBUG*******/
 		if (fprint_Kd)

@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.h,v 1.14 2004-08-05 00:22:57 paklein Exp $ */ 
+/* $Id: GradSmallStrainT.h,v 1.15 2004-08-05 17:26:11 rdorgan Exp $ */ 
 #ifndef _GRAD_SMALL_STRAIN_T_H_ 
 #define _GRAD_SMALL_STRAIN_T_H_ 
 
@@ -58,13 +58,13 @@ public:
 	const double& LinearLapPMultiplier_last(int ip) const;
 	/*@}*/
 
-	/** return the number of degrees of freedom for lambda per node */
+	/** return the number of degrees of freedom for pmultiplier per node */
 	int NumDOF_PMultiplier(void) const { return fPMultiplier->NumDOF();} ;
 	
-	/** number of element integration points for lambda */
+	/** number of element integration points for pmultiplier */
 	int NumIP_PMultiplier(void) const { return fNumIP_PMultiplier;} ;
 	
-	/** number of nodes per element for the lambda.
+	/** number of nodes per element for the pmultiplier.
 	 * This value will initially be taken to be the number
 	 * of nodes per element for the displacement field. */
 	int NumElementNodes_PMultiplier(void) const { return fNumElementNodes_PMultiplier;} ;
@@ -159,7 +159,7 @@ protected:
 	dArrayT fYield_List;
 	/*@}*/
 	  
-	/** \name element lambda in local ordering for current element */
+	/** \name element pmultiplier in local ordering for current element */
 	/*@{*/
 	LocalArrayT fLocPMultiplier;      /**< hardness: for 1d arranged as { r1, r2; r1x, r2x } */
 	LocalArrayT fLocLastPMultiplier;  /**< hardness from last time increment */
@@ -175,6 +175,9 @@ protected:
 	
  private:
 
+	/** number of ip weakened during current time step */
+	int fWeakened;
+
 	/** keep solving current time step */
 	bool fHoldTime;
 
@@ -189,7 +192,7 @@ protected:
 	ArrayT<KBC_ControllerT*> fFixedPMultiplier; /**< fixed conditions block-by-block */
 	/*@}*/
 	
-	/** \name shape functions for lambda */
+	/** \name shape functions for pmultiplier */
 	ShapeTools* fShapes_PMultiplier;
 
 	/** \name work space */
@@ -223,16 +226,17 @@ protected:
 	int fNumIP_Disp;            /**< number of integration points for displacement field*/
 	int fNumElementNodes_Disp;  /**< number of nodes per element for displacement field */
 	int fNumDOF_Disp;           /**< number of degrees of freedom for displacement field */
-	int fNumDOF_PMultiplier;          /**< number of degrees of freedom for lambda */
+	int fNumDOF_PMultiplier;          /**< number of degrees of freedom for pmultiplier */
 	int fNumEQ_Total;           /**< number of total equations */
 	/*@}*/
 
 	/** \name input data for PMultiplier */
 	/*@{*/
-	int fNumIP_PMultiplier;                     /**< number of integration points for lambda */
-	int fNumElementNodes_PMultiplier;           /**< number of nodes per element for lambda */
+	int fNumIP_PMultiplier;                     /**< number of integration points for pmultiplier */
+	int fNumElementNodes_PMultiplier;           /**< number of nodes per element for pmultiplier */
 	int fDegreeOfContinuity_PMultiplier;        /**< degree of continuity of PMultiplier shape functions */
-	double fNodalConstraint;              /**< constraint constants */
+	double fNodalConstraint;                    /**< constraint constants */
+	int fMaxWeakened;                           /**< maximum number of ip to be weakened at a single time step */
 	/*@}*/
 		
 	/** \name print debug information */

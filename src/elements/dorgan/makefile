@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.10 2004-07-20 23:16:50 rdorgan Exp $
+# $Id: makefile,v 1.11 2004-08-05 17:26:11 rdorgan Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -25,8 +25,6 @@ OBJ = \
         J2_C0Hardening1DT.o\
         J2SSC0Hardening1DT.o\
 	GradJ2SSKStV1D.o\
-        GradJ2_C0Hardening1DT.o\
-        GradJ2SSC0Hardening1DT.o\
 	ShapeTools.o\
 	C0ShapeTools.o\
 	C1ShapeTools.o\
@@ -57,8 +55,6 @@ SRC = \
         J2_C0Hardening1DT.cpp\
         J2SSC0Hardening1DT.cpp\
 	GradJ2SSKStV1D.cpp\
-        GradJ2_C0Hardening1DT.cpp\
-        GradJ2SSC0Hardening1DT.cpp\
 	ShapeTools.cpp\
 	C0ShapeTools.cpp\
 	C1ShapeTools.cpp\
@@ -81,8 +77,6 @@ HDR = \
         J2_C0Hardening1DT.h\
         J2SSC0Hardening1DT.h\
 	GradJ2SSKStV1D.h\
-        GradJ2_C0Hardening1DT.h\
-        GradJ2SSC0Hardening1DT.h\
 	ShapeTools.h\
 	C0ShapeTools.h\
 	C1ShapeTools.h\
