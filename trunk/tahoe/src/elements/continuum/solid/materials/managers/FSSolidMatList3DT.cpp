@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.9 2004-08-13 21:06:00 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.10 2004-10-21 18:51:38 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -6,6 +6,7 @@
 
 #ifdef __DEVELOPMENT__
 #include "DevelopmentMaterialsConfig.h"
+#include "DevelopmentElementsConfig.h"
 #endif
 
 #include "FDKStV.h"
@@ -97,6 +98,10 @@
 
 #endif /* SIERRA_MATERIAL */
 
+#ifdef MIXTURE_THEORY_DEV
+#include "FSSolidMixtureT.h"
+#endif
+
 using namespace Tahoe;
 
 /* constructors */
@@ -185,6 +190,9 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #endif
 
+#ifdef MIXTURE_THEORY_DEV
+		sub_lists.AddSub("large_strain_solid_mixture");
+#endif
 	}
 	else /* inherited */
 		SolidMatListT::DefineInlineSub(name, order, sub_lists);
@@ -307,6 +315,11 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 		mat= new SIERRA_EMMI;
 #endif /* __SIERRA__ */
 
+#endif
+
+#ifdef MIXTURE_THEORY_DEV
+	else if (name == "large_strain_solid_mixture")
+		mat= new FSSolidMixtureT;
 #endif
 
 	/* set support */
