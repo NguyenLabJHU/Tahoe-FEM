@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.21.2.5 2002-05-03 07:16:27 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.21.2.6 2002-05-03 09:52:02 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #include "SolidElementT.h"
@@ -34,6 +34,8 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	fLocLastDisp(LocalArrayT::kLastDisp),
 	fLocVel(LocalArrayT::kVel),
 	fLocAcc(LocalArrayT::kAcc),
+	fLocTemp(NULL),
+	fLocTemp_last(NULL),
 	fStress(NumSD()),
 	fD(dSymMatrixT::NumValues(NumSD()))
 {
@@ -58,6 +60,13 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	if (fController->Order() > 0 &&
 	    fController->ImplicitExplicit() == eControllerT::kExplicit)
 	    fMassType = kLumpedMass;
+}
+
+/* destructor */
+SolidElementT::~SolidElementT(void)
+{
+	delete fLocTemp;
+	delete fLocTemp_last;
 }
 
 /* data initialization */
@@ -465,9 +474,10 @@ void SolidElementT::SetLocalArrays(void)
 	ContinuumElementT::SetLocalArrays();
 
 	/* allocate */
-	fLocLastDisp.Allocate(NumElementNodes(), NumDOF());
-	fLocAcc.Allocate(NumElementNodes(), NumDOF());
-	fLocVel.Allocate(NumElementNodes(), NumDOF());
+	int nen = NumElementNodes();
+	fLocLastDisp.Allocate(nen, NumDOF());
+	fLocAcc.Allocate(nen, NumDOF());
+	fLocVel.Allocate(nen, NumDOF());
 
 	/* register */
 	Field().RegisterLocal(fLocLastDisp);
@@ -475,6 +485,19 @@ void SolidElementT::SetLocalArrays(void)
 	{
 		Field().RegisterLocal(fLocVel);
 		Field().RegisterLocal(fLocAcc);
+	}
+
+	/* look for a temperature field */
+	const FieldT* temperature = ElementSupport().Field("temperature");
+	if (temperature) {
+	
+		/* construct */
+		fLocTemp = new LocalArrayT(LocalArrayT::kDisp, nen, temperature->NumDOF());
+		fLocTemp_last = new LocalArrayT(LocalArrayT::kLastDisp, nen, temperature->NumDOF());
+
+		/* register */
+		temperature->RegisterLocal(*fLocTemp);
+		temperature->RegisterLocal(*fLocTemp_last);
 	}
 }
 
@@ -514,7 +537,11 @@ void SolidElementT::SetGlobalShape(void)
 			double onebydt = 1.0/ElementSupport().TimeStep();
 			fLocVel.SetToCombination(onebydt, fLocDisp, -onebydt, fLocLastDisp);
 		}
-	}	
+	}
+	
+	/* get nodal temperatures if available */
+	if (fLocTemp) SetLocalU(*fLocTemp);
+	if (fLocTemp_last) SetLocalU(*fLocTemp_last);
 }
 
 /* construct the effective mass matrix */

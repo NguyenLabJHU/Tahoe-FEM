@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.8.2.2 2002-04-30 00:07:08 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.8.2.3 2002-05-03 09:52:02 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #ifndef _ELASTIC_T_H_
@@ -47,10 +47,22 @@ public:
 	/** constructor */
 	SolidElementT(const ElementSupportT& support, const FieldT& field);
 
-	/* accessors */
+	/** destructor */
+	~SolidElementT(void);
+
+	/** \name access to nodal values */
+	/*@{*/
 	const LocalArrayT& LastDisplacements(void) const;
 	const LocalArrayT& Velocities(void) const;
 	const LocalArrayT& Accelerations(void) const;
+
+	/** nodal temperatures. Returns NULL if not available */
+	const LocalArrayT* Temperatures(void) const { return fLocTemp; };
+
+	/** nodal temperatures from the last time step. Returns NULL if 
+	 * not available */
+	const LocalArrayT* LastTemperatures(void) const { return fLocTemp_last; };
+	/*@}*/
 	
 	/** initialization. called immediately after constructor */
 	virtual void Initialize(void);
@@ -139,10 +151,15 @@ protected:
 	/* propagation direction for wave speeds */
 	dArrayT fNormal;
 	
-	/* arrays with local ordering */
+	/** \name arrays with local ordering */
+	/*@{*/
 	LocalArrayT fLocLastDisp; /**< last converged displacements */
 	LocalArrayT fLocVel;      /**< nodal velocities */
 	LocalArrayT fLocAcc;      /**< nodal accelerations */
+
+	LocalArrayT* fLocTemp;      /**< (optional) nodal temperatures */
+	LocalArrayT* fLocTemp_last; /**< (optional) last nodal temperatures */
+	/*@}*/
 
 	/* run time */
 	StructuralMaterialT*  fCurrMaterial;
