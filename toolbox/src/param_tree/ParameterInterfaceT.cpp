@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.2.2.4 2003-05-03 09:06:52 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.2.2.5 2003-05-04 22:12:41 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 
@@ -18,9 +18,9 @@ ParameterInterfaceT::ParameterInterfaceT(const StringT& name):
 }
 
 /* accept completed parameter list */
-void ParameterInterfaceT::SetParameters(const ParameterListT& list) 
+void ParameterInterfaceT::TakeParameterList(const ParameterListT& list) 
 {
-	const char caller[] = "ParameterInterfaceT::SetParameters";
+	const char caller[] = "ParameterInterfaceT::TakeParameterList";
 	if (list.Name() != Name())
 		ExceptionT::GeneralFail(caller, "list name \"%s\" must be \"%s\"",
 			list.Name().Pointer(), Name().Pointer());
@@ -36,10 +36,10 @@ void ParameterInterfaceT::DefineParameters(ParameterListT& list) const
 }
 
 /* validate the given parameter list */
-void ParameterInterfaceT::ValidateParameters(const ParameterListT& raw_list, ParameterListT& valid_list) const
+void ParameterInterfaceT::ValidateParameterList(const ParameterListT& raw_list, ParameterListT& valid_list) const
 {
 	/* check name */
-	const char caller[] = "ParameterInterfaceT::ValidateParameters";
+	const char caller[] = "ParameterInterfaceT::ValidateParameterList";
 	if (raw_list.Name() != Name())
 		ExceptionT::GeneralFail(caller, "raw list name \"%s\" must be \"%s\"",
 			raw_list.Name().Pointer(), Name().Pointer());

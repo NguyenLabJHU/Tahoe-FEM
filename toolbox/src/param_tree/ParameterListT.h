@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.8.2.3 2003-05-03 09:06:52 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.8.2.4 2003-05-04 22:12:41 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -142,16 +142,6 @@ public:
 	void SetDescription(const char* description) { fDescription = description; };
 	const StringT& Description(void) const { return fDescription; };
 	/*@}*/
-	
-	/** create a validated parameter list. Take a raw list of parameters and a parameter 
-	 * description and produce a validated parameter list. If the validated list cannot be 
-	 * produced for any reason, the class throws a ExceptionT::kBadInputValue 
-	 * \param source raw source list in which all parameters are stored as
-	 *        strings as read from a file. 
-	 * \param description parameter description list which is used to translate
-	 *        values from the source to the appropriate data type, validating
-	 *        against constraints and applying any unspecified default values. */
-	void Validate(const ParameterListT& source, const ParameterListT& description);
 
 	/** clear all lists */
 	void Clear(void);

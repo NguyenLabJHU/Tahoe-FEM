@@ -1,4 +1,4 @@
-/* $Id: ParameterTreeT.h,v 1.2.2.3 2003-05-03 17:22:09 paklein Exp $ */
+/* $Id: ParameterTreeT.h,v 1.2.2.4 2003-05-04 22:12:41 paklein Exp $ */
 #ifndef _PARAMETER_TREE_T_H_
 #define _PARAMETER_TREE_T_H_
 
@@ -13,7 +13,14 @@ namespace Tahoe {
 /* forward declarations */
 class ParameterInterfaceT;
 
-/** collect and manage parameter lists */
+/** collect and manage parameter lists. There are two major components of this
+ * interface:
+ * - ParameterTreeT::BuildDescription adds a branch to the parameter beginning
+ *   at the given ParameterInterfaceT. There branches are accessible through
+ *   ParameterTreeT::Branches or ParameterTreeT::Branch.
+ * - ParameterTreeT::Validate takes a raw parameter list and attempts to build
+ *   a validated list beginning with the given ParameterInterfaceT.
+ */
 class ParameterTreeT
 {
 public:
@@ -25,11 +32,7 @@ public:
 	~ParameterTreeT(void);
 
 	/** add a branch to the tree with the given root */
-	void BuildDescription(ParameterInterfaceT& root);
-
-	/** add only parts of the branch contained in the guide parameter list */
-	void BuildDescription(ParameterInterfaceT& root, const ParameterListT& guide);
-//TEMP - needed ?
+	void BuildDescription(const ParameterInterfaceT& root);
 
 	/** create a validated parameter list. Take a raw list of parameters and produce 
 	 * a validated parameter list. If the validated list cannot be 
@@ -52,12 +55,7 @@ private:
 
 	/** build the branch. Throws ExceptionT::GeneralFail if the source
 	 * has already been added to the dictionary. */
-	void BuildBranch(ParameterInterfaceT& source, ParameterListT& params);
-
-	/** build only parts of the branch in the guide list. Throws ExceptionT::GeneralFail
-	 * if the source has already been added to the dictionary. */
-	void BuildBranch(ParameterInterfaceT& source, const ParameterListT& guide, 
-		ParameterListT& params);
+	void BuildBranch(const ParameterInterfaceT& source, ParameterListT& params);
 
 	/** \name sub list validation */
 	/*@{*/

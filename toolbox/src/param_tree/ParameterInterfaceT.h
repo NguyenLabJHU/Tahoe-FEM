@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.h,v 1.2.2.5 2003-05-03 17:46:08 paklein Exp $ */
+/* $Id: ParameterInterfaceT.h,v 1.2.2.6 2003-05-04 22:12:41 paklein Exp $ */
 #ifndef _PARAMETER_INTERFACE_T_H_
 #define _PARAMETER_INTERFACE_T_H_
 
@@ -10,7 +10,15 @@ namespace Tahoe {
 /* forward declarations */
 class StringT;
 
-/** abstract interface for classes which define and use parameters */
+/** abstract interface for classes which define and use parameters. There are
+ * two types of parameters accessible through the interface:
+ * -# parameters defined using ParameterInterfaceT::DefineParameters
+ * -# subordinate parameters lists that are returned by ParameterInterfaceT::SubNames and may either be
+ *    -# associated with a subordinate ParameterInterfaceT that must be returned by ParameterInterfaceT::NewSub
+ *    -# defined as "inline". Inlined subordinate list do not contain parameters of the first kind and
+ *       the interface that has defined the list as inline must define subordinates in the list with
+ *       ParameterInterfaceT::DefineInlineSub.
+ **/
 class ParameterInterfaceT
 {
 public:
@@ -24,12 +32,9 @@ public:
 	/** identifier */
 	const StringT& Name(void) const { return fName; };
 
-	/** \name parameters */
-	/*@{*/	
-	/** build parameter list description.
-	 * \param list destination for parameter description. The list will have the
-	 *        name either of ParameterInterfaceT::Name or of any sub-list, returned
-	 *        by ParameterInterfaceT::SubNames that is defined as inline. */
+	/** description the parameters needed by the interface.
+	 * \param list destination for the parameter descriptions. The list should have the
+	 *        name corresponding to ParameterInterfaceT::Name. */
 	virtual void DefineParameters(ParameterListT& list) const;
 
 	/** extract validated parameters. Take a raw list of parameters and produce 
@@ -39,11 +44,12 @@ public:
 	 *        strings, as read from a source file. 
 	 * \param valid_list returns as a validated list witb values of the appropriate data 
 	 *        type, validating against constraints and applying any unspecified default values. */
-	virtual void ValidateParameters(const ParameterListT& raw_list, ParameterListT& valid_list) const;
+	virtual void ValidateParameterList(const ParameterListT& raw_list, ParameterListT& valid_list) const;
 
-	/** accept completed parameter list */
-	virtual void SetParameters(const ParameterListT& list);
-	/*@}*/
+	/** accept parameter list.
+	 * \param list input parameter list, which should be validated using ParameterInterfaceT::ValidateParameterList
+	 *        to ensure the list conforms to the description defined by the interface. */
+	virtual void TakeParameterList(const ParameterListT& list);
 
 	/** \name subordinates that define parameters lists
 	 * There are two types of subordinate lists, inlined and non-inlined. Non-inlined
@@ -81,6 +87,7 @@ public:
 
 private:
 
+	/** identifier */
 	StringT fName;
 };
 
