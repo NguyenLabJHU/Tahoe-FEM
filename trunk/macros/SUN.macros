@@ -1,32 +1,31 @@
-# $Id: SUN.macros,v 1.10 2002-03-19 17:18:53 paklein Exp $
+# $Id: SUN.macros,v 1.11 2002-07-18 18:00:41 sawimme Exp $
 #
-# SUN: WorkShop 5.0 
-#      - /opt/SUNWspro/SC5.0
-#      - this is flaky. better to use egcs (GNU)
-# SUN: Forte 6.0, (a.k.a Workshop 6.0)
-#      - /opt/SUNWspro/WS6
-#      - not as flaky as 5.0, but still slower than GNU
-# SUN: Forte 6.2
-#      - /opt/SUNWspro/WS6U2
+# Load GNU file utilities to get ln -sf to work properly (sunfreeware.com)
 #
-# Use command: workshop -V to verify version.
+# OPTIONAL: set this from your shell or .cshrc
+# setenv LD_LIBRARY_PATH $(COMP_DIR)/lib
 #
-# Set the xarch variable to remove warning about portability.
-# Load GNU file utilities to get ln -sf to work correctly in Sol. 2.6, 7.
+# set the path to your compiler
+#COMP_DIR = /opt/forte62/SUNWspro/WS6U2
+#COMP_DIR = /opt/SUNWspro/WS6
+COMP_DIR = /opt/SUNWspro/SC5.0
 #
 MAKE        = make
+# use the makedepend that comes with /usr/openwin/bin
+# do not use the one that comes with SEACAS/etc
 MAKE_DEPEND = makedepend
-DEPENDFLAGS  = -I/opt/SUNWspro/SC5.0/include/CC 
-#DEPENDFLAGS  = -I/opt/SUNWspro/WS6/include/CC
-#DEPENDFLAGS  = -I/opt/SUNWspro/WS6U2/include/CC
-COMP_C      = cc
-COMP_CC     = CC
-COMP_F      = f77
-MORE_CFLAGS = -fast -DNDEBUG 
-#MORE_CFLAGS = -g
+#
+DEPENDFLAGS  = -I/$(COMP_DIR)/include/cc -I/$(COMP_DIR)/include/CC \
+               -I/$(COMP_DIR)/include/CC4 -I/$(COMP_DIR)/include/CCios \
+               -I/$(COMP_DIR)/include/f77
+COMP_C      = $(COMP_DIR)/bin/cc
+COMP_CC     = $(COMP_DIR)/bin/CC
+COMP_F      = $(COMP_DIR)/bin/f77
+#
+#MORE_CFLAGS = -fast -DNDEBUG 
+MORE_CFLAGS = -g
 MY_CFLAGS   = -c -I$(INC_DIR) -D__SUN__ $(MORE_CFLAGS)
 CFLAGS_C    = $(MY_CFLAGS)
-#CFLAGS_CC   = $(MY_CFLAGS) -xarch=v8plusa -features=rtti -instances=static
 CFLAGS_CC   = $(MY_CFLAGS) -features=rtti -instances=static
 CFLAGS_F    = $(MY_CFLAGS)
 LINK        = $(COMP_CC)
@@ -36,11 +35,9 @@ ARFLAGS     = -cruv
 MAKE_OPTS   = 
 RM          = rm
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
-#LN          = /usr/local/bin/ln -sf
-LN          = ln -sf
+LN          = /usr/local/bin/ln -sf
 ECHO        = echo
 CAT         = cat
-
 
 # command needed build library
 #BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
