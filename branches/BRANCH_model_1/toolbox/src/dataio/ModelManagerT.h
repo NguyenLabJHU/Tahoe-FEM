@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.4.2.4 2001-10-11 19:58:19 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.4.2.5 2001-10-15 19:06:13 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -76,7 +76,13 @@ class ModelManagerT
 
   /* read IC/KBC/FBC card type data
      allows code to read from input file but not care about input format */
-  int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& nodes, iArray2DT& data, dArrayT& value);
+  int ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& nodes, iArray2DT& data, dArrayT& value);
+
+  /* read traction card type data */
+  void ModelManagerT::ReadNumTractionLines (ifstreamT& in, int& numlines, int& numsets);
+  void ModelManagerT::ReadTractionSetData (ifstreamT& in, int& blockindex, int& setsize);
+  void ModelManagerT::ReadTractionSideSet (ifstreamT& in, int& blockindex, iArray2DT& localsides);
+
 
   /* access */
   void CoordinateDimensions (int& length, int& dof) const;
