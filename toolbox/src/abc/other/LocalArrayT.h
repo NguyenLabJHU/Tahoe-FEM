@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.h,v 1.8 2002-07-05 22:26:19 paklein Exp $ */
+/* $Id: LocalArrayT.h,v 1.9 2002-07-20 07:58:39 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #ifndef _LOCALARRAY_T_H_
@@ -114,8 +114,12 @@ public:
 	/** scale and accumulate in local ordering by transposing source */
 	void AddScaledTranspose(double scale, const nArrayT<double>& transpose);
 
-	/* combining arrays - inserts all of source at start_node */
+	/** combining arrays - inserts all of source at start_node */
 	void BlockCopyAt(const LocalArrayT& source, int start_node);
+
+	/** compute the array average value
+	 * \param avg returns with the average value: [minor dim] */
+	void Average(dArrayT& avg) const;
 
 private:
 
