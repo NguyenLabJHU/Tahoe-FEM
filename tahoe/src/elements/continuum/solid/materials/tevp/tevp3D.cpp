@@ -1,4 +1,4 @@
-/* $Id: tevp3D.cpp,v 1.13.2.1 2002-10-28 06:49:32 paklein Exp $ */
+/* $Id: tevp3D.cpp,v 1.13.2.2 2002-10-30 09:18:14 paklein Exp $ */
 /* created:  Harold Park (06/25/2001) */
 #include "tevp3D.h"
 #include <iostream.h>
@@ -343,7 +343,7 @@ void tevp3D::ComputeD(void)
   dSymMatrixT* smalld = &fDtot;
   dSymMatrixT tempd(3);
   dMatrixT yada(3);
-  FiniteStrain().ComputeGradient_reference(*fLocVel, fGradV);  
+  if (!FDMatSupport().ComputeGradient_reference(*fLocVel, fGradV)) throw ExceptionT::kGeneralFail;
   yada.MultAB(fGradV, fF_temp, 0);
   (*smalld) = tempd.Symmetrize(yada);
 }
@@ -354,7 +354,7 @@ dMatrixT& tevp3D::ComputeSpin(void)
 
   /* Compute the spin tensor */
   fSpin = 0.0;
-  FiniteStrain().ComputeGradient_reference(*fLocVel, fGradV);
+  if (!FDMatSupport().ComputeGradient_reference(*fLocVel, fGradV)) throw ExceptionT::kGeneralFail;
   dMatrixT yada(3);
   yada.MultAB(fGradV, fF_temp, 0);
   double temp1 = .5 * (yada(0,1) - yada(1,0));

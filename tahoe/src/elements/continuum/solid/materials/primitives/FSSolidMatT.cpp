@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.7.2.1 2002-10-28 06:49:27 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.7.2.2 2002-10-30 09:18:13 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include <iostream.h>
@@ -128,7 +128,7 @@ const dMatrixT& FSSolidMatT::F_mechanical(void)
 	if (fTemperatureField)
 	{
 		/* integration point temperature */
-		fFDMatSupport.IP_Interpolate(*(fFDMatSupport.Temperatures()), fTemperature);
+		fFDMatSupport.Interpolate(*(fFDMatSupport.Temperatures()), fTemperature);
 	
 		/* expansion factor */
 //TEMP - the old stiffness damping factor for the %CTE for now
@@ -154,7 +154,7 @@ const dMatrixT& FSSolidMatT::F_mechanical(int ip)
 	if (fTemperatureField)
 	{
 		/* integration point temperature */
-		fFDMatSupport.IP_Interpolate(*(fFDMatSupport.Temperatures()), fTemperature, ip);
+		fFDMatSupport.Interpolate(*(fFDMatSupport.Temperatures()), fTemperature, ip);
 	
 		/* expansion factor */
 //TEMP - the old stiffness damping factor for the %CTE for now
@@ -192,7 +192,7 @@ const dMatrixT& FSSolidMatT::F_mechanical_last(void)
 	if (fTemperatureField)
 	{
 		/* integration point temperature */
-		fFDMatSupport.IP_Interpolate(*(fFDMatSupport.LastTemperatures()), fTemperature);
+		fFDMatSupport.Interpolate(*(fFDMatSupport.LastTemperatures()), fTemperature);
 	
 		/* expansion factor */
 //TEMP - the old stiffness damping factor for the %CTE for now
@@ -220,7 +220,7 @@ const dMatrixT& FSSolidMatT::F_mechanical_last(int ip)
 	if (fTemperatureField)
 	{
 		/* integration point temperature */
-		fFDMatSupport.IP_Interpolate(*(fFDMatSupport.LastTemperatures()), fTemperature, ip);
+		fFDMatSupport.Interpolate(*(fFDMatSupport.LastTemperatures()), fTemperature, ip);
 	
 		/* expansion factor */
 //TEMP - the old stiffness damping factor for the %CTE for now
@@ -388,15 +388,6 @@ const dSymMatrixT& FSSolidMatT::AcousticalTensor(const dArrayT& normal)
 		throw ExceptionT::kGeneralFail;
 
 	return fQ;
-}
-
-/* finite strain element group */
-const FiniteStrainT& FSSolidMatT::FiniteStrain(void) const
-{
-	/* fetch pointer */
-	const FiniteStrainT* p = fFDMatSupport.FiniteStrain();
-	if (!p) throw ExceptionT::kGeneralFail;
-	return *p;
 }
 
 /*************************************************************************

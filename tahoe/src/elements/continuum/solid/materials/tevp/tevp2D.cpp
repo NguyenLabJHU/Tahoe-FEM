@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.27.2.1 2002-10-28 06:49:32 paklein Exp $ */
+/* $Id: tevp2D.cpp,v 1.27.2.2 2002-10-30 09:18:14 paklein Exp $ */
 /* created: Harold Park (04/04/2001) */
 #include "tevp2D.h"
 
@@ -365,13 +365,13 @@ void tevp2D::ComputeD(void)
 {
 	if (!fLocVel) throw ExceptionT::kGeneralFail;
 
-  /* Compute rate of deformation */
-  fDtot = 0.0;
-  dMatrixT* tempd = &fDtot;
-  FiniteStrain().ComputeGradient_reference(*fLocVel, fGradV_2D);
-  fGradV.Rank2ExpandFrom2D(fGradV_2D);
-  (*tempd).MultAB(fGradV, fF_temp, 0);
-  (*tempd).Symmetrize();
+	/* Compute rate of deformation */
+	fDtot = 0.0;
+	dMatrixT* tempd = &fDtot;
+	if (!FDMatSupport().ComputeGradient_reference(*fLocVel, fGradV_2D)) throw ExceptionT::kGeneralFail;
+	fGradV.Rank2ExpandFrom2D(fGradV_2D);
+	(*tempd).MultAB(fGradV, fF_temp, 0);
+	(*tempd).Symmetrize();
 }
 
 double tevp2D::ComputeSpin(void)
@@ -380,7 +380,7 @@ double tevp2D::ComputeSpin(void)
 
   /* Compute the spin scalar */
   fSpin = 0.0;
-  FiniteStrain().ComputeGradient_reference(*fLocVel, fGradV_2D);
+  if (!FDMatSupport().ComputeGradient_reference(*fLocVel, fGradV_2D)) throw ExceptionT::kGeneralFail;
   fGradV.Rank2ExpandFrom2D(fGradV_2D);
   fSpin = fGradV(0,0) * fF_temp(0,1) + fGradV(0,1) * fF_temp(1,1);
   fSpin = fSpin - fGradV(1,0) * fF_temp(0,0) - fGradV(1,1) * fF_temp(1,0);

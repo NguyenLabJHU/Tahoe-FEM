@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.h,v 1.2.8.2 2002-10-28 06:49:15 paklein Exp $ */
+/* $Id: MaterialSupportT.h,v 1.2.8.3 2002-10-30 09:18:11 paklein Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
@@ -22,7 +22,7 @@ public:
 	MaterialSupportT(int nsd, int ndof, int nip);
 
 	/** destructor */
-	~MaterialSupportT(void);
+	virtual ~MaterialSupportT(void);
 
 	/** \name dimensions */
 	/*@{*/
@@ -43,7 +43,7 @@ public:
 
 	/** current stress evaluation point within the element. If
 	 * no source for the current point is set using 
-	 * MaterialSupportT::SetCurrIP, will return -1. */
+	 * MaterialSupportT::SetCurrIP, will return 0. */
 	int CurrIP(void) const;
 
 	/** the iteration number for the current time increment. If
@@ -101,6 +101,14 @@ public:
 
 	/** return a pointer to the specified LoadTime function */
 	const ScheduleT* Schedule(int num) const;
+
+	/** interpolate the given field to the current integration point. Returns true if the
+	 * field is available, false otherwise. */
+	bool Interpolate(const LocalArrayT& u, dArrayT& u_ip) const;
+
+	/** interpolate the given field to the given integration point. Returns true if the
+	 * field is available, false otherwise. */
+	bool Interpolate(const LocalArrayT& u, dArrayT& u_ip, int ip) const;
 	/*@}*/
 
   private:
@@ -152,7 +160,7 @@ inline const GlobalT::StateT MaterialSupportT::RunState(void) const
 inline int MaterialSupportT::CurrIP(void) const
 {
 	if (fCurrIP) return *fCurrIP;
-	else return -1;
+	else return 0;
 }
 
 inline int MaterialSupportT::IterationNumber(void) const
