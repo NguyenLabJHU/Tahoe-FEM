@@ -1,4 +1,4 @@
-/* $Id: dSPMatrixT.cpp,v 1.4 2003-05-22 16:45:54 paklein Exp $ */
+/* $Id: dSPMatrixT.cpp,v 1.5 2003-05-22 16:49:05 paklein Exp $ */
 /* created MLK 10/3/00 */
 #include "dSPMatrixT.h"
 
@@ -9,7 +9,6 @@
 #include "dMatrixT.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
-//#include "dLACOOMatrixT.h"
 
 const int kheadroom = 25;
 
@@ -321,7 +320,7 @@ void dSPMatrixT::AddBlockT(int row, int col, const dSPMatrixT& block)
 }
 
 /* Pre multiplication by a diagonal matrix, D.  M = D.M
-/* (*this) = D.(*this)	*/
+ * (*this) = D.(*this)	*/
 void dSPMatrixT::MultDM(const dArrayT& D)
 {	
 #if __option (extended_errorcheck)
@@ -342,7 +341,7 @@ void dSPMatrixT::MultDM(const dArrayT& D)
 }
 
 /* Post multiplication by a diagonal matrix, D.  M = M.D
-/* (*this) = (*this).D	*/
+ * (*this) = (*this).D	*/
 void dSPMatrixT::MultMD(const dArrayT& D)
 {	
 #if __option (extended_errorcheck)
@@ -660,7 +659,7 @@ void dSPMatrixT::MultAB(dSPMatrixT& A, dSPMatrixT& B)
 
 #if 0
 /* this(i,j) = A(i,k)*B(k,j) , (this = A * B) 	*/
-/*void dSPMatrixT::MultAB(dSPMatrixT& A, dSPMatrixT& B)
+/*void dSPMatrixT::MultAB(dSPMatrixT& A, dSPMatrixT& B) */
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)	
