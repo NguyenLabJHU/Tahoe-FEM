@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.31 2003-01-27 06:42:47 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.32 2003-03-19 19:13:36 thao Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -949,6 +949,63 @@ void ModelManagerT::SurfaceFacets(const ArrayT<StringT>& IDs,
 	if (my_geometry) delete geometry;
 }
 
+/*surface facets*/
+void ModelManagerT::SurfaceFacets(const ArrayT<StringT>& IDs,
+	GeometryT::CodeT& geometry_code,
+	iArray2DT& surface_facets,
+	iArrayT& surface_nodes, 
+	iArrayT& facet_numbers,
+	iArrayT& elem_numbers,
+	const GeometryBaseT* geometry)
+{
+	/* quick exit */
+	if (IDs.Length() == 0) {
+		geometry_code = GeometryT::kNone;
+		surface_facets.Dimension(0,0);
+		surface_nodes.Dimension(0);
+		facet_numbers.Dimension(0);
+		return;
+	}
+
+	/* collect list of pointers to element blocks */
+	ArrayT<const iArray2DT*> connects;
+	ElementGroupPointers(IDs, connects);
+
+	/* geometry info */
+	bool my_geometry = false;
+	if (!geometry) {
+		my_geometry = true;
+		geometry = GeometryT::NewGeometry(ElementGroupGeometry(IDs[0]), connects[0]->MinorDim());
+	} else { /* check */
+		my_geometry = false;
+		if (geometry->Geometry() != ElementGroupGeometry(IDs[0]) ||
+			geometry->NumNodes() != connects[0]->MinorDim()) {
+			cout << "\n ModelManagerT::SurfaceFacets: received inconsistent GeometryBaseT*" << endl;
+			throw ExceptionT::kGeneralFail;
+			}
+	}
+
+	/* surface facets must all have same geometry */
+	ArrayT<GeometryT::CodeT> facet_geom;
+	iArrayT facet_nodes;
+	geometry->FacetGeometry(facet_geom, facet_nodes);
+	if (facet_nodes.Count(facet_nodes[0]) != facet_geom.Length())
+	{
+		cout << "\n ModelManagerT::SurfaceFacets: only support identical\n";
+		cout <<   "     facet shapes" << endl;
+		throw ExceptionT::kGeneralFail;
+	}
+	geometry_code = facet_geom[0];
+
+	/* element faces on the group "surface" */
+	iArray2DT nodefacetmap;
+	geometry->NeighborNodeMap(nodefacetmap);
+	EdgeFinderT edger(connects, nodefacetmap);
+	edger.SurfaceFacets(surface_facets, surface_nodes, facet_numbers, elem_numbers);	
+
+	/* clean up */
+	if (my_geometry) delete geometry;
+}
 /* surface nodes */
 void ModelManagerT::SurfaceNodes(const ArrayT<StringT>& IDs, 
 	iArrayT& surface_nodes,

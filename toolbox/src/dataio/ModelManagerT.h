@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.25 2003-01-27 06:42:47 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.26 2003-03-19 19:13:36 thao Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -223,6 +223,15 @@ class ModelManagerT
 		GeometryT::CodeT& geometry_code,
 		ArrayT<iArray2DT>& surface_facet_sets,
 		iArrayT& surface_nodes,
+		const GeometryBaseT* geometry = NULL);
+		
+	/** finds element facets, facet nodes, and facet numbers */
+	void SurfaceFacets(const ArrayT<StringT>& IDs,
+		GeometryT::CodeT& geometry_code,
+		iArray2DT& surface_facets,
+		iArrayT& surface_nodes,
+		iArrayT& facet_numbers,
+		iArrayT& elem_numbers,
 		const GeometryBaseT* geometry = NULL);
 	
 	/** generate a list of nodes on the "surface" of the element group

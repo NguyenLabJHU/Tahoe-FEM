@@ -1,4 +1,4 @@
-/* $Id: EdgeFinderT.cpp,v 1.6 2002-11-25 07:10:31 paklein Exp $ */
+/* $Id: EdgeFinderT.cpp,v 1.7 2003-03-19 19:13:39 thao Exp $ */
 /* created: paklein (02/14/1998) */
 #include "EdgeFinderT.h"
 #include "AutoArrayT.h"
@@ -250,7 +250,75 @@ void EdgeFinderT::SurfaceFacets(iArray2DT& surface_facets, iArrayT& surface_node
 	surface_nodes.Dimension(border_nodes.Length());
 	border_nodes.CopyInto(surface_nodes);
 }
+void EdgeFinderT::SurfaceFacets(iArray2DT& surface_facets, 
+	iArrayT& surface_nodes, iArrayT& facet_numbers, iArrayT& elem_numbers)
+{
+	/* find bounding elements */
+	iArrayT   border_elems;
+	iArray2DT border_neighs;
+	BoundingElements(border_elems, border_neighs);
+		
+	/* collect nodes on facets info */
+//TEMP
+#if 0
+	ArrayT<iArrayT> facetnodemap(geometry->NumFacets());
+	for (int i2 = 0; i2 < facetnodemap.Length(); i2++)
+		geometry->NodesOnFacet(i2, facetnodemap[i2]);	
+#endif
 
+	/* collect surface facets (with "outward" normal ordering) */
+	AutoArrayT<int> border_nodes;
+	int surf_count = 0;
+	int num_facets = fNodeFacetMap.MajorDim();
+	int num_facet_nodes = fNodeFacetMap.MinorDim();
+	border_nodes.Dimension(0);
+	surface_facets.Dimension(border_neighs.Count(-1), num_facet_nodes);
+	facet_numbers.Dimension(surface_facets.MajorDim());
+	elem_numbers.Dimension(surface_facets.MajorDim());
+	for (int i = 0; i < border_elems.Length(); i++)
+	{
+		/* element connectivity */
+		int* elem = ElementNodes(border_elems[i]);
+
+		/* find open sides */
+		int found_open = 0;
+		int* pneigh = border_neighs(i);
+		for (int j = 0; j < num_facets; j++)
+		{
+			/* open face */
+			if (*pneigh == -1)
+			{
+				/* set flag */
+				found_open = 1;
+				
+				/* collect facet nodes */
+				int* facet_nodes = fNodeFacetMap(j);
+				facet_numbers[surf_count] = j; 			
+				elem_numbers[surf_count] = border_elems[i];	
+				int* pfacet = surface_facets(surf_count++);
+				for (int k = 0; k < num_facet_nodes; k++)
+				{
+					int node = elem[*facet_nodes++];
+					*pfacet++ = node;
+					border_nodes.AppendUnique(node);
+					// better just to keep a "nodes used" map?
+				}
+			}	
+			pneigh++;
+		}
+	
+		/* no open facet */	
+		if (!found_open)
+		{
+			cout << "\n EdgeFinderT::SurfaceFacets: error building surface facet list" << endl;
+			throw ExceptionT::kGeneralFail;
+		}	
+	}
+
+	/* return value */
+	surface_nodes.Dimension(border_nodes.Length());
+	border_nodes.CopyInto(surface_nodes);
+}
 /* with surface facets sorted into connected sets */
 void EdgeFinderT::SurfaceFacets(ArrayT<iArray2DT>& surface_facet_sets,
 	iArrayT& surface_nodes)

@@ -1,4 +1,4 @@
-/* $Id: EdgeFinderT.h,v 1.4 2002-10-20 22:39:06 paklein Exp $ */
+/* $Id: EdgeFinderT.h,v 1.5 2003-03-19 19:13:40 thao Exp $ */
 /* created: paklein (02/14/1998) */
 #ifndef _EDGE_FINDER_T_H_
 #define _EDGE_FINDER_T_H_
@@ -49,6 +49,8 @@ public:
 	 * \param surface_nodes nodes comprising the surface facets
 	 */
 	void SurfaceFacets(iArray2DT& surface_facets, iArrayT& surface_nodes);
+	void SurfaceFacets(iArray2DT& surface_facets, iArrayT& surface_nodes, 
+					   iArrayT& facet_numbers, iArrayT& elem_numbers);
 
 	/** element faces on the group "surface" grouped into contiguous patches.
 	 * Determines the surfaces faces and groups them into contiguous patches based 

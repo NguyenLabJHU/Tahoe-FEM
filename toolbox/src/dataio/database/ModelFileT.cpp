@@ -1,4 +1,4 @@
-/* $Id: ModelFileT.cpp,v 1.9 2002-10-20 22:36:53 paklein Exp $ */
+/* $Id: ModelFileT.cpp,v 1.10 2003-03-19 19:13:38 thao Exp $ */
 /* created: paklein (12/15/1999)                                          */
 
 #include "ModelFileT.h"
@@ -382,7 +382,6 @@ ModelFileT::StatusT ModelFileT::GetElementSet(int ID, iArray2DT& set) const
 			int num_elements;
 			int num_element_nodes;
 			src >> num_elements >> num_element_nodes;
-
 			/* check */
 			int nel, nen;
 			GetElementSetDimensions(ID, nel, nen);
@@ -395,7 +394,6 @@ ModelFileT::StatusT ModelFileT::GetElementSet(int ID, iArray2DT& set) const
 			
 			set.Dimension(num_elements, num_element_nodes);
 			if (set.Length() > 0) set.ReadNumbered(src);
-		
 			return src.good() ? kOK : kFail;
 		}
 		else
