@@ -1,4 +1,4 @@
-# $Id: subdir.targets,v 1.8 2003-09-03 19:12:42 paklein Exp $
+# $Id: subdir.targets,v 1.9 2003-11-21 22:23:58 paklein Exp $
 
 MACROS = \
 	"INC_DIR = $(INC_DIR)" \
@@ -83,7 +83,7 @@ subdir_loop:
 			cd $$n; \
 			$(MAKE) $(COMMAND) $(MACROS) "CURR_DIR = $(CURR_DIR)/$$n" \
 			|| exit 1; \
-			cd ../; \
+			cd $(CURR_DIR); \
 		else \
 			if test $$n != "NONE"; then \
 				$(PRINTF) "\n*** missing directory: $(CURR_DIR)/$$n\n"; \
