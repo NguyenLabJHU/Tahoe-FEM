@@ -432,6 +432,7 @@ sub test{
 	print(" ...done\n");
 	chdir("..");
 	print("\trunning benchmarks");
+	system("make clean > build.log 2>&1");
 	system("../tahoe/tahoe -f run.batch > run.out 2>&1");
 	print(" ...done\n");
 	print("\tcomparing benchmarks");
@@ -441,7 +442,7 @@ sub test{
 	<IN>; 
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $pass = $_;   
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $fail = $_;   
-	print "* $pass $fail, see compare.summary for more details\n";
+	print "* $pass,  $fail, see compare.summary for more details\n";
 }
 ##############################################################################
 sub failed{
