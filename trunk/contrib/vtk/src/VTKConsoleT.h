@@ -1,10 +1,11 @@
-/* $Id: VTKConsoleT.h,v 1.9 2001-10-03 20:50:50 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.10 2001-10-10 22:36:59 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
 
 /* base class */
 #include "iConsoleObjectT.h"
+#include "StringT.h"
 
 class vtkRenderer;
 class vtkRenderWindow;
@@ -27,6 +28,7 @@ class vtkActor2D;
 class vtkScalars;
 class vtkCamera;
 class vtkCubeAxesActor2D;
+class StringT;
 
 
 class VTKConsoleT: public iConsoleObjectT
@@ -44,13 +46,16 @@ class VTKConsoleT: public iConsoleObjectT
   double hueRange1,hueRange2;
   double satRange1, satRange2;
   double alphaRange1, alphaRange2;
-  double scalarRange1, scalarRange2;
+  double scalarRange1[100], scalarRange2[100];
   double time;
   int numColors;
+  int num_node_variables;
+  int currentVarNum;
   StringT source_file;
   StringT output_file;
   StringT outFileName;
   StringT sbTitle;
+  StringT varList;
   vtkUnstructuredGridReader *ugr;
   vtkRenderer *renderer;
   vtkRenderWindow *renWin;
@@ -68,11 +73,13 @@ class VTKConsoleT: public iConsoleObjectT
   vtkActor2D *pointLabels;
   vtkUnstructuredGrid *ugrid;  
   /* vtkScalars *scalars[num_time_steps]; */
-  vtkScalars *scalars[10000];
+  vtkScalars *scalars[1000][10];
+  /* vtkScalars *scalars[1000]; */
   int num_time_steps;
   vtkCamera *cam;
   vtkCubeAxesActor2D *axes;
-
+  vtkPoints *points;
+   ArrayT<StringT> node_labels;
 };
 
 #endif

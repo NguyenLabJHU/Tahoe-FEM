@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.12 2001-10-03 20:50:50 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.13 2001-10-10 22:36:59 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "vtkRenderer.h"
@@ -28,6 +28,7 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 #include "dArrayT.h"
+#include <GeometryT.h> 
 
 VTKConsoleT::VTKConsoleT(void)
 {
@@ -43,8 +44,8 @@ VTKConsoleT::VTKConsoleT(void)
   iAddVariable("max_Saturation_Range", satRange2);
   iAddVariable("min_Alpha_Range", alphaRange1);
   iAddVariable("max_Alpha_Range", alphaRange2);
-  iAddVariable("min_Scalar_Range", scalarRange1);
-  iAddVariable("max_Scalar_Range", scalarRange2);
+  // iAddVariable("min_Scalar_Range", scalarRange1);
+  //iAddVariable("max_Scalar_Range", scalarRange2);
   iAddVariable("numColors", numColors);
   iAddVariable("source_file", source_file);
   //iAddVariable("output_file", output_file);
@@ -53,6 +54,7 @@ VTKConsoleT::VTKConsoleT(void)
   iAddCommand("Start_Rendering");
   iAddCommand("Update_Rendering");
   iAddCommand("Reset_to_Default_Values");
+  iAddCommand("Reset_view");
   iAddCommand("Save");
   iAddCommand("Save_flip_book_images");
   iAddCommand("Show_Node_Numbers");
@@ -67,9 +69,21 @@ VTKConsoleT::VTKConsoleT(void)
   iAddCommand("Select_frame_number");
   iAddCommand("Show_axes");
   iAddCommand("Hide_axes");
+  iAddCommand("Choose_variable");
  
+  StringT file;
+  int test;
+  cout << "Choose number of File\n 1: heat.io0.exo\n 2: test.io0.exo\n 3: test2.io0.exo\n 4: big.exo: ";
+  cin >> test;
+  char line[255];
+  cin.getline(line, 254);
+  if (test == 1) file = "../../example_files/heat/heat.io0.exo";
+  else if (test ==2) file ="test.io0.exo";
+  else if (test == 3) file = "test2.io0.exo";
+  else if (test == 4) file = "big.exo";
+  else cout << "bad entry";
+  currentVarNum = 0;
 
-   StringT file = "../../example_files/heat/heat.io0.exo";
 
    ExodusT exo(cout);
   if (!exo.OpenRead(file))
@@ -110,6 +124,7 @@ VTKConsoleT::VTKConsoleT(void)
 
   /* read element connectivities */
   ArrayT<iArray2DT> connectivities(num_elem_blocks);
+  GeometryT::CodeT geometry;
   for (int i = 0 ; i < num_elem_blocks; i++)
 	{
 	  /* read dimensions */
@@ -118,10 +133,9 @@ VTKConsoleT::VTKConsoleT(void)
 
 	  /* read connectivities */
 	  connectivities[i].Allocate(num_elements, num_element_nodes);
-	  GeometryT::CodeT geometry;
+	  
 	  exo.ReadConnectivities(element_ID[i], geometry, connectivities[i]);
-
-
+	
 	}
 
 /* look for results data */
@@ -131,8 +145,8 @@ VTKConsoleT::VTKConsoleT(void)
   //if (num_time_steps > 0)
   //	{
 	  /* variables defined at the nodes */
-	  int num_node_variables = exo.NumNodeVariables();
-	  ArrayT<StringT> node_labels(num_node_variables);
+	  num_node_variables = exo.NumNodeVariables();
+	  // ArrayT<StringT> node_labels(num_node_variables);
 	  exo.ReadNodeLabels(node_labels);
 // 	  cout << " nodal variables:\n";
 // 	  for (int i = 0; i < node_labels.Length(); i++)
@@ -140,7 +154,7 @@ VTKConsoleT::VTKConsoleT(void)
 
 	  /* variables defined over the elements */
 	  int num_element_variables = exo.NumElementVariables();
-	  ArrayT<StringT> element_labels;
+	   ArrayT<StringT> element_labels;
 	  exo.ReadElementLabels(element_labels);
 	 //  cout << " element variables:\n" << endl;
 // 	  for (int i = 0; i < element_labels.Length(); i++)
@@ -150,40 +164,41 @@ VTKConsoleT::VTKConsoleT(void)
 	  /* read nodal data */
 	  dArray2DT nodal_data(num_nodes, num_node_variables);
 	  dArrayT ndata(num_nodes);
-
-	 //  vtkFieldData *fd[100];
-
+	  // scalarRange1 = 10000;
+	  // scalarRange2 = -10000;
 
 	  if (num_time_steps > 0)
 	    {
 	      for (int i = 0; i < num_time_steps; i++)
 		{
-		  
 		  exo.ReadTime(i+1, time);
-		  scalars[i] =  vtkScalars::New(VTK_DOUBLE);
-		  
-		  /* loop over variables */
 		  for (int j = 0; j < num_node_variables; j++)
 		    {
 		      exo.ReadNodalVariable(i+1, j+1, ndata);
 		      nodal_data.SetColumn(j, ndata);
+		      scalars[i][j] =  vtkScalars::New(VTK_DOUBLE);
+		      // }
+		      scalarRange1[j] = 10000;
+		      scalarRange2[j] = -10000;
+		      
+		      for (int k = 0; k<num_nodes; k++) {
+			
+			//	scalars[i][j]->InsertScalar(k+1, nodal_data[k][j]);
+			if (nodal_data(k,j) < scalarRange1[j]) scalarRange1[j] = nodal_data(k,j);
+			if (nodal_data(k,j) > scalarRange2[j]) scalarRange2[j] = nodal_data(k,j);
+				scalars[i][j]->InsertScalar(k+1, nodal_data(k,j));
+		      }
 		    }
-
-// 	      fd[i] = vtkFieldData::New();
-// 	      fd[i]->SetArray(num_nodes, nodal_data);
-		  for (int k = 0; k<num_nodes; k++) scalars[i]->InsertScalar(k+1, nodal_data[k]);
 // 		  cout << " time: " << time << endl;
 // 		  cout << " nodal data:\n" << nodal_data << endl;
 		}
 	
 	    }
 
-
-
 //   vtkPoints *points = vtkPoints::New();
 //  for (int i=0; i<num_nodes; i++) points->InsertPoint(i,coordinates[i]);
 		  
-  vtkPoints *points = vtkPoints::New();
+ points = vtkPoints::New();
  for (int i=0; i<num_nodes; i++) points->InsertPoint(i+1,coordinates(i));
 
  //NOTE: this code is only for a single block of cells
@@ -223,8 +238,24 @@ VTKConsoleT::VTKConsoleT(void)
  //      to determine the cell type from the database, or require that
  //      the cell type be specified when the data is sent to the visualizer.
  ArrayT<int> cell_types(vtk_connects.MajorDim());
- cell_types = VTK_QUAD; // all the cells are the same
+//  if (coordinates.MinorDim() == 2) 
+//    cell_types =VTK_QUAD;
+ // else 
+//    cell_types = VTK_HEXAHEDRON; // all the cells are the same
 
+//  if (geometry ==GeometryT::kHexahedron) 
+//    cell_types = VTK_HEXAHEDRON;
+// if (geometry == GeometryT::kNone)
+
+ if (geometry == GeometryT::kPoint) cell_types = VTK_VERTEX;  
+ else if (geometry == GeometryT::kLine ) cell_types =  VTK_LINE;
+ else if (geometry == GeometryT::kQuadrilateral) cell_types= VTK_QUAD; 
+ else if (geometry == GeometryT::kTriangle) cell_types = VTK_TRIANGLE;
+ else if (geometry == GeometryT::kHexahedron) cell_types  = VTK_HEXAHEDRON;
+ else if (geometry == GeometryT::kTetrahedron) cell_types = VTK_TETRA; 
+ else if (geometry == GeometryT::kPentahedron) cell_types = VTK_WEDGE;
+ else cout << "Bad geometry";
+ 
  /* insert cells in the grid */
  //  vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
  ugrid->SetCells(cell_types.Pointer(), vtk_cell_array);
@@ -233,7 +264,8 @@ VTKConsoleT::VTKConsoleT(void)
 
   ugrid->SetPoints(points);
   points->Delete();
-   ugrid->GetPointData()->SetScalars(scalars[0]);
+  ugrid->GetPointData()->SetScalars(scalars[0][currentVarNum]);
+  // ugrid->GetPointData()->SetScalars(scalars[0]);
   //ugrid->SetFieldData(fd[0]);
 
   // source_file = "../../example_files/heat/data_file1.vtk";
@@ -243,7 +275,7 @@ VTKConsoleT::VTKConsoleT(void)
   valRange1 = 1; valRange2 = 1;
   satRange1 = 1; satRange2 = 1;
   alphaRange1 = 1; alphaRange2 = 1;
-  scalarRange1 = 6; scalarRange2 = 17;
+  // scalarRange1 = 6; scalarRange2 = 17;
   renderer = vtkRenderer::New();
   renWin = vtkRenderWindow::New();
   iren = vtkRenderWindowInteractor::New();
@@ -273,7 +305,7 @@ VTKConsoleT::VTKConsoleT(void)
   lut->Build();
   
   ugridMapper->SetInput(ugrid);
-  ugridMapper->SetScalarRange(scalarRange1,scalarRange2);
+  ugridMapper->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
   ugridMapper->SetLookupTable(lut);
   ugridMapper->ImmediateModeRenderingOn();
 
@@ -292,16 +324,26 @@ VTKConsoleT::VTKConsoleT(void)
   renWin->SetSize(600, 700);
 
   scalarBar->SetLookupTable(ugridMapper->GetLookupTable());
-  sbTitle = "Temperature for frame 000";
+  // sbTitle = "Temperature for frame 000";
+  sbTitle.Append(node_labels[currentVarNum]); 
+  sbTitle.Append(" for frame 000");
   // sbTitle.Append(time,5);
   scalarBar->SetTitle(sbTitle);
-  // scalarBar->SetTitle("Temperature for time .5000");
   scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
   scalarBar->GetPositionCoordinate()->SetValue(0.1,0.01);
   scalarBar->SetOrientationToHorizontal();
   scalarBar->SetWidth(0.8);
   scalarBar->SetHeight(0.17);
   renderer->AddActor(scalarBar);
+
+  varList = "";
+  for (int i = 0; i<num_node_variables; i++){
+    varList.Append(i);
+    varList.Append(":");
+    varList.Append(" ");
+    varList.Append(node_labels[i]);
+    varList.Append("\n");
+  }
  
 }
 
@@ -309,21 +351,22 @@ VTKConsoleT::VTKConsoleT(void)
 bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 {
 
-  int xDir, yDir, zDir, sfbTest;
-  int frameNum;
+  int sfbTest;
+  int frameNum, varNum;
   double xRot, yRot, zRot;
   double timeStep;
 
   if (command == "Start_Rendering")
   {
     renWin->Render();
+    cout << "type 'e' in the graphics with to exit interactive mode" << endl;
     iren->Start();
     return true;
   }
 
   else if (command == "Update_Rendering")
   {
-    ugridMapper->SetScalarRange(scalarRange1,scalarRange2);
+    ugridMapper->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
     lut->SetHueRange(hueRange1, hueRange2);
     lut->SetSaturationRange(satRange1,satRange2);
     lut->SetValueRange(valRange1,valRange2);
@@ -331,6 +374,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
     lut->SetNumberOfColors(numColors);
 
     renWin->Render();
+    cout << "type 'e' in the graphics with to exit interactive mode" << endl;   
     iren->Start();
     return true;
   }
@@ -343,8 +387,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       valRange1 = 1; valRange2 = 1;
       satRange1 = 1; satRange2 = 1;
       alphaRange1 = 1; alphaRange2 = 1;
-      scalarRange1 = 6; scalarRange2 = 17;
-      ugridMapper->SetScalarRange(scalarRange1,scalarRange2);
+      // scalarRange1 = 6; scalarRange2 = 17;
+      //  ugridMapper->SetScalarRange(scalarRange1,scalarRange2);
       lut->SetHueRange(hueRange1, hueRange2);
       lut->SetSaturationRange(satRange1,satRange2);
       lut->SetValueRange(valRange1,valRange2);
@@ -352,8 +396,23 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       lut->SetNumberOfColors(numColors);
       
       renWin->Render();
-      iren->Start();
+      // iren->Start();
       return true;
+    }
+
+  else if (command == "Reset_view")
+    {
+	  cam->SetFocalPoint(0,0,0);
+	  cam->SetPosition(0,0,1);
+	  cam->ComputeViewPlaneNormal();
+	  cam->SetViewUp(0,1,0);
+	  cam->OrthogonalizeViewUp();
+	  renderer->SetActiveCamera(cam);
+	  renderer->ResetCamera();
+	  renWin->Render();
+	  cout << "type 'e' in the graphics with to exit interactive mode" << endl;
+	  iren->Start();
+	  return true;
     }
 
   else if (command == "Save")
@@ -382,7 +441,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       writer->SetFileName(output_file);
       writer->Write();
       renWin->Render();
-      iren->Start();
+      cout << "File " << output_file << " has been saved." << endl;
+      //  iren->Start();
       return true;
     }
 
@@ -390,19 +450,20 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
     {
        ids->SetInput(ugrid);
       ids->PointIdsOn();
-      ids->CellIdsOn();
-      ids->FieldDataOn();
+      //ids->CellIdsOn();
+      //ids->FieldDataOn();
       visPts->SetInput(ids->GetOutput());
       visPts->SetRenderer(renderer);
-      //visPts->SelectionWindowOn();
-      //  visPts->SetSelection();
+
       ldm->SetInput(visPts->GetOutput());
-      // ldm->SetlabelFormat();
-      ldm->SetLabelModeToLabelFieldData();
+      // ldm->SetInput(ids->GetOutput());
+      ldm->SetLabelModeToLabelIds();
+      // ldm->SetLabelModeToLabelFieldData();
       pointLabels->SetMapper(ldm);
       pointLabels->VisibilityOn();
       renderer->AddActor2D(pointLabels);
       renWin->Render();
+      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
       iren->Start();
       return true;      
 
@@ -413,6 +474,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
     {
       renderer->RemoveActor(scalarBar);
       renWin->Render();
+      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
       iren->Start();
       return true;
     }
@@ -421,6 +483,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
     {
       renderer->AddActor(scalarBar);
       renWin->Render();
+      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
       iren->Start();
       return true;
     }
@@ -428,16 +491,14 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 
   else if (command == "X_axis_rotation")
     {
-      cout << "Rotate:\n 1: Counter-clockwise\n 2: Clockwise: ";
-      cin >> xDir;
+ 
+      cout << "Using the right-hand rule, rotate by how many degrees?: ";
+      cin >> xRot;
       char line[255];
       cin.getline(line, 254);
-      cout << "Rotate by how many degrees?: ";
-      cin >> xRot;
-      cin.getline(line, 254);
-      if (xDir == 1) renderer->GetActiveCamera()->Elevation(xRot);
-      else if (xDir == 2) renderer->GetActiveCamera()->Elevation(-xRot);
+      renderer->GetActiveCamera()->Elevation(xRot);
       renWin->Render();
+      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
       iren->Start();
       return true;
     }
@@ -445,32 +506,28 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 
   else if (command == "Y_axis_rotation")
     {
-      cout << "Rotate:\n 1: Counter-clockwise\n 2: Clockwise: ";
-      cin >> yDir;
+
+      cout << "Using the right-hand rule, rotate by how many degrees?: ";
+      cin >> yRot;
       char line[255];
       cin.getline(line, 254);
-      cout << "Rotate by how many degrees?: ";
-      cin >> yRot;
-      cin.getline(line, 254);
-      if (yDir == 1) renderer->GetActiveCamera()->Azimuth(yRot);
-      else if (yDir == 2) renderer->GetActiveCamera()->Azimuth(-yRot);
+      renderer->GetActiveCamera()->Azimuth(yRot);
       renWin->Render();
+      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
       iren->Start();
       return true;
     }
 
   else if (command == "Z_axis_rotation")
     {
-      cout << "Rotate:\n 1: Counter-clockwise\n 2: Clockwise: ";
-      cin >> zDir;
+
+      cout << "Using the right-hand rule, rotate by how many degrees?: ";
+      cin >> zRot;
       char line[255];
       cin.getline(line, 254);
-      cout << "Rotate by how many degrees?: ";
-      cin >> zRot;
-      cin.getline(line, 254);
-      if (zDir == 1) renderer->GetActiveCamera()->Roll(zRot);
-      else if (zDir == 2) renderer->GetActiveCamera()->Roll(-zRot);
+      renderer->GetActiveCamera()->Roll(zRot);
       renWin->Render();
+      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
       iren->Start();
       return true;
     }
@@ -505,25 +562,34 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
          while((clock() - start_time) < timeStep * CLOCKS_PER_SEC)
          {
          }
-	 sbTitle = "Temperature for frame ";
-	 sbTitle.Append(j,3);
+	 // sbTitle = "";
+	 // sbTitle.Append(node_labels(0)); 
+	 // sbTitle.Append(" for frame ");
+	 // sbTitle = "Temperature for frame ";
+	 sbTitle.Drop(-3);
+	  sbTitle.Append(j,3);
 	 scalarBar->SetTitle(sbTitle);
-	 ugrid->GetPointData()->SetScalars(scalars[j]);
+	 ugrid->GetPointData()->SetScalars(scalars[j][currentVarNum]);
+	 // ugrid->GetPointData()->SetScalars(scalars[j]);
 	 renWin->Render();
 
       }
 
       renWin->Render();
+      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
       iren->Start();
       return true;
     }
 
   else if (command== "Save_flip_book_images")
     {
-      
+      StringT fbName;
+      cout << "Enter name for flipbook to be saved (without .tif extension): ";
+      cin >> fbName;
+      char line[255];
+      cin.getline(line,254);
       cout << "Save images at: \n 1: current view\n 2: default view: ";
       cin >> sfbTest;
-      char line[255];
       cin.getline(line, 254);
       if (sfbTest == 2) {
 	cam->SetFocalPoint(0,0,0);
@@ -538,23 +604,32 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       
       for (int j = 0; j<num_time_steps; j++){
 
-	sbTitle = "Temperature for frame ";
+	//	sbTitle = "Temperature for frame ";
+	//sbTitle.Append(j,3);
+	//	sbTitle = "";
+	//	sbTitle.Append(node_labels(0)); 
+	//sbTitle.Append(" for frame ");
+	sbTitle.Drop(-3);
 	sbTitle.Append(j,3);
 	scalarBar->SetTitle(sbTitle);	 
-	ugrid->GetPointData()->SetScalars(scalars[j]);
+	ugrid->GetPointData()->SetScalars(scalars[j][currentVarNum]);
+	//ugrid->GetPointData()->SetScalars(scalars[j]);
+
 	renWin->Render();  
 	renSrc->SetInput(renderer);
 	renSrc->WholeWindowOn();
 	writer->SetInput(renSrc->GetOutput());
-	outFileName = "Frame";
+	outFileName = fbName;
 	outFileName.Append(j,3); // pad to a width of 3 digits
 	outFileName.Append(".tif");
 	writer->SetFileName(outFileName);
 	writer->Write();
+	cout << outFileName << " has been saved" << endl;
 	renWin->Render();
       }
+      cout << "Flip book images have been saved." << endl;
       renWin->Render();
-      iren->Start();
+      //    iren->Start();
       return true;
     }
 	 
@@ -586,6 +661,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	break;
       }
       renWin->Render();
+      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
       iren->Start();
       return true;
     }
@@ -597,12 +673,18 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       cin >> frameNum;
       char line[255];
       cin.getline(line, 254);
-      sbTitle = "Temperature for frame ";
+      // sbTitle = "Temperature for frame ";
+      // sbTitle = "";
+      // sbTitle.Append(node_labels(0)); 
+      // sbTitle.Append(" for frame ");
+      sbTitle.Drop(-3);
       sbTitle.Append(frameNum,3);
+      // sbTitle.Append(j,3);
       scalarBar->SetTitle(sbTitle);
-
-      ugrid->GetPointData()->SetScalars(scalars[frameNum]);
+      // ugrid->GetPointData()->SetScalars(scalars[frameNum]);
+       ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
       renWin->Render();
+      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
       iren->Start();
       return true;
       
@@ -615,8 +697,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 // //       ids->PointIdsOff();
 // //       ids->Update();
       pointLabels->VisibilityOff();
-//       renderer->removeActor((vtkActor)pointLabels);
       renWin->Render();
+      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
       iren->Start();
       return true;   
  
@@ -630,14 +712,17 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       axes->SetInput(ugrid);
      axes->SetCamera(renderer->GetActiveCamera());
     //  axes->SetLabelFormat("%6.4g");
-      axes->ShadowOn();
-      axes->SetFlyModeToClosestTriad();
+     // axes->ShadowOn();
+      axes->SetFlyModeToOuterEdges();
+      //axes->SetFlyModeToClosestTriad();
       axes->SetFontFactor(3.8);
-      axes->GetProperty()->SetColor(1,0,1);
-      axes->ZAxisVisibilityOff();
+      axes->GetProperty()->SetColor(0,1,1);
+      // axes->SetBounds(0,1,0,1,0,1);
+      //axes->ZAxisVisibilityOff();
       axes->VisibilityOn();
       renderer->AddActor2D(axes);
       renWin->Render();
+      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
       iren->Start();
       return true;
   }
@@ -646,8 +731,29 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
     {
       axes->VisibilityOff();
       renWin->Render();
+      cout << "type 'e' in the graphics with to exit interactive mode" << endl;
       iren->Start();
       return true;
+    }
+
+  else if (command == "Choose_variable")
+    {
+
+      cout << "choose variable number from 0 to " << num_node_variables-1 <<" to be displayed\n" << varList;
+      
+      cin >> currentVarNum;
+      char line[255];
+      cin.getline(line, 254);
+      ugrid->GetPointData()->SetScalars(scalars[0][currentVarNum]);
+      ugridMapper->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
+      sbTitle = "";
+      sbTitle.Append(node_labels[currentVarNum]); 
+      sbTitle.Append(" for frame 000");
+  // sbTitle.Append(time,5);
+      scalarBar->SetTitle(sbTitle);
+      renWin->Render();
+      return true;
+
     }
 
   else
