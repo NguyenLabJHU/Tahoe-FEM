@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.24 2003-08-08 00:53:09 paklein Exp $ */
+/* $Id: ElementT.h,v 1.25 2003-08-08 23:28:39 thao Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -53,9 +53,10 @@ kPenaltyContactElement3D = 34,
                     kEAM = 39,  /**< particles with EAM potental */
      kNonLinearDiffusion = 41,
        kMeshfreeBridging = 45,
-	     kFSMatForce = 60, /**< UpLag with material force calculation*/
-	     kSSMatForce = 61, /**< small strain with mat force calculation*/
-	     kTest = 62,
+	     kFSMatForce = 60,    /*UpLag with material force calculation*/
+	     kSSMatForceD = 61,
+	     kSSMatForceS = 62,
+	     kSmallStrainQ2P1 = 64, /*small strain with mat force calculation*/
 	     kDorganVoyiadjisMarin = 63,	     
        kHyperElasticInitCSE = 111 /**< large strain solid that triggers CSE */
 	     };    
