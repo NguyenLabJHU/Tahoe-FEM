@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.13.2.1 2002-10-11 00:23:13 cjkimme Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.13.2.2 2002-10-15 23:03:48 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -244,6 +244,11 @@ void CSEBaseT::InitialCondition(void)
 	for (int i = 0; i < nel; i++)
 		fElementCards[i].Flag() = kON;
 }
+
+#ifdef _SIERRA_TEST_	
+	/* Initialize fields passed in from the outside */
+	void CSEBaseT::InitStep(void) {};
+#endif
 
 /* finalize time increment */
 void CSEBaseT::CloseStep(void)
