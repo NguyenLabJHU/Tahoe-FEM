@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.33 2004-07-15 08:29:19 paklein Exp $ */
+/* $Id: DetCheckT.cpp,v 1.34 2004-08-31 16:52:59 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -101,12 +101,13 @@ int DetCheckT::IsLocalized(dArrayT& normal)
 * R.A.Regueiro's SPINLOC.
 * 3d is a numerical search algorithm after Ortiz, et. al. (1987) */
 
-int DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
-							AutoArrayT <dArrayT> &slipdirs)
+bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
+							AutoArrayT <dArrayT> &slipdirs, double detA)
 {
-	dArrayT normal(3), slipdir(3);
-	dTensor4DT C(3,3,3,3);
-	dMatrixEXT A(3); //acoustic tensor 
+  int nsd =fs_jl.Rows();
+	dArrayT normal(nsd), slipdir(nsd);
+	dTensor4DT C(nsd, nsd, nsd, nsd);
+	dMatrixEXT A(nsd); //acoustic tensor 
 	/* for eigen analysis */
 	dArrayT realev(3), imev(3), altnormal_i(3), altnormal_ii(3);
 	
@@ -126,7 +127,7 @@ int DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 			//but these are with respect to principal stress axes
 			normal[0] = cos(theta);
 			normal[1] = sin(theta);	
-			normal[2] = 0.0;
+			//normal[2] = 0.0;
 			normals.Append(normal);
 			/*
 			A = 0.0;
@@ -152,11 +153,12 @@ int DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 			A.eigenvector3x3(A, eigVal, numev, slipdir, altnormal_i, altnormal_ii);
 			slipdirs.Append(slipdir);
 			*/
+			detA = -1.0;
 		}
 		return check;
 	}
 	else
-		return DetCheck3D_SS(normals,slipdirs);
+		return DetCheck3D_SS(normals,slipdirs, detA);
 }
 
 
@@ -263,7 +265,7 @@ int DetCheckT::DetCheck2D(dArrayT& normal)
 /* 3D determinant check function */
 /* assumes small strain formulation */
 int DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
-							AutoArrayT <dArrayT> &slipdirs)
+							AutoArrayT <dArrayT> &slipdirs, double detAmin)
 {
 	int i,j,k,l,m,n; // counters 
 	
@@ -330,6 +332,7 @@ int DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 			<< setw(outputFileWidth) << "detA" <<  setw(outputFileWidth) << "in normalSet?" << endl;
   
 	// initialize variables
+
 	normal=0.0;
 	A = 0.0;
 	Ae = 0.0;
@@ -489,10 +492,12 @@ int DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 	
 	if (leastmin/leastdetAe > setTol)  //no bifurcation occured
 	{
+	        detAmin = 1.0;
 		return 0;
 	}
 	else //bifurcation occured
 	{	
+	        detAmin = leastmin;
 		//choose normal from set of normals producing least detA
 		//normal = ChooseNormalFromNormalSet(normalSet, C);
 		
