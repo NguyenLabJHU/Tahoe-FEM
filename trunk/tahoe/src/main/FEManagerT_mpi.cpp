@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.9 2001-12-17 00:12:59 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.10 2002-01-07 02:36:56 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #include "FEManagerT_mpi.h"
@@ -765,7 +765,7 @@ void FEManagerT_mpi::ReadParameters(InitCodeT init)
 	FEManagerT::ReadParameters(init);
 
 	/* collect model file and input format from ModelManager */
-	fModelManager->Format (fInputFormat, fModelFile);
+	fModelManager->Format(fInputFormat, fModelFile);
 	
 	/* set for parallel execution */
 	if (fTask == kRun)
@@ -785,6 +785,12 @@ void FEManagerT_mpi::ReadParameters(InitCodeT init)
 		fModelFile.Append(".n", Size());
 		fModelFile.Append(".p", fRank);
 		fModelFile.Append(suffix);
+		
+		/* (re-)set model manager to partial geometry file */
+		if (!fModelManager->Initialize(fInputFormat, fModelFile)) {
+			cout << "\n FEManagerT_mpi::ReadParameters: error initializing model manager" << endl;
+			throw eBadInputValue;
+		}
 		
 		/* restart file name */
 		if (fReadRestart)
