@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.18.2.9 2003-01-11 01:17:12 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.18.2.10 2003-01-11 22:09:28 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -276,14 +276,7 @@ void NodeManagerT::InitStep(int group)
 
 	/* update current configurations */
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
-	{
-		/* should be allocated */
-		if (!fCurrentCoords)
-			ExceptionT::GeneralFail("NodeManagerT::Update", "current coords not initialized");
-	
-		/* update */
 		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
-	}	
 }
 
 /* compute the nodal contribution to the tangent */
@@ -401,6 +394,9 @@ void NodeManagerT::ReadRestart(ifstreamT& in)
 		/* reset history */
 		field.CloseStep();
 	}
+	
+	/* update current configurations */
+	if (fCoordUpdate) fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
 }
 
 void NodeManagerT::WriteRestart(ofstreamT& out) const
