@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.10 2002-07-02 19:55:26 cjkimme Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.11 2002-08-21 07:22:31 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 
 #include "MeshFreeFSSolidT.h"
@@ -16,15 +16,9 @@
 #include "MaterialListT.h"
 #include "StructuralMaterialT.h"
 
-//TEMP - parallel non-repeatability testing
-#ifdef __MPI__
-#include "mpi.h"
-#endif
-
-/* parameters */
-
 using namespace Tahoe;
 
+/* parameters */
 const double Pi = acos(-1.0);
 
 /* constructor */
@@ -153,20 +147,6 @@ else
 out << "\n MeshFreeFSSolidT::Initialize: connects U: 0, 1,...\n";
 fElemNodesEX->WriteNumbered(out);
 out.flush();
-#endif
-
-//TEMP - trace node
-#if 0
-int rank, size;
-MPI_Comm_size(MPI_COMM_WORLD, &size);
-MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	
-int hit_node = -1;
-if (size == 1)
-	hit_node = 13607 - 1;
-else if (size == 2 && rank == 0)
-	hit_node = 5420 - 1;
-if (hit_node > 0) TraceNode(ElementSupport().Output(), hit_node, *this);
 #endif
 }
 
