@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.33 2004-01-02 19:33:36 paklein Exp $
+# $Id: make.targets,v 1.34 2004-01-02 21:16:24 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -142,17 +142,10 @@ archive:
 
 # initialization
 init: $(MAKE_INIT_XTRAS) $(MOD_MAKE_INIT_XTRAS)
-	if test -f $(LIBRARY); then $(RM) $(LIBRARY); fi
-	if ! test -d $(BLD_DIR); then mkdir $(BLD_DIR); fi
-	if ! test -d $(OBJ_DIR); then mkdir $(OBJ_DIR); fi
-	if ! test -d $(LIB_DIR); then mkdir $(LIB_DIR); fi
-	if ! test -f $(LIB_DIR)/lib.junk; then echo "# touch" > $(LIB_DIR)/lib.junk; fi
-	@ $(ECHO) " mirroring $(SRC_DIR) to $(BLD_SRC_DIR)"; \
-	$(PERL) $(MACRO_DIR)/MirrorTree.pl $(SRC_DIR) $(BLD_SRC_DIR) "$(LN)" >& $(BLD_DIR)/mirror.log
-	@ $(MAKE) headers "HOME_DIR = $(HOME_DIR)" \
-	"MACRO_DIR = $(MACRO_DIR)" "ARCH = $(ARCH)"
-	@ $(MAKE) depend_init "HOME_DIR = $(HOME_DIR)" "MACRO_DIR = $(MACRO_DIR)" "ARCH = $(ARCH)"
-	@ $(MAKE) object_list "HOME_DIR = $(HOME_DIR)" "MACRO_DIR = $(MACRO_DIR)" "ARCH = $(ARCH)"
+	@ $(MAKE) setup
+	@ $(MAKE) headers
+	@ $(MAKE) depend_init
+	@ $(MAKE) object_list
 
 # clean up - restore to unpacked state
 clean: $(MAKE_CLEAN_XTRAS) $(MOD_MAKE_CLEAN_XTRAS)
@@ -165,6 +158,16 @@ clean: $(MAKE_CLEAN_XTRAS) $(MOD_MAKE_CLEAN_XTRAS)
 	@ if test -d $(LIB_DIR); then $(RM) -rf $(LIB_DIR); fi
 	-@ cd $(MACRO_DIR)/cxx_repository; ls -1 | $(GREP) "\.o$$\|\.DB$$" | $(XARGS) $(RM)
 	-@ cd $(INC_DIR); ls -1 | $(GREP) '\.h$$' | $(XARGS) $(RM)
+
+# set-up directories
+setup:
+	@ if test -f $(LIBRARY); then $(RM) $(LIBRARY); fi
+	@ if ! test -d $(BLD_DIR); then mkdir $(BLD_DIR); fi
+	@ if ! test -d $(OBJ_DIR); then mkdir $(OBJ_DIR); fi
+	@ if ! test -d $(LIB_DIR); then mkdir $(LIB_DIR); fi
+	@ if ! test -f $(LIB_DIR)/lib.junk; then echo "# touch" > $(LIB_DIR)/lib.junk; fi
+	@ $(ECHO) " mirroring $(SRC_DIR) to $(BLD_SRC_DIR)"; \
+	$(PERL) $(MACRO_DIR)/MirrorTree.pl $(SRC_DIR) $(BLD_SRC_DIR) "$(LN)" >& $(BLD_DIR)/mirror.log
 
 # build object file list
 object_list: FORCE
