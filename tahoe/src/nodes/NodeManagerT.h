@@ -1,6 +1,5 @@
-/* $Id: NodeManagerT.h,v 1.2 2001-07-19 01:04:36 paklein Exp $ */
-/* created: paklein (05/23/1996)                                          */
-/* Field variables plus averging                                          */
+/* $Id: NodeManagerT.h,v 1.3 2001-08-27 17:15:16 paklein Exp $ */
+/* created: paklein (05/23/1996) */
 
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -14,6 +13,7 @@ template <class TYPE> class AutoArrayT;
 class dArray2DT;
 class StringT;
 
+/* class to tie basic nodal operations with field averaging */
 class NodeManagerT: public NodeManagerPrimitive, public GroupAverageT
 {
 public:

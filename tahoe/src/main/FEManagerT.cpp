@@ -1,5 +1,5 @@
-/* $Id: FEManagerT.cpp,v 1.16 2001-08-23 00:33:44 paklein Exp $ */
-/* created: paklein (05/22/1996)                                          */
+/* $Id: FEManagerT.cpp,v 1.17 2001-08-27 17:16:49 paklein Exp $ */
+/* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
 
@@ -20,7 +20,6 @@
 
 /* nodes */
 #include "NodeManagerT.h"
-#include "LinStaticNodes.h"
 #include "FDNodeManager.h"
 #include "DynNodeManager.h"
 #include "FDDynNodeManagerT.h"
@@ -30,6 +29,7 @@
 
 /* controllers */
 #include "StaticController.h"
+#include "LinearStaticController.h"
 #include "Trapezoid.h"
 #include "LinearHHTalpha.h"
 #include "NLHHTalpha.h"
@@ -919,7 +919,6 @@ void FEManagerT::WriteParameters(void) const
 	fMainOut << "    eq. " << GlobalT::kDR              << ", dynamic relaxation\n";   	
 	fMainOut << "    eq. " << GlobalT::kLinExpDynamic   << ", linear explicit dynamic\n";   	
 	fMainOut << "    eq. " << GlobalT::kNLExpDynamic    << ", nonlinear explicit dynamic\n";   	
-	fMainOut << "    eq. " << GlobalT::kAugLagStatic    << ", nonlinear static with element level DOF's\n";   	
 	fMainOut << " Input format. . . . . . . . . . . . . . . . . . = " << fInputFormat  << '\n';
 	fMainOut << "    eq. " << IOBaseT::kTahoe         << ", standard ASCII\n";
 	fMainOut << "    eq. " << IOBaseT::kTahoeII       << ", random access ASCII\n";
@@ -954,7 +953,7 @@ void FEManagerT::SetNodeManager(void)
 		case GlobalT::kLinStaticHeat:
 		case GlobalT::kLinStatic:
 
-			fNodeManager = new LinStaticNodes(*this);
+			fNodeManager = new NodeManagerT(*this);
 			break;
 
 		case GlobalT::kLinTransHeat:
@@ -1067,7 +1066,6 @@ void FEManagerT::SetSolver(void)
 		case GlobalT::kNLDynamic:
 		case GlobalT::kNLStaticKfield:
 		case GlobalT::kVarNodeNLStatic:
-		case GlobalT::kAugLagStatic:
 		{
 			int NL_solver_code;
 			fMainIn >> NL_solver_code;
@@ -1188,10 +1186,13 @@ void FEManagerT::SetController(void)
 	switch (fAnalysisCode)
 	{
 		case GlobalT::kLinStatic:
+		{
+			fController = new LinearStaticController(fMainOut);
+			break;
+		}
 		case GlobalT::kNLStatic:
 		case GlobalT::kNLStaticKfield:
 		case GlobalT::kVarNodeNLStatic:
-		case GlobalT::kAugLagStatic:
 		case GlobalT::kLinStaticHeat:
 		{
 			fController = new StaticController(fMainOut);
