@@ -1,15 +1,11 @@
-/* $Id: HookeanMatT.cpp,v 1.3 2002-07-02 19:55:38 cjkimme Exp $ */
-/* created: paklein (06/09/1997)                                          */
-/* Base class for all Hookean materials, defined as:                      */
-/* 	stress_ij = moduli_ijkl strain_kl                                     */
-
+/* $Id: HookeanMatT.cpp,v 1.4 2004-07-15 08:26:56 paklein Exp $ */
+/* created: paklein (06/09/1997) */
 #include "HookeanMatT.h"
 #include "dSymMatrixT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 HookeanMatT::HookeanMatT(int nsd):
 	fModulus(dSymMatrixT::NumValues(nsd))
 {
@@ -27,6 +23,13 @@ HookeanMatT::~HookeanMatT(void)
 void HookeanMatT::Initialize(void)
 {
 	SetModulus(fModulus);
+}
+
+/* dimension */
+void HookeanMatT::Dimension(int nsd)
+{
+	fModulus.Dimension(dSymMatrixT::NumValues(nsd));
+	fModulus =-1.0;
 }
 
 /***********************************************************************

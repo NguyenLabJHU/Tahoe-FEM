@@ -1,5 +1,4 @@
-/* $Id: ViscTvergHutch2DT.h,v 1.8 2003-05-26 01:51:46 paklein Exp $ */
-
+/* $Id: ViscTvergHutch2DT.h,v 1.9 2004-07-15 08:26:02 paklein Exp $ */
 #ifndef _VISC_TVERG_HUTCH_2D_T_H_
 #define _VISC_TVERG_HUTCH_2D_T_H_
 
@@ -25,9 +24,11 @@ class ViscTvergHutch2DT: public SurfacePotentialT
 {
 public:
 
-	/** constructor.
-	 * \param time_step reference to the current time step */
-	ViscTvergHutch2DT(ifstreamT& in, const double& time_step);
+	/** constructor */
+	ViscTvergHutch2DT(void);
+
+	/** set the source of the time step */
+	virtual void SetTimeStep(const double& time_step) { fTimeStep = &time_step; };
 
 	/** return the number of state variables needed by the model.
 	 * Need to store the opening displacement from the previous
@@ -54,12 +55,6 @@ public:
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
 
-	/** write model name to output */
-	virtual void PrintName(ostream& out) const;
-
-	/** write model parameters */
-	virtual void Print(ostream& out) const;
-
 	/** return the number of output variables. returns 0 by default. */
 	virtual int NumOutputVariables(void) const;
 
@@ -72,6 +67,15 @@ public:
 	 * \param destination of output values. Allocated by the host code */
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters  */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -88,7 +92,7 @@ private:
 	};
 
 	/** the time step */
-	const double& fTimeStep;
+	const double* fTimeStep;
 
 	/* traction potential parameters */
 	double fsigma_max; /**< cohesive stress */
@@ -99,6 +103,9 @@ private:
 	double fL_1;    /**< non-dimensional opening to initial peak traction */
 	double fL_2;    /**< non-dimensional opening to final peak traction */
 	double fL_fail; /**< non-dimensional opening to irreversible failure */
+
+	/** Taylor-Quinney heating factor */
+	double fbeta;
 
 	/** damping parameter */
 	double feta0;

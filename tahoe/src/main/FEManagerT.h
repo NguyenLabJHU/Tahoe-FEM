@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.43 2004-06-26 18:38:08 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.44 2004-07-15 08:31:03 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -11,6 +11,7 @@
 #include "ParameterInterfaceT.h"
 
 /* direct members */
+#include "iArrayT.h"
 #include "StringT.h"
 #include "ElementListT.h"
 #include "IOBaseT.h"
@@ -33,7 +34,6 @@ class ScheduleT;
 class SolverT;
 class dMatrixT;
 class LocalArrayT;
-class iArrayT;
 class dArrayT;
 class iArray2DT;
 class ElementMatrixT;
@@ -57,20 +57,17 @@ public:
 	        };
 
 	/** constructor */
-	FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm, const ArrayT<StringT>& argv);
+	FEManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm, const ArrayT<StringT>& argv);
 
 	/** destructor */
 	virtual ~FEManagerT(void);
 
-	/** initialize members */
-	virtual void Initialize(InitCodeT init = kFull);
-	
 	/** solve all the time sequences */
 	void Solve(void);
 	
 	/** \name accessors */
 	/*@{*/
-	ifstreamT& Input(void) const;
+	const StringT& InputFile(void) const;
 	ofstreamT& Output(void) const;
 	GlobalT::AnalysisCodeT Analysis(void) const;
 	GlobalT::SystemTypeT GlobalSystemType(int group) const;
@@ -259,7 +256,7 @@ public:
 	 * \param ID output set ID for the given data
 	 * \param n_values nodal output values
 	 * \param e_values element output values */
-	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
+	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
 
 	/** write a snapshot */
 	void WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
@@ -276,15 +273,6 @@ public:
 
 	/** collect the internal force on the specified node */
 	void InternalForceOnNode(const FieldT& field, int node, dArrayT& force) const;
-	/*@}*/
-
-	/** \name access to integrators */
-	/*@{*/
-	int NumIntegrators(void) const { return fIntegrators.Length(); };
-	IntegratorT* Integrator(int index) { return fIntegrators[index]; };
-	const IntegratorT* Integrator(int index) const { return fIntegrators[index]; };
-	const eIntegratorT* eIntegrator(int index) const;
-	const nIntegratorT* nIntegrator(int index) const;
 	/*@}*/
 
 	/** debugging */
@@ -360,27 +348,6 @@ public:
 	bool WriteRestart(const StringT* file_name = NULL) const;
 	/*@}*/
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate
-	 * or NULL if the name is invalid. Responsibility for deleteting instantiations
-	 * resides with the client who requested them. */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
-
-	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const;
-	/*@}*/
-
 	/** \name command line flags */
 	/*@{*/
 	const ArrayT<StringT>& Argv(void) const;
@@ -390,21 +357,34 @@ public:
 	bool CommandLineOption(const char* str, int& index) const;
 	/*@}*/
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate
+	 * or NULL if the name is invalid. Responsibility for deleteting instantiations
+	 * resides with the client who requested them. */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/** "const" function that sets the status flag */
 	void SetStatus(GlobalT::StateT status) const;
 
-	/** look for input file key and check file version */
-	void CheckInputFile(void);
-
-	/** \name phases of FEManagerT::Initialize. */
+	/** \name initialization */
 	/*@{*/
-	virtual void ReadParameters(InitCodeT init);
-	virtual void WriteParameters(void) const;
-	void SetIntegrator(void);
-	virtual void SetNodeManager(void);
-	virtual void SetElementGroups(void);
 	virtual void SetSolver(void);
 	virtual void SetOutput(void);
 	/*@}*/
@@ -438,7 +418,6 @@ private:
 	 * FEManagerT is passed to the solvers. */
 	/*@{*/
 	SolverT* New_Solver(int code, int group);
-	SolverT* New_Solver(GlobalT::SolverTypeT solver_type);
 	/*@}*/
 		
 protected:
@@ -446,9 +425,16 @@ protected:
 	/** command line options */
 	const ArrayT<StringT>& fArgv;
 
+	/** temporary flag to control how much of the FEManagerT is constructed
+	 * during FEManagerT::TakeParameterListT. This value will be initialized
+	 * to FEManagerT::kFull. Derived classes should redefine the value before
+	 * FEManagerT::TakeParameterListT is called. This will be eliminated when
+	 * procedure for initializing the global equation system is revised. */
+	InitCodeT fInitCode;
+
 	/** \name I/O streams */
 	/*@{*/
-	ifstreamT& fMainIn;
+	StringT fInputFile;
 	ofstreamT& fMainOut;
 	/*@}*/
 	
@@ -477,7 +463,6 @@ protected:
 	NodeManagerT* fNodeManager;
 	ElementListT* fElementGroups;
 	ArrayT<SolverT*> fSolvers;
-	ArrayT<IntegratorT*> fIntegrators;
 	IOManager*    fIOManager;
 	ModelManagerT* fModelManager;
 	CommManagerT* fCommManager;
@@ -529,7 +514,7 @@ protected:
 };
 
 /* inlines */
-inline ifstreamT& FEManagerT::Input(void) const { return fMainIn;  }
+inline const StringT& FEManagerT::InputFile(void) const { return fInputFile;  }
 inline ofstreamT& FEManagerT::Output(void) const { return fMainOut; }
 inline const GlobalT::StateT& FEManagerT::RunState(void) const { return fStatus; }
 inline IOBaseT::FileTypeT FEManagerT::OutputFormat(void) const { return fOutputFormat; }
@@ -555,8 +540,10 @@ inline int FEManagerT::IterationNumber(void) const
 	int curr_group = CurrentGroup();
 	if (curr_group >= 0)
 		return IterationNumber(curr_group);
-	else
+	else {
+		ExceptionT::GeneralFail("FEManagerT::IterationNumber", "no group is current"); 
 		return -1;
+	}
 }
 
 inline int FEManagerT::GlobalEquationStart(int group) const { return fGlobalEquationStart[group]; }

@@ -1,49 +1,14 @@
-/* $Id: RGViscoelasticityT.cpp,v 1.1 2003-04-05 20:06:59 thao Exp $ */
+/* $Id: RGViscoelasticityT.cpp,v 1.2 2004-07-15 08:29:30 paklein Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGViscoelasticityT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-RGViscoelasticityT::RGViscoelasticityT(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support)
-{}
-
-void RGViscoelasticityT::Initialize(void)
+RGViscoelasticityT::RGViscoelasticityT(void):
+	ParameterInterfaceT("Reese_Govindjee_viscoelastic")
 {
-        /*inheritance*/
-        FSSolidMatT::Initialize();
- 
-	fndof = 3;
-        
-	int numstress = dSymMatrixT::NumValues(fndof);
 
-	fnstatev = 0;
-	fnstatev += numstress;   /*current C_v*/
-	fnstatev += numstress;   /*last C_vn*/
-
-	fstatev.Dimension(fnstatev);
-	double* pstatev = fstatev.Pointer();
-	
-	/* assign pointers to current and last blocks of state variable array */
-	fC_v.Set(fndof, pstatev);        
-	pstatev += numstress;
-	fC_vn.Set(fndof, pstatev);
-}
-
-void RGViscoelasticityT::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-}
-
-void RGViscoelasticityT::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-
-	out << "    Reese-Govindjee Finite Nonlinear Viscoelastic Model\n";
 }
 
 /*initializes history variable */
@@ -361,4 +326,26 @@ void RGViscoelasticityT::MixedRank4_3D(const dArrayT& a, const dArrayT& b,
     *p++ = z15;
     *p++ = z3;
     *p  = z7;
+}
+
+/* accept parameter list */
+void RGViscoelasticityT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FSSolidMatT::TakeParameterList(list);
+
+	int ndof = 3;
+	int numstress = dSymMatrixT::NumValues(ndof);
+
+	fnstatev = 0;
+	fnstatev += numstress;   /*current C_v*/
+	fnstatev += numstress;   /*last C_vn*/
+
+	fstatev.Dimension(fnstatev);
+	double* pstatev = fstatev.Pointer();
+	
+	/* assign pointers to current and last blocks of state variable array */
+	fC_v.Set(ndof, pstatev);
+	pstatev += numstress;
+	fC_vn.Set(ndof, pstatev);
 }

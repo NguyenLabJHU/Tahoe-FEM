@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.cpp,v 1.2 2004-04-09 02:02:58 hspark Exp $ */
+/* $Id: EAM_particle.cpp,v 1.3 2004-07-15 08:26:47 paklein Exp $ */
 /* created: hspark(02/25/2004) */
 #include "EAM_particle.h"
 #include <iostream.h> //TEMP
@@ -10,15 +10,8 @@
 using namespace Tahoe;
 
 /* constructor */
-EAM_particle::EAM_particle(CBLatticeT& lattice): fLattice(lattice),
-	fCounts( fLattice.BondCounts() ), fBonds( fLattice.DeformedLengths() ),
-	fNumSpatialDim( fLattice.NumberOfSpatialDim() ),
-	fNumBonds( fLattice.NumberOfBonds() ),
-	fModuliDim(dSymMatrixT::NumValues(fNumSpatialDim)),
-	fBondTensor4(fModuliDim), fAmn(fNumBonds),
-	fBondTensor2(fModuliDim), //fBondTensor2b(fModuliDim),
-	fTensor2Table(fNumBonds,fModuliDim),
-	fBond1(fNumBonds), fBond2(fNumBonds), fBond3(fNumBonds),
+EAM_particle::EAM_particle(CBLatticeT& lattice, const StringT& param_file): 
+	fLattice(lattice),
 	fEAMProperty(NULL),
 	fPairEnergy(NULL),
 	fPairForce(NULL),
@@ -29,20 +22,6 @@ EAM_particle::EAM_particle(CBLatticeT& lattice): fLattice(lattice),
 	fEDEnergy(NULL),
 	fEDForce(NULL),
 	fEDStiffness(NULL)
-{
-	/* dimension checks */
-	if (fCounts.Length() != fNumBonds ||
-	     fBonds.Length() != fNumBonds) throw ExceptionT::kGeneralFail;
-}
-
-/* Destructor */
-EAM_particle::~EAM_particle(void) 
-{
-	delete fEAMProperty;
-}
-
-/* Set "glue" functions */
-void EAM_particle::SetGlueFunctions(const StringT& param_file)
 {
 	/* construct EAM property - only the Paradyn EAM potentials are implemented */
 	fEAMProperty = new ParadynEAMT(param_file);
@@ -62,6 +41,25 @@ void EAM_particle::SetGlueFunctions(const StringT& param_file)
 	fLatticeParameter = fEAMProperty->GetLatticeParameter();
 }
 
+/* Destructor */
+EAM_particle::~EAM_particle(void) {
+	delete fEAMProperty;
+}
+
+/* set "glue" functions and dimension work space */
+void EAM_particle::Initialize(int nsd, int numbonds)
+{
+	/* dimension work space */
+	int nstrs = dSymMatrixT::NumValues(nsd);
+	fBondTensor4.Dimension(nstrs);
+	fAmn.Dimension(numbonds);
+	fBondTensor2.Dimension(nstrs);
+	fTensor2Table.Dimension(numbonds, nstrs);
+	fBond1.Dimension(numbonds);
+	fBond2.Dimension(numbonds);
+	fBond3.Dimension(numbonds);
+}
+
 /*
 * Compute unit strain energy density:
 *
@@ -69,15 +67,19 @@ void EAM_particle::SetGlueFunctions(const StringT& param_file)
 */
 double EAM_particle::ComputeUnitEnergy(void)
 {
+	const dArrayT& r = fLattice.DeformedLengths();
+	const iArrayT& counts = fLattice.BondCounts();
+
 	double rho = 0.0;
 	double energy = 0.0;
 	
-	const int* pcount = fCounts.Pointer();
-	for (int i = 0; i < fNumBonds; i++)
+	const int* pcount = counts.Pointer();
+	int nb = r.Length();
+	for (int i = 0; i < nb; i++)
 	{
 		int ci = *pcount++;
 
-		double  ri = fBonds[i];
+		double  ri = r[i];
 		double a = fPairEnergy(ri, NULL, NULL);
 		double phi = a*a/ri;
 		double rho = fEDEnergy(ri, NULL, NULL);
@@ -97,17 +99,20 @@ double EAM_particle::ComputeUnitEnergy(void)
 */
 void EAM_particle::ComputeUnitStress(dSymMatrixT& stress)
 {
+	const dArrayT& r = fLattice.DeformedLengths();
+	const iArrayT& counts = fLattice.BondCounts();
+
 	/* total atomic density */
 	double rho = TotalElectronDensity();
 	double dFdrho = fEmbedForce(rho, NULL, NULL);	// checks out
 
 	/* assemble stress */
 	stress = 0.0;
-	
-	for (int i = 0; i < fNumBonds; i++)	// fNumBonds, ri, ci check out
+	int nb = r.Length();	
+	for (int i = 0; i < nb; i++)	// fNumBonds, ri, ci check out
 	{
-		double ri = fBonds[i];
-		int    ci = fCounts[i];	
+		double ri = r[i];
+		int    ci = counts[i];	
 		double a = fPairEnergy(ri, NULL, NULL);
 		double Potential = a*a/ri;
 		double DPotential = 2.0*fPairForce(ri, NULL, NULL)*a/ri-Potential/ri;
@@ -138,23 +143,20 @@ void EAM_particle::ComputeUnitModuli(dMatrixT& moduli)
 	FormSingleBondContribution(rho, moduli);
 }
 
-/* lattice parameter */
-double EAM_particle::LatticeParameter(void) const
-{
-	return fLatticeParameter;
-}
-
 /*
 * Compute the total electron density.
 */
 double EAM_particle::TotalElectronDensity(void)
 {
-	double rho = 0.0;
-	const int* pcount = fCounts.Pointer();
+	const dArrayT& r = fLattice.DeformedLengths();
+	const iArrayT& counts = fLattice.BondCounts();
 
-	for (int i = 0; i < fNumBonds; i++)
+	double rho = 0.0;
+	const int* pcount = counts.Pointer();
+	int nb = r.Length();
+	for (int i = 0; i < nb; i++)
 	{
-		double ri = fBonds[i];
+		double ri = r[i];
 		double pedensity = fEDEnergy(ri, NULL, NULL);
 		rho += (*pcount++)*(pedensity);
 	}
@@ -168,8 +170,8 @@ double EAM_particle::ReturnEmbeddingForce(double rho)
 }
 
 /**********************************************************************
-* Private
-**********************************************************************/
+ * Private
+ **********************************************************************/
 
 /*
 * Form matrix of mixed pair potential and embedding
@@ -178,14 +180,18 @@ double EAM_particle::ReturnEmbeddingForce(double rho)
 */
 void EAM_particle::FormMixedDerivatives(double rho)
 {
+	const dArrayT& r = fLattice.DeformedLengths();
+	const iArrayT& counts = fLattice.BondCounts();
+
 	double dFdrho = fEmbedForce(rho, NULL, NULL);
 	double d2Fdrho2 = fEmbedStiffness(rho, NULL, NULL);
 
 	/* form upper triangle only */
-	for (int j = 0; j < fNumBonds; j++)
+	int nb = r.Length();
+	for (int j = 0; j < nb; j++)
 	{
-		double rj = fBonds[j];
-		int    cj = fCounts[j];
+		double rj = r[j];
+		int    cj = counts[j];
 
 		double a = fPairEnergy(rj, NULL, NULL);
 		double b = fPairForce(rj, NULL, NULL);
@@ -200,8 +206,8 @@ void EAM_particle::FormMixedDerivatives(double rho)
 		for (int i = 0; i <= j; i++)
 		{
 			double Amn = 0.0;
-			double ri = fBonds[i];
-			int    ci = fCounts[i];
+			double ri = r[i];
+			int    ci = counts[i];
 					
 			/* diagonal terms */
 			if (i == j)
@@ -229,17 +235,20 @@ void EAM_particle::FormMixedDerivatives(double rho)
 */
 void EAM_particle::FormSingleBondContribution(double rho, dMatrixT& moduli)
 {
+	const dArrayT& r = fLattice.DeformedLengths();
+	const iArrayT& counts = fLattice.BondCounts();
+
 	/* Embedding energy derivative */
 	double dFdrho = fEmbedForce(rho, NULL, NULL);
-	
-	for (int i = 0; i < fNumBonds; i++)
+	int nb = r.Length();	
+	for (int i = 0; i < nb; i++)
 	{
-		double ri = fBonds[i];
+		double ri = r[i];
 		double a = fPairEnergy(ri, NULL, NULL);
 		double Potential = a*a/ri;
 		double DPotential = 2.0*fPairForce(ri, NULL, NULL)*a/ri-Potential/ri;
 		double DDensity = fEDForce(ri, NULL, NULL);
-		double coeff = -fCounts[i]*(0.5*DPotential + dFdrho*DDensity)/(ri*ri*ri);
+		double coeff = -counts[i]*(0.5*DPotential + dFdrho*DDensity)/(ri*ri*ri);
 		fLattice.BondComponentTensor4(i,fBondTensor4);		
 		moduli.AddScaled(coeff,fBondTensor4);
 	}
@@ -272,28 +281,30 @@ void EAM_particle::FormMixedBondContribution(double rho, dMatrixT& moduli)
 */
 	
 	/* reversing the loops */
-	for (int j = 0; j < fModuliDim; j++)
+	int dim = moduli.Rows();
+	int nb = fLattice.NumberOfBonds();
+	for (int j = 0; j < dim; j++)
 		for (int i = 0; i <= j; i++)
 		{
 			register double cij = 0.0;
 			double* pm = fTensor2Table(0) + i;
 			double* pn = fTensor2Table(0) + j;
 		
-			for (int n = 0; n < fNumBonds; n++)
+			for (int n = 0; n < nb; n++)
 			{
 				double* pAmn = fAmn(n);
 				double* pm2  = pm;
 				double  nj   = *pn;
 			
-				for (int m = 0; m < fNumBonds; m++)
+				for (int m = 0; m < nb; m++)
 				{
 					cij += nj*(*pAmn)*(*pm2);
 
 					pAmn++;
-					pm2 += fModuliDim;
+					pm2 += dim;
 				}
 				
-				pn += fModuliDim;
+				pn += dim;
 			}
 			
 			moduli(i,j) += cij;

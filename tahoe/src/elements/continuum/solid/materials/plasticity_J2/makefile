@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.9 2003-03-04 07:37:42 paklein Exp $
+# $Id: makefile,v 1.10 2004-07-15 08:28:54 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -27,6 +27,7 @@ OBJ = \
 	J2Simo3D.o \
 	J2SSKStV.o \
 	J2SSKStV2D.o \
+	J2_C0HardeningT.o \
 	J2SSC0HardeningT.o \
 	J2SimoC0HardeningT.o
 
@@ -55,6 +56,7 @@ SRC = \
 	J2Simo3D.cpp \
 	J2SSKStV.cpp \
 	J2SSKStV2D.cpp \
+	J2_C0HardeningT.cpp \
 	J2SSC0HardeningT.cpp \
 	J2SimoC0HardeningT.cpp
 
@@ -75,6 +77,7 @@ HDR = \
 	J2Simo3D.h \
 	J2SSKStV.h \
 	J2SSKStV2D.h \
+	J2_C0HardeningT.h \
 	J2SSC0HardeningT.h \
 	J2SimoC0HardeningT.h
 

@@ -1,10 +1,7 @@
-/* $Id: CirclePointsT.cpp,v 1.2 2002-07-02 19:55:59 cjkimme Exp $ */
-/* created: paklein (11/02/1997)                                          */
-/* Base class for circular integration point generators.                  */
-
+/* $Id: CirclePointsT.cpp,v 1.3 2004-07-15 08:28:03 paklein Exp $ */
+/* created: paklein (11/02/1997) */
 #include "CirclePointsT.h"
 #include <math.h>
-
 
 using namespace Tahoe;
 

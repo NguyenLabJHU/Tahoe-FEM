@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.h,v 1.11 2004-03-20 23:38:20 raregue Exp $ */
+/* $Id: DPSSKStV.h,v 1.12 2004-07-15 08:28:48 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_H_
 #define _DP_SS_KSTV_H_
@@ -7,25 +7,29 @@
 #include "SSSolidMatT.h"
 #include "IsotropicT.h"
 #include "HookeanMatT.h"
-#include "DPSSLinHardT.h"
 
 namespace Tahoe {
 
+/* forward declarations */
+class DPSSLinHardT;
+
 class DPSSKStV: public SSSolidMatT,
 				public IsotropicT,
-				public HookeanMatT,
-				public DPSSLinHardT
+				public HookeanMatT
 {
   public:
 
-	/* constructor */
-	DPSSKStV(ifstreamT& in, const SSMatSupportT& support);
+	/** constructor */
+	DPSSKStV(void);
 
-	/* initialization */
-	virtual void Initialize(void);
+	/** constructor */
+	~DPSSKStV(void);
 
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
+
+	/** model has history variables */
+	virtual bool HasHistory(void) const { return true; };
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
@@ -33,9 +37,10 @@ class DPSSKStV: public SSSolidMatT,
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
 
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
+	/** returns elastic strain (3D) */
+	virtual const dSymMatrixT& ElasticStrain(
+                const dSymMatrixT& totalstrain, 
+				const ElementCardT& element, int ip);
 
 	/** \name spatial description */
 	/*@{*/
@@ -60,12 +65,30 @@ class DPSSKStV: public SSSolidMatT,
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/* set modulus */
  	virtual void SetModulus(dMatrixT& modulus); 
  
 private:
+
+	/** Drucker-Prager plasticity with linear hardening */
+	DPSSLinHardT* fDP;
   
   	/* return values */
   	dSymMatrixT	fStress;

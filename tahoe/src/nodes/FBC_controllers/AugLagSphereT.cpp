@@ -1,15 +1,12 @@
-/* $Id: AugLagSphereT.cpp,v 1.11 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: AugLagSphereT.cpp,v 1.12 2004-07-15 08:31:15 paklein Exp $ */
 /* created: paklein (03/24/1999) */
 #include "AugLagSphereT.h"
-
-#include <iostream.h>
-#include <iomanip.h>
-
-#include "toolboxConstants.h"
-#include "FEManagerT.h"
-#include "XDOF_ManagerT.h"
-#include "eIntegratorT.h"
 #include "FieldT.h"
+#include "eIntegratorT.h"
+#include "FieldSupportT.h"
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
+#include "XDOF_ManagerT.h"
 
 using namespace Tahoe;
 
@@ -17,41 +14,9 @@ using namespace Tahoe;
 const int kNumAugLagDOF = 1;
 
 /* constructor */
-AugLagSphereT::AugLagSphereT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
-	const FieldT& field, const dArray2DT& coords, const dArray2DT& disp):
-	PenaltySphereT(fe_manager,
-		field.Group(),
-		field.Equations(), 
-		coords,
-		disp,
-		(field.Order() > 0) ? &(field[1]): NULL),
-	fXDOF_Nodes(XDOF_nodes),
-	fField(field)
+AugLagSphereT::AugLagSphereT(void)
 {
-	/* (re-)dimension the tangent matrix */
-	fLHS.Dimension(rEqnos.MinorDim() + 1); // additional DOF
-}
-
-/* initialize data */
-void AugLagSphereT::Initialize(void)
-{
-	/* inherited */
-	PenaltySphereT::Initialize();
-	
-	/* set dimensions */
-	int numDOF = rEqnos.MinorDim() + 1; // additional DOF
-	fContactEqnos.Dimension(fNumContactNodes*numDOF);
-	fContactEqnos2D.Set(fNumContactNodes, numDOF, fContactEqnos.Pointer());
-	
-	/* allocate memory for force vector */
-	fContactForce2D.Dimension(fNumContactNodes, numDOF);
-	fContactForce.Set(fNumContactNodes*numDOF, fContactForce2D.Pointer());
-	fContactForce2D = 0.0;
-
-	/* register with node manager - sets initial fContactDOFtags */
-	iArrayT set_dims(1);
-	set_dims = kNumAugLagDOF;
-	fXDOF_Nodes->XDOF_Register(this, set_dims);	
+	SetName("sphere_augmented_Lagrangian");
 }
 
 void AugLagSphereT::SetEquationNumbers(void)
@@ -67,11 +32,11 @@ void AugLagSphereT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 #pragma unused(eq_2)
 
 	/* dimensions */
-	int ndof_u = rCoords.MinorDim();
+	int ndof_u = Field().NumDOF();
 
 	/* collect displacement DOF's */
 	iArray2DT disp_eq(fContactNodes.Length(), ndof_u);
-	fField.SetLocalEqnos(fContactNodes, disp_eq);
+	Field().SetLocalEqnos(fContactNodes, disp_eq);
 
 	int eq_col = 0;
 	iArrayT eq_temp(fContactNodes.Length());
@@ -84,7 +49,7 @@ void AugLagSphereT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	}
 
 	/* constraint equations */
-	const iArray2DT& auglageqs = fXDOF_Nodes->XDOF_Eqnos(this, 0);
+	const iArray2DT& auglageqs = FieldSupport().XDOF_Manager().XDOF_Eqnos(this, 0);
 	for (int j = 0; j < auglageqs.MinorDim(); j++)
 	{
 		auglageqs.ColumnCopy(j, eq_temp);
@@ -127,7 +92,7 @@ void AugLagSphereT::CloseStep(void)
 
 	/* store last converged DOF array */
 	dArrayT constraints;
-	constraints.Alias(fXDOF_Nodes->XDOF(this, 0));
+	constraints.Alias(FieldSupport().XDOF_Manager().XDOF(this, 0));
 	fLastDOF = constraints;
 }
 
@@ -152,11 +117,11 @@ void AugLagSphereT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	if (!formK) return;
 
 	/* get current values of constraints */
-	const dArray2DT& constr = fXDOF_Nodes->XDOF(this, 0);
+	const dArray2DT& constr = FieldSupport().XDOF_Manager().XDOF(this, 0);
 	const dArrayT force(constr.MajorDim(), constr.Pointer());
 
 	/* workspace */
-	int nsd = rCoords.MinorDim();
+	int nsd = FieldSupport().NumSD();
 	dArrayT norm(nsd);
 	dArrayT vec;
 	dMatrixT ULblock(nsd);
@@ -207,7 +172,7 @@ void AugLagSphereT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 		
 		/* send to global equations */
 		fContactEqnos2D.RowAlias(i,fi_sh);
-		fFEManager.AssembleLHS(fGroup, fLHS,fi_sh);
+		FieldSupport().AssembleLHS(fGroup, fLHS,fi_sh);
 	}	
 }
 
@@ -249,7 +214,32 @@ const iArray2DT& AugLagSphereT::DOFConnects(int tag_set) const
 int AugLagSphereT::Reconfigure(void) { return 0; }
 
 /* return the equation group */
-int AugLagSphereT::Group(void) const { return fField.Group(); };
+int AugLagSphereT::Group(void) const { return Field().Group(); };
+
+/* accept parameter list */
+void AugLagSphereT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	PenaltySphereT::TakeParameterList(list);
+
+	/* (re-)dimension the tangent matrix */
+	int ndof = Field().NumDOF() + 1; // additional DOF
+	fLHS.Dimension(ndof); 
+
+	/* set dimensions */
+	fContactEqnos.Dimension(fNumContactNodes*ndof);
+	fContactEqnos2D.Set(fNumContactNodes, ndof, fContactEqnos.Pointer());
+	
+	/* allocate memory for force vector */
+	fContactForce2D.Dimension(fNumContactNodes, ndof);
+	fContactForce.Set(fNumContactNodes*ndof, fContactForce2D.Pointer());
+	fContactForce2D = 0.0;
+
+	/* register with node manager - sets initial fContactDOFtags */
+	iArrayT set_dims(1);
+	set_dims = kNumAugLagDOF;
+	FieldSupport().XDOF_Manager().XDOF_Register(this, set_dims);	
+}
 
 /**********************************************************************
 * Private
@@ -259,16 +249,17 @@ int AugLagSphereT::Group(void) const { return fField.Group(); };
 void AugLagSphereT::ComputeContactForce(double kforce)
 {
 	/* dimensions */
-	int ndof_u = rCoords.MinorDim();
+	int ndof_u = Field().NumDOF();
 	int ndof   = fContactForce2D.MinorDim();
 
 	/* initialize */
 	fContactForce2D = 0.0;	
 
 	/* get current values of constraints */
-	const dArray2DT& constr = fXDOF_Nodes->XDOF(this, 0);
+	const dArray2DT& constr = FieldSupport().XDOF_Manager().XDOF(this, 0);
 	const dArrayT force(constr.MajorDim(), constr.Pointer());
 
+	const dArray2DT& coords = FieldSupport().CurrentCoordinates();
 	dArrayT f_u;
 	for (int i = 0; i < fNumContactNodes; i++)
 	{
@@ -276,7 +267,7 @@ void AugLagSphereT::ComputeContactForce(double kforce)
 		f_u.Set(ndof_u, fContactForce2D(i));
 	
 		/* center to striker */
-		rCoords.RowCopy(fContactNodes[i], fv_OP);
+		coords.RowCopy(fContactNodes[i], fv_OP);
 		fv_OP -= fx;
 		
 		/* augmented Lagrangian multiplier */

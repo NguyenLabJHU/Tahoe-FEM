@@ -37,10 +37,6 @@ class KineticEqnBase
   virtual double DhDeqpdot (double eqpdot, double s) = 0;
   virtual double DhDs      (double eqpdot, double s) = 0;
 
-  // print data and model name
-  virtual void Print(ostream& out) const = 0;
-  virtual void PrintName(ostream& out) const = 0;
-
  protected:
   // array of material properties
   dArrayT fMatProp;

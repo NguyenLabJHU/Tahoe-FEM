@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.17 2003-06-09 06:44:36 paklein Exp $ */
+/* $Id: TiedPotentialT.h,v 1.18 2004-07-15 08:26:02 paklein Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -47,12 +47,6 @@ public:
 
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
-
-	/** write model name to output */
-	virtual void PrintName(ostream& out) const;
-
-	/** write model parameters */
-	virtual void Print(ostream& out) const;
 
 	/** return the number of output variables. returns 0 by default. */
 	virtual int NumOutputVariables(void) const;

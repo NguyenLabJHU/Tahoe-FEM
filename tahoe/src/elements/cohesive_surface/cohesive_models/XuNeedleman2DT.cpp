@@ -1,13 +1,10 @@
-/* $Id: XuNeedleman2DT.cpp,v 1.16 2004-06-17 07:13:28 paklein Exp $ */
+/* $Id: XuNeedleman2DT.cpp,v 1.17 2004-07-15 08:26:02 paklein Exp $ */
 /* created: paklein (11/14/1997) */
-
 #include "XuNeedleman2DT.h"
 
 #include <iostream.h>
 #include <math.h>
-
 #include "ExceptionT.h"
-#include "ifstreamT.h"
 
 using namespace Tahoe;
 
@@ -16,23 +13,18 @@ const int    knumDOF = 2;
 const double kExpMax = 100;
 
 /* constructor */
-XuNeedleman2DT::XuNeedleman2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
+XuNeedleman2DT::XuNeedleman2DT(void): 
+	SurfacePotentialT(knumDOF),
+	q(0.0),
+	r(0.0),
+	d_n(0.0),
+	d_t(0.0),
+	phi_n(0.0),
+	r_fail(0.0),
+	fKratio(0.0),
+	fK(0.0)
 {
-	in >> q; // phi_t/phi_n
-	in >> r; // delta_n* /d_n
-	if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
-	
-	in >> d_n; // characteristic normal opening
-	in >> d_t; // characteristic tangent opening
-	if (d_n < 0.0 || d_t < 0.0) throw ExceptionT::kBadInputValue;
-	
-	in >> phi_n; // mode I work to fracture
-	if (phi_n < 0.0) throw ExceptionT::kBadInputValue;
-	in >> r_fail; // d/d_(n/t) for which surface is considered failed
-	if (r_fail < 1.0) throw ExceptionT::kBadInputValue;
-	in >> fKratio; // stiffening ratio
-	if (fKratio < 0.0) throw ExceptionT::kBadInputValue;
-	fK = fKratio*phi_n/(d_n*d_n);
+	SetName("Xu-Needleman_2D");
 }
 
 /* surface potential */
@@ -116,12 +108,7 @@ const dArrayT& XuNeedleman2DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	z10 = exp(z6); //don't limit shear opening
 	// limit compressive deformation
 	if (z7 > kExpMax)
-	{
-#ifndef _SIERRA_TEST_	
-		cout << "\n XuNeedleman2DT::Traction: exp(x): x = " << z7 << " > kExpMax" << endl;
-#endif		
-		throw ExceptionT::kBadJacobianDet;
-	}
+		ExceptionT::BadJacobianDet("XuNeedleman2DT::Traction", "exp(x): x = %g > kExpMax", z7);
 	z11 = exp(z7);
 	z6 = z6 + z7; // since (z6 < 0), (z6' < z7) and z7 is checked above
 	z7 = z3*z4*z8;
@@ -235,13 +222,7 @@ SurfacePotentialT::StatusT XuNeedleman2DT::Status(const dArrayT& jump_u, const A
 		return Precritical;
 }
 
-void XuNeedleman2DT::PrintName(ostream& out) const
-{
-#ifndef _SIERRA_TEST_
-	out << "    Xu-Needleman 2D\n";
-#endif
-}
-
+#if 0
 /* print parameters to the output stream */
 void XuNeedleman2DT::Print(ostream& out) const
 {
@@ -254,4 +235,62 @@ void XuNeedleman2DT::Print(ostream& out) const
 	out << " Failure ratio (d_n/delta_n or d_t/delta_t). . . = " << r_fail   << '\n';
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fKratio << '\n';
 #endif
+}
+#endif
+
+/* describe the parameters  */
+void XuNeedleman2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SurfacePotentialT::DefineParameters(list);
+
+	ParameterT q_(q, "q");
+	q_.AddLimit(0.0, LimitT::Lower);
+	q_.AddLimit(1.0, LimitT::UpperInclusive);
+	q_.SetDefault(1.0);
+	list.AddParameter(q_);
+
+	ParameterT r_(r, "r");
+	r_.AddLimit(0.0, LimitT::LowerInclusive);
+	r_.AddLimit(1.0, LimitT::Upper);
+	r_.SetDefault(0.0);
+	list.AddParameter(r_);
+
+	ParameterT d_n_(d_n, "d_n");
+	d_n_.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(d_n_);
+
+	ParameterT d_t_(d_t, "d_t");
+	d_t_.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(d_t_);
+
+	ParameterT phi_n_(d_t, "phi_n");
+	phi_n_.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(phi_n_);
+
+	ParameterT r_fail_(r_fail, "r_fail");
+	r_fail_.AddLimit(1.0, LimitT::LowerInclusive);
+	list.AddParameter(r_fail_);
+
+	ParameterT Kratio(fKratio, "K_ratio");
+	Kratio.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(Kratio);
+}
+
+/* accept parameter list */
+void XuNeedleman2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SurfacePotentialT::TakeParameterList(list);
+
+	q = list.GetParameter("q");
+	r = list.GetParameter("r");
+	d_n = list.GetParameter("d_n");
+	d_t = list.GetParameter("d_t");
+	phi_n = list.GetParameter("phi_n");
+	r_fail = list.GetParameter("r_fail");
+	fKratio = list.GetParameter("K_ratio");
+
+	/* penetration stiffness */
+	fK = fKratio*phi_n/(d_n*d_n);
 }

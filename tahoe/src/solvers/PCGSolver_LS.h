@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.h,v 1.7 2004-01-05 07:07:19 paklein Exp $ */
+/* $Id: PCGSolver_LS.h,v 1.8 2004-07-15 08:31:50 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #ifndef _PCG_SOLVER_LS_H_
 #define _PCG_SOLVER_LS_H_
@@ -17,10 +17,7 @@ class PCGSolver_LS: public NLSolver
 public:
 
 	/** \name constructors */
-	/*@{*/
-	PCGSolver_LS(FEManagerT& fe_manager);
 	PCGSolver_LS(FEManagerT& fe_manager, int group);
-	/*@}*/
 
 	/** (re-)configure the global equation system */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
@@ -31,6 +28,9 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:

@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.13 2004-06-28 22:41:14 hspark Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.14 2004-07-15 08:26:27 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpdatedLagrangianT.h"
 
@@ -6,7 +6,6 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "ifstreamT.h"
 #include "toolboxConstants.h"
 #include "SolidMaterialT.h"
 #include "ShapeFunctionT.h"
@@ -14,18 +13,11 @@
 using namespace Tahoe;
 
 /* constructor */
-UpdatedLagrangianT::UpdatedLagrangianT(const ElementSupportT& support, const FieldT& field):
-	FiniteStrainT(support, field),
-	fCauchyStress(NumSD()),
+UpdatedLagrangianT::UpdatedLagrangianT(const ElementSupportT& support):
+	FiniteStrainT(support),
 	fLocCurrCoords(LocalArrayT::kCurrCoords)
 {
-	/* consistency check */
-	if (ElementSupport().Analysis() == GlobalT::kLinStatic ||
-	    ElementSupport().Analysis() == GlobalT::kLinDynamic)
-	{
-		cout << "\nUpdatedLagrangianT::UpdatedLagrangianT: no current coordinates required\n" << endl;
-		fLocCurrCoords.SetType(LocalArrayT::kInitCoords);
-	}	
+	SetName("updated_lagrangian");
 }
 
 /* destructors */
@@ -35,20 +27,23 @@ UpdatedLagrangianT::~UpdatedLagrangianT(void)
 	fCurrShapes = NULL;
 }
 
-/* data initialization */
-void UpdatedLagrangianT::Initialize(void)
+/* accept parameter list */
+void UpdatedLagrangianT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	FiniteStrainT::Initialize();
-
-	/* dimension */
-	fGradNa.Dimension(NumSD(), NumElementNodes());
-	fStressStiff.Dimension(NumElementNodes());
+	FiniteStrainT::TakeParameterList(list);
+	
+	/* allocate workspace */
+	int nsd = NumSD();
+	int nen = NumElementNodes();
+	fCauchyStress.Dimension(nsd);
+	fGradNa.Dimension(nsd, nen);
+	fStressStiff.Dimension(nen);
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* initialize local arrays */
 void UpdatedLagrangianT::SetLocalArrays(void)

@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.h,v 1.6 2003-10-30 17:15:21 paklein Exp $ */
+/* $Id: ThermostatBaseT.h,v 1.7 2004-07-15 08:29:54 paklein Exp $ */
 #ifndef _THERMOSTAT_BASE_T_H_
 #define _THERMOSTAT_BASE_T_H_
 
@@ -21,7 +21,7 @@ namespace Tahoe {
 class ifstreamT;
 class dArray2DT;
 class ParticlePropertyT;
-class ModelManagerT;
+class BasicSupportT;
 
 /** base class for thermostatting and damping */
 class ThermostatBaseT: public ParameterInterfaceT
@@ -41,13 +41,9 @@ public:
    					kNodes = 0, /**< apply to some or all nodesets */
     			   kRegion = 1 /**< apply to nodes in region of space */
 	}; 
-	
-	/** stream extraction operators */
-	friend istream& operator>>(istream& in, ThermostatBaseT::ThermostatT& property);	
 
 	/** constructor */
-	ThermostatBaseT(ifstreamT& in, const int& nsd, const double& dt);
-	ThermostatBaseT(void);
+	ThermostatBaseT(const BasicSupportT& support);
 
 	/** destructor */
 	virtual ~ThermostatBaseT(void) {};
@@ -61,9 +57,6 @@ public:
 	/** nodes that are thermostatted */
 	iArrayT& NodeList(void); 
 	
-	/** write properties to output */
-	virtual void Write(ostream& out) const;
-	
 	/** write restart information */
 	virtual void WriteRestart(ostream& out) const;
 	
@@ -74,46 +67,56 @@ public:
 	virtual void ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
 			dArray2DT& forces, AutoArrayT<int>& types,
 			ArrayT<ParticlePropertyT*>& particleProperties);
-			
-	/** receive temperature schedule */
-	void SetTemperatureSchedule(const ScheduleT* schedule, const double& value);
-			
-	/** Initialize nodes to thermostat by NodeSet */		
-	virtual void InitNodeSets(ifstreamT& in, ModelManagerT& model);
-	
-	/** Initialize nodes to thermostat by spatial coords */
-	virtual void InitRegion(ifstreamT& in, const dArray2DT& coords,	
-					const ArrayT<int>* partition_nodes);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
 
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
+
+	/** \name particle picking methods */
+	/*@{*/
+	/** initialize nodes to thermostat by NodeSet */		
+	virtual void InitNodeSets(const ParameterListT& pick_nodes);
 	
-	/* Generate a node set based on spatial region */
-	void NodesInRegion(const dArray2DT& coords,	
-					const ArrayT<int>* partition_nodes);
+	/** initialize nodes to thermostat by spatial coords */
+	virtual void InitRegion(const ParameterListT& pick_region);
+	/*@}*/
+
+	/** generate a node set based on spatial region */
+	void NodesInRegion(const dArray2DT& coords, const ArrayT<int>* partition_nodes);
 	
 protected:
+
+	/** \name host code support */
+	const BasicSupportT& fSupport;
 
 	/** \name properties */
 	/*@{*/
 	double fBeta;	
 	double fTemperature;
-	double fTimeStep;
+//	double fTimeStep;
 	/*@}*/
 	
-	/** Nodes that are thermostatted */
+	/** \name nodes that are thermostatted */
+	/*@{*/
+	bool fAllNodes;
 	iArrayT fNodes;
+	/*@}*/
 	
 	/** Number of spatial dimensions */
-	int fSD;
+//	int fSD;
 		
 	/** \name Region paramters */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.74 2004-06-26 18:38:08 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.75 2004-07-15 08:31:03 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -8,11 +8,7 @@
 #include <float.h>
 #include <ctype.h>
 
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
-
 #include "ifstreamT.h"
-#include "ofstreamT.h"
 #include "TimeManagerT.h"
 #include "ModelManagerT.h"
 #include "ElementBaseT.h"
@@ -24,6 +20,7 @@
 #include "nIntegratorT.h"
 #include "CommunicatorT.h"
 #include "CommManagerT.h"
+#include "ParameterContainerT.h"
 
 /* nodes */
 #include "NodeManagerT.h"
@@ -51,10 +48,10 @@ const char kProgramName[] = "tahoe";
 const char* FEManagerT::Version(void) { return kCurrentVersion; }
 
 /* constructor */
-FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm, const ArrayT<StringT>& argv):
+FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm, const ArrayT<StringT>& argv):
 	ParameterInterfaceT("tahoe"),
 	fArgv(argv),
-	fMainIn(input),
+	fInputFile(input_file),
 	fMainOut(output),
 	fComm(comm),
 	fPrintInput(false),
@@ -71,7 +68,8 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
 	fActiveEquationStart(0),
 	fGlobalNumEquations(0),
 	fCurrentGroup(-1),
-	fAnalysisCode(GlobalT::kNoAnalysis)
+	fAnalysisCode(GlobalT::kNoAnalysis),
+	fInitCode(kFull)
 {
 	/* console name */
 	iSetName("FE_manager");
@@ -106,9 +104,6 @@ FEManagerT::~FEManagerT(void)
 	
 	for (int i = 0; i < fSolvers.Length(); i++)
 		delete fSolvers[i];
-	
-	for (int i = 0; i < fIntegrators.Length(); i++)
-		delete fIntegrators[i];
 
 	delete fIOManager;
 	delete fModelManager;
@@ -116,91 +111,6 @@ FEManagerT::~FEManagerT(void)
 	
 	fStatus = GlobalT::kNone;	
 }
-
-/* initialize members */
-void FEManagerT::Initialize(InitCodeT init)
-{
-	bool verbose = false;
-#ifdef __CPLANT__
-	verbose = true;
-#endif
-
-	/* state */
-	fStatus = GlobalT::kInitialization;
-
-	/* verify file */
-	CheckInputFile();
-	
-	/* get title */
-	fMainIn.next_char();
-	fTitle.GetLineFromStream(fMainIn);
-	cout << "\n Title: " << fTitle << endl;
-	
-	/* set model manager */
-	fModelManager = new ModelManagerT(fMainOut);
-	if (!fModelManager) throw ExceptionT::kOutOfMemory;
-	if (verbose) cout << "    FEManagerT::Initialize: input" << endl;
-
-	/* main parameters */
-	ReadParameters(init);
-	if (init == kParametersOnly) return;
-	WriteParameters();
-	if (verbose) cout << "    FEManagerT::Initialize: execution parameters" << endl;
-
-	/* construct IO manager - configure in SetOutput below */
-	StringT file_name(fMainIn.filename());
-	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle,
-		file_name, fOutputFormat);	
-	if (!fIOManager) throw ExceptionT::kOutOfMemory;
-
-	/* set communication manager */
-	fCommManager = New_CommManager();
-	if (!fCommManager) throw ExceptionT::kOutOfMemory;
-	if (verbose) cout << "    FEManagerT::Initialize: comm manager" << endl;
-	
-	/* construct the managers */
-	fTimeManager = new TimeManagerT(*this);
-	fTimeManager->Initialize();
-	if (!fTimeManager) throw ExceptionT::kOutOfMemory;
-	iAddSub(*fTimeManager);
-	if (verbose) cout << "    FEManagerT::Initialize: time" << endl;
-
-	/* set time integration integrator */
-	SetIntegrator();
-	if (verbose) cout << "    FEManagerT::Initialize: integrator" << endl;
-
-	/* initial configuration of communication manager */
-	if (fModelManager->DatabaseFormat() != IOBaseT::kTahoe)
-		fCommManager->Configure();
-
-	/* set fields */
-	SetNodeManager();
-	fCommManager->SetNodeManager(fNodeManager);
-	if (verbose) cout << "    FEManagerT::Initialize: nodal data" << endl;
-	
-	/* construct element groups */
-	SetElementGroups();
-	if (verbose) cout << "    FEManagerT::Initialize: element groups" << endl;
-
-	/* initial configuration of communication manager */
-	if (0 && fModelManager->DatabaseFormat() == IOBaseT::kTahoe)
-	{
-		//TEMP
-		ExceptionT::Stop("FEManagerT::Initialize", "kTahoe format not supported");
-	
-		fCommManager->Configure();
-		//call to tell everything to reconfigure
-	}
-
-	/* set output manager */
-	SetOutput();
-	if (verbose) cout << "    FEManagerT::Initialize: io" << endl;
-	if (init == kAllButSolver) return;
-
-	/* set solution driver */
-	SetSolver();
-	if (verbose) cout << "    FEManagerT::Initialize: solver" << endl;
-}	
 
 /* solve all the time sequences */
 void FEManagerT::Solve(void)
@@ -466,12 +376,13 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 		bool all_pass = false;
 		SolverT::SolutionStatusT status = SolverT::kContinue;
 
+		/* clear status */
+		fSolverPhasesStatus = 0;
+
 		while (!all_pass && 
 			(fMaxSolverLoops == -1 || loop_count < fMaxSolverLoops) &&
 			status != SolverT::kFailed)
 		{
-			/* clear status */
-			fSolverPhasesStatus = 0;
 		 
 			/* one solver after the next */
 			all_pass = true;
@@ -487,13 +398,14 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 				
 				/* check result */
 				fSolverPhasesStatus(i, kGroup) = fCurrentGroup;
+				int last_iter = fSolverPhasesStatus(i, kIteration);
 				fSolverPhasesStatus(i, kIteration) = fSolvers[fCurrentGroup]->IterationNumber();
 				if (status == SolverT::kFailed) {
 					all_pass = false;
 					fSolverPhasesStatus(i, kPass) = -1;					
 				}
 				else if (status == SolverT::kConverged && 
-					(pass == -1 || fSolverPhasesStatus(i, kPass) <= pass))
+					(pass == -1 || (fSolverPhasesStatus(i, kIteration) - last_iter) <= pass))
 				{
 					all_pass = all_pass && true; /* must all be true */
 					fSolverPhasesStatus(i, kPass) = 1;
@@ -512,7 +424,7 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 			if (fSolverPhases.MajorDim() > 1)
 			{
 				cout << "\n Solver status: pass " << loop_count << '\n';
-				cout << setw(kIntWidth) << "#"
+				cout << setw(kIntWidth) << "phase"
 				     << setw(kIntWidth) << "solver"
 				     << setw(kIntWidth) << "its."
 				     << setw(kIntWidth) << "pass" << '\n';
@@ -765,8 +677,7 @@ void FEManagerT::WriteOutput(double time)
 	catch (ExceptionT::CodeT error) { ExceptionT::Throw(error, "FEManagerT::WriteOutput"); }
 }
 
-void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values,
-	const dArray2DT& e_values)
+void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const
 {
 	fIOManager->WriteOutput(ID, n_values, e_values);
 }
@@ -793,7 +704,7 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 	{
 		/* file name */
 		StringT io_file;
-		io_file.Root(fMainIn.filename()); // drop ".in"
+		io_file.Root(fInputFile); // drop ".in"
 		io_file.Root();                   // drop ".p0"
 		io_file.Append(".io.ID");
 
@@ -896,7 +807,7 @@ void FEManagerT::RestoreOutput(void)
 ElementBaseT* FEManagerT::ElementGroup(int groupnumber) const
 {
 	/* check range */
-	if (groupnumber > -1 && groupnumber < fElementGroups->Length())
+	if (fElementGroups && groupnumber > -1 && groupnumber < fElementGroups->Length())
 		return (*fElementGroups)[groupnumber];
 	else
 		return NULL;
@@ -951,27 +862,13 @@ int FEManagerT::GetGlobalNumEquations(int group) const
 	return fNodeManager->NumEquations(group);
 }
 
-/* access to integrators */
-const eIntegratorT* FEManagerT::eIntegrator(int index) const
-{
-	/* cast to eIntegratorT */
-  return &(fIntegrators[index]->eIntegrator());
-}
-
-const nIntegratorT* FEManagerT::nIntegrator(int index) const
-{
-	/* cast to nIntegratorT */
-  return &(fIntegrators[index]->nIntegrator());
-}
-
 void FEManagerT::SetTimeStep(double dt) const
 {
 	/* update the time manager */
 	fTimeManager->SetTimeStep(dt);
 
-	/* update all integrators */
-	for (int i = 0; i < fIntegrators.Length(); i++)
-		fIntegrators[i]->SetTimeStep(dt);
+	/* update all fields */
+	fNodeManager->SetTimeStep(dt);
 
 	/* update all solvers */
 	for (int i = 0; i < fSolvers.Length(); i++)
@@ -1151,6 +1048,10 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	ParameterInterfaceT::DefineParameters(list); 
 
+	/* information */
+	list.AddParameter(ParameterT::String, "title", ParameterListT::ZeroOrOnce);
+	list.AddParameter(ParameterT::String, "author", ParameterListT::ZeroOrOnce);
+
 	/* geometry file format */
 	ParameterT geometry_format(ParameterT::Enumeration, "geometry_format");
 	geometry_format.AddEnumeration("TahoeII", IOBaseT::kTahoeII);
@@ -1161,7 +1062,7 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(geometry_format);
 
 	/* geometry file */
-	list.AddParameter(ParameterT(ParameterT::String, "geometry_file"));
+	list.AddParameter(ParameterT(ParameterT::Word, "geometry_file"));
 
 	/* output format */
 	ParameterT output_format(ParameterT::Enumeration, "output_format");
@@ -1175,7 +1076,7 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(output_format);
 
 	/* restart file name */
-	list.AddParameter(ParameterT(ParameterT::String, "restart_file"), ParameterListT::ZeroOrOnce);
+	list.AddParameter(ParameterT(ParameterT::Word, "restart_file"), ParameterListT::ZeroOrOnce);
 
 	/* restart output increment */
 	ParameterT restart_output_inc(ParameterT::Integer, "restart_output_inc");
@@ -1190,17 +1091,172 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 
 	/* solve for initial conditions */
 	ParameterT compute_IC(ParameterT::Boolean, "compute_IC");
-	compute_IC.SetDefault(false);
+	compute_IC.SetDefault(true);
 	list.AddParameter(compute_IC);
 }
 
 /* accept parameter list */
 void FEManagerT::TakeParameterList(const ParameterListT& list)
 {
+	const char caller[] = "FEManagerT::TakeParameterList";
+
+	/* state */
+	fStatus = GlobalT::kInitialization;
+
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
+
+	/* path to parameters file */
+	StringT path;
+	path.FilePath(fInputFile);
+
+	/* geometry database parameters */
+	IOBaseT::FileTypeT format = IOBaseT::int_to_FileTypeT(list.GetParameter("geometry_format"));
+	StringT database;
+	database = list.GetParameter("geometry_file");
+	if (database.StringLength() == 0)
+		ExceptionT::BadInputValue(caller, "\"geometry_file\" is empty");
+	database.ToNativePathName();      
+	database.Prepend(path);
+	if (Size() > 1) /* decomposed geometry file */ {
+		StringT suffix;
+		suffix.Suffix(database);
+		database.Root();
+		database.Append(".n", Size());
+		database.Append(".p", Rank());
+		database.Append(suffix);
+	}
+
+	/* output format */
+	fOutputFormat = IOBaseT::int_to_FileTypeT(list.GetParameter("output_format"));
 	
-	//not implemented
+	/* restart files */
+	const ParameterT* restart_file = list.Parameter("restart_file");
+	if (restart_file) {
+		fRestartFile = *restart_file;
+		fRestartFile.ToNativePathName();
+	    fRestartFile.Prepend(path);
+	    
+	    fReadRestart = true; //TEMP - still need this?
+	}
+	else
+		fReadRestart = false; //TEMP - still need this?
+	fWriteRestart = list.GetParameter("restart_output_inc");
+
+	/* verbose echo */
+	fPrintInput = list.GetParameter("echo_input");
+	
+	/* compute the initial conditions */
+	fComputeInitialCondition = list.GetParameter("compute_IC");
+
+	/* initialize the model manager */
+	fModelManager = new ModelManagerT(fMainOut);
+	if (!fModelManager) ExceptionT::OutOfMemory(caller);
+	if (!fModelManager->Initialize(format, database, true)) /* conditions under which to scan model */
+		ExceptionT::BadInputValue(caller, "error initializing model manager");
+
+	/* construct IO manager - configure in SetOutput below */
+	StringT file_name(fInputFile);
+	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle, file_name, fOutputFormat);	
+	if (!fIOManager) ExceptionT::OutOfMemory(caller);
+
+	/* set communication manager */
+	fCommManager = New_CommManager();
+	if (!fCommManager) ExceptionT::OutOfMemory(caller);
+	fCommManager->Configure();
+
+	/* construct time manager */
+	const ParameterListT* time_params = list.List("time");
+	if (!time_params)
+		ExceptionT::GeneralFail(caller, "missing \"time\" parameters");
+	fTimeManager = new TimeManagerT(*this);
+	if (!fTimeManager) ExceptionT::OutOfMemory(caller);
+	fTimeManager->TakeParameterList(*time_params);
+	iAddSub(*fTimeManager);	
+
+	/* set fields */
+	const ParameterListT* node_params = list.List("nodes");
+	if (!node_params) ExceptionT::BadInputValue(caller);
+	fNodeManager = new NodeManagerT(*this, *fCommManager);
+	fNodeManager->TakeParameterList(*node_params);
+	iAddSub(*fNodeManager);
+	fCommManager->SetNodeManager(fNodeManager);
+
+	/* construct element groups */
+	fElementGroups = new ElementListT(*this);
+	const ParameterListT* element_list = list.List("element_list");
+	if (element_list) {
+		fElementGroups->TakeParameterList(*element_list);
+		for (int i = 0; i < fElementGroups->Length(); i++)
+			iAddSub(*((*fElementGroups)[i])); /* set console */
+	}
+
+	/* set output manager */
+	SetOutput();
+
+	/* construct solvers */
+	const ArrayT<ParameterListT>& lists = list.Lists();
+	AutoArrayT<SolverT*> solvers_tmp;
+	for (int i = 0; i < lists.Length(); i++)
+	{
+		SolverT* solver = SolverT::New(*this, lists[i].Name(), solvers_tmp.Length());
+		if (solver) {
+			solver->TakeParameterList(lists[i]);
+			solvers_tmp.Append(solver);
+		}
+	}
+	fSolvers.Swap(solvers_tmp);
+
+	/* solver phases */
+	const ParameterListT* solver_phases = list.List("solver_phases");
+	AutoArrayT<int> solver_list;
+	if (solver_phases) 
+	{
+		fMaxSolverLoops = solver_phases->GetParameter("max_loops");
+		
+		const ArrayT<ParameterListT>& phases = solver_phases->Lists();
+		fSolverPhases.Dimension(phases.Length(), 3);
+		for (int i = 0; i < fSolverPhases.MajorDim(); i++) {
+
+			const ParameterListT& phase = phases[i];
+
+			/* check */
+			if (phase.Name() != "solver_phase")
+				ExceptionT::GeneralFail(caller, "expecting \"solver_phase\" not \"%s\"", phase.Name().Pointer());
+		
+			fSolverPhases(i,0) = phase.GetParameter("solver");
+			fSolverPhases(i,1) = phase.GetParameter("iterations");
+			fSolverPhases(i,2) = phase.GetParameter("pass_iterations");
+			
+			fSolverPhases(i,0)--;
+			solver_list.AppendUnique(fSolverPhases(i,0));
+		}
+	} 
+	else /* set default number of loops */
+		fMaxSolverLoops  = 1;
+	
+	/* set default phases */
+	if (fSolverPhases.MajorDim() == 0) {
+		fSolverPhases.Dimension(1, 3);
+		fSolverPhases(0,0) = 0;
+		fSolverPhases(0,1) =-1;
+		fSolverPhases(0,2) =-1;
+		solver_list.Append(0);	
+	}
+
+	/* dimension solver phase status array */
+	fSolverPhasesStatus.Dimension(fSolverPhases.MajorDim(), kNumStatusFlags);
+	fSolverPhasesStatus = 0;
+	
+	/* check that all solvers hit at least once */
+	if (solver_list.Length() != fSolvers.Length())
+		ExceptionT::BadInputValue(caller, "must have at least one phase per solver");
+
+//TEMP - don't allocate the global equation system
+if (fInitCode == kAllButSolver) return;
+
+	/* set equation systems */
+	SetSolver();
 }
 
 /* information about subordinate parameter lists */
@@ -1216,52 +1272,82 @@ void FEManagerT::DefineSubs(SubListT& sub_list) const
 	sub_list.AddSub("nodes");
 
 	/* element list */
-	sub_list.AddSub("element_list");
+	sub_list.AddSub("element_list", ParameterListT::ZeroOrOnce);
 
-	/* node manager */
+	/* solvers */
 	sub_list.AddSub("solvers", ParameterListT::OnePlus, true);
+	
+	/* solver phases */
+	sub_list.AddSub("solver_phases", ParameterListT::ZeroOrOnce);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* FEManagerT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* FEManagerT::NewSub(const StringT& name) const
 {
 	FEManagerT* non_const_this = (FEManagerT*) this;
 
-	if (list_name == "time")
+	/* try to construct solver */
+	SolverT* solver = SolverT::New(*non_const_this, name, -1);
+	if (solver)
+		return solver;
+	else if (name == "time")
 		return new TimeManagerT(*non_const_this);
-	else if (list_name == "nodes")
+	else if (name == "nodes")
 		return new NodeManagerT(*non_const_this, *fCommManager);
-	else if (list_name == "element_list")
+	else if (name == "element_list")
 		return new ElementListT(*non_const_this);
-	else if (list_name == "linear_solver")
-		return non_const_this->New_Solver(GlobalT::kLinearSolver);
-	else if (list_name == "nonlinear_solver")
-		return non_const_this->New_Solver(GlobalT::kNewtonSolver);	
-	else if (list_name == "PCG_solver")
-		return non_const_this->New_Solver(GlobalT::kPCGSolver_LS);	
+	else if (name == "solver_phases")
+	{
+		ParameterContainerT* solver_phases = new ParameterContainerT(name);
+		solver_phases->SetSubSource(this);
+	
+		/* number of passes through the phases */
+		ParameterT max_loops(fMaxSolverLoops, "max_loops");
+		max_loops.AddLimit(1, LimitT::LowerInclusive);
+		max_loops.SetDefault(1);
+		solver_phases->AddParameter(max_loops, ParameterListT::ZeroOrOnce);
+	
+		/* phase description */
+		solver_phases->AddSub("solver_phase", ParameterListT::OnePlus);
+		
+		return solver_phases;
+	}
+	else if (name == "solver_phase")
+	{
+		ParameterContainerT* solver_phase = new ParameterContainerT(name);
+
+		solver_phase->AddParameter(ParameterT::Integer, "solver");
+		solver_phase->AddParameter(ParameterT::Integer, "iterations");
+		solver_phase->AddParameter(ParameterT::Integer, "pass_iterations");
+		
+		return solver_phase;
+	}
 	else /* inherited */
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /* return the description of the given inline subordinate parameter list */
-void FEManagerT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void FEManagerT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "solvers")
+	if (name == "solvers")
 	{
 		order = ParameterListT::Choice;
 
 		/* linear solver */
-		sub_sub_list.AddSub("linear_solver");
+		sub_lists.AddSub("linear_solver");
 
 		/* nonlinear solver */
-		sub_sub_list.AddSub("nonlinear_solver");
+		sub_lists.AddSub("nonlinear_solver");
 
 		/* nonlinear PCG solver */
-		sub_sub_list.AddSub("PCG_solver");
+		sub_lists.AddSub("PCG_solver");
+
+		/* nonlinear solver with line search*/
+		sub_lists.AddSub("nonlinear_solver_LS");
 	}
 	else /* inherited */
-		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* returns true if the option was passed on the command line */
@@ -1290,101 +1376,6 @@ void FEManagerT::SetStatus(GlobalT::StateT status) const
 	non_const_this->fStatus = status;
 }
 
-/* look for input file key and check file version */
-void FEManagerT::CheckInputFile(void)
-{
-	/* version check */
-	StringT version;
-	fMainIn >> version;		
-	if (strcmp(version, kCurrentVersion) != 0)
-	{
-//TEMP - until input is parsed, we will only have spotty support for backward
-//       compatibility of input files
-		cout << "\n !!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-		cout << " FEManagerT::CheckInputFile: input file version is not current. See\n"
-		     <<   "     VERSION_NOTES for description of changes:\n";
-		cout << "     file version: " << version << '\n';
-		cout << "  current version: " << kCurrentVersion << '\n';
-		cout << " WARNING: backward compatibility is not completely supported\n";
-		cout << " !!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
-	}	
-	else
-		cout    << "\n Input file version: " << version << '\n';
-
-	fMainOut << "\n Input file version: " << version << '\n';
-}
-
-void FEManagerT::WriteParameters(void) const
-{
-	fMainOut << "\n T i t l e : " << fTitle << '\n';
-
-	fMainOut << "\n E x e c u t i o n   C o n t r o l   I n f o r m a t i o n :\n\n";
-	fMainOut << " Analysis code . . . . . . . . . . . . . . . . . = " << fAnalysisCode << '\n';
-	fMainOut << "    eq. " << GlobalT::kLinStatic       << ", linear elastostatic\n";
-	fMainOut << "    eq. " << GlobalT::kLinDynamic      << ", linear elastodynamic\n";
-	fMainOut << "    eq. " << GlobalT::kNLStatic        << ", nonlinear elastostatic\n";
-	fMainOut << "    eq. " << GlobalT::kNLDynamic       << ", nonlinear elastodynamic\n";   	
-	fMainOut << "    eq. " << GlobalT::kDR              << ", dynamic relaxation\n";   	
-	fMainOut << "    eq. " << GlobalT::kLinExpDynamic   << ", linear explicit dynamic\n";   	
-	fMainOut << "    eq. " << GlobalT::kNLExpDynamic    << ", nonlinear explicit dynamic\n";   	
-	fMainOut << "    eq. " << GlobalT::kPML             << ", perfectly matched layer (PML)\n";   	
-	fMainOut << "    eq. " << GlobalT::kMultiField      << ", general multiple field problem\n";   	
-
-	fModelManager->EchoData (fMainOut);
-	IOBaseT temp (fMainOut);
-	fMainOut << " Output format . . . . . . . . . . . . . . . . . = " << fOutputFormat  << '\n';
-	temp.OutputFormats (fMainOut);
-
-	fMainOut << " Read restart file code  . . . . . . . . . . . . = " << fReadRestart << '\n';
-	fMainOut << "    eq. 0, do not read restart file\n";
-	fMainOut << "    eq. 1, read restart file\n";
-	if (fReadRestart)
-		fMainOut << " Restart file. . . . . . . . . . . . . . . . . . = " << fRestartFile << '\n';
-	fMainOut << " Restart file increment (at current step size) . = " << fWriteRestart << '\n';
-	fMainOut << " Input data print code . . . . . . . . . . . . . = " << fPrintInput << '\n';
-	fMainOut << "    eq. 0, non verbose echo of input data\n";
-	fMainOut << "    eq. 1, echo all input data\n";
-	fMainOut << " Number of solver groups . . . . . . . . . . . . = " << fSolvers.Length()  << '\n';
-	fMainOut << endl;
-}
-
-/* set the correct fNodeManager type */
-void FEManagerT::SetNodeManager(void)
-{
-	const char caller[] = "FEManagerT::SetNodeManager";
-
-	/* construct */
-	try {
-		if (!fCommManager) ExceptionT::GeneralFail(caller);
-		fNodeManager = new NodeManagerT(*this, *fCommManager);
-		fNodeManager->Initialize();			
-	
-		/* add to console */
-		iAddSub(*fNodeManager);
-	}
-	catch (ExceptionT::CodeT code) {
-		ExceptionT::Throw(code, caller, "exception constructing node manager");
-	}
-}
-
-/* construct element groups */
-void FEManagerT::SetElementGroups(void)
-{
-	/* construct element list */
-	fElementGroups = new ElementListT(*this);
-
-	/* echo element data */
-	int num_groups;
-	fMainIn >> num_groups;
-	if (num_groups < 0) ExceptionT::BadInputValue("FEManagerT::SetElementGroups");
-	fElementGroups->Dimension(num_groups);
-	fElementGroups->EchoElementData(fMainIn, fMainOut);
-		
-	/* set console */
-	for (int i = 0; i < fElementGroups->Length(); i++)
-		iAddSub(*((*fElementGroups)[i]));
-}
-
 /* set the correct fSolutionDriver type */
 void FEManagerT::SetSolver(void)
 {
@@ -1395,138 +1386,6 @@ void FEManagerT::SetSolver(void)
 	fGlobalEquationStart.Dimension(num_groups);
 	fActiveEquationStart.Dimension(num_groups);
 	fGlobalNumEquations.Dimension(num_groups);
-
-	/* no predefined solvers */ 
-	if (fAnalysisCode == GlobalT::kMultiField)
-	{
-		if (fCurrentGroup != -1) throw;
-		for (fCurrentGroup = 0; fCurrentGroup < fSolvers.Length(); fCurrentGroup++)
-		{
-			int index = -1;
-			int type = -1;
-			fMainIn >> index >> type;
-			index--;
-			if (fSolvers[index] != NULL)
-				ExceptionT::BadInputValue(caller, "solver at index %d is already set", index+1);
-	
-			/* construct solver */
-			fSolvers[index] = New_Solver(type, fCurrentGroup);
-		}
-		fCurrentGroup = -1;
-	}
-	else /* support for legacy analysis codes */
-	{
-		/* should have just one solver */
-		if (fSolvers.Length() != 1) ExceptionT::SizeMismatch();
-	
-		/* solver set by analysis code */
-		switch (fAnalysisCode)
-		{
-			case GlobalT::kLinStatic:
-			case GlobalT::kLinDynamic:
-			case GlobalT::kLinExpDynamic:
-			case GlobalT::kNLExpDynamic:
-			case GlobalT::kNLExpDynKfield:
-			case GlobalT::kLinStaticHeat:
-			case GlobalT::kLinTransHeat:
-			case GlobalT::kPML:
-				fSolvers[0] = New_Solver(GlobalT::kLinearSolver, 0);
-				break;
-
-			case GlobalT::kDR:
-				fSolvers[0] = New_Solver(GlobalT::kDRSolver, 0);
-				break;
-
-			case GlobalT::kNLStatic:
-			case GlobalT::kNLDynamic:
-			case GlobalT::kNLStaticKfield:
-			case GlobalT::kVarNodeNLStatic:
-			case GlobalT::kNLStaticHeat:
-			case GlobalT::kNLTransHeat:
-			{
-				int NL_solver_code;
-				fMainIn >> NL_solver_code;
-				fSolvers[0] = New_Solver(NL_solver_code, 0);
-				break;
-			}
-			default:
-				ExceptionT::BadInputValue(caller, "unknown analysis type: %d", fAnalysisCode);
-		}
-	}
-	
-	/* read solver phases */
-	AutoArrayT<int> solver_list;
-	if (fAnalysisCode == GlobalT::kMultiField) {
-	
-		int num_phases = -99;
-		fMainIn >> num_phases;
-		if (num_phases < fSolvers.Length())
-			ExceptionT::BadInputValue(caller, "expecting at least %d solver phases: %d",
-				fSolvers.Length(), num_phases);
-
-		fSolverPhases.Dimension(num_phases, 3);
-		fSolverPhases = -99;
-
-		for (int i = 0; i < fSolverPhases.MajorDim(); i++) {
-			int solver = -99; 
-			int iters = -99;
-			int pass_iters = -99;
-			fMainIn >> solver >> iters >> pass_iters;
-			solver--;
-
-			/* checks */
-			if (solver < 0 || solver >= fSolverPhases.MajorDim()) 
-				ExceptionT::BadInputValue(caller, "solver number is out of range: %d", solver+1); 
-
-			if (iters < 1 && iters != -1)
-				ExceptionT::BadInputValue(caller, "solver iterations for solver %d must be -1 or > 0: %d", solver+1, iters);
-
-			if (pass_iters < 0 && pass_iters != -1) 
-				ExceptionT::BadInputValue(caller, "iterations to pass solver %d must be -1 or >= 0: %d", solver+1, iters);
-			
-			/* store values */
-			solver_list.AppendUnique(solver);
-			fSolverPhases(i,0) = solver;
-			fSolverPhases(i,1) = iters;
-			fSolverPhases(i,2) = pass_iters;
-		}
-		
-		/* number of loops through the solvers */
-		fMaxSolverLoops = -99;
-		fMainIn >> fMaxSolverLoops;
-		if (fMaxSolverLoops < 1 && fMaxSolverLoops != -1)
-			ExceptionT::BadInputValue(caller, "expecting -1 or > 0: %d", fMaxSolverLoops);
-	}
-	else /* set default values for single solver */
-	{
-		fSolverPhases.Dimension(1, 3);	
-		fSolverPhases(0,0) = 0;
-		fSolverPhases(0,1) =-1;
-		fSolverPhases(0,2) =-1;
-		fMaxSolverLoops  = 1;
-		solver_list.Append(0);
-	}
-	
-	/* dimension solver phase status array */
-	fSolverPhasesStatus.Dimension(fSolverPhases.MajorDim(), kNumStatusFlags);
-	fSolverPhasesStatus = 0;
-		
-	/* echo solver information */
-	fMainOut << "\n Multi-solver parameters: " << fSolverPhases.MajorDim() << '\n';
-	fMainOut << setw(kIntWidth) << "rank"
-	         << setw(kIntWidth) << "group"
-	         << setw(2*kIntWidth) << "loop its."
-	         << setw(2*kIntWidth) << "pass its." << endl;
-	for (int i = 0; i < fSolverPhases.MajorDim(); i++)
-		fMainOut << setw(kIntWidth) << i+1
-	             << setw(kIntWidth) << fSolverPhases(i,0)
-	             << setw(2*kIntWidth) << fSolverPhases(i,1)
-	             << setw(2*kIntWidth) << fSolverPhases(i,2) << endl;
-	fMainOut << " Maximum number of solver loops. . . . . . . . . = " << fMaxSolverLoops << '\n';
-	
-	/* check that all solvers hit at least once */
-	if (solver_list.Length() != fSolvers.Length())
-		ExceptionT::BadInputValue(caller, "must have at least one phase per solver");
 	
 	/* initialize and register system output */
 	fSO_DivertOutput.Dimension(fSolvers.Length());
@@ -1586,157 +1445,6 @@ void FEManagerT::SetSolver(void)
 	fCurrentGroup = -1;
 }
 
-void FEManagerT::ReadParameters(InitCodeT init)
-{
-	/* path to parameters file */
-	StringT path;
-	path.FilePath(fMainIn.filename());
-
-	IOBaseT::FileTypeT format;
-	StringT database;
-
-	/* read */
-	fMainIn >> fAnalysisCode;
-	fMainIn >> format;
- 	if (format != IOBaseT::kTahoe)
-   	{
-		fMainIn >> database;
-
-		/* prepend full path name to database file */
-		database.ToNativePathName();      
-		database.Prepend(path);
-    }
-	fMainIn >> fOutputFormat;
-	fMainIn >> fReadRestart;
-	if (fReadRestart == 1)
-	{
-		fMainIn >> fRestartFile;
-	    
-	    /* prepend path */
-		fRestartFile.ToNativePathName();
-	    fRestartFile.Prepend(path);
-	}
-	fMainIn >> fWriteRestart;
-	fMainIn >> fPrintInput;
-
-	/* check */
-	if (fReadRestart  != 0 && fReadRestart  != 1) throw ExceptionT::kBadInputValue;
-	if (fWriteRestart < 0) throw ExceptionT::kBadInputValue;
-	if (fPrintInput   != 0 && fPrintInput   != 1) throw ExceptionT::kBadInputValue;
-
-	/* initialize the model manager */
-	if (!fModelManager->Initialize(format, database, 
-		init == kFull || init == kAllButSolver)) /* conditions under which to scan model */
-	{
-		cout << "\n FEManagerT::ReadParameters: error initializing model manager" << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-
-	/* read number of equation groups */	
-	int num_groups = -1;
-	if (fAnalysisCode == GlobalT::kMultiField)
-		fMainIn >> num_groups;
-	/* support for legacy analysis */
-	else
-		num_groups = 1;
-
-	/* allocate to that NumGroups is correct */
-	fSolvers.Dimension(num_groups);
-	fSolvers = NULL;
-}
-
-/* set the execution integrator and send to nodes and elements.
-* This function constructs the proper drived class integrator
-* and passes it to the nodes and elements.  The integrator is
-* then cast to a integrator to extract only the FEManagerT
-* interface. */
-void FEManagerT::SetIntegrator(void)
-{
-	fMainOut << "\n T i m e   I n t e g r a t o r s:\n";
-	
-	/* no predefined integrators */
-	if (fAnalysisCode == GlobalT::kMultiField)
-	{
-		/* construct from stream */
-		ifstreamT& in = Input();
-
-		int n_int = -1;
-		in >> n_int;
-		
-		fIntegrators.Dimension(n_int);
-		fIntegrators = NULL;
-		for (int i = 0; i < fIntegrators.Length(); i++)
-		{
-			int dex = -1;
-			TimeManagerT::CodeT code;
-			in >> dex >> code;
-			
-			IntegratorT* integrator = fTimeManager->New_Integrator(code);
-			if (!integrator) {
-				cout << "\n FEManagerT::SetIntegrator: exception constructing integrator " 
-				     << i+1 << " of " << fIntegrators.Length() << endl;
-				throw ExceptionT::kBadInputValue;
-			}
-			fIntegrators[i] = integrator;
-		}
-	}
-	else /* legacy code - a single predefined integrator */
-	{
-		/* just one */
-		fIntegrators.Dimension(1);
-		fIntegrators = NULL;
-		
-		/* set by analysis type */
-		IntegratorT* integrator = NULL;
-		switch (fAnalysisCode)
-		{
-			case GlobalT::kLinStatic:
-			{
-				integrator = fTimeManager->New_Integrator(TimeManagerT::kLinearStatic);
-				break;
-			}
-			case GlobalT::kNLStatic:
-			case GlobalT::kNLStaticKfield:
-			case GlobalT::kLinStaticHeat:
-			case GlobalT::kNLStaticHeat:
-			{
-				integrator = fTimeManager->New_Integrator(TimeManagerT::kStatic);
-				break;
-			}
-			case GlobalT::kLinTransHeat:
-			case GlobalT::kNLTransHeat:
-			{
-				integrator = fTimeManager->New_Integrator(TimeManagerT::kTrapezoid);
-				break;
-			}
-			case GlobalT::kLinDynamic:
-			{
-				integrator = fTimeManager->New_Integrator(TimeManagerT::kLinearHHT);
-				break;
-			}
-			case GlobalT::kNLDynamic:
-			{
-				integrator = fTimeManager->New_Integrator(TimeManagerT::kNonlinearHHT);
-				break;
-			}
-			case GlobalT::kLinExpDynamic:
-			case GlobalT::kNLExpDynamic:
-			case GlobalT::kNLExpDynKfield:
-			case GlobalT::kPML:
-			{
-				integrator = fTimeManager->New_Integrator(TimeManagerT::kExplicitCD);
-				break;
-			}			
-			default:
-				cout << "\nFEManagerT::SetIntegrator: unknown integrator type\n" << endl;
-				throw ExceptionT::kBadInputValue;
-		}
-		
-		if (!integrator) throw ExceptionT::kGeneralFail;
-		fIntegrators[0] = integrator;
-	}
-}
-
 /* construct output */
 void FEManagerT::SetOutput(void)
 {	
@@ -1761,6 +1469,9 @@ ExceptionT::CodeT FEManagerT::InitialCondition(void)
 
 	/* set I/O */		
 	fIOManager->NextTimeSequence(SequenceNumber());
+
+	/* time manager */
+	fTimeManager->InitialCondition();
 
 	/* set system to initial state */
 	fNodeManager->InitialCondition();
@@ -1883,7 +1594,7 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 		if (write)
 		{
 			StringT rs_file;
-			rs_file.Root(fMainIn.filename());
+			rs_file.Root(fInputFile);
 			rs_file.Append(".rs", StepNumber());
 			rs_file.Append("of", NumberOfSteps());
 			ofstreamT restart(rs_file);
@@ -2135,31 +1846,5 @@ SolverT* FEManagerT::New_Solver(int code, int group)
 	/* fail */
 	if (!solver) ExceptionT::GeneralFail(caller, "failed");
 
-	return solver;
-}
-
-SolverT* FEManagerT::New_Solver(GlobalT::SolverTypeT solver_type)
-{
-	const char caller[] = "FEManagerT::New_Solver";
-
-	/* construct solver */
-	SolverT* solver = NULL;
-	switch (solver_type)
-	{
-		case GlobalT::kLinearSolver:
-			solver = new LinearSolver(*this);
-			break;
-			
-		case GlobalT::kNewtonSolver:
-			solver = new NLSolver(*this);
-			break;
-
-		case GlobalT::kPCGSolver_LS:				
-			solver = new PCGSolver_LS(*this);
-			break;
-
-		default:
-			ExceptionT::BadInputValue(caller, "unknown nonlinear solver code: %d", solver_type);
-	}
 	return solver;
 }

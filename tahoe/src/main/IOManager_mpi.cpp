@@ -1,23 +1,22 @@
-/* $Id: IOManager_mpi.cpp,v 1.32 2004-06-28 22:41:51 hspark Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.33 2004-07-15 08:31:03 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
 #include "ExceptionT.h"
-#include "ifstreamT.h"
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
 #include "PartitionT.h"
 #include "ModelManagerT.h"
 #include "GeometryT.h"
 
-
 using namespace Tahoe;
 
 /* constructor */
-IOManager_mpi::IOManager_mpi(ifstreamT& in, CommunicatorT& comm,
+IOManager_mpi::IOManager_mpi(const StringT& input_file, CommunicatorT& comm,
 	const IOManager& local_IO, const PartitionT& partition,
 	const StringT& model_file, IOBaseT::FileTypeT format):
-	IOManager(in, local_IO),
+	IOManager(local_IO.Log(), local_IO.Output().CodeName(), local_IO.Output().Version(), 
+		local_IO.Output().Title(), input_file, local_IO.OutputFormat()),
 	fComm(comm),
 	fPartition(partition),
 	fOutputGeometry(NULL)

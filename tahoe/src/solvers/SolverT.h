@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.19 2004-03-16 06:58:22 paklein Exp $ */
+/* $Id: SolverT.h,v 1.20 2004-07-15 08:31:51 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -51,14 +51,16 @@ public:
                              kFailed = 2  /**< solution procedure has failed */
                              };
 
-	/** \name constructors */
-	/*@{*/
-	SolverT(FEManagerT& fe_manager);
+	/** constructors */
 	SolverT(FEManagerT& fe_manager, int group);
-	/*@}*/
 
 	/** destructor */
 	virtual ~SolverT(void);
+
+	/** factory method. Construct a new instance of a sub-class of SolverT
+	 * with the given ParameterInterfaceT name, or return NULL if the name is
+	 * not recognized. */
+	static SolverT* New(FEManagerT& fe_manager, const char* name, int group);
 
 	/** (re-)configure the global equation system */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
@@ -135,6 +137,15 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
@@ -171,7 +182,7 @@ private:
 	int CheckMatrixType(int matrix_type, int analysis_code) const;
 
 	/** set global equation matrix */
-	void SetGlobalMatrix(int matrix_type, int check_code);
+	void SetGlobalMatrix(const ParameterListT& params, int check_code);
 
 protected:
 
@@ -186,7 +197,7 @@ protected:
 	int fMatrixType;
 	int fPrintEquationNumbers;
 	/*@}*/
-	
+
 	/** global equation system */
 	/*@{*/
 	/** global LHS matrix */

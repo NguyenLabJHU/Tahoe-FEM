@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.17 2003-08-08 00:43:00 paklein Exp $
+# $Id: makefile,v 1.18 2004-07-15 08:26:03 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,6 +23,7 @@ OBJ = \
 	RateDep2DT.o \
 	LinearDamageT.o \
 	SurfacePotentialT.o \
+	SurfacePotentialT_factory.o \
 	TiedPotentialT.o \
 	Tijssens2DT.o \
 	TvergHutch2DT.o \
@@ -57,6 +58,7 @@ SRC = \
 	RateDep2DT.cpp \
 	LinearDamageT.cpp \
 	SurfacePotentialT.cpp \
+	SurfacePotentialT_factory.cpp \
 	TiedPotentialT.cpp \
 	Tijssens2DT.cpp \
 	TvergHutch2DT.cpp \

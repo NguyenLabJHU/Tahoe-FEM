@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.9 2004-06-26 18:39:53 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.10 2004-07-15 08:26:08 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -25,23 +25,38 @@ const int kMaxNumGrid    = 75;
 using namespace Tahoe;
 
 /* constructor */
-MFPenaltyContact2DT::MFPenaltyContact2DT(const ElementSupportT& support, const FieldT& field):
-	PenaltyContact2DT(support, field),
+MFPenaltyContact2DT::MFPenaltyContact2DT(const ElementSupportT& support):
+	PenaltyContact2DT(support),
 	fElementGroup(NULL),
 	fMeshFreeSupport(NULL),
-	fStrikerCoords_man(0, fStrikerCoords, support.NumSD()),
 	fdvT_man(0, true),
 	fRHS_man(0, fRHS)
 {
-	ElementSupport().Input() >> fGroupNumber;
-	fGroupNumber--;
-	ElementBaseT& element = ElementSupport().ElementGroup(fGroupNumber);
+	SetName("meshfree_contact_2D_penalty");	
+}
+
+/* describe the parameters needed by the interface */
+void MFPenaltyContact2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	PenaltyContact2DT::DefineParameters(list);
+
+	/* the meshless element group */
+	list.AddParameter(ParameterT::Integer, "meshless_group");
+}
+
+/* accept parameter list */
+void MFPenaltyContact2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* NOTE: fMeshFreeSupport must be resolved before calling PenaltyContact2DT::TakeParameterList
+	 *       because it is needed during MFPenaltyContact2DT:: ExtractContactGeometry */
+
+	/* resolve meshless element group */
+	int group = list.GetParameter("meshless_group");
+	group--;
+	ElementBaseT& element = ElementSupport().ElementGroup(group);
 	fElementGroup = &element;
 
-	/* register arrays with memory manager */
-	fdvT_man.Register(fdv1T);
-	fdvT_man.Register(fdv2T);
-	
 	/* cast to meshfree element types */
 	const MeshFreeSSSolidT* mf_ss_solid = dynamic_cast<const MeshFreeSSSolidT*>(fElementGroup);
 	const MeshFreeFSSolidT* mf_fs_solid = dynamic_cast<const MeshFreeFSSolidT*>(fElementGroup);
@@ -53,25 +68,24 @@ MFPenaltyContact2DT::MFPenaltyContact2DT(const ElementSupportT& support, const F
 	else if (mf_fs_axi_solid)
 		fMeshFreeSupport = &(mf_fs_axi_solid->MeshFreeSupport());	
 	else
-		ExceptionT::GeneralFail("MFPenaltyContact2DT::MFPenaltyContact2DT",
-			"element group %d is not meshfree", fGroupNumber+1);
+		ExceptionT::GeneralFail("MFPenaltyContact2DT::TakeParameterList",
+			"element group %d is not meshfree", group+1);
+
+	/* register arrays with memory manager */
+	fStrikerCoords_man.SetWard(0, fStrikerCoords, NumSD());
+	fdvT_man.Register(fdv1T);
+	fdvT_man.Register(fdv2T);
 
 	/* set map of node ID to meshfree point index */
 	fNodeToMeshFreePoint.SetMap(fMeshFreeSupport->NodesUsed());
+
+	/* inherited */
+	PenaltyContact2DT::TakeParameterList(list);
 }
 
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-/* print element group data */
-void MFPenaltyContact2DT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	PenaltyContact2DT::PrintControlData(out);
-
-	out << " Meshfree element group. . . . . . . . . . . . . = " << fGroupNumber+1 << '\n';	
-}
 
 /* called by FormRHS and FormLHS */
 void MFPenaltyContact2DT::LHSDriver(GlobalT::SystemTypeT)
@@ -198,51 +212,43 @@ void MFPenaltyContact2DT::RHSDriver(void)
 	SetTrackingData(num_contact, h_max);
 }
 
-/* set contact surfaces and strikers */
-void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
+/* echo contact bodies and striker nodes. After the read section, should have valid 
+ * nodes/facet connectivities for the local database. */
+void MFPenaltyContact2DT::ExtractContactGeometry(const ParameterListT& list)
 {
-	const char caller[] = "MFPenaltyContact2DT::EchoConnectivityData";
+	const char caller[] = "ContactT::ExtractContactGeometry";
 
-	int num_surfaces;
-	in >> num_surfaces;
-	out << " Number of contact surfaces. . . . . . . . . . . = "
-	    << num_surfaces << '\n';
-	if (num_surfaces < 1) ExceptionT::BadInputValue(caller);
+	/* output stream */
+	ofstreamT& out = ElementSupport().Output();
+	bool print_input = ElementSupport().PrintInput();
+
+	/* get surfaces */
+	int num_surfaces = list.NumLists("contact_surface");
+	fSurfaces.Dimension(num_surfaces);
 
 	/* read contact bodies */
-	fSurfaces.Dimension(num_surfaces);
 	for (int i = 0; i < fSurfaces.Length(); i++)
 	{
-		int spec_mode;
-		in >> spec_mode;
-		switch (spec_mode)
-		{
-			case kNodesOnFacet:	
-				InputNodesOnFacet(in, fSurfaces[i]);
-				break;
-			
-			case kSideSets:
-				InputSideSets(in, fSurfaces[i]);
-				break;
-			
-			case kBodyBoundary:
-				/* may resize the surfaces array */
-				InputBodyBoundary(in, fSurfaces, i);
-				num_surfaces = fSurfaces.Length();
-				break;
-		
-			default:
-				ExceptionT::BadInputValue(caller, "unknown surface specification mode %d for surface %d",
-					spec_mode, i+1);
-		}
-	}
+		const ParameterListT& surface_spec = list.GetListChoice(*this, "contact_surface", i);
 
-	/* echo data and correct numbering offset */
+		if (surface_spec.Name() == "surface_side_set")
+			InputSideSets(surface_spec, fSurfaces[i]);
+		else if (surface_spec.Name() == "body_boundary") 
+		{
+			/* may resize the surfaces array */
+			InputBodyBoundary(surface_spec, fSurfaces, i);
+			num_surfaces = fSurfaces.Length();
+		}
+		else
+			ExceptionT::GeneralFail(caller, "unrecognized contact surface \"%s\"",
+				surface_spec.Name().Pointer());
+	}
+	
+	/* echo data  */
 	out << " Contact surfaces:\n";
 	out << setw(kIntWidth) << "surface"
 	    << setw(kIntWidth) << "facets"
 	    << setw(kIntWidth) << "size" << '\n';
-	int surface_count = 0;
 	for (int j = 0; j < fSurfaces.Length(); j++)
 	{		
 	  	iArray2DT& surface = fSurfaces[j];
@@ -250,20 +256,22 @@ void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	  	out << setw(kIntWidth) << j+1
 	  	    << setw(kIntWidth) << surface.MajorDim()
 	  	    << setw(kIntWidth) << surface.MinorDim() << "\n\n";
-	  	
-	  	/* set offset for output */
-	  	if (ElementSupport().PrintInput())
-	  	{
-	  		surface++;
-	  		surface.WriteNumbered(out);
-	  		surface--;
-	  		out << '\n';
+  	
+		/* verbose */
+		if (print_input) {
+			surface++;
+			surface.WriteNumbered(out);
+			surface--;
+			out << '\n';
 	  	}
-	  	
-	  	/* count non-empty */
-	  	if (surface.MajorDim() > 0) surface_count++;
-	}	
-	
+	}
+
+	/* look for empty surfaces */
+	int surface_count = 0;	
+	for (int j = 0; j < fSurfaces.Length(); j++)
+		if (fSurfaces[j].MajorDim() > 0)
+			surface_count++;
+
 	/* remove empty surfaces */
 	if (surface_count != fSurfaces.Length())
 	{
@@ -282,36 +290,23 @@ void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		/* exchange */
 		fSurfaces.Swap(tmp_surfaces);
 	}
-	
-	/* striker nodes */
-	int striker_spec_mode;
-	in >> striker_spec_mode;
-	switch (striker_spec_mode)
-	{
-		case kNodeSetList: /* read strikers from node sets */
-			ReadStrikers(in, out);
-			break;
-		
-		case kSurfaceNodes: /* collect nodes from contact surfaces */
-			StrikersFromSurfaces();
-			break;
-	
-		case kAllStrikers:  /* shallow striker coords */
-			fStrikerTags.Alias(fMeshFreeSupport->NodesUsed());
-			out << "\n Striker meshfree nodes: ALL\n";
-			break;
 
-		case kSideSetList: /* collect strikers from side sets */
-			StrikersFromSideSets(in, out);
-			break;
-	
-		default:
-			ExceptionT::BadInputValue(caller, "unknown striker specification mode %d",
-				striker_spec_mode);
-	}
-	
+	/* get strikers */
+	const ParameterListT& striker_spec = list.GetListChoice(*this, "contact_nodes");
+	if (striker_spec.Name() == "node_ID_list")
+		StrikersFromNodeSets(striker_spec);
+	else if (striker_spec.Name() == "side_set_ID_list")
+		StrikersFromSideSets(striker_spec);
+	else if (striker_spec.Name() == "all_surface_nodes")
+		StrikersFromSurfaces();
+	else if (striker_spec.Name() == "all_nodes_as_strikers")
+		fStrikerTags.Alias(fMeshFreeSupport->NodesUsed());
+	else
+		ExceptionT::GeneralFail(caller, "unrecognized contact node specification \"\"",
+			striker_spec.Name().Pointer());
+
 	/* check to see that all strikers are meshfree */
-	if (striker_spec_mode != kAllStrikers) {
+	if (striker_spec.Name() != "all_nodes_as_strikers") {
 		InverseMapT map;
 		map.SetOutOfRange(InverseMapT::MinusOne);
 		map.SetMap(fMeshFreeSupport->NodesUsed());
@@ -321,7 +316,7 @@ void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	}
 
 	/* echo */
-	if (ElementSupport().PrintInput()) {
+	if (print_input) {
 		out << "\n Striker nodes:\n";
 		fStrikerTags++;
 		out << fStrikerTags.wrap(8) << '\n';
@@ -329,7 +324,7 @@ void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	}
 
 	/* set connectivity name */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	StringT name ("Contact");
 	name.Append (ElementSupport().ElementGroupNumber(this) + 1);
 

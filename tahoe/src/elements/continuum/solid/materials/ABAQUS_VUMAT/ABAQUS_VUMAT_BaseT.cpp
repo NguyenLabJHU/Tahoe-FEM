@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.24 2004-01-06 00:15:59 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.25 2004-07-15 08:26:37 paklein Exp $ */
 #include "ABAQUS_VUMAT_BaseT.h"
 
 #ifdef __F2C__
@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <float.h>
 
-#include "fstreamT.h"
+
 #include "ContinuumElementT.h"
 
 #include "SpectralDecompT.h"
@@ -181,7 +181,7 @@ void ABAQUS_VUMAT_BaseT::PointInitialize(void)
 	}
 
 	/* call UMAT - time signals initialization */
-	double dt = fFSMatSupport.TimeStep();
+	double dt = fFSMatSupport->TimeStep();
 	Call_VUMAT(0.0, dt, 0, 0);
 
 	/* store results as last converged */
@@ -241,10 +241,10 @@ const dSymMatrixT& ABAQUS_VUMAT_BaseT::s_ij(void)
 	/* call VUMAT */
 	if (MaterialSupport().RunState() == GlobalT::kFormRHS)
 	{
-		double  t = fFSMatSupport.Time();
-		double dt = fFSMatSupport.TimeStep();
-		int  step = fFSMatSupport.StepNumber();
-		int  iter = fFSMatSupport.IterationNumber();
+		double  t = fFSMatSupport->Time();
+		double dt = fFSMatSupport->TimeStep();
+		int  step = fFSMatSupport->StepNumber();
+		int  iter = fFSMatSupport->IterationNumber();
 		Call_VUMAT(t, dt, step, iter);
 	}
 	else

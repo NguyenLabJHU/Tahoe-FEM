@@ -1,130 +1,34 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.7 2003-11-21 22:47:59 paklein Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.8 2004-07-15 08:31:21 paklein Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
-#include "ifstreamT.h"
+
 #include "RandomNumberT.h"
 #include "MessageT.h"
 #include "CommunicatorT.h"
 #include "iArrayT.h"
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
 
 const double fkB = 0.00008617385;
 
 using namespace Tahoe;
 
 /* constructor */
-ScaledVelocityNodesT::ScaledVelocityNodesT(NodeManagerT& node_manager, BasicFieldT& field):
-	KBC_ControllerT(node_manager),
+ScaledVelocityNodesT::ScaledVelocityNodesT(const BasicSupportT& support, BasicFieldT& field):
+	KBC_ControllerT(support),
 	fField(field),
-	fNodes(),
 	fDummySchedule(1.0),
-	fRandom(NULL),
+	qIConly(false),
 	qFirstTime(false),
 	qAllNodes(false),
 	fIncs(0),
-	fIncCt(0)
+	fIncCt(0),
+	fTempSchedule(NULL),
+	fRandom(RandomNumberT::kParadynGaussian)
 {
-	// nein
-}
-
-ScaledVelocityNodesT::~ScaledVelocityNodesT(void)
-{
-   if (fRandom)
-      delete fRandom;
-}
-
-void ScaledVelocityNodesT::WriteParameters(ostream& out) const
-{
-	/* inherited */
-	KBC_ControllerT::WriteParameters(out);
-
-}
-
-void ScaledVelocityNodesT::Initialize(ifstreamT& in)
-{
-
-#pragma message("Add rescaled region")
-	//int nodesOrRegion; 
-
-	/* Get node sets */
-	char nextun = in.next_char();
-	int allOrSome;
-	if (nextun == '-')
-		in >> allOrSome;
-	else
-		allOrSome = atoi(&nextun);
-	if (!allOrSome)
-	{   // use all the nodes
-		in >> allOrSome; // fast-forward the stream
-		qAllNodes = true;
-		fNodes.Dimension(fNodeManager.NumNodes());
-		fNodes.SetValueToPosition();
-	}
-	else	
-		if (allOrSome > 0)
-		{   // Read in Node Sets and use them
-			ReadNodes(in, fNodeIds, fNodes);
-		}
-		else
-		{   // Read in Node Sets and use all nodes but theirs
-			ArrayT<StringT> notTheseSets;
-			int numNotSets = -allOrSome;
-			numNotSets = abs(numNotSets);
-			notTheseSets.Dimension(numNotSets);
-			ModelManagerT* model = fNodeManager.FEManager().ModelManager();
-			for (int i=0; i < numNotSets; i++)
-			{
-	  			StringT& name = notTheseSets[i];
-	  			in >> name;
-	  			int index = model->NodeSetIndex(name);
-	  			if (index < 0) {
-	  				cout << "\n ScaledVelocityT::Initialize: error retrieving node set " << name << endl;
-	  				throw ExceptionT::kDatabaseFail;
-	  			}
-			}
-			// get all the nodes we don't want
-			iArrayT fNotNodes;
-			model->ManyNodeSets(notTheseSets, fNotNodes);
-			// get all the nodes
-			fNodes.Dimension(model->NumNodes());
-			fNodes.SetValueToPosition();
-			// Take the complement
-			for (int i = 0; i < fNotNodes.Length(); i++)
-				fNodes[fNotNodes[i]] = -fNodes[fNotNodes[i]] - 1; // if the node is to be deleted, make it < 0
-			fNodes.SortDescending();
-			fNodes.Resize(fNodes.Length() - fNotNodes.Length());
-		}
-	
-	in >> fMass; 
-	if (fMass < kSmall) ExceptionT::BadInputValue("ScaledVelocityNodesT::Initialize","mass must be positive");
-
-	int BCnotIC;
-	in >> BCnotIC;
-	
-	if (BCnotIC)
-	{
-		in >> fnumTempSchedule >> fTempScale; fnumTempSchedule--;
-		fTempSchedule = fNodeManager.Schedule(fnumTempSchedule);	
-		if (!fTempSchedule) throw ExceptionT::kBadInputValue;
-	
-		in >> fIncs;
-		qIConly = false;
-	}
-	else
-	{
-		qIConly = true;
-		in >> fT_0;
-	}
-
-	// parameters for initial velocity distribution random num gen
-	int rseed;
-	in >> rseed;
-	
-	fRandom = new RandomNumberT(RandomNumberT::kParadynGaussian);
-	if (!fRandom)
-		ExceptionT::GeneralFail("ScaledVelocityNodesT::Initialize","Cannot create random number gen");
-	fRandom->sRand(rseed);
+	SetName("scaled_velocity");
 }
 
 void ScaledVelocityNodesT::InitStep(void)
@@ -152,9 +56,7 @@ void ScaledVelocityNodesT::InitStep(void)
 	
 	if (qIConly && !qFirstTime)
 		fKBC_Cards.Dimension(0);
-
 }
-
 
 void ScaledVelocityNodesT::InitialCondition(void)
 {
@@ -168,16 +70,16 @@ void ScaledVelocityNodesT::InitialCondition(void)
 	int ndof = fField.NumDOF();
 	
 	/* workspace to generate velocities */
-	dArray2DT velocities(fNodeManager.NumNodes(), ndof); 
+	dArray2DT velocities(fSupport.NumNodes(), ndof); 
 
 	/* generate gaussian dist of random vels */
-	fRandom->RandomArray(velocities);
+	fRandom.RandomArray(velocities);
 	
 	/* get MPI stuff */
-	CommunicatorT& communicator = fNodeManager.FEManager().Communicator();
-	int nProcs = fNodeManager.Size();
-	int thisProc = fNodeManager.Rank();
-	const ArrayT<int>* pMap = fNodeManager.ProcessorMap();
+	const CommunicatorT& communicator = fSupport.Communicator();
+	int nProcs = fSupport.Size();
+	int thisProc = fSupport.Rank();
+	const ArrayT<int>* pMap = fSupport.ProcessorMap();
 	
 	double tKE = 0.;
 	dArrayT vCOM(ndof);
@@ -186,7 +88,7 @@ void ScaledVelocityNodesT::InitialCondition(void)
 	/* only change velocities for nodes on this processor */
 	iArrayT myNodes; 
 	
-	if (fNodeManager.Size() == 1 || !pMap)
+	if (fSupport.Size() == 1 || !pMap)
 		myNodes.Set(fNodes.Length(), fNodes.Pointer());
 	else
 	{
@@ -249,10 +151,7 @@ void ScaledVelocityNodesT::InitialCondition(void)
 	    	for (int j = 0; j < ndof; j++)
 			{	
 				/* set values */
-				pcard->SetValues(myNodes[i], j, KBC_CardT::kVel, 0, *v_i++);
-
-				/* dummy schedule */
-				pcard->SetSchedule(&fDummySchedule);
+				pcard->SetValues(myNodes[i], j, KBC_CardT::kVel, &fDummySchedule, *v_i++);
 				pcard++;
 			}
 		} 
@@ -260,9 +159,194 @@ void ScaledVelocityNodesT::InitialCondition(void)
 
 }
 
+/* describe the parameters needed by the interface */
+void ScaledVelocityNodesT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	KBC_ControllerT::DefineParameters(list);
+
+	/* mass parameter */
+	ParameterT mass(ParameterT::Double, "mass");
+	mass.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(mass);
+
+	/* random number seed */
+	list.AddParameter(ParameterT::Integer, "seed");
+}
+	
+/* information about subordinate parameter lists */
+void ScaledVelocityNodesT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	KBC_ControllerT::DefineSubs(sub_list);
+
+	/* when to apply scaling */
+	sub_list.AddSub("BC_or_IC", ParameterListT::Once, true);
+
+	/* method for defining affected particles */
+	sub_list.AddSub("node_pick_choice", ParameterListT::Once, true);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* ScaledVelocityNodesT::NewSub(const StringT& name) const
+{
+	if (name == "BC_or_IC")
+	{
+		ParameterContainerT* bc_or_ic = new ParameterContainerT(name);
+		bc_or_ic->SetListOrder(ParameterListT::Choice);
+		
+		ParameterContainerT bc("scale_as_BC");
+		bc.AddParameter(ParameterT::Double, "scale");
+		bc.AddParameter(ParameterT::Integer, "schedule");
+		bc.AddParameter(ParameterT::Integer, "increments");
+		bc_or_ic->AddSub(bc);
+
+		ParameterContainerT ic("scale_as_IC");
+		ic.AddParameter(ParameterT::Double, "temperature");
+		bc_or_ic->AddSub(ic);
+				
+		return bc_or_ic;
+	}
+	else if (name == "node_pick_choice") 
+	{
+		ParameterContainerT* pick = new ParameterContainerT(name);
+		pick->SetSubSource(this);
+		pick->SetListOrder(ParameterListT::Choice);
+
+		ParameterContainerT pick_all("pick_all_nodes");
+		pick->AddSub(pick_all);
+		pick->AddSub("pick_nodes_by_list");
+//		pick->AddSub("pick_nodes_by_region");
+		return pick;
+	}
+	else if (name == "pick_nodes_by_list")
+	{
+		ParameterContainerT* pick = new ParameterContainerT(name);
+		
+		/* these nodes or all but these */
+		ParameterT use_or_no(ParameterT::Enumeration, "selection");
+		use_or_no.AddEnumeration("include_these", 0);
+		use_or_no.AddEnumeration("exclude_these", 1);
+		pick->AddParameter(use_or_no);	
+
+		/* the node list */
+		pick->AddSub("node_ID_list");
+		return pick;
+	}
+	else if (name == "pick_nodes_by_region")
+	{
+		ParameterContainerT* pick = new ParameterContainerT(name);
+		pick->SetDescription("provide bounds for each direction");
+
+		ParameterT search_inc(ParameterT::Integer, "search_increment");
+		search_inc.AddLimit(0, LimitT::LowerInclusive);
+		pick->AddParameter(search_inc);
+				
+		ParameterContainerT bounds("pick_bounds");
+		ParameterT direction(ParameterT::Integer, "direction");
+		direction.AddLimit(1, LimitT::LowerInclusive);
+		bounds.AddParameter(direction);
+		bounds.AddParameter(ParameterT::Double, "x_min");
+		bounds.AddParameter(ParameterT::Double, "x_max");
+		pick->AddSub(bounds, ParameterListT::OnePlus);
+		
+		return pick;
+	}
+	else /* inherited */
+		return KBC_ControllerT::NewSub(name);
+}
+
+/* accept parameter list */
+void ScaledVelocityNodesT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "ScaledVelocityNodesT::TakeParameterList";
+
+	/* inherited */
+	KBC_ControllerT::TakeParameterList(list);
+
+	/* simple parameters */
+	fMass = list.GetParameter("mass");
+	int rseed = list.GetParameter("seed");
+	fRandom.sRand(rseed);
+
+	/* resolve IC/BC */
+	const ParameterListT& bc_or_ic = list.GetListChoice(*this, "BC_or_IC");
+	if (bc_or_ic.Name() == "scale_as_BC") {
+		fTempScale = bc_or_ic.GetParameter("scale");
+		int schedule = bc_or_ic.GetParameter("schedule");
+		schedule--;
+		fTempSchedule = fSupport.Schedule(schedule);
+		if (!fTempSchedule) ExceptionT::BadInputValue(caller);
+		qIConly = false;
+	}
+	else if (bc_or_ic.Name() == "scale_as_IC") {
+		fT_0 = bc_or_ic.GetParameter("temperature");
+		qIConly = true;
+	}
+	else
+		ExceptionT::GeneralFail(caller, "unrecognized \"BC_or_IC\" \"%s\"",
+			bc_or_ic.Name().Pointer());
+
+	/* method for specifying affected nodes */
+	const char choice[] = "node_pick_choice";
+	const ParameterListT& pick = list.GetListChoice(*this, choice);
+	qAllNodes = false;
+	if (pick.Name() == "pick_all_nodes") {		
+		qAllNodes = true;
+		fNodes.Dimension(fSupport.NumNodes());
+		fNodes.SetValueToPosition();
+	}
+	else if (pick.Name() == "pick_nodes_by_list")
+		InitNodeSets(pick);
+//	else if (pick.Name() == "pick_nodes_by_region")
+//		InitRegion(*pick);
+	else
+		ExceptionT::GeneralFail(caller, "unrecognized pick method \"%s\"",
+			pick.Name().Pointer());
+}
+
 /**********************************************************************
  * Protected
  **********************************************************************/
+
+void ScaledVelocityNodesT::InitNodeSets(const ParameterListT& pick_nodes)
+{
+	const char caller[] = "ScaledVelocityNodesT::InitNodeSets";
+
+	/* model information */
+	ModelManagerT& model = fSupport.ModelManager();
+
+	/* determine selection method */
+	const StringT& selection = pick_nodes.GetParameter("selection");
+	if (selection == "include_these")
+	{
+		/* read node set ids */
+		ArrayT<StringT> ids;
+		StringListT::Extract(pick_nodes.GetList("node_ID_list"), ids);
+		model.ManyNodeSets(ids, fNodes);        
+	}
+	else if (selection == "exclude_these")
+	{
+		/* read sets of nodes to omit */
+		ArrayT<StringT> ids;
+		StringListT::Extract(pick_nodes.GetList("node_ID_list"), ids);
+		iArrayT not_nodes;
+		model.ManyNodeSets(ids, not_nodes);
+
+		/* get all the nodes */
+		fNodes.Dimension(model.NumNodes());
+		fNodes.SetValueToPosition();
+
+		/* take the complement */
+		for (int i = 0; i < not_nodes.Length(); i++)
+			fNodes[not_nodes[i]] = -fNodes[not_nodes[i]] - 1; /* if the node is to be deleted, make it < 0 */
+		fNodes.SortDescending();
+		fNodes.Resize(fNodes.Length() - not_nodes.Length());
+	}
+	else
+		ExceptionT::GeneralFail(caller, "unrecognized selection method \"%s\"",
+			selection.Pointer());
+}	
 
 /* initialize the current step */
 void ScaledVelocityNodesT::SetBCCards(void)
@@ -279,17 +363,17 @@ void ScaledVelocityNodesT::SetBCCards(void)
 		ExceptionT::GeneralFail("ScaledVelocityNodesT::SetBCCards","Cannot get velocity field ");
 		
 	/* get MPI stuff */
-	CommunicatorT& communicator = fNodeManager.FEManager().Communicator();
-	int nProcs = fNodeManager.Size();
-	int thisProc = fNodeManager.Rank();
-	const ArrayT<int>* pMap = fNodeManager.ProcessorMap();	
+	const CommunicatorT& communicator = fSupport.Communicator();
+	int nProcs = fSupport.Size();
+	int thisProc = fSupport.Rank();
+	const ArrayT<int>* pMap = fSupport.ProcessorMap();	
 	
 	/* 	assume uniform mass for now */
 
 	/* figure out which nodes to affect */
 	iArrayT myNodes;
 
-	if (fNodeManager.Size() == 1 || !pMap)
+	if (fSupport.Size() == 1 || !pMap)
 		myNodes.Set(fNodes.Length(), fNodes.Pointer());
 	else
 	{
@@ -354,10 +438,7 @@ void ScaledVelocityNodesT::SetBCCards(void)
 		    	for (int j = 0; j < ndof; j++)
 				{	
 					/* set values */
-					pcard->SetValues(myNodes[i], j, KBC_CardT::kVel, 0, (*v_i++-vCOM[j])*vscale);
-
-					/* dummy schedule */
-					pcard->SetSchedule(&fDummySchedule);
+					pcard->SetValues(myNodes[i], j, KBC_CardT::kVel, &fDummySchedule, (*v_i++-vCOM[j])*vscale);
 					pcard++;
 				}
 			} 

@@ -1,56 +1,60 @@
-/* $Id: J2PrimitiveT.cpp,v 1.4 2004-06-17 07:41:11 paklein Exp $ */
-/* created: paklein (02/17/1997)                                          */
-/* Base class for a J2 plastic material with linear kinematic/            */
-/* isotropic hardening laws defined by:                                   */
-/* 		H(a) = (1 - ftheta) fH_bar a                                         */
-/* K(a) = fYield + ftheta fH_bar a                                        */
-/* 		where a is the internal hardening variable                           */
-
+/* $Id: J2PrimitiveT.cpp,v 1.5 2004-07-15 08:28:54 paklein Exp $ */
+/* created: paklein (02/17/1997) */
 #include "J2PrimitiveT.h"
-
-#include <iostream.h>
-#include <math.h>
-
-#include "ifstreamT.h"
 #include "dSymMatrixT.h"
-
+#include <math.h>
 
 using namespace Tahoe;
 
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* constructor */
-J2PrimitiveT::J2PrimitiveT(ifstreamT& in):
+J2PrimitiveT::J2PrimitiveT(void):
+	ParameterInterfaceT("J2_primitive"),
 	fYield(0.0),
 	ftheta(-1.0),
 	fH_bar(-1.0)
 {
-	/* read parameters */
-	in >> fYield;	if (fYield <= 0.0) throw ExceptionT::kBadInputValue;
-	in >> fH_bar;	if (fH_bar < 0.0) throw ExceptionT::kBadInputValue;
-	in >> ftheta;	if (ftheta < 0.0 || ftheta > 1.0) throw ExceptionT::kBadInputValue;
+
 }
 
 /* destructor */
 J2PrimitiveT::~J2PrimitiveT(void) { }
 
-/* output  parameters to stream */
-void J2PrimitiveT::Print(ostream& out) const
+/* describe the parameters needed by the interface */
+void J2PrimitiveT::DefineParameters(ParameterListT& list) const
 {
-	out << " Initial yield stress. . . . . . . . . . . . . . = " << fYield << '\n';
-	out << " Hardening parameter . . . . . . . . . . . . . . = " << fH_bar << '\n';
-	out << " Isotropic/kinematic mixity. . . . . . . . . . . = " << ftheta << '\n';
+	/* inherited */
+	ParameterInterfaceT::DefineParameters(list);
+
+	ParameterT yield(fYield, "yield");
+	yield.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(yield);
+
+	ParameterT H(fH_bar, "H_bar");
+	H.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(H);
+
+	ParameterT t(ftheta, "theta");
+	t.AddLimit(0.0, LimitT::LowerInclusive);
+	t.AddLimit(1.0, LimitT::UpperInclusive);
+	list.AddParameter(t);
+}
+
+/* accept parameter list */
+void J2PrimitiveT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	fYield = list.GetParameter("yield");
+	fH_bar = list.GetParameter("H_bar");
+	ftheta = list.GetParameter("theta");
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
-
-void J2PrimitiveT::PrintName(ostream& out) const
-{
-	out << "    J2 Isotropic/Kinematic\n";
-	out << "    Hardening with Radial Return\n";
-}
+ * Protected
+ ***********************************************************************/
 
 /* returns the value value of the yield function given the
 * relative stress vector and state variables, where  alpha

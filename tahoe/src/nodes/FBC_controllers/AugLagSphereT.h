@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.h,v 1.9 2004-01-05 07:12:40 paklein Exp $ */
+/* $Id: AugLagSphereT.h,v 1.10 2004-07-15 08:31:15 paklein Exp $ */
 /* created: paklein (03/24/1999) */
 #ifndef _AUGLAG_SPHERE_T_H_
 #define _AUGLAG_SPHERE_T_H_
@@ -11,18 +11,15 @@ namespace Tahoe {
 
 /* forward declarations */
 class XDOF_ManagerT;
-class FieldT;
 
 class AugLagSphereT: public PenaltySphereT, public DOFElementT
 {
 public:
 
-	/* constructor */
-	AugLagSphereT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes, 
-		const FieldT& field, const dArray2DT& coords, const dArray2DT& disp);
+	/** constructor */
+	AugLagSphereT(void);
 
 	/* initialize data */
-	virtual void Initialize(void);
 	virtual void SetEquationNumbers(void);
 
 	/* append element equations numbers to the list */
@@ -67,19 +64,19 @@ public:
 	/** return the equation group to which the generate degrees of
 	 * freedom belong. */
 	virtual int Group(void) const;	
-	
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 private:
 
 	/* accumulate the contact force vector fContactForce */
 	virtual void ComputeContactForce(double kforce);
 
 private:
-
-	/** XDOF manager */
-	XDOF_ManagerT* fXDOF_Nodes;
-
-	/** the field */
-	const FieldT& fField;
 	
 	/* contact equation sets (shallow copy of contact node equs) */
 	iArray2DT fContactEqnos2D;
@@ -90,5 +87,6 @@ private:
 	dArrayT fLastDOF;
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _AUGLAG_SPHERE_T_H_ */

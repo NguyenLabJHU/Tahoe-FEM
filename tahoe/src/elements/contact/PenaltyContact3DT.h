@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.h,v 1.6 2003-03-02 18:56:12 paklein Exp $ */
+/* $Id: PenaltyContact3DT.h,v 1.7 2004-07-15 08:26:08 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #ifndef _PENALTY_CONTACT3D_T_H_
 #define _PENALTY_CONTACT3D_T_H_
@@ -8,22 +8,29 @@
 
 namespace Tahoe {
 
+/** 3D penalty contact element */
 class PenaltyContact3DT: public Contact3DT
 {
 public:
 
-	/* constructor */
-	PenaltyContact3DT(const ElementSupportT& support, const FieldT& field);
+	/** constructor */
+	PenaltyContact3DT(const ElementSupportT& support);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
-		 	
-	/* construct the effective mass matrix */
+	/** construct the effective mass matrix */
 	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
 
-	/* construct the residual force vector */
+	/** construct the residual force vector */
 	virtual void RHSDriver(void);
 
 protected:

@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.cpp,v 1.8 2003-01-29 07:34:48 paklein Exp $ */
+/* $Id: QuadLog3D.cpp,v 1.9 2004-07-15 08:27:35 paklein Exp $ */
 /* created: paklein (06/27/1997) */
 #include "QuadLog3D.h"
 
@@ -8,42 +8,11 @@
 using namespace Tahoe;
 
 /* constructor */
-QuadLog3D::QuadLog3D(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support), //in principal stress space
-	IsotropicT(in),
-	fSpectral(3),
-	fb(3),
-	fStress(3),
-	fModulus(dSymMatrixT::NumValues(3)),
-	fDevOp3(3),
-		
-	/* spectral decomposition */
-	fEigs(3),
-	floge(3),
-	fBeta(3),
-	fEigMod(3)
-{			
-	/* elastic modulis in principal stress space */
-	fDevOp3 = -1.0/3.0;
-	fDevOp3.PlusIdentity();
-	fEigMod = Kappa();
-	fEigMod.AddScaled(2.0*Mu(), fDevOp3);
-}
-
-/* print parameters */
-void QuadLog3D::Print(ostream& out) const
+QuadLog3D::QuadLog3D(void): 
+	ParameterInterfaceT("quad_log"),
+	fSpectral(3)
 {
-	/* inherited */
-	FSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-}
 
-void QuadLog3D::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-
-	out << "    Quadratic logarithmic isotropic model\n";
 }
 
 /* modulus */
@@ -93,9 +62,33 @@ double QuadLog3D::StrainEnergyDensity(void)
 	return ComputeEnergy(floge);
 }
 
+/* accept parameter list */
+void QuadLog3D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FSIsotropicMatT::TakeParameterList(list);
+
+	fb.Dimension(3);
+	fStress.Dimension(3);
+	fModulus.Dimension(dSymMatrixT::NumValues(3));
+	fDevOp3.Dimension(3);
+		
+	/* spectral decomposition */
+	fEigs.Dimension(3);
+	floge.Dimension(3);
+	fBeta.Dimension(3);
+	fEigMod.Dimension(3);
+
+	/* elastic modulis in principal stress space */
+	fDevOp3 = -1.0/3.0;
+	fDevOp3.PlusIdentity();
+	fEigMod = Kappa();
+	fEigMod.AddScaled(2.0*Mu(), fDevOp3);
+}
+
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* computation routines */
 void QuadLog3D::ComputeModuli(const dSymMatrixT& b, dMatrixT& moduli)

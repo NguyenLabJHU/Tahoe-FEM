@@ -1,14 +1,13 @@
-/* $Id: DetCheckT.cpp,v 1.32 2004-06-02 20:45:02 raregue Exp $ */
+/* $Id: DetCheckT.cpp,v 1.33 2004-07-15 08:29:19 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
-#include "ExceptionT.h"
+#include "ofstreamT.h"
 #include "dSymMatrixT.h"
 #include "dMatrixT.h"
 #include "dMatrixEXT.h"
 #include "dArrayT.h"
 #include "dTensor4DT.h"
-#include "ofstreamT.h"
 
 /* needed to access element information */
 #include "SolidMatSupportT.h"

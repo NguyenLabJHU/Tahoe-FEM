@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.h,v 1.5 2002-11-30 16:41:25 paklein Exp $ */
+/* $Id: ThermalSurfaceT.h,v 1.6 2004-07-15 08:25:57 paklein Exp $ */
 
 #ifndef _THERMAL_SURFACE_T_H_
 #define _THERMAL_SURFACE_T_H_
@@ -20,13 +20,22 @@ class ThermalSurfaceT: public CSEBaseT
 public:
 
 	/** constructor */
-	ThermalSurfaceT(const ElementSupportT& support, const FieldT& field);
+	ThermalSurfaceT(const ElementSupportT& support);
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
-	/** initialize class data */
-	virtual void Initialize(void);
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

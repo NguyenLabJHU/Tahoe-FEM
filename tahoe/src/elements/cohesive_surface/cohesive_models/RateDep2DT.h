@@ -1,6 +1,5 @@
-/* $Id: RateDep2DT.h,v 1.8 2003-05-26 01:51:46 paklein Exp $ */
+/* $Id: RateDep2DT.h,v 1.9 2004-07-15 08:26:02 paklein Exp $ */
 /* created: paklein (02/05/2000) */
-
 #ifndef _RATE_DEP_2D_T_H_
 #define _RATE_DEP_2D_T_H_
 
@@ -13,14 +12,17 @@ namespace Tahoe {
 class ifstreamT;
 
 /** cohesive potential from Tvergaard and Hutchinson. This model is
- * described in JMPS v41, n6, 1995, 1119-1135. See SurfacePotentialT
- * for more information about the */
+ * described in JMPS v41, n6, 1995, 1119-1135. The model has been
+ * modified to produce rate dependent properties. */
 class RateDep2DT: public SurfacePotentialT
 {
 public:
 
 	/** constructor */
-	RateDep2DT(ifstreamT& in, const double &fTimeStep);
+	RateDep2DT(void);	
+
+	/** set the source of the time step */
+	virtual void SetTimeStep(const double& time_step) { fTimeStep = &time_step; };
 
 	virtual void InitStateVariables(ArrayT<double>& state);
 
@@ -43,12 +45,6 @@ public:
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
 
-	/** write model name to output */
-	virtual void PrintName(ostream& out) const;
-
-	/** write model parameters */
-	virtual void Print(ostream& out) const;
-
 	/** return the number of output variables. returns 0 by default. */
 	virtual int NumOutputVariables(void) const;
 
@@ -61,6 +57,15 @@ public:
 	 * \param destination of output values. Allocated by the host code */
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters  */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 //	virtual bool NeedsNodalInfo(void);
 //	virtual int NodalQuantityNeeded(void);
@@ -90,7 +95,7 @@ private:
 	double fpenalty; /**< stiffening multiplier */
 	double fK;       /**< penetration stiffness calculated as a function of penalty
 	                  * and the initial stiffness of the cohesive potential */
-	const double& fTimeStep;
+	const double* fTimeStep;
 	int fGroup;
 	bool fNeedsStress;
 	double L_2_b, L_2_m;/* fitting constants for rate dependence of L_2 */

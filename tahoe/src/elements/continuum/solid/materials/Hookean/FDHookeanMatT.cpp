@@ -1,27 +1,29 @@
-/* $Id: FDHookeanMatT.cpp,v 1.9 2003-01-29 07:34:39 paklein Exp $ */
+/* $Id: FDHookeanMatT.cpp,v 1.10 2004-07-15 08:26:56 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "FDHookeanMatT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-FDHookeanMatT::FDHookeanMatT(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support),
-	HookeanMatT(NumSD()),
-	fE(NumSD()),
-	fStress(NumSD()),
-	fModulus(dSymMatrixT::NumValues(NumSD())),
-	fLastCall(kNone)
+FDHookeanMatT::FDHookeanMatT(void):
+	ParameterInterfaceT("large_strain_Hookean_material"),
+	fLastCall(kNone)	
 {
 
 }
 
-/* initialization */
-void FDHookeanMatT::Initialize(void)
+/* set the material support or pass NULL to clear */
+void FDHookeanMatT::SetFSMatSupport(const FSMatSupportT* support)
 {
 	/* inherited */
-	FSSolidMatT::Initialize();
-	HookeanMatT::Initialize();
+	FSSolidMatT::SetFSMatSupport(support);
+	
+	/* dimension */
+	int nsd = NumSD();
+	HookeanMatT::Dimension(nsd);
+	fE.Dimension(nsd);
+	fStress.Dimension(nsd);
+	fModulus.Dimension(dSymMatrixT::NumValues(nsd));
 }
 
 /* spatial description */
@@ -118,4 +120,14 @@ double FDHookeanMatT::StrainEnergyDensity(void)
 	
 	/* compute strain energy density */
 	return HookeanEnergy(fE);
+}
+
+/* accept parameter list */
+void FDHookeanMatT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FSSolidMatT::TakeParameterList(list);
+	
+	/* set the modulus */
+	HookeanMatT::Initialize();
 }

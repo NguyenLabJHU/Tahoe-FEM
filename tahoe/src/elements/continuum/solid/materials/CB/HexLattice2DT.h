@@ -1,4 +1,4 @@
-/* $Id: HexLattice2DT.h,v 1.2 2003-03-31 23:14:38 paklein Exp $ */
+/* $Id: HexLattice2DT.h,v 1.3 2004-07-15 08:26:42 paklein Exp $ */
 #ifndef _HEX_LATTICE_2D_T_H_
 #define _HEX_LATTICE_2D_T_H_
 
@@ -14,18 +14,8 @@ class HexLattice2DT: public CBLatticeT
 {
 public:
 
-	/** the Q matrix passed into this constructor is used to rotate the
-	 * bond vectors into the orientation prescribed by Q.  No check is
-	 * performed on the orthogonality of Q, only its dimensions.  Q is
-	 * deep copied.  Q is defined as:
-	 *
-	 *			Q = d x_natural / d x_global
-	 *
-	 * So that the vectors are transformed by:
-	 *
-	 *			r_global = Transpose[Q].r_natural
-	 */
-	HexLattice2DT(const dMatrixT& Q, int nshells);
+	/** constructor */
+	HexLattice2DT(int nshells);
 
 	/** number of shells */
 	int NumShells(void) const { return fNumShells; };

@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.9 2003-11-21 22:46:35 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.10 2004-07-15 08:27:45 paklein Exp $ */
 /* created: paklein (10/18/1998) */
 #include "J2IsoVIB2DLinHardT.h"
 
@@ -50,10 +50,10 @@ const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {"s_max", "s_min", "VM stress", "alpha"};
 
 /* constructor */
-J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(ifstreamT& in, const FSMatSupportT& support):
-	IsoVIB3D(in, support),
-	Material2DT(in, kPlaneStrain),
-	J2PrimitiveT(in),
+J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(void):
+	ParameterInterfaceT("isotropic_VIB_J2_2D"),
+//	IsoVIB3D(in, support),
+//	J2PrimitiveT(in),
 
 //TEMP
 	fEigs(kNSD),
@@ -80,8 +80,7 @@ J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(ifstreamT& in, const FSMatSupportT& suppo
 	fStress2D(2),
 	fb_2D(2)
 {
-	/* 2D */
-	fDensity *= fThickness;
+ExceptionT::GeneralFail("J2IsoVIB2DLinHardT:;J2IsoVIB2DLinHardT", "out of date");
 }
 
 /* update internal variables */
@@ -139,14 +138,6 @@ void J2IsoVIB2DLinHardT::ResetHistory(void)
 			Flags[i] = kReset;
 }
 
-/* print parameters */
-void J2IsoVIB2DLinHardT::Print(ostream& out) const
-{
-	/* inherited */
-	IsoVIB3D::Print(out);
-	J2PrimitiveT::Print(out);
-}
-
 /* modulus */
 const dMatrixT& J2IsoVIB2DLinHardT::c_ijkl(void)
 {
@@ -188,7 +179,6 @@ const dSymMatrixT& J2IsoVIB2DLinHardT::s_ij(void)
 
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(fSpectral.EigsToRank2(fBeta));
-	fStress2D *= fThickness;
 	
 	return fStress2D;
 }
@@ -237,7 +227,7 @@ double J2IsoVIB2DLinHardT::StrainEnergyDensity(void)
 	for (int i = 0; i < fLengths.Length(); i++)
 		energy += (*pU++)*(*pj++);
 	
-	return fThickness*energy;
+	return energy;
 }
 
 /* required parameter flags */
@@ -288,18 +278,27 @@ void J2IsoVIB2DLinHardT::ComputeOutput(dArrayT& output)
 		output[3] = 0.0;
 }
 
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print name */
-void J2IsoVIB2DLinHardT::PrintName(ostream& out) const
+/* describe the parameters needed by the interface */
+void J2IsoVIB2DLinHardT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	IsoVIB3D::PrintName(out);
-
-	out << "    J2 plasticity, principal stretch return mapping\n";
+	IsoVIB3D::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
 }
+
+/* accept parameter list */
+void J2IsoVIB2DLinHardT::TakeParameterList(const ParameterListT& list)
+{
+	IsoVIB3D::TakeParameterList(list);
+	J2PrimitiveT::TakeParameterList(list);
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
 
 /* returns the elastic stretch */
 const dSymMatrixT& J2IsoVIB2DLinHardT::TrialStretch(const dMatrixT& F_total,

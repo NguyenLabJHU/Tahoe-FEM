@@ -1,6 +1,5 @@
-/* $Id: YoonAllen2DT.h,v 1.8 2003-05-26 01:51:46 paklein Exp $ */
+/* $Id: YoonAllen2DT.h,v 1.9 2004-07-15 08:26:03 paklein Exp $ */
 /* created: cjkimme (05/28/2002) */
-
 #ifndef _YOON_ALLEN_2D_T_H_
 #define _YOON_ALLEN_2D_T_H_
 
@@ -20,7 +19,10 @@ class YoonAllen2DT: public SurfacePotentialT
 public:
 
 	/** constructor */
-	YoonAllen2DT(ifstreamT& in, const double &fTimeStep);
+	YoonAllen2DT(void);
+
+	/** set the source of the time step */
+	virtual void SetTimeStep(const double& time_step) { fTimeStep = &time_step; };
 
 	virtual void InitStateVariables(ArrayT<double>& state);
 
@@ -43,12 +45,6 @@ public:
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
 
-	/** write model name to output */
-	virtual void PrintName(ostream& out) const;
-
-	/** write model parameters */
-	virtual void Print(ostream& out) const;
-
 	/** return the number of output variables. returns 0 by default. */
 	virtual int NumOutputVariables(void) const;
 
@@ -61,6 +57,21 @@ public:
 	 * \param destination of output values. Allocated by the host code */
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -77,7 +88,7 @@ private:
 	
 	/* moduli */
 	double fE_infty; /**< Asymptotic modulus of cohesive zone */
-	int iNumRelaxTimes;
+//	int iNumRelaxTimes;
 	dArrayT fE_t; /**< transient modulus with exponential time decay*/
 	dArrayT ftau; /**< time constant for decay */
 	dArrayT fexp_tau; /**< exponentiations of the timestep over the time constants */
@@ -91,8 +102,10 @@ private:
 	double fpenalty; /**< stiffening multiplier */
 	double fK;       /**< penetration stiffness calculated as a function of penalty
 	                  * and the initial stiffness of the cohesive potential */
-	const double& fTimeStep;
+	const double* fTimeStep;
+	double fCurrentTimeStep; /**< time increment used to compute fexp_tau */
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _YOON_ALLEN_2D_T_H_ */

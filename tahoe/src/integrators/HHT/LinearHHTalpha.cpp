@@ -1,4 +1,4 @@
-/* $Id: LinearHHTalpha.cpp,v 1.5 2002-11-14 17:05:49 paklein Exp $ */
+/* $Id: LinearHHTalpha.cpp,v 1.6 2004-07-15 08:30:27 paklein Exp $ */
 /* created: paklein (10/11/1996) */
 #include "LinearHHTalpha.h"
 #include "dArrayT.h"
@@ -8,12 +8,11 @@
 using namespace Tahoe;
 
 /* constructor */
-LinearHHTalpha::LinearHHTalpha(TimeManagerT& TM, ifstreamT& in, ostream& out, 
-	bool auto2ndorder):
-	HHTalpha(in, out, auto2ndorder),
-	nLinearHHTalpha(in, out, auto2ndorder),
-	eLinearHHTalpha(in, out, auto2ndorder),
-	TimeBoss(TM)
+LinearHHTalpha::LinearHHTalpha(double alpha):
+	HHTalpha(alpha),
+	nLinearHHTalpha(alpha),
+	eLinearHHTalpha(alpha),
+	fTimeBoss(NULL)
 {
 
 }
@@ -26,7 +25,7 @@ LinearHHTalpha::LinearHHTalpha(TimeManagerT& TM, ifstreamT& in, ostream& out,
 void LinearHHTalpha::FormNodalForce(NodeManagerT* nodeboss) const
 {
 	/* shift time back */
-	TimeBoss.ShiftTime(fTimeShift);
+	fTimeBoss->ShiftTime(fTimeShift);
 	
 	/* form nodal contribution to RHS */
 //	nodeboss->FormRHS();
@@ -34,7 +33,7 @@ void LinearHHTalpha::FormNodalForce(NodeManagerT* nodeboss) const
 #pragma message("LinearHHTalpha::FormNodalForce: need this????")
 	
 	/* reset the time */
-	TimeBoss.ResetTime();
+	fTimeBoss->ResetTime();
 }
 
 /***********************************************************************

@@ -1,8 +1,8 @@
-/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.8 2003-05-22 09:06:27 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.9 2004-07-15 08:29:14 paklein Exp $ */
 #include "BCJHypoIsoDamageYC3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 #include "BCJKineticEqn.h"
 
@@ -33,6 +33,7 @@ static const char* Labels[kNumOutput] = {"EQPe","EQPh","EQXie","EQXih",
                                          "VMISES","ALPHA","KAPPA","VVF"};
 
 BCJHypoIsoDamageYC3D::BCJHypoIsoDamageYC3D(ifstreamT& in, const FSMatSupportT& support) :
+	ParameterInterfaceT("BCJHypoIsoDamageYC_3D"),
   BCJHypo3D(in, support),  
   fVoidGrowthModel (NULL)
 {
@@ -265,7 +266,7 @@ void BCJHypoIsoDamageYC3D::ComputeOutput(dArrayT& output)
   //output[8] = fIterCount;
 
   if (BCJ_DMG_MESSAGES && intpt == 0 && CurrElementNumber() == 0)
-     cerr << " step # " << fFSMatSupport.StepNumber()
+     cerr << " step # " << fFSMatSupport->StepNumber()
           << " EQPe  "  << fEQValues[kEQPe] 
           << " EQXie "  << fEQValues[kEQXie]
           << " PRESS "  << -fEQValues[kEQXih]
@@ -275,32 +276,6 @@ void BCJHypoIsoDamageYC3D::ComputeOutput(dArrayT& output)
 	  << " KAPPA "  << fInternal[kKAPP]
           << " VVF   "  << fInternal[kDAMG]
 	  << " ITERS "  << fIterCount << endl;
-}
-
-void BCJHypoIsoDamageYC3D::Print(ostream& out) const
-{
-  // inherited
-  BCJHypo3D::Print(out);
-
-  // print damage data
-  out << "    Damage related input\n";
-  out << "       Initial Damage (void volume fraction) . . = " << fDamg0   << "\n";
-  out << "       Rate sensitivity exponent (VGModel) . . . = " << fm       << "\n";
-  out << "       Void Growth Model Code. . . . . . . . . . = " << fVGMCode << "\n";
-
-  // print data (if any) from void growth model
-  fVoidGrowthModel->Print(out);
-}
-
-void BCJHypoIsoDamageYC3D::PrintName(ostream& out) const
-{
-  // inherited
-  EVPFDBaseT::PrintName(out);
-
-  // output model name
-  out << "    Hypo-Elastic-BCJ coupled with isotropic damage (associative)\n";
-  fKineticEqn->PrintName(out);
-  fVoidGrowthModel->PrintName(out);
 }
 
 /* PROTECTED MEMBER FUNCTIONS */
@@ -393,7 +368,7 @@ void BCJHypoIsoDamageYC3D::IntegrateConstitutiveEqns(bool& converged, int subInc
 
   // check for inelastic process (note: use deviatoric part for this check)
   if ( fEQXieTr > (1.+1.e-6)*fKineticEqn->h(((fabs(fdt) > kSmall) ? fInternal_n[kDEQPe]/fdt : 0.0),fInternal_n[kKAPP])
-	&& fFSMatSupport.IterationNumber() > -1 )
+	&& fFSMatSupport->IterationNumber() > -1 )
     {
       // step 5. forward gradient estimate
       if (subIncr == 1) ForwardGradientEstimate();

@@ -1,13 +1,12 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.35 2004-06-26 18:38:08 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.36 2004-07-15 08:31:03 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
 
+#include "ifstreamT.h"
 #include "ModelManagerT.h"
 #include "AutoArrayT.h"
 #include "RaggedArray2DT.h"
-#include "ifstreamT.h"
-
 #include "NodeManagerT.h"
 #include "ElementBaseT.h"
 #include "IOManager_mpi.h"
@@ -23,7 +22,7 @@
 using namespace Tahoe;
 
 /* constructor */
-FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output, 
+FEManagerT_mpi::FEManagerT_mpi(const StringT& input, ofstreamT& output, 
 	CommunicatorT& comm, const ArrayT<StringT>& argv, PartitionT* partition, TaskT task):
 	FEManagerT(input, output, comm, argv),
 	fPartition(partition),
@@ -33,7 +32,14 @@ FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output,
 	if (fTask == kRun)
 	{
 		const char caller[] = "FEManagerT_mpi::FEManagerT_mpi";
-	
+
+		/* revise input file name */
+		StringT suffix;
+		suffix.Suffix(fInputFile);
+		fInputFile.Root();
+		fInputFile.Append(".p", Rank());
+		fInputFile.Append(suffix);
+
 		/* checks */
 		if (!fPartition)
 			ExceptionT::BadInputValue(caller, "partition information required for task %d", kRun);
@@ -42,8 +48,8 @@ FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output,
 				fPartition->ID(), Rank());
 		
 		StringT log_file;
-		log_file.Root(input.filename());
-		log_file.Append(".p", Rank());
+		log_file.Root(input);
+		//log_file.Append(".p", Rank());
 		log_file.Append(".log");
 		flog.open(log_file);
 		
@@ -53,6 +59,8 @@ FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output,
 		/* log */
 		TimeStamp(caller);
 	}
+	else if (fTask == kDecompose)
+		fInitCode = kAllButSolver;
 }
 
 /* destructor */
@@ -147,7 +155,7 @@ void FEManagerT_mpi::WriteOutput(double time)
 }
 	
 void FEManagerT_mpi::WriteOutput(int ID, const dArray2DT& n_values,
-	const dArray2DT& e_values)
+	const dArray2DT& e_values) const
 {
 	/* output assembly mode */
 	if (!fExternIOManager)
@@ -205,24 +213,19 @@ void FEManagerT_mpi::RestoreOutput(void)
 void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 	bool verbose, int method)
 {
+	const char caller[] = "FEManagerT_mpi::Decompose";
+
 	//TEMP
 	//TimeStamp("FEManagerT_mpi::Decompose");
 
 	/* check */
 	if (partition.Length() == 1)
-	{
-		cout << "\n FEManagerT_mpi::Decompose: expecting more than 1 partition" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "expecting more than 1 partition");
 
 	/* geometry file must be ascii external */
 	if (fInputFormat != IOBaseT::kTahoeII && fInputFormat != IOBaseT::kExodusII)
-	{
-		cout << "\n FEManagerT_mpi::Decompose: requires input format with external\n";
-		cout <<   "     geometry information. Use code " << IOBaseT::kTahoeII
-		     << " or " << IOBaseT::kExodusII << endl;
-		throw ExceptionT::kBadInputValue;
-	}	
+		ExceptionT::BadInputValue(caller, "expecting file format %d or %d, not %d",
+			IOBaseT::kTahoeII, IOBaseT::kExodusII, fInputFormat);
 
 	/* decomposition method */
 	bool use_new_methods = false; //TEMP
@@ -243,7 +246,7 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 			
 			/* set number of element sets */
 			iArrayT elementID;
-			if (model_ALL.GetElementSetID(elementID) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;
+			if (model_ALL.GetElementSetID(elementID) != ModelFileT::kOK) ExceptionT::GeneralFail(caller);
 			ArrayT<StringT> IDlist(elementID.Length());
 			for (int i = 0; i < IDlist.Length(); i++)
 				IDlist[i].Append(elementID[i]);
@@ -253,7 +256,7 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 				/* get element set */
 				iArray2DT set;
 				if (model_ALL.GetElementSet(elementID[i], set) != ModelFileT::kOK)
-					throw ExceptionT::kGeneralFail;
+					ExceptionT::GeneralFail(caller);
 					
 				/* correct node numbering offset */
 				set--;	
@@ -299,71 +302,32 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 			}
 		}
 	}
-	else throw ExceptionT::kGeneralFail;
+	else ExceptionT::GeneralFail(caller);
 }
 
-/*************************************************************************
-* Protected
-*************************************************************************/
-
-void FEManagerT_mpi::ReadParameters(InitCodeT init)
+/* accept parameter list */
+void FEManagerT_mpi::TakeParameterList(const ParameterListT& list)
 {
-	/* log */
-	TimeStamp("FEManagerT_mpi::ReadParameters");
-
 	/* inherited */
-	FEManagerT::ReadParameters(init);
+	FEManagerT::TakeParameterList(list);
 
 	/* collect model file and input format from ModelManager */
 	fInputFormat = fModelManager->DatabaseFormat();
 	fModelFile = fModelManager->DatabaseName();
-	
-	/* set for parallel execution */
-	if (fTask == kRun)
-	{
-		StringT name, suffix;
-		
-		/* input file name */
-		name.Root(fMainIn.filename());
-		suffix.Suffix(fMainIn.filename());
-		name.Append(".p", Rank());
-		name.Append(suffix);
-		fMainIn.set_filename(name);
 
-		/* model file name */
-		suffix.Suffix(fModelFile);
-		fModelFile.Root();
-		fModelFile.Append(".n", Size());
-		fModelFile.Append(".p", Rank());
-		fModelFile.Append(suffix);
-		
-		/* (re-)set model manager to partial geometry file */
-		if (!fModelManager->Initialize(fInputFormat, fModelFile, true)) {
-			cout << "\n FEManagerT_mpi::ReadParameters: error initializing model manager" << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-		
-		/* restart file name */
-		if (fReadRestart)
-		{
-			suffix.Suffix(fRestartFile);
-			fRestartFile.Root();
-			fRestartFile.Append(".p", Rank());
-			fRestartFile.Append(suffix);
-		}
+	/* correct restart file name */
+	if (fReadRestart) {
+		StringT suffix;
+		suffix.Suffix(fRestartFile);
+		fRestartFile.Root();
+		fRestartFile.Append(".p", Rank());
+		fRestartFile.Append(suffix);
 	}
 }
 
-void FEManagerT_mpi::SetElementGroups(void)
-{
-	/* inherited */
-	FEManagerT::SetElementGroups();
-	
-//TEMP - contact not yet supported in parallel
-	if (fElementGroups->HasContact())
-		cout << "\n FEManagerT_mpi::SetElementGroups: WARNING: no contact between partitions"
-			 << endl;
-}
+/*************************************************************************
+ * Protected
+ *************************************************************************/
 
 /* (re-)set system to initial conditions */
 ExceptionT::CodeT FEManagerT_mpi::InitialCondition(void)

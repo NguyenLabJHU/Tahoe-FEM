@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.h,v 1.7 2003-01-29 07:35:02 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.h,v 1.8 2004-07-15 08:28:54 paklein Exp $ */
 /* created: paklein (06/29/1997) */
 #ifndef _J2_QL_LIN_HARD_2D_T_H_
 #define _J2_QL_LIN_HARD_2D_T_H_
@@ -19,29 +19,34 @@ namespace Tahoe {
  * isotropically elastic subject to the Huber-von Mises yield
  * condition as fYield with kinematic/isotropic hardening laws
  * given by:
- * 		H(a) = (1 - ftheta) fH_bar a
- *      K(a) = fYield + ftheta fH_bar a
- * 		where a is the internal hardening variable
+ * given by:
+ 	\f[
+		H(\alpha) = (1 - \theta) \bar{H} \alpha
+	\f]
+	\f[
+		K(\alpha) = Y + \theta \bar{H} \alpha
+	\f]
+ * where \f$ \alpha \f$ is the internal hardening variable
  * \note all calculations are peformed in 3D
  */
 class J2QL2DLinHardT: public QuadLog2D, public J2PrimitiveT
 {
 public:
 
-	/* constructor */
-	J2QL2DLinHardT(ifstreamT& in, const FSMatSupportT& support);
+	/** constructor */
+	J2QL2DLinHardT(void);
 
 	/** required parameter flags */
 	virtual bool Need_F_last(void) const { return true; };
+
+	/** has state variables */
+	virtual bool HasHistory(void) const { return true; };
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
 
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);
@@ -57,6 +62,15 @@ public:
 	virtual int NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 	
 protected:
 

@@ -1,10 +1,7 @@
-/* $Id: SolidT.h,v 1.38 2004-06-26 06:03:10 paklein Exp $ */
+/* $Id: SolidT.h,v 1.39 2004-07-15 08:28:29 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 #ifndef _MATERIAL_T_H_
 #define _MATERIAL_T_H_
-
-/* forward declarations */
-#include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
@@ -70,22 +67,10 @@ kSIERRA_Hypoelastic = 110,
  kSIERRA_Iso_Geomat = 111
 };
 
-	/* stream extraction operator */ 
-	friend istream& operator>>(istream& in, SolidT::TypeT& code);
-
-/* 2D types */
-#if 0
-const int kSWDC100         = 24;//improper CB material
-const int kSWDC110         = 15;	//improper CB material
-const int kD2VIB           = 23; // plane stress VIB + gradient terms
-#endif
-
-/* 3D types */
-#if 0
-const int kIsoVIB_X	    = 14; // remove
-#endif
-  
+	/** convert integer to SolidT::TypeT */
+	static TypeT int2TypeT(int i);
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif // _MATERIAL_T_H_

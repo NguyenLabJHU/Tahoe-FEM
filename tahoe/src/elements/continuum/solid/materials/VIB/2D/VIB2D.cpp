@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.9 2004-06-17 07:40:41 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.10 2004-07-15 08:27:45 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #include "VIB2D.h"
 
@@ -7,66 +7,33 @@
 
 #include "toolboxConstants.h"
 
-#include "ifstreamT.h"
+
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
+#include "ParameterContainerT.h"
 
 /* point generators */
-#include "EvenSpacePtsT.h"
+#include "CirclePointsT.h"
 #include "GaussPtsT.h"
+#include "EvenSpacePtsT.h"
 
 using namespace Tahoe;
 
 /* constants */
 const double Pi = acos(-1.0);
 
-/* constructors */
-VIB2D::VIB2D(ifstreamT& in, const FSMatSupportT& support):
-	NL_E_Mat2DT(in, support, kPlaneStress),
-	VIB_E_MatT(in, 2)
+/* constructor */
+VIB2D::VIB2D(void):
+	ParameterInterfaceT("VIB_2D"),
+	VIB_E_MatT(2),
+	fCircle(NULL)
 {
-	/* construct point generator */
-	int pointcode;
-	in >> pointcode;
-	switch(pointcode)
-	{
-		case kEvenSpace:
-		
-			fCircle = new EvenSpacePtsT(in);
-			break;
-			
-		case KGaussRule:
-		
-			fCircle = new GaussPtsT(in);
-			break;
-	
-		default:
-		
-			throw ExceptionT::kBadInputValue;
-	}
-	
-	if (!fCircle) throw ExceptionT::kOutOfMemory;
-	
-	/* default construction */
-	SetAngle(0.0);
+
 }
 
 /* destructor */
-VIB2D::~VIB2D(void)
-{
-	delete fCircle;
-}
-
-/* print parameters */
-void VIB2D::Print(ostream& out) const
-{
-	/* inherited */
-	NL_E_Mat2DT::Print(out);
-	VIB_E_MatT::Print(out);
-
-	fCircle->Print(out);
-}
+VIB2D::~VIB2D(void) { delete fCircle; }
 
 /* set angle offset - for testing onset of amorphous behavior */
 void VIB2D::SetAngle(double angleoffset)
@@ -76,7 +43,7 @@ void VIB2D::SetAngle(double angleoffset)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Dimension(numpoints);
+	VIB::Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fCircle->Jacobians();
@@ -180,25 +147,93 @@ void VIB2D::Perturb(dArrayT& dU, double eps)
 	}
 }
 
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-/*
-* Print name.
-*/
-void VIB2D::PrintName(ostream& out) const
+/* describe the parameters needed by the interface */
+void VIB2D::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	NL_E_Mat2DT::PrintName(out);
-	VIB_E_MatT::PrintName(out);
+	NL_E_MatT::DefineParameters(list);
+	VIB_E_MatT::DefineParameters(list);
 	
-	fCircle->PrintName(out);
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStress);
 }
 
-/*
-* Compute the symetric Cij reduced index matrix.
-*/
+/* information about subordinate parameter lists */
+void VIB2D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineSubs(sub_list);
+	VIB_E_MatT::DefineSubs(sub_list);
+
+	/* choice of integration schemes */
+	sub_list.AddSub("circle_integration_choice", ParameterListT::Once, true);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* VIB2D::NewSub(const StringT& name) const
+{
+	/* inherited */
+	ParameterInterfaceT* sub = NL_E_MatT::NewSub(name);
+	if (sub) 
+		return sub;
+	if (name == "circle_integration_choice")
+	{
+		ParameterContainerT* choice = new ParameterContainerT(name);
+		choice->SetListOrder(ParameterListT::Choice);
+
+		/* evenly spaced */
+		ParameterContainerT even("even_spaced");
+		ParameterT n_even(ParameterT::Integer, "n_even");
+		n_even.AddLimit(1, LimitT::LowerInclusive);
+		even.AddParameter(n_even);
+		choice->AddSub(even);
+
+		/* Gauss integration */
+		ParameterContainerT gauss("Gauss_points");
+		ParameterT n_gauss(ParameterT::Integer, "n_gauss");
+		n_gauss.AddLimit(9, LimitT::Only);
+		n_gauss.AddLimit(10, LimitT::Only);
+		gauss.AddParameter(n_gauss);
+		choice->AddSub(gauss);
+	
+		return choice;
+	}
+	else
+		return VIB_E_MatT::NewSub(name);
+}
+
+/* describe the parameters needed by the interface */
+void VIB2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	NL_E_MatT::TakeParameterList(list);
+	VIB_E_MatT::TakeParameterList(list);
+
+	/* construct integration scheme */
+	const ParameterListT& points = list.GetListChoice(*this, "circle_integration_choice");
+	if (points.Name() == "even_spaced")
+	{
+		int n = points.GetParameter("n_even");
+		fCircle = new EvenSpacePtsT(n);
+	}
+	else if (points.Name() == "Gauss_points")
+	{
+		int n = points.GetParameter("n_gauss");
+		fCircle = new GaussPtsT(n);
+	}
+	else
+		ExceptionT::GeneralFail("VIB2D::TakeParameterList", "unrecognized point scheme \"%s\"", points.Name().Pointer());	
+
+	/* default construction */
+	SetAngle(0.0);
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
+
+/* compute the symetric Cij reduced index matrix */
 void VIB2D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {
 	/* fill length table */

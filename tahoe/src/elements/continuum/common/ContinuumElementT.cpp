@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.40 2004-06-17 07:13:48 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.41 2004-07-15 08:26:13 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -6,7 +6,6 @@
 #include <iomanip.h>
 
 #include "ifstreamT.h"
-#include "ofstreamT.h"
 #include "ModelManagerT.h"
 #include "SolidMaterialT.h"
 #include "ShapeFunctionT.h"
@@ -26,34 +25,10 @@
 /* materials lists */
 #include "MaterialSupportT.h"
 #include "MaterialListT.h"
-#include "Material2DT.h"
 
 const double Pi = acos(-1.0);
 
 using namespace Tahoe;
-
-/* constructor */
-ContinuumElementT::ContinuumElementT(const ElementSupportT& support, 
-	const FieldT& field):
-	ElementBaseT(support, field),
-	fGroupCommunicator(NULL),
-	fMaterialList(NULL),
-	fBodySchedule(NULL),
-	fBody(NumDOF()),
-	fTractionBCSet(0),
-	fShapes(NULL),
-	fLocInitCoords(LocalArrayT::kInitCoords),
-	fLocDisp(LocalArrayT::kDisp),
-	fDOFvec(NumDOF())
-{
-	SetName("continuum_element");
-	ifstreamT& in = ElementSupport().Input();
-	ostream&  out = ElementSupport().Output();
-		
-	/* control parameters */
-	in >> fGeometryCode; //TEMP - should actually come from the geometry database
-	in >> fNumIP;
-}
 
 /* constructor */
 ContinuumElementT::ContinuumElementT(const ElementSupportT& support):
@@ -64,7 +39,10 @@ ContinuumElementT::ContinuumElementT(const ElementSupportT& support):
 	fTractionBCSet(0),
 	fShapes(NULL),
 	fLocInitCoords(LocalArrayT::kInitCoords),
-	fLocDisp(LocalArrayT::kDisp)
+	fLocDisp(LocalArrayT::kDisp),
+	fNumIP(0),
+	fOutputID(),
+	fGeometryCode(GeometryT::kNone)
 {
 	SetName("continuum_element");
 }
@@ -124,53 +102,6 @@ void ContinuumElementT::IP_ExtrapolateAll(const dArrayT& ip_values,
 {
 	/* computed by shape functions */
 	ShapeFunction().ExtrapolateAll(ip_values, nodal_values);
-}
-
-/* allocates space and reads connectivity data */
-void ContinuumElementT::Initialize(void)
-{
-	/* inherited */
-	ElementBaseT::Initialize();
-	
-	/* set axisymmmetric flag */
-	fAxisymmetric = Axisymmetric();
-	
-	/* allocate work space */
-	fNEEvec.Dimension(NumElementNodes()*NumDOF());
-
-	/* initialize local arrays */
-	SetLocalArrays();
-
-	/* construct shape functions */
-	SetShape();
-
-	/* streams */
-	ifstreamT& in = ElementSupport().Input();
-	ostream&  out = ElementSupport().Output();
-
-	/* output print specifications */
-	EchoOutputCodes(in, out);
-
-	/* body force specification (non virtual) */
-	EchoBodyForce(in, out);
-	
-	/* echo traction B.C.'s (non virtual) */
-	EchoTractionBC(in, out);
-
-	/* echo material properties */
-	ReadMaterialData(in);	
-	WriteMaterialData(out);
-
-	/* get form of tangent */
-	GlobalT::SystemTypeT type = TangentType();
-	
-	/* set form of element stiffness matrix */
-	if (type == GlobalT::kSymmetric)
-		fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
-	else if (type == GlobalT::kNonSymmetric)
-		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
-	else if (type == GlobalT::kDiagonal)
-		fLHS.SetFormat(ElementMatrixT::kDiagonal);
 }
 
 void ContinuumElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -465,7 +396,8 @@ void ContinuumElementT::ApplyTractionBC(void)
 		/* dimensions */
 		int nsd = NumSD();
 		int ndof = NumDOF();
-		if (fAxisymmetric && nsd != 2) ExceptionT::GeneralFail();
+		bool is_axi = Axisymmetric();
+		if (is_axi && nsd != 2) ExceptionT::GeneralFail();
 	
 		/* update equation numbers */
 		if (!fTractionBCSet) SetTractionBC();
@@ -514,24 +446,6 @@ void ContinuumElementT::ApplyTractionBC(void)
 			int elem, facet;
 			BC_card.Destination(elem, facet);
 			
-#ifdef __NO_RTTI__
-			/* default thickness */
-			double thick = 1.0;
-#else
-			/* use thickness for 2D solid deformation elements */
-			double thick = 1.0;
-			if (!fAxisymmetric && ndof == 2 && nsd == 2) //better to do this once elsewhere?
-			{
-				/* get material pointer */
-				const ElementCardT& elem_card = fElementCards[elem];
-				ContinuumMaterialT* pmat = (*fMaterialList)[elem_card.MaterialNumber()];
-			
-				/* thickness from 2D material */
-				Material2DT* pmat2D = TB_DYNAMIC_CAST(Material2DT*, pmat);
-				if (pmat2D) thick = pmat2D->Thickness();
-			}
-#endif
-			
 			/* boundary shape functions */
 			const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(facet);
 			int nip = surf_shape.NumIP();
@@ -553,8 +467,8 @@ void ContinuumElementT::ApplyTractionBC(void)
 					double detj = surf_shape.SurfaceJacobian(jacobian);
 	
 					/* ip weight */
-					double jwt = detj*w[j]*thick;
-					if (fAxisymmetric) {
+					double jwt = detj*w[j];
+					if (is_axi) {
 						surf_shape.Interpolate(coords, ip_coords, j);
 						jwt *= Pi2*ip_coords[0];
 					}
@@ -590,8 +504,8 @@ void ContinuumElementT::ApplyTractionBC(void)
 					double detj = surf_shape.SurfaceJacobian(jacobian, Q);
 	
 					/* ip weight */
-					double jwt = detj*w[j]*thick;
-					if (fAxisymmetric) {
+					double jwt = detj*w[j];
+					if (is_axi) {
 						surf_shape.Interpolate(coords, ip_coords, j);
 						jwt *= Pi2*ip_coords[0];
 					}
@@ -639,7 +553,7 @@ void ContinuumElementT::SetGlobalShape(void)
 }
 
 /* form the element mass matrix */
-void ContinuumElementT::FormMass(int mass_type, double constM)
+void ContinuumElementT::FormMass(int mass_type, double constM, bool axisymmetric)
 {
 #if __option(extended_errorcheck)
 	if (fLocDisp.Length() != fLHS.Rows()) throw ExceptionT::kSizeMismatch;
@@ -667,7 +581,7 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 			int a = 0, zero = 0;
 			int& b_start = (fLHS.Format() == ElementMatrixT::kSymmetricUpper) ? a : zero;
 			
-			if (fAxisymmetric)
+			if (axisymmetric)
 			{
 				const LocalArrayT& coords = fShapes->Coordinates();
 				fShapes->TopIP();	
@@ -736,7 +650,7 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 			const double* Weight = fShapes->IPWeights();
 
 			/* total mass and diagonal sum */
-			if (fAxisymmetric)
+			if (axisymmetric)
 			{
 				const LocalArrayT& coords = fShapes->Coordinates();
 				fShapes->TopIP();
@@ -816,7 +730,7 @@ void ContinuumElementT::AddBodyForce(LocalArrayT& body_force) const
 }
 
 /* calculate the body force contribution */
-void ContinuumElementT::FormMa(MassTypeT mass_type, double constM, 
+void ContinuumElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric,
 	const LocalArrayT* nodal_values,
 	const dArray2DT* ip_values)
 {
@@ -848,7 +762,7 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 			const double* Det    = fShapes->IPDets();
 			const double* Weight = fShapes->IPWeights();
 
-			if (fAxisymmetric)
+			if (axisymmetric)
 			{
 				const LocalArrayT& coords = fShapes->Coordinates();
 				fShapes->TopIP();
@@ -883,7 +797,7 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 					}
 				}
 			}
-			else /* not axisymmteric */
+			else /* not axisymmetric */
 			{
 				fShapes->TopIP();
 				while (fShapes->NextIP())
@@ -915,7 +829,7 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 		case kLumpedMass:
 		{
 			fLHS = 0.0; //hope there's nothing in there!
-			FormMass(kLumpedMass, constM);
+			FormMass(kLumpedMass, constM, axisymmetric);
 
 			/* init nodal values */
 			if (nodal_values)
@@ -942,52 +856,6 @@ if (ip_values)
 			break;
 		}
 	}
-}
-
-/* print element group data */
-void ContinuumElementT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	ElementBaseT::PrintControlData(out);
-
-	out << " Associated field. . . . . . . . . . . . . . . . = \"" << Field().Name() << "\"\n";
-	out << " Element geometry code . . . . . . . . . . . . . = " << fGeometryCode << '\n';
-	out << "    eq." << GeometryT::kPoint         << ", point\n";
-	out << "    eq." << GeometryT::kLine          << ", line\n";
-	out << "    eq." << GeometryT::kQuadrilateral << ", quadrilateral\n";
-	out << "    eq." << GeometryT::kTriangle	  << ", triangle\n";
-	out << "    eq." << GeometryT::kHexahedron	  << ", hexahedron\n";
-	out << "    eq." << GeometryT::kTetrahedron   << ", tetrahedron\n";
-	out << " Number of integration points. . . . . . . . . . = " << fNumIP    << '\n';
-}
-
-void ContinuumElementT::ReadMaterialData(ifstreamT& in)
-{
-	const char caller[] = "ContinuumElementT::ReadMaterialData";
-
-	/* construct material list */
-	int size;
-	in >> size;
-	fMaterialList = NewMaterialList(NumSD(), size);
-	if (!fMaterialList) ExceptionT::OutOfMemory(caller);
-
-	/* read */
-	fMaterialList->ReadMaterialData(in);
-	
-	/* check range */
-	for (int i = 0; i < fBlockData.Length(); i++)
-		if (fBlockData[i].MaterialID() < 0 || fBlockData[i].MaterialID() >= size)
-			ExceptionT::BadInputValue(caller, "material number %d for element block %d is out of range",
-				fBlockData[i].MaterialID()+1, i+1);
-}
-
-/* use in conjunction with ReadMaterialData */
-void ContinuumElementT::WriteMaterialData(ostream& out) const
-{
-	fMaterialList->WriteMaterialData(out);
-
-	/* flush buffer */
-	out.flush();
 }
 
 void ContinuumElementT::EchoBodyForce(ifstreamT& in, ostream& out)
@@ -1019,162 +887,158 @@ void ContinuumElementT::EchoBodyForce(ifstreamT& in, ostream& out)
 	out.flush();   	   	
 }
 
-void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
+/* extract natural boundary condition information */
+void ContinuumElementT::TakeNaturalBC(const ParameterListT& list)
 {
-	const char caller[] = "ContinuumElementT::EchoTractionBC";
-	out << "\n Traction boundary conditions:\n";
-	
-	/* read data from parameter file */
-	int numlines, numsets;
-	ModelManagerT& model = ElementSupport().Model();
-	model.ReadNumTractionLines (in, numlines, numsets);
+	const char caller[] = "ContinuumElementT::TakeTractionBC";
 
-	if (numlines > 0)
+	int num_natural_bc = list.NumLists("natural_bc");
+	if (num_natural_bc > 0)
 	{
+		/* model manager */
+		ModelManagerT& model = ElementSupport().ModelManager();
+	
 		/* temp space */
-		ArrayT<StringT> block_ID(numlines);
-	    ArrayT<iArray2DT> localsides (numlines);
-	    iArrayT LTf (numlines);
-	    ArrayT<Traction_CardT::CoordSystemT> coord_sys (numlines);
-	    ArrayT<dArray2DT> values (numlines);
+		ArrayT<StringT> block_ID(num_natural_bc);
+	    ArrayT<iArray2DT> localsides(num_natural_bc);
+	    iArrayT LTf(num_natural_bc);
+	    ArrayT<Traction_CardT::CoordSystemT> coord_sys(num_natural_bc);
+	    ArrayT<dArray2DT> values(num_natural_bc);
 
 	    /* nodes on element facets */
 	    iArrayT num_facet_nodes;
-	    fShapes->NumNodesOnFacets (num_facet_nodes);
+	    fShapes->NumNodesOnFacets(num_facet_nodes);
 	    
-	    /* read data by blocks */
-	    int line = 0;
-	    int count = 0;
-	    for (int blockset = 0; blockset < numsets; blockset++)
-		{
-			/* read num of cards in each block */
-			int setsize = -1;
-			StringT set_ID;
-			model.ReadTractionSetData (in, set_ID, setsize);
-			for (int card=0; card < setsize; card++)
+	    /* loop over natural BC's */
+	    int tot_num_sides = 0;
+	    for (int i = 0; i < num_natural_bc; i++) 
+	   	{
+	    	const ParameterListT& natural_bc = list.GetList("natural_bc", i);
+	    
+	    	/* side set */
+	    	const StringT& ss_ID = natural_bc.GetParameter("side_set_ID");
+			localsides[i] = model.SideSet(ss_ID);
+			int num_sides = localsides[i].MajorDim();
+			tot_num_sides += num_sides;
+			if (num_sides > 0)
 			{
-				/* read side set for that card */
-				block_ID[line] = set_ID;
-				model.ReadTractionSideSet (in, block_ID[line], localsides[line]);
+				block_ID[i] = model.SideSetGroupID(ss_ID);
+				LTf[i] = natural_bc.GetParameter("schedule");
+				coord_sys[i] = Traction_CardT::int2CoordSystemT(natural_bc.GetParameter("coordinate_system"));
 
-				/* increment count */
-				int num_sides = localsides[line].MajorDim();
-				count += num_sides;
+				/* switch to elements numbering within the group */
+				iArray2DT& side_set = localsides[i];
+				iArrayT elems(num_sides);
+				side_set.ColumnCopy(0, elems);
+				BlockToGroupElementNumbers(elems, block_ID[i]);
+				side_set.SetColumn(0, elems);
 
-				/* read data for that card */
-				in >> LTf[line] >> coord_sys[line];
+				/* all facets in set must have the same number of nodes */
+				int num_nodes = num_facet_nodes[side_set(0,1)];
+				for (int f = 0; f < num_sides; f++)
+					if (num_facet_nodes[side_set(f,1)] != num_nodes)
+						ExceptionT::BadInputValue(caller, "faces side set \"%s\" have different numbers of nodes",
+							ss_ID.Pointer());
 
-				/* skip if empty */
-				int num_nodes;
-				if (num_sides > 0)
-				{
-					iArray2DT& side_set = localsides[line];
+				/* read traction nodal values */
+				dArray2DT& nodal_values = values[i];
+				nodal_values.Dimension(num_nodes, NumDOF());
+				int num_traction_vectors = natural_bc.NumLists("DoubleList");
+				if (num_traction_vectors != 1 && num_traction_vectors != num_nodes)
+					ExceptionT::GeneralFail(caller, "expecting 1 or %d vectors not %d",
+						num_nodes, num_traction_vectors);
+						
+				/* constant over the face */
+				if (num_traction_vectors == 1) {
+					const ParameterListT& traction_vector = natural_bc.GetList("DoubleList");
+					int dim = traction_vector.NumLists("Double");
+					if (dim != NumDOF())
+						ExceptionT::GeneralFail(caller, "expecting traction vector length %d not %d",
+							NumDOF(), dim);
 
-					/* switch to group numbering */
-					iArrayT elems(num_sides);
-					side_set.ColumnCopy(0, elems);
-					BlockToGroupElementNumbers(elems, block_ID[line]);
-					side_set.SetColumn(0, elems);
-
-					/* all facets in set must have the same number of nodes */
-					num_nodes = num_facet_nodes [side_set (0,1)];
-					for (int f=0; f < num_sides; f++)
-						if (num_facet_nodes[side_set(f,1)] != num_nodes)
-							ExceptionT::BadInputValue(caller, "sides specified in line %d have differing numbers of nodes", line+1);
+					/* same for all face nodes */
+					for (int f = 0; f < NumDOF(); f++) {
+						double t = traction_vector.GetList("Double", f).GetParameter("value");
+						nodal_values.SetColumn(f, t);
+					}
 				}
 				else
 				{
-					/* still check numbef of facet nodes */
-					int min, max;
-					num_facet_nodes.MinMax (min, max);
-					if (min != max)
-						ExceptionT::BadInputValue(caller, "cannot determine number of facet nodes for empty side set at line %d", line+1);
-					else
-						num_nodes = min;
+					/* read separate vector for each face node */
+					dArrayT t;
+					for (int f = 0; f < num_nodes; f++) {
+						const ParameterListT& traction_vector = natural_bc.GetList("DoubleList", f);
+					int dim = traction_vector.NumLists("Double");
+						if (dim != NumDOF())
+							ExceptionT::GeneralFail(caller, "expecting traction vector length %d not %d",
+								NumDOF(), dim);
+
+						nodal_values.RowAlias(f, t);
+						for (int j = 0; j < NumDOF(); j++)
+							t[j] = traction_vector.GetList("Double", j).GetParameter("value");
+					}
 				}
+			}
+	    }
+#pragma message("OK with empty side sets?")
 
-				/* read traction values */
-		    	dArray2DT& nodal_values = values[line];
-		    	nodal_values.Dimension(num_nodes, NumDOF());
-		    	in >> nodal_values;
-		    	//NOTE - cannot simply clear to the end of the line with empty side sets
-		    	//       because the tractions may be on multiple lines
-
-		    	line++;
-		  	}
-		}
-
-	    /* allocate all traction BC cards */
-	    fTractionList.Allocate (count);
+		/* allocate all traction BC cards */
+	    fTractionList.Dimension(tot_num_sides);
 
 	    /* correct numbering offset */
 	    LTf--;
 
-	    if (count > 0)
-	      {
-		out << '\n';
-		out << setw (kIntWidth) << "no.";
-		fTractionList[0].WriteHeader (out, NumDOF());
-
-		iArrayT loc_node_nums;
-		int dex = 0;
-		for (int ii=0; ii < numlines; ii++)
-		  {
-		    /* set traction BC cards */
-		    iArray2DT& side_set = localsides[ii];
-		    int numsides = side_set.MajorDim();
-		    for (int j=0; j < numsides; j++)
-		      {
-			out << setw (kIntWidth) << j+1;
-
-			/* get facet local node numbers */
-			fShapes->NodesOnFacet (side_set (j, 1), loc_node_nums);
-
-			/* set and echo */
-			fTractionList[dex++].EchoValues (ElementSupport(), side_set(j,0), side_set (j,1), LTf[ii],
-							 coord_sys[ii], loc_node_nums, values[ii], out);
-		      }
-		    out << endl;
-		  }
-	      }
-	  }
-
-
-	if (NumSD() != NumDOF())
-	{
-		/* check coordinate system specifications */
-		for (int i = 0; i < fTractionList.Length(); i++)
-			if (fTractionList[i].CoordSystem() != Traction_CardT::kCartesian)
+		/* define traction cards */
+		if (tot_num_sides > 0)
+		{
+			iArrayT loc_node_nums;
+			int dex = 0;
+			for (int i = 0; i < num_natural_bc; i++)
 			{
-				cout << "\n ContinuumElementT::EchoTractionBC: coordinate system must be\n"
-				     <<   "    Cartesian:" << Traction_CardT::kCartesian
-				     << " if (spatial dimensions != degrees of freedom)\n"
-				     <<   "    for card " << i+1 << endl;
-				throw ExceptionT::kBadInputValue;
+				/* set traction BC cards */
+				iArray2DT& side_set = localsides[i];
+				int num_sides = side_set.MajorDim();
+				for (int j = 0; j < num_sides; j++)
+				{					
+					/* get facet local node numbers */
+					fShapes->NodesOnFacet(side_set(j, 1), loc_node_nums);
+					
+					/* set and echo */
+					fTractionList[dex++].SetValues(ElementSupport(), side_set(j,0), side_set (j,1), LTf[i],
+						 coord_sys[i], loc_node_nums, values[i]);
+				}
 			}
+		}
+
+		/* check coordinate system specifications */
+		if (NumSD() != NumDOF())
+			for (int i = 0; i < fTractionList.Length(); i++)
+				if (fTractionList[i].CoordSystem() != Traction_CardT::kCartesian)
+					ExceptionT::BadInputValue(caller, "coordinate system must be Cartesian if (nsd != ndof) for card %d", i+1);
 	}
 }
 
 /* construct a new material support and return a pointer */
 MaterialSupportT* ContinuumElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
-	if (!p) p = new MaterialSupportT(NumSD(), NumDOF(), NumIP());
+	if (!p) p = new MaterialSupportT(NumDOF(), NumIP());
 
 	/* ContinuumElementT sources */
 	p->SetContinuumElement(this);
 	p->SetElementCards(const_cast<AutoArrayT<ElementCardT>* >(&fElementCards));
 	p->SetCurrIP(CurrIP());
+	p->SetGroup(Group());
 
 	/* ElementSupportT sources */
-	const ElementSupportT& e_support = ElementSupport();
-	p->SetRunState(e_support.RunState());
-	p->SetStepNumber(e_support.StepNumber());
+//	const ElementSupportT& e_support = ElementSupport();
+//	p->SetRunState(e_support.RunState());
+//	p->SetStepNumber(e_support.StepNumber());
 //	p->SetIterationNumber(e_support.IterationNumber(Group()));
 //TEMP - solvers not set up yet. For now, the source for the iteration number will
 //       be set in the InitialCondition call for the subclass.
-	p->SetTime(e_support.Time());                              
-	p->SetTimeStep(e_support.TimeStep());
-	p->SetNumberOfSteps(e_support.NumberOfSteps());
+//	p->SetTime(e_support.Time());                              
+//	p->SetTimeStep(e_support.TimeStep());
+//	p->SetNumberOfSteps(e_support.NumberOfSteps());
 
 	/* set pointer to local array */
 	p->SetLocalArray(fLocDisp);
@@ -1224,11 +1088,12 @@ bool ContinuumElementT::CheckMaterialOutput(void) const
 		/* output not compatible */
 		if (!OK)	
 		{
+#pragma message("report names")
 			cout << "\n ContinuumElementT::CheckMaterialOutput: incompatible output\n"
 			    <<    "     between materials " << i+1 << " and " << j+1 << ":\n";
-			(*fMaterialList)[i]->PrintName(cout);
+//			(*fMaterialList)[i]->PrintName(cout);
 			cout << '\n';
-			(*fMaterialList)[j]->PrintName(cout);
+//			(*fMaterialList)[j]->PrintName(cout);
 			cout << endl;
 			return false;
 		}
@@ -1249,36 +1114,52 @@ void ContinuumElementT::DefineSubs(SubListT& sub_list) const
 
 	/* optional body force */
 	sub_list.AddSub("body_force", ParameterListT::ZeroOrOnce);
+	
+	/* tractions */
+	sub_list.AddSub("natural_bc", ParameterListT::Any);
 }
 
 /* return the description of the given inline subordinate parameter list */
-void ContinuumElementT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void ContinuumElementT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
 	/* geometry and integration rule (inline) */
-	if (sub == "element_geometry")
+	if (name == "element_geometry")
 	{
 		/* choice */
 		order = ParameterListT::Choice;
 	
 		/* element geometries */
-		sub_sub_list.AddSub("quadrilateral");
-		sub_sub_list.AddSub("triangle");
-		sub_sub_list.AddSub("hexahedron");
-		sub_sub_list.AddSub("tetrahedron");
-		sub_sub_list.AddSub("line");
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kQuadrilateral));
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kTriangle));
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kHexahedron));
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kTetrahedron));
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kLine));
 	}
 	else
-		ElementBaseT::DefineInlineSub(sub, order, sub_sub_list);
+		ElementBaseT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& name) const
 {
+	/* create non-const this */
+	ContinuumElementT* non_const_this = const_cast<ContinuumElementT*>(this);
+
+	/* try material list */
+	MaterialListT* material_list = non_const_this->NewMaterialList(name, 0);
+	if (material_list)
+		return material_list;
+		
+	/* try geometry */
+	ParameterInterfaceT* geometry = GeometryT::New(name);
+	if (geometry)
+		return geometry;
+
 	/* body force */
-	if (list_name == "body_force")
+	if (name == "body_force")
 	{
-		ParameterContainerT* body_force = new ParameterContainerT("body_force");
+		ParameterContainerT* body_force = new ParameterContainerT(name);
 	
 		/* schedule number */
 		body_force->AddParameter(ParameterT::Integer, "schedule");
@@ -1288,82 +1169,97 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 		
 		return body_force;
 	}
-	else if (list_name == "line")
+	else if (name == "natural_bc") /* traction bc */
 	{
-		ParameterContainerT* line = new ParameterContainerT("line");
-	
-		/* integration rules */
-		ParameterT num_ip(ParameterT::Integer, "num_ip");
-		num_ip.AddLimit(1, LimitT::Only);
-		num_ip.AddLimit(2, LimitT::Only);
-		num_ip.AddLimit(3, LimitT::Only);
-		num_ip.AddLimit(4, LimitT::Only);
-		num_ip.SetDefault(2);
-		line->AddParameter(num_ip);
+		ParameterContainerT* natural_bc = new ParameterContainerT(name);
 
-		return line;
-	}
-	else if (list_name == "quadrilateral")
-	{
-		ParameterContainerT* quad = new ParameterContainerT("quadrilateral");
-	
-		/* integration rules */
-		ParameterT num_ip(ParameterT::Integer, "num_ip");
-		num_ip.AddLimit(1, LimitT::Only);
-		num_ip.AddLimit(4, LimitT::Only);
-		num_ip.AddLimit(5, LimitT::Only);
-		num_ip.AddLimit(9, LimitT::Only);
-		num_ip.AddLimit(16, LimitT::Only);
-		num_ip.SetDefault(4);
-		quad->AddParameter(num_ip);
+		natural_bc->AddParameter(ParameterT::Word, "side_set_ID");
+		natural_bc->AddParameter(ParameterT::Integer, "schedule");
 
-		return quad;
-	}
-	else if (list_name == "triangle")
-	{
-		ParameterContainerT* tri = new ParameterContainerT("triangle");
-	
-		/* integration rules */
-		ParameterT num_ip(ParameterT::Integer, "num_ip");
-		num_ip.AddLimit(1, LimitT::Only);
-		num_ip.AddLimit(4, LimitT::Only);
-		num_ip.AddLimit(6, LimitT::Only);
-		num_ip.SetDefault(1);
-		tri->AddParameter(num_ip);
+		ParameterT coord_sys(ParameterT::Enumeration, "coordinate_system");
+		coord_sys.AddEnumeration("global", Traction_CardT::kCartesian);
+		coord_sys.AddEnumeration( "local", Traction_CardT::kLocal);
+		coord_sys.SetDefault(Traction_CardT::kCartesian);
+		natural_bc->AddParameter(coord_sys);
 
-		return tri;
-	}
-	else if (list_name == "hexahedron")
-	{
-		ParameterContainerT* hex = new ParameterContainerT("hexahedron");
-	
-		/* integration rules */
-		ParameterT num_ip(ParameterT::Integer, "num_ip");
-		num_ip.AddLimit(1, LimitT::Only);
-		num_ip.AddLimit(8, LimitT::Only);
-		num_ip.AddLimit(9, LimitT::Only);
-		num_ip.AddLimit(27, LimitT::Only);
-		num_ip.AddLimit(64, LimitT::Only);
-		num_ip.SetDefault(8);
-		hex->AddParameter(num_ip);
-
-		return hex;
-	}
-	else if (list_name == "tetrahedron")
-	{
-		ParameterContainerT* tet = new ParameterContainerT("tetrahedron");
-	
-		/* integration rules */
-		ParameterT num_ip(ParameterT::Integer, "num_ip");
-		num_ip.AddLimit(1, LimitT::Only);
-		num_ip.AddLimit(4, LimitT::Only);
-		num_ip.SetDefault(1);
-		tet->AddParameter(num_ip);
-
-		return tet;
+		natural_bc->AddSub("DoubleList", ParameterListT::OnePlus); 		
+		
+		return natural_bc;
 	}
 	else /* inherited */
-		return ElementBaseT::NewSub(list_name);
+		return ElementBaseT::NewSub(name);
+}
+
+/* accept parameter list */
+void ContinuumElementT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "ContinuumElementT::TakeParameterList";
+
+	/* inherited */
+	ElementBaseT::TakeParameterList(list);
+
+	/* construct group communicator */
+	const CommunicatorT& comm = ElementSupport().Communicator();
+	int color = (NumElements() > 0) ? 1 : CommunicatorT::kNoColor;
+	fGroupCommunicator = new CommunicatorT(comm, color, comm.Rank());
+
+	/* allocate work space */
+	fNEEvec.Dimension(NumElementNodes()*NumDOF());
+	fDOFvec.Dimension(NumDOF());
+
+	/* initialize local arrays */
+	SetLocalArrays();
+
+	/* construct shape functions */
+	const ParameterListT& integration_domain = list.GetListChoice(*this, "element_geometry");
+	fGeometryCode = GeometryT::string2CodeT(integration_domain.Name());
+	fNumIP = integration_domain.GetParameter("num_ip");
+	SetShape();
+
+	/* construct material list */
+	ParameterListT mat_params;
+	CollectMaterialInfo(list, mat_params);
+	fMaterialList = NewMaterialList(mat_params.Name(), mat_params.NumLists());
+	if (!fMaterialList) ExceptionT::GeneralFail(caller, "could not construct material list \"%s\"", 
+		mat_params.Name().Pointer());
+	fMaterialList->TakeParameterList(mat_params);
+
+	/* get form of tangent */
+	GlobalT::SystemTypeT type = TangentType();
+	
+	/* set form of element stiffness matrix */
+	if (type == GlobalT::kSymmetric)
+		fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
+	else if (type == GlobalT::kNonSymmetric)
+		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
+	else if (type == GlobalT::kDiagonal)
+		fLHS.SetFormat(ElementMatrixT::kDiagonal);
+
+	/* body force */
+	const ParameterListT* body_force = list.List("body_force");
+	if (body_force) {
+		int schedule = body_force->GetParameter("schedule");
+		fBodySchedule = ElementSupport().Schedule(--schedule);
+
+		/* body force vector */
+		const ArrayT<ParameterListT>& body_force_vector = body_force->Lists();
+		if (body_force_vector.Length() != NumDOF())
+			ExceptionT::BadInputValue(caller, "body force is length %d not %d",
+				body_force_vector.Length(), NumDOF());
+		fBody.Dimension(NumDOF());
+		for (int i = 0; i < fBody.Length(); i++)
+			fBody[i] = body_force_vector[i].GetParameter("value");
+	}
+	
+	/* extract natural boundary conditions */
+	TakeNaturalBC(list);
+}
+
+/* extract the list of material parameters */
+void ContinuumElementT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
+{
+#pragma unused(all_params)
+	mat_params.Clear();
 }
 
 /***********************************************************************

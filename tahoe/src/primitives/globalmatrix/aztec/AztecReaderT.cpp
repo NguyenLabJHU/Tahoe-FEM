@@ -1,4 +1,4 @@
-/* $Id: AztecReaderT.cpp,v 1.5 2004-06-17 07:14:13 paklein Exp $ */
+/* $Id: AztecReaderT.cpp,v 1.6 2004-07-15 08:31:46 paklein Exp $ */
 /* created: paklein (08/12/1998) */
 #include "AztecReaderT.h"
 
@@ -11,7 +11,7 @@
 
 #include "ExceptionT.h"
 #include "az_aztec_defs.h"
-#include "ifstreamT.h"
+
 
 using namespace Tahoe;
 

@@ -1,17 +1,12 @@
-/* $Id: TimeSequence.cpp,v 1.5 2004-06-17 07:14:05 paklein Exp $ */
-/* created: paklein (05/22/1996)                                          */
-
+/* $Id: TimeSequence.cpp,v 1.6 2004-07-15 08:31:36 paklein Exp $ */
+/* created: paklein (05/22/1996) */
 #include "TimeSequence.h"
 
 #include "ifstreamT.h"
 
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
-
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 TimeSequence::TimeSequence(void) { }
 
 /* I/O operators */

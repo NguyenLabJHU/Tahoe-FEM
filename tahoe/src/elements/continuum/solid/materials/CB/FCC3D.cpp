@@ -1,13 +1,10 @@
-/* $Id: FCC3D.cpp,v 1.7 2004-07-07 18:03:28 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.8 2004-07-15 08:26:42 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
+
 #include "ElementsConfig.h"
 #include "FCCLatticeT.h"
-
 #include <math.h>
-#include <iostream.h>
-
-#include "ifstreamT.h"
 
 /* pair properties */
 #ifdef PARTICLE_ELEMENT
@@ -21,10 +18,9 @@
 using namespace Tahoe;
 
 /* constructor */
-FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
-	NL_E_MatT(in, support),
+FCC3D::FCC3D(void):
+	ParameterInterfaceT("FCC_3D"),
 	fNearestNeighbor(-1),
-	fQ(3),
 	fFCCLattice(NULL),
 	fPairProperty(NULL),
 	fAtomicVolume(0),
@@ -32,50 +28,101 @@ FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
 	fBondTensor2(dSymMatrixT::NumValues(3)),
 	fFullDensityForStressOutput(true)	
 {
-	const char caller[] = "FCC3D::FCC3D";
 
-	/* read the number of shells */
-	int nshells;
-	in >> nshells;
+}
+
+/* destructor */
+FCC3D::~FCC3D(void)
+{
+	delete fFCCLattice;
+	delete fPairProperty;
+}
+
+/* describe the parameters needed by the interface */
+void FCC3D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineParameters(list);
+
+	/* number of neighbor shells */
+	ParameterT n_shells(ParameterT::Integer, "shells");
+	n_shells.AddLimit(1, LimitT::LowerInclusive);
+	list.AddParameter(n_shells);
+}
+
+/* information about subordinate parameter lists */
+void FCC3D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineSubs(sub_list);
+
+	/* FCC lattice */
+	sub_list.AddSub("CB_lattice_FCC");
+
+	/* pair potential choice */
+	sub_list.AddSub("FCC_3D_potential_choice", ParameterListT::Once, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void FCC3D::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
+{
+	if (name == "FCC_3D_potential_choice")
+	{
+		order = ParameterListT::Choice;
+
+		/* choice of potentials */
+		sub_lists.AddSub("harmonic");
+		sub_lists.AddSub("Lennard_Jones");
+		sub_lists.AddSub("Paradyn_pair");
+		sub_lists.AddSub("Matsui");
+	}
+	else /* inherited */
+		NL_E_MatT::DefineInlineSub(name, order, sub_lists);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* FCC3D::NewSub(const StringT& name) const
+{
+	/* try to construct pair property */
+	PairPropertyT* pair_prop = PairPropertyT::New(name, fMaterialSupport);
+	if (pair_prop)
+		return pair_prop;
+	else if (name == "CB_lattice_FCC")	
+		return new FCCLatticeT(0);
+	else /* inherited */
+		return NL_E_MatT::NewSub(name);
+}
+
+/* accept parameter list */
+void FCC3D::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "FCC3D::TakeParameterList";
+
+	/* inherited */
+	NL_E_MatT::TakeParameterList(list);
+
+	/* number of shells */
+	int nshells = list.GetParameter("shells");
 
 	/* construct pair property */
-	ParticlePropertyT::TypeT property;
-	in >> property;
-	switch (property)
-	{
-		case ParticlePropertyT::kHarmonicPair:
-		{
-			double mass, K;
-			in >> mass >> fNearestNeighbor >> K;
-			fPairProperty = new HarmonicPairT(mass, fNearestNeighbor, K);
-			break;
-		}
-		case ParticlePropertyT::kLennardJonesPair:
-		{
-			double mass, eps, sigma, alpha;
-			in >> mass >> eps >> sigma >> alpha;
-			fPairProperty = new LennardJonesPairT(mass, eps, sigma, alpha);
+	const ParameterListT& pair_prop = list.GetListChoice(*this, "FCC_3D_potential_choice");
+	fPairProperty = PairPropertyT::New(pair_prop.Name(), &(MaterialSupport()));
+	if (!fPairProperty) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", pair_prop.Name().Pointer());
+	fPairProperty->TakeParameterList(pair_prop);
 
-			/* equilibrium length of a single unmodified LJ bond */
-			fNearestNeighbor = pow(2.0,1.0/6.0)*sigma;
-			break;
-		}
-		default:
-			ExceptionT::BadInputValue(caller, "unrecognized property type %d", property);
-	}
-	
-	/* construct the bond tables */
-	fQ.Identity();
-	fFCCLattice = new FCCLatticeT(fQ, nshells);
-	fFCCLattice->Initialize();
+	/* check */
+	fNearestNeighbor = fPairProperty->NearestNeighbor();
+	if (fNearestNeighbor < kSmall)
+		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
+
+	/* construct lattice */
+	fFCCLattice = new FCCLatticeT(nshells);
+	fFCCLattice->TakeParameterList(list.GetList("CB_lattice_FCC"));
 
 	/* construct default bond density array */
 	fFullDensity.Dimension(fFCCLattice->NumberOfBonds());
 	fFullDensity = 1.0;
-
-	/* check */
-	if (fNearestNeighbor < kSmall)
-		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
 		
 	/* compute the (approx) cell volume */
 	double cube_edge = fNearestNeighbor*sqrt(2.0);
@@ -89,42 +136,6 @@ FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
 
 	/* reset the continuum density (4 atoms per unit cell) */
 	fDensity = fPairProperty->Mass()/fAtomicVolume;
-}
-
-/* destructor */
-FCC3D::~FCC3D(void)
-{
-	delete fFCCLattice;
-	delete fPairProperty;
-}
-
-/* I/O functions */
-void FCC3D::PrintName(ostream& out) const
-{
-	NL_E_MatT::PrintName(out);
-	out << "    FCC lattice\n";
-}
-
-void FCC3D::Print(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::Print(out);
-
-	/* higher precision */
-	int prec = out.precision();
-	out.precision(12);
-
-	/* lattice parameters */
-	out << " Number of neighbor shells . . . . . . . . . . . = " << fFCCLattice->NumShells() << '\n';
-	out << " Number of neighbors . . . . . . . . . . . . . . = " << fFCCLattice->NumberOfBonds() << '\n';
-	out << " Nearest neighbor distance . . . . . . . . . . . = " << fNearestNeighbor << '\n';
-
-	/* write pair properties to output */
-	out << " Interaction potential parameters:\n";
-	fPairProperty->Write(out);
-
-	/* restore precision */
-	out.precision(prec);
 }
 
 /* return a reference to the bond lattice */

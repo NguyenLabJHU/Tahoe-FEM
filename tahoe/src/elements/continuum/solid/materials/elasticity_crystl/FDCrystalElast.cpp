@@ -1,11 +1,11 @@
-/* $Id: FDCrystalElast.cpp,v 1.9 2003-12-28 08:23:25 paklein Exp $ */
+/* $Id: FDCrystalElast.cpp,v 1.10 2004-07-15 08:28:16 paklein Exp $ */
 #include "FDCrystalElast.h"
 
 #include <stdlib.h>
 #include "CrystalElastLat.h"
 #include "CrystalElastMat.h"
 #include "ElementCardT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 #include "UpLagr_ExternalFieldT.h"
 #include "FSMatSupportT.h"
@@ -21,7 +21,9 @@ const double sqrt23 = sqrt(2.0/3.0);
 
 using namespace Tahoe;
 
-FDCrystalElast::FDCrystalElast(ifstreamT& in, const FSMatSupportT& support):CrystalElast(in, support),
+FDCrystalElast::FDCrystalElast(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("large_strain_crystal_elasticity"),
+	CrystalElast(in, support),
   // deformation gradient 
 	fF    (kNSD,kNSD),
   // elastic and thermal (inverse) deformation gradients
@@ -206,24 +208,6 @@ void FDCrystalElast::ComputeOutput(dArrayT& output)
   dArrayT& angles = fangles[0];
   fCrystalElastLat->RotMatrixToAngles(fmatx1, angles);
   fCrystalElastLat->WriteTexture(elem, intpt, fNumGrain, step, fangles);
-}
-
-void FDCrystalElast::Print(ostream& out) const
-{
-  // inherited
-  CrystalElast::Print(out);
-}
-
-void FDCrystalElast::PrintName(ostream& out) const
-{
-  // inherited
-  CrystalElast::PrintName(out);
-
-  // output model name
-  out << "    Local crystal elasticity equations\n";
-
-  // output detailed name of the model
-  fCrystalElastMat->PrintName(out);
 }
 
 /* PROTECTED MEMBER FUNCTIONS */

@@ -55,10 +55,6 @@ class VoceGradHardening : public SlipHardening
   // overides accesor to isotropic hardening variable in base class
   virtual const double IsoHardeningStress (int is) const;
 
-  // print hardening data and model name
-  virtual void Print(ostream& out) const;
-  virtual void PrintName(ostream& out) const;
-
  private:
   // compute some hardening quantities
   void InternalHardQnts();

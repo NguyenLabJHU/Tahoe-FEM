@@ -1,9 +1,9 @@
-/* $Id: Hex2D.h,v 1.3 2004-06-26 06:02:24 paklein Exp $ */
+/* $Id: Hex2D.h,v 1.4 2004-07-15 08:26:42 paklein Exp $ */
 #ifndef _HEX_2D_H_
 #define _HEX_2D_H_
 
 /* base class */
-#include "NL_E_Mat2DT.h"
+#include "NL_E_MatT.h"
 
 namespace Tahoe {
 
@@ -13,21 +13,15 @@ class PairPropertyT;
 class BondLatticeT;
 
 /** plane stress hexagonal lattice */
-class Hex2D: public NL_E_Mat2DT
+class Hex2D: public NL_E_MatT
 {
 public:
 
 	/** constructor */
-	Hex2D(ifstreamT& in, const FSMatSupportT& support);
+	Hex2D(void);
 	
 	/** destructor */
 	~Hex2D(void);
-	
-	/** \name write parameters */
-	/*@{*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-	/*@}*/
 
 	/** \name Cauchy-Born parameters */
 	/*@{*/
@@ -39,6 +33,25 @@ public:
 
 	/** nearest neighbor distance */
 	double NearestNeighbor(void) const { return fNearestNeighbor; };
+	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:

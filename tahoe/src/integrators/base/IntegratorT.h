@@ -1,4 +1,4 @@
-/* $Id: IntegratorT.h,v 1.5 2003-12-28 08:55:56 paklein Exp $ */
+/* $Id: IntegratorT.h,v 1.6 2004-07-15 08:30:33 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 #ifndef _CONTROLLER_T_H_
 #define _CONTROLLER_T_H_
@@ -18,6 +18,18 @@ class IntegratorT
 {
 public:
 
+	/** enum of integrator types */
+	enum CodeT {
+    kLinearStatic = 0,
+          kStatic = 1,
+       kTrapezoid = 2,
+       kLinearHHT = 3,
+    kNonlinearHHT = 4,
+      kExplicitCD = 5,
+          kVerlet = 6,
+           kGear6 = 7
+	};
+
 	/** enum for implicit/explicit attribute */
 	enum ImpExpFlagT {kImplicit, kExplicit};
 
@@ -26,6 +38,9 @@ public:
 
 	/** destructor */
 	virtual ~IntegratorT(void);
+
+	/** factory method */
+	static IntegratorT* New(int type, bool exception_on_fail);
 
 	/** \name integrator parameters */
 	/*@{*/

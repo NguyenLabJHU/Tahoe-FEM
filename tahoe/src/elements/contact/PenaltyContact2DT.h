@@ -1,6 +1,5 @@
-/* $Id: PenaltyContact2DT.h,v 1.6 2003-03-02 18:59:07 paklein Exp $ */
+/* $Id: PenaltyContact2DT.h,v 1.7 2004-07-15 08:26:08 paklein Exp $ */
 /* created: paklein (12/11/1997) */
-
 #ifndef _PENALTY_CONTACT2D_T_H_
 #define _PENALTY_CONTACT2D_T_H_
 
@@ -9,33 +8,43 @@
 
 namespace Tahoe {
 
+/** 2D penalty contact element */
 class PenaltyContact2DT: public Contact2DT
 {
 public:
 
-	/* constructor */
-	PenaltyContact2DT(const ElementSupportT& support, const FieldT& field);
+	/** constructor */
+	PenaltyContact2DT(const ElementSupportT& support);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
-		 	
-	/* construct the effective mass matrix */
+	/** construct the effective mass matrix */
 	virtual void LHSDriver(GlobalT::SystemTypeT);
 
-	/* construct the residual force vector */
+	/** construct the residual force vector */
 	virtual void RHSDriver(void);
 		
 protected:
 
-	double fK; // penalty "stiffness"
+	/** penalty "stiffness" */
+	double fK;
 
-	/* element coords and displacements */
+	/** \name element coords and displacements */
+	/*@{*/
 	dArray2DT fElCoord;
 	dArray2DT fElDisp;
+	/*@}*/
 };
 
-} // namespace Tahoe
+} /* namespace Tahoe */
 
 #endif /* _PENALTY_CONTACT2D_T_H_ */

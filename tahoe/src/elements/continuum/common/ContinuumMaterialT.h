@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.8 2003-12-10 07:14:21 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.9 2004-07-15 08:26:13 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _CONTINUUM_MATERIAL_T_H_
 #define _CONTINUUM_MATERIAL_T_H_
@@ -22,19 +22,18 @@ template <class TYPE> class ArrayT;
 class StringT;
 
 /** interface for continuum materials. */
-class ContinuumMaterialT: public ParameterInterfaceT
+class ContinuumMaterialT: virtual public ParameterInterfaceT
 {
 public:
-
-	/** constructor
-	 * \param support reference to the host element */
-	ContinuumMaterialT(const MaterialSupportT& support);
 
 	/** constructor */
 	ContinuumMaterialT(void);
 
 	/** destructor */
 	virtual ~ContinuumMaterialT(void);
+
+	/** set the material support or pass NULL to clear */
+	virtual void SetMaterialSupport(const MaterialSupportT* support);
 
 	/** form of tangent matrix. \return symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -73,10 +72,20 @@ public:
 	 * evaluation */
 	ElementCardT& CurrentElement(void) const;
 
-	/** initialization. Called immediately after constructor to allow
-	 * class specific initializations. */
-	virtual void Initialize(void);
+	/** apply pre-conditions at the current time step. Called once for
+	 * the model at the beginning of a time increment */
+	virtual void InitStep(void);
 
+	/** finalize the current time step. Called once for the model at 
+	 * the end of a time increment */
+	virtual void CloseStep(void);
+
+	/** \name history variables */
+	/*@{*/
+	/** return true if the material has history variables.
+	 * \return false by default. */
+	virtual bool HasHistory(void) const { return false; };
+	
 	/** return true if model needs ContinuumMaterialT::PointInitialize
 	 * to be called for every integration point of every element as
 	 * part of the model initialization. \return false by default. */
@@ -86,14 +95,6 @@ public:
 	 * element using the model. Deformation variables are available
 	 * during this call. */
 	virtual void PointInitialize(void);
-
-	/** apply pre-conditions at the current time step. Called once for
-	 * the model at the beginning of a time increment */
-	virtual void InitStep(void);
-
-	/** finalize the current time step. Called once for the model at 
-	 * the end of a time increment */
-	virtual void CloseStep(void);
 
 	/** update internal variables. Called once per element for all
 	 * elements using the model, hence no deformation variables are
@@ -105,13 +106,10 @@ public:
 	 * elements using the model, hence no deformation variables are
 	 * available during this call. */
 	virtual void ResetHistory(void);
+	/*@}*/
 
-	/** write parameters to the output stream. */
-	virtual void Print(ostream& out) const = 0;
-
-	/** write the model name to the output stream. */
-	virtual void PrintName(ostream& out) const = 0;
-
+	/** \name material output variables */
+	/*@{*/
 	/** return the number of constitutive model output parameters
 	 * per evaluation point. Used by the host element group in
 	 * conjunction with ContinuumMaterialT::OutputLabels and
@@ -142,6 +140,7 @@ public:
 	 * models can be used within the same host element group when
 	 * requesting model-specific, materials output. */
 	static bool CompatibleOutput(const ContinuumMaterialT& m1, const ContinuumMaterialT& m2);
+	/*@}*/
 	
 protected:
 

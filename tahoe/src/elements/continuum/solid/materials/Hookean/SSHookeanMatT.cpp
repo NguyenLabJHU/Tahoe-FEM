@@ -1,29 +1,24 @@
-/* $Id: SSHookeanMatT.cpp,v 1.7 2004-01-10 04:41:12 paklein Exp $ */
+/* $Id: SSHookeanMatT.cpp,v 1.8 2004-07-15 08:26:56 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "SSHookeanMatT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-SSHookeanMatT::SSHookeanMatT(ifstreamT& in, const SSMatSupportT& support):
-	SSSolidMatT(in, support),
-	HookeanMatT(NumSD()),
-	fStress(NumSD())
+SSHookeanMatT::SSHookeanMatT(void):
+	ParameterInterfaceT("small_strain_Hookean")
 {
-	SetName("small_strain_Hookean");
+
 }
 
-SSHookeanMatT::SSHookeanMatT(void)
-{
-	SetName("small_strain_Hookean");
-}
-
-/* initialization */
-void SSHookeanMatT::Initialize(void)
+/* set the material support or pass NULL to clear */
+void SSHookeanMatT::SetSSMatSupport(const SSMatSupportT* support)
 {
 	/* inherited */
-	SSSolidMatT::Initialize();
-	HookeanMatT::Initialize();
+	SSSolidMatT::SetSSMatSupport(support);
+	
+	HookeanMatT::Dimension(NumSD());
+	fStress.Dimension(dSymMatrixT::int2DimensionT(NumSD()));
 }
 
 /* spatial description */
@@ -45,4 +40,14 @@ const dSymMatrixT& SSHookeanMatT::S_IJ(void)
 double SSHookeanMatT::StrainEnergyDensity(void)
 {
 	return HookeanEnergy(e());
+}
+
+/* accept parameter list */
+void SSHookeanMatT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SSSolidMatT::TakeParameterList(list);
+	
+	/* set the modulus */
+	HookeanMatT::Initialize();
 }

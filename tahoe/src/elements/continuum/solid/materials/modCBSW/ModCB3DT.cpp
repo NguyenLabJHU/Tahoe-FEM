@@ -1,13 +1,7 @@
-/* $Id: ModCB3DT.cpp,v 1.8 2004-06-17 07:41:03 paklein Exp $ */
+/* $Id: ModCB3DT.cpp,v 1.9 2004-07-15 08:28:36 paklein Exp $ */
 /* created: paklein (10/14/1998) */
 #include "ModCB3DT.h"
 
-#include <math.h>
-#include <iostream.h>
-
-#include "toolboxConstants.h"
-
-#include "ifstreamT.h"
 #include "ModCBSolverT.h"
 #include "dMatrixT.h"
 
@@ -26,103 +20,53 @@ const int 	kDC110		= 1;
 const int	kDC111		= 2;
 
 /* constructor */
-ModCB3DT::ModCB3DT(ifstreamT& in, const FSMatSupportT& support, bool equilibrate):
-	NL_E_MatT(in, support),
-	fModCBSolver(NULL),
-	fXsi(kNDOF),
-	fC(kNSD),
-	fPK2(kNSD)
+ModCB3DT::ModCB3DT(void):
+	ParameterInterfaceT("Cauchy-Born_diamond"),
+	fModCBSolver(NULL)
 {
-	/* lattice transformation */
-	dMatrixT Q;
-	in >> fOrientationCode;
-	switch (fOrientationCode)
-	{
-		case kDCnatural:
-			
-			//no Q to construct
-			break;
 
-		case kDC110:
-		{
-			Q.Dimension(3);
-			Q = 0.0;
-			
-			double cos45 = 0.5*sqrt2;
-			
-			/* transform global xy-plane into [110] */			
-			Q(0,0) = 1.0;
-			Q(1,1) = Q(2,2) = cos45;
-			Q(1,2) =-cos45;
-			Q(2,1) = cos45;
-
-			break;
-		}
-		case kDC111:
-		{
-			Q.Dimension(3);
-			Q = 0.0;
-			
-			/* transform global xy-plane into [111] */			
-			double rt2b2 = sqrt2/2.0;
-			double rt3b3 = sqrt3/3.0;
-			double rt6b6 = (sqrt2*sqrt3)/6.0;
-			double rt23  = sqrt2/sqrt3;
-			
-			Q(0,0) =-rt2b2;
-			Q(0,1) =-rt6b6;
-			Q(0,2) = rt3b3;
-			
-			Q(1,0) = rt2b2;
-			Q(1,1) =-rt6b6;
-			Q(1,2) = rt3b3;
-			
-			Q(2,0) = 0.0;
-			Q(2,1) = rt23;
-			Q(2,2) = rt3b3;
-
-			break;
-		}
-		default:
-
-			cout << "\nModCB3DT::ModCB3DT: unknown orientation code:" << fOrientationCode;
-			cout << endl;
-			throw ExceptionT::kBadInputValue ;
-	}
-
-
-	fModCBSolver = new ModCBSolverT(Q, fThermal, in, equilibrate);
-	if (!fModCBSolver) throw ExceptionT::kOutOfMemory;
 }
 
 /* destructor */
 ModCB3DT::~ModCB3DT(void) { delete fModCBSolver; }
-
-/* I/O functions */
-void ModCB3DT::Print(ostream& out) const
+ 
+/* information about subordinate parameter lists */
+void ModCB3DT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	NL_E_MatT::Print(out);
+	NL_E_MatT::DefineSubs(sub_list);
+	
+	sub_list.AddSub("mod_Cauchy-Born_solver");
+}
 
-	/* potential data */
-	fModCBSolver->Print(out);
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* ModCB3DT::NewSub(const StringT& name) const
+{
+	if (name == "mod_Cauchy-Born_solver")
+		return new ModCBSolverT(NULL);
+	else /* inherited */
+		return NL_E_MatT::NewSub(name);
+}
+
+/* accept parameter list */
+void ModCB3DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	NL_E_MatT::TakeParameterList(list);
+
+	/* dimension work space */
+	fXsi.Dimension(kNDOF);
+	fC.Dimension(kNSD);
+	fPK2.Dimension(kNSD);
+	
+	/* construct Caucby-Born solver */
+	fModCBSolver = new ModCBSolverT(fThermal);
+	fModCBSolver->TakeParameterList(list.GetList("mod_Cauchy-Born_solver"));
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
-
-void ModCB3DT::PrintName(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::PrintName(out);
-	
-	const char* orients[] = {"natural", "110", "111"};
-	out << "    Modified CB <" << orients[fOrientationCode] << ">\n";
-
-	/* potential name */
-	fModCBSolver->PrintName(out);
-}
+ * Protected
+ *************************************************************************/
 
 void ModCB3DT::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {
@@ -167,8 +111,8 @@ double ModCB3DT::ComputeEnergyDensity(const dSymMatrixT& E)
 }
 
 /*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 /* compute the 3D stretch tensor from the 2D reduced index
 * strain vector (assuming plane strain */

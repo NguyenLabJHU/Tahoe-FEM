@@ -1,20 +1,15 @@
-/* $Id: SimoIso2D.cpp,v 1.9 2003-01-29 07:34:48 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.10 2004-07-15 08:27:35 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 #include "SimoIso2D.h"
 #include <math.h>
-#include <iostream.h>
 
 using namespace Tahoe;
 
 /* constructor */
-SimoIso2D::SimoIso2D(ifstreamT& in, const FSMatSupportT& support):
-	SimoIso3D(in, support),
-	Material2DT(in, kPlaneStrain),
-	fStress2D(2),
-	fModulus2D(dSymMatrixT::NumValues(2)),
-	fb_2D(2)
+SimoIso2D::SimoIso2D(void):
+	ParameterInterfaceT("Simo_isotropic_2D")
 {
-	fDensity *= fThickness;
+
 }
 
 /* initialize step */
@@ -33,11 +28,7 @@ void SimoIso2D::InitStep(void)
 		if (fabs(F_therm_inv(0,0) - F_therm_inv(1,1)) > kSmall ||
 		    fabs(F_therm_inv(1,0)) > kSmall ||
 		    fabs(F_therm_inv(0,1)) > kSmall)
-		{
-			cout << "\n SimoIso2D::InitStep: expecting isotropic (F_thermal)^-1:\n"
-			     << F_therm_inv << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+			ExceptionT::GeneralFail("SimoIso2D::InitStep", "expecting isotropic (F_thermal)^-1:");
 	}
 }
 
@@ -58,7 +49,6 @@ const dMatrixT& SimoIso2D::c_ijkl(void)
 
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(fModulus);
-	fModulus2D *= fThickness;
 
 	return fModulus2D;
 }
@@ -80,7 +70,6 @@ const dSymMatrixT& SimoIso2D::s_ij(void)
 
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(fStress);
-	fStress2D *= fThickness;
 
 	return fStress2D;
 }
@@ -97,33 +86,35 @@ double SimoIso2D::StrainEnergyDensity(void)
 	J = sqrt(J);
 	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 
-	return fThickness*ComputeEnergy(J, fb);
+	return ComputeEnergy(J, fb);
 }
 
-/* print parameters */
-void SimoIso2D::Print(ostream& out) const
+/* describe the parameters needed by the interface */
+void SimoIso2D::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	SimoIso3D::Print(out);
-	Material2DT::Print(out);
+	SimoIso3D::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
+}
+
+/* accept parameter list */
+void SimoIso2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SimoIso3D::TakeParameterList(list);
+	
+	/* dimension work space */
+	fStress2D.Dimension(2);
+	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
+	fb_2D.Dimension(2);	
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
-
-/* print name */
-void SimoIso2D::PrintName(ostream& out) const
-{
-	/* inherited */
-	SimoIso3D::PrintName(out);
-
-	out << "    Plane Strain\n";
-}
-
-/*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 /** compute 3D stretch tensor \b b from the 2D deformation state. 
  * \todo Make this a FSSolidMatT function? */

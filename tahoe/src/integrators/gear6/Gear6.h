@@ -1,7 +1,6 @@
+/* $Id: Gear6.h,v 1.6 2004-07-15 08:30:43 paklein Exp $ */
 #ifndef _GEAR_06_H_
 #define _GEAR_06_H_
-
-#include "Environment.h"
 
 /* base class */
 #include "IntegratorT.h"

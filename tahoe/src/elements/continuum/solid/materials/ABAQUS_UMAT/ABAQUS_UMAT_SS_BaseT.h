@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.2 2004-01-05 07:23:56 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.3 2004-07-15 08:26:33 paklein Exp $ */
 #ifndef _ABAQUS_UMAT_SS_BASE_T_H_
 #define _ABAQUS_UMAT_SS_BASE_T_H_
 
@@ -6,7 +6,6 @@
 #include "ABAQUS_BaseT.h"
 #include "SSSolidMatT.h"
 #include "IsotropicT.h"
-#include "Material2DT.h"
 #include "ofstreamT.h"
 
 /* library support options */
@@ -40,10 +39,6 @@ public:
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
-
-	/** print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
 	/** initialization */
 	virtual void Initialize(void);

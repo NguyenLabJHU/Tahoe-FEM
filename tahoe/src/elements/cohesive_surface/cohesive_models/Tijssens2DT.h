@@ -1,5 +1,4 @@
-/* $Id: Tijssens2DT.h,v 1.14 2003-05-26 01:51:46 paklein Exp $ */
-
+/* $Id: Tijssens2DT.h,v 1.15 2004-07-15 08:26:02 paklein Exp $ */
 #ifndef _TIJSSENS_2D_T_H_
 #define _TIJSSENS_2D_T_H_
 
@@ -19,9 +18,11 @@ class Tijssens2DT: public SurfacePotentialT
 {
 public:
 
-	/** constructor.
-	 * \param time_step reference to the current time step */
-	Tijssens2DT(ifstreamT& in, const double& time_step);
+	/** constructor */
+	Tijssens2DT(void);
+
+	/** set the source of the time step */
+	virtual void SetTimeStep(const double& time_step) { fTimeStep = &time_step; };
 
 	/** return the number of state variables needed by the model.
 	 * Need to store the opening displacement from the previous
@@ -44,12 +45,6 @@ public:
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
 
-	/** write model name to output */
-	virtual void PrintName(ostream& out) const;
-
-	/** write model parameters */
-	virtual void Print(ostream& out) const;
-
 	/** return the number of output variables. returns 0 by default. */
 	virtual int NumOutputVariables(void) const;
 
@@ -70,6 +65,15 @@ public:
 	//	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
 	virtual void SetElementGroupsNeeded(iArrayT& iGroups);
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters  */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/** return true if the potential has compatible (type and sequence)
@@ -81,7 +85,7 @@ private:
 	//bool initiationQ(const ArrayT<double>&);
 
 	/** reference to the time step */
-	const double& fTimeStep;
+	const double* fTimeStep;
 
 	/* traction rate parameters */
 	double fk_t0; /* initial tangential stiffness */

@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.h,v 1.8 2003-10-12 01:39:03 paklein Exp $ */
+/* $Id: J2SSKStV.h,v 1.9 2004-07-15 08:28:54 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_H_
 #define _J2_SS_KSTV_H_
@@ -11,6 +11,7 @@
 
 namespace Tahoe {
 
+/** small strain J2 plastic material */
 class J2SSKStV: public SSSolidMatT,
 				public IsotropicT,
 				public HookeanMatT,
@@ -18,8 +19,8 @@ class J2SSKStV: public SSSolidMatT,
 {
 public:
 
-	/* constructor */
-	J2SSKStV(ifstreamT& in, const SSMatSupportT& support);
+	/** constructor */
+	J2SSKStV(void);
 
 	/* initialization */
 	virtual void Initialize(void);
@@ -29,10 +30,6 @@ public:
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 	
 	/** \name spatial description */
 	/*@{*/
@@ -56,6 +53,18 @@ public:
 	virtual int NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

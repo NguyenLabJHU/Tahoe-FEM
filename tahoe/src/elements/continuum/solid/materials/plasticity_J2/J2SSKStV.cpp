@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.9 2004-01-10 04:41:20 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.10 2004-07-15 08:28:54 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
 #include "SSMatSupportT.h"
@@ -18,12 +18,9 @@ static const char* Labels[kNumOutput] = {
 	"press"}; // pressure
 
 /* constructor */
-J2SSKStV::J2SSKStV(ifstreamT& in, const SSMatSupportT& support):
-	SSSolidMatT(in, support),
-	IsotropicT(in),
+J2SSKStV::J2SSKStV(void):
+	ParameterInterfaceT("small_strain_StVenant_J2"),
 	HookeanMatT(3),
-//	J2SSLinHardT(in, NumIP(), Mu()),
-	J2SSC0HardeningT(in, NumIP(), Mu()),
 	fStress(3),
 	fModulus(dSymMatrixT::NumValues(3))
 {
@@ -42,7 +39,8 @@ void J2SSKStV::UpdateHistory(void)
 {
 	/* update if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) Update(element);
+	if (element.IsAllocated()) 
+		Update(element, NumIP());
 }
 
 /* reset internal variables to last converged solution */
@@ -50,34 +48,15 @@ void J2SSKStV::ResetHistory(void)
 {
 	/* reset if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) Reset(element);
-}
-
-/* print parameters */
-void J2SSKStV::Print(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-//	J2SSLinHardT::Print(out);
-	J2SSC0HardeningT::Print(out);
-}
-
-/* print name */
-void J2SSKStV::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::PrintName(out);
-//	J2SSLinHardT::PrintName(out);
-	J2SSC0HardeningT::PrintName(out);
-	out << "    Kirchhoff-St.Venant\n";
+	if (element.IsAllocated()) 
+		Reset(element, NumIP());
 }
 
 /* modulus */
 const dMatrixT& J2SSKStV::c_ijkl(void)
 {
 	/* elastoplastic correction */
-	fModulus.SumOf(HookeanMatT::Modulus(), ModuliCorrection(CurrentElement(), CurrIP()));	
+	fModulus.SumOf(HookeanMatT::Modulus(), ModuliCorrection(CurrentElement(), Mu(), NumIP(), CurrIP()));	
 	return fModulus;
 }
 
@@ -87,22 +66,22 @@ const dSymMatrixT& J2SSKStV::s_ij(void)
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
 	const dSymMatrixT& e_tot = e();
-	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
+	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, NumIP(), ip);
 
 	/* elastic stress */
 	HookeanStress(e_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
-	int iteration = fSSMatSupport->IterationNumber();
+	int iteration = fSSMatSupport->GroupIterationNumber();
 	if (iteration > -1) /* elastic iteration */
-		fStress += StressCorrection(e_els, element, ip);
+		fStress += StressCorrection(e_els, element, Mu(), NumIP(), ip);
 	return fStress;	
 }
 
 /* returns the strain energy density for the specified strain */
 double J2SSKStV::StrainEnergyDensity(void)
 {
-	return HookeanEnergy(ElasticStrain(e(), CurrentElement(), CurrIP()));		
+	return HookeanEnergy(ElasticStrain(e(), CurrentElement(), NumIP(), CurrIP()));		
 }
 
 /* returns the number of variables computed for nodal extrapolation
@@ -148,9 +127,45 @@ void J2SSKStV::ComputeOutput(dArrayT& output)
 		output[0] = 0.0;
 }
 
+/* information about subordinate parameter lists */
+void J2SSKStV::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SSSolidMatT::DefineSubs(sub_list);
+	IsotropicT::DefineSubs(sub_list);
+	J2SSC0HardeningT::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* J2SSKStV::NewSub(const StringT& name) const
+{
+	ParameterInterfaceT* sub = NULL;
+
+	/* try each base class */
+	sub = SSSolidMatT::NewSub(name);
+	if (sub) return sub;
+
+	sub = IsotropicT::NewSub(name);
+	if (sub) return sub;
+	
+	return J2SSC0HardeningT::NewSub(name);
+}
+
+/* accept parameter list */
+void J2SSKStV::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SSSolidMatT::TakeParameterList(list);
+	IsotropicT::TakeParameterList(list);
+	J2SSC0HardeningT::TakeParameterList(list);
+	
+	/* initialize modulus */
+	HookeanMatT::Initialize();
+}
+
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* set modulus */
 void J2SSKStV::SetModulus(dMatrixT& modulus)

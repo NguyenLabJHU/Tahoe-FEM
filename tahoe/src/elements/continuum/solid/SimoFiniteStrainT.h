@@ -1,5 +1,4 @@
-/* $Id: SimoFiniteStrainT.h,v 1.15 2004-01-05 07:27:58 paklein Exp $ */
-
+/* $Id: SimoFiniteStrainT.h,v 1.16 2004-07-15 08:26:27 paklein Exp $ */
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
 
@@ -96,9 +95,6 @@ public:
 	virtual int Group(void) const;
 
 protected:
-
-	/** write element parameter to out */
-	virtual void PrintControlData(ostream& out) const;
 
 	/** increment current element */
 	virtual bool NextElement(void);	

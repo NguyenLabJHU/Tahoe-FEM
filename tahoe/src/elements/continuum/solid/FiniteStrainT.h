@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.17 2004-02-02 23:48:38 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.18 2004-07-15 08:26:27 paklein Exp $ */
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
 
@@ -16,18 +16,10 @@ class FiniteStrainT: public SolidElementT
   public:
       
 	/** constructor */
-	FiniteStrainT(const ElementSupportT& support, const FieldT& field);
+	FiniteStrainT(const ElementSupportT& support);
 
 	/** destructor */
 	~FiniteStrainT(void);
-
-	/** initialization. called immediately after constructor */
-	virtual void Initialize(void);
-
-	/** TEMPORARY. Need this extra call here to set the source for the iteration number
-	 * in SmallStrainT::fSSMatSupport. The solvers are not constructed when the material
-	 * support is initialized */
-	virtual void InitialCondition(void);
 
 	/** \name deformation gradients */
 	/*@{*/
@@ -59,6 +51,25 @@ class FiniteStrainT: public SolidElementT
 	void ComputeGradient_reference(const LocalArrayT& u, dMatrixT& grad_u, int ip) const;
 	/*@}*/
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list. */
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
+	/** extract the list of material parameters */
+	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
+
   protected:
 
 	/** construct a new material support and return a pointer. Recipient is responsible for
@@ -69,12 +80,9 @@ class FiniteStrainT: public SolidElementT
 
 	/** return a pointer to a new material list. Recipient is responsible for freeing 
 	 * the pointer. 
-	 * \param nsd number of spatial dimensions
+	 * \param name list identifier
 	 * \param size length of the list */
-	virtual MaterialListT* NewMaterialList(int nsd, int size);
-
-	/** construct list of materials from the input stream */
-	virtual void ReadMaterialData(ifstreamT& in);
+	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);

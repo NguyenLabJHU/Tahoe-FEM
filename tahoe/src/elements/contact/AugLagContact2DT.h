@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.h,v 1.11 2004-01-05 07:32:28 paklein Exp $ */
+/* $Id: AugLagContact2DT.h,v 1.12 2004-07-15 08:26:08 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 #ifndef _AUGLAG_CONTACT2D_T_H_
 #define _AUGLAG_CONTACT2D_T_H_
@@ -19,10 +19,7 @@ class AugLagContact2DT: public Contact2DT, public DOFElementT
 public:
 
 	/** constructor */
-	AugLagContact2DT(const ElementSupportT& support, const FieldT& field);
-
-	/** allocates space and reads connectivity data */
-	virtual void Initialize(void);
+	AugLagContact2DT(const ElementSupportT& support);
 
 	/** \name implementation of the DOFElementT interface */
 	/*@{*/
@@ -67,6 +64,15 @@ public:
 	virtual void ReadRestart(istream& in);
 	virtual void WriteRestart(ostream& out) const;
 	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 		 	
 protected:
 
@@ -74,9 +80,6 @@ protected:
 	 * the last contact configuration can be stored */
 	virtual bool SetActiveInteractions(void);
 
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
-		 	
 	/* construct the effective mass matrix */
 	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
 

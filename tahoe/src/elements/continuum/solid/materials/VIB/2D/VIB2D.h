@@ -1,10 +1,10 @@
-/* $Id: VIB2D.h,v 1.6 2003-01-29 07:34:52 paklein Exp $ */
+/* $Id: VIB2D.h,v 1.7 2004-07-15 08:27:45 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #ifndef _VIB_2D_H_
 #define _VIB_2D_H_
 
 /* base classes */
-#include "NL_E_Mat2DT.h"
+#include "NL_E_MatT.h"
 #include "VIB_E_MatT.h"
 
 namespace Tahoe {
@@ -14,7 +14,7 @@ class dMatrixT;
 class CirclePointsT;
 
 /** 2D VIB solver */
-class VIB2D: public NL_E_Mat2DT, public VIB_E_MatT
+class VIB2D: public NL_E_MatT, public VIB_E_MatT
 {
 public:
 
@@ -23,15 +23,11 @@ public:
 	                     KGaussRule = 1};
 
 	/* constructor */
-	VIB2D(ifstreamT& in, const FSMatSupportT& support);
+	VIB2D(void);
 
 	/* destructor */
 	virtual ~VIB2D(void);
 	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;	
-
 	/* set angle offset - for testing onset of amorphous behavior */
 	void SetAngle(double angleoffset);
 
@@ -40,6 +36,21 @@ public:
 	 * evenly spaced intervals of number AtoF.Length() for the
 	 * current state of deformation */
 	void Perturb(dArrayT& dU, double eps);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.13 2004-01-05 07:12:48 paklein Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.14 2004-07-15 08:31:27 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
@@ -384,22 +384,18 @@ void XDOF_ManagerT::CheckEquationNumbers(ostream& out, iArray2DT& eqnos)
 /* resolve index of the tag set */
 int XDOF_ManagerT::TagSetIndex(const DOFElementT* group, int tag_set) const
 {
+	const char caller[] = "XDOF_ManagerT::TagSetIndex";
+
 	/* find matching element group */
 	int index = fDOFElements.PositionOf((DOFElementT*) group);
 	if (index < 0)
-	{
-		cout << "\n XDOF_ManagerT::TagSetIndex: no matching group found" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "no matching group found");
 	
 	/* check tag set */
 	if (tag_set < 0 || tag_set >= fNumTagSets[index])
-	{
-		cout << "\n XDOF_ManagerT::TagSetIndex: tag set number " << tag_set 
-		     << " is out of range {0, " << fNumTagSets[index] - 1 << "}" << endl;
-		throw ExceptionT::kOutOfRange;
-	}
-	
+		ExceptionT::OutOfRange(caller, "tag set number %d is out of range {0,%d}", 
+			tag_set, fNumTagSets[index]-1);
+
 	/* offset to groups tag sets */
 	int offset = 0;
 	for (int i = 0; i < index; i++)
@@ -408,11 +404,9 @@ int XDOF_ManagerT::TagSetIndex(const DOFElementT* group, int tag_set) const
 	/* resolve set index */
 	offset += tag_set;
 	if (offset >= fXDOF_Eqnos.Length())
-	{
-		cout << "\n XDOF_ManagerT::TagSetIndex: error resolving tag set index: " 
-		     << offset << " > " << fXDOF_Eqnos.Length() << endl;
-		throw ExceptionT::kGeneralFail;
-	}	
+		ExceptionT::GeneralFail(caller, "error resolving tag set index:  offset > %d > %d",
+			offset, fXDOF_Eqnos.Length());
+
 	return offset;
 }
 

@@ -1,18 +1,16 @@
-/* $Id: RGSplitT.cpp,v 1.3 2004-06-17 07:41:18 paklein Exp $ */
+/* $Id: RGSplitT.cpp,v 1.4 2004-07-15 08:29:30 paklein Exp $ */
 /* created: TDN (01/22/2001) */
-
 #include "RGSplitT.h"
 #include "PotentialT.h"
 #include "NeoHookean.h"
 
-#include "ifstreamT.h"
 #include "ExceptionT.h"
 #include <math.h>
-#include <iostream.h>
 #include <stdlib.h>
 
 using namespace Tahoe;
- 
+
+const double third = 1.0/3.0; 
 const int kNumOutputVar =1; 
 static const char* Labels[kNumOutputVar] = {"Dvisc"}; 
 
@@ -21,96 +19,21 @@ static const char* Labels[kNumOutputVar] = {"Dvisc"};
  ***********************************************************************/
 
 /* constructors */
-RGSplitT::RGSplitT(ifstreamT& in, const FSMatSupportT& support):
-  RGViscoelasticityT(in, support),
-  fSpectralDecompSpat(3),
-  fSpectralDecompRef(3),
-  fSpectralDecompTrial(3),
-  fb(NumSD()),
-  fb3D(3),
-  fbe(3),
-  fb_tr(3),
-  fF3D(3),
-  fEigs(3),
-  fEigs_e(3),
-  fEigs_bar(3),
-  fEigs_ebar(3),
-  fEigs_v(3),
-  ftau_EQ(3),
-  ftau_NEQ(3),
-  fDtauDe_EQ(3),
-  fDtauDe_NEQ(3),
-  fCalg(3),
-  fModulus3D(6),
-  fModMat(6),
-  fModulus(dSymMatrixT::NumValues(NumSD())),
-  fStress(NumSD()),
-  fStress3D(3),
-  fiKAB(3),
-  fthird(1.0/3.0)
+RGSplitT::RGSplitT(void):
+	ParameterInterfaceT("Reese-Govindjee_split"),
+	fSpectralDecompSpat(3),
+	fSpectralDecompRef(3),
+	fSpectralDecompTrial(3),
+	fPot_EQ(NULL),
+	fPot_NEQ(NULL)
 {
-    /*read in potential code*/
-    int code;
-    in >> code;
-    switch(code)
-    {
-        case PotentialT::kNeoHookean: 
-	{
-	  fPot_EQ = new NeoHookean(in);
-	  fPot_NEQ = new NeoHookean(in);
-	  break;
-	}
-        default:
-	{
-	  throw ExceptionT::kBadInputValue;
-	}
-    }
 
-    /*read in viscosities*/
-    double etaS, etaB;
-
-    in >> etaS;
-    fietaS = 1.0/etaS;
-
-    in >> etaB;
-    fietaB = 1.0/etaB;
 }
 
 RGSplitT::~RGSplitT(void)
 {
     delete fPot_EQ;
     delete fPot_NEQ;
-}
-
-void RGSplitT::Initialize(void)
-{
-    /*inheritance*/
-    RGViscoelasticityT::Initialize();
-}
-
-/* print parameters */
-void RGSplitT::Print(ostream& out) const
-{
-    RGViscoelasticityT::Print(out);
-    out<<"Equilibrium free energy potential\n";
-    fPot_EQ->Print(out);
-    out<<"Non Equilibrium free energy potential\n";
-    fPot_NEQ->Print(out);
-  
-    out<<"Constant Viscosity \n";
-    out<<"     Shear Viscosity: "<<1.0/fietaS<<'\n';
-    out<<"     Bulk Viscosity: "<<1.0/fietaB<<'\n';
-}
-
-/* print name */
-void RGSplitT::PrintName(ostream& out) const
-{
-    /* inherited */
-    RGViscoelasticityT::PrintName(out);
-    out<<"Equilibrium free energy potential\n";
-    fPot_EQ->PrintName(out);
-    out<<"Non Equilibrium free energy potential\n";
-    fPot_NEQ->PrintName(out);
 }
 
 int RGSplitT::NumOutputVariables() const {return kNumOutputVar;} 
@@ -146,7 +69,7 @@ double RGSplitT::StrainEnergyDensity(void)
   
      double J = sqrt(fEigs.Product());
      fEigs_bar = fEigs;
-     fEigs_bar *= pow(J, -2.0*fthird);
+     fEigs_bar *= pow(J, -2.0*third);
      
      double energy = 0.0;
      energy = fPot_EQ->Energy(fEigs_bar, J);
@@ -163,7 +86,7 @@ double RGSplitT::StrainEnergyDensity(void)
   
      double Je = sqrt(fEigs_e.Product());
      fEigs_ebar = fEigs_e;
-     fEigs_ebar *= pow(Je,-2.0*fthird);
+     fEigs_ebar *= pow(Je,-2.0*third);
   
      energy += fPot_NEQ->Energy(fEigs_ebar, Je);
   
@@ -195,7 +118,7 @@ const dMatrixT& RGSplitT::c_ijkl(void)
     
     /*deviatoric principal stretches*/
     fEigs_bar = fEigs;
-    fEigs_bar *= pow(J, -2.0*fthird);
+    fEigs_bar *= pow(J, -2.0*third);
     
     /*retrieve viscous stretch tensor from history variables*/
     ElementCardT& element = CurrentElement();
@@ -212,7 +135,7 @@ const dMatrixT& RGSplitT::c_ijkl(void)
     
     /*deviatoric principal stretches*/
     fEigs_ebar = fEigs_e;
-    fEigs_ebar *= pow(Je,-2.0*fthird);
+    fEigs_ebar *= pow(Je,-2.0*third);
     
     /*principal components of spatial tangent moduli*/
     fPot_EQ->DevStress(fEigs_bar, ftau_EQ);
@@ -333,7 +256,7 @@ const dSymMatrixT& RGSplitT::s_ij(void)
     
     /*deviatoric principal stretch*/
     fEigs_bar = fEigs;
-    fEigs_bar *= pow(J,-2.0*fthird);
+    fEigs_bar *= pow(J,-2.0*third);
     
     fPot_EQ->DevStress(fEigs_bar, ftau_EQ);
     ftau_EQ += fPot_EQ->MeanStress(J);
@@ -341,7 +264,7 @@ const dSymMatrixT& RGSplitT::s_ij(void)
     /*load the viscoelastic principal stretches from state variable arrays*/
     ElementCardT& element = CurrentElement();
     Load(element, CurrIP());
-    if (fFSMatSupport.RunState() == GlobalT::kFormRHS)
+    if (fFSMatSupport->RunState() == GlobalT::kFormRHS)
     {
         dSymMatrixT& iCvn = fC_vn;
 	iCvn.Inverse();
@@ -372,13 +295,20 @@ const dSymMatrixT& RGSplitT::s_ij(void)
 	
 	double Je = sqrt(fEigs_e.Product());
 	fEigs_ebar = fEigs_e;
-	fEigs_ebar *= pow(Je,-2.0*fthird);
+	fEigs_ebar *= pow(Je,-2.0*third);
 	
 	fPot_NEQ->DevStress(fEigs_ebar, ftau_NEQ);
 	ftau_NEQ += fPot_NEQ->MeanStress(Je);
 	
 	/*update viscuous stretch tensor*/
-	Compute_C(fC_v);
+	if (NumSD() == 2)
+	{
+		Compute_C(fC_v_2D);
+		fC_v.ExpandFrom2D(fC_v_2D);
+		fC_v(2,2) = 1.0; /* no out-of-plane stretch */
+	}
+	else
+		Compute_C(fC_v);
 	fSpectralDecompRef.SpectralDecomp_Jacobi(fC_v,false);
 	fEigs_v = fEigs;
 	fEigs_v /= fEigs_e;
@@ -397,7 +327,7 @@ const dSymMatrixT& RGSplitT::s_ij(void)
 	
 	double Je = sqrt(fEigs_e.Product());
 	fEigs_ebar = fEigs_e;
-	fEigs_ebar *= pow(Je,-2.0*fthird);
+	fEigs_ebar *= pow(Je,-2.0*third);
 	fPot_NEQ->DevStress(fEigs_ebar, ftau_NEQ);
 	ftau_NEQ += fPot_NEQ->MeanStress(Je);
     }
@@ -469,7 +399,7 @@ void RGSplitT::ComputeOutput(dArrayT& output)
     /*calc jacobian*/
     double Je = sqrt(fEigs_e.Product()) ;
     fEigs_ebar = fEigs_e;
-    fEigs_ebar *= pow(Je,-2.0*fthird);
+    fEigs_ebar *= pow(Je,-2.0*third);
     
     fPot_NEQ->DevStress(fEigs_ebar, ftau_NEQ);
     
@@ -516,7 +446,7 @@ void RGSplitT::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_
 	{
 	    double Je=sqrt(le0*le1*le2);
 	    fEigs_ebar = eigenstretch_e;
-	    fEigs_ebar *= pow(Je,-2.0*fthird);
+	    fEigs_ebar *= pow(Je,-2.0*third);
 		
 	    /*calculate stresses and moduli*/
 	    fPot_NEQ->DevStress(fEigs_ebar, eigenstress);
@@ -534,13 +464,13 @@ void RGSplitT::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_
 	    ComputeiKAB(eigenmodulus,cm);
 	    
 	    /*calculate the residual*/
-	    double dt = fFSMatSupport.TimeStep();
+	    double dt = fFSMatSupport->TimeStep();
 	    double res0 = ep_e0 + dt*(0.5*fietaS*s0 +
-			  fthird*fietaB*sm) - ep_tr0;
+			  third*fietaB*sm) - ep_tr0;
 	    double res1 = ep_e1 + dt*(0.5*fietaS*s1 +
-			  fthird*fietaB*sm) - ep_tr1;
+			  third*fietaB*sm) - ep_tr1;
 	    double res2 = ep_e2 + dt*(0.5*fietaS*s2 +
-			  fthird*fietaB*sm) - ep_tr2;
+			  third*fietaB*sm) - ep_tr2;
 		
 	    //cout << "\n residual1 "<< res0;
 	    /*solve for the principal strain increments*/
@@ -583,14 +513,14 @@ void RGSplitT::ComputeiKAB(dSymMatrixT& eigenmodulus, double& bulkmodulus)
 		
 	/*calculates  KAB = 1+dt*D(dWdE_Idev/nD+isostress/nV)/Dep_e*/
 
-	double dt = fFSMatSupport.TimeStep();
-	KAB(0,0) = 1+0.5*fietaS*dt*c0+fthird*fietaB*dt*cm;
-	KAB(1,1) = 1+0.5*fietaS*dt*c1+fthird*fietaB*dt*cm;
-	KAB(2,2) = 1+0.5*fietaS*dt*c2+fthird*fietaB*dt*cm;
+	double dt = fFSMatSupport->TimeStep();
+	KAB(0,0) = 1+0.5*fietaS*dt*c0+third*fietaB*dt*cm;
+	KAB(1,1) = 1+0.5*fietaS*dt*c1+third*fietaB*dt*cm;
+	KAB(2,2) = 1+0.5*fietaS*dt*c2+third*fietaB*dt*cm;
 
-	KAB(1,2) = 0.5*fietaS*dt*c12+fthird*fietaB*dt*cm;
-	KAB(0,2) = 0.5*fietaS*dt*c02+fthird*fietaB*dt*cm;
-	KAB(0,1) = 0.5*fietaS*dt*c01+fthird*fietaB*dt*cm;
+	KAB(1,2) = 0.5*fietaS*dt*c12+third*fietaB*dt*cm;
+	KAB(0,2) = 0.5*fietaS*dt*c02+third*fietaB*dt*cm;
+	KAB(0,1) = 0.5*fietaS*dt*c01+third*fietaB*dt*cm;
        
 	KAB(2,1) = KAB(1,2);
 	KAB(2,0) = KAB(0,2);
@@ -600,3 +530,84 @@ void RGSplitT::ComputeiKAB(dSymMatrixT& eigenmodulus, double& bulkmodulus)
 	fiKAB.Inverse(KAB);
 }
 
+/* describe the parameters needed by the interface */
+void RGSplitT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	RGViscoelasticityT::DefineParameters(list);
+
+	/* common limit */
+	LimitT positive(0.0, LimitT::Lower);
+
+	/* viscosities */
+	ParameterT eta_shear(ParameterT::Double, "eta_shear");
+	ParameterT eta_bulk(ParameterT::Double, "eta_bulk");
+	eta_shear.AddLimit(positive);
+	eta_bulk.AddLimit(positive);
+	list.AddParameter(eta_shear);
+	list.AddParameter(eta_bulk);
+
+	/* potentials - could make this a choice but just neo-Hookean for now */
+	ParameterT mu_EQ(ParameterT::Double, "mu_EQ");
+	ParameterT kappa_EQ(ParameterT::Double, "kappa_EQ");
+	ParameterT mu_NEQ(ParameterT::Double, "mu_NEQ");
+	ParameterT kappa_NEQ(ParameterT::Double, "kappa_NEQ");
+	mu_EQ.AddLimit(positive);
+	kappa_EQ.AddLimit(positive);
+	mu_NEQ.AddLimit(positive);
+	kappa_NEQ.AddLimit(positive);
+	list.AddParameter(mu_EQ);
+	list.AddParameter(kappa_EQ);
+	list.AddParameter(mu_NEQ);
+	list.AddParameter(kappa_NEQ);
+}
+
+/* accept parameter list */
+void RGSplitT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	RGViscoelasticityT::TakeParameterList(list);
+
+	/* dimension work space */
+	fb.Dimension(NumSD());
+	fb3D.Dimension(3);
+	fbe.Dimension(3);
+	fb_tr.Dimension(3);
+	fC_v_2D.Dimension(2);
+	fF3D.Dimension(3);
+	fEigs.Dimension(3);
+	fEigs_e.Dimension(3);
+	fEigs_bar.Dimension(3);
+	fEigs_ebar.Dimension(3);
+	fEigs_v.Dimension(3);
+	ftau_EQ.Dimension(3);
+	ftau_NEQ.Dimension(3);
+	fDtauDe_EQ.Dimension(3);
+	fDtauDe_NEQ.Dimension(3);
+	fCalg.Dimension(3);
+	fModulus3D.Dimension(6);
+	fModMat.Dimension(6);
+	fModulus.Dimension(dSymMatrixT::NumValues(NumSD()));
+	fStress.Dimension(NumSD());
+	fStress3D.Dimension(3);
+	fiKAB.Dimension(3);
+
+	/* viscosities */
+    double etaS = list.GetParameter("eta_shear");
+    double etaB = list.GetParameter("eta_bulk");
+    fietaS = 1.0/etaS;
+    fietaB = 1.0/etaB;
+
+	/* potentials - could make this a choice but just neo-Hookean for now */
+	double mu_eq = list.GetParameter("mu_EQ");
+	double kappa_eq = list.GetParameter("kappa_EQ");
+	NeoHookean* pot_eq = new NeoHookean;
+	pot_eq->SetKappaMu(kappa_eq, mu_eq);
+	fPot_EQ = pot_eq;
+		
+	double mu_neq = list.GetParameter("mu_NEQ");
+	double kappa_neq = list.GetParameter("kappa_NEQ");
+	NeoHookean* pot_neq = new NeoHookean;
+	pot_neq->SetKappaMu(kappa_neq, mu_neq);
+	fPot_NEQ = pot_neq;
+}

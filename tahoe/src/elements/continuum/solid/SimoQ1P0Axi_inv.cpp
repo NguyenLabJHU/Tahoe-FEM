@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0Axi_inv.cpp,v 1.2 2004-06-26 18:39:04 paklein Exp $ */
+/* $Id: SimoQ1P0Axi_inv.cpp,v 1.3 2004-07-15 08:26:27 paklein Exp $ */
 #include "SimoQ1P0Axi_inv.h"
 
 #include "ShapeFunctionT.h"
@@ -13,82 +13,12 @@ const int kRadialDirection = 0; /* x <-> r */
 using namespace Tahoe;
 
 /* constructor */
-SimoQ1P0Axi_inv::SimoQ1P0Axi_inv(const ElementSupportT& support, const FieldT& field):
-	UpdatedLagrangianAxiT(support, field),
-	fF_tmp(NumSD()),
+SimoQ1P0Axi_inv::SimoQ1P0Axi_inv(const ElementSupportT& support):
+	UpdatedLagrangianAxiT(support),
 	fOutputInit(false),
 	fOutputCell(-1)
 {
-
-}
-
-/* data initialization */
-void SimoQ1P0Axi_inv::Initialize(void)
-{
-	const char caller[] = "SimoQ1P0Axi_inv::Initialize";
-
-	/* inherited */
-	UpdatedLagrangianAxiT::Initialize();
-
-	/* check geometry code and number of element nodes -> Q1 */
-	if (GeometryCode() == GeometryT::kQuadrilateral) {
-		if (NumElementNodes() != 4) 
-			ExceptionT::BadInputValue(caller, "expecting 4 node quad: %d", NumElementNodes());
-	}
-	else if (GeometryCode() == GeometryT::kHexahedron) {
-		if (NumElementNodes() != 8) 
-			ExceptionT::BadInputValue(caller, "expecting 8 node hex: %d", NumElementNodes());
-	}
-	else
-		ExceptionT::BadInputValue(caller, "expecting hex or quad geometry: %d", GeometryCode());
-	
-	/* need to store last deformed element volume */
-	fElementVolume.Dimension(NumElements());	
-	fElementVolume = 0.0;
-	fGamma.Dimension(NumElements());
-	fGamma = 0.0;
-	fGamma_last.Dimension(NumElements());
-	fGamma_last = 0.0;
-	
-	/* element pressure */
-	fPressure.Dimension(NumElements());
-	fPressure = 0.0;
-	
-	/* determinant of the deformation gradient */
-	fJacobian.Dimension(NumIP());
-	fJacobian = 1.0;
-	
-	/* dimension work space */
-	fMeanGradient.Dimension(NumSD(), NumElementNodes());
-	fNEEmat.Dimension(fLHS);
-	fdiff_b.Dimension(fGradNa);
-	fb_bar.Dimension(fGradNa);
-	fb_sig.Dimension(fGradNa);
-
-	/* need to initialize previous Gamma */
-	Top();
-	while (NextElement())
-	{
-		/* inherited - computes gradients and standard 
-		 * deformation gradients */
-		UpdatedLagrangianAxiT::SetGlobalShape();
-
-		/* compute mean of shape function gradients */
-		double& V = fElementVolume[CurrElementNumber()]; /* reference volume */
-		double& Gamma = fGamma_last[CurrElementNumber()];
-		SetMeanGradient(fMeanGradient, V, Gamma);
-	}
-
-	/* check cell output */
-	int index;
-	if (ElementSupport().CommandLineOption("-track_group", index)) {
-		const ArrayT<StringT>& argv = ElementSupport().Argv();
-		int group = -99;
-		group = atoi(argv[index+1]) - 1;
-		if (group == ElementSupport().ElementGroupNumber(this))
-			if (ElementSupport().CommandLineOption("-track_cell", index))
-				fOutputCell = atoi(argv[index+1]) - 1;
-	}
+	SetName("updated_lagrangian_Q1P0_inv_axi");
 }
 
 /* finalize current step - step is solved */
@@ -134,6 +64,76 @@ void SimoQ1P0Axi_inv::WriteRestart(ostream& out) const
 	
 	/* read restart data */
 	out << fGamma << '\n';
+}
+
+/* data initialization */
+void SimoQ1P0Axi_inv::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "SimoQ1P0Axi_inv::TakeParameterList";
+
+	/* inherited */
+	UpdatedLagrangianAxiT::TakeParameterList(list);
+
+	/* check geometry code and number of element nodes -> Q1 */
+	if (GeometryCode() == GeometryT::kQuadrilateral) {
+		if (NumElementNodes() != 4) 
+			ExceptionT::BadInputValue(caller, "expecting 4 node quad: %d", NumElementNodes());
+	}
+	else if (GeometryCode() == GeometryT::kHexahedron) {
+		if (NumElementNodes() != 8) 
+			ExceptionT::BadInputValue(caller, "expecting 8 node hex: %d", NumElementNodes());
+	}
+	else
+		ExceptionT::BadInputValue(caller, "expecting hex or quad geometry: %d", GeometryCode());
+	
+	/* need to store last deformed element volume */
+	fElementVolume.Dimension(NumElements());	
+	fElementVolume = 0.0;
+	fGamma.Dimension(NumElements());
+	fGamma = 0.0;
+	fGamma_last.Dimension(NumElements());
+	fGamma_last = 0.0;
+	
+	/* element pressure */
+	fPressure.Dimension(NumElements());
+	fPressure = 0.0;
+	
+	/* determinant of the deformation gradient */
+	fJacobian.Dimension(NumIP());
+	fJacobian = 1.0;
+	
+	/* dimension work space */
+	fF_tmp.Dimension(NumSD());
+	fMeanGradient.Dimension(NumSD(), NumElementNodes());
+	fNEEmat.Dimension(fLHS);
+	fdiff_b.Dimension(fGradNa);
+	fb_bar.Dimension(fGradNa);
+	fb_sig.Dimension(fGradNa);
+
+	/* need to initialize previous Gamma */
+	Top();
+	while (NextElement())
+	{
+		/* inherited - computes gradients and standard 
+		 * deformation gradients */
+		UpdatedLagrangianAxiT::SetGlobalShape();
+
+		/* compute mean of shape function gradients */
+		double& V = fElementVolume[CurrElementNumber()]; /* reference volume */
+		double& Gamma = fGamma_last[CurrElementNumber()];
+		SetMeanGradient(fMeanGradient, V, Gamma);
+	}
+
+	/* check cell output */
+	int index;
+	if (ElementSupport().CommandLineOption("-track_group", index)) {
+		const ArrayT<StringT>& argv = ElementSupport().Argv();
+		int group = -99;
+		group = atoi(argv[index+1]) - 1;
+		if (group == ElementSupport().ElementGroupNumber(this))
+			if (ElementSupport().CommandLineOption("-track_cell", index))
+				fOutputCell = atoi(argv[index+1]) - 1;
+	}
 }
 
 /***********************************************************************
@@ -393,7 +393,7 @@ void SimoQ1P0Axi_inv::FormKd(double constK)
 			
 			/* file path */
 			StringT path;
-			path.FilePath(ElementSupport().Input().filename());
+			path.FilePath(ElementSupport().InputFile());
 			
 			/* write info for neighborhood nodes */
 			for (int i = 0; i < nodes_u.Length(); i++) {
@@ -446,17 +446,6 @@ void SimoQ1P0Axi_inv::FormKd(double constK)
 	
 	/* volume averaged */
 	p_bar /= fElementVolume[CurrElementNumber()];
-}
-
-/* read materials data */
-void SimoQ1P0Axi_inv::ReadMaterialData(ifstreamT& in)
-{
-	/* inherited */
-	UpdatedLagrangianAxiT::ReadMaterialData(in);
-
-	/* make sure 2D materials are plane strain */
-	if (StructuralMaterialList().HasPlaneStress()) 
-		ExceptionT::BadInputValue("SimoQ1P0Axi_inv::ReadMaterialData", "2D materials must be plane strain");
 }
 
 /***********************************************************************

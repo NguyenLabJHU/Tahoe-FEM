@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.24 2004-04-09 02:03:11 hspark Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.25 2004-07-15 08:31:03 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
@@ -31,6 +31,7 @@ class FEManagerT_THK;
 class dArray2DT;
 class StringT;
 class EAMFCC3D;
+class ParameterListT;
 
 /** class to handle file driven finite element simulations */
 class FEExecutionManagerT: public ExecutionManagerT
@@ -60,7 +61,14 @@ protected:
 	int Size(void) const;
 	/*@}*/
 
+	/** Recursive dispatch */
+	virtual void JobOrBatch(ifstreamT& in, ostream& status);
+
 private:
+
+	/** parse input file and valid */
+	void ParseInput(const StringT& path, ParameterListT& params, bool validate, 
+		bool echo_input, bool echo_valid) const;
 
 	/** \name execution modes */
 	/*@{*/
@@ -73,18 +81,18 @@ private:
         kTHK = 4,
         kDTD = 5
 	};
-	
-	/** standard serial driver */
-	void RunJob_serial(ifstreamT& in, ostream& status) const;
+
+	/** TEMP - serial driver for XMl input */
+	void RunJob_serial_XML(const StringT& input_file, ostream& status) const;
 	
 	/** parallel driver */
-	void RunJob_parallel(ifstreamT& in, ostream& status) const;
+	void RunJob_parallel(const StringT& input_file, ostream& status) const;
 
 	/** generate decomposition files */
-	void RunDecomp_serial(ifstreamT& in, ostream& status, CommunicatorT& comm, int size = -1) const;
+	void RunDecomp_serial(const StringT& input_file, ostream& status, CommunicatorT& comm, int size = -1) const;
 
 	/** join parallel results files */
-	void RunJoin_serial(ifstreamT& in, ostream& status, CommunicatorT& comm, int size = -1) const;
+	void RunJoin_serial(const StringT& input_file, ostream& status, int size = -1) const;
 
 	/** multi-Tahoe, bridging scale test */
 	void RunBridging(ifstreamT& in, ostream& status) const;
@@ -106,7 +114,7 @@ private:
 		ofstream& log_out) const;
 
 	/** quasistatic multi-Tahoe bridging scale using a monolithic solution strategy */
-	void RunStaticBridging_monolithic(ifstreamT& in, FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
+	void RunStaticBridging_monolithic(const StringT& input_file, FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
 		ofstream& log_out) const;
         
 #ifdef __DEVELOPMENT__
@@ -124,19 +132,18 @@ private:
 	void Rewind(ifstreamT& in, ostream& status) const;
 
 	/** extract the model file name from the stream */
-	void GetModelFile(ifstreamT& in, StringT& model_file,
-		IOBaseT::FileTypeT& format) const;
+//	void GetModelFile(ifstreamT& in, StringT& model_file, IOBaseT::FileTypeT& format) const;
 
 	/** \name generate decomposition data */
 	/*@{*/
 	/** name calls one of decomposition methods below based on user input */
-	void Decompose(ifstreamT& in, int size, int decomp_type, CommunicatorT& comm,
+	void Decompose(const StringT& input_file, int size, int decomp_type, CommunicatorT& comm,
 		const StringT& model_file, IOBaseT::FileTypeT format) const;
 
 	/** graph-based decomposition. Partition model based on the connectivites
 	 * in the model files and those generated at run time. The actual
 	 * decomposition is calculated by a FEManagerT_mpi. */
-	void Decompose_graph(ifstreamT& in, int size, CommunicatorT& comm, 
+	void Decompose_graph(const StringT& input_file, int size, CommunicatorT& comm, 
 		const StringT& model_file, IOBaseT::FileTypeT format) const;
 
 	/** "atom" decomposition. Partition model by dividing global list
@@ -149,11 +156,11 @@ private:
 	 	p_i = floor \left( \frac{i n_p}{N} \right).
 	 \f]
 	 */
-	void Decompose_atom(ifstreamT& in, int size, const StringT& model_file,
+	void Decompose_atom(const StringT& input_file, int size, const StringT& model_file,
 		IOBaseT::FileTypeT format) const;
 
 	/** spatial decomposition. Partition model based on a grid. */
-	void Decompose_spatial(ifstreamT& in, int size, const StringT& model_file,
+	void Decompose_spatial(const StringT& input_file, int size, const StringT& model_file,
 		IOBaseT::FileTypeT format) const;
 	/*@}*/
 

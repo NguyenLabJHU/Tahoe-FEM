@@ -1,4 +1,4 @@
-/* $Id: EVPFDBaseT.h,v 1.8 2003-01-29 07:35:06 paklein Exp $ */
+/* $Id: EVPFDBaseT.h,v 1.9 2004-07-15 08:29:14 paklein Exp $ */
 #ifndef _EVP_FD_BASE_T_H_
 #define _EVP_FD_BASE_T_H_
 
@@ -63,16 +63,22 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
   ifstreamT& Input();
   double Temperature();
 
-  // print data read
-  virtual void Print(ostream& out) const;
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
  protected:
 
 	/* set (material) tangent modulus */
 	virtual void SetModulus(dMatrixT& modulus);
-
-  // print name
-  virtual void PrintName(ostream& out) const;
 
   // size of system of nonlinear equations
   virtual int GetNumberOfEqns();

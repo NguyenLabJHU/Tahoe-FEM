@@ -1,69 +1,27 @@
-/* $Id: SolidMaterialT.cpp,v 1.11 2004-06-17 07:41:14 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.12 2004-07-15 08:29:20 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
-#include <iostream.h>
-
-#include "ifstreamT.h"
 #include "dArrayT.h"
 #include "dSymMatrixT.h"
 #include "LocalArrayT.h"
+#include "ParameterContainerT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-SolidMaterialT::SolidMaterialT(ifstreamT& in,
-	const MaterialSupportT& support):
-	ContinuumMaterialT(support)
-{
-	in >> fMassDamp;	if (fMassDamp  <  0.0) throw ExceptionT::kBadInputValue;
-	in >> fStiffDamp;	if (fStiffDamp <  0.0) throw ExceptionT::kBadInputValue;
-	in >> fDensity;		if (fDensity   <= 0.0) throw ExceptionT::kBadInputValue;
-	fThermal = new ThermalDilatationT(in);
-	if (!fThermal) throw ExceptionT::kOutOfMemory;
-
-	SetName("solid_material");
-}
-
 SolidMaterialT::SolidMaterialT(void):
+	ParameterInterfaceT("solid_material"),
 	fThermal(NULL),
 	fDensity(0.0),
-	fMassDamp(0.0),
-	fStiffDamp(0.0)
+	fConstraint(kNoConstraint),
+	fCTE(0.0)
 {
-	SetName("solid_material");
+
 }
 
 /* destructor */
 SolidMaterialT::~SolidMaterialT(void) { delete fThermal; }
-
-/* initialization */
-void SolidMaterialT::Initialize(void)
-{
-	/* inherited */
-	ContinuumMaterialT::Initialize();
-
-	/* active multiplicative dilatation */
-	if (fThermal->IsActive() && !SupportsThermalStrain())
-	{
-		cout << "\n SolidMaterialT::Initialize: material does not support\n"
-		     <<   "     imposed thermal strain." << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-}
-
-/* I/O functions */
-void SolidMaterialT::Print(ostream& out) const
-{
-	/* inherited */
-	ContinuumMaterialT::Print(out);
-	
-	out << " Mass damping coefficient. . . . . . . . . . . . = " << fMassDamp  << '\n';
-	out << " Stiffness damping coefficient . . . . . . . . . = " << fStiffDamp << '\n';
-	out << " Density . . . . . . . . . . . . . . . . . . . . = " << fDensity   << '\n';
-
-	fThermal->Print(out);
-}
 
 /* return the wave speeds */
 void SolidMaterialT::WaveSpeeds(const dArrayT& normal, dArrayT& speeds)
@@ -87,7 +45,7 @@ void SolidMaterialT::WaveSpeeds(const dArrayT& normal, dArrayT& speeds)
 		{
 			double temp = speeds[0];
 			speeds[0] = speeds[1];
-			speeds[1] = speeds[0];
+			speeds[1] = temp;
 		}
 		
 		/* compute wave speeds */
@@ -158,7 +116,87 @@ void SolidMaterialT::DefineParameters(ParameterListT& list) const
 
 	/* density */
 	ParameterT density(fDensity, "density");
-	density.SetDefault(1.0);
 	density.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(density);
+
+	/* 2D constraint option */
+	ParameterT constraint(ParameterT::Enumeration, "constraint_2D");
+	constraint.AddEnumeration("none", kNoConstraint);
+	constraint.AddEnumeration("plane_stress", kPlaneStress);
+	constraint.AddEnumeration("plane_strain", kPlaneStrain);
+	constraint.SetDefault(kNoConstraint);
+	list.AddParameter(constraint);
+	
+	/* coefficient of thermal expansion */
+	ParameterT CTE(fCTE, "CTE");
+	CTE.SetDefault(0.0);
+	list.AddParameter(CTE);
+}
+
+/* information about subordinate parameter lists */
+void SolidMaterialT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ContinuumMaterialT::DefineSubs(sub_list);
+	
+	/* thermal dilatation */
+	sub_list.AddSub("thermal_dilatation", ParameterListT::ZeroOrOnce);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SolidMaterialT::NewSub(const StringT& name) const
+{
+	if (name == "thermal_dilatation")
+	{
+		ParameterContainerT* thermal_dilatation = new ParameterContainerT(name);
+		
+		thermal_dilatation->AddParameter(ParameterT::Double, "percent_elongation");
+		thermal_dilatation->AddParameter(ParameterT::Integer, "schedule_number");
+		
+		return thermal_dilatation;
+	}
+	else /* inherited */
+		return ContinuumMaterialT::NewSub(name);
+}
+
+/* accept parameter list */
+void SolidMaterialT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "SolidMaterialT::TakeParameterList";
+
+	/* inherited */
+	ContinuumMaterialT::TakeParameterList(list);
+
+	/* density */
+	fDensity = list.GetParameter("density");
+
+	/* 2D constraint - default to plane strain for 2D materials */
+	list.GetParameter("constraint_2D", enum2int<ConstraintT>(fConstraint));
+	if (NumSD() == 3)
+		fConstraint = kNoConstraint;
+	else if (NumSD() == 2 && fConstraint == kNoConstraint)
+		fConstraint = kPlaneStrain;
+
+	/* coefficient of thermal expansion */
+	fCTE = list.GetParameter("CTE");
+
+	/* thermal dilatation */
+	if (!fThermal) fThermal = new ThermalDilatationT;
+	const ParameterListT* thermal = list.List("thermal_dilatation");
+	if (thermal) {
+		double elongation = thermal->GetParameter("percent_elongation");
+		int schedule_num = thermal->GetParameter("schedule_number");
+		schedule_num--;
+		
+		fThermal->SetPercentElongation(elongation);
+		fThermal->SetScheduleNum(schedule_num);
+		const ScheduleT* schedule = MaterialSupport().Schedule(schedule_num);
+		if (!schedule) ExceptionT::GeneralFail(caller, "could not resolve schedule %d", schedule_num+1);		
+		fThermal->SetSchedule(schedule);
+	}
+
+	/* active multiplicative dilatation */
+	if (fThermal->IsActive() && !SupportsThermalStrain())
+		ExceptionT::BadInputValue("SolidMaterialT::Initialize", 
+			"material does not support imposed thermal strain");
 }

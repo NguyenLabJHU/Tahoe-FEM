@@ -1,4 +1,4 @@
-/* $Id: HarmonicPairT.cpp,v 1.4 2003-10-28 23:31:51 paklein Exp $ */
+/* $Id: HarmonicPairT.cpp,v 1.5 2004-07-15 08:29:49 paklein Exp $ */
 #include "HarmonicPairT.h"
 #include <iostream.h>
 
@@ -18,6 +18,7 @@ HarmonicPairT::HarmonicPairT(double mass, double R0, double K):
 	/* assume nearest neighbor - 10x of equilibrium spacing */
 	SetRange(10.0*fR0);
 	SetMass(mass);
+	SetNearestNeighbor(fR0);
 }
 
 HarmonicPairT::HarmonicPairT(void):
@@ -58,15 +59,6 @@ PairPropertyT::StiffnessFunction HarmonicPairT::getStiffnessFunction(void)
 	return HarmonicPairT::Stiffness;
 }
 
-/* write properties to output */
-void HarmonicPairT::Write(ostream& out) const
-{
-	/* inherited */
-	PairPropertyT::Write(out);
-	out << " Equilibrium bond length . . . . . . . . . . . . = " << fR0 << '\n';
-	out << " Potential well curvature. . . . . . . . . . . . = " << fK << '\n';	
-}
-
 /* describe the parameters needed by the interface */
 void HarmonicPairT::DefineParameters(ParameterListT& list) const
 {
@@ -78,7 +70,7 @@ void HarmonicPairT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(rest_length);
 
 	ParameterT stiffness(fK, "stiffness");
-	stiffness.AddLimit(0.0, LimitT::Lower);
+	stiffness.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(stiffness);
 }
 
@@ -90,6 +82,8 @@ void HarmonicPairT::TakeParameterList(const ParameterListT& list)
 
 	fR0 = list.GetParameter("rest_length");
 	fK = list.GetParameter("stiffness");
+	SetRange(10.0*fR0);
+	SetNearestNeighbor(fR0);
 }
 
 /***********************************************************************

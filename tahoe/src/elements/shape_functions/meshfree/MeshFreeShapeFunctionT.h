@@ -1,6 +1,5 @@
-/* $Id: MeshFreeShapeFunctionT.h,v 1.8 2003-01-27 07:00:30 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.h,v 1.9 2004-07-15 08:29:59 paklein Exp $ */
 /* created: paklein (09/10/1998) */
-
 #ifndef _MF_SHAPE_FUNCTION_T_H_
 #define _MF_SHAPE_FUNCTION_T_H_
 
@@ -12,13 +11,13 @@
 #include "iAutoArrayT.h"
 #include "iArrayT.h"
 
-
 namespace Tahoe {
 
 /* forward declarations */
 class MeshFreeSupportT;
 class ifstreamT;
 template <class TYPE> class RaggedArray2DT;
+class ParameterListT;
 
 /** interface for meshfree shape functions. See ShapeFunctionT
  * for documentation. */
@@ -34,11 +33,11 @@ public:
 	 * \param connectivities of the integration grid and declares on-grid nodes
 	 * \param nongridnodes list of nodes not on the grid
 	 * \param currelement reference to the current cell of evaluation
-	 * \param in input stream */
+	 * \param mf_support_params parameters for meshfree support */
 	MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 		const LocalArrayT& coords, const dArray2DT& all_coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes,
-		const int& currelement, ifstreamT& in);
+		const int& currelement, const ParameterListT& mf_support_params);
 
 	/** destructor */
 	~MeshFreeShapeFunctionT(void);

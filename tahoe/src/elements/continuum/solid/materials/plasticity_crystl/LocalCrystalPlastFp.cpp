@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.18 2004-04-14 17:24:25 ebmarin Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.19 2004-07-15 08:29:07 paklein Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -10,7 +10,7 @@
 #include "VoceHardening.h"
 #include "HaasenHardening.h"
 #include "ElementCardT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 #include "CommunicatorT.h"
 
@@ -33,7 +33,8 @@ const bool XTAL_MESSAGES = true;
 const int IPprnt = 1;
 
 LocalCrystalPlastFp::LocalCrystalPlastFp(ifstreamT& in, const FSMatSupportT& support) :
-  PolyCrystalMatT(in, support),  
+	ParameterInterfaceT("local_crystal_plasticity_Fp"),
+//  PolyCrystalMatT(in, support),  
 
   // penalty parameter for detFp
   fPenalty (1.0e+0),
@@ -151,7 +152,7 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
   LoadAggregateData(element, intpt);
 
   // compute state, stress and moduli 
-  if (fFSMatSupport.RunState() == GlobalT::kFormRHS)
+  if (fFSMatSupport->RunState() == GlobalT::kFormRHS)
     {
       // reset iteration counter to check NLCSolver and state convergence
       if (CurrIP() == 0) 
@@ -187,8 +188,8 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
           //if (fFSMatSupport.StepNumber() == 0 &&        
 	  //        fFSMatSupport.IterationNumber() <= -1)
           /* use these two lines when FEM */
-          if (fFSMatSupport.StepNumber() >= 0 &&
-                  fFSMatSupport.IterationNumber() <= -1)
+          if (fFSMatSupport->StepNumber() >= 0 &&
+              fFSMatSupport->IterationNumber() <= -1)
 	     {
 	       // defomation gradient
                fMatx1.SetToCombination(1., fFtot, -1., fFtot_n);
@@ -275,8 +276,8 @@ const dMatrixT& LocalCrystalPlastFp::c_ijkl()
               fElasticity->ComputeModuli(fcBar_ijkl);
 
 	// compute consistent tangent (elastic predictor at fisrt iteration)
-        if (fFSMatSupport.StepNumber() >= 1 &&
-	        fFSMatSupport.IterationNumber() <= 0)
+        if (fFSMatSupport->StepNumber() >= 1 &&
+	        fFSMatSupport->IterationNumber() <= 0)
 	    {
                // elastic crystal stiffness
                FFFFC_3D(fc_ijkl, fcBar_ijkl, fFe);
@@ -472,14 +473,14 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
   // cout << "    fAvgStress = " << endl << fAvgStress << endl;
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
 	{
-	const CommunicatorT* comm = fFSMatSupport.GroupCommunicator();
+	const CommunicatorT* comm = fFSMatSupport->GroupCommunicator();
 	dArrayT stress_sum(fAvgStress.Length());
 	comm->Sum(fAvgStress, stress_sum);
 
 	int total_denominator = comm->Sum(NumIP()*NumElements());
 	fAvgStress.SetToScaled(1.0/total_denominator, stress_sum);
 	
-     cerr << " step # " << fFSMatSupport.StepNumber() 
+     cerr << " step # " << fFSMatSupport->StepNumber() 
           << "    group # " << group
           << "    S_eq_avg = " 
           << sqrt(fSymMatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 	}
@@ -489,8 +490,8 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
   output[2] = fIterState;
 
   // compute texture of aggregate, if requested
-  int step = fFSMatSupport.StepNumber();
-  int nsteps = fFSMatSupport.NumberOfSteps();
+  int step = fFSMatSupport->StepNumber();
+  int nsteps = fFSMatSupport->NumberOfSteps();
 
   if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
     {
@@ -513,37 +514,6 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
       // write texture at IP/ELE
       fLatticeOrient->WriteTexture(group, elem, intpt, fNumGrain, step, fangles);
     }
-}
-
-void LocalCrystalPlastFp::Print(ostream& out) const
-{
-  // inherited
-  PolyCrystalMatT::Print(out);
-
-  // print slip kinetics data
-  out << "    Kinetics of crystal slip (local crystal plast.)\n";
-  out << "       Kinetics law. . . . . . . . . . . . . . . = " << fKinEqnCode << "\n";
-  fKinetics->Print(out);
-
-  // print slip hardening data
-  out << "    Crystal slip hardening (local crystal plast.)\n";
-  out << "       Hardening law . . . . . . . . . . . . . . = " << fHardCode << "\n";
-  fHardening->Print(out);
-}
-
-void LocalCrystalPlastFp::PrintName(ostream& out) const
-{
-  // inherited
-  PolyCrystalMatT::PrintName(out);
-
-  // output model name
-  out << "    Local crystal plasticity equations\n";
-
-  // output detailed name of the model
-  fSlipGeometry->PrintName(out);
-  fElasticity->PrintName(out);
-  fKinetics->PrintName(out);
-  fHardening->PrintName(out);
 }
 
 GlobalT::SystemTypeT LocalCrystalPlastFp::TangentType() const
@@ -1086,7 +1056,7 @@ void LocalCrystalPlastFp::AddGradTermToC_ijkl()
   const dArrayT& propH = fHardening->MaterialProperties();
   const dArrayT& propKE = fKinetics->MaterialProperties();
   double m = propKE[0];
-  double time = fFSMatSupport.Time();
+  double time = fFSMatSupport->Time();
 
   // some local tensors
   dSymMatrixT fCeDot (kNSD);

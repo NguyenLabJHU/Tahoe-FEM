@@ -1,4 +1,4 @@
-/* $Id: SpherePointsT.h,v 1.3 2003-12-28 23:37:08 paklein Exp $ */
+/* $Id: SpherePointsT.h,v 1.4 2004-07-15 08:28:09 paklein Exp $ */
 /* created: paklein (10/31/1997)                                          */
 /* Base class for spherical point generators.                             */
 
@@ -27,10 +27,6 @@ public:
 
 	/** destructor */
 	virtual ~SpherePointsT(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const = 0;
-	virtual void PrintName(ostream& out) const = 0;	
 
 	/* generate sphere points:
 	 *

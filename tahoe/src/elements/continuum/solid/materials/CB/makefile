@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2004-06-26 06:01:26 paklein Exp $
+# $Id: makefile,v 1.8 2004-07-15 08:26:42 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -27,9 +27,6 @@ OBJ = \
 	FCCLatticeT.o \
 	FCC3D.o \
 	LJTr2D.o \
-	SWDiamond100.o \
-	SWDiamond110.o \
-	SWMaterial2D.o \
 	Chain1D.o \
 	Lattice1DT.o
 
@@ -58,9 +55,6 @@ SRC = \
 	FCCLatticeT.cpp \
 	FCC3D.cpp \
 	LJTr2D.cpp \
-	SWDiamond100.cpp \
-	SWDiamond110.cpp \
-	SWMaterial2D.cpp \
 	Chain1D.cpp \
 	Lattice1DT.cpp
 
@@ -81,9 +75,6 @@ HDR = \
 	FCCLatticeT.h \
 	FCC3D.h \
 	LJTr2D.h \
-	SWDiamond100.h \
-	SWDiamond110.h \
-	SWMaterial2D.h \
 	Chain1D.h \
 	Lattice1DT.h
 

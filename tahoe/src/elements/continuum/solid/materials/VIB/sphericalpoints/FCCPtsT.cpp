@@ -1,13 +1,9 @@
-/* $Id: FCCPtsT.cpp,v 1.4 2002-10-20 22:48:59 paklein Exp $ */
-/* created: paklein (03/26/1999)                                          */
-/* FCC lattice of points                                                  */
-
+/* $Id: FCCPtsT.cpp,v 1.5 2004-07-15 08:28:09 paklein Exp $ */
+/* created: paklein (03/26/1999) */
 #include "FCCPtsT.h"
 #include <math.h>
-#include <iostream.h>
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
-
 
 using namespace Tahoe;
 
@@ -18,8 +14,10 @@ FCCPtsT::FCCPtsT(int num_shells, double bond_length):
 	fNumShells(num_shells),
 	fBondLength(bond_length)
 {
+	const char caller[] = "FCCPtsT::FCCPtsT";
+
 	/* number of nearest neighbor shells */
-	if (fBondLength < 0.0) throw ExceptionT::kBadInputValue;
+	if (fBondLength < 0.0) ExceptionT::BadInputValue(caller);
 	
 	int num_bonds;
 	switch (fNumShells)
@@ -28,27 +26,12 @@ FCCPtsT::FCCPtsT(int num_shells, double bond_length):
 			num_bonds = 6;
 			break;
 		default:
-			cout << "\n FCCPtsT::FCCPtsT: currently only support nearest neighbor bonds" << endl;
-			throw ExceptionT::kBadInputValue;			
+			ExceptionT::BadInputValue(caller, "currently only support nearest neighbor bonds");
 	}	
 
 	/* set weights */
 	fJacobians.Dimension(num_bonds);
 	fJacobians = 1;
-}
-
-/* print parameters */
-void FCCPtsT::Print(ostream& out) const
-{
-	/* number of integration points */
-	out << " Number of nearest neighbor shells . . . . . . . = " << fNumShells << '\n';
-	out << " Number of bonds (using 4-fold symmetry) . . . . = " << fJacobians.Length() << '\n';
-	out << " Bond length . . . . . . . . . . . . . . . . . . = " << fBondLength << '\n';
-}
-
-void FCCPtsT::PrintName(ostream& out) const
-{
-	out << "    FCC lattice\n";
 }
 
 /* generate sphere points:
@@ -88,7 +71,7 @@ void FCCPtsT::SetCoords(void)
 			temp.Set(6,3,p6);
 			break;
 		default:
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail("FCCPtsT::SetCoords", "unsupported number of shells %d", fNumShells);
 	}
 
 	/* copy data */

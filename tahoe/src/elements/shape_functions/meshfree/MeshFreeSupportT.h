@@ -1,10 +1,11 @@
-/* $Id: MeshFreeSupportT.h,v 1.12 2004-06-26 06:11:09 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.13 2004-07-15 08:29:59 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #ifndef _MF_SUPPORT_T_H_
 #define _MF_SUPPORT_T_H_
 
-/* base class */
+/* base classes */
 #include "MeshFreeT.h"
+#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "iArrayT.h"
@@ -50,7 +51,7 @@ class iNodeT;
  * grows, although new LHS matrices should be computed. In order for
  * the global equation matrix to change fnNeighborData and would need to be 
  * recomputed. */
-class MeshFreeSupportT: public MeshFreeT
+class MeshFreeSupportT: public MeshFreeT, public ParameterInterfaceT
 {
 public:
 
@@ -61,7 +62,11 @@ public:
 	 * \param nongridnodes index of paricles not included in the connectivities
 	 * \param in input stream for class and window function parameters */
 	MeshFreeSupportT(const ParentDomainT* domain, const dArray2DT& coords,
-		const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in);
+		const iArray2DT& connects, const iArrayT& nongridnodes);
+
+	/** construct object sufficient for calling methods inherited from ParameterInterfaceT
+	 * to collect the class parameters, but not for doing any meshfree calculations */
+	MeshFreeSupportT(void);
 
 	/** destructor */
 	virtual ~MeshFreeSupportT(void);
@@ -179,6 +184,21 @@ public:
 	/** nodal coordinates */
 	const dArray2DT& NodalCoordinates(void) const;
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/** state of shape function database */
@@ -248,7 +268,7 @@ protected:
 	const dArray2DT* fCutCoords;
 
 	/* nodal coordinates */
-	const dArray2DT& fCoords;
+	const dArray2DT* fCoords;
 
 	/* parent integration domain and its data */
 	const ParentDomainT* fDomain;
@@ -284,9 +304,9 @@ protected:
 	dArrayT               felShapespace;
 	dArrayT               fndShapespace;
 
-	/* external data */
-	const iArray2DT& fConnects; // element connectivities (global numbering)
-	const iArrayT&   fNonGridNodes; // EFG nodes not on the integration grid (global numbering)
+	/* pointers to external data */
+	const iArray2DT* fConnects; // element connectivities (global numbering)
+	const iArrayT*   fNonGridNodes; // EFG nodes not on the integration grid (global numbering)
 
 	/* nodal attributes */
 	dArrayT fVolume;            // nodal volume (integration weight) -> just 1.0 for now
@@ -312,7 +332,6 @@ protected:
 	/* runtime flags */
 	ShapeState fReformNode;
 	ShapeState fReformElem;
-
 };
 
 /* inlines */
@@ -325,7 +344,10 @@ inline const iArrayT& MeshFreeSupportT::NodesUsed(void) const { return fNodesUse
 
 inline const iArrayT& MeshFreeSupportT::SkipNodes(void) const { return fSkipNode; }
 inline const iArrayT& MeshFreeSupportT::SkipElements(void) const { return fSkipElement; }
-inline const dArray2DT& MeshFreeSupportT::NodalCoordinates(void) const { return fCoords; }
+inline const dArray2DT& MeshFreeSupportT::NodalCoordinates(void) const { 
+	if (!fCoords) ExceptionT::GeneralFail("MeshFreeSupportT::NodalCoordinates", "coordinates not set");
+	return *fCoords; 
+}
 inline const ArrayT<int>& MeshFreeSupportT::NeighborsAt(void) const { return fneighbors; }
 
 inline const ArrayT<int>& MeshFreeSupportT::ResetNodes(void) const { return fResetNodes; }

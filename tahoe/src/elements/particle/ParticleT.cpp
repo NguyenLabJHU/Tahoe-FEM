@@ -1,5 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.41 2004-06-28 22:41:39 hspark Exp $ */
-
+/* $Id: ParticleT.cpp,v 1.42 2004-07-15 08:29:44 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -15,7 +14,8 @@
 #include "RaggedArray2DT.h"
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
-#include "ExceptionCodes.h"
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
 
 /* Thermostatting stuff */
 #include "RandomNumberT.h"
@@ -34,54 +34,17 @@ const int kAvgNodesPerCell = 20;
 const int kMaxNumCells     =- 1; /* -1: no max */
 
 /* constructors */
-ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field),
-	fNeighborDistance(-1),
-	fReNeighborDisp(-1),
-	fReNeighborIncr(-1),
-	fNumTypes(-1),
-	fGrid(NULL),
-	fReNeighborCounter(0),
-	fDmax(0),
-	fForce_man(0, fForce, field.NumDOF()),
-
-
-	fActiveParticles(NULL),
-	fRandom(NULL)
-	
-{
-	SetName("particle");
-
-	/* set matrix format */
-	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
-
-	/* read class parameters */
-	ifstreamT& in = ElementSupport().Input();
-	in >> fNeighborDistance
-	   >> fReNeighborDisp
-	   >> fReNeighborIncr;
-
-	if (fNeighborDistance < 0) ExceptionT::GeneralFail();
-	
-	/* values < 0 mean ignore */
-	fReNeighborDisp = (fReNeighborDisp < kSmall) ? -1 : fReNeighborDisp;
-	fReNeighborIncr = (fReNeighborIncr <= 0) ? -1 : fReNeighborIncr;
-
-	fPeriodicSkin = fNeighborDistance;
-}
-
 ParticleT::ParticleT(const ElementSupportT& support):
 	ElementBaseT(support),
 	fNeighborDistance(-1),
 	fReNeighborDisp(-1),
 	fReNeighborIncr(-1),
-	fPeriodicSkin(-1),
-	fNumTypes(-1),
 	fGrid(NULL),
 	fReNeighborCounter(0),
 	fDmax(0),
+	fForce_man(fForce),
 	fActiveParticles(NULL),
-	fRandom(NULL)
+	fTypeMessageID(CommManagerT::kNULLMessageID)
 {
 	SetName("particle");
 
@@ -104,146 +67,10 @@ ParticleT::~ParticleT(void)
 	/* thermostats */
 	for (int i = 0; i < fThermostats.Length(); i++)
 		delete fThermostats[i];
-		
-	if (fRandom)
-		delete fRandom;
-	
-}
-
-/* initialization */
-void ParticleT::Initialize(void)
-{
-	const char caller[] = "ParticleT::Initialize";
-
-	/* inherited */
-	ElementBaseT::Initialize();
-	
-	/* allocate work space */
-	fForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-	/* write parameters */
-	ofstreamT& out = ElementSupport().Output();
-	int d_width = OutputWidth(out, &fNeighborDistance);
-	out << " Neighbor cut-off distance . . . . . . . . . . . = " << fNeighborDistance << '\n';
-	out << " Re-neighboring displacement trigger . . . . . . = " << fReNeighborDisp << '\n';
-	out << " Re-neighboring interval . . . . . . . . . . . . = " << fReNeighborIncr << '\n';
-
-	/* periodic boundary conditions */
-
-	fPeriodicBounds.Dimension(NumSD(), 2);
-	fPeriodicBounds = 0.0;
-	fPeriodicLengths.Dimension(NumSD());
-	fPeriodicLengths=0.0;
-	fStretchSchedule.Dimension(NumSD());
-	fStretchSchedule = NULL;
-
-	out << " Periodic boundary conditions:\n";
-	out << setw(kIntWidth) << "dir"
-	    << setw(d_width) << "min"
-	    << setw(d_width) << "max" << '\n';
-	ifstreamT& in = ElementSupport().Input();
-	fhas_periodic=0;
-
-	for (int i = 0; i < NumSD(); i++) {
-	
-		out << setw(kIntWidth) << i+1;
-
-		 int has_periodic = 0;
-		in >> has_periodic;
-		
-		if (has_periodic > 0) {
-		  fhas_periodic= fhas_periodic|has_periodic;
-			double x_min = 0.0, x_max = 0.0;
-			in >> x_min >> x_max;
-			out << setw(d_width) << x_min << setw(d_width) << x_max << '\n';
-			if (x_min > x_max)
-				ExceptionT::BadInputValue(caller, "x_min > x_max: %g < %g", x_min, x_max);
-
-			fPeriodicLengths[i]=x_max-x_min;
-			/* store */
-			fPeriodicBounds(i,0) = x_min;
-			fPeriodicBounds(i,1) = x_max;
-
-
-			/* send to CommManagerT */
-			ElementSupport().CommManager().SetPeriodicBoundaries(i, x_min, x_max);
-
-			
-			/* read stretch schedule */
-			if (has_periodic > 1) {
-				int schedule = -99;
-				in >> schedule;
-				schedule--;
-				fStretchSchedule[i] = ElementSupport().Schedule(schedule);
-				
-				/* check - expecting f(0) = 1 */
-				if (fabs(fStretchSchedule[i]->Value(0.0) - 1.0) > kSmall)
-					ExceptionT::BadInputValue(caller, "schedule %d does not have value 1 at time 0", schedule+1);
-			}
-
-		}
-		else out << setw(d_width) << "-" << setw(d_width) << "-" << '\n';
-	}
-	
-	/* read properties information */
-	EchoProperties(in, out);
-
-
-	StringT key;
-	in>>key;
-	if (key =="lattice") in >> fLatticeParameter;
-	else
-	  {
-	    in.rewind();
-	    fLatticeParameter = 0.0; //defaults to nothing
-	  }
-	if (NumSD()==1)
-	{
-	 NearestNeighborDistance=fLatticeParameter*1.1;
-	} 
-    else if (NumSD()==2)
-	{
-	 NearestNeighborDistance=fLatticeParameter*1.1;
-    }
-    else if (NumSD()==3)
-    { 
-	 NearestNeighborDistance=fLatticeParameter*.78;
-    }
-	else
-	{ 
-	 throw eBadInputValue;
-	}
-
-	/* set up communication of type information */
-	fTypeMessageID = ElementSupport().CommManager().Init_AllGather(MessageT::Integer, 1);
-
-	/* map of {type_a, type_b} -> potential number */
-	fPropertiesMap.Dimension(fNumTypes);
-	fPropertiesMap = -1;
-	for (int i = 0; i < fPropertiesMap.Length(); i++)
-	{
-		int a, b, pot_num;
-		in >> a >> b >> pot_num;
-		a--; b--; /* offset */
-		if (fPropertiesMap(a,b) != -1) 
-			ExceptionT::BadInputValue(caller, "potential map(%d,%d) is already assigned to %d", a, b, fPropertiesMap(a,b));
-		else if (pot_num < 1 && pot_num > fNumTypes)
-			ExceptionT::BadInputValue(caller, "potential %d is out of range (%d,%d)", pot_num, 1, fNumTypes);
-		else
-			fPropertiesMap(a,b) = pot_num;
-	}
-	fPropertiesMap--; /* offset */
-
-	/* set the neighborlists */
-	SetConfiguration();
-
-	EchoDamping(in, out);
-
 }
 
 /* form of tangent matrix */
-GlobalT::SystemTypeT ParticleT::TangentType(void) const
-{
+GlobalT::SystemTypeT ParticleT::TangentType(void) const {
 	return GlobalT::kSymmetric;
 }
 
@@ -366,14 +193,14 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 	fReNeighborCounter++;
 	if (has_moving ||
 	    (fReNeighborDisp > 0.0 && fDmax > fReNeighborDisp) || 
-		(fReNeighborIncr != -1 && fReNeighborCounter >= fReNeighborIncr))
+		(fReNeighborIncr > 0 && fReNeighborCounter >= fReNeighborIncr))
 	{
 		/* output stream */
 		ofstreamT& out = ElementSupport().Output();
 		if (fReNeighborDisp > 0.0 && fDmax > fReNeighborDisp)
 			out << "\n ParticleT::RelaxSystem: max displacement since re-neighboring "
 			    << fDmax << " > " << fReNeighborDisp << '\n';
-		if (fReNeighborIncr != -1 && fReNeighborCounter >= fReNeighborIncr)
+		if (fReNeighborIncr > 0 && fReNeighborCounter >= fReNeighborIncr)
 			out << "\n ParticleT::RelaxSystem: number of steps since re-neighboring "
 			    << fReNeighborCounter << " >= " << fReNeighborIncr << '\n';
 	
@@ -395,10 +222,7 @@ void ParticleT::WriteRestart(ostream& out) const
 	/* write counter */
 	out << fReNeighborCounter << '\n';
 	
-	if (fRandom != NULL)
-		out << fRandom->RandSeed() << '\n';
-	
-	for (int i = 0; i < nThermostats; i++)
+	for (int i = 0; i < fThermostats.Length(); i++)
 		fThermostats[i]->WriteRestart(out);
 }
 
@@ -407,15 +231,8 @@ void ParticleT::ReadRestart(istream& in)
 {
 	/* read counter */
 	in >> fReNeighborCounter;
-	
-	if (fRandom != NULL)
-	{
-		long seed;
-		in >> seed;
-		fRandom->sRand(seed);
-	}
-	
-	for (int i = 0; i < nThermostats; i++)
+
+	for (int i = 0; i < fThermostats.Length(); i++)
 		fThermostats[i]->ReadRestart(in);
 }
 
@@ -476,6 +293,8 @@ void ParticleT::SetConfiguration(void)
 	fType.Resize(nnd);
 	
 	/* exchange type information */
+	if (fTypeMessageID == CommManagerT::kNULLMessageID)
+		fTypeMessageID = ElementSupport().CommManager().Init_AllGather(MessageT::Integer, 1);
 	iArray2DT type_wrapper(fType.Length(), 1, fType.Pointer());
 	comm_manager.AllGather(fTypeMessageID, type_wrapper);
 	
@@ -525,14 +344,14 @@ void ParticleT::LumpedMass(const iArrayT& nodes, dArrayT& mass) const
 
 void ParticleT::ApplyDamping(const RaggedArray2DT<int>& fNeighbors)
 {		
-	if (QisDamped)
+	if (fThermostats.Length() > 0)
 	{
 		const dArray2DT* velocities = NULL; 
      	if (Field().Order() > 0) // got velocities!
      	{
      		velocities = &(Field()[1]);
      		
-     		for (int i = 0; i < nThermostats; i++)
+     		for (int i = 0; i < fThermostats.Length(); i++)
 				fThermostats[i]->ApplyDamping(fNeighbors,velocities,fForce,
 										fType,fParticleProperties);
 		}
@@ -541,63 +360,8 @@ void ParticleT::ApplyDamping(const RaggedArray2DT<int>& fNeighbors)
 }
 
 /* return true if connectivities are changing */
-bool ParticleT::ChangingGeometry(void) const
-{
+bool ParticleT::ChangingGeometry(void) const {
 	return ElementSupport().CommManager().PartitionNodesChanging();
-}
-
-/* echo element connectivity data */
-void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
-{
-#pragma unused(out)
-	const char caller[] = "ParticleT::EchoConnectivityData";
-	
-	/* particle types */
-	fNumTypes = -1;
-	in >> fNumTypes;
-	if (fNumTypes < 1) ExceptionT::BadInputValue(caller, "must define at least one type");
-	
-	/* initialize type map */
-	fType.Dimension(ElementSupport().NumNodes());
-	fType = -1;
-
-	int all_or_some = -99;
-	in >> all_or_some; 
-	if (all_or_some != 0 && all_or_some != 1) ExceptionT::BadInputValue(caller);
-	if (fNumTypes > 1 && all_or_some == 0)
-		ExceptionT::BadInputValue(caller, "atom types must be listed explicitly if there is more than 1 type");
-
-	if (all_or_some == 0) /* ALL */
-	{
-		/* mark particle tags with type 0 */
-		fType = 0;
-	}
-	else
-	{
-		/* access to the model database */
-		ModelManagerT& model = ElementSupport().Model();
-
-		/* read sets */
-		for (int i = 0; i < fNumTypes; i++)
-		{
-			/* read node set ids */
-			ArrayT<StringT> ids;
-			model.NodeSetList(in, ids);
-			iArrayT tags;
-			model.ManyNodeSets(ids, tags);
-	
-			/* mark map */
-			for (int j = 0; j < tags.Length(); j++)
-				fType[tags[j]] = i;
-		}
-	}
-
-	/* check that all are typed */
-	int not_marked_count = 0;
-	for (int i = 0; i < fType.Length(); i++)
-		if (fType[i] == -1) not_marked_count++;
-	if (not_marked_count != 0)
-		ExceptionT::BadInputValue(caller, "%d atoms not typed", not_marked_count);
 }
 
 /* generate neighborlist */
@@ -818,147 +582,37 @@ double ParticleT::MaxDisplacement(void) const
 	return sqrt(dmax2);
 }
 
-void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
+void ParticleT::SetDamping(const ParameterListT& list)
 {
+	const char caller[] = "ParticleT::SetDamping";
 
-#pragma unused(out)
+	AutoArrayT<ThermostatBaseT*> thermostats;
+	int count = 0;
+	const ParameterListT* thermostat_params = list.ListChoice(*this, "thermostats", count);
+	while (thermostat_params) {
 	
-	const char caller[] = "ParticleT::EchoDamping";
+		/* construct new thermostat */
+		ThermostatBaseT* thermostat = New_Thermostat(thermostat_params->Name(), true);
 
-	/* default flag assuming no damping/thermostatting present */
-	QisDamped = false;
-	
-	/* flag for constructing a random number generator */
-	bool QisRandom = false;
-	
-	in >> nThermostats;
-	fThermostats.Dimension(nThermostats);
-	fThermostats = NULL;
-	
-	CommManagerT& comm_manager = ElementSupport().CommManager();
-	for (int i = 0; i < nThermostats; i++)
-	{
-		bool QisLangevin = false;
-	
-		ThermostatBaseT::ThermostatT thermostat_i;
-		in >> thermostat_i;
-		switch (thermostat_i)
-		{
-			case ThermostatBaseT::kDamped:
-			{
-				QisDamped = true;
-				
-				fThermostats[i] = new ThermostatBaseT(in,
-					ElementSupport().NumSD(),ElementSupport().TimeStep());
-				
-				break;
-			}
-			case ThermostatBaseT::kLangevin:
-			{
-				QisRandom = QisLangevin = true;
-				QisDamped = true;
-				
-				fThermostats[i] = new LangevinT(in,
-					ElementSupport().NumSD(),ElementSupport().TimeStep());
-				
-				break;
-			}
-			case ThermostatBaseT::kNoseHoover:
-			{
-				QisDamped = true;
-				
-				fThermostats[i] = new NoseHooverT(in,
-					ElementSupport().NumSD(), ElementSupport().TimeStep());
-				
-				break;
-			}
-			case ThermostatBaseT::kGaussIsokinetic:
-			{
-				QisDamped = true;
-				
-				fThermostats[i] = new GaussIsokineticT(in,
-					ElementSupport().NumSD(), ElementSupport().TimeStep());
-				
-				break;
-			}
-			case ThermostatBaseT::kRampedDamping:
-			{
-				QisDamped = true;
-				
-				fThermostats[i] = new RampedDampingT(in,
-					ElementSupport().NumSD(), ElementSupport().TimeStep());
-				
-				break;
-			}
-			default:
-			{
-				ExceptionT::BadInputValue(caller,"Damping type does not exist or is not valid");
-			}
-		}
-		char peekahead = in.next_char();
-		int nodesOrRegion = atoi(&peekahead);
-		switch (nodesOrRegion)
-		{
-			case ThermostatBaseT::kNodes:
-			{
-				in >> nodesOrRegion; // read in what I didn't above
-				if (thermostat_i == ThermostatBaseT::kRampedDamping)
-					ExceptionT::BadInputValue(caller,"Ramped Damping requires spatial region");
-				
-				fThermostats[i]->InitNodeSets(in, ElementSupport().Model());
-				
-				break;
-			}
-			case ThermostatBaseT::kRegion:
-			{
-				int nregions;
-				in >> nregions;
-				fThermostats[i]->InitRegion(in, ElementSupport().InitialCoordinates(),
-											comm_manager.PartitionNodes());
-				break;
-			}
-			default:
-			{
-				ExceptionT::BadInputValue(caller,"Thermostat control type invalid");
-			}
-		}
-		if (thermostat_i != ThermostatBaseT::kDamped)
-		{
-			int schedNum;
-			double schedVal;
-			in >> schedNum;
-			schedNum--;
-			in >> schedVal;
-			const ScheduleT* sched = ElementSupport().Schedule(schedNum);
-			if (!sched)
-				ExceptionT::GeneralFail(caller,"Unable to get temperature schedule");
-			fThermostats[i]->SetTemperatureSchedule(sched,schedVal);
-		}
-		if (QisLangevin)
-		{
-			if (fRandom == 0) // construct a singleton random number generator
-			{	
-				fRandom = new RandomNumberT(RandomNumberT::kParadynGaussian);
-			}
-			LangevinT* tmpPtr = TB_DYNAMIC_CAST(LangevinT*, fThermostats[i]); 
-			
-			if (!tmpPtr)
-				ExceptionT::GeneralFail(caller,"Cannot send random number gen to thermostat");
-			tmpPtr->SetRandNumGenerator(fRandom);
-		}
+		/* initialize */
+		thermostat->TakeParameterList(*thermostat_params);
+		
+		/* store */
+		thermostats.Append(thermostat);
+		
+		/* look for another */	
+		thermostat_params = list.ListChoice(*this, "thermostats", ++count);
 	}
-	
-	if (QisRandom)
-	{
-		int randSeed;
-		in >> randSeed;
-		if (randSeed < -1) ExceptionT::BadInputValue(caller,"random seed must be >= -1");
-		if (randSeed == -1) 
-		{
-			ExceptionT::GeneralFail(caller,"No machine-generated random seed available yet");
-		}
-		fRandom->sRand(randSeed);
+
+	/* free existing */
+	if (fThermostats.Length() > 0) {
+		for (int i = 0; i < fThermostats.Length(); i++)
+			delete fThermostats[i];
+		fThermostats.Dimension(0);
 	}
+
+	/* keep */
+	fThermostats.Swap(thermostats);
 }
 
 
@@ -968,20 +622,22 @@ void ParticleT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	ElementBaseT::DefineParameters(list);
 
-	ParameterT neighbor_distance(fNeighborDistance, "neighbor_distance");
-	neighbor_distance.AddLimit(0.0, LimitT::Lower);
-	list.AddParameter(neighbor_distance);
+	ParameterT lattice_parameter(fLatticeParameter, "lattice_parameter");
+	lattice_parameter.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(lattice_parameter);
 
-	ParameterT re_neighbor_disp(fReNeighborDisp, "re_neighbor_displacement");
+	ParameterT max_neighbor_distance(fNeighborDistance, "max_neighbor_distance");
+	max_neighbor_distance.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(max_neighbor_distance);
+
+	ParameterT re_neighbor_disp(fReNeighborDisp, "re-neighbor_displacement");
 	re_neighbor_disp.AddLimit(0.0, LimitT::Lower);
-	list.AddParameter(re_neighbor_disp, ParameterListT::ZeroOrOnce);
+	list.AddParameter(re_neighbor_disp);
 
-
-
-	ParameterT re_neighbor_incr(fReNeighborIncr, "re_neighbor_increment");
-	re_neighbor_incr.AddLimit(0, LimitT::Lower);
-	re_neighbor_incr.SetDefault(1);
-	list.AddParameter(re_neighbor_incr, ParameterListT::ZeroOrOnce);
+	ParameterT re_neighbor_incr(fReNeighborIncr, "re-neighbor_increment");
+	re_neighbor_incr.AddLimit(0, LimitT::LowerInclusive);
+	re_neighbor_incr.SetDefault(0);
+	list.AddParameter(re_neighbor_incr);
 }
 
 /* information about subordinate parameter lists */
@@ -990,49 +646,260 @@ void ParticleT::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	ElementBaseT::DefineSubs(sub_list);
 
+	/* periodic boundary conditions */
+	sub_list.AddSub("periodic_bc", ParameterListT::Any);
+
 	/* thermostats - array of choices */
 	sub_list.AddSub("thermostats", ParameterListT::Any, true);
+
+	/* particle types */
+	sub_list.AddSub("particle_type", ParameterListT::OnePlus);
 }
 
 /* return the description of the given inline subordinate parameter list */
-void ParticleT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void ParticleT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "thermostats")
+	if (name == "thermostats")
 	{
 		order = ParameterListT::Choice;
 		
-		sub_sub_list.AddSub("ramped_damping");
-		sub_sub_list.AddSub("NoseHoover");
-		sub_sub_list.AddSub("Gauss_isokinetic");
-		sub_sub_list.AddSub("Langevin");
+		sub_lists.AddSub("velocity_damping");
+		sub_lists.AddSub("ramped_damping");
+		sub_lists.AddSub("Nose-Hoover");
+		sub_lists.AddSub("Gauss_isokinetic");
+		sub_lists.AddSub("Langevin");
 	}
 	else /* inherited */
-		ElementBaseT::DefineInlineSub(sub, order, sub_sub_list);
+		ElementBaseT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ParticleT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* ParticleT::NewSub(const StringT& name) const
 {
 	/* try to construct thermostat */
-	ThermostatBaseT* thermostat = New_Thermostat(list_name, false);
+	ThermostatBaseT* thermostat = New_Thermostat(name, false);
 	if (thermostat)
 		return thermostat;
+	else if (name == "periodic_bc")
+	{
+		ParameterContainerT* pbc = new ParameterContainerT(name);
+	
+		pbc->AddParameter(ParameterT::Integer, "direction");
+		pbc->AddParameter(ParameterT::Double, "x_min");
+		pbc->AddParameter(ParameterT::Double, "x_max");
+		pbc->AddParameter(ParameterT::Integer, "stretching_schedule", ParameterListT::ZeroOrOnce);
+
+		return pbc;
+	}
+	else if (name == "particle_type")
+	{
+		ParameterContainerT* particle_type = new ParameterContainerT(name);
+	
+		particle_type->AddParameter(ParameterT::Word, "label");
+
+		/* include all particles */
+		ParameterT all_particles(ParameterT::Boolean, "all_particles");
+		all_particles.SetDefault(false);
+		particle_type->AddParameter(all_particles, ParameterListT::ZeroOrOnce);
+		
+		/* specify by node set IDs */
+		particle_type->AddSub("node_ID_list", ParameterListT::ZeroOrOnce);
+
+		/* specify by element block IDs */
+		particle_type->AddSub("block_ID_list", ParameterListT::ZeroOrOnce);
+		
+		return particle_type;
+	}
 	else /* inherited */
-		return ElementBaseT::NewSub(list_name);
+		return ElementBaseT::NewSub(name);
+}
+
+/* accept parameter list */
+void ParticleT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "ParticleT::TakeParameterList";
+
+	/* inherited */
+	ElementBaseT::TakeParameterList(list);
+
+	/* extract parameters */
+	fLatticeParameter = list.GetParameter("lattice_parameter");
+	fNeighborDistance = list.GetParameter("max_neighbor_distance");
+	fReNeighborDisp = list.GetParameter("re-neighbor_displacement");
+	fReNeighborIncr = list.GetParameter("re-neighbor_increment");
+
+	/* derived parameters */
+	if (NumSD() == 1)
+		fNearestNeighborDistance = fLatticeParameter*1.1;
+    else if (NumSD() == 2)
+		fNearestNeighborDistance = fLatticeParameter*1.1;
+    else if (NumSD() == 3)
+		fNearestNeighborDistance = fLatticeParameter*.78;
+	else
+		ExceptionT::GeneralFail(caller);
+	fPeriodicSkin = fNeighborDistance;
+
+	/* allocate work space */
+	fForce_man.Dimension(ElementSupport().NumNodes(), NumDOF());
+
+	/* periodic boundary conditions */
+	fPeriodicBounds.Dimension(NumSD(), 2);
+	fPeriodicBounds = 0.0;
+	fPeriodicLengths.Dimension(NumSD());
+	fPeriodicLengths= 0.0;
+	fStretchSchedule.Dimension(NumSD());
+	fStretchSchedule = NULL;
+	int num_pbc = list.NumLists("periodic_bc");
+	if (num_pbc > NumSD())
+		ExceptionT::BadInputValue(caller, "expecting at most %d \"periodic_bc\" not %d",
+			NumSD(), num_pbc);
+	fhas_periodic = (num_pbc > 0) ? 1 : 0;
+	for (int i = 0; i < num_pbc; i++) {
+	
+		/* periodic bc parameters */
+		const ParameterListT& pbc = list.GetList("periodic_bc", i);
+		
+		/* extract parameters */
+		int direction = pbc.GetParameter("direction"); direction--;
+		double x_min = pbc.GetParameter("x_min");
+		double x_max = pbc.GetParameter("x_max");
+		const ScheduleT* schedule = NULL;
+		const ParameterT* str_sched = pbc.Parameter("stretching_schedule");
+		if (str_sched) {
+			int sched_num = *str_sched;
+			schedule = ElementSupport().Schedule(--sched_num);
+
+			/* check - expecting f(0) = 1 */
+			if (fabs(schedule->Value(0.0) - 1.0) > kSmall)
+				ExceptionT::BadInputValue(caller, "schedule %d does not have value 1 at time 0", sched_num+1);
+		}
+		
+		/* save */
+		fPeriodicLengths[direction] = x_max-x_min;
+		fPeriodicBounds(direction,0) = x_min;
+		fPeriodicBounds(direction,1) = x_max;
+		fStretchSchedule[direction] = schedule;
+
+		/* send to CommManagerT */
+		ElementSupport().CommManager().SetPeriodicBoundaries(direction, x_min, x_max);
+	}
+
+	/* resolve types */
+	fType.Dimension(ElementSupport().NumNodes());
+	fType = -1;
+	int num_types = list.NumLists("particle_type");
+	fTypeNames.Dimension(num_types);
+	for (int i = 0; i < num_types; i++) {
+		const ParameterListT& particle_type = list.GetList("particle_type", i);
+		
+		/* label */
+		fTypeNames[i] = particle_type.GetParameter("label");
+		for (int j = 0; j < i; j++)
+			if (fTypeNames[j] == fTypeNames[i])
+				ExceptionT::GeneralFail(caller, "types %d and %d have the same label \"%s\"",
+					j+1, i+1, fTypeNames[i].Pointer());
+					
+		/* check "all" particles */
+		const ParameterT* all_particles = particle_type.Parameter("all_particles");
+		bool all = false;
+		if (all_particles) {
+			all = *all_particles;
+			
+			/* only one type can be "all" */
+			if (all && num_types > 1)			
+				ExceptionT::GeneralFail(caller, "\"all\" particles in \"%s\" conflicts with %d other types",
+					fTypeNames[i].Pointer(), num_types-1);
+					
+			/* mark particles with type 0 */
+			fType = 0;
+		}
+		
+		/* look for node list */
+		const ParameterListT* node_ID_list = particle_type.List("node_ID_list");
+		if (node_ID_list) {
+		
+			/* collect id's */
+			ArrayT<StringT> id_list;
+			StringListT::Extract(*node_ID_list, id_list);
+			if (all && id_list.Length() > 0)
+				ExceptionT::GeneralFail(caller, "label \"%s\" is \"all\" and cannot include %d node ID's",
+					fTypeNames[i].Pointer(), id_list.Length());
+
+			/* access to the model database */
+			ModelManagerT& model = ElementSupport().ModelManager();
+			
+			/* get id's */
+			iArrayT tags;
+			model.ManyNodeSets(id_list, tags);
+			
+			/* mark map */
+			for (int j = 0; j < tags.Length(); j++)
+				fType[tags[j]] = i;			
+		}
+
+		/* look for block ID list */
+		const ParameterListT* block_ID_list = particle_type.List("block_ID_list");
+		if (block_ID_list) {
+		
+			/* collect id's */
+			ArrayT<StringT> id_list;
+			StringListT::Extract(*block_ID_list, id_list);
+			if (all && id_list.Length() > 0)
+				ExceptionT::GeneralFail(caller, "label \"%s\" is \"all\" and cannot include %d block ID's",
+					fTypeNames[i].Pointer(), id_list.Length());
+
+			/* access to the model database */
+			ModelManagerT& model = ElementSupport().ModelManager();
+			
+			/* read block information */
+			for (int k = 0; k < id_list.Length(); k++) {
+			
+				const iArray2DT& tags = model.ElementGroup(id_list[k]);
+
+				/* mark map - connectivities treated as 1D list */
+				for (int j = 0; j < tags.Length(); j++)
+					fType[tags[j]] = i;
+			}
+		}
+		
+		/* nothing declared */
+		if (!all && !node_ID_list && !block_ID_list)
+			ExceptionT::GeneralFail(caller, "label \"%s\" is empty", fTypeNames[i].Pointer());
+	}
+
+	/* check that all are typed */
+	int not_marked_count = 0;
+	for (int i = 0; i < fType.Length(); i++)
+		if (fType[i] == -1) not_marked_count++;
+	if (not_marked_count != 0)
+		ExceptionT::BadInputValue(caller, "%d atoms not typed", not_marked_count);
+	
+	/* extract properties */
+	fPropertiesMap.Dimension(num_types);
+	fPropertiesMap = -1;
+	ExtractProperties(list, fTypeNames, fParticleProperties, fPropertiesMap);
+
+	/* set the neighborlists */
+	SetConfiguration();
+	
+	/* construct thermostats */
+	SetDamping(list);
 }
 
 /* return a new pair property or NULL if the name is invalid */
 ThermostatBaseT* ParticleT::New_Thermostat(const StringT& name, bool throw_on_fail) const
 {
-	if (name == "ramped_damping")
-		return new RampedDampingT;
-	else if (name == "NoseHoover")
-		return new NoseHooverT;
+	if (name == "velocity_damping")
+		return new ThermostatBaseT(ElementSupport());
+	else if (name == "ramped_damping")
+		return new RampedDampingT(ElementSupport());
+	else if (name == "Nose-Hoover")
+		return new NoseHooverT(ElementSupport());
 	else if (name == "Gauss_isokinetic")
-		return new GaussIsokineticT;
+		return new GaussIsokineticT(ElementSupport());
 	else if (name == "Langevin")
-		return new LangevinT;
+		return new LangevinT(ElementSupport());
 	else if (throw_on_fail)
 		ExceptionT::GeneralFail("ParticleT::New_Thermostat",
 			"unrecognized thermostat \"%s\"", name.Pointer());
@@ -1057,22 +924,15 @@ void ParticleT::Calc_Slip_and_Strain(dArray2DT &s_values, RaggedArray2DT<int> &R
 
   /* set slip vector tolerance for either 1-D (chain), 
    * 2-D (triangular lattice), or 3-D (FCC lattice) systems */
-  if (NumSD()==1)
-  {
-   svtol = 0.25*NearestNeighborDistance;
-  }
-  else if (NumSD()==2)
-  {
-   svtol = 0.5*NearestNeighborDistance;
-  }
-  else if (NumSD()==3)
-  {
-   svtol =  0.5*NearestNeighborDistance/sqrt(3.0);
-  }
-  else
-  {
-   throw eBadInputValue;
-  } 
+	if (NumSD() == 1)
+		svtol = 0.25*fNearestNeighborDistance;
+	else if (NumSD() == 2)
+		svtol = 0.5*fNearestNeighborDistance;
+	else if (NumSD() == 3)
+		svtol =  0.5*fNearestNeighborDistance/sqrt(3.0);
+	else
+		ExceptionT::BadInputValue("ParticleT::Calc_Slip_and_Strain");
+
   /* multi-processor information */
   CommManagerT& comm_manager = ElementSupport().CommManager();
   const ArrayT<int>* proc_map = comm_manager.ProcessorMap();
@@ -1189,7 +1049,8 @@ int ParticleT::Combination(int n,int k)
 
 void ParticleT::Calc_CSP(dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighbors)
 {
-  int non = s_values.MajorDim();
+	const char caller[] = "ParticleT::Calc_CSP";
+
   int num_s_vals = s_values.MinorDim();
   int ndof = NumDOF();
   iArrayT neighbors;
@@ -1200,21 +1061,13 @@ void ParticleT::Calc_CSP(dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighb
    * according to the number of spatial dimensions */
 
   if (NumSD()==1)
-  {
    ncspairs = 2; 
-  }
   else if (NumSD()==2)
-  {
    ncspairs = 3; 
-  }
   else if (NumSD()==3)
-  {
    ncspairs = 6;
-  }
   else
-  {
-   throw eBadInputValue;
-  }
+   ExceptionT::BadInputValue(caller);
 
   /* multi-processor information */
   CommManagerT& comm_manager = ElementSupport().CommManager();
@@ -1265,7 +1118,7 @@ void ParticleT::Calc_CSP(dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighb
 	  ndsum[icombos++] = pow(rvec.Magnitude(),2);
 	} /* end of k loop */
    } /* end of j looop */
-   if (icombos != ncombos) throw eSizeMismatch;
+   if (icombos != ncombos) ExceptionT::SizeMismatch(caller);
    ndsum.SortAscending();
    double csp = 0.0;
    if (ncspairs >= ncombos) ncspairs = ncombos;

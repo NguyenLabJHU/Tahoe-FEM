@@ -1,5 +1,6 @@
-/* $Id: ViscousDragT.cpp,v 1.3 2004-04-17 16:54:30 paklein Exp $ */
+/* $Id: ViscousDragT.cpp,v 1.4 2004-07-15 08:26:14 paklein Exp $ */
 #include "ViscousDragT.h"
+
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "ModelManagerT.h"
@@ -9,16 +10,19 @@
 using namespace Tahoe;
 
 /* constructor */
-ViscousDragT::ViscousDragT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field),
-	fViscosity(0)
+ViscousDragT::ViscousDragT(const ElementSupportT& support):
+	ElementBaseT(support),
+	fViscosity(0.0)
 {
-
+	SetName("viscous_drag");
+ExceptionT::GeneralFail("ViscousDragT::ViscousDragT", "out of date");
 }
 
+#if 0
 /* class initialization */
 void ViscousDragT::Initialize(void)
 {
+#pragma message("delete me")
 	/* inherited */
 	ElementBaseT::Initialize();
 
@@ -28,7 +32,7 @@ void ViscousDragT::Initialize(void)
 	   >> fID;
 	   
 	/* model manager */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	const iArray2DT& connects = model.ElementGroup(fID);
 	iArrayT nodes_used;
 	nodes_used.Union(connects);
@@ -81,6 +85,7 @@ void ViscousDragT::Initialize(void)
 	if (ElementSupport().PrintInput())
 		out << fNodesUsed.wrap(5) << '\n';
 }
+#endif
 
 /* collecting element group equation numbers */
 void ViscousDragT::Equations(AutoArrayT<const iArray2DT*>& eq_1, AutoArrayT<const RaggedArray2DT<int>*>& eq_2)

@@ -1,4 +1,4 @@
-/* $Id: VIB3D.h,v 1.6 2003-01-29 07:34:54 paklein Exp $ */
+/* $Id: VIB3D.h,v 1.7 2004-07-15 08:27:51 paklein Exp $ */
 /* created: paklein (04/20/1997) */
 #ifndef _VIB_3D_H_
 #define _VIB_3D_H_
@@ -19,18 +19,30 @@ class VIB3D: public NL_E_MatT, public VIB_E_MatT
 public:
 
 	/* constructor */
-	VIB3D(ifstreamT& in, const FSMatSupportT& support);
+	VIB3D(void);
 
 	/* destructor */
 	~VIB3D(void);
 	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;	
-
 	/* set angle offset - for testing onset of amorphous behavior
 	 * Angles given in degrees */
 	void SetAngles(double phi, double theta);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

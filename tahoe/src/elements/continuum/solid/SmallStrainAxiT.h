@@ -1,4 +1,4 @@
-/* $Id: SmallStrainAxiT.h,v 1.1 2004-01-31 07:20:48 paklein Exp $ */
+/* $Id: SmallStrainAxiT.h,v 1.2 2004-07-15 08:26:27 paklein Exp $ */
 #ifndef _SMALL_STRAIN_AXI_T_H_
 #define _SMALL_STRAIN_AXI_T_H_
 
@@ -13,17 +13,22 @@ class SmallStrainAxiT: public SmallStrainT
   public:
       
 	/** constructor */
-	SmallStrainAxiT(const ElementSupportT& support, const FieldT& field);
 	SmallStrainAxiT(const ElementSupportT& support);
-
-	/** initialization. called immediately after constructor */
-	virtual void Initialize(void);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+	/** extract the list of material parameters */
+	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
 
   protected:
 
@@ -35,13 +40,6 @@ class SmallStrainAxiT: public SmallStrainT
 	 * \param p an existing MaterialSupportT to be initialized. If NULL, allocate
 	 *        a new MaterialSupportT and initialize it. */
 	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
-
-//TEMP - not needed with ParameterListT input
-	/** return a pointer to a new material list. Recipient is responsible for freeing 
-	 * the pointer. 
-	 * \param nsd number of spatial dimensions
-	 * \param size length of the list */
-	virtual MaterialListT* NewMaterialList(int nsd, int size);
 
 	/** initialize local field arrays. Allocate B-bar workspace if needed. */
 	virtual void SetLocalArrays(void);

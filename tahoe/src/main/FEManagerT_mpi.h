@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.20 2004-06-26 18:38:08 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.21 2004-07-15 08:31:03 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #ifndef _FE_MANAGER_MPI_H_
 #define _FE_MANAGER_MPI_H_
@@ -26,7 +26,7 @@ public:
 	                  kRun = 1};
 
 	/* constructor - partition can be NULL for decomposition */
-	FEManagerT_mpi(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
+	FEManagerT_mpi(const StringT& input, ofstreamT& output, CommunicatorT& comm,
 		const ArrayT<StringT>& argv, PartitionT* partition, TaskT task);
 
 	/* destructor */
@@ -46,7 +46,7 @@ public:
 	 * \param ID output set ID for the given data
 	 * \param n_values nodal output values
 	 * \param e_values element output values */
-	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
+	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
 
 	/* (temporarily) direct output away from main out */
 	virtual void DivertOutput(const StringT& outfile);
@@ -64,6 +64,12 @@ public:
 	/* debugging */
 	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/** \name solution steps 
@@ -74,12 +80,6 @@ protected:
 
 	/** execute the solution procedure */
 	virtual ExceptionT::CodeT SolveStep(void);
-	/*@}*/
-
-	/** \name initialization functions */
-	/*@{*/
-	virtual void ReadParameters(InitCodeT init);
-	virtual void SetElementGroups(void);  	
 	/*@}*/
 
 	/* (re-)set system to initial conditions */

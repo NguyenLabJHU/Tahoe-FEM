@@ -1,12 +1,10 @@
-/* $Id: PCGSolver_LS.cpp,v 1.20 2004-06-17 07:42:05 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.21 2004-07-15 08:31:50 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
 #include <iostream.h>
 #include <math.h>
 
-#include "ifstreamT.h"
-#include "ofstreamT.h"
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 
@@ -16,76 +14,17 @@
 using namespace Tahoe;
 
 /* constructor */
-PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager):
-	NLSolver(fe_manager),
-	fRestart_count(-1)
-{
-	SetName("PCG_solver");
-
-	/* set console */
-	iAddVariable("search_iterations", fSearchIterations);
-	iAddVariable("line_search_tolerance", fOrthogTolerance);
-	iAddVariable("max_step_size", fMaxStepSize);
-	iAddVariable("restart_count", fRestart);
-}
-
 PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	NLSolver(fe_manager, group),
 	fRestart_count(-1)
-//	,fPreconditioner(0) //TEMP
 {
 	SetName("PCG_solver");
-
-	/* check */
-	if (fMatrixType != kDiagonalMatrix)
-	{
-		cout << "\n PCGSolver_LS::PCGSolver_LS: expecting matrix type: "
-		     << kDiagonalMatrix << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-	
-	/* set assembly mode */
-	DiagonalMatrixT* pdiag = TB_DYNAMIC_CAST(DiagonalMatrixT*, fLHS);
-	if (!pdiag)
-	{
-		cout << "\n PCGSolver_LS::PCGSolver_LS: unable to cast LHS matrix to\n"
-		     <<   "     DiagonalMatrixT" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-	pdiag->SetAssemblyMode(DiagonalMatrixT::kDiagOnly);
-
-	ifstreamT& in = fFEManager.Input();
-	/* read parameters */
-	in >> fRestart;
-	in >> fSearchIterations;
-	in >> fOrthogTolerance;
-	in >> fMaxStepSize;
-
-	/* mininum search iterations > 0 */
-	fSearchIterations = (fSearchIterations != 0 &&
-	                     fSearchIterations < 3) ? 3 : fSearchIterations;
-
-	/* print parameters */
-	ostream& out = fFEManager.Output();
-	out << " CG restart count. . . . . . . . . . . . . . . . = " << fRestart          << '\n';
-	out << " Maximum number of line search iterations. . . . = " << fSearchIterations << '\n';
-	out << " Line search orthoginality tolerance . . . . . . = " << fOrthogTolerance  << '\n';
-	out << " Maximum update step size. . . . . . . . . . . . = " << fMaxStepSize      << endl;
-	
-	/* checks */
-	if (fRestart < 1)           throw ExceptionT::kBadInputValue;
-	if (fSearchIterations < 0)  throw ExceptionT::kBadInputValue;
-	if (fOrthogTolerance > 1.0) throw ExceptionT::kBadInputValue;
-	if (fMaxStepSize      < 0)  throw ExceptionT::kBadInputValue;
-	
-	/* allocate space for history */
-	fSearchData.Dimension(fSearchIterations, 2);
 
 	/* set console */
 	iAddVariable("search_iterations", fSearchIterations);
 	iAddVariable("line_search_tolerance", fOrthogTolerance);
 	iAddVariable("max_step_size", fMaxStepSize);
-	iAddVariable("restart_count", fRestart);
+	iAddVariable("restart_count", fRestart);	
 }
 
 /* (re-)configure the global equation system */
@@ -126,6 +65,22 @@ void PCGSolver_LS::DefineParameters(ParameterListT& list) const
 	ParameterT max_step(ParameterT::Double, "max_step");
 	max_step.SetDefault(2.5);
 	list.AddParameter(max_step);
+}
+
+/* accept parameter list */
+void PCGSolver_LS::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	NLSolver::TakeParameterList(list);
+
+	/* extract parameters */
+	fRestart = list.GetParameter("restart");
+	fSearchIterations = list.GetParameter("line_search_iterations");
+	fOrthogTolerance = list.GetParameter("line_search_tolerance");
+	fMaxStepSize = list.GetParameter("max_step");
+
+	/* allocate space for history */
+	fSearchData.Dimension(fSearchIterations, 2);
 }
 
 /*************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: TorsionKBCT.h,v 1.3 2003-08-18 03:45:17 paklein Exp $ */
+/* $Id: TorsionKBCT.h,v 1.4 2004-07-15 08:31:21 paklein Exp $ */
 #ifndef _TORSION_KBC_T_H_
 #define _TORSION_KBC_T_H_
 
@@ -18,16 +18,10 @@ class TorsionKBCT: public KBC_ControllerT
 public:
 
 	/** constructor */
-	TorsionKBCT(NodeManagerT& node_manager, const double& time);
-
-	/** read parameters from stream */
-	virtual void Initialize(ifstreamT& in);
+	TorsionKBCT(const BasicSupportT& support);
 
 	/** set initial conditions */
 	void InitialCondition(void);
-
-	/** write parameters to output stream */
-	virtual void WriteParameters(ostream& out) const;
 
 	/** compute updated prescibed displacements */
 	virtual void InitStep(void);
@@ -36,12 +30,20 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
 
 	/** time increment */
-	const double& fTime;
 	double fStartTime;
 
 	/** rotation rate (rad/s) */

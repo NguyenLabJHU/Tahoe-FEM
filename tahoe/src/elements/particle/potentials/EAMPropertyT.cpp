@@ -1,7 +1,10 @@
-/* $Id: EAMPropertyT.cpp,v 1.1 2003-04-05 08:34:41 paklein Exp $ */
+/* $Id: EAMPropertyT.cpp,v 1.2 2004-07-15 08:29:49 paklein Exp $ */
 #include "EAMPropertyT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-EAMPropertyT::EAMPropertyT(void) {}
+EAMPropertyT::EAMPropertyT(void)
+{
+	SetName("EAM_property");
+}

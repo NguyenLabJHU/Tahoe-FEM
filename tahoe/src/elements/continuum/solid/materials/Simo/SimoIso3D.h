@@ -1,11 +1,10 @@
-/* $Id: SimoIso3D.h,v 1.9 2003-01-29 07:34:48 paklein Exp $ */
+/* $Id: SimoIso3D.h,v 1.10 2004-07-15 08:27:35 paklein Exp $ */
 /* created: paklein (03/02/1997) */
 #ifndef _SIMO_ISO_3D_H_
 #define _SIMO_ISO_3D_H_
 
 /* base classes */
-#include "FSSolidMatT.h"
-#include "IsotropicT.h"
+#include "FSIsotropicMatT.h"
 
 namespace Tahoe {
 
@@ -13,17 +12,13 @@ namespace Tahoe {
  * stored energy function.
  * \note This material is inherently 3D
  */
-class SimoIso3D: public FSSolidMatT, public IsotropicT
+class SimoIso3D: public FSIsotropicMatT
 {
 public:
 
 	/* constructor */
-	SimoIso3D(ifstreamT& in, const FSMatSupportT& support);
+	SimoIso3D(void);
 	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-
 	/** \name spatial description */
 	/*@{*/
 	/** spatial tangent modulus */
@@ -46,6 +41,12 @@ public:
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 	
 protected:
 	

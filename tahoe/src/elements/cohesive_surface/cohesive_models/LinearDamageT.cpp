@@ -1,12 +1,10 @@
-/* $Id: LinearDamageT.cpp,v 1.17 2004-06-17 07:13:28 paklein Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.18 2004-07-15 08:26:02 paklein Exp $ */
 /* created: paklein (08/21/2000) */
 #include "LinearDamageT.h"
 
 #include <iostream.h>
 #include <math.h>
-
 #include "ExceptionT.h"
-#include "ifstreamT.h"
 
 using namespace Tahoe;
 
@@ -20,6 +18,8 @@ LinearDamageT::LinearDamageT(ifstreamT& in, const dArrayT& init_traction):
 	SurfacePotentialT(init_traction.Length()),
 	fInitTraction(init_traction)
 {
+ExceptionT::GeneralFail("LinearDamageT::LinearDamageT", "out of date");
+#if 0
 	/* traction potential parameters */
 	in >> fd_c_n; if (fd_c_n < 0.0) throw ExceptionT::kBadInputValue;
 	in >> fd_c_t; if (fd_c_t < 0.0) throw ExceptionT::kBadInputValue;
@@ -30,6 +30,7 @@ LinearDamageT::LinearDamageT(ifstreamT& in, const dArrayT& init_traction):
 	/* penetration stiffness */
 	fK = 0.0;
 //TEMP: decide on penalty stiffness
+#endif
 }
 
 /* return the number of state variables */
@@ -214,21 +215,4 @@ SurfacePotentialT::StatusT LinearDamageT::Status(const dArrayT& jump_u,
 		return Critical;
 	else
 		return Precritical;
-}
-
-void LinearDamageT::PrintName(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << "    Linear Damage\n";
-#endif
-}
-
-/* print parameters to the output stream */
-void LinearDamageT::Print(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
-	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';
-	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';
-#endif
 }

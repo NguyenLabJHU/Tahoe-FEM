@@ -1,4 +1,4 @@
-/* $Id: CrystalElast.cpp,v 1.9 2003-01-29 07:34:56 paklein Exp $ */
+/* $Id: CrystalElast.cpp,v 1.10 2004-07-15 08:28:16 paklein Exp $ */
 #include "CrystalElast.h"
 #include "CrystalElastMat.h"
 #include "CrystalElastLat.h"
@@ -19,13 +19,16 @@ const int kIsInit = 1;
 const int kNSD = 3;
 
 CrystalElast::CrystalElast(ifstreamT& in, const FSMatSupportT& support) :
-  FDHookeanMatT(in, support),
+	ParameterInterfaceT("crystial_elasticity"),
+//	FDHookeanMatT(in, support),
   // pointers to supporting classes
   	fCrystalElastLat (NULL),
   	fCrystalElastMat (NULL),
   // material properties
         fMatProp      (kNumMatProp)
 {
+ExceptionT::GeneralFail("CrystalElast::CrystalElast", "out of date");
+#if 0
   // input file
   StringT filename;
   in >> filename;
@@ -48,6 +51,7 @@ CrystalElast::CrystalElast(ifstreamT& in, const FSMatSupportT& support) :
 
   // set crystal elasticity type
   SetCrystalElasticity();
+#endif
 }
 
 CrystalElast::~CrystalElast()
@@ -65,32 +69,18 @@ void CrystalElast::Initialize()
   InitializeCrystalVariables();
 }
 
-void CrystalElast::Print(ostream& out) const
-{
-  // inherited
-  FDHookeanMatT::Print(out);
-
   // print input values
+#if 0
   out << " FDcrystal data:\n";
   out << "    Number of grains   . . . . . . . . . . . . . = " << fNumGrain    << "\n";
   out << "    Lattice Orientation code . . . . . . . . . . = " << fODFCode << "\n";
   out << "    Initial Temperature   .  . . . . . . . . . . = " << fInit_Temp_DegC << "\n";
-  fCrystalElastMat->Print(out);
-}
+#endif
 
 /* set (material) tangent modulus */
 void CrystalElast::SetModulus(dMatrixT& modulus)
 {
 #pragma unused(modulus)
-}
-
-void CrystalElast::PrintName(ostream& out) const
-{
-  // inherited
-  FDHookeanMatT::PrintName(out);
-
-  // print model name
-  out << "    CrystalElast constitutive model\n";
 }
 
 void CrystalElast::AllocateElements()

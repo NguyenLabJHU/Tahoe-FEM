@@ -1,6 +1,5 @@
-/* $Id: IOManager.h,v 1.18 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: IOManager.h,v 1.19 2004-07-15 08:31:03 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
-
 #ifndef _IOMANAGER_H_
 #define _IOMANAGER_H_
 
@@ -40,17 +39,20 @@ public:
 	};
 
 	/** constructor */
-	IOManager(ostream& outfile, const StringT& program_name, const StringT& version,
+	IOManager(ostream& log, const StringT& program_name, const StringT& version,
 		const StringT& title, const StringT& input_file, IOBaseT::FileTypeT output_format);
-
-	/** construct using the parameters from an existing io_man. This is not a copy
-	 * constructor. Only parameters passed to the multiple-argument constructor are
-	 * taken from the source to construct the output formatter. The output sets
-	 * themselves are not copied. */
-	IOManager(ifstreamT& in, const IOManager& io_man);
 
 	/** destructor */
 	virtual ~IOManager(void);
+
+	/** the output formatter */
+	const OutputBaseT& Output(void) const { return *fOutput; };
+
+	/** the output format */
+	IOBaseT::FileTypeT OutputFormat(void) const { return fOutputFormat; };
+	
+	/** log stream */
+	ostream& Log(void) const { return fLog; };
 
 	/** how to override changing geometry flags in registered output sets */
 	void SetChangingFlag(ChangingFlagT changing_flag);

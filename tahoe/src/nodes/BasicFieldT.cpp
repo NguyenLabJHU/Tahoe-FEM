@@ -1,4 +1,4 @@
-/* $Id: BasicFieldT.cpp,v 1.7 2003-08-14 05:34:21 paklein Exp $ */
+/* $Id: BasicFieldT.cpp,v 1.8 2004-07-15 08:31:09 paklein Exp $ */
 #include "BasicFieldT.h"
 #include "iArrayT.h"
 
@@ -15,7 +15,7 @@ BasicFieldT::BasicFieldT(void):
 /* initialize field */
 void BasicFieldT::Initialize(const StringT& name, int ndof, int order)
 {
-	fName = name;
+	fFieldName = name;
 	fField.Dimension(order+1);
 	fEqnos.Dimension(0, ndof),
 	fdArray2DGroup.SetMinorDimension(ndof);
@@ -63,7 +63,7 @@ void BasicFieldT::WriteEquationNumbers(ostream& out, const ArrayT<int>* node_map
 	int columns = 1;
 	
 	/* print header */
-	out << "\n Field: \"" << fName << "\"\n\n";
+	out << "\n Field: \"" << fFieldName << "\"\n\n";
 	for (int k = 0; k < columns; k++)
 	{
 		out << setw(kIntWidth) << "node";

@@ -1,17 +1,14 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.22 2004-06-28 22:41:51 hspark Exp $ */
-
+/* $Id: FEManagerT_bridging.cpp,v 1.23 2004-07-15 08:31:03 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
+#include "ifstreamT.h"
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
 #include "KBC_PrescribedT.h"
 #include "KBC_CardT.h"
-#include "ofstreamT.h"
-#include "ifstreamT.h"
 #include "NLSolver.h"
 #include "CommManagerT.h"
-
 #include "BridgingScaleT.h"
 #include "ParticleT.h"
 #include "ParticlePairT.h"
@@ -49,7 +46,7 @@ const char p_x = 'c'; /* unknown: 0 < bond density < 1 */
 using namespace Tahoe;
 
 /* constructor */
-FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
+FEManagerT_bridging::FEManagerT_bridging(const StringT& input, ofstreamT& output, CommunicatorT& comm,
 	const ArrayT<StringT>& argv, ifstreamT& bridging_input):
 	FEManagerT(input, output, comm, argv),
 	fBridgingIn(bridging_input),
@@ -207,8 +204,8 @@ void FEManagerT_bridging::InitGhostNodes(bool include_image_nodes)
 	if (!fSolutionDriver) {
 	
 		/* construct new contoller */
-		fSolutionDriver = new KBC_PrescribedT(*fNodeManager);
-	
+		fSolutionDriver = fNodeManager->NewKBC_Controller(*the_field, KBC_ControllerT::kPrescribed);
+
 		/* add to field */
 		the_field->AddKBCController(fSolutionDriver);
 	}
@@ -220,7 +217,7 @@ void FEManagerT_bridging::InitGhostNodes(bool include_image_nodes)
 	int dex = 0;
 	for (int j = 0; j < ndof; j++)
 		for (int i = 0; i < fGhostNodes.Length(); i++)
-			KBC_cards[dex++].SetValues(fGhostNodes[i], j, KBC_CardT::kDsp, 0, 0.0);
+			KBC_cards[dex++].SetValues(fGhostNodes[i], j, KBC_CardT::kDsp, NULL, 0.0);
 
 	/* search through element groups for particles */
 	bool found = false;
@@ -315,8 +312,8 @@ void FEManagerT_bridging::SetGhostNodeKBC(KBC_CardT::CodeT code, const dArray2DT
 		/* retrieve values set during InitGhostNodes */
 		KBC_CardT& card = KBC_cards[i];
 		int node = card.Node();
-		int dof  = card.DOF();
-		int schd = card.ScheduleNum();
+		int dof = card.DOF();
+		const ScheduleT* schd = card.Schedule();
 	
 		/* reset code and value */
 		card.SetValues(node, dof, code, schd, values[i]);
@@ -619,10 +616,10 @@ void FEManagerT_bridging::InitProjection(CommManagerT& comm, const iArrayT& node
 
 	/* create controller to driver solution */
 	if (!fSolutionDriver) {
-	
+
 		/* construct new contoller */
-		fSolutionDriver = new KBC_PrescribedT(*fNodeManager);
-	
+		fSolutionDriver = fNodeManager->NewKBC_Controller(*the_field, KBC_ControllerT::kPrescribed);
+
 		/* add to field */
 		the_field->AddKBCController(fSolutionDriver);
 	}
@@ -639,7 +636,7 @@ void FEManagerT_bridging::InitProjection(CommManagerT& comm, const iArrayT& node
 		int dex = 0;
 		for (int j = 0; j < ndof; j++)
 			for (int i = 0; i < fProjectedNodes.Length(); i++)
-				KBC_cards[dex++].SetValues(fProjectedNodes[i], j, KBC_CardT::kDsp, 0, 0.0);
+				KBC_cards[dex++].SetValues(fProjectedNodes[i], j, KBC_CardT::kDsp, NULL, 0.0);
 	}
 
 	/* dimension work space */

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.15 2004-06-26 18:39:57 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.16 2004-07-15 08:29:59 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #include "MeshFreeShapeFunctionT.h"
 
@@ -13,7 +13,7 @@ using namespace Tahoe;
 MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 	const LocalArrayT& coords, const dArray2DT& all_coords,
 	const iArray2DT& connects, const iArrayT& nongridnodes,
-	const int& currelement, ifstreamT& in):
+	const int& currelement, const ParameterListT& mf_support_params):
 	ShapeFunctionT(geometry_code, numIP, coords),
 	fMFSupport(NULL),
 	fCurrElement(currelement),
@@ -22,13 +22,12 @@ MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, i
 {
 	/* construct MLS support */
 	if (all_coords.MinorDim() == 2)
-		fMFSupport = new MeshFreeSupport2DT(fDomain, all_coords, connects,
-							nongridnodes, in);
+		fMFSupport = new MeshFreeSupport2DT(fDomain, all_coords, connects, nongridnodes);
 	else
-		fMFSupport = new MeshFreeSupport3DT(fDomain, all_coords, connects,
-							nongridnodes, in);
+		fMFSupport = new MeshFreeSupport3DT(fDomain, all_coords, connects, nongridnodes);
 
-	if (!fMFSupport) throw ExceptionT::kOutOfMemory;
+	/* initialize */
+	fMFSupport->TakeParameterList(mf_support_params);
 
 	/* set as field shape function */
 	SetUShapeFunctions(fNaU, fDNaU);
@@ -522,8 +521,7 @@ void MeshFreeShapeFunctionT::BlendElementData(void)
 	int nnd = fNeighbors.Length();
 	
 	fR  = 0.0;
-	fDR = 0;			
-
+	fDR = 0.0;
 	int* pelem_flags = fElemFlags(fElemHasExactNode[fCurrElement]);
 	for (int ii = 0; ii < nip; ii++)
 	{

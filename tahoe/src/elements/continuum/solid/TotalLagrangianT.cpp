@@ -1,8 +1,7 @@
-/* $Id: TotalLagrangianT.cpp,v 1.13 2004-06-28 22:41:14 hspark Exp $ */
+/* $Id: TotalLagrangianT.cpp,v 1.14 2004-07-15 08:26:27 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "TotalLagrangianT.h"
 
-#include "ifstreamT.h"
 #include "toolboxConstants.h"
 #include "SolidMaterialT.h"
 #include "MaterialListT.h"
@@ -11,30 +10,31 @@
 using namespace Tahoe;
 
 /* constructor */
-TotalLagrangianT::TotalLagrangianT(const ElementSupportT& support, const FieldT& field):
-	FiniteStrainT(support, field),
-	fStressMat(NumSD()),
-	fTempMat1(NumSD()),
-	fTempMat2(NumSD())
+TotalLagrangianT::TotalLagrangianT(const ElementSupportT& support):
+	FiniteStrainT(support)
 {
-
+	SetName("total_lagrangian");
 }
 
-/* data initialization */
-void TotalLagrangianT::Initialize(void)
+/* accept parameter list */
+void TotalLagrangianT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	FiniteStrainT::Initialize();
+	FiniteStrainT::TakeParameterList(list);
+	
+	/* dimension workspace */
+	fStressMat.Dimension(NumSD());
+	fTempMat1.Dimension(NumSD());
+	fTempMat2.Dimension(NumSD());
 
-	/* dimension */
 	fGradNa.Dimension(NumSD(), NumElementNodes());
 	fStressStiff.Dimension(NumElementNodes());
 	fTemp2.Dimension(NumElementNodes()*NumDOF());
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* form the element stiffness matrix */
 void TotalLagrangianT::FormStiffness(double constK)

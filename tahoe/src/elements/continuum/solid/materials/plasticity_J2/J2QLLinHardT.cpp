@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.13 2003-11-21 22:46:48 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.14 2004-07-15 08:28:54 paklein Exp $ */
 /* created: paklein (10/26/2000) */
 #include "J2QLLinHardT.h"
 
@@ -54,26 +54,10 @@ static const char* Labels[kNumOutput] = {
 	    "s_min"}; // min principal stress
 
 /* constructor */
-J2QLLinHardT::J2QLLinHardT(ifstreamT& in, const FSMatSupportT& support):
-	QuadLog3D(in, support),
-	J2PrimitiveT(in),
-	fb_elastic(kNSD),
-	fEPModuli(kNSD),
-
-	/* work space */
-	fa_inverse(kNSD),
-	fMatrixTemp1(kNSD),
-	fMatrixTemp2(kNSD),
-	fMatrixTemp3(kNSD),
-	fdev_beta(kNSD),
-	
-	/* deformation gradient stuff */
-	fFtot(kNSD),
-	ffrel(kNSD),
-	fF_temp(kNSD)
+J2QLLinHardT::J2QLLinHardT(void):
+	ParameterInterfaceT("quad_log_J2")
 {
-	/* for intermediate config update */
-	fa_inverse.Inverse(fEigMod);
+
 }
 
 /* update internal variables */
@@ -128,14 +112,6 @@ void J2QLLinHardT::ResetHistory(void)
 	for (int i = 0; i < Flags.Length(); i++)
 		if (Flags[i] == kIsElastic || Flags[i] == kIsPlastic)
 			Flags[i] = kReset;
-}
-
-/* print parameters */
-void J2QLLinHardT::Print(ostream& out) const
-{
-	/* inherited */
-	QuadLog3D::Print(out);
-	J2PrimitiveT::Print(out);
 }
 
 /* modulus */
@@ -288,9 +264,40 @@ void J2QLLinHardT::ComputeOutput(dArrayT& output)
 		output[0] = 0.0;
 }
 
+/* describe the parameters needed by the interface */
+void J2QLLinHardT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	QuadLog3D::DefineParameters(list);
+	J2PrimitiveT::DefineParameters(list);
+}
+
+/* accept parameter list */
+void J2QLLinHardT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	QuadLog3D::TakeParameterList(list);
+	J2PrimitiveT::TakeParameterList(list);
+
+	/* set up work space */
+	fb_elastic.Dimension(kNSD);
+	fEPModuli.Dimension(kNSD);
+	fa_inverse.Dimension(kNSD);
+	fMatrixTemp1.Dimension(kNSD);
+	fMatrixTemp2.Dimension(kNSD);
+	fMatrixTemp3.Dimension(kNSD);
+	fdev_beta.Dimension(kNSD);
+	fFtot.Dimension(kNSD);
+	ffrel.Dimension(kNSD);
+	fF_temp.Dimension(kNSD);
+
+	/* for intermediate config update */
+	fa_inverse.Inverse(fEigMod);	
+}
+
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* returns the elastic stretch */
 const dSymMatrixT& J2QLLinHardT::TrialStretch(const dMatrixT& F_total,
@@ -385,9 +392,11 @@ void J2QLLinHardT::ReturnMapping(const dSymMatrixT& b_tr, dArrayT& beta, int ip)
 				/* compute update yield condition */
 				double f = YieldCondition(beta_test, alpha);
 				double t = beta_test.Magnitude()/sqrt23;
+#if 0
 				cout << "\n J2QLLinHardT::ReturnMapping: check\n"
 				     <<   "          f = " << f << '\n'
 				     <<   " ||dev[t]|| = " << t << endl;
+#endif
 			}
 		}
 		else
@@ -466,8 +475,8 @@ void J2QLLinHardT::AllocateElement(ElementCardT& element)
 }
 
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
 /* compute F_total and f_relative */
 void J2QLLinHardT::ComputeGradients(void)

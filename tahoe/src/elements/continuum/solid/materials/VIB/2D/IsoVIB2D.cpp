@@ -1,9 +1,8 @@
-/* $Id: IsoVIB2D.cpp,v 1.9 2003-11-21 22:46:35 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.10 2004-07-15 08:27:45 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVIB2D.h"
 
 #include <math.h>
-#include <iostream.h>
 #include "toolboxConstants.h"
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
@@ -15,38 +14,17 @@
 using namespace Tahoe;
 
 /* constructors */
-IsoVIB2D::IsoVIB2D(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support),
-	Material2DT(in, kPlaneStress),
-	VIB(in, 2, 2, 3),
+IsoVIB2D::IsoVIB2D(void):
+	ParameterInterfaceT("isotropic_VIB_2D"),
+	VIB(2, 2, 3),
 	fCircle(NULL),
-	fEigs(2),
-	fEigmods(2),
-	fSpectral(2),
-	fb(2),
-	fModulus(dSymMatrixT::NumValues(2)),
-	fStress(2)
+	fSpectral(2)
 {
-	/* point generator */
-	fCircle = new EvenSpacePtsT(in);
 
-	/* set tables */
-	Construct();
 }
 
 /* destructor */
 IsoVIB2D::~IsoVIB2D(void) { delete fCircle; }
-
-/* print parameters */
-void IsoVIB2D::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-	Material2DT::Print(out);
-	VIB::Print(out);
-
-	fCircle->Print(out);
-}
 
 /* modulus */
 const dMatrixT& IsoVIB2D::c_ijkl(void)
@@ -105,7 +83,7 @@ const dMatrixT& IsoVIB2D::c_ijkl(void)
 	}
 
 	/* (material) -> (spatial) (with thickness) */
-	double J = sqrt(fEigs[0]*fEigs[1])/fThickness;
+	double J = sqrt(fEigs[0]*fEigs[1]);
 
 	if (fabs(fEigs[0]-fEigs[1]) < kSmall)
 	{
@@ -181,7 +159,7 @@ const dSymMatrixT& IsoVIB2D::s_ij(void)
 	}
 
 	/* PK2 -> Cauchy (with thickness) */
-	double J = sqrt(fEigs[0]*fEigs[1])/fThickness;
+	double J = sqrt(fEigs[0]*fEigs[1]);
 	fEigs[0] *= (s1/J);
 	fEigs[1] *= (s2/J);
 
@@ -299,25 +277,66 @@ double IsoVIB2D::StrainEnergyDensity(void)
 	for (int i = 0; i < fLengths.Length(); i++)
 		energy += (*pU++)*(*pj++);
 	
-	return energy*fThickness;
+	return energy;
+}
+
+/* describe the parameters needed by the interface */
+void IsoVIB2D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	FSSolidMatT::DefineParameters(list);
+	VIB::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStress);
+
+	/* integration points */
+	ParameterT points(ParameterT::Integer, "n_points");
+	points.AddLimit(1, LimitT::LowerInclusive);
+	list.AddParameter(points);
+}
+
+/* information about subordinate parameter lists */
+void IsoVIB2D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	FSSolidMatT::DefineSubs(sub_list);
+	VIB::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* IsoVIB2D::NewSub(const StringT& name) const
+{
+	/* inherited */
+	ParameterInterfaceT* sub = FSSolidMatT::NewSub(name);
+	if (sub) return sub;
+	else return VIB::NewSub(name);
+}
+
+/* accept parameter list */
+void IsoVIB2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FSSolidMatT::TakeParameterList(list);
+	VIB::TakeParameterList(list);
+
+	/* dimension work space */
+	fEigs.Dimension(2);
+	fEigmods.Dimension(2);
+	fb.Dimension(2);
+	fModulus.Dimension(dSymMatrixT::NumValues(2));
+	fStress.Dimension(2);
+
+	/* point generator */
+	int points = list.GetParameter("n_points");
+	fCircle = new EvenSpacePtsT(points);
+	Construct();
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print name */
-void IsoVIB2D::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-	VIB::PrintName(out);
-
-	out << "    Isotropic/Principal Stretch Formulation\n";
-
-	/* integration rule */
-	fCircle->PrintName(out);
-}
+ * Protected
+ ***********************************************************************/
 
 /* strained lengths in terms of the Lagrangian stretch eigenvalues */
 void IsoVIB2D::ComputeLengths(const dArrayT& eigs)
@@ -346,7 +365,7 @@ void IsoVIB2D::Construct(void)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Dimension(numpoints);
+	VIB::Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fCircle->Jacobians();

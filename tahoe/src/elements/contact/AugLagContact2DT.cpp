@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.17 2004-06-17 07:13:38 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.18 2004-07-15 08:26:08 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 #include "AugLagContact2DT.h"
 
@@ -17,37 +17,11 @@ using namespace Tahoe;
 const int kNumAugLagDOF  = 1;
 
 /* constructor */
-AugLagContact2DT::AugLagContact2DT(const ElementSupportT& support, const FieldT& field):
-	Contact2DT(support, field)
+AugLagContact2DT::AugLagContact2DT(const ElementSupportT& support):
+	Contact2DT(support),
+	fr(0.0)
 {
-	/* regularization parameter */
-	ElementSupport().Input() >> fr;
-	if (fr < 0.0) throw ExceptionT::kBadInputValue;
-}
-
-/* allocates space and reads connectivity data */
-void AugLagContact2DT::Initialize(void)
-{
-	/* inherited */
-	Contact2DT::Initialize();
-
-	/* reset base class parameters */
-	int neq = NumElementNodes()*NumDOF() + 1; // 1 additional dof
-
-	/* re-size element results */
-	fLHS.Dimension(neq); // or make new variables?
-	fRHS.Dimension(neq);
-
-	/* dynamic work space managers for element arrays */
-	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, NumElementNodes() + 1);		
-	fXDOFEqnos_man.SetWard(0, fXDOFEqnos, neq);
-
-	/* only 1 tag set for the group */
-	iArrayT numDOF(1);
-	numDOF = kNumAugLagDOF;
-
-	/* register with node manager - sets initial fContactDOFtags */
-	ElementSupport().XDOF_Manager().XDOF_Register(this, numDOF);
+	SetName("contact_2D_multiplier");
 }
 
 /* append element equations numbers to the list */
@@ -217,9 +191,50 @@ void AugLagContact2DT::WriteRestart(ostream& out) const
 //TEMP - restarts have not been tested. these functions
 //       throw ExceptionT::xceptions
 
+/* describe the parameters needed by the interface */
+void AugLagContact2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	Contact2DT::DefineParameters(list);
+
+	/* regularization */
+	ParameterT regularization(ParameterT::Double, "regularization");
+	regularization.SetDefault(1.0);
+	regularization.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(regularization);
+}
+
+/* accept parameter list */
+void AugLagContact2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	Contact2DT::TakeParameterList(list);
+
+	/* regularization */
+	fr = list.GetParameter("regularization");
+
+	/* reset base class parameters */
+	int neq = NumElementNodes()*NumDOF() + 1; // 1 additional dof
+
+	/* re-size element results */
+	fLHS.Dimension(neq); // or make new variables?
+	fRHS.Dimension(neq);
+
+	/* dynamic work space managers for element arrays */
+	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, NumElementNodes() + 1);		
+	fXDOFEqnos_man.SetWard(0, fXDOFEqnos, neq);
+
+	/* only 1 tag set for the group */
+	iArrayT numDOF(1);
+	numDOF = kNumAugLagDOF;
+
+	/* register with node manager - sets initial fContactDOFtags */
+	ElementSupport().XDOF_Manager().XDOF_Register(this, numDOF);
+}
+
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* step in setting contact configuration. */
 bool AugLagContact2DT::SetActiveInteractions(void)
@@ -229,16 +244,6 @@ bool AugLagContact2DT::SetActiveInteractions(void)
 
 	/* inherited */
 	return Contact2DT::SetActiveInteractions();
-}
-
-/* print element group data */
-void AugLagContact2DT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	Contact2DT::PrintControlData(out);
-
-	/* regularization */
-	out << " Regularization parameter. . . . . . . . . . . . = " << fr << '\n';	
 }
 
 /* called by FormRHS and FormLHS */

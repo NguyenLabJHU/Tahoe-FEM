@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.47 2004-06-26 18:28:50 paklein Exp $ */
+/* $Id: ElementT.h,v 1.48 2004-07-15 08:25:44 paklein Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -80,11 +80,12 @@ kTotLagSplitIntegration = 117,
            kSimoQ1P0Inv = 136, /**< Q1P0, finite strain, mixed element with inverse dilation */
         kSimoQ1P0InvAxi = 137, /**< axisymmetric Q1P0, finite strain, mixed element with inverse dilation */
             kTotLagFlat = 217  /**< simplified total Lagragian solid */
- };
+	};
 
-/** stream extraction operator */ 
-	friend istream& operator>>(istream& in, ElementT::TypeT& type);
+	/** convert integer to ElementT::TypeT */
+	static TypeT int2TypeT(int i);
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _ELEMENT_T_H_ */

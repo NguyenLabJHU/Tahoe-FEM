@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.9 2003-11-21 22:46:38 paklein Exp $ */
+/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.10 2004-07-15 08:27:51 paklein Exp $ */
 /* created: paklein (10/12/1998) */
 #include "J2IsoVIB3DLinHardT.h"
 
@@ -50,8 +50,9 @@ static const char* Labels[kNumOutput] = {"s_max", "s_min", "VM stress", "alpha"}
 
 /* constructor */
 J2IsoVIB3DLinHardT::J2IsoVIB3DLinHardT(ifstreamT& in, const FSMatSupportT& support):
-	IsoVIB3D(in, support),
-	J2PrimitiveT(in),
+	ParameterInterfaceT("isotropic_VIB_J2_3D"),
+//	IsoVIB3D(in, support),
+//	J2PrimitiveT(in),
 
 //TEMP
 	fEigs(kNSD),
@@ -70,7 +71,7 @@ J2IsoVIB3DLinHardT::J2IsoVIB3DLinHardT(ifstreamT& in, const FSMatSupportT& suppo
 	ffrel(3),
 	fF_temp(3)
 {
-
+ExceptionT::GeneralFail("J2IsoVIB3DLinHardT::J2IsoVIB3DLinHardT", "out of date");
 }
 
 /* update internal variables */
@@ -122,14 +123,6 @@ void J2IsoVIB3DLinHardT::ResetHistory(void)
 	for (int i = 0; i < Flags.Length(); i++)
 		if (Flags[i] == kIsElastic || Flags[i] == kIsPlastic)
 			Flags[i] = kReset;
-}
-
-/* print parameters */
-void J2IsoVIB3DLinHardT::Print(ostream& out) const
-{
-	/* inherited */
-	IsoVIB3D::Print(out);
-	J2PrimitiveT::Print(out);
 }
 
 /* modulus */
@@ -267,17 +260,8 @@ void J2IsoVIB3DLinHardT::ComputeOutput(dArrayT& output)
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print name */
-void J2IsoVIB3DLinHardT::PrintName(ostream& out) const
-{
-	/* inherited */
-	IsoVIB3D::PrintName(out);
-
-	out << "    J2 plasticity, principal stretch return mapping\n";
-}
+ * Protected
+ ***********************************************************************/
 
 /* returns the elastic stretch */
 const dSymMatrixT& J2IsoVIB3DLinHardT::TrialStretch(const dMatrixT& F_total,
@@ -467,9 +451,25 @@ void J2IsoVIB3DLinHardT::AllocateElement(ElementCardT& element)
 	element.DoubleData()  = 0.0;
 }
 
+/* describe the parameters needed by the interface */
+void J2IsoVIB3DLinHardT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	IsoVIB3D::DefineParameters(list);
+	J2PrimitiveT::DefineParameters(list);
+}
+
+/* accept parameter list */
+void J2IsoVIB3DLinHardT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	IsoVIB3D::TakeParameterList(list);
+	J2PrimitiveT::TakeParameterList(list);
+}
+
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
 /* compute F_total and f_relative */
 void J2IsoVIB3DLinHardT::ComputeGradients(void)

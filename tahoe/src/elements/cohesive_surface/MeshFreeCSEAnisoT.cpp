@@ -1,6 +1,5 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.23 2004-06-17 07:13:20 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.24 2004-07-15 08:25:57 paklein Exp $ */
 /* created: paklein (06/08/2000) */
-
 #include "MeshFreeCSEAnisoT.h"
 
 #include <math.h>
@@ -10,7 +9,6 @@
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"
-#include "toolboxConstants.h"
 #include "ElementSupportT.h"
 #include "eIntegratorT.h"
 #include "MeshFreeSurfaceShapeT.h"
@@ -40,7 +38,7 @@ const int kHeadRoom = 0;
 
 /* constructor */
 MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field),
+	ElementBaseT(support),
 	fMFSurfaceShape(NULL),
 	fSurfacePotential(NULL),
 	fLocDisp(LocalArrayT::kDisp),
@@ -60,7 +58,8 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const Field
 	fMatrixManager(kHeadRoom, true)
 {
 	const char caller[] = "MeshFreeCSEAnisoT::MeshFreeCSEAnisoT";
-
+ExceptionT::GeneralFail(caller, "out of date");
+#if 0
 	/* set format of element stiffness matrix */
 	fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
 
@@ -95,6 +94,8 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const Field
 #ifdef __NO_RTTI__
 	ExceptionT::GeneralFail(caller, "requires RTTI");
 #endif
+
+#endif
 }
 
 /* destructor */
@@ -112,149 +113,6 @@ GlobalT::SystemTypeT MeshFreeCSEAnisoT::TangentType(void) const
 {
 	/* tangent matrix is not symmetric */
 	return GlobalT::kNonSymmetric;
-}
-
-/* allocates space and reads connectivity data */
-void MeshFreeCSEAnisoT::Initialize(void)
-{
-	/* override all inherited */
-	ElementBaseT::Initialize();
-
-	/* streams */
-	ifstreamT& in = ElementSupport().Input();
-	ostream&   out = ElementSupport().Output();
-		
-	/* initialize local arrays */
-	fLocDisp.Dimension(0, NumDOF()); // set minor dimension
-	Field().RegisterLocal(fLocDisp);
-	fLocGroup.Register(fLocDisp);
-
-	/* check */
-	if (fMFFractureSupport->NumFacetNodes() < 0)
-	{
-		cout << "\n MeshFreeCSEAnisoT::Initialize: facets not dimensioned: meshfree\n"
-		     <<   "     domain from element group " << fMFElementGroup+1
-		     << " must have at least one cutting\n"
-		     <<   "     facet or sampling surface" << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-
-	/* construct surface shape functions */
-	MeshFreeSupportT& mf_support = fMFFractureSupport->MeshFreeSupport();
-	fMFSurfaceShape = new MeshFreeSurfaceShapeT(fGeometryCode, fNumIntPts,
-		mf_support, fLocDisp, fMFFractureSupport->Facets(),
-		fMFFractureSupport->NumFacetNodes(), true);	
-	if (!fMFSurfaceShape) throw ExceptionT::kOutOfMemory;
-	
-	/* set up initial cutting facets */
-	fMFSurfaceShape->Initialize();
-
-	/* work space */
-	fNEEMatrix.Register(fLHS);
-	fNEEArray.Register(fRHS);
-	fNEEMatrix.Register(fNEEmat);
-	fNEEArray.Register(fNEEvec);
-	fMatrixManager.Register(fnsd_nee_1);
-	fMatrixManager.Register(fnsd_nee_2);
-	for (int k = 0; k < NumSD(); k++)
-		fMatrixManager.Register(fdQ[k]);
-
-	/* output stream */
-	if (fOutputArea == 1)
-	{
-		/* generate file name */
-		StringT name = (ElementSupport().Input()).filename();
-		name.Root();
-		name.Append(".grp", ElementSupport().ElementGroupNumber(this) + 1);
-		name.Append(".fracture");
-		
-		/* initialize file */
-		ofstream out(name);
-	}
-
-	/* construct surface potential */
-	int code;
-	in >> code;
-	switch (code)
-	{
-		case SurfacePotentialT::kXuNeedleman:
-		{			
-			if (NumDOF() == 2)
-				fSurfacePotential = new XuNeedleman2DT(in);
-			else
-				fSurfacePotential = new XuNeedleman3DT(in);
-			break;
-		}
-		case SurfacePotentialT::kTvergaardHutchinson:
-		{
-			if (NumDOF() == 2)
-				fSurfacePotential = new TvergHutch2DT(in);
-			else
-			{
-				cout << "\n MeshFreeCSEAnisoT::Initialize: Tvergaard-Hutchinson potential not\n"
-				     <<   "     implemented for 3D: " << code << endl; 				
-				throw ExceptionT::kBadInputValue;
-			}
-			break;
-		}
-		case SurfacePotentialT::kLinearDamage:
-		{
-			fInitTraction.Dimension(NumDOF());
-			LinearDamageT* lin_damage = new LinearDamageT(in, fInitTraction);
-			if (!lin_damage) throw ExceptionT::kOutOfMemory;
-			
-			/* cast down */
-			fSurfacePotential = lin_damage;
-			break;
-		}
-		case SurfacePotentialT::kTijssens:
-		{	
-		       if (NumDOF() == 2)
-			 fSurfacePotential = new Tijssens2DT(in, ElementSupport().TimeStep());
-		       else
-		       {
-			  cout << "MeshFreeCSEAnisoT::Initialize potential not implemented for 3D: " << code << endl;
-
-	                 throw ExceptionT::kBadInputValue;
-		       }
-		       break;
-		}
-	        case SurfacePotentialT::kRateDep:
-		{
-		       if (NumDOF() == 2)
-			 fSurfacePotential = new RateDep2DT(in, ElementSupport().TimeStep());
-		       else
-		       {
-			 cout << "\n MeshFreeCSEAnisoT::Initialize potential not implemented for 3D: " << code << endl;
-
-			 throw ExceptionT::kBadInputValue;
-		       }
-		       break;
-		}
-		default:
-			cout << "\n MeshFreeCSEAnisoT::Initialize: unknown potential code: " << code << endl;
-			throw ExceptionT::kBadInputValue;
-	}
-	if (!fSurfacePotential) throw ExceptionT::kOutOfMemory;
-
-	/* configure material storage */
-	int num_state = fSurfacePotential->NumStateVariables();
-	fd_Storage_man.SetWard(0, fd_Storage, num_state);
-	fd_Storage_last_man.SetWard(0, fd_Storage_last, num_state);
-
-	/* write */
-	out << "\n Cohesive surface potential:\n";
-	out << " Potential name:\n";
-	fSurfacePotential->PrintName(out);
-	fSurfacePotential->Print(out);
-
-	/* allocate flags array */
-	const dArray2DT& facets = fMFFractureSupport->Facets();
-	fActiveFlag.Dimension(facets.MajorDim());
-	fActiveFlag = kON;
-
-	/* initialize decohesion laws */
-	InitializeNewFacets();
 }
 
 /* start of new time sequence */
@@ -390,7 +248,7 @@ void MeshFreeCSEAnisoT::WriteOutput(void)
 	if (fOutputArea)
 	{
 		/* generate file name */
-		StringT name = (ElementSupport().Input()).filename();
+		StringT name = ElementSupport().InputFile();
 		name.Root();
 		name.Append(".grp", ElementSupport().ElementGroupNumber(this) + 1);
 		name.Append(".fracture");
@@ -515,24 +373,8 @@ void MeshFreeCSEAnisoT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 int MeshFreeCSEAnisoT::InterpolantDOFs(void) const { return 0; }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print element group data */
-void MeshFreeCSEAnisoT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	ElementBaseT::PrintControlData(out);
-
-	/* control parameters */
-	out << " Element geometry code . . . . . . . . . . . . . = " << fGeometryCode << '\n';
-	out << "    eq." << GeometryT::kLine          << ", line\n";
-	out << "    eq." << GeometryT::kQuadrilateral << ", quadrilateral\n";
-	out << "    eq." << GeometryT::kTriangle	  << ", triangle\n";
-	out << " Number of integration points. . . . . . . . . . = " << fNumIntPts << '\n';
-	out << " Output fracture surface area. . . . . . . . . . = " << fOutputArea << '\n';
-	out << " Meshfree domain element group . . . . . . . . . = " << fMFElementGroup + 1 << '\n';
-}
+ * Protected
+ ***********************************************************************/
 
 /* element data */
 void MeshFreeCSEAnisoT::EchoConnectivityData(ifstreamT& in, ostream& out)

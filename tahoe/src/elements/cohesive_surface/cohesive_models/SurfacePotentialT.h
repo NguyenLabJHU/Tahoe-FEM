@@ -1,8 +1,10 @@
-/* $Id: SurfacePotentialT.h,v 1.23 2003-11-04 17:34:45 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.24 2004-07-15 08:26:02 paklein Exp $ */
 /* created: paklein (06/20/1999) */
-
 #ifndef _SURFACE_POTENTIAL_T_H_
 #define _SURFACE_POTENTIAL_T_H_
+
+/* base class */
+#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "iArrayT.h"
@@ -24,7 +26,7 @@ class StringT;
  * model are probed by the host code. The state variables are integrated
  * over the current time step during the call to SurfacePotentialT::Traction. 
  * during all other calls, the state variable array is not modified. */
-class SurfacePotentialT
+class SurfacePotentialT: public ParameterInterfaceT
 {
 public:
 
@@ -45,17 +47,24 @@ public:
        kInelasticDuctile_RP = 109 /**< rate-based ductile fracture model */
   };
 
-			 
 	/** surface element status codes */
 	enum StatusT {Precritical = 0, /**< loading phase */
 	                 Critical = 1, /**< unloading phase */
 	                   Failed = 2  /**< beyond zero-traction opening */};
+
+	/** factory method. Construct a new instance of a sub-class of SurfacePotentialT
+	 * with the given ParameterInterfaceT name, or return NULL if the name is
+	 * not recognized. */
+	static SurfacePotentialT* New(const char* name);
 
 	/** constructor */
 	SurfacePotentialT(int ndof);
 
 	/** destructor */
 	virtual ~SurfacePotentialT(void);
+
+	/** set the source of the time step */
+	virtual void SetTimeStep(const double&) {};
 
 	/** return the number of state variables needed by the model */
 	virtual int NumStateVariables(void) const = 0;
@@ -87,12 +96,6 @@ public:
 
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump, const ArrayT<double>& state) = 0;
-	
-	/** write model name to output */
-	virtual void PrintName(ostream& out) const = 0;
-
-	/** write model parameters */
-	virtual void Print(ostream& out) const = 0;
 
 	/** return the number of output variables */
 	virtual int NumOutputVariables(void) const;

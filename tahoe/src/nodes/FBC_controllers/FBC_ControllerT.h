@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.13 2004-05-06 18:54:47 cjkimme Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.14 2004-07-15 08:31:15 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #ifndef _FBC_CONTROLLER_T_H_
 #define _FBC_CONTROLLER_T_H_
@@ -22,14 +22,17 @@ class iArray2DT;
 template <class TYPE> class RaggedArray2DT;
 class eIntegratorT;
 class StringT;
+class FieldT;
+class FieldSupportT;
 
 /** base class for all force BC controllers */
 class FBC_ControllerT: public ParameterInterfaceT
 {
 public:
 
-	/* controller codes - derived classes */
-	enum CodeT {kPenaltyWall = 0,
+	/** controller codes - derived classes */
+	enum CodeT {       kNone =-1,
+	            kPenaltyWall = 0,
 	          kPenaltySphere = 1,
                kAugLagSphere = 2,
             kMFPenaltySphere = 3,
@@ -37,17 +40,17 @@ public:
             kPenaltyCylinder = 5,
                kMFAugLagMult = 6};
 
-	/* constructor */
-	FBC_ControllerT(FEManagerT& fe_manager, int group);
+	/** converts strings to FBC_ControllerT::CodeT */
+	static CodeT Code(const char* name);
+
+	/** constructor */
+	FBC_ControllerT(void);
 
 	/* destructor */
 	virtual ~FBC_ControllerT(void);
 
-	/* set the controller */
-	virtual void SetController(const eIntegratorT* controller);
-
-	/* initialize data - called immediately after construction */
-	virtual void Initialize(void) = 0;
+	/** set the associated field */
+	virtual void SetField(const FieldT& field);
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const = 0;
@@ -95,20 +98,47 @@ public:
 	virtual void WriteOutput(ostream& out) const = 0;
 	/*@}*/
 
-	/* input processing */
-	virtual void EchoData(ifstreamT& in, ostream& out) = 0;
-	
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list. Must be called after FBC_ControllerT::SetField */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
-	/** the Boss */
-	FEManagerT& fFEManager;
+	/** return the FieldT or throw exception if not set */
+	const FieldT& Field(void) const;
+
+	/** return the FieldSupportT or throw exception if not set */
+	const FieldSupportT& FieldSupport(void) const;
+
+protected:
+
+	/** support */
+	const FieldSupportT* fFieldSupport;
+
+	/** the field */
+	const FieldT* fField;
 
 	/** equation group */
 	int fGroup;
 
-	/* element controller */
+	/** element time integration parameters */
 	const eIntegratorT* fIntegrator;
 };
 
-} // namespace Tahoe 
+/* return the FieldT or throw exception if not set */
+inline const FieldT& FBC_ControllerT::Field(void) const {
+	if (!fField) ExceptionT::GeneralFail("FBC_ControllerT::Field", "pointer not set");
+	return *fField;
+}
+
+/* return the FieldSupportT or throw exception if not set */
+inline const FieldSupportT& FBC_ControllerT::FieldSupport(void) const {
+	if (!fFieldSupport) ExceptionT::GeneralFail("FBC_ControllerT::FieldSupport", "pointer not set");
+	return *fFieldSupport;
+}
+
+} /* namespace Tahoe */
+
 #endif /* _FBC_CONTROLLER_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.34 2004-01-05 07:34:30 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.35 2004-07-15 08:25:57 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -26,9 +26,8 @@ class CSEAnisoT: public CSEBaseT
 {
 public:
 
-	/* constructors */
+	/** constructors */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate);
 	CSEAnisoT(const ElementSupportT& support);
 #else
 	CSEAnisoT(ElementSupportT& support, bool rotate);
@@ -39,9 +38,6 @@ public:
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
-
-	/** initialize class data */
-	virtual void Initialize(void);
 
 	/** prepare for a sequence of time steps */
 	virtual void InitialCondition(void);
@@ -83,6 +79,19 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
+
+	/** a pointer to the ParameterInterfaceT */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:

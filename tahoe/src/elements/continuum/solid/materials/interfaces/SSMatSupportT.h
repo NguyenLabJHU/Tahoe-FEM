@@ -1,4 +1,4 @@
-/* $Id: SSMatSupportT.h,v 1.3 2003-01-29 07:34:57 paklein Exp $ */
+/* $Id: SSMatSupportT.h,v 1.4 2004-07-15 08:28:22 paklein Exp $ */
 #ifndef _SS_MAT_SUPPORT_T_H_
 #define _SS_MAT_SUPPORT_T_H_
 
@@ -20,7 +20,7 @@ class SSMatSupportT: public SolidMatSupportT
 public:
 
 	/** constructor */
-	SSMatSupportT(int nsd, int ndof, int nip);
+	SSMatSupportT(int ndof, int nip);
 
 	/** destructor */
 	~SSMatSupportT(void);

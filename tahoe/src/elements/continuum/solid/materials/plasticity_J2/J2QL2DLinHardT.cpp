@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.cpp,v 1.13 2003-11-21 22:46:48 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.cpp,v 1.14 2004-07-15 08:28:54 paklein Exp $ */
 /* created: paklein (06/29/1997) */
 #include "J2QL2DLinHardT.h"
 
@@ -54,28 +54,10 @@ static const char* Labels[kNumOutput] = {
 	    "s_min"}; // min in-plane principal stress
 
 /* constructor */
-J2QL2DLinHardT::J2QL2DLinHardT(ifstreamT& in, const FSMatSupportT& support):
-	QuadLog2D(in, support),
-	J2PrimitiveT(in),
-	fb_elastic(kNSD),
-	fEPModuli(kNSD),
-
-	/* work space */
-	fa_inverse(kNSD),
-	fMatrixTemp1(kNSD),
-	fMatrixTemp2(kNSD),
-	fMatrixTemp3(kNSD),
-	fdev_beta(kNSD),
-	fFtot(3),
-	ffrel(3),
-	
-	/* 2D translation */
-	fF_temp(2),
-	fFtot_2D(2),
-	ffrel_2D(2)	
+J2QL2DLinHardT::J2QL2DLinHardT(void):
+	ParameterInterfaceT("quad_log_J2_2D")
 {
-	/* for intermediate config update */
-	fa_inverse.Inverse(fEigMod);
+
 }
 
 /* update internal variables */
@@ -134,13 +116,6 @@ void J2QL2DLinHardT::ResetHistory(void)
 			Flags[i] = kReset;
 }
 
-/* print parameters */
-void J2QL2DLinHardT::Print(ostream& out) const
-{
-	/* inherited */
-	QuadLog2D::Print(out);
-	J2PrimitiveT::Print(out);
-}
 
 /* modulus */
 const dMatrixT& J2QL2DLinHardT::c_ijkl(void)
@@ -162,7 +137,7 @@ const dMatrixT& J2QL2DLinHardT::c_ijkl(void)
 	     fabs(fEigs[1] - 1.0) < kSmall &&
 	     fabs(fEigs[2] - 1.0) < kSmall ) //now explicitly check 3rd dim
 	{
-		IsotropicT::ComputeModuli2D(fModulus2D, fConstraintOption);
+		IsotropicT::ComputeModuli2D(fModulus2D, Constraint());
 	}
 	/* compute moduli */
 	else
@@ -196,7 +171,6 @@ const dMatrixT& J2QL2DLinHardT::c_ijkl(void)
 		fModulus2D.Rank4ReduceFrom3D(fModulus);
 	}
 
-	fModulus2D *= fThickness;
 	return fModulus2D;
 }
 	
@@ -231,7 +205,6 @@ const dSymMatrixT& J2QL2DLinHardT::s_ij(void)
 
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(fStress);
-	fStress2D *= fThickness;
 
 	return fStress2D;
 }
@@ -252,7 +225,7 @@ double J2QL2DLinHardT::StrainEnergyDensity(void)
 	/* logarithmic stretches */
 	LogStretches(fEigs);
 
-	return fThickness*ComputeEnergy(floge);
+	return ComputeEnergy(floge);
 }
 
 /*
@@ -311,9 +284,44 @@ void J2QL2DLinHardT::ComputeOutput(dArrayT& output)
 		output[0] = 0.0;
 }
 
+/* describe the parameters needed by the interface */
+void J2QL2DLinHardT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	QuadLog2D::DefineParameters(list);
+	J2PrimitiveT::DefineParameters(list);
+}
+
+/* accept parameter list */
+void J2QL2DLinHardT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	QuadLog2D::TakeParameterList(list);
+	J2PrimitiveT::TakeParameterList(list);
+
+	/* work space */
+	fb_elastic.Dimension(kNSD);
+	fEPModuli.Dimension(kNSD);
+	fa_inverse.Dimension(kNSD);
+	fMatrixTemp1.Dimension(kNSD);
+	fMatrixTemp2.Dimension(kNSD);
+	fMatrixTemp3.Dimension(kNSD);
+	fdev_beta.Dimension(kNSD),
+	fFtot.Dimension(3);
+	ffrel.Dimension(3);
+	
+	/* 2D translation */
+	fF_temp.Dimension(2);
+	fFtot_2D.Dimension(2);
+	ffrel_2D.Dimension(2);	
+
+	/* for intermediate config update */
+	fa_inverse.Inverse(fEigMod);
+}
+
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* returns the elastic stretch */
 const dSymMatrixT& J2QL2DLinHardT::TrialStretch(const dMatrixT& F_total,

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2003-09-09 22:46:43 paklein Exp $
+# $Id: makefile,v 1.8 2004-07-15 08:31:51 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -30,7 +30,8 @@ OBJ = \
 	NLSolver_LSX.o \
 	NLSolverX.o \
 	PCGSolver_LS.o \
-	SolverT.o
+	SolverT.o \
+	SolverT_factory.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -60,7 +61,8 @@ SRC = \
 	NLSolver_LSX.cpp \
 	NLSolverX.cpp \
 	PCGSolver_LS.cpp \
-	SolverT.cpp
+	SolverT.cpp \
+	SolverT_factory.cpp
 
 ##################### (3) headers
 #

@@ -1,16 +1,13 @@
-/* $Id: FBD_EAMGlue.cpp,v 1.4 2004-06-17 07:40:23 paklein Exp $ */
-/* created: paklein (01/30/2000)                                          */
-/* FBD_EAMGlue.cpp                                                        */
-
+/* $Id: FBD_EAMGlue.cpp,v 1.5 2004-07-15 08:26:52 paklein Exp $ */
+/* created: paklein (01/30/2000) */
 #include "FBD_EAMGlue.h"
 
 #include "ifstreamT.h"
 #include "PhiSplineT.h"
 
-/* Constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 FBD_EAMGlue::FBD_EAMGlue(CBLatticeT& lattice, ifstreamT& in):
 	EAM(lattice)
 {

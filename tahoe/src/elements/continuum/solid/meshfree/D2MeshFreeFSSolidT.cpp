@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.13 2004-06-17 07:41:26 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.14 2004-07-15 08:29:39 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeFSSolidT.h"
 #include "SolidMaterialsConfig.h"
@@ -9,9 +9,8 @@
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
 #include "D2MeshFreeShapeFunctionT.h"
+#include "MeshFreeFractureSupportT.h"
 
 #ifdef VIB_MATERIAL
 #include "D2VIB2D.h"
@@ -29,7 +28,7 @@ using namespace Tahoe;
 
 /* constructor */
 D2MeshFreeFSSolidT::D2MeshFreeFSSolidT(const ElementSupportT& support, const FieldT& field):
-	MeshFreeFSSolidT(support, field),
+	MeshFreeFSSolidT(support),
 	fD2MFShapes(NULL),
 
 	/* work space */
@@ -57,7 +56,7 @@ void D2MeshFreeFSSolidT::Initialize(void)
 #endif		
 
 	/* inherited */
-	MeshFreeFSSolidT::Initialize();
+	//MeshFreeFSSolidT::Initialize();
 
 	/* check material's list */
 	for (int i = 0; i < fMaterialList->Length(); i++)
@@ -160,6 +159,8 @@ void D2MeshFreeFSSolidT::ElementRHSDriver(void)
 /* initialization functions */
 void D2MeshFreeFSSolidT::SetShape(void)
 {
+#pragma message("fix me")
+#if 0
 	/* only support single list of integration cells for now */
 	if (fConnectivities.Length() > 1) {
 		cout << "\n D2MeshFreeFSSolidT::SetShape: multiple element blocks within an"
@@ -180,6 +181,7 @@ void D2MeshFreeFSSolidT::SetShape(void)
 	/* set base class pointers */
 	fShapes   = fD2MFShapes;
 	fMFShapes = fD2MFShapes;
+#endif
 }
 
 /* current element operations */
@@ -189,7 +191,7 @@ bool D2MeshFreeFSSolidT::NextElement(void)
 	int OK = MeshFreeFSSolidT::NextElement();
 	
 	/* resize */
-	fD2GradNa_wrap.SetDimensions(fD2GradNa.Rows(), MeshFreeElementSupportT::NumElementNodes());
+	fD2GradNa_wrap.SetDimensions(fD2GradNa.Rows(), fMFFractureSupport->NumElementNodes());
 
 	/* set material pointer (cast checked above) */
 	if (OK) pD2VIB2D = (D2VIB2D*) fCurrMaterial;
@@ -296,13 +298,13 @@ void D2MeshFreeFSSolidT::WriteField(void)
 	fD2MFShapes->NodalField(DOFs, u, Du, DDu, nodes);
 
 	/* write data */
-	ifstreamT& in = ElementSupport().Input();
+	const StringT& input_file = ElementSupport().InputFile();
 	
 	/* output filenames */
 	StringT s_u, s_Du, s_DDu;
-	s_u.Root(in.filename());
-	s_Du.Root(in.filename());
-	s_DDu.Root(in.filename());
+	s_u.Root(input_file);
+	s_Du.Root(input_file);
+	s_DDu.Root(input_file);
 	
 	s_u.Append(".u.", ElementSupport().StepNumber());
 	s_Du.Append(".Du.", ElementSupport().StepNumber());

@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.cpp,v 1.18 2004-06-17 07:13:28 paklein Exp $ */
+/* $Id: SurfacePotentialT.cpp,v 1.19 2004-07-15 08:26:02 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 #include "SurfacePotentialT.h"
 
@@ -6,6 +6,7 @@ using namespace Tahoe;
 
 /* constructor */
 SurfacePotentialT::SurfacePotentialT(int ndof):
+	ParameterInterfaceT("surface_property"),
 	fTraction(ndof),
 	fStiffness(ndof)
 {
@@ -19,13 +20,9 @@ SurfacePotentialT::~SurfacePotentialT(void) { }
 void SurfacePotentialT::InitStateVariables(ArrayT<double>& state)
 {
 	int num_state = NumStateVariables();
-	if (state.Length() != num_state) {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_	
-		cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
-		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
-#endif
-		throw ExceptionT::kSizeMismatch;	
-	}
+	if (state.Length() != num_state) 
+		ExceptionT::SizeMismatch("SurfacePotentialT::InitStateVariables", 
+			"expecting %d not %d state variables", num_state, state.Length());
 
 	/* clear */
 	if (num_state > 0) state = 0.0;
@@ -65,36 +62,6 @@ void SurfacePotentialT::ComputeOutput(const dArrayT& jump, const ArrayT<double>&
 #pragma unused(state)
 #pragma unused(output)
 }
-
-/*bool SurfacePotentialT::NeedsNodalInfo(void)
-{
-        return false;
-}
-
-int SurfacePotentialT::NodalQuantityNeeded(void) 
-{
-	return 0;
-}
-
-
-double SurfacePotentialT::ComputeNodalValue(const dArrayT& nodalRow)
-{
-#pragma unused(nodalRow)
-	return 0.0;
-}
-
-void SurfacePotentialT::UpdateStateVariables(const dArrayT& IPdata, ArrayT<double>& state)
-{
-#pragma unused(IPdata)
-#pragma unused(state)
-}
-
-
-int SurfacePotentialT::ElementGroupNeeded(void)
-{
-	return -1;
-}
-*/
 
 /*************************************************************************
  * Protected

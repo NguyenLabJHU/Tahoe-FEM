@@ -1,5 +1,4 @@
-/* $Id: TensorTransformT.h,v 1.5 2002-07-05 22:28:27 paklein Exp $ */
-
+/* $Id: TensorTransformT.h,v 1.6 2004-07-15 08:29:20 paklein Exp $ */
 #ifndef _TENSOR_TRANSFORM_T_H_
 #define _TENSOR_TRANSFORM_T_H_
 
@@ -16,6 +15,10 @@ public:
 
 	/** constructors */
 	TensorTransformT(int dim);
+	TensorTransformT(void) { };
+	
+	/** set the dimension */
+	void Dimension(int dim);
 
 	/** rank 2 tensor transformations */
 	const dSymMatrixT& PushForward(const dMatrixT& fwd, const dSymMatrixT& a);

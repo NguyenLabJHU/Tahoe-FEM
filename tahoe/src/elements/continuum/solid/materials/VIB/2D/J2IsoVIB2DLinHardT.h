@@ -1,11 +1,10 @@
-/* $Id: J2IsoVIB2DLinHardT.h,v 1.6 2003-01-29 07:34:52 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.h,v 1.7 2004-07-15 08:27:45 paklein Exp $ */
 /* created: paklein (10/18/1998) */
 #ifndef _J2_ISOVIB_2D_T_H_
 #define _J2_ISOVIB_2D_T_H_
 
 /* base classes */
 #include "IsoVIB3D.h"
-#include "Material2DT.h"
 #include "J2PrimitiveT.h"
 
 /* direct members */
@@ -26,22 +25,18 @@ namespace Tahoe {
  * 		where a is the internal hardening variable
  * 	\note all calculations are peformed in 3D
  */
-class J2IsoVIB2DLinHardT: public IsoVIB3D, public Material2DT, public J2PrimitiveT
+class J2IsoVIB2DLinHardT: public IsoVIB3D, public J2PrimitiveT
 {
 public:
 
 	/* constructor */
-	J2IsoVIB2DLinHardT(ifstreamT& in, const FSMatSupportT& support);
+	J2IsoVIB2DLinHardT(void);
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;	
 
 	/* spatial description */
 	virtual const dMatrixT& c_ijkl(void);
@@ -63,6 +58,15 @@ public:
 	virtual int NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 	
 protected:
 

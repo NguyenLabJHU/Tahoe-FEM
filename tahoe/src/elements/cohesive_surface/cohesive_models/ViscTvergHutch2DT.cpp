@@ -1,13 +1,10 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.15 2004-06-17 07:13:28 paklein Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.16 2004-07-15 08:26:02 paklein Exp $ */
 /* created: paklein (02/05/2000) */
-
 #include "ViscTvergHutch2DT.h"
 
 #include <iostream.h>
 #include <math.h>
-
 #include "ExceptionT.h"
-#include "ifstreamT.h"
 #include "StringT.h"
 
 using namespace Tahoe;
@@ -16,28 +13,21 @@ using namespace Tahoe;
 const int knumDOF = 2;
 
 /* constructor */
-ViscTvergHutch2DT::ViscTvergHutch2DT(ifstreamT& in, const double& time_step): 
+ViscTvergHutch2DT::ViscTvergHutch2DT(void): 
 	SurfacePotentialT(knumDOF),
-	fTimeStep(time_step)
+	fTimeStep(NULL),
+	fsigma_max(0.0),
+	fd_c_n(0.0),
+	fd_c_t(0.0),
+	fL_1(0.0),
+	fL_2(0.0),
+	fL_fail(0.0),
+	fbeta(0.0),
+	feta0(0.0),
+	fpenalty(0.0),
+	fK(0.0)
 {
-	/* traction potential parameters */
-	in >> fsigma_max; if (fsigma_max < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_t; if (fd_c_t < 0) throw ExceptionT::kBadInputValue;
-	
-	/* non-dimensional opening parameters */
-	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw ExceptionT::kBadInputValue;
-	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw ExceptionT::kBadInputValue;
-	in >> fL_fail; if (fL_fail < 1.0) fL_fail = 1.0;
-	
-	/* damping parameter */
-	in >> feta0; if (feta0 < 0) throw ExceptionT::kBadInputValue;
-	
-	/* stiffness multiplier */
-	in >> fpenalty; if (fpenalty < 0) throw ExceptionT::kBadInputValue;
-	
-	/* penetration stiffness */
-	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
+	SetName("viscous_Tvergaard-Hutchinson_2D");
 }
 
 /* return the number of state variables needed by the model */
@@ -101,12 +91,8 @@ const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) ExceptionT::SizeMismatch(caller);
 	if (state.Length() != NumStateVariables()) ExceptionT::SizeMismatch(caller);
-	if (fTimeStep < 0.0) {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+	if (*fTimeStep < 0.0)
 		ExceptionT::BadInputValue(caller, "expecting non-negative time increment: %g", fTimeStep);
-#endif		     
-		throw ExceptionT::kBadInputValue;
-	}
 #endif
 
 	double u_t = jump_u[0];
@@ -143,7 +129,7 @@ const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>
 	{
 		/* allow dt -> 0 */
 		double eta_dt = 0.0;
-		if (fabs(fTimeStep) > kSmall) eta_dt = feta0*(1 - L)/fTimeStep;
+		if (fabs(*fTimeStep) > kSmall) eta_dt = feta0*(1 - L)/(*fTimeStep);
 
 		T_visc_t = eta_dt*dd_t;
 		T_visc_n = eta_dt*dd_n;
@@ -302,16 +288,16 @@ const dMatrixT& ViscTvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT
 	{
 		/* well-behaved viscous part */
 		double eta_dt = 0.0;
-		if (fabs(fTimeStep) > kSmall) /* allow dt -> 0 */
-			eta_dt = feta0*(1 - L)/fTimeStep;
+		if (fabs(*fTimeStep) > kSmall) /* allow dt -> 0 */
+			eta_dt = feta0*(1 - L)/(*fTimeStep);
 		fStiffness.PlusIdentity(eta_dt);
 
 		/* viscous part that needs special treatment near small openings */
 		double v0 = 0.0;
 		double v1 = 0.0;
-		if (fabs(fTimeStep) > kSmall) { /* allow dt -> 0 */
-			v0 = -feta0*(jump_u[0] - state[2])/fTimeStep;
-			v1 = -feta0*(jump_u[1] - state[3])/fTimeStep;
+		if (fabs(*fTimeStep) > kSmall) { /* allow dt -> 0 */
+			v0 = -feta0*(jump_u[0] - state[2])/(*fTimeStep);
+			v1 = -feta0*(jump_u[1] - state[3])/(*fTimeStep);
 		}
 		if (L < kSmall) /* small openings */
 		{
@@ -359,13 +345,7 @@ SurfacePotentialT::StatusT ViscTvergHutch2DT::Status(const dArrayT& jump_u,
 		return Precritical;
 }
 
-void ViscTvergHutch2DT::PrintName(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << "    Tvergaard-Hutchinson 2D with viscous damping\n";
-#endif
-}
-
+#if 0
 /* print parameters to the output stream */
 void ViscTvergHutch2DT::Print(ostream& out) const
 {
@@ -380,6 +360,7 @@ void ViscTvergHutch2DT::Print(ostream& out) const
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';
 #endif
 }
+#endif
 
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
@@ -424,8 +405,8 @@ void ViscTvergHutch2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double
 		double eta = feta0*(1.0 - 0.5*(L + L_last));
 		
 		/* approximate incremental dissipation */
-		if (fabs(fTimeStep) > kSmall)
-			output[1] = 0.5*eta*(d_t*d_t + d_n*d_n)/fTimeStep;
+		if (fabs(*fTimeStep) > kSmall)
+			output[1] = 0.5*eta*(d_t*d_t + d_n*d_n)/(*fTimeStep);
 		else /* for dt -> 0 */
 			output[1] = 0.0;
 	}
@@ -442,4 +423,75 @@ bool ViscTvergHutch2DT::CompatibleOutput(const SurfacePotentialT& potential) con
 	const ViscTvergHutch2DT* pTH = dynamic_cast<const ViscTvergHutch2DT*>(&potential);
 	return pTH != NULL;
 #endif
+}
+
+/* describe the parameters  */
+void ViscTvergHutch2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SurfacePotentialT::DefineParameters(list);
+
+	ParameterT sigma_max(fsigma_max, "sigma_max");
+	sigma_max.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(sigma_max);
+
+	ParameterT d_c_n(fd_c_n, "d_c_n");
+	d_c_n.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(d_c_n);
+
+	ParameterT d_c_t(fd_c_t, "d_c_t");
+	d_c_t.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(d_c_t);
+
+	ParameterT L_1(fL_1, "L_1");
+	L_1.AddLimit(0.0, LimitT::Lower);
+	L_1.AddLimit(1.0, LimitT::Upper);
+	list.AddParameter(L_1);
+
+	ParameterT L_2(fL_2, "L_2");
+	L_2.AddLimit(0.0, LimitT::Lower);
+	L_2.AddLimit(1.0, LimitT::Upper);
+	list.AddParameter(L_2);
+
+	ParameterT beta(fbeta, "beta");
+	beta.AddLimit(0.0, LimitT::LowerInclusive);
+	beta.SetDefault(0.9);
+	list.AddParameter(beta);
+
+	ParameterT eta_0(feta0, "eta_0");
+	eta_0.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(eta_0);
+
+	ParameterT L_fail(fL_fail, "L_fail");
+	L_fail.AddLimit(1.0, LimitT::LowerInclusive);
+	list.AddParameter(L_fail);
+
+	ParameterT penalty(fpenalty, "penalty");
+	penalty.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(penalty);
+}
+
+/* accept parameter list */
+void ViscTvergHutch2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SurfacePotentialT::TakeParameterList(list);
+
+	fsigma_max = list.GetParameter("sigma_max");
+	fd_c_n = list.GetParameter("d_c_n");
+	fd_c_t = list.GetParameter("d_c_t");
+
+	fL_1 = list.GetParameter("L_1");
+	fL_2 = list.GetParameter("L_2");
+	if (fL_2 < fL_1) ExceptionT::BadInputValue("ViscTvergHutch2DT::TakeParameterList",
+		"L2 < L1: %g < %g", fL_2, fL_1);
+
+	fbeta = list.GetParameter("beta");
+	feta0 = list.GetParameter("eta_0");
+
+	fL_fail = list.GetParameter("L_fail");
+	fpenalty = list.GetParameter("penalty");
+
+	/* penetration stiffness */
+	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
 }

@@ -1,4 +1,4 @@
-/* $Id: PenaltyCylinderT.h,v 1.2 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: PenaltyCylinderT.h,v 1.3 2004-07-15 08:31:15 paklein Exp $ */
 #ifndef _PENALTY_CYLINDER_T_H_
 #define _PENALTY_CYLINDER_T_H_
 
@@ -16,11 +16,7 @@ class PenaltyCylinderT: public PenaltyRegionT
 public:
 
 	/** constructor */
-	PenaltyCylinderT(FEManagerT& fe_manager, int group, const iArray2DT& eqnos, 
-		const dArray2DT& coords, const dArray2DT& disp, const dArray2DT* vels);
-
-	/** input processing */
-	virtual void EchoData(ifstreamT& in, ostream& out);
+	PenaltyCylinderT(void);
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -35,6 +31,15 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 	
 protected:

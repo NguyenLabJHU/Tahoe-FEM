@@ -1,4 +1,4 @@
-/* $Id: SetOfNodesKBCT.h,v 1.2 2003-05-30 23:18:58 cjkimme Exp $ */
+/* $Id: SetOfNodesKBCT.h,v 1.3 2004-07-15 08:31:21 paklein Exp $ */
 #ifndef _SET_OF_NODES_KBC_T_H_
 #define _SET_OF_NODES_KBC_T_H_
 
@@ -20,7 +20,7 @@ class SetOfNodesKBCT: public KBC_ControllerT
 public:	
 
 	/** constructor */
-	SetOfNodesKBCT(NodeManagerT& node_manager, BasicFieldT& field);
+	SetOfNodesKBCT(const BasicSupportT& support, BasicFieldT& field);
 
 	/** destructor */
  	~SetOfNodesKBCT(void);
@@ -29,8 +29,6 @@ public:
 	virtual void Initialize(ifstreamT& in);
 
 	virtual void InitialCondition(void) { } ;
-	
-	virtual void WriteParameters(ostream& out) const;
 
 protected:
 	

@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianAxiT.h,v 1.3 2004-06-26 18:35:31 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.h,v 1.4 2004-07-15 08:26:27 paklein Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_AXI_T_H_
 #define _TOTAL_LAGRANGRIAN_AXI_T_H_
 
@@ -13,10 +13,13 @@ class TotalLagrangianAxiT: public FiniteStrainAxiT
 public:
 
 	/** constructors */
-	TotalLagrangianAxiT(const ElementSupportT& support, const FieldT& field);
+	TotalLagrangianAxiT(const ElementSupportT& support);
 
-	/** data initialization */
-	virtual void Initialize(void);
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 		
 protected:
 

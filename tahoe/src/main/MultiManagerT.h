@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.4 2004-06-26 06:23:36 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.5 2004-07-15 08:31:03 paklein Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -19,7 +19,7 @@ class MultiManagerT: public FEManagerT
 public:
 
 	/** constructor */
-	MultiManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
+	MultiManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm,
 		FEManagerT_bridging* fine, FEManagerT_bridging* coarse);
 
 	/** destructor */

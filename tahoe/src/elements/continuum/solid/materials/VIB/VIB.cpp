@@ -1,136 +1,80 @@
-/* $Id: VIB.cpp,v 1.13 2004-06-17 07:40:37 paklein Exp $ */
+/* $Id: VIB.cpp,v 1.14 2004-07-15 08:27:40 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #include "VIB.h"
 
-#include <math.h>
-#include <iostream.h>
-
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
-
-#include "ifstreamT.h"
 #include "dSymMatrixT.h"
-
-/* potential functions */
-#include "LennardJones612.h"
-#include "SmithFerrante.h"
-#include "GaoKlein.h"
-#include "GaoJi.h"
-#include "GaoJi2.h"
-#include "GaoVicky.h"
-#include "ParabolaT.h"
-#include "Triantafyllidis.h"
-#include "SF2.h"
+#include "C1FunctionT.h"
 
 using namespace Tahoe;
 
 /* constructors */
-VIB::VIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
+VIB::VIB(int nsd, int numstress, int nummoduli):
+	ParameterInterfaceT("VIB_base"),
 	fNumSD(nsd),
+	fPotential(NULL),
 	fNumStress(numstress),
 	fNumModuli(nummoduli)
 {
-	/* set potential function */
-	int potentialcode;
-	in >> potentialcode;	
-	switch(potentialcode)
-	{
-		case C1FunctionT::kLennardJones:
-		{	
-			double A, B;
-			in >> A >> B;
-			fPotential = new LennardJones612(A,B);
-			break;
-		}	
-		case C1FunctionT::kSmithFerrante:
-		{
-			double A, B;
-			in >> A >> B;		
-			fPotential = new SmithFerrante(A,B);
-			break;
-		}
-		case C1FunctionT::kGaoKlein:
-		{
-			double A, B, C;
-			in >> A >> B >> C;		
-			fPotential = new GaoKlein(A,B,C);
-			break;
-		}
-		case C1FunctionT::kQuadraticPot:
-		{
-			double A, B;
-			in >> A;		
-	                in >> B;
-			fPotential = new ParabolaT(A,B,1.0);
-			break;
-		}
-		case C1FunctionT::kTriantafyllidis:
-		{
-			double A;
-			in >> A;		
-			fPotential = new Triantafyllidis(A);
-			break;
-		}
-		case C1FunctionT::kGaoJi:
-		{
-			double A, B, C;
-			in >> A >> B >> C;		
-			fPotential = new GaoJi(A,B,C);
-			break;
-		}
-		case C1FunctionT::kGaoJi2:
-		{
-			double A, B, C;
-			in >> A >> B >> C;
-			fPotential = new GaoJi2(A,B,C);
-			break;
-		}
-		case C1FunctionT::kGaoVicky:
-		{
-			double A, B, C, D;
-			in >> A >> B >> C >>D;
-			fPotential = new GaoVicky(A,B,C,D);
-			break;
-		}
-		case C1FunctionT::kSF2:
-		{
-			double A, B;
-			in >> A >> B;		
-			fPotential = new SF2(A,B);
-			break;
-		}
-		default:		
-			throw ExceptionT::kBadInputValue;	
-	}
-	if (!fPotential) throw ExceptionT::kOutOfMemory;
+
 }
 
 /* destructor */
-VIB::~VIB(void)
+VIB::~VIB(void) { delete fPotential; }
+
+/* information about subordinate parameter lists */
+void VIB::DefineSubs(SubListT& sub_list) const
 {
-	delete fPotential;
+	/* inherited */
+	ParameterInterfaceT::DefineSubs(sub_list);
+
+	/* choice of parameters */
+	sub_list.AddSub("VIB_potential_choice", ParameterListT::Once, true);
 }
 
-/* print parameters */
-void VIB::Print(ostream& out) const
+/* return the description of the given inline subordinate parameter list */
+void VIB::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	out << " Number of spatial dimensions. . . . . . . . . . = " << fNumSD << '\n';
-	
-	/* potential parameters */
-	fPotential->Print(out);
+	if (name == "VIB_potential_choice")
+	{
+		order = ParameterListT::Choice;
+		sub_lists.AddSub("Lennard-Jones_6-12");
+		sub_lists.AddSub("Smith-Ferrante");
+		sub_lists.AddSub("Gao-Ji");
+		sub_lists.AddSub("Gao-Ji_2");
+		sub_lists.AddSub("Gao-Nguyen");
+	}
+	else /* inherited */
+		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
 }
 
-void VIB::PrintName(ostream& out) const
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* VIB::NewSub(const StringT& name) const
 {
-	out << "    Virtual Internal Bond\n";
-	
-	/* potential name */
-	fPotential->PrintName(out);
+	/* try C1FunctionT */
+	C1FunctionT* C1 = C1FunctionT::New(name);
+	if (C1)
+		return C1;
+	else /* inherited */
+		return ParameterInterfaceT::NewSub(name);
+}
+
+/* accept parameter list */
+void VIB::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	/* construct potential */
+	const ParameterListT& potential = list.GetListChoice(*this, "VIB_potential_choice");
+	fPotential = C1FunctionT::New(potential.Name());
+	if (!fPotential) ExceptionT::GeneralFail("VIB::TakeParameterList", "could not construct potential");
+	fPotential->TakeParameterList(potential);
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* allocate memory for all the tables */
 void VIB::Dimension(int numbonds)

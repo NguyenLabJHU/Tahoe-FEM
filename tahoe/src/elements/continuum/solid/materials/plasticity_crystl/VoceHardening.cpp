@@ -6,7 +6,7 @@
 #include "PolyCrystalMatT.h"
 #include "NLCSolver.h"
 #include "Utils.h"
-#include "ifstreamT.h"
+
 
 // number of material properties and initial hard values
 
@@ -257,24 +257,14 @@ const dArrayT& VoceHardening::ComputeHardQnts()
   return farray;
 }
 
-void VoceHardening::Print(ostream& out) const
-{
+#if 0
   // print hardening parameters
   out << "       Hardening rate (h0) . . . . . . . . . . . = " << fMatProp[0] << "\n";
   out << "       Initial hardness (g0) . . . . . . . . . . = " << fMatProp[1] << "\n";
   out << "       Saturation hardness (gs0) . . . . . . . . = " << fMatProp[2] << "\n";
   out << "       Saturation shear rate (gams0) . . . . . . = " << fMatProp[3] << "\n";
   out << "       Saturation exponent (xms) . . . . . . . . = " << fMatProp[4] << "\n";
-
-  // print hardening solver control data
-  fSolver->Print(out);
-}
-
-void VoceHardening::PrintName(ostream& out) const
-{
-  // print model name
-  out << "    Voce's slip hardening law\n";
-}
+#endif
 
 /* PRIVATE MEMBERS FUNCTIONS */
 

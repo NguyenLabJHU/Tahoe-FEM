@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.46 2004-06-17 06:42:45 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.47 2004-07-15 08:25:44 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -6,34 +6,20 @@
 #include <iomanip.h>
 #include <ctype.h>
 
-#include "ModelManagerT.h"
-#include "ifstreamT.h"
 #include "ofstreamT.h"
-#include "toolboxConstants.h"
+#include "ModelManagerT.h"
+#include "LocalArrayT.h"
+#include "ParameterUtils.h"
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "FieldT.h"
 #include "eIntegratorT.h"
 #endif
 
-#include "LocalArrayT.h"
-
 using namespace Tahoe;
 
 /* constructor */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):
-	ParameterInterfaceT("element_base"),
-	fSupport(support),
-	fField(&field),
-	fIntegrator(NULL),
-	fElementCards(0),
-	fLHS(ElementMatrixT::kSymmetric)
-{
-	/* just cast it */
-	fIntegrator = fSupport.eIntegrator(field);
-}
-
 ElementBaseT::ElementBaseT(const ElementSupportT& support):
 	ParameterInterfaceT("element_base"),
 	fSupport(support),
@@ -64,36 +50,6 @@ int ElementBaseT::ElementGroupNumber(void) const
 
 /* destructor */
 ElementBaseT::~ElementBaseT(void) {	}
-
-/* allocates space and reads connectivity data */
-void ElementBaseT::Initialize(void)
-{
-	/* set console variables */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	int index = fSupport.ElementGroupNumber(this) + 1;
-	StringT name;
-	name.Append(index);
-	name.Append("_element_group");
-	iSetName(name);
-
-	/* streams */
-	ifstreamT& in = fSupport.Input();
-	ostream&   out = fSupport.Output();
-
-	/* control data */
-	PrintControlData(out);
-
-	/* element connectivity data */
-	EchoConnectivityData(in, out);
-#else
-	EchoConnectivityData();
-#endif
-
-	/* dimension */
-	int neq = NumElementNodes()*NumDOF();
-	fLHS.Dimension(neq);	
-	fRHS.Dimension(neq);
-}
 
 /* set the active elements */
 void ElementBaseT::SetStatus(const ArrayT<StatusT>& status)
@@ -151,7 +107,7 @@ void ElementBaseT::FormLHS(GlobalT::SystemTypeT sys_type)
 	catch (ExceptionT::CodeT error)
 	{
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-		cout << "\n ElementBaseT::FormLHS: " << fSupport.Exception(error);
+		cout << "\n ElementBaseT::FormLHS: " << ExceptionT::ToString(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
 		
@@ -183,7 +139,7 @@ void ElementBaseT::FormRHS(void)
 	catch (ExceptionT::CodeT error)
 	{
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-		cout << "\n ElementBaseT::FormRHS: " << fSupport.Exception(error);
+		cout << "\n ElementBaseT::FormRHS: " << ExceptionT::ToString(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
 		
@@ -411,30 +367,80 @@ void ElementBaseT::DefineParameters(ParameterListT& list) const
 	ParameterInterfaceT::DefineParameters(list);
 
 	/* associated fields */
-	list.AddParameter(ParameterT::String, "field_name");
+	list.AddParameter(ParameterT::Word, "field_name");
 }
 
-/*information about subordinate parameter lists */
-void ElementBaseT::DefineSubs(SubListT& sub_list) const
+/* accept parameter list */
+void ElementBaseT::TakeParameterList(const ParameterListT& list)
 {
+	const char caller[] = "ElementBaseT::TakeParameterList";
+
 	/* inherited */
-	ParameterInterfaceT::DefineSubs(sub_list);
+	ParameterInterfaceT::TakeParameterList(list);
 
-	sub_list.AddSub("element_block", ParameterListT::OnePlus);
-}
+	/* get the field */
+	const StringT& field_name = list.GetParameter("field_name");
+	fField = ElementSupport().Field(field_name);
+	if (!fField)
+		ExceptionT::GeneralFail(caller, "could not resolve \"%s\" field", field_name.Pointer());
 
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ElementBaseT::NewSub(const StringT& list_name) const
-{
-	if (list_name == "element_block")
-		return new ElementBlockDataT;
-	else
-		return ParameterInterfaceT::NewSub(list_name);
+	/* get the integrator */
+	fIntegrator = &(fField->Integrator().eIntegrator());
+
+	/* try to load connectivities */
+	ArrayT<StringT> block_ID;
+	ArrayT<int> mat_index;
+	CollectBlockInfo(list, block_ID,  mat_index); /* 'look ahead' in parameter list */
+	DefineElements(block_ID, mat_index);
+
+	/* dimension */
+	int neq = NumElementNodes()*NumDOF();
+	fLHS.Dimension(neq);	
+	fRHS.Dimension(neq);
 }
 
 /***********************************************************************
  * Protected
  ***********************************************************************/
+
+/* extract element block info from parameter list */
+void ElementBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  
+	ArrayT<int>& mat_index) const
+{
+	/* search for a block declarations */
+	const ParameterListT* block_search = list.FindList("_element_block");
+	if (!block_search) /* no match */
+	{
+		block_ID.Dimension(0);
+		mat_index.Dimension(0);
+	}
+	else /* extract */
+	{
+		const StringT& block_name = block_search->Name();
+
+		/* collect {block_ID, material_index} pairs */
+		int num_blocks = list.NumLists(block_name);
+		AutoArrayT<StringT> block_ID_tmp;
+		AutoArrayT<int> mat_index_tmp;
+		ParameterListT material_list; /* collected material parameters */
+		for (int i = 0; i < num_blocks; i++) {
+
+			/* block information */	
+			const ParameterListT& block = list.GetList(block_name, i);
+
+			/* collect block ID's */
+			const ArrayT<ParameterListT>& IDs = block.GetList("block_ID_list").Lists();
+			for (int j = 0; j < IDs.Length(); j++) {
+				block_ID_tmp.Append(IDs[j].GetParameter("value"));
+				mat_index_tmp.Append(i);
+			}
+		}
+	
+		/* transfer */
+		block_ID.Swap(block_ID_tmp);
+		mat_index.Swap(mat_index_tmp);
+	}
+}
 
 /* map the element numbers from block to group numbering */
 void ElementBaseT::BlockToGroupElementNumbers(iArrayT& elems, const StringT& block_ID) const
@@ -488,13 +494,77 @@ void ElementBaseT::AssembleLHS(void) const
 #endif
 }
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-/* print element group data */
-void ElementBaseT::PrintControlData(ostream& out) const
+#pragma message("document what ElementBaseT::DefineElements does")
+/* define the elements blocks for the element group */
+void ElementBaseT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index)
 {
-#pragma unused(out)
+	const char caller[] = "ElementBaseT::DefineElements";
+
+	/* allocate block map */
+	int num_blocks = block_ID.Length();
+	fBlockData.Dimension(num_blocks);
+	fConnectivities.Allocate (num_blocks);
+
+	/* get model manager */
+	ModelManagerT& model = ElementSupport().ModelManager();
+
+	/* read from parameter file */
+	int elem_count = 0;
+	int nen = 0;
+	for (int b = 0; b < num_blocks; b++)
+	{
+		/* load connectivities */
+		const iArray2DT& connects = model.ElementGroup(block_ID[b]);
+
+	    /* check number of nodes */
+	    int num_elems = connects.MajorDim();
+	    int num_nodes = connects.MinorDim();
+
+	    /* set if unset */
+	    if (nen == 0)
+	    	nen = num_nodes;
+	    
+	    /* consistency check */
+	    if (num_nodes != 0 && nen != num_nodes)
+			ExceptionT::BadInputValue(caller, "minor dimension %d of block %d does not match previous %d", num_nodes, b+1, nen);
+	    
+	    /* store block data */
+	    fBlockData[b].Set(block_ID[b], elem_count, num_elems, mat_index[b]);
+
+	    /* increment element count */
+	    elem_count += num_elems;
+
+	    /* set pointer to connectivity list */
+	    fConnectivities[b] = &connects;
+	}
+
+	/* connectivities came back empty */
+	if (nen == 0)  nen = DefaultNumElemNodes();
+	for (int i = 0; i < fConnectivities.Length(); i++)
+		if (fConnectivities[i]->MinorDim() == 0) 
+		{
+			/* not really violating const-ness */
+			iArray2DT* connects = const_cast<iArray2DT*>(fConnectivities[i]);
+			connects->Dimension(0, nen);
+		}
+	  
+	/* set dimensions */
+	fElementCards.Dimension(elem_count);
+
+	/* derived dimensions */
+	int neq = NumElementNodes()*NumDOF();
+	fEqnos.Dimension(fBlockData.Length());
+	for (int be = 0; be < fEqnos.Length(); be++) {
+		int numblockelems = fConnectivities[be]->MajorDim();
+		fEqnos[be].Dimension(numblockelems, neq);
+		fEqnos[be] = -1;
+	}
+
+	/* set pointers in element cards */
+	SetElementCards(fBlockData, fConnectivities, fEqnos, fElementCards);
 }
 
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* echo element connectivity data, resolve material pointers
 * and set the local equation numbers */
 void ElementBaseT::EchoConnectivityData(ifstreamT& in, ostream& out)
@@ -545,7 +615,7 @@ void ElementBaseT::ReadConnectivity(void)
 	/* read from parameter file */
 	ArrayT<StringT> elem_ID;
 	iArrayT matnums;
-	ModelManagerT& model = fSupport.Model();
+	ModelManagerT& model = fSupport.ModelManager();
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	model.ElementBlockList(in, elem_ID, matnums);
 #else
@@ -714,7 +784,7 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 	int local_el_number = fElementCards.Position() - block_data.StartNumber();
 
 	/* model manager - block processor number */
-	ModelManagerT& model = fSupport.Model();
+	ModelManagerT& model = fSupport.ModelManager();
 	iArrayT elem_map(block_data.Dimension());
 	model.ElementMap(block_ID, elem_map);
 

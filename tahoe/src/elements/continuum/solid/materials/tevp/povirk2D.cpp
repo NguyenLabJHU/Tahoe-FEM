@@ -1,10 +1,10 @@
-/* $Id: povirk2D.cpp,v 1.9 2003-11-21 22:46:58 paklein Exp $ */
+/* $Id: povirk2D.cpp,v 1.10 2004-07-15 08:29:25 paklein Exp $ */
 /* Created:  Harold Park (09/10/2001) */
 #include "povirk2D.h"
 
 #include <iostream.h>
 #include <math.h>
-#include "ifstreamT.h"
+
 #include "FSMatSupportT.h"
 #include "ElementCardT.h"
 
@@ -23,9 +23,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 povirk2D::povirk2D(ifstreamT& in, const FSMatSupportT& support):
-  FSSolidMatT(in, support),
-  IsotropicT(in),
-  Material2DT(in),        // Currently reads in plane strain from file...
+	ParameterInterfaceT("povirk_2D"),
   /* initialize references */
 //  fRunState(ContinuumElement().RunState()),
 //  fDt(ContinuumElement().ElementSupport().TimeStep()),
@@ -65,7 +63,6 @@ povirk2D::povirk2D(ifstreamT& in, const FSMatSupportT& support):
   fJ(0.0)
   
 {
-
   /* initialize material constants */
   El_E = 2.0E11;
   El_V = .30;
@@ -125,22 +122,6 @@ void povirk2D::ResetHistory(void)
   /* reset if plastic */
   ElementCardT& element = CurrentElement();
   if (element.IsAllocated()) Reset(element);
-}
-
-/* print parameters */
-void povirk2D::Print(ostream& out) const
-{
-  /* inherited */
-  FSSolidMatT::Print(out);
-  IsotropicT::Print(out);
-  Material2DT::Print(out);
-}
-
-void povirk2D::PrintName(ostream& out) const
-{
-  /* inherited */
-  FSSolidMatT::PrintName(out);
-  out << "    Thermo-Elasto-Viscoplastic without fluid/damage model\n";
 }
 
 /* spatial description */

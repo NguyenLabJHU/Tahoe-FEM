@@ -1,54 +1,46 @@
-/* $Id: FSSolidMatT.cpp,v 1.11 2004-06-26 06:04:03 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.12 2004-07-15 08:29:19 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
-#include <iostream.h>
-
 #include "FSMatSupportT.h"
 #include "ThermalDilatationT.h"
 
 using namespace Tahoe;
 
+/* array behavior */
+namespace Tahoe {
+DEFINE_TEMPLATE_STATIC const bool ArrayT<FSSolidMatT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<FSSolidMatT*>::fByteCopy = true;
+} /* namespace Tahoe */
+
 /* constructor */
-FSSolidMatT::FSSolidMatT(ifstreamT& in, const FSMatSupportT& support):
-	SolidMaterialT(in, support),
-	TensorTransformT(NumSD()),
-	fFSMatSupport(support),
-	fQ(NumSD()),
-	fF_therm_inv(NumSD()),
-	fF_therm_inv_last(NumSD()),
-	fF_mechanical(NumSD()),
+FSSolidMatT::FSSolidMatT(void):
+	ParameterInterfaceT("large_strain_material"),
+	fFSMatSupport(NULL),
 	fTemperatureField(false)
 {
-	/* no thermal strain */
-	fF_therm_inv.Identity();
-	fF_therm_inv_last.Identity();
-	
-	/* initialize */
-	fF_mechanical.Identity();
+
 }
 
-/* initialization */
-void FSSolidMatT::Initialize(void)
+/* set the material support or pass NULL to clear */
+void FSSolidMatT::SetFSMatSupport(const FSMatSupportT* support)
 {
-	/* inherited */
-	SolidMaterialT::Initialize();
+	/* set inherited material support */
+	SetMaterialSupport(support);
 
-	/* set multiplicative thermal transformation */
-	SetInverseThermalTransformation(fF_therm_inv);
-	fF_therm_inv_last = fF_therm_inv;
+	fFSMatSupport = support;
 	
-	/* check for temperature field */
-	if (fFSMatSupport.Temperatures() && fFSMatSupport.LastTemperatures()) {
+	/* dimension */
+	int nsd = NumSD();
+	TensorTransformT::Dimension(nsd);
+	fQ.Dimension(nsd);
+	fF_therm_inv.Dimension(nsd);
+	fF_therm_inv_last.Dimension(nsd);
+	fF_mechanical.Dimension(nsd);
 
-		/* set flag */
-		fTemperatureField = true;
-		
-		/* work space */
-		fTemperature.Dimension(fFSMatSupport.Temperatures()->MinorDim());
-		
-		/* disable prescribed dilatation */
-		fThermal->SetSchedule(NULL);
-	}
+	/* initialize */
+	fF_therm_inv.Identity();
+	fF_therm_inv_last.Identity();	
+	fF_mechanical.Identity();
 }
 
 /* test for localization using "current" values for Cauchy
@@ -59,8 +51,7 @@ void FSSolidMatT::Initialize(void)
 int FSSolidMatT::IsLocalized(dArrayT& normal)
 {
 #pragma unused(normal)
-cout << "\n FSSolidMatT::IsLocalized: broken" << endl;
-throw ExceptionT::kGeneralFail;
+ExceptionT::GeneralFail("FSSolidMatT::IsLocalized", "broken");
 return 0;
 //DEV
 
@@ -70,15 +61,6 @@ return 0;
 	else
 		return 0;
 #endif
-}
-
-/* I/O functions */
-void FSSolidMatT::PrintName(ostream& out) const
-{
-	/* inherited */
-	SolidMaterialT::PrintName(out);
-	
-	out << "    Large strain\n";
 }
 
 /* initialize current step. compute thermal dilatation */
@@ -101,24 +83,24 @@ void FSSolidMatT::CloseStep(void)
 /* deformation gradients */
 const dMatrixT& FSSolidMatT::F(void) const
 {
-	return fFSMatSupport.DeformationGradient();
+	return fFSMatSupport->DeformationGradient();
 	//DEV - what about corrections for thermal strains?
 }
 
 const dMatrixT& FSSolidMatT::F(int ip) const
 {
-	return fFSMatSupport.DeformationGradient(ip);
+	return fFSMatSupport->DeformationGradient(ip);
 	//DEV - what about corrections for thermal strains?
 }
 
 const dMatrixT& FSSolidMatT::F_total(void) const
 {
-	return fFSMatSupport.DeformationGradient();
+	return fFSMatSupport->DeformationGradient();
 }
 
 const dMatrixT& FSSolidMatT::F_total(int ip) const
 {
-	return fFSMatSupport.DeformationGradient(ip);
+	return fFSMatSupport->DeformationGradient(ip);
 }
 
 const dMatrixT& FSSolidMatT::F_mechanical(void)
@@ -127,24 +109,23 @@ const dMatrixT& FSSolidMatT::F_mechanical(void)
 	if (fTemperatureField)
 	{
 		/* integration point temperature */
-		fFSMatSupport.Interpolate(*(fFSMatSupport.Temperatures()), fTemperature);
+		fFSMatSupport->Interpolate(*(fFSMatSupport->Temperatures()), fTemperature);
 	
 		/* expansion factor */
-//TEMP - the old stiffness damping factor for the %CTE for now
-		double dilatation = 1.0 + fTemperature[0]*StiffnessDamping()/100.0;
+		double dilatation = 1.0 + fTemperature[0]*fCTE;
 
 		/* remove thermal strain */
 		fF_therm_inv.Identity(1.0/dilatation);
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient(), fF_therm_inv);
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(), fF_therm_inv);
 		return fF_mechanical;
 	}
 	else if (fThermal->IsActive())
 	{	
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient(), fF_therm_inv);
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(), fF_therm_inv);
 		return fF_mechanical;
 	}
 	else /* no thermal strain */
-		return fFSMatSupport.DeformationGradient();
+		return fFSMatSupport->DeformationGradient();
 }
 
 const dMatrixT& FSSolidMatT::F_mechanical(int ip)
@@ -153,36 +134,35 @@ const dMatrixT& FSSolidMatT::F_mechanical(int ip)
 	if (fTemperatureField)
 	{
 		/* integration point temperature */
-		fFSMatSupport.Interpolate(*(fFSMatSupport.Temperatures()), fTemperature, ip);
+		fFSMatSupport->Interpolate(*(fFSMatSupport->Temperatures()), fTemperature, ip);
 	
 		/* expansion factor */
-//TEMP - the old stiffness damping factor for the %CTE for now
-		double dilatation = 1.0 + fTemperature[0]*StiffnessDamping()/100.0;
+		double dilatation = 1.0 + fTemperature[0]*fCTE;
 
 		/* remove thermal strain */
 		fF_therm_inv.Identity(1.0/dilatation);
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient(), fF_therm_inv);
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(), fF_therm_inv);
 		return fF_mechanical;
 	}
 	/* has thermal strain */
 	else if (fThermal->IsActive())
 	{
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient(ip), fF_therm_inv);
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(ip), fF_therm_inv);
 		return fF_mechanical;
 	}
 	else /* no thermal strain */
-		return fFSMatSupport.DeformationGradient(ip);
+		return fFSMatSupport->DeformationGradient(ip);
 }
 
 /* deformation gradient from end of previous step */
 const dMatrixT& FSSolidMatT::F_total_last(void) const
 {
-	return fFSMatSupport.DeformationGradient_last();
+	return fFSMatSupport->DeformationGradient_last();
 }
 
 const dMatrixT& FSSolidMatT::F_total_last(int ip) const
 {
-	return fFSMatSupport.DeformationGradient_last(ip);
+	return fFSMatSupport->DeformationGradient_last(ip);
 }
 
 const dMatrixT& FSSolidMatT::F_mechanical_last(void)
@@ -191,26 +171,25 @@ const dMatrixT& FSSolidMatT::F_mechanical_last(void)
 	if (fTemperatureField)
 	{
 		/* integration point temperature */
-		fFSMatSupport.Interpolate(*(fFSMatSupport.LastTemperatures()), fTemperature);
+		fFSMatSupport->Interpolate(*(fFSMatSupport->LastTemperatures()), fTemperature);
 	
 		/* expansion factor */
-//TEMP - the old stiffness damping factor for the %CTE for now
-		double dilatation = 1.0 + fTemperature[0]*StiffnessDamping()/100.0;
+		double dilatation = 1.0 + fTemperature[0]*fCTE;
 
 		/* remove thermal strain */
 		fF_therm_inv.Identity(1.0/dilatation);
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient_last(), fF_therm_inv);
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient_last(), fF_therm_inv);
 		return fF_mechanical;
 	}
 	/* has thermal strain */
 	else if (fThermal->IsActive())
 	{
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient_last(), 
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient_last(), 
 			fF_therm_inv_last);
 		return fF_mechanical;
 	}
 	else /* no thermal strain */
-		return fFSMatSupport.DeformationGradient_last();
+		return fFSMatSupport->DeformationGradient_last();
 }
 
 const dMatrixT& FSSolidMatT::F_mechanical_last(int ip)
@@ -219,54 +198,80 @@ const dMatrixT& FSSolidMatT::F_mechanical_last(int ip)
 	if (fTemperatureField)
 	{
 		/* integration point temperature */
-		fFSMatSupport.Interpolate(*(fFSMatSupport.LastTemperatures()), fTemperature, ip);
+		fFSMatSupport->Interpolate(*(fFSMatSupport->LastTemperatures()), fTemperature, ip);
 	
 		/* expansion factor */
-//TEMP - the old stiffness damping factor for the %CTE for now
-		double dilatation = 1.0 + fTemperature[0]*StiffnessDamping()/100.0;
+		double dilatation = 1.0 + fTemperature[0]*fCTE;
 
 		/* remove thermal strain */
 		fF_therm_inv.Identity(1.0/dilatation);
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient(), fF_therm_inv);
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(), fF_therm_inv);
 		return fF_mechanical;
 	}
 	/* has thermal strain */
 	else if (fThermal->IsActive())
 	{
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient_last(ip), 
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient_last(ip), 
 			fF_therm_inv_last);
 		return fF_mechanical;
 	}
 	else /* no thermal strain */
-		return fFSMatSupport.DeformationGradient_last(ip);
+		return fFSMatSupport->DeformationGradient_last(ip);
+}
+
+/* accept parameter list */
+void FSSolidMatT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SolidMaterialT::TakeParameterList(list);
+
+	/* set multiplicative thermal transformation */
+	SetInverseThermalTransformation(fF_therm_inv);
+	fF_therm_inv_last = fF_therm_inv;
+	
+	/* check for temperature field */
+	if (fFSMatSupport->Temperatures() && fFSMatSupport->LastTemperatures()) {
+
+		/* set flag */
+		fTemperatureField = true;
+		
+		/* work space */
+		fTemperature.Dimension(fFSMatSupport->Temperatures()->MinorDim());
+		
+		/* disable prescribed dilatation */
+		fThermal->SetSchedule(NULL);
+	}	
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* left stretch tensor */
 void FSSolidMatT::Compute_b(dSymMatrixT& b) const
 {
-	Compute_b(fFSMatSupport.DeformationGradient(), b);
+	Compute_b(fFSMatSupport->DeformationGradient(), b);
 }
 
 /* right stretch tensor */
 void FSSolidMatT::Compute_C(dSymMatrixT& C) const
 {
-	Compute_C(fFSMatSupport.DeformationGradient(), C);
+	Compute_C(fFSMatSupport->DeformationGradient(), C);
 }
 
 /* Green-Lagrangian strain */
 void FSSolidMatT::Compute_E(dSymMatrixT& E) const
 {
-	Compute_E(fFSMatSupport.DeformationGradient(), E);
+	Compute_E(fFSMatSupport->DeformationGradient(), E);
 }
 
 /* left stretch tensor */
 void FSSolidMatT::Compute_b(const dMatrixT& F, dSymMatrixT& b) const
 {
 	int nsd = NumSD();
+#if __option(extended_errorcheck)
+	if (F.Rows() != nsd || F.Cols() != nsd || b.Rows() != nsd) ExceptionT::SizeMismatch();	
+#endif
 	if (nsd == 2)
 	{
 		const double* f = F.Pointer();
@@ -291,16 +296,16 @@ void FSSolidMatT::Compute_b(const dMatrixT& F, dSymMatrixT& b) const
 		a[5] = f[0]*f[1] + f[3]*f[4] + f[6]*f[7];
 	}
 	else
-	{
-		cout << "\n FSSolidMatT::Compute_b: unsupported dimension: " << nsd << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("FSSolidMatT::Compute_b", "unsupported dimension %d", nsd);
 }
 
 /* right stretch tensor */
 void FSSolidMatT::Compute_C(const dMatrixT& F, dSymMatrixT& C) const
 {
 	int nsd = NumSD();
+#if __option(extended_errorcheck)
+	if (F.Rows() != nsd || F.Cols() != nsd || C.Rows() != nsd) ExceptionT::SizeMismatch();	
+#endif
 	if (nsd == 2)
 	{
 		const double* f = F.Pointer();
@@ -325,16 +330,16 @@ void FSSolidMatT::Compute_C(const dMatrixT& F, dSymMatrixT& C) const
 		c[5] = f[0]*f[3] + f[1]*f[4] + f[2]*f[5];
 	}
 	else
-	{
-		cout << "\n FSSolidMatT::Compute_C: unsupported dimension: " << nsd << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("FSSolidMatT::Compute_C", "unsupported dimension %d", nsd);
 }
 
 /* Green-Lagrangian strain */
 void FSSolidMatT::Compute_E(const dMatrixT& F, dSymMatrixT& E) const
 {
 	int nsd = NumSD();
+#if __option(extended_errorcheck)
+	if (F.Rows() != nsd || F.Cols() != nsd || E.Rows() != nsd) ExceptionT::SizeMismatch();	
+#endif
 	if (nsd == 2)
 	{
 		const double* f = F.Pointer();
@@ -361,7 +366,7 @@ void FSSolidMatT::Compute_E(const dMatrixT& F, dSymMatrixT& E) const
 	else if (nsd == 1)
 		E[0] = 0.5*(F[0]*F[0] - 1.0);
 	else
-		ExceptionT::GeneralFail("FSSolidMatT::Compute_E", "unsupported dimension %d ", nsd);
+		ExceptionT::GeneralFail("FSSolidMatT::Compute_E", "unsupported dimension %d", nsd);
 }
 
 /* return the acoustical tensor and wave speeds */
@@ -383,14 +388,14 @@ const dSymMatrixT& FSSolidMatT::AcousticalTensor(const dArrayT& normal)
 	else if (normal.Length() == 3)
 		ComputeQ_3D(C_, S_, F_, normal, fQ);
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail("FSSolidMatT::AcousticalTensor");
 
 	return fQ;
 }
 
 /*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 /* set inverse of thermal transformation - return true if active */
 bool FSSolidMatT::SetInverseThermalTransformation(dMatrixT& F_trans_inv)

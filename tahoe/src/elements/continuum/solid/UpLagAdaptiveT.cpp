@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.5 2004-06-17 07:40:08 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.6 2004-07-15 08:26:27 paklein Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */
@@ -16,7 +16,7 @@ using namespace Tahoe;
 
 /* constructor */
 UpLagAdaptiveT::UpLagAdaptiveT(const ElementSupportT& support, const FieldT& field):
-	UpdatedLagrangianT(support,field),
+	UpdatedLagrangianT(support),
 	fCSE(NULL),
 	fTied(NULL),
 	fReleaseThreshold(-1.0)
@@ -29,7 +29,8 @@ UpLagAdaptiveT::UpLagAdaptiveT(const ElementSupportT& support, const FieldT& fie
 void UpLagAdaptiveT::Initialize(void)
 {
 	const char caller[] = "UpLagAdaptiveT::Initialize";
-
+ExceptionT::GeneralFail(caller, "out of date");
+#if 0
 	/* inherited */
 	UpdatedLagrangianT::Initialize();
 	
@@ -91,7 +92,7 @@ void UpLagAdaptiveT::Initialize(void)
 	FieldT* field = (FieldT*) &(Field());
 
 	/* create tied node constraint */
-	fTied = new TiedNodesT(ElementSupport().Nodes(), *field);
+	fTied = new TiedNodesT(ElementSupport(), *field);
 	const ArrayT<int>* ex_nodes = ElementSupport().ExternalNodes();
 	if (ex_nodes) fTied->SetExternalNodes(*ex_nodes);
 	field->AddKBCController(fTied);
@@ -105,6 +106,7 @@ void UpLagAdaptiveT::Initialize(void)
 	fNodalValues.Dimension(fCSENodesUsed.Length(), dSymMatrixT::NumValues(NumSD()));
 	fNodalValues = 0.0;
 	fNodalExtrapolation.Dimension(NumElementNodes(), dSymMatrixT::NumValues(NumSD()));
+#endif
 }
 
 /* initialize current time increment */

@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.46 2004-06-28 22:41:10 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.47 2004-07-15 08:25:53 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -21,7 +21,7 @@ using namespace Tahoe;
 BridgingScaleT::BridgingScaleT(const ElementSupportT& support, 
 	const FieldT& field,
 	const SolidElementT& solid):
-	ElementBaseT(support, field),
+	ElementBaseT(support),
 	fSolid(solid),
 	fElMatU(ShapeFunction().ParentDomain().NumNodes(), ElementMatrixT::kSymmetric),
 	fLocInitCoords(LocalArrayT::kInitCoords),
@@ -31,7 +31,7 @@ BridgingScaleT::BridgingScaleT(const ElementSupportT& support,
 	fConnect(solid.NumElements(), solid.NumElementNodes()),
 	fWtempU(ShapeFunction().ParentDomain().NumNodes(), NumDOF())
 {
-
+#pragma message("fix me")
 }
 
 /* map coordinates into elements */
@@ -848,17 +848,6 @@ void BridgingScaleT::SetLocalArrays(void)
 	/* set source */
 	ElementSupport().RegisterCoordinates(fLocInitCoords);
 	Field().RegisterLocal(fLocDisp);	
-}
-
-/* print element group data */
-void BridgingScaleT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	ElementBaseT::PrintControlData(out);
-
-//DEV
-//	out << " Particle group number . . . . . . . . . . . . . = " << ElementSupport().ElementGroupNumber(&fParticle) + 1 << '\n';
-	out << " Continuum group number. . . . . . . . . . . . . = " << ElementSupport().ElementGroupNumber(&fSolid) + 1 << '\n';
 }
 
 /* write all current element information to the stream */

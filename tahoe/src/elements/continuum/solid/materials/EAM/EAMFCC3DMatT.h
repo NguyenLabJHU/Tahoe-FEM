@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.h,v 1.6 2003-01-29 07:34:38 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.h,v 1.7 2004-07-15 08:26:47 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #ifndef _EAMFCC3DMatT_H_
 #define _EAMFCC3DMatT_H_
@@ -16,23 +16,23 @@ class EAMFCC3DMatT: public NL_E_MatT
 {
 public:
 
-	/** orientation codes - for crystal axes rotated wrt global axes*/
-	enum OrientationCodeT {
-	kFCC3Dnatural = 0,
-	    kFCC3D110 = 1,
-	  kFCC3D111_a = 2, // x,y,z = <-1 1 0> <-1-1 2> < 1 1 1>
-	  kFCC3D111_b = 3, // x,y,z = < 1-1 0> < 1 1-2> < 1 1 1>
-	  kPrescribed = 4};
-
 	/* constructor */
-	EAMFCC3DMatT(ifstreamT& in, const FSMatSupportT& support);
+	EAMFCC3DMatT(void);
 
 	/* destructor */
 	virtual ~EAMFCC3DMatT(void);
-	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -47,13 +47,10 @@ protected:
 	
 protected:
 	
-	int fOrientCode;
-	int	fEAMCode;
-	
-	/* EAM solver */
+	/** Cauchy-Born EAM solver */
 	EAMFCC3DSym* fEAM;
-	
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _EAMFCC3DMatT_H_ */

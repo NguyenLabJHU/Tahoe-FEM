@@ -1,32 +1,16 @@
-/* $Id: QuadLogOgden2DT.cpp,v 1.6 2004-06-17 07:40:30 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.cpp,v 1.7 2004-07-15 08:27:22 paklein Exp $ */
 /* created: paklein (02/18/2001) */
 #include "QuadLogOgden2DT.h"
 #include <math.h>
-#include <iostream.h>
-#include "ifstreamT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-QuadLogOgden2DT::QuadLogOgden2DT(ifstreamT& in, const FSMatSupportT& support):
-	OgdenIsotropicT(in, support),
-	Material2DT(in, kPlaneStrain),
+QuadLogOgden2DT::QuadLogOgden2DT(void):
+	ParameterInterfaceT("quad_log_Ogden_2D"),
 	flogE(2)
 {
-	fDensity *= fThickness;
-	
-	/* read modulus */
-	double E, nu;
-	in >> E >> nu;
-	IsotropicT::Set_E_nu(E, nu);
-}
 
-/* print name */
-void QuadLogOgden2DT::PrintName(ostream& out) const
-{
-	/* inherited */
-	OgdenIsotropicT::PrintName(out);
-	out << "    Plane Strain\n";
 }
 
 /* strain energy density */
@@ -44,6 +28,17 @@ double QuadLogOgden2DT::StrainEnergyDensity(void)
 
 	return 0.5*Lambda()*pow(flogE.Sum(), 2.0) + 
 	           Mu()*dArrayT::Dot(flogE, flogE);
+}
+
+/* describe the parameters needed by the interface */
+void QuadLogOgden2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	OgdenIsotropicT::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
 }
 
 /*************************************************************************

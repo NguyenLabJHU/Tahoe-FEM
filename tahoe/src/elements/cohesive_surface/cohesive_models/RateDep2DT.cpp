@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.cpp,v 1.16 2004-06-17 07:13:28 paklein Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.17 2004-07-15 08:26:02 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 #include "RateDep2DT.h"
 
@@ -6,12 +6,12 @@
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "ifstreamT.h"
 #include "StringT.h"
 #include "SecantMethodT.h"
 
 using namespace Tahoe;
 
+/* class parameters */
 const int knumDOF = 2;
 const int kL_1 = 0;
 const int kL_2 = 2;
@@ -21,29 +21,24 @@ const int kd_c_t = 8;
 const int kDelta = 10;
 
 /* constructor */
-RateDep2DT::RateDep2DT(ifstreamT& in, const double& time_step): 
+RateDep2DT::RateDep2DT(void): 
 	SurfacePotentialT(knumDOF),
-	fTimeStep(time_step)
+	fNeedsStress(false),
+	fGroup(-1),
+	fsigma_max(0.0),
+	fd_c_n(0.0),
+	fd_c_t(0.0),
+	fL_1(0.0),
+	fL_2(0.0),
+	fL_fail(0.0),
+	fpenalty(0.0),
+	fK(0.0),
+	fTimeStep(NULL),
+	L_2_b(0.0),
+	L_2_m(0.0),
+	fslope(0.0)
 {
-	/* traction potential parameters */
-	in >> fsigma_max; if (fsigma_max < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_t; if (fd_c_t < 0) throw ExceptionT::kBadInputValue;
-	
-	/* non-dimensional opening parameters */
-	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw ExceptionT::kBadInputValue;
-	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw ExceptionT::kBadInputValue;
-	in >> fL_fail; if (fL_fail < 1.0) fL_fail = 1.0;
-
-	/* stiffness multiplier */
-	in >> fpenalty; if (fpenalty < 0) throw ExceptionT::kBadInputValue;
-	in >> L_2_b;
-	in >> L_2_m;
-  	in >> fslope;	
-	
-  	/* penetration stiffness */
-	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
-
+	SetName("Tvergaard-Hutchinson_rate_dep_2D");
 }
 
 /*initialize state variables with values from the rate-independent model */
@@ -51,13 +46,8 @@ void RateDep2DT::InitStateVariables(ArrayT<double>& state)
 {
   	int num_state = NumStateVariables();
 	if (state.Length() != num_state) 
-	{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_	
-	  	cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
-		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
-#endif
-		throw ExceptionT::kSizeMismatch;
-	}
+		ExceptionT::SizeMismatch("RateDep2DT::InitStateVariables", 
+			"expecting %d not %d state variables", num_state, state.Length());
 
 	/* clear */
 	if (num_state > 0) state = 0.0;
@@ -134,13 +124,8 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
-	if (fTimeStep < 0.0) {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_	
-		cout << "\n RateDep2DT::Traction: expecting non-negative time increment: "
-		     << fTimeStep << endl;
-#endif
-		throw ExceptionT::kBadInputValue;
-	}
+	if (*fTimeStep < 0.0) 
+		ExceptionT::BadInputValue("RateDep2DT::Traction", "expecting non-negative time increment %g", fTimeStep);
 #endif
 
 	double u_t = jump_u[0];
@@ -158,8 +143,8 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 		if (state[kd_c_n + 1] == 0.) 
 		{
 			double u_n_dot = 0.0;
-			if (fabs(fTimeStep) > kSmall) 
-				u_n_dot = (u_n-state[qIntegrate ? kDelta : kDelta + 2])/fTimeStep;
+			if (fabs(*fTimeStep) > kSmall) 
+				u_n_dot = (u_n-state[qIntegrate ? kDelta : kDelta + 2])/(*fTimeStep);
 			
 			if (u_n_dot > kSmall)
 			{
@@ -178,7 +163,7 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 				if (state[kd_c_n] < u_n || state[kd_c_n] < fd_c_n*fL_1)
 				{
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-		  			cout <<  "\n RateDep2DT::Traction: rate-dependent length scale " << state[kd_c_n] << " is incompatible with rate-independent one. Check input parameters. \n ";
+//		  			cout <<  "\n RateDep2DT::Traction: rate-dependent length scale " << state[kd_c_n] << " is incompatible with rate-independent one. Check input parameters. \n ";
 #endif	
 					if (qIntegrate)
 					{	
@@ -313,27 +298,6 @@ SurfacePotentialT::StatusT RateDep2DT::Status(const dArrayT& jump_u,
 
 }
 
-void RateDep2DT::PrintName(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << "    RateDep 2D \n";
-#endif
-}
-
-/* print parameters to the output stream */
-void RateDep2DT::Print(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_max << '\n';
-	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
-	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';
-	out << " Non-dimensional opening to peak traction. . . . = " << fL_1       << '\n';
-	out << " Non-dimensional opening to declining traction . = " << fL_2       << '\n';
-	out << " Non-dimensional opening to failure. . . . . . . = " << fL_fail    << '\n';
-	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';
-#endif
-}
-
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
 * by default */
@@ -361,10 +325,17 @@ void RateDep2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& stat
 	double r_t = u_t/state[kd_c_t];
 	double r_n = u_n/state[kd_c_n];
 	output[0]  = sqrt(r_t*r_t + r_n*r_n); // (1.1)
-	output[1] = (u_t-state[kDelta + 2])/fTimeStep;
-	output[2] = (u_n-state[kDelta + 3])/fTimeStep;
+	if (fabs(*fTimeStep) > kSmall)
+	{
+		output[1] = (u_t-state[kDelta + 2])/(*fTimeStep);
+		output[2] = (u_n-state[kDelta + 3])/(*fTimeStep);
+	}
+	else
+	{
+		output[1] = 0.0;
+		output[2] = 0.0;
+	}
 	output[3] = state[kd_c_n];
-
 }
 
 /*
@@ -390,4 +361,71 @@ bool RateDep2DT::CompatibleOutput(const SurfacePotentialT& potential) const
 #endif
 }
 
+/* describe the parameters  */
+void RateDep2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SurfacePotentialT::DefineParameters(list);
 
+	ParameterT sigma_max(fsigma_max, "sigma_max");
+	sigma_max.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(sigma_max);
+
+	ParameterT d_c_n(fd_c_n, "d_c_n");
+	d_c_n.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(d_c_n);
+
+	ParameterT d_c_t(fd_c_t, "d_c_t");
+	d_c_t.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(d_c_t);
+
+	ParameterT L_1(fL_1, "L_1");
+	L_1.AddLimit(0.0, LimitT::Lower);
+	L_1.AddLimit(1.0, LimitT::Upper);
+	list.AddParameter(L_1);
+
+	ParameterT L_2(fL_2, "L_2");
+	L_2.AddLimit(0.0, LimitT::Lower);
+	L_2.AddLimit(1.0, LimitT::Upper);
+	list.AddParameter(L_2);
+
+	ParameterT L_fail(fL_fail, "L_fail");
+	L_fail.AddLimit(1.0, LimitT::LowerInclusive);
+	list.AddParameter(L_fail);
+
+	ParameterT penalty(fpenalty, "penalty");
+	penalty.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(penalty);
+
+	/* rate-dependent parameters */
+	list.AddParameter(L_2_b, "L_2_b");
+	list.AddParameter(L_2_m, "L_2_m");
+	list.AddParameter(fslope, "fslope");	
+}
+
+/* accept parameter list */
+void RateDep2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SurfacePotentialT::TakeParameterList(list);
+
+	fsigma_max = list.GetParameter("sigma_max");
+	fd_c_n = list.GetParameter("d_c_n");
+	fd_c_t = list.GetParameter("d_c_t");
+
+	fL_1 = list.GetParameter("L_1");
+	fL_2 = list.GetParameter("L_2");
+	if (fL_2 < fL_1) ExceptionT::BadInputValue("TvergHutch2DT::TakeParameterList",
+		"L2 < L1: %g < %g", fL_2, fL_1);
+
+	fL_fail = list.GetParameter("L_fail");
+	fpenalty = list.GetParameter("penalty");
+
+	/* penetration stiffness */
+	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
+
+	/* rate-dependent parameters */
+	L_2_b = list.GetParameter("L_2_b");
+	L_2_m = list.GetParameter("L_2_m");
+	fslope = list.GetParameter("fslope");	
+}

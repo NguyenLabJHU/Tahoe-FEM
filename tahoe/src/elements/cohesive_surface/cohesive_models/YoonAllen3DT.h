@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.h,v 1.10 2003-05-28 23:15:27 cjkimme Exp $ */
+/* $Id: YoonAllen3DT.h,v 1.11 2004-07-15 08:26:03 paklein Exp $ */
 /* created: cjkimme (05/28/2002) */
 
 #ifndef _YOON_ALLEN_3D_T_H_
@@ -13,17 +13,18 @@ namespace Tahoe {
 class ifstreamT;
 
 /** cohesive law from Yoon and Allen. This model is
- ** described in IJF _96_, 55-74. 
- **/
+ * described in IJF _96_, 55-74. 
+ */
 class YoonAllen3DT: public SurfacePotentialT
 {
 public:
 
 	/** constructors */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	YoonAllen3DT(ifstreamT& in, const double &fTimeStep);
-#endif
 	YoonAllen3DT(dArrayT& fparams, iArrayT& iparams, const double &fTimeStep);
+	YoonAllen3DT(void);
+
+	/** set the source of the time step */
+	virtual void SetTimeStep(const double& time_step) { fTimeStep = &time_step; };
 
 	virtual void InitStateVariables(ArrayT<double>& state);
 
@@ -46,12 +47,6 @@ public:
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
 
-	/** write model name to output */
-	virtual void PrintName(ostream& out) const;
-
-	/** write model parameters */
-	virtual void Print(ostream& out) const;
-
 	/** return the number of output variables. returns 0 by default. */
 	virtual int NumOutputVariables(void) const;
 
@@ -64,6 +59,21 @@ public:
 	 * \param destination of output values. Allocated by the host code */
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -80,7 +90,6 @@ private:
 	
 	/* moduli */
 	double fE_infty; /**< Asymptotic modulus of cohesive zone */
-	int iNumRelaxTimes;
 	dArrayT fE_t; /**< transient modulus with exponential time decay*/
 	dArrayT ftau; /**< time constant for decay */
 	dArrayT fexp_tau; /**< exponentiations of the timestep over the time constants */
@@ -94,7 +103,8 @@ private:
 	double fpenalty; /**< stiffening multiplier */
 	double fK;       /**< penetration stiffness calculated as a function of penalty
 	                  * and the initial stiffness of the cohesive potential */
-	const double& fTimeStep;
+	const double* fTimeStep;
+	double fCurrentTimeStep; /**< time increment used to compute fexp_tau */
 };
 
 } // namespace Tahoe 

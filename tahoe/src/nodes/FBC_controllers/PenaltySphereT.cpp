@@ -1,41 +1,19 @@
-/* $Id: PenaltySphereT.cpp,v 1.10 2004-06-17 07:41:53 paklein Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.11 2004-07-15 08:31:15 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltySphereT.h"
-
-#include <iostream.h>
-#include <iomanip.h>
-
-#include "toolboxConstants.h"
-#include "FEManagerT.h"
-#include "ifstreamT.h"
+#include "FieldT.h"
 #include "eIntegratorT.h"
+#include "FieldSupportT.h"
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
 
 using namespace Tahoe;
 
 /* constructor */
-PenaltySphereT::PenaltySphereT(FEManagerT& fe_manager,
-	int group,
-	const iArray2DT& eqnos,
-	const dArray2DT& coords,
-	const dArray2DT& disp,
-	const dArray2DT* vels):
-	PenaltyRegionT(fe_manager, group, eqnos, coords, disp, vels),
-	fv_OP(rCoords.MinorDim()),
-	fLHS(eqnos.MinorDim(),ElementMatrixT::kSymmetric)
+PenaltySphereT::PenaltySphereT(void):
+	fLHS(ElementMatrixT::kSymmetric)
 {
 	SetName("sphere_penalty");
-}
-
-/* input processing */
-void PenaltySphereT::EchoData(ifstreamT& in, ostream& out)
-{
-	/* inherited */
-	PenaltyRegionT::EchoData(in, out);
-
-	/* echo parameters */
-	in >> fRadius; if (fRadius < 0.0) throw ExceptionT::kBadInputValue;
-
-	out << " Sphere radius . . . . . . . . . . . . . . . . . = " << fRadius << '\n';
 }
 
 /* form of tangent matrix */
@@ -53,6 +31,12 @@ void PenaltySphereT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	double constK = 0.0;
 	int formK = fIntegrator->FormK(constK);
 	if (!formK) return;
+	
+	/* equations */
+	const iArray2DT& eqnos = Field().Equations();
+
+	/* support class */
+	const FieldSupportT& support = FieldSupport();
 
 	/* node by node */
 	for (int i = 0; i < fNumContactNodes; i++)
@@ -73,8 +57,8 @@ void PenaltySphereT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 			fLHS.PlusIdentity(constK*dPhi/dist);
 		
 			/* assemble */
-			rEqnos.RowAlias(fContactNodes[i], fi_sh);
-			fFEManager.AssembleLHS(fGroup, fLHS, fi_sh);
+			eqnos.RowAlias(fContactNodes[i], fi_sh);
+			support.AssembleLHS(fGroup, fLHS, fi_sh);
 		}
 	}
 }
@@ -88,6 +72,20 @@ void PenaltySphereT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(fRadius, "radius");
 }
 
+/* accept parameter list */
+void PenaltySphereT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	PenaltyRegionT::TakeParameterList(list);
+
+	/* sphere dimensions */
+	fRadius = list.GetParameter("radius");
+
+	/* dimension work space */
+	fv_OP.Dimension(Field().NumDOF());
+	fLHS.Dimension(FieldSupport().NumSD());
+}
+
 /**********************************************************************
  * Protected
  **********************************************************************/
@@ -95,12 +93,15 @@ void PenaltySphereT::DefineParameters(ParameterListT& list) const
 /* compute the nodal contribution to the residual force vector */
 void PenaltySphereT::ComputeContactForce(double kforce)
 {
+	/* coordinates */
+	const dArray2DT& coords = FieldSupport().CurrentCoordinates();
+
 	/* loop over strikers */
 	fContactForce2D = 0.0;	
 	for (int i = 0; i < fNumContactNodes; i++)
 	{
 		/* center to striker */
-		rCoords.RowCopy(fContactNodes[i], fv_OP);
+		coords.RowCopy(fContactNodes[i], fv_OP);
 		fv_OP -= fx;
 		
 		/* penetration */

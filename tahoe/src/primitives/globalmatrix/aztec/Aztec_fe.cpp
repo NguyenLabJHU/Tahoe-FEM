@@ -1,4 +1,4 @@
-/* $Id: Aztec_fe.cpp,v 1.9 2004-06-17 07:14:13 paklein Exp $ */
+/* $Id: Aztec_fe.cpp,v 1.10 2004-07-15 08:31:46 paklein Exp $ */
 /* created: paklein (08/01/1998) */
 #include "Aztec_fe.h"
 
@@ -13,7 +13,7 @@
 #include "ExceptionT.h"
 #include "az_aztec.h"
 
-#include "ifstreamT.h"
+
 #include "MSRBuilderT.h"
 #include "AztecReaderT.h"
 #include "iArray2DT.h"

@@ -1,8 +1,8 @@
-/* $Id: HyperEVP3D.cpp,v 1.10 2003-01-29 07:35:06 paklein Exp $ */
+/* $Id: HyperEVP3D.cpp,v 1.11 2004-07-15 08:29:14 paklein Exp $ */
 #include "HyperEVP3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 #include "SimplePowerLaw.h"
 
@@ -24,7 +24,8 @@ const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {"EQP_strain","VM_stress","Pressure","Hardness"};
 
 HyperEVP3D::HyperEVP3D(ifstreamT& in, const FSMatSupportT& support) :
-  EVPFDBaseT(in, support),  
+	ParameterInterfaceT("HyperEVP_3D"),
+	EVPFDBaseT(in, support),  
 
   // elastic def gradients
   fFeTr (kNSD,kNSD),
@@ -116,7 +117,7 @@ const dSymMatrixT& HyperEVP3D::s_ij()
       Compute_Ftot_3D(fFtot);
 
       // time step
-      fdt = fFSMatSupport.TimeStep();
+      fdt = fFSMatSupport->TimeStep();
 
       // compute state (stress and state variables)
       IntegrateConstitutiveEqns();
@@ -238,33 +239,11 @@ void HyperEVP3D::ComputeOutput(dArrayT& output)
   output[3] = fIterCount;
 
   if (Hyper_MESSAGES && intpt == 0)
-     cerr << " step # " << fFSMatSupport.StepNumber()
+     cerr << " step # " << fFSMatSupport->StepNumber()
           << " EQP-strain  "  << output[0] 
           << " VM-stress  "   << output[1] 
           << " pressure  "    << output[2] 
           << " iterCounter "  << (int)output[3] << endl;
-}
-
-void HyperEVP3D::Print(ostream& out) const
-{
-  // inherited
-  EVPFDBaseT::Print(out);
-
-  // print kinetic equation model
-  //  out << "    Kinetic Equation:\n";
-  //  out << "       Model . . . . . . . . . . . . . . . . . . = " 
-  //      << fKinEqnCode << "\n";
-  //  fKineticEqn->Print(out);
-}
-
-void HyperEVP3D::PrintName(ostream& out) const
-{
-  // inherited
-  EVPFDBaseT::PrintName(out);
-
-  // output model name
-  out << "    Hyper-Elasticity\n";
-  fKineticEqn->PrintName(out);
 }
 
 GlobalT::SystemTypeT HyperEVP3D::TangentType() const

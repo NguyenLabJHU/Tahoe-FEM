@@ -1,14 +1,15 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.14 2004-06-17 07:41:26 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.15 2004-07-15 08:29:39 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 #include "MeshFreeElementSupportT.h"
 
-#include "ifstreamT.h"
+
 #include "iAutoArrayT.h"
 #include "MeshFreeShapeFunctionT.h"
 #include "MeshFreeNodalShapeFunctionT.h"
 #include "ElementCardT.h"
 #include "MeshFreeSupportT.h"
 #include "ElementBaseT.h"
+#include "ParameterUtils.h"
 
 #include "ModelManagerT.h"
 #include "CommunicatorT.h"
@@ -19,44 +20,63 @@ using namespace Tahoe;
 const int kHeadRoom = 10; // percent
 
 /* constructor */
-MeshFreeElementSupportT::MeshFreeElementSupportT(ifstreamT& in):
+MeshFreeElementSupportT::MeshFreeElementSupportT(void):
+	ParameterInterfaceT("meshfree_element_support"),
 	fMFShapes(NULL),
 	fNodalShapes(NULL),
+	fElemNodesEX(NULL),
 	fLocGroup(kHeadRoom),
 	fNumElemenNodes(0),
 	fNEEArray(kHeadRoom, true),
 	fNEEMatrix(kHeadRoom, true),
 	fFieldSet(false),
-	fMapShift(-1)
+	fMapShift(-1),
+	fOffGridID(NULL),
+	fInterpolantID(NULL),
+	fMeshlessID(NULL)
 {
-	/* read */
-	in >> fAutoBorder;
 
-	/* check values */
-	if (fAutoBorder != 0 && fAutoBorder != 1) throw ExceptionT::kBadInputValue;
 }
 
 /* accessors */
-MeshFreeSupportT& MeshFreeElementSupportT::MeshFreeSupport(void) const
-{
+MeshFreeSupportT& MeshFreeElementSupportT::MeshFreeSupport(void) const {
 	return fMFShapes->MeshFreeSupport();
 }
 
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print element group data */
-void MeshFreeElementSupportT::PrintControlData(ostream& out) const
+/* information about subordinate parameter lists */
+void MeshFreeElementSupportT::DefineSubs(SubListT& sub_list) const
 {
-	/* echo */
-	out << " Auto selection/generation of border transition. = " << fAutoBorder;
-	out << ((fAutoBorder == 1) ? " (ACTIVE)" : " (INACTIVE)") << '\n';
-	out.flush();
+	/* inherited */
+	ParameterInterfaceT::DefineSubs(sub_list);
+
+	/* ID's for off grid nodes */
+	sub_list.AddSub("off_grid_node_ID_list", ParameterListT::ZeroOrOnce);
+
+	/* ID's for interpolant nodes */
+	sub_list.AddSub("interpolant_node_ID_list", ParameterListT::ZeroOrOnce);
+
+	/* ID's for forces meshless nodes */
+	sub_list.AddSub("meshfree_node_ID_list", ParameterListT::ZeroOrOnce);
 }
 
+/* accept parameter list */
+void MeshFreeElementSupportT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	/* collect pointers to class parameters */
+	fOffGridID = list.List("off_grid_node_ID_list");
+	fInterpolantID = list.List("interpolant_node_ID_list");
+	fMeshlessID = list.List("meshfree_node_ID_list");
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
+
 /* initialization */
-void MeshFreeElementSupportT::InitSupport(ifstreamT& in, ostream& out,
+void MeshFreeElementSupportT::InitSupport(ostream& out,
 	AutoArrayT<ElementCardT>& elem_cards, const iArrayT& surface_nodes,
 	int numDOF, int max_node_num, ModelManagerT* model)
 {
@@ -79,8 +99,8 @@ void MeshFreeElementSupportT::InitSupport(ifstreamT& in, ostream& out,
 		fElemEqnosEX.RowAlias(i, card.Equations());
 	}
 	
-	/* echo FE/meshfree nodes */
-	EchoNodesData(in, out, max_node_num, model);
+	/* collect FE/meshfree nodes */
+	CollectNodesData(out, max_node_num, model);
 
 	/* collect interpolant nodes = (auto) + (FE) - (EFG) */
 	SetAllFENodes(surface_nodes);
@@ -297,65 +317,61 @@ void MeshFreeElementSupportT::WeightNodes(iArrayT& weight) const
 }
 
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
 /* class specific data */
-void MeshFreeElementSupportT::EchoNodesData(ifstreamT& in, ostream& out, int max_node_num,
+void MeshFreeElementSupportT::CollectNodesData(ostream& out, int max_node_num,
 	ModelManagerT* model)
 {
-	/* could echo "sampling points" */
+	const char caller[] = "MeshFreeElementSupportT::CollectNodesData";
 
 	/* temp space */
 	ArrayT<StringT> set_ID;
 
-	/* EFG nodes not on the integration grid */
-	model->NodeSetList (in, set_ID);
-	model->ManyNodeSets (set_ID, fOffGridNodes);
-	out << "\n Number of nodes off the integration grid. . . . = "
-	    << fOffGridNodes.Length() << '\n';
+	/* meshfree nodes not on the integration grid */
+	if (fOffGridID) {
+		StringListT::Extract(*fOffGridID, set_ID);
+		model->ManyNodeSets(set_ID, fOffGridNodes);
+		fOffGridID = NULL;
+	} else
+		fOffGridNodes.Dimension(0);
+	out << "\n Number of nodes off the integration grid. . . . = " << fOffGridNodes.Length() << '\n';
 
-	if (fOffGridNodes.Length() > 0) // empty sets
-	  {
-	    /* check */
-	    if (fOffGridNodes.Min() < 0 || fOffGridNodes.Max() >= max_node_num)
-	      {
-		cout << "\n MeshFreeElementSupportT::EchoNodesData: off grid EFG node out of range" << endl;
-		throw ExceptionT::kBadInputValue;
-	      }
-	  }
+	if (fOffGridNodes.Length() > 0) /* skip empty sets */
+	    if (fOffGridNodes.Min() < 0 || fOffGridNodes.Max() >= max_node_num) /* check */
+	    	ExceptionT::BadInputValue(caller, "off grid node is out of range: %d > %d",
+	    		fOffGridNodes.Max()+1, max_node_num);
+	    		
 	
 	/* interpolant nodes */
-	model->NodeSetList (in, set_ID);
-	model->ManyNodeSets (set_ID, fFENodes);
-	out << " Number of interpolant shape function nodes. . . = " 
-	    << fFENodes.Length() << '\n';
+	if (fInterpolantID) {
+		StringListT::Extract(*fInterpolantID, set_ID);
+		model->ManyNodeSets(set_ID, fFENodes);
+		fInterpolantID = NULL;
+	} else
+		fFENodes.Dimension(0);
+	out << " Number of interpolant shape function nodes. . . = " << fFENodes.Length() << '\n';
 
-	if (fFENodes.Length() > 0) // empty sets
-	  {
-	    /* check */
-	    if (fFENodes.Min() < 0 || fFENodes.Max() >= max_node_num)
-	      {
-		cout << "\n MeshFreeElementSupportT::EchoNodesData: interpolant node out of range" << endl;
-		throw ExceptionT::kBadInputValue;
-	      }
-	  }
+	if (fFENodes.Length() > 0) /* skip empty sets */
+	    if (fFENodes.Min() < 0 || fFENodes.Max() >= max_node_num) /* check */
+	    	ExceptionT::BadInputValue(caller, "interpolant node is out of range: %d > %d",
+	    		fFENodes.Max()+1, max_node_num);
 
-	/* pure EFG nodes */
-	model->NodeSetList (in, set_ID);
-	model->ManyNodeSets (set_ID, fEFGNodes);
-	out << " Number of pure EFG shape function nodes . . . . = " 
-	    << fEFGNodes.Length() << '\n';
 
-	if (fEFGNodes.Length() > 0) // empty sets
-	  {
-	    /* check */
-	    if (fEFGNodes.Min() < 0 || fEFGNodes.Max() > max_node_num)
-	      {
-		cout << "\n MeshFreeElementSupportT::EchoNodesData: set EFG node out of range" << endl;
-		throw ExceptionT::kBadInputValue;
-	      }
-	  }
+	/* forced meshless nodes */
+	if (fMeshlessID) {
+		StringListT::Extract(*fMeshlessID, set_ID);
+		model->ManyNodeSets(set_ID, fEFGNodes);
+		fMeshlessID = NULL;
+	} else
+		fEFGNodes.Dimension(0);
+	out << " Number of pure EFG shape function nodes . . . . = "  << fEFGNodes.Length() << '\n';
+
+	if (fEFGNodes.Length() > 0) /* skip empty sets */
+		if (fEFGNodes.Min() < 0 || fEFGNodes.Max() > max_node_num) /* check */
+	    	ExceptionT::BadInputValue(caller, "meshless node is out of range: %d > %d",
+	    		fEFGNodes.Max()+1, max_node_num);
 }
 
 /* set nodes which will have nodally exact shapefunctions */

@@ -1,10 +1,10 @@
-/* $Id: TotalLagrangianAxiT.cpp,v 1.3 2004-06-26 18:35:31 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.cpp,v 1.4 2004-07-15 08:26:27 paklein Exp $ */
 #include "TotalLagrangianAxiT.h"
 
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "ShapeFunctionT.h"
 #include "SolidMaterialT.h"
-#include "ofstreamT.h"
-#include "ifstreamT.h"
 
 const double Pi2 = 2.0*acos(-1.0);
 const int kRadialDirection = 0; /* x <-> r */
@@ -12,22 +12,22 @@ const int kRadialDirection = 0; /* x <-> r */
 using namespace Tahoe;
 
 /* constructor */
-TotalLagrangianAxiT::TotalLagrangianAxiT(const ElementSupportT& support, const FieldT& field):
-	FiniteStrainAxiT(support, field),
+TotalLagrangianAxiT::TotalLagrangianAxiT(const ElementSupportT& support):
+	FiniteStrainAxiT(support),
 	fStressMat(3),
 	fTempMat1(3),
 	fTempMat2(3),
 	fOutputInit(false),
 	fOutputCell(-1)
 {
-
+	SetName("total_lagrangian_axi");
 }
 
-/* data initialization */
-void TotalLagrangianAxiT::Initialize(void)
+/* accept parameter list */
+void TotalLagrangianAxiT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	FiniteStrainAxiT::Initialize();
+	FiniteStrainAxiT::TakeParameterList(list);
 
 	/* dimension */
 	fGradNa.Dimension(NumSD(), NumElementNodes());
@@ -233,7 +233,7 @@ void TotalLagrangianAxiT::FormKd(double constK)
 			
 			/* file path */
 			StringT path;
-			path.FilePath(ElementSupport().Input().filename());
+			path.FilePath(ElementSupport().InputFile());
 			
 			/* write info for neighborhood nodes */
 			for (int i = 0; i < nodes_u.Length(); i++) {

@@ -1,11 +1,9 @@
-/* $Id: SmallStrainAxiT.cpp,v 1.2 2004-02-02 23:48:04 paklein Exp $ */
+/* $Id: SmallStrainAxiT.cpp,v 1.3 2004-07-15 08:26:27 paklein Exp $ */
 #include "SmallStrainAxiT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
 #include "SSMatSupportT.h"
-
-/* materials lists */
-#include "SolidMatList3DT.h" //TEMP - not needed with ParameterListT input
+#include "ParameterContainerT.h"
 
 #include <math.h>
 
@@ -16,15 +14,6 @@ const int kNSD = 2;
 using namespace Tahoe;
 
 /* constructor */
-SmallStrainAxiT::SmallStrainAxiT(const ElementSupportT& support, const FieldT& field):
-	SmallStrainT(support, field),
-	fIPInterp(kNSD),
-	fStrain2D(kNSD),
-	fStress2D_axi(dSymMatrixT::k3D_plane)
-{
-	SetName("small_strain_axi");
-}
-
 SmallStrainAxiT::SmallStrainAxiT(const ElementSupportT& support):
 	SmallStrainT(support),
 	fIPInterp(kNSD),
@@ -34,15 +23,56 @@ SmallStrainAxiT::SmallStrainAxiT(const ElementSupportT& support):
 	SetName("small_strain_axi");
 }
 
-/* called immediately after constructor */
-void SmallStrainAxiT::Initialize(void)
+/* information about subordinate parameter lists */
+void SmallStrainAxiT::DefineSubs(SubListT& sub_list) const
 {
+	const char caller[] = "SmallStrainAxiT::DefineSubs";
+
 	/* inherited */
-	SmallStrainT::Initialize();
+	SmallStrainT::DefineSubs(sub_list);
+
+	/* remove previous block definition */
+	const char old_block_def[] = "small_strain_element_block";
+	if (!sub_list.RemoveSub(old_block_def))
+		ExceptionT::GeneralFail(caller, "did not find \"%s\"", old_block_def);
+
+	/* element block/material specification */
+	sub_list.AddSub("small_strain_axi_element_block", ParameterListT::OnePlus);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SmallStrainAxiT::NewSub(const StringT& name) const
+{
+	if (name == "small_strain_axi_element_block")
+	{
+		ParameterContainerT* block = new ParameterContainerT(name);
+		
+		/* list of element block ID's (defined by ElementBaseT) */
+		block->AddSub("block_ID_list", ParameterListT::Once);
+	
+		/* choice of materials lists (inline) */
+		block->AddSub("small_strain_material_3D");
+	
+		/* set this as source of subs */
+		block->SetSubSource(this);
+		
+		return block;
+	}
+	else /* inherited */
+		return SmallStrainT::NewSub(name);
+}
+
+/* accept parameter list */
+void SmallStrainAxiT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "SmallStrainAxiT::TakeParameterList";
+
+	/* inherited */
+	SmallStrainT::TakeParameterList(list);
 
 	//TEMP - B-bar not implemented
 	if (fStrainDispOpt == kMeanDilBbar)
-		ExceptionT::GeneralFail("SmallStrainAxiT::Initialize", "no B-bar");
+		ExceptionT::GeneralFail(caller, "no B-bar");
 
 	/* redimension with out-of-plane component */
 	int nstrs = dSymMatrixT::NumValues(kNSD) + 1;
@@ -55,20 +85,30 @@ void SmallStrainAxiT::Initialize(void)
 	
 	/* allocate "last" strain list */
 	for (int i = 0; i < fStrain_last_List.Length(); i++)
-		fStrain_last_List[i].Dimension(dSymMatrixT::k3D);
+		fStrain_last_List[i].Dimension(dSymMatrixT::k3D);	
 }
 
-/* information about subordinate parameter lists */
-void SmallStrainAxiT::DefineSubs(SubListT& sub_list) const
-{	
-	/* inherited */
-	SmallStrainT::DefineSubs(sub_list);
+/* extract the list of material parameters */
+void SmallStrainAxiT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
+{
+	const char caller[] = "SmallStrainT::CollectMaterialInfo";
+	
+	/* initialize */
+	mat_params.Clear();
+	mat_params.SetName("small_strain_material_3D");
+	
+	/* collected material parameters */
+	int num_blocks = all_params.NumLists("small_strain_axi_element_block");
+	for (int i = 0; i < num_blocks; i++) {
 
-	/* remove choice of materials lists */
-	sub_list.RemoveSub("solid_materials");
-
-	/* 3D material list only */
-	sub_list.AddSub("solid_materials_3D", ParameterListT::Once);
+		/* block information */	
+		const ParameterListT& block = all_params.GetList("small_strain_axi_element_block", i);
+		
+		/* collect material parameters */
+		const ParameterListT& mat_list = block.GetList(mat_params.Name());
+		const ArrayT<ParameterListT>& mat = mat_list.Lists();
+		mat_params.AddList(mat[0]);
+	}
 }
 
 /***********************************************************************
@@ -78,35 +118,16 @@ void SmallStrainAxiT::DefineSubs(SubListT& sub_list) const
 /* construct a new material support and return a pointer */
 MaterialSupportT* SmallStrainAxiT::NewMaterialSupport(MaterialSupportT* p) const
 {
-	/* allocate 3D support */
-	if (!p) p = new SSMatSupportT(3, NumDOF(), NumIP());
+	/* construct 3D support */
+	if (!p) {
+		p = new SSMatSupportT(NumDOF(), NumIP());
+		p->SetNumSD(3);
+	}
 
 	/* inherited initializations */
 	SmallStrainT::NewMaterialSupport(p);
 
 	return p;
-}
-
-/* return a pointer to a new material list */
-MaterialListT* SmallStrainAxiT::NewMaterialList(int nsd, int size)
-{
-#pragma unused(nsd)
-#pragma message("not needed with ParameterListT input")
-
-	/* full list */
-	if (size > 0)
-	{
-		/* material support */
-		if (!fSSMatSupport) {
-			fSSMatSupport = TB_DYNAMIC_CAST(SSMatSupportT*, NewMaterialSupport());
-			if (!fSSMatSupport)
-				ExceptionT::GeneralFail("SmallStrainAxiT::NewMaterialList");
-		}
-
-		return new SolidMatList3DT(size, *fSSMatSupport);
-	}
-	else
-		return new SolidMatList3DT;
 }
 
 /* initialize local field arrays. Allocate B-bar workspace if needed. */

@@ -1,4 +1,4 @@
-/* $Id: CrystalElastMat.cpp,v 1.5 2002-07-02 19:56:03 cjkimme Exp $ */
+/* $Id: CrystalElastMat.cpp,v 1.6 2004-07-15 08:28:16 paklein Exp $ */
 /*
   File: CrystalElastMat.cpp
 */
@@ -14,7 +14,7 @@
 #include "dMatrixT.h"
 #include "ArrayT.h"
 #include "dArrayT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 
 
@@ -28,18 +28,6 @@ CrystalElastMat::CrystalElastMat(CrystalElast& poly)
 }
 
 CrystalElastMat::~CrystalElastMat() { }
-
-void CrystalElastMat::PrintName(ostream& out) const
-{
-  // print model name
-  out << "    CrystalElastMat crystal elasticity\n";
-}
-
-void CrystalElastMat::Print(ostream& out) const
-{
-  // print input values of crystal elasticity constants
-  out << "OUTPUT FOR EACH IP?\n";
-}
 
 void CrystalElastMat::ElasticityProps(dArrayT& matprop, double Temp_DegC, int elem, int intpt)
 {

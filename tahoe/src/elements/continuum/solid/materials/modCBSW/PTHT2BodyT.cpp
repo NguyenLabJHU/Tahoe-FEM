@@ -1,25 +1,19 @@
-/* $Id: PTHT2BodyT.cpp,v 1.4 2004-06-17 07:41:03 paklein Exp $ */
-/* created: paklein (10/11/1997)                                          */
-
+/* $Id: PTHT2BodyT.cpp,v 1.5 2004-07-15 08:28:36 paklein Exp $ */
+/* created: paklein (10/11/1997) */
 #include "PTHT2BodyT.h"
 
 #include <math.h>
-
-#include "ifstreamT.h"
 #include "ThermalDilatationT.h"
-
-/* constructor */
 
 using namespace Tahoe;
 
+/* constructor */
 PTHT2BodyT::PTHT2BodyT(const dArrayT& lengths,
-	const ThermalDilatationT* thermal, ifstreamT& in):
-	TwoBodyT(lengths, thermal)
+	const ThermalDilatationT* thermal, double A, double A1, double A2):
+	TwoBodyT(lengths, thermal),
+	fA(A), fA1(A1), fA2(A2)
 {
-	/* read parameters */
-	in >> fA;
-	in >> fA1;
-	in >> fA2;
+
 }
 
 /* set free dof - triggers recomputation */

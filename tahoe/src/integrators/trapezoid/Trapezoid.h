@@ -1,5 +1,4 @@
-/* $Id: Trapezoid.h,v 1.5 2003-01-29 07:35:18 paklein Exp $ */
-
+/* $Id: Trapezoid.h,v 1.6 2004-07-15 08:30:53 paklein Exp $ */
 #ifndef _TRAPEZOID_H_
 #define _TRAPEZOID_H_
 

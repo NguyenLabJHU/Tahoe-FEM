@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB3DLinHardT.h,v 1.6 2003-01-29 07:34:54 paklein Exp $ */
+/* $Id: J2IsoVIB3DLinHardT.h,v 1.7 2004-07-15 08:27:51 paklein Exp $ */
 /* created: paklein (10/12/1998) */
 #ifndef _J2_ISOVIB3D_T_H_
 #define _J2_ISOVIB3D_T_H_
@@ -38,10 +38,6 @@ public:
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
 
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;	
-
 	/* spatial description */
 	virtual const dMatrixT& c_ijkl(void);
 	virtual const dSymMatrixT& s_ij(void);
@@ -62,7 +58,16 @@ public:
 	virtual int NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
-	
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/* returns the trial stretch */

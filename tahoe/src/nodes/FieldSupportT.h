@@ -1,41 +1,24 @@
-/* $Id: FieldSupportT.h,v 1.5 2003-08-18 03:46:37 paklein Exp $ */
+/* $Id: FieldSupportT.h,v 1.6 2004-07-15 08:31:09 paklein Exp $ */
 #ifndef _FIELD_SUPPORT_T_H_
 #define _FIELD_SUPPORT_T_H_
+
+/* base class */
+#include "BasicSupportT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
-class FEManagerT;
-class ElementMatrixT;
-template <class TYPE> class nArrayT;
-class dArrayT;
-class ifstreamT;
-class ofstreamT;
 class FBC_ControllerT;
 class KBC_ControllerT;
-class FieldT;
-class NodeManagerT;
 
-/** support for FieldT. Limited interface to get information out
- * of a FieldT. Wrapper for functions in FEManagerT. */
-class FieldSupportT
+/** support for FieldT. Provides a limited interface to get 
+ * information in and out of FieldT's. */
+class FieldSupportT: public BasicSupportT
 {
 public:
 
 	/** constructor */
-	FieldSupportT(const FEManagerT& fe, NodeManagerT& nodes);
-
-	/** \name assembly functions */
-	/*@{*/
-	void AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const;
-	void AssembleRHS(int group, const dArrayT& elRes, const nArrayT<int>& eqnos) const;
-	/*@}*/
-	
-	/** \name streams */
-	/*@{*/
-	ifstreamT& Input(void) const;
-	ofstreamT& Output(void) const;
-	/*@}*/
+	FieldSupportT(void);
 
 	/** \name construct BC controllers
 	 * Construct new kinematic or force boundary condition controllers. Responsibility 
@@ -43,25 +26,10 @@ public:
 	 */
 	/*@{*/
 	KBC_ControllerT* NewKBC_Controller(FieldT& field, int code) const;
-	FBC_ControllerT* NewFBC_Controller(FieldT& field, int code) const;
+	FBC_ControllerT* NewFBC_Controller(int code) const;
 	/*@}*/
-
-private:
-
-	/** the top-level manager */
-	const FEManagerT& fFEManager;
-
-	/** the node manager */
-	NodeManagerT& fNodeManager;
 };
 
-/* constructor */
-inline FieldSupportT::FieldSupportT(const FEManagerT& fe, NodeManagerT& nodes):
-	fFEManager(fe),
-	fNodeManager(nodes)
-{
+} /* namespace Tahoe */
 
-}
-
-} // namespace Tahoe 
 #endif /* _FIELD_SUPPORT_T_H_ */

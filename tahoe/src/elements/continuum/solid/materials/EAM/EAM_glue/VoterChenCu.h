@@ -1,16 +1,14 @@
-/* $Id: VoterChenCu.h,v 1.2 2002-07-02 19:55:37 cjkimme Exp $ */
-/* created: paklein (10/25/1998)                                          */
-/* VoterChenCu.h                                                          */
-
+/* $Id: VoterChenCu.h,v 1.3 2004-07-15 08:26:52 paklein Exp $ */
+/* created: paklein (10/25/1998) */
 #ifndef _VOTERCHEN_CU_H_
 #define _VOTERCHEN_CU_H_
 
 /* base class */
 #include "EAM.h"
 
-
 namespace Tahoe {
 
+/** Voter and Chen EAM copper  */
 class VoterChenCu: public EAM
 {
 public:
@@ -26,8 +24,7 @@ private:
 	/* set the spline data - called by the constructor */
 	virtual void SetPairPotential(void);
 	virtual void SetEmbeddingEnergy(void);
-	virtual void SetElectronDensity(void); 	
-	
+	virtual void SetElectronDensity(void); 
 };
 
 } // namespace Tahoe

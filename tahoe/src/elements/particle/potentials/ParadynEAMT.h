@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.h,v 1.4 2004-04-09 02:03:05 hspark Exp $ */
+/* $Id: ParadynEAMT.h,v 1.5 2004-07-15 08:29:49 paklein Exp $ */
 #ifndef _PARADYN_EAM_T_H_
 #define _PARADYN_EAM_T_H_
 
@@ -20,12 +20,10 @@ public:
 
 	/** constructor. Reads parameters from file and computes the
 	 * coefficients of a cubic spline through the evenly spaced
-	 * values of the potential,electron density read from the 
-         * file. */
+	 * values of the potential,electron density read from the
+	 * file. */
 	ParadynEAMT(const StringT& param_file);
-
-	/** write properties to output */
-	virtual void Write(ostream& out) const;
+	ParadynEAMT(void);
 
 	/** \name return interaction functions */
 	/*@{*/
@@ -50,13 +48,24 @@ public:
 		int& row_size, int& num_rows) const;
 	/*@}*/
 
-	/** the coefficients array */
+	/** \name coefficients array */
+	/*@{*/
 	const dArray2DT& PairCoefficients(void) const { return fPairCoeff; };
 	const dArray2DT& EmbedCoefficients(void) const { return fEmbedCoeff; };
 	const dArray2DT& ElectronDensityCoefficients(void) const { return fElectronDensityCoeff; };
 
 	/** add accessor function for lattice parameter */
 	virtual double GetLatticeParameter(void) const { return fLatticeParameter; };
+	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 private:
 
@@ -80,6 +89,8 @@ private:
 	static double ForceAux(double r_ab,int n, double inc, double* coeff);
 	static double StiffnessAux(double r_ab,int n, double inc, double* coeff);
 
+	/** read parameters file */
+	void ReadParameters(const StringT& params);
 
 	/** compute the coefficients. Translated from the Paradyn routine interpolate.F
 	 * by Steve Plimpton, SNL-NM.
@@ -90,9 +101,6 @@ private:
 
 private:
 
-	/** path to source file */
-	StringT fParams;
-	
 	/** description from parameters file */
 	StringT fDescription;
 	
@@ -126,14 +134,11 @@ private:
 	static double  s_f_inc;
 	static double* s_Paircoeff;
 
-
 	static int     s_np;
 	static double  s_e_inc;
 	static double* s_Embcoeff;
 
-
 	static double* s_ElecDenscoeff;
-
 	/*@}*/
 };
 

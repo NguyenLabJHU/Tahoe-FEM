@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.h,v 1.5 2003-11-04 17:37:50 paklein Exp $ */
+/* $Id: Contact2DT.h,v 1.6 2004-07-15 08:26:08 paklein Exp $ */
 /* created: paklein (05/26/1999) */
 #ifndef _CONTACT2D_T_H_
 #define _CONTACT2D_T_H_
@@ -18,14 +18,17 @@ class Contact2DT: public ContactT
 {
 public:
 
-	/* constructor */
-	Contact2DT(const ElementSupportT& support, const FieldT& field);
+	/** constructor */
+	Contact2DT(const ElementSupportT& support);
 
-	/* destructor */
+	/** destructor */
 	virtual ~Contact2DT(void);
 
-	/* allocates space and reads connectivity data */
-	virtual void Initialize(void);
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -40,10 +43,10 @@ protected:
 
 	/** \name called by Contact2DT::SetActiveInteractions */
 	/*@{*/
-	/* update by-body stored data */
+	/** update by-body stored data */
 	void SetSurfacesData(void);
 
-	/* sets active striker data (based on current bodies data). Produces
+	/** sets active striker data (based on current bodies data). Produces
 	 * one contact per striker */
 	void SetActiveStrikers(void);
 	/*@}*/

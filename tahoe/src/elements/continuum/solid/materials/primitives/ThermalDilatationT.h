@@ -1,17 +1,13 @@
-/* $Id: ThermalDilatationT.h,v 1.5 2002-07-05 22:28:27 paklein Exp $ */
+/* $Id: ThermalDilatationT.h,v 1.6 2004-07-15 08:29:20 paklein Exp $ */
 /* created: paklein (08/25/1996) */
-
 #ifndef _THERMALDILAT_H_
 #define _THERMALDILAT_H_
 
 #include "Environment.h"
 
-#include "ios_fwd_decl.h"
-
 namespace Tahoe {
 
 /* forward declarations */
-class ifstreamT;
 class ScheduleT;
 
 class ThermalDilatationT
@@ -19,17 +15,20 @@ class ThermalDilatationT
 public:
 
 	/* constructor */
-	ThermalDilatationT(ifstreamT& in);
+	ThermalDilatationT(void);
 	
 	/* to set LTf pointer */
 	int ScheduleNum(void) const;
 	void SetSchedule(const ScheduleT* LTf);
 
+	/** set the schedule number */
+	void SetScheduleNum(int schedule) { LTfnum = schedule; };
+
+	/** set the dilation */
+	void SetPercentElongation(double perccent_elongation) { fPercentElongation = perccent_elongation; };
+
 	/* returns true if active */
 	bool IsActive(void) const;
-	
-	/* I/O functions */
-	void Print(ostream& out) const;
 
 	/* returns the current elongation factor */
 	double PercentElongation(void) const;
@@ -55,5 +54,6 @@ inline void ThermalDilatationT::SetSchedule(const ScheduleT* LTf)
 		fPercentElongation = 0.0;
 }
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _THERMALDILAT_H_ */

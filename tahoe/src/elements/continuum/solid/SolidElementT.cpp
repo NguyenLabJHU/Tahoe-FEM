@@ -1,23 +1,22 @@
-/* $Id: SolidElementT.cpp,v 1.62 2004-06-28 22:41:14 hspark Exp $ */
+/* $Id: SolidElementT.cpp,v 1.63 2004-07-15 08:26:27 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 #include <math.h>
 
-#include "toolboxConstants.h"
 #include "ifstreamT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"
 #include "iAutoArrayT.h"
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
 
 /* materials */
 #include "SolidMaterialT.h"
 #include "SolidMatSupportT.h"
-#include "SolidMatList1DT.h"
-#include "SolidMatList2DT.h"
-#include "SolidMatList3DT.h"
+#include "SolidMatListT.h"
 
 /* exception codes */
 #include "ExceptionT.h"
@@ -26,42 +25,26 @@ using namespace Tahoe;
 
 /* initialize static data */
 const int SolidElementT::NumNodalOutputCodes = 7;
+static const char* NodalOutputNames[] = {
+	"coordinates",
+	"displacements",
+	"stress",
+	"principal_stress",
+	"strain_energy_density",
+	"wave_speeds",
+	"material_output"};
+
 const int SolidElementT::NumElementOutputCodes = 7;
+static const char* ElementOutputNames[] = {
+	"centroid",
+	"mass",
+	"strain_energy",
+	"kinetic_energy",
+	"linear_momentum",
+	"stress",
+	"material_output"};
 
 /* constructor */
-SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field):
-	ContinuumElementT(support, field),
-	fLocLastDisp(LocalArrayT::kLastDisp),
-	fLocVel(LocalArrayT::kVel),
-	fLocAcc(LocalArrayT::kAcc),
-	fLocTemp(NULL),
-	fLocTemp_last(NULL),
-	fStress(NumSD()),
-	fD(dSymMatrixT::NumValues(NumSD())),
-	fStoreInternalForce(false)
-{
-	SetName("solid_element");
-
-	/* check base class initializations */
-	if (NumDOF() != NumSD()) throw ExceptionT::kGeneralFail;
-
-	ifstreamT&  in = ElementSupport().Input();
-	ofstreamT& out = ElementSupport().Output();
-	
-	/* control parameters */
-	in >> fMassType;		
-	in >> fStrainDispOpt;
-	
-	if (fStrainDispOpt != kStandardB &&
-	    fStrainDispOpt != kMeanDilBbar) throw ExceptionT::kBadInputValue;
-
-	/* checks for dynamic analysis */
-	if (fIntegrator->Order() > 0 &&
-	    fIntegrator->ImplicitExplicit() == eIntegratorT::kExplicit &&
-	    ElementSupport().Analysis() != GlobalT::kMultiField)
-	    fMassType = kLumpedMass;
-}
-
 SolidElementT::SolidElementT(const ElementSupportT& support):
 	ContinuumElementT(support),
 	fLocLastDisp(LocalArrayT::kLastDisp),
@@ -79,37 +62,6 @@ SolidElementT::~SolidElementT(void)
 {
 	delete fLocTemp;
 	delete fLocTemp_last;
-}
-
-/* data initialization */
-void SolidElementT::Initialize(void)
-{
-	/* inherited */
-	ContinuumElementT::Initialize();
-
-	/* allocate strain-displacement matrix */
-//	fB_list.Dimension(NumIP());
-//	for (int i = 0; i < fB_list.Length(); i++)
-//		fB_list[i].Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
-	fB.Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
-
-	/* setup for material output */
-	if (fNodalOutputCodes[iMaterialData] || fElementOutputCodes[iIPMaterialData])
-	{
-		/* check compatibility of output */
-		if (!CheckMaterialOutput())
-		{
-			cout << "\n SolidElementT::Initialize: error with material output" << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-		/* no material output variables */
-		else if ((*fMaterialList)[0]->NumOutputVariables() == 0)
-		{
-			cout << "\n SolidElementT::Initialize: there are no material outputs" << endl;
-			fNodalOutputCodes[iMaterialData] = IOBaseT::kAtNever;
-			fElementOutputCodes[iIPMaterialData] = IOBaseT::kAtNever;
-		}
-	}	
 }
 
 /* solution calls */
@@ -147,6 +99,7 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 	/* temp for nodal force */
 	dArrayT nodalforce;
 	
+	bool axisymmetric = Axisymmetric();
 	Top();
 	while (NextElement())
 	{
@@ -176,7 +129,7 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 				if (formBody) AddBodyForce(fLocAcc);
 				
 				/* calculate inertial forces */
-				FormMa(fMassType, constMa*fCurrMaterial->Density(), &fLocAcc, NULL);
+				FormMa(fMassType, constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL);
 			}
 
 			/* loop over nodes (double-noding OK) */
@@ -335,41 +288,137 @@ void SolidElementT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(mass_type);
 }
 
-/***********************************************************************
- * Protected
- ***********************************************************************/
-
-namespace Tahoe {
-
-/* stream extraction operator */
-istream& operator>>(istream& in, SolidElementT::StrainOptionT& opt)
-{
-	int i_type;
-	in >> i_type;
-	switch (i_type)
-	{
-		case SolidElementT::kStandardB:
-			opt = SolidElementT::kStandardB;
-			break;
-		case SolidElementT::kMeanDilBbar:
-			opt = SolidElementT::kMeanDilBbar;
-			break;
-		default:
-			cout << "\n SolidElementT::StrainOptionT: unknown option: "
-			<< i_type<< endl;
-			throw ExceptionT::kBadInputValue;	
-	}
-	return in;
-}
-
-}
-
-/* construct list of materials from the input stream */
-void SolidElementT::ReadMaterialData(ifstreamT& in)
+/* information about subordinate parameter lists */
+void SolidElementT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	ContinuumElementT::ReadMaterialData(in);
+	ContinuumElementT::DefineSubs(sub_list);
+
+	/* nodal output codes (optional) */
+	sub_list.AddSub("solid_element_nodal_output", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("solid_element_element_output", ParameterListT::ZeroOrOnce);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SolidElementT::NewSub(const StringT& name) const
+{
+	if (name == "solid_element_nodal_output")
+	{
+		ParameterContainerT* node_output = new ParameterContainerT(name);
+		
+		/* wave speed sampling direction */
+		ParameterContainerT wave_direction("wave_direction");
+		wave_direction.SetListOrder(ParameterListT::Choice);
+		wave_direction.AddSub("Vector_2");
+		wave_direction.AddSub("Vector_3");
+		node_output->AddSub(wave_direction, ParameterListT::ZeroOrOnce);
+		
+		/* all false by default */
+		for (int i = 0; i < NumNodalOutputCodes; i++) {
+			ParameterT output(ParameterT::Integer, NodalOutputNames[i]);
+			output.SetDefault(1);
+			node_output->AddParameter(output, ParameterListT::ZeroOrOnce);
+		}
+
+		return node_output;
+	}
+	else if (name == "solid_element_element_output")
+	{
+		ParameterContainerT* element_output = new ParameterContainerT(name);
+		
+		/* all false by default */
+		for (int i = 0; i < NumElementOutputCodes; i++) {
+			ParameterT output(ParameterT::Integer, ElementOutputNames[i]);
+			output.SetDefault(1);
+			element_output->AddParameter(output, ParameterListT::ZeroOrOnce);
+		}
+
+		return element_output;	
+	}
+	else /* inherited */
+		return ContinuumElementT::NewSub(name);
+}
+
+/* accept parameter list */
+void SolidElementT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "SolidElementT::TakeParameterList";
+
+	/* set mass type before calling ContinuumElementT::TakeParameterList because
+	 * it's needed for SolidElementT::TangentType */
+	list.GetParameter("mass_type", enum2int<ContinuumElementT::MassTypeT>(fMassType));
+
+	/* inherited */
+	ContinuumElementT::TakeParameterList(list);
+
+	/* allocate work space */
+//	fB_list.Dimension(NumIP());
+//	for (int i = 0; i < fB_list.Length(); i++)
+//		fB_list[i].Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
+	fB.Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
+	fD.Dimension(dSymMatrixT::NumValues(NumSD()));
 	
+	/* nodal output codes */
+	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
+	fNodalOutputCodes = IOBaseT::kAtNever;
+	qUseSimo = qNoExtrap = false;	
+	const ParameterListT* node_output = list.List("solid_element_nodal_output");
+	if (node_output) 
+	{
+		/* set flags */
+		for (int i = 0; i < NumNodalOutputCodes; i++)
+		{
+			/* look for entry */
+			const ParameterT* nodal_value = node_output->Parameter(NodalOutputNames[i]);
+			if (nodal_value) {
+				int do_write = *nodal_value;
+
+				/* Additional smoothing flags */
+				if (!qUseSimo && do_write == 3) {
+	    			qUseSimo = qNoExtrap = true;
+	    			fNodalOutputCodes[i] = IOBaseT::kAtInc;
+	    		}
+	    		else if (!qNoExtrap && do_write == 2) {
+	    			qNoExtrap = true;
+	    			fNodalOutputCodes[i] = IOBaseT::kAtInc;
+	    		}
+	    		else if (do_write == 1)
+	    			fNodalOutputCodes[i] = IOBaseT::kAtInc;
+			}
+		}
+	
+		/* wave speed sampling direction */
+		if (fNodalOutputCodes[iWaveSpeeds])
+		{
+			/* resolve list choice */
+			ParameterInterfaceT* n_output = NewSub(node_output->Name());
+			const ParameterListT& vec_params = node_output->GetListChoice(*n_output, "wave_direction");
+			delete n_output;
+			
+			/* extract unit vector */
+			VectorParameterT::Extract(vec_params, fNormal);
+			if (fNormal.Length() != NumSD()) ExceptionT::GeneralFail(caller, "expecting normal length %d not %d",
+				NumSD(), fNormal.Length());
+			fNormal.UnitVector();
+		}	
+	}
+
+	/* element output codes */
+	fElementOutputCodes.Dimension(NumElementOutputCodes);
+	fElementOutputCodes = IOBaseT::kAtNever;
+	const ParameterListT* element_output = list.List("solid_element_element_output");
+	if (element_output)
+		for (int i = 0; i < NumElementOutputCodes; i++)
+		{
+			/* look for entry */
+			const ParameterT* element_value = element_output->Parameter(ElementOutputNames[i]);
+			if (element_value) {
+				int do_write = *element_value;
+				if (do_write == 1)
+					fElementOutputCodes[i] = IOBaseT::kAtInc;
+			}
+		}
+
 	/* generate list of material needs */
 	fMaterialNeeds.Dimension(fMaterialList->Length());
 	for (int i = 0; i < fMaterialNeeds.Length(); i++)
@@ -389,126 +438,9 @@ void SolidElementT::ReadMaterialData(ifstreamT& in)
 	}
 }
 
-/* print element group data */
-void SolidElementT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	ContinuumElementT::PrintControlData(out);
-
-	/* control parameters */
-	out << " Mass type code. . . . . . . . . . . . . . . . . = " << fMassType << '\n';
-	out << "    eq." << kNoMass			<< ", no mass matrix\n";
-	out << "    eq." << kConsistentMass	<< ", consistent mass matrix\n";
-	out << "    eq." << kLumpedMass		<< ", lumped mass matrix\n";
-	out << " Strain-displacement option. . . . . . . . . . . = " << fStrainDispOpt << '\n';
-	out << "    eq.0, standard\n";
-	out << "    eq.1, B-bar (mean dilatation)\n";
-}
-
-void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
-{
-	/* allocate nodal output codes */
-	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
-
-	qUseSimo = qNoExtrap = false;
-
-	/* read in at a time to allow comments */
-	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
-	{
-		in >> fNodalOutputCodes[i];
-		
-		/* Additional smoothing flags */
-	    if (!qUseSimo && fNodalOutputCodes[i] == 3)
-	 	{
-	    	qUseSimo = qNoExtrap = true;
-	    }
-	    else if (!qNoExtrap && fNodalOutputCodes[i] == 2)
-	    {
-	    	qNoExtrap = true;
-	    }
-  				
-		/* convert all to "at print increment" */
-		if (fNodalOutputCodes[i] != IOBaseT::kAtNever)
-			fNodalOutputCodes[i] = IOBaseT::kAtInc;
-	
-		if (i == iWaveSpeeds && fNodalOutputCodes[iWaveSpeeds] != IOBaseT::kAtNever)
-		{
-			fNormal.Dimension(NumSD());
-			in >> fNormal;
-			fNormal.UnitVector();
-		}
-	}
-		
-	/* checks */
-	if (fNodalOutputCodes.Min() < IOBaseT::kAtFail ||
-	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
-
-	/* echo */
-	out << " Number of nodal output codes. . . . . . . . . . = " << fNodalOutputCodes.Length() << '\n';
-	out << "    [" << fNodalOutputCodes[iNodalCoord   ] << "]: initial nodal coordinates\n";
-	out << "    [" << fNodalOutputCodes[iNodalDisp    ] << "]: nodal displacements\n";
-	out << "    [" << fNodalOutputCodes[iNodalStress  ] << "]: nodal stresses\n";
-	out << "    [" << fNodalOutputCodes[iPrincipal    ] << "]: nodal principal stresses\n";
-	out << "    [" << fNodalOutputCodes[iEnergyDensity] << "]: nodal strain energy density\n";
-	out << "    [" << fNodalOutputCodes[iWaveSpeeds   ] << "]: wave speeds\n";
-	out << "    [" << fNodalOutputCodes[iMaterialData ] << "]: nodal material output parameters\n";
-	
-	if (fNodalOutputCodes[iWaveSpeeds] == 1)
-	{
-		out << " Wave speed sampling direction:\n";
-		for (int i = 0; i < NumSD(); i++)
-			out << "   N[" << i+1 << "] = " << fNormal[i] << '\n';
-	}
-
-	/* allocate nodal output codes */
-	fElementOutputCodes.Dimension(NumElementOutputCodes);
-	fElementOutputCodes = IOBaseT::kAtNever;
-
-//TEMP - backward compatibility
-	if (StringT::versioncmp(ElementSupport().Version(), "v3.01") < 1)
-	{
-		/* message */
-		cout << "\n SolidElementT::EchoOutputCodes: use input file version newer than v3.01\n" 
-		     <<   "     to enable element output control" << endl;
-		out << "\n SolidElementT::EchoOutputCodes: use input file version newer than v3.01\n" 
-		    <<   "     to enable element output control" << endl;	
-	}
-	else
-	{
-		int num_codes = (StringT::versioncmp(ElementSupport().Version(), "v3.4.1") < 0) ? 5 : 7;
-	
-		/* read in at a time to allow comments */
-		for (int j = 0; j < num_codes; j++)
-		{
-			in >> fElementOutputCodes[j];
-		
-			/* convert all to "at print increment" */
-			if (fElementOutputCodes[j] != IOBaseT::kAtNever)
-				fElementOutputCodes[j] = IOBaseT::kAtInc;
-		}	
-
-		/* defaults */
-		if (fIntegrator->Order() == 0)
-		{
-			fElementOutputCodes[iKineticEnergy] = IOBaseT::kAtNever;
-			fElementOutputCodes[iLinearMomentum] = IOBaseT::kAtNever;
-		}
-
-		/* checks */
-		if (fElementOutputCodes.Min() < IOBaseT::kAtFail ||
-		    fElementOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
-	}
-
-	/* echo */
-	out << " Number of element output codes. . . . . . . . . = " << fElementOutputCodes.Length() << '\n';
-	out << "    [" << fElementOutputCodes[iCentroid      ] << "]: reference centroid\n";
-	out << "    [" << fElementOutputCodes[iMass          ] << "]: ip mass\n";
-	out << "    [" << fElementOutputCodes[iStrainEnergy  ] << "]: strain energy\n";
-	out << "    [" << fElementOutputCodes[iKineticEnergy ] << "]: kinetic energy\n";
-	out << "    [" << fElementOutputCodes[iLinearMomentum] << "]: linear momentum\n";
-	out << "    [" << fElementOutputCodes[iIPStress      ] << "]: ip stresses and strains\n";
-	out << "    [" << fElementOutputCodes[iIPMaterialData] << "]: ip material output parameters\n";
-}
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
 
 /* construct output labels array */
 void SolidElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
@@ -631,7 +563,7 @@ void SolidElementT::SetGlobalShape(void)
 MaterialSupportT* SolidElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
 	/* allocate new */
-	if (!p) p = new SolidMatSupportT(NumSD(), NumDOF(), NumIP());
+	if (!p) p = new SolidMatSupportT(NumDOF(), NumIP());
 
 	/* inherited initializations */
 	ContinuumElementT::NewMaterialSupport(p);
@@ -917,6 +849,7 @@ void SolidElementT::ElementLHSDriver(void)
 	     fabs(constK) < kSmall)) return;
 
 	/* loop over elements */
+	bool axisymmetric = Axisymmetric();
 	Top();
 	while (NextElement())
 		if (CurrentElement().Flag() != kOFF)
@@ -932,7 +865,7 @@ void SolidElementT::ElementLHSDriver(void)
 
 			/* element mass */
 			if (fabs(constMe) > kSmall)
-				FormMass(fMassType, constMe*(fCurrMaterial->Density()));
+				FormMass(fMassType, constMe*(fCurrMaterial->Density()), axisymmetric);
 
 			/* element stiffness */
 			if (fabs(constKe) > kSmall)
@@ -1003,6 +936,7 @@ void SolidElementT::ElementRHSDriver(void)
 	/* override controller */
 	if (fMassType == kNoMass) formMa = 0;
 
+	bool axisymmetric = Axisymmetric();
 	int block_count = 0, block_dex = 0;
 	Top();
 	while (NextElement())
@@ -1040,7 +974,7 @@ void SolidElementT::ElementRHSDriver(void)
 				/* body force contribution */
 				if (formBody) AddBodyForce(fLocAcc);
 		
-				FormMa(fMassType, -constMa*fCurrMaterial->Density(), &fLocAcc, NULL);
+				FormMa(fMassType, -constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL);
 			}
 		
 			/* store incremental heat */
@@ -1242,11 +1176,11 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         /* check that degrees are displacements */
         int interpolant_DOF = InterpolantDOFs();
 
-	bool is_axi = Axisymmetric();
-	double Pi2 = 2.0*acos(-1.0);
-	Top();
-	while (NextElement())
-		if (CurrentElement().Flag() != kOFF)
+		bool is_axi = Axisymmetric();
+		double Pi2 = 2.0*acos(-1.0);
+        Top();
+        while (NextElement())
+        if (CurrentElement().Flag() != kOFF)
         {
 			/* initialize */
 			nodal_space = 0.0;
@@ -1279,13 +1213,13 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
                 const double* w = fShapes->IPWeights();
                 double density = fCurrMaterial->Density();
 
-			/* integrate */
-			dArray2DT Na_X_ip_w;
-			fShapes->TopIP();
-			while (fShapes->NextIP())
-			{
-				/* element integration weight */
-				double ip_w = (*j++)*(*w++);
+                /* integrate */
+                dArray2DT Na_X_ip_w;
+                fShapes->TopIP();
+                while (fShapes->NextIP())
+                {
+                        /* element integration weight */
+                        double ip_w = (*j++)*(*w++);
 				if (is_axi) {
 					fShapes->IPCoords(ip_coords);
 					ip_w *= Pi2*ip_coords[0]; /* radius is the x1 coordinate */

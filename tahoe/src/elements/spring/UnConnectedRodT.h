@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.h,v 1.7 2004-01-05 07:19:56 paklein Exp $ */
+/* $Id: UnConnectedRodT.h,v 1.8 2004-07-15 08:30:17 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #ifndef _UNCONN_ROD_T_H_
@@ -31,9 +31,6 @@ public:
 			
 protected: /* for derived classes only */
 
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
-	 			
 	/* element data */
 	virtual void ReadMaterialData(ifstreamT& in);
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);

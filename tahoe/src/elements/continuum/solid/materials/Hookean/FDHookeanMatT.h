@@ -1,4 +1,4 @@
-/* $Id: FDHookeanMatT.h,v 1.7 2003-01-29 07:34:39 paklein Exp $ */
+/* $Id: FDHookeanMatT.h,v 1.8 2004-07-15 08:26:56 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _FD_HOOKEAN_MAT_H_
 #define _FD_HOOKEAN_MAT_H_
@@ -13,11 +13,11 @@ class FDHookeanMatT: public FSSolidMatT, public HookeanMatT
 {
 public:
 
-	/* constructor */
-	FDHookeanMatT(ifstreamT& in, const FSMatSupportT& support);
+	/** constructor */
+	FDHookeanMatT(void);
 
-	/* initialization */
-	virtual void Initialize(void);
+	/** set the material support or pass NULL to clear */
+	virtual void SetFSMatSupport(const FSMatSupportT* support);
 
 	/** \name spatial description */
 	/*@{*/
@@ -39,6 +39,12 @@ public:
 
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 private:
 

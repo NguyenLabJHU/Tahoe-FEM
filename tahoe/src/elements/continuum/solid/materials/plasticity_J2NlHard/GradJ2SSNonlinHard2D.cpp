@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSNonlinHard2D.cpp,v 1.3 2002-11-14 17:06:29 paklein Exp $ */
+/* $Id: GradJ2SSNonlinHard2D.cpp,v 1.4 2004-07-15 08:29:01 paklein Exp $ */
 #include "GradJ2SSNonlinHard2D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -7,21 +7,13 @@ using namespace Tahoe;
 
 /* constructor */
 GradJ2SSNonlinHard2D::GradJ2SSNonlinHard2D(ifstreamT& in, const SSMatSupportT& support) :
+	ParameterInterfaceT("small_strain_J2_nonlocal_2D"),
   GradJ2SSNonlinHard(in, support),  
-  Material2DT(in, Material2DT::kPlaneStrain),
   fStress2D(2),
   fModulus2D(dSymMatrixT::NumValues(2)),
   fTotalStrain3D(3)
 {
-	/* acccount for thickness */
-	fDensity *= fThickness;
-}
 
-/* initialization */
-void GradJ2SSNonlinHard2D::Initialize(void)
-{
-	/* inherited */
-	GradJ2SSNonlinHard::Initialize();
 }
 
 /* returns elastic strain (3D) */
@@ -35,20 +27,11 @@ const dSymMatrixT& GradJ2SSNonlinHard2D::ElasticStrain(const dSymMatrixT& totals
 	return GradJ2SSNonlinHard::ElasticStrain(fTotalStrain3D, element, ip);
 }
 
-/* print parameters */
-void GradJ2SSNonlinHard2D::Print(ostream& out) const
-{
-	/* inherited */
-	GradJ2SSNonlinHard::Print(out);
-	Material2DT::Print(out);
-}
-
 /* moduli */
 const dMatrixT& GradJ2SSNonlinHard2D::c_ijkl()
 {
 	/* 3D -> 2D */
-        fModulus2D.Rank4ReduceFrom3D(GradJ2SSNonlinHard::c_ijkl());
-	fModulus2D *= fThickness;
+	fModulus2D.Rank4ReduceFrom3D(GradJ2SSNonlinHard::c_ijkl());
 	return fModulus2D;
 }
 
@@ -57,26 +40,16 @@ const dSymMatrixT& GradJ2SSNonlinHard2D::s_ij()
 {
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(GradJ2SSNonlinHard::s_ij());
-	fStress2D *= fThickness;
 	return fStress2D;
 }
 
-/* returns the strain energy density for the specified strain */
-double GradJ2SSNonlinHard2D::StrainEnergyDensity(void)
+/* describe the parameters needed by the interface */
+void GradJ2SSNonlinHard2D::DefineParameters(ParameterListT& list) const
 {
-	return fThickness*GradJ2SSNonlinHard::StrainEnergyDensity();
-}
-
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print name */
-void GradJ2SSNonlinHard2D::PrintName(ostream& out) const
-{
-  // inherited
-  GradJ2SSNonlinHard::PrintName(out);
-
-  // output model name
-  out << "    Plane Strain\n";
+	/* inherited */
+	GradJ2SSNonlinHard::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
 }

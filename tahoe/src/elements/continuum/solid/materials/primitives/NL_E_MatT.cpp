@@ -1,15 +1,12 @@
-/* $Id: NL_E_MatT.cpp,v 1.6 2003-01-29 07:35:08 paklein Exp $ */
+/* $Id: NL_E_MatT.cpp,v 1.7 2004-07-15 08:29:19 paklein Exp $ */
 /* created: paklein (06/13/1997) */
 #include "NL_E_MatT.h"
 
 using namespace Tahoe;
 
 /* constructors */
-NL_E_MatT::NL_E_MatT(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support),
-	fE(NumSD()),
-	fPK2(NumSD()),
-	fModuli(dSymMatrixT::NumValues(NumSD()))
+NL_E_MatT::NL_E_MatT(void):
+	ParameterInterfaceT("large_strain_E_material")
 {
 
 }
@@ -72,4 +69,16 @@ double NL_E_MatT::StrainEnergyDensity(void)
 
 	/* derived class function */
 	return ComputeEnergyDensity(fE);
+}
+
+/* accept parameter list */
+void NL_E_MatT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FSSolidMatT::TakeParameterList(list);
+
+	/* dimension work space */
+	fE.Dimension(NumSD());
+	fPK2.Dimension(NumSD());
+	fModuli.Dimension(dSymMatrixT::NumValues(NumSD()));
 }

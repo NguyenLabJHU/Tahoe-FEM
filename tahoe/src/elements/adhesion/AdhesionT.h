@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.h,v 1.8 2003-08-14 05:49:46 paklein Exp $ */
+/* $Id: AdhesionT.h,v 1.9 2004-07-15 08:25:48 paklein Exp $ */
 #ifndef _ADHESION_T_H_
 #define _ADHESION_T_H_
 
@@ -31,7 +31,6 @@ class AdhesionT: public ElementBaseT
 public:
 
 	/** constructor */
-	AdhesionT(const ElementSupportT& support, const FieldT& field);
 	AdhesionT(const ElementSupportT& support);
 
 	/** destructor */
@@ -42,9 +41,6 @@ public:
 
 	/** element level reconfiguration for the current solution */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
-
-	/** initialization after constructor */
-	virtual void Initialize(void);
 
 	/** return the force exerted on the specified node */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
@@ -75,13 +71,18 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
-
-	/** a flag to allow the penalization of penetration */
-	bool fPenalizePenetration;
-	bool fAllowSameSurface;
 
 	/** surface specification modes */
 	enum SurfaceSpecModeT {kNodesOnFacet = 0,
@@ -97,14 +98,10 @@ protected:
 	virtual void RHSDriver(void);
 	/*@}*/
 
-	/** print element group data */
-	virtual void PrintControlData(ostream& out) const;
-	
 	/** \name initialization steps */
 	/*@{*/
-	/** construct the adhesive surfaces. \note This implementation is
-	 * adapted from ContactT::EchoConnectivityData */
-	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
+	/** construct the adhesive surfaces */
+	void ExtractSurfaces(const ParameterListT& list);
 
 	/** construct class work space */
 	virtual void SetWorkSpace(void);
@@ -114,17 +111,13 @@ protected:
 	 * changed since the last call */
 	bool SetConfiguration(void);
 
-	/** \name surface input methods 
-	 * \note All these methods have been adapted from ContactT. */
+	/** \name surface input methods */
 	/*@{*/
-	/** specify facets as lists of nodes */
-	void InputNodesOnFacet(ifstreamT& in, GeometryT::CodeT& geom, iArray2DT& facets);
-
 	/** specify facets as side sets */
-	void InputSideSets(ifstreamT& in, GeometryT::CodeT& geom, iArray2DT& facets);
+	void InputSideSets(const ParameterListT& list, GeometryT::CodeT& geom, iArray2DT& facets);
 
 	/** specify facets automatically from body boundaries */
-	void InputBodyBoundary(ifstreamT& in, ArrayT<GeometryT::CodeT>& geom,
+	void InputBodyBoundary(const ParameterListT& list, ArrayT<GeometryT::CodeT>& geom,
 		ArrayT<iArray2DT>& surfaces);
 	/*@}*/
 
@@ -132,6 +125,12 @@ protected:
 	int NumIP(GeometryT::CodeT code) const;
 
 protected:
+
+	/*@{*/
+	/** a flag to allow the penalization of penetration */
+	bool fPenalizePenetration;
+	bool fAllowSameSurface;
+	/*@}*/
 
 	/** \name surface data */
 	/*@{*/

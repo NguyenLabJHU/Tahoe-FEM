@@ -1,4 +1,4 @@
-/* $Id: ElementListT.h,v 1.9 2003-12-28 08:22:54 paklein Exp $ */
+/* $Id: ElementListT.h,v 1.10 2004-07-15 08:25:44 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #ifndef _ELEMENTLIST_T_H_
 #define _ELEMENTLIST_T_H_
@@ -34,9 +34,6 @@ public:
 	/** destructor */
 	~ElementListT(void);
 
-	/** echo data from the I/O streams */
-	void EchoElementData(ifstreamT& in, ostream& out);
-	
 	/** returns true of ALL element groups have interpolant DOF's */
 	bool InterpolantDOFs(void) const;
 
@@ -55,12 +52,22 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const;
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list.
+	 * \param list input parameter list, which should be validated using ParameterInterfaceT::ValidateParameterList
+	 *        to ensure the list conforms to the description defined by the interface. */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+private:
+
+	/** return a pointer to a new element group or NULL if the request cannot be completed */
+	ElementBaseT* NewElement(const StringT& name) const;
 
 private:
 

@@ -1,32 +1,32 @@
-/* $Id: EAMFCC3DSym.cpp,v 1.3 2002-10-20 22:48:39 paklein Exp $ */
-/* created: paklein (12/06/1996)                                          */
-/* EAMFCC3DSym.cpp                                                        */
-
+/* $Id: EAMFCC3DSym.cpp,v 1.4 2004-07-15 08:26:47 paklein Exp $ */
+/* created: paklein (12/06/1996) */
 #include "EAMFCC3DSym.h"
 
-/* constructor */
+/* bond parameters */
+const int kEAMFCC3DSymNumBonds = 27;
+const int kEAMFCC3DNumLatticeDim =  3;
+
+//TEMP
+#pragma message("rename me to indicate this is a Cauchy-Born solver")
 
 using namespace Tahoe;
 
-EAMFCC3DSym::EAMFCC3DSym(ifstreamT& in, int EAMcode, int numspatialdim, int numbonds):
-	EAMFCC3D(in, EAMcode, numspatialdim, numbonds)
-{
-
-}
-
-EAMFCC3DSym::EAMFCC3DSym(ifstreamT& in, const dMatrixT& Q, int EAMcode, int numspatialdim,
-	int numbonds):
-	EAMFCC3D(in, Q, EAMcode, numspatialdim, numbonds)
-{
-
+/* constructor */
+EAMFCC3DSym::EAMFCC3DSym(void) {
+	SetName("FCC_EAM_Cauchy-Born");
 }
 
 /**********************************************************************
-* Protected
-**********************************************************************/
+ * Protected
+ **********************************************************************/
 	
 void EAMFCC3DSym::LoadBondTable(void)
 {
+	/* dimension work space */
+	fBondCounts.Dimension(kEAMFCC3DSymNumBonds);
+	fDefLength.Dimension(kEAMFCC3DSymNumBonds);
+	fBonds.Dimension(kEAMFCC3DSymNumBonds, kEAMFCC3DNumLatticeDim);
+
 	/* all bonds appear twice */
 	fBondCounts = 2;
 	
@@ -75,14 +75,10 @@ void EAMFCC3DSym::LoadBondTable(void)
 				/* 26 */	{-0.5, 0.5, 1.0},
 				/* 27 */	{-0.5,-0.5, 1.0}
 				     		};
-
-	/* dimension check */				     		
-	if (fBonds.MajorDim() != fNumBonds ||
-	    fBonds.MinorDim() != kEAMFCC3DNumLatticeDim) throw ExceptionT::kGeneralFail;
 	
 	/* copy into reference table */
-	for (int i = 0; i < fNumBonds; i++)
-		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
+	for (int i = 0; i < kEAMFCC3DSymNumBonds; i++)
+		for (int j = 0; j < 3; j++)
 			fBonds(i,j) = bonddata[i][j];
 			
 	/* scale to correct lattice parameter */				     		

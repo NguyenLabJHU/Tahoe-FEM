@@ -1,4 +1,4 @@
-/* $Id: HyperEVP3D.h,v 1.6 2003-01-29 07:35:06 paklein Exp $ */
+/* $Id: HyperEVP3D.h,v 1.7 2004-07-15 08:29:14 paklein Exp $ */
 #ifndef _HYPER_EVP_3D_H_
 #define _HYPER_EVP_3D_H_
 
@@ -48,10 +48,6 @@ class HyperEVP3D : public EVPFDBaseT
   virtual int NumOutputVariables() const;
   virtual void OutputLabels(ArrayT<StringT>& labels) const;
   virtual void ComputeOutput(dArrayT& output);
-
-  // print data and model name
-  virtual void Print(ostream& out) const;
-  virtual void PrintName(ostream& out) const;
 
   /* form of tangent matrix */
   virtual GlobalT::SystemTypeT TangentType(void) const;

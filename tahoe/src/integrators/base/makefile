@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2003-03-04 07:38:05 paklein Exp $
+# $Id: makefile,v 1.8 2004-07-15 08:30:33 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,6 +21,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	IntegratorT.o \
+	IntegratorT_factory.o \
 	eIntegratorT.o \
 	nIntegratorT.o
 
@@ -43,6 +44,7 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	IntegratorT.cpp \
+	IntegratorT_factory.cpp \
 	eIntegratorT.cpp \
 	nIntegratorT.cpp
 

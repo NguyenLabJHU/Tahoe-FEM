@@ -8,7 +8,7 @@
 #include <iostream.h>
 #include "dMatrixT.h"
 #include "dArrayT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 
 // base class
@@ -73,19 +73,6 @@ IsotropicCrystalElast::~IsotropicCrystalElast() { }
 
 bool IsotropicCrystalElast::IsIsotropic() const { return true; }
 
-void IsotropicCrystalElast::PrintName(ostream& out) const
-{
-  // print model name
-  out << "    Isotropic crystal elasticity\n";
-}
-
-void IsotropicCrystalElast::Print(ostream& out) const
-{
-  // print input values of crystal elasticity constants
-  out << "       Young's modulus . . . . . . . . . . . . . = " << fYoung << '\n';
-  out << "       Poisson's ratio . . . . . . . . . . . . . = " << fPoisson << '\n';
-}
-
 //derived class: CubicCrystalElast
 CubicCrystalElast::CubicCrystalElast(PolyCrystalMatT& poly)
 {
@@ -102,17 +89,3 @@ CubicCrystalElast::CubicCrystalElast(PolyCrystalMatT& poly)
 }  
 
 CubicCrystalElast::~CubicCrystalElast() { }
-
-void CubicCrystalElast::PrintName(ostream& out) const
-{
-  // print model name
-  out << "    Cubic crystal elasticity\n";
-}
-
-void CubicCrystalElast::Print(ostream& out) const
-{
-  // print input values of crystal elasticity constants
-  out << "       fC11. . . . . . . . . . . . . . . . . . . = " << fC11 << '\n';
-  out << "       fC12. . . . . . . . . . . . . . . . . . . = " << fC12 << '\n';
-  out << "       fC44. . . . . . . . . . . . . . . . . . . = " << fC44 << '\n';
-}

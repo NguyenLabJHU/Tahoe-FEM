@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.cpp,v 1.12 2004-02-04 07:35:45 paklein Exp $ */
+/* $Id: SimoQ1P0.cpp,v 1.13 2004-07-15 08:26:27 paklein Exp $ */
 #include "SimoQ1P0.h"
 
 #include "ShapeFunctionT.h"
@@ -8,67 +8,10 @@
 using namespace Tahoe;
 
 /* constructor */
-SimoQ1P0::SimoQ1P0(const ElementSupportT& support, const FieldT& field):
-	UpdatedLagrangianT(support, field),
-	fF_tmp(NumSD())
+SimoQ1P0::SimoQ1P0(const ElementSupportT& support):
+	UpdatedLagrangianT(support)
 {
-
-}
-
-/* data initialization */
-void SimoQ1P0::Initialize(void)
-{
-	const char caller[] = "SimoQ1P0::Initialize";
-
-	/* inherited */
-	UpdatedLagrangianT::Initialize();
-
-	/* check geometry code and number of element nodes -> Q1 */
-	if (GeometryCode() == GeometryT::kQuadrilateral) {
-		if (NumElementNodes() != 4) 
-			ExceptionT::BadInputValue(caller, "expecting 4 node quad: %d", NumElementNodes());
-	}
-	else if (GeometryCode() == GeometryT::kHexahedron) {
-		if (NumElementNodes() != 8) 
-			ExceptionT::BadInputValue(caller, "expecting 8 node hex: %d", NumElementNodes());
-	}
-	else
-		ExceptionT::BadInputValue(caller, "expecting hex or quad geometry: %d", GeometryCode());
-	
-	/* need to store last deformed element volume */
-	fElementVolume.Dimension(NumElements());	
-	fElementVolume = 0.0;
-	fElementVolume_last.Dimension(NumElements());
-	fElementVolume_last = 0.0;
-	
-	/* element pressure */
-	fPressure.Dimension(NumElements());
-	fPressure = 0.0;
-	
-	/* determinant of the deformation gradient */
-	fJacobian.Dimension(NumIP());
-	fJacobian = 1.0;
-	
-	/* dimension work space */
-	fMeanGradient.Dimension(NumSD(), NumElementNodes());
-	fNEEmat.Dimension(fLHS);
-	fdiff_b.Dimension(fGradNa);
-	fb_bar.Dimension(fGradNa);
-	fb_sig.Dimension(fGradNa);
-
-	/* need to initialize previous volume */
-	Top();
-	while (NextElement())
-	{
-		/* inherited - computes gradients and standard 
-		 * deformation gradients */
-		UpdatedLagrangianT::SetGlobalShape();
-
-		/* compute mean of shape function gradients */
-		double H; /* reference volume */
-		double& v = fElementVolume_last[CurrElementNumber()];
-		SetMeanGradient(fMeanGradient, H, v);
-	}
+	SetName("updated_lagrangian_Q1P0");
 }
 
 /* finalize current step - step is solved */
@@ -114,6 +57,63 @@ void SimoQ1P0::WriteRestart(ostream& out) const
 	
 	/* read restart data */
 	out << fElementVolume << '\n';
+}
+
+/* accept parameter list */
+void SimoQ1P0::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "SimoQ1P0::TakeParameterList";
+
+	/* inherited */
+	UpdatedLagrangianT::TakeParameterList(list);
+
+	/* check geometry code and number of element nodes -> Q1 */
+	if (GeometryCode() == GeometryT::kQuadrilateral) {
+		if (NumElementNodes() != 4) 
+			ExceptionT::BadInputValue(caller, "expecting 4 node quad: %d", NumElementNodes());
+	}
+	else if (GeometryCode() == GeometryT::kHexahedron) {
+		if (NumElementNodes() != 8) 
+			ExceptionT::BadInputValue(caller, "expecting 8 node hex: %d", NumElementNodes());
+	}
+	else
+		ExceptionT::BadInputValue(caller, "expecting hex or quad geometry: %d", GeometryCode());
+	
+	/* need to store last deformed element volume */
+	fElementVolume.Dimension(NumElements());	
+	fElementVolume = 0.0;
+	fElementVolume_last.Dimension(NumElements());
+	fElementVolume_last = 0.0;
+	
+	/* element pressure */
+	fPressure.Dimension(NumElements());
+	fPressure = 0.0;
+	
+	/* determinant of the deformation gradient */
+	fJacobian.Dimension(NumIP());
+	fJacobian = 1.0;
+	
+	/* dimension work space */
+	fMeanGradient.Dimension(NumSD(), NumElementNodes());
+	fNEEmat.Dimension(fLHS);
+	fdiff_b.Dimension(fGradNa);
+	fb_bar.Dimension(fGradNa);
+	fb_sig.Dimension(fGradNa);
+	fF_tmp.Dimension(NumSD());
+
+	/* need to initialize previous volume */
+	Top();
+	while (NextElement())
+	{
+		/* inherited - computes gradients and standard 
+		 * deformation gradients */
+		UpdatedLagrangianT::SetGlobalShape();
+
+		/* compute mean of shape function gradients */
+		double H; /* reference volume */
+		double& v = fElementVolume_last[CurrElementNumber()];
+		SetMeanGradient(fMeanGradient, H, v);
+	}
 }
 
 /***********************************************************************
@@ -299,17 +299,6 @@ void SimoQ1P0::FormKd(double constK)
 	
 	/* volume averaged */
 	p_bar /= fElementVolume[CurrElementNumber()];
-}
-
-/* read materials data */
-void SimoQ1P0::ReadMaterialData(ifstreamT& in)
-{
-	/* inherited */
-	UpdatedLagrangianT::ReadMaterialData(in);
-
-	/* make sure 2D materials are plane strain */
-	if (StructuralMaterialList().HasPlaneStress()) 
-		ExceptionT::BadInputValue("SimoQ1P0::ReadMaterialData", "2D materials must be plane strain");
 }
 
 /***********************************************************************

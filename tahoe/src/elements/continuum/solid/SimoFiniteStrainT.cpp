@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.29 2004-06-17 07:40:07 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.30 2004-07-15 08:26:27 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -6,7 +6,6 @@
 #include <iomanip.h>
 
 #include "ifstreamT.h"
-#include "toolboxConstants.h"
 #include "SolidMaterialT.h"
 #include "MaterialListT.h" //NOTE - only needed for check in Initialize?
 #include "SimoShapeFunctionT.h"
@@ -17,7 +16,7 @@ using namespace Tahoe;
 
 /* constructor */
 SimoFiniteStrainT::SimoFiniteStrainT(const ElementSupportT& support, const FieldT& field):
-	FiniteStrainT(support, field),
+	FiniteStrainT(support),
 	fCurrElementModes(LocalArrayT::kUnspecified),
 	fCurrElementModes_last(LocalArrayT::kUnspecified),
 	fEnhancedShapes(NULL),
@@ -25,6 +24,8 @@ SimoFiniteStrainT::SimoFiniteStrainT(const ElementSupportT& support, const Field
 	fTempMat1(NumSD()),
 	fTempMat2(NumSD())
 {
+ExceptionT::GeneralFail("SimoFiniteStrainT::SimoFiniteStrainT", "out of date");
+#if 0
 	/* read parameters */
 	ifstreamT& in = ElementSupport().Input();
 
@@ -80,6 +81,7 @@ SimoFiniteStrainT::SimoFiniteStrainT(const ElementSupportT& support, const Field
 	else if (NumSD() == 3)
 		fNumModeShapes = (fIncompressibleMode) ? 4 : 3;
 	else throw ExceptionT::kGeneralFail;
+#endif
 }
 
 /* destructor */
@@ -94,7 +96,7 @@ SimoFiniteStrainT::~SimoFiniteStrainT(void)
 void SimoFiniteStrainT::Initialize(void)
 {
 	/* inherited */
-	FiniteStrainT::Initialize();
+//	FiniteStrainT::Initialize();
 
 	/* dimensions */
 	int nip = NumIP();
@@ -426,6 +428,7 @@ bool SimoFiniteStrainT::NextElement(void)
 	return next;
 }
 
+#if 0
 /* write element parameter to out */
 void SimoFiniteStrainT::PrintControlData(ostream& out) const
 {
@@ -448,6 +451,7 @@ void SimoFiniteStrainT::PrintControlData(ostream& out) const
 		out << " Maximum number of local sub-iterations. . . . . = " << fRelTol << '\n';
 	}
 }
+#endif
 
 /* construct shape function */
 void SimoFiniteStrainT::SetShape(void)

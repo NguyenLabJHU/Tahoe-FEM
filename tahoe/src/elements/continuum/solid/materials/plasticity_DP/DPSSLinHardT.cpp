@@ -1,11 +1,5 @@
-/* $Id: DPSSLinHardT.cpp,v 1.17 2004-03-20 23:38:20 raregue Exp $ */
-/* created: myip (06/01/1999)                                        */
-/*
- * Interface for Drucker-Prager, nonassociative, small strain,
- * pressure-dependent plasticity model with linear isotropic hardening
- *
- */
-
+/* $Id: DPSSLinHardT.cpp,v 1.18 2004-07-15 08:28:48 paklein Exp $ */
+/* created: myip (06/01/1999) */
 #include "DPSSLinHardT.h"
 #include <iostream.h>
 #include <math.h>
@@ -14,10 +8,9 @@
 #include "ElementCardT.h"
 #include "StringT.h"
 
-/* class constants */
-
 using namespace Tahoe;
 
+/* class constants */
 const int    kNumInternal = 5; // number of internal state variables
 const double sqrt23       = sqrt(2.0/3.0);
 const double sqrt32       = sqrt(3.0/2.0);
@@ -25,25 +18,14 @@ const double kYieldTol    = 1.0e-10;
 const int    kNSD         = 3;
 
 /* constructor */
-DPSSLinHardT::DPSSLinHardT(ifstreamT& in, int num_ip, double mu, double lambda):
-	DPPrimitiveT(in),
+DPSSLinHardT::DPSSLinHardT(int num_ip, double mu, double lambda):
 	fNumIP(num_ip),
 	fmu(mu),
 	flambda(lambda),
 	fkappa(flambda + (2.0/3.0*fmu)),
-	fX_H(3.0*(fmu+ffriction*fdilation*fkappa) + fH_prime),
-	fElasticStrain(kNSD),
-	fStressCorr(kNSD),
-	fModuliCorr(dSymMatrixT::NumValues(kNSD)),
-	fDevStress(kNSD),
-	fMeanStress(0.0),
-	fDevStrain(kNSD), 
-	fTensorTemp(dSymMatrixT::NumValues(kNSD)),
-	IdentityTensor2(kNSD),
-	One(kNSD)
+	fMeanStress(0.0)
 {
-  /* initialize constant tensor */
-  One.Identity();
+	SetName("DP_SS_linear_hardening");
 }
 
 /* returns elastic strain */
@@ -258,17 +240,32 @@ void DPSSLinHardT::AllocateElement(ElementCardT& element)
 	element.DoubleData()  = 0.0;  // initialize all double types to 0.0
 }
 
+/* accept parameter list */
+void DPSSLinHardT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	DPPrimitiveT::TakeParameterList(list);
+
+	/* dimension work space */
+	fElasticStrain.Dimension(kNSD);
+	fStressCorr.Dimension(kNSD);
+	fModuliCorr.Dimension(dSymMatrixT::NumValues(kNSD));
+	fDevStress.Dimension(kNSD);
+	fDevStrain.Dimension(kNSD); 
+	fTensorTemp.Dimension(dSymMatrixT::NumValues(kNSD));
+	IdentityTensor2.Dimension(kNSD);
+	One.Dimension(kNSD);
+
+	/* constant */
+	fX_H = 3.0*(fmu+ffriction*fdilation*fkappa) + fH_prime;
+	
+	/* initialize constant tensor */
+	One.Identity();
+}
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-void DPSSLinHardT::PrintName(ostream& out) const
-{
-	/* inherited */
-	DPPrimitiveT::PrintName(out);
-
-	out << "    Small Strain\n";
-}
 
 /* element level data */
 void DPSSLinHardT::Update(ElementCardT& element)

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.23 2004-01-05 07:12:36 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.24 2004-07-15 08:31:10 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -55,10 +55,6 @@ public:
 	/** destructor */
 	virtual ~NodeManagerT(void);
 
-	/** initialize data. Called immediately after constructor to allow
-	 * use of virtual function in the initialization process */
-	virtual void Initialize(void);
-
 	/** \name basic MP info */
 	/*@{*/
 	int Rank(void) const;
@@ -83,7 +79,7 @@ public:
 	
 	/** the number of fields in the given group */
 	int NumFields(int group) const;
-	
+
 	/** return a const pointer to the field with the specified name. returns NULL
 	 * if a field with the given name is not found. */
 	const FieldT* Field(const char* name) const;
@@ -172,6 +168,9 @@ public:
 	 * the last time step */
 	virtual GlobalT::RelaxCodeT RelaxSystem(int group);
 
+	/** set the time step */
+	void SetTimeStep(double dt);
+
 	/** Set to initial conditions */
 	virtual void InitialCondition(void);
 	
@@ -221,9 +220,6 @@ public:
 	/** register the local coordinate array with its source */
 	void RegisterCoordinates(LocalArrayT& array) const;
 	
-	/** the local node to home processor map */
-	const ArrayT<int>* ProcessorMap(void) const;
-	
 	/** the communications manager */
 	CommManagerT& CommManager(void) const;
 
@@ -242,14 +238,6 @@ public:
 	 * discarded. Additional nodes added to all arrays is not initialized. */
 	void ResizeNodes(int num_nodes);
 	/*@}*/
-
-#if 0
-	/** duplicate nodes.
-	 * \param nodes list of nodes to duplicate
-	 * \param new_node_tags returns with list of node numbers for the newly 
-	 * created nodes. must dimensioned before call. */
-	virtual void DuplicateNodes(const iArrayT& nodes, iArrayT& new_node_tags);
-#endif
 
 	/** return a pointer to the specified schedule. The schedule
 	 * number is passed to the FEManagerT for resolution. */
@@ -278,7 +266,7 @@ public:
 	/** \name construct BC controllers */
 	/*@{*/
 	virtual KBC_ControllerT* NewKBC_Controller(FieldT& field, int code);
-	virtual FBC_ControllerT* NewFBC_Controller(FieldT& field, int code);
+	virtual FBC_ControllerT* NewFBC_Controller(int code);
 	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */
@@ -287,16 +275,17 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
 
 	/** \name steps of NodeManagerT::Initialize */
 	/*@{*/
-	virtual void EchoCoordinates(ifstreamT& in, ostream& out);
-	virtual void EchoFields(ifstreamT& in, ostream& out);
-	virtual void EchoHistoryNodes(ifstreamT& in, ostream &out);
+	void SetCoordinates(void);
 	/*@}*/
 
 	/** simple output function */
@@ -314,15 +303,6 @@ private:
 
 	/** write nodal history data. Called by NodeManagerT:WriteOutput */
 	virtual void WriteNodalHistory(void);
-
-	/** \name steps of NodeManagerT::EchoFields */
-	/*@{*/
-	void EchoInitialConditions(FieldT& field, ifstreamT& in, ostream &out);
-	void EchoKinematicBC(FieldT& field, ifstreamT& in, ostream &out);
-	void EchoForceBC(FieldT& field, ifstreamT& in, ostream& out);
-	void EchoKinematicBCControllers(FieldT& field, ifstreamT& in, ostream& out);
-	void EchoForceBCControllers(FieldT& field, ifstreamT& in, ostream& out);
-	/*@}*/
 
 	/** \name not allowed */
 	/*@{*/

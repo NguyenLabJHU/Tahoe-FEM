@@ -1,8 +1,9 @@
-/* $Id: MultiManagerT.cpp,v 1.11 2004-06-26 18:38:09 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.12 2004-07-15 08:31:03 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
 
+#include "ifstreamT.h"
 #include "SolverT.h"
 #include "DiagonalMatrixT.h"
 #include "FEManagerT_bridging.h"
@@ -10,14 +11,14 @@
 #include "OutputSetT.h"
 #include "TimeManagerT.h"
 #include "ParticlePairT.h"
-#include "ifstreamT.h"
+#include "FieldT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-MultiManagerT::MultiManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
+MultiManagerT::MultiManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm,
 	FEManagerT_bridging* fine, FEManagerT_bridging* coarse):
-	FEManagerT(input, output, comm, fArgv),
+	FEManagerT(input_file, output, comm, fArgv),
 	fFine(fine),
 	fCoarse(coarse),
 	fDivertOutput(false),
@@ -57,7 +58,8 @@ MultiManagerT::~MultiManagerT(void)
 void MultiManagerT::Initialize(InitCodeT)
 {
 	const char caller[] = "MultiManagerT::Initialize";
-
+ExceptionT::GeneralFail(caller, "out of date");
+#if 0
 	/* state */
 	fStatus = GlobalT::kInitialization;
 
@@ -161,6 +163,7 @@ if (1) {
 	out.flush();
 	out.precision(prec);
 }
+#endif
 #endif
 }
 

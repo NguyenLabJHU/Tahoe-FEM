@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.cpp,v 1.9 2004-06-17 07:13:39 paklein Exp $ */
+/* $Id: Contact2DT.cpp,v 1.10 2004-07-15 08:26:08 paklein Exp $ */
 /* created: paklein (05/26/1999) */
 #include "Contact2DT.h"
 
@@ -18,24 +18,23 @@ const int kMaxNumGrid    = 75;
 using namespace Tahoe;
 
 /* constructor */
-Contact2DT::Contact2DT(const ElementSupportT& support, const FieldT& field):
-	ContactT(support, field, kNumFacetNodes),
+Contact2DT::Contact2DT(const ElementSupportT& support):
+	ContactT(support, kNumFacetNodes),
 	fGrid2D(NULL),
-	fv1(NumSD()),
-	fv2(NumSD())
+	fv1(2),
+	fv2(2)
 {
-	/* check base class initializations */
-	if (NumSD() != 2) throw ExceptionT::kGeneralFail;
+	SetName("contact_2D");
 }
 
 /* destructor */
 Contact2DT::~Contact2DT(void) {	delete fGrid2D; }
 
 /* allocates space and reads connectivity data */
-void Contact2DT::Initialize(void)
+void Contact2DT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	ContactT::Initialize();
+	ContactT::TakeParameterList(list);
 	
 	/* dimension */
 	int neq = NumElementNodes()*NumDOF();
@@ -45,8 +44,8 @@ void Contact2DT::Initialize(void)
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* generate contact element data */
 bool Contact2DT::SetActiveInteractions(void)

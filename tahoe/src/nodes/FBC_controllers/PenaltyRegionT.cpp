@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.16 2004-06-17 07:41:53 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.17 2004-07-15 08:31:15 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -7,167 +7,32 @@
 #include <iomanip.h>
 #include <ctype.h>
 
-#include "toolboxConstants.h"
+#include "ofstreamT.h"
 #include "GlobalT.h"
-#include "FEManagerT.h"
+#include "FieldT.h"
 #include "ModelManagerT.h"
 #include "CommManagerT.h"
-#include "ifstreamT.h"
+
 #include "ScheduleT.h"
 #include "eIntegratorT.h"
 #include "IOBaseT.h"
 #include "OutputSetT.h"
 #include "CommunicatorT.h"
 
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
+#include "FieldSupportT.h"
+
 using namespace Tahoe;
 
 const double Pi = acos(-1.0);
 
-/* constructor */
-PenaltyRegionT::PenaltyRegionT(FEManagerT& fe_manager,
-	int group,
-	const iArray2DT& eqnos,
-	const dArray2DT& coords,
-	const dArray2DT& disp,
-	const dArray2DT* vels):
-	FBC_ControllerT(fe_manager, group),
-	
-	/* references to NodeManagerT data */
-	rEqnos(eqnos),
-	rCoords(coords),
-	rDisp(disp),
-	pVels(vels),
-	
-	/* wall parameters */
-	fx0(rCoords.MinorDim()),
-	fv0(rCoords.MinorDim()),
+PenaltyRegionT::PenaltyRegionT(void):
 	fMass(0.0),
 	fLTf(NULL),
-
-	/* state variables */
-	fx(rCoords.MinorDim()),
-	fv(rCoords.MinorDim()),
-	fxlast(rCoords.MinorDim()),
-	fvlast(rCoords.MinorDim()),
 	fOutputID(-1)
 {
 
-}
-
-/* input processing */
-void PenaltyRegionT::EchoData(ifstreamT& in, ostream &out)
-{
-	/* echo parameters */
-	in >> fx0;
-	in >> fv0;
-	in >> fk;
-	in >> fSlow;
-
-	/* motion control */
-	int numLTf;
-	if (fSlow == kSchedule)
-	{
-		in >> numLTf;
-		numLTf--;
-		fLTf = fFEManager.Schedule(numLTf);
-	}
-	else if (fSlow == kImpulse)
-		in >> fMass;
-
-	out << "\n P e n a l t y   R e g i o n   P a r a m e t e r s :\n\n";
-	out << " Initial position. . . . . . . . . . . . . . . . =\n" << fx0 << '\n';
-	out << " Initial velocity. . . . . . . . . . . . . . . . =\n" << fv0 << '\n';
-	out << " Penalty stiffness . . . . . . . . . . . . . . . = " << fk << '\n';
-	out << " Momentum option . . . . . . . . . . . . . . . . = " << fSlow << '\n';
-	out << "    eq. " << kConstantVelocity << ", constant velocity\n";
-	out << "    eq. " << kImpulse          << ", slow with contact impulse\n";
-	out << "    eq. " << kSchedule         << ", velocity load time function\n";
-	if (fSlow == kSchedule)
-		out << " Velocity load time function . . . . . . . . . . = " << numLTf << endl;
-	else if (fSlow == kImpulse)
-		out << " Mass. . . . . . . . . . . . . . . . . . . . . . = " << fMass << '\n';
-
-	/* checks */
-	if (fk <= 0.0) throw ExceptionT::kBadInputValue;
-	if (fSlow != kImpulse && fSlow != kConstantVelocity && fSlow != kSchedule) throw ExceptionT::kBadInputValue;
-	if (fSlow == kImpulse && fMass <= 0.0) throw ExceptionT::kBadInputValue;
-		
-	/* read contact nodes */
-	ModelManagerT* model = fFEManager.ModelManager ();
-
-	/* read node set indexes */
-	ArrayT<StringT> ns_ID;
-	model->NodeSetList (in, ns_ID);
-
-	if (ns_ID.Length() > 0)
-	  {
-	    model->ManyNodeSets (ns_ID, fContactNodes);
-	    fNumContactNodes = fContactNodes.Length();
-	  }
-	else
-	  fNumContactNodes = 0;
-	
-	/* remove "external" nodes */
-	CommManagerT* comm = fFEManager.CommManager();
-	const ArrayT<int>* p_map = comm->ProcessorMap();
-	if (fNumContactNodes > 0 && p_map)
-	{
-		/* wrap it */
-		iArrayT processor;
-		processor.Alias(*p_map);
-	
-		/* count processor nodes */
-		int rank = comm->Rank();
-		int num_local_nodes = 0;
-		for (int i = 0; i < fNumContactNodes; i++)
-			if (processor[fContactNodes[i]] == rank)
-				num_local_nodes++;
-		
-		/* remove off-processor nodes */
-		if (num_local_nodes != fNumContactNodes)
-		{
-			/* report */
-			out << " Number of external contact nodes (removed). . . = "
-			    << fNumContactNodes - num_local_nodes << '\n';
-
-			/* collect processor nodes */
-			iArrayT nodes_temp(num_local_nodes);
-			int index = 0;
-			for (int i = 0; i < fNumContactNodes; i++)
-				if (processor[fContactNodes[i]] == rank)
-					nodes_temp[index++] = fContactNodes[i];
-		
-			/* reset values */
-			fContactNodes.Swap(nodes_temp);
-			fNumContactNodes = fContactNodes.Length();
-		}
-	}
-	
-	/* write contact nodes */
-	out << " Number of contact nodes . . . . . . . . . . . . = "
-	    << fNumContactNodes << endl;	
-	if (fFEManager.PrintInput()) {
-		fContactNodes++;
-		out << fContactNodes.wrap(6) << '\n';
-		fContactNodes--;				
-	}	
-}
-
-/* initialize data */
-void PenaltyRegionT::Initialize(void)
-{
-	/* allocate memory for equation numbers */
-	int numDOF = rEqnos.MinorDim();
-	fContactEqnos.Dimension(fNumContactNodes*numDOF);
-	
-	/* allocate memory for force vector */
-	fContactForce2D.Dimension(fNumContactNodes,numDOF);
-	fContactForce.Set(fNumContactNodes*numDOF, fContactForce2D.Pointer());
-	fContactForce2D = 0.0; // will be generate impulse at ApplyPreSolve
-
-	/* allocate space to store gaps (for output) */
-	fGap.Dimension(fNumContactNodes);
-	fGap = 0.0;
 }
 
 /* form of tangent matrix */
@@ -187,12 +52,11 @@ void PenaltyRegionT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	 * since contact nodes only act on self */
 
 	/* collect contact equation numbers */
-	iArray2DT eqtemp(fContactNodes.Length(),
-	                 rEqnos.MinorDim(),
-	                 fContactEqnos.Pointer()); //alias to fContactEqnos
+	const iArray2DT& eqnos = Field().Equations();
+	iArray2DT eqtemp(fContactNodes.Length(), eqnos.MinorDim(), fContactEqnos.Pointer());
 	
 	/* set current equation number */
-	eqtemp.RowCollect(fContactNodes, rEqnos);
+	eqtemp.RowCollect(fContactNodes, eqnos);
 }
 
 void PenaltyRegionT::InitialCondition(void)
@@ -239,21 +103,24 @@ void PenaltyRegionT::ApplyRHS(void)
 	ComputeContactForce(constKd);
 
 	/* assemble */
-	fFEManager.AssembleRHS(fGroup, fContactForce, fContactEqnos);
+	FieldSupport().AssembleRHS(fGroup, fContactForce, fContactEqnos);
 }
 
 /* apply kinematic boundary conditions */
 void PenaltyRegionT::InitStep(void)
 {
+	/* the time step */
+	double time_step = FieldSupport().TimeStep();
+
 	/* compute impulse acting on region */
-	if (fSlow == 1)
-		for (int i = 0; i < rCoords.MinorDim(); i++)
-			fv[i] -= fFEManager.TimeStep()*fContactForce2D.ColumnSum(i)/fMass;
-	else if (fSlow == 2)
+	if (fSlow == kImpulse)
+		for (int i = 0; i < fContactForce2D.MinorDim(); i++)
+			fv[i] -= time_step*fContactForce2D.ColumnSum(i)/fMass;
+	else if (fSlow == kSchedule)
 		fv.SetToScaled(fLTf->Value(), fv0);
 	
 	/* compute new position */
-	fx.AddScaled(fFEManager.TimeStep(), fv);
+	fx.AddScaled(time_step, fv);
 }
 
 /* finalize step */
@@ -279,7 +146,7 @@ void PenaltyRegionT::RegisterOutput(void)
 	fContactNodes2D.Alias(fContactNodes.Length(), 1, fContactNodes.Pointer());
 	
 	/* output labels */
-	int ndof = rEqnos.MinorDim();
+	int ndof = Field().NumDOF();
 	int num_output = ndof + /* displacements */
 	                 ndof + /* force */
 	                 1;     /* penetration depth */
@@ -295,7 +162,7 @@ void PenaltyRegionT::RegisterOutput(void)
 	
 	/* register output */
 	OutputSetT output_set(GeometryT::kPoint, fContactNodes2D, n_labels);
-	fOutputID = fFEManager.RegisterOutput(output_set);
+	fOutputID = FieldSupport().RegisterOutput(output_set);
 }
 
 /* writing results */
@@ -304,7 +171,7 @@ void PenaltyRegionT::WriteOutput(ostream& out) const
 	int d_width = out.precision() + kDoubleExtra;
 
 	/* mp support */
-	CommunicatorT& comm = fFEManager.Communicator();
+	const CommunicatorT& comm = FieldSupport().Communicator();
 
 	/* maximum penetration */
 	double h_max = 0.0;
@@ -321,7 +188,7 @@ void PenaltyRegionT::WriteOutput(ostream& out) const
 	
 	/* compute contact force */
 	dArrayT loc_sum(fContactForce2D.MinorDim());
-	for (int i = 0; i < rCoords.MinorDim(); i++)
+	for (int i = 0; i < fContactForce2D.MinorDim(); i++)
 		loc_sum[i] = -fContactForce2D.ColumnSum(i);
 	dArrayT global_sum(loc_sum.Length());
 	comm.Sum(loc_sum, global_sum);
@@ -336,7 +203,8 @@ void PenaltyRegionT::WriteOutput(ostream& out) const
 		out << setw(kDoubleWidth) << global_sum[i] << '\n';
 
 	/* collect output data */
-	int ndof = rEqnos.MinorDim();
+	const dArray2DT& disp = Field()[0];
+	int ndof = disp.MinorDim();
 	int num_output = ndof + /* displacements */
 	                 ndof + /* force */
 	                 1;     /* penetration depth */
@@ -345,7 +213,7 @@ void PenaltyRegionT::WriteOutput(ostream& out) const
 
 	/* collect displacements */
 	int index = 0;
-	n_disp.RowCollect(fContactNodes, rDisp);
+	n_disp.RowCollect(fContactNodes, disp);
 	for (int i = 0; i < ndof; i++)
 		n_values.ColumnCopy(index++, n_disp, i);
 
@@ -358,5 +226,198 @@ void PenaltyRegionT::WriteOutput(ostream& out) const
 
 	/* send output */
 	dArray2DT e_values;
-	fFEManager.WriteOutput(fOutputID, n_values, e_values);
+	FieldSupport().WriteOutput(fOutputID, n_values, e_values);
+}
+
+/* describe the parameters needed by the interface */
+void PenaltyRegionT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	FBC_ControllerT::DefineParameters(list);
+
+	ParameterT k(fk, "stiffness");
+	k.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(k);
+}
+
+/* information about subordinate parameter lists */
+void PenaltyRegionT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	FBC_ControllerT::DefineSubs(sub_list);
+
+	/* position */
+	sub_list.AddSub("bc_initial_position");	
+	
+	/* velocity */
+	sub_list.AddSub("bc_velocity");
+
+	/* motion control */
+	sub_list.AddSub("motion_control_choice", ParameterListT::Once, true);	
+
+	/* nodes */
+	sub_list.AddSub("node_ID_list");
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* PenaltyRegionT::NewSub(const StringT& name) const
+{
+	if (name == "bc_initial_position")
+	{
+		ParameterContainerT* x_choice = new ParameterContainerT(name);
+		
+		/* by dimension */
+		x_choice->SetListOrder(ParameterListT::Choice);
+		x_choice->AddSub("Vector_2");
+		x_choice->AddSub("Vector_3");
+	
+		return x_choice;
+	}
+	else if (name == "bc_velocity")
+	{
+		ParameterContainerT* v_choice = new ParameterContainerT(name);
+		
+		/* by dimension */
+		v_choice->SetListOrder(ParameterListT::Choice);
+		v_choice->AddSub("Vector_2");
+		v_choice->AddSub("Vector_3");
+	
+		return v_choice;
+	}
+	else if (name == "motion_control_choice") {
+
+		ParameterContainerT* motion = new ParameterContainerT(name);
+
+		/* options */	
+		motion->SetListOrder(ParameterListT::Choice);
+		motion->AddSub(ParameterContainerT("velocity_constant"));
+		ParameterContainerT v_sched("velocity_schedule");
+		v_sched.AddParameter(ParameterT::Integer, "schedule");
+		motion->AddSub(v_sched);
+		ParameterContainerT v_slow("integrate_impulse");
+		v_slow.AddParameter(ParameterT::Double, "mass");
+		motion->AddSub(v_slow);
+		
+		return motion;
+	}
+	else /* inherited */
+		return FBC_ControllerT::NewSub(name);
+}
+
+/* accept parameter list */
+void PenaltyRegionT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "PenaltyRegionT::TakeParameterList";
+
+	/* inherited */
+	FBC_ControllerT::TakeParameterList(list);
+
+	/* stiffness */
+	fk = list.GetParameter("stiffness");
+
+	/* dimension */
+	int nsd = FieldSupport().NumSD();
+
+	/* initial position */
+	const ParameterListT& x_vec = list.GetListChoice(*this, "bc_initial_position");
+	VectorParameterT::Extract(x_vec, fx0);
+	if (fx0.Length() != nsd) 
+		ExceptionT::GeneralFail(caller, "\"bc_initial_position\" should be length %d not %d", nsd, fx0.Length());
+
+	/* velocity */
+	const ParameterListT& v_vec = list.GetListChoice(*this, "bc_velocity");
+	VectorParameterT::Extract(v_vec, fv0);
+	if (fv0.Length() != nsd) 
+		ExceptionT::GeneralFail(caller, "\"bc_velocity\" should be length %d not %d", nsd, fv0.Length());
+	
+	/* motion control */
+	fSlow = kConstantVelocity;
+	const ParameterListT& motion = list.GetListChoice(*this, "motion_control_choice");
+	if (motion.Name() == "velocity_schedule") {
+		fSlow = kSchedule;
+		int schedule = motion.GetParameter("schedule");
+		schedule--;
+		fLTf = FieldSupport().Schedule(schedule);
+		if (!fLTf) ExceptionT::BadInputValue(caller, "could not resolve schedule %d", schedule+1);
+	}
+	else if (motion.Name() == "integrate_impulse") {
+		fSlow = kImpulse;
+		fMass = motion.GetParameter("mass");
+	}
+
+	/* affected nodes */
+	ArrayT<StringT> ns_ID;
+	StringListT::Extract(list.GetList("node_ID_list"), ns_ID);
+	if (ns_ID.Length() > 0) {
+		ModelManagerT& model = FieldSupport().ModelManager();
+		model.ManyNodeSets(ns_ID, fContactNodes);
+		fNumContactNodes = fContactNodes.Length();
+	}
+	else
+	  fNumContactNodes = 0;
+	
+	/* remove "external" nodes */
+	ofstreamT& out = FieldSupport().Output();
+	CommManagerT& comm = FieldSupport().CommManager();
+	const ArrayT<int>* p_map = comm.	ProcessorMap();
+	if (fNumContactNodes > 0 && p_map)
+	{
+		/* wrap it */
+		iArrayT processor;
+		processor.Alias(*p_map);
+	
+		/* count processor nodes */
+		int rank = comm.Rank();
+		int num_local_nodes = 0;
+		for (int i = 0; i < fNumContactNodes; i++)
+			if (processor[fContactNodes[i]] == rank)
+				num_local_nodes++;
+		
+		/* remove off-processor nodes */
+		if (num_local_nodes != fNumContactNodes)
+		{
+			/* report */
+			out << " Number of external contact nodes (removed). . . = "
+			    << fNumContactNodes - num_local_nodes << '\n';
+
+			/* collect processor nodes */
+			iArrayT nodes_temp(num_local_nodes);
+			int index = 0;
+			for (int i = 0; i < fNumContactNodes; i++)
+				if (processor[fContactNodes[i]] == rank)
+					nodes_temp[index++] = fContactNodes[i];
+		
+			/* reset values */
+			fContactNodes.Swap(nodes_temp);
+			fNumContactNodes = fContactNodes.Length();
+		}
+	}
+	
+	/* write contact nodes */
+	out << " Number of contact nodes . . . . . . . . . . . . = "
+	    << fNumContactNodes << endl;	
+	if (FieldSupport().PrintInput()) {
+		fContactNodes++;
+		out << fContactNodes.wrap(6) << '\n';
+		fContactNodes--;				
+	}	
+
+	/* allocate memory for equation numbers */
+	int ndof = Field().NumDOF();
+	fContactEqnos.Dimension(fNumContactNodes*ndof);
+	
+	/* allocate memory for force vector */
+	fContactForce2D.Dimension(fNumContactNodes, ndof);
+	fContactForce.Set(fNumContactNodes*ndof, fContactForce2D.Pointer());
+	fContactForce2D = 0.0; // will be generate impulse at ApplyPreSolve
+
+	/* allocate space to store gaps (for output) */
+	fGap.Dimension(fNumContactNodes);
+	fGap = 0.0;
+
+	/* state variables */
+	fx.Dimension(nsd);
+	fv.Dimension(nsd);
+	fxlast.Dimension(nsd);
+	fvlast.Dimension(nsd);
 }

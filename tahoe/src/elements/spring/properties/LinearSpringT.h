@@ -1,4 +1,4 @@
-/* $Id: LinearSpringT.h,v 1.2 2002-07-02 19:56:24 cjkimme Exp $ */
+/* $Id: LinearSpringT.h,v 1.3 2004-07-15 08:30:22 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 
 #ifndef _LINEARSPRINGT_H_
@@ -16,10 +16,6 @@ public:
 
 	/* constructor */
 	LinearSpringT(ifstreamT& in);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 	
 	/* potential function and derivatives */
 	virtual double Potential(double rmag, double Rmag) const;

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.h,v 1.8 2003-01-29 07:35:04 paklein Exp $ */
+/* $Id: LocalCrystalPlast.h,v 1.9 2004-07-15 08:29:07 paklein Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_H_
 #define _LOCAL_CRYSTAL_PLAST_H_
 
@@ -49,10 +49,6 @@ class LocalCrystalPlast : public PolyCrystalMatT
   virtual int NumOutputVariables() const;
   virtual void OutputLabels(ArrayT<StringT>& labels) const;
   virtual void ComputeOutput(dArrayT& output);
-
-  // print data and model name
-  virtual void Print(ostream& out) const;
-  virtual void PrintName(ostream& out) const;
 
   // form of tangent matrix
   virtual GlobalT::SystemTypeT TangentType(void) const;

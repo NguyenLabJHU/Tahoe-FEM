@@ -1,4 +1,4 @@
-/* $Id: RodMaterialT.h,v 1.5 2002-07-05 22:28:28 paklein Exp $ */
+/* $Id: RodMaterialT.h,v 1.6 2004-07-15 08:30:22 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 
 #ifndef _RODMATERIALT_H_
@@ -25,10 +25,6 @@ public:
 
 	/** destructor */
 	virtual ~RodMaterialT(void);
-
-	/** I/O functions */
-	virtual void Print(ostream& out) const = 0;
-	virtual void PrintName(ostream& out) const = 0;
 
 	/** print parameters */
 	void PrintParameters(ostream& out) const;

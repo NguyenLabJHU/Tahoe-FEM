@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BaseT.cpp,v 1.5 2004-06-17 07:40:11 paklein Exp $ */
+/* $Id: ABAQUS_BaseT.cpp,v 1.6 2004-07-15 08:26:33 paklein Exp $ */
 #include "ABAQUS_BaseT.h"
 
 #ifdef __F2C__
@@ -6,7 +6,7 @@
 #include "ElementCardT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
-#include "ifstreamT.h"
+
 
 #include <ctype.h>
 

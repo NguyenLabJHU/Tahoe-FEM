@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.h,v 1.5 2002-07-05 22:28:41 paklein Exp $ */
+/* $Id: iNLSolver_LS.h,v 1.6 2004-07-15 08:31:51 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #ifndef _I_NL_SOLVER_LS_H_
@@ -17,7 +17,7 @@ class iNLSolver_LS: public NLSolver_LS
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	iNLSolver_LS(FEManagerT& fe_manager, int group);
 
 	/** solve the system over the current time increment.

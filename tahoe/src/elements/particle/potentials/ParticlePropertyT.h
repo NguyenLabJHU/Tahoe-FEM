@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.h,v 1.8 2003-10-28 23:31:52 paklein Exp $ */
+/* $Id: ParticlePropertyT.h,v 1.9 2004-07-15 08:29:49 paklein Exp $ */
 #ifndef _PARTICLE_PROPERTY_T_H_
 #define _PARTICLE_PROPERTY_T_H_
 
@@ -24,7 +24,7 @@ public:
 	};
 
 	/** stream extraction operators */
-	friend istream& operator>>(istream& in, ParticlePropertyT::TypeT& property);
+//	friend istream& operator>>(istream& in, ParticlePropertyT::TypeT& property);
 
 	/** constructor */
 	ParticlePropertyT(void);
@@ -39,8 +39,8 @@ public:
 	/** particle mass */
 	double Mass(void) const { return fMass; };
 
-	/** write properties to output */
-	virtual void Write(ostream& out) const;
+	/** nominal nearest neighbor distance */
+	double NearestNeighbor(void) const { return fNearestNeighbor; };
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -57,6 +57,7 @@ protected:
 	/*@{*/
 	void SetMass(double mass) { fMass = mass; };
 	void SetRange(double range) { fRange = range; };
+	void SetNearestNeighbor(double nearest) { fNearestNeighbor = nearest; };
 	/*@}*/
 	
 protected:
@@ -65,6 +66,7 @@ protected:
 	/*@{*/
 	double fMass;	
 	double fRange;
+	double fNearestNeighbor;
 	/*@}*/
 };
 

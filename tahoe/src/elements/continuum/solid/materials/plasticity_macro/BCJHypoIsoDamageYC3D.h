@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageYC3D.h,v 1.4 2003-01-29 07:35:06 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC3D.h,v 1.5 2004-07-15 08:29:14 paklein Exp $ */
 #ifndef _BCJ_HYPO_ISO_DAMAGE_YC_3D_H_
 #define _BCJ_HYPO_ISO_DAMAGE_YC_3D_H_
 
@@ -48,10 +48,6 @@ class BCJHypoIsoDamageYC3D : public BCJHypo3D
   virtual int NumOutputVariables() const;
   virtual void OutputLabels(ArrayT<StringT>& labels) const;
   virtual void ComputeOutput(dArrayT& output);
-
-  // print data and model name
-  virtual void Print(ostream& out) const;
-  virtual void PrintName(ostream& out) const;
 
  protected:
   // initial value of variables

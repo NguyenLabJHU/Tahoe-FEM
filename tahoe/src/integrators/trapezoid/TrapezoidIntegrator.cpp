@@ -1,18 +1,11 @@
-/* $Id: TrapezoidIntegrator.cpp,v 1.2 2002-07-02 19:55:10 cjkimme Exp $ */
+/* $Id: TrapezoidIntegrator.cpp,v 1.3 2004-07-15 08:30:53 paklein Exp $ */
 /* created: paklein (10/03/1999) */
-
 #include "TrapezoidIntegrator.h"
-
-#include <iostream.h>
-
-/* constructor */
 
 using namespace Tahoe;
 
-TrapezoidIntegrator::TrapezoidIntegrator(ostream& out)
-{
-	out << "\n Trapezoid parameters: NONE" << endl;
-}
+/* constructor */
+TrapezoidIntegrator::TrapezoidIntegrator(void) { }
 
 /***********************************************************************
 * Protected

@@ -1,8 +1,7 @@
-/* $Id: DiffusionMatListT.cpp,v 1.9 2004-06-17 07:40:04 paklein Exp $ */
+/* $Id: DiffusionMatListT.cpp,v 1.10 2004-07-15 08:26:22 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "DiffusionMatListT.h"
 #include "DiffusionMatSupportT.h"
-#include "ifstreamT.h"
 
 /* diffusion materials */
 #include "DiffusionMaterialT.h"
@@ -15,54 +14,13 @@ DiffusionMatListT::	DiffusionMatListT(int length, const DiffusionMatSupportT& su
 	MaterialListT(length),
 	fDiffusionMatSupport(&support)
 {
-	SetName("diffusion_materials");
+	SetName("diffusion_material");
 }
 
 DiffusionMatListT::	DiffusionMatListT(void):
 	fDiffusionMatSupport(NULL)
 {
-	SetName("diffusion_materials");
-}
-
-/* read material data from the input stream */
-void DiffusionMatListT::ReadMaterialData(ifstreamT& in)
-{
-	const char caller[] = "DiffusionMatListT::ReadMaterialData";
-
-	/* read material data */
-	for (int i = 0; i < fLength; i++)
-	{
-		int matnum, matcode;
-		in >> matnum; matnum--;
-		in >> matcode;
-		
-		/* checks */
-		if (matnum < 0  || matnum >= fLength) ExceptionT::BadInputValue(caller);
-
-		/* repeated material number */
-		if (fArray[matnum] != NULL)
-			ExceptionT::BadInputValue(caller, "repeated material number: %d", matnum+1);
-		
-		/* add to the list of materials */
-		switch (matcode)
-		{
-			case kLinear:
-			{
-				fArray[matnum] = new DiffusionMaterialT(in, *fDiffusionMatSupport);
-				break;
-			}
-			case kNonLinear:
-			{
-				fArray[matnum] = new NLDiffusionMaterialT(in, *fDiffusionMatSupport);
-				break;
-			}
-			default:
-				ExceptionT::BadInputValue(caller, "unknown material code: %d", matcode);
-		}
-
-		/* verify construction */
-		if (!fArray[matnum]) ExceptionT::OutOfMemory(caller);
-	}
+	SetName("diffusion_material");
 }
 
 /* information about subordinate parameter lists */
@@ -72,35 +30,75 @@ void DiffusionMatListT::DefineSubs(SubListT& sub_list) const
 	MaterialListT::DefineSubs(sub_list);
 
 	/* an array of choices */
-	sub_list.AddSub("diffusion_material_list", ParameterListT::OnePlus, true);
-
+	sub_list.AddSub("diffusion_material_list", ParameterListT::Once, true);
 }
 
 /* return the description of the given inline subordinate parameter list */
-void DiffusionMatListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void DiffusionMatListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
 	/* list of choice of materials */
-	if (sub == "diffusion_material_list")
+	if (name == "diffusion_material_list")
 	{
 		order = ParameterListT::Choice;
 	
 		/* diffusion materials */
-		sub_sub_list.AddSub("linear_diffusion");
-		sub_sub_list.AddSub("nonlinear_diffusion");
+		sub_lists.AddSub("linear_diffusion_material");
+		sub_lists.AddSub("nonlinear_diffusion_material");
 	}	
 	else /* inherited */
-		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* DiffusionMatListT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* DiffusionMatListT::NewSub(const StringT& name) const
 {
-	if (list_name == "linear_diffusion")
-		return new DiffusionMaterialT;	
-	else if (list_name == "nonlinear_diffusion")
-		return new NLDiffusionMaterialT;
+	/* try to construct material */
+	DiffusionMaterialT* material = NewDiffusionMaterial(name);
+	if (material)
+		return material;
 	else /* inherited */
-		return MaterialListT::NewSub(list_name);
+		return MaterialListT::NewSub(name);
 }
 
+/* accept parameter list */
+void DiffusionMatListT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	MaterialListT::TakeParameterList(list);
+
+	/* construct materials - NOTE: subs have been defined as a choice, but
+	 * here we construct as many materials as are passed in */
+	AutoArrayT<DiffusionMaterialT*> materials;
+	const ArrayT<ParameterListT>& subs = list.Lists();
+	for (int i = 0; i < subs.Length(); i++) {
+		const ParameterListT& sub = subs[i];
+		DiffusionMaterialT* mat = NewDiffusionMaterial(sub.Name());
+		if (mat) {
+			materials.Append(mat);
+			mat->TakeParameterList(sub);
+		}
+	}
+
+	/* transfer */
+	Dimension(materials.Length());
+	for (int i = 0; i < materials.Length(); i++)
+		fArray[i] = materials[i];
+	
+}
+
+/* construct the specified material or NULL if the request cannot be completed */
+DiffusionMaterialT* DiffusionMatListT::NewDiffusionMaterial(const StringT& name) const
+{
+	DiffusionMaterialT* mat = NULL;
+
+	if (name == "linear_diffusion_material")
+		mat = new DiffusionMaterialT;	
+	else if (name == "nonlinear_diffusion_material")
+		mat = new NLDiffusionMaterialT;
+
+	/* set support */
+	if (mat) mat->SetDiffusionMatSupport(fDiffusionMatSupport);
+
+	return mat;
+}

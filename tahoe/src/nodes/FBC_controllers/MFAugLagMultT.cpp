@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.cpp,v 1.3 2004-05-14 23:07:34 cjkimme Exp $ */
+/* $Id: MFAugLagMultT.cpp,v 1.4 2004-07-15 08:31:15 paklein Exp $ */
 #include "MFAugLagMultT.h"
 
 #include <iostream.h>
@@ -22,21 +22,20 @@ using namespace Tahoe;
 const int kMFAugLagDOF = 1;
 
 /* constructor */
-MFAugLagMultT::MFAugLagMultT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
-	const FieldT& field, const dArray2DT& coords, const dArray2DT& disp):
-	FBC_ControllerT(fe_manager, 
-		field.Group()),
+//MFAugLagMultT::MFAugLagMultT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
+//	const FieldT& field, const dArray2DT& coords, const dArray2DT& disp):
+//	FBC_ControllerT(fe_manager, field.Group()),
+MFAugLagMultT::MFAugLagMultT(void):
 
 	/* references to NodeManagerT data */
-	rEqnos(field.Equations()),
-	rDisp(disp),
-	fXDOF_Nodes(XDOF_nodes),
-	fField(field),
+//	rEqnos(field.Equations()),
+//	rDisp(disp),
+//	fXDOF_Nodes(XDOF_nodes),
+//	fField(field),
 
 	fNumConstrainedDOFs(0),
 	
 	/* RHS work space */
-	fRHS(),
 	fRHS_wrapper(0, fRHS),
 
 	/* LHS work spaces */
@@ -46,100 +45,19 @@ MFAugLagMultT::MFAugLagMultT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
 	fOtherLHS(ElementMatrixT::kSymmetric),
 	fOtherLHS_wrapper(0, fOtherLHS),
 	
-	fRowEqs(),
 	fRowEqs_wrapper(0, fRowEqs),
 	
 	/* Pointer to the element group with access to the support of each node */
+	fBlockID(-1),
 	mfElemGroup(NULL)
 {
-#pragma unused(coords)
-	
+	SetName("augmented_Lagrangian_KBC_meshfree");
 }
 
 /* Form of tangent matrix */
 GlobalT::SystemTypeT MFAugLagMultT::TangentType(void) const
 {
 	return GlobalT::kSymmetric;
-}
-
-/* get input data */
-void MFAugLagMultT::EchoData(ifstreamT& in, ostream& out)
-{
-#pragma unused(out)
-
-	int numBCs;
-	in >> numBCs;
-	if (numBCs <= 0)
-		ExceptionT::BadInputValue("MFAugLagMultT::Initialize","Expecting numBCs > 0");
-	
-	fNodeSetIDs.Dimension(numBCs);
-	fConstrainedDOFs.Dimension(numBCs);
-	fCodes.Dimension(numBCs);
-	fScheduleNums.Dimension(numBCs);
-	fCodes.Dimension(numBCs);
-	iArrayT fNumConstraints(numBCs);
-	fScales.Dimension(numBCs);
-	
-	const ScheduleT* pSchedule;
-	NodeManagerT* pNodeManager = fFEManager.NodeManager();
-	ModelManagerT* pModel = fFEManager.ModelManager();  
-	  
-	fNumConstrainedDOFs = 0;
-	for (int i = 0; i < numBCs; i++) {
-		in >> fNodeSetIDs[i];
-	
-		in >> fConstrainedDOFs[i];
-		fConstrainedDOFs[i]--;
-	
-		in >> fCodes[i];
-		
-		if (fCodes[i] != 0 && fCodes[i] != 1)
-			ExceptionT::GeneralFail("MFAugLagMultT::EchoData","Code %d must be 0 or 1\n",i);
-	
-		in >> fScheduleNums[i] >> fScales[i]; 
-		
-		if (fCodes[i] != KBC_CardT::kFix)
-		{
-			fScheduleNums[i]--;
-			pSchedule = pNodeManager->Schedule(fScheduleNums[i]);	
-			if (!pSchedule) 
-				ExceptionT::BadInputValue("MFAugLagMultT::EchoData","Cannot get schedule %d \n",fScheduleNums[i]);
-		}
-		
-		fNumConstraints[i] = pModel->NodeSetLength(fNodeSetIDs[i]);
-		fNumConstrainedDOFs += fNumConstraints[i];
-	}
-	
-	fConstraintValues.Dimension(fNumConstrainedDOFs);
-	
-	fNodeSets.Configure(fNumConstraints);
-	
-	for (int i = 0; i< numBCs; i++) {
-		const iArrayT& nodeSet_i = pModel->NodeSet(fNodeSetIDs[i]);	
-		fNodeSets.SetRow(i, nodeSet_i);
-	}
-	
-	int numElementGroups;
-	in >> numElementGroups;
-	if (numElementGroups != 1)
-		ExceptionT::BadInputValue("MFAugLagMultT::EchoData","Can only handle 1 element block\n");
-	
-	in >> fBlockID;
-	fBlockID--;
-	
-	in >> fk;
-	if (fk < 0.) ExceptionT::GeneralFail("MFAugLagMultT::EchoData","fk must be non-negative\n");
-}
-
-/* initialize data */
-void MFAugLagMultT::Initialize(void)
-{
-	const char caller[] = "MFAugLagMultT::Initialize";
-	
-	/* allocate memory for force vector */
-	fConstraintForce.Dimension(fNumConstrainedDOFs);
-	fConstraintForce = 0.0;
-
 }
 
 void MFAugLagMultT::SetEquationNumbers(void)
@@ -154,8 +72,11 @@ void MFAugLagMultT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 {
 #pragma unused(eq_2)
 
+	/* the field */
+	const FieldT& field = Field();
+
 	/* dimensions */
-	int ndof_u = rDisp.MinorDim();
+	int ndof_u = field.NumDOF();
 
 	/* collect displacement DOF's */
 	iArrayT dofs(fNumConstrainedDOFs);
@@ -173,10 +94,10 @@ void MFAugLagMultT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		constrainedDOFPtr++;
 	}
 	
-	fField.SetLocalEqnos(fsupport, fEqNos, dofs);
+	field.SetLocalEqnos(fsupport, fEqNos, dofs);
 
 	/* copying eqs */
-	const int* lagMultEqs = fXDOF_Nodes->XDOF_Eqnos(this, 0).Pointer();
+	const int* lagMultEqs = FieldSupport().XDOF_Manager().XDOF_Eqnos(this, 0).Pointer();
 	int* iptr = fConstraintEqnos.Pointer();
 	ctr = 0;
 	for (int i = 0; i < fNodeSets.MajorDim(); i++) {
@@ -223,14 +144,14 @@ void MFAugLagMultT::WriteRestart(ostream& out) const
 
 void MFAugLagMultT::InitStep(void)
 {
+
 }
 
 void MFAugLagMultT::CloseStep(void)
 {
-
 	/* store last converged DOF array */
 	dArrayT constraints;
-	constraints.Alias(fXDOF_Nodes->XDOF(this, 0));
+	constraints.Alias(FieldSupport().XDOF_Manager().XDOF(this, 0));
 	fLastDOF = constraints;
 }
 
@@ -259,11 +180,17 @@ void MFAugLagMultT::ApplyRHS(void)
 	/* recompute contstraint forces */
 	ComputeConstraintValues(constKd);
 	
+	/* field support */
+	const FieldSupportT& field_support = FieldSupport();
+
+	/* XDOF manager */
+	XDOF_ManagerT& xdof_manager = field_support.XDOF_Manager();
+	
 	/* assemble */
-	fFEManager.AssembleRHS(fGroup, fConstraintValues, fXDOF_Nodes->XDOF_Eqnos(this, 0));
+	field_support.AssembleRHS(fGroup, fConstraintValues, xdof_manager.XDOF_Eqnos(this, 0));
 	
 	/* get current values of constraints */
-	const dArray2DT& constr = fXDOF_Nodes->XDOF(this, 0);
+	const dArray2DT& constr = xdof_manager.XDOF(this, 0);
 	dArrayT force(constr.MajorDim(), constr.Pointer());
 	
 	iArrayT eqNos;
@@ -272,7 +199,7 @@ void MFAugLagMultT::ApplyRHS(void)
 		fRHS.Copy(fphi(i));
 		fRHS *= fk*fConstraintValues[i] - constKd*force[i];
 		eqNos.Set(fSupportSizes[i], fEqNos(i));
-		fFEManager.AssembleRHS(fGroup, fRHS, eqNos);
+		field_support.AssembleRHS(fGroup, fRHS, eqNos);
 	}
 	
 }
@@ -287,8 +214,14 @@ void MFAugLagMultT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	int formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 
+	/* field support */
+	const FieldSupportT& field_support = FieldSupport();
+
+	/* XDOF manager */
+	XDOF_ManagerT& xdof_manager = field_support.XDOF_Manager();
+
 	/* DOF by DOF */
-	const int* augLagEqnos = fXDOF_Nodes->XDOF_Eqnos(this, 0).Pointer();
+	const int* augLagEqnos = xdof_manager.XDOF_Eqnos(this, 0).Pointer();
 	for (int i = 0; i < fNumConstrainedDOFs; i++) 
 	{
 		int supp = fSupportSizes[i];
@@ -310,7 +243,7 @@ void MFAugLagMultT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 		fRowEqs_wrapper.SetLength(supp+1, false);
 		fRowEqs.Last() = augLagEqnos[i];
 		
-		fFEManager.AssembleLHS(fGroup, fOtherLHS, fRowEqs);
+		field_support.AssembleLHS(fGroup, fOtherLHS, fRowEqs);
 	}
 }
 
@@ -326,9 +259,14 @@ void MFAugLagMultT::RegisterOutput(void)
 	/* register with node manager - sets initial fConstraintDOFtags */
 	iArrayT set_dims(1);
 	set_dims = kMFAugLagDOF;
+
+	/* field support */
+	const FieldSupportT& field_support = FieldSupport();
+
+	/* XDOF manager */
+	XDOF_ManagerT& xdof_manager = field_support.XDOF_Manager();
 	
-	fXDOF_Nodes->XDOF_Register(this, set_dims);	
-	
+	xdof_manager.XDOF_Register(this, set_dims);	
 	int max_support = fSupportSizes.Max() + 1;
 	fLHS_wrapper.SetDimensions(max_support);
 	fOtherLHS_wrapper.SetDimensions(max_support);
@@ -343,8 +281,7 @@ void MFAugLagMultT::RegisterOutput(void)
 	
 	/* register output */
 	OutputSetT output_set(GeometryT::kPoint, fFlattenedNodeSets, n_labels);
-	fOutputID = fFEManager.RegisterOutput(output_set);
-	
+	fOutputID = field_support.RegisterOutput(output_set);
 }
 
 void MFAugLagMultT::WriteOutput(ostream& out) const
@@ -354,10 +291,15 @@ void MFAugLagMultT::WriteOutput(ostream& out) const
 	int num_output = 2;
 	dArray2DT n_values(fSupportSizes.Length(), num_output);
 	n_values = 0.;
+
+	/* sources */
+	const FieldT& field = Field();
+	const FieldSupportT& field_support = FieldSupport();
+	XDOF_ManagerT& xdof_manager = field_support.XDOF_Manager();
 	
 	/* get current values of constraints */
-	const dArray2DT& constr = fXDOF_Nodes->XDOF(this, 0);
-	dArray2DT us(n_values.MajorDim(), rDisp.MinorDim());
+	const dArray2DT& constr = xdof_manager.XDOF(this, 0);
+	dArray2DT us(n_values.MajorDim(), field.NumDOF());
 	mfElemGroup->InterpolatedFieldAtNodes(fLocalFlatNodes, us);
 	
 	int ctr = 0;
@@ -373,7 +315,7 @@ void MFAugLagMultT::WriteOutput(ostream& out) const
 	
 	/* send output */
 	dArray2DT e_values;
-	fFEManager.WriteOutput(fOutputID, n_values, e_values);
+	field_support.WriteOutput(fOutputID, n_values, e_values);
 }
 
 /* returns the array for the DOF tags needed for the current config */
@@ -424,7 +366,113 @@ const iArray2DT& MFAugLagMultT::DOFConnects(int tag_set) const
 int MFAugLagMultT::Reconfigure(void) { return 0; }
 
 /* return the equation group */
-int MFAugLagMultT::Group(void) const { return fField.Group(); };
+int MFAugLagMultT::Group(void) const { return Field().Group(); };
+
+/* describe the parameters needed by the interface */
+void MFAugLagMultT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	FBC_ControllerT::DefineParameters(list);
+
+	list.AddParameter(fBlockID, "element_group");
+
+	ParameterT regularization(ParameterT::Double, "regularization");
+	regularization.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(regularization);
+}
+
+/* information about subordinate parameter lists */
+void MFAugLagMultT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	FBC_ControllerT::DefineSubs(sub_list);
+
+	/* kinematic boundary conditions */
+	sub_list.AddSub("kinematic_BC", ParameterListT::OnePlus);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* MFAugLagMultT::NewSub(const StringT& name) const
+{
+	if (name == "kinematic_BC")
+	{
+		/* use definition from field */
+		FieldSupportT field_support;
+		FieldT field(field_support);
+		return field.NewSub(name);
+	}
+	else /* inherited */
+		return FBC_ControllerT::NewSub(name);
+}
+
+/* accept parameter list */
+void MFAugLagMultT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "MFAugLagMultT::TakeParameterList";
+
+	/* inherited */
+	FBC_ControllerT::TakeParameterList(list);
+
+	/* dimension */
+	int numBCs = list.NumLists("kinematic_BC");
+	fNodeSetIDs.Dimension(numBCs);
+	fConstrainedDOFs.Dimension(numBCs);
+	fCodes.Dimension(numBCs);
+	fScheduleNums.Dimension(numBCs);
+	fCodes.Dimension(numBCs);
+	iArrayT fNumConstraints(numBCs);
+	fScales.Dimension(numBCs);
+
+	/* field support */
+	const FieldSupportT& field_support = FieldSupport();
+	ModelManagerT& model_manager = field_support.ModelManager();
+
+	fNumConstrainedDOFs = 0;
+	for (int i = 0; i < numBCs; i++) {
+
+		/* KBC parameters */
+		const ParameterListT& KBC_params = list.GetList("kinematic_BC", i);
+
+		fNodeSetIDs[i] = KBC_params.GetParameter("node_ID");
+		fConstrainedDOFs[i] = KBC_params.GetParameter("dof");
+		fConstrainedDOFs[i]--;
+
+		int typ = KBC_params.GetParameter("type");
+		fCodes[i] = KBC_CardT::int2CodeT(typ + 1);
+		if (fCodes[i] != KBC_CardT::kFix && fCodes[i] != KBC_CardT::kDsp)
+			ExceptionT::GeneralFail(caller, "code %d must be 0 or 1", i);
+	
+		fScheduleNums[i] = KBC_params.GetParameter("schedule");
+		fScales[i] = KBC_params.GetParameter("value");
+		
+		if (fCodes[i] != KBC_CardT::kFix)
+		{
+			fScheduleNums[i]--;
+			const ScheduleT* schedule = field_support.Schedule(fScheduleNums[i]);
+			if (!schedule) 
+				ExceptionT::BadInputValue(caller, "cannot get schedule %d", fScheduleNums[i]);
+		}
+		
+		fNumConstraints[i] = model_manager.NodeSetLength(fNodeSetIDs[i]);
+		fNumConstrainedDOFs += fNumConstraints[i];
+	}
+	
+	fConstraintValues.Dimension(fNumConstrainedDOFs);	
+	fNodeSets.Configure(fNumConstraints);
+	
+	for (int i = 0; i< numBCs; i++) {
+		const iArrayT& nodeSet_i = model_manager.NodeSet(fNodeSetIDs[i]);	
+		fNodeSets.SetRow(i, nodeSet_i);
+	}
+
+	fBlockID = list.GetParameter("element_group");
+	fBlockID--;
+	fk = list.GetParameter("regularization");
+
+	/* allocate memory for force vector */
+	fConstraintForce.Dimension(fNumConstrainedDOFs);
+	fConstraintForce = 0.0;
+}
 
 /**********************************************************************
  * Private                                                            *
@@ -432,31 +480,27 @@ int MFAugLagMultT::Group(void) const { return fField.Group(); };
 
 void MFAugLagMultT::ComputeConstraintValues(double kforce)
 {
- 	const char caller[] = "MFAugLagMultT::ComputeConstraintValues\n";
+ 	const char caller[] = "MFAugLagMultT::ComputeConstraintValues";
  	
- 	dArray2DT us(fLocalFlatNodes.Length(), rDisp.MinorDim());
+ 	dArray2DT us(fLocalFlatNodes.Length(), Field().NumDOF());
 	mfElemGroup->InterpolatedFieldAtNodes(fLocalFlatNodes, us);
 	
  	int valueIndex = 0;
  	fConstraintValues = 0.;
- 	NodeManagerT* pNodeManager = fFEManager.NodeManager();
- 	const ScheduleT* pSchedule;
  	for (int i = 0; i < fCodes.Length(); i++) {
 		
 		int which_dof = fConstrainedDOFs[i];
 		if (fCodes[i] == KBC_CardT::kFix)
 			valueIndex += fNodeSets.MinorDim(i);
 		else {	 
-			pSchedule = pNodeManager->Schedule(fScheduleNums[i]);	
-			if (!pSchedule) 
-				ExceptionT::GeneralFail(caller,"Cannot get schedule %d \n",fScheduleNums[i]);
-			double sVal = fScales[i]*pSchedule->Value();
+ 			const ScheduleT* schedule = FieldSupport().Schedule(fScheduleNums[i]);	
+			if (!schedule) ExceptionT::GeneralFail(caller, "Cannot get schedule %d", fScheduleNums[i]);
+			double sVal = fScales[i]*schedule->Value();
 			for (int j = 0; j < fNodeSets.MinorDim(i); j++, valueIndex++)
 				fConstraintValues[valueIndex] = -kforce*(us(valueIndex,which_dof) - sVal);
 			
 		}
 	}
-	
 }
 
 void MFAugLagMultT::ChatWithElementGroup(void) {
@@ -464,16 +508,14 @@ void MFAugLagMultT::ChatWithElementGroup(void) {
 	const char caller[] = "MFAugLagMultT::ChatWithElementGroup";
 
 	if (mfElemGroup) 
-		ExceptionT::GeneralFail(caller,"MF element block communicator already exists!\n");
+		ExceptionT::GeneralFail(caller,"MF element block communicator already exists!");
 
 	/* communicate with the meshfree element */
-	ElementBaseT* elemGroup = fFEManager.ElementGroup(fBlockID);
-	if (!elemGroup) 
-		ExceptionT::GeneralFail(caller,"Element group %d does not exist\n", fBlockID);
+	ElementBaseT& elemGroup = FieldSupport().ElementGroup(fBlockID);
 	
-	mfElemGroup = dynamic_cast<SCNIMFT*>(elemGroup);
+	mfElemGroup = dynamic_cast<SCNIMFT*>(&elemGroup);
 	if (!mfElemGroup)
-		ExceptionT::GeneralFail(caller,"Cannot cast group %d to meshfree class\n",fBlockID);  
+		ExceptionT::GeneralFail(caller,"Cannot cast group %d to meshfree class",fBlockID);  
 	
 	fLocallyNumberedNodeSets = fNodeSets; // ouch! two of these data structures
 	mfElemGroup->GlobalToLocalNumbering(fLocallyNumberedNodeSets);
@@ -496,3 +538,4 @@ void MFAugLagMultT::ChatWithElementGroup(void) {
 	fNumEqs = fSupportSizes.Sum();
 
 }
+

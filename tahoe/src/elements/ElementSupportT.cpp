@@ -1,8 +1,6 @@
-/* $Id: ElementSupportT.cpp,v 1.32 2004-06-26 18:29:48 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.33 2004-07-15 08:25:44 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
-#include "ifstreamT.h"
-#include "ofstreamT.h"
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "FEManagerT.h"
@@ -24,274 +22,35 @@
 using namespace Tahoe;
 
 /* constructor */
-ElementSupportT::ElementSupportT(void):
-	fCurrentCoordinates(NULL),
-	fInitialCoordinates(NULL)
+ElementSupportT::ElementSupportT(void)
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/* clear */
-	SetFEManager(NULL);
-#else
-	fNumSD = 3;
-	fTimeStep = 0.;
-	fItNum = 0;
+#ifdef _FRACTURE_INTERFACE_LIBRARY_
 	ieqnos = NULL;
 	iparams = NULL;
 	fparams = NULL;
-	fGroupAverage = new GroupAverageT();
+	fGroupAverage = new GroupAverageT;
 #endif
 }
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-/* (re-)set the FEManagerT */
-void ElementSupportT::SetFEManager(FEManagerT* fe)
+/** destructor */
+ElementSupportT::~ElementSupportT(void)
 {
-	fFEManager = fe;
-	if (fe)
-	{
-		fAnalysis = fe->Analysis();
-		fRunState = &(fe->RunState());
-
-		/* set nodal information */
-		SetNodes(fe->NodeManager());
-
-		/* set model manager */
-		fModelManager = fe->ModelManager();
-
-		/* set time manager */
-		fTimeManager = fe->TimeManager();
-
-		/* set comm manager */
-		fCommManager = fe->CommManager();
-	}
-	else
-	{
-		fAnalysis = GlobalT::kNoAnalysis;
-		fRunState = NULL;
-
-		/* clear nodal information */
-		SetNodes(NULL);
-
-		/* clear model manager */
-		fModelManager = NULL;
-		
-		/* clear time manager */
-		fTimeManager = NULL;
-
-		/* clear comm manager */
-		fCommManager = NULL;
-	}
-}
-
-/* (re-)set the NodeManagerT */
-void ElementSupportT::SetNodes(NodeManagerT* nodes)
-{
-	fNodes = nodes;
-	if (nodes)
-	{
-		fInitialCoordinates = &(nodes->InitialCoordinates());
-		fCurrentCoordinates = &(nodes->CurrentCoordinates());
-	}
-	else
-	{
-		fInitialCoordinates = NULL;
-		fCurrentCoordinates = NULL;
-	}		
-}
-
-/* Tahoe version string */
-const char* ElementSupportT::Version(void) const
-{
-	return FEManager().Version();
-}
-#endif // _FRACTURE_INTERFACE_LIBRARY_
-
-bool ElementSupportT::PrintInput(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().PrintInput();
-#else
-	return false;
+#ifdef _FRACTURE_INTERFACE_LIBRARY_
+	delete fGroupAverage;
 #endif
 }
 
-/*Should return something not in the NodeManager*/
-const dArray2DT& ElementSupportT::InitialCoordinates(void) const
+/* return the index of the given element group */
+int ElementSupportT::ElementGroupNumber(const ElementBaseT* group) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return Nodes().InitialCoordinates();
-#else
-	return *fInitialCoordinates;
-#endif
-}
-
-const dArray2DT& ElementSupportT::CurrentCoordinates(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return Nodes().CurrentCoordinates();
-#else
-	return *fCurrentCoordinates;
-#endif
-}
-
-void ElementSupportT::RegisterCoordinates(LocalArrayT& array) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	Nodes().RegisterCoordinates(array);
-#else
-    switch (array.Type())
-    {
-    	case LocalArrayT::kInitCoords:
-    	{
-    		array.SetGlobal(*fInitialCoordinates);
-    		break;
-    	}
-    	case LocalArrayT::kCurrCoords:
-    	{
-    		array.SetGlobal(*fCurrentCoordinates);
-    		break;
-    	}
-    	default:
-            throw ExceptionT::kGeneralFail;
-     }
-#endif
-}
-
-/* return a  schedule function */
-const ScheduleT* ElementSupportT::Schedule(int num) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().Schedule(num);
-#else
-#pragma unused(num)
-	return NULL;
-#endif
-}
-
-/* return the iteration number for the current solver group */
-int ElementSupportT::IterationNumber(void) const
-{ 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().IterationNumber(); 
-#else
-	return fItNum;
-#endif
-}
-
-const int& ElementSupportT::IterationNumber(int group) const 
-{ 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().IterationNumber(group); 
-#else
-#pragma unused(group)
-	return fItNum;
-#endif
-}
-
-/* the group number being solved or -1 if not defined */
-int ElementSupportT::CurrentGroup(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().CurrentGroup();
-#else
-	return -1;
-#endif
-}
-
-const char* ElementSupportT::Exception(ExceptionT::CodeT exception) const
-{
-	return ExceptionT::ToString(exception);
-}
-
-int ElementSupportT::ElementGroupNumber(const ElementBaseT* element) const
-{ 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().ElementGroupNumber(element); 
-#else
-#pragma unused(element)
+#ifdef _FRACTURE_INTERFACE_LIBRARY_
 	return 0;
-#endif
-}
-
-const double& ElementSupportT::Time(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().Time();
 #else
-	return fTimeStep;
+	return FEManager().ElementGroupNumber(group);
 #endif
 }
 
-const double& ElementSupportT::TimeStep(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().TimeStep();
-#else	
-	return fTimeStep;
-#endif
-}
-
-const int& ElementSupportT::StepNumber(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().StepNumber();
-#else
-	return fItNum;
-#endif
-}
-
-const int& ElementSupportT::NumberOfSteps(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().NumberOfSteps();
-#else
-	return fItNum;
-#endif
-}
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-/* the element group at the specified index in the element list */
-ElementBaseT& ElementSupportT::ElementGroup(int index) const
-{
-	ElementBaseT* element = FEManager().ElementGroup(index);
-	if (!element) throw ExceptionT::kGeneralFail;
-	return *element;
-}
-#endif
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-/* XDOF support */
-XDOF_ManagerT& ElementSupportT::XDOF_Manager(void) const
-{
-	return Nodes();
-}
-#endif
-
-/* node number map. returns NULL if there is not a map */
-const ArrayT<int>* ElementSupportT::NodeMap(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().NodeMap();
-#else
-	return NULL;
-#endif
-}
-
-/* return a pointer to the field */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-const FieldT* ElementSupportT::Field(const char* name) const
-{
-	return Nodes().Field(name);
-}
-
-/* return the element controller appropriate for the given field */
-const eIntegratorT* ElementSupportT::eIntegrator(const FieldT& field) const
-{
-	return &(field.nIntegrator().eIntegrator());
-}
-
-#else //_FRACTURE_INTERFACE_LIBRARY_
-
+#ifdef _FRACTURE_INTERFACE_LIBRARY_
 void ElementSupportT::SetNumNodes(int nn)
 {
 	fNumNodes = nn;
@@ -455,75 +214,6 @@ void ElementSupportT::SetOutputPointers(double *nodalOutput, double *elemOutput)
 
 #endif
 
-/* element number map for the given block ID */
-const iArrayT* ElementSupportT::ElementMap(const StringT& block_ID) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().ElementMap(block_ID);
-#else
-#pragma unused(block_ID)
-	return NULL;
-#endif
-}
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-/* MP */
-int ElementSupportT::Size(void) const 
-{ 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().Size(); 
-#else
-	return 1;
-#endif
-}
-
-int ElementSupportT::Rank(void) const 
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().Rank();
-#else
-	return 0;
-#endif 
-}
-
-/* low-level communicator */
-const CommunicatorT& ElementSupportT::Communicator(void) const
-{
-	if (!fCommManager) 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		ExceptionT::GeneralFail("ElementSupportT::Communicator", "pointer not set");
-#else
-		ExceptionT::GeneralFail("ElementSupportT::Communicator", "not supported");
-#endif
-
-	return fCommManager->Communicator();
-}
-
-const ArrayT<int>* ElementSupportT::ExternalNodes(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	if (fCommManager)
-		return fCommManager->ExternalNodes();
-	else
-		return NULL;
-#else
-	return NULL;
-#endif
-}
-
-const ArrayT<int>* ElementSupportT::BorderNodes(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	if (fCommManager)
-		return fCommManager->BorderNodes();
-	else
-		return NULL;
-#else
-	return NULL;
-#endif
-}
-#endif
-
 void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat, 
 	const nArrayT<int>& eqnos) const
 {
@@ -551,32 +241,6 @@ void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat,
 #endif
 }
 
-void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat, 
-	const nArrayT<int>& row_eqnos,
-	const nArrayT<int>& col_eqnos) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	FEManager().AssembleLHS(group, elMat, row_eqnos, col_eqnos);
-#else
-#pragma unused(group)
-#pragma unused(elMat)
-#pragma unused(row_eqnos)
-#pragma unused(col_eqnos)
-#endif
-}
-
-void ElementSupportT::AssembleLHS(int group, const nArrayT<double>& diagonal_elMat, 
-	const nArrayT<int>& eqnos) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	FEManager().AssembleLHS(group, diagonal_elMat, eqnos);
-#else
-#pragma unused(group)
-#pragma unused(diagonal_elMat)
-#pragma unused(eqnos)
-#endif
-}
-
 void ElementSupportT::AssembleRHS(int group, const nArrayT<double>& elRes, 
 	const nArrayT<int>& eqnos) const
 {
@@ -600,7 +264,8 @@ void ElementSupportT::AssembleRHS(int group, const nArrayT<double>& elRes,
 void ElementSupportT::ResetAverage(int n_values) const
 {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	Nodes().ResetAverage(n_values);
+	NodeManagerT& nodes = const_cast<NodeManagerT&>(NodeManager());
+	nodes.ResetAverage(n_values);
 #else
 	fGroupAverage->ResetAverage(n_values);
 #endif
@@ -610,9 +275,10 @@ void ElementSupportT::ResetAverage(int n_values) const
 void ElementSupportT::AssembleAverage(const iArrayT& nodes, const dArray2DT& vals) const
 {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	Nodes().AssembleAverage(nodes, vals);
+	NodeManagerT& node_man = const_cast<NodeManagerT&>(NodeManager());
+	node_man.AssembleAverage(nodes, vals);
 #else
-    fGroupAverage->AssembleAverage(nodes,vals);
+    fGroupAverage->AssembleAverage(nodes, vals);
 #endif
 }
 
@@ -620,7 +286,8 @@ void ElementSupportT::AssembleAverage(const iArrayT& nodes, const dArray2DT& val
 const dArray2DT& ElementSupportT::OutputAverage(void) const
 {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return Nodes().OutputAverage();
+	NodeManagerT& nodes = const_cast<NodeManagerT&>(NodeManager());
+	return nodes.OutputAverage();
 #else
 	return fGroupAverage->OutputAverage();
 #endif
@@ -630,39 +297,14 @@ const dArray2DT& ElementSupportT::OutputAverage(void) const
 void ElementSupportT::OutputUsedAverage(dArray2DT& average_values) const
 {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	Nodes().OutputUsedAverage(average_values);
+	NodeManagerT& nodes = const_cast<NodeManagerT&>(NodeManager());
+	nodes.OutputUsedAverage(average_values);
 #else
 	fGroupAverage->OutputUsedAverage(average_values);
 #endif
 }
 
-ifstreamT& ElementSupportT::Input(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().Input();
-#else
-	return *ifst;
-#endif
-}
-
-ofstreamT& ElementSupportT::Output(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return FEManager().Output();
-#else
-	return *ofst;
-#endif
-}
-
-/* format of the output files */
-IOBaseT::FileTypeT ElementSupportT::OutputFormat(void) const { return FEManager().OutputFormat(); }
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-int ElementSupportT::RegisterOutput(const OutputSetT& output_set) const
-{
-	return FEManager().RegisterOutput(output_set);
-}
-#else
+#ifdef _FRACTURE_INTERFACE_LIBRARY_
 int ElementSupportT::RegisterOutput(ArrayT<StringT>& n_labels, 
 	ArrayT<StringT>& e_labels)
 {
@@ -681,9 +323,7 @@ int ElementSupportT::RegisterOutput(ArrayT<StringT>& n_labels,
 void ElementSupportT::WriteOutput(int ID, const dArray2DT& n_values, 
 	const dArray2DT& e_values) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	FEManager().WriteOutput(ID, n_values, e_values);
-#else
+#ifdef _FRACTURE_INTERFACE_LIBRARY_
 #pragma unused(ID)
 	double *ftmp1, *ftmp2;
 	ftmp1 = fNodalOutput;
@@ -694,16 +334,8 @@ void ElementSupportT::WriteOutput(int ID, const dArray2DT& n_values,
 	ftmp2 = e_values.Pointer();
 	for (int i = 0; i < e_values.Length(); i++)
 		*ftmp1++ = *ftmp2++;
-#endif
-}
-
-/* return true if output is going to be written for the current time step */
-bool ElementSupportT::WriteOutput(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return TimeManager().WriteOutput();
 #else
-	return false;
+	FEManager().WriteOutput(ID, n_values, e_values);
 #endif
 }
 
@@ -713,13 +345,6 @@ void ElementSupportT::WriteOutput(const StringT& file, const dArray2DT& coords, 
 {
 	FEManager().WriteOutput(file, coords, node_map, values, labels);
 }
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-const OutputSetT& ElementSupportT::OutputSet(int ID) const
-{
-	return FEManager().OutputSet(ID);
-}
-#endif
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 const ArrayT<StringT>& ElementSupportT::Argv(void) const { return FEManager().Argv(); }

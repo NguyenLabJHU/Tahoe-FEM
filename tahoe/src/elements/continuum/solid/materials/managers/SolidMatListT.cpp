@@ -1,4 +1,4 @@
-/* $Id: SolidMatListT.cpp,v 1.13 2003-12-28 08:23:33 paklein Exp $ */
+/* $Id: SolidMatListT.cpp,v 1.14 2004-07-15 08:28:29 paklein Exp $ */
 #include "SolidMatListT.h"
 
 #ifdef __DEVELOPMENT__
@@ -20,42 +20,18 @@ SolidMatListT::SolidMatListT(int length, const SolidMatSupportT& support):
 	MaterialListT(length),
 	fHasLocalizers(false),
 	fHasThermal(false),
-	fSolidMatSupport(&support),
-	fSSMatSupport(NULL),
-	fFSMatSupport(NULL),
-	fGradSSMatSupport(NULL)
+	fSolidMatSupport(&support)
 {
 #ifdef __NO_RTTI__
 	cout << "\n SolidMatListT::SolidMatListT: WARNING: environment has no RTTI. Some\n" 
 	     <<   "    consistency checking is disabled" << endl;
 #endif
-
-	/* cast to small strain support */
-	fSSMatSupport = TB_DYNAMIC_CAST(const SSMatSupportT*, fSolidMatSupport);
-
-	/* cast to finite strain support */
-	fFSMatSupport = TB_DYNAMIC_CAST(const FSMatSupportT*, fSolidMatSupport);
-#ifdef GRAD_SMALL_STRAIN_DEV
-	/* cast to gradient enhanced small strain support */
-	fGradSSMatSupport = TB_DYNAMIC_CAST(const GradSSMatSupportT*, fSolidMatSupport);
-#endif
-
-	/* must have at least one */
-	if (!fSSMatSupport && !fFSMatSupport && !fGradSSMatSupport)
-	{
-		cout << "\n SolidMatListT::SolidMatListT: could not cast element group to\n" 
-		     <<   "     neither SSMatSupportT nor SSMatSupportT" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
 }
 
 SolidMatListT::SolidMatListT(void):
 	fHasLocalizers(false),
 	fHasThermal(false),
-	fSolidMatSupport(NULL),
-	fSSMatSupport(NULL),
-	fFSMatSupport(NULL),
-	fGradSSMatSupport(NULL)
+	fSolidMatSupport(NULL)
 {
 
 }

@@ -1,13 +1,11 @@
-/* $Id: Tijssens2DT.cpp,v 1.23 2004-06-17 07:13:28 paklein Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.24 2004-07-15 08:26:02 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
-
 #include "Tijssens2DT.h"
 
 #include <iostream.h>
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "ifstreamT.h"
 #include "StringT.h"
 #include "SecantMethodT.h"
 
@@ -19,37 +17,32 @@ const int ku_c = 5;
 const int kIntShift = 6;
 
 /* constructor */
-Tijssens2DT::Tijssens2DT(ifstreamT& in, const double& time_step): 
+Tijssens2DT::Tijssens2DT(void): 
 	SurfacePotentialT(knumDOF),
-	fTimeStep(time_step)
-{
+
 	/* traction rate parameters */
-	in >> fk_t0; if (fk_t0 < 0) throw ExceptionT::kBadInputValue;
-	in >> fk_n; if (fk_n < 0) throw ExceptionT::kBadInputValue;
-	in >> fc_1; if (fc_1 < 0) throw ExceptionT::kBadInputValue;
-	in >> fDelta_n_ccr; if (fDelta_n_ccr < 0) throw ExceptionT::kBadInputValue;
+	fk_t0(0.0),
+	fk_n(0.0),
+	fc_1(0.0),
+	fDelta_n_ccr(0.0),
 
 	/* craze initiation parameters */
-	in >> fA_0; if (fA_0 < 0) throw ExceptionT::kBadInputValue;
-	in >> fB_0; if (fB_0 < 0) throw ExceptionT::kBadInputValue;
-	in >> fQ_A; if (fQ_A < 0) throw ExceptionT::kBadInputValue;
-	in >> fQ_B; if (fQ_B < 0) throw ExceptionT::kBadInputValue;
+	fA_0(0.0),
+	fB_0(0.0),
+	fQ_A(0.0),
+	fQ_B(0.0),
 	
 	/* crazing state variables' parameters */
-	in >> fDelta_0; if (fDelta_0 < 0) throw ExceptionT::kBadInputValue;
-	in >> fsigma_c; if (fsigma_c < 0) throw ExceptionT::kBadInputValue;
-	in >> fastar; if (fastar < 0) throw ExceptionT::kBadInputValue;
-	in >> ftemp; if (ftemp < 0) throw ExceptionT::kBadInputValue;
-	in >> fGroup; if (fGroup <= 0) throw ExceptionT::kBadInputValue;
-	in >> fSteps; if (fSteps < 0) throw ExceptionT::kBadInputValue;
-
-	fA = fA_0/2.*exp(fQ_A/ftemp);
-	fB = fB_0/6.*exp(fQ_B/ftemp);
- 	fc_1 /= fDelta_n_ccr;
-	double root3 = sqrt(3.);
-	ftau_c = fsigma_c/root3;
-	fGamma_0 = fDelta_0*root3;
-	fastar /= ftemp;
+	fDelta_0(0.0),
+	fsigma_c(0.0),
+	fastar(0.0),
+	ftemp(0.0),
+	fGroup(-1),
+	fSteps(0.0),
+	
+	fTimeStep(NULL)
+{
+	SetName("Tijssens_2D");
 }
 
 /* return the number of state variables needed by the model */
@@ -84,13 +77,8 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
-	if (fTimeStep < 0.0) {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		cout << "\n Tijssens2DT::Traction: expecting non-negative time increment: "
-		     << fTimeStep << endl;
-#endif
-		throw ExceptionT::kBadInputValue;
-	}
+	if (*fTimeStep < 0.0) 
+		ExceptionT::BadInputValue("Tijssens2DT::Traction", "expecting non-negative time increment %g", fTimeStep);
 #endif
 
 	if (!qIntegrate)
@@ -144,15 +132,15 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 				double Tnp1 = state[1];
 				SecantMethodT secant(20);
 				double du_nd = 0.0;
-				if (fabs(fTimeStep) > kSmall) du_nd = du_n/fTimeStep;
+				if (fabs(*fTimeStep) > kSmall) du_nd = du_n/(*fTimeStep);
 
-				secant.Reset(fsigma_c,-state[1]-fk_n*fTimeStep*(du_nd-fDelta_0),1.5*state[1],.5*state[1]-fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))));
+				secant.Reset(fsigma_c,-state[1]-fk_n*(*fTimeStep)*(du_nd-fDelta_0),1.5*state[1],.5*state[1]-fk_n*(*fTimeStep)*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))));
 				Tnp1 = secant.NextGuess();
-				while (!secant.NextPoint(Tnp1,Tnp1-state[1]-(fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))))))
+				while (!secant.NextPoint(Tnp1,Tnp1-state[1]-(fk_n*(*fTimeStep)*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))))))
 					Tnp1 = secant.NextGuess();
 
-				double du_c = fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1));
-				state[1] += fk_n*(du_nd*fTimeStep-du_c);
+				double du_c = (*fTimeStep)*fDelta_0*exp(-fastar*(fsigma_c-Tnp1));
+				state[1] += fk_n*(du_nd*(*fTimeStep) - du_c);
 
 				state[5] += du_c;
 				state[6*knumDOF] += state[1]*du_n;
@@ -234,7 +222,7 @@ const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 			}
 			else
 			{
-				fStiffness[3] = fk_n/(1.+fk_n*fTimeStep*fastar*fDelta_0*exp(-fastar*(fsigma_c-Tnp1)));
+				fStiffness[3] = fk_n/(1.+fk_n*(*fTimeStep)*fastar*fDelta_0*exp(-fastar*(fsigma_c-Tnp1)));
 			}
 	      	
 			double fk_t = fk_t0*exp(-fc_1*state[5+kIntShift]/fDelta_n_ccr);
@@ -266,13 +254,7 @@ SurfacePotentialT::StatusT Tijssens2DT::Status(const dArrayT& jump_u,
 
 }
 
-void Tijssens2DT::PrintName(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << "    Tijssens 2D \n";
-#endif
-}
-
+#if 0
 /* print parameters to the output stream */
 void Tijssens2DT::Print(ostream& out) const
 {
@@ -291,6 +273,7 @@ void Tijssens2DT::Print(ostream& out) const
 	out << " Temperature . . . . . . . . . . . . . . . . . . = " << ftemp   << '\n';
 #endif
 }
+#endif
 
 int Tijssens2DT::NumOutputVariables(void) const { return 4; }
 
@@ -303,6 +286,110 @@ void Tijssens2DT::OutputLabels(ArrayT<StringT>& labels) const
 	labels[3] = "f(sigma_m)";
 }
 
+/* describe the parameters  */
+void Tijssens2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SurfacePotentialT::DefineParameters(list);
+
+	/* limits */
+	LimitT non_negative(0, LimitT::LowerInclusive);
+
+	/* traction rate parameters */
+	ParameterT k_t0(fk_t0, "k_t0");
+	k_t0.AddLimit(non_negative);
+	list.AddParameter(k_t0);
+
+	ParameterT k_n(fk_n, "k_n");
+	k_n.AddLimit(non_negative);
+	list.AddParameter(k_n);
+
+	ParameterT c_1(fc_1, "c_1");
+	c_1.AddLimit(non_negative);
+	list.AddParameter(c_1);
+
+	ParameterT Delta_n_ccr(fDelta_n_ccr, "Delta_n_ccr");
+	Delta_n_ccr.AddLimit(non_negative);
+	list.AddParameter(Delta_n_ccr);
+
+	/* craze initiation parameters */
+	ParameterT A_0(fA_0, "A_0");
+	A_0.AddLimit(non_negative);
+	list.AddParameter(A_0);
+
+	ParameterT B_0(fB_0, "B_0");
+	B_0.AddLimit(non_negative);
+	list.AddParameter(B_0);
+
+	ParameterT Q_A(fQ_A, "Q_A");
+	Q_A.AddLimit(non_negative);
+	list.AddParameter(Q_A);
+
+	ParameterT Q_B(fQ_B, "Q_B");
+	Q_B.AddLimit(non_negative);
+	list.AddParameter(Q_B);
+
+	/* crazing state variables' parameters */
+	ParameterT Delta_0(fDelta_0, "Delta_0");
+	Delta_0.AddLimit(non_negative);
+	list.AddParameter(Delta_0);
+
+	ParameterT sigma_c(fsigma_c, "sigma_c");
+	sigma_c.AddLimit(non_negative);
+	list.AddParameter(sigma_c);
+
+	ParameterT a_star(fastar, "a_star");
+	a_star.AddLimit(non_negative);
+	list.AddParameter(a_star);
+
+	ParameterT temp(ftemp, "temperature");
+	temp.AddLimit(non_negative);
+	list.AddParameter(temp);
+
+	ParameterT steps(ParameterT::Integer, "failure_decay_steps");
+	steps.AddLimit(non_negative);
+	list.AddParameter(steps);
+
+	list.AddParameter(fGroup, "bulk_element_group");
+}
+
+/* accept parameter list */
+void Tijssens2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SurfacePotentialT::TakeParameterList(list);
+
+	/* traction rate parameters */
+	fk_t0 = list.GetParameter("k_t0");
+	fk_n = list.GetParameter("k_n");
+	fc_1 = list.GetParameter("c_1");
+	fDelta_n_ccr = list.GetParameter("Delta_n_ccr");
+
+	/* craze initiation parameters */
+	fA_0 = list.GetParameter("A_0");
+	fB_0 = list.GetParameter("B_0");
+	fQ_A = list.GetParameter("Q_A");
+	fQ_B = list.GetParameter("Q_B");
+
+	/* crazing state variables' parameters */
+	fDelta_0 = list.GetParameter("Delta_0");
+	fsigma_c = list.GetParameter("sigma_c");
+	fastar = list.GetParameter("a_star");
+	ftemp = list.GetParameter("temperature");
+	int steps = list.GetParameter("failure_decay_steps");
+	fSteps = double(steps);
+	fGroup = list.GetParameter("bulk_element_group");
+
+	/* computed parameters */
+	fA = fA_0/2.*exp(fQ_A/ftemp);
+	fB = fB_0/6.*exp(fQ_B/ftemp);
+ 	fc_1 /= fDelta_n_ccr;
+	double root3 = sqrt(3.);
+	ftau_c = fsigma_c/root3;
+	fGamma_0 = fDelta_0*root3;
+	fastar /= ftemp;	
+}
+
 void Tijssens2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
 	dArrayT& output)
 {
@@ -310,7 +397,7 @@ void Tijssens2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& sta
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	
-	output[0] = (jump_u[1]-state[9])/fTimeStep;
+	output[0] = (fabs(*fTimeStep) > kSmall) ? (jump_u[1]-state[9])/(*fTimeStep) : 0.0;
 	output[1] = state[10];
 	output[2] = state[11];
 	output[3] = 0;

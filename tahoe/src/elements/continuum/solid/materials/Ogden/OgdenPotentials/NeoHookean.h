@@ -1,9 +1,9 @@
-/* $Id: NeoHookean.h,v 1.1 2003-04-05 19:41:26 thao Exp $ */
+/* $Id: NeoHookean.h,v 1.2 2004-07-15 08:27:26 paklein Exp $ */
 /* created: TDN (01/22/2001) */
-
 #ifndef _NeoHookean_
 #define _NeoHookean_
 
+/* base class */
 #include "PotentialT.h"
 
 namespace Tahoe {
@@ -13,7 +13,10 @@ class NeoHookean: public PotentialT
   public:
 
 	/* constructor */
-	NeoHookean(ifstreamT& in);
+	NeoHookean(void);
+
+	/* set parameters */
+	void SetKappaMu(double kappa, double mu);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;
@@ -32,11 +35,10 @@ class NeoHookean: public PotentialT
 	virtual double MeanMod(const double& J);
 
   private:  
+
   	/*inelastic moduli*/
 	double fMu;
 	double fKappa;
-	
-	const double fthird;
 };
 }
 #endif /* _RG_NeoHookean3D_ */
