@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.h,v 1.8 2002-02-21 09:01:32 paklein Exp $ */
+/* $Id: ComparatorT.h,v 1.9 2002-03-04 06:59:07 paklein Exp $ */
 
 #ifndef _COMPARATOR_T_H_
 #define _COMPARATOR_T_H_
@@ -50,6 +50,10 @@ private:
 
 	/** compare results */
 	bool PassOrFail(const StringT& file_1, const StringT& file_2, 
+		bool do_rel, bool do_abs);
+
+	/** deprecated version not using the ModelManagerT class to read data */
+	bool PassOrFail_old(const StringT& file_1, const StringT& file_2, 
 		bool do_rel, bool do_abs);
 
 	/* read data block header */
