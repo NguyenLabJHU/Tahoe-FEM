@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.7 2002-01-27 18:28:45 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.8 2002-02-07 23:28:33 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -43,12 +43,15 @@ public:
 	 * \param ID identifier to denote the class generating the OutputSetT
 	 * \param geometry_code GeometryT::CodeT defining the geometry associated
 	 *        with the connectivities.
-	 * \param block_ID list of element block ID's comprising the connectivities.
-	 *        This list is used to declare that the connectivities passed in are
-	 *        actually a union of connectivities defined by ID's declared in an 
-	 *        associated geometry database file. This information is needed to
-	 *        join element-based data from parallel calculations. This list may
-	 *        be empty.
+	 * \param block_ID list of ID's comprising the connectivities. This list is 
+	 *        used to declare that the connectivities passed in are actually a union 
+	 *        of connectivities defined by ID's declared in an associated geometry 
+	 *        database file. These values are used internally to refer to the data 
+	 *        associated with each member of the connectivities list. If data is only
+	 *        written per node, these ID's have no other use. If there is data per
+	 *        element, these values are also used by JoinOutputT when joining "element"
+	 *        data, in which case the ID must correspond to the ID for the element
+	 *        block in the geometry database.
 	 * \param connectivities elements over which data will be written. The
 	 *        output formatters retain a reference to these connectivities
 	 *        for use during output.
@@ -59,7 +62,7 @@ public:
 	 * \param changing flag to indicate whether the connectivities may change
 	 *        from output step to output step. */
 	OutputSetT(const StringT& ID, GeometryT::CodeT geometry_code,
-		const ArrayT<StringT>& block_ID, const ArrayT<const iArray2DT*> connectivities, 
+		const ArrayT<StringT>& block_ID, const ArrayT<const iArray2DT*>& connectivities, 
 		const ArrayT<StringT>& n_labels, const ArrayT<StringT>& e_labels, 
 		bool changing);
 

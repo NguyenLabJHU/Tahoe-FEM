@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.6 2002-01-27 18:28:45 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.7 2002-02-07 23:28:33 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #include "OutputSetT.h"
@@ -11,7 +11,7 @@ const bool ArrayT<OutputSetT*>::fByteCopy = true;
 /* constructor */
 OutputSetT::OutputSetT(const StringT& ID, GeometryT::CodeT geometry_code,
 	const ArrayT<StringT>& block_ID, 
-	const ArrayT<const iArray2DT*> connectivities, 
+	const ArrayT<const iArray2DT*>& connectivities, 
 	const ArrayT<StringT>& n_labels, 
 	const ArrayT<StringT>& e_labels, bool changing):
 	fPrintStep(-1),
