@@ -1,4 +1,4 @@
-/* $Id: SolidMatList1DT.cpp,v 1.15 2004-01-14 19:25:30 rdorgan Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.16 2004-01-14 22:04:44 rdorgan Exp $ */
 #include "SolidMatList1DT.h"
 #include "SolidMatSupportT.h"
 #include "fstreamT.h"
@@ -14,6 +14,7 @@
 #ifdef GRAD_SMALL_STRAIN_DEV
 #include "GradJ2SS1D.h"
 #include "J2SSKStV1D.h"
+#include "GradC0J2SS1D.h"
 #endif
 
 using namespace Tahoe;
@@ -89,6 +90,19 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "GRAD_SMALL_STRAIN_DEV not enabled: %d", matcode);
 #endif
 			}
+			case kGradC0J2SS:
+			{
+#ifdef GRAD_SMALL_STRAIN_DEV
+				/* check */
+				if (!fGradSSMatSupport) Error_no_small_strain(cout, matcode);
+
+				fArray[matnum] = new GradC0J2SS1D(in, *fGradSSMatSupport);
+				fHasHistory = true;
+				break;
+#else
+				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "GRAD_SMALL_STRAIN_DEV not enabled: %d", matcode);
+#endif
+			}
 			default:
 			{
 				cout << "\n SolidMatList1DT::ReadMaterialData: unknown material code: ";
@@ -147,6 +161,7 @@ void SolidMatList1DT::DefineInlineSub(const StringT& sub, ParameterListT::ListOr
 #ifdef GRAD_SMALL_STRAIN_DEV
 		sub_sub_list.AddSub("GradJ2SS1D");
 		sub_sub_list.AddSub("J2SSKStV1D");
+		sub_sub_list.AddSub("GradC0J2SS1D");
 #endif		
 	}
 	else /* inherited */
@@ -163,6 +178,8 @@ ParameterInterfaceT* SolidMatList1DT::NewSub(const StringT& list_name) const
 		return new GradJ2SS1D;
 	else if (list_name == "J2SSKStV1D")
 		return new J2SSKStV1D;
+        else if (list_name == "GradC0J2SS1D")
+                return new GradC0J2SS1D;
 #endif		
 	else /* inherited */
 		return SolidMatListT::NewSub(list_name);
