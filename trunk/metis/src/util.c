@@ -8,7 +8,7 @@
  * Started 9/28/95
  * George
  *
- * $Id: util.c,v 1.1.1.1 2001-07-19 06:24:01 paklein Exp $
+ * $Id: util.c,v 1.2 2002-02-09 19:14:04 paklein Exp $
  */
 
 /* #include <metis.h> PAK: not a system header */
@@ -512,6 +512,9 @@ void InitRandom(int seed)
 /*************************************************************************
 * This function returns the log2(x)
 **************************************************************************/
+
+/* defined in /usr/lib/libSystem.dylib(hash_log2.o) with Darwin */
+#ifndef __DARWIN__
 int log2(int a)
 {
   int i;
@@ -519,4 +522,4 @@ int log2(int a)
   for (i=1; a > 1; i++, a = a>>1);
   return i-1;
 }
-
+#endif
