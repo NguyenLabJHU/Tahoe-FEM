@@ -1,4 +1,4 @@
-/* $Id: SSQ2P1MF.cpp,v 1.4 2003-11-04 18:14:48 thao Exp $ */
+/* $Id: SSQ2P1MF.cpp,v 1.5 2003-11-21 22:54:46 paklein Exp $ */
 #include "SSQ2P1MF.h"
 
 #include "OutputSetT.h"
@@ -274,8 +274,8 @@ void SSQ2P1MF::MatForceVolMech(dArrayT& elem_val)
       fEshelby(1,0) = gradU(0,1)*fCauchy(0,0) + gradU(1,1)*fCauchy(1,0);
       fEshelby(1,1) = gradU(0,1)*fCauchy(0,1) + gradU(1,1)*fCauchy(1,1) - energy;
 
-      double* pDQaX = DQa(0); 
-      double* pDQaY = DQa(1);
+      const double* pDQaX = DQa(0); 
+      const double* pDQaY = DQa(1);
       
       for (int j = 0; j<nen; j++)
       {
@@ -318,9 +318,9 @@ void SSQ2P1MF::MatForceVolMech(dArrayT& elem_val)
       fEshelby(2,2) = gradU(0,2)*fCauchy(0,2) + gradU(1,2)*fCauchy(1,2)
         + gradU(2,2)*fCauchy(2,2)-energy;
 
-      double* pDQaX = DQa(0); 
-      double* pDQaY = DQa(1);
-      double* pDQaZ = DQa(2);
+      const double* pDQaX = DQa(0); 
+      const double* pDQaY = DQa(1);
+      const double* pDQaZ = DQa(2);
       
       for (int j = 0; j<nen; j++)
       {
@@ -383,7 +383,7 @@ void SSQ2P1MF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretc
       //      cout << "\nfGradInternalStrain: "<<fGradInternalStrain;
       /*integrate material force*/
       const dArrayT& internalstress = fCurrSSMat->InternalStressVars();
-      double* pstress = internalstress.Pointer();
+      const double* pstress = internalstress.Pointer();
       //      cout << "\ninternalstress: "<<internalstress;
       double xval = ScalarProduct(pstress, pGradX, fInternalDOF);
       double yval = ScalarProduct(pstress, pGradY, fInternalDOF);
@@ -422,7 +422,7 @@ void SSQ2P1MF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretc
             
       /*integrate material force*/
       const dArrayT& internalstress = fCurrSSMat->InternalStressVars();
-      double* pstress = internalstress.Pointer();
+      const double* pstress = internalstress.Pointer();
       double xval = ScalarProduct(pstress, pGradX, fInternalDOF);
       double yval = ScalarProduct(pstress, pGradY, fInternalDOF);
       double zval = ScalarProduct(pstress, pGradZ, fInternalDOF);

@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.39 2003-11-20 22:57:40 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.40 2003-11-21 22:54:34 paklein Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -281,7 +281,7 @@ ContactSurfaceT::AllocateMultiplierTags(void)
 }
 
 void
-ContactSurfaceT::ResetMultipliers(dArray2DT& multiplier_values)
+ContactSurfaceT::ResetMultipliers(dArray2DT& multiplier_values) const
 {
         /* set last muliplier array to local node map and store values */
         multiplier_values = 0.0; // initialize
@@ -317,12 +317,12 @@ ContactSurfaceT::MultiplierValues
     for (int i = 0; i < local_nodes.Length(); i++)
     {
         multiplier_values[i]
-            = &fMultiplierValues[fMultiplierMap[local_nodes[i]]];
+            = (double*) &fMultiplierValues[fMultiplierMap[local_nodes[i]]];
     }
 }
 
 
-iArray2DT& 
+const iArray2DT& 
 ContactSurfaceT::DisplacementMultiplierNodePairs(void)
 { // for ConnectsDOF ONLY
 //	int ghostnode;

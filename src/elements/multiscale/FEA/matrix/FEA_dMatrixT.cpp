@@ -1,4 +1,4 @@
-// $Id: FEA_dMatrixT.cpp,v 1.12 2003-10-09 21:46:14 raregue Exp $
+// $Id: FEA_dMatrixT.cpp,v 1.13 2003-11-21 22:54:43 paklein Exp $
 #include "FEA.h"
 
 using namespace Tahoe; 
@@ -78,7 +78,7 @@ void FEA_dMatrixT::FEA_Set ( int rows,int cols,const FEA_dMatrixT &A, int i,int 
 
   Allocate(n_ip); // Allocate fArray to put dMatricies in 
 	for (int l=0; l<n_ip; l++)
-		fArray[l].Set(n_rows, n_cols, A[l].Pointer(A_rows*j + i));
+		fArray[l].Alias(n_rows, n_cols, A[l].Pointer(A_rows*j + i));
 
 }		
 //----------------------------------------------------
@@ -563,7 +563,7 @@ void FEA_dMatrixT::Double_Dot (const FEA_dMatrixT &a, FEA_dScalarT &s)
   int i,l; 
   register double dot = 0.0;
 	double *p  = (*this)[0].Pointer (); 
-	double *pa = a[0].Pointer ();
+	const double *pa = a[0].Pointer ();
 
 	for (l=0; l<n_ip; l++) {
  	  for (i=0; i<n_rows_x_n_cols; i++) 
@@ -580,7 +580,7 @@ void FEA_dMatrixT::Match_Signs (const FEA_dMatrixT &A) {
 				
   if (fLength==0) FEA_Dimension (A);
 	double *p  = (*this)[0].Pointer (); 
-	double *q  = A[0].Pointer (); 
+	const double *q  = A[0].Pointer (); 
 
 	for (int i=0; i<n_ip_x_n_rows_x_n_cols-1; i++) {
 		if ( (*p)*(*q) < 0.0 ) // If signs are opposite
@@ -600,7 +600,7 @@ void FEA_dMatrixT::AddBlock (const int &i,const int &j,const FEA_dMatrixT &block
 
 //----------------------------------------------------
 
-void FEA_dMatrixT::CopyBlock (const int &i,const int &j,const FEA_dMatrixT &block) 
+void FEA_dMatrixT::CopyBlock (const int &i,const int &j, FEA_dMatrixT &block) 
 {
 	for (int l=0; l<n_ip; l++) (*this)[l].CopyBlock(i,j,block[l]); 
 }
@@ -702,7 +702,7 @@ FEA_EquateT& FEA_dMatrixT::Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int
 	if (rc==FEA::kCol && a_rc==FEA::kCol)  
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(n_rows*ij); // ij = { 0 < ij < n-1 }
-			double *q = a[l].Pointer(a.n_rows*a_ij);
+			const double *q = a[l].Pointer(a.n_rows*a_ij);
       (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (i=0; i<n_rows; i++) 
       	(*fStack->Stack[n].vec_ptrs[l]) += (*p++)*(*q++);   // think of as two ops *p; then p++;
@@ -710,7 +710,7 @@ FEA_EquateT& FEA_dMatrixT::Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int
 	else if (rc==FEA::kRow && a_rc==FEA::kRow) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(ij);
-			double *q = a[l].Pointer(a_ij);
+			const double *q = a[l].Pointer(a_ij);
       (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (j=0; j<n_cols; j++) {
       	(*fStack->Stack[n].vec_ptrs[l]) += (*p)*(*q);
@@ -721,7 +721,7 @@ FEA_EquateT& FEA_dMatrixT::Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int
 	else if (rc==FEA::kCol && a_rc==FEA::kRow) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(n_rows*ij);
-			double *q = a[l].Pointer(a_ij);
+			const double *q = a[l].Pointer(a_ij);
       (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (j=0; j<n_rows; j++) {
       	(*fStack->Stack[n].vec_ptrs[l]) += (*p)*(*q);
@@ -732,7 +732,7 @@ FEA_EquateT& FEA_dMatrixT::Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int
 	else if (rc==FEA::kRow && a_rc==FEA::kCol) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(ij);
-			double *q = a[l].Pointer(a.n_rows*a_ij);
+			const double *q = a[l].Pointer(a.n_rows*a_ij);
       (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (j=0; j<n_cols; j++) {
       	(*fStack->Stack[n].vec_ptrs[l]) += (*p)*(*q);
@@ -779,7 +779,7 @@ FEA_EquateT& FEA_dMatrixT::Dot_Aij (int rc,int ij,const FEA_dMatrixT &a,int a_rc
 	if (rc==FEA::kCol && a_rc==FEA::kCol)  
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(n_rows*ij);
-			double *q = a[l].Pointer(a.n_rows*a_ij);
+			const double *q = a[l].Pointer(a.n_rows*a_ij);
       (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (k=0; k<n_rows; k++) 
       	(*fStack->Stack[n].vec_ptrs[l]) += (*p++)*(*q++);  
@@ -789,7 +789,7 @@ FEA_EquateT& FEA_dMatrixT::Dot_Aij (int rc,int ij,const FEA_dMatrixT &a,int a_rc
 	else if (rc==FEA::kRow && a_rc==FEA::kRow) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(ij);
-			double *q = a[l].Pointer(a_ij);
+			const double *q = a[l].Pointer(a_ij);
       (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (k=0; k<n_cols; k++) {
       	(*fStack->Stack[n].vec_ptrs[l]) += (*p)*(*q);
@@ -802,7 +802,7 @@ FEA_EquateT& FEA_dMatrixT::Dot_Aij (int rc,int ij,const FEA_dMatrixT &a,int a_rc
 	else if (rc==FEA::kCol && a_rc==FEA::kRow) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(n_rows*ij);
-			double *q = a[l].Pointer(a_ij);
+			const double *q = a[l].Pointer(a_ij);
       (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (k=0; k<n_rows; k++) {
       	(*fStack->Stack[n].vec_ptrs[l]) += (*p)*(*q);
@@ -815,7 +815,7 @@ FEA_EquateT& FEA_dMatrixT::Dot_Aij (int rc,int ij,const FEA_dMatrixT &a,int a_rc
 	else if (rc==FEA::kRow && a_rc==FEA::kCol) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(ij);
-			double *q = a[l].Pointer(a.n_rows*a_ij);
+			const double *q = a[l].Pointer(a.n_rows*a_ij);
       (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (k=0; k<n_cols; k++) {
       	(*fStack->Stack[n].vec_ptrs[l]) += (*p)*(*q);
@@ -849,7 +849,7 @@ fStack->Stack[n].length = n_ip;
 	}
 
 	double *p = (*this)[0].Pointer (n_rows*j +i);  // ij Component of 1st (0th) dMatrix
-	double *q = a[0].Pointer (n_rows*jj +ii);      // ij Component of 1st (0th) dMatrix
+	const double *q = a[0].Pointer (n_rows*jj +ii);      // ij Component of 1st (0th) dMatrix
 
 	for (l=0; l<n_ip; l++) {
     (*fStack->Stack[n].vec_ptrs[l]) = (*p)*(*q);   

@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.h,v 1.1 2003-11-19 20:38:22 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.h,v 1.2 2003-11-21 22:54:37 paklein Exp $ */ 
 #ifndef _GRAD_SMALL_STRAIN_T_H_ 
 #define _GRAD_SMALL_STRAIN_T_H_ 
 
@@ -41,26 +41,26 @@ public:
         
         /** \name isotropic hardening */
         /*@{*/
-        double& LinearR(void) const { return fR_List[CurrIP()]; };
-        double& LinearR(int ip) const { return fR_List[ip]; };
+        const double& LinearR(void) const { return fR_List[CurrIP()]; };
+        const double& LinearR(int ip) const { return fR_List[ip]; };
         /*@}*/
         
         /** \name isotropic hardening from the end of the previous time step */
         /*@{*/
-        double& LinearR_last(void) const { return fR_last_List[CurrIP()]; };
-        double& LinearR_last(int ip) const { return fR_last_List[ip]; };
+        const double& LinearR_last(void) const { return fR_last_List[CurrIP()]; };
+        const double& LinearR_last(int ip) const { return fR_last_List[ip]; };
         /*@}*/
         
         /** \name Laplacian isotropic hardening */
         /*@{*/
-        double& LinearLaplacianR(void) const { return fLapR_List[CurrIP()]; };
-        double& LinearLaplacianR(int ip) const { return fLapR_List[ip]; };
+        const double& LinearLaplacianR(void) const { return fLapR_List[CurrIP()]; };
+        const double& LinearLaplacianR(int ip) const { return fLapR_List[ip]; };
         /*@}*/
         
         /** \name Laplacian isotropic hardening from the end of the previous time step */
         /*@{*/
-        double& LinearLaplacianR_last(void) const { return fLapR_last_List[CurrIP()]; };
-        double& LinearLaplacianR_last(int ip) const { return fLapR_last_List[ip]; };
+        const double& LinearLaplacianR_last(void) const { return fLapR_last_List[CurrIP()]; };
+        const double& LinearLaplacianR_last(int ip) const { return fLapR_last_List[ip]; };
         /*@}*/
         
         /** return the number of degrees of freedom for iso_hard per node */

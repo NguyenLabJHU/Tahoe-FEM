@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.21 2003-04-25 20:01:39 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.22 2003-11-21 22:54:23 paklein Exp $ */
 #include "GreenwoodWilliamson.h"
 #include <math.h>
 #include <iostream.h>
@@ -264,7 +264,7 @@ dArrayT& GreenwoodWilliamson::MapFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl   = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pddU = out.Pointer();
 	double r, value = 0.0;
 	
@@ -316,7 +316,7 @@ dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) cons
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pU = out.Pointer();
 	double r, value = 10.0;
 	
@@ -400,7 +400,7 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl  = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pdU = out.Pointer();
 	double r, value = 0.0;
 	

@@ -1,4 +1,4 @@
-// $Id: FEA_dVectorT.h,v 1.7 2003-10-09 21:46:15 raregue Exp $
+// $Id: FEA_dVectorT.h,v 1.8 2003-11-21 22:54:44 paklein Exp $
 #ifndef _FEA_DVECTORT_H_
 #define _FEA_DVECTORT_H_
 
@@ -51,7 +51,7 @@ class FEA_dVectorT: public ArrayT <dArrayT>
 		void Dot (const FEA_dVectorT& b, FEA_dScalarT& c);  
 		
 		/** a.B = c <==>   aTB = cT  (1x3).(3x3) = (1x3) */
-		void Dot (const FEA_dMatrixT &B, const FEA_dVectorT &c); 
+		void Dot (const FEA_dMatrixT &B, FEA_dVectorT &c); 
 
 		/** a.Bc = c <==>  aTBc (1x3).(3x3).(3x1) = (1x1) */
     	void Dot (const FEA_dMatrixT &B, const FEA_dVectorT &c, FEA_dScalarT& d); 

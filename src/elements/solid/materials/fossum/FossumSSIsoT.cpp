@@ -558,23 +558,24 @@ void FossumSSIsoT::LoadData(const ElementCardT& element, int ip)
         if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
         /* fetch arrays */
-        dArrayT& d_array = element.DoubleData();
+        const dArrayT& d_array = element.DoubleData();
         
         /* decode */
+        dSymMatrixT::DimensionT dim = dSymMatrixT::int2DimensionT(kNSD);
         int stressdim = dSymMatrixT::NumValues(kNSD);
         int offset    = stressdim*fNumIP;
         int dex       = ip*stressdim;
         
-        fPlasticStrain.Set(        kNSD, &d_array[           dex]);
-             fUnitNorm.Set(        kNSD, &d_array[  offset + dex]);   
-             fBackStress.Set(        kNSD, &d_array[2*offset + dex]);  
-             fInternal.Set(kNumInternal, &d_array[3*offset + ip*kNumInternal]);
+	fPlasticStrain.Alias(         dim, &d_array[           dex]);
+	fUnitNorm.Alias     (         dim, &d_array[  offset + dex]);   
+	fBackStress.Alias   (         dim, &d_array[2*offset + dex]);  
+	fInternal.Alias     (kNumInternal, &d_array[3*offset + ip*kNumInternal]);
 }
 
 /* returns 1 if the trial elastic strain state lies outside of the 
  * yield surface */
 int FossumSSIsoT::PlasticLoading(const dSymMatrixT& trialstrain, 
-        const ElementCardT& element, int ip)
+	ElementCardT& element, int ip)
 {
   /* not yet plastic */
   //if (!element.IsAllocated()) 

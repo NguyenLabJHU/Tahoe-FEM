@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.h,v 1.5 2003-11-19 20:38:22 rdorgan Exp $ */
+/* $Id: GradSSSolidMatT.h,v 1.6 2003-11-21 22:54:37 paklein Exp $ */
 #ifndef _GRAD_SS_SOLID_MAT_T_H_
 #define _GRAD_SS_SOLID_MAT_T_H_
 
@@ -36,26 +36,26 @@ public:
         
         /** \name isotropic hardening */
         /*@{*/
-        double& R(void);
-        double& R(int ip);
+        const double& R(void) const;
+        const double& R(int ip) const;
         /*@}*/
         
         /** \name isotropic hardening from the end of the previous time step */
         /*@{*/
-        double& R_last(void);
-        double& R_last(int ip);
+        const double& R_last(void) const;
+        const double& R_last(int ip) const;
         /*@}*/
         
         /** \name Laplacian isotropic hardening */
         /*@{*/
-        double& LaplacianR(void);
-        double& LaplacianR(int ip);
+        const double& LaplacianR(void) const;
+        const double& LaplacianR(int ip) const;
         /*@}*/
         
         /** \name Laplacian isotropic hardening from the end of the previous time step */
         /*@{*/
-        double& LaplacianR_last(void);
-        double& LaplacianR_last(int ip);
+        const double& LaplacianR_last(void) const;
+        const double& LaplacianR_last(int ip) const;
         /*@}*/
         
         /** number of degrees of freedom for iso_hard field (per node) in the host

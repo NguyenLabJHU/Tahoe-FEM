@@ -1,4 +1,4 @@
-/* $Id: GWPlastic.cpp,v 1.5 2003-11-06 21:59:11 rjones Exp $ */
+/* $Id: GWPlastic.cpp,v 1.6 2003-11-21 22:54:23 paklein Exp $ */
 #include "GWPlastic.h"
 #include <math.h>
 #include <iostream.h>
@@ -201,7 +201,7 @@ throw ExceptionT::kGeneralFail;
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pU = out.Pointer();
 	double r, value = 0.0;
 	
@@ -221,7 +221,7 @@ throw ExceptionT::kGeneralFail;
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pF = out.Pointer();
 	double r, value = 10.0;
 	
@@ -240,7 +240,7 @@ throw ExceptionT::kGeneralFail;
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl  = in.Pointer();
+	const double* pl  = in.Pointer();
 	double* pdF = out.Pointer();
 	double r, value = 0.0;
 	

@@ -1,4 +1,4 @@
-/* $Id: MajumdarBhushan.cpp,v 1.5 2003-07-03 22:58:10 dzeigle Exp $ */
+/* $Id: MajumdarBhushan.cpp,v 1.6 2003-11-21 22:54:24 paklein Exp $ */
 #include "MajumdarBhushan.h"
 #include <math.h>
 #include <iostream.h>
@@ -194,7 +194,7 @@ dArrayT& MajumdarBhushan::MapFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl   = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pddU = out.Pointer();
 	double r, value = 0.0;
 	
@@ -239,7 +239,7 @@ dArrayT& MajumdarBhushan::MapDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pU = out.Pointer();
 	double r, value = 0.0;
 	
@@ -290,7 +290,7 @@ dArrayT& MajumdarBhushan::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl  = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pdU = out.Pointer();
 	double r, value = 0.0;
 	

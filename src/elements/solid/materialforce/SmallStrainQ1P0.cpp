@@ -1,4 +1,4 @@
-/* $Id: SmallStrainQ1P0.cpp,v 1.2 2003-08-30 03:31:24 thao Exp $ */
+/* $Id: SmallStrainQ1P0.cpp,v 1.3 2003-11-21 22:54:46 paklein Exp $ */
 #include "SmallStrainQ1P0.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -205,8 +205,8 @@ void SmallStrainQ1P0::Set_Bbar(const dArray2DT& DNa, const dArray2DT& DNabar,
   double* pBdil = Bbar_dil.Pointer();
 
   if (DNabar.MajorDim()==2){
-    double* pDx = DNa(0); double* pDbx = DNabar(0); 
-    double* pDy = DNa(1); double* pDby = DNabar(1);  
+    const double* pDx = DNa(0); const double* pDbx = DNabar(0); 
+    const double* pDy = DNa(1); const double* pDby = DNabar(1);  
   
    for (int a = 0; a<NumElementNodes(); a++) {
        *pBdil++ = *pDbx*fthird; *pBdev++ = *pDx*2.0*fthird;
@@ -224,9 +224,9 @@ void SmallStrainQ1P0::Set_Bbar(const dArray2DT& DNa, const dArray2DT& DNabar,
     }
   }
   else if (DNabar.MajorDim() == 3) {
-    double* pDx = DNa(0); double* pDbx = DNabar(0); 
-    double* pDy = DNa(1); double* pDby = DNabar(1);  
-    double* pDz = DNa(2); double* pDbz = DNabar(2);
+    const double* pDx = DNa(0); const double* pDbx = DNabar(0); 
+    const double* pDy = DNa(1); const double* pDby = DNabar(1);  
+    const double* pDz = DNa(2); const double* pDbz = DNabar(2);
 
     for (int a = 0; a<NumElementNodes(); a++) {
       *pBdil++ = *pDbx*fthird; *pBdev++ = *pDx*2.0*fthird; 

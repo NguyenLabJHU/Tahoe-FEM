@@ -1,4 +1,4 @@
-/* $Id: OgdenBaseT.cpp,v 1.2 2003-03-22 00:40:51 thao Exp $ */
+/* $Id: OgdenBaseT.cpp,v 1.3 2003-11-21 22:54:48 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #include "OgdenBaseT.h"
 
@@ -102,8 +102,8 @@ const dMatrixT& OgdenBaseT::c_ijkl(void)
 
        	if (NumSD() == 2)
 	{
-	  double& l0 = eigenstretch[0];
-	  double& l1 = eigenstretch[1];
+	  const double& l0 = eigenstretch[0];
+	  const double& l1 = eigenstretch[1];
 	  
 	  diff_stretch = l0-l1;
 	  
@@ -116,9 +116,9 @@ const dMatrixT& OgdenBaseT::c_ijkl(void)
 	}
 	else
 	{
-	  double& l0 = eigenstretch[0];
-	  double& l1 = eigenstretch[1];
-	  double& l2 = eigenstretch[2];
+	  const double& l0 = eigenstretch[0];
+	  const double& l1 = eigenstretch[1];
+	  const double& l2 = eigenstretch[2];
 	  
 	  diff_stretch =  l0 - l1;
 	  if (fabs(diff_stretch) > small)

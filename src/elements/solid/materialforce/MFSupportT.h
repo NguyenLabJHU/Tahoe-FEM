@@ -1,4 +1,4 @@
-/* $Id: MFSupportT.h,v 1.4 2003-11-19 06:09:46 thao Exp $ */
+/* $Id: MFSupportT.h,v 1.5 2003-11-21 22:54:46 paklein Exp $ */
 
 #ifndef _MFSupportT_
 #define _MFSupportT_
@@ -41,7 +41,7 @@ class MFSupportT
     /*set nodal values for current element in local ordering*/
     void ExtractArray2D(const dArray2DT& global_val, dArray2DT& elem_val,const iArrayT& nodes);
 
-    double ScalarProduct(double* pa, double* pb, const iArrayT& dims);
+    double ScalarProduct(const double* pa, const double* pb, const iArrayT& dims);
     /* returns displacement gradient*/
   
  protected:	

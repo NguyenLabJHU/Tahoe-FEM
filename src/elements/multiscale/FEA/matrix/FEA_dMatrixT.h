@@ -1,4 +1,4 @@
-// $Id: FEA_dMatrixT.h,v 1.10 2003-10-09 21:46:15 raregue Exp $
+// $Id: FEA_dMatrixT.h,v 1.11 2003-11-21 22:54:44 paklein Exp $
 #ifndef _FEA_DMATRIXT_H_
 #define _FEA_DMATRIXT_H_
 
@@ -25,9 +25,9 @@ class FEA_dMatrixT: public ArrayT <dMatrixT>
 	
 	  // data access routines
 	 
-	  int IPs(void)  { return n_ip;   } 
-	  int Rows(void) { return n_rows; }	
-	  int Cols(void) { return n_cols; } 
+	  int IPs(void)  const { return n_ip;   } 
+	  int Rows(void) const { return n_rows; }	
+	  int Cols(void) const { return n_cols; } 
 		
 		double* FEA_Pointer   (int offset) { return (*this)[0].Pointer(offset); }
 
@@ -73,10 +73,10 @@ class FEA_dMatrixT: public ArrayT <dMatrixT>
 		void Double_Dot 		(const FEA_dMatrixT &a, FEA_dScalarT &s);
 		void Match_Signs 		(const FEA_dMatrixT &A);
 		void Insert_SubMatrix  (const int &i,const int &j,const FEA_dMatrixT &block) 	{ SetBlock(i,j,block); 	}
-		void Extract_SubMatrix (const int &i,const int &j,const FEA_dMatrixT &block) 	{ CopyBlock(i,j,block); }
+		void Extract_SubMatrix (const int &i,const int &j,FEA_dMatrixT &block) 	{ CopyBlock(i,j,block); }
 		void Add_SubMatrix 	(const int &i,const int &j,const FEA_dMatrixT &a) 				{ AddBlock(i,j,a); 			}
 		void AddBlock				(const int &i,const int &j,const FEA_dMatrixT &block);
-		void CopyBlock			(const int &i,const int &j,const FEA_dMatrixT &block);
+		void CopyBlock			(const int &i,const int &j, FEA_dMatrixT &block);
 		void SetBlock				(const int &i,const int &j,const FEA_dMatrixT &block);
 		void Swap_Rows			(const int &row1,const int &row2); 
 		void Swap_Cols			(const int &col1,const int &col2); 

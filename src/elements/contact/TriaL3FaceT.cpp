@@ -1,4 +1,4 @@
-/* $Id: TriaL3FaceT.cpp,v 1.12 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: TriaL3FaceT.cpp,v 1.13 2003-11-21 22:54:35 paklein Exp $ */
 #include "TriaL3FaceT.h"
 
 /* suppress CW warning messages */
@@ -223,7 +223,7 @@ TriaL3FaceT::ComputeJacobian (const double* local_coordinates) const
 
 bool
 TriaL3FaceT::Projection 
-(ContactNodeT* node,dArrayT& parameters)  const
+(ContactNodeT* node, const dArrayT& parameters)  const
 {
 	double tol_g  = parameters[ContactElementT::kGapTol];
 	double tol_xi = parameters[ContactElementT::kXiTol];

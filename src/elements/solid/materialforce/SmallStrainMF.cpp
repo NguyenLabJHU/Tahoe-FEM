@@ -1,4 +1,4 @@
-/* $Id: SmallStrainMF.cpp,v 1.10 2003-05-15 22:11:07 thao Exp $ */
+/* $Id: SmallStrainMF.cpp,v 1.11 2003-11-21 22:54:46 paklein Exp $ */
 #include "SmallStrainMF.h"
 
 #include "OutputSetT.h"
@@ -517,8 +517,8 @@ void SmallStrainMF::MatForceVolMech(dArrayT& elem_val)
       nEshelby(1,0) = gradU(0,1)*sig(0,0)+gradU(1,1)*sig(1,0);
       nEshelby(1,1) = gradU(0,1)*sig(0,1)+gradU(1,1)*sig(1,1) - energy;
 
-      double* pDQaX = DQa(0); 
-      double* pDQaY = DQa(1);
+      const double* pDQaX = DQa(0); 
+      const double* pDQaY = DQa(1);
       
       for (int j = 0; j<nen; j++)
       {
@@ -553,9 +553,9 @@ void SmallStrainMF::MatForceVolMech(dArrayT& elem_val)
       nEshelby(2,1)=gradU(0,2)*sig(0,1)+gradU(1,2)*sig(1,1)+gradU(2,2)*sig(2,1);
       nEshelby(2,2)=gradU(0,2)*sig(0,2)+gradU(1,2)*sig(1,2)+gradU(2,2)*sig(2,2)-energy;
 
-      double* pDQaX = DQa(0); 
-      double* pDQaY = DQa(1);
-      double* pDQaZ = DQa(2);
+      const double* pDQaX = DQa(0); 
+      const double* pDQaY = DQa(1);
+      const double* pDQaZ = DQa(2);
       
       for (int j = 0; j<nen; j++)
       {
@@ -593,10 +593,10 @@ void SmallStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
   double* pviscstretch = fviscstretch.Pointer();
   double* pviscstress = fviscstress.Pointer();
    
-  double* pstatev = statev.Pointer();
-  double* pdevQ = pstatev;
-  double* pmeanQ = pstatev+(2*numstress);
-  double* pstretch = pstatev+(nstatev-numstress);
+  const double* pstatev = statev.Pointer();
+  const double* pdevQ = pstatev;
+  const double* pmeanQ = pstatev+(2*numstress);
+  const double* pstretch = pstatev+(nstatev-numstress);
   int nskip1 = nstatev-numstress;
   int nskip2 = nstatev - 1;
   for (int i = 0; i<nip; i++)

@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.15 2003-11-07 21:26:43 paklein Exp $*/
+/*$Id: MR2DT.cpp,v 1.16 2003-11-21 22:54:32 paklein Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -795,7 +795,7 @@ void MR2DT::SetElementGroupsNeeded(iArrayT& iGroups)
 	iGroups[0] = 1;
 }
 
-double MR2DT::signof(double& r)
+double MR2DT::signof(double r)
 {
 	if (fabs(r) < kSmall)
 		return 0.;

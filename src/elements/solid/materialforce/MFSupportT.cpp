@@ -1,4 +1,4 @@
-/* $Id: MFSupportT.cpp,v 1.7 2003-11-21 02:59:38 thao Exp $ */
+/* $Id: MFSupportT.cpp,v 1.8 2003-11-21 22:54:46 paklein Exp $ */
 #include "MFSupportT.h"
 
 #include "dArrayT.h"
@@ -372,7 +372,7 @@ void MFSupportT::ExtractArray2D(const dArray2DT& global_val, dArray2DT& elem_val
 }
 
 
-double MFSupportT::ScalarProduct(double* pa, double* pb, const iArrayT& dims)
+double MFSupportT::ScalarProduct(const double* pa, const double* pb, const iArrayT& dims)
 {  
   int varsets = dims.Length();
   double val = 0;

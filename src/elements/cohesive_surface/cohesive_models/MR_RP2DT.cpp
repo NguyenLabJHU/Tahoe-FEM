@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.23 2003-06-11 21:07:04 manzari Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.24 2003-11-21 22:54:32 paklein Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -823,7 +823,7 @@ bool MR_RP2DT::NodesMayRetie(void) const
 	return false;
 }
 
-double MR_RP2DT::signof(double& r)
+double MR_RP2DT::signof(double r)
 {
 	if (fabs(r) < kSmall)
 		return 0.;

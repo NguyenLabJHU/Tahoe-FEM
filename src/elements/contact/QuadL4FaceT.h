@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.h,v 1.20 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: QuadL4FaceT.h,v 1.21 2003-11-21 22:54:35 paklein Exp $ */
 #ifndef _QUADL4_FACE_T_H_
 #define _QUADL4_FACE_T_H_
 
@@ -66,7 +66,7 @@ public:
 		(const double* local_coordinates, dArray2DT& nodal_values, 
 		double* vector) const;
         double ComputeJacobian (const double* local_coordinates) const;
-        bool Projection (ContactNodeT* node, dArrayT& parameters)  const;
+        bool Projection (ContactNodeT* node, const dArrayT& parameters)  const;
 	inline void Polynomial 
 		(double* a, double* b, double* c, double* d) const ;
         void Quadrature
@@ -77,7 +77,7 @@ protected:
 
 private:
         /* nodal coordinates */
-        double* fx[4];
+        const double* fx[4];
 	
 	/* integration points */
 	static dArray2DT fIntegrationPoints;

@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.19 2003-11-20 18:14:51 rjones Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.20 2003-11-21 22:54:34 paklein Exp $ */
 // created by : rjones 2001
 #include "MultiplierContactElement2DT.h"
 
@@ -51,8 +51,8 @@ void MultiplierContactElement2DT::PrintControlData(ostream& out) const
     {
         for (int j = i ; j < num_surfaces ; j++)
         {
-            dArrayT& search_parameters = fSearchParameters(i,j);
-            dArrayT& enf_parameters = fEnforcementParameters(i,j);
+            const dArrayT& search_parameters = fSearchParameters(i,j);
+            const dArrayT& enf_parameters = fEnforcementParameters(i,j);
             /* only print allocated parameter arrays */
             if (search_parameters.Length() == kSearchNumParameters) {
               out << "  surface pair: ("  << i << "," << j << ")\n" ;

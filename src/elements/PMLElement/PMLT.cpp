@@ -1,4 +1,4 @@
-/* $Id: PMLT.cpp,v 1.11 2003-01-29 07:34:27 paklein Exp $ */
+/* $Id: PMLT.cpp,v 1.12 2003-11-21 22:54:30 paklein Exp $ */
 #include "PMLT.h"
 
 #include <iostream.h>
@@ -657,8 +657,8 @@ void PMLT::FormMa(int mass_type, double constM, const LocalArrayT& body_force)
 	int next = nen*NumSD();
 	LocalArrayT body_forcea;
 	LocalArrayT body_forceb;
-	body_forcea.Set(nen,NumSD(),body_force.Pointer());
-	body_forceb.Set(nen,NumSD(),body_force.Pointer()+next);
+	body_forcea.Alias(nen,NumSD(),body_force.Pointer());
+	body_forceb.Alias(nen,NumSD(),body_force.Pointer()+next);
 	
 	switch (mass_type)
 	{
@@ -748,8 +748,8 @@ void PMLT::FormCv_PML(int mass_type, double constC, const LocalArrayT& body_forc
 	int next = nen*NumSD();
 	LocalArrayT body_forcea;
 	LocalArrayT body_forceb;
-	body_forcea.Set(nen,NumSD(),body_force.Pointer());
-	body_forceb.Set(nen,NumSD(),body_force.Pointer()+next);
+	body_forcea.Alias(nen,NumSD(),body_force.Pointer());
+	body_forceb.Alias(nen,NumSD(),body_force.Pointer()+next);
 
 	switch (mass_type)
 	{

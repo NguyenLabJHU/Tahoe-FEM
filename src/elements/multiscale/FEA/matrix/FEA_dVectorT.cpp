@@ -1,4 +1,4 @@
-// $Id: FEA_dVectorT.cpp,v 1.5 2003-10-09 21:46:15 raregue Exp $
+// $Id: FEA_dVectorT.cpp,v 1.6 2003-11-21 22:54:44 paklein Exp $
 #include "FEA.h"
 
 using namespace Tahoe; 
@@ -93,7 +93,7 @@ void FEA_dVectorT::Dot (const FEA_dVectorT& b, FEA_dScalarT& c)
 
 //----------------------------------------------------
 
-void FEA_dVectorT::Dot (const FEA_dMatrixT &B, const FEA_dVectorT &c)
+void FEA_dVectorT::Dot (const FEA_dMatrixT &B, FEA_dVectorT &c)
 {
   if (fLength==0 || B.Length()==0)
 		cout << "...ERROR >> FEA_dVectorT::Mult_aTb : Unallocated a \n\n";

@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.cpp,v 1.12 2003-11-12 19:21:16 thao Exp $ */
+/* $Id: RGVIB2D.cpp,v 1.13 2003-11-21 22:54:52 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include <math.h>
@@ -373,8 +373,8 @@ void RGVIB2D::dWdE(const dArrayT& eigenstretch, dArrayT& eigenstress,
 	double& s1 = eigenstress[1] = 0.0;
 	
 	/*stretch*/
-	double& l0 = eigenstretch[0];
-	double& l1 = eigenstretch[1];
+	const double& l0 = eigenstretch[0];
+	const double& l1 = eigenstretch[1];
 	for (int i=0; i<length; i++)
 	{
 		double sfactor = (*pj++)*(*pdU++)/(*pl++);
@@ -434,8 +434,8 @@ void RGVIB2D::ddWddE(const dArrayT& eigenstretch, dArrayT& eigenstress,
 	double& c01 = eigenmodulus(0,1) = 0.0;
 	
 	/*stretch*/
-	double& l0 = eigenstretch[0];
-	double& l1 = eigenstretch[1];
+	const double& l0 = eigenstretch[0];
+	const double& l1 = eigenstretch[1];
 	for (int i=0; i<length; i++)
 	{
 		double sfactor = (*pj)*(*pdU)/(*pl);
@@ -522,8 +522,8 @@ void RGVIB2D::ComputeEigs_e(const dArrayT& eigenstretch,
 	const double ctol = 1.00e-10;
 		
 	/*set references to principle stretches*/
-	double& l0 = eigenstretch[0];
-	double& l1 = eigenstretch[1];
+	const double& l0 = eigenstretch[0];
+	const double& l1 = eigenstretch[1];
 	double J = sqrt(l0*l1);
 	double iJ = 1.0/J;
 
@@ -658,8 +658,8 @@ void RGVIB2D::ComputeiKAB(double& J, double& Je,
 
 void RGVIB2D::ComputeLengths(const dArrayT& eigenstretch, int etype)
 {
-	double& e0 = eigenstretch[0];
-	double& e1 = eigenstretch[1];
+	const double& e0 = eigenstretch[0];
+	const double& e1 = eigenstretch[1];
 	
 	double* pl;
 	if(etype == Elastic)
@@ -698,7 +698,7 @@ void RGVIB2D::Construct(void)
 	for (int i = 0; i < numpoints; i++)
 	{
 		/* direction cosines */
-		double *xsi = points(i);
+		const double *xsi = points(i);
 		double cosi = xsi[0];
 		double sini = xsi[1];
 		

@@ -1,4 +1,4 @@
-/* $Id: PolyDistributionT.cpp,v 1.2 2003-06-30 22:07:25 rjones Exp $ */
+/* $Id: PolyDistributionT.cpp,v 1.3 2003-11-21 22:54:24 paklein Exp $ */
 
 #include "PolyDistributionT.h"
 #include <iostream.h>
@@ -112,6 +112,8 @@ double PolyDistributionT::DFunction(double d) const
 
 double PolyDistributionT::DDFunction(double d) const
 {
+#pragma unused (d)
+
 	double value = 0.0;
 
 	if (0) {
@@ -141,7 +143,7 @@ throw ExceptionT::kGeneralFail;
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pin  = in.Pointer();
+	const double* pin = in.Pointer();
 	double* pout = out.Pointer();
 	double x, value = 0.0;
 	if (fPower==0.0) {
@@ -176,7 +178,7 @@ throw ExceptionT::kGeneralFail;
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pin  = in.Pointer();
+	const double* pin = in.Pointer();
 	double* pout = out.Pointer();
 	double x, value = 0.0;
 	if (fPower==0.0) {
@@ -211,7 +213,7 @@ throw ExceptionT::kGeneralFail;
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pin  = in.Pointer();
+	const double* pin = in.Pointer();
 	double* pout = out.Pointer();
 	double x, value = 0.0;
 	if (0) {

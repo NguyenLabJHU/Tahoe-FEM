@@ -1,4 +1,4 @@
-// $Id: FEA_Data_ProcessorT.cpp,v 1.9 2003-09-15 16:22:31 paklein Exp $
+// $Id: FEA_Data_ProcessorT.cpp,v 1.10 2003-11-21 22:54:41 paklein Exp $
 #include "FEA.h"  
 
 using namespace Tahoe;
@@ -93,7 +93,7 @@ void FEA_Data_ProcessorT::Mass	(int n_ed, FEA_dMatrixT &M)  // density rho not i
   FEA_dMatrixT mab(n_ip, n_ed,n_ed);  // Note: For quad, n_ed = 2 for inertial term, n_ed = 4 for mixed stress 
 	mab = 0.0;
 
-	int a,b,i,j,l,ii,p,q;
+	int a,b,i,j,ii,p,q;
 
    for (a=0; a<n_en; a++)
      for (b=0; b<n_en; b++) {
@@ -720,26 +720,26 @@ void	FEA_Data_ProcessorT::Curl	(const ArrayT<dMatrixT>& T, FEA_dMatrixT& curl) c
 	
 		c11 = c21 = c31 = c12 = c22 = c32 = c13 = c23 = c33 = 0.0;
 
-		double *dx1 = dN[l].Pointer(0); 
-		double *dx2 = dx1+1; 
-		double *dx3 = dx1+2;
+		const double *dx1 = dN[l].Pointer(0); 
+		const double *dx2 = dx1+1; 
+		const double *dx3 = dx1+2;
 
 		if (n_sd==2)  
 			dx3 = zero_ptr; 
 
 		for (a=0; a<n_en; a++) {
 	
-		 	double *pT = T[a].Pointer();
+		 	const double *pT = T[a].Pointer();
 
-		  double& T11 = *pT++;
-			double& T21 = *pT++;
-		  double& T31 = *pT++;
-		  double& T12 = *pT++;
-		 	double& T22 = *pT++;
-		 	double& T32 = *pT++;
-		 	double& T13 = *pT++;
-		 	double& T23 = *pT++;
-		 	double& T33 = *pT  ;
+		  const double& T11 = *pT++;
+			const double& T21 = *pT++;
+		  const double& T31 = *pT++;
+		  const double& T12 = *pT++;
+		 	const double& T22 = *pT++;
+		 	const double& T32 = *pT++;
+		 	const double& T13 = *pT++;
+		 	const double& T23 = *pT++;
+		 	const double& T33 = *pT  ;
 
 		 	c11 += ( T12*(*dx3) - T13*(*dx2) );
 		 	c21 += ( T22*(*dx3) - T23*(*dx2) );
@@ -786,13 +786,12 @@ void	FEA_Data_ProcessorT::Grad	(const ArrayT<dArrayT>& T, FEA_dMatrixT& grad) co
 	
 			u11 = 0.0;
 
-			double *dx1 = dN[l].Pointer(0); 
+			const double *dx1 = dN[l].Pointer(0); 
 
 			for (a=0; a<n_en; a++) {
 	
-		 		double *pT = T[a].Pointer();
-
-		  	double& T1 = *pT;
+		 		const double *pT = T[a].Pointer();
+		  	const double& T1 = *pT;
 
 		 		u11 += T1*(*dx1);
 			
@@ -811,15 +810,14 @@ void	FEA_Data_ProcessorT::Grad	(const ArrayT<dArrayT>& T, FEA_dMatrixT& grad) co
 	
 			u11 = u21 = u12 = u22 = 0.0;
 
-			double *dx1 = dN[l].Pointer(0); 
-			double *dx2 = dx1+1; 
+			const double *dx1 = dN[l].Pointer(0); 
+			const double *dx2 = dx1+1; 
 
 			for (a=0; a<n_en; a++) {
 	
-		 		double *pT = T[a].Pointer();
-
-		  	double& T1 = *pT++;
-				double& T2 = *pT;
+		 		const double *pT = T[a].Pointer();
+		  	const double& T1 = *pT++;
+				const double& T2 = *pT;
 
 		 		u11 += T1*(*dx1);
 		 		u21 += T2*(*dx1);
@@ -847,17 +845,16 @@ void	FEA_Data_ProcessorT::Grad	(const ArrayT<dArrayT>& T, FEA_dMatrixT& grad) co
 	
 			u11 = u21 = u31 = u12 = u22 = u32 = u13 = u23 = u33 = 0.0;
 
-			double *dx1 = dN[l].Pointer(0); 
-			double *dx2 = dx1+1; 
-			double *dx3 = dx1+2;
+			const double *dx1 = dN[l].Pointer(0); 
+			const double *dx2 = dx1+1; 
+			const double *dx3 = dx1+2;
 
 			for (a=0; a<n_en; a++) {
 	
-		 		double *pT = T[a].Pointer();
-
-		  	double& T1 = *pT++;
-				double& T2 = *pT++;
-		  	double& T3 = *pT;
+		 		const double *pT = T[a].Pointer();
+		  	const double& T1 = *pT++;
+				const double& T2 = *pT++;
+		  	const double& T3 = *pT;
 
 		 		u11 += T1*(*dx1);
 		 		u21 += T2*(*dx1);

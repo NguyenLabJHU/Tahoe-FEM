@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.cpp,v 1.8 2003-10-02 21:07:28 hspark Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.9 2003-11-21 22:54:56 paklein Exp $ */
 #include "FEManagerT_THK.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -63,7 +63,7 @@ void FEManagerT_THK::Initialize(InitCodeT init)
 	fTop.Dimension(num_nodes_top, num_neighbors);
 	fTop = -1;  // -1 -> no neighbor
 
-	double lparam, xbottom, xtop, ybottom, ytop;
+	double lparam;
 	in >> lparam;    // Read lattice parameter in from input file
 	
 	NodeManagerT* node = FEManagerT::NodeManager();
@@ -231,13 +231,13 @@ const dArray2DT& FEManagerT_THK::THKForce(const dArray2DT& badisp)
 					for (int k = 0; k < stepnum; k++)
 					{
 						/* bottom row */
-						theta.Set(2,2,theta_b(k));
+						theta.Alias(2,2,theta_b(k));
 						disp_b.RowAlias(stepnum-k, force1);
 						theta.Multx(force1, force2);
 						force3b.AddScaled(timestep, force2);
 					
 						/* top row */
-						theta.Set(2,2,theta_t(k));
+						theta.Alias(2,2,theta_t(k));
 						disp_t.RowAlias(stepnum-k, force1);  
 						theta.Multx(force1, force2);  
 						force3t.AddScaled(timestep, force2);   
@@ -248,13 +248,13 @@ const dArray2DT& FEManagerT_THK::THKForce(const dArray2DT& badisp)
 					for (int k = 0; k < fNumstep_crit; k++)
 					{
 						/* bottom row */
-						theta.Set(2,2,theta_b(k));
+						theta.Alias(2,2,theta_b(k));
 						disp_b.RowAlias(fNumstep_crit-k-1, force1);
 						theta.Multx(force1, force2);
 						force3b.AddScaled(timestep, force2);
 			
 						/* top row */
-						theta.Set(2,2,theta_t(k));
+						theta.Alias(2,2,theta_t(k));
 						disp_t.RowAlias(fNumstep_crit-k-1, force1);
 						theta.Multx(force1, force2);
 						force3t.AddScaled(timestep, force2);

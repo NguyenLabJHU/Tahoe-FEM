@@ -1,4 +1,4 @@
-/* $Id: GWPlastic.h,v 1.5 2003-11-06 21:59:11 rjones Exp $ */
+/* $Id: GWPlastic.h,v 1.6 2003-11-21 22:54:23 paklein Exp $ */
 #ifndef _GW_PLASTIC_H_
 #define _GW_PLASTIC_H_
 
@@ -52,8 +52,8 @@ public:
 	virtual dArrayT& MapDFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
 
-	double GWPlastic::PlasticArea(double dmin) const;
-	double GWPlastic::DPlasticArea(double dmin) const;
+	double PlasticArea(double dmin) const;
+	double DPlasticArea(double dmin) const;
 private:
 
 	/* moment function */

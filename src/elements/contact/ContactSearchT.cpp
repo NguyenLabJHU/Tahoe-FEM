@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.27 2003-11-20 22:57:40 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.28 2003-11-21 22:54:34 paklein Exp $ */
 #include "ContactSearchT.h"
 
 #include "ContactSurfaceT.h"
@@ -40,9 +40,8 @@ bool ContactSearchT::SetInteractions(void)
 
 	/* update surface geometry */
 	surface.UpdateConfiguration();
-
-  }
-
+	}
+	
   bool found = 0;
   /* track previous node-face pairs and reset others */
   int tag;
@@ -56,7 +55,7 @@ bool ContactSearchT::SetInteractions(void)
 		const SurfaceT* osurface = node->OpposingSurface();
  		if (osurface) {
 			tag = osurface->Tag();	
-			dArrayT& parameters = fSearchParameters(i,tag);
+			const dArrayT& parameters = fSearchParameters(i,tag);
 			found = 
 			  node->OpposingFace()->Projection(node,parameters);
 			if (!found) node->Initialize();
@@ -96,7 +95,7 @@ bool ContactSearchT::SetInteractions(void)
 		
 	for (j = 0 ; j < fSurfaces.Length() ; j++) {
 		ContactSurfaceT& surface2  = fSurfaces[j]; // "face" surface
-		dArrayT& parameters = fSearchParameters(i,j);
+		const dArrayT& parameters = fSearchParameters(i,j);
 		/* set node-face data */
 		if (parameters.Length() != 0) 
 			NodeFaceSearch(surface1,surface2,parameters);
@@ -124,10 +123,8 @@ bool ContactSearchT::SetInteractions(void)
 bool ContactSearchT::UpdateInteractions(void)
 {
   /* current coordinates and normals */
-  for (int i = 0 ; i < fSurfaces.Length() ; i++) {
-        ContactSurfaceT& surface = fSurfaces[i]; // "node" surface
-	surface.UpdateConfiguration();
-  }
+  for (int i = 0 ; i < fSurfaces.Length() ; i++)
+	fSurfaces[i].UpdateConfiguration(); // "node" surface
                 
   /* loop over pairs of surfaces */
   bool ok = UpdateProjection();
@@ -142,7 +139,7 @@ bool ContactSearchT::UpdateInteractions(void)
 
 void ContactSearchT::NodeFaceSearch
 (ContactSurfaceT& node_surface,ContactSurfaceT& face_surface, 
-dArrayT& parameters)
+const dArrayT& parameters)
 {
   bool found = 0;
   /* loop over faces */
@@ -186,7 +183,7 @@ bool ContactSearchT::UpdateProjection (void)
 			found = 0;
 			if (osurface) {
 			tag = osurface->Tag();
-			dArrayT& parameters = fSearchParameters(i,tag);
+			const dArrayT& parameters = fSearchParameters(i,tag);
 			found = 
 			  node->OpposingFace()->Projection(node,parameters);
 #if 0

@@ -1,4 +1,4 @@
-/* $Id: ConHypGeom.cpp,v 1.5 2003-02-03 04:40:16 paklein Exp $ */
+/* $Id: ConHypGeom.cpp,v 1.6 2003-11-21 22:54:23 paklein Exp $ */
 // CONHYPGEOM is the confluent hypergeometric function of the 1st kind
 // (a.k.a. Kummer function) Because of the rapid growth/decay of individual
 // components, for sufficiently large domain values, an asymptotic approximation
@@ -165,7 +165,7 @@ dArrayT& ConHypGeom::MapFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pU = out.Pointer();
 	double sum=0.0;
 	Gamma g;
@@ -225,7 +225,7 @@ dArrayT& ConHypGeom::MapDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl  = in.Pointer();
+	const double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
 	
 	for (int i = 0; i < in.Length(); i++)
@@ -241,7 +241,7 @@ dArrayT& ConHypGeom::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl   = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pddU = out.Pointer();
 	
 	for (int i = 0; i < in.Length(); i++)

@@ -1,4 +1,4 @@
-/*$Id: MR2DT.h,v 1.12 2003-11-04 17:35:11 cjkimme Exp $*/
+/*$Id: MR2DT.h,v 1.13 2003-11-21 22:54:32 paklein Exp $*/
 /* created by manzari*/
 /* Elastoplastic Cohesive Model for Geomaterials*/
 #ifndef _MR_2D_T_H_
@@ -84,7 +84,7 @@ public:
 	/** For MR2DT, returns true to compute nodal tractions. */
 	virtual bool NeedsNodalInfo(void);
 	
-	double signof(double& r);
+	double signof(double r);
 	
 	virtual int NodalQuantityNeeded(void);
 	//        virtual double ComputeNodalValue(const dArrayT &);

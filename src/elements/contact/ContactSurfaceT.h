@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.27 2003-07-03 00:04:38 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.28 2003-11-21 22:54:34 paklein Exp $ */
 #ifndef _CONTACT_SURFACE_T_H_
 #define _CONTACT_SURFACE_T_H_
 
@@ -43,8 +43,8 @@ class ContactSurfaceT : public SurfaceT
 	/* access functions */
 	inline ArrayT<ContactNodeT*>& ContactNodes(void) 
 		{return fContactNodes;}
-	inline RaggedArray2DT<int>& Connectivities(void)
-		{return fConnectivities;}
+	inline RaggedArray2DT<int>& Connectivities(void) { return fConnectivities; }
+	inline const RaggedArray2DT<int>& Connectivities(void) const { return fConnectivities; }
 	inline RaggedArray2DT<int>& EqNums(void)
 		{return fEqNums;}  // this can NOT be const
 	bool IsInConnectivity
@@ -72,12 +72,12 @@ class ContactSurfaceT : public SurfaceT
 	inline const iArrayT&  MultiplierMap(void) const
 		{return fMultiplierMap;}	
 	void AllocateMultiplierTags(void);
-	void ResetMultipliers(dArray2DT& multiplier_values);
+	void ResetMultipliers(dArray2DT& multiplier_values) const;
 	void MultiplierTags
 		(const iArrayT& local_nodes, iArrayT& multiplier_tags) const;
 	void MultiplierValues
 		(const iArrayT& local_nodes, ArrayT<double*>& multiplier_values) const;
-	iArray2DT& DisplacementMultiplierNodePairs(void);
+	const iArray2DT& DisplacementMultiplierNodePairs(void);
 	inline bool HasMultiplier(int i) 
 		{return fMultiplierMap[i] > -1;} 
 	inline void AliasMultipliers(const dArray2DT& multipliers)

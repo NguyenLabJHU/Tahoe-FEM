@@ -1,4 +1,4 @@
-/* $Id: SSMF.cpp,v 1.5 2003-11-21 02:59:38 thao Exp $ */
+/* $Id: SSMF.cpp,v 1.6 2003-11-21 22:54:46 paklein Exp $ */
 #include "SSMF.h"
 
 #include "OutputSetT.h"
@@ -372,8 +372,8 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
 	}
       }
 
-      double* pDQaX = DQa(0); 
-      double* pDQaY = DQa(1);
+      const double* pDQaX = DQa(0); 
+      const double* pDQaY = DQa(1);
       
       for (int j = 0; j<nen; j++)
       {
@@ -432,9 +432,9 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
 				      +fVel[2]*fVel[2]);
       }
 
-      double* pDQaX = DQa(0); 
-      double* pDQaY = DQa(1);
-      double* pDQaZ = DQa(2);
+      const double* pDQaX = DQa(0); 
+      const double* pDQaY = DQa(1);
+      const double* pDQaZ = DQa(2);
       
       for (int j = 0; j<nen; j++)
       {
@@ -497,7 +497,7 @@ void SSMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch)
 
       /*integrate material force*/
       const dArrayT& internalstress = fCurrSSMat->InternalStressVars();
-      double* pstress = internalstress.Pointer();
+      const double* pstress = internalstress.Pointer();
       double xval = ScalarProduct(pstress, pGradX, fInternalDOF);
       double yval = ScalarProduct(pstress, pGradY, fInternalDOF);
 
@@ -533,7 +533,7 @@ void SSMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch)
             
       /*integrate material force*/
       const dArrayT& internalstress = fCurrSSMat->InternalStressVars();
-      double* pstress = internalstress.Pointer();
+      const double* pstress = internalstress.Pointer();
       double xval = ScalarProduct(pstress, pGradX, fInternalDOF);
       double yval = ScalarProduct(pstress, pGradY, fInternalDOF);
       double zval = ScalarProduct(pstress, pGradZ, fInternalDOF);

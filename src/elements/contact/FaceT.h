@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.27 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: FaceT.h,v 1.28 2003-11-21 22:54:34 paklein Exp $ */
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
 
@@ -94,7 +94,7 @@ public:
 	virtual double ComputeJacobian 
 		(const double* local_coordinates) const =0;
 	virtual bool Projection 
-		(ContactNodeT* node, dArrayT& parameters) const =0; 
+		(ContactNodeT* node, const dArrayT& parameters) const =0; 
 	virtual void Quadrature
 		(dArray2DT& points, dArrayT& weights) const =0;
 

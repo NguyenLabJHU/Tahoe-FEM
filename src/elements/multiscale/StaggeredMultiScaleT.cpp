@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.36 2003-09-22 21:10:42 paklein Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.37 2003-11-21 22:54:39 paklein Exp $ */
 #include "StaggeredMultiScaleT.h"
 
 #include "ShapeFunctionT.h"
@@ -963,7 +963,7 @@ void StaggeredMultiScaleT::AddNodalForce(const FieldT& field, int node, dArrayT&
 	dArrayT nodalforce;
 
 	/* loop over elements */
-	int e,v,l;
+	int e;
 	Top();
 	while (NextElement())
 	{
@@ -1720,8 +1720,8 @@ void StaggeredMultiScaleT::RHSDriver_monolithic(void)
 
 			/* equations numbers */
 			const iArrayT& all_eq = CurrentElement().Equations();
-			coarse_eq.Set(fFint_1.Length(), all_eq.Pointer());
-			fine_eq.Set(fR_2.Length(), all_eq.Pointer(fFint_1.Length()));
+			coarse_eq.Alias(fFint_1.Length(), all_eq.Pointer());
+			fine_eq.Alias(fR_2.Length(), all_eq.Pointer(fFint_1.Length()));
 
 			/* assemble residuals */
 			ElementSupport().AssembleRHS(curr_group, fFint_1, coarse_eq);

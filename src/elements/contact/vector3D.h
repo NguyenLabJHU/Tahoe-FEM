@@ -1,4 +1,4 @@
-/* $Id: vector3D.h,v 1.8 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: vector3D.h,v 1.9 2003-11-21 22:54:35 paklein Exp $ */
 #ifndef _VECTOR_3D_H_
 #define _VECTOR_3D_H_
 
@@ -39,7 +39,7 @@ inline static void Add(const double a1,const double* v1,
         v[2] = a1*v1[2] + a2*v2[2];
 };
 
-inline static void Ave(double* v1,double* v2, double* v3, double* v)
+inline static void Ave(const double* v1,const double* v2, const double* v3, double* v)
 {
         v[0] = 0.25*(v1[0] + v2[0] + v3[0] );
         v[1] = 0.25*(v1[1] + v2[1] + v3[1] );
@@ -47,7 +47,7 @@ inline static void Ave(double* v1,double* v2, double* v3, double* v)
 };
 
 
-inline static void Ave(double* v1,double* v2, double* v3,double* v4, double* v)
+inline static void Ave(const double* v1, const double* v2, const double* v3, const double* v4, double* v)
 {
         v[0] = 0.25*(v1[0] + v2[0] + v3[0] + v4[0]);
         v[1] = 0.25*(v1[1] + v2[1] + v3[1] + v4[1]);

@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.cpp,v 1.4 2003-10-08 21:04:46 rdorgan Exp $ */ 
+/* $Id: GradSSSolidMatT.cpp,v 1.5 2003-11-21 22:54:37 paklein Exp $ */ 
 #include "GradSSSolidMatT.h"
 #include <iostream.h>
 #include "GradSSMatSupportT.h"
@@ -39,45 +39,45 @@ void GradSSSolidMatT::PrintName(ostream& out) const
 }
 
 /* isotropic hardening */
-double& GradSSSolidMatT::R(void)
+const double& GradSSSolidMatT::R(void) const
 {
         return fGradSSMatSupport.LinearR(); 
 }
 
-double& GradSSSolidMatT::R(int ip)
+const double& GradSSSolidMatT::R(int ip) const
 {
         return fGradSSMatSupport.LinearR(ip); 
 }
 
 /* isotropic hardening from the end of the previous time step */
-double& GradSSSolidMatT::R_last(void)
+const double& GradSSSolidMatT::R_last(void) const
 {
         return fGradSSMatSupport.LinearR_last(); 
 }
 
-double& GradSSSolidMatT::R_last(int ip)
+const double& GradSSSolidMatT::R_last(int ip) const
 {
         return fGradSSMatSupport.LinearR_last(ip); 
 }
 
 /* Laplacian isotropic hardening */
-double& GradSSSolidMatT::LaplacianR(void)
+const double& GradSSSolidMatT::LaplacianR(void) const
 {
         return fGradSSMatSupport.LinearLaplacianR(); 
 }
 
-double& GradSSSolidMatT::LaplacianR(int ip)
+const double& GradSSSolidMatT::LaplacianR(int ip) const
 {
         return fGradSSMatSupport.LinearLaplacianR(ip); 
 }
 
 /* Laplacian isotropic hardening from the end of the previous time step */
-double& GradSSSolidMatT::LaplacianR_last(void)
+const double& GradSSSolidMatT::LaplacianR_last(void) const
 {
         return fGradSSMatSupport.LinearLaplacianR_last(); 
 }
 
-double& GradSSSolidMatT::LaplacianR_last(int ip)
+const double& GradSSSolidMatT::LaplacianR_last(int ip) const
 {
         return fGradSSMatSupport.LinearLaplacianR_last(ip); 
 }

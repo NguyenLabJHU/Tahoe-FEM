@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.42 2003-10-28 19:06:03 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.43 2003-11-21 22:54:26 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -1231,8 +1231,8 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 
 			/* equations numbers */
 			const iArrayT& all_eq = CurrentElement().Equations();
-			displ_eq.Set(fFd_int.Length(), all_eq.Pointer());
-			plast_eq.Set(fFeps_int.Length(), all_eq.Pointer(fFd_int.Length()));
+			displ_eq.Alias(fFd_int.Length(), all_eq.Pointer());
+			plast_eq.Alias(fFeps_int.Length(), all_eq.Pointer(fFd_int.Length()));
 
 			/* assemble residuals */
 			ElementSupport().AssembleRHS(curr_group, fFd_int, displ_eq);

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.44 2003-11-20 22:57:40 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.45 2003-11-21 22:54:34 paklein Exp $ */
 #include "ContactElementT.h"
 
 #include <math.h>
@@ -258,8 +258,9 @@ void ContactElementT::ResetDOF(dArray2DT& XDOF, int tag_set) const
 
 /* return the displacement-ghost node pairs to avoid pivoting*/
 const iArray2DT& ContactElementT::DOFConnects(int tag_set) const
-{ 
-	return fSurfaces[tag_set].DisplacementMultiplierNodePairs();
+{
+	ContactSurfaceT& contact_surface = const_cast<ContactSurfaceT&>(fSurfaces[tag_set]);
+	return contact_surface.DisplacementMultiplierNodePairs();
 }
 
 /* append element equations numbers to the list */
@@ -588,7 +589,7 @@ bool ContactElementT::UpdateContactConfiguration(void)
 
 int ContactElementT::PassType (int s1, int s2) const
 {
-    dArrayT& parameters = fSearchParameters(s1,s2);
+	const dArrayT& parameters = fSearchParameters(s1,s2);
     int pass_code = (int) parameters[kPass];
     if (s1 == s2 || pass_code == 0) {
         return kSymmetric;

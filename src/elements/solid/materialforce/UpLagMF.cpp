@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.cpp,v 1.9 2003-11-21 02:59:38 thao Exp $ */
+/* $Id: UpLagMF.cpp,v 1.10 2003-11-21 22:54:46 paklein Exp $ */
 #include <ctype.h>
 
 #include "UpLagMF.h"
@@ -488,8 +488,8 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
 	cout << "\nEshelby: "<< fEshelby;
       }    
 
-      double* pDQaX = DQa(0); 
-      double* pDQaY = DQa(1);
+      const double* pDQaX = DQa(0); 
+      const double* pDQaY = DQa(1);
       
       for (int j = 0; j<nen; j++)
       {
@@ -534,9 +534,9 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
 				      +fVel[2]*fVel[2]);
       }
 
-      double* pDQaX = DQa(0); 
-      double* pDQaY = DQa(1);
-      double* pDQaZ = DQa(2);
+      const double* pDQaX = DQa(0); 
+      const double* pDQaY = DQa(1);
+      const double* pDQaZ = DQa(2);
       
       for (int j = 0; j<nen; j++)
       {
@@ -602,7 +602,7 @@ void UpLagMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch
 
       /*integrate material force*/
       const dArrayT& internalstress = fCurrFSMat->InternalStressVars();
-      double* pstress = internalstress.Pointer();
+      const double* pstress = internalstress.Pointer();
       double xval = ScalarProduct(pstress, pGradX, fInternalDOF);
       double yval = ScalarProduct(pstress, pGradY, fInternalDOF);
 
@@ -638,7 +638,7 @@ void UpLagMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch
             
       /*integrate material force*/
       const dArrayT& internalstress = fCurrFSMat->InternalStressVars();
-      double* pstress = internalstress.Pointer();
+      const double* pstress = internalstress.Pointer();
       double xval = ScalarProduct(pstress, pGradX, fInternalDOF);
       double yval = ScalarProduct(pstress, pGradY, fInternalDOF);
       double zval = ScalarProduct(pstress, pGradZ, fInternalDOF);

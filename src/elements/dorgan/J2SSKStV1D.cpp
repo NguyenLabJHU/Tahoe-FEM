@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV1D.cpp,v 1.4 2003-10-08 21:04:46 rdorgan Exp $ */ 
+/* $Id: J2SSKStV1D.cpp,v 1.5 2003-11-21 22:54:37 paklein Exp $ */ 
 #include "J2SSKStV1D.h"
 #include "SSMatSupportT.h"
 #include "ElementCardT.h"
@@ -174,7 +174,7 @@ void J2SSKStV1D::ComputeOutput(dArrayT& output)
                 output[0] = fInternal[kalpha];
 
                 /* status flags */
-                iArrayT& flags = element.IntegerData();
+                const iArrayT& flags = element.IntegerData();
                 if (flags[CurrIP()] == kIsPlastic) // output with update
                         output[0] += fInternal[kdgamma];
 
@@ -378,21 +378,22 @@ void J2SSKStV1D::LoadData(const ElementCardT& element, int ip)
         if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
         /* fetch arrays */
-        dArrayT& d_array = element.DoubleData();
+        const dArrayT& d_array = element.DoubleData();
 
         /* decode */
+        dSymMatrixT::DimensionT dim = dSymMatrixT::int2DimensionT(kNSD);
         int stressdim = dSymMatrixT::NumValues(kNSD);
         int offset    = stressdim*fNumIP;
         int dex       = ip*stressdim;
 
-        fPlasticStrain.Set(   kNSD, &d_array[                     dex]);
-        fInternal.Set(kNumInternal, &d_array[offset + ip*kNumInternal]);     	
+        fPlasticStrain.Alias(    dim, &d_array[                     dex]);
+        fInternal.Alias(kNumInternal, &d_array[offset + ip*kNumInternal]);     	
 }
 
 /* returns 1 if the trial elastic strain state lies outside of the
 * yield surface */
 int J2SSKStV1D::PlasticLoading(const dSymMatrixT& trialstrain,
-                               const ElementCardT& element, int ip)
+	ElementCardT& element, int ip)
 {
         /* not yet plastic */
         if (!element.IsAllocated())

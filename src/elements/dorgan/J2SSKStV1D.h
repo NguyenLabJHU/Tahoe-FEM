@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV1D.h,v 1.3 2003-10-08 21:04:46 rdorgan Exp $ */
+/* $Id: J2SSKStV1D.h,v 1.4 2003-11-21 22:54:37 paklein Exp $ */
 #ifndef _J2_SS_KSTV_1D_H_
 #define _J2_SS_KSTV_1D_H_
 
@@ -128,7 +128,7 @@ private:
 
         /* returns 1 if the trial elastic strain state lies outside of the
          * yield surface */
-        int PlasticLoading(const dSymMatrixT& trialstrain, const ElementCardT& element,int intpt);
+        int PlasticLoading(const dSymMatrixT& trialstrain, ElementCardT& element,int intpt);
 
         /* construct isotropic hardening function */
         void ConstructHardeningFunction(ifstreamT& in);

@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.cpp,v 1.14 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: LineQ3FaceT.cpp,v 1.15 2003-11-21 22:54:34 paklein Exp $ */
 #include "LineQ3FaceT.h"
 
 #include "ContactElementT.h"
@@ -247,7 +247,7 @@ LineQ3FaceT::ComputeJacobian (const double* local_coordinates) const
 
 bool
 LineQ3FaceT::Projection 
-(ContactNodeT* node, dArrayT& parameters)  const
+(ContactNodeT* node, const dArrayT& parameters)  const
 {
         double tol_g  = parameters[ContactElementT::kGapTol];
         double tol_xi = parameters[ContactElementT::kXiTol];

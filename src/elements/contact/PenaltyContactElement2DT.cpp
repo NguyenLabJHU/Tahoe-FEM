@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.48 2003-11-06 21:57:40 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.49 2003-11-21 22:54:35 paklein Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -208,9 +208,9 @@ void PenaltyContactElement2DT::PrintControlData(ostream& out) const
 	{
 		for (int j = i ; j < num_surfaces ; j++)
 		{
-			dArrayT& search_parameters = fSearchParameters(i,j);
-			dArrayT& enf_parameters = fEnforcementParameters(i,j);
-			dArrayT& mat_parameters = fMaterialParameters(i,j);
+			const dArrayT& search_parameters = fSearchParameters(i,j);
+			const dArrayT& enf_parameters = fEnforcementParameters(i,j);
+			const dArrayT& mat_parameters = fMaterialParameters(i,j);
 			/* only print allocated parameter arrays */
 			if (search_parameters.Length() == kSearchNumParameters) {
 		  	  out << "  surface pair: ("  << i << "," << j << ")\n" ;

@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.h,v 1.9 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: LineQ3FaceT.h,v 1.10 2003-11-21 22:54:34 paklein Exp $ */
 #ifndef _LINEQ3_FACE_T_H_
 #define _LINEQ3_FACE_T_H_
 
@@ -60,7 +60,7 @@ public:
 		(const double* local_coordinates, dArray2DT& nodal_vectors, 
 		double* vector) const;
 		double ComputeJacobian (const double* local_coordinates) const;
-        bool Projection (ContactNodeT* node, dArrayT& parameters) const ;
+        bool Projection (ContactNodeT* node, const dArrayT& parameters) const ;
         void Quadrature (dArray2DT& points, dArrayT& weights) const;
 
         inline void Polynomial
@@ -69,7 +69,7 @@ protected:
 
 private:
 	/* nodal coordinates */
-	double*  fx[3];
+	const double* fx[3];
 	
 	/* integration points */  
 	static dArray2DT fIntegrationPoints;

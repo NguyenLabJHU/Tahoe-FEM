@@ -1,4 +1,4 @@
-/* $Id: GradSSMatSupportT.h,v 1.4 2003-11-19 20:38:22 rdorgan Exp $ */
+/* $Id: GradSSMatSupportT.h,v 1.5 2003-11-21 22:54:37 paklein Exp $ */
 #ifndef _GRAD_SS_MAT_SUPPORT_T_H_
 #define _GRAD_SS_MAT_SUPPORT_T_H_
 
@@ -27,26 +27,26 @@ public:
         
         /** \name isotropic hardening */
         /*@{*/
-        double& LinearR(void) const;
-        double& LinearR(int ip) const;
+        const double& LinearR(void) const;
+        const double& LinearR(int ip) const;
         /*@}*/
         
         /** \name isotropic hardening from the end of the previous time step */
         /*@{*/
-        double& LinearR_last(void) const;
-        double& LinearR_last(int ip) const;
+        const double& LinearR_last(void) const;
+        const double& LinearR_last(int ip) const;
         /*@}*/
         
         /** \name Laplacian isotropic hardening */
         /*@{*/
-        double& LinearLaplacianR(void) const;
-        double& LinearLaplacianR(int ip) const;
+        const double& LinearLaplacianR(void) const;
+        const double& LinearLaplacianR(int ip) const;
         /*@}*/
         
         /** \name Laplacian isotropic hardening from the end of the previous time step */
         /*@{*/
-        double& LinearLaplacianR_last(void) const;
-        double& LinearLaplacianR_last(int ip) const;
+        const double& LinearLaplacianR_last(void) const;
+        const double& LinearLaplacianR_last(int ip) const;
         /*@}*/
         
         /** set source for the isotropic hardening */
@@ -112,49 +112,49 @@ private:
 };
 
 /* inlines */
-inline double& GradSSMatSupportT::LinearR(void) const
+inline const double& GradSSMatSupportT::LinearR(void) const
 {
         if (!fR_List) throw ExceptionT::kGeneralFail;
         return (*fR_List)[CurrIP()]; 
 }
 
-inline double& GradSSMatSupportT::LinearR(int ip) const
+inline const double& GradSSMatSupportT::LinearR(int ip) const
 {
         if (!fR_List) throw ExceptionT::kGeneralFail;
         return (*fR_List)[ip]; 
 }
 
-inline double& GradSSMatSupportT::LinearR_last(void) const
+inline const double& GradSSMatSupportT::LinearR_last(void) const
 {
         if (!fR_last_List) throw ExceptionT::kGeneralFail;
         return (*fR_last_List)[CurrIP()]; 
 }
 
-inline double& GradSSMatSupportT::LinearR_last(int ip) const
+inline const double& GradSSMatSupportT::LinearR_last(int ip) const
 {
         if (!fR_last_List) throw ExceptionT::kGeneralFail;
         return (*fR_last_List)[ip]; 
 }
 
-inline double& GradSSMatSupportT::LinearLaplacianR(void) const
+inline const double& GradSSMatSupportT::LinearLaplacianR(void) const
 {
         if (!fLapR_List) throw ExceptionT::kGeneralFail;
         return (*fLapR_List)[CurrIP()]; 
 }
 
-inline double& GradSSMatSupportT::LinearLaplacianR(int ip) const
+inline const double& GradSSMatSupportT::LinearLaplacianR(int ip) const
 {
         if (!fLapR_List) throw ExceptionT::kGeneralFail;
         return (*fLapR_List)[ip]; 
 }
 
-inline double& GradSSMatSupportT::LinearLaplacianR_last(void) const
+inline const double& GradSSMatSupportT::LinearLaplacianR_last(void) const
 {
         if (!fLapR_last_List) throw ExceptionT::kGeneralFail;
         return (*fLapR_last_List)[CurrIP()]; 
 }
 
-inline double& GradSSMatSupportT::LinearLaplacianR_last(int ip) const
+inline const double& GradSSMatSupportT::LinearLaplacianR_last(int ip) const
 {
         if (!fLapR_last_List) throw ExceptionT::kGeneralFail;
         return (*fLapR_last_List)[ip]; 

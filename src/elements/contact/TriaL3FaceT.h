@@ -1,4 +1,4 @@
-/* $Id: TriaL3FaceT.h,v 1.8 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: TriaL3FaceT.h,v 1.9 2003-11-21 22:54:35 paklein Exp $ */
 #ifndef _TRIAL3_FACE_T_H_
 #define _TRIAL3_FACE_T_H_
 
@@ -64,7 +64,7 @@ public:
 		(const double* local_coordinates, dArray2DT& nodal_values, 
 		double* vector) const;
         double ComputeJacobian (const double* local_coordinates) const;
-        bool Projection (ContactNodeT* node, dArrayT& parameters)  const;
+        bool Projection (ContactNodeT* node, const dArrayT& parameters)  const;
 		inline void Polynomial (double* a, double* b, double* c) const ;
         void Quadrature
                 (dArray2DT& points, dArrayT& weights) const;
@@ -74,7 +74,7 @@ protected:
 
 private:
         /* nodal coordinates */
-        double* fx[3];
+        const double* fx[3];
 	
 	/* integration points */
 	static dArray2DT fIntegrationPoints;

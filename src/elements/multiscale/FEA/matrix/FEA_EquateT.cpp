@@ -1,4 +1,4 @@
-// $Id: FEA_EquateT.cpp,v 1.3 2003-02-03 04:40:24 paklein Exp $
+// $Id: FEA_EquateT.cpp,v 1.4 2003-11-21 22:54:43 paklein Exp $
 #include "FEA.h"
 
 using namespace Tahoe;
@@ -117,7 +117,7 @@ fStack->Reset();
 
 void FEA_EquateT::operator = (const FEA_dScalarT& a)  
 {
-  double *q = a.Pointer();
+	const double *q = a.Pointer();
 	for (int i=0; i<length; i++)  { 
   	double* p = vec_ptrs[i]; 
     *p = *q++;
@@ -131,7 +131,7 @@ fStack->Reset();
 
 void FEA_EquateT::operator += (const FEA_dScalarT& a)  
 {
-  double *q = a.Pointer();
+	const double *q = a.Pointer();
 	for (int i=0; i<length; i++)  { 
   	double* p = vec_ptrs[i]; 
     *p += *q++;
@@ -145,7 +145,7 @@ fStack->Reset();
 
 void FEA_EquateT::operator -= (const FEA_dScalarT& a)  
 {
-  double *q = a.Pointer();
+	const double *q = a.Pointer();
 	for (int i=0; i<length; i++)  { 
   	double* p = vec_ptrs[i]; 
     *p -= *q++;
@@ -159,7 +159,7 @@ fStack->Reset();
 
 void FEA_EquateT::operator *= (const FEA_dScalarT& a)  
 {
-  double *q = a.Pointer();
+	const double *q = a.Pointer();
 	for (int i=0; i<length; i++)  { 
   	double* p = vec_ptrs[i]; 
     *p *= *q++;
@@ -173,7 +173,7 @@ fStack->Reset();
 
 void FEA_EquateT::operator /= (const FEA_dScalarT& a)  
 {
-  double *q = a.Pointer();
+	const double *q = a.Pointer();
 	for (int i=0; i<length; i++)  { 
   	double* p = vec_ptrs[i]; 
     *p /= *q++;

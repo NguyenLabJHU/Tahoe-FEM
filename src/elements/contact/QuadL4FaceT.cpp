@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.26 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.27 2003-11-21 22:54:35 paklein Exp $ */
 #include "QuadL4FaceT.h"
 
 #include "ContactElementT.h"
@@ -311,7 +311,7 @@ QuadL4FaceT::ComputeJacobian (const double* local_coordinates) const
 
 bool
 QuadL4FaceT::Projection 
-(ContactNodeT* node,dArrayT& parameters)  const
+(ContactNodeT* node, const dArrayT& parameters)  const
 {
 	double tol_g  = parameters[ContactElementT::kGapTol];
 	double tol_xi = parameters[ContactElementT::kXiTol];

@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.29 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.30 2003-11-21 22:54:34 paklein Exp $ */
 #include "LineL2FaceT.h"
 
 #include "ContactElementT.h"
@@ -226,7 +226,7 @@ LineL2FaceT::ComputeJacobian (const double* local_coordinates) const
 
 bool
 LineL2FaceT::Projection 
-(ContactNodeT* node, dArrayT& parameters)  const
+(ContactNodeT* node, const dArrayT& parameters)  const
 {
         double tol_g  = parameters[ContactElementT::kGapTol];
         double tol_xi = parameters[ContactElementT::kXiTol];
