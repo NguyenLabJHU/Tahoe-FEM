@@ -1,4 +1,4 @@
-# $Id: JANUS.macros,v 1.12 2003-02-08 17:33:14 paklein Exp $
+# $Id: JANUS.macros,v 1.12.2.1 2003-03-15 16:48:15 paklein Exp $
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpi
 
@@ -26,6 +26,7 @@ LN          = ln -sf
 ECHO        = echo
 CAT         = cat
 PERL        = perl -w
+PRINTF      = printf
 
 # command needed build library
 #BUILD_LIBRARY = BUILD_LIBRARY_RANLIB

@@ -1,4 +1,4 @@
-# $Id: GNU.cksun.macros,v 1.3 2003-02-08 17:33:14 paklein Exp $
+# $Id: GNU.cksun.macros,v 1.3.2.1 2003-03-15 16:48:15 paklein Exp $
 # GNU
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -24,6 +24,7 @@ LN          = /home/cjkimme/ln -sf
 ECHO        = /usr/bin/echo
 CAT         = cat
 PERL        = perl -w
+PRINTF      = printf
 
 INC_FLAGS   = -I/usr/local/include/g++-3 -I/usr/include/g++-2 -I/usr/include -I/usr/local/sparc-sun-solaris2.7/include 
 BUILD_LIBRARY = BUILD_LIBRARY_AR
