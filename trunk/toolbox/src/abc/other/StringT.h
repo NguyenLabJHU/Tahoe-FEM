@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.12 2002-04-02 22:43:36 paklein Exp $ */
+/* $Id: StringT.h,v 1.13 2002-04-07 19:12:28 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #ifndef _STRING_T_H_
@@ -12,6 +12,7 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+class ifstreamT;
 
 class StringT: public ArrayT<char>
 {
@@ -64,7 +65,10 @@ public:
 	/** read a line from the input stream, where a line is the next
 	 * kFileNameLength characters or fewer characters terminated
 	 * by a newline. */
+	/*@{*/
 	void GetLineFromStream(istream& in);
+	void GetLineFromStream(ifstreamT& in);
+	/*@}*/
 
 	/** drop the last ".xxx" extension to the string */
 	StringT& Root(char marker = '.');
