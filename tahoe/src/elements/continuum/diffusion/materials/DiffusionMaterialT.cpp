@@ -1,10 +1,9 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.7.18.2 2004-06-09 23:17:26 paklein Exp $ */
+/* $Id: DiffusionMaterialT.cpp,v 1.7.18.3 2004-06-24 04:54:22 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
 
 #include "StringT.h"
-#include "fstreamT.h"
 #include "dArrayT.h"
 #include "dSymMatrixT.h"
 
@@ -17,20 +16,6 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<DiffusionMaterialT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */
-DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT& support):
-	ParameterInterfaceT("linear_diffusion_material"),
-	ContinuumMaterialT(support),
-	fDiffusionMatSupport(&support),
-	fConductivity(NumSD()),
-	fq_i(NumSD()),
-	fdq_i(NumSD())	
-{
-	in >> fDensity;		 if (fDensity <= 0.0) throw ExceptionT::kBadInputValue;
-	in >> fSpecificHeat; if (fSpecificHeat <= 0.0) throw ExceptionT::kBadInputValue;
-	in >> fConductivity;
-	fdq_i = 0.0;
-}
-
 DiffusionMaterialT::DiffusionMaterialT(void):
 	ParameterInterfaceT("linear_diffusion_material"),
 	fDiffusionMatSupport(NULL),

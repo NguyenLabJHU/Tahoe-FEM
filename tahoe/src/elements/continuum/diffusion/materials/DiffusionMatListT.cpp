@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatListT.cpp,v 1.8.18.1 2004-04-08 07:32:33 paklein Exp $ */
+/* $Id: DiffusionMatListT.cpp,v 1.8.18.2 2004-06-24 04:54:22 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "DiffusionMatListT.h"
 #include "DiffusionMatSupportT.h"
@@ -29,6 +29,8 @@ void DiffusionMatListT::ReadMaterialData(ifstreamT& in)
 {
 	const char caller[] = "DiffusionMatListT::ReadMaterialData";
 
+ExceptionT::Stop(caller);
+#if 0
 	/* read material data */
 	for (int i = 0; i < fLength; i++)
 	{
@@ -63,6 +65,7 @@ void DiffusionMatListT::ReadMaterialData(ifstreamT& in)
 		/* verify construction */
 		if (!fArray[matnum]) ExceptionT::OutOfMemory(caller);
 	}
+#endif
 }
 
 /* information about subordinate parameter lists */
