@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.35 2003-11-04 01:21:01 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.36 2003-11-10 22:14:08 cjkimme Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -457,11 +457,12 @@ StringT& StringT::Append(int number, int width)
 	char num_str[] = "000000000";
 	IntegerToString(number, num_str);
 
-	if (strlen(num_str) < width)
+	unsigned int uwidth = width;
+	if (strlen(num_str) < uwidth)
 	{
 		/* set padding */
 		char pad_str[] = "0000000000";
-		int pad_len = width - strlen(num_str);
+		unsigned int pad_len = uwidth - strlen(num_str);
 		if (pad_len > strlen(pad_str))
 		{
 			cout << "\n StringT::Append: padding limit: ";
@@ -483,11 +484,12 @@ StringT& StringT::Append(const char* s, int number, int width)
 	char num_str[] = "000000000";
 	IntegerToString(number, num_str);
 
-	if (strlen(num_str) < width)
+	unsigned int uwidth = width;
+	if (strlen(num_str) < uwidth)
 	{
 		/* set padding */
 		char pad_str[] = "0000000000";
-		int pad_len = width - strlen(num_str);
+		unsigned int pad_len = uwidth - strlen(num_str);
 		if (pad_len > strlen(pad_str))
 		{
 			cout << "\n StringT::Append: padding limit: ";
@@ -560,7 +562,7 @@ StringT& StringT::Prepend(const char* s1, const char* s2)
 StringT& StringT::Drop(int n)
 {
 	/* check */
-	if ((int) fabs(double(n)) > strlen(*this)) ExceptionT::OutOfRange();
+	if ((size_t) fabs(double(n)) > strlen(*this)) ExceptionT::OutOfRange();
 	//NOTE - SUNWspro 5.0 doesn't like int(fabs(n))
 	
 	if (n > 0)
@@ -601,8 +603,8 @@ StringT& StringT::Take(const StringT& source, int n)
 	else
 	{
 		/* check */
-		int size = (n < 0) ? -n : n;
-		if (n > strlen(source)) ExceptionT::OutOfRange();
+		size_t size = (n < 0) ? -n : n;
+		if (size > strlen(source)) ExceptionT::OutOfRange();
 
 		/* allocate */
 		Dimension(size + 1);
@@ -632,7 +634,7 @@ StringT& StringT::Take(const StringT& source, int start, int end)
 	{
 		/* checks */
 		if (start < 0 ||
-		    end > strlen(source) ||
+		    end > (int) strlen(source) ||
 		    end < start) ExceptionT::OutOfRange();
 
 		/* allocate */
@@ -1063,7 +1065,12 @@ void StringT::IntegerToString(int number, char* string) const
 			// extra space for '\0';
 	
 		/* check that string has enough space */
-		if (strlen(string) + 1 < lens) ExceptionT::SizeMismatch();
+		/* Have to do this in a really stupid roundabout way to 
+		 * suppress GNU warnings and simultaneously not mess up a SASS
+		 * Sun compile. 
+		 */
+		int istrLength = strlen(string);
+		if (istrLength + 1 < lens) ExceptionT::SizeMismatch();
 		
 		/* set all bytes to 0! */
 		memset(string, '\0', sizeof(char)*lens);

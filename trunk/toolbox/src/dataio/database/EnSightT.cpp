@@ -1,4 +1,4 @@
-/* $Id: EnSightT.cpp,v 1.14 2003-11-04 01:21:10 paklein Exp $ */
+/* $Id: EnSightT.cpp,v 1.15 2003-11-10 22:14:20 cjkimme Exp $ */
 /* created: sawimme (05/13/1999) */
 #include "EnSightT.h"
 
@@ -21,8 +21,8 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<EnSightT::VariableTypeT>::fByteCopy = t
 } /* namespace Tahoe */
 
 EnSightT::EnSightT (ostream& out, bool binary, int dof) :
+fOut(out),
 fBinary (binary),
-fOut (out),
 fDOF (dof)
 {
 }

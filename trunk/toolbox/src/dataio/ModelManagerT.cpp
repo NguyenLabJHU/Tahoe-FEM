@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.38 2003-11-04 01:21:07 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.39 2003-11-10 22:14:17 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -18,8 +18,8 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<ModelManagerT::SideSetScopeT>::fByteCop
 
 ModelManagerT::ModelManagerT (ostream& message):
 	fMessage(message),
-	fCoordinateDimensions (2),
 	fInput(NULL),
+	fCoordinateDimensions (2),
 	fCoordinates_man(fCoordinates)
 {
   fCoordinateDimensions = -1;
@@ -1163,7 +1163,7 @@ void ModelManagerT::SideSet(const StringT& ID, ArrayT<GeometryT::CodeT>& facet_g
 
 	/* element block information */
 	const iArray2DT& connectivities = ElementGroup(elemID);
-	int nel = connectivities.MajorDim();
+//	int nel = connectivities.MajorDim();
 	int nen = connectivities.MinorDim();
 	GeometryT::CodeT geometry_code = ElementGroupGeometry(elemID);
 	
@@ -1224,11 +1224,11 @@ const StringT& ModelManagerT::SideSetGroupID (const StringT& ss_ID) const
 
 	int index = SideSetIndex(ss_ID);
 	if (index == kNotFound) 
-		ExceptionT::OutOfRange("ModelManagerT::SideSetGroupID", "ID not found: %s", ss_ID.Pointer());
+		ExceptionT::OutOfRange(caller, "ID not found: %s", ss_ID.Pointer());
 
 	int ss_group_index = fSideSetGroupIndex[index];
 	if (ss_group_index < 0 || ss_group_index >= fElementNames.Length()) 
-		ExceptionT::OutOfRange("ModelManagerT::SideSetGroupID", "group ID for not defined for set %s",
+		ExceptionT::OutOfRange(caller, "group ID for not defined for set %s",
 			ss_ID.Pointer());
 
 	return fElementNames[ss_group_index];

@@ -1,4 +1,4 @@
-/* $Id: GaoVicky.cpp,v 1.3 2002-10-20 22:38:48 paklein Exp $ */
+/* $Id: GaoVicky.cpp,v 1.4 2003-11-10 22:14:00 cjkimme Exp $ */
 /* created: paklein (12/26/1998)                                          */
 
 #include "GaoVicky.h"
@@ -41,7 +41,7 @@ void GaoVicky::PrintName(ostream& out) const
 /* returning values */
 double GaoVicky::Function(double x) const
 {
-	double dl = x - fL;
+//	double dl = x - fL;
 	
 	cout << "\n GaoVicky::Function: only f' and f\" have been implemented\n";
 	cout <<   " The function value f is not available in closed form.";

@@ -1,4 +1,4 @@
-/* $Id: ErrorFunc.cpp,v 1.5 2002-10-20 22:38:47 paklein Exp $ */
+/* $Id: ErrorFunc.cpp,v 1.6 2003-11-10 22:14:00 cjkimme Exp $ */
 
 #include "ErrorFunc.h"
 #include <math.h>
@@ -106,7 +106,8 @@ dArrayT& ErrorFunc::MapDFunction(const dArrayT& in,  dArrayT& out) const
 	cout << "\n Derivative of the Bessel Function of the 3rd Kind not tabulated!\n";
 	for (int i = 0; i < in.Length(); i++)
 	{
-		double r = *pl++;					
+//		double r = *pl++;					
+	        *pl++;
 		*pdU++ = 0.0;
 	}
 	return out;
@@ -123,7 +124,8 @@ dArrayT& ErrorFunc::MapDDFunction(const dArrayT& in,  dArrayT& out) const
 	cout << "\n Second derivative of the Bessel Function of the 3rd Kind not tabulated!\n";
 	for (int i = 0; i < in.Length(); i++)
 	{
-		double r = *pl++;				
+//		double r = *pl++;				
+		*pl++;
 		*pddU++ = 0.0;
 	}
 	return out;

@@ -1,4 +1,4 @@
-/* $Id: EnSightOutputT.cpp,v 1.11 2002-07-18 11:35:21 sawimme Exp $ */
+/* $Id: EnSightOutputT.cpp,v 1.12 2003-11-10 22:14:25 cjkimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "EnSightOutputT.h"
@@ -15,8 +15,8 @@ using namespace Tahoe;
 
 EnSightOutputT::EnSightOutputT (ostream& out, const ArrayT<StringT>& out_strings, int numdigs, bool binary) :
   OutputBaseT (out, out_strings),
+  fBinary(binary),
   fNumDigits (numdigs),
-  fBinary (binary),
   fTimeValues (20)
 {
 }

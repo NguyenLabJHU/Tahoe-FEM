@@ -1,4 +1,4 @@
-/* $Id: GaoKlein.cpp,v 1.3 2002-10-20 22:38:47 paklein Exp $ */
+/* $Id: GaoKlein.cpp,v 1.4 2003-11-10 22:14:00 cjkimme Exp $ */
 /* created: paklein (12/26/1998)                                          */
 
 #include "GaoKlein.h"
@@ -39,7 +39,7 @@ void GaoKlein::PrintName(ostream& out) const
 /* returning values */
 double GaoKlein::Function(double x) const
 {
-	double dr = x - fL;
+//	double dr = x - fL;
 	
 	cout << "\n GaoKlein::Function: only f' and f\" have been implemented\n";
 	cout <<   " The function value f is not available in closed form, but is\n";

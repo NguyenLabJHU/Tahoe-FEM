@@ -1,4 +1,4 @@
-/* $Id: TextInputT.h,v 1.1 2003-09-10 00:14:15 paklein Exp $ */
+/* $Id: TextInputT.h,v 1.2 2003-11-10 22:14:22 cjkimme Exp $ */
 #ifndef _TEXT_INPUT_T_H_
 #define _TEXT_INPUT_T_H_
 
@@ -159,34 +159,44 @@ inline int TextInputT::NumDimensions (void) const
 { return fNumDOF; }
 inline int TextInputT::NumElementQuadPoints(const StringT& name)
 { 
+#ifdef __MWERKS__
 #pragma unused(name)
+#endif
 	return 0; 
 }
 inline int TextInputT::NumGlobalElements (void) const
 { return fNumElements; }
 inline int TextInputT::NumNodesInSet (const StringT& name)
 {
+#ifdef __MWERKS__
 #pragma unused (name)
+#endif
   return 0;
 }
 inline bool TextInputT::AreSideSetsLocal (void) const
 { return true; }
 inline int TextInputT::NumSidesInSet (const StringT& setname) const
 { 
+#ifdef __MWERKS__
 #pragma unused (setname)
+#endif
   return 0; 
 }
 
 inline StringT TextInputT::SideSetGroupName (const StringT& setname) const
 { 
+#ifdef __MWERKS__
 #pragma unused (setname)
+#endif
   StringT s = "";
   return s;
 }
 
 inline void TextInputT::QARecords (ArrayT<StringT>& records)
 {
+#ifdef __MWERKS__
 #pragma unused (records)
+#endif
 }
 inline int TextInputT::NumTimeSteps (void) const { return fTimeSteps.Length(); }
 inline int TextInputT::NumNodeVariables (void) const

@@ -1,4 +1,4 @@
-/* $Id: LAdMatrixT.cpp,v 1.7 2003-05-30 18:17:04 paklein Exp $ */
+/* $Id: LAdMatrixT.cpp,v 1.8 2003-11-10 22:14:05 cjkimme Exp $ */
 /* created: paklein (12/05/1996)                                          */
 /* Matrix2D with some linear algebra functions                            */
 
@@ -234,7 +234,7 @@ int LAdMatrixT::BiCGStab(dArrayT& x ,const dArrayT& RHS ,const double M , int ma
 
 
  	double resid;
- 	double rho_1, rho_2, alpha, beta, omega;
+ 	double rho_1, rho_2 = 1., alpha, beta, omega;
     dArrayT p(fRows) , phat(fRows), s(fRows), shat(fRows), t(fRows), v(fRows);
 	dArrayT r(fRows) , rtilde(fRows), t1(fRows), t2(fRows);
 
@@ -351,7 +351,7 @@ int LAdMatrixT::BiCGStab(dArrayT& x ,const dArrayT& RHS ,const dArrayT& M , int 
 	int j;
  	
  	double resid;
- 	double rho_1, rho_2, alpha, beta, omega;
+ 	double rho_1, rho_2 = 1., alpha, beta, omega;
     dArrayT p(fRows) , phat(fRows), s(fRows), shat(fRows), t(fRows), v(fRows);
 	dArrayT r(fRows) , rtilde(fRows), t1(fRows), t2(fRows);
 

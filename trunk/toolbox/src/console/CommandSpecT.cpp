@@ -1,4 +1,4 @@
-/* $Id: CommandSpecT.cpp,v 1.11 2003-11-04 01:21:05 paklein Exp $ */
+/* $Id: CommandSpecT.cpp,v 1.12 2003-11-10 22:14:15 cjkimme Exp $ */
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
 
@@ -12,9 +12,9 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<CommandSpecT>::fByteCopy = false;
 
 CommandSpecT::CommandSpecT(const StringT& name, bool ordered_args):
 	fName(name),
+	fPrompter(NULL),
 	fOrdered(ordered_args),
-	fArguments(0),
-	fPrompter(NULL)
+	fArguments(0)
 {
 
 }
@@ -22,9 +22,9 @@ CommandSpecT::CommandSpecT(const StringT& name, bool ordered_args):
 /* copy constructor */
 CommandSpecT::CommandSpecT(const CommandSpecT& command):
 	fName(command.Name()),
+	fPrompter(command.Prompter()),
 	fOrdered(command.Ordered()),
-	fArguments(0),
-	fPrompter(command.Prompter())
+	fArguments(0)
 {
 	/* copy argument list */
 	const ArrayT<ArgSpecT*>& args = command.Arguments();

@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.22 2003-09-18 22:37:15 cjkimme Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.23 2003-11-10 22:14:20 cjkimme Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -9,22 +9,22 @@ using namespace Tahoe;
 
 AbaqusResultsT::AbaqusResultsT (ostream& message) :
   fMessage (message),
+  fMarker("*"),
+  fOutVersion("5.8-1"),
+  fBinary(false),
+  fBufferDone(0),
+  fBufferSize(0),
+  fCurrentLength(-1),
+  fNumNodes(0),
   fNumElements (0),
-  fNumNodes (0),
+  fNumNodeSets(0),
+  fNumElementSets(0),
   fStartCount (0),
   fEndCount (0),
   fModalCount (0),
-  fBinary (false),
-  fBufferDone (0),
-  fBufferSize (0),
-  fCurrentLength (-1),
-  fNumNodeSets (0),
-  fNumElementSets (0),
   fNumNodeVars (0),
   fNumElemVars (0),
-  fNumQuadVars (0),
-  fMarker ("*"),
-  fOutVersion ("5.8-1")
+  fNumQuadVars (0)
 {
   SetVariableNames ();
 }
@@ -313,7 +313,7 @@ void AbaqusResultsT::NodeMap (iArrayT& n) const
 
 int AbaqusResultsT::NumNodesInSet (const StringT& name) const
 {
-  int index;
+  int index = 0;
   bool found = false;
   for (int i = 0; i < fNumNodeSets && !found; i++)
     if (strncmp (fNodeSetNames[i].Pointer(), name.Pointer(), name.StringLength()) == 0)
@@ -330,7 +330,7 @@ int AbaqusResultsT::NumNodesInSet (const StringT& name) const
 
 void AbaqusResultsT::NodeSet (const StringT& name, iArrayT& nset) const
 {
-  int index;
+  int index = 0;
   bool found = false;
   for (int i = 0; i < fNumNodeSets && !found; i++)
     if (strncmp (fNodeSetNames[i].Pointer(), name.Pointer(), name.StringLength()) == 0)
@@ -352,7 +352,7 @@ void AbaqusResultsT::ElementMap (iArrayT& e) const
 
 int AbaqusResultsT::NumElements (const StringT& name) const
 {
-  int index;
+  int index = 0;
   bool found = false;
   for (int i = 0; i < fNumElementSets && !found; i++)
     if (strncmp (fElementSetNames[i].Pointer(), name.Pointer(), name.StringLength()) == 0)
@@ -402,7 +402,7 @@ int AbaqusResultsT::NumElementNodes (const StringT& name)
 
 int AbaqusResultsT::NumElementQuadPoints (const StringT& name) const
 {
-  int index;
+  int index = 0;
   bool found = false;
   for (int i = 0; i < fNumElementSets && !found; i++)
     if (strncmp (fElementSetNames[i].Pointer(), name.Pointer(), name.StringLength()) == 0)
@@ -423,7 +423,7 @@ int AbaqusResultsT::NumElementQuadPoints (const StringT& name) const
 
 void AbaqusResultsT::ElementSet (const StringT& name, iArrayT& elset) const
 {
-  int index;
+  int index = 0;
   bool found = false;
   for (int i = 0; i < fNumElementSets && !found; i++)
     if (strncmp (fElementSetNames[i].Pointer(), name.Pointer(), name.StringLength()) == 0)
@@ -604,7 +604,7 @@ void AbaqusResultsT::ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray
 {
   /* read for all elements or nodes or just a set */
   iArrayT set;
-  bool subset = DataPoints (vt, name, set);
+//  bool subset = DataPoints (vt, name, set);
 
   /* number of quadrature points */
   int numquadpts = 0;
@@ -1234,7 +1234,7 @@ void AbaqusResultsT::WriteElementHeader (int key, int number, int intpt, int sec
 					 AbaqusResultsT::ElementVarType flag, int numdirect, 
 					 int numshear, int numdir, int numsecforc)
 {
-  int index = VariableKeyIndex (key);
+//  int index = VariableKeyIndex (key);
   int rebarname = 0;
   WriteASCII ("*");
   Write (11);
@@ -1810,6 +1810,7 @@ bool AbaqusResultsT::Read (double& d)
 bool AbaqusResultsT::CheckBufferSize (istream& in, int numchars)
 {
 #pragma unused(in)
+  
   if (fBinary) 
     return true;
 

@@ -1,4 +1,4 @@
-/* $Id: iConsoleObjectT.h,v 1.4 2002-07-05 22:26:24 paklein Exp $ */
+/* $Id: iConsoleObjectT.h,v 1.5 2003-11-10 22:14:15 cjkimme Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_OBJECT_T_H_
@@ -16,6 +16,9 @@ public:
 
 	/** constructor */
 	iConsoleObjectT(void);
+
+	/** destructor */
+	virtual ~iConsoleObjectT(void);
 
 	/** add a sub console.
 	 * \return true if successfully added, false otherwise */

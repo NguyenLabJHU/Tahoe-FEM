@@ -1,4 +1,4 @@
-/* $Id: ParabolaT.cpp,v 1.6 2003-08-04 01:27:27 thao Exp $ */
+/* $Id: ParabolaT.cpp,v 1.7 2003-11-10 22:14:01 cjkimme Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "ParabolaT.h"
@@ -10,7 +10,7 @@
 
 using namespace Tahoe;
 
-ParabolaT::ParabolaT(double k, double B, double l0): fk(k), fB(B), fl0(l0) { }
+ParabolaT::ParabolaT(double k, double B, double l0): fk(k), fl0(l0), fB(B) { }
 
 /* I/O */
 void ParabolaT::Print(ostream& out) const
