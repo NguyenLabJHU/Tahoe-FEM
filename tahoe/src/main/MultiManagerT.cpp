@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.15 2004-07-25 06:44:12 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.16 2004-07-26 09:27:13 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -64,6 +64,9 @@ void MultiManagerT::Solve(void)
 	/* time managers */
 	TimeManagerT* atom_time = fFine->TimeManager();
 	TimeManagerT* continuum_time = fCoarse->TimeManager();
+	if (atom_time->NumberOfSteps() - continuum_time->NumberOfSteps() != 0) 
+		ExceptionT::GeneralFail(caller, "coarse/fine number of steps mismatch: %d != %d",
+			atom_time->NumberOfSteps(), continuum_time->NumberOfSteps());
 
 	/* set to initial condition */
 	ExceptionT::CodeT error = InitialCondition();
@@ -643,9 +646,6 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	/* check consistency between time managers */
 	TimeManagerT* atom_time = fFine->TimeManager();
 	TimeManagerT* continuum_time = fCoarse->TimeManager();
-	if (atom_time->NumberOfSteps() - continuum_time->NumberOfSteps() != 0) 
-		ExceptionT::GeneralFail(caller, "coarse/fine number of steps mismatch: %d != %d",
-			atom_time->NumberOfSteps(), continuum_time->NumberOfSteps());
 
 	/* use parameters from coarse scale solver */
 	fTimeManager = fCoarse->TimeManager();
