@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.23 2004-03-31 22:10:48 paklein Exp $ */
+/* $Id: StringT.h,v 1.24 2005-01-29 18:31:29 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #ifndef _STRING_T_H_
 #define _STRING_T_H_
@@ -66,7 +66,11 @@ public:
 	int operator==(char* string) const { return operator==((const char *) string); };
 	friend int operator==(const char* str_lhs, const StringT& str_rhs);
 	/*@}*/
-	
+
+	/** string match. Return a pointer to the first occurrence of the search string in
+	 * this or NULL if the string is not found */
+	const char* StringMatch(const char* search) const;
+
 	/** \name comparisons */
 	/*@{*/
 	/** return true of {*this, rhs} are in alphabetical order, 0 otherwise. Note that
