@@ -179,11 +179,20 @@ protected:
 	/** \name Geometrical Data Structures */
 	/*@{*/
 	
-	/** midpoints of each of these are centroids of Voronoi facets */
+	/** these are dual to Voronoi facets. They have minor dimension of 2 . Difference in the two points is parallel to the normal vector of the dual facet. */
 	iArray2DT fDeloneEdges;
-	
-	/** Number of Delone edges that are not on the body bounday */
-	int nInteriorDeloneEdges;
+
+	/** Voronoi facets dual to the Delone Edges */
+	iArray2DT fDualFacets;
+
+	/** Self-dual facet information. I.E. facets that contribute only to one integral over one boundary node's cell */
+#ifdef __QHULL__
+	CompGeomT::ConvexHullMap fSelfDuals;
+#else
+	ConvexHullMap fSelfDuals;
+#endif
+	int fNumSelfDuals;
+	int fNumClippedFacets;
 
 	/** connectivity of boundary nodes. Currently determined from an underlying 
 	    element connectivity */
@@ -195,8 +204,8 @@ protected:
 	/** true if boundary connectivity is simplicial */
 	bool fBoundaryIsTriangulated;
 	
-	/** centroids of the facets corresponding to those edges */
-	dArray2DT fBoundaryDeloneCentroids;
+	/** centroids of the facets dual to Delone edges */
+	dArray2DT fDualFacetCentroids;
 	
 	/** additional edges associated only with one node */
 	iArrayT fNonDeloneEdges;
