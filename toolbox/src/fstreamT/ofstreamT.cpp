@@ -1,6 +1,5 @@
-/* $Id: ofstreamT.cpp,v 1.2 2001-04-10 17:56:13 paklein Exp $ */
-/* created: paklein (12/30/2000)                                          */
-/* interface                                                              */
+/* $Id: ofstreamT.cpp,v 1.3 2002-01-07 20:40:14 paklein Exp $ */
+/* created: paklein (12/30/2000) */
 
 #include "ofstreamT.h"
 
@@ -8,6 +7,7 @@
 #include <iostream.h>
 #include <string.h>
 
+#include "fstreamT.h"
 #include "Environment.h"
 #include "ExceptionCodes.h"
 
@@ -74,11 +74,22 @@ return fbuf->is_open();
 /* close stream */
 void ofstreamT::close(void)
 {
+	if (fstreamT::need_MW_workaround())
+	{
+		/* ANSI */
+		if (is_open()) ofstream::close();
+
+		/* clear name */
+		fFileName.Clear();
+	}
+	else /* original code */
+	{
 	/* ANSI */
 	ofstream::close();
 
 	/* clear name */
 	fFileName.Clear();
+	}
 }
 
 /* set stream formats */

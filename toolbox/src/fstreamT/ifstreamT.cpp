@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.11 2002-01-05 06:55:01 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.12 2002-01-07 20:40:13 paklein Exp $ */
 /* created: paklein (03/03/1999) */
 
 #include "ifstreamT.h"
@@ -90,11 +90,22 @@ return fbuf->is_open();
 /* close stream */
 void ifstreamT::close(void)
 {
+	if (fstreamT::need_MW_workaround())
+	{
+		/* ANSI */
+		if (is_open()) ifstream::close();
+
+		/* clear name */
+		fFileName.Clear();
+	}
+	else /* original code */
+	{
 	/* ANSI */
 	ifstream::close();
 
 	/* clear name */
 	fFileName.Clear();
+	}
 }
 
 /* return the next character (skipping whitespace and comments)
