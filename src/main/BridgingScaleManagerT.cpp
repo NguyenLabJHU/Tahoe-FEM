@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleManagerT.cpp,v 1.1 2004-07-25 06:42:53 paklein Exp $ */
+/* $Id: BridgingScaleManagerT.cpp,v 1.2 2004-07-26 09:40:12 paklein Exp $ */
 #include "BridgingScaleManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -23,7 +23,7 @@ BridgingScaleManagerT::BridgingScaleManagerT(const StringT& input_file, ofstream
 	SetName("tahoe_bridging_scale");
 }
 
-/** (re-)set system to initial conditions */
+/* (re-)set system to initial conditions */
 ExceptionT::CodeT BridgingScaleManagerT::InitialCondition(void)
 {
 	/* shouldn't enter here. BridgingScaleManagerT::Solve overrides all */
@@ -132,6 +132,7 @@ void BridgingScaleManagerT::Solve(void)
 	/* solve for initial FEM force f(u) as function of fine scale + FEM */
 	/* use projected totalu instead of totalu for initial FEM displacements */
 	nMatrixT<int>& promap = fFine_THK->PropertiesMap(0);   // element group for particles = 0
+	ghostonmap = promap; // copy original properties map
 	promap = ghostoffmap;  // turn ghost atoms off for f(u) calculation
 	fubig = InternalForce(bridging_field, projectedu, *fFine_THK);
 	promap = ghostonmap;   // turn ghost atoms back on for MD force calculations
