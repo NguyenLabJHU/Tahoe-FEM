@@ -1,16 +1,17 @@
-/* $Id: SolidMatList2DT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: SolidMatList2DT.h,v 1.2 2001-04-27 10:53:29 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #ifndef _MATLIST_2D_T_H_
 #define _MATLIST_2D_T_H_
 
-/* base class */
+/* base classes */
 #include "SolidMatListT.h"
+#include "MaterialT.h"
 
 /* forward declaration */
 class ElasticT;
 
-class SolidMatList2DT: public SolidMatListT
+class SolidMatList2DT: public SolidMatListT, public MaterialT
 {
 public:
 
