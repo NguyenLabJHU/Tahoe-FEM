@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.35 2003-02-25 15:05:37 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.36 2003-09-05 06:01:46 paklein Exp $  */
 #include "TranslateIOManager.h"
 
 #include "ExceptionT.h"
@@ -31,12 +31,12 @@ TranslateIOManager::TranslateIOManager (ostream& out, istream& in, bool write) :
 
 void TranslateIOManager::SetEcho (int s, const StringT& file)
 {
-  fEchoOut.open (file);
-  if (!fEchoOut) 
-    ExceptionT::GeneralFail ("TranslateIOManager::SetEcho","Cannot open file %s", file.Pointer());
-  fEcho = true;
-  if (fEcho)
-    fEchoOut << "%\n" << s << endl;
+	fEchoOut.open(file);
+	if (!fEchoOut.is_open()) 
+		ExceptionT::GeneralFail("TranslateIOManager::SetEcho","Cannot open file %s", file.Pointer());
+  	fEcho = true;
+  	if (fEcho)
+  		fEchoOut << "%\n" << s << endl;
 }
 
 void TranslateIOManager::Translate (const StringT& program, const StringT& version, const StringT& title)
