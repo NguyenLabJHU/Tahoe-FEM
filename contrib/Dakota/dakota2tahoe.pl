@@ -15,7 +15,7 @@ open (DAKOTA, "$dakota") || die "could not open $dakota";
 defined($line = <DAKOTA>)|| die "file error";
 chomp($line);
 $num_vars = $line;
-$num_vars =~ s/[\s]+([0-9]+)[\s]+.*/$1/;
+$num_vars =~ s/[\s]*([0-9]+)[\s]+.*/$1/;
 print STDOUT "found $num_vars variables\n";
 
 # insert parameters into a hash
