@@ -1,4 +1,4 @@
-// $Id: test.java,v 1.14 2002-08-15 16:14:06 recampb Exp $
+// $Id: test.java,v 1.15 2002-08-15 22:56:05 recampb Exp $
 import java.io.*;
 import javax.swing.*;
 import java.awt.event.*;
@@ -36,7 +36,6 @@ public class test extends JPanel implements ActionListener, ChangeListener {
   protected DynamicTree treePanel;
   protected JTabbedPane tabbedPane;
   protected JSlider selectTimeSlider, selectTimeSliderF;
-  protected JSplitPane /* splitPane, */ splitPane2;
   private boolean tabBool;
   protected JFrame parentFrame;
 
@@ -154,46 +153,46 @@ public class test extends JPanel implements ActionListener, ChangeListener {
     testButton = new JButton ("Exit");
     testButton.addActionListener(this);
     testButton.setActionCommand("Exit");
-    gbc.gridx=1; gbc.gridy=4; gbc.gridwidth=1;
+    gbc.gridx=0; gbc.gridy=6; gbc.gridwidth=1;
     rootRightPanel.add(testButton, gbc);
 
     JButton commandButton = new JButton("Command Line");
     commandButton.addActionListener(this);
     commandButton.setActionCommand("CommandLine");
-    gbc.gridx=2;
+    gbc.gridx=0; gbc.gridy=5;
     rootRightPanel.add(commandButton, gbc);
 
 
     flipBookButton = new JButton("Flip Book");
     flipBookButton.addActionListener(this);
     flipBookButton.setActionCommand("FlipBook");
-    gbc.gridx=3; gbc.gridy=3; gbc.gridwidth=1;
+    gbc.gridx=0; gbc.gridy=4; gbc.gridwidth=1;
     rootRightPanel.add(flipBookButton, gbc);
     
     nextTimeButton = new JButton("Next Time Step");
     nextTimeButton.addActionListener(this);
     nextTimeButton.setActionCommand("NextTimeStep");
-    gbc.gridx=2; gbc.gridy=3; gbc.gridwidth=1;
+    gbc.gridx=1; gbc.gridy=3; gbc.gridwidth=1;
     rootRightPanel.add(nextTimeButton, gbc);
 
     prevTimeButton = new JButton("Previous Time Step");
     prevTimeButton.addActionListener(this);
     prevTimeButton.setActionCommand("PreviousTimeStep");
-    gbc.gridx=1; gbc.gridy=3; gbc.gridwidth=1;
+    gbc.gridx=0; gbc.gridy=3; gbc.gridwidth=1;
     rootRightPanel.add(prevTimeButton, gbc);   
     
     selectTimeSlider = new JSlider(0,10,0);
     selectTimeSlider.addChangeListener(this);
     JLabel selectTimeLabel = new JLabel("Time Step");
 
-    gbc.gridx=0; gbc.gridy=2; gbc.gridwidth=1;
+    gbc.gridx=0; gbc.gridy=1; gbc.gridwidth=1;
     rootRightPanel.add(selectTimeLabel, gbc);
 
     selectTimeTF = new JTextField("0", 5);
     selectTimeTF.setEnabled(true);
-    gbc.gridx=1; gbc.gridy=2; gbc.gridwidth=2; gbc.anchor = gbc.CENTER;
+    gbc.gridx=0; gbc.gridy=2; gbc.gridwidth=1; gbc.anchor = gbc.CENTER;
     rootRightPanel.add(selectTimeSlider, gbc);
-    gbc.gridx=3; gbc.gridy=2; gbc.gridwidth=1; gbc.anchor = gbc.NORTHEAST;
+    gbc.gridx=1; gbc.gridy=2; gbc.gridwidth=1; gbc.anchor = gbc.NORTHWEST;
     rootRightPanel.add(selectTimeTF, gbc);
   
     
@@ -420,20 +419,20 @@ public class test extends JPanel implements ActionListener, ChangeListener {
     
     axesShowButton.addActionListener(this);
     axesHideButton.addActionListener(this);
-    axesShowButton.setActionCommand("Show Axes");
-    axesHideButton.setActionCommand("Hide Axes");
+    axesShowButton.setActionCommand("ShowAxes");
+    axesHideButton.setActionCommand("HideAxes");
     colorBarShowButton.addActionListener(this);
     colorBarHideButton.addActionListener(this);
-    colorBarShowButton.setActionCommand("Show Color Bar");
-    colorBarHideButton.setActionCommand("Hide Color Bar");
+    colorBarShowButton.setActionCommand("ShowColorBar");
+    colorBarHideButton.setActionCommand("HideColorBar");
     nodeNumsShowButton.addActionListener(this);
     nodeNumsHideButton.addActionListener(this);
-    nodeNumsShowButton.setActionCommand("Show Node Nums");
-    nodeNumsHideButton.setActionCommand("Hide Node Nums");
+    nodeNumsShowButton.setActionCommand("ShowNodeNums");
+    nodeNumsHideButton.setActionCommand("HideNodeNums");
     elemNumsShowButton.addActionListener(this);
     elemNumsHideButton.addActionListener(this);
-    elemNumsShowButton.setActionCommand("Show Elem Nums");
-    elemNumsHideButton.setActionCommand("Hide Elem Nums");
+    elemNumsShowButton.setActionCommand("ShowElemNums");
+    elemNumsHideButton.setActionCommand("HideElemNums");
     
 
     gbc.anchor = gbc.NORTHEAST;
@@ -498,35 +497,36 @@ public class test extends JPanel implements ActionListener, ChangeListener {
 	frameRightPanel.add(repWireButton, gbc);
 	gbc.gridx=1; gbc.gridy = 2;
 	frameRightPanel.add(repPointButton, gbc);
-// 	gbc.gridx=0; gbc.gridy = 20;
-// 	leftFramePanel.add(axesLabel, gbc);
-// 	gbc.gridx=0; gbc.gridy = 21;
-// 	leftFramePanel.add(axesShowButton, gbc);
-// 	gbc.gridx=1; gbc.gridy = 21;
-// 	leftFramePanel.add(axesHideButton, gbc);
-// 	gbc.gridx=0; gbc.gridy = 22;
-// 	leftFramePanel.add(colorBarLabel, gbc);
-// 	gbc.gridx=0; gbc.gridy = 23;
-// 	leftFramePanel.add(colorBarShowButton, gbc);
-// 	gbc.gridx=1; gbc.gridy = 23;
-// 	leftFramePanel.add(colorBarHideButton, gbc);
-// 	gbc.gridx=0; gbc.gridy = 24;
-// 	leftFramePanel.add(nodeNumsLabel, gbc);
-// 	gbc.gridx=0; gbc.gridy = 25;
-// 	leftFramePanel.add(nodeNumsShowButton, gbc);
-// 	gbc.gridx=1; gbc.gridy = 25;
-// 	leftFramePanel.add(nodeNumsHideButton, gbc);
-// 	gbc.gridx=0; gbc.gridy = 26;
-// 	leftFramePanel.add(elemNumsLabel, gbc);
-// 	gbc.gridx=0; gbc.gridy = 27;
-// 	leftFramePanel.add(elemNumsShowButton, gbc);
-// 	gbc.gridx=1; gbc.gridy = 27;
-// 	leftFramePanel.add(elemNumsHideButton, gbc); 
+	gbc.gridx=0; gbc.gridy = 3;
+	frameRightPanel.add(axesLabel, gbc);
+	gbc.gridx=1; gbc.gridy = 3;
+	frameRightPanel.add(axesShowButton, gbc);
+	gbc.gridx=2; gbc.gridy = 3;
+	frameRightPanel.add(axesHideButton, gbc);
+	gbc.gridx=0; gbc.gridy = 4;
+	frameRightPanel.add(colorBarLabel, gbc);
+	gbc.gridx=1; gbc.gridy = 4;
+	frameRightPanel.add(colorBarShowButton, gbc);
+	gbc.gridx=2; gbc.gridy = 4;
+	frameRightPanel.add(colorBarHideButton, gbc);
+	gbc.gridx=0; gbc.gridy = 5;
+	frameRightPanel.add(nodeNumsLabel, gbc);
+	gbc.gridx=1; gbc.gridy = 5;
+	frameRightPanel.add(nodeNumsShowButton, gbc);
+	gbc.gridx=2; gbc.gridy = 5;
+	frameRightPanel.add(nodeNumsHideButton, gbc);
+	gbc.gridx=0; gbc.gridy = 6;
+	frameRightPanel.add(elemNumsLabel, gbc);
+	gbc.gridx=1; gbc.gridy = 6;
+	frameRightPanel.add(elemNumsShowButton, gbc);
+	gbc.gridx=2; gbc.gridy = 6;
+	frameRightPanel.add(elemNumsHideButton, gbc); 
+
+	/** end frame panel stuff **/
 
 
 
-
-
+	/** scope tree panel **/
     treePanel = new DynamicTree();
     populateTree(treePanel);
 
@@ -540,25 +540,15 @@ public class test extends JPanel implements ActionListener, ChangeListener {
     removeButton = new JButton("Remove");
     removeButton.addActionListener(this);
     removeButton.setActionCommand("RemoveBody");
-    
-//     JButton clearButton = new JButton("Clear");
-//     clearButton.addActionListener(this);
-//     clearButton.setActionCommand("Clear");
 
     rightPanel.add(addButton);
     rightPanel.add(removeButton);
-    //   rightPanel.add(clearButton);
     
     gbc.gridx=0; gbc.gridy=3; gbc.gridheight=1; gbc.gridwidth=1;
     treePanel.add(rightPanel, gbc);
     add(treePanel, BorderLayout.EAST);
     
 
-
-
-
-
-    //treePanel.setup();
     treePanel.getTree().addTreeSelectionListener(new TreeSelectionListener() {
                 public void valueChanged(TreeSelectionEvent e) {
                     DefaultMutableTreeNode node = (DefaultMutableTreeNode)
@@ -574,18 +564,13 @@ public class test extends JPanel implements ActionListener, ChangeListener {
 		    }
 		    else if (((String)nodeInfo).equals("Console Root")){
 		      tabbedPane.setSelectedComponent(rootPanel);
-		      //remove(leftPanel);
-		      //add(leftRootPanel,new GridBagConstraints(0,2,1,1,0.05,1.0,GridBagConstraints.NORTHWEST,GridBagConstraints.BOTH,new Insets(0,0,0,0),0,0));
-		      //splitPane.setLeftComponent(leftRootPanel);
+
 		      SetScope((String)nodeInfo);
 		      updateUI();
 
 		    }
 		    else if (((String)nodeInfo).equals("0.0.frame")){
 		      tabbedPane.setSelectedComponent(framePanel);
-		      //remove(leftPanel);
-		      //add(leftRootPanel,new GridBagConstraints(0,2,1,1,0.05,1.0,GridBagConstraints.NORTHWEST,GridBagConstraints.BOTH,new Insets(0,0,0,0),0,0));
-		      //splitPane.setLeftComponent(leftFrameScrollPane);
 		      SetScope((String)nodeInfo);
 		      updateUI();
 
@@ -598,231 +583,205 @@ public class test extends JPanel implements ActionListener, ChangeListener {
                 
     }); 
       
+    /** end scope tree panel **/
 
 
 
-	/* left body panel stuff */
+	/* body panel stuff */
+
+    bodyPanel.setLayout(new GridLayout(1,2));
+    
+    JPanel bodyLeftPanel = new JPanel();
+    JScrollPane bodyLeftScroll = new JScrollPane(bodyLeftPanel);
+    bodyLeftPanel.setLayout(new GridBagLayout());
+    JPanel bodyRightPanel = new JPanel();
+    JScrollPane bodyRightScroll = new JScrollPane(bodyRightPanel);
+    bodyRightPanel.setLayout(new GridBagLayout()); 
+    bodyPanel.add(bodyLeftScroll);
+    
+    bodyPanel.add(bodyRightScroll);
       
-	JButton interactiveButtonB = new JButton("Interactive");
-	JButton updateButtonB = new JButton("Update");
-	JButton cuttingButtonB = new JButton("Show Cutting Plane");
-	interactiveButtonB.addActionListener(this);
-	interactiveButtonB.setActionCommand("Interactive");
-	updateButtonB.addActionListener(this);
-	updateButtonB.setActionCommand("Update");
-	cuttingButtonB.addActionListener(this);
-	cuttingButtonB.setActionCommand("ShowCutting");
+    JButton interactiveButtonB = new JButton("Interactive");
+    JButton updateButtonB = new JButton("Update");
+    JButton cuttingButtonB = new JButton("Show Cutting Plane");
+    interactiveButtonB.addActionListener(this);
+    interactiveButtonB.setActionCommand("Interactive");
+    updateButtonB.addActionListener(this);
+    updateButtonB.setActionCommand("Update");
+    cuttingButtonB.addActionListener(this);
+    cuttingButtonB.setActionCommand("ShowCutting");
+    
+    JLabel repLabelB = new JLabel("Representation");
+    JRadioButton repSurfButtonB = new JRadioButton("Surface");
+    repSurfButtonB.setSelected(true);
+    repSurfButtonB.addActionListener(this);
+    repSurfButtonB.setActionCommand("Surf");
+    JRadioButton repWireButtonB = new JRadioButton("Wire");
+    repWireButtonB.addActionListener(this);
+    repWireButtonB.setActionCommand("Wire");
+    JRadioButton repPointButtonB = new JRadioButton("Points");
+    repPointButtonB.addActionListener(this);
+    repPointButtonB.setActionCommand("Points");
+    ButtonGroup repButtonsB = new ButtonGroup();
+    repButtonsB.add(repSurfButton);
+    repButtonsB.add(repWireButton);
+    repButtonsB.add(repPointButton);
+    
+    JLabel nodeNumsLabelB = new JLabel ("Node Numbers");
+    JLabel elemNumsLabelB = new JLabel ("Element Numbers");
+    
+    JRadioButton nodeNumsShowButtonB = new JRadioButton("Show");
+    JRadioButton nodeNumsHideButtonB = new JRadioButton("Hide");
+    ButtonGroup nodeNumsButtonsB = new ButtonGroup();
+    JRadioButton elemNumsShowButtonB = new JRadioButton("Show");
+    JRadioButton elemNumsHideButtonB = new JRadioButton("Hide");
+    ButtonGroup elemNumsButtonsB = new ButtonGroup();
+    
+    nodeNumsButtonsB.add(nodeNumsShowButtonB);
+    nodeNumsButtonsB.add(nodeNumsHideButtonB);
+    elemNumsButtonsB.add(elemNumsShowButtonB);
+    elemNumsButtonsB.add(elemNumsHideButtonB);
+    
+    nodeNumsHideButtonB.setSelected(true);
+    elemNumsHideButtonB.setSelected(true);
+    
+    nodeNumsShowButtonB.addActionListener(this);
+    nodeNumsHideButtonB.addActionListener(this);
+    nodeNumsShowButtonB.setActionCommand("ShowNodeNums");
+    nodeNumsHideButtonB.setActionCommand("HideNodeNums");
+    elemNumsShowButtonB.addActionListener(this);
+    elemNumsHideButtonB.addActionListener(this);
+    elemNumsShowButtonB.setActionCommand("ShowElemNums");
+    elemNumsHideButtonB.setActionCommand("HideElemNums");
+    
 
-	JLabel repLabelB = new JLabel("Representation");
-	JRadioButton repSurfButtonB = new JRadioButton("Surface");
-	repSurfButtonB.setSelected(true);
-	repSurfButtonB.addActionListener(this);
-	repSurfButtonB.setActionCommand("Surf");
-	JRadioButton repWireButtonB = new JRadioButton("Wire");
-	repWireButtonB.addActionListener(this);
-	repWireButtonB.setActionCommand("Wire");
-	JRadioButton repPointButtonB = new JRadioButton("Points");
-	repPointButtonB.addActionListener(this);
-	repPointButtonB.setActionCommand("Points");
-	ButtonGroup repButtonsB = new ButtonGroup();
-	repButtonsB.add(repSurfButton);
-	repButtonsB.add(repWireButton);
-	repButtonsB.add(repPointButton);
+    JLabel contoursLabelB = new JLabel ("Contours");
+    JLabel glyphsLabelB = new JLabel ("Glyphs");
+    
+    JRadioButton contoursShowButtonB = new JRadioButton("Show");
+    JRadioButton contoursHideButtonB = new JRadioButton("Hide");
+    ButtonGroup contoursButtonsB = new ButtonGroup();
+    JRadioButton glyphsShowButtonB = new JRadioButton("Show");
+    JRadioButton glyphsHideButtonB = new JRadioButton("Hide");
+    ButtonGroup glyphsButtonsB = new ButtonGroup();
+    
+    contoursButtonsB.add(contoursShowButtonB);
+    contoursButtonsB.add(contoursHideButtonB);
+    glyphsButtonsB.add(glyphsShowButtonB);
+    glyphsButtonsB.add(glyphsHideButtonB);
+    
+    contoursHideButtonB.setSelected(true);
+    glyphsHideButtonB.setSelected(true);
+    
+    contoursShowButtonB.addActionListener(this);
+    contoursHideButtonB.addActionListener(this);
+    contoursShowButtonB.setActionCommand("Show Contours");
+    contoursHideButtonB.setActionCommand("Hide Contours");
+    glyphsShowButtonB.addActionListener(this);
+    glyphsHideButtonB.addActionListener(this);
+    glyphsShowButtonB.setActionCommand("Show Glyphs");
+    glyphsHideButtonB.setActionCommand("Hide Glyphs");
+    
+    
+    gbc.anchor = gbc.NORTHEAST;
+    gbc.insets=new Insets(4,4,4,4);
+    bodyLeftPanel.setLayout(new GridBagLayout());
+    gbc.gridx=1; gbc.gridy=0; gbc.gridwidth=1;
+    bodyLeftPanel.add(interactiveButtonB, gbc);
+    gbc.gridx=1; gbc.gridy=1; gbc.gridwidth=1;
+    bodyLeftPanel.add(updateButtonB, gbc);
+    gbc.gridx=0; gbc.gridy=0; gbc.gridwidth=1;gbc.anchor = gbc.NORTHWEST;
+    bodyRightPanel.add(repLabelB, gbc);
+    gbc.gridx=1; gbc.gridy=0; gbc.gridwidth=1;
+    bodyRightPanel.add(repSurfButtonB, gbc);
+    gbc.gridx=2; gbc.gridy=0; gbc.gridwidth=1;
+    bodyRightPanel.add(repWireButtonB, gbc);
+    gbc.gridx=1; gbc.gridy=1; gbc.gridwidth=1;
+    bodyRightPanel.add(repPointButtonB, gbc);
+    gbc.gridx=0; gbc.gridy=2; gbc.gridwidth=1;
+    bodyRightPanel.add(nodeNumsLabelB, gbc);
+    
+    gbc.gridx=1; gbc.gridy=2; gbc.gridwidth=1;
+    bodyRightPanel.add(nodeNumsShowButtonB, gbc);
+    gbc.gridx=2; gbc.gridy=2; gbc.gridwidth=1;
+    bodyRightPanel.add(nodeNumsHideButtonB, gbc);
+    gbc.gridx=0; gbc.gridy=3; gbc.gridwidth=1;
+    bodyRightPanel.add(elemNumsLabelB, gbc);
+    gbc.gridx=1; gbc.gridy=3; gbc.gridwidth=1;
+    bodyRightPanel.add(elemNumsShowButtonB, gbc);
+    gbc.gridx=2; gbc.gridy=3; gbc.gridwidth=1;
+    bodyRightPanel.add(elemNumsHideButtonB, gbc);
+    
+    
+    gbc.gridx=0; gbc.gridy = 4;
+    bodyRightPanel.add(contoursLabelB, gbc);
+    gbc.gridx=1; gbc.gridy = 4;
+    bodyRightPanel.add(contoursShowButtonB, gbc);
+    gbc.gridx=2; gbc.gridy = 4;
+    bodyRightPanel.add(contoursHideButtonB, gbc);
+    
+    
+    /* end body panel */
 
-	JLabel nodeNumsLabelB = new JLabel ("Node Numbers");
-	JLabel elemNumsLabelB = new JLabel ("Element Numbers");
-
-	JRadioButton nodeNumsShowButtonB = new JRadioButton("Show");
-	JRadioButton nodeNumsHideButtonB = new JRadioButton("Hide");
-	ButtonGroup nodeNumsButtonsB = new ButtonGroup();
-	JRadioButton elemNumsShowButtonB = new JRadioButton("Show");
-	JRadioButton elemNumsHideButtonB = new JRadioButton("Hide");
-	ButtonGroup elemNumsButtonsB = new ButtonGroup();
-
-	nodeNumsButtonsB.add(nodeNumsShowButtonB);
-	nodeNumsButtonsB.add(nodeNumsHideButtonB);
-	elemNumsButtonsB.add(elemNumsShowButtonB);
-	elemNumsButtonsB.add(elemNumsHideButtonB);
-
-	nodeNumsHideButtonB.setSelected(true);
-	elemNumsHideButtonB.setSelected(true);
-
-	nodeNumsShowButtonB.addActionListener(this);
-	nodeNumsHideButtonB.addActionListener(this);
-	nodeNumsShowButtonB.setActionCommand("Show Node Nums");
-	nodeNumsHideButtonB.setActionCommand("Hide Node Nums");
-	elemNumsShowButtonB.addActionListener(this);
-	elemNumsHideButtonB.addActionListener(this);
-	elemNumsShowButtonB.setActionCommand("Show Elem Nums");
-	elemNumsHideButtonB.setActionCommand("Hide Elem Nums");
-
-
-	JLabel contoursLabelB = new JLabel ("Contours");
-	JLabel glyphsLabelB = new JLabel ("Glyphs");
-
-	JRadioButton contoursShowButtonB = new JRadioButton("Show");
-	JRadioButton contoursHideButtonB = new JRadioButton("Hide");
-	ButtonGroup contoursButtonsB = new ButtonGroup();
-	JRadioButton glyphsShowButtonB = new JRadioButton("Show");
-	JRadioButton glyphsHideButtonB = new JRadioButton("Hide");
-	ButtonGroup glyphsButtonsB = new ButtonGroup();
-
-	contoursButtonsB.add(contoursShowButtonB);
-	contoursButtonsB.add(contoursHideButtonB);
-	glyphsButtonsB.add(glyphsShowButtonB);
-	glyphsButtonsB.add(glyphsHideButtonB);
-
-	contoursHideButtonB.setSelected(true);
-	glyphsHideButtonB.setSelected(true);
-
-	contoursShowButtonB.addActionListener(this);
-	contoursHideButtonB.addActionListener(this);
-	contoursShowButtonB.setActionCommand("Show Contours");
-	contoursHideButtonB.setActionCommand("Hide Contours");
-	glyphsShowButtonB.addActionListener(this);
-	glyphsHideButtonB.addActionListener(this);
-	glyphsShowButtonB.setActionCommand("Show Glyphs");
-	glyphsHideButtonB.setActionCommand("Hide Glyphs");
-
-
-	leftBodyPanel = new JPanel();
-	leftBodyScrollPane = new JScrollPane(leftBodyPanel);
-	gbc.anchor = gbc.NORTHEAST;
-	gbc.insets=new Insets(4,4,4,4);
-	leftBodyPanel.setLayout(new GridBagLayout());
- 	gbc.gridx=1; gbc.gridy=0; gbc.gridwidth=1;
- 	leftBodyPanel.add(interactiveButtonB, gbc);
- 	gbc.gridx=1; gbc.gridy=1; gbc.gridwidth=1;
- 	leftBodyPanel.add(updateButtonB, gbc);
-	gbc.gridx=0; gbc.gridy=2; gbc.gridwidth=1;gbc.anchor = gbc.NORTHWEST;
-	leftBodyPanel.add(repLabelB, gbc);
- 	gbc.gridx=0; gbc.gridy=3; gbc.gridwidth=1;
- 	leftBodyPanel.add(repSurfButtonB, gbc);
- 	gbc.gridx=1; gbc.gridy=3; gbc.gridwidth=1;
- 	leftBodyPanel.add(repWireButtonB, gbc);
- 	gbc.gridx=0; gbc.gridy=4; gbc.gridwidth=1;
- 	leftBodyPanel.add(repPointButtonB, gbc);
- 	gbc.gridx=0; gbc.gridy=5; gbc.gridwidth=1;
- 	leftBodyPanel.add(nodeNumsLabelB, gbc);
-
-// 	leftBodyPanel.add(new JSeparator(JSeparator.HORIZONTAL),new GridBagConstraints(0,4,2,1,0.0,0.0,GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL,new Insets(0,0,0,0),0,0));
-	gbc.gridx=0; gbc.gridy=6; gbc.gridwidth=1;
- 	leftBodyPanel.add(nodeNumsShowButtonB, gbc);
- 	gbc.gridx=1; gbc.gridy=6; gbc.gridwidth=1;
- 	leftBodyPanel.add(nodeNumsHideButtonB, gbc);
- 	gbc.gridx=0; gbc.gridy=7; gbc.gridwidth=1;
- 	leftBodyPanel.add(elemNumsLabelB, gbc);
- 	gbc.gridx=0; gbc.gridy=8; gbc.gridwidth=1;
- 	leftBodyPanel.add(elemNumsShowButtonB, gbc);
- 	gbc.gridx=1; gbc.gridy=8; gbc.gridwidth=1;
- 	leftBodyPanel.add(elemNumsHideButtonB, gbc);
-
-// 	leftBodyPanel.add(new JSeparator(JSeparator.HORIZONTAL),new GridBagConstraints(0,8,2,1,0.0,0.0,GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL,new Insets(0,0,0,0),0,0));
-	
- 	gbc.gridx=0; gbc.gridy = 9;
- 	leftBodyPanel.add(contoursLabelB, gbc);
- 	gbc.gridx=0; gbc.gridy = 10;
- 	leftBodyPanel.add(contoursShowButtonB, gbc);
- 	gbc.gridx=1; gbc.gridy = 10;
- 	leftBodyPanel.add(contoursHideButtonB, gbc);
-
-// 	leftFramePanel.add(new JSeparator(JSeparator.HORIZONTAL),new GridBagConstraints(0,11,2,1,0.0,0.0,GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL,new Insets(0,0,0,0),0,0));
-	
-// 	gbc.gridx=0; gbc.gridy = 12; gbc.gridwidth=2;
-// 	leftFramePanel.add(resetViewButtonF, gbc);
-// // 	gbc.gridx=0; gbc.gridy = 13;
-// // 	leftFramePanel.add(addButtonF, gbc);
-// // 	gbc.gridx=0; gbc.gridy = 14;
-// // 	leftFramePanel.add(removeButtonF, gbc);
-// // 	gbc.gridx=0; gbc.gridy = 15;
-// // 	leftFramePanel.add(clearButtonF, gbc);
-// 	gbc.gridx=0; gbc.gridy = 13;
-// 	leftFramePanel.add(interactiveButtonF, gbc);
-// 	gbc.gridx=0; gbc.gridy = 14;
-// 	leftFramePanel.add(updateButtonF, gbc);
-// 	gbc.gridx=0; gbc.gridy = 15; gbc.gridwidth=1; gbc.anchor = gbc.NORTHWEST;
-// 	leftFramePanel.add(bgLabel, gbc);
-// 	gbc.gridx=0; gbc.gridy = 16;
-// 	leftFramePanel.add(bgBlackButton, gbc);
-// 	gbc.gridx=1; gbc.gridy = 16;
-// 	leftFramePanel.add(bgWhiteButton, gbc);
-// 	gbc.gridx=0; gbc.gridy = 17;
-// 	leftFramePanel.add(repLabel, gbc);
-// 	gbc.gridx=0; gbc.gridy = 18;
-// 	leftFramePanel.add(repSurfButton, gbc);
-// 	gbc.gridx=1; gbc.gridy = 18;
-// 	leftFramePanel.add(repWireButton, gbc);
-// 	gbc.gridx=0; gbc.gridy = 19;
-// 	leftFramePanel.add(repPointButton, gbc);
-// 	gbc.gridx=0; gbc.gridy = 20;
-// 	leftFramePanel.add(axesLabel, gbc);
-// 	gbc.gridx=0; gbc.gridy = 21;
-// 	leftFramePanel.add(axesShowButton, gbc);
-// 	gbc.gridx=1; gbc.gridy = 21;
-// 	leftFramePanel.add(axesHideButton, gbc);
-// 	gbc.gridx=0; gbc.gridy = 22;
-// 	leftFramePanel.add(colorBarLabel, gbc);
-// 	gbc.gridx=0; gbc.gridy = 23;
-// 	leftFramePanel.add(colorBarShowButton, gbc);
-// 	gbc.gridx=1; gbc.gridy = 23;
-// 	leftFramePanel.add(colorBarHideButton, gbc);
-// 	gbc.gridx=0; gbc.gridy = 24;
-// 	leftFramePanel.add(nodeNumsLabel, gbc);
-// 	gbc.gridx=0; gbc.gridy = 25;
-// 	leftFramePanel.add(nodeNumsShowButton, gbc);
-// 	gbc.gridx=1; gbc.gridy = 25;
-// 	leftFramePanel.add(nodeNumsHideButton, gbc);
-// 	gbc.gridx=0; gbc.gridy = 26;
-// 	leftFramePanel.add(elemNumsLabel, gbc);
-// 	gbc.gridx=0; gbc.gridy = 27;
-// 	leftFramePanel.add(elemNumsShowButton, gbc);
-// 	gbc.gridx=1; gbc.gridy = 27;
-// 	leftFramePanel.add(elemNumsHideButton, gbc); 
        
 
-// 	leftPanel.add(addButton);
-//         leftPanel.add(removeButton);
-//         leftPanel.add(clearButton);
+	/* for AddBody and Save commands */
+
+//        //Create the log first, because the action listeners
+//         //need to refer to it.
+//         final JTextArea log = new JTextArea(5,20);
+//         log.setMargin(new Insets(5,5,5,5));
+//         log.setEditable(false);
+//         JScrollPane logScrollPane = new JScrollPane(log);
+
+//         //Create a file chooser
+//         final JFileChooser fc = new JFileChooser();
+
+//         //Create the open button
+//         ImageIcon openIcon = new ImageIcon("images/open.gif");
+//         JButton openButton = new JButton("Open a File...", openIcon);
+//         openButton.addActionListener(new ActionListener() {
+//             public void actionPerformed(ActionEvent e) {
+//                 int returnVal = fc.showOpenDialog(FileChooserDemo.this);
+
+//                 if (returnVal == JFileChooser.APPROVE_OPTION) {
+//                     File file = fc.getSelectedFile();
+//                     //this is where a real application would open the file.
+//                     log.append("Opening: " + file.getName() + "." + newline);
+//                 } else {
+//                     log.append("Open command cancelled by user." + newline);
+//                 }
+//             }
+//         });
+
+//         //Create the save button
+//         ImageIcon saveIcon = new ImageIcon("images/save.gif");
+//         JButton saveButton = new JButton("Save a File...", saveIcon);
+//         saveButton.addActionListener(new ActionListener() {
+//             public void actionPerformed(ActionEvent e) {
+//                 int returnVal = fc.showSaveDialog(FileChooserDemo.this);
+
+//                 if (returnVal == JFileChooser.APPROVE_OPTION) {
+//                     File file = fc.getSelectedFile();
+//                     //this is where a real application would save the file.
+//                     log.append("Saving: " + file.getName() + "." + newline);
+//                 } else {
+//                     log.append("Save command cancelled by user." + newline);
+//                 }
+//             }
+//         });
 
 
 
 
-//Create a split pane with the two scroll panes in it.
-			//splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-            //                           leftRootPanel, renderPanel);
-            //splitPane.setOneTouchExpandable(true);
-            //splitPane.setDividerLocation(150);
 
-            //Provide minimum sizes for the two components in the split pane
+
+
 	Dimension minimumSize = new Dimension(150, 250);
-            //leftRootPanel.setMinimumSize(minimumSize);
-          
 
-//             splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-//                                        splitPane, treePanel);
-
-//PAKLEIN
-//	    splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftRootPanel, treePanel);
-// 	    splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftRootScrollPane, treePanel);
-//             splitPane2.setOneTouchExpandable(true);
-//             splitPane2.setDividerLocation(400);
-
-            //Provide minimum sizes for the two components in the split pane
             Dimension minimumSize2 = new Dimension(300, 250);
             treePanel.setMinimumSize(minimumSize);
-	    //splitPane.setMinimumSize(minimumSize2);
-            //renderPanel.setMinimumSize(minimumSize);
-    //setLayout(new BorderLayout());
-	    //treePanel.setPreferredSize(new Dimension(150,150));
-	//add(treePanel);
-// 	add(treePanel,new GridBagConstraints(1,2,1,1,0.05,1.0,GridBagConstraints.NORTHWEST,GridBagConstraints.BOTH,new Insets(0,0,0,0),0,0));
-// 	add(renderPanel,new GridBagConstraints(2,2,1,1,0.8,1.0,GridBagConstraints.NORTHWEST,GridBagConstraints.BOTH,new Insets(0,0,0,0),0,0));
-// 	add(leftRootPanel,new GridBagConstraints(0,2,1,1,0.05,1.0,GridBagConstraints.NORTHWEST,GridBagConstraints.BOTH,new Insets(0,0,0,0),0,0));
-// 	add(new JSeparator(JSeparator.VERTICAL),new GridBagConstraints(1,2,1,3,0.0,0.0,GridBagConstraints.CENTER,GridBagConstraints.VERTICAL,new Insets(0,0,0,0),0,0));
-	    //	add(splitPane,new GridBagConstraints(0,2,1,1,0.95,1.0,GridBagConstraints.NORTHWEST,GridBagConstraints.BOTH,new Insets(0,0,0,0),0,0));
-	    //	add(splitPane2,new GridBagConstraints(0,2,1,1,1.0,.95,GridBagConstraints.NORTHWEST,GridBagConstraints.BOTH,new Insets(0,0,0,0),0,0));
-	    // add(splitPane2, BorderLayout.SOUTH);
-	    //add(leftRootScrollPane, BorderLayout.SOUTH);
+
   }
   
   public void actionPerformed(ActionEvent e){
@@ -940,28 +899,28 @@ public class test extends JPanel implements ActionListener, ChangeListener {
       DoCommand("Point", "");
       DoCommand("Update", "");
     }
-    else if (e.getActionCommand().equals("Show Axes")){
+    else if (e.getActionCommand().equals("ShowAxes")){
       DoCommand("ShowAxes", "");
     }
-    else if (e.getActionCommand().equals("Hide Axes")){
+    else if (e.getActionCommand().equals("HideAxes")){
       DoCommand("HideAxes", "");
     }
-    else if (e.getActionCommand().equals("Show Color Bar")){
+    else if (e.getActionCommand().equals("ShowColorBar")){
       System.out.println(e.getActionCommand());
     }
-    else if (e.getActionCommand().equals("Hide Color Bar")){
+    else if (e.getActionCommand().equals("HideColorBar")){
       System.out.println(e.getActionCommand());
     }
-    else if (e.getActionCommand().equals("Show Node Nums")){
+    else if (e.getActionCommand().equals("ShowNodeNums")){
       DoCommand("ShowNodeNum", "");
     }
-    else if (e.getActionCommand().equals("Hide Node Nums")){
+    else if (e.getActionCommand().equals("HideNodeNums")){
       DoCommand("HideNodeNum", "");
     }
-    else if (e.getActionCommand().equals("Show Elem Nums")){
+    else if (e.getActionCommand().equals("ShowElemNums")){
       DoCommand("ShowElemNum", "");
     }
-    else if (e.getActionCommand().equals("Hide Elem Nums")){
+    else if (e.getActionCommand().equals("HideElemNums")){
       DoCommand("HideElemNum", "");
     }
 
