@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.17.6.4 2004-03-15 03:25:04 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.17.6.5 2004-03-24 01:58:35 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -469,10 +469,12 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 	switch (matrix_type)
 	{
 		case kDiagonalMatrix:
-
-			fLHS = new DiagonalMatrixT(out, check_code, DiagonalMatrixT::kNoAssembly);
+		{
+			DiagonalMatrixT* diag = new DiagonalMatrixT(out, check_code, DiagonalMatrixT::kNoAssembly);
+			diag->SetAssemblyMode(DiagonalMatrixT::kDiagOnly);
+			fLHS = diag;
 			break;
-
+		}
 		case kProfileSolver:
 		{
 			/* global system properties */
