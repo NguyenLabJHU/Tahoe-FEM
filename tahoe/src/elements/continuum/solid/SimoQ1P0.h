@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.h,v 1.5 2002-10-10 15:50:16 sawimme Exp $ */
+/* $Id: SimoQ1P0.h,v 1.6 2002-10-10 17:28:41 paklein Exp $ */
 #ifndef _SIMO_Q1_P0_H_
 #define _SIMO_Q1_P0_H_
 
@@ -8,12 +8,34 @@
 namespace Tahoe {
 
 /** finite strain, mixed element formulation.
- * Formulation due to Simo, Taylor, and Pister, CMAME \b 51, 
- * 177-208, 1985. The element is formulated in three
- * dimensions; however, both hexahedral and quadrilateral
- * element geometries are allowed. In two dimensions, plane
- * strain is assumed, i.e., the out-of-plane stretch is assumed
- * to be unity. \note Several errors appear in the derivation
+ * The formulation is due to Simo, Taylor, and Pister, CMAME \b 51, 
+ * 177-208, 1985. The basic idea behind the formulation is to
+ * represent the pressure and dilatation \f$ \Theta \f$ as separate 
+ * fields from the displacement. For the continuous case, the determinant 
+ * of the deformation gradient 
+   \f[ 
+       J = \det \mathbf{F} 
+         = \mathbf{1} + \frac{\partial \mathbf{u}}{\partial \mathbf{X}} 
+   \f]
+ * is equal to the dilatation. However, when the displacement
+ * field \f$ \mathbf{u} \f$ is restricted to a finite dimensional
+ * representation, it may not contain enough degrees of freedom to
+ * represent nearly incompressible deformations without making the 
+ * response overly stiff. Therefore, the dilatation and pressure are
+ * represented as separate fields. The modified deformation gradient
+ * is given by
+   \f[ 
+       \bar{\mathbf{F}} = \left( \frac{\Theta}{J} \right)^{1/3} \mathbf{F}.
+   \f]
+ * The remainder of the formulation results as a consequence. For Q1P0,
+ * the (2D) bi- or (3D) trilinear displacement field (Q1) is combined
+ * with piecewise constant (P0) pressure and dilatation fields. Since the
+ * space for these fields is restricted to within element domains, these
+ * degrees of freedom can be determined analytically at the element level
+ * and substituted into the remaining element equations to results in
+ * a purely displacement-based formulation.
+ *
+ * \note Several errors appear in the derivation
  * of the consistent tangent in the CMAME paper. Therefore,
  * the implementation of the tangent here does not match the 
  * published formulation. */
@@ -23,9 +45,6 @@ public:
 
 	/** constructor */
 	SimoQ1P0(const ElementSupportT& support, const FieldT& field);
-
-	/** destructor */
-	~SimoQ1P0(void);
 
 	/** data initialization */
 	virtual void Initialize(void);
@@ -65,9 +84,8 @@ private:
 	
 	/** special mixed index term in the tangent. Needed to compute
 	 * the term in the tangent resulting from
-	 * \f[
-	 *        \nabla \mathbf{n} \textrm{:} \left( \nabla \boldsymbol{\eta} \right)^T
-	 * \f] */
+	 * \f$ \nabla \mathbf{u} \textrm{:} \left( \nabla \boldsymbol{\eta} \right)^T \f$.
+	 */
 	void bSp_bRq_to_KSqRp(const dMatrixT& b, dMatrixT& K) const;
 	
 protected:
