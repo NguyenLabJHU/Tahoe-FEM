@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.60.2.1 2004-03-17 17:57:02 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.60.2.2 2004-03-18 17:51:45 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -20,6 +20,7 @@
 #endif
 #include "ElementSupportT.h"
 #include "dSymMatrixT.h"
+#include "ParameterContainerT.h"
 
 /* potential functions */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -650,6 +651,188 @@ void CSEAnisoT::DefineParameters(ParameterListT& list) const
 	ParameterT rotate_frame(ParameterT::Boolean, "rotate_frame");
 	rotate_frame.SetDefault(true);
 	list.AddParameter(rotate_frame);
+}
+
+/* information about subordinate parameter lists */
+void CSEAnisoT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	CSEBaseT::DefineSubs(sub_list);
+
+	/* element block/material specification */
+	sub_list.AddSub("anisotropic_CSE_element_block", ParameterListT::OnePlus);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void CSEAnisoT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "cohesive_relation_choice")
+	{
+		/* choice */
+		order = ParameterListT::Choice;
+		
+		/* function types */
+		sub_sub_list.AddSub("cohesive_relation_2D");
+		//sub_sub_list.AddSub("cohesive_relation_3D");
+	}
+	else /* inherited */
+		CSEBaseT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT */
+ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& list_name) const
+{
+	/* try to construct cohesive relations */
+	SurfacePotentialT* surf_pot = SurfacePotentialT::New(list_name);
+	if (surf_pot)
+		return surf_pot;
+
+	if (list_name == "anisotropic_CSE_element_block")
+	{
+		ParameterContainerT* block = new ParameterContainerT(list_name);
+		
+		/* list of element block ID's (defined by ElementBaseT) */
+		block->AddSub("block_ID_list", ParameterListT::Once);
+	
+		/* choice of materials lists (inline) */
+		block->AddSub("cohesive_relation_choice", ParameterListT::Once, true);
+	
+		/* set this as source of subs */
+		block->SetSubSource(this);
+		
+		return block;
+	}
+	else if (list_name == "cohesive_relation_2D")
+	{
+		/* choice of 2D cohesive relations */
+		ParameterContainerT* cz = new ParameterContainerT(list_name);
+		cz->SetSubSource(this);
+		cz->SetListOrder(ParameterListT::Choice);
+	
+		/* choices */
+		cz->AddSub("Xu-Needleman_2D");
+		cz->AddSub("Tvergaard-Hutchinson_2D");
+	
+		return cz;
+	}
+	else if (list_name == "cohesive_relation_3D")
+	{
+		/* choice of 2D cohesive relations */
+		ParameterContainerT* cz = new ParameterContainerT(list_name);
+		cz->SetSubSource(this);
+		cz->SetListOrder(ParameterListT::Choice);
+	
+		/* choices */
+		cz->AddSub("Xu-Needleman_3D");
+		cz->AddSub("Tvergaard-Hutchinson_3D");
+	
+		return cz;	
+	}
+	else /* inherited */
+		return CSEBaseT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void CSEAnisoT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "CSEAnisoT::TakeParameterList";
+
+	/* inherited */
+	CSEBaseT::TakeParameterList(list);
+
+	/* rotating frame */
+#pragma message("need to keep this flag?")
+	fRotate = list.GetParameter("rotate_frame");
+	if (fRotate) {
+	
+		/* reset format for the element stiffness matrix */
+		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
+
+		/* shape functions wrt. current coordinates (linked parent domains) */
+		fCurrShapes = new SurfaceShapeT(*fShapes, fLocCurrCoords);
+		if (!fCurrShapes) ExceptionT::OutOfMemory(caller);
+		fCurrShapes->Initialize();
+ 		
+		/* allocate work space */
+		int nee = NumElementNodes()*NumDOF();
+		fnsd_nee_1.Dimension(NumSD(), nee);
+		fnsd_nee_2.Dimension(NumSD(), nee);
+		fdQ.Dimension(NumSD());
+		for (int k = 0; k < NumSD(); k++)
+			fdQ[k].Dimension(NumSD(), nee);
+	}
+	else
+		fCurrShapes = fShapes;
+
+	//construct material list
+//	fSurfPots.Dimension(numprops);
+//	fNumStateVariables.Dimension(numprops);
+	
+	//handle tied potentials
+	fCalcNodalInfo = false;
+
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+	/* check compatibility of constitutive outputs */
+	if (fSurfPots.Length() > 1 && fNodalOutputCodes[MaterialData])
+		for (int k = 0; k < fSurfPots.Length(); k++)
+		{
+			const SurfacePotentialT* pot_k = fSurfPots[k];
+			for (int i = k+1; i < fSurfPots.Length(); i++)
+			{
+				const SurfacePotentialT* pot_i = fSurfPots[i];
+				if (!SurfacePotentialT::CompatibleOutput(*pot_k, *pot_i))
+					ExceptionT::BadInputValue(caller, "incompatible output between potentials %d and %d",
+						k+1, i+1);
+			}
+		}
+#endif
+
+	/* initialize state variable space */
+	if (fNumStateVariables.Min() > 0)
+	{
+		/* number of integration points */
+		int num_ip = fCurrShapes->NumIP();
+	
+		/* get state variables per element */
+		int num_elements = fElementCards.Length();
+		iArrayT num_elem_state(num_elements);
+		for (int i = 0; i < num_elements; i++)
+			num_elem_state[i] = num_ip*fNumStateVariables[fElementCards[i].MaterialNumber()];
+
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+		/* allocate space */
+		fStateVariables.Configure(num_elem_state);
+#else
+		fStateVariables.Set(1,num_elem_state[0],ElementSupport().StateVariableArray());
+#endif
+
+		/* initialize state variable space */
+		dArrayT state;
+		for (int i = 0; i < num_elements; i++)
+		{
+			/* material number */
+			int mat_num = fElementCards[i].MaterialNumber();
+			int num_var = fNumStateVariables[mat_num];
+			
+			/* loop over integration points */
+			double* pstate = fStateVariables(i);
+			for (int j = 0; j < num_ip; j++)
+			{
+				state.Set(num_var, pstate);
+				fSurfPots[mat_num]->InitStateVariables(state);
+				pstate += num_var;
+			}
+		}		
+	}
+	else /* set dimensions to zero */
+		fStateVariables.Dimension(fElementCards.Length(), 0);
+
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+	/* set history */
+	fStateVariables_last = fStateVariables;
+	/* For SIERRA, don't do anything. Wait until InitStep. */
+#endif
 }
 
 /***********************************************************************

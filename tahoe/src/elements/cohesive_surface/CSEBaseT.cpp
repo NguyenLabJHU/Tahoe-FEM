@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.30.2.2 2004-03-17 17:57:02 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.30.2.3 2004-03-18 17:51:45 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -490,8 +490,6 @@ void CSEBaseT::DefineParameters(ParameterListT& list) const
 	geometry.AddEnumeration("triangle", GeometryT::kTriangle);
 	list.AddParameter(geometry);
 
-	list.AddParameter(fNumIntPts, "integration_points");
-	
 	ParameterT close_surfaces(ParameterT::Boolean, "close_surfaces");
 	close_surfaces.SetDefault(false);
 	list.AddParameter(close_surfaces);
@@ -536,6 +534,11 @@ void CSEBaseT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& o
 /* a pointer to the ParameterInterfaceT */
 ParameterInterfaceT* CSEBaseT::NewSub(const StringT& list_name) const
 {
+	/* look for geometry */
+	ParameterInterfaceT* geom = GeometryT::New(list_name);
+	if (geom)
+		return geom;
+
 	if (list_name == "surface_element_nodal_output")
 	{
 		ParameterContainerT* node_output = new ParameterContainerT(list_name);
