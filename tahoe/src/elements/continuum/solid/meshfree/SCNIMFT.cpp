@@ -1,5 +1,7 @@
-/* $Id: SCNIMFT.cpp,v 1.3 2004-01-27 19:12:17 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.4 2004-02-10 01:28:50 cjkimme Exp $ */
 #include "SCNIMFT.h"
+
+//#define VERIFY_B
 
 #include "ArrayT.h"
 #include "ofstreamT.h"
@@ -35,60 +37,41 @@ using namespace Tahoe;
 /* constructors */
 SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
 	ElementBaseT(support, field),
-	//MeshFreeFractureSupportT(ElementSupport().Input()),
 	fSD(ElementSupport().NumSD()),
 	fMaterialList(NULL),
 	fSSMatSupport(NULL),
 	fForce_man(0, fForce, field.NumDOF()),
-	//fNodes(),
-	fLocInitCoords(LocalArrayT::kInitCoords),
-	//fLocDisp(LocalArrayT::kDisp),
-	fFakeGeometry(NULL),
+	//fFakeGeometry(NULL),
 	fVoronoi(NULL)
-	//fVoronoiVertices(),
-	//fVoronoiCells(),
-	//fVoronoiFacetIndices(),
-	//fVoronoiFacetAreas(),
-	//fVoronoiFacetNormals(),
-	//fVoronoiCellVolumes()
 {
 	SetName("mfparticle");
 
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
-	
-	/* check */
-	//if (AutoBorder() && ElementSupport().Size() > 1)
-	//	ExceptionT::BadInputValue("MeshFreeStrainSmoothedSST::MeshFreeStrainSmoothedSST", "auto-border not support in parallel");
-
 }
 
 SCNIMFT::SCNIMFT(const ElementSupportT& support):
 	ElementBaseT(support),
-	//MeshFreeFractureSupportT(ElementSupport().Input()),
-	fNodes(),
-	fFakeGeometry(NULL),
+	//fFakeGeometry(NULL),
 	fVoronoi(NULL)
 {
 	SetName("mfparticle");
 
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
-	
-	/* check */
-	//if (AutoBorder() && ElementSupport().Size() > 1)
-	//	ExceptionT::BadInputValue("MeshFreeStrainSmoothedSST::MeshFreeStrainSmoothedSST", "auto-border not support in parallel");
-
 }
 
 /* destructor */
 SCNIMFT::~SCNIMFT(void)
 {
-	/* free search grid */
-	//delete fGrid;
+	delete fSSMatSupport;
 	
-	delete fConnectivities[0];
-	
+	if (fElementConnectivities[0])
+		delete fElementConnectivities[0];
+		
+	delete fVoronoi;
+	delete fMaterialList;
+	delete fNodalShapes;
 }
 
 /* initialization */
@@ -122,7 +105,7 @@ void SCNIMFT::Initialize(void)
 		fVoronoi = new CompGeomT(fDeloneVertices);
 		fVoronoi->ComputeVoronoiDiagram();
 		dArray2DT& vorVerts = fVoronoi->VoronoiVertices();
-		fVoronoiVertices.Alias(/*vorVerts.MajorDim(), vorVerts.MinorDim(),*/ vorVerts/*.Pointer()*/);
+		fVoronoiVertices.Alias(vorVerts);
 		fVoronoiCells.Alias(fVoronoi->VoronoiCells()); 		
 		fVoronoiFacetIndices.Alias(fVoronoi->VoronoiFacetIndices());
 
@@ -131,8 +114,9 @@ void SCNIMFT::Initialize(void)
 		fVoronoiFacetNormals.Alias(fVoronoi->VoronoiFacetNormals());
 		fVoronoiCellVolumes.Alias(fVoronoi->VoronoiCellVolumes());
 		
-		// Still need to worry about the boundary. Some cells might be clipped
-        // I'm sidestepping that for now by reading in a good decomposition
+		// Determine which cells are clipped by the boundary
+		fVoronoi->GenerateBoundaryCells(fBoundaryNodes, fBoundaryConnectivity,
+			fBoundaryIsTriangulated);
 
 		// Write output to file
 		StringT vCellFile;
@@ -157,7 +141,7 @@ void SCNIMFT::Initialize(void)
 	    ifstreamT vin(vCellFile);
 
     	if (!vin.is_open())
-	    ExceptionT::GeneralFail(caller,"Unable to open file for reading");
+	    	ExceptionT::GeneralFail(caller,"Unable to open file for reading");
 	    
 	    VoronoiDiagramFromFile(vin);  
 	    
@@ -166,7 +150,7 @@ void SCNIMFT::Initialize(void)
 	
 	/* shape functions */
 	/* only support single list of integration cells for now */
-	if (fConnectivities.Length() > 1) {
+	if (fElementConnectivities.Length() > 1) {
 		cout << "\n MeshFreeSSSolidT::SetShape: multiple element blocks within an\n"
 		     <<   "     element group not supported. Number of blocks: " 
 		     << fConnectivities.Length() << endl;
@@ -175,7 +159,7 @@ void SCNIMFT::Initialize(void)
 
 	/* construct shape functions */
 	fNodalShapes = new MeshFreeNodalShapeFunctionT(ElementSupport().NumSD(),
-		fLocInitCoords, ElementSupport().InitialCoordinates(), *fElementConnectivities[0], 
+		ElementSupport().InitialCoordinates(), *fElementConnectivities[0], 
 		fVoronoiVertices, ElementSupport().Input());
 	if (!fNodalShapes) throw ExceptionT::kOutOfMemory;
 	
@@ -184,6 +168,8 @@ void SCNIMFT::Initialize(void)
 	
 	/* initialize */
 //	fNodalShapes->Initialize();
+
+	/* Set nodal integration weights -- ?? */
 
 	/* MLS stuff */
 	fNodalShapes->SetSupportSize();
@@ -237,6 +223,7 @@ void SCNIMFT::Initialize(void)
 	/* final MLS initializations */
 	fNodalShapes->WriteStatistics(ElementSupport().Output());
 	
+	/* initialize workspace for strain smoothing */
 	ComputeBMatrices();	
 	
 	/** Material Data */
@@ -353,68 +340,112 @@ void SCNIMFT::RegisterOutput(void)
 /* generate labels for output data */
 void SCNIMFT::GenerateOutputLabels(ArrayT<StringT>& labels)
 {
-  	int ndof=NumDOF();
-	if (ndof > 3) ExceptionT::GeneralFail("ParticlePairT::GenerateOutputLabels");
+  	/* Reference Configuration */
+	const char* ref[3] = {"X", "Y", "Z"};
 
 	/* displacement labels */
 	const char* disp[3] = {"D_X", "D_Y", "D_Z"};
-	int num_labels = ndof; // displacements
+	int num_labels = 2*fSD; // displacements
 	int num_stress=0;
 
 	const char* stress[6];
 	const char* strain[6];
 	
-	if (ndof==3)
+	stress[0] = "s11";
+	stress[1] = "s22";
+	strain[0] = "e11";
+	strain[1] = "e22";
+	num_stress = 3;
+	
+	if (fSD == 3)
 	{
 		num_stress=6;
-		stress[2]="s33";
-	  	stress[3]="s23";
-	 	stress[4]="s13";
-	  	stress[5]="s12";
-	  	strain[0]="e11";
-	  	strain[1]="e12";
-	  	strain[2]="e13";
-	  	strain[3]="e22";
-	  	strain[4]="e23";
-	  	strain[5]="e33";
+		stress[2] = "s33";
+	  	stress[3] = "s23";
+	 	stress[4] = "s13";
+	  	stress[5] = "s12";
+	  	strain[2] = "e33";
+	  	strain[3] = "e23";
+	  	strain[4] = "e13";
+	  	strain[5] = "e12";
+	} 
+	
+	if (fSD == 2) 
+	{
+	  	stress[2] = "s12";
+	  	strain[2] = "e22";
 	}
-	else 
-		if (ndof==2) 
-		{
-	   		num_stress=3;
-	  		stress[0]="s11";
-	  		stress[1]="s22";
-	  		stress[2]="s12";
-	  		strain[0]="e11";
-	  		strain[1]="e12";
-	  		strain[2]="e22";
-	  	}
-	  	else // ndof==1 
-	   	{
-	   		num_stress=1;
-	  		stress[0] = "s11";
-	  		strain[0] = "e11";
-	  	}
 		
-	num_labels += 2*num_stress;
+	num_labels++; 
 	labels.Dimension(num_labels);
 	int dex = 0;
-	for (dex = 0; dex < NumDOF(); dex++)
-		labels[dex] = disp[dex];
-	for (int ns =0 ; ns<num_stress; ns++)
-	  labels[dex++]=stress[ns];
-	for (int ns =0 ; ns<num_stress; ns++)
-	  labels[dex++]=strain[ns];
+	for (dex = 0; dex < fSD; dex++)
+		labels[dex] = ref[dex];
+	for (int ns =0 ; ns < fSD; ns++)
+	  	labels[dex++] = disp[ns];
+	labels[dex] = "mass";
 }
 
 void SCNIMFT::WriteOutput(void)
 {
-	/* max distance traveled since last reneighboring */
 	ofstreamT& out = ElementSupport().Output();
+
+	const char caller[] = "SCNIMFT::WriteOutput";
+	
+	/* muli-processor information */
+	CommManagerT& comm_manager = ElementSupport().CommManager();
+	const ArrayT<int>* proc_map = comm_manager.ProcessorMap();
+	int rank = ElementSupport().Rank();
+
+	/* dimensions */
+	int ndof = NumDOF();
+	int num_output = 2*ndof + 1; /* ref. coords, displacements, and mass */
+
+	/* number of nodes */
+	const ArrayT<int>* partition_nodes = comm_manager.PartitionNodes();
+	int non = (partition_nodes) ? partition_nodes->Length() : 
+								ElementSupport().NumNodes();
+
+	/* map from partition node index */
+	const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
+
+	/* output arrays length number of active nodes */
+	dArray2DT n_values(non, num_output), e_values;
+	n_values = 0.0;
+
+	/* global coordinates */
+	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
+
+	/* the field */
+	const FieldT& field = Field();
+	const dArray2DT& displacement = field[0];
+	const dArray2DT* velocities = NULL;
+	if (field.Order() > 0) velocities = &(field[1]);
+
+	/* collect displacements */
+	dArrayT vec, values_i;
+	for (int i = 0; i < non; i++) {
+		int   tag_i = (partition_nodes) ? (*partition_nodes)[i] : i;
+		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
+
+		/* values for particle i */
+		n_values.RowAlias(local_i, values_i);
+
+		/* copy in */
+		vec.Set(ndof, values_i.Pointer());
+		coords.RowCopy(tag_i, vec);
+		vec.Set(ndof, values_i.Pointer() + ndof);
+		displacement.RowCopy(tag_i, vec);
+		
+		n_values(i, num_output-1) = fVoronoiCellVolumes[i];
+	}
+
+	/* send */
+	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
 
 }
 
-/* compute specified output parameter and send for smoothing */
+/* compute specified output parameter(s) */
 void SCNIMFT::SendOutput(int kincode)
 {
 #pragma unused(kincode)
@@ -489,6 +520,19 @@ void SCNIMFT::EchoConnectivityData(ifstreamT& in, ostream& out)
 
 	/* set pointer to connectivity list */
 	fElementConnectivities[0] = model.ElementGroupPointer(ids[0]);
+	
+	/* get nodes and facets on the boundary */
+	GeometryBaseT::CodeT facetType;
+	iArrayT facet_numbers, element_numbers;
+	model.SurfaceFacets(ids, facetType, fBoundaryConnectivity, fBoundaryNodes, 
+		facet_numbers, element_numbers, NULL);
+	fBoundaryIsTriangulated = (fSD == 2) ? (facetType == GeometryT::kLine) :
+		(facetType == GeometryT::kTriangle);
+	fBoundaryNodes.SortAscending();
+	
+	/* don't need this information */
+	facet_numbers.Free();
+	element_numbers.Free();
 	    
 	/* store block data  ASSUMING bth block is material number b*/
 	//fBlockData[0].Set(new_id, 0, elem_count, 0); 
@@ -498,13 +542,7 @@ void SCNIMFT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	//fEqnos.Dimension(1);
 	//fEqnos[0].Dimension(elem_count,fSD);
 
-	/* set local array for coordinates */
-	fLocInitCoords.Dimension(fNodes.Length(), fSD);
-	fLocInitCoords.SetGlobal(ElementSupport().InitialCoordinates());
-	fLocInitCoords.SetLocal(fNodes);
-
 	// Get nodal coordinates to use in Initialize
-	// really need to think about how many things I want to keep in memory
 	fDeloneVertices.Dimension(fNodes.Length(), model.NumDimensions());
 	fDeloneVertices.RowCollect(fNodes, model.Coordinates());
 }
@@ -582,17 +620,18 @@ void SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		int nNodes = fNodes.Length();
 
 		/* assembly information */
-		const ElementSupportT& support = ElementSupport();
 		int group = Group();
 		int ndof = NumDOF();
-		fLHS.Dimension(ndof);
+		fLHS.Dimension(2*ndof);
+		const ElementSupportT& support = ElementSupport();
 		
 		iArrayT pair(2);
 		const iArray2DT& field_eqnos = Field().Equations();
 		iArray2DT pair_eqnos(2, ndof); 
-		dMatrixT BJ, BK;
+		dMatrixT BJ, BK, K_JK;
 		BJ.Dimension(fSD == 2 ? 3 : 6, ndof);
 		BK.Dimension(fSD == 2 ? 3 : 6, ndof);
+		K_JK.Dimension(ndof);
 		for (int i = 0; i < nNodes; i++)
 		{	
 			double w_i = fVoronoiCellVolumes[i]*constK; // integration weights
@@ -613,16 +652,25 @@ void SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			{
 				bVectorToMatrix(bVectors[i](j), BJ);
 				pair[0] = nodeSupport(i,j);
-				for (int k = 0; k < nodeSupport.MinorDim(i); k++)
+				for (int k = j; k < nodeSupport.MinorDim(i); k++)
 				{
 					pair[1] = nodeSupport(i,k);
 					bVectorToMatrix(bVectors[i](k), BK);
 					
-					fLHS = 0.;
-					// K_JK = BT_J x Cijkl B_K 
-					fLHS.MultATBC(BJ, cijkl, BK, format);
+					BK(2,0) *= 2.; // I either have to do this here or on the RHS 
+					BK(2,1) *= 2.; // It's the C_1212 e_12 + C_1221 e_21 factor of 2
 					
-					fLHS *= w_i;
+					fLHS = 0.;
+					K_JK = 0.;
+					// K_JK = BT_J x Cijkl B_K 
+					K_JK.MultATBC(BJ, cijkl, BK, dMatrixT::kWhole);
+					
+					K_JK *= w_i*constK;
+					
+					if (j == k) // not sure if this correctly general for all GlobalMatrices
+						K_JK /= 2.;
+					
+					fLHS.SetBlock(0,fSD,K_JK);
 					
 					/* assemble */
 					pair_eqnos.RowCollect(pair, field_eqnos);
@@ -647,19 +695,38 @@ void SCNIMFT::RHSDriver(void)
 	int formMa = fIntegrator->FormMa(constMa);
 	int formKd = fIntegrator->FormKd(constKd);
 
-	//TEMP - interial force not implemented
-	if (formMa) ExceptionT::GeneralFail(caller, "inertial force not implemented");
-
-	/* assembly information */
-	const ElementSupportT& support = ElementSupport();
-	int group = Group();
-	int ndof = NumDOF();
+	/* For now, just one material. Grab it */
+	ContinuumMaterialT *mat = (*fMaterialList)[0];
+	SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
+	if (!fCurrMaterial)
+	{
+		ExceptionT::GeneralFail("SCNIMFT::RHSDriver","Cannot get material\n");
+	}
 	
-	/* global coordinates */
-	const dArray2DT& coords = support.CurrentCoordinates();
-	
-	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
 	int nNodes = fNodes.Length();
+
+	if (formMa) 
+	{
+		if (Field().Order() < 2)
+			ExceptionT::GeneralFail(caller,"Field's Order does not have accelerations\n");
+	
+		fLHS = 0.0; // fLHS.Length() = nNodes * fSD;
+		const dArray2DT& a = Field()(0,2); // accelerations
+		double* ma = fLHS.Pointer();
+		const double* acc;
+		int* nodes = fNodes.Pointer();
+		double* volume = fVoronoiCellVolumes.Pointer();
+		for (int i = 0; i < nNodes; i++)
+		{
+			acc = a(*nodes++);
+			for (int j = 0; j < fSD; j++)
+				*ma++ = *volume * *acc++;
+			volume++;
+		}
+		fLHS *= fCurrMaterial->Density();
+	}
+
+	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
 	
 	fForce = 0.0;
 	ArrayT<dSymMatrixT> strainList(1);
@@ -669,30 +736,23 @@ void SCNIMFT::RHSDriver(void)
 	
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
-	
-	/* For now, just one material. Grab it */
-	ContinuumMaterialT *mat = (*fMaterialList)[0];
-	SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
-	if (!fCurrMaterial)
-	{
-		ExceptionT::GeneralFail("SCNIMFT::RHSDriver","Cannot get material\n");
-	}
-	
 	for (int i = 0; i < nNodes; i++)
 	{
 		double w_i = fVoronoiCellVolumes[i]; // integration weight
 
-		if (!i) cout << "Node " << i;
-	
 		// Compute smoothed strain
 		strain = 0.0;
+#ifdef VERIFY_B
+		cout << " Node " << i+1;
+#endif
 		for (int j = 0; j < nodeSupport.MinorDim(i); j++)
 		{
-			if (!i) cout << " Node " << nodeSupport(i,j) << " in support " << bVectors[i](j)[0] << " " << bVectors[i](j)[1];
 			bVectorToMatrix(bVectors[i](j), BJ);
-			if (!i) cout << " u " << u(nodeSupport(i,j))[0] <<" "<<u(nodeSupport(i,j))[1] << " ";
 			BJ.Multx(u(nodeSupport(i,j)), strain.Pointer(), 1.0, 1);
-			if (!i) cout << strain[0] << " "<< strain[1] << " " << strain[2] << "\n";
+#ifdef VERIFY_B
+			cout << " " << nodeSupport(i,j)+1 << " " << BJ(0,0) << " " << BJ(1,1) << "\n";
+			int nodalIndex = nodeSupport(i,j)+1;
+#endif	
 		}	
 		fSSMatSupport->SetLinearStrain(&strainList);
 		
@@ -702,9 +762,11 @@ void SCNIMFT::RHSDriver(void)
 		{
 			bVectorToMatrix(bVectors[i](j), BJ);
 			double* fint = fForce(nodeSupport(i,j));
-			BJ.MultTx(stress, fint, w_i, 1);
+			BJ.MultTx(stress, fint, w_i, 1);      
 		}	
 	}
+	
+	fForce *= -constKd;
 
 	/* assemble */
 	ElementSupport().AssembleRHS(Group(), fForce, Field().Equations());
@@ -848,6 +910,7 @@ void SCNIMFT::ComputeBMatrices(void)
 	double* currentB, *currentI;
 	int n_0, n_1, l_0, l_1;
 	bool integralIsCurrent;
+	dArray2DT& params = fNodalShapes->NodalParameters();
 	for (int i = 0; i < fDeloneEdges.MajorDim(); i++)
 	{
 		facetCentroid = 0.; 
@@ -869,7 +932,7 @@ void SCNIMFT::ComputeBMatrices(void)
 				
 		const dArrayT& phiValues = fNodalShapes->FieldAt();			
 		
-		iArrayT supp_centroid(fNodalShapes->Neighbors());
+		iArrayT supp_centroid(fNodalShapes->Neighbors());		
 		iArrayT supp_centroid_key(supp_centroid.Length());
 		supp_centroid_key.SetValueToPosition();
 		supp_centroid_key.SortAscending(supp_centroid);
@@ -1016,7 +1079,7 @@ void SCNIMFT::ComputeBMatrices(void)
 				if (ctr_0 < l_0 && *c == *s_0) // *c is in support of centroid and support of Delone vertex 0
 				{
 					facetIntegral = facetNormal;
-					facetIntegral *= fIntegrationWeights[i]*phiValues[*c_i];		
+					facetIntegral *= fBoundaryIntegrationWeights[i]*phiValues[*c_i];		
 					integralIsCurrent = true;
 					currentI = facetIntegral.Pointer();
 					currentB = bVectors[n_0](supp_0_key[ctr_0]);
@@ -1194,7 +1257,7 @@ void SCNIMFT::VoronoiDiagramFromFile(ifstreamT& vin)
 	fNonDeloneEdges.Dimension(nCentroids);
 	fNonDeloneNormals.Dimension(nCentroids,fSD);
 	fNonDeloneCentroids.Dimension(nCentroids,fSD);
-	fIntegrationWeights.Dimension(nCentroids);
+	fBoundaryIntegrationWeights.Dimension(nCentroids);
 	
 	for (int i = 0; i < nCentroids; i++)
 		vin >> fNonDeloneEdges[i];	
@@ -1208,7 +1271,7 @@ void SCNIMFT::VoronoiDiagramFromFile(ifstreamT& vin)
 			vin >> fNonDeloneNormals(i,j);
 			
 	for (int i = 0; i < nCentroids; i++)
-		vin >> fIntegrationWeights[i];
+		vin >> fBoundaryIntegrationWeights[i];
 }
 
 // XML stuff below
