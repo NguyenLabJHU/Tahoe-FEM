@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.8 2001-10-01 22:42:05 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.9 2001-10-02 18:40:30 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "vtkRenderer.h"
@@ -19,6 +19,7 @@
 #include "vtkSelectVisiblePoints.h"
 #include "vtkLabeledDataMapper.h"
 #include "vtkActor2D.h"
+#include "vtkFieldData.h"
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -45,7 +46,7 @@ VTKConsoleT::VTKConsoleT(void)
   iAddVariable("max_Scalar_Range", scalarRange2);
   iAddVariable("numColors", numColors);
   iAddVariable("source_file", source_file);
-  iAddVariable("output_file", output_file);
+  //iAddVariable("output_file", output_file);
 
   /* add console commands */
   iAddCommand("Start_Rendering");
@@ -53,18 +54,18 @@ VTKConsoleT::VTKConsoleT(void)
   iAddCommand("Reset_to_Default_Values");
   iAddCommand("Save");
   iAddCommand("Show_Node_Numbers");
-  //  iAddCommand("Hide_Node_Numbers");
+  //iAddCommand("Hide_Node_Numbers");
   iAddCommand("Color_bar_on");
   iAddCommand("Color_bar_off");
   iAddCommand("X_axis_rotation");
   iAddCommand("Y_axis_rotation");
   iAddCommand("Z_axis_rotation");
   iAddCommand("Flip_book");
+  iAddCommand("Change_background_color");
+  iAddCommand("Select_frame_number");
  
 
    StringT file = "../../example_files/heat/heat.io0.exo";
-
-
 
    ExodusT exo(cout);
   if (!exo.OpenRead(file))
@@ -74,7 +75,6 @@ VTKConsoleT::VTKConsoleT(void)
 	}
   else
 	cout << "read database file: " << file << endl;
-
 
 
   /* read coordinates */
@@ -121,7 +121,8 @@ VTKConsoleT::VTKConsoleT(void)
 	}
 
 /* look for results data */
-  int num_time_steps = exo.NumTimeSteps();
+  //int num_time_steps = exo.NumTimeSteps();
+  num_time_steps = exo.NumTimeSteps();
   double time;
   //if (num_time_steps > 0)
   //	{
@@ -146,17 +147,14 @@ VTKConsoleT::VTKConsoleT(void)
 	  dArray2DT nodal_data(num_nodes, num_node_variables);
 	  dArrayT ndata(num_nodes);
 
-// 	  for (int i=0; i<num_time_steps; i++) 
-// 	    {
-// 	      scalars[i] =  vtkScalars::New(VTK_DOUBLE);
-// 	    }
+	 //  vtkFieldData *fd[100];
 
 
 	  if (num_time_steps > 0)
 	    {
 	      for (int i = 0; i < num_time_steps; i++)
 		{
-		  //  double time;
+		  
 		  exo.ReadTime(i+1, time);
 		  scalars[i] =  vtkScalars::New(VTK_DOUBLE);
 		  
@@ -166,12 +164,16 @@ VTKConsoleT::VTKConsoleT(void)
 		      exo.ReadNodalVariable(i+1, j+1, ndata);
 		      nodal_data.SetColumn(j, ndata);
 		    }
+
+// 	      fd[i] = vtkFieldData::New();
+// 	      fd[i]->SetArray(num_nodes, nodal_data);
 		  for (int k = 0; k<num_nodes; k++) scalars[i]->InsertScalar(k+1, nodal_data[k]);
 // 		  cout << " time: " << time << endl;
 // 		  cout << " nodal data:\n" << nodal_data << endl;
 		}
 	
 	    }
+
 
 
 //   vtkPoints *points = vtkPoints::New();
@@ -201,17 +203,7 @@ VTKConsoleT::VTKConsoleT(void)
 
   
  ugrid = vtkUnstructuredGrid::New();
-//   vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
-//     ugrid->Allocate(num_elem_blocks);
-//   for (int i=0; i<num_elem_blocks; i++) 
-//     ugrid->InsertNextCell(VTK_QUAD, 4, connectivities[i]);
 
-//   vtkScalars *scalars = vtkScalars::New(VTK_DOUBLE);
-//   for (int i=0; i<num_nodes; i++) scalars->InsertScalar(i,nodal_data[i]);
-
-//   ugrid->SetPoints(points);
-//   points->Delete();
-//   ugrid->GetPointData()->SetScalars(scalars);
 
  /* create VTK array of cells */
  vtkCellArray* vtk_cell_array = vtkCellArray::New();
@@ -233,49 +225,14 @@ VTKConsoleT::VTKConsoleT(void)
  //  vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
  ugrid->SetCells(cell_types.Pointer(), vtk_cell_array);
  
-//  vtkScalars *scalars = vtkScalars::New(VTK_DOUBLE);
-//  for (int i=0; i<num_nodes; i++) scalars->InsertScalar(i+1,nodal_data[i]);
- 
-
- /* moved up above  */
-//  for (int i=0; i<num_time_steps; i++) 
-//    {
-//      scalars[i] =  vtkScalars::New(VTK_DOUBLE);
-//    }
-
-
-//  if (num_time_steps > 0)
-// 	    {
-// 	      for (int i = 0; i < num_time_steps; i++)
-// 		{
-// 		  // double time;
-// 		  exo.ReadTime(i+1, time);
-		  
-		  
-// 		  /* loop over variables */
-// 		  for (int j = 0; j < num_node_variables; j++)
-// 		    {
-// 		      exo.ReadNodalVariable(i+1, j+1, ndata);
-// 		      nodal_data.SetColumn(j, ndata);
-// 		    }
-		  
-// 		  for (int k = 0; k<num_nodes; k++) scalars[i]->InsertScalar(k+1, nodal_data[k]);
-// 		}
-// 	    }
-		  
-
-
-
-
-
 
 
   ugrid->SetPoints(points);
   points->Delete();
-  ugrid->GetPointData()->SetScalars(scalars[0]);
+   ugrid->GetPointData()->SetScalars(scalars[0]);
+  //ugrid->SetFieldData(fd[0]);
 
-
-  source_file = "../../example_files/heat/data_file1.vtk";
+  // source_file = "../../example_files/heat/data_file1.vtk";
   output_file = "A.tif";
   numColors = 256;
   hueRange1 = 0; hueRange2 = 0.6667;
@@ -283,7 +240,6 @@ VTKConsoleT::VTKConsoleT(void)
   satRange1 = 1; satRange2 = 1;
   alphaRange1 = 1; alphaRange2 = 1;
   scalarRange1 = 6; scalarRange2 = 17;
-  // ugr = vtkUnstructuredGridReader::New();
   renderer = vtkRenderer::New();
   renWin = vtkRenderWindow::New();
   iren = vtkRenderWindowInteractor::New();
@@ -299,8 +255,6 @@ VTKConsoleT::VTKConsoleT(void)
   ldm = vtkLabeledDataMapper::New();
   pointLabels = vtkActor2D::New();
   
-  // ugr->SetFileName(source_file);
-
   renWin->AddRenderer(renderer);
  
   iren->SetRenderWindow(renWin);
@@ -311,8 +265,17 @@ VTKConsoleT::VTKConsoleT(void)
   lut->SetAlphaRange(alphaRange1,alphaRange2);
   lut->SetNumberOfColors(numColors);
   lut->Build();
+
+//   // x,y,z axes
+//       vtkCubeAxesActor2D *axes = vtkCubeAxesActor2D::New();
+//       axes->SetInput(ugrid);
+//       axes->SetCamera(renderer->GetActiveCamera());
+//     //  axes->SetLabelFormat("%6.4g");
+//       axes->ShadowOn();
+//       axes->SetFlyModeToOuterEdges();
+//       axes->SetFontFactor(0.8);
+//       axes->GetProperty()->SetColor(1,0,1);
   
-  // ugridMapper->SetInput(ugr->GetOutput());
   ugridMapper->SetInput(ugrid);
   ugridMapper->SetScalarRange(scalarRange1,scalarRange2);
   ugridMapper->SetLookupTable(lut);
@@ -346,11 +309,7 @@ VTKConsoleT::VTKConsoleT(void)
 /* execute given command - returns false on fail */
 bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 {
-//   if (command == "Integer_Print")
-//     {
-//       cout << "int = " << fInteger << endl;
-//       return true;
-//     }
+
 int xDir, yDir, zDir;
 double xRot, yRot, zRot;
 
@@ -369,7 +328,7 @@ double xRot, yRot, zRot;
     lut->SetValueRange(valRange1,valRange2);
     lut->SetAlphaRange(alphaRange1,alphaRange2);
     lut->SetNumberOfColors(numColors);
-    // ugr->SetFileName(source_file);
+
     renWin->Render();
     iren->Start();
     return true;
@@ -407,7 +366,6 @@ double xRot, yRot, zRot;
   else if (command == "Show_Node_Numbers")
     {
        ids->SetInput(ugrid);
-     //  ids->SetInput(ugr->GetOutput());
       ids->PointIdsOn();
       ids->CellIdsOn();
       ids->FieldDataOn();
@@ -497,55 +455,114 @@ double xRot, yRot, zRot;
     {
       time_t start_time, cur_time;
       double timeStep;
-      cout << "Enter time step: ";
+      cout << "Enter time step in seconds: ";
       cin >> timeStep;
       char line[255];
       cin.getline(line, 254);
       
-      for (int j=2; j<12; j++){
-	time(&start_time);    
-	if (j % 2 == 0) {
-	  do {
-	    time(&cur_time);
-	    ugrid->GetPointData()->SetScalars(scalars[0]);
-	    renWin->Render();
-	  } while((cur_time - start_time) < timeStep);
-	}
-	else {
-	  do {
-	    time(&cur_time);
-	    ugrid->GetPointData()->SetScalars(scalars[1]);
-	    renWin->Render();
-	  } while((cur_time - start_time) < timeStep);
-	}
+
+      for (int j = 0; j<num_time_steps; j++){
+// 	time(&start_time);
+// 	  do {
+// 	    time(&cur_time);
+// 	    ugrid->GetPointData()->SetScalars(scalars[j]);
+// 	    renWin->Render();
+// 	  } while((cur_time - start_time) < timeStep);
+      
+      
+        clock_t start_time, cur_time;
+         start_time = clock();
+         while((clock() - start_time) < timeStep * CLOCKS_PER_SEC)
+         {
+         }
+// 	 renSrc->SetInput(renderer);
+// 	 renSrc->WholeWindowOn();
+// 	 writer->SetInput(renSrc->GetOutput());
+// 	 outFileName = j + ".tif";
+// 	 writer->SetFileName(outFileName);
+// 	 writer->Write();
+	 ugrid->GetPointData()->SetScalars(scalars[j]);
+	 renWin->Render();
+
       }
+
+//       for (int j=2; j<12; j++){
+// 	time(&start_time);    
+// 	if (j % 2 == 0) {
+// 	  do {
+// 	    time(&cur_time);
+// 	    ugrid->GetPointData()->SetScalars(scalars[0]);
+// 	    renWin->Render();
+// 	  } while((cur_time - start_time) < timeStep);
+// 	}
+// 	else {
+// 	  do {
+// 	    time(&cur_time);
+// 	    ugrid->GetPointData()->SetScalars(scalars[1]);
+// 	    renWin->Render();
+// 	  } while((cur_time - start_time) < timeStep);
+// 	}
+//       }
 
       renWin->Render();
       iren->Start();
       return true;
     }
 
+  else if (command=="Change_background_color")
+    {
+      int bgColor;
+      do {
+	cout << "choose background color:\n 1: black\n 2: white\n 3: red\n 4: green\n 5: blue\n";
+	cin >> bgColor;
+	char line[255];
+	cin.getline(line, 254);
+      } while (bgColor != 1 && bgColor !=2 && bgColor != 3 && bgColor !=4 && bgColor !=5);
+      
+      switch (bgColor) {
+      case 1: 
+	renderer->SetBackground(0,0,0);
+	break;
+      case 2:
+	renderer->SetBackground(1,1,1);
+	break;
+      case 3:
+	renderer->SetBackground(1,0,0);
+	break;
+      case 4:
+	renderer->SetBackground(0,1,0);
+	break;
+      default:
+	renderer->SetBackground(0,0,1);
+	break;
+      }
+      renWin->Render();
+      iren->Start();
+      return true;
+    }
 
+else if (command == "Select_frame_number")
+  {
+    int frameNum;
+    cout << "choose frame number from 0 to " << num_time_steps-1 <<" to be displayed: ";
+    cin >> frameNum;
+    char line[255];
+    cin.getline(line, 254);
+    ugrid->GetPointData()->SetScalars(scalars[frameNum]);
+    renWin->Render();
+      iren->Start();
+      return true;
 
-  //  else if (command == "Hide_Node_Numbers")
+  }
+
+//    else if (command == "Hide_Node_Numbers")
 
 //     {
-//      ids->SetInput(ugr->GetOutput());
-      
-//       ids->CellIdsOff();
-//       ids->FieldDataOff();
-//       ids->PointIdsOff();
-//       ids->Update();
 
-//       visPts->SetInput(ids->GetOutput());
-//       visPts->SetRenderer(renderer);
-//       //visPts->SelectionWindowOn();
-//       //  visPts->SetSelection();
-//       ldm->SetInput(visPts->GetOutput());
-//       // ldm->SetlabelFormat();
-//       ldm->SetLabelModeToLabelFieldData();
-//       pointLabels->SetMapper(ldm);
-//       renderer->AddActor2D(pointLabels);
+// //       ids->PointIdsOff();
+// //       ids->Update();
+
+//       renderer->removeActor((vtkActor)pointLabels);
 //       renWin->Render();
 //       iren->Start();
 //       return true;   

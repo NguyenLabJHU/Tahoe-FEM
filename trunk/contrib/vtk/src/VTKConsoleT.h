@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.h,v 1.6 2001-10-01 22:42:05 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.7 2001-10-02 18:40:31 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -46,6 +46,7 @@ class VTKConsoleT: public iConsoleObjectT
   int numColors;
   StringT source_file;
   StringT output_file;
+  StringT outFileName;
   vtkUnstructuredGridReader *ugr;
   vtkRenderer *renderer;
   vtkRenderWindow *renWin;
@@ -64,6 +65,7 @@ class VTKConsoleT: public iConsoleObjectT
   vtkUnstructuredGrid *ugrid;  
   /* vtkScalars *scalars[num_time_steps]; */
   vtkScalars *scalars[10000];
+  int num_time_steps;
 
 };
 
