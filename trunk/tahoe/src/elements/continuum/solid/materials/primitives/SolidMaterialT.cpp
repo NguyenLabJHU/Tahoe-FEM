@@ -1,11 +1,10 @@
-/* $Id: SolidMaterialT.cpp,v 1.2 2001-07-03 01:35:42 paklein Exp $ */
-/* created: paklein (11/20/1996)                                          */
+/* $Id: SolidMaterialT.cpp,v 1.3 2001-09-15 01:18:15 paklein Exp $ */
+/* created: paklein (11/20/1996) */
 
 #include "SolidMaterialT.h"
 
 #include <iostream.h>
 
-#include "ThermalDilatationT.h"
 #include "fstreamT.h"
 #include "dArrayT.h"
 #include "dSymMatrixT.h"
@@ -34,6 +33,21 @@ SolidMaterialT::SolidMaterialT(ifstreamT& in,
 
 /* destructor */
 SolidMaterialT::~SolidMaterialT(void) { delete fThermal; }
+
+/* initialization */
+void SolidMaterialT::Initialize(void)
+{
+	/* inherited */
+	ContinuumMaterialT::Initialize();
+
+	/* active multiplicative dilatation */
+	if (fThermal->IsActive() && !SupportsThermalStrain())
+	{
+		cout << "\n SolidMaterialT::Initialize: material does not support\n"
+		     <<   "     imposed thermal strain." << endl;
+		throw eBadInputValue;
+	}
+}
 
 /* I/O functions */
 void SolidMaterialT::Print(ostream& out) const
@@ -118,29 +132,6 @@ void SolidMaterialT::WaveSpeeds(const dArrayT& normal, dArrayT& speeds)
 		speeds[1] = (temp[1] > 0.0) ? sqrt(temp[1]/fDensity) : 0.0;
 		speeds[2] = (temp[2] > 0.0) ? sqrt(temp[2]/fDensity) : 0.0;
 	}
-}
-
-/* returns true if the material has internal forces in the unloaded
-* configuration, ie thermal strains */
-int SolidMaterialT::HasInternalStrain(void) const
-{
-	return fThermal->IsActive();
-}
-
-/* Thermal accessors */
-int SolidMaterialT::ThermalLTfNumber(void) const
-{
-	return fThermal->LTfNumber();
-}
-
-void SolidMaterialT::SetThermalLTfPtr(const LoadTime* LTfPtr)
-{
-	fThermal->SetLTfPtr(LTfPtr);
-}
-
-double SolidMaterialT::ThermalElongation(void) const //percentage
-{
-	return fThermal->PercentElongation();
 }
 
 /* returns 1 if the strain localization conditions if satisfied,
