@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.63.8.1 2003-10-16 12:56:14 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.63.8.2 2003-10-21 19:00:59 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -70,7 +70,8 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm)
 	fActiveEquationStart(0),
 	fGlobalNumEquations(0),
 	fCurrentGroup(-1),
-	fAnalysisCode(GlobalT::kNoAnalysis)
+	fAnalysisCode(GlobalT::kNoAnalysis),
+	fSO_DivertOutput(false)
 {
 	/* console name */
 	iSetName("FE_manager");
@@ -545,7 +546,8 @@ ExceptionT::CodeT FEManagerT::CloseStep(void)
 	fCurrentGroup = -1;
 
 	/* write output BEFORE closing nodes and elements */
-	fTimeManager->CloseStep();
+	if (fTimeManager->WriteOutput())
+		WriteOutput(Time());
 
 	/* nodes - loop over all groups */
 	if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
@@ -667,6 +669,19 @@ void FEManagerT::WriteOutput(double time)
 		/* elements */
 		for (int i = 0; i < fElementGroups->Length(); i++)
 			(*fElementGroups)[i]->WriteOutput();
+
+		/* write info */
+		if (fPrintInput) {
+			const ArrayT<int>* pbc_nodes = fCommManager->NodesWithGhosts();
+			if (pbc_nodes) {
+				iArrayT tmp, uni;
+				tmp.Alias(*pbc_nodes);
+				uni.Union(tmp);
+				uni++;
+				out << " number of nodes with ghosts = " << pbc_nodes->Length() << '\n';
+				out << uni.wrap(5) << endl;
+			}
+		}
 	}
 	
 	catch (ExceptionT::CodeT error) { ExceptionT::Throw(error, "FEManagerT::WriteOutput"); }
@@ -748,6 +763,7 @@ void FEManagerT::DivertOutput(const StringT& outfile)
 	/* check */
 	if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::DivertOutput", "I/O manager not initialized");
 	fIOManager->DivertOutput(outfile);
+	fSO_DivertOutput = true;
 }
 
 void FEManagerT::RestoreOutput(void)
@@ -755,6 +771,7 @@ void FEManagerT::RestoreOutput(void)
 	/* check */
 	if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::RestoreOutput", "I/O manager not initialized");
 	fIOManager->RestoreOutput();
+	fSO_DivertOutput = false;
 }
 
 /* cross-linking */
@@ -980,6 +997,17 @@ void FEManagerT::WriteSystemConfig(ostream& out, int group) const
 
 	/* restore */
 	out.precision(old_precision);
+}
+
+void FEManagerT::RegisterSystemOutput(int group)
+{
+#pragma unused(group)
+	const char caller[] = "FEManagerT::RegisterSystemOutput";
+
+	if (fSO_OutputID.Length() == 0)
+		fSO_OutputID.Dimension(NumGroups());
+	else if (fSO_OutputID.Length() != NumGroups())
+		ExceptionT::GeneralFail(caller);
 }
 
 /* interactive */
