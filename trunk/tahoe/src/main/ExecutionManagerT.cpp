@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.cpp,v 1.14 2003-01-27 07:00:27 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.15 2003-01-27 23:14:24 paklein Exp $ */
 /* created: paklein (08/27/1997) */
 #include "ExecutionManagerT.h"
 
@@ -44,59 +44,6 @@ ExecutionManagerT::~ExecutionManagerT(void) { }
 /* Prompt input files until "quit" */
 void ExecutionManagerT::Run(void)
 {
-	/* dispatch */
-	if (fComm.Size() > 1)
-		Run_parallel();
-	else
-		Run_serial();
-}
-
-/**********************************************************************
-* Protected
-**********************************************************************/
-
-void ExecutionManagerT::Run_serial(void)
-{
-	/* file name passed on command line */
-	int index;
-	if (CommandLineOption("-f", index))
-	{
-		/* path name */
-		StringT& file = fCommandLineOptions[index+1];
-		file.ToNativePathName();
-	
-		/* open stream */
-		ifstreamT input('#', file);
-		if (!input.is_open())
-		{
-			cout << "\n ExecutionManagerT::Run_serial: unable to open file: \""
-			     << file  << '\"' << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-		
-		/* dispatch */
-		JobOrBatch(input, cout);
-	}
-	else
-	{
-		StringT lastfilename;
-		while (1)
-		{
-			/* prompt for input filename and open stream */
-			ifstreamT input('#');
-			if (!OpenWithPrompt("Enter input file name or command line option", "quit", lastfilename, input)) break;
-			
-			/* keep last file name */
-			lastfilename = input.filename();
-	
-			/* Recursive dispatch */
-			JobOrBatch(input, cout);
-		}
-	}
-}
-
-void ExecutionManagerT::Run_parallel(void)
-{
 	/* get rank */
 	int rank = fComm.Rank();
 
@@ -122,38 +69,56 @@ void ExecutionManagerT::Run_parallel(void)
 	}
 	else
 	{
-
 		StringT lastfilename;
-		while (1)
+		int count = 0;
+		while (count++ < 10)
 		{
-			/* prompt for input filename and open stream */
-			ifstreamT input('#');
-			StringT file(255);
+			/* broadcast file name or command-line option */
+			StringT line(255);
 			if (rank == 0)
-			{
-				if (input.open("Enter input file name", "quit", lastfilename))
-					file.CopyIn(input.filename());
-				else
-					file = "quit";
-			}
-	
-			/* broadcast file name */
-			fComm.Broadcast(0, file);
-			
-			/* open stream */
-			if (file == "quit")
-				break;
-			else if (rank > 0)
-				input.open(file);
+				Prompt("Enter input file path or option (\"quit\" to exit)", lastfilename, line);
+			fComm.Broadcast(0, line);
 		
-			/* keep last file name */
-			lastfilename = input.filename();
+			/* command line option */
+			if (line[0] == '-') {
+
+				/* reset count */
+				count = 0;
+
+				/* add command line option */
+				if (AddCommandLineOption(line))
+					cout << " added command line option: \"" << line << '\"' << endl;
+			}
+			else if (strncmp(line, "quit", 4) == 0)
+				break;
+			else /* try to open file */
+			{
+				line.ToNativePathName();
+				ifstreamT input('#', line);
+				if (input.is_open()) {
+
+					/* reset count */
+					count = 0;
+
+					/* keep last file name */
+					lastfilename = input.filename();
 	
-			/* recursive dispatch */
-			JobOrBatch(input, cout);
+					/* Recursive dispatch */
+					JobOrBatch(input, cout);
+				}
+				else
+					cout << "\nError: filename: \"" << line << "\" not found\n";
+			}
 		}
+		
+		/* exit message */
+		if (count >= 10) cout << "\nNo valid input after " << count << " attempts." <<  endl;
 	}
 }
+
+/**********************************************************************
+ * Protected
+ **********************************************************************/
 
 /* returns true if the option was passed on the command line */
 bool ExecutionManagerT::CommandLineOption(const char* str, int& index) const
@@ -288,85 +253,40 @@ void ExecutionManagerT::RunBatch(ifstreamT& in, ostream& status)
 	cout <<   " Batch stop time   : " << ctime(&stoptime);
 }
 
-/* open stream with prompt - return 1 if successful */
-int ExecutionManagerT::OpenWithPrompt(const char* prompt, const char* skipname,
-	const char* defaultname, ifstreamT& in)
+void ExecutionManagerT::Prompt(const char* prompt, const char* default_input, StringT& line) const
 {
-	StringT newfilename;
-	int maxtry = 20;
-	int count  = 0;
-	while (1)
-	{
-		cout << '\n' << prompt << "\n(\"" << skipname << "\" to exit";
+	cout << '\n' << prompt;
 
-		/* default */
-		if (defaultname != NULL && strlen(defaultname) > 0)
-		{
-			cout << ", <RETURN> for \"" << defaultname << "\"): ";
+	/* default */
+	if (default_input != NULL && strlen(default_input) > 0)
+	{
+		cout << "\nEnter <RETURN> for \"" << default_input << "\": ";
 #ifdef __SGI__
-			cout.flush();
+		cout.flush();
 #endif
 			
-			/* new filename */
-			char test = cin.peek();
-			if (test != '\n')
-			{
-				/* take first word */
-				cin >> newfilename;
-			}
-			else
-			{
-				/* copy default */
-				newfilename = defaultname;
-			}				
+		/* new filename */
+		char test = cin.peek();
+		if (test != '\n')
+		{
+			/* take first word */
+			cin >> line;
 		}
 		else
 		{
-			cout << "): ";
+			/* copy default */
+			line = default_input;
+		}				
+	}
+	else
+	{
+		cout << ": ";
 #ifdef __SGI__
-			cout.flush();
+		cout.flush();
 #endif					
-			cin >> newfilename;
-		}
+		cin >> line;
+	}
 		
-		/* clear to end of line */
-		fstreamT::ClearLine(cin);
-
-		/* check exit */
-		if (strcmp(newfilename, skipname) == 0)
-			return 0;
-		/* check program option */
-		else if (newfilename[0] == '-')
-		{
-			if (AddCommandLineOption(newfilename))
-				cout << " added command line option: \"" << newfilename << '\"' << endl;
-		}	
-		/* attempt open file */
-		else
-		{
-			/* convert to native path */
-			newfilename.ToNativePathName();
-		
-			/* attempt open */
-			in.open(newfilename);
-			
-			/* check file open */
-			if (in.is_open())
-				return 1;	
-			else
-			{
-				cout << "\nError: filename: " << newfilename << " not found\n";
-				in.clear();
-			}
-			
-			/* could not find file */
-			if (++count == maxtry)
-			{
-				cout << "\n ExecutionManagerT::OpenInputStream: could not find file after ";
-				cout << maxtry << " iterations" << endl;
-				throw ExceptionT::kGeneralFail;
-			}
-		}
-	}	
+	/* clear to end of line */
+	fstreamT::ClearLine(cin);
 }
-
