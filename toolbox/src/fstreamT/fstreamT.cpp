@@ -1,4 +1,4 @@
-/* $Id: fstreamT.cpp,v 1.10 2004-06-17 06:37:52 paklein Exp $ */
+/* $Id: fstreamT.cpp,v 1.11 2005-01-31 07:07:51 paklein Exp $ */
 
 #include "fstreamT.h"
 #include "Environment.h"
@@ -51,7 +51,7 @@ void fstreamT::FixPath(const char* path_old, StringT& path)
 bool fstreamT::need_MW_workaround(void)
 {
 #if defined(__MWERKS__) && !defined(__MACH__)
-if (__MWERKS__ < 0x2402) /* old versions are OK */
+if (__MWERKS__ < 0x2402 || __MWERKS__ > 0x3200) /* old versions are OK */
 	return false;
 else if(__MWERKS__ <= 0x2407)
 	return true;
