@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.27 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.28 2004-07-22 08:22:17 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -100,6 +100,12 @@ public:
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+#ifdef __NO_RTTI__
+	/** cast this to SolidElementT* */
+	virtual SolidElementT* dynamic_cast_SolidElementT(void) { return this; };
+#endif
+	
 protected:
 
 	/* initialization functions */
