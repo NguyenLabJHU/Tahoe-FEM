@@ -1,4 +1,4 @@
-/* $Id: GraphT.cpp,v 1.5 2001-07-08 01:05:37 paklein Exp $ */
+/* $Id: GraphT.cpp,v 1.6 2001-07-09 17:21:39 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "GraphT.h"
@@ -477,11 +477,13 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	clock_t t0 = clock();
 	
 	/* resolve internal/boundary nodes */
+	if (verbose) cout << " GraphT::Partition: classifying nodes" << endl;
 	partition.Allocate(config.Sum());
 	for (int i = 0; i < partition.Length(); i++)
 		partition[i].Set(partition.Length(), i, part_map, *this);
 		
 	/* set outgoing communication maps */
+	if (verbose) cout << " GraphT::Partition: setting communication maps" << endl;
 	for (int j = 0; j < partition.Length(); j++)
 	{
 		int ID = partition[j].ID();
@@ -529,16 +531,76 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	/* generate partition */
 	iArrayT part_map(nnd);
 	GraphBaseT::Partition(config, weight, part_map, verbose);
-
+	
 	/* time */
 	clock_t t0 = clock();
 	
 	/* resolve internal/boundary nodes */
+	if (verbose) cout << " GraphT::Partition: classifying nodes" << endl;
 	partition.Allocate(config.Sum());
 	for (int i = 0; i < partition.Length(); i++)
 		partition[i].Set(partition.Length(), i, part_map, node_graph);
 		
 	/* set outgoing communication maps */
+	if (verbose) cout << " GraphT::Partition: setting communication maps" << endl;
+	for (int j = 0; j < partition.Length(); j++)
+	{
+		int ID = partition[j].ID();
+		const iArrayT& commID = partition[j].CommID();
+		int comm_size = commID.Length();
+		
+		/* collect nodes */
+		ArrayT<iArrayT> nodes_out(comm_size);
+		for (int i = 0; i < comm_size; i++)
+		{
+			const iArrayT* nodes_i = partition[commID[i]].NodesIn(ID);
+			if (!nodes_i)
+				throw eGeneralFail;
+			else
+				nodes_out[i].Alias(*nodes_i);
+		}
+		
+		/* set */
+		partition[j].SetOutgoing(nodes_out);
+	}		
+
+	/* time */
+	clock_t t1 = clock();
+	if (verbose)
+		cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
+		     << " sec: GraphT::Partition: generate node maps" << endl;
+}
+
+void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
+	const ArrayT<const iArray2DT*>& connects_1, const ArrayT<const RaggedArray2DT<int>*>& connects_2, 
+	ArrayT<PartitionT>& partition, bool verbose)
+{
+	//TEMP
+	if (fShift != 0)
+	{
+		cout << "\n GraphT::Partition: not expecting non-zero\n"
+		     <<   "     node number shift: " << fShift << endl;
+		throw eGeneralFail;
+	}
+
+	/* dimensions */
+	int nnd = weight.Length();
+
+	/* generate partition */
+	iArrayT part_map(nnd);
+	GraphBaseT::Partition(config, weight, part_map, verbose);
+
+	/* time */
+	clock_t t0 = clock();
+	
+	/* resolve internal/boundary nodes */
+	if (verbose) cout << " GraphT::Partition: classifying nodes" << endl;
+	partition.Allocate(config.Sum());
+	for (int i = 0; i < partition.Length(); i++)
+		partition[i].Set(partition.Length(), i, part_map, connects_1, connects_2);
+		
+	/* set outgoing communication maps */
+	if (verbose) cout << " GraphT::Partition: setting communication maps" << endl;
 	for (int j = 0; j < partition.Length(); j++)
 	{
 		int ID = partition[j].ID();

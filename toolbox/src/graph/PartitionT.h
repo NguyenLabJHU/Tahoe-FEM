@@ -1,4 +1,4 @@
-/* $Id: PartitionT.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: PartitionT.h,v 1.2 2001-07-09 17:21:39 paklein Exp $ */
 /* created: paklein (11/16/1999)                                          */
 /* graph partition information (following NEMESIS data model)             */
 /* class generates complete decomposition information using               */
@@ -17,8 +17,10 @@
 /* forward declarations */
 class GraphT;
 class iArray2DT;
+class dArray2DT;
 class ifstreamT;
 class StringT;
+template <class TYPE> class RaggedArray2DT;
 
 class PartitionT
 {
@@ -49,6 +51,8 @@ public:
 
 	/* set partition data */
 	void Set(int num_parts, int id, const iArrayT& part_map, const GraphT& graph);
+	void Set(int num_parts, int id, const iArrayT& part_map, const ArrayT<const iArray2DT*>& connects_1,
+		const ArrayT<const RaggedArray2DT<int>*>& connects_2);
 	void SetOutgoing(const ArrayT<iArrayT>& nodes_in); // in sequence of CommID
 	void SetScope(NumberScopeT scope);
 
@@ -90,7 +94,8 @@ public:
 private:
 
 	/* node and element classifications */
-	enum StatusT {kInternal = 0,
+	enum StatusT {   kUnset =-1,
+	              kInternal = 0,
 	                kBorder = 1,
 	              kExternal = 2};
 	//there are actually 4 types -> internal,
@@ -109,6 +114,8 @@ private:
 
 	/* classify set nodes as label nodes as internal, external, or border */
 	void ClassifyNodes(const iArrayT& part_map, const GraphT& graph);
+	void ClassifyNodes(const iArrayT& part_map, const ArrayT<const iArray2DT*>& connects_1,
+		const ArrayT<const RaggedArray2DT<int>*>& connects_2);
 
 	/* set receiving nodes/partition information */
 	void SetReceive(const iArrayT& part_map);
