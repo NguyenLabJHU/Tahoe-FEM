@@ -1,4 +1,4 @@
-/* $Id: serialfactor.c,v 1.1 2004-12-28 17:57:19 paklein Exp $ */
+/* $Id: serialfactor.c,v 1.2 2004-12-28 18:01:25 paklein Exp $ */
 /* serialfactor.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -56,8 +56,13 @@ static doublereal c_b35 = -1.;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: serialfactor.c,v 1.1 2004-12-28 17:57:19 paklein Exp $ +/ */
+/* /+ $Id: serialfactor.c,v 1.2 2004-12-28 18:01:25 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
+
+static int max(int a, int b) {
+	return (a > b) ? a : b;
+};
+
 /*     recursive */
 /*    + */
 /*<    >*/
