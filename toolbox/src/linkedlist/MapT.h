@@ -1,4 +1,4 @@
-/* $Id: MapT.h,v 1.1 2002-11-16 20:44:59 paklein Exp $ */
+/* $Id: MapT.h,v 1.2 2003-03-06 17:26:22 paklein Exp $ */
 #ifndef _MAP_T_H_
 #define _MAP_T_H_
 
@@ -21,7 +21,7 @@ class MapT: protected BinaryTreeT<MapNodeT<key_TYPE, value_TYPE> >
 public:
 
 	/** constructor */
-	MapT(void) {};
+	MapT(void);
 	
 	/** return the size of the map */
 	int Size(void) { return BinaryTreeT<MapNodeT<key_TYPE, value_TYPE> >::Size(); };
@@ -32,7 +32,30 @@ public:
 
 	/** read/write access to values */
 	value_TYPE& operator[](const key_TYPE& key);
+	
+	/** \name return as array */
+	/*@{*/
+	/** return copies of the the tree values in ascending order. The destination array is
+	 * dimensioned during the call. */
+	void Ascending(ArrayT<value_TYPE>& array) const;
+
+	/** return copies of the the tree in descending order. The destination array is
+	 * dimensioned during the call. */
+	void Descending(ArrayT<value_TYPE>& array) const;
+	/*@}*/
+
+private:
+
+	/** \name cached values for repeated look-up's */
+	/*@{*/
+	key_TYPE    fLastKey;
+	value_TYPE* fLastValue;
+	/*@}*/
 };
+
+/* constructor */
+template <class key_TYPE, class value_TYPE>
+MapT<key_TYPE, value_TYPE>::MapT(void): fLastValue(NULL) { }
 
 /* insert value in the map */
 template <class key_TYPE, class value_TYPE>
@@ -46,19 +69,57 @@ bool MapT<key_TYPE, value_TYPE>::Insert(const key_TYPE& key, const value_TYPE& v
 template <class key_TYPE, class value_TYPE>
 value_TYPE& MapT<key_TYPE, value_TYPE>::operator[](const key_TYPE& key)
 {
-	/* return the tree node with the given value or NULL if not present */
-	MapNodeT<key_TYPE, value_TYPE> find_node(key);
-	BTreeNodeT<MapNodeT<key_TYPE, value_TYPE> >* tree_node = Find(find_node);
+	/* need look up */
+	if (!fLastValue || key != fLastKey) {
+		
+		/* return the tree node with the given value or NULL if not present */
+		MapNodeT<key_TYPE, value_TYPE> find_node(key);
+		BTreeNodeT<MapNodeT<key_TYPE, value_TYPE> >* tree_node = Find(find_node);
 	
-	/* no match */
-	if (!tree_node) {
-		cout << "\n MapT<key_TYPE, value_TYPE>::operator[]: key node found: " << key << endl;
-		throw ExceptionT::kOutOfRange;
+		/* no match */
+		if (!tree_node) {
+			cout << "\n MapT<key_TYPE, value_TYPE>::operator[]: key node found: " << key << endl;
+			throw ExceptionT::kOutOfRange;
+		}
+	
+		/* keep key */
+		fLastKey = key;
+	
+		/* retrieve value */
+		const MapNodeT<key_TYPE, value_TYPE>& node = tree_node->Value();
+		fLastValue = node.fValue;
 	}
-	
-	/* return value */
-	const MapNodeT<key_TYPE, value_TYPE>& node = tree_node->Value();
-	return *(node.fValue);
+
+	/* return */
+	return *fLastValue;
+}
+
+/* return copies of the the tree values in ascending order */
+template <class key_TYPE, class value_TYPE>
+void MapT<key_TYPE, value_TYPE>::Ascending(ArrayT<value_TYPE>& array) const
+{
+	/* extract values from binary treee */
+	ArrayT<MapNodeT<key_TYPE, value_TYPE> > tmp;
+	BinaryTreeT<MapNodeT<key_TYPE, value_TYPE> >::Ascending(tmp);
+
+	/* write into return array */
+	array.Dimension(tmp.Length());
+	for (int i = 0; i < array.Length(); i++)
+		array[i] = *(tmp[i].fValue);
+}
+
+/* return copies of the the tree in descending order */
+template <class key_TYPE, class value_TYPE>
+void MapT<key_TYPE, value_TYPE>::Descending(ArrayT<value_TYPE>& array) const
+{
+	/* extract values from binary treee */
+	ArrayT<MapNodeT<key_TYPE, value_TYPE> > tmp;
+	BinaryTreeT<MapNodeT<key_TYPE, value_TYPE> >::Descending(tmp);
+
+	/* write into return array */
+	array.Dimension(tmp.Length());
+	for (int i = 0; i < array.Length(); i++)
+		array[i] = *(tmp[i].fValue);
 }
 
 } /* namespace Tahoe */
