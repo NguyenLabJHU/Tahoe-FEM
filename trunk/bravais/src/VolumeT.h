@@ -1,4 +1,4 @@
-/* $Id: VolumeT.h,v 1.3 2002-07-24 01:15:15 saubry Exp $ */
+/* $Id: VolumeT.h,v 1.4 2002-07-24 23:14:56 saubry Exp $ */
 
 #ifndef _VOLUME_T_H_
 #define _VOLUME_T_H_
@@ -12,6 +12,9 @@
 #include "dArray2DT.h"
 #include "CrystalLatticeT.h"
 #include "ifstreamT.h"
+
+namespace Tahoe {
+
 
 class VolumeT {
 
@@ -50,5 +53,6 @@ public:
 
 };
 
+}
 #endif
 

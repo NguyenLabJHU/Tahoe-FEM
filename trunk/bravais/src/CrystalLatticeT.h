@@ -1,4 +1,4 @@
-/* $Id: CrystalLatticeT.h,v 1.2 2002-07-24 01:15:15 saubry Exp $ */
+/* $Id: CrystalLatticeT.h,v 1.3 2002-07-24 23:14:56 saubry Exp $ */
 
 #ifndef _CRYSTAL_LATTICE_T_H_
 #define _CRYSTAL_LATTICE_T_H_
@@ -12,12 +12,14 @@
 using namespace Tahoe;
 
 class CrystalLatticeT {
+
 protected:
 
 	int nLSD, nUCA;
 	dArray2DT vBasis;
 	dArrayT vLatticeParameters;
 	double density;
+
 public:
 
 	// Constructor 

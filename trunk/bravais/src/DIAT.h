@@ -1,5 +1,5 @@
-#ifndef _FCC_T_H_
-#define _FCC_T_H_
+#ifndef _DIA_T_H_
+#define _DIA_T_H_
 
 #include "StringT.h"
 #include "ExceptionCodes.h"
@@ -10,14 +10,14 @@
 
 using namespace Tahoe;
 
-class FCCT : public CrystalLatticeT 
+class DIAT : public CrystalLatticeT 
 {
 public:
-	FCCT(int nlsd,int nuca,double alat);
+	DIAT(int nlsd,int nuca,double alat);
 
-	~FCCT() { };
+	~DIAT() { };
 
-	FCCT(const FCCT& source);
+	DIAT(const DIAT& source);
 
         const dArrayT& GetLatticeParameters();
         const dArray2DT& GetBasis();
