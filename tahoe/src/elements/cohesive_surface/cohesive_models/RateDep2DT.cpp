@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.cpp,v 1.2 2002-02-25 19:37:42 cjkimme Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.3 2002-03-07 18:44:33 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "RateDep2DT.h"
@@ -54,14 +54,28 @@ void RateDep2DT::InitStateVariables(ArrayT<double>& state)
 	/* clear */
 	if (num_state > 0) state = 0.0;
 
+	/* state variables below are with their corresponding parameters 
+         * in TvergHutch2DT. state[n] has a flag in state[n+1] that
+         * can be used to allow the traction routine to change the
+         * parameter to reflect local opening rates. For instance,
+         * state[6] represents the critical normal length scale and
+         * state[7] = 0. indicates state[6] has not been modified
+         * from its initialized (rate-independent) value while
+         * state[7] = 1. indicates that the length-scale has
+         * been modified as a function of rate. */
 	state[0] = fL_1;
 	state[2] = fL_2;
 	state[4] = fsigma_max;
 	state[6] = fd_c_n;
+	state[7] = 0.;
+	/* state[8] = previous timestep's u_t
+	 * state[9] = previous timestep's u_n
+	 */
+        state[10] = fd_c_t;
 }
 
 /* return the number of state variables needed by the model */
-int RateDep2DT::NumStateVariables(void) const { return 10; }
+int RateDep2DT::NumStateVariables(void) const { return 12; }
 
 /* surface potential */ 
 double RateDep2DT::FractureEnergy(const ArrayT<double>& state) 
@@ -79,7 +93,7 @@ double RateDep2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 	double u_t = jump_u[0];
 	double u_n = jump_u[1];
 
-	double r_t = u_t/fd_c_t;
+	double r_t = u_t/state[10];
 	double r_n = u_n/state[6];
 	double L = sqrt(r_t*r_t + r_n*r_n); // (1.1)
 
@@ -119,37 +133,50 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 	double u_t = jump_u[0];
 	double u_n = jump_u[1];
 
-	double r_t = u_t/fd_c_t;
+	double r_t = u_t/state[10];
 	double r_n = u_n/state[6];
 	double L = sqrt(r_t*r_t + r_n*r_n); // (1.1)
 
 	double sigbyL;
 	if (L < state[0])
 		sigbyL = state[4]/state[0];
-	else if (L < state[2])
-	{  /* First stab at a model of rate dependence is to vary lambda_2
-	    * as a function of rate. 
-	    */
-	    if (state[3] == 0.)
-	    { 
+	else if (L < state[2]) /*L > state[0] means we're at the plateau stress */
+	{ 
+	  if (state[7] == 0.) 
+	  { 
 	      double u_n_dot = (u_n-state[9])/fTimeStep;
 	      if (u_n_dot > kSmall) 
 	      {
-		state[2] = L_2_b + L_2_m * log(u_n_dot);
-		if (state[2] > 1.) 
-		  state[2] = 1.;
-		//		cout << "state[2] = " << state[2] << " d_dot " << u_n_dot << " " << fTimeStep <<  "\n";
-		state[3] = 1.;
+		state[7] = 1.;
+		state[6] = L_2_b + L_2_m * log(u_n_dot);
+		/* make sure new length scale is greater than current
+		 * gap vector 
+                 */
+		if (state[6] < u_n || state[6] < fd_c_n*fL_1)
+		{
+		  cout <<  "\n RateDep2DT::Traction: rate-dependent length scale is incompatible with rate-independent one. Check your parameters \n ";
+		  throw eBadInputValue;
+		}
+		cout << "state[6] " << state[6] << "\n";
+		r_n = u_n/state[6];
+		L = sqrt(r_t*r_t+r_n*r_n);
+		//if (state[2] > 1.) 
+		//  state[2] = 1.;
+		//if (u_n_dot > .000001)
+		//  state[2] = .5;
+		//else
+		// state[2] = .9;
+		//state[3] = 1.;
 	      }
-	    }
-		sigbyL = state[4]/L;
+	  }
+	  sigbyL = state[4]/L;
 	}
 	else if (L < 1 && state[2] < 1.)
 		sigbyL = state[4]*(1 - (L - state[2])/(1 - state[2]))/L;
 	else
 		sigbyL = 0.0;	
 
-	fTraction[0] = sigbyL*(u_t/fd_c_t)*(state[6]/fd_c_t);
+	fTraction[0] = sigbyL*(u_t/state[10])*(state[6]/state[10]);
 	fTraction[1] = sigbyL*(u_n/state[6]);
 
 	/* penetration */
@@ -180,7 +207,7 @@ const dMatrixT& RateDep2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double
 	z1 = u_n*u_n;
 	z2 = 1./(state[6]*state[6]);
 	z3 = u_t*u_t;
-	z4 = 1./(fd_c_t*fd_c_t);
+	z4 = 1./(state[10]*state[10]);
 	z5 = z1*z2;
 	z6 = z3*z4;
 	z5 += z6;
@@ -188,7 +215,7 @@ const dMatrixT& RateDep2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double
 
 	if (L < state[0]) // K1
 	{
-		fStiffness[0] = (state[6]/fd_c_t)*state[4]/(state[0]*fd_c_t);
+		fStiffness[0] = (state[6]/state[10])*state[4]/(state[0]*state[10]);
 		fStiffness[1] = 0.0;
 		fStiffness[2] = 0.0;
 		fStiffness[3] = state[4]/(state[0]*state[6]);
@@ -223,8 +250,8 @@ const dMatrixT& RateDep2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double
 		z8 = 1./state[6];
 		z9 = state[6]*state[6];
 		z10 = pow(state[6],3.);
-		z11 = pow(fd_c_t,-4.);
-		z12 = fd_c_t*fd_c_t;
+		z11 = pow(state[10],-4.);
+		z12 = state[10]*state[10];
 		z2 = z1*z2;
 		z13 = z3*z4;
 		z6 += 1.;
@@ -291,7 +318,7 @@ SurfacePotentialT::StatusT RateDep2DT::Status(const dArrayT& jump_u,
 	double u_t = jump_u[0];
 	double u_n = jump_u[1];
 
-	double r_t = u_t/fd_c_t;
+	double r_t = u_t/state[10];
 	double r_n = u_n/state[6];
 	double L = sqrt(r_t*r_t + r_n*r_n); // (1.1)
 	
@@ -332,6 +359,7 @@ void RateDep2DT::OutputLabels(ArrayT<StringT>& labels) const
 	labels[0] = "lambda";
 	labels[1] = "D_t_dot";
 	labels[2] = "D_n_dot";
+	//	labels[3] = "L_2";
 }
 
 void RateDep2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
@@ -344,11 +372,12 @@ void RateDep2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& stat
 	double u_t = jump_u[0];
 	double u_n = jump_u[1];
 
-	double r_t = u_t/fd_c_t;
-	double r_n = u_n/fd_c_n;
+	double r_t = u_t/state[10];
+	double r_n = u_n/state[6];
 	output[0]  = sqrt(r_t*r_t + r_n*r_n); // (1.1)
-	output[1] = (u_t-state[0])/fTimeStep;
-	output[2] = (u_n-state[1])/fTimeStep;
+	output[1] = (u_t-state[8])/fTimeStep;
+	output[2] = (u_n-state[9])/fTimeStep;
+	//	output[3] = state[2];
 
 }
 
@@ -366,7 +395,7 @@ double RateDep2DT::ComputeNodalValue(const dArrayT& nodalRow)
 
 void RateDep2DT::UpdateStateVariables(const dArrayT& IPdata, ArrayT<double>& state)
 {
-        state[7] = IPdata[0];
+  //state[7] = IPdata[0];
 }
 
 int RateDep2DT::ElementGroupNeeded(void) 
