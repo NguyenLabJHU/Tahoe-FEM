@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.4.2.8 2001-10-18 21:48:32 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.4.2.9 2001-10-24 15:56:06 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -450,6 +450,7 @@ int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& node
   /* account for text file name instead of data */
   ifstreamT tmp;
   ifstreamT& in2 = OpenExternal (in, tmp, out, true, "ModelManagerT::ReadCards: could not open file");
+  cout << "done external " << endl;
 
   int count = 0;
   int *pd = data.Pointer();
@@ -469,7 +470,16 @@ int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& node
       else
 	{
 	  int index = NodeSetIndex (ID);
-	  if (index < 0) throw eBadInputValue;
+	  if (index < 0) 
+	    {
+	      fMessage << "ModelManagerT::ReadCards, cannot find node set\n";
+	      fMessage << "   asking for : " << ID << ".\n";
+	      fMessage << "   available sets: \n";
+	      for (int ig=0; ig < fNumNodeSets; ig++)
+		fMessage << "       " << fNodeSetNames[ig] << ".\n";
+	      fMessage << endl;
+	      throw eBadInputValue;
+	    }
 	  nodes[i] = NodeSet (index);
 	  if (i == 0)
 	    out << " Number of node sets . . . . . . . . . . . . . . = " 
@@ -613,10 +623,13 @@ void ModelManagerT::ElementGroupNames (ArrayT<StringT>& names) const
 
 int ModelManagerT::ElementGroupIndex (const StringT& name) const
 {
+  // account for space padding at end of name
+  int length1 = name.Length();
   for (int i=0; i < fNumElementSets; i++)
     {
-      int length = fElementNames[i].Length();
-      if (strncmp (name.Pointer(), fElementNames[i].Pointer(), length) == 0)
+      int length2 = fElementNames[i].Length();
+      int length = (length1 < length2) ? length1 : length2;
+      if (strncmp (name.Pointer(), fElementNames[i].Pointer(), length-1) == 0)
 	return i;
     }
   return -1;
@@ -683,10 +696,15 @@ void ModelManagerT::NodeSetNames (ArrayT<StringT>& names) const
 
 int ModelManagerT::NodeSetIndex (const StringT& name) const
 {
+  // account for space padding at end of name
+  int length1 = name.Length();
   for (int i=0; i < fNumNodeSets; i++)
     {
-      int length = fNodeSetNames[i].Length();
-      if (strncmp (name.Pointer(), fNodeSetNames[i].Pointer(), length) == 0)
+      int length2 = fNodeSetNames[i].Length();
+      int length = (length1 < length2) ? length1 : length2;
+      cout << name << ". " << fNodeSetNames[i] << ". " << length << " " 
+	   << length1 << " " << length2 << endl;
+      if (strncmp (name.Pointer(), fNodeSetNames[i].Pointer(), length-1) == 0)
 	return i;
     }
   return -1;
@@ -740,10 +758,13 @@ void ModelManagerT::SideSetNames (ArrayT<StringT>& names) const
 
 int ModelManagerT::SideSetIndex (const StringT& name) const
 {
+  // account for space padding at end of name
+  int length1 = name.Length();
   for (int i=0; i < fNumSideSets; i++)
     {
-      int length = fSideSetNames[i].Length();
-      if (strncmp (name.Pointer(), fSideSetNames[i].Pointer(), length) == 0)
+      int length2 = fSideSetNames[i].Length();
+      int length = (length1 < length2) ? length1 : length2;
+      if (strncmp (name.Pointer(), fSideSetNames[i].Pointer(), length-1) == 0)
 	return i;
     }
   return -1;
@@ -971,27 +992,40 @@ void ModelManagerT::ScanModel (const StringT& database)
       
       fCoordinateDimensions [0] = fInput->NumNodes ();
       fCoordinateDimensions [1] = fInput->NumDimensions ();
+      cout << fCoordinateDimensions << endl;
 
       if (!ScanElements ())
 	{
 	  fMessage << "\n\nModelManagerT::ScanModel: Error Registering Elements.\n\n";
 	  throw eGeneralFail;
 	}
+      cout << "done elements " << endl;
+      for (int er=0; er < fNumElementSets; er++)
+	cout << "    " << /*fElementNames[er] <<*/ ". " << fElementCodes[er]
+           << " " << fElementLengths[er] << " " << fElementNodes[er] << endl;
 
       if (!ScanNodeSets ())
 	{
 	  fMessage << "\n\nModelManagerT::ScanModel: Error Registering NodeSets.\n\n";
 	  throw eGeneralFail;
 	}
+      cout << "done node sets " << endl;
+      //for (int er=0; er < fNumNodeSets; er++)
+      //cout << "    " << fNodeSetNames[er] << ". " << fNodeSetDimensions << endl;
 
       if (!ScanSideSets ())
 	{
 	  fMessage << "\n\nModelManagerT::ScanModel: Error Registering SideSets.\n\n";
 	  throw eGeneralFail;
 	}
+      cout << "done side sets " << endl;
+      //for (int er=0; er < fNumSideSets; er++)
+	//cout << "    " << fSideSetNames[er] << ". " << fSideSetDimensions << endl;
+
 
       fInputName = database;
     }
+  cout << "done scanning " << endl;
 }
 
 bool ModelManagerT::ScanElements (void)
@@ -1054,18 +1088,23 @@ bool ModelManagerT::ScanSideSets (void)
 
 bool ModelManagerT::CheckName (const ArrayT<StringT>& list, const StringT& name, const char *type) const
 {
-  int l = name.Length();
+  // account for space padding at end of name
+  int l1 = name.Length();
 
   for (int i=0; i < list.Length(); i++)
-    if (strncmp (list[i].Pointer(), name.Pointer(), l) == 0)
-      {
-	fMessage << "\nModelManagerT::CheckName\n";
-	fMessage << "   " << type << " already has a registered set called " << name << "\n\n";
-	fMessage << "  Sets: \n";
-	for (int j=0; j < list.Length(); j++)
-	  fMessage << "       " << list[i] << "\n";
-	fMessage << "\n";
-	return false;
-      }
+    {
+      int l2 = list[i].Length();
+      int l = (l1 < l2) ? l1 : l2;
+      if (strncmp (list[i].Pointer(), name.Pointer(), l-1) == 0)
+	{
+	  fMessage << "\nModelManagerT::CheckName\n";
+	  fMessage << "   " << type << " already has a registered set called " << name << "\n\n";
+	  fMessage << "  Sets: \n";
+	  for (int j=0; j < list.Length(); j++)
+	    fMessage << "       " << list[i] << "\n";
+	  fMessage << "\n";
+	  return false;
+	}
+    }
   return true;
 }
