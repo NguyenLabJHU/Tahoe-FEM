@@ -1,17 +1,15 @@
-/* $Id: ListNodeT.h,v 1.2 2002-07-02 19:57:17 cjkimme Exp $ */
-/* created: paklein (02/07/1996)                                          */
-/* Container class for LinkedListT                                        */
-/* Note: the TYPE stored in the list should have an appropriate           */
-/* copy constructor                                                       */
-
+/* $Id: ListNodeT.h,v 1.3 2002-11-16 20:44:59 paklein Exp $ */
+/* created: paklein (02/07/1996) */
 #ifndef _LISTNODE_T_H_
 #define _LISTNODE_T_H_
-
 
 namespace Tahoe {
 
 template <class TYPE> class LinkedListT;
 
+/** container class for LinkedListT. 
+ * \note the TYPE stored in the list should have an appropriate
+ * copy constructor. */
 template <class TYPE>
 class ListNodeT
 {
@@ -19,15 +17,15 @@ class ListNodeT
 
 private:
 
-	/* constructor */
+	/** constructor */
 	ListNodeT(const TYPE &value);
 
 public:
 	 	 	
-	/* return data from the node */
+	/** return data from the node */
 	const TYPE& Value(void) const;
 
-	/* pointer to the next node */
+	/** pointer to the next node */
 	ListNodeT<TYPE>* NextPtr(void) const;
 	 	 	
 private:
@@ -37,10 +35,8 @@ private:
 };
 
 /*************************************************************************
-*
-* Implementation
-*
-*************************************************************************/
+ * Implementation
+ *************************************************************************/
 
 /* constructor */
 template <class TYPE>
