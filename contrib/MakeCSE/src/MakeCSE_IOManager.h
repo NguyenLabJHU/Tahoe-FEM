@@ -9,11 +9,16 @@
 
 namespace Tahoe {
 
+/* forward declarations */
+class ModelManagerT;
+
 /** this class is in charge of reading parameter data from file or interactively */
 class MakeCSE_IOManager
 {
  public:
   MakeCSE_IOManager (void);
+
+
   virtual void Initialize (void) = 0;
 
   virtual void InputFormat (IOBaseT::FileTypeT &format, StringT& name) = 0;

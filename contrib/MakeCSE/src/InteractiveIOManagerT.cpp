@@ -1,12 +1,14 @@
-// $Id: InteractiveIOManagerT.cpp,v 1.5 2003-09-05 19:48:55 paklein Exp $
+// $Id: InteractiveIOManagerT.cpp,v 1.6 2004-11-19 22:57:24 paklein Exp $
 #include "InteractiveIOManagerT.h"
 #include "ExceptionT.h"
+#include "ModelManagerT.h"
 
 using namespace Tahoe;
 
-InteractiveIOManagerT::InteractiveIOManagerT (void) :
-  MakeCSE_IOManager ()
+InteractiveIOManagerT::InteractiveIOManagerT(const ModelManagerT& model):
+	fModel(model)
 {
+
 }
 
 void InteractiveIOManagerT::Initialize (void)
@@ -24,9 +26,11 @@ void InteractiveIOManagerT::Initialize (void)
       fEchoInput << "%\n";
       fEcho = true;
     }
-  else
+  else {
     fEcho = false;
-
+    cout << endl;
+   }
+  
   Method ();
 }
 
@@ -172,6 +176,12 @@ void InteractiveIOManagerT::NodeSetsMapped (sArrayT& names, ArrayT<CSEConstants:
   StringT answer (81);
   sArrayT q (1);
 
+	/* list node set ids */
+	cout << "\n Node sets:\n";
+	const ArrayT<StringT>& ns_ID = fModel.NodeSetIDs();
+	for (int i = 0; i < ns_ID.Length(); i++)
+		cout << setw(5) << i+1 << ": " << ns_ID[i] << '\n';
+
   cout << "\n Enter the number of Node Sets to transfer: ";
   cin >> number;
   cin.getline (answer.Pointer(), 80, '\n'); // clear line
@@ -200,6 +210,14 @@ void InteractiveIOManagerT::SideSetsMapped (sArrayT& names)
   int number;
   StringT answer (81);
   sArrayT q (1);
+
+	/* list side set ids */
+	cout << "\n Side sets:\n";
+	const ArrayT<StringT>& ss_ID = fModel.SideSetIDs();
+	for (int i = 0; i < ss_ID.Length(); i++) {
+		const StringT& block = fModel.SideSetGroupID(ss_ID[i]);
+		cout << setw(5) << i+1 << ": " << ss_ID[i] << " in element block " << block << '\n';
+	}
 
   cout << "\n Enter the number of Side Sets to transfer: ";
   cin >> number;
@@ -277,7 +295,7 @@ void InteractiveIOManagerT::Method (void)
     {
     case CSEConstants::kFacet:
       {
-	cout << "\n Enter the number of side sets: ";
+	cout << "\n Enter the number of side sets (" << fModel.NumSideSets() << "): ";
 	cin >> num;
 	cin.getline (answer.Pointer(), 80, '\n'); // clear line
 	if (fEcho) fEchoInput << "*FACET\n";
@@ -290,7 +308,7 @@ void InteractiveIOManagerT::Method (void)
       }
     case CSEConstants::kZone:
       {
-	cout << "\n Enter the number of element blocks: ";
+	cout << "\n Enter the number of element blocks (" << fModel.NumElementGroups() << "): ";
 	cin >> num;
 	cin.getline (answer.Pointer(), 80, '\n'); // clear line
 	if (fEcho) fEchoInput << "*ZONE\n";
@@ -302,7 +320,7 @@ void InteractiveIOManagerT::Method (void)
       }
     case CSEConstants::kBoundary:
       {
-	cout << "\n Enter the number of element blocks: ";
+	cout << "\n Enter the number of cohesive element blocks to create: ";
 	cin >> num;
 	cin.getline (answer.Pointer(), 80, '\n'); // clear line
 	if (fEcho) fEchoInput << "*BOUNDARY\n";
@@ -325,7 +343,7 @@ void  InteractiveIOManagerT::ReadIDValues (const sArrayT& q, sArrayT& names)
     {
       for (int j=0; j < q.Length(); j++, k++)
 	{
-	  cout << " Enter " << q[j] << " " << i+1 << ": ";
+	  cout << "(" << i+1 <<") Enter " << q[j] << ": ";
 	  cin >> names[k];
 	  cin.getline (answer.Pointer(), 80, '\n'); // clear line  
 	  

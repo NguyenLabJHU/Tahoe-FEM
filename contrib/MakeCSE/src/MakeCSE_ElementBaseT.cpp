@@ -1,4 +1,4 @@
-// $Id: MakeCSE_ElementBaseT.cpp,v 1.9 2003-11-21 22:47:39 paklein Exp $
+// $Id: MakeCSE_ElementBaseT.cpp,v 1.10 2004-11-19 22:57:24 paklein Exp $
 // created: SAW 10/06/99
 #include "MakeCSE_ElementBaseT.h"
 
@@ -343,7 +343,7 @@ void MakeCSE_ElementBaseT::ReadSideSetData (ModelManagerT& model, MakeCSE_IOMana
 {
   /* read in side sets that are to be transferred */
   sArrayT sides;
-  theInput.SideSetsMapped (sides);
+  theInput.SideSetsMapped(sides);
   AutoArrayT<StringT> ids;
 
   /* list side sets in this element group */

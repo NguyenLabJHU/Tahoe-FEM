@@ -42,14 +42,14 @@ void MakeCSE_ExecutionT::RunInteractive (void)
     {
       StringT answer;
       cout << "\nEnter input file name: \n" 
-	   << "(\"quit\" to exit, \"nothing\" for interactive): ";
+	   << "(\"quit\" to exit or \"interactive\"): ";
       cin >> answer;
       
       if (answer == "quit")
 	{
 	  done = true;
 	}
-      else if (answer == "nothing")
+      else if (answer == "interactive")
 	{
 	  fInteractive = true;
 	  ifstreamT in ('#');
