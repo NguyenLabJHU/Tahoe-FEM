@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.5.2.3 2002-05-10 00:08:18 cjkimme Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.5.2.4 2002-05-11 19:47:08 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "KBC_ControllerT.h"
@@ -42,7 +42,7 @@ GlobalT::RelaxCodeT KBC_ControllerT::RelaxSystem(void)
 }
 
 /* output current configuration */
-void KBC_ControllerT::WriteOutput(ostream& out)
+void KBC_ControllerT::WriteOutput(ostream& out) const
 {
 #pragma unused(out)
 }

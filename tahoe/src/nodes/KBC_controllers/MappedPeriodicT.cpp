@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.cpp,v 1.4.2.4 2002-05-10 00:08:18 cjkimme Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.4.2.5 2002-05-11 19:47:08 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 
 #include "MappedPeriodicT.h"
@@ -201,7 +201,7 @@ void MappedPeriodicT::InitStep(void)
 }
 
 /* output current configuration */
-void MappedPeriodicT::WriteOutput(ostream& out)
+void MappedPeriodicT::WriteOutput(ostream& out) const
 {
 	/* inherited */
 	KBC_ControllerT::WriteOutput(out);

@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.7.2.5 2002-05-10 00:08:18 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.7.2.6 2002-05-11 19:47:09 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -230,10 +230,14 @@ void TiedNodesT::Equations(AutoArrayT<const iArray2DT*>& equations) const
 }
 
 /* output current configuration */
-void TiedNodesT::WriteOutput(ostream& out)
+void TiedNodesT::WriteOutput(ostream& out) const
 {
-#pragma unused(out)
-	CopyKinematics();
+	/* inherited */
+	KBC_ControllerT::WriteOutput(out);
+	
+	/* not quite so const */
+	TiedNodesT* non_const_this = const_cast<TiedNodesT*>(this);
+	non_const_this->CopyKinematics();
 }
 
 /**********************************************************************
