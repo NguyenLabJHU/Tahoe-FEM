@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.3 2002-03-18 19:24:07 rjones Exp $ */
+/* $Id: ElementT.h,v 1.4 2002-03-21 22:36:32 creigh Exp $ */
 
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
@@ -40,7 +40,10 @@ public:
    kNonsingularContinuum = 27, /**< nonsingular continuum element */ 
     kMultiplierContactElement2D = 28,
        kSimoFiniteStrain = 29,  /**< enhanced strain element */
-      kPenaltyContactElement2D = 30
+kPenaltyContactElement2D = 30,
+             kMultiScale = 31,
+	    kCourseScale = 32,
+	      kFinePhest = 33
 	};
 
 	/** stream extraction operator */ 
