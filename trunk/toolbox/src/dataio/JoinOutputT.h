@@ -1,5 +1,5 @@
-/* $Id: JoinOutputT.h,v 1.1 2002-01-09 12:36:51 paklein Exp $ */
-/* created: paklein (03/24/2000)                                          */
+/* $Id: JoinOutputT.h,v 1.2 2002-01-09 12:39:20 paklein Exp $ */
+/* created: paklein (03/24/2000) */
 
 #ifndef _JOIN_OUTPUT_T_H_
 #define _JOIN_OUTPUT_T_H_
@@ -13,20 +13,22 @@
 
 /* forward declarations */
 class IOManager;
+class ModelManagerT;
 
+/** class to join results from a parallel calculation */
 class JoinOutputT
 {
 public:
 
-	/* constructor */
-	JoinOutputT(ifstreamT& in, const StringT& model_file,
-		const StringT& global_model_file, IOBaseT::FileTypeT file_type,
+	/** constructor */
+	JoinOutputT(const StringT& param_file, const StringT& model_file,
+		IOBaseT::FileTypeT model_file_type, IOBaseT::FileTypeT results_file_type, 
 		int size);
 
-	/* destructor */
+	/** destructor */
 	~JoinOutputT(void);
 
-	/* do join */
+	/** do join */
 	void Join(void);
 
 private:
@@ -69,25 +71,22 @@ private:
 
 private:
 
-	/* file name info */
+	/** parameters file name */
 	const StringT fJobFile;
-	const StringT fModelFile;
-	const StringT fGlobalModelFile;
+
+	/** model database manager */
+	ModelManagerT* fModel;
+
+	/** geometry database file type */
+	IOBaseT::FileTypeT fResultsFileType;
 	
-	/* data format */
-	IOBaseT::FileTypeT fFileType;
-	
-	/* partition data */
+	/** partition data */
 	ArrayT<PartitionT> fPartitions;
 	
-	/* I/O manager */
+	/** output formatter */
 	IOManager* fIO;
 	
-	/* model data */
-	dArray2DT fCoordinates;
-	ArrayT<iArray2DT> fConnects;
-	
-	/* maps (for each output set) from processor to global position */
+	/** maps (for each output set) from processor to global position */
 	ArrayT<MapSetT> fMapSets;	
 };
 

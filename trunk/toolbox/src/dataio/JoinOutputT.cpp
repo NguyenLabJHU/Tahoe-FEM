@@ -1,10 +1,11 @@
-/* $Id: JoinOutputT.cpp,v 1.1 2002-01-09 12:36:51 paklein Exp $ */
-/* created: paklein (03/24/2000)                                          */
+/* $Id: JoinOutputT.cpp,v 1.2 2002-01-09 12:39:20 paklein Exp $ */
+/* created: paklein (03/24/2000) */
 
 #include "JoinOutputT.h"
 
 #include "fstreamT.h"
 #include "IOManager.h"
+#include "ModelManagerT.h"
 #include "OutputSetT.h"
 #include "StringT.h"
 #include "ExodusT.h"
@@ -14,22 +15,19 @@
 #include "dArrayT.h"
 
 /* constructor */
-JoinOutputT::JoinOutputT(ifstreamT& in, const StringT& model_file,
-	const StringT& global_model_file, IOBaseT::FileTypeT file_type,
-	int size):
-	fJobFile(in.filename()),
-	fModelFile(model_file),
-	fGlobalModelFile(global_model_file),
-	fFileType(file_type),
+JoinOutputT::JoinOutputT(const StringT& param_file, const StringT& model_file,
+	IOBaseT::FileTypeT model_file_type, IOBaseT::FileTypeT results_file_type, int size):
+	fJobFile(param_file),
+	fResultsFileType(results_file_type),
 	fPartitions(size),
 	fIO(NULL)
 {
-	/* must be ExodusII for now */
-	if (fFileType != IOBaseT::kExodusII)
-	{
-		cout << "\n JoinOutputT::JoinOutputT: data format must be ExodusII, code "
-		     << IOBaseT::kExodusII << endl;
-		throw eGeneralFail;
+	/* set model database manager */
+	fModel = new ModelManagerT(cout);
+	if (!fModel->Initialize(model_file_type, model_file)) {
+		cout << "\n JoinOutputT::JoinOutputT: error opening geometry file: " 
+		     << fModel->DatabaseName() << endl;
+		throw eDatabaseFail;
 	}
 
 	/* read partition data */
@@ -42,7 +40,7 @@ JoinOutputT::JoinOutputT(ifstreamT& in, const StringT& model_file,
 		file.Append(".part", i);
 
 		/* open stream */
-		ifstreamT part_in(in.comment_marker(), file);
+		ifstreamT part_in(file);
 		if (!part_in.is_open())
 		{
 			cout << "\n JoinOutputT::JoinOutputT: could not open decomposition file: "
@@ -67,8 +65,11 @@ JoinOutputT::JoinOutputT(ifstreamT& in, const StringT& model_file,
 /* destructor */
 JoinOutputT::~JoinOutputT(void)
 {
+	delete fModel;
 	delete fIO;
+	
 	fIO = NULL;
+	fModel = NULL;
 }
 
 /* do join */
@@ -79,13 +80,8 @@ void JoinOutputT::Join(void)
 	dArray2DT part_e_values;
 	nVariArray2DT<double> part_n_man(0, part_n_values, 0);
 	nVariArray2DT<double> part_e_man(0, part_e_values, 0);	
-	dArrayT n_value;
-	dArrayT e_value;
-	VariArrayT<double> n_value_man(0, n_value);
-	VariArrayT<double> e_value_man(0, e_value);
 
 	/* output sets data */
-	StringT exo_file;
 	const ArrayT<OutputSetT*>& element_sets = fIO->ElementSets();
 	for (int i = 0; i < element_sets.Length(); i++)
 	{
@@ -98,7 +94,7 @@ void JoinOutputT::Join(void)
 		/* assembled values */
 		dArray2DT all_n_values(output_set.NumNodes(), output_set.NumNodeValues());
 		dArray2DT all_e_values;
-		if (output_set.BlockID().Length() == 0 && output_set.NumElementValues() > 0)
+		if (output_set.BlockID().Length() == 0 && output_set.NumElementValues() > 0) //outdated - this should not occur
 			cout << "\n JoinOutputT::Join: skipping element output\n" << endl;
 		else
 			all_e_values.Allocate(output_set.NumElements(), output_set.NumElementValues());
@@ -126,94 +122,110 @@ void JoinOutputT::Join(void)
 				for (int k = 0; k < fPartitions.Length(); k++)
 				{
 					/* file name */
-					ExodusT exo(cout);
-					ResultFileName(k, i, exo_file);
-					if (exo.OpenRead(exo_file))
+					StringT filename;
+					ResultFileName(k, i, filename);
+					
+					/* check if file is present */
+					if (fstreamT::Exists(filename))
 					{
+						/* open the database file */
+						ModelManagerT results(cout);
+						if (!results.Initialize(fResultsFileType, filename)) {
+							cout << "\n JoinOutputT::Join: error opening partial results file \""
+							     << results.DatabaseName() << '\"' << endl;
+							throw eDatabaseFail;
+						}
+
 						/* get time */
 						if (!found_time)
 						{
 							found_time = true;
-							exo.ReadTime(j+1, time);
+							dArrayT steps;
+							results.TimeSteps(steps);
+							time = steps[j];
 							cout << setw(kIntWidth) << j+1
 							     << setw(d_width)   << time << endl;
 						}
-						
+					
 						/* assemble nodal values */
 						if (all_n_values.Length() > 0)
 						{
+							/* dimensions */
+							int num_nodes = results.NumNodes();
+						
 							/* assembly map: output_set_ID[partition_ID] */
 							const iArrayT& node_map = map_set.NodeMap(k);
 
 							/* very weak consistency check */
-							if (node_map.Length() > exo.NumNodes())
+							if (node_map.Length() > num_nodes)
 							{
 								cout << "\n JoinOutputT::Join: assembly map of nodal values (" << node_map.Length() 
 								     << ") is longer than\n" 
-								     <<   "     is longer than the number of nodes (" << exo.NumNodes()
+								     <<   "     is longer than the number of nodes (" << num_nodes
 								     << ") in partial results file:\n"
-								     <<   "     " << exo_file << endl;
+								     <<   "     " << results.DatabaseName() << endl;
 								throw eSizeMismatch;
 							}
-
-							/* set work space */
-							part_n_man.Dimension(exo.NumNodes(), all_n_values.MinorDim());
-							n_value_man.SetLength(exo.NumNodes(), false);
 							
-							/* loop over variables */
-							for (int l = 0; l < all_n_values.MinorDim(); l++)
-							{
-								/* read value */
-								exo.ReadNodalVariable(j+1, l+1, n_value);
+							/* set work space */
+							part_n_man.Dimension(num_nodes, all_n_values.MinorDim());
 
-								/* write into table */
-								part_n_values.SetColumn(l, n_value);
-							}
+							/* read data */
+							results.AllNodeVariables (j, part_n_values);
 
 							/* assemble */
 							all_n_values.Assemble(node_map, part_n_values);
-						}
+						}					
 
 						/* assemble element values */
 						if (all_e_values.Length() > 0)
 						{
 							/* element map: global_output_block_ID[partition_output_block_ID] */
 							const iArrayT& element_map = map_set.ElementMap(k);
-							part_e_man.Dimension(element_map.Length(), all_e_values.MinorDim());
-							e_value_man.SetLength(element_map.Length(), false);
 
 							/* dimension check */
-							int nel, nen;
-							exo.ReadElementBlockDims(i+1, nel, nen);
-							if (nel != e_value.Length())
+							if (output_set.NumElements() != element_map.Length())
 							{
-								cout << "\n JoinOutputT::Join: number of elements (" << nel 
+								cout << "\n JoinOutputT::Join: number of elements (" << output_set.NumElements() 
 								     << ") in the partial results\n"
-								     << "     file does not match the number of elements (" << e_value.Length() 
-								     << ") expected for I/O\n"
+								     << "     file does not match the number of elements (" << element_map.Length() 
+								     << ") expected for output\n"
 								     << "     set " << i << " in partition " << k << endl;
 								throw eSizeMismatch;
 							}
-						
-							/* loop over variables */
-							for (int ll = 0; ll < all_e_values.MinorDim(); ll++)
+
+							/* set work space */
+							part_e_man.Dimension(element_map.Length(), all_e_values.MinorDim());
+
+							/* block ID's in the set */
+							const iArrayT& block_ID = output_set.BlockID();
+							
+							/* read data by block - one block after the next */
+							int row_offset = 0;
+							for (int l = 0; l < block_ID.Length(); l++)
 							{
-								/* read value */
-								exo.ReadElementVariable(j+1, i+1, ll+1, e_value);
-						
-								/* write into table */
-								part_e_values.SetColumn(ll, e_value);
+								/* block name */
+								StringT block_name;
+								block_name.Append(block_ID[l]);
+								
+								/* block index */
+								int block_index = results.ElementGroupIndex(block_name);
+								
+								/* block dimensions */
+								int nel, nen;
+								results.ElementGroupDimensions(block_index, nel, nen);
+							
+								/* alias */
+								dArray2DT block_values(nel, all_e_values.MinorDim(), all_e_values(row_offset));
+								row_offset += nel;
+								
+								/* read variables */
+								results.ElementVariables(j, block_name, block_values);
 							}
-						
+							
 							/* assemble */
 							all_e_values.Assemble(element_map, part_e_values);
 						}
-					}
-					else if (false) // skip
-					{
-						if (j == 0)
-							cout << " JoinOutputT::Join: skipping: "
-							     << exo_file << endl;
 					}
 				}
 
@@ -232,97 +244,76 @@ void JoinOutputT::Join(void)
 /* set output */
 void JoinOutputT::SetOutput(void)
 {
-	if (fFileType != IOBaseT::kExodusII) throw eGeneralFail;
-
 	/* construct I/O */
 	StringT program_name("tahoe");
 	StringT nothing("none");
-	fIO = new IOManager(cout, program_name, nothing, nothing, fJobFile, fFileType);
+	fIO = new IOManager(cout, program_name, nothing, nothing, fJobFile, fResultsFileType);
 	if (!fIO) throw eOutOfMemory;
-
-//TEMP - for now need a global io file, but in the future, should
-//       assemble the global geometry from the partitioned output
-
-	/* global output file */
-	ExodusT global_model(cout);
-	if (!global_model.OpenRead(fGlobalModelFile))
-	{
-		cout << "\n JoinOutputT::SetOutput: could not open file: " << fGlobalModelFile << endl;
-		throw eGeneralFail;
-	}
 	
-	/* read coordinates */
-	fCoordinates.Allocate(global_model.NumNodes(), global_model.NumDimensions());
-	global_model.ReadCoordinates(fCoordinates);
-	fIO->SetCoordinates(fCoordinates, NULL);
+	/* set coordinates */
+	fIO->SetCoordinates(fModel->Coordinates(), NULL);
 	
 	/* block ID's in io groups */
 	StringT io_file;
 	io_file.Root(fJobFile);
 	io_file.Append(".io.ID");
 	ifstreamT io('#', io_file);
-	bool have_IO_ID = io.is_open();
+	if (!io.is_open()) {
+		cout << "\n JoinOutputT::SetOutput: error opening: \"" << io_file << "\"\n"
+		     <<   "     file lists the element block ID's in each output ID:\n"
+		     <<   "        [output ID] [num blocks] [list of block ID's]" << endl;
+		throw eGeneralFail;
+	}
 
-	/* register output sets */
-	iArrayT element_ID(global_model.NumElementBlocks());
-	global_model.ElementBlockID(element_ID);
-	fConnects.Allocate(element_ID.Length());
-	for (int i = 0; i < element_ID.Length(); i++)
-	{	
-		/* read group data */
-		int num_elems;
-		int num_elem_nodes;
-		global_model.ReadElementBlockDims(i+1, num_elems, num_elem_nodes);
-		fConnects[i].Allocate(num_elems, num_elem_nodes);
-
-		GeometryT::CodeT geometry_code;
-		global_model.ReadConnectivities(i+1, geometry_code, fConnects[i]);
-		fConnects[i]--;
+	/* construct output sets for each ID */
+	int ID, count = 0;
+	io >> ID;
+	while (io.good())
+	{
+		int num_ID = -99;
+		io >> num_ID;
+		iArrayT block_ID(num_ID);
+		io >> block_ID;
 	
 		/* get output labels */
 		ArrayT<StringT> n_labels;
 		ArrayT<StringT> e_labels;
-		OutputLabels(i, n_labels, e_labels);
+		OutputLabels(ID, n_labels, e_labels);
 		
-		/* block ID's */
-		iArrayT block_ID;
-		if (have_IO_ID)
+		/* collect element blocks */
+		GeometryT::CodeT geometry_code;
+		ArrayT<const iArray2DT*> connects_list(block_ID.Length());
+		for (int i = 0; i < block_ID.Length(); i++)
 		{
-			int ID; 
-			io >> ID;
+			/* block ID as string */
+			StringT block_name;
+			block_name.Append(block_ID[i]);
 			
-			/* unexpected output ID */
-			if (ID != i)
-			{
-				if (e_labels.Length() > 0)
-					cout << "\n JoinOutputT::SetOutput: output ID " << ID << " from \"" << io_file 
-					     << "\" does not match " << i << '\n' << "     Cannot join element output" 
-					     << endl;
-				
-				/* clear line */
-				io.clear_line();
+			/* element group index */
+			int index = fModel->ElementGroupIndex(block_name);
+			if (index < 0) {
+				cout << "\n JoinOutputT::SetOutput: error trying to read element block ID " 
+				     << block_ID[i] << endl;
+				throw eDatabaseFail;
 			}
-			/* read block ID list */
-			else
-			{
-				int num_ID = -99;
-				io >> num_ID;
-				block_ID.Allocate(num_ID);
-				io >> block_ID;
-			}
+			
+			/* geometry code */
+			geometry_code = fModel->ElementGroupGeometry(index);
+			
+			/* load element group */
+			 const iArray2DT& connects = fModel->ElementGroup(index);
+			 connects_list[i] = &connects;
 		}
-		else if (e_labels.Length() > 0)
-			cout << "\n JoinOutputT::SetOutput: no file of block ID per output ID: \"" << io_file 
-			     << "\"\n" << "     Cannot join element output" << endl;
 
 		/* construct output set */
 		bool changing = false; // changing geometry not supported
-		ArrayT<const iArray2DT*> connects_list(1);
-		connects_list[0] = &fConnects[i];
-		OutputSetT output_set(i+1, geometry_code, block_ID, connects_list, n_labels, e_labels, changing);
+		OutputSetT output_set(++count, geometry_code, block_ID, connects_list, n_labels, e_labels, changing);
 	
 		/* register */
 		fIO->AddElementSet(output_set);
+	
+		/* next block */
+		io >> ID;
 	}
 }
 
@@ -472,7 +463,7 @@ void JoinOutputT::SetMaps(void)
 void JoinOutputT::SetNodePartitionMap(iArrayT& node_partition)
 {
 	/* initialize */
-	node_partition.Allocate(fCoordinates.MajorDim());
+	node_partition.Allocate(fModel->NumNodes());
 	node_partition = -1;
 	
 	for (int i = 0; i < fPartitions.Length(); i++)
@@ -579,11 +570,11 @@ void JoinOutputT::ResultFileName(int part, int group, StringT& name) const
 	name.Append(".io", group);
 	
 	/* file format extension */
-	if (fFileType == IOBaseT::kExodusII)
+	if (fResultsFileType == IOBaseT::kExodusII)
 		name.Append(".exo");
 	else
 		cout << "\n JoinOutputT::ResultFileName: no extension added for file type "
-		     << fFileType << endl;
+		     << fResultsFileType << endl;
 	
 	//NOTE: not handling multiple time sequences ".sq" or changing
 	//      geometry groups ".ps"
@@ -611,22 +602,30 @@ int JoinOutputT::NumOutputSteps(int group) const
 /* retrieve output labels */
 void JoinOutputT::OutputLabels(int group, ArrayT<StringT>& node_labels,
 	ArrayT<StringT>& element_labels) const
-{
-	/* database  */
-	ExodusT exo(cout);
-	StringT filename;
-	
+{	
 	/* some partitions could be missing */
 	bool found_file = false;
 	for (int i = 0; i < fPartitions.Length() && !found_file; i++)
 	{
 		/* generate file name */
+		StringT filename;
 		ResultFileName(i, group, filename);
-		if (exo.OpenRead(filename))
+		
+		/* check if found */
+		if (fstreamT::Exists(filename))
 		{
+			/* database  */
+			ModelManagerT model(cout);
+			if (!model.Initialize(fModel->DatabaseFormat(), filename)) {
+				cout << "\n JoinOutputT::OutputLabels: error opening database file \""
+				     << fModel->DatabaseName() << '\"' << endl;
+				throw eDatabaseFail;
+			}
+		
+			/* read labels */
 			found_file = true;
-			exo.ReadNodeLabels(node_labels);
-			exo.ReadElementLabels(element_labels);
+			model.NodeLabels(node_labels);
+			model.ElementLabels(element_labels);		
 		}
 	}
 }
