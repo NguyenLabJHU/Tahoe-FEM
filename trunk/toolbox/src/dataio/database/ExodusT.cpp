@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.2 2001-01-29 19:48:21 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -356,7 +356,7 @@ void ExodusT::WriteConnectivities(int block_ID, GeometryT::CodeT code,
 	    		tempconn (i,j) = connects (i,j);
 	}
 	else
-		tempconn.ShallowCopy(connects);
+		tempconn.Alias(connects);
 	
 	/* write element block attributes */
 	int num_attr = 0; // set to zero for now
