@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.13 2001-07-03 01:34:49 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.14 2001-07-11 01:02:14 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -500,8 +500,10 @@ void SolidElementT::SetLocalArrays(void)
 void SolidElementT::SetShape(void)
 {
 	/* construct shape functions */
+	ShapeFunctionT::StrainOptionT strain_opt = (fStrainDispOpt == 0) ? 
+		ShapeFunctionT::kStandardB : ShapeFunctionT::kMeanDilBbar;
 	fShapes = new ShapeFunctionT(fGeometryCode, fNumIP,
-		fLocInitCoords, fStrainDispOpt);
+		fLocInitCoords, strain_opt);
 	if (!fShapes) throw eOutOfMemory;
 
 	/* initialize */
