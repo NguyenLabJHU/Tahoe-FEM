@@ -1,15 +1,12 @@
-/* $Id: GlobalT.cpp,v 1.8 2003-06-09 07:01:17 paklein Exp $ */
+/* $Id: GlobalT.cpp,v 1.9 2005-03-11 20:37:19 paklein Exp $ */
 /* created: paklein (04/01/2000) */
-
 #include "GlobalT.h"
-#include <iostream.h>
 #include "ExceptionT.h"
-
 
 using namespace Tahoe;
 
+#if 0
 namespace Tahoe {
-
 istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 {
 	int i_code;
@@ -94,8 +91,8 @@ istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 	}
 	return in;
 }
-
 }
+#endif
 
 /* returns flag with precedence */
 GlobalT::RelaxCodeT GlobalT::MaxPrecedence(GlobalT::RelaxCodeT code1,
@@ -115,10 +112,21 @@ GlobalT::RelaxCodeT GlobalT::MaxPrecedence(GlobalT::RelaxCodeT code1,
 	else if (code1 == kNoRelax && code2 == kNoRelax)
 		result = kNoRelax;
 	else
-	{
-		cout << "\n GlobalT::MaxPrecedence: unexpected combination" << endl;	
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("GlobalT::MaxPrecedence", "not expecting %d and %d",
+			code1, code2);
 
 	return result;
+}
+
+GlobalT::LoggingT GlobalT::int2LoggingT(int i)
+{
+	if (i == kVerbose)
+		return kVerbose;
+	else if (i == kModerate)
+		return kModerate;
+	else if (i == kSilent)
+		return kSilent;
+	else
+		ExceptionT::GeneralFail("GlobalT::int2LoggingT", "could not translate %d", i);
+	return kModerate;
 }
