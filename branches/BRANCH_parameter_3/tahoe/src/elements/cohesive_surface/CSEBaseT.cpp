@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.31.4.1 2004-04-08 07:32:24 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.31.4.2 2004-04-08 15:58:21 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -595,6 +595,10 @@ void CSEBaseT::TakeParameterList(const ParameterListT& list)
 				int do_write = *nodal_value;
 				if (do_write == 1)
 					fNodalOutputCodes[i] = 1;
+				else if (i == NodalTraction && do_write == 2) {
+					fNodalOutputCodes[i] = 1;
+					fOutputGlobalTractions = true;
+				}
 			}
 		}
 
