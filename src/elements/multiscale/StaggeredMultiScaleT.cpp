@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.10 2002-12-05 22:12:09 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.11 2002-12-05 23:37:25 paklein Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -159,7 +159,7 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 	//cout << "############### In RHS Driver ############### \n";
 
 	/** Time Step Increment */
-	double delta_t = 0.01;
+	double delta_t = ElementSupport().TimeStep();
 	iArrayT fine_eq;
 
 	/* loop over elements */
