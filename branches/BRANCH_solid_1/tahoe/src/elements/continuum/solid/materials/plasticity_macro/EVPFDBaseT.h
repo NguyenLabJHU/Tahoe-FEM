@@ -52,6 +52,10 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
   virtual void Print(ostream& out) const;
 
  protected:
+
+	/* set (material) tangent modulus */
+	virtual void SetModulus(dMatrixT& modulus);
+
   // print name
   virtual void PrintName(ostream& out) const;
 

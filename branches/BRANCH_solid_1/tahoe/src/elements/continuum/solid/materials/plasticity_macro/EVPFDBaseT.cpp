@@ -92,6 +92,12 @@ void EVPFDBaseT::Print(ostream& out) const
   fSolver->Print(out);
 }
 
+/* set (material) tangent modulus */
+void EVPFDBaseT::SetModulus(dMatrixT& modulus)
+{
+	IsotropicT::ComputeModuli(modulus);
+}
+
 void EVPFDBaseT::PrintName(ostream& out) const
 {
   // inherited

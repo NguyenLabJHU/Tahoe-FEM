@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: DPSSKStV2D.cpp,v 1.1.1.1.2.1 2001-06-06 16:25:28 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 #include "DPSSKStV2D.h"
@@ -13,18 +13,19 @@ DPSSKStV2D::DPSSKStV2D(ifstreamT& in, const ElasticT& element):
 	fModulus2D(dSymMatrixT::NumValues(2)),
 	fTotalStrain3D(3)
 {
-
+	/* account for thickness */
+	fDensity *= fThickness;
 }
 
 /* returns elastic strain (3D) */
 const dSymMatrixT& DPSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain,
 	const ElementCardT& element, int ip)
 {
-/* 2D -> 3D (plane strain) */
-fTotalStrain3D.ExpandFrom2D(totalstrain);
+	/* 2D -> 3D (plane strain) */
+	fTotalStrain3D.ExpandFrom2D(totalstrain);
 
-/* inherited */
-return DPSSKStV::ElasticStrain(fTotalStrain3D, element, ip);
+	/* inherited */
+	return DPSSKStV::ElasticStrain(fTotalStrain3D, element, ip);
 }
 
 /* print parameters */
@@ -66,7 +67,3 @@ double DPSSKStV2D::StrainEnergyDensity(void)
 {
 	return fThickness*DPSSKStV::StrainEnergyDensity();
 }
-
-/***********************************************************************
-* Protected
-***********************************************************************/
