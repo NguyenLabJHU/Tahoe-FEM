@@ -1,14 +1,18 @@
-/* $Id: J2Simo2D.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.2 2001-05-05 19:28:34 paklein Exp $ */
 /* created: paklein (06/22/1997)                                          */
 
 #include "J2Simo2D.h"
 #include "ElasticT.h"
 #include "ElementCardT.h"
 
+/* constants */
+const double sqrt23 = sqrt(2.0/3.0);
+
 /* constructor */
 J2Simo2D::J2Simo2D(ifstreamT& in, const ElasticT& element):
 	SimoIso2D(in, element),
-	J2SimoLinHardT(in, NumIP(), Mu()),
+//	J2SimoLinHardT(in, NumIP(), Mu()),
+	J2SimoC0HardeningT(in, NumIP(), Mu()),
 	fLocLastDisp(element.LastDisplacements()),
 	fRelDisp(LocalArrayT::kDisp, fLocLastDisp.NumberOfNodes(), fLocLastDisp.MinorDim()),
 	fFtot(3),
@@ -53,8 +57,8 @@ void J2Simo2D::Print(ostream& out) const
 {
 	/* inherited */
 	SimoIso2D::Print(out);
-	Material2DT::Print(out);
-	J2SimoLinHardT::Print(out);
+//	J2SimoLinHardT::Print(out);
+	J2SimoC0HardeningT::Print(out);
 }
 
 /* modulus */
@@ -68,7 +72,7 @@ const dMatrixT& J2Simo2D::c_ijkl(void)
 
 	/* compute isochoric elastic stretch */
 	double J = fFtot.Det();
-	const dSymMatrixT& b_els = ElasticStretch(fFtot, ffrel, element, ip);
+	const dSymMatrixT& b_els = TrialElasticState(fFtot, ffrel, element, ip);
 	
 	/* 3D elastic stress */
 	ComputeModuli(J, b_els, fModulus);
@@ -94,7 +98,7 @@ const dSymMatrixT& J2Simo2D::s_ij(void)
 
 	/* compute isochoric elastic stretch */
 	double J = fFtot.Det();
-	const dSymMatrixT& b_els = ElasticStretch(fFtot, ffrel, element, ip);
+	const dSymMatrixT& b_els = TrialElasticState(fFtot, ffrel, element, ip);
 	
 	/* 3D elastic stress */
 	ComputeCauchy(J, b_els, fStress);
@@ -117,7 +121,7 @@ double J2Simo2D::StrainEnergyDensity(void)
 
 	/* compute isochoric elastic stretch */
 	double J = fFtot.Det();
-	const dSymMatrixT& b_els = ElasticStretch(fFtot, ffrel,
+	const dSymMatrixT& b_els = TrialElasticState(fFtot, ffrel,
 		CurrentElement(), CurrIP());
 
 	return fThickness*ComputeEnergy(J, b_els);
@@ -125,6 +129,51 @@ double J2Simo2D::StrainEnergyDensity(void)
 
 /* required parameter flags */
 bool J2Simo2D::NeedLastDisp(void) const { return true; }
+
+/** returns the number of output variables */
+int J2Simo2D::NumOutputVariables(void) const { return 4; }
+
+/** returns labels for output variables */
+void J2Simo2D::OutputLabels(ArrayT<StringT>& labels) const
+{
+	/* set labels */
+	labels.Allocate(4);
+	labels[0] = "alpha";
+	labels[1] = "norm_beta";
+	labels[2] = "VM_Kirch";
+	labels[3] = "press";
+}
+
+/** compute output variables */
+void J2Simo2D::ComputeOutput(dArrayT& output)
+{
+	/* check */
+	if (output.Length() < 4) {
+		cout << "\n J2Simo2D::ComputeOutput: expecting 4 output variables: " 
+		     << output.Length() << endl;
+		throw eGeneralFail;
+	}
+
+	/* state variable data */
+	bool has_internal = CurrentElement().IsAllocated();
+	output[0] = (has_internal) ? fInternal[kalpha] : 0.0;
+	output[1] = (has_internal) ? sqrt(fbeta_bar.ScalarProduct()) : 0.0;
+	
+	/* compute Cauchy stress (load state variables) */
+	s_ij();
+	dSymMatrixT stress = fStress;
+	
+	/* pressure */
+	output[3] = stress.Trace()/3.0;
+
+	/* Cauchy -> relative stress = dev[Kirchhoff] - beta */
+	stress *= fFtot.Det();
+	stress.Deviatoric();
+	if (has_internal) stress -= fbeta_bar;
+
+	/* ||dev[t]|| */
+	output[2] = sqrt(stress.ScalarProduct())/sqrt23;
+}
 
 /***********************************************************************
 * Protected
@@ -135,7 +184,8 @@ void J2Simo2D::PrintName(ostream& out) const
 {
 	/* inherited */
 	SimoIso2D::PrintName(out);
-	J2SimoLinHardT::PrintName(out);
+//	J2SimoLinHardT::PrintName(out);
+	J2SimoC0HardeningT::PrintName(out);
 }
 
 /***********************************************************************

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-05-01 23:24:52 paklein Exp $
+# $Id: makefile,v 1.6 2001-05-05 19:28:34 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -14,7 +14,9 @@ OBJ = \
 	J2Simo3D.o \
 	J2SSKStV.o \
 	J2SSKStV2D.o \
-	J2SSLinHardT.o
+	J2SSLinHardT.o \
+	J2SimoC0HardeningT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -31,7 +33,8 @@ SRC = \
 	J2Simo3D.cpp \
 	J2SSKStV.cpp \
 	J2SSKStV2D.cpp \
-	J2SSLinHardT.cpp
+	J2SSLinHardT.cpp \
+	J2SimoC0HardeningT.cpp
 
 # headers
 HDR = \
@@ -43,7 +46,9 @@ HDR = \
 	J2Simo3D.h \
 	J2SSKStV.h \
 	J2SSKStV2D.h \
-	J2SSLinHardT.h
+	J2SSLinHardT.h \
+	J2SimoC0HardeningT.h \
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories

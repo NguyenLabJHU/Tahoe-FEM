@@ -1,14 +1,18 @@
-/* $Id: J2Simo3D.cpp,v 1.1 2001-05-01 23:24:51 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.2 2001-05-05 19:28:34 paklein Exp $ */
 /* created: paklein (06/22/1997)                                          */
 
 #include "J2Simo3D.h"
 #include "ElasticT.h"
 #include "ElementCardT.h"
 
+/* constants */
+const double sqrt23 = sqrt(2.0/3.0);
+
 /* constructor */
 J2Simo3D::J2Simo3D(ifstreamT& in, const ElasticT& element):
 	SimoIso3D(in, element),
-	J2SimoLinHardT(in, NumIP(), Mu()),
+//	J2SimoLinHardT(in, NumIP(), Mu()),
+	J2SimoC0HardeningT(in, NumIP(), Mu()),
 	fLocLastDisp(element.LastDisplacements()),
 	fRelDisp(LocalArrayT::kDisp, fLocLastDisp.NumberOfNodes(), fLocLastDisp.MinorDim()),
 	fFtot(3),
@@ -22,6 +26,19 @@ J2Simo3D::J2Simo3D(ifstreamT& in, const ElasticT& element):
 		cout << "\n J2Simo3D::J2Simo3D: last local displacement vector is invalid" << endl;
 		throw eGeneralFail;
 	}
+
+// with J2 from J2SimoLinHardT
+#if 0
+//TEMP - Kinematic hardening is not working correctly. The
+//       stress state after a return map does not satisfy
+//       the consistency condition, and therefore, all other
+//       calculated values cannot be verified.
+if (J2PrimitiveT::ftheta != 1.0) {
+	cout << "\n J2Simo3D::J2Simo3D: kinematic hardening is not working correctly.\n" 
+	     <<   "     Use pure isotropic hardening, i.e., theta = 1.0: " 
+	     << J2PrimitiveT::ftheta << endl;
+	throw eBadInputValue; }
+#endif
 }
 
 /* form of tangent matrix (symmetric by default) */
@@ -51,7 +68,8 @@ void J2Simo3D::Print(ostream& out) const
 {
 	/* inherited */
 	SimoIso3D::Print(out);
-	J2SimoLinHardT::Print(out);
+//	J2SimoLinHardT::Print(out);
+	J2SimoC0HardeningT::Print(out);
 }
 
 /* modulus */
@@ -65,7 +83,7 @@ const dMatrixT& J2Simo3D::c_ijkl(void)
 
 	/* compute isochoric elastic stretch */
 	double J = fFtot.Det();
-	const dSymMatrixT& b_els = ElasticStretch(fFtot, ffrel, element, ip);
+	const dSymMatrixT& b_els = TrialElasticState(fFtot, ffrel, element, ip);
 	
 	/* elastic tangent modulus */
 	ComputeModuli(J, b_els, fModulus);
@@ -87,7 +105,7 @@ const dSymMatrixT& J2Simo3D::s_ij(void)
 
 	/* compute isochoric elastic stretch */
 	double J = fFtot.Det();
-	const dSymMatrixT& b_els = ElasticStretch(fFtot, ffrel, element, ip);
+	const dSymMatrixT& b_els = TrialElasticState(fFtot, ffrel, element, ip);
 	
 	/* elastic stress */
 	ComputeCauchy(J, b_els, fStress);
@@ -106,7 +124,7 @@ double J2Simo3D::StrainEnergyDensity(void)
 
 	/* compute isochoric elastic stretch */
 	double J = fFtot.Det();
-	const dSymMatrixT& b_els = ElasticStretch(fFtot, ffrel,
+	const dSymMatrixT& b_els = TrialElasticState(fFtot, ffrel,
 		CurrentElement(), CurrIP());
 
 	return ComputeEnergy(J, b_els);
@@ -114,6 +132,50 @@ double J2Simo3D::StrainEnergyDensity(void)
 
 /* required parameter flags */
 bool J2Simo3D::NeedLastDisp(void) const { return true; }
+
+/** returns the number of output variables */
+int J2Simo3D::NumOutputVariables(void) const { return 4; }
+
+/** returns labels for output variables */
+void J2Simo3D::OutputLabels(ArrayT<StringT>& labels) const
+{
+	/* set labels */
+	labels.Allocate(4);
+	labels[0] = "alpha";
+	labels[1] = "norm_beta";
+	labels[2] = "VM_Kirch";
+	labels[3] = "press";
+}
+
+/** compute output variables */
+void J2Simo3D::ComputeOutput(dArrayT& output)
+{
+	/* check */
+	if (output.Length() < 4) {
+		cout << "\n J2Simo3D::ComputeOutput: expecting 4 output variables: " 
+		     << output.Length() << endl;
+		throw eGeneralFail;
+	}
+
+	/* state variable data */
+	bool has_internal = CurrentElement().IsAllocated();
+	output[0] = (has_internal) ? fInternal[kalpha] : 0.0;
+	output[1] = (has_internal) ? sqrt(fbeta_bar.ScalarProduct()) : 0.0;
+	
+	/* compute Cauchy stress (load state variables) */
+	dSymMatrixT stress = s_ij();
+	
+	/* pressure */
+	output[3] = stress.Trace()/3.0;
+
+	/* Cauchy -> relative stress = dev[Kirchhoff] - beta */
+	stress *= fFtot.Det();
+	stress.Deviatoric();
+	if (has_internal) stress -= fbeta_bar;
+
+	/* ||dev[t]|| */
+	output[2] = sqrt(stress.ScalarProduct())/sqrt23;
+}
 
 /***********************************************************************
 * Protected
@@ -124,7 +186,8 @@ void J2Simo3D::PrintName(ostream& out) const
 {
 	/* inherited */
 	SimoIso3D::PrintName(out);
-	J2SimoLinHardT::PrintName(out);
+//	J2SimoLinHardT::PrintName(out);
+	J2SimoC0HardeningT::PrintName(out);
 }
 
 /***********************************************************************
