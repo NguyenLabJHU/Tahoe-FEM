@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.1.1.1.4.3 2001-06-19 18:27:48 paklein Exp $ */
+/* $Id: MLSSolverT.h,v 1.1.1.1.4.4 2001-06-19 20:24:11 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 /* base class for moving least squares, interpolants                      */
 
@@ -221,7 +221,9 @@ inline WindowT::SearchTypeT MLSSolverT::SearchType(void) const
 
 /* modify nodal shape function parameters */
 inline void MLSSolverT::ModifyNodalParameters(dArray2DT& nodal_params) const
-{ return fWindow->ModifyNodalParameters(nodal_params); };
+{
+	fWindow->ModifyNodalParameters(nodal_params); 
+};
 
 /* return field value and derivatives */
 inline const dArrayT& MLSSolverT::phi(void) const { return fphi; }
