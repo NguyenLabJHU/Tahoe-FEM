@@ -1,4 +1,4 @@
-/* $Id: PolyBasis1DT.h,v 1.4 2004-11-03 01:21:01 raregue Exp $ */
+/* $Id: PolyBasis1DT.h,v 1.5 2004-11-03 16:09:48 raregue Exp $ */
 /* created: paklein (12/11/1999)                                          */
 /* base class for basis functions                                         */
 

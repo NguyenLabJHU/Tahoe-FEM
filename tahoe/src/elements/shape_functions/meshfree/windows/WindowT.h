@@ -1,4 +1,4 @@
-/* $Id: WindowT.h,v 1.13 2004-11-03 01:21:07 raregue Exp $ */
+/* $Id: WindowT.h,v 1.14 2004-11-03 16:09:54 raregue Exp $ */
 #ifndef _WINDOW_T_H_
 #define _WINDOW_T_H_
 

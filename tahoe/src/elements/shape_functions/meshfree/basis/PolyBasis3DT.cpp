@@ -1,4 +1,4 @@
-/* $Id: PolyBasis3DT.cpp,v 1.6 2004-11-03 01:21:01 raregue Exp $ */
+/* $Id: PolyBasis3DT.cpp,v 1.7 2004-11-03 16:09:48 raregue Exp $ */
 /* created: paklein (04/19/2000)                                          */
 
 #include "PolyBasis3DT.h"
@@ -29,7 +29,7 @@ int PolyBasis3DT::BasisDimension(void) const
 		case 2:
 			return 10;
 		case 3:
-			return 10; //???
+			return 10; 
 		default:
 			throw ExceptionT::kOutOfRange;
 	}

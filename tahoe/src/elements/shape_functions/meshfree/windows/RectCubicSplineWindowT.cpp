@@ -1,4 +1,4 @@
-/* $Id: RectCubicSplineWindowT.cpp,v 1.13 2004-11-03 01:21:07 raregue Exp $ */
+/* $Id: RectCubicSplineWindowT.cpp,v 1.14 2004-11-03 16:09:54 raregue Exp $ */
 #include "RectCubicSplineWindowT.h"
 #include "ExceptionT.h"
 #include <math.h>
