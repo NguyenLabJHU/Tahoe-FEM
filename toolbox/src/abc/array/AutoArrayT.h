@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.6 2002-02-18 08:48:39 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.7 2002-02-20 09:35:40 paklein Exp $ */
 /* created: paklein (12/05/1997)                                          */
 /* Array that automatically increases its dimensions when                 */
 /* elements are inserted using Append() or AppendUnique.                  */
@@ -95,10 +95,16 @@ public:
 	bool Next(void);          // just increment internal counter
 	bool InRange(void) const; // returns list status without incrementing
 
-	/* returns the current position in the list */
+	/** returns the current position in the list */
 	const int& Position(void) const;
-	TYPE& Current(void) const;
 
+	/** returns a reference to the current element in the list */
+	TYPE& Current(void) const;
+	
+	/** set the position of the current pointer in the list and return a reference
+	 * to the element in that position */
+	TYPE& Current(int position);
+	
 	/* stack-like operations */
 	void Push(const TYPE& value);
 	void Pop(void);
@@ -535,6 +541,22 @@ inline TYPE& AutoArrayT<TYPE>::Current(void) const
 		throw eOutOfRange;
 	}
 #endif
+	return *(fArray + fCurrElement);
+}
+
+template <class TYPE>
+inline TYPE& AutoArrayT<TYPE>::Current(int position)
+{
+#if __option(extended_errorcheck)
+	/* range check */
+	if (position < 0 || position >= fLength) 
+	{
+		cout << "\n AutoArrayT<TYPE>::Current: position is out of range: "
+		     << fCurrElement << endl;
+		throw eOutOfRange;
+	}
+#endif
+	fCurrElement = position;
 	return *(fArray + fCurrElement);
 }
 
