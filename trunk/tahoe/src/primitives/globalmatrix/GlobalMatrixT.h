@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.12 2003-10-31 20:53:14 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.13 2003-11-01 16:09:24 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #ifndef _GLOBAL_MATRIX_H_
 #define _GLOBAL_MATRIX_H_
@@ -12,6 +12,7 @@ namespace Tahoe {
 /* forward declarations */
 class dMatrixT;
 class ElementMatrixT;
+template <class TYPE> class ArrayT;
 template <class nTYPE> class nArrayT;
 class dArrayT;
 class iArray2DT;
