@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.65 2003-11-21 22:47:52 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.66 2003-12-01 23:52:28 cjkimme Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -234,7 +234,6 @@ void FEManagerT::Solve(void)
 					/* nothing to do */
 					break;
 
-				case ExceptionT::kGeneralFail:
 				case ExceptionT::kBadJacobianDet:
 				{
 					cout << '\n' << caller << ": trying to recover from error: " << ExceptionT::ToString(error) << endl;
@@ -791,19 +790,42 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 			io.open_append(io_file);
 
 		/* set mode */
-		if (output_set.Mode() == OutputSetT::kElementBlock) {	
-			/* write block ID information */
-			const ArrayT<StringT>& block_ID = output_set.BlockID();
-			io << ID << " " << block_ID.Length();
-			for (int i = 0; i < block_ID.Length(); i++)
-				io << " " << block_ID[i];
-			io << '\n';
+		switch (output_set.Mode())
+		{
+			case  OutputSetT::kElementBlock: 
+			{	
+				/* write block ID information */
+				const ArrayT<StringT>& block_ID = output_set.BlockID();
+				io << ID << " " << block_ID.Length();
+				for (int i = 0; i < block_ID.Length(); i++)
+					io << " " << block_ID[i];
+				io << '\n';
+				
+				break;
+			}
+			case OutputSetT::kFreeSet: 
+			{
+				/* no ID's for free sets */
+				io << ID << " 0\n";
+				
+				break;
+			}
+			case OutputSetT::kElementFromSideSet:
+			{
+				/* write block ID information */
+				const ArrayT<StringT>& block_ID = output_set.BlockID();
+				io << ID << " " << block_ID.Length();
+				for (int i = 0; i < block_ID.Length(); i++)
+					io << " " << block_ID[i];
+				io << '\n';
+				
+				break;
+			}
+			default:
+			{
+				ExceptionT::GeneralFail("FEManagerT::RegisterOutput", "unrecognized output set mode: %d", output_set.Mode());
+			}
 		}
-		else if (output_set.Mode() == OutputSetT::kFreeSet) {
-			/* no ID's for free sets */
-			io << ID << " 0\n";
-		}
-		else ExceptionT::GeneralFail("FEManagerT::RegisterOutput", "unrecognized output set mode: %d", output_set.Mode());
 	}
 	
 	return ID;
