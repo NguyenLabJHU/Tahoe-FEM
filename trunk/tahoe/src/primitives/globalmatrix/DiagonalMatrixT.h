@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.h,v 1.14 2004-10-04 18:40:51 paklein Exp $ */
+/* $Id: DiagonalMatrixT.h,v 1.15 2005-01-07 21:22:49 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _DIAGONAL_MATRIX_H_
@@ -71,8 +71,8 @@ public:
 	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kDiagonal; };
 
 	/** assignment operator */
-	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);
-	
+	DiagonalMatrixT& operator=(const DiagonalMatrixT& rhs);
+
 	/** return a clone of self. Caller is responsible for disposing of the matrix */
 	virtual GlobalMatrixT* Clone(void) const;
 

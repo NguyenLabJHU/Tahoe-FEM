@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.18 2004-10-04 18:40:51 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.19 2005-01-07 21:22:49 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "DiagonalMatrixT.h"
 #include <iostream.h>
@@ -205,22 +205,17 @@ GlobalMatrixT::EquationNumberScopeT DiagonalMatrixT::EquationNumberScope(void) c
 bool DiagonalMatrixT::RenumberEquations(void) const { return false; }
 
 /* assignment operator */
-GlobalMatrixT& DiagonalMatrixT::operator=(const GlobalMatrixT& rhs)
+DiagonalMatrixT& DiagonalMatrixT::operator=(const DiagonalMatrixT& rhs)
 {
-	const char caller[] = "DiagonalMatrixT::operator=";
+	/* no copies of self */
+	if (this == &rhs) return *this;
 
 	/* inherited */
 	GlobalMatrixT::operator=(rhs);
 
-#ifdef __NO_RTTI__
-	ExceptionT::GeneralFail(caller, "requires RTTI");
-#endif
-
-	const DiagonalMatrixT* dmat = TB_DYNAMIC_CAST(const DiagonalMatrixT*, &rhs);
-	if (!dmat) ExceptionT::GeneralFail(caller, "cast failed");
-	fMatrix = dmat->fMatrix;
-	fMode   = dmat->fMode;
-	fIsFactorized = dmat->fIsFactorized;
+	fMatrix = rhs.fMatrix;
+	fMode   = rhs.fMode;
+	fIsFactorized = rhs.fIsFactorized;
 
 	return *this;
 }

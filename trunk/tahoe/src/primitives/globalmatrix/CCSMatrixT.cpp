@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.24 2005-01-07 02:15:05 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.25 2005-01-07 21:22:49 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "CCSMatrixT.h"
 
@@ -389,61 +389,53 @@ int CCSMatrixT::HasNegativePivot(void) const
 	return 0;
 }
 
-/* assignment operator */
-GlobalMatrixT& CCSMatrixT::operator=(const GlobalMatrixT& rhs)
+/* deep copy operator */
+CCSMatrixT& CCSMatrixT::operator=(const CCSMatrixT& rhs)
 {
-#ifdef __NO_RTTI__
-	cout << "\n CCSMatrixT::operator= : requires RTTI" << endl;
-	throw ExceptionT::kGeneralFail;
-#endif
-
-	const CCSMatrixT* ccs = TB_DYNAMIC_CAST(const CCSMatrixT*, &rhs);	
-	if (!ccs) ExceptionT::GeneralFail("CCSMatrixT::operator="," cast failed");
-
 	/* no copies of self */
-	if (this != ccs)
-	{
-		/* equation sets */
-		fEqnos = ccs->fEqnos;
-		fRaggedEqnos = ccs->fRaggedEqnos;
+	if (&rhs == this) return *this;
 	
-		/* sync memory */
-		if (!fDiags || fLocNumEQ != ccs->fLocNumEQ)
-		{
-			/* free existing */
-			delete[] fDiags;
-				
-			/* reallocate */
-			fLocNumEQ = ccs->fLocNumEQ;
-			fDiags = new int[fLocNumEQ];
-			if (!fDiags) throw ExceptionT::kOutOfMemory;
-		}
+	/* inherited */
+	int neq = fLocNumEQ;
+	GlobalMatrixT::operator=(rhs);
 
-		/* copy bytes */	
-		memcpy(fDiags, ccs->fDiags, sizeof(int)*fLocNumEQ);	
-	
-		/* sync memory */
-		if (!fMatrix || fNumberOfTerms != ccs->fNumberOfTerms)
-		{
-			/* free existing */
-			delete[] fMatrix;
-				
-			/* reallocate */
-			fNumberOfTerms = ccs->fNumberOfTerms;
-			fMatrix = new double[fNumberOfTerms];
-			if (!fMatrix) throw ExceptionT::kOutOfMemory;
-		}
-	
-		/* copy bytes */	
-		memcpy(fMatrix, ccs->fMatrix, sizeof(double)*fNumberOfTerms);
-		
-		/* copy flag */
-		fIsFactorized = ccs->fIsFactorized;
+	/* equation sets */
+	fEqnos = rhs.fEqnos;
+	fRaggedEqnos = rhs.fRaggedEqnos;
+
+	/* sync memory */
+	if (!fDiags || neq != fLocNumEQ)
+	{
+		/* free existing */
+		delete[] fDiags;
+			
+		/* reallocate */
+		iArrayT i_memory(fLocNumEQ);
+		i_memory.ReleasePointer(&fDiags);
 	}
 
-	/* inherited - do after since some dimensions are contained in
-	 * base class */
-	return GlobalMatrixT::operator=(*ccs);
+	/* copy bytes */	
+	memcpy(fDiags, rhs.fDiags, sizeof(int)*fLocNumEQ);	
+
+	/* sync memory */
+	if (!fMatrix || fNumberOfTerms != rhs.fNumberOfTerms)
+	{
+		/* free existing */
+		delete[] fMatrix;
+			
+		/* reallocate */
+		fNumberOfTerms = rhs.fNumberOfTerms;
+		dArrayT d_memory(fNumberOfTerms);
+		d_memory.ReleasePointer(&fMatrix);
+	}
+
+	/* copy bytes */	
+	memcpy(fMatrix, rhs.fMatrix, sizeof(double)*fNumberOfTerms);
+	
+	/* copy flag */
+	fIsFactorized = rhs.fIsFactorized;
+
+	return *this;
 }
 
 /* return a clone of self */
@@ -523,8 +515,8 @@ void CCSMatrixT::FindMinMaxPivot(double& min, double& max, double& abs_min,
 }
 
 /**************************************************************************
-* Protected
-**************************************************************************/
+ * Protected
+ **************************************************************************/
 
 /* element accessor */
 double CCSMatrixT::operator()(int row, int col) const

@@ -1,4 +1,4 @@
-/* $Id: SuperLU_DISTMatrixT.cpp,v 1.3 2004-03-21 17:03:37 paklein Exp $ */
+/* $Id: SuperLU_DISTMatrixT.cpp,v 1.4 2005-01-07 21:23:08 paklein Exp $ */
 #include "SuperLU_DISTMatrixT.h"
 
 /* library support options */
@@ -278,19 +278,15 @@ void SuperLU_DISTMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const 
 GlobalMatrixT::EquationNumberScopeT SuperLU_DISTMatrixT::EquationNumberScope(void) const { return kGlobal; }
 bool SuperLU_DISTMatrixT::RenumberEquations(void) const { return false; }
 
-GlobalMatrixT& SuperLU_DISTMatrixT::operator=(const GlobalMatrixT& rhs)
+SuperLU_DISTMatrixT& SuperLU_DISTMatrixT::operator=(const SuperLU_DISTMatrixT&)
 {
-#pragma unused(rhs)
 	ExceptionT::GeneralFail("SuperLU_DISTMatrixT::operator=", "not implemented");
 	return *this;
 }
 
 /* return a clone of self */
-GlobalMatrixT* SuperLU_DISTMatrixT::Clone(void) const
-{
-	/* not implemented */
-	ExceptionT::GeneralFail("SuperLU_DISTMatrixT::operator=", "not implemented");
-	return (GlobalMatrixT*) this;
+GlobalMatrixT* SuperLU_DISTMatrixT::Clone(void) const {
+	return new SuperLU_DISTMatrixT(*this);
 }
 
 /***********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.23 2005-01-07 02:15:05 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.24 2005-01-07 21:22:49 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -327,61 +327,51 @@ void CCNSMatrixT::FindMinMaxPivot(double& min, double& max, double& abs_min,
 }
 
 /* assignment operator */
-GlobalMatrixT& CCNSMatrixT::operator=(const GlobalMatrixT& rhs)
+CCNSMatrixT& CCNSMatrixT::operator=(const CCNSMatrixT& rhs)
 {
-	const char caller[] = "CCNSMatrixT::operator=";
-
-#ifdef __NO_RTTI__
-	ExceptionT::GeneralFail(caller, "requires RTTI");
-#endif
-
-	const CCNSMatrixT* ccns = TB_DYNAMIC_CAST(const CCNSMatrixT*, &rhs);
-	if (!ccns) ExceptionT::GeneralFail(caller, "cast failed");
-
 	/* no copies of self */
-	if (this != ccns) {
+	if (this == &rhs) return *this;
 	
-		/* equation sets */
-		fEqnos = ccns->fEqnos;
-		fRaggedEqnos = ccns->fRaggedEqnos;
-	
-		/* sync memory */
-		if (!famax || fLocNumEQ != ccns->fLocNumEQ) {
-			delete[] famax;
-			iArrayT i_memory;
-			i_memory.Dimension((ccns->fLocNumEQ)+1);
-			i_memory.ReleasePointer(&famax);
-		}
-		
-		if (!fu || fLocNumEQ != ccns->fLocNumEQ) {
-			delete[] fu;
-			dArrayT d_memory;
-			d_memory.Dimension(ccns->fLocNumEQ);
-			d_memory.ReleasePointer(&fu);		
-		}
-		
-		if (!fMatrix || fNumberOfTerms != ccns->fNumberOfTerms) {
-			delete[] fMatrix;
-			dArrayT d_memory;
-			d_memory.Dimension(ccns->fNumberOfTerms);
-			d_memory.ReleasePointer(&fMatrix);
-		}
+	/* inherited */
+	int neq = fLocNumEQ;
+	GlobalMatrixT::operator=(rhs);
 
-		/* dimensions */
-		fTotNumEQ = ccns->fTotNumEQ;
-		fLocNumEQ = ccns->fLocNumEQ;
-		fStartEQ = ccns->fStartEQ;
+	/* equation sets */
+	fEqnos = rhs.fEqnos;
+	fRaggedEqnos = rhs.fRaggedEqnos;
 
-		/* copy data */
-		memcpy(famax, ccns->famax, sizeof(int)*(fLocNumEQ+1));
-		memcpy(fu, ccns->fu, sizeof(double)*fLocNumEQ);
-		memcpy(fMatrix, ccns->fMatrix, sizeof(double)*fNumberOfTerms);
-
-		/* copy flag */
-		fIsFactorized = ccns->fIsFactorized;
+	/* sync memory */
+	if (!famax || neq != fLocNumEQ) {
+		delete[] famax;
+		iArrayT i_memory(fLocNumEQ+1);
+		i_memory.ReleasePointer(&famax);
+	}
+	if (!fu || neq != fLocNumEQ) {
+		delete[] fu;
+		dArrayT d_memory(fLocNumEQ);
+		d_memory.ReleasePointer(&fu);		
+	}
+	if (!fMatrix || fNumberOfTerms != rhs.fNumberOfTerms) {
+		fNumberOfTerms = rhs.fNumberOfTerms;	
+		delete[] fMatrix;
+		dArrayT d_memory(fNumberOfTerms);
+		d_memory.ReleasePointer(&fMatrix);
 	}
 
-	return GlobalMatrixT::operator=(*ccns);
+	/* copy data */
+	memcpy(famax, rhs.famax, sizeof(int)*(fLocNumEQ+1));
+	memcpy(fu, rhs.fu, sizeof(double)*fLocNumEQ);
+	memcpy(fMatrix, rhs.fMatrix, sizeof(double)*fNumberOfTerms);
+		
+	/* set pointers */
+	fKU = fMatrix;
+	fKL = fKU + famax[fLocNumEQ];
+	fKD = fKL + famax[fLocNumEQ];
+
+	/* copy flag */
+	fIsFactorized = rhs.fIsFactorized;
+
+	return *this;
 }
 
 /* return a clone of self. Caller is responsible for disposing of the matrix */

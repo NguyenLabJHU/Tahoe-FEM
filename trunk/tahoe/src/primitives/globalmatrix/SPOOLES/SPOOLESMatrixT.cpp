@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.23 2004-10-04 18:41:02 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.24 2005-01-07 21:23:02 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "SPOOLESMatrixT.h"
 
@@ -77,30 +77,16 @@ void SPOOLESMatrixT::Clear(void)
 }
 
 /* assignment operator */
-GlobalMatrixT& SPOOLESMatrixT::operator=(const GlobalMatrixT& rhs)
+SPOOLESMatrixT& SPOOLESMatrixT::operator=(const SPOOLESMatrixT&)
 {
 	const char caller[] = "SPOOLESMatrixT::operator=";
-
-	/* inherited */
-	MSRMatrixT::operator=(rhs);
-
-#ifdef __NO_RTTI__
-	ExceptionT::GeneralFail(caller, "requires RTTI");
-#endif
-
-	const SPOOLESMatrixT* sp = TB_DYNAMIC_CAST(const SPOOLESMatrixT*, &rhs);
-	if (!sp)  ExceptionT::GeneralFail(caller, "cast const SPOOLESMatrixT* failed");
-
 	ExceptionT::GeneralFail(caller, "not implemented");
-
 	return *this;
 }
 
 /** return a clone of self */
-GlobalMatrixT* SPOOLESMatrixT::Clone(void) const
-{
-	SPOOLESMatrixT* new_mat = new SPOOLESMatrixT(*this);
-	return new_mat;
+GlobalMatrixT* SPOOLESMatrixT::Clone(void) const {
+	return new SPOOLESMatrixT(*this);
 }
 
 /*************************************************************************
