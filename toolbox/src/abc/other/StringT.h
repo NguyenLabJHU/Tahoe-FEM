@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.10 2002-01-27 18:20:10 paklein Exp $ */
+/* $Id: StringT.h,v 1.11 2002-02-21 08:53:15 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #ifndef _STRING_T_H_
@@ -146,6 +146,13 @@ public:
 	 * \param value conversion of tail, returns 0 if key not found
 	 * \return true if key found, else returns false */
 	bool Tail(char key, int& value) const;
+
+	/** extract StringT. perform type conversion on the tail of the string
+	 * \param key last character before the start of the tail
+	 * \param value conversion of tail, returns 0 if key not found. String
+	 *        will not contain any leading or trailing white space
+	 * \return true if key found, else returns false */
+	bool Tail(char key, StringT& value) const;
 
 private:
 	
