@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.4.2.7 2003-06-17 23:43:14 hspark Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.4.2.8 2003-06-30 05:23:43 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -118,7 +118,7 @@ public:
 	/** calculate the fine scale part of MD solution as well as total displacement u.  Does not
 	  * write into the displacement field */
 	void BridgingFields(const StringT& field, NodeManagerT& atom_node_manager,
-		NodeManagerT& fem_node_manager, dArray2DT& totalu);
+		NodeManagerT& fem_node_manager, dArray2DT& totalu, int offset);
 	
 	/** calculate the initial FEM displacement via projection of initial MD displacement.  Differs 
 	  * from BridgingFields in that projected FE nodal values written into displacement field */

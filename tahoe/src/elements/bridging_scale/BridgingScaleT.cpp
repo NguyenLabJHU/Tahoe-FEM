@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.32.2.3 2003-06-25 00:41:06 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.32.2.4 2003-06-30 05:23:41 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -458,7 +458,6 @@ void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT
 	const dArray2DT& values, dArray2DT& projection, dArray2DT& projectedu)
 {
 #pragma unused(field)
-
 	/* projected part of the mesh */
 	const iArrayT& cell_nodes = cell_data.CellNodes();
 	const iArray2DT& cell_connects = cell_data.CellConnectivities();
@@ -487,14 +486,14 @@ void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT
 			for (int j = 0; j < np; j++)
 			{
 				int point = points[j];
-			
+		
 				/* fetch interpolation weights */
 				int point_dex = global_to_local.Map(point);
 				weights.RowAlias(point_dex, Na);
 
 				/* source values of the point */
 				values.RowAlias(point, point_value);
-			
+
 				/* rhs during projection - calculating part of w */
 				Nd.Outer(Na, point_value, 1.0, dMatrixT::kAccumulate);
 			}
@@ -507,7 +506,7 @@ void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT
 				projection.Accumulate(j, cell_eq, Nd(j));
 		}
 	}
-	
+
 //TEMP - write mass matrix to file
 #if 0
 ostream& out = ElementSupport().Output();
@@ -524,26 +523,7 @@ out << "\n residual =\n" << projection << endl;
 		projection.ColumnCopy(i, u_tmp);
 		fGlobalMass.Solve(u_tmp);
 		projection.SetColumn(i, u_tmp);
-	}
-	
-	/* write projected MD values into FEM field */
-	//ofstream project, fedisp1, fedisp2;
-	//project.open("project.dat");
-	//project.precision(13);
-	//fedisp1.open("fedisp1.dat");
-	//fedisp2.open("fedisp2.dat");
-
-	//for (int i = 0; i < projection.MajorDim(); i++)
-	//{
-	//project << i+1 << " " << 2 << " " << 1 << " " << projection(i,1) << endl;
-	//fedisp1 << "*set" << endl;
-	//fedisp1 << 1 << endl;
-	//fedisp1 << cell_nodes[i] + 1 << endl;
-	//fedisp2 << i+1 << " " << 1 << endl;
-	//}
-	//project.close();
-	//fedisp1.close();
-	//fedisp2.close();
+	}	
 	u_tmp.Free();
 
 	/* initialize return values */
@@ -571,7 +551,7 @@ out << "\n residual =\n" << projection << endl;
 			for (int j = 0; j < np; j++)
 			{
 				int point = points[j];
-			
+		
 				/* fetch interpolation weights */
 				int point_dex = global_to_local.Map(point);
 				weights.RowAlias(point_dex, Na);
@@ -596,7 +576,7 @@ out << "\n residual =\n" << projection << endl;
 /* calculate the fine scale part of MD solution as well as total solution u - same as project Field
  * except for those changes */
 void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT& cell_data,
-	const dArray2DT& mddisp, const dArray2DT& fedisp, dArray2DT& projection, dArray2DT& totalu)
+	const dArray2DT& mddisp, const dArray2DT& fedisp, dArray2DT& projection, dArray2DT& totalu, int offset)
 {
 #pragma unused(field)
 
@@ -700,14 +680,14 @@ out << "\n residual =\n" << projection << endl;
 				
 			/* element info */
 			int* points = point_in_cell(i);
-			const ElementCardT& element_card = continuum->ElementCard(cell[points[0]]);
+			const ElementCardT& element_card = continuum->ElementCard(cell[points[0]-offset]);
 			const iArrayT& fenodes = element_card.NodesU();
 			coarse.RowCollect(fenodes, fedisp);  
 		
 			for (int j = 0; j < np; j++)
 			{
 				int point = points[j];
-			
+				
 				/* fetch interpolation weights */
 				int point_dex = global_to_local.Map(point);
 				weights.RowAlias(point_dex, Na);

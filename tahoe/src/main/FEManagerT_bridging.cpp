@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.5.2.9 2003-06-17 18:46:25 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.5.2.10 2003-06-30 05:23:43 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -371,22 +371,20 @@ void FEManagerT_bridging::InterpolationMatrix(const StringT& field, dSPMatrixT& 
 void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& activefenodes) const
 {
 	/* obtain global node numbers of nodes whose support intersects MD, create inverse map */
-	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();	// list of active nodes
+	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();	// list of active nodes fDrivenCellData
 	activefenodes = cell_nodes;
-	InverseMapT gtlnodes, gtlatoms;
+	InverseMapT gtlnodes;
 	gtlnodes.SetMap(cell_nodes);	// create global to local map for active nodes
-	gtlatoms.SetMap(atoms);		// create global to local map for all atoms - redundant?
 	int numactivenodes = cell_nodes.Length();	// number of projected nodes
-	int numatoms = atoms.Length();	// total number of atoms
+	int numatoms = atoms.Length();	// total number of non ghost atoms
 
 	/* the shape functions values at the interpolating point */
 	const dArray2DT& weights = fDrivenCellData.InterpolationWeights(); 
 
-	/* redimension matrix if needed */
+	/* dimension matrix if needed */
 	int row_eq = numactivenodes;	// the number of projected nodes
-	int col_eq = numatoms;	// total number of atoms
-	if (ntf.Rows() != row_eq || ntf.Cols() != col_eq)
-		ntf.Dimension(row_eq, col_eq, 0);
+	int col_eq = numatoms;	// total number of non ghost atoms
+	ntf.Dimension(row_eq, col_eq, 0);
 
 	/* clear */
 	ntf = 0.0;
@@ -401,13 +399,12 @@ void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& ac
 		/* element info */
 		const ElementCardT& element_card = continuum->ElementCard(cell[i]);
 		const iArrayT& fenodes = element_card.NodesU();
-		int dex = gtlatoms.Map(atoms[i]);	// global to local map for atoms
-		
+
 		/* put shape functions for nodes evaluated at each atom into global interpolation matrix */
 		for (int j = 0; j < weights.MinorDim(); j++)
 		{
 			int dex2 = gtlnodes.Map(fenodes[j]);	// global to local map for nodes
-			ntf.SetElement(dex2, dex, weights(dex,j));  // dex = i...
+			ntf.SetElement(dex2, i, weights(i,j));  // dex = i...
 		}
 	}
 }
@@ -507,7 +504,7 @@ int order)
 
 /* calculate the fine scale part of MD solution as well as total displacement u */
 void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& atom_node_manager, 
-	NodeManagerT& fem_node_manager, dArray2DT& totalu)
+	NodeManagerT& fem_node_manager, dArray2DT& totalu, int offset)
 {
 	const char caller[] = "FEManagerT_bridging::ProjectField";
 
@@ -520,7 +517,7 @@ void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& ato
 	/* compute the fine scale part of MD solution as well as total displacement u */
 	const dArray2DT& atom_values = (*atom_field)[0];
 	const dArray2DT& fem_values = (*fem_field)[0];
-	BridgingScale().BridgingFields(field, fDrivenCellData, atom_values, fem_values, fProjection, totalu);
+	BridgingScale().BridgingFields(field, fDrivenCellData, atom_values, fem_values, fProjection, totalu, offset);
 }
 
 
