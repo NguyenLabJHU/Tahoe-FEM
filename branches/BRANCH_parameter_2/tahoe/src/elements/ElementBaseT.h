@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.35.2.3 2004-02-12 17:19:11 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.35.2.4 2004-03-17 18:03:30 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -288,7 +288,11 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
+	/** describe the parameters needed by the interface. See ParameterInterfaceT::DefineParameters
+	 * for more information. Additionally, sub-classes of ElementBaseT should define element
+	 * block information within a list whose name contains "_element_block" to make use of the
+	 * default implementation for ElementBaseT::CollectBlockInfo. Otherwise, ElementBaseT::CollectBlockInfo
+	 * must be overridden. */
 	virtual void DefineParameters(ParameterListT& list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
@@ -305,11 +309,14 @@ protected: /* for derived classes only */
 	/** extract element block info from parameter list to be used. Method is
 	 * used in conjunction with ElementBaseT::DefineElements to initialize
 	 * the element group connectivities. By default, ElementBaseT::ExtractBlockInfo 
-	 * does not extract any information; henace to connectivies are read. */
+	 * does not extract any information; henace to connectivies are read. 
+	 * The default implementation looks for block declarations with names
+	 * containing "_element_block" which contains block ID's within a
+	 * "block_ID_list". */
 	virtual void CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const;
 
 	/** define the elements blocks for the element group */
-	void DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index);
+	virtual void DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index);
 	/*@}*/
 
 	/** map the element numbers from block to group numbering */

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.55.2.5 2004-03-15 03:27:16 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.55.2.6 2004-03-17 18:03:32 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -431,7 +431,7 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 			}
 		}
 
-	/* nodal output codes */
+	/* element output codes */
 	fElementOutputCodes.Dimension(NumElementOutputCodes);
 	fElementOutputCodes = 0;
 	const ParameterListT* element_output = list.List("solid_element_element_output");

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.43.2.3 2004-02-12 17:19:11 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.43.2.4 2004-03-17 18:03:30 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -448,11 +448,42 @@ void ElementBaseT::TakeParameterList(const ParameterListT& list)
  * Protected
  ***********************************************************************/
 
+/* extract element block info from parameter list */
 void ElementBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const
 {
-#pragma unused(list)
-	block_ID.Dimension(0);
-	mat_index.Dimension(0);
+	/* search for a block declarations */
+	const ParameterListT* block_search = list.FindList("_element_block");
+	if (!block_search) /* no match */
+	{
+		block_ID.Dimension(0);
+		mat_index.Dimension(0);
+	}
+	else /* extract */
+	{
+		const StringT& block_name = block_search->Name();
+
+		/* collect {block_ID, material_index} pairs */
+		int num_blocks = list.NumLists(block_name);
+		AutoArrayT<StringT> block_ID_tmp;
+		AutoArrayT<int> mat_index_tmp;
+		ParameterListT material_list; /* collected material parameters */
+		for (int i = 0; i < num_blocks; i++) {
+
+			/* block information */	
+			const ParameterListT& block = list.GetList(block_name, i);
+
+			/* collect block ID's */
+			const ArrayT<ParameterListT>& IDs = block.GetList("block_ID_list").Lists();
+			for (int j = 0; j < IDs.Length(); j++) {
+				block_ID_tmp.Append(IDs[j].GetParameter("value"));
+				mat_index_tmp.Append(i);
+			}
+		}
+	
+		/* transfer */
+		block_ID.Swap(block_ID_tmp);
+		mat_index.Swap(mat_index_tmp);
+	}
 }
 
 /* map the element numbers from block to group numbering */

@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.16.2.3 2004-03-04 06:45:20 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.16.2.4 2004-03-17 18:03:32 paklein Exp $ */
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
 
@@ -75,9 +75,6 @@ class FiniteStrainT: public SolidElementT
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
-
-	/** extract element block info from parameter list */
-	virtual void CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const;
 
 	/** extract the list of material parameters */
 	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;

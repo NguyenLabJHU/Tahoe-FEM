@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13.2.8 2004-03-03 16:18:08 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.2.9 2004-03-17 18:03:32 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -204,32 +204,6 @@ void SmallStrainT::TakeParameterList(const ParameterListT& list)
 		for (int i = 0; i < NumIP(); i++)
 			fStrain_last_List[i].Dimension(NumSD());
 	}
-}
-
-/* extract element block info from parameter list */
-void SmallStrainT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const
-{
-	/* collect {block_ID, material_index} pairs */
-	int num_blocks = list.NumLists("small_strain_element_block");
-	AutoArrayT<StringT> block_ID_tmp;
-	AutoArrayT<int> mat_index_tmp;
-	ParameterListT material_list; /* collected material parameters */
-	for (int i = 0; i < num_blocks; i++) {
-
-		/* block information */	
-		const ParameterListT& block = list.GetList("small_strain_element_block", i);
-
-		/* collect block ID's */
-		const ArrayT<ParameterListT>& IDs = block.GetList("block_ID_list").Lists();
-		for (int j = 0; j < IDs.Length(); j++) {
-			block_ID_tmp.Append(IDs[j].GetParameter("value"));
-			mat_index_tmp.Append(i);
-		}
-	}
-	
-	/* transfer */
-	block_ID.Swap(block_ID_tmp);
-	mat_index.Swap(mat_index_tmp);
 }
 
 /* extract the list of material parameters */
