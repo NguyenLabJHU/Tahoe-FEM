@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.63 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.64 2004-09-10 22:36:56 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -52,7 +52,8 @@ SolidElementT::SolidElementT(const ElementSupportT& support):
 	fLocAcc(LocalArrayT::kAcc),
 	fLocTemp(NULL),
 	fLocTemp_last(NULL),
-	fStoreInternalForce(false)
+	fStoreInternalForce(false),
+	fMassType(kConsistentMass)
 {
 	SetName("solid_element");
 }
@@ -284,7 +285,7 @@ void SolidElementT::DefineParameters(ParameterListT& list) const
 	mass_type.AddEnumeration("no_mass", kNoMass);
     mass_type.AddEnumeration("consistent_mass", kConsistentMass);
     mass_type.AddEnumeration("lumped_mass", kLumpedMass);
-    mass_type.SetDefault(kConsistentMass);
+    mass_type.SetDefault(fMassType);
 	list.AddParameter(mass_type);
 }
 
