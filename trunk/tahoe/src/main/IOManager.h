@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.11 2002-03-22 02:22:20 paklein Exp $ */
+/* $Id: IOManager.h,v 1.12 2002-06-25 14:14:12 sawimme Exp $ */
 /* created: sawimme (10/12/1999) */
 
 #ifndef _IOMANAGER_H_
@@ -66,13 +66,13 @@ public:
 	 * defining node sets in the results. No data is written to the node
 	 * set. Data can be written to a node set by registering it with
 	 * IOManager::AddElementSet */
-	void AddNodeSet(const iArrayT& nodeset, int setID);
+	void AddNodeSet(const iArrayT& nodeset, const StringT& setID);
 
 	/** add a side set to the results file. Not all output formats support
 	 * defining side sets in the results. No data is written to the side
 	 * set. Data can be written to a side set by registering it with
 	 * IOManager::AddElementSet */
-	void AddSideSet(const iArray2DT& sideset, int setID, int group_ID);
+	void AddSideSet(const iArray2DT& sideset, const StringT& setID, const StringT& group_ID);
 
 	/* output functions */
 	void WriteGeometry(void);

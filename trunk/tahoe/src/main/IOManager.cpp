@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.14 2002-03-04 06:53:55 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.15 2002-06-25 14:14:12 sawimme Exp $ */
 /* created: sawimme (10/12/1999) */
 
 #include "IOManager.h"
@@ -95,12 +95,12 @@ const ArrayT<OutputSetT*>& IOManager::ElementSets(void) const
 	return fOutput->ElementSets();
 }
 
-void IOManager::AddNodeSet(const iArrayT& nodeset, int setID)
+void IOManager::AddNodeSet(const iArrayT& nodeset, const StringT& setID)
 {
 	fOutput->AddNodeSet(nodeset, setID);
 }
 
-void IOManager::AddSideSet(const iArray2DT& sideset, int setID, int group_ID)
+void IOManager::AddSideSet(const iArray2DT& sideset, const StringT& setID, const StringT& group_ID)
 {
 	fOutput->AddSideSet(sideset, setID, group_ID);
 }
