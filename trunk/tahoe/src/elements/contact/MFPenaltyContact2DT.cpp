@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.8 2004-06-17 07:13:39 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.9 2004-06-26 18:39:53 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>

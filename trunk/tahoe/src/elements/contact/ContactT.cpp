@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.18 2004-06-17 07:13:39 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.19 2004-06-26 18:39:53 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 

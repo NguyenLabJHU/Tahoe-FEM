@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.14 2004-06-26 06:11:09 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.15 2004-06-26 18:39:57 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #include "MeshFreeShapeFunctionT.h"
 
