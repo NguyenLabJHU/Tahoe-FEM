@@ -1,9 +1,7 @@
-/* $Id: KBC_ControllerT.cpp,v 1.11.22.4 2004-05-22 01:17:38 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.11.22.5 2004-05-26 18:09:42 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "KBC_ControllerT.h"
-
-#include "NodeManagerT.h"
-#include "FEManagerT.h"
+#include "BasicSupportT.h"
 #include "ModelManagerT.h"
 #include "fstreamT.h"
 
@@ -33,9 +31,9 @@ KBC_ControllerT::CodeT KBC_ControllerT::Code(const char* name)
 }
 
 /* constructor */
-KBC_ControllerT::KBC_ControllerT(NodeManagerT& node_manager):
+KBC_ControllerT::KBC_ControllerT(const BasicSupportT& support):
 	ParameterInterfaceT("KBC_controller"),
-	fNodeManager(node_manager)
+	fSupport(support)
 {
 
 }
@@ -67,33 +65,15 @@ void KBC_ControllerT::WriteOutput(ostream& out) const
 }
 
 /**********************************************************************
-* Protected
-**********************************************************************/
-
-/* read nodes from stream */
-void KBC_ControllerT::ReadNodes(ifstreamT& in, ArrayT<StringT>& id_list,
-	iArrayT& nodes) const
-{
-#pragma message("delete me")
-
-	/* top level */
-	const FEManagerT& fe_man = fNodeManager.FEManager();
-	ModelManagerT* model = fe_man.ModelManager();
-
-	/* read node set indexes */
-	model->NodeSetList (in, id_list);
-
-	/* collect sets */
-	model->ManyNodeSets(id_list, nodes);
-}
+ * Protected
+ **********************************************************************/
 
 /* read nodes in node sets */
 void KBC_ControllerT::GetNodes(const ArrayT<StringT>& id_list, iArrayT& nodes) const
 {
 	/* get the model */
-	const FEManagerT& fe_man = fNodeManager.FEManager();
-	ModelManagerT* model = fe_man.ModelManager();
+	ModelManagerT& model = fSupport.ModelManager();
 
 	/* collect sets */
-	model->ManyNodeSets(id_list, nodes);
+	model.ManyNodeSets(id_list, nodes);
 }

@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.7.20.2 2004-05-13 16:43:35 paklein Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.7.20.3 2004-05-26 18:09:43 paklein Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -28,14 +28,9 @@ ScaledVelocityNodesT::ScaledVelocityNodesT(NodeManagerT& node_manager, BasicFiel
 	// nein
 }
 
-ScaledVelocityNodesT::~ScaledVelocityNodesT(void)
-{
-   if (fRandom)
-      delete fRandom;
-}
-
 void ScaledVelocityNodesT::Initialize(ifstreamT& in)
 {
+#if 0
 
 #pragma message("Add rescaled region")
 	//int nodesOrRegion; 
@@ -118,6 +113,8 @@ void ScaledVelocityNodesT::Initialize(ifstreamT& in)
 	if (!fRandom)
 		ExceptionT::GeneralFail("ScaledVelocityNodesT::Initialize","Cannot create random number gen");
 	fRandom->sRand(rseed);
+
+#endif
 }
 
 void ScaledVelocityNodesT::InitStep(void)
@@ -145,9 +142,7 @@ void ScaledVelocityNodesT::InitStep(void)
 	
 	if (qIConly && !qFirstTime)
 		fKBC_Cards.Dimension(0);
-
 }
-
 
 void ScaledVelocityNodesT::InitialCondition(void)
 {
@@ -247,6 +242,36 @@ void ScaledVelocityNodesT::InitialCondition(void)
 			}
 		} 
 	}
+
+}
+
+/* describe the parameters needed by the interface */
+void ScaledVelocityNodesT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	KBC_ControllerT::DefineParameters(list);
+
+}
+	
+/* information about subordinate parameter lists */
+void ScaledVelocityNodesT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	KBC_ControllerT::DefineSubs(sub_list);
+
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* ScaledVelocityNodesT::NewSub(const StringT& list_name) const
+{
+
+}
+
+/* accept parameter list */
+void ScaledVelocityNodesT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	KBC_ControllerT::TakeParameterList(list);
 
 }
 

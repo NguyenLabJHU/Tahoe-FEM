@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.h,v 1.5.56.2 2004-05-22 01:17:38 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.h,v 1.5.56.3 2004-05-26 18:09:42 paklein Exp $ */
 /* created: paklein (09/06/2000)*/
 
 #ifndef _BIMATERIAL_K_FIELD_T_H_
@@ -17,7 +17,7 @@ class BimaterialK_FieldT: public K_FieldT
 public:
 
 	/** constructor */
-	BimaterialK_FieldT(NodeManagerT& node_manager);
+	BimaterialK_FieldT(const BasicSupportT& support);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

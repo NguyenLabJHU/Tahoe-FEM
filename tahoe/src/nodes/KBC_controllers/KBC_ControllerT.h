@@ -1,10 +1,7 @@
-/* $Id: KBC_ControllerT.h,v 1.21.22.2 2004-05-13 16:43:35 paklein Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.21.22.3 2004-05-26 18:09:42 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _KBC_CONTROLLER_T_H_
 #define _KBC_CONTROLLER_T_H_
-
-#include "Environment.h"
-#include "GlobalT.h"
 
 /* base class */
 #include "ParameterInterfaceT.h"
@@ -12,20 +9,19 @@
 /* direct members */
 #include "ArrayT.h"
 #include "KBC_CardT.h"
-
-#include "ios_fwd_decl.h"
+#include "GlobalT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class ifstreamT;
-class NodeManagerT;
 class nIntegratorT;
 class iArrayT;
 class StringT;
 class dArrayT;
 class iArray2DT;
 template <class TYPE> class AutoArrayT;
+class BasicSupportT;
 
 /** base class for all kinematic BC controllers. Classes that
  * implement more than simple boundary conditions */
@@ -51,7 +47,7 @@ public:
 	static CodeT Code(const char* name);
 
 	/** constructor */
-	KBC_ControllerT(NodeManagerT& node_manager);
+	KBC_ControllerT(const BasicSupportT& support);
 
 	/** destructor */
 	virtual ~KBC_ControllerT(void);
@@ -120,12 +116,6 @@ public:
 	
 protected:
 
-	/** read nodes from stream.
-	 * \param in input stream listing the node ids
-	 * \param id_list returns with the set id's of the nodes
-	 * \param nodes returns with the nodes in the set id's */
-	void ReadNodes(ifstreamT& in, ArrayT<StringT>& id_list, iArrayT& nodes) const;
-
 	/** get nodes from the ModelManagerT
 	 * \param in input stream listing the node ids
 	 * \param id_list returns with the set id's of the nodes
@@ -142,9 +132,9 @@ private:
 	
 protected:
 
-	/* nodal data */
-	NodeManagerT& fNodeManager;
-	
+	/** host code support */
+	const BasicSupportT& fSupport;
+
 	/* boundary conditions cards - return value */
 	ArrayT<KBC_CardT> fKBC_Cards;  	
 };
