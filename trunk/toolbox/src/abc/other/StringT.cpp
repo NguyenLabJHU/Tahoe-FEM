@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.41 2004-07-26 19:02:29 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.42 2004-07-27 00:56:13 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -47,6 +47,7 @@ namespace Tahoe {
 istream& operator>>(istream& in, StringT& stringT)
 {
 	char string[kLineLength];
+	string[0] = '\0';
 	in >> string;
 	stringT = string;
 	
@@ -71,7 +72,7 @@ void StringT::Fill(char a)
 	
 StringT& StringT::operator=(const char* string)
 {
-	if (string == NULL)
+	if (string == NULL || string[0] == '\0')
 		Clear();
 	else if (string != Pointer())
 	{
@@ -90,7 +91,7 @@ StringT& StringT::operator=(const char* string)
 void StringT::Clear(void)
 {
 	/* should have at least one character */
-	if (Length() < 1) ExceptionT::GeneralFail();
+	if (Length() < 1) Dimension(1);
 	
 	/* zero string length */
 	fArray[0] = '\0';
