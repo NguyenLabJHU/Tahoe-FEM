@@ -1,4 +1,4 @@
-/* $Id: HarmonicPairT.cpp,v 1.4 2003-10-28 23:31:51 paklein Exp $ */
+/* $Id: HarmonicPairT.cpp,v 1.4.22.1 2004-04-13 16:02:17 paklein Exp $ */
 #include "HarmonicPairT.h"
 #include <iostream.h>
 
@@ -78,7 +78,7 @@ void HarmonicPairT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(rest_length);
 
 	ParameterT stiffness(fK, "stiffness");
-	stiffness.AddLimit(0.0, LimitT::Lower);
+	stiffness.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(stiffness);
 }
 
