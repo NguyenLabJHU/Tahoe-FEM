@@ -1,4 +1,4 @@
-/* $Id: InverseMapT.h,v 1.2 2003-01-27 06:42:48 paklein Exp $ */
+/* $Id: InverseMapT.h,v 1.3 2003-02-23 02:42:31 paklein Exp $ */
 #ifndef _INVERSE_MAP_T_H_
 #define _INVERSE_MAP_T_H_
 
@@ -12,18 +12,33 @@ template <class TYPE> class nArrayT;
 
 /** class to construct and access an inverse map. Given a forward map
  * \f$ j = g(i) \f$, the class constructs and handles access to the inverse
- * map \f$ i = g^{-1}(j) \f$. Inverse of a value not in the forward map
- * throws an exception.
+ * map \f$ i = g^{-1}(j) \f$. By default, InverseMapT::Map of a value not in 
+ * the forward map throws an exception. This behavior can be changed by
+ * setting the 
  */
 class InverseMapT: private AutoArrayT<int>
 {
 public:
+
+	/** enum for what to do about trying to map values that 
+	 * are out of range */
+	enum SettingT {
+		Throw,   /**< throw ExceptionT::OutOfRange */
+		MinusOne /**< return -1 */
+	};
 
 	/** constructor */
 	InverseMapT(void);
 
 	/** construct the inverse map */
 	void SetMap(const nArrayT<int>& forward);
+	
+	/** set the flag for handling calls to InverseMapT::Map that
+	 * are out of range */
+	void SetOutOfRange(SettingT setting) { fOutOfRange = setting; };
+	
+	/** return the out of range flag */
+	SettingT OutOfRange(void) const { return fOutOfRange; };
 	
 	/** clear the map. Sets InverseMapT::Length to zero without
 	 * necessarily freeing any memory. Use InverseMapT::Free to
@@ -45,19 +60,27 @@ private:
 	 * saving in memory since global tags less than the shift are not stored
 	 * in the map. */	
 	int fShift;	
+	
+	/** how to handle out of range */
+	SettingT fOutOfRange;
 };
 
 /* inlines */
 
 /* constructor */
-inline InverseMapT::InverseMapT(void): fShift(0) {}
+inline InverseMapT::InverseMapT(void): 
+	fShift(0),
+	fOutOfRange(Throw)
+{
+
+}
 
 /* map the global index to the local index */
 inline int InverseMapT::Map(int global) const
 {
 	int map = (*this)[global - fShift];
-	if (map == -1) 
-		ExceptionT::GeneralFail("InverseMapT::Map", "%d was not in the forward map", global);
+	if (map == -1 && fOutOfRange == Throw) 
+		ExceptionT::OutOfRange("InverseMapT::Map", "%d was not in the forward map", global);
 	return map;
 }
 
