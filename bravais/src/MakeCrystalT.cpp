@@ -119,49 +119,81 @@ void MakeCrystalT::Run() {
   in >> intformat;
   IOBaseT::FileTypeT kformat = IOBaseT::int_to_FileTypeT(intformat);
   cout << "Output Format: " << kformat << "\n";
+ 
+  //Set Defaults on periodicity, rotation and output filenames
 
+  //periodicity -- default value is 0 (non-periodic boundary conditions)
   iArrayT per(nsd);
-  if(nsd == 2)
-    {
-      in >> per[0] >> per[1] ;
-      cout << "Periodic conditions:\n";
-      cout << per[0] << "  " << per[1] << "\n";
-    }
-  else if(nsd == 3)
-    {
-      in >> per[0] >> per[1] >> per[2];
-      cout << "Periodic conditions:\n";
-      cout << per[0] << "  "  << per[1] << "  " << per[2] << "\n";
-    }
+  per = 0;
 
-  //rotation
+  //rotation -- default value is zero rotation
   double angle = 0.0;
   dArray2DT mat_rot(nsd,nsd);
-  mat_rot = 0.0;
-
-  if(nsd==2) 
+  for(int i=0;i<nsd;i++) 
+  { 
+    for(int j=0;j<nsd;j++) 
     {
-      in >> angle;
-      cout << "Rotation Angle: " << angle << "\n";
+      if(i==j) mat_rot = 1.0;
+      if(i!=j) mat_rot = 0.0;
     }
-  else if (nsd==3)
-    {
-      in >> mat_rot(0,0) >> mat_rot(1,0) >> mat_rot(2,0);
-      in >> mat_rot(0,1) >> mat_rot(1,1) >> mat_rot(2,1);
-      in >> mat_rot(0,2) >> mat_rot(1,2) >> mat_rot(2,2); 
-      
-      cout << "Rotation Matrix:\n";
-      cout << mat_rot(0,0) << "  " <<  mat_rot(1,0) << "  " << mat_rot(2,0) << "\n";
-      cout << mat_rot(0,1) << "  " <<  mat_rot(1,1) << "  " << mat_rot(2,1) << "\n";
-      cout << mat_rot(0,2) << "  " <<  mat_rot(1,2) << "  " << mat_rot(2,2) << "\n";
-    }
+  }
 
+  //output filename prefix
   StringT input = "example";
-  in >> input;
-  cout << "Output file root: " << input << "\n";
-     
+
+  //Override Defaults using miscellaneous input arguments
+  //or use the "#" symbol to end the reading of the data file
+
+  StringT misc;
+  in >> misc;
+
+  while (misc!="#")
+  {
+    if (misc=="PERIODICITY")
+    {
+      if(nsd == 2)
+      {
+        in >> per[0] >> per[1] ;
+        cout << "Periodic conditions:\n";
+        cout << per[0] << "  " << per[1] << "\n";
+      }
+      else if(nsd == 3)
+      {
+        in >> per[0] >> per[1] >> per[2];
+        cout << "Periodic conditions:\n";
+        cout << per[0] << "  "  << per[1] << "  " << per[2] << "\n";
+      }
+    }
+    else if (misc=="ROTATION")
+    {
+      if(nsd==2) 
+      {
+        in >> angle;
+        cout << "Rotation Angle: " << angle << "\n";
+      }
+      else if (nsd==3)
+      {
+        in >> mat_rot(0,0) >> mat_rot(1,0) >> mat_rot(2,0);
+        in >> mat_rot(0,1) >> mat_rot(1,1) >> mat_rot(2,1);
+        in >> mat_rot(0,2) >> mat_rot(1,2) >> mat_rot(2,2); 
+      
+        cout << "Rotation Matrix:\n";
+        cout << mat_rot(0,0) << "  " <<  mat_rot(1,0) << "  " << mat_rot(2,0) << "\n";
+        cout << mat_rot(0,1) << "  " <<  mat_rot(1,1) << "  " << mat_rot(2,1) << "\n";
+        cout << mat_rot(0,2) << "  " <<  mat_rot(1,2) << "  " << mat_rot(2,2) << "\n";
+      }
+    }
+    else if (misc=="OUTPUT")
+    {
+      in >> input;
+      cout << "Output file root: " << input << "\n";
+    } 
+
+    in >> misc;
+  }
+
+  // Close data file
   in.close();
-  // End of read data file
 
   //Define Mesh
 
