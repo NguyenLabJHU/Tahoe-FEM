@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.cpp,v 1.15 2004-12-16 07:12:28 paklein Exp $ */
+/* $Id: AugLagSphereT.cpp,v 1.16 2004-12-20 01:23:25 paklein Exp $ */
 /* created: paklein (03/24/1999) */
 #include "AugLagSphereT.h"
 #include "FieldT.h"
@@ -19,7 +19,8 @@ AugLagSphereT::AugLagSphereT(void):
 	fUzawa(false),
 	fPrimalIterations(-1),
 	fPenetrationTolerance(-1.0),
-	fRecomputeForce(false)
+	fRecomputeForce(false),
+	fIterationi(-2)
 {
 	SetName("sphere_augmented_Lagrangian");
 }
@@ -109,7 +110,10 @@ void AugLagSphereT::InitStep(void)
 	PenaltySphereT::InitStep();
 
 	/* store solution */
-	if (fUzawa) fLastDOF = fDOF;
+	if (fUzawa) {
+		fLastDOF = fDOF;
+		fIterationi = -2;
+	}
 }
 
 void AugLagSphereT::CloseStep(void)
@@ -375,6 +379,12 @@ void AugLagSphereT::ComputeContactForce(double kforce)
 		if (!fRecomputeForce && (iter != -1 && (iter+1)%fPrimalIterations != 0)) return;
 		fRecomputeForce = false;
 	
+		/* store last iterate */
+		if (fIterationi != iter) {
+			fIterationi = iter;
+			fDOFi = fDOF;
+		}
+	
 		/* dimensions */
 		int ndof = Field().NumDOF();
 
@@ -396,7 +406,7 @@ void AugLagSphereT::ComputeContactForce(double kforce)
 			/* augmented Lagrangian multiplier */
 			double v = fv_OP.Magnitude();
 			double h = v - fRadius;
-			double g = fDOF[i] + fk*h;
+			double g = fDOFi[i] + fk*h;
 	
 			/* contact */
 			if (g <= 0.0) {

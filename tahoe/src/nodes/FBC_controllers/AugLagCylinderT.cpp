@@ -1,4 +1,4 @@
-/* $Id: AugLagCylinderT.cpp,v 1.4 2004-12-16 07:12:03 paklein Exp $ */
+/* $Id: AugLagCylinderT.cpp,v 1.5 2004-12-20 01:23:25 paklein Exp $ */
 #include "AugLagCylinderT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -20,7 +20,8 @@ AugLagCylinderT::AugLagCylinderT(void):
 	fUzawa(false),
 	fPrimalIterations(-1),
 	fPenetrationTolerance(-1.0),
-	fRecomputeForce(false)
+	fRecomputeForce(false),
+	fIterationi(-2)
 {
 	SetName("cylinder_augmented_Lagrangian");
 }
@@ -121,7 +122,10 @@ void AugLagCylinderT::InitStep(void)
 	PenaltyCylinderT::InitStep();
 
 	/* store solution */
-	if (fUzawa) fLastDOF = fDOF;
+	if (fUzawa) {
+		fLastDOF = fDOF;
+		fIterationi = -2;
+	}
 }
 
 void AugLagCylinderT::CloseStep(void)
@@ -398,6 +402,12 @@ void AugLagCylinderT::ComputeContactForce(double kforce)
 		int iter = FieldSupport().IterationNumber();
 		if (!fRecomputeForce && (iter != -1 && (iter+1)%fPrimalIterations != 0)) return;
 		fRecomputeForce = false;
+
+		/* store last iterate */
+		if (fIterationi != iter) {
+			fIterationi = iter;
+			fDOFi = fDOF;
+		}
 	
 		/* dimensions */
 		int ndof = Field().NumDOF();
@@ -423,7 +433,7 @@ void AugLagCylinderT::ComputeContactForce(double kforce)
 			/* penetration */
 			double dist = fR.Magnitude();
 			double pen  = dist - fRadius;
-			double g = fDOF[i] + fk*pen;			
+			double g = fDOFi[i] + fk*pen;			
 			if (g <= 0.0) {
 				f_u.SetToScaled(-g*kforce/dist, fR);
 				fDOF[i] = g;
