@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.27.2.1 2003-09-28 09:11:47 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.27.2.2 2003-12-09 18:21:28 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -444,13 +444,11 @@ void CSEBaseT::SendOutput(int kincode)
 		case NodalTraction:
 		    flags[NodalTraction] = 1;
 			break;
+		case MaterialData:
+		    flags[MaterialData] = 1;
+			break;
 		default:
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-			cout << "\n CSEBaseT::SendKinematic: invalid output code: ";
-			cout << kincode << endl;
-#else
-			throw ExceptionT::kBadInputValue;
-#endif
+			ExceptionT::BadInputValue("CSEBaseT::SendKinematic", "invalid output code: %d", kincode);
 	}
 
 	/* number of output values */
