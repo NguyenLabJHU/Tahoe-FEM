@@ -1,4 +1,4 @@
-/* $Id: ExodusT.h,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* $Id: ExodusT.h,v 1.2 2001-02-20 00:04:44 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #ifndef _EXODUS_T_H_
@@ -21,7 +21,7 @@ class ExodusT
 public:
 
 	/* constructors */
-	ExodusT(ostream& out, int float_size = sizeof(double));
+	ExodusT(ostream& message_out, int float_size = sizeof(double));
 
 	/* destructor */
 	~ExodusT(void);	
