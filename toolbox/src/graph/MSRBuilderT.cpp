@@ -1,4 +1,4 @@
-/* $Id: MSRBuilderT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: MSRBuilderT.cpp,v 1.2 2001-05-09 17:24:31 paklein Exp $ */
 /* created: paklein (07/30/1998)                                          */
 /* class to generate MSR matrix structure data                            */
 
@@ -37,12 +37,12 @@ void MSRBuilderT::SetMSRData(const iArrayT& activerows, iArrayT& MSRdata)
 void MSRBuilderT::CheckActiveSet(const iArrayT& activerows) const
 {
 	/* check range of active rows */
-	int min, max;
-	activerows.MinMax(min,max);
+	int min = 0, max = 0;
+	if (activerows.Length() > 0) activerows.MinMax(min,max);
 	int num_nodes = NumNodes();
-	if (min - fShift < 0 || max - fShift > num_nodes - 1)
+	if (activerows.Length() > 0 && (min - fShift < 0 || max - fShift > num_nodes - 1))
 	{
-		cout << "\n MSRBuilderT::SetMSRData: active equations are out of range:";
+		cout << "\n MSRBuilderT::SetMSRData: active equations are out of range:\n";
 		cout << "    {min,max} = {" << min << "," << max << "}"<< endl;
 		throw eOutOfRange;
 	}
