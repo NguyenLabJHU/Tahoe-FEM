@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.65.2.2 2004-07-07 15:28:42 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.65.2.3 2004-07-08 00:02:08 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -1454,6 +1454,10 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status,Commun
 	try
 	{
 		t0 = clock();
+
+		/* path to parameters file */
+		StringT path;
+		path.FilePath(in.filename());
 		
 		/* generate validated parameter list */
 		ParameterListT valid_list;
@@ -1463,6 +1467,10 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status,Commun
 		int i_format = valid_list.GetParameter("geometry_format");
 		IOBaseT::FileTypeT format = IOBaseT::int_to_FileTypeT(i_format);
 		StringT model_file = valid_list.GetParameter("geometry_file");
+
+		/* name translation */
+		model_file.ToNativePathName();      
+		model_file.Prepend(path);
 
 		/* set output map and and generate decomposition */
 		Decompose(in, size, method, comm, model_file, format);
@@ -1503,16 +1511,13 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status, int siz
 	{
 		t0 = clock();
 
+		/* path to parameters file */
+		StringT path;
+		path.FilePath(in.filename());
+
 		/* generate validated parameter list */
 		ParameterListT valid_list;
 		ParseInput(in.filename(), valid_list, true, false, false);
-
-#if 0
-		/* to read file parameters */
-		ofstreamT out;
-		FEManagerT fe_man(in, out, comm, fCommandLineOptions);
-		fe_man.Initialize(FEManagerT::kParametersOnly);
-#endif
 		
 		/* model file parameters */
 		int i_format = valid_list.GetParameter("geometry_format");
@@ -1523,6 +1528,10 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status, int siz
 		if (results_format == IOBaseT::kTahoe ||
 		    results_format == IOBaseT::kTahoeII)
 			results_format = IOBaseT::kTahoeResults;
+
+		/* name translation */
+		model_file.ToNativePathName();      
+		model_file.Prepend(path);
 
 		int index;
 		if (CommandLineOption("-join", index) && fCommandLineOptions.Length() > index+1) {
@@ -1635,6 +1644,12 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	int i_format = valid_list.GetParameter("geometry_format");
 	IOBaseT::FileTypeT format = IOBaseT::int_to_FileTypeT(i_format);
 	StringT model_file = valid_list.GetParameter("geometry_file");
+
+	/* name translation */
+	StringT path;
+	path.FilePath(in.filename());
+	model_file.ToNativePathName();      
+	model_file.Prepend(path);
 
 	/* generate decomposition if needed */
 	token = 1;
