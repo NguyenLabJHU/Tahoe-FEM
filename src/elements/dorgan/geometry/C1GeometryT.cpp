@@ -1,4 +1,4 @@
-/* $Id: C1GeometryT.cpp,v 1.2 2003-10-08 21:04:54 rdorgan Exp $ */
+/* $Id: C1GeometryT.cpp,v 1.3 2003-11-19 20:38:24 rdorgan Exp $ */
 #include "C1GeometryT.h"
 
 #include <iostream.h>
@@ -18,7 +18,7 @@ namespace Tahoe {
 /* initialize static geometry names array */
 const char* C1GeometryT::fNames[3] = 
           {"None",
-          "Point",
+           //          "Point",
            "C1Line"};
 } /* namespace Tahoe */ 
 
@@ -31,9 +31,6 @@ istream& operator>>(istream& in, C1GeometryT::CodeT& code)
         {
                 case C1GeometryT::kNone:
                         code = C1GeometryT::kNone;
-                        break;
-                case C1GeometryT::kPoint:
-                        code = C1GeometryT::kPoint;
                         break;
                 case C1GeometryT::kC1Line:
                         code = C1GeometryT::kC1Line;

@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.h,v 1.4 2003-10-08 21:04:46 rdorgan Exp $ */
+/* $Id: GradSSSolidMatT.h,v 1.5 2003-11-19 20:38:22 rdorgan Exp $ */
 #ifndef _GRAD_SS_SOLID_MAT_T_H_
 #define _GRAD_SS_SOLID_MAT_T_H_
 
@@ -13,7 +13,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class GradSSMatSupportT;
-class DorganVoyiadjisMarinT;
+class GradSmallStrainT;
 
 /** defines the interface for gradient dependent small strain continuum materials */
 class GradSSSolidMatT: public SSSolidMatT
@@ -72,18 +72,24 @@ public:
         
         /** \name spatial description */
         /*@{*/
-        /** spatial tangent modulus */
+        /** spatial tangent modulus for Kaa */
         virtual const dMatrixT& c_ijkl(void) = 0;
         
         /** Cauchy stress */
         virtual const dSymMatrixT& s_ij(void) = 0;
         
-        /** off diagonal moduli */
-        virtual const dMatrixT& odm_ij(void) = 0;
+        /** off diagonal moduli for Kar */
+        virtual const dMatrixT& odm_ar_ij(void) = 0;
         
-        /** gradient dependent moduli */
-        virtual const dMatrixT& gm(void) = 0;
+        /** off diagonal moduli for Kra */
+        virtual const dMatrixT& odm_ra_ij(void) = 0;
         
+        /** moduli for local term in Krr */
+        virtual const dMatrixT& gm_hh(void) = 0;
+
+        /** moduli for gradient term in Krr */
+        virtual const dMatrixT& gm_hp(void) = 0;
+
         /** yield criteria moduli */
         virtual double yc(void) = 0;
         

@@ -1,4 +1,4 @@
-/* $Id: C1GeometryT.h,v 1.2 2003-10-08 21:04:54 rdorgan Exp $ */
+/* $Id: C1GeometryT.h,v 1.3 2003-11-19 20:38:24 rdorgan Exp $ */
 #ifndef _C1_GEOMETRY_T_H_
 #define _C1_GEOMETRY_T_H_
 
@@ -19,7 +19,6 @@ public:
 
         /** geometry types */
         enum CodeT {kNone          =-2,
-                    kPoint         =-1,
                     kC1Line        = 0};
 
         /** geometry_code -> nsd macro: of the parent domain */

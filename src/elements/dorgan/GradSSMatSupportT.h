@@ -1,4 +1,4 @@
-/* $Id: GradSSMatSupportT.h,v 1.3 2003-10-08 21:04:46 rdorgan Exp $ */
+/* $Id: GradSSMatSupportT.h,v 1.4 2003-11-19 20:38:22 rdorgan Exp $ */
 #ifndef _GRAD_SS_MAT_SUPPORT_T_H_
 #define _GRAD_SS_MAT_SUPPORT_T_H_
 
@@ -12,7 +12,7 @@
 namespace Tahoe {
 
 /* forward declarations */
-class DorganVoyiadjisMarin;
+class GradSmallStrainT;
 
 /** support for the small strain Tahoe materials classes */
 class GradSSMatSupportT: public SSMatSupportT
@@ -78,7 +78,7 @@ public:
         /** return a pointer to the host element. Returns NULL if no
          * no element information in available. The ContinuumElementT
          * pointer is set using MaterialSupportT::SetContinuumElement. */
-        const DorganVoyiadjisMarin* DVM(void) const { return fDorganVoyiadjisMarin; };
+        const GradSmallStrainT* DVM(void) const { return fGradSmallStrainT; };
         
         /** set the element group pointer */
         virtual void SetContinuumElement(const ContinuumElementT* p);
@@ -108,7 +108,7 @@ private:
         /*@}*/
   	
         /** pointer to the small strain element */
-        const DorganVoyiadjisMarin* fDorganVoyiadjisMarin;	
+        const GradSmallStrainT* fGradSmallStrainT;	
 };
 
 /* inlines */

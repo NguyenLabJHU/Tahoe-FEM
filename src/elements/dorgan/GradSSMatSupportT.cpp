@@ -1,9 +1,9 @@
-/* $Id: GradSSMatSupportT.cpp,v 1.3 2003-10-08 21:04:46 rdorgan Exp $ */ 
+/* $Id: GradSSMatSupportT.cpp,v 1.4 2003-11-19 20:38:22 rdorgan Exp $ */ 
 #include "GradSSMatSupportT.h"
 #include "ElementsConfig.h"
 
 #ifdef CONTINUUM_ELEMENT
-#include "DorganVoyiadjisMarin.h"
+#include "GradSmallStrainT.h"
 #endif
 
 using namespace Tahoe;
@@ -11,7 +11,7 @@ using namespace Tahoe;
 /* constructor */
 GradSSMatSupportT::GradSSMatSupportT(int nsd, int ndof_disp, int ndof_r, int nip_disp, int nip_r):
         SSMatSupportT(nsd, ndof_disp, nip_disp),
-        fDorganVoyiadjisMarin(NULL),
+        fGradSmallStrainT(NULL),
 
         fR_List(NULL),
         fR_last_List(NULL),
@@ -67,7 +67,7 @@ void GradSSMatSupportT::SetContinuumElement(const ContinuumElementT* p)
         SSMatSupportT::SetContinuumElement(p);
 
 #ifdef CONTINUUM_ELEMENT
-        /* cast to DorganVoyiadjisMarin pointer */
-        fDorganVoyiadjisMarin = dynamic_cast<const DorganVoyiadjisMarin*>(p);
+        /* cast to GradSmallStrainT pointer */
+        fGradSmallStrainT = dynamic_cast<const GradSmallStrainT*>(p);
 #endif
 }
