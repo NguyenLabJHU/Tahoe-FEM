@@ -1,4 +1,4 @@
-/* $Id: CartesianGridT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: CartesianGridT.cpp,v 1.2 2002-02-22 19:30:27 xiang Exp $ */
 /* created: paklein (11/10/2000)                                          */
 
 #include "CartesianGridT.h"
@@ -66,7 +66,7 @@ void CartesianGridT::PartitionGrid(int num_parts, const iArrayT& cell_weight)
 
 	/* allocate space */
 	fCellMap.Allocate(num_cells);
-	int num_neighbors = to_integer(pow(2, fDimensions.Length()));
+	int num_neighbors = to_integer(pow(2.0, fDimensions.Length()));
 	fNeighborList.Allocate(num_cells, num_neighbors + 1);
 	
 	/* set neighbors data */
