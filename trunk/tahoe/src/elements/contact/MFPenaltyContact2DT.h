@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.h,v 1.5 2005-01-19 17:37:51 cjkimme Exp $ */
+/* $Id: MFPenaltyContact2DT.h,v 1.6 2005-01-28 02:45:12 paklein Exp $ */
 #ifndef _MF_PENALTY_CONTACT2D_T_H_
 #define _MF_PENALTY_CONTACT2D_T_H_
 
@@ -24,6 +24,15 @@ public:
 
 	/** constructor */
 	MFPenaltyContact2DT(const ElementSupportT& support);
+
+	/** \name writing output */
+	/*@{*/	
+	/** register element for output */
+	virtual void RegisterOutput(void);
+
+	/** write output */
+	virtual void WriteOutput(void);
+	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -102,9 +111,19 @@ protected:
 	/** \name SCNI data 
 	 * one row for each SCNI striker node */
 	/*@{*/
+	AutoArrayT<int> fSCNI_tmp;
 	iArrayT fSCNI_LocalID;
 	RaggedArray2DT<int> fSCNI_Support;
 	RaggedArray2DT<double> fSCNI_Phi;
+	/*@}*/
+
+	/** \name output contact forces */
+	/*@{*/
+	int fOutputID;
+	bool fOutputForce;
+	iArray2DT fNodesUsed2D;
+	dArray2DT fForce;
+	InverseMapT fNodesUsed_inv;
 	/*@}*/
 };
 
