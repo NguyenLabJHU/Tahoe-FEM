@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.cpp,v 1.2 2002-06-27 16:00:53 rjones Exp $ */
+/* $Id: PenaltyContactElement3DT.cpp,v 1.3 2002-06-29 16:12:52 paklein Exp $ */
 #include "PenaltyContactElement3DT.h"
 
 #include <math.h>
@@ -6,7 +6,7 @@
 #include <iomanip.h>
 
 #include "ContactNodeT.h"
-#include "Linear.h"
+#include "ParabolaT.h"
 #include "ModSmithFerrante.h"
 #include "GreenwoodWilliamson.h"
 
@@ -43,7 +43,7 @@ void PenaltyContactElement3DT::Initialize(void)
 			{
 			case PenaltyContactElement3DT::kLinear:
 				// Macauley bracket:  <-x> ???
-				fPenaltyFunctions[LookUp(i,j,num_surfaces)] = new Linear(1.0);
+				fPenaltyFunctions[LookUp(i,j,num_surfaces)] = new ParabolaT(1.0);
 				break;
 			case PenaltyContactElement3DT::kModSmithFerrante:
 				{
