@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.10 2002-07-01 01:09:05 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.11 2002-07-02 16:21:38 hspark Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -16,10 +16,17 @@
 /* constructors */
 RodT::RodT(const ElementSupportT& support, const FieldT& field):
 	ElementBaseT(support, field),
-	fCurrMaterial(NULL)
+	fCurrMaterial(NULL),
+	fKE(0.0),
+	fPE(0.0),
+	fTotalE(0.0),
+	fTemp(0.0),
+	fPressure(0.0),
+	fLocVel(LocalArrayT::kVel)
 {
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
+	fKb = 1.38054;
 }
 
 /* initialization */
@@ -155,6 +162,33 @@ void RodT::SendOutput(int kincode)
 #pragma unused(kincode)
 	//TEMP: for now, do nothing
 }
+
+/* initialize/finalize step */
+void RodT::InitStep(void)
+{
+  /* inherited */
+  ElementBaseT::InitStep();
+  /* set material variables */
+  //fMaterialList->InitStep();
+}
+
+void RodT::CloseStep(void)
+{
+  /* inherited */
+  ElementBaseT::CloseStep();
+  /* set material variables */
+  //fMaterialList->CloseStep();
+  Top();
+  while (NextElement())
+    {
+      ComputePE();
+      ComputeKE();
+      ComputeTotalE();
+      ComputeTemperature();
+      ComputePressure();
+    }
+}
+
 
 /***********************************************************************
 * Protected
@@ -337,4 +371,60 @@ void RodT::WriteMaterialData(ostream& out) const
 		out << "\n Material number . . . . . . . . . . . . . . . . = " << i+1 << '\n';
 		fMaterialsList[i]->Print(out);
 	}
+}
+
+/***********************************************************************
+* Private
+***********************************************************************/
+
+void RodT::ComputeKE(void)
+{
+  /* computes the kinetic energy of the system of atoms */
+  /* particle mass */
+  double* ke = &fKE;
+  double mass = fCurrMaterial->Mass();
+  *ke = .5 * mass;
+
+}
+
+void RodT::ComputePE(void)
+{
+  /* computes the potential energy of the system of atoms */
+  
+  /* coordinates arrays */
+  const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
+  const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
+  double* pe = &fPE;
+
+  /* node numbers */
+  const iArrayT& nodes = CurrentElement().NodesX();
+  int n0 = nodes[0];
+  int n1 = nodes[1];
+  
+  /* reference bond */
+  fBond0.DiffOf(init_coords(n1), init_coords(n0));
+  
+  /* current bond */
+  fBond.DiffOf(curr_coords(n1), curr_coords(n0));
+
+  (*pe) += fCurrMaterial->Potential(fBond.Magnitude(), fBond0.Magnitude());
+}
+
+void RodT::ComputeTotalE(void)
+{
+  /* computes total energy = kinetic energy + potential energy of the system */
+  double *totale = &fTotalE;
+  *totale = fKE + fPE;
+}
+
+void RodT::ComputeTemperature(void)
+{
+  /* computes average temperature of the atomic system */
+
+}
+
+void RodT::ComputePressure(void)
+{
+  /* computes the average pressure of the atomic system */
+
 }
