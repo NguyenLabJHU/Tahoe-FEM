@@ -1,4 +1,4 @@
-/* $Id: PointToPointT.h,v 1.1.2.1 2002-12-19 03:09:14 paklein Exp $ */
+/* $Id: PointToPointT.h,v 1.1.2.2 2002-12-27 23:02:41 paklein Exp $ */
 #ifndef _POINT_TO_POINT_T_H_
 #define _POINT_TO_POINT_T_H_
 
@@ -7,6 +7,7 @@
 
 /* direct members */
 #include "dArray2DT.h"
+#include "iArray2DT.h"
 #include "CommunicatorT.h"
 
 namespace Tahoe {
@@ -27,15 +28,39 @@ public:
 	virtual ~PointToPointT(void);
 
 	/** allocate buffers 
-	 * \param partition partition information
-	 * \param num_values number of values per node */
-	void Initialize(int num_values);
+	 * \param t data type being communicated
+	 * \param num_values number of values per node
+	 * \param gather array which sets the data type and values per node
+	 *        for the communication */
+	/*@{*/
+	void Initialize(MessageT::TypeT t, int num_values);
+	void Initialize(nArray2DT<int>& gather);
+	void Initialize(nArray2DT<double>& gather);
+	/*@}*/
 
 	/** current maximum tag number */
 	static int MaxTag(void) { return sMaxTag; };
 
-	/** perform the exchange */
+	/** perform the exchange. When called with only one
+	 * argument, the data from this partition must already be in the
+	 * appropriate place within the destination array. */
+	/*@{*/
+	/** perform double gather.
+	 * \param gather source/destination array */
+	void AllGather(nArray2DT<double>& gather);
+
+	/** perform int gather.
+	 * \param gather source/destination array */
+	void AllGather(nArray2DT<int>& gather);
+
+	/** specialization for gathering a single value per node. Can
+	 * only be used if num_values is 1. */
 	void AllGather(nArrayT<double>& gather);
+
+	/** specialization for gathering a single value per node. Can
+	 * only be used if num_values is 1. */
+	void AllGather(nArrayT<int>& gather);
+	/*@}*/
 
 private:
 
@@ -44,8 +69,12 @@ private:
 
 	/** \name buffers */
 	/*@{*/
-	ArrayT<dArray2DT> fRecvBuffer;
-	ArrayT<dArray2DT> fSendBuffer;
+	int fMinorDim;
+	ArrayT<dArray2DT> fdRecvBuffer;
+	ArrayT<dArray2DT> fdSendBuffer;
+
+	ArrayT<iArray2DT> fiRecvBuffer;
+	ArrayT<iArray2DT> fiSendBuffer;
 	/*@}*/
 
 	/** \name data for non-blocking communications */
@@ -63,6 +92,21 @@ private:
 	static int sTagCount;
 	/*@}*/
 };
+
+/* specialization for gathering a single value per node */
+inline void PointToPointT::AllGather(nArrayT<double>& gather)
+{
+	if (fMinorDim != 1) ExceptionT::SizeMismatch("PointToPointT::AllGather");
+	nArray2DT<double> gather_2D(gather.Length(), 1, gather.Pointer());
+	AllGather(gather_2D);
+}
+
+inline void PointToPointT::AllGather(nArrayT<int>& gather)
+{
+	if (fMinorDim != 1) ExceptionT::SizeMismatch("PointToPointT::AllGather");
+	nArray2DT<int> gather_2D(gather.Length(), 1, gather.Pointer());
+	AllGather(gather_2D);
+}
 
 } /* namespace Tahoe */
 

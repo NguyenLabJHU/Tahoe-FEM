@@ -1,4 +1,4 @@
-/* $Id: AllGatherT.h,v 1.1.2.2 2002-12-19 03:09:13 paklein Exp $ */
+/* $Id: AllGatherT.h,v 1.1.2.3 2002-12-27 23:02:41 paklein Exp $ */
 #ifndef _GATHER_T_H_
 #define _GATHER_T_H_
 
@@ -53,6 +53,7 @@ public:
 	void AllGather(const nArrayT<double>& my_data, nArrayT<double>& gather);
 	void AllGather(nArrayT<double>& gather);
 	void AllGather(const nArrayT<int>& my_data, nArrayT<int>& gather);
+	void AllGather(nArrayT<int>& gather);
 	/*@}*/
 		
 private:
