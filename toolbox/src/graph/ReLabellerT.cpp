@@ -1,4 +1,4 @@
-/* $Id: ReLabellerT.cpp,v 1.2 2002-07-02 19:57:15 cjkimme Exp $ */
+/* $Id: ReLabellerT.cpp,v 1.3 2002-09-20 16:20:39 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "ReLabellerT.h"
@@ -53,7 +53,9 @@ int ReLabellerT::Renumber(iArray2DT& oldsequence)
 	/* relabel */
 	NewSequence();
 	
-	/* re-sequence positive values */	
+	/* re-sequence positive values */
+	iArrayT map(oldsequence.Max() + 1);
+	map = -1;
 	int subdim = oldsequence.MinorDim();
 	int	label = 0;
 	for (int i = 0; i < fGraph.NumNodes(); i++)
@@ -62,7 +64,11 @@ int ReLabellerT::Renumber(iArray2DT& oldsequence)
 		for (int j = 0; j < subdim; j++)
 		{	
 			int& oldlabel = *pseq++;
-			if (oldlabel > 0) oldlabel = ++label;
+			if (oldlabel > 0) {
+				int& label_map = map[oldlabel];
+				if (label_map == -1) label_map = ++label;
+				oldlabel = label_map;
+			}
 		}
 	}
 
@@ -75,6 +81,7 @@ int ReLabellerT::Renumber(iArray2DT& oldsequence)
 int ReLabellerT::Renumber(ArrayT<iArray2DT*>& oldsequences)
 {
 	/* first row handled by each sequence */
+	int max_in_sequence = -1;
 	iArrayT maxrow(oldsequences.Length());
 	for (int k = 0; k < oldsequences.Length(); k++)
 	{
@@ -82,6 +89,10 @@ int ReLabellerT::Renumber(ArrayT<iArray2DT*>& oldsequences)
 
 		/* offset from previous sequence */
 		if (k > 0) maxrow[k] += maxrow[k-1];
+		
+		/* find max */
+		int max = oldsequences[k]->Max();
+		max_in_sequence = (max > max_in_sequence) ? max: max_in_sequence;
 	}
 
 	/* make graph */
@@ -273,7 +284,9 @@ int ReLabellerT::Renumber(ArrayT<iArray2DT*>& oldsequences)
 //	}
 //	throw;
 
-	/* re-sequence positive values */	
+	/* re-sequence positive values */
+	iArrayT map(max_in_sequence + 1);
+	map = -1;
 	int	label = 0;
 	for (int i = 0; i < fSequence.Length(); i++)
 	{
@@ -292,7 +305,11 @@ int ReLabellerT::Renumber(ArrayT<iArray2DT*>& oldsequences)
 		for (int j = 0; j < subdim; j++)
 		{	
 			int& oldlabel = *pseq++;
-			if (oldlabel > 0) oldlabel = ++label;
+			if (oldlabel > 0) {
+				int& label_map = map[oldlabel];
+				if (label_map == -1) label_map = ++label;
+				oldlabel = label_map;
+			}
 		}
 	}
 
