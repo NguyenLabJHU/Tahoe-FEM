@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBaseT.cpp,v 1.7 2003-08-08 22:56:06 thao Exp $ */
+/* $Id: SSJ2LinHardBaseT.cpp,v 1.8 2003-11-04 18:11:55 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -23,12 +23,11 @@
 
 using namespace Tahoe;
 
-const double fsqrt23 = sqrt(2.0/3.0);
-
 /* constructor */
 SSJ2LinHardBaseT::SSJ2LinHardBaseT(ifstreamT& in, const SSMatSupportT& support):
 	SSSolidMatT(in, support),
 	fthird(1.0/3.0),
+	fsqrt23(sqrt(2.0/3.0)),
 	fplastic(false)
 {
 	/* read parameters */	
@@ -96,7 +95,7 @@ SSJ2LinHardBaseT::SSJ2LinHardBaseT(ifstreamT& in, const SSMatSupportT& support):
 void SSJ2LinHardBaseT::Print(ostream& out) const
 {
     out << " Shear modulus . . . . . . . . . . . . . . . . . = " << fMu << '\n'; 
-    out << " Bulk modulus. . . . . . . . . . . . . . . . . . = " << fMu << '\n'; 
+    out << " Bulk modulus. . . . . . . . . . . . . . . . . . = " << fKappa << '\n'; 
 	out << " Initial yield stress. . . . . . . . . . . . . . = " << fYield << '\n';
 	out << " Hardening parameter . . . . . . . . . . . . . . = " << fH_bar << '\n';
 	out << " Isotropic/kinematic mixity. . . . . . . . . . . = " << ftheta << '\n';

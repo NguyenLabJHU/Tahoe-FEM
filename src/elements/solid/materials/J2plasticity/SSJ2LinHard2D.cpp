@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHard2D.cpp,v 1.7 2003-08-13 00:15:34 thao Exp $ */
+/* $Id: SSJ2LinHard2D.cpp,v 1.8 2003-11-04 18:11:55 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Plane Strain linearly                */
 /* isotropically elasto plastic material model subject to the Huber-von Mises yield             */
@@ -54,22 +54,10 @@ double SSJ2LinHard2D::StrainEnergyDensity(void)
     
     fDevStrain -= fPlasticStrain;
     
-    fStress3D = fDevStrain;
-    fStress3D *= 2.0*fMu;
-    fStress3D.PlusIdentity(fKappa*I1);
-
-    fDevStrain[0] += fthird*I1;
-    fDevStrain[1] += fthird*I1;
-    fDevStrain[2] += fthird*I1;
-    
-    /*    fStress[0] = fStress3D[0];
-    fStress[1] = fStress3D[1];
-    fStress[2] = fStress3D[5];*/
-
-    /*    energy = 0.5*fStress.ScalarProduct(strain);*/
-    energy += 0.5*fStress3D.ScalarProduct(fDevStrain);
+    energy += 0.5*(2.0*fMu*fDevStrain.ScalarProduct()+fKappa*I1*I1);
     energy += 0.5*falpha[0]*dK()*falpha[0];
     energy += 0.5*fBeta.ScalarProduct(fPlasticStrain);
+
     return energy;		
 }
 

@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBaseT.h,v 1.4 2003-08-08 22:56:06 thao Exp $ */
+/* $Id: SSJ2LinHardBaseT.h,v 1.5 2003-11-04 18:11:55 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -89,6 +89,7 @@ protected:
 	double ftheta;	/* (0 < ftheta < 1) 				*/
 
 	const double fthird;
+	const double fsqrt23;
 
 	/*flag*/
 	bool fplastic;

@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV2D.cpp,v 1.7 2003-06-28 17:28:57 thao Exp $ */
+/* $Id: SSSV_KStV2D.cpp,v 1.8 2003-11-04 18:10:41 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV2D.h"
 #include "SSMatSupportT.h"
@@ -10,8 +10,8 @@
 
 using namespace Tahoe;
 
-const int kNumOutputVar = 3;
-static const char* Labels[kNumOutputVar] = {"Dvisc","Iep_v", "IIe_v"};
+const int kNumOutputVar = 4;
+static const char* Labels[kNumOutputVar] = {"Dvisc","Er", "Iep_v", "IIe_v"};
 
 SSSV_KStV2D::SSSV_KStV2D(ifstreamT& in, const SSMatSupportT& support):
 	SSSimoViscoT(in, support),
@@ -233,7 +233,7 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
 		/*volumetric part*/
 		fmeanSin[0] = kappa*I1;
 		fmeanQ[0] = fbetaB*fmeanQ_n[0] + falphaB * (fmeanSin[0]-fmeanSin_n[0]);
-		//TEMP
+
 		/*evaluate viscous strains*/
 		fViscStrain = 0.0;
 		fViscStrain -= fdevQ;
@@ -320,7 +320,7 @@ void SSSV_KStV2D::ComputeOutput(dArrayT& output)
 	double kappa = fKappa[kNonEquilibrium];
 
 	/*non-equilibrium components*/
-	ElementCardT& element = CurrentElement();
+        ElementCardT& element = CurrentElement(); 
 	Load(element, CurrIP());
 
 	const dArrayT& viscstrain = InternalStrainVars();
@@ -328,13 +328,13 @@ void SSSV_KStV2D::ComputeOutput(dArrayT& output)
 	double etaS = fMu[kNonEquilibrium]*ftauS;
 	double etaB = fKappa[kNonEquilibrium]*ftauB;
 
-	output[0] = 0.5*(0.5/etaS*fdevQ.ScalarProduct()+1.0/etaB*fmeanQ[0]*fmeanQ[0]); 
-	double I1 = fthird*(viscstrain[0]+viscstrain[1]+viscstrain[2]);
-	output[1] = I1;
-	output[2] = sqrt(2.0*fthird*((viscstrain[0]-I1)*(viscstrain[0]-I1)
-                  +(viscstrain[1]-I1)*(viscstrain[1]-I1) 
-                  +(viscstrain[2]-I1)*(viscstrain[2]-I1)
-                  +2.0*viscstrain[3]*viscstrain[3]
-                  +2.0*viscstrain[4]*viscstrain[4]
-                  +2.0*viscstrain[5]*viscstrain[5]));
+	output[0] = 0.5*(0.5/etaS*fdevQ.ScalarProduct() + 1.0/etaB*fmeanQ[0]*fmeanQ[0]);
+	double I1 = output[1] = fViscStrain[0]+fViscStrain[1]+fViscStrain[2];
+	I1 *= fthird;
+	output[2] = sqrt(2.0*fthird*((fViscStrain[0]-I1)*(fViscStrain[0]-I1)
+                  +(fViscStrain[1]-I1)*(fViscStrain[1]-I1) 
+                  + (fViscStrain[2]-I1)*(fViscStrain[2]-I1)
+                  +2.0*fViscStrain[3]*fViscStrain[3]
+                  +2.0*fViscStrain[4]*fViscStrain[4]
+                  +2.0*fViscStrain[5]*fViscStrain[5]));
 }	

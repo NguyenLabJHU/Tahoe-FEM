@@ -1,4 +1,4 @@
- /* $Id: SSSimoViscoT.cpp,v 1.5 2003-08-12 17:17:03 thao Exp $ */
+ /* $Id: SSSimoViscoT.cpp,v 1.6 2003-11-04 18:10:34 thao Exp $ */
 #include "SSSimoViscoT.h"
 #include "fstreamT.h"
 #include "ExceptionT.h"
@@ -28,9 +28,10 @@ SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support):
 	fnstatev += numstress;   /*preceding deviatoric inelastic stress*/
 	fnstatev ++;			 /*preceding mean overstress*/
 	fnstatev ++; 			 /*preceding mean inelastic stress*/
+
 	//TEMP
-	fnstatev += numstress;   /*viscous stress*/
-	
+	fnstatev += numstress;   /*viscstretch*/
+
 	fstatev.Dimension(fnstatev);
 	double* pstatev = fstatev.Pointer();
 	/* assign pointers to current and preceding blocks of state variable array */
@@ -148,4 +149,9 @@ void SSSimoViscoT::Store(ElementCardT& element, int ip)
 	for (int i = 0; i < fnstatev; i++)
 		*pd++ = *pdr++;
 }
+
+
+
+
+
 

@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHard3Dplane.cpp,v 1.1 2003-08-13 00:15:34 thao Exp $ */
+/* $Id: SSJ2LinHard3Dplane.cpp,v 1.2 2003-11-04 18:11:55 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Plane Strain linearly                */
 /* isotropically elasto plastic material model subject to the Huber-von Mises yield             */
@@ -212,3 +212,5 @@ void SSJ2LinHard3Dplane::ComputeOutput(dArrayT& output)
 	output[1] = sqrt(3.0*J2);
         output[0] = falpha[0];
 }
+
+
