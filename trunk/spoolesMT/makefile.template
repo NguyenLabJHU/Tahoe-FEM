@@ -1,57 +1,56 @@
-# $Id: makefile.template,v 1.2 2001-08-01 15:58:38 strohban Exp $
+# $Id: makefile.template,v 1.3 2005-04-05 16:03:49 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
 # (1) set HOME_DIR to the full path to this makefile.
 # (2) set MACRO_DIR to the full path to directory
 #     containing the machine specific compiler macros.
-# (3) select ARCH from list of supported platforms.
+# (3) select ARCH from those in the macros directory.
 # (4) select installed "build options".
 # (5) "make init" to (re-)initialize headers and file
 #     dependencies.
 # (6) "make build" to (re-)compiler binaries.
 
-# full path to current directory
+# full path to the top level of this module
 HOME_DIR =
 
-# working directories:
-OBJ_DIR = $(HOME_DIR)/obj
-INC_DIR = $(HOME_DIR)/inc
-SRC_DIR = $(HOME_DIR)/src
-LIB_DIR = $(HOME_DIR)/lib
+# build architecture - see macros directory for choices $(ARCH).macros
+ARCH =
 
-# build architecture
-ARCH = 
-# choices:
-#     ALASKA - DEC OSF
-#  CA-CPLANT - DEC OSF
-#        DEC - DEC OSF
-#    DEC.mpi - DEC OSF with MPI
-#        GNU - egcs
-#      JANUS - ASCI Red
-#        SGI - IRIX
-#  SGI.mpich - IRIX with MPICH
-#    SGI.mpi - IRIX with MPI
-#    SIBERIA - DEC OSF
-#        SUN - SUNWSpro
+# destination for the build 
+BLD_DIR = $(HOME_DIR)
+
+# working directories:
+INC_DIR = $(BLD_DIR)/inc
+SRC_DIR = $(HOME_DIR)/src
+OBJ_DIR = $(BLD_DIR)/obj
+BLD_SRC_DIR = $(BLD_DIR)/src-mirror
+LIB_DIR = $(BLD_DIR)/lib
 
 # default target name - root of library name or executable name
 TARGET  = spoolesMT
-LIBRARY = $(HOME_DIR)/lib/lib$(TARGET).a
+LIBRARY = $(LIB_DIR)/lib$(TARGET).a
+PCH     = $(TARGET)Prefix.h
 
 # path to main, needed if primary target is an executable (not 
 # a library)
-MAIN    = $(SRC_DIR)/main/main.o
+MAIN = $(BLD_SRC_DIR)/main/main.o
 
 # target of "make build", i.e., the library $(LIBRARY) or
 # the executable $(TARGET)
-BUILD   = $(LIBRARY)
+BUILD = $(LIBRARY)
 
 # full path to compiler macros
 MACRO_DIR = $(HOME_DIR)/../macros
 
 ############################### build options ###########################
 # uncomment macros for installed models
+
+##### any additional C, C++, fortran, or linker flags specific to the module
+MOD_CFLAGS_C  =
+MOD_CFLAGS_CC =
+MOD_CFLAGS_F  =
+MOD_LFLAGS    =
 
 #### SPOOLES
 SPOOLES_DIR      = $(HOME_DIR)/../spooles
@@ -63,9 +62,16 @@ SPOOLES_LFLAGS   = -L$(SPOOLES_DIR)/lib -l$(SPOOLES_LIB_NAME)
 
 ############################### build options ###########################
 
+# "make build" extras - target brought up to date before other makefile
+# targets associated with "make build"
+MOD_MAKE_INIT_XTRAS        = nothing
+MOD_MAKE_HEADERS_XTRAS     = nothing
+MOD_MAKE_DEPEND_INIT_XTRAS = nothing
+MOD_CLEAN_XTRAS            = nothing
+MOD_BUILD_XTRAS            = nothing
+
 # include common target definitions
 include $(MACRO_DIR)/make.targets
 
-
-
-
+# init extras target
+update_config: nothing
