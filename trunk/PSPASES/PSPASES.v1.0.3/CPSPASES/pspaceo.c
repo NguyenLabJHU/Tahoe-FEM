@@ -39,7 +39,7 @@
 /* conditions are subject to change at any time without prior notice.        */
 /*                                                                           */
 /*****************************************************************************/
-/* $Id: pspaceo.c,v 1.1 2004-12-10 20:26:45 paklein Exp $ */
+/* $Id: pspaceo.c,v 1.2 2005-01-15 07:37:34 paklein Exp $ */
 /*****************************************************************************/
 
 #include "pspaces.h"
@@ -59,18 +59,31 @@ int myid,pp,dd,mynnodes,N,i,j,k,l,m;
 int ntemp,*temparr1,*temparr2,serialorder;
 MPI_Comm comm;
 int *dbgsizes,dbgpp,dbgdd;
+int power2;
 
   MPI_Comm_dup((*pcomm),&comm);
 
   MPI_Comm_rank(comm,&myid);
   MPI_Comm_size(comm,&pp);
 
+#if 0
   dd = floor(log((double)pp)/log(2.0));
-
   if(!myid && ((1<<dd != pp) || pp < 2) ) {
     printf("The number of processors must be > 1, and a power of 2.\n");
     MPI_Abort(comm,0);
   }
+#endif
+
+	power2 = 2;
+	dd = 0;
+	while (pp != power2) {
+		if (power2 > pp) {
+			printf("The number of processors must be > 1, and a power of 2.\n");
+    		MPI_Abort(comm,0);
+		}
+		dd++;
+		power2 *= 2;
+	}
 
   ntemp = pp+1+O_NOPTS;
   if(!(temparr1 = (int *)malloc(ntemp*sizeof(int)))) {
