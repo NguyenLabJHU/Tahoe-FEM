@@ -1,4 +1,4 @@
-/* $Id: ParameterUtils.cpp,v 1.3 2003-09-03 23:41:59 paklein Exp $ */
+/* $Id: ParameterUtils.cpp,v 1.4 2004-01-21 17:15:19 paklein Exp $ */
 #include "ParameterUtils.h"
 
 using namespace Tahoe;
@@ -7,58 +7,16 @@ using namespace Tahoe;
  * IntegerListT implementation
  **********************************************************************/
 
-/* constructors */
 IntegerListT::IntegerListT(const StringT& name):
-	ParameterInterfaceT(name)
+	NamedListT<IntegerParameterT>(name)
 {
 
 }
 
 IntegerListT::IntegerListT(void):
-	ParameterInterfaceT("IntegerList")
+	NamedListT<IntegerParameterT>("IntegerList")
 {
 
-}
-
-/* describe the parameters needed by the interface */
-void IntegerListT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineParameters(list);
-
-	/* add optional name */
-	list.AddParameter(fListName, "name", ParameterListT::ZeroOrOnce);
-}
-
-/* information about subordinate parameters */
-void IntegerListT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineSubs(sub_list);
-	
-	/* zero or more integers */
-	sub_list.AddSub("Integer", ParameterListT::Any);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* IntegerListT::NewSub(const StringT& list_name) const
-{
-	if (list_name == "Integer")
-		return new IntegerT;
-	else
-		return ParameterInterfaceT::NewSub(list_name);
-}
-
-/* accept parameter list */
-void IntegerListT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	ParameterInterfaceT::TakeParameterList(list);
-
-	/* get name if defined */
-	const ParameterT* list_name = list.Parameter("name");
-	if (list_name) 
-		fListName = *list_name;
 }
 
 /**********************************************************************
@@ -67,56 +25,32 @@ void IntegerListT::TakeParameterList(const ParameterListT& list)
 
 /* constructors */
 DoubleListT::DoubleListT(const StringT& name):
-	ParameterInterfaceT(name)
+	NamedListT<DoubleParameterT>(name)
 {
 
 }
 
 DoubleListT::DoubleListT(void):
-	ParameterInterfaceT("DoubleList")
+	NamedListT<DoubleParameterT>("DoubleList")
 {
 
 }
 
-/* describe the parameters needed by the interface */
-void DoubleListT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineParameters(list);
+/**********************************************************************
+ * StringListT implementation
+ **********************************************************************/
 
-	/* add optional name */
-	list.AddParameter(fListName, "name", ParameterListT::ZeroOrOnce);
+/* constructors */
+StringListT::StringListT(const StringT& name):
+	NamedListT<StringParameterT>(name)
+{
+
 }
 
-/* information about subordinate parameters */
-void DoubleListT::DefineSubs(SubListT& sub_list) const
+StringListT::StringListT(void):
+	NamedListT<StringParameterT>("DoubleList")
 {
-	/* inherited */
-	ParameterInterfaceT::DefineSubs(sub_list);
-	
-	/* zero or more integers */
-	sub_list.AddSub("Double", ParameterListT::Any);
-}
 
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* DoubleListT::NewSub(const StringT& list_name) const
-{
-	if (list_name == "Double")
-		return new DoubleT;
-	else
-		return ParameterInterfaceT::NewSub(list_name);
-}
-
-/* accept parameter list */
-void DoubleListT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	ParameterInterfaceT::TakeParameterList(list);
-
-	/* get name if defined */
-	const ParameterT* list_name = list.Parameter("name");
-	if (list_name) 
-		fListName = *list_name;
 }
 
 /**********************************************************************
@@ -124,14 +58,14 @@ void DoubleListT::TakeParameterList(const ParameterListT& list)
  **********************************************************************/
 
 /* constructors */
-IntegerT::IntegerT(void):
-	NamedValueT<int>("Integer")
+IntegerParameterT::IntegerParameterT(void):
+	NamedParameterT<int>("Integer")
 {
 	fValue = 0;
 }
 
-IntegerT::IntegerT(const StringT& name):
-	NamedValueT<int>(name)
+IntegerParameterT::IntegerParameterT(const StringT& name):
+	NamedParameterT<int>(name)
 {
 	fValue = 0;
 }
@@ -141,14 +75,31 @@ IntegerT::IntegerT(const StringT& name):
  **********************************************************************/
 
 /* constructors */
-DoubleT::DoubleT(void):
-	NamedValueT<double>("Double")
+DoubleParameterT::DoubleParameterT(void):
+	NamedParameterT<double>("Double")
 {
 	fValue = 0;
 }
 
-DoubleT::DoubleT(const StringT& name):
-	NamedValueT<double>(name)
+DoubleParameterT::DoubleParameterT(const StringT& name):
+	NamedParameterT<double>(name)
 {
 	fValue = 0;
+}
+
+/**********************************************************************
+ * DoubleT implementation
+ **********************************************************************/
+
+/* constructors */
+StringParameterT::StringParameterT(void):
+	NamedParameterT<StringT>("String")
+{
+
+}
+
+StringParameterT::StringParameterT(const StringT& name):
+	NamedParameterT<StringT>(name)
+{
+
 }
