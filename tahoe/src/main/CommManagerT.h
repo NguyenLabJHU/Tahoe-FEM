@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.10 2004-11-17 23:40:34 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.11 2004-11-18 16:41:01 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -168,6 +168,9 @@ private:
 
 	/** return the partition or throw an exception if it's not set */
 	PartitionT& Partition(void) const;	
+
+	/** return the node manager or throw an exception if it's not set */
+	NodeManagerT& NodeManager(void) const;
 
 	/** collect partition nodes */
 	void CollectPartitionNodes(const ArrayT<int>& n2p_map, int part, 
@@ -381,6 +384,12 @@ inline const ArrayT<int>* CommManagerT::GhostNodes(void) const
 inline PartitionT& CommManagerT::Partition(void) const {
 	if (!fPartition) ExceptionT::GeneralFail("CommManagerT::Partition", "partition not set");
 	return *fPartition;
+}
+
+/* return the node manager or throw an exception if it's not set */
+inline NodeManagerT& CommManagerT::NodeManager(void) const {
+	if (!fNodeManager) ExceptionT::GeneralFail("CommManagerT::NodeManager", "nodes not set");
+	return *fNodeManager;
 }
 
 inline int CommManagerT::Init_AllGather(const nArray2DT<int>& values)
