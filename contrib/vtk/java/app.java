@@ -8,7 +8,8 @@ public class app {
   protected test a;
 
   public app(){
-    a = new test();
+    JFrame temp = new JFrame();
+    a = new test(temp);
     // construct the internal C++ object
     a.InitCpp();
     
@@ -33,8 +34,8 @@ public static void main(String args[]) throws IOException {
 		emptyLabel.setPreferredSize(new Dimension(175, 100));
 		emptyLabel.setHorizontalAlignment(JLabel.CENTER);
 		//frame.getContentPane().add(emptyLabel, BorderLayout.CENTER);		
-		frame.setSize(800,800);
-		frame.getContentPane().add(new test());
+		frame.setSize(1268,988);
+		frame.getContentPane().add(new test(frame));
                 frame.pack();
                 frame.setVisible(true);
 
