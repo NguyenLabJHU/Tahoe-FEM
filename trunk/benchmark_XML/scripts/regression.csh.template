@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: regression.csh.template,v 1.12 2003-03-15 16:42:56 paklein Exp $
+# $Id: regression.csh.template,v 1.13 2003-04-01 18:43:39 paklein Exp $
 
 # username on Tahoe server
 set TAHOE_USER =
@@ -39,6 +39,15 @@ set BUILD_MODULES = (toolbox tahoe)
 cd ${W_DIR}
 if (-e make.stderr) rm make.stderr
 if (-e make.stdout) rm make.stdout
+#
+# resolve test requestor - first command line argument of $TAHOE_USER
+#
+if ($#argv > 0) then
+	set REQUESTOR = $1
+else
+	set REQUESTOR = $TAHOE_USER
+endif
+echo "running regression requested by: ${REQUESTOR}"
 #
 # get latest files from the CVS repository
 #
@@ -99,18 +108,21 @@ if (-x ${W_DIR}/tahoe/${TAHOE} && -x ${W_DIR}/benchmark/comparator/compare) then
 		${ECHO} "BENCHMARKs failed"
 		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}" > ${W_DIR}/benchmark/tmp
 		${ECHO} "TAHOE regression FAIL:" `date` >> ${W_DIR}/benchmark/tmp
+		${ECHO} "test requested by: ${REQUESTOR}" >> ${W_DIR}/benchmark/tmp
 		cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.console > ${W_DIR}/benchmark/tmp_mail
 	else if (`grep -c "FAIL" ${W_DIR}/benchmark/compare.summary` ) then
 		# test/s failed
 		${ECHO} "BENCHMARKs failed"
 		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}" > ${W_DIR}/benchmark/tmp
 		${ECHO} "TAHOE regression FAIL:" `date` >> ${W_DIR}/benchmark/tmp
+		${ECHO} "test requested by: ${REQUESTOR}" >> ${W_DIR}/benchmark/tmp		
 		cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_mail
     else
     	# tests passed
 		${ECHO} "BENCHMARKs passed"
 		${ECHO} "Subject: TAHOE: regression PASS ${HOST}" > ${W_DIR}/benchmark/tmp
 		${ECHO} "TAHOE regression PASS:" `date` >> ${W_DIR}/benchmark/tmp
+		${ECHO} "test requested by: ${REQUESTOR}" >> ${W_DIR}/benchmark/tmp
 		cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_mail
 	endif
 	
@@ -118,6 +130,7 @@ if (-x ${W_DIR}/tahoe/${TAHOE} && -x ${W_DIR}/benchmark/comparator/compare) then
 else
 	${ECHO} "Subject: TAHOE: build FAIL ${HOST}" > ${W_DIR}/benchmark/tmp
 	${ECHO} "TAHOE build FAIL:" `date` >> ${W_DIR}/benchmark/tmp
+	${ECHO} "test requested by: ${REQUESTOR}" >> ${W_DIR}/benchmark/tmp
 	cat ${W_DIR}/benchmark/tmp ${W_DIR}/make.stderr > ${W_DIR}/benchmark/tmp_mail
 endif
 #
@@ -127,4 +140,4 @@ scp ${W_DIR}/benchmark/tmp_mail ${TAHOE_USER}@tahoe.ca.sandia.gov:/incoming/benc
 #
 # run additional tests
 #
-# cd ${W_DIR}/benchmark/scripts; csh -f parallel.csh >& parallel.LOG
+# cd ${W_DIR}/benchmark/scripts; csh -f parallel.csh ${REQUESTOR} >& parallel.LOG
