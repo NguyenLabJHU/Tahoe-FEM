@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.9 2002-06-08 20:20:30 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.10 2002-06-27 22:39:47 paklein Exp $ */
 
 #include "ABAQUS_VUMAT_BaseT.h"
 
@@ -830,7 +830,8 @@ void ABAQUS_VUMAT_BaseT::Call_VUMAT(double t, double dt, int step, int iter)
 
 //DEBUG
 int d_width = OutputWidth(flog, fstress.Pointer());
-if (CurrIP() == 0 && (step == 1 || step == 26))
+if (true)
+//if (CurrIP() == 0 && (step == 1 || step == 26))
 {
 flog << " THE INPUT\n";
 flog << setw(10) << "time:" << setw(d_width) << time[0]  << '\n';
@@ -848,13 +849,9 @@ flog << fstatv.wrap(5) << '\n';
        &enerInternOld, &enerInelasOld, &tempNew, stretchnew, dfgrd1, dpred, stressnew, statevnew, 
        &enerInternNew, &enerInelasNew);
  
-       //UMAT(stress, statev, ddsdde, &sse, &spd, &scd, &rpl, ddsddt, drplde,
-       //       &drpldt, stran, dstran, time, &dtime, &temp, &dtemp, predef, dpred, cmname,
-       //       &ndi, &nshr, &ntens, &nstatv, props, &nprops, coords, drot, &pnewdt, &celent,
-       //       dfgrd0, dfgrd1, &noel, &npt, &layer, &kspt, &kstep, &kinc, cmname_len);
-
 //DEBUG
-if (false && CurrIP() == 0 && (step == 1 || step == 26))
+if (true)
+//if (false && CurrIP() == 0 && (step == 1 || step == 26))
 {
 flog << " THE OUTPUT\n";
 flog << setw(10) << " stress: " << fstress.no_wrap() << '\n';
