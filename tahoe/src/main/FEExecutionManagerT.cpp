@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.55.2.10 2004-03-07 05:25:00 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.55.2.11 2004-03-08 21:36:23 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -798,8 +798,11 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		/* now d0, v0 and a0 are known after InitialCondition */
 		continuum.InitialCondition();
 		
-		/* Test functions to calculate EAM electron density/embedding terms using continuum information */
-		continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
+		if (nsd == 3)
+		{
+			/* Calculate EAM electron density/embedding terms for ghost atoms using continuum information */
+			continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
+		}
 		
 		/* Interpolate FEM values to MD ghost nodes which will act as MD boundary conditions */
 		continuum.InterpolateField(bridging_field, order1, boundghostdisp);
@@ -929,8 +932,11 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			bavel.RowCollect(batoms, boundghostvel);
 			baacc.RowCollect(batoms, boundghostacc);
 			
-			/* Test functions to calculate EAM electron density/embedding terms using continuum information */
-			continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
+			if (nsd == 3)
+			{
+				/* Calculate EAM electron density/embedding terms for ghost atoms using updated continuum information */
+				continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
+			}
 			
 			/* close fe step */
 			if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
