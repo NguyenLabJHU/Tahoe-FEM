@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.69.2.5 2004-08-09 16:46:04 d-farrell2 Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.69.2.6 2004-08-09 20:56:00 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -58,8 +58,6 @@
 #endif /* BRIDGING_ELEMENT */
 
 using namespace Tahoe;
-
-FEManagerT::TaskT task;
 
 /* Constructor */
 FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
@@ -282,6 +280,7 @@ void FEExecutionManagerT::RunWriteDescription(int doc_type) const
 	StringT input;
 	ofstreamT output;
 	CommunicatorT comm;
+	FEManagerT::TaskT task = FEManagerT::kParameters;
 //TEMP
 
 	/* collect parameters */
@@ -563,11 +562,10 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 	    	
 			/* synch and check status */
 			if (fComm.Sum(token) != size) ExceptionT::GeneralFail();
-			//PartitionT partition;
+
 			if (size > 1)
 			{
 				/* read partition information */
-				//PartitionT partition;
 				StringT part_file;
 				part_file.Root(model_file);
 				part_file.Append(".n", size);
@@ -596,32 +594,33 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 					/* set correct numbering scope */
 					partition.SetScope(PartitionT::kLocal);
 				}
+
+				/* write partial geometry files (if needed) */
+				StringT suffix;
+				suffix.Suffix(model_file);
+				StringT partial_file;
+				partial_file.Root(model_file);
+				partial_file.Append(".n", size);
+				partial_file.Append(".p", rank);
+				partial_file.Append(suffix);
+				if (decompose.NeedModelFile(partial_file, format))
+				{
+					/* original model file */
+					ModelManagerT model_ALL(cout);
+					if (!model_ALL.Initialize(format, model_file, true))
+						ExceptionT::GeneralFail(caller, 
+							"error opening file: %s", (const char*) model_file);
+				
+					cout << "\n " << caller << ": writing partial geometry file: " << partial_file << endl;
+					decompose.EchoPartialGeometry(partition, model_ALL, partial_file, format);
+					cout << " " << caller << ": writing partial geometry file: partial_file: "
+						 << partial_file << ": DONE" << endl;
+				}	
 			}
 			
 			/* synch and check status */
 			if (fComm.Sum(token) != size) ExceptionT::GeneralFail();
 				
-			/* write partial geometry files (if needed) */
-			StringT suffix;
-			suffix.Suffix(model_file);
-			StringT partial_file;
-			partial_file.Root(model_file);
-			partial_file.Append(".n", size);
-			partial_file.Append(".p", rank);
-			partial_file.Append(suffix);
-			if (decompose.NeedModelFile(partial_file, format))
-			{
-				/* original model file */
-				ModelManagerT model_ALL(cout);
-				if (!model_ALL.Initialize(format, model_file, true))
-					ExceptionT::GeneralFail(caller, 
-						"error opening file: %s", (const char*) model_file);
-			
-				cout << "\n " << caller << ": writing partial geometry file: " << partial_file << endl;
-				decompose.EchoPartialGeometry(partition, model_ALL, partial_file, format);
-				cout << " " << caller << ": writing partial geometry file: partial_file: "
-					 << partial_file << ": DONE" << endl;
-			}	
 		} // end if (valid_list.Name() == "tahoe")
 		
 		/* construction */
@@ -649,7 +648,7 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 		}
 
 		IOManager_mpi* IOMan = NULL; // declaration moved out from below
-		if (valid_list.Name() == "tahoe") // if straight atomistic or continuum calculation use decompose information from above
+		if (fComm.Size() > 1 && valid_list.Name() == "tahoe") // if straight atomistic or continuum calculation use decompose information from above
 		{
 			/* external IO */
 			token = 1;
