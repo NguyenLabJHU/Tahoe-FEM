@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.15 2002-01-09 21:38:18 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.16 2002-01-09 22:19:33 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #include "FEExecutionManagerT.h"
@@ -298,12 +298,6 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 		StringT model_file, suffix;
 		IOBaseT::FileTypeT format;
 		GetModelFile(in, model_file, format);
-	
-		/* global output model file */
-		StringT global_model_file;
-		suffix.Suffix(model_file);
-		global_model_file.Root(model_file);
-		global_model_file.Append(".io", suffix);
 
 		/* output map file */
 		StringT map_file;
@@ -312,7 +306,7 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 		map_file.Append(".io.map");
 
 		/* set output map and and generate decomposition */
-		Decompose(in, size, model_file, global_model_file, format, map_file);
+		Decompose(in, size, model_file, format, map_file);
 		t1 = clock();
 	}
 
@@ -457,12 +451,6 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	IOBaseT::FileTypeT format;
 	GetModelFile(in, model_file, format);
 	
-	/* global output model file */
-	StringT global_model_file;
-	suffix.Suffix(model_file);
-	global_model_file.Root(model_file);
-	global_model_file.Append(".io", suffix);
-
 	/* output map file */
 	StringT map_file;
 	map_file.Root(model_file);
@@ -474,7 +462,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	if (rank == 0)
 	{
 		/* run decomp */
-		try { Decompose(in, size, model_file, global_model_file, format, map_file); }
+		try { Decompose(in, size, model_file, format, map_file); }
 		catch (int code)
 		{
 			cout << " ::RunJob_parallel: exception on decomposition: " << code << endl;
@@ -724,16 +712,13 @@ void FEExecutionManagerT::GetModelFile(ifstreamT& in, StringT& model_file,
 
 /* initializations for rank 0 */
 void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
-	const StringT& model_file, const StringT& global_model_file,
-	IOBaseT::FileTypeT format, const StringT& output_map_file) const
+	const StringT& model_file, IOBaseT::FileTypeT format, 
+	const StringT& output_map_file) const
 {
 	bool split_io = CommandLineOption("-split_io");
 	bool need_output_map = NeedOutputMap(in, output_map_file, size) && !split_io;
-	bool need_model_file = NeedModelFile(global_model_file, format) && !split_io;
 	bool need_decomp = NeedDecomposition(in, model_file, size);
-	if (need_output_map ||
-	    need_decomp ||
-	    need_model_file)
+	if (need_output_map || need_decomp)
 	{
 		/* echo stream */
 		StringT decomp_file;
@@ -776,18 +761,6 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 			map_out << "# part to processor output map\n";
 			map_out << output_map.wrap(8) << '\n';
 			cout << " Generating output map: " << output_map_file << ": DONE"<< endl;
-		}
-
-//TEMP - remove all together later
-		/* output model file */
-		if (need_model_file)
-		{
-			cout << "\n FEExecutionManagerT::Decompose: SKIPPING global model file" << endl;
-#if 0
-			cout << "\n Writing output model file: " << global_model_file << endl;
-			global_FEman.WriteGeometryFile(global_model_file, format);
-			cout << " Writing output model file: " << global_model_file << ": DONE" << endl;
-#endif
 		}
 	
 		/* decompose */

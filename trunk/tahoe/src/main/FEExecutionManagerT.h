@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.4 2002-01-07 00:56:22 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.5 2002-01-09 22:19:33 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -65,8 +65,7 @@ private:
 
 	/** generate decomposition data */
 	void Decompose(ifstreamT& in, int size, const StringT& model_file,
-		const StringT& global_model_file, IOBaseT::FileTypeT format,
-		const StringT& output_map_file) const;
+		IOBaseT::FileTypeT format, const StringT& output_map_file) const;
 
 	/** returns true if a new decomposition is needed */
 	bool NeedDecomposition(ifstreamT& in, const StringT& model_file,
