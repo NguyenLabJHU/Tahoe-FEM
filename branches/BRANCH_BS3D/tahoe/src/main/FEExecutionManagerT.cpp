@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.55 2004-01-29 01:03:32 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.55.2.1 2004-02-02 05:49:08 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -732,17 +732,6 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	//ghostoffmap(1,0) = ghostoffmap(0,1) = ghostoffmap(3,0) = ghostoffmap(0,3) = 1; // left edge MD crack
 	//ghostoffmap(1,3) = ghostoffmap(3,1) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
 	//ghostonmap(1,0) = ghostonmap(0,1) = 1;
-
-#if 0
-	/* temporary code to output dissipation due to THK forces */
-	bool fopen = false;
-	ofstreamT fout;
-	StringT fsummary_file;
-	ifstreamT& in = atoms.Input();
-	const StringT& input_file = in.filename();
-	fsummary_file.Root(input_file);
-	fsummary_file.Append(".diss");
-#endif
 	
 	/* time managers */
 	TimeManagerT* atom_time = atoms.TimeManager();
@@ -809,9 +798,17 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		/* Write interpolated FEM values at MD ghost nodes into MD field - displacement only */
 		atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
 		
-		/* store initial MD boundary displacement histories */
-		thkforce = atoms.THKForce(badisp);
-		//atoms.SetExternalForce(bridging_field, thkforce, boundatoms);  // sets pointer to thkforce 
+		if (nsd == 2)
+		{
+			/* store initial MD boundary displacement histories */
+			thkforce = atoms.THKForce(badisp);
+			atoms.SetExternalForce(bridging_field, thkforce, boundatoms);  // sets pointer to thkforce 
+		}
+		else
+		{
+			/* implement 3D disp/disp THK formulation here */
+		
+		}
 		
 		/* figure out timestep ratio between fem and md simulations */
 		int nfesteps = continuum_time->NumberOfSteps();
@@ -822,17 +819,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		
 		/* running status flag */
 		ExceptionT::CodeT error = ExceptionT::kNoError;	
-		
-#if 0
-		/* first obtain the MD displacement field */
-		FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
-		dArray2DT mddisplast = (*atomfield)[0];	
-		dArrayT aa(boundatoms.Length()), ab(boundatoms.Length()), sub1(boundatoms.Length()); 
-		dArrayT ac(boundatoms.Length()), ad(boundatoms.Length()), sub2(boundatoms.Length());
-		dArrayT ua(boundatoms.Length()), ub(boundatoms.Length()), uc(boundatoms.Length()), ud(boundatoms.Length());
-		dArrayT sub3(boundatoms.Length()), sub4(boundatoms.Length()), sub5(boundatoms.Length()), sub6(boundatoms.Length());
-#endif
-			
+					
 		for (int i = 0; i < nfesteps; i++)	
 		{
 			for (int j = 0; j < ratio; j++)	// MD update first
@@ -852,63 +839,22 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
 				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);				
 				
-				/* calculate THK force on boundary atoms, update displacement histories */
-				thkforce = atoms.THKForce(badisp);  // SetExternalForce set via pointer
+				if (nsd == 2)
+				{
+					/* calculate THK force on boundary atoms, update displacement histories */
+					thkforce = atoms.THKForce(badisp);  // SetExternalForce set via pointer
+				}
+				else
+				{
+					/* implement 3D disp/disp THK stuff here */
+				
+				}
 																			
 				/* solve MD equations of motion */
 				if (1 || error == ExceptionT::kNoError) {
 						atoms.ResetCumulativeUpdate(group);
 						error = atoms.SolveStep();
 				}
-
-#if 0
-				/* first obtain the MD displacement field */
-				FieldT* atomfielda = atoms.NodeManager()->Field(bridging_field);
-				dArray2DT mddispcurr = (*atomfielda)[0];	
-				mdu0.RowCollect(boundatoms,mddisplast);
-				mdu1.RowCollect(boundatoms,mddispcurr); 
-				mdu0.ColumnCopy(0,aa);
-				mdu0.ColumnCopy(1,ab);
-				mdu1.ColumnCopy(0,ac);
-				mdu1.ColumnCopy(1,ad);
-				sub1.DiffOf(ac,aa); // q(n+1)-q(n) (x-comp)
-				sub2.DiffOf(ad,ab); // q(n+1)-q(n) (y-comp)
-				bdisplast.ColumnCopy(0,ua);
-				bdisplast.ColumnCopy(1,ub);
-				badisp.ColumnCopy(0,uc);
-				badisp.ColumnCopy(1,ud);
-				sub3.DiffOf(ua,uc);  // ubar(n)-ubar(n+1) (x-comp)
-				sub4.DiffOf(ub,ud);  // ubar(n)-ubar(n+1) (x-comp)
-				sub5.SumOf(sub1,sub3);
-				sub6.SumOf(sub2,sub4);
-				double d0 = thkforce.DotColumn(0,sub5);
-				double d1 = thkforce.DotColumn(1,sub6);
-				dissipation += d0;
-				dissipation += d1;
-				
-				const double& time = atoms.Time();
-				if (fopen)
-				{
-					fout.open_append(fsummary_file);
-					fout.precision(13);
-					fout << dissipation
-					     << setw(25) << time
-					     << endl;
-				}
-				else
-				{
-					fout.open(fsummary_file);
-					fopen = true;
-					fout.precision(13);
-					fout << "Dissipation"
-					     << setw(25) << "Time"
-					     << endl;
-					fout << dissipation
-					     << setw(25) << time
-					     << endl;
-				}
-				mddisplast = mddispcurr;
-#endif
 
 				/* close  md step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
