@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.23 2002-06-22 01:56:13 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.24 2002-06-23 03:39:34 paklein Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -162,25 +162,19 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 	/* variables defined at the nodes */
 	int num_node_variables = model.NumNodeVariables();
 	model.NodeLabels(fNodeLabels);
-	vec_dim = model.NumDimensions();
-	if (fNodeLabels.Length() >= vec_dim)
+	
+	/* set the vector fields and dimensions */
+	SetVectorFields(fNodeLabels, fVectorFieldLabel, fVectorFieldDim, fVectorFieldDex);
+	cout << "vector fields: " << fVectorFieldLabel.Length() << '\n';
+	for (int i = 0; i < fVectorFieldLabel.Length(); i++)
 	{
-		const char *d[] = {"D_X", "D_Y", "D_Z"};
-		for (int i = 0; vec_dim > 0 && i < vec_dim; i++)
-			if (fNodeLabels[i] != d[i])
-				vec_dim = 0;
-
-		//TEMP - other displacement variable names
-		if (vec_dim == 0)
-		{
-			vec_dim = model.NumDimensions();
-			const char *d[] = {"DISX", "DISY", "DISZ"};
-			for (int i = 0; vec_dim > 0 && i < vec_dim; i++)
-				if (fNodeLabels[i] != d[i])
-					vec_dim = 0;	
-		}
+		/* labels */
+		if (i == 0)
+			cout << setw(10) << "field" << setw(kIntWidth) << "dim" << '\n';
+		cout << setw(10) << fVectorFieldLabel[i] 
+		     << setw(kIntWidth) << fVectorFieldDim[i] << '\n';
 	}
-	else vec_dim = 0;
+	cout << endl;
 	
 	/* close file */
 	model.CloseModel();
@@ -188,16 +182,15 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 	/* results history */
 	fScalars.Allocate(num_time_steps, num_node_variables);
 	fScalars = NULL;
-	if (vec_dim > 0)
+	if (fVectorFieldDim.Length() > 0)
 	{
-		fVectors.Allocate(num_time_steps);
-		fVectors = NULL;
+		fVectorFields.Allocate(num_time_steps, fVectorFieldDim.Length());
+		fVectorFields = NULL;
 	}
 
 //NOT USED YET
 #if 0
 	/* variables defined over the elements */
-	int num_element_variables = exo.NumElementVariables();
 	ArrayT<StringT> element_labels;
 	exo.ReadElementLabels(element_labels);
 #endif
@@ -264,9 +257,9 @@ VTKBodyDataT::~VTKBodyDataT(void)
 			delete fUGrids[i];
 
 	/* free memory for all stored results */
-	for (int i = 0; i <fVectors.Length(); i++)
+	for (int i = 0; i < fVectorFields.Length(); i++)
 	{
-		if (fVectors[i])fVectors[i]->Delete();
+		if (fVectorFields[i]) fVectorFields[i]->Delete();
     	for (int j = 0; j < fScalars.MinorDim(); j++)
     		if (fScalars(i,j)) fScalars(i,j)->Delete();
 	}
@@ -386,9 +379,10 @@ bool VTKBodyDataT::SelectTimeStep(int stepNum)
 				}
 	
 	  			/* displaced shape */
-				if (fVectors.Length() > 0){
-					if (!fVectors[stepNum]) throw eGeneralFail;
-		  			fUGrids[i]->SetWarpVectors(fVectors[stepNum], fCoords);
+	  			int disp_dex = VectorFieldNumber("D");
+				if (disp_dex > -1) {
+					if (!fVectorFields(stepNum,disp_dex)) throw eGeneralFail;
+		  			fUGrids[i]->SetWarpVectors(fVectorFields(stepNum,disp_dex), fCoords);
 		  		}
 	  		}
 			currentStepNum = stepNum;
@@ -403,8 +397,6 @@ bool VTKBodyDataT::SelectTimeStep(int stepNum)
   	else /* no history */
   		return true;
 }
-
-
 
 /* execute console command. \return true is executed normally */
 bool VTKBodyDataT::iDoCommand(const CommandSpecT& command, StringT& line)
@@ -487,9 +479,18 @@ bool VTKBodyDataT::iDoCommand(const CommandSpecT& command, StringT& line)
 		return iConsoleObjectT::iDoCommand(command, line);
 }
 
+/* return the index of specified vector field, -1 if not present */
+int VTKBodyDataT::VectorFieldNumber(const char* name) const
+{
+	for (int i = 0; i < fVectorFieldLabel.Length(); i++)
+		if (fVectorFieldLabel[i] == name)
+			return i;
+	return -1;
+}
+
 /*************************************************************************
-* private
-*************************************************************************/
+ * private
+ *************************************************************************/
 
 void VTKBodyDataT::DefaultValues(void)
 {
@@ -512,10 +513,6 @@ void VTKBodyDataT::LoadData(int step)
 		cout << "VTKBodyDataT::LoadData: step is out of range: " << step << endl;
 		throw eOutOfRange;
 	}
-	
-	//not used
-	//double time;
-	//exo.ReadTime(i+1, time);
 	
 	/* dimensions */
 	int num_node_variables = fScalars.MinorDim();
@@ -584,7 +581,39 @@ void VTKBodyDataT::LoadData(int step)
 #endif
 		}
 	}
+	
+	/* copy scalars data into vector fields */
+	for (int i = 0; i < fVectorFieldLabel.Length(); i++) {
+	
+		/* not read yet */
+		if (!fVectorFields(step,i)) {
+			did_read = true;
 			
+			/* make vector field at least dimension 3 */
+			int field_dim = fVectorFieldDim[i]; 
+			int vec_dim = (field_dim < 3) ? 3 : field_dim;
+	
+			/* copy into temp space */
+			int num_nodes = fScalars(step,0)->GetNumberOfTuples();
+			nArray2DT<float> tmp(num_nodes+1, vec_dim);
+			tmp = 0.0;
+			int dex = fVectorFieldDex[i];
+			for (int j = 0; j < field_dim; j++)
+				tmp.SetColumn(j, fScalars(step, dex+j)->GetPointer(0));
+					
+			/* load into vectors */
+			vtkFloatArray* new_vector = vtkFloatArray::New();
+			new_vector->SetNumberOfComponents(vec_dim);
+			float* p;
+			tmp.ReleasePointer(&p);
+			new_vector->SetArray(p, tmp.Length()-vec_dim, 0);
+
+			/* store */
+			fVectorFields(step,i) = new_vector;
+		}
+	}
+			
+#if 0
 	/* instantiate displacement vector if needed */
 	if (vec_dim > 0 && !fVectors[step])
 	{
@@ -616,8 +645,59 @@ void VTKBodyDataT::LoadData(int step)
 		disp.ReleasePointer(&p);
 		fVectors[step]->SetArray(p, disp.Length()-3, 0);
 #endif
-	}		
+	}
+#endif		
 
 	/* message */
 	if (did_read) cout << "read data for step: " << step << endl;
+}
+
+/** determine the number and dimension of the vector fields */
+void VTKBodyDataT::SetVectorFields(const ArrayT<StringT>& labels, ArrayT<StringT>& field, 
+	iArrayT& dimension, iArrayT& index) const
+{
+	/* initialize */
+	field.Dimension(0);
+	dimension.Dimension(0);
+	index.Dimension(0);
+
+	/* scan */
+	for (int i = 0; i < labels.Length(); i++)
+	{
+		StringT suffix;
+		suffix.Suffix(labels[i], '_');
+		if (suffix.StringLength() > 0)
+		{
+			StringT root, next_root;
+			root.Root(labels[i], '_');
+			next_root = root;
+			int count = 0;
+			while (next_root.StringLength() > 0 && 
+				root == next_root &&
+				suffix.StringLength() > 0)
+			{
+				count++;
+				if (count == 1) {
+					field.Resize(field.Length() + 1);
+					field.Last() = root;
+					dimension.Resize(field.Length());
+					index.Resize(field.Length());
+					index.Last() = i;
+				}
+				
+				i++;
+				if (i < labels.Length()) {
+					suffix.Suffix(labels[i], '_');
+					next_root.Root(labels[i], '_');
+				} else {
+					suffix.Clear();
+					next_root.Clear();
+				}
+			}
+			i--; /* rewind one */
+			
+			/* dimension field */
+			dimension.Last() = count;
+		}
+	}
 }

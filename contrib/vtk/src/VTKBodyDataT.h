@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.15 2002-06-22 01:56:13 paklein Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.16 2002-06-23 03:39:34 paklein Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -47,8 +47,7 @@ public:
 	/** set the current time step */
 	bool SelectTimeStep(int);
 
-	vtkFloatArray* GetVectors(void) {return fVectors[currentStepNum];};
-
+//	vtkFloatArray* GetVectors(void) {return fVectors[currentStepNum];};
 
  	/** add actors in self to the given renderer */
  	void AddToRenderer(vtkRenderer* renderer) const;
@@ -68,7 +67,7 @@ public:
 	/** return tbe number of nodal variables */
 	int NumNodeVariables(void) const { return fScalars.MinorDim(); };
 
-	int NumVectors(void) const {return fVectors.Length();};
+//	int NumVectors(void) const {return fVectors.Length();};
 	
 	/** return a reference to the nodal labels */
 	const ArrayT<StringT>& NodeLabels(void) const { return fNodeLabels; };
@@ -84,6 +83,15 @@ public:
 
 	const dArray2DT& Coordinates(void) const { return fCoords; };
 
+	/** specified vector field for the current step number. Returns NULL if
+	 * the vector field does not exist */
+	vtkFloatArray* VectorField(const char* name);
+
+protected:
+
+	/** return the index of specified vector field, -1 if not present */
+	int VectorFieldNumber(const char* name) const;
+
  private:
  
 	/** array type conversion */
@@ -98,6 +106,15 @@ public:
 	 * the database file. */
 	void LoadData(int step);
 	Array2DT<vtkFloatArray*> fScalars; /**< dimension: [time_steps] x [num_vars] : [num_nodes] x [1] */
+
+	/** determine the number and dimension of the vector fields. Scans labels
+	 * looking for vector variables. Vector variables are any variables with
+	 * labels ending following:
+	 *     [root]_[suffix] 
+	 * The root and suffix can be anything, but it is assumed vector variables
+	 * with the same root will be grouped together in the list of labels. */
+	void SetVectorFields(const ArrayT<StringT>& labels, ArrayT<StringT>& field, 
+		iArrayT& dimension, iArrayT& index) const;
 	  
  private:
  
@@ -116,14 +133,29 @@ public:
 	/** point numbering map */
 	iArrayT fPointNumberMap;
 
-	/* scalar data per node */
+	/** scalar data per node */
 	ArrayT<StringT> fNodeLabels; /**< labels for the nodal output variables */
 
-	
+	/** \name vector fields information */
+	/*@{*/
 	/** vector data per node. 
 	 * dimension: [time_steps] : [num_nodes] x [ndof] */
-	ArrayT<vtkFloatArray*> fVectors; 
-	int vec_dim;
+//	ArrayT<vtkFloatArray*> fVectors; 
+//	int vec_dim;
+
+	/** vector field data for each (loaded) time step.
+	 * dimensions: [time_steps] x [num_fields] : [num_nodes x field_dim] */
+	Array2DT<vtkFloatArray*> fVectorFields; 
+	
+	/** dimension of each of the vector fields */
+	iArrayT fVectorFieldDim;
+
+	/** index of the first component of each field in VTKBodyDataT::fNodeLabels */
+	iArrayT fVectorFieldDex;
+
+	/** root of the label for each vector field */
+	ArrayT<StringT> fVectorFieldLabel;
+	/*@}*/
 
 	/** array of unstructured grid displays */
 	ArrayT<VTKUGridT*> fUGrids;
@@ -151,6 +183,16 @@ inline void VTKBodyDataT::double_to_float(const ArrayT<double>& d, float* f) con
 	double* pd = d.Pointer(); 
  	for (int i = 0; i < len; i++)
  		*f++ = float(*pd++);
+}
+
+/* specified vector field for the current step number */
+inline vtkFloatArray* VTKBodyDataT::VectorField(const char* name)
+{
+	int dex = VectorFieldNumber(name);
+	if (dex > -1)
+		return fVectorFields(currentStepNum, dex);
+	else
+		return NULL;
 }
 
 #endif
