@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.50 2003-04-22 01:20:42 saubry Exp $ */
+/* $Id: ElementListT.cpp,v 1.50.6.1 2003-06-14 18:46:24 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -92,6 +92,17 @@ using namespace Tahoe;
 ElementListT::ElementListT(void)
 {
 
+}
+
+/* destructor */
+ElementListT::~ElementListT(void)
+{
+	/* activate all */
+	if (fAllElementGroups.Length() > 0) {
+		ArrayT<bool> mask(fAllElementGroups.Length());
+		mask = true;
+		SetActiveElementGroupMask(mask);
+	}
 }
 
 /* initialization functions */
@@ -629,4 +640,39 @@ bool ElementListT::HasContact(void) const
 	return false;
 #endif /* CONTACT_ELEMENT */
 #endif /* __NO_RTTI__ */
+}
+
+/* change the number of active element groups */
+void ElementListT::SetActiveElementGroupMask(const ArrayT<bool>& mask)
+{
+	/* first time */
+	if (fAllElementGroups.Length() == 0) 
+	{
+		/* cache all pointers */
+		fAllElementGroups.Dimension(Length());
+		for (int i = 0; i < fAllElementGroups.Length(); i++)
+		{
+			ElementBaseT* element = (*this)[i];
+			fAllElementGroups[i] = element;
+		}
+	}
+
+	/* check */
+	if (mask.Length() != fAllElementGroups.Length())
+		ExceptionT::SizeMismatch("ElementListT::SetActiveElementGroupMask",
+			"expecting mask length %d not %d", fAllElementGroups.Length(), mask.Length());
+
+	/* reset active element groups */
+	int num_active = 0;
+	for (int i = 0; i < mask.Length(); i++)
+		if (mask[i])
+			num_active++;
+			
+	/* cast this to an ArrayT */
+	ArrayT<ElementBaseT*>& element_list = *this;
+	element_list.Dimension(num_active);
+	num_active = 0;
+	for (int i = 0; i < mask.Length(); i++)
+		if (mask[i])
+			element_list[num_active++] = fAllElementGroups[i];
 }
