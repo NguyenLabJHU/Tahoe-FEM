@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.70.2.10 2004-03-27 04:16:09 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.70.2.11 2004-03-30 07:52:45 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1185,7 +1185,7 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 
 	/* solve for initial conditions */
 	ParameterT compute_IC(ParameterT::Boolean, "compute_IC");
-	compute_IC.SetDefault(false);
+	compute_IC.SetDefault(true);
 	list.AddParameter(compute_IC);
 }
 
@@ -1230,10 +1230,10 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	fWriteRestart = list.GetParameter("restart_output_inc");
 
 	/* verbose echo */
-	fPrintInput = list.Parameter("echo_input");
+	fPrintInput = list.GetParameter("echo_input");
 	
 	/* compute the initial conditions */
-	fComputeInitialCondition = list.Parameter("compute_IC");
+	fComputeInitialCondition = list.GetParameter("compute_IC");
 
 	/* initialize the model manager */
 	fModelManager = new ModelManagerT(fMainOut);
@@ -1299,7 +1299,7 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 		
 		const ArrayT<ParameterListT>& phases = solver_phases->Lists();
 		fSolverPhases.Dimension(phases.Length(), 3);
-		for (int i = 0; i < fSolverPhases.MinorDim(); i++) {
+		for (int i = 0; i < fSolverPhases.MajorDim(); i++) {
 
 			const ParameterListT& phase = phases[i];
 
@@ -1388,7 +1388,7 @@ ParameterInterfaceT* FEManagerT::NewSub(const StringT& list_name) const
 		solver_phases->AddParameter(max_loops, ParameterListT::ZeroOrOnce);
 	
 		/* phase description */
-		solver_phases->AddSub("solver_phase", ParameterListT::ZeroOrOnce);
+		solver_phases->AddSub("solver_phase", ParameterListT::OnePlus);
 		
 		return solver_phases;
 	}
