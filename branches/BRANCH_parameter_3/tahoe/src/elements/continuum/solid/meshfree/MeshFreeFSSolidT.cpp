@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.18.18.7 2004-06-07 23:20:12 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.18.18.8 2004-06-16 07:15:07 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidT.h"
 
@@ -274,7 +274,7 @@ void MeshFreeFSSolidT::TakeParameterList(const ParameterListT& list)
 	fMFFractureSupport->TakeParameterList(list.GetList("meshfree_fracture_support"));
 
 	/* get parameters needed to construct shape functions */
-	fMeshfreeParameters = list.ResolveListChoice(*this, "meshfree_support_choice");
+	fMeshfreeParameters = list.ListChoice(*this, "meshfree_support_choice");
 
 	/* inherited */
 	TotalLagrangianT::TakeParameterList(list);

@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.33.2.5 2004-06-14 04:56:37 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.33.2.6 2004-06-16 07:15:09 paklein Exp $ */
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
@@ -1195,12 +1195,10 @@ void ParticlePairT::ExtractProperties(const ParameterListT& list, const ArrayT<S
 		properties_map(index_1, index_2) = properties_map(index_2, index_1) = i; /* symmetric */
 		
 		/* read property */
-		const ParameterListT* property = interaction.ResolveListChoice(*this, "pair_property_choice");
-		if (!property)
-			ExceptionT::GeneralFail(caller, "could not resolve \"pair_property_choice\"");
-		PairPropertyT* pair_prop = PairPropertyT::New(property->Name(), &(ElementSupport()));
-		if (!pair_prop) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", property->Name().Pointer());
-		pair_prop->TakeParameterList(*property);
+		const ParameterListT& property = interaction.GetListChoice(*this, "pair_property_choice");
+		PairPropertyT* pair_prop = PairPropertyT::New(property.Name(), &(ElementSupport()));
+		if (!pair_prop) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", property.Name().Pointer());
+		pair_prop->TakeParameterList(property);
 		fPairProperties[i] = pair_prop;
 	}
 	

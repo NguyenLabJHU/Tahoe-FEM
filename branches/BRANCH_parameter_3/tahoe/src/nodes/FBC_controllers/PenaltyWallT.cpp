@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.11.28.1 2004-04-08 07:33:51 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.11.28.2 2004-06-16 07:15:19 paklein Exp $ */
 /* created: paklein (02/25/1997) */
 #include "PenaltyWallT.h"
 #include "FieldT.h"
@@ -180,9 +180,8 @@ void PenaltyWallT::TakeParameterList(const ParameterListT& list)
 
 	/* get normal */
 	int nsd = FieldSupport().NumSD();
-	const ParameterListT* normal = list.ResolveListChoice(*this, "wall_normal");
-	if (!normal) ExceptionT::GeneralFail(caller, "\"%s\" did not resolve \"wall_normal\"", list.Name().Pointer());
-	VectorParameterT::Extract(*normal, fnormal);
+	const ParameterListT& normal = list.GetListChoice(*this, "wall_normal");
+	VectorParameterT::Extract(normal, fnormal);
 	fnormal.UnitVector();
 	if (fnormal.Length() != nsd) 
 		ExceptionT::GeneralFail(caller, "\"wall_normal\" should be length %d not %d", nsd, fnormal.Length());

@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.18.20.3 2004-05-25 16:35:59 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.18.20.4 2004-06-16 07:14:55 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -126,15 +126,13 @@ void CSEIsoT::TakeParameterList(const ParameterListT& list)
 		const ParameterListT& block = list.GetList("isotropic_CSE_element_block", i);
 
 		/* resolve material choice */
-		const ParameterListT* surf_pot_params = block.ResolveListChoice(*this, "surface_potential");
-		if (!surf_pot_params)
-			ExceptionT::BadInputValue(caller, "could not resolve \"surface_potential\"");
+		const ParameterListT& surf_pot_params = block.GetListChoice(*this, "surface_potential");
 
 		/* construct material */
-		C1FunctionT* surf_pot = C1FunctionT::New(surf_pot_params->Name());
+		C1FunctionT* surf_pot = C1FunctionT::New(surf_pot_params.Name());
 		if (!surf_pot)
-			ExceptionT::BadInputValue(caller, "could not construct \"%s\"", surf_pot_params->Name().Pointer());
-		surf_pot->TakeParameterList(*surf_pot_params);
+			ExceptionT::BadInputValue(caller, "could not construct \"%s\"", surf_pot_params.Name().Pointer());
+		surf_pot->TakeParameterList(surf_pot_params);
 
 		/* keep */
 		fSurfPots[i] = surf_pot;

@@ -1,4 +1,4 @@
-/* $Id: J2_C0HardeningT.cpp,v 1.1.2.2 2004-06-11 01:38:17 paklein Exp $ */
+/* $Id: J2_C0HardeningT.cpp,v 1.1.2.3 2004-06-16 07:15:06 paklein Exp $ */
 #include "J2_C0HardeningT.h"
 
 #include "dSymMatrixT.h"
@@ -70,18 +70,14 @@ void J2_C0HardeningT::TakeParameterList(const ParameterListT& list)
 	ParameterInterfaceT::TakeParameterList(list);
 
 	/* construct hardening function */
-	const ParameterListT* hardening = list.ResolveListChoice(*this, "hardening_function_choice");
-	if (hardening) {
-		fK = C1FunctionT::New(hardening->Name());
-		if (!fK) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", hardening->Name().Pointer());
-		fK->TakeParameterList(*hardening);
+	const ParameterListT& hardening = list.GetListChoice(*this, "hardening_function_choice");
+	fK = C1FunctionT::New(hardening.Name());
+	if (!fK) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", hardening.Name().Pointer());
+	fK->TakeParameterList(hardening);
 
-		/* set flag */
-		if (hardening->Name() == "linear_function") 
-			fIsLinear = true;
-	}
-	else
-		ExceptionT::GeneralFail(caller, "could not resolve \"hardening_function_choice\"");
+	/* set flag */
+	if (hardening.Name() == "linear_function") 
+		fIsLinear = true;
 }
 
 double J2_C0HardeningT::YieldCondition(const dSymMatrixT& relstress, double alpha) const 

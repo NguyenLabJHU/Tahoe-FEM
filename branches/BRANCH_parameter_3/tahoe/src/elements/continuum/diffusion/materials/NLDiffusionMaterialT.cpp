@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionMaterialT.cpp,v 1.3.18.2 2004-06-09 23:17:26 paklein Exp $ */
+/* $Id: NLDiffusionMaterialT.cpp,v 1.3.18.3 2004-06-16 07:15:02 paklein Exp $ */
 #include "NLDiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
 #include "ifstreamT.h"
@@ -132,20 +132,17 @@ void NLDiffusionMaterialT::TakeParameterList(const ParameterListT& list)
 	DiffusionMaterialT::TakeParameterList(list);
 
 	/* construct temperature dependence functions */
-	const ParameterListT* cond_function = NULL;
 	const ParameterListT& cond_function_choice = list.GetList("conductivity_function");
-	cond_function = cond_function_choice.ResolveListChoice(*this, "NL_diff_mat_function_choice");
-	fConductivityScaleFunction = C1FunctionT::New(cond_function->Name());
-	if (!fConductivityScaleFunction)
-		ExceptionT::GeneralFail(caller, "could not construct %s", cond_function_choice.Name().Pointer());
-	fConductivityScaleFunction->TakeParameterList(*cond_function);
+	const ParameterListT& cond_function = cond_function_choice.GetListChoice(*this, "NL_diff_mat_function_choice");
+	fConductivityScaleFunction = C1FunctionT::New(cond_function.Name());
+	if (!fConductivityScaleFunction) ExceptionT::GeneralFail(caller, "could not construct %s", cond_function_choice.Name().Pointer());
+	fConductivityScaleFunction->TakeParameterList(cond_function);
 
 	const ParameterListT& cp_function_choice = list.GetList("specificheat_function");
-	cond_function = cp_function_choice.ResolveListChoice(*this, "NL_diff_mat_function_choice");
-	fCpScaleFunction = C1FunctionT::New(cond_function->Name());
-	if (!fCpScaleFunction)
-		ExceptionT::GeneralFail(caller, "could not construct %s", cp_function_choice.Name().Pointer());
-	fCpScaleFunction->TakeParameterList(*cond_function);
+	const ParameterListT& cp_function = cp_function_choice.GetListChoice(*this, "NL_diff_mat_function_choice");
+	fCpScaleFunction = C1FunctionT::New(cp_function.Name());
+	if (!fCpScaleFunction) ExceptionT::GeneralFail(caller, "could not construct %s", cp_function_choice.Name().Pointer());
+	fCpScaleFunction->TakeParameterList(cp_function);
 
 	/* dimension work space */
 	fScaledConductivity.Dimension(NumSD());

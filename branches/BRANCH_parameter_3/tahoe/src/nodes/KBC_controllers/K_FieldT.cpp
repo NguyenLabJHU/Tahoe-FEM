@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.18.2.7 2004-06-07 13:47:35 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.18.2.8 2004-06-16 07:15:20 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
@@ -365,26 +365,21 @@ void K_FieldT::TakeParameterList(const ParameterListT& list)
 		/* resolve tracking method */
 		ParameterInterfaceT* tracking_info = NewSub(tracking->Name());
 		if (!tracking_info) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", tracking->Name().Pointer());
-		const ParameterListT* tracking_method = tracking->ResolveListChoice(*tracking_info, "tip_tracking_method");
+		const ParameterListT& tracking_method = tracking->GetListChoice(*tracking_info, "tip_tracking_method");
 		delete tracking_info;
-		if (tracking_method) {
-			if (tracking_method->Name() == "location_of_maximum") {
-				fTrackingCode = kMaximum;
-				fTrackingParameters.Dimension(1);
-				fTrackingParameters[0] = tracking_method->GetParameter("noise_level");				
-			}
-			else if (tracking_method->Name() == "farthest_above_threshold") {
-				fTrackingCode = kThreshold;
-				fTrackingParameters.Dimension(1);
-				fTrackingParameters[0] = tracking_method->GetParameter("threshold");
-			}
-			else
-				ExceptionT::GeneralFail(caller, "unrecognized tracking method \"%s\"",
-					tracking_method->Name().Pointer());
+		if (tracking_method.Name() == "location_of_maximum") {
+			fTrackingCode = kMaximum;
+			fTrackingParameters.Dimension(1);
+			fTrackingParameters[0] = tracking_method.GetParameter("noise_level");				
+		}
+		else if (tracking_method.Name() == "farthest_above_threshold") {
+			fTrackingCode = kThreshold;
+			fTrackingParameters.Dimension(1);
+			fTrackingParameters[0] = tracking_method.GetParameter("threshold");
 		}
 		else
-			ExceptionT::GeneralFail(caller, "expecting \"tip_tracking_method\" in \"%s\"",
-				tracking->Name().Pointer());
+			ExceptionT::GeneralFail(caller, "unrecognized tracking method \"%s\"",
+				tracking_method.Name().Pointer());
 	}
 
 	/* nodes */
@@ -443,7 +438,7 @@ void K_FieldT::ResolveElasticProperties(const ParameterListT& list,
 {
 	const char caller[] = "K_FieldT::ResolveElasticProperties";
 	
-	const ParameterListT* elastic = list.ResolveListChoice(*this, "elastic_properties_choice");
+	const ParameterListT* elastic = list.ListChoice(*this, "elastic_properties_choice");
 	if (elastic)
 	{
 		if (elastic->Name() == "far_field_element_group") 

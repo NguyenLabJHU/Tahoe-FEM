@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.23.12.3 2004-05-12 17:52:43 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.23.12.4 2004-06-16 07:15:14 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "MeshFreeSupportT.h"
 
@@ -847,16 +847,15 @@ void MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
 	int nsd = coordinates.MinorDim();
 
 	/* meshfree formulation */
-	const ParameterListT* formulation = list.ResolveListChoice(*this, "meshfree_formulation");
-	if (!formulation) ExceptionT::GeneralFail(caller, "could not resolve choice \"meshfree_formulation\"");
-	if (formulation->Name() == "EFG") {
+	const ParameterListT& formulation = list.GetListChoice(*this, "meshfree_formulation");
+	if (formulation.Name() == "EFG") {
 
 		/* meshfree formulation flag */
 		fMeshfreeType = kEFG;
 	
 		/* EFG parameters */
-		fDextra = formulation->GetParameter("support_scaling");
-		int completeness = formulation->GetParameter("completeness");
+		fDextra = formulation.GetParameter("support_scaling");
+		int completeness = formulation.GetParameter("completeness");
 
 		/* construct MLS solver */	
 		if (nsd == 2)
@@ -874,62 +873,61 @@ void MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
 		fNodalParameters.Dimension(fCoords->MajorDim(), 1);
 		fNodalParameters = -1;	
 	}
-	else if (formulation->Name() == "RKPM") {
+	else if (formulation.Name() == "RKPM") {
 
 		/* meshfree formulation flag */
 		fMeshfreeType = kRKPM;
 
-		int completeness = formulation->GetParameter("completeness");
+		int completeness = formulation.GetParameter("completeness");
 		WindowTypeT window_type;
 		dArrayT window_params;
-		const ParameterListT* window = formulation->ResolveListChoice(*this, "window_function_choice");
-		if (!window) ExceptionT::GeneralFail(caller, "could not resolve \"window_function_choice\"");
-		if (window->Name() == "gaussian_window") 
+		const ParameterListT& window = formulation.GetListChoice(*this, "window_function_choice");
+		if (window.Name() == "gaussian_window") 
 		{
 			window_type = kGaussian;
 			window_params.Dimension(3);
-			window_params[0] = window->GetParameter("support_scaling");
-			window_params[1] = window->GetParameter("sharpening_factor");
-			window_params[2] = window->GetParameter("cutoff_factor");
+			window_params[0] = window.GetParameter("support_scaling");
+			window_params[1] = window.GetParameter("sharpening_factor");
+			window_params[2] = window.GetParameter("cutoff_factor");
 		}
-		else if (window->Name() == "rect_gaussian_window")
+		else if (window.Name() == "rect_gaussian_window")
 		{
 			window_type = kBrick;
-			int num_params = window->NumLists("gaussian_window");
+			int num_params = window.NumLists("gaussian_window");
 			if (num_params != 1 && num_params != nsd)
 				ExceptionT::GeneralFail(caller, "expecting 1 or %d \"gaussian_window\" in \"rect_gaussian_window\"", nsd);
 
 			window_params.Dimension(3*nsd);
 			int index = 0;
 			for (int i = 0; i < nsd; i++) {
-				const ParameterListT& param = window->GetList("gaussian_window", (num_params == 1) ? 0 : i);
+				const ParameterListT& param = window.GetList("gaussian_window", (num_params == 1) ? 0 : i);
 				window_params[index++] = param.GetParameter("support_scaling");
 				window_params[index++] = param.GetParameter("sharpening_factor");
 				window_params[index++] = param.GetParameter("cutoff_factor");
 			}		
 		}
-		else if (window->Name() == "cubic_spline_window")
+		else if (window.Name() == "cubic_spline_window")
 		{
 			window_type = kCubicSpline;
 			window_params.Dimension(1);
-			window_params[0] = window->GetParameter("support_scaling");
+			window_params[0] = window.GetParameter("support_scaling");
 		}		
-		else if (window->Name() == "rect_cubic_spline_window")
+		else if (window.Name() == "rect_cubic_spline_window")
 		{
 			window_type = kRectCubicSpline;
-			int num_params = window->NumLists("cubic_spline_window");
+			int num_params = window.NumLists("cubic_spline_window");
 			if (num_params != 1 && num_params != nsd)
 				ExceptionT::GeneralFail(caller, "expecting 1 or %d \"cubic_spline_window\" in \"rect_cubic_spline_window\"", nsd);
 
 			window_params.Dimension(nsd);
 			for (int i = 0; i < nsd; i++) {
-				const ParameterListT& param = window->GetList("cubic_spline_window", (num_params == 1) ? 0 : i);
+				const ParameterListT& param = window.GetList("cubic_spline_window", (num_params == 1) ? 0 : i);
 				window_params[i] = param.GetParameter("support_scaling");
 			}
 		}
 		else
 			ExceptionT::GeneralFail(caller, "unrecognized window function choice \"%s\"",
-				window->Name().Pointer());
+				window.Name().Pointer());
 
 		/* construct MLS solver */
 		fRKPM = new MLSSolverT(nsd, completeness, window_type, window_params);
@@ -948,7 +946,7 @@ void MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
 	}
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized meshfree formulation \"%s\"",
-			formulation->Name().Pointer());
+			formulation.Name().Pointer());
 
 	/* memory manager */
 	fnodal_param_man.Register(fnodal_param   );

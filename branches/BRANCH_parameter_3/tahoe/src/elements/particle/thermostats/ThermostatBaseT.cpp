@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.cpp,v 1.11.18.2 2004-05-26 03:56:15 paklein Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.11.18.3 2004-06-16 07:15:11 paklein Exp $ */
 #include "ThermostatBaseT.h"
 
 #include "BasicSupportT.h"
@@ -202,21 +202,16 @@ void ThermostatBaseT::TakeParameterList(const ParameterListT& list)
 	
 	/* method for specifying affected nodes */
 	const char choice[] = "particle_pick_choice";
-	const ParameterListT* pick = list.ResolveListChoice(*this, choice);
+	const ParameterListT& pick = list.GetListChoice(*this, choice);
 	fAllNodes = false;
-	if (pick) {
-		if (pick->Name() == "pick_all")
-			fAllNodes = true;
-		else if (pick->Name() == "pick_by_list")
-			InitNodeSets(*pick);
-		else if (pick->Name() == "pick_by_region")
-			InitRegion(*pick);
-		else
-			ExceptionT::GeneralFail(caller, "unrecognized pick method \"%s\"",
-				pick->Name().Pointer());
-	}
+	if (pick.Name() == "pick_all")
+		fAllNodes = true;
+	else if (pick.Name() == "pick_by_list")
+		InitNodeSets(pick);
+	else if (pick.Name() == "pick_by_region")
+		InitRegion(pick);
 	else
-		ExceptionT::GeneralFail(caller, "could not resolve choice \"%s\"", choice);
+		ExceptionT::GeneralFail(caller, "unrecognized pick method \"%s\"", pick.Name().Pointer());
 }
 
 #if 0

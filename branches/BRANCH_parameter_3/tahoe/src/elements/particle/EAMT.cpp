@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.55.2.4 2004-06-16 00:31:56 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.55.2.5 2004-06-16 07:15:09 paklein Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -1819,11 +1819,9 @@ void EAMT::ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& 
 		properties_map(index_1, index_2) = properties_map(index_2, index_1) = i; /* symmetric */
 		
 		/* read property */
-		const ParameterListT* property = interaction.ResolveListChoice(*this, "EAM_property_choice");
-		if (!property)
-			ExceptionT::GeneralFail(caller, "could not resolve \"EAM_property_choice\"");
-		EAMPropertyT* EAM_prop = New_EAMProperty(property->Name(), true);
-		EAM_prop->TakeParameterList(*property);
+		const ParameterListT& property = interaction.GetListChoice(*this, "EAM_property_choice");
+		EAMPropertyT* EAM_prop = New_EAMProperty(property.Name(), true);
+		EAM_prop->TakeParameterList(property);
 		fEAMProperties[i] = EAM_prop;
 	}
 	

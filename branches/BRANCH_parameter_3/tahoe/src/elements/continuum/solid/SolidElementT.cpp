@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.58.14.4 2004-06-14 04:56:30 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.58.14.5 2004-06-16 07:15:04 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -449,12 +449,11 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 		{
 			/* resolve list choice */
 			ParameterInterfaceT* n_output = NewSub(node_output->Name());
-			const ParameterListT* vec_params = node_output->ResolveListChoice(*n_output, "wave_direction");
+			const ParameterListT& vec_params = node_output->GetListChoice(*n_output, "wave_direction");
 			delete n_output;
 			
 			/* extract unit vector */
-			if (!vec_params) ExceptionT::GeneralFail(caller, "\"wave_direction\" required with wave speed output");
-			VectorParameterT::Extract(*vec_params, fNormal);
+			VectorParameterT::Extract(vec_params, fNormal);
 			if (fNormal.Length() != NumSD()) ExceptionT::GeneralFail(caller, "expecting normal length %d not %d",
 				NumSD(), fNormal.Length());
 			fNormal.UnitVector();
