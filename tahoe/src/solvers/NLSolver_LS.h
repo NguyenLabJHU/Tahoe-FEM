@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.h,v 1.7 2004-01-05 07:07:19 paklein Exp $ */
+/* $Id: NLSolver_LS.h,v 1.7.2.1 2004-02-24 19:09:43 paklein Exp $ */
 /* created: paklein (08/18/1999) */
 
 #ifndef _NL_SOLVER_LS_H_
@@ -17,7 +17,7 @@ class NLSolver_LS: public NLSolver
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	NLSolver_LS(FEManagerT& fe_manager, int group);
 
 	/* form and solve the equation system - returns the magnitude of the

@@ -1,4 +1,4 @@
-/* $Id: SSHookeanMatT.h,v 1.7 2004-01-10 04:41:12 paklein Exp $ */
+/* $Id: SSHookeanMatT.h,v 1.7.2.1 2004-02-24 19:09:38 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _SS_HOOKEAN_MAT_H_
 #define _SS_HOOKEAN_MAT_H_
@@ -19,6 +19,9 @@ public:
 
 	/** initialization */
 	virtual void Initialize(void);
+
+	/** set the material support or pass NULL to clear */
+	virtual void SetSSMatSupport(const SSMatSupportT* support);
 
 	/** \name spatial description */
 	/*@{*/
@@ -41,6 +44,12 @@ public:
 
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

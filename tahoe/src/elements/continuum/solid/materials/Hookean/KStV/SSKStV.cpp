@@ -1,4 +1,4 @@
-/* $Id: SSKStV.cpp,v 1.4.32.2 2004-02-18 16:33:44 paklein Exp $ */
+/* $Id: SSKStV.cpp,v 1.4.32.3 2004-02-24 19:09:40 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "SSKStV.h"
 
@@ -58,8 +58,8 @@ ParameterInterfaceT* SSKStV::NewSub(const StringT& list_name) const
 void SSKStV::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
+	IsotropicT::TakeParameterList(list); /* need moduli before SSHookeanMatT::TakeParameterList */
 	SSHookeanMatT::TakeParameterList(list);
-	IsotropicT::TakeParameterList(list);
 }
 
 /*************************************************************************

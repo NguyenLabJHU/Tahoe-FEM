@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.55.2.2 2004-02-18 16:33:43 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.55.2.3 2004-02-24 19:09:37 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -396,6 +396,13 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 
 	/* set mass type */
 	list.GetParameter("mass_type", enum2int<ContinuumElementT::MassTypeT>(fMassType));
+
+	/* allocate work space */
+//	fB_list.Dimension(NumIP());
+//	for (int i = 0; i < fB_list.Length(); i++)
+//		fB_list[i].Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
+	fB.Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
+	fD.Dimension(dSymMatrixT::NumValues(NumSD()));
 	
 	/* nodal output codes */
 	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
@@ -428,6 +435,24 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 					fElementOutputCodes[i] = 1;
 			}
 		}
+
+	/* generate list of material needs */
+	fMaterialNeeds.Dimension(fMaterialList->Length());
+	for (int i = 0; i < fMaterialNeeds.Length(); i++)
+	{
+		/* allocate */
+		ArrayT<bool>& needs = fMaterialNeeds[i];
+		needs.Dimension(3);
+
+		/* casts are safe since class contructs materials list */
+		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
+		SolidMaterialT* mat = (SolidMaterialT*) pcont_mat;
+
+		/* collect needs */
+		needs[kNeedDisp] = mat->NeedDisp();
+		needs[kNeedVel] = mat->NeedVel();
+		needs[KNeedLastDisp] = mat->NeedLastDisp();
+	}
 }
 
 /***********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.70.2.6 2004-02-19 19:58:15 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.70.2.7 2004-02-24 19:09:41 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1243,14 +1243,42 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	if (!fCommManager) ExceptionT::OutOfMemory(caller);
 	fCommManager->Configure();
 
+	/* construct time manager */
+	const ParameterListT* time_params = list.List("time");
+	if (!time_params)
+		ExceptionT::GeneralFail(caller, "missing \"time\" parameters");
+	fTimeManager = new TimeManagerT(*this);
+	if (!fTimeManager) ExceptionT::OutOfMemory(caller);
+	fTimeManager->TakeParameterList(*time_params);
+	iAddSub(*fTimeManager);	
+
+	/* set fields */
+	const ParameterListT* node_params = list.List("nodes");
+	if (!node_params) ExceptionT::BadInputValue(caller);
+	fNodeManager = new NodeManagerT(*this, *fCommManager);
+	fNodeManager->TakeParameterList(*node_params);
+	iAddSub(*fNodeManager);
+	fCommManager->SetNodeManager(fNodeManager);
+
+	/* construct element groups */
+	fElementGroups = new ElementListT(*this);
+	fElementGroups->TakeParameterList(list.GetList("element_list"));
+	for (int i = 0; i < fElementGroups->Length(); i++)
+		iAddSub(*((*fElementGroups)[i])); /* set console */
+
+	/* set output manager */
+	SetOutput();
+
 	/* construct solvers */
 	const ArrayT<ParameterListT>& lists = list.Lists();
 	AutoArrayT<SolverT*> solvers_tmp;
 	for (int i = 0; i < lists.Length(); i++)
 	{
-		SolverT* solver = SolverT::New(*this, lists[i].Name());
-		if (solver)
+		SolverT* solver = SolverT::New(*this, lists[i].Name(), solvers_tmp.Length());
+		if (solver) {
+			solver->TakeParameterList(lists[i]);
 			solvers_tmp.Append(solver);
+		}
 	}
 	fSolvers.Swap(solvers_tmp);
 
@@ -1290,39 +1318,17 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 		fSolverPhases(0,2) =-1;
 		solver_list.Append(0);	
 	}
+
+	/* dimension solver phase status array */
+	fSolverPhasesStatus.Dimension(fSolverPhases.MajorDim(), kNumStatusFlags);
+	fSolverPhasesStatus = 0;
 	
 	/* check that all solvers hit at least once */
 	if (solver_list.Length() != fSolvers.Length())
 		ExceptionT::BadInputValue(caller, "must have at least one phase per solver");
 
-	/* construct time manager */
-	const ParameterListT* time_params = list.List("time");
-	if (!time_params)
-		ExceptionT::GeneralFail(caller, "missing \"time\" parameters");
-	fTimeManager = new TimeManagerT(*this);
-	if (!fTimeManager) ExceptionT::OutOfMemory(caller);
-	fTimeManager->TakeParameterList(*time_params);
-	iAddSub(*fTimeManager);	
-
-	/* set fields */
-	const ParameterListT* node_params = list.List("nodes");
-	if (!node_params) ExceptionT::BadInputValue(caller);
-	fNodeManager = new NodeManagerT(*this, *fCommManager);
-	fNodeManager->TakeParameterList(*node_params);
-	iAddSub(*fNodeManager);
-	fCommManager->SetNodeManager(fNodeManager);
-
-	/* construct element groups */
-	fElementGroups = new ElementListT(*this);
-	fElementGroups->TakeParameterList(list.GetList("element_list"));
-	for (int i = 0; i < fElementGroups->Length(); i++)
-		iAddSub(*((*fElementGroups)[i])); /* set console */
-
-	/* set output manager */
-	SetOutput();
-
-	//end with 'initialize' - meaning all parameters have been read now finish up
-	//anything else that needs to be allocated/initialized based on those dimensions
+	/* set equation systems */
+	SetSolver();
 }
 
 /* information about subordinate parameter lists */
@@ -1353,7 +1359,7 @@ ParameterInterfaceT* FEManagerT::NewSub(const StringT& list_name) const
 	FEManagerT* non_const_this = (FEManagerT*) this;
 
 	/* try to construct solver */
-	SolverT* solver = SolverT::New(*non_const_this, list_name);
+	SolverT* solver = SolverT::New(*non_const_this, list_name, -1);
 	if (solver)
 		return solver;
 	else if (list_name == "time")
@@ -1518,6 +1524,7 @@ void FEManagerT::SetSolver(void)
 	fActiveEquationStart.Dimension(num_groups);
 	fGlobalNumEquations.Dimension(num_groups);
 
+#if 0
 	/* no predefined solvers */ 
 	if (fAnalysisCode == GlobalT::kMultiField)
 	{
@@ -1649,6 +1656,7 @@ void FEManagerT::SetSolver(void)
 	/* check that all solvers hit at least once */
 	if (solver_list.Length() != fSolvers.Length())
 		ExceptionT::BadInputValue(caller, "must have at least one phase per solver");
+#endif
 	
 	/* initialize and register system output */
 	fSO_DivertOutput.Dimension(fSolvers.Length());

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.45.2.4 2004-02-18 16:33:54 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.45.2.5 2004-02-24 19:09:42 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -132,10 +132,6 @@ void NodeManagerT::Initialize(void)
 
 	/* history nodes */
 	EchoHistoryNodes(in, out);
-
-	/* relaxation flags */
-	fXDOFRelaxCodes.Dimension(fFEManager.NumGroups());
-	fXDOFRelaxCodes = GlobalT::kNoRelax;
 }
 
 /* register data for output */
@@ -451,6 +447,10 @@ void NodeManagerT::CloseStep(int group)
 /* initial condition/restart functions */
 void NodeManagerT::InitialCondition(void)
 {
+	/* relaxation flags */
+	fXDOFRelaxCodes.Dimension(fFEManager.NumGroups());
+	fXDOFRelaxCodes = GlobalT::kNoRelax;
+
 	/* apply to fields */
 	for (int i = 0; i < fFields.Length(); i++)
 	{
