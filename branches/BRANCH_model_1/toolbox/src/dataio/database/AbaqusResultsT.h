@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.h,v 1.3.2.2 2001-11-06 20:10:24 sawimme Exp $ */
+/* $Id: AbaqusResultsT.h,v 1.3.2.3 2001-11-13 20:46:26 sawimme Exp $ */
 /*
    CREATED: S. Wimmer 9 Nov 2000
 
@@ -101,7 +101,10 @@ class AbaqusResultsT
   void ElementVariables (iArrayT& keys, iArrayT& dims) const; /**< access elem keys and dimensions */
   void QuadratureVariables (iArrayT& keys, iArrayT& dims) const; /**< access quad keys and dimensions */
 
-  /**< read all variables of the type specified for the step specified for either the node or element set */
+  /** returns dimensions of those variables used by this set name */
+  void VariablesUsed (StringT& name, AbaqusVariablesT::TypeT vt, iArrayT& used);
+
+  /** read all variables of the type specified for the step specified for either the node or element set */
   void ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray2DT& values,
 		      StringT& name);
 
@@ -217,7 +220,7 @@ class AbaqusResultsT
   void ScanElement (void);
 
   /** read output definition record for output mode */
-  void ReadOutputDefinitions (int &outputmode);
+  void ReadOutputDefinitions (int &outputmode, StringT& setname);
 
   /** read element header for either element number or node number and location */
   void ReadElementHeader (int& objnum, int& intpt, int& secpt, int &location);
