@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.12 2002-01-08 19:44:31 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.13 2002-01-09 12:06:23 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #include "FEExecutionManagerT.h"
@@ -24,14 +24,15 @@
 #include "FEManagerT.h"
 #include "FEManagerT_mpi.h"
 #include "IOManager_mpi.h"
+#include "ModelManagerT.h"
 #include "StringT.h"
 #include "GraphT.h"
 #include "PartitionT.h"
 #include "OutputSetT.h"
-
 #include "ModelFileT.h"
 #include "ExodusT.h"
 #include "JoinOutputT.h"
+#include "dArrayT.h"
 
 /* Constructor */
 FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
@@ -353,12 +354,6 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 		StringT model_file, suffix;
 		IOBaseT::FileTypeT format;
 		GetModelFile(in, model_file, format);
-	
-		/* global output model file */
-		StringT global_model_file;
-		suffix.Suffix(model_file);
-		global_model_file.Root(model_file);
-		global_model_file.Append(".io", suffix);
 
 		/* prompt for decomp size */
 		int size;
@@ -375,7 +370,7 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 		if (size < 2) return;
 		
 		/* construct joiner */
-		JoinOutputT output_joiner(in, model_file, global_model_file, format, size);
+		JoinOutputT output_joiner(in.filename(), model_file, format, format, size);
 		
 		/* join files */
 		output_joiner.Join();
@@ -766,11 +761,12 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 			cout << " Generating output map: " << output_map_file << ": DONE"<< endl;
 		}
 
+//TEMP - remove all together later
 		/* output model file */
 		if (need_model_file)
 		{
-//			cout << "\n FEExecutionManagerT::Decompose: SKIPPING global model file" << endl;
-#if 1
+			cout << "\n FEExecutionManagerT::Decompose: SKIPPING global model file" << endl;
+#if 0
 			cout << "\n Writing output model file: " << global_model_file << endl;
 			global_FEman.WriteGeometryFile(global_model_file, format);
 			cout << " Writing output model file: " << global_model_file << ": DONE" << endl;
