@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.10.2.2 2004-02-18 16:33:51 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.10.2.3 2004-02-26 08:58:37 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -198,6 +198,9 @@ void SolidMaterialT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	ContinuumMaterialT::TakeParameterList(list);
+
+	/* density */
+	fDensity = list.GetParameter("density");
 
 	/* thermal dilatation */
 	if (!fThermal) fThermal = new ThermalDilatationT;
