@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.27.2.2 2004-08-04 22:33:53 d-farrell2 Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.27.2.3 2004-08-05 23:13:52 d-farrell2 Exp $ */
 /* created: paklein (09/21/1997) */
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
@@ -65,10 +65,13 @@ private:
 	};
 
 	/** TEMP - serial driver for XML input */
-	void RunJob_serial(const StringT& input_file, ostream& status) const;
+	//void RunJob_serial(const StringT& input_file, ostream& status) const;
 	
 	/** parallel driver */
-	void RunJob_parallel(const StringT& input_file, ostream& status) const;
+	//void RunJob_parallel(const StringT& input_file, ostream& status) const;
+	
+	/** serial and parallel driver */
+	void RunJob_analysis(const StringT& input_file, ostream& status) const;
 
 	/** generate decomposition files */
 	void RunDecomp_serial(const StringT& input_file, ostream& status, CommunicatorT& comm, int size = -1) const;
