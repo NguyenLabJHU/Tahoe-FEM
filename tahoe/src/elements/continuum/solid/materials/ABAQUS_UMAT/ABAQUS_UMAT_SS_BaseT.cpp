@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.1.2.9 2003-12-09 19:54:58 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.1.2.10 2003-12-10 23:03:36 paklein Exp $ */
 #include "ABAQUS_UMAT_SS_BaseT.h"
 
 #ifdef __F2C__
@@ -541,7 +541,7 @@ if (MaterialSupport().RunState() == GlobalT::kFormRHS) {
 		dfgrd0, dfgrd1, &noel, &npt, &layer, &kspt, &kstep, &kinc, cmname_len);
 
 	/* check for step cut */
-	if (pnewdt/dtime < 0.55) {
+	if (fabs(dtime) > kSmall && pnewdt/dtime < 0.55) {
 	
 		bool re_run_UMAT = false;
 		if (re_run_UMAT)
