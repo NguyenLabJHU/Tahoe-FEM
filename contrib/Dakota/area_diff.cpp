@@ -1,4 +1,4 @@
-/* $Id: area_diff.cpp,v 1.1 2005-02-17 17:13:34 paklein Exp $ */
+/* $Id: area_diff.cpp,v 1.2 2005-02-17 17:15:57 paklein Exp $ */
 #include "PiecewiseLinearT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -87,19 +87,20 @@ int main(int argc, char** argv)
 	/* areas */
 	double a1 = area(pts1);
 	double a2 = area(pts2);
+	double ref_a = (fabs(a1) > kSmall) ? a1 : 1.0;
 
 	/* results */
 	cout << "   x_start: " << x1 << '\n';
 	cout << "     x_end: " << x2 << '\n';
 	cout << "        a1: " << a1 << '\n';
 	cout << "        a2: " << a2 << '\n';
-	cout << "norm error: " << (a2 - a1)/a1 << endl;
+	cout << "norm error: " << (a2 - a1)/ref_a << endl;
 	
 	/* write results */
 	ofstreamT out(argv[3]);
 	out.precision(12);
 	int d_width = OutputWidth(out, &a1);
-	out << setw(d_width) << (a2 - a1)/a1 << ' ' << "error_norm" << endl;
+	out << setw(d_width) << (a2 - a1)/ref_a << ' ' << "error_norm" << endl;
 	
 	return 0;
 }
