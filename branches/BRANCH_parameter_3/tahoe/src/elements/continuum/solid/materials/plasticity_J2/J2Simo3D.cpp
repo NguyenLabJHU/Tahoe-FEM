@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.cpp,v 1.14.24.3 2004-06-09 23:17:56 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.14.24.4 2004-06-16 00:29:30 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo3D.h"
 #include "ElementCardT.h"
@@ -91,7 +91,7 @@ const dSymMatrixT& J2Simo3D::s_ij(void)
 	/* modify Cauchy stress (return mapping) */
 	double mu = Mu();
 #pragma message("make elastic its a parameter")
-	int iteration = fFSMatSupport->IterationNumber();
+	int iteration = fFSMatSupport->GroupIterationNumber();
 	if (iteration > -1 && PlasticLoading(element, mu, ip)) /* 1st iteration is elastic */
 //	if (PlasticLoading(element, ip)) /* no iteration is elastic */
 	{

@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.9.18.5 2004-06-11 01:38:17 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.9.18.6 2004-06-16 00:29:30 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
 #include "SSMatSupportT.h"
@@ -84,7 +84,7 @@ const dSymMatrixT& J2SSKStV::s_ij(void)
 	HookeanStress(e_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
-	int iteration = fSSMatSupport->IterationNumber();
+	int iteration = fSSMatSupport->GroupIterationNumber();
 	if (iteration > -1) /* elastic iteration */
 		fStress += StressCorrection(e_els, element, Mu(), NumIP(), ip);
 	return fStress;	
