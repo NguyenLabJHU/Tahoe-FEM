@@ -21,7 +21,7 @@ LocalJ2SSNonlinHard2D::LocalJ2SSNonlinHard2D(ifstreamT& in, const SmallStrainT& 
 void LocalJ2SSNonlinHard2D::Initialize(void)
 {
 	/* inherited */
-	HookeanMatT::Initialize();
+	LocalJ2SSNonlinHard::Initialize();
 }
 
 /* returns elastic strain (3D) */

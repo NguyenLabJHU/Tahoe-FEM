@@ -65,8 +65,6 @@ protected:
 	/* returns elastic strain */
 	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain,
 		const ElementCardT& element, int ip);
-			
-	
 
 	/* solve for the state at selected ip */
 	void SolveState(ElementCardT& element);
@@ -105,7 +103,10 @@ private:
 	void TangentModuli(const ElementCardT& element, int ip);
 
 	/* check convergence of solution for all ip of element */
-	bool CheckConvergenceOfState(const ElementCardT& element);
+	bool CheckElementState(const ElementCardT& element);
+
+	/* returns the laplacian of the field passed */
+	dArrayT Laplacian(const dArrayT& ip_field, int field_length);
 
 protected:
 

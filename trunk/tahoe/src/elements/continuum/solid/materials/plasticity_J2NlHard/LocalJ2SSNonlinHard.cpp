@@ -14,9 +14,6 @@ const double sqrt23       = sqrt(2.0/3.0);
 const double kYieldTol    = 1.0e-10;
 const int    kNSD         = 3;
 
-/* initialization flag value */
-const int    kIsInit = 1;
-
 /* element output data */
 const int    kNumOutput = 4;
 static const char* Labels[kNumOutput] = {
@@ -97,6 +94,9 @@ void LocalJ2SSNonlinHard::ResetHistory(void)
 {
 	ElementCardT& element = CurrentElement();
 
+	/* status flags */
+	iArrayT& flags = element.IntegerData();
+
         for (int ip = 0; ip < fNumIP; ip++)
 	{
 	        LoadData(element, ip);
@@ -107,6 +107,7 @@ void LocalJ2SSNonlinHard::ResetHistory(void)
 	        fUnitNorm = fUnitNorm_n;
 	        fKineHard = fKineHard_n;
 	        fInternal = fInternal_n;
+		flags[ip]   = kIsElastic;
         }
 }
 
@@ -166,6 +167,9 @@ const dSymMatrixT& LocalJ2SSNonlinHard::s_ij(void)
 		        SolveState(element, fCurrIP);
 		else
 		{
+		        /* load internal variables */
+	                LoadData(element, fCurrIP);
+
 		        /* compute elastic stress */
 			const dSymMatrixT& e_tot = e();
 			const dSymMatrixT& e_els = ElasticStrain(e_tot, element, fCurrIP);
@@ -252,33 +256,48 @@ const dSymMatrixT& LocalJ2SSNonlinHard::ElasticStrain(const dSymMatrixT& totalst
 }	
 
 /* solve for the state at ip */
-void LocalJ2SSNonlinHard::SolveState(ElementCardT& element, int ip)
+void LocalJ2SSNonlinHard::SolveState(ElementCardT& element, int fCurrIP)
 {
+        /* load internal variables */
+        LoadData(element, fCurrIP);
+
+	/* status flags */
+	iArrayT& flags = element.IntegerData();
+
 	/* step 1. set initial values of plastic strain & internal variables to 
   	           converged values at end of previous time step */
 	if (fCurrIP == 0) ResetHistory();
 
+        /* load internal variables */
+        LoadData(element, fCurrIP);
+
 	/* step 2. evaluate elastic trial stresses */
         const dSymMatrixT& e_tot = e();
-	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
+	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, fCurrIP);
         HookeanStress(e_els, fStress);
 
 	/* step 3. initialize unit normal and yield criteria */
 	UpdateState();
 
-	/* check for inelastic processes */
 	if (fInternal[kYieldCrt] > kYieldTol)
+	        flags[fCurrIP] = kIsPlastic;
+	else 
+	        flags[fCurrIP] = kIsElastic;
+
+	/* check for inelastic processes */
+	if (flags[fCurrIP] == kIsPlastic)
 	{
 		/* local Newton iteration */
 	       	int max_iteration = 15;
 	       	int count = 0;
-		double varLambda;
 
 		/* step 4. zero the increment in plasticity parameter */
 		fInternal[kdelLmbda] = 0.;
 
 	       	while (fInternal[kYieldCrt] > kYieldTol && ++count <= max_iteration)
 	       	{
+		        double varLambda;
+
 		        /* step 5. increment plasticity parameter */
 		        IncrementPlasticParameter(varLambda);
 
@@ -292,7 +311,7 @@ void LocalJ2SSNonlinHard::SolveState(ElementCardT& element, int ip)
 	       	/* check for failure */
 	       	if (count == max_iteration)
 	       	{
-	       		cout << "\n LocalJ2SSNonlinHard::StressCorrection: local iteration failed after " 
+	       		cout << "\n LocalJ2SSNonlinHard::SolveState: local iteration failed after " 
 	       		     << max_iteration << " iterations" << endl;
 	       		throw eGeneralFail;
 	       	}
@@ -301,11 +320,16 @@ void LocalJ2SSNonlinHard::SolveState(ElementCardT& element, int ip)
 		TangentModuli();
 	}
 	/* elastic process */
-	else
+	else if (flags[fCurrIP] == kIsElastic)
 	{
 	        /* step 4. compute elastic modulus */
 	        fModulus = HookeanMatT::Modulus();
 	}
+	else
+	{
+	        cout << "\n LocalJ2SSNonlinHard::SolveState: bad flag value " ;
+       		throw eGeneralFail;
+       	}
 }
 
 /* return a pointer to a new element object constructed with
@@ -340,7 +364,7 @@ void LocalJ2SSNonlinHard::AllocateAllElements(void)
 		element.Allocate(fNumIP, d_size);
 	
 		/* initialize values */
-		element.IntegerData() = kIsInit;
+		element.IntegerData() = kIsElastic;
 		element.DoubleData()  = 0.0;
 	}
 }
@@ -366,17 +390,17 @@ void LocalJ2SSNonlinHard::LoadData(const ElementCardT& element, int fCurrIP)
 	int block = 8*dim + 2*kNumInternal + dim*dim;
 	int dex   = fCurrIP*block;
 
-        fStress_n.Set  (kNSD,         &d_array[dex                ]);
-        fStress.Set    (kNSD,         &d_array[dex += dim         ]);
-        fPlstStrn_n.Set(kNSD,         &d_array[dex += dim         ]);
-        fPlstStrn.Set  (kNSD,         &d_array[dex += dim         ]);
-        fUnitNorm_n.Set(kNSD,         &d_array[dex += dim         ]);
-        fUnitNorm.Set  (kNSD,         &d_array[dex += dim         ]);
-        fKineHard_n.Set(kNSD,         &d_array[dex += dim         ]);
-        fKineHard.Set  (kNSD,         &d_array[dex += dim         ]);
-        fInternal_n.Set(kNumInternal, &d_array[dex += dim         ]);
-        fInternal.Set  (kNumInternal, &d_array[dex += kNumInternal]);
-        fModulus.Set   (dim,dim,      &d_array[dex += kNumInternal]);
+        fStress.Set     (kNSD,         &d_array[dex                ]);
+        fStress_n.Set   (kNSD,         &d_array[dex += dim         ]);
+        fPlstStrn.Set   (kNSD,         &d_array[dex += dim         ]);
+        fPlstStrn_n.Set (kNSD,         &d_array[dex += dim         ]);
+        fUnitNorm.Set   (kNSD,         &d_array[dex += dim         ]);
+        fUnitNorm_n.Set (kNSD,         &d_array[dex += dim         ]);
+        fKineHard.Set   (kNSD,         &d_array[dex += dim         ]);
+        fKineHard_n.Set (kNSD,         &d_array[dex += dim         ]);
+        fInternal.Set   (kNumInternal, &d_array[dex += dim         ]);
+        fInternal_n.Set (kNumInternal, &d_array[dex += kNumInternal]);
+        fModulus.Set    (dim,dim,      &d_array[dex += kNumInternal]);
 }
 
 /* computes the increment in the plasticity parameter */
