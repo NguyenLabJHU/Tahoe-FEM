@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.9.16.7 2004-05-25 23:06:38 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.9.16.8 2004-05-25 23:45:18 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -123,7 +123,7 @@ void MultiManagerT::Initialize(InitCodeT)
 		if (fCorrectOverlap == 1)
 			fCoarse->CorrectOverlap_1(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2);
 		else if (fCorrectOverlap == 2)
-			fCoarse->CorrectOverlap_2(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2, nip);
+			fCoarse->CorrectOverlap_2(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2, r, nip);
 		else if (fCorrectOverlap == 3)
 			fCoarse->CorrectOverlap_3(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2, nip);
 		else if (fCorrectOverlap == 4)

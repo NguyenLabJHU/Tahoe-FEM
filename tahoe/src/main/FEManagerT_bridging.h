@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.12.4.8 2004-05-25 23:06:38 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.12.4.9 2004-05-25 23:45:18 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -181,7 +181,7 @@ public:
 	void CorrectOverlap_1(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
 
 	/** solve bond densities one at a time */
-	void CorrectOverlap_2(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2, int nip);
+	void CorrectOverlap_2(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2, double k_r, int nip);
 
 	/** solve bond densities one at a time activating unknowns at integration points only if
 	 * the associated domain contains the terminus of a ghost node bond. */
