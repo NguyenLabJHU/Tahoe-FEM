@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.h,v 1.3 2001-07-03 01:35:28 paklein Exp $ */
+/* $Id: SolidMatList2DT.h,v 1.4 2002-03-21 22:41:31 creigh Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #ifndef _MATLIST_2D_T_H_
@@ -12,6 +12,7 @@
 class ElasticT;
 class SmallStrainT;
 class FiniteStrainT;
+class MultiScaleT;
 
 class SolidMatList2DT: public SolidMatListT, public MaterialT
 {
@@ -28,12 +29,14 @@ private:
 	/* errror messages */
 	void Error_no_small_strain(ostream& out, int matcode) const;
 	void Error_no_finite_strain(ostream& out, int matcode) const;
+	void Error_no_multi_scale(ostream& out, int matcode) const;
 
 private:
 
 	const ElasticT&      fElementGroup;
 	const SmallStrainT*  fSmallStrain;
 	const FiniteStrainT* fFiniteStrain;
+	const MultiScaleT*   fMultiScale;
 };
 
 #endif /* _MATLIST_2D_T_H_ */

@@ -1,8 +1,9 @@
-/* $Id: SolidMatList2DT.cpp,v 1.12 2002-01-31 19:01:43 ebmarin Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.13 2002-03-21 22:41:31 creigh Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList2DT.h"
 
+#include "MultiScaleT.h"
 #include "SmallStrainT.h"
 #include "FiniteStrainT.h"
 #include "D2MeshFreeFDElasticT.h"
@@ -57,21 +58,25 @@ SolidMatList2DT::SolidMatList2DT(int length, const ElasticT& element_group):
 	cout << "\n SolidMatList2DT::SolidMatList2DT: WARNING: environment has no RTTI. Some\n" 
 	     <<   "    consistency checking is disabled" << endl;
 	/* cast and hope for the best */
-	fSmallStrain = (const SmallStrainT*) &fElementGroup;
+	fSmallStrain  = (const SmallStrainT*)  &fElementGroup;
 	fFiniteStrain = (const FiniteStrainT*) &fElementGroup;
+	fMultiScale   = (const MultiScaleT*)   &fElementGroup;
 #else
 
 	/* cast to small strain */
-	fSmallStrain = dynamic_cast<const SmallStrainT*>(&fElementGroup);
+	fSmallStrain  = dynamic_cast<const SmallStrainT*>(&fElementGroup);
 
-	/* cast to small strain */
+	/* cast to finite strain */
 	fFiniteStrain = dynamic_cast<const FiniteStrainT*>(&fElementGroup);
 	
+	/* cast to multi scale */
+	fMultiScale   = dynamic_cast<const MultiScaleT*>(&fElementGroup);
+	
 	/* must have at least one */
-	if (!fSmallStrain && !fFiniteStrain)
+	if (!fSmallStrain && !fFiniteStrain && !fMultiScale)
 	{
 		cout << "\n SolidMatList2DT::SolidMatList2DT: could not cast element group to\n" 
-		     <<   "     SmallStrainT or FiniteStrainT" << endl;
+		     <<   "     either SmallStrainT, FiniteStrainT, or MultiScaleT" << endl;
 		throw eGeneralFail;
 	}
 #endif
@@ -106,7 +111,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			case kSSKStV:
 			{
 				/* check */
-				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+				if (!fSmallStrain && !fMultiScale) Error_no_small_strain(cout, matcode);
 			
 				fArray[matnum] = new SSKStV2D(in, *fSmallStrain);
 				break;
@@ -114,13 +119,21 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			case kFDKStV:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFiniteStrain && !fMultiScale) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new FDKStV2D(in, *fFiniteStrain);
 				break;
 			}
-			case kSSCubic:
+			/* case kMSKStV: // ---- Multi-Scale Kirchhoff - St. Venant
 			{
+				// check 
+				if (!fMultiScale) Error_no_multi_scale(cout, matcode);
+
+				fArray[matnum] = new MSKStV2D(in, *fMultiScale);
+				break;
+			} */
+			case kSSCubic:
+			{ 
 				/* check */
 				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
 			
@@ -265,7 +278,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			case kIsoVIBSimo:
 			{
 				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode); 
 			
 				fArray[matnum] = new IsoVIB2D(in, *fFiniteStrain);
 				fHasLocalizers = true;
@@ -490,6 +503,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 
 
 /* errror messages */
+
 void SolidMatList2DT::Error_no_small_strain(ostream& out, int matcode) const
 {
 	out << "\n SolidMatList2DT: material " << matcode
@@ -503,3 +517,11 @@ void SolidMatList2DT::Error_no_finite_strain(ostream& out, int matcode) const
 		<< " requires a finite strain element" << endl;
 	throw eBadInputValue;
 }
+
+void SolidMatList2DT::Error_no_multi_scale(ostream& out, int matcode) const
+{
+	out << "\n SolidMatList2DT: material " << matcode
+		<< " requires a variational multi-scale element" << endl;
+	throw eBadInputValue;
+}
+
