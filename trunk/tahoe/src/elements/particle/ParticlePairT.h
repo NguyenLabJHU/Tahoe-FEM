@@ -1,89 +1,87 @@
-/* $Id: ParticlePairT.h,v 1.2 2002-10-20 22:48:27 paklein Exp $ */
-#ifndef _ROD_T_H_
-#define _ROD_T_H_
+/* $Id: ParticlePairT.h,v 1.3 2002-11-22 01:49:45 paklein Exp $ */
+#ifndef _PARTICLE_PAIR_T_H_
+#define _PARTICLE_PAIR_T_H_
 
 /* base class */
-#include "ElementBaseT.h"
+#include "ParticleT.h"
 
 /* direct members */
-#include "LocalArrayT.h"
-#include "C1FunctionT.h"
+#include "RaggedArray2DT.h"
 
-/* templates */
-#include "pArrayT.h"
+namespace Tahoe {
 
 /** base class for particle types */
-class ParticleT: public ElementBaseT
+class ParticlePairT: public ParticleT
 {
 public:
 
 	/** constructor */
-	ParticleT(const ElementSupportT& support, const FieldT& field);
-	
-	/** initialization. Completely overrides ElementBaseT::Initialize */
+	ParticlePairT(const ElementSupportT& support, const FieldT& field);
+
+	/** initialization */
 	virtual void Initialize(void);
 
-	/** form of tangent matrix */
-	virtual GlobalT::SystemTypeT TangentType(void) const;
+	/** collecting element group equation numbers */
+	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
+		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
-	/* NOT implemented. Returns an zero force vector */
-	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
-			
-	/* returns the energy as defined by the derived class types */
-	virtual double InternalEnergy(void);
-	
-	/* writing output */
-	virtual void RegisterOutput(void);
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
+	/** \name connectivities.
+	 * See ElementBaseT::ConnectsX and ElementBaseT::ConnectsU for more
+	 * information about what these are used for */
+	/*@{*/
+	/** collecting element geometry connectivities */
+	virtual void ConnectsX(AutoArrayT<const iArray2DT*>& connects) const;
 
-	/* compute specified output parameter and send for smoothing */
-	virtual void SendOutput(int kincode);
-	 			  	
-protected: /* for derived classes only */
-	 	
-	/* called by FormRHS and FormLHS */
-	virtual void LHSDriver(void);
-	virtual void RHSDriver(void);
+	/** collecting element field connectivities */
+	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
+	             AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
+	/*@}*/
 
-	/* increment current element */
-	virtual bool NextElement(void);
-		
-	/* element data */
-	virtual void ReadMaterialData(ifstreamT& in);	
-	virtual void WriteMaterialData(ostream& out) const;
-	
-	/* element calculations */
-	double ElementEnergy(void);
-	void ElementForce(double constKd);
-	void ElementStiffness(double constK);
+	/** trigger reconfiguration */
+	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
-	/** return true if connectivities are changing */
-	virtual bool ChangingGeometry(void) const { return false; };
+	/** close current time increment. Since this is called only once per
+	 * time step, this is used to increment counters. */
+	virtual void CloseStep(void);
 
 protected:
 
-	/** reference ID for sending output */
-	int fOutputID;
+	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
+	/*@{*/
+	/** form group contribution to the LHS matrix */
+	virtual void LHSDriver(void);
 
-	/** pair interactions */
-	pArrayT<C1FunctionT*> fInteractions;	
-
-	/** Mass for each particle type */
-	dArrayT fPointMass;
-
+	/** form group contribution to the residual */
+	virtual void RHSDriver(void);
+	/*@}*/
+	
+	/** set neighborlists. Recalculates the neighborlists at intervals defined
+	 * by ParticlePairT::fReNeighborIncr.
+	 * \param force if true, forces recalculation of neighbors regardless of
+	 *        of the state of the counters
+	 * \return true if the configuration has changed */
+	bool SetConfiguration(bool force = false);
+	
 private:
 
-	/** \name work space */
+	/** neighbor cut-off distance */
+	double fNeighborDistance;
+
+	/** number of steps between reseting neighbor lists */
+	int fReNeighborIncr;
+
+	/** neighbor lists */
+	RaggedArray2DT<int> fNeighbors;
+
+	/** equation numbers */
+	RaggedArray2DT<int> fEqnos;
+
+	/** \name run time information. Incremented in */
 	/*@{*/
-	/** constant matrix needed to compute the stiffness */
-	dMatrixT fOneOne;
-
-	/** pair vector */
-	dArrayT fBond;
-
-	/** current coordinates for one pair bond */
-//	dArray2DT fPairCoords;
+	int fReNeighborCounter;
 	/*@}*/
 };
 
-#endif /* _ROD_T_H_ */
+} /* namespace Tahoe */
+
+#endif /* _PARTICLE_PAIR_T_H_ */

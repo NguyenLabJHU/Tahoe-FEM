@@ -1,257 +1,136 @@
-/* $Id: ParticlePairT.cpp,v 1.3 2002-11-21 01:11:14 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.4 2002-11-22 01:49:45 paklein Exp $ */
 /* created: paklein (10/22/1996) */
-
-#include "ParticleT.h"
-
-#include <math.h>
-
-#include "fstreamT.h"
+#include "ParticlePairT.h"
+#include "ifstreamT.h"
 #include "eControllerT.h"
-#include "OutputSetT.h"
-#include "dArray2DT.h"
 
-/* interaction types */
-#include "LennardJones612.h"
-#include "ParabolaT.h"
-#include "SmithFerrante.h"
+/* parameters */
+const int kMemoryHeadRoom = 15; /* percent */
 
-/* constructors */
-ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field)
+/* constructor */
+ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field):
+	ParticleT(support, field),
+	fReNeighborCounter(0),
+	fNeighbors(kMemoryHeadRoom),
+	fEqnos(kMemoryHeadRoom),
+	fNeighborDistance(-1),
+	fReNeighborIncr(-1)
 {
-	/* set matrix format */
-	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
+	/* read parameters */
+	ifstreamT& in = ElementSupport().Input();
+
+	/* read parameters */
+	in >> fNeighborDistance;
+	in >> fReNeighborIncr;
+	
+	/* checks */
+	if (fNeighborDistance < kSmall || fReNeighborIncr < 0)
+		ExceptionT::BadInputValue("ParticlePairT::ParticlePairT");
 }
 
 /* initialization */
-void ParticleT::Initialize(void)
+void ParticlePairT::Initialize(void)
 {
 	/* inherited */
-	ElementBaseT::Initialize();
+	ParticleT::Initialize();
 	
-	/* constant matrix needed to calculate stiffness */
-#if 0
-	fOneOne.Dimension(fLHS);
-	dMatrixT one(NumDOF());
-	one.Identity();
-	fOneOne.SetBlock(0, 0, one);
-	fOneOne.SetBlock(NumDOF(), NumDOF(), one);
-	one *= -1;
-	fOneOne.SetBlock(0, NumDOF(), one);
-	fOneOne.SetBlock(NumDOF(), 0, one);
+	/* set the neighborlists */
+	SetConfiguration(true);
+}
 
-	/* bond vector */
-	fBond.Dimension(NumSD());
-#endif
+/* collecting element group equation numbers */
+void ParticlePairT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
+	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
+{
+#pragma unused(eq_1)
+
+	/* dimension equations array */
+	fEqnos.Configure(fNeighbors, NumDOF());
+
+	/* get local equations numbers */
+	Field().SetLocalEqnos(fNeighbors, fEqnos);
+
+	/* add to list of equation numbers */
+	eq_2.Append(&fEqnos);
+}
+
+/* collecting element geometry connectivities */
+void ParticlePairT::ConnectsX(AutoArrayT<const iArray2DT*>& connects) const
+{
+	/* NOTE: do not add anything to the geometry connectivity list */
+#pragma unused(connects)
+}
+
+/* collecting element field connectivities */
+void ParticlePairT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
+	AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const
+{
+#pragma unused(connects_1)
+	connects_2.AppendUnique(&fNeighbors);
+}
+
+/* trigger reconfiguration */
+GlobalT::RelaxCodeT ParticlePairT::RelaxSystem(void)
+{
+	/* reset neighbor lists */
+	if (SetConfiguration())
+		return GlobalT::kReEQ;
+	else
+		return GlobalT::kNoRelax;
+}
+
+/* close current time increment */
+void ParticlePairT::CloseStep(void)
+{
+	/* inherited */
+	ParticleT::CloseStep();
 	
-	/* echo material properties */
-	ReadMaterialData(ElementSupport().Input());	
-	WriteMaterialData(ElementSupport().Output());
-}
-
-/* form of tangent matrix */
-GlobalT::SystemTypeT ParticleT::TangentType(void) const
-{
-	return GlobalT::kSymmetric;
-}
-
-/* NOT implemented. Returns an zero force vector */
-void ParticleT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
-{
-#pragma unused(field)
-#pragma unused(node)
-#pragma unused(force)
-}
-
-void ParticleT::WriteOutput(IOBaseT::OutputModeT mode)
-{
-//TEMP - not handling general output modes yet
-	if (mode != IOBaseT::kAtInc)
-	{
-		cout << "\n ContinuumElementT::WriteOutput: only handling \"at increment\"\n"
-		     <<   "     print mode. SKIPPING." << endl;
-		return;
-	}
-
-	/* get list of nodes used by the group */
-	iArrayT nodes_used;
-	NodesUsed(nodes_used);
-
-	/* temp space for group displacements */
-	dArray2DT disp(nodes_used.Length(), NumDOF());
-	
-	/* collect group displacements */
-	disp.RowCollect(nodes_used, Field()[0]);
-
-	/* send */
-	dArray2DT e_values;
-	ElementSupport().WriteOutput(fOutputID, disp, e_values);
-}
-
-/* compute specified output parameter and send for smoothing */
-void ParticleT::SendOutput(int kincode)
-{
-#pragma unused(kincode)
-	//TEMP: for now, do nothing
+	/* increment counter */
+	fReNeighborCounter++;
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
-/* construct the element stiffness matrix */
-void ParticleT::LHSDriver(void)
+/* form group contribution to the stiffness matrix */
+void ParticlePairT::LHSDriver(void)
 {
-	/* time integration dependent */
+	/* time integration parameters */
 	double constK = 0.0;
 	double constM = 0.0;
 	int formK = fController->FormK(constK);
 	int formM = fController->FormM(constM);
+
+//TEMP - no stiffness implemented
+if (formK) ExceptionT::GeneralFail("ParticlePairT::LHSDriver", "stiffness not implemented");
 	
-	/* particle mass */
-	double mass = 0.0; //fCurrMaterial->Mass();
-	
-	Top();
-	while ( NextElement() )
-	{
-		/* initialize */
-		fLHS = 0.0;
-		
-		/* local arrays */
-		SetLocalX(fLocInitCoords);
-		SetLocalU(fLocDisp);
-		
-		/* form element stiffness */
-		if (formK) ElementStiffness(constK);
-	
-		/* mass contribution */
-		if (formM) fLHS.PlusIdentity(mass);
-	
-		/* add to global equations */
-		AssembleLHS();
-	}
 }
 
-/* construct the element force vectors */
-void ParticleT::RHSDriver(void)
+/* form group contribution to the residual */
+void ParticlePairT::RHSDriver(void)
 {
-	/* set components and weights */
+	/* time integration parameters */
 	double constMa = 0.0;
 	double constKd = 0.0;
-	
-	/* components dicated by the algorithm */
 	int formMa = fController->FormMa(constMa);
 	int formKd = fController->FormKd(constKd);
-	
-//TEMP - inertia term in residual
-if (formMa) {
-	cout << "\n ParticleT::RHSDriver: M*a term not implemented" << endl;
-	throw eGeneralFail;
+
+
 }
 
-	/* run through pairs */
-	Top();
-	while (NextElement()) /* would be faster not to use Top-Next */
-	{
-		/* local displacement */
-		SetLocalU(fLocDisp);
-	
-		if (fLocDisp.AbsMax() > 0.0 || fCurrMaterial->HasInternalStrain())
-		{
-			/* initialize */
-			fRHS = 0.0;
-	
-			/* local coordinates */
-			SetLocalX(fLocInitCoords);
-
-			/* form element force */
-			ElementForce(-1.0);
-	
-			/* add to global equations */
-			AssembleRHS();
-		}
-	}
-}
-
-/* load next element */
-bool ParticleT::NextElement(void)
+/* set neighborlists */
+bool ParticlePairT::SetConfiguration(bool force)
 {
-	bool result = ElementBaseT::NextElement();
-	
-	/* initialize element calculation */
-	if (result)
-		fCurrMaterial = fMaterialsList[CurrentElement().MaterialNumber()];
-	
-	return result;
-}
-	
-/* element data */
-void ParticleT::ReadMaterialData(ifstreamT& in)
-{
-	/* allocate space */
-	int	nummaterials;
-	in >> nummaterials;
-	fInteractions.Dimension(nummaterials);
-	fPointMass.Dimension(nummaterials);
-
-	/* read data */
-	for (int i = 0; i < nummaterials; i++)
+	if (force || fReNeighborCounter == fReNeighborIncr)
 	{
-		int matnum, matcode;
-		in >> matnum;
-		matnum--;
-
-		/* associated mass */
-		double mass = = -1;
-		in >> mass;
-		if (mass < 0) throw eBadInputValue;
-		fPointMass[matnum] = mass;
+		/* reset neighbor lists */
+		GenerateNeighborList(fGlobalTag, fNeighborDistance, false, fNeighbors);
+	
+		/* reset counter */
+		fReNeighborCounter = 0;
 		
-		/* add to the list of materials */
-		in >> matcode;
-		switch (matcode)
-		{
-			case kLennardJones:			
-			{
-				double a = -1;
-				in >> a;
-				if (a < 0) throw eBadInputValue;
-				fInteractions[matnum] = new LennardJones612(a);
-				break;
-			}	
-			case kSmithFerrante:
-			{
-				double A = -1, B = -1, L = -1;
-				in >> A >> B >> L;
-				if (A < 0 || B < 0 || L < 0) throw eBadInputValue;
-				fInteractions[matnum] = new SmithFerrante(A, B, L);
-				break;
-			}
-			case kQuadratic:
-			{
-				double k = -1;
-				in >> k;
-				if (k < 0) throw eBadInputValue;
-				fInteractions[matnum] = new ParabolaT(k);
-				break;
-			}
-			default:
-				cout << "\n ParticleT::ReadMaterialData: unknown material type\n" << endl;
-				throw eBadInputValue;
-		}
+		return true;
 	}
-}
-
-void ParticleT::WriteMaterialData(ostream& out) const
-{
-	out << "\n Particle Set Data:\n";
-	out << " Number of particle types. . . . . . . . . . = " << fInteractions.Length() << '\n';
-	for (int i = 0; i < fInteractions.Length(); i++)
-	{
-		out << "\n Type number . . . . . . . . . . . . . . . . = " << i+1 << '\n';
-		out << " Mass. . . . . . . . . . . . . . . . . . . . = " << fPointMass[i] << '\n';
-		out << " Pair interaction:\n";
-		fInteractions[i]->PrintName(out);
-		fInteractions[i]->Print(out);
-	}
+	else return false;
 }

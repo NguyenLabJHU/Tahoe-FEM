@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.4 2002-11-21 01:11:14 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.5 2002-11-22 01:49:45 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -8,9 +8,15 @@
 #include "ElementSupportT.h"
 #include "ModelManagerT.h"
 #include "iGridManagerT.h"
+#include "iNodeT.h"
 #include "PotentialT.h"
+#include "RaggedArray2DT.h"
 
 using namespace Tahoe;
+
+/* class parameters */
+const int kAvgNodesPerCell = 20;
+const int kMaxNumCells     =- 1; /* -1: no max */
 
 /* constructors */
 ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
@@ -74,6 +80,9 @@ void ParticleT::RegisterOutput(void)
 
 void ParticleT::WriteOutput(void)
 {
+//TEMP
+ExceptionT::Stop("ParticleT::WriteOutput", "not implemented");
+
 	/* get list of nodes used by the group */
 	iArrayT nodes_used;
 	NodesUsed(nodes_used);
@@ -87,6 +96,12 @@ void ParticleT::WriteOutput(void)
 	/* send */
 	dArray2DT e_values;
 	ElementSupport().WriteOutput(fOutputID, disp, e_values);
+	
+	/* write the search grid statistics */
+	if (fGrid) {
+		ofstreamT& out = ElementSupport().Output();
+		fGrid->WriteStatistics(out);
+	}
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -97,8 +112,8 @@ void ParticleT::SendOutput(int kincode)
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* return true if connectivities are changing */
 bool ParticleT::ChangingGeometry(void) const
@@ -145,6 +160,11 @@ void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 
 	/* "point connectivities" needed for output */
 	fPointConnectivities.Set(fGlobalTag.Length(), 1, fGlobalTag.Pointer());
+	
+	/* write connectivity info */
+	out << " Number of particles . . . . . . . . . . . . . . = " << fGlobalTag.Length();
+	if (all_or_some == 0) out << " (ALL)";
+	out << endl;
 }
 
 /* generate labels for output data */
@@ -169,17 +189,63 @@ void ParticleT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 
 /* generate neighborlist */
 void ParticleT::GenerateNeighborList(const iArrayT& particle_tags, 
-	const iArrayT& particle_type, const ArrayT<PotentialT*>& pots, 
-	RaggedArray2DT<int>& neighbors, bool double_list)
+	double distance, bool double_list, RaggedArray2DT<int>& neighbors)
 {
+	/* the global coordinate array */
+	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
+
 	/* construct grid */
-	if (!fGrid) {
-	
-	
-	}
+	if (!fGrid) fGrid = new iGridManagerT(kAvgNodesPerCell, kMaxNumCells, coords, &particle_tags);
 
 	/* reset contents */
+	fGrid->Reset();
 	
+	/* set up temp space */
+	int init_num_neighbors = 6;
+	int num_tags = particle_tags.Length();
+	int num_chunks = num_tags/250;
+	num_chunks = (num_chunks < 1) ? 1 : num_chunks; 
+	AutoFill2DT<int> auto_neighbors(num_tags, num_chunks, 20, init_num_neighbors);
 	
-
+	/* loop over tags */
+	int nsd = coords.MinorDim();
+	double distance2 = distance*distance;
+	for (int i = 0; i < particle_tags.Length(); i++)
+	{
+		/* this tag */
+		int tag_i = particle_tags[i];
+	
+		/* add self */
+		auto_neighbors.Append(i, tag_i);
+		
+		/* gets points from grid */
+		const double* coords_i = coords(tag_i);
+		const AutoArrayT<iNodeT>& hits = fGrid->HitsInRegion(coords_i, distance);
+		
+		/* filter neighbors */
+		for (int j = 0; j < hits.Length(); j++)
+		{
+			int tag_j = hits[j].Tag();
+			
+			if (tag_j > tag_i || double_list)
+			{
+				/* hit info */
+				const double* coords_hit = hits[j].Coords();
+			
+				/* distance^2 */
+				double d2 = 0.0;
+				for (int k = 0; k < nsd; k++)
+				{
+					double dx = coords_i[k] - coords_hit[k];
+					d2 += dx*dx;
+				}
+		
+				/* it's a keeper */
+				if (d2 <= distance2) auto_neighbors.Append(i, tag_j);
+			}
+		}
+	}
+	
+	/* copy/compress into return array */
+	neighbors.Copy(auto_neighbors);
 }
