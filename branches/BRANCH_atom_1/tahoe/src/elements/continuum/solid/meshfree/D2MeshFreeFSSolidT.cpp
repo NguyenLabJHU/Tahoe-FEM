@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.8.4.1 2002-12-10 17:08:51 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.8.4.2 2002-12-18 09:50:14 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeFSSolidT.h"
 #include "MaterialsConfig.h"
@@ -12,20 +12,21 @@
 #include "ExceptionT.h"
 #include "D2MeshFreeShapeFunctionT.h"
 
-//TEMP
-#include "MaterialListT.h"
-
 #ifdef VIB_MATERIAL
 #include "D2VIB2D.h"
+#else
+#include "StructuralMaterialT.h"
 #endif
+
+//TEMP
+#include "MaterialListT.h"
 
 //TEMP - for RHS stuff
 #include "eControllerT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 D2MeshFreeFSSolidT::D2MeshFreeFSSolidT(const ElementSupportT& support, const FieldT& field):
 	MeshFreeFSSolidT(support, field),
 	fD2MFShapes(NULL),

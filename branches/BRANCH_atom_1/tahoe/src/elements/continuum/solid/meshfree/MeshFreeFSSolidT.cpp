@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.14 2002-11-21 01:13:39 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.14.2.1 2002-12-18 09:50:14 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidT.h"
 
@@ -61,10 +61,13 @@ void MeshFreeFSSolidT::Initialize(void)
 	fMFShapes->SetSupportSize();
 
 	/* exchange nodal parameters (only Dmax for now) */
-	iArrayT nodes_in;
-	ElementSupport().IncomingNodes(nodes_in);
-	if (nodes_in.Length() > 0)
+	const ArrayT<int>* p_nodes_in = ElementSupport().ExternalNodes();
+	if (p_nodes_in)
 	{
+		/* wrap it */
+		iArrayT nodes_in;
+		nodes_in.Alias(*p_nodes_in);
+	
 		/* send all */
 		const dArray2DT& nodal_params = fMFShapes->NodalParameters();
 		ElementSupport().SendExternalData(nodal_params);
