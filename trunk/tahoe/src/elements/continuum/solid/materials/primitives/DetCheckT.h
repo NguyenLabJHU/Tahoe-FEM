@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.h,v 1.16 2004-05-12 01:00:11 raregue Exp $ */
+/* $Id: DetCheckT.h,v 1.17 2004-05-12 16:46:14 raregue Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
@@ -8,11 +8,13 @@
 #define sweepIncr 5         // should be an integral divisor of 360
 #define numThetaChecks 72    // should be 360/sweepIncr and should be even
 #define numPhiChecks  19      // should be 90/sweepIncr+1
+
 /* 1 degree increment
 #define sweepIncr 1         // should be an integral divisor of 360
 #define numThetaChecks 360    // should be 360/sweepIncr and should be even
 #define numPhiChecks  91      // should be 90/sweepIncr+1
 */
+
 
 #include "AutoArrayT.h"
 

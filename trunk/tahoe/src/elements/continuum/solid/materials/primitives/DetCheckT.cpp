@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.29 2004-05-12 01:00:11 raregue Exp $ */
+/* $Id: DetCheckT.cpp,v 1.30 2004-05-12 16:46:14 raregue Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -387,43 +387,48 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 				 * them. Typically, there are two distinct normals which produce
 				 * the same minimum value. Choose between these later*/
 				//if (detA [i] [j] - leastmin < -setTol && (detA [i] [j] - leastmin)/fabs(leastmin) < -setTol )
-				if ( leastmin < 3.0*setTol && fabs((detA [i] [j])/detAe) < setTol )
+				if ( leastmin < 3.0*setTol )
 				{
-					//clear auto array
-					normalSet.Free();
+					if ( detA [i] [j] < setTol || fabs((detA [i] [j])/detAe) < setTol )
+					{
+						//clear auto array
+						normalSet.Free();
 
-					// add normal to auto array and reset leastmin
-					normalSet.Append(normal);
-					leastmin = detA [i] [j];
-					leastdetAe = detAe;
+						// add normal to auto array and reset leastmin
+						normalSet.Append(normal);
+						leastmin = detA [i] [j];
+						leastdetAe = detAe;
 
-					/* output to normal.info */
-					normal_out << setw(outputFileWidth) << "Yes - 1st";
-				}
-				else if ( fabs(leastmin) > 3.0*setTol && detA [i] [j] - leastmin < -setTol 
-						&& fabs((detA [i] [j])/detAe) < setTol )
-				{
-					// add normal to auto array and reset leastmin
-					normalSet.Append(normal);
-					leastmin = detA [i] [j];
-					leastdetAe = detAe;
-
-					/* output to normal.info */
-					normal_out << setw(outputFileWidth) << "Yes - not 1st - but is now least min detA";
-				}
-				//else if (fabs(detA [i] [j] - leastmin) < setTol || fabs((detA [i] [j] - leastmin)/leastmin) < setTol )
-				else if ( detA [i] [j] < setTol || fabs((detA [i] [j])/detAe) < setTol )
-				{
-					// add normal to auto array and output to normal.info
-					if (normalSet.AppendUnique(normal, NormalCompare))
-						normal_out << setw(outputFileWidth) << "Yes - Added";
+						/* output to normal.info */
+						normal_out << setw(outputFileWidth) << "Yes - 1st";	
+					}
 					else
-						normal_out << setw(outputFileWidth) << "Already Exists";
+					{
+						/* output to normal.info */
+						normal_out << setw(outputFileWidth) << "No";
+					}
 				}
-				else
+				else if ( fabs(leastmin) > 3.0*setTol )
 				{
-				/* output to normal.info */
-				normal_out << setw(outputFileWidth) << "No";
+					//else if (fabs(detA [i] [j] - leastmin) < setTol || fabs((detA [i] [j] - leastmin)/leastmin) < setTol )
+					if ( detA [i] [j] - leastmin < -setTol )
+					{
+						// add normal to auto array and reset leastmin
+						normalSet.Append(normal);
+						leastmin = detA [i] [j];
+						leastdetAe = detAe;
+
+						/* output to normal.info */
+						normal_out << setw(outputFileWidth) << "Yes - not 1st - but is now least min detA";
+					}
+					else if ( detA [i] [j] < setTol || fabs((detA [i] [j])/detAe) < setTol )
+					{
+						// add normal to auto array and output to normal.info
+						if (normalSet.AppendUnique(normal, NormalCompare))
+							normal_out << setw(outputFileWidth) << "Yes - Added";
+						else
+							normal_out << setw(outputFileWidth) << "Already Exists";
+					}
 				}
 
 			} //end if localmin  
