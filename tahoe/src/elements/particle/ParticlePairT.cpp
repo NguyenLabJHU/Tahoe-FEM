@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.39 2004-07-15 08:29:44 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.39.4.1 2004-10-29 02:48:25 d-farrell2 Exp $ */
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
@@ -1072,6 +1072,9 @@ void ParticlePairT::RHSDriver3D(void)
 	/* function name */
 	const char caller[] = "ParticlePairT::RHSDriver3D";
 
+// DEBUG
+CommunicatorT::Log(CommunicatorT::kUrgent, const char* caller);
+
 	/* check 3D */
 	if (NumDOF() != 3) ExceptionT::GeneralFail(caller, "3D only: %d", NumDOF());
 
@@ -1167,6 +1170,8 @@ void ParticlePairT::RHSDriver3D(void)
 			f_j[2] +=-r_ij_2;
 		}
 	}
+// DEBUG
+CommunicatorT::Log(CommunicatorT::kUrgent, const char* caller);
 }
 
 /* set neighborlists */
