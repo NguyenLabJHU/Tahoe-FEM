@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.17 2004-07-27 17:48:22 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.18 2004-10-14 19:02:54 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
@@ -830,6 +830,54 @@ void CommunicatorT::PostReceive(nArrayT<int>& data, int source,
 #endif
 }
 
+/* post non-blocking receive */
+void CommunicatorT::PostReceive(double& a, int source, int tag, MPI_Request& request) const
+{
+	const char caller[] = "CommunicatorT::PostReceive";
+
+	Log(kModerate, caller, "posting receive of 1 from %d with tag %d", source, tag);
+
+	if (source < 0 || source >= Size())
+		Log(kFail, caller, "source ! (0 <= %d <= %d)", source, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post receive */
+	int ret = MPI_Irecv(&a, 1, MPI_DOUBLE, source, tag, fComm, &request);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Irecv failed");
+#endif
+
+#else
+#pragma unused(a)
+#pragma unused(request)
+#endif
+}
+
+/* post non-blocking receive */
+void CommunicatorT::PostReceive(int& a, int source, int tag, MPI_Request& request) const
+{
+	const char caller[] = "CommunicatorT::PostReceive";
+
+	Log(kModerate, caller, "posting receive of 1 from %d with tag %d", source, tag);
+
+	if (source < 0 || source >= Size())
+		Log(kFail, caller, "source ! (0 <= %d <= %d)", source, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post receive */
+	int ret = MPI_Irecv(&a, 1, MPI_INT, source, tag, fComm, &request);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Irecv failed");
+#endif
+
+#else
+#pragma unused(a)
+#pragma unused(request)
+#endif
+}
+
 /* return the index the next receive */
 void CommunicatorT::WaitReceive(const ArrayT<MPI_Request>& requests, int& index, int& source) const
 {
@@ -855,6 +903,24 @@ void CommunicatorT::WaitReceive(const ArrayT<MPI_Request>& requests, int& index,
 #endif
 
 	Log(kModerate, caller, "received request at index %d from %d", index, source);
+}
+
+/* complete a nonblocking receive */
+void CommunicatorT::Wait(MPI_Request& request) const
+{
+	const char caller[] = "CommunicatorT::Wait";
+
+#ifdef __TAHOE_MPI__
+	MPI_Status status;
+	int ret = MPI_Wait(&request, &status);
+
+#ifdef CHECK_MPI_STATUS
+	if (status.MPI_ERROR != MPI_SUCCESS) Log(kFail, caller, "bad status: %d", status.MPI_ERROR);
+#endif /* CHECK_MPI_STATUS */
+
+#else
+#pragma unused(request)
+#endif /* __TAHOE_MPI__ */
 }
 
 /* block until all sends posted with CommunicatorT::PostSend have completed */
@@ -937,6 +1003,44 @@ void CommunicatorT::Send(const nArrayT<int>& data, int destination, int tag) con
 #endif
 }
 
+void CommunicatorT::Send(double a, int destination, int tag) const
+{
+	const char caller[] = "CommunicatorT::Send";
+
+	Log(kModerate, caller, "posting send of %g to %d with tag %d", a, destination, tag);
+	if (destination < 0 || destination >= Size())
+		Log(kFail, caller, "destination ! (0 <= %d <= %d)", destination, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post send */
+	int ret = MPI_Send(&a, 1, MPI_DOUBLE, destination, tag, fComm);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Send failed");
+#endif
+
+#endif
+}
+
+void CommunicatorT::Send(int a, int destination, int tag) const
+{
+	const char caller[] = "CommunicatorT::Send";
+
+	Log(kModerate, caller, "posting send of %d to %d with tag %d", a, destination, tag);
+	if (destination < 0 || destination >= Size())
+		Log(kFail, caller, "destination ! (0 <= %d <= %d)", destination, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post send */
+	int ret = MPI_Send(&a, 1, MPI_INT, destination, tag, fComm);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Send failed");
+#endif
+
+#endif
+}
+
 /* post blocking receive */
 void CommunicatorT::Receive(nArrayT<double>& data, int source, int tag) const
 {
@@ -1000,6 +1104,69 @@ void CommunicatorT::Receive(nArrayT<int>& data, int source, int tag) const
 
 	if (LogLevel() == kLow)
 		Log() << setw(10) << "data:\n" << data.wrap(5) << '\n';
+}
+
+/* post blocking receive */
+void CommunicatorT::Receive(double& a, int source, int tag) const
+{
+	const char caller[] = "CommunicatorT::Receive";
+
+	Log(kModerate, caller, "posting receive for 1 from %d with tag %d", source, tag);
+
+	if (source < 0 || source >= Size())
+		Log(kFail, caller, "source ! (0 <= %d <= %d)", source, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post receive */
+	MPI_Status status;
+	int ret = MPI_Recv(&a, 1, MPI_DOUBLE, source, tag, fComm, &status);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Recv failed");
+#endif
+
+#ifdef CHECK_MPI_STATUS
+	if (status.MPI_ERROR != MPI_SUCCESS) {
+		WriteStatus(Log(), caller, status);
+		Log(kFail, caller, "bad status: %d", status.MPI_ERROR);
+	}
+#endif
+
+#endif
+
+	if (LogLevel() == kLow)
+		Log() << setw(10) << "data:\n" << a << '\n';
+}
+
+void CommunicatorT::Receive(int& a, int source, int tag) const
+{
+	const char caller[] = "CommunicatorT::Receive";
+
+	Log(kModerate, caller, "posting receive for 1 from %d with tag %d", source, tag);
+
+	if (source < 0 || source >= Size())
+		Log(kFail, caller, "source ! (0 <= %d <= %d)", source, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post receive */
+	MPI_Status status;
+	int ret = MPI_Recv(&a, 1, MPI_INT, source, tag, fComm, &status);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Recv failed");
+#endif
+
+#ifdef CHECK_MPI_STATUS
+	if (status.MPI_ERROR != MPI_SUCCESS) {
+		WriteStatus(Log(), caller, status);
+		Log(kFail, caller, "bad status: %d", status.MPI_ERROR);
+	}
+#endif
+
+#endif
+
+	if (LogLevel() == kLow)
+		Log() << setw(10) << "data:\n" << a << '\n';
 }
 
 /*************************************************************************
