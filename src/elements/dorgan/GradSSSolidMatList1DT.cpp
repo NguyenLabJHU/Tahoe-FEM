@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatList1DT.cpp,v 1.1 2004-07-20 23:41:03 rdorgan Exp $ */
+/* $Id: GradSSSolidMatList1DT.cpp,v 1.2 2004-08-08 02:07:55 paklein Exp $ */
 #include "GradSSSolidMatList1DT.h"
 #include "GradSSMatSupportT.h"
 
@@ -64,13 +64,17 @@ void GradSSSolidMatList1DT::TakeParameterList(const ParameterListT& list)
 
 	/* construct materials - NOTE: subs have been defined as a choice, but
 	 * here we construct as many materials as are passed in */
-	AutoArrayT<GradSSSolidMatT*> materials;
 	const ArrayT<ParameterListT>& subs = list.Lists();
+	int count = 0;
 	for (int i = 0; i < subs.Length(); i++) {
 		const ParameterListT& sub = subs[i];
 		GradSSSolidMatT* mat = NewGradSSSolidMat(sub.Name());
 		if (mat) {
-			materials.Append(mat);
+
+			/* store pointer */
+			(*this)[count++] = mat;
+			
+			/* initialize material */
 			mat->TakeParameterList(sub);
 
 			/* set flags */
@@ -79,11 +83,6 @@ void GradSSSolidMatList1DT::TakeParameterList(const ParameterListT& list)
 			if (mat->HasLocalization()) fHasLocalizers = true;
 		}
 	}
-
-	/* transfer */
-	Dimension(materials.Length());
-	for (int i = 0; i < materials.Length(); i++)
-		fArray[i] = materials[i];
 }
 
 /* construct the specified material or NULL if the request cannot be completed */
