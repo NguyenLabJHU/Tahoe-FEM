@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.3 2001-12-16 23:57:06 paklein Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.4 2002-01-09 12:15:28 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 
 #include "FE_ASCIIT.h"
@@ -273,16 +273,22 @@ void FE_ASCIIT::WriteOutputData(ostream& out, int ID, const dArray2DT& n_values,
 	    out << " Block number . . . .  . . . . . . . . . . . . . = "
 		<< blockIDs[b] << '\n';
 	    const ArrayT<StringT>& elem_labels = fElementSets[ID]->ElementOutputLabels();
-	    WriteElementHeader(out, e_values.MajorDim(), elem_labels);
+
 
 	    /* write element values */
 	    if (e_values.MajorDim() > 0)
-	      {
-		dArray2DT local_vals (fElementSets[ID]->NumBlockElements (b), e_values.MinorDim());
-		ElementBlockValues (ID, b, e_values, local_vals);
-		WriteElementValues(out, local_vals);
-	      }
-	  }
+		{
+			/* collect block values */
+			dArray2DT local_vals(fElementSets[ID]->NumBlockElements (b), e_values.MinorDim());
+			ElementBlockValues(ID, b, e_values, local_vals);
+			
+			/* write */
+			WriteElementHeader(out, local_vals.MajorDim(), elem_labels);
+			WriteElementValues(out, local_vals);
+		}
+		else
+			WriteElementHeader(out, 0, elem_labels);
+	}
 	out.flush();
 }
 
