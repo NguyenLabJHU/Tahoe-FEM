@@ -1,9 +1,7 @@
-/* $Id: RectGaussianWindowT.cpp,v 1.3 2002-10-20 22:49:44 paklein Exp $ */
-
+/* $Id: RectGaussianWindowT.cpp,v 1.4 2004-06-26 06:11:13 paklein Exp $ */
 #include "RectGaussianWindowT.h"
 #include "ExceptionT.h"
 #include <math.h>
-
 
 using namespace Tahoe;
 
@@ -35,11 +33,7 @@ void RectGaussianWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 	if (params_1.Length() != params_2.Length() ||
 	    params_1.MinorDim() != NumberOfSupportParameters() ||
 	    params_2.MinorDim() != NumberOfSupportParameters())
-	{
-		cout << "\n RectGaussianWindowT::SynchronizeSupportParameters: nodal\n"
-		     << " parameters dimension mismatch" << endl;
-		throw ExceptionT::kSizeMismatch;
-	}
+	ExceptionT::SizeMismatch("RectGaussianWindowT::SynchronizeSupportParameters"); 
 		
 	/* "synchronize" means take max of dmax */
 	double* p1 = params_1.Pointer();
@@ -50,14 +44,6 @@ void RectGaussianWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 		*p1 = *p2 = Max(*p1, *p2);
 		p1++; p2++;
 	}
-}
-
-/* modify nodal shape function parameters */
-void RectGaussianWindowT::ModifySupportParameters(dArray2DT& nodal_params) const
-{
-	/* scale supports */
-	for (int i = 0; i < fDilationScaling.Length(); i++)
-		nodal_params.ScaleColumn(i, fDilationScaling[i]);	
 }
 
 void RectGaussianWindowT::WriteParameters(ostream& out) const
@@ -74,7 +60,6 @@ bool RectGaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, con
 {
   /* Compute window function and its derivatives - accomplish by scalar product of individual
    * window functions in x/y/z directions */
-
   if (!RectGaussianWindowT::Covers(x_n, x, param_n))
   {
     w = 0.0;
@@ -91,8 +76,8 @@ bool RectGaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, con
     Dw.DiffOf(x, x_n);
     if (x.Length() == 2)      // 2D calculation
     {
-      double admx = param_n[0] * fSharpeningFactor;
-      double admy = param_n[1] * fSharpeningFactor;
+      double admx = param_n[0] * fDilationScaling[0] * fSharpeningFactor;
+      double admy = param_n[1] * fDilationScaling[1] * fSharpeningFactor;
       double admx2 = admx * admx;
       double admy2 = admy * admy;
       double qx = Dw[0] / admx;
@@ -114,9 +99,9 @@ bool RectGaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, con
     }
     else if (x.Length() == 3)     // 3D calculation
     {
-      double admx = param_n[0] * fSharpeningFactor;
-      double admy = param_n[1] * fSharpeningFactor;
-      double admz = param_n[2] * fSharpeningFactor;
+      double admx = param_n[0] * fDilationScaling[0] * fSharpeningFactor;
+      double admy = param_n[1] * fDilationScaling[1] * fSharpeningFactor;
+      double admz = param_n[2] * fDilationScaling[2] * fSharpeningFactor;
       double admx2 = admx * admx;
       double admy2 = admy * admy;
       double admz2 = admz * admz;
@@ -193,7 +178,7 @@ bool RectGaussianWindowT::Covers(const dArrayT& x_n, const dArrayT& x,
   /* check individual directions to see if outside the "box" */
   for (int i = 0; i < x.Length(); i++)
   {
-    if (fabs(dx[i]) > fCutOffFactor * param_n[i])
+    if (fabs(dx[i]) > fCutOffFactor * fDilationScaling[i] * param_n[i])
       return false;
   }
   return true;
@@ -211,7 +196,7 @@ int RectGaussianWindowT::Covers(const dArray2DT& x_n, const dArrayT& x,
     dx.DiffOf(x, temprow);
     for (int j = 0; j < x.Length(); j++)
     {
-      if (fabs(dx[j]) > fCutOffFactor * param_n(i,j))
+      if (fabs(dx[j]) > fCutOffFactor * fDilationScaling[j] * param_n(i,j))
 		count++;
     }
     if (count == 0)
@@ -220,4 +205,58 @@ int RectGaussianWindowT::Covers(const dArray2DT& x_n, const dArrayT& x,
       covers[i] = false;
   }
   return count;
+}
+
+/* spherical upport size */
+double RectGaussianWindowT::SphericalSupportSize(const dArrayT& param_n) const
+{
+	int dim = param_n.Length();
+	double param = 0.0;
+	if (dim == 2)
+		param = (fDilationScaling[0]*param_n[0] > fDilationScaling[1]*param_n[1]) ? 
+			fDilationScaling[0]*param_n[0] : 
+			fDilationScaling[1]*param_n[1];
+	else if (dim == 3)
+	{
+		double tmp = (fDilationScaling[0]*param_n[0] > fDilationScaling[1]*param_n[1]) ? 
+			fDilationScaling[0]*param_n[0] : 
+			fDilationScaling[1]*param_n[1];
+		param = (tmp > fDilationScaling[2]*param_n[2]) ? tmp : fDilationScaling[2]*param_n[2];
+	}
+	else
+		ExceptionT::GeneralFail("RectGaussianWindowT::SphericalSupportSize", "%dD not supported", dim);
+
+	return fCutOffFactor*param;
+}
+
+/* rectangular support size */
+const dArrayT& RectGaussianWindowT::RectangularSupportSize(const dArrayT& param_n) const
+{
+#pragma unused(param_n)
+	ExceptionT::GeneralFail("RectGaussianWindowT", "not implemented");
+	return param_n; /* dummy */
+}
+
+/* spherical support sizes in batch */
+void RectGaussianWindowT::SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const
+{
+#if __option(extended_errorcheck)
+	if (param_n.MajorDim() != support_size.Length()) 
+		ExceptionT::SizeMismatch("RectGaussianWindowT::SphericalSupportSize");
+#endif
+
+	dArrayT tmp;
+	for (int i = 0; i < param_n.MajorDim(); i++)
+	{
+		param_n.RowAlias(i,tmp);
+		support_size[i] = RectGaussianWindowT::SphericalSupportSize(tmp);
+	}
+}
+
+/* rectangular support sizes in batch */
+void RectGaussianWindowT::RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const
+{
+	support_size = param_n;
+	for (int i = 0; i < param_n.MinorDim(); i++)
+		support_size.ScaleColumn(i, fCutOffFactor*fDilationScaling[i]);
 }
