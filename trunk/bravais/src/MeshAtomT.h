@@ -1,6 +1,6 @@
 // DEVELOPMENT
-#ifndef _MESHATOM_H_
-#define _MESHATOM_H_
+#ifndef _MESHATOM_T_H_
+#define _MESHATOM_T_H_
 
 #include <iostream>
 #include <fstream.h>
@@ -37,7 +37,7 @@ namespace Tahoe {
  *  as coordinates,connectivities, volume etc.
  **/
 
-class MeshAtom {
+class MeshAtomT {
 
  protected:
 
@@ -49,13 +49,13 @@ class MeshAtom {
  public:
 
   // Constructor
-  MeshAtom(StringT which_latticetype,int nsd,int nuca,
+  MeshAtomT(StringT which_latticetype,int nsd,int nuca,
 	   dArrayT latticeparameter,StringT which_shape,
 	   int whichunit,dArray2DT len, iArrayT cel,int irot,
 	   dArray2DT mat_rot,double angle,iArrayT isort);
   
   // Destructor: not done yet. 
-  ~MeshAtom();
+  ~MeshAtomT();
 
   // Create the mesh of atoms and return number of atoms.
   int CreateMeshAtom();

@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: main.cpp,v 1.6 2002-11-14 01:47:32 saubry Exp $ */
+/* $Id: main.cpp,v 1.7 2003-06-06 23:21:51 saubry Exp $ */
 #include <iostream>
 #include "ExceptionCodes.h"
 #include "PeriodicTableT.h"
@@ -7,7 +7,7 @@
 
 #include "MakeCrystalT.h"
 
-#include "MeshAtom.h"
+#include "MeshAtomT.h"
 
 
 int main()

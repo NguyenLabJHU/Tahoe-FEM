@@ -27,7 +27,7 @@
 #include "OutputBaseT.h"
 #include "OutPutLatticeT.h"
 
-#include "MeshAtom.h"
+#include "MeshAtomT.h"
 
 void MakeCrystalT::Run() 
 {
@@ -261,9 +261,9 @@ void MakeCrystalT::Run()
 
   //Define Mesh
 
-  MeshAtom mesh_atom(latticetype,nsd,b,alat,
-		     shape,whichunit,len,cel,irot,mat_rot,
-		     angle,isort);
+  MeshAtomT mesh_atom(latticetype,nsd,b,alat,
+		      shape,whichunit,len,cel,irot,mat_rot,
+		      angle,isort);
 
   StringT program = "bravais";
   StringT version = "v1.0";

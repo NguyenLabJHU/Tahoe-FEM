@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2003-06-06 23:16:03 saubry Exp $
+# $Id: makefile,v 1.8 2003-06-06 23:21:51 saubry Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -19,7 +19,7 @@ OBJ = \
 	DIAT.o \
 	HEXT.o \
 	OutPutLatticeT.o \
-	MeshAtom.o \
+	MeshAtomT.o \
 	MakeCrystalT.o
 
 OBJ_LINK = $(OBJ)
@@ -43,7 +43,7 @@ SRC = \
 	DIAT.cpp \
 	HEXT.cpp \
 	OutPutLatticeT.cpp \
-	MeshAtom.cpp \
+	MeshAtomT.cpp \
 	MakeCrystalT.cpp
  
 # headers
@@ -60,7 +60,7 @@ HDR = \
 	DIAT.h \
 	HEXT.h \
 	OutPutLatticeT.h \
-	MeshAtom.h \
+	MeshAtomT.h \
 	MakeCrystalT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
