@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.2 2001-04-27 10:45:02 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.3 2001-06-20 22:49:57 paklein Exp $ */
 /* created: paklein (06/19/1996)                                          */
 /* Base class for handling memory allocation for arrays of TYPE           */
 
@@ -25,7 +25,7 @@ public:
 
 	/* constructors */
 	ArrayT(void);
-	ArrayT(int length);
+	explicit ArrayT(int length);
 	ArrayT(int length, TYPE* TYPEPtr);
 	ArrayT(const ArrayT& source);
 

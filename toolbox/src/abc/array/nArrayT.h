@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.3 2001-06-19 00:53:10 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.4 2001-06-20 22:49:57 paklein Exp $ */
 /* created: paklein (05/23/1997)                                          */
 /* Base class for arrays of TYPE for which the following mathematical     */
 /* operators have been defined:                                           */
@@ -31,7 +31,7 @@ public:
 
 	/* constructors */
 	nArrayT(void);
-	nArrayT(int length);
+	explicit nArrayT(int length);
 	nArrayT(int length, nTYPE* TYPEPtr);
 	nArrayT(const nArrayT& source);
 

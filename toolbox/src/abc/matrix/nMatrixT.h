@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.3 2001-04-27 10:45:03 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.4 2001-06-20 22:49:59 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 /* 2 dimensional matrix mathematics template object.                      */
 
@@ -22,7 +22,7 @@ public:
 	/* constructor*/
 	nMatrixT(void);
 	nMatrixT(int numrows, int numcols);
-	nMatrixT(int squaredim);
+	explicit nMatrixT(int squaredim);
 	nMatrixT(int numrows, int numcols, nTYPE* p);	
 	nMatrixT(const nMatrixT& source);	
 

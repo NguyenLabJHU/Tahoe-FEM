@@ -1,4 +1,4 @@
-/* $Id: dArrayT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: dArrayT.h,v 1.2 2001-06-20 22:49:57 paklein Exp $ */
 /* created: paklein (08/11/1996)                                          */
 
 #ifndef _DARRAY_T_H_
@@ -13,7 +13,7 @@ public:
 
 	/* constructors */
 	dArrayT(void);
-	dArrayT(int length);
+	explicit dArrayT(int length);
 	dArrayT(int length, double* p);
 	dArrayT(const dArrayT& source);
 

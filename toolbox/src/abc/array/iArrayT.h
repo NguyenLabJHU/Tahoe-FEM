@@ -1,4 +1,4 @@
-/* $Id: iArrayT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: iArrayT.h,v 1.2 2001-06-20 22:49:57 paklein Exp $ */
 /* created: paklein (08/10/1996)                                          */
 
 #ifndef _IARRAY_T_H_
@@ -13,7 +13,7 @@ public:
 
 	/* constructors */
 	iArrayT(void);
-	iArrayT(int length);
+	explicit iArrayT(int length);
 	iArrayT(int length, int* p);
 	iArrayT(const iArrayT& source);
 	
