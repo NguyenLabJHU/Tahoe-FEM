@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.h,v 1.3 2005-01-03 21:55:34 paklein Exp $ */
+/* $Id: MixtureSpeciesT.h,v 1.4 2005-01-07 02:19:20 paklein Exp $ */
 #ifndef _MIXTURE_SPECIES_T_H_
 #define _MIXTURE_SPECIES_T_H_
 
@@ -46,6 +46,9 @@ protected:
 	/** compute the flux velocities */
 	void ComputeMassFlux(void);
 
+	/** compute the flux velocities and their variation with concentration */
+	void ComputeDMassFlux(void);
+
 protected:
 
 	/** background solid */
@@ -62,12 +65,12 @@ protected:
 
 	/** mass flux */
 	dArray2DT fMassFlux;
-	
-	/** \name finite difference of mass flux */
-	/*@{*/
-	dArray2DT fFluxVelocity_tmp;
-	dArray2DT fDMassFlux;	
-	/*@}*/
+
+	/** variation in mass flux with concentration */
+	dArray2DT fDMassFlux;
+
+	/** nodal stresses */
+	dArray2DT fP_avg;
 };
 
 } /* namespace Tahoe */
