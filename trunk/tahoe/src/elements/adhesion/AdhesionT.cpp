@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.5 2002-10-23 17:52:27 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.6 2002-10-23 18:40:32 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -820,7 +820,7 @@ bool AdhesionT::SetConfiguration(void)
 		int i_surface = fFaceIndex(i, kSurface);
 	
 		/* get potential interactions */
-		const AutoArrayT<iNodeT>& hits = fGrid->HitsInRegion(fFaceCentroids(i), 2.0*fCutOff);		
+		const AutoArrayT<iNodeT>& hits = fGrid->HitsInRegion(fFaceCentroids(i), fCutOff);		
 		for (int jj = 0; jj < hits.Length(); jj++)
 		{
 			int j = hits[jj].Tag();
@@ -832,9 +832,11 @@ bool AdhesionT::SetConfiguration(void)
 			{
 				/* vector from centroids of i to j */
 				vec_ij.DiffOf(fFaceCentroids(j), fFaceCentroids(i));
+				double dist = vec_ij.Magnitude();
 			
 				/* surfaces "facing" each other */
-				if (normals.DotRow(i,vec_ij) > 0.0 &&
+				if (dist < fCutOff &&
+				    normals.DotRow(i,vec_ij) > 0.0 &&
 					normals.DotRow(j,vec_ij) < 0.0)
 				{
 					fSurface1.Append(i);
