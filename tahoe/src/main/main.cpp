@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.5 2001-10-12 01:18:30 paklein Exp $ */
+/* $Id: main.cpp,v 1.6 2001-10-12 01:29:56 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include <iostream.h>
@@ -29,7 +29,7 @@ static void ShutDown(void);
 /* redirect of cout for parallel execution */
 ofstream console;
 #ifdef __DEC__
-streambuf* cout_buff = cerr_buff = NULL;
+streambuf* cout_buff = NULL,*cerr_buff = NULL;
 #endif
 
 /* f2c library global variables */
