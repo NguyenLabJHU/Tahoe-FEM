@@ -1,0 +1,220 @@
+# $Id: make.targets,v 1.24 2003-03-15 16:54:31 paklein Exp $
+#
+# platform specific instructions
+include $(MACRO_DIR)/$(ARCH).macros
+
+# include list of object files
+OBJECT_LIST = $(OBJ_DIR)/obj.junk
+include $(OBJECT_LIST)
+
+#########################################################################
+# grouped
+OPT_CFLAGS = \
+	$(DEV_CFLAGS) \
+	$(FOSSUM_CFLAGS) \
+	$(TB_CFLAGS) \
+	$(NOX_CFLAGS) \
+	$(T_CFLAGS) \
+	$(ACME_CFLAGS) \
+	$(SPOOLESMPI_CFLAGS) \
+	$(SPOOLESMT_CFLAGS) \
+	$(SPOOLES_CFLAGS) \
+	$(AZ_CFLAGS) \
+	$(BLAS_CFLAGS) \
+	$(AX_CFLAGS) \
+	$(METIS_CFLAGS) \
+	$(VTK_CFLAGS) \
+	$(F2C_CFLAGS)
+
+OPT_LFLAGS = \
+	$(DEV_LFLAGS) \
+	$(FOSSUM_LFLAGS) \
+	$(TB_LFLAGS) \
+	$(NOX_LFLAGS) \
+	$(T_LFLAGS) \
+	$(ACME_LFLAGS) \
+	$(SPOOLESMPI_LFLAGS) \
+	$(SPOOLESMT_LFLAGS) \
+	$(SPOOLES_LFLAGS) \
+	$(AZ_LFLAGS) \
+	$(BLAS_LFLAGS) \
+	$(AX_LFLAGS) \
+	$(METIS_LFLAGS) \
+	$(VTK_LFLAGS) \
+	$(F2C_LFLAGS)
+
+OPT_LIB = \
+	$(DEV_LIB) \
+	$(FOSSUM_LIB) \
+	$(TB_LIB) \
+	$(NOX_LIB) \
+	$(T_LIB) \
+	$(F2C_LIB) \
+	$(BLAS_LIB) \
+	$(AZ_LIB) \
+	$(METIS_LIB) \
+	$(SPOOLES_LIB) \
+	$(SPOOLESMPI_LIB) \
+	$(SPOOLESMT_LIB) \
+	$(ACME_LIB) \
+	$(VTK_LIB)
+
+OPT_INC = \
+	$(DEV_INC) \
+	$(FOSSUM_INC) \
+	$(NOX_INC) \
+	$(TB_INC) \
+	$(T_INC) \
+	$(F2C_INC) \
+	$(BLAS_INC) \
+	$(AZ_INC) \
+	$(METIS_INC) \
+	$(SPOOLES_INC) \
+	$(SPOOLESMPI_INC) \
+	$(SPOOLESMT_INC) \
+	$(ACME_INC) \
+	$(AX_INC) \
+	$(VTK_INC)
+
+OPT_DEFINES = \
+	$(DEV_DEFINES) \
+	$(FOSSUM_DEFINES) \
+	$(TB_DEFINES) \
+	$(NOX_DEFINES) \
+	$(T_DEFINES) \
+	$(ACME_DEFINES) \
+	$(SPOOLESMPI_DEFINES) \
+	$(SPOOLESMT_DEFINES) \
+	$(SPOOLES_DEFINES) \
+	$(AZ_DEFINES) \
+	$(BLAS_DEFINES) \
+	$(AX_DEFINES) \
+	$(METIS_DEFINES) \
+	$(VTK_DEFINES) \
+	$(F2C_DEFINES)
+
+#########################################################################
+# paths for file dependencies
+DEPEND_FILE = all.depend
+DEPEND_PATH = -I$(INC_DIR) $(OPT_INC) $(DEFINES) $(OPT_DEFINES) $(DEPENDFLAGS) $(MY_DEPEND_FLAGS)
+
+# Sun spends too much time searching standard directories
+#DEPEND_PATH = -Y -I$(INC_DIR) $(OPT_INC) $(DEFINES) $(OPT_DEFINES) $(DEPENDFLAGS)
+#########################################################################
+
+# default target
+help:
+	@ $(PRINTF) " make targets:\n"
+	@ $(PRINTF) "   init - (re-)initialize headers and file dependencies\n"
+	@ $(PRINTF) "  build - (re-)build binaries\n"
+	@ $(PRINTF) "objects - (re-)compile object file, but don't link\n"
+	@ $(PRINTF) "  clean - remove object files and build temporaries\n"
+	@ $(PRINTF) "   help - display this list\n"
+
+# instructions
+build: objects $(BUILD)
+
+$(TARGET): $(OPT_LIB) $(LIBRARY)
+	@ $(PRINTF) " linking...\n"	
+	@ $(LINK) $(MAIN) -o $(TARGET) -L$(HOME_DIR)/lib -l$(TARGET) $(OPT_LFLAGS) $(MY_LFLAGS) $(LFLAGS)
+	@ $(PRINTF) "    ...wrote $(TARGET)\n"
+
+# include object list and create archive
+$(LIBRARY): $(LIB_DIR)/lib.junk
+	@ $(MAKE) $(BUILD_LIBRARY) \
+	"OBJECT_LIST = $(HOME_DIR)/object_list" \
+	"AR = $(AR)" \
+	"ARFLAGS = $(ARFLAGS)" \
+	"RANLIB = $(RANLIB)" \
+	"RANLIBFLAGS = $(RANLIBFLAGS)" \
+	"LIBRARY = $(LIBRARY)" \
+	"PRINTF = $(PRINTF)"
+
+# create archive
+BUILD_LIBRARY_AR:
+	@ $(PRINTF) " building archive...\n"; \
+	cd $(OBJ_DIR); $(AR) $(ARFLAGS) $(LIBRARY) $(OBJ)	
+
+BUILD_LIBRARY_RANLIB:
+	@ cd $(OBJ_DIR); \
+	$(PRINTF) " building archive...\n"; \
+	$(AR) $(ARFLAGS) $(LIBRARY) $(OBJ); \
+	$(PRINTF) " running ranlib...\n"; \
+	$(RANLIB) $(RANLIBFLAGS) $(LIBRARY)
+
+# initialization
+init: $(MAKE_INIT_XTRAS)
+	@ if test -f $(LIBRARY); then rm $(LIBRARY); fi
+	@ $(MAKE) headers
+	@ $(MAKE) depend_init
+	@ $(MAKE) object_list
+
+# clean up - restore to unpacked state
+clean: 
+	@- rm $(TARGET) object_list
+	@- rm $(LIBRARY)
+	@- cd $(SRC_DIR); $(MAKE) $(MAKE_OPTS) clean \
+	"ARCH = $(ARCH)" \
+	"SRC_DIR = $(SRC_DIR)" \
+	"MACRO_DIR = $(MACRO_DIR)"
+	@- cd $(OBJ_DIR); rm *.o
+	@- cd $(MACRO_DIR)/cxx_repository; rm *.o *.DB
+	@- cd $(INC_DIR); rm *.h
+	make $(MAKE_CLEAN_XTRAS)
+
+# build object file list
+object_list: FORCE
+	@ $(PRINTF) "collecting list of object files\n"
+	@ $(PRINTF) "OBJ = " > object_list
+	@ cd $(SRC_DIR); \
+	$(MAKE) library \
+	"ARCH = $(ARCH)" \
+	"MACRO_DIR = $(MACRO_DIR)" \
+	"LIBRARY = $(HOME_DIR)/object_list" \
+	"SRC_DIR = $(SRC_DIR)" \
+	"LIB_DIR = $(LIB_DIR)"
+	@ $(PRINTF) "\n" >> object_list
+
+# set symbolic links to all header files
+headers: $(MAKE_HEADERS_XTRAS)
+	@- rm $(INC_DIR)/*.h
+	@ $(PRINTF) "cd $(SRC_DIR)\n"; \
+	cd $(SRC_DIR); \
+	$(MAKE) $(MAKE_OPTS) headers \
+	"ARCH = $(ARCH)" \
+	"MACRO_DIR = $(MACRO_DIR)" \
+	"INC_DIR = $(INC_DIR)" \
+	"SRC_DIR = $(SRC_DIR)" \
+	"CURR_DIR = $(SRC_DIR)"
+
+# initialize dependency files
+depend_init: $(MAKE_DEPEND_INIT_XTRAS)
+	@ $(PRINTF) "cd $(SRC_DIR)\n"; \
+	cd $(SRC_DIR); \
+	$(MAKE) $(MAKE_OPTS) depend_init \
+	"ARCH = $(ARCH)" \
+	"SRC_DIR = $(SRC_DIR)" \
+	"MACRO_DIR = $(MACRO_DIR)" \
+	"DEPEND_PATH = $(DEPEND_PATH)"
+
+# build objects
+objects: $(MAKE_BUILD_XTRAS)
+	@ $(PRINTF) "cd $(SRC_DIR)\n"; \
+	cd $(SRC_DIR); \
+	$(MAKE) $(MAKE_OPTS) objects \
+	"ARCH = $(ARCH)" \
+	"MACRO_DIR = $(MACRO_DIR)" \
+	"INC_DIR = $(INC_DIR)" \
+	"SRC_DIR = $(SRC_DIR)" \
+	"OBJ_DIR = $(OBJ_DIR)" \
+	"LIB_DIR = $(LIB_DIR)" \
+	"OPT_CFLAGS = $(OPT_CFLAGS)" \
+	"MY_CFLAGS = $(MY_CFLAGS)" \
+	"MY_CCFLAGS = $(MY_CCFLAGS)" \
+	"MY_FFLAGS = $(MY_FFLAGS)" \
+	"MY_LFLAGS = $(MY_LFLAGS)" \
+	"DEPEND_PATH = $(DEPEND_PATH)" \
+	"DEPEND = $(DEPEND_FILE)" \
+	"CURR_DIR = $(SRC_DIR)"
+
+FORCE:
