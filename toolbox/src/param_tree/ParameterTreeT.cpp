@@ -1,4 +1,4 @@
-/* $Id: ParameterTreeT.cpp,v 1.7 2004-03-24 19:27:46 paklein Exp $ */
+/* $Id: ParameterTreeT.cpp,v 1.8 2004-03-27 04:07:17 paklein Exp $ */
 #include "ParameterTreeT.h"
 #include "ParameterInterfaceT.h"
 
@@ -74,10 +74,9 @@ void ParameterTreeT::Validate(const ParameterInterfaceT& source, const Parameter
 	}
 	else /* defining inlined list */
 	{
-
-		//TEMP
-		ExceptionT::GeneralFail(caller, "why is there an inlined list here?????????");
-
+		//ERROR
+		ExceptionT::GeneralFail(caller, "internal error with inlined list \"%s\"", 
+			raw_list.Name().Pointer());
 #if 0
 		/* list must be inlined */
 		if (!raw_list.Inline())
