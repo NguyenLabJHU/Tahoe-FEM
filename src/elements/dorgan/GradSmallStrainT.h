@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.h,v 1.6 2004-06-09 00:25:53 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.h,v 1.7 2004-06-17 00:45:11 rdorgan Exp $ */ 
 #ifndef _GRAD_SMALL_STRAIN_T_H_ 
 #define _GRAD_SMALL_STRAIN_T_H_ 
 
@@ -25,7 +25,7 @@ public:
 
 	/** constructor */
 	GradSmallStrainT(const ElementSupportT& support, const FieldT& disp, 
-					 const FieldT& field1, const FieldT& field2);
+					   const FieldT& field);
 
 	/** destructor */
 	~GradSmallStrainT(void);
@@ -39,7 +39,7 @@ public:
 						   AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 	
 	/** return the number of degrees of freedom for field per node */
-	int NumDOF_Field(void) const { return fField1.NumDOF() + fField2.NumDOF();} ;
+	int NumDOF_Field(void) const { return fField.NumDOF();} ;
 	
 	/** number of element integration points for field */
 	int NumIP_Field(void) const { return fNumIP_Field;} ;
@@ -108,19 +108,17 @@ protected:
 	  
 	/** \name element field in local ordering for current element */
 	/*@{*/
-	LocalArrayT fLocField1;      /**< hardness */
-	LocalArrayT fLocLastField1;  /**< hardness from last time increment */
-
-	LocalArrayT fLocField2;      /**< hardness */
-	LocalArrayT fLocLastField2;  /**< hardness from last time increment */
+	LocalArrayT fLocField;      /**< hardness: for 1d arranged as { r1, r2; r1x, r2x } */
+	LocalArrayT fLocLastField;  /**< hardness from last time increment */
+  	dArrayT fLocFieldTranspose; /**< hardness: for 1d arranged as { r1, r1x; r2, r2x } */
+	
 	/*@}*/
 	
 private:
 	/* \name fields */
 	/*@{*/
 	const FieldT& fDisplacement; /**< displacement field */
-	const FieldT& fField1;        /**< hardening parameter field */
-	const FieldT& fField2;        /**< hardening parameter field */
+	const FieldT& fField;        /**< hardening parameter field */
 	/*@}*/
 	
 	/** \name shape functions for field */
@@ -138,18 +136,8 @@ private:
 	/** shape functions for Field */
 	dMatrixT fh;      /**<  shape functions */
 	dMatrixT fhT;     /**<  shape functions (Transpose) */
-	dMatrixT fh1;     /**<  shape functions */
-	dMatrixT fh1T;    /**<  shape functions (Transpose) */
-	dMatrixT fh2;     /**<  shape functions */
-	dMatrixT fh2T;    /**<  shape functions (Transpose) */
-	
 	dMatrixT fp;      /**<  gradient shape functions */
-	dMatrixT fp1;     /**<  gradient shape functions */
-	dMatrixT fp2;     /**<  gradient shape functions */
-	
 	dMatrixT fq;      /**<  Laplacian shape functions */
-	dMatrixT fq1;     /**<  Laplacian shape functions */
-	dMatrixT fq2;     /**<  Laplacian shape functions */
 	
 	/** stiffnesses */
 	ElementMatrixT fK_bb;               /**< elastic stiffness matrix */
@@ -171,8 +159,6 @@ private:
 	int fNumSD;                 /**< number of spatial dimensions */
 	int fNumDOF_Disp;           /**< number of degrees of freedom for displacement field */
 	int fNumDOF_Field;          /**< number of degrees of freedom for field */
-	int fNumDOF_Field1;          /**< number of degrees of freedom for field */
-	int fNumDOF_Field2;          /**< number of degrees of freedom for field */	
 	int fNumEQ_Total;           /**< number of total equations */
 	/*@}*/
 
