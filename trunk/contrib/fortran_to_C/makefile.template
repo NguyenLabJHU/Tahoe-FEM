@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.1 2003-03-09 04:07:50 paklein Exp $
+# $Id: makefile.template,v 1.2 2003-03-15 01:07:54 paklein Exp $
 .SUFFIXES: .c .cpp .f .F
 
 # define the .macros file to include
@@ -20,6 +20,11 @@ C_test: $(C_TEST_OBJ)
 
 CC_test: $(CC_TEST_OBJ)
 	$(LINK_CC) $(CC_TEST_OBJ) -o CC_test $(L_FLAGS_CC)
+
+# intentionally generate a fortran linker error to see what the name
+# mangling convention is
+f_error: main_f.o
+	$(LINK_F) main_f.o -o f_error $(L_FLAGS_F)
 
 clean:
 	rm *.o C_test f_test CC_test
