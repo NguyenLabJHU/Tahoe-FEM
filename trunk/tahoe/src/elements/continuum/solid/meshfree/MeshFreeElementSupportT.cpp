@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.10 2002-11-28 17:06:29 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.11 2002-11-29 16:09:00 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 
 #include "MeshFreeElementSupportT.h"
@@ -39,8 +39,6 @@ MeshFreeElementSupportT::MeshFreeElementSupportT(ifstreamT& in):
 	if (fAutoBorder != 0 && fAutoBorder != 1) throw ExceptionT::kBadInputValue;
 
 #ifdef __TAHOE_MPI__
-bug!!!!
-
 	//TEMP
 	int size;
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
