@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.11 2004-09-24 23:44:24 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.12 2004-09-29 18:26:52 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -174,11 +174,10 @@ void FS_SCNIMFT::WriteOutput(void)
 		vec.Set(ndof, values_i.Pointer() + ndof);
 		vec = 0.;
 			
-		LinkedListT<int>& nodal_supp = fNodalSupports[i];
-		LinkedListT<double>& phi_i = fNodalPhi[i];
-		nodal_supp.Top(); phi_i.Top();
-		while (nodal_supp.Next() && phi_i.Next()) 
-			vec.AddScaled(*(phi_i.CurrentValue()), u(*(nodal_supp.CurrentValue())));
+		int* nodal_supp = fNodalSupports(i);
+		double* phi_i = fNodalPhi(i);
+		for (int j = 0; j < fNodalPhi.MinorDim(i); j++)
+			vec.AddScaled(*phi_i++, u(*nodal_supp++));
 
 		// Convert initial coordinates to current coordinates
 	        for (int j = 0; j < ndof; j++) 
@@ -409,6 +408,9 @@ void FS_SCNIMFT::RHSDriver(void)
 {
 	/* function name */
 	const char caller[] = "ParticlePairT::RHSDriver2D";
+	
+	/* contribution from natural boundary conditions */
+	SCNIMFT::RHSDriver();
 
 	/* check 2D */
 	if (NumDOF() != 2) ExceptionT::GeneralFail(caller, "2D only: %d", NumDOF());
