@@ -1,4 +1,4 @@
-/* $Id: iGridManagerT.cpp,v 1.7.2.1 2002-12-16 09:03:00 paklein Exp $ */
+/* $Id: iGridManagerT.cpp,v 1.7.2.2 2003-01-14 15:36:00 paklein Exp $ */
 /* created: paklein (09/13/1998) */
 #include "iGridManagerT.h"
 #include "iGridManager1DT.h"
@@ -85,12 +85,23 @@ iGridManagerT::~iGridManagerT(void)
 /* reconfigure grid with stored coordinate data */
 void iGridManagerT::Reset(void)
 {
-        if (fGrid1D)
-	        fGrid1D->Reset();
+	if (fGrid1D)
+		fGrid1D->Reset();
 	else if (fGrid2D)
 		fGrid2D->Reset();
 	else
 		fGrid3D->Reset();
+}
+
+/* return the coordinate array */
+const dArray2DT& iGridManagerT::Coordinates(void) const
+{
+	if (fGrid1D)
+		return fGrid1D->Coordinates();
+	else if (fGrid2D)
+		return fGrid2D->Coordinates();
+	else
+		return fGrid3D->Coordinates();
 }
 
 /* neighbors - returns neighbors coords(n) (SELF not included) */
