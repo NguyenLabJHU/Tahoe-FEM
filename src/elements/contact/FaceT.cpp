@@ -1,4 +1,4 @@
-/* $Id: FaceT.cpp,v 1.6 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: FaceT.cpp,v 1.7 2002-10-20 22:48:21 paklein Exp $ */
 
 #include "FaceT.h"
 
@@ -14,8 +14,8 @@ int num_face_nodes, int* connectivity):
 	fSurface(surface),
 	fSurfaceCoordinates(surface_coordinates)
 {
-        fConnectivity.Allocate(num_face_nodes);
-        fGlobalConnectivity.Allocate(num_face_nodes);
+        fConnectivity.Dimension(num_face_nodes);
+        fGlobalConnectivity.Dimension(num_face_nodes);
         for (int i = 0; i < num_face_nodes; i++) {
                 fConnectivity[i] = connectivity[i];
                 // NOTE : this is ugly

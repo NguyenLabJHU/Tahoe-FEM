@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.36 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: ContactElementT.cpp,v 1.37 2002-10-20 22:48:21 paklein Exp $ */
 
 #include "ContactElementT.h"
 
@@ -47,7 +47,7 @@ ContactElementT::ContactElementT
     fContactSearch(NULL)
 {
     fNumEnfParameters = num_enf_params;
-    if (!fXDOF_Nodes) throw eGeneralFail;
+    if (!fXDOF_Nodes) throw ExceptionT::kGeneralFail;
     ReadControlData();
 }
 
@@ -99,7 +99,7 @@ void ContactElementT::Initialize(void)
 	int num_surfaces = fSurfaces.Length();
 	if (num_surfaces > 1)
 	{
-		fSurfaceLinks.Allocate(num_surfaces - 1, 2);
+		fSurfaceLinks.Dimension(num_surfaces - 1, 2);
 		for (int i = 0; i < num_surfaces - 1; i++)
 		{
 			fSurfaceLinks(i,0) = fSurfaces[i  ].GlobalNodes()[0];
@@ -124,7 +124,7 @@ void ContactElementT::Initialize(void)
 
 void ContactElementT::SetWorkspace(void)
 { 	/* workspace matrices */  // ARE THESE CORRECT?
-	n1.Allocate(NumSD());
+	n1.Dimension(NumSD());
    	RHS_man.SetWard    (kMaxNumFaceDOF,RHS);
    	tmp_RHS_man.SetWard(kMaxNumFaceDOF,tmp_RHS);
    	LHS_man.SetWard    (kMaxNumFaceDOF,LHS);
@@ -402,7 +402,7 @@ void ContactElementT::ReadControlData(void)
     ostream&  out = ElementSupport().Output(); 
 
     /* print flags */
-    fOutputFlags.Allocate(kNumOutputFlags);
+    fOutputFlags.Dimension(kNumOutputFlags);
     for (int i = 0; i < fOutputFlags.Length(); i++) {
         in >> fOutputFlags[i];
     }
@@ -415,14 +415,14 @@ void ContactElementT::ReadControlData(void)
 
     int num_surfaces;
     in >> num_surfaces;
-    if (num_surfaces < 1) throw eBadInputValue;
+    if (num_surfaces < 1) throw ExceptionT::kBadInputValue;
 	out << " Number of contact surfaces. . . . . . . . . . . = "
 	    << num_surfaces << '\n';
 
     int num_pairs;
     in >> num_pairs;
     if (num_pairs < 1 || num_pairs > num_surfaces*(num_surfaces-1))
-        throw eBadInputValue;
+        throw ExceptionT::kBadInputValue;
 	out << " Number of surface pairs with data . . . . . . . = "
 	    << num_pairs << '\n';
 
@@ -431,8 +431,8 @@ void ContactElementT::ReadControlData(void)
 	    << kSearchNumParameters << '\n';
 	out << " Number of enforcement parameters. . . . . . . . = "
 	    << fNumEnfParameters << '\n';
-    fSearchParameters.Allocate(num_surfaces);
-    fEnforcementParameters.Allocate(num_surfaces);
+    fSearchParameters.Dimension(num_surfaces);
+    fEnforcementParameters.Dimension(num_surfaces);
     int s1, s2;
     for (int i = 0; i < num_pairs ; i++)
     {
@@ -474,7 +474,7 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	int num_surfaces = fSearchParameters.Rows();
 	/* surfaces */
 	out << " Surface connectivity data .........................\n";
-	fSurfaces.Allocate(num_surfaces); 
+	fSurfaces.Dimension(num_surfaces); 
 	for (int i = 0; i < fSurfaces.Length(); i++)
 	{
 		int spec_mode;
@@ -493,7 +493,7 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
                                      << " unknown surface specification\n";
 				cout <<   "     mode " << spec_mode 
                                      << " for surface " << i+1 << '\n';
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 		}
 		surface.PrintConnectivityData(out);
 	}

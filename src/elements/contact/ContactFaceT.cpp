@@ -10,7 +10,7 @@ ContactFaceT::ContactFaceT
 (FaceT* face):
 	fFace(face)
 {
-    fMultiplierConnectivity.Allocate(fFace->NumNodes());
+    fMultiplierConnectivity.Dimension(fFace->NumNodes());
 }
 
 /*destructor*/ 

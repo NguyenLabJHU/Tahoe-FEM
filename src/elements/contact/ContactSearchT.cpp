@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.21 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.22 2002-10-20 22:48:21 paklein Exp $ */
 
 #include "ContactSearchT.h"
 
@@ -50,13 +50,13 @@ bool ContactSearchT::SetInteractions(void)
 	
 	/* construct a search grid */
 	const dArray2DT& coordinates = surface1.Coordinates();
-	grid_nodes.Allocate(coordinates.MajorDim());
+	grid_nodes.Dimension(coordinates.MajorDim());
 	grid_nodes.SetValueToPosition();
 	iArrayT n_grid(surface1.NumSD());
 	n_grid = ngrid; //n_grid = 1; //HACK<<<<<
 	/* not optimized for thin bodies */
 	fGrid = new iGridManagerT (n_grid, coordinates, &grid_nodes);
-	if (!fGrid) throw eOutOfMemory;
+	if (!fGrid) throw ExceptionT::kOutOfMemory;
 	
 	/* (re-)set grid boundaries */
 	fGrid->Reset();

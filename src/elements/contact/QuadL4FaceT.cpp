@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.23 2002-07-02 19:55:20 cjkimme Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.24 2002-10-20 22:48:21 paklein Exp $ */
 
 #include "QuadL4FaceT.h"
 
@@ -28,7 +28,7 @@ int number_of_face_nodes, int* connectivity):
 {
 	fNumVertexNodes = 4;
 	if (!fIntegrationPoints.IsAllocated()) {
-		fIntegrationPoints.Allocate(4,2);
+		fIntegrationPoints.Dimension(4,2);
 		double* ip;
 		ip = fIntegrationPoints(0);	
 		ip[0] = -1.0 ; ip[1] = -1.0;

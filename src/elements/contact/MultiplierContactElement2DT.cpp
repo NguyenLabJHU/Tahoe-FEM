@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.11 2002-10-16 22:55:05 cjkimme Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.12 2002-10-20 22:48:21 paklein Exp $ */
 // created by : rjones 2001
 #include "MultiplierContactElement2DT.h"
 
@@ -244,7 +244,7 @@ void MultiplierContactElement2DT::LHSDriver(void)
   double sfac, gap;
   double l1[3],lm2[3];
   dArrayT n1alphal1;
-  n1alphal1.Allocate(NumSD());
+  n1alphal1.Dimension(NumSD());
 
   /* for consistent stiffness */    
   dArrayT N1nl;

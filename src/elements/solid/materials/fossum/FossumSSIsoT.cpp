@@ -76,23 +76,23 @@ FossumSSIsoT::FossumSSIsoT(ifstreamT& in, const SmallStrainT& element):
 {
   /* read parameters */
   in >> fA;      if (fA < 0.0 ) {cout << "Bad value for A\n" << flush; 
-                                    throw eBadInputValue;}   
+                                    throw ExceptionT::kBadInputValue;}   
   in >> fB;
   in >> fC;
   in >> fTheta; if (fTheta < 0.0 ) {cout << "Bad value for theta\n" << flush; 
-                                    throw eBadInputValue;}
+                                    throw ExceptionT::kBadInputValue;}
   in >> fR;     if (fR < 0.0 ) {cout << "Bad value for R\n" << flush; 
-                                    throw eBadInputValue;}  
+                                    throw ExceptionT::kBadInputValue;}  
   in >> fKappa0;
   in >> fW;
   in >> fD1; 
   in >> fD2;
   in >> fCalpha; if (fCalpha < 0.0 ) {cout<< "Bad value for Calpha, Calpha = "<< fCalpha << "\n"<< flush; 
-                                    throw eBadInputValue;}
+                                    throw ExceptionT::kBadInputValue;}
   in >> fPsi;     if (fPsi < 0.0 ) {cout << "Bad value for Psi\n" << flush; 
-                                    throw eBadInputValue;}
+                                    throw ExceptionT::kBadInputValue;}
   in >> fN;       if (fN < 0.0) {cout << "Bad value for N\n" << flush;
-                                     throw eBadInputValue;}
+                                     throw ExceptionT::kBadInputValue;}
 
   /* initialize constant tensor */
   One.Identity();
@@ -254,7 +254,7 @@ void FossumSSIsoT::OutputLabels(ArrayT<StringT>& labels) const
 {
 		int i;
         /* set size */
-        labels.Allocate(kNumOutput);
+        labels.Dimension(kNumOutput);
         
         /* copy labels */
         for (i = 0; i < kNumOutput; i++)
@@ -440,7 +440,7 @@ void FossumSSIsoT::AllocateElement(ElementCardT& element)
         d_size += kNumInternal*fNumIP;        //fInternal
 
         /* construct new plastic element */
-        element.Allocate(i_size, d_size);
+        element.Dimension(i_size, d_size);
         
         /* initialize values */
         element.IntegerData() = kIsElastic;
@@ -514,7 +514,7 @@ void FossumSSIsoT::Reset(ElementCardT& element)
 void FossumSSIsoT::LoadData(const ElementCardT& element, int ip)
 {
         /* check */
-        if (!element.IsAllocated()) throw eGeneralFail;
+        if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
         /* fetch arrays */
         dArrayT& d_array = element.DoubleData();
@@ -710,7 +710,7 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 		
 	for (i = 0; i < 3; i++)
 	{
-		m[i].Allocate(kNSD);
+		m[i].Dimension(kNSD);
 		m[i].Outer(spectre.Eigenvectors() [i]);
 	}
 
@@ -753,7 +753,7 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 	    if (newtonCounter++ > maxIter)
 	      {
 		cout << "FossumSSIsoT::s_ij, Newton Iteration failed to converge\n" << flush;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	      }
 
 	    /* form dR/dx */
@@ -1355,7 +1355,7 @@ const dMatrixT& FossumSSIsoT::c_ijkl(void)
 		
 	for (i = 0; i < 3; i++)
 	{
-		m[i].Allocate(kNSD);
+		m[i].Dimension(kNSD);
 		m[i].Outer(spectre.Eigenvectors() [i]);
 	}
        
@@ -1529,7 +1529,7 @@ dMatrixT FossumSSIsoT::D2fdSigmadq(double I1, double J2, double J3, double kappa
 
   for (i = 0; i < 2; i++)
   {
-	n[i].Allocate(kNSD);
+	n[i].Dimension(kNSD);
   	n[i].DiffOf( m[i], m[2]);
   }
 
@@ -1565,7 +1565,7 @@ dMatrixT FossumSSIsoT::D2fdqdq(double I1, double J2, double J3, double kappa, dA
   	
   for (i = 0; i < 2; i++)
   {
-	n[i].Allocate(kNSD);
+	n[i].Dimension(kNSD);
   	n[i].DiffOf( m[i], m[2]);
   }
 
@@ -1662,7 +1662,7 @@ dSymMatrixT FossumSSIsoT::DfdAlpha(double I1, double J2, double J3, double kappa
 	
   for (i = 0; i < 2; i++)
   {
-	n[i].Allocate(kNSD);
+	n[i].Dimension(kNSD);
   	n[i].DiffOf( m[i], m[2]);
   }
 
@@ -1706,7 +1706,7 @@ dMatrixT FossumSSIsoT::DhdSigma(double I1, double J2, double J3, double kappa, d
 	
   for (i = 0; i < 2; i++)
   {
-	n[i].Allocate(kNSD);
+	n[i].Dimension(kNSD);
   	n[i].DiffOf( m[i], m[2]);
   }
   

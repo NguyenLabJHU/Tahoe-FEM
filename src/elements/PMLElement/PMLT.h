@@ -1,4 +1,4 @@
-/* $Id: PMLT.h,v 1.5 2002-07-05 17:51:41 paklein Exp $ */
+/* $Id: PMLT.h,v 1.6 2002-10-20 22:48:16 paklein Exp $ */
 #ifndef _PML_T_H_
 #define _PML_T_H_
 
@@ -134,7 +134,7 @@ inline const dMatrixT& PMLT::GradU(void) const
 	{
 		cout << "\n PMLT::LinearStrain: material " << mat_num + 1 
 		     << " did not specify this need" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 
@@ -151,7 +151,7 @@ inline const dMatrixT& PMLT::GradU(int ip) const
 	{
 		cout << "\n PMLT::LinearStrain: material " << mat_num + 1 
 		     << " did not specify this need" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 
@@ -168,7 +168,7 @@ inline const dMatrixT& PMLT::GradU_last(void) const
 	{
 		cout << "\n PMLT::Linearstrain last: material " << mat_num + 1 
 		     << " did not specify this need" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 
@@ -185,7 +185,7 @@ inline const dMatrixT& PMLT::GradU_last(int ip) const
 	{
 		cout << "\n PMLT::LinearStrain_last: material " << mat_num + 1 
 		     << " did not specify this need" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 

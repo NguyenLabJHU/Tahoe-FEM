@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.26 2002-07-02 19:55:20 cjkimme Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.27 2002-10-20 22:48:21 paklein Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -6,9 +6,9 @@
 #include <iomanip.h>
 
 #include "ModelManagerT.h"
+#include "ElementSupportT.h"
 #include "fstreamT.h"
 #include "IOBaseT.h"
-#include "ContinuumElementT.h" // For conversion of side sets to facets.
 #include "FaceT.h"
 #include "LineL2FaceT.h"
 #include "LineQ3FaceT.h"
@@ -16,10 +16,9 @@
 #include "TriaL3FaceT.h"
 #include "AutoFill2DT.h"
 
-/* parameters */
-
 using namespace Tahoe;
 
+/* parameters */
 const int kHeadroom = 10; // this is a percentage
 const int kMaxNumFacesAtNode = 8;
 const int kMaxNumFaceNeighbors = 10;
@@ -112,30 +111,10 @@ void SurfaceT::PrintConnectivityData(ostream& out)
 void SurfaceT::InputSideSets 
 (const ElementSupportT& support, ifstreamT& in, ostream& out)
 {
-// parent element determines number of face nodes per face
-#ifdef __NO_RTTI__
-	cout << "\n ContactT::InputSideSets: RTTI required,"
-             << " but not available.\n";
-	cout <<   "     Use different surface specification mode." << endl;
-	throw;
-#endif
-
+//TEMP
 	int elem_group;
 	in >> elem_group;
-	elem_group--;
-	const ContinuumElementT* pelem_group =
-		dynamic_cast<const ContinuumElementT*>
-                (&support.ElementGroup(elem_group));
-
-	/* checks */
-	if (!pelem_group)
-	{
-		cout << "\n SurfaceT::InputSideSets: element group " 
-                     << elem_group;
-		cout << " must be of type\n" <<   "     ContinuumElementT" 
-		     << endl;
-		throw eBadInputValue;
-	}
+	cout << "\n SurfaceT::InputSideSets: element group number required, but not used" << endl;
 
 	/* read side set: element, local face pair */
 	iArray2DT side_set;
@@ -145,28 +124,19 @@ void SurfaceT::InputSideSets
 	ArrayT<StringT> ss_ID;
 	bool multidatabasesets = false; /* change to positive and the parameter file format changes */
 	ModelManagerT& model = support.Model();
-	model.SideSetList (in, ss_ID, multidatabasesets);
-
+	model.SideSetList(in, ss_ID, multidatabasesets);
 	if (ss_ID.Length () != 1) 
-	  {
-	    cout << "\n\nContactT::InputSideSets: Model Manager read more than one side set, not programmed for this.\n\n";
-	    throw eBadInputValue;
-	  }
-
-	/* read side set */
-	StringT block_ID;
-	side_set = model.SideSet(ss_ID[0]);
-	if (side_set.MajorDim() > 0 && model.IsSideSetLocal(ss_ID[0]))
-	    block_ID = model.SideSetGroupID(ss_ID[0]);
-	else {
-		iArray2DT temp = side_set;
-		model.SideSetGlobalToLocal(temp, side_set, block_ID);
+	{
+		cout << "\n ContactT::InputSideSets: Model Manager read more than one side set, not programmed for this" << endl;
+		throw ExceptionT::kBadInputValue;
 	}
 	
 	/* global node numbers of faces from element group */
 	/* allocates to number of nodes per face */
 	iArray2DT faces_tmp;
-	pelem_group->SideSetToFacets(block_ID, side_set, faces_tmp);
+	ArrayT <GeometryT::CodeT> geometry_code;
+	iArrayT num_face_nodes;
+	model.SideSet(ss_ID[0], geometry_code, num_face_nodes, faces_tmp);
 	int num_faces = faces_tmp.MajorDim();
 
 	/* make node list and convert connectivities to local numbering */
@@ -193,7 +163,7 @@ void SurfaceT::InputSideSets
 	}
 
         /* collect */
-        fGlobalNodes.Allocate(node_count);
+        fGlobalNodes.Dimension(node_count);
         pcount = counts.Pointer();
         int nsurf_nodes = 0;
         for (int k = 0; k < num_nodes; k++)
@@ -212,10 +182,8 @@ void SurfaceT::InputSideSets
         }
 
 	/* create faces */
-	ArrayT <GeometryT::CodeT> geometry_code;
-	iArrayT num_face_nodes;
-	pelem_group->FacetGeometry(geometry_code, num_face_nodes);
-        fFaces.Allocate(num_faces);
+	fFaces.Dimension(num_faces);
+	
 	/* assuming all faces have same code */
 	fNumNodesPerFace = num_face_nodes[0];
 	fGeometryType = geometry_code[0];
@@ -241,7 +209,7 @@ void SurfaceT::InputSideSets
 			     << " no LineFace " << fGeometryType 
 			     << " with " << fNumNodesPerFace 
 			     << " face nodes \n" ;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 
 		  }
 		  break;
@@ -260,7 +228,7 @@ void SurfaceT::InputSideSets
 			     << " with " << fNumNodesPerFace 
     			 << " face nodes \n" ;
 			
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 
 		  }
 		  break;
@@ -280,13 +248,13 @@ void SurfaceT::InputSideSets
                              << " with " << fNumNodesPerFace 
                              << " face nodes \n" ;
 
-			throw eGeneralFail;                    
+			throw ExceptionT::kGeneralFail;                    
 		  }
 		  break;
 		default:
 		   cout << "\n SurfaceT::InputSideSets:"
 			<< " unknown face type " << fGeometryType <<"\n";
-		   throw eGeneralFail;                    
+		   throw ExceptionT::kGeneralFail;                    
 	  }
 	}
 
@@ -299,10 +267,10 @@ void SurfaceT::Initialize (const ElementSupportT& support)
 	fNumSD = fElementSupport->NumSD();
 
 	int num_nodes = fGlobalNodes.Length();
-        fCoordinates.Allocate(num_nodes,fNumSD);
-        fNormals.Allocate(num_nodes,fNumSD);
-        fTangent1s.Allocate(num_nodes,fNumSD);
-        if (fNumSD == 3) fTangent2s.Allocate(num_nodes,fNumSD);
+        fCoordinates.Dimension(num_nodes,fNumSD);
+        fNormals.Dimension(num_nodes,fNumSD);
+        fTangent1s.Dimension(num_nodes,fNumSD);
+        if (fNumSD == 3) fTangent2s.Dimension(num_nodes,fNumSD);
 
 	/* initialize faces */
 	for (int i=0 ; i < fFaces.Length() ; i++) {
@@ -354,7 +322,7 @@ void SurfaceT::ComputeNeighbors(void)
 	fNodeNeighbors.CopyCompressed(faces_at_node);
 
 	iArrayT face_counts;
-	face_counts.Allocate(fNodeNeighbors.MajorDim());
+	face_counts.Dimension(fNodeNeighbors.MajorDim());
 	for (i = 0; i < fNodeNeighbors.MajorDim() ; i++) {
 		face_counts[i] = fNodeNeighbors.MinorDim(i);
 	}
@@ -391,7 +359,7 @@ void SurfaceT::ComputeNeighbors(void)
 	for (i = 0; i < fFaces.Length() ; i++) {
 		ArrayT<FaceT*>& neighbor_faces = fFaces[i]->AssignNeighbors();
 		num_neighbors = faces_next_to_face.MinorDim(i);
-		neighbor_faces.Allocate(num_neighbors);
+		neighbor_faces.Dimension(num_neighbors);
 		for (j = 0; j < num_neighbors ; j++) {
 		  neighbor_faces[j] = faces_next_to_face(i,j);
 		}

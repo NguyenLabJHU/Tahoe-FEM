@@ -1,11 +1,11 @@
-/* $Id: PMLMatT.cpp,v 1.4 2002-10-05 20:04:13 paklein Exp $ */
+/* $Id: PMLMatT.cpp,v 1.5 2002-10-20 22:48:45 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "PMLMatT.h"
 
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "ContinuumElementT.h"
 #include "ElementSupportT.h"
 #include "fstreamT.h"
@@ -54,7 +54,7 @@ PMLMatT::PMLMatT(ifstreamT& in, const PMLT& element):
 	    }
         default:	
 	    {
-	      throw eBadInputValue;
+	      throw ExceptionT::kBadInputValue;
 	      break;
 	    }
 	}
@@ -75,7 +75,7 @@ PMLMatT::PMLMatT(ifstreamT& in, const PMLT& element):
 	fnstatev += numstress; 	 /*previous sigma0_a*/
 	fnstatev += numstress;   /*previous sigma0_b*/
 	
-	fstatev.Allocate(fnstatev);
+	fstatev.Dimension(fnstatev);
 	double* pstatev = fstatev.Pointer();
 	/* assign pointers to current and preceding blocks of state variable array */
 	
@@ -124,7 +124,7 @@ void PMLMatT::PointInitialize(void)
 	if (CurrIP() == 0)
 	{
 		ElementCardT& element = CurrentElement();
-		element.Allocate(0, fnstatev*NumIP());
+		element.Dimension(0, fnstatev*NumIP());
 	
 	/* initialize internal variables to 0.0*/
 		element.DoubleData() = 0.0;
@@ -276,7 +276,7 @@ const double& PMLMatT::DampFacta(dArrayT& ip_coords)
 	if (fDampa < 0)
 	{
 	  	cout<<"Dimension of viscous layer is too small";
-	    throw eBadInputValue;
+	    throw ExceptionT::kBadInputValue;
 	}
      return(fDampa);
 }
@@ -289,7 +289,7 @@ const double& PMLMatT::DampFactb(dArrayT& ip_coords)
 	if (fDampb < 0)
 	{
 	  	cout<<"Dimension of viscous layer is too small";
-	    throw eBadInputValue;
+	    throw ExceptionT::kBadInputValue;
 	}
      return(fDampb);
 }

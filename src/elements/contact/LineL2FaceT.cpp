@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.26 2002-10-16 22:55:05 cjkimme Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.27 2002-10-20 22:48:21 paklein Exp $ */
 
 #include "LineL2FaceT.h"
 
@@ -24,7 +24,7 @@ int number_of_face_nodes, int* connectivity):
 {
 	fNumVertexNodes = 2;
 	if (!fIntegrationPoints.IsAllocated()){
-        	fIntegrationPoints.Allocate(2,1);
+        	fIntegrationPoints.Dimension(2,1);
         	double* ip;
         	ip = fIntegrationPoints(0);
         	ip[0] = -1.0 ;
@@ -126,7 +126,7 @@ LineL2FaceT::ComputeShapeFunctions
 	int i = 0, j, k = 0;
 	if (shape_functions.Rows()%shape_functions.Cols() != 0
 	 || shape_functions.Rows()/shape_functions.Cols() != 2) 
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	while (i < shape_functions.Rows()) {
 		for (j = 0; j < shape_functions.Cols(); j++) {
 			shape_functions(i++,j) = shape_f[k];

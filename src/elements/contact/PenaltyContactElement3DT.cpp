@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.cpp,v 1.5 2002-07-02 19:55:20 cjkimme Exp $ */
+/* $Id: PenaltyContactElement3DT.cpp,v 1.6 2002-10-20 22:48:21 paklein Exp $ */
 #include "PenaltyContactElement3DT.h"
 
 #include <math.h>
@@ -71,14 +71,14 @@ void PenaltyContactElement3DT::Initialize(void)
 				}
 				break;
 			default:
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 		  }
 		}
 	}
 
 	/* subsidary data for GW models */
-    fRealArea.Allocate(fSurfaces.Length());
+    fRealArea.Dimension(fSurfaces.Length());
 	fRealArea = 0;
 }
 
@@ -161,7 +161,7 @@ void PenaltyContactElement3DT::PrintControlData(ostream& out) const
 					<< enf_parameters[kHertzianModulus] << '\n';
 				break;	
 			  default:
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 		  	  }
 			}
 		}
@@ -263,7 +263,7 @@ void PenaltyContactElement3DT::LHSDriver(void)
   double gap=0.0;
   double l11[3], l12[3], l21[3], l22[3];
   dArrayT n1alphal1;
-  n1alphal1.Allocate(NumSD());
+  n1alphal1.Dimension(NumSD());
 
   /* for consistent stiffness */    
   dArrayT N1nl;

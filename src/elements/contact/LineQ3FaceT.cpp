@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.cpp,v 1.11 2002-10-16 22:55:05 cjkimme Exp $ */
+/* $Id: LineQ3FaceT.cpp,v 1.12 2002-10-20 22:48:21 paklein Exp $ */
 
 #include "LineQ3FaceT.h"
 
@@ -25,7 +25,7 @@ int number_of_face_nodes, int* connectivity):
 {
 	fNumVertexNodes = 2;
 	if (!fIntegrationPoints.IsAllocated()){
-        	fIntegrationPoints.Allocate(3,1);
+        	fIntegrationPoints.Dimension(3,1);
         	double* ip;
         	ip = fIntegrationPoints(0);
         	ip[0] = -1.0 ;

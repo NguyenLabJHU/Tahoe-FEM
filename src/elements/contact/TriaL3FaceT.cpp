@@ -1,4 +1,4 @@
-/* $Id: TriaL3FaceT.cpp,v 1.9 2002-10-16 22:55:05 cjkimme Exp $ */
+/* $Id: TriaL3FaceT.cpp,v 1.10 2002-10-20 22:48:21 paklein Exp $ */
 #include "TriaL3FaceT.h"
 
 /* suppress CW warning messages */
@@ -28,7 +28,7 @@ int number_of_face_nodes, int* connectivity):
 {
 	fNumVertexNodes = 3;
 	if (!fIntegrationPoints.IsAllocated()) {
-		fIntegrationPoints.Allocate(3,2);
+		fIntegrationPoints.Dimension(3,2);
 		double* ip;
 		ip = fIntegrationPoints(0);	
 		ip[0] = 1.0 ; ip[1] = 0.0;

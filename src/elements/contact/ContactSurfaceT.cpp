@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.30 2002-10-16 22:55:05 cjkimme Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.31 2002-10-20 22:48:21 paklein Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -36,15 +36,15 @@ ContactSurfaceT::Initialize
 	fNumMultipliers = num_multipliers;
 
 	/* allocate contact nodes */
-	fContactNodes.Allocate(fGlobalNodes.Length());
+	fContactNodes.Dimension(fGlobalNodes.Length());
 	for(int i = 0; i < fContactNodes.Length(); i++){
 		fContactNodes[i] = new ContactNodeT(*this,i);
 	}
 
 	if (fNumMultipliers) {
-		fMultiplierMap.Allocate(fGlobalNodes.Length());
-		fLastMultiplierMap.Allocate(fGlobalNodes.Length());
-		fDisplacementMultiplierNodePairs.Allocate(fGlobalNodes.Length(),2);
+		fMultiplierMap.Dimension(fGlobalNodes.Length());
+		fLastMultiplierMap.Dimension(fGlobalNodes.Length());
+		fDisplacementMultiplierNodePairs.Dimension(fGlobalNodes.Length(),2);
 		/* fill real node column */
 		for(int i = 0; i < fContactNodes.Length(); i++){
 			fDisplacementMultiplierNodePairs(i,0) = fGlobalNodes[i];
@@ -60,7 +60,7 @@ ContactSurfaceT::SetPotentialConnectivity(void)
 	ContactNodeT* node;
 	const FaceT* face = NULL;
 	iArrayT node_face_counts;
-	node_face_counts.Allocate(fContactNodes.Length());
+	node_face_counts.Dimension(fContactNodes.Length());
 	node_face_counts = 0;
 
 	/* count connectivity */
@@ -137,7 +137,7 @@ ContactSurfaceT::SetPotentialConnectivity(void)
 			cout <<"\nError in ContactSurface::SetPotentialConnectivities\n";
 			cout <<" count " << count 
 			     <<" expecting "<<  node_face_counts[i] <<'\n';
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		    }
 		}
 	}
@@ -161,7 +161,7 @@ ContactSurfaceT::SetMultiplierConnectivity(void)
 			if (count < 2) {
 				cout <<"Error in ContactSurface::SetMultiplierConnectivities\n";
             	cout <<" count " << count <<'\n';
-            	throw eGeneralFail;
+            	throw ExceptionT::kGeneralFail;
             }
 
 //			int local_multiplier_node;
@@ -197,7 +197,7 @@ ContactSurfaceT::SetMultiplierConnectivity(void)
 			cout <<"\nError in ContactSurface::SetMultiplierConnectivities\n";
 			cout <<" count " << count 
 			     <<" expecting " << fConnectivities.MinorDim(i) << '\n';
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 			}
 		}
 	}
@@ -270,7 +270,7 @@ ContactSurfaceT::AllocateMultiplierTags(void)
 	fNumPotentialContactNodes = count;
 
 	/* Allocate space for ghost node tags for multipliers */
-	fMultiplierTags.Allocate(fNumPotentialContactNodes);
+	fMultiplierTags.Dimension(fNumPotentialContactNodes);
 	
 }
 

@@ -1,4 +1,4 @@
-/* $Id: PMLT.cpp,v 1.8 2002-09-23 06:58:24 paklein Exp $ */
+/* $Id: PMLT.cpp,v 1.9 2002-10-20 22:48:16 paklein Exp $ */
 
 #include "PMLT.h"
 
@@ -36,10 +36,10 @@ PMLT::PMLT(const ElementSupportT& support, const FieldT& field):
 	if (NumSD() > 2)
 	{
 		cout << "\n PML is implemented only for 2D geometries";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	} 
 #endif
-	if (fStrainDispOpt != kStandardB ) throw eBadInputValue;
+	if (fStrainDispOpt != kStandardB ) throw ExceptionT::kBadInputValue;
 
 //NumDOF() set correctly from the nodes
 //	NumDOF() = NumSD()*NumSD();             
@@ -53,13 +53,13 @@ void PMLT::Initialize(void)
 	/* inherited */
 	ElasticT::Initialize();
 	
-//	fDOFvec.Allocate(NumDOF());
+//	fDOFvec.Dimension(NumDOF());
 		
-// Q:	fLocDisp.Allocate(NumElementNodes(), NumDOF()); Is this needed here?
-	fTotDisp.Allocate(NumElementNodes(),NumSD());
-	fTotLastDisp.Allocate(NumElementNodes(),NumSD());
-	fTotVel.Allocate(NumElementNodes(),NumSD());
-	fTotAcc.Allocate(NumElementNodes(), NumSD());
+// Q:	fLocDisp.Dimension(NumElementNodes(), NumDOF()); Is this needed here?
+	fTotDisp.Dimension(NumElementNodes(),NumSD());
+	fTotLastDisp.Dimension(NumElementNodes(),NumSD());
+	fTotVel.Dimension(NumElementNodes(),NumSD());
+	fTotAcc.Dimension(NumElementNodes(), NumSD());
 
 #if 0
 	Field().RegisterLocal(fTotDisp);
@@ -71,17 +71,17 @@ void PMLT::Initialize(void)
 //element from a global array
 
 	/* allocates decomposition of strain-displacement matrix */
-	fBa.Allocate(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
-	fBb.Allocate(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
+	fBa.Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
+	fBb.Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
 
 	/* resizes LHS and RHS components*/
-	fLHSa.Allocate(fNEESub);
-	fLHSb.Allocate(fNEESub);
+	fLHSa.Dimension(fNEESub);
+	fLHSb.Dimension(fNEESub);
 	
 	fRHSa.Set(fNEESub,fRHS.Pointer());
 	fRHSb.Set(fNEESub,fRHS.Pointer()+fNEESub);
 		
-	fBody.Allocate(NumSD());
+	fBody.Dimension(NumSD());
 
 		/* what's needed */
 	bool need_strain = false;
@@ -96,17 +96,17 @@ void PMLT::Initialize(void)
 	/* allocate deformation gradient list */
 	if (need_strain)
 	{
-		fGradU_List.Allocate(NumIP());
+		fGradU_List.Dimension(NumIP());
 		for (int i = 0; i < NumIP(); i++)
-			fGradU_List[i].Allocate(NumSD());
+			fGradU_List[i].Dimension(NumSD());
 	}
 	
 	/* allocate "last" deformation gradient list */
 	if (need_strain_last)
 	{
-		fGradU_last_List.Allocate(NumIP());
+		fGradU_last_List.Dimension(NumIP());
 		for (int i = 0; i < NumIP(); i++)
-			fGradU_last_List[i].Allocate(NumSD());
+			fGradU_last_List[i].Dimension(NumSD());
 	}
 }
 
@@ -117,7 +117,7 @@ void PMLT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 #pragma unused(DOFs)
 
 	cout << "\n PMLT::NodalDOFs: not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 
 #if 0
 	if (nodes.Length() == fNumElementNodes)
@@ -261,7 +261,7 @@ void PMLT::ElementRHSDriver(void)
 void PMLT::FormMass(int mass_type, double constM)
 {
 #if __option(extended_errorcheck)
-	if (fLocDisp.Length() != fLHS.Rows()) throw eSizeMismatch;
+	if (fLocDisp.Length() != fLHS.Rows()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	
@@ -378,14 +378,14 @@ void PMLT::FormMass(int mass_type, double constM)
 		default:
 		
 			cout << "\n Elastic::FormMass: unknown mass matrix code\n" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 }
 
 void PMLT::FormDamping(int mass_type, double constC)
 {
 #if __option(extended_errorcheck)
-	if (fLocDisp.Length() != fLHS.Rows()) throw eSizeMismatch;
+	if (fLocDisp.Length() != fLHS.Rows()) throw ExceptionT::kSizeMismatch;
 #endif
 	//To be replaced later by C1Functions
 	double damp_a = 0.0;
@@ -504,7 +504,7 @@ void PMLT::FormDamping(int mass_type, double constC)
 		default:
 		
 			cout << "\n Elastic::FormMass: unknown mass matrix code\n" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 }
 /* form the element stiffness matrix */
@@ -667,7 +667,7 @@ void PMLT::FormMa(int mass_type, double constM, const LocalArrayT& body_force)
 		case kConsistentMass:	
 		{
 #if __option(extended_errorcheck)
-			if (fRHS.Length() != body_force.Length()) throw eSizeMismatch;
+			if (fRHS.Length() != body_force.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 						
 			dArrayT fNSDveca(NumSD());
@@ -706,7 +706,7 @@ void PMLT::FormMa(int mass_type, double constM, const LocalArrayT& body_force)
 		{
 			//cout << "\n ContinuumElementT::FormMa: inertial forces with lumped mass not supported";
 			//cout << endl;
-			//throw eGeneralFail;
+			//throw ExceptionT::kGeneralFail;
 			
 			//for now, no inertial force for lumped mass
 			//but should probably generalize the FormMass and
@@ -714,7 +714,7 @@ void PMLT::FormMa(int mass_type, double constM, const LocalArrayT& body_force)
 			//in which to place the data
 
 #if __option(extended_errorcheck)
-			if (fLHS.Rows() != body_force.Length()) throw eSizeMismatch;
+			if (fLHS.Rows() != body_force.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 			fLHS = 0.0; //hope there's nothing in there!
 			FormMass(kLumpedMass, constM);
@@ -758,7 +758,7 @@ void PMLT::FormCv_PML(int mass_type, double constC, const LocalArrayT& body_forc
 		case kConsistentMass:	
 		{
 #if __option(extended_errorcheck)
-			if (fRHS.Length() != body_force.Length()) throw eSizeMismatch;
+			if (fRHS.Length() != body_force.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 						
 			dArrayT fNSDveca(NumSD());
@@ -801,7 +801,7 @@ void PMLT::FormCv_PML(int mass_type, double constC, const LocalArrayT& body_forc
 		{
 			//cout << "\n ContinuumElementT::FormMa: inertial forces with lumped mass not supported";
 			//cout << endl;
-			//throw eGeneralFail;
+			//throw ExceptionT::kGeneralFail;
 			
 			//for now, no inertial force for lumped mass
 			//but should probably generalize the FormMass and
@@ -809,7 +809,7 @@ void PMLT::FormCv_PML(int mass_type, double constC, const LocalArrayT& body_forc
 			//in which to place the data
 
 #if __option(extended_errorcheck)
-			if (fLHS.Rows() != body_force.Length()) throw eSizeMismatch;
+			if (fLHS.Rows() != body_force.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 			fLHS = 0.0; //hope there's nothing in there!
 			FormDamping(kLumpedMass, constC);
@@ -864,7 +864,7 @@ void PMLT::FormKd(double constK)
 void PMLT::AddLinearMomentum(dArrayT& momentum)
 {
 	/* check */
-	if (momentum.Length() != NumSD()) throw eSizeMismatch;
+	if (momentum.Length() != NumSD()) throw ExceptionT::kSizeMismatch;
 		
 	/* loop over elements */
 	dArrayT vec_ndof(NumDOF());
@@ -947,7 +947,7 @@ void PMLT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 	iArrayT& counts) const
 {
 	/* initialize */
-	counts.Allocate(flags.Length());
+	counts.Dimension(flags.Length());
 	counts = 0;
 
 	/* set output flags */
@@ -970,7 +970,7 @@ void PMLT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags
 	iArrayT& counts) const
 {
 	/* initialize */
-	counts.Allocate(flags.Length());
+	counts.Dimension(flags.Length());
 	counts = 0;
 
 	/* set output flags */
@@ -987,7 +987,7 @@ void PMLT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_label
 	const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
 {
 	/* allocate */
-	n_labels.Allocate(n_codes.Sum());
+	n_labels.Dimension(n_codes.Sum());
 
 	int count = 0;
 	if (n_codes[iNodalDisp])
@@ -1042,7 +1042,7 @@ void PMLT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_label
 	}
 
 	/* allocate */
-	e_labels.Allocate(e_codes.Sum());
+	e_labels.Dimension(e_codes.Sum());
 	count = 0;
 	if (e_codes[iCentroid])
 	{
@@ -1118,7 +1118,7 @@ void PMLT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	ElementSupport().ResetAverage(n_out);
 	
 	/* allocate element results space */
-	e_values.Allocate(NumElements(), e_out);
+	e_values.Dimension(NumElements(), e_out);
 
 	/* nodal work arrays */
 	dArray2DT nodal_space(NumElementNodes(), n_out);
@@ -1149,7 +1149,7 @@ void PMLT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	if (e_codes[iCentroid])
 	{
 		centroid.Set(NumSD(), pall); pall += NumSD();
-		ip_centroid.Allocate(NumSD());
+		ip_centroid.Dimension(NumSD());
 	}
 	double m_tmp, w_tmp, ke_tmp;
 	double& mass = (e_codes[iMass]) ? *pall++ : m_tmp;
@@ -1159,7 +1159,7 @@ void PMLT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	if (e_codes[iLinearMomentum])
 	{
 		linear_momentum.Set(NumSD(), pall); pall += NumSD();
-		ip_velocity.Allocate(NumSD());
+		ip_velocity.Dimension(NumSD());
 	}
 	dArray2DT ip_stress;
 	if (e_codes[iIPStress])
@@ -1172,7 +1172,7 @@ void PMLT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	{
 		ip_material_data.Set(NumIP(), e_codes[iIPMaterialData]/NumIP(), pall);
 		pall += ip_material_data.Length();
-		ipmat.Allocate(ip_material_data.MinorDim());
+		ipmat.Dimension(ip_material_data.MinorDim());
 	}
 
 	/* check that degrees are displacements */
@@ -1390,11 +1390,11 @@ void PMLT::Ba(dMatrixT& Ba_matrix, dMatrixT& B_matrix)
 #if __option(extended_errorcheck)
 	if (B_matrix.Rows() != Ba_matrix.Rows() ||
 	    B_matrix.Cols() != Ba_matrix.Rows())
-	    throw eSizeMismatch;
+	    throw ExceptionT::kSizeMismatch;
 	if (NumSD() != 2)
 	{
 		cout << "\n PML has been implemented only for 2D geometry";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 #endif
 
@@ -1418,11 +1418,11 @@ void PMLT::Bb(dMatrixT& Bb_matrix, dMatrixT& B_matrix)
 #if __option(extended_errorcheck)
 	if (B_matrix.Rows() != Bb_matrix.Rows() ||
 	    B_matrix.Cols() != Bb_matrix.Rows())
-	    throw eSizeMismatch;
+	    throw ExceptionT::kSizeMismatch;
 	if (NumSD() != 2)
 	{
 		cout << "\n PML has been implemented only for 2D geometry";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 #endif
 

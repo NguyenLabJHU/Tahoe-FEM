@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.29 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.30 2002-10-20 22:48:21 paklein Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -71,14 +71,14 @@ void PenaltyContactElement2DT::Initialize(void)
 				}
 				break;
 			default:
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 		  }
 		}
 	}
 
 	/* subsidary data for GW models */
-    fRealArea.Allocate(fSurfaces.Length());
+    fRealArea.Dimension(fSurfaces.Length());
 	fRealArea = 0;
 }
 
@@ -160,7 +160,7 @@ void PenaltyContactElement2DT::PrintControlData(ostream& out) const
 					<< enf_parameters[kHertzianModulus] << '\n';
 				break;	
 			  default:
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 		  	  }
 			}
 		}
