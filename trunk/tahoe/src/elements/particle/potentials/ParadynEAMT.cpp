@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.cpp,v 1.6 2003-06-05 17:47:41 saubry Exp $ */
+/* $Id: ParadynEAMT.cpp,v 1.7 2003-06-05 18:00:34 saubry Exp $ */
 #include "ParadynEAMT.h"
 
 #include "toolboxConstants.h"
@@ -173,7 +173,7 @@ ParadynEAMT::ParadynEAMT(int type_of_file,const StringT& param_file):
 	    
 	    f_inc = 1.0/dr;
 	    
-	    /* compute spline coefficients for z */
+	    /* compute spline coefficients for z*z */
 	    ComputeCoefficients(tmp, dr, fPairCoeff);
 	  }
     }
