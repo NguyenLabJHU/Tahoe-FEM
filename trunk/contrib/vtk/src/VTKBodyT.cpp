@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.34 2002-07-11 15:57:42 recampb Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.35 2002-07-17 16:52:21 recampb Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -108,13 +108,13 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	
 	CommandSpecT cut("ShowCuttingPlane", false);
 	ArgSpecT oX(ArgSpecT::double_, "oX");
-	oX.SetDefault(0.0);
+	oX.SetDefault(0.5);
 	oX.SetPrompt("x-coordinate of origin");
 	ArgSpecT oY(ArgSpecT::double_, "oY");
-	oY.SetDefault(0.0);
+	oY.SetDefault(0.5);
 	oY.SetPrompt("y-coordinate of origin");
 	ArgSpecT oZ(ArgSpecT::double_, "oZ");
-	oZ.SetDefault(0.0);
+	oZ.SetDefault(0.2);
 	oZ.SetPrompt("z-coordinate of origin");
 	cut.AddArgument(oX);
 	cut.AddArgument(oY);
