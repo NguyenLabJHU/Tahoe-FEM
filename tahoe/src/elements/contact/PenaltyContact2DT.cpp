@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.1.1.1.6.2 2001-10-30 07:00:26 paklein Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.1.1.1.6.3 2001-11-06 20:31:57 sawimme Exp $ */
 /* created: paklein (12/11/1997)                                          */
 
 #include "PenaltyContact2DT.h"
@@ -70,10 +70,10 @@ void PenaltyContact2DT::LHSDriver(void)
 	/* loop over active elements */
 	dArrayT tangent(fNumSD);
 	iArrayT eqnos;
-	for (int i = 0; i < fContactConnectivities.MajorDim(); i++)
+	int* pelem = fConnectivities[0]->Pointer();
+	int rowlength = fConnectivities[0]->MinorDim();
+	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
-		int* pelem = fContactConnectivities(i);
-	
 		/* get facet and striker coords */
 		coords.RowAlias(pelem[0], fx1);
 		coords.RowAlias(pelem[1], fx2);
@@ -170,10 +170,10 @@ void PenaltyContact2DT::RHSDriver(void)
 	/* loop over active elements */
 	dArrayT tangent(fNumSD);
 	iArrayT eqnos;
-	for (int i = 0; i < fContactConnectivities.MajorDim(); i++)
+	int* pelem = fConnectivities[0]->Pointer();
+	int rowlength = fConnectivities[0]->MinorDim();
+	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
-		int* pelem = fContactConnectivities(i);
-
 		/* collect element configuration */
 		fElCoord.RowCollect(pelem, init_coords);
 		fElDisp.RowCollect(pelem, disp);
