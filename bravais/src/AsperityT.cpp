@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.cpp,v 1.9 2003-07-03 01:43:24 saubry Exp $ */
+/* $Id: AsperityT.cpp,v 1.10 2003-07-15 01:38:35 saubry Exp $ */
 #include "AsperityT.h"
 #include "VolumeT.h"
 
@@ -41,10 +41,19 @@ AsperityT::AsperityT(int dim, dArray2DT len,
 
   for(int i=0;i<nSD;i++)
     {
+      double dist = ncells[i]*lattice_parameter[i]*0.5;
+      length(i,0) = -dist;
+      length(i,1) = length(i,0) + (dist - length(i,0));
+    }
+
+
+  /*for(int i=0;i<nSD;i++)
+    {
       length(i,0) = len(i,0);
       double dist = len(i,1)-len(i,0)+1;
       length(i,1) = len(i,0) + ncells[i]*lattice_parameter[i];
-    }  
+    }
+  */  
 }
 
 AsperityT::AsperityT(int dim, iArrayT cel,
