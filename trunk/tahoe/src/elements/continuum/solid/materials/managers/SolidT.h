@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.25 2003-03-08 01:53:28 paklein Exp $ */
+/* $Id: SolidT.h,v 1.26 2003-03-08 03:42:19 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 
 #ifndef _MATERIAL_T_H_
@@ -55,9 +55,11 @@ kLocXtalPlastFp_C = 56,
        kSSSVKStV = 64,
   kLocJ2SSNlHard = 70,
   kGrdJ2SSNlHard = 71,
-kSIERRA_Material = 75,
      kABAQUS_BCJ = 80,
-kABAQUS_VUMAT_BCJ = 90};
+kABAQUS_VUMAT_BCJ = 90,
+kSIERRA_Hypoelastic = 110,
+ kSIERRA_Iso_Geomat = 111
+};
 
 	/* stream extraction operator */ 
 	friend istream& operator>>(istream& in, SolidT::TypeT& code);
