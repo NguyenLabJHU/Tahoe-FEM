@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.24 2004-01-05 07:12:36 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.25 2004-02-17 18:00:50 cjkimme Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -6,6 +6,7 @@
 #include "KBC_ControllerT.h"
 #include "FBC_ControllerT.h"
 #include "RaggedArray2DT.h"
+#include "LinkedListT.h"
 #include "LocalArrayT.h"
 #include "FieldSupportT.h"
 
@@ -493,6 +494,39 @@ void FieldT::SetLocalEqnos(const RaggedArray2DT<int>& nodes,
 			int nodenum = *pnodes++;
 			for (int k = 0; k < ndof; k++)
 				*pien++ = fEqnos(nodenum, k);
+		}
+	}
+}
+
+/* NB that nodes is not declared const since traversing the linked list
+ * modifies pointers. 
+ */
+void FieldT::SetLocalEqnos(ArrayT< LinkedListT<int> >& nodes,
+	RaggedArray2DT<int>& eqnos) const
+{
+/* consistency checks */
+#if __option(extended_errorcheck)
+	const char caller[] = "FieldT::SetLocalEqnos";
+	if (nodes.Length() != eqnos.MajorDim()) ExceptionT::SizeMismatch(caller);
+#endif
+	
+	int numel = nodes.Length();
+	int ndof    = NumDOF();
+	for (int i = 0; i < numel; i++)
+	{
+#if __option(extended_errorcheck)
+		if (eqnos.MinorDim(i) < nodes[i].Length()*ndof) ExceptionT::SizeMismatch(caller);
+		//must have enough space (and maybe more)
+#endif
+		int  nen    = eqnos.MinorDim(i)/ndof; // do this to avoid traversing the list twice
+		int pnodes;
+		int* pien   = eqnos(i);
+		LinkedListT<int>& nodeList = nodes[i];
+		nodeList.Top();
+		while (nodeList.Next(pnodes))
+		{
+			for (int k = 0; k < ndof; k++)
+				*pien++ = fEqnos(pnodes, k);
 		}
 	}
 }
