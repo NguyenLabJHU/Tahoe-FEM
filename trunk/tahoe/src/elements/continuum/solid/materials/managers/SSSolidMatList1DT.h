@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList1DT.h,v 1.2 2004-07-15 08:28:28 paklein Exp $ */
+/* $Id: SSSolidMatList1DT.h,v 1.3 2004-07-20 23:21:30 rdorgan Exp $ */
 #ifndef _SS_MATLIST_1D_T_H_
 #define _SS_MATLIST_1D_T_H_
 
@@ -43,9 +43,6 @@ private:
 
 	/** support for small strain materials */
 	const SSMatSupportT* fSSMatSupport;
-
-	/** support for gradient enhanced small strain materials */
-	const GradSSMatSupportT* fGradSSMatSupport;
 };
 
 } /* namespace Tahoe */
