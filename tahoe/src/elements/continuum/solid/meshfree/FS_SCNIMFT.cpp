@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.21 2005-02-26 22:42:42 paklein Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.22 2005-03-01 00:26:54 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -289,7 +289,7 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	
 		AssembleParticleMass(curr_material->Density());
 	}
-#pragma message("FS_SCNIMFT::LHSDriver Specialized to 2D")	
+
 	if (formK) {
 		/* hold the smoothed strain */
 		dMatrixT& Fdef = fF_list[0];
@@ -363,8 +363,6 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			// FTs = F^T sigma
 			FTs.MultATB(Fdef, fStress);
 
-			// T_11 = T_22 = FTs_11 T_13 = T_24 = FTs_12
-			// T_31 = T_42 = FTs_21 T_33 = T_44 = FTs_22
 			curr_material->S_IJ().ToMatrix(fStress);
 			Tijkl.Expand(fStress, fSD, dMatrixT::kOverwrite);
 			// Tijkl = 0.; //used to debug material stiffness
@@ -548,29 +546,115 @@ dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F,
 			// numbering scheme for CIJKL is standard C_AB, I need matrix T_AB with 
 			// indexing 1 <-> 11, 2 <-> 21, 3 <-> 12, 4 <-> 22 in 2D
 			
+			// Column 1
 			mtmp[0] = moduli[0]; // C_11
 			mtmp[1] = mtmp[2] = moduli[6]; // C_13
 			mtmp[3] = moduli[3]; // C_12
 			
+			// Column 2
 			mtmp[4] = moduli[6]; // C_13
 			mtmp[5] = mtmp[6] = moduli[8]; // C_33
 			mtmp[7] = moduli[7]; // C_23
 			
+			// Column 3
 			mtmp[8] = moduli[6]; // C_13
 			mtmp[9] = mtmp[10] = moduli[8]; // C_33
 			mtmp[11] = moduli[7]; // C_23
 			
+			// Column 4
 			mtmp[12] = moduli[3]; // C_12
 			mtmp[13] = mtmp[14] = moduli[7]; // C_23
 			mtmp.Last() = moduli[4]; // C_22
 			
 		} else {
-			ExceptionT::GeneralFail("FS_SCNIMFT::TransformModuli","Not implemented for 3d yet\n");
+			// use brute force, low-level until I find optimal way
+			// numbering scheme for CIJKL is standard C_AB, I need matrix T_AB with DIFFERENT
+			// indexing 1 <-> 11, 2 <-> 21, 3 <-> 31, 4 <-> 12 5 <-> 22 6 <-> 32 
+			//          7 <-> 13  8 <-> 23  9 <-> 33
+			// in 3D
+			
+			// Column 1
+			int offs1 = 0; 
+			int offs2 = 0;
+			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_11
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_61
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_51
+			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_21
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_41
+			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_31
+			
+			// Column 2
+			offs1 = 9; offs2 = 30;
+			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_16
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_66
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_56
+			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_26
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_46
+			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_36
+			
+			// Column 3
+			offs1 = 18; offs2 = 24;
+			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_15
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_65
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_55
+			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_25
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_45
+			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_35
+			
+			// Column 4
+			offs1 = 27; offs2 = 30;
+			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_16
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_66
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_56
+			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_26
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_46
+			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_36
+			
+			// Column 5
+			offs1 = 36; offs2 = 6;
+			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_12
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_62
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_52
+			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_22
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_42
+			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_32
+			
+			// Column 6
+			offs1 = 45; offs2 = 18;
+			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_14
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_64
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_54
+			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_24
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_44
+			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_34
+			
+			// Column 7 
+			offs1 = 54; offs2 = 24;
+			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_15
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_65
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_55
+			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_25
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_45
+			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_35
+			
+			// Column 8
+			offs1 = 63; offs2 = 18;
+			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_14
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_64
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_54
+			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_24
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_44
+			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_34
+			
+			// Column 9
+			offs1 = 72; offs2 = 12;
+			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_13
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_63
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_53
+			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_23
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_43
+			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_33
 		}
-		
-		//Csig = mtmp;
-		
-		//return Csig;
 				
 		for (int i = 0; i < nsd*nsd; i++) {
 			dMatrixT col_in(nsd, nsd, mtmp.Pointer(i*nsd*nsd));
