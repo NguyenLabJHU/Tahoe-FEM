@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.11 2004-12-22 22:38:58 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.12 2005-01-20 00:22:14 paklein Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -646,7 +646,12 @@ void FS_SCNIMF_AxiT::RHSDriver(void)
 	dMatrixT BJ(4, 2), fStress3D(3), fStress2D(2), fCauchy(3), Finverse(3);
 	double F_33, S_33, J;
 	dMatrixT F2D(2);
-	
+
+//TEMP
+iArrayT tmp(1);
+tmp[0] = 617;
+GlobalToLocalNumbering(tmp);
+
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
 	for (int i = 0; i < nNodes; i++)
@@ -685,7 +690,7 @@ void FS_SCNIMF_AxiT::RHSDriver(void)
 			const dArray2DT& u = Field()(-1,0);
 
 			/* destination */
-			dMatrixT& F3D = fF_list[0];
+			dMatrixT& F3D = fF_last_list[0];
 
 			F2D = 0.0; F_33 = 0.;
 			dArrayT* bVec_i = bVectorArray(i);
@@ -709,7 +714,12 @@ void FS_SCNIMF_AxiT::RHSDriver(void)
 		fStress3D.MultABT(fCauchy, Finverse); // compute PK1
 		fStress2D.Rank2ReduceFrom3D(fStress3D);
 		S_33 = fStress3D(2,2);
-		
+
+//TEMP
+if (i == tmp[0]) {
+	int a = 0;
+}
+
 		supp_i = nodalCellSupports(i);
 		bVec_i = bVectorArray(i); b_33 = circumferential_B(i);
 		for (int j = 0; j < n_supp; j++) { 
