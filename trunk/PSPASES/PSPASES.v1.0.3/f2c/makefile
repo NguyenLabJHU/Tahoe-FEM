@@ -4,9 +4,10 @@ C_FILES = b_ax.c \
 order.c \
 moveai.c \
 moveav.c \
-gen_lc.c
+gen_lc.c \
+ygentree.c
 
-F2C_OPTS = -I/usr/local/lam/include -c -w
+F2C_OPTS = -I/usr/local/lam/include -c -w -a
 
 all: $(C_FILES)
 
