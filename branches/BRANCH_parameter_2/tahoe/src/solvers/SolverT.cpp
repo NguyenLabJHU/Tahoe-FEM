@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.17.6.2 2004-02-24 19:09:43 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.17.6.3 2004-03-03 16:17:16 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -223,8 +223,15 @@ void SolverT::DefineParameters(ParameterListT& list) const
 	check_code.AddEnumeration("print_LHS", GlobalMatrixT::kPrintLHS);
 	check_code.AddEnumeration("print_RHS", GlobalMatrixT::kPrintRHS);
 	check_code.AddEnumeration("print_solution", GlobalMatrixT::kPrintSolution);
+	check_code.AddEnumeration("check_LHS", GlobalMatrixT::kCheckLHS);
 	check_code.SetDefault(GlobalMatrixT::kNoCheck);
 	list.AddParameter(check_code);
+	
+	/* perturbation used to compute LHS check */
+	ParameterT check_LHS_perturbation(fPerturbation, "check_LHS_perturbation");
+	check_LHS_perturbation.AddLimit(0.0, LimitT::LowerInclusive);
+	check_LHS_perturbation.SetDefault(1.0e-08);
+	list.AddParameter(check_LHS_perturbation);
 }
 
 /* accept parameter list */
@@ -237,6 +244,7 @@ void SolverT::TakeParameterList(const ParameterListT& list)
 	fPrintEquationNumbers = list.GetParameter("print_eqnos");
 	fMatrixType = list.GetParameter("matrix_type");
 	int check_code = list.GetParameter("check_code");
+	fPerturbation = list.GetParameter("check_LHS_perturbation");
 	SetGlobalMatrix(fMatrixType, check_code);
 }
 
