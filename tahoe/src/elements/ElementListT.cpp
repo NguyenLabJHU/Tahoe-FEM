@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.12 2001-08-27 17:16:21 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.13 2001-08-29 07:11:28 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -213,20 +213,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 			}
 			case ElementT::kAugLagContact2D:
 			{
-#ifdef __NO_RTTI__
-				if (fFEManager.Analysis() != GlobalT::kAugLagStatic) throw eGeneralFail;
-				XDOF_ManagerT* XDOF_man = (XDOF_ManagerT*) fFEManager.NodeManager();
-#else
-				XDOF_ManagerT* XDOF_man = dynamic_cast<XDOF_ManagerT*>(fFEManager.NodeManager());
-				if (!XDOF_man)
-				{
-					cout << "\n ElementListT::EchoElementData: failed to cast node manager to XDOF_ManagerT\n"
-					     <<   "     as needed with analysis code: " << ElementT::kAugLagContact2D << endl;
-					throw eBadInputValue;
-				}
-#endif /* __NO_RTTI__ */
-			
-				fArray[group] = new AugLagContact2DT(fFEManager, XDOF_man);	
+				fArray[group] = new AugLagContact2DT(fFEManager);	
 				break;
 			}
 			case ElementT::kBEMelement:
