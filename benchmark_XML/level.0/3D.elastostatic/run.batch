@@ -1,0 +1,5 @@
+@
+# $Id: run.batch,v 1.1 2004-03-24 17:15:40 paklein Exp $
+beam.B_bar.xml
+beam.Newton.xml
+beam.PCG.xml

@@ -1,0 +1,24 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Output ID . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodal values. . . . . . . . . . . . . = 6
+ Labels:
+	D_X
+	D_Y
+	d_t
+	d_n
+	T_t
+	T_n
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 2
+ Number of nodes . . . . . . . . . . . . . . . . = 4
+ Number of elements. . . . . . . . . . . . . . . = 1
+
+ O U T P U T   D A T A :  T O C
+CSE.1a.io1.run.ps0000
+CSE.1a.io1.run.ps0001
