@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0Axi.cpp,v 1.2 2004-02-04 07:36:38 paklein Exp $ */
+/* $Id: SimoQ1P0Axi.cpp,v 1.3 2004-04-27 07:24:47 paklein Exp $ */
 #include "SimoQ1P0Axi.h"
 
 #include "ShapeFunctionT.h"
@@ -155,6 +155,7 @@ void SimoQ1P0Axi::SetGlobalShape(void)
 			/* "replace" dilatation */
 			dMatrixT& F = fF_List[i];
 			double J = F.Det();
+			if (J <= 0.0) ExceptionT::BadJacobianDet("SimoQ1P0Axi::SetGlobalShape");			
 			F *= pow(v/(H*J), 1.0/3.0);
 			
 			/* store Jacobian */
