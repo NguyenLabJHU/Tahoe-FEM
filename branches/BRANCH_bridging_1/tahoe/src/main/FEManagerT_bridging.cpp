@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.1.2.7 2003-02-13 01:12:26 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.1.2.8 2003-02-14 02:49:33 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
@@ -6,6 +6,7 @@
 #include "KBC_PrescribedT.h"
 #include "KBC_CardT.h"
 #include "ofstreamT.h"
+#include "SolverT.h"
 
 /* constructor */
 FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
@@ -107,7 +108,8 @@ void FEManagerT_bridging::SetFieldValues(const StringT& field, const iArrayT& no
 }
 
 /* initialize nodes that follow the field computed by this instance */
-void FEManagerT_bridging::InitInterpolation(const iArrayT& nodes, const StringT& field, NodeManagerT& node_manager)
+void FEManagerT_bridging::InitInterpolation(const iArrayT& nodes, const StringT& field, 
+	NodeManagerT& node_manager)
 {
 #pragma unused(field)
 
@@ -129,7 +131,8 @@ void FEManagerT_bridging::InterpolateField(const StringT& field, dArray2DT& noda
 }
 
 /* initialize data for the driving field */
-void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& field,  NodeManagerT& node_manager)
+void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& field, 
+	NodeManagerT& node_manager)
 {
 	const char caller[] = "FEManagerT_bridging::SetExactSolution";
 
@@ -197,6 +200,12 @@ void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
 	SetFieldValues(field, cell_nodes, fProjection);
 }
+
+/* the residual for the given group */
+const dArrayT& FEManagerT_bridging::Residual(int group) const 
+{
+	return fSolvers[group]->RHS(); 
+};
 
 /*************************************************************************
  * Private
