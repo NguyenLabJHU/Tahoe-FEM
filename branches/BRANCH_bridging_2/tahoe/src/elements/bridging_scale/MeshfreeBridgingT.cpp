@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.1.2.1 2003-05-12 16:30:29 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.1.2.2 2003-05-22 20:31:14 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "PointInCellDataT.h"
@@ -24,6 +24,7 @@ MeshfreeBridgingT::MeshfreeBridgingT(const ElementSupportT& support, const Field
 	window_params[1] = 0.4; /* sharpening factor       */
 	window_params[2] = 2.0; /* neighbor cut-off factor */
 	fMLS = new MLSSolverT(NumSD(), 1, MeshFreeT::kGaussian, window_params);
+	fMLS->Initialize();
 }
 
 /* destructor */
@@ -51,7 +52,7 @@ void MeshfreeBridgingT::InitProjection(const iArrayT& points_used, const dArray2
 
 	/* nodal neighbor data */
 	const RaggedArray2DT<int>& nodal_neighbors = cell_data.NodalNeighbors();
-	iArrayT neighbor_count;
+	iArrayT neighbor_count(nodal_neighbors.MajorDim());
 	nodal_neighbors.MinorDim(neighbor_count);
 	RaggedArray2DT<double>& neighbor_weights = cell_data.NodalNeighborWeights();
 	neighbor_weights.Configure(neighbor_count);
@@ -96,6 +97,18 @@ void MeshfreeBridgingT::InitProjection(const iArrayT& points_used, const dArray2
 		/* store weights */
 		neighbor_weights.SetRow(i, fMLS->phi());
 	}
+	
+	/* verbose output */
+	if (ElementSupport().PrintInput())
+	{
+		/* stream */
+		ostream& out = ElementSupport().Output();
+
+		/* neighbor weights */
+		out << "\n Nodal neighborhoods weights:\n";
+		const RaggedArray2DT<double>& neighbors_weights = cell_data.NodalNeighborWeights();
+		neighbors_weights.WriteNumbered(out);
+	}	
 }
 
 /* project the point values onto the mesh */
@@ -252,4 +265,19 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(const iArrayT& points_used, cons
 
 	/* copy/compress contents */
 	cell_data.NodalNeighbors().Copy(auto_fill);
+	
+	/* verbose output */
+	if (ElementSupport().PrintInput())
+	{
+		/* stream */
+		ostream& out = ElementSupport().Output();
+
+		/* neighbors */
+		out << "\n Nodal neighborhoods:\n";
+		const RaggedArray2DT<int>& nodal_neighbors = cell_data.NodalNeighbors();
+		iArrayT tmp(nodal_neighbors.Length(), nodal_neighbors.Pointer());
+		tmp++;
+		nodal_neighbors.WriteNumbered(out);
+		tmp--;
+	}
 }
