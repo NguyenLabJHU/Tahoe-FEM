@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.17 2002-04-17 00:48:42 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.18 2002-04-17 15:42:31 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -22,7 +22,7 @@
 #include "ViscTvergHutch2DT.h"
 #include "Tijssens2DT.h"
 #include "RateDep2DT.h"
-//#include "TiedPotentialT.h"
+#include "TiedPotentialT.h"
 
 /* constructor */
 CSEAnisoT::CSEAnisoT(FEManagerT& fe_manager, bool rotate):
@@ -159,7 +159,6 @@ void CSEAnisoT::Initialize(void)
 				}
 				break;
 			}
-#if 0
 			case SurfacePotentialT::kTiedPotential:
 			{	
 				if (fNumDOF == 2)
@@ -172,7 +171,6 @@ void CSEAnisoT::Initialize(void)
 				}
 				break;
 			}
-#endif
 			default:
 				cout << "\n CSEAnisoT::Initialize: unknown potential code: " << code << endl;
 				throw eBadInputValue;
