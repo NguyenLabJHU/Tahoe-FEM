@@ -1,4 +1,4 @@
-/* $Id: ParameterUtils.h,v 1.4 2004-01-21 17:15:19 paklein Exp $ */
+/* $Id: ParameterUtils.h,v 1.5 2004-03-27 04:10:11 paklein Exp $ */
 #ifndef _PARAMETER_UTILS_H_
 #define _PARAMETER_UTILS_H_
 
@@ -8,16 +8,19 @@
 namespace Tahoe {
 
 /** named value */
-template <class TYPE>
+template <ParameterT::TypeT TYPE>
 class NamedParameterT: public ParameterInterfaceT
 {
 public:
 
-	/** constructor */
+	/** constructors */
 	NamedParameterT(const StringT& name);
 
 	/** the value name */
 	const StringT& ValueName(void) const { return fValueName; };
+
+	/** implicit type conversion */
+	operator const ValueT&() const { return fValue; };
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -33,7 +36,7 @@ public:
 protected:
 
 	/** value */
-	TYPE fValue;
+	ValueT fValue;
 
 private:
 
@@ -41,25 +44,26 @@ private:
 	StringT fValueName;
 };
 
-template <class TYPE>
+template <ParameterT::TypeT TYPE>
 NamedParameterT<TYPE>::NamedParameterT(const StringT& name):
-	ParameterInterfaceT(name)
+	ParameterInterfaceT(name),
+	fValue(TYPE)
 {
 
 }
 
-template <class TYPE>
+template <ParameterT::TypeT TYPE>
 void NamedParameterT<TYPE>::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	ParameterInterfaceT::DefineParameters(list);
 	
 	/* value name */
-	list.AddParameter(fValueName, "name", ParameterListT::ZeroOrOnce);
-	list.AddParameter(fValue, "value");
+	list.AddParameter(ParameterT::Word, "name", ParameterListT::ZeroOrOnce);
+	list.AddParameter(TYPE, "value");
 }
 
-template <class TYPE>
+template <ParameterT::TypeT TYPE>
 void NamedParameterT<TYPE>::TakeParameterList(const ParameterListT& list)
 {
 	/* get name */
@@ -68,11 +72,11 @@ void NamedParameterT<TYPE>::TakeParameterList(const ParameterListT& list)
 		fValueName = *value_name;
 
 	/* the value */
-	list.GetParameter("value", fValue);
+	fValue = list.GetParameter("value");
 }
 
 /** an integer with default ParameterInterfaceT name "Integer" */
-class IntegerParameterT: public NamedParameterT<int>
+class IntegerParameterT: public NamedParameterT<ParameterT::Integer>
 {
 public:
 
@@ -84,7 +88,7 @@ public:
 };
 
 /** a double with default ParameterInterfaceT name "Double" */
-class DoubleParameterT: public NamedParameterT<double>
+class DoubleParameterT: public NamedParameterT<ParameterT::Double>
 {
 public:
 
@@ -95,8 +99,8 @@ public:
 	/*@{*/
 };
 
-/** a string with default ParameterInterfaceT name "String" */
-class StringParameterT: public NamedParameterT<StringT>
+/** a string (word) with default ParameterInterfaceT name "String" */
+class StringParameterT: public NamedParameterT<ParameterT::Word>
 {
 public:
 
@@ -233,6 +237,87 @@ public:
 	StringListT(const StringT& name);
 	StringListT(void);
 	/*@}*/
+
+	/** extract string parameters to an array */
+	static void Extract(const ParameterListT& list, ArrayT<StringT>& values);
+};
+
+/** vector */
+class VectorParameterT: public ParameterInterfaceT
+{
+public:
+
+	/** \name constructors */
+	/*@{*/
+	VectorParameterT(const StringT& name, int dim);
+	VectorParameterT(int dim = 0);
+	
+	/** construct extracting length from the name
+	 * \param name_N name of the vector parameter list where N is an integer
+	 *        defining the length of the list */
+	VectorParameterT(const StringT& name_N);
+	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list.
+	 * \param list input parameter list, which should be validated using ParameterInterfaceT::ValidateParameterList
+	 *        to ensure the list conforms to the description defined by the interface. */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
+	/** implicit type conversion */
+	operator const dArrayT&() const { return fVector; };
+
+	/** extract parameters to a dArrayT */
+	static void Extract(const ParameterListT& list, dArrayT& array);
+
+protected:
+
+	/** values */
+	dArrayT fVector;
+};
+
+/** matrix */
+class MatrixParameterT: public ParameterInterfaceT
+{
+public:
+
+	/** \name constructors */
+	/*@{*/
+	MatrixParameterT(const StringT& name, int row, int col);
+	MatrixParameterT(int row, int col);
+
+	/** construct extracting dimensions from the name
+	 * \param name_NxM name of the matrix parameter list where N and M are the
+	 *        integers defining the number of rows and columns, respectively. */
+	MatrixParameterT(const StringT& name_NxM);
+	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list.
+	 * \param list input parameter list, which should be validated using ParameterInterfaceT::ValidateParameterList
+	 *        to ensure the list conforms to the description defined by the interface. */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
+	/** implicit type conversion */
+	operator const dMatrixT&() const { return fMatrix; };
+
+	/** extract parameters to a dMatrixT */
+	static void Extract(const ParameterListT& list, dMatrixT& matrix);
+
+protected:
+
+	/** values */
+	dMatrixT fMatrix;
 };
 
 } /* namespace Tahoe */
