@@ -1,4 +1,4 @@
-/* $Id: SS_SCNIMFT.cpp,v 1.15 2005-01-25 23:10:01 paklein Exp $ */
+/* $Id: SS_SCNIMFT.cpp,v 1.16 2005-02-01 20:18:37 cjkimme Exp $ */
 
 #include "SS_SCNIMFT.h"
 
@@ -151,7 +151,7 @@ void SS_SCNIMFT::WriteOutput(void)
 	ArrayT<dSymMatrixT> strainList(1);
 	strainList[0].Dimension(fSD);
 	dSymMatrixT& strain = strainList[0];
-	dMatrixT BJ(fSD == 2 ? 3 : 6, fSD);
+	dMatrixT asym(fSD);
 
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
@@ -181,14 +181,12 @@ void SS_SCNIMFT::WriteOutput(void)
 		  values_i[j] += vec[j];
 
 		// Compute smoothed strain
-		strain = 0.0;
+		asym = 0.0;
 		dArrayT* bVec_i = bVectorArray(i);
 		int* supp_i = nodalCellSupports(i);
-		for (int j = 0; j < nodalCellSupports.MinorDim(i); j++) {
-			bVectorToMatrix(bVec_i->Pointer(), BJ);
-			bVec_i++;
-			BJ.Multx(u(*supp_i++), strain.Pointer(), 1.0, dMatrixT::kAccumulate);
-		}
+		for (int j = 0; j < nodalCellSupports.MinorDim(i); j++, bVec_i++) 
+			asym.Outer(bVec_i->Pointer(), u(*supp_i++), 1.0, dMatrixT::kAccumulate);
+		strain.Symmetrize(asym);
 		
 		fSSMatSupport->SetLinearStrain(&strainList);
 
@@ -299,6 +297,7 @@ void SS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		iArrayT col_eqnos(ndof);
 		dMatrixT BJ(fSD == 2 ? 3 : 6, ndof), BK(fSD == 2 ? 3 : 6, ndof), K_JK;
 		dMatrixT BJTCijkl(fSD == 2 ? 3 : 6, fSD);
+		dMatrixT asym(fSD);
 		K_JK.Alias(fLHS);
 
 		LinkedListT<dArrayT> bVectors_j;
@@ -309,15 +308,13 @@ void SS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			int n_supp = nodalCellSupports.MinorDim(i);
 			
 			// Compute smoothed strain 
-			strain = 0.0;
+			asym = 0.0;
 
 			dArrayT* bVec_i = bVectorArray(i);
 			int* supp_i = nodalCellSupports(i);
-			for (int j = 0; j < n_supp; j++) { 
-				bVectorToMatrix(bVec_i->Pointer(), BJ);
-				bVec_i++;
-				BJ.Multx(u(*supp_i++), strain.Pointer(), 1.0, dMatrixT::kAccumulate);
-			}	
+			for (int j = 0; j < n_supp; j++, bVec_i++) 
+				asym.Outer(bVec_i->Pointer(), u(*supp_i++), 1.0, dMatrixT::kAccumulate);
+			strain.Symmetrize(asym);
 			
 			fSSMatSupport->SetLinearStrain(&strainList);
 			const dMatrixT& cijkl = fCurrMaterial->c_ijkl();
@@ -340,8 +337,14 @@ void SS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					if (fSD == 2) {
 						BK(2,0) *= 2.; // I either have to do this here or on the RHS 
 						BK(2,1) *= 2.; // It's the C_1212 e_12 + C_1221 e_21 factor of 2
-					} else
-						ExceptionT::GeneralFail("SS_SCNIMFT::LHSDriver","Not implemented for 3D yet\n");
+					} else {
+						BK(3,1) *= 2.;
+						BK(3,2) *= 2.;
+						BK(4,0) *= 2.;
+						BK(4,2) *= 2.;
+						BK(5,0) *= 2.;
+						BK(5,1) *= 2.;
+					}
 
 					// K_JK = BT_K x Cijkl x B_J 
 					K_JK.MultATB(BK,BJTCijkl, 0);
@@ -365,9 +368,6 @@ void SS_SCNIMFT::RHSDriver(void)
 
 	/* contribution from natural boundary conditions */
 	SCNIMFT::RHSDriver();
-
-	/* check 2D */
-	if (NumDOF() != 2) ExceptionT::GeneralFail(caller, "2D only: %d", NumDOF());
 
 	/* time integration parameters */
 	double constMa = 0.0;
@@ -409,10 +409,11 @@ void SS_SCNIMFT::RHSDriver(void)
 	strainList[0].Dimension(fSD);
 	dSymMatrixT& strain = strainList[0];
 	dMatrixT BJ(fSD == 2 ? 3 : 6, fSD);
+	dMatrixT asym(fSD);
 
 #ifdef VERIFY_INTEGRATION_CONSTRAINT
 	// TEMP -- verify that \sum_L \mathbf{B}_{Ii} = 0
-	dArray2DT test_sum(nNodes,2);
+	dArray2DT test_sum(nNodes,fSD);
 	test_sum = 0.;
 #endif
 
@@ -424,18 +425,17 @@ void SS_SCNIMFT::RHSDriver(void)
 		int n_supp = nodalCellSupports.MinorDim(i);
 
 		// Compute smoothed strain
-		strain = 0.0;
+		asym = 0.0;
 		dArrayT* bVec_i = bVectorArray(i);
 		int* supp_i = nodalCellSupports(i);
-		for (int j = 0; j < n_supp; j++) { 
-			bVectorToMatrix(bVec_i->Pointer(), BJ);
-			bVec_i++;
+		for (int j = 0; j < n_supp; j++, bVec_i++) {
 #ifdef VERIFY_INTEGRATION_CONSTRAINT
-			test_sum(*supp_i,0) += BJ[0] * w_i;
-			test_sum(*supp_i,1) += BJ[4] * w_i;
+			test_sum.SetRow(*supp_i, bVec_i->Pointer());
+			test_sum.ScaleRow(*supp_i, w_i);
 #endif
-			BJ.Multx(u(*supp_i++), strain.Pointer(), 1.0, dMatrixT::kAccumulate);
+			asym.Outer(bVec_i->Pointer(), u(*supp_i++), 1.0, dMatrixT::kAccumulate);
 		}	
+		strain.Symmetrize(asym);	
 
 		fSSMatSupport->SetLinearStrain(&strainList);
 		const double* stress = fCurrMaterial->s_ij().Pointer();
@@ -456,7 +456,10 @@ void SS_SCNIMFT::RHSDriver(void)
 	if (!firstTime) {
 		firstTime++;
 		for (int i = 0; i < nNodes; i++) { 
-			cout << " i = " 	<< i << " ts " << test_sum(i,0) << " " << test_sum(i,1) << "\n";
+			cout << " i = " 	<< i << " ts "; 
+			for (int j = 0; j < fSD; j++) 
+				cout << test_sum(i,j) << " ";
+			cout << "\n";
 		}
 	}	
 #endif
