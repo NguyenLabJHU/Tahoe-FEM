@@ -1,8 +1,8 @@
-// $Id: NodeManagerPrimitive.cpp,v 1.6 2002-10-25 21:02:59 paklein Exp $
+// $Id: NodeManagerPrimitive.cpp,v 1.7 2002-10-28 21:36:33 sawimme Exp $
 // created: SAW 10/07/99
 #include "NodeManagerPrimitive.h"
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "MakeCSE_IOManager.h"
 #include "MakeCSE_FEManager.h"
 #include "dArrayT.h"
@@ -221,17 +221,27 @@ void NodeManagerPrimitive::Renumber (CSEConstants::RenumberMethodT option, iArra
 
 void NodeManagerPrimitive::RegisterOutput (OutputBaseT& output, MakeCSE_IOManager& input)
 {
-  iArrayT nodemap (0);
-  output.SetCoordinates (fCoordinates, &nodemap);
+  // FUTURE: carry over node tags
+  fOutputNodeMap.Dimension (fCoordinates.MajorDim());
+  fOutputNodeMap.SetValueToPosition ();
+  fOutputNodeMap ++;
+
+  output.SetCoordinates (fCoordinates, &fOutputNodeMap);
 
   sArrayT blocktonodesets;
   input.BlockToNode (blocktonodesets);
 
+  int nsetid = 1;
+  
+  for (int g=0; g < fNodeSetID.Length(); g++)
+    if  (nsetid < atoi (fNodeSetID[g])) 
+      nsetid = atoi (fNodeSetID[g]) + 1;
+
   iArrayT nodes;
   for (int i=0; i < blocktonodesets.Length(); i++)
     {
-      StringT name = "NS_";
-      name.Append (blocktonodesets[i]);
+      StringT name;
+      name.Append (nsetid + 1);
       out  << "\n Creating Node Set from Element Group ID . . . . = "
 	   << blocktonodesets[i] << '\n';
       cout  << "\n Creating Node Set from Element Group ID . . . . = "
@@ -293,7 +303,7 @@ void NodeManagerPrimitive::EchoNodeSets (ModelManagerT& model, MakeCSE_IOManager
   if (!okay)
     {
       cout << "Invalid Node Transfer Method" << endl;
-      throw eBadInputValue;
+      throw ExceptionT::kBadInputValue;
     }
 }
 

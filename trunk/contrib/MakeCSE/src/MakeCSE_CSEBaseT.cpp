@@ -1,8 +1,8 @@
-// $Id: MakeCSE_CSEBaseT.cpp,v 1.4 2002-10-25 21:02:59 paklein Exp $
+// $Id: MakeCSE_CSEBaseT.cpp,v 1.5 2002-10-28 21:36:33 sawimme Exp $
 // created: SAW 5/2/2000
 #include "MakeCSE_CSEBaseT.h"
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "MakeCSE_FEManager.h"
 #include "MakeCSE_IOManager.h"
 #include "CSEConstants.h"
@@ -33,7 +33,7 @@ void MakeCSE_CSEBaseT::SetNodes (int e1local, const iArrayT& regelemnodes)
   if (!IsElementValid (e1local)) 
     { 
       cout << "MakeCSE_CSEBaseT::SetNodes" << endl;
-      throw eSizeMismatch;
+      throw ExceptionT::kSizeMismatch;
     }
   
   int *n = fNodeNums (e1local);
@@ -89,7 +89,7 @@ void MakeCSE_CSEBaseT::CSEType (GeometryT::CodeT code, int numFaceNodes)
       {
 	cout << " MakeCSE_CSEBaseT::CSEType not programmed for element type " 
 	     << code << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
       }
     }
 }

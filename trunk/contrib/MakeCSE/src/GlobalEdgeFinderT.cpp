@@ -1,6 +1,6 @@
-/* $Id: GlobalEdgeFinderT.cpp,v 1.5 2002-10-25 21:02:59 paklein Exp $ */
+/* $Id: GlobalEdgeFinderT.cpp,v 1.6 2002-10-28 21:36:32 sawimme Exp $ */
 #include "GlobalEdgeFinderT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "MakeCSE_FEManager.h"
 
 const int fill_ = GlobalEdgeFinderT::kNoNeighbor;
@@ -118,7 +118,7 @@ int GlobalEdgeFinderT::ElementGroup (const StringT& groupid) const
     {
       cout << "\nGlobalEdgeFinderT::ElementGroup unable to find " 
 	   << groupid << endl;
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
   return group;
 }
@@ -193,7 +193,7 @@ void GlobalEdgeFinderT::NeighborFacet (int elem, int face, int& neighbor, int& n
   if (neighbor == kNoNeighbor)
     {
       cout << "GEF::NeighborFacet no neighbor set " << elem << " " << face << endl;
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
 }
 

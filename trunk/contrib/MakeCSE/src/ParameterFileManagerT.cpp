@@ -1,6 +1,6 @@
-// $Id: ParameterFileManagerT.cpp,v 1.3 2002-10-25 21:02:59 paklein Exp $
+// $Id: ParameterFileManagerT.cpp,v 1.4 2002-10-28 21:36:33 sawimme Exp $
 #include "ParameterFileManagerT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "ifstreamT.h"
 
 using namespace Tahoe;
@@ -18,7 +18,7 @@ void ParameterFileManagerT::Initialize (void)
     {
       cout << "ParameterFileManagerT::Initialize: Unable to open file: "
 	   << fInFile << endl;
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
 
 
@@ -41,23 +41,23 @@ void ParameterFileManagerT::InputFormat (IOBaseT::FileTypeT &f, StringT& s)
   if (!AdvanceTo (in, "*INPUT"))
     {
       cout << "\nParameterFileManagerT::InputFormat: No *INPUT in file.\n\n";
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
   in >> f >> s;
 }
 
 void ParameterFileManagerT::OutputFormat (IOBaseT::FileTypeT &f, StringT& s)
 {
+  s = "defaultoutput";
   ifstreamT in ('#', fInFile);
   if (!AdvanceTo (in, "*OUTPUT"))
     {
       cout << "\nParameterFileManagerT::OutputFormat: No *OUTPUT in file.\n";
       cout << " Using Tahoe II with a file name of defaultoutput. \n\n";
       f = IOBaseT::kTahoeII;
-      s = "defaultoutput";
     }
   else
-    in >> f >> s;
+    in >> f;
 }
 
 bool ParameterFileManagerT::Verbose (void)
@@ -83,6 +83,10 @@ void ParameterFileManagerT::Zones (sArrayT& names)
   if (AdvanceTo (in, "*ZONE"))
     ReadIDValues (in, names);
 
+  // check for lists of ID values within the ID name
+  int numcolumns = 2;
+  int check = 0;
+  CheckIDList (names, numcolumns, check);
 }
 
 void ParameterFileManagerT::Boundaries (sArrayT& names)
@@ -91,6 +95,12 @@ void ParameterFileManagerT::Boundaries (sArrayT& names)
   ifstreamT in ('#', fInFile);
   if (AdvanceTo (in, "*BOUNDARY"))
     ReadIDValues (in, names);
+
+  int numcolumns = 3;
+  int check1 = 0;
+  int check2 = 1;
+  CheckIDList (names, numcolumns, check1);
+  CheckIDList (names, numcolumns, check2);
 }
 
 CSEConstants::ZoneEdgeT ParameterFileManagerT::ZoneMethod (void)
@@ -111,6 +121,10 @@ void ParameterFileManagerT::ZoneEdgeNodeSets (sArrayT& names)
   ifstreamT in ('#', fInFile);
   if (AdvanceTo (in, "*EDGENODESETS"))
     ReadIDValues (in, names);
+  
+  int numcols = 1;
+  int check = 0;
+  CheckIDList (names, numcols, check);
 }
 
 void ParameterFileManagerT::Contact (sArrayT& names)
@@ -119,6 +133,10 @@ void ParameterFileManagerT::Contact (sArrayT& names)
   ifstreamT in ('#', fInFile);
   if (AdvanceTo (in, "*CONTACT"))
     ReadIDValues (in, names);
+  
+  int numcols = 1;
+  int check = 0;
+  CheckIDList (names, numcols, check);
 }
 
 void ParameterFileManagerT::SingleNodes (sArrayT& names)
@@ -127,6 +145,10 @@ void ParameterFileManagerT::SingleNodes (sArrayT& names)
   ifstreamT in ('#', fInFile);
   if (AdvanceTo (in, "*SINGLE"))
     ReadIDValues (in, names);
+  
+  int numcols = 1;
+  int check = 0;
+  CheckIDList (names, numcols, check);
 }
 
 void ParameterFileManagerT::BlockToNode (sArrayT& names)
@@ -135,6 +157,10 @@ void ParameterFileManagerT::BlockToNode (sArrayT& names)
   ifstreamT in ('#', fInFile);
   if (AdvanceTo (in, "*BLOCKTONODE"))
     ReadIDValues (in, names);
+  
+  int numcols = 1;
+  int check = 0;
+  CheckIDList (names, numcols, check);
 }
 
 void ParameterFileManagerT::NodeSetsMapped (sArrayT& names, ArrayT<CSEConstants::NodeMapMethodT>& meths)
@@ -162,7 +188,7 @@ CSEConstants::RenumberMethodT ParameterFileManagerT::RenumberMethod (void)
 {
   int f = CSEConstants::kNoRenumber;
   ifstreamT in ('#', fInFile);
-  if (AdvanceTo (in, "*BLOCKTONODE"))
+  if (AdvanceTo (in, "*RENUMBER"))
     in >> f;
   return int2RenumberMethodT (f);
 }
@@ -178,6 +204,10 @@ void ParameterFileManagerT::SplitBlocks (sArrayT& names, ArrayT<CSEConstants::Sp
   meths.Dimension (temp.Length());
   for (int i=0; i < temp.Length(); i++)
     meths[i] = int2SplitMethodT (temp[i]);
+  
+  int numcols = 2;
+  int check = 0;
+  CheckIDList (names, numcols, check);
 }
 
 
@@ -227,4 +257,51 @@ void ParameterFileManagerT::ReadID_Parameter (ifstreamT& in, sArrayT& name, iArr
   name = t;
   params.Dimension (i.Length());
   params.CopyPart (0, i, 0, i.Length());
+}
+
+void ParameterFileManagerT::CheckIDList (sArrayT& names, int numcols, int check) const
+{
+  if (check < 0 || check > numcols) throw ExceptionT::kOutOfRange;
+
+  //* are there any?
+  int numrows = names.Length()/numcols;
+  bool found = false;
+  int stop;
+  for (int i=0, j=check; i < numrows && !found; i++, j += numcols)
+    if (names[j].Tail ('-', stop))
+      found = true;
+  if (!found) return;
+
+  AutoArrayT<StringT> t;
+  for (int k=0; k < numrows; k++)
+    {
+      int offset = k*numcols;
+      if (names[offset + check].Tail ('-', stop))
+	{
+	  int start = atoi (names[offset + check]);
+	  for (int m=start; m < stop+1; m++)
+	    {
+	      // columns before list
+	      for (int begin=0; begin < check; begin++)
+		t.Append (names[offset + begin]);
+
+	      // list column
+	      StringT n;
+	      n.Append (m);
+	      t.Append (n);
+
+	      // colums after
+	      for (int rest=check+1; rest < numcols; rest++)
+		t.Append (names[offset + rest]);
+	    }
+	}
+      else
+	{
+	  for (int col=0; col < numcols; col++)
+	    t.Append (names[offset + col]);
+	}
+    }
+  names.Free ();
+  names.Dimension (t.Length());
+  names.CopyPart (0, t, 0, t.Length());
 }

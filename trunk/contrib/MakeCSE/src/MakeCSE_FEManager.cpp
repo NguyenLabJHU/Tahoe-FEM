@@ -1,7 +1,7 @@
-// $Id: MakeCSE_FEManager.cpp,v 1.3 2002-10-25 21:02:59 paklein Exp $
+// $Id: MakeCSE_FEManager.cpp,v 1.4 2002-10-28 21:36:33 sawimme Exp $
 // created: 11/10/99 SAW
 #include "MakeCSE_FEManager.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "Quad2Tri.h"
 #include "MakeCSE_CSEBaseT.h"
 #include "InteractiveIOManagerT.h"
@@ -76,6 +76,12 @@ void MakeCSE_FEManager::InitializeOutput (const StringT& title, const StringT& p
   IOBaseT::FileTypeT format;
   StringT name;
   fParameters->OutputFormat (format, name);
+  if (strncmp (name.Pointer(), "default", 7) == 0)
+    {
+      name = title;
+      name.Root ();
+      name.Append ("_db");
+    }
 
   name.ToNativePathName();
   name.Append(".ext"); //trimmed off by fOutput
@@ -119,10 +125,10 @@ void MakeCSE_FEManager::InitializeOutput (const StringT& title, const StringT& p
     default:
       {
 	fMainOut << "\n Unknown output format: " << format << "\n";
-	throw eDatabaseFail;
+	throw ExceptionT::kDatabaseFail;
       }
     }
-  if (!fOutput) throw eOutOfMemory;  
+  if (!fOutput) throw ExceptionT::kOutOfMemory;  
   
   // echo to log file
   IOBaseT temp (fMainOut);
@@ -189,20 +195,8 @@ void MakeCSE_FEManager::SetElementGroups (void)
   const sArrayT ids = fModel.ElementGroupIDs ();
 
   // determine number of ppossible CSE element groups
-  sArrayT facets, zones, boundaries;
-  fParameters->Facets (facets);
-  fParameters->Zones (zones);
-  fParameters->Boundaries (boundaries);
-
-  fNumCSE = facets.Length()/3 + zones.Length()/2 + boundaries.Length()/3;
-  sArrayT CSEids (fNumCSE);
-  int count = 0;
-  for (int f=0; f < facets.Length(); f += 3)
-    CSEids[count++] = facets [f + 2];
-  for (int z=0; z < zones.Length(); z += 2)
-    CSEids[count++] = zones [z + 1];
-  for (int b=0; b < boundaries.Length(); b += 4)
-    CSEids[count++] = boundaries [b + 3];
+  sArrayT CSEids;
+  ReadCSEIDs (CSEids);
 
   // print data
   fMainOut << "\n E l e m e n t   D a t a :\n\n";
@@ -239,7 +233,7 @@ void MakeCSE_FEManager::SetElementGroups (void)
 	      break;
 	    default:
 	      cout << "MakeCSE_FEManager::SetElementGroups: unable to split element block: " << ids[e] << ", unknown method: " << methods[dex] << endl;
-	      throw eGeneralFail;
+	      throw ExceptionT::kGeneralFail;
 	    }
 	}
 
@@ -255,3 +249,31 @@ void MakeCSE_FEManager::SetElementGroups (void)
     fElementGroups[c + fNumRegular] = new MakeCSE_CSEBaseT (fMainOut, CSEids[c]);
 }
 
+void MakeCSE_FEManager::ReadCSEIDs (sArrayT& CSEids)
+{
+  sArrayT facets, zones, boundaries;
+  fNumCSE = 0;
+  fParameters->Facets (facets);
+  fParameters->Zones (zones);
+  fParameters->Boundaries (boundaries);
+
+  // maximum number possible
+  int max = facets.Length()/3 + zones.Length()/2 + boundaries.Length()/3;
+  sArrayT c (max);
+
+  // store values and look for repeats
+  int count = 0;
+  for (int f=0; f < facets.Length(); f += 3)
+    if (!c.HasValue (facets [f + 2]))
+      c[count++] = facets [f + 2];
+  for (int z=0; z < zones.Length(); z += 2)
+    if (!c.HasValue (zones [z + 1]))
+      c[count++] = zones [z + 1];
+  for (int b=0; b < boundaries.Length(); b += 3)
+    if (!c.HasValue (boundaries [b + 2]))
+      c[count++] = boundaries [b + 2];
+
+  CSEids.Dimension (count);
+  CSEids.CopyPart (0, c, 0, count);
+  fNumCSE = count;
+}

@@ -41,6 +41,7 @@ class MakeCSE_FEManager
  private:
   void SetNodeManager (void);
   void SetElementGroups (void);
+  void ReadCSEIDs (sArrayT& cseids);
 
  private:
   ostream& fMainOut;

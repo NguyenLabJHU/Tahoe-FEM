@@ -1,8 +1,8 @@
-// $Id: Quad2Tri.cpp,v 1.5 2002-10-25 21:02:59 paklein Exp $
+// $Id: Quad2Tri.cpp,v 1.6 2002-10-28 21:36:33 sawimme Exp $
 // created: SAW 12/21/99
 #include "Quad2Tri.h"
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 #include "MakeCSE_FEManager.h"
 
@@ -61,7 +61,7 @@ void Quad2Tri::EchoSideSets (ModelManagerT& model, MakeCSE_IOManager& theInput)
     default:
       cout << "Quad2Tri::EchoSideSets, unknown method: " 
 	   << fMethod << endl;
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
 
   CheckAllSideSets ();    
@@ -110,7 +110,7 @@ void Quad2Tri::Translate (void)
       cout << "\n\nQuad2Tri::Translate: error numbering tris\n"
 	   << count << " created\n"
 	   << fNodeNums.MajorDim() << " initialized\n\n";
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
 
   // free temp space
@@ -143,7 +143,7 @@ void Quad2Tri::Allocate (int numQuadNodes)
       break;
     default:
       cout << "Quad2Tri::Allocate, unknown method: " << fMethod << endl;
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
 
   // check
@@ -152,7 +152,7 @@ void Quad2Tri::Allocate (int numQuadNodes)
       cout << "\n\nQuad2Tri::Allocate, Only quad" 
 	   << quadnodesrequired << " are supported for "
 	   << fMethodName[fMethod] << " " << numQuadNodes<< "\n";
-      throw eBadInputValue;
+      throw ExceptionT::kBadInputValue;
     }
 
   // allocate space
