@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.h,v 1.3 2001-09-04 14:46:38 sawimme Exp $ */
+/* $Id: TahoeInputT.h,v 1.4 2001-09-04 16:35:46 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _TAHOEINPUT_T_H_
@@ -77,6 +77,13 @@ class TahoeInputT : public InputBaseT
 
 inline bool TahoeInputT::AreSideSetsLocal (void) const
 { return true; }
+
+inline void TahoeInputT::QARecords (ArrayT<StringT>& records)
+{
+//TEMP
+#pragma unused(records)
+}
+
 inline int  TahoeInputT::NumTimeSteps (void) const
 { return 0; }
 inline void TahoeInputT::ReadTimeSteps (dArrayT& steps)
