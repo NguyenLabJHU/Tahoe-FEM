@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.4 2001-09-06 17:25:20 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.4.2.1 2001-10-02 19:43:50 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -76,6 +76,10 @@ class ModelManagerT
   int SideSetGroupIndex (int sidesetindex) const;
   void SideSetLocalToGlobal (const int localelemindex, const iArray2DT& local, iArray2DT& global);
   void SideSetGlobalToLocal (int& localelemindex, iArray2DT& local, const iArray2DT& global);
+
+  /* modifiers */
+  void AddNodes (const dArray2DT& newcoords, iArrayT& new_node_tags, int& newtotalnumnodes);
+  void DuplicateNodes (const iArrayT& nodes, iArrayT& new_node_tags, int& newtotalnumnodes);
 
   void CloseModel (void);
   

@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.4 2001-09-06 17:25:19 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.4.2.1 2001-10-02 19:43:49 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -370,6 +370,50 @@ void ModelManagerT::SideSetGlobalToLocal (int& localelemindex, iArray2DT& local,
 #pragma unused(global)
   cout << "\n\n ModelManagerT not programmed SideSetGlobalToLocal\n\n";
   throw eGeneralFail;
+}
+
+void ModelManagerT::AddNodes (const dArray2DT& newcoords, iArrayT& new_node_tags, int& numnodes)
+{
+  if (newcoords.MajorDim() != new_node_tags.Length() ||
+      newcoords.MinorDim() != fCoordinates.MinorDim() ) throw eSizeMismatch;
+
+  /* set new node tags to the old last node number + 1 */
+  new_node_tags.SetValueToPosition ();
+  new_node_tags += fCoordinateDimensions[0];
+
+  /* reset the number of nodes */
+  int newnodes = newcoords.MinorDim();
+  fCoordinateDimensions[0] += newnodes;
+  numnodes = fCoordinateDimensions[0];
+
+  /* reallocate */
+  fCoordinates.Resize (fCoordinateDimensions[0]);
+
+  /* copy in */
+  double *pc = newcoords.Pointer();
+  for (int i=0; i < newnodes; i++, pc += newcoords.MinorDim())
+    fCoordinates.SetRow (new_node_tags[i], pc);
+}
+
+void ModelManagerT::DuplicateNodes (const iArrayT& nodes, iArrayT& new_node_tags, int& numnodes)
+{
+  if (nodes.Length() != new_node_tags.Length()) throw eSizeMismatch;
+
+  /* set new node tags to the old last node number + 1 */
+  new_node_tags.SetValueToPosition ();
+  new_node_tags += fCoordinateDimensions[0];
+
+  /* reset the number of nodes */
+  int newnodes = nodes.Length();
+  fCoordinateDimensions[0] += newnodes;
+  numnodes = fCoordinateDimensions[0];
+
+  /* reallocate */
+  fCoordinates.Resize (fCoordinateDimensions[0]);
+
+  /* copy in */
+  for (int i=0; i < nodes.Length(); i++)
+    fCoordinates.CopyRowFromRow (new_node_tags[i], nodes[i]);
 }
 
 void ModelManagerT::CloseModel (void)
