@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.5.2.4 2003-05-24 23:34:56 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.5.2.5 2003-05-25 00:23:59 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -177,6 +177,35 @@ void FEManagerT_bridging::InitGhostNodes(void)
 		if (is_ghost[i] == 0)
 			fNonGhostNodes[dex++] = i;
 			
+}
+
+/* prescribe the motion of ghost nodes */
+void FEManagerT_bridging::SetGhostNodeKBC(KBC_CardT::CodeT code, const dArray2DT& values)
+{
+	const char caller[] = "FEManagerT_bridging::SetGhostNodeKBC";
+	if (!fSolutionDriver) ExceptionT::GeneralFail(caller, "controller for ghost node motion not set");
+
+	/* fetch cards */
+	ArrayT<KBC_CardT>& KBC_cards = fSolutionDriver->KBC_Cards();
+
+	/* check dimensions */
+	int ndof = values.MinorDim();
+	if (KBC_cards.Length()/ndof != values.MajorDim())
+		ExceptionT::SizeMismatch(caller, "expecting %d nodal values not %d",
+			KBC_cards.Length()/ndof, values.MajorDim());
+
+	/* loop over cards */
+	for (int i = 0; i < KBC_cards.Length(); i++)
+	{
+		/* retrieve values set during InitGhostNodes */
+		KBC_CardT& card = KBC_cards[i];
+		int node = card.Node();
+		int dof  = card.DOF();
+		int schd = card.ScheduleNum();
+	
+		/* reset code and value */
+		card.SetValues(node, dof, code, schd, values[i]);
+	}
 }
 
 /* compute the ghost-nonghost part of the stiffness matrix */
