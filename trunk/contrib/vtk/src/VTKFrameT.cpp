@@ -1,7 +1,8 @@
-/* $Id: VTKFrameT.cpp,v 1.5 2001-10-26 02:14:53 paklein Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.6 2001-10-31 21:50:35 recampb Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
+#include "VTKBodyT.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -62,6 +63,8 @@ VTKFrameT::VTKFrameT(void):
 //   iAddVariable("scale_factor", scale_factor);
 
   /* add console commands */
+  iAddCommand("Start_Rendering");
+  iAddCommand("Update_Rendering");
   iAddCommand("Reset_to_Default_Values");
   iAddCommand("Reset_view");
   iAddCommand("Save");
@@ -80,6 +83,9 @@ VTKFrameT::VTKFrameT(void):
   iAddCommand("Show_axes");
   iAddCommand("Hide_axes");
   iAddCommand("Choose_variable");
+
+
+
 }
 
 /* destructor */
@@ -90,8 +96,18 @@ VTKFrameT::~VTKFrameT(void)
   renSrc->Delete(); renSrc = NULL;
 }
 
+void VTKFrameT::ResetView(void)
+{
+  renderer->GetActiveCamera()->SetFocalPoint(0,0,0);
+  renderer->GetActiveCamera()->SetPosition(0,0,1);
+  renderer->GetActiveCamera()->ComputeViewPlaneNormal();
+  renderer->GetActiveCamera()->SetViewUp(0,1,0);
+  renderer->GetActiveCamera()->OrthogonalizeViewUp();
+
+}
+
 /* execute given command - returns false on fail */
-bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
+bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 {
   int sfbTest;
   int  varNum;
@@ -99,28 +115,26 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
   double timeStep;
 
   if (command == "Start_Rendering")
+    {    
+      bodies[0]->UpdateData();
+      //bodies[1]->UpdateData();
+      fRenWin->Render();
+      cout << getName() << endl;
+      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
+      fIren->Start();
+      return true;
+    }
+
+  else if (command == "Update_Rendering")
   {
-    renWin->Render();
-    cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-    iren->Start();
+
+    bodies[0]->UpdateData();
+    // bodies[1]->UpdateData();
+    fRenWin->Render();
+    cout << "type 'e' in the graphics window to exit interactive mode" << endl;   
+    fIren->Start();
     return true;
   }
-
-//   else if (command == "Update_Rendering")
-//   {
-
-//     ugridMapper->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
-//     lut->SetHueRange(hueRange1, hueRange2);
-//     lut->SetSaturationRange(satRange1,satRange2);
-//     lut->SetValueRange(valRange1,valRange2);
-//     lut->SetAlphaRange(alphaRange1,alphaRange2);
-//     lut->SetNumberOfColors(numColors);
-//     warp->SetScaleFactor(scale_factor);
-//     renWin->Render();
-//     cout << "type 'e' in the graphics window to exit interactive mode" << endl;   
-//     iren->Start();
-//     return true;
-//   }
     
 //   else if (command == "Reset_to_Default_Values")
 //     {
@@ -143,20 +157,15 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       return true;
 //     }
 
-//   else if (command == "Reset_view")
-//     {
-// 	  cam->SetFocalPoint(0,0,0);
-// 	  cam->SetPosition(0,0,1);
-// 	  cam->ComputeViewPlaneNormal();
-// 	  cam->SetViewUp(0,1,0);
-// 	  cam->OrthogonalizeViewUp();
-// 	  renderer->SetActiveCamera(cam);
-// 	  renderer->ResetCamera();
-// 	  renWin->Render();
-// 	  cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-// 	  iren->Start();
-// 	  return true;
-//     }
+  else if (command == "Reset_view")
+    {
+      ResetView();
+      renderer->ResetCamera();
+      fRenWin->Render();
+      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
+      fIren->Start();
+      return true;
+    }
 
 //   else if (command == "Save")
 //     {
