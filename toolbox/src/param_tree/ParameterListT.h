@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.12 2004-01-21 17:17:40 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.13 2004-01-27 19:10:03 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -118,19 +118,18 @@ public:
 
 	/** return the pointer to the given list. Returns a points to the nth instance of the
 	 * given list or NULL if the list is not found or the instance is out of range. */
-	const ParameterListT* List(const char* name, int instance = 1) const;
+	const ParameterListT* List(const char* name, int instance = 0) const;
 
 	/** return the non-const pointer to the given list. Returns a points to the nth 
 	 * instance of the given list or NULL if the list is not found or the instance is 
 	 * out of range. */
-	ParameterListT* List(const char* name, int instance = 1);
+	ParameterListT* List(const char* name, int instance = 0);
 
 	/** return the pointer to the given parameter or NULL if the list is not found */
 	const ParameterT* Parameter(const char* name) const;
 
 	/** return the non-const pointer to the given parameter or NULL if the list is not found */
 	ParameterT* Parameter(const char* name);
-
 	/*@}*/
 
 	/** \name retrieving parameter values 

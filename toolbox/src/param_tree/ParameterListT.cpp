@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.cpp,v 1.10 2003-11-04 01:21:25 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.11 2004-01-27 19:10:03 paklein Exp $ */
 #include "ParameterListT.h"
 
 using namespace Tahoe;
@@ -128,7 +128,7 @@ const ParameterListT* ParameterListT::List(const char* name, int instance) const
 	int count = 0;
 	for (int i = 0; i < fParameterLists.Length(); i++)
 		if (fParameterLists[i].Name() == name)
-			if (++count == instance) 
+			if (count++ == instance) 
 				return fParameterLists.Pointer(i);
 
 	/* fail */
