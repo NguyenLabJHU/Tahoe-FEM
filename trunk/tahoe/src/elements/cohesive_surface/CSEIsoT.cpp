@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.5 2001-04-04 22:13:24 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.6 2001-04-04 22:35:08 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Cohesive surface elements with scalar traction potentials,             */
 /* i.e., the traction potential is a function of the gap magnitude,       */
@@ -413,20 +413,15 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					/* moment */
 					if (e_codes[Centroid])
 						centroid.AddScaled(ip_w, fShapes->IPCoords());
-
-					/* cohesive energy */
-					if (e_codes[CohesiveEnergy])
-					{
-						/* failed -> LARGE opening */
-						double potential = surfpot->Function(DBL_MAX);
-	
-						/* integrate */
-						phi += potential*ip_w;
-					}
 				}
 				
 				/* element values */
 				if (e_codes[Centroid]) centroid /= area;
+				
+				/* cohesive energy */
+				if (e_codes[CohesiveEnergy])
+					phi = area*surfpot->Function(sqrt(area)*1000);
+					//NOTE: assume "large" opening is related to the element size
 			}		
 		}
 
