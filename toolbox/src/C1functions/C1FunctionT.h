@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT.h,v 1.5 2002-05-31 07:17:12 thao Exp $ */
+/* $Id: C1FunctionT.h,v 1.6 2002-06-09 00:29:15 paklein Exp $ */
 /* created: paklein (12/04/1996) */
 
 #ifndef _C2_FUNCTION_T_H_
@@ -23,9 +23,9 @@ public:
 	              kCubicSpline = 4,
 	        kLinearExponential = 5,
 	          kTriantafyllidis = 6,
-		         kConstant = 7,
+                     kConstant = 7,
        		        kConstQuad = 8,
-		     kBiQuadratic = 9,
+                  kBiQuadratic = 9,
                         kGaoJi = 10,
                        kGaoJi2 = 11,
 	                 kGaoVicky = 12};
