@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: SolverT.h,v 1.2 2001-02-28 02:34:13 paklein Exp $ */
 /* created: paklein (05/23/1996)                                          */
 
 #ifndef _SOLVER_H_
@@ -66,7 +66,8 @@ public:
 	/* assembling the global equation system */
 	void AssembleLHS(const ElementMatrixT& elMat, const iArrayT& eqnos);
 	void OverWriteLHS(const ElementMatrixT& elMat, const iArrayT& eqnos);
-	void DisassembleLHS(dMatrixT& elMat, const iArrayT& eqnos) const;
+	void DisassembleLHS(dMatrixT& matrix, const iArrayT& eqnos) const;
+	void DisassembleLHSDiagonal(dArrayT& diagonals, const iArrayT& eqnos) const;
 
 	void AssembleRHS(const dArrayT& elRes, const iArrayT& eqnos);
 	void OverWriteRHS(const dArrayT& elRes, const iArrayT& eqnos);
@@ -135,9 +136,14 @@ inline void SolverT::OverWriteLHS(const ElementMatrixT& elMat, const iArrayT& eq
 	fLHS->OverWrite(elMat, eqnos);
 }
 
-inline void SolverT::DisassembleLHS(dMatrixT& elMat, const iArrayT& eqnos) const
+inline void SolverT::DisassembleLHS(dMatrixT& matrix, const iArrayT& eqnos) const
 {
-	fLHS->Disassemble(elMat, eqnos);
+	fLHS->Disassemble(matrix, eqnos);
+}
+
+inline void SolverT::DisassembleLHSDiagonal(dArrayT& diagonals, const iArrayT& eqnos) const
+{
+	fLHS->DisassembleDiagonal(diagonals, eqnos);
 }
 
 /* debugging */
