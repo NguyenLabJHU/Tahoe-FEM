@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.4 2001-08-21 01:07:45 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.5 2001-11-28 22:07:34 paklein Exp $ */
 /* created: paklein (12/05/1997)                                          */
 /* Array that automatically increases its dimensions when                 */
 /* elements are inserted using Append() or AppendUnique.                  */
@@ -26,7 +26,7 @@ public:
 
 	/* constructors */
 	AutoArrayT(void);
-	AutoArrayT(int headroom);
+	explicit AutoArrayT(int headroom);
 	AutoArrayT(int length, int headroom);
 	AutoArrayT(const ArrayT<TYPE>& source);
 	AutoArrayT(const ArrayT<TYPE>& source, int headroom);
