@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.17.2.2 2001-10-04 20:43:02 sawimme Exp $ */
+/* $Id: FEManagerT.cpp,v 1.17.2.3 2001-10-16 22:16:40 sawimme Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -85,7 +85,7 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output):
 
 	/* add console variables */
 	iAddVariable("title", *((const StringT*) &fTitle));
-	iAddVariable("model_file", *((const StringT*) &fModelFile));
+	//iAddVariable("model_file", *((const StringT*) &fModelFile));
 	iAddVariable("restart_inc", fWriteRestart);
 	
 	/* console commands */
@@ -126,16 +126,17 @@ void FEManagerT::Initialize(InitCodeT init)
 	fTitle.GetLineFromStream(fMainIn);
 	cout << "\n Title: " << fTitle << endl;
 	
+	/* set model manager */
+	fModelManager = new ModelManagerT (fMainOut);
+	if (!fModelManager) throw eOutOfMemory;
+	if (verbose) cout << "    FEManagerT::Initialize: input" << endl;
+
 	/* main parameters */
-	ReadParameters();
+	ReadParameters(init);
 	if (init == kParametersOnly) return;
 	WriteParameters();
 	if (verbose) cout << "    FEManagerT::Initialize: execution parameters" << endl;
 	
-	/* set model manager */
-	SetInput ();
-	if (verbose) cout << "    FEManagerT::Initialize: input" << endl;
-
 	/* construct the managers */
 	fTimeManager = new TimeManagerT(*this);
 	if (!fTimeManager) throw eOutOfMemory;
@@ -196,41 +197,6 @@ void FEManagerT::Reinitialize(void)
 
 	/* reset equation structure */
 	SetEquationSystem();		
-}
-
-ifstreamT& FEManagerT::OpenExternal(ifstreamT& in,  ifstreamT& in2, ostream& out,
-	bool verbose, const char* fail) const
-{
-	/* check for external file */
-	char nextchar = in.next_char();
-	if (isdigit(nextchar))
-		return in;
-	else
-	{
-		/* open external file */
-		StringT file;
-		in >> file;
-		if (verbose) out << " external file: " << file << '\n';
-		file.ToNativePathName();
-
-		/* path to source file */
-		StringT path;
-		path.FilePath(in.filename());
-		file.Prepend(path);
-			
-		/* open stream */
-		in2.open(file);
-		if (!in2.is_open())
-		{
-			if (verbose && fail) cout << "\n " << fail << ": " << file << endl;
-			throw eBadInputValue;
-		}
-
-		/* set comments */
-		if (in.skip_comments()) in2.set_marker(in.comment_marker());
-
-		return in2;
-	}
 }
 
 /* manager messaging */
@@ -925,20 +891,12 @@ void FEManagerT::WriteParameters(void) const
 	fMainOut << "    eq. " << GlobalT::kDR              << ", dynamic relaxation\n";   	
 	fMainOut << "    eq. " << GlobalT::kLinExpDynamic   << ", linear explicit dynamic\n";   	
 	fMainOut << "    eq. " << GlobalT::kNLExpDynamic    << ", nonlinear explicit dynamic\n";   	
-	fMainOut << " Input format. . . . . . . . . . . . . . . . . . = " << fInputFormat  << '\n';
-	fMainOut << "    eq. " << IOBaseT::kTahoe         << ", standard ASCII\n";
-	fMainOut << "    eq. " << IOBaseT::kTahoeII       << ", random access ASCII\n";
-	fMainOut << "    eq. " << IOBaseT::kExodusII      << ", ExodusII\n";
-	if (fInputFormat == IOBaseT::kTahoeII || fInputFormat == IOBaseT::kExodusII)
-		fMainOut << " Geometry file . . . . . . . . . . . . . . . . . = " << fModelFile  << '\n';
-	fMainOut << " Output format . . . . . . . . . . . . . . . . . = " << fOutputFormat << '\n';
-	fMainOut << "    eq. " << IOBaseT::kTahoe         << ", standard ASCII\n";
-	fMainOut << "    eq. " << IOBaseT::kTecPlot       << ", TecPlot\n";
-	fMainOut << "    eq. " << IOBaseT::kEnSight       << ", Ensight 6 ASCII\n";
-	fMainOut << "    eq. " << IOBaseT::kEnSightBinary << ", Ensight 6 binary\n";
-	fMainOut << "    eq. " << IOBaseT::kExodusII      << ", ExodusII\n";
-	fMainOut << "    eq. " << IOBaseT::kAbaqus        << ", ABAQUS ASCII\n";
-	fMainOut << "    eq. " << IOBaseT::kAbaqusBinary  << ", ABAQUS binary\n";
+
+	fModelManager->EchoData (fMainOut);
+	IOBaseT temp (fMainOut);
+	fMainOut << " Output format . . . . . . . . . . . . . . . . . = " << fOutputFormat  << '\n';
+	temp.OutputFormats (fMainOut);
+
 	fMainOut << " Read restart file code  . . . . . . . . . . . . = " << fReadRestart << '\n';
 	fMainOut << "    eq. 0, do not read restart file\n";
 	fMainOut << "    eq. 1, read restart file\n";
@@ -1129,24 +1087,16 @@ void FEManagerT::SetSolver(void)
 	iAddSub(*fSolutionDriver);
 }
 
-void FEManagerT::ReadParameters(void)
+void FEManagerT::ReadParameters(InitCodeT init)
 {
 	/* read */
 	fMainIn >> fAnalysisCode;
-	fMainIn >> fInputFormat;
-	if (fInputFormat == IOBaseT::kTahoeII ||
-	    fInputFormat == IOBaseT::kExodusII)
-	{	    
-	    fMainIn >> fModelFile;
-	    fModelFile.ToNativePathName();
-	    
-	    /* path from input file */
-	    StringT path;
-	    path.FilePath(fMainIn.filename());
-	    
-	    /* prepend path */
-	    fModelFile.Prepend(path);
-	}
+	
+	if (init == kFull)
+	  fModelManager->Initialize (fMainIn, false);
+	else
+	  fModelManager->Initialize (fMainIn, true);
+
 	fMainIn >> fOutputFormat;
 	fMainIn >> fReadRestart;
 	if (fReadRestart == 1)
@@ -1165,19 +1115,11 @@ void FEManagerT::ReadParameters(void)
 	fMainIn >> fPrintInput;
 
 	/* check */
-	if (fInputFormat  != IOBaseT::kTahoe   &&
-	    fInputFormat  != IOBaseT::kTahoeII &&
-	    fInputFormat  != IOBaseT::kExodusII) throw eBadInputValue;
-	if (fOutputFormat != IOBaseT::kTahoe  &&
-	    fOutputFormat != IOBaseT::kTecPlot   &&
-	    fOutputFormat != IOBaseT::kEnSight   &&
-	    fOutputFormat != IOBaseT::kEnSightBinary &&
-	    fOutputFormat != IOBaseT::kExodusII  &&
-	    fOutputFormat != IOBaseT::kAbaqus  &&
-	    fOutputFormat != IOBaseT::kAbaqusBinary) throw eBadInputValue;
 	if (fReadRestart  != 0 && fReadRestart  != 1) throw eBadInputValue;
 	if (fWriteRestart < 0) throw eBadInputValue;
-	if (fPrintInput   != 0 && fPrintInput   != 1) throw eBadInputValue;	
+	if (fPrintInput   != 0 && fPrintInput   != 1) throw eBadInputValue;
+
+	/* i/o format checks are done my IOManagerT and ModelManagerT */
 }
 
 /* set the execution controller and send to nodes and elements.
@@ -1236,13 +1178,6 @@ void FEManagerT::SetController(void)
 	}
 	
 	if (!fController) throw eOutOfMemory;
-}
-
-/* constrcut input */
-void FEManagerT::SetInput (void)
-{
-  fModelManager = new ModelManagerT (fMainOut);
-  fModelManager->Initialize (fInputFormat, fModelFile);
 }
 
 /* construct output */
