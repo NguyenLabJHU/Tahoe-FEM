@@ -1,4 +1,4 @@
-/* $Id: NewMemory.h,v 1.4 2001-07-22 21:11:51 paklein Exp $ */
+/* $Id: NewMemory.h,v 1.5 2001-07-22 21:56:55 paklein Exp $ */
 
 /* memory allocation function to handle platform dependent
  * differences associated with memory allocation failures and
@@ -30,12 +30,13 @@
 
 /* size parameters */
 const int min_space_check_size = 100; /* skip check for very small arrays */
-const unsigned long min_free_memory = 5*1000000; /* ~5MB */
+const unsigned long min_free_memory = 5*1000000;   /*  ~5MB */
+const unsigned long max_used_memory = 210*1000000; /* 210MB */
 
 /* headers needed for memory check implementation */
 #if (MEM_CHECK_METHOD == MEM_CHECK_SYSINFO)
 #include <sys/sysinfo.h>
-#else (MEM_CHECK_METHOD == MEM_CHECK_PROC_MEMINFO)
+#else /* (MEM_CHECK_METHOD == MEM_CHECK_PROC_MEMINFO) */
 #include <fstream.h>
 #endif /* (MEM_CHECK_METHOD == MEM_CHECK_SYSINFO) */
 
@@ -74,16 +75,37 @@ inline bool HasFreeMemory(unsigned long size)
 	in.getline(buffer, 254);
 	in >> buffer;
 	unsigned long total, used, free, shared, buffers, cached;
-	total = used = free = shared = buffers = cached = -1;
+	total = used = free = shared = buffers = cached = 0;
 	in >> total >> used >> free >> shared >> buffers >> cached;
-	if (free < 0 || buffers < 0 || cached < 0)
+	if (free < 1 || buffers < 1 || cached < 1)
 	{
 		cout << "::HasFreeMemory: error reading \"/proc/meminfo\"" << endl;
 		throw eGeneralFail;
 	}
 
+//DEBUG
+#if 1
+cout << "  max: " << max_used_memory << '\n';
+cout << " used: " << used << '\n';
+cout << " free: " << free << '\n';
+cout << " buff: " << buffers << '\n';
+cout << " cach: " << cached << '\n';
+cout << " used - cached: " << used - cached << endl;
+#endif	
+
+
+//NOTE - cannot subtract unsigned long's, will result in add!
+
 	/* check free memory */
-	return (free + buffers + cached) - size > min_free_memory;
+//bool has_free = (cached > used) ? true : used > cached + max_used_memory;
+bool has_free = free + buffers + cached > min_free_memory + size;
+//bool has_free = (used + size) < max_used_memory;
+//DEBUG
+#if 1
+if (!has_free)
+  cout << "FAIL: allocation would violate min_free_memory" << endl;
+#endif
+	return has_free;
 };
 #endif /* defined(__DELMAR__) || defined(__ASILOMAR__) */
 #endif /* _SPACE_CHECK_ */
