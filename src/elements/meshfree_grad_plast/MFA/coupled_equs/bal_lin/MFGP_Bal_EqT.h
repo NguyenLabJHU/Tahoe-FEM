@@ -1,4 +1,4 @@
-// $Id: MFGP_Bal_EqT.h,v 1.8 2004-08-20 04:38:54 raregue Exp $
+// $Id: MFGP_Bal_EqT.h,v 1.9 2004-09-13 22:31:37 raregue Exp $
 #ifndef _MFGP_BAL_EQ_T_H_ 
 #define _MFGP_BAL_EQ_T_H_ 
 
@@ -29,7 +29,7 @@ class MFGP_Bal_EqT
 		MFGP_Bal_EqT(void);
 		
 		/* destructor */				
-		virtual ~MFGP_Bal_EqT(void);
+		//~MFGP_Bal_EqT(void);
 
 		void 	Initialize 	( int&, D3MeshFreeShapeFunctionT*, D3MeshFreeShapeFunctionT*, 
 							GRAD_MRSSKStV*, 

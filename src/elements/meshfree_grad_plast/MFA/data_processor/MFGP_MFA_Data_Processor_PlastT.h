@@ -19,10 +19,10 @@ class MFGP_MFA_Data_Processor_PlastT
 	public:
 
 		/* contructor */
-		MFGP_MFA_Data_Processor_PlastT(void);
+		MFGP_MFA_Data_Processor_PlastT();
 
 		/* destructor */
-		//~MFGP_MFA_Data_Processor_PlastT(void);
+		//~MFGP_MFA_Data_Processor_PlastT();
 		
 		void Initialize ( const double *fN, const dArray2DT &fd2Ndx2 );
                         

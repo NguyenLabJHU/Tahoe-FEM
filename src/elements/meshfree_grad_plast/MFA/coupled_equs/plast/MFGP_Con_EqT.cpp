@@ -9,13 +9,11 @@ MFGP_Con_EqT::MFGP_Con_EqT(void):
 	fData_Pro_Displ(NULL),
 	fData_Pro_Plast(NULL)
 	*/
-MFGP_Con_EqT::MFGP_Con_EqT(void)
-{
-	
-}
+MFGP_Con_EqT::MFGP_Con_EqT(void) { }
+
 
 /* destructor */
-MFGP_Con_EqT::~MFGP_Con_EqT(void) { }
+//MFGP_Con_EqT::~MFGP_Con_EqT(void) { }
 /*
 {
 	delete fData_Pro_Displ;

@@ -30,7 +30,7 @@ public:
 	MFGP_Con_EqT(void);
  	
  	/* destructor */
- 	virtual ~MFGP_Con_EqT(void);
+ 	//~MFGP_Con_EqT(void);
 								
 	void 	Initialize 	( int&, D3MeshFreeShapeFunctionT*, D3MeshFreeShapeFunctionT*, GRAD_MRSSKStV*,  
 						int &fTime_Step, double fdelta_t = 0.0); 

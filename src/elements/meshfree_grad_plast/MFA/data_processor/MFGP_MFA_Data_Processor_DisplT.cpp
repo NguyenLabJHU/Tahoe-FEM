@@ -4,11 +4,11 @@
 using namespace Tahoe;
 
 /* constructor */
-MFGP_MFA_Data_Processor_DisplT::MFGP_MFA_Data_Processor_DisplT( void );
+MFGP_MFA_Data_Processor_DisplT::MFGP_MFA_Data_Processor_DisplT() { };
 
 
 /* destructor */
-//MFGP_MFA_Data_Processor_DisplT::~MFGP_MFA_Data_Processor_DisplT(void);
+//MFGP_MFA_Data_Processor_DisplT::~MFGP_MFA_Data_Processor_DisplT() { };
 
 
 /* initialize local variables */
