@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.9 2002-07-02 19:55:13 cjkimme Exp $ */
+/* $Id: ElementT.cpp,v 1.10 2002-07-18 21:58:21 hspark Exp $ */
 
 #include "ElementT.h"
 
@@ -115,6 +115,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kFinePhest:
 			type = ElementT::kFinePhest;
 			break;
+		case ElementT::kBridgingScale:
+			type = ElementT::kBridgingScale;
+			break;	
 		default:
 			cout << "\n operator>>ElementT::TypeT: unknown type: "
 			<< i_type<< endl;

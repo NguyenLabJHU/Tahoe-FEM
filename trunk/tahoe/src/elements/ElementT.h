@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.9 2002-07-05 22:27:56 paklein Exp $ */
+/* $Id: ElementT.h,v 1.10 2002-07-18 21:58:21 hspark Exp $ */
 
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
@@ -48,7 +48,8 @@ kPenaltyContactElement2D = 30,
              kMultiScale = 31,
 	    kCoarseScale = 32,
 	      kFinePhest = 33,
-kPenaltyContactElement3D = 34
+kPenaltyContactElement3D = 34,
+            kBridgingScale=35
 	};
 
 	/** stream extraction operator */ 
