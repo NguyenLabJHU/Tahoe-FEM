@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.28 2002-11-28 01:14:06 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.29 2002-11-28 17:06:30 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -322,7 +322,7 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 
 			/* number of partitions */					
 			cout << "\n Enter number of partitions > 1 (0 to quit): ";
-#if (defined __SGI__ && defined __MPI__)
+#if (defined __SGI__ && defined __TAHOE_MPI__)
 			cout << '\n';
 #endif
 			cin >> size;
@@ -439,7 +439,7 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 		if (size == 0)
 		{
 			cout << "\n Enter number of partitions > 1 (0 to quit): ";
-#if (defined __SGI__ && defined __MPI__)
+#if (defined __SGI__ && defined __TAHOE_MPI__)
 			cout << '\n';
 #endif					
 			cin >> size;

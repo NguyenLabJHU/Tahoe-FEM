@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.14 2002-11-21 01:13:41 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.15 2002-11-28 17:06:30 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 
 #ifndef _FE_MANAGER_MPI_H_
@@ -14,7 +14,7 @@
 /* direct members */
 #include "PartitionT.h"
 #include "dArray2DT.h"
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 #include "mpi.h"
 #else
 

@@ -1,11 +1,11 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.8 2002-10-20 22:49:34 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.9 2002-11-28 17:06:32 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT_mpi.h"
 
 /* library support options */
 #ifdef __SPOOLES_MPI__
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 #include "SPOOLESMPI.h"
 #include "StringT.h"
 #include "MSRBuilderT.h"
@@ -113,5 +113,5 @@ void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 		}
 	}
 }
-#endif /* __MPI__ */
+#endif /* __TAHOE_MPI__ */
 #endif /* __SPOOLES_MPI__ */

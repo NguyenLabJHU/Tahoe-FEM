@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.24 2002-10-20 22:48:32 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.25 2002-11-28 17:06:31 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
@@ -84,10 +84,10 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, CommunicatorT& comm,
 			}
 			else /* construct free set */
 			{
-#ifndef __MPI__
+#ifndef __TAHOE_MPI__
 cout << fComm.Rank() << ": skipping output set " << set.ID() << ": global free set requires MPI" << endl;
 IO_ID = i;
-#else /* __MPI__ */
+#else /* __TAHOE_MPI__ */
 			
 //cout << fComm.Rank() << ": constructing free set here: " << i << endl;			
 			
@@ -154,7 +154,7 @@ IO_ID = i;
 
 				/* register */
 				IO_ID = AddElementSet(global_set);
-#endif /* __MPI__ */
+#endif /* __TAHOE_MPI__ */
 			}
 
 			/* check */
@@ -181,9 +181,9 @@ IO_ID = i;
 			/* construct a free set */
 			if (set.Mode() == OutputSetT::kFreeSet)
 			{
-#ifndef __MPI__
+#ifndef __TAHOE_MPI__
 cout << fComm.Rank() << ": skipping output set " << set.ID() << ": global free set requires MPI" << endl;
-#else /* __MPI__ */			
+#else /* __TAHOE_MPI__ */			
 //cout << fComm.Rank() << ": sending free set" << endl;			
 			
 				/* collect number of elements from each processor */
@@ -232,7 +232,7 @@ IOManager_mpi::~IOManager_mpi(void)
 	fOutputGeometry = NULL;
 }
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 /* distribute/assemble/write output */
 void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values)
 {
@@ -427,7 +427,7 @@ void IOManager_mpi::WriteMaps(ostream& out) const
 
 /* communicate output counts */
 void IOManager_mpi::SetCommunication(const IOManager& local_IO)
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 {
 //cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: start" << endl;
 
@@ -976,7 +976,7 @@ void IOManager_mpi::BuildElementAssemblyMap(int set, const StringT& block_ID,
 		map[i] = block_map[i] + offset;
 }
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 /* clear all outstanding requests - returns 1 of all OK */
 int IOManager_mpi::Clear(ArrayT<MPI_Request>& requests)
 {
