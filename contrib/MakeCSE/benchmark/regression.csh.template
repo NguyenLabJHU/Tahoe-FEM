@@ -1,5 +1,5 @@
 #!/bin/csh
-#
+# $Id: regression.csh.template,v 1.2 2002-11-07 21:26:00 sawimme Exp $
 
 # username on Tahoe server
 set TAHOE_USER =
@@ -8,7 +8,7 @@ set TAHOE_USER =
 set W_DIR = 
 
 # host name - used only for subject line of test report
-set HOST =
+set HOST = 
 
 # need an echo that handles escape characters \n
 set ECHO = 
@@ -32,7 +32,7 @@ set M_DIR = ${W_DIR}/contrib/MakeCSE
 if (-e ${M_DIR}/MakeCSE) then
 	/bin/rm ${M_DIR}/MakeCSE
 endif
-#        update and build MakeCSE
+#        update and build MakeCSE and its benchmarks
 if (-e ${W_DIR}/toolbox/lib/libtoolbox.a) then
 	${ECHO} "checking out and building MAKECSE"
 	cd ${M_DIR};   cvs -q update -Pd ; make -s init ; \
@@ -42,14 +42,13 @@ endif
 if (-e ${M_DIR}/MakeCSE && -e ${W_DIR}/benchmark/comparator/compare) then
     ${ECHO}  "running MAKECSE BENCHMARKs"
     cd ${M_DIR}/benchmark; \
-	cvs -q update -Pd ; \
 	make -s clean; \
 	${M_DIR}/MakeCSE -f ${M_DIR}/benchmark/run.batch >&! test.stdout
 #
     ${ECHO}  "running COMPARATOR"
     cd ${M_DIR}/benchmark; \
     rm compare.summary compare.console; \
-    ${W_DIR}/benchmark/comparator/compare -f compare.batch >&! compare.console
+    ${W_DIR}/benchmark/comparator/compare -f run.batch -ext _db >&! compare.console
     if(! -e ${M_DIR}/benchmark/compare.summary) then
 #       test/s failed - did not complete
 	${ECHO} "BENCHMARKs failed"
