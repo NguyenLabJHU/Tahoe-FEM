@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.5 2004-07-15 08:26:42 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.6 2005-02-17 17:38:53 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -260,7 +260,7 @@ double Hex2D::ZeroStressStretch(void)
 	int count = 0;
 	double error, error0;
 	error = error0 = fabs(PK2(0,0));
-	while (count++ < 10 && error0 > kSmall && error/error0 > kSmall)
+	while (count++ < 10 && error > kSmall && error/error0 > kSmall)
 	{
 		ComputeModuli(E, C);
 		double dE = -PK2(0,0)/(C(0,0) + C(0,1));
@@ -271,7 +271,7 @@ double Hex2D::ZeroStressStretch(void)
 	}
 
 	/* check convergence */
-	if (error0 > kSmall && error/error0 > kSmall) {
+	if (error > kSmall && error/error0 > kSmall) {
 		cout << "\n " << caller << ":\n";
 		cout << " E =\n" << E << '\n';
 		cout << " PK2 =\n" << PK2 << endl;
