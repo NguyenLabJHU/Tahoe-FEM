@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.h,v 1.3 2001-09-04 14:48:25 sawimme Exp $ */
+/* $Id: IOBaseT.h,v 1.3.2.1 2001-11-13 20:58:26 sawimme Exp $ */
 /* created: sawimme (09/28/1999)                                          */
 /* Base class for InputBaseT and OutputBaseT                              */
 
@@ -27,7 +27,8 @@ public:
                  kAbaqusBinary = 7,
                           kAVS = 8,
                     kAVSBinary = 9,
-  	        kPatranNeutral = 10 };
+  	        kPatranNeutral = 10,
+                 kTahoeResults = 11 };
 	
 	/* constructor */
 	IOBaseT(ostream& out);

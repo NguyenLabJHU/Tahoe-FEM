@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.4.2.14 2001-11-07 12:49:15 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.4.2.15 2001-11-13 20:58:26 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -12,6 +12,7 @@
 #include "PatranInputT.h"
 #include "EnSightInputT.h"
 #include "AbaqusInputT.h"
+#include "InputFEASCIIT.h"
 
 ModelManagerT::ModelManagerT (ostream& message) :
   fCoordinateDimensions (2),
@@ -1031,8 +1032,9 @@ void ModelManagerT::ScanModel (const StringT& database)
     {
     case IOBaseT::kTahoe:
       /* do nothing, arrays will be registered via ElementBaseT and NodeManager */
+      fInput = NULL;
       break;
-      case IOBaseT::kTahoeII:
+    case IOBaseT::kTahoeII:
       fInput = new TahoeInputT (fMessage);
       break;
     case IOBaseT::kEnSight:
@@ -1050,6 +1052,9 @@ void ModelManagerT::ScanModel (const StringT& database)
     case IOBaseT::kAbaqus:
     case IOBaseT::kAbaqusBinary:
       fInput = new AbaqusInputT (fMessage);
+      break;
+    case IOBaseT::kTahoeResults:
+      fInput = new InputFEASCIIT (fMessage);
       break;
     default:
       {

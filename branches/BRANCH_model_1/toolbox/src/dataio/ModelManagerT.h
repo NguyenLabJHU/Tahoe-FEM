@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.4.2.13 2001-11-07 12:49:15 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.4.2.14 2001-11-13 20:58:26 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -322,6 +322,8 @@ class ModelManagerT
   int NumNodeVariables (void);
   /** returns node variable labels */
   void NodeLabels (ArrayT<StringT>& labels);
+  /** returns an array of 0 or >0 values to indicate if the element set had data for each node variable */
+  void NodeVariablesUsed (StringT& name, iArrayT& used);
   /** return node variable values for the stepindex for all node points */
   void AllNodeVariables (int stepindex, dArray2DT& values);
   /** return node variable values for the stepindex for all nodes in the element set */
@@ -333,6 +335,8 @@ class ModelManagerT
   int NumElementVariables (void);
   /** returns element variable labels */
   void ElementLabels (ArrayT<StringT>& labels);
+  /** returns an array of 0 or >0 values to indicate if the element set had data for each element variable */
+  void ElementVariablesUsed (StringT& name, iArrayT& used);
   /** returns element variable values for the stepindex for all elements */
   void AllElementVariables (int stepindex, dArray2DT& values);
   /** returns element variable values for the stepindex for all elements in the element set */
@@ -344,6 +348,8 @@ class ModelManagerT
   int NumQuadratureVariables (void);
   /** returns quadrature variable labels */
   void QuadratureLabels (ArrayT<StringT>& labels);
+  /** returns an array of 0 or >0 values to indicate if the element set had data for each quadrature variable */
+  void QuadratureVariablesUsed (StringT& name, iArrayT& used);
   /** returns quadrature variable values for the stepindex for all elements */
   void AllQuadratureVariables (int stepindex, dArray2DT& values);
   /** returns quadrature variable values for the stepindex for all elements in the element set */
@@ -409,18 +415,21 @@ inline void ModelManagerT::TimeSteps (dArrayT& steps) { fInput->ReadTimeSteps (s
 
 inline int ModelManagerT::NumNodeVariables (void) { return fInput->NumNodeVariables (); }
 inline void ModelManagerT::NodeLabels (ArrayT<StringT>& labels) { fInput->ReadNodeLabels (labels); }
+inline void ModelManagerT::NodeVariablesUsed (StringT& name, iArrayT& used) { fInput->NodeVariablesUsed (name, used); }
 inline void ModelManagerT::AllNodeVariables (int stepindex, dArray2DT& values) { fInput->ReadAllNodeVariables (stepindex, values); }
 inline void ModelManagerT::NodeVariables (int stepindex, StringT& elsetname, dArray2DT& values) { fInput->ReadNodeVariables (stepindex, elsetname, values); }
 inline void ModelManagerT::NodeSetVariables (int stepindex, StringT& nsetname, dArray2DT& values) { fInput->ReadNodeSetVariables (stepindex, nsetname, values); }
 
 inline int ModelManagerT::NumElementVariables (void) { return fInput->NumElementVariables (); }
 inline void ModelManagerT::ElementLabels (ArrayT<StringT>& labels) { fInput->ReadElementLabels (labels); }
+inline void ModelManagerT::ElementVariablesUsed (StringT& name, iArrayT& used) { fInput->ElementVariablesUsed (name, used); }
 inline void ModelManagerT::AllElementVariables (int stepindex, dArray2DT& values) { fInput->ReadAllElementVariables (stepindex, values); }
 inline void ModelManagerT::ElementVariables (int stepindex, StringT& elsetname, dArray2DT& values) { fInput->ReadElementVariables (stepindex, elsetname, values); }
 
 inline int ModelManagerT::NumElementQuadPoints (StringT& name) { return fInput->NumElementQuadPoints(name); }
 inline int ModelManagerT::NumQuadratureVariables (void) { return fInput->NumQuadratureVariables (); }
 inline void ModelManagerT::QuadratureLabels (ArrayT<StringT>& labels) { fInput->ReadQuadratureLabels (labels); }
+inline void ModelManagerT::QuadratureVariablesUsed (StringT& name, iArrayT& used) { fInput->QuadratureVariablesUsed (name, used); }
 inline void ModelManagerT::AllQuadratureVariables (int stepindex, dArray2DT& values) { fInput->ReadAllQuadratureVariables (stepindex, values); }
 inline void ModelManagerT::QuadratureVariables (int stepindex, StringT& elsetname, dArray2DT& values) { fInput->ReadQuadratureVariables (stepindex, elsetname, values); }
 
