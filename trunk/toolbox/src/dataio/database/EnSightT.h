@@ -1,4 +1,4 @@
-/* $Id: EnSightT.h,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* $Id: EnSightT.h,v 1.2 2001-09-04 14:38:54 sawimme Exp $ */
 /* created: sawimme (05/13/1999)                                          */
 /* ******EnSight6 Gold Format******                                       */
 
@@ -57,6 +57,7 @@ enum VariableTypeT {kScalarElemental,
 	// read case file
 	bool CaseFile (ifstreamT& in, StringT& geofile) const;
 	bool ReadVariableSection (ifstreamT& in, AutoArrayT<StringT>& nlabels, AutoArrayT<StringT>& elabels, AutoArrayT<bool>& nvector, AutoArrayT<bool>& evector, bool filename) const;
+	int NumTimeSteps (ifstreamT& in) const;
 	bool ReadTimeSection (ifstreamT& in, int& start, int& increment, dArrayT& timesteps) const;
 
 	// read or skip geometry file sections

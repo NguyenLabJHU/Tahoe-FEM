@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.4 2001-08-10 14:46:52 sawimme Exp $ */
+/* $Id: PatranT.cpp,v 1.5 2001-09-04 14:38:54 sawimme Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -32,6 +32,17 @@ bool PatranT::OpenRead (const StringT& filename)
 
   file_name = filename;
   return true;
+}
+
+void PatranT::VersionNotes (ArrayT<StringT>& records) const
+{
+  int ID, IV, KC;
+  ifstream in (file_name);
+  if (!AdvanceTo (in, kSummary, ID, IV, KC)) return;
+  ClearPackets (in, 1);
+  records.Allocate (4);
+  records[0] = "PATRAN";
+  in >> records[2] >> records[3] >> records[1];
 }
 
 int PatranT::NumNodes (void) const
