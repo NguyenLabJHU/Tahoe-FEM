@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.9 2002-08-15 08:59:35 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.10 2002-12-02 09:50:13 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -19,17 +19,28 @@ class OutputSetT;
 class IOManager;
 class FEManagerT;
 class PartitionT;
+class ModelManagerT;
 
 /** class to handle file driven finite element simulations */
 class FEExecutionManagerT: public ExecutionManagerT
 {
 public:
 
-	/* Constructor */
+	/** decomposition methods */
+	enum DecompTypeT {
+        kGraph = 0, /**< partition based on connectivities. See FEExecutionManagerT::Decompose_graph. */
+         kAtom = 1, /**< partition based on index. See FEExecutionManagerT::Decompose_atom. */
+      kSpatial = 2  /**< partition based on position. See FEExecutionManagerT::Decompose_spatial. */
+	};
+
+	/** stream extraction operator */ 
+	friend istream& operator>>(istream& in, FEExecutionManagerT::DecompTypeT& t);
+
+	/** constructor */
 	FEExecutionManagerT(int argc, char* argv[], char job_char, char batch_char,
 		CommunicatorT& comm);
 
-	/* Prompt input files until "quit" */
+	/** prompt input files until "quit" */
 	virtual void Run(void);
 
 protected:
@@ -45,9 +56,11 @@ protected:
 	/** overloaded */
 	virtual void RunJob(ifstreamT& in, ostream& status);
 
-	/* basic MP support */
+	/** \name basic MP support */
+	/*@{*/
 	int Rank(void) const;
 	int Size(void) const;
+	/*@}*/
 
 private:
 
@@ -70,9 +83,35 @@ private:
 	void GetModelFile(ifstreamT& in, StringT& model_file,
 		IOBaseT::FileTypeT& format) const;
 
-	/** generate decomposition data */
-	void Decompose(ifstreamT& in, int size, const StringT& model_file,
+	/** \name generate decomposition data */
+	/*@{*/
+	/** name calls one of decomposition methods below based on user input */
+	void Decompose(ifstreamT& in, int size, int decomp_type, const StringT& model_file,
 		IOBaseT::FileTypeT format, const StringT& output_map_file) const;
+
+	/** graph-based decomposition. Partition model based on the connectivites
+	 * in the model files and those generated at run time. The actual
+	 * decomposition is calculated by a FEManagerT_mpi. */
+	void Decompose_graph(ifstreamT& in, int size, const StringT& model_file,
+		IOBaseT::FileTypeT format, const StringT& output_map_file) const;
+
+	/** "atom" decomposition. Partition model by dividing global list
+	 * of coordinates into sequential, nearly equal length lists. The
+	 * number of atoms per partition is \f$ \frac{N}{n_p} \f$ for
+	 * all partitions except the last, which also includes any remainder.
+	 * \f$ N \f$ is the total number nodes and \f$ n_p \f$ is the number
+	 * of partitions. The partition for a given node is then given by
+	 \f[
+	 	p_i = floor \left( \frac{i n_p}{N} \right).
+	 \f]
+	 */
+	void Decompose_atom(ifstreamT& in, int size, const StringT& model_file,
+		IOBaseT::FileTypeT format, const StringT& output_map_file) const;
+
+	/** spatial decomposition. Partition model based on a grid. */
+	void Decompose_spatial(ifstreamT& in, int size, const StringT& model_file,
+		IOBaseT::FileTypeT format, const StringT& output_map_file) const;
+	/*@}*/
 
 	/** returns true if a new decomposition is needed */
 	bool NeedDecomposition(ifstreamT& in, const StringT& model_file,
@@ -84,6 +123,9 @@ private:
 	/** returns true if a new decomposition is needed */
 	bool NeedOutputMap(ifstreamT& in, const StringT& map_file,
 		int size) const;
+
+	/** read the map of I/O ID to processor. Used only is the output is
+	 * joined at run time. */
 	void ReadOutputMap(ifstreamT& in, const StringT& map_file,
 		iArrayT& map) const;
 
@@ -99,13 +141,24 @@ private:
 	IOManager* NewLocalIOManager(const FEManagerT* global_FEman,
 		const iArrayT& output_map) const;
 		
-	/** write partial geometry files */
-	void EchoPartialGeometry(const PartitionT& partition, const StringT& model_file,
+	/** \name write partial geometry files 
+	 * \param partition partition information for the part to be written
+	 * \param model_ALL ModelManagerT accessing the total model database
+	 * \param partial_file path to the partial geometry file
+	 */
+	/*@{*/
+	/** write partial file for the given format */
+	void EchoPartialGeometry(const PartitionT& partition, ModelManagerT& model_ALL,
 		const StringT& partial_file, IOBaseT::FileTypeT format) const;
+
+	/** write partial model file in ExodusII format */
 	void EchoPartialGeometry_ExodusII(const PartitionT& partition,
-		const StringT& model_file, const StringT& partial_file) const;
+		ModelManagerT& model_ALL, const StringT& partial_file) const;
+
+	/** write partial model file in TahoeII format */
 	void EchoPartialGeometry_TahoeII(const PartitionT& partition,
-		const StringT& model_file, const StringT& partial_file) const;
+		ModelManagerT& model_ALL, const StringT& partial_file) const;
+	/*@}*/
 };
 
 } // namespace Tahoe 
