@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.2 2001-07-16 20:03:06 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.3 2001-07-16 22:41:02 rrsettg Exp $ */
 /* created: paklein (06/15/1996)                                          */
 
 #include "FBC_CardT.h"
@@ -57,6 +57,12 @@ void FBC_CardT::SetValues(const NodeManagerPrimitive& theBoss, int node, int dof
 	
 	/* resolve the pointer to the LTf */
 	fLTfPtr = theBoss.GetLTfPtr(fLTf);
+}
+
+/* split force value in half */
+void FBC_CardT::SplitForce(void)
+{
+	fValue *= 0.5;
 }
 
 /* return the current value */
