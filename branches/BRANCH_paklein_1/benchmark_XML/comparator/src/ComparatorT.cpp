@@ -1,5 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.17.2.1 2002-10-17 05:15:05 paklein Exp $ */
-
+/* $Id: ComparatorT.cpp,v 1.17.2.2 2002-10-20 08:12:19 paklein Exp $ */
 #include "ComparatorT.h"
 
 #include <iostream.h>
@@ -7,7 +6,7 @@
 #include <time.h>
 #include <strstream.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "ModelManagerT.h"
 #include "fstreamT.h"
 #include "dArrayT.h"
@@ -66,7 +65,7 @@ void ComparatorT::Run(void)
 		else
 		{
 			cout << "\n ComparatorT::Run: expecting command line option \"-f2\"" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	}
 	else /* inherited */
@@ -84,7 +83,7 @@ void ComparatorT::BatchFileCommand(const StringT& command, ifstreamT& batch)
 	if (command[0] != '-') {
 		cout << "\n ComparatorT::BatchFileCommand: commands must start with \"-\": \""
 		     << command << '\"' << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	if (command == "-abs_tol")
@@ -121,7 +120,7 @@ void ComparatorT::RunJob(ifstreamT& in, ostream& status)
 	cout << "\nSTART: " << in.filename() << '\n';
 	bool result = false;
 	try { result = PassOrFail(in); }
-	catch (int error) {
+	catch (ExceptionT::CodeT error) {
 		cout << in.filename() << ": " << "EXCEPTION: " << error << endl;
 		result = false;
 	}
@@ -152,7 +151,7 @@ void ComparatorT::RunBatch(ifstreamT& in, ostream& status)
 	if (is_root)
 	{
 		/* check */
-		if (fFiles.Length() != fPassFail.Length()) throw eGeneralFail;
+		if (fFiles.Length() != fPassFail.Length()) throw ExceptionT::kGeneralFail;
 
 		/* relative path */
 		StringT path;
@@ -168,7 +167,7 @@ void ComparatorT::RunBatch(ifstreamT& in, ostream& status)
 		{
 			cout << "\n ComparatorT::RunBatch: ERROR: could not open file: " 
 			     << file_name << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 
 		/* count pass/fail */
@@ -343,9 +342,9 @@ bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2,
 	try {
 		/* file format */
 		IOBaseT::FileTypeT format = IOBaseT::name_to_FileTypeT(file_1);
-		if (!res_1.Initialize(format, file_1, true)) throw eDatabaseFail;			
+		if (!res_1.Initialize(format, file_1, true)) throw ExceptionT::kDatabaseFail;			
 	}
-	catch (int error) {
+	catch (ExceptionT::CodeT error) {
 		cout << "\n ComparatorT::PassOrFail: could not initialize file \"" << file_1 << '\"' << endl;	
 		return false;
 	}
@@ -355,9 +354,9 @@ bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2,
 	try {
 		/* file format */
 		IOBaseT::FileTypeT format = IOBaseT::name_to_FileTypeT(file_2);
-		if (!res_2.Initialize(format, file_2, true)) throw eDatabaseFail;			
+		if (!res_2.Initialize(format, file_2, true)) throw ExceptionT::kDatabaseFail;			
 	}
-	catch (int error) {
+	catch (ExceptionT::CodeT error) {
 		cout << "\n ComparatorT::PassOrFail: could not initialize file \"" << file_2 << '\"' << endl;	
 		return false;
 	}
