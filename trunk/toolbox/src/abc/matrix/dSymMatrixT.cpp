@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.20 2003-04-09 22:29:17 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.21 2003-08-05 18:33:07 paklein Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -24,19 +24,22 @@ inline double d_sign(double a, double b)
 };
 
 /* constructor */
-dSymMatrixT::dSymMatrixT(void): fNumSD(0) { }
-dSymMatrixT::dSymMatrixT(int nsd) { Dimension(nsd); }
-dSymMatrixT::dSymMatrixT(int nsd, double* array) { Set(nsd,array); }
-dSymMatrixT::dSymMatrixT(const dSymMatrixT& source): fNumSD(0)
+dSymMatrixT::dSymMatrixT(void): fNumSD(kNone) { }
+dSymMatrixT::dSymMatrixT(DimensionT nsd) { Dimension(nsd); }
+dSymMatrixT::dSymMatrixT(DimensionT nsd, double* array) { Set(nsd,array); }
+dSymMatrixT::dSymMatrixT(const dSymMatrixT& source): fNumSD(kNone)
 {
 	operator=(source);
 }
 
+dSymMatrixT::dSymMatrixT(int nsd) { Dimension(nsd); }
+dSymMatrixT::dSymMatrixT(int nsd, double* array) { Set(nsd,array); }
+
 /* allocate an reduced matrix for the given spatial dimension */
-void dSymMatrixT::Dimension(int nsd)
+void dSymMatrixT::Dimension(DimensionT nsd)
 {
 	/* check  */
-	fNumSD = nsd;
+	fNumSD = int2DimensionT(nsd);
 	if (fNumSD < 1 || fNumSD > 3) 
 		ExceptionT::GeneralFail("dSymMatrixT::Dimension", "invalid dimension %d", nsd);
 
@@ -45,9 +48,9 @@ void dSymMatrixT::Dimension(int nsd)
 }
 
 /* set fields */
-void dSymMatrixT::Set(int nsd, double* array)
+void dSymMatrixT::Set(DimensionT nsd, double* array)
 {
-	fNumSD = nsd;
+	fNumSD = int2DimensionT(nsd);
 	if (fNumSD < 1 || fNumSD > 3) 
 		ExceptionT::GeneralFail("dSymMatrixT::Set", "invalid dimension %d", nsd);
 	
@@ -84,7 +87,7 @@ double& dSymMatrixT::operator()(int row, int col) const
 		return fArray[map3D[row][col]];		
 }
 
-void dSymMatrixT::ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2)
+void dSymMatrixT::ExpandIndex(DimensionT nsd, int dex, int& dex_1, int& dex_2)
 {
 	const char caller[] = "dSymMatrixT::ExpandIndex";
 
