@@ -1,7 +1,8 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.11 2004-01-21 17:17:02 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.12 2004-01-27 19:09:15 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 #include "ParameterUtils.h"
+#include "ParameterContainerT.h"
 
 using namespace Tahoe;
 
@@ -202,6 +203,15 @@ ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name) const
 		return new DoubleListT;
 	else if (list_name == "String")
 		return new StringParameterT;
+	else if (list_name == "OrderedPair")
+	{
+		ParameterContainerT* pair = new ParameterContainerT("OrderedPair");
+		ParameterT x(ParameterT::Double, "x");
+		ParameterT y(ParameterT::Double, "y");
+		pair->AddParameter(x);
+		pair->AddParameter(y);
+		return pair;
+	}
 	else
 		return NULL;
 }
