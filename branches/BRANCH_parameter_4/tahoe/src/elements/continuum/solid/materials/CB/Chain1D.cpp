@@ -1,4 +1,4 @@
-/* $Id: Chain1D.cpp,v 1.2 2004-06-26 05:56:41 paklein Exp $ */
+/* $Id: Chain1D.cpp,v 1.2.2.1 2004-07-07 15:28:10 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Chain1D.h"
 #include "ElementsConfig.h"
@@ -21,8 +21,8 @@
 using namespace Tahoe;
 
 /* constructor */
-Chain1D::Chain1D(ifstreamT& in, const FSMatSupportT& support):
-	NL_E_MatT(in, support),
+Chain1D::Chain1D(void):
+	ParameterInterfaceT("chain_1D"),
 	fNearestNeighbor(-1),
 	fLattice1D(NULL),
 	fPairProperty(NULL),
@@ -31,6 +31,8 @@ Chain1D::Chain1D(ifstreamT& in, const FSMatSupportT& support):
 	fBondTensor2(dSymMatrixT::NumValues(1)),
 	fFullDensityForStressOutput(true)
 {
+ExceptionT::Stop("Chain1D::Chain1D");
+#if 0
 	const char caller[] = "Chain1D::Chain1D";
 
 	/* read the number of shells */
@@ -85,6 +87,7 @@ Chain1D::Chain1D(ifstreamT& in, const FSMatSupportT& support):
 
 	/* reset the continuum density (4 atoms per unit cell) */
 	fDensity = fPairProperty->Mass()/fAtomicVolume;
+#endif
 }
 
 /* destructor */
@@ -93,13 +96,7 @@ Chain1D::~Chain1D(void) {
 	delete fPairProperty;
 }
 
-/* I/O functions */
-void Chain1D::PrintName(ostream& out) const
-{
-	NL_E_MatT::PrintName(out);
-	out << "    1D lattice\n";
-}
-
+#if 0
 void Chain1D::Print(ostream& out) const
 {
 	/* inherited */
@@ -121,11 +118,24 @@ void Chain1D::Print(ostream& out) const
 	/* restore precision */
 	out.precision(prec);
 }
+#endif
 
 /* return a reference to the bond lattice */
 const BondLatticeT& Chain1D::BondLattice(void) const {
 	if (!fLattice1D) ExceptionT::GeneralFail("Chain1D::BondLattice", "pointer not set");
 	return *fLattice1D;
+}
+
+/* describe the parameters needed by the interface */
+void Chain1D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineParameters(list);
+	
+	/* number of neighbor shells */
+	ParameterT n_shells(ParameterT::Integer, "shells");
+	n_shells.AddLimit(1, LimitT::LowerInclusive);
+	list.AddParameter(n_shells);
 }
 
 /*************************************************************************

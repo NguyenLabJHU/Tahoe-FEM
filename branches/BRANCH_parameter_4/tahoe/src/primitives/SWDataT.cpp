@@ -1,16 +1,11 @@
-/* $Id: SWDataT.cpp,v 1.5.2.1 2004-07-06 06:54:46 paklein Exp $ */
+/* $Id: SWDataT.cpp,v 1.5.2.2 2004-07-07 15:28:49 paklein Exp $ */
 /* created: paklein (03/22/1997) */
 #include "SWDataT.h"
 
+#include "ifstreamT.h"
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
-
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
-
-#include "ifstreamT.h"
-
 
 using namespace Tahoe;
 

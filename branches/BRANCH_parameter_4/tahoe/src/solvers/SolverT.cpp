@@ -1,11 +1,10 @@
-/* $Id: SolverT.cpp,v 1.21.2.1 2004-07-06 06:54:50 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.21.2.2 2004-07-07 15:28:52 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
 #include <iostream.h>
 #include <string.h>
 
-#include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "FEManagerT.h"
 #include "CommunicatorT.h"
@@ -469,8 +468,8 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 	const char caller[] = "SolverT::SetGlobalMatrix";
 
 	/* streams */
-	ifstreamT& in = fFEManager.Input();
-	ostream&   out = fFEManager.Output();
+	ifstreamT&  in = fFEManager.Input();
+	ofstreamT& out = fFEManager.Output();
 	switch (matrix_type)
 	{
 		case kDiagonalMatrix:

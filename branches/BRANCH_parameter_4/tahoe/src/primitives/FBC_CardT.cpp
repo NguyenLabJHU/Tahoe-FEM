@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.13.2.1 2004-07-06 06:54:46 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.13.2.2 2004-07-07 15:28:49 paklein Exp $ */
 /* created: paklein (06/15/1996) */
 #include "FBC_CardT.h"
 
@@ -7,7 +7,7 @@
 
 #include "toolboxConstants.h"
 #include "NodeManagerT.h" // needed for schedule information
-#include "ifstreamT.h"
+
 #include "ScheduleT.h"
 
 using namespace Tahoe;

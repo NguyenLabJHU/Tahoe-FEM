@@ -1,11 +1,11 @@
-/* $Id: FDCrystalElast.cpp,v 1.9.26.1 2004-07-06 06:53:49 paklein Exp $ */
+/* $Id: FDCrystalElast.cpp,v 1.9.26.2 2004-07-07 15:28:18 paklein Exp $ */
 #include "FDCrystalElast.h"
 
 #include <stdlib.h>
 #include "CrystalElastLat.h"
 #include "CrystalElastMat.h"
 #include "ElementCardT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 #include "UpLagr_ExternalFieldT.h"
 #include "FSMatSupportT.h"

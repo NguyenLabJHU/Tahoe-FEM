@@ -1,6 +1,5 @@
-/* $Id: MixedSWDiamondT.cpp,v 1.5 2004-06-17 07:41:37 paklein Exp $ */
+/* $Id: MixedSWDiamondT.cpp,v 1.5.2.1 2004-07-07 15:28:38 paklein Exp $ */
 /* created: paklein (03/22/1997) */
-
 #include "MixedSWDiamondT.h"
 
 #include <math.h>

@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.23.2.1 2004-07-06 06:53:10 paklein Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.23.2.2 2004-07-07 15:27:58 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 #include "Tijssens2DT.h"
 
@@ -6,7 +6,7 @@
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "ifstreamT.h"
+
 #include "StringT.h"
 #include "SecantMethodT.h"
 

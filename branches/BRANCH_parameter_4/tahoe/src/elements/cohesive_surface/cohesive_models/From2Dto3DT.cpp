@@ -1,4 +1,4 @@
-/* $Id: From2Dto3DT.cpp,v 1.4.2.1 2004-07-06 06:53:10 paklein Exp $ */
+/* $Id: From2Dto3DT.cpp,v 1.4.2.2 2004-07-07 15:27:57 paklein Exp $ */
 /* created: paklein (06/23/1999)*/
 #include "From2Dto3DT.h"
 
@@ -6,7 +6,7 @@
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "ifstreamT.h"
+
 
 #include "XuNeedleman2DT.h"
 #include "TvergHutch2DT.h"

@@ -1,8 +1,8 @@
-/* $Id: HyperEVP3D.cpp,v 1.10.54.1 2004-07-06 06:54:04 paklein Exp $ */
+/* $Id: HyperEVP3D.cpp,v 1.10.54.2 2004-07-07 15:28:26 paklein Exp $ */
 #include "HyperEVP3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 #include "SimplePowerLaw.h"
 

@@ -1,13 +1,10 @@
-/* $Id: IC_CardT.cpp,v 1.14 2004-06-17 07:14:05 paklein Exp $ */
+/* $Id: IC_CardT.cpp,v 1.14.2.1 2004-07-07 15:28:49 paklein Exp $ */
 /* created: paklein (07/16/1997) */
 #include "IC_CardT.h"
 
+#include "ifstreamT.h"
 #include <iostream.h>
 #include <iomanip.h>
-
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
-#include "ifstreamT.h"
 
 using namespace Tahoe;
 

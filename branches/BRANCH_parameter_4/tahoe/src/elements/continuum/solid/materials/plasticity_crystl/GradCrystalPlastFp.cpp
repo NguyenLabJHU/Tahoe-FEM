@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.cpp,v 1.16.6.1 2004-07-06 06:54:00 paklein Exp $ */
+/* $Id: GradCrystalPlastFp.cpp,v 1.16.6.2 2004-07-07 15:28:23 paklein Exp $ */
 #include "GradCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -9,7 +9,7 @@
 #include "Utils.h"
 
 #include "ElementCardT.h"
-#include "ifstreamT.h"
+
 #include "ContinuumElementT.h" //needed for ip coordinates
 
 using namespace Tahoe;

@@ -1,6 +1,5 @@
-/* $Id: UnConnectedRodT.cpp,v 1.15.2.1 2004-07-06 06:54:26 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.15.2.2 2004-07-07 15:28:39 paklein Exp $ */
 /* created: paklein (04/05/1997) */
-
 #include "UnConnectedRodT.h"
 
 #include <iomanip.h>

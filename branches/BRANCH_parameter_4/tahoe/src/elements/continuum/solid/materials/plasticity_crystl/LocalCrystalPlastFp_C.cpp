@@ -1,10 +1,10 @@
-/* $Id: LocalCrystalPlastFp_C.cpp,v 1.8.26.1 2004-07-06 06:54:01 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp_C.cpp,v 1.8.26.2 2004-07-07 15:28:23 paklein Exp $ */
 #include "LocalCrystalPlastFp_C.h"
 #include "LatticeOrient.h"
 #include "CrystalElasticity.h"
 #include "VoceHardening.h"
 #include "ElementCardT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 #include "ContinuumElementT.h" // needed for initial coordinates
 

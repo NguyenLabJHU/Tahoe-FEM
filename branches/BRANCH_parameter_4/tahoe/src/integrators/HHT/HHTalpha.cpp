@@ -1,10 +1,10 @@
-/* $Id: HHTalpha.cpp,v 1.6.2.1 2004-07-06 06:54:28 paklein Exp $ */
+/* $Id: HHTalpha.cpp,v 1.6.2.2 2004-07-07 15:28:41 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 #include "HHTalpha.h"
 
 #include <iostream.h>
 
-#include "ifstreamT.h"
+
 #include "dArrayT.h"
 
 using namespace Tahoe;

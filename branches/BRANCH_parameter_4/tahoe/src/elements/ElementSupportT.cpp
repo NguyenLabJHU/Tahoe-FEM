@@ -1,8 +1,8 @@
-/* $Id: ElementSupportT.cpp,v 1.32.2.1 2004-07-06 06:53:06 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.32.2.2 2004-07-07 15:27:53 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
-#include "ifstreamT.h"
-#include "ofstreamT.h"
+
+
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "FEManagerT.h"

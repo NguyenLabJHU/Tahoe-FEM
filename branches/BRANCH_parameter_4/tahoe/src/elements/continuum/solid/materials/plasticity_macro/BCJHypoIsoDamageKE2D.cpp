@@ -1,6 +1,6 @@
-/* $Id: BCJHypoIsoDamageKE2D.cpp,v 1.4.54.1 2004-07-06 06:54:03 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageKE2D.cpp,v 1.4.54.2 2004-07-07 15:28:26 paklein Exp $ */
 #include "BCJHypoIsoDamageKE2D.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 
 using namespace Tahoe;

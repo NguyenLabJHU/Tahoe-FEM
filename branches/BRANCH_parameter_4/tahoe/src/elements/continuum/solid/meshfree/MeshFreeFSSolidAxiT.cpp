@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.2.2.1 2004-07-06 06:54:15 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.2.2.2 2004-07-07 15:28:31 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidAxiT.h"
 
@@ -6,10 +6,8 @@
 #include <iomanip.h>
 #include <math.h>
 
-#include "ofstreamT.h"
 #include "ifstreamT.h"
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
+#include "ofstreamT.h"
 #include "MeshFreeShapeFunctionT.h"
 #include "MeshFreeFractureSupportT.h"
 #include "ModelManagerT.h"

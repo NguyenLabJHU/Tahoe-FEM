@@ -1,7 +1,7 @@
-/* $Id: PenaltyContactDrag2DT.cpp,v 1.5.2.1 2004-07-06 06:53:13 paklein Exp $ */
+/* $Id: PenaltyContactDrag2DT.cpp,v 1.5.2.2 2004-07-07 15:28:00 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContactDrag2DT.h"
-#include "ifstreamT.h"
+
 #include "eIntegratorT.h"
 #include "ModelManagerT.h"
 
@@ -33,6 +33,8 @@ PenaltyContactDrag2DT::PenaltyContactDrag2DT(const ElementSupportT& support):
 /* initialization after constructor */
 void PenaltyContactDrag2DT::Initialize(void)
 {
+#pragma message("delete me")
+#if 0
 	/* inherited */
 	PenaltyContact2DT::Initialize();
 
@@ -52,6 +54,7 @@ void PenaltyContactDrag2DT::Initialize(void)
 
 	/* compute associated nodal area (using all element blocks) */
 	ComputeNodalArea(element_id, fNodalArea, fStrikerLocNumber);
+#endif
 }
 
 /* describe the parameters needed by the interface */

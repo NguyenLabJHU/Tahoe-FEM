@@ -1,12 +1,10 @@
-/* $Id: DiffusionElementT.cpp,v 1.20.2.1 2004-07-06 06:53:16 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.20.2.2 2004-07-07 15:28:03 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 #include <math.h>
-
-#include "toolboxConstants.h"
 
 #include "ifstreamT.h"
 #include "ElementCardT.h"
@@ -184,8 +182,8 @@ void DiffusionElementT::SendOutput(int kincode)
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* print element group data */
 void DiffusionElementT::PrintControlData(ostream& out) const

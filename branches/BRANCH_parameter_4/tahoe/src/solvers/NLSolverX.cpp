@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.12 2004-06-17 07:42:05 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.12.2.1 2004-07-07 15:28:52 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
@@ -7,8 +7,6 @@
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
 #include "FEManagerT.h"
 #include "CCSMatrixT.h"
 
@@ -42,7 +40,7 @@ NLSolverX::NLSolverX(FEManagerT& fe_manager, int group):
 #endif		
 
 	ifstreamT&  in = fFEManager.Input();
-	ostream& out = fFEManager.Output();
+	ofstreamT& out = fFEManager.Output();
 
 	in >> fMaxNewTangents;  if (fMaxNewTangents  < 1) throw ExceptionT::kBadInputValue;
 	in >> fMaxTangentReuse; if (fMaxTangentReuse < 1) throw ExceptionT::kBadInputValue;

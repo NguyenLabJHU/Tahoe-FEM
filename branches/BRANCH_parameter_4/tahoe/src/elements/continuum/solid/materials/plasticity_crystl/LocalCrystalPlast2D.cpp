@@ -1,7 +1,7 @@
-/* $Id: LocalCrystalPlast2D.cpp,v 1.6.54.1 2004-07-06 06:54:00 paklein Exp $ */
+/* $Id: LocalCrystalPlast2D.cpp,v 1.6.54.2 2004-07-07 15:28:23 paklein Exp $ */
 #include "LocalCrystalPlast2D.h"
 #include "ElementCardT.h"
-#include "ifstreamT.h"
+
 
 using namespace Tahoe;
 

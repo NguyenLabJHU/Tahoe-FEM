@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.5.2.1 2004-07-06 06:53:16 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.5.2.2 2004-07-07 15:28:03 paklein Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
@@ -7,8 +7,8 @@
 
 #include "toolboxConstants.h"
 
-#include "ifstreamT.h"
-#include "ofstreamT.h"
+
+
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"
@@ -46,6 +46,8 @@ NLDiffusionElementT::NLDiffusionElementT(const ElementSupportT& support):
 /* data initialization */
 void NLDiffusionElementT::Initialize(void)
 {
+#pragma message("delete me")
+#if 0
 	/* inherited */
 	DiffusionElementT::Initialize();
 
@@ -56,6 +58,7 @@ void NLDiffusionElementT::Initialize(void)
 	ifstreamT&  in = ElementSupport().Input();
 	ofstreamT& out = ElementSupport().Output();
 	EchoTractionBC(in, out);
+#endif
 }
 
 /* collecting element group equation numbers */
@@ -461,6 +464,8 @@ void NLDiffusionElementT::TakeTractionBC(const ParameterListT& list)
 
 void NLDiffusionElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 {
+#pragma message("delete me")
+#if 0
 	const char caller[] = "NLDiffusionElementT::EchoTractionBC";
 	int num_sides = -99;
 	in >> num_sides; if (num_sides < 0) ExceptionT::BadInputValue(caller);
@@ -512,6 +517,7 @@ void NLDiffusionElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 	out << " epsilon . . . . . . . . . . . . . . . . . . . . = " << feps << '\n';
 	out << " T0. . . . . . . . . . . . . . . . . . . . . . . = " << fT0 << '\n';
 	out << " alpha . . . . . . . . . . . . . . . . . . . . . = " << falpha << '\n';
+#endif
 }
 
 /* compute contribution to RHS from mixed BC's */

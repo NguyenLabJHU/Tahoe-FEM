@@ -1,4 +1,4 @@
-/* $Id: Chain1D.h,v 1.2 2004-06-26 05:56:41 paklein Exp $ */
+/* $Id: Chain1D.h,v 1.2.2.1 2004-07-07 15:28:10 paklein Exp $ */
 #ifndef _CHAIN_1D_H_
 #define _CHAIN_1D_H_
 
@@ -18,16 +18,10 @@ class Chain1D: public NL_E_MatT
 public:
 
 	/** constructor */
-	Chain1D(ifstreamT& in, const FSMatSupportT& support);
+	Chain1D(void);
 	
 	/** destructor */
 	~Chain1D(void);
-	
-	/** \name write parameters */
-	/*@{*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-	/*@}*/
 
 	/** \name Cauchy-Born parameters */
 	/*@{*/
@@ -39,6 +33,25 @@ public:
 
 	/** nearest neighbor distance */
 	double NearestNeighbor(void) const { return fNearestNeighbor; };
+	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:

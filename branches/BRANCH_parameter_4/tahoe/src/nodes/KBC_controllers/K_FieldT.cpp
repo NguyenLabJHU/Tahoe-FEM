@@ -1,10 +1,10 @@
-/* $Id: K_FieldT.cpp,v 1.19.2.1 2004-07-06 06:54:42 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.19.2.2 2004-07-07 15:28:47 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
-#include "ifstreamT.h"
+
 
 #include "IsotropicT.h"
 #include "SolidMaterialT.h"

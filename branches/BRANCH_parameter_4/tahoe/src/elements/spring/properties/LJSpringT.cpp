@@ -1,12 +1,9 @@
-/* $Id: LJSpringT.cpp,v 1.5.2.1 2004-07-06 06:54:27 paklein Exp $ */
+/* $Id: LJSpringT.cpp,v 1.5.2.2 2004-07-07 15:28:40 paklein Exp $ */
 /* created: paklein (5/28/1996) */
 #include "LJSpringT.h"
 
 #include <iostream.h>
 #include <math.h>
-
-#include "Environment.h"
-#include "ExceptionT.h"
 
 #include "ifstreamT.h"
 #include "ThermalDilatationT.h"

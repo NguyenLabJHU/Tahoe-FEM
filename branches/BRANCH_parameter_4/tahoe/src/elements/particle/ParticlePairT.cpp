@@ -1,13 +1,12 @@
-/* $Id: ParticlePairT.cpp,v 1.38.2.1 2004-07-06 06:54:17 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.38.2.2 2004-07-07 15:28:33 paklein Exp $ */
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
-#include "ifstreamT.h"
+
 #include "eIntegratorT.h"
 #include "InverseMapT.h"
 #include "CommManagerT.h"
 #include "dSPMatrixT.h"
-#include "ofstreamT.h"
 #include "ModelManagerT.h"
 #include "dSymMatrixT.h"
 #include "dArray2DT.h"

@@ -1,9 +1,9 @@
-/* $Id: MappedPeriodicT.cpp,v 1.8.2.1 2004-07-06 06:54:42 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.8.2.2 2004-07-07 15:28:47 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 #include "MappedPeriodicT.h"
 
 #include "FEManagerT.h"
-#include "ifstreamT.h"
+
 #include "BasicFieldT.h"
 #include "ParameterUtils.h"
 #include "ParameterContainerT.h"

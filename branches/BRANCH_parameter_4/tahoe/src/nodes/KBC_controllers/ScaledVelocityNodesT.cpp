@@ -1,9 +1,9 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.7.28.1 2004-07-06 06:54:42 paklein Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.7.28.2 2004-07-07 15:28:47 paklein Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
-#include "ifstreamT.h"
+
 #include "RandomNumberT.h"
 #include "MessageT.h"
 #include "CommunicatorT.h"

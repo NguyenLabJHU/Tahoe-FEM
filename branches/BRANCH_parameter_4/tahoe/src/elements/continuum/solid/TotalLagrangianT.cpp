@@ -1,8 +1,8 @@
-/* $Id: TotalLagrangianT.cpp,v 1.13.2.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: TotalLagrangianT.cpp,v 1.13.2.2 2004-07-07 15:28:05 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "TotalLagrangianT.h"
 
-#include "ifstreamT.h"
+
 #include "toolboxConstants.h"
 #include "SolidMaterialT.h"
 #include "MaterialListT.h"

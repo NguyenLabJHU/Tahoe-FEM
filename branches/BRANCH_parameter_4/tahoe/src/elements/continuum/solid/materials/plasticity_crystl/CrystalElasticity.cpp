@@ -8,7 +8,7 @@
 #include <iostream.h>
 #include "dMatrixT.h"
 #include "dArrayT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 
 // base class

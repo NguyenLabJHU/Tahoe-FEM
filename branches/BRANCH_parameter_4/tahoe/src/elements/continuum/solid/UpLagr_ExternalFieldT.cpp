@@ -1,9 +1,7 @@
-/* $Id: UpLagr_ExternalFieldT.cpp,v 1.9 2004-06-28 22:41:14 hspark Exp $ */
-
+/* $Id: UpLagr_ExternalFieldT.cpp,v 1.9.2.1 2004-07-07 15:28:05 paklein Exp $ */
 #include "UpLagr_ExternalFieldT.h"
 
 #include "ifstreamT.h"
-#include "ofstreamT.h"
 #include "ExodusT.h"
 
 using namespace Tahoe;
@@ -19,6 +17,7 @@ UpLagr_ExternalFieldT::UpLagr_ExternalFieldT(const ElementSupportT& support, con
 /* initialization */
 void UpLagr_ExternalFieldT::Initialize(void)
 {
+#if 0
 	/* inherited */
 	UpdatedLagrangianT::Initialize();
 
@@ -122,6 +121,7 @@ void UpLagr_ExternalFieldT::Initialize(void)
 	
 	/* allocate space for reading nodal values */
 	fNodalValues.Dimension(exo.NumNodes());
+#endif
 }
 
 /* interpolate external field to the current time step */

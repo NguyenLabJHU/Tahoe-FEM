@@ -1,10 +1,10 @@
-/* $Id: povirk2D.cpp,v 1.9.28.1 2004-07-06 06:54:11 paklein Exp $ */
+/* $Id: povirk2D.cpp,v 1.9.28.2 2004-07-07 15:28:29 paklein Exp $ */
 /* Created:  Harold Park (09/10/2001) */
 #include "povirk2D.h"
 
 #include <iostream.h>
 #include <math.h>
-#include "ifstreamT.h"
+
 #include "FSMatSupportT.h"
 #include "ElementCardT.h"
 

@@ -1,11 +1,10 @@
-/* $Id: Anisotropic2DT.cpp,v 1.5.2.1 2004-07-06 06:54:05 paklein Exp $ */
+/* $Id: Anisotropic2DT.cpp,v 1.5.2.2 2004-07-07 15:28:28 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "Anisotropic2DT.h"
 
 #include <iostream.h>
-
-#include "Rotate2DT.h"
 #include "ifstreamT.h"
+#include "Rotate2DT.h"
 
 using namespace Tahoe;
 

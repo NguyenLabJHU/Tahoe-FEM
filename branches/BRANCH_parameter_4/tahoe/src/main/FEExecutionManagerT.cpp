@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.65.2.1 2004-07-06 06:54:37 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.65.2.2 2004-07-07 15:28:42 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -8,17 +8,12 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#include "ofstreamT.h"
-#include "ifstreamT.h"
-#include "Environment.h"
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
-
 #if defined(__MWERKS__) && __option(profile)
 #include <Profiler.h>
 #endif
 
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "FEManagerT.h"
 #include "FEManagerT_mpi.h"
 #include "IOManager_mpi.h"

@@ -1,8 +1,9 @@
-/* $Id: RodT.cpp,v 1.32.2.1 2004-07-06 06:54:26 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.32.2.2 2004-07-07 15:28:38 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
 #include <math.h>
+
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "eIntegratorT.h"
@@ -13,10 +14,9 @@
 #include "LinearSpringT.h"
 #include "LJSpringT.h"
 
-/* Element type parameters */
-
 using namespace Tahoe;
 
+/* Element type parameters */
 const int RodT::kRodTndof = 2; /* number of degrees of freedom per node */
 const int RodT::kRodTnsd = 2; /* number of spatial dimensions */
 

@@ -1,10 +1,11 @@
-/* $Id: EAMFCC3D.cpp,v 1.6.2.1 2004-07-06 06:53:26 paklein Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.6.2.2 2004-07-07 15:28:11 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D.h"
 
 #include "ParameterContainerT.h"
 #include "dMatrixT.h"
 #include "StringT.h"
+#include "ifstreamT.h"
 
 /* EAM glue functions */
 #include "ErcolessiAdamsAl.h"

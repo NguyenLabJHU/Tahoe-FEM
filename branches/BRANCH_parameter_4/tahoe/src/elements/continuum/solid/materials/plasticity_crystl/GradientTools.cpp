@@ -4,7 +4,7 @@
 
 #include "GradientTools.h"
 #include "Utils.h"
-#include "ifstreamT.h"
+
 #include "StringT.h"
 #include "ExceptionT.h"
 #include "toolboxConstants.h"

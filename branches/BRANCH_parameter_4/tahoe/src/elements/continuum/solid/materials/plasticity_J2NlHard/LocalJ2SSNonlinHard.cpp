@@ -1,10 +1,11 @@
-/* $Id: LocalJ2SSNonlinHard.cpp,v 1.10.26.1 2004-07-06 06:53:59 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard.cpp,v 1.10.26.2 2004-07-07 15:28:22 paklein Exp $ */
 #include "LocalJ2SSNonlinHard.h"
 
+#include "ifstreamT.h"
 #include "iArrayT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
-#include "ifstreamT.h"
+
 #include "SSMatSupportT.h"
 
 using namespace Tahoe;

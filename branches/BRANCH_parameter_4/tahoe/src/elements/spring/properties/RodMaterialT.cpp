@@ -1,8 +1,9 @@
-/* $Id: RodMaterialT.cpp,v 1.7.58.1 2004-07-06 06:54:27 paklein Exp $ */
+/* $Id: RodMaterialT.cpp,v 1.7.58.2 2004-07-07 15:28:40 paklein Exp $ */
 /* created: paklein (11/20/1996) */
-
 #include "RodMaterialT.h"
+
 #include <iostream.h>
+
 #include "ExceptionT.h"
 #include "ThermalDilatationT.h"
 #include "ifstreamT.h"

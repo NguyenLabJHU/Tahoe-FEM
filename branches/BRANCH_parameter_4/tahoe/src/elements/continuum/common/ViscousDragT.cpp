@@ -1,5 +1,6 @@
-/* $Id: ViscousDragT.cpp,v 1.3.6.1 2004-07-06 06:53:15 paklein Exp $ */
+/* $Id: ViscousDragT.cpp,v 1.3.6.2 2004-07-07 15:28:01 paklein Exp $ */
 #include "ViscousDragT.h"
+
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "ModelManagerT.h"
@@ -19,6 +20,8 @@ ViscousDragT::ViscousDragT(const ElementSupportT& support, const FieldT& field):
 /* class initialization */
 void ViscousDragT::Initialize(void)
 {
+#pragma message("delete me")
+#if 0
 	/* inherited */
 	ElementBaseT::Initialize();
 
@@ -80,6 +83,7 @@ void ViscousDragT::Initialize(void)
 	out << " Number of nodes used. . . . . . . . . . . . . . = " << fNodesUsed.Length() << '\n';
 	if (ElementSupport().PrintInput())
 		out << fNodesUsed.wrap(5) << '\n';
+#endif
 }
 
 /* collecting element group equation numbers */

@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.cpp,v 1.9.28.1 2004-07-06 06:53:44 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.cpp,v 1.9.28.2 2004-07-07 15:28:15 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB3D.h"
 
@@ -8,7 +8,7 @@
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
-#include "ifstreamT.h"
+
 
 /* point generators */
 #include "VIB3D.h"

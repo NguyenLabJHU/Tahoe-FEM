@@ -1,12 +1,12 @@
-/* $Id: NLSolver_LS.cpp,v 1.13.2.1 2004-07-06 06:54:50 paklein Exp $ */
+/* $Id: NLSolver_LS.cpp,v 1.13.2.2 2004-07-07 15:28:52 paklein Exp $ */
 /* created: paklein (08/18/1999) */
 #include "NLSolver_LS.h"
 
 #include <iostream.h>
 #include <math.h>
 
-#include "ifstreamT.h"
-#include "ofstreamT.h"
+
+
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 #include "FEManagerT.h"

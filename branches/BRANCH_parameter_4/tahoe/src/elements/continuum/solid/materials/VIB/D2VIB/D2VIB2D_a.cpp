@@ -1,11 +1,10 @@
-/* $Id: D2VIB2D_a.cpp,v 1.8.2.1 2004-07-06 06:53:45 paklein Exp $ */
+/* $Id: D2VIB2D_a.cpp,v 1.8.2.2 2004-07-07 15:28:16 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2VIB2D_a.h"
 
 #include <math.h>
 #include <iostream.h>
 
-#include "toolboxConstants.h"
 #include "ifstreamT.h"
 #include "D2FSMatSupportT.h"
 #include "D2MeshFreeFSSolidT.h"

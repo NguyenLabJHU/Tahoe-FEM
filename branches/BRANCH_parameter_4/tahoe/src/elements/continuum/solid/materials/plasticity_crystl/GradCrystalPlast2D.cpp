@@ -1,8 +1,8 @@
-/* $Id: GradCrystalPlast2D.cpp,v 1.5.54.1 2004-07-06 06:54:00 paklein Exp $ */
+/* $Id: GradCrystalPlast2D.cpp,v 1.5.54.2 2004-07-07 15:28:23 paklein Exp $ */
 #include "GradCrystalPlast2D.h"
 #include "Utils.h"
 
-#include "ifstreamT.h"
+
 
 using namespace Tahoe;
 

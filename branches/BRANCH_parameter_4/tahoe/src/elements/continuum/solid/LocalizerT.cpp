@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.11 2004-06-17 07:40:07 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.11.2.1 2004-07-07 15:28:05 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 #include "LocalizerT.h"
 
@@ -7,7 +7,6 @@
 #include <iomanip.h>
 
 #include "ifstreamT.h"
-#include "toolboxConstants.h"
 #include "SolidMaterialT.h"
 #include "SolidMatList2DT.h"
 #include "SolidMatList3DT.h"

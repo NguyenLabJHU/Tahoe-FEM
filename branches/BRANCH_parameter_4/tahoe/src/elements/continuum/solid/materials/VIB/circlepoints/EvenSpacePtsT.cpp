@@ -1,11 +1,11 @@
-/* $Id: EvenSpacePtsT.cpp,v 1.5.2.1 2004-07-06 06:53:46 paklein Exp $ */
+/* $Id: EvenSpacePtsT.cpp,v 1.5.2.2 2004-07-07 15:28:17 paklein Exp $ */
 /* created: paklein (11/02/1997) */
 #include "EvenSpacePtsT.h"
 
 #include <math.h>
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
-#include "ifstreamT.h"
+
 
 using namespace Tahoe;
 

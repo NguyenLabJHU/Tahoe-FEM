@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.20.26.1 2004-07-06 06:54:00 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.20.26.2 2004-07-07 15:28:23 paklein Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -10,7 +10,7 @@
 #include "VoceHardening.h"
 #include "HaasenHardening.h"
 #include "ElementCardT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 #include "SpectralDecompT.h"
 #include "ContinuumElementT.h"
