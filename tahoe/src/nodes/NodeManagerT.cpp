@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.40 2003-10-20 23:21:49 cjkimme Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.41 2003-11-04 17:36:48 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -53,7 +53,8 @@ NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
 	fFieldSupport(fe_manager, *this),
 	fInitCoords(NULL),
 	fCoordUpdate(NULL),
-	fCurrentCoords(NULL)
+	fCurrentCoords(NULL),
+	fNeedCurrentCoords(false)
 {
 	/* set console */
 	iSetName("nodes");
@@ -289,6 +290,8 @@ void NodeManagerT::RegisterCoordinates(LocalArrayT& array) const
 		case LocalArrayT::kCurrCoords:
 		{
 			array.SetGlobal(CurrentCoordinates());
+			NodeManagerT* non_const_this = (NodeManagerT*) this;
+			non_const_this->fNeedCurrentCoords = true;
 			break;					
 		}
 		default:
@@ -417,7 +420,8 @@ void NodeManagerT::UpdateCurrentCoordinates(void)
 		if (!fCurrentCoords)
 			ExceptionT::GeneralFail("NodeManagerT::UpdateCurrentCoordinates", "current coords not initialized");
 	
-		/* update */
+		/* simple update assuming displacement degrees of freedom are the
+		 * nodal values */
 		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
 	}	
 }
