@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.36 2004-09-09 16:16:38 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.37 2005-02-13 22:13:26 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -76,7 +76,7 @@ public:
 
 	/** set the active elements.
 	 * \param array of status flags for all elements in the group */
-	virtual void SetStatus(const ArrayT<StatusT>& status);
+	virtual void SetStatus(const ArrayT<ElementCardT::StatusT>& status);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

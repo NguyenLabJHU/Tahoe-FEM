@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.34 2004-09-07 19:07:57 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.35 2005-02-13 22:13:26 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -125,7 +125,7 @@ void CSEBaseT::InitialCondition(void)
 	/* initialize element status flags */
 	int nel = NumElements();
 	for (int i = 0; i < nel; i++)
-		fElementCards[i].Flag() = kON;
+		fElementCards[i].Flag() = ElementCardT::kON;
 }
 
 #ifdef _FRACTURE_INTERFACE_LIBRARY_	
@@ -143,8 +143,8 @@ void CSEBaseT::CloseStep(void)
 	int nel = NumElements();
 	for (int i = 0; i < nel; i++)
 	{
-		int& flag = fElementCards[i].Flag();
-		flag = (flag == kMarked) ? kOFF : flag;
+		ElementCardT::StatusT& flag = fElementCards[i].Flag();
+		flag = (flag == ElementCardT::kMarked) ? ElementCardT::kOFF : flag;
 	}
 }
 
@@ -158,8 +158,8 @@ GlobalT::RelaxCodeT CSEBaseT::ResetStep(void)
 	int nel = NumElements();
 	for (int i = 0; i < nel; i++)
 	{
-		int& flag = fElementCards[i].Flag();
-		flag = (flag == kMarked) ? kON : flag;
+		ElementCardT::StatusT& flag = fElementCards[i].Flag();
+		flag = (flag == ElementCardT::kMarked) ? ElementCardT::kON : flag;
 	}
 	
 	return relax;

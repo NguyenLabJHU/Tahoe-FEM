@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.11 2004-12-27 06:58:18 paklein Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.12 2005-02-13 22:13:26 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -173,7 +173,7 @@ void CSESymAnisoT::LHSDriver(GlobalT::SystemTypeT)
 		/* current element */
 		const ElementCardT& element = CurrentElement();
 
-		if (element.Flag() != kOFF)
+		if (element.Flag() != ElementCardT::kOFF)
 		{
 	
 		/* surface potential */
@@ -399,7 +399,7 @@ void CSESymAnisoT::RHSDriver(void)
 		}
 		disps_global.RowCollect(element.NodesX().Pointer(), ElementSupport().CurrentCoordinates());
 	  			
-		if (element.Flag() != kOFF)
+		if (element.Flag() != ElementCardT::kOFF)
 		{
 			/* surface potential */
 			SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
@@ -508,8 +508,8 @@ void CSESymAnisoT::RHSDriver(void)
 			/* mark elements */
 			if (all_failed)
 			{
-				int& flag = element.Flag();
-				if (flag == kON) flag = kMarked;
+				ElementCardT::StatusT& flag = element.Flag();
+				if (flag == ElementCardT::kON) flag = ElementCardT::kMarked;
 			}
 		}
 		else if (fOutputArea)
@@ -636,7 +636,7 @@ void CSESymAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		//      although quantities like the reference element centroid could
 		//      still be safely calculated.
 		/* compute output */
-		if (element.Flag() == kON)
+		if (element.Flag() == ElementCardT::kON)
 		{
 	  		/* surface potential */
 			SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
