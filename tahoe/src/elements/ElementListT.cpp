@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.84 2004-02-26 22:13:59 cjkimme Exp $ */
+/* $Id: ElementListT.cpp,v 1.85 2004-03-02 23:50:28 raregue Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -108,6 +108,10 @@
 
 #ifdef MULTISCALE_APS_DEV
 #include "APS_AssemblyT.h"
+#endif
+
+#ifdef MULTISCALE_APS_V_DEV
+#include "APS_V_AssemblyT.h"
 #endif
 
 #ifdef GRAD_SMALL_STRAIN_DEV
@@ -440,6 +444,29 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "MULTISCALE_APS_DEV not enabled: %d", code);
+#endif
+			}
+			case ElementT::kAPSVgrad:
+			{
+#ifdef MULTISCALE_APS_V_DEV
+				/* must be using multi-field solver */
+				if (fSupport.Analysis() != GlobalT::kMultiField)				
+					ExceptionT::BadInputValue(caller, "multi field required");
+			
+				/* coarse scale field read above */
+				const FieldT* displ = field;
+
+				/* fine scale field */				
+				StringT plast_name;
+				in >> plast_name;
+				const FieldT* plast = fSupport.Field(plast_name);
+				if (!displ || !plast)
+					ExceptionT::BadInputValue(caller, "error resolving field names");
+			
+				fArray[group] = new APS_V_AssemblyT(fSupport, *displ, *plast);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "MULTISCALE_APS_V_DEV not enabled: %d", code);
 #endif
 			}
 			case ElementT::kMeshFreeFDElastic:
