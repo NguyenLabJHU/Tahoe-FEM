@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.51 2003-11-21 22:47:08 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.51.4.1 2004-03-16 19:34:28 paklein Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -249,7 +249,7 @@ void EAMT::WriteOutput(void)
       fNeighbors.RowAlias(i, neighbors);
 
       Strain=0;
-      SlipVector=0;
+      SlipVector=0.0;
      
       /*linked list for holding vector pair magnitudes*/
       CSymmParamNode *CParamStart=new CSymmParamNode;
