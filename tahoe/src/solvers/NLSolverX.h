@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.h,v 1.1.1.1.8.1 2002-04-25 01:37:48 paklein Exp $ */
+/* $Id: NLSolverX.h,v 1.1.1.1.8.2 2002-04-30 01:30:23 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 
 #ifndef _NL_SOLVER_X_H_
@@ -19,8 +19,8 @@ public:
 	/* constructor */
 	NLSolverX(FEManagerT& fe_manager, int group);
 
-	/* generate the solution for the current time sequence */
-	virtual void Run(void);
+	/** solve the system over the current time increment */
+	virtual void Solve(void);	
 
 	/* form and solve the equation system - returns the magnitude of the
 	 * residual */

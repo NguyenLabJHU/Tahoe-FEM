@@ -1,14 +1,14 @@
-/* $Id: SymmetricNodesT.cpp,v 1.1.2.1 2002-04-25 01:34:00 paklein Exp $ */
+/* $Id: SymmetricNodesT.cpp,v 1.1.2.2 2002-04-30 01:30:21 paklein Exp $ */
 #include "SymmetricNodesT.h"
 #include "AutoArrayT.h"
-#include "NodeManagerPrimitive.h"
+#include "NodeManagerT.h"
 //#include "ElementBaseT.h"
 //#include "FEManagerT.h"
 #include "ifstreamT.h"
 #include "BasicFieldT.h"
 
 /* constructor */
-SymmetricNodesT::SymmetricNodesT(NodeManagerPrimitive& node_manager, BasicFieldT& field):
+SymmetricNodesT::SymmetricNodesT(NodeManagerT& node_manager, BasicFieldT& field):
 	/*KBC_ControllerT(node_manager),
 	fEqnos(NULL),
 	fKinematics(0),

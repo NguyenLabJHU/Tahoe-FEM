@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.15.2.3 2002-04-30 00:07:04 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.15.2.4 2002-04-30 01:30:18 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -10,8 +10,6 @@
 #include "ModelManagerT.h"
 #include "fstreamT.h"
 #include "Constants.h"
-//#include "FEManagerT.h"
-//#include "NodeManagerT.h"
 #include "FieldT.h"
 #include "LocalArrayT.h"
 

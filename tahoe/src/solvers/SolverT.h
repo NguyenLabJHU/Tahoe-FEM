@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.4.2.2 2002-04-30 00:07:14 paklein Exp $ */
+/* $Id: SolverT.h,v 1.4.2.3 2002-04-30 01:30:23 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _SOLVER_H_
@@ -67,8 +67,8 @@ public:
 	void ReceiveEqns(const iArray2DT& equations) const;
 	void ReceiveEqns(const RaggedArray2DT<int>& equations) const;
 
-	/* Generate the solution for the current time sequence */
-	virtual void Run(void) = 0;
+	/** solve the system over the current time increment */
+	virtual int Solve(void) = 0;
 
 	/* error handler */
 	virtual void ResetStep(void);

@@ -1,13 +1,13 @@
-/* $Id: TiedNodesT.cpp,v 1.7.2.2 2002-04-25 01:34:00 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.7.2.3 2002-04-30 01:30:21 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
-#include "NodeManagerPrimitive.h"
+#include "NodeManagerT.h"
 #include "ElementBaseT.h"
 #include "BasicFieldT.h"
 #include "FEManagerT.h"
 
 /* constructor */
-TiedNodesT::TiedNodesT(NodeManagerPrimitive& node_manager, BasicFieldT& field):
+TiedNodesT::TiedNodesT(NodeManagerT& node_manager, BasicFieldT& field):
 	KBC_ControllerT(node_manager),
 	fField(field),
 	fDummySchedule(1.0),

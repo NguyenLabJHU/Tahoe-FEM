@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.h,v 1.2.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* $Id: iNLSolver_LS.h,v 1.2.2.2 2002-04-30 01:30:23 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #ifndef _I_NL_SOLVER_LS_H_
@@ -18,8 +18,8 @@ public:
 	/* constructor */
 	iNLSolver_LS(FEManagerT& fe_manager, int group);
 
-	/* generate the solution for the current time sequence */
-	virtual void Run(void);
+	/** solve the system over the current time increment */
+	virtual void Solve(void);	
 	
 	/* execute commands */
 	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);

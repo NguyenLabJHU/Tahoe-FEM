@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.8.2.4 2002-04-30 00:07:04 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.8.2.5 2002-04-30 01:30:18 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -24,7 +24,7 @@
 #include "ios_fwd_decl.h"
 class ifstreamT;
 //class FEManagerT;
-//class NodeManagerPrimitive;
+//class NodeManagerT;
 class LocalArrayT;
 class ScheduleT;
 class eControllerT;
@@ -266,7 +266,7 @@ private:
 protected:
 
 //	const FEManagerT& fFEManager;
-//	const NodeManagerPrimitive& fNodes;
+//	const NodeManagerT& fNodes;
 
 	/* element controller */
 	eControllerT* fController;

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.13.2.5 2002-04-30 00:07:11 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.13.2.6 2002-04-30 01:30:20 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -21,7 +21,7 @@ class ifstreamT;
 class ofstreamT;
 class ModelManagerT;
 class TimeManagerT;
-class NodeManagerPrimitive; //TEMP - rename
+class NodeManagerT; //TEMP - rename
 class ControllerT;
 class nControllerT;
 class eControllerT;
@@ -76,13 +76,10 @@ public:
 
 	/** return the number of equation groups */
 	int NumGroups(void) const { return fSolvers.Length(); };
-	/*@}*/
 
+	/** returns true for verbose echo of input */
 	bool PrintInput(void) const;
-
-//NOTE - NEED THESE?
-//	int NumberOfLTf(void) const;
-//	double LoadFactor(int nLTf) const;
+	/*@}*/
 
 	/** \name equation system */
 	/*@{*/
@@ -118,7 +115,7 @@ public:
 	bool IncreaseLoadStep(void);
 	
 	/* time sequence messaging */
-	virtual bool Step(void);
+//	virtual bool Step(void);
 	void ResetStep(void);
 	
 	/* solution accessors */
@@ -129,7 +126,18 @@ public:
 	void SetTimeStep(double dt) const;
 	int SequenceNumber(void) const;
 	int NumSequences(void) const;
+
+	/** \name group methods */
+	/*@{*/
+	/** iteration number for the solution of the given group over the
+	 * current time increment */	
 	const int& IterationNumber(int group) const;
+
+	/* solution messaging */
+	void FormLHS(int group) const;
+	void FormRHS(int group) const;
+
+	/*@}*/
 
 	/* I/O info */
 	const StringT& Version(void) const;
@@ -141,16 +149,9 @@ public:
 //	void SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const;
 //	void RegisterLocal(LocalArrayT& array) const;
 	
-	/* solution messaging */
-	void FormLHS(int group) const;
-	void FormRHS(int group) const;
 	
 	/** collect the internal force on the specified node */
 	void InternalForceOnNode(const FieldT& field, int node, dArrayT& force) const;
-
-	/* first/last functions called during a time increment */
-	virtual void InitStep(void) const;
-	virtual void CloseStep(void) const;
 
 	/** send update of the solution to the NodeManagerT */
 	virtual void Update(int group, const dArrayT& update);
@@ -212,7 +213,7 @@ public:
 	virtual void RestoreOutput(void);
 	
 	/* cross-linking - create your own trouble */
-	NodeManagerPrimitive* NodeManager(void) const;
+	NodeManagerT* NodeManager(void) const;
 	ElementBaseT* ElementGroup(int groupnumber) const;
 		// 1 <= groupnumber <= fNumElementGroups
 		// returns NULL if out of range
@@ -298,6 +299,11 @@ protected:
 	/* collect element equations and send to solver */
 	void SendEqnsToSolver(int group) const;
 
+	/* first/last functions called during a time increment */
+	virtual int InitStep(void) const;
+	virtual int SolveStep(void) const;
+	virtual int CloseStep(void) const;
+
 private:
 
 	/** \name disallowed */
@@ -338,7 +344,7 @@ protected:
 	/** the managers */
 	/*@{*/
 	TimeManagerT* fTimeManager;
-	NodeManagerPrimitive* fNodeManager;
+	NodeManagerT* fNodeManager;
 	ElementListT fElementGroups;
 	ArrayT<SolverT*> fSolvers;
 	ArrayT<ControllerT*> fControllers;
@@ -369,7 +375,7 @@ inline ofstreamT& FEManagerT::Output(void) const { return fMainOut; }
 inline const GlobalT::StateT& FEManagerT::RunState(void) const { return fStatus; }
 inline IOBaseT::FileTypeT FEManagerT::OutputFormat(void) const { return fOutputFormat; }
 inline ModelManagerT* FEManagerT::ModelManager (void) const { return fModelManager; }
-inline NodeManagerPrimitive* FEManagerT::NodeManager(void) const { return fNodeManager; }
+inline NodeManagerT* FEManagerT::NodeManager(void) const { return fNodeManager; }
 inline IOManager* FEManagerT::OutputManager(void) const { return fIOManager; }
 inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
 {

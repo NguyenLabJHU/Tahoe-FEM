@@ -1,4 +1,4 @@
-/* $Id: NLSolver.h,v 1.2.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* $Id: NLSolver.h,v 1.2.2.2 2002-04-30 01:30:23 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NL_SOLVER_H_
@@ -15,8 +15,8 @@ public:
 	/* constructor */
 	NLSolver(FEManagerT& fe_manager, int group);
 	
-	/* generate the solution for the current time sequence */
-	 virtual void Run(void);
+	/** solve the system over the current time increment */
+	virtual void Solve(void);	
 
 	/* error handler */
 	virtual void ResetStep(void);

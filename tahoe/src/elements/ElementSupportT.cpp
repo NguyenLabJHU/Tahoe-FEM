@@ -1,7 +1,7 @@
-/* $Id: ElementSupportT.cpp,v 1.1.2.2 2002-04-30 00:07:04 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.1.2.3 2002-04-30 01:30:18 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "FEManagerT.h"
-#include "NodeManagerPrimitive.h"
+#include "NodeManagerT.h"
 
 /* constructor */
 ElementSupportT::ElementSupportT(void)
@@ -32,8 +32,8 @@ void ElementSupportT::SetFEManager(FEManagerT* fe)
 	}
 }
 
-/* (re-)set the NodeManagerPrimitive */
-void ElementSupportT::SetNodes(NodeManagerPrimitive* nodes)
+/* (re-)set the NodeManagerT */
+void ElementSupportT::SetNodes(NodeManagerT* nodes)
 {
 	fNodes = nodes;
 	if (nodes)

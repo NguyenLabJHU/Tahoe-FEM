@@ -1,4 +1,4 @@
-/* $Id: SymmetricNodesT.h,v 1.1.2.1 2002-04-25 01:34:00 paklein Exp $ */
+/* $Id: SymmetricNodesT.h,v 1.1.2.2 2002-04-30 01:30:21 paklein Exp $ */
 
 #ifndef _SYMMETRIC_NODES_T_H_
 #define _SYMMETRIC_NODES_T_H_
@@ -8,9 +8,6 @@
 
 /* direct members */
 #include "dArray2DT.h"
-//#include "iArrayT.h"
-//#include "LoadTime.h"
-//#include "AutoArrayT.h"
 
 /* forward declarations */
 class dArray2DT;
@@ -25,7 +22,7 @@ class SymmetricNodesT: public TiedNodesT
 public:	
 
 	/** constructor */
-	SymmetricNodesT(NodeManagerPrimitive& node_manager, BasicFieldT& field);
+	SymmetricNodesT(NodeManagerT& node_manager, BasicFieldT& field);
 
 	/** initialize data. Must be called immediately after construction */
        	virtual void Initialize(ifstreamT& in);

@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.cpp,v 1.2.2.2 2002-04-30 00:07:14 paklein Exp $ */
+/* $Id: LinearSolver.cpp,v 1.2.2.3 2002-04-30 01:30:23 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 
 #include "LinearSolver.h"
@@ -36,61 +36,59 @@ void LinearSolver::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 //    ReEQ_LHS, ReEQ_RHS
 }
 
-/* solve for the current time sequence */
-void LinearSolver::Run(void)
+/* solve the current step */
+int LinearSolver::Solve(void)
 {
-	/* single-step update loop */
-	while (Step())
-	{
-		try
-		{
-			/* initialize */
-			fRHS = 0.0;
+	try {
+	/* initialize */
+	fRHS = 0.0;
 			
-			/* apply kinematic BC's */
-			fFEManager.InitStep();
-
-			/* form the residual force vector */
-			fFEManager.FormRHS(Group());
+	/* form the residual force vector */
+	fFEManager.FormRHS(Group());
 					
-			/* solve equation system */
-			if (fFormLHS)
-			{
-				/* initialize */
-				fLHS->Clear();
+	/* solve equation system */
+	if (fFormLHS)
+	{
+		/* initialize */
+		fLHS->Clear();
 	
-				/* form the stiffness matrix */
-				fFEManager.FormLHS(Group());
+		/* form the stiffness matrix */
+		fFEManager.FormLHS(Group());
 				
-				/* flag not to reform */
-				fFormLHS = 0;
-			}
-
-			/* determine update vector */
-			if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
-
-			/* update displacements */
-			fFEManager.Update(Group(), fRHS);		
-			
-			/* relaxation */
-			GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
-				
-			/* relax for configuration change */
-			if (relaxcode == GlobalT::kRelax) fFormLHS = 1;
-				//NOTE: NLSolver calls "fFEManager.Reinitialize()". Should this happen
-				//      here, too? For statics, should also reset the structure of
-				//      global stiffness matrix, but since EFG only breaks connections
-				//      and doesn't make new ones, this should be OK for now. PAK (03/04/99)
-			
-			/* trigger set of new equations */
-			if (relaxcode == GlobalT::kReEQ ||
-			    relaxcode == GlobalT::kReEQRelax)
-				fFEManager.Reinitialize(Group());
-				
-			/* finalize */
-			fFEManager.CloseStep();
-		}
-
-		catch (int code) { fFEManager.HandleException(code); }
+		/* flag not to reform */
+		fFormLHS = 0;
 	}
-}	
+
+	/* determine update vector */
+	if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
+
+	/* update displacements */
+	fFEManager.Update(Group(), fRHS);		
+			
+	/* relaxation */
+	GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
+				
+	/* relax for configuration change */
+	if (relaxcode == GlobalT::kRelax) fFormLHS = 1;
+			//NOTE: NLSolver calls "fFEManager.Reinitialize()". Should this happen
+			//      here, too? For statics, should also reset the structure of
+			//      global stiffness matrix, but since EFG only breaks connections
+			//      and doesn't make new ones, this should be OK for now. PAK (03/04/99)
+			
+	/* trigger set of new equations */
+	if (relaxcode == GlobalT::kReEQ ||
+	    relaxcode == GlobalT::kReEQRelax)
+		fFEManager.Reinitialize(Group());
+	}
+	
+	/* not OK */
+	catch (int exception)
+	{
+		cout << "\n LinearSolver::Solve: caught exception: " 
+		     << fFEManager.Exception(exception) << endl;
+		return exception;
+	}
+
+	/* OK */
+	return eNoError;
+}

@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.5.2.2 2002-04-30 00:07:13 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.5.2.3 2002-04-30 01:30:22 paklein Exp $ */
 /* created: paklein (06/15/1996) */
 
 #include "FBC_CardT.h"
@@ -7,7 +7,7 @@
 #include <iomanip.h>
 
 #include "Constants.h"
-#include "NodeManagerPrimitive.h" // needed for schedule information
+#include "NodeManagerT.h" // needed for schedule information
 #include "fstreamT.h"
 #include "ScheduleT.h"
 
@@ -27,7 +27,7 @@ FBC_CardT::FBC_CardT(void):
 }
 
 /* modifiers */
-void FBC_CardT::SetValues(const NodeManagerPrimitive& theBoss, ifstreamT& in)
+void FBC_CardT::SetValues(const NodeManagerT& theBoss, ifstreamT& in)
 {
 	/* parameters */
 	int    node;
@@ -45,7 +45,7 @@ void FBC_CardT::SetValues(const NodeManagerPrimitive& theBoss, ifstreamT& in)
 	SetValues(theBoss, node, dof, nLTf, value);
 }
 
-void FBC_CardT::SetValues(const NodeManagerPrimitive& theBoss, int node, int dof,
+void FBC_CardT::SetValues(const NodeManagerT& theBoss, int node, int dof,
 	int schedule, double value)
 {
 	/* set */

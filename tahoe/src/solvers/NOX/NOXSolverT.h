@@ -1,4 +1,4 @@
-/* $Id: NOXSolverT.h,v 1.2.2.1 2002-04-30 00:07:15 paklein Exp $ */
+/* $Id: NOXSolverT.h,v 1.2.2.2 2002-04-30 01:30:24 paklein Exp $ */
 #ifndef _NOX_SOLVER_T_H_
 #define _NOX_SOLVER_T_H_
 
@@ -37,8 +37,8 @@ public:
 	/** destructor */
 	virtual ~NOXSolverT(void);
 
-	/** generate the solution for the current time sequence */
-	virtual void Run(void);
+	/** solve the system over the current time increment */
+	virtual void Solve(void);	
 
 	/** error handler */
 	virtual void ResetStep(void);

@@ -1,4 +1,4 @@
-/* $Id: NLHHTalpha.cpp,v 1.2.2.1 2002-04-24 01:29:19 paklein Exp $ */
+/* $Id: NLHHTalpha.cpp,v 1.2.2.2 2002-04-30 01:30:17 paklein Exp $ */
 /* created: paklein (10/11/1996) */
 
 #include "NLHHTalpha.h"
@@ -7,7 +7,6 @@
 #include "Constants.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
-//#include "NodeManagerT.h"
 #include "TimeManagerT.h"
 
 /* constructor */

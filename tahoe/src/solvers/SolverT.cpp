@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.4.2.2 2002-04-30 00:07:14 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.4.2.3 2002-04-30 01:30:23 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "SolverT.h"
@@ -217,7 +217,7 @@ GlobalT::EquationNumberScopeT SolverT::EquationNumberScope(void) const
 
 /* advance to next load step. Returns 0 if there are no more
 * steps. Overload to add class dependent initializations */
-int SolverT::Step(void) { return fFEManager.Step(); }
+//int SolverT::Step(void) { return fFEManager.Step(); }
 
 /* return the magnitude of the residual force */
 double SolverT::Residual(const dArrayT& force) const

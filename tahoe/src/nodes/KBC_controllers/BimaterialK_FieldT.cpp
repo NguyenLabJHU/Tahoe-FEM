@@ -1,9 +1,9 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.5.2.2 2002-04-25 01:34:00 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.5.2.3 2002-04-30 01:30:21 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "BimaterialK_FieldT.h"
 
-#include "NodeManagerPrimitive.h"
+#include "NodeManagerT.h"
 #include "fstreamT.h"
 #include "IsotropicT.h"
 #include "Material2DT.h"
@@ -12,7 +12,7 @@
 const double Pi = acos(-1.0);
 
 /* constructor */
-BimaterialK_FieldT::BimaterialK_FieldT(NodeManagerPrimitive& node_manager):
+BimaterialK_FieldT::BimaterialK_FieldT(NodeManagerT& node_manager):
 	K_FieldT(node_manager),
 	fIsotropic_2(NULL),
 	fMaterial2D_2(NULL)
