@@ -1,4 +1,4 @@
-/* $Id: BoxT.h,v 1.3 2002-07-25 23:48:07 saubry Exp $ */
+/* $Id: BoxT.h,v 1.4 2002-08-02 02:07:49 saubry Exp $ */
 
 #ifndef _BOX_T_H_
 #define _BOX_T_H_
@@ -19,29 +19,34 @@ class BoxT : public VolumeT
  protected:
   
   iArrayT ncells;
-  dArrayT length;
+  dArray2DT length; // lower and upper bounds
   
  public:
   
   //Constructor
-  BoxT(int dim, int whichunit, dArrayT len_cel, 
-       dArrayT lattice_parameter);
+  BoxT(int dim, dArray2DT len, dArrayT lattice_parameter);
+  BoxT(int dim, iArrayT cel, dArrayT lattice_parameter);
   
   //Destructor
   ~BoxT(){};
   
-	// Copy constructor
+  // Copy constructor
   BoxT(const BoxT& source);
   
-  void CalculateVolume();
-  void CreateLattice(CrystalLatticeT* pcl);
-  
+  void CreateLattice(CrystalLatticeT* pcl); // return volume
+  void CalculateBounds(iArrayT per,CrystalLatticeT* pcl);
+  void CalculateType();
+
   iArrayT GetNCells();
-  dArrayT GetLength();
-  
+  dArray2DT GetLength();
+
+ private:
+
+  dArray2DT ComputeMinMax();  
+
 };
 
 inline iArrayT BoxT::GetNCells(){return ncells;};
-inline dArrayT BoxT::GetLength(){return length;};
+inline dArray2DT BoxT::GetLength(){return length;};
 
 #endif

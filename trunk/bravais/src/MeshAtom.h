@@ -52,8 +52,8 @@ class MeshAtom {
   // Constructor
   MeshAtom(StringT which_latticetype,int nsd,int nuca,
 	   dArrayT latticeparameter,StringT which_shape,
-	   int whichunit,dArrayT len_cel,dArrayT rot_vec,
-	   double angle);
+	   int whichunit,dArray2DT len, iArrayT cel,
+	   dArray2DT mat_rot,double angle);
   
   // Destructor: not done yet. 
   ~MeshAtom(){};
@@ -63,14 +63,20 @@ class MeshAtom {
 
   // Access to mesh
   double Volume_of_Mesh();
+  dArray2DT Length();
 
   iArrayT* ReturnAtomID();
   dArray2DT* ReturnCoordinates();
   iArray2DT* ReturnConnectivities();
+  dArray2DT* ReturnBounds();
+
+
+  //Build IO file
   void BuildIOFile(StringT& program_name,
-			     StringT& version, StringT& title, 
-			     StringT& input_file,
-			     IOBaseT::FileTypeT output_format);
+		   StringT& version, StringT& title, 
+		   StringT& input_file,
+		   IOBaseT::FileTypeT output_format,
+		   iArrayT per);
   
 
 				

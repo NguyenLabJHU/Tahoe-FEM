@@ -31,14 +31,15 @@ public:
          // constructor
         OutPutLatticeT(ostream& outfile, const StringT& program_name,
 		       const StringT& version, const StringT& title, const StringT& input_file,
-		       IOBaseT::FileTypeT output_format);
-
+		       IOBaseT::FileTypeT output_format, dArray2DT bounds,iArrayT type);
 	// destructor
 	~OutPutLatticeT(void);
 
 	static OutputBaseT* NewOutput(const StringT& program_name,
-			       const StringT& version, const StringT& title, const StringT& input_file,
-			       IOBaseT::FileTypeT output_format, ostream& log);
+				      const StringT& version, 
+				      const StringT& title, const StringT& input_file,
+				      IOBaseT::FileTypeT output_format, 
+				      ostream& log,dArray2DT bounds,iArrayT type);
 
 	/* output functions */
 	void SetCoordinates(const dArray2DT& coordinates, const iArrayT* node_id);
