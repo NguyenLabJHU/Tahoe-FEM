@@ -1,4 +1,4 @@
-# $Id: SGI.macros,v 1.5 2001-01-31 02:12:21 paklein Exp $
+# $Id: SGI.macros,v 1.6 2001-02-06 03:13:17 paklein Exp $
 # SGI Irix 6.2 (or newer)
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -19,6 +19,8 @@ ARFLAGS     = -cruv
 MAKE_OPTS   = -sP
 RM          = rm -rf
 LN          = ln -sf
+ECHO        = echo
+CAT         = cat
 INC_FLAGS   = -I/usr/include/CC
 # parallel builds
 # env. var. PARALLEL controls concurrency (default = 2)
