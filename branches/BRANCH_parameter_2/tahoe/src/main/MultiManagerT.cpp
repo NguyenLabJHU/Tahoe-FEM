@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.5 2003-12-28 08:23:46 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.5.2.1 2004-03-31 16:19:10 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -9,6 +9,7 @@
 #include "NodeManagerT.h"
 #include "OutputSetT.h"
 #include "TimeManagerT.h"
+#include "FieldT.h"
 
 using namespace Tahoe;
 

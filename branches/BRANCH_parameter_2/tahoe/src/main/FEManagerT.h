@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.40.2.2 2004-02-18 16:33:52 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.40.2.3 2004-03-31 16:18:35 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -259,7 +259,7 @@ public:
 	 * \param ID output set ID for the given data
 	 * \param n_values nodal output values
 	 * \param e_values element output values */
-	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
+	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
 
 	/** write a geometry file for the current model */
 	void WriteGeometryFile(const StringT& file_name, IOBaseT::FileTypeT output_format) const;
