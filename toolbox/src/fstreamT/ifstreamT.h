@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.h,v 1.9 2002-04-08 16:15:06 paklein Exp $ */
+/* $Id: ifstreamT.h,v 1.10 2002-04-09 17:20:51 paklein Exp $ */
 /* created: paklein (03/03/1999) */
 
 #ifndef _IFSTREAM_T_H_
@@ -13,11 +13,6 @@
 
 /* direct members */
 #include "StringT.h"
-
-/* should be defined by I/O */
-#ifndef streamsize
-#define streamsize int
-#endif
 
 /** input file stream with extended capabilities */
 class ifstreamT: public ifstream
@@ -59,7 +54,7 @@ public:
 	char next_char(void);
 	
 	/** get the next line from stream. Ignores comment lines */
-	istream& getline(char* s, streamsize n, char delimiter = '\n');
+	ifstreamT& getline(char* s, int n, char delimiter = '\n');
 	
 	/** \return the filename or NULL if no file is open */
 	const char* filename(void) const;
@@ -119,7 +114,7 @@ inline void ifstreamT::set_marker(char marker)
 inline void ifstreamT::clear_marker(void) { fSkipComments = 0; }
 
 /* get the next line from stream. Ignores comment lines */
-inline istream& ifstreamT::getline(char* s, streamsize n, char delimiter)
+inline ifstreamT& ifstreamT::getline(char* s, int n, char delimiter)
 {
 	/* advance */
 	do_skip_comments();
