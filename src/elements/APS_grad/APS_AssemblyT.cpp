@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.47 2004-02-17 19:48:41 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.48 2004-02-18 01:29:17 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -914,11 +914,11 @@ void APS_AssemblyT::WriteOutput(void)
 		/* extrapolate */
 		nd_var = 0.0;
 		out_variable_all.Alias(fNumIP_plast, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
-		fShapes_plast->TopIP();
-		while (fShapes_plast->NextIP())
+		fShapes_displ->TopIP();
+		while (fShapes_displ->NextIP())
 		{
-			out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(fShapes_plast->CurrIP()));
-			fShapes_plast->Extrapolate(out_variable, nd_var);
+			out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(fShapes_displ->CurrIP()));
+			fShapes_displ->Extrapolate(out_variable, nd_var);
 		}
 	
 		/* accumulate - extrapolation done from ip's to corners => X nodes  */
