@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.4.2.5 2001-10-15 19:06:13 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.4.2.6 2001-10-16 22:11:06 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -23,11 +23,15 @@ class ModelManagerT
   ModelManagerT (ostream& message);
   ~ModelManagerT (void);
 
-  /* Read format and file name from file, casts and initializes InputBaseT */
-  void Initialize (ifstreamT& in);
+  /* Read format and file name from file, casts and initializes InputBaseT if not readonly */
+  void Initialize (ifstreamT& in, bool readonly);
 
   /* give file name and format, casts and initializes InputBaseT */
   void Initialize (const IOBaseT::FileTypeT format, const StringT& database);
+
+  /* echo format and model file to message file */
+  void EchoData (ostream& o) const;
+  void Format (IOBaseT::FileTypeT& format, StringT& name) const;
 
   /* Query the user interactively for format and file name, 
      for translator programs,
@@ -71,8 +75,10 @@ class ModelManagerT
   /* reads from input file the number of sets and list of names
      if kTahoe, it will read number of facets and register them
      returns array of indexes
-     allows code to read from input file but not care about input format */
-  void SideSetList (ifstreamT& in, iArrayT& indexes);
+     allows code to read from input file but not care about input format 
+     multidatabasesets accounts for the inconsistency between node set lists and side sets lists
+     many side set lists are only allowed one side set and therefore the num_sets is not read from parameter file */
+  void SideSetList (ifstreamT& in, iArrayT& indexes, bool multidatabasesets);
 
   /* read IC/KBC/FBC card type data
      allows code to read from input file but not care about input format */
@@ -167,6 +173,11 @@ class ModelManagerT
   AutoArrayT<iArray2DT> fSideSets;
 };
 
+inline void ModelManagerT::Format (IOBaseT::FileTypeT& format, StringT& name) const
+{ 
+  format = fFormat;
+  name = fInputName;
+}
 inline int ModelManagerT::NumElementGroups (void) const { return fNumElementSets; }
 inline int ModelManagerT::NumNodeSets (void) const { return fNumNodeSets; }
 inline int ModelManagerT::NumSideSets (void) const { return fNumSideSets; }
