@@ -162,16 +162,14 @@ protected:
 	/** reference ID for sending output */
 	int fOutputID;
 	
-	/** connectivities used to define the output set. Just an alias to the
-	 * ParticleT::fGlobalTag. */
+	/** connectivities used to define the output set. */
 	iArray2DT fPointConnectivities;
-	/*@}*/
 
-	/** \name cached calculated values */
+	/** \name cached RHS workspace */
 	/*@{*/
 	dArray2DT fForce;
 	nVariArray2DT<double> fForce_man;
-	/*@{*/
+	/*@}*/
 	
 	/** spatial dimensionality */
 	int fSD;
@@ -181,14 +179,24 @@ protected:
 	/** the coordinates of the nodes */
 	dArray2DT fDeloneVertices;
 	
+	/** \name Geometrical Data Structures */
+	/*@{*/
+	
 	/** midpoints of each of these are centroids of Voronoi facets */
 	iArray2DT fDeloneEdges;
 	
 	/** Number of Delone edges that are not on the body bounday */
 	int nInteriorDeloneEdges;
+
+	/** connectivity of boundary nodes. Currently determined from an underlying 
+	    element connectivity */
+	iArray2DT fBoundaryConnectivity;
 	
-	/** additional edges with nodes as endpoints for boundary integration */
-	//iArray2DT fBoundaryDeloneEdges;
+	/** union of nodes in fBoundaryConnectivity */
+	iArrayT fBoundaryNodes;
+	
+	/** true if boundary connectivity is simplicial */
+	bool fBoundaryIsTriangulated;
 	
 	/** centroids of the facets corresponding to those edges */
 	dArray2DT fBoundaryDeloneCentroids;
@@ -200,45 +208,13 @@ protected:
 	dArray2DT fNonDeloneCentroids;
 	dArray2DT fNonDeloneNormals;
 	
-	/** dual of the Delone Edges -- area of Voronoi Facets */
+	/** dual of the Delone Edges -- areas of Voronoi Facets */
 	dArrayT fDualAreas;
 	
 	/** areas of boundary facets */
-	dArrayT fIntegrationWeights;
+	dArrayT fBoundaryIntegrationWeights;
 
-	GeometryBaseT* fFakeGeometry;
-
-	/** list of materials */
-	MaterialListT* fMaterialList;
-	SSMatSupportT* fSSMatSupport;
-	
-	/** workspace for strain smoothing */
-	ArrayT<dArray2DT> bVectors;
-	
-	/* output control */
-	iArrayT	fNodalOutputCodes;
-	iArrayT	fElementOutputCodes;
-	  	
-	/* body force vector */
-	const ScheduleT* fBodySchedule; /**< body force schedule */
-	dArrayT fBody; /**< body force vector   */
-	
-	/** \name arrays with local ordering */
-	/*@{*/
-	LocalArrayT fLocInitCoords;   /**< initial coords with local ordering */
-	//LocalArrayT fLocDisp;	      /**< displacements with local ordering  */ 
-	/*@}*/
-	
-	/** shape functions */
-	MeshFreeNodalShapeFunctionT* fNodalShapes;
-	
-	/** underlying Element connectivities. Needed only for MLS stuff right now */
-	ArrayT<const iArray2DT*> fElementConnectivities;
-
-	/** equation numbers */
-	RaggedArray2DT<int> fEqnos;
-
-
+	/** Compute or read the Voronoi Diagram */	
 #ifdef __QHULL__	
 	CompGeomT* fVoronoi;
 	CompGeomT::ConvexHullMap fVoronoiCells;
@@ -251,8 +227,32 @@ protected:
 
 	ArrayT<dArrayT> fVoronoiFacetAreas;
 	ArrayT<dArray2DT> fVoronoiFacetNormals;
+	/** Volume associated with each node -- integration weight for nodal integration */
 	dArrayT fVoronoiCellVolumes;
 	dArray2DT fVoronoiVertices;
+	/*@}*/
+
+	//GeometryBaseT* fFakeGeometry;
+
+	/** list of materials */
+	MaterialListT* fMaterialList;
+	SSMatSupportT* fSSMatSupport;
+	
+	/** workspace for strain smoothing */
+	ArrayT<dArray2DT> bVectors;
+	  	
+	/* body force vector */
+	const ScheduleT* fBodySchedule; /**< body force schedule */
+	dArrayT fBody; /**< body force vector   */
+	
+	/** shape functions */
+	MeshFreeNodalShapeFunctionT* fNodalShapes;
+	
+	/** underlying Element connectivities. Needed only for MLS stuff right now */
+	ArrayT<const iArray2DT*> fElementConnectivities;
+
+	/** equation numbers */
+	RaggedArray2DT<int> fEqnos;
 
 };
 
