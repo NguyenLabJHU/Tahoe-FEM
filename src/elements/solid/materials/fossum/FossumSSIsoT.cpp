@@ -95,9 +95,6 @@ FossumSSIsoT::FossumSSIsoT(void):
         fTimeFactor(1.0)
 
 {
-  SetName("Fossum_small_strain");
-
-
 	/* allocate space for principal dirs m */
 	for (int i = 0; i < 3; i++)
 	{
@@ -144,8 +141,9 @@ FossumSSIsoT::~FossumSSIsoT(void) { }
 /*describe parameters needed by the interface*/
 void FossumSSIsoT::DefineParameters(ParameterListT& list) const  
 {      
-  /* inherited */       
-  ParameterInterfaceT::DefineParameters(list); 
+	/* inherited */
+	SSIsotropicMatT::DefineParameters(list);
+	HookeanMatT::DefineParameters(list);
  
   ParameterT A(fA, "Shear_surface_parameter_A");    
   A.AddLimit(0.0, LimitT::LowerInclusive); 
@@ -187,7 +185,8 @@ void FossumSSIsoT::DefineParameters(ParameterListT& list) const
 void FossumSSIsoT::TakeParameterList(const ParameterListT& list)
 {
     /* inherited */
-    ParameterInterfaceT::TakeParameterList(list);
+    SSIsotropicMatT::TakeParameterList(list);
+    HookeanMatT::TakeParameterList(list);
 
     fA = list.GetParameter("Shear_surface_parameter_A");
     fB = list.GetParameter("Shear_surface_parameter_B");

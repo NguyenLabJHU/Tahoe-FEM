@@ -1,4 +1,4 @@
-/* $Id: FossumSSIso2DT.cpp,v 1.8 2004-08-04 02:28:46 cfoster Exp $ */
+/* $Id: FossumSSIso2DT.cpp,v 1.9 2004-08-04 16:26:25 paklein Exp $ */
 #include "FossumSSIso2DT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -8,7 +8,6 @@ using namespace Tahoe;
 /* constructor */
 FossumSSIso2DT::FossumSSIso2DT(void):
 	ParameterInterfaceT("Fossum_small_strain_2D"),
-	FossumSSIsoT(),
 //	Material2DT(in, kPlaneStrain),
 	//fStress2D(2),
 	//fModulus2D(dSymMatrixT::NumValues(2)),
