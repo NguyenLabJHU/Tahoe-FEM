@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.63 2003-09-09 22:43:48 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.63.2.1 2003-09-27 08:25:50 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -65,7 +65,6 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm)
 	fModelManager(NULL),
 	fCommManager(NULL),
 	fMaxSolverLoops(0),
-	fRestartCount(0),
 	fGlobalEquationStart(0),
 	fActiveEquationStart(0),
 	fGlobalNumEquations(0),
@@ -544,7 +543,7 @@ ExceptionT::CodeT FEManagerT::CloseStep(void)
 	/* elements */
 	for (int i = 0 ; i < fElementGroups->Length(); i++)
 		(*fElementGroups)[i]->CloseStep();
-		
+
 	/* write restart file */
 	WriteRestart();
 	}
@@ -1555,6 +1554,8 @@ void FEManagerT::SetOutput(void)
 /* (re-)set system to initial conditions */
 ExceptionT::CodeT FEManagerT::InitialCondition(void)
 {
+	const char caller[] = "FEManagerT::InitialCondition";
+
 	/* state */
 	fStatus = GlobalT::kInitialCondition;	
 
@@ -1565,12 +1566,12 @@ ExceptionT::CodeT FEManagerT::InitialCondition(void)
 	fNodeManager->InitialCondition();
 	for (int i = 0 ; i < fElementGroups->Length(); i++)
 		(*fElementGroups)[i]->InitialCondition();
-
-	/* initialize state: solve (t = 0) or read from restart file */
+		
+	/* initialize state: solve (t = 0) unless restarted */
 	ExceptionT::CodeT error = ExceptionT::kNoError;
 	if (!ReadRestart() && fComputeInitialCondition)
 	{
-		cout << "\n FEManagerT::InitialCondition: computing initial conditions" << endl;
+		cout << "\n " << caller << ": computing initial conditions" << endl;
 	
 		/* current step size */
 		double dt = TimeStep();
@@ -1591,10 +1592,11 @@ ExceptionT::CodeT FEManagerT::InitialCondition(void)
 		SetTimeStep(dt);
 
 		if (error != ExceptionT::kNoError)
-			cout << "\n FEManagerT::InitialCondition: error encountered" << endl;
-		cout << "\n FEManagerT::InitialCondition: computing initial conditions: DONE" << endl;
+			cout << "\n " << caller << ": error encountered" << endl;
+
+		cout << "\n " << caller << ": computing initial conditions: DONE" << endl;
 	}
-	
+
 	return error;
 }
 
@@ -1665,24 +1667,18 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 	/* regular write */
 	if (file_name == NULL)
 	{
-		/* non-const counter */
-		FEManagerT* non_const = (FEManagerT*) this;
-		int& counter = non_const->fRestartCount;
-
 		/* resolve restart flag */
 		bool write = false;
 		if (fabs(TimeStep()) > kSmall && /* no output if clock is not running */
-			fWriteRestart > 0 && ++counter == fWriteRestart) write = true;
+			fWriteRestart > 0 && StepNumber()%fWriteRestart == 0) write = true;
 
 		/* write file */
 		if (write)
 		{
-			/* reset */
-			counter = 0;
-
 			StringT rs_file;
 			rs_file.Root(fMainIn.filename());
 			rs_file.Append(".rs", StepNumber());
+			rs_file.Append("of", NumberOfSteps());
 			ofstreamT restart(rs_file);
 
 			/* skip on fail */
