@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-03-19 18:46:05 thao Exp $
+# $Id: makefile,v 1.2 2003-05-15 05:26:08 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,6 +23,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	FiniteStrainMF.o \
 	SmallStrainMF.o \
+	SmallStrainMF2.o \
 	UpdatedLagrangianMF.o 
 
 OBJ_LINK = $(OBJ)
@@ -45,6 +46,7 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	FiniteStrainMF.cpp \
 	SmallStrainMF.cpp \
+	SmallStrainMF2.cpp \
 	UpdatedLagrangianMF.cpp 
 
 ##################### (3) headers
@@ -58,6 +60,7 @@ SRC = \
 #
 HDR = \
 	FiniteStrainMF.h \
+	SmallStrainMF2.h \
 	SmallStrainMF.h \
 	UpdatedLagrangianMF.h 
 
