@@ -1,5 +1,5 @@
-/* $Id: DRSolver.cpp,v 1.2 2002-04-02 23:25:16 paklein Exp $ */
-/* created: PAK/CBH (10/03/1996)                                          */
+/* $Id: DRSolver.cpp,v 1.2.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* created: PAK/CBH (10/03/1996) */
 
 #include "DRSolver.h"
 
@@ -12,7 +12,8 @@
 #include "CCSMatrixT.h"
 
 /* constructor */
-DRSolver::DRSolver(FEManagerT& fe_manager): NLSolver(fe_manager)
+DRSolver::DRSolver(FEManagerT& fe_manager, int group): 
+	NLSolver(fe_manager, group)
 {
 #ifdef __NO_RTTI__
 	fCCSLHS = (CCSMatrixT*) fLHS;

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.7 2002-04-19 21:12:57 cjkimme Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.7.2.1 2002-04-25 01:31:28 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "NodeManagerT.h"
@@ -42,6 +42,7 @@ void NodeManagerT::DuplicateNodes(const iArrayT& nodes, iArrayT& new_node_tags)
 * Protected
 **********************************************************************/
 
+#if 0
 /* BC Controllers */
 KBC_ControllerT* NodeManagerT::NewKBC_Controller(int code)
 {
@@ -75,6 +76,7 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(int code)
 			return NodeManagerPrimitive::NewKBC_Controller(code);
 	}
 }
+#endif
 
 /* return the number of DOF's */
 int NodeManagerT::DegreesOfFreedom(int nsd) const 

@@ -1,5 +1,5 @@
-/* $Id: PCGSolver_LS.cpp,v 1.4 2002-04-02 23:27:27 paklein Exp $ */
-/* created: paklein (08/19/1999)                                          */
+/* $Id: PCGSolver_LS.cpp,v 1.4.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* created: paklein (08/19/1999) */
 
 #include "PCGSolver_LS.h"
 
@@ -14,8 +14,8 @@
 #include "DiagonalMatrixT.h"
 
 /* constructor */
-PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager):
-	NLSolver(fe_manager),
+PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
+	NLSolver(fe_manager, group),
 	fPreconditioner(0) //TEMP
 {
 	/* check */

@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.5.2.1 2002-04-22 07:06:06 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.5.2.2 2002-04-25 01:32:44 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
@@ -13,7 +13,7 @@
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
 #include "fstreamT.h"
-#include "LoadTime.h"
+#include "ScheduleT.h"
 #include "eControllerT.h"
 #include "IOBaseT.h"
 
@@ -62,7 +62,7 @@ void PenaltyRegionT::EchoData(ifstreamT& in, ostream &out)
 	{
 		in >> numLTf;
 		numLTf--;
-		fLTf = fFEManager.GetLTfPtr(numLTf);
+		fLTf = fFEManager.Schedule(numLTf);
 	}
 	else if (fSlow == kImpulse)
 		in >> fMass;
@@ -249,7 +249,7 @@ void PenaltyRegionT::InitStep(void)
 		for (int i = 0; i < rCoords.MinorDim(); i++)
 			fv[i] -= fFEManager.TimeStep()*fContactForce2D.ColumnSum(i)/fMass;
 	else if (fSlow == 2)
-		fv.SetToScaled(fLTf->LoadFactor(), fv0);
+		fv.SetToScaled(fLTf->Value(), fv0);
 	
 	/* compute new position */
 	fx.AddScaled(fFEManager.TimeStep(), fv);

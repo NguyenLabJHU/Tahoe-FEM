@@ -1,21 +1,20 @@
-/* $Id: SymmetricNodesT.cpp,v 1.1 2002-04-19 21:12:58 cjkimme Exp $ */
+/* $Id: SymmetricNodesT.cpp,v 1.1.2.1 2002-04-25 01:34:00 paklein Exp $ */
 #include "SymmetricNodesT.h"
 #include "AutoArrayT.h"
-#include "NodeManagerT.h"
-#include "ElementBaseT.h"
-#include "FEManagerT.h"
+#include "NodeManagerPrimitive.h"
+//#include "ElementBaseT.h"
+//#include "FEManagerT.h"
 #include "ifstreamT.h"
-
+#include "BasicFieldT.h"
 
 /* constructor */
-SymmetricNodesT::SymmetricNodesT(NodeManagerT& node_manager):
+SymmetricNodesT::SymmetricNodesT(NodeManagerPrimitive& node_manager, BasicFieldT& field):
 	/*KBC_ControllerT(node_manager),
 	fEqnos(NULL),
 	fKinematics(0),
 	fDummySchedule(1.0),
 	fFEManager(node_manager.FEManager())*/
-        TiedNodesT(node_manager),
-	fSD(node_manager.NumSD())
+	TiedNodesT(node_manager, field)
 {
 
 }
@@ -25,12 +24,13 @@ void SymmetricNodesT::Initialize(ifstreamT& in)
 {
 	/* inherited */
 	TiedNodesT::Initialize(in);
-		
-	dArrayT fv1(fSD);	
+
+	int nsd = fNodeManager.NumSD();
+	dArrayT fv1(nsd);	
 
 	/* Read in points in symmetry plane */
-	fDir.Allocate(fSD+1,fSD);
-	for (int i = fSD;i > 1;i--)
+	fDir.Allocate(nsd+1,nsd);
+	for (int i = nsd;i > 1;i--)
 	{
 	    in >> fv1;
 	    fDir.SetRow(i-1,fv1);
@@ -38,17 +38,17 @@ void SymmetricNodesT::Initialize(ifstreamT& in)
 	in >> fv1;	
 
 	/* Last row contains the offset point */
-	fDir.SetRow(fSD,fv1);
+	fDir.SetRow(nsd,fv1);
 
 	/* second row through next-to-last one contain direction vectors */
 	fv1 *= -1.;
-	for (int i = 1;i < fSD; i++)
+	for (int i = 1;i < nsd; i++)
 	{
 	    fDir.AddToRowScaled(i,1.,fv1);
 	}
 
 	/* compute normal directions and store in first row */
-	if (fSD == 2) 
+	if (nsd == 2) 
 	{
 	    fDir(0,0) = -fDir(1,1);
 	    fDir(0,1) = fDir(1,0);
@@ -68,12 +68,13 @@ void SymmetricNodesT::Initialize(ifstreamT& in)
 /* copy kinematic information from the leader nodes to the follower nodes */
 void SymmetricNodesT::CopyKinematics(void)
 {
+//UNUSED
+#if 0
+	int curCoordsIndex = fKinematics.Length() - 1;
+#endif
 
-        int curCoordsIndex = fKinematics.Length() - 1;
-	double scalarProd;
-	dArrayT w(fSD);
-	int k;
-	
+	int nsd = fNodeManager.NumSD();
+	dArrayT w(nsd);
 	for (int i = 0; i < fPairStatus.Length(); i++)
 		if (fPairStatus[i] == kTied)
 		{
@@ -82,9 +83,9 @@ void SymmetricNodesT::CopyKinematics(void)
 			int leader   = fNodePairs(i,1);
 
 			/* kinematics */
-			for (int j = 0; j < fKinematics.Length(); j++)
+			for (int j = 0; j < fField.Order(); j++)
 			{
-				dArray2DT& u = *(fKinematics[j]);
+				dArray2DT& u = fField[j];
 
 				/* copy data from the leader */	
 				u.RowCopy(leader,w);
@@ -92,11 +93,11 @@ void SymmetricNodesT::CopyKinematics(void)
 				/*if (j != curCoordsIndex)
 				  for (k = 0; k < fSD; k++)
 				  w[k] -=  fDir(fSD,k);*/
-				scalarProd = 0.;
-				for (k = 0; k < fSD; k++)
+				double scalarProd = 0.;
+				for (int k = 0; k < nsd; k++)
 				  scalarProd += w[k]*fDir(0,k);
 				scalarProd *= 2.;
-				for (k = 0;k < fSD;k++)
+				for (int k = 0;k < nsd;k++)
 				  w[k] -= scalarProd*fDir(0,k);
 				/*if (j != curCoordsIndex)
 				  for (k = 0; k < fSD; k++) 

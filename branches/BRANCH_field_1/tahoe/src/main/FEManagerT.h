@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.13.2.2 2002-04-24 01:29:23 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.13.2.3 2002-04-25 01:28:56 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -21,7 +21,7 @@ class ifstreamT;
 class ofstreamT;
 class ModelManagerT;
 class TimeManagerT;
-class NodeManagerT;
+class NodeManagerPrimitive; //TEMP - rename
 class ControllerT;
 class nControllerT;
 class eControllerT;
@@ -37,6 +37,7 @@ class dArray2DT;
 class iAutoArrayT;
 class IOManager;
 class OutputSetT;
+class FieldT;
 
 class FEManagerT: public iConsoleObjectT
 {
@@ -67,7 +68,9 @@ public:
 	ofstreamT& Output(void) const;
 	GlobalT::AnalysisCodeT Analysis(void) const;
 	bool PrintInput(void) const;
-	GlobalT::SystemTypeT GlobalSystemType(void) const;
+
+	GlobalT::SystemTypeT GlobalSystemType(int group) const;
+
 	const GlobalT::StateT& RunState(void) const;
 
 	/** get schedule function */
@@ -85,8 +88,11 @@ public:
 	/** determine the numbering scope of the equations for the given group */
 	GlobalT::EquationNumberScopeT EquationNumberScope(int group) const;
 
-//NOTE - NEED THIS?
-//	int GlobalEquationNumber(int nodenum, int dofnum) const;
+	/** return the global equation number */
+	int EquationNumber(int field, int node, int dof) const;
+
+	/** return the number of equation groups */
+	int NumGroups(void) const { return fSolvers.Length(); };
 
 	/** the global number of the first equation on this processor, regardless of
 	 * the FEManagerT::EquationNumberScope for that group. */
@@ -138,8 +144,8 @@ public:
 	void FormLHS(void) const;
 	void FormRHS(void) const;
 	
-	/* collect the internal force on the specified node */
-	void InternalForceOnNode(int node, dArrayT& force) const;
+	/** collect the internal force on the specified node */
+	void InternalForceOnNode(const FieldT& field, int node, dArrayT& force) const;
 
 	/* first/last functions called during a time increment */
 	virtual void InitStep(void) const;
@@ -158,17 +164,20 @@ public:
 	/* system relaxation */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void) const;
 
-	/* assembling the global equation system */
-	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const;
-	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	/** \name assembly methods 
+	 * methods for assembling contributions to the global equations systems */
+	/*@{*/
+	void AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const;
+	void AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos) const;
-	void OverWriteLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const;
-	void DisassembleLHS(dMatrixT& elMat, const nArrayT<int>& eqnos) const;
-	void DisassembleLHSDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;
+	void OverWriteLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const;
+	void DisassembleLHS(int group, dMatrixT& elMat, const nArrayT<int>& eqnos) const;
+	void DisassembleLHSDiagonal(int group, dArrayT& diagonals, const nArrayT<int>& eqnos) const;
 
-	void AssembleRHS(const dArrayT& elRes, const nArrayT<int>& eqnos) const;
-	void OverWriteRHS(const dArrayT& elRes, const nArrayT<int>& eqnos) const;
-	void DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const;
+	void AssembleRHS(int group, const dArrayT& elRes, const nArrayT<int>& eqnos) const;
+	void OverWriteRHS(int group, const dArrayT& elRes, const nArrayT<int>& eqnos) const;
+	void DisassembleRHS(int group, dArrayT& elRes, const nArrayT<int>& eqnos) const;
+	/*@}*/
 
 	/** pointer to the I/O manager */
 	IOManager* OutputManager(void) const;
@@ -201,7 +210,7 @@ public:
 	virtual void RestoreOutput(void);
 	
 	/* cross-linking - create your own trouble */
-	NodeManagerT* NodeManager(void) const;
+	NodeManagerPrimitive* NodeManager(void) const;
 	ElementBaseT* ElementGroup(int groupnumber) const;
 		// 1 <= groupnumber <= fNumElementGroups
 		// returns NULL if out of range
@@ -209,14 +218,6 @@ public:
 		// returns the element group number (0...) for pgroup,
 		// or -1 if not found, result not valid until after
 		// fElementGroups is fully constructed
-
-	/* external nodes functions (parallel execution) */
-	virtual void IncomingNodes(iArrayT& nodes_in) const;
-	virtual void OutgoingNodes(iArrayT& nodes_out) const;
-	virtual void SendExternalData(const dArray2DT& all_out_data);
-	virtual void RecvExternalData(dArray2DT& external_data);
-	virtual void SendRecvExternalData(const iArray2DT& all_out_data, iArray2DT& external_data);
-	virtual void Wait(void);
 
 	/** \name access to controllers */
 	/*@{*/
@@ -229,7 +230,7 @@ public:
 	/* returns 1 of ALL element groups have interpolant DOF's */
 	int InterpolantDOFs(void) const;
 
-	/* debugging */
+	/** debugging */
 	virtual void WriteSystemConfig(ostream& out) const;
 	virtual const iArrayT* NodeMap(void) const { return NULL; }
 	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
@@ -238,20 +239,29 @@ public:
 	/*@{*/
 	virtual int Rank(void) const { return 0; }
 	virtual int Size(void) const { return 1; }
+
+	/* external nodes functions (parallel execution) */
+	virtual void IncomingNodes(iArrayT& nodes_in) const;
+	virtual void OutgoingNodes(iArrayT& nodes_out) const;
+	virtual void SendExternalData(const dArray2DT& all_out_data);
+	virtual void RecvExternalData(dArray2DT& external_data);
+	virtual void SendRecvExternalData(const iArray2DT& all_out_data, iArray2DT& external_data);
+	virtual void Wait(void);
 	/*@}*/
 
-	/* interactive */
+	/** interactive */
 	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
 
 protected:
 
-	/* "const" function that sets the status flag */
+	/** "const" function that sets the status flag */
 	void SetStatus(GlobalT::StateT status) const;
 
-	/* look for input file key and check file version */
+	/** look for input file key and check file version */
 	void CheckInputFile(void);
 
-	/* initialization functions */
+	/** \name phases of FEManagerT::Initialize. */
+	/*@{*/
 	virtual void ReadParameters(InitCodeT init);
 	void WriteParameters(void) const;
 	void SetController(void);
@@ -259,6 +269,7 @@ protected:
 	virtual void SetElementGroups(void);
 	void SetSolver(void);
 	virtual void SetOutput(void);
+	/*@}*/
 
 	/* (re-)set system to initial conditions */
 	virtual void InitialCondition(void);
@@ -287,40 +298,55 @@ protected:
 
 private:
 
-	/* no copies/assignment */
+	/** \name disallowed */
+	/*@{*/
 	FEManagerT(FEManagerT&);
 	FEManagerT& operator=(FEManagerT&) const;
+	/*@}*/
+
+	/** construct a solver of the specified type. */
+	SolverT* New_Solver(int code) const;
 	
 protected:
 
-	/* I/O streams */
-	ifstreamT&  fMainIn;
-	StringT     fVersion;
-	ofstreamT& 	fMainOut;
-	StringT		fTitle;
-	StringT     fRestartFile;
+	/** \name I/O streams */
+	/*@{*/
+	ifstreamT& fMainIn;
+	ofstreamT& fMainOut;
+	/*@}*/
 
-	/* state */
-	GlobalT::StateT fStatus;
+	/** \name info strings */
+	/*@{*/
+	StringT fVersion;
+	StringT fTitle;
+	StringT fRestartFile;
+	/*@}*/
 	
-	/* execution parameters */
+	/** \name execution parameters */
+	/*@{*/
 	GlobalT::AnalysisCodeT fAnalysisCode;
 	IOBaseT::FileTypeT  fOutputFormat;
 	bool fReadRestart;
 	int  fWriteRestart;
 	bool fPrintInput;
+	/*@}*/
 	
-	/* the managers */
+	/** the managers */
+	/*@{*/
 	TimeManagerT* fTimeManager;
-	NodeManagerT* fNodeManager;
-	ElementListT  fElementGroups;
-	SolverT*      fSolutionDriver;
+	NodeManagerPrimitive* fNodeManager;
+	ElementListT fElementGroups;
+	ArrayT<SolverT*> fSolvers;
 	ArrayT<ControllerT*> fControllers;
 	IOManager*    fIOManager;
 	ModelManagerT* fModelManager;
-	
-	/* restart file counter */
-	int fRestartCount;
+	/*@}*/	
+
+	/** \name run time information */
+	/*@{*/
+	GlobalT::StateT fStatus; /**< state */
+	int fRestartCount; 	     /**< restart output counter */
+	/*@}*/
 	
 	/** \name equation system
 	 * information by group is determined during the call to 
@@ -339,7 +365,7 @@ inline ofstreamT& FEManagerT::Output(void) const { return fMainOut; }
 inline const GlobalT::StateT& FEManagerT::RunState(void) const { return fStatus; }
 inline IOBaseT::FileTypeT FEManagerT::OutputFormat(void) const { return fOutputFormat; }
 inline ModelManagerT* FEManagerT::ModelManager (void) const { return fModelManager; }
-inline NodeManagerT* FEManagerT::NodeManager(void) const { return fNodeManager; }
+inline NodeManagerPrimitive* FEManagerT::NodeManager(void) const { return fNodeManager; }
 inline IOManager* FEManagerT::OutputManager(void) const { return fIOManager; }
 inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
 {

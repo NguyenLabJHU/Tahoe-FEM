@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.h,v 1.4.4.1 2002-04-23 01:25:52 paklein Exp $ */
+/* $Id: XDOF_ManagerT.h,v 1.4.4.2 2002-04-25 01:35:16 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 
 #ifndef _XDOF_MANAGER_T_H_
@@ -78,6 +78,9 @@ protected:
 	/** remove external DOF's from first slot of each row */
 	void CheckEquationNumbers(ostream& out, iArray2DT& eqnos);
 
+	/** append equation numbers for the tags sets in the specified group */
+	void EquationNumbers(int group, AutoArrayT<iArray2DT*>& equationsets);
+	
 	/** resolve index of the tag set.
 	 * \param group pointer to the DOFElementT
 	 * \param tag_set set number for the element 
@@ -98,7 +101,6 @@ protected:
 protected:
 
 	/** registered element groups */
-	AutoArrayT<int> fDOFGroups;
 	AutoArrayT<DOFElementT*> fDOFElements;
 	
 	/* tag info */

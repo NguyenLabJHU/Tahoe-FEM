@@ -1,5 +1,5 @@
-/* $Id: NLSolver.h,v 1.2 2002-01-06 06:58:46 cbhovey Exp $ */
-/* created: paklein (07/09/1996)                                          */
+/* $Id: NLSolver.h,v 1.2.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* created: paklein (07/09/1996) */
 
 #ifndef _NL_SOLVER_H_
 #define _NL_SOLVER_H_
@@ -7,12 +7,13 @@
 /* base class */
 #include "SolverT.h"
 
+/** nonlinear Newton solver. */
 class NLSolver: public SolverT
 {
 public:
 
 	/* constructor */
-	NLSolver(FEManagerT& fe_manager);
+	NLSolver(FEManagerT& fe_manager, int group);
 	
 	/* generate the solution for the current time sequence */
 	 virtual void Run(void);

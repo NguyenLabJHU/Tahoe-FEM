@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.3.4.1 2002-04-24 01:29:26 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.3.4.2 2002-04-25 01:31:28 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _NODEMANAGER_T_H_
@@ -33,7 +33,7 @@ protected:
 	//virtual void AllocateGlobal(void);
 
 	/* BC Controllers */
-	virtual KBC_ControllerT* NewKBC_Controller(int code);
+	//virtual KBC_ControllerT* NewKBC_Controller(int code);
 
 private:
 

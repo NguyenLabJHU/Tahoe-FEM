@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.h,v 1.3.2.1 2002-04-24 01:29:27 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.3.2.2 2002-04-25 01:34:00 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _K_FIELD_T_H_
@@ -24,7 +24,7 @@ class K_FieldT: public KBC_ControllerT
 public:
 
 	/* constructor */
-	K_FieldT(NodeManagerT& node_manager);
+	K_FieldT(NodeManagerPrimitive& node_manager);
 
 	/* initialize data - called immediately after construction */
 	virtual void Initialize(ifstreamT& in);

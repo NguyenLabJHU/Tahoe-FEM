@@ -1,4 +1,4 @@
-/* $Id: NLK0Solver.cpp,v 1.3 2002-04-02 23:27:27 paklein Exp $ */
+/* $Id: NLK0Solver.cpp,v 1.3.2.1 2002-04-25 01:37:48 paklein Exp $ */
 /* created: paklein (10/01/1996) */
 
 #include "NLK0Solver.h"
@@ -14,8 +14,8 @@
 const double ks_max_factor = 5.0; //normally 1.0
 
 /* constructor */
-NLK0Solver::NLK0Solver(FEManagerT& fe_manager):
-	NLSolver(fe_manager),
+NLK0Solver::NLK0Solver(FEManagerT& fe_manager, int group):
+	NLSolver(fe_manager, group),
 	fFormTangent(1),
 	fLastTangent(fe_manager.Output(), fLHS->CheckCode())
 {

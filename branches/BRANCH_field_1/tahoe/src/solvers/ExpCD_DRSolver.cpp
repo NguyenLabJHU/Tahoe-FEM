@@ -1,5 +1,5 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.2 2002-04-02 23:26:04 paklein Exp $ */
-/* created: paklein (08/19/1998)                                          */
+/* $Id: ExpCD_DRSolver.cpp,v 1.2.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* created: paklein (08/19/1998) */
 
 #include "ExpCD_DRSolver.h"
 
@@ -18,8 +18,8 @@ const int kConverged = 1;
 const int kFailed    = 2;
 
 /* constructor */
-ExpCD_DRSolver::ExpCD_DRSolver(FEManagerT& fe_manager):
-	SolverT(fe_manager),
+ExpCD_DRSolver::ExpCD_DRSolver(FEManagerT& fe_manager, int group):
+	SolverT(fe_manager, group),
 	fMaxIterations(-1),
 	fTolerance(0.0),
 	fdt(1.0)
@@ -65,7 +65,11 @@ ExpCD_DRSolver::ExpCD_DRSolver(FEManagerT& fe_manager):
 	
 	if (nodenum > -1)
 	{
-		fOutputDOF = fFEManager.GlobalEquationNumber(nodenum, dofnum);
+//NOTE - not updated for generalized multi-field. Would need to know
+//       which field to query
+//		fOutputDOF = fFEManager.GlobalEquationNumber(nodenum, dofnum);
+cout << "\n ExpCD_DRSolver::ExpCD_DRSolver: not update for multi-field" << endl;
+throw eGeneralFail;
 
 		StringT outname("dof");
 		outname.Append(".", fOutputDOF);

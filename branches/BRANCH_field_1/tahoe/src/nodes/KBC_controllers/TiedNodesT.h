@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.5.2.2 2002-04-24 01:29:27 paklein Exp $ */
+/* $Id: TiedNodesT.h,v 1.5.2.3 2002-04-25 01:34:00 paklein Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -14,6 +14,7 @@
 
 /* forward declarations */
 class dArray2DT;
+class BasicFieldT;
 class FEManagerT;
 
 /** class to tie nodes together and release them under specified conditions.
@@ -42,7 +43,7 @@ class TiedNodesT: public KBC_ControllerT
 public:	
 
 	/** constructor */
-	TiedNodesT(NodeManagerT& node_manager);
+	TiedNodesT(NodeManagerPrimitive& node_manager, BasicFieldT& field);
 
 	/** initialize data. Must be called immediately after construction */
 	virtual void Initialize(ifstreamT& in);
@@ -89,8 +90,8 @@ public:
 	/** \name TiedNodesT extras
 	 * extra information needed by this class */
 	/*@{*/	 
-	void SetEquations(iArray2DT& eqnos) { fEqnos = &eqnos; };
-	void AddKinematics(dArray2DT& u);
+//	void SetEquations(iArray2DT& eqnos) { fEqnos = &eqnos; };
+//	void AddKinematics(dArray2DT& u);
 	/*@}*/	 
 
 protected:
@@ -115,6 +116,9 @@ protected:
 
 protected:
 
+	/** the field */
+	BasicFieldT& fField;
+
 	/** the tied node pairs */
 	/*@{*/
 	/** id list for the \e leader node sets */
@@ -135,14 +139,15 @@ protected:
 	/*@}*/
 	
 	/** equations numbers of the global system */
-	iArray2DT* fEqnos;
+//	iArray2DT* fEqnos;
 
 	/** list of kinematics for the nodes */
-	AutoArrayT<dArray2DT*> fKinematics;
+//	AutoArrayT<dArray2DT*> fKinematics;
 	
 	/** needed to generate KBC_ControllerT::fKBC_Cards */
 	ScheduleT fDummySchedule;	
 
+#pragma message("TiedNodesT.h: need an FEManagerT reference here?")
 	const FEManagerT& fFEManager;
 };
 

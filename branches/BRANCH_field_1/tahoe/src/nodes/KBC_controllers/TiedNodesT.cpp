@@ -1,15 +1,15 @@
-/* $Id: TiedNodesT.cpp,v 1.7.2.1 2002-04-24 01:29:27 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.7.2.2 2002-04-25 01:34:00 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
-#include "NodeManagerT.h"
+#include "NodeManagerPrimitive.h"
 #include "ElementBaseT.h"
+#include "BasicFieldT.h"
 #include "FEManagerT.h"
 
 /* constructor */
-TiedNodesT::TiedNodesT(NodeManagerT& node_manager):
+TiedNodesT::TiedNodesT(NodeManagerPrimitive& node_manager, BasicFieldT& field):
 	KBC_ControllerT(node_manager),
-	fEqnos(NULL),
-	fKinematics(0),
+	fField(field),
 	fDummySchedule(1.0),
 	fFEManager(node_manager.FEManager())
 {
@@ -213,7 +213,9 @@ void TiedNodesT::Equations(AutoArrayT<const iArray2DT*>& equations) const
 	/* inherited */
 	KBC_ControllerT::Equations(equations);
 	
-	/* copy in the equation numbers */
+	/* copy in the equation numbers - note that the number of active equations
+	 * is not changed. */
+	iArray2DT& eqnos = fField.Equations();
 	for (int i = 0; i < fPairStatus.Length(); i++)
 		if (fPairStatus[i] == kTied)
 		{
@@ -221,15 +223,10 @@ void TiedNodesT::Equations(AutoArrayT<const iArray2DT*>& equations) const
 			int follower = fNodePairs(i,0);
 			int leader   = fNodePairs(i,1);
 
-			/* equations */
-			fEqnos->CopyRowFromRow(follower, leader);
-//	                fEqnos[follower] = -1;
+			/* copy */
+			eqnos.CopyRowFromRow(follower, leader);
+//			eqnos[follower] = -1;
 		}
-}
-
-void TiedNodesT::AddKinematics(dArray2DT& u)
-{
-	fKinematics.AppendUnique(&u);
 }
 
 /**********************************************************************
@@ -278,17 +275,13 @@ void TiedNodesT::SetBCCards(void)
 {
 	/* number of tied nodes */
 	int n_tied = fPairStatus.Count(kTied);
-//	int ndof = fNodeManager.NumDOF();
-int ndof = 0;
-throw;
-#pragma message("TiedNodesT::SetBCCards: need ndof")
-
+	int ndof = fField.NumDOF();
 	fKBC_Cards.Dimension(n_tied*ndof);
 
 	/* generate BC cards */
 	if (n_tied > 0)
 	{
-	        KBC_CardT* pcard = fKBC_Cards.Pointer();
+		KBC_CardT* pcard = fKBC_Cards.Pointer();
 		for (int i = 0; i < fNodePairs.MajorDim(); i++)
 		{
 			if (fPairStatus[i] == kTied)
@@ -308,7 +301,6 @@ throw;
 /* copy kinematic information from the leader nodes to the follower nodes */
 void TiedNodesT::CopyKinematics(void)
 {
-
 	for (int i = 0; i < fPairStatus.Length(); i++)
 		if (fPairStatus[i] == kTied)
 		{
@@ -317,9 +309,9 @@ void TiedNodesT::CopyKinematics(void)
 			int leader   = fNodePairs(i,1);
 
 			/* kinematics */
-			for (int j = 0; j < fKinematics.Length(); j++)
+			for (int j = 0; j < fField.Order(); j++)
 			{
-				dArray2DT& u = *(fKinematics[j]);
+				dArray2DT& u = fField[j];
 
 				/* copy data from the leader */				
 				u.CopyRowFromRow(follower, leader);

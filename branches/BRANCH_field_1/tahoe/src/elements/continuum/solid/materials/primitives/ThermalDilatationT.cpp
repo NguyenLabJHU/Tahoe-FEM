@@ -1,4 +1,4 @@
-/* $Id: ThermalDilatationT.cpp,v 1.2 2001-09-15 01:17:36 paklein Exp $ */
+/* $Id: ThermalDilatationT.cpp,v 1.2.4.1 2002-04-25 01:30:12 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 
 #include "ThermalDilatationT.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 
 #include "fstreamT.h"
-#include "LoadTime.h"
+#include "ScheduleT.h"
 
 /* constructor */
 ThermalDilatationT::ThermalDilatationT(ifstreamT& in):
@@ -30,6 +30,6 @@ void ThermalDilatationT::Print(ostream& out) const
 double ThermalDilatationT::PercentElongation(void) const
 {
 	return (LTfPtr != NULL) ?
-		fPercentElongation*0.01*(LTfPtr->LoadFactor()) :
+		fPercentElongation*0.01*(LTfPtr->Value()) :
 		0.0;
 }

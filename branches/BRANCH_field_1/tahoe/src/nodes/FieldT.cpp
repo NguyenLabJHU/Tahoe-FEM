@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.1.2.3 2002-04-24 01:29:25 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.1.2.4 2002-04-25 01:31:27 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -12,6 +12,7 @@
 FieldT::FieldT(const StringT& name, int ndof, nControllerT& controller):
 	BasicFieldT(name, ndof, controller.Order()),
 	fnController(controller),
+	fNumActiveEquations(-1),
 	fField_last(fnController.Order())
 {
 
@@ -32,6 +33,9 @@ void FieldT::Dimension(int nnd)
 {
 	/* inherited */
 	BasicFieldT::Dimension(nnd);
+	
+	/* initialize equations */
+	fEqnos = kInit;
 
 	/* dimension field history */
 	for (int i = 0; i < fField_last.Length(); i++)
@@ -287,8 +291,12 @@ void FieldT::ResetStep(void)
 }
 
 /* mark prescribed equations */
-void FieldT::MarkPrescribedEquations(void)
+void FieldT::InitEquations(iArray2DT& eqnos)
 {
+	/* use the allocated space */
+	eqnos.Alias(fEqnos);
+	fEqnos = FieldT::kInit;
+
 	/* mark KBC nodes */
 	for (int j = 0; j < fKBC.Length(); j++)
 		SetBCCode(fKBC[j]);
@@ -303,6 +311,35 @@ void FieldT::MarkPrescribedEquations(void)
 		for (int i = 0; i < cards.Length(); i++)
 			SetBCCode(cards[i]);
 	}
+}
+
+/* set the equations array and the number of active equations */
+void FieldT::SetEquations(iArray2DT& eqnos, int num_active)
+{
+	/* safe with aliases */
+	fEqnos = eqnos;
+
+	/* trust this is correct */
+	fNumActiveEquations = num_active;
+}
+
+/* dimension storage and mark equation numbers for external nodes */
+void FieldT::InitExternalEquations(const iArrayT& ex_nodes)
+{
+	/* check */
+	if (NumNodes() < ex_nodes.Length()) {
+		cout << "\n FieldT::InitExternalEquations: inconsistent number of\n" 
+		     <<   "     field nodes. Dimension must be called first. "<< endl;
+		throw eGeneralFail;
+	}
+
+	/* allocate */
+	fExEqnos.Dimension(ex_nodes.Length(), NumDOF());
+	fExUpdate.Dimension(ex_nodes.Length(), NumDOF());
+
+	/* mark all external as inactive for setting local equation numbers */
+	for (int j = 0; j < ex_nodes.Length(); j++)
+		fEqnos.SetRow(ex_nodes[j], kExternal);
 }
 
 /* Collect the local element lists */
