@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.12 2002-10-04 20:52:50 thao Exp $
+# $Id: makefile.template,v 1.13 2002-10-04 23:35:34 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -12,7 +12,7 @@
 # (6) "make build" to (re-)compiler binaries.
 
 # full path to current directory
-HOME_DIR =/scr_essi/tdnguye/tahoe/tahoe
+HOME_DIR =
 
 # working directories:
 OBJ_DIR = $(HOME_DIR)/obj
@@ -21,7 +21,7 @@ SRC_DIR = $(HOME_DIR)/src
 LIB_DIR = $(HOME_DIR)/lib
 
 # build architecture
-ARCH =SGI
+ARCH =
 # see macros directory for choices $(ARCH).macros
 
 # default target name - root of library name or executable name
@@ -57,12 +57,12 @@ TB_LIB      = $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
 TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 
 ##### F2C 1.4.3
-F2C_DIR      = $(HOME_DIR)/../f2c
-F2C_INC      = -I$(F2C_DIR)/inc
-F2C_CFLAGS   = $(F2C_INC) -D__F2C__
-F2C_LIB_NAME = f2c_
-F2C_LIB      = $(F2C_DIR)/lib/lib$(F2C_LIB_NAME).a
-F2C_LFLAGS   = -L$(F2C_DIR)/lib -l$(F2C_LIB_NAME)
+#F2C_DIR      = $(HOME_DIR)/../f2c
+#F2C_INC      = -I$(F2C_DIR)/inc
+#F2C_CFLAGS   = $(F2C_INC) -D__F2C__
+#F2C_LIB_NAME = f2c_
+#F2C_LIB      = $(F2C_DIR)/lib/lib$(F2C_LIB_NAME).a
+#F2C_LFLAGS   = -L$(F2C_DIR)/lib -l$(F2C_LIB_NAME)
 
 #### BLAS
 #BLAS_DIR      = $(HOME_DIR)/../CBLAS
@@ -105,12 +105,12 @@ F2C_LFLAGS   = -L$(F2C_DIR)/lib -l$(F2C_LIB_NAME)
 #SPOOLESMPI_LFLAGS   = -L$(SPOOLESMPI_DIR)/lib -l$(SPOOLESMPI_LIB_NAME)
 
 #### METIS
-METIS_DIR      = $(HOME_DIR)/../metis
-METIS_INC      = -I$(METIS_DIR)/inc
-METIS_CFLAGS   = $(METIS_INC) -D__METIS__
-METIS_LIB_NAME = metis
-METIS_LIB      = $(METIS_DIR)/lib/lib$(METIS_LIB_NAME).a
-METIS_LFLAGS   = -L$(METIS_DIR)/lib -l$(METIS_LIB_NAME)
+#METIS_DIR      = $(HOME_DIR)/../metis
+#METIS_INC      = -I$(METIS_DIR)/inc
+#METIS_CFLAGS   = $(METIS_INC) -D__METIS__
+#METIS_LIB_NAME = metis
+#METIS_LIB      = $(METIS_DIR)/lib/lib$(METIS_LIB_NAME).a
+#METIS_LFLAGS   = -L$(METIS_DIR)/lib -l$(METIS_LIB_NAME)
 
 #### ACME
 #ACME_DIR      = $(HOME_DIR)/../libs/acme-0.2a
@@ -121,11 +121,6 @@ METIS_LFLAGS   = -L$(METIS_DIR)/lib -l$(METIS_LIB_NAME)
 #ACME_LFLAGS   = -L$(ACME_DIR) -l$(ACME_LIB_NAME)
 
 ##### SEACAS/ACCESS software
-<<<<<<< makefile.template
-AX_INC    = -I$(ACCESS)/inc
-AX_CFLAGS = $(AX_INC) -D__ACCESS__
-AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
-=======
 #AX_INC    = -I$(ACCESS)/inc
 #AX_CFLAGS = $(AX_INC) -D__ACCESS__
 #AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
@@ -137,7 +132,6 @@ AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
 #NOX_LIB_NAME = nox
 #NOX_LIB      = $(NOX_DIR)/lib/lib$(NOX_LIB_NAME).a
 #NOX_LFLAGS   = -L$(NOX_DIR)/lib -l$(NOX_LIB_NAME)
->>>>>>> 1.10
 ############################### build options ###########################
 
 # extra macros for specific modules
