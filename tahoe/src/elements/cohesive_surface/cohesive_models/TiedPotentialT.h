@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.13 2003-04-18 23:05:16 cjkimme Exp $ */
+/* $Id: TiedPotentialT.h,v 1.14 2003-04-22 19:02:06 cjkimme Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -73,8 +73,11 @@ public:
 	
 	virtual bool InitiationQ(const double* sigma);
 	
-	/* whether or not potential may retie nodes */
+	/** whether or not potential may retie nodes */
 	virtual bool NodesMayRetie(void);
+	
+	/** returns true if criterium for retieing is met */
+	virtual bool RetieQ(const double* sigma, const ArrayT<double>& state, const dArrayT& jump_u);
 	
 protected:
 
@@ -97,6 +100,8 @@ private:
 	double fnvec1, fnvec2; /*components of direction
 	  in which to sample the stress for freeing nodes */
 	double fsigma_critical; /* Initiation traction */
+	
+	bool qRetieNodes; // true if nodes might be retied
 };
 
 } // namespace Tahoe 
