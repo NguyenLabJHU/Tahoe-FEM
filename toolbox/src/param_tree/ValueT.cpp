@@ -1,5 +1,8 @@
-/* $Id: ValueT.cpp,v 1.1 2002-09-03 07:04:33 paklein Exp $ */
+/* $Id: ValueT.cpp,v 1.2 2002-09-03 07:54:08 paklein Exp $ */
 #include "ValueT.h"
+
+/* array behavior */
+const bool ArrayT<ValueT>::fByteCopy = false;
 
 /* constructors */
 ValueT::ValueT(int a): 

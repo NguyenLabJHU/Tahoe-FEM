@@ -1,5 +1,8 @@
-/* $Id: ParameterT.cpp,v 1.1 2002-09-03 07:04:33 paklein Exp $ */
+/* $Id: ParameterT.cpp,v 1.2 2002-09-03 07:54:08 paklein Exp $ */
 #include "ParameterT.h"
+
+/* array behavior */
+const bool ArrayT<ParameterT>::fByteCopy = false;
 
 /* constructors */
 ParameterT::ParameterT(int a, const StringT& name):

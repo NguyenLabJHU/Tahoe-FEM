@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.1 2002-09-03 07:04:33 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.2 2002-09-03 07:54:08 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -13,16 +13,36 @@ class ParameterListT
 {
 public:
 
+	/** parameter occurrence */
+	enum OccurrenceT {
+		Once,     /**< exactly once */
+		ZeroPlus, /**< zero or more times */
+		OnePlus   /**< one or more times */
+	};
+
 	/** constructor */
-	ParameterListT(void);
+	ParameterListT(const StringT& name): fName(name) { };
+	
+	/** (re-)set namespace name */
+	void SetNameSpace(const StringT& ns_name) { fNameSpace = ns_name; };
+	
+	/** add parameter. Returns true of there where no conflicts with
+	 * existing parameters. The names of parameters cannot be repeated */
+	bool AddParameter(const ParameterT& param, OccurrenceT occur); 
 	
 protected:
 
 	/** parameters name space */
-	StringT fNamespace;
+	StringT fNameSpace;
 
-	/** list of parameters */
-	AutoArrayT<ParameterT> fParameters;
+	/** list name */
+	StringT fName;
+
+	/** \name simple parameters */
+	/*@{*/
+	AutoArrayT<ParameterT>  fParameters;
+	AutoArrayT<OccurrenceT> fParametersOccur;
+	/*@}*/
 };
 
 } // namespace Tahoe 
