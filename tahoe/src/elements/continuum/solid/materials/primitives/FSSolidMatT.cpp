@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.18 2005-03-04 04:06:07 cfoster Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.19 2005-03-08 06:36:48 raregue Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
@@ -148,7 +148,7 @@ const dSymMatrixT& FSSolidMatT::S_IJ(void)
 * determinant of the acoustic tensor is negative and returns
 * the normal for which the determinant is minimum. Returns 0
 * of the determinant is positive. */
-bool FSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double DetA)
+bool FSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &DetA)
 {
 #pragma unused(normals)
 ExceptionT::GeneralFail("FSSolidMatT::IsLocalized", "broken");

@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.23 2005-03-04 04:06:07 cfoster Exp $ */
+/* $Id: SolidMaterialT.h,v 1.24 2005-03-08 06:36:49 raregue Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -135,7 +135,7 @@ public:
 	 * \return true if the determinant of the acoustical tensor A is 
 	 * negative or false if the determinant is positive. */
 	//virtual int IsLocalized(dArrayT& normal);
-	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double detA);
+	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA);
 	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
 
 	/** \name implementation of the ParameterInterfaceT interface */
