@@ -1,9 +1,9 @@
-/* $Id: FS_SCNIMF_AxiT.h,v 1.9 2005-02-02 01:59:07 paklein Exp $ */
+/* $Id: FS_SCNIMF_AxiT.h,v 1.10 2005-02-03 19:53:42 cjkimme Exp $ */
 #ifndef _FS_SCNIMF_AXI_T_H_
 #define _FS_SCNIMF_AXI_T_H_
 
 /* base class */
-#include "SCNIMFT.h"
+#include "FS_SCNIMFT.h"
 
 /* direct members */
 #include "FSMatSupportT.h"
@@ -12,7 +12,7 @@ namespace Tahoe {
 
 
 /** base class for particle types */
-class FS_SCNIMF_AxiT: public SCNIMFT
+class FS_SCNIMF_AxiT: public FS_SCNIMFT
 {
 public:
 
@@ -65,30 +65,13 @@ public:
 protected: /* for derived classes only */
 	
 	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
-	
-	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
-	
-	/** translate internal storage of bVector to Strain-Displacement matrix */	
-	void bVectorToMatrix(double *bVector, dMatrixT& BJ);
-	
+			
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels);
 
 	/** assemble particle mass matrix into LHS of global equation system */
 	virtual void AssembleParticleMass(const double rho);
-
-protected:
-
-	FSMatSupportT* fFSMatSupport;
-	int fNeedsOffset;
 	
-private:
-
-	/** \name deformation gradients passed to the materials */
-	/*@{*/
-	ArrayT<dMatrixT> fF_list;
-	ArrayT<dMatrixT> fF_last_list;
-	/*@}*/
 };
 
 } /* namespace Tahoe */

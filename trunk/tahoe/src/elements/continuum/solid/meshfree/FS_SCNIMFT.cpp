@@ -1,7 +1,5 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.18 2005-02-02 01:57:53 paklein Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.19 2005-02-03 19:53:42 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
-
-//#define VERIFY_B
 
 #include "ArrayT.h"
 #include "ofstreamT.h"
@@ -604,7 +602,7 @@ void FS_SCNIMFT::CollectMaterialInfo(const ParameterListT& all_params,
 	/* initialize */
 	mat_params.Clear();
 
-        int num_blocks = all_params.NumLists("fd_connectivity_element_block");
+    int num_blocks = all_params.NumLists("fd_connectivity_element_block");
 	for (int i = 0; i < num_blocks; i++) {
 	  
 	  const ParameterListT& block = all_params.GetList("fd_connectivity_element_block",i);
@@ -633,6 +631,9 @@ MaterialListT* FS_SCNIMFT::NewMaterialList(const StringT& name, int size)
 	
 	/* no match */
 	if (nsd == -1) return NULL;
+	
+	if (qIsAxisymmetric && nsd != 3) // need 3D material
+		ExceptionT::GeneralFail("FS_SCNIMFT::NewMaterialList","Axisymmetric formulation needs 3D material\n");
 
 	if (size > 0) {
 		 /* material support */
