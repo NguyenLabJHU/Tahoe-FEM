@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.14 2002-07-05 22:26:19 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.15 2002-07-08 11:20:21 sawimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _NMATRIX_T_H_
@@ -211,7 +211,7 @@ istream& operator>>(istream& in, nMatrixT<nTYPE>& matrix)
 		for (int i = 0; i < matrix.Cols(); i++)
 				in >> matrix(j,i);
 	return in;
-};
+}
 
 template <class nTYPE>
 ostream& operator<<(ostream& out, const nMatrixT<nTYPE>& matrix)
@@ -224,7 +224,7 @@ ostream& operator<<(ostream& out, const nMatrixT<nTYPE>& matrix)
 			out << setw(width) << matrix(j,i);		
 	}
 	return out;
-};
+}
 
 /*************************************************************************
 * Implementation

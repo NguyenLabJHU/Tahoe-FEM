@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.12 2002-07-02 19:56:40 cjkimme Exp $ */
+/* $Id: nArray2DT.h,v 1.13 2002-07-08 11:20:19 sawimme Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NARRAY2D_T_H_
@@ -185,7 +185,7 @@ ostream& operator<<(ostream& out, const nArray2DT<nTYPE>& array)
 			out << setw(width) << *p++;			
 	}
 		return out;
-};
+}
 
 /*************************************************************************
 * Implementation

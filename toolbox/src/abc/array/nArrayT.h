@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.12 2002-07-02 19:56:40 cjkimme Exp $ */
+/* $Id: nArrayT.h,v 1.13 2002-07-08 11:20:19 sawimme Exp $ */
 /* created: paklein (05/23/1997) */
 
 #ifndef _NARRAY_T_H_
@@ -187,7 +187,7 @@ istream& operator>>(istream& in, nArrayT<nTYPE>& array)
 	for (int i = 0; i < array.Length(); i++)
 		in >> *p++;
 	return in;
-};
+}
 
 template <class nTYPE>
 ostream& operator<<(ostream& out, const nArrayT<nTYPE>& array)
@@ -200,7 +200,7 @@ ostream& operator<<(ostream& out, const nArrayT<nTYPE>& array)
 		out << setw(width) << *p++;
 	}
 	return out;
-};
+}
 
 /* output formatters proxy for use with << */
 template <class TYPE>
@@ -249,7 +249,7 @@ ostream& operator<<(ostream& out, const OutputProxyT<TYPE>& proxy)
 			throw eGeneralFail;
 	}
 	return out;
-};
+}
 
 } //namespace Tahoe
 

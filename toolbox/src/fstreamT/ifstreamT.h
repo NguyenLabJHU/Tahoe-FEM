@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.h,v 1.12 2002-07-05 22:26:29 paklein Exp $ */
+/* $Id: ifstreamT.h,v 1.13 2002-07-08 11:20:21 sawimme Exp $ */
 /* created: paklein (03/03/1999) */
 
 #ifndef _IFSTREAM_T_H_
@@ -147,7 +147,7 @@ ifstreamT& operator>>(ifstreamT& str, TYPE& data)
 	str.do_skip_comments();
 	
 	return str;
-};
+}
 
 } // namespace Tahoe 
 #endif /* _IFSTREAM_X_H_ */
