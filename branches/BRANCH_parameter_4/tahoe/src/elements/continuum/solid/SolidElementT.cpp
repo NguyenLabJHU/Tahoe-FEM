@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.62.2.2 2004-07-07 15:28:05 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.62.2.3 2004-07-08 00:41:52 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -16,9 +16,7 @@
 /* materials */
 #include "SolidMaterialT.h"
 #include "SolidMatSupportT.h"
-#include "SolidMatList1DT.h"
-#include "SolidMatList2DT.h"
-#include "SolidMatList3DT.h"
+#include "SolidMatListT.h"
 
 /* exception codes */
 #include "ExceptionT.h"

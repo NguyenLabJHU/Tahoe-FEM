@@ -1,4 +1,4 @@
-/* $Id */
+/* $Id: FS_SCNIMFT.h,v 1.1.20.1 2004-07-08 00:41:53 paklein Exp $ */
 #ifndef _FS_SCNIMF_T_H_
 #define _FS_SCNIMF_T_H_
 
@@ -9,7 +9,6 @@
 #include "FSMatSupportT.h"
 
 namespace Tahoe {
-
 
 /** base class for particle types */
 class FS_SCNIMFT: public SCNIMFT
@@ -54,9 +53,6 @@ public:
 protected: /* for derived classes only */
 	
 	virtual void ReadMaterialData(ifstreamT& in);
-	
-	virtual void WriteMaterialData(ostream& out) const;
-	
 	virtual MaterialListT* NewMaterialList(int nsd, int size);
 	
 	/** translate internal storage of bVector to Strain-Displacement matrix */	
