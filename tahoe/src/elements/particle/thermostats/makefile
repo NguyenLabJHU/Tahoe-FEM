@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2003-04-18 19:01:56 cjkimme Exp $
+# $Id: makefile,v 1.3 2003-04-18 19:52:13 cjkimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,8 +23,8 @@ OBJ = \
 	ThermostatBaseT.o \
 	LangevinT.o \
 	NoseHooverT.o \
-	GaussIsokinetic.o \
-	RampedDamping.o
+	GaussIsokineticT.o \
+	RampedDampingT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -47,8 +47,8 @@ SRC = \
 	ThermostatBaseT.cpp \
 	LangevinT.cpp \
 	NoseHooverT.cpp \
-	GaussIsokinetic.cpp \
-	RampedDamping.cpp
+	GaussIsokineticT.cpp \
+	RampedDampingT.cpp
 
 ##################### (3) headers
 #
@@ -63,8 +63,8 @@ HDR = \
 	ThermostatBaseT.h \
 	LangevinT.h \
 	NoseHooverT.h \
-	GaussIsokinetic.h \
-	RampedDamping.h
+	GaussIsokineticT.h \
+	RampedDampingT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
