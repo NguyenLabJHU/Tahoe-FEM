@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.cpp,v 1.2 2004-05-12 00:23:28 cjkimme Exp $ */
+/* $Id: MFAugLagMultT.cpp,v 1.3 2004-05-14 23:07:34 cjkimme Exp $ */
 #include "MFAugLagMultT.h"
 
 #include <iostream.h>
@@ -287,32 +287,30 @@ void MFAugLagMultT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	int formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 
-	/* get current values of constraints */
-	const dArray2DT& constr = fXDOF_Nodes->XDOF(this, 0);
-	const dArrayT force(constr.MajorDim(), constr.Pointer());
-	
-	iArrayT col_eqs(1);
- 	
 	/* DOF by DOF */
 	const int* augLagEqnos = fXDOF_Nodes->XDOF_Eqnos(this, 0).Pointer();
 	for (int i = 0; i < fNumConstrainedDOFs; i++) 
 	{
 		int supp = fSupportSizes[i];
-		
-		col_eqs[0] = augLagEqnos[i];
-			
-		fLHS_wrapper.SetDimensions(supp, 1);
-		fOtherLHS_wrapper.SetDimensions(supp);
+					
+		fLHS_wrapper.SetDimensions(supp);
+		fOtherLHS_wrapper.SetDimensions(supp+1);
 		fRowEqs_wrapper.SetLength(supp, false);
 		
+		fOtherLHS = 0.;
+		fLHS.Outer(fphi(i),fphi(i),fk);
+		fOtherLHS.SetBlock(0,0,fLHS);
+		fLHS_wrapper.SetDimensions(supp,1);
 		fLHS.Copy(fphi(i));
-		fOtherLHS.Outer(fLHS, fLHS, fk*constK);
-		fLHS *= constK;
+		fOtherLHS.SetBlock(0,supp,fLHS);
+		fLHS_wrapper.SetDimensions(1,supp);
+		fOtherLHS.SetBlock(supp,0,fLHS);
+		fOtherLHS *= constK;
 		fRowEqs.Copy(fEqNos(i));
+		fRowEqs_wrapper.SetLength(supp+1, false);
+		fRowEqs.Last() = augLagEqnos[i];
 		
-		fFEManager.AssembleLHS(fGroup, fOtherLHS, fRowEqs, fRowEqs);
-		 
-		fFEManager.AssembleLHS(fGroup, fLHS, fRowEqs, col_eqs);	
+		fFEManager.AssembleLHS(fGroup, fOtherLHS, fRowEqs);
 	}
 }
 
@@ -332,17 +330,16 @@ void MFAugLagMultT::RegisterOutput(void)
 	fXDOF_Nodes->XDOF_Register(this, set_dims);	
 	
 	int max_support = fSupportSizes.Max() + 1;
-	fLHS_wrapper.SetDimensions(max_support, 1);
+	fLHS_wrapper.SetDimensions(max_support);
 	fOtherLHS_wrapper.SetDimensions(max_support);
 	fRowEqs_wrapper.SetLength(max_support, false);
 	fRHS_wrapper.SetLength(max_support, false);
 	
 	/* output labels */
-	int num_output = 3;     /* force, contrained value, actual value */
+	int num_output = 2;     /* force, contrained value, actual value */
 	ArrayT<StringT> n_labels(num_output);
 	n_labels[0] = "LAMBDA";
-	n_labels[1] = "u_prescribed";
-	n_labels[2] = "u_actual";
+	n_labels[1] = "h";
 	
 	/* register output */
 	OutputSetT output_set(GeometryT::kPoint, fFlattenedNodeSets, n_labels);
@@ -354,7 +351,7 @@ void MFAugLagMultT::WriteOutput(ostream& out) const
 {
 	out << "\n M F  A u g  L a g  M u l t   D a t a :\n\n";
 	
-	int num_output = 3;
+	int num_output = 2;
 	dArray2DT n_values(fSupportSizes.Length(), num_output);
 	n_values = 0.;
 	
@@ -370,7 +367,7 @@ void MFAugLagMultT::WriteOutput(ostream& out) const
 		for (int j = 0; j < fLocallyNumberedNodeSets.MinorDim(i); j++, ctr++) {
 			*nptr++ = constr(ctr,0);
 			*nptr++ = fConstraintValues[ctr];
-			*nptr++ = us(ctr, which_dof);
+			//*nptr++ = us(ctr, which_dof);
 		}
 	}
 	
