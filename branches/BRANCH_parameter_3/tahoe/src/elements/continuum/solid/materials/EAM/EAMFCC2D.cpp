@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.cpp,v 1.8.46.4 2004-06-16 07:13:35 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.8.46.5 2004-06-17 07:54:23 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #include "EAMFCC2D.h"
 
@@ -16,90 +16,27 @@ using namespace Tahoe;
 /* material parameters */
 const int knsd = 2;
 
-const double sqrt2 = sqrt(2.0);
-const double sqrt3 = sqrt(3.0);
-
 //TEMP
 #pragma message("rename me")
 
 /* constructor */
-EAMFCC2D::EAMFCC2D(ifstreamT& in, const FSMatSupportT& support, PlaneCodeT plane_code):
-	ParameterInterfaceT("EAM_FCC_2D"),
+EAMFCC2D::EAMFCC2D(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("FCC_EAM_2D"),
 	NL_E_MatT(in, support),
-	fPlaneCode(plane_code),
 	fEAM(NULL)
 {
-#if 0
-	/* construct Cauchy-Born EAM solver */
-	in >> fEAMCode;
-	fEAM = new EAMFCC3DSym(in, fEAMCode, knsd);
-	if (!fEAM) throw ExceptionT::kOutOfMemory;
-	
-	/* transformation matrix */
-	dMatrixT Q(3);
-	switch (fPlaneCode)
-	{
-		case kFCC001:
-		{
-			Q.Identity();
-			break;
-		}	
-		case kFCC101:
-		{
-			dMatrixT Q(3);
-			
-			double cos45 = 0.5*sqrt2;
-			
-			/* transform global xy-plane into [110] */
-			Q = 0.0;
-			
-			Q(0,0) = 1.0;
-			Q(1,1) = Q(2,2) = cos45;
-			Q(1,2) =-cos45;
-			Q(2,1) = cos45;
-			break;
-		}	
-		case kFCC111:
-		{
-			dMatrixT Q(3);
-			Q = 0.0;
-			
-			double rt2b2 = sqrt2/2.0;
-			double rt3b3 = sqrt3/3.0;
-			double rt6b6 = (sqrt2*sqrt3)/6.0;
-			double rt23  = sqrt2/sqrt3;
-			
-			Q(0,0) =-rt2b2;
-			Q(0,1) =-rt6b6;
-			Q(0,2) = rt3b3;
-			
-			Q(1,0) = rt2b2;
-			Q(1,1) =-rt6b6;
-			Q(1,2) = rt3b3;
-			
-			Q(2,0) = 0.0;
-			Q(2,1) = rt23;
-			Q(2,2) = rt3b3;
-			break;
-		}	
-		default:
-		{
-			cout << "\nEAMFCC2D::EAMFCC2D: unknown plane code:" << fPlaneCode;
-			cout << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-	}
-	
-	/* construct bond lattice */	
-	fEAM->Initialize(&Q);	
-#endif
+
+}
+
+EAMFCC2D::EAMFCC2D(void):
+	ParameterInterfaceT("FCC_EAM_2D"),
+	fEAM(NULL)
+{
+
 }
 
 /* destructor */
-EAMFCC2D::~EAMFCC2D(void)
-{
-	delete fEAM;
-}
+EAMFCC2D::~EAMFCC2D(void) { delete fEAM; }
 
 /* describe the parameters needed by the interface */
 void EAMFCC2D::DefineParameters(ParameterListT& list) const
@@ -112,9 +49,39 @@ void EAMFCC2D::DefineParameters(ParameterListT& list) const
 	constraint.SetDefault(kPlaneStrain);
 }
 
+/* describe the parameters needed by the interface */
+void EAMFCC2D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineSubs(sub_list);
+
+	/* Cauchy-Born EAM parameters */
+	sub_list.AddSub("FCC_EAM_Cauchy-Born");
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* EAMFCC2D::NewSub(const StringT& list_name) const
+{
+	if (list_name == "FCC_EAM_Cauchy-Born")
+		return new EAMFCC3DSym;
+	else /* inherited */
+		return NL_E_MatT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void EAMFCC2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	NL_E_MatT::TakeParameterList(list);
+
+	/* construct Cauchy-Born EAM solver */
+	fEAM = new EAMFCC3DSym;
+	fEAM->TakeParameterList(list.GetList("FCC_EAM_Cauchy-Born"));
+}
+
 /*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 void EAMFCC2D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.1.4.8 2004-06-16 00:31:55 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.1.4.9 2004-06-17 07:54:24 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -200,7 +200,8 @@ void FSSolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			}
 			case kFCCEAM:
 			{
-#ifdef CAUCHY_BORN_MATERIAL
+//#ifdef CAUCHY_BORN_MATERIAL
+#if 0
 				int i_plane_code;
 				in >> i_plane_code;
 				EAMFCC2D::PlaneCodeT plane_code = (EAMFCC2D::PlaneCodeT) i_plane_code;
@@ -219,7 +220,8 @@ void FSSolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			}
 			case kmodCauchyBornDC:
 			{
-#ifdef MODCBSW_MATERIAL
+//#ifdef MODCBSW_MATERIAL
+#if 0
 				int i_plane_code;
 				in >> i_plane_code;
 				ModCB2DT::PlaneCodeT plane_code = (ModCB2DT::PlaneCodeT) i_plane_code;
@@ -644,6 +646,11 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& sub, ParameterListT::List
 #ifdef CAUCHY_BORN_MATERIAL
 		sub_sub_list.AddSub("LJ_triangular_2D");
 		sub_sub_list.AddSub("hex_2D");
+		sub_sub_list.AddSub("FCC_EAM_2D");
+#endif
+
+#ifdef MODCBSW_MATERIAL
+		sub_sub_list.AddSub("Cauchy-Born_diamond_2D");
 #endif
 	}
 	else /* inherited */
@@ -719,6 +726,13 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 		mat = new LJTr2D;
 	else if (name == "hex_2D")
 		mat = new Hex2D;
+	else if (name == "FCC_EAM_2D")
+		mat = new EAMFCC2D;
+#endif
+
+#ifdef MODCBSW_MATERIAL
+	else if (name == "Cauchy-Born_diamond_2D")
+		mat = new ModCB2DT;
 #endif
 
 	/* set support */

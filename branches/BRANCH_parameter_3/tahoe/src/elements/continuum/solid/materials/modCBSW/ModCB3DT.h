@@ -1,13 +1,10 @@
-/* $Id: ModCB3DT.h,v 1.6.46.1 2004-06-09 23:17:53 paklein Exp $ */
+/* $Id: ModCB3DT.h,v 1.6.46.2 2004-06-17 07:54:25 paklein Exp $ */
 /* created: paklein (10/14/1998) */
 #ifndef _MODCB_3D_T_H_
 #define _MODCB_3D_T_H_
 
 /* base class */
 #include "NL_E_MatT.h"
-
-/* direct members */
-#include "SWDataT.h"
 
 namespace Tahoe {
 
@@ -18,12 +15,25 @@ class ModCB3DT: public NL_E_MatT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	ModCB3DT(ifstreamT& in, const FSMatSupportT& support, bool equilibrate);
+	ModCB3DT(void);
 
 	/* destructor */
 	virtual ~ModCB3DT(void);
-	
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+ 	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/* compute the symmetric Cij reduced index matrix */
@@ -43,10 +53,7 @@ private:
 	
 private:
 	
-	/* orientation code */
-	int fOrientationCode;
-
-	/* modified CB solver */
+	/** modified Cauchy-Born solver */
 	ModCBSolverT* fModCBSolver;
 	
 	/* work space */

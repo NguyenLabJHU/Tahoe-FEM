@@ -1,4 +1,4 @@
-/* $Id: FCCLatticeT.cpp,v 1.2.42.3 2004-06-16 18:43:26 paklein Exp $ */
+/* $Id: FCCLatticeT.cpp,v 1.2.42.4 2004-06-17 07:54:22 paklein Exp $ */
 #include "FCCLatticeT.h"
 #include "ParameterContainerT.h"
 
@@ -73,69 +73,47 @@ void FCCLatticeT::TakeParameterList(const ParameterListT& list)
 
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
-
-	/* extract orientation */
-	const char orientation_choice[] = "FCC_lattice_orientation";
-	const ParameterListT& orientation = list.GetListChoice(*this, orientation_choice);
-	OrientationCodeT code = kFCC3Dnatural;
-	if (orientation.Name() == "FCC_110")
-		code = kFCC3D110;
-	else if (orientation.Name() == "FCC_111") {
-		int sense = orientation.GetParameter("sense");
-		code = (sense == 1) ? kFCC3D111_b : kFCC3D111_a;
-	}
-	else if (orientation.Name() == "FCC_Euler_angles")
-	{
-		double theta = orientation.GetParameter("theta");
-		double phi = orientation.GetParameter("phi");
-		double psi = orientation.GetParameter("psi");
-		code = kEulerAngles;
-		ExceptionT::GeneralFail(caller, "orientation \"%s\" not implemented", orientation.Name().Pointer());
-	}
-	else if (orientation.Name() != "FCC_natural")
-		ExceptionT::GeneralFail(caller, "unrecognized orientation \"%s\"", orientation.Name().Pointer());
 	
 	/* set Q */
-	dMatrixT Q(3);
-	if (code != kEulerAngles)
-		SetQ(code, Q);
+	const ParameterListT& orientation = list.GetListChoice(*this, "FCC_lattice_orientation");
+	dMatrixT Q;
+	SetQ(orientation, Q);
 	
 	/* initialize bond table */
 	Initialize(&Q);
 }
 
 /* set the transformation matrix for the given orientation */
-void FCCLatticeT::SetQ(OrientationCodeT orientation, dMatrixT& Q)
+void FCCLatticeT::SetQ(const ParameterListT& list, dMatrixT& Q)
 {
 	/* dimension */
 	Q.Dimension(3);
 	Q = 0.0;
 
-	switch (orientation)
+	/* extract orientation */
+	if (list.Name() == "FCC_natural")
+		Q.Identity();
+	else if (list.Name() == "FCC_110")
 	{
-		case kFCC3Dnatural:
-		{
-			Q.Identity();
-			break;
-		}	
-		case kFCC3D110:
-		{
-			double cos45 = 0.5*sqrt2;
+		double cos45 = 0.5*sqrt2;
 			
-			/* transform global xy-plane into [110] */
-			Q(0,0) = 1.0;
-			Q(1,1) = Q(2,2) = cos45;
-			Q(1,2) =-cos45;
-			Q(2,1) = cos45;
-			break;
-		}	
-		case kFCC3D111_a:
+		/* transform global xy-plane into [110] */
+		Q(0,0) = 1.0;
+		Q(1,1) = Q(2,2) = cos45;
+		Q(1,2) =-cos45;
+		Q(2,1) = cos45;
+	}
+	else if (list.Name() == "FCC_111")
+	{
+		int sense = list.GetParameter("sense");
+		OrientationCodeT code = (sense == 1) ? kFCC3D111_b : kFCC3D111_a;
+
+		double rt2b2 = sqrt2/2.0;
+		double rt3b3 = sqrt3/3.0;
+		double rt6b6 = (sqrt2*sqrt3)/6.0;
+		double rt23  = sqrt2/sqrt3;
+		if (code == kFCC3D111_a)
 		{
-			double rt2b2 = sqrt2/2.0;
-			double rt3b3 = sqrt3/3.0;
-			double rt6b6 = (sqrt2*sqrt3)/6.0;
-			double rt23  = sqrt2/sqrt3;
-			
 			Q(0,0) =-rt2b2;
 			Q(0,1) =-rt6b6;
 			Q(0,2) = rt3b3;
@@ -147,15 +125,9 @@ void FCCLatticeT::SetQ(OrientationCodeT orientation, dMatrixT& Q)
 			Q(2,0) = 0.0;
 			Q(2,1) = rt23;
 			Q(2,2) = rt3b3;
-			break;
 		}
-		case kFCC3D111_b:
+		else /* kFCC3D111_b */
 		{
-			double rt2b2 = sqrt2/2.0;
-			double rt3b3 = sqrt3/3.0;
-			double rt6b6 = (sqrt2*sqrt3)/6.0;
-			double rt23  = sqrt2/sqrt3;
-			
 			Q(0,0) = rt2b2;
 			Q(0,1) = rt6b6;
 			Q(0,2) = rt3b3;
@@ -167,11 +139,10 @@ void FCCLatticeT::SetQ(OrientationCodeT orientation, dMatrixT& Q)
 			Q(2,0) = 0.0;
 			Q(2,1) =-rt23;
 			Q(2,2) = rt3b3;
-			break;
 		}
-		default:
-			ExceptionT::BadInputValue("FCCLatticeT::SetQ", "unrecognized orientation %d", orientation);
 	}
+	else
+		ExceptionT::GeneralFail("FCCLatticeT::SetQ", "unrecognized orientation \"%s\"", list.Name().Pointer());
 }
 
 /*************************************************************************
