@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.7 2001-04-19 23:47:01 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.8 2001-04-23 17:50:27 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
@@ -6,10 +6,14 @@
 #include "ContactElementT.h"
 #include "dArrayT.h"
 #include "dMatrixT.h"
+#include <math.h>
 
 /* vector functions */
 #include "vector3D.h"
 
+/* parameters */
+const double kTol_Quad = 0.00000001;
+const double kTol_One  = 1.00000001;
 
 QuadL4FaceT::QuadL4FaceT
 (SurfaceT& surface, dArray2DT& surface_coordinates, 
@@ -112,23 +116,78 @@ QuadL4FaceT::Projection
 	double tol_g  = parameters[ContactElementT::kGapTol];
 	double tol_xi = parameters[ContactElementT::kXiTol];
 
+	const double* nm = node->Normal();
 	/* check normal opposition */
-	if ( Dot(node->Normal(),fnormal) > 0.0 ) {
-#if 0
+	if ( Dot(nm,fnormal) > 0.0 ) {
+	  const double* x0 = node->Position();
 	  /* compute local coordinates */
-
-	  if( CheckLocalCoordinates(xi,tolxi) ) { 
+	  Polynomial(a,b,c,d);
+	  /* components */
+	  double a1,b1,c1,d1,a2,b2,c2,d2,x1,x2;
+	  const double* t1 = node->Tangent1();
+	  const double* t2 = node->Tangent2();
+	  x1 = Dot(x0,t1); 
+	  x2 = Dot(x0,t2);
+	  a1 = Dot(a,t1); b1 = Dot(b,t1); c1 = Dot(c,t1); d1 = Dot(d,t1);
+	  a2 = Dot(a,t2); b2 = Dot(b,t2); c2 = Dot(c,t1); d2 = Dot(d,t2);
+	  double p0,p1,p2,p3,m0,m1,m2,m3;
+	  /*difference*/
+	  m0 = a1 - a2 - x1 + x2;
+	  m1 = b1 - b2; m2 = c1 - c2; m3 = d1 - d2;
+	  /*average*/
+	  p0 = a1 + a2 - x1 - x2;
+	  p1 = b1 + b2; p2 = c1 + c2; p3 = d1 + d2;
+	  /* reduced equation for xi, valid for p0 - p2*eta != 0 */
+	  double con = p3*m1 - p1*m3;
+	  double lin = p2*m1 - p1*m2 + p3*m0 - p0*m3;
+	  double qua = p2*m0 - p0*m2;
+	  if (fabs(qua) < kTol_Quad) {
+		xi[0] = -con/lin;
+	  }
+	  else {
+		double b2a = 0.5*lin/qua;
+		double discrim = lin*lin - 4.0*con*qua;
+		if (discrim < 0.0) { return 0; }
+		else if (b2a > kTol_One ) 
+		  { xi[0] = -b2a + sqrt(b2a*b2a - qua/con); }
+		else if (b2a <-kTol_One ) 
+		  { xi[0] = -b2a - sqrt(b2a*b2a - qua/con); }
+		else {
+		  double xi1 = 0.5*(-lin + sqrt(discrim))/qua; 
+		  double xi2 = 0.5*(-lin - sqrt(discrim))/qua; 
+		  fabs(xi1) < kTol_One ? xi[0] = xi1 : xi[0] = xi2;}
+	  }
+	  if (p2 + p3*xi[0] != 0.0) 
+		{xi[1] = -(p0 + p1*xi[0])/(p2 + p3*xi[0]);}
+	  else
+		{xi[1] = -(m0 + m1*xi[0])/(m2 + m3*xi[0]);}
+	  if( CheckLocalCoordinates(xi,tol_xi) ) { 
+	    double a3,b3,c3,d3,x3;
 	    /* compute gap */
-	    Interpolate (xi, fx, x_proj );
-	    g = Gap(x_proj, x0, nm); // inline for FaceT
-	    if (CheckGap(g,tolg) ) {
-		//assign opposite (chooses closest)
-		isbetter = node->AssignOpposing(fSurface,this,xi,g);
-		return 1;
+	    double g =  a3 + b3*xi[0] + c3*xi[1]+ d3*xi[0]*xi[1] - x3;
+	    if (CheckGap(g,tol_g) ) {
+		const FaceT* face = this;
+		/*assign opposite (chooses closest)*/
+		bool isbetter = node->AssignOpposing(&fSurface,face,xi,g);
+		return isbetter;
 	    }
 	  }
-#endif
 	}
         return 0;
+}
+
+
+void
+QuadL4FaceT::LocalBasis  
+(double* normal, double* tangent1, double* tangent2)
+{
+	double t2[3];
+	/* calculate (approx) face tangent */
+	Diff(fx[0],fx[3],t2); 	
+	/* calculate tangents */
+	Cross(normal,t2,tangent1);
+	Normalize(tangent1);
+	Cross(normal,tangent1,tangent2);
+	Normalize(tangent2);
 }
 

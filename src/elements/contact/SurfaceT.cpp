@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.8 2001-04-19 23:47:02 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.9 2001-04-23 17:50:27 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -65,10 +65,11 @@ SurfaceT::~SurfaceT(void)
 
 void SurfaceT::PrintData(ostream& out)
 {
+	/* surface data */
         /* echo data and correct numbering offset */
 	/* nodes */
-	out << "\n Surface nodes:" << setw(kIntWidth) 
-	    << fGlobalNodes.Length() << '\n' ;
+	out << "\n Surface " << fTag
+            << " nodes:" << setw(kIntWidth) << fGlobalNodes.Length() << '\n' ;
 	fGlobalNodes++;
 	out << fGlobalNodes.wrap(8) << '\n';
 	fGlobalNodes--;
@@ -83,6 +84,7 @@ void SurfaceT::PrintData(ostream& out)
         	out << connectivity.wrap(8) << '\n';
         	connectivity--;
 	}
+	out << '\n';
 
 }
 
@@ -328,6 +330,8 @@ void SurfaceT::Initialize (const NodeManagerT* node_manager)
 	int num_nodes = fGlobalNodes.Length();
         fCoordinates.Allocate(num_nodes,fNumSD);
         fNormals.Allocate(num_nodes,fNumSD);
+        fTangent1s.Allocate(num_nodes,fNumSD);
+        if (fNumSD == 3) fTangent2s.Allocate(num_nodes,fNumSD);
 
 	/* initialize faces */
 	for (int i=0 ; i < fFaces.Length() ; i++) {
@@ -344,12 +348,12 @@ void SurfaceT::Initialize (const NodeManagerT* node_manager)
 
 void SurfaceT::UpdateConfiguration ()
 {
- 	/* update current coordinates */ 
-	fCoordinates.RowCollect
-		(fGlobalNodes,kNodeManager->CurrentCoordinates());
+  /* update current coordinates */ 
+  fCoordinates.RowCollect
+	(fGlobalNodes,kNodeManager->CurrentCoordinates());
 
-	/* update averaged outward normals */
-	ComputeSurfaceNormals();
+  /* update averaged outward normals (and tangents) */
+  ComputeSurfaceBasis();
 }
 
 void SurfaceT::ComputeNeighbors (void)
@@ -468,33 +472,9 @@ void SurfaceT::ComputeNeighbors3D()
                 cout << i << " " << fFaceNeighbors.MinorDim(i) << '\n';
 	}
 
-#if 0
-        /*       and face neighbors */
-        for (i = 0; i < InFace.MajorDim() ; i++) {//loop over nodes
-
-                curr = i;
-                j = first_face.LocalNodeNumber(curr);
-                prev = face.Prev(j);
-                NodeNeighbor.Insert = face.Next(j);
-                nvn = face.NumVertexNodes();
-
-                for (j = 0; j < nvn j++) {
-                        n = face.Next(j);
-                        c = conn(j);
-                        p = face.Prev(j);
-                        if ( c = curr  &&  n = prev) {
-                                NodeNeighbor.Insert = face.Next(j);
-                                prev = p ; // or exit loop
-                        }
-                }
-        }
-        /* search next and previous to get ring */
-        /* condense associated faces for member nodes */
-#endif
-
 }
 
-void SurfaceT::ComputeSurfaceNormals(void)
+void SurfaceT::ComputeSurfaceBasis(void)
 { 
 	double normal_i[3];
         for (int i = 0; i < fNodeNeighbors.MajorDim(); i++) {
@@ -509,5 +489,15 @@ void SurfaceT::ComputeSurfaceNormals(void)
 	  Normalize(normal,fNumSD);
 	  cout << i << " normal " << normal[0] << " " 
                                   << normal[1] << " " << normal[2] << "\n";
+	  /* compute tangents */
+	  double* tangent1 = fTangent1s(i);
+	  double* tangent2 = fTangent2s(i); // 2D ??
+	  FaceT* face = fNodeNeighbors(i)[0];
+	  face->LocalBasis(normal,tangent1,tangent2);
+	  cout << i << " tangent1 " << tangent1[0] << " "
+                                  << tangent1[1] << " " << tangent1[2] << "\n";
+	  cout << i << " tangent2 " << tangent2[0] << " "
+                                  << tangent2[1] << " " << tangent2[2] << "\n";
+
         }
 }

@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.6 2001-04-19 23:47:01 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.7 2001-04-23 17:50:26 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
@@ -125,4 +125,10 @@ LineL2FaceT::Projection
 {
 	//HACK
 	return 0;
+}
+
+void
+LineL2FaceT::LocalBasis
+(double* normal, double* tangent1, double* tangent2)
+{
 }

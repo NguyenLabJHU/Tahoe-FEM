@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.h,v 1.5 2001-04-19 23:47:01 rjones Exp $ */
+/* $Id: LineL2FaceT.h,v 1.6 2001-04-23 17:50:26 rjones Exp $ */
 
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
@@ -37,6 +37,7 @@ public:
         void ComputeNormal(dArrayT& local_coordinates, double& normal); 
         void NodeNormal(int local_node_number, double& normal); 
 	void FaceNormal(void);
+	void LocalBasis(double* normal, double* tangent1, double* tangent2);
 	void ComputeShapeFunctions
 		(dArrayT& local_coordinates, dArrayT& shape_functions);
 	void ComputeShapeFunctions

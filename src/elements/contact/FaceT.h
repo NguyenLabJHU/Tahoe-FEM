@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.7 2001-04-19 23:47:01 rjones Exp $ */
+/* $Id: FaceT.h,v 1.8 2001-04-23 17:50:26 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -41,6 +41,8 @@ public:
 		(dArrayT& local_coordinates,double& normal)=0; 
         virtual void NodeNormal(int local_node_number,double& normal)=0; 
 	virtual void FaceNormal(void)=0; 
+	virtual void LocalBasis
+		(double* normal, double* tangent1, double* tangent2)=0;
 #if 0
         void ComputeTangents // ?????????
                 (double& local_coordinates, double& tangent1,double& tangent2);
@@ -57,9 +59,10 @@ public:
                 (ArrayT& local_coordinates, MatrixT& shape_derivatives);
 #endif
 
-	virtual double ComputeJacobian
+	virtual double ComputeJacobian 
 		(dArrayT& local_coordinates)=0;
-        virtual bool Projection (ContactNodeT* node, dArrayT& parameters)=0; 
+        virtual bool Projection 
+		(ContactNodeT* node, dArrayT& parameters)=0; 
 
 	/* access functions */
 	inline const int NumNodes(void) const 
@@ -73,8 +76,8 @@ public:
 	inline const int Next(int i) {return (i + 1)%fNumVertexNodes;}
 	inline const int Prev(int i) {return (i - 1)%fNumVertexNodes;}
 	inline const int LocalNodeNumber(int node_num)
-		{for (int i = 0; i < fConnectivity.Length(); i++) {
-			if (node_num == fConnectivity[i]) return i ; } }
+	  {for (int i = 0; i < fConnectivity.Length(); i++) {
+		if (node_num == fConnectivity[i]) return i ; } return -1; }
 
 	/* check functions */  
 	inline bool CheckLocalCoordinates(double* xi, double tol_xi)

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.6 2001-04-19 23:47:00 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.7 2001-04-23 17:50:26 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -199,6 +199,7 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
                                      << " for surface " << i+1 << '\n';
 				throw eBadInputValue;
 		}
+		surface.SetTag(i);
 		surface.PrintData(out);
 		surface.AllocateContactNodes();
 	}

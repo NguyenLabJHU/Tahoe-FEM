@@ -1,4 +1,4 @@
-/* $Id: SurfaceT.h,v 1.6 2001-04-19 23:47:02 rjones Exp $ */
+/* $Id: SurfaceT.h,v 1.7 2001-04-23 17:50:27 rjones Exp $ */
 
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
@@ -41,13 +41,17 @@ class SurfaceT
 	/* update kinetimatics */
 	void UpdateConfiguration();
 
+	inline void SetTag(int tag) {fTag = tag;}
+
 	/* access functions */
-	inline int NumNodes(void) {return fGlobalNodes.Length();}
-	inline int NumFaces(void) {return fFaces.Length();}
-	inline int NumSD(void) {return fNumSD;}
+	inline const int Tag(void) const {return fTag;}
+	inline const int NumNodes(void) {return fGlobalNodes.Length();}
+	inline const int NumFaces(void) {return fFaces.Length();}
+	inline const int NumSD(void) {return fNumSD;}
 	inline iArrayT&   GlobalNodes(void) {return fGlobalNodes;}
 	inline dArray2DT& Coordinates(void) {return fCoordinates;}
 	inline ArrayT<FaceT*>& Faces(void) {return fFaces;}
+//inline ArrayT<FaceT*>& NeighborFaces(void) {return fFaces;}
 	inline const double* Position(int i) {return fCoordinates(i);}
 	inline const double* Normal(int i)   {return fNormals(i);}
 	inline const double* Tangent1(int i) {return fTangent1s(i);}
@@ -86,17 +90,17 @@ class SurfaceT
 	RaggedArray2DT <FaceT*>  fFaceNeighbors ; // for contact tracking
 
   private:
+	int fNumSD;
+	int fTag;
+
 	void ComputeNeighbors(void);
 	void ComputeNeighbors2D(void);
 	void ComputeNeighbors3D(void);
 
-	void ComputeSurfaceNormals(void);
-	void ComputeSurfaceNormals2D(void);
-	void ComputeSurfaceNormals3D(void);
+	void ComputeSurfaceBasis(void);
 
 	const NodeManagerT* kNodeManager;
 
-	int fNumSD;
 
 };
 

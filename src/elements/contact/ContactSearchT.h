@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.h,v 1.4 2001-04-19 23:47:01 rjones Exp $ */
+/* $Id: ContactSearchT.h,v 1.5 2001-04-23 17:50:26 rjones Exp $ */
 
 #ifndef _CONTACT_SEARCH_T_H_
 #define _CONTACT_SEARCH_T_H_
@@ -32,7 +32,7 @@ public:
 protected:
 
 private:
-
+	/* does initization and tracking */
 	void Initialize(void); 
 
 	/* nodes on surface 1 projected onto faces of surface 2*/
@@ -41,9 +41,7 @@ private:
 		dArrayT& parameters); 
 
 	/* update gaps and local coordinates of projection */
-	void UpdateProjection
-		(ContactSurfaceT& surface1, ContactSurfaceT& surface2,
-		dArrayT& parameters); 
+	bool UpdateProjection(void);
 	
 	/* search grid */
 	iGridManagerT* fGrid;

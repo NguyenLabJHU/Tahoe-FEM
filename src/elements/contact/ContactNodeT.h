@@ -1,4 +1,4 @@
-/* $Id: ContactNodeT.h,v 1.2 2001-04-19 23:47:01 rjones Exp $ */
+/* $Id: ContactNodeT.h,v 1.3 2001-04-23 17:50:26 rjones Exp $ */
 
 
 #ifndef _CONTACT_NODE_T_H_
@@ -25,11 +25,13 @@ class ContactNodeT
 	void PrintData(ostream& out);
 
 	/* clear opposing data */
-	inline void ClearOpposing(void) { fOpposingSurface = NULL;}
+	inline void ClearOpposing(void) 
+		{ fOpposingSurface = NULL; fGap = 1.0e8;}
 
 	/* assign opposing point on surface */
 	bool AssignOpposing
-		(SurfaceT* opposing_surface, FaceT* opposing_face,
+		(const SurfaceT* opposing_surface, 
+		const FaceT* opposing_face,
 		double* xi, double g);
 	void UpdateOpposing(double* xi, double g);
 
