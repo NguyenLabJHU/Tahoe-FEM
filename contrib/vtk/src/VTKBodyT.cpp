@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.23 2002-06-04 17:09:44 recampb Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.24 2002-06-10 18:55:10 recampb Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -16,6 +16,7 @@
 #include "vtkLabeledDataMapper.h"
 #include "vtkActor2D.h"
 #include "vtkContourGrid.h"
+#include "vtkLODActor.h"
 
 /* array behavior */
 const bool ArrayT<VTKBodyT*>::fByteCopy = true;
@@ -252,6 +253,7 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 
 					/* labels */
 					vtkActor2D* nodeLabelActor = vtkActor2D::New();
+			 
 					nodeLabelActor->SetMapper(nodeLabelMapper);
 					nodeLabelActor->VisibilityOn();
 					nodeLabelActor->GetProperty()->SetColor(0,1,1);

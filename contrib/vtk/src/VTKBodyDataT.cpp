@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.18 2002-06-05 18:51:31 recampb Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.19 2002-06-10 18:55:10 recampb Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -316,7 +316,7 @@ void VTKBodyDataT::UpdateData(void)
 				fUGrids[i]->SetOpacity(opacity);
 				fUGrids[i]->SetNumberOfColors(numColors);
 				if (fUGrids[i]->GetContoursBool()){
-				  fUGrids[i]->ShowContours(fScalars(currentStepNum, currentVarNum), numContours);
+				  fUGrids[i]->ShowContours(fScalars(currentStepNum, currentVarNum), numContours,scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
 				  fUGrids[i]->SetBoundingOpacity(boundingOpacity);
 				}
 				//fUGrids[i]->SetNumberOfColorBarLabels(numColorBarLabels);
@@ -428,7 +428,7 @@ bool VTKBodyDataT::iDoCommand(const CommandSpecT& command, StringT& line)
 	     if (fScalars.MinorDim() > 0){
 	       for (int i = 0; i < fUGrids.Length(); i++)
 		 {
-		   fUGrids[i]->ShowContours(fScalars(currentStepNum, currentVarNum), numContours);
+		   fUGrids[i]->ShowContours(fScalars(currentStepNum, currentVarNum), numContours, scalarRange1[currentVarNum], scalarRange2[currentVarNum]);
 		   //	if (fVectors.Length() > 0){
 		   //	if (!fVectors[currentStepNum]) throw eGeneralFail;
 		//	fUGrids[i]->SetWarpVectors(fVectors[currentStepNum]);

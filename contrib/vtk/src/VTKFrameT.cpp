@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.23 2002-06-04 17:09:44 recampb Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.24 2002-06-10 18:55:11 recampb Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -372,7 +372,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 		/* new scalar bar */
 		if (!scalarBar) {
 			scalarBar = vtkScalarBarActor::New();
-			scalarBar->SetNumberOfLabels(15);
+			scalarBar->SetNumberOfLabels(10);
 			fRenderer->AddActor(scalarBar);
 		}
 
@@ -385,7 +385,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 		scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
 		scalarBar->GetPositionCoordinate()->SetValue(0.01,0.1);
 		scalarBar->SetOrientationToVertical();
-		scalarBar->SetWidth(0.17); 
+		scalarBar->SetWidth(0.15); 
 		scalarBar->SetHeight(0.8);
 		
 		Render();
@@ -692,30 +692,30 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 	}
 	else if (command.Name() =="ChangeBackgroundColor")
 	{
-		int bg_color;
-		command.Argument().GetValue(bg_color);
-            
-		switch (bg_color) {
-			case 1: 
-				fRenderer->SetBackground(0,0,0);
-				break;
-      		case 2:
-				fRenderer->SetBackground(1,1,1);
-				break;
-			case 3:
-				fRenderer->SetBackground(1,0,0);
-				break;
-			case 4:
-				fRenderer->SetBackground(0,1,0);
-				break;
-			case 5:
-				fRenderer->SetBackground(0,0,1);
-				break;
-      		default:
-      			return false;
-		}
-		Render();
-		return true;
+	  int bg_color;
+	  command.Argument().GetValue(bg_color);
+	  
+	  switch (bg_color) {
+	  case 1: 
+	    fRenderer->SetBackground(0,0,0);
+	    break;
+	  case 2:
+	    fRenderer->SetBackground(1,1,1);
+	    break;
+	  case 3:
+	    fRenderer->SetBackground(1,0,0);
+	    break;
+	  case 4:
+	    fRenderer->SetBackground(0,1,0);
+	    break;
+	  case 5:
+	    fRenderer->SetBackground(0,0,1);
+	    break;
+	  default:
+	    return false;
+	  }
+	  Render();
+	  return true;
 	}
   else if (command.Name() == "ChooseVariable")
 	{
