@@ -1,16 +1,17 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.75 2005-01-31 07:10:37 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.76 2005-02-04 22:11:42 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
+
+#if defined(__MWERKS__) && __option(profile)
+#include <TextUtils.h>
+#include <Profiler.h>
+#endif
 
 #include <iostream.h>
 #include <iomanip.h>
 #include <time.h>
 #include <ctype.h>
 #include <stdlib.h>
-
-#if defined(__MWERKS__) && __option(profile)
-#include <Profiler.h>
-#endif
 
 /* element configuration header */
 #include "ElementsConfig.h"
@@ -518,6 +519,18 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 #if defined(__MWERKS__) && __option(profile)
 		/* stop recording profiler information */
 		ProfilerSetStatus(0);
+
+		/* finalize */
+		StringT path;
+		path.FilePath(input_file);
+		StringT profile_out = input_file;
+		profile_out.Drop(path.StringLength());
+		profile_out.Root();
+		profile_out.Append(".prof");
+		Str255 pstr;
+		CopyCStringToPascal(profile_out, pstr);
+		ProfilerDump(pstr);
+		ProfilerClear();
 #endif
 		if (valid_list.Name() == "tahoe")
 		{
