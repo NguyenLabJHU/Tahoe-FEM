@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.39.2.11 2003-05-11 21:01:08 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.39.2.12 2003-05-12 18:33:57 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -576,7 +576,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	TimeManagerT* atom_time = atoms.TimeManager();
 	TimeManagerT* continuum_time = continuum.TimeManager();
 
-	dArray2DT field_at_ghosts, totalu, fu, ntfproduct;
+	dArray2DT field_at_ghosts, totalu, fu;
 	dSPMatrixT ntf;
 	atom_time->Top();
 	continuum_time->Top();
@@ -624,10 +624,20 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		fu = InternalForce(totalu, atoms);
 		
 		/* calculate global interpolation matrix ntf */
-		continuum.Ntf(ntf);
+		continuum.Ntf(ntf, atoms.NonGhostNodes());
+		cout << "ntf = " << ntf << endl;
+		cout << "fu = " << fu << endl;
 		
 		/* compute FEM RHS force as product of ntf and fu */
-		
+		dArrayT fx(ntf.Rows()), fy(ntf.Rows()), tempx(ntf.Cols()), tempy(ntf.Cols());
+		dArray2DT ntfproduct(ntf.Rows(), fu.MinorDim());
+		fu.ColumnCopy(0,tempx);
+		ntf.Multx(tempx,fx);
+		ntfproduct.SetColumn(0,fx);
+		fu.ColumnCopy(1,tempy);
+		ntf.Multx(tempy,fy);
+		ntfproduct.SetColumn(1,fy);
+		cout << "ntfproduct = " << ntfproduct << endl;
 		
 		/* solve FEM equation of motion using force just calculated as RHS */
 		if (1 || error == ExceptionT::kNoError) {
