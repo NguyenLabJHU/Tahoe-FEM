@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.5 2004-05-26 09:32:44 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.6 2004-05-27 08:13:42 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -54,6 +54,17 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 	double smoothing, double k2, double k_r, int nip)
 {
 	const char caller[] = "FEManagerT_bridging::CorrectOverlap_2";
+
+//TEMP
+ifstreamT param('#', "opti.dat");
+double bound_0 = 0.5;
+int do_line_search = 1;
+if (param.is_open()) {
+	cout << "\n Reading parameters from \"" << param.filename() << "\"" << endl;
+	param >> do_line_search;
+	param >> bound_0;
+	bound_0 = (bound_0 < 0.5) ? 0.5 : bound_0;
+}
 
 	/* finding free vs projected nodes */
 	int nnd = fNodeManager->NumNodes();
@@ -140,11 +151,13 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 	VariArrayT<double> rhs_man(0, rhs);
 	dArrayT update;
 	VariArrayT<double> update_man(0, update);	
+	dArrayT last_solution;
+	VariArrayT<double> last_solution_man(0, last_solution);
 	dArrayT constraint;
 	VariArrayT<double> constraint_man(0, constraint);
 
 	/* secant method solver */
-	SecantMethodT secant_search(10, 0.1);
+	SecantMethodT secant_search(15, 0.05);
 
 	/* solve unknowns */
 	ArrayT<char> cell_type(nel);
@@ -252,6 +265,7 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 		ddf_dpdp_i.Initialize(num_eq, num_eq, 1);
 		rhs_man.SetLength(num_eq, false);
 		update_man.SetLength(num_eq, false);
+		last_solution_man.SetLength(num_eq, false);
 		
 		/* compute contribution from bonds terminating at "ghost" atoms */
 		ComputeSum_signR_Na(R_i, ghost_neighbors_i, point_coords, overlap_node_i_map, sum_R_N);
@@ -262,215 +276,282 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 
 		/* initialize */
 		p_i = 1.0;
-		rhs = 0.0;		
-		
-		/* compute residual - add Cauchy-Born contribution */
-		f_a = sum_R_N;
-		Compute_df_dp_2(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map, 
-			bond_densities_i_eq, inv_connects_i, inv_equations_i, inv_equations_i,
-			p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
 
-		/* assemble residual */
-		for (int j = 0; j < df_dp_i.Length(); j++)
-			rhs[j] -= df_dp_i[j];
-
-		/* apply constraints */
-		for (int j = 0; j < num_eq_L; j++)
-		{
-			/* equation numbers */
-			constraint_eq.RowAlias(j, eqnos);
-
-			/* constraint equation: g >= 0 */
-			double   g = 0.25 - (p_i[j] - 0.5)*(p_i[j] - 0.5);
-			double  Dg = -2.0*(p_i[j] - 0.5);
-			double DDg = -2.0;
-		
-			/* augmented multiplier */
-			double L_r = constraint[j] + k_r*g;
-			if (L_r < 0.0) /* active constraint */
-			{
-				/* force */
-				rhs[eqnos[0]-1] -= Dg*L_r;
-				rhs[eqnos[1]-1] -= g;
-
-				/* stiffness */
-				K_constraint(0,0) = DDg*L_r + k_r*Dg*Dg;
-				K_constraint(0,1) = Dg;
-				K_constraint(1,0) = Dg;
-				K_constraint(1,1) = 0.0;
-			}
-			else /* inactive */
-			{
-				/* force */
-				rhs[eqnos[0]-1] += 0.0;
-				rhs[eqnos[1]-1] += constraint[j]/k_r;
-			
-				/* stiffness */
-				K_constraint(0,0) = 0.0;
-				K_constraint(0,1) = 0.0;
-				K_constraint(1,0) = 0.0;
-				K_constraint(1,1) = -1.0/k_r;
-			}
-			
-			/* assembly stiffness constribution */
-			ddf_dpdp_i.Assemble(K_constraint, eqnos);
-		}
-
-		if (fPrintInput) {
-			fMainOut << "residual =\n" << df_dp_i << endl;
-		}
+		/* initial number of continuation steps */
+		double bound = (k_r > kSmall) ? bound_0 : 0.5;
+		bool set_outer_bounds = false;
+		double outer_bound = bound;
+		double last_bound = bound;
+		int num_continuation = 2;
 
 		/* solve bond densities */
 		double abs_tol = 1.0e-10;
 		double rel_tol = 1.0e-10;
-		double div_tol = 1.0e+06;		
-		int max_iter = 200;
-		int iter = 0;
-		double error_0 = sqrt(dArrayT::Dot(rhs, rhs));
-		double error = error_0;
-		//double bounds = (k_r > kSmall) ? 8.0 : 0.25;
-		double bounds = 0.25;
-		cout << "\n{e, ||fa||} = {" << error << ", " <<  sqrt(dArrayT::Dot(f_a, f_a)) << "}" << endl;		
-		while (fabs(bounds - 0.25) > kSmall || (iter < max_iter && error > abs_tol && error/error_0 > rel_tol && error/error_0 < div_tol)) {
+		double div_tol = 1.0e+03;		
+		double error_0, error;
+		int max_iter = 20;
+		int check_iter = 10;
+		while (bound - 0.25 > kSmall) /* continuation */
+		{		
+			int iter = 0;
 
-			iter++;
+			/* compute residual - add Cauchy-Born contribution */
+			f_a = sum_R_N;
+			Compute_df_dp_2(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map, 
+				bond_densities_i_eq, inv_connects_i, inv_equations_i, inv_equations_i,
+				p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
 
-			/* catch errors in linear solver */
-			try {
+			/* assemble residual */
+			rhs = 0.0;
+			for (int j = 0; j < df_dp_i.Length(); j++)
+				rhs[j] -= df_dp_i[j];
 
-				/* solve system */
-				update = rhs;
-				ddf_dpdp_i.Solve(update);
+			/* apply constraints */
+			for (int j = 0; j < num_eq_L; j++)
+			{
+				/* equation numbers */
+				constraint_eq.RowAlias(j, eqnos);
 
-				/* line search */
-				int ls_count = 0;
-				bool ls_continue = true;
-				double s = 0.0;
-				double s_last = 0.0;
-				double G_R_0 = 0.0;
-				while (ls_continue)
-				{
-					/* select step size */
-					if (ls_count == 0)
-						s = 1.0; /* full Newton step */
-					else if (ls_count == 1)
-						s = 0.5;
-					else /* secant method */
-						s = secant_search.NextGuess();
-
-					/* scale update */
-					rhs = update;
-					rhs *= (s - s_last);
-
-					/* update densities */
-					for (int j = 0; j < num_eq_p; j++)
-						p_i[j] += rhs[j];
-								
-					/* update constraints */
-					for (int j = 0; j < num_eq_L; j++)
-						constraint[j] += rhs[j+num_eq_p];
-
-					/* recompute residual */			
-					f_a = sum_R_N;
-					Compute_df_dp_2(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map,
-						bond_densities_i_eq, inv_connects_i, inv_equations_i, inv_equations_i,
-						p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
-
-					/* assemble residual */
-					rhs = 0.0;
-					for (int j = 0; j < df_dp_i.Length(); j++)
-						rhs[j] -= df_dp_i[j];
-				
-					/* apply constraints */
-					for (int j = 0; j < num_eq_L; j++)
-					{
-						/* equation numbers */
-						constraint_eq.RowAlias(j, eqnos);
-
-						/* constraint equation: g >= 0 */
-						double   g = bounds - (p_i[j] - 0.5)*(p_i[j] - 0.5);
-						double  Dg = -2.0*(p_i[j] - 0.5);
-						double DDg = -2.0;
+				/* constraint equation: g >= 0 */
+				double   g = bound*bound - (p_i[j] - 0.5)*(p_i[j] - 0.5);
+				double  Dg = -2.0*(p_i[j] - 0.5);
+				double DDg = -2.0;
 		
-						/* augmented multiplier */
-						double L_r = constraint[j] + k_r*g;
-						if (L_r < 0.0) /* active constraint */
-						{
-							/* force */
-							rhs[eqnos[0]-1] -= Dg*L_r;
-							rhs[eqnos[1]-1] -= g;
+				/* augmented multiplier */
+				double L_r = constraint[j] + k_r*g;
+				if (L_r < 0.0) /* active constraint */
+				{
+					/* force */
+					rhs[eqnos[0]-1] -= Dg*L_r;
+					rhs[eqnos[1]-1] -= g;
 
-							/* stiffness */
-							K_constraint(0,0) = DDg*L_r + k_r*Dg*Dg;
-							K_constraint(0,1) = Dg;
-							K_constraint(1,0) = Dg;
-							K_constraint(1,1) = 0.0;
-						}
-						else /* inactive */
-						{
-							/* force */
-							rhs[eqnos[0]-1] += 0.0;
-							rhs[eqnos[1]-1] += constraint[j]/k_r;
+					/* stiffness */
+					K_constraint(0,0) = DDg*L_r + k_r*Dg*Dg;
+					K_constraint(0,1) = Dg;
+					K_constraint(1,0) = Dg;
+					K_constraint(1,1) = 0.0;
+				}
+				else /* inactive */
+				{
+					/* force */
+					rhs[eqnos[0]-1] += 0.0;
+					rhs[eqnos[1]-1] += constraint[j]/k_r;
 			
-							/* stiffness */
-							K_constraint(0,0) = 0.0;
-							K_constraint(0,1) = 0.0;
-							K_constraint(1,0) = 0.0;
-							K_constraint(1,1) = -1.0/k_r;
-						}
+					/* stiffness */
+					K_constraint(0,0) = 0.0;
+					K_constraint(0,1) = 0.0;
+					K_constraint(1,0) = 0.0;
+					K_constraint(1,1) = -1.0/k_r;
+				}
 			
-						/* assembly stiffness constribution */
-						ddf_dpdp_i.Assemble(K_constraint, eqnos);
-					}
+				/* assembly stiffness constribution */
+				ddf_dpdp_i.Assemble(K_constraint, eqnos);
+			}
 
-					/* orthogonality */
-					double G_R = dArrayT::Dot(rhs, update);
+			if (fPrintInput) {
+				fMainOut << "residual =\n" << df_dp_i << endl;
+			}
 
-					/* process results */
-					if (ls_count == 0)
+			error_0 = error = sqrt(dArrayT::Dot(rhs, rhs));
+			cout << i+1 << '/' << bonds.MajorDim() << ": {e, bound, ||fa||} = {" 
+			     << error << ", " 
+			     << bound << ", " 
+			     <<  sqrt(dArrayT::Dot(f_a, f_a)) << "}" << endl;
+
+			while (iter < max_iter && error > abs_tol && error/error_0 > rel_tol && error/error_0 < div_tol) /* convergence */ {
+
+				iter++;
+
+				/* catch errors in linear solver */
+				try {
+
+					/* solve system */
+					update = rhs;
+					ddf_dpdp_i.Solve(update);
+
+					/* line search */
+					int ls_count = 0;
+					bool ls_continue = true;
+					double s = 0.0;
+					double s_last = 0.0;
+					double G_R_0 = 0.0;
+					int num_active = 0;
+					while (ls_continue) /* line search */
 					{
-						G_R_0 = G_R;
+						/* select step size */
+						if (ls_count == 0)
+							s = 1.0; /* full Newton step */
+						else if (ls_count == 1)
+							s = 0.5;
+						else /* secant method */
+							s = secant_search.NextGuess();
+
+						/* scale update */
+						rhs = update;
+						rhs *= (s - s_last);
+						s_last = s;					
+
+						/* update densities */
+						for (int j = 0; j < num_eq_p; j++)
+							p_i[j] += rhs[j];
+								
+						/* update constraints */
+						for (int j = 0; j < num_eq_L; j++)
+							constraint[j] += rhs[j+num_eq_p];
+
+						/* recompute residual */			
+						f_a = sum_R_N;
+						Compute_df_dp_2(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map,
+							bond_densities_i_eq, inv_connects_i, inv_equations_i, inv_equations_i,
+							p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
+
+						/* assemble residual */
+						rhs = 0.0;
+						for (int j = 0; j < df_dp_i.Length(); j++)
+							rhs[j] -= df_dp_i[j];
+				
+						/* apply constraints */
+						num_active = 0;
+						for (int j = 0; j < num_eq_L; j++)
+						{
+							/* equation numbers */
+							constraint_eq.RowAlias(j, eqnos);
+
+							/* constraint equation: g >= 0 */
+							double   g = bound*bound - (p_i[j] - 0.5)*(p_i[j] - 0.5);
+							double  Dg = -2.0*(p_i[j] - 0.5);
+							double DDg = -2.0;
+		
+							/* augmented multiplier */
+							double L_r = constraint[j] + k_r*g;
+							if (L_r < 0.0) /* active constraint */
+							{
+								/* count active constraints */
+								num_active++;
 						
-						//TEMP - no line search
-						//ls_continue = false;
+								/* force */
+								rhs[eqnos[0]-1] -= Dg*L_r;
+								rhs[eqnos[1]-1] -= g;
+
+								/* stiffness */
+								K_constraint(0,0) = DDg*L_r + k_r*Dg*Dg;
+								K_constraint(0,1) = Dg;
+								K_constraint(1,0) = Dg;
+								K_constraint(1,1) = 0.0;
+							}
+							else /* inactive */
+							{
+								/* force */
+								rhs[eqnos[0]-1] += 0.0;
+								rhs[eqnos[1]-1] += constraint[j]/k_r;
+			
+								/* stiffness */
+								K_constraint(0,0) = 0.0;
+								K_constraint(0,1) = 0.0;
+								K_constraint(1,0) = 0.0;
+								K_constraint(1,1) = -1.0/k_r;
+							}
+			
+							/* assembly stiffness constribution */
+							ddf_dpdp_i.Assemble(K_constraint, eqnos);
+						}
+
+						/* orthogonality */
+						double G_R = dArrayT::Dot(rhs, update);
+
+						/* process results */
+						if (ls_count == 0)
+						{
+							G_R_0 = G_R;
+						
+							/* no line search */
+							if (!do_line_search)
+								ls_continue = false;
 					
-						/* quick exit */
-						if (fabs(G_R_0) < kSmall)
-							ls_continue = false;
-					}
-					else if (ls_count == 1) /* initialize secant search */
-						secant_search.Reset(s, G_R, 1.0, G_R_0);
-					else
-					{
-						int test = secant_search.NextPoint(s, G_R);
-						if (test == 1)
-							ls_continue = false;
-						else if (test == -1)
-							ExceptionT::GeneralFail(caller, "line search failed");
-					}
+							/* quick exit */
+							if (fabs(G_R_0) < kSmall)
+								ls_continue = false;
+						}
+						else if (ls_count == 1) /* initialize secant search */
+							secant_search.Reset(s, G_R, 1.0, G_R_0);
+						else
+						{
+							int test = secant_search.NextPoint(s, G_R);
+							if (test == 1)
+								ls_continue = false;
+							else if (test == -1)
+								ExceptionT::GeneralFail(caller, "line search failed");
+						}
 
-					/* next iteration */
-					ls_count++;
-					s_last = s;
-				}				
+						/* next iteration */
+						ls_count++;
 
-				error = sqrt(dArrayT::Dot(rhs, rhs));
-				cout << setw(5) << iter << ": {n_ls, s, e/e_0, ||fa||} = {"<< secant_search.Iterations()+1 << ", " << s << ", " << error/error_0 << ", " <<  sqrt(dArrayT::Dot(f_a, f_a)) << "}" << endl;
+					} /* line search */				
 
-				/* tighten bounds */
-				if (bounds > 0.25 && (error < abs_tol || error/error_0 < rel_tol)) {
-					bounds /= 2.0;
-					cout << " bounds = " << bounds << endl;
+					error = sqrt(dArrayT::Dot(rhs, rhs));
+					cout << setw(5) << iter << ": {n_c, n_ls, s, e/e_0, ||fa||} = {"
+					     << setw(5) << num_active << ", " 
+					     << setw(3) << secant_search.Iterations()+1 << ", " 
+					     << s << ", " << error/error_0 << ", " 
+					     <<  sqrt(dArrayT::Dot(f_a, f_a)) << "}" << endl;
+
+				} /* end try */
+
+				catch (ExceptionT::CodeT error) {
+					iter = max_iter; /* exit */
 				}
 				
-			} /* end try */
+				/* check progress */
+				if (iter > check_iter && error/error_0 > 1.0)
+					iter = max_iter; /* exit */
+				
+			} /* convergence */
 
-			catch (ExceptionT::CodeT error) {
-				iter = max_iter; /* exit */
+			if (error < abs_tol || error/error_0 < rel_tol) /* converged */
+			{
+				/* converged at least once */
+				set_outer_bounds = true;
+
+				/* store the solution */
+				last_bound = bound;
+				last_solution.CopyIn(0, constraint);
+				last_solution.CopyIn(num_eq_p, p_i);
+
+				/* tighten bounds */
+				if (bound > 0.5)
+				{
+					double d_bound = (outer_bound - 0.5)/num_continuation;
+					bound -= d_bound;
+				}
 			}
-		}
+			else /* did not converge */
+			{
+				if (!set_outer_bounds) /* expanding bounds */
+				{
+					bound *= 2.0;
+					outer_bound = bound;
+					
+					/* reset solution */
+					p_i = 1.0;
+					constraint = 0.0;
+				}
+				else /* add more continuation steps */
+				{
+					/* reset the solution */
+					bound = last_bound;
+					constraint.CopyPart(0, last_solution, 0, num_eq_p);
+					p_i.CopyPart(0, last_solution, num_eq_p, num_eq_L);				
+				
+					/* more continuation steps */
+					num_continuation *= 2;
+				}
+			}
 
-		if (error > abs_tol && error/error_0 > rel_tol) /* converged */ {
+			cout << " bounds = " << bound << endl;
+
+		} /* continuation */
+
+		if (error > abs_tol && error/error_0 > rel_tol) /* failed to converged */ {
 			cout << "FAIL" << endl;
 			p_i = 1.0;
 		}
