@@ -1,0 +1,21 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Output ID . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodal values. . . . . . . . . . . . . = 1
+ Labels:
+	T
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 10
+ Number of nodes . . . . . . . . . . . . . . . . = 12
+ Number of elements. . . . . . . . . . . . . . . = 5
+
+ O U T P U T   D A T A :  T O C
+taylor.tm.io1.run.ps0000
+taylor.tm.io1.run.ps0001
+taylor.tm.io1.run.ps0002
+taylor.tm.io1.run.ps0003
