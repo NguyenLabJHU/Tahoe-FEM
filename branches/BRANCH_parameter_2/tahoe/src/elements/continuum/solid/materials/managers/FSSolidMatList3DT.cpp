@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.1.2.2 2004-02-10 07:17:54 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.1.2.3 2004-03-24 19:53:04 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -546,4 +546,85 @@ void FSSolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		ExceptionT::Throw(error, caller, "exception constructing material %d, index %d, code %d",
 			i+1, matnum+1, matcode);
 	}
+}
+
+/* information about subordinate parameter lists */
+void FSSolidMatList3DT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SolidMatListT::DefineSubs(sub_list);
+	
+	/* choice of 2D materials */
+	sub_list.AddSub("fs_material_list_3D", ParameterListT::Once, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void FSSolidMatList3DT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const
+{
+	if (sub == "fs_material_list_3D")
+	{
+		order = ParameterListT::Choice;
+	
+		sub_sub_list.AddSub("large_strain_cubic");
+		sub_sub_list.AddSub("large_strain_StVenant");
+		sub_sub_list.AddSub("Simo_isotropic");
+	}
+	else /* inherited */
+		SolidMatListT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* FSSolidMatList3DT::NewSub(const StringT& list_name) const
+{
+	/* try to construct material */
+	FSSolidMatT* fs_solid_mat = NewFSSolidMat(list_name);
+	if (fs_solid_mat)
+		return fs_solid_mat;
+	else /* inherited */
+		return SolidMatListT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void FSSolidMatList3DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SolidMatListT::TakeParameterList(list);
+
+	/* construct materials - NOTE: subs have been defined as a choice, but
+	 * here we construct as many materials as are passed in */
+	AutoArrayT<FSSolidMatT*> materials;
+	const ArrayT<ParameterListT>& subs = list.Lists();
+	for (int i = 0; i < subs.Length(); i++) {
+		const ParameterListT& sub = subs[i];
+		FSSolidMatT* mat = NewFSSolidMat(sub.Name());
+		if (mat) {
+			materials.Append(mat);
+			mat->TakeParameterList(sub);
+		}
+	}
+
+	/* transfer */
+	Dimension(materials.Length());
+	for (int i = 0; i < materials.Length(); i++)
+		fArray[i] = materials[i];
+}
+
+/* construct the specified material or NULL if the request cannot be completed */
+FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
+{
+	FSSolidMatT* mat = NULL;
+
+	if (name == "large_strain_cubic")
+		mat = new FDCubicT;
+	else if (name == "large_strain_StVenant")
+		mat = new FDKStV;
+	else if (name == "Simo_isotropic")
+		mat = new SimoIso3D;
+
+	/* set support */
+	if (mat) mat->SetFSMatSupport(fFSMatSupport);
+
+	return mat;
+
 }
