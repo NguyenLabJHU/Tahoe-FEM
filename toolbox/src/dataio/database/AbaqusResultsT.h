@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.h,v 1.9 2002-02-12 20:07:36 sawimme Exp $ */
+/* $Id: AbaqusResultsT.h,v 1.10 2002-02-22 15:45:25 sawimme Exp $ */
 /*
    CREATED: S. Wimmer 9 Nov 2000
 
@@ -66,8 +66,8 @@ class AbaqusResultsT
   /** close file and return amount of buffer written */
   int Close (void);
 
-  /** scan input database after initializing. \return true if scan successful,
-   * false otherwise */
+  /** scan input database after initializing. 
+      \return true if scan successful, false otherwise */
   bool ScanFile (int &numelems, int &numnodes, int &numtimesteps, int &nummodes);
 
   /** access element set names */
@@ -206,6 +206,10 @@ class AbaqusResultsT
 
   enum OutputParamsT { dprecision = 15, kDoubleSize = 8, kIntSize = 4};
 
+  /** return status
+      \note OKAY is item found, 
+      \note BAD means cannot read or incorrect item found
+      \note END means EOF found */
   enum StatusT { OKAY = -101, BAD = -102, END = -103 };
 
   /** read version record */
@@ -265,7 +269,8 @@ class AbaqusResultsT
   /** skip the rest of the record */
   bool SkipAttributes (void);
   
-  /** read the start of the next record to figure out what it is */
+  /** read the start of the next record to figure out what it is
+      \note END is returned if EOF is encountered */
   int ReadNextRecord (int &key);
 
   bool ReadSetName (StringT& s, int n); /**< read the string attribute and delete leading/trailing spaces */
