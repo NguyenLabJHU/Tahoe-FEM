@@ -1,5 +1,4 @@
-# $Id: DARWIN.macros,v 1.9 2003-02-08 17:33:14 paklein Exp $
-# GNU
+# $Id: DARWIN.macros,v 1.10 2003-02-25 14:52:44 paklein Exp $
 MAKE        = make
 MAKE_DEPEND = /usr/X11R6/bin/makedepend
 GCC_ROOT    = /usr/include/gcc/darwin/default/g++-v3
