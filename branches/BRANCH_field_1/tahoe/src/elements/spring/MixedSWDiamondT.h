@@ -1,6 +1,5 @@
-/* $Id: MixedSWDiamondT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
-/* created: paklein (03/22/1997)                                          */
-/* Interface for heterogeneous diamond cubic lattice                      */
+/* $Id: MixedSWDiamondT.h,v 1.1.1.1.8.1 2002-04-29 02:45:11 paklein Exp $ */
+/* created: paklein (03/22/1997) */
 
 #ifndef _MIXED_SWDIAMOND_T_H_
 #define _MIXED_SWDIAMOND_T_H_
@@ -12,28 +11,21 @@
 #include "SWDataT.h"
 
 /* forward declarations */
-class LoadTime;
+class ScheduleT;
 
 class MixedSWDiamondT: public SWDiamondT
 {
 public:
 
-	/*
-	 * constructor
-	 */
-	MixedSWDiamondT(FEManagerT& fe_manager);
+	/** constructor */
+	MixedSWDiamondT(const ElementSupportT& support, const FieldT& field);
 
-	/*
-	 * Apply pre-conditions at the current time step.  Signal
-	 * all listeners that the time has just been incremented.
-	 */
+	/** init new time increment */
 	virtual void InitStep(void);
 
 protected:
 
-	/*
-	 * Print element group data.
-	 */
+	/** print element group data */
 	virtual void PrintControlData(ostream& out) const;
 	 			
 	/* element data */
@@ -58,8 +50,8 @@ private:
 private:
 	
 	/* variation LTf */
-	int 		fLTfNum;
-	LoadTime* 	fLTfPtr;
+	int fLTfNum;
+	const ScheduleT* fLTfPtr;
 
 	/* material set list */
 	ArrayT<SWDataT> fSWDataList;
