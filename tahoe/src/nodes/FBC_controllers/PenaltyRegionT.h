@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.h,v 1.8 2004-09-29 23:20:28 paklein Exp $ */
+/* $Id: PenaltyRegionT.h,v 1.9 2005-02-22 00:10:19 rjones Exp $ */
 /* created: paklein (04/30/1998) */
 
 #ifndef _PENALTY_REGION_T_H_
@@ -13,6 +13,7 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 #include "dMatrixT.h"
+#include "InverseMapT.h"
 
 namespace Tahoe {
 
@@ -154,6 +155,16 @@ protected:
 	/** "connectivities" for output, just alias of PenaltyRegionT::fContactNodes */
 	iArray2DT fContactNodes2D;
 	/*@}*/	
+
+	/** nodal areas */
+	dArrayT fNodalAreas;
+
+	/** global to local numbering map */
+	InverseMapT fGlobal2Local;
+
+	/** contact area */
+	double fContactArea;
+
 };
 
 } // namespace Tahoe 
