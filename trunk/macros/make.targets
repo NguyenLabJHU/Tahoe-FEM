@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.30 2003-11-04 01:54:39 paklein Exp $
+# $Id: make.targets,v 1.31 2003-11-21 22:22:42 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -172,7 +172,8 @@ clean:
 	@- cd $(SRC_DIR); $(MAKE) $(MAKE_OPTS) clean \
 	"ARCH = $(ARCH)" \
 	"SRC_DIR = $(SRC_DIR)" \
-	"MACRO_DIR = $(MACRO_DIR)"
+	"MACRO_DIR = $(MACRO_DIR)" \
+	"CURR_DIR = $(SRC_DIR)"
 	@- cd $(OBJ_DIR); rm *.o
 	@- cd $(MACRO_DIR)/cxx_repository; rm *.o *.DB
 	@- cd $(INC_DIR); rm *.h
@@ -190,7 +191,8 @@ object_list: FORCE
 	"MACRO_DIR = $(MACRO_DIR)" \
 	"LIBRARY = $(HOME_DIR)/object_list" \
 	"SRC_DIR = $(SRC_DIR)" \
-	"LIB_DIR = $(LIB_DIR)"
+	"LIB_DIR = $(LIB_DIR)" \
+	"CURR_DIR = $(SRC_DIR)"
 	@ $(PRINTF) "\n" >> object_list
 
 # set symbolic links to all header files
@@ -213,7 +215,8 @@ depend_init: $(MAKE_DEPEND_INIT_XTRAS)
 	"ARCH = $(ARCH)" \
 	"SRC_DIR = $(SRC_DIR)" \
 	"MACRO_DIR = $(MACRO_DIR)" \
-	"DEPEND_PATH = $(DEPEND_PATH)"
+	"DEPEND_PATH = $(DEPEND_PATH)" \
+	"CURR_DIR = $(SRC_DIR)"
 
 # build objects
 objects: $(MAKE_BUILD_XTRAS)
