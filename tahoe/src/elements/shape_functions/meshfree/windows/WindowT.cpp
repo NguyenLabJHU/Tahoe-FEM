@@ -1,5 +1,7 @@
-/* $Id: WindowT.cpp,v 1.1.2.1 2004-03-20 16:41:55 paklein Exp $ */
+/* $Id: WindowT.cpp,v 1.1.2.2 2004-03-31 22:29:30 paklein Exp $ */
 #include "WindowT.h"
+#include "dArrayT.h"
+#include "dArray2DT.h"
 
 using namespace Tahoe;
 

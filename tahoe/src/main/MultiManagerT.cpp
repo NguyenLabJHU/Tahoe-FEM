@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.9.4.3 2004-03-20 16:48:49 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.9.4.4 2004-03-31 22:29:31 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -9,6 +9,7 @@
 #include "NodeManagerT.h"
 #include "OutputSetT.h"
 #include "TimeManagerT.h"
+#include "ifstreamT.h"
 
 using namespace Tahoe;
 
@@ -87,8 +88,8 @@ void MultiManagerT::Initialize(InitCodeT)
 
 	/* read the cross term flags */
 	ifstreamT& in = Input();
-	in >> fFineToCoarse
-	   >> fCoarseToFine;
+	in >> fFineToCoarse 
+       >> fCoarseToFine;
 }
 
 /* (re-)set the equation number for the given group */

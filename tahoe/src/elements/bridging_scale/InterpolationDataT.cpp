@@ -1,7 +1,8 @@
-/* $Id: InterpolationDataT.cpp,v 1.3.2.1 2004-03-08 17:12:06 paklein Exp $ */
+/* $Id: InterpolationDataT.cpp,v 1.3.2.2 2004-03-31 22:29:29 paklein Exp $ */
 #include "InterpolationDataT.h"
 #include "iArray2DT.h"
 #include "dArrayT.h"
+#include "dArray2DT.h"
 
 using namespace Tahoe;
 
