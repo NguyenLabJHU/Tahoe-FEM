@@ -1,4 +1,4 @@
-#/* $Id: makefile,v 1.3 2003-10-08 17:27:28 paklein Exp $ */
+#/* $Id: makefile,v 1.4 2003-12-06 08:01:38 paklein Exp $ */
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,14 +6,16 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	FEA_IntegrationT.o 	
+	FEA_IntegrationT.o \
+	FEA_SurfIntegrationT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	FEA_IntegrationT.cpp 	
+	FEA_IntegrationT.cpp \
+	FEA_SurfIntegrationT.cpp
 
 # headers
 HDR = \
