@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.5 2001-05-31 21:14:52 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.6 2001-06-11 02:02:40 paklein Exp $ */
 /* created: paklein (03/03/1999)                                          */
 /* interface                                                              */
 
@@ -221,6 +221,29 @@ ifstreamT& ifstreamT::operator>>(bool& a)
 	}
 	
 	return *this;
+}
+
+/* stream search */
+bool ifstreamT::FindString(const char* key, StringT& line)
+{
+	/* clear return string */
+	line.Clear();
+
+	/* read line-by-line */
+	bool found = false;
+	while (!found && good())
+	{
+		char buffer[kLineLength];
+		getline(buffer, kLineLength-1);
+
+		/* found string */
+		if (strstr(buffer, key) != NULL)
+		{
+			line = buffer;
+			found = true;
+		}
+	}
+	return found;
 }
 
 /*************************************************************************

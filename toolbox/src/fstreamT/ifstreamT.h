@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.h,v 1.3 2001-04-10 17:56:13 paklein Exp $ */
+/* $Id: ifstreamT.h,v 1.4 2001-06-11 02:02:40 paklein Exp $ */
 /* created: paklein (03/03/1999)                                          */
 
 #ifndef _IFSTREAM_T_H_
@@ -14,6 +14,7 @@
 /* direct members */
 #include "StringT.h"
 
+/** input file stream with extended capabilities */
 class ifstreamT: public ifstream
 {
 public:
@@ -60,6 +61,12 @@ public:
 
 	/* extraction of streams */
 	ifstreamT& operator>>(bool& a);
+
+	/** stream search. read lines from the stream looking for key
+	 * \param key search string
+	 * \param line entire line from string containing key
+	 * \return true if key found, else false */
+	bool FindString(const char* key, StringT& line);
 
 private:
 
