@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.14 2002-07-17 00:02:10 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.15 2002-08-14 21:02:09 creigh Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _CONTINUUM_ELEMENT_T_H_
@@ -251,8 +251,10 @@ protected:
 	ShapeFunctionT* fShapes;
 	
 	/* arrays with local ordering */
-	LocalArrayT	fLocInitCoords;	/**< initial coords with local ordering */
-	LocalArrayT fLocDisp;	    /**< displacements with local ordering  */ 
+	LocalArrayT fLocInitCoords;   /**< initial coords with local ordering */
+	LocalArrayT fLocDisp;	      /**< displacements with local ordering  */ 
+	LocalArrayT fLocDispAlpha;    /**< multi-scale u^alpha */
+	LocalArrayT fLocDispBeta;     /**< multi-scale u^alpha */
 	
 	/* work space */
 	dArrayT fNEEvec; /**< work space vector: [element DOF] */
