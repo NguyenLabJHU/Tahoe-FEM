@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.8.2.2 2002-05-03 07:16:29 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.8.2.3 2002-05-17 01:26:39 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 
 #include "MeshFreeSSSolidT.h"
@@ -105,6 +105,8 @@ void MeshFreeSSSolidT::Initialize(void)
 		throw eBadInputValue;
 	}
 
+//TEMP - needs rethinking
+#if 0
 	/* check for localizing materials */
 	if (FractureCriterion() == MeshFreeFractureSupportT::kAcoustic &&
 	   !fMaterialList->HasLocalizingMaterials())
@@ -114,6 +116,7 @@ void MeshFreeSSSolidT::Initialize(void)
 		     << endl;
 		throw eBadInputValue;
 	}
+#endif
 
 //TEMP - write nodal parameters
 #if 0
