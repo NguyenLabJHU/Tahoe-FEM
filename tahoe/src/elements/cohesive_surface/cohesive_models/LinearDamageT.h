@@ -1,6 +1,5 @@
-/* $Id: LinearDamageT.h,v 1.10 2003-05-26 01:51:46 paklein Exp $ */
+/* $Id: LinearDamageT.h,v 1.10.34.1 2004-06-23 00:51:58 paklein Exp $ */
 /* created: paklein (08/26/2000) */
-
 #ifndef _LINEAR_DAMAGE_T_H_
 #define _LINEAR_DAMAGE_T_H_
 
@@ -45,12 +44,6 @@ public:
 
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump, const ArrayT<double>& state);
-	
-	/** write model name to output */
-	virtual void PrintName(ostream& out) const;
-
-	/** write model parameters */
-	virtual void Print(ostream& out) const;
 	
 private:
 

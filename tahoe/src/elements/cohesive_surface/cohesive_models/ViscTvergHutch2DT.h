@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.h,v 1.8.34.1 2004-04-08 07:32:27 paklein Exp $ */
+/* $Id: ViscTvergHutch2DT.h,v 1.8.34.2 2004-06-23 00:51:58 paklein Exp $ */
 #ifndef _VISC_TVERG_HUTCH_2D_T_H_
 #define _VISC_TVERG_HUTCH_2D_T_H_
 
@@ -56,12 +56,6 @@ public:
 
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
-
-	/** write model name to output */
-	virtual void PrintName(ostream& out) const;
-
-	/** write model parameters */
-	virtual void Print(ostream& out) const;
 
 	/** return the number of output variables. returns 0 by default. */
 	virtual int NumOutputVariables(void) const;

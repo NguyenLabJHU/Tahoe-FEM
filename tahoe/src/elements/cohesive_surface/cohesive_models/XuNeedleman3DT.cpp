@@ -1,6 +1,5 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.19 2003-05-28 23:15:27 cjkimme Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.19.34.1 2004-06-23 00:51:58 paklein Exp $ */
 /* created: paklein (06/23/1999)*/
-
 #include "XuNeedleman3DT.h"
 
 #include <iostream.h>
@@ -9,10 +8,9 @@
 #include "ExceptionT.h"
 #include "fstreamT.h"
 
-/* class parameters */
-
 using namespace Tahoe;
 
+/* class parameters */
 const int    knumDOF = 3;
 const double kExpMax = 20;
 
@@ -20,6 +18,8 @@ const double kExpMax = 20;
 /* constructor */
 XuNeedleman3DT::XuNeedleman3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 {
+#pragma unused(in)
+#if 0
 	in >> q; // phi_t/phi_n
 	in >> r; // delta_n* /d_n
 	if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
@@ -38,6 +38,7 @@ XuNeedleman3DT::XuNeedleman3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 	if (fKratio < 0.0) throw ExceptionT::kBadInputValue;
 	
 	fK = fKratio*phi_n/(d_n*d_n);
+#endif
 }
 #endif
 
@@ -148,12 +149,8 @@ const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	
 	// limit compressive deformation
 	if (z8 > kExpMax)
-	{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		cout << "\n XuNeedleman2DT::Traction: exp(x): x = " << z8 << " > kExpMax" << endl;
-#endif
-		throw ExceptionT::kBadJacobianDet;
-	}	
+		ExceptionT::BadJacobianDet("XuNeedleman2DT::Traction", "exp(x): x = %g > kExpMax", z8);
+
 	z7 = exp(z8);
 	z11 = z1*z10*z4;
 	z12 = z3*z4*z9 + q;
@@ -300,16 +297,8 @@ SurfacePotentialT::StatusT XuNeedleman3DT::Status(const dArrayT& jump_u, const A
 	else
 		return Precritical;
 }
-	
-void XuNeedleman3DT::PrintName(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << "    Xu-Needleman 3D\n";
-#else
-#pragma unused(out)
-#endif
-}
 
+#if 0
 /* print parameters to the output stream */
 void XuNeedleman3DT::Print(ostream& out) const
 {
@@ -324,3 +313,4 @@ void XuNeedleman3DT::Print(ostream& out) const
 #pragma unused(out)
 #endif
 }
+#endif

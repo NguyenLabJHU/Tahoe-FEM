@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.14.34.1 2004-04-08 07:32:27 paklein Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.14.34.2 2004-06-23 00:51:58 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 #include "ViscTvergHutch2DT.h"
 
@@ -21,6 +21,8 @@ ViscTvergHutch2DT::ViscTvergHutch2DT(ifstreamT& in, const double& time_step):
 {
 	SetName("viscous_Tvergaard-Hutchinson_2D");
 
+#pragma unused(in)
+#if 0
 	/* traction potential parameters */
 	in >> fsigma_max; if (fsigma_max < 0) throw ExceptionT::kBadInputValue;
 	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
@@ -39,6 +41,7 @@ ViscTvergHutch2DT::ViscTvergHutch2DT(ifstreamT& in, const double& time_step):
 	
 	/* penetration stiffness */
 	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
+#endif
 }
 
 ViscTvergHutch2DT::ViscTvergHutch2DT(void): 
@@ -119,12 +122,8 @@ const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) ExceptionT::SizeMismatch(caller);
 	if (state.Length() != NumStateVariables()) ExceptionT::SizeMismatch(caller);
-	if (*fTimeStep < 0.0) {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+	if (*fTimeStep < 0.0)
 		ExceptionT::BadInputValue(caller, "expecting non-negative time increment: %g", fTimeStep);
-#endif		     
-		throw ExceptionT::kBadInputValue;
-	}
 #endif
 
 	double u_t = jump_u[0];
@@ -377,13 +376,7 @@ SurfacePotentialT::StatusT ViscTvergHutch2DT::Status(const dArrayT& jump_u,
 		return Precritical;
 }
 
-void ViscTvergHutch2DT::PrintName(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << "    Tvergaard-Hutchinson 2D with viscous damping\n";
-#endif
-}
-
+#if 0
 /* print parameters to the output stream */
 void ViscTvergHutch2DT::Print(ostream& out) const
 {
@@ -398,6 +391,7 @@ void ViscTvergHutch2DT::Print(ostream& out) const
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';
 #endif
 }
+#endif
 
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0

@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.h,v 1.10 2003-05-28 23:15:27 cjkimme Exp $ */
+/* $Id: YoonAllen3DT.h,v 1.10.34.1 2004-06-23 00:51:58 paklein Exp $ */
 /* created: cjkimme (05/28/2002) */
 
 #ifndef _YOON_ALLEN_3D_T_H_
@@ -13,8 +13,8 @@ namespace Tahoe {
 class ifstreamT;
 
 /** cohesive law from Yoon and Allen. This model is
- ** described in IJF _96_, 55-74. 
- **/
+ * described in IJF _96_, 55-74. 
+ */
 class YoonAllen3DT: public SurfacePotentialT
 {
 public:
@@ -45,12 +45,6 @@ public:
 
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
-
-	/** write model name to output */
-	virtual void PrintName(ostream& out) const;
-
-	/** write model parameters */
-	virtual void Print(ostream& out) const;
 
 	/** return the number of output variables. returns 0 by default. */
 	virtual int NumOutputVariables(void) const;

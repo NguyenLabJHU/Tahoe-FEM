@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.23.22.1 2004-04-08 07:32:26 paklein Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.23.22.2 2004-06-23 00:51:58 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 #ifndef _SURFACE_POTENTIAL_T_H_
 #define _SURFACE_POTENTIAL_T_H_
@@ -96,12 +96,6 @@ public:
 
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump, const ArrayT<double>& state) = 0;
-	
-	/** write model name to output */
-	virtual void PrintName(ostream& out) const = 0;
-
-	/** write model parameters */
-	virtual void Print(ostream& out) const = 0;
 
 	/** return the number of output variables */
 	virtual int NumOutputVariables(void) const;
