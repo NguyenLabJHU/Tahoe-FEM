@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.30.2.5 2003-02-12 23:41:59 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.30.2.6 2003-02-17 17:13:54 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -261,6 +261,11 @@ void BridgingScaleT::InitProjection(const PointInCellDataT& cell_data)
 	const iArrayT& cell_nodes = cell_data.CellNodes();
 	const iArray2DT& cell_connects = cell_data.CellConnectivities();
 
+	/* cell connectivities are (matrix equations) - 1 */
+	iArrayT tmp_shift;
+	tmp_shift.Alias(cell_connects);
+	tmp_shift++;
+
 	/* configure the matrix */
 	int num_projected_nodes = cell_nodes.Length();
 	fGlobalMass.AddEquationSet(cell_connects);
@@ -271,11 +276,6 @@ void BridgingScaleT::InitProjection(const PointInCellDataT& cell_data)
 	const RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
 	const dArray2DT& weights = cell_data.InterpolationWeights();
 	const InverseMapT& global_to_local = cell_data.GlobalToLocal();
-
-	/* cell connectivities are (matrix equations) - 1 */
-	iArrayT tmp_shift;
-	tmp_shift.Alias(cell_connects);
-	tmp_shift++;
 
 	/* loop over mesh */
 	int cell_dex = 0;
@@ -308,6 +308,14 @@ void BridgingScaleT::InitProjection(const PointInCellDataT& cell_data)
 	
 	/* shift back */
 	tmp_shift--;
+	
+//TEMP - write mass matrix to file
+#if 0
+ostream& out = ElementSupport().Output();
+out << "\n weights =\n" << weights << endl;
+out << "\n mass matrix =\n" << fGlobalMass << endl;
+#endif
+//TEMP
 }
 
 /* project the point values onto the mesh */
@@ -364,6 +372,14 @@ void BridgingScaleT::ProjectField(const StringT& field, const PointInCellDataT& 
 				projection.Accumulate(j, cell_eq, Nd(j));
 		}
 	}
+
+//TEMP - write mass matrix to file
+#if 0
+ostream& out = ElementSupport().Output();
+out << "\n values =\n" << values << endl;
+out << "\n residual =\n" << projection << endl;
+#endif
+//TEMP
 
 	/* calculate projection - requires global matrix that supports 
 	 * multiple sovles */
