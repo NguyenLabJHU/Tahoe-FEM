@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2003-03-04 07:38:23 paklein Exp $
+# $Id: makefile,v 1.7 2003-09-09 22:46:43 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -27,6 +27,7 @@ OBJ = \
 	NLK0Solver.o \
 	NLSolver.o \
 	NLSolver_LS.o \
+	NLSolver_LSX.o \
 	NLSolverX.o \
 	PCGSolver_LS.o \
 	SolverT.o
@@ -56,6 +57,7 @@ SRC = \
 	NLK0Solver.cpp \
 	NLSolver.cpp \
 	NLSolver_LS.cpp \
+	NLSolver_LSX.cpp \
 	NLSolverX.cpp \
 	PCGSolver_LS.cpp \
 	SolverT.cpp
@@ -78,6 +80,7 @@ HDR = \
 	NLK0Solver.h \
 	NLSolver.h \
 	NLSolver_LS.h \
+	NLSolver_LSX.h \
 	NLSolverX.h \
 	PCGSolver_LS.h \
 	SolverT.h
