@@ -1,4 +1,4 @@
 @
-# $Id: run.batch,v 1.1 2004-05-20 15:10:26 paklein Exp $
-torsion.z.xml
-torsion.y.xml
+# $Id: run.batch,v 1.2 2004-05-21 19:41:06 paklein Exp $
+K.1.xml
+
