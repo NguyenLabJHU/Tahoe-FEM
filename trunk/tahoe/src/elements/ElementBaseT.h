@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.29 2003-06-09 06:37:07 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.30 2003-08-08 00:46:49 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -57,6 +57,13 @@ class FieldT;
 class ElementBaseT: public iConsoleObjectT
 {
 public:
+
+	/** element status flags */
+	enum StatusT {kOFF = 0,
+                   kON = 1,
+               kMarked = 2,
+               kMarkON = 3,
+              kMarkOFF = 4};
 
 	/** constructors */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -132,6 +139,10 @@ public:
 	/** class initialization. Among other things, element work space
 	 * is allocated and connectivities are read. */
 	virtual void Initialize(void);
+
+	/** set the active elements.
+	 * \param array of status flags for all elements in the group */
+	virtual void SetStatus(const ArrayT<StatusT>& status);
 
 	/** compute LHS-side matrix and assemble to solver.
 	 * \param sys_type "maximum" LHS matrix type needed by the solver. The GlobalT::SystemTypeT
