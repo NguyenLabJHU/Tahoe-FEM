@@ -1,4 +1,4 @@
-/* $Id: ArgSpecT.cpp,v 1.1 2001-11-28 22:05:43 paklein Exp $ */
+/* $Id: ArgSpecT.cpp,v 1.2 2001-12-14 19:51:01 paklein Exp $ */
 
 #include "ArgSpecT.h"
 #include <ctype.h>
@@ -429,7 +429,7 @@ void ArgSpecT::SetValue(const int& a)
 		delete fValue;
 		int* tmp = new int;
 		*tmp = a;
-		fValue = tmp;
+		fValue = (void*) tmp;
 	}
 	else if (fType == float_)
 		SetValue(float(a));
@@ -447,7 +447,7 @@ void ArgSpecT::SetValue(const double& a)
 		delete fValue;
 		double* tmp = new double;
 		*tmp = a;
-		fValue = tmp;
+		fValue = (void*) tmp;
 	}
 	else {
 		cout << "\n ArgSpecT::SetValue: type mismatch" << endl;
@@ -461,7 +461,7 @@ void ArgSpecT::SetValue(const StringT& a)
 		delete fValue;
 		StringT* tmp = new StringT;
 		*tmp = a;
-		fValue = tmp;
+		fValue = (void*) tmp;
 	}
 	else {
 		cout << "\n ArgSpecT::SetValue: type mismatch" << endl;
@@ -475,7 +475,7 @@ void ArgSpecT::SetValue(const bool& a)
 		delete fValue;
 		bool* tmp = new bool;
 		*tmp = a;
-		fValue = tmp;
+		fValue = (void*) tmp;
 	}
 	else {
 		cout << "\n ArgSpecT::SetValue: type mismatch" << endl;
@@ -489,7 +489,7 @@ void ArgSpecT::SetValue(const float& a)
 		delete fValue;
 		float* tmp = new float;
 		*tmp = a;
-		fValue = tmp;
+		fValue = (void*) tmp;
 	}
 	else if (fType == double_)
 		SetValue(double(a));
