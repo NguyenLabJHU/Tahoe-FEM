@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.3 2002-01-30 16:28:57 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.h,v 1.4 2002-01-30 18:58:12 dzeigle Exp $ */
 
 #ifndef _PENALTY_CONTACT_ELEMENT_2D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_2D_T_H_
@@ -41,5 +41,4 @@ class PenaltyContactElement2DT: public ContactElementT
 };
 
 #endif /* _PENALTY_CONTACT_ELEMENT_2D_T_H_ */
-
 
