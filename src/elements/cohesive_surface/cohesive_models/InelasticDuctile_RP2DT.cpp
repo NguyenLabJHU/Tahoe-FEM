@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile_RP2DT.cpp,v 1.1 2003-08-08 16:03:18 paklein Exp $  */
+/* $Id: InelasticDuctile_RP2DT.cpp,v 1.2 2003-09-03 23:47:56 paklein Exp $  */
 #include "InelasticDuctile_RP2DT.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
@@ -20,7 +20,8 @@ const int kNumState =
         + 1 /* \int \mathbf{T} \cdot d\boldsymbol{\Delta} */
 		+ 1 /* \mathbf{T} \cdot d\boldsymbol{\Delta} */
 		+ 1 /* status flag */
-		+ 1 /* tied node flag (last slot) */;
+		+ 1 /* tied node flag (last slot) */
+		+ (knumDOF + 1); /* 0.0/1.0 for active local equations (the traction and phi) */
         
 /* indicies in state variable array */
 const int         k_dex_T_n = 0;
@@ -33,6 +34,7 @@ const int     k_dex_Delta_n = 7;
 const int          k_dex_dq = 9;
 const int     k_status_flag = 11;
 const int       k_tied_flag = 12;
+const int    k_active_flags = 13; 
 
 /* values in the BCJ output array - defined in BCJHypoIsoDamageYC3D.cpp */
 const int kBCJ_kappa_dex = 0;
@@ -48,9 +50,10 @@ const int   max_iter = 25;
 const double phi_max = 0.999;
 
 /* constructor */
-InelasticDuctile_RP2DT::InelasticDuctile_RP2DT(ifstreamT& in, const double& time_step): 
+InelasticDuctile_RP2DT::InelasticDuctile_RP2DT(ifstreamT& in, const double& time_step, const double& area): 
 	SurfacePotentialT(knumDOF),
 	fTimeStep(time_step),
+	fArea(area),
 	fw_0(-1.0),
 	feps_0(-1.0),
 	fphi_init(-1.0),
@@ -60,8 +63,8 @@ InelasticDuctile_RP2DT::InelasticDuctile_RP2DT(ifstreamT& in, const double& time
 	fR(knumDOF + 1), /* the traction and phi */
 	fK(knumDOF + 1),
 
-	fdD_active(knumDOF),
-	fdq_active(knumInternal),
+	fR_man(0, fR_temp),
+	fK_man(0, fK_temp),
 
 	/* state variable data */
 	fState(kNumState),
@@ -70,7 +73,8 @@ InelasticDuctile_RP2DT::InelasticDuctile_RP2DT(ifstreamT& in, const double& time
 	fphi(fState[k_dex_phi]),
 	fphi_s(fState[k_dex_phi_s]),
 	fdissipation(fState[k_dex_dissipation]),
-	fdq(2, fState.Pointer(k_dex_dq))
+	fdq(2, fState.Pointer(k_dex_dq)),
+	feq_active(knumDOF + 1, fState.Pointer(k_active_flags))
 {
 	const char caller[] = "InelasticDuctile_RP2DT::InelasticDuctile_RP2DT";
 
@@ -196,29 +200,33 @@ const dArrayT& InelasticDuctile_RP2DT::Traction(const dArrayT& jump_u, ArrayT<do
 		{
 			double kappa = state[k_dex_kappa];
 			double phi_s = state[k_dex_phi_s];
+			double& phi_n = state[k_dex_phi];
 
 			/* supply initial guess (for T_t) */
-			if (fabs(fTraction[0]) < kSmall)
-				fTraction[0] = 1.0001*(kappa + fY)*(1.0 - phi_s); // just a little more than the resistance
+//			if (fabs(fTraction[0]) < kSmall)
+//				fTraction[0] = 1.0001*(kappa + fY)*(1.0 - phi_s); // just a little more than the resistance
 
 			/* supply initial guess (for T_n) */
-			if (fabs(fTraction[1]) < kSmall)
-				fTraction[1] = 1.01*(kappa + fY)*(1.0 - phi_s); // just a little more than the resistance
+//			if (fabs(fTraction[1]) < kSmall)
+//				fTraction[1] = 1.01*(kappa + fY)*(1.0 - phi_s); // just a little more than the resistance
 		
 			/* compute rates */
-			double& phi_n = state[k_dex_phi];
-			Rates(fState, jump_u, fTraction, fdD, fdq, fdD_active, fdq_active);
-			
-			//TEMP?
-			//LimitRates(jump_u, fdD, fState[k_dex_phi], fdq);
-			
-			fR[0] = -fdD[0];
-			fR[1] = -fdD[1];
-			fR[2] = -fdq[0];
+			Rates(fState, jump_u, fTraction, fdD, fdq, feq_active);
+
+			/* check for constraints */
+			bool t_free = feq_active[0] > 0.5; /* tangential opening */
+			bool n_free = feq_active[1] > 0.5; /* normal opening */
+			if (!t_free) fTraction[0] = fConstraintStiffness*(jump_u[0] - fDelta[0])/fArea;
+			if (!n_free) fTraction[1] = fConstraintStiffness*(jump_u[1] - fDelta[1])/fArea;
+
+			/* compute residual */
+			fR[0] = -fdD[0]*feq_active[0];
+			fR[1] = -fdD[1]*feq_active[1];
+			fR[2] = -fdq[0]*feq_active[2];
 			if (fabs(fTimeStep) > kSmall) {
-				fR[0] += (jump_u[0] - fDelta[0])/fTimeStep;
-				fR[1] += (jump_u[1] - fDelta[1])/fTimeStep;
-				fR[2] += (fphi - phi_n)/fTimeStep;
+				fR[0] += feq_active[0]*(jump_u[0] - fDelta[0])/fTimeStep;
+				fR[1] += feq_active[1]*(jump_u[1] - fDelta[1])/fTimeStep;
+				fR[2] += feq_active[2]*(fphi - phi_n)/fTimeStep;
 			}
 
 			double error, error0;
@@ -226,28 +234,26 @@ const dArrayT& InelasticDuctile_RP2DT::Traction(const dArrayT& jump_u, ArrayT<do
 
 			int count = 0;
 			double phi_s_in = fphi_s;
-			while (count++ < max_iter && error > abs_tol && error/error0 > rel_tol) 
+			while ((t_free || n_free) && count++ < max_iter && error > abs_tol && error/error0 > rel_tol) 
 			{
 				/* compute Jacobian */
 				Jacobian(fState, jump_u, fTraction, fdq, fK);		
 
-				/* solve update */
-				fK.LinearSolve(fR);
+				/* collect active parts */
+				Assemble(fR, fK, feq_active);
 
-				//TEMP? - scale update vector to limit phi
-				if (fR[2] > 0.05)
-				{
-					fR *= 0.05/fR[2];
-				}
-				else if (fR[2] < -0.05)
-				{
-					fR *= -0.05/fR[2];
-				}
+				/* solve update */
+				fK_temp.LinearSolve(fR_temp);
 
 				/* updates */
-				fTraction[0] += fR[0];
-				fTraction[1] += fR[1];				
-				fphi += fR[2];
+				int R_dex = 0;
+				if (t_free) fTraction[0] += fR_temp[R_dex++];
+				if (n_free) {
+					fTraction[1] += fR_temp[R_dex++];
+					fphi += fR_temp[R_dex++];
+				}
+
+				/* irreversible damage */
 				if (fReversible || fphi > phi_s_in) 
 					fphi_s = fphi;
 				else
@@ -267,18 +273,22 @@ const dArrayT& InelasticDuctile_RP2DT::Traction(const dArrayT& jump_u, ArrayT<do
 				else
 				{
 					/* new rates and error */
-					Rates(fState, jump_u, fTraction, fdD, fdq, fdD_active, fdq_active);
+					Rates(fState, jump_u, fTraction, fdD, fdq, feq_active);
+
+					/* check for constraints */
+					t_free = feq_active[0] > 0.5; /* tangential opening */
+					n_free = feq_active[1] > 0.5; /* normal opening */
+					if (!t_free) fTraction[0] = fConstraintStiffness*(jump_u[0] - fDelta[0])/fArea;
+					if (!n_free) fTraction[1] = fConstraintStiffness*(jump_u[1] - fDelta[1])/fArea;
 					
-					//TEMP?
-					//LimitRates(jump_u, fdD, fState[k_dex_phi], fdq);
-					
-					fR[0] = -fdD[0];
-					fR[1] = -fdD[1];
-					fR[2] = -fdq[0];
+					/* compute residual */
+					fR[0] = -fdD[0]*feq_active[0];
+					fR[1] = -fdD[1]*feq_active[1];
+					fR[2] = -fdq[0]*feq_active[2];
 					if (fabs(fTimeStep) > kSmall) {
-						fR[0] += (jump_u[0] - fDelta[0])/fTimeStep;
-						fR[1] += (jump_u[1] - fDelta[1])/fTimeStep;
-						fR[2] += (fphi - phi_n)/fTimeStep;
+						fR[0] += feq_active[0]*(jump_u[0] - fDelta[0])/fTimeStep;
+						fR[1] += feq_active[1]*(jump_u[1] - fDelta[1])/fTimeStep;
+						fR[2] += feq_active[2]*(fphi - phi_n)/fTimeStep;
 					}
 
 					error = fR.Magnitude();
@@ -336,15 +346,53 @@ const dMatrixT& InelasticDuctile_RP2DT::Stiffness(const dArrayT& jump_u, const A
 		/* copy state variables */
 		fState = state;
 
-		/* compute Jacobian of local problem */
-		Jacobian(state, jump_u, fTraction, fdq, fK);		
+		bool t_free = feq_active[0] > 0.5; /* tangential opening */
+		bool n_free = feq_active[1] > 0.5; /* normal opening */
 
-		/* pull values from Jacobian */
-		fStiffness(0,0) = fTimeStep*(fK(0,0) - (fK(0,2)*fK(2,0))/fK(2,2));
-		fStiffness(0,1) = fTimeStep*(fK(0,1) - (fK(0,2)*fK(2,1))/fK(2,2));
-		fStiffness(1,0) = fTimeStep*(fK(1,0) - (fK(1,2)*fK(2,0))/fK(2,2));
-		fStiffness(1,1) = fTimeStep*(fK(1,1) - (fK(1,2)*fK(2,1))/fK(2,2));
-		fStiffness.Inverse();
+		/* something active */
+		if (t_free || n_free)
+		{
+			/* compute Jacobian of local problem */
+			Jacobian(state, jump_u, fTraction, fdq, fK);		
+		
+			/* all free */
+			if (t_free && n_free)
+			{
+				/* pull values from Jacobian */
+				fStiffness(0,0) = fTimeStep*(fK(0,0) - (fK(0,2)*fK(2,0))/fK(2,2));
+				fStiffness(0,1) = fTimeStep*(fK(0,1) - (fK(0,2)*fK(2,1))/fK(2,2));
+				fStiffness(1,0) = fTimeStep*(fK(1,0) - (fK(1,2)*fK(2,0))/fK(2,2));
+				fStiffness(1,1) = fTimeStep*(fK(1,1) - (fK(1,2)*fK(2,1))/fK(2,2));
+				fStiffness.Inverse();
+			}
+			else if (t_free) /* n constrained */
+			{
+				double A_tt = fK(0,0) - (fK(0,2)*fK(2,0))/fK(2,2);
+				double A_tn = fK(0,1) - (fK(0,2)*fK(2,1))/fK(2,2);
+
+				fStiffness(0,0) = 1.0/(fTimeStep*A_tt);
+				fStiffness(0,1) =-fConstraintStiffness*A_tn/A_tt;
+				fStiffness(1,0) = 0.0;		
+				fStiffness(1,1) = fConstraintStiffness/fArea;
+			}
+			else /* n_free and t constrained */
+			{
+				double A_nt = fK(1,0) - (fK(1,2)*fK(2,0))/fK(2,2);
+				double A_nn = fK(1,1) - (fK(1,2)*fK(2,1))/fK(2,2);
+
+				fStiffness(0,0) = fConstraintStiffness/fArea;
+				fStiffness(0,1) = 0.0;		
+				fStiffness(1,0) =-fConstraintStiffness*A_nt/A_nn;		
+				fStiffness(1,1) = 1.0/(fTimeStep*A_nn);
+			}
+		}
+		else /* fully constrained */
+		{
+			fStiffness(0,0) = fConstraintStiffness/fArea;
+			fStiffness(0,1) = 0.0;		
+			fStiffness(1,0) = 0.0;		
+			fStiffness(1,1) = fConstraintStiffness/fArea;
+		}
 	}
 
 	return fStiffness;
@@ -381,6 +429,7 @@ void InelasticDuctile_RP2DT::Print(ostream& out) const
 	out << " Initial width of the process zone . . . . . . . = " << fw_0 << '\n';
 	out << " Critical void volume fraction . . . . . . . . . = " << fphi_init << '\n';
 	out << " Reversible damage . . . . . . . . . . . . . . . = " << ((fReversible) ? "true" : "false") << '\n';
+	out << " Constraint stiffness. . . . . . . . . . . . . . = " << fConstraintStiffness << '\n';
 	out << " BCJ model kinetic parameters:\n";
 	out << "     temperature = " << fTemperature << '\n';
 	out << "              C1 = " << fC1 << '\n';
@@ -452,13 +501,12 @@ bool InelasticDuctile_RP2DT::CompatibleOutput(const SurfacePotentialT& potential
 
 /* evaluate the rates */
 void InelasticDuctile_RP2DT::Rates(const ArrayT<double>& q, const dArrayT& D, 
-	const dArrayT& T, dArrayT& dD, dArrayT& dq, ArrayT<bool>& dD_active, ArrayT<bool>& dq_active)
+	const dArrayT& T, dArrayT& dD, dArrayT& dq, dArrayT& active)
 {
 #pragma unused(D)
 #if __option(extended_errorcheck)
 	const char caller[] = "InelasticDuctile_RP2DT::Rates";
-	if (dD_active.Length() != 2) ExceptionT::SizeMismatch(caller);
-	if (dq_active.Length() != 1) ExceptionT::SizeMismatch(caller);
+	if (active.Length() != knumDOF + 1) ExceptionT::SizeMismatch(caller);
 #endif
 
 	/* state variables */
@@ -469,9 +517,6 @@ void InelasticDuctile_RP2DT::Rates(const ArrayT<double>& q, const dArrayT& D,
 	double k1 = 1.0 - phi;
 	double k2 = 1.0 - phi_s;
 
-	double kY = (kappa + fY);
-	double kV = fV;
-
 	/* tangential traction */
 	double T_t = T[0];
 	double sign_T_t = 0.0;
@@ -479,7 +524,7 @@ void InelasticDuctile_RP2DT::Rates(const ArrayT<double>& q, const dArrayT& D,
 	else if (T_t < 0.0) sign_T_t = -1.0;
 
 	/* effective traction */
-	double T_eff = T[1] + fabs(T[0]);
+	double T_eff = T[1] + fabs(T_t);
 	double sign_T_eff = 0.0;
 	if (T_eff > 0.0) sign_T_eff = 1.0;
 	else if (T_eff < 0.0) sign_T_eff = -1.0;
@@ -497,9 +542,9 @@ void InelasticDuctile_RP2DT::Rates(const ArrayT<double>& q, const dArrayT& D,
 	dD[1] = fw_0*dq[0]/(k1*k1);
 	
 	/* what's active */
-	dq_active[0] = (arg_dq > 0.0) ? true : false;
-	dD_active[0] = (arg_dD_t > 0.0) ? true : false;
-	dD_active[1] = dq_active[0];
+	active[2] = (arg_dq > 0.0) ? 1.0 : 0.0; /* phi evolution */
+	active[0] = (arg_dD_t > 0.0) ? 1.0 : 0.0; /* T_t evolution */
+	active[1] = active[2]; /* T_n evolution */
 }
 
 void InelasticDuctile_RP2DT::Jacobian(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
@@ -515,35 +560,44 @@ void InelasticDuctile_RP2DT::Jacobian(const ArrayT<double>& q, const dArrayT& D,
 	double k1 = 1.0 - phi;
 	double k2 = 1.0 - phi_s;
 
-	double kY = (kappa + fY)*(1.0 - phi_s);
-	double kV = fV*(1.0 - phi_s);
-
+	/* tangential traction */
+	double T_t = T[0];
 	double sign_T_t = 0.0;
-	if (T[0] > 0.0) sign_T_t = 1.0;
-	else if (T[0] < 0.0) sign_T_t = -1.0;
+	if (T_t > 0.0) sign_T_t = 1.0;
+	else if (T_t < 0.0) sign_T_t = -1.0;
 
-	double k3 = feps_0*cosh((fabs(T[0]) + T[1] - kY)/kV);
-	double k4 = fw_0*feps_0*cosh(sign_T_t*(fabs(T[0]) - kY)/kV);
+	/* effective traction */
+	double T_eff = T[1] + fabs(T_t);
+	double sign_T_eff = 0.0;
+	if (T_eff > 0.0) sign_T_eff = 1.0;
+	else if (T_eff < 0.0) sign_T_eff = -1.0;
+
+	/* flow arguments */
+	double   arg_dq = (fabs(T_eff)/k2 - (kappa + fY))/fV;
+	double arg_dD_t = (fabs(T_t)/k2 - (kappa + fY))/fV;
+
+	double k3 = feps_0*cosh(arg_dq);
+	double k4 = fw_0*feps_0*cosh(arg_dD_t);
 
 	/* irreversible damage - phi_s is changing */
 	if (phi_s < phi_max && (fReversible || dq[0] > 0.0))
 	{
-		K(0,0) = k4/kV;
+		K(0,0) = k4/(fV*k2);
 		K(0,1) = 0.0;
-		K(0,2) = sign_T_t*k4*((kappa + kY)/kV + (fabs(T[0]) - kY)/(kV*k2));
+		K(0,2) = k4*sign_T_t*fabs(T_t)/(fV*k2*k2);
 
-		K(2,0) = sign_T_t*k3/kV;
-		K(2,1) = k3/kV;
-		K(2,2) = k3*((kappa + kY)/kV + (fabs(T[0]) + T[1] - kY)/(kV*k2));
+		K(2,0) = sign_T_t*sign_T_eff*k3/(fV*k2);
+		K(2,1) = sign_T_eff*k3/(fV*k2);
+		K(2,2) = sign_T_eff*fabs(T_eff)*k3/(fV*k2*k2);
 	} 
 	else /* phi_s not changing */
 	{
-		K(0,0) = fw_0*feps_0*cosh(T[0]/(kappa*k2))/(kappa*k2);
+		K(0,0) = k4/(fV*k2);
 		K(0,1) = 0.0;
 		K(0,2) = 0.0;
 
-		K(2,0) = sign_T_t*k3/kV;
-		K(2,1) = k3/kV;
+		K(2,0) = sign_T_t*sign_T_eff*k3/(fV*k2);
+		K(2,1) = sign_T_eff*k3/(fV*k2);
 		K(2,2) = 0.0;
 	}
 
@@ -554,4 +608,41 @@ void InelasticDuctile_RP2DT::Jacobian(const ArrayT<double>& q, const dArrayT& D,
 
 	/* because: R_q = q_dot - 1/dt (q_n+1 - q_n) */ 
 	if (fabs(fTimeStep) > kSmall) K(2,2) -= 1.0/fTimeStep;
+}
+
+/* reduce local the active equations */
+void InelasticDuctile_RP2DT::Assemble(const dArrayT& R, const dMatrixT& K, const dArrayT& active)
+{
+	/* dimension check */
+	if (active.Length() != 3) ExceptionT::GeneralFail("InelasticDuctile_RP2DT::Assemble");
+
+	/* count active equations */
+	int dim = 0;
+	if (active[0] > 0.5) dim++;
+	if (active[1] > 0.5) dim++;
+	if (active[2] > 0.5) dim++;
+
+	/* dimension working space */
+	fR_man.SetLength(dim, false);
+	fK_man.SetDimensions(dim);
+
+	int row_dex = 0;
+	for (int row = 0; row < 3; row++)
+		if (active[row] > 0.5)
+		{	
+			fR_temp[row_dex] = R[row];
+	
+			int col_dex = 0;
+			for (int col = 0; col < 3; col++)
+				if (active[col] > 0.5)
+				{
+					fK_temp(row_dex, col_dex) = K(row, col);
+				
+					/* next col */
+					col_dex++;				
+				}
+	
+			/* next row */
+			row_dex++;
+		}
 }

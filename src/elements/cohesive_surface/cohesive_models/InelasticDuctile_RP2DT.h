@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile_RP2DT.h,v 1.1 2003-08-08 16:03:18 paklein Exp $ */
+/* $Id: InelasticDuctile_RP2DT.h,v 1.2 2003-09-03 23:47:56 paklein Exp $ */
 #ifndef _INELASTIC_DUCTILE_RP_2D_T_H_
 #define _INELASTIC_DUCTILE_RP_2D_T_H_
 
@@ -8,6 +8,8 @@
 
 /* direct members */
 #include "LAdMatrixT.h"
+#include "nVariMatrixT.h"
+#include "VariArrayT.h"
 
 namespace Tahoe {
 
@@ -25,7 +27,7 @@ public:
 
 	/** constructor.
 	 * \param time_step reference to the current time step */
-	InelasticDuctile_RP2DT(ifstreamT& in, const double& time_step);
+	InelasticDuctile_RP2DT(ifstreamT& in, const double& time_step, const double& area);
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const;
@@ -86,7 +88,7 @@ public:
 	virtual bool RotateNodalQuantity(void) const { return false; };
 	
 	/** true if a nodal release condition is satisfied */
-	virtual bool InitiationQ(const nArrayT<double>& sigma) const { return true; };
+	virtual bool InitiationQ(const nArrayT<double>&) const { return true; };
 
 	/** true if the tied potential may ask for nodes to be retied later */
 	virtual bool NodesMayRetie(void) const{ return false; };
@@ -108,7 +110,7 @@ protected:
 	/*@{*/
 	/** evaluate the rates */
 	void Rates(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
-		dArrayT& dD, dArrayT& dq, ArrayT<bool>& dD_active, ArrayT<bool>& dq_active);
+		dArrayT& dD, dArrayT& dq, dArrayT& active);
 
 	/** evaluate the Jacobian of the local iteration */
 	void Jacobian(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
@@ -117,8 +119,16 @@ protected:
 
 private:
 
+	/** reduce local the active equations */
+	void Assemble(const dArrayT& R, const dMatrixT& K, const dArrayT& active);
+
+private:
+
 	/** reference to the time step */
 	const double& fTimeStep;
+
+	/** reference to the area of the current evaluation point */
+	const double& fArea;
 
 	/** \name parameters */
 	/*@{*/
@@ -156,11 +166,12 @@ private:
 	/*@{*/
 	dArrayT fdD;
 	
-	dArrayT fR;
-	LAdMatrixT fK;
+	dArrayT fR, fR_temp;
+	LAdMatrixT fK_temp;
+	dMatrixT fK;
 
-	ArrayT<bool> fdD_active;
-	ArrayT<bool> fdq_active;
+	VariArrayT<double> fR_man;
+	nVariMatrixT<double> fK_man;
 	/*@}*/
 	
 	/** \name state variable data */
@@ -168,8 +179,11 @@ private:
 	ArrayT<double> fState;
 	
 	dArrayT fDelta;
-//	dArrayT fTraction;
 	dArrayT fdq;
+
+	/** 1 or 0 depending on where that equation is active */
+	dArrayT feq_active;
+	
 	double& fkappa;
 	double& fphi;
 	double& fphi_s;
