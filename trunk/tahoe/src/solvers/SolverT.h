@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.13 2003-03-31 22:59:32 paklein Exp $ */
+/* $Id: SolverT.h,v 1.14 2003-05-20 10:18:09 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -91,7 +91,11 @@ public:
 	virtual void CloseStep(void);
 
 	/** error handler */
-	virtual void ResetStep(void);	
+	virtual void ResetStep(void);
+	
+	/** signal time step change. Chance to clear cached values that may depend on the
+	 * time increment. */
+	virtual void SetTimeStep(double dt);
 	/*@}*/
 
 	/** \name assembling the global equation system */
@@ -197,6 +201,12 @@ protected:
 
 /* inlines */
 
+/* signal time step change */
+inline void SolverT::SetTimeStep(double dt)
+{
+#pragma unused(dt)
+}
+
 /* assemble forces over the whole system */
 inline void SolverT::AssembleRHS(const nArrayT<double>& elRes)
 {
@@ -260,5 +270,6 @@ inline const dArrayT& SolverT::RHS(void) const { return fRHS; }
 /* accessor */
 inline const int& SolverT::IterationNumber(void) const { return fNumIteration; }
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _SOLVER_H_ */
