@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: material.surface.tex,v 1.1 2002-10-31 18:48:08 cjkimme Exp $
+% $Id: material.surface.tex,v 1.2 2002-11-06 17:38:22 cjkimme Exp $
 \section{Constitutive models for cohesive surface elements}
 This section of the guide describes the constitutive models that may
 be used as material models specifying the traction vector as a function of
@@ -57,17 +57,17 @@ the following sections,  ``Surface Material $x$'' refers to the constitutive
 relation
 specified by a material code of ``$x$'' for a given element block. 
 In these constitutive models, the displacement discontinuity between two
-opposite crack faces is quantified by the gap vector $\tilde{\bf{\Delta}}$
+opposite crack faces is quantified by the gap vector $\tilde{\mathbf{\Delta}}$
 whose components $\Delta_t$ and $\Delta_n$ in two dimensions are specified
 for directions along and normal to the midplane between the two crack
 faces. In three dimensions, the components are $\Delta_{t1}$, $\Delta_{t2}$,
 and $\Delta_n$. Each constitutive model described below returns the
-traction vector $\bf{T}$ as a function of $\tilde{\bf{\Delta}}$ and any
+traction vector $\mathbf{T}$ as a function of $\tilde{\mathbf{\Delta}}$ and any
 internal state variables the model has.  Also, many of these models specify 
 length scales $\delta_i, i = n,t$ in the normal and tangential directions
 directions (or $\delta_i, i = n,t1,t2$ in three dimensions, normal and 
 two tangential directions), and one defines a dimensionless vector
-$\bf{\lambda}$ related to the gap vector $\bf{\Delta}$ via
+$\mathbf{\lambda}$ related to the gap vector $\mathbf{\Delta}$ via
 \begin{equation}
 \boldsymbol{\lambda} \equiv (\lambda_t,\lambda_n) 
 = (\frac{\Delta_t}{\delta_t}, \frac{\Delta_n}{\delta_n}).
@@ -82,19 +82,19 @@ scalar opening parameter $\lambda \equiv \sqrt{\boldsymbol{\lambda}
 This model due to Xu and Needleman \cite{Needleman1994} is based 
 on the universal binding energy
 curve and exhibits completely reversibility; consequently, the traction vector
-can be derived from a potential $\Phi(\bf{\Delta})$ via
+can be derived from a potential $\Phi(\mathbf{\Delta})$ via
 \begin{equation}
-\bf{T} = \frac{\partial \Phi}{\partial \bf{\Delta}}.
+\mathbf{T} = \frac{\partial \Phi}{\partial \mathbf{\Delta}}.
 \end{equation}
 For the Xu-Needleman model, $\Phi$ is a function of the dimensionless
 gap vector $boldsymbol{\lambda}$ described above and is given by 
 \begin{equation}
-\Phi(\bf{\Delta}) = \phi_n (1+e^{-\lambda_n}) (1-r+\lambda_n)\frac{1-q}{r-1}-e^{-\lambda_t^2} ( q+\frac{r-q}{r-1}\lambda_n ).
+\Phi(\mathbf{\Delta}) = \phi_n (1+e^{-\lambda_n}) (1-r+\lambda_n)\frac{1-q}{r-1}-e^{-\lambda_t^2} ( q+\frac{r-q}{r-1}\lambda_n ).
 \end{equation}
 Here $\phi_n$ is an input parameter specifying the work to fracture and one has
 the identity
 \begin{equation}
-\phi_n = \int \frac{\partial \phi}{\partial \bf{\Delta}}\cdot \delta \bf{\Delta}.
+\phi_n = \int \frac{\partial \phi}{\partial \mathbf{\Delta}}\cdot \delta \mathbf{\Delta}.
 \end{equation}
 Two additional dimensionless parameters appearing in the expression for
 $\Phi$ are $q = \frac{\phi_t}{\phi_n}$
@@ -136,9 +136,13 @@ opening displacement. Unlike the Xu-Needleman model, the Tvergaard-Hutchinson
 model first specifies a potential density $\phi$ shown in Figure~\ref{fig:tv} 
 and given by
 \begin{equation}
-\phi{\bf{\Delta}} = \sigma_m \frac{\lambda}{\lambda_1}
-	\sigma_m 
-     \sigma_m \frac{1-\lambda}{1-\lambda_2}.
+\phi(\mathbf{\Delta}) = \left\{
+\begin{array}{r@{\quad:\quad}l} 
+\sigma_m \frac{\lambda}{\lambda_1} & \lambda < \lambda_1 \\
+	\sigma_m & \lambda_1 < \lambda < \lambda_2 .\\
+     \sigma_m \frac{1-\lambda}{1-\lambda_2} & \lambda_2 < \lambda < 1
+\end{array}
+\right.
 \end{equation} 
 The potential $\Phi$ can be obtained from the potential density via
 \begin{equation}
@@ -147,7 +151,8 @@ The potential $\Phi$ can be obtained from the potential density via
 and the traction may be concisely expressed as
 \begin{equation}
 \label{eq.tvt}
-T_i = \frac{\partial \Phi}{\partial \Delta_i} = \delta_n \phi{\lambda} \frac{\Delta_i}{\delta_i^2}.
+T_i = \frac{\partial \Phi}{\partial \Delta_i} = \frac{\delta_n}{\delta_i} 
+\lambda_i \phi(\lambda).
 \end{equation}
 
 \subsubsection{Input parameters}
@@ -199,13 +204,13 @@ This model generalizes the Tvergaard-Hutchinson model
 described in Section~\ref{sect.material.surface.tv} to include the effects of 
 viscous dissipation. Consequently, this model does not exhibit reversability 
 upon unloading, and may not be completely described by a potential. 
-The traction $\bf{T}$ is now a function of $\dot{\bf{\Delta}}$, 
-the rate of change of the gap vector, as well as a function of $\bf{\Delta}$ itself.
+The traction $\mathbf{T}$ is now a function of $\dot{\mathbf{\Delta}}$, 
+the rate of change of the gap vector, as well as a function of $\mathbf{\Delta}$ itself.
 It may be expressed as 
 \begin{equation}
-\bf{T} = \bf{T}^{tv} + \eta_0 (1-\lambda) \dot{\bf{\Delta}}
+\mathbf{T} = \mathbf{T}^{tv} + \eta_0 (1-\lambda) \dot{\mathbf{\Delta}}
 \end{equation}
-where $\bf{T}^{tv}$ is the traction as a function of $\bf{\Delta}$ specified by
+where $\mathbf{T}^{tv}$ is the traction as a function of $\mathbf{\Delta}$ specified by
 the Tvergaard-Hutchinson model in Equation~\eqref{eq.tvt}. 
 
 \subsubsection{Input parameters}
@@ -240,7 +245,7 @@ failure as the crazes lose their load-carrying capacity. The elastic
 regime is modeled as linear elastic with a traction separation relation
 given by 
 \begin{equation}
-\bf{T} = k_n \Delta_n \hat{\bf{n}} + k_t \Delta_t \hat{\bf{t}}
+T_i = k_i \Delta_i 
 \end{equation}
 where the normal and tangential stiffnesses $k_i; i = n, t$ are 
 parameters of the model. This elastic deformation is assumed to continue
@@ -249,9 +254,9 @@ layer is satisfies an initiation criterium. For pure mode I loading,
 this criterium reduces to specifying a critical normal traction at
 which the craze initiates. For a more general stress state, the stress
 tensor may be sampled in the surrounding bulk, and the initiation criterium
-is given by a function of $T_n$ and the bulk stress tensor $\bf{\sigma}$
+is given by a function of $T_n$ and the bulk stress tensor $\mathbf{\sigma}$
 \begin{equation}
-f(\bf{\sigma},T_n) = -\frac{1}{2} \sigma_{ii} - \frac{1}{2} A_\theta - \frac{B_\theta}{2 \sigma_{ii}} - T_n = 0
+f(\mathbf{\sigma},T_n) = -\frac{1}{2} \sigma_{ii} - \frac{1}{2} A_\theta - \frac{B_\theta}{2 \sigma_{ii}} - T_n = 0
 \end{equation}
 The parameters $A_\theta$ and  $B_\theta$ are temperature dependent 
 according to
@@ -261,19 +266,10 @@ X_\theta = X_0 e^{-\frac{Q_X}{k_B \theta}}, X = A, B.
 After craze initiation, the traction-separation relation is specified
 in rate form as 
 \begin{equation}
-\begin{matrix}
-\dot{T}_t\\\dot{T}_n = 
-\begin{bmatrix}
-k_t & 0  \\
-0 & k_n
-\end{bmatrix}
-\begin{matrix}
-\dot{\Delta}_t - \dot{\Delta}_t^{cr} \\
-\dot{\Delta}_n - \dot{\Delta}_n^{cr}
-\end{matrix}.
-\end{matrix}
+\dot{T}_i = 
+k_i (\dot{\Delta}_i - \dot{\Delta}_i^{cr}) 
 \end{equation}
-The components of $\bf{\Delta}^{cr}$ represent the span of craze fibrils between
+The components $\Delta_i^{cr}$ represent the span of craze fibrils between
 the surfaces of the cohesive layer and evolve according to 
 \begin{equation}
 \dot{\Delta}_i = \dot{\Delta}_i^0 (e^{-\frac{K^*}{k_B \theta} 
@@ -326,6 +322,11 @@ The input parameters for this model are as shown below:
 
 \subsubsection{Output Values}
 
+This cohesive model outputs four nodal values. The first is the local
+normal opening rate $\dot{\Delta}_n$. The second is the tangential
+craze width, $\Delta_t^{cr}$, and the third is the normal component
+of the same, $\Delta_n^{cr}$. The final output parameter is the initiation
+function $f(\sigma,T_n)$.
 
 \subsection{Surface Material 5: trilinear rate dependent}
 \label{sect.material.surface.ratedep}
@@ -364,13 +365,14 @@ is  shown below:
 1.0   # delta_n^b (intercept of rate function)
 1.0   # delta_n^m (slope or rate functions)
 \end{inputfile}
-Setting ``delta n b'' equal to ``dn'' and ``delta n m'' to zero in the input 
+Setting ``delta\_n\_b'' equal to ``d\_n'' and 
+``delta\_n\_m'' to zero in the input 
 file reduces this model to the rate-independent Tvergaard-Hutchinson one of 
 Section~\ref{sect.material.surface.tv}.
 
 \subsubsection{Output values}
 This model outputs nodal values for $\lambda$, each component of the local opening
-rate $\bf{\dot{\Delta}}$, and the rate-dependent normal length scale $\delta_n$.
+rate $\mathbf{\dot{\Delta}}$, and the rate-dependent normal length scale $\delta_n$.
 
 \subsection{Surface Material 6: Tied Potential}
 \label{sect.material.surface.tied}
@@ -426,13 +428,30 @@ plagued by poorer numerical performance.
 The tied potential input parameters contain a flag that is set to
 zero to choose the Tvergaard-Huthcinson model and to one to choose
 the Xu-Needleman model. Examples of both sets of input will be shown.
+
+Below is shown sample input to choose the Xu-Needleman model:
+\begin{inputfile}
+####### Tied potential
+6     # surface material code
+0. 1. # normal direction to sample stress to obtain traction
+####### flag for Xu-Needleman
+0
+####### model parameters
+1.0   # q
+0.0   # r 
+0.001 # dn
+0.001 # dt
+10.0  # phi
+10.0  # r_fail
+\end{inputfile}
+
 For the Tvergaard-Hutchinson choice:
 \begin{inputfile}
 ####### Tied potential
 6     # surface material code
 0. 1. # normal direction to sample stress to obtain traction
 ####### flag for Tvergaard-Hutchinson
-0
+1
 ####### model parameters
 100.0 # sigma
 0.001 # dn
@@ -443,22 +462,6 @@ For the Tvergaard-Hutchinson choice:
 0.25  # lambda_0, initiate at T = T(lambda_0)
 \end{inputfile}
 
-Below is shown sample input to choose the Xu-Needleman model:
-\begin{inputfile}
-####### Tied potential
-6     # surface material code
-0. 1. # normal direction to sample stress to obtain traction
-####### flag for Xu-Needleman
-1
-####### model parameters
-1.0   # q
-0.0   # r 
-0.001 # dn
-0.001 # dt
-10.0  # phi
-10.0  # r_fail
-\end{inputfile}
-
 Although the input parameters have been ordered to correspond exactly
 with the ones for their respective untied cohesive laws, it should be
 noted that there are no penalty stiffness multipliers for interpenetration,
@@ -467,7 +470,7 @@ the Xu-Needleman specification other than $q = 1$, $r = 0$.
 
 \subsubsection{Output values}
 The tied potentials ouput a single nodal value that reflects a given
-nodes status as tied ( < 0) or untied (0.) and may be useful in conjunction
+nodes status as tied ($\neq 0$) or untied ($0.$) and may be useful in conjunction
 with visualization software. 
 
 \subsection{Material 7: Yoon, Allen, and Searcy (linear viscoelastic)}
@@ -481,7 +484,7 @@ damage evolution law. The details of the physical interpretation of
 the damage parameter $\alpha$ are given in Reference \cite{Allen1999}, and 
 the traction-separation law is given as
 \begin{equation}
-T_i = \lambda_i (1-\alpha(t))\left[ T_0 + \int_0^t \left( E_\infty + \sum_i^{n_e} (1-E_i 
+\mathbf{T} = \boldsymbol{\lambda} (1-\alpha(t))\left[ T_0 + \int_0^t \left( E_\infty + \sum_i^{n_e} (1-E_i 
 e^{-\frac{t}{\tau_i}})\right) \frac{\partial \lambda(\tau')}{\partial \tau'} \mbox{ d}
 \tau' \right]
 \end{equation}
@@ -510,7 +513,7 @@ A third and for the moment final damage evolution law is given by
 \begin{equation}
 \dot{\alpha} = \alpha_0 \dot{\lambda}^m,
 \end{equation}
-and its responce to cyclic loading is shown in Figure .
+and its response to cyclic loading is shown in Figure .
 
 \subsubsection{Input parameters}
 An example of input parameters for two- or three-dimensional analysis 
@@ -546,5 +549,6 @@ is shown below:
 
 
 \subsubsection{Output values}
-This constitutive model does not have any output values.
+This constitutive model has three nodal output values. It outputs values
+of $\lambda$, $\dot{\lambda}$, and $\alpha$.
 
