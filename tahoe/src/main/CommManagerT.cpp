@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.6 2003-08-23 20:10:11 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.6.10.1 2003-10-17 20:42:49 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -171,10 +171,16 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 				double  x = X + d;
 
 				/* shift displacements - back in the box */
-				if (x > x_max) 
-					d -= x_len;
-				else if (x < x_min)
-					d += x_len;
+				if (x > x_max) {
+					double dist = x - x_max;
+					int cell = int(dist/x_len); /* which periodic cell */
+					d -= (cell+1)*x_len;
+				}
+				else if (x < x_min) {
+					double dist = x_min - x;
+					int cell = int(dist/x_len);
+					d += (cell+1)*x_len;
+				}
 
 				/* collect nodes close to periodic boundaries */
 				x = X + d;
