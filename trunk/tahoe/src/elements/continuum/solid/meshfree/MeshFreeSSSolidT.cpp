@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.13 2002-10-20 22:48:24 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.14 2002-11-21 01:13:39 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -215,22 +215,15 @@ void MeshFreeSSSolidT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 }
 
 /* write output */
-void MeshFreeSSSolidT::WriteOutput(IOBaseT::OutputModeT mode)
+void MeshFreeSSSolidT::WriteOutput(void)
 {
 	/* inherited */
-	SmallStrainT::WriteOutput(mode);
+	SmallStrainT::WriteOutput();
 
 //TEMP - crack path
-	if (mode == IOBaseT::kAtInc)
-	{
-		ostream& out = ElementSupport().Output();
-
-		/* time stamp */
-		out << "\n time = " << ElementSupport().Time() << '\n';
-		
-		/* inherited */
-		MeshFreeFractureSupportT::WriteOutput(out);
-	}
+	ostream& out = ElementSupport().Output();
+	out << "\n time = " << ElementSupport().Time() << '\n';
+	MeshFreeFractureSupportT::WriteOutput(out);
 }
 
 /* returns true if the internal force has been changed since

@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.h,v 1.5 2002-07-02 19:55:28 cjkimme Exp $ */
+/* $Id: SWDiamondT.h,v 1.6 2002-11-21 01:13:40 paklein Exp $ */
 /* created: paklein (03/19/1997) */
 
 #ifndef _SWDIAMOND_T_H_
@@ -42,7 +42,7 @@ public:
 	
 	/* writing output */
 	virtual void RegisterOutput(void);
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(void);
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);

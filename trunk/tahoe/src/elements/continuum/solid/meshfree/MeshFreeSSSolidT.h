@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.h,v 1.6 2002-07-05 22:28:04 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.h,v 1.7 2002-11-21 01:13:39 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 
 #ifndef _MF_SMALLSTRAIN_T_H_
@@ -36,7 +36,7 @@ public:
 		AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
 
 	/* write output */
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(void);
 
 	/* returns true if the internal force has been changed since
 	 * the last time step */

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.24 2002-11-14 17:05:51 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.25 2002-11-21 01:13:37 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -302,15 +302,10 @@ void ContinuumElementT::RegisterOutput(void)
 }
 
 //NOTE - this function is/was identical to CSEBaseT::WriteOutput
-void ContinuumElementT::WriteOutput(IOBaseT::OutputModeT mode)
+void ContinuumElementT::WriteOutput(void)
 {
-//TEMP - not handling general output modes yet
-	if (mode != IOBaseT::kAtInc)
-	{
-		cout << "\n ContinuumElementT::WriteOutput: only handling \"at increment\"\n"
-		     <<   "     print mode. SKIPPING." << endl;
-		return;
-	}
+	/* regular output */
+	IOBaseT::OutputModeT mode = IOBaseT::kAtInc;
 
 	/* map output flags to count of values */
 	iArrayT n_counts;

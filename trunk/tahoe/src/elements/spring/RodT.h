@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.15 2002-08-12 17:43:55 hspark Exp $ */
+/* $Id: RodT.h,v 1.16 2002-11-21 01:13:41 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -50,7 +50,7 @@ public:
 	
 	/* writing output */
 	virtual void RegisterOutput(void);
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(void);
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);

@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.24 2002-10-20 22:48:30 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.25 2002-11-21 01:13:41 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -156,16 +156,8 @@ void RodT::RegisterOutput(void)
 	fOutputID = ElementSupport().RegisterOutput(output_set);
 }
 
-void RodT::WriteOutput(IOBaseT::OutputModeT mode)
+void RodT::WriteOutput(void)
 {
-//TEMP - not handling general output modes yet
-	if (mode != IOBaseT::kAtInc)
-	{
-		cout << "\n ContinuumElementT::WriteOutput: only handling \"at increment\"\n"
-		     <<   "     print mode. SKIPPING." << endl;
-		return;
-	}
-
 	/* get list of nodes used by the group */
 	iArrayT nodes_used;
 	NodesUsed(nodes_used);

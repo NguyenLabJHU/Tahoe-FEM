@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.30 2002-11-14 19:25:33 creigh Exp $ */
+/* $Id: ElementListT.cpp,v 1.31 2002-11-21 01:13:32 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 
@@ -213,9 +213,24 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				break;
 
 			case ElementT::kStaggeredMultiScale:
-				//fArray[group] = new StaggeredMultiScaleT(fSupport, *field);
-				break;
+			{
+				/* must be using multi-field solver */
+				if (fSupport.Analysis() != GlobalT::kMultiField)				
+					ExceptionT::BadInputValue("ElementListT::EchoElementData", "multi field required");
+			
+				/* coarse scale field read above */
+				const FieldT* coarse_scale = field;
 
+				/* fine scale field */				
+				StringT fine_field_name;
+				in >> fine_field_name;
+				const FieldT* fine_scale = fSupport.Field(fine_field_name);
+				if (!coarse_scale || !fine_scale)
+					ExceptionT::BadInputValue("ElementListT::EchoElementData", "error resolving field names");
+			
+				fArray[group] = new StaggeredMultiScaleT(fSupport, *coarse_scale, *fine_scale);
+				break;
+			}
 			case ElementT::kMeshFreeFDElastic:
 				fArray[group] = new MeshFreeFDElasticT(fSupport, *field);
 				break;

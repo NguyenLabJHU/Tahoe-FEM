@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.5 2002-10-20 22:48:21 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.6 2002-11-21 01:13:36 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 
 #include "PenaltyContact3DT.h"
@@ -94,10 +94,10 @@ PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support, const Field
 }
 
 /* print/compute element output quantities */
-void PenaltyContact3DT::WriteOutput(IOBaseT::OutputModeT mode)
+void PenaltyContact3DT::WriteOutput(void)
 {
 	/* inherited */
-	Contact3DT::WriteOutput(mode);
+	Contact3DT::WriteOutput();
 
 	/* contact statistics */
 	ostream& out = ElementSupport().Output();

@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.9 2002-10-20 22:48:21 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.10 2002-11-21 01:13:36 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -77,9 +77,8 @@ double ContactT::InternalEnergy(void)
 
 /* writing output - nothing to write */
 void ContactT::RegisterOutput(void) {}
-void ContactT::WriteOutput(IOBaseT::OutputModeT mode)
+void ContactT::WriteOutput(void)
 {
-#pragma unused(mode)
 	/* contact statistics */
 	ostream& out = ElementSupport().Output();
 	out << "\n Contact tracking: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';

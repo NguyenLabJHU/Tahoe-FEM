@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.h,v 1.4 2002-07-02 19:55:24 cjkimme Exp $ */
+/* $Id: LocalizerT.h,v 1.5 2002-11-21 01:13:38 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 
 #ifndef _LOCALIZER_T_H_
@@ -30,7 +30,7 @@ public:
 	virtual void CloseStep(void);
 
 	/* writing results */
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(void);
 
 	/* returns true if the internal force has been changed since
 	 * the last time step */

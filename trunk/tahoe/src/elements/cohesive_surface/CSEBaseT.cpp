@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.17 2002-10-30 00:35:49 cjkimme Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.18 2002-11-21 01:13:35 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -369,24 +369,18 @@ void CSEBaseT::RegisterOutput(void)
 }
 
 //NOTE - this function is identical to ContinuumElementT::WriteOutput
-void CSEBaseT::WriteOutput(IOBaseT::OutputModeT mode)
+void CSEBaseT::WriteOutput(void)
 {
-#pragma unused(mode)
 #ifndef _SIERRA_TEST_
-//TEMP - not handling general output modes yet
-	if (mode != IOBaseT::kAtInc)
-	{
-		cout << "\n CSEBaseT::WriteOutput: only handling \"at increment\"\n"
-		     <<   "     print mode. SKIPPING." << endl;
-		return;
-	}
-
 	/* fracture area */
 	if (fOutputArea)
 	{
 		farea_out << setw(kDoubleWidth) << ElementSupport().Time();
 		farea_out << setw(kDoubleWidth) << fFractureArea << endl;
 	}
+
+	/* regular output */
+	IOBaseT::OutputModeT mode = IOBaseT::kAtInc;
 
 	/* map output flags to count of values */
 	iArrayT n_counts;

@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.h,v 1.4 2002-10-25 05:31:22 paklein Exp $ */
+/* $Id: AdhesionT.h,v 1.5 2002-11-21 01:13:33 paklein Exp $ */
 #ifndef _ADHESION_T_H_
 #define _ADHESION_T_H_
 
@@ -53,7 +53,7 @@ public:
 	
 	/** writing output */
 	virtual void RegisterOutput(void);
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(void);
 
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);  // not implemented

@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.cpp,v 1.9 2002-10-20 22:48:26 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.10 2002-11-21 01:13:40 paklein Exp $ */
 /* created: paklein (03/19/1997) */
 
 #include "SWDiamondT.h"
@@ -150,17 +150,14 @@ void SWDiamondT::RegisterOutput(void)
 	fOutputID = ElementSupport().RegisterOutput(output_set);
 }
 
-void SWDiamondT::WriteOutput(IOBaseT::OutputModeT mode)
+void SWDiamondT::WriteOutput(void)
 {
-	if (mode == IOBaseT::kAtInc)
-	{
-		/* calculate output values */
-		dArray2DT n_values(fNodesUsed.Length(), NumDOF()), e_values;
-		n_values.RowCollect(fNodesUsed, Field()[0]); /* displacements */
+	/* calculate output values */
+	dArray2DT n_values(fNodesUsed.Length(), NumDOF()), e_values;
+	n_values.RowCollect(fNodesUsed, Field()[0]); /* displacements */
 
-		/* send to output */
-		ElementSupport().WriteOutput(fOutputID, n_values, e_values);
-	}
+	/* send to output */
+	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
 }
 
 /* compute specified output parameter and send for smoothing */

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.22 2002-10-20 22:48:32 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.23 2002-11-21 01:13:41 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -201,13 +201,13 @@ const dArray2DT& FEManagerT_mpi::Coordinates(void) const
 #endif
 
 /* initiate the process of writing output from all output sets */
-void FEManagerT_mpi::WriteOutput(double time, IOBaseT::OutputModeT mode)
+void FEManagerT_mpi::WriteOutput(double time)
 {
 	/* set output time for the external IO manager */
 	if (fExternIOManager) fExternIOManager->SetOutputTime(time);
 
 	/* inherited */
-	FEManagerT::WriteOutput(time, mode);
+	FEManagerT::WriteOutput(time);
 }
 	
 void FEManagerT_mpi::WriteOutput(int ID, const dArray2DT& n_values,

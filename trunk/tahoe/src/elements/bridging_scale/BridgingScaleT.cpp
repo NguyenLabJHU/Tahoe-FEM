@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.27 2002-10-20 22:48:16 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.28 2002-11-21 01:13:34 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -227,16 +227,8 @@ void BridgingScaleT::RegisterOutput(void)
 }
 
 //NOTE - this function is/was identical to CSEBaseT::WriteOutput
-void BridgingScaleT::WriteOutput(IOBaseT::OutputModeT mode)
+void BridgingScaleT::WriteOutput(void)
 {
-//TEMP - not handling general output modes yet
-	if (mode != IOBaseT::kAtInc)
-	{
-		cout << "\n BridgingScaleT::WriteOutput: only handling \"at increment\"\n"
-		     <<   "     print mode. SKIPPING." << endl;
-		return;
-	}
-
 	/* calculate output values */
 	dArray2DT n_values; // dimension: [number of output nodes] x [number of values]
 //	ComputeOutput(n_counts, n_values);

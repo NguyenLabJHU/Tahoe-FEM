@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.7 2002-10-20 22:48:23 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.8 2002-11-21 01:13:37 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 
 #include "LocalizerT.h"
@@ -151,10 +151,10 @@ void LocalizerT::CloseStep(void)
 }
 
 /* writing results */
-void LocalizerT::WriteOutput(IOBaseT::OutputModeT mode)
+void LocalizerT::WriteOutput(void)
 {	
 	/* inherited */
-	UpdatedLagrangianT::WriteOutput(mode);
+	UpdatedLagrangianT::WriteOutput();
 
 	ostream& out = ElementSupport().Output();
 
@@ -175,7 +175,8 @@ void LocalizerT::WriteOutput(IOBaseT::OutputModeT mode)
 		PrintLocalized(out);
 		
 		/* output search info to localization file */
-		if (mode == IOBaseT::kAtFinal)
+		//if (mode == IOBaseT::kAtFinal)
+		if (true)
 		{
 			fLocOut << "\n Localization search data:\n\n";
 			fLocOut << " Number of check elements. . . . . . . . . . . . = ";

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.h,v 1.6 2002-07-05 22:27:59 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.h,v 1.7 2002-11-21 01:13:35 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #ifndef _MF_CSE_ANISO_T_H_
@@ -68,7 +68,7 @@ public:
 
 	/* writing output */
 	virtual void RegisterOutput(void);
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(void);
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);

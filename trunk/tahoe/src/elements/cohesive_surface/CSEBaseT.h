@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.8 2002-10-23 00:18:02 cjkimme Exp $ */
+/* $Id: CSEBaseT.h,v 1.9 2002-11-21 01:13:35 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -74,7 +74,7 @@ public:
 
 	/* writing output */
 	virtual void RegisterOutput(void);
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(void);
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
