@@ -1,4 +1,4 @@
-/* $Id: PatranT.h,v 1.5 2002-01-27 18:31:02 paklein Exp $ */
+/* $Id: PatranT.h,v 1.6 2002-02-11 18:58:49 sawimme Exp $ */
 /* created: sawimme (05/17/2001)  */
 
 #ifndef _PATRAN_T_H_
@@ -38,6 +38,7 @@ class PatranT
   bool ReadConnectivity (const StringT& title, int& namedtype, iArray2DT& connects) const;
   bool ReadAllElements (ArrayT<iArrayT>& connects, iArrayT& elementtypes) const;
   bool ReadElementSet (const StringT& title, int& namedtype, iArrayT& elems) const;
+  bool ReadElementSetMixed (const StringT& title, iArrayT& namedtype, iArrayT& elems) const;
   bool ReadDistLoadSetDims (int setID, int& num_elems) const;
   bool ReadDistLoadSet (int setID, iArray2DT& facets) const;
   bool ReadNodeSet (const StringT& title, iArrayT& nodes) const;
