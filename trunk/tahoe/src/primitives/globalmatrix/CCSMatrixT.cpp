@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.2 2001-05-01 23:22:55 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.3 2001-05-09 17:31:37 paklein Exp $ */
 /* created: paklein (05/29/1996)                                          */
 
 #include "CCSMatrixT.h"
@@ -100,11 +100,14 @@ void CCSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	{
 		int printRCV = 0;
 		int filledelements = NumberOfFilled(printRCV);
+		double percent_fill = (fNumberOfTerms != 0) ? 
+			(100.0*filledelements)/fNumberOfTerms : 
+			0.0; 
 
 		fOut << " Number of non-zero values (pre-factorization) . = ";
 		fOut << filledelements << '\n';
 		fOut << " Storage efficiency (% non-zero) . . . . . . . . = ";
-		fOut << (100.0*filledelements)/fNumberOfTerms << '\n';
+		fOut << percent_fill << '\n';
 	}
 	/* flush stream */
 	fOut << endl;
@@ -740,7 +743,7 @@ if (fCheckCode != GlobalMatrixT::kPrintLHS) return;
 void CCSMatrixT::ComputeSize(int& num_nonzero, int& mean_bandwidth, int& bandwidth)
 {
 	/* check */
-	if (!fDiags) throw eGeneralFail;
+	if (fLocNumEQ > 0 && !fDiags) throw eGeneralFail;
 
 	/* clear diags/columns heights */
 	for (int i = 0; i < fLocNumEQ; i++)

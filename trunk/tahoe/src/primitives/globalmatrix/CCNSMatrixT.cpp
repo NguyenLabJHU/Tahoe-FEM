@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.2 2001-05-01 23:22:55 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.3 2001-05-09 17:31:37 paklein Exp $ */
 /* created: paklein (03/04/1998)                                          */
 
 #include "CCNSMatrixT.h"
@@ -109,9 +109,12 @@ void CCNSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	if (computefilledin)
 	{
 		int filledelements = NumberOfFilled();
+		double percent_fill = (fNumberOfTerms != 0) ? 
+			(100.0*filledelements)/fNumberOfTerms : 
+			0.0;
 
 		fOut << " Storage efficiency (% non-zero) . . . . . . . . = ";
-		fOut << (100.0*filledelements)/fNumberOfTerms << '\n';
+		fOut << percent_fill << '\n';
 	}
 	/* flush stream */
 	fOut << endl;
