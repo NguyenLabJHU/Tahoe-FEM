@@ -105,8 +105,8 @@ void MakeCrystalT::Run() {
     }
   else if (latticetype=="HEX") 
     {
-      if(nsd == 2) b=1;
-      if(nsd == 3) b=1;
+      if(nsd == 2) b=2;
+      if(nsd == 3) b=3;
     }
   else if (latticetype=="CUB") 
     {
@@ -288,21 +288,13 @@ void MakeCrystalT::Run() {
       if(nsd==2)
 	{
 	  for (int j=0; j<nb_atoms; j++) 
-	    cout << coords(j)[0] <<  "  " << coords(j)[1] <<  "\n";
+	    cout << coords(j)[0] <<  "  " << coords(j)[1]<<  "\n";
 	}
       else 
 	{
 	  for (int j=0; j<nb_atoms; j++) 
 	    cout << coords(j)[0] <<  "  " << coords(j)[1] <<  "  " << coords(j)[2] << "\n";
 	}
-
-      if(nsd==2)
-	{
-	  cout << "Distance:\n";
-	  for (int j=0; j<nb_atoms; j+=2) 
-	    cout << sqrt(  pow( (coords(j+1)[0] - coords(j)[0]),2)
-			 + pow( (coords(j+1)[1] - coords(j)[1]),2) ) 
-		 <<  "\n";	}
       
     }
 
