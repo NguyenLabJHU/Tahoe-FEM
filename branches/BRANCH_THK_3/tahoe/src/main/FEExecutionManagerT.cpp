@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.44.4.4 2003-08-21 17:36:04 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.44.4.5 2003-08-24 17:27:56 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -594,6 +594,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	int numbatoms = boundaryghostatoms.Length() - numgatoms;	// total number of boundary atoms
 	dArray2DT gadisp(numgatoms,2), gavel(numgatoms,2), gaacc(numgatoms,2);
 	dArray2DT badisp(numbatoms,2), bavel(numbatoms,2), baacc(numbatoms,2), mdu0(numbatoms,2), mdu1(numbatoms,2);
+	dArray2DT bdisplast(numbatoms,2), bdispcurr(numbatoms,2);
 	iArrayT allatoms(boundaryghostatoms.Length()), gatoms(numgatoms), batoms(numbatoms), boundatoms(numbatoms);
 	allatoms.SetValueToPosition();
 	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);
@@ -679,7 +680,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		badisp.RowCollect(batoms, boundghostdisp);
 		bavel.RowCollect(batoms, boundghostvel);
 		baacc.RowCollect(batoms, boundghostacc);
-
+	
 		/* Write interpolated FEM values at MD ghost nodes into MD field - displacement only */
 		atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
 		
@@ -701,8 +702,10 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
 		dArray2DT mddisplast = (*atomfield)[0];	
 		dArrayT aa(boundatoms.Length()), ab(boundatoms.Length()), sub1(boundatoms.Length()); 
-	      	dArrayT ac(boundatoms.Length()), ad(boundatoms.Length()), sub2(boundatoms.Length());
-
+		dArrayT ac(boundatoms.Length()), ad(boundatoms.Length()), sub2(boundatoms.Length());
+		dArrayT ua(boundatoms.Length()), ub(boundatoms.Length()), uc(boundatoms.Length()), ud(boundatoms.Length());
+		dArrayT sub3(boundatoms.Length()), sub4(boundatoms.Length()), sub5(boundatoms.Length()), sub6(boundatoms.Length());
+		
 		for (int i = 0; i < nfesteps; i++)	
 		{
 			for (int j = 0; j < ratio; j++)	// MD update first
@@ -715,9 +718,10 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				/* update FEM solution interpolated at boundary atoms and ghost atoms assuming 
 				constant acceleration - because of constant acceleration assumption, predictor and 
 				corrector are combined into one function */
+				bdisplast = badisp;
 				atoms.BAPredictAndCorrect(mddt, badisp, bavel, baacc);
 				atoms.BAPredictAndCorrect(mddt, gadisp, gavel, gaacc);
-	
+				
 				/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
 				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);				
 				
@@ -739,10 +743,18 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				mdu0.ColumnCopy(1,ab);
 				mdu1.ColumnCopy(0,ac);
 				mdu1.ColumnCopy(1,ad);
-				sub1.DiffOf(ac,aa);
-				sub2.DiffOf(ad,ab);
-				double d0 = thkforce.DotColumn(0,sub1);
-				double d1 = thkforce.DotColumn(1,sub2);
+				sub1.DiffOf(ac,aa); // q(n+1)-q(n) (x-comp)
+				sub2.DiffOf(ad,ab); // q(n+1)-q(n) (y-comp)
+				bdisplast.ColumnCopy(0,ua);
+				bdisplast.ColumnCopy(1,ub);
+				badisp.ColumnCopy(0,uc);
+				badisp.ColumnCopy(1,ud);
+				sub3.DiffOf(ua,uc);  // ubar(n)-ubar(n+1) (x-comp)
+				sub4.DiffOf(ub,ud);  // ubar(n)-ubar(n+1) (x-comp)
+				sub5.SumOf(sub1,sub3);
+				sub6.SumOf(sub2,sub4);
+				double d0 = thkforce.DotColumn(0,sub5);
+				double d1 = thkforce.DotColumn(1,sub6);
 				dissipation += d0;
 				dissipation += d1;
 				
@@ -762,12 +774,12 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 					fout.precision(13);
 					fout << "Dissipation"
 					     << setw(25) << "Time"
-				             << endl;
+						 << endl;
 					fout << dissipation
 					     << setw(25) << time
-				             << endl;
+					     << endl;
 				}
-				mddispcurr = mddisplast;
+				mddisplast = mddispcurr;
 
 				/* close  md step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
