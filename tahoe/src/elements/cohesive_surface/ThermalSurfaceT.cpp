@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.1.2.1 2002-05-04 20:22:03 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.1.2.2 2002-05-05 23:35:37 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -16,26 +16,14 @@ ThermalSurfaceT::ThermalSurfaceT(const ElementSupportT& support, const FieldT& f
 	CSEBaseT(support, field),
 	fLocTemperatures(LocalArrayT::kDisp)
 {
-	/* read conduction parameters */
-	ifstreamT& in = ElementSupport().Input();
-	int num_sets;
-	in >> num_sets;
-	fConduction.Dimension(num_sets, 2);
-	fConduction = 1.0;
 
-	/* sets of parameters as 
-	 * [set #] [K_0] [D_c] */
-	fConduction.ReadNumbered(in);
-	
-	/* check */
-	if (fConduction.Min() < 0) throw eBadInputValue;
 }
 
 /* form of tangent matrix */
 GlobalT::SystemTypeT ThermalSurfaceT::TangentType(void) const
 {
 	/* tangent matrix is not symmetric */
-	return GlobalT::kNonSymmetric;
+	return GlobalT::kSymmetric;
 }
 
 void ThermalSurfaceT::Initialize(void)
@@ -51,8 +39,22 @@ void ThermalSurfaceT::Initialize(void)
 	}
 
 	/* initialize local array */
-	fLocTemperatures.Allocate(NumElementNodes(), NumSD());
+	fLocTemperatures.Allocate(NumElementNodes(), NumDOF());
 	Field().RegisterLocal(fLocTemperatures);
+
+	/* read conduction parameters */
+	ifstreamT& in = ElementSupport().Input();
+	int num_sets = -1;
+	in >> num_sets;
+	fConduction.Dimension(num_sets, 2);
+	fConduction = -1.0;
+
+	/* sets of parameters as 
+	 * [set #] [K_0] [D_c] */
+	fConduction.ReadNumbered(in);
+	
+	/* check */
+	if (fConduction.Min() < 0) throw eBadInputValue;
 	
 	/* echo */	
 	ostream& out = ElementSupport().Output();
@@ -60,7 +62,7 @@ void ThermalSurfaceT::Initialize(void)
 	out << "\n Surface conduction:\n";
 	out << setw(kIntWidth) << "set"
 	    << setw(d_width) << "K_0"
-	    << setw(d_width) << "D_c" << '\n';
+	    << setw(d_width) << "d_c" << '\n';
 	fConduction.WriteNumbered(out);
 	out.flush();
 }
@@ -83,7 +85,7 @@ void ThermalSurfaceT::LHSDriver(void)
 
 	/* work space */
 	dArrayT gap(fLocCurrCoords.MinorDim());
-	dArrayT Na, jump_Na;
+	dArrayT jump_Na;
 	dMatrixT K_temp(fLHS.Rows());
 	
 	Top();
@@ -122,14 +124,11 @@ void ThermalSurfaceT::LHSDriver(void)
 			double j = fShapes->Jacobian();
 			double w = fShapes->IPWeight();
 
-			/* integration point shape functions */
-			fShapes->Shapes(Na);
-
 			/* integration point jump shape functions */
 			fShapes->JumpShapes(jump_Na);
 			
 			/* accumulate */
-			K_temp.Outer(Na, jump_Na);
+			K_temp.Outer(jump_Na, jump_Na);
 			fLHS.AddScaled(j*w*constK*K, K_temp);
 		}
 									
@@ -151,7 +150,7 @@ void ThermalSurfaceT::RHSDriver(void)
 
 	/* work space */
 	dArrayT gap(fLocCurrCoords.MinorDim());
-	dArrayT Na;
+	dArrayT jump_Na;
 	
 	Top();
 	while (NextElement())
@@ -194,10 +193,10 @@ void ThermalSurfaceT::RHSDriver(void)
 			double w = fShapes->IPWeight();
 
 			/* integration point shape functions */
-			fShapes->Shapes(Na);
+			fShapes->JumpShapes(jump_Na);
 			
 			/* accumulate */
-			fRHS.AddScaled(-j*w*constKd*K*temp_jump[0], Na);
+			fRHS.AddScaled(-j*w*constKd*K*temp_jump[0], jump_Na);
 		}
 									
 		/* assemble */
@@ -323,22 +322,22 @@ void ThermalSurfaceT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				fShapes->InterpolateJump(fLocCurrCoords, gap);
 				double d = gap.Magnitude();
 
+				/* temperature jump */
+				const dArrayT& temp_jump = fShapes->InterpolateJumpU(loc_disp);
+
 				/* current conduction */
 				double K = (d > d_c) ? 0.0 : K_0*(1.0 - (d/d_c));
 
 				if (n_codes[NodalDispJump])
 				{
 					/* extrapolate ip values to nodes */
-					ipjump[0] = d;
+					ipjump[0] = temp_jump[0];
 					fShapes->Extrapolate(ipjump, jump);				
 				}
 
 				/* traction */
 				if (n_codes[NodalTraction] || e_codes[Traction])
 				{
-					/* temperature jump */
-					const dArrayT& temp_jump = fShapes->InterpolateJumpU(fLocTemperatures);
-
 					/* compute flux */
 					double t = K*temp_jump[0];
 					
