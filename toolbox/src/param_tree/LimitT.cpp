@@ -1,8 +1,10 @@
-/* $Id: LimitT.cpp,v 1.2 2002-09-03 07:54:08 paklein Exp $ */
+/* $Id: LimitT.cpp,v 1.3 2003-03-14 23:45:09 paklein Exp $ */
 #include "LimitT.h"
 
 /* array behavior */
+namespace Tahoe {
 const bool ArrayT<LimitT>::fByteCopy = false;
+}
 
 /* constructors */
 LimitT::LimitT(int a, BoundT bound):
