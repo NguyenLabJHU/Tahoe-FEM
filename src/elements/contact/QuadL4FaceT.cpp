@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.16 2001-05-31 00:37:27 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.17 2001-08-06 20:55:13 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
@@ -115,6 +115,27 @@ cout << "not implemented";
 throw;
 }
 
+void
+QuadL4FaceT::InterpolatePosition
+(const double* local_coordinates, double* x)
+const
+{
+        dArrayT shape_f(4);
+        ComputeShapeFunctions (local_coordinates, shape_f);
+        x[0] = shape_f[0]*fx[0][0]
+             + shape_f[1]*fx[1][0]
+             + shape_f[2]*fx[2][0]
+             + shape_f[3]*fx[3][0];
+        x[1] = shape_f[0]*fx[0][1]
+             + shape_f[1]*fx[1][1]
+             + shape_f[2]*fx[2][1]
+             + shape_f[3]*fx[3][1];
+        x[2] = shape_f[0]*fx[0][2]
+             + shape_f[1]*fx[1][2]
+             + shape_f[2]*fx[2][2]
+             + shape_f[3]*fx[3][2];
+}
+
 double
 QuadL4FaceT::Interpolate
 (const double* local_coordinates, dArrayT& nodal_values)
@@ -139,7 +160,7 @@ const
         vector[0] = shape_f[0]*nodal_vectors(0)[0]
                   + shape_f[1]*nodal_vectors(1)[0] 
                   + shape_f[2]*nodal_vectors(2)[0] 
-                  + shape_f[3]*nodal_vectors(2)[0];
+                  + shape_f[3]*nodal_vectors(3)[0];
         vector[1] = shape_f[0]*nodal_vectors(0)[1]
                   + shape_f[1]*nodal_vectors(1)[1] 
                   + shape_f[2]*nodal_vectors(2)[1] 

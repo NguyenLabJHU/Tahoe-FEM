@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.18 2001-06-27 18:16:21 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.19 2001-08-06 20:55:13 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
@@ -152,6 +152,20 @@ LineL2FaceT::ComputeShapeFunctionDerivatives
         shape_derivatives(2,0) = shape_d[1];
         shape_derivatives(3,1) = shape_d[1];
 }
+
+void
+LineL2FaceT::InterpolatePosition
+(const double* local_coordinates, double* x)
+const
+{
+        dArrayT shape_f(2);
+        ComputeShapeFunctions (local_coordinates, shape_f);
+        x[0] = shape_f[0]*fx[0][0]
+             + shape_f[1]*fx[1][0];
+        x[1] = shape_f[0]*fx[0][1]
+             + shape_f[1]*fx[1][1];
+}
+
 
 
 double

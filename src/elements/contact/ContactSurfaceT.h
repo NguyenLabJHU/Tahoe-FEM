@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.10 2001-07-11 16:40:55 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.11 2001-08-06 20:55:13 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -11,11 +11,12 @@
 #include "ArrayT.h"
 #include "SurfaceT.h"
 #include "ContactNodeT.h"
-
+#include "nMatrixT.h"
 
 /* forward declarations */
 class ofstreamT;
 class FEManagerT;
+//class nMatrixT<dArrayT>;
 
 /* 
 a ContactSurface will only have one opposing face per
@@ -35,8 +36,9 @@ class ContactSurfaceT : public SurfaceT
 	/* allocate contact node array */
 	void AllocateContactNodes(void);
 
-	/* move current to previous */
-	void CopyCurrentToPrevious(void);
+	/* set contact status */
+	void SetContactStatus(nMatrixT<dArrayT>& enforcement_parameters);
+	void UpdateContactStatus(nMatrixT<dArrayT>& enforcement_parameters);
 
 	/* potential connectivities based on growing/sliding contact */
 	void SetPotentialConnectivity(void);
@@ -48,20 +50,14 @@ class ContactSurfaceT : public SurfaceT
 		{return fConnectivities;}
 	inline RaggedArray2DT<int>& EqNums(void)
 		{return fEqNums;}  // this can NOT be const
-#if 0
-	inline ArrayT<ContactNodeT*>& PreviousContactNodes(void) 
-		{return fPreviousContactNodes;}
-#endif
 	bool IsInConnectivity
 		(int primary_local_node, int secondary_global_node) const;
 
-#if 0
-	void PrintContactArea(ofstream& out) const;
-#endif
 	void PrintContactArea(ostream& out) const;
 	void PrintGap(ostream& out) const;
 	void PrintGap(ofstream& out) const;
 	void PrintNormals(ofstream& out) const;
+	void PrintStatus(ostream& out) const;
 
   protected:
         /* nodal arrays */

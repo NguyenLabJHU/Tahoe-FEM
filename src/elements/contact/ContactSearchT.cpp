@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.14 2001-07-09 21:39:36 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.15 2001-08-06 20:55:12 rjones Exp $ */
 
 #include "ContactSearchT.h"
 
@@ -157,7 +157,7 @@ dArrayT& parameters)
     		if (!(node->OpposingSurface()) ) {
 		/* checks : opposing normals, gap, local coords */
 			found = face->Projection(node,parameters) ;
-			if (found) node->AssignOriginalFace(*face);
+			if (found) node->AssignOriginal();
 		}
 	}
   }
@@ -203,6 +203,7 @@ bool ContactSearchT::UpdateProjection (void)
 			}
 			if (!found) node->ResetStatus();
 			if (!found) cout << "Warning :"
+				<< surface.GlobalNodes()[j]
 				<< " node that had a projection "
 				<< " has none now....\n";
                 }

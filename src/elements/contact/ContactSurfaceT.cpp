@@ -1,10 +1,11 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.11 2001-07-09 21:39:36 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.12 2001-08-06 20:55:13 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include "SurfaceT.h"
 #include "ContactNodeT.h"
 #include <iostream.h>
 #include "ofstreamT.h"
+#include "nMatrixT.h"
 
 /* parameters */
 
@@ -34,15 +35,22 @@ ContactSurfaceT::AllocateContactNodes(void)
 }
 
 void
-ContactSurfaceT::CopyCurrentToPrevious(void)
+ContactSurfaceT::SetContactStatus(nMatrixT<dArrayT>& enforcement_parameters)
 {
 	for (int i = 0 ; i < fContactNodes.Length() ; i++) {
-#if 0
-		fPreviousContactPoints[i] = fContactPoints[i];
-		fContactPoints[i].OpposingSurface() = NULL;
-#endif
+		fContactNodes[i]->AssignStatus(enforcement_parameters);
+		fContactNodes[i]->AssignOriginalStatus();
 	}
 }
+
+void
+ContactSurfaceT::UpdateContactStatus(nMatrixT<dArrayT>& enforcement_parameters)
+{
+        for (int i = 0 ; i < fContactNodes.Length() ; i++) {
+                fContactNodes[i]->AssignStatus(enforcement_parameters);
+        }
+}
+
 
 void 
 ContactSurfaceT::SetPotentialConnectivity(void)
@@ -206,6 +214,21 @@ ContactSurfaceT::PrintNormals(ofstream& out) const
                         out << fContactNodes[n]->Normal()[i] << " ";
                 }
 		out << '\n';
+        }
+}
+
+void
+ContactSurfaceT::PrintStatus(ostream& out) const
+{
+        out << "#Surface " << this->Tag() << '\n';
+
+        for (int n = 0 ; n < fContactNodes.Length(); n++) {
+                out << fContactNodes[n]->Tag()<< " ";
+                out << " status " << fContactNodes[n]->Status()  << " ";
+		out << " gap "    << fContactNodes[n]->Gap() <<'\n';
+		double slip[3];
+		fContactNodes[n]->ComputeSlip(slip);
+		out << "slip " << slip[0] << " "<< slip[1] << '\n';
         }
 }
 

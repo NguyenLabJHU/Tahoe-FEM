@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.h,v 1.14 2001-05-23 14:45:05 rjones Exp $ */
+/* $Id: LineL2FaceT.h,v 1.15 2001-08-06 20:55:13 rjones Exp $ */
 
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
@@ -56,6 +56,8 @@ public:
         void ComputeShapeFunctionDerivatives
                 (const double* local_coordinates, dMatrixT& shape_derivatives) 
 		const;
+        void InterpolatePosition 
+		(const double* local_coordinates, double* x) const;
         double Interpolate 
 		(const double* local_coordinates, dArrayT& nodal_values) 
 		const;

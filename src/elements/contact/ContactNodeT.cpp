@@ -1,8 +1,9 @@
-/*  $Id: ContactNodeT.cpp,v 1.9 2001-07-09 21:39:36 rjones Exp $ */
+/*  $Id: ContactNodeT.cpp,v 1.10 2001-08-06 20:55:12 rjones Exp $ */
 #include "ContactNodeT.h"
 
 #include "SurfaceT.h"
 #include "FaceT.h"
+#include "ContactElementT.h"
 
 /* parameters */
 
@@ -13,6 +14,7 @@ ContactNodeT::ContactNodeT(SurfaceT& surface, int node_tag):
 	fStatus 	 = kNoProjection;
 	fOpposingSurface = NULL;
 	fOpposingFace    = NULL;
+	fOriginalOpposingFace    = NULL;
 	fxi[0]           = 0.0 ;
 	fxi[1]           = 0.0 ;
 	fGap             = 1.e8; // NEED TO FIX THIS
@@ -56,5 +58,52 @@ ContactNodeT::UpdateOpposing
                 if (fOpposingSurface->NumSD() == 3 )
                         {fxi[1] = xi[1] ; }
                 fGap = g ;
+}
+
+void 
+ContactNodeT::AssignOriginal(void)
+{ 
+	fOriginalOpposingFace = fOpposingFace;
+	fxiO[0] = fxi[0];
+	fxiO[1] = fxi[1]; 
+}
+
+
+void 
+ContactNodeT::AssignStatus(nMatrixT<dArrayT>& enforcement_parameters)
+{
+	if (fOpposingSurface) {
+		dArrayT& parameters = enforcement_parameters
+			(fSurface.Tag(),fOpposingSurface->Tag()) ;
+		if(fGap < parameters[ContactElementT::ktol_gap]) {
+			fStatus = kContact;
+		}
+		else {
+			fStatus = kProjection;
+		}
+	}
+	else {
+		fStatus = kNoProjection;
+	}
+}
+
+void 
+ContactNodeT::ComputeSlip(double* slip)
+{
+	
+	/* current position of contact point on face */
+	if (fOriginalOpposingFace) {
+	 double x2_O [3] ;	
+	 fOriginalOpposingFace->InterpolatePosition(fxiO,x2_O);
+	 /* current position of node */
+	 const double* x1 =fSurface.Position(fNodeTag);	
+	 slip[0] = x2_O[0] - x1[0];
+	 slip[1] = x2_O[1] - x1[1];
+	 if (fSurface.NumSD()==3) {slip[2] = x2_O[2] - x1[2];}
+	}
+	else {
+	 slip[0] = 0.0; slip[1] = 0.0;
+	 if (fSurface.NumSD()==3) {slip[2] = 0.0;}
+	}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.9 2001-07-09 21:39:36 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.10 2001-08-06 20:55:12 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -11,6 +11,8 @@
 #include "LocalArrayT.h"
 #include "dArray2DT.h"
 #include "nVariArray2DT.h"
+#include "nMatrixT.h"
+#include "dArrayT.h"
 #include "ContactSurfaceT.h"
 #include "ContactSearchT.h"
 
@@ -66,10 +68,14 @@ public:
 				kConsistentTangent ,
 				kSmithFerranteA,
 				kSmithFerranteB,
+				kCoulombCoefficient,
+				ktol_gap,
+				ktol_pre,
 				kEnfNumParameters};
 	iArrayT fOutputFlags;
 	enum OutputFlagsT {kGaps = 0,
 			kNormals,
+			kStatus,
 			kNumOutputFlags};
 	
 

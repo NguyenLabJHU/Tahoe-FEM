@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.cpp,v 1.3 2001-06-12 22:14:32 rjones Exp $ */
+/* $Id: LineQ3FaceT.cpp,v 1.4 2001-08-06 20:55:13 rjones Exp $ */
 
 #include "LineQ3FaceT.h"
 #include "FaceT.h"
@@ -180,6 +180,21 @@ LineQ3FaceT::ComputeShapeFunctionDerivatives
 	shape_derivatives(3,1) = shape_d[1];
 	shape_derivatives(4,0) = shape_d[2];
 	shape_derivatives(5,1) = shape_d[2];
+}
+
+void
+LineQ3FaceT::InterpolatePosition
+(const double* local_coordinates, double* x)
+const
+{
+        dArrayT shape_f(3);
+        ComputeShapeFunctions (local_coordinates, shape_f);
+	x[0] = shape_f[0]*fx[0][0] 
+	     + shape_f[1]*fx[1][0] 
+	     + shape_f[2]*fx[2][0];
+	x[1] = shape_f[0]*fx[0][1] 
+	     + shape_f[1]*fx[1][1] 
+	     + shape_f[2]*fx[2][1];
 }
 
 

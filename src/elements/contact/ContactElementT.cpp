@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.15 2001-07-09 21:39:36 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.16 2001-08-06 20:55:12 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -137,6 +137,11 @@ void ContactElementT::WriteOutput(IOBaseT::OutputModeT mode)
 		ofstream normal_file (normal_out);
 		surface.PrintNormals(normal_file);
 	   }
+
+           if (fOutputFlags[kStatus]) {
+		surface.PrintStatus(cout);
+           }
+
 
 //    		surface.PrintContactArea(cout);
   }
@@ -338,6 +343,7 @@ bool ContactElementT::SetContactConfiguration(void)
 		/* form potential connectivity for step */
   		for (int i = 0; i < fSurfaces.Length(); i++) {
 			fSurfaces[i].SetPotentialConnectivity();
+			fSurfaces[i].SetContactStatus(fEnforcementParameters);
   		}
 	}
 
@@ -347,6 +353,9 @@ bool ContactElementT::SetContactConfiguration(void)
 bool ContactElementT::UpdateContactConfiguration(void)
 {
         bool changed = fContactSearch->UpdateInteractions();
+  	for (int i = 0; i < fSurfaces.Length(); i++) {
+		fSurfaces[i].UpdateContactStatus(fEnforcementParameters);
+  	}
 
         return changed;
 }
