@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.cpp,v 1.14 2003-11-04 01:32:06 paklein Exp $ */
+/* $Id: ElementCardT.cpp,v 1.15 2005-02-13 22:11:50 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementCardT.h"
 #include <iostream.h>
@@ -22,10 +22,18 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<ElementCardT>::fByteCopy = false;
 iArrayT ElementCardT::i_junk;
 dArrayT ElementCardT::d_junk;
 
+ElementCardT::StatusT ElementCardT::int2StatusT(int i)
+{
+	if (i < kOFF || i > kMarkOFF) 
+		ExceptionT::GeneralFail("ElementCardT::int2StatusT", "unrecognized status %d", i);
+	StatusT int2status[5] = {kOFF, kON, kMarked, kMarkON, kMarkOFF};
+	return int2status[i];
+}
+
 /* constructors */
 ElementCardT::ElementCardT(void):
 	fMatNum(-1),
-	fFlag(1),
+	fFlag(kON),
 	fNodesU(&fNodesX), // assuming isoparametric
 	fData(NULL)
 {
@@ -80,7 +88,9 @@ void ElementCardT::SetMaterialNumber(int matnum) { fMatNum = matnum; }
 /* restart operations */
 void ElementCardT::ReadRestart(istream& in)
 {
-	in >> fFlag;
+	int flag;
+	in >> flag;
+	fFlag = int2StatusT(flag);
 
 	/* read data size */
 	int i_size, d_size;

@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.h,v 1.7 2003-11-21 22:48:03 paklein Exp $ */
+/* $Id: ElementCardT.h,v 1.8 2005-02-13 22:11:50 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENT_CARD_T_H_
 #define _ELEMENT_CARD_T_H_
@@ -19,6 +19,14 @@ class ElementCardT
 {
 public:
 
+	/** element status flags */
+	enum StatusT {kOFF = 0,
+                   kON = 1,
+               kMarked = 2,
+               kMarkON = 3,
+              kMarkOFF = 4};
+	static StatusT int2StatusT(int i);
+
 	/* constructors */
 	ElementCardT(void);
 	ElementCardT(const ElementCardT& source);
@@ -34,8 +42,8 @@ public:
 
 	/** \name setting/getting the activity flags */
 	/*@{*/
-	int& Flag(void);
-	const int& Flag(void) const;
+	StatusT& Flag(void);
+	const StatusT& Flag(void) const;
 	/*@}*/
 						
 	/* accessors */
@@ -67,7 +75,7 @@ public:
 private:
 	
 	int fMatNum;
-	int fFlag;
+	StatusT fFlag;
 
 	/* geometry nodes */
 	iArrayT fNodesX;
@@ -122,8 +130,8 @@ private:
 /* in-lines */
 
 /* setting/getting the activity flags */
-inline int& ElementCardT::Flag(void) { return fFlag; }
-inline const int& ElementCardT::Flag(void) const { return fFlag; }
+inline ElementCardT::StatusT& ElementCardT::Flag(void) { return fFlag; }
+inline const ElementCardT::StatusT& ElementCardT::Flag(void) const { return fFlag; }
 
 /* accessors */
 inline int ElementCardT::MaterialNumber(void) const { return fMatNum; }
