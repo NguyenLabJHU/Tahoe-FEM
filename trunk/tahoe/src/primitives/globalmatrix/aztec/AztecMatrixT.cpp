@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.16 2004-03-14 02:51:38 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.17 2004-03-14 16:32:56 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #include "AztecMatrixT.h"
 
@@ -341,9 +341,6 @@ GlobalMatrixT* AztecMatrixT::Clone(void) const
 /* determine new search direction and put the results in result */
 void AztecMatrixT::BackSubstitute(dArrayT& result)
 {
-	/* flag should not be set */
-	if (fIsFactorized) throw ExceptionT::kGeneralFail;
-
 	/* inherited - no initial guess */
 	fAztec->Solve(result);
 }
