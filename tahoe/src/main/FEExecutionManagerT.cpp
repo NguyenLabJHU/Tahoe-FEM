@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.47 2003-08-14 06:04:25 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.48 2003-08-18 03:43:29 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -66,18 +66,8 @@ FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
 	/* set communicator log level */
 	if (CommandLineOption("-verbose")) comm.SetLogLevel(CommunicatorT::kLow);
 
-//TEMP
-//	AddCommandLineOption("-dtd");
-}
-
-/* Prompt input files until "quit" */
-void FEExecutionManagerT::Run(void)
-{
-	/* just dump DTD */
-	if (CommandLineOption("-dtd"))
-		RunDTD();
-	else /* inherited */
-		ExecutionManagerT::Run();
+	/* check for -dtd */
+	if (CommandLineOption("-dtd")) AddCommandLineOption("-dtd");
 }
 
 /**********************************************************************
@@ -218,6 +208,10 @@ bool FEExecutionManagerT::AddCommandLineOption(const char* str)
 			if (strlen(opt) > 1 && isdigit(opt[1]))
 				fCommandLineOptions.DeleteAt(index);
 		}
+	}
+	else if (option == "-dtd") {
+		RunDTD();
+		return true;
 	}
 	
 	/* inherited */
