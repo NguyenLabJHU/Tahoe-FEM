@@ -1,7 +1,7 @@
 # --------------------- Compilers and Linkers -------------------------
 ## for MPICH (Useful for network of workstations, which do not have
 ##            special compiler support for MPI libraries)
-CC = mpicc
+CC = mpicc -I../PSPASES
 FC = mpif90
 
 ## for IBM
