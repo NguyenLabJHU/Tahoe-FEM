@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.32 2004-11-19 22:56:08 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.33 2005-02-22 00:08:44 rjones Exp $ */
 /* created: sawimme July 2001 */
 #ifndef _MODELMANAGER_T_H_
 #define _MODELMANAGER_T_H_
@@ -21,6 +21,7 @@ namespace Tahoe {
 /* forward declarations */
 class ifstreamT;
 template <class TYPE> class nVariArray2DT;
+class InverseMapT;
 
 /** Interface for any code to input data. Data types: Coordinates, Element 
  * Connectivity, NodeSets and SideSets are stored. Node and Element Maps 
@@ -236,6 +237,12 @@ class ModelManagerT
 		iArrayT& surface_nodes,
 		const GeometryBaseT* geometry = NULL);
 	/*@}*/
+
+	 /** compute the nodal area associated with each striker node */
+	 void ComputeNodalArea(const iArrayT& node_tags, 
+		const ArrayT<StringT>& surface_blocks, 
+		dArrayT& nodal_area, InverseMapT& inverse_map);
+
 
 	/** \name node set information */
 	/*@{*/
