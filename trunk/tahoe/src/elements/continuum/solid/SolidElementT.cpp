@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.72 2005-03-16 10:20:10 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.73 2005-03-17 21:23:11 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -1593,6 +1593,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 						}
 						
 						/* extrapolate */
+						ipPoynting *= -1; /* positive toward crack tip */
 						fShapes->Extrapolate(ipPoynting, Poynting);
 					}
 				}
