@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.20 2003-01-27 07:33:59 paklein Exp $
+# $Id: make.targets,v 1.21 2003-01-30 00:46:38 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -130,6 +130,7 @@ clean:
 	@- rm $(LIBRARY)
 	@- cd $(SRC_DIR); $(MAKE) $(MAKE_OPTS) clean \
 	"ARCH = $(ARCH)" \
+	"SRC_DIR = $(SRC_DIR)" \
 	"MACRO_DIR = $(MACRO_DIR)"
 	@- cd $(OBJ_DIR); rm *.o
 	@- cd $(MACRO_DIR)/cxx_repository; rm *.o *.DB
@@ -145,6 +146,7 @@ object_list: FORCE
 	"ARCH = $(ARCH)" \
 	"MACRO_DIR = $(MACRO_DIR)" \
 	"LIBRARY = $(HOME_DIR)/object_list" \
+	"SRC_DIR = $(SRC_DIR)" \
 	"LIB_DIR = $(LIB_DIR)"
 	@ $(ECHO) "" >> object_list
 
@@ -157,6 +159,7 @@ headers:
 	"ARCH = $(ARCH)" \
 	"MACRO_DIR = $(MACRO_DIR)" \
 	"INC_DIR = $(INC_DIR)" \
+	"SRC_DIR = $(SRC_DIR)" \
 	"CURR_DIR = $(SRC_DIR)"
 
 # initialize dependency files
@@ -165,6 +168,7 @@ depend_init:
 	cd $(SRC_DIR); \
 	$(MAKE) $(MAKE_OPTS) depend_init \
 	"ARCH = $(ARCH)" \
+	"SRC_DIR = $(SRC_DIR)" \
 	"MACRO_DIR = $(MACRO_DIR)" \
 	"DEPEND_PATH = $(DEPEND_PATH)"
 
@@ -176,6 +180,7 @@ objects: $(MAKE_BUILD_XTRAS)
 	"ARCH = $(ARCH)" \
 	"MACRO_DIR = $(MACRO_DIR)" \
 	"INC_DIR = $(INC_DIR)" \
+	"SRC_DIR = $(SRC_DIR)" \
 	"OBJ_DIR = $(OBJ_DIR)" \
 	"LIB_DIR = $(LIB_DIR)" \
 	"OPT_CFLAGS = $(OPT_CFLAGS)" \
@@ -188,10 +193,3 @@ objects: $(MAKE_BUILD_XTRAS)
 	"CURR_DIR = $(SRC_DIR)"
 
 FORCE:
-
-
-
-
-
-
-

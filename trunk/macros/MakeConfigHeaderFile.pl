@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: MakeConfigHeaderFile.pl,v 1.4 2003-01-27 07:33:59 paklein Exp $
+# $Id: MakeConfigHeaderFile.pl,v 1.5 2003-01-30 00:46:38 paklein Exp $
 #
 # Generates a C/C++ header file from a configuration file which is
 # passed as the command-line argument.
@@ -10,10 +10,12 @@
 # [root of output file names]
 # 
 # [root of preprocessor symbol for option 1]
+# [ENABLE/DISABLE for option 1]
 # [one line description for option 1]
 # [source directories for option 1]
 #
 # [root of preprocessor symbol for option 2]
+# [ENABLE/DISABLE for option 2]
 # [one line description for option 2]
 # [source directories for option 2]
 #
@@ -83,7 +85,7 @@ print OUT <<FIN;
  * in $out_root.make. The two items must be set consistently to enable or
  * disable materials models. To enable an option:
  * -# in this file, uncomment the #define statement
- * -# in MaterialsConfig.make, uncomment the macro.
+ * -# in $out_root.make, uncomment the macro.
  *
  * The naming convention for the definitions in this file and the macros in
  * $out_root.make are as follows. For the option [OPTION]:
@@ -95,6 +97,7 @@ FIN
 # scan file for options
 $scan_line = 1;
 $opt_root = "";
+$enabled = 1;
 while ($line = <IN>) {
 	chomp($line);
 	
@@ -108,8 +111,18 @@ while ($line = <IN>) {
 			print "processing option: $opt_root\n";
 			$scan_line++;
 		} 
-		# read description
+		# read ENABLE/DISABLE
 		elsif ($scan_line == 2) {
+		
+			if ($line =~ /DISABLE/) { 
+				$enabled = 0; 
+			} else { 
+				$enabled = 1; 
+			}
+			$scan_line++;
+		} 
+		# read description
+		elsif ($scan_line == 3) {
 		
 			# add period
 			if ($line !~ /\.$/) { $line = $line."."; }
@@ -117,7 +130,11 @@ while ($line = <IN>) {
 			print OUT " * $line\n";
 			print OUT " * This option must be set in conjunction with the DIRECTORY_$opt_root macro\n";
 			print OUT " * in $out_root.make. */\n";
-			print OUT "#define $opt_root 1\n"; # enabled by default
+			if ($enabled == 1) {
+				print OUT "#define $opt_root 1\n";
+			} else {
+				print OUT "/* #define $opt_root 1 */\n";
+			}
 			$scan_line++;
 		}
 		# read directories

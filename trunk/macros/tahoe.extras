@@ -1,4 +1,4 @@
-# $Id: tahoe.extras,v 1.7 2003-01-27 07:33:59 paklein Exp $
+# $Id: tahoe.extras,v 1.8 2003-01-30 00:46:38 paklein Exp $
 #
 # additional make commands for the tahoe module
 #
@@ -33,9 +33,9 @@ touch_Aztec:
 
 touch_f2c:
 	@ $(ECHO) "removing object files depending on f2c"
-	-@ $(RM) $(SRC_DIR)/material/managers/*.o
-	-@ $(RM) $(SRC_DIR)/material/ABAQUS_UMAT/*.o
-	-@ $(RM) $(SRC_DIR)/material/ABAQUS_VUMAT/*.o
+	-@ $(RM) $(SRC_DIR)/elements/continuum/solid/materials/managers/*.o
+	-@ $(RM) $(SRC_DIR)/elements/continuum/solid/materials/ABAQUS_UMAT/*.o
+	-@ $(RM) $(SRC_DIR)/elements/continuum/solid/materials/ABAQUS_VUMAT/*.o
 
 touch_SEACAS:
 	@ $(ECHO) "removing object files depending on SEACAS"
@@ -45,7 +45,6 @@ touch_SEACAS:
 touch_MPI:
 	@ $(ECHO) "removing object files depending on MPI"
 	-@ $(RM) $(SRC_DIR)/main/*.o
-	-@ $(RM) $(SRC_DIR)/elements/continuum/meshfree/MeshFreeElementSupportT.o
 	-@ $(MAKE) touch_spooles touch_Aztec
 	@ $(ECHO) "NOTE: toolbox must also be up to date"
 	

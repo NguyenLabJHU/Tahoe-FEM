@@ -1,7 +1,8 @@
-# $Id: subdir.targets,v 1.5 2002-09-12 16:47:03 paklein Exp $
+# $Id: subdir.targets,v 1.6 2003-01-30 00:46:38 paklein Exp $
 
 MACROS = \
 	"INC_DIR = $(INC_DIR)" \
+	"SRC_DIR = $(SRC_DIR)" \
 	"OBJ_DIR = $(OBJ_DIR)" \
 	"LIB_DIR = $(LIB_DIR)" \
 	"ARCH = $(ARCH)" \
@@ -21,6 +22,7 @@ echo_all:
 	@ $(ECHO) "MAKE = $(MAKE)"
 	@ $(ECHO) "MAKE_OPTS = $(MAKE_OPTS)"
 	@ $(ECHO) "INC_DIR = $(INC_DIR)"
+	@ $(ECHO) "SRC_DIR = $(SRC_DIR)"
 	@ $(ECHO) "OBJ_DIR = $(OBJ_DIR)"
 	@ $(ECHO) "LIB_DIR = $(LIB_DIR)"
 	@ $(ECHO) "ARCH = $(ARCH)"
