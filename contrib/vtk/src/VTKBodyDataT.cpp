@@ -21,8 +21,10 @@
 #include "vtkVectors.h"
 #include "vtkScalarBarActor.h"
 #include "vtkScalars.h"
-#include "vtkIdTypeArray.h"
 
+#ifdef __VTK_NEW__
+#include "vtkIdTypeArray.h"
+#endif
 #include <iostream.h>
 #include <iomanip.h>
 #include "ExodusT.h"
@@ -145,6 +147,10 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
 #endif
 	      
 	      /* instantiate displacement vector if needed */
+
+	      if (node_labels.Length() > 0 && (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z" || node_labels[0] == "d1"))
+		vectors[i][j] = vtkVectors::New(VTK_DOUBLE);
+
 	      if (node_labels.Length() > 0 && (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z"))
 #ifdef __VTK_NEW__
 			vectors[i][j] = vtkDataArray::CreateDataArray(VTK_DOUBLE);
@@ -165,6 +171,7 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
 #else
 			vectors[i][j] = vtkVectors::New(VTK_DOUBLE);
 #endif     
+
 	      /* initialize min and max scalar range values */
 	      scalarRange1[j] = 10000;
 	      scalarRange2[j] = -10000;
@@ -173,6 +180,7 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
 		/* determine min and max scalar range values */
 		if (nodal_data(k,j) < scalarRange1[j]) scalarRange1[j] = nodal_data(k,j);
 		if (nodal_data(k,j) > scalarRange2[j]) scalarRange2[j] = nodal_data(k,j);
+
 		/* insert scalar value at each node for each variable and time step */
 #ifdef __VTK_NEW__
 		//scalars[i][j]->SetTuple1(k+1, nodal_data(k,j));
@@ -197,6 +205,8 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
 		  vectors[i][j]->InsertVector(k+1, nodal_data(k,0),nodal_data(k,1),nodal_data(k,2));
 		else if (node_labels.Length() > 0 &&(node_labels[0] == "D_X" && node_labels[1] == "D_Y"))
 		  vectors[i][j]->InsertVector(k+1, nodal_data(k,0), nodal_data(k,1),0);
+		else if (node_labels[0] == "d1" && node_labels[1] == "d2")
+		  vectors[i][j]->InsertVector(k+1, nodal_data(k,0), nodal_data(k,1),0);
 		else if (node_labels.Length() > 0 &&(node_labels[0] == "D_X"))
 		  vectors[i][j]->InsertVector(k+1, nodal_data(k,0),0,0);
 #endif	
@@ -206,6 +216,7 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
       
     }
   
+
 
   /* allocate points */
   points = vtkPoints::New();
@@ -280,7 +291,7 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
   ugrid->SetPoints(points);
   if (num_node_variables > 0) 
     ugrid->GetPointData()->SetScalars(scalars[currentStepNum][currentVarNum]); 
-  if (node_labels.Length() > 0 && (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z"))
+  if (node_labels.Length() > 0 && (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z" || node_labels[0] == "d1"))
     ugrid->GetPointData()->SetVectors(vectors[currentStepNum][currentVarNum]);
   
  
@@ -293,17 +304,24 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
   //set up mapper
   ugridMapper = vtkDataSetMapper::New();
     /* set warping vector if needed */  
-    if (node_labels.Length() > 0 && (node_labels[0] == "D_X" ||node_labels[0] == "D_Y" || node_labels[0] == "D_Z"))
+    if (node_labels.Length() > 0 && (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z" || node_labels[0] == "d1"))
       ugridMapper->SetInput(warp->GetOutput());
     else
       ugridMapper->SetInput(ugrid);
 
   //set up actor
   ugridActor = vtkActor::New();
-   if (num_node_variables == 0) 
+  
+  if (num_node_variables == 0) 
     ugridActor->GetProperty()->SetColor(1,0,0);
   ugridActor->SetMapper(ugridMapper);
   ugridActor->AddPosition(0,0.001,0);
+//   wireActor = vtkActor::New(); 
+//   wireActor->SetMapper(ugridMapper);
+//   wireActor->GetProperty()->SetRepresentationToWireframe();
+//   wireActor->GetProperty()->SetAmbient(1);
+//   wireActor->GetProperty()->SetSpecular(0);
+//   wireActor->GetProperty()->SetDiffuse(0);
 
 
   /* color mapping variables */
@@ -399,7 +417,7 @@ bool VTKBodyDataT::ChangeVars(const StringT& var)
   else {
 	ugrid->GetPointData()->SetScalars(scalars[currentStepNum][varNum]);
 	ugridMapper->SetScalarRange(scalarRange1[varNum],scalarRange2[varNum]);
-	if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
+	if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z" || node_labels[0] =="d1")
 	  ugrid->GetPointData()->SetVectors(vectors[currentStepNum][varNum]);
 
 	sbTitle = "";
@@ -420,7 +438,7 @@ void VTKBodyDataT::SelectTimeStep(int stepNum)
     scalarBar->SetTitle(sbTitle);
     // ugrid->GetPointData()->SetScalars(scalars[currentStepNum]);
     ugrid->GetPointData()->SetScalars(scalars[stepNum][currentVarNum]);
-    if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
+    if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z" || node_labels[0] =="d1")
       ugrid->GetPointData()->SetVectors(vectors[stepNum][currentVarNum]);
     currentStepNum= stepNum;
   }

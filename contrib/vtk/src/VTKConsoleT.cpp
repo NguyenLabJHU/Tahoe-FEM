@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.31 2001-12-03 21:59:22 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.32 2001-12-08 00:17:19 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -7,6 +7,7 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRendererSource.h"
 #include "vtkTIFFWriter.h"
+#include "vtkPostScriptWriter.h"
 #include "vtkScalarBarActor.h"
 #include "vtkDataSetMapper.h"
 #include "vtkRenderLargeImage.h"
@@ -200,8 +201,11 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
       image->WholeWindowOn();
       
       /* construct TIFF writer */
-      vtkTIFFWriter* writer = vtkTIFFWriter::New();
+      // vtkTIFFWriter* writer = vtkTIFFWriter::New();
+      vtkPostScriptWriter* writer = vtkPostScriptWriter::New();
       writer->SetInput(image->GetOutput());
+
+      
       
       /* assume all the bodies have the same number of steps as body 0 */
       for (int j = 0; j<fBodies[0]->num_time_steps; j++){
@@ -212,7 +216,8 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 	renWin->Render();  
 	StringT name = fbName;
 	name.Append(j,3); // pad to a width of 3 digits
-	name.Append(".tif");
+	//name.Append(".tif");
+	name.Append(".ps");
 	writer->SetFileName(name);
 	writer->Write();
 	cout << name << " has been saved" << endl;
@@ -274,11 +279,13 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 	  image->WholeWindowOn();
       
       /* construct TIFF writer */
-      vtkTIFFWriter* writer = vtkTIFFWriter::New();
+	  //vtkTIFFWriter* writer = vtkTIFFWriter::New();
+      vtkPostScriptWriter* writer = vtkPostScriptWriter::New();
       writer->SetInput(image->GetOutput());
       
       StringT name = fbName;
-      name.Append(".tif");
+      //name.Append(".tif");
+      name.Append(".ps");
       writer->SetFileName(name);
       writer->Write();
       cout << name << " has been saved" << endl;

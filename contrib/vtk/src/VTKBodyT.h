@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.h,v 1.9 2001-11-29 21:22:43 recampb Exp $ */
+/* $Id: VTKBodyT.h,v 1.10 2001-12-08 00:17:19 recampb Exp $ */
 
 #ifndef _VTK_BODY_T_H_
 #define _VTK_BODY_T_H_
@@ -6,26 +6,11 @@
 /* direct members */
 #include "StringT.h"
 #include "iConsoleObjectT.h"
-#include "ExodusT.h"
 #include "VTKBodyDataT.h"
 
 
 /* forward declarations */
-class vtkPoints;
-class vtkCellArray;
-class vtkUnstructuredGrid;
-class vtkDataSetMapper;
-class vtkActor;
-class vtkLookupTable;
-class vtkIdFilter;
-class vtkSelectVisiblePoints;
-class vtkLabeledDataMapper;
-class vtkActor2D;
-class vtkScalars;
-class vtkWarpVector;
-class vtkVectors;
-class vtkScalarBarActor;
-class ExodusT;
+
 class VTKBodyDataT;
 
 class VTKBodyT: public iConsoleObjectT

@@ -49,6 +49,8 @@ class VTKBodyDataT: public iConsoleObjectT
   /** return pointer to actor for the body */
   vtkActor* Actor(void) { return ugridActor; };
 
+  vtkActor* WireActor(void) { return wireActor;};
+
   vtkScalarBarActor* SBActor(void) {return scalarBar;}; 
   
 /*   vtkDataSetMapper *Mapper(void) {return ugridMapper;}; */
@@ -95,6 +97,7 @@ class VTKBodyDataT: public iConsoleObjectT
   vtkLookupTable *lut;
   vtkDataSetMapper *ugridMapper;
   vtkActor *ugridActor;
+  vtkActor *wireActor;
 
 #ifdef __VTK_NEW__
   vtkDataArray *scalars [100][20];
