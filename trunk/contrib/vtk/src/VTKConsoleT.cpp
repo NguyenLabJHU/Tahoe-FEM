@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.26 2001-11-08 00:42:35 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.27 2001-11-15 17:38:30 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -9,6 +9,7 @@
 #include "vtkTIFFWriter.h"
 #include "vtkScalarBarActor.h"
 #include "vtkDataSetMapper.h"
+#include "vtkRenderLargeImage.h"
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -33,7 +34,8 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   iAddCommand("ResetView");
   iAddCommand("Layout");
   iAddCommand("Show_Frame_Numbers");
- 
+  iAddCommand("Save");
+  iAddCommand("Large_Save");
   iAddCommand("Save_flip_book_images");
   iAddCommand("Flip_book");
 
@@ -247,118 +249,66 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
   //  // iren->Start();
   //  return true;
   //}
-//   else if (command == "Save")
-//     {
-//       cout << "Enter name for file to be saved to: ";
-//       cin >> output_file;
-//       char line[255];
-//       cin.getline(line, 254);
-//       cout << "Save image at: \n 1: current view\n 2: default view: ";
-//       cin >> sfbTest;
-//       cin.getline(line, 254);
-//       /* if default camera desired */
-//       if (sfbTest == 2) {
-// 	  cam->SetFocalPoint(0,0,0);
-// 	  cam->SetPosition(0,0,1);
-// 	  cam->ComputeViewPlaneNormal();
-// 	  cam->SetViewUp(0,1,0);
-// 	  cam->OrthogonalizeViewUp();
-// 	  renderer->SetActiveCamera(cam);
-// 	  renderer->ResetCamera();
-// 	  renWin->Render();
-// 	}
-//       int saveOpt;
-//       renSrc->SetInput(renderer);
-//       if (numRen == 4){ 
-// 	cout << "Save options:\n 1: single plot\n 2: all 4 plots: ";
-// 	cin >> saveOpt;
-// 	cin.getline(line, 254);
-// 	if (saveOpt == 2)
-// 	  renSrc->WholeWindowOn();
-//       }
-//       writer->SetInput(renSrc->GetOutput());
-//       writer->SetFileName(output_file);
-//       writer->Write();
-//       renWin->Render();
-//       cout << "File " << output_file << " has been saved." << endl;
-//       //  iren->Start();
-//       return true;
-//     }
-//   else if (command == "Show_Node_Numbers")
-//     {
-//       //ids->SetInput(ugrid);
-//       //ids->PointIdsOn();
-//       //ids->CellIdsOn();
-//       //ids->FieldDataOn();
-//       //visPts->SetInput(ids->GetOutput());
-//       visPts->SetInput(warp->GetOutput());
-//       visPts->SetRenderer(renderer);
-//       //ldm->SetInput(warp->GetOutput());
-//       ldm->SetInput(visPts->GetOutput());
-//       //ldm->SetInput(ids->GetOutput());
-//       ldm->SetLabelModeToLabelIds();
-//       ldm->ShadowOff();
-//       // ldm->SetLabelModeToLabelFieldData();
-//       pointLabels->SetMapper(ldm);
-//       pointLabels->VisibilityOn();
-//       renderer->AddActor2D(pointLabels);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;      
-//     }
-//   else if (command == "Color_bar_off")
-//     {
-//       renderer->RemoveActor(scalarBar);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;
-//     }
-//   else if (command == "Color_bar_on")
-//     {
-//       renderer->AddActor(scalarBar);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;
-//     }
-//   else if (command == "X_axis_rotation")
-//     {
-//       cout << "Using the right-hand rule, rotate by how many degrees?: ";
-//       cin >> xRot;
-//       char line[255];
-//       cin.getline(line, 254);
-//       renderer->GetActiveCamera()->Elevation(xRot);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       //iren->Start();
-//       return true;
-//     }
-//   else if (command == "Y_axis_rotation")
-//     {
-//       cout << "Using the right-hand rule, rotate by how many degrees?: ";
-//       cin >> yRot;
-//       char line[255];
-//       cin.getline(line, 254);
-//       renderer->GetActiveCamera()->Azimuth(yRot);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       //iren->Start();
-//       return true;
-//     }
-//   else if (command == "Z_axis_rotation")
-//     {
-//       cout << "Using the right-hand rule, rotate by how many degrees?: ";
-//       cin >> zRot;
-//       char line[255];
-//       cin.getline(line, 254);
-//       renderer->GetActiveCamera()->Roll(zRot);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       //iren->Start();
-//       return true;
-//     }	 
+  else if (command == "Save")
+    {
+      StringT fbName;
+      cout << "Enter name for image to be saved (without .tif extension): ";
+      cin >> fbName;
+      Clean(cin);
+      cout << "Save image at: \n 1: current view\n 2: default view: ";
+      int sfbTest;
+      cin >> sfbTest;
+      Clean(cin);
+      
+      /* if default camera desired */
+      if (sfbTest == 2) {
+	for (int i = 0; i < fFrames.Length(); i++)
+	  fFrames[i]->ResetView();
+	renWin->Render();
+      }	
+      
+      /* window to image filter */
+      vtkRendererSource* image = vtkRendererSource::New();
+      image->SetInput(fFrames[0]->Renderer());
+	  image->WholeWindowOn();
+      
+      /* construct TIFF writer */
+      vtkTIFFWriter* writer = vtkTIFFWriter::New();
+      writer->SetInput(image->GetOutput());
+      
+      StringT name = fbName;
+      name.Append(".tif");
+      writer->SetFileName(name);
+      writer->Write();
+      cout << name << " has been saved" << endl;
+   
+      /* clean up */
+      writer->Delete();
+      image->Delete();
+      renWin->Render();
+      return true;
+    }
+
+  else if (command == "Large_Save")
+    {
+
+      StringT Name;
+      cout << "Enter name for image to be saved (without .tif extension): ";
+      cin >> Name;
+      Clean(cin);
+      Name.Append(".tif");
+      vtkRenderLargeImage* renderLarge = vtkRenderLargeImage::New();
+      renderLarge->SetInput(fFrames[0]->Renderer());
+      renderLarge->SetMagnification(5);
+      renderLarge->Update();
+      vtkTIFFWriter* writer = vtkTIFFWriter::New();
+      writer->SetInput(renderLarge->GetOutput());
+      writer->SetFileName(Name);
+      writer->Write();
+      return true;
+
+    }
+
 //   else if (command=="Change_background_color")
 //     {
 //       int bgColor;
@@ -390,16 +340,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       iren->Start();
 //       return true;
 //     }
-//    else if (command == "Hide_Node_Numbers")
-//     {
-// // //       ids->PointIdsOff();
-// // //       ids->Update();
-//       pointLabels->VisibilityOff();
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;   
-//     }
+
 //   else if (command == "Show_axes")
 //   {
 //   // x,y,z axes
@@ -428,24 +369,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       iren->Start();
 //       return true;
 //     }
-//   else if (command == "Choose_variable")
-//     {
-//       char line[255];
-//       cout << "choose variable number from 0 to " << num_node_variables-1 <<" to be displayed\n" << varList;      
-//       cin >> currentVarNum;
-//       cin.getline(line, 254);
-//       ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
-//       ugridMapper->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
-//       if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
-// 	ugrid->GetPointData()->SetVectors(vectors[frameNum][currentVarNum]);
-//       sbTitle = "";
-//       sbTitle.Append(node_labels[currentVarNum]); 
-//       sbTitle.Append(" for frame ");
-//       sbTitle.Append(frameNum,3);
-//       scalarBar->SetTitle(sbTitle);
-//       renWin->Render();
-//       return true;
-//     }
+
   else
     /* drop through to inherited */
     return iConsoleObjectT::iDoCommand(command, line);

@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.h,v 1.11 2001-11-09 20:11:13 recampb Exp $ */
+/* $Id: VTKFrameT.h,v 1.12 2001-11-15 17:38:30 recampb Exp $ */
 
 #ifndef _VTK_FRAME_T_H_
 #define _VTK_FRAME_T_H_
@@ -18,6 +18,7 @@ class vtkRenderWindowInteractor;
 class vtkActor2D;
 class vtkSelectVisisblePoints;
 class vtkLabeledDataMapper;
+class vtkCubeAxesActor2D;
 
 /* forward declarations */
 class VTKBodyT;
@@ -83,7 +84,7 @@ class VTKFrameT: public iConsoleObjectT
   vtkActor2D* pointLabels;
   vtkSelectVisiblePoints* visPts;
   vtkLabeledDataMapper* ldm;
-  
+  vtkCubeAxesActor2D* axes;
 
  /*  vtkIdFilter *ids; */
 
