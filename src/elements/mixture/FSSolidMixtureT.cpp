@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.5 2005-01-07 02:18:16 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.6 2005-01-14 00:20:30 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -108,10 +108,9 @@ const dSymMatrixT& FSSolidMixtureT::ds_ij_dc(int i)
 	dArrayT& conc = fIPConc;	
 
 	/* select the perturbation */
-	double eps = 1.0e-08;
 	double c_0 = conc[i];
+	double eps = c_0*1.0e-08;
 	double c_h = c_0 + eps;
-	c_h = (c_h > 1.0) ? c_0 : c_h;
 	double c_l = c_0 - eps;
 	c_l = (c_l < 0.0) ? c_0 : c_l;
 	double rel_conc;

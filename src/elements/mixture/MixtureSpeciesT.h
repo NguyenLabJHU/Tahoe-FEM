@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.h,v 1.4 2005-01-07 02:19:20 paklein Exp $ */
+/* $Id: MixtureSpeciesT.h,v 1.5 2005-01-14 00:20:30 paklein Exp $ */
 #ifndef _MIXTURE_SPECIES_T_H_
 #define _MIXTURE_SPECIES_T_H_
 
@@ -28,6 +28,12 @@ public:
 
 protected:
 
+	/** method used to compute stress gradient */
+	enum GradientOptionT {
+		kGlobalProjection,
+		kElementProjection
+	};
+
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
 	/*@{*/
 	/** form group contribution to the stiffness matrix */
@@ -43,13 +49,20 @@ protected:
 	/** form the element stiffness matrix */
 	virtual void FormStiffness(double constK);
 
-	/** compute the flux velocities */
-	void ComputeMassFlux(void);
+	/** compute the mass flux and flux velocities */
+	void ComputeMassFlux(bool compute_dmass_flux);
 
 	/** compute the flux velocities and their variation with concentration */
-	void ComputeDMassFlux(void);
+//	void ComputeDMassFlux(void);
+
+	/** compute the divergence tensor field given the values at the integration points */
+	void ComputeDivergence(const dMatrixT& ip_grad_transform, const ArrayT<dMatrixT>& tensor_ip,
+		dArrayT& div) const;
 
 protected:
+
+	/** method used to compute stress gradient */
+	GradientOptionT fGradientOption;
 
 	/** background solid */
 	UpdatedLagMixtureT* fUpdatedLagMixture;
@@ -71,6 +84,13 @@ protected:
 
 	/** nodal stresses */
 	dArray2DT fP_avg;
+	
+	/** \name element-by-element stress projection */
+	/*@{*/
+	ArrayT<dMatrixT> fP_ip;
+	ArrayT<dMatrixT> fdP_ip;
+	ArrayT<dMatrixT> fip_gradient;
+	/*@}*/
 };
 
 } /* namespace Tahoe */

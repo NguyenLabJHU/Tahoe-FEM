@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.5 2005-01-07 02:20:28 paklein Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.6 2005-01-14 00:20:30 paklein Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -40,7 +40,7 @@ void UpdatedLagMixtureT::ProjectPartialStress(int i)
 	ElementSupport().ResetAverage(nsd*nsd);
 
 	/* work space */
-	dMatrixT P(nsd), F_inv(nsd), s(nsd);
+	dMatrixT P(nsd);
 	dArrayT P_1D;
 	P_1D.Alias(P);
 
@@ -69,10 +69,10 @@ void UpdatedLagMixtureT::ProjectPartialStress(int i)
 				const dSymMatrixT& cauchy = mixture->s_ij(i);
 				
 				/* Cauchy -> 1st PK stress */
-				cauchy.ToMatrix(s);
+				cauchy.ToMatrix(fStress);
 				const dMatrixT& F = DeformationGradient();
-				F_inv.Inverse(F);
-				P.MultABT(s, F_inv);
+				fF_inv.Inverse(F);
+				P.MultABT(fStress, fF_inv);
 				P *= F.Det();
 
 				/* extrapolate to the nodes */
@@ -127,10 +127,10 @@ void UpdatedLagMixtureT::ProjectDPartialStress(int i)
 				const dSymMatrixT& dcauchy = mixture->ds_ij_dc(i);
 				
 				/* Cauchy -> 1st PK stress */
-				dcauchy.ToMatrix(s);
+				dcauchy.ToMatrix(fStress);
 				const dMatrixT& F = DeformationGradient();
-				F_inv.Inverse(F);
-				P.MultABT(s, F_inv);
+				fF_inv.Inverse(F);
+				P.MultABT(fStress, fF_inv);
 				P *= F.Det();
 
 				/* extrapolate to the nodes */
@@ -140,6 +140,77 @@ void UpdatedLagMixtureT::ProjectDPartialStress(int i)
 			/* accumulate - extrapolation done from ip's to corners => X nodes */
 			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_P);
 		}
+}
+
+void UpdatedLagMixtureT::IP_PartialStress(int i, ArrayT<dMatrixT>* ip_stress, 
+	ArrayT<dMatrixT>* ip_dstress)
+{
+	/* nothing wanted */
+	if (!ip_stress && !ip_dstress)
+		return;
+	/* element is active */
+	else if (CurrentElement().Flag() != kOFF)
+	{
+		/* get materials */
+		FSSolidMixtureT* mixture = TB_DYNAMIC_CAST(FSSolidMixtureT*, fCurrMaterial);
+		if (!mixture) 
+			ExceptionT::GeneralFail("UpdatedLagMixtureT::IP_PartialStress", 
+				"material is not a mixture");
+	
+		/* global shape function values */
+		SetGlobalShape();
+		
+		/* collect concentration */
+		mixture->UpdateConcentrations(i);
+
+		/* collect integration point element stresses */
+		fShapes->TopIP();
+		while (fShapes->NextIP())
+		{
+			/* destination */
+			int ip = fShapes->CurrIP();
+		
+			/* deformation gradient */
+			const dMatrixT& F = DeformationGradient();
+			fF_inv.Inverse(F);
+
+			/* stress */
+			if (ip_stress)
+			{
+				/* Cauchy stress */
+				const dSymMatrixT& cauchy = mixture->s_ij(i);
+				cauchy.ToMatrix(fStress);
+			
+				/* Cauchy -> 1st PK stress */
+				dMatrixT& P = (*ip_stress)[ip];
+				P.MultABT(fStress, fF_inv);
+				P *= F.Det();
+			}
+
+			/* stress variation */
+			if (ip_dstress)
+			{
+				/* Cauchy stress */
+				const dSymMatrixT& dcauchy = mixture->ds_ij_dc(i);
+				dcauchy.ToMatrix(fStress);
+			
+				/* Cauchy -> 1st PK stress */
+				dMatrixT& dP = (*ip_dstress)[ip];
+				dP.MultABT(fStress, fF_inv);
+				dP *= F.Det();
+			}
+		}
+	}
+	else /* zero them out */
+	{
+		if (ip_stress)
+			for (int i = 0; i < ip_stress->Length(); i++)
+				(*ip_stress)[i] = 0.0;
+
+		if (ip_dstress)
+			for (int i = 0; i < ip_dstress->Length(); i++)
+				(*ip_dstress)[i] = 0.0;
+	}
 }
 
 /* return the nodal accelerations over the current element */
@@ -160,4 +231,16 @@ void UpdatedLagMixtureT::BodyForce(dArrayT& body_force) const
 		body_force.SetToScaled(fBodySchedule->Value(), fBody);
 	else
 		body_force = 0.0;
+}
+
+/* accept parameter list */
+void UpdatedLagMixtureT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	UpdatedLagrangianT::TakeParameterList(list);
+
+	/* dimension work space */
+	int nsd = NumSD();
+	fF_inv.Dimension(nsd);
+	fStress.Dimension(nsd);
 }

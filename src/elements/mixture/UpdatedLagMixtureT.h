@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.h,v 1.3 2005-01-07 02:20:28 paklein Exp $ */
+/* $Id: UpdatedLagMixtureT.h,v 1.4 2005-01-14 00:20:30 paklein Exp $ */
 #ifndef _UPDATED_LAG_MIXTURE_T_H_
 #define _UPDATED_LAG_MIXTURE_T_H_
 
@@ -18,12 +18,23 @@ public:
 	/** resolve the species name into the index */
 	int SpeciesIndex(const StringT& name) const;
 
+	/** \name stress global projection */
+	/*@{*/
 	/** project the given partial first Piola-Kirchoff stress to the nodes */
 	void ProjectPartialStress(int i);
 
 	/** project the variation with concentration of the given partial first 
 	 * Piola-Kirchoff stress to the nodes */
 	void ProjectDPartialStress(int i);
+	/*@}*/
+
+	/** collect the integration point stresses and variations in stress.
+	 * \param ip_stress pointer to the destination of the integration point stresses
+	 *        or NULL if the integration point stresses are wanted
+	 * \param ip_dstress pointer to the destination of the integration point stress
+	 *        variations or NULL if the variations are wanted
+	 * \param i */
+	void IP_PartialStress(int i, ArrayT<dMatrixT>* ip_stress, ArrayT<dMatrixT>* ip_dstress);
 
 	/** return the body force vector */
 	void BodyForce(dArrayT& body_force) const;
@@ -44,8 +55,19 @@ public:
 	virtual void SetGlobalShape(void) { UpdatedLagrangianT::SetGlobalShape(); };
 	/*@}*/
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
+	/** \name work space */
+	/*@{*/
+	dMatrixT fF_inv;
+	dMatrixT fStress;
+	/*@}*/
 };
 
 } /* namespace Tahoe */
