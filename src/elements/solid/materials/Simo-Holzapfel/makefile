@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-03-19 19:03:18 thao Exp $
+# $Id: makefile,v 1.2 2003-04-06 02:11:40 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,8 +20,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = SSSimoViscoT.o \
-	FDSimoViscoBaseT.o \
-	FDSimoVisco3D.o
+	FDSimoViscoBaseT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -42,8 +41,7 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = SSSimoViscoT.cpp \
-	FDSimoViscoBaseT.cpp \
-	FDSimoVisco3D.cpp
+	FDSimoViscoBaseT.cpp 
 
 ##################### (3) headers
 #
@@ -55,8 +53,7 @@ SRC = SSSimoViscoT.cpp \
 # HDR and HDR_LINK macro   
 #
 HDR = SSSimoViscoT.h \
-	FDSimoViscoBaseT.h \
-	FDSimoVisco3D.h
+	FDSimoViscoBaseT.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 
@@ -67,8 +64,7 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = KStV \
-	OgdenPotential  
+SUB_DIR = KStV 
 
 subdir_driver: subdir_loop
 
