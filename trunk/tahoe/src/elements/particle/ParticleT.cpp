@@ -1,67 +1,40 @@
-/* $Id: ParticleT.cpp,v 1.3 2002-11-14 17:05:56 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.4 2002-11-21 01:11:14 paklein Exp $ */
 #include "ParticleT.h"
-
-#include <math.h>
 
 #include "fstreamT.h"
 #include "eControllerT.h"
 #include "OutputSetT.h"
 #include "dArray2DT.h"
+#include "ElementSupportT.h"
+#include "ModelManagerT.h"
+#include "iGridManagerT.h"
+#include "PotentialT.h"
 
-/* interaction types */
-#include "LennardJones612.h"
-#include "ParabolaT.h"
-#include "SmithFerrante.h"
+using namespace Tahoe;
 
 /* constructors */
 ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field)
+	ElementBaseT(support, field),
+	fGrid(NULL)
 {
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
 }
 
+/* destructor */
+ParticleT::~ParticleT(void)
+{
+	/* free search grid */
+	delete fGrid;
+}
+
 /* initialization */
 void ParticleT::Initialize(void)
 {
-	/* set console variables */
-	int index = fSupport.ElementGroupNumber(this) + 1;
-	StringT name;
-	name.Append(index);
-	name.Append("_element_group");
-	iSetName(name);
-
-	/* streams */
-	ifstreamT& in = fSupport.Input();
-	ostream&   out = fSupport.Output();
-
-	/* control data */
-	PrintControlData(out);
-
-	/* element connectivity data */
-	EchoConnectivityData(in, out);
-
-	/* dimension */
-	int neq = NumElementNodes()*NumDOF();
-	fLHS.Allocate(neq);	
-	fRHS.Allocate(neq);
-
-	/* constant matrix needed to calculate stiffness */
-	fOneOne.Dimension(fLHS);
-	dMatrixT one(NumDOF());
-	one.Identity();
-	fOneOne.SetBlock(0, 0, one);
-	fOneOne.SetBlock(NumDOF(), NumDOF(), one);
-	one *= -1;
-	fOneOne.SetBlock(0, NumDOF(), one);
-	fOneOne.SetBlock(NumDOF(), 0, one);
+	/* inherited */
+	ElementBaseT::Initialize();
 	
-	/* bond vector */
-	fBond.Dimension(NumSD());
-	
-	/* echo material properties */
-	ReadMaterialData(ElementSupport().Input());	
-	WriteMaterialData(ElementSupport().Output());
+	/* dimension work space */
 }
 
 /* form of tangent matrix */
@@ -86,26 +59,21 @@ void ParticleT::RegisterOutput(void)
 	for (int i = 0; i < block_ID.Length(); i++)
 		block_ID[i] = fBlockData[i].ID();
 
+	/* get output labels (per node) */
+	ArrayT<StringT> n_labels, e_labels;
+	GenerateOutputLabels(n_labels);
+
 	/* set output specifier */
 	StringT set_ID;
 	set_ID.Append(ElementSupport().ElementGroupNumber(this) + 1);
-	OutputSetT output_set(set_ID, GeometryT::kLine, block_ID, fConnectivities, 
-		Field().Labels(), e_labels, ChangingGeometry());
+	OutputSetT output_set(GeometryT::kPoint, fPointConnectivities, n_labels, true);
 		
 	/* register and get output ID */
 	fOutputID = ElementSupport().RegisterOutput(output_set);
 }
 
-void ParticleT::WriteOutput(IOBaseT::OutputModeT mode)
+void ParticleT::WriteOutput(void)
 {
-//TEMP - not handling general output modes yet
-	if (mode != IOBaseT::kAtInc)
-	{
-		cout << "\n ContinuumElementT::WriteOutput: only handling \"at increment\"\n"
-		     <<   "     print mode. SKIPPING." << endl;
-		return;
-	}
-
 	/* get list of nodes used by the group */
 	iArrayT nodes_used;
 	NodesUsed(nodes_used);
@@ -137,165 +105,81 @@ bool ParticleT::ChangingGeometry(void) const
 {
 	/* assume that for a single processor calculation, the geometry
 	 * is not changing */
-	if (ElementSupport.Size() > 1)
+	if (ElementSupport().Size() > 1)
 		return true;
 	else
 		return false;
 }
 
-/* construct the element stiffness matrix */
-void ParticleT::LHSDriver(void)
+/* echo element connectivity data */
+void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
-	/* time integration dependent */
-	double constK = 0.0;
-	double constM = 0.0;
-	int formK = fController->FormK(constK);
-	int formM = fController->FormM(constM);
+	int all_or_some = -1;
+	in >> all_or_some; 
+	if (all_or_some != 0 && all_or_some != 1) ExceptionT::BadInputValue("ParticleT::EchoConnectivityData");
 	
-	/* particle mass */
-	double mass = 0.0; //fCurrMaterial->Mass();
-	
-	Top();
-	while ( NextElement() )
+	if (all_or_some == 0)
 	{
-		/* initialize */
-		fLHS = 0.0;
+		fID.Dimension(1);
+		fID[0] = "ALL";
 		
-		/* local arrays */
-		SetLocalX(fLocInitCoords);
-		SetLocalU(fLocDisp);
+		/* make list of all nodes */
+		fGlobalTag.Dimension(ElementSupport().NumNodes());
+		fGlobalTag.SetValueToPosition();
+	}
+	else
+	{
+		/* access to the model database */
+		ModelManagerT& model = ElementSupport().Model();
+
+		/* read node set indexes */
+		model.NodeSetList(in, fID);
+
+		/* get tags */
+		iArrayT tags;
+		if (fID.Length() > 0) model.ManyNodeSets (fID, tags);
 		
-		/* form element stiffness */
-		if (formK) ElementStiffness(constK);
-	
-		/* mass contribution */
-		if (formM) fLHS.PlusIdentity(mass);
-	
-		/* add to global equations */
-		AssembleLHS();
+		/* remove duplicates */
+		fGlobalTag.Union(tags);
 	}
+
+	/* "point connectivities" needed for output */
+	fPointConnectivities.Set(fGlobalTag.Length(), 1, fGlobalTag.Pointer());
 }
 
-/* construct the element force vectors */
-void ParticleT::RHSDriver(void)
+/* generate labels for output data */
+void ParticleT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 {
-	/* set components and weights */
-	double constMa = 0.0;
-	double constKd = 0.0;
+	if (NumDOF() > 0) ExceptionT::GeneralFail("ParticleT::GenerateOutputLabels");
+
+	/* displacement labels */
+	const char* disp[3] = {"D_X", "D_Y", "D_Z"};
 	
-	/* components dicated by the algorithm */
-	int formMa = fController->FormMa(constMa);
-	int formKd = fController->FormKd(constKd);
-	
-//TEMP - inertia term in residual
-if (formMa) {
-	cout << "\n ParticleT::RHSDriver: M*a term not implemented" << endl;
-	throw eGeneralFail;
+	int num_labels =
+		NumDOF() // displacements
+		+ 2;     // PE and KE
+
+	labels.Dimension(num_labels);
+	int dex = 0;
+	for (dex = 0; dex < NumDOF(); dex++)
+		labels[dex] = disp[dex];
+	labels[dex++] = "PE";
+	labels[dex++] = "KE";
 }
 
-	/* run through pairs */
-	Top();
-	while (NextElement()) /* would be faster not to use Top-Next */
-	{
-		/* local displacement */
-		SetLocalU(fLocDisp);
+/* generate neighborlist */
+void ParticleT::GenerateNeighborList(const iArrayT& particle_tags, 
+	const iArrayT& particle_type, const ArrayT<PotentialT*>& pots, 
+	RaggedArray2DT<int>& neighbors, bool double_list)
+{
+	/* construct grid */
+	if (!fGrid) {
 	
-		if (fLocDisp.AbsMax() > 0.0 || fCurrMaterial->HasInternalStrain())
-		{
-			/* initialize */
-			fRHS = 0.0;
 	
-			/* local coordinates */
-			SetLocalX(fLocInitCoords);
-
-			/* form element force */
-			ElementForce(-1.0);
-	
-			/* add to global equations */
-			AssembleRHS();
-		}
 	}
-}
 
-/* load next element */
-bool ParticleT::NextElement(void)
-{
-	bool result = ElementBaseT::NextElement();
+	/* reset contents */
 	
-	/* initialize element calculation */
-	if (result)
-		fCurrMaterial = fMaterialsList[CurrentElement().MaterialNumber()];
 	
-	return result;
-}
-	
-/* element data */
-void ParticleT::ReadMaterialData(ifstreamT& in)
-{
-	/* allocate space */
-	int	nummaterials;
-	in >> nummaterials;
-	fInteractions.Dimension(nummaterials);
-	fPointMass.Dimension(nummaterials);
 
-	/* read data */
-	for (int i = 0; i < nummaterials; i++)
-	{
-		int matnum, matcode;
-		in >> matnum;
-		matnum--;
-
-		/* associated mass */
-		double mass = = -1;
-		in >> mass;
-		if (mass < 0) throw eBadInputValue;
-		fPointMass[matnum] = mass;
-		
-		/* add to the list of materials */
-		in >> matcode;
-		switch (matcode)
-		{
-			case kLennardJones:			
-			{
-				double a = -1;
-				in >> a;
-				if (a < 0) throw eBadInputValue;
-				fInteractions[matnum] = new LennardJones612(a);
-				break;
-			}	
-			case kSmithFerrante:
-			{
-				double A = -1, B = -1, L = -1;
-				in >> A >> B >> L;
-				if (A < 0 || B < 0 || L < 0) throw eBadInputValue;
-				fInteractions[matnum] = new SmithFerrante(A, B, L);
-				break;
-			}
-			case kQuadratic:
-			{
-				double k = -1;
-				in >> k;
-				if (k < 0) throw eBadInputValue;
-				fInteractions[matnum] = new ParabolaT(k);
-				break;
-			}
-			default:
-				cout << "\n ParticleT::ReadMaterialData: unknown material type\n" << endl;
-				throw eBadInputValue;
-		}
-	}
-}
-
-void ParticleT::WriteMaterialData(ostream& out) const
-{
-	out << "\n Particle Set Data:\n";
-	out << " Number of particle types. . . . . . . . . . = " << fInteractions.Length() << '\n';
-	for (int i = 0; i < fInteractions.Length(); i++)
-	{
-		out << "\n Type number . . . . . . . . . . . . . . . . = " << i+1 << '\n';
-		out << " Mass. . . . . . . . . . . . . . . . . . . . = " << fPointMass[i] << '\n';
-		out << " Pair interaction:\n";
-		fInteractions[i]->PrintName(out);
-		fInteractions[i]->Print(out);
-	}
 }

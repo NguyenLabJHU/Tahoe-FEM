@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.2 2002-10-20 22:48:27 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.3 2002-11-21 01:11:14 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "ParticleT.h"
@@ -30,6 +30,7 @@ void ParticleT::Initialize(void)
 	ElementBaseT::Initialize();
 	
 	/* constant matrix needed to calculate stiffness */
+#if 0
 	fOneOne.Dimension(fLHS);
 	dMatrixT one(NumDOF());
 	one.Identity();
@@ -38,9 +39,10 @@ void ParticleT::Initialize(void)
 	one *= -1;
 	fOneOne.SetBlock(0, NumDOF(), one);
 	fOneOne.SetBlock(NumDOF(), 0, one);
-	
+
 	/* bond vector */
 	fBond.Dimension(NumSD());
+#endif
 	
 	/* echo material properties */
 	ReadMaterialData(ElementSupport().Input());	
@@ -59,43 +61,6 @@ void ParticleT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 #pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
-}
-
-/* returns the energy as defined by the derived class types */
-double ParticleT::InternalEnergy(void)
-{
-	double energy = 0.0;
-
-	Top();
-	while (NextElement())
-	{
-		/* local arrays */
-		SetLocalX(fLocInitCoords);
-		SetLocalU(fLocDisp);
-		
-		/* form element stiffness */
-		energy += ElementEnergy();
-	}
-
-	return(energy);
-}
-
-/* writing output */
-void ParticleT::RegisterOutput(void)
-{
-	/* block ID's */
-	ArrayT<StringT> block_ID(fBlockData.Length());
-	for (int i = 0; i < block_ID.Length(); i++)
-		block_ID[i] = fBlockData[i].ID();
-
-	/* set output specifier */
-	StringT set_ID;
-	set_ID.Append(ElementSupport().ElementGroupNumber(this) + 1);
-	OutputSetT output_set(set_ID, GeometryT::kLine, block_ID, fConnectivities, 
-		Field().Labels(), e_labels, ChangingGeometry());
-		
-	/* register and get output ID */
-	fOutputID = ElementSupport().RegisterOutput(output_set);
 }
 
 void ParticleT::WriteOutput(IOBaseT::OutputModeT mode)
