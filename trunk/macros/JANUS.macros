@@ -1,4 +1,4 @@
-# $Id: JANUS.macros,v 1.3 2001-02-06 03:13:17 paklein Exp $
+# $Id: JANUS.macros,v 1.4 2001-02-07 17:37:19 paklein Exp $
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = -lmpi
 
@@ -7,7 +7,7 @@ MAKE        = make
 MAKE_DEPEND = makedepend
 COMP_C      = cicc
 COMP_CC     = ciCC
-COMP_C      = cif77
+COMP_F      = cif77
 MORE_CFLAGS = -O2 -DNDEBUG 
 #MORE_CFLAGS = -g
 MY_CFLAGS = -c -I$(INC_DIR) $(MORE_CFLAGS)
