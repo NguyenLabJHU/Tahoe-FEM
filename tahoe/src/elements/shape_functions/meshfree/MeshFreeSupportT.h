@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.h,v 1.8 2002-07-05 22:28:37 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.8.10.1 2002-12-27 23:08:57 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #ifndef _MF_SUPPORT_T_H_
@@ -98,7 +98,9 @@ public:
 	 * \param node list of particles to collect : [n] 
 	 * \param nodal_params support parameters: [n] x [nparam] */
 	void GetSupportParameters(const iArrayT& node, dArray2DT& nodal_params) const;
-	const dArray2DT& NodalParameters(void) const;
+	
+	/** read/write access to the nodal parameters */
+	dArray2DT& NodalParameters(void);
 
 	/** set field cutting facets. 
 	 * \param facet_coords list of coordinate for each facet: [nfacets] x [num_facet_nodes*nsd] 
@@ -310,7 +312,7 @@ protected:
 };
 
 /* inlines */
-inline const dArray2DT& MeshFreeSupportT::NodalParameters(void) const { return fNodalParameters; }
+inline dArray2DT& MeshFreeSupportT::NodalParameters(void) { return fNodalParameters; }
 inline const iArrayT& MeshFreeSupportT::ElementNeighborsCounts(void) const { return feNeighborCount; }
 inline const RaggedArray2DT<int>& MeshFreeSupportT::ElementNeighbors(void) const { return feNeighborData; }
 inline const RaggedArray2DT<int>& MeshFreeSupportT::NodeNeighbors(void) const { return fnNeighborData; }

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.11.2.1 2002-12-18 09:50:14 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.11.2.2 2002-12-27 23:08:30 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 
 #include "MeshFreeElementSupportT.h"
@@ -11,16 +11,12 @@
 #include "ElementBaseT.h"
 
 #include "ModelManagerT.h"
-
-/* parameters */
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
+/* parameters */
 const int kHeadRoom = 10; // percent
-
-#ifdef __TAHOE_MPI__
-#include "mpi.h"
-#endif
 
 /* constructor */
 MeshFreeElementSupportT::MeshFreeElementSupportT(ifstreamT& in):
@@ -37,14 +33,6 @@ MeshFreeElementSupportT::MeshFreeElementSupportT(ifstreamT& in):
 
 	/* check values */
 	if (fAutoBorder != 0 && fAutoBorder != 1) throw ExceptionT::kBadInputValue;
-
-#ifdef __TAHOE_MPI__
-	//TEMP
-	int size;
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
-	if (size > 1 && fAutoBorder)
-		cout << "\n ::MeshFreeElementSupportT: AutoBorder not extended to parallel" << endl;
-#endif
 }
 
 /* accessors */
