@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.33 2002-11-26 01:56:37 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.34 2002-12-01 19:50:48 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 
@@ -83,7 +83,25 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		int	group;
 		in >> group;
 		group--;
-		
+
+		/* read code */
+		ElementT::TypeT code;
+		in >> code;
+
+		/* check */
+		if (group < 0 || group >= Length())
+		{
+			cout << "\n ElementListT::EchoElementData: Element group number is out of\n";
+			cout <<   "     range: " << group + 1 << endl;
+			throw ExceptionT::kBadInputValue;
+		}
+
+		/* no over-writing existing groups */
+		if (fArray[group]) {
+			cout << "\n ElementListT::EchoElementData: group already exists" << group + 1 << endl;
+			throw ExceptionT::kBadInputValue;
+		}
+
 		/* no predefined field names */
 		const FieldT* field = NULL;
 		if (fSupport.Analysis() == GlobalT::kMultiField)
@@ -133,12 +151,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			throw ExceptionT::kGeneralFail;
 		}
 
-		/* read code */
-		ElementT::TypeT code;
-		in >> code;
-
+		/* write parameters */
 		out << "\n Group number. . . . . . . . . . . . . . . . . . = " << group + 1 << '\n';
-		out <<   " Associated field. . . . . . . . . . . . . . . . = \"" << field->Name() << "\"\n";
 		out <<   " Element type code . . . . . . . . . . . . . . . = " <<      code << '\n';
 		out << "    eq. " << ElementT::kRod                << ", rod\n";
 		out << "    eq. " << ElementT::kElastic            << ", elastic\n";
@@ -168,19 +182,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		out << "    eq. " << ElementT::kBridgingScale      << ", Bridging Scale\n";
 		out << "    eq. " << ElementT::kSimoQ1P0           << ", Q1P0 mixed element\n";
 		out << "    eq. " << ElementT::kAdhesion           << ", surface adhesion\n";
-		/* check */
-		if (group < 0 || group >= Length())
-		{
-			cout << "\n ElementListT::EchoElementData: Element group number is out of\n";
-			cout <<   "     range: " << group + 1 << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-
-		/* no over-writing existing groups */
-		if (fArray[group]) {
-			cout << "\n ElementListT::EchoElementData: group already exists" << group + 1 << endl;
-			throw ExceptionT::kBadInputValue;
-		}
 
 		/* create new element group - read control parameters
 		   and allocate space in the contructors */
