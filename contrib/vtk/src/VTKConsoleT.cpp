@@ -1,11 +1,11 @@
-/* $Id: VTKConsoleT.cpp,v 1.25 2001-11-07 19:51:29 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.26 2001-11-08 00:42:35 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
-#include "vtkWindowToImageFilter.h"
+#include "vtkRendererSource.h"
 #include "vtkTIFFWriter.h"
 #include "vtkScalarBarActor.h"
 #include "vtkDataSetMapper.h"
@@ -190,29 +190,29 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       }	
       
       /* window to image filter */
-      vtkWindowToImageFilter* image = vtkWindowToImageFilter::New();
-      //image->SetInput(renWin);
+      vtkRendererSource* image = vtkRendererSource::New();
+      image->SetInput(fFrames[0]->Renderer());
+	  image->WholeWindowOn();
       
       /* construct TIFF writer */
       vtkTIFFWriter* writer = vtkTIFFWriter::New();
-      //writer->SetInput(image->GetOutput());
+      writer->SetInput(image->GetOutput());
       
       /* assume all the bodies have the same number of steps as body 0 */
       for (int j = 0; j<fBodies[0]->num_time_steps; j++){
-	for (int i = 0; i < fBodies.Length(); i++)
-	  fBodies[i]->SelectTimeStep(j);
-	renWin->Render();  
+
+		for (int i = 0; i < fBodies.Length(); i++)
+		  fBodies[i]->SelectTimeStep(j);
+
+		renWin->Render();  
+  
+		StringT name = fbName;
+		name.Append(j,3); // pad to a width of 3 digits
+		name.Append(".tif");
+		writer->SetFileName(name);
+		writer->Write();
 	
-	StringT name = fbName;
-	name.Append(j,3); // pad to a width of 3 digits
-	name.Append(".tif");
-	writer->SetFileName(name);
-	image->SetInput(renWin);
-	writer->SetInput(image->GetOutput());
-	writer->Write();
-	
-	cout << name << " has been saved" << endl;
-	renWin->Render();
+		cout << name << " has been saved" << endl;
       }
       
       /* clean up */

@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.6 2001-11-07 02:34:45 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.7 2001-11-08 00:42:35 paklein Exp $ */
 
 #include "VTKBodyT.h"
 
@@ -230,7 +230,7 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
   ugrid->SetCells(cell_types.Pointer(), vtk_cell_array);
   ugrid->SetPoints(points);
   ugrid->GetPointData()->SetScalars(scalars[currentStepNum][currentVarNum]); 
-  if (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z")
+  if (node_labels.Length() > 0 && (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z"))
     ugrid->GetPointData()->SetVectors(vectors[currentStepNum][currentVarNum]);
   
  
@@ -243,7 +243,7 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
   ugridMapper = vtkDataSetMapper::New();
   ugridMapper->SetInput(warp->GetOutput());
  /* set warping vector if needed */  
-  if (node_labels[0] == "D_X" ||node_labels[0] == "D_Y" || node_labels[0] == "D_Z")
+  if (node_labels.Length() > 0 && (node_labels[0] == "D_X" ||node_labels[0] == "D_Y" || node_labels[0] == "D_Z"))
     ugridMapper->SetInput(warp->GetOutput());
   else
     ugridMapper->SetInput(ugrid);
@@ -294,16 +294,17 @@ VTKBodyT::~VTKBodyT(void)
 
 void VTKBodyT::SetLookupTable(void)
 {
+  if (node_labels.Length() > 0) {
+	sbTitle.Append(node_labels[currentVarNum]); 
+	sbTitle.Append(" for frame 000");
+  }
   scalarBar->SetLookupTable(ugridMapper->GetLookupTable());
-  sbTitle.Append(node_labels[currentVarNum]); 
-  sbTitle.Append(" for frame 000");
   scalarBar->SetTitle(sbTitle);
   scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
   scalarBar->GetPositionCoordinate()->SetValue(0.1,0.01);
   scalarBar->SetOrientationToHorizontal();
   scalarBar->SetWidth(0.8);
   scalarBar->SetHeight(0.17);
-  //renderer->AddActor(scalarBar);
 }
 
 void VTKBodyT::UpdateData(void)
@@ -329,17 +330,16 @@ void VTKBodyT::DefaultValues(void)
 
 void VTKBodyT::ChangeVars(const int varNum)
 {
-      ugrid->GetPointData()->SetScalars(scalars[currentStepNum][varNum]);
-      ugridMapper->SetScalarRange(scalarRange1[varNum],scalarRange2[varNum]);
-      if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
+  ugrid->GetPointData()->SetScalars(scalars[currentStepNum][varNum]);
+  ugridMapper->SetScalarRange(scalarRange1[varNum],scalarRange2[varNum]);
+  if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
 	ugrid->GetPointData()->SetVectors(vectors[currentStepNum][varNum]);
-      sbTitle = "";
-      sbTitle.Append(node_labels[varNum]); 
-      sbTitle.Append(" for frame 000 ");
-      //sbTitle.Append(currentStepNum,3);
-      scalarBar->SetTitle(sbTitle);
-      currentVarNum = varNum;
-
+  sbTitle = "";
+  sbTitle.Append(node_labels[varNum]); 
+  sbTitle.Append(" for frame 000 ");
+  //sbTitle.Append(currentStepNum,3);
+  scalarBar->SetTitle(sbTitle);
+  currentVarNum = varNum;
 }
 
 void VTKBodyT::SelectTimeStep(const int stepNum)
