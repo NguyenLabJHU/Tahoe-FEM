@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.16.18.4 2004-04-27 07:49:02 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.16.18.5 2004-04-27 16:02:14 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -251,29 +251,26 @@ void ContactT::ExtractContactGeometry(const ParameterListT& list)
 				surface_spec->Name().Pointer());
 	}
 	
-	/* echo data and correct numbering offset */
-	if (print_input) {	
-		out << " Contact surfaces:\n";
-		out << setw(kIntWidth) << "surface"
-		    << setw(kIntWidth) << "facets"
-		    << setw(kIntWidth) << "size" << '\n';
-		for (int j = 0; j < fSurfaces.Length(); j++)
-		{		
-		  	iArray2DT& surface = fSurfaces[j];
+	/* echo data  */
+	out << " Contact surfaces:\n";
+	out << setw(kIntWidth) << "surface"
+	    << setw(kIntWidth) << "facets"
+	    << setw(kIntWidth) << "size" << '\n';
+	for (int j = 0; j < fSurfaces.Length(); j++)
+	{		
+	  	iArray2DT& surface = fSurfaces[j];
 
-		  	out << setw(kIntWidth) << j+1
-		  	    << setw(kIntWidth) << surface.MajorDim()
-		  	    << setw(kIntWidth) << surface.MinorDim() << "\n\n";
+	  	out << setw(kIntWidth) << j+1
+	  	    << setw(kIntWidth) << surface.MajorDim()
+	  	    << setw(kIntWidth) << surface.MinorDim() << "\n\n";
   	
-			/* set offset for output */
-	  		if (ElementSupport().PrintInput())
-	  		{
-	  			surface++;
-	  			surface.WriteNumbered(out);
-	  			surface--;
-	  			out << '\n';
-	  		}
-		}	
+		/* verbose */
+		if (print_input) {
+			surface++;
+			surface.WriteNumbered(out);
+			surface--;
+			out << '\n';
+	  	}
 	}
 
 	/* look for empty surfaces */
