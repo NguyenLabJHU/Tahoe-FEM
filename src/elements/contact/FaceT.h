@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.5 2001-04-11 20:10:27 rjones Exp $ */
+/* $Id: FaceT.h,v 1.6 2001-04-16 17:30:51 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -8,6 +8,9 @@
 #include "dArray2DT.h"
 #include "ArrayT.h"
 #include "GeometryT.h"
+#if 0
+#include <math.h>
+#endif
 
 
 /* forward declarations */
@@ -55,10 +58,42 @@ public:
 		{return fGeometryType;}
  	inline const iArrayT& Connectivity(void) const 
 		{return fConnectivity;} 
+	inline const int NumVertexNodes(void) 
+		{return fNumVertexNodes;}
+#if 0
+	//2D
+	inline const int Left() {return fConnectivity[0];}
+	inline const int Right() {return fConnectivity[1];}
+	//3D (2d too)
+	inline const int Next(int i)
+		{return mod(i + 1, fNumVertexNodes);}
+	inline const int Prev(int i)
+		{return mod(i - 1, fNumVertexNodes);}
+	inline const int LocalNodeNumber(int node_num)
+		{for (int i = 0; i < fConnectivity.Length(); i++) {
+			if (node_num == fConnectivity[i]) return i ; } }
+#endif
+
+#if 0
+// need Face2DT and Face3DT?
+// these functions should know the tolerances...
+	/* check functions */   // shouldnot recompute face normal
+	inline bool CheckOpposition(double& nm, double& face_nm)
+	inline bool CheckOpposition(double* nm)
+		{return 0; }
+	inline bool CheckLocalCoordinates(double* xi, double tol_xi)
+		{return 0; }
+	inline bool CheckGap(double gap, double tol_g)
+		{ {gap < tol_g} ? {return 1} : {return 0} ;}
+#endif
+		
 
 protected:
 	/* geometry type */
 	GeometryT::CodeT fGeometryType;
+
+	/* number of vertex nodes */
+	int fNumVertexNodes;
 
 	/* reference to parent surface */
         const SurfaceT& fSurface;

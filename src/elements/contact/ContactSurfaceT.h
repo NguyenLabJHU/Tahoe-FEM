@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.3 2001-04-09 23:26:51 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.4 2001-04-16 17:30:51 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -9,10 +9,8 @@
 
 /* direct members */
 #include "ArrayT.h"
-#include "dArray2DT.h"
-#include "dArrayT.h"
 #include "SurfaceT.h"
-#include "FaceT.h"
+#include "ContactNodeT.h"
 
 /* forward declarations */
 class ofstreamT;
@@ -27,34 +25,18 @@ surface of a cube will be made up of 6 surfaces
 class ContactSurfaceT : public SurfaceT
 {
   public:
-
 	/* constructor */
 	ContactSurfaceT(void);
 
 	/* constructor */
 	~ContactSurfaceT(void);
 
-	/* print data */
-	void PrintData(ostream& out);
-	
+	/* allocate contact node array */
+	void AllocateContactNodes(void);
+
   protected:
         /* nodal arrays */
-	ArrayT <SurfaceT*>  fOpposingSurface ; 
-	ArrayT <FaceT*>     fOpposingFace ; 
-	dArray2DT           fOpposingLocalCoordinates ;
-	dArrayT             fGaps ;
-
-  public:
-        /* access functions */ 
-        inline const SurfaceT* OpposingSurface(int node_number)
-                {return fOpposingSurface[node_number];}
-        inline const FaceT* OpposingFace(int node_number)
-                {return fOpposingFace[node_number];}
-        inline double Gap(int node_number)
-                {return fGaps[node_number];}
-
-
-  private:
+	ArrayT <ContactNodeT>  fContactNodes ; 
 
 };
 

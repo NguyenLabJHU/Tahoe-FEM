@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.h,v 1.2 2001-04-09 22:28:55 rjones Exp $ */
+/* $Id: ContactSearchT.h,v 1.3 2001-04-16 17:30:50 rjones Exp $ */
 
 #ifndef _CONTACT_SEARCH_T_H_
 #define _CONTACT_SEARCH_T_H_
@@ -18,8 +18,7 @@ class ContactSearchT
 public:
 
 	/* constructor */
-	ContactSearchT(FEManagerT& fe_manager, 
-		ArrayT<ContactSurfaceT>& surfaces,
+	ContactSearchT(ArrayT<ContactSurfaceT>& surfaces,
 		nMatrixT<dArrayT>& search_parameters);
 
 	/* destructor */

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.3 2001-04-11 18:35:19 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.4 2001-04-16 17:30:50 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -73,10 +73,19 @@ protected:
 	
 	/* initialization steps */
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
+#if 0
 	virtual void SetWorkSpace(void);
+#endif
 
 	/* generate contact element data  */
 	bool SetContactConfiguration(void);
+
+	/* generate element connectivity data  */
+	void SetConnectivity(void);
+
+
+	/* update contact element data  */
+	bool UpdateContactConfiguration(void);
 
 	/* search pointer */
 	ContactSearchT* fContactSearch ;

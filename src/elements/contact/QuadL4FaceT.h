@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.h,v 1.3 2001-04-11 14:48:58 rjones Exp $ */
+/* $Id: QuadL4FaceT.h,v 1.4 2001-04-16 17:30:52 rjones Exp $ */
 
 #ifndef _QUADL4_FACE_T_H_
 #define _QUADL4_FACE_T_H_
@@ -19,7 +19,7 @@ class dMatrixT;
 
 /*  connectivity
  *  4--3
- *  |  |
+ *  |  |    (outward normal out-of-plane)
  *  1--2
  */
 

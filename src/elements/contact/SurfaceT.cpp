@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.6 2001-04-11 20:10:27 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.7 2001-04-16 17:30:52 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -35,10 +35,10 @@ void SurfaceT::PrintData(ostream& out)
         /* echo data and correct numbering offset */
 	/* nodes */
 	out << "\n Surface nodes:" << setw(kIntWidth) 
-	    << fNodes.Length() << '\n' ;
-	fNodes++;
-	out << fNodes.wrap(8) << '\n';
-	fNodes--;
+	    << fGlobalNodes.Length() << '\n' ;
+	fGlobalNodes++;
+	out << fGlobalNodes.wrap(8) << '\n';
+	fGlobalNodes--;
 
 	/* face connectivities */
 	out << "\n Faces :" << setw(kIntWidth) 
@@ -196,14 +196,14 @@ void SurfaceT::InputSideSets
 	}
 
         /* collect */
-        fNodes.Allocate(node_count);
+        fGlobalNodes.Allocate(node_count);
         pcount = counts.Pointer();
         int nsurf_nodes = 0;
         for (int k = 0; k < num_nodes; k++)
 	{
                 if (*pcount++ > 0)
                 {
-                        fNodes[nsurf_nodes] = k;
+                        fGlobalNodes[nsurf_nodes] = k;
                         global2local[k] = nsurf_nodes;
                         nsurf_nodes++;
                 }
@@ -292,7 +292,7 @@ void SurfaceT::Initialize (const NodeManagerT* node_manager)
 	kNodeManager = node_manager;
 	fNumSD = kNodeManager->NumSD();
 
-	int num_nodes = fNodes.Length();
+	int num_nodes = fGlobalNodes.Length();
         fCoordinates.Allocate(num_nodes,fNumSD);
         fNormals.Allocate(num_nodes,fNumSD);
 
@@ -310,7 +310,8 @@ void SurfaceT::Initialize (const NodeManagerT* node_manager)
 void SurfaceT::UpdateConfiguration ()
 {
  	/* update current coordinates */ 
-	fCoordinates.RowCollect(fNodes,kNodeManager->CurrentCoordinates());
+	fCoordinates.RowCollect
+		(fGlobalNodes,kNodeManager->CurrentCoordinates());
 
 	/* update averaged outward normals */
 	ComputeSurfaceNormals();
@@ -319,42 +320,120 @@ void SurfaceT::UpdateConfiguration ()
 void SurfaceT::ComputeNeighbors (void)
 { // assume vertex nodes are ordered CCW and first in connectivity lists
 
-# if (0)
-  switch(NumSD) {
+  switch(fNumSD) {
+     case 2:
+#if 0
+	//ComputeNeighbors2D();
+	// need left/right sense
+        for (i = 0; i < fFaces.Length() ; i++) {
+                face = fFace[i];
+                conn = face.Connectivity();
+                for (j = 0; j < conn.Length(); j++) {
+			Inface
+                        NeighborNode[conn[1],0] = conn[0]; /left -> right
+                        NeighborNode[conn[0],1] = conn[1]; /right <- left
+                }
+        }
+        for (i = 0; i < fFaces.Length() ; i++) {
+                face = fFace[i];
+                conn = face.Connectivity();
+                for (j = 0; j < conn.Length(); j++) {
+                       FaceNeighbor.Insert() = InFace[conn[j]];
+                }
+        }
+
+	
+#endif
+	break;
      case 3:
-	RaggedArray2DT<int> set_data;
-       	set_data.Configure(count);
+#if 0
+	//ComputeNeighbors3D();
+	// ragged array of face pointers
+	//RaggedArray2DT<int> set_data;
+       	//set_data.Configure(count);
+	InFace.Allocate(fGlobalNodes.Length());
+	for (i = 0; i < fFaces.Length() ; i++) {
+		face = fFace[i];
+                conn = face.Connectivity();
+		for (j = 0; j < conn.Length(); j++) {
+			InFace[conn[j]] = face;
+		}
+        }
+
+	// lists of neighboring faces
+	// LOOK at Kevin's linked list class
+	for (i = 0; i < fFaces.Length() ; i++) {
+		face = fFace[i];
+                conn = face.Connectivity();
+                for (j = 0; j < conn.Length(); j++) {
+                       FaceNeighbor.Insert() = InFace[conn[j]];
+                }
+	}
 
 	/* determine node neighbors CCW ordered */
 	/*       and face neighbors */
-        //HACK : need type and 2d storage for each node
-	iArray2DT ahead;
-	iArray2DT behind;
-	for (i = 0; i < fFaces.Length() ; i++) {
-		face = fFace[i];
-		conn = face.Connectivity();
-		for (j = 0; j < nVNodes; j++) {
-			curr = conn(j);
-			next = conn(mod(j + 1,nVNodes) + 1);
-			prev = conn(mod(j - 1,nVNodes) + 1);
-			ahead(curr)  = next;
-			behind(curr) = prev;
-			faces = face
+	for (i = 0; i < InFace.MajorDim() ; i++) {//loop over nodes
+		
+		curr = i;
+		j = first_face.LocalNodeNumber(curr);
+		prev = face.Prev(j);
+                NodeNeighbor.Insert = face.Next(j);
+		nvn = face.NumVertexNodes();
+		
+		for (j = 0; j < nvn j++) {
+			n = face.Next(j);
+			c = conn(j);
+			p = face.Prev(j);
+			if ( c = curr  &&  n = prev) {
+                		NodeNeighbor.Insert = face.Next(j);
+				prev = p ; // or exit loop
+			}
 		}
 	}
 	/* search next and previous to get ring */
 	/* condense associated faces for member nodes */
-	break;
-     case 2:
+#endif
 	break;
      default:
-	cout << "\n SurfaceT::ComputeNeighbors, not 2D or 3D geometry \n";
+	cout << "\n SurfaceT::ComputeNeighbors, not 2D nor 3D geometry \n";
   }
-#endif
 
 }
 
 void SurfaceT::ComputeSurfaceNormals(void)
 {
 	/*compute each normal, add, then normalize*/
+#if 0
+  switch(fNumSD) {
+     case 2:
+	//ComputeSurfaceNormals2D
+	for (int i = 0; i < X.Length(); i++) {	
+		left  = NodeNeigbor(curr);
+		right = NodeNeigbor(curr);
+		Diff( fCoordinates(left), fCoordinates(curr),  tangent1);
+		RCross(tangent1,normal1);
+		Diff( fCoordinates(curr), fCoordinates(right), tangent2);
+		RCross(tangent2,normal2);
+		Add(normal1,normal2, normal);
+		Normalize(normal);	
+	}
+	break;
+     case 3:
+	//ComputeSurfaceNormals3D
+	for (int i = 0; i < X.Length(); i++) {	
+	  curr = ;
+	  for (int j = 0; j < X.Length(); j++) {
+		next = NodeNeighbor
+		prev = NodeNeighbor
+		Diff(fCoordinates(curr), fCoordinates(next),  tangent1);
+		Diff(fCoordinates(curr), fCoordinates(prev),  tangent2);
+		Cross(tangent1,  tangent2, normal1);
+		Add(normal, normal1, normal);
+	  }
+	  Normalize(normal);
+	}	
+	break;
+     default:
+  }
+#endif
 }

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.4 2001-04-11 18:35:19 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.5 2001-04-16 17:30:50 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -14,6 +14,7 @@
 #include "ExodusT.h"
 #include "ModelFileT.h"
 #include "SurfaceT.h"
+#include "ContactSearchT.h"
 
 
 /* constructor */
@@ -23,12 +24,15 @@ ContactElementT::ContactElementT(FEManagerT& fe_manager):
 }
 
 /* destructor */
-ContactElementT::~ContactElementT(void) {	}
+ContactElementT::~ContactElementT(void) 
+{ 
+	delete fContactSearch;
+}
 
 /* form of tangent matrix */
 GlobalT::SystemTypeT ContactElementT::TangentType(void) const
 {
-	return GlobalT::kSymmetric; //HACK
+	return GlobalT::kNonSymmetric; 
 }
 
 /* element level reconfiguration for the current solution */
@@ -53,19 +57,32 @@ void ContactElementT::Initialize(void)
 	/* inherited, calls EchoConnectivityData */
 	ElementBaseT::Initialize();
 
-	/* set up work space */
-//SetWorkSpace();
-
-	/* initialize surfaces */
+	/* initialize surfaces, connect nodes to coordinates */
 	for (int i = 0; i < fSurfaces.Length(); i++) {
 		SurfaceT& surface = fSurfaces[i];
 		surface.Initialize(ElementBaseT::fNodes);
 	}
 	
 	/* create search object */
+	fContactSearch = 
+	  new ContactSearchT(fSurfaces, fSearchParameters);
+
+        /* for bandwidth reduction in the case of no contact 
+	 * make node-to-node pseudo-connectivities to link all bodies */
+        int num_surfaces = fSurfaces.Length();
+        if (num_surfaces > 1)
+        {
+                fSurfaceLinks.Allocate(num_surfaces - 1, 2);
+                for (int i = 0; i < num_surfaces - 1; i++)
+                {
+			fSurfaceLinks(i,0) = fSurfaces[i  ].GlobalNodes()[0];
+			fSurfaceLinks(i,1) = fSurfaces[i+1].GlobalNodes()[0];
+                }
+        }
+
 
 	/* set initial contact configuration */
-	SetContactConfiguration();	
+	bool changed = SetContactConfiguration();	
 	cout << "\nTHROWING EXCEPTION in ContactElementT::Initialize"
 	     << " to stop execution before getting into more trouble\n";
 	throw; //HACK
@@ -88,6 +105,7 @@ double ContactElementT::InternalEnergy(void)
 
 /* writing output - nothing to write */
 void ContactElementT::RegisterOutput(void) {}
+
 void ContactElementT::WriteOutput(IOBaseT::OutputModeT mode)
 {
 #pragma unused(mode)
@@ -109,9 +127,10 @@ void ContactElementT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const
 {
 	/* inherited */
+	/* base class uses fConnectivities to create profile */
 	ElementBaseT::ConnectsU(connects_1, connects_2);
 
-	/* add surface links */
+	/* add fictious surface node-to-node links */
 	connects_1.AppendUnique(&fSurfaceLinks);
 }
 
@@ -149,12 +168,11 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	{
 		int spec_mode;
 		in >> spec_mode;
-		SurfaceT& surface = fSurfaces[i];
+		ContactSurfaceT& surface = fSurfaces[i];
 		switch (spec_mode)
 		{
 			case kSideSets:
-				surface.InputSideSets
-				    (ElementBaseT::FEManager(), in, out);
+				surface.InputSideSets(fFEManager, in, out);
 				break;
 			
 			default:
@@ -165,6 +183,7 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 				throw eBadInputValue;
 		}
 		surface.PrintData(out);
+		surface.AllocateContactNodes();
 	}
 
 	fSearchParameters.Allocate(num_surfaces);
@@ -208,42 +227,48 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 
 }
 
-void ContactElementT::SetWorkSpace(void)
-{
-//HACK what is going on here????
-	/* set the managed array - can only be set once */
-//fConnectivities_man.SetWard(0, fConnectivities, fNumElemNodes);
-//fEqnos_man.SetWard(0, fEqnos, fNumElemEqnos);
-
-	/* make pseudo-element list to link surfaces in case
-	 * bodies are not otherwise interacting (for the bandwidth
-	 * reduction) */
-	int num_surfaces = fSurfaces.Length();
-	if (num_surfaces > 1)
-	{
-		fSurfaceLinks.Allocate(num_surfaces - 1, 2);
-		for (int i = 0; i < num_surfaces - 1; i++)
-		{
-//fSurfaceLinks(i,0) = (fSurfaces[i  ])[0];
-//fSurfaceLinks(i,1) = (fSurfaces[i+1])[0];
-		}
-	}
-}
-
 /* generate contact element data - return true if configuration has
-* changed since the last call */
+ * changed since the last call */
 bool ContactElementT::SetContactConfiguration(void)
 {
-	bool contact_changed = 1;
-//bool contact_changed = SetActiveInteractions();
-	if (contact_changed)
-	{
-
-	}
+	bool changed = fContactSearch->SetInteractions();
 	
-	return contact_changed;
+        if (changed) { 
+		/* form current connectivity */
+		SetConnectivity();
+	}
+
+	return changed;
 }
 
-/***********************************************************************
-* Private
-***********************************************************************/
+bool ContactElementT::UpdateContactConfiguration(void)
+{
+        bool changed = fContactSearch->UpdateInteractions();
+
+        return changed;
+}
+
+/* generate connectivity data based on current node-face pairs */
+void ContactElementT::SetConnectivity(void)
+{
+
+#if 0
+	/* loop through nodes and connect them to faces */
+	// assume all same face type??? or Ragged
+
+        for (int i = 0; i < fContactNodes.Length(); i++)
+        {
+		node = fContactNodes[i];
+                FaceT*  face = node->OpposingFace();
+		conn = face->Connectivity();
+
+                /* all element tags */
+                for (int j = 0; j < conn.Length(); j++ ) {
+		  pelem[j] = conn[j]; // facet nodes
+		}
+                pelem[j++] = fGlobal[i]; // node
+        }
+#endif
+}
+
+

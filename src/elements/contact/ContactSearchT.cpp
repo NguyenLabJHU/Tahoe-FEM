@@ -1,16 +1,8 @@
-/* $Id: ContactSearchT.cpp,v 1.2 2001-04-09 22:28:55 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.3 2001-04-16 17:30:50 rjones Exp $ */
 
 #include "ContactSearchT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
-
-#include "fstreamT.h"
-#include "FEManagerT.h"
 #include "ContactSurfaceT.h"
-#include "eControllerT.h"
-#include "NodeManagerT.h"
 #include "iGridManagerT.h"
 
 /* parameters */
@@ -20,12 +12,11 @@ const int    kNumPerGridCell= 10;
 
 /* constructor */
 ContactSearchT::ContactSearchT
-(FEManagerT& fe_manager, 
-ArrayT<ContactSurfaceT>& surfaces,
+(ArrayT<ContactSurfaceT>& surfaces,
 nMatrixT<dArrayT>& search_parameters):
-	fGrid(NULL),
 	fSurfaces(surfaces),
-	fSearchParameters(search_parameters)
+	fSearchParameters(search_parameters),
+	fGrid(NULL)
 {
 }
 
@@ -53,12 +44,6 @@ bool ContactSearchT::SetInteractions(void)
 	
 	fGrid = new iGridManagerT (ngrid, surface1.Coordinates(), 0);
 	if (!fGrid) throw eOutOfMemory;
-	
-	/* search grid statistics */
-//ostream& out = fFEManager.Output();
-//out << "\n ContactSearch grid: group " 
-//<< fFEManager.ElementGroupNumber(this) + 1 << '\n';
-//fGrid->WriteStatistics(out);
 	
 	/* (re-)set grid boundaries */
 	fGrid->Reset();

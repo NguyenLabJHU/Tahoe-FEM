@@ -1,4 +1,4 @@
-/* $Id: SurfaceT.h,v 1.4 2001-04-11 14:48:58 rjones Exp $ */
+/* $Id: SurfaceT.h,v 1.5 2001-04-16 17:30:52 rjones Exp $ */
 
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
@@ -42,9 +42,10 @@ class SurfaceT
 	void UpdateConfiguration();
 
 	/* access functions */
-	inline int NumNodes(void) {return fNodes.Length();}
+	inline int NumNodes(void) {return fGlobalNodes.Length();}
 	inline int NumFaces(void) {return fFaces.Length();}
 	inline int NumSD(void) {return fNumSD;}
+	inline iArrayT&   GlobalNodes(void) {return fGlobalNodes;}
 	inline dArray2DT& Coordinates(void) {return fCoordinates;}
 
 	/* these are predicated on the surfaces being homogeneous */
@@ -64,7 +65,7 @@ class SurfaceT
 	ArrayT<FaceT*> fFaces ;
 
 	/* list of global node numbers i.e local->global map */
-	iArrayT fNodes;
+	iArrayT fGlobalNodes;
 
 	/* current surface coordinates */
 	dArray2DT fCoordinates;

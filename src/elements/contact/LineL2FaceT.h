@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.h,v 1.3 2001-04-11 14:48:58 rjones Exp $ */
+/* $Id: LineL2FaceT.h,v 1.4 2001-04-16 17:30:51 rjones Exp $ */
 
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
@@ -15,7 +15,7 @@ class dArrayT;
 class dMatrixT;
 
 /*  connectivity
- *  1--2
+ * L  1--2  R  (outward normal up)
  */
 
 class LineL2FaceT : public FaceT

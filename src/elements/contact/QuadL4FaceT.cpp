@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.5 2001-04-11 14:48:58 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.6 2001-04-16 17:30:52 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
@@ -7,54 +7,7 @@
 #include "dMatrixT.h"
 
 /* vector functions */
-inline static void Cross(const double* A, const double* B, double* AxB)
-{
-        AxB[0] = A[1]*B[2] - A[2]*B[1];
-        AxB[1] = A[2]*B[0] - A[0]*B[2];
-        AxB[2] = A[0]*B[1] - A[1]*B[0];
-};
-
-inline static double Dot(const double* A, const double* B)
-{       return A[0]*B[0] + A[1]*B[1] + A[2]*B[2]; };
-
-inline static void Diff(const double* start, const double* end, double* v)
-{
-        v[0] = end[0] - start[0]; 
-        v[1] = end[1] - start[1];
-        v[2] = end[2] - start[2];
-};
-
-inline static void Add(const double* start, const double* end, double* v)
-{
-        v[0] = end[0] + start[0]; 
-        v[1] = end[1] + start[1];
-        v[2] = end[2] + start[2];
-};
-
-inline static void Ave(double* v1,double* v2, double* v3,double* v4, double* v)
-{
-	v[0] = 0.25*(v1[0] + v2[0] + v3[0] + v4[0]); 
-	v[1] = 0.25*(v1[1] + v2[1] + v3[1] + v4[1]);
-	v[2] = 0.25*(v1[2] + v2[2] + v3[2] + v4[2]);
-};
-
-inline static double Mag(const double* v)
-{
-	return  sqrt (Dot(v,v)) ;
-};
-
-
-inline static void Normalize(double* v)
-{
-	double scale = 1.0/ Mag(v) ;
-	v[0] *= scale ;
-	v[1] *= scale ;
-	v[2] *= scale ;
-};
-
-
-
-/* use vector functions----------------------------------------*/
+#include "vector3D.h"
 
 
 QuadL4FaceT::QuadL4FaceT
@@ -63,6 +16,7 @@ int number_of_face_nodes, int* connectivity):
         FaceT(surface,surface_coordinates,
 	number_of_face_nodes,connectivity)
 {
+	fNumVertexNodes = 4;
 }
 
 QuadL4FaceT::~QuadL4FaceT (void)
@@ -152,7 +106,38 @@ bool
 QuadL4FaceT::Projection 
 (double& point, double& normal, dArrayT& local_coordinates, double gap)
 {
-        //HACK
+#if 0
+// declare these in header
+	/* check normal opposition */
+	FaceNormal(fnm) ; // recompute??
+
+	if ( CheckOpposition(nm,fnm) ) {
+
+	  /* compute (approximate) local coordinates */
+	  Diff(x0, fx1,v1);
+	  Diff(x0, fx2,v2);
+	  Diff(x0, fx3,v3);
+	  Diff(x0, fx4,v4);
+	  a1 = TripleProduct(v1,v2,n) ;
+	  a2 = TripleProduct(v2,v3,n) ;
+	  a3 = TripleProduct(v3,v4,n) ;
+	  a4 = TripleProduct(v4,v1,n) ;
+	
+	  xi(0) = ( a4 - a2)/ (a4 - a2) ;
+	  xi(1) = ( a1 - a3)/ (a1 - a3) ;
+	  if( CheckLocalCoordinates(xi,tolxi) ) { // inline for FaceT
+	    /* compute gap */
+	    Interpolate (xi, fx, x_check );
+	    g = Gap(x_check, x0, nm); // inline for FaceT
+	    if (CheckGap(g,tolg) ) {
+		//assign opposite (chooses closest)
+		isbetter = node->AssignOpposing(fSurface,this,xi,g);
+		return 1;
+	    }
+	  }
+	}
+
+#endif
         return 0;
 }
 
