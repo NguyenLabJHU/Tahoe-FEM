@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.22 2004-09-09 16:20:25 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.23 2004-11-14 01:58:19 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
@@ -611,22 +611,25 @@ void K_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 	const dArray2DT& init_coords = fSupport.InitialCoordinates();
 
 	/* resolve elastic constants */
-	if (fmu < 0.0 && fGroupNumber > -1) 
+	if (fmu < 0.0)
 	{
-		/* resolve material and isotropy information */
-		const IsotropicT* iso = NULL;
-		const SolidMaterialT* mat = NULL;
-		ResolveMaterialReference(fGroupNumber, fMaterialNumber, &iso, &mat);
+		if (fGroupNumber > -1) 
+		{
+			/* resolve material and isotropy information */
+			const IsotropicT* iso = NULL;
+			const SolidMaterialT* mat = NULL;
+			ResolveMaterialReference(fGroupNumber, fMaterialNumber, &iso, &mat);
 			
-		/* compute elastic constants */
-		fmu = iso->Mu();
-		fnu = iso->Poisson();	
-		fkappa = 3.0 - 4.0*fnu;
-		if (fSupport.NumSD() == 2 && mat->Constraint() == SolidMaterialT::kPlaneStress)
-			fkappa = (3.0 - fnu)/(1.0 + fnu);
+			/* compute elastic constants */
+			fmu = iso->Mu();
+			fnu = iso->Poisson();	
+			fkappa = 3.0 - 4.0*fnu;
+			if (fSupport.NumSD() == 2 && mat->Constraint() == SolidMaterialT::kPlaneStress)
+				fkappa = (3.0 - fnu)/(1.0 + fnu);
+		}
+		else
+			ExceptionT::GeneralFail("K_FieldT::ComputeDisplacementFactors", "elastic constants not resolved");
 	}
-	else
-		ExceptionT::GeneralFail("K_FieldT::ComputeDisplacementFactors", "elastic constants not resolved");	
 
 	/* compute K-field displacement factors (Andersen Table 2.2): */
 	dArrayT coords;
