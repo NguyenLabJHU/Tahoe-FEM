@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.h,v 1.12 2002-11-07 21:32:01 sawimme Exp $ */
+/* $Id: ComparatorT.h,v 1.13 2004-02-26 08:54:34 paklein Exp $ */
 
 #ifndef _COMPARATOR_T_H_
 #define _COMPARATOR_T_H_
@@ -43,6 +43,9 @@ protected:
 	
 	/* batch file processing */
 	virtual void RunBatch(ifstreamT& in, ostream& status);
+
+	/** recursive dispatch */
+	virtual void JobOrBatch(ifstreamT& in, ostream& status);
 	
 private:
 
