@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.2 2004-01-27 02:30:35 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.3 2004-01-27 19:12:17 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -797,9 +797,9 @@ MaterialListT* SCNIMFT::NewMaterialList(int nsd, int size)
 void SCNIMFT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 {
 #if __option(extended_errorcheck)
-	if (BJ.MajorDim() != fSD*(fSD+1)/2) 
+	if (BJ.Rows() != fSD*(fSD+1)/2) 
 		ExceptionT::SizeMismatch("SCNIMFT::bVectorToMatrix","Matrix has bad majorDim");
-	if (BJ.MinorDim() != fSD) 
+	if (BJ.Cols() != fSD) 
 		ExceptionT::SizeMismatch("SCNIMFT::bVectorToMatrix","Matrix has bad minorDim");
 #endif
 
