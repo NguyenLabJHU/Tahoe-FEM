@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.11 2003-02-28 02:07:17 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.12 2003-03-11 07:21:31 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #include "AztecMatrixT.h"
 
@@ -130,7 +130,6 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqn
 		for (int i = 0; i < eqnos.Length(); i++)
 		{
 			int eq = eqnos[i];
-//			if (eq > 0)
 			if (eq >= fStartEQ && eq <= end_update)
 			{
 				fRowDexVec.Append(eq - 1); //OFFSET
