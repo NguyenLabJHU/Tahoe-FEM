@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.66 2004-07-14 00:32:25 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.66.2.1 2004-11-12 21:05:35 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -1339,7 +1339,7 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status, Commu
 	{
 		cout << "\n Select partitioning method:\n"
 		     << '\t' << PartitionT::kGraph   << ": graph\n"
-		     << '\t' << PartitionT::kAtom    << ": atom\n"
+		     << '\t' << PartitionT::kIndex    << ": atom\n"
 		     << '\t' << PartitionT::kSpatial << ": spatial\n";
 		cout << "\n method: "; 
 #if (defined __SGI__ && defined __TAHOE_MPI__)
@@ -1786,7 +1786,7 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size, int decomp_type, Co
 			Decompose_graph(in, size, comm, model_file, format);
 			break;
 
-		case PartitionT::kAtom:
+		case PartitionT::kIndex:
 			Decompose_atom(in, size, model_file, format);
 			break;
 			
@@ -1871,7 +1871,7 @@ void FEExecutionManagerT::Decompose_atom(ifstreamT& in, int size,
 		partition.SetScope(PartitionT::kLocal);
 		
 		/* set decomposition type */
-		partition.SetDecompType(PartitionT::kAtom);
+		partition.SetDecompType(PartitionT::kIndex);
 	
 		/* output file name */
 		StringT geom_file, suffix;
