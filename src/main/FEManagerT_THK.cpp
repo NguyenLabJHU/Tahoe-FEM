@@ -1,13 +1,17 @@
-/* $Id: FEManagerT_THK.cpp,v 1.6 2003-05-21 23:47:57 paklein Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.7 2003-07-11 16:45:19 hspark Exp $ */
 #include "FEManagerT_THK.h"
+#ifdef BRIDGING_ELEMENT
+
 #include "ifstreamT.h"
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
 #include "FieldT.h"
 #include "StringT.h"
+#include "ParticlePairT.h"
 #include <iostream.h>
 #include <fstream.h>
-#ifdef BRIDGING_ELEMENT
+#include <math.h>
+#include "RaggedArray2DT.h"
 
 using namespace Tahoe;
 
@@ -18,8 +22,7 @@ const double root32 = sqrt(3.0)/2.0;    // for neighbor searching tolerance
 FEManagerT_THK::FEManagerT_THK(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
 	ifstreamT& bridging_input):
 	FEManagerT_bridging(input, output, comm, bridging_input),
-        fTheta(2),
-        fNcrit(0)
+	fTheta(2)
 {
 
 }
@@ -29,79 +32,74 @@ void FEManagerT_THK::Initialize(InitCodeT init)
 {
 	/* inherited */
 	FEManagerT_bridging::Initialize(init);
-
+	
 	// read other parameters and initialize data
-        ifstreamT& in = Input();
-        in >> ncrit;
-        fNcrit = ncrit;
-          
-        /* obtain list of atoms on which BC's will be applied in FEManagerT_THK */
-        ArrayT<StringT> id_list;
+	ifstreamT& in = Input();
+	in >> fNcrit;
+	int num_neighbors = 2 * fNcrit + 1;   // maximum number of neighbors per atom in 2D
+		  
+	/* obtain list of atoms on which BC's will be applied in FEManagerT_THK */
+	ArrayT<StringT> id_list;
         
-        ModelManagerT* model = FEManagerT::ModelManager();
+	ModelManagerT* model = FEManagerT::ModelManager();
         
-        /* read node set indexes */
-        model->NodeSetList(in, id_list);
+	/* read node set indexes */
+	model->NodeSetList(in, id_list);
+	int numsets = id_list.Length();		// number of MD THK boundary node sets
  
-        /* collect sets */
-        model->ManyNodeSets(id_list, fNodes);
-        double lparam;
-        in >> lparam;    // Read lattice parameter in from input file
-          
-        /* now use node set numbers to generate neighboring atom list for
-           THK calculations */
-        int num_nodes = fNodes.Length();  // total number of boundary atoms
-        int num_neighbors = 2 * fNcrit + 1;   // maximum number of neighbors per atom in 2D
-        fN0.Dimension(num_nodes);  // Array for only corresponding atom in row 0
-        fNeighbor0.Dimension(num_nodes, num_neighbors);
-        fNeighbor1.Dimension(num_nodes, num_neighbors);
-        fNeighbor0 = -1;  // -1 -> no neighbor
-        fNeighbor1 = -1;
-        
-        NodeManagerT* node = FEManagerT::NodeManager();
-        const dArray2DT& initcoords = node->InitialCoordinates();  // init coords for all atoms
-        dArrayT bacoords, currcoords;   // boundary atom coordinates
-        int count = 0;
-        
-        /* now loop over boundary atoms to find neighbors */
-        for (int i = 0; i < fNeighbor0.MajorDim(); i++)
-        {
-            /* obtain coordinates of each boundary atom */
-            initcoords.RowAlias(fNodes[i],bacoords);
-            
-            /* exhaustive search over all atoms in lattice */
-            for (int j = 0; j < initcoords.MajorDim(); j++) 
-            {
-                initcoords.RowAlias(j,currcoords);  // coordinates of each atom in lattice
-                
-                /* find neighbors based on lattice geometry */
-                for (int k = -fNcrit; k <= fNcrit; k++) 
-                {
-                    /* row 0 search first */
-                    double x0 = bacoords[0] + lparam * (k + .5);
-                    double y0 = bacoords[1] + lparam * root32;
-                    if (abs(x0-currcoords[0]) < tol && abs(y0-currcoords[1]) < tol)
-                    {
-                        fNeighbor0(i,k+fNcrit) = j+1; 
-                        /* obtain only corresponding 0 atoms */
-                        if (k == 0)
-                        {
-                            fN0[count] = j+1;
-                            count++;
-                        }    
-                    }   
-                    /* then row 1 search */
-                    double x1 = bacoords[0] + lparam * (k + 1.0);
-                    double y1 = bacoords[1] + lparam * sqrt(3.0);
-                    if (abs(x1-currcoords[0]) < tol && abs(y1-currcoords[1]) < tol)
-                        fNeighbor1(i,k+fNcrit) = j+1; 
-                }
-            }
-        }
-        cout << "Neighbor list 0 = \n" << fNeighbor0 << endl;
-        cout << "Neighbor list 1 = \n" << fNeighbor1 << endl;
-        cout << "Node set 0 = \n" << fN0 << endl;
-        cout << "middle layer nodes = \n" << fNodes << endl;
+	/* collect sets - currently assuming exactly 2 MD THK boundaries in 2D */
+	/* further assumes bottom is first node set, top is second node set */
+	fBottomatoms = model->NodeSet(id_list[0]);
+	fTopatoms = model->NodeSet(id_list[1]);
+	fBottomrow.Dimension(fBottomatoms.Length());
+	fBottomrow.SetValueToPosition();
+	fToprow.Dimension(fTopatoms.Length());
+	fToprow.SetValueToPosition();
+	fToprow+=fBottomrow.Length();
+	int num_nodes_top = fTopatoms.Length();		// total number of boundary atoms on top layer
+	int num_nodes_bottom = fBottomatoms.Length();  // total number of boundary atoms on bottom layer
+	fBottom.Dimension(num_nodes_bottom, num_neighbors);
+	fBottom = -1;  // -1 -> no neighbor
+	fTop.Dimension(num_nodes_top, num_neighbors);
+	fTop = -1;  // -1 -> no neighbor
+
+	double lparam, xbottom, xtop, ybottom, ytop;
+	in >> lparam;    // Read lattice parameter in from input file
+	
+	NodeManagerT* node = FEManagerT::NodeManager();
+	const dArray2DT& initcoords = node->InitialCoordinates();  // init coords for all atoms
+	dArrayT bacoordst, bacoordsb, currcoordst, currcoordsb;   // boundary atom coordinates
+	
+	/* now loop over boundary atoms to find neighbors - specialized for 2D FCC lattices */
+	/* assume top and bottom have same number of atoms */
+	for (int i = 0; i < fBottomatoms.Length(); i++)	// changed from fBottom.MajorDim()
+	{
+		/* obtain coordinates of each bottom and top boundary atom */
+		initcoords.RowAlias(fBottomatoms[i], bacoordsb);
+		initcoords.RowAlias(fTopatoms[i], bacoordst);
+		
+		for (int j = -fNcrit; j <= fNcrit; j++)
+		{
+			if ((i+j >= 0) && (i+j < fBottomatoms.Length()))	// check with boundary only
+			{	
+				initcoords.RowAlias(fBottomatoms[i+j], currcoordsb);
+				initcoords.RowAlias(fTopatoms[i+j], currcoordst);
+				fBottom(i,j+fNcrit) = fBottomatoms[i+j];	// +1
+				fTop(i,j+fNcrit) = fTopatoms[i+j];	// +1
+			}
+		
+		
+		}
+	}
+	
+	/* compute theta tables */
+	StringT path;
+	path.FilePath(in.filename());
+	StringT data_file;
+	in >> data_file;
+	data_file.ToNativePathName();
+	data_file.Prepend(path);
+	ComputeThetaTables(data_file);
 }
 
 /* initialize the current time increment for all groups */
@@ -109,9 +107,6 @@ ExceptionT::CodeT FEManagerT_THK::InitStep(void)
 {
 	/* inherited */
 	ExceptionT::CodeT result = FEManagerT_bridging::InitStep();
-
-	// things to do at the start of every time increment
-	
 	return result;
 }
 
@@ -120,241 +115,305 @@ ExceptionT::CodeT FEManagerT_THK::CloseStep(void)
 {
 	/* inherited */
 	ExceptionT::CodeT result = FEManagerT_bridging::CloseStep();
-
-	// things to do at the end of every time increment
-        /* compute displacement of all THK boundary atoms */
-        const dArray2DT& badisp = ComputeStaticDispBC();
-        return result;
+	return result;
 }
 
-/* calculate boundary displacement of all THK atoms utilizing theta */
-const dArray2DT& FEManagerT_THK::ComputeStaticDispBC(void)
+/* return iArrayT of boundary and ghost atom numbers */
+const iArrayT& FEManagerT_THK::InterpolationNodes(void)
 {
-        fBdisp.Dimension(fNodes.Length(), 2);
-        dArray2DT thk, md;
-        thk.Dimension(fNodes.Length(), 2);
-        md.Dimension(fNodes.Length(), 2);  // for outputting displacements to file
-        fBdisp = 0.0;   // Initialize all displacements to 0
-        
-        /* now take neighbor list to find displacements of neighboring atoms */
-        NodeManagerT* node = FEManagerT::NodeManager();
-        StringT mddisp = "displacement";   // What is the purpose of this?
-        FieldT* field = node->Field(mddisp);
-        const FieldT& field2 = *field;
-        const dArray2DT& globaldisp = field2[0];
-        dArrayT temp0(2), temp1(2), temp2(2), temp3(2), un0(2), temp4(2), temp5(2), temp6(2);
-        dMatrixT theta(2);
-        
-        /* take neighbor lists, get corresponding displacements */
-        for (int i = 0; i < fNodes.Length(); i++)  
-        {
-            temp4 = 0.0;   // Initialize to zero for each boundary atom
-            for (int j = -fNcrit; j <= fNcrit; j++) 
-            {
-                /* check for no neighbors */
-                if (fNeighbor0(i,j+fNcrit) == -1)  
-                    temp0 = 0.0;   // No displacement contribution - watch memory overwrite
-                else
-                    globaldisp.RowCopy(fNeighbor0(i,j+fNcrit)-1,temp0);
-                       
-                if (fNeighbor1(i,j+fNcrit) == -1)  
-                    temp1 = 0.0;   // No displacement contribution - watch memory overwrite
-                else
-                    globaldisp.RowCopy(fNeighbor1(i,j+fNcrit)-1,temp1);  
-              
-                temp2.DiffOf(temp0,temp1);  
-                theta = GetTheta(-j);  
-                theta.Multx(temp2,temp3);
-                temp4.SumOf(temp4,temp3);  
-             }
-            globaldisp.RowCopy(fN0[i]-1,un0);  // getting Un,0 -> verified to be correct
-            temp5.SumOf(temp4,un0);  // Have Un,-1 now
-            globaldisp.RowAlias(fNodes[i],temp6);
-            
-            // Need to add temp5 to fBdisp or to global displacement array
-            thk.SetRow(i,temp5);
-            md.SetRow(i,temp6);
-        }
-        /* Output comparison between MD and THK to file */
-        ofstream out;
-        dArrayT temp7, temp8;
-        out.open("thkcompare.dat");
-        if (!out)
-        {
-            cout << "Could not open comparison file! \n" << endl;
-            throw ExceptionT::kGeneralFail;
-        }
-        out << "N_critical = " << fNcrit << endl;
-        out << "MD x-displacement   " << "THK x-displacement   " << "MD y-displacement   " 
-            << "THK y-displacement" << endl;
-        out.precision(12);
-        
-        for (int i = 0; i < fNodes.Length(); i++)
-        {
-            thk.RowAlias(i,temp7);
-            md.RowAlias(i,temp8);
-            out << temp8[0] << setw(20) << temp7[0] << setw(20) << temp8[1] << setw(20) 
-                << temp7[1] << endl;
-        }
-        
-        out.close();
-        return fBdisp;
+	const iArrayT& ghost = GhostNodes();
+	
+	fInterpolationNodes.Dimension(ghost.Length()+fBottomatoms.Length()+fTopatoms.Length());
+	fInterpolationNodes.CopyIn(0,ghost);	// copy in ghost atoms first
+	fInterpolationNodes.CopyIn(ghost.Length(), fBottomatoms);	// then copy in bottom atoms
+	fInterpolationNodes.CopyIn(ghost.Length()+fBottomatoms.Length(), fTopatoms);	// finally top atoms
+	
+	return fInterpolationNodes;
 }
 
-/* Obtain theta for a generalized 2D Hexagonal FCC lattice structure */
-const dMatrixT& FEManagerT_THK::GetTheta(int index)
-{ 
-    if (index == -10)
-    {
-        fTheta(0,0) = 0.003732973124618666;     
-        fTheta(0,1) = 0.0002077573555273614;      
-        fTheta(1,0) = 0.0002023643877022398;      
-        fTheta(1,1) = 0.0012604960883612864;
-    }
-    else if (index == -9)
-    {
-        fTheta(0,0) = 0.004554387859895129;     
-        fTheta(0,1) = 0.0002809410552782137;      
-        fTheta(1,0) = 0.0002718860440221418;      
-        fTheta(1,1) = 0.0015426573553735336;
-    }
-    else if (index == -8)
-    {
-        fTheta(0,0) = 0.00567792533483227;      
-        fTheta(0,1) = 0.0003929687554678991;      
-        fTheta(1,0) = 0.0003768190364353315;      
-        fTheta(1,1) = 0.0019317920495601905;
-    }
-    else if (index == -7)
-    {
-        fTheta(0,0) = 0.007269650627029751;     
-        fTheta(0,1) = 0.0005732929360778612;      
-        fTheta(1,0) = 0.0005423113938742861;      
-        fTheta(1,1) = 0.0024899188091627275;
-    }
-    else if (index == -6)
-    {
-        fTheta(0,0) = 0.00962344634232376;      
-        fTheta(0,1) = 0.0008821551029096821;      
-        fTheta(1,0) = 0.0008173876088002891;      
-        fTheta(1,1) = 0.0033314941666023846;
-    }
-    else if (index == -5)
-    {
-        fTheta(0,0) = 0.013291908173098855;     
-        fTheta(0,1) = 0.0014535026926634537;      
-        fTheta(1,0) = 0.001304396542753453;       
-        fTheta(1,1) = 0.004686562946021358;
-    }
-    else if (index == -4)
-    {
-        fTheta(0,0) = 0.019387497509483147;     
-        fTheta(0,1) = 0.0026150326018503645;      
-        fTheta(1,0) = 0.00223556139351793;        
-        fTheta(1,1) = 0.007071330559410259;
-    }
-    else if (index == -3)
-    {
-        fTheta(0,0) = 0.030325254444289344;
-        fTheta(0,1) = 0.005260014412300331;       
-        fTheta(1,0) = 0.004200878445320969;       
-        fTheta(1,1) = 0.01182847495883381;
-    }
-    else if (index == -2)
-    {
-        fTheta(0,0) = 0.05180629471115681;      
-        fTheta(0,1) = 0.012148092425428119;       
-        fTheta(1,0) = 0.009012756593462234;       
-        fTheta(1,1) = 0.02328469710065523;
-    }
-    else if (index == -1)
-    {
-        fTheta(0,0) = 0.09874893628088657;      
-        fTheta(0,1) = 0.03329133395196183;        
-        fTheta(1,0) = 0.0250514088956815;         
-        fTheta(1,1) = 0.06157738592636425;
-    }
-    else if (index == 0)
-    {
-        fTheta(0,0) = 0.21806189783187474;      
-        fTheta(0,1) = 0.11613100199876912;        
-        fTheta(1,0) = 0.17119435052380821;        
-        fTheta(1,1) = 0.36844107634396706;
-    }
-    else if (index == 1)
-    {
-        fTheta(0,0) = 0.21806189783187455;      
-        fTheta(0,1) = -0.11613100199876869;      
-        fTheta(1,0) = -0.17119435052380752;       
-        fTheta(1,1) = 0.368441076343967;
-    }
-    else if (index == 2)
-    {
-        fTheta(0,0) = 0.09874893628088677;      
-        fTheta(0,1) = -0.0332913339519616;        
-        fTheta(1,0) = -0.025051408895681276;      
-        fTheta(1,1) = 0.061577385926364386;
-    }
-    else if (index == 3)
-    {
-        fTheta(0,0) = 0.051806294711156727;     
-        fTheta(0,1) = -0.012148092425427885;      
-        fTheta(1,0) = -0.009012756593462038;      
-        fTheta(1,1) = 0.023284697100655116;
-    }
-    else if (index == 4)
-    {
-        fTheta(0,0) = 0.030325254444289386;     
-        fTheta(0,1) = -0.005260014412300128;      
-        fTheta(1,0) = -0.004200878445320707;      
-        fTheta(1,1) = 0.011828474958833792;
-    }
-    else if (index == 5)
-    {
-        fTheta(0,0) = 0.019387497509483202;     
-        fTheta(0,1) = -0.002615032601850154;      
-        fTheta(1,0) = -0.0022355613935177722;     
-        fTheta(1,1) = 0.007071330559410297;
-    }
-    else if (index == 6)
-    {
-        fTheta(0,0) = 0.0132919081730988;       
-        fTheta(0,1) = -0.0014535026926632412;     
-        fTheta(1,0) = -0.0013043965427532564;     
-        fTheta(1,1) = 0.004686562946021337;
-    }
-    else if (index == 7)
-    {
-        fTheta(0,0) = 0.009623446342323753;     
-        fTheta(0,1) = -0.0008821551029095065;     
-        fTheta(1,0) = -0.0008173876088001;        
-        fTheta(1,1) = 0.003331494166602315;
-    }
-    else if (index == 8)
-    {
-        fTheta(0,0) = 0.007269650627029748;     
-        fTheta(0,1) = -0.0005732929360776939;     
-        fTheta(1,0) = -0.0005423113938741172;     
-        fTheta(1,1) = 0.0024899188091627275;
-    }
-    else if (index == 9)
-    {
-        fTheta(0,0) = 0.005677925334832266;     
-        fTheta(0,1) = -0.00039296875546772445;    
-        fTheta(1,0) = -0.00037681903643516497;    
-        fTheta(1,1) = 0.0019317920495601868;
-    }
-    else if (index == 10)
-    {
-        fTheta(0,0) = 0.004554387859895136;     
-        fTheta(0,1) = -0.0002809410552780244;     
-        fTheta(1,0) = -0.000271886044021965;      
-        fTheta(1,1) = 0.0015426573553735828;
-    }
-    else
-        throw ExceptionT::kGeneralFail;
+/* predictor and corrector routine for FEM solution interpolated to MD boundary atoms.  both predictor
+   and corrector are done in one step due to constant coarse scale acceleration assumption.  */
+void FEManagerT_THK::BAPredictAndCorrect(double timestep, dArray2DT& badisp, dArray2DT& bavel, dArray2DT& baacc)
+{
+	/* displacement predictor (and corrector) */
+	badisp.AddCombination(timestep, bavel, .5*timestep*timestep, baacc);
+	
+	/* velocity predictor (and corrector) */
+	bavel.AddScaled(timestep, baacc);
+}
 
-    return fTheta;
+/* calculate external force on MD boundary atoms using time history kernel approach */
+const dArray2DT& FEManagerT_THK::THKForce(const dArray2DT& badisp)
+{
+	StringT bridging_field = "displacement";
+	
+	/* badisp is in format bottom displacements first, then top */
+	fTHKforce.Dimension(badisp.MajorDim(), 2);  
+
+	/* sort top and bottom displacements into separate arrays - may not be necessary */
+	dArray2DT topdisp, bottomdisp;
+	dArrayT atomdisp, femdisp(2), diff(2);
+	topdisp.Dimension(fTopatoms.Length(), 2);
+	bottomdisp.Dimension(fBottomatoms.Length(), 2);
+	bottomdisp.RowCollect(fBottomrow, badisp);
+	topdisp.RowCollect(fToprow, badisp);
+
+	/* access the actual MD displacements */
+	NodeManagerT* node = FEManagerT::NodeManager();
+	FieldT* atomfield = node->Field(bridging_field);
+	dArray2DT mddisp = (*atomfield)[0];
+
+	const int stepnum = FEManagerT::StepNumber();  // to write into correct part of fHistoryTable 
+	const double timestep = FEManagerT::TimeStep();  // delta t_md
+
+	/* loop over boundary atoms first, store q - ubar */
+	dArray2DT shift;
+	shift.Dimension(fNumstep_crit-1, 2);	// copy all rows of history except last row
+
+	/* Calculate q - ubar */
+	for (int i = 0; i < fBottomatoms.Length(); i++)
+	{
+		if (stepnum < fNumstep_crit)   
+		{
+			/* bottom layer of atoms */
+			mddisp.RowAlias(fBottomatoms[i], atomdisp);
+			bottomdisp.RowAlias(i, femdisp);
+			diff.DiffOf(atomdisp, femdisp);
+			fHistoryTableb[i].SetRow(stepnum, diff);
+	
+			/* top layer of atoms */
+			mddisp.RowAlias(fTopatoms[i], atomdisp);   
+			topdisp.RowAlias(i, femdisp);
+			diff.DiffOf(atomdisp, femdisp);
+			fHistoryTablet[i].SetRow(stepnum, diff);
+		}
+		else	// time greater than critical normalized time
+		{
+			/* bottom layer of atoms */
+			mddisp.RowAlias(fBottomatoms[i], atomdisp);
+			bottomdisp.RowAlias(i, femdisp);
+			diff.DiffOf(atomdisp, femdisp);
+			shift.RowCollect(fShift, fHistoryTableb[i]);
+			fHistoryTableb[i].BlockRowCopyAt(shift, 0);
+			fHistoryTableb[i].SetRow(fNumstep_crit-1, diff);
+	
+			/* top layer of atoms */
+			mddisp.RowAlias(fTopatoms[i], atomdisp);
+			topdisp.RowAlias(i, femdisp);
+			diff.DiffOf(atomdisp, femdisp);
+			shift.RowCollect(fShift, fHistoryTablet[i]);
+			fHistoryTablet[i].BlockRowCopyAt(shift, 0);
+			fHistoryTablet[i].SetRow(fNumstep_crit-1, diff);
+		}
+	}
+
+	dMatrixT theta(2);
+	dArrayT force1(2), force2(2), force3b(2), force3t(2);
+
+	/* loop over boundary atoms, calculate THK force, i.e. Theta(t-tau)*(q-ubar)(tau)*(delta tau) */
+	for (int i = 0; i < fBottom.MajorDim(); i++)
+	{
+		force3b = 0.0;
+		force3t = 0.0;
+		for (int j = -fNcrit; j <= fNcrit; j++)
+		{
+			if (fBottom(i,j+fNcrit) == -1)
+				int blah = 0;	// do nothing
+			else
+			{
+				const dArray2DT& theta_b = fThetaTable[j+fNcrit];
+				const dArray2DT& disp_b = fHistoryTableb[i+j];
+				const dArray2DT& disp_t = fHistoryTablet[i+j];
+				const dArray2DT& theta_t = fThetaTable[fNcrit-j];  
+		
+				/* calculate THK force using theta here */
+				if (stepnum < fNumstep_crit) 
+				{
+					for (int k = 0; k < stepnum; k++)
+					{
+						/* bottom row */
+						theta.Set(2,2,theta_b(k));
+						disp_b.RowAlias(stepnum-k, force1);
+						theta.Multx(force1, force2);
+						force3b.AddScaled(timestep, force2);
+					
+						/* top row */
+						theta.Set(2,2,theta_t(k));
+						disp_t.RowAlias(stepnum-k, force1);  
+						theta.Multx(force1, force2);  
+						force3t.AddScaled(timestep, force2);   
+					}
+				}
+				else	// normalized time greater than critical value
+				{
+					for (int k = 0; k < fNumstep_crit; k++)
+					{
+						/* bottom row */
+						theta.Set(2,2,theta_b(k));
+						disp_b.RowAlias(fNumstep_crit-k-1, force1);
+						theta.Multx(force1, force2);
+						force3b.AddScaled(timestep, force2);
+			
+						/* top row */
+						theta.Set(2,2,theta_t(k));
+						disp_t.RowAlias(fNumstep_crit-k-1, force1);
+						theta.Multx(force1, force2);
+						force3t.AddScaled(timestep, force2);
+					}
+				}
+			}
+		}
+		/* add THK force to fTHKForce - bottom atoms */
+		fTHKforce.SetRow(i, force3b);
+		
+		/* add THK force to fTHKForce - top atoms */
+		fTHKforce.SetRow(i+fBottomatoms.Length(), force3t);
+	}
+	return fTHKforce;
+}
+
+/* function to modify initial positions via Gaussian displacement in y-direction */
+const dArray2DT& FEManagerT_THK::GaussianWave(void) 
+{
+        double sig = 15.0;
+        double H = sig/4.0;
+        double A = 1.5e-1;
+        double b = 0.1;
+        double Lc = 5.0 * sig;
+        double uc = A * exp(-pow(Lc/sig,2));
+        double pi = acos(-1.0);
+        double xi, disp;
+	
+        /* loop over all atoms, apply initial displacement */
+        /* initial displacement identical to Wagner and Liu, but applied in y-direction only on all atoms */
+        NodeManagerT* node = FEManagerT::NodeManager();
+        const dArray2DT& initcoords = node->InitialCoordinates();  // init coords for all atoms
+        fGaussdisp.Dimension(initcoords.MajorDim(), initcoords.MinorDim());
+        fGaussdisp = 0.0;
+	
+	for (int i = 0; i < initcoords.MajorDim(); i++)
+	{
+		xi = fabs(initcoords(i,1));	// check y-coords only
+		if (xi <= Lc)
+		{
+			disp = A/(A-uc)*(1.0+b*cos(2*pi*xi/H))*(A*exp(-pow(xi/sig,2))-uc);
+			fGaussdisp(i,1) = disp;
+		}
+	}
+	return fGaussdisp;
+}
+
+/*************************************************************************
+ * Private
+ *************************************************************************/
+
+/* compute theta tables */
+void FEManagerT_THK::ComputeThetaTables(const StringT& data_file)
+{
+	const char caller[] = "FEManagerT_THK::ComputeThetaTables";
+	ifstreamT data(data_file);
+	if (!data.is_open())
+		ExceptionT::GeneralFail(caller, "file not found: %s", data_file.Pointer());
+		
+	/* dimensions */
+	double pi = acos(-1.0);
+	int n_neighbor = fNcrit + 1;  // number of neighbors to calculate thetas for
+	int n_sum, nsteps;       // number of fourier coefficients to use in calculation of theta
+	data >> n_sum;
+	
+	/* dimension work space */
+	ifstreamT& in = Input();
+	double tstep, totaltime, looptime;  // timestep
+	in >> fN_times;
+	in >> tstep;
+	totaltime = fN_times * tstep;   // total time of simulation
+	
+	/* determine correct loop time for theta and time history variables */
+	if (totaltime <= 3.0)  // assume that t_crit = 3.0 in normalized time
+		looptime = totaltime;
+	else
+		looptime = 3.0;   // need to normalize this time
+	fNumstep_crit = int(3.0/tstep) + 1;	// currently assuming normalized t_crit = 3 
+										// need to actually compute using LJ parameters
+	/* determine correct number of timesteps to store for theta and history variables */
+	if (fN_times+1 <= fNumstep_crit)	// WATCH +1 FACTOR!!!
+		nsteps = fN_times+1;
+	else
+		nsteps = fNumstep_crit;
+
+	iArrayT crit(fNumstep_crit);
+	fShift.Dimension(fNumstep_crit-1);
+	crit.SetValueToPosition();
+	fShift.CopyPart(0, crit, 1, fNumstep_crit-1);
+	fThetaTable.Dimension(2*fNcrit+1);	//(n_neighbor)
+	
+	/* dimension boundary atom history */
+	fHistoryTablet.Dimension(fTopatoms.Length());   
+	fHistoryTableb.Dimension(fBottomatoms.Length());
+
+	for (int i = 0; i < fBottomatoms.Length(); i++)
+	{
+		fHistoryTableb[i].Dimension(nsteps, 2);  // used to be fN_times+1,2
+		fHistoryTablet[i].Dimension(nsteps, 2);
+	}
+
+	/* dimension theta table data structure */
+	for (int i = 0; i < fThetaTable.Length(); i++)
+	        fThetaTable[i].Dimension(nsteps, 2*2);  // used to be fN_times+1,2*2
+	
+	/* read in data table */
+	dArrayT row;
+	ArrayT<dArray2DT> data_table(n_neighbor);
+	for (int i = 0; i < data_table.Length(); i++)
+	{
+		/* dimension */
+		dArray2DT& n_table = data_table[i];
+		n_table.Dimension(n_sum, 2*2);
+			
+		/* read */
+		for (int j = 0; j < n_table.MajorDim(); j++)
+		{
+			int junk;
+			data >> junk >> junk;
+			
+			/* each row is b^T */
+			n_table.RowAlias(j, row);
+			data >> row;
+		}
+	}
+
+	dMatrixT theta1(2), temptheta(2), transform(2);
+	transform.Identity(1.0);
+	transform(1,1) = -1.0;
+
+	/* compute theta's - in correct order for bottom layer, need to transpose for top layer */
+	for (int i = 0; i < n_neighbor; i++)	// fThetaTable.Length()
+	{
+		int count = 0;
+		/* get each set of Fourier coefficients */
+		const dArray2DT& theta_i = data_table[i];
+	       	for (double j = 0.0; j <= looptime; j+=tstep)	// theta only goes to normalized time = 3
+		{
+			int n_theta = data_table[i].MajorDim();
+			temptheta = 0.0;
+			for (int k = 0; k < n_theta; k++)  // can truncate this summation
+			{
+				/* Extract each row of coefficients */
+				temptheta.AddScaled(sin((k+1)*pi*j/3.2), theta_i(k)); // tmax = 3.2 now
+		      	}
+
+			/* add temptheta into fThetaTable */
+			fThetaTable[i].SetRow(count, temptheta);
+		
+			/* add symmetric portion onto fThetaTable */
+			if (i < n_neighbor - 1)
+			{
+				theta1.MultABC(transform, temptheta, transform);
+				fThetaTable[2*fNcrit-i].SetRow(count, theta1);
+			}	
+			count++;
+		}
+	}
 }
 
 #endif /* BRIDGING_ELEMENT */
