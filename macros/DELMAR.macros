@@ -1,6 +1,6 @@
-# $Id: DELMAR.macros,v 1.9 2003-02-08 17:33:14 paklein Exp $
+# $Id: DELMAR.macros,v 1.10 2003-02-28 02:06:19 paklein Exp $
 # MPI
-MPI_CFLAGS = -D__TAHOE_MPI__
+MPI_CFLAGS = -D__TAHOE_MPI__  -DAZTEC_MPI
 MPI_LFLAGS = -lmpich -lgm
 
 # CA-CPLANT (DEC)
