@@ -18,6 +18,7 @@
 
 #include "ElasticT.h"
 #include "FEManagerT.h"
+#include "SpectralDecompT.h"
 
 /* spatial dimensions of the problem */
 const int kNSD = 3;
@@ -399,7 +400,7 @@ void LocalCrystalPlast::ComputeOutput(dArrayT& output)
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
      cerr << " step # " << fContinuumElement.FEManager().StepNumber() 
           << "    S_eq_avg = " 
-          << sqrt(fsymmatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23/4.0 << endl; 
+          << sqrt(fsymmatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 
 
   // iteration counter for nlcsolver and state
   output[1] = fIterCount;
@@ -1233,6 +1234,11 @@ void LocalCrystalPlast::dTaudCe(const dMatrixT& Z, const dSymMatrixT& P,
 
 void LocalCrystalPlast::PolarDecomp()
 {
+  // polar decomposition
+  SpectralDecompT fSpecD(kNSD);
+  fSpecD.PolarDecomp(fFe, fRe, fUe, false);
+
+/*
   // elastic right Cauchy-Green tensor
   fCeBar.MultATA(fFe);
 
@@ -1263,6 +1269,7 @@ void LocalCrystalPlast::PolarDecomp()
 
   // rotation tensor
   fRe.MultAB(fFe, fmatx1); 
+*/
 }
 
 const dMatrixT& LocalCrystalPlast::DeformationGradient(const LocalArrayT& disp)
