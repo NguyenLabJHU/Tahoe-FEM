@@ -1,4 +1,4 @@
-/* $Id: Environment.h,v 1.2 2001-09-25 00:53:31 paklein Exp $ */
+/* $Id: Environment.h,v 1.3 2001-10-05 18:53:15 paklein Exp $ */
 /* created: paklein (02/10/1997)                                          */
 /* Environment.h                                                          */
 /* defining environment-specific preprocessor symbols and options         */
@@ -61,9 +61,15 @@ using namespace std;
 #endif
 
 /* using Metrowerks Standard Library */
+#ifdef __MWERKS__
+#if (__MWERKS__ == 1) /* version less than CW7 */
 #ifdef __mslGlobals_h
 #define _MW_MSL_
+#endif /* __mslGlobals_h */
+#else
+#define _MW_MSL_
 #endif
+#endif /* __MWERKS__ */
 
 /* compiler supports RTTI */
 #ifdef __SUNPRO_CC
