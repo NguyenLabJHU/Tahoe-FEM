@@ -1,4 +1,4 @@
-/* $Id: FCCT.cpp,v 1.3 2002-07-25 23:48:07 saubry Exp $ */
+/* $Id: FCCT.cpp,v 1.4 2002-07-29 19:16:26 saubry Exp $ */
 #include "FCCT.h"
 #include "CrystalLatticeT.h"
 
@@ -10,7 +10,8 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 
-FCCT::FCCT(int nlsd,int nuca,double alat,dArrayT vec_rot) : CrystalLatticeT(nlsd,nuca,vec_rot)
+FCCT::FCCT(int nlsd,int nuca,double alat,
+	   dArrayT vec_rot,double angle) : CrystalLatticeT(nlsd,nuca,vec_rot,angle)
 {
   if (nlsd==2)
     {
@@ -43,7 +44,9 @@ FCCT::FCCT(int nlsd,int nuca,double alat,dArrayT vec_rot) : CrystalLatticeT(nlsd
 }
 
 
-FCCT::FCCT(const FCCT& source) : CrystalLatticeT(source.nLSD,source.nUCA,source.vector_rotation)
+FCCT::FCCT(const FCCT& source) : CrystalLatticeT(source.nLSD,source.nUCA,
+						 source.vector_rotation,
+						 source.angle_rotation)
 {
   
   for (int i=0; i<source.nLSD; i++) 
@@ -74,5 +77,13 @@ const dArrayT& FCCT::GetLatticeParameters() {
 		return vLatticeParameters;
 	}
 }	
+
+
+
+
+
+
+
+
 
 

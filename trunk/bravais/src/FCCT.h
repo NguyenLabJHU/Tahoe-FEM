@@ -11,7 +11,8 @@ using namespace Tahoe;
 class FCCT : public CrystalLatticeT 
 {
 public:
-	FCCT(int nlsd,int nuca,double alat,dArrayT vec_rot);
+	FCCT(int nlsd,int nuca,double alat,
+	     dArrayT vec_rot,double angle);
 
 	~FCCT() { };
 

@@ -8,7 +8,8 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 
-DIAT::DIAT(int nlsd,int nuca,double alat,dArrayT vec_rot) : CrystalLatticeT(nlsd,nuca,vec_rot)
+DIAT::DIAT(int nlsd,int nuca,double alat,
+	   dArrayT vec_rot,double angle) : CrystalLatticeT(nlsd,nuca,vec_rot,angle)
 {
   if (nlsd==2)
     {
@@ -60,7 +61,9 @@ DIAT::DIAT(int nlsd,int nuca,double alat,dArrayT vec_rot) : CrystalLatticeT(nlsd
 }
 
 
-DIAT::DIAT(const DIAT& source) : CrystalLatticeT(source.nLSD,source.nUCA,source.vector_rotation)
+DIAT::DIAT(const DIAT& source) : CrystalLatticeT(source.nLSD,source.nUCA,
+						 source.vector_rotation,
+						 source.angle_rotation)
 {
   for (int i=0; i<source.nLSD; i++) 
     for (int j=0; j<source.nUCA; j++) 

@@ -8,7 +8,8 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 
-BCCT::BCCT(int nlsd,int nuca,double alat,dArrayT vec_rot) : CrystalLatticeT(nlsd,nuca,vec_rot)
+BCCT::BCCT(int nlsd,int nuca,double alat,
+	   dArrayT vec_rot,double angle) : CrystalLatticeT(nlsd,nuca,vec_rot,angle)
 {
   if (nlsd==2)
     {
@@ -32,7 +33,9 @@ BCCT::BCCT(int nlsd,int nuca,double alat,dArrayT vec_rot) : CrystalLatticeT(nlsd
 }
 
 
-BCCT::BCCT(const BCCT& source) : CrystalLatticeT(source.nLSD,source.nUCA,source.vector_rotation)
+BCCT::BCCT(const BCCT& source) : CrystalLatticeT(source.nLSD,source.nUCA,
+						 source.vector_rotation,
+						 source.angle_rotation)
 {
   for (int i=0; i<source.nLSD; i++) 
     for (int j=0; j<source.nUCA; j++) 

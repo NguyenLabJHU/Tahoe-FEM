@@ -1,6 +1,3 @@
-/* $Id: MakeCrystalT.cpp,v 1.7 2002-07-26 23:05:58 jzimmer Exp $ */
-
-
 /* Build a mesh of atoms with a format-independent output
  * (saubry, Tue Jul 23 15:31 UTC 2002)
 */
@@ -87,6 +84,7 @@ void MakeCrystalT::Run() {
   in >> shape;
   cout << "Shape of the domain:" << shape <<  "\n";
 
+  double angle = 0.0;
   dArrayT rot_vec(nsd);
   rot_vec = 0.0;
 
@@ -101,16 +99,16 @@ void MakeCrystalT::Run() {
      {
         if(nsd==2) 
         {
-           in >> rot_vec[0] >> rot_vec[1];
-           cout << "Rotation Vector: " << rot_vec[0] 
-		<< "  " <<  rot_vec[1] << "\n";
+           in >> angle;
+           cout << "Rotation Angle: " << angle << "\n";
         }
         else if (nsd==3)
         {
-           in >> rot_vec[0] >> rot_vec[1] >> rot_vec[2];
+	  in >> rot_vec[0] >> rot_vec[1] >> rot_vec[2] >> angle;
            cout << "Rotation Vector: " << rot_vec[0] 
 		<< "  " <<  rot_vec[1] << "  " << rot_vec[2] 
 		<< "\n";
+	  cout  << "Angle: " << angle  << "\n";
         }
      }
      else if(misc=="OUTPUT") 
@@ -133,7 +131,7 @@ void MakeCrystalT::Run() {
 
 
   MeshAtom mesh_atom(latticetype,nsd,b,latticeparameter,
-		     shape,whichunit,len_cell,rot_vec);
+		     shape,whichunit,len_cell,rot_vec,angle);
 
   StringT program = "bravais";
   StringT version = "v1.0";
