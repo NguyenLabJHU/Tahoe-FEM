@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.1.1.1.4.1 2001-06-19 18:27:51 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -24,18 +24,16 @@
 
 /* constructor */
 D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT& domain, const dArray2DT& coords,
-	const iArray2DT& connects, const iArrayT& nongridnodes, FormulationT code,
-	double dextra, int complete, bool store_shape):
-	MeshFreeSupportT(domain, coords, connects, nongridnodes, code, dextra,
-		complete, store_shape),
+	const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in):
+	MeshFreeSupportT(domain, coords, connects, nongridnodes, in),
 	fD2EFG(NULL)
 {
 	/* only EFG solver is different for D2 */
-	if (code == kEFG)
+	if (fMeshfreeType == kEFG)
 	{
 		/* construct D2 MLS solver */
 		if (fCoords.MinorDim() == 2)
-			fD2EFG = new D2OrthoMLS2DT(fComplete);
+			fD2EFG = new D2OrthoMLS2DT(fEFG->Completeness());
 		else
 		{
 			cout << "\n D2MeshFreeSupportT::D2MeshFreeSupportT: no 3D yet" << endl;
@@ -222,20 +220,24 @@ int D2MeshFreeSupportT::SetFieldAt(const dArrayT& x, AutoArrayT<int>& nodes)
 	else
 	{
 		/* dimension */
-		fcoords_man.SetMajorDimension(nodes.Length(), false);	
-		fdmax_man.Dimension(nodes.Length(), false);
+		fcoords_man.SetMajorDimension(fneighbors.Length(), false);	
+		fnodal_param_man.Dimension(fneighbors.Length(), false);
 	
 		/* collect local lists */
 		fcoords.RowCollect(nodes, fCoords);
-		fdmax.Collect(nodes, fDmax);
+		fnodal_param.RowCollect(fneighbors, fNodalParameters);
 	
 		/* compute MLS field */
 		if (fD2EFG)
-			fD2EFG->SetField(fcoords, fdmax, x);
+			fD2EFG->SetField(fcoords, fnodal_param, x);
 		else
 		{
-			fvolume.Collect(nodes, fVolume);
-			fRKPM->SetField(fcoords, fdmax, fvolume, x, 2);
+			/* nodal volumes */
+			fvolume_man.SetLength(fneighbors.Length(), false);
+			fvolume.Collect(fneighbors, fVolume);
+
+			/* compute field */
+			fRKPM->SetField(fcoords, fnodal_param, fvolume, x, 2);
 		}
 		
 		return 1;
@@ -333,26 +335,26 @@ void D2MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 {
 	/* set dimensions */
 	int count = neighbors.Length();
-	fdmax_man.Dimension(count, false);
+	fnodal_param_man.Dimension(count, false);
 	fcoords_man.SetMajorDimension(count, false);
 	
 	/* collect local lists */
 	fcoords.RowCollect(neighbors, fCoords);
-	fdmax.Collect(neighbors, fDmax);
+	fnodal_param.Collect(neighbors, fNodalParameters);
 		
 	/* coords of current node */
 	dArrayT x_node;
 	fCoords.RowAlias(node, x_node);
 	
 	/* process boundaries */
-	fdmax_ip = fdmax;
-	ProcessBoundaries(fcoords, x_node, fdmax);
+	fnodal_param_ip = fnodal_param;
+	ProcessBoundaries(fcoords, x_node, fnodal_param_ip);
 	// set dmax = -1 for nodes that are inactive at x_node
 		
 	/* compute MLS field */
 	if (fD2EFG)
 	{
-		fD2EFG->SetField(fcoords, fdmax_ip, x_node);
+		fD2EFG->SetField(fcoords, fnodal_param_ip, x_node);
 			
 		/* copy field data */
 		phi   = fD2EFG->phi();
@@ -361,8 +363,9 @@ void D2MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 	}
 	else
 	{
+		fvolume_man.SetLength(count, false);
 		fvolume.Collect(neighbors, fVolume);
-		fRKPM->SetField(fcoords, fdmax_ip, fvolume, x_node, 2);
+		fRKPM->SetField(fcoords, fnodal_param_ip, fvolume, x_node, 2);
 			
 		/* copy field data */
 		phi   = fRKPM->phi();
@@ -381,12 +384,13 @@ void D2MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	int nen = fConnects.MinorDim();
 
 	/* set dimensions */
-	fdmax_man.Dimension(nnd, false);
+	fnodal_param_man.Dimension(nnd, false);
 	fcoords_man.SetMajorDimension(nnd, false);
+	fvolume_man.SetLength(nnd, false);
 
 	/* collect neighbor data */
 	fcoords.RowCollect(neighbors, fCoords);
-	fdmax.Collect(neighbors, fDmax);
+	fnodal_param.RowCollect(neighbors, fNodalParameters);
 
 	/* workspace */
 	iArrayT     elementnodes;
@@ -406,14 +410,14 @@ void D2MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 		fx_ip_table.RowAlias(i, x_ip);
 
 		/* process boundaries */
-		fdmax_ip = fdmax;
-		ProcessBoundaries(fcoords, x_ip, fdmax_ip);
+		fnodal_param_ip = fnodal_param;
+		ProcessBoundaries(fcoords, x_ip, fnodal_param_ip);
 		// set dmax = -1 for nodes that are inactive at x_node
 	
 		/* compute MLS field */
 		if (fD2EFG)
 		{
-			fD2EFG->SetField(fcoords, fdmax_ip, x_ip);
+			fD2EFG->SetField(fcoords, fnodal_param_ip, x_ip);
 		
 			/* store field data */
 			phi.SetRow(i, fD2EFG->phi());
@@ -423,7 +427,7 @@ void D2MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 		else
 		{
 			fvolume.Collect(neighbors, fVolume);
-			fRKPM->SetField(fcoords, fdmax_ip, fvolume, x_ip, 2);
+			fRKPM->SetField(fcoords, fnodal_param_ip, fvolume, x_ip, 2);
 		
 			/* store field data */
 			phi.SetRow(i, fRKPM->phi());

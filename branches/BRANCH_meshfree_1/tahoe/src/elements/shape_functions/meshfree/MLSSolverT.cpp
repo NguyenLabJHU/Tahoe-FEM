@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.cpp,v 1.1.1.1.4.1 2001-06-19 00:54:44 paklein Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.1.1.1.4.2 2001-06-19 18:27:48 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #include "MLSSolverT.h"
@@ -113,9 +113,12 @@ MLSSolverT::~MLSSolverT(void)
 /* write parameters */
 void MLSSolverT::WriteParameters(ostream& out) const
 {
-throw;
-	//write local parameters
-	//write window function parameters
+	/* window function parameters */
+	out << " Order of completeness . . . . . . . . . . . . . = " << fComplete << '\n';
+	out << " Window function type. . . . . . . . . . . . . . = " << fWindowType << '\n';
+	out << " Window function name. . . . . . . . . . . . . . = " << fWindow->Name() << '\n';
+	out << " Window function parameters:\n";
+	fWindow->WriteParameters(out);
 }
 
 /* class dependent initializations */
@@ -163,7 +166,7 @@ int MLSSolverT::SetField(const dArray2DT& coords, const dArray2DT& nodal_param,
 	fLocCoords.AddToRowsScaled(1.0, fieldpt);
 
 	/* window functions */
-	int numactive = SetWindow(dmax);
+	int numactive = SetWindow(nodal_param);
 	if (numactive < fBasis->BasisDimension())
 	{
 		cout << "\n MLSSolverT::SetField: not enough nodes for fit: ";
@@ -231,8 +234,12 @@ void MLSSolverT::Dimension(void)
 }
 
 /* set window functions */
-int MLSSolverT::SetWindow(const dArrayT& dmax)
+int MLSSolverT::SetWindow(const dArray2DT& support_params)
 {
+//TEMP
+dArrayT dmax;
+dmax.Alias(support_params);
+
 	dArrayT dx;
 	dArrayT Dw(fNumSD); //make into work space variables
 	int count = 0;

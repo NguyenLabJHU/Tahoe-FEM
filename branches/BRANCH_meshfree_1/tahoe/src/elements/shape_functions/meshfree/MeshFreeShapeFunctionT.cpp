@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.1.1.1.4.1 2001-06-19 00:54:44 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.1.1.1.4.2 2001-06-19 18:27:48 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 
 #include "MeshFreeShapeFunctionT.h"
@@ -656,15 +656,18 @@ void MeshFreeShapeFunctionT::BlendNodalData(int node, const iArrayT& nodes, dArr
 	}
 }
 
-/* read/write Dmax */
-void MeshFreeShapeFunctionT::SetDmax(const iArrayT& node, const dArrayT& Dmax)
+/* read/write nodal meshfree parameters */
+void MeshFreeShapeFunctionT::SetNodalParameters(const iArrayT& node, const dArray2DT& nodal_params)
 {
-	fMFSupport->SetDmax(node, Dmax);
+	fMFSupport->SetNodalParameters(node, nodal_params);
 }
 
-void MeshFreeShapeFunctionT::GetDmax(const iArrayT& node, dArrayT& Dmax) const
+void MeshFreeShapeFunctionT::GetNodalParameters(const iArrayT& node, dArray2DT& nodal_params) const
 {
-	fMFSupport->GetDmax(node, Dmax);
+	fMFSupport->GetNodalParameters(node, nodal_params);
 }
 
-const dArrayT& MeshFreeShapeFunctionT::Dmax(void) const { return fMFSupport->Dmax(); }
+const dArray2DT& MeshFreeShapeFunctionT::NodalParameters(void) const 
+{ 
+	return fMFSupport->NodalParameters(); 
+}

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.h,v 1.1.1.1.4.1 2001-06-19 00:54:44 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.h,v 1.1.1.1.4.2 2001-06-19 18:27:49 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 /* MLS shape functions for the displacement interpolation - for           */
 /* small strain or total Lagrangian finite deformation. DO NOT            */
@@ -28,7 +28,7 @@ class MeshFreeShapeFunctionT: public ShapeFunctionT
 {
 public:
 
-/* constructors */
+	/* constructors */
 	MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 		const LocalArrayT& coords, const dArray2DT& all_coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes,

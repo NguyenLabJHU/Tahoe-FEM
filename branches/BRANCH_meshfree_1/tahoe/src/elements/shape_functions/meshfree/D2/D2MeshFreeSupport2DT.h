@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupport2DT.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: D2MeshFreeSupport2DT.h,v 1.1.1.1.4.1 2001-06-19 18:27:51 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #ifndef _D2_MF_SUPPORT_2D_T_H_
@@ -13,8 +13,7 @@ public:
 
 	/* constructor */
 	D2MeshFreeSupport2DT(const ParentDomainT& domain, const dArray2DT& coords,
-		const iArray2DT& connects, const iArrayT& nongridnodes, FormulationT code,
-		double dextra, int complete, bool storeshape);
+		const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in);
 
 	/* cutting facet functions */
 	virtual void SetCuttingFacets(const dArray2DT& facet_coords, int num_facet_nodes);
@@ -24,7 +23,7 @@ private:
 	/* process boundaries - nodes marked as "inactive" at the
 	 * current x_node by setting dmax = -1.0 */
 	virtual void ProcessBoundaries(const dArray2DT& coords,
-		const dArrayT& x_node, dArrayT& dmax);
+		const dArrayT& x_node, dArray2DT& nodal_params);
 
 	/* returns 1 if the path x1-x2 is visible */
 	virtual int Visible(const double* x1, const double* x2);

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: D2MeshFreeSupportT.h,v 1.1.1.1.4.1 2001-06-19 18:27:51 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #ifndef _D2_MF_SUPPORT_T_H_
@@ -16,8 +16,7 @@ public:
 
 	/* constructor */
 	D2MeshFreeSupportT(const ParentDomainT& domain, const dArray2DT& coords,
-		const iArray2DT& connects, const iArrayT& nongridnodes,  FormulationT code,
-		double dextra, int complete, bool store_shape);
+		const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in);
 
 	/* steps to initialization - modifications to the support size must
 	 * occur before setting the neighbor data */

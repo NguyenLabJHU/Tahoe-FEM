@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.h,v 1.5.2.1 2001-06-19 00:54:48 paklein Exp $ */
+/* $Id: GaussianWindowT.h,v 1.5.2.2 2001-06-19 18:27:53 paklein Exp $ */
 
 #ifndef _GAUSSIAN_WINDOW_T_H_
 #define _GAUSSIAN_WINDOW_T_H_
@@ -37,7 +37,11 @@ class GaussianWindowT: public WindowT
 	 * \params params_2 support size set 2 */
 	virtual void SynchronizeNodalParameters(dArray2DT& params_1, 
 		dArray2DT& params_2) const;
+
+	/** modify nodal shape function parameters */
+	virtual void ModifyNodalParameters(dArray2DT& nodal_params) const;
 	
+	/** write parameters to output stream */
 	virtual void WriteParameters(ostream& out) const;
 
 	/* single point evaluations */
@@ -62,7 +66,7 @@ class GaussianWindowT: public WindowT
   
   	/* window function adjustable parameters */
   	double fDilationScaling;
-  	double fSharpeningFudgeFactor;
+  	double fSharpeningFactor;
 };
 
 #endif /* _WINDOW_T_H_ */
