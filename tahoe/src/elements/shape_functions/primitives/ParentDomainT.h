@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.4 2002-07-01 17:49:53 creigh Exp $ */
+/* $Id: ParentDomainT.h,v 1.5 2002-07-02 15:48:45 paklein Exp $ */
 /* created: paklein (07/03/1996)                                          */
 /* interface for a finite element parent domain. manages integration      */
 /* information (points, weights, etc..) and mapping between the real      */
@@ -85,7 +85,7 @@ class ParentDomainT
 	 *  For 2D case, put zero's in the 3 components of T, and use 2D DNa
 	 *  of dimension 2 x num_nodes.
 	 *  Note: Return curl(T) will be 3x1 */
-	void ParentDomainT::Curl(const ArrayT<dArrayT>& T, const dArray2DT& DNa,dArrayT& curl) const;
+	void Curl(const ArrayT<dArrayT>& T, const dArray2DT& DNa,dArrayT& curl) const;
 
 	/** compute the curl of a tensor that is of dimension 3x3
 	 *  Values for tensor at the node points must be provided 
@@ -93,7 +93,7 @@ class ParentDomainT
 	 *  For 2D case, put zero's in the 3 components of T, and use 2D DNa
 	 *  of dimension 2 x num_nodes.
 	 *  Note: Return curl(T) will be 3x3 */
-	void ParentDomainT::Curl(const ArrayT<dMatrixT>& T, const dArray2DT& DNa,dMatrixT& curl) const;
+	void Curl(const ArrayT<dMatrixT>& T, const dArray2DT& DNa,dMatrixT& curl) const;
 
 	/** compute the jacobian of the nodal values with respect to domain coordinates.
 	 * \param nodal values at the nodes: [nnd] x [nu]
