@@ -1,4 +1,4 @@
-# $Id: DARWIN-3.3.pch.makefile.template,v 1.4 2005-02-05 01:03:15 paklein Exp $
+# $Id: DARWIN-3.3.pch.makefile.template,v 1.5 2005-03-09 09:11:37 paklein Exp $
 
 # caller must define $(MACROS) file
 include $(MACROS)
@@ -7,6 +7,7 @@ include $(MACROS)
 
 do_init_pch:
 	@ $(ECHO) "initializing precompiled header file $(PCH)"
+	@ $(PERL) $(MACRO_DIR)/rm.pl "$(PCH).*"	
 	@ if test -f $(SRC_DIR)/pch/$(PCH); then \
 		$(LN) $(SRC_DIR)/pch/$(PCH) $(PCH); \
 	else \
