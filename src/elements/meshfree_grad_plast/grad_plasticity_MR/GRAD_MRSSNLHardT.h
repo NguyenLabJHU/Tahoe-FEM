@@ -135,8 +135,11 @@ public:
   	double fmu;
 	double flambda;
 	double fkappa;
+	double fmu_ast;
+	double flambda_ast;
+	double fkappa_ast;
     double fMeanStress;
-    //include length scale parameters here??
+    double fDel2MeanStress;
   
   	/* return values */
   	dSymMatrixT	fElasticStrain;
@@ -148,7 +151,9 @@ public:
   		
 	/* work space */
 	dSymMatrixT fDevStress;
+	dSymMatrixT fDel2DevStress;
 	dSymMatrixT fDevStrain; /* deviatoric part of the strain tensor */
+	dSymMatrixT fDel2DevStrain; /* deviatoric part of the gradient of strain tensor */
 	dSymMatrixT IdentityTensor2;  
 
 	dMatrixT      fTensorTemp;

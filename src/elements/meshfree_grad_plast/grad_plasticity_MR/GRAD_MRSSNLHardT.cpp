@@ -29,13 +29,21 @@ GRAD_MRSSNLHardT::GRAD_MRSSNLHardT(ifstreamT& in, int num_ip, double mu, double 
 	fmu(mu),
 	flambda(lambda),
 	fkappa(flambda + (2.0/3.0*fmu)),
+	fmu_ast(flse_s*flse_s*mu),
+	flambda_ast(flse_v*flse_v*lambda+2.*(flse_v*flse_v-flse_s*flse_s)*mu/3.),
+	fkappa_ast(flambda_ast + (2.0/3.0*fmu_ast)),
 	fElasticStrain(kNSD),
+	fGradElasticStrain(kNSD),
 	fStressCorr(kNSD),
 	fModuli(dSymMatrixT::NumValues(kNSD)),
 	fModuliDisc(dSymMatrixT::NumValues(kNSD)), //for disc check
+	fYieldFunction(0.0),
 	fDevStress(kNSD),
+	fDel2DevStress(kNSD),
 	fMeanStress(0.0),
+	fDel2MeanStress(0.0),
 	fDevStrain(kNSD), 
+	fDel2DevStrain(kNSD),
 	fTensorTemp(dSymMatrixT::NumValues(kNSD)),
     IdentityTensor2(kNSD),
 	One(kNSD)
@@ -93,7 +101,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     dArrayT RSig(6); dArrayT Rq(4);
     dArrayT R(10); dArrayT ls(4);
     
-    double ff; double mu_ast; double lambda_ast;
+    double ff; //double mu_ast; double lambda_ast;
     
     KE = 0.;
 	KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
@@ -101,22 +109,21 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
 	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
 	
-	// lse_v: pore space length scale (elastic) 
-    // lse_s: grain size length scale (elastic)
-    // lsp_v: pore space length scale (plastic) 
-    // lsp_s: grain size length scale (plastic) 
-	ls[1] = flse_v;  ls[2] = flse_s;
-	ls[3] = flsp_v;  ls[4] = flsp_s;
-	lambda_ast = ls[1]*ls[1]*flambda;
-	lambda_ast += 2.*(ls[1]*ls[1] - ls[2]*ls[2])*fmu/3.;
-	mu_ast = ls[2]*ls[2]*fmu;
+	ls[1] = flse_v; // lse_v: pore space length scale (elastic)  
+	ls[2] = flse_s; // lse_s: grain size length scale (elastic)
+	ls[3] = flsp_v; // lsp_v: pore space length scale (plastic)   
+	ls[4] = flsp_s; // lsp_s: grain size length scale (plastic) 
+	
+	//lambda_ast = ls[1]*ls[1]*flambda;
+	//lambda_ast += 2.*(ls[1]*ls[1] - ls[2]*ls[2])*fmu/3.;
+	//mu_ast = ls[2]*ls[2]*fmu;
 	
 	// KE_AST for gradient terms
 	KE_AST=0.;
-	KE_AST(2,2) = KE_AST(1,1) = KE_AST(0,0) = lambda_ast + 2.0*mu_ast;
-	KE_AST(1,2) = KE_AST(0,1) = KE_AST(0,2) = lambda_ast;
-	KE_AST(2,1) = KE_AST(1,0) = KE_AST(2,0) = lambda_ast;
-	KE_AST(5,5) = KE_AST(4,4) = KE_AST(3,3) = mu_ast;
+	KE_AST(2,2) = KE_AST(1,1) = KE_AST(0,0) = flambda_ast + 2.0*fmu_ast;
+	KE_AST(1,2) = KE_AST(0,1) = KE_AST(0,2) = flambda_ast;
+	KE_AST(2,1) = KE_AST(1,0) = KE_AST(2,0) = flambda_ast;
+	KE_AST(5,5) = KE_AST(4,4) = KE_AST(3,3) = fmu_ast;
 	
     I_mat = 0.; II_mat = 0.;
       
@@ -1379,7 +1386,7 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 	  	    KE_LambdaLambda1 = -1.* termD1;
 	  	    KE_LambdaLambda2 = termE1; 
 	
-            /* Assemble the 8 Cep matrices into one 7x14 matrix 
+            /* Assemble the 8 Cep matrices into a single 7x14 matrix 
                This matrix is passed to the higher level as 
                fModuli 
             */
@@ -1587,10 +1594,13 @@ dSymMatrixT& GRAD_MRSSNLHardT::DeviatoricStress(const dSymMatrixT& trialstrain,
 #pragma unused(element)
 
 	/* deviatoric strain */
-	fDevStrain.Deviatoric(trialstrain); //del2_trialstrain??
+	fDevStrain.Deviatoric(trialstrain); 
+	fDel2DevStrain.Deviatoric(del2_trialstrain);//del2_trialstrain??
 
 	/* compute deviatoric elastic stress */
 	fDevStress.SetToScaled(2.0*fmu,fDevStrain);
+	fDel2DevStress.SetToScaled(2.0*fmu_ast,fDel2DevStrain); //declare
+	fDevStress -= fDel2DevStress;
 
 	return fDevStress;
 }
@@ -1601,7 +1611,9 @@ double GRAD_MRSSNLHardT::MeanStress(const dSymMatrixT& trialstrain,
 {
 #pragma unused(element)
 
-  fMeanStress = fkappa*trialstrain.Trace(); //del2_trialstrain??
+  fMeanStress = fkappa*trialstrain.Trace(); 
+  fDel2MeanStress = fkappa_ast*del2_trialstrain.Trace(); //del2_trialstrain??
+  fMeanStress -= fDel2MeanStress;  //declare fDel2MeanStress
   return fMeanStress;
 }
 
