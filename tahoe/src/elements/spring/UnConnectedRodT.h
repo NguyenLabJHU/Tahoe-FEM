@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.h,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* $Id: UnConnectedRodT.h,v 1.2 2001-10-25 07:16:43 paklein Exp $ */
 /* created: paklein (04/05/1997)                                          */
 /* Interface for a rod element group that connects itself based on the    */
 /* nodes placed in the group. All the rods in the group are assumed to    */
@@ -36,13 +36,13 @@ protected: /* for derived classes only */
 	virtual void ReadMaterialData(ifstreamT& in);
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 
+	/** return true if connectivities are changing */
+	virtual bool ChangingGeometry(void) const { return true; };
+
 private:
 
 	/* configure element list data */
 	void ConfigureElementData(void);
-
-	/* print data */
-	void PrintConnectivityData(ostream& out);
 
 private:
 
