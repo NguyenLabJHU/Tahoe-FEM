@@ -1,35 +1,35 @@
-# $Id: suffix,v 1.8 2004-08-10 06:37:03 paklein Exp $
+# $Id: suffix,v 1.9 2004-11-12 20:55:28 paklein Exp $
 
 .SUFFIXES: .c .cpp .C .f .F .o .d .h .h_link
 
 # source file -> object file
 .c.o:
 	@ $(PRINTF) "    $(COMP_C): %s\n" $<
-	$(COMP_C) $(CFLAGS_C) $(OPT_CFLAGS) $(MOD_CFLAGS_C) $<
+	$(COMP_C) $(COMP_FLAG) $(CFLAGS_C) $(OPT_CFLAGS) $(MOD_CFLAGS_C) $<
 	$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
 	@$(PRINTF) "#touch" > $(LIB_DIR)/lib.junk
 
 .cpp.o:
 	@ $(PRINTF) "    $(COMP_CC): %s\n" $<
-	$(COMP_CC) $(CFLAGS_CC) $(OPT_CFLAGS) $(MOD_CFLAGS_CC) $<
+	$(COMP_CC) $(COMP_FLAG) $(CFLAGS_CC) $(OPT_CFLAGS) $(MOD_CFLAGS_CC) $<
 	$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
 	@$(PRINTF) "#touch" > $(LIB_DIR)/lib.junk
 
 .C.o:
 	@ $(PRINTF) "    $(COMP_CC): %s\n" $<
-	$(COMP_CC) $(CFLAGS_CC) $(OPT_CFLAGS) $(MOD_CFLAGS_CC) $<
+	$(COMP_CC) $(COMP_FLAG) $(CFLAGS_CC) $(OPT_CFLAGS) $(MOD_CFLAGS_CC) $<
 	$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
 	@$(PRINTF) "#touch" > $(LIB_DIR)/lib.junk
 
 .f.o:
 	@ $(PRINTF) "    $(COMP_F): %s\n" $<
-	$(COMP_F) $(CFLAGS_F) $(OPT_CFLAGS) $(MOD_CFLAGS_F) $<
+	$(COMP_F) $(COMP_FLAG) $(CFLAGS_F) $(OPT_CFLAGS) $(MOD_CFLAGS_F) $<
 	$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
 	@$(PRINTF) "#touch" > $(LIB_DIR)/lib.junk
 
 .F.o:
 	@ $(PRINTF) "    $(COMP_F): %s\n" $<
-	$(COMP_F) $(CFLAGS_F) $(OPT_CFLAGS) $(MOD_CFLAGS_F) $<
+	$(COMP_F) $(COMP_FLAG) $(CFLAGS_F) $(OPT_CFLAGS) $(MOD_CFLAGS_F) $<
 	$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
 	@$(PRINTF) "#touch" > $(LIB_DIR)/lib.junk
 
