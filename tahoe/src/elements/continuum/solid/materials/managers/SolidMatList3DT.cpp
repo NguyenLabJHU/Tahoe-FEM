@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.31 2003-03-08 03:42:19 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.29 2003-01-31 10:00:33 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "fstreamT.h"
@@ -81,13 +81,6 @@
 #ifdef PLASTICITY_DP_MATERIAL
 #include "DPSSKStV.h"
 #endif
-
-#ifdef SIERRA_MATERIAL
-#include "SIERRA_HypoElasticT.h"
-#ifdef __FOSSUM__
-#include "SIERRA_Isotropic_Geomaterial.h"
-#endif /* __FOSSUM__ */
-#endif /* SIERRA_MATERIAL */
 
 #ifdef FOSSUM_MATERIAL_DEV
 #include "FossumSSIsoT.h"
@@ -597,36 +590,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "SIMO_HOLZAPFEL_MATERIAL not enabled: %d", matcode);
 #endif
 			}
-			case kSIERRA_Hypoelastic:
-			{
-#if SIERRA_MATERIAL
-				/* check */
-				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
-
-				fArray[matnum] = new SIERRA_HypoElasticT(in, *fFSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "SIERRA_MATERIAL not enabled: %d", matcode);
-#endif
-			}
-			case kSIERRA_Iso_Geomat:
-			{
-#if SIERRA_MATERIAL
-#ifdef __FOSSUM__
-				/* check */
-				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
-
-				fArray[matnum] = new SIERRA_Isotropic_Geomaterial(in, *fFSMatSupport);
-				fHasHistory = true;
-				break;
-#else /* __FOSSUM__ */
-				ExceptionT::BadInputValue(caller, "requires module fossum");
-#endif /* __FOSSUM__ */
-#else /* SIERRA_MATERIAL */
-				ExceptionT::BadInputValue(caller, "SIERRA_MATERIAL not enabled: %d", matcode);
-#endif /* SIERRA_MATERIAL*/
-			}
 			default:
 				ExceptionT::BadInputValue(caller, "unknown material code: %d", matcode);
 		}
@@ -635,7 +598,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		SolidMaterialT* pmat = (SolidMaterialT*) fArray[matnum];
 
 		/* verify construction */
-		if (!pmat) ExceptionT::OutOfMemory(caller);
+		if (!pmat) throw ExceptionT::kOutOfMemory;
 		
 		/* set thermal LTf pointer */
 		int LTfnum = pmat->ThermalStrainSchedule();

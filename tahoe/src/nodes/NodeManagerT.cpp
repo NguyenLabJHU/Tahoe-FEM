@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.23 2003-03-04 08:37:40 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.21 2003-01-29 07:35:21 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -1272,7 +1272,8 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			field->SetLabels(labels);
 			field->SetGroup(group_num);
 			field->Dimension(NumNodes(), false);
-			field->Clear();
+			for (int j = 0; j <= field->Order(); j++)
+				(*field)[j] = 0.0;
 			field->WriteParameters(out);
 
 			/* coordinate update field */
@@ -1366,7 +1367,6 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		
 		/* dimension */
 		field->Dimension(NumNodes(), false);
-		field->Clear();
 		
 		/* clear all equation numbers */
 		field->Equations() = FieldT::kInit;

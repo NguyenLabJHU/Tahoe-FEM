@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.11 2003-02-18 08:44:19 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.10 2003-01-29 07:35:08 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -115,11 +115,7 @@ public:
 	 * deformation gradient not associated 
 	 * with an imposed thermal strain. */
 	const dMatrixT& F_mechanical_last(int ip);
-
-	/** return the strain in the material at the current integration point. 
-	 * Returns the Green-Lagrangian strain. */
-	virtual void Strain(dSymMatrixT& strain) { Compute_E(F_mechanical(), strain); };
-
+	
 protected:
 
 	/** enum for use by derived classes to to track last stress called */

@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.9 2003-03-04 08:37:16 paklein Exp $ */
+/* $Id: FieldT.h,v 1.8 2003-01-29 07:35:21 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -52,9 +52,6 @@ public:
 
 	/** set the group number */
 	void SetGroup(int group) { fGroup = group; };
-
-	/** set all field values to 0.0 */
-	virtual void Clear(void);
 	/*@}*/
 	
 	/** \name accessors */

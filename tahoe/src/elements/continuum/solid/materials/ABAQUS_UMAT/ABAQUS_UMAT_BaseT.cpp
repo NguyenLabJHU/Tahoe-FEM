@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.12 2003-03-08 01:54:48 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.11 2003-01-29 07:34:35 paklein Exp $ */
 /* created: paklein (05/14/2000) */
 #include "ABAQUS_UMAT_BaseT.h"
 
@@ -316,7 +316,7 @@ const dMatrixT& ABAQUS_UMAT_BaseT::C_IJKL(void)
 	const dMatrixT& c = ABAQUS_UMAT_BaseT::c_ijkl();
 
 	/* spatial -> material */
-	fModulus.SetToScaled(F().Det(), PullBack(F(), c));	
+	fModulus.SetToScaled(F().Det(), PushForward(F(), c));	
 	return fModulus;
 }
 
@@ -326,7 +326,7 @@ const dSymMatrixT& ABAQUS_UMAT_BaseT::S_IJ(void)
 	const dSymMatrixT& s = ABAQUS_UMAT_BaseT::s_ij();
 
 	/* spatial -> material */
-	fStress.SetToScaled(F().Det(), PullBack(F(), s));	
+	fStress.SetToScaled(F().Det(), PushForward(F(), s));	
 	return fStress;
 }
 

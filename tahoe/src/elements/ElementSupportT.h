@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.22 2003-02-07 21:50:51 cjkimme Exp $ */
+/* $Id: ElementSupportT.h,v 1.21 2003-01-29 07:34:26 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -324,8 +324,6 @@ private:
 
 private:
 
-#ifndef _SIERRA_TEST_
-
 	/** \name managers */
 	/*@{*/
 	/** the boss */
@@ -333,10 +331,6 @@ private:
 	
 	/** the nodes */
 	NodeManagerT* fNodes;
-
-	const dArray2DT *fInitialCoordinates;
-	const dArray2DT *fCurrentCoordinates;
-#endif
 
 	/** the model manager */
  	ModelManagerT* fModelManager;	
@@ -350,20 +344,16 @@ private:
 	/*@{*/
 	GlobalT::AnalysisCodeT fAnalysis;
 	const GlobalT::StateT* fRunState;
+	const dArray2DT *fInitialCoordinates;
+	const dArray2DT *fCurrentCoordinates;
 	/*@}*/
 
 #ifdef _SIERRA_TEST_	
  
 	dArrayT *fResidual;
 	dMatrixT *fStiffness;
-	
-	dArray2DT *fInitialCoordinates;
-	dArray2DT *fCurrentCoordinates;
 
 	int fItNum, fElem;
-	int fNumSD, fNumNodes;
-	
-	GroupAverageT* fGroupAverage;
 	
 	double fTimeStep;
 	
@@ -411,11 +401,7 @@ inline iArrayT *ElementSupportT::IntInput(void) const { return iparams; }
 inline const GlobalT::StateT& ElementSupportT::RunState(void) const
 {
 	if (!fRunState)
-#ifndef _SIERRA_TEST_
 		ExceptionT::GeneralFail("ElementSupportT::RunState", "not set");
-#else
-	        throw ExceptionT::kGeneralFail;
-#endif
 	return *fRunState;
 }
 
@@ -431,11 +417,7 @@ inline ModelManagerT& ElementSupportT::Model(void) const
 inline CommManagerT& ElementSupportT::CommManager(void) const
 {
 	if (!fCommManager) 
-#ifndef _SIERRA_TEST_
 		ExceptionT::GeneralFail("ElementSupportT::CommManager", "pointer not set");
-#else
-	        throw ExceptionT::kGeneralFail;
-#endif
 	return *fCommManager;
 }
 
@@ -446,11 +428,7 @@ inline int ElementSupportT::NumNodes(void) const
 	if (!fInitialCoordinates) ExceptionT::GeneralFail("ElementSupportT::NumNodes", 
 		"no initial coordinates");
 #endif
-#ifndef _SIERRA_TEST_
 	return fInitialCoordinates->MajorDim();
-#else
-	return fNumNodes;
-#endif
 }
 	
 /* number of spatial dimensions */
@@ -460,11 +438,7 @@ inline int ElementSupportT::NumSD(void) const
 	if (!fInitialCoordinates) ExceptionT::GeneralFail("ElementSupportT::NumSD", 
 		"no initial coordinates");
 #endif
-#ifndef _SIERRA_TEST_
 	return fInitialCoordinates->MinorDim();
-#else
-	return fNumSD;
-#endif
 }
 
 } // namespace Tahoe 

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.26 2003-02-21 22:31:28 cjkimme Exp $ */
+/* $Id: ElementBaseT.h,v 1.24 2003-01-29 07:34:26 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -224,7 +224,6 @@ public:
 	/** prepare for a sequence of time steps */
 	virtual void InitialCondition(void);
 
-#ifndef _SIERRA_TEST_
 	/** \name restart functions */
 	/*@{*/
 	/** write restart data to the output stream. Should be paired with
@@ -235,11 +234,6 @@ public:
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
 	virtual void ReadRestart(istream& in);
 	/*@}*/
-#else
-	virtual void WriteRestart(double* outgoingData) const;
-
-	virtual void ReadRestart(double* incomingData);
-#endif
 
 	/** \name element card data */
 	/*@{*/
@@ -322,7 +316,6 @@ protected: /* for derived classes only */
 	virtual bool NextElement(void);
 	/*@}*/
 
-#ifndef _SIERRA_TEST_
 	/* print element group data */
 	virtual void PrintControlData(ostream& out) const;
 	
@@ -344,12 +337,6 @@ protected: /* for derived classes only */
 	 * is set, determined from FEManagerT::PrintInput, this function writes the
 	 * connectivity data to the output stream in text format. */
 	virtual void WriteConnectivity(ostream& out) const;
-#else
-	/* For SIERRA, we don't need ifstreamT to exist */
-	virtual void EchoConnectivityData(void);
-	
-	virtual void ReadConnectivity(void);
-#endif
 
 	/** return pointer to block data given the ID */
 	const ElementBlockDataT& BlockData(const StringT& ID) const;

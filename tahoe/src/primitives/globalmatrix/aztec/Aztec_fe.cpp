@@ -1,5 +1,6 @@
-/* $Id: Aztec_fe.cpp,v 1.8 2003-02-28 02:07:17 paklein Exp $ */
+/* $Id: Aztec_fe.cpp,v 1.6 2002-10-20 22:49:35 paklein Exp $ */
 /* created: paklein (08/01/1998) */
+
 #include "Aztec_fe.h"
 
 /* library support options */
@@ -18,11 +19,12 @@
 #include "AztecReaderT.h"
 #include "iArray2DT.h"
 
+/* constructor */
+
 using namespace Tahoe;
 
-/* constructor */
-Aztec_fe::Aztec_fe(ifstreamT& in, ostream& msg, CommunicatorT& comm):
-	AztecBaseT(msg, comm),
+Aztec_fe::Aztec_fe(ifstreamT& in, ostream& msg):
+	AztecBaseT(msg),
 	fMSRBuilder(NULL),
 	fMSRSet(0)
 {
@@ -124,9 +126,12 @@ void Aztec_fe::Solve(const dArrayT& initguess, dArrayT& rhs2result)
 	cout << "\n number of iterations: " << int(status[AZ_its]) << '\n';
 	cout <<   "   termination status: " << int(status[AZ_why]) << '\n';
 	if (int(status[AZ_why]) != AZ_normal)
-	  cout << "\n Aztec_fe::Solve: WARNING: exit status was not normal (0)\n" << endl;
+	{
+		cout << "\n Aztec_fe::Solve: solver failed to converge" << endl;
+		throw ExceptionT::kBadJacobianDet;
+	}
 	else
-	  cout << endl;
+		cout << endl;	
 }
 
 /* statistics */

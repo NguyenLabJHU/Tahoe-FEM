@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.11 2003-03-03 21:49:32 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.10 2002-11-06 21:53:48 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -9,7 +9,6 @@
 #include "ExceptionT.h"
 #include "fstreamT.h"
 #include "StringT.h"
-#include "iArrayT.h"
 
 /* class parameters */
 
@@ -19,7 +18,7 @@ const int    knumDOF = 2;
 const double kExpMax = 100;
 
 /* initialize static variables */
-iArrayT TiedPotentialT::iBulkGroups = iArrayT();
+int TiedPotentialT::iBulkGroup = 0;
 double TiedPotentialT::fsigma_critical = 0.;
 double TiedPotentialT::fnvec1 = 0.;
 double TiedPotentialT::fnvec2 = 0.;
@@ -41,14 +40,9 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in, const double& time_step):
     fnvec2 /= mag;
  
     int nBulkGroups;
-    in >> nBulkGroups; if (nBulkGroups < 1) throw ExceptionT::kBadInputValue;
-    iBulkGroups.Dimension(nBulkGroups);
-    for (int i = 0; i < nBulkGroups; i++)
-    {
-    	in >> iBulkGroups[i]; 
-    	if (iBulkGroups[i] < 0) throw ExceptionT::kBadInputValue;
-    	iBulkGroups[i]--;
-    }
+    in >> nBulkGroups;
+    in >> iBulkGroup; if (iBulkGroup < 0) throw ExceptionT::kBadInputValue;
+    iBulkGroup--;
     
 	in >> qTv; /* 0 for Xu-Needleman. 1 for TvergHutch */
 	
@@ -375,9 +369,9 @@ bool TiedPotentialT::InitiationQ(const double* sigma)
 	return t1*t1 + t2*t2 >= fsigma_critical;
 }
 
-iArrayT& TiedPotentialT::BulkGroups(void)
+int TiedPotentialT::BulkGroup(void)
 {
-  return iBulkGroups;
+  return iBulkGroup;
 }
 
 /*void TiedPotentialT::AllocateSpace(int MajorDim, int MinorDim) 

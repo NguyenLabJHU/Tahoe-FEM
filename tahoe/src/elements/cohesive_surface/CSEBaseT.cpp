@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.23 2003-02-07 21:50:52 cjkimme Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.22 2003-01-22 00:54:33 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -475,18 +475,11 @@ void CSEBaseT::PrintControlData(ostream& out) const
 #endif
 }
 
-#ifndef _SIERRA_TEST_
 /* read element connectivity data */
 void CSEBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 {
 	/* inherited */
 	ElementBaseT::ReadConnectivity(in, out);
-#else
-void CSEBaseT::ReadConnectivity(void)
-{
-	/* inherited */
-	ElementBaseT::ReadConnectivity();
-#endif
 
 	/* write output over the original connectivities */
 	fOutput_Connectivities = fConnectivities;

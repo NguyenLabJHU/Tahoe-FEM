@@ -1,4 +1,4 @@
-/* $Id: BasicFieldT.h,v 1.6 2003-03-04 08:37:16 paklein Exp $ */
+/* $Id: BasicFieldT.h,v 1.5 2003-01-27 07:00:29 paklein Exp $ */
 #ifndef _BASIC_FIELD_T_H_
 #define _BASIC_FIELD_T_H_
 
@@ -33,9 +33,6 @@ public:
 	 * \param copy_in if true, values that fit are copied in. Otherwise,
 	 *        new array is unititalized */
 	void Dimension(int nnd, bool copy_in);
-	
-	/** set all field values to 0.0 */
-	virtual void Clear(void);
 	/*@}*/
 	
 	/** \name accessors */

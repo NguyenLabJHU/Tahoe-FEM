@@ -1,5 +1,6 @@
-/* $Id: AztecMatrixT.cpp,v 1.12 2003-03-11 07:21:31 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.10 2002-11-28 17:06:32 paklein Exp $ */
 /* created: paklein (08/10/1998) */
+
 #include "AztecMatrixT.h"
 
 /* library support options */
@@ -17,16 +18,16 @@
 #include "ElementMatrixT.h"
 #include "RaggedArray2DT.h"
 
+/* constructor */
+
 using namespace Tahoe;
 
-/* constructor */
-AztecMatrixT::AztecMatrixT(ifstreamT& in, ostream& out, int check_code,
-	CommunicatorT& comm):
+AztecMatrixT::AztecMatrixT(ifstreamT& in, ostream& out, int check_code):
 	GlobalMatrixT(out, check_code),
 	fInput(in)
 {
 	/* set and verify Aztec data structures */
-	fAztec = new Aztec_fe(fInput, out, comm);
+	fAztec = new Aztec_fe(fInput, out);
 	if (!fAztec) throw ExceptionT::kOutOfMemory;
 }	
 
@@ -130,6 +131,7 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqn
 		for (int i = 0; i < eqnos.Length(); i++)
 		{
 			int eq = eqnos[i];
+//			if (eq > 0)
 			if (eq >= fStartEQ && eq <= end_update)
 			{
 				fRowDexVec.Append(eq - 1); //OFFSET

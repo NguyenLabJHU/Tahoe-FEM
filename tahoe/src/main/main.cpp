@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.17 2003-03-02 19:04:09 paklein Exp $ */
+/* $Id: main.cpp,v 1.16 2003-01-30 01:33:21 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -162,7 +162,7 @@ static void ShutDown(CommunicatorT& comm)
 
 void DumpLicense(void)
 {
-	cout << "\n Tahoe 1.0.1\n\n"
+	cout << "\n Tahoe 1.0\n\n"
          << " Copyright 2003, Sandia Corporation.\n" 
 	     << " All rights reserved.\n\n"
 	     << " Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive\n"

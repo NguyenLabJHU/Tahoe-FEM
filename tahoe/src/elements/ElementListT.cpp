@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.43 2003-03-02 19:00:34 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.41 2003-02-05 02:38:26 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -39,9 +39,6 @@
 #include "MeshFreeFSSolidT.h"
 #include "D2MeshFreeFSSolidT.h"
 #include "UpLagr_ExternalFieldT.h"
-#endif
-
-#ifdef BRIDGING_ELEMENT
 #include "BridgingScaleT.h"
 #endif
 
@@ -49,7 +46,6 @@
 #include "PenaltyContact2DT.h"
 #include "PenaltyContact3DT.h"
 #include "AugLagContact2DT.h"
-#include "AugLagContact3DT.h"
 #include "ACME_Contact3DT.h"
 #endif
 
@@ -178,9 +174,9 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		out << "    eq. " << ElementT::kVirtualRod         << ", self-connecting rods with periodic BC's\n";   	
 		out << "    eq. " << ElementT::kVirtualSWDC        << ", diamond cubic lattice with periodic BC's\n";   	
 		out << "    eq. " << ElementT::kCohesiveSurface    << ", cohesive surface element\n";   	
-		out << "    eq. " << ElementT::kThermalSurface     << ", thermal surface element\n";   	
+		out << "    eq. " << ElementT::kThermalSurface    << ", thermal surface element\n";   	
 		out << "    eq. " << ElementT::kPenaltyContact     << ", penalty contact\n";
-		out << "    eq. " << ElementT::kAugLagContact      << ", augmented Lagrangian contact\n";
+		out << "    eq. " << ElementT::kAugLagContact2D    << ", augmented Lagrangian contact\n";
 		out << "    eq. " << ElementT::kTotLagHyperElastic << ", hyperelastic (total Lagrangian)\n";
 		out << "    eq. " << ElementT::kMeshFreeElastic    << ", elastic with MLS displacements\n";
 		out << "    eq. " << ElementT::kMeshFreeFDElastic  << ", hyperelastic MLS (total Lagrangian)\n";
@@ -407,15 +403,10 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
 #endif
 			}
-			case ElementT::kAugLagContact:
+			case ElementT::kAugLagContact2D:
 			{
 #ifdef CONTACT_ELEMENT
-				int nsd = fSupport.NumSD();
-				if (nsd == 2)
-					fArray[group] = new AugLagContact2DT(fSupport, *field);
-				else
-					fArray[group] = new AugLagContact3DT(fSupport, *field);
-
+				fArray[group] = new AugLagContact2DT(fSupport, *field);	
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
@@ -511,13 +502,17 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			}
 		case ElementT::kBridgingScale:
 		{
-#if defined (BRIDGING_ELEMENT) && defined (CONTINUUM_ELEMENT) && defined(SPRING_ELEMENT)
+#ifdef CONTINUUM_ELEMENT
 			/* associated group numbers */
 			int particle_group = -99;
 			int solid_group = -99;
 			in >> particle_group >> solid_group;
 
+#ifdef SPRING_ELEMENT
 			const RodT* particle = dynamic_cast<const RodT*>(&(fSupport.ElementGroup(--particle_group)));
+#else
+			const RodT* particle = NULL;
+#endif
 			if (!particle)
 				ExceptionT::BadInputValue(caller, "unable to cast pointer to group %d to type RodT", particle_group+1);
 			const SolidElementT* solid = dynamic_cast<const SolidElementT*>(&(fSupport.ElementGroup(--solid_group)));
@@ -527,7 +522,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			fArray[group] = new BridgingScaleT(fSupport, *field, *particle, *solid);
 		    break;
 #else
-				ExceptionT::BadInputValue(caller, "BRIDGING_ELEMENT, CONTINUUM_ELEMENT, or SPRING_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
 #endif				
 		}
 		case ElementT::kAdhesion:

@@ -1,5 +1,6 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.9 2003-03-02 18:56:12 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.8 2003-01-29 07:34:30 paklein Exp $ */
 /* created: paklein (02/09/2000) */
+
 #include "PenaltyContact3DT.h"
 
 #include <math.h>
@@ -32,18 +33,22 @@ inline static void Vector(const double* start, const double* end, double* v)
 PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support, const FieldT& field):
 	Contact3DT(support, field),
 	fElCoord(fNumFacetNodes + 1, NumSD()),
-	fElRefCoord(fNumFacetNodes + 1, NumSD()),
 	fElDisp(fNumFacetNodes + 1, NumDOF()),
 	fdc_du(NumSD(), fElDisp.Length()),
 	fdn_du(NumSD(), fElDisp.Length()),
 	fM1(NumSD()),
 	fM2(NumSD(), fElDisp.Length()),
-	fV1(fElDisp.Length())
+	fV1(fElDisp.Length()),
+	fnum_contact(0),
+	fh_max(0.0)
 {
-	const char caller[] = "PenaltyContact3DT::PenaltyContact3DT";
 	ElementSupport().Input() >> fK;
 	if (fK < 0.0)
-		ExceptionT::BadInputValue(caller, "regularization must be > 0: %g", fK);
+	{
+		cout << "\n PenaltyContact3DT::PenaltyContact3DT: reguralization must be > 0: "
+		     << fK << endl;
+		throw ExceptionT::kBadInputValue;
+	}
 
 	double third = 1.0/3.0;
 	double* p = fdc_du.Pointer();
@@ -88,9 +93,21 @@ PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support, const Field
 	iAddVariable("penalty_parameter", fK);
 }
 
+/* print/compute element output quantities */
+void PenaltyContact3DT::WriteOutput(void)
+{
+	/* inherited */
+	Contact3DT::WriteOutput();
+
+	/* contact statistics */
+	ostream& out = ElementSupport().Output();
+	out << " Number of contact interactions = " << fnum_contact << '\n';
+	out << " Maximum penetration depth      = " << fh_max       << '\n';
+}
+
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
 
 /* print element group data */
 void PenaltyContact3DT::PrintControlData(ostream& out) const
@@ -105,83 +122,22 @@ void PenaltyContact3DT::PrintControlData(ostream& out) const
 /* called by FormRHS and FormLHS */
 void PenaltyContact3DT::LHSDriver(GlobalT::SystemTypeT)
 {
-	/* time integrator parameters */
 	double constK = 0.0;
 	int formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 
-	/* references to global nodal data */
-	const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
-	const dArray2DT& disp = Field()[0]; /* displacements */
-
-	/* work space */
-	dArrayT c(3), n(3);
-	double a[3], b[3];
-	iArrayT eqnos;
+	//TEMP - consistent tangent not implemented
+	fLHS.Identity(fK);
 	
 	/* loop over active elements */
-	const iArray2DT& connects = *(fConnectivities[0]);
-	for (int i = 0; i < connects.MajorDim(); i++)
+	iArrayT eqnos;
+	int* pelem = fConnectivities[0]->Pointer();
+	int rowlength = fConnectivities[0]->MinorDim();
+	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
-		int* pelem = connects(i);
-
-		/* collect element configuration */
-		fElRefCoord.RowCollect(pelem, init_coords);
-		fElDisp.RowCollect(pelem, disp);
-
-		/* current configuration using effective displacement */
-		fElCoord.SumOf(fElRefCoord, fElDisp);
-	
-		/* get facet and striker coords */
-		fElCoord.RowAlias(0, fx1);
-		fElCoord.RowAlias(1, fx2);
-		fElCoord.RowAlias(2, fx3);
-		fElCoord.RowAlias(3, fStriker);
-
-		/* facet normal (direction) = a x b */
-		Vector(fx1.Pointer(), fx2.Pointer(), a);
-		Vector(fx1.Pointer(), fx3.Pointer(), b);
-		CrossProduct(a, b, n.Pointer());
-		double mag = sqrt(Dot(n.Pointer(), n.Pointer()));
-		n[0] /= mag;
-		n[1] /= mag;
-		n[2] /= mag;
-
-		/* (store) distance to facet */
-		c[0] = fStriker[0] - (fx1[0] + fx2[0] + fx3[0])/3.0;
-		c[1] = fStriker[1] - (fx1[1] + fx2[1] + fx3[1])/3.0;
-		c[2] = fStriker[2] - (fx1[2] + fx2[2] + fx3[2])/3.0;
-		double h = Dot(n.Pointer(), c.Pointer());
-
 		/* contact */
-		if (h < 0.0)
+		if (fDists[i] < 0.0)
 		{
-			/* initialize */
-			fRHS = 0.0;
-			fLHS = 0.0;
-	
-			/* second variation of gap */
-			DDg_tri_facet(
-				fElRefCoord(0), fElRefCoord(1), fElRefCoord(2), fElRefCoord(3),
-				fElDisp(0), fElDisp(1), fElDisp(2), fElDisp(3),
-				fLHS);
-			fLHS *= fK*h*constK; 
-
-			/* d_c */
-			fdc_du.MultTx(n, fV1);
-			fRHS.SetToScaled(1.0, fV1);
-
-			/* d_normal */
-			Set_dn_du(fElCoord, fdn_du);					
-			fM1.Outer(n, n);
-			fM1.PlusIdentity(-1.0);
-			fM2.MultATB(fM1, fdn_du);
-			fM2.MultTx(c, fV1);
-			fRHS.AddScaled(-1.0/mag, fV1);
-
-			/* add term g^T g */
-			fLHS.Outer(fRHS, fRHS, fK*constK, dMatrixT::kAccumulate);
-
 			/* get equation numbers */
 			fEqnos[0].RowAlias(i, eqnos);
 			
@@ -202,15 +158,16 @@ void PenaltyContact3DT::RHSDriver(void)
 	const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
 	const dArray2DT& disp = Field()[0]; /* displacements */
 
-	/* work space */
+	/* loop over active elements */
 	dArrayT c(3), n(3);
 	iArrayT eqnos;
 	double a[3], b[3];
 
 	/* reset tracking data */
-	int num_contact = 0;
-	double h_max = 0.0;
+	fnum_contact = 0;
+	fh_max = 0.0;
 
+	fDists.Dimension(fConnectivities[0]->MajorDim());
 	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
@@ -220,7 +177,7 @@ void PenaltyContact3DT::RHSDriver(void)
 		fElDisp.RowCollect(pelem, disp);
 
 		/* current configuration using effective displacement */
-		fElCoord.AddScaled(constKd, fElDisp);
+		fElCoord.AddScaled(constKd, fElDisp); //EFFECTIVE_DVA
 	
 		/* get facet and striker coords */
 		fElCoord.RowAlias(0, fx1);
@@ -241,14 +198,14 @@ void PenaltyContact3DT::RHSDriver(void)
 		c[0] = fStriker[0] - (fx1[0] + fx2[0] + fx3[0])/3.0;
 		c[1] = fStriker[1] - (fx1[1] + fx2[1] + fx3[1])/3.0;
 		c[2] = fStriker[2] - (fx1[2] + fx2[2] + fx3[2])/3.0;
-		double h = Dot(n.Pointer(), c.Pointer());
+		double h = fDists[i] = Dot(n.Pointer(), c.Pointer());
 
 		/* contact */
 		if (h < 0.0)
 		{
 			/* tracking data */
-			num_contact++;
-			h_max = (h < h_max) ? h : h_max;
+			fnum_contact++;
+			fh_max = (h < fh_max) ? h : fh_max;
 		
 			/* penetration force */
 			double dphi =-fK*h;
@@ -267,12 +224,60 @@ void PenaltyContact3DT::RHSDriver(void)
 								
 			/* get equation numbers */
 			fEqnos[0].RowAlias(i, eqnos);
-
+			
 			/* assemble */
 			ElementSupport().AssembleRHS(Group(), fRHS, eqnos);
 		}
 	}
+}
 
-	/* set tracking */
-	SetTrackingData(num_contact, h_max);
+/***********************************************************************
+* Private
+***********************************************************************/
+
+/* set surface normal derivative matrix */
+void PenaltyContact3DT::Set_dn_du(const dArray2DT& curr_coords,
+	dMatrixT& dn_du) const
+{
+	double* p = dn_du.Pointer();
+	double* x1 = curr_coords(0);
+	double* x2 = curr_coords(1);
+	double* x3 = curr_coords(2);
+
+	*p++ = 0;
+	*p++ =-x2[2] + x3[2];
+	*p++ = x2[1] - x3[1];
+	*p++ = x2[2] - x3[2];
+	*p++ = 0;
+	*p++ =-x2[0] + x3[0];
+	*p++ =-x2[1] + x3[1];
+	*p++ = x2[0] - x3[0];
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = x1[2] - x3[2];
+	*p++ =-x1[1] + x3[1];
+	*p++ =-x1[2] + x3[2];
+	*p++ = 0;
+	*p++ = x1[0] - x3[0];
+	*p++ = x1[1] - x3[1];
+	*p++ =-x1[0] + x3[0];
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-x1[2] + x2[2];
+	*p++ = x1[1] - x2[1];
+	*p++ = x1[2] - x2[2];
+	*p++ = 0;
+	*p++ =-x1[0] + x2[0];
+	*p++ =-x1[1] + x2[1];
+	*p++ = x1[0] - x2[0];
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p   = 0;
 }

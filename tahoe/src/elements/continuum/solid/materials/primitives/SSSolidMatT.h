@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.7 2003-02-18 08:44:19 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.6 2003-01-29 07:35:08 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -52,10 +52,6 @@ public:
 
 	/* apply pre-conditions at the current time step */
 	virtual void InitStep(void);
-
-	/** return the strain in the material at the current integration point. 
-	 * Returns the small strain tensor. */
-	virtual void Strain(dSymMatrixT& strain) { strain = e(); };
 
 protected:
 
