@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.h,v 1.10.32.1 2004-04-08 07:32:24 paklein Exp $ */
+/* $Id: CSEIsoT.h,v 1.10.32.2 2004-05-25 16:35:59 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ISO_T_H_
@@ -32,9 +32,6 @@ public:
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
-
-	/** initialize class data */
-	virtual void Initialize(void);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

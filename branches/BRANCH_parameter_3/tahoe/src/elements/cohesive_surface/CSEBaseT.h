@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.19.4.1 2004-04-08 07:32:24 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.19.4.2 2004-05-25 16:35:59 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -57,9 +57,6 @@ public:
 
 	/* destructor */
 	~CSEBaseT(void);
-
-	/* allocates space and reads connectivity data */
-	virtual void Initialize(void);
 
 	/* start of new time sequence */
 	virtual void InitialCondition(void);

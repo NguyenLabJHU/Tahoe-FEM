@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.10.20.1 2004-04-08 07:32:24 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.10.20.2 2004-05-25 16:35:59 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -34,47 +34,6 @@ GlobalT::SystemTypeT ThermalSurfaceT::TangentType(void) const
 {
 	/* tangent matrix is not symmetric */
 	return GlobalT::kSymmetric;
-}
-
-void ThermalSurfaceT::Initialize(void)
-{
-	/* inherited */
-	CSEBaseT::Initialize();
-
-	/* check output codes */
-	if (fNodalOutputCodes[MaterialData])
-	{
-		cout << "\n ThermalSurfaceT::Initialize: material outputs not supported, overriding" << endl;
-		fNodalOutputCodes[MaterialData] = IOBaseT::kAtNever;
-	}
-
-	/* initialize local array */
-	fLocTemperatures.Dimension(NumElementNodes(), NumDOF());
-	Field().RegisterLocal(fLocTemperatures);
-
-	/* read conduction parameters */
-	ifstreamT& in = ElementSupport().Input();
-	int num_sets = -1;
-	in >> num_sets;
-	fConduction.Dimension(num_sets, 2);
-	fConduction = -1.0;
-
-	/* sets of parameters as 
-	 * [set #] [K_0] [D_c] */
-	fConduction.ReadNumbered(in);
-	
-	/* check */
-	if (fConduction.Min() < 0) throw ExceptionT::kBadInputValue;
-	
-	/* echo */	
-	ostream& out = ElementSupport().Output();
-	int d_width = OutputWidth(out, fConduction.Pointer());
-	out << "\n Surface conduction:\n";
-	out << setw(kIntWidth) << "set"
-	    << setw(d_width) << "K_0"
-	    << setw(d_width) << "d_c" << '\n';
-	fConduction.WriteNumbered(out);
-	out.flush();
 }
 
 /* information about subordinate parameter lists */
