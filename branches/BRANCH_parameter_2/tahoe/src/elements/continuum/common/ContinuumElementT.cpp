@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.35.2.2 2004-02-12 17:19:12 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.35.2.3 2004-02-26 08:58:04 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -1288,6 +1288,7 @@ void ContinuumElementT::TakeParameterList(const ParameterListT& list)
 
 	/* allocate work space */
 	fNEEvec.Dimension(NumElementNodes()*NumDOF());
+	fDOFvec.Dimension(NumDOF());
 
 	/* initialize local arrays */
 	SetLocalArrays();
@@ -1328,6 +1329,22 @@ void ContinuumElementT::TakeParameterList(const ParameterListT& list)
 	else if (type == GlobalT::kDiagonal)
 		fLHS.SetFormat(ElementMatrixT::kDiagonal);
 
+	/* body force */
+	const ParameterListT* body_force = list.List("body_force");
+	if (body_force) {
+		int schedule = body_force->GetParameter("schedule");
+		fBodySchedule = ElementSupport().Schedule(--schedule);
+
+		/* body force vector */
+		const ArrayT<ParameterListT>& body_force_vector = body_force->Lists();
+		if (body_force_vector.Length() != NumDOF())
+			ExceptionT::BadInputValue(caller, "body force is length %d not %d",
+				body_force_vector.Length(), NumDOF());
+		fBody.Dimension(NumDOF());
+		for (int i = 0; i < fBody.Length(); i++)
+			fBody[i] = body_force_vector[i].GetParameter("value");
+	}
+	
 #pragma message("finish me")
 #if 0
 	/* output print specifications */
