@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.h,v 1.15 2003-10-12 23:48:54 raregue Exp $
+// $Id: APS_Bal_EqT.h,v 1.16 2003-10-13 01:40:42 raregue Exp $
 #ifndef _APS_BALEQ_T_H_ 
 #define _APS_BALEQ_T_H_ 
 
@@ -31,8 +31,11 @@ class APS_Bal_EqT	: public BalLinMomT
 
   	enum B_gradu_T { 
 						   		kgrad_u,
-						   		kgrad_u_surf,
 	             				kNUM_B_gradu_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
+	             				
+ 	enum B_gradu_surf_T { 
+						   		kgrad_u_surf,
+	             				kNUM_B_gradu_surf_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)	             				
 
 
 	enum VB_d_T {
@@ -50,14 +53,18 @@ class APS_Bal_EqT	: public BalLinMomT
 
 	             					
 	enum V_T {
-								knueps,
-								keps,
-								//kgrad_u,
 								kgammap,
-								kgammap_surf,
 								kV_Temp1,
 								kV_Temp2,
 	             				kNUM_V_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
+	             				
+	enum V_surf_T {
+								knueps,
+								keps,
+								kgammap_surf,
+								kV_surf_Temp1,
+								kV_surf_Temp2,
+	             				kNUM_V_surf_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)	             				
 	             				
 	enum VS_T {
 								kVS_Temp1,
@@ -92,7 +99,7 @@ class APS_Bal_EqT	: public BalLinMomT
 
   		void 	Form_LHS_Keps_Kd	( dMatrixT &Keps, dMatrixT &Kd ); // add delta_t for dynamics
   		void 	Form_RHS_F_int		( dArrayT  &F_int, APS_VariableT &npt ); 
-  		void 	Form_LHS_Kd_Surf	( dMatrixT &Kd_face, FEA_SurfShapeFunctionT &SurfShapes ); // add delta_t for dynamics
+  		void 	Form_LHS_Kd_Surf	( dMatrixT &Kd_face, FEA_SurfShapeFunctionT &SurfShapes );
   		void 	Form_RHS_F_int_Surf	( dArrayT  &F_int_face, APS_VariableT &npt, double &wght  ); 
 		void 	Form_B_List 		( void );  // Strain Displacement Matricies
 		void 	Form_VB_List 		( void );  // Strain Matricies
@@ -106,8 +113,8 @@ class APS_Bal_EqT	: public BalLinMomT
 
 	protected:
 
-  		FEA_dMatrix_ArrayT B_d, B_d_surf, B_eps, B_gradu; 
-  		FEA_dVector_ArrayT VB_d, VB_eps, V, VS;
+  		FEA_dMatrix_ArrayT B_d, B_d_surf, B_eps, B_gradu, B_gradu_surf; 
+  		FEA_dVector_ArrayT VB_d, VB_eps, V, VS, V_surf;
   		FEA_dScalar_ArrayT S; 
   		dArrayT 			C;
 
@@ -120,7 +127,7 @@ class APS_Bal_EqT	: public BalLinMomT
 
 		double delta_t;
 		int time_step;
-		int n_en_surf;
+		int n_en_surf, n_ip_surf;
 
 		int n_ip, n_rows_vector, n_rows_matrix, n_cols_matrix, n_sd, n_en, n_sd_x_n_sd, 
 			n_sd_x_n_en, Time_Integration_Scheme;

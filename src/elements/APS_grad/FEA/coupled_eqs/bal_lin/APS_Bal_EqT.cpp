@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.21 2003-10-12 23:48:54 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.22 2003-10-13 01:40:42 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -36,6 +36,7 @@ void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_M
 	n_sd_x_n_en = n_sd * n_en;
 	
 	//tmp
+	n_ip_surf=2;
 	n_en_surf=2;
 
 	delta_t = fdelta_t;
@@ -85,10 +86,10 @@ void APS_Bal_EqT::Form_LHS_Kd_Surf	( dMatrixT &Kd_face, FEA_SurfShapeFunctionT &
 		Data_Pro_Surf.APS_B_surf(B_d_surf[kB_surf]);
 		Data_Pro_Surf.APS_N(VB_d[kN]);
 
-		V[knueps] = SurfShapes.normal;
+		V_surf[knueps] = SurfShapes.normal;
 		//V[knueps](1) = SurfShapes.normal[1];
 
- 		V[knueps].Dot( B_d_surf[kB_surf], VB_d[knuB] ); 
+ 		V_surf[knueps].Dot( B_d_surf[kB_surf], VB_d[knuB] ); 
  		
 		Kd_face	= SurfIntegral.of( VB_d[kN], C[kMu], VB_d[knuB] );
 		Kd_face	*= -1.0;
@@ -98,9 +99,9 @@ void APS_Bal_EqT::Form_LHS_Kd_Surf	( dMatrixT &Kd_face, FEA_SurfShapeFunctionT &
 
 void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int_face, APS_VariableT &npt, double &wght  ) 
 {
-		V[kgammap_surf] = npt.Get ( APS::kgammap_surf );
-		V[keps] = V[kgammap_surf];
-		V[keps] *= wght;
+		V_surf[kgammap_surf] = npt.Get ( APS::kgammap_surf );
+		V_surf[keps] = V_surf[kgammap_surf];
+		V_surf[keps] *= wght;
 		/*
 		V[keps](0) = C[km1];
 		V[keps](0) *= wght;
@@ -108,12 +109,12 @@ void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int_face, APS_VariableT &npt,
 		V[keps](1) *= wght; 
 		*/
 		
-		B_gradu[kgrad_u_surf] = npt.Get ( APS::kgrad_u_surf );
-		V[kV_Temp2](0)=B_gradu[kgrad_u_surf](0,0);
-		V[kV_Temp2](1)=B_gradu[kgrad_u_surf](0,1);
-		V[knueps].Dot( V[kV_Temp2], S[knuepsgradu] );
-		V[knueps].Dot( V[keps], S[knuepseps] );
-
+		B_gradu_surf[kgrad_u_surf] = npt.Get ( APS::kgrad_u_surf );
+		V_surf[kV_surf_Temp2](0)=B_gradu_surf[kgrad_u_surf](0,0);
+		V_surf[kV_surf_Temp2](1)=B_gradu_surf[kgrad_u_surf](0,1);
+		V_surf[knueps].Dot( V_surf[kV_surf_Temp2], S[knuepsgradu] );
+		V_surf[knueps].Dot( V_surf[keps], S[knuepseps] );
+		
 		F_int_face = SurfIntegral.of( VB_d[kN], C[kMu], S[knuepsgradu] );
 		F_int_face *= -1.0;
 		F_int_face += SurfIntegral.of( VB_d[kN], C[kMu], S[knuepseps] );
@@ -126,11 +127,12 @@ void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int_face, APS_VariableT &npt,
 void APS_Bal_EqT::Form_B_List (void)
 {
 		B_d.Construct 	( kNUM_B_d_TERMS, n_ip, n_sd, n_en);
-		B_d_surf.Construct 	( kNUM_B_d_surf_TERMS, n_ip, n_sd, n_en_surf);
+		B_d_surf.Construct 	( kNUM_B_d_surf_TERMS, n_ip_surf, n_sd, n_en_surf);
 		B_eps.Construct ( kNUM_B_eps_TERMS, n_ip, n_sd, n_sd_x_n_en);
 		int dum=1;
 		//B_gradu.Construct ( kNUM_B_gradu_TERMS, n_ip, n_sd, dum);
-		B_gradu.Construct ( kNUM_B_gradu_TERMS, n_ip, dum, n_sd);		
+		B_gradu.Construct ( kNUM_B_gradu_TERMS, n_ip, dum, n_sd);	
+		B_gradu_surf.Construct ( kNUM_B_gradu_surf_TERMS, n_ip_surf, dum, n_sd);		
 		
 		Data_Pro.APS_B(B_d[kB]);
  		Data_Pro.APS_Ngamma(B_eps[kBgamma]);
@@ -139,15 +141,16 @@ void APS_Bal_EqT::Form_B_List (void)
 		
 void APS_Bal_EqT::Form_VB_List (void)
 {
-		VB_d.Construct 	( kNUM_VB_d_TERMS, 	n_ip, n_en_surf	);
+		VB_d.Construct 	( kNUM_VB_d_TERMS, 	n_ip_surf, n_en_surf	);
 		VB_eps.Construct ( kNUM_VB_eps_TERMS, 	n_ip, n_sd_x_n_en 	);				
 }
 
 
 void APS_Bal_EqT::Form_V_S_List (APS_VariableT &npt)
 {
-		S.Construct 	( kNUM_S_TERMS, 	n_ip 		);
+		S.Construct 	( kNUM_S_TERMS, 	n_ip_surf 		);
 		V.Construct 	( kNUM_V_TERMS, 	n_ip, n_sd 	);
+		V_surf.Construct ( kNUM_V_surf_TERMS, 	n_ip_surf, n_sd 	);
 		int dum=1;
 		VS.Construct 	( kNUM_VS_TERMS, 	n_ip, dum 	);
 }
