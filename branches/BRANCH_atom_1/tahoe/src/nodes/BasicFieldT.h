@@ -1,5 +1,4 @@
-/* $Id: BasicFieldT.h,v 1.4.10.1 2002-12-16 09:16:55 paklein Exp $ */
-
+/* $Id: BasicFieldT.h,v 1.4.10.2 2003-01-09 09:44:18 paklein Exp $ */
 #ifndef _BASIC_FIELD_T_H_
 #define _BASIC_FIELD_T_H_
 
