@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.15 2005-03-08 16:10:03 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.16 2005-03-09 19:27:00 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 #include "SSMatSupportT.h"
@@ -125,13 +125,13 @@ const dSymMatrixT& DPSSKStVLoc::s_ij(void)
 */
 
 //#if 0
-//bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
-bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA)
+bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact)
 {
 	/* stress tensor */
 	const dSymMatrixT& stress = s_ij();
 			
-	/* elasto-plastic tangent modulus */
+	/* elasto-plastic tangent moduli */
 	const dMatrixT& modulus = c_perfplas_ijkl();
 	//const dMatrixT& modulus = c_ep_ijkl();
 	//const dMatrixT& modulus = c_ijkl();
@@ -143,8 +143,30 @@ bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT
 	DetCheckT checker(stress, modulus, modulus_e);
 	normals.Dimension(NumSD());
 	slipdirs.Dimension(NumSD());
-	//double dummyDetA = 0.0;
-	return checker.IsLocalized_SS(normals,slipdirs,detA);
+	normals.Free();
+	slipdirs.Free();
+	detAs.Free();
+	bool checkloc = checker.IsLocalized_SS(normals,slipdirs,detAs);
+	
+	/* calculate dissipation for each normal and slipdir */
+	normals.Top();
+	slipdirs.Top();
+	int num_normals = normals.Length();
+	dissipations_fact.Free();
+	dArrayT normal_tmp, slipdir_tmp;
+	normal_tmp.Dimension(NumSD());
+	slipdir_tmp.Dimension(NumSD());
+	while (normals.Next())
+	{
+		normal_tmp = normals.Current();
+		slipdirs.Next();
+		slipdir_tmp = slipdirs.Current();
+		//incomplete
+		double dissip = 0.0;
+		dissipations_fact.Append(dissip);
+	}
+
+	return checkloc;
 }
 //#endif
 
