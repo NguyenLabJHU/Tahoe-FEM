@@ -1,4 +1,4 @@
-/* $Id: MeshFreeNodalShapeFunctionT.h,v 1.4 2004-07-29 23:42:12 cjkimme Exp $ */
+/* $Id: MeshFreeNodalShapeFunctionT.h,v 1.5 2005-01-27 02:03:31 cjkimme Exp $ */
 #ifndef _MF_NODAL_SHAPE_FUNCTION_T_H_
 #define _MF_NODAL_SHAPE_FUNCTION_T_H_
 
@@ -56,6 +56,7 @@ public:
 
 	/* compute shape function at arbitrary point */
 	virtual int SetFieldAt(const dArrayT& x, const dArrayT* shift); // returns 0 if MLS fails
+	virtual int SetFieldUsing(const dArrayT& x, const ArrayT<int>& nodes);
 	const dArrayT& FieldAt(void);
 
 	/* compute global shape derivatives (at arbitrary point)*/ 	
