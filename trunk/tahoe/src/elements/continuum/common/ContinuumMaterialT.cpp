@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.2 2001-02-20 00:23:20 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 
 #include "ContinuumMaterialT.h"
@@ -83,6 +83,28 @@ void ContinuumMaterialT::ComputeOutput(dArrayT& output)
 {
 #pragma unused(output)
 }
+
+/* returns true if two materials have compatible output variables */
+bool ContinuumMaterialT::CompatibleOutput(const ContinuumMaterialT& m1, 
+	const ContinuumMaterialT& m2)
+{
+	/* number of variables */
+	if (m1.NumOutputVariables() != m2.NumOutputVariables())
+		return false;
+	/* labels */
+	else
+	{
+		ArrayT<StringT> labels1, labels2;
+		m1.OutputLabels(labels1);
+		m2.OutputLabels(labels2);
+		for (int i = 0; i < labels1.Length(); i++)
+			if (labels1[i] != labels2[i])
+				return false;
+
+		/* compatible if execution false through */
+		return true;
+	}
+}	
 
 /***********************************************************************
 * Protected
