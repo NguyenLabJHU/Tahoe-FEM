@@ -1,4 +1,4 @@
-/* $Id: expat_ParseT.cpp,v 1.5 2004-02-05 18:42:38 paklein Exp $ */
+/* $Id: expat_ParseT.cpp,v 1.6 2004-03-28 09:46:24 paklein Exp $ */
 #include "expat_ParseT.h"
 #ifdef __EXPAT__
 
@@ -122,10 +122,13 @@ void expat_ParseT::startElement(void *userData, const char *name, const char **a
 		ExceptionT::BadInputValue(caller, "could not add sublist \"%s\" to list \"%s\"",
 			sublist.Name().Pointer(), parent->Name().Pointer());
 
-	/* put sublist at the end of the stack */
-	ParameterListT* list = parent->List(sublist.Name());
-	if (!list) ExceptionT::GeneralFail(caller, "list not found \"%s\"", sublist.Name().Pointer());
-	sListStack.Append(list);
+	/* put newest sublist at the end of the stack */
+	const ArrayT<ParameterListT>& subs = parent->Lists();
+	const ParameterListT& last = subs.Last();
+	if (last.Name() != name)
+		ExceptionT::GeneralFail(caller, "last list should be \"%s\" not \"%s\"", 
+			name, last.Name().Pointer());
+	sListStack.Append((ParameterListT*) &last);
 }
 
 void expat_ParseT::endElement(void *userData, const char *name)
