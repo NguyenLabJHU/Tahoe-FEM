@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.cpp,v 1.8 2003-04-16 20:34:06 cjkimme Exp $ */
+/* $Id: nTrapezoid.cpp,v 1.9 2003-05-20 10:29:37 paklein Exp $ */
 /* created: paklein (10/03/1999) */
 #include "nTrapezoid.h"
 #include "dArrayT.h"
@@ -28,7 +28,11 @@ void nTrapezoid::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		case KBC_CardT::kDsp: /* prescribed displacement */
 		{
 			double d_next = KBC.Value();
-			v = (d_next - d)/dcorr_v;
+
+			if (fabs(dcorr_v) > kSmall) /* for dt -> 0.0 */
+				v = (d_next - d)/dcorr_v;
+			else
+				v = 0.0;
 			d = d_next;
 			break;
 		}
