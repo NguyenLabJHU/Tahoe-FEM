@@ -1,4 +1,4 @@
-/* $Id: GraphBaseT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: GraphBaseT.cpp,v 1.2 2001-04-18 23:54:17 paklein Exp $ */
 /* created: paklein (04/13/1999)                                          */
 /* base class for graph class. does not handle making the graph.          */
 
@@ -283,7 +283,7 @@ void GraphBaseT::Contract(const GraphBaseT& parent, iArrayT& map)
 	int dim = parent.NumNodes();
 
 	/* temp work space */
-	AutoFill2DT<int> edgedata(dim, parent.MinDegree(), 5); // under allocate
+	AutoFill2DT<int> edgedata(dim, 10, parent.MinDegree()); // under allocate
 	AutoArrayT<int> degrees;
 	iArrayT edges, edges2;
 
