@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.9 2004-12-27 20:17:17 paklein Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.10 2005-02-16 21:41:36 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeShapeFunctionT.h"
 #include "D2MeshFreeSupport2DT.h"
@@ -17,25 +17,33 @@ D2MeshFreeShapeFunctionT::D2MeshFreeShapeFunctionT(GeometryT::CodeT geometry_cod
 	MeshFreeShapeFunctionT(geometry_code, numIP, coords, all_coords, connects,
 		nongridnodes, currelement, mf_support_params),
 	fDDNaU(numIP),
-	fDDNa_tmp(numIP)
+	fDDNa_tmp(numIP),
+	fD2MFSupport(NULL)
 {
 	const char caller[] = "D2MeshFreeShapeFunctionT::D2MeshFreeShapeFunctionT";
 
-	/* construct MLS support */
-	if (all_coords.MinorDim() == 2)
+	/* construct MLS support - otherwise must be set by constructor of derived classes */
+	if (mf_support_params.Name() == "D2_meshfree_support_2D")
 		fD2MFSupport = new D2MeshFreeSupport2DT(fDomain, all_coords, connects, nongridnodes);
-	else
-		ExceptionT::BadInputValue(caller, "2D only");
-	if (!fD2MFSupport) ExceptionT::OutOfMemory(caller);
 
 	/* initialize */
-	ParameterListT D2_mf_support_params(mf_support_params);
-	D2_mf_support_params.SetName(fD2MFSupport->Name());
-	fD2MFSupport->TakeParameterList(D2_mf_support_params);
+	if (fD2MFSupport) fD2MFSupport->TakeParameterList(mf_support_params);
 
 	/* delete MLS support for base class */
 	delete fMFSupport;
 	fMFSupport = fD2MFSupport;
+}
+
+/* class-dependent initializations */
+void D2MeshFreeShapeFunctionT::Initialize(void)
+{
+	/* inherited */
+	ShapeFunctionT::Initialize();
+	
+	/* check */
+	if (!fD2MFSupport)
+		ExceptionT::GeneralFail("MeshFreeShapeFunctionT::Initialize",
+			"meshfree support not set");
 }
 
 /* compute local shape functions and derivatives */ 	

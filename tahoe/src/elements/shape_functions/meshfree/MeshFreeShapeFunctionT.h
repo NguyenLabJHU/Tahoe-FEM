@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.h,v 1.9 2004-07-15 08:29:59 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.h,v 1.10 2005-02-16 21:41:29 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _MF_SHAPE_FUNCTION_T_H_
 #define _MF_SHAPE_FUNCTION_T_H_
@@ -41,6 +41,9 @@ public:
 
 	/** destructor */
 	~MeshFreeShapeFunctionT(void);
+
+	/** class-dependent initializations */
+	virtual void Initialize(void);
 
 	/* initialization - modifications to the support size must
 	 * occur before setting the neighbor data. Coordinates and
