@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.12 2002-01-27 18:51:08 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.13 2002-01-27 23:06:35 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #include "IOManager_mpi.h"
@@ -515,7 +515,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 			OutputSetT& global_set = *((fOutput->ElementSets())[k]);
 
 			/* block ID's in the set */
-			const iArrayT& block_ID = global_set.BlockID();
+			const ArrayT<StringT>& block_ID = global_set.BlockID();
 
 //###########################################################
 // using NON-blocking receives
@@ -659,7 +659,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 				OutputSetT& local_set = *(local_sets[k]);
 
 				/* block ID's in the set */
-				const iArrayT& block_ID = local_set.BlockID();
+				const ArrayT<StringT>& block_ID = local_set.BlockID();
 				
 				/* set send buffer */
 				iArrayT sbuff(block_ID.Length() + elem_counts[k]);
@@ -670,9 +670,10 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 					const iArrayT& map = fPartition.ElementMap(block_ID[i]); 
 				
 					/* check */
-					if (map.Length() != local_set.NumBlockElements(i)) {
+					if (map.Length() != local_set.NumBlockElements(block_ID[i])) {
 						cout << "\n IOManager_mpi::SetCommunication: element block ID " << block_ID[i]
-						     << " dimension in output set\n" <<   "     " << k << " (" << local_set.NumBlockElements(i)
+						     << " dimension in output set\n" <<   "     " << k << " (" 
+						     << local_set.NumBlockElements(block_ID[i])
 						     << ") does not match the element map in the partition data (" 
 						     << map.Length() << ")"<< endl;
 						throw eSizeMismatch;
