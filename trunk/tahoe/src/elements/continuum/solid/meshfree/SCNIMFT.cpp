@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.15 2004-05-12 00:20:40 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.16 2004-05-14 23:08:41 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -937,6 +937,22 @@ void SCNIMFT::ComputeBMatrices(void)
 		bVectors_i.Top(); nodes_i.Top();
 		while ((currFacetIntegral = bVectors_i.Next()))
 			*currFacetIntegral *= 1./fVoronoiCellVolumes[i];
+	}
+	
+	// move into more efficient storage for computation
+	nodalCellSupports.Configure(nodeWorkSpace);
+	bVectorArray.Configure(facetWorkSpace);
+	
+	for (int i = 0; i < nodalCellSupports.MajorDim(); i++) {
+		int* irow_i = nodalCellSupports(i);
+		dArrayT* drow_i = bVectorArray(i);
+		LinkedListT<int>& ilist = nodeWorkSpace[i];
+		LinkedListT<dArrayT>& dlist = facetWorkSpace[i];
+		ilist.Top(); dlist.Top();
+		while (ilist.Next() && dlist.Next()) {
+			*irow_i++ = *(ilist.CurrentValue());
+			*drow_i++ = *(dlist.CurrentValue());
+		}
 	}
 }
 

@@ -203,32 +203,32 @@ protected:
 	iArray2DT fDeloneEdges;
 
 	/** Voronoi facets dual to the Delone Edges */
-	iArray2DT fDualFacets;
+	iArray2DT fDualFacets; // Tag for Deletion
 
 	/** Self-dual facet information. I.E. facets that contribute only to one integral over one boundary node's cell */
 #ifdef __QHULL__
 	CompGeomT::ConvexHullMap fSelfDuals;
 #else
-	ConvexHullMap fSelfDuals;
+	ConvexHullMap fSelfDuals; // Tag for Deletion
 #endif
 	int fNumSelfDuals;
 	int fNumClippedFacets;
 
 	/** connectivity of boundary nodes. Currently determined from an underlying 
 	    element connectivity */
-	iArray2DT fBoundaryConnectivity;
+	iArray2DT fBoundaryConnectivity; // Tag for Deletion
 	
 	/** union of nodes in fBoundaryConnectivity */
-	iArrayT fBoundaryNodes;
+	iArrayT fBoundaryNodes; // Tag for Deletion
 	
 	/** true if boundary connectivity is simplicial */
-	bool fBoundaryIsTriangulated;
+	bool fBoundaryIsTriangulated; // Tag for Deletion
 	
 	/** centroids of the facets dual to Delone edges */
 	dArray2DT fDualFacetCentroids;
 	
 	/** additional edges associated only with one node */
-	iArrayT fNonDeloneEdges;
+	iArrayT fNonDeloneEdges; // Tag for Deletion
 	
 	/** centroids of the facets for those edges */
 	dArray2DT fNonDeloneCentroids;
@@ -247,15 +247,16 @@ protected:
 	CompGeomT::VoronoiDiagramMap fVoronoiFacetIndices;
 #else
 	void* fVoronoi;
-	ConvexHullMap fVoronoiCells;
-	VoronoiDiagramMap fVoronoiFacetIndices;
+	ConvexHullMap fVoronoiCells; // Tag for Deletion
+	VoronoiDiagramMap fVoronoiFacetIndices; // Tag for Deletion
 #endif
 
-	ArrayT<dArrayT> fVoronoiFacetAreas;
-	ArrayT<dArray2DT> fVoronoiFacetNormals;
+	ArrayT<dArrayT> fVoronoiFacetAreas; // Tag for Deletion
+	ArrayT<dArray2DT> fVoronoiFacetNormals; // Tag for Deletion
+
 	/** Volume associated with each node -- integration weight for nodal integration */
 	dArrayT fVoronoiCellVolumes;
-	dArray2DT fVoronoiVertices;
+	dArray2DT fVoronoiVertices; // Tag for Deletion
 	/*@}*/
 
 	/** list of materials */
@@ -265,6 +266,9 @@ protected:
 	/** workspaces for strain smoothing */
 	ArrayT< LinkedListT<int> > nodeWorkSpace;
 	ArrayT< LinkedListT<dArrayT> > facetWorkSpace;
+
+	RaggedArray2DT<int> nodalCellSupports;
+	RaggedArray2DT<dArrayT> bVectorArray;
 	
 	/** workspace for nodal shape functions */
 	ArrayT< LinkedListT<double> > fNodalPhi;
