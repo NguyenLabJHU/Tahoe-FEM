@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.h,v 1.14 2003-11-10 22:14:15 cjkimme Exp $ */
+/* $Id: iConsoleT.h,v 1.15 2004-06-17 06:38:16 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 #ifndef _I_CONSOLE_T_H_
 #define _I_CONSOLE_T_H_
@@ -7,7 +7,7 @@
 #include "iConsoleBaseT.h"
 
 /* direct members */
-#include "fstreamT.h"
+#include "ofstreamT.h"
 
 namespace Tahoe {
 

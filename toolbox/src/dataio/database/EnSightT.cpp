@@ -1,4 +1,4 @@
-/* $Id: EnSightT.cpp,v 1.17 2003-11-25 19:46:56 paklein Exp $ */
+/* $Id: EnSightT.cpp,v 1.18 2004-06-17 06:38:21 paklein Exp $ */
 /* created: sawimme (05/13/1999) */
 #include "EnSightT.h"
 
@@ -9,8 +9,7 @@
 #include "dArray2DT.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
-#include "fstreamT.h"
-#include "ios_fwd_decl.h"
+#include "ifstreamT.h"
 #include "AutoArrayT.h"
 
 using namespace Tahoe;

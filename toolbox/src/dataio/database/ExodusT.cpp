@@ -1,6 +1,5 @@
-/* $Id: ExodusT.cpp,v 1.25 2003-11-21 22:41:46 paklein Exp $ */
-/* created: sawimme (12/04/1998)                                          */
-
+/* $Id: ExodusT.cpp,v 1.26 2004-06-17 06:38:21 paklein Exp $ */
+/* created: sawimme (12/04/1998) */
 #include "ExodusT.h"
 
 /* ANSI headers */
@@ -13,7 +12,7 @@
 #include "iArray2DT.h"
 #include "StringT.h"
 #include "pArrayT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 
 using namespace Tahoe;
 

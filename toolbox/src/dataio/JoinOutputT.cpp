@@ -1,8 +1,8 @@
-/* $Id: JoinOutputT.cpp,v 1.18 2003-11-21 22:41:44 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.19 2004-06-17 06:38:19 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 #include "JoinOutputT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "OutputBaseT.h"
 #include "ModelManagerT.h"
 #include "OutputSetT.h"
