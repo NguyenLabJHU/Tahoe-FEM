@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.14 2002-01-06 06:58:45 cbhovey Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.15 2002-02-18 09:17:31 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -962,9 +962,10 @@ void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 		fnNeighborCount[i] = count;
 
 		/* store neighbors */
-		allocator.Allocate(count);
+		allocator.Dimension(count);
 		neighbors.CopyInto(allocator);
 		allocator.ReleasePointer(pointers.Pointer(i));
+		allocator.Free();
 	}					
 
 	/* use disk for bigger problems */
@@ -1274,9 +1275,10 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 		feNeighborCount[i] = setlength;
 
 		/* store neighbors */
-		allocator.Allocate(setlength);
+		allocator.Dimension(setlength);
 		nodeset.CopyInto(allocator);
 		allocator.ReleasePointer(pointers.Pointer(i));
+		allocator.Free();
 	}
 
 	/* use disk for bigger problems */
