@@ -1,4 +1,4 @@
-/* $Id: MSRMatrixT.cpp,v 1.4 2004-06-26 06:29:14 paklein Exp $ */
+/* $Id: MSRMatrixT.cpp,v 1.5 2004-09-13 20:12:30 paklein Exp $ */
 #include "MSRMatrixT.h"
 
 #include "MSRBuilderT.h"
@@ -102,10 +102,12 @@ void MSRMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
 		{
 			/* sanity check */
 			ElementMatrixT::FormatT format = elMat.Format();
+#if 0
 			if (format != ElementMatrixT::kSymmetricUpper &&
 			    format != ElementMatrixT::kDiagonal && // faster with dedicated function
 			    format != ElementMatrixT::kSymmetric)  // faster with dedicated function
 				ExceptionT::GeneralFail(caller, "unexpected matrix format %d", format);
+#endif
 
 			/* equation numbers -> active equation numbers */
 			fRowDexVec.Dimension(0);
@@ -137,11 +139,15 @@ void MSRMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
 					for (int j = i; j < num_active; j++)
 					{
 						int dex_j = fActiveDex[j];
-						double value = (dex_j >= dex_i) ? // source is upper only
-							elMat(dex_i, dex_j) :
-							elMat(dex_j, dex_i);
+						double value = 0.0;
+						if (format == ElementMatrixT::kNonSymmetric) /* symmetrize source */
+							value = 0.5*(elMat(dex_i, dex_j) + elMat(dex_j, dex_i));
+						else
+							value = (dex_j >= dex_i) ? // source may be upper only
+								elMat(dex_i, dex_j) :
+								elMat(dex_j, dex_i);
 							
-						/* off-diagonal in element, but global in diagonal */
+						/* off-diagonal in element, but global in diagonal (repeated values in eqnos) */
 						if (eqnos[dex_i] == eqnos[dex_j] && dex_i != dex_j)
 							fValVec[j - i] = 2.0*value;
 						else
