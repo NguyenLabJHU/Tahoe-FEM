@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.h,v 1.2 2003-08-08 16:33:55 paklein Exp $ */
+/* $Id: ConveyorT.h,v 1.2.42.1 2004-10-13 19:03:47 thao Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
 
@@ -16,7 +16,6 @@ namespace Tahoe {
 
 /** forward declarations */
 class FieldT;
-class KBC_PrescribedT;
 
 /** conveyor belt */
 class ConveyorT: public KBC_ControllerT
@@ -53,6 +52,8 @@ public:
 	/* returns true if the internal force has been changed since
 	 * the last time step */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
+	virtual void ReadRestart(ifstreamT& in);
+	virtual void WriteRestart(ofstreamT& out) const;
 
 protected:
 
@@ -108,7 +109,7 @@ protected:
 
 	/** \name boundary condition for the far right edge */
 	/*@{*/
-	KBC_PrescribedT* fRightEdge;
+	KBC_ControllerT* fRightEdge;
 	AutoArrayT<int>  fShiftedNodes;
 	/*@}*/
 
@@ -118,9 +119,11 @@ protected:
 	double fTipX_0; /**< initial x-coordinate of the crack tip */
 	double fTipY_0; /**< cleavage plane position */
 	
+	TrackingTypeT fTrackingType;
+	double fTipThreshold;   /** threshold value which defines the top position**/
+	
 	int fTipOutputCode; /**< output flag to generate data to locate the tip */
 	int fTipColumnNum;  /**< column of output variable to locate tip */
-	double fTipThreshold; /**< threshold value which defines the tip position */
 	/*@}*/
 
 	/** \name edge damping */
@@ -148,6 +151,9 @@ protected:
 
 	/** width of the dead element zone at either end of the domain. */
 	double fWidthDeadZone;
+
+	double fX_Left_last;  /**left-most edge of the undeformed mesh*/
+	double fX_Right_last; /**right-most edge of the undeformed mesh*/
 	/*@}*/
 
 	/** \name tracking point */

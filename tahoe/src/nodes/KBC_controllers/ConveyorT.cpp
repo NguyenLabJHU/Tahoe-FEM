@@ -1,5 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.3 2003-11-21 22:47:59 paklein Exp $ */
-#include "ConveyorT.h"
+/* $Id: ConveyorT.cpp,v 1.3.30.1 2004-10-13 19:03:47 thao Exp $ */
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
@@ -7,6 +6,7 @@
 #include "ElementBaseT.h"
 #include "KBC_PrescribedT.h"
 #include "ifstreamT.h"
+#include "ConveyorT.h"
 
 using namespace Tahoe;
 
@@ -110,7 +110,8 @@ void ConveyorT::Initialize(ifstreamT& in)
 		KBC_CardT& card = fKBC_Cards[node++];
 		card.SetValues(fTopNodes[i], 0, KBC_CardT::kFix, 0, 0);
 	}
-
+ 
+ 
 	/* find boundaries */
 	const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
 	dArrayT X2(init_coords.MajorDim());
@@ -129,9 +130,30 @@ void ConveyorT::Initialize(ifstreamT& in)
 	file.Append(".tracking");
 	fTrackingOutput.open(file);
 	
-	/* create controller for the right edge of the domain */
+	/* create controller for the right and left edge of the domain */
 	fRightEdge = new KBC_PrescribedT(fNodeManager);
 	fField.AddKBCController(fRightEdge);
+	
+	/*find the right edge*/
+	const dArray2DT& initial_coords = fNodeManager.InitialCoordinates();
+	int nnd = initial_coords.MajorDim();
+	iAutoArrayT rightnodes(0);
+	double* px = initial_coords.Pointer();
+//	double rightmost = TrackPoint(kRightMost,kSmall);
+	/* find and store right edge */
+	for (int i = 0; i < nnd; i++)
+	{
+//		if (fabs(*px - rightmost) < kSmall) rightnodes.Append(i);
+		if (fabs(*px - fX_Right) < kSmall) rightnodes.Append(i);
+		px += nsd;
+	}
+	/*fix the right edge*/
+	ArrayT<KBC_CardT>& cards = fRightEdge->KBC_Cards();
+	cards.Dimension(rightnodes.Length());
+	for (int i=0; i< cards.Length(); i++) {
+		KBC_CardT& card = cards[i];
+		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
+	}
 }
 
 void ConveyorT::WriteParameters(ostream& out) const
@@ -275,6 +297,109 @@ GlobalT::RelaxCodeT ConveyorT::RelaxSystem(void)
 		cout << "\n ConveyorT::RelaxSystem: setting system focus = " << fTrackingPoint << endl;
 	}
 	return relax;
+}
+
+void ConveyorT::ReadRestart(ifstreamT& in)
+{
+	/*inheritde*/
+	KBC_ControllerT::ReadRestart(in);
+	
+	/*external file*/
+	StringT file = in.filename();
+	file.Append(".", fField.Name());
+	file.Append(".", Name());
+	ifstreamT my_in(file);
+	if (!my_in.is_open())
+		ExceptionT::GeneralFail("ConveyorT::ReadRestart", "could not open file\"%s\"", file.Pointer());
+		
+	/*read dimensions*/
+	my_in >> fTrackingCount >> fTrackingPoint >> fX_Left >> fX_Right;
+	
+	/*read node lists */
+	iArrayT tmp;
+	int num_shifted = -1;
+	my_in >> num_shifted;
+	tmp.Dimension(num_shifted);
+	my_in >> tmp;
+	fShiftedNodes = tmp;
+	
+	int reset, num_damped = -1;
+	my_in >> reset;
+	fDampingReset = (reset)? true:false;
+	my_in >> num_damped;
+	tmp.Dimension(num_damped);
+	my_in >> tmp;
+	fDampingNodes = tmp;
+	
+	int ndof = fField.NumDOF();
+	int ndn = fDampingNodes.Length();
+	fDampingForce.Dimension(ndn, ndof);
+	fDampingCoeff.Dimension(ndn, ndof);
+	fDampingEqnos.Dimension(ndn,ndof);
+	my_in >> fDampingCoeff >> fDampingEqnos;
+	
+	/*shifted reference coordinates*/
+//	ModelManagerT& model = fSupport.ModelManager();
+	const FEManagerT& fe = fNodeManager.FEManager();
+	ModelManagerT* model = fe.ModelManager();
+	dArray2DT shifted_init_coords(model->NumNodes(), model->NumDimensions());
+	my_in >> shifted_init_coords;
+	model->UpdateNodes(shifted_init_coords, false);
+	fNodeManager.UpdateCurrentCoordinates();
+	
+	/*initialize hisotry*/
+	fTrackingPoint_last = fTrackingPoint;
+	fX_Left_last =fX_Left;
+	fX_Right_last=fX_Right;
+	
+	/*reset cards for right edge*/
+	ArrayT<KBC_CardT>& cards = fRightEdge->KBC_Cards();
+	cards.Dimension(fShiftedNodes.Length());
+	for (int i=0; i< cards.Length(); i++) {
+		KBC_CardT& card = cards[i];
+		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
+	}
+	//TEMP - need to reset the equation system because it was set before
+	//       reading the restart files and does not reflect the equations
+	//       the system had when the restart was written because the kbc's
+	//       on right edge nodes where not in place at the time.
+//	FEManagerT& fe_man = const_cast<FEManagerT&>(fSupport.FEManager());
+	FEManagerT& fe_man = const_cast<FEManagerT&>(fNodeManager.FEManager());
+	fe_man.SetEquationSystem(fField.Group(), 0); // what about the equation start shift?	
+}
+
+void ConveyorT::WriteRestart(ofstreamT& out) const
+{
+        /* inherited */
+        KBC_ControllerT::WriteRestart(out);
+
+        /* external file */
+        StringT file = out.filename();
+        file.Append(".", fField.Name());
+//        file.Append(".", Name());
+        ofstreamT my_out(file);
+        my_out.precision(out.precision());
+
+        /* write dimensions */
+        my_out << fTrackingCount << '\n'
+            << fTrackingPoint << '\n'
+            << fX_Left << '\n'
+            << fX_Right << '\n';
+
+        /* nodes on right edge */
+        iArrayT tmp;
+        tmp.Alias(fShiftedNodes);
+        my_out << tmp.Length() << '\n' << tmp.wrap(10) << '\n';
+
+        /* damping */
+        my_out << ((fDampingReset) ? 1 : 0) << '\n';
+        tmp.Alias(fDampingNodes);
+        my_out << tmp.Length() << '\n' << tmp.wrap(10) << '\n';
+        my_out << fDampingCoeff << '\n';
+        my_out << fDampingEqnos << '\n';
+
+        /* write the modified reference coordinates */
+        my_out << fNodeManager.InitialCoordinates() << '\n';
 }
 
 /**********************************************************************
@@ -522,14 +647,14 @@ void ConveyorT::CreatePrecrack(void)
 		curr_coords.SetLocal(card.NodesX());
 			
 		/* element lies "behind" the initial tip position */
-		bool X_check_OK = true;
+		bool X_check_OK = false;
 		bool Y_check_OK = true;
 		const double* px = curr_coords(0);
 		const double* py = curr_coords(1);
-		for (int k = 0; X_check_OK && Y_check_OK && k < nen; k++) {
+		for (int k = 0; Y_check_OK && k < nen; k++) {
 
 			/* "behind" tip */
-			X_check_OK = *px++ < fTipX_0;
+			X_check_OK = (*px++ < fTipX_0) ? true : X_check_OK;
 			Y_check_OK = fabs(*py++ - fTipY_0) < kSmall;
 		}
 			
