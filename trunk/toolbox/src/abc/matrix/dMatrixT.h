@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: dMatrixT.h,v 1.2 2001-06-20 22:49:58 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #ifndef _DMATRIX_T_H_
@@ -14,7 +14,7 @@ public:
 	/* constructor */
 	dMatrixT(void);
 	dMatrixT(int numrows, int numcols);
-	dMatrixT(int squaredim);
+	explicit dMatrixT(int squaredim);
 	dMatrixT(int numrows, int numcols, double* p);
 	dMatrixT(const dMatrixT& source);
 

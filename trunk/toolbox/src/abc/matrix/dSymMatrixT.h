@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.2 2001-06-05 17:27:18 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.3 2001-06-20 22:49:58 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 /* Interface for a reduced index symmetric matrix, stored as a vector.    */
 /* Can be constructed in 2D or 3D.                                        */
@@ -18,7 +18,7 @@ public:
 
 	/* constructors */
 	dSymMatrixT(void);
-	dSymMatrixT(int nsd);
+	explicit dSymMatrixT(int nsd);
 	dSymMatrixT(int nsd, double* array);
 	dSymMatrixT(const dSymMatrixT& source);
 
