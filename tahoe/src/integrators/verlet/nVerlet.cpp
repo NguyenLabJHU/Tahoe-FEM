@@ -1,4 +1,4 @@
-/* $Id: nVerlet.cpp,v 1.11.4.1 2004-11-08 02:16:05 d-farrell2 Exp $ */
+/* $Id: nVerlet.cpp,v 1.11.4.2 2004-11-08 21:20:41 d-farrell2 Exp $ */
 #include "nVerlet.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
@@ -6,13 +6,6 @@
 #include "dArray2DT.h"
 #include "KBC_CardT.h"
 #include "BasicFieldT.h"
-
-// Dave added
-#include "CommManagerT.h"
-#include "ElementBaseT.h"
-#include "CommunicatorT.h"
-#include "ElementSupportT.h"
-#include "NodeManagerT.h"
 
 using namespace Tahoe;
 

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.52.2.1 2004-11-08 02:16:07 d-farrell2 Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.52.2.2 2004-11-08 21:20:42 d-farrell2 Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -318,7 +318,7 @@ void NodeManagerT::InitStep(int group)
 		{
 			fFields[i]->InitStep(fPartFieldStart, fPartFieldEnd);
 		}
-		else
+		else if(fFields[i]->Group() == group)
 		{
 				fFields[i]->InitStep();
 		}
@@ -487,9 +487,12 @@ void NodeManagerT::InitialCondition(void)
 		if (fPartFieldEnd != -1)
 		{
 			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0], fPartFieldStart, fPartFieldEnd);
-			
+//DEBUG
+cout << "NodeManagerT::InitialCondition, preparing to do AllGather" << endl;			
 			// communicate the updated coords
-			fCommManager.AllGather(fMessageCurrCoordsID, *fCurrentCoords);
+			fCommManager.AllGather(fMessageCurrCoordsID, *fCurrentCoords); // I see a problem here, should only send part of the array, that which was updated		
+//DEBUG
+cout << "NodeManagerT::InitialCondition, after AllGather" << endl;		
 		}
 		else
 		{
@@ -1285,6 +1288,8 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 			fCurrentCoords_man.SetWard(0, *fCurrentCoords, NumSD());
 			fCurrentCoords_man.SetMajorDimension(NumNodes(), false);
 			(*fCurrentCoords) = InitialCoordinates();
+//DEBUG
+cout << "NodeManagerT::TakeParameterList, before InitAllGather" << endl;
 			// set up communication of the current coordinates
 			fMessageCurrCoordsID = fCommManager.Init_AllGather(*fCurrentCoords);
 #pragma message("need another ID for the updated coords communication??")
@@ -1292,6 +1297,8 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 			
 		/* set up communication of field */
 		fMessageID[i] = fCommManager.Init_AllGather(fFields[i]->Update());
+//DEBUG
+cout << "NodeManagerT::TakeParameterList, after InitAllGather" << endl;			
 	}
 }
 
