@@ -1,4 +1,4 @@
-/* $Id: ScheduleT.h,v 1.4 2002-07-05 22:28:33 paklein Exp $ */
+/* $Id: ScheduleT.h,v 1.5 2003-10-28 07:12:14 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _SCHEDULE_T_H_
@@ -31,12 +31,21 @@ public:
 	void Read(ifstreamT& in);
 	void Write(ostream& out) const;
 
-	/* interpolate load factor to time tim */
+	/** set schedule to the given time */
 	void SetTime(double time);
 
-	/* return current value of the load factor */
+	/** \name current values */
+	/*@{*/
+	/** schedule value at the given time */
 	double Value(void) const;
-	double Value(double time);
+	
+	/** get value at the given time. Call does not change the internal time,
+	 * which must be set with ScheduleT::SetTime */
+	double Value(double time) const;
+	
+	/** the internal time */
+	double Time(void) const { return fCurrentTime; };
+	/*@}*/
 
 private:
 
@@ -51,16 +60,25 @@ private:
 	dArrayT fValue;
 	/*@}*/
 	
-	/* current value */
+	/** \name current time and value */
+	/*@{*/
+	double fCurrentTime;
 	double fCurrentValue;
+	/*@}*/
 };
 
 /* inlines */
 inline double ScheduleT::Value(void) const { return fCurrentValue; }
-inline double ScheduleT::Value(double time)
+inline double ScheduleT::Value(double time) const
 {
-	SetTime(time);
-	return fCurrentValue;
+	/* non-const temporary */
+	ScheduleT* non_const_this = (ScheduleT*) this;
+	double curr_time = non_const_this->Time();
+	non_const_this->SetTime(time);
+	double curr_value = non_const_this->Value();
+	non_const_this->SetTime(curr_time);
+	
+	return curr_value;
 }
 
 } // namespace Tahoe 
