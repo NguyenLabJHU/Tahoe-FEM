@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: FCCT.cpp,v 1.17 2004-08-18 19:53:00 bsun Exp $ */
+/* $Id: FCCT.cpp,v 1.18 2005-02-11 18:33:11 saubry Exp $ */
 #include "FCCT.h"
 #include "CrystalLatticeT.h"
 
@@ -19,6 +19,21 @@
    
    // Define lattice type
       sLATTYPE = "FCC";
+
+      if (nlsd==1)
+	{
+         if(nuca != 1) {cout << "Wrong nuca\n"; throw eSizeMismatch;}
+      
+      // Define atoms in cell
+         vBasis(0,0) = 0.0;
+         vBasis(1,0) = 0.0;
+         vBasis(2,0) = 0.0;
+
+         vAxis(0,0) = vLatticeParameters[0];
+         vAxis(1,0) = 0.0;
+         vAxis(2,0) = 0.0;
+	  
+	}
    
       if (nlsd==2)
       {
