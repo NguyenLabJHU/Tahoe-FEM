@@ -5,14 +5,6 @@ ab2binary2tahoe - input deck to translate abq5821.fil to tahoe
 abq5821.inp - Abaqus version 5.8-21 input deck used to generate results file 
 abq5821.fil - Binary abaqus results file
 abq5821.fin - ASCII abaqus results file, converted using ascfil
-     - 5 time steps
-     - 6 DOF displacement as node variables
-     - 3 components of stress tensor as quadrature variables
-     - 1 pressure load as element variable
-     - 33 node sets
-     - 1681 nodes, not consecutively numbered
+     - 2 time steps (initial and final)
      - shell elements - AbaqusResultsT reads as Quads
-     - 6 element sets
-
-I don't know if the binary *fil file is platform independent, I think so, but
-I don't trust abaqus, until I see it.
+     - non continuous node numbering
