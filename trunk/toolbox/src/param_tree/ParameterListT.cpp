@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.cpp,v 1.16 2004-03-22 18:34:54 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.17 2004-03-24 17:23:09 paklein Exp $ */
 #include "ParameterListT.h"
 #include "ParameterInterfaceT.h"
 #include <string.h>
@@ -165,7 +165,6 @@ bool ParameterListT::AddReference(const char* ref, OccurrenceT occur)
 const ParameterListT* ParameterListT::FindList(const char* search_name, int instance) const
 {
 	/* search list */
-	int search_name_length = strlen(search_name);
 	int count = 0;
 	for (int i = 0; i < fParameterLists.Length(); i++) {
 	
@@ -189,42 +188,16 @@ const ParameterListT* ParameterListT::ResolveListChoice(const ParameterInterface
 {
 	const char caller[] = "ParameterListT::ResolveListChoice";
 
-	/* check choice as inline sub */
-	ParameterListT::ListOrderT order;
-	SubListT sub_sub_list;
-	source.DefineInlineSub(choice_name, order, sub_sub_list);
-	if (sub_sub_list.Length() > 0) {
-	
-		/* must be a choice */
-		if (order != ParameterListT::Choice)
-			ExceptionT::GeneralFail(caller, "\"%s\" in \"%s\" is not a choice",
-				choice_name, source.Name().Pointer());
-	
-		/* search */
-		int count = 0;
-		for (int i = 0; i < fParameterLists.Length(); i++)
-		{
-			const StringT& name = fParameterLists[i].Name();
-		
-			/* run through choices */
-			for (int j = 0; j < sub_sub_list.Length(); j++)
-				if (name == sub_sub_list[j].Name())
-					if (count++ == instance)
-						return fParameterLists.Pointer(i);
-		}
-	}
-	else /* check choice as parameter list */ {
+	/* check choice as parameter list */
+	ParameterInterfaceT* choice = source.NewSub(choice_name);
+	if (choice) {
 	
 		/* verify the list is a choice */
-		ParameterInterfaceT* choice = source.NewSub(choice_name);
-		if (!choice)
-			ExceptionT::GeneralFail(caller, "\"%s\" did not return \"%s\"",
-				source.Name().Pointer(), choice_name);
 		if (choice->ListOrder() != ParameterListT::Choice)
 			ExceptionT::GeneralFail(caller, "\"%s\" in \"%s\" is not a choice",
 				choice_name, source.Name().Pointer());
 		delete choice;
-
+	
 		/* search */
 		int count = 0;
 		for (int i = 0; i < fParameterLists.Length(); i++)
@@ -244,6 +217,33 @@ const ParameterListT* ParameterListT::ResolveListChoice(const ParameterInterface
 					/* return */
 					return lists.Pointer();
 				}
+		}	
+	}
+	else /* check choice as inline sub */ {
+	
+		/* check choice as inline sub */
+		ParameterListT::ListOrderT order;
+		SubListT sub_sub_list;
+		source.DefineInlineSub(choice_name, order, sub_sub_list);
+		if (sub_sub_list.Length() > 0) {
+	
+			/* must be a choice */
+			if (order != ParameterListT::Choice)
+				ExceptionT::GeneralFail(caller, "\"%s\" in \"%s\" is not a choice",
+					choice_name, source.Name().Pointer());
+	
+			/* search */
+			int count = 0;
+			for (int i = 0; i < fParameterLists.Length(); i++)
+			{
+				const StringT& name = fParameterLists[i].Name();
+		
+				/* run through choices */
+				for (int j = 0; j < sub_sub_list.Length(); j++)
+					if (name == sub_sub_list[j].Name())
+						if (count++ == instance)
+							return fParameterLists.Pointer(i);
+			}
 		}
 	}
 
@@ -322,6 +322,27 @@ ParameterT& ParameterListT::GetParameter(const char* name)
 			"parameter \"%s\" not found in \"%s\"", 
 			name, Name().Pointer());
 	return *parameter;
+}
+
+/* search for parameter by name */
+const ParameterT* ParameterListT::FindParameter(const char* search_name, int instance) const
+{
+	/* search list */
+	int count = 0;
+	for (int i = 0; i < fParameters.Length(); i++) {
+	
+		/* candidate list */
+		const ParameterT& param = fParameters[i];
+		const char* name = param.Name();
+
+		/* look for match */
+		if (strstr(name, search_name) != NULL)
+			if (count++ == instance)
+				return &param;
+	}
+	
+	/* no match */
+	return NULL;
 }
 
 /**********************************************************************
