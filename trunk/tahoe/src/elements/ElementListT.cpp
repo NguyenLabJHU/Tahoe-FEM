@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.109 2005-03-04 18:37:27 cjkimme Exp $ */
+/* $Id: ElementListT.cpp,v 1.110 2005-03-17 21:30:43 cfoster Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -130,6 +130,7 @@
 
 #ifdef ENHANCED_STRAIN_LOC_DEV_CRAIG
 #include "SSEnhLocCraigT.h"
+#include "SSEnhLocDieterichT.h"
 #endif
 
 #ifdef GRAD_SMALL_STRAIN_DEV
@@ -529,6 +530,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #ifdef ENHANCED_STRAIN_LOC_DEV_CRAIG
 	else if (name == "small_strain_enh_loc_craig")
 		return new SSEnhLocCraigT(fSupport);
+		else if (name == "small_strain_enh_loc_dieterich")
+		return new SSEnhLocDieterichT(fSupport);
 #endif
 
 #ifdef MIXTURE_THEORY_DEV
