@@ -1,7 +1,6 @@
-/* $Id: NLDiffusionMaterialT.cpp,v 1.3.18.3 2004-06-16 07:15:02 paklein Exp $ */
+/* $Id: NLDiffusionMaterialT.cpp,v 1.3.18.4 2004-06-24 04:54:22 paklein Exp $ */
 #include "NLDiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
-#include "ifstreamT.h"
 #include "ParameterContainerT.h"
 
 using namespace Tahoe;
@@ -10,23 +9,6 @@ using namespace Tahoe;
 #include "LinearT.h"
 
 /* constructor */
-NLDiffusionMaterialT::NLDiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT& support):
-	ParameterInterfaceT("nonlinear_diffusion_material"),
-	DiffusionMaterialT(in, support),
-	fConductivityScaleFunction(NULL),
-	fCpScaleFunction(NULL),
-	fScaledConductivity(NumSD())
-{
-	/* parameters in temperature variation in conductivity */
-	double A, B;
-	in >> A >> B;
-	fConductivityScaleFunction = new LinearT(A, B);
-
-	/* parameters in temperature variation in specific heat */
-	in >> A >> B;
-	fCpScaleFunction = new LinearT(A, B);
-}
-
 NLDiffusionMaterialT::NLDiffusionMaterialT(void):
 	ParameterInterfaceT("nonlinear_diffusion_material"),
 	fConductivityScaleFunction(NULL),

@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionMaterialT.h,v 1.2.18.2 2004-06-09 23:17:26 paklein Exp $ */
+/* $Id: NLDiffusionMaterialT.h,v 1.2.18.3 2004-06-24 04:54:22 paklein Exp $ */
 #ifndef _NL_DIFFUSION_MATERIALT_H_
 #define _NL_DIFFUSION_MATERIALT_H_
 
@@ -18,7 +18,6 @@ class NLDiffusionMaterialT: public DiffusionMaterialT
 public:
 
 	/** constructor */
-	NLDiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT& support);
 	NLDiffusionMaterialT(void);
 
 	/** destructor */

@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.h,v 1.7.18.2 2004-06-09 23:17:26 paklein Exp $ */
+/* $Id: DiffusionMaterialT.h,v 1.7.18.3 2004-06-24 04:54:22 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSION_MATERIALT_H_
 #define _DIFFUSION_MATERIALT_H_
@@ -23,7 +23,6 @@ class DiffusionMaterialT: public ContinuumMaterialT
 public:
 
 	/** constructor */
-	DiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT& support);
 	DiffusionMaterialT(void);
 
 	/** set support */
