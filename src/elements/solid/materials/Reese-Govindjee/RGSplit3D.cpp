@@ -1,4 +1,4 @@
-/* $Id: RGSplit3D.cpp,v 1.4 2003-04-05 20:38:05 thao Exp $ */
+/* $Id: RGSplit3D.cpp,v 1.5 2003-04-14 22:31:58 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplit3D.h"
@@ -492,11 +492,9 @@ void RGSplit3D::ComputeOutput(dArrayT& output)
 	fPot_NEQ->DevStress(fEigs_ebar, ftau_NEQ);
 
 	fStress3D = fSpectralDecompSpat.EigsToRank2(ftau_NEQ);
-    double sm = fPot_NEQ->MeanStress(Je);
+        double sm = fPot_NEQ->MeanStress(Je);
 
 	double rate_visc_disp = 0.5*(0.5*fietaS*fStress3D.ScalarProduct()+fietaB*sm*sm);
-
-	/*put in planestress option*/
 
 	output[0] = rate_visc_disp;
 }

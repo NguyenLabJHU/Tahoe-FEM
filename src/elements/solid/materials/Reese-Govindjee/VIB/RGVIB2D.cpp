@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.cpp,v 1.6 2003-04-05 20:38:06 thao Exp $ */
+/* $Id: RGVIB2D.cpp,v 1.7 2003-04-14 22:31:59 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include <math.h>
@@ -104,10 +104,9 @@ void RGVIB2D::OutputLabels(ArrayT<StringT>& labels) const
 /* class specific initializations */
 void RGVIB2D::Initialize(void)
 {
-        /*inheritance*/
         RGBaseT::Initialize();
-    
-	/* initial modulus */
+        /* initial modulus */
+
         fEigs = 1.0;
         ddWddE(fEigs, ftau_E, fDtauDep_E, Elastic);
         ddWddE(fEigs, ftau_I, fDtauDep_I, Inelastic);

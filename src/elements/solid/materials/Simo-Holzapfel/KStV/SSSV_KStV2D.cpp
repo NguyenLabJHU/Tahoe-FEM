@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV2D.cpp,v 1.4 2003-04-14 17:31:27 thao Exp $ */
+/* $Id: SSSV_KStV2D.cpp,v 1.5 2003-04-14 22:32:00 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV2D.h"
 #include "SSMatSupportT.h"
@@ -204,18 +204,12 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
 	/*deviatoric part*/
 	fStress3D = fStrain3D;
 	fStress3D *= 2.0*mu;
-        cout << "\ndevstrain: "<<fStrain3D;
-	cout << "\nI1: "<<I1;
-	cout << "\n mu: "<< mu;
-	cout << "\n kappa: "<<kappa;
-	cout << "\ndev_infty: "<<fStress3D;
 
 	/*volumetric part*/
 	fStress3D[0] += kappa*I1;
 	fStress3D[1] += kappa*I1;
     fStress3D[2] += kappa*I1;
 
-    cout << "\nmean : "<<kappa*I1;
 	/*non-equilibrium components*/
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
@@ -254,8 +248,6 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
         
 		Store(element,CurrIP());
 	}
-        cout << "\nfdevQ: "<<fdevQ;
-	cout << "\nfmeanQ: "<<fmeanQ;
 	fStress3D += fdevQ;
 
 	fStress3D[0] += fmeanQ[0];
@@ -265,6 +257,11 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
     fStress[0] = fStress3D[0];
     fStress[1] = fStress3D[1];
     fStress[2] = fStress3D[5];
+
+    dSymMatrixT stress = fdevQ;
+    stress[0] += fmeanQ[0];
+    stress[1] += fmeanQ[0];
+    stress[2] += fmeanQ[0];
 	return(fStress);
 }
 int SSSV_KStV2D::NumOutputVariables() const {return kNumOutputVar;}

@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.cpp,v 1.3 2003-03-26 22:57:44 thao Exp $ */
+/* $Id: RGBaseT.cpp,v 1.4 2003-04-14 22:31:58 thao Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGBaseT.h"
 
@@ -59,7 +59,7 @@ void  RGBaseT::PointInitialize(void)
 	/* allocate element storage */
 	ElementCardT& element = CurrentElement();	
 	if (CurrIP() == 0)
-	{
+	{ 
 		ElementCardT& element = CurrentElement();
 		element.Dimension(0, fnstatev*NumIP());
 	
