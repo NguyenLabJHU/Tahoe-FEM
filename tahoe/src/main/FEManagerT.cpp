@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.87 2005-01-04 00:51:26 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.88 2005-01-06 01:11:43 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1198,14 +1198,6 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 	/* geometry file */
 	list.AddParameter(ParameterT(ParameterT::Word, "geometry_file"));
 
-	/* decomposition method */
-	ParameterT decomp_method(ParameterT::Enumeration, "decomposition_method");
-	decomp_method.AddEnumeration("graph", PartitionT::kGraph);
-	decomp_method.AddEnumeration("atom", PartitionT::kIndex);
-	decomp_method.AddEnumeration("spatial", PartitionT::kSpatial);
-	decomp_method.SetDefault(PartitionT::kGraph);
-	list.AddParameter(decomp_method, ParameterListT::ZeroOrOnce);
-
 	/* output format */
 	ParameterT output_format(ParameterT::Enumeration, "output_format");
 	output_format.AddEnumeration("Tahoe", IOBaseT::kTahoe);
@@ -1305,7 +1297,7 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 							
 						}
 						else
-							ExceptionT::GeneralFail(caller, "\"decomposition_method\" or \"-decomp_method -[0,1,2]\" required for multiprocessor calculations");
+							ExceptionT::GeneralFail(caller, "decomposition method needed in input or with option \"-decomp_method -[0,1,2]\"");
 					}
 
 					/* do decomposition */
