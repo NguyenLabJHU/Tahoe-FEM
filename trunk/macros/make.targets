@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.45 2004-08-10 06:35:55 paklein Exp $
+# $Id: make.targets,v 1.46 2004-08-10 15:59:20 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -180,7 +180,7 @@ clean: $(MAKE_CLEAN_XTRAS) $(MOD_MAKE_CLEAN_XTRAS)
 	@ if test -d $(INC_DIR); \
 		then \
 			if test -d $(INC_DIR)/CVS; then \
-				cd $(INC_DIR); ls -1 | $(GREP) "\.h$$" | $(XARGS) $(RM); \
+				cd $(INC_DIR); $(PERL) $(MACRO_DIR)/rm.pl "*.h"; \
 			else \
 				$(RM) -rf $(INC_DIR); \
 			fi; \
@@ -188,7 +188,7 @@ clean: $(MAKE_CLEAN_XTRAS) $(MOD_MAKE_CLEAN_XTRAS)
 	@ if test -d $(OBJ_DIR); \
 		then \
 			if test -d $(OBJ_DIR)/CVS; then \
-				cd $(OBJ_DIR); ls -1 | $(GREP) "\.o$$" | $(XARGS) $(RM); \
+				cd $(OBJ_DIR); $(PERL) $(MACRO_DIR)/rm.pl "*.o"; \
 			else \
 				$(RM) -rf $(OBJ_DIR); \
 			fi; \
@@ -196,7 +196,7 @@ clean: $(MAKE_CLEAN_XTRAS) $(MOD_MAKE_CLEAN_XTRAS)
 	@ if test -d $(LIB_DIR); \
 		then \
 			if test -d $(LIB_DIR)/CVS; then \
-				cd $(LIB_DIR); ls -1 | $(GREP) "\.a$$" | $(XARGS) $(RM); \
+				cd $(LIB_DIR); $(PERL) $(MACRO_DIR)/rm.pl "*.a"; \
 			else \
 				$(RM) -rf $(LIB_DIR); \
 			fi; \
