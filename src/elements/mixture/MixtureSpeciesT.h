@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.h,v 1.5 2005-01-14 00:20:30 paklein Exp $ */
+/* $Id: MixtureSpeciesT.h,v 1.6 2005-01-24 07:04:55 paklein Exp $ */
 #ifndef _MIXTURE_SPECIES_T_H_
 #define _MIXTURE_SPECIES_T_H_
 
@@ -16,6 +16,9 @@ public:
 	
 	/** constructor */
 	MixtureSpeciesT(const ElementSupportT& support);
+
+	/** write element output */
+	virtual void WriteOutput(void);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -58,6 +61,15 @@ protected:
 	/** compute the divergence tensor field given the values at the integration points */
 	void ComputeDivergence(const dMatrixT& ip_grad_transform, const ArrayT<dMatrixT>& tensor_ip,
 		dArrayT& div) const;
+		
+	/** \name variation of divergence with respect to the nodal values */
+	/*@{*/
+	/** using element-by-element projection */
+	void ComputeDDivergence(const dMatrixT& ip_grad_transform, const ArrayT<dMatrixT>& tensor_ip,
+		dMatrixT& d_div) const;
+
+	void ComputeDDivergence(const LocalArrayT& nodal_dP, dMatrixT& d_div, dMatrixT& dP_ip) const;
+	/*@}*/
 
 protected:
 
@@ -91,6 +103,9 @@ protected:
 	ArrayT<dMatrixT> fdP_ip;
 	ArrayT<dMatrixT> fip_gradient;
 	/*@}*/
+	
+	/** work space */
+	dMatrixT fNEEmat;
 };
 
 } /* namespace Tahoe */
