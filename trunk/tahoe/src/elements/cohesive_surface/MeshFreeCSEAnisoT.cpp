@@ -1,5 +1,5 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
-/* created: paklein (06/08/2000)                                          */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.2 2001-10-11 00:54:28 paklein Exp $ */
+/* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
 
@@ -36,7 +36,6 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(FEManagerT& fe_manager):
 	ElementBaseT(fe_manager),
 	fMFSurfaceShape(NULL),
 	fSurfacePotential(NULL),
-	fIsDecohesion(false),
 	fLocDisp(LocalArrayT::kDisp),
 	fFractureArea(0.0),
 	fQ(fNumSD),
@@ -75,7 +74,7 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(FEManagerT& fe_manager):
 	         fGeometryCode != GeometryT::kTriangle)
 	{
 		cout << "\n MeshFreeCSEAnisoT::MeshFreeCSEAnisoT: expecting geometry code "
-<< GeometryT::kQuadrilateral
+             << GeometryT::kQuadrilateral
 		     << " or\n" <<   "     " << GeometryT::kTriangle << " for 3D: "
 		     << fGeometryCode << endl;
 		throw eBadInputValue;
@@ -208,16 +207,9 @@ void MeshFreeCSEAnisoT::Initialize(void)
 		}
 		case SurfacePotentialT::kLinearDamage:
 		{
-			/* set flag */
-			fIsDecohesion = true; // use flag instead of RTTI
-		
 			fInitTraction.Allocate(fNumDOF);
-			LinearDamageT* lin_damage = new LinearDamageT(in, fInitTraction, fi_vec, fd_vec);
+			LinearDamageT* lin_damage = new LinearDamageT(in, fInitTraction);
 			if (!lin_damage) throw eOutOfMemory;
-		
-			/* configure material storage */
-			fi_StorageMan.SetWard(0, fi_Storage, lin_damage->IntegerStorage());
-			fd_StorageMan.SetWard(0, fd_Storage, lin_damage->DoubleStorage());
 			
 			/* cast down */
 			fSurfacePotential = lin_damage;
@@ -228,6 +220,11 @@ void MeshFreeCSEAnisoT::Initialize(void)
 			throw eBadInputValue;
 	}
 	if (!fSurfacePotential) throw eOutOfMemory;
+
+	/* configure material storage */
+	int num_state = fSurfacePotential->NumStateVariables();
+	fd_Storage_man.SetWard(0, fd_Storage, num_state);
+	fd_Storage_last_man.SetWard(0, fd_Storage_last, num_state);
 
 	/* write */
 	out << "\n Cohesive surface potential:\n";
@@ -241,7 +238,7 @@ void MeshFreeCSEAnisoT::Initialize(void)
 	fActiveFlag = kON;
 
 	/* initialize decohesion laws */
-	if (fIsDecohesion) InitializeNewFacets();
+	InitializeNewFacets();
 }
 
 /* start of new time sequence */
@@ -260,40 +257,17 @@ void MeshFreeCSEAnisoT::CloseStep(void)
 	/* inherited */
 	ElementBaseT::CloseStep();
 
-	if (fIsDecohesion)
+	/* state variable storage */
+	if (fd_Storage_last.MajorDim() != fd_Storage.MajorDim())
+		fd_Storage_last_man.SetMajorDimension(fd_Storage.MajorDim(), false);
+	fd_Storage_last = fd_Storage;
+
+	/* update state flags */
+	for (int i = 0; i < fActiveFlag.Length(); i++)
 	{
-		/* cohesive law */
-		DecohesionLawT* cohesive = (DecohesionLawT*) fSurfacePotential;
-	
-		for (int i = 0; i < fActiveFlag.Length(); i++)
-		{
-			StatusFlagT& flag = fActiveFlag[i];
-			if (flag != kOFF)
-			{
-				for (int j = 0; j < fNumIntPts; j++)
-				{
-					/* load ip data */
-					int row = i*fNumIntPts + j;
-					fi_Storage.RowAlias(row, fi_vec);
-					fd_Storage.RowAlias(row, fd_vec);
-					
-					/* set internal variables */
-					cohesive->UpdateHistory();
-				}
-			}
-			
-			/* deactivate facet */
-			flag = (flag == kMarked) ? kOFF : flag;
-		}
-	}
-	else
-	{
-		for (int i = 0; i < fActiveFlag.Length(); i++)
-		{
-			/* deactivate facet */
-			StatusFlagT& flag = fActiveFlag[i];
-			flag = (flag == kMarked) ? kOFF : flag;
-		}
+		/* deactivate facet */
+		StatusFlagT& flag = fActiveFlag[i];
+		flag = (flag == kMarked) ? kOFF : flag;
 	}
 }
 
@@ -303,40 +277,20 @@ void MeshFreeCSEAnisoT::ResetStep(void)
 	/* inherited */
 	ElementBaseT::ResetStep();
 
-	if (fIsDecohesion)
-	{
-		/* cohesive law */
-		DecohesionLawT* cohesive = (DecohesionLawT*) fSurfacePotential;
-	
-		for (int i = 0; i < fActiveFlag.Length(); i++)
-		{
-			StatusFlagT& flag = fActiveFlag[i];
-			if (flag != kOFF)
-			{
-				for (int j = 0; j < fNumIntPts; j++)
-				{
-					/* load ip data */
-					int row = i*fNumIntPts + j;
-					fi_Storage.RowAlias(row, fi_vec);
-					fd_Storage.RowAlias(row, fd_vec);
-					
-					/* set internal variables */
-					cohesive->ResetHistory();
-				}
-			}
-			
-			/* reset facet */
-			flag = (flag == kMarked) ? kON : flag;
-		}
+	/* mismatch could occur with misuse of managers */
+	if (fd_Storage.MajorDim() != fd_Storage_last.MajorDim()) {
+		cout << "\n MeshFreeCSEAnisoT::ResetStep: state variable storage mismatch" << endl;
+		throw eGeneralFail;
 	}
-	else
+	
+	/* restore last state */
+	fd_Storage = fd_Storage_last;
+
+	/* unset marks */
+	for (int i = 0; i < fActiveFlag.Length(); i++)
 	{
-		/* unset marks */
-		for (int i = 0; i < fActiveFlag.Length(); i++)
-		{
-			StatusFlagT& flag = fActiveFlag[i];
-			flag = (flag == kMarked) ? kON : flag;
-		}
+		StatusFlagT& flag = fActiveFlag[i];
+		flag = (flag == kMarked) ? kON : flag;
 	}
 }
 
@@ -360,8 +314,8 @@ GlobalT::RelaxCodeT MeshFreeCSEAnisoT::RelaxSystem(void)
 		const dArray2DT& facets = fMFFractureSupport->Facets();
 		fActiveFlag.Resize(facets.MajorDim(), kON);
 
-		/* initialize decohesion laws */
-		if (fIsDecohesion) InitializeNewFacets();
+		/* initialize cohesive laws */
+		InitializeNewFacets();
 
 		/* override flag */
 		return GlobalT::MaxPrecedence(relax, GlobalT::kReEQRelax);
@@ -461,6 +415,7 @@ void MeshFreeCSEAnisoT::WriteOutput(IOBaseT::OutputModeT mode)
 		out << '\n';
 
 		/* loop over cutting facets */
+		dArrayT state;
 		for (int i = 0; i < facets.MajorDim(); i++)
 			if (fActiveFlag[i] != kOFF)
 			{  			
@@ -479,13 +434,8 @@ void MeshFreeCSEAnisoT::WriteOutput(IOBaseT::OutputModeT mode)
 					out << setw(kIntWidth) << i+1
 					    << setw(kIntWidth) << fMFSurfaceShape->CurrIP() + 1;
 				
-					/* load history data */
-					if (fIsDecohesion)
-					{
-						int row = i*fNumIntPts + fMFSurfaceShape->CurrIP();
-						fi_Storage.RowAlias(row, fi_vec);
-						fd_Storage.RowAlias(row, fd_vec);
-					}
+					/* fetch state variables */
+					fd_Storage.RowAlias(i*fNumIntPts + fMFSurfaceShape->CurrIP(), state);
 
 					/* coordinate transformations */
 					double j0, j;
@@ -503,7 +453,7 @@ void MeshFreeCSEAnisoT::WriteOutput(IOBaseT::OutputModeT mode)
 		
 					/* gap -> traction, in/out of local frame */
 					fQ.MultTx(delta, fdelta);
-					fQ.Multx(fSurfacePotential->Traction(fdelta), fT);
+					fQ.Multx(fSurfacePotential->Traction(fdelta, state), fT);
 
 					/* coordinates */
 					out << fMFSurfaceShape->IPCoords().no_wrap();
@@ -583,6 +533,7 @@ void MeshFreeCSEAnisoT::LHSDriver(void)
 	const dArray2DT& facets = fMFFractureSupport->Facets();
 
 	/* loop over cutting facets */
+	dArrayT state;
 	iArrayT eqnos;
 	for (int i = 0; i < facets.MajorDim(); i++)
 		if (fActiveFlag[i] != kOFF)
@@ -602,12 +553,7 @@ void MeshFreeCSEAnisoT::LHSDriver(void)
 		while (fMFSurfaceShape->NextIP())
 		{
 			/* load history data */
-			if (fIsDecohesion)
-			{
-				int row = i*fNumIntPts + fMFSurfaceShape->CurrIP();
-				fi_Storage.RowAlias(row, fi_vec);
-				fd_Storage.RowAlias(row, fd_vec);
-			}
+			fd_Storage.RowAlias(i*fNumIntPts + fMFSurfaceShape->CurrIP(), state);
 
 			/* coordinate transformations */
 			double w = fMFSurfaceShape->IPWeight();		
@@ -621,12 +567,12 @@ void MeshFreeCSEAnisoT::LHSDriver(void)
 			/* gap -> {traction, stiffness} in local frame */
 			fQ.MultTx(delta, fdelta);
 
-			const dMatrixT& K = fSurfacePotential->Stiffness(fdelta);
+			const dMatrixT& K = fSurfacePotential->Stiffness(fdelta, state);
 			fddU_l.SetToScaled(j0*w*constK, K);
 			fddU_g.MultQBQT(fQ, K);
 			fddU_g *= j0*w*constK;
 			
-			const dArrayT& T = fSurfacePotential->Traction(fdelta);
+			const dArrayT& T = fSurfacePotential->Traction(fdelta, state);
 			fT.SetToScaled(j0*w*constK, T);
 
 			/* shape function table */
@@ -662,6 +608,9 @@ void MeshFreeCSEAnisoT::RHSDriver(void)
 	int formKd = fController->FormKd(constKd);
 	if (!formKd) return;
 
+	/* set state to start of current step */
+	fd_Storage = fd_Storage_last;
+
 	/* fracture surface area */
 	fFractureArea = 0.0;
 
@@ -669,6 +618,7 @@ void MeshFreeCSEAnisoT::RHSDriver(void)
 	const dArray2DT& facets = fMFFractureSupport->Facets();
 
 	/* loop over cutting facets */
+	dArrayT state;
 	iArrayT eqnos;
 	for (int i = 0; i < facets.MajorDim(); i++)
 	{
@@ -690,12 +640,7 @@ void MeshFreeCSEAnisoT::RHSDriver(void)
 			while (fMFSurfaceShape->NextIP())
 			{
 				/* load history data */
-				if (fIsDecohesion)
-				{
-					int row = i*fNumIntPts + fMFSurfaceShape->CurrIP();
-					fi_Storage.RowAlias(row, fi_vec);
-					fd_Storage.RowAlias(row, fd_vec);
-				}
+				fd_Storage.RowAlias(i*fNumIntPts + fMFSurfaceShape->CurrIP(), state);
 
 				/* coordinate transformations */
 				double w = fMFSurfaceShape->IPWeight();		
@@ -714,7 +659,7 @@ void MeshFreeCSEAnisoT::RHSDriver(void)
 	
 				/* gap -> traction, in/out of local frame */
 				fQ.MultTx(delta, fdelta);
-				fQ.Multx(fSurfacePotential->Traction(fdelta), fT);
+				fQ.Multx(fSurfacePotential->Traction(fdelta, state), fT);
 
 				/* expand */
 				fMFSurfaceShape->Grad_d().MultTx(fT, fNEEvec);
@@ -723,7 +668,7 @@ void MeshFreeCSEAnisoT::RHSDriver(void)
 				fRHS.AddScaled(-j0*w*constKd, fNEEvec);
 				
 				/* check status */
-				SurfacePotentialT::StatusT status = fSurfacePotential->Status(fdelta);
+				SurfacePotentialT::StatusT status = fSurfacePotential->Status(fdelta, state);
 				if (status != SurfacePotentialT::Failed) all_failed = 0;
 				
 				/* fracture area */
@@ -766,7 +711,7 @@ void MeshFreeCSEAnisoT::InitializeNewFacets(void)
 	const ArrayT<int>& reset_facets = fMFFractureSupport->ResetFacets();
 
 	/* no initialization needed */
-	if (!fIsDecohesion || reset_facets.Length() == 0) return;
+	if (reset_facets.Length() == 0) return;
 
 	/* new facet data */
 	const dArray2DT& facets = fMFFractureSupport->Facets();
@@ -774,11 +719,10 @@ void MeshFreeCSEAnisoT::InitializeNewFacets(void)
 	
 	/* resize storage space */
 	int size = facets.MajorDim()*fNumIntPts;
-	fi_StorageMan.SetMajorDimension(size, true);
-	fd_StorageMan.SetMajorDimension(size, true);
+	fd_Storage_man.SetMajorDimension(size, true);
 		
 	/* loop over all [facets] x [ip] */
-	DecohesionLawT* cohesive = (DecohesionLawT*) fSurfacePotential;
+	dArrayT state;
 	for (int i = 0; i < reset_facets.Length(); i++)
 	{
 		/* indices */
@@ -790,12 +734,10 @@ void MeshFreeCSEAnisoT::InitializeNewFacets(void)
 		for (int j = 0; j < fNumIntPts; j++)
 		{
 			/* set facet data */
-			fi_Storage.RowAlias(point_dex, fi_vec);
-			fd_Storage.RowAlias(point_dex, fd_vec);
-			point_dex++;
+			fd_Storage.RowAlias(point_dex, state);
 
 			/* initialize */
-			cohesive->InitializeFacet();
+			fSurfacePotential->InitStateVariables(state);
 		}
 		
 		/* check activation */
