@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.11.2.2 2002-10-18 01:20:35 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.11.2.3 2002-10-19 03:09:12 paklein Exp $ */
 /* created: paklein (06/19/1996) */
 
 #ifndef _ARRAY_T_H_
@@ -562,21 +562,21 @@ inline bool ArrayT<TYPE>::operator==(const TYPE& value)
 template <class TYPE>
 inline bool ArrayT<TYPE>::operator!=(const ArrayT<TYPE>& RHS)
 {
-	return !(operator!=(RHS));
+	return !(operator==(RHS));
 }
 
 /* element-by-element comparison assuming pRHS is as long as *this */
 template <class TYPE>
 inline bool ArrayT<TYPE>::operator!=(const TYPE* pRHS)
 {
-	return !(operator!=(pRHS));
+	return !(operator==(pRHS));
 }
 	
 /* all values the same */
 template <class TYPE>
 inline bool ArrayT<TYPE>::operator!=(const TYPE& value)
 {
-	return !(operator!=(value));
+	return !(operator==(value));
 }
 
 template <class TYPE>
