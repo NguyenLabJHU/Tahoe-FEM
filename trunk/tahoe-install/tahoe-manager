@@ -63,16 +63,9 @@ if ($proxy !~ /NONE/) {
 }
 print "> architecture: $arch \n"; 
 
-# 2DO : rewrite this
 # check connection method
-$connect_OK = 0;
-open(WHICH, "which $connect2command{$connection} |");
-if (defined($which = <WHICH>)) {
-	chomp($which);
-	if (-x $which) { $connect_OK = 1; }
-}
-close(WHICH);
-if ($connect_OK != 1) {
+#open(WHICH, "which $connect2command{$connection} |");
+if (my_which($connect2command{$connection}) =~ "") {
 	print "ERROR: command \"$connect2command{$connection}\" not found\n";
 	if ($connection =~ /http/) {
 		print "ERROR: curl is available from http://curl.haxx.se/\n";
@@ -402,3 +395,12 @@ sub fillin_makefile{
 	close(OUT);
 }
 
+sub my_which{
+	my $cmd = shift(@_); 
+        $location = "";
+        @paths= split(":",$ENV{"PATH"});
+        foreach $path (@paths) {
+                if(-x "$path/$cmd") { $location = $path; last;}
+        }
+        return $location;
+}
