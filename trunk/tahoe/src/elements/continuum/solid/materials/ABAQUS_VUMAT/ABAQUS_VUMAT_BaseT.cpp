@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.3 2001-07-19 19:44:35 hspark Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.4 2001-07-19 21:23:56 paklein Exp $ */
 
 #include "ABAQUS_VUMAT_BaseT.h"
 
@@ -166,7 +166,8 @@ void ABAQUS_VUMAT_BaseT::PointInitialize(void)
 	}
 
 	/* call UMAT - time signals initialization */
-	Call_VUMAT(0.0, 0.0, 0, 0);
+	double dt = ContinuumElement().FEManager().TimeStep();
+	Call_VUMAT(0.0, dt, 0, 0);
 
 	/* store results as last converged */
 	if (CurrIP() == NumIP() - 1) UpdateHistory();
