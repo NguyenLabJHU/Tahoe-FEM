@@ -1,6 +1,5 @@
-/* $Id: AztecBaseT.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
-/* created: paklein (07/28/1998)                                          */
-/* Base class for Aztec iterative solver                                  */
+/* $Id: AztecBaseT.cpp,v 1.2 2002-03-22 19:04:18 paklein Exp $ */
+/* created: paklein (07/28/1998) */
 
 #include "AztecBaseT.h"
 
@@ -22,7 +21,9 @@
 #endif
 
 /* constructor */
-AztecBaseT::AztecBaseT(void): N_update(0), update_index(NULL),
+AztecBaseT::AztecBaseT(ostream& msg): 
+	fMessage(msg),
+	N_update(0), update_index(NULL),
 	update_bin(NULL), srow_dex(NULL), srow_val(NULL), external(NULL),
 	extern_index(NULL), rpntr(NULL), cpntr(NULL), indx(NULL), bpntr(NULL),
 	data_org(NULL),

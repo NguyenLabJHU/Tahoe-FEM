@@ -1,6 +1,5 @@
-/* $Id: Aztec_fe.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
-/* created: paklein (08/01/1998)                                          */
-/* base class for interface for using Aztec with fe++                     */
+/* $Id: Aztec_fe.cpp,v 1.2 2002-03-22 19:04:18 paklein Exp $ */
+/* created: paklein (08/01/1998) */
 
 #include "Aztec_fe.h"
 
@@ -20,14 +19,9 @@
 #include "AztecReaderT.h"
 #include "iArray2DT.h"
 
-//DEBUG
-#if 0
-#include "StringT.h"
-#include <fstream.h>
-#endif
-
 /* constructor */
-Aztec_fe::Aztec_fe(ifstreamT& in):
+Aztec_fe::Aztec_fe(ifstreamT& in, ostream& msg):
+	AztecBaseT(msg),
 	fMSRBuilder(NULL),
 	fMSRSet(0)
 {
@@ -85,24 +79,6 @@ void Aztec_fe::Solve(dArrayT& rhs2result)
 
 void Aztec_fe::Solve(const dArrayT& initguess, dArrayT& rhs2result)
 {
-//DEBUG
-#if 0
-StringT name = "az.rcv";
-name.Append(".p", proc_config[AZ_node]);
-name.Append(".out");
-ofstream out(name);
-iArrayT r, c;
-dArrayT v;
-GenerateRCV(r, c, v);
-for (int i = 0; i < r.Length(); i++)
-	out << setw(kIntWidth) << r[i]
-	    << setw(kIntWidth) << c[i]
-		<< setw(kDoubleWidth) << v[i] << endl;
-cout << "\n  Aztec_fe::Solve: EXIT" << endl;
-throw;
-#endif
-//DEBUG
-
 	/* checks */
 	if (!fMSRSet) throw eGeneralFail;
 	if (rhs2result.Length() != fupdate.Length()) throw eSizeMismatch;
@@ -192,6 +168,12 @@ int Aztec_fe::SetMSRData(int** update, int** bindx, double** val,
 		for (int i = fbindx[0]; i < fbindx.Length(); i++)
 			fbindx[i] += offset;
 	}
+#endif
+
+//DEBUG
+#if 1
+cout << "\n Aztec_fe::SetMSRData: MSR data written to message file" << endl;
+fMSRBuilder->WriteMSRData(fMessage, fupdate, fbindx);
 #endif
 	
 	/* allocate the matrix and initialize to 0.0 */

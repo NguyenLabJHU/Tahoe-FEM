@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.3 2002-03-22 01:33:41 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.4 2002-03-22 19:04:18 paklein Exp $ */
 /* created: paklein (08/10/1998)                                          */
 /* interface using example Aztec example functions                        */
 
@@ -25,7 +25,7 @@ AztecMatrixT::AztecMatrixT(ifstreamT& in, ostream& out, int check_code):
 	fInput(in)
 {
 	/* set and verify Aztec data structures */
-	fAztec = new Aztec_fe(fInput);
+	fAztec = new Aztec_fe(fInput, out);
 	if (!fAztec) throw eOutOfMemory;
 }	
 
