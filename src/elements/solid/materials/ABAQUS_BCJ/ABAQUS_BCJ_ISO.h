@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BCJ_ISO.h,v 1.2 2004-01-05 07:39:35 paklein Exp $ */
+/* $Id: ABAQUS_BCJ_ISO.h,v 1.3 2004-08-01 20:42:35 paklein Exp $ */
 #ifndef _ABAQUS_BCJ_ISO_H_
 #define _ABAQUS_BCJ_ISO_H_
 
@@ -14,8 +14,14 @@ class ABAQUS_BCJ_ISO: public ABAQUS_UMAT_BaseT
 {
 public:
 
-	/* constructor */
-	ABAQUS_BCJ_ISO(ifstreamT& in, const FSMatSupportT& support);
+	/** constructor */
+	ABAQUS_BCJ_ISO(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 private:
 

@@ -8,8 +8,11 @@
 
 #include "f2c.h"
 
-/* Table of constant values */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Table of constant values */
 static integer c__9 = 9;
 static integer c__1 = 1;
 
@@ -77,8 +80,8 @@ static integer c__1 = 1;
     /* Initialized data */
 
     static doublereal con1 = .816496580927726;
-    static char name1[8] = "bcj2.2  ";
-    static char name2[8] = "BCJ2.2  ";
+    static char name1[] = "bcj2.2  ";
+    static char name2[] = "BCJ2.2  ";
     static integer iparam1 = 0;
     static integer iparam2 = 0;
     static integer iparam3 = 0;
@@ -781,5 +784,9 @@ L400:
     statev[7] = max(statev[7],0.);
     return 0;
 } /* umat_ */
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* __F2C__ */

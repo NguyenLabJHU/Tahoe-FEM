@@ -1,4 +1,4 @@
-/* $Id: sinv.c,v 1.2 2004-01-05 07:39:36 paklein Exp $ */ 
+/* $Id: sinv.c,v 1.3 2004-08-01 20:42:35 paklein Exp $ */ 
 /* sinv.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -8,6 +8,10 @@
 #ifdef __F2C__
 
 #include "f2c.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Subroutine */ int sinv_(doublereal *stress, doublereal *sinv1, doublereal *
 	sinv2, integer *ndi, integer *nshr)
@@ -90,5 +94,9 @@
 /* ======================================================================= */
     return 0;
 } /* sinv_ */
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* __F2C__ */

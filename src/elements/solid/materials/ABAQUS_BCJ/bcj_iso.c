@@ -1,4 +1,4 @@
-/* $Id: bcj_iso.c,v 1.2 2004-01-05 07:39:36 paklein Exp $ */ 
+/* $Id: bcj_iso.c,v 1.3 2004-08-01 20:42:35 paklein Exp $ */ 
 /* bcj_iso.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -9,8 +9,11 @@
 
 #include "f2c.h"
 
-/* Table of constant values */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Table of constant values */
 static integer c__40 = 40;
 static integer c__9 = 9;
 static integer c__1 = 1;
@@ -486,7 +489,7 @@ static integer c__2 = 2;
 } /* umat_ */
 
 
-/* $Id: bcj_iso.c,v 1.2 2004-01-05 07:39:36 paklein Exp $ */
+/* $Id: bcj_iso.c,v 1.3 2004-08-01 20:42:35 paklein Exp $ */
 /* Subroutine */ int addtens_(integer *ntens, doublereal *dt, doublereal *t)
 {
 
@@ -7699,6 +7702,10 @@ L200:
 /* ====================================================================== */
     return 0;
 } /* disp_ */
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* __F2C__ */
 

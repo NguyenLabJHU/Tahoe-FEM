@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BCJ_ISO.cpp,v 1.2 2004-01-05 07:39:35 paklein Exp $ */
+/* $Id: ABAQUS_BCJ_ISO.cpp,v 1.3 2004-08-01 20:42:35 paklein Exp $ */
 #include "ABAQUS_BCJ_ISO.h"
 
 #ifdef __F2C__
@@ -21,9 +21,18 @@ int bcj_iso_(doublereal *stress, doublereal *statev, doublereal
 }
 
 /* constructor */
-ABAQUS_BCJ_ISO::ABAQUS_BCJ_ISO(ifstreamT& in, const FSMatSupportT& support):
-	ABAQUS_UMAT_BaseT(in, support)
+ABAQUS_BCJ_ISO::ABAQUS_BCJ_ISO(void):
+	ParameterInterfaceT("ABAQUS_UMAT_BCJ_iso-damage")
 {
+
+}
+
+/* accept parameter list */
+void ABAQUS_BCJ_ISO::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ABAQUS_UMAT_BaseT::TakeParameterList(list);
+
 	/* set isotropic properties */
 	double   Young = double(fProperties[3]);
 	double Poisson = double(fProperties[4]);

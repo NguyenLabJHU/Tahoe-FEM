@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_SS_BCJ_ISO.cpp,v 1.2 2004-01-05 07:39:35 paklein Exp $ */
+/* $Id: ABAQUS_SS_BCJ_ISO.cpp,v 1.3 2004-08-01 20:42:35 paklein Exp $ */
 #include "ABAQUS_SS_BCJ_ISO.h"
 
 #ifdef __F2C__
@@ -21,26 +21,22 @@ int bcj_iso_(doublereal *stress, doublereal *statev, doublereal
 }
 
 /* constructor */
-ABAQUS_SS_BCJ_ISO::ABAQUS_SS_BCJ_ISO(ifstreamT& in, const SSMatSupportT& support):
-	ABAQUS_UMAT_SS_BaseT(in, support)
+ABAQUS_SS_BCJ_ISO::ABAQUS_SS_BCJ_ISO(void):
+	ParameterInterfaceT("ABAQUS_UMAT_SS_BCJ_iso-damage")
 {
+
+}
+
+/* accept parameter list */
+void ABAQUS_SS_BCJ_ISO::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ABAQUS_UMAT_SS_BaseT::TakeParameterList(list);
+
 	/* set isotropic properties */
 	double   Young = double(fProperties[3]);
 	double Poisson = double(fProperties[4]);
 	Set_E_nu(Young, Poisson);
-}
-
-/* return modulus */
-const dMatrixT& ABAQUS_SS_BCJ_ISO::c_ijkl(void)
-{
-//TEMP - debugging
-	if (flog.is_open()) {
-		flog << setw(10) << "element: " << MaterialSupport().CurrElementNumber()+1 << '\n';
-		flog << setw(10) << "     ip: " << CurrIP()+1 << '\n';
-		flog << setw(10) << " fd_mod:\n" << SSSolidMatT::c_ijkl() << '\n';
-	}
-	
-	return ABAQUS_UMAT_SS_BaseT::c_ijkl();
 }
 
 /***********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BCJ.cpp,v 1.2 2003-09-06 08:42:54 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BCJ.cpp,v 1.3 2004-08-01 20:42:35 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #include "ABAQUS_VUMAT_BCJ.h"
 
@@ -27,10 +27,22 @@ int cycdmg7_([full argument list]);
 #endif
 
 /* constructor */
-ABAQUS_VUMAT_BCJ::ABAQUS_VUMAT_BCJ(ifstreamT& in, const FSMatSupportT& support):
-	ABAQUS_VUMAT_BaseT(in, support)
+ABAQUS_VUMAT_BCJ::ABAQUS_VUMAT_BCJ(void):
+	ParameterInterfaceT("ABAQUS_VUMAT_BCJ")
 {
 
+}
+
+/* accept parameter list */
+void ABAQUS_VUMAT_BCJ::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ABAQUS_VUMAT_BaseT::TakeParameterList(list);
+
+	/* set (material tangent) modulus tensor (fixed) */
+	double   Young = double(fProperties[0]);
+	double Poisson = double(fProperties[1]);
+	Set_E_nu(Young, Poisson);
 }
 
 /***********************************************************************

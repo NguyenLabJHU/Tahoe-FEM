@@ -8,14 +8,17 @@
 
 #include "f2c.h"
 
-/* Table of constant values */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Table of constant values */
 static doublereal c_b17 = .5;
 
 /* small number */
 static doublereal kSmall = 1.0e-12;
 
-/* $Id: vumatadiab.c,v 1.1 2003-09-06 07:09:42 paklein Exp $ */
+/* $Id: vumatadiab.c,v 1.2 2004-08-01 20:42:35 paklein Exp $ */
 
 /* 23456789012345678901234567890123456789012345678901234567890123456789012 */
 /* revision a  2000/12/6  correct problems */
@@ -621,9 +624,14 @@ L20:
     return 0;
 } /* vumat_ */
 
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
 #else
 static void dummy(void)
 {
 	int a = 1;
 }
+
 #endif /* __F2C__ */

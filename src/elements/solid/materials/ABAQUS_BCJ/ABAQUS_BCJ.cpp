@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BCJ.cpp,v 1.3 2004-01-05 07:39:35 paklein Exp $ */
+/* $Id: ABAQUS_BCJ.cpp,v 1.4 2004-08-01 20:42:35 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #include "ABAQUS_BCJ.h"
 
@@ -22,9 +22,18 @@ int bcjumat_(doublereal *stress, doublereal *statev, doublereal
 }
 
 /* constructor */
-ABAQUS_BCJ::ABAQUS_BCJ(ifstreamT& in, const FSMatSupportT& support):
-	ABAQUS_UMAT_BaseT(in, support)
+ABAQUS_BCJ::ABAQUS_BCJ(void):
+	ParameterInterfaceT("ABAQUS_UMAT_BCJ")
 {
+
+}
+
+/* accept parameter list */
+void ABAQUS_BCJ::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ABAQUS_UMAT_BaseT::TakeParameterList(list);
+
 	/* set isotropic properties */
 	double shear = double(fProperties[0]);
 	double bulk  = double(fProperties[2]);
