@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianT.cpp,v 1.12 2003-11-05 20:33:41 paklein Exp $ */
+/* $Id: TotalLagrangianT.cpp,v 1.12.20.1 2004-05-01 06:32:35 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "TotalLagrangianT.h"
 
@@ -17,24 +17,34 @@ TotalLagrangianT::TotalLagrangianT(const ElementSupportT& support, const FieldT&
 	fTempMat1(NumSD()),
 	fTempMat2(NumSD())
 {
-
+	SetName("total_lagrangian");
 }
 
-/* data initialization */
-void TotalLagrangianT::Initialize(void)
+TotalLagrangianT::TotalLagrangianT(const ElementSupportT& support):
+	FiniteStrainT(support)
+{
+	SetName("total_lagrangian");
+}
+
+/* accept parameter list */
+void TotalLagrangianT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	FiniteStrainT::Initialize();
+	FiniteStrainT::TakeParameterList(list);
+	
+	/* dimension workspace */
+	fStressMat.Dimension(NumSD());
+	fTempMat1.Dimension(NumSD());
+	fTempMat2.Dimension(NumSD());
 
-	/* dimension */
 	fGradNa.Dimension(NumSD(), NumElementNodes());
 	fStressStiff.Dimension(NumElementNodes());
 	fTemp2.Dimension(NumElementNodes()*NumDOF());
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* form the element stiffness matrix */
 void TotalLagrangianT::FormStiffness(double constK)
