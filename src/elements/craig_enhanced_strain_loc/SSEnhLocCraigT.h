@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.h,v 1.2 2004-09-24 00:52:12 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.h,v 1.3 2004-12-20 19:44:51 cfoster Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_CF_T_H_
 #define _SMALL_STRAIN_ENH_LOC_CF_T_H_
 
@@ -110,8 +110,11 @@ protected:
 
 	/** driver for calculating output values */
 	/* Used to check localization - is there a more appropriate fn? */
-	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-				   const iArrayT& e_codes, dArray2DT& e_values);
+	/*virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+				   const iArrayT& e_codes, dArray2DT& e_values); */
+  public:
+	virtual void CloseStep(void);
+  protected:
 
 //move to surface mat model?
 	dSymMatrixT FormdGdSigma(int ndof);

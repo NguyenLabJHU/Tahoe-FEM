@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.2 2004-09-24 00:52:12 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.3 2004-12-20 19:44:51 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -374,8 +374,6 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 {
 
 
-
-
   if (fStrainDispOpt == kMeanDilBbar)
     cout << "Warning SSEnhLocCraigT::FormStiffness, b-bar integration not implemented for enhanced strain element, postlocalization results may be garbage.";
 
@@ -408,6 +406,7 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 	int nedof = nen*ndof;//# of element dof
 	double k_zeta_zeta, area = 0.0;
 	dArrayT k_d_zeta(nedof), k_zeta_d(nedof);
+
 	dSymMatrixT gradActiveTensorFlowDir(ndof), dGdSigma(ndof);
 	dMatrixT fLHSWork(nedof),// fDfB((HookeanMatT::Modulus().Rows()),nedof);
 	  fDfB((fInitialModulus.Rows()),nedof);
@@ -420,7 +419,6 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 		area += (*Det)*(*Weight);
 	        double scale = constK*(*Det++)*(*Weight++);
 	
-
 		//form ke_dd - assume elastic
 		/* strain displacement matrix */
 		if (fStrainDispOpt == kMeanDilBbar)
@@ -453,23 +451,24 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 		
 	}
 
-
-	//cout << "area =" << area << endl;
+	//cout << "fLHS =\n" << fLHS << endl;
+	cout << "area =" << area << endl;
 
 	k_d_zeta *= 1.0/area;
 
 	k_zeta_zeta *= 1.0/area;
 	k_zeta_zeta += fH_Delta;
-	/*
-	cout << "gradActiveTensorFlowDir =\n" << gradActiveTensorFlowDir << endl;
-	cout << "dGdSigma =\n" << dGdSigma << endl;
-	cout << "k_d_zeta =\n" << k_d_zeta << endl;
+	//k_zeta_zeta *= -1.0;
+
+	//cout << "gradActiveTensorFlowDir =\n" << gradActiveTensorFlowDir << endl;
+	//cout << "dGdSigma =\n" << dGdSigma << endl;
+	//cout << "k_d_zeta =\n" << k_d_zeta << endl;
 	cout << "k_zeta_zeta =\n" << k_zeta_zeta << endl;
-	cout << "k_zeta_d =\n" << k_zeta_d << endl;
-	*/
+	//cout << "k_zeta_d =\n" << k_zeta_d << endl;
+	
 
 
-	fLHS.Outer(k_d_zeta, k_zeta_d, -1.0*k_zeta_zeta, dMatrixT::kAccumulate);
+	fLHS.Outer(k_d_zeta, k_zeta_d, -1.0/k_zeta_zeta, dMatrixT::kAccumulate);
 	cout << "fLHS =\n" << fLHS << endl;
     }
 
@@ -531,6 +530,7 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 	  cout << "Warning - B-bar not implemented for localized element\n";
 	else
 	  {
+
 	    int material_number = CurrentElement().MaterialNumber();
 	    const ArrayT<bool>& needs = fMaterialNeeds[material_number];
 
@@ -568,9 +568,9 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 		  jumpWork += scale * gradActiveTensorFlowDir.Dot(dGfD,gradActiveTensorFlowDir);
 		  
 		}
-		fJumpIncrement /= area;
+		//fJumpIncrement /= area;
 		fJumpIncrement += fBand->Jump()*jumpWork;
-		fJumpIncrement /= (jumpWork + fH_Delta);
+		fJumpIncrement /= (jumpWork + area * fH_Delta);
 
 		cout << "fJumpIncrement = " << fJumpIncrement << endl <<endl;
 
@@ -683,9 +683,14 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 
 /** driver for calculating output values */
 /* Used to check localization - is there a more appropriate fn? */
+
+#if 0
 void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			   const iArrayT& e_codes, dArray2DT& e_values)
 {
+
+
+  SolidElementT::ComputeOutput(n_codes, n_values, e_codes, e_values);
 
   /* If element has not localized yet, check */
   if (!isLocalized)
@@ -694,14 +699,32 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	isLocalized = true;
     }
   else
-    fBand->IncrementJump(fJumpIncrement);
+    {
+      fBand->IncrementJump(fJumpIncrement);
+      cout << "Jump = " << fBand -> Jump() << endl; 
+    }
 
+  cout << "isLocalized = " << isLocalized << endl;
+  cout << "isLocalizedTemp = " << isLocalizedTemp << endl; 
 
-  SolidElementT::ComputeOutput(n_codes, n_values, e_codes, e_values);
+}
+#endif
 
+void SSEnhLocCraigT::CloseStep(void)
+{
+ /* If element has not localized yet, check */
+  if (!isLocalized)
+    {
+      if (isLocalizedTemp)
+	isLocalized = true;
+    }
+  else
+    {
+      fBand->IncrementJump(fJumpIncrement);
+      cout << "Jump = " << fBand -> Jump() << endl; 
+    }
 
-
-
+  SmallStrainT::CloseStep();		
 }
 
 /***********************************************************************
@@ -866,6 +889,9 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
   dArrayT slipDir = slipDirs.Current();
   dArrayT perpSlipDir;
 
+  cout << "normal = \n" << normal;
+  cout << "slipDir = \n" << slipDir; 
+
   perpSlipDir = slipDir;
   perpSlipDir.AddScaled(-1.0*slipDir.Dot(slipDir, normal), normal);
   perpSlipDir.UnitVector();
@@ -886,13 +912,13 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
   fBand = new BandT(normal, slipDir, perpSlipDir, centroid, this);
   //fBand = new BandT(slipDir, normal, normal, centroid, this);
 
-  
+  /*
   cout << fBand->Normal() << endl << endl;
   cout << fBand->SlipDir() << endl << endl;
   cout << fBand->PerpSlipDir() << endl << endl;
   cout << centroid << endl << endl;
   cout << fBand->Jump() << endl << endl;
-  
+  */
 
 }
 
