@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.17 2003-04-18 23:05:16 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.18 2003-04-22 19:02:06 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -21,7 +21,8 @@ const int nTiedFlag = 0;
 
 /* constructor */
 TiedPotentialT::TiedPotentialT(ifstreamT& in): 
-	SurfacePotentialT(knumDOF), TiedPotentialBaseT()
+	SurfacePotentialT(knumDOF), TiedPotentialBaseT(),
+	qRetieNodes(false)
 {
     in >> fnvec1; /* read in direction to sample stress state at */
     in >> fnvec2;
@@ -41,6 +42,11 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in):
     	if (iBulkGroups[i] < 0) throw ExceptionT::kBadInputValue;
     	iBulkGroups[i]--;
     }
+    
+    int willRetie;
+    in >> willRetie;
+    if (willRetie == 1) 
+    	qRetieNodes = true;
     
 	in >> qTv; /* 0 for Xu-Needleman. 1 for TvergHutch */
 	
@@ -128,7 +134,7 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 #endif
 
 
-	if (state[nTiedFlag] != kFreeNode && state[nTiedFlag] != kReleaseNextStep)
+	if (state[nTiedFlag] == kTiedNode)
 	{
 			fTraction = 0.;
 	}
@@ -169,8 +175,11 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 						fTraction = 0.;
 		}
 		
+		/* handle tied flag updates */
 		if (state[nTiedFlag] == kReleaseNextStep && qIntegrate)
 			state[nTiedFlag] = kFreeNode;
+		if (state[nTiedFlag] == kTieNextStep && qIntegrate)
+			state[nTiedFlag] = kTiedNode;
 	}
 
 	return fTraction;
@@ -178,7 +187,8 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 }
 
 /* potential stiffness */
-const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
+const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, 
+										const dArrayT& sigma)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
@@ -186,7 +196,7 @@ const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<do
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif 
 	
-	if (state[nTiedFlag] != kReleaseNextStep && state[nTiedFlag] != kFreeNode)
+	if (state[nTiedFlag] == kTiedNode)
 	{
 		fStiffness = 0.;
 	}
@@ -349,7 +359,7 @@ void TiedPotentialT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& 
 
 bool TiedPotentialT::NeedsNodalInfo(void) { return true; }
 
-bool TiedPotentialT::NodesMayRetie(void) { return false; }
+bool TiedPotentialT::NodesMayRetie(void) { return qRetieNodes; }
 
 
 int TiedPotentialT::NodalQuantityNeeded(void) 
@@ -363,6 +373,19 @@ bool TiedPotentialT::InitiationQ(const double* sigma)
 	double t2 = sigma[2]*fnvec1+sigma[1]*fnvec2;
 	
 	return t1*t1 + t2*t2 >= fsigma_critical;
+}
+
+bool TiedPotentialT::RetieQ(const double* sigma, const ArrayT<double>& state,
+							const dArrayT& jump_u)
+{
+#pragma unused(state)
+#pragma unused(sigma)
+/* to pass the benchmark, default will be to retie in compression. 
+ * For other calculations, implement your own routine */
+	if (qRetieNodes)
+		return jump_u[1] < kSmall; 
+	else 
+		return false;
 }
 
 bool TiedPotentialT::CompatibleOutput(const SurfacePotentialT& potential) const

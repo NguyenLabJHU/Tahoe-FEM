@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.26 2003-04-18 23:05:12 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.27 2003-04-22 19:02:05 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -120,6 +120,10 @@ protected:
 	 * Array has dimensions: [nel] x [nip * nvar] */
 	RaggedArray2DT<double> fStateVariables;
 	RaggedArray2DT<double> fStateVariables_last;
+	
+	
+	const GlobalT::StateT& fRunState;
+
 #else
 	/*In SIERRA, we're assuming only one cohesive law per element
 	 *block, but keeping the array 2D so we can loop over its
@@ -130,8 +134,6 @@ protected:
 	dArray2DT fStateVariables;
 	dArray2DT fStateVariables_last;
 #endif
-
-	const GlobalT::StateT& fRunState;
 
 	/** incremental heat sources for each element block */
 	ArrayT<dArray2DT> fIncrementalHeat;

@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialBaseT.h,v 1.3 2003-04-18 23:05:16 cjkimme Exp $ */
+/* $Id: TiedPotentialBaseT.h,v 1.4 2003-04-22 19:02:06 cjkimme Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_BASE_T_H_
@@ -10,6 +10,8 @@
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
+
+class dArrayT;
 
 /* constants for state variable flags */
 const double kTiedNode = -100.;
@@ -45,10 +47,22 @@ public:
 	/* True if the tied potential may ask for nodes to be retied later */
 	virtual bool NodesMayRetie(void) = 0;
 	
+	/* True if node should be retied */
+	virtual bool RetieQ(const double* sigma, const ArrayT<double>& state, const dArrayT& jump_u); 
+	
 protected:
 
     iArrayT iBulkGroups;
+
 };
+
+inline bool TiedPotentialBaseT::RetieQ(const double* sigma, const ArrayT<double>& state, const dArrayT& jump_u)
+{
+#pragma unused(sigma)
+#pragma unused(state)
+#pragma unused(jump_u)
+	return false;
+}
 
 } // namespace Tahoe 
 #endif /* _TIED_POTENTIAL_BASE_T_H_ */

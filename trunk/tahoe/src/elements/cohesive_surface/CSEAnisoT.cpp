@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.46 2003-04-18 23:05:12 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.47 2003-04-22 19:02:05 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -271,6 +271,7 @@ void CSEAnisoT::Initialize(void)
 				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT_DEV not enabled: %d", code);
 #endif
 			}
+#ifndef _SIERRA_TEST_
 			// Handle all tied potentials here till the code is finalized.
 			case SurfacePotentialT::kTiedPotential:
 			{	
@@ -342,6 +343,7 @@ void CSEAnisoT::Initialize(void)
 				
 				break;
 			}
+#endif // ndef _SIERRA_TEST_
 			default:
 #ifndef _SIERRA_TEST_
 				cout << "\n CSEAnisoT::Initialize: unknown potential code: " << code << endl;
@@ -847,32 +849,23 @@ void CSEAnisoT::RHSDriver(void)
 				    fShapes->Interpolate(fNodalValues,tensorIP);			    
 					localFrameIP.MultQBQT(fQ,dSymMatrixT(NumSD(),tensorIP.Pointer()));
 					
-					if (tiedpot->InitiationQ(localFrameIP.Pointer()))
+					if (state[iTiedFlagIndex] == kTiedNode && 
+						tiedpot->InitiationQ(localFrameIP.Pointer()))
 					{
 						for (int i = 0; i < numElemNodes; i++) 
 							freeNodeQ(currElNum,i) = 1.;
 						nodalReleaseQ = true;
+						state[iTiedFlagIndex] = kReleaseNextStep;
 					}
-				
-					/* set a flag to tell traction and stiffness that 
-					 * the node is free 
-					 */
-					if (state[iTiedFlagIndex] == kTiedNode) 
-					{
-						if (nodalReleaseQ) // InitiationQ is true
-							state[iTiedFlagIndex] = kReleaseNextStep;
-					}
-					
-					/* see if nodes need to be retied */
-					if (qRetieNodes && state[iTiedFlagIndex] == kFreeNode)
-					{
-						// test for retie here
-						// if retie
+					else
+						/* see if nodes need to be retied */
+						if (qRetieNodes && state[iTiedFlagIndex] == kFreeNode && 
+							tiedpot->RetieQ(localFrameIP.Pointer(), state, fdelta))
+						{
 							state[iTiedFlagIndex] = kTieNextStep;
-						for (int i = 0; i < numElemNodes; i++)
-							freeNodeQ(currElNum,i) = 0.;
-						nodalReleaseQ = false; //? not sure about this line
-					}
+							for (int i = 0; i < numElemNodes; i++)
+								freeNodeQ(currElNum,i) = 0.;
+						}
 				}
 #endif
 				/* traction vector in/out of local frame */
