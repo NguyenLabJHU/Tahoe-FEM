@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.48 2004-07-22 08:20:19 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.49 2004-07-22 13:31:26 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -912,7 +912,7 @@ void BridgingScaleT::TakeParameterList(const ParameterListT& list)
 	/* resolve the solid element group */
 	int group = list.GetParameter("solid_element_group");
 	group--;
-	const ElementBaseT& element = ElementSupport().ElementGroup(group);
+	ElementBaseT& element = ElementSupport().ElementGroup(group);
 #ifdef __NO_RTTI__
 	fSolid = element.dynamic_cast_SolidElementT();
 #else
