@@ -1,4 +1,4 @@
-// $Id: FEA_dScalarT.h,v 1.4 2003-03-17 22:05:29 creigh Exp $
+// $Id: FEA_dScalarT.h,v 1.5 2003-04-23 23:34:22 creigh Exp $
 #ifndef _FEA_DSCALART_H_
 #define _FEA_DSCALART_H_
 
@@ -40,13 +40,13 @@ class FEA_dScalarT: public dArrayT // For the name sake only
 		void Sqrt			( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = sqrt ( s[i] ); }
 		void Macaulay ( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) if (s[i]<0.0) (*this)[i] = s[i]; else (*this)[i] = 0.0; }
 
-		void Sin			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = sin  ( (*this)[i] ); }
-		void Cos			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = cos  ( (*this)[i] ); }
-		void Tan			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = tan  ( (*this)[i] ); }
-		void Exp			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = exp  ( (*this)[i] ); }
-		void Sinh			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = sinh ( (*this)[i] ); }
-		void ArcSinh	( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = asinh ( (*this)[i] ); }
-		void Cosh			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = cosh ( (*this)[i] ); }
+		void Sin			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = sin  	( (*this)[i] ); }
+		void Cos			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = cos  	( (*this)[i] ); }
+		void Tan			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = tan  	( (*this)[i] ); }
+		void Exp			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = exp  	( (*this)[i] ); }
+		void Sinh			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = sinh 	( (*this)[i] ); }
+		void ArcSinh	( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = asinh 	( (*this)[i] ); }
+		void Cosh			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = cosh 	( (*this)[i] ); }
 		void Tanh			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = tanh ( (*this)[i] ); }
 		void Sech			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = 1.0/cosh ( (*this)[i] ); }
 		void Sqrt			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = sqrt ( (*this)[i] ); }
@@ -74,17 +74,22 @@ class FEA_dScalarT: public dArrayT // For the name sake only
 		void operator *= (const double &a ) 				{ for (int i=0; i<fLength; i++) (*this)[i] *= a; }
 		void operator /= (const double &a ) 				{ for (int i=0; i<fLength; i++) (*this)[i] /= a; }
 
+		bool operator == (const double  a) {   for(int i=0; i<fLength; i++) { if((*this)[i] == a){return 1;} }  return 0;  }
+		bool operator != (const double  a) {   for(int i=0; i<fLength; i++) { if((*this)[i] == a){return 0;} }  return 1;  }
 
-		void Dot 				 	( FEA_dVectorT &a, FEA_dVectorT &b ); 
-		void Double_Dot  	( FEA_dMatrixT &A, FEA_dMatrixT &B ); 
-		void Max			  	( FEA_dVectorT &a ); 
-		void Max			  	( FEA_dMatrixT &A ); 
-		void AbsMax			  ( FEA_dVectorT &a ); 
-		void AbsMax			  ( FEA_dMatrixT &A ); 
+		void Dot 				 		( FEA_dVectorT 	&a, FEA_dVectorT &b ); 
+		void Double_Dot  		( FEA_dMatrixT 	&A, FEA_dMatrixT &B ); 
+		void L1_Norm 				( FEA_dMatrixT 	&A );
+		void L1_Diagonal  	( FEA_dMatrixT 	&A );  //--- Get sum of abs ( diagonal terms )
+		void Diagonal_Bias 	( FEA_dMatrixT 	&A );
+		void Max			  		( FEA_dVectorT 	&a ); 
+		void Max			  		( FEA_dMatrixT 	&A ); 
+		void AbsMax			  	( FEA_dVectorT 	&a ); 
+		void AbsMax			  	( FEA_dMatrixT 	&A ); 
 
 		// Tensor Invariants
-		void Trace 				( FEA_dMatrixT &A ); 
-		void Determinant 	( FEA_dMatrixT &A ); 
+		void Trace 					( FEA_dMatrixT 	&A ); 
+		void Determinant 		( FEA_dMatrixT 	&A ); 
 
 };
     // RECALL: operator = already overloaded by base class 
@@ -99,5 +104,6 @@ inline void FEA_dScalarT::Print(char *c) { // overload << later
     cout <<"\n "<< c <<" @ ip "<<i<<" = "<< (*this)[i] << "\n";
 
 }
+
 
 #endif

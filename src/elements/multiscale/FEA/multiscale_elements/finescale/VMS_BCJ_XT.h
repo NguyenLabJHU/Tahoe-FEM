@@ -1,12 +1,12 @@
-// $Id: VMS_BCJT.h,v 1.11 2003-04-23 23:34:25 creigh Exp $
-#ifndef _VMS_BCJT_H_ 
-#define _VMS_BCJT_H_ 
+// $Id: VMS_BCJ_XT.h,v 1.1 2003-04-23 23:34:25 creigh Exp $
+#ifndef _VMS_BCJ_XT_H_ 
+#define _VMS_BCJ_XT_H_ 
 
 #include "FineScaleT.h"
 
 namespace Tahoe {
 
-/** VMS_BCJTT: This class contains methods which build stiffness matricies 
+/** VMS_BCJ_XTT: This class contains methods which build stiffness matricies 
  *  and formulate the non-linear Newton-Raphson equations Kd = -R
  *  for a Variational Multi-Scale (VMS) approach to implementation of Sandia's
  *  BCJT Model.  A dual field formulation u^alpha and u^beta is used. See
@@ -14,7 +14,7 @@ namespace Tahoe {
  *  Collaboration:  Sandia National Laboratory and the University of Michigan **/
 
 
-class VMS_BCJT : public FineScaleT
+class VMS_BCJ_XT : public FineScaleT
 {
 
 	public:
@@ -22,8 +22,15 @@ class VMS_BCJT : public FineScaleT
   	enum B_T { 
 								kB, 
 						   	kB_1hat,   
-							 	kB05_tau_3hat,
-							 	kB06_3hat,
+
+							 	kBa_d,
+							 	kBb_d,
+							 	kBab_d,
+							 	kBa_d_tau,
+							 	kBb_d_tau,
+							 	kBab_d_tau,
+							 	kBa_da,
+							 	kBb_da,
 								
 								kBa_Cb_3hat,
 							 	kBb_Cb_3hat,
@@ -65,21 +72,26 @@ class VMS_BCJT : public FineScaleT
 						   	kgrad_ub, 
 						   	kF,   		// for Iso hard
 						   	kFT,  		// for Iso hard
+						   	kFi,   		
 						   	kFa,  		// for Iso hard
 						   	kFaT, 		// for Iso hard
 							 	kFa_n,		// for Iso hard
 						   	kFai,
 						   	kFa_dot, 	// for expr G2.
-						   	kFb,			//
+						   	kFb,			
 								kFbT,
+						   	kFbi,			
+								kFbiT,
 							 	kCa_n,
 							 	kLa,			// Diagnostics
 							 	kDa,			// Diagnostics
 							 	kla,			// Diagnostics
 							 	kda,			// Diagnostics
 							 	kNda,			// Diagnostics
-							 	kDa_m,
-							 	kDa_mp1,
+								kR7,
+								kR7T,
+								kda_h,
+								kSym_R7,
 								kF_sharp,
 								kF_sharp_T,
 								kN,
@@ -104,7 +116,6 @@ class VMS_BCJT : public FineScaleT
 						   	kS,				
 						   	kS_tilde,			// Diagnostics
 						   	kS_hat,				// Diagnostics
-						   	kFbi,					// for Back Stress
 						   	kH_bar,				// for Back Stress
 						   	kDEV_H,				// for Back Stress
 						   	kZeta,				// for Back Stress
@@ -115,7 +126,6 @@ class VMS_BCJT : public FineScaleT
 								kA4T,					// for Back Stress
 						   	kMu_c_l_Jb_curl_sE_T,	// for Back Stress
 						   	kR2T,					// for Back Stress
-						   	kFbiT,				// for Back Stress
 								kG2,
 							 	kFb_n,				// for CCba GammaY 
 							 	kCb_n,				// for CCba GammaY 
@@ -247,9 +257,9 @@ class VMS_BCJT : public FineScaleT
 
 	//--------------------------------------------------------------
 	
- 	VMS_BCJT	(	) { }
+ 	VMS_BCJ_XT	(	) { }
 								
-	VMS_BCJT	( FEA_ShapeFunctionT&, VMF_MaterialT*, VMS_VariableT&, VMS_VariableT&, 
+	VMS_BCJ_XT	( FEA_ShapeFunctionT&, VMF_MaterialT*, VMS_VariableT&, VMS_VariableT&, 
 							int &fTime_Step, double fdelta_t = 0.0, int IntegrationScheme = FEA::kBackward_Euler);
 
 	void  Initialize	( int &in_ip, int &in_sd, int &in_en, int Initial_Time_Step=1 );
@@ -303,5 +313,5 @@ class VMS_BCJT : public FineScaleT
 };
 
 } // namespace Tahoe 
-#endif /* _VMS_BCJT_H_ */
+#endif /* _VMS_BCJ_XT_H_ */
 

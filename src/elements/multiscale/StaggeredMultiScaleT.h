@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.17 2003-04-08 23:07:39 paklein Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.18 2003-04-23 23:34:20 creigh Exp $ */ 
 //DEVELOPMENT
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
@@ -47,6 +47,10 @@ class StaggeredMultiScaleT: public ElementBaseT
 	enum fMat_T 	{ 
 									k__E,
 									k__Pr,
+									k__E1,
+									k__Pr1,
+									k__E2,
+									k__Pr2,
 									k__f,
 									k__V,
 									k__Y,
@@ -54,8 +58,13 @@ class StaggeredMultiScaleT: public ElementBaseT
 									k__l,
 									k__K,
 									k__H,
+									k__Yield_Strain,
+									k__Beta_tilde,
+									k__Rho_tilde,
 									k__Pi,
 									k__Rho,
+									k__Gamma_b,
+									k__AlphaY,
 									k__Density,
 									kNUM_FMAT_TERMS	};		// MAT for material here, not matrix
 
@@ -223,12 +232,18 @@ private:
  	int render_variable_order;	
  	int render_displ;	
 
-	ofstreamT var_plot_file;
+  ofstreamT var_plot_file;
  	double x_top;  // for calc Lf	
  	double x_bot;  // for calc Lf	
 
 	ArrayT < FEA_dMatrix_ArrayT >  Render_Tensor; // ( n_el x num variables to render (n_rv)
 	ArrayT < FEA_dScalar_ArrayT >  Render_Scalar; // ( n_el x num variables to render (n_rv)
+
+	//-- Room for expansion w/o changing input decks
+	int num_extra_integer_vars;
+	int num_extra_double_vars;
+	iArrayT Extra_Integer_Vars;
+	dArrayT Extra_Double_Vars;
 
 	// above will actually be ( n_el x n_rv x n_ip x n_sd x n_sd )
 
@@ -279,8 +294,8 @@ private:
 	 * (to include Variational Multi-Scale (VMS) formulation). */
 
 	/* Data Storage */
-	ElementMatrixT fKa_I, fKb_I;  
-	ElementMatrixT fKa_II, fKb_II; 
+	ElementMatrixT fKa_I, fKb_I;
+	ElementMatrixT fKa_II, fKb_II;
 	dArrayT 	fFint_I;
 	dArrayT 	fFext_I;
 	dArrayT		fFint_II;
@@ -344,14 +359,14 @@ private:
 	const ShapeFunctionT& ShapeFunction(void) const;
 
 	protected:
-	
-	/** apply traction boundary conditions to the coarse scale equations */
-	void ApplyTractionBC(void);
 
-	/** add contribution from the body force */
-	void AddBodyForce(LocalArrayT& body_force) const;
+	 	/** apply traction boundary conditions to the coarse scale equations */
+		void ApplyTractionBC(void);
+
+		/** add contribution from the body force */
+		void AddBodyForce(LocalArrayT& body_force) const;
 	
-	/** element body force contribution 
+		/** element body force contribution 
 	 * \param mass_type mass matrix type of ContinuumElementT::MassTypeT
 	 * \param constM pre-factor for the element integral
 	 * \param nodal nodal values. Pass NULL for no nodal values: [nen] x [ndof]
@@ -364,7 +379,7 @@ private:
 	// shared but the output of what each code means is class-dependent
 	void EchoBodyForce(ifstreamT& in, ostream& out);
 
-	/** update traction BC data for the coarse scale equations */
+  /** update traction BC data for the coarse scale equations */
 	void SetTractionBC(void);
 
 	/* body force vector */
@@ -375,7 +390,8 @@ private:
 	ArrayT<Traction_CardT> fTractionList;
 	int fTractionBCSet;
 
-	dArrayT fDOFvec; /**< work space vector: [nodal DOF] */	
+	dArrayT fDOFvec; /**< work space vector: [nodal DOF]   */
+	
 };
 
 inline const ShapeFunctionT& StaggeredMultiScaleT::ShapeFunction(void) const 
@@ -387,5 +403,9 @@ inline const ShapeFunctionT& StaggeredMultiScaleT::ShapeFunction(void) const
 	return *fShapes;
 }
 
+
 } // namespace Tahoe 
 #endif /* _STAGGERED_MULTISCALE_T_H_ */
+
+
+

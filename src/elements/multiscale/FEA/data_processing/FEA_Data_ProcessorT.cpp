@@ -1,4 +1,4 @@
-// $Id: FEA_Data_ProcessorT.cpp,v 1.7 2003-03-17 22:05:28 creigh Exp $
+// $Id: FEA_Data_ProcessorT.cpp,v 1.8 2003-04-23 23:34:21 creigh Exp $
 #include "FEA.h"  
 
 using namespace Tahoe;
@@ -518,11 +518,11 @@ void FEA_Data_ProcessorT::C_IJKL (const double &lamda,const double &mu,FEA_dMatr
   for (i=n_sd; i<dim; i++)
 		D(i,i) = mu; 
 	
-};
+}
 
 //---------------------------------------------------------------------
 
-void FEA_Data_ProcessorT::C_IJKL_E_KL	(double &lamda,double &mu, FEA_dMatrixT &E, FEA_dMatrixT &S) // Hooke's Law // Untested
+void FEA_Data_ProcessorT::C_IJKL_E_KL	(double &lamda,double &mu, FEA_dMatrixT &E, FEA_dMatrixT &S) // Hooke's Law // UT
 {
 FEA_dScalarT lamda_x_trE(n_ip); 
 E.Trace( lamda_x_trE );
@@ -534,7 +534,39 @@ S = E;
 S *= 2.0*mu;
 for (int i=0; i<n_sd; i++)
 	S(i,i) += lamda_x_trE; 
-};
+}
+
+//---------------------------------------------------------------------
+
+void FEA_Data_ProcessorT::C_IJKL_E_KL	(FEA_dScalarT &lamda, FEA_dScalarT &mu, FEA_dMatrixT &E, FEA_dMatrixT &S) // Hooke's Law // UT 
+{
+	FEA_dScalarT lamda_x_trE(n_ip); 
+	E.Trace( lamda_x_trE );
+	lamda_x_trE *= lamda;
+
+	if (n_sd==1) {
+		FEA_dScalarT modulus(n_ip), lamda_times_3(n_ip), lamda_plus_mu(n_ip); 
+		lamda_times_3   = lamda;
+		lamda_times_3  *= 3; 
+		lamda_plus_mu  = lamda;
+		lamda_plus_mu += mu;
+		modulus 			 = mu;
+		modulus 			*= 2;
+		modulus 			+= lamda_times_3;
+		modulus 			*= mu;
+		modulus 			/= lamda_plus_mu;
+
+		S(0,0) = E(0,0) * modulus; // 1D Hooke:  stress = E*strain
+		return;
+	}
+
+	S = E;
+	S *= mu;
+	S *= 2.0;
+	for (int i=0; i<n_sd; i++)
+		S(i,i) += lamda_x_trE; 
+
+}
 
 //---------------------------------------------------------------------
 
@@ -549,6 +581,62 @@ void FEA_Data_ProcessorT::c_ijkl	(double &lamda,double &mu, FEA_dScalarT &J, FEA
 			for (k=0; k<n_sd; k++)
 				for (l=0; l<n_sd; l++) 
 					cc ( Map(i,j), Map(k,l) )  = ( b(i,j)*b(k,l)*lamda + ( b(i,k)*b(j,l) + b(i,l)*b(j,k) )*mu ) /J; 
+}
+
+//---------------------------------------------------------------------
+
+void FEA_Data_ProcessorT::c_ijkl	(FEA_dScalarT &lamda, FEA_dScalarT &mu, FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &cc) 
+{
+	int i,j,k,l;
+	FEA_dMatrixT b	(n_ip,n_sd,n_sd); // Left Cauchy Tensor
+	b.MultABT(F,F);
+ 
+	for (i=0; i<n_sd; i++)
+		for (j=0; j<n_sd; j++)
+			for (k=0; k<n_sd; k++)
+				for (l=0; l<n_sd; l++) 
+					cc ( Map(i,j), Map(k,l) )  = ( b(i,j)*b(k,l)*lamda + ( b(i,k)*b(j,l) + b(i,l)*b(j,k) )*mu ) /J; 
+}
+
+//---------------------------------------------------------------------
+// Works for all CC regardless of symmetry.
+
+void FEA_Data_ProcessorT::c_ijkl	(FEA_dScalarT &JJ, FEA_dMatrixT &F, FEA_dMatrixT &CC, FEA_dMatrixT &cc) 
+{
+	int i,I,j,J,K,k,L,l, p;
+	
+ cc = 0.0;
+	for (i=0; i<n_sd; i++)
+		for (j=0; j<n_sd; j++)
+			for (k=0; k<n_sd; k++)
+				for (l=0; l<n_sd; l++) 
+					for (I=0; I<n_sd; I++)
+						for (J=0; J<n_sd; J++)
+							for (K=0; K<n_sd; K++)
+								for (L=0; L<n_sd; L++) 
+									for (p=0; p<n_ip; p++) 
+										cc[p]( Map(i,j), Map(k,l) )  += F[p](i,I)*F[p](j,J)*F[p](k,K)*F[p](l,L)*CC[p]( Map(I,J), Map(K,L) );
+						//cc ( Map(i,j), Map(k,l) )  = F(i,I)*F(j,J)*F(k,K)*F(l,L)*CC( Map(I,J), Map(K,L) );
+	cc /= JJ;	
+}
+
+//---------------------------------------------------------------------
+//############### This method Gives Wrong Answers -- Delete Very Soon
+void FEA_Data_ProcessorT::c_ijkl (FEA_dMatrixT &CC, FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &D) 
+{
+														// CC must be symetric, but still using full matrix
+  int m = (n_sd-1)*3;	
+	FEA_dMatrixT CC_sym (n_ip, (n_sd-1)*3, (n_sd-1)*3 );  // <-- symetric reduction map here (n_sd-1)*3
+																												// 			recall for [sigma]^vec, same for [CC]^matrix
+	CC.Extract_SubMatrix ( 0,0, CC_sym ); // <-- Must reduce to smaller size common-place for sym matricies
+
+	TensorTransformT TTrans	(n_sd);
+
+	for (int l=0; l<n_ip; l++) 
+		D[l] = TTrans.PushForward ( F[l], CC_sym[l] ); 
+
+	D /= J;
+
 }
 
 //---------------------------------------------------------------------

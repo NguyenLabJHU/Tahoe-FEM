@@ -1,4 +1,4 @@
-// $Id: FEA_dMatrixT.h,v 1.7 2003-03-07 22:24:01 creigh Exp $
+// $Id: FEA_dMatrixT.h,v 1.8 2003-04-23 23:34:22 creigh Exp $
 #ifndef _FEA_DMATRIXT_H_
 #define _FEA_DMATRIXT_H_
 
@@ -54,10 +54,10 @@ class FEA_dMatrixT: public ArrayT <dMatrixT>
 		void Inverse   		(const FEA_dMatrixT& fea_matrix);
 		void SumOf     		(const FEA_dMatrixT &a, const FEA_dMatrixT &b);
 		void DiffOf    		(const FEA_dMatrixT &a, const FEA_dMatrixT &b);
-		void Symmetrize   (const FEA_dMatrixT &a );
-		void Symmetrize   (void);
-		void Sym					(const FEA_dMatrixT &a ) { Symmetrize(a); } 
-		void Sym					(void) { Symmetrize(); } 
+		//void Symmetrize   (const FEA_dMatrixT &a );
+		//void Symmetrize   (void);
+		void Sym				  (const FEA_dMatrixT &A );	
+		void Skew				  (const FEA_dMatrixT &A );	
 		void Identity 		(double value=1.0);
 		void PlusIdentity (double value=1.0);
 		void Determinant	(FEA_dScalarT &det);
@@ -71,6 +71,7 @@ class FEA_dMatrixT: public ArrayT <dMatrixT>
 		void Direction  		(FEA_dMatrixT &N);
 		void Mag_and_Dir		(FEA_dScalarT &mag, FEA_dMatrixT &N);
 		void Double_Dot 		(const FEA_dMatrixT &a, FEA_dScalarT &s);
+		void Match_Signs 		(const FEA_dMatrixT &A);
 		void Insert_SubMatrix  (const int &i,const int &j,const FEA_dMatrixT &block) 	{ SetBlock(i,j,block); 	}
 		void Extract_SubMatrix (const int &i,const int &j,const FEA_dMatrixT &block) 	{ CopyBlock(i,j,block); }
 		void Add_SubMatrix 	(const int &i,const int &j,const FEA_dMatrixT &a) 				{ AddBlock(i,j,a); 			}

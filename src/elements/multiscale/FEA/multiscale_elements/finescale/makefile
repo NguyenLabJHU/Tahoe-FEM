@@ -1,4 +1,4 @@
-#/* $Id: makefile,v 1.5 2003-03-17 22:05:32 creigh Exp $ */
+#/* $Id: makefile,v 1.6 2003-04-23 23:34:25 creigh Exp $ */
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,6 +7,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	VMS_BCJT.o \
+	VMS_BCJ_XT.o \
 	VMS_EZ3T.o	\
 	VMS_EZT.o
 
@@ -16,6 +17,7 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	VMS_BCJT.cpp	\
+	VMS_BCJ_XT.cpp	\
 	VMS_EZ3T.cpp	\
 	VMS_EZT.cpp
 
@@ -23,6 +25,7 @@ SRC = \
 HDR = \
 	FineScaleT.h 	\
 	VMS_BCJT.h 	\
+	VMS_BCJ_XT.h 	\
 	VMS_EZ3T.h	\
 	VMS_EZT.h
 

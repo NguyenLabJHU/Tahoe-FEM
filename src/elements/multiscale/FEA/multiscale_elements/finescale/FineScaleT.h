@@ -1,4 +1,4 @@
-// $Id: FineScaleT.h,v 1.10 2003-03-17 22:05:32 creigh Exp $
+// $Id: FineScaleT.h,v 1.11 2003-04-23 23:34:25 creigh Exp $
 #ifndef _FINESCALE_T_H_ 
 #define _FINESCALE_T_H_ 
 
@@ -11,7 +11,7 @@ class FineScaleT
 {
 public:
 
-	enum Eqn_TypeT 		{ kVMS_BCJ, kVMS_EZ, kVMS_EZ2, kVMS_EZ3, kVMS_EZ4, 
+	enum Eqn_TypeT 		{ kVMS_BCJ, kVMS_BCJ_X, kVMS_BCJ_XX, kVMS_BCJ_RR, kVMS_EZ, kVMS_EZ2, kVMS_EZ3, kVMS_EZ4, 
 											kVMS_EZ5, kPOWER_LAW, kPHEN };
 
 	FineScaleT ( void ) { }

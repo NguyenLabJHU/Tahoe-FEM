@@ -1,23 +1,23 @@
-// $Id: VMS_BCJT.cpp,v 1.14 2003-04-23 23:34:25 creigh Exp $
+// $Id: VMS_BCJ_XT.cpp,v 1.1 2003-04-23 23:34:25 creigh Exp $
 #include "FEA.h" 
 #include "VMS.h" 
 
 using namespace Tahoe;
 
-VMS_BCJT::VMS_BCJT	(FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
+VMS_BCJ_XT::VMS_BCJ_XT	(FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
 						int &fTime_Step, double fdelta_t, int Integration_Scheme) 
 {
 	Construct (Shapes,BCJ_Matl,np1,n,fTime_Step,fdelta_t,Integration_Scheme);
 }
 
 /* destructor */
-//VMS_BCJT::~VMS_BCJT(void)
+//VMS_BCJ_XT::~VMS_BCJ_XT(void)
 //{
 //}
 
 //---------------------------------------------------------------------
 
-void VMS_BCJT::Initialize (int &in_ip,int &in_sd,int &in_en, int Initial_Time_Step)
+void VMS_BCJ_XT::Initialize (int &in_ip,int &in_sd,int &in_en, int Initial_Time_Step)
 {
   n_ip = in_ip;  			// Note: Need to call Initialize() for each elmt set
   n_sd = in_sd;
@@ -41,7 +41,7 @@ void VMS_BCJT::Initialize (int &in_ip,int &in_sd,int &in_en, int Initial_Time_St
 
 //---------------------------------------------------------------------
 
-void VMS_BCJT::Construct (FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
+void VMS_BCJ_XT::Construct (FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
 							int &fTime_Step, double fdelta_t, int Integration_Scheme) 
 {
 	Time_Integration_Scheme = Integration_Scheme;
@@ -78,13 +78,13 @@ void VMS_BCJT::Construct (FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VM
  *   The ON swithes in this function are for Alpha and Beta 
  *   contributions respectively */
 
-void VMS_BCJT::Form_LHS_Ka_Kb ( dMatrixT &Ka, dMatrixT &Kb )
+void VMS_BCJ_XT::Form_LHS_Ka_Kb ( dMatrixT &Ka, dMatrixT &Kb )
 {
- 	Ka  = Integral.of( B[kB_1hat], B[kB05_tau_3hat] ); 
- 	Ka += Integral.of( B[kB_1hat], B[kB06_3hat]  		); 
+ 	Ka  = Integral.of( B[kB_1hat], B[kBa_da] ); 
+ 	Kb  = Integral.of( B[kB_1hat], B[kBb_da] ); 
 
 	Ka += Integral.of( B[kB_1hat], C[kNeg_dt_Root3by2_f], T4[kMM], B[kBa_DEV_H] );
-	Kb  = Integral.of( B[kB_1hat], C[kNeg_dt_Root3by2_f], T4[kMM], B[kBb_DEV_H] );
+	Kb += Integral.of( B[kB_1hat], C[kNeg_dt_Root3by2_f], T4[kMM], B[kBb_DEV_H] );
 
  	if 	(Iso_Hard_Type != kNo_Iso_Hard) 
 		Ka += Integral.of( B[kB_1hat], S[kBetaK], T4[kN_o_Nea], B[kBa_Kappa] );
@@ -93,7 +93,7 @@ void VMS_BCJT::Form_LHS_Ka_Kb ( dMatrixT &Ka, dMatrixT &Kb )
 //---------------------------------------------------------------------
 // F internal (F_int) dimensions here won't actually be in terms of Force
 
-void VMS_BCJT::Form_RHS_F_int ( dArrayT &F_int ) // Untested
+void VMS_BCJ_XT::Form_RHS_F_int ( dArrayT &F_int ) // Untested
 {
 	FEA_dVectorT G2_vec		( n_ip, n_sd_x_n_sd ); 
 	Data_Pro.Reduce_Order	(	A[kG2], G2_vec 		); 
@@ -107,14 +107,32 @@ void VMS_BCJT::Form_RHS_F_int ( dArrayT &F_int ) // Untested
 //################ B_TERMS #########################################################
 //##################################################################################
 
-void VMS_BCJT::Form_B_List (void)
+void VMS_BCJ_XT::Form_B_List (void)
 {
 
+		
 		B.Construct (kNUM_B_TERMS, n_ip, n_sd_x_n_sd, n_sd_x_n_en);  // B = B(9,24)	
 
 	 	Data_Pro.grad_u     	( B[kB_1hat], FEA::kNonSymmetric 	); 
-	 	Data_Pro.A_grad_u_T_B	( A[kFbT], 		A[kDa_m], B[kB05_tau_3hat] 		);
-	 	Data_Pro.A_grad_u_B 	( A[kDa_m], 	A[kFb],   B[kB06_3hat] 				);
+
+    //===================  del ( da ) 
+		
+	 	Data_Pro.grad_u_A 		( A[kR7], 											B[kBb_d] 				);
+	 	Data_Pro.A_grad_u_B		( A[kF_sharp], 	A[kR7], 				B[kBa_d] 				);		B[kBa_d] 				*= -1.0;
+	 	Data_Pro.A_grad_u			( A[kR7], 											B[kBab_d] 			);		B[kBab_d] 			*= -1.0;
+	 	Data_Pro.A_grad_u_T 	( A[kR7T], 											B[kBb_d_tau] 		);
+	 	Data_Pro.A_grad_u_T_B	( A[kR7T], 			A[kF_sharp_T], 	B[kBa_d_tau] 		);		B[kBa_d_tau] 		*= -1.0;
+	 	Data_Pro.grad_u_T_A		( A[kR7T], 											B[kBab_d_tau] 	);		B[kBab_d_tau] 	*= -1.0;
+
+		B[kBa_da]  = B[kBa_d];
+		B[kBa_da] += B[kBab_d];
+		B[kBa_da] += B[kBa_d_tau];
+		B[kBa_da] += B[kBab_d_tau]; 	// Note: ab subscript means used for both \alpha and \beta
+
+		B[kBb_da]  = B[kBb_d];
+		B[kBb_da] += B[kBab_d];
+		B[kBb_da] += B[kBb_d_tau];
+		B[kBb_da] += B[kBab_d_tau]; 	// Note: ab subscript means used for both \alpha and \beta
 
     //===================  del ( DEV( H ) ) 
 		
@@ -135,7 +153,7 @@ void VMS_BCJT::Form_B_List (void)
 		B[kBa_S].MultAB( T4[kCC],  B[kBa_Cb_3hat] );  
 		B[kBb_S].MultAB( T4[kCC],  B[kBb_Cb_3hat] );
 
-		//-- Calculation of del ( Sym_Zeta )
+		//-- Calculation of del ( Zeta )
 
  		if 	( Back_Stress_Type == kNo_Back_Stress ) {
 			B[kBa_H] = B[kBa_S];
@@ -143,8 +161,6 @@ void VMS_BCJT::Form_B_List (void)
 		}
 		else {
 			Form_del_Zeta_B ( ); // Calculates B[kBa_Z],  B[kBb_Z]	
-			//B[kBa_Z].Match_Signs ( B[kBa_S] );
-			//B[kBb_Z].Match_Signs ( B[kBb_S] );
 			B[kBa_H].DiffOf (	B[kBa_S], B[kBa_Z] );
 			B[kBb_H].DiffOf (	B[kBb_S], B[kBb_Z] );
 		}	
@@ -175,7 +191,7 @@ void VMS_BCJT::Form_B_List (void)
 		B[kB_Temp1]  	*= 		  C[k1by3]; 
 		B[kBb_DEV_H] 	-=			B[kB_Temp1]; 
 
-	  B[kB_Temp0].SumOf( 		B[kBb_Cbi_3hat], B[kBb_Cbi_tau_3hat]	) ;	
+	  B[kB_Temp0].SumOf	 ( 	B[kBb_Cbi_3hat], B[kBb_Cbi_tau_3hat]	) ;	
 		B[kB_Temp0] 	*=  		S[kCb_i_H]; 
 		B[kB_Temp0] 	*= 		 	C[k1by3]; 
 		B[kBb_DEV_H] 	-=			B[kB_Temp0]; 
@@ -201,11 +217,12 @@ void VMS_BCJT::Form_B_List (void)
 //NOTE: np1 := "n+1" time step; n := "n" time step; npt := "n+theta" time step
 //      *** No subscript implies n+theta time step ***
 
-void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
+void VMS_BCJ_XT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 {
 	//---- Developer cheat: put npt in function door in-lieu-of np1 for speed
 
 	A[kF] 				= npt.Get (	VMS::kF					);
+	A[kFi] 				= npt.Get (	VMS::kFi				);
 	A[kFa] 				= npt.Get (	VMS::kFa				);
 	A[kgrad_ub] 	= npt.Get (	VMS::kgrad_ub		);
 	A[kFai] 			= npt.Get (	VMS::kFai				);
@@ -218,14 +235,17 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 	A[kCbi].Inverse    			( A[kCb] ); 
 	S[kJb].Determinant 			( A[kFb] );
 
-	//--- LHS: del(Da) terms
+	//--- Used for Cee and Iso-Hard terms (Eb_dot, Ea_dot) 
 	
-	A[kFa_n]  = n.Get				(	VMS::kFa );
+	A[kFa_n]  = n.Get				(	VMS::kFa );  // Also used in del ( da )
 	A[kFb_n]  = n.Get				(	VMS::kFb );
 	A[kCa_n].MultATB				( A[kFa_n], 	A[kFa_n] );
 	A[kCb_n].MultATB				( A[kFb_n], 	A[kFb_n] );
-	A[kDa_m].MultATBC 			(	A[kFai], 		A[kCa_n], 		A[kFai]	);
-	A[kDa_m] *= 0.5;
+
+	//--- LHS: del(da) terms
+
+	A[kR7].MultABC 					(	A[kFb], 		A[kFa_n], 		A[kFi]	);
+	A[kR7T].Transpose 			(	A[kR7] ); 
 
 	//--- LHS: del(sym(Eb)) terms
 
@@ -243,14 +263,15 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 
 	//=============================== RHS: Fint terms
 	
-	A[kDa_mp1] = 0.0;
-	A[kDa_mp1].PlusIdentity(0.5); 
+	//--- Get da_h 
 	
-	//--- Get Eb 
-
-	A[kEb]  = A[kCb]; 
-	A[kEb].PlusIdentity (-1.0); 
-	A[kEb] *= 0.5; 
+	A[kSym_R7]  = A[kR7];
+	A[kSym_R7] += A[kR7T];
+	//A[kSym_R7] /= 2.0; 		// Put all this in a Symmetrize() method
+	
+	A[kda_h]  = 0.0;
+	A[kda_h].PlusIdentity(0.5); 
+	A[kda_h] -= A[kSym_R7];
 
 	//--- Get Zeta	
 
@@ -264,6 +285,12 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 	else
 		A[kSym_Zeta] = 0.0;
 
+	//--- Get Eb 
+
+	A[kEb]  = A[kCb]; 
+	A[kEb].PlusIdentity (-1.0); 
+	A[kEb] *= 0.5; 
+
 	//--- Get S	
 
  	if 	(bControl_Eb)  {
@@ -275,13 +302,6 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 		Data_Pro.C_IJKL_E_KL 	( C[kLamda], 	C[kMu], 	A[kEb],  A[kS] 	);	// Doesn't multiply excessive zeros 
 	}
 
-	//-- Get Sigma (For plot and diagnostics) 
-	//S[kJ].Determinant( A[kF] );
-	A[kSigma].MultABCT 		(  A[kFb], 		A[kS], 	A[kFb] 	);
-	A[kSigma] /= S[kJb]; // kJb or kJ (If Consv. of Plastic Volume holds) !!
-	if ( S[kJb] == 0.0 ) 	cout << "VMS_BCJ::Form_A_S_Lists(): Diagnostic Varable J=0 \n";
-
-	//A[kSym_Zeta].Match_Signs ( A[kS] );
 	A[kH_bar].DiffOf ( A[kS], A[kSym_Zeta] );
 
 	//--- Get DEV(S) : Put this as a method in DataPro ::DEV(Fb,S) ( use MultABCT(Fb,dev(S),Fb) )
@@ -323,9 +343,8 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 	
   A[kG2]  = A[kN];
   A[kG2] *= S[kMacaulay_Sinh_Beta]; 
-  A[kG2] *= C[kNeg_dt_Root3by2_f]; 
-  A[kG2] -= A[kDa_m];
-  A[kG2] += A[kDa_mp1];
+  A[kG2] *= C[kNeg_dt_Root3by2_f];  // neg sign included
+  A[kG2] += A[kda_h];
 
 	//-- RHS Finished  ******
 
@@ -344,6 +363,13 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 		Data_Pro.C_IJKL_E_KL 	( C[kLamda1], 	C[kMu1], 		A[kEb], 	A[kS_tilde] );	
 		Data_Pro.C_IJKL_E_KL 	( C[kLamda2], 	C[kMu2], 		A[kEb], 	A[kS_hat] 	);	
 		A[kS_tilde] *= S[kPsi1];	// Diagnostics
+
+		//-- Get Sigma: 
+		S[kJ].Determinant( A[kF] );
+		A[kSigma].MultABCT 		(  A[kFb], 		A[kS], 	A[kFb] 	);
+		A[kSigma] /= S[kJb]; // kJb or kJ (If Consv. of Plastic Volume holds) !!
+		if ( S[kJb] == 0.0 ) 	cout << "VMS_BCJ::Form_A_S_Lists(): Diagnostic Varables J=0 \n";
+
 
 		//-- Form La
 		A[kFa_dot].DiffOf( A[kFa], A[kFa_n] ); 	// Back Euler	
@@ -401,7 +427,7 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 //################ 4th Order Tensor Terms (i.e. T4[i] ) ########################
 //##################################################################################
 
-void VMS_BCJT::Form_T4_List (void)  // These matricies are all 9x9 (not 3x3 like A)
+void VMS_BCJ_XT::Form_T4_List (void)  // These matricies are all 9x9 (not 3x3 like A)
 {
 
 	A[kA_Temp0] = A[kN];
@@ -436,7 +462,7 @@ void VMS_BCJT::Form_T4_List (void)  // These matricies are all 9x9 (not 3x3 like
 //NOTE: the only place CC is used is in forming the LHS tangent, do it makes sense
 //to pack CCvmst into CC.  Recall that on the RHS, S is formed by using Lame Constants.
 
-void VMS_BCJT::Form_CC (void) //-- Puts either regular CC or CCvmst in CC 
+void VMS_BCJ_XT::Form_CC (void) //-- Puts either regular CC or CCvmst in CC 
 {
 
 		CCba_Scalars ( );  // Also creates Eb_dot and N_Eb_dot, Mag(Eb_dot)
@@ -477,7 +503,7 @@ void VMS_BCJT::Form_CC (void) //-- Puts either regular CC or CCvmst in CC
 //################ Material Constant Terms C[i] #####################################
 //##################################################################################
 
-void VMS_BCJT::Form_C_List (VMF_MaterialT *BCJ_Matl)
+void VMS_BCJ_XT::Form_C_List (VMF_MaterialT *BCJ_Matl)
 {
 
 	//-- Elasticity 	
@@ -525,7 +551,7 @@ void VMS_BCJT::Form_C_List (VMF_MaterialT *BCJ_Matl)
 //################ Isotropic Hardening #############################################
 //##################################################################################
 
-void VMS_BCJT::Get_Iso_Hard_Kappa_bar ( void )
+void VMS_BCJ_XT::Get_Iso_Hard_Kappa_bar ( void )
 {
 		A[kEa]  = A[kCa]; 
 		A[kEa].PlusIdentity (-1.0); 
@@ -559,7 +585,7 @@ void VMS_BCJT::Get_Iso_Hard_Kappa_bar ( void )
 
 		}
 		else
-			cout << " ...ERROR >> VMS_BCJT::Get_Iso_Hard_Kappa() : Bad Iso_Hard_Type \n";
+			cout << " ...ERROR >> VMS_BCJ_XT::Get_Iso_Hard_Kappa() : Bad Iso_Hard_Type \n";
 
 }
 
@@ -569,7 +595,7 @@ void VMS_BCJT::Get_Iso_Hard_Kappa_bar ( void )
 
 //##################################################### Back Stress (RHS) 
 
-void VMS_BCJT::Get_Back_Stress ( void )
+void VMS_BCJ_XT::Get_Back_Stress ( void )
 {
 	if ( Back_Stress_Type == kSteinmann ) {
 
@@ -615,17 +641,17 @@ void VMS_BCJT::Get_Back_Stress ( void )
 
 	}
 	else
-		cout << " VMS_BCJT::Get_Back_Stress() >> Unknown Back_Stress_Type \n";
+		cout << " VMS_BCJ_XT::Get_Back_Stress() >> Unknown Back_Stress_Type \n";
 	
 }
 
 //##################################################### Back Stress (LHS) [ Linearized ]
 // Note: all C[],S[],A[],and T4[] terms already formed
 
-void VMS_BCJT::Form_del_Zeta_B ( void ) // Calculates B[kBa_Z],  B[kBb_Z]	
+void VMS_BCJ_XT::Form_del_Zeta_B ( void ) // Calculates B[kBa_Z],  B[kBb_Z]	
 {
 
-	bool bDEL_sE=1, bDEL_grad_ub=1;
+	bool bDEL_sE=1, bDEL_grad_ub=0;
 
 	//-- Mu*c*l*del(Jb)*Fb^-1*curl(sE)^T  (Symmetry of Zeta accounted for in T4)
 			
@@ -747,7 +773,7 @@ void VMS_BCJT::Form_del_Zeta_B ( void ) // Calculates B[kBa_Z],  B[kBb_Z]
 
 //################################## CCba ################################################
 
-void VMS_BCJT::CCba_Scalars( )  
+void VMS_BCJ_XT::CCba_Scalars( )  
 {
 
 #if 0
@@ -830,7 +856,7 @@ void VMS_BCJT::CCba_Scalars( )
 
 //##############################################################################################
 
-void VMS_BCJT::Get ( StringT &Name, FEA_dMatrixT &tensor )
+void VMS_BCJ_XT::Get ( StringT &Name, FEA_dMatrixT &tensor )
 {
 	if ( Name == "F" )
 		tensor = A[kF];
@@ -874,8 +900,6 @@ void VMS_BCJT::Get ( StringT &Name, FEA_dMatrixT &tensor )
 		tensor = A[kEb];
 	else if ( Name == "grad_ub" )
 		tensor = A[kgrad_ub];
-	else if ( Name == "curl_sE" )
-		tensor = A[kcurl_sE];
 	else if ( Name == "Zeta" )
 		tensor = A[kZeta];
 	else if ( Name == "Sym_Zeta" )
@@ -883,12 +907,12 @@ void VMS_BCJT::Get ( StringT &Name, FEA_dMatrixT &tensor )
 	else if ( Name == "H" )
 		tensor = A[kH_bar];
 	else
-		cout << " ...ERROR: VMS_BCJT::Get() >> Unknown tensor '"<<Name<<"' requested. \n";
+		cout << " ...ERROR: VMS_BCJ_XT::Get() >> Unknown tensor '"<<Name<<"' requested. \n";
 }
 
 //##################################################################################
 
-void VMS_BCJT::Get ( StringT &Name, FEA_dScalarT &scalar )
+void VMS_BCJ_XT::Get ( StringT &Name, FEA_dScalarT &scalar )
 {
 	if ( Name == "J" )
 		scalar = S[kJ];
@@ -927,6 +951,6 @@ void VMS_BCJT::Get ( StringT &Name, FEA_dScalarT &scalar )
 	else if ( Name == "Mag_Da" )
 		scalar = S[kMag_Da];
 	else
-		cout << " ...ERROR: VMS_BCJT::Get() >> Unknown scalar '"<<Name<<"' requested. \n";
+		cout << " ...ERROR: VMS_BCJ_XT::Get() >> Unknown scalar '"<<Name<<"' requested. \n";
 }
 

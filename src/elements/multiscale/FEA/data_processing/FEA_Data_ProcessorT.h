@@ -1,4 +1,4 @@
-// $Id: FEA_Data_ProcessorT.h,v 1.5 2003-03-17 22:05:28 creigh Exp $
+// $Id: FEA_Data_ProcessorT.h,v 1.6 2003-04-23 23:34:21 creigh Exp $
 #ifndef _FEA_DATAPROCESSRT_H_
 #define _FEA_DATAPROCESSRT_H_
 
@@ -44,8 +44,13 @@ class FEA_Data_ProcessorT
 	 	
 	  void C_IJKL 					(const double &lamda,const double &mu,FEA_dMatrixT &D,int kine=FEA::kPlaneStrain);
 		void C_IJKL_E_KL			(double &lamda,double &mu, FEA_dMatrixT &E, FEA_dMatrixT &S); // Hooke's Law
+		void C_IJKL_E_KL			(FEA_dScalarT &lamda, FEA_dScalarT &mu, FEA_dMatrixT &E, FEA_dMatrixT &S); // Hooke's Law // UT 
+
 		void c_ijkl						(double &lamda,double &mu, FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &cc);
 		void c_ijkl_Alt				(double &lamda,double &mu, FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &D);
+		void c_ijkl						(FEA_dScalarT &JJ, FEA_dMatrixT &F, FEA_dMatrixT &CC, FEA_dMatrixT &cc);
+		void c_ijkl						(FEA_dScalarT &lamda, FEA_dScalarT &mu, FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &cc);
+		void c_ijkl 					(FEA_dMatrixT &CC, FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &D);
 		void c_ijkl						(FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &CC, FEA_dMatrixT &RR, FEA_dMatrixT &cc);
 
 		void Curl			    		(const ArrayT<dMatrixT> &T,	FEA_dMatrixT &curl) const;

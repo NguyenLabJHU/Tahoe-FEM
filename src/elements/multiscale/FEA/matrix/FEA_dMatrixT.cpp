@@ -1,4 +1,4 @@
-// $Id: FEA_dMatrixT.cpp,v 1.8 2003-03-07 22:24:01 creigh Exp $
+// $Id: FEA_dMatrixT.cpp,v 1.9 2003-04-23 23:34:22 creigh Exp $
 #include "FEA.h"
 
 using namespace Tahoe; 
@@ -226,19 +226,38 @@ void FEA_dMatrixT::DiffOf(const FEA_dMatrixT &a, const FEA_dMatrixT &b) {
 }
 
 //----------------------------------------------------
-
-void FEA_dMatrixT::Symmetrize (const FEA_dMatrixT &a) 
+#if 0
+void FEA_dMatrixT::Symmetrize (const FEA_dMatrixT &a) // ######### DOESNT WORK PROPERLY 
 {
 	for (int i=0; i<fLength; i++)
     (*this)[i].Symmetrize(a[i]); 
 }
+#endif
 
 //----------------------------------------------------
 
-void FEA_dMatrixT::Symmetrize (void) 
+void FEA_dMatrixT::Sym ( const FEA_dMatrixT &A ) 
 {
-	for (int i=0; i<fLength; i++)
-    (*this)[i].Symmetrize(); 
+	FEA_dMatrixT AT; 	AT.FEA_Dimension (A);
+	AT.Transpose ( A );
+
+	(*this)  = A;
+	(*this) += AT;
+	(*this) *= 0.5;
+
+}
+
+//----------------------------------------------------
+
+void FEA_dMatrixT::Skew ( const FEA_dMatrixT &A ) 
+{
+	FEA_dMatrixT AT; 	AT.FEA_Dimension (A);
+	AT.Transpose ( A );
+
+	(*this)  = A;
+	(*this) -= AT;
+	(*this) *= 0.5;
+
 }
 
 //----------------------------------------------------
@@ -491,6 +510,23 @@ void FEA_dMatrixT::Double_Dot (const FEA_dMatrixT &a, FEA_dScalarT &s)
 		dot = 0.0;
 	}
 
+}
+
+//----------------------------------------------------
+
+void FEA_dMatrixT::Match_Signs (const FEA_dMatrixT &A) {
+				
+  if (fLength==0) FEA_Dimension (A);
+	double *p  = (*this)[0].Pointer (); 
+	double *q  = A[0].Pointer (); 
+
+	for (int i=0; i<n_ip_x_n_rows_x_n_cols-1; i++) {
+		if ( (*p)*(*q) < 0.0 ) // If signs are opposite
+			  (*p) *= -1.0;				// Change sign of (*this) to that of A
+		*p++; *q++;
+	}
+	if ( (*p)*(*q) < 0.0 ) // Check last item of array (no ++ing)
+			 (*p) *= -1.0;				
 }
 
 //----------------------------------------------------

@@ -1,4 +1,4 @@
-// $Id: FEA_Data_Pro_Diagnostics.cpp,v 1.4 2003-03-17 22:05:28 creigh Exp $
+// $Id: FEA_Data_Pro_Diagnostics.cpp,v 1.5 2003-04-23 23:34:21 creigh Exp $
 #include "FEA.h"  
 
 using namespace Tahoe;
@@ -230,6 +230,7 @@ void FEA_Data_ProcessorT::c_ijkl_Alt (double &lamda,double &mu, FEA_dScalarT &J,
 	D /= J;
 
 }
+
 /*
  
 //---------------------------------------------------------------------
