@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.17 2002-02-18 09:09:39 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.18 2002-02-28 16:27:52 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -285,17 +285,27 @@ class ModelManagerT
   const iArray2DT* ElementGroupPointer (const StringT& ID) const;
 
   /** access node map data
-   * \note data is not offset and may not be continuous */
-  void AllNodeMap(iArrayT& map);
+   * \param ids not offset and may not be continuous */
+  void AllNodeIDs(iArrayT& ids);
 
   /** access element map data
-   * \note data is not offset and may not be continuous */
-  void AllElementMap(iArrayT& map);
+   * \param ids not offset and may not be continuous */
+  void AllElementIDs(iArrayT& ids);
 
   /** access element map data for a given element group name. The names of the
    * element group are the string form of the database-specific element block
    * identifiers.
-   * \note data is not offset and may not be continuous */
+   * \param ids not offset and may not be continuous */
+  void ElementIDs (const StringT& ID, iArrayT& ids);
+
+  /* access node data 
+   * \param map offset, globally numbered, and continuous */
+  void AllNodeMap (iArrayT& map);
+
+  /* access element set data for a given element group name. The names of the
+   * element group are the strig form of the database-specific element block
+   * identifiers.
+   * \param map offset, globally numbered, and continuous */
   void ElementMap (const StringT& ID, iArrayT& map);
 
   /** return number of node sets */

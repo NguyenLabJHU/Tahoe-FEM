@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.20 2002-02-27 16:47:15 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.21 2002-02-28 16:27:52 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -681,33 +681,33 @@ const iArray2DT* ModelManagerT::ElementGroupPointer (const StringT& ID) const
 	return fElementSets[index];
 }
 
-void ModelManagerT::AllNodeMap (iArrayT& map)
+void ModelManagerT::AllNodeIDs (iArrayT& ids)
 {
 	/* no input for kTahoe format */
 	if (fFormat == IOBaseT::kTahoe)
 	{
-		if (map.Length() != fCoordinates.MajorDim()) {
-    		cout << "\n ModelManagerT::AllNodeMap: map array is length " << map.Length()
+		if (ids.Length() != fCoordinates.MajorDim()) {
+    		cout << "\n ModelManagerT::AllNodeIDs: ids array is length " << ids.Length()
     	         << ", expecting length " << fCoordinates.MajorDim() << endl;
 			throw eSizeMismatch;	
 		}
 
-		/* default map */
-		map.SetValueToPosition();
+		/* default ids */
+		ids.SetValueToPosition();
 	}
 	else
 	{
-		InputBaseT& input = Input("AllNodeMap");
-		if (map.Length() != input.NumNodes()) {
-    		cout << "\n ModelManagerT::AllNodeMap: map array is length " << map.Length()
+		InputBaseT& input = Input("AllNodeIDs");
+		if (ids.Length() != input.NumNodes()) {
+    		cout << "\n ModelManagerT::AllNodeIDs: ids array is length " << ids.Length()
     	         << ", expecting length " << input.NumNodes() << endl;
 			throw eSizeMismatch;	
 		}
-		input.ReadNodeMap(map);
+		input.ReadNodeMap(ids);
 	}
 }
 
-void ModelManagerT::AllElementMap (iArrayT& map)
+void ModelManagerT::AllElementIDs (iArrayT& ids)
 {
 	/* no input for kTahoe format */
 	if (fFormat == IOBaseT::kTahoe)
@@ -715,53 +715,85 @@ void ModelManagerT::AllElementMap (iArrayT& map)
 		int num_elem = 0;
 		for (int i = 0; i < fElementSets.Length(); i++)
 			num_elem += fElementSets[i]->MajorDim();
-		if (map.Length() != num_elem) {
-	    	cout << "\n ModelManagerT::AllElementMap: map array is length " << map.Length()
+		if (ids.Length() != num_elem) {
+	    	cout << "\n ModelManagerT::AllElementIDs: ids array is length " << ids.Length()
 	             << ", expecting length " << num_elem << endl;
 			throw eSizeMismatch;	
 		}
 	
-		/* default map */
-		map.SetValueToPosition();
+		/* default ids */
+		ids.SetValueToPosition();
 	}
 	else
 	{
-		InputBaseT& input = Input("AllElementMap");
-		if (map.Length() != input.NumGlobalElements()) {
-	    	cout << "\n ModelManagerT::AllElementMap: map array is length " << map.Length()
+		InputBaseT& input = Input("AllElementIDs");
+		if (ids.Length() != input.NumGlobalElements()) {
+	    	cout << "\n ModelManagerT::AllElementIDs: ids array is length " << ids.Length()
 	             << ", expecting length " << input.NumGlobalElements() << endl;
 			throw eSizeMismatch;	
 		}
-		input.ReadAllElementMap (map);
+		input.ReadAllElementMap (ids);
 	}
 }
 
-void ModelManagerT::ElementMap (const StringT& ID, iArrayT& map)
+void ModelManagerT::ElementIDs (const StringT& ID, iArrayT& ids)
 {
 	/* no input for kTahoe format */
 	if (fFormat == IOBaseT::kTahoe)
 	{
 		const iArray2DT& connects = ElementGroup(ID);
-		if (map.Length() != connects.MajorDim()) {
-    		cout << "\n ModelManagerT::ElementMap: map array is length " << map.Length()
+		if (ids.Length() != connects.MajorDim()) {
+    		cout << "\n ModelManagerT::ElementIDs: ids array is length " << ids.Length()
     	         << ", expecting length " << connects.MajorDim() << " for ID " << ID << endl;
 			throw eSizeMismatch;		
 		}
 		
-		/* default map */
-		map.SetValueToPosition();
+		/* default ids */
+		ids.SetValueToPosition();
 	}
 	else
 	{
-		InputBaseT& input = Input("ElementMap");
-		if (map.Length() != input.NumElements(ID)) {
-    		cout << "\n ModelManagerT::ElementMap: map array is length " << map.Length()
+		InputBaseT& input = Input("ElementIDs");
+		if (ids.Length() != input.NumElements(ID)) {
+    		cout << "\n ModelManagerT::ElementIDs: ids array is length " << ids.Length()
     	         << ", expecting length " << input.NumElements(ID) << " for ID " 
     	         << ID << endl;
 			throw eSizeMismatch;	
 		}
-		input.ReadGlobalElementMap (ID, map);
+		input.ReadGlobalElementMap (ID, ids);
 	}
+}
+
+void ModelManagerT::AllNodeMap (iArrayT& map)
+{
+  if (map.Length() != fCoordinateDimensions[0])
+    {
+	cout << "\n ModelManagerT::NodeMap: map array is length " << map.Length()
+	     << ", expecting length " << fCoordinates.MajorDim() << endl;
+	throw eSizeMismatch;	
+    }
+  
+  map.SetValueToPosition ();
+  map --;
+}
+
+void ModelManagerT::ElementMap (const StringT& ID, iArrayT& map)
+{
+  /* no input for kTahoe format */
+  if (fFormat == IOBaseT::kTahoe)
+    {
+      const iArray2DT& connects = ElementGroup (ID);
+      if (map.Length() != connects.MajorDim()) {
+	cout << "\n ModelManagerT::ElementMap: map array is length " << map.Length()
+	     << ", expecting length " << connects.MajorDim() << " for ID " << ID << endl;
+	throw eSizeMismatch;	
+      }
+      /* default map */
+      map.SetValueToPosition ();
+      map--;
+    }
+  InputBaseT& input = Input ("Element Set");
+  input.ReadGlobalElementSet (ID, map);
 }
 
 int ModelManagerT::NodeSetIndex (const StringT& ID) const
