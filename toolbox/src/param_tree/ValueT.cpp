@@ -1,4 +1,4 @@
-/* $Id: ValueT.cpp,v 1.6.2.1 2003-04-27 22:19:32 paklein Exp $ */
+/* $Id: ValueT.cpp,v 1.6.2.2 2003-04-28 08:43:50 paklein Exp $ */
 #include "ValueT.h"
 #include <stdlib.h>
 #include <ctype.h>
@@ -14,7 +14,8 @@ using namespace Tahoe;
 ValueT::ValueT(int a): 
 	fType(Integer),
 	fInteger(a),
-	fDouble(0.0)
+	fDouble(0.0),
+	fBoolean(false)
 {
 
 }
@@ -22,7 +23,8 @@ ValueT::ValueT(int a):
 ValueT::ValueT(double x):
 	fType(Double),
 	fInteger(0),
-	fDouble(x)
+	fDouble(x),
+	fBoolean(false)
 {
 
 }
@@ -31,7 +33,17 @@ ValueT::ValueT(const StringT& s):
 	fType(String),
 	fInteger(0),
 	fDouble(0.0),
-	fString(s)
+	fString(s),
+	fBoolean(false)
+{
+
+}
+
+ValueT::ValueT(bool b):
+	fType(Boolean),
+	fInteger(0),
+	fDouble(0.0),
+	fBoolean(b)
 {
 
 }
@@ -40,7 +52,8 @@ ValueT::ValueT(const StringT& s):
 ValueT::ValueT(const StringT& name, int value):
 	fType(Enumeration),
 	fInteger(value),
-	fDouble(0.0)
+	fDouble(0.0),
+	fBoolean(false)
 {
 	/* assign */
 	operator=(name);
@@ -49,7 +62,8 @@ ValueT::ValueT(const StringT& name, int value):
 ValueT::ValueT(TypeT t):
 	fType(t),
 	fInteger(0),
-	fDouble(0.0)
+	fDouble(0.0),
+	fBoolean(false)
 {
 
 }
@@ -58,7 +72,8 @@ ValueT::ValueT(const ValueT& source):
 	fType(source.fType),
 	fInteger(source.fInteger),
 	fDouble(source.fDouble),
-	fString(source.fString)
+	fString(source.fString),
+	fBoolean(source.fBoolean)
 {
 
 }
@@ -66,7 +81,8 @@ ValueT::ValueT(const ValueT& source):
 ValueT::ValueT(void):
 	fType(None),
 	fInteger(0),
-	fDouble(0.0)
+	fDouble(0.0),
+	fBoolean(false)
 {
 
 }
@@ -89,6 +105,10 @@ void ValueT::Write(ostream& out) const
 
 		case String:
 			out << fString;
+			break;
+
+		case Boolean:
+			out << fBoolean;
 			break;
 
 		case Enumeration:
@@ -122,6 +142,10 @@ ValueT& ValueT::operator=(int a)
 			fInteger = a;
 			break;
 
+		case Boolean:
+			fBoolean = bool(a);
+			break;
+
 		case Double:
 			fDouble = double(a);
 			break;
@@ -141,12 +165,23 @@ ValueT& ValueT::operator=(double x)
 	return *this;
 }
 
+ValueT& ValueT::operator=(bool b)
+{
+	if (fType == Boolean)
+		fBoolean = b;
+	else
+		ExceptionT::GeneralFail("ValueT::operator=(bool)", "type mismatch");	
+	return *this;
+}
+
 ValueT& ValueT::operator=(const StringT& s)
 {
 	const char caller[] = "ValueT::operator=(StringT)";
 
 	if (fType == String)
 		fString = s;
+	else if (fType == Boolean)
+		FromString(s);
 	else if (fType == Enumeration)
 	{
 		fString = s;
@@ -171,6 +206,7 @@ ValueT& ValueT::operator=(const ValueT& rhs)
 	fInteger = rhs.fInteger;
 	fDouble = rhs.fDouble;
 	fString = rhs.fString;
+	fBoolean = rhs.fBoolean;
 	
 	/* dummy */
 	return *this;
@@ -211,6 +247,17 @@ void ValueT::FromString(const StringT& source)
 			operator=(source);			
 			break;
 		}
+		case Boolean:
+		{
+			if (source[0] == 't' || source[0] == 'T' || source[0] == '1')
+				fBoolean = true;
+			else if (source[0] == 'f' || source[0] == 'F' || source[0] == '0')
+				fBoolean = false;
+			else
+				ExceptionT::GeneralFail(caller, "could not extract bool from \"%s\"",
+					source.Pointer());
+			break;
+		}
 		case Enumeration:
 		{
 			/* read number */
@@ -239,6 +286,13 @@ ValueT::operator const int&() const
 	if (fType != Integer && fType != Enumeration)
 		ExceptionT::GeneralFail("ValueT::operator const int&()", "type mismatch");	
 	return fInteger;
+}
+
+ValueT::operator const bool&() const
+{
+	if (fType != Boolean)
+		ExceptionT::GeneralFail("ValueT::operator const bool&()", "type mismatch");	
+	return fBoolean;
 }
 
 ValueT::operator const double&() const
