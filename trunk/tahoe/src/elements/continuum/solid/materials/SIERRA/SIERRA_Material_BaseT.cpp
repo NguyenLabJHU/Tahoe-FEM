@@ -1,10 +1,11 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.13 2004-07-15 08:27:31 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.14 2004-07-27 03:16:05 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
 #include "SpectralDecompT.h"
 #include "ParameterListT.h"
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 
 using namespace Tahoe;
 
@@ -13,32 +14,20 @@ int SIERRA_Material_BaseT::sSIERRA_Material_count = 0;
 const int kSIERRA_stress_dim = 6;
 
 /* constructor */
-SIERRA_Material_BaseT::SIERRA_Material_BaseT(ifstreamT& in, const FSMatSupportT& support):
+SIERRA_Material_BaseT::SIERRA_Material_BaseT(void):
 	ParameterInterfaceT("SIERRA_material"),
 	fTangentType(GlobalT::kSymmetric),
 	fSIERRA_Material_Data(NULL),
-	fModulus(dSymMatrixT::NumValues(NumSD())),
-	fStress(NumSD()),
 	fPressure(0.0),
 	fdstran(kSIERRA_stress_dim),
 	fDecomp(NULL),
-	fF_rel(NumSD()),
-	fA_nsd(NumSD()),
-	fU1(NumSD()), fU2(NumSD()), fU1U2(NumSD()),
-	fDebug(0)
+	fDebug(false)
 {
 	const char caller[] = "SIERRA_Material_BaseT::SIERRA_Material_BaseT";
 
-	/* 3D only */
-	if (NumSD() != 3) ExceptionT::GeneralFail(caller, "3D only");
-
 	/* instantiate materials database */
 	if (++sSIERRA_Material_count == 1)
-		SIERRA_Material_DB::Create();
-	
-	/* spectral decomp */
-	fDecomp = new SpectralDecompT(NumSD());
-	if (!fDecomp) throw ExceptionT::kOutOfMemory;
+		SIERRA_Material_DB::Create();	
 }
 
 /* destructor */
@@ -51,99 +40,6 @@ SIERRA_Material_BaseT::~SIERRA_Material_BaseT(void)
 	/* free materials database */
 	if (--sSIERRA_Material_count == 0)
 		SIERRA_Material_DB::Delete();
-}
-
-#if 0
-	/* write properties array */
-	out << " Material name . . . . . . . . . . . . . . . . . = " << fMaterialName << '\n';
-	out << " Material model name . . . . . . . . . . . . . . = " << fSIERRA_Material_Data->Name() << '\n';
-	out << " Number of state variables . . . . . . . . . . . = " << fSIERRA_Material_Data->NumStateVariables() << '\n';
-	
-	/* material properties */
-	const ArrayT<StringT>& prop_names = fSIERRA_Material_Data->PropertyNames();
-	const ArrayT<double>&  prop_values  = fSIERRA_Material_Data->PropertyValues();
-	int d_width = OutputWidth(out, prop_values.Pointer());
-	out << " Number of material properties . . . . . . . . . = " << prop_names.Length() << '\n';
-	for (int i = 0; i < prop_names.Length(); i++)
-		out << setw(d_width) << prop_values[i] << " : " << prop_names[i] << '\n';
-	out.flush();
-
-	out << "    SIERRA material: " << fSIERRA_Material_Data->Name() << '\n';
-#endif
-
-/* disable multiplicative thermal strains */
-void SIERRA_Material_BaseT::Initialize(void)
-{
-	const char caller[] = "SIERRA_Material_BaseT::Initialize";
-ExceptionT::GeneralFail(caller, "out of date");
-#if 0
-	/* inherited */
-	//FSSolidMatT::Initialize();
-
-	/* call SIERRA registration function */
-	Register_SIERRA_Material();
-
-	/* input stream */
-	ifstreamT& in = MaterialSupport().Input();
-
-	/* read debug flag */
-	fDebug = -1;
-	in >> fDebug;
-	if (fDebug != 0 && fDebug != 1)
-		ExceptionT::BadInputValue(caller, "debug flag must be 1 | 0: %d", fDebug);
-
-	/* read SIERRA-format input */
-	StringT line;
-	line.GetLineFromStream(in);
-	StringT word;
-	int count;
-	word.FirstWord(line, count, true);
-	if (word != "begin")
-		ExceptionT::BadInputValue(caller, "expecting \"begin\":\n%s", line.Pointer());
-	line.Tail(' ', word);
-	word.ToUpper();
-	ParameterListT param_list(word);
-	Read_SIERRA_Input(in, param_list);
-	fSIERRA_Material_Data = Process_SIERRA_Input(param_list);
-
-	/* check parameters */
-	Sierra_function_param_check param_check = fSIERRA_Material_Data->CheckFunction();
-	int material_ID = fSIERRA_Material_Data->ID();
-	param_check(&material_ID);
-
-	/* set density */
-	fDensity = fSIERRA_Material_Data->Property("DENSITY");
-
-	/* set the modulus */
-	double kappa  = fSIERRA_Material_Data->Property("BULK_MODULUS");
-	double mu = fSIERRA_Material_Data->Property("TWO_MU")/2.0;
-	IsotropicT::Set_mu_kappa(mu, kappa);
-	IsotropicT::ComputeModuli(fModulus);
-
-	/* storage block size (per ip) */
-	int nsv = fSIERRA_Material_Data->NumStateVariables();
-	fBlockSize = 0;
-	fBlockSize += kSIERRA_stress_dim; // fstress_old
-	fBlockSize += kSIERRA_stress_dim; // fstress_new
-	fBlockSize += nsv;  // fstate_old
-	fBlockSize += nsv;  // fstate_new
-	
-	/* argument array */
-	fArgsArray.Dimension(fBlockSize);
-
-	/* assign pointers */
-	double* parg = fArgsArray.Pointer();
-	
-	fstress_old.Set(kSIERRA_stress_dim, parg); parg += kSIERRA_stress_dim;
-	fstress_new.Set(kSIERRA_stress_dim, parg); parg += kSIERRA_stress_dim;
-	fstate_old.Set(nsv, parg); parg += nsv;
-	fstate_new.Set(nsv, parg);	
-
-	/* notify */
-	if (fThermal->IsActive())
-		cout << "\n SIERRA_Material_BaseT::Initialize: thermal strains must\n"
-		     <<   "    be handled within the UMAT\n" << endl;
-#endif
 }
 
 /* materials initialization */
@@ -348,12 +244,8 @@ void SIERRA_Material_BaseT::ComputeOutput(dArrayT& output)
 {
 	/* check */
 	if (output.Length() != fOutputIndex.Length())
-	{
-		cout << "\n SIERRA_Material_BaseT::ComputeOutput: not enough space to return\n"
-		     <<   "     output variables: given " << output.Length()
-		     << ". expecting " << fOutputIndex.Length() << "." << endl;
-		throw ExceptionT::kSizeMismatch;
-	}
+		ExceptionT::SizeMismatch("SIERRA_Material_BaseT::ComputeOutput", 
+			"output array should be length %d not %d", fOutputIndex.Length(), output.Length());
 
 	/* load stored data */
 	Load(CurrentElement(), CurrIP());
@@ -361,6 +253,132 @@ void SIERRA_Material_BaseT::ComputeOutput(dArrayT& output)
 	/* collect variables */
 	for (int i = 0; i < fOutputIndex.Length(); i++)
 		output[i] = double(fstate_new[fOutputIndex[i]]);
+}
+
+/* describe the parameters needed by the interface */
+void SIERRA_Material_BaseT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	FSIsotropicMatT::DefineParameters(list);
+
+	/* debugging flag */
+	ParameterT debug(fDebug, "debug");
+	debug.SetDefault(fDebug);
+	list.AddParameter(debug);
+	
+	/* file with Sierra materials parameters */
+	list.AddParameter(ParameterT::Word, "SIERRA_parameter_file");
+}
+	
+/* accept parameter list */
+void SIERRA_Material_BaseT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "SIERRA_Material_BaseT::TakeParameterList";
+
+	/* inherited */
+	FSIsotropicMatT::TakeParameterList(list);
+
+	/* 3D only */
+	int nsd = NumSD();
+	if (nsd != 3) ExceptionT::GeneralFail(caller, "3D only");
+
+	/* dimension work space */
+	fModulus.Dimension(dSymMatrixT::NumValues(nsd));
+	fStress.Dimension(nsd);
+	fF_rel.Dimension(nsd);
+	fA_nsd.Dimension(nsd);
+	fU1.Dimension(nsd);
+	fU2.Dimension(nsd); 
+	fU1U2.Dimension(nsd);
+
+	/* spectral decomp */
+	fDecomp = new SpectralDecompT(nsd);
+
+	/* call SIERRA registration function */
+	Register_SIERRA_Material();
+
+	/* extract parameters */
+	fDebug = list.GetParameter("debug");
+	
+	/* open Sierra parameters file */
+	StringT path;
+	path.FilePath(MaterialSupport().InputFile());
+	StringT params = list.GetParameter("SIERRA_parameter_file");
+	params.ToNativePathName();
+	params.Prepend(path);
+	ifstreamT in('#', params);
+	if (!in.is_open())
+		ExceptionT::GeneralFail(caller, "could not open file \"%s\"",
+			params.Pointer());
+
+	/* read SIERRA-format input */
+	StringT line;
+	line.GetLineFromStream(in);
+	StringT word;
+	int count;
+	word.FirstWord(line, count, true);
+	if (word != "begin")
+		ExceptionT::BadInputValue(caller, "expecting \"begin\":\n%s", line.Pointer());
+	line.Tail(' ', word);
+	word.ToUpper();
+	ParameterListT param_list(word);
+	Read_SIERRA_Input(in, param_list);
+	fSIERRA_Material_Data = Process_SIERRA_Input(param_list);
+
+	/* check parameters */
+	Sierra_function_param_check param_check = fSIERRA_Material_Data->CheckFunction();
+	int material_ID = fSIERRA_Material_Data->ID();
+	param_check(&material_ID);
+
+	/* set density */
+	fDensity = fSIERRA_Material_Data->Property("DENSITY");
+
+	/* set the modulus */
+	double kappa  = fSIERRA_Material_Data->Property("BULK_MODULUS");
+	double mu = fSIERRA_Material_Data->Property("TWO_MU")/2.0;
+	IsotropicT::Set_mu_kappa(mu, kappa);
+	IsotropicT::ComputeModuli(fModulus);
+
+	/* storage block size (per ip) */
+	int nsv = fSIERRA_Material_Data->NumStateVariables();
+	fBlockSize = 0;
+	fBlockSize += kSIERRA_stress_dim; // fstress_old
+	fBlockSize += kSIERRA_stress_dim; // fstress_new
+	fBlockSize += nsv;  // fstate_old
+	fBlockSize += nsv;  // fstate_new
+	
+	/* argument array */
+	fArgsArray.Dimension(fBlockSize);
+
+	/* assign pointers */
+	double* parg = fArgsArray.Pointer();
+	
+	fstress_old.Set(kSIERRA_stress_dim, parg); parg += kSIERRA_stress_dim;
+	fstress_new.Set(kSIERRA_stress_dim, parg); parg += kSIERRA_stress_dim;
+	fstate_old.Set(nsv, parg); parg += nsv;
+	fstate_new.Set(nsv, parg);	
+
+	/* notify */
+	if (fThermal->IsActive())
+		cout << "\n SIERRA_Material_BaseT::Initialize: thermal strains must\n"
+		     <<   "    be handled within the UMAT\n" << endl;
+	
+	/* write properties array */
+	ofstreamT& out = MaterialSupport().Output();
+	out << " Material name . . . . . . . . . . . . . . . . . = " << fMaterialName << '\n';
+	out << " Material model name . . . . . . . . . . . . . . = " << fSIERRA_Material_Data->Name() << '\n';
+	out << " Number of state variables . . . . . . . . . . . = " << fSIERRA_Material_Data->NumStateVariables() << '\n';
+	
+	/* material properties */
+	const ArrayT<StringT>& prop_names = fSIERRA_Material_Data->PropertyNames();
+	const ArrayT<double>&  prop_values  = fSIERRA_Material_Data->PropertyValues();
+	int d_width = OutputWidth(out, prop_values.Pointer());
+	out << " Number of material properties . . . . . . . . . = " << prop_names.Length() << '\n';
+	for (int i = 0; i < prop_names.Length(); i++)
+		out << setw(d_width) << prop_values[i] << " : " << prop_names[i] << '\n';
+	out.flush();
+
+	out << "    SIERRA material: " << fSIERRA_Material_Data->Name() << '\n';	
 }
 
 /***********************************************************************
