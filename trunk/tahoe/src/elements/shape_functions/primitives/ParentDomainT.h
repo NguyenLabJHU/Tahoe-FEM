@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.16 2004-10-30 20:55:50 raregue Exp $ */
+/* $Id: ParentDomainT.h,v 1.17 2005-01-24 06:58:17 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _PARENT_DOMAIN_T_H_
 #define _PARENT_DOMAIN_T_H_
@@ -115,6 +115,15 @@ class ParentDomainT
 	/** integration point gradient matrix. See GeometryBaseT::IPGradientTransform for
 	 * more information. */
 	void IPGradientTransform(int ip, dMatrixT& transform) const;
+
+	/** nodal extrapolation matrix
+	 * \return return the matrix which can be used to compute nodal values \f$ v_I \f$
+	 *         given integration point values \f$ v_{\alpha} \f$ from
+	 \f[
+		v_I = A_{I \alpha} v_{\alpha}
+	 \f]
+	 */
+	const dMatrixT& Extrapolation(void) const { return fNodalExtrap; };
 
 	/** compute the jacobian of the nodal values with respect to domain coordinates.
 	 * \param nodal values at the nodes: [nnd] x [nu]
