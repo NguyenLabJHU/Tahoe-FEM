@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.cpp,v 1.4 2002-10-10 01:40:56 paklein Exp $ */
+/* $Id: SimoQ1P0.cpp,v 1.5 2002-10-10 17:28:41 paklein Exp $ */
 #include "SimoQ1P0.h"
 
 #include "ShapeFunctionT.h"
@@ -12,12 +12,6 @@ SimoQ1P0::SimoQ1P0(const ElementSupportT& support, const FieldT& field):
 	UpdatedLagrangianT(support, field),
 	fF_tmp(NumSD()),
 	fLastVolumeInit(false)
-{
-
-}
-
-/* destructor */
-SimoQ1P0::~SimoQ1P0(void)
 {
 
 }
@@ -214,15 +208,13 @@ void SimoQ1P0::FormStiffness(double constK)
 
 		//double p = fCurrMaterial->Pressure()*J_correction;
 		double p = J_correction*cauchy.Trace()/3.0;
-		fCauchyStress *= J_correction;
 
 		/* get shape function gradients matrix */
 		fCurrShapes->GradNa(fGradNa);
-		
 		fb_sig.MultAB(fCauchyStress, fGradNa);
 
 		/* integration constants */		
-		fCauchyStress *= scale;
+		fCauchyStress *= scale*J_correction;
 	
 		/* using the stress symmetry */
 		fStressStiff.MultQTBQ(fGradNa, fCauchyStress,
@@ -248,7 +240,7 @@ void SimoQ1P0::FormStiffness(double constK)
 		
 		fNEEmat.Outer(fb_sig, fdiff_b);
 		fNEEmat.Symmetrize();
-		fLHS.AddScaled(-scale*4.0/3.0, fNEEmat);
+		fLHS.AddScaled(-J_correction*scale*4.0/3.0, fNEEmat);
 
 		bSp_bRq_to_KSqRp(fGradNa, fNEEmat);
 		fLHS.AddScaled(scale*(p - p_bar), fNEEmat);
@@ -356,7 +348,12 @@ void SimoQ1P0::SetMeanGradient(dArray2DT& mean_gradient, double& H, double& v) c
 
 void SimoQ1P0::bSp_bRq_to_KSqRp(const dMatrixT& b, dMatrixT& K) const
 {
-	//dim check
+#if __option(extended_errorcheck)
+	/* dimension check */
+	if (b.Length() != K.Rows() ||
+	    K.Rows() != K.Cols()) throw eSizeMismatch;
+#endif
+
 	int dim = K.Rows();
 	int sub_dim = b.Rows();
 	int S = 0;
