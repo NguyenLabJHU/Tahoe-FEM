@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.h,v 1.8 2002-12-05 08:25:19 paklein Exp $ */
+/* $Id: CommunicatorT.h,v 1.8.2.1 2002-12-10 17:03:41 paklein Exp $ */
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
 
@@ -16,6 +16,7 @@
 namespace Tahoe {
 
 /* forward declarations */
+template <class TYPE> class nArrayT;
 template <class TYPE> class ArrayT;
 
 /** interface to handle process to process communication. If compiled
@@ -61,15 +62,25 @@ class CommunicatorT
 	/** \name logging */
 	/*@{*/
 	/** logging level */
-	enum LogLevelT {kSilent = 0, /**< serious error messages only */
-	               kAddress = 1, /**< log destination/source */
-	                   kAll = 2  /**< log everything including message data */ };
+	enum LogLevelT {
+           kLow = 0, /**< log everything including message data */ 
+      kModerate = 1, /**< log destination/source */
+        kUrgent = 2, /**< serious error messages only */
+          kFail = 3  /**< log message and then throw an ExceptionT::kMPIFail */
+           };
 
-	/** write message to log 
-	 * \param caller the calling subroutine 
-	 * \param message the log message
-	 * \param force write message regardless of the logging level */
-	void Log(const char* caller, const char* message, bool force = false) const;
+	/** write log message
+	 * \param priority message suppressed if the priority doesn't 
+	 *        match the current CommunicatorT::LogLevel
+	 * \param caller the calling subroutine */
+	void Log(LogLevelT priority, const char* caller) const;
+
+	/** write log message
+	 * \param priority message suppressed if the priority doesn't 
+	 *        match the current CommunicatorT::LogLevel
+	 * \param caller the calling subroutine
+	 * \param fmt formatted message string */
+	void Log(LogLevelT priority, const char* caller, const char* fmt, ...) const;
 
 	/** logging stream */
 	ostream& Log(void) const { return *fLog; };
@@ -107,7 +118,7 @@ class CommunicatorT
 	/** gather single integer. Called by destination process. 
 	 * \param gather destination for gathered values. Must be dimensioned
 	 *        to length CommunicatorT::Size before the call. */
-	void Gather(int a, ArrayT<int>& gather) const;
+	void Gather(int a, nArrayT<int>& gather) const;
 
 	/** gather single integer. Called by sending processes. */
 	void Gather(int a, int destination) const;
@@ -116,16 +127,16 @@ class CommunicatorT
 	/** gather single integer to all processes. 
 	 * \param gather destination for gathered values. Must be dimensioned
 	 *        to length CommunicatorT::Size before the call. */
-	void AllGather(int a, ArrayT<int>& gather) const;
+	void AllGather(int a, nArrayT<int>& gather) const;
 
 	/** \name gather multiple values from all. 
 	 * All processes sending the same amount of information to all. */
 	/*@{*/
 	/** gather double's */
-	void AllGather(const ArrayT<double>& my, ArrayT<double>& gather) const;
+	void AllGather(const nArrayT<double>& my, nArrayT<double>& gather) const;
 
 	/** gather int's */
-	void AllGather(const ArrayT<int>& my, ArrayT<int>& gather) const;
+	void AllGather(const nArrayT<int>& my, nArrayT<int>& gather) const;
 	/*@}*/
 
 	/** \name gather multiple values from all. 
@@ -137,27 +148,19 @@ class CommunicatorT
 	 * \param gather the destination for the gathered data */
 	/*@{*/
 	/** gather double's */
-	void AllGather(const ArrayT<int>& counts, const ArrayT<int>& displacements, 
-		const ArrayT<double>& my, ArrayT<double>& gather) const;
+	void AllGather(const nArrayT<int>& counts, const nArrayT<int>& displacements, 
+		const nArrayT<double>& my, nArrayT<double>& gather) const;
 
 	/** gather int's */
-	void AllGather(const ArrayT<int>& counts, const ArrayT<int>& displacements, 
-		const ArrayT<int>& my, ArrayT<int>& gather) const;
+	void AllGather(const nArrayT<int>& counts, const nArrayT<int>& displacements, 
+		const nArrayT<int>& my, nArrayT<int>& gather) const;
 	/*@}*/
 
 	/** broadcast character array */
-	void Broadcast(ArrayT<char>& data);
+	void Broadcast(int source, ArrayT<char>& data);
 	
 	/** synchronize all processes */
 	void Barrier(void) const;
-
-  protected:
-  
-  	/** time as a string */
-	const char* WallTime(void) const;
-
-	/** write log header */
-	ostream& LogHead(const char* caller) const;
 
   private:
   
@@ -166,6 +169,9 @@ class CommunicatorT
 	void Init(void);
 	void Finalize(void);
   	/*@}*/
+
+	/** write log message */
+	void doLog(const char* caller, const char* message) const;
   	
   private:
   
