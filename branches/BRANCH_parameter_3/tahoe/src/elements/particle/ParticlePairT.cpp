@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.33.2.2 2004-04-08 15:59:41 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.33.2.3 2004-04-14 22:38:46 paklein Exp $ */
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
@@ -1122,7 +1122,6 @@ void ParticlePairT::SetConfiguration(void)
 		part_nodes = fActiveParticles;
 	GenerateNeighborList(part_nodes, fNearestNeighborDistance, fNearestNeighbors, true, true);
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
-
 
 	/* output stream */
 	ofstreamT& out = ElementSupport().Output();

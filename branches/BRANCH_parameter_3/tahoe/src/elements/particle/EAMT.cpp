@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.55.2.2 2004-04-14 17:35:38 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.55.2.3 2004-04-14 22:38:46 paklein Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -33,7 +33,12 @@ EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
   fEmbeddingEnergy_man(kMemoryHeadRoom, fEmbeddingEnergy, 1),
   fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
   fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
-  frhop_r_man(kMemoryHeadRoom, frhop_r,NumDOF())
+  frhop_r_man(kMemoryHeadRoom, frhop_r, NumDOF()),
+  fElectronDensityMessageID(CommManagerT::kNULLMessageID),
+  fEmbeddingEnergyMessageID(CommManagerT::kNULLMessageID),
+  fEmbeddingForceMessageID(CommManagerT::kNULLMessageID),
+  fEmbeddingStiffMessageID(CommManagerT::kNULLMessageID),
+  frhop_rMessageID(CommManagerT::kNULLMessageID)
 {
 	SetName("particle_EAM");
 }
@@ -48,7 +53,12 @@ EAMT::EAMT(const ElementSupportT& support):
   fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
   fEmbeddingEnergy_man(kMemoryHeadRoom, fEmbeddingEnergy, 1),
   fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
-  fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1)
+  fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
+  fElectronDensityMessageID(CommManagerT::kNULLMessageID),
+  fEmbeddingEnergyMessageID(CommManagerT::kNULLMessageID),
+  fEmbeddingForceMessageID(CommManagerT::kNULLMessageID),
+  fEmbeddingStiffMessageID(CommManagerT::kNULLMessageID),
+  frhop_rMessageID(CommManagerT::kNULLMessageID)  
 {
 	SetName("particle_EAM");
 }
@@ -769,28 +779,6 @@ ParameterInterfaceT* EAMT::NewSub(const StringT& list_name) const
 /* accept parameter list */
 void EAMT::TakeParameterList(const ParameterListT& list)
 {
-	CommManagerT& comm_manager = ElementSupport().CommManager();
-
-	/* set up communication of electron density information */
-	fElectronDensityMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
-	fElectronDensity_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-	/* set up communication of embedding energy information */
-	fEmbeddingEnergyMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
-	fEmbeddingEnergy_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-	/* set up communication of embedding force information */
-	fEmbeddingForceMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
-	fEmbeddingForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-	/* set up communication of embedding stiffness information */
-	fEmbeddingStiffMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
-	fEmbeddingStiff_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-	/* set up communication of rhop * r information */
-	frhop_rMessageID = comm_manager.Init_AllGather(MessageT::Double, NumDOF());
-	frhop_r_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
 	/* inherited */
 	ParticleT::TakeParameterList(list);
 
@@ -1705,76 +1693,88 @@ void EAMT::RHSDriver3D(void)
 /* set neighborlists */
 void EAMT::SetConfiguration(void)
 {
-  /* inherited */
-  ParticleT::SetConfiguration();
+	/* inherited */
+	ParticleT::SetConfiguration();
 
-  /* reset neighbor lists */
-  CommManagerT& comm_manager = ElementSupport().CommManager();
-  const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
-  if (fActiveParticles) 
-    part_nodes = fActiveParticles;
-  GenerateNeighborList(part_nodes, fNearestNeighborDistance, fNearestNeighbors, true, true);
-  GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
+	/* reset neighbor lists */
+	CommManagerT& comm_manager = ElementSupport().CommManager();
+	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
+	if (fActiveParticles) 
+		part_nodes = fActiveParticles;
+	GenerateNeighborList(part_nodes, fNearestNeighborDistance, fNearestNeighbors, true, true);
+	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
 	
-  ofstreamT& out = ElementSupport().Output();
-  out << "\n Neighbor statistics:\n";
-  out << " Total number of neighbors . . . . . . . . . . . = " 
-      << fNeighbors.Length() << '\n';
-  out << " Minimum number of neighbors . . . . . . . . . . = " 
-      << fNeighbors.MinMinorDim(0) << '\n';
-  out << " Maximum number of neighbors . . . . . . . . . . = " 
-      << fNeighbors.MaxMinorDim() << '\n';
-  if (fNeighbors.MajorDim() > 0)
-    out << " Average number of neighbors . . . . . . . . . . = " 
-	<< double(fNeighbors.Length())/fNeighbors.MajorDim() << '\n';
-  else
-    out << " Average number of neighbors . . . . . . . . . . = " << 0 << '\n';
+	ofstreamT& out = ElementSupport().Output();
+	out << "\n Neighbor statistics:\n";
+	out << " Total number of neighbors . . . . . . . . . . . = "
+	    << fNeighbors.Length() << '\n';
+	out << " Minimum number of neighbors . . . . . . . . . . = " 
+	    << fNeighbors.MinMinorDim(0) << '\n';
+	out << " Maximum number of neighbors . . . . . . . . . . = " 
+	    << fNeighbors.MaxMinorDim() << '\n';
+	if (fNeighbors.MajorDim() > 0)
+		out << " Average number of neighbors . . . . . . . . . . = " 
+		    << double(fNeighbors.Length())/fNeighbors.MajorDim() << '\n';
+	else
+		out << " Average number of neighbors . . . . . . . . . . = " << 0 << '\n';
 
-  /* verbose */
-  if (ElementSupport().PrintInput())
-    {
-      out << " Neighbor lists (self as leading neighbor):\n";
-      out << setw(kIntWidth) << "row" << "  n..." << '\n';
-      iArrayT tmp(fNeighbors.Length(), fNeighbors.Pointer());
-      tmp++;
-      fNeighbors.WriteNumbered(out);
-      tmp--;
-      out.flush();
-    }
+	/* verbose */
+	if (ElementSupport().PrintInput()) {
+		out << " Neighbor lists (self as leading neighbor):\n";
+		out << setw(kIntWidth) << "row" << "  n..." << '\n';
+		iArrayT tmp(fNeighbors.Length(), fNeighbors.Pointer());
+		tmp++;
+		fNeighbors.WriteNumbered(out);
+		tmp--;
+		out.flush();
+	}
 
-  int nnd = ElementSupport().NumNodes();
-  // ELECTRON DENSITY //
-  /* reset the electron density array */
-  fElectronDensity_man.SetMajorDimension(nnd, true);
+	/* initialize communications */
+	if (fElectronDensityMessageID == CommManagerT::kNULLMessageID) {
+		int ndof = NumDOF();
+		fElectronDensityMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
+		fEmbeddingEnergyMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
+		fEmbeddingStiffMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
+		frhop_rMessageID = comm_manager.Init_AllGather(MessageT::Double, ndof);
+		
+		/* initialize memory manager */
+		frhop_r_man.SetWard(kMemoryHeadRoom, frhop_r, NumDOF());
+	}
+
+	int nnd = ElementSupport().NumNodes();
+
+	// ELECTRON DENSITY //
+	/* reset the electron density array */
+	fElectronDensity_man.SetMajorDimension(nnd, true);
   
-  /* exchange type information */
-  comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
+	/* exchange type information */
+	comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
 
-  // EMBEDDING ENERGY //
-  /* reset the embedding energy array */
-  fEmbeddingEnergy_man.SetMajorDimension(nnd, true);
+	// EMBEDDING ENERGY //
+	/* reset the embedding energy array */
+	fEmbeddingEnergy_man.SetMajorDimension(nnd, true);
   
-  /* exchange type information */
-  comm_manager.AllGather(fEmbeddingEnergyMessageID, fEmbeddingEnergy);
+	/* exchange type information */
+	comm_manager.AllGather(fEmbeddingEnergyMessageID, fEmbeddingEnergy);
 
-  /* reset the embedding force array */
-  fEmbeddingForce_man.SetMajorDimension(nnd, true);
+	/* reset the embedding force array */
+	fEmbeddingForce_man.SetMajorDimension(nnd, true);
   
-  /* exchange type information */
-  comm_manager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
+	/* exchange type information */
+	comm_manager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
 
-  /* reset the embedding stiffness array */
-  fEmbeddingStiff_man.SetMajorDimension(nnd, true);
+	/* reset the embedding stiffness array */
+	fEmbeddingStiff_man.SetMajorDimension(nnd, true);
   
-  /* exchange type information */
-  comm_manager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
+	/* exchange type information */
+	comm_manager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
 
-  // OTHER  //
-  /* reset the rhop * r array */
-  frhop_r_man.SetMajorDimension(nnd, true);
+	// OTHER  //
+	/* reset the rhop * r array */
+	frhop_r_man.SetMajorDimension(nnd, true);
   
-  /* exchange type information */
-  comm_manager.AllGather(frhop_rMessageID, frhop_r);
+	/* exchange type information */
+	comm_manager.AllGather(frhop_rMessageID, frhop_r);
 }
 
 /* extract the properties information from the parameter list. See ParticleT::ExtractProperties */
@@ -1784,19 +1784,19 @@ void EAMT::ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& 
 	const char caller[] = "EAMT::ExtractProperties";
 
 	/* check number of interactions */
-	int num_props = list.NumLists("pair_particle_interaction");
+	int num_props = list.NumLists("EAM_particle_interaction");
 	int dim = 0;
 	for (int i = 0; i < properties_map.Rows(); i++)
 		dim += properties_map.Rows() - i;
 	if (dim != num_props)
-		ExceptionT::GeneralFail(caller, "%d types requires %d \"pair_particle_interaction\"",
+		ExceptionT::GeneralFail(caller, "%d types requires %d \"EAM_particle_interaction\"",
 			properties_map.Rows(), dim);
 
 	/* read properties */
 	fEAMProperties.Dimension(num_props);
 	for (int i = 0; i < num_props; i++) {
 
-		const ParameterListT& interaction = list.GetList("pair_particle_interaction", i);
+		const ParameterListT& interaction = list.GetList("EAM_particle_interaction", i);
 		
 		/* type names */
 		const StringT& label_1 = interaction.GetParameter("label_1");
@@ -1819,9 +1819,9 @@ void EAMT::ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& 
 		properties_map(index_1, index_2) = properties_map(index_2, index_1) = i; /* symmetric */
 		
 		/* read property */
-		const ParameterListT* property = interaction.ResolveListChoice(*this, "pair_property_choice");
+		const ParameterListT* property = interaction.ResolveListChoice(*this, "EAM_property_choice");
 		if (!property)
-			ExceptionT::GeneralFail(caller, "could not resolve \"pair_property_choice\"");
+			ExceptionT::GeneralFail(caller, "could not resolve \"EAM_property_choice\"");
 		EAMPropertyT* EAM_prop = New_EAMProperty(property->Name(), true);
 		EAM_prop->TakeParameterList(*property);
 		fEAMProperties[i] = EAM_prop;
