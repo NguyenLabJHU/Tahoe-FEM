@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.2 2001-03-08 00:50:06 paklein Exp $ */
 /* created: paklein (08/19/1999)                                          */
 
 #include "PCGSolver_LS.h"
@@ -146,15 +146,22 @@ void PCGSolver_LS::CGSearch(void)
 //                    InnerProduct(fdiff_R, fu_last);			
 			 			              			
 		/* Bertsekas (6.36) and Polak-Ribiere formula (JAS3D) */
-		double beta = InnerProduct(fRHS, fdiff_R)/
-		              InnerProduct(fR_last, fR_last);
-			
+//		double beta = InnerProduct(fRHS, fdiff_R)/
+//		              InnerProduct(fR_last, fR_last);
+
+		/* with scaling matrix Bertsekas (6.32) */
+		fLHS->Solve(fdiff_R);  /* apply scaling */
+		double beta = InnerProduct(fRHS, fdiff_R);
+		fdiff_R = fR_last;     /* copy */
+		fLHS->Solve(fdiff_R);  /* apply scaling */
+		beta /= InnerProduct(fR_last, fdiff_R);
+		
 		/* limit beta */
 		//beta = (beta < 0.0) ? 0.0 : beta;
 		
 		/* compute new update (in last update) */
 		fR_last = fRHS;
-		fLHS->Solve(fRHS);
+		fLHS->Solve(fRHS); /* apply preconditioner */
 		fRHS.AddScaled(beta, fu_last);
 		fu_last = fRHS;
 
