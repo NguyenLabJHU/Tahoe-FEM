@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.cpp,v 1.3 2001-06-04 23:40:18 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.3.2.1 2001-06-13 00:08:47 paklein Exp $ */
 /* created: paklein (06/22/1997)                                          */
 
 #include "J2Simo3D.h"
@@ -13,20 +13,10 @@ J2Simo3D::J2Simo3D(ifstreamT& in, const ElasticT& element):
 	SimoIso3D(in, element),
 //	J2SimoLinHardT(in, NumIP(), Mu()),
 	J2SimoC0HardeningT(in, NumIP(), Mu()),
-	fLocLastDisp(element.LastDisplacements()),
-	fRelDisp(LocalArrayT::kDisp, fLocLastDisp.NumberOfNodes(), fLocLastDisp.MinorDim()),
 	fFtot(3),
 	ffrel(3),
 	fF_temp(3)
 {
-	/* check last displacements */
-	if (!fLocLastDisp.IsRegistered() ||
-		 fLocLastDisp.MinorDim() != NumDOF())
-	{
-		cout << "\n J2Simo3D::J2Simo3D: last local displacement vector is invalid" << endl;
-		throw eGeneralFail;
-	}
-
 // with J2 from J2SimoLinHardT
 #if 0
 //TEMP - Kinematic hardening is not working correctly. The
@@ -232,6 +222,6 @@ void J2Simo3D::ComputeGradients(void)
 	fFtot = F();
 
 	/* relative deformation gradient */
-	fF_temp.Inverse(F(fLocLastDisp));
+	fF_temp.Inverse(F_last());
 	ffrel.MultAB(fFtot,fF_temp);
 }

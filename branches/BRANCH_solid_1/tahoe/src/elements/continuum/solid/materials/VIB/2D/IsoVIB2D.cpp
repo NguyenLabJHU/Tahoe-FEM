@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.cpp,v 1.1.1.1.2.2 2001-06-07 03:01:22 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.1.1.1.2.3 2001-06-13 00:08:42 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 2D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -25,7 +25,7 @@ IsoVIB2D::IsoVIB2D(ifstreamT& in, const ElasticT& element):
 	fEigs(2),
 	fEigmods(2),
 	fSpectral(2),
-	fC(2),
+	fb(2),
 	fModulus(dSymMatrixT::NumValues(2)),
 	fStress(2)
 {
@@ -57,9 +57,8 @@ const dMatrixT& IsoVIB2D::c_ijkl(void)
 	Compute_b(fb);
 	
 	/* compute spectral decomposition */
-
-	/* principal stretches */
-	fb.PrincipalValues(fEigs);
+	fSpectral.SpectralDecomp_Jacobi(fb, false);
+	fEigs = fSpectral.Eigenvalues();
 
 	/* stretched bonds */
 	ComputeLengths(fEigs);
@@ -118,9 +117,6 @@ const dMatrixT& IsoVIB2D::c_ijkl(void)
 		fModulus(0,0) = fModulus(1,1) = c11*k;
 		fModulus(0,1) = fModulus(1,0) = c12*k;
 		fModulus(2,2) = 0.5*(c11 - c12)*k;
-
-//		fModulus(2,2) = fModulus(0,1) =
-//		               fModulus(1,0) = c12*k; //Cauchy symmetry
 	}
 	else
 	{
@@ -139,14 +135,14 @@ const dMatrixT& IsoVIB2D::c_ijkl(void)
 		c11 += 2.0*fEigs[0];
 		c22 += 2.0*fEigs[1];
 
-		/* set spectral decomp of b */
-//		fSpectral.DecompAndModPrep(b_2D, false);
-//DEV - what to put here?
+		/* set constribution due to b */
+		fSpectral.PerturbRoots();
+		fSpectral.ModulusPrep(fb);
 
 		/* construct moduli */
 		fModulus = fSpectral.EigsToRank4(fEigmods);		
-		fModulus.AddScaled(2.0*fEigs[0], fSpectral.SpatialTensor(b_2D, 0));
-		fModulus.AddScaled(2.0*fEigs[1], fSpectral.SpatialTensor(b_2D, 1));
+		fModulus.AddScaled(2.0*fEigs[0], fSpectral.SpatialTensor(fb, 0));
+		fModulus.AddScaled(2.0*fEigs[1], fSpectral.SpatialTensor(fb, 1));
 	}
 	
 	return fModulus;
@@ -155,8 +151,12 @@ const dMatrixT& IsoVIB2D::c_ijkl(void)
 /* stress */
 const dSymMatrixT& IsoVIB2D::s_ij(void)
 {
-	/* principal stretches */
-	C().PrincipalValues(fEigs);
+	/* stretch */
+	Compute_b(fb);
+
+	/* compute spectral decomposition */
+	fSpectral.SpectralDecomp_Jacobi(fb, false);
+	fEigs = fSpectral.Eigenvalues();
 
 	/* stretched bonds */
 	ComputeLengths(fEigs);
@@ -186,9 +186,6 @@ const dSymMatrixT& IsoVIB2D::s_ij(void)
 	double J = sqrt(fEigs[0]*fEigs[1])/fThickness;
 	fEigs[0] *= (s1/J);
 	fEigs[1] *= (s2/J);
-
-	/* set spectral decomp of b */
-	fSpectral.SpectralDecomp(b(), false);
 
 	/* build stress */
 	return fSpectral.EigsToRank2(fEigs);
@@ -220,8 +217,11 @@ const dSymMatrixT& IsoVIB2D::S_IJ(void)
 //TEMP
 const dSymMatrixT& IsoVIB2D::CurvatureTensor(void)
 {
+	/* stretch */
+	Compute_b(fb);
+
 	/* principal stretches */
-	C().PrincipalValues(fEigs);
+	fb.PrincipalValues(fEigs);
 
 	/* stretched bonds */
 	ComputeLengths(fEigs);
@@ -282,8 +282,11 @@ const dSymMatrixT& IsoVIB2D::CurvatureTensor(void)
 /* strain energy density */
 double IsoVIB2D::StrainEnergyDensity(void)
 {
+	/* stretch */
+	Compute_b(fb);
+
 	/* principal stretches */
-	C().PrincipalValues(fEigs);
+	fb.PrincipalValues(fEigs);
 
 	/* stretched bonds */
 	ComputeLengths(fEigs);

@@ -1,4 +1,4 @@
-/* $Id: D2VIB2D_a.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: D2VIB2D_a.cpp,v 1.1.1.1.2.1 2001-06-13 00:08:46 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2VIB2D_a.h"
@@ -38,8 +38,11 @@ void D2VIB2D_a::Print(ostream& out) const
 /* material internal stress terms */
 void D2VIB2D_a::StressTerms(dMatrixT& DW, dMatrixT& DDW)
 {
+	/* strain */
+	Compute_E(fE);
+
 	/* compute the symetric 2nd Piola-Kirchhoff reduced index vector */
-	ComputePK2(E(), fPK2);
+	ComputePK2(fE, fPK2);
 	fPK2.ToMatrix(fPK2mat);
 
 	/* PK1 */

@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.h,v 1.2 2001-05-05 19:28:34 paklein Exp $ */
+/* $Id: J2Simo2D.h,v 1.2.2.1 2001-06-13 00:08:47 paklein Exp $ */
 /* created: paklein (06/22/1997)                                          */
 
 #ifndef _J2_SIMO_2D_H_
@@ -60,10 +60,6 @@ private:
 	void ComputeGradients(void);
 
 private:
-
-	/* last converged disp - needed for f_relative */
-	const LocalArrayT& fLocLastDisp;
-	LocalArrayT	fRelDisp;
 
 	/* deformation gradients - 3D*/
 	dMatrixT fFtot;

@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.1.1.1.2.1 2001-06-13 00:08:39 paklein Exp $ */
 /* created: paklein (02/19/1998)                                          */
 
 #include "LocalizerT.h"
@@ -87,11 +87,13 @@ void LocalizerT::Initialize(void)
 		int groupnum = fFEManager.ElementGroupNumber(this) + 1;
 	
 		StringT outfile;
-		StringT source_name = (fFEManager.Input()).filename();
-		outfile.DefaultName(source_name, ".loc.elem", groupnum);
+
+		outfile.Root(fFEManager.Input().filename());
+		outfile.Append(".loc.elem", groupnum);
 		fLocOut.open(outfile);
 
-		outfile.DefaultName(source_name, ".TOC.elem", groupnum);
+		outfile.Root(fFEManager.Input().filename());
+		outfile.Append(".TOC.elem", groupnum);
 		fLocTOC.open(outfile);
 	}		
 

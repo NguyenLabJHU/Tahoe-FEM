@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.h,v 1.3 2001-05-04 19:16:05 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.h,v 1.3.2.1 2001-06-13 00:08:47 paklein Exp $ */
 /* created: paklein (06/29/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -98,9 +98,6 @@ private:
 	double YieldCondition(const dArrayT& devpstress, double alpha) const;
 
 private:
-
-	/* displacements from the last time step */
-	const LocalArrayT& fLocLastDisp;
 
 	/* return values */
 	dSymMatrixT fb_elastic; //return value

@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.5.2.1 2001-06-06 16:27:21 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.5.2.2 2001-06-13 00:08:47 paklein Exp $ */
 /* created: paklein (10/26/2000)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -74,19 +74,10 @@ J2QLLinHardT::J2QLLinHardT(ifstreamT& in, const ElasticT& element):
 	fdev_beta(kNSD),
 	
 	/* deformation gradient stuff */
-	fLocLastDisp(element.LastDisplacements()),
 	fFtot(kNSD),
 	ffrel(kNSD),
 	fF_temp(kNSD)
 {
-	/* check last displacements */
-	if (!fLocLastDisp.IsRegistered() ||
-		 fLocLastDisp.MinorDim() != NumDOF())
-	{
-		cout << "\n J2QLLinHardT::J2QLLinHardT: last local displacement vector is invalid" << endl;
-		throw eGeneralFail;
-	}
-
 	/* for intermediate config update */
 	fa_inverse.Inverse(fEigMod);
 }
@@ -492,7 +483,7 @@ void J2QLLinHardT::ComputeGradients(void)
 {
 	/* compute relative displacement */
 	fFtot = F();
-	fF_temp.Inverse(F(fLocLastDisp));
+	fF_temp.Inverse(F_last());
 	ffrel.MultAB(fFtot,fF_temp);
 }
 

@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.cpp,v 1.2 2001-02-20 00:28:21 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.cpp,v 1.2.2.1 2001-06-13 00:08:44 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 3D Isotropic VIB using Ogden's spectral formulation                    */
 
@@ -74,8 +74,11 @@ void OgdenIsoVIB3D::PrintName(ostream& out) const
 /* strain energy density */
 double OgdenIsoVIB3D::StrainEnergyDensity(void)
 {
+	/* stretch */
+	Compute_C(fC);
+
 	/* principal stretches */
-	C().PrincipalValues(fEigs);
+	fC.PrincipalValues(fEigs);
 
 	/* stretched bonds */
 	ComputeLengths(fEigs);
