@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.9.16.1 2004-04-24 19:57:41 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.9.16.2 2004-04-28 05:33:26 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -345,7 +345,7 @@ if (1) {
 		R_Q = 0.0;
 		R_U += resid_coarse;
 		const PointInCellDataT& projection_data = fCoarse->ProjectionData();
-		fCoarse->MultNTf(projection_data.PointToNode(), R_U, projection_data.CellNodes(), R_Q);	
+		fCoarse->MultNTf(projection_data.PointToNode(), R_U, fCoarse->ProjectedNodes(), R_Q);	
 		fSolvers[group]->AssembleRHS(R_Q, fR_Q_eqnos);	
 	}
 	

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.12.4.1 2004-04-24 19:57:41 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.12.4.2 2004-04-28 05:33:26 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -169,6 +169,9 @@ public:
 	
 	/** projection data */
 	const PointInCellDataT& ProjectionData(void) { return fDrivenCellData; };
+	
+	/** list of nodes with projected solutions */
+	const iArrayT& ProjectedNodes(void) const { return fProjectedNodes; };
 	/*@}*/
 	
 	/** \name bond density corrections */
@@ -250,6 +253,9 @@ protected:
 	void GhostNodeBonds(const dArrayT& R_i, const dArray2DT& point_coords, 
 		const RaggedArray2DT<int>& ghost_neighbors_all, RaggedArray2DT<int>& ghost_neighbors_i, 
 		AutoArrayT<int>& overlap_cell_i, AutoArrayT<int>& overlap_node_i) const;
+
+	/** collect list of cells not containing any active bonds */
+	void BondFreeElements(const RaggedArray2DT<int>& ghost_neighbors_i, AutoArrayT<int>& bondfree_cell_i) const;
 
 	/** generate "inverse" connectivities for active elements in the support of active nodes.
 	 * For each node in the forward map, collect the elements which are part of its support
