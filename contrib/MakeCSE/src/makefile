@@ -55,10 +55,10 @@ HDR = \
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
-SUB_DIR = geometry
-subdir_driver: subdir_loop
+SUB_DIR = 
+#subdir_driver: subdir_loop
 # SUB_DIR is empty
-#subdir_driver: 
+subdir_driver: 
 
 # instructions for subdirectories
 include $(MACRO_DIR)/subdir.targets
