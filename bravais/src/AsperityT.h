@@ -1,8 +1,8 @@
 // DEVELOPMENT
-/* $Id: BoxT.h,v 1.9 2003-06-06 16:05:02 saubry Exp $ */
+/* $Id: AsperityT.h,v 1.1 2003-06-06 16:05:02 saubry Exp $ */
 
-#ifndef _BOX_T_H_
-#define _BOX_T_H_
+#ifndef _ASPERITY_T_H_
+#define _ASPERITY_T_H_
 
 #include <iostream>
 #include "iArrayT.h"
@@ -14,26 +14,31 @@
 
 using namespace Tahoe;
 
-class BoxT : public VolumeT 
+class AsperityT : public VolumeT 
 {
-  
+ 
   iArrayT ncells;
   dArray2DT length; // lower and upper bounds
   iArrayT WhichSort;
 
+ protected:
+
+  double radius;
+  dArrayT center;
+
  public:
   
   //Constructor
-  BoxT(int dim, dArray2DT len, dArrayT lattice_parameter,
+  AsperityT(int dim, dArray2DT len, dArrayT lattice_parameter,
        iArrayT which_sort);
-  BoxT(int dim, iArrayT cel, dArrayT lattice_parameter,
+  AsperityT(int dim, iArrayT cel, dArrayT lattice_parameter,
        iArrayT which_sort);
   
   //Destructor
-  ~BoxT(){};
+  ~AsperityT(){};
   
   // Copy constructor
-  BoxT(const BoxT& source);
+  AsperityT(const AsperityT& source);
   
   void CreateLattice(CrystalLatticeT* pcl); 
   void SortLattice(CrystalLatticeT* pcl);
@@ -44,15 +49,16 @@ class BoxT : public VolumeT
   iArrayT GetNCells();
   dArray2DT GetLength();
 
- private:
+ private: 
 
     dArray2DT ComputeMinMax(); 
     int RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat);
     int RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat);
 
+    void ComputeCircleParameters();
 };
 
-inline iArrayT BoxT::GetNCells(){return ncells;};
-inline dArray2DT BoxT::GetLength(){return length;};
+inline iArrayT AsperityT::GetNCells(){return ncells;};
+inline dArray2DT AsperityT::GetLength(){return length;};
 
 #endif

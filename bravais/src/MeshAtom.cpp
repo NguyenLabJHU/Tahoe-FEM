@@ -19,6 +19,7 @@
 
 #include "VolumeT.h"
 #include "BoxT.h"
+#include "AsperityT.h"
 
 #include "OutputSetT.h"
 #include "OutPutLatticeT.h"
@@ -51,6 +52,13 @@ MeshAtom::MeshAtom(StringT which_latticetype,int nsd,int nuca,
 	Shape = new BoxT(nsd,len,latticeparameter,isort);
       else
 	Shape = new BoxT(nsd,cel,latticeparameter,isort);
+    }
+  else if(which_shape == "ASPERITY")
+    {
+      if(whichunit==1) 
+	Shape = new AsperityT(nsd,len,latticeparameter,isort);
+      else
+	Shape = new AsperityT(nsd,cel,latticeparameter,isort);
     }
   else
     {
