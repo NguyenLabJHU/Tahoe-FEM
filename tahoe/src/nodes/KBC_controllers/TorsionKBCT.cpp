@@ -1,4 +1,4 @@
-/* $Id: TorsionKBCT.cpp,v 1.3.32.2 2004-05-13 16:43:36 paklein Exp $ */
+/* $Id: TorsionKBCT.cpp,v 1.3.32.3 2004-05-20 14:59:37 paklein Exp $ */
 #include "TorsionKBCT.h"
 #include "NodeManagerT.h"
 #include "ifstreamT.h"
@@ -74,14 +74,21 @@ void TorsionKBCT::InitStep(void)
 		R.SetToCombination(1.0, v_op, -dArrayT::Dot(v_op, axis), axis);
 		double r = R.Magnitude();
 		
-		/* plane of rotation */
-		c.DiffOf(X, R);
-		xl.SetToScaled(1.0/r, R);
-		CrossProduct(axis, xl, yl);
+		/* compute new position */
+		if (fabs(r) > kSmall) 
+		{
+			/* plane of rotation */
+			c.DiffOf(X, R);
+			xl.SetToScaled(1.0/r, R);
+			CrossProduct(axis, xl, yl);
 	
-		/* new position */
-		x.SetToCombination(1.0, c, r*cos(theta), xl, r*sin(theta), yl);
-		
+			/* new position */
+			x.SetToCombination(1.0, c, r*cos(theta), xl, r*sin(theta), yl);
+		}
+		else /* motion */
+			x = X;
+
+		/* set prescribed motion */
 		KBC_CardT& card_1 = fKBC_Cards[dex++];
 		int dof_1 = card_1.DOF();
 		card_1.SetValues(node, dof_1, KBC_CardT::kDsp, NULL, x[dof_1] - X[dof_1]);
@@ -124,7 +131,7 @@ void TorsionKBCT::DefineSubs(SubListT& sub_list) const
 ParameterInterfaceT* TorsionKBCT::NewSub(const StringT& list_name) const
 {
 	if (list_name == "point_on_axis")
-		return new VectorParameterT("list_name", 3);
+		return new VectorParameterT(list_name, 3);
 	else /* inherited */	
 		return KBC_ControllerT::NewSub(list_name);
 }
@@ -145,14 +152,14 @@ void TorsionKBCT::TakeParameterList(const ParameterListT& list)
 	fAxis = list.GetParameter("rotation_axis");
 	fAxis--;
 
-#if 0
 	/* point on the axis of rotation */
-	fPoint.Dimension(fNodeManager.NumSD());
-	in >> fPoint;
+	VectorParameterT vec("point_on_axis", 3);
+	vec.TakeParameterList(list.GetList(vec.Name()));
+	fPoint = vec;
 
 	/* nodes */
-	ReadNodes(in, fID_List, fNodes);
-#endif
+	StringListT::Extract(list.GetList("node_ID_list"),  fID_List);	
+	GetNodes(fID_List, fNodes);
 
 	/* constrained directions */
 	int constrained_dirs[3][2] = {

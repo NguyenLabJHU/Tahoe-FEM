@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.18.2.2 2004-05-13 16:43:35 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.18.2.3 2004-05-20 14:59:37 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
@@ -17,18 +17,22 @@
 #else
 #include "ElementBaseT.h"
 #endif
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
 
 using namespace Tahoe;
 
 /* parameters */
 const double Pi = acos(-1.0);
-const double TipNoise = 1.0e-06;
+//const double TipNoise = 1.0e-06;
 
 /* constructor */
 K_FieldT::K_FieldT(NodeManagerT& node_manager):
 	KBC_ControllerT(node_manager),
 	fLTf1(NULL),
 	fLTf2(NULL),
+	fK1(0.0),
+	fK2(0.0),
 	fIsotropic(NULL),
 	fSolidMaterial(NULL),
 	fDummySchedule(1.0),
@@ -37,7 +41,9 @@ K_FieldT::K_FieldT(NodeManagerT& node_manager):
 	fTipColumnNum(-1),
 	fTrackingCode(kMaximum),
 	fMaxGrowthDistance(-1),
-	fMaxGrowthSteps(-1)
+	fMaxGrowthSteps(-1),
+	fFarFieldGroupNum(-1),
+	fFarFieldMaterialNum(-1)
 {
 	SetName("K_field");
 
@@ -54,63 +60,6 @@ void K_FieldT::Initialize(ifstreamT& in)
 	/* only 2D for now */
 	int nsd = fNodeManager.NumSD();
 	if (nsd != 2) ExceptionT::GeneralFail(caller, "must be 2D: %d", nsd);
-
-	/* K1 */
-	in >> fnumLTf1 >> fK1; fnumLTf1--;
-	fLTf1 = fNodeManager.Schedule(fnumLTf1);	
-	if (!fLTf1) ExceptionT::BadInputValue(caller);
-
-	/* K2 */
-	in >> fnumLTf2 >> fK2; fnumLTf2--;
-	fLTf2 = fNodeManager.Schedule(fnumLTf2);	
-	if (!fLTf2) ExceptionT::BadInputValue(caller);
-
-	/* coordinates of the crack tip */
-	fInitTipCoords.Dimension(nsd);
-	in >> fInitTipCoords;
-	fLastTipCoords = fTipCoords = fInitTipCoords;
-
-	/* crack extension parameters */
-	fGrowthDirection.Dimension(nsd);
-	in >> fGrowthDirection; fGrowthDirection.UnitVector();
-
-	/* near tip group */
-	in >> fNearTipGroupNum;   // -1: no nearfield group
-	in >> fNearTipOutputCode; // variable to locate crack tip
-	in >> fTipColumnNum;      // column of output variable to locate tip
-
-	/* tracking type */
-	int tracking_type = -99;
-	in >> tracking_type;
-	switch (tracking_type)
-	{
-		case kMaximum:
-		{
-			fTrackingCode = kMaximum;
-			break;
-		}
-		case kThreshold:
-		{
-			fTrackingCode = kThreshold;
-		
-			/* threshold value */
-			fTrackingParameters.Dimension(1);
-			in >> fTrackingParameters;
-			break;
-		}
-		default:
-			ExceptionT::BadInputValue(caller, "unrecognized tip tracking method: %d", tracking_type);
-	}
-
-	/* growth limiting */
-	in >> fMaxGrowthDistance; if (fMaxGrowthDistance < 0.0) ExceptionT::BadInputValue(caller);
-	in >> fMaxGrowthSteps; if (fMaxGrowthSteps < 1) ExceptionT::BadInputValue(caller);
-
-	/* offsets and checks */
-	fNearTipOutputCode--;
-	if (fNearTipGroupNum != -1) fNearTipGroupNum--;
-	fTipColumnNum--;
-	if (fNearTipGroupNum <  -1) ExceptionT::BadInputValue(caller);
 
 	/* nodes */
 	in >> fFarFieldGroupNum;
@@ -148,6 +97,7 @@ void K_FieldT::WriteParameters(ostream& out) const
 	/* inherited */
 //	KBC_ControllerT::WriteParameters(out);
 
+#if 0
 	out << "\n K - f i e l d   p a r a m e t e r s :\n\n";
 	out << " K I LTf . . . . . . . . . . . . . . . . . . . . = " << fnumLTf1 + 1 << '\n';
 	out << " K I . . . . . . . . . . . . . . . . . . . . . . = " << fK1         << '\n';
@@ -166,6 +116,8 @@ void K_FieldT::WriteParameters(ostream& out) const
 	out << " Maximum number of extensions per load step. . . = " << fMaxGrowthSteps    << '\n';
 	out << " Far field element group number. . . . . . . . . = " << fFarFieldGroupNum + 1 << '\n';
 	out << " Far field group material number . . . . . . . . = " << fFarFieldMaterialNum + 1 << '\n';
+#endif
+
 	if (fID_List.Length() > 0)
 	{
 		out << " Number of group node sets . . . . . . . . . . . = " << fID_List.Length() << '\n';
@@ -337,16 +289,242 @@ void K_FieldT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	KBC_ControllerT::DefineParameters(list);
 
-	list.AddParameter(fNearTipGroupNum, "near_tip_group");
-	list.AddParameter(fNearTipOutputCode, "near_tip_output_code");
-	list.AddParameter(fTipColumnNum, "tip_output_column");
-	list.AddParameter(fMaxGrowthDistance, "max_growth_distance");
-	list.AddParameter(fMaxGrowthSteps, "max_growth_steps");
+}
+
+/* information about subordinate parameter lists */
+void K_FieldT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	KBC_ControllerT::DefineSubs(sub_list);
+
+	/* applied stress intensity factors */
+	sub_list.AddSub("K_I", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("K_II", ParameterListT::ZeroOrOnce);
+
+	/* initial tip coordinates */
+	sub_list.AddSub("initial_tip_coordinates");
+	
+	/* crack extension direction */
+	sub_list.AddSub("crack_extension_direction");
+
+	/* far field elastic properties */
+	sub_list.AddSub("elastic_properties_choice", ParameterListT::Once, true);
+
+	/* list of affected nodes */
+	sub_list.AddSub("node_ID_list");
+
+	/* tip tracking parameters */
+	sub_list.AddSub("tip_tracking", ParameterListT::ZeroOrOnce);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* K_FieldT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "initial_tip_coordinates" || list_name == "crack_extension_direction")
+		return new VectorParameterT(list_name, 2);
+	else if (list_name == "K_I" || list_name == "K_II")
+	{
+		ParameterContainerT* K_spec = new ParameterContainerT(list_name);
+		K_spec->AddParameter(ParameterT::Double, "K");
+		K_spec->AddParameter(ParameterT::Integer, "schedule");
+		return K_spec;
+	}
+	else if (list_name == "tip_tracking")
+	{
+		ParameterContainerT* tracking = new ParameterContainerT(list_name);
+		tracking->SetSubSource(this);
+	
+		/* define tracking data */
+		tracking->AddParameter(fNearTipGroupNum, "near_tip_group");
+		tracking->AddParameter(fNearTipOutputCode, "near_tip_output_code");
+		tracking->AddParameter(fTipColumnNum, "tip_output_column");
+
+		/* growth limits */
+		tracking->AddParameter(fMaxGrowthDistance, "max_growth_distance");
+		tracking->AddParameter(fMaxGrowthSteps, "max_growth_steps");
+	
+		/* choice of tracking methods */
+		tracking->AddSub("tip_tracking_method", ParameterListT::Once, true);
+
+		return tracking;
+	}
+	else if (list_name == "tip_tracking_method")
+	{
+		ParameterContainerT* method = new ParameterContainerT(list_name);
+		method->SetListOrder(ParameterListT::Choice);
+	
+		/* maximum value */
+		ParameterContainerT max("location_of_maximum");
+		max.AddParameter(ParameterT::Double, "noise_level");
+		method->AddSub(max);
+		
+		/* theshold value */
+		ParameterContainerT theshold("farthest_above_threshold");
+		theshold.AddParameter(ParameterT::Double, "theshold");
+		method->AddSub(theshold);	
+	
+		return method;
+	}
+	else if (list_name == "elastic_properties_choice")
+	{
+		ParameterContainerT* props = new ParameterContainerT(list_name);
+		props->SetListOrder(ParameterListT::Choice);
+		props->SetSubSource(this);
+	
+		/* define from material in far-field element group */
+		ParameterContainerT group("far_field_element_group");
+		group.AddParameter(fFarFieldGroupNum, "group_number");
+		group.AddParameter(fFarFieldMaterialNum, "material_number");
+		props->AddSub(group);
+
+		/* define moduli directly */
+		ParameterContainerT moduli("far_field_elastic_properties");
+		moduli.SetSubSource(this);
+		moduli.AddSub("isotropic");
+		ParameterT constraint(ParameterT::Enumeration, "constraint_2D");
+		constraint.AddEnumeration("plane_stress", SolidMaterialT::kPlaneStress);
+		constraint.AddEnumeration("plane_strain", SolidMaterialT::kPlaneStrain);
+		constraint.SetDefault(SolidMaterialT::kPlaneStrain);
+		moduli.AddParameter(constraint);
+		props->AddSub(moduli);
+	
+		return props;
+	}
+	else if (list_name == "isotropic")
+		return new IsotropicT;
+	else /* inherited */
+		return KBC_ControllerT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void K_FieldT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "K_FieldT::TakeParameterList";
+
+	/* inherited */
+	KBC_ControllerT::TakeParameterList(list);
+
+	/* only 2D for now */
+	int nsd = fNodeManager.NumSD();
+	if (nsd != 2) ExceptionT::GeneralFail(caller, "must be 2D: %d", nsd);
+
+	/* K_I */
+	const ParameterListT* K1 = list.List("K_I");
+	if (K1) {
+		fK1 = K1->GetParameter("K");
+		int num_LTf1 = K1->GetParameter("schedule");
+		num_LTf1--;
+		fLTf1 = fNodeManager.Schedule(num_LTf1);
+		if (!fLTf1) ExceptionT::BadInputValue(caller, "could not resolve schedule %d", num_LTf1+1);	
+	}
+
+	/* K_II */
+	const ParameterListT* K2 = list.List("K_II");
+	if (K2) {
+		fK2 = K2->GetParameter("K");
+		int num_LTf2 = K2->GetParameter("schedule");
+		num_LTf2--;
+		fLTf2 = fNodeManager.Schedule(num_LTf2);
+		if (!fLTf2) ExceptionT::BadInputValue(caller, "could not resolve schedule %d", num_LTf2+1);	
+	}
+
+	/* check */
+	if (!fLTf1 && !fLTf2)
+		ExceptionT::GeneralFail(caller, "neither \"K_I\" or \"K_II\" K-field defined");
+
+	/* initial tip coordinates */
+	VectorParameterT vec(2);
+	vec.SetName("initial_tip_coordinates");
+	vec.TakeParameterList(list.GetList(vec.Name()));
+	fInitTipCoords = vec;
+	fLastTipCoords = fTipCoords = fInitTipCoords;
+
+	/* extension direction */
+	vec.SetName("crack_extension_direction");
+	vec.TakeParameterList(list.GetList(vec.Name()));
+	fGrowthDirection = vec; 
+	fGrowthDirection.UnitVector();
+
+	/* resolve elastic properties */
+	const ParameterListT* elastic = list.ResolveListChoice(*this, "elastic_properties_choice");
+	if (elastic)
+	{
+		if (elastic->Name() == "far_field_element_group") {
+			fFarFieldGroupNum = elastic->GetParameter("group_number"); fFarFieldGroupNum--;
+			fFarFieldMaterialNum = elastic->GetParameter("material_number"); fFarFieldMaterialNum--;
+		}
+		else if (elastic->Name() == "isotropic") {
+		
+		}
+		else
+			ExceptionT::GeneralFail(caller, "unrecognized properties choice \"%s\"",
+				elastic->Name().Pointer());
+	}
+	else
+		ExceptionT::GeneralFail(caller, "could not resolve choice \"elastic_properties_choice\"");
+
+	/* nodes */
+	StringListT::Extract(list.GetList("node_ID_list"),  fID_List);	
+	GetNodes(fID_List, fNodes);
+
+	/* tip tracking */
+	const ParameterListT* tracking = list.List("tip_tracking");
+	if (tracking) {
+	
+		/* define tracking data */
+		fNearTipGroupNum = list.GetParameter("near_tip_group"); fNearTipGroupNum--;
+		fNearTipOutputCode = list.GetParameter("near_tip_output_code"); fNearTipOutputCode--;
+		fTipColumnNum = list.GetParameter("tip_output_column"); fTipColumnNum--;
+
+		/* growth limits */
+		fMaxGrowthDistance = list.GetParameter("max_growth_distance");
+		fMaxGrowthSteps = list.GetParameter("max_growth_steps");
+
+		/* resolve tracking method */
+		const ParameterListT* tracking = list.ResolveListChoice(*this, "tip_tracking_method");
+		if (tracking) {
+			if (tracking->Name() == "location_of_maximum") {
+				fTrackingCode = kMaximum;
+				fTrackingParameters.Dimension(1);
+				fTrackingParameters[0] = tracking->GetParameter("noise_level");				
+			}
+			else if (tracking->Name() == "farthest_above_threshold") {
+				fTrackingCode = kThreshold;
+				fTrackingParameters.Dimension(1);
+				fTrackingParameters[0] = tracking->GetParameter("threshold");
+			}
+			else
+				ExceptionT::GeneralFail(caller, "unrecognized tracking method \"%s\"",
+					tracking->Name().Pointer());
+		}
+		else
+			ExceptionT::GeneralFail(caller, "expecting \"tip_tracking_method\" in \"%s\"",
+				list.Name().Pointer());
+	}
+
+	/* generate BC cards */
+	fKBC_Cards.Dimension(fNodes.Length()*nsd);
+	KBC_CardT* pcard = fKBC_Cards.Pointer();
+	for (int i = 0; i < fNodes.Length(); i++)
+		for (int j = 0; j < nsd; j++)
+		{
+			/* set values */
+			pcard->SetValues(fNodes[i], j, KBC_CardT::kDsp, &fDummySchedule, 0.0);
+			pcard++;
+		}	
+
+	/* allocate displacement field factors */
+	fK1Disp.Dimension(fNodes.Length(), nsd);
+	fK2Disp.Dimension(fNodes.Length(), nsd);
+	
+//TEMP - tip tracking not supporting for parallel execution
+	if (fNearTipGroupNum != -1 && fNodeManager.Size() > 1) 
+		ExceptionT::BadInputValue(caller, "tip tracking not implemented in parallel");
 }
 
 /**********************************************************************
-* Protected
-**********************************************************************/
+ * Protected
+ **********************************************************************/
 
 /* determine the new tip coordinates */
 void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
@@ -375,7 +553,8 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 			if (maxrow == -1) ExceptionT::GeneralFail(caller);
 
 			/* get new tip coordinates */
-			if (maxval > TipNoise)
+			double tip_noise = fTrackingParameters[0];
+			if (maxval > tip_noise)
 				fNodeManager.InitialCoordinates().RowCopy(maxrow, tip_coords);
 
 			break;
@@ -476,6 +655,9 @@ void K_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 	/* (initial) nodal coordinates */
 	int nsd = fNodeManager.NumSD();
 	const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
+
+//TEMP
+ExceptionT::Stop("K_FieldT::ComputeDisplacementFactors");
 
 	/* resolve near tip and material reference */
 	if (!fIsotropic)
