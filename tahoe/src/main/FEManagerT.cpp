@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.54 2003-04-07 17:26:49 cjkimme Exp $ */
+/* $Id: FEManagerT.cpp,v 1.55 2003-04-08 23:03:15 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1575,24 +1575,35 @@ void FEManagerT::SetEquationSystem(int group)
 	/* renumber locally */
 	if (fSolvers[group]->RenumberEquations())
 	{
-		/* lists of connectivities */
-		AutoArrayT<const iArray2DT*> connects_1;
-		AutoArrayT<const RaggedArray2DT<int>*> connects_2;
-		AutoArrayT<const iArray2DT*> equivalent_nodes;
-	
-		/* collect nodally generated DOF's */
-		fNodeManager->ConnectsU(group, connects_1, connects_2, equivalent_nodes);
-	
-		/* collect element groups */
-		for (int i = 0 ; i < fElementGroups.Length(); i++)
-			if (fElementGroups[i]->InGroup(group))
-				fElementGroups[i]->ConnectsU(connects_1, connects_2);		
-	
-		/* renumber equations */
-		try { fNodeManager->RenumberEquations(group, connects_1, connects_2); }
-		catch (ExceptionT::CodeT exception) {
-			cout << "\n FEManagerT::SetEquationSystem: could not renumber equations: exception: " 
-			     << exception << endl;
+		int num_fields = fNodeManager->NumFields(group);
+		if (num_fields == 1)
+		{
+			/* lists of connectivities */
+			AutoArrayT<const iArray2DT*> connects_1;
+			AutoArrayT<const RaggedArray2DT<int>*> connects_2;
+			AutoArrayT<const iArray2DT*> equivalent_nodes;
+
+			/* collect nodally generated DOF's */
+			fNodeManager->ConnectsU(group, connects_1, connects_2, equivalent_nodes);
+
+			/* collect element groups */
+			for (int i = 0 ; i < fElementGroups.Length(); i++)
+				if (fElementGroups[i]->InGroup(group))
+					fElementGroups[i]->ConnectsU(connects_1, connects_2);		
+
+			/* renumber equations */
+			try { fNodeManager->RenumberEquations(group, connects_1, connects_2); }
+			catch (ExceptionT::CodeT exception) {
+				cout << "\n FEManagerT::SetEquationSystem: could not renumber equations: exception: " 
+				     << exception << endl;
+			}
+		}
+		else /* renumbering does not support multiple fields in the same group
+		      * because each row in the equations arrays is assumed to correspond
+		      * to a unique tag */
+		{
+			cout << "\n FEManagerT::SetEquationSystem: equations could not be renumbered\n"
+			     <<   "     because group " << group+1 << " contains " << num_fields << " fields." << endl;
 		}
 	}
 
