@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2003-03-04 07:37:59 paklein Exp $
+# $Id: makefile,v 1.6.54.1 2005-02-25 16:03:14 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,7 +21,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	DomainIntegrationT.o \
-	ParentDomainT.o \
 	ShapeFunctionT.o \
 	SimoShapeFunctionT.o \
 	SurfaceShapeT.o
@@ -45,7 +44,6 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	DomainIntegrationT.cpp \
-	ParentDomainT.cpp \
 	ShapeFunctionT.cpp \
 	SimoShapeFunctionT.cpp \
 	SurfaceShapeT.cpp
@@ -61,7 +59,6 @@ SRC = \
 #
 HDR = \
 	DomainIntegrationT.h \
-	ParentDomainT.h \
 	ShapeFunctionT.h \
 	SimoShapeFunctionT.h \
 	SurfaceShapeT.h
