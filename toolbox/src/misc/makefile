@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2001-06-12 17:32:25 paklein Exp $
+# $Id: makefile,v 1.7 2002-01-09 18:25:25 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -37,7 +37,9 @@ HDR = \
 	MonitorT.h \
 	Rotate2DT.h \
 	SecantMethodT.h \
-	SpectralDecompT.h
+	SpectralDecompT.h \
+	MapSetT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
