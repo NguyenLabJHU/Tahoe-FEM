@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.14 2002-03-25 16:11:42 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.15 2002-03-25 18:24:31 rjones Exp $ */
 
 #include "PenaltyContactElement2DT.h"
 
@@ -256,8 +256,6 @@ void PenaltyContactElement2DT::LHSDriver(void)
   ContactNodeT* node;
   double pre, dpre_dg;
   double gap;
-  dArrayT l1;
-  l1.Allocate(fNumSD);
   double lm2[3];
   dArrayT n1alphal1;
   n1alphal1.Allocate(fNumSD);

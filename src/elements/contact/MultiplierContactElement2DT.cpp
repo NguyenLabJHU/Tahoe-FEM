@@ -224,8 +224,6 @@ void MultiplierContactElement2DT::LHSDriver(void)
   int consistent, num_nodes, opp_num_nodes;
   ContactNodeT* node;
   double sfac, gap;
-  dArrayT l1;
-  l1.Allocate(fNumSD);
   double lm2[3];
   dArrayT n1alphal1;
   n1alphal1.Allocate(fNumSD);
