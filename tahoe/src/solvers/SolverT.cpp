@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.10 2002-11-28 01:14:07 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.11 2002-11-28 17:06:33 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -19,7 +19,7 @@
 #include "SLUMatrix.h"
 #include "SPOOLESMatrixT.h"
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 #include "SPOOLESMatrixT_mpi.h"
 #endif
 
@@ -425,7 +425,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 				throw ExceptionT::kGeneralFail;
 			}
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 #ifdef __MWERKS__
 
 			cout << "\n SolverT::SetGlobalMatrix: SPOOLES requires functions not supported\n"
@@ -450,7 +450,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 			/* constuctor */
 			fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
 
-#endif /* __MPI__ */
+#endif /* __TAHOE_MPI__ */
 #else
 			cout << "\n SolverT::SetGlobalMatrix: SPOOLES not installed: ";
 			cout << matrix_type << endl;

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.23 2002-11-21 01:13:41 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.24 2002-11-28 17:06:30 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -68,7 +68,7 @@ FEManagerT_mpi::~FEManagerT_mpi(void)
 	//TEMP
 	TimeStamp("FEManagerT_mpi::~FEManagerT_mpi");
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	if (fTask == kRun)
 	{
 		const iArrayT& commID = fPartition->CommID();
@@ -115,7 +115,7 @@ FEManagerT_mpi::~FEManagerT_mpi(void)
 					     << commID[ii] << ": FAIL" <<endl;		
 			}
 	}
-#endif /* __MPI__ */
+#endif /* __TAHOE_MPI__ */
 
 		/* restore log messages */
 		fComm.SetLog(cout);
@@ -269,7 +269,7 @@ void FEManagerT_mpi::OutgoingNodes(iArrayT& nodes_out) const
 /* get external nodal values */
 void FEManagerT_mpi::RecvExternalData(dArray2DT& external_data)
 {
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	//TEMP
 	//TimeStamp("FEManagerT_mpi::RecvExternalData");
 
@@ -340,13 +340,13 @@ if (external_data.Length() > 0)
 	cout << "\n FEManagerT_mpi::RecvExternalData: invalid request for external data" << endl;
 	throw ExceptionT::kGeneralFail;
 }
-#endif /* __MPI__ */
+#endif /* __TAHOE_MPI__ */
 }
 
 /* send external data */
 void FEManagerT_mpi::SendExternalData(const dArray2DT& all_out_data)
 {
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	//TEMP
 	//TimeStamp("FEManagerT_mpi::SendExternalData");
 
@@ -396,13 +396,13 @@ void FEManagerT_mpi::SendExternalData(const dArray2DT& all_out_data)
 		cout << "\n FEManagerT_mpi::SendExternalData: invalid send of external data" << endl;
 		throw ExceptionT::kGeneralFail;
 	}
-#endif /* __MPI__ */
+#endif /* __TAHOE_MPI__ */
 }
 
 void FEManagerT_mpi::SendRecvExternalData(const iArray2DT& all_out_data,
 	iArray2DT& external_data)
 {
-#ifndef __MPI__
+#ifndef __TAHOE_MPI__
 #pragma unused(all_out_data)
 #pragma unused(external_data)
 	cout << "\n FEManagerT_mpi::SendRecvExternalData: invalid exchange of external data" << endl;
@@ -777,7 +777,7 @@ void FEManagerT_mpi::SetNodeManager(void)
 	/* inherited */
 	FEManagerT::SetNodeManager();
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 	/* set for parallel execution */
 	if (fTask == kRun)
 	{
@@ -789,7 +789,7 @@ void FEManagerT_mpi::SetNodeManager(void)
 		fRecvRequest.Dimension(commID.Length());
 		fSendRequest.Dimension(commID.Length());
 	}
-#endif /* __MPI__ */
+#endif /* __TAHOE_MPI__ */
 }
 
 void FEManagerT_mpi::SetElementGroups(void)
@@ -817,7 +817,7 @@ void FEManagerT_mpi::InitialCondition(void)
 /* reduce single value */
 int FEManagerT_mpi::AllReduce(MPI_Op operation, int value)
 {
-#ifndef __MPI__
+#ifndef __TAHOE_MPI__
 #pragma unused(operation)
 #pragma unused(value)
 	cout << "\n FEManagerT_mpi::AllReduce: illegal request to reduce value" << endl;

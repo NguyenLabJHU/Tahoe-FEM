@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.9 2002-11-25 07:13:42 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.10 2002-11-28 17:06:32 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 
 #include "AztecMatrixT.h"
@@ -57,7 +57,7 @@ void AztecMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	/* inherited */
 	GlobalMatrixT::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
-#ifndef __MPI__
+#ifndef __TAHOE_MPI__
 	/* check */
 	if (fTotNumEQ != fLocNumEQ)
 	{

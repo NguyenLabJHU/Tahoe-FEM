@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.h,v 1.4 2002-07-02 19:56:48 cjkimme Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.h,v 1.5 2002-11-28 17:06:32 paklein Exp $ */
 /* created: paklein (09/13/2000)                                          */
 
 #ifndef _SPOOLES_MATRIX_T_MPI_H_
@@ -9,7 +9,7 @@
 
 /* library support options */
 #ifdef __SPOOLES_MPI__
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 
 
 namespace Tahoe {
@@ -28,6 +28,6 @@ protected:
 	virtual void BackSubstitute(dArrayT& result);
 };
 } // namespace Tahoe 
-#endif /* __MPI__ */
+#endif /* __TAHOE_MPI__ */
 #endif /*__SPOOLES_MPI__ */
 #endif /* _SPOOLES_MATRIX_T_MPI_H_ */

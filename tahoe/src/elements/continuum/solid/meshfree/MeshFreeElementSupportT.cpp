@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.9 2002-10-20 22:48:24 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.10 2002-11-28 17:06:29 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 
 #include "MeshFreeElementSupportT.h"
@@ -18,7 +18,7 @@ using namespace Tahoe;
 
 const int kHeadRoom = 10; // percent
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 #include "mpi.h"
 #endif
 
@@ -38,7 +38,9 @@ MeshFreeElementSupportT::MeshFreeElementSupportT(ifstreamT& in):
 	/* check values */
 	if (fAutoBorder != 0 && fAutoBorder != 1) throw ExceptionT::kBadInputValue;
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
+bug!!!!
+
 	//TEMP
 	int size;
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
