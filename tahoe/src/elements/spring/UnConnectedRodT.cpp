@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.3 2001-12-17 00:15:58 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.4 2002-01-09 12:02:34 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #include "UnConnectedRodT.h"
@@ -7,6 +7,7 @@
 
 #include "fstreamT.h"
 #include "FEManagerT.h"
+#include "ModelManagerT.h"
 #include "NodeManagerT.h"
 #include "FindNeighborT.h"
 
