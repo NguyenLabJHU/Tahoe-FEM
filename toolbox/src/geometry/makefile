@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2003-03-04 06:41:19 paklein Exp $
+# $Id: makefile,v 1.7 2005-02-17 22:12:12 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,6 +20,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
+	ParentDomainT.o \
 	GeometryT.o \
 	GeometryBaseT.o \
 	HexahedronT.o \
@@ -47,6 +48,7 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
+	ParentDomainT.cpp \
 	GeometryT.cpp \
 	GeometryBaseT.cpp \
 	HexahedronT.cpp \
@@ -66,6 +68,7 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
+	ParentDomainT.h \
 	GeometryT.h \
 	GeometryBaseT.h \
 	HexahedronT.h \
