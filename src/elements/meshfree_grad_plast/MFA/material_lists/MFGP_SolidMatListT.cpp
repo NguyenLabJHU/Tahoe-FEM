@@ -1,4 +1,4 @@
-/* $Id: MFGP_SolidMatList.cpp,v 1.1 2005-01-06 22:49:49 kyonten Exp $ */
+/* $Id: MFGP_SolidMatListT.cpp,v 1.1 2005-01-13 18:00:43 raregue Exp $ */
 #include "MFGP_SolidMatListT.h"
 
 #ifdef __DEVELOPMENT__

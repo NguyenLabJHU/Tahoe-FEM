@@ -1,4 +1,4 @@
-/* $Id: MFGP_SSSolidMat.cpp,v 1.1 2005-01-06 22:52:21 kyonten Exp $ */
+/* $Id: MFGP_SSSolidMatT.cpp,v 1.1 2005-01-13 18:00:43 raregue Exp $ */
 #include "MFGP_SSSolidMatT.h"
 #include "MFGP_MaterialSupportT.h"
 #include "dSymMatrixT.h"

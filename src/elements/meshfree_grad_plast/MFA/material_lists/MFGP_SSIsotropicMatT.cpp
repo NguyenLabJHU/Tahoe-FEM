@@ -1,4 +1,4 @@
-/* $Id: MFGP_SSIsotropicMat.cpp,v 1.1 2005-01-06 22:51:27 kyonten Exp $ */
+/* $Id: MFGP_SSIsotropicMatT.cpp,v 1.1 2005-01-13 18:00:43 raregue Exp $ */
 #include "MFGP_SSIsotropicMatT.h"
 
 using namespace Tahoe;
