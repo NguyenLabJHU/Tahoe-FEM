@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.1.2.1 2001-06-22 01:26:51 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.1.2.2 2001-06-26 07:17:33 paklein Exp $ */
 
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
@@ -29,6 +29,27 @@ class SmallStrainT: public ElasticT
 	/** compute field gradients from the end of the previous time step */
 	void ComputeGradient_last(const LocalArrayT& u, dMatrixT& grad_u) const;
 	void ComputeGradient_last(const LocalArrayT& u, dMatrixT& grad_u, int ip) const;
+
+  protected:
+
+	/** increment current element */
+	virtual bool NextElement(void);	
+
+  private:
+  
+  	/** matrix indicies */
+  	enum MatrixIndexT {kstrain = 0,
+  	                kstrain_ip = 1,
+  	              kstrain_last = 2,
+  	           Kstrain_last_ip = 3};
+  	           
+  private:
+  
+  	/** return values */
+  	ArrayT<dSymMatrixT> fMatrixList;
+  	
+  	/** cached matrices flags */
+  	iArrayT fIPSet;
 };
 
 #endif /* _SMALLSTRAIN_T_H_ */
