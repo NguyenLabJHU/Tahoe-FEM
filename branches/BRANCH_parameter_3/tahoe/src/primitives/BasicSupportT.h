@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.h,v 1.1.4.2 2004-05-06 16:01:18 paklein Exp $ */
+/* $Id: BasicSupportT.h,v 1.1.4.3 2004-05-25 16:37:24 paklein Exp $ */
 #ifndef _TAHOE_SUPPORT_T_H_
 #define _TAHOE_SUPPORT_T_H_
 
@@ -131,6 +131,9 @@ public:
 	
 	/** element number map for the given block ID */
 	const iArrayT* ElementMap(const StringT& block_ID) const;
+
+	/** list of nodes owned by this processor or NULL if \e all nodes are owned */
+	const ArrayT<int>* PartitionNodes(void) const;
 	/*@}*/
 
 	/** \name assembly functions */
