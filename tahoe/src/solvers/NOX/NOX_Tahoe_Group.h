@@ -1,4 +1,4 @@
-/* $Id: NOX_Tahoe_Group.h,v 1.2 2002-04-02 23:30:55 paklein Exp $ */
+/* $Id: NOX_Tahoe_Group.h,v 1.3 2002-04-03 00:21:46 paklein Exp $ */
 #ifndef NOX_TAHOE_GROUP_H
 #define NOX_TAHOE_GROUP_H
 
@@ -9,7 +9,7 @@
 #include "NOX_Abstract_Group.H"
 
 /* direct members */
-#include "NOX_Tahoe_Vector.H" // for NOX::CopyType
+#include "NOX_Tahoe_Vector.h" // for NOX::CopyType
 #include "NOX_Common.H" // class data element (string)
 #include "dArrayT.h"
 

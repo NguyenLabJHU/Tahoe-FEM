@@ -1,5 +1,5 @@
-// $Id: NOX_Tahoe_Vector.cpp,v 1.2 2002-04-02 23:30:55 paklein Exp $
-#include "NOX_Tahoe_Vector.H"
+// $Id: NOX_Tahoe_Vector.cpp,v 1.3 2002-04-03 00:21:46 paklein Exp $
+#include "NOX_Tahoe_Vector.h"
 
 /* optional */
 #ifdef __NOX__
