@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.1.2.4 2003-02-12 02:48:54 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.1.2.5 2003-02-14 02:49:33 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -63,6 +63,10 @@ public:
 	void ProjectField(const StringT& field, NodeManagerT& node_manager);
 	/*@}*/
 
+	/** the residual for the given group. The array contains the residual from
+	 * the latest call to FEManagerT::FormRHS */
+	const dArrayT& Residual(int group) const;
+
 private:
 
 	/** map coordinates into elements. Temporarily limited to elements
@@ -86,11 +90,12 @@ private:
 	/** list of my non-ghost nodes */
 	iArrayT fNonGhostNodes;
 	/*@}*/
+
+	/** projection/interpolation operator */
+	BridgingScaleT* fBridgingScale;
 	
 	/** \name follower node information */
 	/*@{*/
-	BridgingScaleT* fBridgingScale;
-	
 	/** map data of follower points into the mesh */
 	PointInCellDataT fFollowerCellData;
 	/*@}*/
