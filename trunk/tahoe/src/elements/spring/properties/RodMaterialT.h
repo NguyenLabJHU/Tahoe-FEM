@@ -1,5 +1,5 @@
-/* $Id: RodMaterialT.h,v 1.2 2002-06-08 20:20:46 paklein Exp $ */
-/* created: paklein (11/20/1996)                                          */
+/* $Id: RodMaterialT.h,v 1.3 2002-06-29 16:17:22 paklein Exp $ */
+/* created: paklein (11/20/1996) */
 
 #ifndef _RODMATERIALT_H_
 #define _RODMATERIALT_H_
@@ -12,40 +12,44 @@ class ifstreamT;
 class ThermalDilatationT;
 class ScheduleT;
 
+/** pair interactions */
 class RodMaterialT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	RodMaterialT(ifstreamT& in);
 
-	/* destructor */
+	/** destructor */
 	virtual ~RodMaterialT(void);
 
-	/* I/O functions */
+	/** I/O functions */
 	virtual void Print(ostream& out) const = 0;
 	virtual void PrintName(ostream& out) const = 0;
 
-	/* print parameters */
+	/** print parameters */
 	void PrintParameters(ostream& out) const;
 	
-	/* potential function and derivatives */
+	/** return the particle mass */
+	double Mass(void) const { return fMass; };
+	
+	/** potential function and derivatives */
 	virtual double Potential(double rmag, double Rmag) const = 0;
 	virtual double DPotential(double rmag, double Rmag) const = 0;
 	virtual double DDPotential(double rmag, double Rmag) const = 0;
 
-	/* thermal accessors */
+	/** thermal accessors */
 	int ThermalScheduleNumber(void) const;
 	void SetThermalSchedule(const ScheduleT* LTfPtr);
 
-	/* returns true if the material has internal forces in the unloaded
+	/** returns true if the material has internal forces in the unloaded
 	 * configuration, ie thermal strains */
 	virtual int HasInternalStrain(void) const;
 
 protected:
 
+	double fMass;
 	ThermalDilatationT* fThermal;
-
 };
 
 #endif /* _RODMATERIALT_H_ */
