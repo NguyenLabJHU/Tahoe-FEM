@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.61 2003-08-18 03:39:01 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.62 2003-09-02 07:03:09 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -68,7 +68,8 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm)
 	fGlobalEquationStart(0),
 	fActiveEquationStart(0),
 	fGlobalNumEquations(0),
-	fCurrentGroup(-1)
+	fCurrentGroup(-1),
+	fAnalysisCode(GlobalT::kNoAnalysis)
 {
 	/* console name */
 	iSetName("FE_manager");
