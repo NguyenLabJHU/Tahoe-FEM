@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.28 2002-07-02 19:55:19 cjkimme Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.29 2002-10-05 19:23:55 paklein Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -207,12 +207,12 @@ ContactSurfaceT::SetMultiplierConnectivity(void)
 void
 ContactSurfaceT::InitializeMultiplierMap(void)
 {
+	/* initialize */
+	fMultiplierMap = -1;
+
 	/* set last muliplier array to local node map and store values */
 	fLastMultiplierMap    = fMultiplierMap; // these should be "copy"s
 	fLastMultiplierValues = fMultiplierValues;
-
-	/* initialize */
-	fMultiplierMap = -1;
 }
 
 /* tag MultiplierMap for potential contacting nodes (after SetPot.Conn.) */
