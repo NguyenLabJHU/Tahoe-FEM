@@ -1,4 +1,4 @@
-/* $Id: driveway.cpp,v 1.2 2003-05-04 22:49:50 paklein Exp $ */
+/* $Id: driveway.cpp,v 1.3 2003-08-14 01:22:43 paklein Exp $ */
 #include "driveway.h"
 
 driveway::driveway(void):
@@ -33,6 +33,6 @@ void driveway::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
 
-	list.GetParameter("length", length_);
+	length_ = list.GetParameter("length");
 	list.GetParameter("surface", enum2int<surface>(surface_));
 }

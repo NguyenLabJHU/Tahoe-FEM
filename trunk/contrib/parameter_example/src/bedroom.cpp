@@ -1,4 +1,4 @@
-/* $Id: bedroom.cpp,v 1.2 2003-05-04 22:49:50 paklein Exp $ */
+/* $Id: bedroom.cpp,v 1.3 2003-08-14 01:22:43 paklein Exp $ */
 #include "bedroom.h"
 #include "window.h"
 
@@ -29,7 +29,7 @@ void bedroom::TakeParameterList(const ParameterListT& list)
 	room::TakeParameterList(list);
 
 	/* extract parameter values */
-	list.GetParameter("floor", floor);
+	floor = list.GetParameter("floor");
 	
 	/* construct windows */
 	int num_windows = list.NumLists("window");
@@ -45,26 +45,13 @@ void bedroom::TakeParameterList(const ParameterListT& list)
 		}
 }
 
-void bedroom::SubNames(ArrayT<StringT>& names, ArrayT<ParameterListT::OccurrenceT>& occur,
-		ArrayT<bool>& is_inline) const
+void bedroom::DefineSubs(SubListT& sub_list) const
 {
-	/* temporaries */
-	AutoArrayT<StringT> names_tmp;
-	AutoArrayT<ParameterListT::OccurrenceT> occur_tmp;
-	AutoArrayT<bool> is_inline_tmp;
-	
 	/* inherited */
-	room::SubNames(names_tmp, occur_tmp, is_inline_tmp);
+	room::DefineSubs(sub_list);
 
 	/* the window */
-	names_tmp.Append("window");
-	occur_tmp.Append(ParameterListT::Any);
-	is_inline_tmp.Append(false);
-	
-	/* copy to return values */
-	names = names_tmp;
-	occur = occur_tmp;
-	is_inline = is_inline_tmp;
+	sub_list.AddSub("window", ParameterListT::Any);	
 }
 
 ParameterInterfaceT* bedroom::NewSub(const StringT& list_name) const

@@ -1,4 +1,4 @@
-/* $Id: house.cpp,v 1.2 2003-05-04 22:49:50 paklein Exp $ */
+/* $Id: house.cpp,v 1.3 2003-08-14 01:22:43 paklein Exp $ */
 #include "house.h"
 #include "lawn.h"
 #include "AutoArrayT.h"
@@ -49,7 +49,7 @@ void house::TakeParameterList(const ParameterListT& list)
 
 	/* my parameters */
 	list.GetParameter("style", enum2int<style>(style_));
-	list.GetParameter("zipcode", zipcode_);
+	zipcode_ = list.GetParameter("zipcode");
 
 	/* the roof */
 	const ParameterListT* roof_params = list.List("roof");
@@ -108,94 +108,55 @@ void house::TakeParameterList(const ParameterListT& list)
 	}
 }
 
-void house::SubNames(ArrayT<StringT>& names, ArrayT<ParameterListT::OccurrenceT>& occur,
-	ArrayT<bool>& is_inline) const
+void house::DefineSubs(SubListT& sub_list) const
 {
-	/* temporaries */
-	AutoArrayT<StringT> names_tmp;
-	AutoArrayT<ParameterListT::OccurrenceT> occur_tmp;
-	AutoArrayT<bool> is_inline_tmp;
+	/* inherited */
+	ParameterInterfaceT::DefineSubs(sub_list);
 
 	/* the roof */
-	names_tmp.Append("roof");
-	occur_tmp.Append(ParameterListT::Once);
-	is_inline_tmp.Append(false);
+	sub_list.AddSub("roof");
 
 	/* the driveway */
-	names_tmp.Append("driveway");
-	occur_tmp.Append(ParameterListT::Once);
-	is_inline_tmp.Append(false);
+	sub_list.AddSub("driveway");
 
 	/* 2 garages */
-	names_tmp.Append("garage");
-	occur_tmp.Append(ParameterListT::Once);
-	is_inline_tmp.Append(false);
-	names_tmp.Append("garage");
-	occur_tmp.Append(ParameterListT::Once);
-	is_inline_tmp.Append(false);
+	SubListDescriptionT garage("garage");
+	sub_list.AddSub(garage);
+	sub_list.AddSub(garage);
 
 	/* the lawn */
-	names_tmp.Append("lawn");
-	occur_tmp.Append(ParameterListT::ZeroOrOnce);
-	is_inline_tmp.Append(false);
+	sub_list.AddSub("lawn", ParameterListT::ZeroOrOnce);
 
 	/* the basement */
-	names_tmp.Append("basement");
-	occur_tmp.Append(ParameterListT::ZeroOrOnce);
-	is_inline_tmp.Append(true);
+	sub_list.AddSub("basement", ParameterListT::ZeroOrOnce, true);
 
 	/* the rooms */
-	names_tmp.Append("rooms");
-	occur_tmp.Append(ParameterListT::OnePlus);
-	is_inline_tmp.Append(true);
-	
-	/* copy to return values */
-	names = names_tmp;
-	occur = occur_tmp;
-	is_inline = is_inline_tmp;
+	sub_list.AddSub("rooms", ParameterListT::OnePlus, true);
 }
 
-void house::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, ArrayT<StringT>& names, 
-	ArrayT<ParameterListT::OccurrenceT>& occur, ArrayT<bool>& is_inline) const
+void house::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
 {
-	/* temporaries */
-	AutoArrayT<StringT> names_tmp;
-	AutoArrayT<ParameterListT::OccurrenceT> occur_tmp;
-	AutoArrayT<bool> is_inline_tmp;
-
 	if (sub == "rooms")
 	{
 		order = ParameterListT::Choice;
 		
 		/* a closet */
-		names_tmp.Append("closet");
-		occur_tmp.Append(ParameterListT::Once);
-		is_inline_tmp.Append(false);
+		sub_sub_list.AddSub("closet");
 
 		/* a bedroom */
-		names_tmp.Append("bedroom");
-		occur_tmp.Append(ParameterListT::Once);
-		is_inline_tmp.Append(false);
+		sub_sub_list.AddSub("bedroom");
 	}
 	else if (sub == "basement")
 	{
 		order = ParameterListT::Choice;
 		
 		/* a crawl space */
-		names_tmp.Append("crawl_space");
-		occur_tmp.Append(ParameterListT::Once);
-		is_inline_tmp.Append(false);
+		sub_sub_list.AddSub("crawl_space");
 
 		/* a bedroom */
-		names_tmp.Append("storm_shelter");
-		occur_tmp.Append(ParameterListT::Once);
-		is_inline_tmp.Append(false);
+		sub_sub_list.AddSub("storm_shelter");
 	}
-
-	/* copy to return values */
-	names = names_tmp;
-	occur = occur_tmp;
-	is_inline = is_inline_tmp;
 }
 
 ParameterInterfaceT* house::NewSub(const StringT& list_name) const
