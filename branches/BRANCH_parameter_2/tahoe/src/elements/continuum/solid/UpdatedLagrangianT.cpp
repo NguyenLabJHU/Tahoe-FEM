@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.11 2003-01-29 07:34:34 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.11.30.1 2004-03-03 16:18:25 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpdatedLagrangianT.h"
 
@@ -19,6 +19,8 @@ UpdatedLagrangianT::UpdatedLagrangianT(const ElementSupportT& support, const Fie
 	fCauchyStress(NumSD()),
 	fLocCurrCoords(LocalArrayT::kCurrCoords)
 {
+	SetName("updated_lagrangian");
+	
 	/* consistency check */
 	if (ElementSupport().Analysis() == GlobalT::kLinStatic ||
 	    ElementSupport().Analysis() == GlobalT::kLinDynamic)
@@ -26,6 +28,13 @@ UpdatedLagrangianT::UpdatedLagrangianT(const ElementSupportT& support, const Fie
 		cout << "\nUpLag_FDElasticT::UpdatedLagrangianT: no current coordinates required\n" << endl;
 		fLocCurrCoords.SetType(LocalArrayT::kInitCoords);
 	}	
+}
+
+UpdatedLagrangianT::UpdatedLagrangianT(const ElementSupportT& support):
+	FiniteStrainT(support),
+	fLocCurrCoords(LocalArrayT::kCurrCoords)
+{
+	SetName("updated_lagrangian");
 }
 
 /* destructors */
@@ -44,6 +53,16 @@ void UpdatedLagrangianT::Initialize(void)
 	/* dimension */
 	fGradNa.Dimension(NumSD(), NumElementNodes());
 	fStressStiff.Dimension(NumElementNodes());
+}
+
+/* accept parameter list */
+void UpdatedLagrangianT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FiniteStrainT::TakeParameterList(list);
+	
+	/* allocate workspace */
+	fCauchyStress.Dimension(NumSD());
 }
 
 /***********************************************************************

@@ -1,9 +1,10 @@
-/* $Id: FiniteStrainT.cpp,v 1.19.2.3 2004-02-11 16:39:00 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.19.2.4 2004-03-03 16:18:25 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
+#include "ParameterContainerT.h"
 
 /* materials lists */
 #include "FSSolidMatList2DT.h"
@@ -18,7 +19,16 @@ FiniteStrainT::FiniteStrainT(const ElementSupportT& support, const FieldT& field
 	fCurrShapes(NULL),
 	fFSMatSupport(NULL)
 {
+	SetName("large_strain");
+}
 
+FiniteStrainT::FiniteStrainT(const ElementSupportT& support):
+	SolidElementT(support),
+	fNeedsOffset(-1),
+	fCurrShapes(NULL),
+	fFSMatSupport(NULL)
+{
+	SetName("large_strain");
 }
 
 /* destructor */
@@ -84,10 +94,7 @@ void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u) cons
 		fCurrShapes->GradU(u, grad_u);
 	}
 	else
-	{
-		cout << "\n FiniteStrainT::ComputeGradient: shape functions wrt current coords not defined" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("FiniteStrainT::ComputeGradient", "shape functions wrt current coords not defined");
 }
 
 /* compute field gradients with respect to current coordinates */
@@ -100,15 +107,62 @@ void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u,
 		fCurrShapes->GradU(u, grad_u, ip);
 	}
 	else
+		ExceptionT::GeneralFail("FiniteStrainT::ComputeGradient", "shape functions wrt current coords not defined");
+}
+
+/* information about subordinate parameter lists */
+void FiniteStrainT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SolidElementT::DefineSubs(sub_list);	
+
+	/* element block/material specification */
+	sub_list.AddSub("large_strain_element_block", ParameterListT::OnePlus);
+}
+
+/* return the description of the given inline subordinate parameter list. */
+void FiniteStrainT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "large_strain_material_choice")
 	{
-		cout << "\n FiniteStrainT::ComputeGradient: shape functions wrt current coords not defined" << endl;
-		throw ExceptionT::kGeneralFail;
+		order = ParameterListT::Choice;
+		
+		/* list of choices */
+		//sub_sub_list.AddSub("large_strain_material_1D");
+		sub_sub_list.AddSub("large_strain_material_2D");
+		sub_sub_list.AddSub("large_strain_material_3D");
 	}
+	else /* inherited */
+		return SolidElementT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* return the description of the given inline subordinate parameter list */
+ParameterInterfaceT* FiniteStrainT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "large_strain_element_block")
+	{
+		ParameterContainerT* block = new ParameterContainerT(list_name);
+		
+		/* list of element block ID's (defined by ElementBaseT) */
+		block->AddSub("block_ID_list", ParameterListT::Once);
+	
+		/* choice of materials lists (inline) */
+		block->AddSub("large_strain_material_choice", ParameterListT::Once, true);
+	
+		/* set this as source of subs */
+		block->SetSubSource(this);
+		
+		return block;
+	}
+	else /* inherited */
+		return SolidElementT::NewSub(list_name);
+
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* construct a new material support and return a pointer */
 MaterialSupportT* FiniteStrainT::NewMaterialSupport(MaterialSupportT* p) const
