@@ -1,4 +1,4 @@
-/* $Id: tevp3D.cpp,v 1.1 2001-06-25 20:48:15 hspark Exp $ */
+/* $Id: tevp3D.cpp,v 1.2 2001-06-26 15:17:14 hspark Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (06/25/2001) */
 /* Last Updated:  Harold Park (06/25/2001) */
@@ -25,7 +25,6 @@ static const char* Labels[kNumOutput] = {
 tevp3D::tevp3D(ifstreamT& in, const ElasticT& element):
   FDStructMatT(in, element),
   IsotropicT(in),
-  Material2DT(in),        // Currently reads in plane strain from file...
   /* initialize references */
   fRunState(ContinuumElement().RunState()),
   fDt(ContinuumElement().FEManager().TimeStep()),
@@ -36,7 +35,6 @@ tevp3D::tevp3D(ifstreamT& in, const ElasticT& element):
   fLocDisp(element.Displacements()),
 
   /* initialize work matrices */
-  //fGradV_2D(2),
   fGradV(3),
   fEbtot(0.0),
   fXxii(0.0),
@@ -49,7 +47,6 @@ tevp3D::tevp3D(ifstreamT& in, const ElasticT& element):
   fStrainEnergyDensity(0.0),
   fCriticalStrain(0),
   fStill3D(3),
-  //fFtot_2D(2),
   fFtot(3),
   fDtot(3),          
   fF_temp(3),
@@ -132,14 +129,13 @@ void tevp3D::Print(ostream& out) const
   /* inherited */
   FDStructMatT::Print(out);
   IsotropicT::Print(out);
-  Material2DT::Print(out);
 }
 
 void tevp3D::PrintName(ostream& out) const
 {
   /* inherited */
   FDStructMatT::PrintName(out);
-  out << "    Thermo-Elasto-Viscoplastic\n";
+  out << "    3D Thermo-Elasto-Viscoplastic\n";
 }
 
 /* spatial description */
@@ -207,7 +203,6 @@ const dSymMatrixT& tevp3D::s_ij(void)
  
     if (flags[ip + fNumIP] == kFluid) {
       /* Fluid model part - if critical strain criteria is exceeded */
-      //cout << "Went fluid at time" << ContinuumElement().FEManager().StepNumber() << '\n';
       ComputeF();
       ComputeD();
       const double temp = fInternal[kTemp];   // Use the PREVIOUS temperature
@@ -374,7 +369,7 @@ double tevp3D::ComputeFluidTemperature(void)
     cout << "NEGATIVE TEMPERATURE RATE:  FLUID" << '\n';
   if (fTemperature < 293.0)
     cout << "TEMPERATURE < 293K!!! - FLUID" << '\n';
-  //fInternal[kTemp] = fTemperature;
+
   return fTemperature;
 }
 
@@ -387,7 +382,6 @@ double tevp3D::ComputeViscoTemperature(void)
   fTemperature = temp_rate * fDt + temp_last;
   if (temp_rate < 0.0)
     cout << "NEGATIVE TEMPERATURE RATE:  VISCO" << '\n';
-  //fInternal[kTemp] = fTemperature;
  
   if (fTemperature < 293.0)
     cout << "TEMPERATURE < 293K!!! - VISCO" << '\n';
@@ -417,7 +411,6 @@ double tevp3D::ComputeViscoEffectiveStrain(void)
   /* access necessary data */
   double ebtot_c = fEbtot / (1.0 + fXxii) + fCtcon * ecc;
   fEb = eb_last + fDt * ebtot_c;
-  //fInternal[kEb] = fEb;
 
   return fEb;
 }
@@ -434,7 +427,7 @@ double tevp3D::ComputeEffectiveStress(void)
   double temp3 = pow(temp_stress(2,2) - trace, 2);
   fSb = 1.5 * (temp1 + temp2 + temp3) + 3.0 * (pow(temp_stress(0,1), 2) + pow(temp_stress(2,0), 2) + pow(temp_stress(1,2), 2));
   fSb = sqrt(fSb);
-  //fInternal[kSb] = fSb;
+
   return fSb;
 }
 
@@ -570,7 +563,7 @@ dArrayT& tevp3D::ComputeEP_tan(void)
   diagU[3] = diagU[4] = diagU[5] = 0.0;  
 
   for (int i = 0; i < kVoigt; i++) {
-    /* EP_tan is the plastic corrector to the tangent modulus */
+    /* EP_tan is the plastic corrector to the tangent modulus - based on Peirce, 1987*/
     fEP_tan[i] = (fEbtot / (1.0 + fXxii)) * (fPP[i] + 3.0 * El_K * Alpha_T * Xi * Chi * sb * diagU[i]);  
   }
 
