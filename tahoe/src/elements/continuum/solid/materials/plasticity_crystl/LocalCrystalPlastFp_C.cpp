@@ -1,7 +1,4 @@
-/*
-  File: LocalCrystalPlastFp_C.cpp
-*/
-
+/* $Id: LocalCrystalPlastFp_C.cpp,v 1.1.2.1 2002-04-29 17:22:14 paklein Exp $ */
 #include "LocalCrystalPlastFp_C.h"
 #include "LatticeOrient.h"
 #include "CrystalElasticity.h"
@@ -10,7 +7,6 @@
 #include "ifstreamT.h"
 #include "Utils.h"
 #include "ContinuumElementT.h"
-#include "FEManagerT.h"
 
 /* spatial dimensions of the problem */
 const int kNSD = 3; 
@@ -112,7 +108,7 @@ const dSymMatrixT& LocalCrystalPlastFp_C::s_ij()
 
 
           // compute crystal Cauchy stress (elastic predictor at first iteration)
-          if (fContinuumElement.FEManager().IterationNumber() <= -1)
+          if (ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) <= -1)
              {
                // defomation gradient
                fMatx1.SetToCombination(1., fFtot, -1., fFtot_n);
@@ -184,7 +180,7 @@ const dMatrixT& LocalCrystalPlastFp_C::c_ijkl()
                   fElasticity->ComputeModuli(fcBar_ijkl);
 
             // compute consistent tangent (elastic predictor at fisrt iteration)
-            if (fContinuumElement.FEManager().IterationNumber() <= 0)
+            if (ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) <= 0)
                 {
                    // elastic crystal stiffness
                    FFFFC_3D(fc_ijkl, fcBar_ijkl, fFe);
@@ -282,7 +278,7 @@ void LocalCrystalPlastFp_C::ComputeOutput(dArrayT& output)
       // cout << "    fsavg_ij = " << endl << fsavg_ij << endl;
       // cout << "    fAvgStress = " << endl << fAvgStress << endl;
       if (elem == (NumElements()-1))
-         cerr << " step # " << ContinuumElement().FEManager().StepNumber()
+         cerr << " step # " << ContinuumElement().ElementSupport().StepNumber()
               << "    S_eq_avg = "
               << sqrt(fSymMatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23
               << "    Savg_12 = " << fAvgStress(0,1) << endl;
@@ -292,8 +288,8 @@ void LocalCrystalPlastFp_C::ComputeOutput(dArrayT& output)
       output[2] = fIterState;
 
       // compute texture of aggregate, if requested
-      const int& step = ContinuumElement().FEManager().StepNumber();
-      const int& nsteps = ContinuumElement().FEManager().NumberOfSteps();
+      const int& step = ContinuumElement().ElementSupport().StepNumber();
+      const int& nsteps = ContinuumElement().ElementSupport().NumberOfSteps();
 
       if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
 	{

@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.8 2002-03-28 19:08:54 ebmarin Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.8.2.1 2002-04-29 17:22:14 paklein Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -9,7 +9,6 @@
 #include "SlipHardening.h"
 #include "Utils.h"
 
-#include "FEManagerT.h"
 #include "FiniteStrainT.h"
 #include "StringT.h"
 
@@ -30,7 +29,7 @@ const int kNSD = 3;
 PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const FiniteStrainT& element) :
   FDHookeanMatT(in, element),
   //fdt           (element.FEManager().TimeStep()),
-  ftime         (element.FEManager().Time()),
+  ftime         (element.ElementSupport().Time()),
   fStatus       (element.RunState()),
   fLocLastDisp  (element.LastDisplacements()),
   fLocDisp      (element.Displacements()),
@@ -335,7 +334,7 @@ void PolyCrystalMatT::SolveCrystalState()
   int totSubIncrs = 1;
 
   // time step and deformation gradient
-  fdt = ContinuumElement().FEManager().TimeStep();
+  fdt = ContinuumElement().ElementSupport().TimeStep();
   fFt = fFtot;
 
   // iterate to compute crystal state
@@ -378,7 +377,7 @@ void PolyCrystalMatT::SolveCrystalState()
 
       // time step
       double tmp = (float)subIncr / (float)totSubIncrs;
-      fdt = ContinuumElement().FEManager().TimeStep() * tmp;
+      fdt = ContinuumElement().ElementSupport().TimeStep() * tmp;
 
       // current deformation gradient
       fFt.SetToCombination( (1.-tmp), fFtot_n, tmp, fFtot );

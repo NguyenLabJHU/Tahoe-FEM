@@ -1,4 +1,4 @@
-/* $Id: RodMaterialT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: RodMaterialT.h,v 1.1.1.1.8.1 2002-04-29 17:22:17 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 
 #ifndef _RODMATERIALT_H_
@@ -10,7 +10,7 @@
 #include "ios_fwd_decl.h"
 class ifstreamT;
 class ThermalDilatationT;
-class LoadTime;
+class ScheduleT;
 
 class RodMaterialT
 {
@@ -35,8 +35,8 @@ public:
 	virtual double DDPotential(double rmag, double Rmag) const = 0;
 
 	/* thermal accessors */
-	int ThermalLTfNumber(void) const;
-	void SetThermalLTfPtr(const LoadTime* LTfPtr);
+	int ThermalScheduleNumber(void) const;
+	void SetThermalSchedule(const ScheduleT* LTfPtr);
 
 	/* returns true if the material has internal forces in the unloaded
 	 * configuration, ie thermal strains */

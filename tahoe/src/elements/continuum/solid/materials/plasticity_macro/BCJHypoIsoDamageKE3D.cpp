@@ -1,7 +1,4 @@
-/*
-  File: BCJHypoIsoDamageKE3D.cpp
-*/
-
+/* $Id: BCJHypoIsoDamageKE3D.cpp,v 1.1.2.1 2002-04-29 17:22:15 paklein Exp $ */
 #include "BCJHypoIsoDamageKE3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -10,7 +7,6 @@
 #include "BCJKineticEqn.h"
 
 #include "ContinuumElementT.h"
-#include "FEManagerT.h"
 
 const double sqrt32 = sqrt(3.0/2.0);
 
@@ -267,7 +263,7 @@ void BCJHypoIsoDamageKE3D::ComputeOutput(dArrayT& output)
 
 //  if (BCJ_DMG_MESSAGES && intpt == 0 && CurrElementNumber() == 0)
   if (intpt == 0 && CurrElementNumber() == 0)
-     cerr << " step # " << ContinuumElement().FEManager().StepNumber()
+     cerr << " step # " << ContinuumElement().ElementSupport().StepNumber()
           << " EQPe  "  << fEQValues[kEQPe] 
           << " EQXie "  << fInternal[kEQXie] 
           << " PRESS "  << -fInternal[kEQXih] 
@@ -394,7 +390,7 @@ void BCJHypoIsoDamageKE3D::IntegrateConstitutiveEqns(bool& converged, int subInc
 
   // check for inelastic process (note: uses deviatoric part)
   if ( fEQXieTr > (1.+1.e-6)*fKineticEqn->h(fEQValues[kEQPeDot_n],fInternal_n[kKAPP])
-                   && fContinuumElement.FEManager().IterationNumber() > -1 )
+                   && ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) > -1 )
     {
       // step 5. forward gradient estimate
       if (subIncr == 1) ForwardGradientEstimate();

@@ -1,4 +1,4 @@
-/* $Id: RodMaterialT.cpp,v 1.3 2001-12-17 00:12:01 paklein Exp $ */
+/* $Id: RodMaterialT.cpp,v 1.3.2.1 2002-04-29 17:22:17 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 
 #include "RodMaterialT.h"
@@ -33,14 +33,14 @@ void RodMaterialT::PrintParameters(ostream& out) const
 }
 
 /* thermal accessors */
-int RodMaterialT::ThermalLTfNumber(void) const
+int RodMaterialT::ThermalScheduleNumber(void) const
 {
-	return fThermal->LTfNumber();
+	return fThermal->ScheduleNum();
 }
 
-void RodMaterialT::SetThermalLTfPtr(const LoadTime* LTfPtr)
+void RodMaterialT::SetThermalSchedule(const ScheduleT* LTfPtr)
 {
-	fThermal->SetLTfPtr(LTfPtr);
+	fThermal->SetSchedule(LTfPtr);
 }
 
 /* returns true if the material has internal forces in the unloaded

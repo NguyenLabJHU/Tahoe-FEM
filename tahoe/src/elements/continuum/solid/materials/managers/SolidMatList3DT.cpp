@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.15 2002-04-04 00:49:33 ebmarin Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.15.2.1 2002-04-29 17:22:13 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -438,7 +438,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		int LTfnum = pmat->ThermalStrainSchedule();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalSchedule(fElementGroup.GetLTfPtr(LTfnum));
+			pmat->SetThermalSchedule(fElementGroup.Schedule(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;
