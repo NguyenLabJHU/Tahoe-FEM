@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.70.2.12 2004-03-31 16:18:35 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.70.2.13 2004-04-06 06:56:08 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1269,9 +1269,12 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 
 	/* construct element groups */
 	fElementGroups = new ElementListT(*this);
-	fElementGroups->TakeParameterList(list.GetList("element_list"));
-	for (int i = 0; i < fElementGroups->Length(); i++)
-		iAddSub(*((*fElementGroups)[i])); /* set console */
+	const ParameterListT* element_list = list.List("element_list");
+	if (element_list) {
+		fElementGroups->TakeParameterList(*element_list);
+		for (int i = 0; i < fElementGroups->Length(); i++)
+			iAddSub(*((*fElementGroups)[i])); /* set console */
+	}
 
 	/* set output manager */
 	SetOutput();
@@ -1351,7 +1354,7 @@ void FEManagerT::DefineSubs(SubListT& sub_list) const
 	sub_list.AddSub("nodes");
 
 	/* element list */
-	sub_list.AddSub("element_list");
+	sub_list.AddSub("element_list", ParameterListT::Any);
 
 	/* solvers */
 	sub_list.AddSub("solvers", ParameterListT::OnePlus, true);
