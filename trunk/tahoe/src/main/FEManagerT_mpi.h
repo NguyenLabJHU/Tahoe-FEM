@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.19 2004-06-26 06:21:03 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.20 2004-06-26 18:38:08 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #ifndef _FE_MANAGER_MPI_H_
 #define _FE_MANAGER_MPI_H_
@@ -27,7 +27,7 @@ public:
 
 	/* constructor - partition can be NULL for decomposition */
 	FEManagerT_mpi(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
-		PartitionT* partition, TaskT task);
+		const ArrayT<StringT>& argv, PartitionT* partition, TaskT task);
 
 	/* destructor */
 	virtual ~FEManagerT_mpi(void);

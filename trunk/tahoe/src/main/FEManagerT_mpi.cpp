@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.34 2004-06-26 06:21:03 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.35 2004-06-26 18:38:08 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -24,8 +24,8 @@ using namespace Tahoe;
 
 /* constructor */
 FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output, 
-	CommunicatorT& comm, PartitionT* partition, TaskT task):
-	FEManagerT(input, output, comm),
+	CommunicatorT& comm, const ArrayT<StringT>& argv, PartitionT* partition, TaskT task):
+	FEManagerT(input, output, comm, argv),
 	fPartition(partition),
 	fTask(task),
 	fExternIOManager(NULL)
