@@ -33,23 +33,11 @@ public:
 	/** reference to element shape functions */
 	const ShapeFunctionT& ShapeFunction(void) const;
 
-	/** reference to the current integration point number */
-	const int& CurrIP(void) const;
-	
-	/** the coordinates of the current integration point */
-	void IP_Coords(dArrayT& ip_coords) const;
-
 	/** interpolate the nodal field values to the current integration point */
     void IP_Interpolate(const LocalArrayT& nodal_u, dArrayT& ip_u) const;
 
 	/** interpolate the nodal field values to the specified integration point */
     void IP_Interpolate(const LocalArrayT& nodal_u, dArrayT& ip_u, int ip) const;
-
-	/** field gradients.
-	 * compute the gradient of the field at the current integration point 
-	 * \param field nodal values of the field 
-	 * \param gradient field gradient: [ndof] x [nsd] */
-	void IP_ComputeGradient(const LocalArrayT& field, dMatrixT& gradient) const;
 
 	/** element coordinates.
 	 * \return initial nodal coordinates of current element: [nen] x [nsd] */
@@ -77,48 +65,15 @@ public:
 	virtual void CloseStep(void);
 	virtual void ResetStep(void); // restore last converged state
 
-	/** read restart information from stream */
-	virtual void ReadRestart(istream& in);
-	
-	 /** write restart information to stream */
-	virtual void WriteRestart(ostream& out) const;
-
 	/** register self for output */
 	virtual void RegisterOutput(void);
 
 	/** send output */
 	virtual void WriteOutput(IOBaseT::OutputModeT mode);
 
-	/* side set to nodes on facets data. elements in the side set
-	 * refer to local numbering with the source element block 
-	 * \param block_ID ID of the source element block within the group
-	 * \param sideset {elememt, face} of each side in the set
-	 * \param facets nodes on each facet of the side set in cannonical ordering.
-	 *        array is dimensioned internally */
-	void SideSetToFacets(const StringT& block_ID, const iArray2DT& sideset, iArray2DT& facets) const;
-
-	/** return geometry and number of nodes on each facet */
-	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, iArrayT& num_facet_nodes) const;
-	
 	/** return the geometry code */
 	GeometryT::CodeT GeometryCode(void) const;
 
-	/** initial condition/restart functions (per time sequence) */
-	virtual void InitialCondition(void);
-
-	/** element faces on the group "surface" */
-	void SurfaceFacets(GeometryT::CodeT& geometry,
-		iArray2DT& surface_facets, iArrayT& surface_nodes) const;
-
-	/** element faces on the group "surface" grouped into contiguous patches */
-	void SurfaceFacets(GeometryT::CodeT& geometry,
-		ArrayT<iArray2DT>& surface_facet_sets,
-		iArrayT& surface_nodes) const;
-	
-	/** generate a list of nodes on the "surface" of the element group
-	 * based in the group connectivities */
-	void SurfaceNodes(iArrayT& surface_nodes) const;
-	
 	/** reference to the materials list */
 	const MaterialListT& MaterialsList(void) const;
 	
@@ -142,29 +97,9 @@ protected:
 	 * boundary conditions */
 	virtual void RHSDriver(void);
 
-	/** compute contribution to element residual force due to natural boundary 
-	 * conditions */
-	void ApplyTractionBC(void);
-
 	/** compute shape functions and derivatives */
 	virtual void SetGlobalShape(void);
 
-	/** accumulate the element mass matrix */
-	void FormMass(int mass_type, double constM);
-
-	/** add contribution from the body force */
-	void AddBodyForce(LocalArrayT& body_force) const;
-	
-	/** element body force contribution 
-	 * \param mass_type mass matrix type of BridgingScaleT::MassTypeT
-	 * \param constM pre-factor for the element integral
-	 * \param nodal nodal values. Pass NULL for no nodal values: [nen] x [ndof]
-	 * \param ip_values integration point source terms. Pass NULL for no integration
-	 *        point values : [nip] x [ndof] */
-	void FormMa(MassTypeT mass_type, double constM, 
-		const LocalArrayT* nodal_values,
-		const dArray2DT* ip_values);
-	 		
 	/** write element group parameters to out */
 	virtual void PrintControlData(ostream& out) const;
 	
@@ -172,17 +107,9 @@ protected:
 	virtual void ReadMaterialData(ifstreamT& in);	
 	virtual void WriteMaterialData(ostream& out) const;
 	virtual void EchoOutputCodes(ifstreamT& in, ostream& out) = 0;
-	void EchoBodyForce(ifstreamT& in, ostream& out);
-	// could also break up. Input and defaults(per output format) are
-	// shared but the output of what each code means is class-dependent
-	void EchoTractionBC(ifstreamT& in, ostream& out);
 
 	/** construct a new material list and return a pointer */
 	virtual MaterialListT* NewMaterialList(int size) const = 0;
-
-	/** return the "bounding" elements and the corresponding
-	 * neighbors, both dimensioned internally */
-	void BoundingElements(iArrayT& elements, iArray2DT& neighbors) const;
 
 	/** write all current element information to the stream. used to generate
 	 * debugging information after runtime errors */
@@ -196,9 +123,6 @@ protected:
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	                           const iArrayT& e_codes, dArray2DT& e_values) = 0;
 
-	/** check consistency of material outputs.
-	 * \return true if output variables of all materials for the group matches */
-	virtual bool CheckMaterialOutput(void) const;
 
 private:
 
@@ -207,14 +131,19 @@ private:
 		const iArrayT& n_codes, ArrayT<StringT>& n_labels, 
 		const iArrayT& e_codes, ArrayT<StringT>& e_labels) const = 0;
 
-	/** update traction BC data */
-	void SetTractionBC(void);
-
 	/** return the default number of element nodes.
 	 * \note needed because ExodusII does not store \a any information about
 	 * empty element groups, which causes trouble for parallel execution
 	 * when a partition contains no elements from a group. */
 	virtual int DefaultNumElemNodes(void) const;
+
+	/* bridging scale-related computational functions */
+	
+	/* computes error caused by projecting solution onto FEM basis space */
+	void ComputeError(void);
+
+	/* computes "fine scale" displacement, ie MD - overlap due to FEM */
+	void ComputeFineScaleU(void);
 
 protected:
 
