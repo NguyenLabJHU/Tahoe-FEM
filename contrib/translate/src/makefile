@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2001-09-07 13:25:29 sawimme Exp $
+# $Id: makefile,v 1.3 2001-09-10 20:33:12 sawimme Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,6 +7,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	TranslateIOManager.o \
+	ExtractIOManager.o \
 	main.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -16,12 +17,14 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	TranslateIOManager.cpp\
+	TranslateIOManager.cpp \
+	ExtractIOManager.cpp \
 	main.cpp
 
 # headers
 HDR = \
 	TranslateIOManager.h \
+	ExtractIOManager.h \
 	DataManagerT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
