@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.32.2.11 2002-05-11 20:59:30 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.32.2.12 2002-06-05 09:20:37 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -63,6 +63,7 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output):
 	fTimeManager(NULL),
 	fNodeManager(NULL),
 	fIOManager(NULL),
+	fMaxSolverLoops(0),
 	fRestartCount(0),
 	fGlobalEquationStart(0),
 	fActiveEquationStart(0),
@@ -223,13 +224,6 @@ void FEManagerT::Solve(void)
 			}
 		}
 	}
-}
-
-/* signal that references to external data are stale - i.e. equ numbers */
-void FEManagerT::Reinitialize(int group)
-{
-	/* reset equation structure */
-	SetEquationSystem(group);		
 }
 
 /* manager messaging */
@@ -443,17 +437,81 @@ int FEManagerT::SolveStep(void)
 {
 	int error = eNoError;
 	try {
+		
+		int loop_count = 0;
+		bool all_pass = false;
+		SolverT::SolutionStatusT status = SolverT::kContinue;
 
-		/* one solver after the next */
-		for (int i = 0; error == eNoError && i < fSolvers.Length(); i++)
+		/* status */
+		iArray2DT solve_status(fSolverInfo.MajorDim(), 3);
+
+		while (!all_pass && 
+			loop_count < fMaxSolverLoops &&
+			status != SolverT::kFailed)
 		{
-			error = fSolvers[i]->Solve(); 
-		}
-	}
+			/* clear status */
+			solve_status = 0;
+		 
+			/* one solver after the next */
+			all_pass = true;
+			for (int i = 0; status != SolverT::kFailed && i < fSolverInfo.MajorDim(); i++)
+			{
+				/* group parameters */
+				int group = fSolverInfo(i,0);
+				int iter  = fSolverInfo(i,1);
+				int pass  = fSolverInfo(i,2);
+			
+				/* call solver */
+				status = fSolvers[group]->Solve(iter);
+				
+				/* check result */
+				solve_status(i,0) = group;
+				solve_status(i,1) = fSolvers[group]->IterationNumber();
+				if (status == SolverT::kFailed) {
+					all_pass = false;
+					solve_status(i,2) = -1;					
+				}
+				else if (status == SolverT::kConverged && 
+					(pass == -1 || solve_status(i,1) <= pass))
+				{
+					all_pass = all_pass && true; /* must all be true */
+					solve_status(i,2) = 1;
+				}
+				else
+				{
+					all_pass = false;
+					solve_status(i,2) = 0;
+				}
+			}
 
+			/* count */
+			loop_count++;
+			
+			/* write status */
+			if (fSolverInfo.MajorDim() > 1)
+			{
+				cout << "\n Solver status: pass " << loop_count << '\n';
+				cout << setw(kIntWidth) << "#"
+				     << setw(kIntWidth) << "solver"
+				     << setw(kIntWidth) << "its."
+				     << setw(kIntWidth) << "pass" << '\n';
+				solve_status.WriteNumbered(cout);
+				cout << endl;
+			}			
+		}
+
+		/* solver looping not successful */
+		if (!all_pass) {
+			cout << "\n Solver loop not converged after " << loop_count << " iterations" << endl;
+			error = eGeneralFail;
+		} else {
+			cout << "\n Solver loop converged in " << loop_count << " iterations" << endl;
+		}
+	}	
 	catch (int exc) {
 		cout << "\n FEManagerT::SolveStep: caught exception: " 
 		     << Exception(exc) << endl;
+		error = exc;
 	}
 	
 	/* done */
@@ -1121,6 +1179,75 @@ void FEManagerT::SetSolver(void)
 				throw eBadInputValue;
 		}
 	}
+	
+	/* read solver templates */
+	if (fSolvers.Length() > 1) {
+	
+		AutoArrayT<int> solver_list;
+		fSolverInfo.Dimension(fSolvers.Length(), 3);
+		fSolverInfo = -99;
+		for (int i = 0; i < fSolverInfo.MajorDim(); i++) {
+			int solver = -99; 
+			int iters = -99;
+			int pass_iters = -99;
+			fMainIn >> solver >> iters >> pass_iters;
+			solver--;
+
+			/* checks */
+			if (solver < 0 || solver >= fSolverInfo.MajorDim()) {
+				cout << "\n FEManagerT::SetSolver: solver number is out of range: " << solver+1 << endl;
+				throw eBadInputValue;
+			}
+			if (!solver_list.AppendUnique(solver)) {
+				cout << "\n FEManagerT::SetSolver: solver " << solver+1<< " is already set" << endl;
+				throw eBadInputValue;			
+			}
+			if (iters < 1 && iters != -1) {
+				cout << "\n FEManagerT::SetSolver: solver iterations for solver " 
+				     << solver+1 << " must be -1 or > 0: " << iters << endl;
+				throw eBadInputValue;			
+			}
+			if (pass_iters < 0 && pass_iters != -1) {
+				cout << "\n FEManagerT::SetSolver: iterations to pass solver " 
+				     << solver+1 << " must be -1 or >= 0: " << iters << endl;
+				throw eBadInputValue;			
+			}
+			
+			/* store values */
+			fSolverInfo(i,0) = solver;
+			fSolverInfo(i,1) = iters;
+			fSolverInfo(i,2) = pass_iters;
+		}
+		
+		/* number of loops through the solvers */
+		fMaxSolverLoops = -99;
+		fMainIn >> fMaxSolverLoops;
+		if (fMaxSolverLoops < 1 && fMaxSolverLoops != -1) {
+			cout << "\n FEManagerT::SetSolver: expecting -1 or > 0: " << fMaxSolverLoops << endl;
+			throw eBadInputValue;
+		}
+	}
+	else /* set default values for single solver */
+	{
+		fSolverInfo.Dimension(fSolvers.Length(), 3);	
+		fSolverInfo(0,0) = 0;
+		fSolverInfo(0,1) =-1;
+		fSolverInfo(0,2) =-1;
+		fMaxSolverLoops  = 1;
+	}
+	
+	/* echo solver information */
+	fMainOut << "\n Multi-solver parameters: " << fSolverInfo.MajorDim() << '\n';
+	fMainOut << setw(kIntWidth) << "rank"
+	         << setw(kIntWidth) << "group"
+	         << setw(2*kIntWidth) << "loop its."
+	         << setw(2*kIntWidth) << "pass its." << endl;
+	for (int i = 0; i < fSolverInfo.MajorDim(); i++)
+		fMainOut << setw(kIntWidth) << i+1
+	             << setw(kIntWidth) << fSolverInfo(i,0)
+	             << setw(2*kIntWidth) << fSolverInfo(i,1)
+	             << setw(2*kIntWidth) << fSolverInfo(i,2) << endl;
+	fMainOut << " Maximum number of solver loops. . . . . . . . . = " << fMaxSolverLoops << '\n';
 	
 	/* initialize */
 	for (int i = 0; i < fSolvers.Length(); i++)
