@@ -1,7 +1,10 @@
-/* $Id: iConsoleBaseT.cpp,v 1.4 2001-09-26 20:59:26 paklein Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.5 2001-11-28 22:05:44 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleBaseT.h"
+#include "CommandSpecT.h"
+#include "ArgSpecT.h"
+
 #include <strstream.h>
 #include <iomanip.h>
 #include <ctype.h>
@@ -42,10 +45,10 @@ void iConsoleBaseT::iWriteVariables(ostream& out) const
 }
 
 /* execute given command - returns false on fail */
-bool iConsoleBaseT::iDoCommand(const StringT& command, StringT& line)
+bool iConsoleBaseT::iDoCommand(const CommandSpecT& command, StringT& line)
 {
 #pragma unused(line)
-	cout << "unrecognized command: \"" << command << "\"" << endl;
+	cout << "unrecognized command: \"" << command.Name() << "\"" << endl;
 	return false;
 }
 
@@ -86,7 +89,10 @@ bool iConsoleBaseT::iDoVariable(const StringT& variable, StringT& line)
 			OK = Operate(*((StringT*) fVariableValues[dex]), op, line);
 		else
 		{
-			cout << "iConsoleBaseT::DoVariable: unsupported type: "
+#if __option(extended_errorcheck)
+			cout << "iConsoleBaseT::DoVariable: ";
+#endif
+			cout << "unsupported type: "
 			     << fVariableTypes[dex] << endl;
 			return kFail;
 		}
@@ -99,22 +105,309 @@ bool iConsoleBaseT::iDoVariable(const StringT& variable, StringT& line)
 	}
 }
 
+/* resolve name into function specification */
+const CommandSpecT* iConsoleBaseT::ResolveCommand(const StringT& command_name, 
+	StringT& line) const
+{
+	/* find spec */
+	CommandSpecT* command_spec = Command(command_name);
+
+	/* resolve arguments */
+	if (command_spec && ResolveArguments(*command_spec, line, cout, cin))
+		return command_spec;
+	else 
+		return NULL;
+}
+
+/* return the command specification with the given name. */
+CommandSpecT* iConsoleBaseT::Command(const StringT& command_name) const
+{
+	CommandSpecT* command_spec = NULL;
+	for (int i = 0; !command_spec && i < fCommands.Length(); i++)
+		if (fCommands[i]->Name() == command_name)
+			command_spec = fCommands[i];
+	return command_spec;
+}
+
 /************************************************************************
 * Protected
 ************************************************************************/
 
-/* add command to the dictionary - true if added */
-bool iConsoleBaseT::iAddCommand(const StringT& command)
+/* resolve command arguments */
+bool iConsoleBaseT::ResolveArguments(CommandSpecT& command, StringT& line, 
+	ostream& out, istream& in) const
 {
-	if (fCommands.AppendUnique(command))
+	/* clear all values */
+	command.ClearValues();
+	
+	/* ordered arguments */
+	if (command.Ordered()) {
+	
+		/* look for arguments in order */
+		const ArrayT<ArgSpecT*>& args = command.Arguments();
+		bool scan_OK = true;
+		for (int i = 0; scan_OK && i < args.Length(); i++)
+			scan_OK = ResolveNamedValue(command, i, line, out, in, true);
+		
+		/* result */
+		return scan_OK;
+			
+	} else { /* arguments in random order */
+
+		/* argument list */
+		const ArrayT<ArgSpecT*>& args = command.Arguments();
+	
+		/* scan line */
+		StringT first;
+		int count;
+		bool scan_OK = true;
+		bool set_defaults = false;
+		bool done = false;
+		
+		first.FirstWord(line, count, true);
+		while (!done && scan_OK)
+		{
+			if (first == ".")
+			{
+				out << "interrupt." << endl;
+				scan_OK = false;
+			}
+			else if (first.StringLength() == 0)
+			{
+				/* use defaults for any unset values */
+				for (int i = 0; i < args.Length(); i++)
+					if (!args[i]->HasValue())
+						args[i]->SetValueToDefault();
+			
+				/* prompt since no argument found */
+				bool prompt = true;
+				for (int i = 0; prompt && i < args.Length(); i++)
+					if (!args[i]->HasValue())
+					{
+						scan_OK = ResolveNamedValue(command, i, line, out, in, true);
+						prompt = false;
+					}
+					
+				/* all filled */
+				if (prompt && scan_OK) done = true;
+			}
+			else
+			{
+				/* pull word */
+				line.Drop(count);
+		
+				/* find unset argument */
+				bool found = false;
+				for (int i = 0; !found && scan_OK && i < args.Length(); i++)
+				{
+					if (args[i]->Name() == first)
+					{
+						found = true;
+						if (args[i]->HasValue())
+						{
+#if __option(extended_errorcheck)
+							out << "iConsoleBaseT::ResolveArguments: ";
+#endif
+							out << "argument \"" << args[i]->Name() << "\" is already set" << endl;
+							scan_OK = false;
+						}
+						else
+							scan_OK = ResolveValue(command, i, line, out, in, true);
+					}
+				}
+			}
+			
+			/* next */		
+			if (scan_OK) first.FirstWord(line, count, true);
+		}
+
+		/* result */
+		return scan_OK;
+	}
+}
+
+/* resolve named argument value */
+bool iConsoleBaseT::ResolveNamedValue(CommandSpecT& command, int index, StringT& line, 
+	ostream& out, istream& in, bool prompt) const
+{
+	/* the argument */
+	ArgSpecT& arg = command.Argument(index);
+
+	/* check name */
+	if (arg.Name().StringLength() > 0)
 	{
-		Sort(fCommands);
+		/* grab first word */
+		StringT first;
+		int count;
+		first.FirstWord(line, count, true);
+		
+		/* found exit character - minus sign */
+		if (first == ".") {
+			cout << "interrupt." << endl;
+			return false;
+		}
+	
+		/* check name */
+		if (first != arg.Name())
+		{
+			if (!prompt) {
+#if __option(extended_errorcheck)
+				cout << "iConsoleBaseT::ResolveNamedValue: ";
+#endif
+				out << "expecting name \"" << arg.Name() << "\", found \"" 
+				    << first << '\"' << endl;
+				return false;
+			}
+			else /* prompt */
+			{
+				/* user-defined prompt */
+				ValuePrompt(command, index, out);
+			
+				out << "?" << arg.Name() << " ";
+				out.flush();
+	
+				/* read line */
+				StringT new_line;
+				new_line.GetLineFromStream(in);
+				
+				/* add name */
+				new_line.Prepend(arg.Name(), " ");
+	
+				/* append the remaining line */
+				new_line.Append(" ", line);
+				line.Swap(new_line);
+		
+				/* recurse */
+				return ResolveNamedValue(command, index, line, out, in, false);
+			}
+		}
+		else /* shorten line */
+			line.Drop(count);
+	}
+
+	/* get value */
+	return ResolveValue(command, index, line, out, in, prompt);
+}
+
+/* resolve named argument value */
+bool iConsoleBaseT::ResolveValue(CommandSpecT& command, int index, StringT& line, 
+	ostream& out, istream& in, bool prompt) const
+{
+	/* the argument */
+	ArgSpecT& arg = command.Argument(index);
+
+	/* grab first word */
+	StringT first;
+	int count;
+	first.FirstWord(line, count, false);
+	
+	/* try to resolve argument from first word */
+	bool found_arg = false;
+	if (first.StringLength() > 0) {
+	
+		/* found exit character - minus sign */
+		if (first == ".") {
+			out << "interrupt." << endl;
+			return false;
+		}
+
+		/* resolve */
+		istrstream s((const char *) first);
+		try { found_arg = arg.ReadValue(s); }
+		catch (int) { return false; }
+		
+		/* eat line */
+		if (found_arg) line.Drop(count);
+		
+		/* fail message */
+		if (!found_arg && !prompt)
+		{
+#if __option(extended_errorcheck)
+			out << "iConsoleBaseT::ResolveValue: ";
+#endif
+			out << "failed to resolve " << arg.TypeName() 
+			     << " from " << first << endl;
+		}
+	}
+	/* use default value */
+	else if (arg.HasDefault()) {
+		arg.SetValueToDefault();
+		return true;
+	}
+	
+	/* prompt for value */
+	if (found_arg)
+		return true;
+	else if (prompt && !found_arg) {
+	
+		/* user-defined prompt */
+		ValuePrompt(command, index, out);
+	
+		/* prompt */
+		if (arg.Prompt().StringLength() > 0)
+			out << arg.Prompt() << ": ";
+		else if (arg.Name().StringLength() > 0)
+			out << "?" << arg.Name() << " ";
+		else
+			out << "(" << arg.TypeName() << "): ";
+	
+		/* read line */
+		StringT new_line;
+		new_line.GetLineFromStream(in);
+	
+		/* append the remaining line */
+		new_line.Append(" ", line);
+		line.Swap(new_line);
+		
+		/* recurse */
+		return ResolveValue(command, index, line, out, in, false);
+	}
+	else /* fail */
+	{
+#if __option(extended_errorcheck)
+		out << "iConsoleBaseT::ResolveValue: ";
+#endif
+		out << "failed to resolve ";
+		if (arg.Name().StringLength() > 0) 
+			out << '\"' << arg.Name() << "\" ";
+		out << '(' << arg.TypeName() << ')' << endl;
+		return false;
+	}
+}
+
+/* write prompt for the specific argument */
+void iConsoleBaseT::ValuePrompt(const CommandSpecT& command, int index, 
+	ostream& out) const
+{
+#pragma unused(command)
+#pragma unused(index)
+#pragma unused(out)
+}
+
+/* add command to the dictionary - true if added */
+bool iConsoleBaseT::iAddCommand(const CommandSpecT& command)
+{
+	/* check for duplicate name */
+	bool dup = false;
+	for (int i = 0; !dup && i < fCommands.Length(); i++)
+		dup = command.Name() == fCommands[i]->Name(); 
+
+	if (!dup)
+	{
+		/* copy command spec */
+		CommandSpecT* new_command = new CommandSpecT(command);
+
+		/* add */
+		fCommands.Append(new_command);
+		
+		/* alphabetize */
+		SortCommands(fCommands);
 		return true;
 	}
 	else
 	{
 		cout << " iConsoleBaseT::iAddCommand: duplicate command not added: "
-		     << command << endl;
+		     << command.Name() << endl;
 		return false;
 	}
 }
@@ -186,188 +479,23 @@ void iConsoleBaseT::Sort(ArrayT<StringT>& list) const
 	} while (changed == true);
 }
 
-/* resolving arguments in () */
-bool iConsoleBaseT::ResolveArgument(StringT& source, bool& arg, bool* default_arg)
+void iConsoleBaseT::SortCommands(ArrayT<CommandSpecT*>& list) const
 {
-	char* str = source;
-
-	/* find start and end */
-	int start, end;
-	if (!Position(str, '(', start) || !Position(str + start, ')', end))
-		return false;
-	else
-	{
-		/* empty */
-		if (end == start + 1)
-		{
-			if (default_arg == NULL)
-				return false;
-			else
-			{	
-				arg = *default_arg;
-				source.Drop(end + 1);
-				return true;
-			}
-		}
-		else
-		{
-			/* advance passed white space */
-			str += start + 1;
-			while (*str != ')' && isspace(*str))
-				str++;
-			
-			/* fail */
-			if (*str == ')') return false;
-			
-			/* resolve */
-			switch (*str)
+	if (list.Length() < 2) return;
+	bool changed;
+	do {
+		changed = false;
+		for (int i = 1; i < list.Length(); i++)
+			if (strcmp(list[i]->Name(), list[i-1]->Name()) < 0)
 			{
-				case '1':
-				case 't':
-				case 'T':
-					arg = true;
-					break;
-				case '0':
-				case 'f':
-				case 'F':
-					arg = false;
-					break;
-				default:
-					return false;
-			}
-			
-			/* pull */
-			source.Drop(end + 1);
-			return true;
-		}
-	}
-}
+				/* swap */
+				CommandSpecT* tmp = list[i];
+				list[i] = list[i-1];
+				list[i-1] = tmp;
 
-bool iConsoleBaseT::ResolveArgument(StringT& source, int& arg, int* default_arg)
-{
-	char* str = source;
-
-	/* find start and end */
-	int start, end;
-	if (!Position(str, '(', start) || !Position(str + start, ')', end))
-		return false;
-	else
-	{
-		/* empty */
-		if (end == start + 1)
-		{
-			if (default_arg == NULL)
-				return false;
-			else
-			{	
-				arg = *default_arg;
-				source.Drop(end + 1);
-				return true;
+				changed = true;
 			}
-		}
-		else
-		{
-			/* construct string stream */
-			istrstream in(str + start + 1);
-			int test_val = -99199199;
-			arg = test_val;
-			in >> arg;
-			if (arg == test_val)
-			{
-				arg = 0;
-				return false;
-			}
-			else
-			{
-				source.Drop(end + 1);
-				return true;
-			}
-		}
-	}
-}
-
-bool iConsoleBaseT::ResolveArgument(StringT& source, double& arg, double* default_arg)
-{
-	char* str = source;
-
-	/* find start and end */
-	int start, end;
-	if (!Position(str, '(', start) || !Position(str + start, ')', end))
-		return false;
-	else
-	{
-		/* empty */
-		if (end == start + 1)
-		{
-			if (default_arg == NULL)
-				return false;
-			else
-			{	
-				arg = *default_arg;
-				source.Drop(end + 1);
-				return true;
-			}
-		}
-		else
-		{
-			/* construct string stream */
-			istrstream in(str + start + 1);
-			double test_val = -99199199;
-			arg = test_val;
-			in >> arg;
-			if (arg == test_val)
-			{
-				arg = 0;
-				return false;
-			}
-			else
-			{
-				source.Drop(end + 1);
-				return true;
-			}
-		}
-	}
-}
-
-bool iConsoleBaseT::ResolveArgument(StringT& source, StringT& arg, StringT* default_arg)
-{
-	char* str = source;
-
-	/* find start and end */
-	int start, end;
-	if (!Position(str, '(', start) || !Position(str + start, ')', end))
-		return false;
-	else
-	{
-		/* empty */
-		if (end == 1)
-		{
-			if (default_arg == NULL)
-				return false;
-			else
-			{	
-				arg = *default_arg;
-				source.Drop(start + end + 1);
-				return true;
-			}
-		}
-		else
-		{
-			/* string start and end */
-			int q_start, q_end;
-			if (!Position(str, '"', q_start) || !Position(str + q_start + 1, '"', q_end))
-				return false;
-			else
-			{
-				/* copy string */
-				arg.Take(source, q_start + 1, q_start + q_end);
-				
-				/* pull */
-				source.Drop(start + end + 1);
-				return true;
-			}		
-		}
-	}
+	} while (changed == true);
 }
 
 /* write list of strings with tab and wrap */
@@ -388,6 +516,27 @@ void iConsoleBaseT::WriteList(ostream& out, const ArrayT<StringT>& list,
 			count = tab;
 		}
 		out << " " << list[i];
+		count += length + 1;
+	}
+}
+
+void iConsoleBaseT::WriteList(ostream& out, const ArrayT<CommandSpecT*>& list,
+	int tab, int wrap) const
+{
+	/* checks */
+	if (tab < 0 || wrap < 0) throw eGeneralFail;
+	if (tab > 0) out << setw(tab-1) << " ";
+	int count = tab;
+	for (int i = 0; i < list.Length(); i++)
+	{
+		int length = strlen(list[i]->Name());
+		if (count + length + 1 > wrap)
+		{
+			out << '\n';
+			if (tab > 0) out << setw(tab-1) << " ";
+			count = tab;
+		}
+		out << " " << list[i]->Name();
 		count += length + 1;
 	}
 }

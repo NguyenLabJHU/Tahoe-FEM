@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.h,v 1.4 2001-11-07 02:33:23 paklein Exp $ */
+/* $Id: iConsoleT.h,v 1.5 2001-11-28 22:05:45 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_T_H_
@@ -16,7 +16,8 @@ class iConsoleObjectT;
 /** base class for interactive consoles */
 class iConsoleT: public iConsoleBaseT
 {
-public:
+  public:
+
 	/* constructor */
 	iConsoleT(const StringT& log_file, iConsoleObjectT& current);
 
@@ -24,7 +25,7 @@ public:
 	~iConsoleT(void);
 
 	/* execute given command - returns false on fail */
-	virtual bool iDoCommand(const StringT& command, StringT& line);
+	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
 
 	/* operate on given variable */
 	virtual bool iDoVariable(const StringT& variable, StringT& line);
@@ -37,7 +38,7 @@ public:
 	          kScopeVariable = 4,
 	                  kAlias = 5};
 
-private:
+  private:
 
 	/* main event loop */
 	void DoInteractive(void);
@@ -55,7 +56,7 @@ private:
 	 * a command from the console or current scope, or returns
 	 * kNone if the word could not be resolved */
 	CommandScope ResolveNextWord(StringT& line, StringT& command) const;
-	CommandScope ResolveCommand(StringT& command) const;
+	CommandScope ResolveCommandName(StringT& command) const;
 	
 	/* reset dictionary - scope_only sets only scope commands
 	 * and variables */
@@ -65,7 +66,6 @@ private:
 
 	/* commands */
 	void ListCommand(ostream& out) const;
-	bool HistoryCommand(StringT& line);
 	
 	/* flush the command line and all input streams */
 	void FlushInput(StringT& line);
@@ -102,8 +102,8 @@ private:
 	
 
 	/* dictionary */
-	AutoArrayT<StringT*>     fWord;
-	AutoArrayT<CommandScope> fWordScope;
+	AutoArrayT<const StringT*> fWord;
+	AutoArrayT<CommandScope>   fWordScope;
 	
 	/* aliases */
 	AutoArrayT<StringT> fAlias;
