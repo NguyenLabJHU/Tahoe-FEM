@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.21 2003-06-28 17:32:10 thao Exp $ */
+/* $Id: ElementT.cpp,v 1.22 2003-07-09 23:19:42 paklein Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -135,6 +135,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		    break;
 		case ElementT::kSSMatForce:
 		    type = ElementT::kSSMatForce;
+		    break;
+		case ElementT::kDorganVoyiadjisMarin:
+		    type = ElementT::kDorganVoyiadjisMarin;
 		    break;
 		case ElementT::kTest:
 		    type = ElementT::kTest;

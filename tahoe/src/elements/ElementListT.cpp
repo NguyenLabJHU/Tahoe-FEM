@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.53 2003-06-28 17:32:10 thao Exp $ */
+/* $Id: ElementListT.cpp,v 1.54 2003-07-09 23:19:42 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -82,6 +82,10 @@
 
 #ifdef MULTISCALE_ELEMENT_DEV
 #include "StaggeredMultiScaleT.h"
+#endif
+
+#ifdef DORGAN_VOYIADJIS_MARIN_DEV
+#include "DorganVoyiadjisMarin.h"
 #endif
 
 #ifdef SOLID_ELEMENT_DEV
@@ -612,6 +616,24 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
 #endif
 			}
+		case ElementT::kDorganVoyiadjisMarin:
+		{
+#ifdef DORGAN_VOYIADJIS_MARIN_DEV
+			/* displacement field read above */
+			const FieldT* disp = field;
+
+			/* hardness field */				
+			StringT hardness_field_name;
+			in >> hardness_field_name;
+			const FieldT* hardness = fSupport.Field(hardness_field_name);
+			if (!disp || !hardness)
+				ExceptionT::BadInputValue(caller, "error resolving field names");
+
+			fArray[group] = new DorganVoyiadjisMarin(fSupport, *disp, *hardness);
+			break;
+#else
+			ExceptionT::BadInputValue(caller, "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", code);
+			}
 			case ElementT::kTest:
 			{
 #ifdef SOLID_ELEMENT_DEV
@@ -620,7 +642,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 #else
 				ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
 #endif
-			}
+		}
 		default:
 			ExceptionT::BadInputValue(caller, "unknown element type: %d", code);
 		}
