@@ -8,11 +8,13 @@
 1   # number of element sets
 # [ID] [nel] [nen]
 1   1   4
-3   # number of node sets
+5   # number of node sets
 # [ID] [nnd]
 1   1
 2   1
 3   1
+4   1
+5   4
 4   # number of side sets
 # [ID] [element set ID] [ns]
 1   1   1
@@ -30,6 +32,12 @@
 *set
 1   # number of nodes
 4
+*set
+1   # number of nodes
+1
+*set
+4   # numbr of nodes
+1 2 3 4
 # end node sets
 *sidesets
 *set
