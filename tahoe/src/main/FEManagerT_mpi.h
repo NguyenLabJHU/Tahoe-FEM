@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.18.36.1 2004-04-08 07:33:48 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.18.36.2 2004-07-01 05:01:13 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #ifndef _FE_MANAGER_MPI_H_
 #define _FE_MANAGER_MPI_H_
@@ -63,6 +63,12 @@ public:
 
 	/* debugging */
 	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
