@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.70.2.5 2004-02-18 16:33:52 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.70.2.6 2004-02-19 19:58:15 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -23,6 +23,7 @@
 #include "nIntegratorT.h"
 #include "CommunicatorT.h"
 #include "CommManagerT.h"
+#include "ParameterContainerT.h"
 
 /* nodes */
 #include "NodeManagerT.h"
@@ -1253,6 +1254,47 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	}
 	fSolvers.Swap(solvers_tmp);
 
+	/* solver phases */
+	const ParameterListT* solver_phases = list.List("solver_phases");
+	AutoArrayT<int> solver_list;
+	if (solver_phases) 
+	{
+		fMaxSolverLoops = solver_phases->GetParameter("max_loops");
+		
+		const ArrayT<ParameterListT>& phases = solver_phases->Lists();
+		fSolverPhases.Dimension(phases.Length(), 3);
+		for (int i = 0; i < fSolverPhases.MinorDim(); i++) {
+
+			const ParameterListT& phase = phases[i];
+
+			/* check */
+			if (phase.Name() != "solver_phase")
+				ExceptionT::GeneralFail(caller, "expecting \"solver_phase\" not \"%s\"", phase.Name().Pointer());
+		
+			fSolverPhases(i,0) = phase.GetParameter("solver");
+			fSolverPhases(i,1) = phase.GetParameter("iterations");
+			fSolverPhases(i,2) = phase.GetParameter("pass_iterations");
+			
+			fSolverPhases(i,0)--;
+			solver_list.AppendUnique(fSolverPhases(i,0));
+		}
+	} 
+	else /* set default number of loops */
+		fMaxSolverLoops  = 1;
+	
+	/* set default phases */
+	if (fSolverPhases.MajorDim() == 0) {
+		fSolverPhases.Dimension(1, 3);
+		fSolverPhases(0,0) = 0;
+		fSolverPhases(0,1) =-1;
+		fSolverPhases(0,2) =-1;
+		solver_list.Append(0);	
+	}
+	
+	/* check that all solvers hit at least once */
+	if (solver_list.Length() != fSolvers.Length())
+		ExceptionT::BadInputValue(caller, "must have at least one phase per solver");
+
 	/* construct time manager */
 	const ParameterListT* time_params = list.List("time");
 	if (!time_params)
@@ -1298,8 +1340,11 @@ void FEManagerT::DefineSubs(SubListT& sub_list) const
 	/* element list */
 	sub_list.AddSub("element_list");
 
-	/* node manager */
+	/* solvers */
 	sub_list.AddSub("solvers", ParameterListT::OnePlus, true);
+	
+	/* solver phases */
+	sub_list.AddSub("solver_phases", ParameterListT::ZeroOrOnce);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -1317,6 +1362,32 @@ ParameterInterfaceT* FEManagerT::NewSub(const StringT& list_name) const
 		return new NodeManagerT(*non_const_this, *fCommManager);
 	else if (list_name == "element_list")
 		return new ElementListT(*non_const_this);
+	else if (list_name == "solver_phases")
+	{
+		ParameterContainerT* solver_phases = new ParameterContainerT(list_name);
+		solver_phases->SetSubSource(this);
+	
+		/* number of passes through the phases */
+		ParameterT max_loops(fMaxSolverLoops, "max_loops");
+		max_loops.AddLimit(1, LimitT::LowerInclusive);
+		max_loops.SetDefault(1);
+		solver_phases->AddParameter(max_loops, ParameterListT::ZeroOrOnce);
+	
+		/* phase description */
+		solver_phases->AddSub("solver_phase", ParameterListT::ZeroOrOnce);
+		
+		return solver_phases;
+	}
+	else if (list_name == "solver_phase")
+	{
+		ParameterContainerT* solver_phase = new ParameterContainerT(list_name);
+
+		solver_phase->AddParameter(ParameterT::Integer, "solver");
+		solver_phase->AddParameter(ParameterT::Integer, "iterations");
+		solver_phase->AddParameter(ParameterT::Integer, "pass_iterations");
+		
+		return solver_phase;
+	}
 	else /* inherited */
 		return ParameterInterfaceT::NewSub(list_name);
 }
