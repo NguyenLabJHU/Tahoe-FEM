@@ -53,11 +53,11 @@
       }
       else if (which_shape=="POLY") {
          if (whichunit==1) {
-			len*=2;
+			if (per ==0) len*=2;
 			Shape = new PolyT(nsd,len,latticeparameter,isort,which_latticetype,per, NumberofGrains);
          }
          else{
-			cel*=2;
+			if (per==0)cel*=2;
 			Shape = new PolyT(nsd,cel,latticeparameter,isort,which_latticetype,per, NumberofGrains);
          }
       }

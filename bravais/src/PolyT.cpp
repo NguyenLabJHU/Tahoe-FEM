@@ -32,7 +32,7 @@
       GrainCenters.Dimension(NumberofGrains);
       VolType = "POLY";
       SizeofLattice=length;
-      SizeofLattice/=2;
+      if (per == 0) SizeofLattice/=2;
    //create random grain centers
       MaxGrainSeparation=0.0;
       MakeGrains(lattice_parameter);
@@ -48,7 +48,7 @@
       this->NumberofGrains = NumberofGrains;
       GrainCenters.Dimension(NumberofGrains);
       SizeofLattice=length;
-      SizeofLattice/=2;
+      if(per ==0) SizeofLattice/=2;
       VolType = "POLY";
       MaxGrainSeparation=0.0;
       MakeGrains(lattice_parameter);
@@ -170,7 +170,7 @@
       atom_names = "Poly";
    
       // Update lengths
-      length = ComputeMinMax();
+      length = SizeofLattice;
       cout<<"length updated \n";
       //Calculate volume here
       switch(nSD) {
@@ -325,13 +325,15 @@ dArrayT PolyT::ImposePBC(dArrayT currentCoord, dArrayT GrainCenter){
 bool PolyT::CheckCurrentGrain(dArrayT currentCoord, int currentGrain, double distanceToCurrentGrain){
 	bool atomIsCloserToCurrentGrain=true;
 	for (int tempGrain=0; tempGrain < NumberofGrains && atomIsCloserToCurrentGrain; tempGrain++) {
-		dArrayT distance(nSD);
-		distance.DiffOf(currentCoord , GrainCenters[tempGrain]);
-		for (int dim=0; dim<nSD &&pbc!=0; dim++) {
-			if (distance[dim]< SizeofLattice(dim,0) && pbc[dim]==1 )distance[dim]+= SizeofLattice(dim,1)*2.0;
-			else if (distance[dim] > SizeofLattice(dim,1) && pbc[dim]==1) distance[dim]-=SizeofLattice(dim,1)*2.0;
+		if (tempGrain != currentGrain) {
+			dArrayT distance(nSD);
+			distance.DiffOf(currentCoord , GrainCenters[tempGrain]);
+			for (int dim=0; dim<nSD &&pbc!=0; dim++) {
+				if (distance[dim]< SizeofLattice(dim,0) && pbc[dim]==1 )distance[dim]+= SizeofLattice(dim,1)*2.0;
+				else if (distance[dim] > SizeofLattice(dim,1) && pbc[dim]==1) distance[dim]-=SizeofLattice(dim,1)*2.0;
+			}
+			atomIsCloserToCurrentGrain = distanceToCurrentGrain < distance.Magnitude();
 		}
-		atomIsCloserToCurrentGrain = distanceToCurrentGrain <= distance.Magnitude();
 	}
 	return atomIsCloserToCurrentGrain;
 }
