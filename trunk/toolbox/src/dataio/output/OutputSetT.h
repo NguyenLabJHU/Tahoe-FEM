@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.16 2002-12-17 08:50:36 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.17 2003-08-08 00:26:59 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -114,8 +114,15 @@ public:
 	void SetID(const StringT& id);
 	const StringT& ID(void) const { return fID; };
 
+	/** \name changing geometry flag.
+	 * set/get the changing geometry flag */
+	/*@{*/
 	/** return true if the set has changing geometry, false otherwise */
 	bool Changing(void) const;
+
+	/** set the flag */
+	void SetChanging(bool changing) { fChanging = changing; };
+	/*@}*/
 
 	/** return the GeometryT::CodeT for the output set */
 	GeometryT::CodeT Geometry(void) const;
