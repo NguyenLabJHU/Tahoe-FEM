@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.cpp,v 1.10 2004-07-15 08:31:15 paklein Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.11 2004-09-14 18:18:12 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #include "FBC_ControllerT.h"
 #include "ArrayT.h"
@@ -98,6 +98,9 @@ void FBC_ControllerT::WriteRestart(ostream& out) const
 {
 #pragma unused(out)
 }
+
+/* returns true if the internal force has been changed since the last time step */
+GlobalT::RelaxCodeT FBC_ControllerT::RelaxSystem(void) { return GlobalT::kNoRelax; }
 
 /* accept parameter list */
 void FBC_ControllerT::TakeParameterList(const ParameterListT& list)
