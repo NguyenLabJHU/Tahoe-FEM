@@ -1,4 +1,4 @@
-/* $Id: RG_VDSplit2D.cpp,v 1.1 2002-10-04 23:59:00 thao Exp $ */
+/* $Id: RG_VDSplit2D.cpp,v 1.2 2002-10-14 18:28:06 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "ExceptionCodes.h"
@@ -37,6 +37,7 @@ RG_VDSplit2D::RG_VDSplit2D(ifstreamT& in, const FiniteStrainT& element):
 	fiKAB(2,2),
 	fthird(1.0/3.0)
 {
+	cout <<"\ntime steps: "<< fdt;
 	/*read in viscosities*/
         double A;
 	in >> A;

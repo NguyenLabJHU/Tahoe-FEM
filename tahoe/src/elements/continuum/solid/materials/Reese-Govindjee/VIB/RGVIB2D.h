@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.h,v 1.3 2002-10-14 16:04:02 thao Exp $ */
+/* $Id: RGVIB2D.h,v 1.4 2002-10-14 18:28:07 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #ifndef _RG_VIB_2D_H_
@@ -29,13 +29,8 @@ class RGVIB2D: public RGBaseT, public Material2DT, public ViscVIB
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
 
-	/*initialize history variables*/
-	virtual void PointInitialize(void);
- 
 	/* class specific initializations */ 
         virtual void Initialize(void); 
-
-	virtual bool Need_F_last(void) const { return true; };
 
         /*compute output variables*/ 
         virtual int NumOutputVariables() const; 
@@ -59,8 +54,8 @@ class RGVIB2D: public RGBaseT, public Material2DT, public ViscVIB
 
 	/*principal elastic stretches*/
 	virtual void ComputeEigs_e(const dArrayT& eigenstretch, 
-				   dArrayT& eigenstretch_e,double& corr_factor,
-				   const double& dt, dArrayT& eigenstress, 
+				   dArrayT& eigenstretch_e, 
+				   dArrayT& eigenstress, 
 				   dSymMatrixT& eigenmodulus);
   
 	/* stresses and moduli*/
@@ -80,8 +75,8 @@ class RGVIB2D: public RGBaseT, public Material2DT, public ViscVIB
 
   private:
 
-	void ComputeiKAB(double& Jv, double& Je, const double& dt, 
-			 dArrayT& eigenstress, dSymMatrixT& eigenmodulus);
+	void ComputeiKAB(double& Jv, double& Je, dArrayT& eigenstress, 
+			 dSymMatrixT& eigenmodulus);
 
   	/* calculates "bond" lengths from Lagrangian stretch eigenvalues */
 	void ComputeLengths(const dArrayT& eigenstretch, int etype);
@@ -122,9 +117,6 @@ class RGVIB2D: public RGBaseT, public Material2DT, public ViscVIB
 	
 	/*2D geometric constraint*/
 	double fconst;
-
-	/*ratio of corrector to predictor*/
-	dArrayT fcorr_ratio;
 };
 }
 #endif /* _RG_VIB_2D_H_ */

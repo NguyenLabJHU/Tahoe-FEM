@@ -1,4 +1,4 @@
-/* $Id: FDSimoVisco2D.cpp,v 1.3 2002-10-14 16:04:06 thao Exp $ */
+/* $Id: FDSimoVisco2D.cpp,v 1.4 2002-10-14 18:28:08 thao Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSimoVisco2D.h"
@@ -22,14 +22,6 @@ FDSimoVisco2D::FDSimoVisco2D(ifstreamT& in, const FiniteStrainT& element):
 {
 	in >> ftauS;
 	in >> ftauB;
-
-	double taudtS = fdt/ftauS;
-	double taudtB = fdt/ftauB;
-
-	falphaS = exp(-0.5*taudtS);
-	falphaB = exp(-0.5*taudtB);
-	fbetaS = exp(-double(taudtS));
-	fbetaB = exp(-double(taudtB));
 }	
 
 void FDSimoVisco2D::Print(ostream& out) const
@@ -94,6 +86,14 @@ const dMatrixT& FDSimoVisco2D::c_ijkl(void)
        
 const dSymMatrixT& FDSimoVisco2D::s_ij(void)
 {
+	double taudtS = fdt/ftauS;
+	double taudtB = fdt/ftauB;
+
+	falphaS = exp(-0.5*taudtS);
+	falphaB = exp(-0.5*taudtB);
+	fbetaS = exp(-taudtS);
+	fbetaB = exp(-taudtB);
+
 	fF = F_mechanical();
 	fJ = fF.Det();
 	double Js = pow(fJ, -fthird);
