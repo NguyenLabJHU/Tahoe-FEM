@@ -1625,7 +1625,7 @@ double FossumSSIsoT::dGalphadAlphaB (dSymMatrixT alpha, dArrayT principalEqStres
 	*/
 
 	if (J2alpha == 0.0)
-	  return -1.0/(sqrt(2) * fN);
+	  return -1.0/(sqrt(2.0) * fN);
 
 	return -1.0/(2*fN*sqrt(J2alpha))*InnerProduct(alpha, nB);
 
@@ -2297,7 +2297,7 @@ if (fN != 0)
 	    ones [i+3] = 2.0;
 	  }
 
-	dGalphadAlpha.AddScaled(-1.0/(fN*sqrt(2)),ones);
+	dGalphadAlpha.AddScaled(-1.0/(fN*sqrt(2.0)),ones);
       }
 
     dGalphadAlpha.AddScaled(-1.0/(2*fN*sqrt(J2alpha)),alpha);
