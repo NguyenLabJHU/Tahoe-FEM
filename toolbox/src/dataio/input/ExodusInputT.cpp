@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.11 2002-01-27 18:38:11 paklein Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.12 2002-03-04 06:26:33 paklein Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -56,10 +56,10 @@ void ExodusInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
     }
 }
 
-void ExodusInputT::ReadNodeMap (iArrayT& nodemap)
+void ExodusInputT::ReadNodeID(iArrayT& node_id)
 {
-  if (nodemap.Length() != NumNodes()) throw eSizeMismatch;
-  fData.ReadNodeMap (nodemap);
+	if (node_id.Length() != NumNodes()) throw eSizeMismatch;
+	fData.ReadNodeMap(node_id);
 }
 
 void ExodusInputT::ReadCoordinates (dArray2DT& coords)
@@ -69,9 +69,9 @@ void ExodusInputT::ReadCoordinates (dArray2DT& coords)
   fData.ReadCoordinates (coords);
 }
 
-void ExodusInputT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
+void ExodusInputT::ReadCoordinates (dArray2DT& coords, iArrayT& node_id)
 {
-  ReadNodeMap (nodemap);
+  ReadNodeID(node_id);
   ReadCoordinates (coords);
 }
 
