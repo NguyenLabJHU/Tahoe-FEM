@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.11 2003-01-29 07:34:34 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.12 2003-06-28 17:32:12 thao Exp $ */
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
 
@@ -77,7 +77,7 @@ class SmallStrainT: public SolidElementT
 	/** compute mean shape function gradient, Hughes (4.5.23) */
 	void SetMeanGradient(dArray2DT& mean_gradient) const;
 
-  private:
+  protected:
     
 	/** offset to material needs */
 	int fNeedsOffset; //NOTE - better to have this or a separate array?
@@ -95,6 +95,7 @@ class SmallStrainT: public SolidElementT
 	dArray2DT fMeanGradient;   /**< store mean shape function gradient */
   	/*@}*/
 
+ private:
   	/** the material support used to construct materials lists. This pointer
   	 * is only set the first time SmallStrainT::NewMaterialList is called. */
 	SSMatSupportT* fSSMatSupport;

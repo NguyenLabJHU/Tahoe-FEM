@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.12 2003-03-19 17:08:54 thao Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.13 2003-06-28 17:32:13 thao Exp $ */
 /* created: paklein (10/01/2000) */
 #include "OgdenIsotropicT.h"
 
@@ -46,7 +46,7 @@ void OgdenIsotropicT::Initialize(void)
 	double lambda = fddWddE(0,1);
 	double mu = 0.5*(fddWddE(0,0) - fddWddE(0,1));
 
-	if (NumSD() == 2 && PurePlaneStress())
+	if (NumSD() == 2)
 		IsotropicT::Set_PurePlaneStress_mu_lambda(mu, lambda);
 	else
 	{
@@ -75,9 +75,6 @@ const dSymMatrixT& OgdenIsotropicT::s_ij(void)
 	
 	/* transform */
 	fStress.SetToScaled(1.0/Fmat.Det(), PushForward(Fmat, OgdenIsotropicT::S_IJ()));
-	Compute_C(fC);
-	/*        cout <<"\nC: "<<fC;
-		  cout <<"\nsig: "<<fStress;*/
 	return fStress;
 }
 /**< \todo compute directly in spatial representation rather than transforming */
@@ -90,7 +87,6 @@ const dMatrixT& OgdenIsotropicT::C_IJKL(void)
 
 	/* spectral decomposition */
 	fSpectralDecomp.SpectralDecomp_Jacobi(fC, false);
-	//fSpectralDecomp.SpectralDecomp(C(), false); // closed-form decomposition
 
 	/* principal values */
 	const dArrayT& eigenstretch = fSpectralDecomp.Eigenvalues();
@@ -143,7 +139,6 @@ const dMatrixT& OgdenIsotropicT::C_IJKL(void)
 		MixedRank4_3D(eigenvectors[1], eigenvectors[2], fModMat);
 		fModulus.AddScaled(2.0*dtde, fModMat);
 	}
-	
 	return fModulus;
 }
 
@@ -155,11 +150,13 @@ const dSymMatrixT& OgdenIsotropicT::S_IJ(void)
 	/* spectral decomposition */
 	fSpectralDecomp.SpectralDecomp_Jacobi(fC, false);
 	//fSpectralDecomp.SpectralDecomp(C(), false); // closed-form decomposition
+	const ArrayT<dArrayT>& eigenvectors = fSpectralDecomp.Eigenvectors();
 
 	/* principal values */
 	dWdE(fSpectralDecomp.Eigenvalues(), fdWdE);
+	fStress = fSpectralDecomp.EigsToRank2(fdWdE);
 
-	return fSpectralDecomp.EigsToRank2(fdWdE);
+	return (fStress);
 }
 
 /* return the pressure associated with the last call to stress */

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.9 2003-05-15 05:11:24 thao Exp $ */
+/* $Id: SSSolidMatT.h,v 1.10 2003-06-28 17:32:18 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -59,14 +59,20 @@ public:
 
 	/*inquire if dissipation variables used in material force calculation are needed*/
 	virtual bool HasDissipVar(void) const {return false;};
-	virtual const iArrayT& InternalDOF(void) {
-		cout << "\n SSSolidMatT::InternalDOF: Inappropriate function call.";
+
+	virtual const iArrayT& InternalDOF(void) const {
+		cout << "\n InternalDOF not implement";
+		throw ExceptionT::kGeneralFail;
 		return  ijunk;};
+
 	virtual const dArrayT& InternalStressVars(void) {
-		cout << "\n SSSolidMatT::InternalStressVars: Inappropriate function call.";
+		cout << "\n InternalStressVars not implemented";
+		throw ExceptionT::kGeneralFail;
 		return  djunk;};
+
 	virtual const dArrayT& InternalStrainVars(void) {
-		cout << "\n SSSolidMatT::InternalStressVars: Inappropriate function call.";
+		cout << "\n InternalStressVars not implemented.";
+		throw ExceptionT::kGeneralFail;
 		return  djunk;};
 
 protected:
