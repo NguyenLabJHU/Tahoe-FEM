@@ -1,8 +1,14 @@
-/* $Id: NLCSolver.cpp,v 1.5.10.1 2002-12-10 17:06:59 paklein Exp $ */
+/* $Id: NLCSolver.cpp,v 1.5.10.2 2003-01-07 18:52:41 paklein Exp $ */
 #include "NLCSolver.h"
 
 #include <iostream.h>
 #include "NLCSolverWrapperPtr.h"
+
+// some macros
+#ifndef max
+static int max(int i1, int i2) {return i1 >= i2 ? i1 : i2;};
+static double max(double d1, double d2) {return d1 >= d2 ? d1 : d2;};
+#endif
 
 using namespace Tahoe;
 
