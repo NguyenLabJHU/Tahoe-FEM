@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.31 2004-03-01 02:41:01 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.32 2004-06-09 23:14:42 paklein Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -110,9 +110,6 @@ namespace Tahoe {
 /* I/O operators */
 ostream& operator<<(ostream& out, const dSymMatrixT& array)
 {
-	const char caller[] = "operator<<(ostream&, const dSymMatrixT&)";
-	if (array.fNumSD == 0) ExceptionT::GeneralFail(caller, "NumSD == 0");
-
 	int d_width = OutputWidth(out, array.fArray);
 
 	if (array.fNumSD == 2)
@@ -145,8 +142,9 @@ ostream& operator<<(ostream& out, const dSymMatrixT& array)
 		out << setw(d_width) << 0.0;
 		out << setw(d_width) << array.fArray[3]; 
 	}
-	else
+	else if (array.fNumSD == 1)
 		out << setw(d_width) << array.fArray[0] << '\n';
+
 	return out;
 }
 
