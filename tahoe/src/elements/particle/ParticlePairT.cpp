@@ -1,12 +1,11 @@
-/* $Id: ParticlePairT.cpp,v 1.14.4.1 2003-03-14 01:13:19 cjkimme Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.14.4.2 2003-04-09 16:01:45 cjkimme Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
 #include "eIntegratorT.h"
 #include "InverseMapT.h"
 #include "CommManagerT.h"
-
-/* experimental stuff */
+#include "dSPMatrixT.h"
 #include "RandomNumberT.h"
 
 /* pair property types */
@@ -24,9 +23,7 @@ ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field
 	ParticleT(support, field),
 	fNeighbors(kMemoryHeadRoom),
 	fEqnos(kMemoryHeadRoom),
-	fForce_list_man(0, fForce_list),
-	QisDamped(false),
-	fRand(NULL)
+	fForce_list_man(0, fForce_list)
 {
 
 }
@@ -47,6 +44,28 @@ void ParticlePairT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	eq_2.Append(&fEqnos);
 }
 
+/* class initialization */
+void ParticlePairT::Initialize(void)
+{
+	/* inherited */
+	ParticleT::Initialize();
+
+	/* dimension */
+	int ndof = NumDOF();
+	fLHS.Dimension(2*ndof);
+	fRHS.Dimension(2*ndof);
+
+	/* constant matrix needed to calculate stiffness */
+	fOneOne.Dimension(fLHS);
+	dMatrixT one(ndof);
+	one.Identity();
+	fOneOne.SetBlock(0, 0, one);
+	fOneOne.SetBlock(ndof, ndof, one);
+	one *= -1;
+	fOneOne.SetBlock(0, ndof, one);
+	fOneOne.SetBlock(ndof, 0, one);
+}
+
 /* collecting element geometry connectivities */
 void ParticlePairT::ConnectsX(AutoArrayT<const iArray2DT*>& connects) const
 {
@@ -64,6 +83,8 @@ void ParticlePairT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 
 void ParticlePairT::WriteOutput(void)
 {
+	const char caller[] = "ParticlePairT::WriteOutput";
+
 	/* inherited */
 	ParticleT::WriteOutput();
 
@@ -76,9 +97,17 @@ void ParticlePairT::WriteOutput(void)
 	int ndof = NumDOF();
 	int num_output = ndof + 2; /* displacement + PE + KE */
 
+	/* number of nodes */
+	const ArrayT<int>* parition_nodes = fCommManager.PartitionNodes();
+	int non = (parition_nodes) ? 
+		parition_nodes->Length() : 
+		ElementSupport().NumNodes();
+
+	/* map from partition node index */
+	const InverseMapT* inverse_map = fCommManager.PartitionNodes_inv();
+
 	/* output arrays length number of active nodes */
-	int num_particles = fNeighbors.MajorDim();
-	dArray2DT n_values(num_particles, num_output), e_values;
+	dArray2DT n_values(non, num_output), e_values;
 	n_values = 0.0;
 
 	/* global coordinates */
@@ -94,17 +123,28 @@ void ParticlePairT::WriteOutput(void)
 	const dArray2DT* velocities = NULL;
 	if (field.Order() > 0) velocities = &(field[1]);
 
+	/* collect displacements */
+	dArrayT vec, values_i;
+	for (int i = 0; i < non; i++) {
+		int   tag_i = (parition_nodes) ? (*parition_nodes)[i] : i;
+		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
+
+		/* values for particle i */
+		n_values.RowAlias(local_i, values_i);
+
+		/* copy in */
+		vec.Set(ndof, values_i.Pointer());
+		displacement.RowCopy(tag_i, vec);
+	}
+
 	/* collect mass per particle */
 	dArrayT mass(fNumTypes);
 	for (int i = 0; i < fNumTypes; i++)
 		mass[i] = fPairProperties[fPropertiesMap(i,i)]->Mass();
-
-	/* map from partition node index */
-	const InverseMapT* inverse_map = fCommManager.PartitionNodes_inv();
 	
 	/* run through neighbor list */
 	iArrayT neighbors;
-	dArrayT x_i, x_j, r_ij(ndof), vec, values_i;
+	dArrayT x_i, x_j, r_ij(ndof);
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
 	{
 		/* row of neighbor list */
@@ -117,10 +157,6 @@ void ParticlePairT::WriteOutput(void)
 		
 		/* values for particle i */
 		n_values.RowAlias(local_i, values_i);
-		
-		/* displacements */
-		vec.Set(ndof, values_i.Pointer());
-		displacement.RowCopy(tag_i, vec);
 		
 		/* kinetic energy */
 		if (velocities)
@@ -162,7 +198,7 @@ void ParticlePairT::WriteOutput(void)
 				int local_j = (inverse_map) ? inverse_map->Map(tag_j) : tag_j;
 				
 				if (local_j < 0 || local_j >= n_values.MajorDim())
-					cout << " out of range: " << local_j << '\n';
+					cout << caller << ": out of range: " << local_j << '\n';
 				else
 					n_values(local_j, ndof) += uby2;
 
@@ -172,6 +208,105 @@ void ParticlePairT::WriteOutput(void)
 
 	/* send */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+}
+
+/* compute the part of the stiffness matrix */
+void ParticlePairT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
+	const iArray2DT& col_eq, dSPMatrixT& stiffness)
+{
+	const char caller[] = "ParticlePairT::FormStiffness";
+
+	/* map should return -1 of out of range */
+	if (col_to_col_eq_row_map.OutOfRange() != InverseMapT::MinusOne)
+		ExceptionT::GeneralFail(caller, "inverse map out of range should return -1");
+
+	/* assembly information */
+	const ElementSupportT& support = ElementSupport();
+	int group = Group();
+	int ndof = NumDOF();
+	fLHS.Dimension(2*ndof);
+		
+	/* global coordinates */
+	const dArray2DT& coords = support.CurrentCoordinates();
+
+	/* pair properties function pointers */
+	int current_property = -1;
+	PairPropertyT::ForceFunction force_function = NULL;
+	PairPropertyT::StiffnessFunction stiffness_function = NULL;
+
+	/* work space */
+	dArrayT r_ij(NumDOF(), fRHS.Pointer());
+	dArrayT r_ji(NumDOF(), fRHS.Pointer() + NumDOF());
+
+	/* run through neighbor list */
+	const iArray2DT& field_eqnos = Field().Equations();
+	iArrayT row_eqnos, col_eqnos; 
+	iArrayT neighbors;
+	dArrayT x_i, x_j;
+	for (int i = 0; i < fNeighbors.MajorDim(); i++)
+	{
+		/* row of neighbor list */
+		fNeighbors.RowAlias(i, neighbors);
+
+		/* type */
+		int  tag_i = neighbors[0]; /* self is 1st spot */
+		int type_i = fType[tag_i];
+		
+		/* particle equations */
+		field_eqnos.RowAlias(tag_i, row_eqnos);
+
+		/* run though neighbors for one atom - first neighbor is self */
+		coords.RowAlias(tag_i, x_i);
+		for (int j = 1; j < neighbors.Length(); j++)
+		{
+			/* global tag */
+			int tag_j = neighbors[j];
+			
+			/* particle is a target column */
+			int col_eq_index = col_to_col_eq_row_map.Map(tag_j);
+			if (col_eq_index != -1)
+			{
+				/* more particle info */
+				int type_j = fType[tag_j];
+
+				/* particle equations */
+				col_eq.RowAlias(col_eq_index, col_eqnos);
+
+				/* set pair property (if not already set) */
+				int property = fPropertiesMap(type_i, type_j);
+				if (property != current_property)
+				{
+					force_function = fPairProperties[property]->getForceFunction();
+					stiffness_function = fPairProperties[property]->getStiffnessFunction();
+					current_property = property;
+				}
+
+				/* global coordinates */
+				coords.RowAlias(tag_j, x_j);
+
+				/* connecting vector */
+				r_ij.DiffOf(x_j, x_i);
+				double r = r_ij.Magnitude();
+				r_ji.SetToScaled(-1.0, r_ij);
+
+				/* interaction functions */
+				double F = force_function(r, NULL, NULL);
+				double K = stiffness_function(r, NULL, NULL);
+				double Fbyr = F/r;
+
+				/* 1st term */
+				fLHS.Outer(fRHS, fRHS, (K - Fbyr)/r/r);
+
+				/* 2nd term */				
+				fLHS.AddScaled(Fbyr, fOneOne);
+
+				/* assemble */
+				for (int p = 0; p < row_eqnos.Length(); p++)
+					for (int q = 0; q < col_eqnos.Length(); q++)
+						stiffness.AddElement(row_eqnos[p]-1, col_eqnos[q]-1, fLHS(p,q));
+			}
+		}
+	}
 }
 
 /***********************************************************************
@@ -219,12 +354,9 @@ void ParticlePairT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		AssembleParticleMass(mass);
 	}
 	
-	/* assemble stiffness */
-	if (formK)
+	/* assemble diagonal stiffness */
+	if (formK && sys_type == GlobalT::kDiagonal)
 	{
-		if (sys_type != GlobalT::kDiagonal && ElementSupport().IterationNumber() == 1)
-			cout << "\n ParticlePairT::LHSDriver: WARNING: LHS matrix is a diagonal approximation" << endl;
-	
 		/* assembly information */
 		const ElementSupportT& support = ElementSupport();
 		int group = Group();
@@ -296,18 +428,85 @@ void ParticlePairT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		/* assemble */
 		support.AssembleLHS(group, fForce, Field().Equations());
 	}
-}
+	else if (formK)
+	{
+		/* assembly information */
+		const ElementSupportT& support = ElementSupport();
+		int group = Group();
+		int ndof = NumDOF();
+		fLHS.Dimension(2*ndof);
+		
+		/* global coordinates */
+		const dArray2DT& coords = support.CurrentCoordinates();
 
-/* form group contribution to the residual */
-void ParticlePairT::RHSDriver(void)
-{
-	int nsd = NumSD();
-	if (nsd == 3)
-		RHSDriver3D();
-	else if (nsd == 2)
-		RHSDriver2D();
-	else
-		ExceptionT::GeneralFail("ParticlePairT::RHSDriver");
+		/* pair properties function pointers */
+		int current_property = -1;
+		PairPropertyT::ForceFunction force_function = NULL;
+		PairPropertyT::StiffnessFunction stiffness_function = NULL;
+
+		/* work space */
+		dArrayT r_ij(NumDOF(), fRHS.Pointer());
+		dArrayT r_ji(NumDOF(), fRHS.Pointer() + NumDOF());
+
+		/* run through neighbor list */
+		const iArray2DT& field_eqnos = Field().Equations();
+		iArray2DT pair_eqnos(2, ndof); 
+		iArrayT pair(2);
+		iArrayT neighbors;
+		dArrayT x_i, x_j;
+		for (int i = 0; i < fNeighbors.MajorDim(); i++)
+		{
+			/* row of neighbor list */
+			fNeighbors.RowAlias(i, neighbors);
+
+			/* type */
+			int  tag_i = neighbors[0]; /* self is 1st spot */
+			int type_i = fType[tag_i];
+			pair[0] = tag_i;
+		
+			/* run though neighbors for one atom - first neighbor is self */
+			coords.RowAlias(tag_i, x_i);
+			for (int j = 1; j < neighbors.Length(); j++)
+			{
+				/* global tag */
+				int  tag_j = neighbors[j];
+				int type_j = fType[tag_j];
+				pair[1] = tag_j;
+			
+				/* set pair property (if not already set) */
+				int property = fPropertiesMap(type_i, type_j);
+				if (property != current_property)
+				{
+					force_function = fPairProperties[property]->getForceFunction();
+					stiffness_function = fPairProperties[property]->getStiffnessFunction();
+					current_property = property;
+				}
+		
+				/* global coordinates */
+				coords.RowAlias(tag_j, x_j);
+		
+				/* connecting vector */
+				r_ij.DiffOf(x_j, x_i);
+				double r = r_ij.Magnitude();
+				r_ji.SetToScaled(-1.0, r_ij);
+			
+				/* interaction functions */
+				double F = constK*force_function(r, NULL, NULL);
+				double K = constK*stiffness_function(r, NULL, NULL);
+				double Fbyr = F/r;
+
+				/* 1st term */
+				fLHS.Outer(fRHS, fRHS, (K - Fbyr)/r/r);
+		
+				/* 2nd term */
+				fLHS.AddScaled(Fbyr, fOneOne);
+				
+				/* assemble */
+				pair_eqnos.RowCollect(pair, field_eqnos);
+				support.AssembleLHS(group, fLHS, pair_eqnos);
+			}
+		}
+	}
 }
 
 void ParticlePairT::RHSDriver2D(void)
@@ -326,14 +525,9 @@ void ParticlePairT::RHSDriver2D(void)
 
 	//TEMP - interial force not implemented
 	if (formMa) ExceptionT::GeneralFail(caller, "inertial force not implemented");
-
-	/* assembly information */
-	const ElementSupportT& support = ElementSupport();
-	int group = Group();
-	int ndof = NumDOF();
 	
 	/* global coordinates */
-	const dArray2DT& coords = support.CurrentCoordinates();
+	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
 
 	/* pair properties function pointers */
 	int current_property = -1;
@@ -405,25 +599,6 @@ void ParticlePairT::RHSDriver2D(void)
 			f_j[1] +=-r_ij_1;
 		}
 	}
-	
-	/* Somehow add damping here. Loop over i and j or
-	 * just over fForce?
-	 */
-	if (QisDamped)
-	{
-		const dArray2DT* velocities = NULL;
-		if (Field().Order() > 0) velocities = &(Field()[1]);
-		for (int i = 0; i < velocities->MajorDim(); i++)
-		{
-			fForce[i] -= fDamping*(*velocities)[i];
-			fForce(i,0) += .05*fRand->Rand();
-			fForce(i,1) += .05*fRand->Rand();
-		}	
-		
-	}
-
-	/* assemble */
-	support.AssembleRHS(group, fForce, Field().Equations());
 }
 
 void ParticlePairT::RHSDriver3D(void)
@@ -442,14 +617,9 @@ void ParticlePairT::RHSDriver3D(void)
 
 	//TEMP - interial force not implemented
 	if (formMa) ExceptionT::GeneralFail(caller, "inertial force not implemented");
-
-	/* assembly information */
-	const ElementSupportT& support = ElementSupport();
-	int group = Group();
-	int ndof = NumDOF();
 	
 	/* global coordinates */
-	const dArray2DT& coords = support.CurrentCoordinates();
+	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
 
 	/* pair properties function pointers */
 	int current_property = -1;
@@ -526,9 +696,6 @@ void ParticlePairT::RHSDriver3D(void)
 			f_j[2] +=-r_ij_2;
 		}
 	}
-
-	/* assemble */
-	support.AssembleRHS(group, fForce, Field().Equations());
 }
 
 /* set neighborlists */
@@ -539,6 +706,8 @@ void ParticlePairT::SetConfiguration(void)
 
 	/* reset neighbor lists */
 	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+	if (fActiveParticles) 
+		part_nodes = fActiveParticles;
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
 	
 	ofstreamT& out = ElementSupport().Output();
@@ -574,33 +743,25 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 	fPairProperties = NULL;
 	for (int i = 0; i < fPairProperties.Length(); i++)
 	{
-		ParticleT::PropertyT property;
+		ParticlePropertyT::TypeT property;
 		in >> property;
-		if (property == ParticleT::kDampedPair)
-		{
-			in >> fDamping;
-			in >> property;
-			QisDamped = true;
-			fRand = new RandomNumberT(RandomNumberT::kParadynGaussian);
-			fRand->sRand(1234567);
-		}	
 		switch (property)
 		{
-			case ParticleT::kHarmonicPair:
+			case ParticlePropertyT::kHarmonicPair:
 			{
 				double mass, R0, K;
 				in >> mass >> R0 >> K;
 				fPairProperties[i] = new HarmonicPairT(mass, R0, K);
 				break;
 			}
-			case ParticleT::kLennardJonesPair:
+			case ParticlePropertyT::kLennardJonesPair:
 			{
 				double mass, eps, sigma, alpha;
 				in >> mass >> eps >> sigma >> alpha;
 				fPairProperties[i] = new LennardJonesPairT(mass, eps, sigma, alpha);
 				break;
 			}
-			case ParticleT::kParadynPair:
+			case ParticlePropertyT::kParadynPair:
 			{
 				StringT file;
 				in >> file;
@@ -614,7 +775,7 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 				break;
 			}
 			default:
-				ExceptionT::BadInputValue("ParticlePairT::EchoProperties", 
+				ExceptionT::BadInputValue("ParticlePairT::ReadProperties", 
 					"unrecognized property type: %d", property);
 		}
 	}

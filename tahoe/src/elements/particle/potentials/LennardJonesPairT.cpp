@@ -1,6 +1,7 @@
-/* $Id: LennardJonesPairT.cpp,v 1.4 2002-11-30 16:35:58 paklein Exp $ */
+/* $Id: LennardJonesPairT.cpp,v 1.4.6.1 2003-04-09 16:01:46 cjkimme Exp $ */
 #include "LennardJonesPairT.h"
 #include "toolboxConstants.h"
+#include <iostream.h>
 
 using namespace Tahoe;
 
@@ -75,6 +76,16 @@ PairPropertyT::StiffnessFunction LennardJonesPairT::getStiffnessFunction(void)
 
 	/* return function pointer */
 	return LennardJonesPairT::Stiffness;
+}
+
+/* write properties to output */
+void LennardJonesPairT::Write(ostream& out) const
+{
+	/* inherited */
+	PairPropertyT::Write(out);
+	out << " Energy scaling (epsilon). . . . . . . . . . . . = " << f_eps << '\n';
+	out << " Length scaling (sigma). . . . . . . . . . . . . = " << f_sigma << '\n';
+	out << " Cut-off parameter (alpha) . . . . . . . . . . . = " << f_alpha << '\n';
 }
 
 /***********************************************************************

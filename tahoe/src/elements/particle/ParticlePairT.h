@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.8.4.1 2003-03-14 01:13:19 cjkimme Exp $ */
+/* $Id: ParticlePairT.h,v 1.8.4.2 2003-04-09 16:01:45 cjkimme Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -13,7 +13,6 @@ namespace Tahoe {
 
 /* forward declarations */
 class PairPropertyT;
-class RandomNumberT;
 
 /** base class for particle types */
 class ParticlePairT: public ParticleT
@@ -26,6 +25,10 @@ public:
 	/** collecting element group equation numbers */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
+
+	/** class initialization. Among other things, element work space
+	 * is allocated and connectivities are read. */
+	virtual void Initialize(void);
 
 	/** \name connectivities.
 	 * See ElementBaseT::ConnectsX and ElementBaseT::ConnectsU for more
@@ -44,6 +47,12 @@ public:
 	 * by ParticlePairT::GenerateOutputLabels. */
 	virtual void WriteOutput(void);
 
+	/** compute the part of the stiffness matrix associated with rows of the given 
+	 * particles. This is the mixed part of the stiffness matrix involving free
+	 * particles and ghost particles which have prescribed motion. */
+	virtual void FormStiffness(const InverseMapT& col_to_col_eq_row_map,
+		const iArray2DT& col_eq, dSPMatrixT& stiffness);
+
 protected:
 
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
@@ -52,9 +61,8 @@ protected:
 	virtual void LHSDriver(GlobalT::SystemTypeT);
 
 	/** form group contribution to the residual */
-	virtual void RHSDriver(void);
-	void RHSDriver2D(void);
-	void RHSDriver3D(void);
+	virtual void RHSDriver2D(void);
+	virtual void RHSDriver3D(void);
 	/*@}*/
 	
 	/** set neighborlists and any other system configuration information
@@ -78,19 +86,15 @@ private:
 
 	/** equation numbers */
 	RaggedArray2DT<int> fEqnos;
-	
-	/** flag for application of damping */
-	bool QisDamped;
-	/** damping coefficient */
-	double fDamping;
-	/** Random number generator */
-	RandomNumberT *fRand;
 
 	/** \name workspace for ParticlePairT::RHSDriver. Used to accumulate the force for
 	 * a single row of ParticlePairT::fNeighbors. */
 	/*@{*/
 	dArrayT fForce_list;
 	VariArrayT<double> fForce_list_man;
+
+	/** constant matrix needed to compute the stiffness */
+	dMatrixT fOneOne;
 	/*@}*/
 };
 
