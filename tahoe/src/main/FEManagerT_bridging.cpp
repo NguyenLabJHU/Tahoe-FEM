@@ -1,16 +1,14 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.22.2.1 2004-07-06 06:54:37 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.22.2.2 2004-07-07 15:28:43 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
+#include "ifstreamT.h"
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
 #include "KBC_PrescribedT.h"
 #include "KBC_CardT.h"
-#include "ofstreamT.h"
-#include "ifstreamT.h"
 #include "NLSolver.h"
 #include "CommManagerT.h"
-
 #include "BridgingScaleT.h"
 #include "ParticleT.h"
 #include "ParticlePairT.h"

@@ -1,6 +1,6 @@
-/* $Id: ParadynPairT.cpp,v 1.8.30.1 2004-07-06 06:54:18 paklein Exp $ */
+/* $Id: ParadynPairT.cpp,v 1.8.30.2 2004-07-07 15:28:35 paklein Exp $ */
 #include "ParadynPairT.h"
-#include "toolboxConstants.h"
+
 #include "ifstreamT.h"
 #include "dArrayT.h"
 #include "AutoArrayT.h"

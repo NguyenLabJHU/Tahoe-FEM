@@ -1,7 +1,8 @@
-/* $Id: PeriodicNodesT.cpp,v 1.4.28.1 2004-07-06 06:54:42 paklein Exp $ */
+/* $Id: PeriodicNodesT.cpp,v 1.4.28.2 2004-07-07 15:28:47 paklein Exp $ */
 #include "PeriodicNodesT.h"
-#include "ifstreamT.h"
+
 #include "BasicSupportT.h"
+#include "ifstreamT.h"
 
 using namespace Tahoe;
 

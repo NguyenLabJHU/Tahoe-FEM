@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.15.2.1 2004-07-06 06:53:10 paklein Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.15.2.2 2004-07-07 15:27:58 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 #include "ViscTvergHutch2DT.h"
 
@@ -6,7 +6,7 @@
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "ifstreamT.h"
+
 #include "StringT.h"
 
 using namespace Tahoe;

@@ -1,8 +1,9 @@
-/* $Id: MultiManagerT.cpp,v 1.11.2.1 2004-07-06 06:54:37 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.11.2.2 2004-07-07 15:28:43 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
 
+#include "ifstreamT.h"
 #include "SolverT.h"
 #include "DiagonalMatrixT.h"
 #include "FEManagerT_bridging.h"

@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.19.2.1 2004-07-06 06:53:13 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.19.2.2 2004-07-07 15:28:00 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -7,11 +7,9 @@
 #include <iomanip.h>
 
 #include "ModelManagerT.h"
-#include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "ParentDomainT.h"
 #include "InverseMapT.h"
-
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
 

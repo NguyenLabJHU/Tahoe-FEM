@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.9.2.1 2004-07-06 06:53:42 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.9.2.2 2004-07-07 15:28:14 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #include "VIB2D.h"
 
@@ -7,7 +7,7 @@
 
 #include "toolboxConstants.h"
 
-#include "ifstreamT.h"
+
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"

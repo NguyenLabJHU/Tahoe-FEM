@@ -1,11 +1,12 @@
-/* $Id: IsotropicT.cpp,v 1.10.2.1 2004-07-06 06:54:06 paklein Exp $ */
+/* $Id: IsotropicT.cpp,v 1.10.2.2 2004-07-07 15:28:28 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "IsotropicT.h"
 
 #include <iostream.h>
 
 #include "dMatrixT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "ParameterContainerT.h"
 
 using namespace Tahoe;

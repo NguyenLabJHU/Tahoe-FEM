@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.20.2.1 2004-07-06 06:53:10 paklein Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.20.2.2 2004-07-07 15:27:58 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 #include "TvergHutch2DT.h"
 
@@ -6,7 +6,7 @@
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "ifstreamT.h"
+
 #include "StringT.h"
 
 using namespace Tahoe;

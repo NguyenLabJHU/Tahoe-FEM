@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.17.26.1 2004-07-06 06:53:21 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.17.26.2 2004-07-07 15:28:07 paklein Exp $ */
 /* created: paklein (05/14/2000) */
 #include "ABAQUS_UMAT_BaseT.h"
 
@@ -7,7 +7,7 @@
 #include <ctype.h>
 #include <float.h>
 
-#include "fstreamT.h"
+
 #include "ContinuumElementT.h" //needed for ip coordinates
 
 #include "SpectralDecompT.h"

@@ -1,11 +1,11 @@
-/* $Id: UpdatedLagrangianAxiT.cpp,v 1.2.2.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: UpdatedLagrangianAxiT.cpp,v 1.2.2.2 2004-07-07 15:28:05 paklein Exp $ */
 #include "UpdatedLagrangianAxiT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "ifstreamT.h"
+
 #include "toolboxConstants.h"
 #include "SolidMaterialT.h"
 #include "ShapeFunctionT.h"

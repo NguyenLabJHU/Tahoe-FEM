@@ -1,4 +1,4 @@
-/* $Id: BondLatticeT.h,v 1.4.2.1 2004-07-06 06:53:23 paklein Exp $ */
+/* $Id: BondLatticeT.h,v 1.4.2.2 2004-07-07 15:28:10 paklein Exp $ */
 /* created: paklein (01/07/1997) */
 #ifndef _BONDLATTICET_H_
 #define _BONDLATTICET_H_
@@ -81,6 +81,7 @@ protected:
 /* inlines */
 inline const iArrayT& BondLatticeT::BondCounts(void) const { return fBondCounts; }
 inline const dArrayT& BondLatticeT::DeformedLengths(void) const { return fDefLength; }
+inline const dArray2DT& BondLatticeT::Bonds(void) const { return fBonds; }
 
 } /* namespace Tahoe */
 

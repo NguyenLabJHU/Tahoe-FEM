@@ -1,8 +1,8 @@
-/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.8.42.1 2004-07-06 06:54:03 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.8.42.2 2004-07-07 15:28:26 paklein Exp $ */
 #include "BCJHypoIsoDamageYC3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 #include "BCJKineticEqn.h"
 

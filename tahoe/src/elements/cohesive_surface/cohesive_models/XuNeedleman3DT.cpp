@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.20.2.1 2004-07-06 06:53:10 paklein Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.20.2.2 2004-07-07 15:27:58 paklein Exp $ */
 /* created: paklein (06/23/1999)*/
 #include "XuNeedleman3DT.h"
 
@@ -6,7 +6,7 @@
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "ifstreamT.h"
+
 
 using namespace Tahoe;
 

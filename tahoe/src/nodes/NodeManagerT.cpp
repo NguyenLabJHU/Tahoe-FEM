@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.48.2.1 2004-07-06 06:54:39 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.48.2.2 2004-07-07 15:28:44 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -21,7 +21,6 @@
 #include "ReLabellerT.h"
 #include "OutputSetT.h"
 #include "ParameterUtils.h"
-
 #include "FieldT.h"
 
 /* force BC controllers */
@@ -1963,9 +1962,13 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(int code)
 		case FBC_ControllerT::kMFPenaltySphere:	
 			fbc = new MFPenaltySphereT;
 			break;
+
+#if 0
 	    case FBC_ControllerT::kMFAugLagMult:
 	    	fbc = new MFAugLagMultT(fFEManager, this, field, coords, disp);
 	    	break;
+#endif
+
 		default:
 			ExceptionT::BadInputValue(caller, "FBC controller code %d is not supported", code);
 	}	

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.40.2.1 2004-07-06 06:53:15 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.40.2.2 2004-07-07 15:28:01 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -6,7 +6,6 @@
 #include <iomanip.h>
 
 #include "ifstreamT.h"
-#include "ofstreamT.h"
 #include "ModelManagerT.h"
 #include "SolidMaterialT.h"
 #include "ShapeFunctionT.h"
@@ -50,7 +49,6 @@ ContinuumElementT::ContinuumElementT(const ElementSupportT& support,
 {
 	SetName("continuum_element");
 	ifstreamT& in = ElementSupport().Input();
-	ostream&  out = ElementSupport().Output();
 		
 	/* control parameters */
 	in >> fGeometryCode; //TEMP - should actually come from the geometry database
@@ -134,6 +132,8 @@ void ContinuumElementT::IP_ExtrapolateAll(const dArrayT& ip_values,
 /* allocates space and reads connectivity data */
 void ContinuumElementT::Initialize(void)
 {
+#pragma message("delete me")
+#if 0
 	/* inherited */
 	ElementBaseT::Initialize();
 	
@@ -148,7 +148,7 @@ void ContinuumElementT::Initialize(void)
 
 	/* streams */
 	ifstreamT& in = ElementSupport().Input();
-	ostream&  out = ElementSupport().Output();
+	ofstreamT& out = ElementSupport().Output();
 
 	/* output print specifications */
 	EchoOutputCodes(in, out);
@@ -173,6 +173,7 @@ void ContinuumElementT::Initialize(void)
 		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
 	else if (type == GlobalT::kDiagonal)
 		fLHS.SetFormat(ElementMatrixT::kDiagonal);
+#endif
 }
 
 void ContinuumElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1,

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.24.26.1 2004-07-06 06:53:22 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.24.26.2 2004-07-07 15:28:09 paklein Exp $ */
 #include "ABAQUS_VUMAT_BaseT.h"
 
 #ifdef __F2C__
@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <float.h>
 
-#include "fstreamT.h"
+
 #include "ContinuumElementT.h"
 
 #include "SpectralDecompT.h"

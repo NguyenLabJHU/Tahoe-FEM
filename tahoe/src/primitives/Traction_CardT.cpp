@@ -1,4 +1,4 @@
-/* $Id: Traction_CardT.cpp,v 1.7.2.1 2004-07-06 06:54:47 paklein Exp $ */
+/* $Id: Traction_CardT.cpp,v 1.7.2.2 2004-07-07 15:28:49 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "Traction_CardT.h"
 
@@ -6,8 +6,6 @@
 #include <iomanip.h>
 
 #include "toolboxConstants.h"
-
-#include "ifstreamT.h"
 #include "dArray2DT.h"
 #include "ScheduleT.h"
 #include "ElementSupportT.h"
@@ -46,68 +44,6 @@ Traction_CardT::Traction_CardT(void):
 }	
 
 /* modifiers */
-#ifdef SHAPE_FUNCTION_CLASSES
-void Traction_CardT::EchoValues(const ElementSupportT& support, const DomainIntegrationT& domain,
-	int elem, int ndof, ifstreamT& in, ostream& out)
-{
-#pragma message("delete me")
-	/* parameters */
-	int facet;
-	int nLTf;
-	CoordSystemT coord_sys;
-	dArray2DT valuesT;
-
-	/* read  parameters */
-	in >> facet >> nLTf >> coord_sys;
-
-	/* correct offset */
-	facet--;
-	nLTf--;
-	
-	/* configure */
-	domain.NodesOnFacet(facet, fLocNodeNums);
-	valuesT.Dimension(fLocNodeNums.Length(), ndof);
-
-	/* read tractions */
-	in >> valuesT;
-	
-	/* set and echo */
-	EchoValues(support, elem, facet, nLTf, coord_sys, fLocNodeNums, valuesT, out);
-}
-#else
-void Traction_CardT::EchoValues(const ElementSupportT&, const DomainIntegrationT&, int, int, ifstreamT&, ostream&) {}
-#endif	
-
-void Traction_CardT::EchoValues(const ElementSupportT& support, int elem, int facet,
-	int nLTf, CoordSystemT coord_sys, const iArrayT& locnodenums,
-	const dArray2DT& valuesT, ostream& out)
-{	
-#pragma message("delete me")
-	fValues.Dimension(valuesT.MajorDim(), valuesT.MinorDim());
-
-	/* set */
-	fElemNum  = elem;
-	fFacetNum = facet;
-	fCoordSystem = coord_sys;
-	fLocNodeNums = locnodenums;
-	fValues.FromTranspose(valuesT);
-
-	/* echo */
-	out << setw(kIntWidth) << fElemNum + 1;
-	out << setw(kIntWidth) << fFacetNum + 1;
-	out << setw(kIntWidth) << nLTf + 1;
-	out << setw(kIntWidth) << fCoordSystem;
-	for (int i = 0; i < fLocNodeNums.Length(); i++)
-	{
-		/* tab */
-		if (i > 0) out << setw(5*kIntWidth) << " ";
-		valuesT.PrintRow(i, out);
-	}
-
-	/* resolve the pointer to the LTf */
-	fLTfPtr = support.Schedule(nLTf);
-}	
-
 void Traction_CardT::SetValues(const ElementSupportT& support, int elem, int facet,
 	int nLTf, CoordSystemT coord_sys, const iArrayT& locnodenums,
 	const dArray2DT& valuesT)

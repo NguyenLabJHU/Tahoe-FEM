@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.23.2.1 2004-07-06 06:53:08 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.23.2.2 2004-07-07 15:27:56 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 #include "MeshFreeCSEAnisoT.h"
 
@@ -9,7 +9,6 @@
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"
-#include "toolboxConstants.h"
 #include "ElementSupportT.h"
 #include "eIntegratorT.h"
 #include "MeshFreeSurfaceShapeT.h"

@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.30.2.1 2004-07-06 06:54:50 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.30.2.2 2004-07-07 15:28:52 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -7,8 +7,6 @@
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
 #include "FEManagerT.h"
 #include "CommunicatorT.h"
 

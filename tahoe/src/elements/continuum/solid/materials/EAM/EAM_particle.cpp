@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.cpp,v 1.2 2004-04-09 02:02:58 hspark Exp $ */
+/* $Id: EAM_particle.cpp,v 1.2.8.1 2004-07-07 15:28:11 paklein Exp $ */
 /* created: hspark(02/25/2004) */
 #include "EAM_particle.h"
 #include <iostream.h> //TEMP
@@ -44,6 +44,7 @@ EAM_particle::~EAM_particle(void)
 /* Set "glue" functions */
 void EAM_particle::SetGlueFunctions(const StringT& param_file)
 {
+#if 0
 	/* construct EAM property - only the Paradyn EAM potentials are implemented */
 	fEAMProperty = new ParadynEAMT(param_file);
 
@@ -60,6 +61,7 @@ void EAM_particle::SetGlueFunctions(const StringT& param_file)
 	
 	/* set lattice parameter */
 	fLatticeParameter = fEAMProperty->GetLatticeParameter();
+#endif
 }
 
 /*

@@ -7,7 +7,7 @@
 #include "Array2DT.h"
 #include "dArray2DT.h"
 #include "dMatrixT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 
 #include <stdlib.h>

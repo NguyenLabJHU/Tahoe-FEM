@@ -1,8 +1,8 @@
-/* $Id: ThermostatBaseT.cpp,v 1.11.26.1 2004-07-06 06:54:20 paklein Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.11.26.2 2004-07-07 15:28:36 paklein Exp $ */
 #include "ThermostatBaseT.h"
 
 #include "BasicSupportT.h"
-#include "ifstreamT.h"
+
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "AutoArrayT.h"

@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.41.2.1 2004-07-06 06:54:17 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.41.2.2 2004-07-07 15:28:33 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -1162,6 +1162,7 @@ void ParticleT::Calc_CSP(dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighb
 {
 	const char caller[] = "ParticleT::Calc_CSP";
 
+  int num_s_vals = s_values.MinorDim();
   int ndof = NumDOF();
   iArrayT neighbors;
   dArrayT x_i(ndof), x_j(ndof), r_ij(ndof), rvec(ndof);  

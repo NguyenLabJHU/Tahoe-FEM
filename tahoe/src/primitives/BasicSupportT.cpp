@@ -1,9 +1,9 @@
-/* $Id: BasicSupportT.cpp,v 1.1.6.1 2004-07-06 06:54:46 paklein Exp $ */
+/* $Id: BasicSupportT.cpp,v 1.1.6.2 2004-07-07 15:28:49 paklein Exp $ */
 #include "BasicSupportT.h"
 
 #include "dArray2DT.h"
-#include "ifstreamT.h"
-#include "ofstreamT.h"
+
+
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "FEManagerT.h"

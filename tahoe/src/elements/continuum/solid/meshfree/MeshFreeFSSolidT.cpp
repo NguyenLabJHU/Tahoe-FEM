@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.19.2.1 2004-07-06 06:54:15 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.19.2.2 2004-07-07 15:28:31 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidT.h"
 
@@ -8,8 +8,6 @@
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
 #include "MeshFreeShapeFunctionT.h"
 #include "ModelManagerT.h"
 #include "CommManagerT.h"
@@ -472,7 +470,7 @@ void MeshFreeFSSolidT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values
 void MeshFreeFSSolidT::WriteField(void)
 {
 	cout << "\n MeshFreeFSSolidT::WriteField: writing full field" << endl;
-	
+		
 	const dArray2DT& DOFs = Field()[0]; /* displacements */
 	
 	/* reconstruct displacement field and all derivatives */

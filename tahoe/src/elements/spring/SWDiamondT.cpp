@@ -1,6 +1,5 @@
-/* $Id: SWDiamondT.cpp,v 1.12 2004-06-17 07:41:37 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.12.2.1 2004-07-07 15:28:38 paklein Exp $ */
 /* created: paklein (03/19/1997) */
-
 #include "SWDiamondT.h"
 
 #include <math.h>
@@ -11,10 +10,9 @@
 #include "FindNeighbor23T.h"
 #include "OutputSetT.h"
 
-/* element group parameters */
-
 using namespace Tahoe;
 
+/* element group parameters */
 const int knsd  = 3;
 const int kSWMaxNeighbors0 = 4; //max neighbors in undeformed state
 

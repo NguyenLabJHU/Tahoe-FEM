@@ -1,11 +1,10 @@
-/* $Id: SolidElementT.cpp,v 1.62.2.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.62.2.2 2004-07-07 15:28:05 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 #include <math.h>
 
-#include "toolboxConstants.h"
 #include "ifstreamT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"

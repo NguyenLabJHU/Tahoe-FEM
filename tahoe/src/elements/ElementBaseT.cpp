@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.46.2.1 2004-07-06 06:53:05 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.46.2.2 2004-07-07 15:27:53 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -6,10 +6,8 @@
 #include <iomanip.h>
 #include <ctype.h>
 
-#include "ModelManagerT.h"
-#include "ifstreamT.h"
 #include "ofstreamT.h"
-#include "toolboxConstants.h"
+#include "ModelManagerT.h"
 #include "LocalArrayT.h"
 #include "ParameterUtils.h"
 
@@ -77,8 +75,8 @@ void ElementBaseT::Initialize(void)
 	iSetName(name);
 
 	/* streams */
-	ifstreamT& in = fSupport.Input();
-	ostream&   out = fSupport.Output();
+	ifstreamT&  in = fSupport.Input();
+	ofstreamT& out = fSupport.Output();
 
 	/* control data */
 	PrintControlData(out);

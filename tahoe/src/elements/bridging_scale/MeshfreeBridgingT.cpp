@@ -1,7 +1,8 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.6 2004-06-26 05:53:19 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.6.2.1 2004-07-07 15:27:54 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "PointInCellDataT.h"
 #include "ShapeFunctionT.h"
 #include "iGridManagerT.h"
@@ -10,7 +11,6 @@
 #include "MLSSolverT.h"
 #include "VariLocalArrayT.h"
 #include "VariArrayT.h"
-#include "ofstreamT.h"
 #include "CommManagerT.h"
 #include "OutputBaseT.h"
 #include "OutputSetT.h"

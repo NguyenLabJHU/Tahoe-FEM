@@ -1,4 +1,4 @@
-/* $Id: Hex2D.h,v 1.3.2.1 2004-07-06 06:53:24 paklein Exp $ */
+/* $Id: Hex2D.h,v 1.3.2.2 2004-07-07 15:28:10 paklein Exp $ */
 #ifndef _HEX_2D_H_
 #define _HEX_2D_H_
 
@@ -22,7 +22,19 @@ public:
 	
 	/** destructor */
 	~Hex2D(void);
-	
+
+	/** \name Cauchy-Born parameters */
+	/*@{*/
+	/** return a reference to the bond lattice */
+	const BondLatticeT& BondLattice(void) const;
+
+	/** reference volume */
+	double CellVolume(void) const { return fCellVolume; };
+
+	/** nearest neighbor distance */
+	double NearestNeighbor(void) const { return fNearestNeighbor; };
+	/*@}*/
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */
@@ -40,18 +52,6 @@ public:
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-
-	/** \name Cauchy-Born parameters */
-	/*@{*/
-	/** return a reference to the bond lattice */
-	const BondLatticeT& BondLattice(void) const;
-
-	/** reference volume */
-	double CellVolume(void) const { return fCellVolume; };
-
-	/** nearest neighbor distance */
-	double NearestNeighbor(void) const { return fNearestNeighbor; };
 	/*@}*/
 
 protected:

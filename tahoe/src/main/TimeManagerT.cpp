@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.21.2.1 2004-07-06 06:54:37 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.21.2.2 2004-07-07 15:28:43 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -37,7 +37,7 @@ TimeManagerT::TimeManagerT(FEManagerT& FEM):
 void TimeManagerT::Initialize(void)
 {
 	ifstreamT& in  = theBoss.Input();
-	ostream&   out = theBoss.Output();
+	ofstreamT& out = theBoss.Output();
 
 	/* Time sequences - allocate memory and echo */
 	int num_sequences = -1;

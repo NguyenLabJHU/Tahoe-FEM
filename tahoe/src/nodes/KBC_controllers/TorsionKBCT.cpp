@@ -1,7 +1,7 @@
-/* $Id: TorsionKBCT.cpp,v 1.3.40.1 2004-07-06 06:54:42 paklein Exp $ */
+/* $Id: TorsionKBCT.cpp,v 1.3.40.2 2004-07-07 15:28:47 paklein Exp $ */
 #include "TorsionKBCT.h"
 #include "NodeManagerT.h"
-#include "ifstreamT.h"
+
 #include "ParameterUtils.h"
 
 using namespace Tahoe;

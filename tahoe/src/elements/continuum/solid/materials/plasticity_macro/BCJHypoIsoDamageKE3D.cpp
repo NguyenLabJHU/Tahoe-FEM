@@ -1,8 +1,8 @@
-/* $Id: BCJHypoIsoDamageKE3D.cpp,v 1.7.54.1 2004-07-06 06:54:03 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageKE3D.cpp,v 1.7.54.2 2004-07-07 15:28:26 paklein Exp $ */
 #include "BCJHypoIsoDamageKE3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 #include "BCJKineticEqn.h"
 

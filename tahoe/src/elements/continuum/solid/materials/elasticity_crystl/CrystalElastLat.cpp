@@ -1,4 +1,4 @@
-/* $Id: CrystalElastLat.cpp,v 1.4 2002-10-20 22:49:00 paklein Exp $ */
+/* $Id: CrystalElastLat.cpp,v 1.4.58.1 2004-07-07 15:28:18 paklein Exp $ */
 /*
   File: CrystalElastLat.cpp
 */
@@ -9,7 +9,7 @@
 #include "Array2DT.h"
 #include "dArray2DT.h"
 #include "dMatrixT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 
 // for random generation of numbers

@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.4.2.1 2004-07-06 06:53:24 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.4.2.2 2004-07-07 15:28:10 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -8,7 +8,7 @@
 #include <math.h>
 #include <iostream.h>
 
-#include "ifstreamT.h"
+
 
 /* pair properties */
 #ifdef PARTICLE_ELEMENT

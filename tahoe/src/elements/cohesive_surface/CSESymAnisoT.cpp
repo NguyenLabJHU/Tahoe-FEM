@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.6.26.1 2004-07-06 06:53:08 paklein Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.6.26.2 2004-07-07 15:27:56 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -10,7 +10,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "fstreamT.h"
+
 #include "toolboxConstants.h"
 #include "SurfaceShapeT.h"
 #include "SurfacePotentialT.h"

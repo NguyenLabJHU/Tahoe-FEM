@@ -1,4 +1,4 @@
-/* $Id: CrystalElastMat.cpp,v 1.5.64.1 2004-07-06 06:53:49 paklein Exp $ */
+/* $Id: CrystalElastMat.cpp,v 1.5.64.2 2004-07-07 15:28:18 paklein Exp $ */
 /*
   File: CrystalElastMat.cpp
 */
@@ -14,7 +14,7 @@
 #include "dMatrixT.h"
 #include "ArrayT.h"
 #include "dArrayT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 
 
