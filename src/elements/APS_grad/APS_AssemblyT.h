@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.11 2003-09-30 20:00:35 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.12 2003-10-02 00:28:11 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -157,7 +157,7 @@ private:
 	GeometryT::CodeT fGeometryCode;
 
 	/** number of integration points */
-	int	fNumIP, knum_d_state, knum_i_state;
+	int	fNumIP, knum_d_state, knum_i_state, knumstress;
 	/*@}*/
 
 	/** \name element displacements in local ordering */
@@ -180,6 +180,11 @@ private:
 	int step_number;
 	int iPlastModelType;
 	
+	//name of output vector
+	StringT output;
+	
+	ArrayT < FEA_dVector_ArrayT >  Render_Vector; // ( n_el x num variables to render (n_rv)
+
 	dArrayT fForces_at_Node;
 	bool bStep_Complete;
  	double time, kappa;
