@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.1.4.2 2004-06-07 13:48:16 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.1.4.3 2004-06-08 04:51:50 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -634,7 +634,8 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& sub, ParameterListT::List
 		sub_sub_list.AddSub("large_strain_cubic_2D");
 		sub_sub_list.AddSub("large_strain_StVenant_2D");
 		sub_sub_list.AddSub("Simo_isotropic_2D");
-		sub_sub_list.AddSub("quad_log_2D");		
+		sub_sub_list.AddSub("quad_log_2D");
+		sub_sub_list.AddSub("quad_log_Ogden_2D");
 	}
 	else /* inherited */
 		SolidMatListT::DefineInlineSub(sub, order, sub_sub_list);
@@ -689,6 +690,8 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 		mat = new SimoIso2D;
 	else if (name == "quad_log_2D")
 		mat = new QuadLog2D;
+	else if (name == "quad_log_Ogden_2D")
+		mat = new QuadLogOgden2DT;
 
 	/* set support */
 	if (mat) mat->SetFSMatSupport(fFSMatSupport);
