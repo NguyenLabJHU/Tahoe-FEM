@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.16 2005-03-09 19:27:00 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.17 2005-03-12 00:13:00 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 #include "SSMatSupportT.h"
@@ -148,24 +148,44 @@ bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT
 	detAs.Free();
 	bool checkloc = checker.IsLocalized_SS(normals,slipdirs,detAs);
 	
-	/* calculate dissipation for each normal and slipdir */
-	normals.Top();
-	slipdirs.Top();
-	int num_normals = normals.Length();
-	dissipations_fact.Free();
-	dArrayT normal_tmp, slipdir_tmp;
-	normal_tmp.Dimension(NumSD());
-	slipdir_tmp.Dimension(NumSD());
-	while (normals.Next())
+	if (checkloc)
 	{
-		normal_tmp = normals.Current();
-		slipdirs.Next();
-		slipdir_tmp = slipdirs.Current();
-		//incomplete
-		double dissip = 0.0;
-		dissipations_fact.Append(dissip);
+		/* calculate dissipation for each normal and slipdir */
+		normals.Top();
+		slipdirs.Top();
+		dArrayT normal_tmp, slipdir_tmp;
+		normal_tmp.Dimension(NumSD());
+		slipdir_tmp.Dimension(NumSD());
+		
+		dissipations_fact.Free();
+		
+		double sigmn_scalar, nm, psi, cospsi;
+		
+		dSymMatrixT devsig(NumSD());
+		devsig.Deviatoric(stress);
+		
+		dArrayT& internal = fDP->Internal();
+		double alphaISV = internal[DPSSLinHardLocT::kalpha];
+		const ElementCardT& element = CurrentElement();
+		const iArrayT& flags = element.IntegerData();
+		if (flags[CurrIP()] == DPSSLinHardLocT::kIsPlastic)
+			alphaISV -= fDP->H_prime()*internal[DPSSLinHardLocT::kdgamma];
+		
+		while (normals.Next())
+		{
+			normal_tmp = normals.Current();
+			slipdirs.Next();
+			slipdir_tmp = slipdirs.Current();
+			sigmn_scalar = stress.MultmBn(normal_tmp, slipdir_tmp);
+			nm = dArrayT::Dot(normal_tmp, slipdir_tmp);
+			psi = asin(nm);
+			cospsi = cos(psi);
+			double dissip = sigmn_scalar;
+			dissip -= alphaISV*cospsi;
+			dissipations_fact.Append(dissip);
+		}
 	}
-
+	
 	return checkloc;
 }
 //#endif
