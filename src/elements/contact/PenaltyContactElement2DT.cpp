@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.36 2003-05-12 22:01:29 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.37 2003-05-22 22:56:17 rjones Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -177,14 +177,15 @@ void PenaltyContactElement2DT::PrintControlData(ostream& out) const
 			  case kMajumdarBhushan:
 			  	out << " Asperity height standard deviation : "
 			  		<< enf_parameters[kSigma] << '\n';
-			  	out << " Asperity roughness scale : "
+			  	out << "  Asperity roughness scale : "
 			  		<< enf_parameters[kRoughnessScale] << '\n';
-			  	out << " Fractal dimension : "
+			  	out << "  Fractal dimension : "
 			  		<< enf_parameters[kFractalDimension] << '\n';
 			  	out << "  Hertzian Modulus                   : "
 					<< enf_parameters[kEPrime] << '\n';
 				out << "  Area Fraction                   : "
 					<< enf_parameters[kAreaFraction] << '\n';
+				break;	
 			  default:
 				throw ExceptionT::kBadInputValue;
 		  	  }
