@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.32 2003-08-16 01:33:20 rdorgan Exp $ */
+/* $Id: SolidT.cpp,v 1.32.2.1 2003-11-20 01:41:21 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 
@@ -163,6 +163,9 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 			break;
 		case SolidT::kABAQUS_BCJ:
 			code = SolidT::kABAQUS_BCJ;
+			break;
+		case SolidT::kABAQUS_BCJ_ISO:
+			code = SolidT::kABAQUS_BCJ_ISO;
 			break;
 		case SolidT::kABAQUS_VUMAT_BCJ:
 			code = SolidT::kABAQUS_VUMAT_BCJ;
