@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.cpp,v 1.14 2005-02-22 00:10:19 rjones Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.15 2005-02-24 17:35:47 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltySphereT.h"
 #include "FieldT.h"
@@ -119,8 +119,10 @@ void PenaltySphereT::ComputeContactForce(double kforce)
 			fContactForce2D.SetRow(i, fv_OP);
 
 			/* compute contact area */
-			int index = fGlobal2Local.Map(fContactNodes[i]);
-			fContactArea += fNodalAreas[index];
+			if (fGlobal2Local.Entrees() > 0) {
+				int index = fGlobal2Local.Map(fContactNodes[i]);
+				fContactArea += fNodalAreas[index];
+			}
 		}
 
 		/* store */
