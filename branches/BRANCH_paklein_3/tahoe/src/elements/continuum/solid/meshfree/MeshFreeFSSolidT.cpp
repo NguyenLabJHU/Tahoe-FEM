@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.17 2003-07-12 00:25:45 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.17.4.1 2003-09-28 09:11:51 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidT.h"
 
@@ -301,11 +301,13 @@ void MeshFreeFSSolidT::CloseStep(void)
 	MeshFreeFractureSupportT::CloseStep();
 }
 
-void MeshFreeFSSolidT::ResetStep(void)
+GlobalT::RelaxCodeT MeshFreeFSSolidT::ResetStep(void)
 {
 	/* inherited */
-	TotalLagrangianT::ResetStep();
+	GlobalT::RelaxCodeT relax = TotalLagrangianT::ResetStep();
 	MeshFreeFractureSupportT::ResetStep();
+
+	return relax;
 }
 
 /***********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.18 2003-03-19 00:53:25 cjkimme Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.18.10.1 2003-09-28 09:11:47 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -299,16 +299,14 @@ void MeshFreeCSEAnisoT::CloseStep(void)
 }
 
 /* resets to the last converged solution */
-void MeshFreeCSEAnisoT::ResetStep(void)
+GlobalT::RelaxCodeT MeshFreeCSEAnisoT::ResetStep(void)
 {
 	/* inherited */
-	ElementBaseT::ResetStep();
+	GlobalT::RelaxCodeT relax = ElementBaseT::ResetStep();
 
 	/* mismatch could occur with misuse of managers */
-	if (fd_Storage.MajorDim() != fd_Storage_last.MajorDim()) {
-		cout << "\n MeshFreeCSEAnisoT::ResetStep: state variable storage mismatch" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (fd_Storage.MajorDim() != fd_Storage_last.MajorDim())
+		ExceptionT::GeneralFail("MeshFreeCSEAnisoT::ResetStep", "state variable storage mismatch");
 	
 	/* restore last state */
 	fd_Storage = fd_Storage_last;
@@ -319,6 +317,8 @@ void MeshFreeCSEAnisoT::ResetStep(void)
 		StatusFlagT& flag = fActiveFlag[i];
 		flag = (flag == kMarked) ? kON : flag;
 	}
+
+	return relax;
 }
 
 /* element level reconfiguration for the current solution */

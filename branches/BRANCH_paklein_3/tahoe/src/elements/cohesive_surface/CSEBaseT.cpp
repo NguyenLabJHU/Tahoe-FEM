@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.27 2003-09-03 23:45:18 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.27.2.1 2003-09-28 09:11:47 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -303,10 +303,10 @@ void CSEBaseT::CloseStep(void)
 }
 
 /* resets to the last converged solution */
-void CSEBaseT::ResetStep(void)
+GlobalT::RelaxCodeT CSEBaseT::ResetStep(void)
 {
 	/* inherited */
-	ElementBaseT::ResetStep();
+	GlobalT::RelaxCodeT relax = ElementBaseT::ResetStep();
 
 	/* unset marks */
 	int nel = NumElements();
@@ -315,6 +315,8 @@ void CSEBaseT::ResetStep(void)
 		int& flag = fElementCards[i].Flag();
 		flag = (flag == kMarked) ? kON : flag;
 	}
+	
+	return relax;
 }
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.32 2003-09-03 22:54:11 cjkimme Exp $ */
+/* $Id: ElementBaseT.h,v 1.32.2.1 2003-09-28 09:11:46 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -166,7 +166,7 @@ public:
 	/** restore the element group to its state at the beginning of the
 	 * current time step. Called if the integration over the
 	 * current time increment was unsuccessful. */
-	virtual void ResetStep(void); 
+	virtual GlobalT::RelaxCodeT ResetStep(void); 
 
 	/** element level reconfiguration for the current time increment. This
 	 * provides an interface for element-level adaptivity. The nature of

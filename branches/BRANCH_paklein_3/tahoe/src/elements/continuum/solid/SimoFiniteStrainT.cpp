@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.26 2003-03-31 23:17:53 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.26.10.1 2003-09-28 09:11:50 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -222,13 +222,15 @@ void SimoFiniteStrainT::CloseStep(void)
 }
 	
 /* restore last converged state */
-void SimoFiniteStrainT::ResetStep(void)
+GlobalT::RelaxCodeT SimoFiniteStrainT::ResetStep(void)
 {
 	/* inherited */
-	FiniteStrainT::ResetStep();
+	GlobalT::RelaxCodeT relax = FiniteStrainT::ResetStep();
 	
 	/* store converged solution */
 	fElementModes = fElementModes_last;
+
+	return relax;
 }
 
 /* read restart information from stream */
