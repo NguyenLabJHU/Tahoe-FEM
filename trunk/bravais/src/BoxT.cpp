@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.16 2002-11-27 02:03:51 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.17 2002-11-28 00:12:48 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -177,6 +177,7 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
       if (nlsd == 3) z[m] = atom_coord(m)[WhichSort[2]];
     }
 
+  // Sort 1st criterium
   Map.SetValueToPosition();
   Map.SortAscending(x);
 
@@ -185,6 +186,59 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
       new_coord(m)[WhichSort[0]] = x[m];
       new_coord(m)[WhichSort[1]] = y[Map[m]];
       if (nlsd == 3)  new_coord(m)[WhichSort[2]] = z[Map[m]];
+    } 
+
+  // Sort 2nd criterium
+  iArrayT Ind(atom_coord.MajorDim());
+
+  int is = 0;
+  Ind[0] = 0;
+  for(int m = 1; m < nATOMS ; m++) 
+    {
+      int ws = WhichSort[0];
+      if( fabs(new_coord(m)[ws] - new_coord(m-1)[ws]) >  1.e-6 ) 
+	{
+	  is++;
+	  Ind[is] = m ;
+	}
+    }  
+  is++;
+  Ind[is] = nATOMS;
+  is++;
+
+  y = 0;
+  z = 0;
+  
+  int p =0;
+  for(int n = 0; n < is-1; n++)
+    {
+      dArrayT aux_y(Ind[n+1]-Ind[n]);
+      dArrayT aux_z(Ind[n+1]-Ind[n]);
+
+      int isa = 0;
+      for(int m = Ind[n]; m < Ind[n+1]; m++)
+	{
+	  aux_y[isa] = new_coord(m)[WhichSort[1]];
+	  aux_z[isa] = new_coord(m)[WhichSort[2]];
+	  isa++;
+	}
+
+      iArrayT Map(isa);
+      Map.SetValueToPosition();
+      Map.SortAscending(aux_y);
+
+      for(int m = 0; m < isa; m++)
+      {
+	y[p] = aux_y[m];
+	if(nlsd == 3) z[p] = aux_z[Map[m]];
+	p++;
+      }
+    }
+  
+  for(int m=0; m < nATOMS ; m++) 
+    {
+      new_coord(m)[WhichSort[1]] = y[m];
+      if (nlsd == 3)  new_coord(m)[WhichSort[2]] = z[m];
     } 
 
   atom_coord = new_coord;
