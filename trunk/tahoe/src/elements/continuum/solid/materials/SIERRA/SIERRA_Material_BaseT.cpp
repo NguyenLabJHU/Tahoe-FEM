@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.4 2003-03-08 03:13:30 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.5 2003-03-09 17:09:51 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -441,6 +441,18 @@ void SIERRA_Material_BaseT::Read_SIERRA_Input(ifstreamT& in,
 		}
 		else /* split parameter name and value */
 		{
+			/* find equals sign */
+			int equal_dex = line.FirstPositionOf('=');
+			if (equal_dex < 1)
+				ExceptionT::BadInputValue(caller, "line does not contain \"=\":\n%s",
+					line.Pointer());
+			StringT param_name;
+			param_name.Take(line, equal_dex);
+			param_name.DropLeadingSpace();
+			param_name.DropTrailingSpace();
+			param_name.Replace(' ', '_');
+			param_name.ToUpper();
+		
 			/* get value */
 			double value;
 			if (!line.Tail('=', value))
@@ -448,10 +460,10 @@ void SIERRA_Material_BaseT::Read_SIERRA_Input(ifstreamT& in,
 					line.Pointer());
 			
 			/* new parameter */
-			ParameterT param(value, word);
+			ParameterT param(value, param_name);
 			if (!param_list.AddParameter(param))
 				ExceptionT::BadInputValue(caller, "parameter is duplicate: \"%s\"",
-					word.Pointer());
+					param_name.Pointer());
 		}
 		
 		/* get next line */
