@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.10 2004-03-21 05:18:25 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.9 2004-03-16 10:03:49 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -355,6 +355,54 @@ void PSPASESMatrixT::BackSubstitute(dArrayT& result)
 		&fLocNumEQ, &error, &comm);
 	fOut << caller << ": max |B - AX| = " << error << endl;
 #endif
+}
+
+/* element accessor */
+double* PSPASESMatrixT::operator()(int row, int col)
+{
+	const char caller[] = "PSPASESMatrixT::operator()";
+	int row_loc = row - fStartEQ + 1;
+
+#if __option(extended_errorcheck)
+	/* range checks */
+	if (row_loc < 0 || row_loc >= fLocNumEQ) ExceptionT::OutOfRange(caller, "row_loc %d < 0 or >= %d", row_loc, fLocNumEQ);
+	if (col < 0 || col >= fTotNumEQ) ExceptionT::OutOfRange(caller, "col %d < 0 || >= %d", col, fTotNumEQ);
+#endif
+
+	/* equations are 1... */
+	int* paptrs = faptrs(row_loc);
+	int r_dex = paptrs[0] - 1; /* PSPASES uses 1... */
+	int* painds = fainds.Pointer(r_dex);
+
+	/* range */
+	int min = 0;
+	int max = paptrs[1] - 1; /* last col index in row */
+
+	/* is last value */
+	if (painds[max] == col)
+		return favals.Pointer(r_dex + max);
+
+	/* bisection */
+	int c_dex = (max + min)/2;
+	int c_hit = painds[c_dex];
+	while (c_hit != col && max != min+1) {
+	
+		/* shift bounds */
+		if (c_hit > col)
+			max = c_dex;
+		else /* painds[cdex] < col */
+			min = c_dex;
+	
+		/* bisect */
+		c_dex = (max + min)/2;
+		c_hit = painds[c_dex];
+	}
+	
+	/* found */
+	if (c_hit == col)
+		return favals.Pointer(r_dex + c_dex);
+	else /* not found */
+		return NULL;
 }
 
 #endif /* __PSPASES__ */

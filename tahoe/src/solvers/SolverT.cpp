@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.20 2004-03-21 05:19:21 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.19 2004-03-16 06:58:22 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -18,7 +18,6 @@
 #include "CCNSMatrixT.h"
 #include "AztecMatrixT.h"
 #include "SuperLUMatrixT.h"
-#include "SuperLU_DISTMatrixT.h"
 #include "SPOOLESMatrixT.h"
 #include "PSPASESMatrixT.h"
 
@@ -84,7 +83,7 @@ SolverT::SolverT(FEManagerT& fe_manager, int group):
 	out << "    eq. " << kAztec            << ", NOT AVAILABLE\n";
 #endif
 
-#if defined(__SUPERLU__) || defined(__SUPERLU_DIST__)
+#ifdef __SUPERLU__
 	out << "    eq. " << kSuperLU     << ", fully sparse matrix with direct solver: SuperLU\n";
 #else
 	out << "    eq. " << kSuperLU     << ", NOT AVAILABLE\n";
@@ -572,37 +571,26 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 
 		case kSuperLU:
 		{
-			if (fFEManager.Size() == 1) /* serial */
-			{
 #ifdef __SUPERLU__
-				/* global system properties */
-				GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
+			/* global system properties */
+			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
 
-				bool symmetric;
-				if (type == GlobalT::kDiagonal || type == GlobalT::kSymmetric)
-					symmetric = true;
-				else if (type == GlobalT::kNonSymmetric)
-					symmetric = false;
-				else
-					ExceptionT::GeneralFail(caller, "unexpected system type: %d", type);
+			bool symmetric;
+			if (type == GlobalT::kDiagonal || type == GlobalT::kSymmetric)
+				symmetric = true;
+			else if (type == GlobalT::kNonSymmetric)
+				symmetric = false;
+			else
+				ExceptionT::GeneralFail(caller, "unexpected system type: %d", type);
 
-				/* construct */
-				fLHS = new SuperLUMatrixT(out, check_code, symmetric);
-#else /* no __SUPERLU__ */
-				ExceptionT::GeneralFail(caller, "SuperLU not installed: %d", fMatrixType);
-#endif /* __SUPERLU__*/
-			}
-			else /* parallel */
-			{
-#ifdef __SUPERLU_DIST__
 			/* construct */
-			fLHS = new SuperLU_DISTMatrixT(out, check_code, fFEManager.Communicator());
-#else /* no __SUPERLU_DIST__ */
-			ExceptionT::GeneralFail(caller, "SuperLU_DIST not installed: %d", fMatrixType);
-#endif /* __SUPERLU_DIST__*/
-			}
+			fLHS = new SuperLUMatrixT(out, check_code, symmetric);
+#else
+			ExceptionT::GeneralFail(caller, "SuperLU matrix not installed: %d", fMatrixType);
+#endif /* __SUPERLU__ */
 			break;
 		}
+
 		case kSPOOLES:
 		{
 #ifdef __SPOOLES__

@@ -1,4 +1,4 @@
-/* $Id: DPPrimitiveT.h,v 1.8 2004-03-20 23:38:19 raregue Exp $ */
+/* $Id: DPPrimitiveT.h,v 1.7 2002-07-05 22:28:24 paklein Exp $ */
 /* created: myip (06/01/1999)                                      */
 /*
  * Base class for Drucker-Prager, nonassociative, small-strain,
@@ -49,6 +49,7 @@ class DPPrimitiveT
   double ffriction;  /* friction-like parameter (ffriction >= 0.0) */
   double fdilation;  /* dilation-like parameter (fdilation >= 0.0) */
   double fH_prime;   /* Deviatoric hardening parameter */
+  double fH_delta;   /* Localized deviatoric hardening parameter (fH_delta < 0.0) */
 };
 
 } // namespace Tahoe 

@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.cpp,v 1.10 2004-03-30 18:34:17 paklein Exp $ */
+/* $Id: LinearSolver.cpp,v 1.9 2003-08-14 05:31:46 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 #include "LinearSolver.h"
 #include "FEManagerT.h"
@@ -28,16 +28,6 @@ void LinearSolver::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	
 	/* flag to reform LHS */
 	fFormLHS = 1;
-}
-
-/* start solution step */
-void LinearSolver::InitStep(void)
-{
-	/* inherited */
-	SolverT::InitStep();
-
-	/* no iterations count */
-	fNumIteration = 0;
 }
 
 /* solve the current step */
@@ -70,7 +60,8 @@ SolverT::SolutionStatusT LinearSolver::Solve(int)
 	}
 
 	/* determine update vector */
-	if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet("LinearSolver::Solve");
+	if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
+	fNumIteration = 1;
 
 	/* update displacements */
 	fFEManager.Update(Group(), fRHS);		

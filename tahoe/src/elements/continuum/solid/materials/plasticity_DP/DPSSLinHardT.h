@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.h,v 1.13 2004-03-20 23:38:20 raregue Exp $ */
+/* $Id: DPSSLinHardT.h,v 1.12 2003-11-21 22:46:45 paklein Exp $ */
 /* created: myip (06/01/1999)                                      */
 /*  
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -37,12 +37,12 @@ class DPSSLinHardT: public DPPrimitiveT
 
 	/* status flags */
 	enum LoadingStatusT {kIsPlastic = 0,
-						kIsElastic = 1,
-						kReset = 3}; // indicate not to repeat update
+                             kIsElastic = 1,
+                             kReset = 3}; // indicate not to repeat update
 
 	/* returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain, 
-						const ElementCardT& element, int ip);
+		const ElementCardT& element, int ip);
 			
 	/* return correction to stress vector computed by mapping the
 	 * stress back to the yield surface, if needed */
@@ -56,6 +56,10 @@ class DPSSLinHardT: public DPPrimitiveT
 	 *       internal variable values */
 	const dMatrixT& ModuliCorrection(const ElementCardT& element, int ip); 
 
+        /* Modulus for checking discontinuous bifurcation */
+
+	const dMatrixT& ModuliCorrDisc(const ElementCardT& element, int ip);
+
 	/* return a pointer to a new plastic element object constructed with
 	 * the data from element */
 	void AllocateElement(ElementCardT& element);
@@ -63,8 +67,8 @@ class DPSSLinHardT: public DPPrimitiveT
 	enum InternalVariablesT {kalpha = 0,  // stress-like internal state variable
                         kstressnorm = 1,  // norm of stress
                             kdgamma = 2,  // consistency parameter
-                            kftrial = 3,  // yield function value
-			    		kdgamma2 = 4}; // 2nd consistency par. at vertex
+                            kftrial = 3, // yield function value
+			    kdgamma2 = 4}; // 2nd consistency par. at vertex
 	/* element level data */
 	void Update(ElementCardT& element);
 	void Reset(ElementCardT& element);
@@ -92,7 +96,8 @@ class DPSSLinHardT: public DPPrimitiveT
 	/* returns 1 if the trial elastic strain state lies outside of the 
 	 * yield surface */
 	//	int PlasticLoading(const dSymMatrixT& trialstrain, 
-    //                         ElementCardT& element, int ip);
+        //                         ElementCardT& element, 
+	//	                   int ip);
 
 	/* computes the deviatoric stress corresponding to the given element
 	 * and elastic strain.  The functions returns a reference to the
@@ -121,13 +126,14 @@ class DPSSLinHardT: public DPPrimitiveT
 	double flambda;
 	double fkappa;
 	double fX_H;
-	//double fX;
-	double fMeanStress;
+        double fX;
+        double fMeanStress;
   
   	/* return values */
   	dSymMatrixT	fElasticStrain;
   	dSymMatrixT	fStressCorr;
   	dMatrixT	fModuliCorr;
+        dMatrixT        fModuliCorrDisc;
   		
 	/* work space */
 	dSymMatrixT fDevStress;

@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.31 2004-03-19 17:16:53 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.30 2004-01-05 07:34:30 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -28,8 +28,7 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support, const FieldT& field):
 	fLocCurrCoords(LocalArrayT::kCurrCoords),
 	fFractureArea(0.0),
 	fShapes(NULL),
-	fNumIntPts(-1),
-	fOutputGlobalTractions(false)
+	fNumIntPts(-1)
 {
 	SetName("CSE_base");
 	
@@ -70,8 +69,7 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support):
 	fLocCurrCoords(LocalArrayT::kCurrCoords),
 	fFractureArea(0.0),
 	fShapes(NULL),
-	fNumIntPts(-1),
-	fOutputGlobalTractions(false)
+	fNumIntPts(-1)
 {
 	SetName("CSE_base");	
 }
@@ -83,8 +81,7 @@ CSEBaseT::CSEBaseT(ElementSupportT& support):
 	fLocCurrCoords(LocalArrayT::kCurrCoords),
 	fFractureArea(0.0),
 	fShapes(NULL),
-	fNumIntPts(-1),
-	fOutputGlobalTractions(false)	
+	fNumIntPts(-1)	
 {
 	SetName("CSE_base");
 
@@ -183,9 +180,6 @@ void CSEBaseT::Initialize(void)
 	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
 	{
 		in >> fNodalOutputCodes[i];
-		
-		/* output tractions in global frame */
-		if (fNodalOutputCodes[i] == 2) fOutputGlobalTractions = true;
 
 		/* convert all to "at print increment" */
 		if (fNodalOutputCodes[i] != IOBaseT::kAtNever)
