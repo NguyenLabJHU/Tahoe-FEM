@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.60.2.3 2004-03-22 18:40:19 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.60.2.4 2004-03-30 07:49:16 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -714,6 +714,7 @@ ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& list_name) const
 		/* choices */
 		cz->AddSub("Xu-Needleman_2D");
 		cz->AddSub("Tvergaard-Hutchinson_2D");
+		cz->AddSub("viscous_Tvergaard-Hutchinson_2D");
 	
 		return cz;
 	}
@@ -798,6 +799,7 @@ void CSEAnisoT::TakeParameterList(const ParameterListT& list)
 		SurfacePotentialT* surf_pot = SurfacePotentialT::New(surf_pot_params->Name());
 		if (!surf_pot)
 			ExceptionT::BadInputValue(caller, "could not construct \"%s\"", surf_pot_params->Name().Pointer());
+		surf_pot->SetTimeStep(ElementSupport().TimeStep());
 		surf_pot->TakeParameterList(*surf_pot_params);
 
 		/* number of state variables */
