@@ -31,7 +31,7 @@
                     <String value="1"/>
                 </block_ID_list>
                 <small_strain_material_2D>
-                    <small_strain_J2_StVenant_2D density="1.0">
+                    <small_strain_StVenant_J2_2D density="1.0">
                         <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
                         <cubic_spline fixity="free_run">
                             <OrderedPair x="0.0" y="0.25"/>
@@ -39,7 +39,7 @@
                             <OrderedPair x="0.05" y="0.26"/>
                             <OrderedPair x="0.10" y="0.30"/>
                         </cubic_spline>
-                    </small_strain_J2_StVenant_2D>
+                    </small_strain_StVenant_J2_2D>
                 </small_strain_material_2D>
             </small_strain_element_block>
         </small_strain>
