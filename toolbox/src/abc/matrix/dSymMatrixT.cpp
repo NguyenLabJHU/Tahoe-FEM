@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.29 2004-01-31 07:19:11 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.30 2004-02-18 16:27:50 paklein Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -38,9 +38,9 @@ dSymMatrixT::dSymMatrixT(int nsd, double* array) { Set(nsd,array); }
 /* allocate an reduced matrix for the given spatial dimension */
 void dSymMatrixT::Dimension(DimensionT nsd)
 {
-	/* check  */
-	fNumSD = int2DimensionT(nsd);
-	if (fNumSD < 1 || fNumSD > 4) 
+	/* check */
+	fNumSD = nsd;
+	if (fNumSD < 0 || fNumSD > 4) 
 		ExceptionT::GeneralFail("dSymMatrixT::Dimension", "invalid dimension %d", nsd);
 
 	/* inherited */
