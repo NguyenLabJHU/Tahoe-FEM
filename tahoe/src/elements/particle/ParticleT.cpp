@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.35.8.2 2004-03-19 17:35:45 jzimmer Exp $ */
+/* $Id: ParticleT.cpp,v 1.35.8.3 2004-03-21 01:03:51 jzimmer Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -1132,6 +1132,8 @@ void ParticleT::Calc_Slip_and_Strain(int non, int num_s_vals,dArray2DT &s_values
       for (int m=0; m<ndof; m++) Id(m,m) = 1.0;
       strain.DiffOf(C_IJ,Id);
       strain *= 0.5;
+	  cout << "J = " << J << endl;
+	  cout << "E33 = " << strain(2,2) << endl;
      }
     }
    }
