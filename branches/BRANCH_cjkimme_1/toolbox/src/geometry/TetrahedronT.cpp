@@ -1,4 +1,4 @@
-/* $Id: TetrahedronT.cpp,v 1.3.8.1 2003-09-25 17:29:31 cjkimme Exp $ */
+/* $Id: TetrahedronT.cpp,v 1.3.8.2 2003-11-10 21:14:08 cjkimme Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "TetrahedronT.h"
@@ -22,10 +22,9 @@ TetrahedronT::TetrahedronT(int numnodes): GeometryBaseT(numnodes, kNumFacets) {}
 /* evaluate the shape functions and gradients. */
 void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 {
-#ifdef __MWERKS__
 #pragma unused(coords)
 #pragma unused(Na)
-#endif
+
 	cout << "\n TetrahedronT::EvaluateShapeFunctions: not implemented" << endl;
 	throw ExceptionT::kGeneralFail;
 }
@@ -33,11 +32,10 @@ void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) co
 /* evaluate the shape functions and gradients. */
 void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa) const
 {
-#ifdef __MWERKS__
 #pragma unused(coords)
 #pragma unused(Na)
 #pragma unused(DNa)
-#endif
+
 	cout << "\n TetrahedronT::EvaluateShapeFunctions: not implemented" << endl;
 	throw ExceptionT::kGeneralFail;
 }

@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.19.2.1 2003-09-25 17:29:29 cjkimme Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.19.2.2 2003-11-10 21:14:06 cjkimme Exp $ */
 /* created: sawimme (05/18/1999) */
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
@@ -211,12 +211,11 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 void OutputBaseT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	const dArray2DT& e_values)
 {
-#ifdef __MWERKS__
 #pragma unused(time)
 #pragma unused(ID)
 #pragma unused(n_values)
 #pragma unused(e_values)
-#endif
+
 	const char caller[] = "OutputBaseT::WriteOutput";
 
 	/* checks */

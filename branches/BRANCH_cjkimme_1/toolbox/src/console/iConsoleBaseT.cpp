@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.cpp,v 1.14.8.1 2003-09-25 17:29:25 cjkimme Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.14.8.2 2003-11-10 21:14:03 cjkimme Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleBaseT.h"
@@ -64,9 +64,7 @@ void iConsoleBaseT::iWriteVariables(ostream& out) const
 /* execute given command - returns false on fail */
 bool iConsoleBaseT::iDoCommand(const CommandSpecT& command, StringT& line)
 {
-#ifdef __MWERKS__
 #pragma unused(line)
-#endif
 
 	cout << "unrecognized command: \"" << command.Name() << "\"" << endl;
 	return false;
@@ -157,11 +155,9 @@ CommandSpecT* iConsoleBaseT::iCommand(const StringT& command_name) const
 void iConsoleBaseT::ValuePrompt(const CommandSpecT& command, int index, 
 	ostream& out) const
 {
-#ifdef __MWERKS__
 #pragma unused(command)
 #pragma unused(index)
 #pragma unused(out)
-#endif 
 }
 
 /* add command to the dictionary - true if added */

@@ -1,4 +1,4 @@
-/* $Id: FrontNodeT.cpp,v 1.6.8.1 2003-09-25 17:29:30 cjkimme Exp $ */
+/* $Id: FrontNodeT.cpp,v 1.6.8.2 2003-11-10 21:14:07 cjkimme Exp $ */
 /* created: paklein (03/19/1999)                                          */
 
 #include "FrontNodeT.h"
@@ -72,9 +72,7 @@ void FrontNodeT::Write(ostream& out) const
 void FrontNodeT::Reset2D(const double* x, const double* v_n, const double* v_t,
 	double cone, double da, int num_pts)
 {
-#ifdef __MWERKS__
 #pragma unused(v_t) // only needed for 3D
-#endif
 
 	/* copy coordinates */
 	fx[0] = x[0];

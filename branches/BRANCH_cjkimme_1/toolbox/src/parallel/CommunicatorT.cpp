@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.10.2.1 2003-09-25 17:29:34 cjkimme Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.10.2.2 2003-11-10 21:14:10 cjkimme Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
@@ -607,9 +607,7 @@ void CommunicatorT::FreeRequests(ArrayT<MPI_Request>& requests) const
 				Log(kLow, "caller", "cancelling request %d/%d: FAIL", i+1, requests.Length());
 		}
 #else
-#ifdef __MWERKS__
 #pragma unused(requests)
-#endif
 #endif
 }
 
@@ -623,11 +621,9 @@ void CommunicatorT::WriteStatus(ostream& out, const char* caller,
         <<   "        status.MPI_TAG: " << status.MPI_TAG << '\n'
         <<   "      status.MPI_ERROR: " << status.MPI_ERROR << endl;
 #else
-#ifdef __MWERKS__
 #pragma unused(out)
 #pragma unused(caller)
 #pragma unused(status)
-#endif
 #endif
 }
 
@@ -654,9 +650,7 @@ void CommunicatorT::PostSend(const nArrayT<double>& data, int destination, int t
 #endif
 
 #else
-#ifdef __MWERKS__
 #pragma unused(request)
-#endif
 #endif
 }
 
@@ -682,9 +676,7 @@ void CommunicatorT::PostSend(const nArrayT<int>& data, int destination, int tag,
 #endif
 
 #else
-#ifdef __MWERKS__
 #pragma unused(request)
-#endif
 #endif
 }
 
@@ -709,9 +701,7 @@ void CommunicatorT::PostReceive(nArrayT<double>& data, int source,
 #endif
 
 #else
-#ifdef __MWERKS__
 #pragma unused(request)
-#endif
 #endif
 }
 
@@ -735,9 +725,7 @@ void CommunicatorT::PostReceive(nArrayT<int>& data, int source,
 #endif
 
 #else
-#ifdef __MWERKS__
 #pragma unused(request)
-#endif
 #endif
 }
 

@@ -1,4 +1,4 @@
-/* $Id: LinearT.h,v 1.4.2.1 2003-09-25 17:29:20 cjkimme Exp $ */
+/* $Id: LinearT.h,v 1.4.2.2 2003-11-10 21:13:59 cjkimme Exp $ */
 #ifndef _LINEAR_T_H_
 #define _LINEAR_T_H_
 
@@ -55,16 +55,12 @@ private:
 inline double LinearT::Function(double x) const { return (fA*x+fB); }
 inline double LinearT::DFunction(double x) const 
 {
-#ifdef __MWERKS__ 
 #pragma unused(x)
-#endif
 	return fA; 
 }
 inline double LinearT::DDFunction(double x) const
 { 
-#ifdef __MWERKS__
 #pragma unused(x)
-#endif
 	return (0.0); 
 }
 
