@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.10 2002-02-01 00:15:49 ebmarin Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.11 2002-02-01 17:51:10 paklein Exp $ */
 /*
   File: LocalCrystalPlast.cpp
 */
@@ -709,8 +709,7 @@ void LocalCrystalPlast::IterateOnCrystalState(bool& stateConverged, int subIncr)
 	  catch(int code)
 	    {
                if (XTAL_MESSAGES) {
-                  writeWarning("LocalCrystalPlast::SolveCrystalState: 
-                  exception caugth at SolveForDGamma -> subincrementation method");
+                  writeWarning("LocalCrystalPlast::SolveCrystalState:exception caugth at SolveForDGamma -> subincrementation method"); 
                   cout << " IP # " << CurrIP() << endl;
                }
 	       break;
@@ -741,8 +740,7 @@ void LocalCrystalPlast::IterateOnCrystalState(bool& stateConverged, int subIncr)
           catch(int code)
 	    {
                if (XTAL_MESSAGES) {
-                  writeWarning("LocalCrystalPlast::SolveCrystalState: 
-                  exception caugth at SolveForDGamma -> subincrementation method");
+                  writeWarning("LocalCrystalPlast::SolveCrystalState:exception caugth at SolveForDGamma -> subincrementation method"); 
                   cout << " IP # " << CurrIP() << endl;
                }
 	       break;
