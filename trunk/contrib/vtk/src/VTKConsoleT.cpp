@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.27 2001-11-15 17:38:30 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.28 2001-11-15 19:37:02 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -389,6 +389,9 @@ bool VTKConsoleT::AddBody(const StringT& file)
   try {
 	body = new VTKBodyT(file);
 	fBodies.Append(body);
+
+	/* add bodies to frame 0 by default */
+	fFrames[0]->AddBody(body);
   }
   catch (int) {
 	cout << "\n exception constructing body from file: " << file << endl;

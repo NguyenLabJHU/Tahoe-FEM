@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.h,v 1.6 2001-11-09 20:11:13 recampb Exp $ */
+/* $Id: VTKBodyT.h,v 1.7 2001-11-15 19:37:02 paklein Exp $ */
 
 #ifndef _VTK_BODY_T_H_
 #define _VTK_BODY_T_H_
@@ -38,9 +38,12 @@ class VTKBodyT: public iConsoleObjectT
   void SetLookupTable(void);
   void UpdateData(void);
   void DefaultValues(void);
-  void ChangeVars(int);
+  bool ChangeVars(const StringT& var);
   void SelectTimeStep(int);
   void ChangeDataColor(int);
+
+  /** list of node variables */
+  const ArrayT<StringT>& NodeLabels(void) const { return node_labels; };
 
   /** return pointer to actor for the body */
   vtkActor* Actor(void) { return ugridActor; };
