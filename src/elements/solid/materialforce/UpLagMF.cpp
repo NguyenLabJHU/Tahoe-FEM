@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.cpp,v 1.1 2003-11-10 18:51:27 thao Exp $ */
+/* $Id: UpLagMF.cpp,v 1.2 2003-11-10 19:57:38 thao Exp $ */
 #include "UpLagMF.h"
 
 #include "OutputSetT.h"
@@ -8,6 +8,7 @@
 #include "FSSolidMatT.h"
 #include "GeometryT.h"
 #include "ModelManagerT.h"
+#include "CommunicatorT.h"
 #include "GraphT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -105,34 +106,39 @@ void UpLagMF::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 {
   /*inherrited function*/
   ElementBaseT::ConnectsU(connects_1, connects_2);
+  const CommunicatorT& comm = ElementSupport().Communicator();
   
-  /*make graph from element connectivities*/
-  bool verbose = true;
-  GraphT graph(true);
-  /*Q:Is this right?*/
-  for (int i = 0; i<fConnectivities.Length(); i++)
-    graph.AddGroup(*fConnectivities[i]);
-  graph.MakeGraph();
-
-  int nnd = graph.NumNodes(); //Q:NumNodes() or fNumGroupNodes?
-  iArrayT first_edges;
-  AutoFill2DT<int> fill(nnd, 1, 5, 16);
-  cout<<"\nMajor dim: "<<fill.MajorDim();
-  for (int i = 0; i<nnd; i++)
+  /*check for parallel execution*/
+  if (comm.Size()> 1)
   {
-    graph.GetEdges(i, first_edges);
-    fill.Append(i,first_edges);
-    for (int j = 0; j<first_edges.Length(); j++)
-    {  
-      iArrayT second_edges;
-      graph.GetEdges(first_edges[j],second_edges);
-      /*Do we need to reorder the neighbor list so that the node number appears in the first entry?*/
-      fill.AppendUnique(i,second_edges);
+    /*make graph from element connectivities*/
+    bool verbose = true;
+    GraphT graph(true);
+    /*Q:?*/
+    for (int i = 0; i<fConnectivities.Length(); i++)
+      graph.AddGroup(*fConnectivities[i]);
+    graph.MakeGraph();
+
+    int nnd = graph.NumNodes(); //Q:NumNodes() or fNumGroupNodes?
+    iArrayT first_edges;
+    AutoFill2DT<int> fill(nnd, 1, 5, 16);
+    //    cout<<"\nMajor dim: "<<fill.MajorDim();
+    for (int i = 0; i<nnd; i++)
+    {
+      graph.GetEdges(i, first_edges);
+      fill.Append(i,first_edges);
+      for (int j = 0; j<first_edges.Length(); j++)
+      {  
+	iArrayT second_edges;
+	graph.GetEdges(first_edges[j],second_edges);
+	/*Do we need to reorder the neighbor list so that the node number appears in the first entry?*/
+	fill.AppendUnique(i,second_edges);
+      }
     }
+    /*Q:Does fExtendedConnect need to be split into element groups?*/
+    fXConnects->Copy(fill);
+    connects_2.Append(fXConnects);
   }
-  /*Q:Does fExtendedConnect need to be split into element groups?*/
-  fXConnects->Copy(fill);
-  connects_2.Append(fXConnects);
 }
 
 /**********************Material Force Driver**************/
