@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc2D.cpp,v 1.1 2004-03-20 23:35:32 raregue Exp $ */
+/* $Id: DPSSKStVLoc2D.cpp,v 1.2 2004-06-09 17:27:39 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc2D.h"
 #include "ElementCardT.h"
@@ -12,6 +12,7 @@ DPSSKStVLoc2D::DPSSKStVLoc2D(ifstreamT& in, const SSMatSupportT& support):
 	Material2DT(in, kPlaneStrain),
 	fStress2D(2),
 	fModulus2D(dSymMatrixT::NumValues(2)),
+	fModulusPerfPlas2D(dSymMatrixT::NumValues(2)),
 	fTotalStrain3D(3)
 {
 	/* account for thickness */
@@ -62,12 +63,12 @@ const dMatrixT& DPSSKStVLoc2D::c_ijkl(void)
 	return fModulus2D;
 }
 
-const dMatrixT& DPSSKStVLoc2D::cdisc_ijkl(void)
+const dMatrixT& DPSSKStVLoc2D::c_perfplas_ijkl(void)
 {
 	/* 3D -> 2D */
-	fModulus2D.Rank4ReduceFrom3D(DPSSKStVLoc::cdisc_ijkl());
-	fModulus2D *= fThickness;
-	return fModulus2D;
+	fModulusPerfPlas2D.Rank4ReduceFrom3D(DPSSKStVLoc::c_perfplas_ijkl());
+	fModulusPerfPlas2D *= fThickness;
+	return fModulusPerfPlas2D;
 }
 
 

@@ -1,9 +1,10 @@
-/* $Id: DPSSLinHardLocT.cpp,v 1.2 2004-05-11 22:01:13 raregue Exp $ */
+/* $Id: DPSSLinHardLocT.cpp,v 1.3 2004-06-09 17:27:39 raregue Exp $ */
 /* created: myip (06/01/1999)                                        */
+
 /*
  * Interface for Drucker-Prager, nonassociative, small strain,
  * pressure-dependent plasticity model with linear isotropic hardening
- * with localization
+ * and localization
  *
  */
 
@@ -33,11 +34,11 @@ DPSSLinHardLocT::DPSSLinHardLocT(ifstreamT& in, int num_ip, double mu, double la
 	flambda(lambda),
 	fkappa(flambda + (2.0/3.0*fmu)),
 	fX_H(3.0*(fmu+ffriction*fdilation*fkappa) + fH_prime),
-    fX(3.0*(fmu+ffriction*fdilation*fkappa)), //for discontinuous bifurcation check
+    fX(3.0*(fmu+ffriction*fdilation*fkappa)), //for perfectly plastic bifurcation check
 	fElasticStrain(kNSD),
 	fStressCorr(kNSD),
 	fModuliCorr(dSymMatrixT::NumValues(kNSD)),
-	fModuliCorrDisc(dSymMatrixT::NumValues(kNSD)), //for disc check
+	fModuliCorrPerfPlas(dSymMatrixT::NumValues(kNSD)), //for disc check
 	fDevStress(kNSD),
 	fMeanStress(0.0),
 	fDevStrain(kNSD), 
@@ -45,13 +46,13 @@ DPSSLinHardLocT::DPSSLinHardLocT(ifstreamT& in, int num_ip, double mu, double la
 	IdentityTensor2(kNSD),
 	One(kNSD)
 {
-  /* initialize constant tensor */
-  One.Identity();
+	/* initialize constant tensor */
+	One.Identity();
 }
 
 /* returns elastic strain */
 const dSymMatrixT& DPSSLinHardLocT::ElasticStrain(const dSymMatrixT& totalstrain, 
-	const ElementCardT& element, int ip)
+			const ElementCardT& element, int ip)
 {
 	/* remove plastic strain */
 	if (element.IsAllocated()) 
@@ -76,8 +77,7 @@ const dSymMatrixT& DPSSLinHardLocT::StressCorrection(
 						ElementCardT& element, int ip)
 {
 	/* check consistency and initialize plastic element */
-	if (PlasticLoading(trialstrain, element, ip) && 
-	    !element.IsAllocated())
+	if (PlasticLoading(trialstrain, element, ip) && !element.IsAllocated())
 	{
 		/* new element */
 		AllocateElement(element);
@@ -100,64 +100,55 @@ const dSymMatrixT& DPSSLinHardLocT::StressCorrection(
 		if (ftrial > kYieldTol)
 		{
 
-		/* plastic increment */
-	    dgamma = ftrial/fX_H;
+			/* plastic increment */
+	    	dgamma = ftrial/fX_H;
 
-		//construct the trial deviatoric stress and 
-		//calculate norm of deviatoric trial stress
-		dSymMatrixT stress(DeviatoricStress(trialstrain, element));
-		double devstressnorm=sqrt(stress.ScalarProduct());
-	
+			//construct the trial deviatoric stress and 
+			//calculate norm of deviatoric trial stress
+			dSymMatrixT stress(DeviatoricStress(trialstrain, element));
+			double devstressnorm=sqrt(stress.ScalarProduct());
 
-		if ( devstressnorm!=0 && 1-sqrt(6.0)*fmu*dgamma/devstressnorm >= 0)
-		  {
-		  /* plastic increment stress correction */
+			if ( devstressnorm!=0 && 1-sqrt(6.0)*fmu*dgamma/devstressnorm >= 0)
+			{
+				/* plastic increment stress correction */
+				dgamma2=0.0;
 
-		    dgamma2=0.0;
+				fStressCorr.PlusIdentity(-sqrt(3.0)*fdilation*fkappa*dgamma);
+				fStressCorr.AddScaled(-sqrt(6.0)*fmu*dgamma, fUnitNorm);
+			}
+			else
+			{
+				dgamma=devstressnorm/(sqrt(6.0)*fmu);
+				//cout << "dgamma = " << dgamma << endl;
+				double totalcohesion=sqrt(3.0)*falpha_bar-fInternal[kalpha] + fH_prime*dgamma;	
+				dgamma2=(MeanStress(trialstrain,element)-totalcohesion/ffriction-sqrt(3.0)*fkappa*fdilation*dgamma)/fkappa;
 
-		    fStressCorr.PlusIdentity(-sqrt(3.0)*fdilation*fkappa*dgamma);
-		    fStressCorr.AddScaled(-sqrt(6.0)*fmu*dgamma, fUnitNorm);
+				fStressCorr.PlusIdentity(-1*MeanStress(trialstrain,element));
+				fStressCorr.PlusIdentity(totalcohesion/(sqrt(3.0)*ffriction));
+				fStressCorr.AddScaled(-1.0, stress);
+			}
 
-		  }
-		else
-		  {
+			//augment stress to full trial state
 
-		    dgamma=devstressnorm/(sqrt(6.0)*fmu);
-
-		    //cout << "dgamma = " << dgamma << endl;
-
-		    double totalcohesion=sqrt(3.0)*falpha_bar-fInternal[kalpha] + fH_prime*dgamma;	
-		    
-		    dgamma2=(MeanStress(trialstrain,element)-totalcohesion/ffriction-sqrt(3.0)*fkappa*fdilation*dgamma)/fkappa;
-
-
-		    fStressCorr.PlusIdentity(-1*MeanStress(trialstrain,element));
-		    fStressCorr.PlusIdentity(totalcohesion/(sqrt(3.0)*ffriction));
-	     	fStressCorr.AddScaled(-1.0, stress);
-
-		  }
-
-		//augment stress to full trial state
-
-		stress.PlusIdentity(MeanStress(trialstrain,element));
+			stress.PlusIdentity(MeanStress(trialstrain,element));
 		
-		//corrected stress and internal state variables
-		stress += fStressCorr;
+			//corrected stress and internal state variables
+			stress += fStressCorr;
 
-		//cout << " stress = \n";
-		//cout << stress << endl;
+			//cout << " stress = \n";
+			//cout << stress << endl;
 
-		double a = fInternal[kalpha] - fH_prime*dgamma;
+			double a = fInternal[kalpha] - fH_prime*dgamma;
 
-		// evaluate plastic consistency
-		double p = stress.Trace()/3.0;
-		//cout << " pressure  = " << p << endl;
+			// evaluate plastic consistency
+			double p = stress.Trace()/3.0;
+			//cout << " pressure  = " << p << endl;
 		
-		double f = YieldCondition(stress.Deviatoric(), p, a);
-		//cout << " yield function = " << f << endl;
+			double f = YieldCondition(stress.Deviatoric(), p, a);
+			//cout << " yield function = " << f << endl;
 		}
-		else
-		dgamma = 0.0;			
+		else 
+			dgamma = 0.0;			
 	}
 		
 	return fStressCorr;
@@ -179,10 +170,9 @@ const dMatrixT& DPSSLinHardLocT::ModuliCorrection(const ElementCardT& element, i
         
 		/* load internal state variables */
 	  	LoadData(element,ip);
-		
 
 		if (fInternal[kdgamma2]==0.0)
-		  {
+		{
 			double c1  = -3.0*ffriction*fdilation*fkappa*fkappa/fX_H;
 	       	c1 += (4.0/3.0)*sqrt32*fmu*fmu*fInternal[kdgamma]/fInternal[kstressnorm];
 			double c2  = -sqrt(6.0)*fmu*fmu*fInternal[kdgamma]/fInternal[kstressnorm];
@@ -190,79 +180,72 @@ const dMatrixT& DPSSLinHardLocT::ModuliCorrection(const ElementCardT& element, i
 	       	c3 *= 4.0*fmu*fmu;
 			double c4  = -3.0*sqrt(2.0)*fkappa*fmu/fX_H;
 
-		fTensorTemp.Outer(One, One);
-		fModuliCorr.AddScaled(c1, fTensorTemp);
+			fTensorTemp.Outer(One, One);
+			fModuliCorr.AddScaled(c1, fTensorTemp);
 
- 	    fTensorTemp.ReducedIndexI();
-		fModuliCorr.AddScaled(2.0*c2, fTensorTemp);
+ 	    	fTensorTemp.ReducedIndexI();
+			fModuliCorr.AddScaled(2.0*c2, fTensorTemp);
 
-		fTensorTemp.Outer(fUnitNorm,fUnitNorm);
-		fModuliCorr.AddScaled(c3, fTensorTemp);
+			fTensorTemp.Outer(fUnitNorm,fUnitNorm);
+			fModuliCorr.AddScaled(c3, fTensorTemp);
 
-		fTensorTemp.Outer(One,fUnitNorm);
-		fModuliCorr.AddScaled(fdilation*c4, fTensorTemp);
+			fTensorTemp.Outer(One,fUnitNorm);
+			fModuliCorr.AddScaled(fdilation*c4, fTensorTemp);
 
-		fTensorTemp.Outer(fUnitNorm,One);
-		fModuliCorr.AddScaled(ffriction*c4, fTensorTemp);
+			fTensorTemp.Outer(fUnitNorm,One);
+			fModuliCorr.AddScaled(ffriction*c4, fTensorTemp);
 
-		//cout << "fModuliCorr = " << fModuliCorr << endl;
-		  }
+			//cout << "fModuliCorr = " << fModuliCorr << endl;
+		}
 		else
-		  {
-		    //return fModuliCorr;
+		{
+			//return fModuliCorr;
 
-		    //cout << "In vertex region \n";
+			//cout << "In vertex region \n";
 
-		    //cout << " kstressnorm = " << fInternal[kstressnorm] << endl;
-		    double c1 = -fkappa;
-		    c1 += 2.0/3.0*fmu;
+			//cout << " kstressnorm = " << fInternal[kstressnorm] << endl;
+			double c1 = -fkappa;
+			c1 += 2.0/3.0*fmu;
 		    
-		    double c2 = -fmu;
+			double c2 = -fmu;
 		    
-		    //double c3  = sqrt32*fInternal[kdgamma]/fInternal[kstressnorm];
-		    //c3 *= 4.0*fmu*fmu;
-		    //c3 += -2.0*fmu;
+			//double c3  = sqrt32*fInternal[kdgamma]/fInternal[kstressnorm];
+			//c3 *= 4.0*fmu*fmu;
+			//c3 += -2.0*fmu;
 		    
-		    double c4 = sqrt(2.0)*fH_prime/(3*ffriction);
+			double c4 = sqrt(2.0)*fH_prime/(3*ffriction);
 
-		    fTensorTemp.Outer(One, One);
-		    fModuliCorr.AddScaled(c1, fTensorTemp);
+			fTensorTemp.Outer(One, One);
+			fModuliCorr.AddScaled(c1, fTensorTemp);
 		
-		    fTensorTemp.ReducedIndexI();
-		    fModuliCorr.AddScaled(2.0*c2, fTensorTemp);
+			fTensorTemp.ReducedIndexI();
+			fModuliCorr.AddScaled(2.0*c2, fTensorTemp);
 		      
 
-		    //cout << "fModuliCorr = " << fModuliCorr << endl;
+			//cout << "fModuliCorr = " << fModuliCorr << endl;
 	
-		     //fTensorTemp.Outer(fUnitNorm,fUnitNorm);
-		    //fModuliCorr.AddScaled(c3, fTensorTemp);
+			//fTensorTemp.Outer(fUnitNorm,fUnitNorm);
+			//fModuliCorr.AddScaled(c3, fTensorTemp);
 	
-		     if ( fInternal[kdgamma] != 0.0)
-		      {
-			fTensorTemp.Outer(One, fUnitNorm);
-			fModuliCorr.AddScaled(c4, fTensorTemp);
-		      }
-
+			if ( fInternal[kdgamma] != 0.0)
+			{
+				fTensorTemp.Outer(One, fUnitNorm);
+				fModuliCorr.AddScaled(c4, fTensorTemp);
+			}
 		   
-		     //cout << "fModuliCorr = " << fModuliCorr << endl;
+			//cout << "fModuliCorr = " << fModuliCorr << endl;
+		}
 
-		     
-		  }
-
-}
-
+	}
 	return fModuliCorr;
 }	
 
 
-/* return the correction to modulus Cep~, checking for discontinuous
- *   bifurcation */
-
-
-const dMatrixT& DPSSLinHardLocT::ModuliCorrDisc(const ElementCardT& element, int ip)
+/* return the correction to modulus Cep~, checking for perfectly plastic bifurcation */
+const dMatrixT& DPSSLinHardLocT::ModuliCorrPerfPlas(const ElementCardT& element, int ip)
 {
 	/* initialize */
-	fModuliCorrDisc = 0.0;
+	fModuliCorrPerfPlas = 0.0;
 
 	if (element.IsAllocated() && 
 	   (element.IntegerData())[ip] == kIsPlastic)
@@ -278,23 +261,21 @@ const dMatrixT& DPSSLinHardLocT::ModuliCorrDisc(const ElementCardT& element, int
 		double c4d  = -3.0*sqrt(2.0)*fkappa*fmu/fX; 
 
 		fTensorTemp.Outer(One, One);
-		fModuliCorrDisc.AddScaled(c1d, fTensorTemp);
+		fModuliCorrPerfPlas.AddScaled(c1d, fTensorTemp);
 
- 	    	fTensorTemp.ReducedIndexI();
-		fModuliCorrDisc.AddScaled(2.0*c2d, fTensorTemp);
+		fTensorTemp.ReducedIndexI();
+		fModuliCorrPerfPlas.AddScaled(2.0*c2d, fTensorTemp);
 
 		fTensorTemp.Outer(fUnitNorm,fUnitNorm);
-		fModuliCorrDisc.AddScaled(c3d, fTensorTemp);
+		fModuliCorrPerfPlas.AddScaled(c3d, fTensorTemp);
 
 		fTensorTemp.Outer(One,fUnitNorm);
-		fModuliCorrDisc.AddScaled(fdilation*c4d, fTensorTemp);
+		fModuliCorrPerfPlas.AddScaled(fdilation*c4d, fTensorTemp);
 
 		fTensorTemp.Outer(fUnitNorm,One);
-		fModuliCorrDisc.AddScaled(ffriction*c4d, fTensorTemp);
+		fModuliCorrPerfPlas.AddScaled(ffriction*c4d, fTensorTemp);
 	}
-
-
-	return fModuliCorrDisc;
+	return fModuliCorrPerfPlas;
 }	
 
  	 	
@@ -309,7 +290,7 @@ void DPSSLinHardLocT::AllocateElement(ElementCardT& element)
 	int d_size = 0;
 	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fPlasticStrain
 	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fUnitNorm
-	//	d_size += NumValues(kNSD)*fNumIP; //fBeta
+	//d_size += NumValues(kNSD)*fNumIP; //fBeta
 	d_size += kNumInternal*fNumIP;        //fInternal
 
 	/* construct new plastic element */
@@ -399,8 +380,8 @@ void DPSSLinHardLocT::LoadData(const ElementCardT& element, int ip)
 	int offset    = stressdim*fNumIP;
 	int dex       = ip*stressdim;
 	
-	fPlasticStrain.Alias(         dim, &d_array[           dex]);
-	fUnitNorm.Alias(         dim, &d_array[  offset + dex]);     
+	fPlasticStrain.Alias( dim, &d_array[dex]);
+	fUnitNorm.Alias( dim, &d_array[offset + dex]);     
 	fInternal.Alias(kNumInternal, &d_array[2*offset + ip*kNumInternal]);
 }
 
@@ -413,17 +394,17 @@ int DPSSLinHardLocT::PlasticLoading(const dSymMatrixT& trialstrain,
 	if (!element.IsAllocated()) 
 		return( YieldCondition(DeviatoricStress(trialstrain,element),
 			       MeanStress(trialstrain,element), 0.0) > kYieldTol );
-        /* already plastic */
+		/* already plastic */
 	else 
 	{
-	/* get flags */
-	iArrayT& Flags = element.IntegerData();
+		/* get flags */
+		iArrayT& Flags = element.IntegerData();
 		
-	/* load internal variables */
-	LoadData(element, ip);
+		/* load internal variables */
+		LoadData(element, ip);
 		
-	fInternal[kftrial] = YieldCondition(DeviatoricStress(trialstrain,element),
-	    MeanStress(trialstrain,element),fInternal[kalpha]);
+		fInternal[kftrial] = YieldCondition(DeviatoricStress(trialstrain,element),
+			MeanStress(trialstrain,element),fInternal[kalpha]);
 
 		/* plastic */
 		if (fInternal[kftrial] > kYieldTol)
@@ -456,7 +437,7 @@ int DPSSLinHardLocT::PlasticLoading(const dSymMatrixT& trialstrain,
 dSymMatrixT& DPSSLinHardLocT::DeviatoricStress(const dSymMatrixT& trialstrain,
 	const ElementCardT& element)
 {
-#pragma unused(element)
+	#pragma unused(element)
 
 	/* deviatoric strain */
 	fDevStrain.Deviatoric(trialstrain);
@@ -471,8 +452,8 @@ dSymMatrixT& DPSSLinHardLocT::DeviatoricStress(const dSymMatrixT& trialstrain,
 double DPSSLinHardLocT::MeanStress(const dSymMatrixT& trialstrain,
 	const ElementCardT& element)
 {
-#pragma unused(element)
+	#pragma unused(element)
 
-  fMeanStress = fkappa*trialstrain.Trace();
-  return fMeanStress;
+	fMeanStress = fkappa*trialstrain.Trace();
+	return fMeanStress;
 }

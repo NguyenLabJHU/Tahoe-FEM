@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc2D.h,v 1.1 2004-03-20 23:35:32 raregue Exp $ */
+/* $Id: DPSSKStVLoc2D.h,v 1.2 2004-06-09 17:27:39 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_2D_H_
 #define _DP_SS_KSTV_LOC_2D_H_
@@ -11,7 +11,7 @@ namespace Tahoe {
 
 class DPSSKStVLoc2D: public DPSSKStVLoc, public Material2DT
 {
-  public:
+public:
 
 	/* constructor */
 	DPSSKStVLoc2D(ifstreamT& in, const SSMatSupportT& support);
@@ -30,7 +30,7 @@ class DPSSKStVLoc2D: public DPSSKStVLoc, public Material2DT
 	
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);
-	virtual const dMatrixT& cdisc_ijkl(void);
+	virtual const dMatrixT& c_perfplas_ijkl(void);
   	
 	/* stress */
 	virtual const dSymMatrixT& s_ij(void);
@@ -40,9 +40,9 @@ class DPSSKStVLoc2D: public DPSSKStVLoc, public Material2DT
 
   private:
   
-  	/* return values */
-  	dSymMatrixT	fStress2D;
-  	dMatrixT	fModulus2D;
+	/* return values */
+	dSymMatrixT	fStress2D;
+	dMatrixT fModulus2D, fModulusPerfPlas2D;
 
 	/* work space */
 	dSymMatrixT	fTotalStrain3D;

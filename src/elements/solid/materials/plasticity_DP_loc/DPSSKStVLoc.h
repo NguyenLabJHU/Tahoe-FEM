@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.h,v 1.2 2004-05-11 22:01:13 raregue Exp $ */
+/* $Id: DPSSKStVLoc.h,v 1.3 2004-06-09 17:27:39 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_H_
 #define _DP_SS_KSTV_LOC_H_
@@ -16,7 +16,7 @@ class DPSSKStVLoc: public SSSolidMatT,
 				public HookeanMatT,
 				public DPSSLinHardLocT
 {
-  public:
+public:
 
 	/* constructor */
 	DPSSKStVLoc(ifstreamT& in, const SSMatSupportT& support);
@@ -41,8 +41,7 @@ class DPSSKStVLoc: public SSSolidMatT,
 	/*@{*/
 	/** spatial tangent modulus */
 	virtual const dMatrixT& c_ijkl(void);
-
-	virtual const dMatrixT& cdisc_ijkl(void);
+	virtual const dMatrixT& c_perfplas_ijkl(void);
 
 	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
@@ -62,14 +61,15 @@ class DPSSKStVLoc: public SSSolidMatT,
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
 
-        /*
-         * Test for localization using "current" values for Cauchy
-         * stress and the spatial tangent moduli. Returns 1 if the
-         * determinant of the acoustic tensor is negative and returns
-         * the normal for which the determinant is minimum. Returns 0
-         * of the determinant is positive.
-         */
-	 int IsLocalized(dArrayT& normal);
+	/*
+	* Test for localization using "current" values for Cauchy
+	* stress and the spatial tangent moduli. Returns 1 if the
+	* determinant of the acoustic tensor is negative and returns
+	* the normal for which the determinant is minimum. Returns 0
+	* of the determinant is positive.
+	*/
+	// not used; see ComputeOutput and DetCheckT
+	int IsLocalized(dArrayT& normal);
 
 protected:
 
@@ -79,10 +79,10 @@ protected:
  
 private:
   
-  	/* return values */
-  	dSymMatrixT	fStress;
-  	dMatrixT	fModulus, fModulusCe;
-	dMatrixT	fModulusdisc;
+	/* return values */
+	dSymMatrixT	fStress;
+	dMatrixT fModulus, fModulusCe;
+	dMatrixT fModulusPerfPlas;
 
 };
 

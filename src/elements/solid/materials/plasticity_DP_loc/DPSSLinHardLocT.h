@@ -1,9 +1,10 @@
-/* $Id: DPSSLinHardLocT.h,v 1.1 2004-03-20 23:35:32 raregue Exp $ */
+/* $Id: DPSSLinHardLocT.h,v 1.2 2004-06-09 17:27:39 raregue Exp $ */
 /* created: myip (06/01/1999)                                      */
+
 /*  
  * Interface for Drucker-Prager, nonassociative, small strain,
  * pressure-dependent plasticity model with linear isotropic hardening
- * with localization.
+ * and localization.
  *
  *	Note: all calculations are peformed in 3D.
  */
@@ -26,7 +27,7 @@ class ElementCardT;
 
 class DPSSLinHardLocT: public DPPrimitiveLocT
 {
-  public:
+public:
 
 	/* constructor */
 	DPSSLinHardLocT(ifstreamT& in, int num_ip, double mu, double lambda);
@@ -34,11 +35,12 @@ class DPSSLinHardLocT: public DPPrimitiveLocT
   	/* output name */
 	virtual void PrintName(ostream& out) const;
 
-  protected:
+protected:
 
 	/* status flags */
 	enum LoadingStatusT {kIsPlastic = 0,
 						kIsElastic = 1,
+						kIsLocalized = 2,
                         kReset = 3}; // indicate not to repeat update
 
 	/* returns elastic strain (3D) */
@@ -57,16 +59,15 @@ class DPSSLinHardLocT: public DPPrimitiveLocT
 	 *       internal variable values */
 	const dMatrixT& ModuliCorrection(const ElementCardT& element, int ip); 
 
-        /* Modulus for checking discontinuous bifurcation */
-
-	const dMatrixT& ModuliCorrDisc(const ElementCardT& element, int ip);
+	/* Modulus for checking perfectly plastic bifurcation */
+	const dMatrixT& ModuliCorrPerfPlas(const ElementCardT& element, int ip);
 
 	/* return a pointer to a new plastic element object constructed with
 	 * the data from element */
 	void AllocateElement(ElementCardT& element);
 
 	enum InternalVariablesT {kalpha = 0,  // stress-like internal state variable
-                        kstressnorm = 1,  // norm of stress
+							kstressnorm = 1,  // norm of stress
                             kdgamma = 2,  // consistency parameter
                             kftrial = 3, // yield function value
 			    			kdgamma2 = 4}; // 2nd consistency par. at vertex
@@ -76,8 +77,7 @@ class DPSSLinHardLocT: public DPPrimitiveLocT
 
 	/* returns 1 if the trial elastic strain state lies outside of the 
 	 * yield surface */
-	int PlasticLoading(const dSymMatrixT& trialstrain, 
-		ElementCardT& element, int ip);
+	int PlasticLoading(const dSymMatrixT& trialstrain, ElementCardT& element, int ip);
 
 	/* computes the deviatoric stress corresponding to the given element
 	 * and elastic strain.  The function returns a reference to the
@@ -86,19 +86,16 @@ class DPSSLinHardLocT: public DPPrimitiveLocT
 		const ElementCardT& element);
 
 	/* computes the hydrostatic (mean) stress. */
-	double MeanStress(const dSymMatrixT& trialstrain,
-		const ElementCardT& element);
+	double MeanStress(const dSymMatrixT& trialstrain, const ElementCardT& element);
 
-  private:
+private:
 
 	/* load element data for the specified integration point */
 	void LoadData(const ElementCardT& element, int ip);
 
 	/* returns 1 if the trial elastic strain state lies outside of the 
 	 * yield surface */
-	//	int PlasticLoading(const dSymMatrixT& trialstrain, 
-    //                         ElementCardT& element, 
-	//	                   int ip);
+	//	int PlasticLoading(const dSymMatrixT& trialstrain, ElementCardT& element, int ip);
 
 	/* computes the deviatoric stress corresponding to the given element
 	 * and elastic strain.  The functions returns a reference to the
@@ -107,34 +104,33 @@ class DPSSLinHardLocT: public DPPrimitiveLocT
 	//		const ElementCardT& element);
 
 	/* computes the hydrostatic (mean) stress. */  
-	//	double& MeanStress(const dSymMatrixT& totalstrain,
-	//		const ElementCardT& element);
+	//	double& MeanStress(const dSymMatrixT& totalstrain, const ElementCardT& element);
 
-  protected:
+protected:
 
-  	/* element level internal state variables */
-  	dSymMatrixT fPlasticStrain; //total plastic strain (deviatoric and volumetric)
-  	dSymMatrixT fUnitNorm;      //unit normal to the yield surface
-  	dArrayT     fInternal;      //internal variables
+	/* element level internal state variables */
+	dSymMatrixT fPlasticStrain; //total plastic strain (deviatoric and volumetric)
+	dSymMatrixT fUnitNorm;      //unit normal to the yield surface
+	dArrayT     fInternal;      //internal variables
 
-  private:
+private:
 
 	/* number of integration points */
 	int fNumIP;
 
-  	/* material parameters **/
-  	double fmu;
+	/* material parameters **/
+	double fmu;
 	double flambda;
 	double fkappa;
 	double fX_H;
 	double fX;
 	double fMeanStress;
   
-  	/* return values */
-  	dSymMatrixT	fElasticStrain;
-  	dSymMatrixT	fStressCorr;
-  	dMatrixT	fModuliCorr;
-    dMatrixT    fModuliCorrDisc;
+	/* return values */
+	dSymMatrixT	fElasticStrain;
+	dSymMatrixT	fStressCorr;
+	dMatrixT	fModuliCorr;
+	dMatrixT    fModuliCorrPerfPlas;
   		
 	/* work space */
 	dSymMatrixT fDevStress;
@@ -143,7 +139,6 @@ class DPSSLinHardLocT: public DPPrimitiveLocT
 
 	dMatrixT      fTensorTemp;
 	dSymMatrixT   One;  
-  	
 };
 
 } // namespace Tahoe 

@@ -1,5 +1,6 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.2 2004-05-11 22:01:13 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.3 2004-06-09 17:27:39 raregue Exp $ */
 /* created: myip (06/01/1999) */
+
 #include "DPSSKStVLoc.h"
 #include "SSMatSupportT.h"
 
@@ -14,19 +15,14 @@ using namespace Tahoe;
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 11;
+const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {
 	"alpha",  // stress-like internal state variable (isotropic linear hardening)
 	"VM",  // Von Mises stress
 	"press", // pressure
-	"loccheck",
-	"loccheckd", // localization check
-	"n1", // x1 component of normal n for contbif
-	"n2", // x2 component of normal n for contbif
-	"n3", // x3 component of normal n for contbif
-	"nd1", // x1 component of normal n for discbif	
-	"nd2", // x2 component of normal n for discbif	
-	"nd3"}; // x3 component of normal n for discbif	    
+	"loccheck"}; // localization check   
+	
+// need to store the normals somewhere.  as ISVs?
 
 /* constructor */
 DPSSKStVLoc::DPSSKStVLoc(ifstreamT& in, const SSMatSupportT& support):
@@ -36,7 +32,7 @@ DPSSKStVLoc::DPSSKStVLoc(ifstreamT& in, const SSMatSupportT& support):
 	DPSSLinHardLocT(in, NumIP(), Mu(), Lambda()),
 	fStress(3),
 	fModulus(dSymMatrixT::NumValues(3)),
-	fModulusdisc(dSymMatrixT::NumValues(3))
+	fModulusPerfPlas(dSymMatrixT::NumValues(3))
 {
  
 }
@@ -82,13 +78,12 @@ void DPSSKStVLoc::PrintName(ostream& out) const
 	/* inherited */
 	SSSolidMatT::PrintName(out);
 	DPSSLinHardLocT::PrintName(out);
-	out << "    Kirchhoff-St.Venant\n";
+	out << " Kirchhoff-St.Venant\n";
 }
 
 /* modulus */
 const dMatrixT& DPSSKStVLoc::c_ijkl(void)
 {
-
 	fModulus.SumOf(HookeanMatT::Modulus(),
 	ModuliCorrection(CurrentElement(), CurrIP()));
 
@@ -96,12 +91,12 @@ const dMatrixT& DPSSKStVLoc::c_ijkl(void)
 }
 
 /*discontinuous modulus */
-const dMatrixT& DPSSKStVLoc::cdisc_ijkl(void)
+const dMatrixT& DPSSKStVLoc::c_perfplas_ijkl(void)
 {
 	/* elastoplastic correction */
-	fModulusdisc.SumOf(HookeanMatT::Modulus(),
-	ModuliCorrDisc(CurrentElement(), CurrIP()));
-	return fModulusdisc;
+	fModulusPerfPlas.SumOf(HookeanMatT::Modulus(),
+	ModuliCorrPerfPlas(CurrentElement(), CurrIP()));
+	return fModulusPerfPlas;
 }
 
 /* stress */
@@ -128,6 +123,8 @@ const dSymMatrixT& DPSSKStVLoc::s_ij(void)
 * the normal for which the determinant is minimum. Returns 0
 * of the determinant is positive.
 */
+// not used
+// see ComputeOutput
 int DPSSKStVLoc::IsLocalized(dArrayT& normal)
 {
 	DetCheckT checker(fStress, fModulus, fModulusCe);
@@ -160,7 +157,6 @@ void DPSSKStVLoc::OutputLabels(ArrayT<StringT>& labels) const
 
 void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 {
-
 	dMatrixT Ce = HookeanMatT::Modulus();
 	
 	/* stress tensor (load state) */
@@ -175,7 +171,7 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 	J2 = (J2 < 0.0) ? 0.0 : J2;
 	output[1] = sqrt(3.0*J2);
 	
-	/* stress-like internal variable alpha */
+	/* output stress-like internal variable alpha, and check for bifurcation */
 	const ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
@@ -187,56 +183,22 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 			
 			// check for localization
 			// compute modulus 
-			const dMatrixT& modulus = c_ijkl();
+			//const dMatrixT& modulus = c_ijkl();
+			const dMatrixT& modulus = c_perfplas_ijkl();
 
-			// continuous localization condition checker
-			/*DetCheckT checker(stress, modulus, Ce);
-			dArrayT normal(stress.Rows());
-			output[3] = checker.IsLocalized_SS(normal);
-			output[5] = normal[0];
-			output[6] = normal[1];
-			if (normal.Length() == 3)
-				output[7] = normal[2];
-			else
-				output[7] = 0.0;
-			*/
-		    output[3] = 0.0;
-		    output[5] = 0.0;
-			output[6] = 0.0;
-			output[7] = 0.0;
-	
-			/* compute discontinuous bifurcation modulus */
-			const dMatrixT& modulusdisc = cdisc_ijkl();
-
-			/* discontinuous localization condition checker */
-			DetCheckT checkerdisc(stress, modulusdisc, Ce);
-			dArrayT normaldisc(stress.Rows());
-			output[4] = checkerdisc.IsLocalized_SS(normaldisc);
-			output[8] = normaldisc[0];
-			output[9] = normaldisc[1];
-			if (normaldisc.Length() == 3)
-				output[10] = normaldisc[2];
-			else
-				output[10] = 0.0;
-			/*
-			output[4] = 0.0;
-		    output[8] = 0.0;
-			output[9] = 0.0;
-			output[10] = 0.0;*/
-			
+			/* localization condition checker */
+			DetCheckT checker(stress, modulus, Ce);
+			AutoArrayT <dArrayT> normals;
+			AutoArrayT <dArrayT> slipdirs;
+			normals.Dimension(3);
+			slipdirs.Dimension(3);
+			output[3] = checker.IsLocalized_SS(normals,slipdirs);
 		  }
 	}
 	else
 	{
 		output[0] = 0.0;
 		output[3] = 0.0;
-		output[4] = 0.0;
-		output[5] = 0.0;
-		output[6] = 0.0;
-		output[7] = 0.0;
-		output[8] = 0.0;
-		output[9] = 0.0;
-		output[10] = 0.0;
 	}
 
 }
