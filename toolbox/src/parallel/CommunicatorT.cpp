@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.3 2002-08-15 08:56:31 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.4 2002-08-21 07:19:29 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionCodes.h"
 #include <iostream.h>
@@ -74,6 +74,9 @@ void CommunicatorT::SetLog(ostream& log)
 /* maximum over single integers */
 int CommunicatorT::Max(int a) const
 {
+	if (fLogLevel != kSilent)
+		*fLog << '\n' << Rank() << ": CommunicatorT::Max: in = " << a << endl;
+
 #ifdef __MPI__
 	if (Size() > 1)
 	{
@@ -84,12 +87,19 @@ int CommunicatorT::Max(int a) const
 		}
 	}
 #endif
+
+	if (fLogLevel != kSilent)
+		*fLog << Rank() << ": CommunicatorT::Max: out = " << a << endl;
+
 	return a;
 }
 
 /* minimum over single integers */
 int CommunicatorT::Min(int a) const
 {
+	if (fLogLevel != kSilent)
+		*fLog << '\n' << Rank() << ": CommunicatorT::Min: in = " << a << endl;
+
 #ifdef __MPI__
 	if (Size() > 1)
 	{
@@ -100,12 +110,19 @@ int CommunicatorT::Min(int a) const
 		}
 	}
 #endif
+
+	if (fLogLevel != kSilent)
+		*fLog << Rank() << ": CommunicatorT::Min: out = " << a << endl;
+
 	return a;
 }
 
 /* minimum over single integers */
 int CommunicatorT::Sum(int a) const
 {
+	if (fLogLevel != kSilent)
+		*fLog << '\n' << Rank() << ": CommunicatorT::Sum: in = " << a << endl;
+
 #ifdef __MPI__
 	if (Size() > 1)
 	{
@@ -116,12 +133,19 @@ int CommunicatorT::Sum(int a) const
 		}
 	}
 #endif
+
+	if (fLogLevel != kSilent)
+		*fLog << Rank() << ": CommunicatorT::Sum: out = " << a << endl;
+
 	return a;
 }
 
 /* maximum over single doubles */
 double CommunicatorT::Max(double a) const
 {
+	if (fLogLevel != kSilent)
+		*fLog << '\n' << Rank() << ": CommunicatorT::Max: in = " << a << endl;
+
 #ifdef __MPI__
 	if (Size() > 1)
 	{
@@ -132,12 +156,18 @@ double CommunicatorT::Max(double a) const
 		}
 	}
 #endif
+	if (fLogLevel != kSilent)
+		*fLog << Rank() << ": CommunicatorT::Max: out = " << a << endl;
+
 	return a;
 }
 
 /* minimum over single doubles */
 double CommunicatorT::Min(double a) const
 {
+	if (fLogLevel != kSilent)
+		*fLog << '\n' << Rank() << ": CommunicatorT::Min: in = " << a << endl;
+
 #ifdef __MPI__
 	if (Size() > 1)
 	{
@@ -148,12 +178,19 @@ double CommunicatorT::Min(double a) const
 		}
 	}
 #endif
+
+	if (fLogLevel != kSilent)
+		*fLog << Rank() << ": CommunicatorT::Min: out = " << a << endl;
+
 	return a;
 }
 
 /* minimum over single integers */
 double CommunicatorT::Sum(double a) const
 {
+	if (fLogLevel != kSilent)
+		*fLog << '\n' << Rank() << ": CommunicatorT::Sum: in = " << a << endl;
+
 #ifdef __MPI__
 	if (Size() > 1)
 	{
@@ -164,6 +201,10 @@ double CommunicatorT::Sum(double a) const
 		}
 	}
 #endif
+
+	if (fLogLevel != kSilent)
+		*fLog << Rank() << ": CommunicatorT::Sum: out = " << a << endl;
+
 	return a;
 }
 
@@ -261,7 +302,7 @@ const char* CommunicatorT::WallTime(void) const
 ostream& CommunicatorT::LogHead(const char* caller) const
 {
 	*fLog << Rank() << ": "
-	     << WallTime() << ": "
+	     << WallTime() << '\t'
 	     << caller << ": ";
 	return *fLog;
 }

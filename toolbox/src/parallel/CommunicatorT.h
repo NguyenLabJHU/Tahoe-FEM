@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.h,v 1.4 2002-08-15 08:56:31 paklein Exp $ */
+/* $Id: CommunicatorT.h,v 1.5 2002-08-21 07:19:29 paklein Exp $ */
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
 
@@ -8,6 +8,7 @@
 #include "mpi.h"
 #else
 #define MPI_Comm long
+#define MPI_Request long
 #endif
 
 #include "ios_fwd_decl.h"
@@ -77,7 +78,7 @@ class CommunicatorT
 	void SetLog(ostream& log);
 	
 	/** logging level */
-	LogLevelT LogLevel(void) { return fLogLevel; };
+	LogLevelT LogLevel(void) const { return fLogLevel; };
 
 	/** (re-)set logging level */
 	void SetLogLevel(LogLevelT log_level) { fLogLevel = log_level; };
@@ -149,7 +150,7 @@ class CommunicatorT
   	
 	/** count of communicators */
 	static int fCount;
-	static int*    fargc;
+	static int* fargc;
 	static char*** fargv;
 };
 
@@ -162,6 +163,36 @@ inline bool CommunicatorT::ActiveMP(void)
 	return false;
 #endif
 }
+
+#if 0
+/** information for a non-blocking send */
+class SendPacketT
+{
+  public:
+  
+  	/** message type enumeration */
+  	int TypeT {Integer, Double, String};
+
+
+  private:
+	
+	/** message tag */ 
+  	int fMessageTag;
+  	
+  	/** message data type */
+  	TypeT fType;
+
+	/** requests */
+	ArrayT<MPI_Request> fRequest;
+  	
+  	/** \name pointers to message buffers */
+	/*@{*/
+  	ArrayT<ArrayT<int>* >    fIntArray;
+  	ArrayT<ArrayT<double>* > fDoubleArray;
+  	ArrayT<ArrayT<char>* >   fCharArray;
+	/*@}*/  	
+};
+#endif
 
 } // namespace Tahoe 
 #endif /* _COMMUNICATOR_T_H_ */
