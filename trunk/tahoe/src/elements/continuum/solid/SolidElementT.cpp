@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.43 2003-03-11 08:14:35 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.44 2003-05-20 10:31:21 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -601,7 +601,7 @@ MaterialSupportT* SolidElementT::NewMaterialSupport(MaterialSupportT* p) const
 
 		/* temperatures if available */
 		if (fLocTemp) ps->SetTemperatures(*fLocTemp);
-		if (fLocTemp_last) ps->SetTemperatures(*fLocTemp_last);
+		if (fLocTemp_last) ps->SetLastTemperatures(*fLocTemp_last);
 	}
 
 	return p;
