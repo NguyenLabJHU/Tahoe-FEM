@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.h,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.h,v 1.1.1.1.6.1 2001-10-16 22:18:40 sawimme Exp $ */
 /* created: paklein (02/15/2000)                                          */
 
 #ifndef _MESHFREE_FRACTURE_T_H_
@@ -61,7 +61,7 @@ protected:
 	/* initialization */
 	void InitSupport(ifstreamT& in, ostream& out, AutoArrayT<ElementCardT>& elem_cards,
 		const iArrayT& surface_nodes, int numDOF, int max_node_num,
-		const StringT& model_file, IOBaseT::FileTypeT format);
+		ModelManagerT* model);
 
 	/* returns true for crack growth */
 	bool CheckGrowth(StructuralMaterialT& material, LocalArrayT& disp,

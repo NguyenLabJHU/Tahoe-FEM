@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.h,v 1.3 2001-07-03 01:34:55 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.h,v 1.3.2.1 2001-10-16 22:18:39 sawimme Exp $ */
 /* created: paklein (11/12/1999)                                          */
 
 #ifndef _MFREE_SUPPORT_T_H_
@@ -21,6 +21,7 @@ class MeshFreeSupportT;
 class ElementCardT;
 class StringT;
 class ElementBaseT;
+class ModelManagerT;
 
 class MeshFreeElementSupportT
 {
@@ -40,8 +41,7 @@ protected:
 	/* initialization */
 	virtual void InitSupport(ifstreamT& in, ostream& out,
 		AutoArrayT<ElementCardT>& elem_cards, const iArrayT& surface_nodes,
-		int numDOF, int max_node_num, const StringT& model_file,
-		IOBaseT::FileTypeT format);
+		int numDOF, int max_node_num, ModelManagerT* model);
 
 	/* resize number of field nodes - returns number
 	 * of element nodes */
@@ -68,9 +68,7 @@ private:
 
 	/* initialization steps */
 	void EchoNodesData(ifstreamT& in, ostream& out, int max_node_num,
-		const StringT& model_file, IOBaseT::FileTypeT format);
-	void ReadNodesData(ifstreamT& in, int num_id, const StringT& model_file,
-		IOBaseT::FileTypeT format, iArrayT& nodes);
+		ModelManagerT* model);
 
 	/* collect nodes with interpolating shape functions */
 	void SetAllFENodes(const iArrayT& fe_nodes);

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.1.1.1.6.1 2001-10-16 22:18:40 sawimme Exp $ */
 /* created: paklein (02/15/2000)                                          */
 
 #include "MeshFreeFractureSupportT.h"
@@ -95,11 +95,11 @@ istream& operator>>(istream& in, MeshFreeFractureSupportT::FractureCriterionT& c
 /* initialization */
 void MeshFreeFractureSupportT::InitSupport(ifstreamT& in, ostream& out,
 	AutoArrayT<ElementCardT>& elem_cards, const iArrayT& surface_nodes,
-	int numDOF, int max_node_num, const StringT& model_file, IOBaseT::FileTypeT format)
+	int numDOF, int max_node_num, ModelManagerT* model)
 {
 	/* inherited */
 	MeshFreeElementSupportT::InitSupport(in, out, elem_cards, surface_nodes,
-		numDOF, max_node_num, model_file, format);
+		numDOF, max_node_num, model);
 
 	/* unitialized */
 	fNumFacetNodes = -1;

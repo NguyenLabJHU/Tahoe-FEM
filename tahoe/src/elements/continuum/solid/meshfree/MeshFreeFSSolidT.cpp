@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.4 2001-07-03 01:34:55 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.4.2.1 2001-10-16 22:18:39 sawimme Exp $ */
 /* created: paklein (09/16/1998)                                          */
 /* large deformation elasticity with MLS shapefunctions for the           */
 /* field (displacement) representation                                    */
@@ -95,7 +95,7 @@ void MeshFreeFSSolidT::Initialize(void)
 	if (fAutoBorder) SurfaceNodes(surface_nodes);
 	MeshFreeFractureSupportT::InitSupport(fFEManager.Input(), fFEManager.Output(),
 		fElementCards, surface_nodes, NumDOF(), fNodes->NumNodes(),
-		fFEManager.ModelFile(), fFEManager.InputFormat());
+		fFEManager.ModelManager());
 
 	/* final MLS initializations */
 	fMFShapes->SetExactNodes(fAllFENodes);
