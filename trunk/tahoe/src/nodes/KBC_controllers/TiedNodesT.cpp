@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.6 2002-04-18 21:23:38 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.7 2002-04-18 23:18:25 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -35,7 +35,8 @@ void TiedNodesT::Initialize(ifstreamT& in)
 	fNodePairs = -1;
 	fNodePairs.SetColumn(0, follower_nodes);
 	fPairStatus.Dimension(follower_nodes);
-	fPairStatus = kFree; /* assume all tied */
+	fPairStatus = kFree;
+	fPairStatus_last = fPairStatus;
 
 	/* coordinates */
 	const dArray2DT& coords = fNodeManager.InitialCoordinates();
@@ -141,9 +142,22 @@ void TiedNodesT::FormRHS(void)
 	CopyKinematics();
 }
 
+/* initialize the current step */
+void TiedNodesT::InitStep(void)
+{
+	/* inherited */
+	KBC_ControllerT::InitStep();
+	
+	/* save history */
+	fPairStatus_last = fPairStatus;
+}
+
 /* signal that the solution has been found */
 void TiedNodesT::CloseStep(void)
 {
+	/* inherited */
+	KBC_ControllerT::CloseStep();
+
 	/* copy data from leaders to followers */
 	CopyKinematics();
 
@@ -154,6 +168,9 @@ void TiedNodesT::CloseStep(void)
 /* solution for the current step failed. */
 void TiedNodesT::Reset(void)
 {
+	/* inherited */
+	KBC_ControllerT::Reset();
+
 	/* reset status */
 	fPairStatus = fPairStatus_last;
 }
@@ -195,7 +212,7 @@ void TiedNodesT::Equations(AutoArrayT<const iArray2DT*>& equations) const
 {
 	/* inherited */
 	KBC_ControllerT::Equations(equations);
-
+	
 	/* copy in the equation numbers */
 	for (int i = 0; i < fPairStatus.Length(); i++)
 		if (fPairStatus[i] == kTied)
@@ -302,7 +319,7 @@ void TiedNodesT::CopyKinematics(void)
 
 				/* copy data from the leader */				
 				u.CopyRowFromRow(follower, leader);
-				u(follower,1) = -u(leader,1);
+//				u(follower,1) = -u(leader,1);
 			}
 		}
 }
