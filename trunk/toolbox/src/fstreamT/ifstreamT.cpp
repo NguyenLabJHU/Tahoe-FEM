@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.19 2002-09-12 16:04:37 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.20 2002-09-22 23:06:12 paklein Exp $ */
 /* created: paklein (03/03/1999) */
 
 #include "ifstreamT.h"
@@ -337,7 +337,17 @@ int ifstreamT::OpenWithPrompt(const char* prompt, const char* skipname,
 		
 		/* clear to end of line */
 		char line[255];
+#ifdef __GCC_3__
+		int ct = 0;
+		line[ct] = cin.get();
+		while (cin.good() && ct < 254 && line[ct] != '\n') {
+			ct++;
+			line[ct] = cin.get();
+		}
+		line[ct] = '\0';
+#else
 		cin.getline(line, 254);
+#endif
 
 		/* check exit */
 		if (strcmp(newfilename, skipname) == 0)

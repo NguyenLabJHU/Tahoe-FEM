@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.h,v 1.10 2002-07-05 22:26:24 paklein Exp $ */
+/* $Id: iConsoleBaseT.h,v 1.11 2002-09-22 23:06:12 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_BASE_T_H_
@@ -105,7 +105,8 @@ protected:
 	 * stream including any trailing newline. This is useful for clearing
 	 * any leftovers from the command line when values are read using
 	 * >>, which does not grab the trailing newline. */
-	void Clean(istream& in) const;
+//	void Clean(istream& in) const;
+//never used?
 
 	/** add command to the dictionary.
 	 * \return true if added, false otherwise */
@@ -204,11 +205,13 @@ inline const ArrayT<StringT>& iConsoleBaseT::iVariables(void) const
 }
 
 /* inlines */
+#if 0
 inline void iConsoleBaseT::Clean(istream& in) const
 {
   char line[255];
   in.getline(line, 254);
 }
+#endif
 
 } // namespace Tahoe 
 #endif /* _I_CONSOLE_BASE_T_H_ */
