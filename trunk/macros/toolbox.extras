@@ -1,4 +1,4 @@
-# $Id: toolbox.extras,v 1.4 2003-04-10 23:00:08 paklein Exp $
+# $Id: toolbox.extras,v 1.5 2003-08-14 04:14:50 paklein Exp $
 #
 # additional make commands for the toolbox module
 #
@@ -9,6 +9,7 @@ default:
 	@ $(PRINTF) "    touch_SEACAS - Sandia tools\n"
 	@ $(PRINTF) "       touch_MPI - support for parallel execution\n"
 	@ $(PRINTF) "     touch_METIS - domain decomposition using METIS\n"
+	@ $(PRINTF) "     touch_expat - XML parsing\n"
 
 touch_SEACAS:
 	@ $(PRINTF) "removing object files depending on SEACAS\n"
@@ -25,5 +26,10 @@ touch_MPI:
 touch_METIS:
 	@ $(PRINTF) "removing object files depending on METIS\n"
 	- $(RM) $(SRC_DIR)/graph/GraphBaseT.o
+	@ $(PRINTF) "NOTE: dependent modules must also be up to date\n"
+
+touch_expat:
+	@ $(PRINTF) "removing object files depending on expat\n"
+	- $(RM) $(SRC_DIR)/param_tree/expat_ParseT.o
 	@ $(PRINTF) "NOTE: dependent modules must also be up to date\n"
 
