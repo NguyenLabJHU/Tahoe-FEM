@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.19 2003-10-05 18:08:37 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.20 2004-03-04 08:54:38 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 #include "IOManager.h"
 
@@ -7,6 +7,7 @@
 #include "OutputSetT.h"
 #include "dArrayT.h"
 #include "OutputBaseT.h"
+#include "iArray2DT.h"
 
 using namespace Tahoe;
 
@@ -139,6 +140,21 @@ void IOManager::WriteGeometryFile(const StringT& file_name,
 void IOManager::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values)
 {
 	fOutput->WriteOutput(fOutputTime, ID, n_values, e_values);
+}
+
+void IOManager::WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
+	const dArray2DT& values, const ArrayT<StringT>& labels) const
+{
+	StringT junk = "N/A";
+ 	OutputBaseT* output = IOBaseT::NewOutput(junk, junk, junk, file, fOutputFormat, fLog);
+	output->SetCoordinates(coords, &node_map);
+	iArray2DT connectivities(node_map.Length(), 1);
+	connectivities.SetValueToPosition();
+	OutputSetT output_set(GeometryT::kPoint, connectivities, labels);
+	int id = output->AddElementSet(output_set);
+	dArray2DT e_values;
+	output->WriteOutput(0.0, id, values, e_values);
+	delete output;
 }
 
 /* return the list of nodes used by the output set */

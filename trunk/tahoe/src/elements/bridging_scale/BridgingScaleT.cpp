@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.40 2004-01-29 01:03:29 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.41 2004-03-04 08:54:20 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -251,7 +251,7 @@ void BridgingScaleT::InterpolateField(const StringT& field, int order, const Poi
 	/* get the field */
 	const FieldT* the_field = ElementSupport().Field(field);
 	LocalArrayT loc_field(LocalArrayT::kDisp, nen, the_field->NumDOF());
-	loc_field.SetGlobal((*the_field)[order]); /* change orde so can accomodate any field */
+	loc_field.SetGlobal((*the_field)[order]); /* change order so can accomodate any field */
 	
 	/* interpolation data */
 	const dArray2DT& weights = cell_data.InterpolationWeights();
@@ -277,11 +277,10 @@ void BridgingScaleT::InterpolateField(const StringT& field, int order, const Poi
 }
 
 /* compute the projection matrix */
-void BridgingScaleT::InitProjection(const iArrayT& points_used, const dArray2DT* init_coords, 
+void BridgingScaleT::InitProjection(CommManagerT& comm, const iArrayT& points_used, const dArray2DT* init_coords, 
 	const dArray2DT* curr_coords, PointInCellDataT& cell_data)
 {
-	/* initialize point-in-cell data */
-	MaptoCells(points_used, init_coords, curr_coords, cell_data);
+#pragma unused(comm)
 
 	/* compute interpolation data */
 	InitInterpolation(points_used, init_coords, curr_coords, cell_data);
