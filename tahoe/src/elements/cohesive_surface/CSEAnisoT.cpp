@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.6 2001-04-04 22:13:24 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.7 2001-10-11 00:54:28 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Cohesive surface elements with scalar traction potentials,             */
 /* i.e., the traction potential is a function of the gap magnitude,       */
@@ -91,6 +91,7 @@ void CSEAnisoT::Initialize(void)
 	int numprops;
 	in >> numprops;
 	fSurfPots.Allocate(numprops);
+	fNumStateVariables.Allocate(numprops);
 	for (int i = 0; i < fSurfPots.Length(); i++)
 	{
 		int num, code;
@@ -127,6 +128,9 @@ void CSEAnisoT::Initialize(void)
 				throw eBadInputValue;
 		}
 		if (!fSurfPots[num]) throw eOutOfMemory;
+		
+		/* get number of state variables */
+		fNumStateVariables[num] = fSurfPots[num]->NumStateVariables();
 	}
 
 	/* check compatibility of constitutive outputs */
@@ -159,6 +163,55 @@ void CSEAnisoT::Initialize(void)
 		fSurfPots[j]->PrintName(out);
 		fSurfPots[j]->Print(out);
 	}
+	
+	/* initialize state variable space */
+	if (fNumStateVariables.Min() > 0)
+	{
+		/* number of integration points */
+		int num_ip = fCurrShapes->NumIP();
+	
+		/* get state variables per element */
+		int num_elements = fElementCards.Length();
+		iArrayT num_elem_state(num_elements);
+		for (int i = 0; i < num_elements; i++)
+			num_elem_state[i] = num_ip*fNumStateVariables[fElementCards[i].MaterialNumber()];
+
+		/* allocate space */
+		fStateVariables.Configure(num_elem_state);
+
+		/* initialize state variable space */
+		dArrayT state;
+		for (int i = 0; i < num_elements; i++)
+		{
+			/* material number */
+			int mat_num = fElementCards[i].MaterialNumber();
+			int num_var = fNumStateVariables[mat_num];
+			
+			/* loop over integration points */
+			double* pstate = fStateVariables(i);
+			for (int j = 0; j < num_ip; j++)
+			{
+				state.Set(num_var, pstate);
+				fSurfPots[mat_num]->InitStateVariables(state);
+				pstate += num_var;
+			}
+		}		
+	}
+	else /* set dimensions to zero */
+		fStateVariables.Allocate(fElementCards.Length(), 0);
+
+	/* set history */
+	fStateVariables_last = fStateVariables;
+}
+
+/* close current time increment */
+void CSEAnisoT::CloseStep(void)
+{
+	/* inherited */
+	CSEBaseT::CloseStep();
+
+	/* reset state variables from history */
+	fStateVariables_last = fStateVariables;
 }
 
 /***********************************************************************
@@ -180,6 +233,7 @@ void CSEAnisoT::LHSDriver(void)
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
+	dArrayT state;
 	Top();
 	while (NextElement())
 	{
@@ -188,6 +242,7 @@ void CSEAnisoT::LHSDriver(void)
 	
 		/* surface potential */
 		SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
+		int num_state = fNumStateVariables[element.MaterialNumber()];
 	
 		/* get ref geometry (1st facet only) */
 		fNodes1.Collect(facet1, element.NodesX());
@@ -200,9 +255,14 @@ void CSEAnisoT::LHSDriver(void)
 		fLHS = 0.0;
 
 		/* loop over integration points */
+		double* pstate = fStateVariables(CurrElementNumber());
 		fShapes->TopIP();
 		while (fShapes->NextIP())
 		{
+			/* set state variables */
+			state.Set(num_state, pstate);
+			pstate += num_state;
+		
 			/* integration weights */
 			double w = fShapes->IPWeight();		
 
@@ -225,13 +285,13 @@ void CSEAnisoT::LHSDriver(void)
 
 			/* stiffness in local frame */
 			fQ.MultTx(delta, fdelta);
-			const dMatrixT& K = surfpot->Stiffness(fdelta);
+			const dMatrixT& K = surfpot->Stiffness(fdelta, state);
 			
 			/* rotation */
 			if (fRotate)
 			{
 				/* traction in local frame */
-				const dArrayT& T = surfpot->Traction(fdelta);
+				const dArrayT& T = surfpot->Traction(fdelta, state);
 
 				/* 1st term */
 				fT.SetToScaled(j0*w*constK, T);
@@ -266,6 +326,9 @@ void CSEAnisoT::RHSDriver(void)
 	int formKd = fController->FormKd(constKd);
 	if (!formKd) return;
 
+	/* set state to start of current step */
+	fStateVariables = fStateVariables_last;
+
 	/* node map of facet 1 */
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
@@ -273,6 +336,7 @@ void CSEAnisoT::RHSDriver(void)
 	/* fracture surface area */
 	fFractureArea = 0.0;
 
+	dArrayT state;
 	Top();
 	while (NextElement())
 	{
@@ -287,6 +351,7 @@ void CSEAnisoT::RHSDriver(void)
 		{
 			/* surface potential */
 			SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
+			int num_state = fNumStateVariables[element.MaterialNumber()];
 			
 			/* get current geometry */
 			SetLocalX(fLocCurrCoords); //EFFECTIVE_DVA
@@ -295,10 +360,15 @@ void CSEAnisoT::RHSDriver(void)
 	  		fRHS = 0.0;
 			
 			/* loop over integration points */
+			double* pstate = fStateVariables(CurrElementNumber());
 			int all_failed = 1;
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{
+				/* set state variables */
+				state.Set(num_state, pstate);
+				pstate += num_state;
+			
 				/* integration weights */
 				double w = fShapes->IPWeight();		
 
@@ -324,7 +394,7 @@ void CSEAnisoT::RHSDriver(void)
 	
 				/* gap -> traction, in/out of local frame */
 				fQ.MultTx(delta, fdelta);
-				fQ.Multx(surfpot->Traction(fdelta), fT);
+				fQ.Multx(surfpot->Traction(fdelta, state), fT);
 	
 				/* expand */
 				fShapes->Grad_d().MultTx(fT, fNEEvec);
@@ -333,28 +403,12 @@ void CSEAnisoT::RHSDriver(void)
 				fRHS.AddScaled(-j0*w*constKd, fNEEvec);
 				
 				/* check status */
-				SurfacePotentialT::StatusT status = surfpot->Status(fdelta);
+				SurfacePotentialT::StatusT status = surfpot->Status(fdelta, state);
 				if (status != SurfacePotentialT::Failed) all_failed = 0;
 				
 				/* fracture area */
 				if (fOutputArea && status != SurfacePotentialT::Precritical)
 					fFractureArea += j0*w;
-			}
-
-			//TEMP - catch NaN's
-			for (int i = 0; i < fRHS.Length(); i++)
-			{
-				double x = fRHS[i];			
-				if (is_NaN(x))
-				{
-					cout << "\n CSEAnisoT::RHSDriver: NaN detected" << endl;
-					throw eBadJacobianDet;
-				}
-				else if (is_Inf(x))			
-				{
-					cout << "\n CSEAnisoT::RHSDriver: Inf detected" << endl;
-					throw eBadJacobianDet;
-				}
 			}
 
 			/* assemble */
@@ -465,6 +519,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
+	dArrayT state;
 	Top();
 	while (NextElement())
 	{
@@ -498,6 +553,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		{
 	  		/* surface potential */
 			SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
+			int num_state = fNumStateVariables[element.MaterialNumber()];
 
 			/* get ref geometry (1st facet only) */
 			fNodes1.Collect(facet1, element.NodesX());
@@ -512,9 +568,14 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			if (e_codes[Traction]) traction = 0.0;
 
 			/* integrate */
+			double* pstate = fStateVariables(CurrElementNumber());
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{
+				/* set state variables */
+				state.Set(num_state, pstate);
+				pstate += num_state;
+			
 				/* element integration weight */
 				double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
 				area += ip_w;
@@ -534,7 +595,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				if (n_codes[NodalTraction] || e_codes[Traction])
 				{
 					/* compute traction in local frame */
-					const dArrayT& tract = surfpot->Traction(fdelta);
+					const dArrayT& tract = surfpot->Traction(fdelta, state);
 				
 					/* project to nodes */
 					if (n_codes[NodalTraction])
@@ -548,7 +609,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				/* material output data */
 				if (n_codes[MaterialData])
 				{
-					surfpot->ComputeOutput(fdelta, ipmat);
+					surfpot->ComputeOutput(fdelta, state, ipmat);
 					fShapes->Extrapolate(ipmat, matdat);
 				}
 
@@ -560,7 +621,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				if (e_codes[CohesiveEnergy])
 				{
 					/* surface potential */
-					double potential = surfpot->Potential(fdelta);
+					double potential = surfpot->Potential(fdelta, state);
 
 					/* integrate */
 					phi += potential*ip_w;
