@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.21 2003-12-20 01:22:14 rjones Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.22 2004-06-17 07:13:07 paklein Exp $ */
 // created by : rjones 2001
 #include "MultiplierContactElement2DT.h"
 
@@ -6,6 +6,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
+#include "ifstreamT.h"
 #include "MultiplierContactElement2DT.h"
 #include "ContactNodeT.h"
 #include "ElementSupportT.h"

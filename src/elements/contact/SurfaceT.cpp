@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.34 2003-11-20 18:14:51 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.35 2004-06-17 07:13:07 paklein Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -7,7 +7,7 @@
 
 #include "ModelManagerT.h"
 #include "ElementSupportT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "IOBaseT.h"
 #include "FaceT.h"
 #include "LineL2FaceT.h"

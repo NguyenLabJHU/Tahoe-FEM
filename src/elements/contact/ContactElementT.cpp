@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.46 2003-12-20 01:22:14 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.47 2004-06-17 07:13:07 paklein Exp $ */
 #include "ContactElementT.h"
 
 #include <math.h>
@@ -6,7 +6,7 @@
 #include <iomanip.h>
 
 #include "ofstreamT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "IOBaseT.h"
 #include "iGridManager2DT.h"
 #include "XDOF_ManagerT.h"

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.50 2004-03-16 10:05:13 paklein Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.51 2004-06-17 07:13:07 paklein Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -6,7 +6,7 @@
 #include <iomanip.h>
 
 #include "ofstreamT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "ContactNodeT.h"
 #include "ParabolaT.h"
 #include "ModSmithFerrante.h"
