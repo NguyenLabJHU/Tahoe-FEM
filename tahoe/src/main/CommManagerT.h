@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.1.2.6 2002-12-27 23:12:08 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.1.2.7 2003-01-08 08:35:52 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -166,6 +166,11 @@ private:
 	
 	/** rows give the lower and upper periodic bounds for that coordinate */
 	dArray2DT fPeriodicBoundaries;
+
+	ArrayT<AutoArrayT<int> > fNodes_x_min;
+	ArrayT<AutoArrayT<int> > fNodes_x_min_ghost;
+	ArrayT<AutoArrayT<int> > fNodes_x_max;
+	ArrayT<AutoArrayT<int> > fNodes_x_max_ghost;
 	/*@}*/
 	
 	/** processor bounds */
