@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.New.cpp,v 1.1 2004-07-25 06:44:12 paklein Exp $ */
+/* $Id: FEManagerT.New.cpp,v 1.2 2004-09-28 15:35:37 paklein Exp $ */
 #include "FEManagerT.h"
 
 /* element configuration header */
@@ -17,16 +17,16 @@ using namespace Tahoe;
 
 /* factory method */
 FEManagerT* FEManagerT::New(const StringT& name, const StringT& input_file, ofstreamT& output, 
-	CommunicatorT& comm, const ArrayT<StringT>& argv)
+	CommunicatorT& comm, const ArrayT<StringT>& argv, TaskT task)
 {
 	const char caller[] = "FEManagerT::New";
 
 	if (name == "tahoe")
-		return new FEManagerT(input_file, output, comm, argv);
+		return new FEManagerT(input_file, output, comm, argv, task);
 	else if (name == "tahoe_bridging")
 	{
 #ifdef BRIDGING_ELEMENT
-		return new FEManagerT_bridging(input_file, output, comm, argv);
+		return new FEManagerT_bridging(input_file, output, comm, argv, task);
 #else
 		ExceptionT::GeneralFail(caller, "\"%s\" requires BRIDGING_ELEMENT",
 			name.Pointer());
@@ -36,7 +36,7 @@ FEManagerT* FEManagerT::New(const StringT& name, const StringT& input_file, ofst
 	else if (name == "tahoe_multi")
 	{
 #ifdef BRIDGING_ELEMENT
-		return new MultiManagerT(input_file, output, comm, argv);
+		return new MultiManagerT(input_file, output, comm, argv, task);
 #else
 		ExceptionT::GeneralFail(caller, "\"%s\" requires BRIDGING_ELEMENT",
 			name.Pointer());
@@ -46,7 +46,7 @@ FEManagerT* FEManagerT::New(const StringT& name, const StringT& input_file, ofst
 	else if (name == "tahoe_bridging_scale")
 	{
 #if defined(BRIDGING_ELEMENT) && defined(__DEVELOPMENT__)
-		return new BridgingScaleManagerT(input_file, output, comm, argv);
+		return new BridgingScaleManagerT(input_file, output, comm, argv, task);
 #else
 		ExceptionT::GeneralFail(caller, "\"%s\" requires BRIDGING_ELEMENT and __DEVELOPMENT__",
 			name.Pointer());
@@ -56,7 +56,7 @@ FEManagerT* FEManagerT::New(const StringT& name, const StringT& input_file, ofst
 	else if (name == "tahoe_THK")
 	{
 #if defined(BRIDGING_ELEMENT) && defined(__DEVELOPMENT__)
-		return new FEManagerT_THK(input_file, output, comm, argv);
+		return new FEManagerT_THK(input_file, output, comm, argv, task);
 #else
 		ExceptionT::GeneralFail(caller, "\"%s\" requires BRIDGING_ELEMENT and __DEVELOPMENT__",
 			name.Pointer());

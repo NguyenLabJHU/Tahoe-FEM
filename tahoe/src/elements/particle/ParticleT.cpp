@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.43 2004-07-22 08:23:04 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.44 2004-09-28 15:35:31 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -394,8 +394,10 @@ void ParticleT::GenerateNeighborList(const ArrayT<int>* particle_tags,
 	 * ensure a full neighbor list of nodes in particle_tags */
 	if (double_list) full_list = false;
 	ArrayT<int> skipped;
-	const ArrayT<int>* partition_nodes = comm_manager.PartitionNodes();
-	int npn = (partition_nodes) ? partition_nodes->Length() : ElementSupport().NumNodes();
+	//const ArrayT<int>* partition_nodes = comm_manager.PartitionNodes();
+	//int npn = (partition_nodes) ? partition_nodes->Length() : ElementSupport().NumNodes();
+	//NOTE: atom decomposition needs full information reproduced everywhere
+	int npn = ElementSupport().NumNodes();
 	if (full_list && particle_tags && npn > num_tags) {
 		skipped.Dimension(npn);
 		skipped = 1;

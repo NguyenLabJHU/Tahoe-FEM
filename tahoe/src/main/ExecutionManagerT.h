@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.h,v 1.7 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: ExecutionManagerT.h,v 1.8 2004-09-28 15:35:37 paklein Exp $ */
 /* created: paklein (08/27/1997) */
 
 #ifndef _EXECMAN_T_H_
@@ -41,15 +41,18 @@ public:
 
 	/** prompt for and execute input files until "quit" */
 	virtual void Run(void);
+	
+	// command line arguments -> moved to public so that the decompose methods may access DEF 3 Aug 04
+	AutoArrayT<StringT> fCommandLineOptions;
+	
+	/* returns the index of the requested option */
+	bool CommandLineOption(const char* str) const;
+	bool CommandLineOption(const char* str, int& index) const;
 
 protected:
 
 	/** MUST be overloaded */
 	virtual void RunJob(ifstreamT& in, ostream& status) = 0;
-
-	/* returns the index of the requested option */
-	bool CommandLineOption(const char* str) const;
-	bool CommandLineOption(const char* str, int& index) const;
 
 	/** add the command line option to the list. \returns true if the option was
 	 * added, false otherwise. */
@@ -81,9 +84,6 @@ protected:
 
 	/* put back flag */
 	int fJobCharPutBack;
-
-	/* command line arguments */
-	AutoArrayT<StringT> fCommandLineOptions;
 	
 private:  	
 
