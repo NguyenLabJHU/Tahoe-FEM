@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.40.2.2 2003-11-24 00:47:31 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.40.2.3 2003-11-25 04:59:52 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "fstreamT.h"
@@ -616,7 +616,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "ABAQUS_MATERIAL or ABAQUS_BCJ_MATERIAL_DEV not enabled: %d", matcode);
 #endif
 #else
-				ExceptionT::BadInputValue(caller, "model requires f2c support: %d", kABAQUS_BCJ);
+				ExceptionT::BadInputValue(caller, "model requires f2c support: %d", kABAQUS_BCJ_ISO);
 #endif /* __F2C__ */	
 			}			
 			case kABAQUS_VUMAT_BCJ:
