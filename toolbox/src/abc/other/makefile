@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.11 2003-03-04 06:41:09 paklein Exp $
+# $Id: makefile,v 1.12 2003-03-14 00:45:49 cjkimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,7 +22,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	dRangeArrayT.o \
 	LocalArrayT.o \
-	StringT.o
+	StringT.o \
+	RandomNumberT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -44,7 +45,8 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	dRangeArrayT.cpp \
 	LocalArrayT.cpp \
-	StringT.cpp
+	StringT.cpp \
+	RandomNumberT.cpp
 
 ##################### (3) headers
 #
@@ -65,7 +67,8 @@ HDR = \
 	RowAutoFill2DT.h \
 	StringT.h \
 	Vector3T.h \
-	Vector2T.h
+	Vector2T.h \
+	RandomNumberT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
