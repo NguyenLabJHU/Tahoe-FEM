@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.15 2001-10-16 22:27:00 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.16 2001-10-23 00:23:08 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "vtkRenderer.h"
@@ -51,8 +51,8 @@ VTKConsoleT::VTKConsoleT(void)
   iAddVariable("numColors", numColors);
   iAddVariable("source_file", source_file);
   //iAddVariable("output_file", output_file);
-  //iAddVariable("scale_factor", scale_factor);
-
+   iAddVariable("scale_factor", scale_factor);
+   
   /* add console commands */
   iAddCommand("Start_Rendering");
   iAddCommand("Update_Rendering");
@@ -74,8 +74,8 @@ VTKConsoleT::VTKConsoleT(void)
   iAddCommand("Hide_axes");
   iAddCommand("Choose_variable");
  
+  /* prompt for input file */
   StringT file;
-  //int test;
   cout << "Choose number of File\n 1: heat.io0.exo\n 2: test.io0.exo\n 3: test2.io0.exo\n 4: big.exo\n 5: enter different .exo: ";
   cin >> test;
   char line[255];
@@ -91,7 +91,11 @@ VTKConsoleT::VTKConsoleT(void)
   }
   else cout << "bad entry";
 
+  cout << "How many plots in window (1 or 4)?";
+  cin >> numRen;
+  cin.getline(line, 254);
 
+  /* read exodus file */
    ExodusT exo(cout);
   if (!exo.OpenRead(file))
 	{
@@ -185,20 +189,24 @@ VTKConsoleT::VTKConsoleT(void)
 		      nodal_data.SetColumn(j, ndata);
 		      scalars[i][j] =  vtkScalars::New(VTK_DOUBLE);
 		    
+		      /* instantiate displacement vector if needed */
 		      if (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z")
 			vectors[i][j] = vtkVectors::New(VTK_DOUBLE);
 		      
-		      // }
+		      /* initialize min and max scalar range values */
 		      scalarRange1[j] = 10000;
 		      scalarRange2[j] = -10000;
 		      
 		      for (int k = 0; k<num_nodes; k++) {
 			
 			//	scalars[i][j]->InsertScalar(k+1, nodal_data[k][j]);
+			/* determine min and max scalar range values */
 			if (nodal_data(k,j) < scalarRange1[j]) scalarRange1[j] = nodal_data(k,j);
 			if (nodal_data(k,j) > scalarRange2[j]) scalarRange2[j] = nodal_data(k,j);
+			/* insert scalar value at each node for each variable and time step */
 			scalars[i][j]->InsertScalar(k+1, nodal_data(k,j));
-			//InsertVector(k,...)?????               
+			//InsertVector(k,...)?????
+			/* if displacement vector needed then insert vector at each node for each time step */
 			if (node_labels[0] == "D_X" && node_labels[1] == "D_Y" && node_labels[2] == "D_Z")              
 			  vectors[i][j]->InsertVector(k+1, nodal_data(k,0),nodal_data(k,1),nodal_data(k,2));
 			else if (node_labels[0] == "D_X" && node_labels[1] == "D_Y") 
@@ -251,10 +259,12 @@ VTKConsoleT::VTKConsoleT(void)
  intArray->SetNumberOfComponents(vtk_connects.MinorDim()); //is this needed???
  intArray->SetArray(p_vtk_connects, vtk_connects.Length(), 0);
 
+ /* create displacement "warp" vector */
  warp = vtkWarpVector::New();
  ugrid = vtkUnstructuredGrid::New();
  warp->SetInput(ugrid);
- warp->SetScaleFactor(5);
+ scale_factor = 5;
+  warp->SetScaleFactor(scale_factor);
 
  /* create VTK array of cells */
  vtkCellArray* vtk_cell_array = vtkCellArray::New();
@@ -279,6 +289,7 @@ VTKConsoleT::VTKConsoleT(void)
 //    cell_types = VTK_HEXAHEDRON;
 // if (geometry == GeometryT::kNone)
 
+ /* convert exodus geometry into appropriate vtk geometry */
  if (geometry == GeometryT::kPoint) cell_types = VTK_VERTEX;  
  else if (geometry == GeometryT::kLine ) cell_types =  VTK_LINE;
  else if (geometry == GeometryT::kQuadrilateral) cell_types= VTK_QUAD; 
@@ -291,10 +302,9 @@ VTKConsoleT::VTKConsoleT(void)
  /* insert cells in the grid */
  //  vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
  ugrid->SetCells(cell_types.Pointer(), vtk_cell_array);
-   currentVarNum = num_node_variables-1;
+ /* set default variable to be displayed */ 
+ currentVarNum = num_node_variables-1;
  
-
-
   ugrid->SetPoints(points);
   points->Delete();
   ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
@@ -305,14 +315,22 @@ VTKConsoleT::VTKConsoleT(void)
 
   // source_file = "../../example_files/heat/data_file1.vtk";
   output_file = "A.tif";
+  /* color mapping variables */
   numColors = 256;
   hueRange1 = 0; hueRange2 = 0.6667;
   valRange1 = 1; valRange2 = 1;
   satRange1 = 1; satRange2 = 1;
   alphaRange1 = 1; alphaRange2 = 1;
+  // numRen = 1;
   // scalarRange1 = 6; scalarRange2 = 17;
+  //for (int i=0; i<1; i++)
+  // renderer[i] = vtkRenderer::New();
   renderer = vtkRenderer::New();
   renderer2 = vtkRenderer::New();
+  renderer3 = vtkRenderer::New();
+  renderer4 = vtkRenderer::New();
+  
+  
   renWin = vtkRenderWindow::New();
   iren = vtkRenderWindowInteractor::New();
   lut = vtkLookupTable::New();
@@ -330,42 +348,83 @@ VTKConsoleT::VTKConsoleT(void)
   axes = vtkCubeAxesActor2D::New();
   
   
+//   renWin->AddRenderer(renderer);
+//    renWin->AddRenderer(renderer2);
+  // for (int i=0; i<4; i++)
   renWin->AddRenderer(renderer);
-  // renWin->AddRenderer(renderer2);
- 
+  if (numRen==4){   
+    renWin->AddRenderer(renderer2);
+    renWin->AddRenderer(renderer3);
+    renWin->AddRenderer(renderer4);
+  }
   iren->SetRenderWindow(renWin);
-
+  
+  /* color mapping stuff */
   lut->SetHueRange(hueRange1, hueRange2);
   lut->SetSaturationRange(satRange1,satRange2);
   lut->SetValueRange(valRange1,valRange2);
   lut->SetAlphaRange(alphaRange1,alphaRange2);
   lut->SetNumberOfColors(numColors);
   lut->Build();
-  
-
+    
+  /* set warping vector if needed */
   if (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z")
     ugridMapper->SetInput(warp->GetOutput());
   else
     ugridMapper->SetInput(ugrid);
-  if (test ==4){ scalarRange1[2] = 1.936; scalarRange1[3] = 1.936;}
+  /* if min and max scalar values are equal, decrease min slightly to provide for useful color mapping */
+  for (int j =0; j< num_node_variables; j++)
+    {
+      if (scalarRange1[j] == scalarRange2[j])
+	scalarRange1[j]-=.001;
+    }
   ugridMapper->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
   ugridMapper->SetLookupTable(lut);
-  ugridMapper->ImmediateModeRenderingOn();
+  //ugridMapper->ImmediateModeRenderingOn();
 
   ugridActor->SetMapper(ugridMapper);
   ugridActor->AddPosition(0,0.001,0);
   
-  wireActor->SetMapper(ugridMapper);
-  wireActor->GetProperty()->SetRepresentationToWireframe();
-  wireActor->GetProperty()->SetColor(0,0,0);
+//   wireActor->SetMapper(ugridMapper);
+//   wireActor->GetProperty()->SetRepresentationToWireframe();
+//   wireActor->GetProperty()->SetColor(0,0,0);
 
-  renderer->AddActor(ugridActor);
-  renderer->AddActor(wireActor);
-  renderer->SetBackground(0,0,0);
+//   for (int i=0; i<4; i++){
+    renderer->AddActor(ugridActor);
+    renderer->SetBackground(0,0,0);
+    renderer4->AddActor(ugridActor);
+    renderer4->SetBackground(0,0,0);
+    renderer2->AddActor(ugridActor);
+    renderer2->SetBackground(0,0,0);
+    renderer3->AddActor(ugridActor);
+    renderer3->SetBackground(0,0,0);
+
+
+//   }
+    /* divide window into 4 parts */
+    if (numRen ==4){
+      renderer->SetViewport(0,0,.5,.5);
+      renderer2->SetViewport(.5,0,1,.5);
+      renderer3->SetViewport(0,.5,.5,1);
+      renderer4->SetViewport(.5,.5,1,1);
+      renderer->GetActiveCamera()->Zoom(0.85);
+      renderer2->GetActiveCamera()->Zoom(0.85);
+      renderer3->GetActiveCamera()->Zoom(0.85);
+      renderer4->GetActiveCamera()->Zoom(0.85);
+      }
+
+//   renderer->AddActor(ugridActor);
+//   // renderer->AddActor(wireActor);
+//   renderer->SetBackground(0,0,0);
+//    renderer->SetViewport(0,0,0.5,1);
+
+//   renderer2->AddActor(ugridActor);
+//   renderer2->SetBackground(1,1,1);
+//   renderer2->SetViewport(0.5,0,1,1);
 
   renWin->SetPosition(668, 0);
-  renWin->SetSize(600, 700);
-
+  renWin->SetSize(600,700);
+  
   scalarBar->SetLookupTable(ugridMapper->GetLookupTable());
   // sbTitle = "Temperature for frame 000";
   sbTitle.Append(node_labels[currentVarNum]); 
@@ -377,8 +436,9 @@ VTKConsoleT::VTKConsoleT(void)
   scalarBar->SetOrientationToHorizontal();
   scalarBar->SetWidth(0.8);
   scalarBar->SetHeight(0.17);
-  renderer->AddActor(scalarBar);
+   renderer->AddActor(scalarBar);
 
+   /* assemble a string that is a list of all the variables */
   varList = "";
   for (int i = 0; i<num_node_variables; i++){
     varList.Append(i);
@@ -387,7 +447,15 @@ VTKConsoleT::VTKConsoleT(void)
     varList.Append(node_labels[i]);
     varList.Append("\n");
   }
- 
+
+  //TEMP - adding sub-scopes to the console
+  fFrames.Allocate(numRen);
+  for (int i = 0; i < numRen; i++)
+    {
+      fFrames[i].Append("frame",i,2);
+      fFrames[i].iSetName(fFrames[i]);
+      iAddSub(fFrames[i]);
+    }
 }
 
 /* execute given command - returns false on fail */
@@ -416,7 +484,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
     lut->SetValueRange(valRange1,valRange2);
     lut->SetAlphaRange(alphaRange1,alphaRange2);
     lut->SetNumberOfColors(numColors);
-    // warp->SetScaleFactor(scale_factor);
+    warp->SetScaleFactor(scale_factor);
     renWin->Render();
     cout << "type 'e' in the graphics window to exit interactive mode" << endl;   
     iren->Start();
@@ -468,7 +536,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       cout << "Save image at: \n 1: current view\n 2: default view: ";
       cin >> sfbTest;
       cin.getline(line, 254);
-	if (sfbTest == 2) {
+      /* if default camera desired */
+      if (sfbTest == 2) {
 	  cam->SetFocalPoint(0,0,0);
 	  cam->SetPosition(0,0,1);
 	  cam->ComputeViewPlaneNormal();
@@ -478,9 +547,16 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	  renderer->ResetCamera();
 	  renWin->Render();
 	}
-	
+      int saveOpt;
       renSrc->SetInput(renderer);
-       renSrc->WholeWindowOn();
+      if (numRen == 4){ 
+	cout << "Save options:\n 1: single plot\n 2: all 4 plots: ";
+	cin >> saveOpt;
+	cin.getline(line, 254);
+	if (saveOpt == 2)
+	  renSrc->WholeWindowOn();
+	
+      }
       writer->SetInput(renSrc->GetOutput());
       writer->SetFileName(output_file);
       writer->Write();
@@ -496,12 +572,14 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       ids->PointIdsOn();
       //ids->CellIdsOn();
       //ids->FieldDataOn();
-      visPts->SetInput(ids->GetOutput());
+      //visPts->SetInput(ids->GetOutput());
+      visPts->SetInput(ugrid);
       visPts->SetRenderer(renderer);
 
       ldm->SetInput(visPts->GetOutput());
-      // ldm->SetInput(ids->GetOutput());
+      //ldm->SetInput(ids->GetOutput());
       ldm->SetLabelModeToLabelIds();
+      ldm->ShadowOff();
       // ldm->SetLabelModeToLabelFieldData();
       pointLabels->SetMapper(ldm);
       pointLabels->VisibilityOn();
@@ -587,7 +665,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       cin >> sfbTest;
       cin.getline(line, 254);
 	
-     
+      /* if default camera angle desired */
 	if (sfbTest == 2) {
 	  cam->SetFocalPoint(0,0,0);
 	  cam->SetPosition(0,0,1);
@@ -600,7 +678,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	}
 
       for (int j = 0; j<num_time_steps; j++){
-            
+	/* time delay */
         clock_t start_time, cur_time;
          start_time = clock();
          while((clock() - start_time) < timeStep * CLOCKS_PER_SEC)
@@ -637,6 +715,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       cout << "Save images at: \n 1: current view\n 2: default view: ";
       cin >> sfbTest;
       cin.getline(line, 254);
+      /* if default camera desired */
       if (sfbTest == 2) {
 	cam->SetFocalPoint(0,0,0);
 	cam->SetPosition(0,0,1);
@@ -783,11 +862,24 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 
   else if (command == "Choose_variable")
     {
+ //      char line[255];
+//       if (numRen == 1){
+// 	cout << "choose variable number from 0 to " << num_node_variables-1 <<" to be displayed\n" << varList;      
+// 	cin >> currentVarNum;
+// 	cin.getline(line, 254);
+	//  }
+ //      else if (numRen == 4){
+// 	for (int i = 0; i<4; i++){
+// 	  cout << "choose variable number from 0 to " << num_node_variables-1 <<" to be displayed for renderer " << i << endl << varList; 
+// 	cin >> currentVarNum;
+// 	cin.getline(line, 254);
+	
+// 	}
+//       }
 
-      cout << "choose variable number from 0 to " << num_node_variables-1 <<" to be displayed\n" << varList;
-      
-      cin >> currentVarNum;
       char line[255];
+      cout << "choose variable number from 0 to " << num_node_variables-1 <<" to be displayed\n" << varList;      
+      cin >> currentVarNum;
       cin.getline(line, 254);
       ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
       ugridMapper->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);

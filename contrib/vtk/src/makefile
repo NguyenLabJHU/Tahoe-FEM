@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2001-09-19 01:12:35 recampb Exp $
+# $Id: makefile,v 1.2 2001-10-23 00:23:08 recampb Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,6 +7,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	VTKConsoleT.o \
+	VTKFrameT.o \
 	main.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -17,10 +18,12 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	VTKConsoleT.cpp \
+	VTKFrameT.cpp \
 	main.cpp
 
 # headers
-HDR = VTKConsoleT.h
+HDR = VTKConsoleT.h \
+	VTKFrameT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
