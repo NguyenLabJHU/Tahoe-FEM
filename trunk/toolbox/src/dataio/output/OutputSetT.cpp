@@ -1,27 +1,25 @@
-/* $Id: OutputSetT.cpp,v 1.13 2002-07-05 17:16:06 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.14 2002-09-12 16:10:02 paklein Exp $ */
 /* created: paklein (03/07/2000) */
-
 #include "OutputSetT.h"
 #include "iArrayT.h"
 #include "iArray2DT.h"
 
-/* array behavior */
-
 using namespace Tahoe;
 
 namespace Tahoe {
+/* array behavior */
 const bool ArrayT<OutputSetT*>::fByteCopy = true;
-} /* namespace Tahoe */
+}
 
 /* constructor */
-OutputSetT::OutputSetT(const StringT& ID, GeometryT::CodeT geometry_code,
+OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	const ArrayT<StringT>& block_ID, 
 	const ArrayT<const iArray2DT*>& connectivities, 
 	const ArrayT<StringT>& n_labels, 
 	const ArrayT<StringT>& e_labels, bool changing):
 	fMode(kElementBlock),
 	fPrintStep(-1),
-	fID(ID),
+	fID("1"), /* dummy ID */
 	fChanging(changing),
 	fGeometry(geometry_code),
 	fBlockID(block_ID),
@@ -56,11 +54,11 @@ OutputSetT::OutputSetT(const StringT& ID, GeometryT::CodeT geometry_code,
 	fChanging = changing; // reset
 }
 
-OutputSetT::OutputSetT(const StringT& ID, GeometryT::CodeT geometry_code,
+OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	const iArray2DT& connectivities, const ArrayT<StringT>& n_labels):
 	fMode(kFreeSet),
 	fPrintStep(-1),
-	fID(ID),
+	fID("1"), /* dummy ID */
 	fChanging(false),
 	fGeometry(geometry_code),
 	fConnectivities(1),
@@ -130,6 +128,16 @@ int OutputSetT::NumElements(void) const
   for (int i=0; i < fConnectivities.Length(); i++)
     num += fConnectivities[i]->MajorDim();
   return num; 
+}
+
+void OutputSetT::SetID(const StringT& id)
+{
+	fID = id;
+	/* must give connectivities a reasonable ID for compatibility with the 
+	 * output classes */
+	if (Mode() == kFreeSet) {
+		fBlockID[0] = fID;
+	}
 }
 
 const iArray2DT* OutputSetT::Connectivities(const StringT& ID) const
