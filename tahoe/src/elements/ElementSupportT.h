@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.14 2002-11-28 01:14:05 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.15 2002-12-01 19:52:18 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -64,7 +64,7 @@ public:
 	/** \name accessors */
 	/*@{*/
 	/** Tahoe version string */
-	const StringT& Version(void) const;
+	const char* Version(void) const;
 
 #endif // ndef _SIERRA_TEST_
 

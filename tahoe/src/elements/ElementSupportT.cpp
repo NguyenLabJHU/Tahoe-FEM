@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.14 2002-11-30 16:41:22 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.15 2002-12-01 19:52:18 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -78,7 +78,7 @@ void ElementSupportT::SetNodes(NodeManagerT* nodes)
 }
 
 /* Tahoe version string */
-const StringT& ElementSupportT::Version(void) const
+const char* ElementSupportT::Version(void) const
 {
 	return FEManager().Version();
 }
