@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.43 2003-08-07 00:03:52 pgandhi Exp $ */
+/* $Id: EAMT.cpp,v 1.44 2003-08-14 07:52:26 paklein Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -56,24 +56,6 @@ void EAMT::Initialize(void)
 {
   cout << "Initialization Phase\n";
 
-  /* inherited */
-  ParticleT::Initialize();
-
-  /* dimension */
-  int ndof = NumDOF();
-  fLHS.Dimension(2*ndof);
-  fRHS.Dimension(2*ndof);
-
-  /* constant matrix needed to calculate stiffness */
-  fOneOne.Dimension(fLHS);
-  dMatrixT one(ndof);
-  one.Identity();
-  fOneOne.SetBlock(0, 0, one);
-  fOneOne.SetBlock(ndof, ndof, one);
-  one *= -1;
-  fOneOne.SetBlock(0, ndof, one);
-  fOneOne.SetBlock(ndof, 0, one);
-
   /* set up communication of electron density information */
   fElectronDensityMessageID = fCommManager.Init_AllGather(MessageT::Double, 1);
   fElectronDensity_man.SetMajorDimension(ElementSupport().NumNodes(), false);
@@ -93,6 +75,24 @@ void EAMT::Initialize(void)
   /* set up communication of rhop * r information */
   frhop_rMessageID = fCommManager.Init_AllGather(MessageT::Double, NumDOF());
   frhop_r_man.SetMajorDimension(ElementSupport().NumNodes(), false);
+
+  /* inherited */
+  ParticleT::Initialize();
+
+  /* dimension */
+  int ndof = NumDOF();
+  fLHS.Dimension(2*ndof);
+  fRHS.Dimension(2*ndof);
+
+  /* constant matrix needed to calculate stiffness */
+  fOneOne.Dimension(fLHS);
+  dMatrixT one(ndof);
+  one.Identity();
+  fOneOne.SetBlock(0, 0, one);
+  fOneOne.SetBlock(ndof, ndof, one);
+  one *= -1;
+  fOneOne.SetBlock(0, ndof, one);
+  fOneOne.SetBlock(ndof, 0, one);
 }
 
 /* collecting element geometry connectivities */
@@ -187,13 +187,19 @@ void EAMT::WriteOutput(void)
   if(iEmb == 1)
     {
       /* get electron density */
-      if(ndof == 2) GetRho2D(coords,fElectronDensity);
-      if(ndof == 3) GetRho3D(coords,fElectronDensity);
+      if (ndof == 2)
+	  	GetRho2D(coords,fElectronDensity);
+      else if (ndof == 3) 
+	  	GetRho3D(coords,fElectronDensity);
+	  else
+	      ExceptionT::GeneralFail(caller);
+	  
       /* exchange electron density information */
       fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
       
       /* get embedding energy */
       GetEmbEnergy(coords,fElectronDensity,fEmbeddingEnergy);
+	  
       /* exchange embedding energy information */
       fCommManager.AllGather(fEmbeddingEnergyMessageID, fEmbeddingEnergy);
     }
@@ -465,11 +471,13 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 
   /* get embedding force */
   GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
+  
   /* exchange embedding force information */
   fCommManager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
 
   /* get embedding stiffness */
   GetEmbStiff(coords,fElectronDensity,fEmbeddingStiff);
+  
   /* exchange embedding stiffness information */
   fCommManager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
 
@@ -765,19 +773,26 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
       dArrayT x_i, x_j, r_ij(ndof);
 
       /* get electron density */
-      if(ndof == 2) GetRho2D(coords,fElectronDensity);
-      if(ndof == 3) GetRho3D(coords,fElectronDensity);
+      if (ndof == 2) 
+	  	GetRho2D(coords,fElectronDensity);
+      else if (ndof == 3) 
+	  	GetRho3D(coords,fElectronDensity);
+	  else
+	  	ExceptionT::GeneralFail();
+	  
       /* exchange electron density information */
       fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
 
       /* get embedding force */
       GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
+	  
       /* exchange embedding force information */
       fCommManager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
 
       /* get embedding stiffness */
       GetEmbStiff(coords,fElectronDensity,fEmbeddingStiff);
-      /* exchange embedding stiffness information */
+      
+	  /* exchange embedding stiffness information */
       fCommManager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
    
       /* get rhop * r */
@@ -956,19 +971,26 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
       dArrayT x_i, x_j, x_k;
 
       /* EAM properties function pointers */
-      if(ndof == 2) GetRho2D(coords,fElectronDensity);
-      if(ndof == 3) GetRho3D(coords,fElectronDensity);
+      if (ndof == 2) 
+	  	GetRho2D(coords,fElectronDensity);
+      else if(ndof == 3) 
+	  	GetRho3D(coords,fElectronDensity);
+	  else
+	  	ExceptionT::GeneralFail();
+		
       /* exchange electron density information */
       fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
 
       /* get embedding force */
       GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
-      /* exchange embedding force information */
+      
+	  /* exchange embedding force information */
       fCommManager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
 
       /* get embedding stiffness */
       GetEmbStiff(coords,fElectronDensity,fEmbeddingStiff);
-      /* exchange embedding stiffness information */
+      
+	  /* exchange embedding stiffness information */
       fCommManager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
       
       /* get rhop * r */
@@ -1212,6 +1234,7 @@ void EAMT::RHSDriver2D(void)
     {
       /* get electron density */
       GetRho2D(coords,fElectronDensity);
+	  
       /* exchange electron density information */
       fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
       
@@ -1363,13 +1386,15 @@ void EAMT::RHSDriver3D(void)
       /* get electron density */
       fElectronDensity = 0.0;
       GetRho3D(coords,fElectronDensity);
+	  
       /* exchange electron density information */
       fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
       
       /* get embedding force */
       fEmbeddingForce = 0.0;
       GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
-      /* exchange embedding energy information */
+      
+	  /* exchange embedding energy information */
       fCommManager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
     }
 
@@ -1538,33 +1563,33 @@ void EAMT::SetConfiguration(void)
   // ELECTRON DENSITY //
   /* reset the electron density array */
   fElectronDensity_man.SetMajorDimension(nnd, true);
-  fElectronDensity.Resize(nnd);
+  
   /* exchange type information */
   fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
 
   // EMBEDDING ENERGY //
   /* reset the embedding energy array */
   fEmbeddingEnergy_man.SetMajorDimension(nnd, true);
-  fEmbeddingEnergy.Resize(nnd);
+  
   /* exchange type information */
   fCommManager.AllGather(fEmbeddingEnergyMessageID, fEmbeddingEnergy);
 
   /* reset the embedding force array */
   fEmbeddingForce_man.SetMajorDimension(nnd, true);
-  fEmbeddingForce.Resize(nnd);
+  
   /* exchange type information */
   fCommManager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
 
   /* reset the embedding stiffness array */
   fEmbeddingStiff_man.SetMajorDimension(nnd, true);
-  fEmbeddingStiff.Resize(nnd);
+  
   /* exchange type information */
   fCommManager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
 
   // OTHER  //
   /* reset the rhop * r array */
   frhop_r_man.SetMajorDimension(nnd, true);
-  frhop_r.Resize(nnd);
+  
   /* exchange type information */
   fCommManager.AllGather(frhop_rMessageID, frhop_r);
 }
