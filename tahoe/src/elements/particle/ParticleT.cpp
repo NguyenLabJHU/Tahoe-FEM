@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.13 2003-03-31 23:12:22 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.13.2.1 2003-05-09 08:28:03 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -329,6 +329,16 @@ void ParticleT::SetConfiguration(void)
 		ofstreamT& out = ElementSupport().Output();
 		fGrid->WriteStatistics(out);
 	}
+}
+
+/* contribution to the nodal residual forces */
+const dArray2DT& ParticleT::ResidualForce(int group)
+{
+	/* check */
+	if (group != Group())
+		ExceptionT::GeneralFail("ParticleT::ResidualForce", 
+			"expecting solver group %d not %d", Group(), group);
+	return fForce;
 }
 
 /***********************************************************************
