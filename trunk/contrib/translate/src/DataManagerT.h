@@ -10,6 +10,8 @@ class DataManagerT : public ModelManagerT
  public:
   DataManagerT (ostream& message);
 
+  int NumElementQuadPoints (StringT& name);
+
   int NumTimeSteps (void);
   void TimeSteps (dArrayT& steps);
 
@@ -34,6 +36,9 @@ class DataManagerT : public ModelManagerT
 
 inline DataManagerT::DataManagerT (ostream& message) :
   ModelManagerT (message) {}
+
+inline DataManagerT::NumElementQuadPoints (StringT& name)
+{ return fInput->NumElementQuadPoints(name); }
 
 inline int DataManagerT::NumTimeSteps (void)
 { return fInput->NumTimeSteps(); }
