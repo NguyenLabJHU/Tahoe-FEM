@@ -154,19 +154,19 @@ const dSymMatrixT& BCJHypo3D::s_ij()
       // fFtot_n = fContinuumElement.FEManager().LastDeformationGradient();
       // fFtot = fContinuumElement.FEManager().DeformationGradient();
       fFtot_n = DeformationGradient(fLocLastDisp);
-      //fFtot   = DeformationGradient(fLocDisp);
-      fFtot   = F();
+      fFtot   = DeformationGradient(fLocDisp);
+      //fFtot   = F();
 
       // compute state (stress and state variables)
       SolveState();
     }
 
   if (BCJ_MESSAGES && intpt == 0) {
-     cout << "IP #" << intpt << endl;
-     cout << "   fs_ij   : " << endl << fs_ij << endl;
-     cout << "   fc_ijkl : " << endl << fc_ijkl << endl;
-     cout << "   fInternal:" << endl << fInternal << endl;
-     cout << "   fEQValues:" << endl << fEQValues << endl;
+     //cout << "IP #" << intpt << endl;
+     //cout << "   fs_ij   : " << endl << fs_ij << endl;
+     //cout << "   fc_ijkl : " << endl << fc_ijkl << endl;
+     //cout << "   fInternal:" << endl << fInternal << endl;
+     //cout << "   fEQValues:" << endl << fEQValues << endl;
   }
 
   // return cauchy stress
@@ -598,17 +598,21 @@ void BCJHypo3D::IntegrateConstitutiveEqns(bool& converged, int subIncr)
 
 void BCJHypo3D::PolarDecomposition()
 {
-  // to be used in new version of tahoe
-  //  fSpecD.PolarDecomp(fFr, fR, fU, true);
+  // polar decomposition
+  fSpecD.PolarDecomp(fFr, fR, fU, false);
 
+  // recover eigenvalues
+  fEigs = fSpecD.Eigenvalues();
+
+/*
   // right Cauchy-Green tensor
   fC.MultATA(fFr);
 
   // spectral decomposition of fC
-  fC.Eigenvalues(fEigs, true);
-  fSpecD.SpectralDecomp(fC, fEigs, true);
   // fC.PrincipalValues(fEigs);
   // fSpecD.SpectralDecomp(fC, fEigs);
+  fSpecD.SpectralDecomp_new(fC, false);
+  fEigs = fSpecD.Eigenvalues();
 
   // principal values of right stretch tensor
   for (int i = 0; i < kNSD; i++)
@@ -637,14 +641,11 @@ void BCJHypo3D::PolarDecomposition()
 
   // rotation tensor
   fR.MultAB(fFr, fmatx1); 
+*/
 }
 
 void BCJHypo3D::IncrementalStrain()
 {
-  // to be used in new version of tahoe
-  //  dArrayT& eigs = fSpecD.Eigenvalues();
-  //    farray[i] = log(eigs[i]);
-
   // eigenvalues of logarithmic strain
   for (int i = 0; i < kNSD; i++)
     farray[i] = log(fEigs[i]);

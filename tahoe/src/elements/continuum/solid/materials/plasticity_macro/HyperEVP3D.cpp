@@ -15,7 +15,7 @@
 const double sqrt32 = sqrt(3.0/2.0);
 
 /* printing for debugging */
-const bool Hyper_MESSAGES = false;
+const bool Hyper_MESSAGES = true;
 
 /* spatial dimensions of the problem */
 const int kNSD = 3;
@@ -112,8 +112,8 @@ const dSymMatrixT& HyperEVP3D::s_ij()
       if (CurrIP() == 0) fIterCount = 0;
 
       // total deformation gradient
-      fFtot = F();
-      //fFtot = DeformationGradient(fLocDisp);
+      // fFtot = F();
+      fFtot = DeformationGradient(fLocDisp);
       // fFtot = fContinuumElement.FEManager().DeformationGradient();
 
       // time step
@@ -124,9 +124,9 @@ const dSymMatrixT& HyperEVP3D::s_ij()
     }
 
   if (Hyper_MESSAGES && intpt == 0) {
-    cout << "IP #" << intpt << endl;
-    cout << "   fs_ij   : " << endl << fs_ij << endl;
-    cout << "   fc_ijkl : " << endl << fc_ijkl << endl;
+    //cout << "IP #" << intpt << endl;
+    //cout << "   fs_ij   : " << endl << fs_ij << endl;
+    //cout << "   fc_ijkl : " << endl << fc_ijkl << endl;
   }
 
   // return cauchy stress
@@ -397,12 +397,21 @@ void HyperEVP3D::IntegrateConstitutiveEqns()
 
 void HyperEVP3D::PolarDecomposition()
 {
+  // polar decomposition of fFeTr (using true does not work!!)
+  fSpecD.PolarDecomp(fFeTr, fReTr, fUeTr, false);
+
+  // recover eigenvalues of right stretch tensor
+  fEigs = fSpecD.Eigenvalues();
+
+/*
   // elastic right Cauchy-Green tensor
   fCeBarTr.MultATA(fFeTr);
 
   // spectral decomposition of CeBarTr
-  fCeBarTr.PrincipalValues(fEigs);
-  fSpecD.SpectralDecomp(fCeBarTr, fEigs, false);
+  //fCeBarTr.PrincipalValues(fEigs);
+  //fSpecD.SpectralDecomp(fCeBarTr, fEigs, false);
+  fSpecD.SpectralDecomp_new(fCeBarTr, false);
+  fEigs = fSpecD.Eigenvalues();
 
   // principal values of right stretch tensor
   for (int i = 0; i < kNSD; i++)
@@ -431,6 +440,7 @@ void HyperEVP3D::PolarDecomposition()
 
   // rotation tensor
   fReTr.MultAB(fFeTr, fmatx1); 
+*/
 }
 
 void HyperEVP3D::LogarithmicStrain()
