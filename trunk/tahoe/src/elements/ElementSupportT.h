@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.2 2002-06-08 20:20:13 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.3 2002-06-11 15:18:56 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -89,7 +89,7 @@ public:
 	const char* Exception(int exception) const;
 	
 	/** simulation time */
-	double Time(void) const;
+	const double& Time(void) const;
 	
 	/** simulation step number */
 	const int& StepNumber(void) const;
