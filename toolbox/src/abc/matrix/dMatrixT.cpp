@@ -1,10 +1,14 @@
-/* $Id: dMatrixT.cpp,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.2 2001-06-20 17:00:48 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "dMatrixT.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include "Constants.h"
+
+/* copy behavior for arrays of dMatrixT's */
+const bool ArrayT<dMatrixT*>::fByteCopy = true;
+const bool ArrayT<dMatrixT>::fByteCopy = false;
 
 /* constructor */
 dMatrixT::dMatrixT(void) { }
