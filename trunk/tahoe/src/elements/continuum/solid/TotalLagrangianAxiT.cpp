@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianAxiT.cpp,v 1.1 2004-02-02 23:48:38 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.cpp,v 1.2 2004-02-03 08:24:57 paklein Exp $ */
 #include "TotalLagrangianAxiT.h"
 
 #include "ShapeFunctionT.h"
@@ -13,7 +13,6 @@ using namespace Tahoe;
 TotalLagrangianAxiT::TotalLagrangianAxiT(const ElementSupportT& support, const FieldT& field):
 	FiniteStrainAxiT(support, field),
 	fStressMat(3),
-	fMat2D(2),
 	fTempMat1(3),
 	fTempMat2(3)
 {

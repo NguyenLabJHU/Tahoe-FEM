@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainAxiT.cpp,v 1.1 2004-02-02 23:48:38 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.cpp,v 1.2 2004-02-03 08:24:57 paklein Exp $ */
 #include "FiniteStrainAxiT.h"
 
 #include "ShapeFunctionT.h"
@@ -17,7 +17,7 @@ const int kNSD = 2;
 /* constructor */
 FiniteStrainAxiT::FiniteStrainAxiT(const ElementSupportT& support, const FieldT& field):
 	FiniteStrainT(support, field),
-	fF2D(kNSD),
+	fMat2D(kNSD),
 	fLocCurrCoords(LocalArrayT::kCurrCoords)	
 {
 	SetName("large_strain_axi");
@@ -160,12 +160,12 @@ void FiniteStrainAxiT::SetGlobalShape(void)
 		if (needs_F)
 		{
 			/* 2D deformation gradient */
-			fShapes->GradU(fLocDisp, fF2D, i);
-			fF2D.PlusIdentity();
+			fShapes->GradU(fLocDisp, fMat2D, i);
+			fMat2D.PlusIdentity();
 
 			/* make axisymmetric */
 			dMatrixT& F3D = fF_List[i];
-			F3D.Rank2ExpandFrom2D(fF2D);
+			F3D.Rank2ExpandFrom2D(fMat2D);
 			F3D(2,2) = r/R;
 		}
 
@@ -173,12 +173,12 @@ void FiniteStrainAxiT::SetGlobalShape(void)
 		if (needs_F_last)
 		{
 			/* 2D deformation gradient */
-			fShapes->GradU(fLocLastDisp, fF2D, i);
-			fF2D.PlusIdentity();
+			fShapes->GradU(fLocLastDisp, fMat2D, i);
+			fMat2D.PlusIdentity();
 
 			/* make axisymmetric */
 			dMatrixT& F3D = fF_last_List[i];
-			F3D.Rank2ExpandFrom2D(fF2D);
+			F3D.Rank2ExpandFrom2D(fMat2D);
 			F3D(2,2) = (R + u_last)/R;
 		}
 	}
