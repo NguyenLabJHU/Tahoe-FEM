@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.48 2004-07-15 08:25:44 paklein Exp $ */
+/* $Id: ElementT.h,v 1.49 2004-08-23 16:37:29 cfoster Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -68,6 +68,7 @@ kPenaltyContactElement3D = 34,
 			   kAPSVgrad = 80, /* anti-plane shear gradient plasticity, vector element */
 		  kMeshfreeGradP = 85, /* meshfree gradient plasticity */
 		kSS_EnhStrainLoc = 90, /* small strain enhanced strain embedded discontinuity element */
+		kSS_EnhStrainLocCraig = 91, /* small strain enhanced strain embedded discontinuity element */
             kElasticAxi = 102, /**< small strain axisymmetric solid */
        kHyperElasticAxi = 103, /**<  updated Lagrangian, large strain axisymmetric solid */
  kTotLagHyperElasticAxi = 104, /**<  total Lagrangian, large strain axisymmetric solid */

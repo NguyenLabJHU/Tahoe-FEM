@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.102 2004-08-19 20:38:30 raregue Exp $ */
+/* $Id: ElementListT.cpp,v 1.103 2004-08-23 16:37:29 cfoster Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -123,6 +123,10 @@
 
 #ifdef ENHANCED_STRAIN_LOC_DEV
 #include "SmallStrainEnhLocT.h"
+#endif
+
+#ifdef ENHANCED_STRAIN_LOC_DEV_CRAIG
+#include "SSEnhLocCraigT.h"
 #endif
 
 #ifdef GRAD_SMALL_STRAIN_DEV
@@ -319,6 +323,10 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("small_strain_enh_loc");
 #endif
 
+#ifdef ENHANCED_STRAIN_LOC_DEV_CRAIG
+		sub_lists.AddSub("small_strain_enh_loc_craig");
+#endif
+
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
@@ -496,12 +504,15 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #endif
 
 
-
 #ifdef ENHANCED_STRAIN_LOC_DEV
 	else if (name == "small_strain_enh_loc")
 		return new SmallStrainEnhLocT(fSupport);
 #endif
 
+#ifdef ENHANCED_STRAIN_LOC_DEV_CRAIG
+	else if (name == "small_strain_enh_loc_craig")
+		return new SSEnhLocCraigT(fSupport);
+#endif
 
 	/* default */	
 	else
