@@ -41,7 +41,7 @@
         </updated_lagrangian>
     </element_list>
     <nonlinear_solver abs_tolerance="1.0e-10"
-        divergence_tolerance="1.0e+01" max_iterations="25" rel_tolerance="1.0e-08">
+        divergence_tolerance="1.0e+01" max_iterations="3" rel_tolerance="1.0e-08">
         <profile_matrix/>
     </nonlinear_solver>
 </tahoe>
