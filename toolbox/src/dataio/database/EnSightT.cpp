@@ -1,4 +1,4 @@
-/* $Id: EnSightT.cpp,v 1.11 2002-10-16 17:41:02 sawimme Exp $ */
+/* $Id: EnSightT.cpp,v 1.12 2002-10-20 22:36:53 paklein Exp $ */
 /* created: sawimme (05/13/1999) */
 
 #include "EnSightT.h"
@@ -271,7 +271,7 @@ if (num_nodes > 3 || num_nodes < 2)
 	       << num_nodes << "\n\n";
 	  fOut << "\nEnSightT::GetElementName cannot do bar with fNumberElementNodes = "
 	       << num_nodes << "\n\n";
-	  throw eGeneralFail;
+	  throw ExceptionT::kGeneralFail;
 	}
 num_output_nodes = num_nodes;
 fElementName.Append (num_output_nodes);
@@ -312,7 +312,7 @@ cout << "\nEnSightT::GetElementName cannot find name for Geometry CodeT "
 	   << geocode << "\n\n";
 fOut << "\nEnSightT::GetElementName cannot find name for Geometry CodeT "
 	   << geocode << "\n\n";
-throw eGeneralFail;
+throw ExceptionT::kGeneralFail;
 }
 }
 
@@ -458,7 +458,7 @@ in.read (line.Pointer(), sizeof (char)*80);
 if (strncmp (line.Pointer(), "C Binary", 8) != 0)
 	{
 	  cout << "\n\nEnSight can only read C Binary\n";
-	  throw eGeneralFail;
+	  throw ExceptionT::kGeneralFail;
 	}
 
 in.read (line.Pointer(), sizeof (char)*80); // header 1

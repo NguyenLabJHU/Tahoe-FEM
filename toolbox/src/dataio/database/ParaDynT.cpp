@@ -54,7 +54,7 @@ void ParaDynT::WriteCoordinates (ostream& fgeo,
 	     << float(coords(i)[2]) << "\n";
     }
   else
-    throw eBadInputValue;
+    throw ExceptionT::kBadInputValue;
  
 }
 
@@ -81,7 +81,7 @@ void ParaDynT::WriteCoordinates (ostream& fgeo,
 	     << "\n";
     }
   else
-    throw eBadInputValue;
+    throw ExceptionT::kBadInputValue;
  
 }
 */
@@ -115,6 +115,6 @@ void ParaDynT::WriteBounds (ostream& fgeo, const dArray2DT& bounds) const
 	     << float(bounds(i)[2]) << "\n";
     }
   else
-    throw eBadInputValue;
+    throw ExceptionT::kBadInputValue;
     
 }

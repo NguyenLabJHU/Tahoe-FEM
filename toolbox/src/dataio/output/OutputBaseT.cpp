@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.12 2002-09-12 16:07:13 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.13 2002-10-20 22:36:55 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "OutputBaseT.h"
@@ -43,7 +43,7 @@ OutputBaseT::~OutputBaseT(void)
 {
 	for (int i = 0; i < fElementSets.Length(); i++)
 		delete fElementSets[i];
-	fElementSets.Allocate(0);
+	fElementSets.Dimension(0);
 }
 
 const OutputSetT& OutputBaseT::OutputSet(int ID) const
@@ -74,14 +74,14 @@ void OutputBaseT::SetCoordinates(const dArray2DT& coordinates, const iArrayT* no
 	if (fNodeID && fNodeID->Length() != fCoordinates->MajorDim()) {
 		cout << "\n OutputBaseT::SetCoordinates: id list length " << fNodeID->Length() << " doesn't\n"
 		     <<   "     match the number of nodes " << fCoordinates->MajorDim() << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 }
 
 int OutputBaseT::AddElementSet(const OutputSetT& output_set)
 {
 	OutputSetT* copy = new OutputSetT(output_set);
-	if (!copy) throw eOutOfMemory;
+	if (!copy) throw ExceptionT::kOutOfMemory;
 
 	/* ID is just position in array */
 	StringT ID;
@@ -120,7 +120,7 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 	if (!fCoordinates)
 	{
 		cout << "\n OutputBaseT::WriteGeometryFile: pointer to coordinates not set" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	if (format == IOBaseT::kTahoeII)
@@ -186,7 +186,7 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 	{
 		cout << "\n OutputBaseT::WriteGeometryFile: output format must be "
 		     << IOBaseT::kTahoeII << " or " << IOBaseT::kExodusII << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -204,7 +204,7 @@ void OutputBaseT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		cout << "\n OutputBaseT::WriteOutput: set ID " << ID
 		     << " is out of range {" << 0 << "," << fElementSets.Length()
 		     << "}" << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 
 	/* set block ID to string names if possible 
@@ -214,7 +214,7 @@ void OutputBaseT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	if (!fCoordinates)
 	{
 		cout << "\n OutputBaseT::WriteOutput: pointer to coordinates not set" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* increment the print step */
@@ -230,7 +230,7 @@ void OutputBaseT::LocalConnectivity(const iArrayT& node_map,
 {
 	/* sizes must match */
 	if (connects.MajorDim() != local_connects.MajorDim() ||
-	    connects.MinorDim() != local_connects.MinorDim()) throw eSizeMismatch;
+	    connects.MinorDim() != local_connects.MinorDim()) throw ExceptionT::kSizeMismatch;
 
 	/* quick exit - nothing to do */
 	if (connects.MajorDim() == 0) return;
@@ -261,7 +261,7 @@ void OutputBaseT::ElementBlockValues (int ID, int block, const dArray2DT& allval
 {
   int length = fElementSets[ID]->NumBlockElements(fElementSets[ID]->BlockID(block));
   if (blockvalues.MajorDim() != length ||
-      blockvalues.MinorDim() != allvalues.MinorDim()) throw eSizeMismatch;
+      blockvalues.MinorDim() != allvalues.MinorDim()) throw ExceptionT::kSizeMismatch;
 
   /* find start point */
   int start = 0;
@@ -291,7 +291,7 @@ void OutputBaseT::NodalBlockValues(int ID, int block, const dArray2DT& allvalues
 		const iArrayT& index_map = fElementSets[ID]->BlockIndexToSetIndexMap(fElementSets[ID]->BlockID(block));
 		
 		/* collect block values */
-		blockvalues.Allocate(index_map.Length(), allvalues.MinorDim());
+		blockvalues.Dimension(index_map.Length(), allvalues.MinorDim());
 		blockvalues.RowCollect(index_map, allvalues);	
     }
 }

@@ -1,23 +1,17 @@
-/* $Id: ModelManagerT.cpp,v 1.28 2002-07-05 17:16:03 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.29 2002-10-20 22:36:52 paklein Exp $ */
 /* created: sawimme July 2001 */
-
 #include "ModelManagerT.h"
 #include <ctype.h>
 
 #include "ifstreamT.h"
 #include "nVariArray2DT.h"
-
-#include "TahoeInputT.h"
-#include "ExodusInputT.h"
-#include "PatranInputT.h"
-#include "EnSightInputT.h"
-#include "AbaqusInputT.h"
-#include "InputFEASCIIT.h"
-
-/* array behavior */
+#include "GeometryBaseT.h"
+#include "EdgeFinderT.h"
+#include "dArrayT.h"
 
 using namespace Tahoe;
 
+/* array behavior */
 namespace Tahoe {
 const bool ArrayT<ModelManagerT::SideSetScopeT>::fByteCopy = true;
 } /* namespace Tahoe */
@@ -200,7 +194,7 @@ bool ModelManagerT::RegisterSideSet (const StringT& ss_ID, iArray2DT& set,
 		int index = ElementGroupIndex(element_ID);
 		if (index == kNotFound) {
 			cout << "\n ModelManagerT::RegisterSideSet: element ID not found: " << element_ID << endl;
-			throw eOutOfRange;
+			throw ExceptionT::kOutOfRange;
 		}
     	fSideSetGroupIndex.Append (index);
   	}
@@ -245,7 +239,7 @@ void ModelManagerT::ElementBlockList (ifstreamT& in, ArrayT<StringT>& ID, iArray
   int num_blocks = 0;
   in >> num_blocks;
   fMessage << " Number of connectivity data blocks. . . . . . . = " << num_blocks << '\n';
-  if (num_blocks < 1) throw eBadInputValue;
+  if (num_blocks < 1) throw ExceptionT::kBadInputValue;
 
   ID.Dimension (num_blocks);
   matnums.Dimension (num_blocks);
@@ -312,7 +306,7 @@ void ModelManagerT::NodeSetList (ifstreamT& in, ArrayT<StringT>& ID)
 	  int index = NodeSetIndex (name);
 	  if (index < 0) {
 	  	cout << "\n ModelManagerT::NodeSetList: error retrieving node set " << name << endl;
-	  	throw eDatabaseFail;
+	  	throw ExceptionT::kDatabaseFail;
 	  }
 
 	  fMessage << " Node Set Name . . . . . . . . . . . . . . . . . = ";
@@ -372,7 +366,7 @@ void ModelManagerT::SideSetList (ifstreamT& in, ArrayT<StringT>& ID,
 	  int index = SideSetIndex (name);
 	  if (index < 0) {
 	  	cout << "\n ModelManagerT::SideSetList: error retrieving side set " << name << endl;
-	  	throw eDatabaseFail;
+	  	throw ExceptionT::kDatabaseFail;
 	  }
 
 	  fMessage << " Side Set Name . . . . . . . . . . . . . . . . . = ";
@@ -392,7 +386,7 @@ int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& node
 {
   const int numc = value.Length();
   if (data.MajorDim() != numc ||
-      nodes.Length () != numc ) throw eSizeMismatch;
+      nodes.Length () != numc ) throw ExceptionT::kSizeMismatch;
   data = 0;
   value = 0;
 
@@ -499,12 +493,6 @@ void ModelManagerT::ReadTractionSideSet (ifstreamT& in, StringT& element_ID, iAr
     }
 }
 
-void ModelManagerT::CoordinateDimensions (int& length, int& dof) const
-{
-	length = fCoordinateDimensions[0];
-	dof = fCoordinateDimensions[1];
-}
-
 const dArray2DT& ModelManagerT::Coordinates (void)
 {
 	ReadCoordinates ();
@@ -522,7 +510,7 @@ void ModelManagerT::ReadCoordinates(void)
 			if (fCoordinates.Length() == 0)
 			{
 				cout << "\n ModelManagerT::Coordinates, coords not registered yet" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 			else
 				return; // do nothing, already loaded
@@ -584,7 +572,7 @@ void ModelManagerT::ElementGroupDimensions (const StringT& ID, int& numelems, in
 	int index = ElementGroupIndex(ID);
 	if (index == kNotFound) {
 		cout << "\n ModelManagerT::ElementGroupDimensions: ID not found: " << ID << endl;
-		throw eDatabaseFail;
+		throw ExceptionT::kDatabaseFail;
 	}
 	numelems = fElementLengths[index];
 	numelemnodes = fElementNodes[index];
@@ -605,7 +593,7 @@ GeometryT::CodeT ModelManagerT::ElementGroupGeometry (const StringT& ID) const
 	int index = ElementGroupIndex(ID);
 	if (index == kNotFound) {
 		cout << "\n ModelManagerT::ElementGroupGeometry: ID not found: " << ID << endl;
-		throw eDatabaseFail;
+		throw ExceptionT::kDatabaseFail;
 	}
 	return fElementCodes[index];	
 
@@ -623,7 +611,7 @@ const iArray2DT& ModelManagerT::ElementGroup (const StringT& ID)
 	int index = ElementGroupIndex(ID);
 	if (index == kNotFound) {
     	cout << "\n ModelManagerT::ElementGroup: ID not found: " << ID<< endl;
-    	throw eOutOfRange;
+    	throw ExceptionT::kOutOfRange;
     }
     
     iArray2DT* set = fElementSets[index];
@@ -640,12 +628,12 @@ void ModelManagerT::ReadConnectivity (const StringT& ID)
 	int index = ElementGroupIndex(ID);
 	if (index == kNotFound) {
     	cout << "\n ModelManagerT::ReadConnectivity: ID not found: " << ID<< endl;
-    	throw eOutOfRange;
+    	throw ExceptionT::kOutOfRange;
     }
     if (!fElementSets[index]) {
     	cout << "\n ModelManagerT::ReadConnectivity: set " << ID 
     	     << " is not initialized" << endl;    
-    	throw eGeneralFail;
+    	throw ExceptionT::kGeneralFail;
     }
 	
 	/* data not yet loaded */
@@ -655,7 +643,7 @@ void ModelManagerT::ReadConnectivity (const StringT& ID)
 		if (fFormat == IOBaseT::kTahoe)
 		{
 			cout << "\n ModelManagerT::ReadConnectivity, elems not registered yet" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		
 		/* allocate space */
@@ -663,10 +651,10 @@ void ModelManagerT::ReadConnectivity (const StringT& ID)
 
 		/* do read */
 		try { Input("ReadConnectivity").ReadConnectivity (ID, *fElementSets[index]); }
-		catch (int exception) {
+		catch (ExceptionT::CodeT exception) {
 			cout << "\n ModelManagerT::ReadConnectivity: exception reading ID " << ID 
 			     << ": " << exception << endl;
-			throw eDatabaseFail;
+			throw ExceptionT::kDatabaseFail;
 		}
     }
 }
@@ -676,11 +664,19 @@ const iArray2DT* ModelManagerT::ElementGroupPointer (const StringT& ID) const
 	int index = ElementGroupIndex(ID);
 	if (index == kNotFound) {
     	cout << "\n ModelManagerT::ElementGroupPointer: ID not found: " << ID << endl;
-    	throw eOutOfRange;
+    	throw ExceptionT::kOutOfRange;
     }
 	return fElementSets[index];
 }
 
+void ModelManagerT::ElementGroupPointers(const ArrayT<StringT>& IDs, 
+	ArrayT<const iArray2DT*>& blocks) const
+{
+	blocks.Dimension(IDs.Length());
+	for (int i = 0; i < IDs.Length(); i++)
+		blocks[i] = ElementGroupPointer(IDs[i]);
+}
+		
 void ModelManagerT::AllNodeIDs (iArrayT& ids)
 {
 	/* no input for kTahoe format */
@@ -689,7 +685,7 @@ void ModelManagerT::AllNodeIDs (iArrayT& ids)
 		if (ids.Length() != fCoordinates.MajorDim()) {
     		cout << "\n ModelManagerT::AllNodeIDs: ids array is length " << ids.Length()
     	         << ", expecting length " << fCoordinates.MajorDim() << endl;
-			throw eSizeMismatch;	
+			throw ExceptionT::kSizeMismatch;	
 		}
 
 		/* default ids */
@@ -705,7 +701,7 @@ void ModelManagerT::AllNodeIDs (iArrayT& ids)
 		else if (ids.Length() != input.NumNodes()) {
     		cout << "\n ModelManagerT::AllNodeIDs: ids array is length " << ids.Length()
     	         << ", expecting length " << input.NumNodes() << endl;
-			throw eSizeMismatch;	
+			throw ExceptionT::kSizeMismatch;	
 		}
 		
 		/* read */
@@ -724,7 +720,7 @@ void ModelManagerT::AllElementIDs (iArrayT& ids)
 		if (ids.Length() != num_elem) {
 	    	cout << "\n ModelManagerT::AllElementIDs: ids array is length " << ids.Length()
 	             << ", expecting length " << num_elem << endl;
-			throw eSizeMismatch;	
+			throw ExceptionT::kSizeMismatch;	
 		}
 	
 		/* default ids */
@@ -736,7 +732,7 @@ void ModelManagerT::AllElementIDs (iArrayT& ids)
 		if (ids.Length() != input.NumGlobalElements()) {
 	    	cout << "\n ModelManagerT::AllElementIDs: ids array is length " << ids.Length()
 	             << ", expecting length " << input.NumGlobalElements() << endl;
-			throw eSizeMismatch;	
+			throw ExceptionT::kSizeMismatch;	
 		}
 		input.ReadAllElementMap (ids);
 	}
@@ -751,7 +747,7 @@ void ModelManagerT::ElementIDs (const StringT& ID, iArrayT& ids)
 		if (ids.Length() != connects.MajorDim()) {
     		cout << "\n ModelManagerT::ElementIDs: ids array is length " << ids.Length()
     	         << ", expecting length " << connects.MajorDim() << " for ID " << ID << endl;
-			throw eSizeMismatch;		
+			throw ExceptionT::kSizeMismatch;		
 		}
 		
 		/* default ids */
@@ -764,7 +760,7 @@ void ModelManagerT::ElementIDs (const StringT& ID, iArrayT& ids)
     		cout << "\n ModelManagerT::ElementIDs: ids array is length " << ids.Length()
     	         << ", expecting length " << input.NumElements(ID) << " for ID " 
     	         << ID << endl;
-			throw eSizeMismatch;	
+			throw ExceptionT::kSizeMismatch;	
 		}
 		input.ReadGlobalElementMap (ID, ids);
 	}
@@ -776,7 +772,7 @@ void ModelManagerT::AllNodeMap (iArrayT& map)
 	{
 		cout << "\n ModelManagerT::NodeMap: map array is length " << map.Length()
              << ", expecting length " << fCoordinates.MajorDim() << endl;
-		throw eSizeMismatch;	
+		throw ExceptionT::kSizeMismatch;	
 	}
 	map.SetValueToPosition();
 }
@@ -790,7 +786,7 @@ void ModelManagerT::ElementMap (const StringT& ID, iArrayT& map)
       if (map.Length() != connects.MajorDim()) {
 	cout << "\n ModelManagerT::ElementMap: map array is length " << map.Length()
 	     << ", expecting length " << connects.MajorDim() << " for ID " << ID << endl;
-	throw eSizeMismatch;	
+	throw ExceptionT::kSizeMismatch;	
       }
       /* default map */
       map.SetValueToPosition();
@@ -800,6 +796,204 @@ void ModelManagerT::ElementMap (const StringT& ID, iArrayT& map)
 		InputBaseT& input = Input ("Element Set");
 		input.ReadGlobalElementSet (ID, map);
   	}
+}
+
+/* return the "bounding" elements */
+void ModelManagerT::BoundingElements(const ArrayT<StringT>& IDs, iArrayT& elements, 
+	iArray2DT& neighbors, const GeometryBaseT* geometry)
+{
+	/* quick exit */
+	if (IDs.Length() == 0) {
+		elements.Dimension(0);
+		neighbors.Dimension(0,0);
+		return;
+	}
+
+	/* collect list of pointers to element blocks */
+	ArrayT<const iArray2DT*> connects;
+	ElementGroupPointers(IDs, connects);
+
+	/* geometry info */
+	bool my_geometry = false;
+	if (!geometry) {
+		my_geometry = true;
+		geometry = GeometryT::NewGeometry(ElementGroupGeometry(IDs[0]), connects[0]->MinorDim());
+	} else { /* check */
+		my_geometry = false;
+		if (geometry->Geometry() != ElementGroupGeometry(IDs[0]) ||
+			geometry->NumNodes() != connects[0]->MinorDim()) {
+			cout << "\n ModelManagerT::BoundingElements: received inconsistent GeometryBaseT*" << endl;
+			throw ExceptionT::kGeneralFail;
+			}
+	}
+
+	/* build element neighbor list */
+	iArray2DT nodefacetmap;
+	geometry->NeighborNodeMap(nodefacetmap);
+	EdgeFinderT edger(connects, nodefacetmap);
+	edger.BoundingElements(elements, neighbors);
+	
+	/* clean up */
+	if (my_geometry) delete geometry;
+}
+
+#if 0
+/* surface facets */
+void ModelManagerT::SurfaceFacets(const ArrayT<StringT>& IDs, GeometryT::CodeT& geometry_code,
+	iArray2DT& surface_facets, iArrayT& surface_nodes, const GeometryBaseT* geometry)
+{
+	/* quick exit */
+	if (IDs.Length() == 0) {
+		geometry_code = GeometryT::kNone;
+		surface_facets.Dimension(0,0);
+		surface_nodes.Dimension(0);
+		return;
+	}
+
+	/* collect list of pointers to element blocks */
+	ArrayT<const iArray2DT*> connects;
+	ElementGroupPointers(IDs, connects);
+
+	/* geometry info */
+	bool my_geometry = false;
+	if (!geometry) {
+		my_geometry = true;
+		geometry = GeometryT::NewGeometry(ElementGroupGeometry(IDs[0]), connects[0]->MinorDim());
+	} else { /* check */
+		my_geometry = false;
+		if (geometry->Geometry() != ElementGroupGeometry(IDs[0]) ||
+			geometry->NumNodes() != connects[0]->MinorDim()) {
+			cout << "\n ModelManagerT::SurfaceFacets: received inconsistent GeometryBaseT*" << endl;
+			throw ExceptionT::kGeneralFail;
+			}
+	}
+
+	/* surface facets must all have same geometry */
+	ArrayT<GeometryT::CodeT> facet_geom;
+	iArrayT facet_nodes;
+	geometry->FacetGeometry(facet_geom, facet_nodes);
+	if (facet_nodes.Count(facet_nodes[0]) != facet_geom.Length())
+	{
+		cout << "\n ModelManagerT::SurfaceFacets: only support identical\n";
+		cout <<   "     facet shapes" << endl;
+		throw ExceptionT::kGeneralFail;
+	}
+	geometry_code = facet_geom[0];
+
+	/* element faces on the group "surface" */
+	iArray2DT nodefacetmap;
+	geometry->NeighborNodeMap(nodefacetmap);
+	EdgeFinderT edger(connects, nodefacetmap);
+	edger.SurfaceFacets(surface_facets, surface_nodes);	
+
+	/* clean up */
+	if (my_geometry) delete geometry;
+}
+#endif
+
+/* surface facets */
+void ModelManagerT::SurfaceFacets(const ArrayT<StringT>& IDs,
+	GeometryT::CodeT& geometry_code,
+	ArrayT<iArray2DT>& surface_facet_sets,
+	iArrayT& surface_nodes,
+	const GeometryBaseT* geometry)
+{
+	/* quick exit */
+	if (IDs.Length() == 0) {
+		geometry_code = GeometryT::kNone;
+		surface_facet_sets.Dimension(0);
+		surface_nodes.Dimension(0);
+		return;
+	}
+
+	/* collect list of pointers to element blocks */
+	ArrayT<const iArray2DT*> connects;
+	ElementGroupPointers(IDs, connects);
+
+	/* geometry info */
+	bool my_geometry = false;
+	if (!geometry) {
+		my_geometry = true;
+		geometry = GeometryT::NewGeometry(ElementGroupGeometry(IDs[0]), connects[0]->MinorDim());
+	} else { /* check */
+		my_geometry = false;
+		if (geometry->Geometry() != ElementGroupGeometry(IDs[0]) ||
+			geometry->NumNodes() != connects[0]->MinorDim()) {
+			cout << "\n ModelManagerT::SurfaceFacets: received inconsistent GeometryBaseT*" << endl;
+			throw ExceptionT::kGeneralFail;
+			}
+	}
+
+	/* surface facets must all have same geometry */
+	ArrayT<GeometryT::CodeT> facet_geom;
+	iArrayT facet_nodes;
+	geometry->FacetGeometry(facet_geom, facet_nodes);
+	if (facet_nodes.Count(facet_nodes[0]) != facet_geom.Length())
+	{
+		cout << "\n ModelManagerT::SurfaceFacets: only support identical\n";
+		cout <<   "     facet shapes" << endl;
+		throw ExceptionT::kGeneralFail;
+	}
+	geometry_code = facet_geom[0];
+
+	/* element faces on the group "surface" */
+	iArray2DT nodefacetmap;
+	geometry->NeighborNodeMap(nodefacetmap);
+	EdgeFinderT edger(connects, nodefacetmap);
+	edger.SurfaceFacets(surface_facet_sets, surface_nodes);	
+
+	/* clean up */
+	if (my_geometry) delete geometry;
+}
+
+/* surface nodes */
+void ModelManagerT::SurfaceNodes(const ArrayT<StringT>& IDs, 
+	iArrayT& surface_nodes,
+	const GeometryBaseT* geometry)
+{
+	/* quick exit */
+	if (IDs.Length() == 0) {
+		surface_nodes.Dimension(0);
+		return;
+	}
+
+	/* collect list of pointers to element blocks */
+	ArrayT<const iArray2DT*> connects;
+	ElementGroupPointers(IDs, connects);
+
+	/* geometry info */
+	bool my_geometry = false;
+	if (!geometry) {
+		my_geometry = true;
+		geometry = GeometryT::NewGeometry(ElementGroupGeometry(IDs[0]), connects[0]->MinorDim());
+	} else { /* check */
+		my_geometry = false;
+		if (geometry->Geometry() != ElementGroupGeometry(IDs[0]) ||
+			geometry->NumNodes() != connects[0]->MinorDim()) {
+			cout << "\n ModelManagerT::SurfaceNodes: received inconsistent GeometryBaseT*" << endl;
+			throw ExceptionT::kGeneralFail;
+			}
+	}
+
+	/* surface facets must all have same geometry */
+	ArrayT<GeometryT::CodeT> facet_geom;
+	iArrayT facet_nodes;
+	geometry->FacetGeometry(facet_geom, facet_nodes);
+	if (facet_nodes.Count(facet_nodes[0]) != facet_geom.Length())
+	{
+		cout << "\n ModelManagerT::SurfaceNodes: only support identical\n";
+		cout <<   "     facet shapes" << endl;
+		throw ExceptionT::kGeneralFail;
+	}
+
+	/* element faces on the group "surface" */
+	iArray2DT nodefacetmap;
+	geometry->NeighborNodeMap(nodefacetmap);
+	EdgeFinderT edger(connects, nodefacetmap);
+	edger.SurfaceNodes(surface_nodes);	
+
+	/* clean up */
+	if (my_geometry) delete geometry;
 }
 
 int ModelManagerT::NodeSetIndex (const StringT& ID) const
@@ -819,7 +1013,7 @@ int ModelManagerT::NodeSetLength (const StringT& ID) const
 	int index = NodeSetIndex(ID);	
 	if (index == kNotFound) {
 		cout << "\n ModelManagerT::NodeSetLength: ID not found: " << ID << endl;
-		throw eDatabaseFail;
+		throw ExceptionT::kDatabaseFail;
 	}
 	
 //    return -1; why allow bad name?
@@ -831,12 +1025,12 @@ const iArrayT& ModelManagerT::NodeSet (const StringT& ID)
 	int index = NodeSetIndex(ID);	
 	if (index == kNotFound) {
 		cout << "\n ModelManagerT::NodeSet: ID not found: " << ID << endl;
-		throw eDatabaseFail;
+		throw ExceptionT::kDatabaseFail;
 	}
     if (!fNodeSets[index]) {
     	cout << "\n ModelManagerT::NodeSet: set " << ID 
     	     << " is not initialized" << endl;    
-    	throw eGeneralFail;
+    	throw ExceptionT::kGeneralFail;
     }
 
 	/* not yet loaded */
@@ -845,14 +1039,14 @@ const iArrayT& ModelManagerT::NodeSet (const StringT& ID)
 		if (fFormat == IOBaseT::kTahoe)
 		{
 			cout << "\n ModelManagerT::NodeSet, set not registered yet" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		fNodeSets[index]->Dimension (fNodeSetDimensions[index]);
 		try { Input("NodeSet").ReadNodeSet(ID, *fNodeSets[index]); }
-		catch (int exception) {
+		catch (ExceptionT::CodeT exception) {
 			cout << "\n ModelManagerT::NodeSet: exception reading ID " << ID 
 			     << ": " << exception << endl;
-			throw eDatabaseFail;
+			throw ExceptionT::kDatabaseFail;
 		}
 	}
 	return *fNodeSets[index];
@@ -890,22 +1084,22 @@ int ModelManagerT::SideSetLength (const StringT& ID) const
 	int index = SideSetIndex(ID);
 	if (index == kNotFound) {
     	cout << "\n ModelManagerT::SideSetLength: ID not found: " << ID<< endl;
-    	throw eOutOfRange;
+    	throw ExceptionT::kOutOfRange;
     }
 	return fSideSetDimensions [index];
 }
 
-const iArray2DT& ModelManagerT::SideSet (const StringT& ID) const
+const iArray2DT& ModelManagerT::SideSet (const StringT& ID)
 {
 	int index = SideSetIndex(ID);
 	if (index == kNotFound) {
     	cout << "\n ModelManagerT::SideSet: ID not found: " << ID<< endl;
-    	throw eOutOfRange;
+    	throw ExceptionT::kOutOfRange;
     }
     if (!fSideSets[index]) {
     	cout << "\n ModelManagerT::SideSet: set " << ID 
     	     << " is not initialized" << endl;    
-    	throw eGeneralFail;
+    	throw ExceptionT::kGeneralFail;
     }
 
 	if (fSideSets[index]->MajorDim() != fSideSetDimensions[index])
@@ -913,7 +1107,7 @@ const iArray2DT& ModelManagerT::SideSet (const StringT& ID) const
 		if (fFormat == IOBaseT::kTahoe)
 		{
 			cout << "\n ModelManagerT::SideSet, set not registered yet" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		InputBaseT& input = Input("SideSet");
 		fSideSets[index]->Dimension (fSideSetDimensions[index], 2);
@@ -923,13 +1117,76 @@ const iArray2DT& ModelManagerT::SideSet (const StringT& ID) const
 			else
 				input.ReadSideSetGlobal (fSideSetNames[index], *fSideSets[index]);
 		}
-		catch (int exception) {
+		catch (ExceptionT::CodeT exception) {
 			cout << "\n ModelManagerT::SideSet: exception reading ID " << ID 
 			     << ": " << exception << endl;
-			throw eDatabaseFail;
+			throw ExceptionT::kDatabaseFail;
 		}
 	}
 	return *fSideSets[index];
+}
+
+/* return side set as nodes on faces */
+void ModelManagerT::SideSet(const StringT& ID, ArrayT<GeometryT::CodeT>& facet_geom,
+	iArrayT& facet_nodes, iArray2DT& faces)
+{
+	/* get side set */
+	StringT elemID;
+	iArray2DT ss = SideSet(ID);
+	if (ss.MajorDim() > 0 && IsSideSetLocal(ID))
+	    elemID = SideSetGroupID(ID);
+	else {
+		iArray2DT temp = ss;
+		SideSetGlobalToLocal(temp, ss, elemID);
+	}
+
+	/* element block information */
+	const iArray2DT& connectivities = ElementGroup(elemID);
+	int nel = connectivities.MajorDim();
+	int nen = connectivities.MinorDim();
+	GeometryT::CodeT geometry_code = ElementGroupGeometry(elemID);
+	
+	if (ss.MajorDim() == 0)
+		faces.Dimension(ss.MajorDim(), 0);
+	else
+	{
+		/* geometry object */
+		GeometryBaseT* geometry = GeometryT::NewGeometry(geometry_code, nen);
+
+// NOTE: faster to get all nodes_on_facet data at once. also
+//       would be easier to check dimensions of facets.
+		iArrayT face_nodes, face_tmp;
+		for (int i = 0; i < ss.MajorDim(); i++)
+		{
+			/* side set spec */
+			int el = ss(i,0);
+			int nft = ss(i,1);
+		
+			/* gets nodes on faces */
+			geometry->NodesOnFacet(nft, face_nodes);
+		
+			/* dimension check */
+			if (i == 0)
+				faces.Dimension(ss.MajorDim(), face_nodes.Length());
+			else if (faces.MinorDim() != face_nodes.Length())
+			{
+				cout << "\n ModelManagerT::SideSet: all sides in set must have\n"
+				     <<   "     the same number of nodes in element block" << elemID << endl;
+				delete geometry;
+				throw ExceptionT::kGeneralFail;
+			}
+		
+			/* get node numbers */
+			faces.RowAlias(i, face_tmp);
+			face_tmp.Collect(face_nodes, connectivities(el));
+		}
+		
+		/* face geometry */
+		geometry->FacetGeometry(facet_geom, facet_nodes);
+
+		/* clean up */
+		delete geometry;
+	}
 }
 
 bool ModelManagerT::IsSideSetLocal (const StringT& ID) const
@@ -937,7 +1194,7 @@ bool ModelManagerT::IsSideSetLocal (const StringT& ID) const
 	int index = SideSetIndex(ID);
 	if (index == kNotFound) {
     	cout << "\n ModelManagerT::IsSideSetLocal: ID not found: " << ID << endl;
-    	throw eOutOfRange;
+    	throw ExceptionT::kOutOfRange;
     }
 	return fSideSetScope[index] == kLocal;
 }
@@ -947,14 +1204,14 @@ const StringT& ModelManagerT::SideSetGroupID (const StringT& ss_ID) const
 	int index = SideSetIndex(ss_ID);
 	if (index == kNotFound) {
     	cout << "\n ModelManagerT::SideSetGroupID: ID not found: " << ss_ID << endl;
-    	throw eOutOfRange;
+    	throw ExceptionT::kOutOfRange;
     }
 
 	int ss_group_index = fSideSetGroupIndex[index];
 	if (ss_group_index < 0 || ss_group_index >= fElementNames.Length()) {
 		cout << "\n ModelManagerT::SideSetGroupID: group ID for not defined for set " 
 		     << ss_ID << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	} 
 	return fElementNames[ss_group_index];
 	
@@ -969,7 +1226,7 @@ void ModelManagerT::SideSetLocalToGlobal (const StringT& element_ID, const iArra
 	int localelemindex = ElementGroupIndex(element_ID);
 	if (localelemindex == kNotFound) {
 		cout << "\n ModelManagerT::SideSetLocalToGlobal: element ID not found " << element_ID << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 
   int offset = 0;
@@ -989,13 +1246,13 @@ void ModelManagerT::SideSetGlobalToLocal(const iArray2DT& global, iArray2DT& loc
 #pragma unused(local)
 #pragma unused(global)
   cout << "\n ModelManagerT::SideSetGlobalToLocal not implemented" << endl;
-  throw eGeneralFail;
+  throw ExceptionT::kGeneralFail;
 }
 
 void ModelManagerT::AddNodes (const dArray2DT& newcoords, iArrayT& new_node_tags, int& numnodes)
 {
   if (newcoords.MajorDim() != new_node_tags.Length() ||
-      newcoords.MinorDim() != fCoordinates.MinorDim() ) throw eSizeMismatch;
+      newcoords.MinorDim() != fCoordinates.MinorDim() ) throw ExceptionT::kSizeMismatch;
 
   /* set new node tags to the old last node number + 1 */
   new_node_tags.SetValueToPosition ();
@@ -1017,7 +1274,7 @@ void ModelManagerT::AddNodes (const dArray2DT& newcoords, iArrayT& new_node_tags
 
 void ModelManagerT::DuplicateNodes (const iArrayT& nodes, iArrayT& new_node_tags, int& numnodes)
 {
-  if (nodes.Length() != new_node_tags.Length()) throw eSizeMismatch;
+  if (nodes.Length() != new_node_tags.Length()) throw ExceptionT::kSizeMismatch;
 
   /* set new node tags to the old last node number + 1 */
   new_node_tags.SetValueToPosition ();
@@ -1083,9 +1340,9 @@ void ModelManagerT::UpdateConnectivity (const StringT& ID, iArray2DT& connects, 
 	int index = ElementGroupIndex(ID);
 	if (index == kNotFound) {
 		cout << "\n ModelManagerT::UpdateConnectivity: element ID not found " << ID << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
-	if (!fElementSets[index]) throw eGeneralFail;
+	if (!fElementSets[index]) throw ExceptionT::kGeneralFail;
 	
 	if (!keep || !connects.IsAllocated())
 		*fElementSets[index] = connects;
@@ -1104,12 +1361,12 @@ void ModelManagerT::AddElement (const StringT& ID, const iArray2DT& connects,
 	int index = ElementGroupIndex(ID);
 	if (index == kNotFound) {
 		cout << "\n ModelManagerT::AddElement: element ID not found " << ID << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
-	if (!fElementSets[index]) throw eGeneralFail;
+	if (!fElementSets[index]) throw ExceptionT::kGeneralFail;
 
   if (connects.MajorDim() != new_elem_tags.Length() ||
-      connects.MinorDim() != fElementSets[index]->MinorDim() ) throw eSizeMismatch;
+      connects.MinorDim() != fElementSets[index]->MinorDim() ) throw ExceptionT::kSizeMismatch;
 
   /* set new elem tags to the old last elem number + 1 */
   new_elem_tags.SetValueToPosition ();
@@ -1164,7 +1421,7 @@ ifstreamT& ModelManagerT::OpenExternal (ifstreamT& in, ifstreamT& in2, ostream& 
 		if (!in2.is_open())
 		{
 			if (verbose && fail) cout << "\n " << fail << ": " << file << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 
 		/* set comments */
@@ -1202,43 +1459,8 @@ int ModelManagerT::ID_Length(const StringT& ID) const
 
 bool ModelManagerT::ScanModel (const StringT& database)
 {
-  switch (fFormat)
-    {
-    case IOBaseT::kTahoe:
-      /* do nothing, arrays will be registered via ElementBaseT and NodeManager */
-      fInput = NULL;
-      break;
-    case IOBaseT::kTahoeII:
-      fInput = new TahoeInputT (fMessage);
-      break;
-    case IOBaseT::kEnSight:
-      fInput = new EnSightInputT (fMessage, false);
-      break;
-    case IOBaseT::kEnSightBinary:
-      fInput = new EnSightInputT (fMessage, true);
-      break;
-#ifdef __ACCESS__
-    case IOBaseT::kExodusII:
-      fInput = new ExodusInputT (fMessage);
-      break;
-#endif
-    case IOBaseT::kPatranNeutral:
-      fInput = new PatranInputT (fMessage);
-      break;
-    case IOBaseT::kAbaqus:
-    case IOBaseT::kAbaqusBinary:
-      fInput = new AbaqusInputT (fMessage);
-      break;
-    case IOBaseT::kTahoeResults:
-      fInput = new InputFEASCIIT (fMessage);
-      break;
-    default:
-      {
-	cout << "\n ModelManagerT::Unsupported model format: " 
-		 << fFormat << endl;
-	throw eGeneralFail;
-      }
-    }
+  	/* construct new input object */
+  	fInput = IOBaseT::NewInput(fFormat, fMessage);
 
 	if (fFormat != IOBaseT::kTahoe)
 	{
@@ -1367,7 +1589,7 @@ bool ModelManagerT::ScanSideSets (void)
 					const StringT& name = fInput->SideSetGroupName(fSideSetNames[i]);
 					fSideSetGroupIndex[i] = ElementGroupIndex(name);
 				}
-				catch (int exception) {
+				catch (ExceptionT::CodeT exception) {
 					cout << "\n ModelManagerT::ScanSideSets: error scanning side set "
 					     << fSideSetNames[i] << endl;				
 					fSideSetGroupIndex[i] = -1;

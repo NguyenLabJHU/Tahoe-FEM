@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.20 2002-07-26 18:43:56 sawimme Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.21 2002-10-20 22:36:53 paklein Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -79,7 +79,7 @@ void AbaqusResultsT::Create (const char* filename, bool binary, int numelems, in
   if (!fOut)
     {
       fMessage << "\n AbaqusResultsT::Create unable to open file " << filename << endl;
-      throw eDatabaseFail;
+      throw ExceptionT::kDatabaseFail;
     }
   fFileName = filename;
   fBinary = binary;
@@ -118,7 +118,7 @@ void AbaqusResultsT::OpenWrite (const char *filename, bool binary, int bufferwri
   if (!fOut)
     {
       fMessage << "\n AbaqusResultsT::OpenWRite unable to open file " << filename << endl;
-      throw eDatabaseFail;
+      throw ExceptionT::kDatabaseFail;
     }
   fFileName = filename;
   fBinary = binary;
@@ -377,13 +377,13 @@ int AbaqusResultsT::NumElementNodes (const StringT& name)
       if (!AdvanceTo (ELEMENTSET))
 	{
 	  fMessage << "\nAbaqusResultsT::NumElementNodes, unable to advance to ELEMENTSET\n\n";
-	  throw eDatabaseFail;
+	  throw ExceptionT::kDatabaseFail;
 	}
-      if (!ReadSetName (setname, 1)) throw eDatabaseFail;
+      if (!ReadSetName (setname, 1)) throw ExceptionT::kDatabaseFail;
     }
 
   int el;
-  if (!Read (el)) throw eDatabaseFail;
+  if (!Read (el)) throw ExceptionT::kDatabaseFail;
 
   ResetFile ();
   int cel=-1;
@@ -392,9 +392,9 @@ int AbaqusResultsT::NumElementNodes (const StringT& name)
       if (!AdvanceTo (ELEMENT))
 	{
 	  fMessage << "\nAbaqusResultsT::NumElementNodes, unable to advance to ELEMENT\n\n";
-	  throw eDatabaseFail;
+	  throw ExceptionT::kDatabaseFail;
 	}
-      if (!Read (cel)) throw eDatabaseFail;
+      if (!Read (cel)) throw ExceptionT::kDatabaseFail;
     }
 
   return fCurrentLength - 1;
@@ -448,13 +448,13 @@ void AbaqusResultsT::GeometryCode (const StringT& name, GeometryT::CodeT& code)
       if (!AdvanceTo (ELEMENTSET))
 	{
 	  fMessage << "\nAbaqusResultsT::GeometryCode, unable to advance to ELEMENTSET\n\n";
-	  throw eDatabaseFail;
+	  throw ExceptionT::kDatabaseFail;
 	}
-      if (!ReadSetName (setname, 1)) throw eDatabaseFail;
+      if (!ReadSetName (setname, 1)) throw ExceptionT::kDatabaseFail;
     }
 
   int el;
-  if (!Read (el)) throw eDatabaseFail;
+  if (!Read (el)) throw ExceptionT::kDatabaseFail;
 
   ResetFile ();
   int cel=-1;
@@ -463,26 +463,26 @@ void AbaqusResultsT::GeometryCode (const StringT& name, GeometryT::CodeT& code)
       if (!AdvanceTo (ELEMENT))
 	{
 	  fMessage << "\nAbaqusResultsT::NumElementNodes, unable to advance to ELEMENT\n\n";
-	  throw eDatabaseFail;
+	  throw ExceptionT::kDatabaseFail;
 	}
-      if (!Read (cel)) throw eDatabaseFail;
+      if (!Read (cel)) throw ExceptionT::kDatabaseFail;
     }
 
   int numintpts;
   StringT elname;
-  if (!Read (elname, 1)) throw eDatabaseFail;
+  if (!Read (elname, 1)) throw ExceptionT::kDatabaseFail;
   if (TranslateElementName (elname.Pointer(), code, numintpts) == BAD)
     {
       fMessage << "\n AbaqusResultsT::GeometryCode Unable to translate element name" << endl;
       fMessage << "Name " << elname.Pointer() << endl;
-      throw eDatabaseFail;
+      throw ExceptionT::kDatabaseFail;
     }
 }
 
 void AbaqusResultsT::ModeData (int index, int &number, double &mode) const
 {
   if (index < 0 || index > fModalCount)
-    throw eOutOfRange;
+    throw ExceptionT::kOutOfRange;
 
   number = fModeIncs [index];
   mode = fModeSteps [index];
@@ -491,7 +491,7 @@ void AbaqusResultsT::ModeData (int index, int &number, double &mode) const
 void AbaqusResultsT::TimeData (int index, int &number, double &time) const
 {
   if (index < 0 || index > fStartCount)
-    throw eOutOfRange;
+    throw ExceptionT::kOutOfRange;
 
   number = fTimeIncs [index];
   time = fTimeSteps [index];
@@ -556,9 +556,9 @@ void AbaqusResultsT::VariablesUsed (const StringT& name, AbaqusVariablesT::TypeT
   int inc;
   double time;
   if (fModeIncs.Length() > 0)
-    if (!NextMode (inc, time)) throw eDatabaseFail;
+    if (!NextMode (inc, time)) throw ExceptionT::kDatabaseFail;
   else
-    if (!NextTimeSteps (inc, time)) throw eDatabaseFail;
+    if (!NextTimeSteps (inc, time)) throw ExceptionT::kDatabaseFail;
   
   int key;
   int ID, objnum, intpt, secpt, location, outputmode;
@@ -611,7 +611,7 @@ void AbaqusResultsT::ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray
   if (vt == AbaqusVariablesT::kQuadrature)
     {
       numquadpts = NumElementQuadPoints (name);
-      if (numquadpts < 1) throw eDatabaseFail;
+      if (numquadpts < 1) throw ExceptionT::kDatabaseFail;
     }
 
   /* advance istream to time step */
@@ -645,14 +645,14 @@ void AbaqusResultsT::ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray
 		    switch (fVariableTable[index].FirstAttribute())
 		      {
 		      case AbaqusVariablesT::kNodeNumber:
-			if (!Read (ID)) throw eDatabaseFail;
+			if (!Read (ID)) throw ExceptionT::kDatabaseFail;
 			break;
 		      case AbaqusVariablesT::kIntType:
 			if (!Read (itemp)) 
 			  {
 			    cout << fBuffer << endl;
 			    cout << fBufferDone << endl;
-			    throw eDatabaseFail;
+			    throw ExceptionT::kDatabaseFail;
 			  }
 			break;
 		      case AbaqusVariablesT::kCharType:
@@ -660,7 +660,7 @@ void AbaqusResultsT::ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray
 			  {
 			    cout << fBuffer << endl;
 			    cout << fBufferDone << endl;
-			    throw eDatabaseFail;
+			    throw ExceptionT::kDatabaseFail;
 			  }
 			break;
 		      }
@@ -680,7 +680,7 @@ void AbaqusResultsT::ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray
 			int num = fCurrentLength;
 			dArrayT v (num);
 			for (int i=0; i < num; i++)
-			  if (!Read (v[i])) throw eDatabaseFail;
+			  if (!Read (v[i])) throw ExceptionT::kDatabaseFail;
 			
 			int offset = fVariableTable[index].IOIndex();
 			values.CopyPart (row*values.MinorDim() + offset, v, 0, num); 
@@ -732,17 +732,17 @@ bool AbaqusResultsT::NextCoordinate (int &number, dArrayT &nodes)
   if (!AdvanceTo (NODE))
     {
       fMessage << "\nAbaqusResultsT::NextCoordinate, unable to advance to NODE\n\n";
-      throw eDatabaseFail;
+      throw ExceptionT::kDatabaseFail;
     }
 
   if (!Read (number))
-    throw eDatabaseFail;
+    throw ExceptionT::kDatabaseFail;
 
   int dof = fCurrentLength;
   nodes.Allocate (dof);
   for (int ii=0; ii < dof; ii++)
     if (!Read (nodes[ii]))
-      throw eDatabaseFail;
+      throw ExceptionT::kDatabaseFail;
   return true;
 }
 
@@ -751,19 +751,19 @@ bool AbaqusResultsT::NextElement (int &number, GeometryT::CodeT &type, iArrayT &
   if (!AdvanceTo (ELEMENT))
     {
       fMessage << "\nAbaqusResultsT::NextElement, unable to advance to ELEMENT\n\n";
-      throw eDatabaseFail;
+      throw ExceptionT::kDatabaseFail;
     }
 
   StringT name;
   if (!Read (number) || !Read (name, 1) )
-    throw eDatabaseFail;
+    throw ExceptionT::kDatabaseFail;
 
   int numintpts;
   if (TranslateElementName (name.Pointer(), type, numintpts) == BAD) 
     {
       fMessage << "\n AbaqusResultsT::NextElement Unable to translate element name" << endl;
       fMessage << "Name " << name.Pointer() << endl;
-      throw eDatabaseFail;
+      throw ExceptionT::kDatabaseFail;
     }
 
   int numnodes = fCurrentLength;
@@ -773,7 +773,7 @@ bool AbaqusResultsT::NextElement (int &number, GeometryT::CodeT &type, iArrayT &
     {
       int temp;
       if (!Read (temp))
-      throw eDatabaseFail;
+      throw ExceptionT::kDatabaseFail;
       nodes[i] = temp;
     }
   return true;
@@ -988,7 +988,7 @@ void AbaqusResultsT::WriteElementVariables (int& i, const iArrayT& key, const dA
       if (fVariableTable[index].Point() != AbaqusVariablesT::kNodePoint)
 	WriteElementHeader (key[i], els_used[n], 0, 0, kElementWhole, numdir, numshear, 0, 0);
       else
-	throw eDatabaseFail;
+	throw ExceptionT::kDatabaseFail;
       
       // write record
       WriteASCII (fMarker);
@@ -1030,7 +1030,7 @@ void AbaqusResultsT::VersionNotes (ArrayT<StringT>& records)
   if (!AdvanceTo (VERSION))
     {
       fMessage << "\nAbaqusResultsT::Version, unable to advance to VERSION\n\n";
-      throw eDatabaseFail;
+      throw ExceptionT::kDatabaseFail;
     }
   records.Allocate (4);
   int numelems, numnodes;
@@ -1038,7 +1038,7 @@ void AbaqusResultsT::VersionNotes (ArrayT<StringT>& records)
   if (!Read (records[1], 1) || !Read (records[2], 2) || 
       !Read (records[3], 1) || !Read (numelems) || !Read (numnodes) || 
       !Read (elemleng) )
-    throw eDatabaseFail;
+    throw ExceptionT::kDatabaseFail;
   records[0] = "ABAQUS";
 }
 
@@ -1110,13 +1110,13 @@ void AbaqusResultsT::ScanElement (void)
   int number, numintpts = 0;
 
   if (!Read (number) || !Read (name, 1)) 
-    throw eDatabaseFail;
+    throw ExceptionT::kDatabaseFail;
 
   if (TranslateElementName (name.Pointer(), type, numintpts) == BAD) 
     {
       fMessage << "\n AbaqusResultsT::ScanElement Encountered unknown element type" << endl;
       fMessage << "Name " << name.Pointer() << endl;
-      throw eDatabaseFail;
+      throw ExceptionT::kDatabaseFail;
     }
   fNumElements++;
   fElementNumber.Append (number);
@@ -1132,7 +1132,7 @@ void AbaqusResultsT::StoreSet (iArrayT& set)
   int temp;
   for (int j=0; j < num; j++)
     {
-      if (!Read (temp)) throw eDatabaseFail;
+      if (!Read (temp)) throw ExceptionT::kDatabaseFail;
       newset.Append (temp);
     }
 
@@ -1143,13 +1143,13 @@ void AbaqusResultsT::StoreSet (iArrayT& set)
 void AbaqusResultsT::ReadOutputDefinitions (int &outputmode, StringT& setname)
 {
   if (!Read (outputmode)|| !ReadSetName (setname, 1) )
-    throw eDatabaseFail;
+    throw ExceptionT::kDatabaseFail;
 }
 
 void AbaqusResultsT::ReadElementHeader (int &objnum, int& intpt, int& secpt, int &location)
 {
   if (!Read (objnum) || !Read (intpt) || !Read (secpt) || !Read (location) )
-    throw eDatabaseFail;
+    throw ExceptionT::kDatabaseFail;
 }
 
 void AbaqusResultsT::ScanVariable (int key, int outputmode, int location)
@@ -1159,7 +1159,7 @@ void AbaqusResultsT::ScanVariable (int key, int outputmode, int location)
     {
       fMessage << "\n AbaqusResultsT::ScanVariable Unable to map variable key: "
 	       << key << endl;
-      throw eDatabaseFail;
+      throw ExceptionT::kDatabaseFail;
     }
 
   /* quick exit, if we have already done this variable */
@@ -1207,7 +1207,7 @@ void AbaqusResultsT::ScanVariable (int key, int outputmode, int location)
 	    {
 	      fMessage << "\n AbaqusResultsT::Scan Variable, unrecognized location"
 		       << location << endl;
-	      throw eDatabaseFail;
+	      throw ExceptionT::kDatabaseFail;
 	    }
 	  }
 	break;
@@ -1223,7 +1223,7 @@ void AbaqusResultsT::ScanVariable (int key, int outputmode, int location)
       {
 	fMessage << "\n AbaqusResultsT::Scan Variable, Unrecognize output mode."
 		 << outputmode << endl;
-	throw eDatabaseFail;
+	throw ExceptionT::kDatabaseFail;
       }
     }
 
@@ -1342,7 +1342,7 @@ void AbaqusResultsT::AdvanceToTimeIncrement (int step)
 		       << number << ", " << xtime
 		       << " currently at " << currentinc << ", " << time
 		       << endl;
-	      throw eDatabaseFail;
+	      throw ExceptionT::kDatabaseFail;
 	    }
 	}
     }
@@ -1623,7 +1623,7 @@ void AbaqusResultsT::GetElementName (GeometryT::CodeT geometry_code, int elemnod
     default:
       {
 	fMessage << "\n AbaqusResultsT::GetElementName: cannot find name from geometry code: " << geometry_code << endl;
-	throw eDatabaseFail;
+	throw ExceptionT::kDatabaseFail;
       }
     }
 }
@@ -2035,6 +2035,6 @@ void AbaqusResultsT::SetVariableNames (void)
   if (i != NVT)
     {
       fMessage << "\n AbaqusResultsT::SetVariableNames, incorrect allocation" << endl;
-      throw eDatabaseFail;
+      throw ExceptionT::kDatabaseFail;
     }
 }

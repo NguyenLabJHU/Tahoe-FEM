@@ -22,7 +22,7 @@ void AVST::WriteHeader (ostream &out, int numpoints, int numcells, int numnodeda
     {
       fOut << "\nAVST::WriteHeader not programed for Binary\n\n";
       cout << "\nAVST::WriteHeader not programed for Binary\n\n";
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
   else
     {
@@ -38,7 +38,7 @@ void AVST::WriteCoordinates (ostream &out, dArray2DT& coords, int firstID) const
     {
       fOut << "\nAVST::WriteCoordinates not programed for Binary\n\n";
       cout << "\nAVST::WriteCoordinates not programed for Binary\n\n";
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
   else
     WriteArray2DT (out, coords, firstID);
@@ -53,7 +53,7 @@ void AVST::WriteCells (ostream &out, GeometryT::CodeT code, iArray2DT& connects,
     {
       fOut << "\nAVST::WriteCellData not programed for Binary\n\n";
       cout << "\nAVST::WriteCellData not programed for Binary\n\n";
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
   else
     {
@@ -84,7 +84,7 @@ void AVST::WriteDataHeader (ostream &out, const ArrayT<StringT>& labels) const
     {
       fOut << "\nAVST::WriteDataHeader not programed for Binary\n\n";
       cout << "\nAVST::WriteDataHeader not programed for Binary\n\n";
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
   else
     {
@@ -105,7 +105,7 @@ void AVST::WriteDataHeader (ostream &out, const ArrayT<StringT>& labels, const A
     {
       fOut << "\nAVST::WriteDataHeader not programed for Binary\n\n";
       cout << "\nAVST::WriteDataHeader not programed for Binary\n\n";
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
   else
     {
@@ -125,7 +125,7 @@ void AVST::WriteData (ostream &out, const dArray2DT& data, int firstID) const
     {
       fOut << "\nAVST::WriteData not programed for Binary\n\n";
       cout << "\nAVST::WriteData not programed for Binary\n\n";
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
   else
     WriteArray2DT (out, data, firstID);
@@ -181,7 +181,7 @@ void AVST::GetElementName (GeometryT::CodeT code, StringT& name, int &numnodes) 
 	     << code << "\n\n";
 	fOut << "\n\n AVST::GetElementName unknown Geometry CodeT "
 	      << code << "\n\n";
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
       }
     }
 }
