@@ -1,0 +1,44 @@
+# $Id: SUN.macros,v 1.12 2002-09-27 16:31:33 sawimme Exp $
+#
+## Load GNU file utilities to get ln -sf to work properly (sunfreeware.com)
+#
+# OPTIONAL: set this from your shell or .cshrc
+# setenv LD_LIBRARY_PATH $(COMP_DIR)/lib
+#
+# set the path to your compiler
+#COMP_DIR = /opt/forte62/SUNWspro/WS6U2
+#COMP_DIR = /opt/SUNWspro/WS6
+COMP_DIR = /opt/SUNWspro/SC5.0
+#
+MAKE        = make
+# use the makedepend that comes with /usr/openwin/bin
+# do not use the one that comes with SEACAS/etc
+MAKE_DEPEND = makedepend
+#
+DEPENDFLAGS  = -I/$(COMP_DIR)/include/cc -I/$(COMP_DIR)/include/CC \
+               -I/$(COMP_DIR)/include/CC4 -I/$(COMP_DIR)/include/CCios \
+               -I/$(COMP_DIR)/include/f77
+COMP_C      = $(COMP_DIR)/bin/cc
+COMP_CC     = $(COMP_DIR)/bin/CC
+COMP_F      = $(COMP_DIR)/bin/f77
+#
+#MORE_CFLAGS = -fast -DNDEBUG 
+MORE_CFLAGS = -g
+MY_CFLAGS   = -c -I$(INC_DIR) -D__SUN__ $(MORE_CFLAGS)
+CFLAGS_C    = $(MY_CFLAGS)
+CFLAGS_CC   = $(MY_CFLAGS) -features=rtti -instances=static
+CFLAGS_F    = $(MY_CFLAGS)
+LINK        = $(COMP_CC)
+LFLAGS      = 
+AR          = ar
+ARFLAGS     = -cruv
+MAKE_OPTS   = 
+RM          = rm
+RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
+LN          = /usr/local/bin/ln -sf
+ECHO        = echo
+CAT         = cat
+
+# command needed build library
+#BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
+BUILD_LIBRARY = BUILD_LIBRARY_AR
