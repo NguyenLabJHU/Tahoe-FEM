@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.5.2.1 2003-05-24 04:05:46 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.5.2.2 2003-05-24 14:39:15 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -255,10 +255,10 @@ void FEManagerT_bridging::InitInterpolation(const iArrayT& nodes, const StringT&
 }
 
 /* field interpolations */
-void FEManagerT_bridging::InterpolateField(const StringT& field, dArray2DT& nodal_values)
+void FEManagerT_bridging::InterpolateField(const StringT& field, int order, dArray2DT& nodal_values)
 {
 	/* interpolate in bridging scale element */
-	BridgingScale().InterpolateField(field, fFollowerCellData, nodal_values);
+	BridgingScale().InterpolateField(field, order, fFollowerCellData, nodal_values);
 }
 
 /* return the interpolation matrix associated with the active degrees

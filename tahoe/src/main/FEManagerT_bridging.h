@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.4.2.1 2003-05-24 04:05:15 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.4.2.2 2003-05-24 14:39:15 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -85,7 +85,7 @@ public:
 
 	/** field interpolations. Interpolate the field to the nodes initialized
 	 * with the latest call to FEManagerT_bridging::InitInterpolation. */
-	void InterpolateField(const StringT& field, dArray2DT& nodal_values);
+	void InterpolateField(const StringT& field, int order, dArray2DT& nodal_values);
 
 	/** return the interpolation matrix associated with the active degrees
 	 * of freedom */

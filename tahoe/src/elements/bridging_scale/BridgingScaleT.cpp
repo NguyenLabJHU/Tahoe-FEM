@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.32 2003-05-21 23:48:07 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.32.2.1 2003-05-24 14:39:14 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -240,7 +240,7 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used,
 	}
 }
 
-void BridgingScaleT::InterpolateField(const StringT& field, const PointInCellDataT& cell_data,
+void BridgingScaleT::InterpolateField(const StringT& field, int order, const PointInCellDataT& cell_data,
 	dArray2DT& point_values) const
 {
 	int nen = fSolid.NumElementNodes();
@@ -248,7 +248,7 @@ void BridgingScaleT::InterpolateField(const StringT& field, const PointInCellDat
 	/* get the field */
 	const FieldT* the_field = ElementSupport().Field(field);
 	LocalArrayT loc_field(LocalArrayT::kDisp, nen, the_field->NumDOF());
-	loc_field.SetGlobal((*the_field)[0]); /* take zeroth order field */
+	loc_field.SetGlobal((*the_field)[order]); /* change orde so can accomodate any field */
 	
 	/* interpolation data */
 	const dArray2DT& weights = cell_data.InterpolationWeights();
@@ -581,6 +581,8 @@ void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT
 {
 #pragma unused(field)
 
+	cout << "femdisp = " << fedisp << endl;
+	cout << "mddisp = " << mddisp << endl;
 	/* projected part of the mesh */
 	const iArrayT& cell_nodes = cell_data.CellNodes();
 	const iArray2DT& cell_connects = cell_data.CellConnectivities();
@@ -701,9 +703,6 @@ out << "\n residual =\n" << projection << endl;
 			}
 		}
 	}
-	cout << "totalu = " << totalu << endl;
-	cout << "fem disp = " << coarse_scale << endl;
-	cout << "fine scale = " << fFineScale << endl;
 }
 
 /* writing output */
