@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.h,v 1.5 2002-07-05 22:28:04 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.h,v 1.5.10.1 2002-12-27 23:08:31 paklein Exp $ */
 /* created: paklein (02/15/2000)                                          */
 
 #ifndef _MESHFREE_FRACTURE_T_H_
@@ -11,7 +11,6 @@
 #include "dArray2DT.h"
 #include "nVariArray2DT.h"
 #include "dSymMatrixT.h"
-
 
 namespace Tahoe {
 

@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.11 2002-12-13 02:42:55 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.10 2002-11-30 16:27:57 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 
 #include "PCGSolver_LS.h"
@@ -91,19 +91,15 @@ void PCGSolver_LS::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 * Protected
 *************************************************************************/
 
-double PCGSolver_LS::SolveAndForm(bool newtangent, bool clear_LHS)
+double PCGSolver_LS::SolveAndForm(bool newtangent)
 {		
 #pragma unused(newtangent)
 
 	/* form the stiffness matrix */
 	if (fNumIteration == 0 || fPreconditioner)
 	{
-		if (clear_LHS) fLHS->Clear();
-		
-		fLHS_lock = kOpen;
+		fLHS->Clear();
 		fFEManager.FormLHS(Group(), fLHS->MatrixType());
-		fLHS_lock = kIgnore;
-
 		fPreconditioner = 0;
 	}
 
@@ -112,18 +108,11 @@ double PCGSolver_LS::SolveAndForm(bool newtangent, bool clear_LHS)
 	CGSearch();
 
 	/* apply update to system */
-	fRHS_lock = kOpen;
 	Update(fRHS, &fR);
 								
 	/* compute new residual */
-	if (fPreconditioner) {
-		fLHS->Clear();
-		fLHS_lock = kOpen;
-	}
 	fRHS = 0.0;
 	fFEManager.FormRHS(Group());
-	fLHS_lock = kLocked;
-	fRHS_lock = kLocked;
 	
 	/* combine residual magnitude with update magnitude */
 	/* e = a1 |R| + a2 |delta_d|                        */

@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.10 2003-01-09 18:10:44 rjones Exp $ */
+/* $Id: AdhesionT.cpp,v 1.9.2.1 2003-01-09 09:39:20 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -14,7 +14,6 @@
 /* interaction functions */
 #include "LennardJones612.h"
 #include "SmithFerrante.h"
-#include "ModSmithFerrante.h"
 
 using namespace Tahoe;
 
@@ -25,11 +24,9 @@ AdhesionT::AdhesionT(const ElementSupportT& support, const FieldT& field):
 	ElementBaseT(support, field),
 	fGrid(NULL),
 	fCutOff(0.0),
-	fPenalizePenetration(0),
-	fAllowSameSurface(0),
 	fAdhesion(NULL),
-	fNEE_vec_man(0),
-	fNEE_mat_man(0),
+	fNEE_vec_man(0, true),
+	fNEE_mat_man(0, true),
 	fFace2_man(0, NumSD()),
 	fGrad_d_man(0, fGrad_d)
 {
@@ -42,12 +39,9 @@ AdhesionT::AdhesionT(const ElementSupportT& support, const FieldT& field):
 
 	fFace2_man.Register(fIPCoords2);
 	fFace2_man.Register(fIPNorm2);
-
 	
 	/* read cut-off distance */
 	ifstreamT& in = ElementSupport().Input();
-	in >> fPenalizePenetration;
-	in >> fAllowSameSurface;
 	in >> fCutOff;
 	if (fCutOff < kSmall) throw ExceptionT::kBadInputValue;
 
@@ -68,13 +62,6 @@ AdhesionT::AdhesionT(const ElementSupportT& support, const FieldT& field):
 			double A, B;
 			in >> A >> B;
 			fAdhesion = new SmithFerrante(A,B,0.0);
-			break;
-		}
-		case C1FunctionT::kModSmithFerrante:
-		{
-			double A, B;
-			in >> A >> B;
-			fAdhesion = new ModSmithFerrante(A,B);
 			break;
 		}
 		default:
@@ -321,12 +308,10 @@ void AdhesionT::LHSDriver(GlobalT::SystemTypeT)
 	/* loop over active face pairs */
 	for (int i = 0; i < fSurface1.Length(); i++)
 	{
-	     /* surface index */
-	     int s1 = fFaceIndex(fSurface1[i], kSurface);
-	     int s2 = fFaceIndex(fSurface2[i], kSurface);
+		/* surface index */
+		int s1 = fFaceIndex(fSurface1[i], kSurface);
+		int s2 = fFaceIndex(fSurface2[i], kSurface);
 	
-	     if (fAllowSameSurface || s1 != s2 ) {
-
 		/* local face index */
 		int i1 = fFaceIndex(fSurface1[i], kLocalIndex);
 		int i2 = fFaceIndex(fSurface2[i], kLocalIndex);
@@ -402,8 +387,7 @@ void AdhesionT::LHSDriver(GlobalT::SystemTypeT)
 				v_12.DiffOf(ipx2, ipx1);
 				double d = v_12.Magnitude();
 			
-				if (  (fPenalizePenetration || 
-							fabs(d) > kSmall) &&
+				if (fabs(d) > kSmall &&
 				    dArrayT::Dot(v_12, n1) > 0.0 &&
 				    dArrayT::Dot(v_12, n2) < 0.0)
 				{
@@ -433,7 +417,6 @@ void AdhesionT::LHSDriver(GlobalT::SystemTypeT)
 		/* assemble */
 		fFaceEquations.RowAlias(i, equations);
 		ElementSupport().AssembleLHS(Group(), fLHS, equations);
-	     }
 	}
 }
 
@@ -468,11 +451,9 @@ void AdhesionT::RHSDriver(void)
 	/* loop over active face pairs */
 	for (int i = 0; i < fSurface1.Length(); i++)
 	{
-	     /* surface index */
-	     int s1 = fFaceIndex(fSurface1[i], kSurface);
-	     int s2 = fFaceIndex(fSurface2[i], kSurface);
-
-	     if (fAllowSameSurface || s1 != s2 ) {
+		/* surface index */
+		int s1 = fFaceIndex(fSurface1[i], kSurface);
+		int s2 = fFaceIndex(fSurface2[i], kSurface);
 
 		/* local face index */
 		int i1 = fFaceIndex(fSurface1[i], kLocalIndex);
@@ -549,8 +530,7 @@ void AdhesionT::RHSDriver(void)
 				v_12.DiffOf(ipx2, ipx1);
 				double d = v_12.Magnitude();
 
-				if ( (fPenalizePenetration ||
-							fabs(d) > kSmall) &&
+				if (fabs(d) > kSmall &&
 				    dArrayT::Dot(v_12, n1) > 0.0 &&
 				    dArrayT::Dot(v_12, n2) < 0.0)
 				{
@@ -584,7 +564,6 @@ void AdhesionT::RHSDriver(void)
 		/* assemble */
 		fFaceEquations.RowAlias(i, equations);
 		ElementSupport().AssembleRHS(Group(), fRHS, equations);
-	     }
 	}
 }
 

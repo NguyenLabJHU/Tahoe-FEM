@@ -1,4 +1,4 @@
-# $Id: SGI.mpich.macros,v 1.12 2002-12-04 19:02:10 paklein Exp $
+# $Id: SGI.mpich.macros,v 1.12.2.1 2002-12-08 20:54:58 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = 
@@ -25,6 +25,8 @@ RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
 ECHO        = echo
 CAT         = cat
+PERL        = perl -w
+
 # parallel builds
 # env. var. PARALLEL controls concurrency (default = 2)
 

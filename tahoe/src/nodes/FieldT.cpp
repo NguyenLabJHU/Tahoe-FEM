@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.8 2002-11-28 16:44:19 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.8.2.3 2003-01-11 01:17:12 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -14,10 +14,14 @@ using namespace Tahoe;
 FieldT::FieldT(const StringT& name, int ndof, nControllerT& controller):
 	BasicFieldT(name, ndof, controller.Order()),
 	fnController(controller),
-	fNumActiveEquations(-1),
-	fField_last(fnController.Order()+1)
+	fField_last(fnController.Order()+1),
+	fEquationStart(0),
+	fNumEquations(0)
 {
-
+	/* register arrays */
+	for (int i = 0; i < fField_last.Length(); i++)
+		RegisterArray2D(fField_last[i]);
+	RegisterArray2D(fUpdate);
 }
 
 /* destructor */
@@ -27,69 +31,47 @@ FieldT::~FieldT(void)
 		delete fSourceOutput[i];
 }
 
-/* set number of nodes */
-void FieldT::Dimension(int nnd)
-{
-	/* inherited */
-	BasicFieldT::Dimension(nnd);
-	
-	/* initialize equations */
-	fEqnos = kInit;
-
-	/* dimension field history */
-	for (int i = 0; i < fField_last.Length(); i++)
-		fField_last[i].Dimension(fField[i]);
-}
-
 void FieldT::RegisterLocal(LocalArrayT& array) const	
 {
+	const char caller[] = "FieldT::RegisterLocal";
 	switch (array.Type())
 	{
 		case LocalArrayT::kDisp:
+		{
 			array.SetGlobal(fField[0]);
-			break;			
+			break;
+		}
 		case LocalArrayT::kVel:
 		{
-			if (Order() < 1) {
-				cout << "\n FieldT::RegisterLocal: only up to order " << Order() << ": 1" << endl;
-				throw ExceptionT::kGeneralFail;
-			}
+			if (Order() < 1) ExceptionT::GeneralFail(caller, "only up to order %d: 1", Order());
 			array.SetGlobal(fField[1]);
 			break;			
 		}
 		case LocalArrayT::kAcc:
 		{
-			if (Order() < 2) {
-				cout << "\n FieldT::RegisterLocal: only up to order " << Order() << ": 2" << endl;
-				throw ExceptionT::kGeneralFail;
-			}
+			if (Order() < 2) ExceptionT::GeneralFail(caller, "only up to order %d: 2", Order());
 			array.SetGlobal(fField[2]);
 			break;			
 		}
 		case LocalArrayT::kLastDisp:
+		{
 			array.SetGlobal(fField_last[0]);
-			break;			
+			break;
+		}
 		case LocalArrayT::kLastVel:
 		{
-			if (Order() < 1) {
-				cout << "\n FieldT::RegisterLocal: only up to order " << Order() << ": 1" << endl;
-				throw ExceptionT::kGeneralFail;
-			}
+			if (Order() < 1) ExceptionT::GeneralFail(caller, "only up to order %d: 1", Order());
 			array.SetGlobal(fField_last[1]);
 			break;			
 		}
 		case LocalArrayT::kLastAcc:
 		{
-			if (Order() < 2) {
-				cout << "\n FieldT::RegisterLocal: only up to order " << Order() << ": 2" << endl;
-				throw ExceptionT::kGeneralFail;
-			}
+			if (Order() < 2) ExceptionT::GeneralFail(caller, "only up to order %d: 2", Order());
 			array.SetGlobal(fField_last[2]);
 			break;			
 		}
 		default:
-			cout << "\n FieldT::RegisterLocal: unrecognized type: " << array.Type() << endl;
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail(caller, "unrecognized type: %d", array.Type());
 	}
 }
 
@@ -98,9 +80,6 @@ void FieldT::RegisterLocal(LocalArrayT& array) const
 void FieldT::EquationSets(AutoArrayT<const iArray2DT*>& eq_1, 
 	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
 {
-	/* set force boundary condition destinations */
-	SetFBCEquations();
-
 	/* KBC controllers */
 	for (int i = 0; i < fKBC_Controllers.Length(); i++)
 		fKBC_Controllers[i]->Equations(eq_1);
@@ -240,11 +219,51 @@ void FieldT::CloseStep(void)
 		fFBC_Controllers[i]->CloseStep();
 }
 
+/* overwrite the update values in the FieldT::Update array */
+void FieldT::AssembleUpdate(const dArrayT& update)
+{
+	int *peq = fEqnos.Pointer();
+	int len = fEqnos.Length();
+	double *p = fUpdate.Pointer();
+	for (int i = 0; i < len; i++)
+	{
+		/* local equation */
+		int eq = *peq++ - fEquationStart;
+		
+		/* active dof */
+		if (eq > -1 && eq < fNumEquations)
+			*p = update[eq];
+		else
+			*p = 0.0;
+
+		/* next */
+		p++;
+	}
+}
+
 /* update the active degrees of freedom */
-void FieldT::Update(const dArrayT& update, int eq_start, int num_eq)
+void FieldT::ApplyUpdate(void)
 {
 	/* corrector */
-	fnController.Corrector(*this, update, eq_start, num_eq);
+	fnController.Corrector(*this, fUpdate);
+}
+
+/* copy nodal information */
+void FieldT::CopyNodeToNode(const ArrayT<int>& source, const ArrayT<int>& target)
+{
+	/* copy data from source nodes to target nodes */
+	for (int i = 0 ; i < fField.Length() ; i++ )
+	{
+		dArray2DT& field = fField[i];
+		dArray2DT& field_last = fField_last[i];
+		for (int j = 0; j < source.Length(); j++)
+		{
+			int from = source[j];
+			int to = target[j];
+			field.CopyRowFromRow(to,from);
+			field_last.CopyRowFromRow(to,from);
+		}
+	}
 }
 
 /* check for relaxation */
@@ -289,10 +308,10 @@ void FieldT::ResetStep(void)
 }
 
 /* mark prescribed equations */
-void FieldT::InitEquations(iArray2DT& eqnos)
+void FieldT::InitEquations(void)
 {
 	/* use the allocated space */
-	eqnos.Alias(fEqnos);
+	fEqnos.Dimension(NumNodes(), NumDOF());
 	fEqnos = FieldT::kInit;
 	
 	/* mark KBC nodes */
@@ -312,35 +331,18 @@ void FieldT::InitEquations(iArray2DT& eqnos)
 }
 
 /* set the equations array and the number of active equations */
-void FieldT::SetEquations(iArray2DT& eqnos, int num_active)
+void FieldT::FinalizeEquations(int eq_start, int num_eq)
 {
-	/* safe with aliases */
-	fEqnos = eqnos;
+	/* store parameters */
+	fEquationStart = eq_start;
+	fNumEquations = num_eq;
 
-	/* trust this is correct */
-	fNumActiveEquations = num_active;
+	/* set force boundary condition destinations */
+	SetFBCEquations();
 
+	/* run through KBC controllers */
 	for (int j = 0; j < fKBC_Controllers.Length(); j++)
 	  fKBC_Controllers[j]->SetEquations();
-}
-
-/* dimension storage and mark equation numbers for external nodes */
-void FieldT::InitExternalEquations(const iArrayT& ex_nodes)
-{
-	/* check */
-	if (NumNodes() < ex_nodes.Length()) {
-		cout << "\n FieldT::InitExternalEquations: inconsistent number of\n" 
-		     <<   "     field nodes. Dimension must be called first. "<< endl;
-		throw ExceptionT::kGeneralFail;
-	}
-
-	/* allocate */
-	fExEqnos.Dimension(ex_nodes.Length(), NumDOF());
-	fExUpdate.Dimension(ex_nodes.Length(), NumDOF());
-
-	/* mark all external as inactive for setting local equation numbers */
-	for (int j = 0; j < ex_nodes.Length(); j++)
-		fEqnos.SetRow(ex_nodes[j], kExternal);
 }
 
 /* Collect the local element lists */
@@ -349,7 +351,7 @@ void FieldT::SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const
 /* consistency checks */
 #if __option (extended_errorcheck)
 	if (nodes.MajorDim() != eqnos.MajorDim() ||
-	    eqnos.MinorDim() < nodes.MinorDim()*NumDOF()) throw ExceptionT::kGeneralFail;
+	    eqnos.MinorDim() < nodes.MinorDim()*NumDOF()) ExceptionT::GeneralFail("FieldT::SetLocalEqnos");
 		//must have enough space (and maybe more)
 #endif
 
@@ -372,13 +374,15 @@ void FieldT::SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const
 /* collect equation numbers */
 void FieldT::SetLocalEqnos(ArrayT<const iArray2DT*> nodes, iArray2DT& eqnos) const
 {
+	const char caller[] = "FieldT::SetLocalEqnos";
+	
 	int row = 0;
 	for (int i = 0; i < nodes.Length(); i++)
 	{
 		const iArray2DT& nd = *(nodes[i]);
 	
 		/* check */
-		if (row + nd.MajorDim() > eqnos.MajorDim()) throw ExceptionT::kOutOfRange;
+		if (row + nd.MajorDim() > eqnos.MajorDim()) ExceptionT::OutOfRange(caller);
 
 		/* single block */	
 		iArray2DT eq(nd.MajorDim(), eqnos.MinorDim(), eqnos(row));
@@ -389,7 +393,7 @@ void FieldT::SetLocalEqnos(ArrayT<const iArray2DT*> nodes, iArray2DT& eqnos) con
 	}
 	
 	/* check - must fill all of eqnos */
-	if (row != eqnos.MajorDim()) throw ExceptionT::kSizeMismatch;
+	if (row != eqnos.MajorDim()) ExceptionT::SizeMismatch(caller);
 }
 
 void FieldT::SetLocalEqnos(const RaggedArray2DT<int>& nodes,
@@ -397,14 +401,15 @@ void FieldT::SetLocalEqnos(const RaggedArray2DT<int>& nodes,
 {
 /* consistency checks */
 #if __option(extended_errorcheck)
-	if (nodes.MajorDim() != eqnos.MajorDim()) throw ExceptionT::kSizeMismatch;
+	const char caller[] = "FieldT::SetLocalEqnos";
+	if (nodes.MajorDim() != eqnos.MajorDim()) ExceptionT::SizeMismatch(caller);
 #endif
 	
 	int numel = nodes.MajorDim();
 	for (int i = 0; i < numel; i++)
 	{
 #if __option(extended_errorcheck)
-		if (eqnos.MinorDim(i) < nodes.MinorDim(i)*NumDOF()) throw ExceptionT::kSizeMismatch;
+		if (eqnos.MinorDim(i) < nodes.MinorDim(i)*NumDOF()) ExceptionT::SizeMismatch(caller);
 		//must have enough space (and maybe more)
 #endif
 		int  nen    = nodes.MinorDim(i);
@@ -420,7 +425,7 @@ void FieldT::SetLocalEqnos(const RaggedArray2DT<int>& nodes,
 	}
 }
 
-void FieldT::ReadRestart(ifstreamT& in)
+void FieldT::ReadRestart(ifstreamT& in, const ArrayT<int>* nodes)
 {
 	/* external file */
 	StringT file;
@@ -439,7 +444,15 @@ void FieldT::ReadRestart(ifstreamT& in)
 		u_in.open(file);
 		if (u_in.is_open()) 
 		{
-			u_in >> fField[i];
+			if (nodes) /* select nodes */
+			{
+				dArray2DT tmp(nodes->Length(), NumDOF());
+				u_in >> tmp;
+				fField[i].Assemble(*nodes, tmp);
+			}
+			else /* all nodes */
+				u_in >> fField[i];
+
 			u_in.close();
 		} 
 		else 
@@ -453,10 +466,6 @@ void FieldT::ReadRestart(ifstreamT& in)
 		deriv.Append("D");
 	}
 
-	/* initialize history */
-	fField_last = fField;
-
-
 	/* KBC controllers */
 	for (int j = 0; j < fKBC_Controllers.Length(); j++)
 		fKBC_Controllers[j]->ReadRestart(in);
@@ -466,7 +475,7 @@ void FieldT::ReadRestart(ifstreamT& in)
 		fFBC_Controllers[i]->ReadRestart(in);
 }
 
-void FieldT::WriteRestart(ofstreamT& out) const
+void FieldT::WriteRestart(ofstreamT& out, const ArrayT<int>* nodes) const
 {
 	/* external file */
 	ofstreamT u_out;
@@ -483,7 +492,14 @@ void FieldT::WriteRestart(ofstreamT& out) const
 
 		/* write */
 		u_out.open(file);
-		u_out << fField[i] << '\n';
+		if (nodes) /* select nodes */
+		{
+			dArray2DT tmp(nodes->Length(), NumDOF());
+			tmp.RowCollect(*nodes, fField[i]);
+			u_out << tmp << '\n';
+		}
+		else /* all nodes */
+			u_out << fField[i] << '\n';
 		u_out.close();
 	
 		/* next */

@@ -1,7 +1,7 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.8 2002-10-20 22:48:24 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.8.4.2 2002-12-18 09:50:14 paklein Exp $ */
 /* created: paklein (10/23/1999) */
-
 #include "D2MeshFreeFSSolidT.h"
+#include "MaterialsConfig.h"
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -12,17 +12,21 @@
 #include "ExceptionT.h"
 #include "D2MeshFreeShapeFunctionT.h"
 
+#ifdef VIB_MATERIAL
+#include "D2VIB2D.h"
+#else
+#include "StructuralMaterialT.h"
+#endif
+
 //TEMP
 #include "MaterialListT.h"
-#include "D2VIB2D.h"
 
 //TEMP - for RHS stuff
 #include "eControllerT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 D2MeshFreeFSSolidT::D2MeshFreeFSSolidT(const ElementSupportT& support, const FieldT& field):
 	MeshFreeFSSolidT(support, field),
 	fD2MFShapes(NULL),
@@ -35,6 +39,11 @@ D2MeshFreeFSSolidT::D2MeshFreeFSSolidT(const ElementSupportT& support, const Fie
 {
 	//DEBUG
 	DoPrint = 0;
+
+#ifndef VIB_MATERIAL
+	ExceptionT::BadInputValue("D2MeshFreeFSSolidT::D2MeshFreeFSSolidT", 
+		"VIB_MATERIAL must be enabled");
+#endif
 }
 
 /* check material's list */
@@ -54,7 +63,11 @@ void D2MeshFreeFSSolidT::Initialize(void)
 	{
 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
 		StructuralMaterialT* pstruct_mat = (StructuralMaterialT*) pcont_mat;
+#ifdef VIB_MATERIAL
 		D2VIB2D* pmat = dynamic_cast<D2VIB2D*>(pstruct_mat);
+#else
+		D2VIB2D* pmat = NULL;
+#endif
 		if (!pmat)
 		{
 			cout << "\n D2MeshFreeFSSolidT::Initialize: all materials must";
@@ -194,9 +207,10 @@ void D2MeshFreeFSSolidT::FormKd(double constK)
 	fShapes->TopIP();
 	while (fShapes->NextIP())
 	{
+#ifdef VIB_MATERIAL
 		/* material internal stress terms */
 		pD2VIB2D->StressTerms(fDW, fDDW);
-	
+#endif	
 		/* integration factor */
 		double factor = constK*(*Weight++)*(*Det++);
 

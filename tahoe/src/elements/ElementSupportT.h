@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.19 2003-01-22 01:09:30 cjkimme Exp $ */
+/* $Id: ElementSupportT.h,v 1.16.2.4 2003-01-13 19:53:09 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -11,9 +11,6 @@
 #include "dArray2DT.h"
 #ifndef _SIERRA_TEST_
 #include "FieldT.h"
-#else
-#include "StringT.h"
-#include "GroupAverageT.h"
 #endif
 
 namespace Tahoe {
@@ -41,22 +38,13 @@ class ScheduleT;
 class StringT;
 class OutputSetT;
 class LocalArrayT;
-
+class CommManagerT;
 
 /** support for the ElementBaseT class hierarchy. A limited interface to get 
  * information in and out of an ElementBaseT */
 class ElementSupportT
 {
 public:
-
-#ifdef _SIERRA_TEST_
-	/* Parameters normally read from input stream must be passed through ElementSupport */
-	enum CodeT { kGeometryCode = 0, /**< Topology of surface element */
-	    		    kNumIntPts = 1, /**< Number of integration points */
-	             kCloseSurface = 2, /**< Initially close cohesive surfaces? */
-				   kOutputArea = 3, /**< Output fracture area */
-	             kMaterialCode = 4};/**< Which cohesive law to use */ 
-#endif
 
 	/** constructor */
 	ElementSupportT(void);
@@ -117,7 +105,7 @@ public:
 	dArrayT *FloatInput(void) const;
 	
 	/** accessor for element integer input when streams are not available */
-	iArrayT *IntInput(void) const;
+	int *IntInput(void) const;
 	
 	/** generate equation numbers based on connectivity information */
 	void SetEqnos(int *conn, const int& nelem, const int& nElemNodes, const int&nNodes);
@@ -126,35 +114,27 @@ public:
 	
 	dMatrixT& Stiffness(void) const { return *fStiffness; };
 	
-	void SetMaterialInput(double *inputFloats, int length);
+	void SetInput(double *inputFloats, int length);
 	
-	void SetElementInput(int *inputInts, int length);
+	void Setfmap(map<string,double>& inputDoubles);
+	
+	void Setimap(map<string,int>& inputInts);
 		
-	int ReturnInputInt(CodeT label);
+	double ReturnInputDouble(string label);
+	
+	int ReturnInputInt(string label);
 	
 	double *StateVariableArray(void);
 	
 	void SetStateVariableArray(double *incomingArray);
-	
-	void SetBlockID(StringT &Id);
-	
-	StringT& BlockID(void);
-	
-	void OutputSize(int& nNodeOutputVars, int& nElemOutputVars);
-	
-	void SetOutputCodes(iArrayT& fNodalOutputCodes, iArrayT& fElementOutputCodes);
-	
-	void SetOutputPointers(double *nodalOutput, double *elemOutput);
-	
-	void SetResidual(double *nodalForces);
 
 #endif // def _SIERRA_TEST_
 
 	/** number of nodes */
-	int NumNodes(void) const { return fNumNodes; };
+	int NumNodes(void) const;
 	
 	/** number of spatial dimensions */
-	int NumSD(void) const { return fNumSD; };
+	int NumSD(void) const;
 
 	/** initial coordinates */
 	const dArray2DT& InitialCoordinates(void) const;
@@ -227,29 +207,25 @@ public:
 	/** rank of this process */
 	int Rank(void) const;
 
-	/** the nodes not native to this processor */
-	void IncomingNodes(iArrayT& nodes_in) const;
+	/** the nodes not native to this processor. Returns NULL if there is no 
+	 * list, indicating \e all nodes are owned by this partition */
+	const ArrayT<int>* ExternalNodes(void) const;
 
-	/** the nodes native to this processor that appear on other processors */
-	void OutgoingNodes(iArrayT& nodes_out) const;
-
-	/** send data out.
-	 * \param all_out_data outgoing data for \e every node on this processor: [nnd] x [nvals] */
-	void SendExternalData(const dArray2DT& all_out_data) const;
-
-	/** receive incoming data.
-	 * \param external_data data from other processors for each node in 
-	 *        the ElementSupport::IncomingNodes array */
-	void RecvExternalData(dArray2DT& external_data) const;
-	/*@}*/
-	
+	/** the nodes native to this processor that appear on other processors.
+	 * Returns NULL if there is no list, indicating \e all nodes are owned by 
+	 * this partition */
+	const ArrayT<int>* BorderNodes(void) const;
+	/*@}*/	
 #endif
 	
 	/** geometry information */
 	ModelManagerT& Model(void) const;
 
+	/** comm information */
+	CommManagerT& CommManager(void) const;
+
 	/** node number map. returns NULL if there is not map */
-	const iArrayT* NodeMap(void) const;
+	const ArrayT<int>* NodeMap(void) const;
 	
 	/** element number map for the given block ID */
 	const iArrayT* ElementMap(const StringT& block_ID) const;
@@ -292,28 +268,18 @@ public:
 
 	/** register the output set. returns the ID that should be used with
 	 * ElementSupport::WriteOutput */
-#ifndef _SIERRA_TEST_
 	int RegisterOutput(const OutputSetT& output_set) const;
-#else
-	/** for SIERRA interface, we're just holding the data till they want it */
-	int RegisterOutput(ArrayT<StringT>& n_labels, ArrayT<StringT>& e_labels);
-#endif
 
 	/** write results for a single output set
 	 * \param ID output set ID for the given data
 	 * \param n_values nodal output values
 	 * \param e_values element output values */
 	void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
-	
-#ifndef _SIERRA_TEST_
-	/** return a reference to the output set with the given ID */
-	const OutputSetT& OutputSet(int ID) const;
-#endif
 	/*@}*/
 
 private:
-#ifndef _SIERRA_TEST_
 
+#ifndef _SIERRA_TEST_
  	/** \name verified access 
 	 * Use these if you don't want to keep checking that the pointers
 	 * have been initialized. */
@@ -324,31 +290,36 @@ private:
 	/** the nodes */
 	NodeManagerT& Nodes(void) const;
 	/*@}*/
+#endif
 
+private:
+
+	/** \name managers */
+	/*@{*/
 	/** the boss */
 	FEManagerT* fFEManager;
 	
 	/** the nodes */
 	NodeManagerT* fNodes;
 
-#endif
+	/** the model manager */
+ 	ModelManagerT* fModelManager;	
+
+	/** the communication manager */
+	CommManagerT* fCommManager;
+	/*@}*/
 	
 	/** \name cached parameters
 	 * Pre-set to allow fast access */
 	/*@{*/
 	GlobalT::AnalysisCodeT fAnalysis;
 	const GlobalT::StateT* fRunState;
+	const dArray2DT *fInitialCoordinates;
+	const dArray2DT *fCurrentCoordinates;
 	/*@}*/
-
-	int fNumSD, fNumNodes;
 
 #ifdef _SIERRA_TEST_	
  
- 	ModelManagerT* fModelManager;
- 	
- 	GroupAverageT*fGroupAverage;
-
-	dArray2DT *fInitialCoordinates, *fCurrentCoordinates;
 	dArrayT *fResidual;
 	dMatrixT *fStiffness;
 
@@ -359,17 +330,17 @@ private:
 	ifstreamT *ifst;
 	ofstreamT *ofst;
 	
+//	double *fparams;
 	dArrayT *fparams;
-	iArrayT *iparams;
+	map<string,double> fmap;
+	map<string,int> imap;
 	
+	int *iparams;
+
 	iArrayT *ieqnos;
 	
-	double *fStateVars, *fNodalOutput, *fElemOutput;
+	double *fStateVars;
 
-	StringT sBlockID;
-	
-	ArrayT<StringT> fNodeOutputLabels;
-	ArrayT<StringT> fElemOutputLabels;
 #endif
 	
 };
@@ -378,36 +349,66 @@ private:
 /* the top-level manager */
 inline FEManagerT& ElementSupportT::FEManager(void) const
 {
-	if (!fFEManager) {
-		cout << "\n ElementSupportT::FEManager: pointer not set" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (!fFEManager)
+		ExceptionT::GeneralFail("ElementSupportT::FEManager", "pointer not set");
 	return *fFEManager;
 }
 
 /* the nodes */
 inline NodeManagerT& ElementSupportT::Nodes(void) const
 {
-	if (!fNodes) {
-		cout << "\n ElementSupportT::Nodes: pointer not set" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (!fNodes) 
+		ExceptionT::GeneralFail("ElementSupportT::Nodes", "pointer not set");
 	return *fNodes;
 }
 #else
 inline int ElementSupportT::NumElements(void) const { return fElem; }
 inline dArrayT *ElementSupportT::FloatInput(void) const { return fparams; }
-inline iArrayT *ElementSupportT::IntInput(void) const { return iparams; }
+inline int *ElementSupportT::IntInput(void) const { return iparams; }
 #endif
 
 /* return a const reference to the run state flag */
 inline const GlobalT::StateT& ElementSupportT::RunState(void) const
 {
-	if (!fRunState) {
-		cout << "\n ElementSupportT::RunState: not set" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (!fRunState)
+		ExceptionT::GeneralFail("ElementSupportT::RunState", "not set");
 	return *fRunState;
+}
+
+/* geometry information */
+inline ModelManagerT& ElementSupportT::Model(void) const
+{
+	if (!fModelManager) 
+		ExceptionT::GeneralFail("ElementSupportT::Model", "pointer not set");
+	return *fModelManager;
+}
+
+/* comm information */
+inline CommManagerT& ElementSupportT::CommManager(void) const
+{
+	if (!fCommManager) 
+		ExceptionT::GeneralFail("ElementSupportT::CommManager", "pointer not set");
+	return *fCommManager;
+}
+
+/* number of nodes */
+inline int ElementSupportT::NumNodes(void) const
+{
+#if __option(extended_errorcheck)
+	if (!fInitialCoordinates) ExceptionT::GeneralFail("ElementSupportT::NumNodes", 
+		"no initial coordinates");
+#endif
+	return fInitialCoordinates->MajorDim();
+}
+	
+/* number of spatial dimensions */
+inline int ElementSupportT::NumSD(void) const
+{
+#if __option(extended_errorcheck)
+	if (!fInitialCoordinates) ExceptionT::GeneralFail("ElementSupportT::NumSD", 
+		"no initial coordinates");
+#endif
+	return fInitialCoordinates->MinorDim();
 }
 
 } // namespace Tahoe 

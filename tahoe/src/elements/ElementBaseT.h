@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.23 2002-12-11 23:13:15 cjkimme Exp $ */
+/* $Id: ElementBaseT.h,v 1.22 2002-11-30 16:41:22 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -62,7 +62,7 @@ public:
 #ifndef _SIERRA_TEST_
 	ElementBaseT(const ElementSupportT& support, const FieldT& field);
 #else
-	ElementBaseT(ElementSupportT& support);
+	ElementBaseT(const ElementSupportT& support);
 #endif
 
 	/** destructor */
@@ -84,14 +84,8 @@ public:
 	/** return the block ID for the specified element */
 	const StringT& ElementBlockID(int element) const;
 
-#ifndef _SIERRA_TEST_
 	/** the source */
 	const ElementSupportT& ElementSupport(void) const { return fSupport; };
-#else
-	/** the fracture_interface modifies ElementSuppportT often enough that it
-	    shouldn't be constant in this implementation */
-	ElementSupportT& ElementSupport(void) const {return fSupport; };
-#endif
 
 #ifndef _SIERRA_TEST_
 	/** field information */
@@ -385,12 +379,7 @@ private:
 	/** \name sources and parameters
 	 * Available to sub-classes through access methods */
 	/*@{*/
-#ifndef _SIERRA_TEST_
 	const ElementSupportT& fSupport;
-#else
-	ElementSupportT& fSupport;
-#endif
-
 #ifndef _SIERRA_TEST_
 	const FieldT& fField;
 #endif

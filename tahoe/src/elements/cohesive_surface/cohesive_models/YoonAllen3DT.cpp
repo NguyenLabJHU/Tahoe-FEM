@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.cpp,v 1.8 2003-01-24 18:01:30 cjkimme Exp $ */
+/* $Id: YoonAllen3DT.cpp,v 1.6 2002-12-03 19:13:38 cjkimme Exp $ */
 
 #include "YoonAllen3DT.h"
 
@@ -14,7 +14,6 @@ using namespace Tahoe;
 
 const int knumDOF = 3;
 
-#ifndef _SIERRA_TEST_
 /* constructor */
 YoonAllen3DT::YoonAllen3DT(ifstreamT& in, const double& time_step): 
 	SurfacePotentialT(knumDOF),
@@ -65,9 +64,8 @@ YoonAllen3DT::YoonAllen3DT(ifstreamT& in, const double& time_step):
 	fK = fpenalty*fsigma_0/fd_c_n;
 
 }
-#endif
 
-YoonAllen3DT::YoonAllen3DT(dArrayT& fparams, iArrayT& iparams, const double& time_step): 
+YoonAllen3DT::YoonAllen3DT(dArrayT fparams, int *iparams, const double& time_step): 
 	SurfacePotentialT(knumDOF),
 	fTimeStep(time_step)
 {
@@ -187,10 +185,10 @@ const dArrayT& YoonAllen3DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 #ifndef _SIERRA_TEST_	
 		cout << "\n YoonAllen3DT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
-#endif // _SIERRA_TEST_    
+#endif		     
 		throw ExceptionT::kBadInputValue;
 	}
-#endif // __option(extended_errorcheck)
+#endif
 
 	double u_t0 = jump_u[0];
 	double u_t1 = jump_u[1];
@@ -617,10 +615,11 @@ void YoonAllen3DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& st
 	dArrayT& output)
 {
 #pragma unused(jump_u)
+#ifndef _SIERRA_TEST_
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	
-
+#endif
 	double u_t0 = jump_u[0];
 	double u_t1 = jump_u[1];
 	double u_n = jump_u[2];

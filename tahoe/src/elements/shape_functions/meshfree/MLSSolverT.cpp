@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.cpp,v 1.9 2002-10-20 22:49:40 paklein Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.9.4.1 2003-01-09 09:37:40 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #include "MLSSolverT.h"
@@ -37,7 +37,7 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 	fDM(fNumSD),
 	fDDM(dSymMatrixT::NumValues(fNumSD)),
 	/* variable memory managers */
-	fArrayGroup(0),
+	fArrayGroup(0, true),
 	fArray2DGroup2(0, 0),
 	fArray2DGroup3(0, 0),
 	fLocCoords_man(0, fLocCoords, fNumSD),

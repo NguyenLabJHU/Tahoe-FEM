@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.h,v 1.7 2002-10-20 22:49:40 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.h,v 1.7.4.1 2002-12-27 23:08:57 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 
 #ifndef _MF_SHAPE_FUNCTION_T_H_
@@ -57,7 +57,7 @@ public:
 	/* read/write nodal meshfree parameters */
 	void SetNodalParameters(const iArrayT& node, const dArray2DT& nodal_params);
 	void GetNodalParameters(const iArrayT& node, dArray2DT& nodal_params) const;
-	const dArray2DT& NodalParameters(void) const;
+	dArray2DT& NodalParameters(void);
 
 	/* compute global shape derivatives */ 	
 	virtual void SetDerivatives(void);

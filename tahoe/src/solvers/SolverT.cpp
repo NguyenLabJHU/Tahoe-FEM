@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.12 2002-12-13 02:42:56 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.11.2.1 2002-12-27 23:09:10 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -30,9 +30,7 @@ SolverT::SolverT(FEManagerT& fe_manager, int group):
 	fFEManager(fe_manager),
 	fGroup(group),
 	fLHS(NULL),
-	fNumIteration(0),
-	fLHS_lock(kOpen),
-	fRHS_lock(kOpen)
+	fNumIteration(0)
 {
 	/* read parameters */
 	ifstreamT& in = fFEManager.Input();
@@ -141,12 +139,6 @@ void SolverT::AssembleRHS(const nArrayT<double>& elRes, const nArrayT<int>& eqno
 	/* consistency check */
 	if (elRes.Length() != eqnos.Length()) throw ExceptionT::kGeneralFail;
 
-	/* lock state */
-	if (fRHS_lock == kIgnore)
-		return;
-	else if (fRHS_lock == kLocked)
-		ExceptionT::GeneralFail("SolverT::AssembleRHS", "RHS is locked");
-
 #if __option(extended_errorcheck)
 	GlobalT::EquationNumberScopeT scope = (GlobalT::EquationNumberScopeT) fLHS->EquationNumberScope();
 #endif
@@ -175,12 +167,6 @@ void SolverT::OverWriteRHS(const dArrayT& elRes, const nArrayT<int>& eqnos)
 {
 	/* consistency check */
 	if (elRes.Length() != eqnos.Length()) throw ExceptionT::kGeneralFail;
-
-	/* lock state */
-	if (fRHS_lock == kIgnore)
-		return;
-	else if (fRHS_lock == kLocked)
-		ExceptionT::GeneralFail("SolverT::OverWriteRHS", "RHS is locked");
 
 	int num_eq = fLHS->NumEquations();
 	int start_eq = fLHS->StartEquation();
@@ -229,6 +215,10 @@ GlobalT::EquationNumberScopeT SolverT::EquationNumberScope(void) const
 /*************************************************************************
 * Protected
 *************************************************************************/
+
+/* advance to next load step. Returns 0 if there are no more
+* steps. Overload to add class dependent initializations */
+//int SolverT::Step(void) { return fFEManager.Step(); }
 
 /* return the magnitude of the residual force */
 double SolverT::Residual(const dArrayT& force) const
@@ -446,7 +436,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 			if (fFEManager.Size() > 1)
 			{
 #ifdef __SPOOLES_MPI__
-				fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting);
+				fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting, fFEManager.Communicator());
 #else
 				cout << "\n SolverT::SetGlobalMatrix: SPOOLES MPI not installed: ";
 				cout << matrix_type << endl;

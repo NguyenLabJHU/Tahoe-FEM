@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.h,v 1.7 2003-01-09 18:10:45 rjones Exp $ */
+/* $Id: AdhesionT.h,v 1.6 2002-11-30 16:41:24 paklein Exp $ */
 #ifndef _ADHESION_T_H_
 #define _ADHESION_T_H_
 
@@ -71,10 +71,6 @@ public:
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
 protected:
-
-	/** a flag to allow the penalization of penetration */
-	bool fPenalizePenetration;
-	bool fAllowSameSurface;
 
 	/** surface specification modes */
 	enum SurfaceSpecModeT {kNodesOnFacet = 0,

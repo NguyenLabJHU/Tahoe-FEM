@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.19 2002-12-11 23:13:17 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.18 2002-11-30 16:41:25 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -27,7 +27,7 @@ public:
 #ifndef _SIERRA_TEST_
 	CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate);
 #else
-	CSEAnisoT(ElementSupportT& support, bool rotate);
+	CSEAnisoT(const ElementSupportT& support, bool rotate);
 #endif
 	
 	/* destructor */

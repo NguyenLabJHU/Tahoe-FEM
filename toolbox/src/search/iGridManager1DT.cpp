@@ -1,3 +1,4 @@
+/* $Id: iGridManager1DT.cpp,v 1.3.2.1 2002-12-16 09:03:00 paklein Exp $ */
 #include "iGridManager1DT.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
@@ -6,7 +7,7 @@ using namespace Tahoe;
 
 /* constructor */
 iGridManager1DT::iGridManager1DT(int nx, const dArray2DT& coords,
-	const iArrayT* nodes_used):
+	const ArrayT<int>* nodes_used):
 	GridManager1DT<iNodeT>(nx, coords, nodes_used),
 	fCoords(coords),
 	fNodesUsed(nodes_used)

@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.10 2002-12-11 23:13:17 cjkimme Exp $ */
+/* $Id: CSEBaseT.h,v 1.9 2002-11-21 01:13:35 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -46,7 +46,7 @@ public:
 #ifndef _SIERRA_TEST_
 	CSEBaseT(const ElementSupportT& support, const FieldT& field);
 #else
-	CSEBaseT(ElementSupportT& support);
+	CSEBaseT(const ElementSupportT& support);
 #endif
 
 	/* destructor */

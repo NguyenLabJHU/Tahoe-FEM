@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.16 2003-01-24 18:01:30 cjkimme Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.14 2002-12-03 19:13:38 cjkimme Exp $ */
 /* created: paklein (06/23/1999)*/
 
 #include "XuNeedleman3DT.h"
@@ -16,7 +16,6 @@ using namespace Tahoe;
 const int    knumDOF = 3;
 const double kExpMax = 20;
 
-#ifndef _SIERRA_TEST_
 /* constructor */
 XuNeedleman3DT::XuNeedleman3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 {
@@ -39,9 +38,8 @@ XuNeedleman3DT::XuNeedleman3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 	
 	fK = fKratio*phi_n/(d_n*d_n);
 }
-#endif
 
-XuNeedleman3DT::XuNeedleman3DT(dArrayT& params): SurfacePotentialT(knumDOF)
+XuNeedleman3DT::XuNeedleman3DT(dArrayT params): SurfacePotentialT(knumDOF)
 {
 	q = params[0];; // phi_t/phi_n
 	r = params[1]; // delta_n* /d_n

@@ -1,13 +1,22 @@
-/* $Id: SolidMatSupportT.cpp,v 1.2 2002-11-14 17:06:21 paklein Exp $ */
+/* $Id: SolidMatSupportT.cpp,v 1.2.2.2 2003-01-07 17:27:08 paklein Exp $ */
 #include "SolidMatSupportT.h"
+#include "ElementsConfig.h"
+
+#ifdef CONTINUUM_ELEMENT
 #include "ElasticT.h"
+#endif
 
 using namespace Tahoe;
 
 /* constructor */
 SolidMatSupportT::SolidMatSupportT(int nsd, int ndof, int nip):
 	MaterialSupportT(nsd, ndof, nip),
-	fElastic(NULL)
+	fElastic(NULL),
+	fLastDisp(NULL),
+	fVel(NULL),
+	fAcc(NULL),
+	fTemperatures(NULL),
+	fLastTemperatures(NULL)
 {
 
 }
@@ -18,26 +27,25 @@ void SolidMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 	/* inherited */
 	MaterialSupportT::SetContinuumElement(p);
 
+#ifdef CONTINUUM_ELEMENT
 	/* cast to elastic element pointer */
 	fElastic = dynamic_cast<const ElasticT*>(p);
+#endif
 }
 
 /* return a pointer the specified local array */
 const LocalArrayT* SolidMatSupportT::LocalArray(LocalArrayT::TypeT t) const
 {
-	/* quick exit to inherited */
-	if (!fElastic) return MaterialSupportT::LocalArray(t);
-
 	switch (t)
 	{
 		case LocalArrayT::kLastDisp:
-			return &(fElastic->LastDisplacements());
+			return fLastDisp;
 	
 		case LocalArrayT::kVel:
-			return &(fElastic->Velocities());
+			return fVel;
 
 		case LocalArrayT::kAcc:
-			return &(fElastic->Accelerations());
+			return fAcc;
 
 		default:
 			/* inherited */
@@ -45,20 +53,24 @@ const LocalArrayT* SolidMatSupportT::LocalArray(LocalArrayT::TypeT t) const
 	}
 }
 
-/* nodal temperatures */
-const LocalArrayT* SolidMatSupportT::Temperatures(void) const
+void SolidMatSupportT::SetLocalArray(const LocalArrayT& array)
 {
-	if (!fElastic)
-		return NULL;
-	else
-		return fElastic->Temperatures();
-}
+	switch (array.Type())
+	{
+		case LocalArrayT::kLastDisp:
+			fLastDisp = &array;
+			break;
+	
+		case LocalArrayT::kVel:
+			fVel = &array;
+			break;
 
-/* nodal temperatures from the last time step */
-const LocalArrayT* SolidMatSupportT::LastTemperatures(void) const
-{
-	if (!fElastic)
-		return NULL;
-	else
-		return fElastic->LastTemperatures();
+		case LocalArrayT::kAcc:
+			fAcc = &array;
+			break;
+
+		default:
+			/* inherited */
+			MaterialSupportT::SetLocalArray(array);
+	}
 }

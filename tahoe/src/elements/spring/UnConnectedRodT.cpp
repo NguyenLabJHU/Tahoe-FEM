@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.11 2002-10-20 22:48:30 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.11.4.1 2002-12-05 21:48:41 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #include "UnConnectedRodT.h"
@@ -68,7 +68,7 @@ GlobalT::RelaxCodeT UnConnectedRodT::RelaxSystem(void)
 		
 		/* update model manager */
 		ModelManagerT& model = ElementSupport().Model();
-		model.UpdateConnectivity (fBlockData[0].ID(), rodconnects, true);
+		model.UpdateElementGroup(fBlockData[0].ID(), rodconnects, true);
 		fBlockData[0].SetDimension(rodconnects.MajorDim());
 
 		/* reset local equation number lists */	

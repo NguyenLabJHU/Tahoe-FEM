@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.cpp,v 1.10 2002-12-13 02:42:55 paklein Exp $ */
+/* $Id: NLSolver_LS.cpp,v 1.9 2002-12-05 01:53:53 paklein Exp $ */
 /* created: paklein (08/18/1999) */
 
 #include "NLSolver_LS.h"
@@ -50,15 +50,13 @@ NLSolver_LS::NLSolver_LS(FEManagerT& fe_manager, int group):
 }
 
 /* form and solve the equation system */
-double NLSolver_LS::SolveAndForm(bool newtangent, bool clear_LHS)
+double NLSolver_LS::SolveAndForm(bool newtangent)
 {		
 	/* form the stiffness matrix */
 	if (newtangent)
 	{
-		if (clear_LHS) fLHS->Clear();
-		fLHS_lock = kOpen;
+		fLHS->Clear();
 		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);
-		fLHS_lock = kIgnore;
 	}
 	
 	/* store residual */
@@ -68,16 +66,11 @@ double NLSolver_LS::SolveAndForm(bool newtangent, bool clear_LHS)
 	if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
 
 	/* apply update to system */
-	fRHS_lock = kOpen;
 	Update(fRHS, &fR);
 								
 	/* compute new residual */
-	fLHS->Clear();
 	fRHS = 0.0;
-	fLHS_lock = kOpen;
 	fFEManager.FormRHS(Group());
-	fLHS_lock = kLocked;
-	fRHS_lock = kLocked;
 
 	/* combine residual magnitude with update magnitude */
 	/* e = a1 |R| + a2 |delta_d|                        */

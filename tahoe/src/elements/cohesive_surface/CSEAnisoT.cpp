@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.34 2003-01-22 00:54:33 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.32 2002-12-05 00:58:53 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -47,7 +47,7 @@ CSEAnisoT::CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool r
 	if (fRotate) fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
 }
 #else
-CSEAnisoT::CSEAnisoT(ElementSupportT& support, bool rotate):
+CSEAnisoT::CSEAnisoT(const ElementSupportT& support, bool rotate):
 	CSEBaseT(support),
 	fRotate(rotate),
 	fCurrShapes(NULL),
@@ -122,6 +122,10 @@ void CSEAnisoT::Initialize(void)
 	fSurfPots.Dimension(numprops);
 	fNumStateVariables.Dimension(numprops);
 
+#ifdef _SIERRA_TEST_
+	ElementSupportT* nonConstEST = const_cast<ElementSupportT*>(&(ElementSupport()));	
+#endif
+
 
 	for (int i = 0; i < fSurfPots.Length(); i++)
 	{
@@ -130,7 +134,7 @@ void CSEAnisoT::Initialize(void)
 		in >> num >> code;
 #else
 		num = 1; 
-		code = ElementSupport().ReturnInputInt(ElementSupportT::kMaterialCode);
+		code = nonConstEST->ReturnInputInt("COHESIVE POTENTIAL CODE");
 #endif
 		num--;
 
@@ -154,7 +158,7 @@ void CSEAnisoT::Initialize(void)
 #ifndef _SIERRA_TEST_
 					fSurfPots[num] = new XuNeedleman3DT(in);
 #else
-					dArrayT *params = ElementSupport().FloatInput();
+					dArrayT *params = nonConstEST->FloatInput();
 					fSurfPots[num] = new XuNeedleman3DT(*params);
 #endif
 				}
@@ -175,7 +179,7 @@ void CSEAnisoT::Initialize(void)
 #ifndef _SIERRA_TEST_
 					fSurfPots[num] = new TvergHutch3DT(in);
 #else
-					dArrayT *params = ElementSupport().FloatInput();
+					dArrayT *params = nonConstEST->FloatInput();
 					fSurfPots[num] = new TvergHutch3DT(*params);				
 #endif
 				}
@@ -251,9 +255,9 @@ void CSEAnisoT::Initialize(void)
 #ifndef _SIERRA_TEST_
 					fSurfPots[num] = new YoonAllen3DT(in, ElementSupport().TimeStep());
 #else
-					dArrayT *fparams = ElementSupport().FloatInput();
-					iArrayT *iparams = ElementSupport().IntInput();
-					fSurfPots[num] = new YoonAllen3DT(*fparams,*iparams,ElementSupport().TimeStep());
+					dArrayT *fparams = nonConstEST->FloatInput();
+					int *iparams = ElementSupport().IntInput();
+					fSurfPots[num] = new YoonAllen3DT(*fparams,iparams,ElementSupport().TimeStep());
 #endif
 				}	
 				break;
@@ -328,7 +332,7 @@ void CSEAnisoT::Initialize(void)
 		/* allocate space */
 		fStateVariables.Configure(num_elem_state);
 #else
-		fStateVariables.Set(1,num_elem_state[0],ElementSupport().StateVariableArray());
+		fStateVariables.Set(1,num_elem_state[0],nonConstEST->StateVariableArray());
 #endif
 
 		/* initialize state variable space */
@@ -355,7 +359,7 @@ void CSEAnisoT::Initialize(void)
 #ifndef _SIERRA_TEST_
 	/* set history */
 	fStateVariables_last = fStateVariables;
-	/* For SIERRA, don't do anything. Wait until InitStep. */
+	/* In Sierra, don't do anything. Wait until InitStep. */
 #endif
 }
 
@@ -363,9 +367,10 @@ void CSEAnisoT::Initialize(void)
 /* Get state variables from ElementSupportT here */
 void CSEAnisoT::InitStep(void) 
 {
+	ElementSupportT* nonConstEST = const_cast<ElementSupportT*>(&(ElementSupport()));
 	
 	fStateVariables_last.Set(fStateVariables.MajorDim(),fStateVariables.MinorDim(),
-		ElementSupport().StateVariableArray());
+		nonConstEST->StateVariableArray());
 };
 #endif
 
@@ -385,6 +390,7 @@ void CSEAnisoT::CloseStep(void)
 /* write restart data to the output stream. */
 void CSEAnisoT::WriteRestart(ostream& out) const
 {
+#pragma unused(out)
 #ifndef _SIERRA_TEST_
 	/* inherited */
 	CSEBaseT::WriteRestart(out);
@@ -393,8 +399,6 @@ void CSEAnisoT::WriteRestart(ostream& out) const
 	fStateVariables.WriteData(out);
 	out << '\n';
 #else
-#pragma unused(out)
-#pragma message("Implement WriteRestart")
 	cout << "CSEAnisoT::WriteRestart: IO not implemented\n";
 	throw ExceptionT::kGeneralFail;
 #endif
@@ -403,6 +407,7 @@ void CSEAnisoT::WriteRestart(ostream& out) const
 /* read restart data to the output stream */
 void CSEAnisoT::ReadRestart(istream& in)
 {
+#pragma unused(in)
 #ifndef _SIERRA_TEST_
 	/* inherited */
 	CSEBaseT::ReadRestart(in);
@@ -415,8 +420,6 @@ void CSEAnisoT::ReadRestart(istream& in)
 	if (freeNodeQ.IsAllocated()) //This is useless
 		freeNodeQ_last = freeNodeQ;
 #else
-#pragma unused(in)
-#pragma message("Implement ReadRestart")
 	cout << "CSEAnisoT::ReadRestart: IO not implemented\n";
 	throw ExceptionT::kGeneralFail;
 #endif
@@ -611,9 +614,11 @@ void CSEAnisoT::RHSDriver(void)
 #endif
 	
 #ifdef _SIERRA_TEST_
-    /*Read in SIERRA's new state variables. We need their memory. */	
+    /*Read in SIERRA's new state variables. We need their memory. */
+    ElementSupportT* nonConstEST = const_cast<ElementSupportT*>(&(ElementSupport()));
+	
 	fStateVariables.Set(fStateVariables.MajorDim(),fStateVariables.MinorDim(),
-		ElementSupport().StateVariableArray());
+		nonConstEST->StateVariableArray());
 #endif
 
 	/* set state to start of current step */
@@ -797,6 +802,10 @@ void CSEAnisoT::RHSDriver(void)
 void CSEAnisoT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 	iArrayT& counts) const
 {
+#pragma unused(mode)
+#pragma unused(flags)
+#pragma unused(counts)
+#ifndef _SIERRA_TEST_
 	/* inherited */
 	CSEBaseT::SetNodalOutputCodes(mode, flags, counts);
 
@@ -807,23 +816,34 @@ void CSEAnisoT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& fl
 		counts[NodalTraction] = NumDOF();
 	if (flags[MaterialData] == mode)
 		counts[MaterialData] = fSurfPots[0]->NumOutputVariables();
+#else
+	cout <<"CSEAnisoT::SetNodalOutputCodes: IO not implemented \n";
+	throw ExceptionT::kGeneralFail;
+#endif
 }
 
 void CSEAnisoT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 	iArrayT& counts) const
 {
+#pragma unused(mode)
+#pragma unused(flags)
+#pragma unused(counts)
+#ifndef _SIERRA_TEST_
 	/* inherited */
 	CSEBaseT::SetElementOutputCodes(mode, flags, counts);
 	
 	/* resize for vectors not magnitudes */
 	if (flags[Traction] == mode) counts[Traction] = NumDOF();
+#else
+	cout << "CSEAnisoT::SetElementOutputCodes: IO not implemented \n";
+#endif
 }
 
 /* extrapolate the integration point stresses and strains and extrapolate */
 void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	const iArrayT& e_codes, dArray2DT& e_values)
 {      
-
+#ifndef _SIERRA_TEST_
 	/* number of output values */
 	int n_out = n_codes.Sum();
 	int e_out = e_codes.Sum();
@@ -854,12 +874,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, nen, nsd);
 	LocalArrayT loc_disp(LocalArrayT::kDisp, nen, ndof);
 	ElementSupport().RegisterCoordinates(loc_init_coords);
-#ifndef _SIERRA_TEST_
 	Field().RegisterLocal(loc_disp);
-#else
-#pragma message("This routine needs displacements from SIERRA.")
-	loc_disp.SetGlobal(ElementSupport().CurrentCoordinates());
-#endif
 	dArrayT ipmat(n_codes[MaterialData]);
 	
 	/* set shallow copies */
@@ -943,10 +958,9 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			if (e_codes[Centroid]) centroid = 0.0;
 			if (e_codes[Traction]) traction = 0.0;
 
-			LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
-			bool nodalReleaseQ = false;
-#ifndef _SIERRA_TEST_
 			int currElNum;
+			bool nodalReleaseQ = false;
+			LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
 			if (surfpot->NeedsNodalInfo()) 
 			{
 			  	int numNodes = element.NodesX().Length();
@@ -966,7 +980,6 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		 		}
 			  	fNodalValues.SetLocal(ndIndices);
 			}
-#endif
 
 			/* integrate */
 			fShapes->TopIP();
@@ -1008,9 +1021,9 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					{
 					  fShapes->Interpolate(fNodalValues,tensorIP);
 					}
-						
+								
 					/* compute traction in local frame */
-					const dArrayT& tract = surfpot->Traction(fdelta,state,tensorIP);
+					const dArrayT& tract = surfpot->Traction(fdelta, state,tensorIP);
 				       
 					/* project to nodes */
 					if (n_codes[NodalTraction])
@@ -1123,11 +1136,24 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 	/* get nodally averaged values */
 	ElementSupport().OutputUsedAverage(n_values);
+#else
+#pragma unused(n_codes)
+#pragma unused(n_values)
+#pragma unused(e_codes)
+#pragma unused(e_values)
+	cout << "CSEAnisoT::ComputeOuput: IO not implemented\n";
+	throw ExceptionT::kGeneralFail;
+#endif
 }
 
 void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels,
 	const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
 {
+#pragma unused(n_codes)
+#pragma unused(n_labels)
+#pragma unused(e_codes)
+#pragma unused(e_labels)
+#ifndef _SIERRA_TEST_
 	/* inherited */
 	CSEBaseT::GenerateOutputLabels(n_codes, n_labels, e_codes, e_labels);
 
@@ -1136,16 +1162,10 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 	int count = 0;
 	if (n_codes[NodalDisp])
 	{
-#ifndef _SIERRA_TEST_
 		/* labels from the field */
 		const ArrayT<StringT>& labels = Field().Labels();
 		for (int i = 0; i < labels.Length(); i++)
 			n_labels[count++] = labels[i];
-#else
-		const char* labels[] = {"D_1", "D_2", "D_3"};
-		for (int i = 0; i < NumSD(); i++)
-			n_labels[count++] = labels[i];
-#endif
 	}
 
 	if (n_codes[NodalCoord])
@@ -1221,6 +1241,10 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 		for (int i = 0; i < NumDOF(); i++)
 			e_labels[count++] = tlabels[i];
 	}
+#else
+	cout << "CSEAnisoT::GenerateOutputLabels: IO not implemented\n";
+	throw ExceptionT::kGeneralFail;
+#endif
 }
 
 /* write all current element information to the stream */
@@ -1254,6 +1278,7 @@ void CSEAnisoT::CurrElementInfo(ostream& out) const
 		out << " CSEAnisoT::CurrElementInfo: error on surface jacobian\n";
 	}
 #else
+	cout <<"CSEAnisoT::CurrElementInfo: IO not implemented\n";
 	throw ExceptionT::kGeneralFail;
 #endif
 }

@@ -1,14 +1,12 @@
-/* $Id: nLinearStaticIntegrator.cpp,v 1.3 2002-07-02 19:55:09 cjkimme Exp $ */
+/* $Id: nLinearStaticIntegrator.cpp,v 1.3.10.1 2002-12-18 09:39:04 paklein Exp $ */
 /* created: paklein (10/14/1996) */
-
 #include "nLinearStaticIntegrator.h"
 #include "BasicFieldT.h"
 #include "dArrayT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 nLinearStaticIntegrator::nLinearStaticIntegrator(void) { };
 
 /* predictor. Maps ALL degrees of freedom forward. */
@@ -16,6 +14,13 @@ void nLinearStaticIntegrator::Predictor(BasicFieldT& field)
 {
 	/* clear all displacements */
 	field[0] = 0.0;
+}
+
+/* corrector. Maps ALL degrees of freedom forward. */
+void nLinearStaticIntegrator::Corrector(BasicFieldT& field, const dArray2DT& update)
+{
+	/* update displacements */
+	field[0] = update;
 }
 
 /* correctors - map ACTIVE */

@@ -1,14 +1,17 @@
-/* $Id: CommunicatorT.h,v 1.8 2002-12-05 08:25:19 paklein Exp $ */
+/* $Id: CommunicatorT.h,v 1.8.2.5 2003-01-17 00:24:52 cjkimme Exp $ */
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
 
 #include "Environment.h"
+#include <time.h>
 
 #ifdef __TAHOE_MPI__
 #include "mpi.h"
 #else
-#define MPI_Comm long
+#define MPI_Comm    long
 #define MPI_Request long
+#define MPI_Status  long
+#define MPI_Op      long
 #endif
 
 #include "ios_fwd_decl.h"
@@ -16,7 +19,9 @@
 namespace Tahoe {
 
 /* forward declarations */
+template <class TYPE> class nArrayT;
 template <class TYPE> class ArrayT;
+class ofstreamT;
 
 /** interface to handle process to process communication. If compiled
  * with -D__TAHOE_MPI__, will implemented process-to-process communication
@@ -61,21 +66,34 @@ class CommunicatorT
 	/** \name logging */
 	/*@{*/
 	/** logging level */
-	enum LogLevelT {kSilent = 0, /**< serious error messages only */
-	               kAddress = 1, /**< log destination/source */
-	                   kAll = 2  /**< log everything including message data */ };
+	enum LogLevelT {
+           kLow = 0, /**< log everything including message data */ 
+      kModerate = 1, /**< log destination/source */
+        kUrgent = 2, /**< serious error messages only */
+          kFail = 3  /**< log message and then throw an ExceptionT::kMPIFail */
+           };
 
-	/** write message to log 
-	 * \param caller the calling subroutine 
-	 * \param message the log message
-	 * \param force write message regardless of the logging level */
-	void Log(const char* caller, const char* message, bool force = false) const;
+	/** write log message
+	 * \param priority message suppressed if the priority doesn't 
+	 *        match the current CommunicatorT::LogLevel
+	 * \param caller the calling subroutine */
+	void Log(LogLevelT priority, const char* caller) const;
+
+	/** write log message
+	 * \param priority message suppressed if the priority doesn't 
+	 *        match the current CommunicatorT::LogLevel
+	 * \param caller the calling subroutine
+	 * \param fmt formatted message string */
+	void Log(LogLevelT priority, const char* caller, const char* fmt, ...) const;
 
 	/** logging stream */
 	ostream& Log(void) const { return *fLog; };
 	
-	/** (re-)set the logging stream */
+	/** \name (re-)set the logging stream */
+	/*@{*/
 	void SetLog(ostream& log);
+	void SetLog(ofstreamT& log);
+	/*@}*/
 	
 	/** logging level */
 	LogLevelT LogLevel(void) const { return fLogLevel; };
@@ -102,62 +120,115 @@ class CommunicatorT
 	/** sum of single doubles returned to all */
 	double Sum(double a) const;
 
-	/** \name gather from all to one */
+	/** \name gather from all to one
+	 * Gather single integer from all processes to one. */
 	/*@{*/	
-	/** gather single integer. Called by destination process. 
+	/** Called by destination process. 
 	 * \param gather destination for gathered values. Must be dimensioned
 	 *        to length CommunicatorT::Size before the call. */
-	void Gather(int a, ArrayT<int>& gather) const;
+	void Gather(int a, nArrayT<int>& gather) const;
 
 	/** gather single integer. Called by sending processes. */
 	void Gather(int a, int destination) const;
-	/*@}*/	
+	/*@}*/
+
+	/** \name gather an array of integers from all to one
+	 * Gather an array of integers from all processes to one. */
+	/*@{*/	
+	/** Called by destination process. 
+	 * \param gather destination for gathered values. Must be dimensioned
+	 *        to length CommunicatorT::Size before the call. */
+	void Gather(const nArrayT<int>& my_values, nArrayT<int>& gather, 
+		const nArrayT<int>& counts, const nArrayT<int>& displacements) const;
+
+	/** gather an array of integers. Called by sending processes. Number of
+	 * values sent from this process must already been known by the receiving
+	 * process to call the matching Gather method. */
+	void Gather(const nArrayT<int>& my_values, int destination) const;
+	/*@}*/
 
 	/** gather single integer to all processes. 
 	 * \param gather destination for gathered values. Must be dimensioned
 	 *        to length CommunicatorT::Size before the call. */
-	void AllGather(int a, ArrayT<int>& gather) const;
+	void AllGather(int a, nArrayT<int>& gather) const;
 
 	/** \name gather multiple values from all. 
 	 * All processes sending the same amount of information to all. */
 	/*@{*/
 	/** gather double's */
-	void AllGather(const ArrayT<double>& my, ArrayT<double>& gather) const;
+	void AllGather(const nArrayT<double>& my, nArrayT<double>& gather) const;
 
 	/** gather int's */
-	void AllGather(const ArrayT<int>& my, ArrayT<int>& gather) const;
+	void AllGather(const nArrayT<int>& my, nArrayT<int>& gather) const;
 	/*@}*/
 
 	/** \name gather multiple values from all. 
 	 * Arbitrary data size from each process 
+	 * \param my data sent from this processor
+	 * \param gather the destination for the gathered data
 	 * \param counts amount of data sent from each process
 	 * \param displacements offset in the destination array where the data
-	 *        from the corresponding rank should be written
-	 * \param my data sent from this processor
-	 * \param gather the destination for the gathered data */
+	 *        from the corresponding rank should be written */
 	/*@{*/
 	/** gather double's */
-	void AllGather(const ArrayT<int>& counts, const ArrayT<int>& displacements, 
-		const ArrayT<double>& my, ArrayT<double>& gather) const;
+	void AllGather(const nArrayT<double>& my, nArrayT<double>& gather,
+		const nArrayT<int>& counts, const nArrayT<int>& displacements) const;
 
 	/** gather int's */
-	void AllGather(const ArrayT<int>& counts, const ArrayT<int>& displacements, 
-		const ArrayT<int>& my, ArrayT<int>& gather) const;
+	void AllGather(const nArrayT<int>& my, nArrayT<int>& gather,
+		const nArrayT<int>& counts, const nArrayT<int>& displacements) const;
 	/*@}*/
 
 	/** broadcast character array */
-	void Broadcast(ArrayT<char>& data);
+	void Broadcast(int source, ArrayT<char>& data);
 	
 	/** synchronize all processes */
 	void Barrier(void) const;
 
-  protected:
-  
-  	/** time as a string */
-	const char* WallTime(void) const;
+	/** \name non-blocking, point-to-point communications */
+	/*@{*/
+	/** post non-blocking send for double data */
+	void PostSend(const nArrayT<double>& data, int destination, int tag, MPI_Request& request) const;
 
-	/** write log header */
-	ostream& LogHead(const char* caller) const;
+	/** post non-blocking send for int data */
+	void PostSend(const nArrayT<int>& data, int destination, int tag, MPI_Request& request) const;
+
+	/** post non-blocking receive double data */
+	void PostReceive(nArrayT<double>& data, int source, int tag, MPI_Request& request) const;
+
+	/** post non-blocking receive int data */
+	void PostReceive(nArrayT<int>& data, int source, int tag, MPI_Request& request) const;
+	
+	/** return the index the next receive. Call blocks until the next message is received.
+	 * \param requests list of requests previously posted with CommunicatorT::PostReceive 
+	 * \return index in requests of the next received message*/
+	void WaitReceive(const ArrayT<MPI_Request>& requests, int& index, int& source) const;
+	
+	/** block until all sends posted with CommunicatorT::PostSend have completed */
+	void WaitSends(const ArrayT<MPI_Request>& requests);
+	/*@}*/
+
+	/** write status information */
+	void WriteStatus(ostream& out, const char* caller, const MPI_Status& status) const;
+
+	/** free any uncompleted requests. This often doesn't return successfully
+	 * because one or more of the other processes has quit */
+	void FreeRequests(ArrayT<MPI_Request>& requests) const;
+
+	/** \name blocking, point-to-point communications */
+	/*@{*/
+	/** post blocking send for an array of doubles */
+	void Send(const nArrayT<double>& data, int destination, int tag) const;
+
+	/** post blocking send for an array of ints */
+	void Send(const nArrayT<int>& data, int destination, int tag) const;
+
+	/** post blocking receive for an array of doubles */
+	void Receive(nArrayT<double>& data, int source, int tag) const;
+
+	/** post blocking receive for an array ints */
+	void Receive(nArrayT<int>& data, int source, int tag) const;
+	/*@}*/
 
   private:
   
@@ -166,6 +237,9 @@ class CommunicatorT
 	void Init(void);
 	void Finalize(void);
   	/*@}*/
+
+	/** write log message */
+	void doLog(const char* caller, const char* message) const;
   	
   private:
   
@@ -186,6 +260,15 @@ class CommunicatorT
 	static int fCount;
 	static int* fargc;
 	static char*** fargv;
+
+	/** running time stamp needed for calculating intervals
+	 * between calls to CommunicatorT:doLog. Uses MPI timing
+	 * if available */
+#ifdef __TAHOE_MPI__
+	double fLastTime;
+#else
+	clock_t fLastTime;
+#endif
 };
 
 /* returns true if an MP environment is active */
@@ -197,36 +280,6 @@ inline bool CommunicatorT::ActiveMP(void)
 	return false;
 #endif
 }
-
-#if 0
-/** information for a non-blocking send */
-class SendPacketT
-{
-  public:
-  
-  	/** message type enumeration */
-  	int TypeT {Integer, Double, String};
-
-
-  private:
-	
-	/** message tag */ 
-  	int fMessageTag;
-  	
-  	/** message data type */
-  	TypeT fType;
-
-	/** requests */
-	ArrayT<MPI_Request> fRequest;
-  	
-  	/** \name pointers to message buffers */
-	/*@{*/
-  	ArrayT<ArrayT<int>* >    fIntArray;
-  	ArrayT<ArrayT<double>* > fDoubleArray;
-  	ArrayT<ArrayT<char>* >   fCharArray;
-	/*@}*/  	
-};
-#endif
 
 } // namespace Tahoe 
 #endif /* _COMMUNICATOR_T_H_ */

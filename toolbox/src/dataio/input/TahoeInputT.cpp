@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.cpp,v 1.12 2003-01-05 02:20:42 paklein Exp $ */
+/* $Id: TahoeInputT.cpp,v 1.11.2.1 2002-12-10 17:05:28 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "TahoeInputT.h"
@@ -31,10 +31,10 @@ void TahoeInputT::Close (void)
 
 void TahoeInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
 {
-  if (groupnames.Length() != NumElementGroups()) throw ExceptionT::kSizeMismatch;
+	const char caller[] = "TahoeInputT::ElementGroupNames";
+  if (groupnames.Length() != NumElementGroups()) ExceptionT::SizeMismatch(caller);
   iArrayT ids (groupnames.Length());
-  if (fModel.GetElementSetID (ids) == ModelFileT::kFail)
-    throw ExceptionT::kDatabaseFail;
+  if (fModel.GetElementSetID (ids) == ModelFileT::kFail) ExceptionT::DatabaseFail(caller);
   for (int i=0; i < ids.Length(); i++) {
   	groupnames[i].Clear();
     groupnames[i].Append(ids[i]);
@@ -43,10 +43,10 @@ void TahoeInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
 
 void TahoeInputT::SideSetNames (ArrayT<StringT>& sidenames) const
 {
-  if (sidenames.Length() != NumSideSets()) throw ExceptionT::kSizeMismatch;
+	const char caller[] = "TahoeInputT::SideSetNames";
+  if (sidenames.Length() != NumSideSets()) ExceptionT::SizeMismatch(caller);
   iArrayT nums (sidenames.Length());
-  if (fModel.GetSideSetID (nums) == ModelFileT::kFail)
-    throw ExceptionT::kDatabaseFail;
+  if (fModel.GetSideSetID (nums) == ModelFileT::kFail) ExceptionT::DatabaseFail(caller);
   for (int i=0; i < nums.Length(); i++) {
   	sidenames[i].Clear();
     sidenames[i].Append(nums[i]);
@@ -55,10 +55,11 @@ void TahoeInputT::SideSetNames (ArrayT<StringT>& sidenames) const
 
 void TahoeInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
 {
-  if (nodenames.Length() != NumNodeSets()) throw ExceptionT::kSizeMismatch;
+	const char caller[] = "TahoeInputT::NodeSetNames";
+  if (nodenames.Length() != NumNodeSets()) ExceptionT::SizeMismatch(caller);
   iArrayT nums (nodenames.Length());
   if (fModel.GetNodeSetID (nums) == ModelFileT::kFail)
-    throw ExceptionT::kDatabaseFail;
+    ExceptionT::DatabaseFail(caller);
   for (int i=0; i < nums.Length(); i++) {
   	nodenames[i].Clear();
     nodenames[i].Append(nums[i]);
@@ -114,10 +115,13 @@ void TahoeInputT::ReadNodeID(iArrayT& node_id)
 
 void TahoeInputT::ReadCoordinates (dArray2DT& coords)
 {
-  if (coords.MajorDim() != NumNodes() ||
-      coords.MinorDim() != NumDimensions()) throw ExceptionT::kSizeMismatch;
-  if (fModel.GetCoordinates (coords) == ModelFileT::kFail) 
-    throw ExceptionT::kDatabaseFail;
+	const char caller[] = "TahoeInputT::ReadCoordinates";
+	if (coords.MajorDim() != NumNodes() ||
+        coords.MinorDim() != NumDimensions()) 
+        ExceptionT::SizeMismatch(caller);
+
+	if (fModel.GetCoordinates (coords) == ModelFileT::kFail) 
+		ExceptionT::DatabaseFail(caller);
 }
 
 void TahoeInputT::ReadCoordinates (dArray2DT& coords, iArrayT& node_id)
@@ -297,19 +301,15 @@ void TahoeInputT::ReadSideSetGlobal (const StringT& name, iArray2DT& sides) cons
 void TahoeInputT::SetCode (int numelemnodes, int dof, GeometryT::CodeT& code) const
 {
   code = GeometryT::kNone;
-  if (dof == 1 && numelemnodes == 1)
-    code = GeometryT::kPoint;
-  else if (dof == 2)
+  if (dof == 2)
     switch (numelemnodes)
       {
-      case 1: code = GeometryT::kPoint; break;
       case 6: case 3: code = GeometryT::kTriangle; break;
       case 8: case 4: code = GeometryT::kQuadrilateral; break;
       }
   else if (dof == 3)
     switch (numelemnodes)
       {
-      case 1: code = GeometryT::kPoint; break;
       case 4: case 10: code = GeometryT::kTetrahedron; break;
       case 8: case 20: code = GeometryT::kHexahedron; break;
       case 6: case 15: code = GeometryT::kPentahedron; break;

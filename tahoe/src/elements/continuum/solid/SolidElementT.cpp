@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.38 2002-11-30 16:41:28 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.38.2.1 2002-12-10 17:08:50 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -575,11 +575,24 @@ void SolidElementT::SetGlobalShape(void)
 /* construct a new material support and return a pointer */
 MaterialSupportT* SolidElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
-	/* allocate */
+	/* allocate new */
 	if (!p) p = new StructuralMatSupportT(NumSD(), NumDOF(), NumIP());
 
 	/* inherited initializations */
 	ContinuumElementT::NewMaterialSupport(p);
+
+	/* set StructuralMatSupportT fields */
+	StructuralMatSupportT* ps = dynamic_cast<StructuralMatSupportT*>(p);
+	if (ps) {
+		/* set pointers to local arrays */
+		ps->SetLocalArray(fLocLastDisp);
+		ps->SetLocalArray(fLocVel);
+		ps->SetLocalArray(fLocAcc);
+
+		/* temperatures if available */
+		if (fLocTemp) ps->SetTemperatures(*fLocTemp);
+		if (fLocTemp_last) ps->SetTemperatures(*fLocTemp_last);
+	}
 
 	return p;
 }

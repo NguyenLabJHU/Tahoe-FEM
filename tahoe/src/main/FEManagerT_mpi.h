@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.16 2002-12-05 08:31:13 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.16.2.6 2003-01-07 18:52:57 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #ifndef _FE_MANAGER_MPI_H_
 #define _FE_MANAGER_MPI_H_
@@ -6,24 +6,10 @@
 /* base class */
 #include "FEManagerT.h"
 
-//TEMP
-#include <time.h>
-#include "fstreamT.h"
-
 /* direct members */
 #include "PartitionT.h"
 #include "dArray2DT.h"
-#ifdef __TAHOE_MPI__
-#include "mpi.h"
-#else
-
-namespace Tahoe {
-
-typedef int MPI_Request;
-typedef int MPI_Op;
-
-} // namespace Tahoe 
-#endif
+#include "ofstreamT.h"
 
 namespace Tahoe {
 
@@ -66,21 +52,6 @@ public:
 	virtual void DivertOutput(const StringT& outfile);
 	virtual void RestoreOutput(void);
 
-	/* return list of ID's of external nodes */
-	virtual void IncomingNodes(iArrayT& nodes_in) const;
-	virtual void OutgoingNodes(iArrayT& nodes_out) const;
-
-	/** return the local node to processor map */
-	virtual void NodeToProcessorMap(const iArrayT& node, iArrayT& processor) const;
-
-	/** synchronize */
-	virtual void Wait(void);
-
-	/* get external nodal values */
-	virtual void SendExternalData(const dArray2DT& all_out_data);
-	virtual void RecvExternalData(dArray2DT& external_data);
-	virtual void SendRecvExternalData(const iArray2DT& all_out_data, iArray2DT& external_data);
-
 	/* domain decomposition (graph is returned) */
 	void Decompose(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method);
 
@@ -91,7 +62,6 @@ public:
 	void SetExternalIO(IOManager_mpi* externIO);
 
 	/* debugging */
-	virtual const iArrayT* NodeMap(void) const;
 	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
 
 protected:
@@ -109,7 +79,6 @@ protected:
 	/** \name initialization functions */
 	/*@{*/
 	virtual void ReadParameters(InitCodeT init);
-	virtual void SetNodeManager(void);
 	virtual void SetElementGroups(void);  	
 	/*@}*/
 
@@ -128,15 +97,8 @@ protected:
 
 private:
 
-	/* allocate buffers for all-to-all communications */
-	void AllocateBuffers(int minor_dim, ArrayT<dArray2DT>& recv, ArrayT<dArray2DT>& send);
-	void AllocateBuffers(int minor_dim, ArrayT<iArray2DT>& recv, ArrayT<iArray2DT>& send);
-
 	/** write time stamp to log file */
-	void TimeStamp(const char* message, bool flush_stream = false) const;
-
-	/** returns the time string */
-	const char* WallTime(void) const;
+	void TimeStamp(const char* message) const;
 
 	/** collect computation effort for each node */
 	void WeightNodalCost(iArrayT& weight) const;
@@ -156,17 +118,12 @@ private:
 	IOManager_mpi* fExternIOManager;
 	IOBaseT::FileTypeT fInputFormat;
 	StringT fModelFile;
-	
+
 	/* partition information */
 	PartitionT* fPartition;
-	ArrayT<dArray2DT> fRecvBuffer;
-	ArrayT<dArray2DT> fSendBuffer;
-	ArrayT<MPI_Request> fRecvRequest;
-	ArrayT<MPI_Request> fSendRequest;
-
-	//TEMP?
+	
+	/** log file */
 	ofstreamT flog;
-	clock_t  flast_time;
 };
 
 /* return reference to partition data */
@@ -183,17 +140,6 @@ inline void FEManagerT_mpi::SetExternalIO(IOManager_mpi* externIO)
 }
 
 /* debugging */
-inline const iArrayT* FEManagerT_mpi::NodeMap(void) const
-{
-	if (fTask == kDecompose)
-		return NULL; // assume no map
-	else
-	{
-		if (!fPartition) throw ExceptionT::kGeneralFail;
-		return &(fPartition->NodeMap());
-	}
-}
-
 inline const iArrayT* FEManagerT_mpi::ElementMap(const StringT& block_ID) const
 {
 	if (fTask == kDecompose)

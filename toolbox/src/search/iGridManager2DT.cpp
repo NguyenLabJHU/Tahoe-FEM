@@ -1,17 +1,14 @@
-/* $Id: iGridManager2DT.cpp,v 1.4 2002-10-20 22:39:13 paklein Exp $ */
-/* created: paklein (12/09/1997)                                          */
-/* iNodeT grid                                                            */
-
+/* $Id: iGridManager2DT.cpp,v 1.4.2.1 2002-12-16 09:03:00 paklein Exp $ */
+/* created: paklein (12/09/1997) */
 #include "iGridManager2DT.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 iGridManager2DT::iGridManager2DT(int nx, int ny, const dArray2DT& coords,
-	const iArrayT* nodes_used):
+	const ArrayT<int>* nodes_used):
 	GridManager2DT<iNodeT>(nx, ny, coords, nodes_used),
 	fCoords(coords),
 	fNodesUsed(nodes_used)

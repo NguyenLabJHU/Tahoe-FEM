@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.cpp,v 1.7 2002-12-13 02:42:55 paklein Exp $ */
+/* $Id: LinearSolver.cpp,v 1.6 2002-11-28 17:30:31 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 
 #include "LinearSolver.h"
@@ -38,9 +38,6 @@ SolverT::SolutionStatusT LinearSolver::Solve(int)
 	/* solve equation system */
 	if (fFormLHS)
 	{
-		/* unlock */
-		fLHS_lock = kOpen;
-	
 		/* initialize */
 		fLHS->Clear();
 	
@@ -49,9 +46,6 @@ SolverT::SolutionStatusT LinearSolver::Solve(int)
 				
 		/* flag not to reform */
 		fFormLHS = 0;
-
-		/* lock */
-		fLHS_lock = kLocked;
 	}
 
 	/* determine update vector */

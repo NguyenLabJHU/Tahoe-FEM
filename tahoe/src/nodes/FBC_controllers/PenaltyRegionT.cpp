@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.9 2002-10-20 22:49:27 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.9.4.1 2002-12-18 09:45:06 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
@@ -12,11 +12,11 @@
 #include "GlobalT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
+#include "CommManagerT.h"
 #include "fstreamT.h"
 #include "ScheduleT.h"
 #include "eControllerT.h"
 #include "IOBaseT.h"
-
 
 using namespace Tahoe;
 
@@ -105,10 +105,14 @@ void PenaltyRegionT::EchoData(ifstreamT& in, ostream &out)
 	  fNumContactNodes = 0;
 	
 	/* remove "external" nodes */
-	iArrayT nodes_in;
-	fFEManager.IncomingNodes(nodes_in);
-	if (fNumContactNodes > 0 && nodes_in.Length() > 0)
+	CommManagerT* comm = fFEManager.CommManager();
+	const ArrayT<int>* p_nodes_in = comm->BorderNodes();
+	if (fNumContactNodes > 0 && p_nodes_in)
 	{
+		/* wrap it */
+		iArrayT nodes_in;
+		nodes_in.Alias(*p_nodes_in);
+	
 		/* brute force search */
 		iArrayT is_external(fNumContactNodes);
 		for (int i = 0; i < fNumContactNodes; i++)

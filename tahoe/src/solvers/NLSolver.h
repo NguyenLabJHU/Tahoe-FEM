@@ -1,4 +1,4 @@
-/* $Id: NLSolver.h,v 1.6 2002-12-13 02:42:55 paklein Exp $ */
+/* $Id: NLSolver.h,v 1.5 2002-07-05 22:28:41 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NL_SOLVER_H_
@@ -43,7 +43,7 @@ protected:
 
 	/* form and solve the equation system - returns the magnitude of the
 	 * residual */
-	virtual double SolveAndForm(bool newtangent, bool clear_LHS);
+	virtual double SolveAndForm(bool newtangent);
 
 	/* divert output for iterations */
 	void InitIterationOutput(void);

@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.h,v 1.8 2002-12-11 23:13:18 cjkimme Exp $ */
+/* $Id: CSEIsoT.h,v 1.7 2002-11-30 16:41:25 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ISO_T_H_
@@ -26,7 +26,7 @@ public:
 	/* constructor */
 	CSEIsoT(const ElementSupportT& support, const FieldT& field);
 #else
-	CSEIsoT(ElementSupportT& support);
+	CSEIsoT(const ElementSupportT& support);
 #endif
 
 	/* form of tangent matrix */

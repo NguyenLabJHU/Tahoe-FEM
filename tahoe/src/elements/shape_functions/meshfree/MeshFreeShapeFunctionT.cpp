@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.8 2002-10-20 22:49:40 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.8.4.1 2002-12-27 23:08:57 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 
 #include "MeshFreeShapeFunctionT.h"
@@ -675,7 +675,7 @@ void MeshFreeShapeFunctionT::GetNodalParameters(const iArrayT& node, dArray2DT& 
 	fMFSupport->GetSupportParameters(node, nodal_params);
 }
 
-const dArray2DT& MeshFreeShapeFunctionT::NodalParameters(void) const 
+dArray2DT& MeshFreeShapeFunctionT::NodalParameters(void) 
 { 
 	return fMFSupport->NodalParameters(); 
 }

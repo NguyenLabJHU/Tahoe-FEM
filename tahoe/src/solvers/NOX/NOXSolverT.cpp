@@ -1,4 +1,4 @@
-/* $Id: NOXSolverT.cpp,v 1.8 2002-12-13 02:42:57 paklein Exp $ */
+/* $Id: NOXSolverT.cpp,v 1.7 2002-11-28 17:30:32 paklein Exp $ */
 #include "NOXSolverT.h"
 
 /* optional */
@@ -306,15 +306,8 @@ bool NOXSolverT::computeRHS(const dArrayT& x, dArrayT& rhs)
 	
 	/* calculate */
 	try {
-		/* open residual to assembly */
-		fRHS_lock = kOpen;
-
-		/* compute residual */
 		fRHS = 0.0;
 		fFEManager.FormRHS(Group());	
-
-		/* lock residual */
-		fRHS_lock = kLocked;
 	}
 	catch (ExceptionT::CodeT exception) {
 		cout << "\n NOXSolverT::computeRHS: exception: "
@@ -337,15 +330,8 @@ bool NOXSolverT::computeJacobian(GlobalMatrixT& jacobian)
 	
 	/* calculate */
 	try {
-		/* open Jacobian to assembly */
-		fLHS_lock = kOpen;
-
-		/* compute Jacobian */
 		fLHS->Clear();
 		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);	
-
-		/* lock Jacobian */
-		fLHS_lock = kLocked;
 	}
 	catch (ExceptionT::CodeT exception) {
 		cout << "\n NOXSolverT::computeJacobian: exception: "

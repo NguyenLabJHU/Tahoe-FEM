@@ -27,6 +27,9 @@ public:
 	/** predictor. Maps ALL degrees of freedom forward. */
 	virtual void Predictor(BasicFieldT& field);
 
+	/** corrector. Maps ALL degrees of freedom forward. */
+	virtual void Corrector(BasicFieldT& field, const dArray2DT& update);
+
 	/** corrector - map ACTIVE. See nControllerT::Corrector for more
 	 * documentation */
 	virtual void Corrector(BasicFieldT& field, const dArrayT& update, 
@@ -59,11 +62,6 @@ private:
 	double fdt4; /**< \f$ \frac{\Delta t^4}{4!} \f$ */
 	double fdt5; /**< \f$ \frac{\Delta t^5}{5!} \f$ */
 	/*@}*/
-
-	/* higher order derivatives */
-//	dArray2DT fD3;
-//	dArray2DT fD4;
-//	dArray2DT fD5;
 
  protected:
 

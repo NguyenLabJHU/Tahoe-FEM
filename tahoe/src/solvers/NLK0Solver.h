@@ -1,4 +1,4 @@
-/* $Id: NLK0Solver.h,v 1.6 2002-12-13 02:42:55 paklein Exp $ */
+/* $Id: NLK0Solver.h,v 1.5 2002-07-05 22:28:41 paklein Exp $ */
 /* created: paklein (10/01/1996) */
 
 #ifndef _NL_K0_SOLVER_H_
@@ -24,7 +24,7 @@ public:
 protected:
 
 	/** form and solve - returns the magnitude of the residual */
-	virtual double SolveAndForm(bool junk, bool clear_LHS);
+	virtual double SolveAndForm(bool junk);
 
 private:
 

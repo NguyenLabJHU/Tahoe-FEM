@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.24 2002-12-02 09:39:09 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.24.2.2 2003-01-09 09:29:58 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -12,6 +12,7 @@
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 #include "InputBaseT.h"
+#include "nVariArray2DT.h"
 
 #include "ios_fwd_decl.h"
 
@@ -217,20 +218,6 @@ class ModelManagerT
 	void BoundingElements(const ArrayT<StringT>& IDs, iArrayT& elements, 
 		iArray2DT& neighbors, const GeometryBaseT* geometry = NULL);
 
-#if 0
-	/** element faces on the group "surface". Function is non-const because element
-	 * blocks that have not been read yet will be read.
-	 * \param IDs list of element blocks comprising the body
-	 * \param geometry returns with the geometry of the faces
-	 * \param surface_facets element faces defining the body boundary: [nf] x [nfn]
-	 * \param surface_nodes nodes comprising the surface facets
-	 * \param geometry use the supplied GeometryBaseT is non-NULL; otherwise
-	 *        construct a temporary */
-	void SurfaceFacets(const ArrayT<StringT>& IDs, GeometryT::CodeT& geometry_code,
-		iArray2DT& surface_facets, iArrayT& surface_nodes,
-		const GeometryBaseT* geometry = NULL);
-#endif
-
 	/** element faces on the group "surface" grouped into contiguous patches */
 	void SurfaceFacets(const ArrayT<StringT>& IDs,
 		GeometryT::CodeT& geometry_code,
@@ -352,6 +339,10 @@ class ModelManagerT
 	 * \param newtotalnumnodes returned number of nodes after adding */
 	void DuplicateNodes (const iArrayT& nodes, iArrayT& new_node_tags, int& newtotalnumnodes);
 
+	/** resize the coordinate array. Excess values at the tail of the coordinate list are
+	 * discarded. Additional space added to the array is not initialized */
+	void ResizeNodes(int num_nodes);
+
 	/** adjust the DOF of the coordinate array from 3D to 2D by dropping the 3rd coordiante value */
 	void AdjustCoordinatesto2D (void);
 
@@ -362,6 +353,12 @@ class ModelManagerT
 	bool RegisterVariElements (const StringT& ID, nVariArray2DT<int>& conn, 
 		GeometryT::CodeT code, int numelemnodes, int headroom);
 
+	/** replace the coordinate list */
+	void UpdateNodes(dArray2DT& coordinates, bool keep) { RegisterNodes(coordinates, keep); };
+
+	/** overwrite the given the coordinates */
+	void UpdateNodes(const dArray2DT& coordinates, const ArrayT<int>& nodes);
+
 	/** call this function if the connectivity group/block/set is altered and replacement is needed
 	 * the number of elements and element nodes is updated
 	 * \param conn updated connectivities
@@ -369,7 +366,13 @@ class ModelManagerT
 	 *        is not an alias, the model manager will take ownership of the
 	 *        memory in conn. conn will be passed back as an alias. Otherwise
 	 *        the data in conn will be copied. */
-	void UpdateConnectivity(const StringT& ID, iArray2DT& conn, bool keep);
+	void UpdateElementGroup(const StringT& ID, iArray2DT& conn, bool keep);
+
+	/** update the nodes in an existing node set */
+	void UpdateNodeSet(const StringT& ID, iArrayT& node_set, bool keep);
+
+	/** update the nodes in an existing side set */
+	void UpdateSideSet(const StringT& ID, iArray2DT& side_set, bool keep);
 
 	/** add elements to an element group array
 	 * \param index element group index
@@ -622,7 +625,8 @@ class ModelManagerT
 
  private:
  
-  /* dimensional information */
+  /** \name dimensions */
+  /*@{*/
   iArrayT fCoordinateDimensions; /**< num nodes and dof */
   iAutoArrayT fElementLengths; /**< number of elements */
   iAutoArrayT fElementNodes; /**< number of element nodes */
@@ -630,18 +634,26 @@ class ModelManagerT
   iAutoArrayT fSideSetDimensions; /**< number of sides in set */
   AutoArrayT<SideSetScopeT> fSideSetScope; /**< flag for globally or locally numbered */
   iAutoArrayT fSideSetGroupIndex; /**< -1 for globally numbered or element group that contains set */
+  /*@}*/	
 
-  /* set parameters */
+  /** \name set parameters */
+  /*@{*/	
   AutoArrayT<StringT> fElementNames; /**< element group IDs */
   AutoArrayT<StringT> fNodeSetNames; /**< node set IDs */
   AutoArrayT<StringT> fSideSetNames; /**< side set IDs */
   AutoArrayT<GeometryT::CodeT> fElementCodes; /** element group geometry codes */
+  /*@}*/	
 
-  /* data */
+  /** \name model data */
+  /*@{*/	
   dArray2DT fCoordinates; /**< coordinates */
   AutoArrayT<iArray2DT*> fElementSets; /**< connectivities */ 
   AutoArrayT<iArrayT*> fNodeSets; /**< node sets */
   AutoArrayT<iArray2DT*> fSideSets; /**< side sets */
+  /*@}*/
+  
+  /** memory manager for the coordinate array */
+  nVariArray2DT<double> fCoordinates_man;
 };
 
 /* return a reference to the input class */

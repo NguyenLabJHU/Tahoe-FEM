@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.14 2002-12-11 23:13:18 cjkimme Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.13 2002-12-05 00:58:53 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -29,7 +29,7 @@ CSEIsoT::CSEIsoT(const ElementSupportT& support, const FieldT& field):
 
 }
 #else
-CSEIsoT::CSEIsoT(ElementSupportT& support):
+CSEIsoT::CSEIsoT(const ElementSupportT& support):
 	CSEBaseT(support)
 {
 
@@ -48,14 +48,14 @@ void CSEIsoT::Initialize(void)
 	/* inherited */
 	CSEBaseT::Initialize();
 
+#ifndef _SIERRA_TEST_
 	/* check output codes */
 	if (fNodalOutputCodes[MaterialData])
 	{
-#ifndef _SIERRA_TEST_
 		cout << "\n CSEIsoT::Initialize: material outputs not supported, overriding" << endl;
-#endif
 		fNodalOutputCodes[MaterialData] = IOBaseT::kAtNever;
 	}
+#endif
 
 	/* streams */
 	ifstreamT& in = ElementSupport().Input();
@@ -72,13 +72,8 @@ void CSEIsoT::Initialize(void)
 	for (int i = 0; i < fSurfPots.Length(); i++)
 	{
 		int num, code;
-#ifndef _SIERRA_TEST_
 		in >> num >> code;
-#else
-		num = 1; 
-		code = ElementSupport().ReturnInputInt(ElementSupportT::kMaterialCode);
-#endif
-
+		
 		/* check for repeated number */
 		if (fSurfPots[--num] != NULL) throw ExceptionT::kBadInputValue;
 	
@@ -88,20 +83,16 @@ void CSEIsoT::Initialize(void)
 			case C1FunctionT::kLennardJones:
 			{	
 				double A;
-#ifndef _SIERRA_TEST_
 				in >> A;
-#else
-#endif				
+				
 				fSurfPots[num] = new LennardJones612(A);
 				break;
 			}	
 			case C1FunctionT::kSmithFerrante:
 			{
 				double A, B;
-#ifndef _SIERRA_TEST_
 				in >> A >> B;
-#else
-#endif			
+			
 				fSurfPots[num] = new SmithFerrante(A,B,0.0);
 				break;
 			}
@@ -113,7 +104,6 @@ void CSEIsoT::Initialize(void)
 		if (!fSurfPots[num]) throw ExceptionT::kOutOfMemory;
 	}
 
-#ifndef _SIERRA_TEST_
 	/* echo */
 	out << "\n Cohesive surface potentials:\n";
 	out << " Number of potentials. . . . . . . . . . . . . . = ";
@@ -126,7 +116,6 @@ void CSEIsoT::Initialize(void)
 		fSurfPots[j]->PrintName(out);
 		fSurfPots[j]->Print(out);
 	}
-#endif
 }
 
 /***********************************************************************
@@ -267,10 +256,6 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	/* number of nodally smoothed values */
 	int n_out = n_codes.Sum();
 	int e_out = e_codes.Sum();
-#else
-	int n_out = 0;
-	int e_out = 0;
-#endif
 
 	/* nothing to output */
 	if (n_out == 0 && e_out == 0) return;
@@ -297,11 +282,7 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, nen, nsd);
 	LocalArrayT loc_disp(LocalArrayT::kDisp, nen, ndof);
 	ElementSupport().RegisterCoordinates(loc_init_coords);
-#ifndef _SIERRA_TEST_
 	Field().RegisterLocal(loc_disp);
-#else
-#pragma message("What to do with loc_disp?")
-#endif
 
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
@@ -482,4 +463,10 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 	/* get nodally averaged values */
 	ElementSupport().OutputUsedAverage(n_values);
+#else
+#pragma unused(n_codes)
+#pragma unused(n_values)
+#pragma unused(e_codes)
+#pragma unused(e_values)
+#endif
 }

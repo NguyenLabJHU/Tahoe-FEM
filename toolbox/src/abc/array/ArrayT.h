@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.13 2002-11-25 06:57:49 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.13.2.1 2003-01-09 09:28:13 paklein Exp $ */
 /* created: paklein (06/19/1996) */
 
 #ifndef _ARRAY_T_H_
@@ -174,14 +174,14 @@ public:
 	/** exchange data with the source array. Exchanges all fields of the arrays. */
 	void Swap(ArrayT<TYPE>& source);
 
-	/* array no longer responsible for freeing memory. error if
-	 * the array is already shallow. DANGER. */
-
 	/** transform this array into a shallow copy. The array gives up ownership of
 	 * its memory. This memory must be released elsewhere. An exception is thrown
 	 * if this array is already shallow 
 	 * \param array returns with a pointer to the memory owned by the array */
 	void ReleasePointer(TYPE** array);
+
+	/** take ownership of the given memory. Any existing memory discarded. */
+	void TakePointer(int length, TYPE* array);
 
 	/** read array from stream as binary */
 	void ReadBinary(istream& in);
@@ -649,6 +649,19 @@ void ArrayT<TYPE>::ReleasePointer(TYPE** array)
 		fDelete = 0;
 	
 	*array = fArray;
+}
+
+/* take ownership of the given memory. Any existing memory discarded. */
+template <class TYPE>
+void ArrayT<TYPE>::TakePointer(int length, TYPE* array)
+{
+	/* free existing */
+	if (fDelete) delete[] fArray;
+
+	/* take ownership */
+	fArray  = array;
+	fLength = length;
+	fDelete = 1;
 }
 
 /* shallow copy/conversion */

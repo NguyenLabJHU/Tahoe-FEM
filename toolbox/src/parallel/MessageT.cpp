@@ -1,8 +1,14 @@
-/* $Id: MessageT.cpp,v 1.1 2002-12-05 08:25:19 paklein Exp $ */
+/* $Id: MessageT.cpp,v 1.1.2.1 2002-12-19 03:09:13 paklein Exp $ */
 #include "MessageT.h"
 #include "ArrayT.h"
 
 using namespace Tahoe;
+
+/* array behavior */
+namespace Tahoe {
+const bool ArrayT<MessageT>::fByteCopy = false;
+const bool ArrayT<MessageT*>::fByteCopy = true;
+} /* namespace Tahoe */
 
 /* constructor */
 MessageT::MessageT(CommunicatorT& comm):

@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.14 2002-11-14 17:05:51 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.14.2.1 2002-12-10 17:08:51 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -125,7 +125,7 @@ MaterialSupportT* FiniteStrainT::NewMaterialSupport(MaterialSupportT* p) const
 	/* inherited initializations */
 	ElasticT::NewMaterialSupport(p);
 	
-	/* set StructuralMatSupportT fields */
+	/* set FiniteStrainT fields */
 	FDMatSupportT* ps = dynamic_cast<FDMatSupportT*>(p);
 	if (ps) {
 		ps->SetDeformationGradient(&fF_List);

@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.19 2002-11-15 01:03:15 paklein Exp $
+# $Id: make.targets,v 1.19.2.2 2002-12-10 16:53:17 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -118,14 +118,14 @@ BUILD_LIBRARY_RANLIB:
 	$(RANLIB) $(RANLIBFLAGS) $(LIBRARY)
 
 # initialization
-init:
+init: $(MAKE_INIT_XTRAS)
 	@ if test -f $(LIBRARY); then rm $(LIBRARY); fi
 	@ $(MAKE) headers
 	@ $(MAKE) depend_init
 	@ $(MAKE) object_list
 
 # clean up - restore to unpacked state
-clean:
+clean: 
 	@- rm $(TARGET) object_list
 	@- rm $(LIBRARY)
 	@- cd $(SRC_DIR); $(MAKE) $(MAKE_OPTS) clean \
@@ -134,6 +134,7 @@ clean:
 	@- cd $(OBJ_DIR); rm *.o
 	@- cd $(MACRO_DIR)/cxx_repository; rm *.o *.DB
 	@- cd $(INC_DIR); rm *.h
+	make $(MAKE_CLEAN_XTRAS)
 
 # build object file list
 object_list: FORCE
@@ -149,6 +150,7 @@ object_list: FORCE
 
 # set symbolic links to all header files
 headers:
+	@- rm $(INC_DIR)/*.h
 	@ $(ECHO) "cd $(SRC_DIR)"; \
 	cd $(SRC_DIR); \
 	$(MAKE) $(MAKE_OPTS) headers \

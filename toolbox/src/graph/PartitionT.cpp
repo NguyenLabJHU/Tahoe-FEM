@@ -1,4 +1,4 @@
-/* $Id: PartitionT.cpp,v 1.9 2002-12-05 08:24:14 paklein Exp $ */
+/* $Id: PartitionT.cpp,v 1.9.2.1 2003-01-05 23:37:18 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 #include "PartitionT.h"
 
@@ -636,6 +636,23 @@ void PartitionT::ReturnPartitionElements(const StringT& blockID,
 	/* copy to return value */
 	partition_indices.Dimension(tmp.Length());
 	tmp.CopyInto(partition_indices);
+}
+
+/* return the node to processor map */
+void PartitionT::ReturnProcessorMap(ArrayT<int>& n2p) const
+{
+	/* dimension/initialize */
+	n2p.Dimension(fNodeMap);
+	n2p = fID;
+	
+	/* label nodes from elsewhere */
+	for (int i = 0; i < fCommID.Length(); i++)
+	{
+		int proc = fCommID[i];
+		const iArrayT& nodes = fNodes_in[i];
+		for (int j = 0; j < nodes.Length(); j++)
+			n2p[nodes[j]] = proc;
+	}
 }
 
 /* mapping functions (assumes scope is currently the opposite) */

@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.16 2002-12-17 08:50:36 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.15 2002-12-02 09:39:10 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -136,10 +136,8 @@ public:
 	const ArrayT<StringT>& ElementOutputLabels(void) const;
 
 	/** return the nodes used by the output set. If the geometry is
-	 * changing, the nodes used are recalculated with every call. 
-	 * Note this function isn't really const since the nodes used
-	 * may be recalculated, but this is the price of lazy evaluation. */
-	const iArrayT& NodesUsed(void) const;
+	 * changing, the nodes used are recalculated with every call. */
+	const iArrayT& NodesUsed(void);
 
 	/** return the nodes used by the given block. If the geometry is
 	 * changing, the nodes used are recalculated with every call. */
@@ -214,12 +212,9 @@ inline void OutputSetT::IncrementPrintStep(void) { fPrintStep++; }
 inline bool OutputSetT::Changing(void) const { return fChanging; }
 inline GeometryT::CodeT OutputSetT::Geometry(void) const { return fGeometry; }
 inline int OutputSetT::NumBlocks (void) const { return fBlockID.Length(); }
-inline const iArrayT& OutputSetT::NodesUsed(void) const
+inline const iArrayT& OutputSetT::NodesUsed(void)
 {
-	if (fChanging) {
-		OutputSetT* non_const_this = (OutputSetT*) this;
-		non_const_this->SetNodesUsed(fConnectivities, non_const_this->fNodesUsed);
-	}
+	if (fChanging) SetNodesUsed(fConnectivities, fNodesUsed);
 	return fNodesUsed;
 }
 

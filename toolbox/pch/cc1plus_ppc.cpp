@@ -13,4 +13,7 @@
 /* Tahoe headers */
 #include "iArrayT.h"
 #include "dArrayT.h"
-#include "StringT.h"
+#include "dMatrixT.h"
+#include "dArray2DT.h"
+#include "fstreamT.h"
+#include "RaggedArray2DT.h"

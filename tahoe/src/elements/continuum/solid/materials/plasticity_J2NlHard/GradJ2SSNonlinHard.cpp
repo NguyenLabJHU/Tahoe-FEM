@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSNonlinHard.cpp,v 1.7 2002-11-14 17:06:29 paklein Exp $ */
+/* $Id: GradJ2SSNonlinHard.cpp,v 1.7.2.1 2002-12-10 17:07:00 paklein Exp $ */
 #include "GradJ2SSNonlinHard.h"
 #include "SSMatSupportT.h"
 
@@ -6,7 +6,11 @@
 #include "ElementCardT.h"
 #include "StringT.h"
 #include "ifstreamT.h"
+
+#include "ElementsConfig.h"
+#ifdef CONTINUUM_ELEMENT
 #include "ContinuumElementT.h" //needed for global information about nodes
+#endif
 
 using namespace Tahoe;
 
@@ -36,8 +40,11 @@ GradJ2SSNonlinHard::GradJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& suppo
 	HookeanMatT  (kNSD),
 	fNumIP       (NumIP()),
 	fmu          (Mu()),
+#ifdef CONTINUUM_ELEMENT
 	fNumNodes    (ContinuumElement().InitialCoordinates().NumberOfNodes()),
-
+#else
+	fNumNodes(0),
+#endif
 	/* return values */
 	fElasticStrain (kNSD),
 	fStress        (kNSD),
@@ -52,6 +59,9 @@ GradJ2SSNonlinHard::GradJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& suppo
 	fmatx3     (kNSD,kNSD),
 	ftnsr1     (dSymMatrixT::NumValues(kNSD))
 {
+#ifdef CONTINUUM_ELEMENT
+	ExceptionT::BadInputValue("GradJ2SSNonlinHard::GradJ2SSNonlinHard", "CONTINUUM_ELEMENT not enabled");
+#endif				
         /* obtain hardening coefficients */
         in >> yield >> k1 >> k2 >> k3 >> k4  >> c1 >> c2;
 
@@ -828,16 +838,22 @@ dArrayT GradJ2SSNonlinHard::Laplacian(const dArrayT& ip_field, int field_length)
 		for (int sd = 0; sd < fNumSD; sd++)
 		        A_dA_ip_grad_field[sd].Dimension(fNumIP);
 	
+#ifdef CONTINUUM_ELEMENT
 		/* extrapolate values of field from ip to nodes */
 		ContinuumElement().IP_ExtrapolateAll(ip_field,dA_nd_field);
+#else
+#pragma unused(ip_field)
+#endif
 
 		/* move nodal data from dArrayT to LocalArrayT */
 		LA_nd_field.Copy(fNumNodes, 1, dA_nd_field);
 
 		for (int ip = 0; ip < fNumIP; ip ++)
 		{
+#ifdef CONTINUUM_ELEMENT
 		        /* compute gradient of nodal field at ip */
 		        ContinuumElement().IP_ComputeGradient(LA_nd_field,dM_ip_grad_field,ip);
+#endif
 
 			for (int sd = 0; sd < fNumSD; sd ++)
 			{
@@ -848,17 +864,20 @@ dArrayT GradJ2SSNonlinHard::Laplacian(const dArrayT& ip_field, int field_length)
 
 		for (int sd = 0; sd < fNumSD; sd ++)
 		{ 
-		        /* extrapolate the field of derivatives wrt sd from ips to nodes */
-		        ContinuumElement().IP_ExtrapolateAll(A_dA_ip_grad_field[sd],dA_nd_grad_field);
+#ifdef CONTINUUM_ELEMENT
+			/* extrapolate the field of derivatives wrt sd from ips to nodes */
+			ContinuumElement().IP_ExtrapolateAll(A_dA_ip_grad_field[sd],dA_nd_grad_field);
+#endif
 
 			/* move nodal data from dArrayT to LocalArrayT */
 			LA_nd_grad_field.Copy(fNumNodes, 1, dA_nd_grad_field);
 
 			for (int ip = 0; ip < fNumIP; ip ++)
 			{
-			        /* compute gradient of nodal field at ip */
-			        ContinuumElement().IP_ComputeGradient(LA_nd_grad_field,dM_ip_secgrad_field,ip);
-
+#ifdef CONTINUUM_ELEMENT
+				/* compute gradient of nodal field at ip */
+				ContinuumElement().IP_ComputeGradient(LA_nd_grad_field,dM_ip_secgrad_field,ip);
+#endif
 				/* add the second derivative wrt sd at ip to the laplacian at ip */
 				dA_ip_lap_field[ip] += dM_ip_secgrad_field[sd];
 			}

@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.h,v 1.5 2002-12-13 02:42:55 paklein Exp $ */
+/* $Id: NLSolverX.h,v 1.4 2002-07-05 22:28:41 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 
 #ifndef _NL_SOLVER_X_H_
@@ -30,7 +30,7 @@ public:
 
 	/* form and solve the equation system - returns the magnitude of the
 	 * residual */
-	virtual double SolveAndForm(bool newtangent, bool clear_LHS);
+	virtual double SolveAndForm(bool newtangent);
 
 	/* error handler */
 	virtual void ResetStep(void);

@@ -1,6 +1,7 @@
-/* $Id: ElementListT.cpp,v 1.34 2002-12-01 19:50:48 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.34.2.3 2003-01-05 23:40:55 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
+#include "ElementsConfig.h"
 
 #include <iostream.h>
 #include "fstreamT.h"
@@ -12,26 +13,38 @@
 /* elements */
 #include "ElementBaseT.h"
 #include "RodT.h"
+#include "UnConnectedRodT.h"
+#include "VirtualRodT.h"
+#include "BEMelement.h"
+#include "AdhesionT.h"
+
+#ifdef MULTISCALE_ELEMENT
+#include "StaggeredMultiScaleT.h"
+#endif
+
+#ifdef COHESIVE_SURFACE_ELEMENT
+#include "CSEIsoT.h"
+#include "CSEAnisoT.h"
+#include "MeshFreeCSEAnisoT.h"
+#include "ThermalSurfaceT.h"
+#endif
+
+#ifdef CONTINUUM_ELEMENT
 #include "SmallStrainT.h"
 #include "UpdatedLagrangianT.h"
 #include "TotalLagrangianT.h"
 #include "LocalizerT.h"
-#include "SWDiamondT.h"
-#include "MixedSWDiamondT.h"
-#include "UnConnectedRodT.h"
-#include "VirtualRodT.h"
-#include "VirtualSWDC.h"
-#include "BEMelement.h"
-#include "CSEIsoT.h"
-#include "CSEAnisoT.h"
-#include "ThermalSurfaceT.h"
 #include "SimoFiniteStrainT.h"
-#include "StaggeredMultiScaleT.h"
-#include "BridgingScaleT.h"
 #include "SimoQ1P0.h"
-#include "AdhesionT.h"
+#include "DiffusionT.h"
+#include "MeshFreeElasticT.h"
+#include "MeshFreeFDElasticT.h"
+#include "D2MeshFreeFDElasticT.h"
+#include "UpLagr_ExternalFieldT.h"
+#include "BridgingScaleT.h"
+#endif
 
-/* contact */
+#ifdef CONTACT_ELEMENT
 #include "PenaltyContact2DT.h"
 #include "PenaltyContact3DT.h"
 #include "AugLagContact2DT.h"
@@ -40,23 +53,17 @@
 #include "MultiplierContactElement2DT.h"
 #include "PenaltyContactElement2DT.h"
 #include "PenaltyContactElement3DT.h"
+#endif
 
-//TEMP
-#include "MeshFreeElasticT.h"
-#include "MeshFreeFDElasticT.h"
-#include "D2MeshFreeFDElasticT.h"
-
-/* linear diffusion */
-#include "DiffusionT.h"
-
-/* meshfree cohesive surface elements */
-#include "MeshFreeCSEAnisoT.h"
-
-/* class to read external field from file */
-#include "UpLagr_ExternalFieldT.h"
-
-/* particle classes */
+#ifdef PARTICLE_ELEMENT
 #include "ParticlePairT.h"
+#endif
+
+#ifdef LATTICE_ELEMENT
+#include "SWDiamondT.h"
+#include "MixedSWDiamondT.h"
+#include "VirtualSWDC.h"
+#endif
 
 using namespace Tahoe;
 
@@ -69,6 +76,8 @@ ElementListT::ElementListT(void)
 /* initialization functions */
 void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 {
+	const char caller[] = "ElementListT::EchoElementData";
+
 	/* initialize element support */
 	fSupport.SetFEManager(&fe);
 
@@ -90,17 +99,11 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 
 		/* check */
 		if (group < 0 || group >= Length())
-		{
-			cout << "\n ElementListT::EchoElementData: Element group number is out of\n";
-			cout <<   "     range: " << group + 1 << endl;
-			throw ExceptionT::kBadInputValue;
-		}
+			ExceptionT::BadInputValue(caller, "element group %d is out of range", group+1);
 
 		/* no over-writing existing groups */
-		if (fArray[group]) {
-			cout << "\n ElementListT::EchoElementData: group already exists" << group + 1 << endl;
-			throw ExceptionT::kBadInputValue;
-		}
+		if (fArray[group])
+			ExceptionT::BadInputValue(caller, "group %d already exists", group+1);
 
 		/* no predefined field names */
 		const FieldT* field = NULL;
@@ -116,8 +119,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			{
 				case GlobalT::kPML:
 				{
-					cout << "\n ElementListT::EchoElementData: PML not fully implemented" << endl;
-					throw ExceptionT::kGeneralFail;
+					ExceptionT::BadInputValue(caller, "PML not fully implemented");
 				}
 				case GlobalT::kLinStaticHeat:
 				case GlobalT::kLinTransHeat:
@@ -139,17 +141,13 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 					break;
 				}
 				default:
-					cout << "\n ElementListT::EchoElementData: recognized analysis type: "
-					     << fSupport.Analysis() << endl;
-					throw ExceptionT::kBadInputValue;
+					ExceptionT::BadInputValue(caller, "unrecognized analysis type: %d", fSupport.Analysis());
 			}
 		}
 		
 		/* check field */
-		if (!field) {
-			cout << "\n ElementListT::EchoElementData: could not resolve field" << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+		if (!field)
+			ExceptionT::BadInputValue(caller, "could not resolve field for group %d", group+1);
 
 		/* write parameters */
 		out << "\n Group number. . . . . . . . . . . . . . . . . . = " << group + 1 << '\n';
@@ -193,34 +191,65 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				break;
 			}
 			case ElementT::kElastic:
+			{
+#ifdef CONTINUUM_ELEMENT
 				fArray[group] = new SmallStrainT(fSupport, *field);
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kMeshFreeElastic:
+			{
+#ifdef CONTINUUM_ELEMENT
 				fArray[group] = new MeshFreeElasticT(fSupport, *field);
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kHyperElastic:
+			{
+#ifdef CONTINUUM_ELEMENT
 				fArray[group] = new UpdatedLagrangianT(fSupport, *field);
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kTotLagHyperElastic:
+			{
+#ifdef CONTINUUM_ELEMENT
 				fArray[group] = new TotalLagrangianT(fSupport, *field);
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kSimoFiniteStrain:
+			{
+#ifdef CONTINUUM_ELEMENT
 				fArray[group] = new SimoFiniteStrainT(fSupport, *field);
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kSimoQ1P0:
+			{
+#ifdef CONTINUUM_ELEMENT
 				fArray[group] = new SimoQ1P0(fSupport, *field);
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kStaggeredMultiScale:
 			{
+#ifdef MULTISCALE_ELEMENT
 				/* must be using multi-field solver */
 				if (fSupport.Analysis() != GlobalT::kMultiField)				
-					ExceptionT::BadInputValue("ElementListT::EchoElementData", "multi field required");
+					ExceptionT::BadInputValue(caller, "multi field required");
 			
 				/* coarse scale field read above */
 				const FieldT* coarse_scale = field;
@@ -230,31 +259,59 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				in >> fine_field_name;
 				const FieldT* fine_scale = fSupport.Field(fine_field_name);
 				if (!coarse_scale || !fine_scale)
-					ExceptionT::BadInputValue("ElementListT::EchoElementData", "error resolving field names");
+					ExceptionT::BadInputValue(caller, "error resolving field names");
 			
 				fArray[group] = new StaggeredMultiScaleT(fSupport, *coarse_scale, *fine_scale);
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "MULTISCALE_ELEMENT not enabled: %d", code);
+#endif
 			}
 			case ElementT::kMeshFreeFDElastic:
+			{
+#ifdef CONTINUUM_ELEMENT
 				fArray[group] = new MeshFreeFDElasticT(fSupport, *field);
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kD2MeshFreeFDElastic:
+			{
+#ifdef CONTINUUM_ELEMENT
 				fArray[group] = new D2MeshFreeFDElasticT(fSupport, *field);
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kLocalizing:
+			{
+#ifdef CONTINUUM_ELEMENT
 				fArray[group] = new LocalizerT(fSupport, *field);
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kSWDiamond:
+			{
+#ifdef LATTICE_ELEMENT
 				fArray[group] = new SWDiamondT(fSupport, *field);
 				break;
-				
+#else
+				ExceptionT::BadInputValue(caller, "LATTICE_ELEMENT not enabled: %d", code);
+#endif
+			}	
 			case ElementT::kMixedSWDiamond:
+			{
+#ifdef LATTICE_ELEMENT
 				fArray[group] = new MixedSWDiamondT(fSupport, *field);
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "LATTICE_ELEMENT not enabled: %d", code);
+#endif
+			}	
 			case ElementT::kUnConnectedRod:
 				fArray[group] = new UnConnectedRodT(fSupport, *field);
 				break;
@@ -264,11 +321,17 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				break;
 
 			case ElementT::kVirtualSWDC:
+			{
+#ifdef LATTICE_ELEMENT
 				fArray[group] = new VirtualSWDC(fSupport, *field);
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "LATTICE_ELEMENT not enabled: %d", code);
+#endif
+			}	
 			case ElementT::kCohesiveSurface:
 			{
+#ifdef COHESIVE_SURFACE_ELEMENT
 				int CSEcode;
 				in >> CSEcode;
 				out << " Cohesive surface formulation code . . . . . . . = " << CSEcode << '\n';
@@ -284,19 +347,25 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 					fArray[group] = new CSEAnisoT(fSupport, *field, false);
 				else
 				{
-					cout << "\n ElementListT::EchoElementData: unknown CSE formulation: ";
-					cout << CSEcode << '\n';
-					throw ExceptionT::kBadInputValue;
+					ExceptionT::BadInputValue(caller, "unknown CSE formulation: %d", CSEcode);
 				}
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT not enabled: %d", code);
+#endif
 			}
-
 			case ElementT::kThermalSurface:
+			{
+#ifdef COHESIVE_SURFACE_ELEMENT
 				fArray[group] = new ThermalSurfaceT(fSupport, *field);	
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kPenaltyContact:
 			{
+#ifdef CONTACT_ELEMENT
 				int nsd = fSupport.NumSD();
 				if (nsd == 2)
 					fArray[group] = new PenaltyContact2DT(fSupport, *field);
@@ -304,11 +373,18 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 					fArray[group] = new PenaltyContact3DT(fSupport, *field);
 					
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+#endif
 			}
 			case ElementT::kAugLagContact2D:
 			{
+#ifdef CONTACT_ELEMENT
 				fArray[group] = new AugLagContact2DT(fSupport, *field);	
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+#endif
 			}
 			case ElementT::kBEMelement:
 			{
@@ -319,64 +395,102 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				break;
 			}
 			case ElementT::kLinearDiffusion:
+			{
+#ifdef CONTINUUM_ELEMENT
 				fArray[group] = new DiffusionT(fSupport, *field);
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kMFCohesiveSurface:
+			{
+#ifdef COHESIVE_SURFACE_ELEMENT
 				fArray[group] = new MeshFreeCSEAnisoT(fSupport, *field);
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kTotLagrExternalField:
+			{
+#ifdef CONTINUUM_ELEMENT
 				fArray[group] = new UpLagr_ExternalFieldT(fSupport, *field);
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}				
 			case ElementT::kACME_Contact:
+			{
+#ifdef CONTACT_ELEMENT
 #ifdef __ACME__
 				fArray[group] = new ACME_Contact3DT(fSupport, *field);
 #else
-				cout << "\n ElementListT::EchoElementData: ACME not installed.";
-				throw ExceptionT::kGeneralFail;					
+				ExceptionT::GeneralFail(caller, "ACME not installed");
 #endif /* __ACME__ */			
 				break;
-
+#else /* CONTACT_ELEMENT */
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+#endif				
+			}
 			case ElementT::kMultiplierContact3D:
+			{
+#ifdef CONTACT_ELEMENT
 				fArray[group] = new MultiplierContact3DT(fSupport, *field);
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+#endif				
+			}
 			case ElementT::kMultiplierContactElement2D:
 			{
+#ifdef CONTACT_ELEMENT
 				fArray[group] = new MultiplierContactElement2DT(fSupport, *field);
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+#endif				
 			}
-		case ElementT::kPenaltyContactElement2D:
-		  {
-		    fArray[group] = new PenaltyContactElement2DT(fSupport, *field);
-		    break;
-		  }
-		case ElementT::kPenaltyContactElement3D:
-		  {
-		    fArray[group] = new PenaltyContactElement3DT(fSupport, *field);
-		    break;
-		  }
+			case ElementT::kPenaltyContactElement2D:
+			{
+#ifdef CONTACT_ELEMENT
+				fArray[group] = new PenaltyContactElement2DT(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+#endif				
+			}
+			case ElementT::kPenaltyContactElement3D:
+			{
+#ifdef CONTACT_ELEMENT
+				fArray[group] = new PenaltyContactElement3DT(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+#endif				
+			}
 		case ElementT::kBridgingScale:
 		{
+#ifdef CONTINUUM_ELEMENT
 			/* associated group numbers */
 			int particle_group = -99;
 			int solid_group = -99;
 			in >> particle_group >> solid_group;
+
 			const RodT* particle = dynamic_cast<const RodT*>(&(fSupport.ElementGroup(--particle_group)));
-			if (!particle) {
-				cout << "\n ElementListT::EchoElementData: unable to cast pointer to group " << particle_group+1 << '\n'
-				     <<   "     to type RodT" << endl;
-				throw ExceptionT::kBadInputValue;
-			}
+			if (!particle)
+				ExceptionT::BadInputValue(caller, "unable to cast pointer to group %d to type RodT", particle_group+1);
+
 			const ElasticT* solid = dynamic_cast<const ElasticT*>(&(fSupport.ElementGroup(--solid_group)));
-			if (!solid) {
-				cout << "\n ElementListT::EchoElementData: unable to cast pointer to group " << solid_group+1 << '\n'
-				     <<   "     to type ElasticT" << endl;
-				throw ExceptionT::kBadInputValue;
-			}
+			if (!solid)
+				ExceptionT::BadInputValue(caller, "unable to cast pointer to group %d to type ElasticT", solid_group+1);
+
 			fArray[group] = new BridgingScaleT(fSupport, *field, *particle, *solid);
 		    break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif				
 		}
 		case ElementT::kAdhesion:
 		{
@@ -385,18 +499,32 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		}
 		case ElementT::kParticlePair:
 		{
+#ifdef PARTICLE_ELEMENT
 			fArray[group] = new ParticlePairT(fSupport, *field);
 			break;
+#else
+			ExceptionT::BadInputValue(caller, "PARTICLE_ELEMENT not enabled: %d", code);
+#endif				
 		}
 		default:
-		  
-		  cout << "\n ElementListT::EchoElementData: unknown element type:" << code << endl;
-		  throw ExceptionT::kBadInputValue;
+			ExceptionT::BadInputValue(caller, "unknown element type: %d", code);
 		}
 		
-		if (!fArray[group]) throw ExceptionT::kOutOfMemory;
+		if (!fArray[group]) ExceptionT::OutOfMemory();
 		fArray[group]->Initialize();
 	}
+
+#ifdef PARTICLE_ELEMENT
+	/* can only have one particle group */
+	int count = 0;
+	for (int i = 0; i < Length(); i++)
+	{
+		ElementBaseT* e_group = fArray[i];
+		ParticleT* particle = dynamic_cast<ParticleT*>(e_group);
+		if (particle) count++;
+	}
+	if (count > 1) ExceptionT::BadInputValue(caller, "only one particle group allowed: %d", count);
+#endif
 }
 
 /* returns true of ALL element groups have interpolant DOF's */
@@ -415,12 +543,16 @@ bool ElementListT::HasContact(void) const
 #ifdef __NO_RTTI__
 	cout << "\n ElementListT::HasContact: needs RTTI: returning false" << endl;
 	return false; // safe default??
-#else
+#else /* __NO_RTTI__ */
+#ifdef CONTACT_ELEMENT
 	for (int i = 0; i < Length(); i++)
 	{
 		ContactT* contact_elem = dynamic_cast<ContactT*>(fArray[i]);
 		if (contact_elem) return true;
 	}
 	return false;
-#endif
+#else  /* CONTACT_ELEMENT */
+	return false;
+#endif /* CONTACT_ELEMENT */
+#endif /* __NO_RTTI__ */
 }

@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.22 2003-01-22 00:54:33 cjkimme Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.20 2002-12-03 18:56:19 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -62,14 +62,16 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support, const FieldT& field):
 }
 #else
 /* constructor */
-CSEBaseT::CSEBaseT(ElementSupportT& support):
+CSEBaseT::CSEBaseT(const ElementSupportT& support):
 	ElementBaseT(support),
 	fLocInitCoords1(LocalArrayT::kInitCoords),
 	fLocCurrCoords(LocalArrayT::kCurrCoords),
 	fFractureArea(0.0),
 	fShapes(NULL)
 {
-	int i_code = ElementSupport().ReturnInputInt(ElementSupportT::kGeometryCode);
+	/*ElementSupportT is const here; cast it away */
+	ElementSupportT* nonConstEst = const_cast<ElementSupportT*>(&(ElementSupport()));
+	int i_code = nonConstEst->ReturnInputInt("SURFACE GEOMETRY CODE");
 	switch (i_code)
 	{
 		case GeometryT::kNone:
@@ -99,9 +101,9 @@ CSEBaseT::CSEBaseT(ElementSupportT& support):
 		default:
 			throw ExceptionT::kBadInputValue;	
 	}
-	fNumIntPts =  ElementSupport().ReturnInputInt(ElementSupportT::kNumIntPts);
-	fCloseSurfaces =  ElementSupport().ReturnInputInt(ElementSupportT::kCloseSurface);
-	fOutputArea =  ElementSupport().ReturnInputInt(ElementSupportT::kOutputArea);
+	fNumIntPts =  nonConstEst->ReturnInputInt("NUMBER INTEGRATION POINTS");
+	fCloseSurfaces =  nonConstEst->ReturnInputInt("INITIALLY CLOSE SURFACES");
+	fOutputArea =  nonConstEst->ReturnInputInt("OUTPUT FRACTURE SURFACE AREA");
 
 	/* checks */
 	if (NumSD() == 2 && fGeometryCode != GeometryT::kLine)
@@ -181,12 +183,10 @@ void CSEBaseT::Initialize(void)
 	/* check */
 	if (fNodalOutputCodes.Min() < IOBaseT::kAtFinal ||
 	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
-#endif
 
 	fElementOutputCodes.Dimension(NumElementOutputCodes);
 	fElementOutputCodes = IOBaseT::kAtNever;
 
-#ifndef _SIERRA_TEST_
 //TEMP - backward compatibility
 
 	if (StringT::versioncmp(ElementSupport().Version(), "v3.01") < 1)
@@ -210,7 +210,7 @@ void CSEBaseT::Initialize(void)
 			num_codes = 2;
 		}
 	
-		/* read in one at a time to allow comments */
+		/* read in at a time to allow comments */
 		for (int j = 0; j < num_codes; j++)
 		{
 			in >> fElementOutputCodes[j];
@@ -230,9 +230,6 @@ void CSEBaseT::Initialize(void)
 	out << "    [" << fElementOutputCodes[Centroid      ] << "]: centroid\n";
 	out << "    [" << fElementOutputCodes[CohesiveEnergy] << "]: dissipated cohesive energy\n";
 	out << "    [" << fElementOutputCodes[Traction      ] << "]: average traction\n";
-#else
-	/* In fracture_interface, output codes are communicated via ElementSupportT */
-	ElementSupport().SetOutputCodes(fNodalOutputCodes,fElementOutputCodes);
 #endif
 	
 	/* close surfaces */
@@ -267,7 +264,7 @@ void CSEBaseT::InitialCondition(void)
 
 #ifdef _SIERRA_TEST_	
 	/* Initialize fields passed in from the outside */
-void CSEBaseT::InitStep(void) {};
+	void CSEBaseT::InitStep(void) {};
 #endif
 
 /* finalize time increment */
@@ -339,14 +336,14 @@ void CSEBaseT::RegisterOutput(void)
 			break;
 
 		default:	
-#ifndef _SIERRA_TEST_
+
 		cout << "\n CSEBaseT::RegisterOutput: could not translate\n";
 		cout << "     geometry code " << fGeometryCode
 			 << " to a pseudo-geometry code for the volume." << endl;
-#endif
 		throw ExceptionT::kGeneralFail;	
 	}	
 
+#ifndef _SIERRA_TEST_	
 	/* nodal output */
 	iArrayT n_counts;
 	SetNodalOutputCodes(IOBaseT::kAtInc, fNodalOutputCodes, n_counts);
@@ -354,37 +351,32 @@ void CSEBaseT::RegisterOutput(void)
 	/* element output */
 	iArrayT e_counts;
 	SetElementOutputCodes(IOBaseT::kAtInc, fElementOutputCodes, e_counts);
-	
+	ArrayT<StringT> block_ID(fBlockData.Length());
+	for (int i = 0; i < block_ID.Length(); i++)
+		block_ID[i] = fBlockData[i].ID();
+
 	/* collect variable labels */
 	ArrayT<StringT> n_labels(n_counts.Sum());
 	ArrayT<StringT> e_labels(e_counts.Sum());
 	GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
-
-#ifndef _SIERRA_TEST_
-	ArrayT<StringT> block_ID(fBlockData.Length());
-	for (int i = 0; i < block_ID.Length(); i++)
-		block_ID[i] = fBlockData[i].ID();
 
 	/* set output specifier */
 	OutputSetT output_set(geo_code, block_ID, fOutput_Connectivities, n_labels, e_labels, false);
 
 	/* register and get output ID */
 	fOutputID = ElementSupport().RegisterOutput(output_set);
-#else
-	ElementSupport().RegisterOutput(n_labels,e_labels);
 #endif
 }
 
 //NOTE - this function is identical to ContinuumElementT::WriteOutput
 void CSEBaseT::WriteOutput(void)
 {
+#ifndef _SIERRA_TEST_
 	/* fracture area */
 	if (fOutputArea)
 	{
-#ifndef _SIERRA_TEST_
 		farea_out << setw(kDoubleWidth) << ElementSupport().Time();
 		farea_out << setw(kDoubleWidth) << fFractureArea << endl;
-#endif
 	}
 
 	/* regular output */
@@ -403,7 +395,7 @@ void CSEBaseT::WriteOutput(void)
 
 	/* send to output */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
-
+#endif
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -426,12 +418,8 @@ void CSEBaseT::SendOutput(int kincode)
 		    flags[NodalTraction] = 1;
 			break;
 		default:
-#ifndef _SIERRA_TEST_
 			cout << "\n CSEBaseT::SendKinematic: invalid output code: ";
 			cout << kincode << endl;
-#else
-			throw ExceptionT::kBadInputValue;
-#endif
 	}
 
 	/* number of output values */
@@ -521,9 +509,9 @@ void CSEBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 			int new_dex = model.ElementGroupIndex(new_id);
 			if (new_dex == ModelManagerT::kNotFound)
 			{
-#ifndef _SIERRA_TEST_	
 				/* message */
-		     	cout << "     translating element block ID " << id << endl;	     	
+		     	cout << "     translating element block ID " << id << endl;
+#ifndef _SIERRA_TEST_		     	
 		     	out  << "     translating element block ID " << id << endl;
 #endif
 				/* translate */
@@ -543,16 +531,14 @@ void CSEBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 				StringT new_id = id;
 				new_id.Append(b+1, 3);
 				if (!model.RegisterElementGroup (new_id, dest, GeometryT::kNone, true)) {
-#ifndef _SIERRA_TEST_
 					cout << "\n CSEBaseT::ReadConnectivity: could not register element block ID: " << new_id << endl;
-#endif
 					throw ExceptionT::kGeneralFail;
 				}
 			}
 
-#ifndef _SIERRA_TEST_	
 			/* message */
-			cout << "     block ID " << id << " replaced by ID " << new_id << endl;		
+			cout << "     block ID " << id << " replaced by ID " << new_id << endl;
+#ifndef _SIERRA_TEST_			
 			out  << "     block ID " << id << " replaced by ID " << new_id << endl;
 #endif
 			/* set pointer to connectivity list */
@@ -587,6 +573,7 @@ void CSEBaseT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& fla
 void CSEBaseT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 	iArrayT& counts) const
 {
+#ifndef _SIERRA_TEST_
 	/* initialize */
 	counts.Dimension(flags.Length());
 	counts = 0;
@@ -597,28 +584,29 @@ void CSEBaseT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& f
 		counts[CohesiveEnergy] = 1;
 	if (flags[Traction] == mode)
 		counts[Traction] = 1;
+#else
+#pragma unused(mode)
+#pragma unused(flags)
+#pragma unused(counts)
+#endif
 }
 
 /* construct output labels array */
 void CSEBaseT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels,
 	const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
 {
+#ifndef _SIERRA_TEST_
+
 	/* allocate nodal output labels */
 	n_labels.Dimension(n_codes.Sum());
 
 	int count = 0;
 	if (n_codes[NodalDisp])
 	{
-#ifndef _SIERRA_TEST_
 		/* labels from the field */
 		const ArrayT<StringT>& labels = Field().Labels();
 		for (int i = 0; i < labels.Length(); i++)
 			n_labels[count++] = labels[i];
-#else
-		const char* labels[] = {"D_1", "D_2", "D_3"};
-		for (int i = 0; i < NumSD(); i++)
-			n_labels[count++] = labels[i];
-#endif
 	}
 
 	if (n_codes[NodalCoord])
@@ -642,6 +630,12 @@ void CSEBaseT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_l
 	}
 	if (e_codes[CohesiveEnergy]) e_labels[count++] = "phi";
 	if (e_codes[Traction]) e_labels[count++] = "Tmag";
+#else
+#pragma unused(n_codes)
+#pragma unused(n_labels)
+#pragma unused(e_codes)
+#pragma unused(e_labels)
+#endif
 }
 
 /* write all current element information to the stream */
@@ -717,10 +711,8 @@ int CSEBaseT::DefaultNumElemNodes(void) const
 		case GeometryT::kTriangle:
 			return 6;
 		default:
-#ifndef _SIERRA_TEST_
 			cout << "\n CSEBaseT::DefaultNumElemNodes: unknown geometry code: "
 			     << fGeometryCode << endl;
-#endif
 			return 0;
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: iGridManager2DT.h,v 1.4 2002-11-22 01:53:12 paklein Exp $ */
+/* $Id: iGridManager2DT.h,v 1.4.2.2 2003-01-14 15:35:59 paklein Exp $ */
 /* created: paklein (12/09/1997) */
 #ifndef _I_GRIDMANAGER2D_T_H_
 #define _I_GRIDMANAGER2D_T_H_
@@ -17,7 +17,7 @@ class iGridManager2DT: public GridManager2DT<iNodeT>
 public:
 
 	/** constructor */
-	iGridManager2DT(int nx, int ny, const dArray2DT& coords, const iArrayT* nodes_used);
+	iGridManager2DT(int nx, int ny, const dArray2DT& coords, const ArrayT<int>* nodes_used);
 	
 	/** neighbors - returns neighbors coords(n) (SELF not included) */
 	void Neighbors(int n, double tol, AutoArrayT<int>& neighbors);
@@ -25,11 +25,14 @@ public:
 	
 	/** reconfigure grid with stored coordinate data */
 	void Reset(void);
-	
+
+	/** return the coordinate array */
+	const dArray2DT& Coordinates(void) const { return fCoords; };
+
 protected:
 
 	const dArray2DT& fCoords;
-	const iArrayT* fNodesUsed;
+	const ArrayT<int>* fNodesUsed;
 };
 
 } // namespace Tahoe 

@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.11 2002-12-13 02:42:56 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.10 2002-10-20 22:49:47 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #include "iNLSolver_LS.h"
@@ -262,11 +262,7 @@ NLSolver::SolutionStatusT iNLSolver_LS::DoIterate(int max_count)
 				/* open iteration output */
 				InitIterationOutput();
 	
-				/* clear all */
 				fRHS = 0.0;
-				fLHS->Clear();
-				
-				/* form residual */
 				fFEManager.FormRHS(Group());
 	
 				/* initial error */
@@ -279,7 +275,7 @@ NLSolver::SolutionStatusT iNLSolver_LS::DoIterate(int max_count)
 			while (fIterationStatus == kContinue && count++ < max_count)
 			{
 				bool form_tangent = (fNumIteration == 0) ? true : fFormTangent;
-				double error = SolveAndForm(form_tangent, false);
+				double error = SolveAndForm(form_tangent);
 				fIterationStatus = ExitIteration(error);
 			}
 		
@@ -287,6 +283,7 @@ NLSolver::SolutionStatusT iNLSolver_LS::DoIterate(int max_count)
 			if (fIterationStatus == kConverged)
 			{
 				fIterationStatus = DoConverged();	
+//				fFEManager.CloseStep();
 			}
 			break;
 		}

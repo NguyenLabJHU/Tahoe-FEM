@@ -1,10 +1,14 @@
-# $Id: tahoe.extras,v 1.6 2002-11-28 16:43:22 paklein Exp $
+# $Id: tahoe.extras,v 1.6.2.1 2002-12-10 16:53:17 paklein Exp $
 #
 # additional make commands for the tahoe module
 #
 
 default:
 	@ $(MAKE) help
+	@ $(ECHO) " "
+	@ $(ECHO) " additional targets for configuration:"
+	@ $(ECHO) "   update_config - update config files in src/config"
+	@ $(ECHO) "    clean_config - remove config files in src/config"
 	@ $(ECHO) " "
 	@ $(ECHO) " additional targets for (un-)installing optional modules:"
 	@ $(ECHO) "   touch_spooles - sparse, direct solver library"

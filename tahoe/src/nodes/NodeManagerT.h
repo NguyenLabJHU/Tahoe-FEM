@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.10 2002-11-28 16:44:19 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.10.2.8 2003-01-13 19:55:32 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -17,11 +17,13 @@
 #include "IOBaseT.h"
 #include "GlobalT.h"
 #include "ControllerT.h"
+#include "nVariArray2DT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class FEManagerT;
+class CommManagerT;
 class ScheduleT;
 class LocalArrayT;
 class nControllerT;
@@ -45,7 +47,7 @@ class NodeManagerT:
 public:
 
 	/** constructor */
-	NodeManagerT(FEManagerT& fe_manager);
+	NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager);
 	
 	/** destructor */
 	virtual ~NodeManagerT(void);
@@ -165,7 +167,12 @@ public:
 	/** update the active degrees of freedom */
 	virtual void Update(int group, const dArrayT& update);
 
-	/** reset displacements (and configuration to the last known solution) */
+	/** copy nodal information. Copy all field information from the source 
+	 * nodes to the targets. The current coordinates are updated, but the
+	 * initial coordinates are not. These are owned by the ModelManagerT. */
+	void CopyNodeToNode(const ArrayT<int>& source, const ArrayT<int>& target);
+
+	/** reset fields (and configuration to the last known solution) */
 	virtual void ResetStep(int group);
 
 	/** return the current values of the active degrees of freedom 
@@ -194,14 +201,23 @@ public:
 	void RegisterCoordinates(LocalArrayT& array) const;
 	
 	/** the local node to home processor map */
-	const iArrayT& ProcessorMap(void) const { return fProcessor; };
-	/*@}*/
+	const ArrayT<int>* ProcessorMap(void) const;
 
-	/** set the controller for the time integration algorithm */
-//	virtual void SetController(nControllerT* controller);
+	/** read/write access to the coordinate update field. Returns NULL if these is no
+	 * coordinate update field. */
+	dArray2DT* CoordinateUpdate(void);
+	/*@}*/
 
 	/* weight the computational effort of every node */
 	virtual void WeightNodalCost(iArrayT& weight) const;
+
+	/** \name dynamic transformations */
+	/*@{*/
+	/** reset the number of nodes. Resizes all coordinate and field arrays to
+	 * the new number of nodes. Excess nodes at the tail of all arrays are
+	 * discarded. Additional nodes added to all arrays is not initialized. */
+	void ResizeNodes(int num_nodes);
+	/*@}*/
 
 #if 0
 	/** duplicate nodes.
@@ -241,7 +257,6 @@ protected:
 	/*@{*/
 	virtual void EchoCoordinates(ifstreamT& in, ostream& out);
 	virtual void EchoFields(ifstreamT& in, ostream& out);
-	virtual void EchoExternalNodes(ostream& out);
 	virtual void EchoHistoryNodes(ifstreamT& in, ostream &out);
 	/*@}*/
 
@@ -275,14 +290,31 @@ private:
 	void EchoKinematicBCControllers(FieldT& field, ifstreamT& in, ostream& out);
 	void EchoForceBCControllers(FieldT& field, ifstreamT& in, ostream& out);
 	/*@}*/
+
+	/** \name not allowed */
+	/*@{*/
+	/** copy constructor */
+	NodeManagerT(NodeManagerT&);
 	
+	/** assignment operator */
+	const NodeManagerT& operator=(const NodeManagerT&);
+	/*@}*/
+
 protected:
 
-	/** */
+	/** host */
 	FEManagerT& fFEManager;
+	
+	/** communication manager */
+	CommManagerT& fCommManager;
 
-	/** fields */
+	/** \name fields */
+	/*@{*/
 	ArrayT<FieldT*> fFields;
+
+	/** ID for the field exchange obtained from NodeManagerT::fCommManager */
+	iArrayT fMessageID;
+	/*@}*/
 
 	/** \name history nodes information */
 	/*@{*/
@@ -293,18 +325,13 @@ protected:
 	/** history node output set information. There is one output set
 	 * per field for every history node set: [nfield*nset] x [3]
 	 * Each row has:
-	 * <ul>
-	 * <li> [0]: output set ID returned by FEManagerT::RegisterOutput
-	 * <li> [1]: index of the field associated with the output set 
-	 * <li> [2]: index in NodeManagerT::fHistoryNodeSetIDs of
-	 *           the "connectivitities" associated with the set.
-	 * </ul> */
+	 * -# output set ID returned by FEManagerT::RegisterOutput
+	 * -# index of the field associated with the output set 
+	 * -# index in NodeManagerT::fHistoryNodeSetIDs of
+	 *    the "connectivitities" associated with the set. */
 	iArray2DT fHistoryOutputID;
 	/*@}*/
 	
-	/** "ghost" node numbers */
-	iArrayT fExNodes;
-
 private:
 
 	/** \name nodal coordinates */
@@ -315,15 +342,13 @@ private:
 
 	/** the field that updates the current coordinates. Pointer is NULL if
 	 * there is no update from the initial coordinates to the current coords */
-	const FieldT* fCoordUpdate;
+	FieldT* fCoordUpdate;
 
 	/** current coordinates. NULL if the current coordinates are the same
 	 * as the initial coordinates. */
 	dArray2DT* fCurrentCoords;
+	nVariArray2DT<double> fCurrentCoords_man;
 	/*@}*/
-
-	/** native processor per node */
-	iArrayT fProcessor;
 };
 
 /* inlines */

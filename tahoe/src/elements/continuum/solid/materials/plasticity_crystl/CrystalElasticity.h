@@ -1,9 +1,6 @@
-/*
-  File: CrystalElast.h
-*/
-
-#ifndef _CRYSTAL_ELAST_H_
-#define _CRYSTAL_ELAST_H_
+/* $Id: CrystalElasticity.h,v 1.3.10.1 2002-12-10 17:07:01 paklein Exp $ */
+#ifndef _CRYSTAL_ELASTICTIY_H_
+#define _CRYSTAL_ELASTICTIY_H_
 
 #include "ios_fwd_decl.h"
 
@@ -78,4 +75,4 @@ class CubicCrystalElast: public CrystalElasticity
 };
 
 } // namespace Tahoe 
-#endif /* _CRYSTAL_ELAST_H_ */
+#endif /* _CRYSTAL_ELASTICTIY_H_ */

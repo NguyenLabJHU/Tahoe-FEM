@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.11 2002-11-26 01:56:37 paklein Exp $
+# $Id: makefile,v 1.11.2.1 2002-12-10 17:08:49 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -9,6 +9,7 @@ OBJ = \
 	ElementT.o \
 	ElementSupportT.o \
 	ElementBaseT.o \
+	DOFElementT.o \
 	ElementListT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -21,6 +22,7 @@ SRC = \
 	ElementT.cpp \
 	ElementSupportT.cpp \
 	ElementBaseT.cpp \
+	DOFElementT.cpp \
 	ElementListT.cpp
 
 # headers
@@ -28,21 +30,19 @@ HDR = \
 	ElementT.h \
 	ElementSupportT.h \
 	ElementBaseT.h \
+	DOFElementT.h \
 	ElementListT.h
 HDR_LINK = $(HDR:.h=.h_link)
+
+# element configuration file
+include ../config/ElementsConfig.make
 
 # subdirectories
 SUB_DIR = \
 	BEM_element \
-	bridging_scale \
-	cohesive_surface \
-	contact \
-	continuum \
-	lattice \
 	rod \
 	adhesion \
-	multiscale \
-	particle
+	$(ELEMENTS_CONFIG_DIRECTORIES)
 
 subdir_driver: subdir_loop
 # SUB_DIR is empty
