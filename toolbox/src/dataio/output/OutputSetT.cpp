@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.14 2002-09-12 16:10:02 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.14.2.1 2002-10-17 03:59:17 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 #include "OutputSetT.h"
 #include "iArrayT.h"
@@ -32,7 +32,7 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	    cout << "\n\nOutputSetT::OutputSetT size mismatch: \n";
 	    cout << " fConnectivities.Length = " << fConnectivities.Length();
 	    cout << "\n    fBlockID.Length = " << fBlockID.Length() << endl;
-	    throw eSizeMismatch;
+	    throw ExceptionT::kSizeMismatch;
 	  }
 
 	for (int i=0; i < fConnectivities.Length(); i++)
@@ -107,7 +107,7 @@ OutputSetT::OutputSetT(const OutputSetT& source):
 		fElementOutputLabels[j] = source.fElementOutputLabels[j];
 
 	if (fMode == kElementBlock &&
-	    fConnectivities.Length() != fBlockID.Length()) throw eSizeMismatch;
+	    fConnectivities.Length() != fBlockID.Length()) throw ExceptionT::kSizeMismatch;
 	
 	/* set nodes used by blocks */
 	if (fConnectivities.Length() == 1)
@@ -191,7 +191,7 @@ const iArrayT& OutputSetT::BlockNodesUsed(const StringT& ID)
 					if (dex < 0) {
 						cout << "\n OutputSetT::BlockNodesUsed: ERROR: block node used " << used[i]+1 
 						     << " is not marked as used by the set" << endl;
-						throw eGeneralFail;
+						throw ExceptionT::kGeneralFail;
 					}
 					else
 						map[i] = dex;
@@ -238,7 +238,7 @@ int OutputSetT::BlockIndex(const StringT& ID) const
 
 		if (index == -1) {
 			cout << "\n OutputSetT::BlockIndex: block ID not found: " << ID << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		return index;
 	}

@@ -1,4 +1,4 @@
-/* $Id: FrontNodeT.cpp,v 1.5 2002-07-05 17:16:08 paklein Exp $ */
+/* $Id: FrontNodeT.cpp,v 1.5.2.1 2002-10-17 04:00:17 paklein Exp $ */
 /* created: paklein (03/19/1999)                                          */
 
 #include "FrontNodeT.h"
@@ -150,7 +150,7 @@ void FrontNodeT::Reset3D(const double* x, const double* v_n, const double* v_t,
 	if ((det - 1.0) > 1.0e-10)
 	{
 		cout << "\n FrontNodeT::Reset: local coordinate basis error: det = " << det;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif	
 

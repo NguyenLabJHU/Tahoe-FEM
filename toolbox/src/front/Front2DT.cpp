@@ -1,4 +1,4 @@
-/* $Id: Front2DT.cpp,v 1.2 2002-07-02 19:57:10 cjkimme Exp $ */
+/* $Id: Front2DT.cpp,v 1.2.2.1 2002-10-17 04:00:16 paklein Exp $ */
 /* created: paklein (03/18/1999)                                          */
 
 #include "Front2DT.h"
@@ -25,7 +25,7 @@ void Front2DT::Initialize(const dArray2DT& facet_coords, const iArrayT& fr_facet
 		const iArrayT& fr_edges)
 {
 	/* expecting line segments */
-	if (facet_coords.MinorDim() != 2*2) throw eGeneralFail;
+	if (facet_coords.MinorDim() != 2*2) throw ExceptionT::kGeneralFail;
 
 	for (int i = 0; i < fr_facets.Length(); i++)
 	{
@@ -49,7 +49,7 @@ void Front2DT::Initialize(const dArray2DT& facet_coords, const iArrayT& fr_facet
 
 		/* construct node */
 		FrontNodeT* node = new FrontNodeT(2, x, v_n, NULL, fcone, fda*fda_s, fnum_pts);
-		if (!node) throw eOutOfMemory;
+		if (!node) throw ExceptionT::kOutOfMemory;
 	
 		/* store */
 		fFrontNodes.Append(node);
@@ -62,7 +62,7 @@ const dArray2DT& Front2DT::NewFacets(const ArrayT<int>& extend_pts,
 	const ArrayT<int>& extend_dir)
 {
 	/* dimension check */
-	if (extend_pts.Length() != extend_dir.Length()) throw eSizeMismatch;
+	if (extend_pts.Length() != extend_dir.Length()) throw ExceptionT::kSizeMismatch;
 
 	/* each extension generates a new facets */
 	fNewFacetMan.SetMajorDimension(extend_pts.Length(), false);

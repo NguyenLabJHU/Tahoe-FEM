@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.20 2002-09-22 23:06:12 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.20.2.1 2002-10-17 04:01:11 paklein Exp $ */
 /* created: paklein (03/03/1999) */
 
 #include "ifstreamT.h"
@@ -139,7 +139,7 @@ istream& ifstreamT::putback(char a)
 	if (fSkipComments)
 	{
 		cout << "\n ifstreamT::putback: not allowed while comment skipping is enabled" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* inherited */
@@ -255,7 +255,7 @@ ifstreamT& ifstreamT::operator>>(bool& a)
 	else
 	{
 		cout << "\n ifstreamT::operator>>bool&: expecting 0 or 1 from stream" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	
 	return *this;
@@ -379,7 +379,7 @@ int ifstreamT::OpenWithPrompt(const char* prompt, const char* skipname,
 			{
 				cout << "\n StringT::OpenInputStream: could not find file after ";
 				cout << maxtry << " iterations" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 		}
 	}	

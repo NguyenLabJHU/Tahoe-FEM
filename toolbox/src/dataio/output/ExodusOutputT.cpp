@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.13 2002-07-08 12:17:23 sawimme Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.13.2.1 2002-10-17 03:59:17 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "ExodusOutputT.h"
@@ -55,7 +55,7 @@ void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		    cout << "filename = " << filename << "\n";
 		    cout << "time = " << time << "\n";
 		    cout << "output ID = " << ID << "\n\n";
-		    throw eDatabaseFail;
+		    throw ExceptionT::kDatabaseFail;
 		  }
 	}
 
@@ -155,7 +155,7 @@ void ExodusOutputT::CreateResultsFile(int ID, ExodusT& exo)
 	  {
 	    cout << "\n\nExodusOutputT::WriteOutput call to ExodusT::Create failed\n";
 	    cout << "output ID = " << ID << "\n\n";
-	    throw eDatabaseFail;
+	    throw ExceptionT::kDatabaseFail;
 	  }
 
 	/* write geometry */
