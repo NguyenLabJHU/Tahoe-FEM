@@ -1,4 +1,4 @@
-# $Id: makefile.tmpl,v 1.2 2004-11-14 03:00:23 paklein Exp $
+# $Id: makefile.tmpl,v 1.3 2005-02-17 17:13:34 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (1) copy makefile.template to a local makefile
@@ -42,7 +42,7 @@ PCH     = toolboxPrefix.h
 
 ############################### build options ###########################
 
-TOOLS = extract_1D extract_CT least_square least_square_trap
+TOOLS = extract_1D extract_CT least_square least_square_trap area_diff
 
 all:
 	@ $(PRINTF) "targets:\n";
@@ -58,6 +58,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 least_square: $(TB_LIB) least_square.cpp
 	$(COMP_CC) $(CFLAGS_CC) $(TB_CFLAGS) $(AX_CFLAGS) least_square.cpp -o least_square $(TB_LFLAGS) $(AX_LFLAGS) $(LFLAGS)
+
+area_diff: $(TB_LIB) area_diff.cpp
+	$(COMP_CC) $(CFLAGS_CC) $(TB_CFLAGS) $(AX_CFLAGS) area_diff.cpp -o area_diff $(TB_LFLAGS) $(AX_LFLAGS) $(LFLAGS)
 
 least_square_trap: $(TB_LIB) least_square_trap.cpp
 	$(COMP_CC) $(CFLAGS_CC) $(TB_CFLAGS) $(AX_CFLAGS) least_square_trap.cpp -o least_square_trap $(TB_LFLAGS) $(AX_LFLAGS) $(LFLAGS)
