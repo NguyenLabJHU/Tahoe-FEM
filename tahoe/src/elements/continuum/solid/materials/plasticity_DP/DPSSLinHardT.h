@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.h,v 1.4 2001-07-13 23:15:06 cfoster Exp $ */
+/* $Id: DPSSLinHardT.h,v 1.5 2001-07-25 01:45:31 cfoster Exp $ */
 /* created: myip (06/01/1999)                                      */
 /*  
  * Interface for Druker-Prager, nonassociative, small strain,
@@ -53,6 +53,10 @@ class DPSSLinHardT: public DPPrimitiveT
 	 *       The element passed in is already assumed to carry current
 	 *       internal variable values */
 	const dMatrixT& ModuliCorrection(const ElementCardT& element, int ip); 
+
+        /* Modulus for checking discontinuous bifurcation */
+
+	const dMatrixT& ModuliCorrDisc(const ElementCardT& element, int ip);
 
 	/* return a pointer to a new plastic element object constructed with
 	 * the data from element */
@@ -123,12 +127,14 @@ class DPSSLinHardT: public DPPrimitiveT
 	double flambda;
 	double fkappa;
 	double fX_H;
+        double fX;
         double fMeanStress;
   
   	/* return values */
   	dSymMatrixT	fElasticStrain;
   	dSymMatrixT	fStressCorr;
   	dMatrixT	fModuliCorr;
+        dMatrixT        fModuliCorrDisc;
   		
 	/* work space */
 	dSymMatrixT fDevStress;

@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.cpp,v 1.5 2001-07-13 23:14:13 cfoster Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.6 2001-07-25 01:45:31 cfoster Exp $ */
 /* created: myip (06/01/1999)                                        */
 /*
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -29,9 +29,11 @@ DPSSLinHardT::DPSSLinHardT(ifstreamT& in, int num_ip, double mu, double lambda):
 	flambda(lambda),
 	fkappa(flambda + (2.0/3.0*fmu)),
 	fX_H(3.0*(fmu+ffriction*fdilation*fkappa) + fH_prime),
+        fX(3.0*(fmu+ffriction*fdilation*fkappa)), //for discontinuous bifurcation check
 	fElasticStrain(kNSD),
 	fStressCorr(kNSD),
 	fModuliCorr(dSymMatrixT::NumValues(kNSD)),
+	   fModuliCorrDisc(dSymMatrixT::NumValues(kNSD)), //for disc check
 	fDevStress(kNSD),
 	fMeanStress(0.0),
 	fDevStrain(kNSD), 
@@ -162,6 +164,49 @@ const dMatrixT& DPSSLinHardT::ModuliCorrection(const ElementCardT& element,
 	}
 	return fModuliCorr;
 }	
+
+
+/* return the correction to modulus Cep~, checking for discontinuous
+ *   bifurcation */
+
+
+const dMatrixT& DPSSLinHardT::ModuliCorrDisc(const ElementCardT& element, 
+	int ip)
+{
+	/* initialize */
+	fModuliCorrDisc = 0.0;
+
+	if (element.IsAllocated() && 
+	   (element.IntegerData())[ip] == kIsPlastic)
+	{
+		/* load internal state variables */
+	  	LoadData(element,ip);
+		
+	double c1d  = -3.0*ffriction*fdilation*fkappa*fkappa/fX;
+	       c1d += (4.0/3.0)*sqrt32*fmu*fmu*fInternal[kdgamma]/fInternal[kstressnorm];
+	double c2d  = -sqrt(6.0)*fmu*fmu*fInternal[kdgamma]/fInternal[kstressnorm];
+	double c3d  = -(3.0/2.0)/fX + sqrt32*fInternal[kdgamma]/fInternal[kstressnorm];
+	       c3d *= 4.0*fmu*fmu;
+	double c4d  = -3.0*sqrt(2.0)*fkappa*fmu/fX; 
+
+		fTensorTemp.Outer(One, One);
+		fModuliCorrDisc.AddScaled(c1d, fTensorTemp);
+
+ 	    	fTensorTemp.ReducedIndexI();
+		fModuliCorrDisc.AddScaled(2.0*c2d, fTensorTemp);
+
+		fTensorTemp.Outer(fUnitNorm,fUnitNorm);
+		fModuliCorrDisc.AddScaled(c3d, fTensorTemp);
+
+		fTensorTemp.Outer(One,fUnitNorm);
+		fModuliCorrDisc.AddScaled(fdilation*c4d, fTensorTemp);
+
+		fTensorTemp.Outer(fUnitNorm,One);
+		fModuliCorrDisc.AddScaled(ffriction*c4d, fTensorTemp);
+	}
+	return fModuliCorrDisc;
+}	
+
  	 	
 /* return a pointer to a new plastic element object constructed with
  * the data from element */
