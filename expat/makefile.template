@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.2 2004-07-12 17:44:04 paklein Exp $
+# $Id: makefile.template,v 1.3 2004-07-12 18:09:04 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # NOTE: this is makefile just wraps the configure/build system
@@ -12,6 +12,28 @@
 
 # full path to the top level of this module
 HOME_DIR =
+
+# build architecture - see macros directory for choices $(ARCH).macros
+ARCH =
+
+# destination for the build
+BLD_DIR = $(HOME_DIR)
+
+# working directories:
+INC_DIR = $(BLD_DIR)/inc
+SRC_DIR = $(HOME_DIR)/src
+OBJ_DIR = $(BLD_DIR)/obj
+BLD_SRC_DIR = $(BLD_DIR)/src-mirror
+LIB_DIR = $(BLD_DIR)/lib
+
+# default target name - root of library name or executable name
+TARGET  = expat
+LIBRARY = $(LIB_DIR)/lib$(TARGET).a
+PCH     = $(TARGET)Prefix.h
+
+# target of "make build", i.e., the library $(LIBRARY) or
+# the executable $(TARGET)
+BUILD = $(LIBRARY)
 
 # full path to compiler macros
 MACRO_DIR = $(HOME_DIR)/../macros
@@ -46,16 +68,20 @@ help:
 	@ printf "  clean - remove object files and build temporaries\n"
 	@ printf "   help - display this list\n"
 
+
+# include common target definitions
+include $(MACRO_DIR)/$(ARCH).macros
+
 init:
 	cd expat; gunzip $(EXPAT_CURRENT).tar.gz; tar xvf $(EXPAT_CURRENT).tar; gzip $(EXPAT_CURRENT).tar
-	cd expat/$(EXPAT_CURRENT); configure --prefix=$(HOME_DIR) --disable-shared
+	cd expat/$(EXPAT_CURRENT); configure --prefix=$(HOME_DIR) --disable-shared CC=$(COMP_C)
 	
 build:
 	cd expat/$(EXPAT_CURRENT); make; make install
 
 clean:
 	rm -rf expat/$(EXPAT_CURRENT)
-	rm -rf bin include lib man
+	rm -rf pch bin include lib man
 
 # init extras target
 update_config: nothing
