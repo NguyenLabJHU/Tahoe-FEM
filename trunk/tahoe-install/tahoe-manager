@@ -9,7 +9,7 @@
 
 # initialization
 $username = getlogin();
-use Cwd; $home = cwd();
+use Cwd; # $home = cwd();
 $cvsrep = "tahoe.ca.sandia.gov:/cvs/protected/tahoe"; 
 %module2define = qw(
 expat	EXPAT
@@ -20,6 +20,8 @@ macros	NODEFINE
 $config_file = "./.tahoe_config";
 if(-e "$config_file") { read_config();}
 else                  { write_default_config();}
+#print ">  architecture: $arch \n";
+#print ">  modules: @modules \n";
 $script_status = 0;
 
 # loop through arguments and options
@@ -29,6 +31,7 @@ ARG: while (@ARGV) {
 		$count = @ARGV;
 		if ($script_status > 0 ){ failed();}
 		if (/^-/) {
+			if (/clean/i)             { clean(); next ARG; }
 			if (/c|checkout/i)        { checkout(); next ARG; }
 			if (/u|update/i)          { update(); next ARG; }
 			if (/r|rebuild/i)         { rebuild(); next ARG; }
@@ -44,7 +47,7 @@ exit 0;
 
 ###############################################################################
 sub read_config{
-print "reading config file $config_file\n";
+print "* reading config file $config_file\n";
 open(CONFIG,$config_file) || die "cannot open file $config_file for reading : $!";
 $type = "UNKNOWN";
 while(<CONFIG>) {
@@ -60,18 +63,15 @@ while(<CONFIG>) {
 }
 close(CONFIG);
 
-
 # need to make sure the core modules exist
+
 # need to sort modules based on dependencies
 @tmp_modules = @modules;
 @modules = sort by_depend @tmp_modules;
-
-print ">architecture: $arch\n";
-print ">modules: @modules\n";
 }
 
 sub write_default_config{
-print "creating default config file $config_file\n";
+print "* creating default config file $config_file\n";
 # architecture
 unless(-d "macros"){
 	print "checking out macros\n";
@@ -85,7 +85,7 @@ chdir "..";
 print "no default build architecture, choices:\n";
 $i=0;foreach $choice (@choices) { print "$i $choice\n"; $i++;}
 print "? "; $i = <STDIN>; $arch = $choices[$i]; 
-print "$arch\n";
+print "* you chose : $arch\n";
 # modules
 @modules = ("macros","expat","toolbox","tahoe");
 open(CONFIG,">$config_file") || die "cannot open file $config_file for writing : $!";
@@ -96,13 +96,15 @@ close(CONFIG);
 }
 
 sub checkout{
-	print "($count) checking out @modules\n";
+	$time = localtime();
+	print "($count) checking out: @modules, at $time\n";
 	unlink("cvs.log");
 	system("cvs -d $username\@$cvsrep checkout @modules > cvs.log 2>&1");
 }
 
 sub update{
-	print "($count) updating @modules\n";
+	$time = localtime();
+	print "($count) updating: @modules, at $time\n";
 	unlink("cvs.log");
 	foreach $dir (@modules) {
 		system("cd $dir; cvs update -Pd > ../cvs.log 2>&1");
@@ -110,7 +112,8 @@ sub update{
 }
 
 sub rebuild{
-	print "($count) rebuilding @modules\n";
+	$time = localtime();
+	print "($count) rebuilding: @modules, at $time\n";
 # winnow out "static" modules??
 	foreach $dir (@modules) {
 		chdir $dir;
@@ -124,21 +127,12 @@ sub rebuild{
 }
 
 sub build{
-	print "($count) building @modules\n";
+	$time = localtime();
+	print "($count) building: @modules, at $time\n";
 	foreach $dir (@modules) {
 		chdir $dir;
 		if (-e "makefile.template") {
-			$path = "$home/$dir";
-			unlink("makefile");
-			open(IN,"makefile.template");
-			open(OUT,">makefile");
-			while (defined($line = <IN>)){
-				$line =~ s/HOME_DIR =/HOME_DIR = $path/;
-				$line =~ s/ARCH =/ARCH = $arch/;
-				print OUT "$line";
- 			}
-			close(IN);
-			close(OUT);
+			fillin_makefile();
 			unlink("build.log");
 			system("make init build > build.log 2>&1");
 			
@@ -148,15 +142,43 @@ sub build{
 }
 
 sub test{
-	print "($count) running tests\n";
+	$time = localtime();
+	print "($count) running tests at $time\n";
+ 	unless(-d "benchmark"){
+		print "checking out benchmark\n";
+		unlink("cvs.log");
+		system("cvs -d $username\@$cvsrep checkout benchmark > cvs.log 2>&1");
+ 	} else {
+		system("cd benchmark; cvs update -Pd > cvs.log 2>&1");
+	}
+	chdir("benchmark/comparator");
+	fillin_makefile(); system("make init build > build.log 2>&1");
+	chdir("..");
+	#print("running benchmarks\n");
+	system("../tahoe/tahoe -f run.batch > run.out 2>&1");
+	#print("comparing benchmarks\n");
+	system("./comparator/compare -f run.batch > compare.out 2>&1");
+	open(IN,"compare.summary");
+	<IN>; 
+	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $pass = $_;   
+	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $fail = $_;   
+	# $path = cwd();
+	print "$pass $fail, see compare.summary for more details\n";
 }
 
 sub clean{
-	print "($count) cleaning\n";
+	$time = localtime();
+	print "($count) cleaning: @modules, at $time\n";
+	foreach $dir (@modules) {
+		chdir $dir; 
+		system("rm -rf src-mirror obj object_list");
+		chdir ".."; 
+	}
 }
 
 sub failed{
-	die "*-*-*-* process FAILED *-*-*-*\n";
+	$time = localtime();
+	die "*-*-*-* process FAILED at $time *-*-*-*\n";
 }
 
 sub usage{
@@ -192,5 +214,19 @@ sub by_depend {
 	} else { $b_on_a = -1;};
 
         ($a_on_b <=> $b_on_a);
+}
+
+sub fillin_makefile{
+	unlink("makefile");
+	$path = cwd();
+	open(IN,"makefile.template");
+	open(OUT,">makefile");
+	while (defined($line = <IN>)){
+		$line =~ s/HOME_DIR =/HOME_DIR = $path/;
+		$line =~ s/ARCH =/ARCH = $arch/;
+		print OUT "$line";
+ 	}
+	close(IN);
+	close(OUT);
 }
 
