@@ -1,12 +1,10 @@
-/* $Id: TensorTransformT.cpp,v 1.5 2002-10-20 22:49:11 paklein Exp $ */
-/* created: paklein (07/02/1996)                                          */
-
+/* $Id: TensorTransformT.cpp,v 1.5.42.1 2004-04-15 21:13:36 paklein Exp $ */
+/* created: paklein (07/02/1996) */
 #include "TensorTransformT.h"
-
-/* constructor */
 
 using namespace Tahoe;
 
+/* constructor */
 TensorTransformT::TensorTransformT(int dim):
 	fRank2(dim),
 	fRank4(dSymMatrixT::NumValues(dim)),
@@ -29,6 +27,12 @@ const dMatrixT& TensorTransformT::PushForward(const dMatrixT& fwd, const dMatrix
 		FFFFC_2D_Z(fwd, fRank4);
 	else if (fwd.Rows() == 3)
 		FFFFC_3D(fwd, fRank4);
+	else if (fwd.Rows() == 1) {
+		double F = fwd[0];
+		fRank4[0] *= F*F*F*F;
+	}
+	else
+		ExceptionT::GeneralFail("TensorTransformT::PushForward");
 		
 	return fRank4;
 }
@@ -46,6 +50,12 @@ const dMatrixT& TensorTransformT::PullBack(const dMatrixT& fwd, const dMatrixT& 
 		FFFFC_2D_Z(fPull, fRank4);
 	else if (fwd.Rows() == 3)
 		FFFFC_3D(fPull, fRank4);
+	else if (fwd.Rows() == 1) {
+		double F = fPull[0];
+		fRank4[0] *= F*F*F*F;
+	}
+	else
+		ExceptionT::GeneralFail("TensorTransformT::PullBack");
 			
 	return fRank4;
 }
