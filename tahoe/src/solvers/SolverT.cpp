@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.25 2004-09-28 15:35:44 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.26 2005-01-07 02:13:47 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -395,6 +395,8 @@ void SolverT::CompareLHS(const GlobalMatrixT& ref_LHS, const GlobalMatrixT& test
 
 	out << "\ntest LHS:\n";
 	test_LHS.PrintLHS(true);
+	
+	out.flush();
 }
 
 /*************************************************************************
