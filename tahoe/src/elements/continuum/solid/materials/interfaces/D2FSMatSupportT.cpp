@@ -1,5 +1,6 @@
-/* $Id: D2FSMatSupportT.cpp,v 1.2 2002-11-14 17:06:21 paklein Exp $ */
+/* $Id: D2FSMatSupportT.cpp,v 1.3 2002-11-15 15:42:04 paklein Exp $ */
 #include "D2FSMatSupportT.h"
+#include "D2MeshFreeFDElasticT.h"
 
 using namespace Tahoe;
 
@@ -9,11 +10,14 @@ D2FSMatSupportT::D2FSMatSupportT(int nsd, int ndof, int nip):
 	fD2MeshFreeFDElastic(NULL)
 {
 
-
 }
- 
-/* destructor */
-D2FSMatSupportT::~D2FSMatSupportT(void)
-{
 
+/* set the element group pointer */
+void D2FSMatSupportT::SetContinuumElement(const ContinuumElementT* p)
+{
+	/* inherited */
+	FSMatSupportT::SetContinuumElement(p);
+
+	/* cast to finite strain pointer */
+	fD2MeshFreeFDElastic = dynamic_cast<const D2MeshFreeFDElasticT*>(p);
 }
