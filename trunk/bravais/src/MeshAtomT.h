@@ -2,7 +2,7 @@
 #ifndef _MESHATOM_T_H_
 #define _MESHATOM_T_H_
 
-#include <iostream>
+#include <iostream.h>
 #include <fstream.h>
 
 /* direct members */

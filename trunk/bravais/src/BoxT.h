@@ -1,10 +1,10 @@
 // DEVELOPMENT
-/* $Id: BoxT.h,v 1.18 2003-08-15 01:22:20 saubry Exp $ */
+/* $Id: BoxT.h,v 1.19 2003-09-08 20:14:51 jzimmer Exp $ */
 
 #ifndef _BOX_T_H_
 #define _BOX_T_H_
 
-#include <iostream>
+#include <iostream.h>
 #include "iArrayT.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"

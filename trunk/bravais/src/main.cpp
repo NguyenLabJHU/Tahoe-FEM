@@ -1,6 +1,6 @@
 // DEVELOPMENT
-/* $Id: main.cpp,v 1.7 2003-06-06 23:21:51 saubry Exp $ */
-#include <iostream>
+/* $Id: main.cpp,v 1.8 2003-09-08 20:14:51 jzimmer Exp $ */
+#include <iostream.h>
 #include "ExceptionCodes.h"
 #include "PeriodicTableT.h"
 #include "StringT.h"
