@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.50 2003-08-12 19:49:55 thao Exp $ */
+/* $Id: SolidElementT.cpp,v 1.50.2.1 2003-10-08 00:11:48 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -16,7 +16,9 @@
 /* materials */
 #include "SolidMaterialT.h"
 #include "SolidMatSupportT.h"
-#include "SolidMatListT.h"
+#include "SolidMatList1DT.h"
+#include "SolidMatList2DT.h"
+#include "SolidMatList3DT.h"
 
 /* exception codes */
 #include "ExceptionT.h"
@@ -1007,7 +1009,25 @@ GlobalT::SystemTypeT SolidElementT::TangentType(void) const
 /* return the materials list */
 const SolidMatListT& SolidElementT::StructuralMaterialList(void) const
 {
+#ifdef __INTEL_CC__
+  const MaterialListT& mat_list = MaterialsList();
+
+  const SolidMatList1DT* mat_list_1D = dynamic_cast<const SolidMatList1DT*>(&mat_list);
+  if (mat_list_1D) return *mat_list_1D;
+
+  const SolidMatList2DT* mat_list_2D = dynamic_cast<const SolidMatList2DT*>(&mat_list);
+  if (mat_list_2D) return *mat_list_2D;
+
+  const SolidMatList3DT* mat_list_3D = dynamic_cast<const SolidMatList3DT*>(&mat_list);
+  if (mat_list_3D) return *mat_list_3D;
+
+  /* failed */
+  ExceptionT::GeneralFail("SolidElementT::StructuralMaterialList", "could not resolve SolidMatListT");
+  SolidMatListT* dummy = NULL;
+  return *dummy;
+#else
 	return dynamic_cast<const SolidMatListT&>(MaterialsList());
+#endif
 }
 
 /* extrapolate the integration point stresses and strains and extrapolate */
