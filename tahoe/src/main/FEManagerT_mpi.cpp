@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.12 2002-01-27 18:51:08 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.13 2002-03-04 06:57:33 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #include "FEManagerT_mpi.h"
@@ -346,10 +346,15 @@ void FEManagerT_mpi::RecvExternalData(dArray2DT& external_data)
 	//TEMP
 	//TimeStamp("FEManagerT_mpi::RecvExternalData");
 
-	int shift = (fPartition->Nodes_External())[0];
+	int shift = 0;
+	const iArrayT& nodes_ex = fPartition->Nodes_External();
+	if (nodes_ex.Length() > 0) shift = nodes_ex[0];
 	//NOTE - mapping from local node number to incoming
 	//       node sequence assumes sequential numbering of
 	//       incoming node numbers starting at in_nodes[0]
+	//NOTE - really shouldn't be communicating if the number of
+	//       external nodes is zero, but right now the communicator
+	//       may include processes that aren't involved
 	
 	/* loop until all receives completed */
 	const iArrayT& commID = fPartition->CommID();
