@@ -1,4 +1,4 @@
-# $Id: subdir.targets,v 1.12 2004-02-18 14:10:22 paklein Exp $
+# $Id: subdir.targets,v 1.13 2004-02-18 19:36:16 paklein Exp $
 
 MACROS = \
 "INC_DIR = $(INC_DIR)" \
@@ -22,7 +22,9 @@ clean:
 	-@ $(RM) $(RM_FILES)
 	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = clean"
 
-depend_init: depend_clean all.depend
+depend_init: 
+	@ $(MAKE) depend_clean 
+	@ $(MAKE) all.depend
 	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = depend_init"
 
 depend_clean:
