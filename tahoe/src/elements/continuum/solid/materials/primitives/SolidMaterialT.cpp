@@ -1,6 +1,5 @@
-/* $Id: SolidMaterialT.cpp,v 1.8 2002-10-20 22:49:11 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.9 2002-11-14 17:06:39 paklein Exp $ */
 /* created: paklein (11/20/1996) */
-
 #include "SolidMaterialT.h"
 
 #include <iostream.h>
@@ -14,24 +13,14 @@ using namespace Tahoe;
 
 /* constructor */
 SolidMaterialT::SolidMaterialT(ifstreamT& in,
-	const ContinuumElementT& element):
-	ContinuumMaterialT(element)
+	const MaterialSupportT& support):
+	ContinuumMaterialT(support)
 {
 	in >> fMassDamp;	if (fMassDamp  <  0.0) throw ExceptionT::kBadInputValue;
 	in >> fStiffDamp;	if (fStiffDamp <  0.0) throw ExceptionT::kBadInputValue;
 	in >> fDensity;		if (fDensity   <= 0.0) throw ExceptionT::kBadInputValue;
 	fThermal = new ThermalDilatationT(in);
 	if (!fThermal) throw ExceptionT::kOutOfMemory;
-
-//DEV - Rayleigh damping is being eliminated
-#if 0
-	if (fMassDamp > kSmall || fStiffDamp > kSmall)
-	{
-		cout << "\n SolidMaterialT::SolidMaterialT: support for Rayleigh damping is\n"
-		     <<   "     being eliminated. damping set to 0.0" << endl;
-		fMassDamp = fStiffDamp = 0.0;
-	}
-#endif
 }
 
 /* destructor */

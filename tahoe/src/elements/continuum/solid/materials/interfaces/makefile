@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2002-04-21 07:18:27 paklein Exp $
+# $Id: makefile,v 1.2 2002-11-14 17:06:21 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,9 +6,13 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	ABAQUS_BCJ.o \
-	ABAQUS_UMAT_BaseT.o \
-	cycdmg7.o
+	D2FDMatSupportT.o \
+	DiffusionMatSupportT.o \
+	FDMatSupportT.o \
+	MaterialSupportT.o \
+	SSMatSupportT.o \
+	StructuralMatSupportT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -17,14 +21,22 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	ABAQUS_BCJ.cpp \
-	ABAQUS_UMAT_BaseT.cpp \
-	cycdmg7.c
+	D2FDMatSupportT.cpp \
+	DiffusionMatSupportT.cpp \
+	FDMatSupportT.cpp \
+	MaterialSupportT.cpp \
+	SSMatSupportT.cpp \
+	StructuralMatSupportT.cpp
 
 # headers
 HDR = \
-	ABAQUS_BCJ.h \
-	ABAQUS_UMAT_BaseT.h
+	D2FDMatSupportT.h \
+	DiffusionMatSupportT.h \
+	FDMatSupportT.h \
+	MaterialSupportT.h \
+	SSMatSupportT.h \
+	StructuralMatSupportT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories

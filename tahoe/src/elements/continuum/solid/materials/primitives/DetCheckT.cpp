@@ -1,6 +1,5 @@
-/* $Id: DetCheckT.cpp,v 1.23 2002-10-20 22:49:11 paklein Exp $ */
+/* $Id: DetCheckT.cpp,v 1.24 2002-11-14 17:06:39 paklein Exp $ */
 /* created: paklein (09/11/1997) */
-
 #include "DetCheckT.h"
 #include <math.h>
 #include "ExceptionT.h"
@@ -13,23 +12,23 @@
 # include "AutoArrayT.h"
 
 /* needed to access element information */
-#include "ContinuumElementT.h"
-#include "ElementSupportT.h"
+//#include "ContinuumElementT.h"
+#include "StructuralMatSupportT.h"
 
 /* initialize static variables */
 bool DetCheckT::fFirstPass = true;
 
-/* constants */
-
 using namespace Tahoe;
 
+/* constants */
 const double Pi = acos(-1.0);
 
 /* constructor */
 DetCheckT::DetCheckT(const dSymMatrixT& s_jl, const dMatrixT& c_ijkl):
 	fs_jl(s_jl),
 	fc_ijkl(c_ijkl),
-	fElement(NULL)
+	fStructuralMatSupport(NULL)
+//	,fElement(NULL)
 {
 
 }
@@ -265,8 +264,8 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
   const int outputFileWidth = outputPrecision + 8;
   AutoArrayT <dArrayT> normalSet;
 
-  const ElementCardT* element = (fElement) ? &(fElement->CurrentElement()) : NULL;
-  const ElementSupportT* support = (fElement) ? &(fElement->ElementSupport()) : NULL;
+//  const ElementCardT* element = (fElement) ? &(fElement->CurrentElement()) : NULL;
+//  const ElementSupportT* support = (fElement) ? &(fElement->ElementSupport()) : NULL;
   
   /* Set up output file */
   normalSet.Free();
@@ -278,9 +277,12 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
   else
     normal_out.open_append("normal.info");
   
-  normal_out << "\ntime step    element #    ip#\n";
-  normal_out << ((support) ? support->StepNumber() : 0) << endl << endl;
-  normal_out << setw(outputFileWidth) << "approx normal0" << setw(outputFileWidth) << "approx normal1" <<  setw(outputFileWidth) << " approx normal2" <<  setw(outputFileWidth) << "normal0" <<  setw(outputFileWidth) << "normal1" <<  setw(outputFileWidth) << "normal2" << setw(outputFileWidth) << "detA" <<  setw(outputFileWidth) << "in normalSet?\n";
+  normal_out << "\ntime step    element #    ip#\n"
+             << ((fStructuralMatSupport) ? fStructuralMatSupport->StepNumber() : 0) << "\n\n"
+             << setw(outputFileWidth) << "approx normal0" << setw(outputFileWidth) << "approx normal1" 
+             <<  setw(outputFileWidth) << " approx normal2" <<  setw(outputFileWidth) << "normal0" 
+             <<  setw(outputFileWidth) << "normal1" <<  setw(outputFileWidth) << "normal2" 
+             << setw(outputFileWidth) << "detA" <<  setw(outputFileWidth) << "in normalSet?" << endl;
   
   // initialize variables
   normal=0.0;

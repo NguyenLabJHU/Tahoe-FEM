@@ -1,5 +1,5 @@
-/* $Id: SSSimoViscoT.h,v 1.3 2002-10-20 22:48:51 paklein Exp $ */
-/* created:   TDN (5/31/2001) */
+/* $Id: SSSimoViscoT.h,v 1.4 2002-11-14 17:06:13 paklein Exp $ */
+/* created: TDN (5/31/2001) */
 #ifndef _SS_SIMO_VISCO_H_
 #define _SS_SIMO_VISCO_H_
  
@@ -17,7 +17,7 @@ class SSSimoViscoT: public SSStructMatT
 	public:
 
 	/*constructor*/
-	SSSimoViscoT(ifstreamT& in, const SmallStrainT& element);
+	SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support);
 
 	/** return the pressure associated with the last call to 
 	 * StructuralMaterialT::s_ij. \note NOT IMPLEMENTED */
@@ -53,9 +53,6 @@ class SSSimoViscoT: public SSStructMatT
 	
 	enum Spring {kEquilibrium = 0, kNonEquilibrium};
 	protected:
-
-	/*Form Residual flag*/
-	const GlobalT::StateT& fRunState;
 	 
 	/*Internal state variables*/	
 	/*fh - denotes the overstress while 
@@ -84,9 +81,6 @@ class SSSimoViscoT: public SSStructMatT
 	/* Internal state variables array*/
 	dArrayT fstatev;
 
-  	/*Time increment*/
- 	const double& fdt; 
-	
 	/*modulus*/
 	dMatrixT fModulus;
 	/*stress*/

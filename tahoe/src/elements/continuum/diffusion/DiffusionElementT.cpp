@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.9 2002-10-20 22:48:23 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.10 2002-11-14 17:05:51 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -9,21 +9,19 @@
 #include "toolboxConstants.h"
 
 #include "fstreamT.h"
-#include "DiffusionMaterialT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
 #include "eControllerT.h"
-#include "MaterialListT.h"
 #include "iAutoArrayT.h"
-//#include "OutputSetT.h"
 
-/* materials lists */
+/* materials */
+#include "DiffusionMaterialT.h"
+#include "DiffusionMatSupportT.h"
 #include "DiffusionMatListT.h"
-
-/* initialize static data */
 
 using namespace Tahoe;
 
+/* initialize static data */
 const int DiffusionElementT::NumOutputCodes = 3;
 
 /* parameters */
@@ -34,7 +32,8 @@ DiffusionElementT::DiffusionElementT(const ElementSupportT& support, const Field
 	ContinuumElementT(support, field),
 	fLocVel(LocalArrayT::kVel),
 	fD(NumSD()),
-	fq(NumSD())
+	fq(NumSD()),
+	fDiffusionMatSupport(NULL)
 {
 	/* check base class initializations */
 	if (NumDOF() != kDiffusionNDOF) {
@@ -42,6 +41,12 @@ DiffusionElementT::DiffusionElementT(const ElementSupportT& support, const Field
 		     << NumDOF() << endl;
 		throw ExceptionT::kBadInputValue;
 	}
+}
+
+/* destructor */
+DiffusionElementT::~DiffusionElementT(void)
+{
+	delete fDiffusionMatSupport;
 }
 
 /* data initialization */
@@ -52,6 +57,9 @@ void DiffusionElementT::Initialize(void)
 
 	/* allocate */
 	fB.Dimension(NumSD(), NumElementNodes());
+	fGradient_list.Dimension(NumIP());
+	for (int i = 0; i < fGradient_list.Length(); i++)
+		fGradient_list[i].Dimension(NumSD());
 
 	/* setup for material output */
 	if (fNodalOutputCodes[iMaterialData])
@@ -70,6 +78,16 @@ void DiffusionElementT::Initialize(void)
 			fNodalOutputCodes[iMaterialData] = 0;
 		}
 	}
+}
+
+/* TEMPORARY */
+void DiffusionElementT::InitialCondition(void)
+{
+	/* inherited */
+	ContinuumElementT::InitialCondition();
+	
+	/* set the source for the iteration number */
+	fDiffusionMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
 }
 
 /* compute nodal force */
@@ -438,9 +456,15 @@ void DiffusionElementT::FormKd(double constK)
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
 	
+	int nsd = NumSD();
+	dMatrixT grad;
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
 	{
+		/* set field gradient */
+		grad.Set(1, nsd, fGradient_list[CurrIP()].Pointer());
+		IP_ComputeGradient(fLocDisp, grad);
+
 		/* get strain-displacement matrix */
 		B(fShapes->CurrIP(), fB);
 
@@ -452,11 +476,36 @@ void DiffusionElementT::FormKd(double constK)
 	}	
 }
 
-/* return a pointer to a new material list */
-MaterialListT* DiffusionElementT::NewMaterialList(int size) const
+/* construct a new material support and return a pointer */
+MaterialSupportT* DiffusionElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
 	/* allocate */
-	return new DiffusionMatListT(size, *this);
+	if (!p) p = new DiffusionMatSupportT(NumSD(), NumDOF(), NumIP());
+
+	/* inherited initializations */
+	ContinuumElementT::NewMaterialSupport(p);
+	
+	/* set StructuralMatSupportT fields */
+	DiffusionMatSupportT* ps = dynamic_cast<DiffusionMatSupportT*>(p);
+	if (ps) {
+		ps->SetContinuumElement(this);
+		ps->SetGradient(&fGradient_list);
+	}
+
+	return p;
+}
+
+/* return a pointer to a new material list */
+MaterialListT* DiffusionElementT::NewMaterialList(int size)
+{
+	/* material support */
+	if (!fDiffusionMatSupport) {
+		fDiffusionMatSupport = dynamic_cast<DiffusionMatSupportT*>(NewMaterialSupport());
+		if (!fDiffusionMatSupport) throw ExceptionT::kGeneralFail;
+	}
+
+	/* allocate */
+	return new DiffusionMatListT(size, *fDiffusionMatSupport);
 }
 
 /* driver for calculating output values */

@@ -1,14 +1,5 @@
-/* $Id: J2QL2DLinHardT.h,v 1.5 2002-07-02 19:56:11 cjkimme Exp $ */
-/* created: paklein (06/29/1997)                                          */
-/* Interface for a elastoplastic material that is linearly                */
-/* isotropically elastic subject to the Huber-von Mises yield             */
-/* condition as fYield with kinematic/isotropic hardening laws            */
-/* given by:                                                              */
-/* 		H(a) = (1 - ftheta) fH_bar a                                      */
-/*      K(a) = fYield + ftheta fH_bar a                                   */
-/* 		where a is the internal hardening variable                        */
-/* 	Note: all calculations are peformed in 3D.                            */
-
+/* $Id: J2QL2DLinHardT.h,v 1.6 2002-11-14 17:06:25 paklein Exp $ */
+/* created: paklein (06/29/1997) */
 #ifndef _J2_QL_LIN_HARD_2D_T_H_
 #define _J2_QL_LIN_HARD_2D_T_H_
 
@@ -22,15 +13,23 @@
 #include "dArrayT.h"
 #include "iArrayT.h"
 
-
 namespace Tahoe {
 
+/** interface for a elastoplastic material that is linearly
+ * isotropically elastic subject to the Huber-von Mises yield
+ * condition as fYield with kinematic/isotropic hardening laws
+ * given by:
+ * 		H(a) = (1 - ftheta) fH_bar a
+ *      K(a) = fYield + ftheta fH_bar a
+ * 		where a is the internal hardening variable
+ * \note all calculations are peformed in 3D
+ */
 class J2QL2DLinHardT: public QuadLog2D, public J2PrimitiveT
 {
 public:
 
 	/* constructor */
-	J2QL2DLinHardT(ifstreamT& in, const FiniteStrainT& element);
+	J2QL2DLinHardT(ifstreamT& in, const FDMatSupportT& support);
 
 	/** required parameter flags */
 	virtual bool Need_F_last(void) const { return true; };

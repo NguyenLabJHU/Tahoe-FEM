@@ -1,5 +1,5 @@
-/* $Id: SSSV_KStV3D.h,v 1.2 2002-10-05 03:44:33 paklein Exp $ */
-/* created:   TDN (5/31/2001) */
+/* $Id: SSSV_KStV3D.h,v 1.3 2002-11-14 17:06:14 paklein Exp $ */
+/* created: TDN (5/31/2001) */
 #ifndef _SS_SV_KStV_3D_H_
 #define _SS_SV_KStV_3D_H_
 
@@ -18,7 +18,7 @@ class SSSV_KStV3D: public SSSimoViscoT
 	public:
 	
 	/*constructor*/
-	SSSV_KStV3D(ifstreamT& in, const SmallStrainT& element);
+	SSSV_KStV3D(ifstreamT& in, const SSMatSupportT& support);
 		
 	/*print parameters*/
 	void Print(ostream& out) const;

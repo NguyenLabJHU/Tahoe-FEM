@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.10 2002-11-09 01:51:25 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.11 2002-11-14 17:06:32 paklein Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -12,12 +12,10 @@
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 #include "Utils.h"
-#include "ContinuumElementT.h"
-
-/* spatial dimensions of the problem */
 
 using namespace Tahoe;
 
+/* spatial dimensions of the problem */
 const int kNSD = 3;
 
 /* useful constant */
@@ -31,8 +29,8 @@ static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"}
 const bool XTAL_MESSAGES = true;
 const int IPprnt = 1;
 
-LocalCrystalPlastFp::LocalCrystalPlastFp(ifstreamT& in, const FiniteStrainT& element) :
-  PolyCrystalMatT(in, element),  
+LocalCrystalPlastFp::LocalCrystalPlastFp(ifstreamT& in, const FDMatSupportT& support) :
+  PolyCrystalMatT(in, support),  
 
   // penalty parameter for detFp
   fPenalty (1.0e+0),
@@ -150,7 +148,7 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
   LoadAggregateData(element, intpt);
 
   // compute state, stress and moduli 
-  if (fStatus == GlobalT::kFormRHS)
+  if (fFDMatSupport.RunState() == GlobalT::kFormRHS)
     {
       // reset iteration counter to check NLCSolver and state convergence
       if (CurrIP() == 0) 
@@ -182,8 +180,8 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
                 fElasticity->ComputeModuli(fcBar_ijkl);
 
 	  // compute crystal Cauchy stress (elastic predictor at first iteration)
-          if (ContinuumElement().ElementSupport().StepNumber() >= 1 &&
-	          ContinuumElement().ElementSupport().IterationNumber() <= -1)
+          if (fFDMatSupport.StepNumber() >= 1 &&
+	          fFDMatSupport.IterationNumber() <= -1)
 	     {
 	       // defomation gradient
                fMatx1.SetToCombination(1., fFtot, -1., fFtot_n);
@@ -270,8 +268,8 @@ const dMatrixT& LocalCrystalPlastFp::c_ijkl()
               fElasticity->ComputeModuli(fcBar_ijkl);
 
 	// compute consistent tangent (elastic predictor at fisrt iteration)
-        if (ContinuumElement().ElementSupport().StepNumber() >= 1 &&
-	        ContinuumElement().ElementSupport().IterationNumber() <= 0)
+        if (fFDMatSupport.StepNumber() >= 1 &&
+	        fFDMatSupport.IterationNumber() <= 0)
 	    {
                // elastic crystal stiffness
                FFFFC_3D(fc_ijkl, fcBar_ijkl, fFe);
@@ -464,7 +462,7 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
   // cout << "    fsavg_ij = " << endl << fsavg_ij << endl;
   // cout << "    fAvgStress = " << endl << fAvgStress << endl;
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
-     cerr << " step # " << ContinuumElement().ElementSupport().StepNumber() 
+     cerr << " step # " << fFDMatSupport.StepNumber() 
           << "    S_eq_avg = " 
           << sqrt(fSymMatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 
 
@@ -473,8 +471,8 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
   output[2] = fIterState;
 
   // compute texture of aggregate, if requested
-  const int& step = ContinuumElement().ElementSupport().StepNumber();
-  const int& nsteps = ContinuumElement().ElementSupport().NumberOfSteps();
+  int step = fFDMatSupport.StepNumber();
+  int nsteps = fFDMatSupport.NumberOfSteps();
 
   if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
     {
@@ -1068,6 +1066,7 @@ void LocalCrystalPlastFp::InitialEstimateForHardening()
   const dArrayT& propH = fHardening->MaterialProperties();
   const dArrayT& propKE = fKinetics->MaterialProperties();
   double m = propKE[0];
+  double time = fFDMatSupport.Time();
 
   // some local tensors
   dSymMatrixT fCeDot (kNSD);
@@ -1113,7 +1112,7 @@ void LocalCrystalPlastFp::InitialEstimateForHardening()
       fA[i].ToMatrix(fMatx2);
 
       double tmp =  2. * fdt * dArrayT::Dot(fMatx2, fMatx3);
-      if (ftime >= 0.0) 
+      if (time >= 0.0) 
       //if (ftime <= fdt)
         fDGamma[i] = tmp;
       else
@@ -1127,7 +1126,7 @@ void LocalCrystalPlastFp::InitialEstimateForHardening()
 	   // (Z*SBar)_s+0.5*(Cijkl*(CeBar*Z)_s):(2*CeBar*Z)_s
 	   lhs(i,j) = dArrayT::Dot(fMatx2, fMatx1);
 
-	   if (ftime >= 0.0) {
+	   if (time >= 0.0) {
 	   //if (ftime <= fdt) {
 	      //if (i == j) lhs(i, j) += fHardening->HardeningModulus();
 	      if (i == j) lhs(i, j) += 1.;

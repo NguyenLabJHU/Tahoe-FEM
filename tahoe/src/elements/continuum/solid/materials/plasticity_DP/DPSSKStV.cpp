@@ -1,17 +1,16 @@
-/* $Id: DPSSKStV.cpp,v 1.18 2002-10-20 22:49:04 paklein Exp $ */
-/* created: myip (06/01/1999)                                             */
-
-
+/* $Id: DPSSKStV.cpp,v 1.19 2002-11-14 17:06:24 paklein Exp $ */
+/* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
+#include "SSMatSupportT.h"
+
 #include "ElementCardT.h"
 #include "StringT.h"
 #include "DetCheckT.h"
 #include <iostream.h>
 
-/* parameters */
-
 using namespace Tahoe;
 
+/* parameters */
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
@@ -31,8 +30,8 @@ static const char* Labels[kNumOutput] = {
 	    "nd3"}; // x3 component of normal n for discbif	    
 
 /* constructor */
-DPSSKStV::DPSSKStV(ifstreamT& in, const SmallStrainT& element):
-	SSStructMatT(in, element),
+DPSSKStV::DPSSKStV(ifstreamT& in, const SSMatSupportT& support):
+	SSStructMatT(in, support),
 	IsotropicT(in),
 	HookeanMatT(3),
 	DPSSLinHardT(in, NumIP(), Mu(), Lambda()),
@@ -133,7 +132,7 @@ const dSymMatrixT& DPSSKStV::s_ij(void)
 int DPSSKStV::IsLocalized(dArrayT& normal)
 {
         DetCheckT checker(fStress, fModulus);
-        checker.SetElementGroup(ContinuumElement());
+        checker.SetfStructuralMatSupport(fSSMatSupport);
 
         int loccheck= checker.IsLocalized(normal);
         return loccheck;

@@ -1,13 +1,13 @@
+/* $Id: GradJ2SSNonlinHard2D.cpp,v 1.3 2002-11-14 17:06:29 paklein Exp $ */
 #include "GradJ2SSNonlinHard2D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-GradJ2SSNonlinHard2D::GradJ2SSNonlinHard2D(ifstreamT& in, const SmallStrainT& element) :
-  GradJ2SSNonlinHard(in, element),  
+/* constructor */
+GradJ2SSNonlinHard2D::GradJ2SSNonlinHard2D(ifstreamT& in, const SSMatSupportT& support) :
+  GradJ2SSNonlinHard(in, support),  
   Material2DT(in, Material2DT::kPlaneStrain),
   fStress2D(2),
   fModulus2D(dSymMatrixT::NumValues(2)),

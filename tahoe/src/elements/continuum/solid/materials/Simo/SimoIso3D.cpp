@@ -1,16 +1,14 @@
-/* $Id: SimoIso3D.cpp,v 1.7 2002-10-20 22:48:50 paklein Exp $ */
-/* created: paklein (03/02/1997)                                          */
-
+/* $Id: SimoIso3D.cpp,v 1.8 2002-11-14 17:06:11 paklein Exp $ */
+/* created: paklein (03/02/1997) */
 #include "SimoIso3D.h"
 #include <iostream.h>
 #include <math.h>
 
-/* constructor */
-
 using namespace Tahoe;
 
-SimoIso3D::SimoIso3D(ifstreamT& in, const FiniteStrainT& element):
-	FDStructMatT(in, element),
+/* constructor */
+SimoIso3D::SimoIso3D(ifstreamT& in, const FDMatSupportT& support):
+	FDStructMatT(in, support),
 	IsotropicT(in),
 	fStress(3),
 	fModulus(dSymMatrixT::NumValues(3)),

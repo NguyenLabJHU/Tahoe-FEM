@@ -1,27 +1,20 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.4 2002-10-20 22:49:11 paklein Exp $ */
-/* created: paklein (10/02/1999)                                          */
-
+/* $Id: DiffusionMaterialT.cpp,v 1.5 2002-11-14 17:06:39 paklein Exp $ */
+/* created: paklein (10/02/1999) */
 #include "DiffusionMaterialT.h"
-
-#include <iostream.h>
+#include "DiffusionMatSupportT.h"
 
 #include "StringT.h"
 #include "fstreamT.h"
 #include "dArrayT.h"
 #include "dSymMatrixT.h"
 
-#include "LocalArrayT.h"
-#include "DiffusionT.h"
-
-/* constructor */
-
 using namespace Tahoe;
 
-DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionT& element):
-	ContinuumMaterialT(element),
-	fLocDisp(element.Displacements()),
+/* constructor */
+DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT& support):
+	ContinuumMaterialT(support),
+	fDiffusionMatSupport(support),
 	fConductivity(NumSD()),
-	fT_x(1, NumSD()),
 	fq_i(NumSD())
 {
 	in >> fDensity;		 if (fDensity <= 0.0) throw ExceptionT::kBadInputValue;
@@ -46,8 +39,7 @@ void DiffusionMaterialT::Print(ostream& out) const
 const dArrayT& DiffusionMaterialT::q_i(void)
 {
 	/* should be 1 row */
-	ContinuumElement().IP_ComputeGradient(fLocDisp, fT_x);
-	fConductivity.Multx(fT_x, fq_i);
+	fConductivity.Multx(fDiffusionMatSupport.Gradient(), fq_i);
 	return fq_i;
 }
 

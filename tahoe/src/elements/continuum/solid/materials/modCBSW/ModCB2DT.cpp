@@ -1,6 +1,5 @@
-/* $Id: ModCB2DT.cpp,v 1.6 2002-10-20 22:49:03 paklein Exp $ */
-/* created: paklein (05/31/1997)                                          */
-
+/* $Id: ModCB2DT.cpp,v 1.7 2002-11-14 17:06:23 paklein Exp $ */
+/* created: paklein (05/31/1997) */
 #include "ModCB2DT.h"
 
 #include <math.h>
@@ -12,19 +11,18 @@
 #include "ModCBSolverT.h"
 #include "dMatrixT.h"
 
-/* material parameters */
-
 using namespace Tahoe;
 
+/* material parameters */
 const int knsd = 2;
 
 const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-ModCB2DT::ModCB2DT(ifstreamT& in, const FiniteStrainT& element, bool equilibrate, 
+ModCB2DT::ModCB2DT(ifstreamT& in, const FDMatSupportT& support, bool equilibrate, 
 	PlaneCodeT plane_code):
-	NL_E_Mat2DT(in, element, kPlaneStrain),
+	NL_E_Mat2DT(in, support, kPlaneStrain),
 	fPlaneCode(plane_code),
 	fModCBSolver(NULL),
 	fCij3D(dSymMatrixT::NumValues(3)),

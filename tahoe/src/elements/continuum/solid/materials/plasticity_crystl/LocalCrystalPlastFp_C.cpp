@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp_C.cpp,v 1.5 2002-11-09 01:51:25 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp_C.cpp,v 1.6 2002-11-14 17:06:32 paklein Exp $ */
 #include "LocalCrystalPlastFp_C.h"
 #include "LatticeOrient.h"
 #include "CrystalElasticity.h"
@@ -6,22 +6,20 @@
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 #include "Utils.h"
-#include "ContinuumElementT.h"
-
-/* spatial dimensions of the problem */
+#include "ContinuumElementT.h" // needed for initial coordinates
 
 using namespace Tahoe;
 
+/* spatial dimensions of the problem */
 const int kNSD = 3; 
-
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
 const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"};
 
-LocalCrystalPlastFp_C::LocalCrystalPlastFp_C(ifstreamT& in, const FiniteStrainT& element) :
-  LocalCrystalPlastFp(in, element),
+LocalCrystalPlastFp_C::LocalCrystalPlastFp_C(ifstreamT& in, const FDMatSupportT& support) :
+  LocalCrystalPlastFp(in, support),
   fLocInitX (ContinuumElement().InitialCoordinates()),
   //fNNodes   (fLocInitX.NumberOfNodes()),  /* what is it wrong here? */
   //fLNa      (1, fNNodes),
@@ -78,7 +76,7 @@ const dSymMatrixT& LocalCrystalPlastFp_C::s_ij()
   LoadAggregateData(element, intpt);
 
   // compute state and stress at center of element
-  if (fStatus == GlobalT::kFormRHS && CurrIP() == 0)
+  if (fFDMatSupport.RunState() == GlobalT::kFormRHS && CurrIP() == 0)
     {
       // reset iteration counter to check NLCSolver
       fIterCount = 0;
@@ -111,7 +109,7 @@ const dSymMatrixT& LocalCrystalPlastFp_C::s_ij()
 
 
           // compute crystal Cauchy stress (elastic predictor at first iteration)
-          if (ContinuumElement().ElementSupport().IterationNumber() <= -1)
+          if (fFDMatSupport.IterationNumber() <= -1)
              {
                // defomation gradient
                fMatx1.SetToCombination(1., fFtot, -1., fFtot_n);
@@ -183,7 +181,7 @@ const dMatrixT& LocalCrystalPlastFp_C::c_ijkl()
                   fElasticity->ComputeModuli(fcBar_ijkl);
 
             // compute consistent tangent (elastic predictor at fisrt iteration)
-            if (ContinuumElement().ElementSupport().IterationNumber() <= 0)
+            if (fFDMatSupport.IterationNumber() <= 0)
                 {
                    // elastic crystal stiffness
                    FFFFC_3D(fc_ijkl, fcBar_ijkl, fFe);
@@ -281,7 +279,7 @@ void LocalCrystalPlastFp_C::ComputeOutput(dArrayT& output)
       // cout << "    fsavg_ij = " << endl << fsavg_ij << endl;
       // cout << "    fAvgStress = " << endl << fAvgStress << endl;
       if (elem == (NumElements()-1))
-         cerr << " step # " << ContinuumElement().ElementSupport().StepNumber()
+         cerr << " step # " << fFDMatSupport.StepNumber()
               << "    S_eq_avg = "
               << sqrt(fSymMatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23
               << "    Savg_12 = " << fAvgStress(0,1) << endl;
@@ -291,8 +289,8 @@ void LocalCrystalPlastFp_C::ComputeOutput(dArrayT& output)
       output[2] = fIterState;
 
       // compute texture of aggregate, if requested
-      const int& step = ContinuumElement().ElementSupport().StepNumber();
-      const int& nsteps = ContinuumElement().ElementSupport().NumberOfSteps();
+	int step = fFDMatSupport.StepNumber();
+	int nsteps = fFDMatSupport.NumberOfSteps();
 
       if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
 	{

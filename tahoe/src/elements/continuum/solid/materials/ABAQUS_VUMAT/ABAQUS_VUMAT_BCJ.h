@@ -1,5 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BCJ.h,v 1.4 2002-07-02 19:55:33 cjkimme Exp $ */
-
+/* $Id: ABAQUS_VUMAT_BCJ.h,v 1.5 2002-11-14 17:05:59 paklein Exp $ */
 #ifndef _ABAQUS_VUMAT_BCJ_H_
 #define _ABAQUS_VUMAT_BCJ_H_
 
@@ -9,7 +8,6 @@
 /* library support options */
 #ifdef __F2C__
 
-
 namespace Tahoe {
 
 class ABAQUS_VUMAT_BCJ: public ABAQUS_VUMAT_BaseT
@@ -17,7 +15,7 @@ class ABAQUS_VUMAT_BCJ: public ABAQUS_VUMAT_BaseT
 public:
 
 	/* constructor */
-	ABAQUS_VUMAT_BCJ(ifstreamT& in, const FiniteStrainT& element);
+	ABAQUS_VUMAT_BCJ(ifstreamT& in, const FDMatSupportT& support);
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: RG_NeoHookean2D.h,v 1.1 2002-10-04 23:59:01 thao Exp $ */
+/* $Id: RG_NeoHookean2D.h,v 1.2 2002-11-14 17:06:10 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #ifndef _RG_NeoHookean2D_
@@ -13,7 +13,7 @@ class RG_NeoHookean2D: public RG_VDSplit2D
   public:
 
 	/* constructor */
-	RG_NeoHookean2D(ifstreamT& in, const FiniteStrainT& element);
+	RG_NeoHookean2D(ifstreamT& in, const FDMatSupportT& support);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

@@ -1,6 +1,6 @@
-/* $Id: ParticleT.h,v 1.2 2002-10-20 22:48:27 paklein Exp $ */
-#ifndef _ROD_T_H_
-#define _ROD_T_H_
+/* $Id: ParticleT.h,v 1.3 2002-11-14 17:05:56 paklein Exp $ */
+#ifndef _PARTICLE_T_H_
+#define _PARTICLE_T_H_
 
 /* base class */
 #include "ElementBaseT.h"
@@ -30,7 +30,7 @@ public:
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 			
 	/* returns the energy as defined by the derived class types */
-	virtual double InternalEnergy(void);
+	virtual double InternalEnergy(void) { return 0.0; };
 	
 	/* writing output */
 	virtual void RegisterOutput(void);
@@ -58,17 +58,37 @@ protected: /* for derived classes only */
 	void ElementForce(double constKd);
 	void ElementStiffness(double constK);
 
-	/** return true if connectivities are changing */
-	virtual bool ChangingGeometry(void) const { return false; };
-
 protected:
 
 	/** reference ID for sending output */
 	int fOutputID;
 
+	/** \name particle attributes */
+	/*@{*/
+	dArrayT fMass;
+	
+	iArrayT fType;
+	/*@}*/
+	
+	/** \name cached calculated values */
+	/*@{*/
+	dArrayT fEnergy;
+
+	dArray2DT fForce;
+	/*@{*/
+	
+	/** \name group running averages.
+	 * Values are averages over {n1, n2,...,nN} steps */
+	/*@{*/
+	dArrayT fKE;
+	dArrayT fPE;
+	/*@}*/
+
 	/** local to global tag map. Neighborlists constructed using
 	 * group-local numbering */
 	iArrayT GlobalTag;
+
+	int fNumberLocalAtoms;
 
 private:
 
@@ -85,4 +105,4 @@ private:
 	/*@}*/
 };
 
-#endif /* _ROD_T_H_ */
+#endif /* _PARTICLE_T_H_ */

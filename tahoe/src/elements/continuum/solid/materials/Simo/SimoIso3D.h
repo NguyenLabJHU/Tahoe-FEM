@@ -1,9 +1,5 @@
-/* $Id: SimoIso3D.h,v 1.7 2002-10-20 22:48:50 paklein Exp $ */
-/* created: paklein (03/02/1997)                                          */
-/* Hyperelastic material governed by Simo's split volumetric/deviatoric   */
-/* stored energy function.                                                */
-/* Note: This material is inherently 3D.                                  */
-
+/* $Id: SimoIso3D.h,v 1.8 2002-11-14 17:06:11 paklein Exp $ */
+/* created: paklein (03/02/1997) */
 #ifndef _SIMO_ISO_3D_H_
 #define _SIMO_ISO_3D_H_
 
@@ -11,15 +7,18 @@
 #include "FDStructMatT.h"
 #include "IsotropicT.h"
 
-
 namespace Tahoe {
 
+/** hyperelastic material governed by Simo's split volumetric/deviatoric
+ * stored energy function.
+ * \note This material is inherently 3D
+ */
 class SimoIso3D: public FDStructMatT, public IsotropicT
 {
 public:
 
 	/* constructor */
-	SimoIso3D(ifstreamT& in, const FiniteStrainT& element);
+	SimoIso3D(ifstreamT& in, const FDMatSupportT& support);
 	
 	/* print parameters */
 	virtual void Print(ostream& out) const;

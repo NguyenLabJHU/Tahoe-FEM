@@ -1,7 +1,5 @@
-/* $Id: EAMFCC3DMatT.cpp,v 1.5 2002-10-20 22:48:39 paklein Exp $ */
-/* created: paklein (10/25/1998)                                          */
-/* Plane strain EAM material                                              */
-
+/* $Id: EAMFCC3DMatT.cpp,v 1.6 2002-11-14 17:06:01 paklein Exp $ */
+/* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT.h"
 
 #include <math.h>
@@ -13,18 +11,17 @@
 #include "EAMFCC3DSym.h"
 #include "dMatrixT.h"
 
-/* material parameters */
-
 using namespace Tahoe;
 
+/* material parameters */
 const int knsd = 3;
 
 const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-EAMFCC3DMatT::EAMFCC3DMatT(ifstreamT& in, const FiniteStrainT& element):
-	NL_E_MatT(in, element),
+EAMFCC3DMatT::EAMFCC3DMatT(ifstreamT& in, const FDMatSupportT& support):
+	NL_E_MatT(in, support),
 	fEAM(NULL)
 {
 	/* read parameters */

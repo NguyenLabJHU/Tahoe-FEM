@@ -1,7 +1,5 @@
-/* $Id: EAMFCC3DMatT.h,v 1.4 2002-07-05 22:28:10 paklein Exp $ */
-/* created: paklein (10/25/1998)                                          */
-/* Plane strain EAM material                                              */
-
+/* $Id: EAMFCC3DMatT.h,v 1.5 2002-11-14 17:06:01 paklein Exp $ */
+/* created: paklein (10/25/1998) */
 #ifndef _EAMFCC3DMatT_H_
 #define _EAMFCC3DMatT_H_
 
@@ -13,11 +11,12 @@ namespace Tahoe {
 /* forward declarations */
 class EAMFCC3DSym;
 
+/** plane strain EAM material */
 class EAMFCC3DMatT: public NL_E_MatT
 {
 public:
 
-	/* orientation codes - for crystal axes rotated wrt global axes*/
+	/** orientation codes - for crystal axes rotated wrt global axes*/
 	enum OrientationCodeT {
 	kFCC3Dnatural = 0,
 	    kFCC3D110 = 1,
@@ -26,7 +25,7 @@ public:
 	  kPrescribed = 4};
 
 	/* constructor */
-	EAMFCC3DMatT(ifstreamT& in, const FiniteStrainT& element);
+	EAMFCC3DMatT(ifstreamT& in, const FDMatSupportT& support);
 
 	/* destructor */
 	virtual ~EAMFCC3DMatT(void);

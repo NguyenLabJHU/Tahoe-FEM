@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.6 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.7 2002-11-14 17:05:51 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_T_H_
 #define _DIFFUSE_T_H_
@@ -18,6 +18,7 @@ namespace Tahoe {
 /* forward declarations */
 class ShapeFunctionT;
 class DiffusionMaterialT;
+class DiffusionMatSupportT;
 class StringT;
 
 /** linear diffusion element */
@@ -32,9 +33,17 @@ public:
 
 	/** constructor */
 	DiffusionElementT(const ElementSupportT& support, const FieldT& field);
+
+	/** destructor */
+	~DiffusionElementT(void);
 	
 	/** data initialization */
 	virtual void Initialize(void);
+
+	/** TEMPORARY. Need this extra call here to set the source for the iteration number
+	 * in SmallStrainT::fSSMatSupport. The solvers are not constructed when the material
+	 * support is initialized */
+	virtual void InitialCondition(void);
 
 	/** compute nodal force */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
@@ -70,15 +79,22 @@ protected:
 
 	/** increment current element */
 	virtual bool NextElement(void);	
-	
+
 	/** form the element stiffness matrix */
 	virtual void FormStiffness(double constK);
 
 	/** calculate the internal force contribution ("-k*d") */
 	virtual void FormKd(double constK);
 
-	/** return a pointer to a new material list */
-	virtual MaterialListT* NewMaterialList(int size) const;
+	/** construct a new material support and return a pointer. Recipient is responsible for
+	 * for freeing the pointer.
+	 * \param p an existing MaterialSupportT to be initialized. If NULL, allocate
+	 *        a new MaterialSupportT and initialize it. */
+	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
+
+	/** return a pointer to a new material list. Recipient is responsible for
+	 * for freeing the pointer. */
+	virtual MaterialListT* NewMaterialList(int size);
 
 	/** driver for calculating output values */
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
@@ -98,19 +114,31 @@ private:
 
 protected:
 
-	/* run time */
+	/** run time */
 	DiffusionMaterialT* fCurrMaterial;
 
-	/* arrays with local ordering */
-	LocalArrayT fLocVel; // "temperature rate"
+	/** "temperature rate" with local ordering */
+	LocalArrayT fLocVel;
 	
-	/* work space */
-	dMatrixT fD; /* constitutive matrix          */
-	dMatrixT fB; /* "strain-displacement" matrix */
-	dArrayT  fq; /* heat flow = k_ij T,j         */
+	/** \name work space */
+	/*@{*/
+	dMatrixT fD; /**< constitutive matrix          */
+	dMatrixT fB; /**< "strain-displacement" matrix */
+	dArrayT  fq; /**< heat flow = k_ij T,j         */
+	/*@}*/
 
-	/* parameters */
+	/** field gradients over the element. The gradients are only computed
+	 * an integration point at a time. */
+  	ArrayT<dArrayT> fGradient_list;
+
+	/** parameters */
 	static const int NumOutputCodes;
+
+private:
+
+  	/** the material support used to construct materials lists. This pointer
+  	 * is only set the first time DiffusionElementT::NewMaterialList is called. */
+	DiffusionMatSupportT* fDiffusionMatSupport;
 };
 
 } // namespace Tahoe 

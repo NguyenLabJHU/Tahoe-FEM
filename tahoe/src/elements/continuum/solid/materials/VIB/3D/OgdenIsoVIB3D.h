@@ -1,7 +1,5 @@
-/* $Id: OgdenIsoVIB3D.h,v 1.5 2002-07-05 22:28:18 paklein Exp $ */
-/* created: paklein (11/08/1997)                                          */
-/* 3D Isotropic VIB using Ogden's spectral formulation                    */
-
+/* $Id: OgdenIsoVIB3D.h,v 1.6 2002-11-14 17:06:17 paklein Exp $ */
+/* created: paklein (11/08/1997) */
 #ifndef _OGDEN_ISO_VIB_3D_H_
 #define _OGDEN_ISO_VIB_3D_H_
 
@@ -14,12 +12,13 @@ namespace Tahoe {
 /* forward declarations */
 class SpherePointsT;
 
+/** 3D Isotropic VIB using Ogden's spectral formulation */
 class OgdenIsoVIB3D: public OgdenIsotropicT, public VIB
 {
 public:
 
 	/* constructor */
-	OgdenIsoVIB3D(ifstreamT& in, const FiniteStrainT& element);
+	OgdenIsoVIB3D(ifstreamT& in, const FDMatSupportT& support);
 
 	/* destructor */
 	~OgdenIsoVIB3D(void);

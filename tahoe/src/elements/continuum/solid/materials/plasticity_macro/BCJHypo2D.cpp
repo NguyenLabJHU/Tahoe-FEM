@@ -1,19 +1,15 @@
-/*
-  File: BCJHypo2D.cpp
-*/
-
+/* $Id: BCJHypo2D.cpp,v 1.4 2002-11-14 17:06:36 paklein Exp $ */
 #include "BCJHypo2D.h"
 #include "ifstreamT.h"
 #include "Utils.h"
 
-/* spatial dimension of problem */
-
 using namespace Tahoe;
 
+/* spatial dimension of problem */
 const int kNSD = 2;
 
-BCJHypo2D::BCJHypo2D(ifstreamT& in, const FiniteStrainT& element) :
-  BCJHypo3D   (in, element),  
+BCJHypo2D::BCJHypo2D(ifstreamT& in, const FDMatSupportT& support) :
+  BCJHypo3D   (in, support),  
   Material2DT (in, Material2DT::kPlaneStrain),
   f2Ds_ij   (kNSD),
   f2Dc_ijkl (dSymMatrixT::NumValues(kNSD))

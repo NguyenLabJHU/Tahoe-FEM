@@ -1,17 +1,14 @@
-/* $Id: QuadLog2D.cpp,v 1.3 2002-07-02 19:55:50 cjkimme Exp $ */
-/* created: paklein (06/28/1997)                                          */
-/* (2D <-> 3D) translator for the QuadLog3D.                              */
-
+/* $Id: QuadLog2D.cpp,v 1.4 2002-11-14 17:06:11 paklein Exp $ */
+/* created: paklein (06/28/1997) */
 #include "QuadLog2D.h"
 #include <math.h>
 #include <iostream.h>
 
-/* constructor */
-
 using namespace Tahoe;
 
-QuadLog2D::QuadLog2D(ifstreamT& in, const FiniteStrainT& element):
-	QuadLog3D(in, element),
+/* constructor */
+QuadLog2D::QuadLog2D(ifstreamT& in, const FDMatSupportT& support):
+	QuadLog3D(in, support),
 	Material2DT(in, kPlaneStrain),
 	fb_2D(2),
 	fStress2D(2),

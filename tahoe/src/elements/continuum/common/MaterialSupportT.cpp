@@ -1,45 +1,90 @@
-/* $Id: MaterialSupportT.cpp,v 1.2 2002-07-02 19:56:04 cjkimme Exp $ */
-/* created: paklein (06/10/1997)                                          */
-
-#include "SSHookeanMatT.h"
-
-/* constructor */
+/* $Id: MaterialSupportT.cpp,v 1.3 2002-11-14 17:06:21 paklein Exp $ */
+#include "MaterialSupportT.h"
+#include "ContinuumElementT.h"
 
 using namespace Tahoe;
 
-SSHookeanMatT::SSHookeanMatT(ifstreamT& in, const SmallStrainT& element):
-	SSStructMatT(in, element),
-	HookeanMatT(NumSD()),
-	fStress(NumSD())
+/* constructor */
+MaterialSupportT::MaterialSupportT(int nsd, int ndof, int nip):
+	fNumSD(nsd),
+	fNumDOF(ndof),
+	fNumIP(nip),
+	fRunState(NULL),
+
+	/* sources for run time information */
+	fCurrIP(NULL),
+	fIterationNumber(NULL),
+	fTime(NULL),
+	fTimeStep(NULL),
+	fStepNumber(NULL),
+	fNumberOfSteps(NULL),
+
+	fElementCards(NULL),
+	fContinuumElement(NULL)
+{ 
+
+}
+ 
+/* destructor */
+MaterialSupportT::~MaterialSupportT(void)
 {
 
 }
 
-/* initialization */
-void SSHookeanMatT::Initialize(void)
+/* return a pointer to the specified LoadTime function */
+const ScheduleT* MaterialSupportT::Schedule(int num) const
 {
-	/* inherited */
-	SSStructMatT::Initialize();
-	HookeanMatT::Initialize();
+	if (fContinuumElement) 
+		return fContinuumElement->Schedule(num);
+	else
+		return NULL;
 }
 
-/* spatial description */
-const dMatrixT& SSHookeanMatT::c_ijkl(void) { return Modulus(); }
-const dSymMatrixT& SSHookeanMatT::s_ij(void)
+/* return a pointer the specified local array */
+const LocalArrayT* MaterialSupportT::LocalArray(LocalArrayT::TypeT t) const
 {
-	HookeanStress(e(), fStress);
-	return fStress;
+	/* no source */
+	if (!fContinuumElement) return NULL;
+
+	switch (t)
+	{
+		case LocalArrayT::kInitCoords:
+			return &(fContinuumElement->InitialCoordinates());
+	
+		case LocalArrayT::kDisp:
+			return &(fContinuumElement->Displacements());
+
+		default:
+			return NULL;
+	}
 }
 
-const dMatrixT& SSHookeanMatT::C_IJKL(void) { return Modulus(); }
-const dSymMatrixT& SSHookeanMatT::S_IJ(void)
+/* interpolate the given field to the current integration point */
+bool MaterialSupportT::Interpolate(const LocalArrayT& u, dArrayT& u_ip) const
 {
-	HookeanStress(e(), fStress);
-	return fStress;
+	if (!fContinuumElement) 
+	{
+		u_ip = 0.0;
+		return false;
+	}
+	else
+	{
+		fContinuumElement->IP_Interpolate(u, u_ip);
+		return true;
+	}
 }
 
-/* returns the strain energy density for the specified strain */
-double SSHookeanMatT::StrainEnergyDensity(void)
+/* interpolate the given field to the given integration point */
+bool MaterialSupportT::Interpolate(const LocalArrayT& u, dArrayT& u_ip, int ip) const
 {
-	return HookeanEnergy(e());
+	if (!fContinuumElement) 
+	{
+		u_ip = 0.0;
+		return false;
+	}
+	else
+	{
+		fContinuumElement->IP_Interpolate(u, u_ip, ip);
+		return true;
+	}
 }

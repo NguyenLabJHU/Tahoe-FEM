@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.16 2002-10-04 20:52:51 thao Exp $
+# $Id: makefile,v 1.17 2002-11-14 17:05:56 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -21,6 +21,9 @@ DEP = /dev/null
 
 # subdirectories
 SUB_DIR = \
+	primitives \
+	managers \
+	interfaces \
 	ABAQUS_UMAT \
 	ABAQUS_VUMAT \
 	CB \
@@ -28,13 +31,11 @@ SUB_DIR = \
 	elasticity_crystl \
 	fossum \
 	Hookean \
-	managers \
 	modCBSW \
 	Ogden \
 	plasticity_DP \
 	plasticity_J2 \
-        plasticity_J2NlHard \
-	primitives \
+	plasticity_J2NlHard \
 	rod \
 	Simo \
 	VIB \

@@ -1,4 +1,4 @@
-/* $Id: FDHookeanMatT.h,v 1.5 2002-10-05 20:04:11 paklein Exp $ */
+/* $Id: FDHookeanMatT.h,v 1.6 2002-11-14 17:06:02 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _FD_HOOKEAN_MAT_H_
 #define _FD_HOOKEAN_MAT_H_
@@ -7,7 +7,6 @@
 #include "FDStructMatT.h"
 #include "HookeanMatT.h"
 
-
 namespace Tahoe {
 
 class FDHookeanMatT: public FDStructMatT, public HookeanMatT
@@ -15,7 +14,7 @@ class FDHookeanMatT: public FDStructMatT, public HookeanMatT
 public:
 
 	/* constructor */
-	FDHookeanMatT(ifstreamT& in, const FiniteStrainT& element);
+	FDHookeanMatT(ifstreamT& in, const FDMatSupportT& support);
 
 	/* initialization */
 	virtual void Initialize(void);

@@ -1,7 +1,4 @@
-/*
-  File: BCJHypoIsoDamageYC2D.h
-*/
-
+/* $Id: BCJHypoIsoDamageYC2D.h,v 1.3 2002-11-14 17:06:36 paklein Exp $ */
 #ifndef _BCJ_HYPO_ISO_DAMAGE_YC_2D_H_
 #define _BCJ_HYPO_ISO_DAMAGE_YC_2D_H_
 
@@ -12,7 +9,6 @@
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 
-
 namespace Tahoe {
 
 class ifstreamT;
@@ -22,7 +18,7 @@ class BCJHypoIsoDamageYC2D : public BCJHypoIsoDamageYC3D, public Material2DT
 {
  public:
   // constructor
-  BCJHypoIsoDamageYC2D(ifstreamT& in, const FiniteStrainT& element);
+  BCJHypoIsoDamageYC2D(ifstreamT& in, const FDMatSupportT& support);
 
   // destructor
   ~BCJHypoIsoDamageYC2D();

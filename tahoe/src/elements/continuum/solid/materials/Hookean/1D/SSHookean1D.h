@@ -1,3 +1,4 @@
+/* $Id: SSHookean1D.h,v 1.4 2002-11-14 17:06:03 paklein Exp $ */
 #ifndef _SS_HOOKEAN_1D_H_
 #define _SS_HOOKEAN_1D_H_
 
@@ -11,8 +12,8 @@ class SSHookean1D: public SSHookeanMatT, public IsotropicT
 {
 public:
 
-	/* constructor */
-	SSHookean1D(ifstreamT& in, const SmallStrainT& element);
+	/** constructor */
+	SSHookean1D(ifstreamT& in, const SSMatSupportT& support);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

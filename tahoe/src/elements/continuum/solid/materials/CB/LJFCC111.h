@@ -1,12 +1,10 @@
-/* $Id: LJFCC111.h,v 1.3 2002-07-02 19:55:33 cjkimme Exp $ */
-/* created: paklein (07/31/1996)                                          */
-
+/* $Id: LJFCC111.h,v 1.4 2002-11-14 17:06:00 paklein Exp $ */
+/* created: paklein (07/31/1996) */
 #ifndef _LJFCC111_H_
 #define _LJFCC111_H_
 
 /* base class */
 #include "NL_E_RotMat2DT.h"
-
 
 namespace Tahoe {
 
@@ -15,7 +13,7 @@ class LJFCC111: public NL_E_RotMat2DT
 public:
 
 	/* constructor */
-	LJFCC111(ifstreamT& in, const FiniteStrainT& element);
+	LJFCC111(ifstreamT& in, const FDMatSupportT& support);
 	
 	/* print parameters */
 	virtual void Print(ostream& out) const;

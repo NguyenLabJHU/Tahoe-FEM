@@ -1,7 +1,4 @@
-/*
-  File: LocalCrystalPlastFp_C.h
-*/
-
+/* $Id: LocalCrystalPlastFp_C.h,v 1.3 2002-11-14 17:06:32 paklein Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_FP_C_H_
 #define _LOCAL_CRYSTAL_PLAST_FP_C_H_
 
@@ -14,7 +11,6 @@
 #include "dArray2DT.h"
 #include "LocalArrayT.h"
 
-
 namespace Tahoe {
 
 class ifstreamT;
@@ -26,7 +22,7 @@ class LocalCrystalPlastFp_C : public LocalCrystalPlastFp
 {
  public:
   // constructor
-  LocalCrystalPlastFp_C(ifstreamT& in, const FiniteStrainT& element);
+  LocalCrystalPlastFp_C(ifstreamT& in, const FDMatSupportT& support);
 
   // destructor
   ~LocalCrystalPlastFp_C();
