@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.62.2.1 2003-09-10 17:56:36 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.62.2.2 2003-09-17 01:31:23 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -25,6 +25,9 @@
 #include "CSEAnisoT.h"
 #include "MeshFreeCSEAnisoT.h"
 #include "ThermalSurfaceT.h"
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+#include "RigidCSEAnisoT.h"
+#endif
 #endif
 
 #ifdef CONTINUUM_ELEMENT
@@ -424,13 +427,19 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				out << "    eq. " << CSEBaseT::Isotropic   << ", isotropic\n";
 				out << "    eq. " << CSEBaseT::Anisotropic << ", anisotropic\n";
 				out << "    eq. " << CSEBaseT::NoRotateAnisotropic << ", fixed-frame anisotropic\n";
-
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+				out << "    eq. " << CSEBaseT::RigidAnisotropic << ", anisotropic with rigid constraints\n";
+#endif
 				if (CSEcode == CSEBaseT::Isotropic)
 					fArray[group] = new CSEIsoT(fSupport, *field);	
 				else if (CSEcode == CSEBaseT::Anisotropic)
 					fArray[group] = new CSEAnisoT(fSupport, *field, true);
 				else if (CSEcode == CSEBaseT::NoRotateAnisotropic)
 					fArray[group] = new CSEAnisoT(fSupport, *field, false);
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+				else if (CSEcode == CSEBaseT::RigidAnisotropic)
+					fArray[group] = new RigidCSEAnisoT(fSupport, *field, false);
+#endif
 				else
 				{
 					ExceptionT::BadInputValue(caller, "unknown CSE formulation: %d", CSEcode);
