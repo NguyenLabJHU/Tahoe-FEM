@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.h,v 1.5 2002-07-05 22:27:59 paklein Exp $ */
+/* $Id: CSEIsoT.h,v 1.6 2002-11-26 00:17:34 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ISO_T_H_
@@ -22,8 +22,12 @@ class CSEIsoT: public CSEBaseT
 {
 public:
 
+#ifndef _SIERRA_TEST_
 	/* constructor */
 	CSEIsoT(const ElementSupportT& support, const FieldT& field);
+#else
+	CSEIsoT(const ElementSupportT& support);
+#endif
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;

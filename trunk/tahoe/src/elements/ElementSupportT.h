@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.12 2002-11-25 07:24:07 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.13 2002-11-26 00:17:33 cjkimme Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -37,7 +37,6 @@ class iArrayT;
 class ScheduleT;
 class StringT;
 class OutputSetT;
-class dArray2DT;
 class LocalArrayT;
 
 
@@ -114,6 +113,22 @@ public:
 	dArrayT& Residual(void) const { return *fResidual; };
 	
 	dMatrixT& Stiffness(void) const { return *fStiffness; };
+	
+	void SetInput(map<string,double>& inputParams);
+	
+	void Setfmap(map<string,double>& inputDoubles);
+	
+	void Setimap(map<string,int>& inputInts);
+	
+//	const map<string,double>& ReturnInputDouble(void) const { return fmap; };
+	
+	double ReturnInputDouble(string label);
+	
+	int ReturnInputInt(string label);
+	
+	double *StateVariableArray(void);
+	
+	void SetStateVariableArray(double *incomingArray);
 
 #endif // def _SIERRA_TEST_
 
@@ -315,10 +330,14 @@ private:
 	ofstreamT *ofst;
 	
 	double *fparams;
+	map<string,double> fmap;
+	map<string,int> imap;
 	
 	int *iparams;
 
 	iArrayT *ieqnos;
+	
+	double *fStateVars;
 
 #endif
 	
