@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.7 2002-10-20 22:49:40 paklein Exp $ */
+/* $Id: MLSSolverT.h,v 1.8 2003-05-23 23:01:41 paklein Exp $ */
 /* created: paklein (12/08/1999) */
 
 #ifndef _MLS_SOLVER_T_H_
@@ -21,7 +21,9 @@ namespace Tahoe {
 /* forward declarations */
 class BasisT;
 
-/** class to calculate MLS shape functions and derivatives */
+/** class to calculate MLS shape functions and derivatives. Before
+ * MLSSolverT::SetField can used to calculate MLS functions, MLSSolverT::Initialize
+ * must be called to initialize some internal work space */
 class MLSSolverT
 {
 public:
