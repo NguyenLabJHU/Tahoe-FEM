@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.32.2.2 2003-05-25 16:14:35 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.32.2.3 2003-06-25 00:41:06 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -525,6 +525,25 @@ out << "\n residual =\n" << projection << endl;
 		fGlobalMass.Solve(u_tmp);
 		projection.SetColumn(i, u_tmp);
 	}
+	
+	/* write projected MD values into FEM field */
+	//ofstream project, fedisp1, fedisp2;
+	//project.open("project.dat");
+	//project.precision(13);
+	//fedisp1.open("fedisp1.dat");
+	//fedisp2.open("fedisp2.dat");
+
+	//for (int i = 0; i < projection.MajorDim(); i++)
+	//{
+	//project << i+1 << " " << 2 << " " << 1 << " " << projection(i,1) << endl;
+	//fedisp1 << "*set" << endl;
+	//fedisp1 << 1 << endl;
+	//fedisp1 << cell_nodes[i] + 1 << endl;
+	//fedisp2 << i+1 << " " << 1 << endl;
+	//}
+	//project.close();
+	//fedisp1.close();
+	//fedisp2.close();
 	u_tmp.Free();
 
 	/* initialize return values */
@@ -584,7 +603,7 @@ void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT
 	/* projected part of the mesh */
 	const iArrayT& cell_nodes = cell_data.CellNodes();
 	const iArray2DT& cell_connects = cell_data.CellConnectivities();
-
+	
 	/* points in cell data */
 	const RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
 	const dArray2DT& weights = cell_data.InterpolationWeights();
@@ -647,6 +666,7 @@ out << "\n residual =\n" << projection << endl;
 		fGlobalMass.Solve(u_tmp);
 		projection.SetColumn(i, u_tmp);
 	}
+
 	u_tmp.Free();
 
 	/* initialize return values */
@@ -664,6 +684,11 @@ out << "\n residual =\n" << projection << endl;
 	cell_dex = 0;
 	iArrayT cell_connect;
 	dArray2DT cell_projection(cell_connects.MinorDim(), projection.MinorDim());
+
+	/* element group information */
+	const ContinuumElementT* continuum = cell_data.ContinuumElement();
+	const iArrayT& cell = cell_data.InterpolatingCell();
+
 	for (int i = 0; i < point_in_cell.MajorDim(); i++)
 	{
 		int np = point_in_cell.MinorDim(i);
@@ -672,9 +697,13 @@ out << "\n residual =\n" << projection << endl;
 			/* gather cell information */
 			cell_connects.RowAlias(cell_dex++, cell_connect);
 			cell_projection.RowCollect(cell_connect, projection);
-			coarse.RowCollect(cell_connect, fedisp);
-		
+				
+			/* element info */
 			int* points = point_in_cell(i);
+			const ElementCardT& element_card = continuum->ElementCard(cell[points[0]]);
+			const iArrayT& fenodes = element_card.NodesU();
+			coarse.RowCollect(fenodes, fedisp);  
+		
 			for (int j = 0; j < np; j++)
 			{
 				int point = points[j];
