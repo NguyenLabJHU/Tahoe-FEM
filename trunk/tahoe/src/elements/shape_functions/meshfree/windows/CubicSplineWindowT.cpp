@@ -115,50 +115,50 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
 	{
 	  /* check x-direction */
 	  if ((rx >= -2) && (rx < -1))
-	    DDw[0] = wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (2 + rx);
+	    DDw[0] = wy / (param_n[0] * param_n[0] * param_n[0]) * (2 + rx);
 	  else if ((rx >= -1) && (rx < 0))
-	    DDw[0] = - wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (2 + 3 * rx);
+	    DDw[0] = - wy / (param_n[0] * param_n[0] * param_n[0]) * (2 + 3 * rx);
 	  else if ((rx >= 0) && (rx < 1))
-	    DDw[0] = - wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (2 - 3 * rx);
+	    DDw[0] = - wy / (param_n[0] * param_n[0] * param_n[0]) * (2 - 3 * rx);
 	  else if ((rx >= 1) && (rx <= 2))
-	    DDw[0] = wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (2 - rx);
+	    DDw[0] = wy / (param_n[0] * param_n[0] * param_n[0]) * (2 - rx);
 	  else
 	    DDw[0] = 0.0;
 	  
 	  /* check y-direction */
 	  if ((ry >= -2) && (ry < -1))
-	    DDw[1] = wx / (param_n[0]* param_n[0]* param_n[0]* param_n[0]) * (2 + ry);
+	    DDw[1] = wx / (param_n[0] * param_n[0] * param_n[0]) * (2 + ry);
 	  else if ((ry >= -1) && (ry < 0))
-	    DDw[1] = - wx / (param_n[0]* param_n[0]* param_n[0]* param_n[0]) * (2 + 3 * ry);
+	    DDw[1] = - wx / (param_n[0] * param_n[0] * param_n[0]) * (2 + 3 * ry);
 	  else if ((ry >= 0) && (ry < 1))
-	    DDw[1] = - wx / (param_n[0]* param_n[0]* param_n[0]* param_n[0]) * (2 - 3 * ry);
+	    DDw[1] = - wx / (param_n[0] * param_n[0] * param_n[0]) * (2 - 3 * ry);
 	  else if ((ry >= 1) && (ry <= 2))
-	    DDw[1] = wx / (param_n[0]* param_n[0]* param_n[0]* param_n[0]) * (2 - ry);
+	    DDw[1] = wx / (param_n[0] * param_n[0] * param_n[0]) * (2 - ry);
 	  else
 	    DDw[1] = 0.0;
 	}
 
 	/* check x-direction */
 	if ((rx >= -2) && (rx < -1))
-	  Dw[0] = - .5 * wy / (param_n[0] * param_n[0] * param_n[0]) * (2 + rx) * (2 + rx);
+	  Dw[0] = - .5 * wy / (param_n[0] * param_n[0]) * (2 + rx) * (2 + rx);
 	else if ((rx >= -1) && (rx < 0))
-	  Dw[0] = wy / (param_n[0] * param_n[0] * param_n[0]) * (2 * rx + 1.5 * rx * rx);
+	  Dw[0] = wy / (param_n[0] * param_n[0]) * (2 * rx + 1.5 * rx * rx);
 	else if ((rx >= 0) && (rx < 1))
-	  Dw[0] = wy / (param_n[0] * param_n[0] * param_n[0]) * (2 * rx - 1.5 * rx * rx);
+	  Dw[0] = wy / (param_n[0] * param_n[0]) * (2 * rx - 1.5 * rx * rx);
 	else if ((rx >= 1) && (rx <= 2))
-	  Dw[0] = .5 * wy / (param_n[0] * param_n[0] * param_n[0]) * (2 - rx) * (2 - rx);
+	  Dw[0] = .5 * wy / (param_n[0] * param_n[0]) * (2 - rx) * (2 - rx);
 	else
 	  Dw[0] = 0.0;
 	  
 	  /* check y-direction */
 	if ((ry >= -2) && (ry < -1))
-	  Dw[1] = - .5 * wx / (param_n[0]* param_n[0]* param_n[0]) * (2 + ry) * (2 + ry);
+	  Dw[1] = - .5 * wx / (param_n[0] * param_n[0]) * (2 + ry) * (2 + ry);
 	else if ((ry >= -1) && (ry < 0))
-	  Dw[1] = wx / (param_n[0]* param_n[0]* param_n[0]) * (2 * ry + 1.5 * ry * ry);
+	  Dw[1] = wx / (param_n[0] * param_n[0]) * (2 * ry + 1.5 * ry * ry);
 	else if ((ry >= 0) && (ry < 1))
-	  Dw[1] = wx / (param_n[0]* param_n[0]* param_n[0]) * (2 * ry - 1.5 * ry * ry);
+	  Dw[1] = wx / (param_n[0] * param_n[0]) * (2 * ry - 1.5 * ry * ry);
 	else if ((ry >= 1) && (ry <= 2))
-	  Dw[1] = .5 * wx / (param_n[0]* param_n[0]* param_n[0]) * (2 - ry) * (2 - ry);
+	  Dw[1] = .5 * wx / (param_n[0] * param_n[0]) * (2 - ry) * (2 - ry);
 	else
 	  Dw[1] = 0.0;
       }
@@ -213,74 +213,74 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
 	{
 	  /* check x-direction */
 	  if ((rx >= -2) && (rx < -1))
-	    DDw[0] = wy * wz / (param_n[0] * param_n[0] * param_n[0] * param_n[0]* param_n[0]) * (2 + rx);
+	    DDw[0] = wy * wz / (param_n[0] * param_n[0] * param_n[0]) * (2 + rx);
 	  else if ((rx >= -1) && (rx < 0))
-	    DDw[0] = - wy * wz / (param_n[0] * param_n[0] * param_n[0] * param_n[0]* param_n[0]) * (2 + 3 * rx);
+	    DDw[0] = - wy * wz / (param_n[0] * param_n[0] * param_n[0]) * (2 + 3 * rx);
 	  else if ((rx >= 0) && (rx < 1))
-	    DDw[0] = - wy * wz / (param_n[0] * param_n[0] * param_n[0] * param_n[0]* param_n[0]) * (2 - 3 * rx);
+	    DDw[0] = - wy * wz / (param_n[0] * param_n[0] * param_n[0]) * (2 - 3 * rx);
 	  else if ((rx >= 1) && (rx <= 2))
-	    DDw[0] = wy * wz / (param_n[0] * param_n[0] * param_n[0] * param_n[0]* param_n[0]) * (2 - rx);
+	    DDw[0] = wy * wz / (param_n[0] * param_n[0] * param_n[0]) * (2 - rx);
 	  else
 	    DDw[0] = 0.0;
 	  
 	  /* check y-direction */
 	  if ((ry >= -2) && (ry < -1))
-	    DDw[1] = wx * wz / (param_n[0]* param_n[0]* param_n[0]* param_n[0] * param_n[0]) * (2 + ry);
+	    DDw[1] = wx * wz / (param_n[0] * param_n[0] * param_n[0]) * (2 + ry);
 	  else if ((ry >= -1) && (ry < 0))
-	    DDw[1] = - wx * wz / (param_n[0]* param_n[0]* param_n[0]* param_n[0] * param_n[0]) * (2 + 3 * ry);
+	    DDw[1] = - wx * wz / (param_n[0] * param_n[0] * param_n[0]) * (2 + 3 * ry);
 	  else if ((ry >= 0) && (ry < 1))
-	    DDw[1] = - wx * wz / (param_n[0]* param_n[0]* param_n[0]* param_n[0] * param_n[0]) * (2 - 3 * ry);
+	    DDw[1] = - wx * wz / (param_n[0] * param_n[0] * param_n[0]) * (2 - 3 * ry);
 	  else if ((ry >= 1) && (ry <= 2))
-	    DDw[1] = wx * wz / (param_n[0]* param_n[0]* param_n[0]* param_n[0] * param_n[0]) * (2 - ry);
+	    DDw[1] = wx * wz / (param_n[0] * param_n[0] * param_n[0]) * (2 - ry);
 	  else
 	    DDw[1] = 0.0;
 
 	  /* check z-direction */
 	  if ((rz >= -2) && (rz < -1))
-	    DDw[2] = wx * wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (2 + rz);
+	    DDw[2] = wx * wy / (param_n[0] * param_n[0] * param_n[0]) * (2 + rz);
 	  else if ((rz >= -1) && (rz < 0))
-	    DDw[2] = - wx * wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (2 + 3 * rz);
+	    DDw[2] = - wx * wy / (param_n[0] * param_n[0] * param_n[0]) * (2 + 3 * rz);
 	  else if ((rz >= 0) && (rz < 1))
-	    DDw[2] = - wx * wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (2 - 3 * rz);
+	    DDw[2] = - wx * wy / (param_n[0] * param_n[0] * param_n[0]) * (2 - 3 * rz);
 	  else if ((rz >= 1) && (rz <= 2))
-	    DDw[2] = wx * wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (2 - rz);
+	    DDw[2] = wx * wy / (param_n[0] * param_n[0] * param_n[0]) * (2 - rz);
 	  else
 	    DDw[2] = 0.0;
 	}
 
 	/* check x-direction */
 	if ((rx >= -2) && (rx < -1))
-	  Dw[0] = - .5 * wy * wz / (param_n[0] * param_n[0] * param_n[0]* param_n[0]) * (2 + rx) * (2 + rx);
+	  Dw[0] = - .5 * wy * wz / (param_n[0] * param_n[0]) * (2 + rx) * (2 + rx);
 	else if ((rx >= -1) && (rx < 0))
-	  Dw[0] = wy * wz / (param_n[0] * param_n[0] * param_n[0]* param_n[0]) * (2 * rx + 1.5 * rx * rx);
+	  Dw[0] = wy * wz / (param_n[0] * param_n[0]) * (2 * rx + 1.5 * rx * rx);
 	else if ((rx >= 0) && (rx < 1))
-	  Dw[0] = wy * wz / (param_n[0] * param_n[0] * param_n[0]* param_n[0]) * (2 * rx - 1.5 * rx * rx);
+	  Dw[0] = wy * wz / (param_n[0] * param_n[0]) * (2 * rx - 1.5 * rx * rx);
 	else if ((rx >= 1) && (rx <= 2))
-	  Dw[0] = .5 * wy * wz / (param_n[0] * param_n[0] * param_n[0]* param_n[0]) * (2 - rx) * (2 - rx);
+	  Dw[0] = .5 * wy * wz / (param_n[0] * param_n[0]) * (2 - rx) * (2 - rx);
 	else
 	  Dw[0] = 0.0;
 	
 	/* check y-direction */
 	if ((ry >= -2) && (ry < -1))
-	  Dw[1] = - .5 * wx * wz / (param_n[0]* param_n[0]* param_n[0] * param_n[0]) * (2 + ry) * (2 + ry);
+	  Dw[1] = - .5 * wx * wz / (param_n[0] * param_n[0]) * (2 + ry) * (2 + ry);
 	else if ((ry >= -1) && (ry < 0))
-	  Dw[1] = wx * wz / (param_n[0]* param_n[0]* param_n[0] * param_n[0]) * (2 * ry + 1.5 * ry * ry);
+	  Dw[1] = wx * wz / (param_n[0] * param_n[0]) * (2 * ry + 1.5 * ry * ry);
 	else if ((ry >= 0) && (ry < 1))
-	  Dw[1] = wx * wz / (param_n[0]* param_n[0]* param_n[0] * param_n[0]) * (2 * ry - 1.5 * ry * ry);
+	  Dw[1] = wx * wz / (param_n[0] * param_n[0]) * (2 * ry - 1.5 * ry * ry);
 	else if ((ry >= 1) && (ry <= 2))
-	  Dw[1] = .5 * wx * wz / (param_n[0]* param_n[0]* param_n[0] * param_n[0]) * (2 - ry) * (2 - ry);
+	  Dw[1] = .5 * wx * wz / (param_n[0] * param_n[0]) * (2 - ry) * (2 - ry);
 	else
 	  Dw[1] = 0.0;
 
 	/* check z-direction */
 	if ((rz >= -2) && (rz < -1))
-	  Dw[2] = - .5 * wx * wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (2 + rz) * (2 + rz);
+	  Dw[2] = - .5 * wx * wy / (param_n[0] * param_n[0]) * (2 + rz) * (2 + rz);
 	else if ((rz >= -1) && (rz < 0))
-	  Dw[2] = wx * wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (2 * rz + 1.5 * rz * rz);
+	  Dw[2] = wx * wy / (param_n[0] * param_n[0]) * (2 * rz + 1.5 * rz * rz);
 	else if ((rz >= 0) && (rz < 1))
-	  Dw[2] = wx * wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (2 * rz - 1.5 * rz * rz);
+	  Dw[2] = wx * wy / (param_n[0] * param_n[0]) * (2 * rz - 1.5 * rz * rz);
 	else if ((rz >= 1) && (rz <= 2))
-	  Dw[2] = .5 * wx * wy / (param_n[0] * param_n[0] * param_n[0] * param_n[0]) * (2 - rz) * (2 - rz);
+	  Dw[2] = .5 * wx * wy / (param_n[0] * param_n[0]) * (2 - rz) * (2 - rz);
 	else
 	  Dw[2] = 0.0;
       }
