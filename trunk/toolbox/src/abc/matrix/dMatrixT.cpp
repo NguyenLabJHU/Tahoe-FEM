@@ -1,10 +1,11 @@
-/* $Id: dMatrixT.cpp,v 1.2 2001-06-20 17:00:48 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.3 2001-06-23 00:53:45 thao Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "dMatrixT.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include "Constants.h"
+#include "dSymMatrixT.h"
 
 /* copy behavior for arrays of dMatrixT's */
 const bool ArrayT<dMatrixT*>::fByteCopy = true;
@@ -254,7 +255,42 @@ dMatrixT& dMatrixT::Transpose(void)
 
 	return *this;
 }
+//Created by TDN: 03/4/01.  Multiplies a symmetric matrix A with nonsymmetric matrix B.
+//Used to calculate Calg.
 
+void dMatrixT::MultSymAB(const dSymMatrixT& A, const dMatrixT& B)
+{
+	/* dimension checks */
+#if __option (extended_errorcheck)
+	if (fRows != fCols ||
+		fCols != A.Rows() ||
+	  	A.Rows() != B.Rows() ||
+	  	B.Rows() != B.Cols()) throw eSizeMismatch; 
+	if(fCols < 2 || fCols > 3) throw eGeneralFail;
+#endif		   
+	double* pB = B.Pointer();
+	double* pA = A.Pointer();
+	if (fCols == 2)
+	{
+		fArray[0] = pA[0]*pB[0]+pA[2]*pB[1];
+		fArray[3] = pA[2]*pB[2]+pA[1]*pB[3];
+		fArray[2] = pA[0]*pB[2]+pA[2]*pB[3];
+		fArray[1] = pA[2]*pB[0]+pA[1]*pB[1];
+	}
+	else
+	{
+		fArray[0] = pA[0]*pB[0]+pA[5]*pB[1]+pA[4]*pB[2];
+		fArray[4] = pA[5]*pB[3]+pA[1]*pB[4]+pA[3]*pB[5];
+		fArray[8] = pA[4]*pB[6]+pA[3]*pB[7]+pA[2]*pB[8];
+		/*the following enforces the symmetry of C*/
+		fArray[7] = pA[5]*pB[6]+pA[1]*pB[7]+pA[3]*pB[8];
+		fArray[5] = pA[4]*pB[3]+pA[3]*pB[4]+pA[2]*pB[5];
+		fArray[6] = pA[0]*pB[6]+pA[5]*pB[7]+pA[4]*pB[8];
+		fArray[2] = pA[4]*pB[0]+pA[3]*pB[1]+pA[2]*pB[2];
+		fArray[3] =	pA[0]*pB[3]+pA[5]*pB[4]+pA[4]*pB[5];
+		fArray[1] = pA[5]*pB[0]+pA[1]*pB[1]+pA[3]*pB[2];
+	}
+}
 /***********************************************
 *
 * Symmetric matrix specializations
