@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.6 2001-07-06 18:58:25 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.7 2001-07-06 19:30:19 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -250,7 +250,8 @@ void MeshFreeSupportT::SetNeighborData(void)
 {
 	/* data and nodal shape functions */
 	cout << " MeshFreeSupportT::SetNeighborData: setting nodal data" << endl;
-	SetNodeNeighborData(fCoords);
+//	SetNodeNeighborData(fCoords);
+	SetNodeNeighborData_2(fCoords);
 
 	/* data and element integration point shape functions */
 	cout << " MeshFreeSupportT::SetNeighborData: setting integration point data" << endl;
@@ -914,6 +915,85 @@ void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 	for (int j = 0; j < numnodes; j++)
 		fnNeighborData.SetRow(j, (*pthis)(j));
 
+	/* space for nodal calculations */
+	int maxsize = fnNeighborData.MaxMinorDim();
+	fndShapespace.Allocate(maxsize*(1 + nsd));
+}
+
+void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
+{
+#if __option(extended_errorcheck)
+	if (coords.MajorDim() != fNodalParameters.MajorDim()) throw eSizeMismatch;
+#endif
+
+	int numnodes = fNodalParameters.MajorDim();
+	int nsd      = coords.MinorDim();
+	
+	/* initialize neighbor counts */
+	fnNeighborCount.Allocate(numnodes);
+	fnNeighborCount = 0;
+
+	/* work space */
+	iArrayT allocator;
+	ArrayT<int*> pointers(numnodes);
+	pointers = NULL;
+
+	/* determine search type */
+	WindowT::SearchTypeT search_type = WindowT::kNone;
+	if (fMeshfreeType == kEFG)
+		search_type = WindowT::kSpherical;
+	else if (fMeshfreeType == kRKPM)
+		search_type = fRKPM->SearchType();
+	
+	/* check */
+	if (search_type == WindowT::kNone)
+	{
+		cout << "\n MeshFreeSupportT::SetNodeNeighborData_2: could not determine\n" 
+		     <<   "     search type" << endl;
+		throw eGeneralFail;
+	}
+
+	/* loop over "active" nodes */
+	dArrayT nodal_params;
+	AutoArrayT<int> neighbors;
+	for (int ndex = 0; ndex < fNodesUsed.Length(); ndex++)
+	{
+		int i = fNodesUsed[ndex];
+		double* target = coords(i);
+		
+		/* find nodes in neighborhood */
+		if (search_type == WindowT::kSpherical)
+			fGrid->Neighbors(i, fNodalParameters(i,0), neighbors);
+		else
+		{
+			fNodalParameters.RowAlias(i, nodal_params);
+			fGrid->Neighbors(i, nodal_params, neighbors);
+		}		
+
+		/* add self to the list */
+		neighbors.Append(i);
+		int count = neighbors.Length();
+
+		/* store count */
+		fnNeighborCount[i] = count;
+
+		/* store neighbors */
+		allocator.Allocate(count);
+		neighbors.CopyInto(allocator);
+		allocator.ReleasePointer(pointers.Pointer(i));
+	}					
+
+	/* configure node neighbor data */
+	fnNeighborData.Configure(fnNeighborCount);
+	
+	/* copy data in */
+	for (int j = 0; j < numnodes; j++)
+		fnNeighborData.SetRow(j, pointers[j]);
+
+	/* free all temp space */
+	for (int k = 0; k < numnodes; k++)
+		delete[] pointers[k];
+		
 	/* space for nodal calculations */
 	int maxsize = fnNeighborData.MaxMinorDim();
 	fndShapespace.Allocate(maxsize*(1 + nsd));
