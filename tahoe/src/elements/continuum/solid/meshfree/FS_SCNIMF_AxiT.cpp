@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.20 2005-01-27 22:04:20 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.21 2005-01-28 02:45:52 paklein Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -209,7 +209,7 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 		double* inp_val = values_i.Pointer() + 2*ndof;
 
 		/* mass */		
-		*inp_val++ = fCellVolumes[i] * 2. * Pi * fCellCentroids(i,0);;
+		*inp_val++ = fCellVolumes[i] * 2. * Pi * fCellCentroids(i,0);
 
 		/* strain */
 		*inp_val++ = E3D(0,0); //rr
@@ -355,10 +355,7 @@ void FS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		/* For now, just one material. Grab it */
 		ContinuumMaterialT *mat = (*fMaterialList)[0];
 		SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
-		if (!fCurrMaterial)
-		{
-			ExceptionT::GeneralFail("FS_SCNIMF_AxiT::LHSDriver","Cannot get material\n");
-		}
+		if (!fCurrMaterial) ExceptionT::GeneralFail("FS_SCNIMF_AxiT::LHSDriver","Cannot get material\n");
 
 		AssembleParticleMass(fCurrMaterial->Density());
 	}
@@ -375,10 +372,7 @@ void FS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		/* For now, just one material. Grab it */
 		ContinuumMaterialT *mat = (*fMaterialList)[0];
 		SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
-		if (!fCurrMaterial)
-		{
-			ExceptionT::GeneralFail("FS_SCNIMF_AxiT::LHSDriver","Cannot get material\n");
-		}
+		if (!fCurrMaterial) ExceptionT::GeneralFail("FS_SCNIMF_AxiT::LHSDriver","Cannot get material\n");
 
 		int nNodes = fNodes.Length();
 
