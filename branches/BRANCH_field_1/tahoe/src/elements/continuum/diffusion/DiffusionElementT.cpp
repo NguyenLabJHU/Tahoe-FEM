@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.3.8.7 2002-05-11 20:43:41 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.3.8.8 2002-05-13 07:58:29 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -64,15 +64,6 @@ void DiffusionElementT::Initialize(void)
 		}
 	}
 }
-
-/* set the controller */
-//void DiffusionElementT::SetController(eControllerT* controller)
-//{
-	/* inherited */
-//	ContinuumElementT::SetController(controller);
-
-	//should check the controller for compatibility
-//}
 
 /* compute nodal force */
 void DiffusionElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
@@ -181,11 +172,6 @@ void DiffusionElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 	/* checks */
 	if (fNodalOutputCodes.Min() < IOBaseT::kAtFail ||
 	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
-
-	/* default behavior with output formats */
-//	fNodalOutputCodes[iNodalCoord] = IOBaseT::kAtNever;
-//	fNodalOutputCodes[iNodalDisp ] = IOBaseT::kAtNever;
-// what to do about default behavior
 
 	/* control parameters */
 	out << " Number of nodal output codes. . . . . . . . . . = " << NumOutputCodes << '\n';
