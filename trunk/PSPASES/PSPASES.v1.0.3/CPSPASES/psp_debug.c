@@ -1,4 +1,4 @@
-/* $Id: psp_debug.c,v 1.1 2005-01-05 16:51:31 paklein Exp $ */
+/* $Id: psp_debug.c,v 1.2 2005-01-05 17:17:17 paklein Exp $ */
 #include <stdio.h>
 #include "pspases_f2c.h"
 #include "mpi.h"
@@ -12,6 +12,19 @@ void dsyrk_(char *UL, char *NT, integer *N, integer *K,
 /* MPI routines */
 int MPI_Isend(void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request *request);
 int MPI_Get_count(MPI_Status *status, MPI_Datatype datatype, int *count);
+
+static const char* type_names[] = {"UNKNOWN", "MPI_BYTE", "MPI_INT", "MPIT_DOUBLE"};
+const char* t2s(MPI_Datatype datatype) {
+
+	if (datatype == MPI_BYTE)
+		return type_names[1];
+	else if (datatype == MPI_INT)
+		return type_names[2];
+	else if (datatype == MPI_DOUBLE)
+		return type_names[3];
+	else
+		return type_names[0];
+};
  
 void mydsyrk_(char *UL, char *NT, integer *N, integer *K,
 	doublereal *alpha, doublereal *A, integer *lda, 
@@ -40,8 +53,8 @@ void mydsyrk_(char *UL, char *NT, integer *N, integer *K,
 int myMPI_Isend(void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request *request)
 {
 	/* report values */
-	printf("MPI_Isend: count = %d, datatype = %d, dest = %d, tag = %d\n", 
-		count, datatype, dest, tag);
+	printf("MPI_Isend: count = %d, datatype = %s, dest = %d, tag = %d\n", 
+		count, t2s(datatype), dest, tag);
 	fflush(stdout);
 	
 	/* call */
@@ -51,8 +64,8 @@ int myMPI_Isend(void* buf, int count, MPI_Datatype datatype, int dest, int tag, 
 int myMPI_Get_count(MPI_Status *status, MPI_Datatype datatype, int *count)
 {
 	/* report */
-	printf("MPI_Get_count: status = %x, source = %d, tag = %d, datatype = %d\n",
-		status, status->MPI_SOURCE, status->MPI_TAG, datatype);
+	printf("MPI_Get_count: status = %x, source = %d, tag = %d, datatype = %s\n",
+		status, status->MPI_SOURCE, status->MPI_TAG, t2s(datatype));
 	fflush(stdout);
 
 	/* call */
