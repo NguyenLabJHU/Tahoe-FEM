@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.h,v 1.3 2001-08-27 17:14:06 paklein Exp $ */
+/* $Id: XDOF_ManagerT.h,v 1.4 2001-08-29 07:08:22 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 
 #ifndef _XDOF_MANAGER_T_H_
@@ -38,7 +38,7 @@ public:
 	 * \param numDOF array of the number of degrees of freedom per tag 
 	 *        in each set of tags. The length of the array is the number
 	 *        of tag sets the group requires. */
-	virtual void Register(DOFElementT* group, const iArrayT& numDOF);
+	virtual void XDOF_Register(DOFElementT* group, const iArrayT& numDOF);
 	
 	/** get equations of the element DOF's.
 	 * \param group pointer to the DOFElementT requesting equation numbers
@@ -80,18 +80,31 @@ protected:
 
 	/** resolve index of the tag set.
 	 * \param group pointer to the DOFElementT
-	 * \param tag_set set number for the element */
+	 * \param tag_set set number for the element 
+	 * \return the index of the tag set in XDOF_ManagerT::fXDOF_Eqnos
+	 *        and XDOF_ManagerT::fXDOF */
 	int TagSetIndex(const DOFElementT* group, int tag_set) const;
+
+	/** resolve tag into its tag set and tag offset.
+	 * \param tag tag to resolve
+	 * \param tag_set returns with the set containing the specified tag
+	 * \param tag_set_start first tag number in the set
+	 * \return true of the tag is successfully resolved, false otherwise. 
+	 * \note The alorithm to determine the tag set assumes the tags are
+	 *       assigned in the order the sets appear in XDOF_ManagerT::fXDOF_Eqnos
+	 *       and XDOF_ManagerT::fXDOF. */
+	bool ResolveTagSet(int tag, int& tag_set, int& tag_set_start);
 
 protected:
 
 	/** registered element groups */
 	AutoArrayT<DOFElementT*> fDOFElements;
 	
-	/** number of tag sets by group */
-	int fStartTag;
-	int fNumTags;
-	AutoArrayT<int> fNumTagSets;
+	/* tag info */
+	int fStartTag; /**< first tag number */
+	int fNumTags;  /**< total number of tags */
+	AutoArrayT<int> fNumTagSets;   /**< number of tag sets for each element group */
+	AutoArrayT<int> fTagSetLength; /**< number of tags in each tag set */
 
 	/** global equations numbers for each tag set */
 	AutoArrayT<iArray2DT*> fXDOF_Eqnos;

@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.3 2001-08-27 17:14:05 paklein Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.4 2001-08-29 07:08:22 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
@@ -32,12 +32,12 @@ XDOF_ManagerT::~XDOF_ManagerT(void)
 }
 
 /* add element group to list */
-void XDOF_ManagerT::Register(DOFElementT* group, const iArrayT& numDOF)
+void XDOF_ManagerT::XDOF_Register(DOFElementT* group, const iArrayT& numDOF)
 {
 	/* check start tag */
 	if (fStartTag == -1)
 	{
-		cout << "\n XDOF_ManagerT::Register: start tag has not been set: "
+		cout << "\n XDOF_ManagerT::XDOF_Register: start tag has not been set: "
 		     << fStartTag << endl;
 		throw eGeneralFail;
 	}
@@ -45,13 +45,16 @@ void XDOF_ManagerT::Register(DOFElementT* group, const iArrayT& numDOF)
 	/* can only register once */
 	if (!fDOFElements.AppendUnique(group)) 
 	{
-		cout << "\n XDOF_ManagerT::Register: group is already registered, requesting:\n" 
+		cout << "\n XDOF_ManagerT::XDOF_Register: group is already registered, requesting:\n" 
 		     << numDOF << endl;
 		throw eGeneralFail;
 	}
 	
 	/* keep number of tag sets for each group */
 	fNumTagSets.Append(numDOF.Length());
+
+	/* initialize set length */
+	fTagSetLength.Append(0);
 
 	/* add to lists */
 	for (int i = 0; i < numDOF.Length(); i++)
@@ -177,6 +180,7 @@ void XDOF_ManagerT::ConfigureElementGroup(int group_number, int& tag_num)
 	{
 		/* get current DOF tags array */
 		iArrayT& DOF_tags = fDOFElements[group_number]->DOFTags(set);
+		fTagSetLength[set] = DOF_tags.Length();
 							
 		/* resize global arrays */
 		fXDOF_Eqnos[index]->Resize(DOF_tags.Length(), false);
@@ -328,4 +332,25 @@ int XDOF_ManagerT::TagSetIndex(const DOFElementT* group, int tag_set) const
 		throw eGeneralFail;
 	}	
 	return offset;
+}
+
+/* resolve tag into its tag set and tag offset */
+bool XDOF_ManagerT::ResolveTagSet(int tag, int& tag_set, int& tag_set_start)
+{
+	tag_set = tag_set_start = -1;
+	int offset = fStartTag;
+	bool found = false;
+	for (int i = 0; i < fTagSetLength.Length() && !found; i++)
+	{
+		/* in range */
+		if (tag - offset < fTagSetLength[i])
+		{
+			found = true;
+			tag_set = i;
+			tag_set_start = offset;
+		}
+		else /* next set - assuming tags assigned to sets sequentially */
+			offset += fTagSetLength[i];
+	}
+	return found;
 }
