@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.25 2005-02-27 00:02:00 paklein Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.26 2005-03-01 08:26:29 paklein Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 #include "ArrayT.h"
@@ -28,7 +28,7 @@
 using namespace Tahoe;
 
 const double Pi = acos(-1.0);
-const double twoPi = 2.*acos(-1.0);
+const double twoPi = 2.0*Pi;
 
 /* constructor */
 FS_SCNIMF_AxiT::FS_SCNIMF_AxiT(const ElementSupportT& support):
@@ -37,50 +37,72 @@ FS_SCNIMF_AxiT::FS_SCNIMF_AxiT(const ElementSupportT& support):
 	SetName("fd_mfparticle_axi");
 }
 
-/* destructor */
-FS_SCNIMF_AxiT::~FS_SCNIMF_AxiT(void)
-{
-
-}
-
 /* generate labels for output data */
 void FS_SCNIMF_AxiT::GenerateOutputLabels(ArrayT<StringT>& labels)
 {
+	/* number of output variables */
+	iArrayT counts;
+	SetOutputCount(fOutputFlags, counts);
+	int num_output = counts.Sum();
 
-  	/* Reference Configuration */
-	const char* ref[2] = {"R", "Z"};
+	/* offsets to the different output values */
+	iArrayT offsets(fOutputFlags.Length());
+	offsets = 0;
+	for (int i = 1; i < offsets.Length(); i++)
+		offsets[i] = offsets[i-1] + counts[i-1];
 
-	/* displacement labels */
-	int num_labels = 4; // displacements
-	int num_stress=4;
+	/* initialize */
+	labels.Dimension(num_output);
 
-	const char* stress[4];
-	const char* strain[4];
+	/* coordinates */
+	if (fOutputFlags[kCoordinates]) {
+		const char* ref[2] = {"R", "Z"};
+		int index = offsets[kCoordinates];
+		for (int i = 0; i < 2; i++)
+			labels[index++] = ref[i];
+	}
 
-	stress[0] = "srr";
-	stress[1] = "szz";
-	stress[2] = "srz";
-	stress[3] = "stt";
-	strain[0] = "Err";
-	strain[1] = "Ezz";
-	strain[2] = "Erz";
-	strain[3] = "Ett";
+	/* displacements */
+	if (fOutputFlags[kDisplacement]) {
 
-	num_labels += 2 * num_stress + 1; 
-	labels.Dimension(num_labels);
-	int dex = 0;
-	for (dex = 0; dex < fSD; dex++)
-		labels[dex] = ref[dex];
+		/* labels from the field */
+		const ArrayT<StringT>& field_labels = Field().Labels();
 
-	const ArrayT<StringT>& disp_labels = Field().Labels();
-	for (int ns = 0 ; ns < fSD; ns++)
-	  	labels[dex++] = disp_labels[ns];
+		int index = offsets[kDisplacement];
+		for (int i = 0; i < NumDOF(); i++)
+			labels[index++] = field_labels[i];
+	}
 
-	labels[dex++] = "mass/rho";
-	for (int ns = 0 ; ns < num_stress; ns++)
-		labels[dex++] = strain[ns];
-	for (int ns = 0 ; ns < num_stress; ns++)
-		labels[dex++] = stress[ns];
+	/* mass */
+	if (fOutputFlags[kMass])
+		labels[offsets[kMass]] = "volume";
+
+	/* strain */
+	if (fOutputFlags[kStrain]) {
+		const char* elabels[4] = {"err", "ezz", "erz", "ett"};
+		int index = offsets[kStrain];
+		for (int i = 0; i < 4; i++)
+			labels[index++] = elabels[i];
+	}
+
+	/* stress */
+	if (fOutputFlags[kStress]) {
+		const char* slabels[4] = {"srr", "szz", "srz", "stt"};
+		int index = offsets[kStress];
+		for (int i = 0; i < 4; i++)
+			labels[index++] = slabels[i];
+	}
+
+	/* material output labels */
+	if (fOutputFlags[kMaterialOutput])
+	{
+		ArrayT<StringT> mat_labels;
+		(*fMaterialList)[0]->OutputLabels(mat_labels);	
+		
+		int index = offsets[kMaterialOutput];
+		for (int i = 0; i < mat_labels.Length(); i++)
+			labels[index++] = mat_labels[i];
+	}
 }
 
 void FS_SCNIMF_AxiT::WriteOutput(void)
@@ -88,12 +110,21 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 	const char caller[] = "FS_SCNIMF_AxiT::WriteOutput";
 
 	/* dimensions */
+	int nsd = NumSD();
 	int ndof = NumDOF();
-	int num_stress = 4;
-	int num_output = 2*ndof + 1 + 2 * num_stress; /* ref. coords, displacements, mass, e, s */
-
-	/* number of output nodes */
+	int nstrs = 4;
 	int non = fNodes.Length();
+
+	/* number of output variables */
+	iArrayT counts;
+	SetOutputCount(fOutputFlags, counts);
+	int num_output = counts.Sum();
+
+	/* offsets to the different output values */
+	iArrayT offsets(fOutputFlags.Length());
+	offsets = 0;
+	for (int i = 1; i < offsets.Length(); i++)
+		offsets[i] = offsets[i-1] + counts[i-1];
 
 	/* output arrays length number of active nodes */
 	dArray2DT n_values(non, num_output), e_values;
@@ -109,82 +140,72 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 
 	/* For now, just one material. Grab it */
 	ContinuumMaterialT *mat = (*fMaterialList)[0];
-	SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
-	if (!fCurrMaterial)
-		ExceptionT::GeneralFail("FS_SCNIMF_AxiT::RHSDriver","Cannot get material\n");	
+	SolidMaterialT* curr_material = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
+	if (!curr_material) ExceptionT::GeneralFail(caller, "cannot get material");	
 
 	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
 	
 	dMatrixT& F3D = fF_list[0];
 	dMatrixT F2D(2);
-	dMatrixT BJ(fSD*fSD, fSD);
-	dMatrixT E3D(3);
+	dMatrixT BJ(nsd*nsd, nsd);
+	dSymMatrixT E3D(3);
+	dSymMatrixT s_axi(dSymMatrixT::k3D_plane), E_axi(dSymMatrixT::k3D_plane);
 
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
+	const dArray2DT& u_last = Field()(-1,0);
+
+	/* material outputs */
+	dArrayT mat_output(counts[kMaterialOutput]);
 
 	/* collect displacements */
 	dArrayT vec, values_i;
-	double F_33;
 	for (int i = 0; i < non; i++) 
 	{
 		/* set current element */
 		fElementCards.Current(i);
 
+		/* global ID */
 		int tag_i = fNodes[i];
 
 		/* values for particle i */
 		n_values.RowAlias(i, values_i);
 
-		/* copy in */
-		vec.Set(ndof, values_i.Pointer());
-		coords.RowCopy(tag_i, vec);
-		vec.Set(ndof, values_i.Pointer() + ndof);
-		vec = 0.;
-
-		int* nodal_supp = fNodalSupports(i);
-		double* phi_i = fNodalPhi(i);
-		for (int j = 0; j < fNodalPhi.MinorDim(i); j++)
-			vec.AddScaled(*phi_i++, u(*nodal_supp++));
-
-		// Convert initial coordinates to current
-		for (int j = 0; j < ndof; j++)
-			values_i[j] += vec[j];
-
-		// support size 
-		int n_supp = nodalCellSupports.MinorDim(i);
-
-		// Compute smoothed deformation gradient
-		F2D = 0.0; F_33 = 0.;
-		dArrayT* bVec_i = bVectorArray(i);
-		double* b_33 = circumferential_B(i);
-		int* supp_i = nodalCellSupports(i);
-		for (int j = 0; j < n_supp; j++) { 
-			F_33 += u(*supp_i,0) * *b_33++; 
-			F2D.Outer(u(*supp_i++), bVec_i->Pointer(), 1.0, dMatrixT::kAccumulate);
-			bVec_i++;
+		/* coordinates */
+		if (fOutputFlags[kCoordinates]) {
+			vec.Alias(nsd, values_i.Pointer(offsets[kCoordinates]));
+			coords.RowCopy(tag_i, vec);
 		}
-		F3D.Rank2ExpandFrom2D(F2D);
-		F3D.Last() = F_33;
-		F3D.PlusIdentity(); // convert to F
 
-		E3D.MultATB(F3D, F3D);
-		E3D.PlusIdentity(-1.0);
-		E3D *= 0.5;
+		/* displacement */
+		if (fOutputFlags[kDisplacement]) {
+			vec.Alias(ndof, values_i.Pointer(offsets[kDisplacement]));
 
-		/* last deformation gradient */
-		if (fF_last_list.Length() > 0) 
+			const int* nodal_supp = fNodalSupports(i);
+			const double* phi_i = fNodalPhi(i);
+			for (int j = 0; j < fNodalPhi.MinorDim(i); j++)
+				vec.AddScaled(*phi_i++, u(*nodal_supp++));
+		}
+
+		/* mass */		
+		if (fOutputFlags[kMass])
+			values_i[offsets[kMass]] = fCellVolumes[i] * 2. * Pi * fCellCentroids(i,0);
+
+		/* compute smoothed deformation gradient */
+		if (fOutputFlags[kStrain] || fOutputFlags[kStress] || fOutputFlags[kMaterialOutput])
 		{
-			/* last displacement */
-			const dArray2DT& u = Field()(-1,0);
+			/* support size */
+			int n_supp = nodalCellSupports.MinorDim(i);
 
 			/* destination */
 			dMatrixT& F3D = fF_last_list[0];
-
-			F2D = 0.0; F_33 = 0.;
+			
+			/* compute smoothed deformation gradient */
+			double F_33 = 0.0;
+			F2D = 0.0;
 			dArrayT* bVec_i = bVectorArray(i);
-			double* b_33 = circumferential_B(i);
-			int* supp_i = nodalCellSupports(i);
+			const double* b_33 = circumferential_B(i);
+			const int* supp_i = nodalCellSupports(i);
 			for (int j = 0; j < n_supp; j++) { 
 				F_33 += u(*supp_i,0) * *b_33++; 
 				F2D.Outer(u(*supp_i++), bVec_i->Pointer(), 1.0, dMatrixT::kAccumulate);
@@ -192,38 +213,66 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 			}
 			F3D.Rank2ExpandFrom2D(F2D);
 			F3D.Last() = F_33;
-			F3D.PlusIdentity(); // convert to F
+			F3D.PlusIdentity(); // convert to F	
+
+			/* Green-Lagrangian strain */
+			curr_material->Strain(E3D);
+			E_axi.Translate(E3D);
+
+			/* last deformation gradient */
+			if (fF_last_list.Length() > 0) 
+			{
+				/* destination */
+				dMatrixT& F3D = fF_last_list[0];
+
+				double F_33 = 0.0;
+				F2D = 0.0;
+				dArrayT* bVec_i = bVectorArray(i);
+				double* b_33 = circumferential_B(i);
+				int* supp_i = nodalCellSupports(i);
+				for (int j = 0; j < n_supp; j++) { 
+					F_33 += u_last(*supp_i,0) * *b_33++; 
+					F2D.Outer(u_last(*supp_i++), bVec_i->Pointer(), 1.0, dMatrixT::kAccumulate);
+					bVec_i++;
+				}
+				F3D.Rank2ExpandFrom2D(F2D);
+				F3D.Last() = F_33;
+				F3D.PlusIdentity(); // convert to F
+			}
 		}
 
-		const double* stress = fCurrMaterial->s_ij().Pointer();
-		double* inp_val = values_i.Pointer(2*ndof);
-
-		/* mass */		
-		*inp_val++ = fCellVolumes[i] * 2. * Pi * fCellCentroids(i,0);
-
 		/* strain */
-		*inp_val++ = E3D(0,0); //rr
-		*inp_val++ = E3D(1,1); //zz
-		*inp_val++ = E3D(0,1); //rz
-		*inp_val++ = E3D(2,2); //tt
+		if (fOutputFlags[kStrain]) {
+			int index = offsets[kStrain];
+			for (int j = 0; j < nstrs; j++)
+				values_i[index++] = E_axi[j];
+		}
 
 		/* stress */
-		*inp_val++ = stress[0]; //rr
-		*inp_val++ = stress[1]; //zz
-		*inp_val++ = stress[5]; //rz
-		*inp_val = stress[2]; //tt
+		if (fOutputFlags[kStress])
+		{
+			s_axi.Translate(curr_material->s_ij());
+			int index = offsets[kStress];
+			for (int j = 0; j < nstrs; j++)
+				values_i[index++] = s_axi[j];		
+		}
+
+		/* material output parameters */
+		if (fOutputFlags[kMaterialOutput])
+		{
+			/* update stress */
+			if (!fOutputFlags[kStress]) curr_material->s_ij();
+
+			/* compute material output */
+			curr_material->ComputeOutput(mat_output);
+			int index = offsets[kMaterialOutput];
+			for (int j = 0; j < mat_output.Length(); j++)
+				values_i[index++] = mat_output[j];		
+		}
 	}
 
 	/* send */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
-
-}
-
-/* compute specified output parameter(s) */
-void FS_SCNIMF_AxiT::SendOutput(int kincode)
-{
-#pragma unused(kincode)
-	//TEMP: for now, do nothing
 }
 
 /* trigger reconfiguration */
@@ -231,20 +280,7 @@ GlobalT::RelaxCodeT FS_SCNIMF_AxiT::RelaxSystem(void)
 {
 	/* inherited */
 	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
-	
 	return relax;
-}
-
-/* write restart data to the output stream */
-void FS_SCNIMF_AxiT::WriteRestart(ostream& out) const
-{
-	ElementBaseT::WriteRestart(out);
-}
-
-/* read restart data to the output stream */
-void FS_SCNIMF_AxiT::ReadRestart(istream& in)
-{
-	ElementBaseT::ReadRestart(in);
 }
 
 /* information about subordinate parameter lists */
@@ -269,11 +305,9 @@ ParameterInterfaceT* FS_SCNIMF_AxiT::NewSub(const StringT& name) const
 	  block->SetSubSource(this);
 
 	  return block;
-
   }
   else /* inherited */
 	return SCNIMFT::NewSub(name);
-
 }
 
 /* accept parameter list */
@@ -302,6 +336,17 @@ void FS_SCNIMF_AxiT::TakeParameterList(const ParameterListT& list)
  * Protected
  ***********************************************************************/
 
+/* return number of values for each output variable */
+void FS_SCNIMF_AxiT::SetOutputCount(const iArrayT& flags, iArrayT& counts) const
+{
+	/* inherited */
+	FS_SCNIMFT::SetOutputCount(flags, counts);
+
+	/* redimension stress and strain */
+	if (flags[kStrain]) counts[kStrain] = 4;
+	if (flags[kStress]) counts[kStress] = 4;
+}
+
 void FS_SCNIMF_AxiT::CollectMaterialInfo(const ParameterListT& all_params,
 				  ParameterListT& mat_params) const
 {
@@ -327,12 +372,15 @@ void FS_SCNIMF_AxiT::CollectMaterialInfo(const ParameterListT& all_params,
 /* form group contribution to the stiffness matrix */
 void FS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
+	const char caller[] = "FS_SCNIMF_AxiT::LHSDriver";
+
 #pragma unused(sys_type)
 	/* time integration parameters */
 	double constK = 0.0;
 	double constM = 0.0;
 	int formK = fIntegrator->FormK(constK);
 	int formM = fIntegrator->FormM(constM);
+	int nsd = NumSD();
 
 	/* quick exit */
 	if ((formM == 0 && formK == 0) ||
@@ -344,10 +392,10 @@ void FS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	
 		/* For now, just one material. Grab it */
 		ContinuumMaterialT *mat = (*fMaterialList)[0];
-		SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
-		if (!fCurrMaterial) ExceptionT::GeneralFail("FS_SCNIMF_AxiT::LHSDriver","Cannot get material\n");
+		SolidMaterialT* curr_material = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
+		if (!curr_material) ExceptionT::GeneralFail(caller, "cannot get material");
 
-		AssembleParticleMass(fCurrMaterial->Density());
+		AssembleParticleMass(curr_material->Density());
 	}
 
 	if (formK)
@@ -361,8 +409,8 @@ void FS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 		/* For now, just one material. Grab it */
 		ContinuumMaterialT *mat = (*fMaterialList)[0];
-		SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
-		if (!fCurrMaterial) ExceptionT::GeneralFail("FS_SCNIMF_AxiT::LHSDriver","Cannot get material\n");
+		SolidMaterialT* curr_material = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
+		if (!curr_material) ExceptionT::GeneralFail(caller, "cannot get material");
 
 		int nNodes = fNodes.Length();
 
@@ -376,8 +424,8 @@ void FS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		iArrayT row_eqnos(ndof); 
 		iArrayT col_eqnos(ndof);
 		dMatrixT BJ(4, ndof), BK(4, ndof), fStress3D(3), fStress2D(2);
-		dMatrixT Tijkl(fSD*fSD), BJTCijkl(fSD, fSD*fSD), K_JK, mod2D(3), Finverse(3);
-		dMatrixT Cijklsigma(fSD*fSD);
+		dMatrixT Tijkl(nsd*nsd), BJTCijkl(nsd, nsd*nsd), K_JK, mod2D(3), Finverse(3);
+		dMatrixT Cijklsigma(nsd*nsd);
 		K_JK.Alias(fLHS);
 		double F_33, c_theta_theta, J;
 		for (int i = 0; i < nNodes; i++)
@@ -405,7 +453,7 @@ void FS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			F3D(2,2) = F_33;
 			J = F3D.Det();
 			if (J <= 0.0)
-				ExceptionT::BadJacobianDet("FS_SCNIMF_AxiT::FormKd");
+				ExceptionT::BadJacobianDet(caller);
 
 			/* last deformation gradient */
 			if (fF_last_list.Length() > 0) 
@@ -432,7 +480,7 @@ void FS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				F3D(2,2) = F_33;
 			}
 			
-			fCurrMaterial->s_ij().ToMatrix(fStress3D);
+			curr_material->s_ij().ToMatrix(fStress3D);
 			fStress2D.Rank2ReduceFrom3D(fStress3D);
 
 			// stress stiffness
@@ -442,7 +490,7 @@ void FS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			// Tijkl = 0.; used to debug material stiffness
 			
 			// material stiffness
-			const dMatrixT& moduli = fCurrMaterial->C_IJKL();
+			const dMatrixT& moduli = curr_material->C_IJKL();
 			mod2D.Rank4ReduceFrom3D(moduli);
 			Tijkl += TransformModuli(moduli, F2D, Cijklsigma);
 
@@ -490,7 +538,7 @@ void FS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
 /* assemble particle mass matrix into LHS of global equation system */
 void FS_SCNIMF_AxiT::AssembleParticleMass(const double rho)
 {
-
+	int nsd = NumSD();
   fForce = 0.0;
   int* nodes = fNodes.Pointer();
   double* volume = fCellVolumes.Pointer();
@@ -498,7 +546,7 @@ void FS_SCNIMF_AxiT::AssembleParticleMass(const double rho)
 
     double* m = fForce(fNodes[i]);
 
-    for (int j = 0; j < fSD; j++)
+    for (int j = 0; j < nsd; j++)
       *m++ = *volume * 2. * Pi * fCellCentroids(i,0);
     volume++;
   }
@@ -535,13 +583,14 @@ void FS_SCNIMF_AxiT::RHSDriver(void)
 	}	
 
 	int nNodes = fNodes.Length();
+	int nsd = NumSD();
 
 	if (formMa) 
 	{
 		if (Field().Order() < 2)
 			ExceptionT::GeneralFail(caller,"Field's Order does not have accelerations\n");
 	
-		fLHS = 0.0; // fLHS.Length() = nNodes * fSD;
+		fLHS = 0.0; // fLHS.Length() = nNodes * nsd;
 		const dArray2DT& a = Field()(0,2); // accelerations
 		double* ma = fLHS.Pointer();
 		const double* acc;
@@ -551,7 +600,7 @@ void FS_SCNIMF_AxiT::RHSDriver(void)
 		for (int i = 0; i < nNodes; i++)
 		{
 			acc = a(*nodes++);
-			for (int j = 0; j < fSD; j++)
+			for (int j = 0; j < nsd; j++)
 				*ma++ = *volume * 2. * Pi * fCellCentroids(i,0) * *acc++;
 			volume++;
 		}

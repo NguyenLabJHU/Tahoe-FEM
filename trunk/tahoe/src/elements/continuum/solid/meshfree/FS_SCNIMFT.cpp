@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.22 2005-03-01 00:26:54 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.23 2005-03-01 08:26:29 paklein Exp $ */
 #include "FS_SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -48,69 +48,26 @@ FS_SCNIMFT::~FS_SCNIMFT(void)
 	delete fFSMatSupport;
 }
 
-/* generate labels for output data */
-void FS_SCNIMFT::GenerateOutputLabels(ArrayT<StringT>& labels)
-{
-  	/* Reference Configuration */
-	const char* ref[3] = {"X", "Y", "Z"};
-	
-	int num_labels = 2*fSD; // displacements
-	int num_stress=0;
-
-	const char* stress[6];
-	const char* strain[6];
-	
-	stress[0] = "s11";
-	stress[1] = "s22";
-	strain[0] = "E11";
-	strain[1] = "E22";
-	num_stress = 3;
-	
-	if (fSD == 3) {
-		num_stress=6;
-		stress[2] = "s33";
-	  	stress[3] = "s23";
-	 	stress[4] = "s13";
-	  	stress[5] = "s12";
-	  	strain[2] = "E33";
-	  	strain[3] = "E23";
-	  	strain[4] = "E13";
-	  	strain[5] = "E12";
-	} 
-	
-	if (fSD == 2) {
-	  	stress[2] = "s12";
-	  	strain[2] = "E12";
-	}
-		
-	num_labels += 2 * num_stress + 1; 
-	labels.Dimension(num_labels);
-	int dex = 0;
-	for (dex = 0; dex < fSD; dex++)
-		labels[dex] = ref[dex];
-		
-	const ArrayT<StringT>& disp_labels = Field().Labels();
-	for (int ns = 0 ; ns < fSD; ns++)
-	  	labels[dex++] = disp_labels[ns];
-	
-	labels[dex++] = "mass";
-	for (int ns = 0 ; ns < num_stress; ns++)
-		labels[dex++] = strain[ns];
-	for (int ns = 0 ; ns < num_stress; ns++)
-		labels[dex++] = stress[ns];
-}
-
 void FS_SCNIMFT::WriteOutput(void)
 {
-	ofstreamT& out = ElementSupport().Output();
-
 	const char caller[] = "FS_SCNIMFT::WriteOutput";
 
 	/* dimensions */
+	int nsd  = NumSD();
 	int ndof = NumDOF();
-	int num_stress = fSD == 2 ? 3 : 6;
-	int num_output = 2*ndof + 1 + 2 * num_stress; /* ref. coords, displacements, mass, e, s */
+	int nstrs = dSymMatrixT::NumValues(nsd);
 	int non = fNodes.Length();
+
+	/* number of output variables */
+	iArrayT counts;
+	SetOutputCount(fOutputFlags, counts);
+	int num_output = counts.Sum();
+
+	/* offsets to the different output values */
+	iArrayT offsets(fOutputFlags.Length());
+	offsets = 0;
+	for (int i = 1; i < offsets.Length(); i++)
+		offsets[i] = offsets[i-1] + counts[i-1];
 
 	/* output arrays length number of active nodes */
 	dArray2DT n_values(non, num_output), e_values;
@@ -127,19 +84,20 @@ void FS_SCNIMFT::WriteOutput(void)
 	/* For now, just one material. Grab it */
 	ContinuumMaterialT *mat = (*fMaterialList)[0];
 	FSSolidMatT* curr_material = TB_DYNAMIC_CAST(FSSolidMatT*,mat);
-	if (!curr_material)
-		ExceptionT::GeneralFail("FS_SCNIMFT::RHSDriver","Cannot get material\n");
+	if (!curr_material) ExceptionT::GeneralFail(caller , "cannot get material");
 
 	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
 	
-	dMatrixT& Fdef = fF_list[0];
-	dMatrixT BJ(fSD*fSD, fSD), Finverse(fSD);
-	dMatrixT E(fSD), fStress(fSD), fCauchy(fSD);
+	dMatrixT BJ(nsd*nsd, nsd), Finverse(nsd);
+	dSymMatrixT E(nsd);
 	double J;
 	
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
 	const dArray2DT& u_last = Field()(-1,0);
+
+	/* material outputs */
+	dArrayT mat_output(counts[kMaterialOutput]);
 
 	/* collect displacements */
 	dArrayT vec, values_i;
@@ -148,93 +106,94 @@ void FS_SCNIMFT::WriteOutput(void)
 		/* set current element */
 		fElementCards.Current(i);
 
+		/* global ID */
 		int tag_i = fNodes[i];
 
 		/* values for particle i */
 		n_values.RowAlias(i, values_i);
 
-		/* copy in */
-		vec.Set(ndof, values_i.Pointer());
-		coords.RowCopy(tag_i, vec);
-		vec.Set(ndof, values_i.Pointer() + ndof);
-		vec = 0.;
-			
-		int* nodal_supp = fNodalSupports(i);
-		double* phi_i = fNodalPhi(i);
-		for (int j = 0; j < fNodalPhi.MinorDim(i); j++)
-			vec.AddScaled(*phi_i++, u(*nodal_supp++));
-
-		// Convert initial coordinates to current coordinates
-		for (int j = 0; j < ndof; j++) 
-			values_i[j] += vec[j];
-		
-		// Compute smoothed deformation gradient
-		Fdef = 0.0;
-		dArrayT* bVec_i = bVectorArray(i);
-		int* supp_i = nodalCellSupports(i);
-		for (int j = 0; j < nodalCellSupports.MinorDim(i); j++) {
-			Fdef.Outer(u(*supp_i++), bVec_i->Pointer(), 1.0, dMatrixT::kAccumulate);
-			bVec_i++;
+		/* coordinates */
+		if (fOutputFlags[kCoordinates]) {
+			vec.Alias(nsd, values_i.Pointer(offsets[kCoordinates]));
+			coords.RowCopy(tag_i, vec);
 		}
-		E = 0.;
-		E.MultATB(Fdef, Fdef, dMatrixT::kWhole);
-		E += Fdef;
-		for (int rows = 0; rows < fSD; rows++)
-			for (int cols = 0; cols < fSD; cols++)
-				E(rows,cols) += Fdef(cols,rows);
-		Fdef.PlusIdentity();
-		J = Fdef.Det();
+		
+		/* displacement */
+		if (fOutputFlags[kDisplacement]) {
+			vec.Alias(ndof, values_i.Pointer(offsets[kDisplacement]));
 
-		/* compute smoothed deformation gradient from the previous time increment */
-		if (fF_last_list.Length() > 0) {
-			dMatrixT& Fdef_last = fF_last_list[0];
-			Fdef_last = 0.0;
+			const int* nodal_supp = fNodalSupports(i);
+			const double* phi_i = fNodalPhi(i);
+			for (int j = 0; j < fNodalPhi.MinorDim(i); j++)
+				vec.AddScaled(*phi_i++, u(*nodal_supp++));
+		}
+
+		/* mass */
+		if (fOutputFlags[kMass])
+			values_i[offsets[kMass]] = fCellVolumes[i];
+		
+		/* compute smoothed deformation gradient */
+		if (fOutputFlags[kStrain] || fOutputFlags[kStress] || fOutputFlags[kMaterialOutput]) {		
+			dMatrixT& Fdef = fF_list[0];
+			Fdef = 0.0;
 			dArrayT* bVec_i = bVectorArray(i);
 			int* supp_i = nodalCellSupports(i);
-			for (int j = 0; j < nodalCellSupports.MinorDim(i); j++) { 
-				Fdef_last.Outer(u_last(*supp_i++), bVec_i->Pointer(), 1.0, dMatrixT::kAccumulate);
+			for (int j = 0; j < nodalCellSupports.MinorDim(i); j++) {
+				Fdef.Outer(u(*supp_i++), bVec_i->Pointer(), 1.0, dMatrixT::kAccumulate);
 				bVec_i++;
+			}			
+			Fdef.PlusIdentity();
+			J = Fdef.Det();
+			
+			/* Green-Lagrangian strain */
+			curr_material->Strain(E);
+	
+			/* compute smoothed deformation gradient from the previous time increment */
+			if (fF_last_list.Length() > 0) {
+				dMatrixT& Fdef_last = fF_last_list[0];
+				Fdef_last = 0.0;
+				dArrayT* bVec_i = bVectorArray(i);
+				int* supp_i = nodalCellSupports(i);
+				for (int j = 0; j < nodalCellSupports.MinorDim(i); j++) { 
+					Fdef_last.Outer(u_last(*supp_i++), bVec_i->Pointer(), 1.0, dMatrixT::kAccumulate);
+					bVec_i++;
+				}
+				Fdef_last.PlusIdentity();
 			}
-			Fdef_last.PlusIdentity();
 		}
-		
-		curr_material->s_ij().ToMatrix(fCauchy);
-		Finverse.Inverse(Fdef);
-		Finverse *= J; // compute J F^-1
-		fStress.MultABT(fCauchy, Finverse); // compute PK1
-		double* stress = fStress.Pointer();
 
-		double* inp_val = values_i.Pointer() + 2*ndof;
-		
-		*inp_val++ = fCellVolumes[i];
-		
-		E *= 0.5;
-		//for (int j = 0; j < num_stress; j++)
-		//	*inp_val++ = E[j];
-		*inp_val++ = E[0];
-		*inp_val++ = E[fSD+1];
-		if (fSD == 3) {
-			*inp_val++ = E.Last();
-			*inp_val++ = E[fSD];
-			*inp_val++ = E[2*fSD];
-			*inp_val++ = E[2*fSD+1];
-		} else
-			*inp_val++ = E[fSD];	
-		for (int j = 0; j < num_stress; j++)
-			*inp_val++ = stress[j]; 
+		/* strain */
+		if (fOutputFlags[kStrain]) {
+			int index = offsets[kStrain];
+			for (int j = 0; j < nstrs; j++)
+				values_i[index++] = E[j];
+		}
 
+		/* stress */
+		if (fOutputFlags[kStress])
+		{
+			const dSymMatrixT& stress = curr_material->s_ij();
+			int index = offsets[kStress];
+			for (int j = 0; j < nstrs; j++)
+				values_i[index++] = stress[j];		
+		}
+
+		/* material output parameters */
+		if (fOutputFlags[kMaterialOutput])
+		{
+			/* update stress */
+			if (!fOutputFlags[kStress]) curr_material->s_ij();
+
+			/* compute material output */
+			curr_material->ComputeOutput(mat_output);
+			int index = offsets[kMaterialOutput];
+			for (int j = 0; j < mat_output.Length(); j++)
+				values_i[index++] = mat_output[j];		
+		}
 	}
 
 	/* send */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
-
-}
-
-/* compute specified output parameter(s) */
-void FS_SCNIMFT::SendOutput(int kincode)
-{
-#pragma unused(kincode)
-	//TEMP: for now, do nothing
 }
 
 /* trigger reconfiguration */
@@ -244,19 +203,6 @@ GlobalT::RelaxCodeT FS_SCNIMFT::RelaxSystem(void)
 	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
 
 	return relax;
-}
-
-/* write restart data to the output stream */
-void FS_SCNIMFT::WriteRestart(ostream& out) const
-{
-	ElementBaseT::WriteRestart(out);
-	
-}
-
-/* read restart data to the output stream */
-void FS_SCNIMFT::ReadRestart(istream& in)
-{
-	ElementBaseT::ReadRestart(in);
 }
 
 /***********************************************************************
@@ -309,16 +255,17 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		/* assembly information */
 		int group = Group();
 		int ndof = NumDOF();
+		int nsd  = NumSD();
 		fLHS.Dimension(ndof);
 		const ElementSupportT& support = ElementSupport();
 		
 		const iArray2DT& field_eqnos = Field().Equations();
 		iArrayT row_eqnos(ndof); 
 		iArrayT col_eqnos(ndof);
-		dMatrixT ctmpin(fSD), ctmpout;
-		dMatrixT BJ(fSD*fSD, ndof), BK(fSD*fSD, ndof), FTs(fSD), fStress(fSD), fCauchy(fSD);
-		dMatrixT Tijkl(fSD*fSD), BJTCijkl(fSD, fSD*fSD), K_JK, Finverse(fSD);
-		dMatrixT Cijklsigma(fSD*fSD);
+		dMatrixT ctmpin(nsd), ctmpout;
+		dMatrixT BJ(nsd*nsd, ndof), BK(nsd*nsd, ndof), FTs(nsd), fStress(nsd), fCauchy(nsd);
+		dMatrixT Tijkl(nsd*nsd), BJTCijkl(nsd, nsd*nsd), K_JK, Finverse(nsd);
+		dMatrixT Cijklsigma(nsd*nsd);
 		K_JK.Alias(fLHS);
 		LinkedListT<dArrayT> bVectors_j;
 		LinkedListT<int> nodeSupport_j;
@@ -364,7 +311,7 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			FTs.MultATB(Fdef, fStress);
 
 			curr_material->S_IJ().ToMatrix(fStress);
-			Tijkl.Expand(fStress, fSD, dMatrixT::kOverwrite);
+			Tijkl.Expand(fStress, nsd, dMatrixT::kOverwrite);
 			// Tijkl = 0.; //used to debug material stiffness
 			
 			// material stiffness
@@ -423,12 +370,13 @@ void FS_SCNIMFT::RHSDriver(void)
 		ExceptionT::GeneralFail("FS_SCNIMFT::RHSDriver","Cannot get material\n");
 	
 	int nNodes = fNodes.Length();
+	int nsd = NumSD();
 
 	if (formMa) {
 		if (Field().Order() < 2)
 			ExceptionT::GeneralFail(caller,"Field's Order does not have accelerations\n");
 	
-		fLHS = 0.0; // fLHS.Length() = nNodes * fSD;
+		fLHS = 0.0; // fLHS.Length() = nNodes * nsd;
 		const dArray2DT& a = Field()(0,2); // accelerations
 		double* ma = fLHS.Pointer();
 		const double* acc;
@@ -436,7 +384,7 @@ void FS_SCNIMFT::RHSDriver(void)
 		double* volume = fCellVolumes.Pointer();
 		for (int i = 0; i < nNodes; i++) {
 			acc = a(*nodes++);
-			for (int j = 0; j < fSD; j++)
+			for (int j = 0; j < nsd; j++)
 				*ma++ = *volume * *acc++;
 			volume++;
 		}
@@ -445,7 +393,7 @@ void FS_SCNIMFT::RHSDriver(void)
 
 	fForce = 0.0;
 	dMatrixT& Fdef = fF_list[0];
-	dMatrixT BJ(fSD*fSD, fSD), fCauchy(fSD), Finverse(fSD), fStress(fSD);
+	dMatrixT BJ(nsd*nsd, nsd), fCauchy(nsd), Finverse(nsd), fStress(nsd);
 	double J;
 	
 	/* displacements */
@@ -509,21 +457,22 @@ void FS_SCNIMFT::RHSDriver(void)
 
 void FS_SCNIMFT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 {
+	int nsd = NumSD();
 #if __option(extended_errorcheck)
-	if (BJ.Rows() != fSD*2) 
+	if (BJ.Rows() != nsd*2) 
 		ExceptionT::SizeMismatch("SCNIMFT::bVectorToMatrix","Matrix has bad majorDim");
-	if (BJ.Cols() != fSD) 
+	if (BJ.Cols() != nsd) 
 		ExceptionT::SizeMismatch("SCNIMFT::bVectorToMatrix","Matrix has bad minorDim");
 #endif
 
 	double* Bptr = BJ.Pointer();
 	BJ = 0.;
 	Bptr[0] = *bVector;
-	if (fSD == 2) {
+	if (nsd == 2) {
 		Bptr[5] = *bVector++;
 		Bptr[2] = *bVector;
 		Bptr[7] = *bVector;
-	} else { // fSD == 3
+	} else { // nsd == 3
 		Bptr[10] = Bptr[19] = *bVector++;
 		Bptr[3] = *bVector;
 		Bptr[13] = Bptr[23] = *bVector++;

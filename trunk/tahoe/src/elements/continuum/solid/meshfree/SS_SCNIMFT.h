@@ -1,4 +1,4 @@
-/* $Id: SS_SCNIMFT.h,v 1.4 2004-08-04 22:00:23 cjkimme Exp $ */
+/* $Id: SS_SCNIMFT.h,v 1.5 2005-03-01 08:26:29 paklein Exp $ */
 #ifndef _SS_SCNIMF_T_H_
 #define _SS_SCNIMF_T_H_
 
@@ -27,31 +27,14 @@ public:
 	 * variables names returned by ParticleT::GenerateOutputLabels. */
 	virtual void WriteOutput(void);
 
-	/* compute specified output parameter and send for smoothing */
-	virtual void SendOutput(int kincode);
-
 	/** trigger reconfiguration */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
-
-	/** \name restart functions */
-	/*@{*/
-	/** write restart data to the output stream. Should be paired with
-	 * the corresponding ElementBaseT::ReadRestart implementation. */
-	virtual void WriteRestart(ostream& out) const;
-
-	/** read restart data to the output stream. Should be paired with
-	 * the corresponding ElementBaseT::WriteRestart implementation. */
-	virtual void ReadRestart(istream& in);
-	/*@}*/
 
 	/** */
 	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
 	
 	/** */
 	virtual void RHSDriver(void);
-	
-	/** generate labels for output data */
-	virtual void GenerateOutputLabels(ArrayT<StringT>& labels);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
