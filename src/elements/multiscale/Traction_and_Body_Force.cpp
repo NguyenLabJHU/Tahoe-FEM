@@ -1,7 +1,7 @@
-/* $Id: Traction_and_Body_Force.cpp,v 1.2 2003-03-29 00:30:57 paklein Exp $ */
+/* $Id: Traction_and_Body_Force.cpp,v 1.3 2004-06-22 19:45:34 cjkimme Exp $ */
 #include "StaggeredMultiScaleT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "ModelManagerT.h"
 #include "ShapeFunctionT.h"
 #include "Traction_CardT.h"

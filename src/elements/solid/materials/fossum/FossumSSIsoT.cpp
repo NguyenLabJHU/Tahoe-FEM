@@ -7,7 +7,7 @@
 #include "SSMatSupportT.h"
 
 #include <iostream.h>
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "dSymMatrixT.h"
 
 #include "ElementCardT.h"

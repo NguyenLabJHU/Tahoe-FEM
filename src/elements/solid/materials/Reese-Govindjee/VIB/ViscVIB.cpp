@@ -1,4 +1,4 @@
-/* $Id: ViscVIB.cpp,v 1.5 2003-08-04 01:32:04 thao Exp $ */
+/* $Id: ViscVIB.cpp,v 1.6 2004-06-22 19:45:43 cjkimme Exp $ */
 /* created: TDN (1/19/2000) */
 
 #include <math.h>
@@ -8,7 +8,7 @@
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 
 /* potential functions */
 #include "SmithFerrante.h"

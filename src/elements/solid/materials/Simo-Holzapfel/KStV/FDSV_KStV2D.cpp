@@ -1,11 +1,11 @@
-/* $Id: FDSV_KStV2D.cpp,v 1.2 2003-04-05 20:38:08 thao Exp $ */
+/* $Id: FDSV_KStV2D.cpp,v 1.3 2004-06-22 19:45:46 cjkimme Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSV_KStV2D.h"
 
 #include <math.h>
 #include <iostream.h>
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "ExceptionT.h"
 
 using namespace Tahoe;

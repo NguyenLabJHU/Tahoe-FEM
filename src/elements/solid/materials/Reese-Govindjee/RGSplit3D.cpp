@@ -1,11 +1,11 @@
-/* $Id: RGSplit3D.cpp,v 1.6 2003-11-21 22:54:50 paklein Exp $ */
+/* $Id: RGSplit3D.cpp,v 1.7 2004-06-22 19:45:41 cjkimme Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplit3D.h"
 #include "PotentialT.h"
 #include "NeoHookean.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "ExceptionT.h"
 #include <math.h>
 #include <iostream.h>

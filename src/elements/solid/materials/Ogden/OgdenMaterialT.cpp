@@ -1,8 +1,10 @@
-/* $Id: OgdenMaterialT.cpp,v 1.2 2003-03-21 06:29:09 thao Exp $ */
+/* $Id: OgdenMaterialT.cpp,v 1.3 2004-06-22 19:45:39 cjkimme Exp $ */
 /* created: tdn (3/17/2003) */
 #include "OgdenMaterialT.h"
 #include "PotentialT.h"
 #include "NeoHookean.h"
+
+#include "ifstreamT.h"
 
 #include <iostream.h>
 #include <math.h>

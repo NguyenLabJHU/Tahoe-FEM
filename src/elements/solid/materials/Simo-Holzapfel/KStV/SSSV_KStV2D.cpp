@@ -1,11 +1,11 @@
-/* $Id: SSSV_KStV2D.cpp,v 1.9 2004-01-21 23:08:38 paklein Exp $ */
+/* $Id: SSSV_KStV2D.cpp,v 1.10 2004-06-22 19:45:46 cjkimme Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV2D.h"
 #include "SSMatSupportT.h"
 
 #include <math.h>
 #include <iostream.h>
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "ExceptionT.h"
 
 using namespace Tahoe;
