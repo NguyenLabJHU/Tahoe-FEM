@@ -1,10 +1,13 @@
-/* $Id: GreenwoodWilliamson.h,v 1.4 2002-04-24 17:52:32 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.h,v 1.5 2002-07-02 19:56:31 cjkimme Exp $ */
 
 #ifndef _GREENWOOD_WILLIAMSON_H_
 #define _GREENWOOD_WILLIAMSON_H_
 
 /* base class */
 #include "C1FunctionT.h"
+
+
+namespace Tahoe {
 
 class GreenwoodWilliamson: public C1FunctionT
 {
@@ -52,6 +55,7 @@ private:
 	double fS;
 };
 
+} // namespace Tahoe 
 #endif /* _GREENWOOD_WILLIAMSON_H_ */
 
 

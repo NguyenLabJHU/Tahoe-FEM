@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.14 2002-05-24 18:28:15 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.15 2002-07-02 19:56:31 cjkimme Exp $ */
 
 #include "GreenwoodWilliamson.h"
 #include <math.h>
@@ -12,6 +12,9 @@
 
 
 /* constants */
+
+using namespace Tahoe;
+
 const double PI = 2.0*acos(0.0);
 const double EXTOL = 75.0;
 
