@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.52 2002-06-19 22:27:43 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.53 2002-06-19 22:48:34 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -241,17 +241,17 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
       if (pickedPoints.Length()>0){
 	vtkRendererCollection* renderers = renWin->GetRenderers();
 	renderers->InitTraversal();
-	vtkRenderer* temp = renderers->GetNextItem();
-	cout << renderers->GetNumberOfItems() << endl;
+	vtkRenderer* temp;
+
 	for (int j = 0; j < renderers->GetNumberOfItems(); j++){
-	  for (int i =0; i< pickedPoints.Length(); i++){
-	    temp->RemoveActor(pickedPoints[i]);
-	  }      
 	  temp = renderers->GetNextItem();
-	}
+	  for (int i =0; i< pickedPoints.Length(); i++){
+	    temp->RemoveActor(pickedPoints[i]);  
+	  }  
+	  
+	}      
       }
-      //for (int i = 0; i < pickedPoints.Length(); i++)
-      //pickedPoints[i]->Delete();
+      
 
 
       renWin->Render();
