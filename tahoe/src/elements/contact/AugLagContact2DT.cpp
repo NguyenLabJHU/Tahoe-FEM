@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.11 2002-11-30 16:41:26 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.12 2003-01-27 07:00:25 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 
 #include "AugLagContact2DT.h"
@@ -80,10 +80,9 @@ void AugLagContact2DT::SetDOFTags(void)
 	iArrayT tmp;
 	tmp.Alias(fActiveStrikers);	
 	ostream& out = ElementSupport().Output();
-	out << "\nold: " << ElementSupport().XDOF_Manager().XDOF(this, 0).MajorDim() << '\n';
-	out << "new: " << fActiveStrikers.Length() << endl;
 	out << "\n            time: " << ElementSupport().Time() << '\n';
-	out <<   " active strikers: " << tmp.Length()   << '\n';
+	out <<   " previous active: " << ElementSupport().XDOF_Manager().XDOF(this, 0).MajorDim() << '\n';
+	out <<   "  current active: " << tmp.Length()   << '\n';
 	tmp++;
 	out << tmp.wrap(8) << '\n';
 	tmp--;

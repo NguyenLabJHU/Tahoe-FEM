@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.14 2002-11-21 01:13:39 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.15 2003-01-27 07:00:26 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -11,6 +11,7 @@
 #include "ExceptionT.h"
 #include "MeshFreeShapeFunctionT.h"
 #include "ModelManagerT.h"
+#include "CommManagerT.h"
 
 //TEMP
 #include "MaterialListT.h"
@@ -33,6 +34,10 @@ MeshFreeSSSolidT::MeshFreeSSSolidT(const ElementSupportT& support, const FieldT&
 		cout << "\n MeshFreeSSSolidT::MeshFreeSSSolidT: no strain-displacement options\n" << endl;
 		fStrainDispOpt = kStandardB;
 	}
+
+	/* check */
+	if (AutoBorder() && ElementSupport().Size() > 1)
+		ExceptionT::BadInputValue("MeshFreeSSSolidT::MeshFreeSSSolidT", "auto-border not support in parallel");
 }
 
 /* data initialization */
@@ -59,23 +64,28 @@ void MeshFreeSSSolidT::Initialize(void)
 	fMFShapes->SetSupportSize();
 
 	/* exchange nodal parameters (only Dmax for now) */
-	iArrayT nodes_in;
-	ElementSupport().IncomingNodes(nodes_in);
-	if (nodes_in.Length() > 0)
+	const ArrayT<int>* p_nodes_in = ElementSupport().ExternalNodes();
+	if (p_nodes_in)
 	{
-		/* send all */
-		const dArray2DT& nodal_params = fMFShapes->NodalParameters();
-		ElementSupport().SendExternalData(nodal_params);
-
-		/* receive */
-		dArray2DT all_params_in(nodes_in.Length(), nodal_params.MinorDim());
-		ElementSupport().RecvExternalData(all_params_in);
-	
-		/* set values */
-		fMFShapes->SetNodalParameters(nodes_in, all_params_in);
-
 		/* skip MLS fit at external nodes */
+		iArrayT nodes_in;
+		nodes_in.Alias(*p_nodes_in);
 		fMFShapes->SetSkipNodes(nodes_in);
+		
+		/* exchange */
+		CommManagerT& comm = ElementSupport().CommManager();
+
+		/* send all */
+		dArray2DT& nodal_params = fMFShapes->NodalParameters();
+
+		/* initialize the exchange */
+		int id = comm.Init_AllGather(nodal_params);
+		
+		/* do the exchange */
+		comm.AllGather(id, nodal_params);
+		
+		/* clear the communication */
+		comm.Clear_AllGather(id);
 	}
 
 	/* set nodal neighborhoods */

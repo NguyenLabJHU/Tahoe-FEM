@@ -1,4 +1,4 @@
-/* $Id: SymmetricNodesT.cpp,v 1.4 2002-10-20 22:49:29 paklein Exp $ */
+/* $Id: SymmetricNodesT.cpp,v 1.5 2003-01-27 07:00:30 paklein Exp $ */
 #include "SymmetricNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -6,15 +6,21 @@
 #include "FEManagerT.h"
 #include "ifstreamT.h"
 #include "BasicFieldT.h"
+#include "ElementsConfig.h"
 
-/* constructor */
+#ifdef COHESIVE_SURFACE_ELEMENT
+#include "TiedPotentialT.h"
+#endif
 
 using namespace Tahoe;
 
+/* constructor */
 SymmetricNodesT::SymmetricNodesT(NodeManagerT& node_manager, BasicFieldT& field):
 	TiedNodesT(node_manager, field)
 {
-
+#ifndef COHESIVE_SURFACE_ELEMENT
+	ExceptionT::BadInputValue("TiedNodesT::TiedNodesT", "COHESIVE_SURFACE_ELEMENT not enabled");
+#endif
 }
 
 /* initialize data. Must be called immediately after construction */
@@ -96,6 +102,7 @@ void SymmetricNodesT::Initialize(ifstreamT& in)
 //}
 bool SymmetricNodesT::ChangeStatus(void)
 {
+#ifdef COHESIVE_SURFACE_ELEMENT
   	bool changeQ = false;
 	ElementBaseT* surroundingGroup = fFEManager.ElementGroup(0);
   	if (!surroundingGroup)
@@ -118,6 +125,8 @@ bool SymmetricNodesT::ChangeStatus(void)
     }
 
   	return changeQ;
-
+#else
+	return false;
+#endif
 }
 

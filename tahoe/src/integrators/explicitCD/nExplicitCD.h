@@ -1,4 +1,4 @@
-/* $Id: nExplicitCD.h,v 1.6 2002-07-05 22:27:54 paklein Exp $ */
+/* $Id: nExplicitCD.h,v 1.7 2003-01-27 07:00:23 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _N_EXP_CD_H_
@@ -27,6 +27,9 @@ public:
 
 	/** predictor. Maps ALL degrees of freedom forward. */
 	virtual void Predictor(BasicFieldT& field);
+
+	/** corrector. Maps ALL degrees of freedom forward. */
+	virtual void Corrector(BasicFieldT& field, const dArray2DT& update);
 
 	/** corrector - map ACTIVE. See nControllerT::Corrector for more
 	 * documentation */

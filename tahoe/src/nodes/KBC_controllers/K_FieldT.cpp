@@ -1,21 +1,24 @@
-/* $Id: K_FieldT.cpp,v 1.9 2002-12-12 21:46:30 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.10 2003-01-27 07:00:30 paklein Exp $ */
 /* created: paklein (09/05/2000) */
-
 #include "K_FieldT.h"
-
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
-#include "ContinuumElementT.h"
 #include "MaterialListT.h"
 #include "ContinuumMaterialT.h"
 #include "fstreamT.h"
 #include "IsotropicT.h"
 #include "Material2DT.h"
+#include "ElementsConfig.h"
 
-/* parameters */
+#ifdef CONTINUUM_ELEMENT
+#include "ContinuumElementT.h"
+#else
+#include "ElementBaseT.h"
+#endif
 
 using namespace Tahoe;
 
+/* parameters */
 const double Pi = acos(-1.0);
 
 /* constructor */
@@ -27,7 +30,9 @@ K_FieldT::K_FieldT(NodeManagerT& node_manager):
 	fMaterial2D(NULL),
 	fDummySchedule(1.0)
 {
-
+#ifndef CONTINUUM_ELEMENT
+	ExceptionT::BadInputValue("TiedNodesT::TiedNodesT", "CONTINUUM_ELEMENT not enabled");
+#endif
 }
 
 /* initialize data - called immediately after construction */
@@ -329,6 +334,7 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 void K_FieldT::ResolveMaterialReference(int element_group,
 	int material_num, const IsotropicT** iso, const Material2DT** mat) const
 {
+#ifdef CONTINUUM_ELEMENT
 	/* resolve element group */
 	const FEManagerT& fe_man = fNodeManager.FEManager();
 	const ElementBaseT* element = fe_man.ElementGroup(element_group);
@@ -383,6 +389,13 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 		}
 	}
 #endif
+#else /* CONTINUUM_ELEMENT */
+#pragma unused(element_group)
+#pragma unused(material_num)
+#pragma unused(iso)
+#pragma unused(mat)
+ExceptionT::GeneralFail();
+#endif /* CONTINUUM_ELEMENT */
 }
 
 /* compute K-field displacement factors */

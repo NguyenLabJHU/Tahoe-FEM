@@ -1,6 +1,5 @@
-/* $Id: nTrapezoid.cpp,v 1.5 2002-10-20 22:48:13 paklein Exp $ */
+/* $Id: nTrapezoid.cpp,v 1.6 2003-01-27 07:00:24 paklein Exp $ */
 /* created: paklein (10/03/1999) */
-
 #include "nTrapezoid.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
@@ -9,10 +8,9 @@
 #include "KBC_CardT.h"
 #include "BasicFieldT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 nTrapezoid::nTrapezoid(void) { }
 
 /* consistent BC's */
@@ -41,8 +39,8 @@ void nTrapezoid::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 			break;
 		}
 		default:
-			cout << "\n nTrapezoid::ConsistentKBC:unknown BC code\n" << endl;
-			throw ExceptionT::kBadInputValue;
+			ExceptionT::BadInputValue("nTrapezoid::ConsistentKBC",
+				"unknown BC code: %d", KBC.Code());
 	}
 }		
 
@@ -55,6 +53,16 @@ void nTrapezoid::Predictor(BasicFieldT& field)
 	/* velocity predictor */
 	field[1] = 0.0;
 }		
+
+/* correctors - map ALL */
+void nTrapezoid::Corrector(BasicFieldT& field, const dArray2DT& update)
+{
+	/* displacement corrector */
+	field[0].AddScaled(dcorr_v, update);
+	
+	/* velocity corrector */
+	field[1] += update;
+}
 
 /* correctors - map ACTIVE */
 void nTrapezoid::Corrector(BasicFieldT& field, const dArrayT& update, 

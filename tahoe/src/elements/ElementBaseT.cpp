@@ -1,6 +1,5 @@
-/* $Id: ElementBaseT.cpp,v 1.30 2002-12-11 23:13:15 cjkimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.31 2003-01-27 07:00:24 paklein Exp $ */
 /* created: paklein (05/24/1996) */
-
 #include "ElementBaseT.h"
 
 #include <iostream.h>
@@ -625,7 +624,7 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 		out << " element (in global block): " << elem_map[local_el_number] << '\n';
 
 	/* node number map */
-	const iArrayT* node_map = fSupport.NodeMap();
+	const ArrayT<int>* node_map = fSupport.NodeMap();
 	iArrayT temp;
 
 	out <<   "\n connectivity(x):\n";

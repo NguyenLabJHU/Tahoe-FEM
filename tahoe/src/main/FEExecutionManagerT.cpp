@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.34 2002-12-05 08:30:46 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.35 2003-01-27 07:00:27 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -42,45 +42,22 @@ FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
 	/* if not prescribed as joined, write separate files */
 	if (!CommandLineOption("-join_io")) AddCommandLineOption("-split_io");
 #endif
-}
 
-/* Prompt input files until "quit" */
-void FEExecutionManagerT::Run(void)
-{
-	int size = Size();
-	int rank = Rank();
-
-	/* check command line arguments */
-	if (size > 1)
-	{
-		for (int i = 0; i < fCommandLineOptions.Length(); i++)
-			if (fCommandLineOptions[i] == "-decomp")
-			{
-				if (rank == 0)
-					cout << "\n ::Run: run \"-decomp\" on one processor only" << endl;
-				return;
-			}
-			else if (fCommandLineOptions[i] == "-join")
-			{
-				if (rank == 0)
-					cout << "\n ::Run: run \"-join\" on one processor only" << endl;
-				return;
-			}
-	}
-
-	/* inherited on fall-through */
-	 ExecutionManagerT::Run();
+	/* set communicator log level */
+	if (CommandLineOption("-verbose")) comm.SetLogLevel(CommunicatorT::kLow);
 }
 
 /**********************************************************************
-* Protected
-**********************************************************************/
+ * Protected
+ **********************************************************************/
 
 /* MUST be overloaded */
 void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 {
 	/* run serial by default */
+	int size = fComm.Size();
 	int run_option = 0;
+	if (size > 1) run_option = 1;
 
 	/* check command line options */
 	for (int i = 0; i < fCommandLineOptions.Length(); i++)
@@ -90,7 +67,6 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 		else if (fCommandLineOptions[i] == "-join")
 			run_option = 4;
 	}
-	if (fComm.Size() > 1) run_option = 1;
 
 	switch (run_option)
 	{
@@ -103,13 +79,25 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 			RunJob_parallel(in, status);
 			break;
 		case 3:
+		{
 			cout << "\n RunDecomp_serial: " << in.filename() << endl;
-			RunDecomp_serial(in, status);
-			break;	
+			if (size > 1) cout << " RunDecomp_serial: SERIAL ONLY" << endl;
+				
+			if (fComm.Rank() == 0)
+				RunDecomp_serial(in, status);
+			fComm.Barrier();
+			break;
+		}
 		case 4:
+		{
 			cout << "\n RunJoin_serial: " << in.filename() << endl;
-			RunJoin_serial(in, status);
-			break;	
+			if (size > 1) cout << " RunJoin_serial: SERIAL ONLY" << endl;
+			
+			if (fComm.Rank() == 0)
+				RunJoin_serial(in, status);
+			fComm.Barrier();
+			break;
+		}
 		default:
 			ExceptionT::GeneralFail("FEExecutionManagerT::RunJob", "unknown option: %d", run_option);
 	}
@@ -441,7 +429,7 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 		    results_format == IOBaseT::kTahoeII)
 			results_format = IOBaseT::kTahoeResults;
 
-		int size = 0;
+		int size = fComm.Size();
 		int index;
 		if (!CommandLineOption("-join", index)) 
 			ExceptionT::GeneralFail();
@@ -455,7 +443,7 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 		}
 
 		/* prompt for decomp size */
-		if (size == 0)
+		if (size == 1)
 		{
 			cout << "\n Enter number of partitions > 1 (0 to quit): ";
 #if (defined __SGI__ && defined __TAHOE_MPI__)
@@ -512,6 +500,8 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 /* testing for distributed execution */
 void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 {
+	const char caller[] = "::RunJob_parallel";
+
 	/* set stream comment marker */
 	in.set_marker('#');
 
@@ -589,7 +579,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		try { Decompose(in, size, method, model_file, format, map_file); }
 		catch (ExceptionT::CodeT code)
 		{
-			cout << " ::RunJob_parallel: exception on decomposition: " << code << endl;
+			cout << "\n " << caller << ": exception on decomposition: " << code << endl;
 			token = 0;
 		}
 		  }
@@ -608,7 +598,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	token = 1;
 	if (!part_in.is_open())
 	{
-		cout << "\n ::RunJob_parallel: could not open file: " << part_file << endl;
+		cout << "\n " << caller << ": could not open file: " << part_file << endl;
 		token = 0;
 	}
 	else
@@ -616,7 +606,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		part_in >> partition;
 		if (partition.ID() != rank)
 		{
-			cout << "\n ::RunJob_parallel: rank and partition ID mismatch" << endl;
+			cout << "\n " << caller << ": rank and partition ID mismatch" << endl;
 			token = 0;
 		}
 		
@@ -639,12 +629,12 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		/* original model file */
 		ModelManagerT model_ALL(cout);
 		if (!model_ALL.Initialize(format, model_file, true))
-			ExceptionT::GeneralFail("FEExecutionManagerT::RunJob_parallel", 
+			ExceptionT::GeneralFail(caller, 
 				"error opening file: %s", (const char*) model_file);
 
-		cout << "\n ::RunJob_parallel: writing partial geometry file: " << partial_file << endl;
+		cout << "\n " << caller << ": writing partial geometry file: " << partial_file << endl;
 		EchoPartialGeometry(partition, model_ALL, partial_file, format);
-		cout << " ::RunJob_parallel: writing partial geometry file: partial_file: "
+		cout << " " << caller << ": writing partial geometry file: partial_file: "
 			 << partial_file << ": DONE" << endl;
 	}
 	
@@ -667,9 +657,6 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		/* echo some lines from input */
 		if (code == ExceptionT::kBadInputValue) Rewind(in_loc, status);
 		token = 0;
-
-		/* write exception codes to out file */
-		ExceptionT::WriteExceptionCodes(out);
 	}
 	
 	if (fComm.Sum(token) != size)
@@ -688,13 +675,13 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		}
 		else fComm.Gather(token, 0);
 		
-		ExceptionT::GeneralFail();
+		ExceptionT::GeneralFail(caller);
 	}
 	
-	/* external IO */
+	/* external IO - only for graph decomposition */
 	token = 1;
 	IOManager_mpi* IOMan = NULL;
-	if (!CommandLineOption("-split_io"))
+	if (partition.DecompType() == PartitionT::kGraph && !CommandLineOption("-split_io"))
 	{
 		try {
 		/* read output map */
@@ -714,8 +701,6 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 			token = 0;
 			status << "\n \"" << in.filename() << "\" exit on exception " << code 
 			       << " setting the external IO" << endl;
-			/* write exception codes to out file */
-			ExceptionT::WriteExceptionCodes(out);		
 		}
 	}
 
@@ -735,7 +720,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		else 
 			fComm.Gather(token, 0);
 		
-		ExceptionT::GeneralFail();
+		ExceptionT::GeneralFail(caller);
 	}
 
 	/* solve */
@@ -748,9 +733,6 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		status << " solution phase. See \"" << out_file << "\" for a list";
 		status << " of the codes.\n";
 		token = 0;
-
-		/* write exception codes to out file */
-		ExceptionT::WriteExceptionCodes(out);		
 	}
 
 	/* free external IO */
@@ -772,7 +754,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		}
 		else fComm.Gather(token, 0);
 		
-		ExceptionT::GeneralFail();
+		ExceptionT::GeneralFail(caller);
 	}
 	t3 = clock(); } // end try
 
@@ -880,6 +862,14 @@ void FEExecutionManagerT::Decompose_atom(ifstreamT& in, int size,
 {
 #pragma unused(in)
 	const char caller[] = "FEExecutionManagerT::Decompose_atom";
+
+	/* files exist */
+	bool need_decomp = NeedDecomposition(model_file, size);
+	if (!need_decomp)
+	{
+		cout << "\n " << caller <<": decomposition files exist" << endl;
+		return;
+	}
 	
 	/* model manager */
 	ModelManagerT model(cout);
@@ -968,7 +958,7 @@ void FEExecutionManagerT::Decompose_atom(ifstreamT& in, int size,
 		part_out.close();
 	}
 
-	/* output map file? */
+	/* output map file? - not needed for PartitionT::DecompTypeT == kAtom */
 #pragma unused(output_map_file)
 }
 

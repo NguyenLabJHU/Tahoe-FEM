@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.11 2002-11-29 16:09:00 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.12 2003-01-27 07:00:26 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 
 #include "MeshFreeElementSupportT.h"
@@ -11,24 +11,20 @@
 #include "ElementBaseT.h"
 
 #include "ModelManagerT.h"
-
-/* parameters */
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
+/* parameters */
 const int kHeadRoom = 10; // percent
-
-#ifdef __TAHOE_MPI__
-#include "mpi.h"
-#endif
 
 /* constructor */
 MeshFreeElementSupportT::MeshFreeElementSupportT(ifstreamT& in):
 	fMFShapes(NULL),
 	fLocGroup(kHeadRoom),
 	fNumElemenNodes(0),
-	fNEEArray(kHeadRoom),
-	fNEEMatrix(kHeadRoom),
+	fNEEArray(kHeadRoom, true),
+	fNEEMatrix(kHeadRoom, true),
 	fFieldSet(false),
 	fMapShift(-1)
 {
@@ -37,14 +33,6 @@ MeshFreeElementSupportT::MeshFreeElementSupportT(ifstreamT& in):
 
 	/* check values */
 	if (fAutoBorder != 0 && fAutoBorder != 1) throw ExceptionT::kBadInputValue;
-
-#ifdef __TAHOE_MPI__
-	//TEMP
-	int size;
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
-	if (size > 1 && fAutoBorder)
-		cout << "\n ::MeshFreeElementSupportT: AutoBorder not extended to parallel" << endl;
-#endif
 }
 
 /* accessors */
@@ -218,7 +206,7 @@ void MeshFreeElementSupportT::TraceNode(ostream& out, int node, const ElementBas
 	out << "\n MeshFreeElementSupportT::TraceNode: " << node + 1 << endl;
 
 	/* node map */
-	const iArrayT* node_map = element_group.ElementSupport().NodeMap();
+	const ArrayT<int>* node_map = element_group.ElementSupport().NodeMap();
 
 	/* shape function data */
 	MeshFreeSupportT& mf_support = fMFShapes->MeshFreeSupport();

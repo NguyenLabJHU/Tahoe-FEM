@@ -1,10 +1,15 @@
-/* $Id: TiedNodesT.cpp,v 1.16 2002-11-06 21:54:55 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.17 2003-01-27 07:00:30 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
 #include "ElementBaseT.h"
 #include "BasicFieldT.h"
 #include "FEManagerT.h"
+#include "ElementsConfig.h"
+
+#ifdef COHESIVE_SURFACE_ELEMENT
+#include "TiedPotentialT.h"
+#endif
 
 //TEMP
 #include "ofstreamT.h"
@@ -19,7 +24,9 @@ TiedNodesT::TiedNodesT(NodeManagerT& node_manager, BasicFieldT& field):
 	fDummySchedule(1.0),
 	fFEManager(node_manager.FEManager())
 {
-
+#ifndef COHESIVE_SURFACE_ELEMENT
+	ExceptionT::BadInputValue("TiedNodesT::TiedNodesT", "COHESIVE_SURFACE_ELEMENT not enabled");
+#endif
 }
 
 /* initialize data. Must be called immediately after construction */
@@ -294,7 +301,7 @@ void TiedNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 	
 	/* get processor number */
 	int np = fNodeManager.Rank();
-	const iArrayT& pMap = fNodeManager.ProcessorMap();
+	const ArrayT<int>* pMap = fNodeManager.ProcessorMap();
 
 	/* dumb search */
 	int nsd = coords.MinorDim();
@@ -311,7 +318,7 @@ void TiedNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 		double* x_f = coords(follower_nodes[i]);
 		
 		/*If a follower is external, flag it for removal from the list*/
-		if (pMap[follower_nodes[i]] != np)
+		if (pMap && (*pMap)[follower_nodes[i]] != np)
 		{
 		  fPairStatus[i] = kChangeF;
 		}
@@ -327,8 +334,8 @@ void TiedNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 			if (OK) 
 			{
 				fNodePairs(i,1) = leader_nodes[j];
-				if (pMap[follower_nodes[i]] != np && 
-								    pMap[leader_nodes[j]] != np)
+				if (pMap && (*pMap)[follower_nodes[i]] != np && 
+								    (*pMap)[leader_nodes[j]] != np)
 	  			{
 	  				/* Flag the pair as external */
 				  fPairStatus[i] = kTiedExt;
@@ -370,6 +377,9 @@ bool TiedNodesT::ChangeStatus(void)
     	return false;
     else
     {
+#ifndef COHESIVE_SURFACE_ELEMENT
+		return false;
+#else
       bool changeQ = false;
 	ElementBaseT* surroundingGroup = fFEManager.ElementGroup(TiedPotentialT::BulkGroup());
   		if (!surroundingGroup)
@@ -388,11 +398,10 @@ bool TiedNodesT::ChangeStatus(void)
 		  		fPairStatus[i] = kFree;
 		  		changeQ = true;
 			}
-        }
-        
+        }   
         return changeQ;
+#endif
     }	
-
 }
 
 /**********************************************************************

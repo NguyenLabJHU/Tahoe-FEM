@@ -1,6 +1,5 @@
-/* $Id: nTrapezoid.h,v 1.6 2002-07-05 22:27:55 paklein Exp $ */
+/* $Id: nTrapezoid.h,v 1.7 2003-01-27 07:00:24 paklein Exp $ */
 /* created: paklein (10/03/1999) */
-
 #ifndef _N_TRAPEZOID_H_
 #define _N_TRAPEZOID_H_
 
@@ -26,6 +25,9 @@ public:
 
 	/** predictor. Maps ALL degrees of freedom forward. */
 	virtual void Predictor(BasicFieldT& field);
+
+	/** corrector. Maps ALL degrees of freedom forward. */
+	virtual void Corrector(BasicFieldT& field, const dArray2DT& update);
 
 	/** corrector - map ACTIVE. See nControllerT::Corrector for more
 	 * documentation */

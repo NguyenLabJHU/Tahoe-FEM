@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.18 2002-10-20 22:49:40 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.19 2003-01-27 07:00:30 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -58,7 +58,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 	fNumFacetNodes(0),
 	fCutCoords(NULL),
 	fvolume_man(25, fvolume),
-	fnodal_param_man(25),
+	fnodal_param_man(25, true),
 	fcoords_man(25, fcoords, fCoords.MinorDim()),
 	fx_ip_table(fDomain.NumIP(), fCoords.MinorDim()),
 	fReformNode(kNotInit),

@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.h,v 1.3 2002-11-14 17:06:21 paklein Exp $ */
+/* $Id: MaterialSupportT.h,v 1.4 2003-01-27 07:00:28 paklein Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
@@ -93,9 +93,6 @@ public:
 	 * no element information in available. The ContinuumElementT
 	 * pointer is set using MaterialSupportT::SetContinuumElement. */
 	const ContinuumElementT* ContinuumElement(void) const;
-
-	/** set the element group pointer */
-	virtual void SetContinuumElement(const ContinuumElementT* p);
 	
 	/** set the source for element cards */
 	void SetElementCards(const AutoArrayT<ElementCardT>* element_cards);
@@ -133,6 +130,15 @@ public:
 	bool Interpolate(const LocalArrayT& u, dArrayT& u_ip, int ip) const;
 	/*@}*/
 
+	/** \name set host code information */
+	/*@{*/
+	/** set the element group pointer */
+	virtual void SetContinuumElement(const ContinuumElementT* p);
+
+	/** set pointer local array */
+	virtual void SetLocalArray(const LocalArrayT& array);
+	/*@}*/
+
   private:
   
   	/** \name dimensions */
@@ -163,6 +169,12 @@ public:
   
   	/** pointer to the continuum element */
   	const ContinuumElementT* fContinuumElement;
+
+	/** \name pointers to local arrays */
+	/*@{*/
+	const LocalArrayT* fInitCoords;
+	const LocalArrayT* fDisp;
+	/*@}*/
 };
 
 /* inlines functions */

@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.h,v 1.9 2002-11-14 17:06:22 paklein Exp $ */
+/* $Id: SolidMatList2DT.h,v 1.10 2003-01-27 07:00:28 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #ifndef _MATLIST_2D_T_H_
 #define _MATLIST_2D_T_H_
@@ -29,7 +29,6 @@ private:
 	/*@{*/
 	void Error_no_small_strain(ostream& out, int matcode) const;
 	void Error_no_finite_strain(ostream& out, int matcode) const;
-	void Error_no_multi_scale(ostream& out, int matcode) const;
 	/*@}*/
 };
 

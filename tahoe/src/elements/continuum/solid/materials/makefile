@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.17 2002-11-14 17:05:56 paklein Exp $
+# $Id: makefile,v 1.18 2003-01-27 07:00:27 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -19,6 +19,9 @@ DEP = /dev/null
 #HDR = 
 #HDR_LINK = $(HDR:.h=.h_link)
 
+# materials configuration files
+include ../config/MaterialsConfig.make
+
 # subdirectories
 SUB_DIR = \
 	primitives \
@@ -26,25 +29,16 @@ SUB_DIR = \
 	interfaces \
 	ABAQUS_UMAT \
 	ABAQUS_VUMAT \
-	CB \
-	EAM \
-	elasticity_crystl \
 	fossum \
 	Hookean \
-	modCBSW \
 	Ogden \
 	plasticity_DP \
-	plasticity_J2 \
 	plasticity_J2NlHard \
 	rod \
 	Simo \
-	VIB \
-	plasticity_crystl \
-	plasticity_macro \
 	nlcsolver \
 	tevp \
-	Simo-Holzapfel \
-	Reese-Govindjee 
+	$(MATERIALS_CONFIG_DIRECTORIES)
 
 subdir_driver: subdir_loop
 # SUB_DIR is empty

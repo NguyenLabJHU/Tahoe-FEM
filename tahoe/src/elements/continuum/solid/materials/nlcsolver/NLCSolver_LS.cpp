@@ -1,7 +1,12 @@
-/* $Id: NLCSolver_LS.cpp,v 1.7 2002-10-20 22:49:04 paklein Exp $ */
+/* $Id: NLCSolver_LS.cpp,v 1.8 2003-01-27 07:00:28 paklein Exp $ */
 #include "NLCSolver_LS.h"
-#include "Utils.h"
 #include "ExceptionT.h"
+
+// some macros
+#ifndef max
+static int max(int i1, int i2) {return i1 >= i2 ? i1 : i2;};
+static double max(double d1, double d2) {return d1 >= d2 ? d1 : d2;};
+#endif
 
 using namespace Tahoe;
 
@@ -24,9 +29,8 @@ void NLCSolver_LS::ResetMemberData()
 
 void NLCSolver_LS::SetAlpha(double alpha)
 {
-  if (alpha >= 0.5)
-    throwRunTimeError("NLCSolver_LS::SetAlpha: alpha >= 0.5");
-  fAlpha = alpha;
+	if (alpha >= 0.5) ExceptionT::GeneralFail("NLCSolver_LS::SetAlpha", "alpha >= 0.5: %g", alpha);
+	fAlpha = alpha;
 }
 
 void NLCSolver_LS::ComputeTrialPoint(dArrayT& X)
@@ -87,7 +91,6 @@ void NLCSolver_LS::ComputeTrialPoint(dArrayT& X)
     {
       //writeMessage("NLCSolver_LS::ComputeTrialPoint: lambda = NaN");
       if (NLCS_MESSAGES) {
-         writeMessage("NLCSolver_LS::ComputeTrialPoint: lambda is NaN or < 1.e-150");
          cout << "* tempLambda = * = " << tempLambda << endl
               << "  fLambda        = " << fLambda   << endl
               << "  fPrevLambda    = " << fPrevLambda << endl
@@ -104,7 +107,7 @@ void NLCSolver_LS::ComputeTrialPoint(dArrayT& X)
               << "  fRHS           = " << endl << fRHS        << endl
               << "  fLHS           = " << endl << fLHS        << endl;
       }
-      throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail("NLCSolver_LS::ComputeTrialPoint", "lambda is NaN or < 1.e-150");
     }
 
   // after first backtrack, be prepared for cubic backtrack
@@ -121,13 +124,12 @@ void NLCSolver_LS::ComputeTrialPoint(dArrayT& X)
 
 void NLCSolver_LS::TestTrialPoint(dArrayT& trialX)
 {
+	const char caller[] = "NLCSolver_LS::TestTrialPoint";
   // check value of Lambda
   if (fLambda < fMinLambda) 
     {
-      if (NLCS_MESSAGES){ 
-        cout << "   lambda, minlambda = " << fLambda << " " << fMinLambda << endl; 
-        throwRunTimeError("NLCSolver_LS::TestTrialPoint: lambda < minlambda");
-      }
+      if (NLCS_MESSAGES)
+        ExceptionT::GeneralFail(caller, "lambda < minlambda: %g < %g", fLambda, fMinLambda);
     }
   
   // check sufficient function decrease
@@ -139,13 +141,13 @@ void NLCSolver_LS::TestTrialPoint(dArrayT& trialX)
       else
 	fMaxStepTaken = false;
       if (NLCS_MESSAGES)
-	cout << "NLCSolver_LS::TestTrialPoint: trial point accepted " << endl;
+	cout << caller << ": trial point accepted " << endl;
     }
   else
     {
       RejectTrialPoint(trialX);
       if (NLCS_MESSAGES)
-	cout << "NLCSolver_LS::TestTrialPoint: trial point rejected " << endl;
+	cout << caller << ": trial point rejected " << endl;
     }
 }
 

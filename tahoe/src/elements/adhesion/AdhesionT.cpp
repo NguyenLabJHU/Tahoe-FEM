@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.10 2003-01-09 18:10:44 rjones Exp $ */
+/* $Id: AdhesionT.cpp,v 1.11 2003-01-27 07:00:25 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -28,9 +28,9 @@ AdhesionT::AdhesionT(const ElementSupportT& support, const FieldT& field):
 	fPenalizePenetration(0),
 	fAllowSameSurface(0),
 	fAdhesion(NULL),
-	fNEE_vec_man(0),
-	fNEE_mat_man(0),
-	fFace2_man(0, NumSD()),
+	fNEE_vec_man(0, true),
+	fNEE_mat_man(0, true),
+	fFace2_man(0, true, NumSD()),
 	fGrad_d_man(0, fGrad_d)
 {
 	/* register dynamically resized arrays */

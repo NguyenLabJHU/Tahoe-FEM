@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.9 2002-11-28 17:06:32 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.10 2003-01-27 07:00:30 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT_mpi.h"
@@ -9,18 +9,19 @@
 #include "SPOOLESMPI.h"
 #include "StringT.h"
 #include "MSRBuilderT.h"
-
-/* message file name */
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
+/* message file name */
 const char SPOOLES_FILE_ROOT[] = "SPOOLES";
 const char  SPOOLES_FILE_EXT[] = ".out";
 
 /* constuctor */
 SPOOLESMatrixT_mpi::SPOOLESMatrixT_mpi(ostream& out, int check_code,
-	bool symmetric, bool pivoting):
-	SPOOLESMatrixT(out, check_code, symmetric, pivoting)
+	bool symmetric, bool pivoting, CommunicatorT& comm):
+	SPOOLESMatrixT(out, check_code, symmetric, pivoting),
+	fComm(comm)
 {
 
 }
@@ -80,15 +81,9 @@ void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 	}
 	else
 	{
-		MPI_Comm comm = MPI_COMM_WORLD; //TEMP
-
-		/* process rank */
-		int rank;
-		if (MPI_Comm_rank(comm, &rank) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
-
 		/* message file name */
 		StringT spooles_file(SPOOLES_FILE_ROOT);
-		spooles_file.Append(".p", rank);
+		spooles_file.Append(".p", fComm.Rank());
 		spooles_file.Append(SPOOLES_FILE_EXT);
 		
 		//TEMP - SPOOLES v2.2 does not seem to solve non-symmetric matricies with pivoting disabled
@@ -98,6 +93,9 @@ void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 
 		/* driver */
 #ifndef __MWERKS__
+		
+		/* the MPI_Comm */
+		MPI_Comm comm = fComm;
 		int OK = LU_MPI_driver(msglvl, spooles_file, matrix_type, symmetry_flag,
 			pivoting_flag, seed, fTotNumEQ, result.Length(), fupdate.Pointer(),
 			result.Pointer(), r.Length(), r.Pointer(), c.Pointer(), v.Pointer(), &comm);
