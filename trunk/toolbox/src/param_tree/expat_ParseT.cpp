@@ -1,4 +1,4 @@
-/* $Id: expat_ParseT.cpp,v 1.7 2004-07-01 04:59:03 paklein Exp $ */
+/* $Id: expat_ParseT.cpp,v 1.8 2004-07-08 22:53:28 paklein Exp $ */
 #include "expat_ParseT.h"
 #ifdef __EXPAT__
 
@@ -8,6 +8,14 @@ using namespace Tahoe;
 
 /* init static values */
 AutoArrayT<ParameterListT*> expat_ParseT::sListStack;
+
+/* constructor */
+expat_ParseT::expat_ParseT(void)
+{
+	/* stack should be empty */
+	if (sListStack.Length() != 0)
+		ExceptionT::GeneralFail("expat_ParseT::expat_ParseT", "stack depth should be 0: %d", sListStack.Length());
+}
 
 /* parse the given file placing values into the given parameter tree */
 void expat_ParseT::Parse(const StringT& file, ParameterListT& params)
@@ -28,8 +36,12 @@ void expat_ParseT::Parse(const StringT& file, ParameterListT& params)
 	/* set element handlers */
 	XML_SetElementHandler(parser, startElement, endElement);
 
+	ExceptionT::CodeT error = ExceptionT::kNoError;
+	FILE* fp = NULL;
+	try {
+	
 	/* open a file */
-	FILE* fp = fopen(file, "r");
+	fp = fopen(file, "r");
 	if (!fp) ExceptionT::GeneralFail(caller, "error opening file \"%s\"", file.Pointer());
 
 	/* parse */
@@ -42,31 +54,41 @@ void expat_ParseT::Parse(const StringT& file, ParameterListT& params)
 		/* handle error */
 		if (XML_Parse(parser, buf, len, done) == XML_STATUS_ERROR) {
 
-			/* report error message */
-			fprintf(stdout,
-				"%s at line %d\n",
-				XML_ErrorString(XML_GetErrorCode(parser)),
-				XML_GetCurrentLineNumber(parser));
-      
-			/* write buffer */
+			/* get buffer */
 			int offset = 0;
 			int size = 0;
 			const char* buffer = XML_GetInputContext(parser, &offset, &size);
 			buffer += offset;
-			fprintf(stdout, "line: %s\n", buffer);
-              
-			ExceptionT::BadInputValue(caller, "error parsing file\"%s\"", file.Pointer());
+
+			/* report error message */
+			printf(
+				"\n expat error: \"%s\" at line %d near\n%s",
+				XML_ErrorString(XML_GetErrorCode(parser)),
+				XML_GetCurrentLineNumber(parser), buffer);
+
+			ExceptionT::BadInputValue(caller, "error parsing file \"%s\"", file.Pointer());
     	}
 
 	} while (!done);
 
-	/* clean up */
-	XML_ParserFree(parser);
-
-	/* empty stack */
+	/* stack check */
 	if (sListStack.Length() != 1)
 		ExceptionT::GeneralFail(caller, "stack depth should be 1: %d", sListStack.Length());
+
+	} /* end try */
+	
+	catch(ExceptionT::CodeT err) {
+		error = err;
+	}
+
+	/* clean up */
+	if (fp) fclose(fp);
+	XML_ParserFree(parser);
 	sListStack.Dimension(0);
+	
+	/* error */
+	if (error != ExceptionT::kNoError)
+		ExceptionT::Throw(error, caller, "failed");
 }
 
 /**********************************************************************
