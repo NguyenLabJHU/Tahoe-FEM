@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.8.2.3 2002-05-03 09:52:02 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.8.2.4 2002-05-11 20:47:10 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #ifndef _ELASTIC_T_H_
@@ -66,9 +66,6 @@ public:
 	
 	/** initialization. called immediately after constructor */
 	virtual void Initialize(void);
-
-	/** set the controller */
-//	virtual void SetController(eControllerT* controller);
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -145,7 +142,7 @@ protected:
 protected:
 
 	/* control data */
-	int	fMassType;	
+	MassTypeT fMassType;	
 	int	fStrainDispOpt;
 
 	/* propagation direction for wave speeds */
@@ -165,10 +162,13 @@ protected:
 	StructuralMaterialT*  fCurrMaterial;
 	ArrayT<ArrayT<bool> > fMaterialNeeds;
 
-	/* work space */
-	dMatrixT    fD;      /**< constitutive matrix        */
-	dMatrixT    fB;      /**< strain-displacement matrix */
-	dSymMatrixT fStress; /**< stress vector              */	
+	/** \name work space */
+	/*@{*/
+	dArrayT fElementHeat; /**< destination for heat generation. If not length nip, heat not needed */
+	dMatrixT    fD; /**< constitutive matrix */
+	dMatrixT    fB; /**< strain-displacement matrix */
+	dSymMatrixT fStress; /**< stress vector */	
+	/*@}*/
 
 	/* parameters */
 	static const int NumNodalOutputCodes;
