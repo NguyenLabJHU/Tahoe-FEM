@@ -27,7 +27,8 @@ double PowerLawIKinetics::Phi(double tau, int is)
 {
   // compute Phi
   double tauIso = fHard.IsoHardeningStress(is);
-  double qnt = pow(fabs(tau)/tauIso, 1./fMatProp[0]-1.);
+//  double qnt = pow(fabs(tau)/tauIso, 1./fMatProp[0]-1.);
+  double qnt = exp( (1./fMatProp[0]-1.)*log(fabs(tau)/tauIso) );
   return  fMatProp[1]*(tau/tauIso)*qnt;
 }
 
@@ -35,7 +36,8 @@ double PowerLawIKinetics::DPhiDTau(double tau, int is)
 {
   // compute d(Phi)/d(Tau)
   double tauIso = fHard.IsoHardeningStress(is);
-  double qnt = pow(fabs(tau)/tauIso, 1./fMatProp[0]-1.);
+//  double qnt = pow(fabs(tau)/tauIso, 1./fMatProp[0]-1.);
+  double qnt = exp( (1./fMatProp[0]-1.)*log(fabs(tau)/tauIso) );
   return  fMatProp[1]/(fMatProp[0]*tauIso)*qnt;
 }
 
@@ -43,7 +45,8 @@ double PowerLawIKinetics::DPhiDIso(double tau, int is)
 {
   // compute d(Phi)/d(Iso)
   double tauIso = fHard.IsoHardeningStress(is);
-  double qnt = pow(fabs(tau)/tauIso, 1./fMatProp[0]-1.);
+//  double qnt = pow(fabs(tau)/tauIso, 1./fMatProp[0]-1.);
+  double qnt = exp( (1./fMatProp[0]-1.)*log(fabs(tau)/tauIso) );
   return  -fMatProp[1]/(fMatProp[0]*tauIso)*(tau/tauIso)*qnt;
 }
 
