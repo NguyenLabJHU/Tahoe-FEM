@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.20.2.3 2002-04-30 08:21:59 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.20.2.4 2002-05-03 09:53:31 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -85,7 +85,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			StringT name;
 			in >> name;
 			field = fSupport.Field(name);
-			break;
 		}
 		else /* legacy - field set by analysis code */
 		{
