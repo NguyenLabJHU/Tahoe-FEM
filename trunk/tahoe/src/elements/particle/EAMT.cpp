@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.48 2003-10-28 23:31:48 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.49 2003-11-13 22:14:38 paklein Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -1821,6 +1821,8 @@ void EAMT::GetRhop_r(const dArray2DT& coords,dArray2DT& rho)
 void EAMT::GetEmbEnergy(const dArray2DT& coords,const dArray2DT rho,
 		  dArray2DT& Emb)
 {
+#pragma unused(coords)
+
   int current_property = -1;
   EAMPropertyT::EmbedEnergyFunction emb_energy = NULL;
   iArrayT neighbors;
@@ -1848,6 +1850,8 @@ void EAMT::GetEmbEnergy(const dArray2DT& coords,const dArray2DT rho,
 void EAMT::GetEmbForce(const dArray2DT& coords,const dArray2DT rho,
 	  	       dArray2DT& Emb)
 {
+#pragma unused(coords)
+
   EAMPropertyT::EmbedForceFunction emb_force = NULL;
   iArrayT neighbors;
   Emb = 0.0;
@@ -1867,6 +1871,8 @@ void EAMT::GetEmbForce(const dArray2DT& coords,const dArray2DT rho,
 void EAMT::GetEmbStiff(const dArray2DT& coords,const dArray2DT rho,
 		       dArray2DT& Emb)
 {
+#pragma unused(coords)
+
   int current_property = -1;
   EAMPropertyT::EmbedStiffnessFunction emb_stiffness = NULL;
   iArrayT neighbors;
