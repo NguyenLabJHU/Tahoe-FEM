@@ -1,6 +1,6 @@
-/* $Id: ScaledVelocityNodesT.h,v 1.3.10.1 2003-09-18 21:03:44 cjkimme Exp $ */
-#ifndef _SCALED_VELOCITY_NODES_T_H_
-#define _SCALED_VELOCITY_NODES_T_H_
+/* $Id: ConstantStressNodesT.h,v 1.1.2.1 2003-09-18 21:03:44 cjkimme Exp $ */
+#ifndef _CONSTANT_STRESS_NODES_T_H_
+#define _COSNTANT_STRESS_NODES_T_H_
 
 /* base class */
 #include "KBC_ControllerT.h"
@@ -19,15 +19,15 @@ class RandomNumberT;
 /** Nodes whose velocities are scaled to have zero net momentum
  * and kinetic energies that sum to 3/2 N k_B T
  */
-class ScaledVelocityNodesT: public KBC_ControllerT
+class ConstantStressNodesT: public KBC_ControllerT
 {
 public:	
 
 	/** constructor */
-	ScaledVelocityNodesT(NodeManagerT& node_manager, BasicFieldT& field);
+	ConstantStressNodesT(NodeManagerT& node_manager, BasicFieldT& field);
 
 	/** destructor */
- 	~ScaledVelocityNodesT(void);
+ 	~ConstantStressNodesT(void);
 
 	/** initialize data. Must be called immediately after construction */
 	virtual void Initialize(ifstreamT& in);
@@ -46,6 +46,9 @@ public:
 protected:
 	
 	void SetBCCards(void);
+	
+	/** apply the update to the solution. Corrects velocities. */
+	virtual void Update(const dArrayT& update);
 	/*@}*/
 
 protected:
@@ -62,10 +65,10 @@ protected:
 	/** true if allNodes needs to be initialized or rescaled */
 	bool qAllNodes;
 
-	/** rescale every fIncs timesteps */
+	/** adjust pressure every fIncs timesteps */
 	int fIncs, fIncCt;
 
-	/** temperature evolution controlled by a schedule */
+	/** evolution controlled by a schedule */
 	const ScheduleT* fTempSchedule;
 	int fnumTempSchedule;
 	double fTempScale;
@@ -73,19 +76,17 @@ protected:
 	/** temperature schedule is not the BC value. Need a dummy schedule, too */
 	ScheduleT fDummySchedule;
 	
-	/** thermostatted nodes */
+	/** constrained nodes */
 	/*@{*/
-	/** id list for the \e thermostatted node sets */
+	/** id list for the \e node sets */
 	ArrayT<StringT> fNodeIds;
 	iArrayT fNodes;
 
 	/** assuming all nodes have same mass */
 	double fMass;
 	
-	/** initial velocity distribution random number gen */
-	RandomNumberT* fRandom;
-	/** initial temperature */
-	double fT_0;
+	/** initial pressure */
+	double fP_0;
 };
 
 } // namespace Tahoe 

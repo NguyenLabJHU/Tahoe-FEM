@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.6 2003-08-23 20:10:11 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.6.4.1 2003-09-18 21:03:42 cjkimme Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -113,6 +113,23 @@ void CommManagerT::SetPeriodicBoundaries(int i, double x_i_min, double x_i_max)
 
 /* unset boundaries */
 void CommManagerT::ClearPeriodicBoundaries(int i) { fIsPeriodic[i] = false; }
+
+/* return boundaries */
+void CommManagerT::PeriodicBoundaries(ArrayT<bool>& isPeriodic, dArray2DT& boundaries, dArrayT& lengths)
+{
+	if (isPeriodic.Length() != fIsPeriodic.Length())
+		ExceptionT::GeneralFail("CommManagerT::PeriodicBoundaries","Bad PBC accessor dimension: isPeriodic\n");
+	
+	if (boundaries.Length() != fPeriodicBoundaries.Length())
+		ExceptionT::GeneralFail("CommManagerT::PeriodicBoundaries","Bad PBC accessor dimension: boundaries\n");
+
+	if (lengths.Length() != fPeriodicLength.Length())
+		ExceptionT::GeneralFail("CommManagerT::PeriodicBoundaries","Bad PBC accessor dimension: lengths\n");
+
+	isPeriodic = fIsPeriodic;
+	boundaries = fPeriodicBoundaries;
+	lengths = fPeriodicLength;
+}
 
 /* enforce the periodic boundary conditions */
 void CommManagerT::EnforcePeriodicBoundaries(double skin)

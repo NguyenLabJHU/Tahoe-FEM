@@ -1,4 +1,4 @@
-/* $Id: MatsuiPairT.h,v 1.1 2003-08-07 21:30:28 fwdelri Exp $ */
+/* $Id: MatsuiPairT.h,v 1.1.4.1 2003-09-18 21:03:37 cjkimme Exp $ */
 #ifndef _MATSUI_PAIR_T_H_
 #define _MATSUI_PAIR_T_H_
 
@@ -29,6 +29,9 @@ public:
 
 	/** return a pointer to the stiffness function */
 	virtual StiffnessFunction getStiffnessFunction(void);
+	
+	/** return a pointer to the third derivative function */
+	virtual ThirdDerivativeFunction getThirdDerivativeFunction(void);
 	/*@}*/
 
 	/** write properties to output */
@@ -41,7 +44,9 @@ private:
 	static double Energy(double r_ab, double* data_a, double* data_b);
 	static double Force(double r_ab, double* data_a, double* data_b);
 	static double Stiffness(double r_ab, double* data_a, double* data_b);
+	static double ThirdDerivative(double r_ab, double* data_a, double* data_b);
 	/*@}*/
+
 
 private:
 

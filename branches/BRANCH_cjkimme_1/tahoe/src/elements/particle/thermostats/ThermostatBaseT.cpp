@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.cpp,v 1.6 2003-05-06 19:57:45 cjkimme Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.6.10.1 2003-09-18 21:03:38 cjkimme Exp $ */
 #include "ThermostatBaseT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -98,7 +98,8 @@ void ThermostatBaseT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const d
 	}
 }		
 
-void ThermostatBaseT::InitNodeSets(ifstreamT& in, ModelManagerT& model)
+void ThermostatBaseT::InitNodeSets(ifstreamT& in, ModelManagerT& model/*,
+								const ArrayT<int>* partition_nodes*/)
 {
 	/* Get node sets */
 	char peekahead = in.next_char();
@@ -168,7 +169,7 @@ void ThermostatBaseT::InitRegion(ifstreamT& in, const dArray2DT& coords,
 
 	for (int i = 0; i < fSD; i++)
 		if (fxmin[i] >= fxmax[i])
-			ExceptionT::BadInputValue("ThermostatBaseT::InitRegion","Bad bounding box coordinates");
+			ExceptionT::BadInputValue("ThermostatBaseT::InitRegion","Bad bounding box coordinates %g > %g",fxmin[i],fxmax[i]);
 	
 	/* get the nodes in the region */
 	NodesInRegion(coords, partition_nodes);
@@ -252,6 +253,26 @@ istream& operator>>(istream& in, ThermostatBaseT::ThermostatT& property)
 		case ThermostatBaseT::kRampedDamping:
 		{
 			property = ThermostatBaseT::kRampedDamping;
+			break;
+		}
+		case ThermostatBaseT::kConstrainedPressure:
+		{
+			property = ThermostatBaseT::kConstrainedPressure;
+			break;
+		}
+		case ThermostatBaseT::kConfigurational:
+		{
+			property = ThermostatBaseT::kConfigurational;
+			break;
+		}
+		case ThermostatBaseT::kNPT_Ensemble:
+		{
+			property = ThermostatBaseT::kNPT_Ensemble;
+			break;
+		}
+		case ThermostatBaseT::kAndersenPressure:
+		{
+			property = ThermostatBaseT::kAndersenPressure;
 			break;
 		}
 		default:

@@ -1,4 +1,4 @@
-/* $Id: MatsuiPairT.cpp,v 1.1 2003-08-07 21:29:31 fwdelri Exp $ */
+/* $Id: MatsuiPairT.cpp,v 1.1.4.1 2003-09-18 21:03:37 cjkimme Exp $ */
 
 #include "MatsuiPairT.h"
 #include "toolboxConstants.h"
@@ -100,6 +100,22 @@ PairPropertyT::StiffnessFunction MatsuiPairT::getStiffnessFunction(void)
 	return MatsuiPairT::Stiffness;
 }
 
+PairPropertyT::ThirdDerivativeFunction MatsuiPairT::getThirdDerivativeFunction(void)
+{
+	/* copy my data to static */
+	s_sqr_q = f_sqr_q;
+	s_two_A = f_two_A;
+	s_two_B = f_two_B;
+	s_sqr_C = f_sqr_C;
+	s_f = f_f;
+	s_rc = f_rc;
+	s_phi_rc = f_phi_rc;
+	s_dphi_rc = f_dphi_rc;
+
+	/* return function pointer */
+	return MatsuiPairT::ThirdDerivative;
+}
+
 /* write properties to output */
 void MatsuiPairT::Write(ostream& out) const
 {
@@ -162,4 +178,9 @@ double MatsuiPairT::Stiffness(double r_ab, double* data_a, double* data_b)
 
 		return 2*s_sqr_q/r_ab3 - 42*s_sqr_C/r_ab8 + s_f/s_two_B*exp((s_two_A-r_ab)/s_two_B);
 	}
+}
+
+double MatsuiPairT::ThirdDerivative(double r_ab, double* data_a, double* data_b)
+{
+	return 0.;
 }

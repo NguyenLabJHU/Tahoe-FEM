@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.h,v 1.5 2003-05-06 19:57:45 cjkimme Exp $ */
+/* $Id: ThermostatBaseT.h,v 1.5.10.1 2003-09-18 21:03:38 cjkimme Exp $ */
 #ifndef _THERMOSTAT_BASE_T_H_
 #define _THERMOSTAT_BASE_T_H_
 
@@ -11,6 +11,7 @@
 #include "RaggedArray2DT.h"
 #include "AutoArrayT.h"
 #include "ScheduleT.h"
+#include "GlobalT.h"
 
 namespace Tahoe {
 
@@ -31,8 +32,12 @@ public:
     			kLangevin = 2, /**< Langevin (stochastic) thermostat */
 	  	  	  kNoseHoover = 3, /**< Nose-Hoover determistic thermostat */
 	  	 kGaussIsokinetic = 4, /**< Gaussian Isokinetic deterministic thermostat */
-	  	   kRampedDamping = 5  /**< Damping coefficient varies over space  */
-	};
+	  	   kRampedDamping = 5, /**< Damping coefficient varies over space  */
+	  	kAndersenPressure = 6, /**< Extended System Constant Pressure */
+	 kConstrainedPressure = 7, /**< Gaussian constraint on pressure */
+	     kConfigurational = 8, /**< Nose-Hoover like thermostat for configurational T */
+	        kNPT_Ensemble = 9  /**< Constrained Temperature and Pressure */
+	   };
    
 	enum ControlTypeT {
    					kNodes = 0, /**< apply to some or all nodesets */
@@ -66,6 +71,9 @@ public:
 	/** read restart information */
 	virtual void ReadRestart(istream& in);
 	
+	/** close the current timestep */
+	virtual GlobalT::RelaxCodeT RelaxSystem() { return GlobalT::kNoRelax; };
+	
 	/** augment/overwrite forces with new ones */
 	virtual void ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
 			dArray2DT& forces, AutoArrayT<int>& types,
@@ -75,7 +83,7 @@ public:
 	void SetTemperatureSchedule(const ScheduleT* schedule, const double& value);
 			
 	/** Initialize nodes to thermostat by NodeSet */		
-	virtual void InitNodeSets(ifstreamT& in, ModelManagerT& model);
+	virtual void InitNodeSets(ifstreamT& in, ModelManagerT& model/*, const ArrayT<int>* partition_nodes*/);
 	
 	/** Initialize nodes to thermostat by spatial coords */
 	virtual void InitRegion(ifstreamT& in, const dArray2DT& coords,	
@@ -83,7 +91,7 @@ public:
 
 protected:
 	
-	/* Generate a node set based on spatial region */
+	/** generate a node list based on a spatial region */
 	void NodesInRegion(const dArray2DT& coords,	
 					const ArrayT<int>* partition_nodes);
 	
@@ -92,8 +100,11 @@ protected:
 	/** \name properties */
 	/*@{*/
 	double fBeta;	
+	/** usually a damping coefficient, sometimes not in derived classes */
 	double fTemperature;
+	/** current temperature to maintain */
 	double fTimeStep;
+	/** current timestep */
 	/*@}*/
 	
 	/** Nodes that are thermostatted */
@@ -110,7 +121,9 @@ protected:
 	int nIncs; 
 	/*@}*/
 	
+	/** schedule if temperature varies throughout the run */
 	const ScheduleT* fTemperatureSchedule;
+	/** scale factor to multiply schedule value */
 	double fTemperatureScale;
 };
 
@@ -118,11 +131,6 @@ inline iArrayT& ThermostatBaseT::NodeList(void)
 {
 	return fNodes;
 }
-
-//inline void ThermostatBaseT::SetRandNumGenerator(RandomNumberT* frand)
-//{
-//	fRandom = frand;
-//}
 
 } /* namespace Tahoe */
 

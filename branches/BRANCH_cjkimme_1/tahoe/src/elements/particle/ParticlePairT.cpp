@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.21 2003-08-20 23:15:31 pgandhi Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.21.4.1 2003-09-18 21:03:36 cjkimme Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -208,48 +208,51 @@ void ParticlePairT::WriteOutput(void)
 			
 			/* set pair property (if not already set) */
 			int property = fPropertiesMap(type_i, type_j);
-			if (property != current_property)
+			if (property != ParticlePropertyT::kNull)
 			{
-				energy_function = fPairProperties[property]->getEnergyFunction();
+				if (property != current_property)
+				{
+					energy_function = fPairProperties[property]->getEnergyFunction();
 
-				//if (!fPairProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
-				force_function = fPairProperties[property]->getForceFunction();
-				current_property = property;
-			}
-		
-			/* global coordinates */
-			coords.RowAlias(tag_j, x_j);
-		
-			/* connecting vector */
-			r_ij.DiffOf(x_j, x_i);
-			double r = r_ij.Magnitude();
+					//if (!fPairProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
+					force_function = fPairProperties[property]->getForceFunction();
+					current_property = property;
+				}
 			
-			/* split interaction energy */
-			double uby2 = 0.5*energy_function(r, NULL, NULL);
-			values_i[ndof] += uby2;
+				/* global coordinates */
+				coords.RowAlias(tag_j, x_j);
 			
-	      	/* interaction force */
-			double F = force_function(r, NULL, NULL);
-			double Fbyr = F/r;
-			temp.Outer(r_ij);
-			vs_i.AddScaled(0.5*Fbyr, temp);
-
-			/* second node may not be on processor */
-			if (!proc_map || (*proc_map)[tag_j] == rank) {
-				int local_j = (inverse_map) ? inverse_map->Map(tag_j) : tag_j;
+				/* connecting vector */
+				r_ij.DiffOf(x_j, x_i);
+				double r = r_ij.Magnitude();
 				
-				if (local_j < 0 || local_j >= n_values.MajorDim())
-					cout << caller << ": out of range: " << local_j << '\n';
-				else {
+				/* split interaction energy */
+				double uby2 = 0.5*energy_function(r, NULL, NULL);
+				values_i[ndof] += uby2;
+				
+		      	/* interaction force */
+				double F = force_function(r, NULL, NULL);
+				double Fbyr = F/r;
+				temp.Outer(r_ij);
+				vs_i.AddScaled(0.5*Fbyr, temp);
 
-					/* potential energy */
-					n_values(local_j, ndof) += uby2;
+				/* second node may not be on processor */
+				if (!proc_map || (*proc_map)[tag_j] == rank) {
+					int local_j = (inverse_map) ? inverse_map->Map(tag_j) : tag_j;
+					
+					if (local_j < 0 || local_j >= n_values.MajorDim())
+						cout << caller << ": out of range: " << local_j << '\n';
+					else {
 
-			 		/* accumulate into stress into array */
-		 			for (int cc = 0; cc < num_stresses; cc++) {
-						int ndex = ndof+2+cc;
-		   				n_values(local_j, ndex) += 0.5*Fbyr*temp[cc];		   
-		 			}
+						/* potential energy */
+						n_values(local_j, ndof) += uby2;
+
+				 		/* accumulate into stress into array */
+			 			for (int cc = 0; cc < num_stresses; cc++) {
+							int ndex = ndof+2+cc;
+			   				n_values(local_j, ndex) += 0.5*Fbyr*temp[cc];		   
+			 			}
+					}
 				}
 			}
 		}
@@ -633,10 +636,21 @@ void ParticlePairT::RHSDriver2D(void)
 	/* pair properties function pointers */
 	int current_property = -1;
 	PairPropertyT::ForceFunction force_function = NULL;
+	PairPropertyT::StiffnessFunction stiffness_function = NULL;
 	const double* Paradyn_table = NULL;
 	double dr = 1.0;
 	int row_size = 0, num_rows = 0;
 
+	/* zero configurational temperature and constrained pressure workspaces */
+	if (QCalcPotStiffness)
+		fDelDotForce = 0.;
+	const dArray2DT* velocities = NULL; 
+	if (QCalcStress)
+	{
+		fDynStress = 0.;
+		velocities = &(Field()[1]);
+	}
+	
 	/* run through neighbor list */
 	fForce = 0.0;
 	iArrayT neighbors;
@@ -650,6 +664,12 @@ void ParticlePairT::RHSDriver2D(void)
 		int  type_i = fType[tag_i];
 		double* f_i = fForce(tag_i);
 		double* x_i = coords(tag_i);
+		double* v_i = NULL;
+		
+		if (QCalcStress)
+		{
+			v_i = (*velocities)(tag_i);
+		}
 		
 		/* run though neighbors for one atom - first neighbor is self */
 		for (int j = 1; j < neighbors.Length(); j++)
@@ -662,42 +682,91 @@ void ParticlePairT::RHSDriver2D(void)
 
 			/* set pair property (if not already set) */
 			int property = fPropertiesMap(type_i, type_j);
-			if (property != current_property)
+			if (property != ParticlePropertyT::kNull)
 			{
-				if (!fPairProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
-					force_function = fPairProperties[property]->getForceFunction();
-				current_property = property;
-			}
-		
-			/* connecting vector */
-			double r_ij_0 = x_j[0] - x_i[0];
-			double r_ij_1 = x_j[1] - x_i[1];
-			double r = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
+				if (property != current_property)
+				{
+					if (!fPairProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
+					{
+						force_function = fPairProperties[property]->getForceFunction();
+						if (QCalcPotStiffness)
+							stiffness_function = fPairProperties[property]->getStiffnessFunction();
+					}
+					current_property = property;
+				}
 			
-			/* interaction force */
-			double F;
-			if (Paradyn_table)
-			{
-				double pp = r*dr;
-				int kk = int(pp);
-				int max_row = num_rows-2;
-				kk = (kk < max_row) ? kk : max_row;
-				pp -= kk;
-				pp = (pp < 1.0) ? pp : 1.0;				
-				const double* c = Paradyn_table + kk*row_size;
-				F = c[4] + pp*(c[5] + pp*c[6]);
+				/* connecting vector */
+				double r_ij_0 = x_j[0] - x_i[0];
+				double r_ij_1 = x_j[1] - x_i[1];
+				double r = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
+				
+				/* interaction force */
+				double F;
+				if (Paradyn_table)
+				{
+					double pp = r*dr;
+					int kk = int(pp);
+					int max_row = num_rows-2;
+					kk = (kk < max_row) ? kk : max_row;
+					pp -= kk;
+					pp = (pp < 1.0) ? pp : 1.0;				
+					const double* c = Paradyn_table + kk*row_size;
+					F = c[4] + pp*(c[5] + pp*c[6]);
+				}
+				else
+					F = force_function(r, NULL, NULL);
+					
+				double Fbyr = formKd*F/r;
+
+				r_ij_0 *= Fbyr;
+				f_i[0] += r_ij_0;
+				f_j[0] +=-r_ij_0;
+
+				r_ij_1 *= Fbyr;
+				f_i[1] += r_ij_1;
+				f_j[1] +=-r_ij_1;
+				
+				if (QCalcPotStiffness)
+				{
+					if (Paradyn_table)
+					{
+						double pp = r*dr;
+						int kk = int(pp);
+						int max_row = num_rows-2;
+						kk = (kk < max_row) ? kk : max_row;
+						pp -= kk;
+						pp = (pp < 1.0) ? pp : 1.0;	
+						const double* c = Paradyn_table + kk*row_size;
+						fDelDotForce[tag_i] +=  (c[7] + pp*c[8])*Fbyr;
+					}
+					else
+						fDelDotForce[tag_i] += stiffness_function(r, NULL, NULL)*Fbyr;
+				}
+				if (QCalcStress)
+				{
+					double v_ij_0 = v_i[0] - (*velocities)(tag_j,0);
+					double v_ij_1 = v_i[1] - (*velocities)(tag_j,1);
+					double tmpVal;
+					if (Paradyn_table)
+					{
+						double pp = r*dr;
+						int kk = int(pp);
+						int max_row = num_rows-2;
+						kk = (kk < max_row) ? kk : max_row;
+						pp -= kk;
+						pp = (pp < 1.0) ? pp : 1.0;	
+						const double* c = Paradyn_table + kk*row_size;
+						tmpVal =  (c[7] + pp*c[8])*Fbyr + F/r;
+					}
+					else
+						tmpVal = stiffness_function(r, NULL, NULL) + F/r;
+				
+					fDynStress(tag_i,0) += tmpVal*(r_ij_0*v_ij_0 + r_ij_1*v_ij_1);
+					fDynStress(tag_i,1) += tmpVal*r*r;
+				}
+				if (QCalcVirial)		
+					 fVirial += F*r;
 			}
-			else
-				F = force_function(r, NULL, NULL);
-			double Fbyr = formKd*F/r;
-
-			r_ij_0 *= Fbyr;
-			f_i[0] += r_ij_0;
-			f_j[0] +=-r_ij_0;
-
-			r_ij_1 *= Fbyr;
-			f_i[1] += r_ij_1;
-			f_j[1] +=-r_ij_1;
 		}
 	}
 
@@ -731,9 +800,20 @@ void ParticlePairT::RHSDriver3D(void)
 	/* pair properties function pointers */
 	int current_property = -1;
 	PairPropertyT::ForceFunction force_function = NULL;
+	PairPropertyT::StiffnessFunction stiffness_function = NULL;
 	const double* Paradyn_table = NULL;
 	double dr = 1.0;
 	int row_size = 0, num_rows = 0;
+	
+	/* zero configurational temperature and constrained pressure workspaces */
+	if (QCalcPotStiffness)
+		fDelDotForce = 0.;
+	const dArray2DT* velocities = NULL; 
+	if (QCalcStress)
+	{
+		fDynStress = 0.;
+		velocities = &(Field()[1]);
+	}
 
 	/* run through neighbor list */
 	fForce = 0.0;
@@ -748,6 +828,12 @@ void ParticlePairT::RHSDriver3D(void)
 		int  type_i = fType[tag_i];
 		double* f_i = fForce(tag_i);
 		double* x_i = coords(tag_i);
+		double* v_i = NULL;
+		
+		if (QCalcStress)
+		{
+			v_i = (*velocities)(tag_i);
+		}
 		
 		/* run though neighbors for one atom - first neighbor is self */
 		for (int j = 1; j < neighbors.Length(); j++)
@@ -763,7 +849,11 @@ void ParticlePairT::RHSDriver3D(void)
 			if (property != current_property)
 			{
 				if (!fPairProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
+				{
 					force_function = fPairProperties[property]->getForceFunction();
+					if (QCalcPotStiffness)
+						stiffness_function = fPairProperties[property]->getStiffnessFunction();  
+				}
 				current_property = property;
 			}
 		
@@ -801,6 +891,47 @@ void ParticlePairT::RHSDriver3D(void)
 			r_ij_2 *= Fbyr;
 			f_i[2] += r_ij_2;
 			f_j[2] +=-r_ij_2;
+			
+			if (QCalcPotStiffness)
+			{
+				if (Paradyn_table)
+				{
+					double pp = r*dr;
+					int kk = int(pp);
+					int max_row = num_rows-2;
+					kk = (kk < max_row) ? kk : max_row;
+					pp -= kk;
+					pp = (pp < 1.0) ? pp : 1.0;	
+					const double* c = Paradyn_table + kk*row_size;
+					fDelDotForce[tag_i] +=  (c[7] + pp*c[8])*Fbyr;
+				}
+				else
+					fDelDotForce[tag_i] += stiffness_function(r, NULL, NULL)*Fbyr;
+			}
+			if (QCalcStress)
+			{
+				double *v_j = (*velocities)(tag_j);
+				double v_ij_0 = v_i[0] - v_j[0];
+				double v_ij_1 = v_i[1] - v_j[1];
+				double v_ij_2 = v_i[2] - v_j[2];
+				double tmpVal;
+				if (Paradyn_table)
+				{
+					double pp = r*dr;
+					int kk = int(pp);
+					int max_row = num_rows-2;
+					kk = (kk < max_row) ? kk : max_row;
+					pp -= kk;
+					pp = (pp < 1.0) ? pp : 1.0;	
+					const double* c = Paradyn_table + kk*row_size;
+					tmpVal =  (c[7] + pp*c[8])*Fbyr + F/r;
+				}
+				else
+					tmpVal = stiffness_function(r, NULL, NULL) + F/r;
+			
+				fDynStress(tag_i,0) += tmpVal*(r_ij_0*v_ij_0 + r_ij_1*v_ij_1 + r_ij_2*v_ij_2);
+				fDynStress(tag_i,1) += tmpVal*r*r;
+			}
 		}
 	}
 

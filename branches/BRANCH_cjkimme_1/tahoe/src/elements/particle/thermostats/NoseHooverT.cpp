@@ -1,4 +1,4 @@
-/* $Id: NoseHooverT.cpp,v 1.5 2003-04-29 23:09:36 cjkimme Exp $ */
+/* $Id: NoseHooverT.cpp,v 1.5.10.1 2003-09-18 21:03:38 cjkimme Exp $ */
 #include "NoseHooverT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -67,7 +67,7 @@ void NoseHooverT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArra
 			int tag_j = *neighbors(j);
 	    	double* v_j = (*velocities)(tag_j);
 				
-			for (int i = 0; i < fSD; i++, *v_j++)
+			for (int i = 0; i < fSD; i++, v_j++)
 				kineticTemp += (*v_j)*(*v_j);
 		}
 	}
@@ -79,7 +79,7 @@ void NoseHooverT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArra
 			int tag_j = fNodes[j];
 			double* v_j = (*velocities)(tag_j);
 
-			for (int i = 0; i < fSD; i++, *v_j++)
+			for (int i = 0; i < fSD; i++, v_j++)
 				kineticTemp += (*v_j)*(*v_j); 	
 	    }
 	}

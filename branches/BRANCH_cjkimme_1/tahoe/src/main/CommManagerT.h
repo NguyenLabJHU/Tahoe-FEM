@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.3 2003-08-23 20:10:11 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.3.4.1 2003-09-18 21:03:42 cjkimme Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -61,6 +61,9 @@ public:
 
 	/** return the number of real nodes */
 	int NumRealNodes(void) const { return fNumRealNodes; };
+	
+	/** Accessor for periodic boundary conditions. Needed for barostats */
+	void PeriodicBoundaries(ArrayT<bool>& isPeriodic, dArray2DT& boundaries, dArrayT& lengths);
 	/*@}*/
 
 	/** configure the current local coordinate list and register it with the

@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.49 2003-08-19 08:03:49 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.49.4.1 2003-09-18 21:03:42 cjkimme Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -567,7 +567,7 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 					<< setw(d_width) << continuum_res << " (C) | "
 					<< setw(d_width) << tot_rel_error << endl;
 
-				/* number of interations in last pass */
+				/* number of iterations in last pass */
 				int atom_total_iter = atom_phase_status(0, FEManagerT::kIteration);
 				int continuum_total_iter = continuum_phase_status(0, FEManagerT::kIteration);
 				atom_iter = atom_total_iter - atom_last_iter;

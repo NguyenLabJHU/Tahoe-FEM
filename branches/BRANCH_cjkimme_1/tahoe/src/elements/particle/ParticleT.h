@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.15 2003-07-11 16:46:02 hspark Exp $ */
+/* $Id: ParticleT.h,v 1.15.6.1 2003-09-18 21:03:36 cjkimme Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -27,6 +27,11 @@ class ParticleT: public ElementBaseT
 {
 public:
 
+	/** indices for nodal output */
+	enum NodalOutputCodeT {
+		InternalData = 0 /**< 'output' within Tahoe */
+	};
+
 	/** constructor */
 	ParticleT(const ElementSupportT& support, const FieldT& field);
 
@@ -45,7 +50,7 @@ public:
 	/** returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void) { return 0.0; };
 	
-	/** resgiter for writing output. Uses the uses sub-class implementations
+	/** register for writing output. Uses the uses sub-class implementations
 	 * of ParticleT::GenerateOutputLabels to register the particle group for
 	 * output. Sub-classes also need to implemented the WriteOutput method. */
 	virtual void RegisterOutput(void);
@@ -57,7 +62,7 @@ public:
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
-
+	
 	/** trigger reconfiguration */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
@@ -207,7 +212,10 @@ protected:
 //	dArrayT   fEnergy;
 	dArray2DT fForce;
 	nVariArray2DT<double> fForce_man;
-	/*@{*/
+	dArrayT   fDelDotForce;
+	dArray2DT   fDynStress;
+	double fVirial;
+	/*@}*/
 	
 	/** \name group running averages.
 	 * Values are averages over {n1, n2,...,nN} steps */
@@ -227,12 +235,20 @@ protected:
 	                    coordinates and the coordinates in ParticleT::fReNeighborCoords.
 	                    This value is computed during ParticleT::RelaxSystem. */
 
-	/* Damping, thermostatting variables */
+	/** Damping, thermostatting variables */
 	bool QisDamped;
 	RandomNumberT* fRandom;
 	ArrayT<ThermostatBaseT*> fThermostats;
 	int nThermostats;
-
+	/** true if thermostat needs deriv of force, e.g configurational temp */
+	bool QCalcPotStiffness;
+	/** true if pressure is being constrained */ 
+	bool QCalcStress;
+	/** true for extended system pressure */
+	bool QCalcVirial;
+	/** true if periodic boundaries are present for all DOFs */
+	bool QPBC;
+	
 	/** \name workspace for ParticlePairT::RHSDriver. Used to accumulate the force for
 	 * a single row of ParticlePairT::fNeighbors. */
 	/*@{*/

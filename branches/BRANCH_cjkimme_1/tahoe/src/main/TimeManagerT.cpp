@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.18 2003-08-14 06:02:49 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.18.4.1 2003-09-18 21:03:42 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -52,9 +52,12 @@ istream& operator>>(istream& in, TimeManagerT::CodeT& code)
 		case TimeManagerT::kExplicitCD:
 			code = TimeManagerT::kExplicitCD;
 			break;
-	        case TimeManagerT::kVerlet:
-	                code = TimeManagerT::kVerlet;
-	                break;
+		case TimeManagerT::kVerlet:
+			code = TimeManagerT::kVerlet;
+			break;
+		case TimeManagerT::kGear4:
+			code = TimeManagerT::kGear4;
+			break;
 		case TimeManagerT::kGear6:
 			code = TimeManagerT::kGear6;
 			break;

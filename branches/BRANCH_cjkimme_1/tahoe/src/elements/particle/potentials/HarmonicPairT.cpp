@@ -1,4 +1,4 @@
-/* $Id: HarmonicPairT.cpp,v 1.3 2003-03-31 23:09:14 paklein Exp $ */
+/* $Id: HarmonicPairT.cpp,v 1.3.16.1 2003-09-18 21:03:37 cjkimme Exp $ */
 #include "HarmonicPairT.h"
 #include <iostream.h>
 
@@ -49,6 +49,16 @@ PairPropertyT::StiffnessFunction HarmonicPairT::getStiffnessFunction(void)
 	return HarmonicPairT::Stiffness;
 }
 
+PairPropertyT::ThirdDerivativeFunction HarmonicPairT::getThirdDerivativeFunction(void)
+{
+	/* copy my data to static */
+	sR0 = fR0;
+	sK = fK;
+
+	/* return function pointer */
+	return HarmonicPairT::ThirdDerivative;
+}
+
 /* write properties to output */
 void HarmonicPairT::Write(ostream& out) const
 {
@@ -88,3 +98,12 @@ double HarmonicPairT::Stiffness(double r_ab, double* data_a, double* data_b)
 
 	return sK;
 }
+
+double HarmonicPairT::ThirdDerivative(double r_ab, double* data_a, double* data_b)
+{
+#pragma unused(data_a)
+#pragma unused(data_b)
+#pragma unused(r_ab)
+	return 0.;
+}
+

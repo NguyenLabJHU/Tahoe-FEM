@@ -1,4 +1,4 @@
-/* $Id: PairPropertyT.h,v 1.2 2002-12-04 18:55:30 paklein Exp $ */
+/* $Id: PairPropertyT.h,v 1.2.22.1 2003-09-18 21:03:37 cjkimme Exp $ */
 #ifndef _PAIR_PROPERTY_T_H_
 #define _PAIR_PROPERTY_T_H_
 
@@ -44,6 +44,14 @@ public:
 	 * \return the stiffness of the pair interaction */
 	typedef double (*StiffnessFunction)(double r_ab, double* data_a, double* data_b);
 
+	/** definition of function that returns third derivative of a pair potential
+	 * \param r_ab distance between the particles 
+	 * \param data_a properties of particle a
+	 * \param data_b properties of particle b
+	 * \return third derivative of pair potential */
+	typedef double (*ThirdDerivativeFunction)(double r_ab, double* data_a, double* data_b);
+
+
 	/** return a pointer to the energy function */
 	virtual EnergyFunction getEnergyFunction(void) = 0; 
 
@@ -52,6 +60,9 @@ public:
 
 	/** return a pointer to the stiffness function */
 	virtual StiffnessFunction getStiffnessFunction(void) = 0;
+
+	/** return a pointer to the third derivative function */
+	virtual StiffnessFunction getThirdDerivativeFunction(void) = 0;
 
 	/** return Paradyn-style coefficients table.
 	 * returns false if no table is available. */

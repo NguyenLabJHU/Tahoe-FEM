@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.62 2003-08-23 16:13:37 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.62.4.1 2003-09-18 21:03:34 cjkimme Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -61,6 +61,7 @@
 #ifdef PARTICLE_ELEMENT
 #include "ParticlePairT.h"
 #include "EAMT.h"
+#include "ConveyorParticleT.h"
 #endif
 
 #ifdef SPRING_ELEMENT
@@ -640,6 +641,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 #else
 			ExceptionT::BadInputValue(caller, "PARTICLE_ELEMENT not enabled: %d", code);
 #endif				
+		}
+		case ElementT::kConveyorParticle:
+		{
+#ifdef PARTICLE_ELEMENT
+			fArray[group] = new ConveyorParticleT(fSupport, *field);
+			break;
+#else
+			ExceptionT::BadInputValue(caller,"PARTICLE_ELEMENT not enabled: %d", code);
+#endif
 		}
 		case ElementT::kFSMatForce:
 	        {
