@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.15 2003-01-27 07:00:21 paklein Exp $
+# $Id: makefile.template,v 1.16 2003-01-30 00:47:53 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -44,9 +44,9 @@ MACRO_DIR = $(HOME_DIR)/../macros
 
 ##### any additional user C, C++, fortran, or linker flags
 #MY_CFLAGS  =
-#MY_CCFLAGS = --load-pch $(TB_DIR)/pch
-MY_FFLAGS  =
-MY_LFLAGS  =
+MY_CCFLAGS = --load-pch $(TB_DIR)/pch
+#MY_FFLAGS  =
+#MY_LFLAGS  =
 
 ##### toolbox
 TB_DIR      = $(HOME_DIR)/../toolbox
@@ -57,7 +57,7 @@ TB_LIB      = $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
 TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 
 ##### F2C 1.4.3
-#F2C_DIR      = $(HOME_DIR)/../f2c
+#F2C_DIR      = $(HOME_DIR)/../../tahoe/f2c
 #F2C_INC      = -I$(F2C_DIR)/inc
 #F2C_CFLAGS   = $(F2C_INC) -D__F2C__
 #F2C_LIB_NAME = f2c_
@@ -152,11 +152,11 @@ include $(MACRO_DIR)/make.targets
 
 # init extras target
 update_config:
-	@ if test -f $(SRC_DIR)/config/MaterialsConfig.make; then rm $(SRC_DIR)/config/MaterialsConfig.make; fi
+	@ if test -f $(SRC_DIR)/config/SolidMaterialsConfig.make; then rm $(SRC_DIR)/config/SolidMaterialsConfig.make; fi
 	@ if test -f $(SRC_DIR)/config/ElementsConfig.make;  then rm $(SRC_DIR)/config/ElementsConfig.make;  fi
-	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl MaterialsConfig.conf $(SRC_DIR)/config
+	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl SolidMaterialsConfig.conf $(SRC_DIR)/config
 	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl ElementsConfig.conf  $(SRC_DIR)/config
-	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   MaterialsConfig.conf $(SRC_DIR)/config
+	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   SolidMaterialsConfig.conf $(SRC_DIR)/config
 	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   ElementsConfig.conf  $(SRC_DIR)/config
 
 # build extras target
@@ -164,7 +164,7 @@ make_build_extras:
 
 # clean extras target - clean config files out of src/config
 clean_config:
-	@ if test -f $(SRC_DIR)/config/MaterialsConfig.h; then rm $(SRC_DIR)/config/MaterialsConfig.h; fi
-	@ if test -f $(SRC_DIR)/config/MaterialsConfig.make; then rm $(SRC_DIR)/config/MaterialsConfig.make; fi
+	@ if test -f $(SRC_DIR)/config/SolidMaterialsConfig.h; then rm $(SRC_DIR)/config/SolidMaterialsConfig.h; fi
+	@ if test -f $(SRC_DIR)/config/SolidMaterialsConfig.make; then rm $(SRC_DIR)/config/SolidMaterialsConfig.make; fi
 	@ if test -f $(SRC_DIR)/config/ElementsConfig.h; then rm $(SRC_DIR)/config/ElementsConfig.h; fi
 	@ if test -f $(SRC_DIR)/config/ElementsConfig.make; then rm $(SRC_DIR)/config/ElementsConfig.make; fi
