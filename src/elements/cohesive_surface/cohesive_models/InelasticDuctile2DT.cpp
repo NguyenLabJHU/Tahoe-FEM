@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile2DT.cpp,v 1.1 2003-01-24 18:46:24 paklein Exp $  */
+/* $Id: InelasticDuctile2DT.cpp,v 1.2 2003-01-25 22:07:46 paklein Exp $  */
 //DEVELOPMENT
 #include "InelasticDuctile2DT.h"
 #include "ifstreamT.h"
@@ -16,20 +16,23 @@ const int kNumState =
         + 1 /* \kappa */
         + 1 /* \phi_n */
         + 1 /* \phi^*_n */
-        + 1 /* \int \mathbf{T} \cdot d\boldsymbol{\Delta} */;
+        + 1 /* \int \mathbf{T} \cdot d\boldsymbol{\Delta} */
+		+ 1 /* \mathbf{T} \cdot d\boldsymbol{\Delta} */;
         
 /* indicies in state variable array */
 const int         k_dex_T_n = 0;
 const int         k_dex_phi = 2;
 const int       k_dex_phi_s = 3;
-const int k_dex_dissipation = 4;
-const int       k_dex_kappa = 5;
-const int     k_dex_Delta_n = 6;
+const int       k_dex_kappa = 4;
+const int k_dex_dissipation = 5;
+const int   k_dex_incr_diss = 6;
+const int     k_dex_Delta_n = 7;
 
 /* local iteration tolerances */
 const double abs_tol = 1.0e-10;
 const double rel_tol = 1.0e-12;
 const int   max_iter = 15;
+const double phi_max = 0.999;
 
 /* constructor */
 InelasticDuctile2DT::InelasticDuctile2DT(ifstreamT& in, const double& time_step): 
@@ -59,10 +62,21 @@ InelasticDuctile2DT::InelasticDuctile2DT(ifstreamT& in, const double& time_step)
 	in >> fw_0; if (fw_0 < 0.0) ExceptionT::BadInputValue(caller);
 	in >> feps_0; if (feps_0 < 0.0) ExceptionT::BadInputValue(caller);
 	in >> fphi_init; if (fphi_init < 0.0) ExceptionT::BadInputValue(caller);
+
+	int reverse = -1;
+	in >> reverse; if (reverse != 0 && reverse != 1) ExceptionT::BadInputValue(caller);
+	fReversible = bool(reverse);
 }
 
 /* return the number of state variables needed by the model */
 int InelasticDuctile2DT::NumStateVariables(void) const { return kNumState; }
+
+/* incremental heat */
+double InelasticDuctile2DT::IncrementalHeat(const dArrayT& jump, const ArrayT<double>& state)
+{
+#pragma unused(jump)
+	return state[k_dex_incr_diss];
+}
 
 /* surface potential */ 
 double InelasticDuctile2DT::FractureEnergy(const ArrayT<double>& state) 
@@ -89,12 +103,8 @@ const dArrayT& InelasticDuctile2DT::Traction(const dArrayT& jump_u, ArrayT<doubl
 	if (fTimeStep <= 0.0) ExceptionT::BadInputValue(caller, "expecting positive time increment: %g", fTimeStep);
 #endif
 
-	/* values from t_n */
-	dArrayT D_n(knumDOF, state.Pointer(k_dex_Delta_n));
-	dArrayT T_n(knumDOF, state.Pointer(k_dex_T_n));
-	double& phi_n = state[k_dex_phi];
-
 	/* copy state variables */
+	double& phi_n = state[k_dex_phi];
 	fState = state;
 
 	/* compute rates */
@@ -111,25 +121,6 @@ const dArrayT& InelasticDuctile2DT::Traction(const dArrayT& jump_u, ArrayT<doubl
 		/* compute Jacobian */
 		Jacobian(fState, jump_u, fTraction, fdq, fK);		
 
-//TEMP
-#if 0
-cout << "iteration, error = " << setw(kIntWidth) << count
-                              << setw(kDoubleWidth) << error << '\n';
-#endif
-//TEMP
-
-#if 0
-//TEMP
-cout << "iteration =  " << count << '\n';
-cout << "dD = \n" << fdD << '\n';
-cout << "dq = \n" << fdq << '\n';
-cout << "D = \n" << jump_u << '\n';
-cout << "T = \n" << fTraction << '\n';
-cout << "R = \n" << fR << '\n';
-cout << "K = \n" << fK << endl;
-//TEMP
-#endif
-
 		/* solve update */
 		fK.LinearSolve(fR);
 		
@@ -137,20 +128,39 @@ cout << "K = \n" << fK << endl;
 		fTraction[0] += fR[0];
 		fTraction[1] += fR[1];
 		fphi += fR[2];
-//		if (fdq[0] > 0.0) fphi_s += fR[2];
-		fphi_s += fR[2];
-	
-		/* new rates and error */
-		Rates(fState, jump_u, fTraction, fdD, fdq);
-		fR[0] = (jump_u[0] - fDelta[0])/fTimeStep - fdD[0];
-		fR[1] = (jump_u[1] - fDelta[1])/fTimeStep - fdD[1];
-		fR[2] = (fphi - phi_n)/fTimeStep - fdq[0];
-		error = fR.Magnitude();
+		if (fReversible || fdq[0] > 0.0) fphi_s += fR[2];
+		
+		/* max damage */
+		if (fphi_s > phi_max)
+		{
+			fphi_s = phi_max;
+
+			/* no traction */
+			fTraction[0] = 0.0;
+			fTraction[1] = 0.0;
+		
+			error = 0.0;
+		}
+		else
+		{
+			/* new rates and error */
+			Rates(fState, jump_u, fTraction, fdD, fdq);
+			fR[0] = (jump_u[0] - fDelta[0])/fTimeStep - fdD[0];
+			fR[1] = (jump_u[1] - fDelta[1])/fTimeStep - fdD[1];
+			fR[2] = (fphi - phi_n)/fTimeStep - fdq[0];
+			error = fR.Magnitude();
+		}
 	}
 
 	/* not converged */
 	if (count == max_iter)
 		ExceptionT::BadJacobianDet(caller, "not converged after %d its.", max_iter);
+
+	/* incremental and integrated dissipation */
+	double* T_n = state.Pointer(k_dex_T_n);
+	fState[k_dex_incr_diss] = 0.5*(T_n[0] + fTraction[0])*(jump_u[0] - fDelta[0]) + 
+	                          0.5*(T_n[1] + fTraction[1])*(jump_u[1] - fDelta[1]);
+	fState[k_dex_dissipation] += fState[k_dex_incr_diss];
 
 	/* update state variables */
 	fDelta = jump_u;
@@ -187,7 +197,7 @@ SurfacePotentialT::StatusT InelasticDuctile2DT::Status(const dArrayT& jump_u,
 
 	if (state[k_dex_phi_s] < fphi_init)
 		return Precritical;
-	else if (state[k_dex_phi_s] < 0.99)
+	else if (state[k_dex_phi_s] < phi_max)
 		return Critical;
 	else
 		return Failed;
@@ -253,6 +263,70 @@ bool InelasticDuctile2DT::CompatibleOutput(const SurfacePotentialT& potential) c
 void InelasticDuctile2DT::Rates(const ArrayT<double>& q, const dArrayT& D, 
 	const dArrayT& T, dArrayT& dD, dArrayT& dq)
 {
+#pragma unused(D)
+
+	/* state variables */
+	double kappa = q[k_dex_kappa];
+	double   phi = q[k_dex_phi];
+	double phi_s = q[k_dex_phi_s];
+
+	dq[0] = feps_0*sinh((fabs(T[0]) + T[1])/(kappa*(1 - phi_s)));
+	dq[1] = (dq[0] > 0.0) ? dq[0] : 0.0;
+	
+	dD[0] = fw_0*feps_0*sinh(T[0]/(kappa*(1 - phi_s)));
+	dD[1] = fw_0*dq[0]/((1.0 - phi)*(1.0 - phi));
+}
+
+void InelasticDuctile2DT::Jacobian(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
+	const dArrayT& dq, dMatrixT& K)
+{
+#pragma unused(D)
+
+	/* state variables */
+	double kappa = q[k_dex_kappa];
+	double   phi = q[k_dex_phi];
+	double phi_s = q[k_dex_phi_s];
+
+	double k1 = 1.0 - phi;
+	double k2 = 1.0 - phi_s;
+
+	double sign_T_t = 0.0;
+	if (T[0] > 0.0) sign_T_t = 1.0;
+	else if (T[0] < 0.0) sign_T_t = -1.0;
+	double k3 = feps_0*cosh((fabs(T[0]) + T[1])/(kappa*k2));
+
+	/* irreversible damage - phi_s is changing */
+	if (phi_s < phi_max && (fReversible || dq[0] > 0.0))
+	{
+		K(0,0) = fw_0*feps_0*cosh(T[0]/(kappa*k2))/(kappa*k2);
+		K(0,1) = 0.0;
+		K(0,2) = K(0,0)*T[0]/k2;
+
+		K(2,0) = sign_T_t*k3/(kappa*k2);
+		K(2,1) = k3/(kappa*k2);
+		K(2,2) = k3*(fabs(T[0]) + T[1])/(kappa*k2*k2) - 1.0/fTimeStep;	
+	} 
+	else /* phi_s not changing */
+	{
+		K(0,0) = fw_0*feps_0*cosh(T[0]/(kappa*k2))/(kappa*k2);
+		K(0,1) = 0.0;
+		K(0,2) = 0.0;
+
+		K(2,0) = sign_T_t*k3/(kappa*k2);
+		K(2,1) = k3/(kappa*k2);
+		K(2,2) = -1.0/fTimeStep;	
+	}
+
+	/* d_delta_dot_n */
+	K(1,0) = fw_0*K(2,0)/(k1*k1);
+	K(1,1) = fw_0*K(2,1)/(k1*k1);
+	K(1,2) = fw_0*2.0*dq[0]/(k1*k1*k1);
+}
+
+/* evaluate the rates */
+void InelasticDuctile2DT::Rates_1(const ArrayT<double>& q, const dArrayT& D, 
+	const dArrayT& T, dArrayT& dD, dArrayT& dq)
+{
 	/* state variables */
 	double kappa = q[k_dex_kappa];
 	double   phi = q[k_dex_phi];
@@ -269,7 +343,7 @@ void InelasticDuctile2DT::Rates(const ArrayT<double>& q, const dArrayT& D,
 	dD[1] = fw_0*dq[0]/((1.0 - phi)*(1.0 - phi));
 }
 
-void InelasticDuctile2DT::Jacobian(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
+void InelasticDuctile2DT::Jacobian_1(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
 	const dArrayT& dq, dMatrixT& K)
 {
 	/* state variables */

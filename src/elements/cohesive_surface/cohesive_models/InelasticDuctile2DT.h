@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile2DT.h,v 1.1 2003-01-24 18:46:24 paklein Exp $ */
+/* $Id: InelasticDuctile2DT.h,v 1.2 2003-01-25 22:07:46 paklein Exp $ */
 //DEVELOPMENT
 #ifndef _INELASTIC_DUCTILE_2D_T_H_
 #define _INELASTIC_DUCTILE_2D_T_H_
@@ -25,6 +25,10 @@ public:
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const;
+
+	/** incremental heat. The amount of energy per unit undeformed area
+	 * released as heat over the current increment */
+	virtual double IncrementalHeat(const dArrayT& jump, const ArrayT<double>& state);
 
 	/** dissipated energy */
 	virtual double FractureEnergy(const ArrayT<double>& state);
@@ -73,6 +77,14 @@ protected:
 
 	/** evaluate the Jacobian of the local iteration */
 	void Jacobian(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
+		const dArrayT& dq, dMatrixT& K);
+
+	/** evaluate the rates */
+	void Rates_1(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
+		dArrayT& dD, dArrayT& dq);
+
+	/** evaluate the Jacobian of the local iteration */
+	void Jacobian_1(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
 		const dArrayT& dq, dMatrixT& K);
 	
 private:
