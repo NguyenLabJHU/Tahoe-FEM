@@ -1,4 +1,4 @@
-/* $Id: StillingerWeberT.cpp,v 1.4 2004-12-03 20:33:50 cjkimme Exp $ */
+/* $Id: StillingerWeberT.cpp,v 1.5 2004-12-07 08:00:18 paklein Exp $ */
 #include "StillingerWeberT.h"
 #include <iostream.h>
 #include <math.h>
@@ -30,7 +30,8 @@ StillingerWeberT::StillingerWeberT(void):
 	f_p(0.0),
 	f_q(0.0),
 	f_lambda(0.0),
-	f_gamma(0.0)
+	f_gamma(0.0),
+	f_costheta_ideal(0.0)
 {
 	SetName("Stillinger_Weber");
 }
