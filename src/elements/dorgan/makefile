@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2003-07-29 21:02:08 rdorgan Exp $
+# $Id: makefile,v 1.3 2003-08-16 01:29:39 rdorgan Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,6 +22,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	DorganVoyiadjisMarin.o\
+        J2SSKStV1D.o\
         GradJ2SS1D.o\
 	GradSSSolidMatT.o\
 	GradSSMatSupportT.o
@@ -45,6 +46,7 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	DorganVoyiadjisMarin.cpp\
+        J2SSKStV1D.cpp\
         GradJ2SS1D.cpp\
 	GradSSSolidMatT.cpp\
 	GradSSMatSupportT.cpp
@@ -60,6 +62,7 @@ SRC = \
 #
 HDR = \
 	DorganVoyiadjisMarin.h\
+        J2SSKStV1D.h\
         GradJ2SS1D.h\
 	GradSSSolidMatT.h\
 	GradSSMatSupportT.h

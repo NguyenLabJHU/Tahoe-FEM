@@ -40,7 +40,7 @@ double& GradSSSolidMatT::R(void)
 
 double& GradSSSolidMatT::R(int ip)
 {
-        return fGradSSMatSupport.LinearR( ip ); 
+        return fGradSSMatSupport.LinearR(ip); 
 }
 
 /* isotropic hardening from the end of the previous time step */
@@ -51,7 +51,7 @@ double& GradSSSolidMatT::R_last(void)
 
 double& GradSSSolidMatT::R_last(int ip)
 {
-        return fGradSSMatSupport.LinearR_last( ip ); 
+        return fGradSSMatSupport.LinearR_last(ip); 
 }
 
 /* Laplacian isotropic hardening */
@@ -62,7 +62,7 @@ double& GradSSSolidMatT::LaplacianR(void)
 
 double& GradSSSolidMatT::LaplacianR(int ip)
 {
-        return fGradSSMatSupport.LinearLaplacianR( ip ); 
+        return fGradSSMatSupport.LinearLaplacianR(ip); 
 }
 
 /* Laplacian isotropic hardening from the end of the previous time step */
@@ -73,7 +73,7 @@ double& GradSSSolidMatT::LaplacianR_last(void)
 
 double& GradSSSolidMatT::LaplacianR_last(int ip)
 {
-        return fGradSSMatSupport.LinearLaplacianR_last( ip ); 
+        return fGradSSMatSupport.LinearLaplacianR_last(ip); 
 }
 
 /* apply pre-conditions at the current time step */
