@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.h,v 1.1 2004-11-05 22:53:49 paklein Exp $ */
+/* $Id: MixtureSpeciesT.h,v 1.2 2004-11-07 17:08:48 paklein Exp $ */
 #ifndef _MIXTURE_SPECIES_T_H_
 #define _MIXTURE_SPECIES_T_H_
 
@@ -34,13 +34,25 @@ protected:
 	/** calculate the internal force contribution ("-k*d") */
 	virtual void FormKd(double constK);
 
+	/** compute the flux velocities */
+	void ComputeMassFlux(void);
+
 protected:
 
 	/** background solid */
 	UpdatedLagMixtureT* fUpdatedLagMixture;
+
+	/** background species */
+	MixtureSpeciesT* fBackgroundSpecies;
 	
 	/** index of the species within the mixture */
 	int fIndex;
+
+	/** flux velocities */
+	dArray2DT fFluxVelocity;
+
+	/** mass flux */
+	dArray2DT fMassFlux;
 };
 
 } /* namespace Tahoe */
