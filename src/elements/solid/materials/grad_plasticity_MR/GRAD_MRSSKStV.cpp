@@ -29,7 +29,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 GRAD_MRSSKStV::GRAD_MRSSKStV(void):
-	ParameterInterfaceT("small_strain_StVenant_GRAD_MR"),
+	ParameterInterfaceT("small_strain_StVenant_MR_grad"),
 	HookeanMatT(3),
 	fGRAD_MR(NULL),
 	fYieldFunction(0.0)
