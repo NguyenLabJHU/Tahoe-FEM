@@ -12,10 +12,13 @@ $username = getlogin();
 use Cwd; # $home = cwd();
 $cvsrep = "tahoe.ca.sandia.gov:/cvs/protected/tahoe"; 
 %module2define = qw(
-expat	EXPAT
-toolbox	TB
+expat	EXPAT_
+toolbox	TB_
 tahoe	NODEFINE
 macros	NODEFINE
+spooles SPOOLES_
+f2c	F2C_
+blas	BLAS_
 );
 $config_file = "./.tahoe_config";
 if(-e "$config_file") { read_config();}
@@ -186,24 +189,28 @@ sub usage{
 
 sub by_depend {
 	$filename = "$a/makefile.template";
+	$a_on_b = -1;
 	if (-e $filename) {
 		open(IN,"$filename");
 		@lines = <IN>; $afile = "@lines"; 
 		close(IN);
 		$bdefine = $module2define{$b}; 
  		$a_on_b = ($afile =~ /$bdefine/);
-		unless(defined($a_on_b)) {$a_on_b = 0;}
-	} else { $a_on_b = -1;}
+		unless($a_on_b > 0) {$a_on_b = 0;}
+	}
 
 	$filename = "$b/makefile.template";
+	$b_on_a = -1;
 	if (-e $filename) {
 		open(IN,"$filename");
 		@lines = <IN>; $bfile = "@lines"; 
 		close(IN);
 		$adefine = $module2define{$a};
 	        $b_on_a = ($bfile =~ /$adefine/);
-		unless(defined($b_on_a)) {$b_on_a = 0;}
-	} else { $b_on_a = -1;};
+		unless($b_on_a > 0) {$b_on_a = 0;}
+	}
+
+	#print " $a $a_on_b $b $b_on_a \n";
 
         ($a_on_b <=> $b_on_a);
 }
@@ -216,6 +223,10 @@ sub fillin_makefile{
 	while (defined($line = <IN>)){
 		$line =~ s/HOME_DIR =/HOME_DIR = $path/;
 		$line =~ s/ARCH =/ARCH = $arch/;
+		foreach $module (@modules) {
+			$define = $module2define{$module};
+			$line =~ s/\#$define/$define/;
+		}
 		print OUT "$line";
  	}
 	close(IN);
