@@ -1,16 +1,9 @@
-/* $Id: ParentDomainT.cpp,v 1.15 2002-10-05 19:17:06 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.15.2.1 2002-10-17 04:21:56 paklein Exp $ */
 /* created: paklein (07/03/1996) */
-
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
 #include "LocalArrayT.h"
-
-/* parent domain geometries */
-#include "LineT.h"
-#include "QuadT.h"
-#include "TriT.h"
-#include "HexahedronT.h"
-#include "TetrahedronT.h"
+#include "GeometryBaseT.h"
 
 using namespace Tahoe;
 
@@ -37,33 +30,8 @@ ParentDomainT::ParentDomainT(GeometryT::CodeT geometry_code, int numIP, int numn
 	for (int i = 0; i < fDNa.Length(); i++)
 		fDNa[i].Allocate(fNumSD, fNumNodes);
 		
-	/* initialize parent domain geometry */		
-	switch (fGeometryCode)
-	{
-		case GeometryT::kLine:		
-			fGeometry = new LineT(fNumNodes);
-			break;
-	
-		case GeometryT::kQuadrilateral:
-			fGeometry = new QuadT(fNumNodes);
-			break;
-		
-		case GeometryT::kTriangle:
-			fGeometry = new TriT(fNumNodes);
-			break;
-
-		case GeometryT::kHexahedron:
-			fGeometry = new HexahedronT(fNumNodes);
-			break;
-
-		case GeometryT::kTetrahedron:
-			fGeometry = new TetrahedronT(fNumNodes);
-			break;
-
-		default:
-			throw eGeneralFail;			
-	}
-	if (!fGeometry) throw eOutOfMemory;
+	/* initialize parent domain geometry */
+	fGeometry = GeometryT::NewGeometry(fGeometryCode, fNumNodes);
 }
 
 /* destructor */
@@ -85,7 +53,7 @@ int IPnum) const
 {
 #if __option(extended_errorcheck)
 	if (nodal.MinorDim() != interp.Length() ||
-	    nodal.NumberOfNodes() != fNumNodes) throw eSizeMismatch;
+	    nodal.NumberOfNodes() != fNumNodes) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int num_u = nodal.MinorDim();
@@ -100,7 +68,7 @@ void ParentDomainT::Interpolate(const LocalArrayT& nodal,
 #if __option(extended_errorcheck)
 	if (interp.MinorDim() != nodal.MinorDim() ||
 	    interp.MajorDim() != fNumIP           ||
-	    nodal.NumberOfNodes() != fNumNodes) throw eSizeMismatch;
+	    nodal.NumberOfNodes() != fNumNodes) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int num_u = nodal.MinorDim();
@@ -120,7 +88,7 @@ void ParentDomainT::Jacobian(const LocalArrayT& nodal, const dArray2DT& DNa,
 	/* dimension check */
 	if (DNa.MinorDim() != nodal.NumberOfNodes() ||
 DNa.MajorDim() != jac.Cols()            ||
-jac.Rows() != nodal.MinorDim()) throw eSizeMismatch;
+jac.Rows() != nodal.MinorDim()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double *pjac = jac.Pointer();
@@ -215,7 +183,7 @@ void ParentDomainT::Curl(const ArrayT<dArrayT>& T, const dArray2DT& DNa, dArrayT
   /* dimension check */
   if (curl.Length() != 3) {
     cout << "..ERROR >>  ParentDomainT::Curl : curl vector must be of size 3 \n";
-    throw eSizeMismatch;
+    throw ExceptionT::kSizeMismatch;
   }
   #endif
 	double *pcurl = curl.Pointer();
@@ -243,7 +211,7 @@ void ParentDomainT::Curl(const ArrayT<dArrayT>& T, const dArray2DT& DNa, dArrayT
 		else {
                   cout << "..ERROR >>  ParentDomainT::Curl : DNa.MajorDim() = "
 		       << DNa.MajorDim() << " This != 2 or 3 \n";
-		  throw eSizeMismatch;
+		  throw ExceptionT::kSizeMismatch;
 		}
 
 		double *pT;
@@ -273,7 +241,7 @@ void ParentDomainT::Curl(const ArrayT<dMatrixT>& T, const dArray2DT& DNa, dMatri
   /* dimension check */
   if (curl.Rows() != 3  || curl.Cols() != 3) {
     cout << "..ERROR >>  ParentDomainT::Curl : curl_T must be 3x3 \n";
-    throw eSizeMismatch;
+    throw ExceptionT::kSizeMismatch;
   }
   #endif
 	double *pcurl = curl.Pointer();
@@ -307,7 +275,7 @@ void ParentDomainT::Curl(const ArrayT<dMatrixT>& T, const dArray2DT& DNa, dMatri
 		else {
                   cout << "..ERROR >>  ParentDomainT::Curl : DNa.MajorDim() = "
 		       << DNa.MajorDim() << " This != 2 or 3 \n";
-		  throw eSizeMismatch;
+		  throw ExceptionT::kSizeMismatch;
 		}
 
 		double *pT;
@@ -349,9 +317,9 @@ void ParentDomainT::Curl(const ArrayT<dMatrixT>& T, const dArray2DT& DNa, dMatri
 double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian) const
 {
 #if __option(extended_errorcheck)
-	if (jacobian.Rows() != jacobian.Cols() + 1) throw eGeneralFail;
+	if (jacobian.Rows() != jacobian.Cols() + 1) throw ExceptionT::kGeneralFail;
 	if (fNumSD != 1 &&
-	    fNumSD != 2) throw eGeneralFail;
+	    fNumSD != 2) throw ExceptionT::kGeneralFail;
 #endif
 
 	if (fNumSD == 1)
@@ -375,11 +343,11 @@ double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian) const
 double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian, dMatrixT& Q) const
 {
 #if __option(extended_errorcheck)
-	if (jacobian.Rows() != jacobian.Cols() + 1) throw eGeneralFail;
+	if (jacobian.Rows() != jacobian.Cols() + 1) throw ExceptionT::kGeneralFail;
 	if (fNumSD != 1 &&
-	    fNumSD != 2) throw eGeneralFail;
+	    fNumSD != 2) throw ExceptionT::kGeneralFail;
 	if (Q.Rows() != fNumSD + 1 ||
-	    Q.Cols() != fNumSD + 1) throw eSizeMismatch;
+	    Q.Cols() != fNumSD + 1) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* surface dimension */
@@ -389,7 +357,7 @@ double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian, dMatrixT& Q) con
 		double  j = sqrt(t[0]*t[0] + t[1]*t[1]);
 
 		/* check */
-		if (j <= 0.0) throw eBadJacobianDet;
+		if (j <= 0.0) throw ExceptionT::kBadJacobianDet;
 
 		/* column vectors */
 		double* n1 = Q(0);
@@ -417,12 +385,12 @@ double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian, dMatrixT& Q) con
 		double j1 = sqrt(m1[0]*m1[0] + m1[1]*m1[1] + m1[2]*m1[2]);
 
 		/* normalize */
-		if (jn <= 0.0) throw eBadJacobianDet;
+		if (jn <= 0.0) throw ExceptionT::kBadJacobianDet;
 		n3[0] /= jn;
 		n3[1] /= jn;
 		n3[2] /= jn;
 		
-		if (j1 <= 0.0) throw eBadJacobianDet;
+		if (j1 <= 0.0) throw ExceptionT::kBadJacobianDet;
 		n1[0] = m1[0]/j1;
 		n1[1] = m1[1]/j1;
 		n1[2] = m1[2]/j1;
@@ -447,7 +415,7 @@ int numIP = fDNa.Length();
 		det[i] = fJacobian.Det();
 		
 		/* element check */
-		if (det[i] <= 0.0) throw eBadJacobianDet;
+		if (det[i] <= 0.0) throw ExceptionT::kBadJacobianDet;
 
 		dMatrixT& jac_inv = fJacobian.Inverse();
 					
@@ -518,7 +486,7 @@ void ParentDomainT::NodalValues(const dArrayT& IPvalues,
 #if __option(extended_errorcheck)
 	/* dimension check */
 	if (nodalvalues.MajorDim() != fNumNodes ||
-		nodalvalues.MinorDim() != IPvalues.Length()) throw eSizeMismatch;
+		nodalvalues.MinorDim() != IPvalues.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int numvals = IPvalues.Length();

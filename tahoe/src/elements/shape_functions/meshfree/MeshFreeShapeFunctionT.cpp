@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.7 2002-09-23 06:58:28 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.7.2.1 2002-10-17 04:22:34 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 
 #include "MeshFreeShapeFunctionT.h"
@@ -28,7 +28,7 @@ MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, i
 		fMFSupport = new MeshFreeSupport3DT(*fDomain, all_coords, connects,
 							nongridnodes, in);
 
-	if (!fMFSupport) throw eOutOfMemory;
+	if (!fMFSupport) throw ExceptionT::kOutOfMemory;
 
 	/* set as field shape function */
 	SetUShapeFunctions(fNaU, fDNaU);
@@ -277,7 +277,7 @@ void MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field,
 	{
 		cout << "\n MeshFreeShapeFunctionT::NodalField: derivatives not continuous with\n"
 		     <<   "     interpolant field nodes" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* fetch list of nodes to compute */
@@ -490,7 +490,7 @@ for (int i = 0; i < fElemHasExactNode.Length(); i++)
 	if (fElemHasExactNode[i] > -1)
 		fElemFlags.PrintRow(fElemHasExactNode[i], cout);
 }	
-throw eStop;
+throw ExceptionT::kStop;
 #endif
 //END
 	

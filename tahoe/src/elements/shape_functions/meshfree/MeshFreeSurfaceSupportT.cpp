@@ -1,10 +1,10 @@
-/* $Id: MeshFreeSurfaceSupportT.cpp,v 1.3 2002-09-12 17:50:10 paklein Exp $ */
+/* $Id: MeshFreeSurfaceSupportT.cpp,v 1.3.4.1 2002-10-17 04:22:34 paklein Exp $ */
 /* created: paklein (02/22/2000)                                          */
 /* supporting functions for cohesive elements in a meshfree domain        */
 
 #include "MeshFreeSurfaceSupportT.h"
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "toolboxConstants.h"
 
 #include "SurfaceShapeT.h"
@@ -55,7 +55,7 @@ void MeshFreeSurfaceSupportT::ResetFacets(const ArrayT<int>* reset_facets)
 	{
 		cout << "\n MeshFreeSurfaceSupportT::ResetFacets: size mismatch with local\n"
 		     <<   "     facet coords." << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 
 	/* dimensions */
@@ -133,7 +133,7 @@ out2 << "\n ip = " << ip+1 << '\n';
 				cout <<   "        ip: " << ip+1 << '\n';
 				cout <<   "         x: " << ip_coord.no_wrap() << '\n';
 				cout <<   "         n: " << normal.no_wrap() << '\n';
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 
 			/* collect data */
@@ -160,7 +160,7 @@ for (int i = 0; i < neighbors.Length(); i++)
 				cout <<   "        ip: " << ip+1 << '\n';
 				cout <<   "         x: " << ip_coord.no_wrap() << '\n';
 				cout <<   "         n: " << normal.no_wrap() << '\n';
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 
 			/* collect data */
@@ -189,8 +189,8 @@ void MeshFreeSurfaceSupportT::LoadData(int facet, int side, iArrayT& neighbors,
 	dArray2DT& phi, ArrayT<dArray2DT>& Dphi)
 {
 #if __option(extended_errorcheck)
-	if (Dphi.Length() != fRefSurfaceShape.NumIP()) throw eSizeMismatch;
-	if (side != 0 && side != 1) throw eOutOfRange;
+	if (Dphi.Length() != fRefSurfaceShape.NumIP()) throw ExceptionT::kSizeMismatch;
+	if (side != 0 && side != 1) throw ExceptionT::kOutOfRange;
 #endif
 
 	/* dimensions */
@@ -220,7 +220,7 @@ void MeshFreeSurfaceSupportT::LoadData(int facet, int side, iArrayT& neighbors,
 	else
 	{
 		cout << "\n MeshFreeSurfaceSupportT::LoadData: must use stored functions" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -230,7 +230,7 @@ void MeshFreeSurfaceSupportT::LoadData(int facet,
 {
 #if __option(extended_errorcheck)
 	if (Dphi_1.Length() != fRefSurfaceShape.NumIP() ||
-		Dphi_2.Length() != fRefSurfaceShape.NumIP()) throw eSizeMismatch;
+		Dphi_2.Length() != fRefSurfaceShape.NumIP()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* dimensions */
@@ -264,7 +264,7 @@ void MeshFreeSurfaceSupportT::LoadData(int facet,
 	else
 	{
 		cout << "\n MeshFreeSurfaceSupportT::LoadData: must use stored functions" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -284,7 +284,7 @@ void MeshFreeSurfaceSupportT::StoreData(int facet, int side,
 	ArrayT< AutoArrayT<double> >& Dphi)
 {
 	/* check */
-	if (side != 0 && side != 1) throw eOutOfRange;
+	if (side != 0 && side != 1) throw ExceptionT::kOutOfRange;
 
 	/* dimensions */
 	int nip = neighbors.Length();	
@@ -297,7 +297,7 @@ void MeshFreeSurfaceSupportT::StoreData(int facet, int side,
 	VariRaggedArray2DT<double>& DPhi = (side == 0) ? fDPhi_1 : fDPhi_2;
 
 	/* check */
-	if (facet < 0 || facet > Neighbors.MajorDim()) throw eOutOfRange;
+	if (facet < 0 || facet > Neighbors.MajorDim()) throw ExceptionT::kOutOfRange;
 
 	/* collect all nodes used */
 	fall_neighbors.Allocate(0);

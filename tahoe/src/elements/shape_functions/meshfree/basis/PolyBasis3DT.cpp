@@ -1,4 +1,4 @@
-/* $Id: PolyBasis3DT.cpp,v 1.2 2002-07-02 19:57:05 cjkimme Exp $ */
+/* $Id: PolyBasis3DT.cpp,v 1.2.4.1 2002-10-17 04:22:37 paklein Exp $ */
 /* created: paklein (04/19/2000)                                          */
 
 #include "PolyBasis3DT.h"
@@ -13,7 +13,7 @@ PolyBasis3DT::PolyBasis3DT(int complete):
 	if (fComplete < 0 || fComplete > 1)
 	{
 		cout << "\n PolyBasis3DT::PolyBasis3DT: completeness must be [0,1]" << endl;
-		throw eBadInputValue;	
+		throw ExceptionT::kBadInputValue;	
 	}
 }
 	
@@ -29,7 +29,7 @@ int PolyBasis3DT::BasisDimension(void) const
 		case 2:
 			return 10;
 		default:
-			throw eOutOfRange;
+			throw ExceptionT::kOutOfRange;
 	}
 	return 0;
 }
@@ -39,8 +39,8 @@ void PolyBasis3DT::SetBasis(const dArray2DT& coords, int order)
 {
 #if __option(extended_errorcheck)
 	/* dimension checking */
-	if (coords.MinorDim() != fNumSD) throw eGeneralFail;
-	if (order > 2) throw eOutOfRange;
+	if (coords.MinorDim() != fNumSD) throw ExceptionT::kGeneralFail;
+	if (order > 2) throw ExceptionT::kOutOfRange;
 #endif
 
 	/* dimensions */

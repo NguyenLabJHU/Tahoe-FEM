@@ -1,9 +1,9 @@
-/* $Id: D2OrthoMLS1DT.cpp,v 1.2 2002-07-02 19:57:02 cjkimme Exp $ */
+/* $Id: D2OrthoMLS1DT.cpp,v 1.2.4.1 2002-10-17 04:22:36 paklein Exp $ */
 /* created: paklein (10/17/1999)                                          */
 
 #include "D2OrthoMLS1DT.h"
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dSymMatrixT.h"
 
 /* constructor */
@@ -18,7 +18,7 @@ D2OrthoMLS1DT::D2OrthoMLS1DT(int complete):
 	{
 		cout << "\n D2OrthoMLS1DT::D2OrthoMLS1DT: completeness of out of range {1,3}: ";
 		cout << fComplete << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 }
 
@@ -37,10 +37,10 @@ void D2OrthoMLS1DT::SetMonomials(const dArrayT& coords, dArrayT& p, dArray2DT& D
 {
 #if __option(extended_errorcheck)
 	/* dimension checking */
-	if (coords.Length() != fNumSD) throw eGeneralFail;
-	if (   p.Length() != NumberOfMonomials(fComplete)) throw eSizeMismatch;
+	if (coords.Length() != fNumSD) throw ExceptionT::kGeneralFail;
+	if (   p.Length() != NumberOfMonomials(fComplete)) throw ExceptionT::kSizeMismatch;
 	if (Dp.MajorDim() != fNumSD ||
-	    Dp.MinorDim() != p.Length()) throw eSizeMismatch;
+	    Dp.MinorDim() != p.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 //NOTE: could do this for general completeness using
@@ -80,7 +80,7 @@ void D2OrthoMLS1DT::SetMonomials(const dArrayT& coords, dArrayT& p, dArray2DT& D
 
 		default:
 		
-			throw eOutOfRange;
+			throw ExceptionT::kOutOfRange;
 	}
 }
 
@@ -90,7 +90,7 @@ void D2OrthoMLS1DT::_SetMonomials(const dArrayT& coords, dArrayT& p, dArray2DT& 
 #if __option(extended_errorcheck)
 	/* dimension checking */
 	if (DDp.MajorDim() != dSymMatrixT::NumValues(fNumSD) ||
-	    DDp.MinorDim() != p.Length()) throw eSizeMismatch;
+	    DDp.MinorDim() != p.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* set lower order derivatives */
@@ -116,6 +116,6 @@ void D2OrthoMLS1DT::_SetMonomials(const dArrayT& coords, dArrayT& p, dArray2DT& 
 
 		default:
 		
-			throw eOutOfRange;
+			throw ExceptionT::kOutOfRange;
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: OrthoMLSSolverT.cpp,v 1.4 2002-07-02 19:56:56 cjkimme Exp $ */
+/* $Id: OrthoMLSSolverT.cpp,v 1.4.4.1 2002-10-17 04:22:35 paklein Exp $ */
 /* created: paklein (07/03/1998)                                          */
 
 #include "OrthoMLSSolverT.h"
@@ -23,7 +23,7 @@ OrthoMLSSolverT::OrthoMLSSolverT(int nsd, int complete):
 	fLocCoords_man(0, fLocCoords, fNumSD)
 {
 	/* error checking */
-	if (fNumSD < 1 && fNumSD > 3) throw eBadInputValue;
+	if (fNumSD < 1 && fNumSD > 3) throw ExceptionT::kBadInputValue;
 }
 	
 /* destructor */
@@ -69,8 +69,8 @@ int OrthoMLSSolverT::SetField(const dArray2DT& nodalcoords,
 	const nArrayT<double>& dmax, const dArrayT& samplept)
 {
 #if __option(extended_errorcheck)
-	if (dmax.Length() != nodalcoords.MajorDim()) throw eSizeMismatch;
-	if (samplept.Length() != fNumSD) throw eSizeMismatch;
+	if (dmax.Length() != nodalcoords.MajorDim()) throw ExceptionT::kSizeMismatch;
+	if (samplept.Length() != fNumSD) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* set size of current working set */

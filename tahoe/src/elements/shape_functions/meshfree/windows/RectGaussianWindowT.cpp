@@ -1,7 +1,7 @@
-/* $Id: RectGaussianWindowT.cpp,v 1.2 2002-07-02 19:57:07 cjkimme Exp $ */
+/* $Id: RectGaussianWindowT.cpp,v 1.2.4.1 2002-10-17 04:22:38 paklein Exp $ */
 
 #include "RectGaussianWindowT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include <math.h>
 
 
@@ -24,7 +24,7 @@ RectGaussianWindowT::RectGaussianWindowT(const dArrayT& dilation_scaling, double
 	    count++;
 	}
 	if (count > 0 || fSharpeningFactor < 0.0)
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 }
 
 /* "synchronization" of nodal field parameters. */
@@ -38,7 +38,7 @@ void RectGaussianWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 	{
 		cout << "\n RectGaussianWindowT::SynchronizeSupportParameters: nodal\n"
 		     << " parameters dimension mismatch" << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 		
 	/* "synchronize" means take max of dmax */
@@ -141,7 +141,7 @@ bool RectGaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, con
       }
     }
     else
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
       
 		return true;
   }

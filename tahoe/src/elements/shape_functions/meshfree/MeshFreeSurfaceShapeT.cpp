@@ -1,10 +1,10 @@
-/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.4 2002-09-12 17:50:10 paklein Exp $ */
+/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.4.4.1 2002-10-17 04:22:34 paklein Exp $ */
 /* created: paklein (06/03/2000)                                          */
 
 #include "MeshFreeSurfaceShapeT.h"
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 #include "SurfaceShapeT.h"
 #include "MeshFreeSurfaceSupportT.h"
@@ -46,7 +46,7 @@ MeshFreeSurfaceShapeT::MeshFreeSurfaceShapeT(GeometryT::CodeT geometry_code,
 	fMFSurfaceSupport = new MeshFreeSurfaceSupportT(mf_support,
 		fRefSurfaceShape, fFacetCoords, facet_coords, num_facet_nodes,
 		store_shape);	
-	if (!fMFSurfaceSupport) throw eOutOfMemory;
+	if (!fMFSurfaceSupport) throw ExceptionT::kOutOfMemory;
 
 	/* dimension arrays */
 	Construct();
@@ -104,7 +104,7 @@ void MeshFreeSurfaceShapeT::Neighbors(RaggedArray2DT<int>& neighbors) const
 	if (neighbors.Length() != neighbors_1.Length() + neighbors_2.Length())
 	{
 		cout << "\n MeshFreeSurfaceShapeT::Neighbors: destination array must be configured" << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 	
 	int nnd = neighbors_1.MajorDim();
@@ -121,7 +121,7 @@ void MeshFreeSurfaceShapeT::Neighbors(RaggedArray2DT<int>& neighbors) const
 			     << " of destination is length "
 			     << nnd << "\n" <<   "     instead of length "
 			     << nnd_1 + nnd_2 << endl;
-			throw eSizeMismatch;
+			throw ExceptionT::kSizeMismatch;
 		}
 	
 		/* copy data */
@@ -189,7 +189,7 @@ const dArrayT& MeshFreeSurfaceShapeT::InterpolateJumpU(const LocalArrayT& nodal_
 {
 #if __option(extended_errorcheck)
 	if (nodal_1.NumberOfNodes() + nodal_2.NumberOfNodes() !=
-	    fjump_phi.MinorDim()) throw eSizeMismatch;
+	    fjump_phi.MinorDim()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int nnd_1 = nodal_1.NumberOfNodes();
@@ -352,7 +352,7 @@ void MeshFreeSurfaceShapeT::SetDomainJacobian(void)
 void MeshFreeSurfaceShapeT::Set_dQ(const dMatrixT& Q, double j, ArrayT<dMatrixT>& dQ)
 {
 	/* checks */
-	if (dQ.Length() != fFieldDim) throw eSizeMismatch;
+	if (dQ.Length() != fFieldDim) throw ExceptionT::kSizeMismatch;
 
 	/* dimensions */
 	int nnd = fneighbors.Length();
@@ -406,7 +406,7 @@ void MeshFreeSurfaceShapeT::Set_dQ(const dMatrixT& Q, double j, ArrayT<dMatrixT>
 		double* v_m1 = fJacobian(0);
 		double* v_m2 = fJacobian(1);
 		double    m1 = sqrt(v_m1[0]*v_m1[0] + v_m1[1]*v_m1[1] + v_m1[2]*v_m1[2]);
-		if (m1 <= 0.0) throw eBadJacobianDet;
+		if (m1 <= 0.0) throw ExceptionT::kBadJacobianDet;
 
 		/* tangent gradients */
 		ArrayT<dMatrixT>& grad_dd = fdx_dsdu;

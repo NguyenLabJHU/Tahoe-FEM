@@ -1,9 +1,9 @@
-/* $Id: SurfaceShapeT.cpp,v 1.7 2002-10-05 19:17:06 paklein Exp $ */
+/* $Id: SurfaceShapeT.cpp,v 1.7.2.1 2002-10-17 04:21:56 paklein Exp $ */
 /* created: paklein (11/21/1997) */
 #include "SurfaceShapeT.h"
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 using namespace Tahoe;
 
@@ -134,9 +134,9 @@ void SurfaceShapeT::InterpolateJump(const LocalArrayT& nodal, dArrayT& jump) con
 void SurfaceShapeT::Interpolate(const LocalArrayT& nodal, dArrayT& u) const
 {
 #if __option(extended_errorcheck)
-	if (u.Length() != nodal.MinorDim()) throw eSizeMismatch;
+	if (u.Length() != nodal.MinorDim()) throw ExceptionT::kSizeMismatch;
 	if (nodal.NumberOfNodes() != TotalNodes() &&
-	    nodal.NumberOfNodes() != NumFacetNodes()) throw eSizeMismatch;
+	    nodal.NumberOfNodes() != NumFacetNodes()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* average across both sides if all values given */
@@ -192,7 +192,7 @@ void SurfaceShapeT::Extrapolate(const dArrayT& IPvalues,
 double SurfaceShapeT::Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ)
 {
 #if __option(extended_errorcheck)
-	if (dQ.Length() != fFieldDim) throw eSizeMismatch;
+	if (dQ.Length() != fFieldDim) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* compute facet coordinates */
@@ -202,7 +202,7 @@ double SurfaceShapeT::Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ)
 	/* get Jacobian matrix of the surface transformation */
 	fDomain->DomainJacobian(fFacetCoords, fCurrIP, fJacobian);	
 	double j = fDomain->SurfaceJacobian(fJacobian, Q);
-	if (j <= 0.0) throw eBadJacobianDet;
+	if (j <= 0.0) throw ExceptionT::kBadJacobianDet;
 
 //NOTE: everything from here down depends only on Q
 
@@ -250,7 +250,7 @@ double SurfaceShapeT::Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ)
 		double* v_m1 = fJacobian(0);
 		double* v_m2 = fJacobian(1);
 		double    m1 = sqrt(v_m1[0]*v_m1[0] + v_m1[1]*v_m1[1] + v_m1[2]*v_m1[2]);
-		if (m1 <= 0.0) throw eBadJacobianDet;
+		if (m1 <= 0.0) throw ExceptionT::kBadJacobianDet;
 
 		/* tangent gradients */
 		dMatrixT& dm1_du = fgrad_dd(CurrIP(), 0);
@@ -299,7 +299,7 @@ void SurfaceShapeT::SetNodesOnFacets(iArray2DT& facetnodes)
 {
 	/* check */
 	if (facetnodes.MajorDim() != 2 &&
-	    facetnodes.MinorDim() != fNumFacetNodes)  throw eSizeMismatch;
+	    facetnodes.MinorDim() != fNumFacetNodes)  throw ExceptionT::kSizeMismatch;
 
 	int num_nodes_error = 0;
 	int geometry = fDomain->GeometryCode();
@@ -376,7 +376,7 @@ void SurfaceShapeT::SetNodesOnFacets(iArray2DT& facetnodes)
 		
 			cout << "\n SurfaceShapeT::NodesOnFacets: unsupported geometry: ";
 			cout << geometry << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 	
 	if (num_nodes_error)
@@ -384,7 +384,7 @@ void SurfaceShapeT::SetNodesOnFacets(iArray2DT& facetnodes)
 		cout << "\n SurfaceShapeT::NodesOnFacets: " << fTotalNodes;
 		cout << " nodes with geometry " << geometry << " is\n";
 		cout <<   "      not supported" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -396,7 +396,7 @@ void SurfaceShapeT::SetNodesOnFacets(iArray2DT& facetnodes)
 void SurfaceShapeT::Construct(void)
 {  	
 	/* check dimensions */
-	if (fFacetCoords.NumberOfNodes()*2 != fTotalNodes) throw eSizeMismatch;
+	if (fFacetCoords.NumberOfNodes()*2 != fTotalNodes) throw ExceptionT::kSizeMismatch;
 
 	/* shape functions */
 	fNa.Allocate(fNumIP, fTotalNodes);
@@ -446,7 +446,7 @@ void SurfaceShapeT::Construct(void)
 void SurfaceShapeT::SetJumpVector(iArrayT& jump) const
 {
 	/* check */
-	if (jump.Length() != fTotalNodes) throw eSizeMismatch;
+	if (jump.Length() != fTotalNodes) throw ExceptionT::kSizeMismatch;
 
 	int num_nodes_error = 0;
 	int geometry = fDomain->GeometryCode();
@@ -519,7 +519,7 @@ void SurfaceShapeT::SetJumpVector(iArrayT& jump) const
 		
 			cout << "\n SurfaceShapeT::SetJumpVector: unsupported geometry: ";
 			cout << geometry << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 	
 	if (num_nodes_error)
@@ -527,7 +527,8 @@ void SurfaceShapeT::SetJumpVector(iArrayT& jump) const
 		cout << "\n SurfaceShapeT::SetJumpVector: " << fTotalNodes;
 		cout << " nodes with geometry " << geometry << " is\n";
 		cout <<   "      not supported" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail
+		;
 	}
 }
 
@@ -536,7 +537,7 @@ void SurfaceShapeT::ComputeFacetCoords(void)
 {
 #if __option(extended_errorcheck)
 	if (fCoords.NumberOfNodes() != 2*fFacetCoords.NumberOfNodes())
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	for (int i = 0; i < fFieldDim; i++)
