@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" geometry_file="../geometry/CSE.1.geom">
+    <time num_steps="2" output_inc="1" time_step="0.5">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="1.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <kinematic_BC dof="2" node_ID="1" schedule="1" type="u" value="-0.05"/>
+            <kinematic_BC dof="2" node_ID="2" schedule="1" type="u" value="0.05"/>
+        </field>
+    </nodes>
+    <element_list>
+        <small_strain_axi field_name="displacement">
+            <quadrilateral/>
+            <solid_element_nodal_output displacements="1" stress="1"/>
+            <small_strain_axi_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <small_strain_material_3D>
+                    <small_strain_StVenant density="1">
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
+                    </small_strain_StVenant>
+                </small_strain_material_3D>
+            </small_strain_axi_element_block>
+        </small_strain_axi>
+        <isotropic_CSE field_name="displacement" axisymmetric="true">
+            <line num_ip="3"/>
+            <surface_element_nodal_output displacement_jump="1" displacements="1" material_output="1" traction="1"/>
+            <isotropic_CSE_element_block>
+                <block_ID_list>
+                    <String value="2"/>
+                </block_ID_list>
+                <Smith-Ferrante a="400" b="0.05" x_0="0.0"/>
+            </isotropic_CSE_element_block>
+        </isotropic_CSE>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
+</tahoe>

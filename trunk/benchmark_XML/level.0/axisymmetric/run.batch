@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.4 2004-07-09 00:25:07 paklein Exp $
+# $Id: run.batch,v 1.5 2005-03-15 07:16:45 paklein Exp $
 KE_L_check.xml
 cylinder.1.xml
 cylinder.1a.xml
@@ -21,4 +21,6 @@ cylinder.9.xml
 cylinder.9a.xml
 cylinder.10b.xml
 cylinder.11b.xml
-
+CSE.1.axi.xml
+CSE.3.axi.xml
+cse.1.sym.axi.xml
