@@ -1,9 +1,9 @@
-/* $Id: ExceptionT.cpp,v 1.2 2002-10-20 22:38:58 paklein Exp $ */
-/* created: paklein (06/04/1996) */
+/* $Id: ExceptionT.cpp,v 1.3 2002-11-13 08:28:14 paklein Exp $ */
 #include "ExceptionT.h"
 #include "ArrayT.h"
 #include <iostream.h>
 #include <iomanip.h>
+#include <time.h>
 
 /* initialize static data */
 namespace Tahoe {
@@ -45,6 +45,22 @@ const char* ExceptionT::ToString(CodeT code)
 		return fExceptionStrings[code];
 	else
 		return fExceptionStrings[NumExceptions];
+}
+
+void ExceptionT::Throw(ExceptionT::CodeT code, const char* caller, const char* message)
+{
+	/* write info */
+	time_t t;
+	time(&t);
+	cout << "\n ExceptionT::Throw: " << ctime(&t) << '\n';
+	cout << "      code: " << code << '\n';
+	cout << " exception: " << ToString(code) << '\n';
+	if (caller)  cout << "    caller: " << caller << '\n';
+	if (message) cout << "   message: " << message << '\n';
+	cout.flush();
+	
+	/* do the throw */
+	throw code;
 }
 
 } /* namespace Tahoe */ 
