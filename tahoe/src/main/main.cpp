@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.7 2001-10-12 16:46:51 paklein Exp $ */
+/* $Id: main.cpp,v 1.8 2002-01-27 18:44:14 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include <iostream.h>
@@ -106,9 +106,9 @@ static void StartUp(int* argc, char*** argv)
 	*argc = ccommand(argv);
 #endif /* __MPI__ */
 
-#ifndef _MACOS_
+#ifdef __MPI__
 	cout << "********************* MPI Version *********************" << '\n';
-#endif /* _MACOS_ */
+#endif /* __MPI__ */
 
 #if __option (extended_errorcheck)
 	cout << "\n Extended error checking is ON\n";
