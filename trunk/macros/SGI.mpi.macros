@@ -1,4 +1,4 @@
-# $Id: SGI.mpi.macros,v 1.10 2001-12-10 22:15:17 paklein Exp $
+# $Id: SGI.mpi.macros,v 1.11 2002-03-19 17:18:53 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = -lmpi
@@ -6,6 +6,7 @@ MPI_LFLAGS = -lmpi
 # SGI Irix 6.2
 MAKE        = make
 MAKE_DEPEND = makedepend
+DEPENDFLAGS = -I/usr/include/CC
 COMP_C      = cc
 COMP_CC     = CC
 COMP_F      = f77
@@ -26,7 +27,6 @@ RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
 ECHO        = echo
 CAT         = cat
-INC_FLAGS   = -I/usr/include/CC
 # parallel builds
 # env. var. PARALLEL controls concurrency (default = 2)
 

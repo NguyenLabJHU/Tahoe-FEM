@@ -1,4 +1,4 @@
-# $Id: ALASKA.macros,v 1.7 2001-12-10 22:15:15 paklein Exp $
+# $Id: ALASKA.macros,v 1.8 2002-03-19 17:18:52 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = -lmpi
@@ -6,6 +6,7 @@ MPI_LFLAGS = -lmpi
 # Alaska (DEC)
 MAKE        = make
 MAKE_DEPEND = makedepend
+DEPENDFLAGS = -I/usr/include/cxx -I/usr/local/cplant/current/include
 COMP_C      = cc
 COMP_CC     = c++
 COMP_F      = f77
@@ -27,7 +28,6 @@ RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
 ECHO        = echo
 CAT         = cat
-INC_FLAGS   = -I/usr/include/cxx -I/usr/local/cplant/current/include
 
 # command needed build library
 #BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
