@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.9 2002-07-02 19:57:09 cjkimme Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.9.2.1 2002-09-21 08:59:07 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #include "ShapeFunctionT.h"
@@ -6,15 +6,13 @@
 #include "LocalArrayT.h"
 #include "dSymMatrixT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 ShapeFunctionT::ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
-	const LocalArrayT& coords, StrainOptionT B_option):
-DomainIntegrationT(geometry_code, numIP, coords.NumberOfNodes()),
+	const LocalArrayT& coords):
+	DomainIntegrationT(geometry_code, numIP, coords.NumberOfNodes()),
 	fCoords(coords),
-	fB_option(B_option),
 	fGrad_x_temp(NULL)
 {
 	/* consistency */
@@ -27,10 +25,6 @@ DomainIntegrationT(geometry_code, numIP, coords.NumberOfNodes()),
 		throw eGeneralFail;
 	}
 
-	/* check option */
-	if (fB_option != kStandardB &&
-	    fB_option != kMeanDilBbar) throw eBadInputValue;
-
 	/* configure workspace */
 	Construct();
 }
@@ -38,16 +32,8 @@ DomainIntegrationT(geometry_code, numIP, coords.NumberOfNodes()),
 ShapeFunctionT::ShapeFunctionT(const ShapeFunctionT& link, const LocalArrayT& coords):
 	DomainIntegrationT(link),
 	fCoords(coords),
-	fB_option(link.fB_option),
 	fGrad_x_temp(NULL)
 {
-	/* check */
-	if (fB_option != kStandardB)
-	{
-		cout << "\n ShapeFunctionT::ShapeFunctionT: WARNING: non-standard B-option not\n";
-		cout << "     expected for linked shape functions" << endl;
-	}
-
 	/* configure workspace */
 	Construct();
 }	
@@ -96,6 +82,7 @@ void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
 		u[i] = pNaU->DotRow(ip, nodal(i));
 }
 
+#if 0
 /* strain displacement matrix B */
 void ShapeFunctionT::B(const dArray2DT& DNa, dMatrixT& B_matrix) const
 {
@@ -254,6 +241,7 @@ void ShapeFunctionT::B(const dArray2DT& DNa, dMatrixT& B_matrix) const
 		}
 	}
 }
+#endif
 
 /* shape function gradients matrix (Hughes,4.90) */
 void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
@@ -300,6 +288,7 @@ void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 	}
 }
 
+#if 0
 /* strain displacement matrix B */
 void ShapeFunctionT::B_q(const dArray2DT& DNa, dMatrixT& B_matrix) const
 {
@@ -339,6 +328,7 @@ double*   pB = B_matrix.Pointer();
 		}
 	}
 }
+#endif
 
 /********************************************************************************/
 
@@ -358,29 +348,6 @@ void ShapeFunctionT::Print(ostream& out) const
 	else	
 	    for (int i = 0; i < pDNaU->Length(); i++)
 			(*pDNaU)[i].WriteNumbered(out);
-}
-
-/* compute mean dilatation, Hughes (4.5.23) */
-const dArray2DT& ShapeFunctionT::SetMeanDilatation(void)
-{
-	/* volume */
-	const double* w = IPWeights();
-	double* det = fDet.Pointer();
-	double  vol = 0.0;
-	for (int i = 0; i < fNumIP; i++)
-		vol += (*w++)*(*det++);
-
-	/* initialize */
-	fB_workspace = 0.0;			
-
-	/* integrate */
-	w   = IPWeights();
-	det = fDet.Pointer();
-	for (int l = 0; l < fNumIP; l++)
-		fB_workspace.AddScaled((*w++)*(*det++)/vol, (*pDNaU)[l]);
-
-	/* return reference */
-	return fB_workspace;
 }
 
 /***********************************************************************
@@ -425,9 +392,6 @@ void ShapeFunctionT::Construct(void)
 	int numXnodes = fCoords.NumberOfNodes();
 	int numUnodes = numXnodes; // assume isoparametric
 	int numsd     = fCoords.MinorDim();
-
-	/* B-option workspace */
-	if (fB_option == kMeanDilBbar) fB_workspace.Allocate(numsd, numUnodes);
 
 	/* parent domain jacobian */
 	fDet.Allocate(fNumIP),
