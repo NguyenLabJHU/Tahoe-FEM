@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.13 2003-08-23 16:15:34 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.14 2003-11-05 20:34:47 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -263,6 +263,11 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		case kAllStrikers:  /* shallow striker coords */
 			fStrikerCoords.Alias(ElementSupport().CurrentCoordinates());
 			out << "\n Striker nodes: ALL\n";	
+
+			//TEMP			
+			ExceptionT::GeneralFail("ContactT::EchoConnectivityData", 
+				"all nodes as strikers not tested");
+			
 			break;
 
 		case kSideSetList: /* collect strikers from side sets */
@@ -313,7 +318,7 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 void ContactT::SetWorkSpace(void)
 {
 	/* allocate map to active strikers data */
-	fActiveMap.Dimension(fStrikerCoords.MajorDim());
+	fActiveMap.Dimension(fStrikerTags.Length());
 	fActiveMap = -1;
 
 	/* make pseudo-element list to link surfaces in case

@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.2 2003-11-04 17:37:50 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.3 2003-11-05 20:34:47 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -9,6 +9,7 @@
 #include "eIntegratorT.h"
 #include "InverseMapT.h"
 #include "iGridManager2DT.h"
+#include "ModelManagerT.h"
 
 /* meshfree element group types */
 #include "MeshFreeSSSolidT.h"
@@ -34,6 +35,10 @@ MFPenaltyContact2DT::MFPenaltyContact2DT(const ElementSupportT& support, const F
 	fGroupNumber--;
 	ElementBaseT& element = ElementSupport().ElementGroup(fGroupNumber);
 	fElementGroup = &element;
+
+	/* register arrays with memory manager */
+	fdvT_man.Register(fdv1T);
+	fdvT_man.Register(fdv2T);
 	
 	/* cast to meshfree element types */
 	const MeshFreeSSSolidT* mf_ss_solid = dynamic_cast<const MeshFreeSSSolidT*>(fElementGroup);
@@ -94,12 +99,14 @@ void MFPenaltyContact2DT::RHSDriver(void)
 	double h_max = 0.0;
 
 	/* loop over active elements */
-	dArrayT tangent(NumSD());
+	int nsd = NumSD();
+	dArrayT tangent(nsd);
 	AutoArrayT<int> nodes;
 	AutoArrayT<int> eqnos;
 	iArray2DT eqnos2D;
 	iArrayT neighbors;
 	dArrayT Na;
+	dArrayT rhs_tmp;
 	dArray2DT DNa;
 	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
@@ -149,11 +156,13 @@ void MFPenaltyContact2DT::RHSDriver(void)
 			double dphi =-fK*h;
 			
 			/* initialize */
+			fRHS_man.SetLength((neighbors.Length() + kNumFacetNodes)*nsd, false);
 			fRHS = 0.0;
 					
 			/* d_tan contribution */
 			fdtanT.Multx(tangent, fNEEvec);
-			fRHS.AddScaled(-dphi*h/(magtan*magtan), fNEEvec);
+			rhs_tmp.Alias(fNEEvec.Length(), fRHS.Pointer());
+			rhs_tmp.AddScaled(-dphi*h/(magtan*magtan), fNEEvec);
 						
 			/* d_area */
 			fColtemp1.Set(fdv1T.Rows(), fdv1T(0));
@@ -313,6 +322,28 @@ void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		out << fStrikerTags.wrap(8) << '\n';
 		fStrikerTags--;	
 	}
+
+	/* set connectivity name */
+	ModelManagerT& model = ElementSupport().Model();
+	StringT name ("Contact");
+	name.Append (ElementSupport().ElementGroupNumber(this) + 1);
+
+	/* register with the model manager and let it set the ward */
+	int nen = fNumFacetNodes + 1; /* facet nodes + 1 striker */
+	if (!model.RegisterVariElements (name, fConnectivities_man, GeometryT::kLine, nen, 0)) 
+		ExceptionT::GeneralFail(caller);
+
+	/* set up fConnectivities */
+	fConnectivities.Dimension(1);
+	fConnectivities[0] = model.ElementGroupPointer(name);
+
+	/* set up fBlockData to store block ID */
+	fBlockData.Dimension(1);
+	fBlockData[0].Set(name, 0, fConnectivities[0]->MajorDim(), -1);
+
+	/* set managed equation numbers array */
+	fEqnos.Dimension(1);
+	fEqnos_man.SetWard(0, fEqnos[0], nen*NumDOF());
 }
 
 /* generate contact element data */

@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.69 2003-11-01 21:12:50 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.70 2003-11-05 20:34:44 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -57,6 +57,9 @@
 #include "ACME_Contact3DT.h"
 #include "PenaltyContactDrag2DT.h"
 #include "PenaltyContactDrag3DT.h"
+#ifdef CONTINUUM_ELEMENT /* need meshfree code */
+#include "MFPenaltyContact2DT.h"
+#endif
 #endif
 
 #ifdef PARTICLE_ELEMENT
@@ -487,6 +490,19 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+#endif
+			}
+			case ElementT::kMeshfreePenaltyContact:
+			{
+#if defined(CONTACT_ELEMENT) && defined(CONTINUUM_ELEMENT)
+				int nsd = fSupport.NumSD();
+				if (nsd == 2)
+					fArray[group] = new MFPenaltyContact2DT(fSupport, *field);
+				else
+					ExceptionT::BadInputValue(caller, "meshfree contact not implemented in 3D");
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT or CONTINUUM_ELEMENT not enabled: %d", code);
 #endif
 			}
 			case ElementT::kPenaltyContactDrag:
