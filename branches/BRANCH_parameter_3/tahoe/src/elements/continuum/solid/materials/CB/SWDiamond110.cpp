@@ -1,4 +1,4 @@
-/* $Id: SWDiamond110.cpp,v 1.5.46.1 2004-04-08 07:32:39 paklein Exp $ */
+/* $Id: SWDiamond110.cpp,v 1.5.46.2 2004-06-09 23:17:30 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "SWDiamond110.h"
 #include <math.h>
@@ -15,17 +15,8 @@ SWDiamond110::SWDiamond110(ifstreamT& in, const FSMatSupportT& support):
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
-
-/* print name */
-void SWDiamond110::PrintName(ostream& out) const
-{
-	/* inherited */
-	SWMaterial2D::PrintName(out);
-
-	out << "    SW Diamond <110> 2D\n";
-}
+ * Protected
+ *************************************************************************/
 
 /* symmetric Cij reduced index matrix */
 void SWDiamond110::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)

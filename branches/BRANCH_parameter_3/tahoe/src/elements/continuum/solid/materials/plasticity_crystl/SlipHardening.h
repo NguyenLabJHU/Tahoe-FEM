@@ -87,10 +87,6 @@ class SlipHardening
   virtual const double IsoHardeningStress (int is) const;
   virtual const double KinHardeningStress (int is) const;
 
-  // print hardening data and model name
-  virtual void Print(ostream& out) const = 0;
-  virtual void PrintName(ostream& out) const = 0;
-
  protected:
   // reference to PolyCrystalMat object
   PolyCrystalMatT& fPolyXtal;

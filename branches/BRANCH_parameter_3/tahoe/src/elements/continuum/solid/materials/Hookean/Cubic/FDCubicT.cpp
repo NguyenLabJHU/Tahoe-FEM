@@ -1,4 +1,4 @@
-/* $Id: FDCubicT.cpp,v 1.5.46.2 2004-06-07 13:48:13 paklein Exp $ */
+/* $Id: FDCubicT.cpp,v 1.5.46.3 2004-06-09 23:17:35 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "FDCubicT.h"
 
@@ -17,22 +17,6 @@ FDCubicT::FDCubicT(void):
 	ParameterInterfaceT("large_strain_cubic")
 {
 
-}
-
-/* print parameters */
-void FDCubicT::Print(ostream& out) const
-{
-	/* inherited */
-	FDHookeanMatT::Print(out);
-	CubicT::Print(out);
-}
-
-/* print name */
-void FDCubicT::PrintName(ostream& out) const
-{
-	/* inherited */
-	FDHookeanMatT::PrintName(out);
-	CubicT::PrintName(out);
 }
 
 /* information about subordinate parameter lists */

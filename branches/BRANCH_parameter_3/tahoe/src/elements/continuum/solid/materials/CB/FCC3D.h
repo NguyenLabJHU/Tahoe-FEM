@@ -1,4 +1,4 @@
-/* $Id: FCC3D.h,v 1.3 2004-03-04 08:54:23 paklein Exp $ */
+/* $Id: FCC3D.h,v 1.3.12.1 2004-06-09 23:17:30 paklein Exp $ */
 #ifndef _FCC_3D_H_
 #define _FCC_3D_H_
 
@@ -22,12 +22,6 @@ public:
 	/** destructor */
 	~FCC3D(void);
 	
-	/** \name write parameters */
-	/*@{*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-	/*@}*/
-
 protected:
 
 	/** compute the symetric Cij reduced index matrix */

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.cpp,v 1.9.4.1 2004-04-08 07:33:08 paklein Exp $ */
+/* $Id: DPSSKStV2D.cpp,v 1.9.4.2 2004-06-09 23:17:54 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV2D.h"
 #include "ElementCardT.h"
@@ -34,14 +34,6 @@ const dSymMatrixT& DPSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain,
 	/* inherited */
 	return DPSSKStV::ElasticStrain(fTotalStrain3D, element, ip);
 
-}
-
-/* print name */
-void DPSSKStV2D::PrintName(ostream& out) const
-{
-	/* inherited */
-	DPSSKStV::PrintName(out);
-	out << "    2D\n";
 }
 
 /* moduli */

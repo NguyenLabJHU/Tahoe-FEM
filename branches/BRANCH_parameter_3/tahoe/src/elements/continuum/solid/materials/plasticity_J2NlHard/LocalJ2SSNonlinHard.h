@@ -1,4 +1,4 @@
-/* $Id: LocalJ2SSNonlinHard.h,v 1.7.46.1 2004-04-08 07:33:11 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard.h,v 1.7.46.2 2004-06-09 23:17:58 paklein Exp $ */
 #ifndef _LOCAL_J2_SS_NONLIN_HARD_H_
 #define _LOCAL_J2_SS_NONLIN_HARD_H_
 
@@ -36,10 +36,6 @@ public:
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 	
 	/** \name spatial description */
 	/*@{*/

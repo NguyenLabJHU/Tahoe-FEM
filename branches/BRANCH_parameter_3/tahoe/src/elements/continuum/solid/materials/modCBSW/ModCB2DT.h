@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.h,v 1.7.46.1 2004-04-08 07:33:06 paklein Exp $ */
+/* $Id: ModCB2DT.h,v 1.7.46.2 2004-06-09 23:17:53 paklein Exp $ */
 /* created: paklein (05/31/1997) */
 #ifndef _MODCB_2DT_H_
 #define _MODCB_2DT_H_
@@ -30,10 +30,6 @@ public:
 	/* destructor */
 	virtual ~ModCB2DT(void);
 	
-	/* print Parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */

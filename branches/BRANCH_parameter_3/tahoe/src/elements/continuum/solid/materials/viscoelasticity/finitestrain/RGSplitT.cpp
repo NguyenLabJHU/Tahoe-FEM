@@ -1,4 +1,4 @@
-/* $Id: RGSplitT.cpp,v 1.2.20.1 2004-04-08 07:33:25 paklein Exp $ */
+/* $Id: RGSplitT.cpp,v 1.2.20.2 2004-06-09 23:18:11 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT.h"
@@ -87,31 +87,6 @@ void RGSplitT::Initialize(void)
 {
     /*inheritance*/
     RGViscoelasticityT::Initialize();
-}
-
-/* print parameters */
-void RGSplitT::Print(ostream& out) const
-{
-    RGViscoelasticityT::Print(out);
-    out<<"Equilibrium free energy potential\n";
-    fPot_EQ->Print(out);
-    out<<"Non Equilibrium free energy potential\n";
-    fPot_NEQ->Print(out);
-  
-    out<<"Constant Viscosity \n";
-    out<<"     Shear Viscosity: "<<1.0/fietaS<<'\n';
-    out<<"     Bulk Viscosity: "<<1.0/fietaB<<'\n';
-}
-
-/* print name */
-void RGSplitT::PrintName(ostream& out) const
-{
-    /* inherited */
-    RGViscoelasticityT::PrintName(out);
-    out<<"Equilibrium free energy potential\n";
-    fPot_EQ->PrintName(out);
-    out<<"Non Equilibrium free energy potential\n";
-    fPot_NEQ->PrintName(out);
 }
 
 int RGSplitT::NumOutputVariables() const {return kNumOutputVar;} 

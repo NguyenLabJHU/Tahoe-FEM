@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.h,v 1.6 2003-01-29 07:35:02 paklein Exp $ */
+/* $Id: J2QLLinHardT.h,v 1.6.46.1 2004-06-09 23:17:56 paklein Exp $ */
 /* created: paklein (10/26/2000) */
 #ifndef _J2_QL_LIN_HARD_T_H_
 #define _J2_QL_LIN_HARD_T_H_
@@ -38,9 +38,6 @@ public:
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
 
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);

@@ -1,4 +1,4 @@
-/* $Id: D2VIB2D_a.cpp,v 1.7.46.1 2004-04-08 07:33:01 paklein Exp $ */
+/* $Id: D2VIB2D_a.cpp,v 1.7.46.2 2004-06-09 23:17:48 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2VIB2D_a.h"
 
@@ -27,15 +27,6 @@ D2VIB2D_a::D2VIB2D_a(ifstreamT& in, const D2FSMatSupportT& support):
 	/* gradient term coefficient */
 	in >> fD2coeff;
 	if (fD2coeff < 0.0) throw ExceptionT::kBadInputValue;
-}
-
-/* print parameters */
-void D2VIB2D_a::Print(ostream& out) const
-{
-	/* inherited */
-	D2VIB2D::Print(out);
-	
-	out << " Gradient coefficient. . . . . . . . . . . . . . = " << fD2coeff << '\n';
 }
 
 /* material internal stress terms */

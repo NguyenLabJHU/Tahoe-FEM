@@ -1,4 +1,4 @@
-/* $Id: SSKStV.cpp,v 1.4.48.1 2004-04-08 07:32:49 paklein Exp $ */
+/* $Id: SSKStV.cpp,v 1.4.48.2 2004-06-09 23:17:37 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "SSKStV.h"
 
@@ -17,22 +17,6 @@ SSKStV::SSKStV(void):
 	ParameterInterfaceT("small_strain_StVenant")
 {
 
-}
-
-/* print parameters */
-void SSKStV::Print(ostream& out) const
-{
-	/* inherited */
-	SSHookeanMatT::Print(out);
-	IsotropicT::Print(out);
-}
-
-/* print name */
-void SSKStV::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSHookeanMatT::PrintName(out);
-	out << "    Kirchhoff-St.Venant\n";
 }
 
 /* information about subordinate parameter lists */

@@ -1,4 +1,4 @@
-/* $Id: LJFCC111.h,v 1.5 2003-01-29 07:34:37 paklein Exp $ */
+/* $Id: LJFCC111.h,v 1.5.46.1 2004-06-09 23:17:30 paklein Exp $ */
 /* created: paklein (07/31/1996) */
 #ifndef _LJFCC111_H_
 #define _LJFCC111_H_
@@ -15,10 +15,6 @@ public:
 	/* constructor */
 	LJFCC111(ifstreamT& in, const FSMatSupportT& support);
 	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-
 protected:
 
 	/* compute the symetric Cij reduced index matrix */

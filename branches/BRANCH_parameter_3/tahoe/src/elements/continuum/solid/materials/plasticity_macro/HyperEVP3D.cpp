@@ -1,4 +1,4 @@
-/* $Id: HyperEVP3D.cpp,v 1.10.46.1 2004-04-08 07:33:16 paklein Exp $ */
+/* $Id: HyperEVP3D.cpp,v 1.10.46.2 2004-06-09 23:18:05 paklein Exp $ */
 #include "HyperEVP3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -244,28 +244,6 @@ void HyperEVP3D::ComputeOutput(dArrayT& output)
           << " VM-stress  "   << output[1] 
           << " pressure  "    << output[2] 
           << " iterCounter "  << (int)output[3] << endl;
-}
-
-void HyperEVP3D::Print(ostream& out) const
-{
-  // inherited
-  EVPFDBaseT::Print(out);
-
-  // print kinetic equation model
-  //  out << "    Kinetic Equation:\n";
-  //  out << "       Model . . . . . . . . . . . . . . . . . . = " 
-  //      << fKinEqnCode << "\n";
-  //  fKineticEqn->Print(out);
-}
-
-void HyperEVP3D::PrintName(ostream& out) const
-{
-  // inherited
-  EVPFDBaseT::PrintName(out);
-
-  // output model name
-  out << "    Hyper-Elasticity\n";
-  fKineticEqn->PrintName(out);
 }
 
 GlobalT::SystemTypeT HyperEVP3D::TangentType() const

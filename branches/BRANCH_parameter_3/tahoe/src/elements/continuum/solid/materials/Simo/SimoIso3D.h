@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.h,v 1.9.46.1 2004-04-08 07:32:55 paklein Exp $ */
+/* $Id: SimoIso3D.h,v 1.9.46.2 2004-06-09 23:17:41 paklein Exp $ */
 /* created: paklein (03/02/1997) */
 #ifndef _SIMO_ISO_3D_H_
 #define _SIMO_ISO_3D_H_
@@ -20,10 +20,6 @@ public:
 	SimoIso3D(ifstreamT& in, const FSMatSupportT& support);
 	SimoIso3D(void);
 	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-
 	/** \name spatial description */
 	/*@{*/
 	/** spatial tangent modulus */

@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.8.34.1 2004-04-08 07:33:16 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.8.34.2 2004-06-09 23:18:05 paklein Exp $ */
 #include "BCJHypoIsoDamageYC3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -276,32 +276,6 @@ void BCJHypoIsoDamageYC3D::ComputeOutput(dArrayT& output)
 	  << " KAPPA "  << fInternal[kKAPP]
           << " VVF   "  << fInternal[kDAMG]
 	  << " ITERS "  << fIterCount << endl;
-}
-
-void BCJHypoIsoDamageYC3D::Print(ostream& out) const
-{
-  // inherited
-  BCJHypo3D::Print(out);
-
-  // print damage data
-  out << "    Damage related input\n";
-  out << "       Initial Damage (void volume fraction) . . = " << fDamg0   << "\n";
-  out << "       Rate sensitivity exponent (VGModel) . . . = " << fm       << "\n";
-  out << "       Void Growth Model Code. . . . . . . . . . = " << fVGMCode << "\n";
-
-  // print data (if any) from void growth model
-  fVoidGrowthModel->Print(out);
-}
-
-void BCJHypoIsoDamageYC3D::PrintName(ostream& out) const
-{
-  // inherited
-  EVPFDBaseT::PrintName(out);
-
-  // output model name
-  out << "    Hypo-Elastic-BCJ coupled with isotropic damage (associative)\n";
-  fKineticEqn->PrintName(out);
-  fVoidGrowthModel->PrintName(out);
 }
 
 /* PROTECTED MEMBER FUNCTIONS */

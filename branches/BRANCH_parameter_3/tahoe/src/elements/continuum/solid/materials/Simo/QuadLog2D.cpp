@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.cpp,v 1.5.46.2 2004-06-07 13:48:15 paklein Exp $ */
+/* $Id: QuadLog2D.cpp,v 1.5.46.3 2004-06-09 23:17:41 paklein Exp $ */
 /* created: paklein (06/28/1997) */
 #include "QuadLog2D.h"
 #include <math.h>
@@ -93,17 +93,4 @@ void QuadLog2D::TakeParameterList(const ParameterListT& list)
 	fb_2D.Dimension(2);
 	fStress2D.Dimension(2);
 	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
-}
-
-/*************************************************************************
-* Protected
-*************************************************************************/
-
-/* print name */
-void QuadLog2D::PrintName(ostream& out) const
-{
-	/* inherited */
-	QuadLog3D::PrintName(out);
-
-	out << "    Plane Strain\n";
 }

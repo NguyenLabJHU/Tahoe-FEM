@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.h,v 1.8.46.2 2004-06-08 04:51:49 paklein Exp $ */
+/* $Id: OgdenIsotropicT.h,v 1.8.46.3 2004-06-09 23:17:38 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #ifndef _OGDEN_ISOTROPIC_T_H_
 #define _OGDEN_ISOTROPIC_T_H_
@@ -28,10 +28,6 @@ public:
 	/** destructor */
 	virtual ~OgdenIsotropicT(void);
 	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-
 	/* class specific initializations */
 	virtual void Initialize(void);
 

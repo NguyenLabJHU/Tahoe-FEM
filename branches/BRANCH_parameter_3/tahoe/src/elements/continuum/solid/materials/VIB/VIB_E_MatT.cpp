@@ -1,4 +1,4 @@
-/* $Id: VIB_E_MatT.cpp,v 1.5 2003-11-21 22:46:32 paklein Exp $ */
+/* $Id: VIB_E_MatT.cpp,v 1.5.20.1 2004-06-09 23:17:43 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* Base class for isotropic VIB_E_MatT materials.                         */
 
@@ -22,18 +22,9 @@ VIB_E_MatT::VIB_E_MatT(ifstreamT& in, int nsd):
 
 }
 
-/* print parameters */
-void VIB_E_MatT::PrintName(ostream& out) const
-{
-	/* inherited */
-	VIB::PrintName(out);
-
-	out << "    Lagrangian\n";
-}
-
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* returns the strain energy density for the specified strain */
 double VIB_E_MatT::VIBEnergyDensity(const dSymMatrixT& E)

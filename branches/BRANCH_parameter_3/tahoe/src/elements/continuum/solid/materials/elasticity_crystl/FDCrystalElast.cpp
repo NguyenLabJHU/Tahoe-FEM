@@ -1,4 +1,4 @@
-/* $Id: FDCrystalElast.cpp,v 1.9.18.1 2004-04-08 07:33:02 paklein Exp $ */
+/* $Id: FDCrystalElast.cpp,v 1.9.18.2 2004-06-09 23:17:51 paklein Exp $ */
 #include "FDCrystalElast.h"
 
 #include <stdlib.h>
@@ -208,24 +208,6 @@ void FDCrystalElast::ComputeOutput(dArrayT& output)
   dArrayT& angles = fangles[0];
   fCrystalElastLat->RotMatrixToAngles(fmatx1, angles);
   fCrystalElastLat->WriteTexture(elem, intpt, fNumGrain, step, fangles);
-}
-
-void FDCrystalElast::Print(ostream& out) const
-{
-  // inherited
-  CrystalElast::Print(out);
-}
-
-void FDCrystalElast::PrintName(ostream& out) const
-{
-  // inherited
-  CrystalElast::PrintName(out);
-
-  // output model name
-  out << "    Local crystal elasticity equations\n";
-
-  // output detailed name of the model
-  fCrystalElastMat->PrintName(out);
 }
 
 /* PROTECTED MEMBER FUNCTIONS */

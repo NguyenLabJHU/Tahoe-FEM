@@ -1,4 +1,4 @@
-/* $Id: SSViscoelasticityT.h,v 1.2 2003-05-12 16:50:29 thao Exp $ */
+/* $Id: SSViscoelasticityT.h,v 1.2.36.1 2004-06-09 23:18:12 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_VISCO_H_
 #define _SS_VISCO_H_
@@ -27,11 +27,7 @@ class SSViscoelasticityT: public SSSolidMatT
 		throw ExceptionT::kGeneralFail;
 		return 0.0;
 	};
-	
-	/*print parameters*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-		
+			
 	/* apply pre-conditions at the current time step */
 	virtual void InitStep(void){SSSolidMatT::InitStep();}
 

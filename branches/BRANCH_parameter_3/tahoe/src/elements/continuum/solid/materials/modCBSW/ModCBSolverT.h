@@ -1,4 +1,4 @@
-/* $Id: ModCBSolverT.h,v 1.3 2002-07-05 22:28:22 paklein Exp $ */
+/* $Id: ModCBSolverT.h,v 1.3.56.1 2004-06-09 23:17:53 paklein Exp $ */
 /* created: paklein (05/27/1997)                                          */
 /* Q defines the orientation of the crystals' natural coordinates         */
 /* and the global coordinate frame. Q is defined as:                      */
@@ -46,12 +46,6 @@ public:
 
 	/* strain energy density */
 	double StrainEnergyDensity(const dMatrixT& CIJ, dArrayT& Xsi);
-
-	/*
-	 * Printing parameters.
-	 */
-	void Print(ostream& out) const;
-	void PrintName(ostream& out) const;
 
 private:
 

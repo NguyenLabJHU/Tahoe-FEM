@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden2DT.cpp,v 1.5.46.2 2004-06-08 04:51:49 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.cpp,v 1.5.46.3 2004-06-09 23:17:38 paklein Exp $ */
 /* created: paklein (02/18/2001) */
 #include "QuadLogOgden2DT.h"
 #include <math.h>
@@ -24,14 +24,6 @@ QuadLogOgden2DT::QuadLogOgden2DT(void):
 	flogE(2)
 {
 
-}
-
-/* print name */
-void QuadLogOgden2DT::PrintName(ostream& out) const
-{
-	/* inherited */
-	OgdenIsotropicT::PrintName(out);
-	out << "    Plane Strain\n";
 }
 
 /* strain energy density */

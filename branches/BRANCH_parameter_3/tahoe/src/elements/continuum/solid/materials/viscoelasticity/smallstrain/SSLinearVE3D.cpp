@@ -1,4 +1,4 @@
-/* $Id: SSLinearVE3D.cpp,v 1.3.18.1 2004-04-08 07:33:26 paklein Exp $ */
+/* $Id: SSLinearVE3D.cpp,v 1.3.18.2 2004-06-09 23:18:12 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSLinearVE3D.h"
 #include "SSMatSupportT.h"
@@ -39,30 +39,6 @@ SSLinearVE3D::SSLinearVE3D(ifstreamT& in, const SSMatSupportT& support):
 	in >> mu_NEQ;
 	in >> kappa_NEQ;
 }	
-
-void SSLinearVE3D::Print(ostream& out) const
-{
-	/* inherited */
-	SSViscoelasticityT::Print(out);
-	out << "Equilibrium Potential";
-	out << "     Shear Modulus: "<<fMu[0]<<'\n';
-	out << "     Bulk Modulus: "<<fKappa[0]<<'\n';
-	out << "Non-Equilibrium Potential";
-	out << "     Shear Modulus: "<<fMu[1]<<'\n';
-	out << "     Bulk Modulus: "<<fKappa[1]<<'\n';
-	out<<"Relaxation times \n";
-	out<<"     Shear relaxation time: "<<ftauS<<'\n';
-	out<<"     Bulk relaxation time: "<<ftauB<<'\n';
-}
-
-void SSLinearVE3D::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSViscoelasticityT::PrintName(out);
-	out << "Equilibrium/Non-Equilibrium Potential:\n";
-	out << "Kirchoff St. Venant\n";
-	out << "Kirchoff St. Venant\n";
-}
 
 double SSLinearVE3D::StrainEnergyDensity(void)
 {

@@ -1,4 +1,4 @@
-/* $Id: ModCB3DT.h,v 1.6 2003-01-29 07:34:59 paklein Exp $ */
+/* $Id: ModCB3DT.h,v 1.6.46.1 2004-06-09 23:17:53 paklein Exp $ */
 /* created: paklein (10/14/1998) */
 #ifndef _MODCB_3D_T_H_
 #define _MODCB_3D_T_H_
@@ -24,10 +24,6 @@ public:
 	/* destructor */
 	virtual ~ModCB3DT(void);
 	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-
 protected:
 
 	/* compute the symmetric Cij reduced index matrix */

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.14.20.1 2004-04-08 07:33:18 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.14.20.2 2004-06-09 23:18:07 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -43,9 +43,6 @@ public:
 
 	/** finite strain materials support */
 	const FSMatSupportT& FSMatSupport(void) const;
-
-	/** write name to output stream */
-	virtual void PrintName(ostream& out) const;
 	
 	/** test for localization. check for bifurvation using current
 	 * Cauchy stress and the spatial tangent moduli.

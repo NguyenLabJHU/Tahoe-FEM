@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.12.18.1 2004-04-08 07:33:18 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.12.18.2 2004-06-09 23:18:07 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -25,9 +25,6 @@ public:
 
 	/** set the material support or pass NULL to clear */
 	virtual void SetSSMatSupport(const SSMatSupportT* support);
-
-	/* I/O functions */
-	virtual void PrintName(ostream& out) const;
 
 	/* required parameter flags */
 	virtual bool Need_Strain(void) const { return true; };

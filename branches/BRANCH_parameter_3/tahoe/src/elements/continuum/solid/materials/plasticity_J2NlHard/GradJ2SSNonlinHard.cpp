@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSNonlinHard.cpp,v 1.13.18.1 2004-04-08 07:33:11 paklein Exp $ */
+/* $Id: GradJ2SSNonlinHard.cpp,v 1.13.18.2 2004-06-09 23:17:58 paklein Exp $ */
 #include "GradJ2SSNonlinHard.h"
 
 #include "iArrayT.h"
@@ -131,13 +131,7 @@ void GradJ2SSNonlinHard::ResetHistory(void)
         }
 }
 
-/* print parameters */
-void GradJ2SSNonlinHard::Print(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-
+#if 0
         /* hardening coefficients */
         out << " Hardening coefficients:\n";
 	out << "     k1 = " << k1 << "  (Kinematic Hardening          )" << endl;
@@ -149,19 +143,7 @@ void GradJ2SSNonlinHard::Print(ostream& out) const
 	out << " Nonlocal coefficients:\n";
 	out << "     c1 = " << c1 << "  (Nonlocal Kinematic Hardening )" << endl;
 	out << "     c2 = " << c2 << "  (Nonlocal Isotropic Hardening )" << endl;
-}
-
-/* print name */
-void GradJ2SSNonlinHard::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::PrintName(out);
-	out << "    Nonlocal small strain J2 plasticity\n";
-	out << "      with nonlinear gradient dependent\n";
-        out << "      isotropic/kinematic hardening\n";
-        out << "    Semi-implicit backward Euler\n";
-	out << "      integrating scheme\n";
-}
+#endif
 
 /* modulus */
 const dMatrixT& GradJ2SSNonlinHard::c_ijkl(void)

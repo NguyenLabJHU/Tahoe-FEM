@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.cpp,v 1.9.22.1 2004-04-08 07:32:39 paklein Exp $ */
+/* $Id: LJTr2D.cpp,v 1.9.22.2 2004-06-09 23:17:30 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "LJTr2D.h"
 
@@ -26,16 +26,6 @@ void LJTr2D::Initialize(void)
 	CBLatticeT::Initialize();
 }
 
-/* I/O functions */
-void LJTr2D::Print(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::Print(out);
-
-	out << " Lennard-Jones energy scaling constant . . . . . = " << feps << '\n';
-
-}
-
 /* describe the parameters needed by the interface */
 void LJTr2D::DefineParameters(ParameterListT& list) const
 {
@@ -48,16 +38,8 @@ void LJTr2D::DefineParameters(ParameterListT& list) const
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
-
-void LJTr2D::PrintName(ostream& out) const
-{
-	NL_E_MatT::PrintName(out);
-
-	out << "    LJ triangular 2D\n";
-}
-
+ * Protected
+ *************************************************************************/
 
 void LJTr2D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {	

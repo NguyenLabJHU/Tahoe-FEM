@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.2.18.1 2004-04-08 07:32:37 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.2.18.2 2004-06-09 23:17:27 paklein Exp $ */
 #ifndef _ABAQUS_UMAT_SS_BASE_T_H_
 #define _ABAQUS_UMAT_SS_BASE_T_H_
 
@@ -39,10 +39,6 @@ public:
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
-
-	/** print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
 	/** initialization */
 	virtual void Initialize(void);

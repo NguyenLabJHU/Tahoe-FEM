@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.cpp,v 1.8.46.1 2004-04-08 07:33:06 paklein Exp $ */
+/* $Id: ModCB2DT.cpp,v 1.8.46.2 2004-06-09 23:17:53 paklein Exp $ */
 /* created: paklein (05/31/1997) */
 #include "ModCB2DT.h"
 
@@ -95,16 +95,6 @@ ModCB2DT::~ModCB2DT(void)
 	delete fModCBSolver;
 }
 
-/* I/O functions */
-void ModCB2DT::Print(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::Print(out);
-
-	/* potential data */
-	fModCBSolver->Print(out);
-}
-
 /* describe the parameters needed by the interface */
 void ModCB2DT::DefineParameters(ParameterListT& list) const
 {
@@ -117,20 +107,8 @@ void ModCB2DT::DefineParameters(ParameterListT& list) const
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
-
-void ModCB2DT::PrintName(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::PrintName(out);
-	
-	const char* planes[] = {"001", "101", "111"};
-	out << "    Modified CB <" << planes[fPlaneCode] << "> Plane Strain\n";
-
-	/* potential name */
-	fModCBSolver->PrintName(out);
-}
+ * Protected
+ *************************************************************************/
 
 void ModCB2DT::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {

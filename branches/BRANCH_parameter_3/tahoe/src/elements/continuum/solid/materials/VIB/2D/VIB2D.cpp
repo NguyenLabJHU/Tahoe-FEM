@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.8.20.1 2004-04-08 07:32:57 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.8.20.2 2004-06-09 23:17:45 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #include "VIB2D.h"
 
@@ -57,16 +57,6 @@ VIB2D::VIB2D(ifstreamT& in, const FSMatSupportT& support):
 VIB2D::~VIB2D(void)
 {
 	delete fCircle;
-}
-
-/* print parameters */
-void VIB2D::Print(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::Print(out);
-	VIB_E_MatT::Print(out);
-
-	fCircle->Print(out);
 }
 
 /* set angle offset - for testing onset of amorphous behavior */
@@ -193,24 +183,10 @@ void VIB2D::DefineParameters(ParameterListT& list) const
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
-/*
-* Print name.
-*/
-void VIB2D::PrintName(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::PrintName(out);
-	VIB_E_MatT::PrintName(out);
-	
-	fCircle->PrintName(out);
-}
-
-/*
-* Compute the symetric Cij reduced index matrix.
-*/
+/* compute the symetric Cij reduced index matrix */
 void VIB2D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {
 	/* fill length table */

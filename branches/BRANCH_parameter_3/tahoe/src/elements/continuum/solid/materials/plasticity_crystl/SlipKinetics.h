@@ -55,10 +55,6 @@ class SlipKinetics
   // accesor to material constants of kinetic equation
   const dArrayT& MaterialProperties() const; 
 
-  // print kinetic equation data and model name
-  virtual void Print(ostream& out) const = 0;
-  virtual void PrintName(ostream& out) const = 0;
-
   // continuation method using the rate sensitivity exponent
   virtual void SetUpRateSensitivity();
   virtual void ComputeRateSensitivity();

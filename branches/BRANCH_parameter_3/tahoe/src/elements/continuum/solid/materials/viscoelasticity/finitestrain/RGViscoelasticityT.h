@@ -1,4 +1,4 @@
-/* $Id: RGViscoelasticityT.h,v 1.1.40.1 2004-04-08 07:33:25 paklein Exp $ */
+/* $Id: RGViscoelasticityT.h,v 1.1.40.2 2004-06-09 23:18:11 paklein Exp $ */
 /* created : TDN (1/22/2001) */
 #ifndef _RG_VISCO_T_H_
 #define _RG_VISCO_T_H_
@@ -28,10 +28,6 @@ class RGViscoelasticityT: public FSIsotropicMatT
 		throw ExceptionT::kGeneralFail;
 		return 0.0;
 	};
-
-	/* print parameters */	
-	virtual	void Print(ostream& out) const;	
-	virtual void PrintName(ostream& out) const;
 	
 	/** initialization called immediately after constructor. This function
 	 * dimensions and set source for viscous history variables */

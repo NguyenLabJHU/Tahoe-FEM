@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageKE2D.h,v 1.4.46.1 2004-04-08 07:33:16 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageKE2D.h,v 1.4.46.2 2004-06-09 23:18:04 paklein Exp $ */
 #ifndef _BCJ_HYPO_ISO_DAMAGE_KE_2D_H_
 #define _BCJ_HYPO_ISO_DAMAGE_KE_2D_H_
 
@@ -24,9 +24,6 @@ class BCJHypoIsoDamageKE2D : public BCJHypoIsoDamageKE3D
 
   // tangent modulus
   virtual const dMatrixT& c_ijkl();
-
-  // print data and model name
-  virtual void PrintName(ostream& out) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

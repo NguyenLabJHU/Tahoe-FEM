@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.cpp,v 1.9.46.1 2004-04-08 07:32:55 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.9.46.2 2004-06-09 23:17:41 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 #include "SimoIso2D.h"
 #include <math.h>
@@ -128,21 +128,8 @@ void SimoIso2D::TakeParameterList(const ParameterListT& list)
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
-
-/* print name */
-void SimoIso2D::PrintName(ostream& out) const
-{
-	/* inherited */
-	SimoIso3D::PrintName(out);
-
-	out << "    Plane Strain\n";
-}
-
-/*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 /** compute 3D stretch tensor \b b from the 2D deformation state. 
  * \todo Make this a FSSolidMatT function? */

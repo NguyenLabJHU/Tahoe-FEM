@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden2DT.h,v 1.5.46.2 2004-06-08 04:51:49 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.h,v 1.5.46.3 2004-06-09 23:17:38 paklein Exp $ */
 /* created: paklein (02/18/2001) */
 #ifndef _QUAD_LOG_ISO_2D_T_H_
 #define _QUAD_LOG_ISO_2D_T_H_
@@ -16,9 +16,6 @@ public:
 	/** constructor */
 	QuadLogOgden2DT(ifstreamT& in, const FSMatSupportT& support);
 	QuadLogOgden2DT(void);
-
-	/* print parameters */
-	virtual void PrintName(ostream& out) const;
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);

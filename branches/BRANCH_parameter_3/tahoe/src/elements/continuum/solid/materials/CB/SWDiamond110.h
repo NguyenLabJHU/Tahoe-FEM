@@ -1,4 +1,4 @@
-/* $Id: SWDiamond110.h,v 1.5 2003-01-29 07:34:37 paklein Exp $ */
+/* $Id: SWDiamond110.h,v 1.5.46.1 2004-06-09 23:17:30 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #ifndef _SWDIAMOND110_H_
 #define _SWDIAMOND110_H_
@@ -14,9 +14,6 @@ public:
 
 	/* constructor */
 	SWDiamond110(ifstreamT& in, const FSMatSupportT& support);
-
-	/* print name */
-	virtual void PrintName(ostream& out) const;
 	
 protected:	
 	

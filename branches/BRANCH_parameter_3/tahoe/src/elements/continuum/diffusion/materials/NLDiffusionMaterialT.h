@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionMaterialT.h,v 1.2.18.1 2004-04-08 07:32:33 paklein Exp $ */
+/* $Id: NLDiffusionMaterialT.h,v 1.2.18.2 2004-06-09 23:17:26 paklein Exp $ */
 #ifndef _NL_DIFFUSION_MATERIALT_H_
 #define _NL_DIFFUSION_MATERIALT_H_
 
@@ -23,12 +23,6 @@ public:
 
 	/** destructor */
 	~NLDiffusionMaterialT(void);
-
-	/** \name print parameters */
-	/*@{*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-	/*@}*/
 
 	/** \name parameters at the current field point */
 	/*@{*/

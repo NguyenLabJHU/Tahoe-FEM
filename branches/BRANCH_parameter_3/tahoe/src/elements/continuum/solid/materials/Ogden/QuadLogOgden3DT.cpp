@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden3DT.cpp,v 1.5.46.3 2004-06-08 16:01:31 paklein Exp $ */
+/* $Id: QuadLogOgden3DT.cpp,v 1.5.46.4 2004-06-09 23:17:38 paklein Exp $ */
 /* created: paklein (02/17/2001) */
 #include "QuadLogOgden3DT.h"
 
@@ -25,13 +25,6 @@ QuadLogOgden3DT::QuadLogOgden3DT(void):
 	flogE(3)
 {
 
-}
-
-void QuadLogOgden3DT::PrintName(ostream& out) const
-{
-	/* inherited */
-	OgdenIsotropicT::PrintName(out);
-	out << "    Quad Log\n";
 }
 
 /* strain energy density */

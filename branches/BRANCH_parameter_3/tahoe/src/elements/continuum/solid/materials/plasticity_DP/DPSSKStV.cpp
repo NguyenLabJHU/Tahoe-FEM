@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.22.4.1 2004-04-08 07:33:08 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.22.4.2 2004-06-09 23:17:54 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
 #include "SSMatSupportT.h"
@@ -57,24 +57,6 @@ void DPSSKStV::ResetHistory(void)
 	/* reset if plastic */
 	ElementCardT& element = CurrentElement();
 	if (element.IsAllocated()) Reset(element);
-}
-
-/* print parameters */
-void DPSSKStV::Print(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-	DPSSLinHardT::Print(out);
-}
-
-/* print name */
-void DPSSKStV::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::PrintName(out);
-	DPSSLinHardT::PrintName(out);
-	out << "    Kirchhoff-St.Venant\n";
 }
 
 /* modulus */

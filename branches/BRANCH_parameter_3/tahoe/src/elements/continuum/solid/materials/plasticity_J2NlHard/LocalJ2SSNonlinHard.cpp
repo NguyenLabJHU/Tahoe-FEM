@@ -1,4 +1,4 @@
-/* $Id: LocalJ2SSNonlinHard.cpp,v 1.10.18.1 2004-04-08 07:33:11 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard.cpp,v 1.10.18.2 2004-06-09 23:17:58 paklein Exp $ */
 #include "LocalJ2SSNonlinHard.h"
 
 #include "iArrayT.h"
@@ -118,33 +118,13 @@ void LocalJ2SSNonlinHard::ResetHistory(void)
         }
 }
 
-/* print parameters */
-void LocalJ2SSNonlinHard::Print(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-
-        /* hardening coefficients */
+#if 0
         out << " Hardening coefficients:\n";
 	out << "     k1 = " << k1 << "  (Kinematic Hardening          )" << endl;
 	out << "     k2 = " << k2 << "  (Isotropic Hardening          )" << endl;
 	out << "     k3 = " << k3 << "  (Nonlinear Kinematic Hardening)" << endl;
 	out << "     k4 = " << k4 << "  (Nonlinear Isotropic Hardening)" << endl;
-
-}
-
-/* print name */
-void LocalJ2SSNonlinHard::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::PrintName(out);
-	out << "    Local small strain J2 plasticity\n";
-	out << "      with nonlinear isotropic/kinematic\n";
-        out << "      hardening\n";
-        out << "    Semi-implicit backward Euler\n";
-	out << "      integrating scheme\n";
-}
+#endif
 
 /* modulus */
 const dMatrixT& LocalJ2SSNonlinHard::c_ijkl(void)

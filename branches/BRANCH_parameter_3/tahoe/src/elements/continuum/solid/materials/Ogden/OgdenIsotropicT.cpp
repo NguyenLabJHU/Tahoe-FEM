@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.13.34.2 2004-06-08 04:51:48 paklein Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.13.34.3 2004-06-09 23:17:38 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #include "OgdenIsotropicT.h"
 
@@ -32,21 +32,6 @@ OgdenIsotropicT::OgdenIsotropicT(void):
 OgdenIsotropicT::~OgdenIsotropicT(void)
 {
 	delete fSpectralDecomp;
-}
-
-void OgdenIsotropicT::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-}
-
-void OgdenIsotropicT::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-
-	out << "    Ogden spectral formulation\n";
 }
 
 /* class specific initializations */

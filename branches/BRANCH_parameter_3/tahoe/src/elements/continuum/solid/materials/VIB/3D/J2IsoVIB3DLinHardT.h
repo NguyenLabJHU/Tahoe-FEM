@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB3DLinHardT.h,v 1.6 2003-01-29 07:34:54 paklein Exp $ */
+/* $Id: J2IsoVIB3DLinHardT.h,v 1.6.46.1 2004-06-09 23:17:46 paklein Exp $ */
 /* created: paklein (10/12/1998) */
 #ifndef _J2_ISOVIB3D_T_H_
 #define _J2_ISOVIB3D_T_H_
@@ -37,10 +37,6 @@ public:
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;	
 
 	/* spatial description */
 	virtual const dMatrixT& c_ijkl(void);

@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.h,v 1.11.24.1 2004-06-09 06:25:37 paklein Exp $ */
+/* $Id: J2Simo2D.h,v 1.11.24.2 2004-06-09 23:17:56 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #ifndef _J2_SIMO_2D_H_
 #define _J2_SIMO_2D_H_
@@ -44,6 +44,9 @@ public:
 
 	/** this model does generate heat */
 	virtual bool HasIncrementalHeat(void) const { return true; };
+
+	/** model has history variables */
+	virtual bool HasHistory(void) const { return true; };
 	 	 	
 	/** required parameter flags */
 	virtual bool Need_F_last(void) const { return true; };

@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.9.20.1 2004-04-08 07:32:57 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.9.20.2 2004-06-09 23:17:45 paklein Exp $ */
 /* created: paklein (10/18/1998) */
 #include "J2IsoVIB2DLinHardT.h"
 
@@ -136,14 +136,6 @@ void J2IsoVIB2DLinHardT::ResetHistory(void)
 	for (int i = 0; i < Flags.Length(); i++)
 		if (Flags[i] == kIsElastic || Flags[i] == kIsPlastic)
 			Flags[i] = kReset;
-}
-
-/* print parameters */
-void J2IsoVIB2DLinHardT::Print(ostream& out) const
-{
-	/* inherited */
-	IsoVIB3D::Print(out);
-	J2PrimitiveT::Print(out);
 }
 
 /* modulus */
@@ -298,17 +290,8 @@ void J2IsoVIB2DLinHardT::DefineParameters(ParameterListT& list) const
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print name */
-void J2IsoVIB2DLinHardT::PrintName(ostream& out) const
-{
-	/* inherited */
-	IsoVIB3D::PrintName(out);
-
-	out << "    J2 plasticity, principal stretch return mapping\n";
-}
+ * Protected
+ ***********************************************************************/
 
 /* returns the elastic stretch */
 const dSymMatrixT& J2IsoVIB2DLinHardT::TrialStretch(const dMatrixT& F_total,

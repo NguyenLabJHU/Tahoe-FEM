@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.7.18.1 2004-04-08 07:32:33 paklein Exp $ */
+/* $Id: DiffusionMaterialT.cpp,v 1.7.18.2 2004-06-09 23:17:26 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
@@ -59,17 +59,6 @@ void DiffusionMaterialT::SetDiffusionMatSupport(const DiffusionMatSupportT* supp
 	fdq_i = 0.0;
 }
 
-/* I/O functions */
-void DiffusionMaterialT::Print(ostream& out) const
-{
-	/* inherited */
-	ContinuumMaterialT::Print(out);
-
-	out << " Density . . . . . . . . . . . . . . . . . . . . = " << fDensity      << '\n';
-	out << " Specific Heat . . . . . . . . . . . . . . . . . = " << fSpecificHeat << '\n';
-	out << " Conductivity:\n" << fConductivity << endl;
-}
-
 /* heat flux */
 const dArrayT& DiffusionMaterialT::q_i(void)
 {
@@ -101,16 +90,4 @@ void DiffusionMaterialT::TakeParameterList(const ParameterListT& list)
 	fSpecificHeat = list.GetParameter("specific_heat");
 	double k = list.GetParameter("conductivity");
 	fConductivity.Identity(k);
-}
-
-/*************************************************************************
- * Protected
- *************************************************************************/
-
-void DiffusionMaterialT::PrintName(ostream& out) const
-{
-	/* inherited */
-	ContinuumMaterialT::PrintName(out);
-	
-	out << "    Linear diffusion material\n";
 }

@@ -1,4 +1,4 @@
-/* $Id: BCJHypo2D.cpp,v 1.5.46.1 2004-04-08 07:33:16 paklein Exp $ */
+/* $Id: BCJHypo2D.cpp,v 1.5.46.2 2004-06-09 23:18:04 paklein Exp $ */
 #include "BCJHypo2D.h"
 #include "ifstreamT.h"
 #include "Utils.h"
@@ -37,15 +37,6 @@ const dMatrixT& BCJHypo2D::c_ijkl()
   f2Dc_ijkl.Rank4ReduceFrom3D(cijkl);
 
   return f2Dc_ijkl;
-}
-
-void BCJHypo2D::PrintName(ostream& out) const
-{
-  // inherited
-  BCJHypo3D::PrintName(out);
-
-  // output model name
-  out << "    Plane Strain\n";
 }
 
 #if 0

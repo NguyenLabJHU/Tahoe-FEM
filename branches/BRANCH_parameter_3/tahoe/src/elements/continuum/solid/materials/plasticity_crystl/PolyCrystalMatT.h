@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.h,v 1.9 2004-01-08 01:14:15 ebmarin Exp $ */
+/* $Id: PolyCrystalMatT.h,v 1.9.18.1 2004-06-09 23:18:01 paklein Exp $ */
 #ifndef _POLY_CRYSTAL_MAT_T_H_
 #define _POLY_CRYSTAL_MAT_T_H_
 
@@ -83,18 +83,12 @@ class PolyCrystalMatT : public FDHookeanMatT
   const dArrayT& GetResolvedShearStress() const;
   const dArrayT& GetIncrSlipShearStrain() const;
 
-  // print data read
-  virtual void Print(ostream& out) const;
-
   int Size(void) { return FSMatSupport().Size(); }
   int Rank(void) { return FSMatSupport().Rank(); }
 
  protected:
   /* set (material) tangent modulus */
   virtual void SetModulus(dMatrixT& modulus);
-
-  // print name
-  virtual void PrintName(ostream& out) const;
 
   // subincrementation procedure to compute crystal state
   void SolveCrystalState();

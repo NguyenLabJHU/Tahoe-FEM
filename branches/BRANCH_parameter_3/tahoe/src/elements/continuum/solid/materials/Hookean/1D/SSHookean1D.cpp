@@ -1,4 +1,4 @@
-/* $Id: SSHookean1D.cpp,v 1.6.18.1 2004-04-08 07:32:44 paklein Exp $ */
+/* $Id: SSHookean1D.cpp,v 1.6.18.2 2004-06-09 23:17:34 paklein Exp $ */
 #include "SSHookean1D.h"
 
 using namespace Tahoe;
@@ -17,22 +17,6 @@ SSHookean1D::SSHookean1D(void):
 
 {
 
-}
-
-/* print parameters */
-void SSHookean1D::Print(ostream& out) const
-{
-	/* inherited */
-	SSHookeanMatT::Print(out);
-	IsotropicT::Print(out);
-}
-
-/* print name */
-void SSHookean1D::PrintName(ostream& out) const
-{
-        /* inherited */
-        SSHookeanMatT::PrintName(out);
-        out << "    1D SS Hookean\n";
 }
 
 /* information about subordinate parameter lists */

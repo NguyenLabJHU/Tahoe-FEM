@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.h,v 1.4.44.1 2004-04-08 07:32:53 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.h,v 1.4.44.2 2004-06-09 23:17:40 paklein Exp $ */
 #ifndef _SIERRA_MAT_BASE_T_H_
 #define _SIERRA_MAT_BASE_T_H_
 
@@ -37,12 +37,6 @@ public:
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
-
-	/** \name print parameters */
-	/*@{*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-	/*@}*/
 
 	/** \name initialization */
 	/*@{*/

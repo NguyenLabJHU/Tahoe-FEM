@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.h,v 1.8.46.1 2004-04-08 07:32:57 paklein Exp $ */
+/* $Id: IsoVIB2D.h,v 1.8.46.2 2004-06-09 23:17:45 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _ISO_VIB_2D_H_
 #define _ISO_VIB_2D_H_
@@ -26,10 +26,6 @@ public:
 	/* destructor */
 	~IsoVIB2D(void);
 	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;	
-
 	/** \name spatial description */
 	/*@{*/
 	/** spatial tangent modulus */

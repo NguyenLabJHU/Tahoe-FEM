@@ -1,4 +1,4 @@
-/* $Id: LJFCC111.cpp,v 1.6.46.1 2004-04-08 07:32:39 paklein Exp $ */
+/* $Id: LJFCC111.cpp,v 1.6.46.2 2004-06-09 23:17:30 paklein Exp $ */
 /* created: paklein (07/31/1996) */
 #include "LJFCC111.h"
 
@@ -19,25 +19,9 @@ LJFCC111::LJFCC111(ifstreamT& in, const FSMatSupportT& support):
 	in >> fScale;	if (fScale < 0.0) throw ExceptionT::kBadInputValue;
 }
 
-/* I/O functions  */
-void LJFCC111::Print(ostream& out) const
-{
-	/* inherited */
-	NL_E_RotMat2DT::Print(out);
-
-	out << " Scaling constant. . . . . . . . . . . . . . . . = " << fScale << '\n';
-}
-
 /*************************************************************************
-* Protected
-*************************************************************************/
-
-void LJFCC111::PrintName(ostream& out) const
-{
-	NL_E_RotMat2DT::PrintName(out);
-
-	out << "    LJ FCC <111> 2D\n";
-}
+ * Protected
+ *************************************************************************/
 
 /* compute the symetric Cij reduced index matrix */
 void LJFCC111::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)

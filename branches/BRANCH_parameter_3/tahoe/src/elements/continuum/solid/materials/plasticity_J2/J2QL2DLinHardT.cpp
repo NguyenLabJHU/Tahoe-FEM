@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.cpp,v 1.13.20.1 2004-04-08 07:33:09 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.cpp,v 1.13.20.2 2004-06-09 23:17:56 paklein Exp $ */
 /* created: paklein (06/29/1997) */
 #include "J2QL2DLinHardT.h"
 
@@ -135,13 +135,6 @@ void J2QL2DLinHardT::ResetHistory(void)
 			Flags[i] = kReset;
 }
 
-/* print parameters */
-void J2QL2DLinHardT::Print(ostream& out) const
-{
-	/* inherited */
-	QuadLog2D::Print(out);
-	J2PrimitiveT::Print(out);
-}
 
 /* modulus */
 const dMatrixT& J2QL2DLinHardT::c_ijkl(void)

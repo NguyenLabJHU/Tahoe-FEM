@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.h,v 1.7 2003-01-29 07:34:54 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.h,v 1.7.46.1 2004-06-09 23:17:46 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _OGDEN_ISO_VIB_3D_H_
 #define _OGDEN_ISO_VIB_3D_H_
@@ -23,10 +23,6 @@ public:
 	/* destructor */
 	~OgdenIsoVIB3D(void);
 	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
 

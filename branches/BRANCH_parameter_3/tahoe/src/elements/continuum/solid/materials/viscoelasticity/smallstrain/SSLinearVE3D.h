@@ -1,4 +1,4 @@
-/* $Id: SSLinearVE3D.h,v 1.2 2003-05-12 16:50:29 thao Exp $ */
+/* $Id: SSLinearVE3D.h,v 1.2.36.1 2004-06-09 23:18:12 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_LINEAR_VE_3D_H_
 #define _SS_LINEAR_VE_3D_H_
@@ -20,10 +20,6 @@ class SSLinearVE3D: public SSViscoelasticityT
 	/*constructor*/
 	SSLinearVE3D(ifstreamT& in, const SSMatSupportT& support);
 		
-	/*print parameters*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-
 	virtual double StrainEnergyDensity(void);
  
 	/* spatial description */ 

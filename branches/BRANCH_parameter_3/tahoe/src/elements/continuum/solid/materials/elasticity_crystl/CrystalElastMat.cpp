@@ -1,4 +1,4 @@
-/* $Id: CrystalElastMat.cpp,v 1.5 2002-07-02 19:56:03 cjkimme Exp $ */
+/* $Id: CrystalElastMat.cpp,v 1.5.56.1 2004-06-09 23:17:51 paklein Exp $ */
 /*
   File: CrystalElastMat.cpp
 */
@@ -28,18 +28,6 @@ CrystalElastMat::CrystalElastMat(CrystalElast& poly)
 }
 
 CrystalElastMat::~CrystalElastMat() { }
-
-void CrystalElastMat::PrintName(ostream& out) const
-{
-  // print model name
-  out << "    CrystalElastMat crystal elasticity\n";
-}
-
-void CrystalElastMat::Print(ostream& out) const
-{
-  // print input values of crystal elasticity constants
-  out << "OUTPUT FOR EACH IP?\n";
-}
 
 void CrystalElastMat::ElasticityProps(dArrayT& matprop, double Temp_DegC, int elem, int intpt)
 {

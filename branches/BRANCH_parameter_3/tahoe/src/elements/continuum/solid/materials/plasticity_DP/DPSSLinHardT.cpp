@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.cpp,v 1.17 2004-03-20 23:38:20 raregue Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.17.4.1 2004-06-09 23:17:55 paklein Exp $ */
 /* created: myip (06/01/1999)                                        */
 /*
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -261,14 +261,6 @@ void DPSSLinHardT::AllocateElement(ElementCardT& element)
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-void DPSSLinHardT::PrintName(ostream& out) const
-{
-	/* inherited */
-	DPPrimitiveT::PrintName(out);
-
-	out << "    Small Strain\n";
-}
 
 /* element level data */
 void DPSSLinHardT::Update(ElementCardT& element)

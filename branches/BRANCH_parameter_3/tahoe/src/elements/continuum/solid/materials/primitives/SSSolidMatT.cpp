@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.8.18.1 2004-04-08 07:33:18 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.8.18.2 2004-06-09 23:18:07 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include <iostream.h>
@@ -53,15 +53,6 @@ void SSSolidMatT::SetSSMatSupport(const SSMatSupportT* support)
 	fStrainTemp.Dimension(nsd);
 	fQ.Dimension(nsd);
 	fThermalStrain.Dimension(nsd);
-}
-
-/* I/O */
-void SSSolidMatT::PrintName(ostream& out) const
-{
-	/* inherited */
-	SolidMaterialT::PrintName(out);
-	
-	out << "    Small strain\n";
 }
 
 /* strain - returns the elastic strain, ie. thermal removed */

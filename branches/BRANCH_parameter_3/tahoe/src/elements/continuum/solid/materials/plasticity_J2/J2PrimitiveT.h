@@ -1,4 +1,4 @@
-/* $Id: J2PrimitiveT.h,v 1.3 2002-07-05 22:28:24 paklein Exp $ */
+/* $Id: J2PrimitiveT.h,v 1.3.56.1 2004-06-09 23:17:56 paklein Exp $ */
 /* created: paklein (02/17/1997)                                          */
 /* Base class for a J2 plastic material with linear kinematic/            */
 /* isotropic hardening laws defined by:                                   */
@@ -28,10 +28,6 @@ public:
 
 	/* destructor */
 	virtual ~J2PrimitiveT(void);
-
-	/* output parameters to stream */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 	
 protected:
 

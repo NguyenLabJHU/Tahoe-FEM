@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.cpp,v 1.19.12.1 2004-04-08 07:33:16 paklein Exp $ */
+/* $Id: BCJHypo3D.cpp,v 1.19.12.2 2004-06-09 23:18:04 paklein Exp $ */
 #include "BCJHypo3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -338,11 +338,7 @@ void BCJHypo3D::ComputeOutput(dArrayT& output)
           << " ITERS "  << fIterCount << endl;
 }
 
-void BCJHypo3D::Print(ostream& out) const
-{
-  // inherited
-  EVPFDBaseT::Print(out);
-
+#if 0
   // print temperature and material constants
   out << "    Material constants for isotropic/kinematic hardening laws\n";
   out << "       Temperature [K] . . . . . . . . . . . . . = " << fTheta << "\n";
@@ -366,23 +362,7 @@ void BCJHypo3D::Print(ostream& out) const
   out << "       Rd  [1/MPa] . . . . . . . . . . . . . . . = " << fMatProp[3] << "\n";
   out << "       H   [MPa] . . . . . . . . . . . . . . . . = " << fMatProp[4] << "\n";
   out << "       Rs  [1/(MPa-s)] . . . . . . . . . . . . . = " << fMatProp[5] << "\n";
-
-  // print kinetic equation model
-  //  out << "    Kinetic Equation:\n";
-  //  out << "       Model . . . . . . . . . . . . . . . . . . = " 
-  //      << fKinEqnCode << "\n";
-  //  fKineticEqn->Print(out);
-}
-
-void BCJHypo3D::PrintName(ostream& out) const
-{
-  // inherited
-  EVPFDBaseT::PrintName(out);
-
-  // output model name
-  out << "    Hypo-Elastic-BCJ\n";
-  fKineticEqn->PrintName(out);
-}
+#endif
 
 GlobalT::SystemTypeT BCJHypo3D::TangentType() const
 {

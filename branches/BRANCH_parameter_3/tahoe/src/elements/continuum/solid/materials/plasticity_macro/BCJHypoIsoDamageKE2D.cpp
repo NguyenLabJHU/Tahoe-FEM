@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageKE2D.cpp,v 1.4.46.1 2004-04-08 07:33:16 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageKE2D.cpp,v 1.4.46.2 2004-06-09 23:18:04 paklein Exp $ */
 #include "BCJHypoIsoDamageKE2D.h"
 #include "ifstreamT.h"
 #include "Utils.h"
@@ -37,15 +37,6 @@ const dMatrixT& BCJHypoIsoDamageKE2D::c_ijkl()
   f2Dc_ijkl.Rank4ReduceFrom3D(cijkl);
 
   return f2Dc_ijkl;
-}
-
-void BCJHypoIsoDamageKE2D::PrintName(ostream& out) const
-{
-  // inherited
-  BCJHypoIsoDamageKE3D::PrintName(out);
-
-  // output model name
-  out << "    Plane Strain\n";
 }
 
 /* describe the parameters needed by the interface */

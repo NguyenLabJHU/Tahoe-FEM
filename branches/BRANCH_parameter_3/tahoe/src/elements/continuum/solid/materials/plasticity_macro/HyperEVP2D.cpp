@@ -1,4 +1,4 @@
-/* $Id: HyperEVP2D.cpp,v 1.5.46.1 2004-04-08 07:33:16 paklein Exp $ */
+/* $Id: HyperEVP2D.cpp,v 1.5.46.2 2004-06-09 23:18:05 paklein Exp $ */
 #include "HyperEVP2D.h"
 #include "ifstreamT.h"
 #include "Utils.h"
@@ -37,15 +37,6 @@ const dMatrixT& HyperEVP2D::c_ijkl()
   f2Dc_ijkl.Rank4ReduceFrom3D(cijkl);
 
   return f2Dc_ijkl;
-}
-
-void HyperEVP2D::PrintName(ostream& out) const
-{
-  // inherited
-  HyperEVP3D::PrintName(out);
-
-  // output model name
-  out << "    Plane Strain\n";
 }
 
 /* describe the parameters needed by the interface */

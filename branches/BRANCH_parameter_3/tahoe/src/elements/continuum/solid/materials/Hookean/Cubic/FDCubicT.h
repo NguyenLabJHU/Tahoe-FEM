@@ -1,4 +1,4 @@
-/* $Id: FDCubicT.h,v 1.5.46.2 2004-06-07 13:48:13 paklein Exp $ */
+/* $Id: FDCubicT.h,v 1.5.46.3 2004-06-09 23:17:35 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #ifndef _FD_CUBIC_T_H_
 #define _FD_CUBIC_T_H_
@@ -16,10 +16,6 @@ public:
 	/** constructor */
 	FDCubicT(ifstreamT& in, const FSMatSupportT& support);
 	FDCubicT(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

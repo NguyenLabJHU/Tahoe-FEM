@@ -1,4 +1,4 @@
-/* $Id: LocalJ2SSNonlinHard2D.cpp,v 1.3.48.1 2004-04-08 07:33:11 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard2D.cpp,v 1.3.48.2 2004-06-09 23:17:58 paklein Exp $ */
 #include "LocalJ2SSNonlinHard2D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -52,18 +52,4 @@ void LocalJ2SSNonlinHard2D::DefineParameters(ParameterListT& list) const
 	/* 2D option must be plain stress */
 	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
-}
-
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print name */
-void LocalJ2SSNonlinHard2D::PrintName(ostream& out) const
-{
-  // inherited
-  LocalJ2SSNonlinHard::PrintName(out);
-
-  // output model name
-  out << "    Plane Strain\n";
 }

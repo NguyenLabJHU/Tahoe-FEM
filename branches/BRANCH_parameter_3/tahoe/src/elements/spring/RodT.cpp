@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.30 2003-12-28 23:37:35 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.30.18.1 2004-06-09 23:18:13 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -77,7 +77,7 @@ void RodT::Initialize(void)
 
 	/* echo material properties */
 	ReadMaterialData(ElementSupport().Input());	
-	WriteMaterialData(ElementSupport().Output());
+//	WriteMaterialData(ElementSupport().Output());
 
 	/* get form of tangent */
 	GlobalT::SystemTypeT type = TangentType();
@@ -398,17 +398,6 @@ void RodT::ReadMaterialData(ifstreamT& in)
 		int LTfnum = fMaterialsList[matnum]->ThermalScheduleNumber();
 		if (LTfnum > -1)
 			fMaterialsList[matnum]->SetThermalSchedule(ElementSupport().Schedule(LTfnum));	
-	}
-}
-
-void RodT::WriteMaterialData(ostream& out) const
-{
-	out << "\n Material Set Data:\n";
-	for (int i = 0; i < fMaterialsList.Length(); i++)
-	{
-		out << "\n Material number . . . . . . . . . . . . . . . . = " << i+1 << '\n';
-		fMaterialsList[i]->PrintName(out);
-		fMaterialsList[i]->Print(out);
 	}
 }
 

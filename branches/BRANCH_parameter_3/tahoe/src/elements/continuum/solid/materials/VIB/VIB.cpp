@@ -1,4 +1,4 @@
-/* $Id: VIB.cpp,v 1.11.32.1 2004-05-11 03:58:57 paklein Exp $ */
+/* $Id: VIB.cpp,v 1.11.32.2 2004-06-09 23:17:43 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #include "VIB.h"
 
@@ -111,26 +111,9 @@ VIB::~VIB(void)
 	delete fPotential;
 }
 
-/* print parameters */
-void VIB::Print(ostream& out) const
-{
-	out << " Number of spatial dimensions. . . . . . . . . . = " << fNumSD << '\n';
-	
-	/* potential parameters */
-	fPotential->Print(out);
-}
-
-void VIB::PrintName(ostream& out) const
-{
-	out << "    Virtual Internal Bond\n";
-	
-	/* potential name */
-	fPotential->PrintName(out);
-}
-
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* allocate memory for all the tables */
 void VIB::Dimension(int numbonds)

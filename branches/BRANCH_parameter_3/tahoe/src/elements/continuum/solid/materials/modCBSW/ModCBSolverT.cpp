@@ -1,4 +1,4 @@
-/* $Id: ModCBSolverT.cpp,v 1.4 2003-11-21 22:46:41 paklein Exp $ */
+/* $Id: ModCBSolverT.cpp,v 1.4.20.1 2004-06-09 23:17:53 paklein Exp $ */
 /* created: paklein (05/27/1997)                                          */
 /* Q defines the orientation of the crystals' natural coordinates         */
 /* and the global coordinate frame. Q is defined as:                      */
@@ -207,32 +207,9 @@ double ModCBSolverT::StrainEnergyDensity(const dMatrixT& CIJ, dArrayT& Xsi)
 	return( (f2Body->Phi()).Sum() + (f3Body->Phi()).Sum() );
 }
 
-/*
-* Print parameters.
-*/
-void ModCBSolverT::Print(ostream& out) const
-{
-	/* print potential data */
-	if (fPotential == kSW) fSW.Write(out);
-
-	//printing not implemented for other potentials
-
-	out << " Number of internal DOF. . . . . . . . . . . . . = ";
-	out << ((fEquilibrate == 1) ? dXsi.Length() : 0) << '\n';
-}
-
-void ModCBSolverT::PrintName(ostream& out) const
-{
-	const char* potentials[] = {"Stillinger-Weber",
-	                            "PTHT",
-	                            "Tersoff"};
-	
-	out << "    " << potentials[fPotential] << '\n';
-}
-
 /**********************************************************************
-* Private
-**********************************************************************/
+ * Private
+ **********************************************************************/
 
 /* Minimize the energy wrt Xsi using the initial value passed */
 void ModCBSolverT::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)

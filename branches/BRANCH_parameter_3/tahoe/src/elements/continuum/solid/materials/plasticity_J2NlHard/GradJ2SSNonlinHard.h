@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSNonlinHard.h,v 1.9.36.1 2004-04-08 07:33:11 paklein Exp $ */
+/* $Id: GradJ2SSNonlinHard.h,v 1.9.36.2 2004-06-09 23:17:58 paklein Exp $ */
 #ifndef _GRAD_J2_SS_NONLIN_HARD_H_
 #define _GRAD_J2_SS_NONLIN_HARD_H_
 
@@ -38,10 +38,6 @@ public:
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 	
 	/** \name spatial description */
 	/*@{*/

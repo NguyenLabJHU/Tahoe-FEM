@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp_C.cpp,v 1.8.18.1 2004-04-08 07:33:13 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp_C.cpp,v 1.8.18.2 2004-06-09 23:18:01 paklein Exp $ */
 #include "LocalCrystalPlastFp_C.h"
 #include "LatticeOrient.h"
 #include "CrystalElasticity.h"
@@ -316,21 +316,6 @@ void LocalCrystalPlastFp_C::ComputeOutput(dArrayT& output)
 	  fLatticeOrient->WriteTexture(group, elem, intpt, fNumGrain, step, fangles);
 	}
     }
-}
-
-void LocalCrystalPlastFp_C::Print(ostream& out) const
-{
-  // inherited
-  LocalCrystalPlastFp::Print(out);
-}
-
-void LocalCrystalPlastFp_C::PrintName(ostream& out) const
-{
-  // inherited
-  LocalCrystalPlastFp::PrintName(out);
-
-  // output model feature
-  out << "    (Using one aggregate/crystal per element - center)\n";
 }
 
 /* PROTECTED MEMBER FUNCTIONS */

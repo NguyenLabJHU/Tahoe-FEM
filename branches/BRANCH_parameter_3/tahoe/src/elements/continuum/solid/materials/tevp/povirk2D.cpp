@@ -1,4 +1,4 @@
-/* $Id: povirk2D.cpp,v 1.9.20.1 2004-04-08 07:33:23 paklein Exp $ */
+/* $Id: povirk2D.cpp,v 1.9.20.2 2004-06-09 23:18:09 paklein Exp $ */
 /* Created:  Harold Park (09/10/2001) */
 #include "povirk2D.h"
 
@@ -123,21 +123,6 @@ void povirk2D::ResetHistory(void)
   /* reset if plastic */
   ElementCardT& element = CurrentElement();
   if (element.IsAllocated()) Reset(element);
-}
-
-/* print parameters */
-void povirk2D::Print(ostream& out) const
-{
-  /* inherited */
-  FSSolidMatT::Print(out);
-  IsotropicT::Print(out);
-}
-
-void povirk2D::PrintName(ostream& out) const
-{
-  /* inherited */
-  FSSolidMatT::PrintName(out);
-  out << "    Thermo-Elasto-Viscoplastic without fluid/damage model\n";
 }
 
 /* spatial description */

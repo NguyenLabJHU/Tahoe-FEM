@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.h,v 1.11.4.1 2004-04-08 07:33:08 paklein Exp $ */
+/* $Id: DPSSKStV.h,v 1.11.4.2 2004-06-09 23:17:54 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_H_
 #define _DP_SS_KSTV_H_
@@ -32,10 +32,6 @@ class DPSSKStV: public SSSolidMatT,
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
 	/** \name spatial description */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.12.20.1 2004-04-08 07:32:53 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.12.20.2 2004-06-09 23:17:39 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -53,13 +53,7 @@ SIERRA_Material_BaseT::~SIERRA_Material_BaseT(void)
 		SIERRA_Material_DB::Delete();
 }
 
-/* print parameters */
-void SIERRA_Material_BaseT::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-
+#if 0
 	/* write properties array */
 	out << " Material name . . . . . . . . . . . . . . . . . = " << fMaterialName << '\n';
 	out << " Material model name . . . . . . . . . . . . . . = " << fSIERRA_Material_Data->Name() << '\n';
@@ -73,7 +67,9 @@ void SIERRA_Material_BaseT::Print(ostream& out) const
 	for (int i = 0; i < prop_names.Length(); i++)
 		out << setw(d_width) << prop_values[i] << " : " << prop_names[i] << '\n';
 	out.flush();
-}
+
+	out << "    SIERRA material: " << fSIERRA_Material_Data->Name() << '\n';
+#endif
 
 /* disable multiplicative thermal strains */
 void SIERRA_Material_BaseT::Initialize(void)
@@ -368,14 +364,6 @@ void SIERRA_Material_BaseT::ComputeOutput(dArrayT& output)
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-/* I/O functions */
-void SIERRA_Material_BaseT::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-	out << "    SIERRA material: " << fSIERRA_Material_Data->Name() << '\n';
-}
 
 void SIERRA_Material_BaseT::SIERRA_to_dSymMatrixT(const double* pA,
 	dSymMatrixT& B) const

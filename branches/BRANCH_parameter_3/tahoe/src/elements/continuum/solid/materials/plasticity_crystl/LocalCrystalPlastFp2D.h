@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp2D.h,v 1.4.46.1 2004-04-08 07:33:13 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp2D.h,v 1.4.46.2 2004-06-09 23:18:01 paklein Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_FP_2D_H_
 #define _LOCAL_CRYSTAL_PLAST_FP_2D_H_
 
@@ -24,9 +24,6 @@ class LocalCrystalPlastFp2D : public LocalCrystalPlastFp
 
   // modulus - Taylor average 
   virtual const dMatrixT& c_ijkl();
-
-  // print data and model name
-  virtual void PrintName(ostream& out) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp2D.cpp,v 1.5.46.1 2004-04-08 07:33:13 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp2D.cpp,v 1.5.46.2 2004-06-09 23:18:01 paklein Exp $ */
 #include "LocalCrystalPlastFp2D.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
@@ -37,15 +37,6 @@ const dMatrixT& LocalCrystalPlastFp2D::c_ijkl()
   f2Dcavg_ijkl.Rank4ReduceFrom3D(cavg_ijkl);
 
   return f2Dcavg_ijkl;
-}
-
-void LocalCrystalPlastFp2D::PrintName(ostream& out) const
-{
-  // inherited
-  LocalCrystalPlastFp::PrintName(out);
-
-  // output 2D case name
-  out << "    Plane Strain\n";
 }
 
 /* describe the parameters needed by the interface */
