@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.14 2003-05-20 10:18:09 paklein Exp $ */
+/* $Id: SolverT.h,v 1.15 2003-08-14 05:31:46 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -8,6 +8,7 @@
 
 /* base class */
 #include "iConsoleObjectT.h"
+#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "dArrayT.h"
@@ -30,22 +31,9 @@ template <class TYPE> class RaggedArray2DT;
  * if the solution has been found, and how to handle failures to find a
  * solution, or other irregularities that occur during the solution procedure.
  * Derived types instantiate different nonlinear solution procedures. */
-class SolverT: public iConsoleObjectT
+class SolverT: public iConsoleObjectT, public ParameterInterfaceT
 {
 public:
-
-	/** nonlinear solver codes */
-	enum SolverTypeT {kNewtonSolver = 0, /**< standard Newton solver */
-                   kK0_NewtonSolver = 1, /**< initial tangent, Newton solver */
-                   kModNewtonSolver = 2, /**< modified Newton solver (development) */
-                    kExpCD_DRSolver = 3, /**< central difference, dynamic relaxation */
-                   kNewtonSolver_LS = 4, /**< Newton solver with line search */
-                      kPCGSolver_LS = 5, /**< preconditioned, nonlinear conjugate gradient */
-                  kiNewtonSolver_LS = 6, /**< interactive Newton solver (with line search) */
-                               kNOX = 7, /**< NOX library solver */
-                            kLinear = 8, /**< linear problems */
-                                kDR = 9  /**< dynamic relaxation */                               
-                               };
 
 	/** global matrix types */
 	enum MatrixTypeT {kDiagonalMatrix = 0, /**< diagonal matrix for "matrix-free" methods */
@@ -62,8 +50,11 @@ public:
                              kFailed = 2  /**< solution procedure has failed */
                              };
 
-	/** constructor */
+	/** \name constructors */
+	/*@{*/
+	SolverT(FEManagerT& fe_manager);
 	SolverT(FEManagerT& fe_manager, int group);
+	/*@}*/
 
 	/** destructor */
 	virtual ~SolverT(void);
@@ -137,6 +128,12 @@ public:
 	
 	/** my group */
 	int Group(void) const { return fGroup; };
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 
