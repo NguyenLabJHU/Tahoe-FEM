@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.h,v 1.15 2003-05-28 23:15:27 cjkimme Exp $ */
+/* $Id: XuNeedleman3DT.h,v 1.15.34.1 2004-06-23 00:51:58 paklein Exp $ */
 /* created: paklein (06/23/1999) */
 
 #ifndef _XU_NEEDLE_3D_T_H_
@@ -43,12 +43,6 @@ public:
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
 
-	/** write model name to output */
-	virtual void PrintName(ostream& out) const;
-
-	/** write model parameters */
-	virtual void Print(ostream& out) const;
-	
 private:
 
 	/* traction potential parameters */

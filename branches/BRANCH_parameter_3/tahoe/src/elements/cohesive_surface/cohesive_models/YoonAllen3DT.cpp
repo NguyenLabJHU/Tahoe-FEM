@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.cpp,v 1.13 2003-11-21 22:45:53 paklein Exp $ */
+/* $Id: YoonAllen3DT.cpp,v 1.13.20.1 2004-06-23 00:51:58 paklein Exp $ */
 #include "YoonAllen3DT.h"
 
 #include <iostream.h>
@@ -18,7 +18,9 @@ const int knumDOF = 3;
 YoonAllen3DT::YoonAllen3DT(ifstreamT& in, const double& time_step): 
 	SurfacePotentialT(knumDOF),
 	fTimeStep(time_step)
-{	 
+{
+#pragma unused(in)
+#if 0
 	/* traction potential parameters */
 	in >> fsigma_0; if (fsigma_0 < 0) throw ExceptionT::kBadInputValue;
 	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
@@ -62,7 +64,7 @@ YoonAllen3DT::YoonAllen3DT(ifstreamT& in, const double& time_step):
 	
 	/* penetration stiffness */
 	fK = fpenalty*fsigma_0/fd_c_n;
-
+#endif
 }
 #endif
 
@@ -122,13 +124,8 @@ void YoonAllen3DT::InitStateVariables(ArrayT<double>& state)
 {
  	int num_state = NumStateVariables();
 	if (state.Length() != num_state) 
-	{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_	
-	  	cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
-		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
-#endif
-		throw ExceptionT::kSizeMismatch;	
-	}
+		ExceptionT::SizeMismatch("YoonAllen3DT::InitStateVariables", 
+			"expecting %d not %d state variables", num_state, state.Length());
 
 	/* clear */
 	if (num_state > 0) state = 0.0;
@@ -169,9 +166,7 @@ double YoonAllen3DT::Potential(const dArrayT& jump_u, const ArrayT<double>& stat
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	cout << "YoonAllen3DT::Potential is not implemented. It's viscoelastic \n";
-#endif
+	ExceptionT::GeneralFail("YoonAllen3DT::Potential", "not implemented");
 	return 0.;
 }
 	
@@ -183,12 +178,8 @@ const dArrayT& YoonAllen3DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
-	if (fTimeStep < 0.0) {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		ExceptionT::BadInputValue(caller, "expecting non-negative time increment: %g", fTimeStep);
-#endif		     
-		throw ExceptionT::kBadInputValue;
-	}
+	if (fTimeStep < 0.0) 
+		ExceptionT::BadInputValue(caller, "expecting non-negative time increment %g", fTimeStep);
 #endif
 
 	if (!qIntegrate)
@@ -560,15 +551,7 @@ SurfacePotentialT::StatusT YoonAllen3DT::Status(const dArrayT& jump_u,
 
 }
 
-void YoonAllen3DT::PrintName(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << " Yoon-Allen 2D \n";
-#else
-#pragma unused(out)
-#endif
-}
-
+#if 0
 /* print parameters to the output stream */
 void YoonAllen3DT::Print(ostream& out) const
 {
@@ -596,6 +579,7 @@ void YoonAllen3DT::Print(ostream& out) const
 #pragma unused(out)
 #endif
 }
+#endif
 
 /* returns the number of variables computed for nodal extrapolation
  * during for element output, ie. internal variables. Returns 0

@@ -1,4 +1,4 @@
-/* $Id: TvergHutch3DT.cpp,v 1.11 2003-05-28 23:15:27 cjkimme Exp $ */
+/* $Id: TvergHutch3DT.cpp,v 1.11.34.1 2004-06-23 00:51:58 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch3DT.h"
@@ -20,6 +20,8 @@ const int knumDOF = 3;
 /* constructor */
 TvergHutch3DT::TvergHutch3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 {
+#pragma unused(in)
+#if 0
 	/* traction potential parameters */
 	in >> fsigma_max; if (fsigma_max < 0) throw ExceptionT::kBadInputValue;
 	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
@@ -35,6 +37,7 @@ TvergHutch3DT::TvergHutch3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 
 	/* penetration stiffness */
 	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
+#endif
 }
 #endif
 
@@ -240,15 +243,7 @@ SurfacePotentialT::StatusT TvergHutch3DT::Status(const dArrayT& jump_u,
 		return Precritical;
 }
 
-void TvergHutch3DT::PrintName(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << "    Tvergaard-Hutchinson 3D\n";
-#else
-#pragma unused(out)
-#endif
-}
-
+#if 0
 /* print parameters to the output stream */
 void TvergHutch3DT::Print(ostream& out) const
 {
@@ -264,6 +259,7 @@ void TvergHutch3DT::Print(ostream& out) const
 #pragma unused(out)
 #endif
 }
+#endif
 
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0

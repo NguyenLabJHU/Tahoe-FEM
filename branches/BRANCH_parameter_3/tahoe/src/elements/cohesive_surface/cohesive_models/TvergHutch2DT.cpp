@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.19.34.1 2004-04-08 07:32:26 paklein Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.19.34.2 2004-06-23 00:51:58 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 #include "TvergHutch2DT.h"
 
@@ -20,6 +20,8 @@ TvergHutch2DT::TvergHutch2DT(ifstreamT& in):
 {
 	SetName("Tvergaard-Hutchinson_2D");
 
+#pragma unused(in)
+#if 0
 	/* traction potential parameters */
 	in >> fsigma_max; if (fsigma_max < 0) throw ExceptionT::kBadInputValue;
 	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
@@ -35,6 +37,7 @@ TvergHutch2DT::TvergHutch2DT(ifstreamT& in):
 
 	/* penetration stiffness */
 	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
+#endif
 }
 
 TvergHutch2DT::TvergHutch2DT(void): 
@@ -223,13 +226,7 @@ SurfacePotentialT::StatusT TvergHutch2DT::Status(const dArrayT& jump_u,
 		return Precritical;
 }
 
-void TvergHutch2DT::PrintName(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << "    Tvergaard-Hutchinson 2D\n";
-#endif
-}
-
+#if 0
 /* print parameters to the output stream */
 void TvergHutch2DT::Print(ostream& out) const
 {
@@ -243,6 +240,7 @@ void TvergHutch2DT::Print(ostream& out) const
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';
 #endif
 }
+#endif
 
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0

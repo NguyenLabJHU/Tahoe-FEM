@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman2DT.cpp,v 1.15.34.2 2004-04-21 16:52:37 paklein Exp $ */
+/* $Id: XuNeedleman2DT.cpp,v 1.15.34.3 2004-06-23 00:51:58 paklein Exp $ */
 /* created: paklein (11/14/1997) */
 #include "XuNeedleman2DT.h"
 
@@ -20,6 +20,8 @@ XuNeedleman2DT::XuNeedleman2DT(ifstreamT& in):
 {
 	SetName("Xu-Needleman_2D");
 
+#pragma unused(in)
+#if 0
 	in >> q; // phi_t/phi_n
 	in >> r; // delta_n* /d_n
 	if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
@@ -35,6 +37,7 @@ XuNeedleman2DT::XuNeedleman2DT(ifstreamT& in):
 	in >> fKratio; // stiffening ratio
 	if (fKratio < 0.0) throw ExceptionT::kBadInputValue;
 	fK = fKratio*phi_n/(d_n*d_n);
+#endif
 }
 
 XuNeedleman2DT::XuNeedleman2DT(void): 
@@ -132,12 +135,7 @@ const dArrayT& XuNeedleman2DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	z10 = exp(z6); //don't limit shear opening
 	// limit compressive deformation
 	if (z7 > kExpMax)
-	{
-#ifndef _SIERRA_TEST_	
-		cout << "\n XuNeedleman2DT::Traction: exp(x): x = " << z7 << " > kExpMax" << endl;
-#endif		
-		throw ExceptionT::kBadJacobianDet;
-	}
+		ExceptionT::BadJacobianDet("XuNeedleman2DT::Traction", "exp(x): x = %g > kExpMax", z7);
 	z11 = exp(z7);
 	z6 = z6 + z7; // since (z6 < 0), (z6' < z7) and z7 is checked above
 	z7 = z3*z4*z8;
@@ -251,13 +249,7 @@ SurfacePotentialT::StatusT XuNeedleman2DT::Status(const dArrayT& jump_u, const A
 		return Precritical;
 }
 
-void XuNeedleman2DT::PrintName(ostream& out) const
-{
-#ifndef _SIERRA_TEST_
-	out << "    Xu-Needleman 2D\n";
-#endif
-}
-
+#if 0
 /* print parameters to the output stream */
 void XuNeedleman2DT::Print(ostream& out) const
 {
@@ -271,6 +263,7 @@ void XuNeedleman2DT::Print(ostream& out) const
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fKratio << '\n';
 #endif
 }
+#endif
 
 /* describe the parameters  */
 void XuNeedleman2DT::DefineParameters(ParameterListT& list) const
@@ -303,7 +296,7 @@ void XuNeedleman2DT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(phi_n_);
 
 	ParameterT r_fail_(r_fail, "r_fail");
-	r_fail_.AddLimit(1.0, LimitT::Lower);
+	r_fail_.AddLimit(1.0, LimitT::LowerInclusive);
 	list.AddParameter(r_fail_);
 
 	ParameterT Kratio(fKratio, "K_ratio");

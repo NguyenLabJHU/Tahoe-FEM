@@ -1,4 +1,4 @@
-/* $Id: From2Dto3DT.cpp,v 1.3 2004-03-02 18:44:15 cjkimme Exp $ */
+/* $Id: From2Dto3DT.cpp,v 1.3.12.1 2004-06-23 00:51:58 paklein Exp $ */
 /* created: paklein (06/23/1999)*/
 
 #include "From2Dto3DT.h"
@@ -14,10 +14,9 @@
 #include "ViscTvergHutch2DT.h"
 #include "YoonAllen2DT.h"
 
-/* class parameters */
-
 using namespace Tahoe;
 
+/* class parameters */
 const int    knumDOF = 3;
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -230,23 +229,4 @@ void From2Dto3DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& sta
 	new_jump_u[1] = jump_u[2];
 	
 	f2DModel->ComputeOutput(new_jump_u, state, output);
-}
-void From2Dto3DT::PrintName(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << " 3D up-conversion of ";
-	f2DModel->PrintName(out);
-#else
-#pragma unused(out)
-#endif
-}
-
-/* print parameters to the output stream */
-void From2Dto3DT::Print(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	f2DModel->Print(out);
-#else
-#pragma unused(out)
-#endif
 }
