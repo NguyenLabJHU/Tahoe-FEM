@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.5 2001-10-25 22:18:01 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.6 2001-11-02 19:35:43 cjkimme Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -48,7 +48,7 @@ public:
 	virtual void InitStateVariables(ArrayT<double>& state);
 	
 	/** dissipated energy */
-	virtual double FractureEnergy(void) = 0;
+	virtual double FractureEnergy(const ArrayT<double>& state) = 0;
 
 	/** potential energy */
 	virtual double Potential(const dArrayT& jump, const ArrayT<double>& state) = 0;

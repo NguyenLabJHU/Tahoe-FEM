@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.h,v 1.1 2001-10-25 22:21:12 cjkimme Exp $ */
+/* $Id: Tijssens2DT.h,v 1.2 2001-11-02 19:35:43 cjkimme Exp $ */
 
 #ifndef _TIJSSENS_2D_T_H_
 #define _TIJSSENS_2D_T_H_
@@ -27,7 +27,7 @@ public:
 	int NumStateVariables(void) const;
 
 	/** dissipated energy */
-	virtual double FractureEnergy(void);
+	virtual double FractureEnergy(const ArrayT<double>& state);
 
 	/** potential energy */
 	virtual double Potential(const dArrayT& jump_u, const ArrayT<double>& state);
@@ -89,6 +89,7 @@ private:
 	double ftau_c; /* critical tangential traction */
 	double fastar; /* Material parameter */
 	double ftemp; /* Temperature */
+	double fY; /* Bulk yield strength */
 
 };
 

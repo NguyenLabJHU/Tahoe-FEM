@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.h,v 1.4 2001-10-11 23:19:51 paklein Exp $ */
+/* $Id: LinearDamageT.h,v 1.5 2001-11-02 19:35:43 cjkimme Exp $ */
 /* created: paklein (08/26/2000) */
 
 #ifndef _LINEAR_DAMAGE_T_H_
@@ -29,7 +29,7 @@ public:
 	virtual void InitStateVariables(ArrayT<double>& state);
 
 	/** dissipated energy */
-	virtual double FractureEnergy(void);
+	virtual double FractureEnergy(const ArrayT<double>& state);
 
 	/** potential energy */
 	virtual double Potential(const dArrayT& jump, const ArrayT<double>& state);

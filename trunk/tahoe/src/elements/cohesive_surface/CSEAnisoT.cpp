@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.10 2001-10-25 22:16:28 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.11 2001-11-02 19:35:42 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -721,7 +721,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					if (e_codes[CohesiveEnergy])
 					{
 						/* surface potential */
-						double potential = surfpot->FractureEnergy();
+						double potential = surfpot->FractureEnergy(state);
 	
 						/* integrate */
 						phi += potential*ip_w;

@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.cpp,v 1.4 2001-10-11 23:19:51 paklein Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.5 2001-11-02 19:35:43 cjkimme Exp $ */
 /* created: paklein (08/21/2000) */
 
 #include "LinearDamageT.h"
@@ -52,7 +52,7 @@ void LinearDamageT::InitStateVariables(ArrayT<double>& state)
 }
 
 /* surface potential */
-double LinearDamageT::FractureEnergy(void)
+double LinearDamageT::FractureEnergy(const ArrayT<double>& state)
 {
 	return 0.5*fInitTraction.Magnitude()*fd_c_n;
 }

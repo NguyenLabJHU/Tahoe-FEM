@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.1 2001-10-11 23:20:32 paklein Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.2 2001-11-02 19:35:43 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "ViscTvergHutch2DT.h"
@@ -43,7 +43,7 @@ ViscTvergHutch2DT::ViscTvergHutch2DT(ifstreamT& in, const double& time_step):
 int ViscTvergHutch2DT::NumStateVariables(void) const { return knumDOF; }
 
 /* surface potential */
-double ViscTvergHutch2DT::FractureEnergy(void)
+double ViscTvergHutch2DT::FractureEnergy(const ArrayT<double>& state)
 { 
 	return fd_c_n*fsigma_max*0.5*(1 - fL_1 + fL_2); 
 }
