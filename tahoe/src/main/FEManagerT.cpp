@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.56 2003-05-20 10:39:56 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.57 2003-05-20 10:48:35 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -43,7 +43,7 @@ using namespace Tahoe;
 
 /* File/Version Control */
 const char kCurrentVersion[] = "v3.4.1";
-const char kProgramName[]    = "tahoe";
+const char kProgramName[] = "tahoe";
 
 /* static methods */
 const char* FEManagerT::Version(void) { return kCurrentVersion; }
