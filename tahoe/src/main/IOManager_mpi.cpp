@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.33 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.34 2004-11-19 22:54:11 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
@@ -8,6 +8,10 @@
 #include "PartitionT.h"
 #include "ModelManagerT.h"
 #include "GeometryT.h"
+
+/* debugging */
+//#define IOManager_mpi_DEBUG 1
+#undef IOManager_mpi_DEBUG
 
 using namespace Tahoe;
 
@@ -36,16 +40,18 @@ IOManager_mpi::IOManager_mpi(const StringT& input_file, CommunicatorT& comm,
 	fComm.Log(CommunicatorT::kModerate, caller, "constructing output sets");
 	for (int i = 0; i < element_sets.Length(); i++)
 	{
-//cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: set: " << i << endl;
-
 		const OutputSetT& set = *(element_sets[i]);
 		
-//cout << "IOManager_mpi: set " << set.ID() << ": mode = " << set.Mode() << endl;
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": set " << set.ID() << ": mode = " << set.Mode() << endl;
+#endif
 		
 		/* output over element blocks */
 		if (fIO_map[i] == fComm.Rank())
 		{
-//cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: constructing set" << endl;
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": constructing set" << endl;
+#endif
 
 			/* output set ID */
 			int IO_ID;
@@ -55,6 +61,10 @@ IOManager_mpi::IOManager_mpi(const StringT& input_file, CommunicatorT& comm,
 				/* regular output set */
 				case OutputSetT::kElementBlock:
 			 	{
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": constructing regular set here: " << i << endl;
+#endif
+
 					/* set block ID's */
 					const ArrayT<StringT>& block_ID = set.BlockID();
 			
@@ -73,9 +83,11 @@ IOManager_mpi::IOManager_mpi(const StringT& input_file, CommunicatorT& comm,
 					OutputSetT global_set(set.Geometry(), block_ID, connect_list,
 					set.NodeOutputLabels(), set.ElementOutputLabels(), set.Changing());
 
-//cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: num nodes: " << global_set.NumNodes() << endl;
-//cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: num blocks: " << global_set.NumBlocks() << endl;
-//cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: num elements: " << global_set.NumElements() << endl;
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": num nodes: " << global_set.NumNodes() << endl;
+cout << fComm.Rank() << ": " << caller << ": num blocks: " << global_set.NumBlocks() << endl;
+cout << fComm.Rank() << ": " << caller << ": num elements: " << global_set.NumElements() << endl;
+#endif
 
 					/* register */
 					IO_ID = AddElementSet(global_set);
@@ -85,13 +97,18 @@ IOManager_mpi::IOManager_mpi(const StringT& input_file, CommunicatorT& comm,
 				/* construct free set */
 				case OutputSetT::kFreeSet: 
 				{
-//cout << fComm.Rank() << ": constructing free set here: " << i << endl;			
+#ifdef IOManager_mpi_DEBUG				
+cout << fComm.Rank() << ": " << caller << ": constructing free set here: " << i << endl;
+#endif
+
 			
 					/* collect number of elements from each processor */
 					iArrayT elem_count(fComm.Size());
 					fComm.Gather(set.NumElements(), elem_count);
 
-//cout << fComm.Rank() << ": counts:\n" << elem_count.wrap(5) << endl;			
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": counts:\n" << elem_count.wrap(5) << endl;			
+#endif
 
 					/* allocate space for incoming */
 					const iArray2DT& my_connects = *(set.Connectivities(set.ID()));
@@ -114,8 +131,11 @@ IOManager_mpi::IOManager_mpi(const StringT& input_file, CommunicatorT& comm,
 						for (int j = 0; j < my_connects.Length(); j++)
 							send[j] = node_map[my_connects[j]];
 
-//cout << fComm.Rank() << ": local:\n" << my_connects.wrap(5) << endl;
-//cout << fComm.Rank() << ": global:\n" << send.wrap(5) << endl;
+//#ifdef IOManager_mpi_DEBUG
+#if 0
+cout << fComm.Rank() << ": " << caller << ": local:\n" << my_connects.wrap(5) << endl;
+cout << fComm.Rank() << ": " << caller << ": global:\n" << send.wrap(5) << endl;
+#endif
 					}
 
 					/* buffer shifts */
@@ -127,7 +147,10 @@ IOManager_mpi::IOManager_mpi(const StringT& input_file, CommunicatorT& comm,
 					/* collect from all */
 					fComm.Gather(send, connects, elem_count, displ);
 
-//cout << fComm.Rank() << ": incoming:\n" << connects.wrap(5) << endl;
+//#ifdef IOManager_mpi_DEBUG
+#if 0
+cout << fComm.Rank() << ": " << caller << ": incoming:\n" << connects.wrap(5) << endl;
+#endif
 
 					/* generate dummy block ID for "connectivities" of free set nodes */
 					StringT dummy_ID = "900"; /* NOTE: same convention used in JoinOutputT::SetOutput */
@@ -140,9 +163,11 @@ IOManager_mpi::IOManager_mpi(const StringT& input_file, CommunicatorT& comm,
 					OutputSetT global_set(set.Geometry(), fOutputGeometry->ElementGroup(dummy_ID), 
 						set.NodeOutputLabels());
 
-//cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: num nodes: " << global_set.NumNodes() << endl;
-//cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: num blocks: " << global_set.NumBlocks() << endl;
-//cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: num elements: " << global_set.NumElements() << endl;
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": num nodes: " << global_set.NumNodes() << endl;
+cout << fComm.Rank() << ": " << caller << ": num blocks: " << global_set.NumBlocks() << endl;
+cout << fComm.Rank() << ": " << caller << ": num elements: " << global_set.NumElements() << endl;
+#endif
 
 					/* register */
 					IO_ID = AddElementSet(global_set);
@@ -152,14 +177,20 @@ IOManager_mpi::IOManager_mpi(const StringT& input_file, CommunicatorT& comm,
 				/* element set derived from Side Set */
 				case OutputSetT::kElementFromSideSet:
 			 	{
+#ifdef IOManager_mpi_DEBUG				
+cout << fComm.Rank() << ": " << caller << ": constructing set from side set here: " << i << endl;
+#endif
+			 	
 					/* set block ID's */
 					const ArrayT<StringT>& block_ID = set.BlockID();
 					const ArrayT<StringT>& sideSet_ID = set.SideSetID();
 					
-//cout << fComm.Rank() << " block_ID length " << block_ID.Length() << "\n";
-//cout << fComm.Rank() << " SS ID  length : " << sideSet_ID.Length() <<"\n"; 
-//cout << fComm.Rank() << " SSID[0] of " << set.SideSetID(0) <<"\n";
-//cout << fComm.Rank() << " BlockID[0] of " << set.BlockID(0) << "\n";
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": block_ID length " << block_ID.Length() << "\n";
+cout << fComm.Rank() << ": " << caller << ": SS ID  length : " << sideSet_ID.Length() <<"\n"; 
+cout << fComm.Rank() << ": " << caller << ": SSID[0] of " << set.SideSetID(0) <<"\n";
+cout << fComm.Rank() << ": " << caller << ": BlockID[0] of " << set.BlockID(0) << "\n";
+#endif
 					
 					/* Hamstring the model for now */
 					if (sideSet_ID.Length() != 1)
@@ -195,13 +226,20 @@ IOManager_mpi::IOManager_mpi(const StringT& input_file, CommunicatorT& comm,
 						connect_list[j] = fOutputGeometry->ElementGroupPointer(new_id);
 					}
 
+					//TEMP - no element output for this mode
+					if (set.ElementOutputLabels().Length() > 0)
+						cout << "\n " << caller << ": element values not supported for output over side sets" << endl;
+					ArrayT<StringT> e_labels;
+					
 					/* construct output set */
 					OutputSetT global_set(set.Geometry(), block_ID, sideSet_ID, connect_list,
-					set.NodeOutputLabels(), set.ElementOutputLabels(), set.Changing());
+						set.NodeOutputLabels(), e_labels, set.Changing());
 
-//cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: SS num nodes: " << global_set.NumNodes() << endl;
-//cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: SS num blocks: " << global_set.NumBlocks() << endl;
-//cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: SS num elements: " << global_set.NumElements() << endl;
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": SS num nodes: " << global_set.NumNodes() << endl;
+cout << fComm.Rank() << ": " << caller << ": SS num blocks: " << global_set.NumBlocks() << endl;
+cout << fComm.Rank() << ": " << caller << ": SS num elements: " << global_set.NumElements() << endl;
+#endif
 
 					/* register */
 					IO_ID = AddElementSet(global_set);
@@ -234,7 +272,9 @@ IOManager_mpi::IOManager_mpi(const StringT& input_file, CommunicatorT& comm,
 			/* construct a free set */
 			if (set.Mode() == OutputSetT::kFreeSet)
 			{
-//cout << fComm.Rank() << ": sending free set" << endl;			
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": sending free set" << endl;			
+#endif
 			
 				/* collect number of elements from each processor */
 				fComm.Gather(set.NumElements(), fIO_map[i]);
@@ -251,8 +291,11 @@ IOManager_mpi::IOManager_mpi(const StringT& input_file, CommunicatorT& comm,
 					for (int j = 0; j < my_connects.Length(); j++)
 						send[j] = node_map[my_connects[j]];
 
-//cout << fComm.Rank() << ": local:\n" << my_connects.wrap(5) << endl;
-//cout << fComm.Rank() << ": global:\n" << send.wrap(5) << endl;
+//#ifdef IOManager_mpi_DEBUG
+#if 0
+cout << fComm.Rank() << ": " << caller << ": local:\n" << my_connects.wrap(5) << endl;
+cout << fComm.Rank() << ": " << caller << ": global:\n" << send.wrap(5) << endl;
+#endif
 				}
 					
 				/* gather to processor that will write */
@@ -261,7 +304,9 @@ IOManager_mpi::IOManager_mpi(const StringT& input_file, CommunicatorT& comm,
 		}
 	}
 	
-//cout << fComm.Rank() << ": done constructing output sets" << endl;	
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": done constructing output sets" << endl;	
+#endif
 
 	/* distribute communication maps */
 	SetCommunication(local_IO);
@@ -428,10 +473,16 @@ void IOManager_mpi::WriteMaps(ostream& out) const
 /* communicate output counts */
 void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 {
-//cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: start" << endl;
+	const char caller[] = "IOManager_mpi::SetCommunication";
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": start" << endl;
+#endif
 
 	/* local output sets */
 	const ArrayT<OutputSetT*>& local_sets = local_IO.ElementSets();
+
+	/* global output sets */
+	const ArrayT<OutputSetT*>& global_sets = fOutput->ElementSets();
 	
 	/* dimensions */
 	int num_proc = fComm.Size();
@@ -443,7 +494,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 	/* resident nodes in each set */
 	ArrayT<iArrayT> nodes(num_sets);
 
-	/* count number of comminucated nodes/element per sent
+	/* count number of communicated nodes/element per sent
 	 * on this processor. for nodal data, only _i and _b nodes
 	 * are communicated (_e data is calculated elsewhere).
 	 * for element data, all elements are resident (_e elements
@@ -465,11 +516,22 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 			fOutNodeCounts[i] = 0;
 
 		/* element output */
-		if (set.ElementOutputLabels().Length() > 0)
-			elem_counts[i] = set.NumElements(); // need to convert to global
+		if (set.ElementOutputLabels().Length() > 0) {
+		
+			//TEMP - element output for regular sets only
+			if (set.Mode() == OutputSetT::kElementBlock)
+				elem_counts[i] = set.NumElements(); // need to convert to global
+			else {
+				cout << "\n " << caller << ": element values not supported for output over side sets" << endl;
+				elem_counts[i] = 0;
+			}
+		}
 		else
 			elem_counts[i] = 0;
 	}
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": element counts per set: " << elem_counts.no_wrap() << endl;
+#endif
 		
 	/* gather number of commumicated nodes in each set for each processor */
 	fNodeCounts.Dimension(num_proc, num_sets);
@@ -486,7 +548,9 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 	ArrayT<iArrayT> buffer(num_proc);
 	for (int k = 0; k < num_sets; k++)
 	{
-//cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: output set: " << k << endl;
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": output set: " << k << endl;
+#endif
 
 		/* assembly maps for the output set */
 		MapSetT& map_set = fMapSets[k];
@@ -501,7 +565,9 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 		/* data is incoming - post receives */
 		if (fIO_map[k] == fComm.Rank())
 		{
-//cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: writing set" << endl;
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": writing set" << endl;
+#endif
 
 			/* output set spec from this processor */
 			OutputSetT& global_set = *((fOutput->ElementSets())[k]);
@@ -591,7 +657,9 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 		}
 		else /* set is outgoing - post sends */
 		{
-//cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: sending set" << endl;
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": sending set" << endl;
+#endif
 
 			int num_outgoing = nodes[k].Length();
 			if (num_outgoing > 0)
@@ -777,6 +845,10 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 
 	/* check maps */
 	CheckAssemblyMaps();
+
+#ifdef IOManager_mpi_DEBUG
+cout << fComm.Rank() << ": " << caller << ": done" << endl;
+#endif
 }
 
 void IOManager_mpi::SetOutputMap(const IOManager& local_IO, iArrayT& output_map) const
