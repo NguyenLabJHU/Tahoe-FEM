@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.81 2004-10-06 21:07:10 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.82 2004-10-08 19:46:19 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1358,7 +1358,6 @@ cout << caller << ": START" << endl;
 		}	
 
 		/* revise input file name */
-		suffix;
 		suffix.Suffix(fInputFile);
 		fInputFile.Root();
 		fInputFile.Append(".p", Rank());
@@ -1624,8 +1623,8 @@ ParameterInterfaceT* FEManagerT::NewSub(const StringT& name) const
 		decomp_method->SetListOrder(ParameterListT::Choice);
 		
 		/* decomposition types */
-		decomp_method->AddSub("graph_decomposition");
-		decomp_method->AddSub("index_decomposition");
+		decomp_method->AddSub(ParameterContainerT("graph_decomposition"));
+		decomp_method->AddSub(ParameterContainerT("index_decomposition"));
 
 		ParameterContainerT spatial_decomp("spatial_decomposition");
 		ParameterT n_grid(ParameterT::Integer, "n_1");
