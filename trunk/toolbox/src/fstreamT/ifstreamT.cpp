@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.17 2002-07-02 19:57:13 cjkimme Exp $ */
+/* $Id: ifstreamT.cpp,v 1.18 2002-07-05 17:16:09 paklein Exp $ */
 /* created: paklein (03/03/1999) */
 
 #include "ifstreamT.h"
@@ -17,7 +17,9 @@ using namespace Tahoe;
 const int kLineLength = 255;
 
 /* static variables */
+namespace Tahoe {
 const bool ArrayT<ifstreamT*>::fByteCopy = true; // array behavior
+} /* namespace Tahoe */
 
 /* constructors */
 ifstreamT::ifstreamT(void):

@@ -1,4 +1,4 @@
-/* $Id: CommandSpecT.cpp,v 1.7 2002-07-02 19:56:57 cjkimme Exp $ */
+/* $Id: CommandSpecT.cpp,v 1.8 2002-07-05 17:16:01 paklein Exp $ */
 
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
@@ -7,8 +7,10 @@
 
 using namespace Tahoe;
 
+namespace Tahoe {
 const bool ArrayT<CommandSpecT*>::fByteCopy = true; 
 const bool ArrayT<CommandSpecT>::fByteCopy = false; 
+} /* namespace Tahoe */
 
 CommandSpecT::CommandSpecT(const StringT& name, bool ordered_args):
 	fName(name),

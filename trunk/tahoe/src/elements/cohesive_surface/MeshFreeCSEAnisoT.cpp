@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.10 2002-07-02 19:55:15 cjkimme Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.11 2002-07-05 17:18:36 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -30,7 +30,9 @@
 
 using namespace Tahoe;
 
+namespace Tahoe {
 const bool ArrayT<MeshFreeCSEAnisoT::StatusFlagT>::fByteCopy = true;
+} /* namespace Tahoe */
 
 /* parameters */
 const int kHeadRoom = 0;

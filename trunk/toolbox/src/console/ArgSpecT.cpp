@@ -1,4 +1,4 @@
-/* $Id: ArgSpecT.cpp,v 1.8 2002-07-02 19:56:57 cjkimme Exp $ */
+/* $Id: ArgSpecT.cpp,v 1.9 2002-07-05 17:16:00 paklein Exp $ */
 
 #include "ArgSpecT.h"
 #include <ctype.h>
@@ -7,8 +7,10 @@
 
 using namespace Tahoe;
 
+namespace Tahoe {
 const bool ArrayT<ArgSpecT*>::fByteCopy = true; 
 const bool ArrayT<ArgSpecT>::fByteCopy = false;
+} /* namespace Tahoe */
 
 /* type names */
 static const char* type_names[] = {

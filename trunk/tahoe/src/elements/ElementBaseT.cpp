@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.18 2002-07-02 19:55:12 cjkimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.19 2002-07-05 17:18:04 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -18,7 +18,9 @@
 
 using namespace Tahoe;
 
+namespace Tahoe {
 const bool ArrayT<const RaggedArray2DT<int>*>::fByteCopy = true;
+} /* namespace Tahoe */
 
 /* constructor */
 ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):

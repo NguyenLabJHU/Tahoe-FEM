@@ -1,4 +1,4 @@
-/* $Id: ComplexT.cpp,v 1.10 2002-07-05 15:16:21 paklein Exp $ */
+/* $Id: ComplexT.cpp,v 1.11 2002-07-05 17:15:54 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997) */
 
 #include "ComplexT.h"
@@ -13,7 +13,9 @@
 
 using namespace Tahoe;
 
+namespace Tahoe {
 const bool ArrayT<ComplexT>::fByteCopy = true;
+} /* namespace Tahoe */
 
 /*
 * Real and Imaginary parts of arrays - must be dimensioned BEFORE call

@@ -1,4 +1,4 @@
-/* $Id: ElementBlockDataT.cpp,v 1.4 2002-07-02 19:56:41 cjkimme Exp $ */
+/* $Id: ElementBlockDataT.cpp,v 1.5 2002-07-05 17:18:39 paklein Exp $ */
 
 #include "ElementBlockDataT.h"
 
@@ -6,8 +6,10 @@
 
 using namespace Tahoe;
 
+namespace Tahoe {
 const bool ArrayT<ElementBlockDataT*>::fByteCopy = true;
 const bool ArrayT<ElementBlockDataT>::fByteCopy = false;
+} /* namespace Tahoe */
 
 /* constructor */
 ElementBlockDataT::ElementBlockDataT(void):

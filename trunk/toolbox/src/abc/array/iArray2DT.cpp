@@ -1,4 +1,4 @@
-/* $Id: iArray2DT.cpp,v 1.4 2002-07-02 19:56:39 cjkimme Exp $ */
+/* $Id: iArray2DT.cpp,v 1.5 2002-07-05 17:15:48 paklein Exp $ */
 /* created: paklein (09/23/1996) */
 
 #include "iArray2DT.h"
@@ -10,9 +10,11 @@
 using namespace Tahoe;
 
 /* array behavior */
+namespace Tahoe {
 const bool ArrayT<iArray2DT>::fByteCopy = false;
 const bool ArrayT<iArray2DT*>::fByteCopy = true;
 const bool ArrayT<const iArray2DT*>::fByteCopy = true;
+} /* namespace Tahoe */
 
 /* constructor */
 iArray2DT::iArray2DT(void) { }
