@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.9 2004-04-08 16:13:34 paklein Exp $
+# $Id: run.batch,v 1.10 2004-04-14 22:42:09 paklein Exp $
 2D.elastostatic/run.batch
 2D.elastodynamic/run.batch
 3D.elastostatic/run.batch
@@ -9,4 +9,4 @@ coupled/run.batch
 enhanced.strain/run.batch
 integrator/run.batch
 2D.particle/run.batch
-
+3D.particle/run.batch
