@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.19.4.1 2004-04-24 19:57:41 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.19.4.2 2004-04-25 20:54:36 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -206,8 +206,15 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 		overlap_cell_i_map.SetMap(overlap_cell_i);
 		overlap_node_i_map.SetMap(overlap_node_i);
 		if (fPrintInput) {
-			fMainOut << "overlap cells for bond: " << ": {" << R_i.no_wrap() << "}:\n";
 			iArrayT tmp;
+			
+			fMainOut << "overlap nodes for bond: " << ": {" << R_i.no_wrap() << "}:\n";
+			tmp.Alias(overlap_node_i);
+			tmp++;
+			fMainOut << tmp.wrap(5) << endl;
+			tmp--;
+
+			fMainOut << "overlap cells for bond: " << ": {" << R_i.no_wrap() << "}:\n";
 			tmp.Alias(overlap_cell_i);
 			tmp++;
 			fMainOut << tmp.wrap(5) << endl;
@@ -265,6 +272,10 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 		
 		/* compute contribution from bonds terminating at "ghost" atoms */
 		ComputeSum_signR_Na(R_i, ghost_neighbors_i, point_coords, overlap_node_i_map, sum_R_N);
+		if (fPrintInput) {
+			fMainOut << "ghost bond contritbution:\n";
+			fMainOut << "R.sum_R_N =\n" << sum_R_N << endl;
+		}
 
 		/* initialize */
 		p_i = 1.0;
@@ -275,6 +286,9 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 		Compute_df_dp(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map, 
 			bond_densities_i_eq, inv_connects_i, inv_equations_i,
 			p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
+		if (fPrintInput) {
+			fMainOut << "residual =\n" << df_dp_i << endl;
+		}
 
 		/* solve bond densities */
 		double abs_tol = 1.0e-10;
@@ -2267,6 +2281,9 @@ void FEManagerT_bridging::Compute_df_dp(const dArrayT& R, double V_0, const Arra
 				}
 			}
 		}
+	if (fPrintInput) {
+		fMainOut << "f_a =\n" << f_a << endl;
+	}
 
 	/* gradient work space */
 	const ParentDomainT& parent_domain = shapes.ParentDomain();	
