@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.12 2005-02-16 22:53:22 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.13 2005-03-04 04:11:58 cfoster Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 #include "SSMatSupportT.h"
@@ -123,6 +123,8 @@ const dSymMatrixT& DPSSKStVLoc::s_ij(void)
 * determinant of the acoustic tensor is negative and returns
 * the normals and slipdirs. Returns false if the determinant is positive.
 */
+
+#if 0
 bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
 {
 	/* stress tensor */
@@ -142,7 +144,7 @@ bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT
 	slipdirs.Dimension(NumSD());
 	return checker.IsLocalized_SS(normals,slipdirs);
 }
-
+#endif
 
 /* returns the strain energy density for the specified strain */
 double DPSSKStVLoc::StrainEnergyDensity(void)

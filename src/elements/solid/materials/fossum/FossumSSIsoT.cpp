@@ -317,6 +317,8 @@ const dMatrixT& FossumSSIsoT::con_perfplas_ijkl(void)
 * determinant of the acoustic tensor is negative and returns
 * the normals and slipdirs. Returns false if the determinant is positive.
 */
+
+#if 0
 bool FossumSSIsoT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
 {
 	/* stress tensor */
@@ -335,6 +337,7 @@ bool FossumSSIsoT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArray
 	slipdirs.Dimension(NumSD());
 	return checker.IsLocalized_SS(normals,slipdirs);
 }
+#endif
 
 
 /* returns the strain energy density for the specified strain */
@@ -418,14 +421,16 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 			const dMatrixT& modulus = con_perfplas_ijkl();
 
 			/* localization condition checker */
-			DetCheckT checker(stress, modulus, Ce);
+			//DetCheckT checker(stress, modulus, Ce);
 
 			AutoArrayT <dArrayT> normals;
 			AutoArrayT <dArrayT> slipdirs;
 			normals.Dimension(3);
 			slipdirs.Dimension(3);
 			output[10] = 0.0;
-			if(checker.IsLocalized_SS(normals,slipdirs)) output[10] = 1.0;
+			//double dummy;
+			if(IsLocalized(normals,slipdirs))
+			  output[10] = 1.0;
 
 		}
 		else

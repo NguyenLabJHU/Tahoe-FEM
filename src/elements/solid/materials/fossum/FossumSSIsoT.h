@@ -130,7 +130,7 @@ protected:
 	* determinant of the acoustic tensor is negative and returns
 	* the normals and slipdirs. Returns false if the determinant is positive.
 	*/
-	bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
+	//bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
 
 protected:
 
