@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.cpp,v 1.3 2001-10-05 18:54:47 paklein Exp $ */
+/* $Id: dMatrixEXT.cpp,v 1.4 2001-10-05 22:31:34 paklein Exp $ */
 /* created: paklein (03/06/1998)                                          */
 
 #include "dMatrixEXT.h"
@@ -196,7 +196,7 @@ void dMatrixEXT::BackSubstitute_SVD(const dMatrixT& U, const dArrayT& W,
 	svbksb(U.Pointer(), W.Pointer(), V.Pointer(), fRows, fCols, RHS.Pointer(), v1, v2);
 
 	/* copy in */
-	RHS = v1;
+	RHS.Copy(v1);
 }
 
 /*************************************************************************
