@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.h,v 1.12 2004-07-15 08:26:14 paklein Exp $ */
+/* $Id: MaterialSupportT.h,v 1.13 2004-08-01 20:38:14 paklein Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
@@ -29,9 +29,6 @@ public:
 
 	/** \name dimensions */
 	/*@{*/
-	/** number of spatial dimensions */
-//	int NumSD(void) const { return fNumSD; };
-	
 	/** number of degrees of freedom (per node) */
 	int NumDOF(void) const { return fNumDOF; };
 
@@ -115,9 +112,6 @@ public:
   
   	/** \name dimensions */
   	/*@{*/
-	/** number of spatial dimensions */
-//	int fNumSD;
-
 	/** number of degrees of freedom */
 	int fNumDOF;
 	
