@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.78.2.2 2004-03-03 16:18:24 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.78.2.3 2004-03-24 02:01:35 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -934,6 +934,7 @@ void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 #ifdef COHESIVE_SURFACE_ELEMENT
 		sub_sub_list.AddSub("isotropic_CSE");
 		sub_sub_list.AddSub("anisotropic_CSE");
+		sub_sub_list.AddSub("anisotropic_symmetry_CSE");
 #endif
 
 #ifdef ADHESION_ELEMENT
@@ -1006,6 +1007,9 @@ ElementBaseT* ElementListT::NewElement(const StringT& list_name) const
 		
 	else if (list_name == "anisotropic_CSE")
 		return new CSEAnisoT(fSupport);
+
+	else if (list_name == "anisotropic_symmetry_CSE")
+		return new CSESymAnisoT(fSupport);
 #endif
 
 #ifdef ADHESION_ELEMENT
