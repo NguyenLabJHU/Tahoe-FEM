@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2004-06-19 01:23:35 raregue Exp $
+# $Id: makefile,v 1.1 2004-06-19 01:24:03 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,8 +20,10 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.2).
 #
 OBJ = \
-	MFGP_AssemblyT.o \
-	MFGP_Traction_and_Body_Force.o
+	GRAD_MRPrimitiveT.o \
+	GRAD_MRSSKStV.o \
+	GRAD_MRSSKStV2D.o \
+	GRAD_MRSSNLHardT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -41,8 +43,10 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	MFGP_AssemblyT.cpp \
-	MFGP_Traction_and_Body_Force.cpp
+	GRAD_MRPrimitiveT.cpp \
+	GRAD_MRSSKStV.cpp \
+	GRAD_MRSSKStV2D.cpp \
+	GRAD_MRSSNLHardT.cpp
 
 ##################### (3) headers
 #
@@ -54,7 +58,10 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	MFGP_AssemblyT.h
+	GRAD_MRPrimitiveT.h \
+	GRAD_MRSSKStV.h \
+	GRAD_MRSSKStV2D.h \
+	GRAD_MRSSNLHardT.h
  
 HDR_LINK = $(HDR:.h=.h_link)
 
@@ -65,19 +72,16 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = \
-	MFA \
-	grad_plasticity_MR
-
-subdir_driver: subdir_loop
-
+#SUB_DIR = \
+#subdir_driver: subdir_loop
+#
 #
 # (4.2) If there are no sub-directories in this directory:
 #    (1) comment the SUB_DIR and subdir_driver in section (4.1)
 #    (2) uncomment the subdir_driver macro below
 #
 #SUB_DIR =
-#subdir_driver: 
+subdir_driver: 
 
 #####################
 

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2004-06-19 01:23:35 raregue Exp $
+# $Id: makefile,v 1.1 2004-06-19 01:23:43 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,12 +20,10 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.2).
 #
 OBJ = \
-	MFGP_AssemblyT.o \
-	MFGP_Traction_and_Body_Force.o
+	MFGP_VariableT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
-
 #
 # (1.2) If there are not object in this directory:
 #    (1) comment the OBJ, OBJ_LINK, and DEP definitions in section (1.1)
@@ -40,10 +38,8 @@ DEP = $(OBJ:.o=.d)
 # (2) If there are sources in this directory list them in the
 #     SRC macro; otherwise, comment the SRC macro.
 #
-SRC = \
-	MFGP_AssemblyT.cpp \
-	MFGP_Traction_and_Body_Force.cpp
-
+SRC = MFGP_VariableT.cpp
+#
 ##################### (3) headers
 #
 # (3) If there are header files in this directory:
@@ -54,10 +50,11 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	MFGP_AssemblyT.h
- 
-HDR_LINK = $(HDR:.h=.h_link)
+	MFGP_EnumT.h \
+	MFGP_VariableT.h
 
+HDR_LINK = $(HDR:.h=.h_link)
+#
 ##################### (4) sub-directories
 #
 # (4.1) If there are sub-directories contained in this directory:
@@ -66,8 +63,8 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
 SUB_DIR = \
-	MFA \
-	grad_plasticity_MR
+	bal_lin \
+	plast
 
 subdir_driver: subdir_loop
 
