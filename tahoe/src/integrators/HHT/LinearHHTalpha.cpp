@@ -1,4 +1,4 @@
-/* $Id: LinearHHTalpha.cpp,v 1.5.32.1 2004-01-28 01:34:03 paklein Exp $ */
+/* $Id: LinearHHTalpha.cpp,v 1.5.32.2 2004-03-09 08:55:19 paklein Exp $ */
 /* created: paklein (10/11/1996) */
 #include "LinearHHTalpha.h"
 #include "dArrayT.h"
@@ -14,7 +14,7 @@ LinearHHTalpha::LinearHHTalpha(double alpha):
 	eLinearHHTalpha(alpha),
 	fTimeBoss(NULL)
 {
-	ExceptionT::GeneralFail("LinearHHTalpha::LinearHHTalpha");
+
 }
 
 /* take responsibility for forming the nodal contribution
