@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.2 2001-12-13 02:57:59 paklein Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.3 2001-12-14 17:37:40 paklein Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -130,6 +130,12 @@ void VTKUGridT::SetScalarRange(double min, double max)
 	fMapper->SetScalarRange(min, max);
 }
 
+/* set the number of color levels */
+void VTKUGridT::SetNumberOfColors(int num)
+{
+	fLookUpTable->SetNumberOfColors(num);
+}
+
 /* set the vector data */
 void VTKUGridT::SetVectors(vtkFloatArray* vectors)
 {
@@ -147,6 +153,12 @@ void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors)
 	if (!fWarp) fWarp = vtkWarpVector::New();
 	fWarp->SetInput(fUGrid);
 	fMapper->SetInput(fWarp->GetOutput());
+}
+
+/* set the wrap displacement scale factor */
+void VTKUGridT::SetScaleFactor(float factor)
+{
+	if (fWarp) fWarp->SetScaleFactor(factor);
 }
 
 /* set grid representation.

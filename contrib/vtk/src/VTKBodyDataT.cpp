@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.6 2001-12-13 02:57:59 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.7 2001-12-14 17:37:40 paklein Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -214,14 +214,14 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
   	if (num_node_variables > 0) UpdateData();
 
 	/* add variables to the console */
-	iAddVariable("min_Hue_Range", hueRange1);
-	iAddVariable("max_Hue_Range", hueRange2);
-	iAddVariable("min_Value_Range", valRange1);
-	iAddVariable("max_Value_Range", valRange2);
-	iAddVariable("min_Saturation_Range", satRange1);
-	iAddVariable("max_Saturation_Range", satRange2);
-	iAddVariable("min_Alpha_Range", alphaRange1);
-	iAddVariable("max_Alpha_Range", alphaRange2);
+//	iAddVariable("min_Hue_Range", hueRange1);
+//	iAddVariable("max_Hue_Range", hueRange2);
+//	iAddVariable("min_Value_Range", valRange1);
+//	iAddVariable("max_Value_Range", valRange2);
+//	iAddVariable("min_Saturation_Range", satRange1);
+//	iAddVariable("max_Saturation_Range", satRange2);
+//	iAddVariable("min_Alpha_Range", alphaRange1);
+//	iAddVariable("max_Alpha_Range", alphaRange2);
 	if (currentVarNum > 0)
 	{
 		iAddVariable("min_Scalar_Range", scalarRange1[currentVarNum]);
@@ -289,11 +289,18 @@ void VTKBodyDataT::UpdateData(void)
 	{
   		/* update range */
   		for (int i = 0; i < fUGrids.Length(); i++)
+  		{
+  			/* set displacement scale factor */
+  			fUGrids[i]->SetScaleFactor(scale_factor);
+  		
+  			/* rendering properties */
   			if (fUGrids[i]->Type() == VTKUGridT::kElementSet)
   			{
 				fUGrids[i]->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
 				fUGrids[i]->SetOpacity(opacity);
+				fUGrids[i]->SetNumberOfColors(numColors);
 			}
+		}
 	}	
 }
 
@@ -416,12 +423,13 @@ bool VTKBodyDataT::iDoCommand(const CommandSpecT& command, StringT& line)
 
 void VTKBodyDataT::DefaultValues(void)
 {
-  numColors = 256;
-  hueRange1 = 0.6667; hueRange2 = 0;
-  valRange1 = 1; valRange2 = 1;
-  satRange1 = 1; satRange2 = 1;
-  alphaRange1 = 1; alphaRange2 = 1;
-  opacity = 1;
+//  hueRange1 = 0.6667; hueRange2 = 0;
+//  valRange1 = 1; valRange2 = 1;
+//  satRange1 = 1; satRange2 = 1;
+//  alphaRange1 = 1; alphaRange2 = 1;
+	numColors = 256;
+	opacity = 1;
+	scale_factor = 1.0;
 }
 
 /* load data for the current time step */
