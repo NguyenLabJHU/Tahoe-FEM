@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.5 2002-06-08 20:20:27 paklein Exp $ */
+/* $Id: RodT.h,v 1.6 2002-06-29 16:16:05 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -8,7 +8,6 @@
 #include "ElementBaseT.h"
 
 /* direct members */
-#include "LocalArrayT.h"
 #include "RodMaterialT.h"
 
 /* templates */
@@ -69,11 +68,6 @@ protected: /* for derived classes only */
 	/* element data */
 	virtual void ReadMaterialData(ifstreamT& in);	
 	virtual void WriteMaterialData(ostream& out) const;
-	
-	/* element calculations */
-	double ElementEnergy(void);
-	void ElementForce(double constKd);
-	void ElementStiffness(double constK);
 
 	/** return true if connectivities are changing */
 	virtual bool ChangingGeometry(void) const { return false; };
@@ -87,8 +81,22 @@ protected:
 	pArrayT<RodMaterialT*> fMaterialsList; 	
 	RodMaterialT*	       fCurrMaterial;
 
-	LocalArrayT	fLocInitCoords; /* refcoords with local ordering */
-	LocalArrayT fLocDisp;       /* displacements with local ordering */
+private:
+
+	/** \name work space */
+	/*@{*/
+	/** constant matrix needed to compute the stiffness */
+	dMatrixT fOneOne;
+
+	/** current pair vector */
+	dArrayT fBond;
+
+	/** reference pair vector */
+	dArrayT fBond0;
+
+	/** current coordinates for one pair bond */
+//	dArray2DT fPairCoords;
+	/*@}*/
 };
 
 #endif /* _ROD_T_H_ */
