@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.4 2001-04-27 10:45:02 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.5 2001-06-20 22:49:16 paklein Exp $ */
 /* created: paklein (07/09/1996)                                          */
 /* nArrayT with subdimension - row major storage                          */
 
@@ -75,6 +75,9 @@ public:
 
 	/* row scaling */	
 	void ScaleRow(int row, const nTYPE& scale);
+
+	/* column scaling */	
+	void ScaleColumn(int col, const nTYPE& scale);
 
 	/* dot the specified row number with the array */
 	nTYPE DotRow(int row, nTYPE* array) const;
@@ -516,6 +519,17 @@ inline void nArray2DT<nTYPE>::ScaleRow(int row, const nTYPE& scale)
 	nTYPE* p = (*this)(row);
 	for (int i = 0; i < fMinorDim; i++)
 		*p++ *= scale;
+}
+
+template <class nTYPE>
+inline void nArray2DT<nTYPE>::ScaleColumn(int col, const nTYPE& scale)
+{
+	nTYPE* p  = &(*this)(0,col);
+	for (int i = 0; i < fMajorDim; i++)
+	{
+		*p *= scale;
+		p += fMinorDim;
+	}
 }
 
 /* dot the specified row number with the array.  No
