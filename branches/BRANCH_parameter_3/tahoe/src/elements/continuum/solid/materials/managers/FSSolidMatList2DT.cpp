@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.1.4.9 2004-06-17 07:54:24 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.1.4.10 2004-06-19 23:28:08 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -103,6 +103,8 @@ void FSSolidMatList2DT::ReadMaterialData(ifstreamT& in)
 {
 	const char caller[] = "FSSolidMatList2DT::ReadMaterialData";
 
+	ExceptionT::GeneralFail(caller);
+#if 0
 	int i, matnum;
 	SolidT::TypeT matcode;
 	try {
@@ -596,6 +598,8 @@ void FSSolidMatList2DT::ReadMaterialData(ifstreamT& in)
 		ExceptionT::Throw(error, caller, "exception constructing material %d, index %d, code %d",
 			i+1, matnum+1, matcode);
 	}
+
+#endif
 }
 
 /* return true if the list contains plane stress models */
@@ -651,6 +655,12 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& sub, ParameterListT::List
 
 #ifdef MODCBSW_MATERIAL
 		sub_sub_list.AddSub("Cauchy-Born_diamond_2D");
+#endif
+
+#ifdef VIB_MATERIAL
+		sub_sub_list.AddSub("VIB_2D");
+		sub_sub_list.AddSub("isotropic_VIB_2D");
+		sub_sub_list.AddSub("Ogden_isotropic_VIB_2D");
 #endif
 	}
 	else /* inherited */
@@ -733,6 +743,15 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 #ifdef MODCBSW_MATERIAL
 	else if (name == "Cauchy-Born_diamond_2D")
 		mat = new ModCB2DT;
+#endif
+
+#ifdef VIB_MATERIAL
+	else if (name == "VIB_2D")
+		mat = new VIB2D;
+	else if (name == "isotropic_VIB_2D")
+		mat = new IsoVIB2D;
+	else if (name == "Ogden_isotropic_VIB_2D")
+		mat = new OgdenIsoVIB2D;
 #endif
 
 	/* set support */

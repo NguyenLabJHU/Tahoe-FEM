@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.cpp,v 1.9.20.2 2004-06-09 23:17:46 paklein Exp $ */
+/* $Id: IsoVIB3D.cpp,v 1.9.20.3 2004-06-19 23:28:03 paklein Exp $ */
 /* created: paklein (03/15/1998) */
 #include "IsoVIB3D.h"
 
@@ -11,23 +11,27 @@
 #include "dSymMatrixT.h"
 
 /* point generators */
+#include "VIB3D.h"
 #include "LatLongPtsT.h"
 #include "IcosahedralPtsT.h"
+#include "FCCPtsT.h"
 
 using namespace Tahoe;
 
 /* constructors */
 IsoVIB3D::IsoVIB3D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("isotropic_VIB_3D"),
+	ParameterInterfaceT("isotropic_VIB"),
 	FSSolidMatT(in, support),
-	VIB(in, 3, 3, 6),
+	VIB(3, 3, 6),
 	fEigs(3),
 	fEigmods(3),
 	fSpectral(3),
 	fb(3),
+	fSphere(NULL),
 	fModulus(dSymMatrixT::NumValues(3)),
 	fStress(3)
 {	
+#if 0
 	/* construct point generator */
 	int gencode;
 	in >> gencode;
@@ -48,6 +52,16 @@ IsoVIB3D::IsoVIB3D(ifstreamT& in, const FSMatSupportT& support):
 
 	/* set tables */
 	Construct();
+#endif
+}
+
+IsoVIB3D::IsoVIB3D(void):
+	ParameterInterfaceT("isotropic_VIB"),
+	VIB(3, 3, 6),
+	fSpectral(3),
+	fSphere(NULL)
+{	
+
 }
 
 /* destructor */
@@ -287,6 +301,75 @@ double IsoVIB3D::StrainEnergyDensity(void)
 		energy += (*pU++)*(*pj++);
 	
 	return energy;
+}
+
+/* information about subordinate parameter lists */
+void IsoVIB3D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	FSSolidMatT::DefineSubs(sub_list);
+	VIB::DefineSubs(sub_list);
+
+	/* choice of integration schemes */
+	sub_list.AddSub("sphere_integration_choice", ParameterListT::Once, true);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* IsoVIB3D::NewSub(const StringT& list_name) const
+{
+	/* inherited */
+	ParameterInterfaceT* sub = FSSolidMatT::NewSub(list_name);
+	if (sub) 
+		return sub;
+	else if (list_name == "sphere_integration_choice")
+	{
+		/* use other VIB material to construct point generator */
+		VIB3D vib;
+		return vib.NewSub(list_name);
+	}	
+	else /* inherited */
+		return VIB::NewSub(list_name);
+}
+
+/* accept parameter list */
+void IsoVIB3D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FSSolidMatT::TakeParameterList(list);
+	VIB::TakeParameterList(list);
+
+	/* dimension work space */
+	fEigs.Dimension(3);
+	fEigmods.Dimension(3);
+	fb.Dimension(3);
+	fModulus.Dimension(dSymMatrixT::NumValues(3));
+	fStress.Dimension(3);
+
+	/* use other VIB material to construct integration rule */
+	VIB3D vib;
+	const ParameterListT& points = list.GetListChoice(vib, "sphere_integration_choice");
+	if (points.Name() == "latitude_longitude")
+	{
+		int n_phi = points.GetParameter("n_phi");
+		int n_theta = points.GetParameter("n_theta");
+		fSphere = new LatLongPtsT(n_phi, n_theta);
+	}
+	else if (points.Name() == "icosahedral")
+	{
+		int np = points.GetParameter("points");
+		fSphere = new IcosahedralPtsT(np);
+	}
+	else if (points.Name() == "fcc_points")
+	{
+		int num_shells = points.GetParameter("shells");
+		double bond_length = points.GetParameter("nearest_neighbor_distance");
+		fSphere = new FCCPtsT(num_shells, bond_length);
+	}
+	else
+		ExceptionT::GeneralFail("IsoVIB3D::TakeParameterList", "unrecognized point scheme \"%s\"", points.Name().Pointer());	
+
+	/* set tables */
+	Construct();	
 }
 
 /***********************************************************************

@@ -1,23 +1,19 @@
-/* $Id: VIB_E_MatT.cpp,v 1.5.20.1 2004-06-09 23:17:43 paklein Exp $ */
-/* created: paklein (11/08/1997)                                          */
-/* Base class for isotropic VIB_E_MatT materials.                         */
-
+/* $Id: VIB_E_MatT.cpp,v 1.5.20.2 2004-06-19 23:28:01 paklein Exp $ */
+/* created: paklein (11/08/1997) */
 #include "VIB_E_MatT.h"
 
 #include <math.h>
-#include <iostream.h>
 
-#include "toolboxConstants.h"
 #include "ExceptionT.h"
 #include "dSymMatrixT.h"
 #include "C1FunctionT.h"
 
-/* constructors */
-
 using namespace Tahoe;
 
-VIB_E_MatT::VIB_E_MatT(ifstreamT& in, int nsd):
-	VIB(in, nsd, dSymMatrixT::NumValues(nsd), (nsd == 2) ? 5 : 15)
+/* constructors */
+VIB_E_MatT::VIB_E_MatT(int nsd):
+	ParameterInterfaceT("VIB_Green_material"),
+	VIB(nsd, dSymMatrixT::NumValues(nsd), (nsd == 2) ? 5 : 15)
 {
 
 }

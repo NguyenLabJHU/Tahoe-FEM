@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.h,v 1.8.46.2 2004-06-09 23:17:45 paklein Exp $ */
+/* $Id: IsoVIB2D.h,v 1.8.46.3 2004-06-19 23:28:02 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _ISO_VIB_2D_H_
 #define _ISO_VIB_2D_H_
@@ -22,6 +22,7 @@ public:
 
 	/* constructor */
 	IsoVIB2D(ifstreamT& in, const FSMatSupportT& support);
+	IsoVIB2D(void);
 
 	/* destructor */
 	~IsoVIB2D(void);
@@ -56,6 +57,15 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:

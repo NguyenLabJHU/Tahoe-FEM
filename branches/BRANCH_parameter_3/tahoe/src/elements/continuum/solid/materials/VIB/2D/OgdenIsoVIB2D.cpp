@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.cpp,v 1.11.20.2 2004-06-09 23:17:45 paklein Exp $ */
+/* $Id: OgdenIsoVIB2D.cpp,v 1.11.20.3 2004-06-19 23:28:02 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB2D.h"
 
@@ -18,21 +18,28 @@ using namespace Tahoe;
 OgdenIsoVIB2D::OgdenIsoVIB2D(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("Ogden_isotropic_VIB_2D"),
 	OgdenIsotropicT(in, support),
-	VIB(in, 2, 2, 3),
+	VIB(2, 2, 3),
 	fCircle(NULL)
 {
+#if 0
 	/* point generator */
 	fCircle = new EvenSpacePtsT(in);
 
 	/* set tables */
 	Construct();
+#endif
+}
+
+OgdenIsoVIB2D::OgdenIsoVIB2D(void):
+	ParameterInterfaceT("Ogden_isotropic_VIB_2D"),
+	VIB(2, 2, 3),
+	fCircle(NULL)
+{
+
 }
 
 /* destructor */
-OgdenIsoVIB2D::~OgdenIsoVIB2D(void)
-{
-	delete fCircle;
-}
+OgdenIsoVIB2D::~OgdenIsoVIB2D(void) { delete fCircle; }
 
 /* strain energy density */
 double OgdenIsoVIB2D::StrainEnergyDensity(void)
@@ -64,15 +71,51 @@ void OgdenIsoVIB2D::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	OgdenIsotropicT::DefineParameters(list);
+	VIB::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
 	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStress);
+
+	/* integration points */
+	ParameterT points(ParameterT::Integer, "n_points");
+	points.AddLimit(1, LimitT::LowerInclusive);
+	list.AddParameter(points);
+}
+
+/* information about subordinate parameter lists */
+void OgdenIsoVIB2D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	OgdenIsotropicT::DefineSubs(sub_list);
+	VIB::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* OgdenIsoVIB2D::NewSub(const StringT& list_name) const
+{
+	/* inherited */
+	ParameterInterfaceT* sub = OgdenIsotropicT::NewSub(list_name);
+	if (sub) return sub;
+	else return VIB::NewSub(list_name);
+}
+
+/* describe the parameters needed by the interface */
+void OgdenIsoVIB2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	OgdenIsotropicT::TakeParameterList(list);
+	VIB::TakeParameterList(list);
+
+	/* point generator */
+	int points = list.GetParameter("n_points");
+	fCircle = new EvenSpacePtsT(points);
+	Construct();
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* principal values given principal values of the stretch tensors,
  * i.e., the principal stretches squared */

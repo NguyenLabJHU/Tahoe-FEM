@@ -1,4 +1,4 @@
-/* $Id: tevp3D.cpp,v 1.16.20.2 2004-06-09 23:18:09 paklein Exp $ */
+/* $Id: tevp3D.cpp,v 1.16.20.3 2004-06-19 23:28:11 paklein Exp $ */
 /* created:  Harold Park (06/25/2001) */
 #include "tevp3D.h"
 #include <iostream.h>
@@ -20,7 +20,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 tevp3D::tevp3D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("tevp_3D"),
+	ParameterInterfaceT("thermo_viscoplastic"),
   /* initialize references */
 //  fRunState(ContinuumElement().RunState()),
 //  fDt(ContinuumElement().ElementSupport().TimeStep()),

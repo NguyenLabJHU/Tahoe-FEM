@@ -1,15 +1,14 @@
-/* $Id: VIB.h,v 1.4.50.1 2004-06-09 23:17:43 paklein Exp $ */
-/* created: paklein (10/30/1997)                                          */
-/* Base class for isotropic VIB solvers.                                  */
-
+/* $Id: VIB.h,v 1.4.50.2 2004-06-19 23:28:01 paklein Exp $ */
+/* created: paklein (10/30/1997) */
 #ifndef _VIB_H_
 #define _VIB_H_
+
+/* base class */
+#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "dArrayT.h"
 #include "dArray2DT.h"
-
-#include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
@@ -18,16 +17,33 @@ class ifstreamT;
 class C1FunctionT;
 class dSymMatrixT;
 
-class VIB
+/** base class for Virtual Internal Bond calculations */
+class VIB: virtual public ParameterInterfaceT
 {
 public:
 
-	/* constructor */
-	VIB(ifstreamT& in, int nsd, int numstress, int nummoduli);
+	/** constructor */
+	VIB(int nsd, int numstress, int nummoduli);
 
 	/* destructor */
 	virtual ~VIB(void);
-	
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/* allocate memory for all the tables */

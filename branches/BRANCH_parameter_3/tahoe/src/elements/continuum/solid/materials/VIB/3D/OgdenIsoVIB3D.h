@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.h,v 1.7.46.1 2004-06-09 23:17:46 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.h,v 1.7.46.2 2004-06-19 23:28:04 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _OGDEN_ISO_VIB_3D_H_
 #define _OGDEN_ISO_VIB_3D_H_
@@ -19,12 +19,25 @@ public:
 
 	/* constructor */
 	OgdenIsoVIB3D(ifstreamT& in, const FSMatSupportT& support);
+	OgdenIsoVIB3D(void);
 
 	/* destructor */
 	~OgdenIsoVIB3D(void);
 	
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/	
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.8.20.2 2004-06-09 23:17:45 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.8.20.3 2004-06-19 23:28:02 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #include "VIB2D.h"
 
@@ -11,10 +11,12 @@
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
+#include "ParameterContainerT.h"
 
 /* point generators */
-#include "EvenSpacePtsT.h"
+#include "CirclePointsT.h"
 #include "GaussPtsT.h"
+#include "EvenSpacePtsT.h"
 
 using namespace Tahoe;
 
@@ -25,8 +27,10 @@ const double Pi = acos(-1.0);
 VIB2D::VIB2D(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("VIB_2D"),
 	NL_E_MatT(in, support),
-	VIB_E_MatT(in, 2)
+	VIB_E_MatT(2),
+	fCircle(NULL)
 {
+#if 0
 	/* construct point generator */
 	int pointcode;
 	in >> pointcode;
@@ -51,13 +55,19 @@ VIB2D::VIB2D(ifstreamT& in, const FSMatSupportT& support):
 	
 	/* default construction */
 	SetAngle(0.0);
+#endif
+}
+
+VIB2D::VIB2D(void):
+	ParameterInterfaceT("VIB_2D"),
+	VIB_E_MatT(2),
+	fCircle(NULL)
+{
+
 }
 
 /* destructor */
-VIB2D::~VIB2D(void)
-{
-	delete fCircle;
-}
+VIB2D::~VIB2D(void) { delete fCircle; }
 
 /* set angle offset - for testing onset of amorphous behavior */
 void VIB2D::SetAngle(double angleoffset)
@@ -176,10 +186,81 @@ void VIB2D::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	NL_E_MatT::DefineParameters(list);
+	VIB_E_MatT::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
 	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStress);
+}
+
+/* information about subordinate parameter lists */
+void VIB2D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineSubs(sub_list);
+	VIB_E_MatT::DefineSubs(sub_list);
+
+	/* choice of integration schemes */
+	sub_list.AddSub("circle_integration_choice", ParameterListT::Once, true);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* VIB2D::NewSub(const StringT& list_name) const
+{
+	/* inherited */
+	ParameterInterfaceT* sub = NL_E_MatT::NewSub(list_name);
+	if (sub) 
+		return sub;
+	if (list_name == "circle_integration_choice")
+	{
+		ParameterContainerT* choice = new ParameterContainerT(list_name);
+		choice->SetListOrder(ParameterListT::Choice);
+
+		/* evenly spaced */
+		ParameterContainerT even("even_spaced");
+		ParameterT n_even(ParameterT::Integer, "n_even");
+		n_even.AddLimit(1, LimitT::LowerInclusive);
+		even.AddParameter(n_even);
+		choice->AddSub(even);
+
+		/* Gauss integration */
+		ParameterContainerT gauss("Gauss_points");
+		ParameterT n_gauss(ParameterT::Integer, "n_gauss");
+		n_gauss.AddLimit(9, LimitT::Only);
+		n_gauss.AddLimit(10, LimitT::Only);
+		gauss.AddParameter(n_gauss);
+		choice->AddSub(gauss);
+	
+		return choice;
+	}
+	else
+		return VIB_E_MatT::NewSub(list_name);
+}
+
+/* describe the parameters needed by the interface */
+void VIB2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	NL_E_MatT::TakeParameterList(list);
+	VIB_E_MatT::TakeParameterList(list);
+
+	/* construct integration scheme */
+	const ParameterListT& points = list.GetListChoice(*this, "circle_integration_choice");
+	if (points.Name() == "even_spaced")
+	{
+		int n = points.GetParameter("n_even");
+		fCircle = new EvenSpacePtsT(n);
+	}
+	else if (points.Name() == "Gauss_points")
+	{
+		int n = points.GetParameter("n_gauss");
+		fCircle = new GaussPtsT(n);
+	}
+	else
+		ExceptionT::GeneralFail("VIB2D::TakeParameterList", "unrecognized point scheme \"%s\"", points.Name().Pointer());	
+
+	/* default construction */
+	SetAngle(0.0);
 }
 
 /***********************************************************************

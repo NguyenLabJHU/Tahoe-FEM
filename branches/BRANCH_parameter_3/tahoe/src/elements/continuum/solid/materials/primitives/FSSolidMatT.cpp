@@ -1,8 +1,6 @@
-/* $Id: FSSolidMatT.cpp,v 1.10.20.2 2004-06-09 23:18:07 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.10.20.3 2004-06-19 23:28:10 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
-#include <iostream.h>
-
 #include "FSMatSupportT.h"
 #include "ThermalDilatationT.h"
 
@@ -96,8 +94,7 @@ void FSSolidMatT::Initialize(void)
 int FSSolidMatT::IsLocalized(dArrayT& normal)
 {
 #pragma unused(normal)
-cout << "\n FSSolidMatT::IsLocalized: broken" << endl;
-throw ExceptionT::kGeneralFail;
+ExceptionT::GeneralFail("FSSolidMatT::IsLocalized", "broken");
 return 0;
 //DEV
 
@@ -315,6 +312,9 @@ void FSSolidMatT::Compute_E(dSymMatrixT& E) const
 void FSSolidMatT::Compute_b(const dMatrixT& F, dSymMatrixT& b) const
 {
 	int nsd = NumSD();
+#if __option(extended_errorcheck)
+	if (F.Rows() != nsd || F.Cols() != nsd || b.Rows() != nsd) ExceptionT::SizeMismatch();	
+#endif
 	if (nsd == 2)
 	{
 		const double* f = F.Pointer();
@@ -339,16 +339,16 @@ void FSSolidMatT::Compute_b(const dMatrixT& F, dSymMatrixT& b) const
 		a[5] = f[0]*f[1] + f[3]*f[4] + f[6]*f[7];
 	}
 	else
-	{
-		cout << "\n FSSolidMatT::Compute_b: unsupported dimension: " << nsd << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("FSSolidMatT::Compute_b", "unsupported dimension %d", nsd);
 }
 
 /* right stretch tensor */
 void FSSolidMatT::Compute_C(const dMatrixT& F, dSymMatrixT& C) const
 {
 	int nsd = NumSD();
+#if __option(extended_errorcheck)
+	if (F.Rows() != nsd || F.Cols() != nsd || C.Rows() != nsd) ExceptionT::SizeMismatch();	
+#endif
 	if (nsd == 2)
 	{
 		const double* f = F.Pointer();
@@ -373,16 +373,16 @@ void FSSolidMatT::Compute_C(const dMatrixT& F, dSymMatrixT& C) const
 		c[5] = f[0]*f[3] + f[1]*f[4] + f[2]*f[5];
 	}
 	else
-	{
-		cout << "\n FSSolidMatT::Compute_C: unsupported dimension: " << nsd << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("FSSolidMatT::Compute_C", "unsupported dimension %d", nsd);
 }
 
 /* Green-Lagrangian strain */
 void FSSolidMatT::Compute_E(const dMatrixT& F, dSymMatrixT& E) const
 {
 	int nsd = NumSD();
+#if __option(extended_errorcheck)
+	if (F.Rows() != nsd || F.Cols() != nsd || E.Rows() != nsd) ExceptionT::SizeMismatch();	
+#endif
 	if (nsd == 2)
 	{
 		const double* f = F.Pointer();
@@ -407,10 +407,7 @@ void FSSolidMatT::Compute_E(const dMatrixT& F, dSymMatrixT& E) const
 		e[5] = (f[0]*f[3] + f[1]*f[4] + f[2]*f[5])*0.5;
 	}
 	else
-	{
-		cout << "\n FSSolidMatT::Compute_E: unsupported dimension: " << nsd << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("FSSolidMatT::Compute_E", "unsupported dimension %d", nsd);
 }
 
 /* return the acoustical tensor and wave speeds */
@@ -432,14 +429,14 @@ const dSymMatrixT& FSSolidMatT::AcousticalTensor(const dArrayT& normal)
 	else if (normal.Length() == 3)
 		ComputeQ_3D(C_, S_, F_, normal, fQ);
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail("FSSolidMatT::AcousticalTensor");
 
 	return fQ;
 }
 
 /*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 /* set inverse of thermal transformation - return true if active */
 bool FSSolidMatT::SetInverseThermalTransformation(dMatrixT& F_trans_inv)

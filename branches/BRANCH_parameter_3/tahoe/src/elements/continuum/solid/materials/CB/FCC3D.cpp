@@ -1,4 +1,4 @@
-/* $Id: FCC3D.cpp,v 1.3.12.3 2004-06-16 00:31:50 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.3.12.4 2004-06-19 23:27:58 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 #include "ElementsConfig.h"
@@ -25,20 +25,19 @@ FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("FCC_3D"),
 	NL_E_MatT(in, support),
 	fNearestNeighbor(-1),
-	fQ(3),
 	fFCCLattice(NULL),
 	fPairProperty(NULL),
 	fAtomicVolume(0),
 	fBondTensor4(dSymMatrixT::NumValues(3)),
 	fBondTensor2(dSymMatrixT::NumValues(3))	
 {
+#if 0
 	const char caller[] = "FCC3D::FCC3D";
 
 	/* read the number of shells */
 	int nshells;
 	in >> nshells;
 
-#if 0
 	/* construct pair property */
 	ParticlePropertyT::TypeT property;
 	in >> property;
@@ -69,7 +68,6 @@ FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
 	fQ.Identity();
 	fFCCLattice = new FCCLatticeT(fQ, nshells);
 	fFCCLattice->Initialize();
-#endif
 	
 	/* check */
 	if (fNearestNeighbor < kSmall)
@@ -87,6 +85,19 @@ FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
 
 	/* reset the continuum density (4 atoms per unit cell) */
 	fDensity = fPairProperty->Mass()/fAtomicVolume;
+#endif
+}
+
+FCC3D::FCC3D(void):
+	ParameterInterfaceT("FCC_3D"),
+	fNearestNeighbor(-1),
+	fFCCLattice(NULL),
+	fPairProperty(NULL),
+	fAtomicVolume(0),
+	fBondTensor4(dSymMatrixT::NumValues(3)),
+	fBondTensor2(dSymMatrixT::NumValues(3))	
+{
+
 }
 
 /* destructor */
@@ -94,6 +105,102 @@ FCC3D::~FCC3D(void)
 {
 	delete fFCCLattice;
 	delete fPairProperty;
+}
+
+/* describe the parameters needed by the interface */
+void FCC3D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineParameters(list);
+
+	/* number of neighbor shells */
+	ParameterT n_shells(ParameterT::Integer, "shells");
+	n_shells.AddLimit(1, LimitT::LowerInclusive);
+	list.AddParameter(n_shells);
+}
+
+/* information about subordinate parameter lists */
+void FCC3D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineSubs(sub_list);
+
+	/* FCC lattice */
+	sub_list.AddSub("CB_lattice_FCC");
+
+	/* pair potential choice */
+	sub_list.AddSub("FCC_3D_potential_choice", ParameterListT::Once, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void FCC3D::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "FCC_3D_potential_choice")
+	{
+		order = ParameterListT::Choice;
+
+		/* choice of potentials */
+		sub_sub_list.AddSub("harmonic");
+		sub_sub_list.AddSub("Lennard_Jones");
+		sub_sub_list.AddSub("Paradyn_pair");
+		sub_sub_list.AddSub("Matsui");
+	}
+	else /* inherited */
+		NL_E_MatT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* FCC3D::NewSub(const StringT& list_name) const
+{
+	/* try to construct pair property */
+	PairPropertyT* pair_prop = PairPropertyT::New(list_name, fMaterialSupport);
+	if (pair_prop)
+		return pair_prop;
+	else if (list_name == "CB_lattice_FCC")	
+		return new FCCLatticeT(0);
+	else /* inherited */
+		return NL_E_MatT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void FCC3D::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "FCC3D::TakeParameterList";
+
+	/* inherited */
+	NL_E_MatT::TakeParameterList(list);
+
+	/* number of shells */
+	int nshells = list.GetParameter("shells");
+
+	/* construct pair property */
+	const ParameterListT& pair_prop = list.GetListChoice(*this, "FCC_3D_potential_choice");
+	fPairProperty = PairPropertyT::New(pair_prop.Name(), &(MaterialSupport()));
+	if (!fPairProperty) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", pair_prop.Name().Pointer());
+	fPairProperty->TakeParameterList(pair_prop);
+	fNearestNeighbor = fPairProperty->NearestNeighbor();
+
+	/* construct lattice */
+	fFCCLattice = new FCCLatticeT(nshells);
+	fFCCLattice->TakeParameterList(list.GetList("CB_lattice_FCC"));
+
+	/* check */
+	if (fNearestNeighbor < kSmall)
+		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
+		
+	/* compute the (approx) cell volume */
+	double cube_edge = fNearestNeighbor*sqrt(2.0);
+	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
+
+	/* compute stress-free dilatation */
+	double stretch = ZeroStressStretch();
+	fNearestNeighbor *= stretch;
+	cube_edge = fNearestNeighbor*sqrt(2.0);
+	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
+
+	/* reset the continuum density (4 atoms per unit cell) */
+	fDensity = fPairProperty->Mass()/fAtomicVolume;
 }
 
 /*************************************************************************

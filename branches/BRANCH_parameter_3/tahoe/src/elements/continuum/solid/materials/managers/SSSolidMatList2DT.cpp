@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.1.4.5 2004-06-11 01:38:15 paklein Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.1.4.6 2004-06-19 23:28:09 paklein Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
 
@@ -89,6 +89,8 @@ void SSSolidMatList2DT::ReadMaterialData(ifstreamT& in)
 {
 	const char caller[] = "SSSolidMatList2DT::ReadMaterialData";
 
+ExceptionT::GeneralFail(caller);
+#if 0
 	int i, matnum;
 	SolidT::TypeT matcode;
 	try {
@@ -279,6 +281,7 @@ void SSSolidMatList2DT::ReadMaterialData(ifstreamT& in)
 		ExceptionT::Throw(error, caller, "exception constructing material %d, index %d, code %d",
 			i+1, matnum+1, matcode);
 	}
+#endif
 }
 
 /* return true if the list contains plane stress models */

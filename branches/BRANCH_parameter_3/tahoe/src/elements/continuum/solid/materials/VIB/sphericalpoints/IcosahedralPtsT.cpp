@@ -1,42 +1,18 @@
-/* $Id: IcosahedralPtsT.cpp,v 1.4 2002-10-20 22:48:59 paklein Exp $ */
-/* created: paklein (10/31/1997)                                          */
-/* Base class for spherical point generators.                             */
-
+/* $Id: IcosahedralPtsT.cpp,v 1.4.50.1 2004-06-19 23:28:07 paklein Exp $ */
+/* created: paklein (10/31/1997) */
 #include "IcosahedralPtsT.h"
 
-#include <math.h>
-#include <iostream.h>
-
-#include "toolboxConstants.h"
 #include "ExceptionT.h"
-#include "fstreamT.h"
-
 
 using namespace Tahoe;
 
 const double Pi = acos(-1.0);
 
-/*
-* Constructor
-*/
-IcosahedralPtsT::IcosahedralPtsT(ifstreamT& in)
+/* constructor */
+IcosahedralPtsT::IcosahedralPtsT(int num_points):
+	fN(num_points)
 {
-	/* number of integration points */
-	in >> fN;
-}
 
-/*
-* Print parameters.
-*/
-void IcosahedralPtsT::Print(ostream& out) const
-{
-	/* number of integration points */
-	out << " Number of sampling points . . . . . . . . . . . = " << fN << '\n';
-}
-
-void IcosahedralPtsT::PrintName(ostream& out) const
-{
-	out << "    " << fN << " Icohesadral points\n";
 }
 
 /*
@@ -320,7 +296,7 @@ void IcosahedralPtsT::SetCoords(int numint)
 		
 		default:
 			
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail("IcosahedralPtsT::SetCoords", "unsupported number of points %d", numint);
 	}
 	
 	/* temp vector */
@@ -423,7 +399,7 @@ void IcosahedralPtsT::SetJacobians(int numint)
 		
 		default:
 			
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail("IcosahedralPtsT::SetJacobians", "unsupported number of points %d", numint);
 	}
 	
 	/* temp vector */
