@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.h,v 1.8 2004-07-15 08:30:07 paklein Exp $ */
+/* $Id: D2MeshFreeSupportT.h,v 1.9 2004-08-14 00:09:54 raregue Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D2_MF_SUPPORT_T_H_
 #define _D2_MF_SUPPORT_T_H_
@@ -83,9 +83,9 @@ private:
 	void ComputeElementData(int element, iArrayT& neighbors, dArray2DT& phi,
 		ArrayT<dArray2DT>& Dphi, ArrayT<dArray2DT>& DDphi);
 
-private:
+protected:
 
-/* higher order MLS solver */
+	/* higher order MLS solver */
 	D2OrthoMLSSolverT* fD2EFG;
 	
 	/* nodal shape function database */
