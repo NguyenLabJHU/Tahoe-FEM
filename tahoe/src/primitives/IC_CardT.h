@@ -1,17 +1,9 @@
-/* $Id: IC_CardT.h,v 1.5 2002-07-05 22:28:33 paklein Exp $ */
+/* $Id: IC_CardT.h,v 1.5.64.1 2004-07-08 07:40:24 paklein Exp $ */
 /* created: paklein (07/16/1997) */
-
 #ifndef _IC_CARD_T_H_
 #define _IC_CARD_T_H_
 
-#include "Environment.h"
-
-#include "ios_fwd_decl.h"
-
 namespace Tahoe {
-
-/* forward declarations */
-class ifstreamT;
 
 /** container class for kinematic initial condition data.
  * Handles mainly I/O and provides access to data via (inline) accessors */
@@ -24,7 +16,7 @@ public:
 
 	/** \name modifiers */
 	/*@{*/
-	void SetValues(ifstreamT& in);
+//	void SetValues(ifstreamT& in);
 	void SetValues(int node, int dof, int order, double value);
 	/*@}*/
 	
@@ -38,8 +30,8 @@ public:
 
 	/** \name I/O methods */
 	/*@{*/
-	static void WriteHeader(ostream& out);
-	void WriteValues(ostream& out) const;
+//	static void WriteHeader(ostream& out);
+//	void WriteValues(ostream& out) const;
 	/*@}*/
 	
 private:

@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.cpp,v 1.13.30.1 2004-07-06 06:54:46 paklein Exp $ */
+/* $Id: KBC_CardT.cpp,v 1.13.30.2 2004-07-08 07:40:24 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "KBC_CardT.h"
 
@@ -95,6 +95,7 @@ double KBC_CardT::Value(void) const
 	  }
 }
 
+#if 0
 /* I/O */
 void KBC_CardT::WriteHeader(ostream& out)
 {
@@ -116,8 +117,9 @@ void KBC_CardT::WriteValues(ostream& out) const
 	out << setw(kIntWidth) << fcode;
 	out << setw(d_width)   << fvalue    << '\n';
 }
+#endif
 
-KBC_CardT::CodeT KBC_CardT::int_to_CodeT (int i_code)
+KBC_CardT::CodeT KBC_CardT::int2CodeT(int i_code)
 {
 	/* resolve code */
 	switch (i_code)
@@ -140,17 +142,4 @@ KBC_CardT::CodeT KBC_CardT::int_to_CodeT (int i_code)
 
 	/* dummy */
 	return KBC_CardT::kAcc;
-}
-
-namespace Tahoe {
-
-/* input operator for codes */
-istream& operator>>(istream& in, KBC_CardT::CodeT& code)
-{
-	int i_code;
-	in >> i_code;
-	code = KBC_CardT::int_to_CodeT(i_code);
-	return in;
-}
-
 }

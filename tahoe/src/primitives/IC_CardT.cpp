@@ -1,4 +1,4 @@
-/* $Id: IC_CardT.cpp,v 1.14.2.1 2004-07-07 15:28:49 paklein Exp $ */
+/* $Id: IC_CardT.cpp,v 1.14.2.2 2004-07-08 07:40:24 paklein Exp $ */
 /* created: paklein (07/16/1997) */
 #include "IC_CardT.h"
 
@@ -20,6 +20,7 @@ IC_CardT::IC_CardT(void): fnode(-1), fdof(-1), fvalue(0.0)
 	//initialize to inappropriate values
 }
 
+#if 0
 /* modifiers */
 void IC_CardT::SetValues(ifstreamT& in)
 {
@@ -39,6 +40,7 @@ void IC_CardT::SetValues(ifstreamT& in)
 	/* set and echo */
 	SetValues(node, dof, order, value);
 }
+#endif
 
 void IC_CardT::SetValues(int node, int dof, int order, double value)
 {
@@ -52,6 +54,7 @@ void IC_CardT::SetValues(int node, int dof, int order, double value)
 	if (order < 0) throw ExceptionT::kBadInputValue;
 }
 
+#if 0
 /* I/O */
 void IC_CardT::WriteHeader(ostream& out)
 {
@@ -76,3 +79,4 @@ void IC_CardT::WriteValues(ostream& out) const
 	out << setw(kIntWidth) << forder;
 	out << setw(d_width)   << fvalue << '\n';
 }
+#endif
