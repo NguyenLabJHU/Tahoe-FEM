@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.17.2.5 2004-08-11 01:14:57 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.17.2.6 2004-08-12 00:28:36 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -613,6 +613,7 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	/* path to parameters file */
 	StringT path;
 	path.FilePath(fInputFile);
+	TaskT task = kRun;
 
 	/* parse/validate continuum input */
 	StringT continuum_input = list.GetParameter("continuum_input");
@@ -622,10 +623,17 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	ParseInput(continuum_input, continuum_params, true, true, true, fArgv);
 			
 	/* construct continuum solver */
+	if (fCoarseComm->Size() != 1)
+		ExceptionT::GeneralFail(caller, "parallel execution error");
+	if (Size() > 1) /* change file name so output files are unique */  {
+		StringT suffix;
+		suffix.Suffix(continuum_input);
+		continuum_input.Root();
+		continuum_input.Append(".p", Rank());
+		continuum_input.Append(suffix);
+	}
 	StringT continuum_output_file;
-	TaskT task = kRun;
 	continuum_output_file.Root(continuum_input);
-	if (fCoarseComm->Size() > 1) continuum_output_file.Append(".p", Rank());
 	continuum_output_file.Append(".out");
 	fCoarseOut.open(continuum_output_file);
 	fCoarse = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(continuum_params.Name(), continuum_input, fCoarseOut, *fCoarseComm, fArgv, task));
@@ -640,9 +648,11 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	ParseInput(atom_input, atom_params, true, true, true, fArgv);
 
 	/* construct atomistic solver */
+	if (Size() != fFineComm->Size())
+		ExceptionT::GeneralFail(caller, "parallel execution error");
 	StringT atom_output_file;
 	atom_output_file.Root(atom_input);
-	if (fFineComm->Size() > 1) atom_output_file.Append(".p", Rank());
+	if (Size() > 1) atom_output_file.Append(".p", Rank());
 	atom_output_file.Append(".out");
 	fFineOut.open(atom_output_file);
 	fFine = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(atom_params.Name(), atom_input, fFineOut, *fFineComm, fArgv, task));
