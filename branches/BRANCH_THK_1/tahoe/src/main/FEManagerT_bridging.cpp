@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.3.2.12 2003-05-13 02:38:56 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.3.2.13 2003-05-13 15:08:36 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -83,9 +83,13 @@ void FEManagerT_bridging::SetEquationSystem(int group)
 }
 
 /* set pointer to an external force vector */
-void FEManagerT_bridging::SetExternalForce(const StringT& field, const iArrayT& nodes, const dArray2DT& external_force)
+void FEManagerT_bridging::SetExternalForce(const StringT& field, const dArray2DT& external_force)
 {
 	const char caller[] = "FEManagerT_bridging::SetExternalForce";
+
+	/* may not need to input active coarse scale nodes in function call because of Lagrangian nature of
+	   method, i.e. active nodes are always active nodes, and don't change. */
+	const iArrayT& nodes = fDrivenCellData.CellNodes();
 
 	/* check */
 	if (nodes.Length() != external_force.MajorDim()) 
@@ -325,10 +329,10 @@ void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& nodes) const
 {
 	/* obtain global node numbers of nodes whose support intersects MD, create inverse map */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();	// list of active nodes
-	InverseMapT gtlnodes;
-	const InverseMapT& gtlatoms = fDrivenCellData.GlobalToLocal();
-//	gtlnodes.SetMap(cell_nodes);	// create global to local map for active nodes
-//	gtlatoms.SetMap(nodes);		// create global to local map for all atoms
+	const InverseMapT gtlnodes, gtlatoms;
+	//const InverseMapT gtlatoms; // const InverseMapT& gtlatoms = fDrivenCellData.GlobalToLocal();
+	gtlnodes.SetMap(cell_nodes);	// create global to local map for active nodes
+	gtlatoms.SetMap(nodes);		// create global to local map for all atoms - redundant?
 	int numactivenodes = cell_nodes.Length();	// number of projected nodes
 	int numatoms = nodes.Length();	// total number of atoms
 

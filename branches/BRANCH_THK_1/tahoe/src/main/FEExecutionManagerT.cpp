@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.39.2.12 2003-05-12 18:33:57 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.39.2.13 2003-05-13 15:08:36 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -395,9 +395,10 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 	/* configure ghost nodes */
 	int group = 0;
 	StringT bridging_field = "displacement";
+	bool active;
 	atoms.InitGhostNodes();
 	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
-	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager());
+	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), active);
 
 #if 0
 	/* cross coupling matricies */
@@ -569,8 +570,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	int group = 0;
 	StringT bridging_field = "displacement";
 	atoms.InitGhostNodes();
+	bool makeinactive = false;	
 	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
-	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager());
+	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);
 	
 	/* time managers */
 	TimeManagerT* atom_time = atoms.TimeManager();
@@ -613,10 +615,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 					
 		/* initialize step */
 		if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
-                    
-		/* calculate initial FEM displacements via projection of MD displacements */
-		continuum.ProjectField(bridging_field, *atoms.NodeManager());
-		
+                    		
 		/* calculate fine scale part of MD displacement and total displacement u */
 		continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
 		
@@ -638,6 +637,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		ntf.Multx(tempy,fy);
 		ntfproduct.SetColumn(1,fy);
 		cout << "ntfproduct = " << ntfproduct << endl;
+		
+		/* Add FEM RHS force to RHS using SetExternalForce */
+		continuum.SetExternalForce(bridging_field, ntfproduct);
 		
 		/* solve FEM equation of motion using force just calculated as RHS */
 		if (1 || error == ExceptionT::kNoError) {
@@ -682,7 +684,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				/* update time history variables here using coarse scale displacements at MD
 				 * boundary/ghost atoms + MD displacements at boundary/ghost atoms */
 				
-				/* solve MD equations of motion for accelerations */
+				/* solve MD equations of motion */
 				if (1 || error == ExceptionT::kNoError) {
 						atoms.ResetCumulativeUpdate(group);
 						error = atoms.SolveStep();
@@ -705,9 +707,15 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			
 			/* calculate FE internal force as function of total displacement u here */
 			fu = InternalForce(totalu, atoms);
+			fu.ColumnCopy(0,tempx);
+			ntf.Multx(tempx,fx);
+			ntfproduct.SetColumn(0,fx);
+			fu.ColumnCopy(1,tempy);
+			ntf.Multx(tempy,fy);
+			ntfproduct.SetColumn(1,fy);
 			
 			/* calculate FEM RHS force using ntf and fu */
-			
+			continuum.SetExternalForce(bridging_field, ntfproduct);
 			
 			/* solve FE equation of motion using internal force just calculated */
 			if (1 || error == ExceptionT::kNoError) {
@@ -751,7 +759,7 @@ const dArray2DT& FEExecutionManagerT::InternalForce(dArray2DT& totalu, FEManager
 	/* now write total bridging scale displacement u into field */
 	atoms.SetFieldValues(bridging_field, nodes, totalu);
 		
-	/* compute RHS - ParticlePairT fForce should be calculated by this call? */
+	/* compute RHS - ParticlePairT fForce calculated by this call */
 	atoms.FormRHS(group);
 			
 	/* write actual MD displacements back into field */
