@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.3.12.1 2004-02-25 07:51:58 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.3.12.2 2004-03-01 19:07:13 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "PointInCellDataT.h"
@@ -22,12 +22,28 @@ MeshfreeBridgingT::MeshfreeBridgingT(const ElementSupportT& support, const Field
 	BridgingScaleT(support, field, solid),
 	fMLS(NULL)
 {
-	/* MLS solver (using Gaussian window function) */
-	dArrayT window_params(3);
-	window_params[0] = 1.5; /* support size scaling    */
-	window_params[1] = 0.4; /* sharpening factor       */
-	window_params[2] = 2.0; /* neighbor cut-off factor */
-	fMLS = new MLSSolverT(NumSD(), 1, MeshFreeT::kGaussian, window_params);
+	ifstreamT& in = ElementSupport().Input();
+	MeshFreeT::WindowTypeT window_type;
+	in >> window_type;
+	dArrayT window_params;
+	switch (window_type)
+	{
+		case MeshFreeT::kGaussian:
+			window_params.Dimension(3);
+			for (int i = 0; i < window_params.Length(); i++)
+				in >> window_params[i]; /* one at a time for comments */
+			break;
+		case MeshFreeT::kCubicSpline:
+			window_params.Dimension(1);
+			in >> window_params[0];
+			break;
+		default:
+			ExceptionT::BadInputValue("MeshfreeBridgingT::MeshfreeBridgingT", 
+				"unknown window type: %d", window_type);
+	}
+	
+	/* MLS solver */
+	fMLS = new MLSSolverT(NumSD(), 1, window_type, window_params);
 	fMLS->Initialize();
 }
 
@@ -97,8 +113,33 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 		cell_coordinates.RowAlias(cell_nodes[i], x_node);
 		
 		/* compute MLS fit */
-		if (!fMLS->SetField(neighbor_coords, neighbor_support, neighbor_volume, x_node, 0))
+		if (!fMLS->SetField(neighbor_coords, neighbor_support, neighbor_volume, x_node, 0)) {
+
+			StringT junk = "N/A";
+			StringT file;
+			file.Root(ElementSupport().Input().filename());
+			file.Append(".MLS", cell_nodes[i]+1);
+			file.Append(".out");
+
+			dArray2DT coords_used(neighbor_coords.MajorDim()+1, neighbor_coords.MinorDim());
+			coords_used.SetRow(0, x_node);
+			coords_used.BlockRowCopyAt(neighbor_coords, 1);
+
+			iArrayT points_used(neighbor_coords.MajorDim()+1);
+			points_used[0] = cell_nodes[i];
+			points_used.CopyIn(1, neighbors);
+
+			ArrayT<StringT> labels(1);
+			labels[0] = "r";
+
+			dArray2DT n_values(coords_used.MajorDim(), 1);
+			n_values[0];
+			n_values.BlockRowCopyAt(neighbor_support, 1);
+
+			ElementSupport().WriteOutput(file, coords_used, points_used, n_values, labels);
+
 			ExceptionT::GeneralFail(caller, "could not compute MLS fit for node %d", cell_nodes[i]+1);
+		}
 	
 		/* store weights */
 		neighbor_weights.SetRow(i, fMLS->phi());
@@ -318,12 +359,15 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 	fSupport = 0.0;
 	InverseMapT& global_to_local = cell_data.GlobalToLocal();
 	AutoFill2DT<int> auto_fill(nodes_used.Length(), 1, 10, 10);
-	dArrayT nodal_params(1);
+	dArray2DT nodal_params(1,1);
+	dArrayT nodal_params_tmp;
+	nodal_params_tmp.Alias(nodal_params);
 	dArrayT x_node, x_point;
 	for (int i = 0; i < nodes_used.Length(); i++)
 	{
 		/* candidate points */
 		nodal_params[0] = support_size[i];
+		fMLS->ModifySupportParameters(nodal_params); /* scaling of support size */
 		cell_coordinates.RowAlias(nodes_used[i], x_node);
 		const AutoArrayT<iNodeT>& hits = grid.HitsInRegion(x_node.Pointer(), nodal_params[0]);
 
@@ -335,17 +379,16 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 			point_coordinates.RowAlias(point, x_point);
 
 			/* add to neighbor list */
-			if (fMLS->Covers(x_node, x_point, nodal_params))
+			if (fMLS->Covers(x_node, x_point, nodal_params_tmp))
 			{
 				auto_fill.Append(i, point);
 				
 				/* take max support */
-				fSupport[point] = (support_size[i] > fSupport[point]) ? 
-					support_size[i] : fSupport[point];
+				fSupport[point] = (nodal_params[0] > fSupport[point]) ? nodal_params[0] : fSupport[point];
 			}
 		}
 	}
-
+	
 	/* distribute the support sizes */
 	int id = comm.Init_AllGather(fSupport);
 	comm.AllGather(id, fSupport);
@@ -373,21 +416,17 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 		StringT file;
 		file.Root(ElementSupport().Input().filename());
 		file.Append(".support.out");
- 		OutputBaseT* output = IOBaseT::NewOutput(junk, junk, junk, file, ElementSupport().OutputFormat(), 
- 			ElementSupport().Output());
+
 		dArray2DT coords_used(points_used.Length(), point_coordinates.MinorDim());
 		coords_used.RowCollect(points_used, point_coordinates);
-		output->SetCoordinates(coords_used, &points_used);
-		ArrayT<StringT> n_labels(1);
-		n_labels[0] = "r";
-		iArray2DT connectivities(points_used.Length(), 1);
-		connectivities.SetValueToPosition();
-		OutputSetT output_set(GeometryT::kPoint, connectivities, n_labels);
-		int id = output->AddElementSet(output_set);
-		dArray2DT e_values, n_values(points_used.Length(), 1);
+
+		ArrayT<StringT> labels(1);
+		labels[0] = "r";
+
+		dArray2DT n_values(points_used.Length(), 1);
 		n_values.Collect(points_used, fSupport);
-		output->WriteOutput(0.0, id, n_values, e_values);
-		delete output;
+		
+		ElementSupport().WriteOutput(file, coords_used, points_used, n_values, labels);
 	}
 }
 
