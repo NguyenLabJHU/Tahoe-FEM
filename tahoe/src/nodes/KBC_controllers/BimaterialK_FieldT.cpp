@@ -1,24 +1,21 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.8 2002-10-20 22:49:29 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.8.34.1 2004-03-03 16:15:56 paklein Exp $ */
 /* created: paklein (09/05/2000) */
-
 #include "BimaterialK_FieldT.h"
 
 #include "NodeManagerT.h"
 #include "fstreamT.h"
 #include "IsotropicT.h"
-#include "Material2DT.h"
-
-/* parameters */
 
 using namespace Tahoe;
 
+/* parameters */
 const double Pi = acos(-1.0);
 
 /* constructor */
 BimaterialK_FieldT::BimaterialK_FieldT(NodeManagerT& node_manager):
 	K_FieldT(node_manager),
 	fIsotropic_2(NULL),
-	fMaterial2D_2(NULL)
+	fSolidMaterial_2(NULL)
 {
 
 }
@@ -268,20 +265,20 @@ void BimaterialK_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 	/* resolve near tip and material reference */
 	if (fFarFieldGroupNum != -1 && !fIsotropic)
 		ResolveMaterialReference(fFarFieldGroupNum, fFarFieldMaterialNum,
-			&fIsotropic, &fMaterial2D);
+			&fIsotropic, &fSolidMaterial);
 	else
 	{
 		fIsotropic = NULL;
-		fMaterial2D = NULL;
+		fSolidMaterial = NULL;
 	}
 
 	if (fFarFieldGroupNum_2 != -1 && !fIsotropic_2)		
 		ResolveMaterialReference(fFarFieldGroupNum_2, fFarFieldMaterialNum_2,
-			&fIsotropic_2, &fMaterial2D_2);
+			&fIsotropic_2, &fSolidMaterial_2);
 	else
 	{
 		fIsotropic_2 = NULL;
-		fMaterial2D_2 = NULL;
+		fSolidMaterial_2 = NULL;
 	}
 
 	/* moduli */
@@ -302,9 +299,9 @@ void BimaterialK_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 	
 	if (fNodeManager.NumSD() == 2)
 	{
-		if (fMaterial2D && fMaterial2D->ConstraintOption() == Material2DT::kPlaneStress)
+		if (fSolidMaterial && fSolidMaterial_2->Constraint() == SolidMaterialT::kPlaneStress)
 			mu_1 = (3.0 - nu_1)/(1.0 + nu_1);
-		if (fMaterial2D_2 && fMaterial2D_2->ConstraintOption() == Material2DT::kPlaneStress)
+		if (fSolidMaterial_2 && fSolidMaterial_2->Constraint() == SolidMaterialT::kPlaneStress)
 			mu_2 = (3.0 - nu_2)/(1.0 + nu_2);
 	}
 

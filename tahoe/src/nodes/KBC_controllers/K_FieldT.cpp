@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.17 2004-01-06 00:42:57 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.17.2.1 2004-03-03 16:15:56 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
@@ -8,7 +8,7 @@
 #include "ContinuumMaterialT.h"
 #include "fstreamT.h"
 #include "IsotropicT.h"
-#include "Material2DT.h"
+#include "SolidMaterialT.h"
 #include "ElementsConfig.h"
 
 #ifdef CONTINUUM_ELEMENT
@@ -29,7 +29,7 @@ K_FieldT::K_FieldT(NodeManagerT& node_manager):
 	fLTf1(NULL),
 	fLTf2(NULL),
 	fIsotropic(NULL),
-	fMaterial2D(NULL),
+	fSolidMaterial(NULL),
 	fDummySchedule(1.0),
 	fNearTipGroupNum(-1),
 	fNearTipOutputCode(-1),
@@ -419,7 +419,7 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 
 /* resolve element info to isotropic material */
 void K_FieldT::ResolveMaterialReference(int element_group,
-	int material_num, const IsotropicT** iso, const Material2DT** mat) const
+	int material_num, const IsotropicT** iso, const SolidMaterialT** mat) const
 {
 	const char caller[] = "K_FieldT::ResolveMaterialReference";
 
@@ -453,7 +453,7 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 
 	if (fNodeManager.NumSD() == 2)
 	{
-		*mat = TB_DYNAMIC_CAST(Material2DT*, cont_mat);
+		*mat = TB_DYNAMIC_CAST(SolidMaterialT*, cont_mat);
 		if (!(*mat))
 		{
 			cout << "\n K_FieldT::ResolveReference: could not cast material "
@@ -482,7 +482,7 @@ void K_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 	/* resolve near tip and material reference */
 	if (!fIsotropic)
 		ResolveMaterialReference(fFarFieldGroupNum, fFarFieldMaterialNum,
-			&fIsotropic, &fMaterial2D);
+			&fIsotropic, &fSolidMaterial);
 
 	/* moduli */
 	double mu = fIsotropic->Mu();
@@ -490,8 +490,8 @@ void K_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 	double kappa = 3.0 - 4.0*nu;
 	if (fNodeManager.NumSD() == 2)
 	{
-		if (!fMaterial2D) throw ExceptionT::kGeneralFail;
-		if (fMaterial2D->ConstraintOption() == Material2DT::kPlaneStress)
+		if (!fSolidMaterial) throw ExceptionT::kGeneralFail;
+		if (fSolidMaterial->Constraint() == SolidMaterialT::kPlaneStress)
 			kappa = (3.0 - nu)/(1.0 + nu);
 	}
 
