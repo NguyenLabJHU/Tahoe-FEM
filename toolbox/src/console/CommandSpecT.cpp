@@ -1,4 +1,4 @@
-/* $Id: CommandSpecT.cpp,v 1.3 2001-12-12 19:29:00 paklein Exp $ */
+/* $Id: CommandSpecT.cpp,v 1.4 2001-12-13 02:58:38 paklein Exp $ */
 
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
@@ -21,7 +21,7 @@ CommandSpecT::CommandSpecT(const CommandSpecT& command):
 	fName(command.Name()),
 	fOrdered(command.Ordered()),
 	fArguments(0),
-	fPrompter(NULL)
+	fPrompter(command.Prompter())
 {
 	/* copy argument list */
 	const ArrayT<ArgSpecT*>& args = command.Arguments();
