@@ -1,4 +1,4 @@
-/* $Id: NOX_Tahoe_Group.cpp,v 1.3 2002-07-02 19:57:16 cjkimme Exp $ */
+/* $Id: NOX_Tahoe_Group.cpp,v 1.4 2002-07-03 23:11:11 paklein Exp $ */
 #include "NOX_Tahoe_Group.h"
 
 /* optional */
@@ -9,11 +9,8 @@
 #include "dArrayT.h"
 #include "GlobalMatrixT.h"
 
-
 using namespace Tahoe;
-
 using namespace NOX;
-using namespace NOX::Tahoe;
 
 /* constructor */
 Group::Group(SolverInterfaceT& interface, dArrayT& X, GlobalMatrixT& J):
@@ -31,7 +28,7 @@ Group::Group(SolverInterfaceT& interface, dArrayT& X, GlobalMatrixT& J):
 }
 
 /* copy constructor */
-Group::Group(const Group& source, CopyType type):
+Group::Group(const Group& source, NOX::CopyType type):
 	fTahoeInterface(source.fTahoeInterface),
 	fOwnJ(true),
 	fJ(NULL)
@@ -47,7 +44,7 @@ Group::~Group(void)
 }
 
 /* assignment operator */
-Abstract::Group& Group::operator=(const Group& source)
+NOX::Abstract::Group& Group::operator=(const Group& source)
 {
 	/* should not happen */
 	if (!source.fJ) {
@@ -90,16 +87,16 @@ Abstract::Group& Group::operator=(const Group& source)
 	return *this;
 }
 
-Abstract::Group& Group::operator=(const Abstract::Group& source)
+NOX::Abstract::Group& Group::operator=(const NOX::Abstract::Group& source)
 {
 #ifdef __NO_RTTI__
-	cout << "\n NOX::Tahoe::Group::operator= : requires RTTI" << endl;
+	cout << "\n Tahoe::Group::operator= : requires RTTI" << endl;
 	throw eGeneralFail;
 #endif
 
 	const Group* t_group = dynamic_cast<const Group*>(&source);
 	if (!t_group) {
-		cout << "\n NOX::Tahoe::Group::operator= : cast failed" << endl;
+		cout << "\n Tahoe::Group::operator= : cast failed" << endl;
 		throw eGeneralFail;
 	}
 	return operator=(*t_group);
@@ -118,24 +115,24 @@ bool Group::computeX(const Group& grp, const Vector& d, double step)
 	return true;
 }
 
-bool Group::computeX(const Abstract::Group& grp, const Abstract::Vector& d, double step)
+bool Group::computeX(const NOX::Abstract::Group& grp, const NOX::Abstract::Vector& d, double step)
 {
 #ifdef __NO_RTTI__
-	cout << "\n NOX::Tahoe::Group::computeX: requires RTTI" << endl;
+	cout << "\n Tahoe::Group::computeX: requires RTTI" << endl;
 	throw eGeneralFail;
 #endif
 
 	/* cast group */
 	const Group* t_grp = dynamic_cast<const Group*>(&grp);
 	if (!t_grp) {
-		cout << "\n NOX::Tahoe::Group::computeX: Group cast failed" << endl;
+		cout << "\n Tahoe::Group::computeX: Group cast failed" << endl;
 		throw eGeneralFail;
 	}
 
 	/* cast vector */
 	const Vector* t_d = dynamic_cast<const Vector*>(&d);
 	if (!t_d) {
-		cout << "\n NOX::Tahoe::Group::computeX: Vector cast failed" << endl;
+		cout << "\n Tahoe::Group::computeX: Vector cast failed" << endl;
 		throw eGeneralFail;
 	}
 
@@ -162,7 +159,7 @@ bool Group::computeRHS(void)
 	}
 	
 	/* message */
-	if (!fIsRHS) cout << "NOX::Tahoe::Group::computeRHS: failed" << endl;
+	if (!fIsRHS) cout << "\n Tahoe::Group::computeRHS: failed" << endl;
 
 	return fIsRHS;
 }
@@ -178,7 +175,7 @@ bool Group::computeJacobian(void)
 	}
 
 	/* message */
-	if (!fIsJacobian) cout << "NOX::Tahoe::Group::computeJacobian: failed" << endl;
+	if (!fIsJacobian) cout << "\n Tahoe::Group::computeJacobian: failed" << endl;
 
 	return fIsJacobian;
 }
@@ -194,13 +191,13 @@ bool Group::computeGrad(void)
 	}
 
 	/* message */
-	if (!fIsGrad) cout << "NOX::Tahoe::Group::computeGrad: failed" << endl;
+	if (!fIsGrad) cout << "\n Tahoe::Group::computeGrad: failed" << endl;
 
 	return fIsGrad;
 }
 
 /* compute the Newton direction */
-bool Group::computeNewton(Parameter::List& params)
+bool Group::computeNewton(NOX::Parameter::List& params)
 {
 #pragma unused(params)
 
@@ -243,13 +240,13 @@ bool Group::computeNewton(Parameter::List& params)
 	}
 
 	/* message */
-	if (!fIsNewton) cout << "NOX::Tahoe::Group::computeNewton: failed" << endl;
+	if (!fIsNewton) cout << "\n Tahoe::Group::computeNewton: failed" << endl;
 		
 	return fIsNewton;
 }
 
 /* compute result = Jacobian * input */
-bool Group::applyJacobian(const Abstract::Vector& input, Abstract::Vector& result) const
+bool Group::applyJacobian(const NOX::Abstract::Vector& input, NOX::Abstract::Vector& result) const
 {
 	/* Jacobian must be up to date and cannot be calculated here */
 	if (!fIsJacobian)
@@ -274,7 +271,7 @@ bool Group::applyJacobian(const Abstract::Vector& input, Abstract::Vector& resul
 }
 
 /* compute result = Jacobian^T * input */
-bool Group::applyJacobianTranspose(const Abstract::Vector& input, Abstract::Vector& result) const
+bool Group::applyJacobianTranspose(const NOX::Abstract::Vector& input, NOX::Abstract::Vector& result) const
 {
 	/* Jacobian must be up to date and cannot be calculated here */
 	if (!fIsJacobian)
@@ -299,7 +296,7 @@ bool Group::applyJacobianTranspose(const Abstract::Vector& input, Abstract::Vect
 }
   
  /* Applies the Jacobian Diagonal to the given input vector */
-bool Group::applyJacobianDiagonalInverse(const Abstract::Vector& input, Abstract::Vector& result) const
+bool Group::applyJacobianDiagonalInverse(const NOX::Abstract::Vector& input, NOX::Abstract::Vector& result) const
 {
 	/* Jacobian must be up to date and cannot be calculated here */
 	if (!fIsJacobian)
@@ -330,7 +327,7 @@ bool Group::applyJacobianDiagonalInverse(const Abstract::Vector& input, Abstract
 }
 
 /* create a new %Group of the same derived type as this one by cloning */
-NOX::Abstract::Group* Group::clone(CopyType type) const
+NOX::Abstract::Group* Group::clone(NOX::CopyType type) const
 {
 	Group* new_clone = new Group(*this, type);
 	return new_clone;

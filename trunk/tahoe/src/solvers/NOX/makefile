@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2002-04-02 23:30:55 paklein Exp $
+# $Id: makefile,v 1.2 2002-07-03 23:11:12 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,9 +6,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	NOXSolverT.o \
+	NOX_Tahoe_Vector.o \
 	NOX_Tahoe_Group.o \
-	NOX_Tahoe_Vector.o
+	NOXSolverT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
