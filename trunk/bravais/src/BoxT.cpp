@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.42 2004-02-06 22:00:13 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.43 2004-03-11 22:46:26 jzimmer Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -533,19 +533,19 @@ int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,iArrayT* tem
   if(length(1,1) >= 0.0) l11 = length(1,1) + eps; else l11 = length(1,1) - eps;
 
   // Define new number of cells after rotation
-  double xlen = Max(fabs(vec_a[0]),fabs(vec_a[1]),fabs(vec_a[2]))*vLP[0]/2.;
-  double ylen = Max(fabs(vec_b[0]),fabs(vec_b[1]),fabs(vec_b[2]))*vLP[1]/2.;
-  double zlen = Max(fabs(vec_c[0]),fabs(vec_c[1]),fabs(vec_c[2]))*vLP[2]/2.;
+  double xlen = Maxx(fabs(vec_a[0]),fabs(vec_a[1]),fabs(vec_a[2]))*vLP[0]/2.;
+  double ylen = Maxx(fabs(vec_b[0]),fabs(vec_b[1]),fabs(vec_b[2]))*vLP[1]/2.;
+  double zlen = Maxx(fabs(vec_c[0]),fabs(vec_c[1]),fabs(vec_c[2]))*vLP[2]/2.;
 
   iArrayT new_cel;
   new_cel.Dimension(nlsd);
   new_cel[0] = (int)((length(0,1)-length(0,0))/xlen) + 1;
   new_cel[1] = (int)((length(1,1)-length(1,0))/ylen) + 1;
-  new_cel[0] = max(new_cel[0],new_cel[1]);
+  new_cel[0] = Maxx(new_cel[0],new_cel[1]);
   if(nlsd == 3) 
     {
       new_cel[2] = (int)((length(2,1)-length(2,0))/zlen) + 1;
-      new_cel[0] = max(new_cel[0],new_cel[2]);
+      new_cel[0] = Maxx(new_cel[0],new_cel[2]);
     }
   new_cel[0] = 2*new_cel[0];
   int ncentx = new_cel[0]/2;
@@ -779,7 +779,7 @@ double BoxT::CalculatePeriodicLength(CrystalLatticeT* pcl,dArrayT Rot)
   if(ql<tol) ql = 1.e6;
   if(qm<tol) qm = 1.e6;
   if(qn<tol) qn = 1.e6;
-  double small = Min(ql,qm,qn);
+  double small = Minn(ql,qm,qn);
 
   // Multiply by 1/small
   rl /= small;
@@ -848,26 +848,23 @@ double BoxT::DotProduct(dArrayT x,dArrayT y)
   return  x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
 }
 
-double BoxT::Max(double a,double b,double c)
+int BoxT::Maxx(int a,int b)
+{
+  return (a>b)?a:b;
+}
+
+double BoxT::Maxx(double a,double b,double c)
 {
   double maxi;
-  if(a>b) 
-    maxi = a;
-  else
-    maxi = b;
-  
+  maxi = (a>b)?a:b;
   if(maxi<c) maxi = c;
   return maxi;
 }
 
-double BoxT::Min(double a,double b,double c)
+double BoxT::Minn(double a,double b,double c)
 {
   double mini;
-  if(a<b) 
-    mini = a;
-  else
-    mini = b;
-  
+  mini = (a<b)?a:b;
   if(mini>c) mini = c;
   return mini;
 }
