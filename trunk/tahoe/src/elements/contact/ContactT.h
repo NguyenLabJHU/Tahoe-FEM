@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.6 2002-11-21 01:13:36 paklein Exp $ */
+/* $Id: ContactT.h,v 1.7 2003-02-08 16:00:25 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 
 #ifndef _CONTACT_T_H_
@@ -60,15 +60,16 @@ public:
 protected:
 
 	/** surface specification modes */
-	enum SurfaceSpecModeT {kNodesOnFacet = 0,
-                               kSideSets = 1,
-                           kBodyBoundary = 2};
+	enum SurfaceSpecModeT {kNodesOnFacet = 0 /**< explicitly list nodes on each face */,
+                               kSideSets = 1 /**< surface from side set */,
+                           kBodyBoundary = 2 /**< surface from body boundaries */};
 
 	/** striker node specification */
-	enum StrikerSpecModeT {kListStrikers = 0,
-                           kSurfaceNodes = 1,
-                            kAllStrikers = 2,
-                          kContactBodies = 3};
+	enum StrikerSpecModeT { kNodeSetList = 0 /**< collect from node sets */,
+                           kSurfaceNodes = 1 /**< collect from contact surfaces */,
+                            kAllStrikers = 2 /**< all nodes as strikers */,
+                          kContactBodies = 3,
+                            kSideSetList = 4 /**< collect from side sets */};
 
 	/** print element group data */
 	virtual void PrintControlData(ostream& out) const;
@@ -104,13 +105,17 @@ protected:
 	void InputBodyBoundary(ifstreamT& in, ArrayT<iArray2DT>& surfaces, int& surface);
 	/*@}*/
 
+	/** \name collecting striker nodes */
+	/*@{*/
 	/** generate striker list from surfaces */
 	void StrikersFromSurfaces(void);
 
-private:
-
-	/** read strikers from stream */
+	/** collect strikers from nodes sets */
 	void ReadStrikers(ifstreamT& in, ostream& out);
+
+	/** collect strikers from sides sets */
+	void StrikersFromSideSets(ifstreamT& in, ostream& out);
+	/*@}*/
 
 protected:
 

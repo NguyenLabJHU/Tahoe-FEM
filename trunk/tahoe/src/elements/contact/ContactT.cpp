@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.10 2002-11-21 01:13:36 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.11 2003-02-08 16:00:25 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -234,7 +234,7 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	in >> striker_spec_mode;
 	switch (striker_spec_mode)
 	{
-		case kListStrikers: /* read strikers */
+		case kNodeSetList: /* read strikers from node sets */
 			ReadStrikers(in, out);
 			break;
 		
@@ -245,6 +245,10 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		case kAllStrikers:  /* shallow striker coords */
 			fStrikerCoords.Alias(ElementSupport().CurrentCoordinates());
 			out << "\n Striker nodes: ALL\n";	
+			break;
+
+		case kSideSetList: /* collect strikers from side sets */
+			StrikersFromSideSets(in, out);
 			break;
 	
 		default:
@@ -355,11 +359,6 @@ void ContactT::InputNodesOnFacet(ifstreamT& in, iArray2DT& facets)
 
 void ContactT::InputSideSets(ifstreamT& in, iArray2DT& facets)
 {
-//TEMP
-	int elem_group;
-	in >> elem_group;
-	cout << "\n ContactT::InputSideSets: element group number required, but not used" << endl;
-
 	/* read data from parameter file */
 	ArrayT<StringT> ss_ID;
 	bool multidatabasesets = false; /* change to positive and the parameter file format changes */
@@ -469,4 +468,40 @@ void ContactT::ReadStrikers(ifstreamT& in, ostream& out)
 
   /* collect nodes from those indexes */
   model.ManyNodeSets(ns_ID, fStrikerTags);
+}
+
+void ContactT::StrikersFromSideSets(ifstreamT& in, ostream& out)
+{
+#pragma unused(out)
+
+	/* read data from parameter file */
+	ArrayT<StringT> ss_ID;
+	bool multidatabasesets = true;
+	ModelManagerT& model = ElementSupport().Model();
+	model.SideSetList(in, ss_ID, multidatabasesets);
+
+	/* list node nodes used */
+	iArrayT nodes_used(model.NumNodes());
+	nodes_used = 0;
+
+	/* mark nodes used in side sets */
+	ArrayT<GeometryT::CodeT> facet_geom;
+	iArrayT facet_nodes;
+	iArray2DT facets;
+	for (int i = 0; i < ss_ID.Length(); i++)
+	{
+		/* read side set */
+		model.SideSet(ss_ID[i], facet_geom, facet_nodes, facets);
+	
+		/* mark nodes used */
+		for (int j = 0; j < facets.Length(); j++)
+			nodes_used[facets[j]] = 1;
+	}
+	
+	/* collect nodes */
+	fStrikerTags.Dimension(nodes_used.Count(1));
+	int dex = 0;
+	for (int i = 0; i < nodes_used.Length(); i++)
+		if (nodes_used[i] == 1)
+			fStrikerTags[dex++] = i;
 }
