@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.6 2002-02-18 09:05:37 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.7 2002-03-02 20:13:46 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 
 #include "JoinOutputT.h"
@@ -242,7 +242,8 @@ void JoinOutputT::Join(void)
 void JoinOutputT::SetOutput(void)
 {
 	/* set coordinates */
-	fOutput->SetCoordinates(fModel->Coordinates(), NULL);
+//	fOutput->SetCoordinates(fModel->Coordinates(), NULL);
+	fOutput->SetCoordinates(fModel->Coordinates());
 	
 	/* block ID's in io groups */
 	StringT io_file;
