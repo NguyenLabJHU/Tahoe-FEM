@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.2 2001-02-20 00:42:13 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.3 2001-04-29 21:11:08 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #ifndef _ELASTIC_T_H_
@@ -73,6 +73,9 @@ protected:
 	/* initialization functions */
 	virtual void SetLocalArrays(void);
 	virtual void SetShape(void);
+
+	/* form shape functions and derivatives */
+	virtual void SetGlobalShape(void);
 
 	/* construct the effective mass matrix */
 	virtual void LHSDriver(void);
