@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.16 2003-01-29 07:35:20 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.17 2003-05-20 10:37:45 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -345,7 +345,8 @@ void TimeManagerT::WriteRestart(ostream& restart_out) const
 /* finalize step (trigger output) */
 void TimeManagerT::CloseStep(void) //TEMP? - let FEManager control/monitor output?
 {
-	if (fOutputInc != 0 &&
+	if (fabs(fTimeStep) > kSmall && /* no output if clock is not running */
+		fOutputInc != 0 &&
 	   (++fOutputCount >= ((fOutputInc > 0) ? fOutputInc :-fOutputInc) || // at increment
 	    fStepNum == fNumSteps)) // at end
 	{
