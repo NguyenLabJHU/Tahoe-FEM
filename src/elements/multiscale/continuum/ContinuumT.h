@@ -18,15 +18,15 @@ class Element_SetT
 	public:	// NOTE: The notion of a global elmt number is unneccesary
 
 		Element_SetT ( void ) { }
-	 ~Element_SetT ( void ) { }
+	 	~Element_SetT ( void ) { }
 
-		StringT name;                 // bottom flange 
-		int 		element_type;					// Quad, Tri, Hex ...
+		StringT name;                 	// bottom flange 
+		int 		element_type;		// Quad, Tri, Hex ...
 		iArrayT constitutive_model;		// StV_Kich, Infin_Strain, BCJ ... (1 per field)
-		iArrayT material_set;					// BCJ_Matl, Iso_Matl, .. (See enums in VMF_MaterialT) 
+		iArrayT material_set;			// BCJ_Matl, Iso_Matl, .. (See enums in VMF_MaterialT) 
 		iArrayT material_set_item;		// (e.x. the third instance in the defs of BCJ_Matl) 
 		double geometric_parameter;		// Area of rod, thickness of quad, etc
-		iArray2DT IEN;								// Nodal connectivity of each element (See Hughes)
+		iArray2DT IEN;					// Nodal connectivity of each element (See Hughes)
 		FEA_ShapeFunctionT Shapes;		// Basis functions for Finite Element Analysis
 		iArray2DT Boundary_Surfaces; // See below: (of dimension n_ews x (1+n_es))
 		// Boolean flags identifying sides of an element that comprise the body's boundary
@@ -45,16 +45,16 @@ class ContinuumT // Geometry, Material, Constitutive, and Interpolation Data
 	public:
 
 		enum FEA_CodeT 	{ kMonterey, kTahoe };
-		enum E_TypeT 		{ kQuad, kHex, kTri, kTet, kRod, kPlate, kBeam };
+		enum E_TypeT 	{ kQuad, kHex, kTri, kTet, kRod, kPlate, kBeam };
 
 		ContinuumT () { }
 		ContinuumT (ModelT &Manager);
-	 ~ContinuumT () { } 
+	 	~ContinuumT () { } 
 
 		void Read_Tahoe_Node_Data 		( StringT &node_filename );
 		void Read_Tahoe_Element_Data 	( StringT &elmt_set_filename,int e_set );
-	  void Read_Surface_Data 				( StringT &surface_file_name,int e_set );
-		void Print (int input_file_type);
+	  	void Read_Surface_Data 			( StringT &surface_file_name,int e_set );
+		void Print 						(int input_file_type);
 
 		dMatrixT Xo; 	// Node position at time t=0 				(node,sd)
 		dMatrixT X; 	// Node position last time step			(node,sd)

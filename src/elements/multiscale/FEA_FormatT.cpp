@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.8 2003-09-04 15:44:53 paklein Exp $
+// $Id: FEA_FormatT.cpp,v 1.9 2003-09-21 23:13:08 raregue Exp $
 #include "FEA_FormatT.h"
 
 using namespace Tahoe;
@@ -35,7 +35,7 @@ void FEA_FormatT::Na	(int n_en, ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA
 //---------------------------------------------------------------------
 
 void FEA_FormatT::Gradients (	ShapeFunctionT *fShapes,LocalArrayT &u_np1,LocalArrayT &u_n, 
-															FEA_dMatrixT &GRAD_u_np1, FEA_dMatrixT &GRAD_u_n)
+								FEA_dVectorT &GRAD_u_np1, FEA_dVectorT &GRAD_u_n)
 {
 	for	(int l=0; l<fShapes->NumIP(); l++) {
 		fShapes->SetIP(l);
@@ -43,6 +43,19 @@ void FEA_FormatT::Gradients (	ShapeFunctionT *fShapes,LocalArrayT &u_np1,LocalAr
 		fShapes->GradU 	( u_np1, 	GRAD_u_np1[l], l );
 	}
 }
+
+//---------------------------------------------------------------------
+
+void FEA_FormatT::Gradients (	ShapeFunctionT *fShapes,LocalArrayT &u_np1,LocalArrayT &u_n, 
+								FEA_dMatrixT &GRAD_u_np1, FEA_dMatrixT &GRAD_u_n)
+{
+	for	(int l=0; l<fShapes->NumIP(); l++) {
+		fShapes->SetIP(l);
+		fShapes->GradU	( u_n, 		GRAD_u_n[l], 	l );
+		fShapes->GradU 	( u_np1, 	GRAD_u_np1[l], l );
+	}
+}
+
 //---------------------------------------------------------------------
 
 void FEA_FormatT::Displacements ( LocalArrayT &u_mat, dArrayT &u_vec ) 

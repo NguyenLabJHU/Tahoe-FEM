@@ -27,8 +27,8 @@ ModelT::ModelT ( StringT &model_filename)
 	model >> input_file_type;
 	model >> n_es;
 	
-  elmt_set_filenames.Dimension(n_es);
-  elmt_set_surface_filenames.Dimension(n_es);
+  	elmt_set_filenames.Dimension(n_es);
+  	elmt_set_surface_filenames.Dimension(n_es);
 	for (i=0; i<n_es; i++)	{
 		elmt_set_filenames[i].Dimension (32); 
 		elmt_set_surface_filenames[i].Dimension (32); 
@@ -37,21 +37,21 @@ ModelT::ModelT ( StringT &model_filename)
 	}
 
 	model >> n_lc;
-  load_curve_filenames.Dimension(n_lc);
+  	load_curve_filenames.Dimension(n_lc);
 	for (i=0; i<n_lc; i++)	{
 		load_curve_filenames[i].Dimension (32);
 		model >> load_curve_filenames[i];
 	}
 
 	model >> n_ms;
-  material_set_filenames.Dimension(n_ms);
+  	material_set_filenames.Dimension(n_ms);
 	for (i=0; i<n_ms; i++)	{
 		material_set_filenames[i].Dimension (32);
 		model >> material_set_filenames[i];
 	}
 
 	model >> n_fld;
-  Field.Dimension(n_fld);
+ 	Field.Dimension(n_fld);
 	for (i=0; i<n_fld; i++)	{
 		Field[i].name.Dimension (32);  	 											
 		Field[i].point_dirichlet_filename.Dimension (32);  	 		
