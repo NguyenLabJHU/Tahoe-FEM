@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.22 2002-07-02 19:55:30 cjkimme Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.23 2002-08-15 08:59:35 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #include "FEExecutionManagerT.h"
@@ -17,10 +17,6 @@
 #include <profiler.h>
 #endif
 
-#ifdef __MPI__
-#include "mpi.h"
-#endif
-
 #include "fstreamT.h"
 #include "FEManagerT.h"
 #include "FEManagerT_mpi.h"
@@ -35,14 +31,14 @@
 #include "JoinOutputT.h"
 #include "dArrayT.h"
 #include "OutputBaseT.h"
-
-/* Constructor */
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
+/* Constructor */
 FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
-	char batch_char):
-	ExecutionManagerT(argc, argv, job_char, batch_char, 0)
+	char batch_char, CommunicatorT& comm):
+	ExecutionManagerT(argc, argv, job_char, batch_char, comm, 0)
 {
 #ifdef __CPLANT__
 	/* if not prescribed as joined, write separate files */
@@ -99,7 +95,7 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 
 #ifdef __MPI__
 	int size;
-	if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS) throw eMPIFail;
+	if (MPI_Comm_size(fComm, &size) != MPI_SUCCESS) throw eMPIFail;
 	if (size > 1) run_option = 1;
 #endif
 
@@ -240,7 +236,7 @@ void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
 		/* construction */
 		phase = 0;
 		in.set_marker('#');
-		FEManagerT analysis1(in, out);
+		FEManagerT analysis1(in, out, fComm);
 		analysis1.Initialize();
 
 		t1 = clock();
@@ -405,7 +401,7 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 
 		/* to read file parameters */
 		ofstreamT out;
-		FEManagerT fe_man(in, out);
+		FEManagerT fe_man(in, out, fComm);
 		fe_man.Initialize(FEManagerT::kParametersOnly);
 		
 		/* model file parameters */
@@ -551,7 +547,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 
 	/* synch and check status */
 	check_sum = 0;
-	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD) !=
+	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, fComm) !=
 		MPI_SUCCESS) throw eMPIFail;
 	if (check_sum != size) throw eGeneralFail;
 
@@ -583,7 +579,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	
 	/* synch and check status */
 	check_sum = 0;
-	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD) !=
+	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, fComm) !=
 		MPI_SUCCESS) throw eMPIFail;
 	if (check_sum != size) throw eGeneralFail;
 		
@@ -611,7 +607,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		char filetypechar;
 		in_loc >> filetypechar;
 	}
-	FEManagerT_mpi FEman(in_loc, out, &partition, FEManagerT_mpi::kRun);
+	FEManagerT_mpi FEman(in_loc, out, fComm, &partition, FEManagerT_mpi::kRun);
 	try { FEman.Initialize(); }
 	catch (int code)
 	{
@@ -627,14 +623,14 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	}
 	
 	check_sum = 0;
-	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD)
+	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, fComm)
 		!= MPI_SUCCESS) throw eMPIFail;
 	if (check_sum != size)
 	{
 		/* gather tokens to rank 0 */
 		iArrayT tokens;
 		if (rank == 0) tokens.Allocate(size);
-		if (MPI_Gather(&token, 1, MPI_INT, tokens.Pointer(), 1, MPI_INT, 0, MPI_COMM_WORLD)
+		if (MPI_Gather(&token, 1, MPI_INT, tokens.Pointer(), 1, MPI_INT, 0, fComm)
 			!= MPI_SUCCESS) throw eMPIFail;
 		if (rank == 0)
 		{
@@ -677,14 +673,14 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	}
 
 	check_sum = 0;
-	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD)
+	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, fComm)
 		!= MPI_SUCCESS) throw eMPIFail;
 	if (check_sum != size)
 	{
 		/* gather tokens to rank 0 */
 		iArrayT tokens;
 		if (rank == 0) tokens.Allocate(size);
-		if (MPI_Gather(&token, 1, MPI_INT, tokens.Pointer(), 1, MPI_INT, 0, MPI_COMM_WORLD)
+		if (MPI_Gather(&token, 1, MPI_INT, tokens.Pointer(), 1, MPI_INT, 0, fComm)
 			!= MPI_SUCCESS) throw eMPIFail;
 		if (rank == 0)
 		{
@@ -716,14 +712,14 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	delete IOMan;
 
 	check_sum = 0;
-	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD)
+	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, fComm)
 		!= MPI_SUCCESS) throw eMPIFail;
 	if (check_sum != size)
 	{
 		/* gather tokens to rank 0 */
 		iArrayT tokens;
 		if (rank == 0) tokens.Allocate(size);
-		if (MPI_Gather(&token, 1, MPI_INT, tokens.Pointer(), 1, MPI_INT, 0, MPI_COMM_WORLD)
+		if (MPI_Gather(&token, 1, MPI_INT, tokens.Pointer(), 1, MPI_INT, 0, fComm)
 			!= MPI_SUCCESS) throw eMPIFail;
 		if (rank == 0)
 		{
@@ -804,7 +800,7 @@ void FEExecutionManagerT::GetModelFile(ifstreamT& in, StringT& model_file,
 	}
 
 	ofstreamT out;
-	FEManagerT fe_temp(in_temp, out);
+	FEManagerT fe_temp(in_temp, out, fComm);
 	fe_temp.Initialize(FEManagerT::kParametersOnly);
 
 	ModelManagerT* model = fe_temp.ModelManager();
@@ -836,7 +832,7 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 		}
 
 		/* construct global problem */
-		FEManagerT_mpi global_FEman(in_decomp, decomp_out, NULL, FEManagerT_mpi::kDecompose);
+		FEManagerT_mpi global_FEman(in_decomp, decomp_out, fComm, NULL, FEManagerT_mpi::kDecompose);
 		try { global_FEman.Initialize(FEManagerT::kAllButSolver); }
 		catch (int code)
 		{
@@ -907,7 +903,7 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 				ExodusT exo(cout);
 				StringT str;
 				ArrayT<StringT> str_list;
-				const dArray2DT& coords = global_FEman.Coordinates();
+				const dArray2DT& coords = global_FEman.ModelManager()->Coordinates();
 				int nnd = coords.MajorDim();
 				int nsd = coords.MinorDim();
 				exo.Create(map_file, str, str_list, str_list, nsd, nnd,
@@ -1503,24 +1499,5 @@ void FEExecutionManagerT::EchoPartialGeometry_TahoeII(const PartitionT& partitio
 }
 
 /* basic MP support */
-int FEExecutionManagerT::Rank(void) const
-{
-#ifdef __MPI__
-	int rank;
-	if (MPI_Comm_rank(MPI_COMM_WORLD, &rank) != MPI_SUCCESS) throw eMPIFail;
-	return rank;
-#else
-	return 0;
-#endif
-}
-
-int FEExecutionManagerT::Size(void) const
-{
-#ifdef __MPI__
-	int size;
-	if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS) throw eMPIFail;
-	return size;
-#else
-	return 1;
-#endif
-}
+int FEExecutionManagerT::Rank(void) const { return fComm.Rank(); }
+int FEExecutionManagerT::Size(void) const { return fComm.Size(); }

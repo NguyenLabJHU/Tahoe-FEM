@@ -1,13 +1,7 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.16 2002-07-02 19:55:30 cjkimme Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.17 2002-08-15 08:59:36 paklein Exp $ */
 /* created: paklein (01/12/2000) */
-
 #include "FEManagerT_mpi.h"
-
 #include <time.h>
-
-#ifdef __MPI__
-#include "mpi.h"
-#endif
 
 #include "ModelManagerT.h"
 #include "AutoArrayT.h"
@@ -20,40 +14,17 @@
 #include "GraphT.h"
 #include "IOBaseT.h"
 #include "PartitionT.h"
+#include "CommunicatorT.h"
+
 #include "ModelFileT.h"
 #include "ExodusT.h"
 
-/* MPI information */
-
 using namespace Tahoe;
 
-static int rank(void)
-{
-#ifdef __MPI__
-	int rank;
-	if (MPI_Comm_rank(MPI_COMM_WORLD, &rank) != MPI_SUCCESS) throw eMPIFail;
-	return rank;
-#else
-	return 0;
-#endif
-};
-
-static int size(void)
-{
-#ifdef __MPI__
-	int size;
-	if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS) throw eMPIFail;
-	return size;
-#else
-	return 1;
-#endif
-}
-
 /* constructor */
-FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output, const PartitionT* partition,
-	TaskT task):
-	FEManagerT(input, output),
-	fRank(rank()),
+FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output, 
+	CommunicatorT& comm, const PartitionT* partition, TaskT task):
+	FEManagerT(input, output, comm),
 	fPartition(partition),
 	fTask(task),
 	fExternIOManager(NULL)
@@ -67,7 +38,7 @@ FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output, const Partit
 			     << kRun << endl;
 			throw eBadInputValue;
 		}
-		else if (fPartition->ID() != fRank)
+		else if (fPartition->ID() != Rank())
 		{
 			cout << "\n FEManagerT_mpi::FEManagerT_mpi: partition ID " << fPartition->ID()
 			     << " does not match process rank " << Rank() << endl;
@@ -144,84 +115,6 @@ FEManagerT_mpi::~FEManagerT_mpi(void)
 #endif /* __MPI__ */
 }
 
-#if 0
-/* exception handling */
-void FEManagerT_mpi::HandleException(int exception)
-{
-	//TEMP
-	TimeStamp("FEManagerT_mpi::HandleException");
-
-#ifdef __MPI__
-	/* broadcast to running processes */
-	if (exception != eNoError) AllReduce(MPI_SUM, exception);
-
-	/* gather exceptions */
-	int size = Size();
-	iArrayT codes(size);
-	if (MPI_Allgather(&exception, 1, MPI_INT, codes.Pointer(), 1, MPI_INT, MPI_COMM_WORLD)
-		!= MPI_SUCCESS) throw eMPIFail;
-			
-	/* exception handling */
-	if (codes.HasValue(eBadJacobianDet))
-	{
-		cout << "\n FEManagerT_mpi::HandleException: caught bad jacobian exception" << endl;
-		
-		/* override local code */
-		exception = eBadJacobianDet;
-	}
-	/* all others are unrecoverable */
-	else
-	{
-		/* output */
-		cout << "\n FEManagerT_mpi::HandleException: unrecoverable exception: "
-		     << Time() << endl;
-		
-		/* end job */
-		exception = eGeneralFail;
-	}
-
-	/* output */
-	if (Rank() == 0)
-	{
-		cout << setw(kIntWidth) << "proc" << "  code" << '\n';	
-		for (int i = 0; i < size; i++)
-			cout << setw(kIntWidth) << i << ": " << Exception(codes[i]) << '\n';	
-	}
-#endif /* __MPI__ */
-
-	/* inherited */
-	FEManagerT::HandleException(exception);
-}
-#endif
-
-#if 0
-/* time sequence messaging */
-bool FEManagerT_mpi::Step(void)
-{
-	//TEMP
-	//TimeStamp("FEManagerT_mpi::Step");
-
-	/* inherited */
-	bool result = FEManagerT::Step();
-
-//NOTE: posting sends here means they will be uncompleted at destruction
-//      if one of the processes throws an exception. Cancelling the
-//      uncompleted requests has been unreliable. Receives posted in
-//      SendExternalData. PAK (04/05/2000)
-//	if (result)
-//	{
-//		/* post non-blocking receives */
-//		const iArrayT& commID = fPartition->CommID();
-//		for (int i = 0; i < commID.Length(); i++)
-//			if (MPI_Irecv(fRecvBuffer[i].Pointer(), fRecvBuffer[i].Length(),
-//				MPI_DOUBLE, commID[i], MPI_ANY_TAG, MPI_COMM_WORLD, &fRecvRequest[i])
-//				!= MPI_SUCCESS) throw eMPIFail;
-//	}
-
-	return result;
-}
-#endif
-
 int FEManagerT_mpi::InitStep(void)
 {
 //NOTE - check for errors on other processors
@@ -233,64 +126,44 @@ int FEManagerT_mpi::InitStep(void)
 	return FEManagerT::InitStep();
 }
 
-/* solution update */
-void FEManagerT_mpi::Update(int group, const dArrayT& update)
-{
-	//TEMP
-	TimeStamp("FEManagerT_mpi::Update");
-
-#if 0
-	/* check for errors */
-	if (AllReduce(MPI_SUM, eNoError) != 0) throw eNoError;
-#endif
-
-	/* inherited */
-	FEManagerT::Update(group, update);
-}
-
 /* system relaxation */
 GlobalT::RelaxCodeT FEManagerT_mpi::RelaxSystem(int group) const
 {
-	//TEMP
-	//TimeStamp("FEManagerT_mpi::RelaxSystem");
-
 	/* inherited */
 	GlobalT::RelaxCodeT relax = FEManagerT::RelaxSystem(group);
-	
-#ifdef __MPI__
-	/* gather all codes */
-	int size = Size();
-	ArrayT<GlobalT::RelaxCodeT> all_relax(size);
-	if (MPI_Allgather(&relax, 1, MPI_INT, all_relax.Pointer(), 1, MPI_INT, MPI_COMM_WORLD)
-		!= MPI_SUCCESS) throw eMPIFail;
-		
+
+	/* gather codes */
+	ArrayT<int> all_relax(Size());
+	fComm.AllGather(relax, all_relax);
+
 	/* code precedence */
-	for (int i = 0; i < size; i++)
-		relax = GlobalT::MaxPrecedence(relax, all_relax[i]);
+	for (int i = 0; i < all_relax.Length(); i++)
+		relax = GlobalT::MaxPrecedence(relax, GlobalT::RelaxCodeT(all_relax[i]));
 	
-	//TEMP
+	/* report */
 	if (relax != GlobalT::kNoRelax)
 	{
 		cout << "\n Relaxation code at time = " << Time() << '\n';
 		cout << setw(kIntWidth) << "proc";	
 		cout << setw(kIntWidth) << "code" << '\n';	
-		for (int i = 0; i < size; i++)
+		for (int i = 0; i < all_relax.Length(); i++)
 		{
 			cout << setw(kIntWidth) << i;	
 			cout << setw(kIntWidth) << all_relax[i];
 			cout << '\n';	
 		}
 	}
-#endif /* __MPI__ */
 
 	return relax;
 }
 
+#if 0
 /* writing results */
 const dArray2DT& FEManagerT_mpi::Coordinates(void) const
 {
 	return fNodeManager->InitialCoordinates();
 }
+#endif
 
 /* initiate the process of writing output from all output sets */
 void FEManagerT_mpi::WriteOutput(double time, IOBaseT::OutputModeT mode)
@@ -305,13 +178,10 @@ void FEManagerT_mpi::WriteOutput(double time, IOBaseT::OutputModeT mode)
 void FEManagerT_mpi::WriteOutput(int ID, const dArray2DT& n_values,
 	const dArray2DT& e_values)
 {
-//cout << "\n FEManagerT_mpi::WriteOutput" << endl;
-
-#ifdef __MPI__
 	/* check for errors */
-	if (AllReduce(MPI_SUM, eNoError) != 0) throw eNoError;
-#endif
+	if (fComm.Sum(eNoError) != 0) throw eNoError;
 
+	/* output assembly mode */
 	if (!fExternIOManager)
 		/* do local IO */
 		FEManagerT::WriteOutput(ID, n_values, e_values);
@@ -428,7 +298,7 @@ void FEManagerT_mpi::RecvExternalData(dArray2DT& external_data)
 		if (0 && status.MPI_ERROR != MPI_SUCCESS)
 		{
 			flog << "\n FEManagerT_mpi::RecvExternalData: error completing send\n"
-			     <<   "     from " << fRank << " to " << commID[ii] << endl;
+			     <<   "     from " << Rank() << " to " << commID[ii] << endl;
 			throw eMPIFail;
 		}
 	}
@@ -449,7 +319,7 @@ void FEManagerT_mpi::SendExternalData(const dArray2DT& all_out_data)
 	//TimeStamp("FEManagerT_mpi::SendExternalData");
 
 	/* check for errors */
-	if (AllReduce(MPI_SUM, eNoError) != 0) throw eNoError;
+	if (fComm.Sum(eNoError) != 0) throw eNoError;
 
 	/* check */
 	if (all_out_data.MajorDim() != fNodeManager->NumNodes())
@@ -468,7 +338,7 @@ void FEManagerT_mpi::SendExternalData(const dArray2DT& all_out_data)
 	/* post non-blocking receives */
 	for (int j = 0; j < commID.Length(); j++)
 		if (MPI_Irecv(fRecvBuffer[j].Pointer(), fRecvBuffer[j].Length(),
-			MPI_DOUBLE, commID[j], MPI_ANY_TAG, MPI_COMM_WORLD, &fRecvRequest[j])
+			MPI_DOUBLE, commID[j], MPI_ANY_TAG, fComm, &fRecvRequest[j])
 			!= MPI_SUCCESS) throw eMPIFail;
 
 	/* post non-blocking sends */
@@ -488,7 +358,7 @@ void FEManagerT_mpi::SendExternalData(const dArray2DT& all_out_data)
 					
 		/* post send */
 		if (MPI_Isend(fSendBuffer[i].Pointer(), fSendBuffer[i].Length(),
-			MPI_DOUBLE, commID[i], fRank, MPI_COMM_WORLD, &fSendRequest[i])
+			MPI_DOUBLE, commID[i], Rank(), fComm, &fSendRequest[i])
 			!= MPI_SUCCESS) throw eMPIFail;		
 	}
 #else
@@ -525,7 +395,7 @@ void FEManagerT_mpi::SendRecvExternalData(const iArray2DT& all_out_data,
 	}
 
 	/* check for errors */
-	if (AllReduce(MPI_SUM, eNoError) != 0) throw eNoError;
+	if (fComm.Sum(eNoError) != 0) throw eNoError;
 
 	/* communication list */
 	const iArrayT& commID = fPartition->CommID();
@@ -542,7 +412,7 @@ void FEManagerT_mpi::SendRecvExternalData(const iArray2DT& all_out_data,
 	/* post non-blocking receives */
 	for (int j = 0; j < commID.Length(); j++)
 		if (MPI_Irecv(recv[j].Pointer(), recv[j].Length(),
-			MPI_INT, commID[j], MPI_ANY_TAG, MPI_COMM_WORLD, &recv_request[j])
+			MPI_INT, commID[j], MPI_ANY_TAG, fComm, &recv_request[j])
 			!= MPI_SUCCESS) throw eMPIFail;
 
 	/* post non-blocking sends */
@@ -556,7 +426,7 @@ void FEManagerT_mpi::SendRecvExternalData(const iArray2DT& all_out_data,
 					
 		/* post send */
 		if (MPI_Isend(send[k].Pointer(), send[k].Length(),
-			MPI_INT, commID[k], fRank, MPI_COMM_WORLD, &send_request[k])
+			MPI_INT, commID[k], Rank(), fComm, &send_request[k])
 			!= MPI_SUCCESS) throw eMPIFail;		
 	}
 
@@ -601,7 +471,7 @@ void FEManagerT_mpi::SendRecvExternalData(const iArray2DT& all_out_data,
 		if (0 && status.MPI_ERROR != MPI_SUCCESS)
 		{
 			flog << "\n FEManagerT_mpi::RecvExternalData: error completing send\n"
-			     <<   "     from " << fRank << " to " << commID[ii] << endl;
+			     <<   "     from " << Rank() << " to " << commID[ii] << endl;
 			throw eMPIFail;
 		}
 	}
@@ -610,9 +480,8 @@ void FEManagerT_mpi::SendRecvExternalData(const iArray2DT& all_out_data,
 
 void FEManagerT_mpi::Wait(void)
 {
-#ifdef __MPI__
-	if (MPI_Barrier(MPI_COMM_WORLD) != MPI_SUCCESS) throw eMPIFail;
-#endif
+	/* synchronize */
+	fComm.Barrier();
 }
 
 /* domain decomposition */
@@ -770,25 +639,6 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 	}
 }
 
-/* basic MP support */
-int FEManagerT_mpi::Rank(void) const
-{
-#ifdef __MPI__
-	return rank();
-#else
-	return FEManagerT::Rank();
-#endif
-}
-
-int FEManagerT_mpi::Size(void) const
-{
-#ifdef __MPI__
-	return size();
-#else
-	return FEManagerT::Size();
-#endif
-}
-
 /*************************************************************************
 * Protected
 *************************************************************************/
@@ -812,7 +662,7 @@ void FEManagerT_mpi::ReadParameters(InitCodeT init)
 		/* input file name */
 		name.Root(fMainIn.filename());
 		suffix.Suffix(fMainIn.filename());
-		name.Append(".p", fRank);
+		name.Append(".p", Rank());
 		name.Append(suffix);
 		fMainIn.set_filename(name);
 
@@ -820,7 +670,7 @@ void FEManagerT_mpi::ReadParameters(InitCodeT init)
 		suffix.Suffix(fModelFile);
 		fModelFile.Root();
 		fModelFile.Append(".n", Size());
-		fModelFile.Append(".p", fRank);
+		fModelFile.Append(".p", Rank());
 		fModelFile.Append(suffix);
 		
 		/* (re-)set model manager to partial geometry file */
@@ -834,7 +684,7 @@ void FEManagerT_mpi::ReadParameters(InitCodeT init)
 		{
 			suffix.Suffix(fRestartFile);
 			fRestartFile.Root();
-			fRestartFile.Append(".p", fRank);
+			fRestartFile.Append(".p", Rank());
 			fRestartFile.Append(suffix);
 		}
 	}
@@ -884,6 +734,7 @@ void FEManagerT_mpi::InitialCondition(void)
 	if (fExternIOManager) fExternIOManager->NextTimeSequence(SequenceNumber());
 }
 
+#if 0
 /* reduce single value */
 int FEManagerT_mpi::AllReduce(MPI_Op operation, int value)
 {
@@ -894,50 +745,49 @@ int FEManagerT_mpi::AllReduce(MPI_Op operation, int value)
 	throw eGeneralFail;
 #else
 	int reduction = 0;
-	if (MPI_Allreduce(&value, &reduction, 1, MPI_INT, operation, MPI_COMM_WORLD)
+	if (MPI_Allreduce(&value, &reduction, 1, MPI_INT, operation, fComm)
 		!= MPI_SUCCESS) throw eMPIFail;
 	return reduction;
 #endif
 }
+#endif
 
 /* global number of first local equation */
 int FEManagerT_mpi::GetGlobalEquationStart(int group) const
 {
-#ifdef __MPI__
-	/* number of local equations */
-	int num_eq = fNodeManager->NumEquations(group);
+	if (Size() == 1)
+		return FEManagerT::GetGlobalEquationStart(group);
+	else
+	{
+		/* number of local equations */
+		int num_eq = fNodeManager->NumEquations(group);
 
-	/* collect from all */
-	int size = Size();
-	iArrayT all_num_eq(size);
-	if (MPI_Allgather(&num_eq, 1, MPI_INT, all_num_eq.Pointer(), 1,
-		MPI_INT, MPI_COMM_WORLD) != MPI_SUCCESS) throw eMPIFail;
+		/* collect from all */
+		int size = Size();
+		iArrayT all_num_eq(size);
+		fComm.AllGather(num_eq, all_num_eq);
 
-	/* compute offset to local equations */
-	int offset = 0;
-	for (int i = 0; i < fRank; i++)
-		offset += all_num_eq[i];
+		/* compute offset to local equations */
+		int offset = 0;
+		for (int i = 0; i < Rank(); i++)
+			offset += all_num_eq[i];
 
-	/* equation start */
-	return offset + 1; //OFFSET
-
-#else
-	return FEManagerT::GetGlobalEquationStart(group);
-#endif /* __MPI__ */
+		/* equation start */
+		return offset + 1; //OFFSET
+	}
 }
 
 int FEManagerT_mpi::GetGlobalNumEquations(int group) const
 {
-#ifdef __MPI__
-	int loc_num_eq = fNodeManager->NumEquations(group);
-	iArrayT all_num_eq(Size());
-	if (MPI_Allgather(&loc_num_eq, 1, MPI_INT, all_num_eq.Pointer(), 1,
-		MPI_INT, MPI_COMM_WORLD) != MPI_SUCCESS) throw eMPIFail;
-	return all_num_eq.Sum();
-#else
-	/* inherited */
-	return FEManagerT::GetGlobalNumEquations(group);
-#endif /* __MPI__ */
+	if (Size() == 1)
+		return FEManagerT::GetGlobalNumEquations(group);
+	else
+	{
+		int loc_num_eq = fNodeManager->NumEquations(group);
+		iArrayT all_num_eq(Size());
+		fComm.AllGather(loc_num_eq, all_num_eq);
+		return all_num_eq.Sum();
+	}
 }
 
 /*************************************************************************

@@ -1,32 +1,29 @@
-/* $Id: ExecutionManagerT.cpp,v 1.8 2002-07-02 19:55:30 cjkimme Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.9 2002-08-15 08:59:35 paklein Exp $ */
 /* created: paklein (08/27/1997) */
-
 #include "ExecutionManagerT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 #include <time.h>
 
-#ifdef __MPI__
-#include "mpi.h"
-#endif
-
 #include "fstreamT.h"
 #include "Constants.h"
 #include "ExceptionCodes.h"
 #include "StringT.h"
-
-/* maximum batch file recursion depth */
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
+/* maximum batch file recursion depth */
 const int kMaxRecursionDepth = 10;
 
 /* Constructor */
 ExecutionManagerT::ExecutionManagerT(int argc, char* argv[], char job_char, char batch_char,
+	CommunicatorT& comm,
 	int jobcharputback):
 	fJobChar(job_char),
 	fBatchChar(batch_char),
+	fComm(comm),
 	fJobCharPutBack(jobcharputback),
 	fRecursionDepth(0)
 {
@@ -47,13 +44,8 @@ ExecutionManagerT::~ExecutionManagerT(void) { }
 /* Prompt input files until "quit" */
 void ExecutionManagerT::Run(void)
 {
-	int size = 1;
-#ifdef __MPI__
-	if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS) throw eMPIFail;
-#endif
-
 	/* dispatch */
-	if (size > 1)
+	if (fComm.Size() > 1)
 		Run_parallel();
 	else
 		Run_serial();
@@ -104,11 +96,9 @@ void ExecutionManagerT::Run_serial(void)
 }
 
 void ExecutionManagerT::Run_parallel(void)
-#ifdef __MPI__
 {
 	/* get rank */
-	int rank;
-	if (MPI_Comm_rank(MPI_COMM_WORLD, &rank) != MPI_SUCCESS) throw eMPIFail;
+	int rank = fComm.Rank();
 
 	/* file name passed on command line */
 	int index;
@@ -148,8 +138,7 @@ void ExecutionManagerT::Run_parallel(void)
 			}
 	
 			/* broadcast file name */
-			if (MPI_Bcast(file.Pointer(), 255, MPI_CHAR, 0, MPI_COMM_WORLD) != MPI_SUCCESS)
-				throw eMPIFail;		
+			fComm.Broadcast(file);
 			
 			/* open stream */
 			if (file == "quit")
@@ -165,12 +154,6 @@ void ExecutionManagerT::Run_parallel(void)
 		}
 	}
 }
-#else /* __MPI__ */
-{
-	cout << "\n ExecutionManagerT::Run_parallel: should not be here without MPI" << endl;
-	throw eGeneralFail;
-}
-#endif /* __ MPI__ */
 
 /* returns true if the option was passed on the command line */
 bool ExecutionManagerT::CommandLineOption(const char* str, int& index) const
@@ -257,17 +240,6 @@ void ExecutionManagerT::JobOrBatch(ifstreamT& in, ostream& status)
 /* Batch file processing */
 void ExecutionManagerT::RunBatch(ifstreamT& in, ostream& status)
 {
-#if 0
-//#ifdef __MPI__
-	int size;
-	if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS) throw eMPIFail;
-	if (size > 1)
-	{
-		cout << "\n ExecutionManagerT::RunBatch: not ready for parallel execution" << endl;
-		throw eGeneralFail;
-	}
-#endif /* __MPI__ */
-
 	/* mark status */
 	status << "\n Processing batch file: " << in.filename() << '\n';
 	

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.16 2002-07-05 22:28:07 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.17 2002-08-15 08:59:36 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -42,6 +42,7 @@ class iAutoArrayT;
 class IOManager;
 class OutputSetT;
 class FieldT;
+class CommunicatorT;
 
 class FEManagerT: public iConsoleObjectT
 {
@@ -54,7 +55,7 @@ public:
 	        };
 
 	/** constructor */
-	FEManagerT(ifstreamT& input, ofstreamT& output);
+	FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm);
 
 	/** destructor */
 	virtual ~FEManagerT(void);
@@ -242,8 +243,8 @@ public:
 
 	/** \name basic MP info */
 	/*@{*/
-	virtual int Rank(void) const { return 0; }
-	virtual int Size(void) const { return 1; }
+	int Rank(void) const;
+	int Size(void) const;
 
 	/* external nodes functions (parallel execution) */
 	virtual void IncomingNodes(iArrayT& nodes_in) const;
@@ -332,6 +333,9 @@ protected:
 	ifstreamT& fMainIn;
 	ofstreamT& fMainOut;
 	/*@}*/
+	
+	/** MP environment */
+	CommunicatorT& fComm;
 
 	/** \name info strings */
 	/*@{*/
