@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.16 2002-03-12 17:48:55 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.17 2002-05-23 00:55:01 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -494,21 +494,30 @@ void ExodusT::ReadSideSet(int set_ID, int& block_ID, iArray2DT& sides) const
 		temp.RowAlias(0, elements);
 		GlobalToBlockElementNumbers(block_ID, elements);
 
-		/* read block parameters */
-		char type[MAX_STR_LENGTH];
-		int nel, nen, num_attr;
-		Try("ExodusT::ReadSideSet: ex_get_elem_block",
-			ex_get_elem_block(exoid, block_ID, type,
-				&nel, &nen, &num_attr),
-			true);	
+		/* found valid element block */
+		if (block_ID > 0)
+		{
+			/* read block parameters */
+			char type[MAX_STR_LENGTH];
+			int nel, nen, num_attr;
+			Try("ExodusT::ReadSideSet: ex_get_elem_block",
+				ex_get_elem_block(exoid, block_ID, type,
+					&nel, &nen, &num_attr),
+				true);	
 
-		/* convert facet numbering */
-		nArrayT<int> facets;
-		temp.RowAlias(1, facets);
-		ConvertSideSetOut(type, facets);
+			/* convert facet numbering */
+			nArrayT<int> facets;
+			temp.RowAlias(1, facets);
+			ConvertSideSetOut(type, facets);
 
-		/* transpose data */
-		sides.Transpose(temp);
+			/* transpose data */
+			sides.Transpose(temp);
+		}
+		else
+		{
+			cout << "\n ExodusT::ReadSideSet: could not read side set " << set_ID << endl;
+			sides = 0;
+		}
 	}
 	else
 		block_ID = 0;
@@ -857,8 +866,9 @@ void ExodusT::GlobalToBlockElementNumbers(int& block_ID, nArrayT<int>& elements)
 		cout << "\n ExodusT::BlockElementNumbers: side set specification error:\n";
 		cout <<   "     element number {min, max} = {" << min << "," << max;
 		cout << "} exceeds the bounds\n";
-		cout <<   "     of element group " << block_ID + 1 << endl;
-		throw eBadInputValue;
+		cout <<   "     of element group " << block_ID + 1 << '\n';
+		cout <<   "     Associated element group could not be determined" << endl;
+		block_ID = -1;
 	}
 }
 
