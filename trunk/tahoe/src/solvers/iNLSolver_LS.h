@@ -1,5 +1,5 @@
-/* $Id: iNLSolver_LS.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
-/* created: paklein (01/01/2001)                                          */
+/* $Id: iNLSolver_LS.h,v 1.2 2001-11-28 22:08:46 paklein Exp $ */
+/* created: paklein (01/01/2001) */
 
 #ifndef _I_NL_SOLVER_LS_H_
 #define _I_NL_SOLVER_LS_H_
@@ -21,7 +21,7 @@ public:
 	virtual void Run(void);
 	
 	/* execute commands */
-	virtual bool iDoCommand(const StringT& command, StringT& line);
+	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
 
 private:
 
