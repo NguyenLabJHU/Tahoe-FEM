@@ -10,7 +10,7 @@
 #include "ExceptionCodes.h"
 
 // output
-#include "FE_ASCIIT.h"
+#include "TextOutputT.h"
 #include "ExodusOutputT.h"
 #include "EnSightOutputT.h"
 #include "AbaqusOutputT.h"
@@ -67,7 +67,7 @@ OutputBaseT* OutPutLatticeT::NewOutput(const StringT& program_name,
 	  case IOBaseT::kTahoe:
 	  case IOBaseT::kTahoeII:
 	  case IOBaseT::kTahoeResults:
-	    output = new FE_ASCIIT(log, true, outstrings);
+	    output = new TextOutputT(log, true, outstrings);
 	    break;
 	  case IOBaseT::kEnSight:
 	    output = new EnSightOutputT(log, outstrings, kdigits, false);
