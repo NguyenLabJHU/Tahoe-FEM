@@ -1,4 +1,4 @@
-/* $Id: Rotate2DT.cpp,v 1.4 2002-10-20 22:39:04 paklein Exp $ */
+/* $Id: Rotate2DT.cpp,v 1.5 2005-01-13 00:10:32 paklein Exp $ */
 /* created: paklein (07/21/1996)                                          */
 /* This class provides the functionality to do 2D coordinate              */
 /* transformations.                                                       */
@@ -37,7 +37,8 @@ Rotate2DT::Rotate2DT(double angle): fAngleDeg(angle), fQ(kMatrixDim),
 */
 void Rotate2DT::SetAngle(double angle)
 {
-	fAngle = angle*Pi/180.0;
+	fAngleDeg = angle;
+	fAngle = fAngleDeg*Pi/180.0;
 
 	double temp = fAngle;
 	fCost = cos(temp);	
