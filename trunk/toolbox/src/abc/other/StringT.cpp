@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.23 2002-07-05 17:15:57 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.24 2002-09-03 07:06:06 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 
 #include "StringT.h"
@@ -192,6 +192,23 @@ StringT& StringT::Append(const char* s)
 		memcpy(Pointer(old_len), s, sizeof(char)*(s_len + 1));
 		return *this;
 	}
+}
+
+/* append a floating point number */
+StringT& StringT::Append(double number, int precision)
+{
+	char buffer[51];
+	memset(buffer, '\0', 51);
+	ostrstream out(buffer, 50);
+	out.precision(precision);
+	out.setf(ios::showpoint);
+	out.setf(ios::right, ios::adjustfield);
+	out.setf(ios::scientific, ios::floatfield);
+
+	out << number;
+
+	Append(buffer);
+	return *this;
 }
 
 /* drop the last ".xxx" extension to the string */
