@@ -1,4 +1,4 @@
-# $Id: SHASTA.macros,v 1.10 2004-11-12 20:54:54 paklein Exp $
+# $Id: SHASTA.macros,v 1.11 2004-12-18 05:00:40 paklein Exp $
 MAKE        = make
 DEFINES     = -D__TAHOE_MPI__ -D__SHASTA__ -D__INTEL_CC__ -DNON_UNIX_STDIO -D__NO_RTTI__ -DEIGHT_BYTE_REAL
 COMP_C      = mpicc
@@ -8,9 +8,9 @@ COMP_FLAG   = -c
 MORE_CFLAGS = -O2 -DNDEBUG $(DEFINES)
 LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS) -wr161
-CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -wr161,858
+CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -wr161,858,1224
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS) -fno-second-underscore
-F2C_LFLAGS  = -lIEPCF90 -lF90
+F2C_LFLAGS  = -L/apps/intel/fce_80/lib -lifport -lifcore
 LINK        = $(COMP_CC)
 LFLAGS      = $(F2C_LFLAGS)
 MAKEDEPEND_C         = mpicc -MM
