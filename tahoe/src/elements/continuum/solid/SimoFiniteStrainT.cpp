@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.14.2.1 2001-10-26 18:42:58 sawimme Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.14.2.2 2001-10-28 23:59:32 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -269,36 +269,47 @@ void SimoFiniteStrainT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 void SimoFiniteStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
 {
-#if 0
 	/* inherited */
 	if (fModeSolveMethod != kMonolithic)
 		FiniteStrainT::Equations(eq_1, eq_2);
 	else
 	{
-		/* resize equations array - displacement DOF's + element modes */
-		fEqnos.Allocate(fNumElements, fNumElemEqnos + fCurrElementModes.Length());
+		/* equations associated with the element modes */
+		const iArray2DT& xdof_eqnos_all = fNodes->XDOF_Eqnos(this, 0);
+
+		/* loop over connectivity blocks */
+		int element_count = 0;
+		for (int i = 0; i < fConnectivities.Length(); i++)
+		{
+			/* block connectivities and equations */
+			const iArray2DT& connects = *fConnectivities[i];
+			iArray2DT& eqnos = fEqnos[i];
+		
+			/* resize equations array - displacement DOF's + element modes */
+			eqnos.Allocate(connects.MajorDim(), fNumElemEqnos + fCurrElementModes.Length());
+		
+			/* set displacement equations */
+			fNodes->SetLocalEqnos(connects, eqnos);
+
+			/* xdof equations for the block */
+			const iArray2DT xdof_eqnos(connects.MajorDim(), xdof_eqnos_all.MinorDim(), xdof_eqnos_all(element_count));
+			element_count += connects.MajorDim();
+
+			/* fill columns with xdof equations */
+			iArrayT tmp(xdof_eqnos.MajorDim());
+			for (int i = fNumElemEqnos; i < eqnos.MinorDim(); i++)
+			{
+				xdof_eqnos.ColumnCopy(i - fNumElemEqnos, tmp);
+				eqnos.SetColumn(i, tmp);
+			}
+
+			/* add to list */
+			eq_1.AppendUnique(&eqnos);
+		}
 		
 		/* reset element cards */
-		SetElementCards();
-	
-		/* set displacement equations */
-		fNodes->SetLocalEqnos(fConnectivities, fEqnos);
-
-		/* equations associated with the element modes */
-		const iArray2DT& xdof_eqnos = fNodes->XDOF_Eqnos(this, 0);
-
-		/* fill columns */
-		iArrayT tmp(xdof_eqnos.MajorDim());
-		for (int i = fNumElemEqnos; i < fEqnos.MinorDim(); i++)
-		{
-			xdof_eqnos.ColumnCopy(i - fNumElemEqnos, tmp);
-			fEqnos.SetColumn(i, tmp);
-		}
-
-		/* add to list */
-		eq_1.AppendUnique(&fEqnos);
+		SetElementCards();	
 	}
-#endif
 }
 
 /* determine number of tags needed. See DOFElementT. */
