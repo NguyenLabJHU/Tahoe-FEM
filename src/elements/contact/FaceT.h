@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.4 2001-04-11 18:35:19 rjones Exp $ */
+/* $Id: FaceT.h,v 1.5 2001-04-11 20:10:27 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -49,11 +49,11 @@ public:
 		dArrayT& local_coordinates, double gap)=0; 
 
 	/* access functions */
-	inline int NumNodes(void) const 
+	inline const int NumNodes(void) const 
 		{return fConnectivity.Length();}
-	inline GeometryT::CodeT GeometryType(void) const 
+	inline const GeometryT::CodeT GeometryType(void) const 
 		{return fGeometryType;}
- 	inline iArrayT& Connectivity(void) const 
+ 	inline const iArrayT& Connectivity(void) const 
 		{return fConnectivity;} 
 
 protected:

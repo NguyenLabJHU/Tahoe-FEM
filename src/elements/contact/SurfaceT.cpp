@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.5 2001-04-11 14:48:58 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.6 2001-04-11 20:10:27 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -45,7 +45,7 @@ void SurfaceT::PrintData(ostream& out)
 	    << fFaces.Length() 
 	    << ", geometry type :" << GeometryType() <<  '\n' ;
 	for (int i = 0 ; i < fFaces.Length() ; i++) {
-		iArrayT& connectivity = fFaces[i]->Connectivity();
+		iArrayT connectivity = fFaces[i]->Connectivity();
 		connectivity++;
         	out << connectivity.wrap(8) << '\n';
         	connectivity--;
