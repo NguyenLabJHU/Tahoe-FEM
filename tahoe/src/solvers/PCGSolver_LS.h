@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.h,v 1.7.2.1 2004-02-24 19:09:43 paklein Exp $ */
+/* $Id: PCGSolver_LS.h,v 1.7.2.2 2004-03-24 01:58:35 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #ifndef _PCG_SOLVER_LS_H_
 #define _PCG_SOLVER_LS_H_
@@ -28,6 +28,9 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
