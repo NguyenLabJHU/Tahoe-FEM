@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.12.4.2 2004-04-28 05:33:26 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.12.4.3 2004-05-16 00:48:37 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -185,7 +185,7 @@ public:
 	 * crystal */
 	void CorrectOverlap_all(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
 
-	void CorrectOverlap(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
+	void CorrectOverlap(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2, int nip);
 
 	/** enforce zero bond density in projected cells */
 	void DeactivateFollowerCells(void);

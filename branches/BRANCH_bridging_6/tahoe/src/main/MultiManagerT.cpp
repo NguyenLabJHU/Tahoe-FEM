@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.9.16.3 2004-05-13 20:41:40 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.9.16.4 2004-05-16 00:48:37 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -107,8 +107,10 @@ void MultiManagerT::Initialize(InitCodeT)
 	if (fCorrectOverlap) {
 	
 		fCBTikhonov = fK2= -99;
+		int nip = -99;
 		in >> fCBTikhonov
-		   >> fK2;
+		   >> fK2
+		   >> nip;
 		if (fCBTikhonov < 0.0 || fK2 < 0.0)
 			ExceptionT::GeneralFail(caller, "regularization must be >= 0.0: %g, %g", fCBTikhonov, fK2);
 	
@@ -119,7 +121,7 @@ void MultiManagerT::Initialize(InitCodeT)
 		if (fCorrectOverlap == 1)
 			fCoarse->CorrectOverlap_ghost(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2);
 		else
-			fCoarse->CorrectOverlap(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2);
+			fCoarse->CorrectOverlap(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2, nip);
 	}
 
 //TEMP - debugging
