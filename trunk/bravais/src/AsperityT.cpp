@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.cpp,v 1.2 2003-06-06 23:11:35 saubry Exp $ */
+/* $Id: AsperityT.cpp,v 1.3 2003-06-12 20:30:41 saubry Exp $ */
 #include "AsperityT.h"
 #include "VolumeT.h"
 
@@ -123,10 +123,6 @@ void AsperityT::CreateLattice(CrystalLatticeT* pcl)
   else
     nATOMS = RotateBoxOfAtom(pcl,&temp_atom,&temp_parts,temp_nat);
 
-  // Create parts here
-  atom_parts.Dimension(nATOMS);
-  atom_parts = temp_parts;
-
   // Get atoms coordinates
   atom_ID.Dimension(nATOMS);
   atom_coord.Dimension(nATOMS,nlsd);
@@ -142,6 +138,32 @@ void AsperityT::CreateLattice(CrystalLatticeT* pcl)
       atom_ID[p] = p;
       atom_connectivities(p)[0] = p;
     }
+
+  // Create parts
+  atom_parts.Dimension(nATOMS);
+  for(int m=0; m < nATOMS ; m++) 
+    atom_parts[m] = temp_parts[m];
+
+  // Create array of connectivities 
+  int npart = 0;
+  for(int m=0; m < nATOMS ; m++) 
+    if(atom_parts[m] < 0) npart++;
+  /*
+  atom_part_connect.Dimension(2);
+  atom_part_connect[0]->Dimension(npart,1);
+  atom_part_connect[1]->Dimension(nATOMS-npart,1);
+
+  for(int m=0; m < nATOMS ; m++) 
+    if(atom_parts[m] < 0) 
+      {
+	atom_part_connect(m)[0] = m;
+      }
+    else
+      {
+	atom_part_connect(m)[1] = m;
+      }
+  */
+
 
   // Update lengths
   length = ComputeMinMax();
@@ -169,13 +191,6 @@ void AsperityT::CalculateType()
   for (int i=0; i < nATOMS; i++)
     atom_types[i] = 1; 
 }
-
-void AsperityT::CalculatePart()
-{
-  // Do nothing.
-  // Everything is done while creating lattice.
-}
-
 
 void AsperityT::SortLattice(CrystalLatticeT* pcl) 
 {
@@ -346,8 +361,8 @@ void AsperityT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
       if (per[i]==0) 
 	{
 	  // non-periodic conditions
-	  atom_bounds(i,0) = -10000.;
-	  atom_bounds(i,1) =  10000.;
+	  atom_bounds(i,0) =  length(i)[0];    //-10000.;
+	  atom_bounds(i,1) =  length(i)[1] + 0.5*vLP[1];    //10000.;
 	}
       else if (per[i]==1)
 	{
@@ -479,17 +494,28 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 		  double R = r0*r0 + r1*r1 + r2*r2;
 
 		  if(x >= l00 && x <= l01 && y >= l10 && y <= l11 && z >= l20 && z <= l21)
-		    if(R <= radius*radius || z <= h0 )
+		    if(R <= radius*radius || z <= h0 + eps)
 		      {
 			(*temp_atom)(natom)[0] = x;
 			(*temp_atom)(natom)[1] = y;
 			(*temp_atom)(natom)[2] = z;
 			(*temp_parts)[natom] = 1;
-			if (z<= h0) (*temp_parts)[natom] = -1;
+			if (z<= h0 + eps) (*temp_parts)[natom] = -1;
 			natom++;                     
 		      }
 		}
 	    }
+    }
+
+
+  // Shift asperity
+  for (int k=0;k<natom;k++) 
+    {
+      if((*temp_parts)[k] == 1)
+	{
+	  (*temp_atom)(k)[0] += 3.52/4.;
+	  (*temp_atom)(k)[1] += 3.52/4.;
+	}
     }
 
   return natom;

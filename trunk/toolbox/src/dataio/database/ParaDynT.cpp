@@ -36,9 +36,11 @@ void ParaDynT::WriteCoordinateHeader (ostream& fgeo) const
   fgeo << " ITEM: ATOMS" << '\n';
 }
 
+/*
 void ParaDynT::WriteCoordinates (ostream& fgeo, 
 				 const dArray2DT& coords,
-				 const iArrayT& types) const
+				 const iArrayT& types,
+				 const iArrayT& parts)  const
 {
   if(coords.MajorDim() != types.Length()) 
     throw ExceptionT::kSizeMismatch;
@@ -62,11 +64,13 @@ void ParaDynT::WriteCoordinates (ostream& fgeo,
     throw ExceptionT::kBadInputValue;
  
 }
+*/
 
-/* -> For Sylvie's version of ParaDyn.....
+/* -> For Sylvie's version of ParaDyn.....*/
 void ParaDynT::WriteCoordinates (ostream& fgeo, 
 				 const dArray2DT& coords,
-				 const iArrayT& types) const
+				 const iArrayT& types,
+				 const iArrayT& parts) const
 {
   if(coords.MinorDim()==2)
     { 
@@ -74,7 +78,7 @@ void ParaDynT::WriteCoordinates (ostream& fgeo,
 	fgeo << i+1  << "  "  << types[i] << "  " 
 	     << float(coords(i)[0]) << "  " 
              << float(coords(i)[1]) << "  " 
-	     << types[i] << "\n";
+	     << parts[i] << "\n";
     }
   else if(coords.MinorDim()==3)
     { 
@@ -82,14 +86,15 @@ void ParaDynT::WriteCoordinates (ostream& fgeo,
 	fgeo << i+1  << "  " << types[i] << "  " 
 	     << float(coords(i)[0]) << "  " 
 	     << float(coords(i)[1]) << "  "
-	     << float(coords(i)[2]) << "  " << types[i] << "  " 
+	     << float(coords(i)[2]) << "  " 
+	     << parts[i] << "  " 
 	     << "\n";
     }
   else
     throw ExceptionT::kBadInputValue;
  
 }
-*/
+
 
 void ParaDynT::WriteTime (ostream& fvar) const
 {
