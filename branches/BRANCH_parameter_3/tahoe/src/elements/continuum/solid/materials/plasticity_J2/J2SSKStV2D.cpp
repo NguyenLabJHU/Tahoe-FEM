@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV2D.cpp,v 1.4.48.1 2004-04-08 07:33:09 paklein Exp $ */
+/* $Id: J2SSKStV2D.cpp,v 1.4.48.2 2004-06-08 22:27:33 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV2D.h"
 #include "ElementCardT.h"
@@ -13,6 +13,12 @@ J2SSKStV2D::J2SSKStV2D(ifstreamT& in, const SSMatSupportT& support):
 	fStress2D(2),
 	fModulus2D(dSymMatrixT::NumValues(2)),
 	fTotalStrain3D(3)
+{
+
+}
+
+J2SSKStV2D::J2SSKStV2D(void):
+	ParameterInterfaceT("small_strain_J2_StVenant_2D")
 {
 
 }
@@ -60,6 +66,18 @@ void J2SSKStV2D::DefineParameters(ParameterListT& list) const
 	/* 2D option must be plain stress */
 	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
+}
+
+/* accept parameter list */
+void J2SSKStV2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	J2SSKStV::TakeParameterList(list);
+
+	/* dimension work space */
+	fStress2D.Dimension(2);
+	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
+	fTotalStrain3D.Dimension(3);
 }
 
 /***********************************************************************

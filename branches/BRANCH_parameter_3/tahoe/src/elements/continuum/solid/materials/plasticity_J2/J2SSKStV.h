@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.h,v 1.8.24.2 2004-06-08 16:01:34 paklein Exp $ */
+/* $Id: J2SSKStV.h,v 1.8.24.3 2004-06-08 22:27:33 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_H_
 #define _J2_SS_KSTV_H_
@@ -62,9 +62,6 @@ public:
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:

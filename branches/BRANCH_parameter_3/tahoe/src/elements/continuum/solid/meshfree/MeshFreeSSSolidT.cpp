@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.17.18.8 2004-06-07 23:20:12 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.17.18.9 2004-06-08 22:27:34 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -50,6 +50,8 @@ MeshFreeSSSolidT::MeshFreeSSSolidT(const ElementSupportT& support):
 	SmallStrainT(support),
 	fAutoBorder(false),
 	fB_wrap(10, fB),
+	fMFShapes(NULL),
+	fMFFractureSupport(NULL),
 	fMeshfreeParameters(NULL)	
 {
 	SetName("small_strain_meshfree");

@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.8.18.1 2004-04-08 07:32:30 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.8.18.2 2004-06-08 22:27:30 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _CONTINUUM_MATERIAL_T_H_
 #define _CONTINUUM_MATERIAL_T_H_
@@ -110,10 +110,10 @@ public:
 	virtual void ResetHistory(void);
 
 	/** write parameters to the output stream. */
-	virtual void Print(ostream& out) const = 0;
+	virtual void Print(ostream& out) const;
 
 	/** write the model name to the output stream. */
-	virtual void PrintName(ostream& out) const = 0;
+	virtual void PrintName(ostream& out) const;
 
 	/** return the number of constitutive model output parameters
 	 * per evaluation point. Used by the host element group in

@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV2D.h,v 1.4.48.1 2004-04-08 07:33:09 paklein Exp $ */
+/* $Id: J2SSKStV2D.h,v 1.4.48.2 2004-06-08 22:27:33 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_2D_H_
 #define _J2_SS_KSTV_2D_H_
@@ -12,13 +12,14 @@ class J2SSKStV2D: public J2SSKStV
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	J2SSKStV2D(ifstreamT& in, const SSMatSupportT& support);
+	J2SSKStV2D(void);
 
-	/* initialization */
+	/** initialization */
 	virtual void Initialize(void);
 
-	/* returns elastic strain (3D) */
+	/** returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain,
 		const ElementCardT& element, int ip);
 
@@ -35,6 +36,9 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 private:

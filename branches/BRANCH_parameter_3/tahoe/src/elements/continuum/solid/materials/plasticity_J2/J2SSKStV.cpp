@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.9.18.2 2004-06-08 16:01:34 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.9.18.3 2004-06-08 22:27:33 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
 #include "SSMatSupportT.h"
@@ -149,12 +149,16 @@ void J2SSKStV::DefineSubs(SubListT& sub_list) const
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* J2SSKStV::NewSub(const StringT& list_name) const
 {
-	/* inherited */
-	ParameterInterfaceT* params = SSSolidMatT::NewSub(list_name);
-	if (params)
-		return params;
-	else
-		return IsotropicT::NewSub(list_name);
+	ParameterInterfaceT* sub = NULL;
+
+	/* try each base class */
+	sub = SSSolidMatT::NewSub(list_name);
+	if (sub) return sub;
+
+	sub = IsotropicT::NewSub(list_name);
+	if (sub) return sub;
+	
+	return J2SSC0HardeningT::NewSub(list_name);
 }
 
 /* accept parameter list */
@@ -165,14 +169,13 @@ void J2SSKStV::TakeParameterList(const ParameterListT& list)
 	IsotropicT::TakeParameterList(list);
 	J2SSC0HardeningT::TakeParameterList(list);
 	
-HookeanMatT::Initialize(void)
-{
-	SetModulus(fModulus);	
+	/* initialize modulus */
+	HookeanMatT::Initialize();
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* set modulus */
 void J2SSKStV::SetModulus(dMatrixT& modulus)
