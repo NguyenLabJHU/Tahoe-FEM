@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.cpp,v 1.5 2001-07-13 23:14:13 cfoster Exp $ */
+/* $Id: DPSSKStV2D.cpp,v 1.6 2001-08-15 16:54:41 cfoster Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 #include "DPSSKStV2D.h"
@@ -60,6 +60,15 @@ const dMatrixT& DPSSKStV2D::c_ijkl(void)
 	fModulus2D *= fThickness;
 	return fModulus2D;
 }
+
+const dMatrixT& DPSSKStV2D::cdisc_ijkl(void)
+{
+	/* 3D -> 2D */
+	fModulus2D.Rank4ReduceFrom3D(DPSSKStV::cdisc_ijkl());
+	fModulus2D *= fThickness;
+	return fModulus2D;
+}
+
 
 /* stress */
 const dSymMatrixT& DPSSKStV2D::s_ij(void)
