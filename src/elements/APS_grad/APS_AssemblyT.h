@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.26 2004-07-15 08:27:49 paklein Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.27 2004-07-27 20:05:45 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -28,7 +28,8 @@ namespace Tahoe {
 
 /* forward declarations */
 class ShapeFunctionT;
-class Traction_CardT;	/** mass types */
+class Traction_CardT;	
+class StringT;
 
 /** APS_AssemblyT: This class contains kinematics of
  * a dual field formulation for strict anti-plane shear. These include a scalar 
@@ -38,9 +39,9 @@ class Traction_CardT;	/** mass types */
 
 class APS_AssemblyT: public ElementBaseT
 {
- //----- Class Methods -----------
+//----- Class Methods -----------
 	
- public:
+public:
 
 	enum fMat_T 	{ 
 									kMu,
@@ -62,14 +63,15 @@ class APS_AssemblyT: public ElementBaseT
 									kNUM_FMAT_TERMS	}; // MAT for material here, not matrix
 
 	/** constructor */
-	APS_AssemblyT(	const ElementSupportT& support, const FieldT& displ, 
-					const FieldT& gammap);
+//	APS_AssemblyT(	const ElementSupportT& support, const FieldT& displ, 
+//					const FieldT& gammap);
+	APS_AssemblyT(	const ElementSupportT& support );				
 
 	/** destructor */
 	~APS_AssemblyT(void);
 
 	/** data initialization */
-	virtual void Initialize(void); 
+	//virtual void Initialize(void); 
 
 	/** echo input */
 	void Echo_Input_Data (void); 
@@ -119,6 +121,27 @@ class APS_AssemblyT: public ElementBaseT
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
 	virtual void ReadRestart(istream& in);
 	/*@}*/
+	
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -162,6 +185,8 @@ private:
 	/*@{*/
 	/** element geometry */
 	GeometryT::CodeT fGeometryCode_displ, fGeometryCodeSurf_displ, fGeometryCode_plast, fGeometryCodeSurf_plast;
+
+	int fGeometryCode_displ_int, fGeometryCodeSurf_displ_int;
 
 	/** number of integration points */
 	int	fNumIP_displ, fNumIPSurf_displ, fNumIP_plast, fNumIPSurf_plast, 
@@ -318,17 +343,20 @@ private:
 	//############## methods in Traction_and_Body_Force.cpp (i.e. methods now in this class) ### 
 	//##########################################################################################
 
-	public:
+public:
 
-		enum MassTypeT {kNoMass = 0, /**< do not compute mass matrix */
+	enum MassTypeT {kNoMass = 0, /**< do not compute mass matrix */
             kConsistentMass = 1, /**< variationally consistent mass matrix */
                 kLumpedMass = 2  /**< diagonally lumped mass */ };
 
 	/** reference to element shape functions */
 	const ShapeFunctionT& ShapeFunction(void) const;
 
-	protected:
+protected:
 
+	/** extract natural boundary condition information */
+	void TakeNaturalBC(const ParameterListT& list);
+	
 	 	/** apply traction boundary conditions to the coarse scale equations */
 		void ApplyTractionBC(void);
 
@@ -360,7 +388,11 @@ private:
 	ArrayT<Traction_CardT> fTractionList;
 	int fTractionBCSet;
 
+	/** \name work space */
+	/*@{*/
+	dArrayT fNEEvec; /**< work space vector: [element DOF] */
 	dArrayT fDOFvec; /**< work space vector: [nodal DOF]   */
+	/*@}*/
 	
 };
 

@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.49 2004-07-15 08:27:49 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.50 2004-07-27 20:05:45 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -11,14 +11,19 @@
 #include "Shear_MatlT.h"
 
 #include "OutputSetT.h"
+#include "iAutoArrayT.h"
+#include "ScheduleT.h"
+#include "ParameterContainerT.h"
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
 //---------------------------------------------------------------------
 
 /* constructor */
-APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ, 
-							const FieldT& gammap):
+//APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ, 
+//							const FieldT& gammap):
+APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support):
 	ElementBaseT(support), //pass the displacement field to the base class
 	u(LocalArrayT::kDisp),
 	u_n(LocalArrayT::kLastDisp),
@@ -32,8 +37,8 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	fBodySchedule(NULL),
 	fBody(NumDOF()),
 	fTractionBCSet(0),
-	fDispl(displ),
-	fPlast(gammap),
+	//fDispl(NULL),
+	//fPlast(NULL),
 	fKdd(ElementMatrixT::kNonSymmetric),
 	fKdd_face(ElementMatrixT::kNonSymmetric),
 	fKdeps(ElementMatrixT::kNonSymmetric),
@@ -43,110 +48,7 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	fEquation_eps(NULL),
 	bStep_Complete(0)
 {
-ExceptionT::GeneralFail("APS_AssemblyT::APS_AssemblyT", "out of date");
-#if 0	
-	knum_d_state = 9; // double's needed per ip, state variables
-	knum_i_state = 0; // int's needed per ip, state variables
-	
-	knumstrain = 4; // number of strain outputs
-	knumstress = 3; // number of stress outputs
-	
-	output = "out";
-
-	/* check - some code below assumes that both fields have the
-	 * same dimension. TEMP?  get rid of this!!!!!! */ 
-	/*    if (fDispl.NumDOF() != fPlast.NumDOF()) 
-				ExceptionT::BadInputValue("APS_AssemblyT::APS_AssemblyT"); */
-
-	/* read parameters from input */
-	ifstreamT& in = ElementSupport().Input();
-	in >> fGeometryCode_displ; 
-	in >> fNumIP_displ;
-	in >> fGeometryCodeSurf_displ; 
-	in >> fNumIPSurf_displ;
-	in >> n_en_displ;
-	in >> n_en_plast;
-	/* in >> fGeometryCode_plast; 
-	in >> fNumIP_plast;
-	in >> fGeometryCodeSurf_plast;
-	in >> fNumIPSurf_plast; */
-	fGeometryCode_plast = fGeometryCode_displ; 
-	fNumIP_plast = fNumIP_displ;
-	fGeometryCodeSurf_plast = fGeometryCodeSurf_displ;
-	fNumIPSurf_plast = fNumIPSurf_displ;
-
-	fMaterial_Data.Dimension ( kNUM_FMAT_TERMS );
-
-	in >> iPlastModelType; 
-
-	//-- Elasticity parameters
-	in >> fMaterial_Data[kMu];
-
-	//-- Plasticity parameters
-	in >> fMaterial_Data[km_rate];
-	in >> fMaterial_Data[kgamma0_dot_1];
-	in >> fMaterial_Data[kgamma0_dot_2];
-	in >> fMaterial_Data[kgamma0_dot_3];
-	in >> fMaterial_Data[km1_x];
-	in >> fMaterial_Data[km1_y];
-	in >> fMaterial_Data[km2_x];
-	in >> fMaterial_Data[km2_y];
-	in >> fMaterial_Data[km3_x];
-	in >> fMaterial_Data[km3_y];
-
-	//-- length scale, Backstress Parameter
-	in >> fMaterial_Data[kl];
-
-	//-- Isotropic Hardening Parameter
-	in >> fMaterial_Data[kH];
-	
-	//-- Initial values of state variable along various slip systems
-	in >> fMaterial_Data[kkappa0_1];
-	in >> fMaterial_Data[kkappa0_2];
-	in >> fMaterial_Data[kkappa0_3];
-	
-	/* allocate the global stack object (once) */
-	extern FEA_StackT* fStack;
-	if (!fStack) fStack = new FEA_StackT;
-
-	/* prescribed plastic gradient at surface */
-	in >> num_sidesets;
-	fSideSetID.Dimension(num_sidesets);
-	fSideSetElements.Dimension(num_sidesets);
-	fSideSetFaces.Dimension(num_sidesets);
-	fPlasticGradientWght.Dimension(num_sidesets);
-	fPlasticGradientFaces.Dimension(num_sidesets);
-	fPlasticGradientFaceEqnos.Dimension(num_sidesets);
-	
-	//enable the model manager
-	ModelManagerT& model = ElementSupport().Model();
-
-	n_en_surf=0;
-	ArrayT<GeometryT::CodeT> facet_geom;
-	iArrayT facet_nodes;
-	for (int i = 0; i < num_sidesets; i++)
-	{
-		in >> fSideSetID[i];
-		in >> fPlasticGradientWght[i];
-	
-		// get nodes-on-faces
-		model.SideSet(fSideSetID[i], facet_geom, facet_nodes, fPlasticGradientFaces[i]);
-		// get number of facet nodes, assuming each facet has an equal number
-		n_en_surf=facet_nodes[0];
-		
-		// get the side set information {element, face number} for each
-		// face in the set
-		const iArray2DT& side_set = model.SideSet(fSideSetID[i]);
-		
-		// get side set elements - element numbers in zeroth column
-		fSideSetElements[i].Dimension(side_set.MajorDim());
-		fSideSetFaces[i].Dimension(side_set.MajorDim());
-		side_set.ColumnCopy(0, fSideSetElements[i]);
-		side_set.ColumnCopy(1, fSideSetFaces[i]);
-	}
-	
-	Echo_Input_Data();
-#endif
+	SetName("antiplane_shear_grad_plast");
 }
 
 //---------------------------------------------------------------------
@@ -210,201 +112,6 @@ void APS_AssemblyT::Echo_Input_Data(void) {
 	
 }
 
-void APS_AssemblyT::Initialize(void)
-{
-ExceptionT::GeneralFail("APS_AssemblyT::Initialize", "out of date");
-#if 0
-	const char caller[] = "APS_AssemblyT::Initialize";
-
-	/* inherited */
-	ElementBaseT::Initialize();
-	
-	/* dimensions (notation as per Hughes' Book) */
-	int& n_ip_displ = fNumIP_displ;
-	int& n_ip_plast = fNumIP_plast;
-	n_sd = NumSD();
-	//n_df = NumDOF(); 
-	//n_df = 1+n_sd; 		
-	int nen = NumElementNodes(); /* number of nodes/element in the mesh */
-	//n_en_plast = n_en_displ = nen;
-	//n_np = ElementSupport().NumNodes();
-
-	/* initialize connectivities */
-	fConnectivities_displ.Alias(fConnectivities);
-	fConnectivities_plast.Alias(fConnectivities);
-
-	/* pick element interpolations based on available number of element nodes
-	 * and the specified number of integration points */
-	// only implemented for 2D, quadratic quads
-	//if (n_sd == 2 && nen == 8 && fGeometryCode_displ == GeometryT::kQuadrilateral) 
-	if (n_sd == 2 && n_en_plast != n_en_displ && fGeometryCode_displ == GeometryT::kQuadrilateral) 
-	{
-		// don't expect reduced integration for both fields 
-		// if (n_ip_displ == 4 && n_ip_plast == 4)
-		//	ExceptionT::GeneralFail(caller, "not expecting 4 ips for both fields");
-		//else if (n_ip_displ == 4 || n_ip_plast == 4) // create reduced connectivities
-		//{ 
-			// reduce the number of element nodes based on the number ip's
-			int& nen_red = (n_ip_displ == 4) ? n_en_displ : n_en_plast;
-			nen_red = 4;
-			ArrayT<const iArray2DT*>& connects_red = (n_ip_displ == 4) ? 
-				fConnectivities_displ : 
-				fConnectivities_plast;
-		
-			//create reduced connectivities
-			connects_red.Dimension(0);
-			connects_red.Dimension(fConnectivities.Length());
-			fConnectivities_reduced.Dimension(fConnectivities.Length());
-			for (int i = 0; i < fConnectivities_reduced.Length(); i++) {
-				iArray2DT& connects_red_store = fConnectivities_reduced[i];
-				const iArray2DT& connects = *(fConnectivities[i]);
-				connects_red_store.Dimension(connects.MajorDim(), nen_red);				
-				connects_red[i] = &connects_red_store;
-				
-				//take 1st four element nodes (columns)
-				for (int j = 0; j < nen_red; j++)
-					connects_red_store.ColumnCopy(j, connects, j);
-			}
-		//}
-	}
-	
-
-	n_el = NumElements();	
-	n_sd_surf = n_sd;
-
-	/* set local arrays for coarse scale */
-	int dum=1;
-	u.Dimension (n_en_displ, dum);
-	u_n.Dimension (n_en_displ, dum);
-	DDu.Dimension (n_en_displ, dum);
-	del_u.Dimension (n_en_displ, dum);
-	del_u_vec.Dimension (n_en_displ);
-	fDispl.RegisterLocal(u);
-	fDispl.RegisterLocal(u_n);
-
-	/* set local arrays for fine scale */
-	gamma_p.Dimension (n_en_plast, n_sd);
-	gamma_p_n.Dimension (n_en_plast, n_sd);
-	del_gamma_p.Dimension (n_en_plast, n_sd);
-	n_en_plast_x_n_sd = n_en_plast*n_sd;
-	del_gamma_p_vec.Dimension (n_en_plast_x_n_sd);
-	fPlast.RegisterLocal(gamma_p);
-	fPlast.RegisterLocal(gamma_p_n);
-
-	/* set shape functions */
-	// u
-	fInitCoords_displ.Dimension(n_en_displ, n_sd);
-	ElementSupport().RegisterCoordinates(fInitCoords_displ);	
-	fCurrCoords_displ.Dimension(n_en_displ, n_sd);
-	fShapes_displ = new ShapeFunctionT(fGeometryCode_displ, fNumIP_displ, fCurrCoords_displ);
-	fShapes_displ->Initialize();
-	// gamma_p
-	fInitCoords_plast.Dimension(n_en_plast, n_sd);
-	ElementSupport().RegisterCoordinates(fInitCoords_plast);	
-	fCurrCoords_plast.Dimension(n_en_plast, n_sd);
-	fShapes_plast = new ShapeFunctionT(fGeometryCode_plast, fNumIP_plast, fCurrCoords_plast);
-	//fShapes_plast = new ShapeFunctionT(fGeometryCode_plast, fNumIP_plast, fCurrCoords_displ);
-	fShapes_plast->Initialize();
-	
-	/* allocate state variable storage */
-	// state variables are calculated at IPs for gamma_p field
-	int num_ip = fNumIP_plast;
-	fdState_new.Dimension(n_el, num_ip*knum_d_state);
-	fdState.Dimension(n_el, num_ip*knum_d_state);
-	fiState_new.Dimension(n_el, num_ip*knum_i_state);
-	fiState.Dimension(n_el, num_ip*knum_i_state);
-	
-	/* initialize equations */
-	fEqnos_displ.Alias(fEqnos_displ);
-	fEqnos_plast.Dimension(fConnectivities_plast.Length());
-
-	/* initialize state variables */
-	fdState = 0;
-	fdState_new = 0;
-	fiState = 0;
-	fiState_new = 0;
-
-	/* initialize element cards */
-	fElementCards_displ.Alias(fElementCards);
-	fElementCards_plast.Dimension(fElementCards.Length());
-	
-	/* set cards to data in array - NOT NEEDED IF YOU'RE NOT
-	 * GOING TO USE THE ElementCardT ARRAY? */
-	for (int i= 0; i < fElementCards.Length(); i++)
-		fElementCards[i].Set(fiState.MinorDim(), fiState(i), fdState.MinorDim(), fdState(i));
-		                     
-	/* construct the black boxs */  
-
-	Select_Equations ( BalLinMomT::kAPS_Bal_Eq, iPlastModelType );
-	dum=knumstrain+knumstress;
-	fEquation_eps->Initialize ( n_ip_plast, n_sd, n_en_displ, n_en_plast, knum_d_state, dum, ElementSupport().StepNumber() );
-	//step_number_last_iter = 0; 
-	//step_number_last_iter = ElementSupport().StepNumber();  // This may crash or not work
-
-	/* FEA Allocation */
-	
-	dum=1;
-	fgrad_u.FEA_Dimension 			( fNumIP_displ, dum, n_sd );
-	fgrad_u_surf.FEA_Dimension 		( fNumIPSurf_displ, dum, n_sd );
-	fgamma_p.FEA_Dimension 			( fNumIP_plast, n_sd );
-	//need gamma_p at the surface of the displ eqs
-	fgamma_p_surf.FEA_Dimension 	( fNumIPSurf_displ, n_sd );
-	fgrad_gamma_p.FEA_Dimension 	( fNumIP_plast, n_sd, n_sd );
-	fgrad_u_n.FEA_Dimension 		( fNumIP_displ, dum, n_sd );
-	fgrad_u_surf_n.FEA_Dimension 	( fNumIPSurf_displ, dum, n_sd );
-	fgamma_p_n.FEA_Dimension 		( fNumIP_plast, n_sd );
-	fgamma_p_surf_n.FEA_Dimension 	( fNumIPSurf_displ, n_sd );
-	fgrad_gamma_p_n.FEA_Dimension 	( fNumIP_plast, n_sd,n_sd );
-	
-	fstate.FEA_Dimension 			( fNumIP_plast, knum_d_state );
-	fstate_n.FEA_Dimension 			( fNumIP_plast, knum_d_state );
-
-	fKdd.Dimension 			( n_en_displ, n_en_displ );
-	fKdeps.Dimension 		( n_en_displ, n_en_plast_x_n_sd );
-	fKepsd.Dimension 		( n_en_plast_x_n_sd, n_en_displ );
-	fKepseps.Dimension 		( n_en_plast_x_n_sd, n_en_plast_x_n_sd );
-
-	fFd_int.Dimension 		( n_en_displ );
-	fFd_ext.Dimension 		( n_en_displ );
-	fFeps_int.Dimension 	( n_en_plast_x_n_sd );
-	fFeps_ext.Dimension 	( n_en_plast_x_n_sd );
-	
-	/* only allow this dimensioning if there are sidesets */
-	if (n_en_surf > 0) {
-		fKdd_face.Dimension 		( n_en_surf, n_en_surf );
-		fFd_int_face.Dimension 		( n_en_surf );
-	}
-
-	fFEA_Shapes_displ.Construct	( fNumIP_displ,n_sd,n_en_displ );
-	fFEA_Shapes_plast.Construct	( fNumIP_plast,n_sd,n_en_plast );
-	fFEA_SurfShapes.Construct	( fNumIPSurf_displ,n_sd_surf,n_en_surf );
-	
-	Render_Vector.Dimension ( n_el );
-	for (int e=0; e<n_el; e++) {
-		Render_Vector[e].Construct ( 1, n_ip_plast, knumstrain+knumstress+knum_d_state );	
-	}
-
-
-	/* streams */
-	ifstreamT& in  = ElementSupport().Input();
-	ofstreamT& out = ElementSupport().Output();
-
-	/* storage for integration point strain, stress, and ISVs*/
-	fIPVariable.Dimension (n_el, fNumIP_plast*(knumstrain+knumstress+knum_d_state));
-	fIPVariable = 0.0;
-
-	/* allocate storage for nodal forces */
-	//fForces_at_Node.Dimension ( n_sd );
-
-	/* body force specification */
-	//#pragma message("APS_AssemblyT::Initialize: careful, no body force for gammap ")
-	//fDOFvec.Dimension(n_df);
-	EchoBodyForce(in, out);
-
-	/* echo traction B.C.'s */
-	EchoTractionBC(in, out);
-#endif
-}
 
 //---------------------------------------------------------------------
 
@@ -1314,5 +1021,442 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 			ElementSupport().AssembleLHS(curr_group, fKepsd, plast_eq, displ_eq);
 		}
 	}	
+}
+
+
+
+
+
+/* describe the parameters needed by the interface */
+void APS_AssemblyT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineParameters(list);
+	
+	/* displacement field */
+	list.AddParameter(ParameterT::Word, "displ_field_name");
+	
+	/* plastic gradient field */
+	list.AddParameter(ParameterT::Word, "plastic_grad_field_name");
+		
+	list.AddParameter(fGeometryCode_displ_int, "GeometryCode_displ");
+	list.AddParameter(fNumIP_displ, "NumIP_displ");
+	list.AddParameter(fGeometryCodeSurf_displ_int, "GeometryCodeSurf_displ");
+	list.AddParameter(fNumIPSurf_displ, "NumIPSurf_displ");
+	list.AddParameter(n_en_displ, "n_en_displ");
+	list.AddParameter(n_en_plast, "n_en_plast");
+	
+	list.AddParameter(iPlastModelType, "plast_mod_type");
+	
+	// elasticity
+	list.AddParameter(fMaterial_Data[kMu], "shear_modulus");
+	
+	// plasticity
+	list.AddParameter(fMaterial_Data[km_rate], "rate_param");
+	list.AddParameter(fMaterial_Data[kgamma0_dot_1], "gamma0_dot_1");
+	list.AddParameter(fMaterial_Data[kgamma0_dot_2], "gamma0_dot_2");
+	list.AddParameter(fMaterial_Data[kgamma0_dot_3], "gamma0_dot_3");
+	list.AddParameter(fMaterial_Data[km1_x], "m1_x");
+	list.AddParameter(fMaterial_Data[km1_y], "m1_y");
+	list.AddParameter(fMaterial_Data[km2_x], "m2_x");
+	list.AddParameter(fMaterial_Data[km2_y], "m2_y");
+	list.AddParameter(fMaterial_Data[km3_x], "m3_x");
+	list.AddParameter(fMaterial_Data[km3_y], "m3_y");
+
+	//-- length scale, Backstress Parameter
+	list.AddParameter(fMaterial_Data[kl], "length_scale");
+
+	//-- Isotropic Hardening Parameter
+	list.AddParameter(fMaterial_Data[kH], "H_param");
+	
+	//-- Initial values of state variable along various slip systems
+	list.AddParameter(fMaterial_Data[kkappa0_1], "kappa0_1");
+	list.AddParameter(fMaterial_Data[kkappa0_2], "kappa0_2");
+	list.AddParameter(fMaterial_Data[kkappa0_3], "kappa0_3");
+	
+	// number of side sets
+	list.AddParameter(num_sidesets, "num_sidesets");
+	
+	int num_sidesets_tmp=5; //dummy memory??
+	//fSideSetID.Dimension(num_sidesets_tmp);
+	//fPlasticGradientWght.Dimension(num_sidesets_tmp);
+
+	//doesn't appear to work
+ 	list.AddParameter(ParameterT::Word, "fSideSetID[0]");
+ 	list.AddParameter(fPlasticGradientWght[0], "fPlasticGradientWght[0]");
+ 	
+ 	list.AddParameter(ParameterT::Word, "fSideSetID[1]");
+ 	list.AddParameter(fPlasticGradientWght[1], "fPlasticGradientWght[1]");
+ 	
+ 	list.AddParameter(ParameterT::Word, "fSideSetID[2]");
+ 	list.AddParameter(fPlasticGradientWght[2], "fPlasticGradientWght[2]");
+ 	
+ 	list.AddParameter(ParameterT::Word, "fSideSetID[3]");
+ 	list.AddParameter(fPlasticGradientWght[3], "fPlasticGradientWght[3]");
+ 	
+ 	list.AddParameter(ParameterT::Word, "fSideSetID[4]");
+ 	list.AddParameter(fPlasticGradientWght[4], "fPlasticGradientWght[4]");
+
+}
+
+
+/* accept parameter list */
+void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "APS_AssemblyT::TakeParameterList";
+	
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+	/* inherited */
+	//ElementBaseT::TakeParameterList(list);
+
+	/* get form of tangent */
+	GlobalT::SystemTypeT type = TangentType();
+	
+	/* set form of element stiffness matrix */
+	if (type == GlobalT::kSymmetric)
+		fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
+	else if (type == GlobalT::kNonSymmetric)
+		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
+	else if (type == GlobalT::kDiagonal)
+		fLHS.SetFormat(ElementMatrixT::kDiagonal);
+	
+	/* get displacement field */
+	const StringT& field_name = list.GetParameter("field_name");
+	fDispl = ElementSupport().Field(field_name);
+	if (!fDispl)
+		ExceptionT::GeneralFail(caller, "could not resolve \"%s\" field", field_name.Pointer());
+
+	/* get plastic gradient field */
+	const StringT& plastic_grad_field_name = list.GetParameter("plastic_grad_field_name");
+	fPlast = ElementSupport().Field(plastic_grad_field_name);
+	if (!fPlast)
+		ExceptionT::GeneralFail(caller, "could not resolve \"%s\" plastic_grad_field", plastic_grad_field_name.Pointer());
+
+	fGeometryCode_displ_int = list.GetParameter("GeometryCode_displ");
+	fGeometryCode_displ = fGeometryCode_displ_int;
+	fNumIP_displ = list.GetParameter("NumIP_displ");
+	fGeometryCodeSurf_displ_int = list.GetParameter("GeometryCodeSurf_displ");
+	fGeometryCodeSurf_displ = fGeometryCodeSurf_displ_int;
+	fNumIPSurf_displ = list.GetParameter("NumIPSurf_displ");
+	n_en_displ = list.GetParameter("n_en_displ");
+	n_en_plast = list.GetParameter("n_en_plast");
+	
+	fGeometryCode_plast = fGeometryCode_displ; 
+	fNumIP_plast = fNumIP_displ;
+	fGeometryCodeSurf_plast = fGeometryCodeSurf_displ;
+	fNumIPSurf_plast = fNumIPSurf_displ;
+	
+	iPlastModelType = list.GetParameter("plast_mod_type");
+	
+	fMaterial_Data[kMu] = list.GetParameter("shear_modulus");
+	
+	fMaterial_Data[km_rate] = list.GetParameter("rate_param");
+	fMaterial_Data[kgamma0_dot_1] = list.GetParameter("gamma0_dot_1");
+	fMaterial_Data[kgamma0_dot_2] = list.GetParameter("gamma0_dot_2");
+	fMaterial_Data[kgamma0_dot_3] = list.GetParameter("gamma0_dot_3");
+	fMaterial_Data[km1_x] = list.GetParameter("m1_x");
+	fMaterial_Data[km1_y] = list.GetParameter("m1_y");
+	fMaterial_Data[km2_x] = list.GetParameter("m2_x");
+	fMaterial_Data[km2_y] = list.GetParameter("m2_y");
+	fMaterial_Data[km3_x] = list.GetParameter("m3_x");
+	fMaterial_Data[km3_y] = list.GetParameter("m3_y");
+	
+	fMaterial_Data[kl] = list.GetParameter("length_scale");
+	
+	fMaterial_Data[kH] = list.GetParameter("H_param");
+	
+	fMaterial_Data[kkappa0_1] = list.GetParameter("kappa0_1");
+	fMaterial_Data[kkappa0_2] = list.GetParameter("kappa0_2");
+	fMaterial_Data[kkappa0_3] = list.GetParameter("kappa0_3");
+	
+	num_sidesets = list.GetParameter("num_sidesets");
+	
+	/* allocate the global stack object (once) */
+	extern FEA_StackT* fStack;
+	if (!fStack) fStack = new FEA_StackT;
+	
+	int num_sidesets_tmp=5; //dummy memory??
+	//fSideSetID.Dimension(num_sidesets_tmp);
+	//fPlasticGradientWght.Dimension(num_sidesets_tmp);
+
+	/* prescribed plastic gradient at surface */
+	fSideSetID.Dimension(num_sidesets);
+	fSideSetElements.Dimension(num_sidesets);
+	fSideSetFaces.Dimension(num_sidesets);
+	fPlasticGradientWght.Dimension(num_sidesets);
+	fPlasticGradientFaces.Dimension(num_sidesets);
+	fPlasticGradientFaceEqnos.Dimension(num_sidesets);
+	
+	// enable the model manager
+	ModelManagerT& model = ElementSupport().ModelManager();
+
+	// get sideset info for plastic gradient field
+	fSideSetID[0] = list.GetParameter("fSideSetID[0]");
+	fPlasticGradientWght[0] = list.GetParameter("fPlasticGradientWght[0]");
+	fSideSetID[1] = list.GetParameter("fSideSetID[1]");
+	fPlasticGradientWght[1] = list.GetParameter("fPlasticGradientWght[1]");
+	fSideSetID[2] = list.GetParameter("fSideSetID[2]");
+	fPlasticGradientWght[2] = list.GetParameter("fPlasticGradientWght[2]");
+	fSideSetID[3] = list.GetParameter("fSideSetID[3]");
+	fPlasticGradientWght[3] = list.GetParameter("fPlasticGradientWght[3]");
+	fSideSetID[4] = list.GetParameter("fSideSetID[4]");
+	fPlasticGradientWght[4] = list.GetParameter("fPlasticGradientWght[4]");
+
+ Ê Êint n_en_surf=0;
+ Ê ÊArrayT<GeometryT::CodeT> facet_geom;
+ Ê ÊiArrayT facet_nodes;
+ Ê Êfor (int i = 0; i < num_sidesets; i++)
+ Ê Ê{
+ Ê Ê Ê Ê// get nodes-on-faces
+ Ê Ê Ê Êmodel.SideSet(fSideSetID[i], facet_geom, facet_nodes, fPlasticGradientFaces[i]);
+ Ê Ê Ê Ê// get number of facet nodes, assuming each facet has an equal number
+ Ê Ê Ê Ên_en_surf=facet_nodes[0];
+ Ê Ê Ê Ê
+ Ê Ê Ê Ê// get the side set information {element, face number} for each
+ Ê Ê Ê Ê// face in the set
+ Ê Ê Ê Êconst iArray2DT& side_set = model.SideSet(fSideSetID[i]);
+ Ê Ê Ê Ê
+ Ê Ê Ê Ê// get side set elements - element numbers in zeroth column
+ Ê Ê Ê ÊfSideSetElements[i].Dimension(side_set.MajorDim());
+ Ê Ê Ê ÊfSideSetFaces[i].Dimension(side_set.MajorDim());
+ Ê Ê Ê Êside_set.ColumnCopy(0, fSideSetElements[i]);
+ Ê Ê Ê Êside_set.ColumnCopy(1, fSideSetFaces[i]);
+ Ê Ê}
+	
+	Echo_Input_Data();
+
+	fMaterial_Data.Dimension ( kNUM_FMAT_TERMS );
+	
+	knum_d_state = 9; // double's needed per ip, state variables
+	knum_i_state = 0; // int's needed per ip, state variables
+	
+	knumstrain = 4; // number of strain outputs
+	knumstress = 3; // number of stress outputs
+	
+	output = "out";
+	
+	/* dimensions (notation as per Hughes' Book) */
+	int& n_ip_displ = fNumIP_displ;
+	int& n_ip_plast = fNumIP_plast;
+	n_sd = NumSD();
+	//n_df = NumDOF(); 
+	//n_df = 1+n_sd; 		
+	int nen = NumElementNodes(); /* number of nodes/element in the mesh */
+	//n_en_plast = n_en_displ = nen;
+	//n_np = ElementSupport().NumNodes();
+
+	/* initialize connectivities */
+	fConnectivities_displ.Alias(fConnectivities);
+	fConnectivities_plast.Alias(fConnectivities);
+
+	/* pick element interpolations based on available number of element nodes
+	 * and the specified number of integration points */
+	// only implemented for 2D, quadratic quads
+	//if (n_sd == 2 && nen == 8 && fGeometryCode_displ == GeometryT::kQuadrilateral) 
+	if (n_sd == 2 && n_en_plast != n_en_displ && fGeometryCode_displ == GeometryT::kQuadrilateral) 
+	{
+		// don't expect reduced integration for both fields 
+		// if (n_ip_displ == 4 && n_ip_plast == 4)
+		//	ExceptionT::GeneralFail(caller, "not expecting 4 ips for both fields");
+		//else if (n_ip_displ == 4 || n_ip_plast == 4) // create reduced connectivities
+		//{ 
+			// reduce the number of element nodes based on the number ip's
+			int& nen_red = (n_ip_displ == 4) ? n_en_displ : n_en_plast;
+			nen_red = 4;
+			ArrayT<const iArray2DT*>& connects_red = (n_ip_displ == 4) ? 
+				fConnectivities_displ : 
+				fConnectivities_plast;
+		
+			//create reduced connectivities
+			connects_red.Dimension(0);
+			connects_red.Dimension(fConnectivities.Length());
+			fConnectivities_reduced.Dimension(fConnectivities.Length());
+			for (int i = 0; i < fConnectivities_reduced.Length(); i++) {
+				iArray2DT& connects_red_store = fConnectivities_reduced[i];
+				const iArray2DT& connects = *(fConnectivities[i]);
+				connects_red_store.Dimension(connects.MajorDim(), nen_red);				
+				connects_red[i] = &connects_red_store;
+				
+				//take 1st four element nodes (columns)
+				for (int j = 0; j < nen_red; j++)
+					connects_red_store.ColumnCopy(j, connects, j);
+			}
+		//}
+	}
+	
+
+	n_el = NumElements();	
+	n_sd_surf = n_sd;
+
+	/* set local arrays for coarse scale */
+	int dum=1;
+	u.Dimension (n_en_displ, dum);
+	u_n.Dimension (n_en_displ, dum);
+	DDu.Dimension (n_en_displ, dum);
+	del_u.Dimension (n_en_displ, dum);
+	del_u_vec.Dimension (n_en_displ);
+	fDispl.RegisterLocal(u);
+	fDispl.RegisterLocal(u_n);
+
+	/* set local arrays for fine scale */
+	gamma_p.Dimension (n_en_plast, n_sd);
+	gamma_p_n.Dimension (n_en_plast, n_sd);
+	del_gamma_p.Dimension (n_en_plast, n_sd);
+	n_en_plast_x_n_sd = n_en_plast*n_sd;
+	del_gamma_p_vec.Dimension (n_en_plast_x_n_sd);
+	fPlast.RegisterLocal(gamma_p);
+	fPlast.RegisterLocal(gamma_p_n);
+
+	/* set shape functions */
+	// u
+	fInitCoords_displ.Dimension(n_en_displ, n_sd);
+	ElementSupport().RegisterCoordinates(fInitCoords_displ);	
+	fCurrCoords_displ.Dimension(n_en_displ, n_sd);
+	fShapes_displ = new ShapeFunctionT(fGeometryCode_displ, fNumIP_displ, fCurrCoords_displ);
+	fShapes_displ->Initialize();
+	// gamma_p
+	fInitCoords_plast.Dimension(n_en_plast, n_sd);
+	ElementSupport().RegisterCoordinates(fInitCoords_plast);	
+	fCurrCoords_plast.Dimension(n_en_plast, n_sd);
+	fShapes_plast = new ShapeFunctionT(fGeometryCode_plast, fNumIP_plast, fCurrCoords_plast);
+	//fShapes_plast = new ShapeFunctionT(fGeometryCode_plast, fNumIP_plast, fCurrCoords_displ);
+	fShapes_plast->Initialize();
+	
+	/* allocate state variable storage */
+	// state variables are calculated at IPs for gamma_p field
+	int num_ip = fNumIP_plast;
+	fdState_new.Dimension(n_el, num_ip*knum_d_state);
+	fdState.Dimension(n_el, num_ip*knum_d_state);
+	fiState_new.Dimension(n_el, num_ip*knum_i_state);
+	fiState.Dimension(n_el, num_ip*knum_i_state);
+	
+	/* initialize equations */
+	fEqnos_displ.Alias(fEqnos_displ);
+	fEqnos_plast.Dimension(fConnectivities_plast.Length());
+
+	/* initialize state variables */
+	fdState = 0;
+	fdState_new = 0;
+	fiState = 0;
+	fiState_new = 0;
+
+	/* initialize element cards */
+	fElementCards_displ.Alias(fElementCards);
+	fElementCards_plast.Dimension(fElementCards.Length());
+	
+	/* set cards to data in array - NOT NEEDED IF YOU'RE NOT
+	 * GOING TO USE THE ElementCardT ARRAY? */
+	for (int i= 0; i < fElementCards.Length(); i++)
+		fElementCards[i].Set(fiState.MinorDim(), fiState(i), fdState.MinorDim(), fdState(i));
+		                     
+	/* construct the black boxs */  
+
+	Select_Equations ( BalLinMomT::kAPS_Bal_Eq, iPlastModelType );
+	dum=knumstrain+knumstress;
+	fEquation_eps->Initialize ( n_ip_plast, n_sd, n_en_displ, n_en_plast, knum_d_state, dum, ElementSupport().StepNumber() );
+	//step_number_last_iter = 0; 
+	//step_number_last_iter = ElementSupport().StepNumber();  // This may crash or not work
+
+	/* FEA Allocation */
+	dum=1;
+	fgrad_u.FEA_Dimension 			( fNumIP_displ, dum, n_sd );
+	fgrad_u_surf.FEA_Dimension 		( fNumIPSurf_displ, dum, n_sd );
+	fgamma_p.FEA_Dimension 			( fNumIP_plast, n_sd );
+	//need gamma_p at the surface of the displ eqs
+	fgamma_p_surf.FEA_Dimension 	( fNumIPSurf_displ, n_sd );
+	fgrad_gamma_p.FEA_Dimension 	( fNumIP_plast, n_sd, n_sd );
+	fgrad_u_n.FEA_Dimension 		( fNumIP_displ, dum, n_sd );
+	fgrad_u_surf_n.FEA_Dimension 	( fNumIPSurf_displ, dum, n_sd );
+	fgamma_p_n.FEA_Dimension 		( fNumIP_plast, n_sd );
+	fgamma_p_surf_n.FEA_Dimension 	( fNumIPSurf_displ, n_sd );
+	fgrad_gamma_p_n.FEA_Dimension 	( fNumIP_plast, n_sd,n_sd );
+	
+	fstate.FEA_Dimension 			( fNumIP_plast, knum_d_state );
+	fstate_n.FEA_Dimension 			( fNumIP_plast, knum_d_state );
+
+	fKdd.Dimension 			( n_en_displ, n_en_displ );
+	fKdeps.Dimension 		( n_en_displ, n_en_plast_x_n_sd );
+	fKepsd.Dimension 		( n_en_plast_x_n_sd, n_en_displ );
+	fKepseps.Dimension 		( n_en_plast_x_n_sd, n_en_plast_x_n_sd );
+
+	fFd_int.Dimension 		( n_en_displ );
+	fFd_ext.Dimension 		( n_en_displ );
+	fFeps_int.Dimension 	( n_en_plast_x_n_sd );
+	fFeps_ext.Dimension 	( n_en_plast_x_n_sd );
+	
+	/* only allow this dimensioning if there are sidesets */
+	if (n_en_surf > 0) {
+		fKdd_face.Dimension 		( n_en_surf, n_en_surf );
+		fFd_int_face.Dimension 		( n_en_surf );
+		fFEA_SurfShapes.Construct	( fNumIPSurf_displ,n_sd_surf,n_en_surf );
+	}
+
+	fFEA_Shapes_displ.Construct	( fNumIP_displ,n_sd,n_en_displ );
+	fFEA_Shapes_plast.Construct	( fNumIP_plast,n_sd,n_en_plast );
+	
+	Render_Vector.Dimension ( n_el );
+	for (int e=0; e<n_el; e++) {
+		Render_Vector[e].Construct ( 1, n_ip_plast, knumstrain+knumstress+knum_d_state );	
+	}
+
+	/* streams */
+	ofstreamT& out = ElementSupport().Output();
+
+	/* storage for integration point strain, stress, and ISVs*/
+	fIPVariable.Dimension (n_el, fNumIP_plast*(knumstrain+knumstress+knum_d_state));
+	fIPVariable = 0.0;
+
+	/* allocate storage for nodal forces */
+	//fForces_at_Node.Dimension ( n_sd );
+	
+	/* extract natural boundary conditions */
+	TakeNaturalBC(list);
+}
+
+
+
+/* information about subordinate parameter lists */
+void APS_AssemblyT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ElementBaseT::DefineSubs(sub_list);
+	
+	/* tractions */
+	sub_list.AddSub("natural_bc", ParameterListT::Any);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void APS_AssemblyT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
+{
+	ElementBaseT::DefineInlineSub(name, order, sub_lists);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* APS_AssemblyT::NewSub(const StringT& name) const
+{
+	/* create non-const this */
+	APS_AssemblyT* non_const_this = const_cast<APS_AssemblyT*>(this);
+
+	if (name == "natural_bc") /* traction bc */
+	{
+		ParameterContainerT* natural_bc = new ParameterContainerT(name);
+
+		natural_bc->AddParameter(ParameterT::Word, "side_set_ID");
+		natural_bc->AddParameter(ParameterT::Integer, "schedule");
+
+		ParameterT coord_sys(ParameterT::Enumeration, "coordinate_system");
+		coord_sys.AddEnumeration("global", Traction_CardT::kCartesian);
+		coord_sys.AddEnumeration( "local", Traction_CardT::kLocal);
+		coord_sys.SetDefault(Traction_CardT::kCartesian);
+		natural_bc->AddParameter(coord_sys);
+
+		natural_bc->AddSub("DoubleList", ParameterListT::OnePlus); 		
+		
+		return natural_bc;
+	}
+	else /* inherited */
+		return ElementBaseT::NewSub(name);
 }
 
