@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.5 2001-05-30 23:27:02 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.5.6.1 2001-10-02 20:54:24 sawimme Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #ifndef _FE_MANAGER_H_
@@ -15,6 +15,7 @@
 #include "ElementListT.h"
 #include "LocalArrayT.h"
 #include "IOBaseT.h"
+#include "ModelManagerT.h"
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
@@ -115,6 +116,7 @@ public:
 	IOBaseT::FileTypeT InputFormat(void) const;
 	IOBaseT::FileTypeT OutputFormat(void) const;
 	const StringT& ModelFile(void) const;
+	ModelManagerT* ModelManager (void) const;
 
 	/* local reordering */
 	void SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const;
@@ -221,7 +223,8 @@ protected:
 	virtual void SetNodeManager(void);
 	virtual void SetElementGroups(void);
 	void SetSolver(void);
-	virtual void SetIO(void);
+	virtual void SetInput (void);
+	virtual void SetOutput(void);
 
 	/* (re-)set system to initial conditions */
 	virtual void InitialCondition(void);
@@ -282,6 +285,7 @@ protected:
 	SolverT*      fSolutionDriver;
 	ControllerT*  fController;
 	IOManager*    fIOManager;
+	ModelManagerT* fModelManager;
 	
 	/* restart file counter */
 	int fRestartCount;
@@ -298,7 +302,7 @@ inline const GlobalT::StateT& FEManagerT::RunState(void) const { return fStatus;
 inline IOBaseT::FileTypeT FEManagerT::InputFormat(void) const { return fInputFormat; }
 inline IOBaseT::FileTypeT FEManagerT::OutputFormat(void) const { return fOutputFormat; }
 inline const StringT& FEManagerT::ModelFile(void) const { return fModelFile; }
-
+inline ModelManagerT* FEManagerT::ModelManager (void) const { return fModelManager; }
 inline NodeManagerT* FEManagerT::NodeManager(void) const { return fNodeManager; }
 inline IOManager* FEManagerT::OutputManager(void) const { return fIOManager; }
 inline const iArrayT* FEManagerT::ElementMap(int blockID) const
