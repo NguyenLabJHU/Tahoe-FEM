@@ -1,4 +1,4 @@
-// $Id: test.java,v 1.10 2002-08-12 23:24:02 recampb Exp $
+// $Id: test.java,v 1.11 2002-08-13 08:21:20 paklein Exp $
 import java.io.*;
 import javax.swing.*;
 import java.awt.event.*;
@@ -20,6 +20,7 @@ public class test extends JPanel implements ActionListener, ChangeListener {
   public native int GetMinSc();
   public native void SetScope(String s);
   public native void Interact();
+  public native void CommandLine();
   //public native void Rotate(int x, int y , int z);
 
  
@@ -165,6 +166,12 @@ public class test extends JPanel implements ActionListener, ChangeListener {
     b2.setActionCommand("Print value");
     gbc.gridx=1; gbc.gridy=1; gbc.gridwidth=1;
     rootPanel.add(b2, gbc);
+    
+    JButton commandButton = new JButton("Command Line");
+    commandButton.addActionListener(this);
+    commandButton.setActionCommand("CommandLine");
+    gbc.gridx=2;
+    rootPanel.add(commandButton, gbc);
 
     flipBookButton = new JButton("Flip Book");
     flipBookButton.addActionListener(this);
@@ -880,6 +887,10 @@ public class test extends JPanel implements ActionListener, ChangeListener {
       //leftPanel.remove(addButton);
       //updateUI();
       
+    }
+    
+    else if (e.getActionCommand().equals("CommandLine")){
+    CommandLine();
     }
     
     else if (e.getActionCommand().equals("BodyVarOK")){
