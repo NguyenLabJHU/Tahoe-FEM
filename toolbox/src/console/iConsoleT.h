@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.h,v 1.7 2002-04-11 17:05:52 paklein Exp $ */
+/* $Id: iConsoleT.h,v 1.8 2002-04-12 01:42:09 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_T_H_
@@ -42,7 +42,7 @@ class iConsoleT: public iConsoleBaseT
   private:
 
 	/* main event loop */
-	void DoInteractive(const StringT& first_line);
+	void DoInteractive(void);
 
 	/* get command line */
 	void GetCommandLine(StringT& line);
