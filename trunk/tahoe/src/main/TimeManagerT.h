@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.13 2004-07-22 08:27:59 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.14 2004-07-22 08:41:39 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _TIMEMANAGER_T_H_
 #define _TIMEMANAGER_T_H_
@@ -13,7 +13,6 @@
 #include "ScheduleT.h"
 #include "iAutoArrayT.h"
 #include "IOBaseT.h"
-#include "TimeSequence.h"
 #include "IntegratorT.h"
 
 namespace Tahoe {
