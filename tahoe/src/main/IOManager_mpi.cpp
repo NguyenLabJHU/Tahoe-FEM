@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.10 2002-01-11 23:48:32 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.11 2002-01-12 05:15:55 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #include "IOManager_mpi.h"
@@ -7,8 +7,7 @@
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
 #include "PartitionT.h"
-#include "ModelFileT.h"
-#include "ExodusT.h"
+#include "ModelManagerT.h"
 
 /* constructor */
 IOManager_mpi::IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
@@ -16,7 +15,8 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
 	const StringT& model_file, IOBaseT::FileTypeT format):
 	IOManager(in, local_IO),
 	fIO_map(io_map),
-	fPartition(partition)
+	fPartition(partition),
+	fOutputGeometry(NULL)
 {
 	if (io_map.Length() != local_IO.ElementSets().Length())
 		throw eSizeMismatch;
@@ -24,23 +24,10 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
 	/* local output sets */
 	const ArrayT<OutputSetT*>& element_sets = local_IO.ElementSets();
 
-	/* count total number of element blocks 
-	 * NOTE: repeated block ID's in separate sets are counted twice */
-	int num_elem_blocks = 0;	
-	bool do_warning_done = false; //TEMP - write warning about joining element data
-	for (int i = 0; i < element_sets.Length(); i++)
-	{
-		/* count (possibly with redundance) the total number of blocks */
-		num_elem_blocks += element_sets[i]->NumBlocks();	
-	}
-	fBlockID.Allocate(num_elem_blocks);
-	fBlockID = -1;
-	fConnectivities.Allocate(num_elem_blocks);
-
 	/* load global geometry */
 	if (fIO_map.HasValue(Rank())) ReadOutputGeometry(model_file, element_sets, format);
 
-cout << Rank() << ": IOManager_mpi::IOManager_mpi: constructing output sets" << endl;
+//cout << Rank() << ": IOManager_mpi::IOManager_mpi: constructing output sets" << endl;
 
 	/* construct global output sets - all of them to preserve ID's */
 	for (int i = 0; i < element_sets.Length(); i++)
@@ -59,16 +46,18 @@ cout << Rank() << ": IOManager_mpi::IOManager_mpi: constructing output sets" << 
 			ArrayT<const iArray2DT*> connect_list(block_ID.Length());
 			for (int j = 0; j < block_ID.Length(); j++)
 			{
-				int index;
-				if (!fBlockID.HasValue(block_ID[j], index)) {
-					cout << "\n IOManager_mpi::IOManager_mpi: block ID " << block_ID[j]
-					     << " should be stored but was not found" << endl;
-					throw eGeneralFail;
-				}
+			  StringT block_name;
+			  block_name.Append(block_ID[j]);
+			  int block_index = fOutputGeometry->ElementGroupIndex(block_name);
+			  if (block_index == -1) {
+				cout << "\n IOManager_mpi::IOManager_mpi: block " << block_ID[j]
+					 << " should be loaded, but wasn't found" << endl;
+				throw eDatabaseFail;
+			  }
 			
 				/* collect */
-				connect_list[j] = fConnectivities.Pointer(index);
-			}
+				connect_list[j] = fOutputGeometry->ElementGroupPointer(block_index);
+		}
 
 			/* construct output set */
 			OutputSetT global_set(set.ID(), set.Geometry(), block_ID, connect_list,
@@ -117,13 +106,17 @@ cout << Rank() << ": IOManager_mpi::IOManager_mpi: constructing output sets" << 
 }
 
 /* destructor */
-IOManager_mpi::~IOManager_mpi(void) { }
+IOManager_mpi::~IOManager_mpi(void)
+{ 
+	delete fOutputGeometry;
+	fOutputGeometry = NULL;
+}
 
 #ifdef __MPI__
 /* distribute/assemble/write output */
 void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values)
 {
-cout << Rank() << ": IOManager_mpi::WriteOutput" << endl;
+//cout << Rank() << ": IOManager_mpi::WriteOutput" << endl;
 	
 	/* define message tag */
 	int message_tag = 0;
@@ -131,7 +124,7 @@ cout << Rank() << ": IOManager_mpi::WriteOutput" << endl;
 	/* assembling here */
 	if (fIO_map[ID] == Rank())
 	{
-cout << Rank() << ": collecting ID " << ID << endl;
+//cout << Rank() << ": collecting ID " << ID << endl;
 
 		/* global output set */
 		const OutputSetT& set = *((fOutput->ElementSets())[ID]);
@@ -144,12 +137,12 @@ cout << Rank() << ": collecting ID " << ID << endl;
 /*********************************
  ***** assemble nodal values *****
  *********************************/
-cout << Rank() << ": assembling nodal values" << endl;
+//cout << Rank() << ": assembling nodal values" << endl;
 
 		/* loop over source processors to assemble global nodal output */
 		for (int i = 0; i < Size(); i++)
 		{
-cout << Rank() << ": working processor " << i << endl;
+//cout << Rank() << ": working processor " << i << endl;
 
 			/* assembly map */
 			const iArrayT& n_map = assembly_maps.NodeMap(i);
@@ -160,15 +153,15 @@ cout << Rank() << ": working processor " << i << endl;
 				/* incoming nodes buffer */
 				dArray2DT n_values_in(n_map.Length(), all_n_values.MinorDim());		
 
-cout << Rank() << ": posting receive for " << n_values_in.MajorDim() << "x"
-     << n_values_in.MinorDim()  << " from " << i << endl;
+//cout << Rank() << ": posting receive for " << n_values_in.MajorDim() << "x"
+//     << n_values_in.MinorDim()  << " from " << i << endl;
 		
 				/* receive nodes */
 				MPI_Status status;
 				if (MPI_Recv(n_values_in.Pointer(), n_values_in.Length(), MPI_DOUBLE,
 					i, message_tag, MPI_COMM_WORLD, &status) != MPI_SUCCESS) throw eMPIFail;
 
-cout << Rank() << ": posting received" << endl;
+//cout << Rank() << ": posting received" << endl;
 //cout << n_values_in << endl;
 
 				/* assemble nodes */
@@ -191,7 +184,7 @@ cout << Rank() << ": posting received" << endl;
  **** assemble element values ****
  *********************************/
 
-cout << Rank() << ": assembling element values" << endl;
+//cout << Rank() << ": assembling element values" << endl;
 
 		/* loop over source processors to assemble global nodal output */
 		for (int i = 0; i < Size(); i++)
@@ -205,8 +198,8 @@ cout << Rank() << ": assembling element values" << endl;
 				/* incoming nodes buffer */
 				dArray2DT e_values_in(e_map.Length(), all_e_values.MinorDim());		
 
-cout << Rank() << ": posting receive for " << e_values_in.MajorDim() << "x"
-     << e_values_in.MinorDim()  << " from " << i <<  endl;
+//cout << Rank() << ": posting receive for " << e_values_in.MajorDim() << "x"
+//     << e_values_in.MinorDim()  << " from " << i <<  endl;
 		
 				/* receive nodes */
 				MPI_Status status;
@@ -214,7 +207,7 @@ cout << Rank() << ": posting receive for " << e_values_in.MajorDim() << "x"
 					i, message_tag, MPI_COMM_WORLD, &status) !=
 					MPI_SUCCESS) throw eMPIFail;
 
-cout << Rank() << ": posting received:" << endl;
+//cout << Rank() << ": posting received:" << endl;
 //cout << e_values_in << endl;
 
 				/* assemble nodes */
@@ -244,17 +237,17 @@ cout << Rank() << ": posting received:" << endl;
 			/* send only values for resident nodes (assume first in sequence) */
 			dArray2DT out_n_values(fOutNodeCounts[ID], n_values.MinorDim(), n_values.Pointer());
 
-cout << Rank() << ": sending nodal data" << endl;
-cout << Rank() << ": sending ID " << ID << endl;
-cout << Rank() << ": posting send for " << out_n_values.MajorDim() << "x"
-     << out_n_values.MinorDim() << " to " << fIO_map[ID] << ':' << endl;
+//cout << Rank() << ": sending nodal data" << endl;
+//cout << Rank() << ": sending ID " << ID << endl;
+//cout << Rank() << ": posting send for " << out_n_values.MajorDim() << "x"
+//     << out_n_values.MinorDim() << " to " << fIO_map[ID] << ':' << endl;
 //cout << out_n_values << endl;
 
 			/* send nodes */
 			if (MPI_Send(out_n_values.Pointer(), out_n_values.Length(), MPI_DOUBLE,
 				fIO_map[ID], message_tag, MPI_COMM_WORLD) != MPI_SUCCESS) throw eMPIFail;
 
-cout << Rank() << ": send received" << endl;
+//cout << Rank() << ": send received" << endl;
 		}
 		
 		/* synchronize */
@@ -266,17 +259,17 @@ cout << Rank() << ": send received" << endl;
 			/* check */
 			if (fElementCounts(Rank(), ID) > e_values.MajorDim()) throw eSizeMismatch;
 
-cout << Rank() << ": sending element data" << endl;
-cout << Rank() << ": sending ID " << ID << endl;
-cout << Rank() << ": posting send for " << e_values.MajorDim() << "x"
-     << e_values.MinorDim() << " to " << fIO_map[ID] << ':' << endl;
+//cout << Rank() << ": sending element data" << endl;
+//cout << Rank() << ": sending ID " << ID << endl;
+//cout << Rank() << ": posting send for " << e_values.MajorDim() << "x"
+//     << e_values.MinorDim() << " to " << fIO_map[ID] << ':' << endl;
 //cout << e_values << endl;
 
 			/* send nodes */
 			if (MPI_Send(e_values.Pointer(), e_values.Length(), MPI_DOUBLE,
 				fIO_map[ID], message_tag, MPI_COMM_WORLD) != MPI_SUCCESS) throw eMPIFail;
 
-cout << Rank() << ": send received" << endl;
+//cout << Rank() << ": send received" << endl;
 		}
 	}
 	
@@ -314,7 +307,7 @@ void IOManager_mpi::WriteMaps(ostream& out) const
 void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 #ifdef __MPI__
 {
-cout << Rank() << ": IOManager_mpi::SetCommunication: start" << endl;
+//cout << Rank() << ": IOManager_mpi::SetCommunication: start" << endl;
 
 	/* local output sets */
 	const ArrayT<OutputSetT*>& local_sets = local_IO.ElementSets();
@@ -397,7 +390,7 @@ cout << Rank() << ": IOManager_mpi::SetCommunication: start" << endl;
 		/* data is incoming - post receives */
 		if (fIO_map[k] == Rank())
 		{
-cout << Rank() << ": IOManager_mpi::SetCommunication: writing set" << endl;
+//cout << Rank() << ": IOManager_mpi::SetCommunication: writing set" << endl;
 
 			/* output set spec from this processor */
 			OutputSetT& global_set = *((fOutput->ElementSets())[k]);
@@ -500,7 +493,7 @@ cout << Rank() << ": IOManager_mpi::SetCommunication: writing set" << endl;
 		}
 		else /* set is outgoing - post sends */
 		{
-cout << Rank() << ": IOManager_mpi::SetCommunication: sending set" << endl;
+//cout << Rank() << ": IOManager_mpi::SetCommunication: sending set" << endl;
 
 			int num_outgoing = nodes[k].Length();
 			if (num_outgoing > 0)
@@ -718,7 +711,7 @@ cout << Rank() << ": IOManager_mpi::SetCommunication: sending set" << endl;
 	/* check maps */
 	CheckAssemblyMaps();
 
-cout << Rank() << ": IOManager_mpi::SetCommunication: done" << endl;
+//cout << Rank() << ": IOManager_mpi::SetCommunication: done" << endl;
 }
 #else
 {
@@ -968,110 +961,41 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 void IOManager_mpi::ReadOutputGeometry(const StringT& model_file,
 	const ArrayT<OutputSetT*>& element_sets, IOBaseT::FileTypeT format)
 {
-	switch (format)
-	{
-		case IOBaseT::kTahoeII:
-		{
-			/* database file */
-			ModelFileT file;
-			file.OpenRead(model_file);
-			
-			/* read coordinates */
-			if (file.GetCoordinates(fCoordinates) != ModelFileT::kOK) throw eGeneralFail;
-		
-			/* read connectivities needed for the local output sets */
-			for (int i = 0; i < fIO_map.Length(); i++)
-				if (fIO_map[i] == Rank())
-				{
-					/* set info */
-					const OutputSetT& output_set = *(element_sets[i]);
-					
-					/* element block ID's */
-					const iArrayT& block_ID = output_set.BlockID();
-					for (int j = 0; j < block_ID.Length(); j++)
-					{
-						/* load if not already read */
-						if (!fBlockID.HasValue(block_ID[j]))
-						{
-							/* find empty slot */
-							int index = -1;
-							if (!fBlockID.HasValue(-1, index)) {
-								cout << "\n IOManager_mpi::ReadOutputGeometry: no more slots connectivities:\n" 
-								     << fBlockID.wrap(5) << endl;
-								throw eGeneralFail;
-							}
-							
-							/* read and store */
-							fBlockID[index] = block_ID[j];
-							iArray2DT& connectivities = fConnectivities[index];
-							if (file.GetElementSet(block_ID[j], connectivities) != ModelFileT::kOK)
-								throw eGeneralFail;
-				
-							/* correct numbering offset */
-							connectivities--;
-						}
-					}
-				}
-			break;
-		}
-		case IOBaseT::kExodusII:
-		{
-			/* open database */
-			ExodusT exo(fLog);
-			exo.OpenRead(model_file);
-
-			/* read coordinates */
-			int num_nodes = exo.NumNodes();
-			int num_dim   = exo.NumDimensions();
-			fCoordinates.Allocate(num_nodes, num_dim);
-			exo.ReadCoordinates(fCoordinates);
-
-			/* read connectivities needed for the local output sets */
-			for (int i = 0; i < fIO_map.Length(); i++)
-				if (fIO_map[i] == Rank())
-				{
-					/* set info */
-					const OutputSetT& output_set = *(element_sets[i]);
-					
-					/* element block ID's */
-					const iArrayT& block_ID = output_set.BlockID();
-					for (int j = 0; j < block_ID.Length(); j++)
-					{
-						/* load if not already read */
-						if (!fBlockID.HasValue(block_ID[j]))
-						{
-							/* find empty slot */
-							int index = -1;
-							if (!fBlockID.HasValue(-1, index)) {
-								cout << "\n IOManager_mpi::ReadOutputGeometry: no more slots connectivities:\n" 
-								     << fBlockID.wrap(5) << endl;
-								throw eGeneralFail;
-							}
-							
-							/* read and store */
-							fBlockID[index] = block_ID[j];
-							iArray2DT& connectivities = fConnectivities[index];
-							int num_elems;
-							int num_elem_nodes;
-							exo.ReadElementBlockDims(block_ID[j], num_elems, num_elem_nodes);
-							connectivities.Allocate(num_elems, num_elem_nodes);
-							GeometryT::CodeT geometry_code;
-							exo.ReadConnectivities(block_ID[j], geometry_code, connectivities);
-
-							/* correct numbering offset */
-							connectivities--;
-						}
-					}
-				}
-			break;
-		}
-		default:
-			cout << "\n IOManager_mpi::ReadOutputGeometry: format must be "
-			     << IOBaseT::kTahoeII << " or " << IOBaseT::kExodusII << endl;
-			throw eGeneralFail;
+	/* initialize model manager */
+	fOutputGeometry = new ModelManagerT(cout);
+	if (!fOutputGeometry) throw eGeneralFail;
+	if (!fOutputGeometry->Initialize(format, model_file)) {
+		cout << "\n IOManager_mpi::ReadOutputGeometry: error initializing database: " 
+		     << fOutputGeometry->DatabaseName() << endl;
+		throw eDatabaseFail;
 	}
 	
 	/* set global coordinates */
-	SetCoordinates(fCoordinates, NULL);
+	SetCoordinates(fOutputGeometry->Coordinates(), NULL);
 
+	/* read connectivities needed for the local output sets */
+	for (int i = 0; i < fIO_map.Length(); i++)
+		if (fIO_map[i] == Rank())
+		{
+			/* set info */
+			const OutputSetT& output_set = *(element_sets[i]);
+					
+			/* element block ID's */
+			const iArrayT& block_ID = output_set.BlockID();
+			for (int j = 0; j < block_ID.Length(); j++)
+			{
+				/* block ID as string */
+				StringT block_name;
+				block_name.Append(block_ID[j]);
+				int block_index = fOutputGeometry->ElementGroupIndex(block_name);
+				if (block_index == -1) {
+					cout << "\n IOManager_mpi::ReadOutputGeometry: could not find block ID: " 
+					     << block_ID[j] << endl;
+					throw eDatabaseFail;
+				}
+				
+				/* read element block */
+				fOutputGeometry->ReadConnectivity(block_index);
+			}
+		}
 }
