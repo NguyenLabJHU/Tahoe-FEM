@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.35 2005-03-09 20:46:26 rjones Exp $
+# $Id: tahoe-manager,v 1.36 2005-03-11 02:11:11 rjones Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -81,8 +81,13 @@ contrib 1
 benchmark_XML 1
 );
 
-# minimum required installation
-@defaultmodules = ("macros","expat","toolbox","tahoe");
+# classify modules
+@defaultmodules = ("macros","expat","toolbox","tahoe"); # min req'd install
+@allmodules = sort(keys(%module2define));
+@optionalmodules = complement(\@allmodules, \@defaultmodules);
+#@activemodules = ("toolbox","tahoe","development");
+#@staticlibs = complement(\@allmodules, \@activemodules);
+@nonbuildmodules = ("macros");
 
 %syslib2module = qw(
 ACCESS	access
@@ -103,6 +108,9 @@ $ tahoe = "tahoe.ca.sandia.gov";
 # default configuration file
 $config_file = "./.tahoe_config";
 
+$time = localtime();
+print "* running tahoe-manager script at $time\n";
+
 # if TAHOE_HOME is set, change to that location
 if(defined($dir = findENV("TAHOE_HOME") ) ) {
 	print "* changing to directory TAHOE_HOME = $dir \n";
@@ -121,13 +129,13 @@ ARG: while (@ARGV) {
 		$count = @ARGV;
 		if ($script_status > 0 )   { failed();}
 		if (/^u|update/i)          { update(); next ARG; }
-		if (/^co|config/i)          { config(); next ARG; }
+		if (/^co|config/i)         { config(); next ARG; }
 		if (/^i|init/i)            { init(); next ARG; }
 		if (/^b|build/i)           { build(); next ARG; }
-		if (/^cl|clean/i)          { clean(); next ARG; }
 		if (/^t|test/i)            { test(); next ARG; }
+		if (/^cl|clean/i)          { clean(); next ARG; }
 		if (/^u|usage|help|^h/i)   { usage();}
-		if (/^s|selfupdate/i)   { selfupdate(); exit 0; }
+		if (/^s|selfupdate/i)      { selfupdate(); exit 0; }
 		print "ERROR: unknown option: $_ \n"; usage();
 	}
 }
@@ -146,10 +154,6 @@ sub selfupdate {
 
 ###############################################################################
 sub initialize {
-
-# classify modules
-my @allmodules = sort(keys(%module2define));
-@optionalmodules = complement(\@allmodules, \@defaultmodules);
 
 # search for system libs 
 foreach my $key (sort(keys %ENV)) {
@@ -184,12 +188,14 @@ while (scalar(@req_missing) > 0) {
 	@req_missing = get_missing_modules();
 }
 
-print "\n>   tahoe name: $tahoe_name\n";
-print ">   connection: $connection\n";
+print "*--------------------------------------------------\n";
+print "*   tahoe name: $tahoe_name\n";
+print "*   connection: $connection\n";
 if ($proxy !~ "NONE") {
-	print ">        proxy: $proxy\n";
+	print "*        proxy: $proxy\n";
 }
-print "> architecture: $arch \n\n"; 
+print "* architecture: $arch \n"; 
+print "*--------------------------------------------------\n";
 
 # check connection method
 #open(WHICH, "which $connect2command{$connection} |");
@@ -419,7 +425,7 @@ sub update{
 		@run_modules = @modules;
 	}
 
-	$time = localtime();
+	$time = (split(/ +/,localtime()))[3];
 	print "($count) updating: @run_modules, at $time\n";
 
 	# connection type
@@ -570,10 +576,11 @@ sub build {
 	# run all unless specified
 	my @run_modules = @_;
 	if (scalar(@run_modules) == 0) {
-		@run_modules = @modules;
+		@run_modules = complement(\@modules,\@nonbuildmodules);
 	}
 
-	$time = localtime();
+	$time = (split(/ +/,localtime()))[3];
+
 
 	# initialize modules if needed
 	my @init_modules = ();
@@ -601,25 +608,40 @@ sub build {
 
 	# need to sort modules based on dependencies
 	my @tmp_modules = sort by_depend(@run_modules);
-	if (scalar(@tmp_modules) > 1 )  {
-		print "($count) building: @tmp_modules, at $time\n";}
+	print "($count) building: @tmp_modules, at $time\n";
 
 	DIR: foreach my $dir (@tmp_modules) {
 		if (-e "$dir/makefile" && !defined($up_to_date_modules{$dir})) {
 
 			chdir($dir);
 			print "\tmaking $dir...";
-			system("make build > build.log 2>&1");
+			if (-e ".built") {
+				print " built\n"; }
+			else {
+				system("make build > build.log 2>&1");
 			
-			# check for errors	
-			open(IN,"build.log");
-			my @lines = <IN>; $file = "@lines"; close(IN); 
-			my $errors = ($file =~ /\*\*\* ERROR:/);
-               		if($errors > 0) {
-               			print " ERROR\n";
-               			$script_status++;
-               		}
-			else { print " ok\n"; }
+				# check for errors	
+				open(IN,"build.log");
+				my @lines = <IN>; $file = "@lines"; close(IN); 
+				my $errors = ($file =~ /\*\*\* ERROR:/);
+               			if($errors > 0) {
+               				print " ERROR\n";
+               				$script_status++;
+               			}
+				elsif ($dir eq "tahoe" 
+				&& !($file =~ /wrote tahoe/)
+				&& !(-x "tahoe")) { 
+               				print " ERROR\n";
+               				$script_status++;
+				}
+				else { print " ok\n"; 
+#					if (inlist($dir,\@staticlibs))	{
+#						open(OUT,">build.log");
+#						print OUT "static\n";
+#						close OUT;
+#					}
+				}
+			}
 			chdir "..";
 		}
 	}
@@ -631,22 +653,23 @@ sub init {
 	# run all unless specified
 	my @run_modules = @_;
 	if (scalar(@run_modules) == 0) {
-		@run_modules = @modules;
+ 		@run_modules = complement(\@modules,\@nonbuildmodules);
 	}
 
-	$time = localtime();
+	$time = (split(/ +/,localtime()))[3];
 
 	# confirm all modules are checked out
 	foreach my $dir (@run_modules) {
 		if (! -e $dir) { update($dir); }
 	}
 
-	# update makefiles in each module - do all at once before entering loop below
+	# update makefiles in each module - do all before entering loop below
 	# since this may be interactive
 	foreach my $dir (@run_modules) {
 		if (-e $dir) { 
 			chdir $dir; 
 			if (-e "makefile.template") {
+				unlink(".built");
 
 				# generate makefile
 				print "\tcreating makefile in $dir...";
@@ -699,7 +722,8 @@ sub clean {
 		@run_modules = @modules;
 	}
 
-	$time = localtime();
+	$time = (split(/ +/,localtime()))[3];
+
 	print "($count) cleaning: @modules, at $time\n";
 	foreach $dir (@run_modules) {
 		if (-e $dir) { 
@@ -726,7 +750,7 @@ sub clean {
 
 ##############################################################################
 sub test{
-	$time = localtime();
+	$time = (split(/ +/,localtime()))[3];
 	print "($count) running tests at $time\n";
  	unless(-d "benchmark_XML"){
 		print "checking out benchmark\n";
@@ -760,7 +784,7 @@ sub test{
 
 ##############################################################################
 sub failed{
-	$time = localtime();
+	$time = (split(/ +/,localtime()))[3];
 	die "*-*-*-* process FAILED at $time *-*-*-*\n";
 }
 
@@ -834,10 +858,11 @@ sub by_depend {
 		}
 	}
 
-#	my $comp = ($a_on_b <=> $b_on_a) || ($a cmp $b);
+	my $comp = ($a_on_b <=> $b_on_a) || ($a cmp $b);
 #	print " $a $a_on_b $b $b_on_a : $comp\n";
+# this still has problems
 
-	($a_on_b <=> $b_on_a) || ($a cmp $b);
+        return $comp;	
 }
 
 ##############################################################################
@@ -1443,4 +1468,14 @@ sub findENV {
 	}
 	return undef;
 }
+##############################################################################
+#sub inlist {
+#	my ($key,$list) = @_;
+#	my $i = 0;
+#	foreach my $item (@$list) {
+#        	if ($key eq $item) {return $i; }       
+#		$i++;
+#	}
+#	return undef;
+#}
 
