@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.h,v 1.5.56.1 2004-07-06 06:53:08 paklein Exp $ */
+/* $Id: ThermalSurfaceT.h,v 1.5.56.2 2004-07-12 08:08:41 paklein Exp $ */
 
 #ifndef _THERMAL_SURFACE_T_H_
 #define _THERMAL_SURFACE_T_H_
@@ -20,7 +20,6 @@ class ThermalSurfaceT: public CSEBaseT
 public:
 
 	/** constructor */
-	ThermalSurfaceT(const ElementSupportT& support, const FieldT& field);
 	ThermalSurfaceT(const ElementSupportT& support);
 
 	/** form of tangent matrix */

@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.cpp,v 1.9.2.1 2004-07-06 06:53:13 paklein Exp $ */
+/* $Id: Contact2DT.cpp,v 1.9.2.2 2004-07-12 08:08:42 paklein Exp $ */
 /* created: paklein (05/26/1999) */
 #include "Contact2DT.h"
 
@@ -18,18 +18,6 @@ const int kMaxNumGrid    = 75;
 using namespace Tahoe;
 
 /* constructor */
-Contact2DT::Contact2DT(const ElementSupportT& support, const FieldT& field):
-	ContactT(support, field, kNumFacetNodes),
-	fGrid2D(NULL),
-	fv1(NumSD()),
-	fv2(NumSD())
-{
-	SetName("contact_2D");
-
-	/* check base class initializations */
-	if (NumSD() != 2) throw ExceptionT::kGeneralFail;
-}
-
 Contact2DT::Contact2DT(const ElementSupportT& support):
 	ContactT(support, kNumFacetNodes),
 	fGrid2D(NULL),

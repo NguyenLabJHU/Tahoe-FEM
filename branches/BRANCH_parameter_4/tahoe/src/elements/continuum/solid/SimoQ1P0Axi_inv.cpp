@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0Axi_inv.cpp,v 1.2.2.2 2004-07-12 05:12:08 paklein Exp $ */
+/* $Id: SimoQ1P0Axi_inv.cpp,v 1.2.2.3 2004-07-12 08:08:47 paklein Exp $ */
 #include "SimoQ1P0Axi_inv.h"
 
 #include "ShapeFunctionT.h"
@@ -13,15 +13,6 @@ const int kRadialDirection = 0; /* x <-> r */
 using namespace Tahoe;
 
 /* constructor */
-SimoQ1P0Axi_inv::SimoQ1P0Axi_inv(const ElementSupportT& support, const FieldT& field):
-	UpdatedLagrangianAxiT(support, field),
-	fF_tmp(NumSD()),
-	fOutputInit(false),
-	fOutputCell(-1)
-{
-	SetName("updated_lagrangian_Q1P0_inv_axi");
-}
-
 SimoQ1P0Axi_inv::SimoQ1P0Axi_inv(const ElementSupportT& support):
 	UpdatedLagrangianAxiT(support),
 	fOutputInit(false),
@@ -455,17 +446,6 @@ void SimoQ1P0Axi_inv::FormKd(double constK)
 	
 	/* volume averaged */
 	p_bar /= fElementVolume[CurrElementNumber()];
-}
-
-/* read materials data */
-void SimoQ1P0Axi_inv::ReadMaterialData(ifstreamT& in)
-{
-	/* inherited */
-	UpdatedLagrangianAxiT::ReadMaterialData(in);
-
-	/* make sure 2D materials are plane strain */
-	if (StructuralMaterialList().HasPlaneStress()) 
-		ExceptionT::BadInputValue("SimoQ1P0Axi_inv::ReadMaterialData", "2D materials must be plane strain");
 }
 
 /***********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.6.26.2 2004-07-07 15:27:56 paklein Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.6.26.3 2004-07-12 08:08:41 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -35,15 +35,6 @@ using namespace Tahoe;
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
-CSESymAnisoT::CSESymAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate):
-	CSEAnisoT(support, field, rotate)
-{
-	SetName("anisotropic_symmetry_CSE");
-
-	/* reset format for the element stiffness matrix */
-	if (fRotate) fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
-}
-
 /* constructor */
 CSESymAnisoT::CSESymAnisoT(const ElementSupportT& support):
 	CSEAnisoT(support)

@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.29.2.2 2004-07-12 05:12:08 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.29.2.3 2004-07-12 08:08:47 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -16,7 +16,7 @@ using namespace Tahoe;
 
 /* constructor */
 SimoFiniteStrainT::SimoFiniteStrainT(const ElementSupportT& support, const FieldT& field):
-	FiniteStrainT(support, field),
+	FiniteStrainT(support),
 	fCurrElementModes(LocalArrayT::kUnspecified),
 	fCurrElementModes_last(LocalArrayT::kUnspecified),
 	fEnhancedShapes(NULL),
@@ -96,7 +96,7 @@ SimoFiniteStrainT::~SimoFiniteStrainT(void)
 void SimoFiniteStrainT::Initialize(void)
 {
 	/* inherited */
-	FiniteStrainT::Initialize();
+//	FiniteStrainT::Initialize();
 
 	/* dimensions */
 	int nip = NumIP();
@@ -428,6 +428,7 @@ bool SimoFiniteStrainT::NextElement(void)
 	return next;
 }
 
+#if 0
 /* write element parameter to out */
 void SimoFiniteStrainT::PrintControlData(ostream& out) const
 {
@@ -450,6 +451,7 @@ void SimoFiniteStrainT::PrintControlData(ostream& out) const
 		out << " Maximum number of local sub-iterations. . . . . = " << fRelTol << '\n';
 	}
 }
+#endif
 
 /* construct shape function */
 void SimoFiniteStrainT::SetShape(void)

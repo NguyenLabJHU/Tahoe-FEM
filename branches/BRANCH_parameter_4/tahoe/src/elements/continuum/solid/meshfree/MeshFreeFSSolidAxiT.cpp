@@ -1,5 +1,4 @@
-/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.2.2.4 2004-07-12 05:12:11 paklein Exp $ */
-/* created: paklein (09/16/1998) */
+/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.2.2.5 2004-07-12 08:08:50 paklein Exp $ */
 #include "MeshFreeFSSolidAxiT.h"
 
 #include <iostream.h>
@@ -24,18 +23,6 @@ using namespace Tahoe;
 const double Pi = acos(-1.0);
 
 /* constructor */
-MeshFreeFSSolidAxiT::MeshFreeFSSolidAxiT(const ElementSupportT& support, const FieldT& field):
-	TotalLagrangianAxiT(support, field),
-	fAutoBorder(false),
-	fB_wrap(10, fB),
-	fGradNa_wrap(10, fGradNa),
-	fStressStiff_wrap(10, fStressStiff),
-	fMFShapes(NULL),
-	fMFFractureSupport(NULL)
-{
-	SetName("large_strain_meshfree_axi");
-}
-
 MeshFreeFSSolidAxiT::MeshFreeFSSolidAxiT(const ElementSupportT& support):
 	TotalLagrangianAxiT(support),
 	fAutoBorder(false),

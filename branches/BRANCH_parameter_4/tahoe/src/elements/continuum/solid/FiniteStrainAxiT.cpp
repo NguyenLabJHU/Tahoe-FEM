@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainAxiT.cpp,v 1.3.22.2 2004-07-08 00:41:52 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.cpp,v 1.3.22.3 2004-07-12 08:08:47 paklein Exp $ */
 #include "FiniteStrainAxiT.h"
 
 #include "ShapeFunctionT.h"
@@ -13,14 +13,6 @@ const int kRadialDirection = 0; /* the x direction is radial */
 const int kNSD = 2;
 
 /* constructor */
-FiniteStrainAxiT::FiniteStrainAxiT(const ElementSupportT& support, const FieldT& field):
-	FiniteStrainT(support, field),
-	fMat2D(kNSD),
-	fLocCurrCoords(LocalArrayT::kCurrCoords)	
-{
-	SetName("large_strain_axi");
-}
-
 FiniteStrainAxiT::FiniteStrainAxiT(const ElementSupportT& support):
 	FiniteStrainT(support),
 	fMat2D(kNSD),

@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianAxiT.cpp,v 1.3.2.4 2004-07-12 05:12:08 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.cpp,v 1.3.2.5 2004-07-12 08:08:47 paklein Exp $ */
 #include "TotalLagrangianAxiT.h"
 
 #include "ifstreamT.h"
@@ -12,17 +12,6 @@ const int kRadialDirection = 0; /* x <-> r */
 using namespace Tahoe;
 
 /* constructor */
-TotalLagrangianAxiT::TotalLagrangianAxiT(const ElementSupportT& support, const FieldT& field):
-	FiniteStrainAxiT(support, field),
-	fStressMat(3),
-	fTempMat1(3),
-	fTempMat2(3),
-	fOutputInit(false),
-	fOutputCell(-1)
-{
-	SetName("total_lagrangian_axi");
-}
-
 TotalLagrangianAxiT::TotalLagrangianAxiT(const ElementSupportT& support):
 	FiniteStrainAxiT(support),
 	fStressMat(3),

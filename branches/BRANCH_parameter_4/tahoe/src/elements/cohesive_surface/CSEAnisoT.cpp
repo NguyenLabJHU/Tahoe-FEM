@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.62.2.2 2004-07-07 15:27:56 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.62.2.3 2004-07-12 08:08:41 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -50,24 +50,6 @@
 using namespace Tahoe;
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-/* constructor */
-CSEAnisoT::CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate):
-	CSEBaseT(support, field),
-	fRotate(rotate),
-	fCurrShapes(NULL),
-	fQ(NumSD()),
-	fdelta(NumSD()),
-	fT(NumSD()),
-	fddU(NumSD()),
-	fRunState(support.RunState()),
-	fIPArea(0.0)
-{
-	SetName("anisotropic_CSE");
-
-	/* reset format for the element stiffness matrix */
-	if (fRotate) fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
-}
-
 /* constructor */
 CSEAnisoT::CSEAnisoT(const ElementSupportT& support):
 	CSEBaseT(support),

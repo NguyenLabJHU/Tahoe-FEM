@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.h,v 1.9.26.1 2004-07-06 06:53:08 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.h,v 1.9.26.2 2004-07-12 08:08:41 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #ifndef _MF_CSE_ANISO_T_H_
@@ -84,9 +84,6 @@ public:
                   kMarked = 2};
 
 protected:
-
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
 
 	/* element data */
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);

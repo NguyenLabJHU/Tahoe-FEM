@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.11.2.3 2004-07-12 05:12:08 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.11.2.4 2004-07-12 08:08:47 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 #include "LocalizerT.h"
 
@@ -35,7 +35,7 @@ const int kLocCheckAtPrint =-1;
 
 /* constructor */
 LocalizerT::LocalizerT(const ElementSupportT& support, const FieldT& field):
-	UpdatedLagrangianT(support, field),
+	UpdatedLagrangianT(support),
 	fAvgStretch(NumSD())
 {
 ExceptionT::GeneralFail("LocalizerT::LocalizerT", "out of date");
@@ -325,6 +325,7 @@ GlobalT::RelaxCodeT LocalizerT::ResetStep(void)
 * Protected
 ***********************************************************************/
 
+#if 0
 /* print element group data */
 void LocalizerT::PrintControlData(ostream& out) const
 {
@@ -343,6 +344,7 @@ void LocalizerT::PrintControlData(ostream& out) const
 	out << "    eq." << kLocCheckNever   << ", never (skip all localization checks)\n";
 	out << "    eq." << fLocCheckInc	 << ", at every nth step\n";
 }
+#endif
 
 /* skip elements that are off (when?) */
 bool LocalizerT::NextElement(void)
@@ -365,7 +367,7 @@ bool LocalizerT::NextElement(void)
 void LocalizerT::ReadMaterialData(ifstreamT& in)
 {
 	/* inherited */
-	UpdatedLagrangianT::ReadMaterialData(in);
+//	UpdatedLagrangianT::ReadMaterialData(in);
 	
 //TEMP - needs rethinking
 #if 0

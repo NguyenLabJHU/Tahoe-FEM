@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.11.26.1 2004-07-06 06:53:16 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.11.26.2 2004-07-12 08:08:46 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_T_H_
 #define _DIFFUSE_T_H_
@@ -32,14 +32,10 @@ public:
                     iMaterialData = 2}; /**< material model output */
 
 	/** constructor */
-	DiffusionElementT(const ElementSupportT& support, const FieldT& field);
 	DiffusionElementT(const ElementSupportT& support);
 
 	/** destructor */
 	~DiffusionElementT(void);
-	
-	/** data initialization */
-	virtual void Initialize(void);
 
 	/** TEMPORARY. Need this extra call here to set the source for the iteration number
 	 * in SmallStrainT::fSSMatSupport. The solvers are not constructed when the material
@@ -56,12 +52,6 @@ public:
 	virtual void SendOutput(int kincode);
 
 protected:
-
-	/** \name print element group data */
-	/*@{*/
-	virtual void PrintControlData(ostream& out) const;
-	virtual void EchoOutputCodes(ifstreamT& in, ostream& out);
-	/*@}*/
 
 	/** initialization functions */
 	/*@{*/

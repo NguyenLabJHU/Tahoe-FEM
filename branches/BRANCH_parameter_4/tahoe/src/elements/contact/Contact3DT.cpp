@@ -1,4 +1,4 @@
-/* $Id: Contact3DT.cpp,v 1.10.2.1 2004-07-06 06:53:13 paklein Exp $ */
+/* $Id: Contact3DT.cpp,v 1.10.2.2 2004-07-12 08:08:42 paklein Exp $ */
 /* created: paklein (07/17/1999) */
 #include "Contact3DT.h"
 
@@ -22,16 +22,6 @@ const int kMaxNumGrid    = 50;
 #undef DEBUG
 
 /* constructor */
-Contact3DT::Contact3DT(const ElementSupportT& support, const FieldT& field):
-	ContactT(support, field, kNumFacetNodes),
-	fGrid3D(NULL)
-{
-	SetName("contact_3D");
-
-	/* check base class initializations */
-	if (NumSD() != 3) throw ExceptionT::kGeneralFail;
-}
-
 Contact3DT::Contact3DT(const ElementSupportT& support):
 	ContactT(support, kNumFacetNodes),
 	fGrid3D(NULL)

@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0Axi.h,v 1.2.2.1 2004-07-09 00:26:16 paklein Exp $ */
+/* $Id: SimoQ1P0Axi.h,v 1.2.2.2 2004-07-12 08:08:47 paklein Exp $ */
 #ifndef _SIMO_Q1_P0_AXI_H_
 #define _SIMO_Q1_P0_AXI_H_
 
@@ -13,7 +13,6 @@ class SimoQ1P0Axi: public UpdatedLagrangianAxiT
 public:
 
 	/** constructor */
-	SimoQ1P0Axi(const ElementSupportT& support, const FieldT& field);
 	SimoQ1P0Axi(const ElementSupportT& support);
 
 	/** finalize current step - step is solved */
@@ -45,10 +44,6 @@ protected:
 	/** calculate the internal force contribution ("-k*d") */
 	virtual void FormKd(double constK);
 
-	/** read materials data. For two dimensional problems, checks
-	 * that all materials are plane strain. */
-	virtual void ReadMaterialData(ifstreamT& in);	
-	
 private:
 
 	/** compute mean shape function gradient, H (reference volume), and

@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.5.2.2 2004-07-12 05:12:08 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.5.2.3 2004-07-12 08:08:47 paklein Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */
@@ -16,7 +16,7 @@ using namespace Tahoe;
 
 /* constructor */
 UpLagAdaptiveT::UpLagAdaptiveT(const ElementSupportT& support, const FieldT& field):
-	UpdatedLagrangianT(support,field),
+	UpdatedLagrangianT(support),
 	fCSE(NULL),
 	fTied(NULL),
 	fReleaseThreshold(-1.0)

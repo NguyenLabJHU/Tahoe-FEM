@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.32.2.3 2004-07-12 05:12:15 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.32.2.4 2004-07-12 08:08:53 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -22,7 +22,7 @@ const int RodT::kRodTnsd = 2; /* number of spatial dimensions */
 
 /* constructors */
 RodT::RodT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field),
+	ElementBaseT(support),
 	fCurrMaterial(NULL),
 	fLocAcc(LocalArrayT::kAcc),
 	fInstKE(0.0),
@@ -45,6 +45,7 @@ RodT::RodT(const ElementSupportT& support, const FieldT& field):
 	fHardyHeatFlux(NumSD()),
 	fLocVel(LocalArrayT::kVel)
 {
+#pragma message("fix me")
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
 	fKb = 1.38054;

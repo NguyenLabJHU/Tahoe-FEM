@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.19.26.2 2004-07-07 21:50:41 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.19.26.3 2004-07-12 08:08:47 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -14,15 +14,6 @@
 using namespace Tahoe;
 
 /* constructor */
-FiniteStrainT::FiniteStrainT(const ElementSupportT& support, const FieldT& field):
-	SolidElementT(support, field),
-	fNeedsOffset(-1),
-	fCurrShapes(NULL),
-	fFSMatSupport(NULL)
-{
-	SetName("large_strain");
-}
-
 FiniteStrainT::FiniteStrainT(const ElementSupportT& support):
 	SolidElementT(support),
 	fNeedsOffset(-1),
@@ -33,47 +24,8 @@ FiniteStrainT::FiniteStrainT(const ElementSupportT& support):
 }
 
 /* destructor */
-FiniteStrainT::~FiniteStrainT(void)
-{
+FiniteStrainT::~FiniteStrainT(void) {
 	delete fFSMatSupport;
-}
-
-/* called immediately after constructor */
-void FiniteStrainT::Initialize(void)
-{
-	/* inherited */
-	SolidElementT::Initialize();
-
-	/* what's needed */
-	bool need_F = false;
-	bool need_F_last = false;
-	for (int i = 0; i < fMaterialList->Length(); i++)
-	{
-		need_F = need_F || Needs_F(i);		
-		need_F_last = need_F_last || Needs_F_last(i);
-	}	
-
-	/* allocate deformation gradient list */
-	if (need_F)
-	{
-		int nip = NumIP();
-		int nsd = NumSD();
-		fF_all.Dimension(nip*nsd*nsd);
-		fF_List.Dimension(nip);
-		for (int i = 0; i < nip; i++)
-			fF_List[i].Set(nsd, nsd, fF_all.Pointer(i*nsd*nsd));
-	}
-	
-	/* allocate "last" deformation gradient list */
-	if (need_F_last)
-	{
-		int nip = NumIP();
-		int nsd = NumSD();
-		fF_last_all.Dimension(nip*nsd*nsd);
-		fF_last_List.Dimension(nip);
-		for (int i = 0; i < nip; i++)
-			fF_last_List[i].Set(nsd, nsd, fF_last_all.Pointer(i*nsd*nsd));
-	}
 }
 
 #if 0
@@ -319,38 +271,6 @@ MaterialListT* FiniteStrainT::NewMaterialList(const StringT& name, int size)
 	
 	/* no match */
 	return NULL;
-}
-
-/* construct list of materials from the input stream */
-void FiniteStrainT::ReadMaterialData(ifstreamT& in)
-{
-	/* inherited */
-	SolidElementT::ReadMaterialData(in);
-
-	/* offset to class needs flags */
-	fNeedsOffset = fMaterialNeeds[0].Length();
-	
-	/* set material needs */
-	for (int i = 0; i < fMaterialNeeds.Length(); i++)
-	{
-		/* needs array */
-		ArrayT<bool>& needs = fMaterialNeeds[i];
-
-		/* resize array */
-		needs.Resize(needs.Length() + 2, true);
-
-		/* casts are safe since class contructs materials list */
-		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
-		FSSolidMatT* mat = (FSSolidMatT*) pcont_mat;
-
-		/* collect needs */
-		needs[fNeedsOffset + kF     ] = mat->Need_F();
-		needs[fNeedsOffset + kF_last] = mat->Need_F_last();
-		
-		/* consistency */
-		needs[kNeedDisp] = needs[kNeedDisp] || needs[fNeedsOffset + kF];
-		needs[KNeedLastDisp] = needs[KNeedLastDisp] || needs[fNeedsOffset + kF_last];
-	}
 }
 
 /* form shape functions and derivatives */

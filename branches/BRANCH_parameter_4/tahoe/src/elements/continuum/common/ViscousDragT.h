@@ -1,4 +1,4 @@
-/* $Id: ViscousDragT.h,v 1.2 2004-01-05 07:30:11 paklein Exp $ */
+/* $Id: ViscousDragT.h,v 1.2.26.1 2004-07-12 08:08:44 paklein Exp $ */
 #ifndef _VISCOUS_DRAG_T_H_
 #define _VISCOUS_DRAG_T_H_
 
@@ -18,7 +18,7 @@ class ViscousDragT: public ElementBaseT
 public:
 
 	/** constructor */
-	ViscousDragT(const ElementSupportT& support, const FieldT& field);
+	ViscousDragT(const ElementSupportT& support);
 
 	/** class initialization */
 	virtual void Initialize(void);

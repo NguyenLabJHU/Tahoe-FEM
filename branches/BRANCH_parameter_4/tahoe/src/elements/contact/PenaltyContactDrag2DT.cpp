@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactDrag2DT.cpp,v 1.5.2.2 2004-07-07 15:28:00 paklein Exp $ */
+/* $Id: PenaltyContactDrag2DT.cpp,v 1.5.2.3 2004-07-12 08:08:43 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContactDrag2DT.h"
 
@@ -12,15 +12,6 @@
 using namespace Tahoe;
 
 /* constructor */
-PenaltyContactDrag2DT::PenaltyContactDrag2DT(const ElementSupportT& support, const FieldT& field):
-	PenaltyContact2DT(support, field),
-	fDrag(0),
-	fGapTolerance(0),
-	fSlipTolerance(0)
-{
-	SetName("contact_drag_2D_penalty");
-}
-
 PenaltyContactDrag2DT::PenaltyContactDrag2DT(const ElementSupportT& support):
 	PenaltyContact2DT(support),
 	fDrag(0),
@@ -28,33 +19,6 @@ PenaltyContactDrag2DT::PenaltyContactDrag2DT(const ElementSupportT& support):
 	fSlipTolerance(0)
 {
 	SetName("contact_drag_2D_penalty");
-}
-
-/* initialization after constructor */
-void PenaltyContactDrag2DT::Initialize(void)
-{
-#pragma message("delete me")
-#if 0
-	/* inherited */
-	PenaltyContact2DT::Initialize();
-
-	ifstreamT& in = ElementSupport().Input();
-
-	/* drag parameters */
-	in >> fDrag
-	   >> fGapTolerance
-	   >> fSlipTolerance;
-
-	/* node blocks containing striker nodes */
-	int num_blocks = -1;
-	in >> num_blocks;
-	ArrayT<StringT> element_id(num_blocks);
-	for (int i = 0; i < element_id.Length(); i++)
-		in >> element_id[i];
-
-	/* compute associated nodal area (using all element blocks) */
-	ComputeNodalArea(element_id, fNodalArea, fStrikerLocNumber);
-#endif
 }
 
 /* describe the parameters needed by the interface */
@@ -87,18 +51,6 @@ void PenaltyContactDrag2DT::TakeParameterList(const ParameterListT& list)
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-/* print element group data */
-void PenaltyContactDrag2DT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	PenaltyContact2DT::PrintControlData(out);
-
-	/* regularization */
-	out << " Magnitude of the drag traction. . . . . . . . . = " << fDrag << '\n';	
-	out << " Gap tolerance for drag. . . . . . . . . . . . . = " << fGapTolerance << '\n';	
-	out << " Minimum incremental slip for drag . . . . . . . = " << fSlipTolerance << '\n';	
-}
 
 void PenaltyContactDrag2DT::RHSDriver(void)
 {

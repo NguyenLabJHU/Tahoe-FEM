@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianAxiT.h,v 1.1.22.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: UpdatedLagrangianAxiT.h,v 1.1.22.2 2004-07-12 08:08:47 paklein Exp $ */
 #ifndef _UPDATED_LAGRANGIAN_AXI_T_H_
 #define _UPDATED_LAGRANGIAN_AXI_T_H_
 
@@ -12,11 +12,10 @@ class UpdatedLagrangianAxiT: public FiniteStrainAxiT
 {
 public:
 
-	/* constructors */
-	UpdatedLagrangianAxiT(const ElementSupportT& support, const FieldT& field);
+	/** constructors */
 	UpdatedLagrangianAxiT(const ElementSupportT& support);
 
-	/* destructors */
+	/** destructors */
 	virtual ~UpdatedLagrangianAxiT(void);
 
 	/** \name implementation of the ParameterInterfaceT interface */

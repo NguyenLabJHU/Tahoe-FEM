@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.cpp,v 1.12.2.2 2004-07-12 05:12:15 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.12.2.3 2004-07-12 08:08:53 paklein Exp $ */
 /* created: paklein (03/19/1997) */
 #include "SWDiamondT.h"
 
@@ -18,7 +18,7 @@ const int kSWMaxNeighbors0 = 4; //max neighbors in undeformed state
 
 /* constructor */
 SWDiamondT::SWDiamondT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field),
+	ElementBaseT(support),
 	fK_3Body(fLHS),
 	fF_3Body(fRHS),
 	fK_2Body(ElementMatrixT::kSymmetricUpper),
@@ -57,17 +57,6 @@ ExceptionT::GeneralFail("SWDiamondT::SWDiamondT", "out of date");
 	//TEMP
 	ReadMaterialData(ElementSupport().Input());	
 #endif
-}
-
-/* initialization */
-void SWDiamondT::Initialize(void)
-{
-	/* inherited */
-	ElementBaseT::Initialize();
-
-	/* material parameters */
-	//ReadMaterialData(ElementSupport().Input());	
-	WriteMaterialData(ElementSupport().Output());
 }
 
 /* form of tangent matrix */

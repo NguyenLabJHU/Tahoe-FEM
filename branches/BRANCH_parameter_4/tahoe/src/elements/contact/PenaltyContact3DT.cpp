@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.12.2.2 2004-07-12 05:12:05 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.12.2.3 2004-07-12 08:08:43 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #include "PenaltyContact3DT.h"
 
@@ -29,70 +29,6 @@ inline static void Vector(const double* start, const double* end, double* v)
 };
 
 /* constructor */
-PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support, const FieldT& field):
-	Contact3DT(support, field),
-	fElCoord(fNumFacetNodes + 1, NumSD()),
-	fElRefCoord(fNumFacetNodes + 1, NumSD()),
-	fElDisp(fNumFacetNodes + 1, NumDOF()),
-	fdc_du(NumSD(), fElDisp.Length()),
-	fdn_du(NumSD(), fElDisp.Length()),
-	fM1(NumSD()),
-	fM2(NumSD(), fElDisp.Length()),
-	fV1(fElDisp.Length())
-{
-#pragma message("delete me")
-#if 0
-	SetName("contact_3D_penalty");
-
-	const char caller[] = "PenaltyContact3DT::PenaltyContact3DT";
-	ElementSupport().Input() >> fK;
-	if (fK < 0.0)
-		ExceptionT::BadInputValue(caller, "regularization must be > 0: %g", fK);
-
-	double third = 1.0/3.0;
-	double* p = fdc_du.Pointer();
-	*p++ =-third;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ =-third;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ =-third;
-	*p++ =-third;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ =-third;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ =-third;
-	*p++ =-third;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ =-third;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ =-third;
-	*p++ = 1;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 1;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p   = 1;
-	
-	/* set console access */
-	iAddVariable("penalty_parameter", fK);
-#endif
-}
-
 PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support):
 	Contact3DT(support),
 	fK(0.0)
@@ -175,16 +111,6 @@ void PenaltyContact3DT::TakeParameterList(const ParameterListT& list)
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-/* print element group data */
-void PenaltyContact3DT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	Contact3DT::PrintControlData(out);
-
-	/* regularization */
-	out << " Regularization parameter. . . . . . . . . . . . = " << fK << '\n';	
-}
 
 /* called by FormRHS and FormLHS */
 void PenaltyContact3DT::LHSDriver(GlobalT::SystemTypeT)

@@ -1,4 +1,4 @@
-/* $Id: SmallStrainAxiT.h,v 1.1.24.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: SmallStrainAxiT.h,v 1.1.24.2 2004-07-12 08:08:47 paklein Exp $ */
 #ifndef _SMALL_STRAIN_AXI_T_H_
 #define _SMALL_STRAIN_AXI_T_H_
 
@@ -13,7 +13,6 @@ class SmallStrainAxiT: public SmallStrainT
   public:
       
 	/** constructor */
-	SmallStrainAxiT(const ElementSupportT& support, const FieldT& field);
 	SmallStrainAxiT(const ElementSupportT& support);
 
 	/** \name implementation of the ParameterInterfaceT interface */

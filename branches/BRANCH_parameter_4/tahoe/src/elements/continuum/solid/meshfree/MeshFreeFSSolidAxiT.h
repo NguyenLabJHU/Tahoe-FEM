@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidAxiT.h,v 1.1.22.2 2004-07-09 00:26:17 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.h,v 1.1.22.3 2004-07-12 08:08:50 paklein Exp $ */
 #ifndef _MESHFREE_FSSOLID_AXI_T_H_
 #define _MESHFREE_FSSOLID_AXI_T_H_
 
@@ -22,8 +22,7 @@ class MeshFreeFSSolidAxiT: public TotalLagrangianAxiT
 {
 public:
 
-	/* constructor */
-	MeshFreeFSSolidAxiT(const ElementSupportT& support, const FieldT& field);
+	/** constructor */
 	MeshFreeFSSolidAxiT(const ElementSupportT& support);
 
 	/* append element equations numbers to the list */

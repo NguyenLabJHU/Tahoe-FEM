@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.18.2.3 2004-07-12 05:12:11 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.18.2.4 2004-07-12 08:08:50 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -27,24 +27,6 @@ using namespace Tahoe;
 const double Pi = acos(-1.0);
 
 /* constructor */
-MeshFreeSSSolidT::MeshFreeSSSolidT(const ElementSupportT& support, const FieldT& field):
-	SmallStrainT(support, field),
-	fAutoBorder(false),
-	fB_wrap(10, fB),
-	fMFShapes(NULL),
-	fMFFractureSupport(NULL),
-	fMeshfreeParameters(NULL)
-{
-	SetName("small_strain_meshfree");
-
-	/* disable any strain-displacement options */
-	if (fStrainDispOpt != kStandardB)
-	{
-		cout << "\n MeshFreeSSSolidT::MeshFreeSSSolidT: no strain-displacement options\n" << endl;
-		fStrainDispOpt = kStandardB;
-	}
-}
-
 MeshFreeSSSolidT::MeshFreeSSSolidT(const ElementSupportT& support):
 	SmallStrainT(support),
 	fAutoBorder(false),

@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.19.2.2 2004-07-07 15:28:00 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.19.2.3 2004-07-12 08:08:43 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -16,15 +16,6 @@
 using namespace Tahoe;
 
 /* constructor */
-ContactT::ContactT(const ElementSupportT& support, const FieldT& field, int numfacetnodes):
-	ElementBaseT(support, field),
-	fNumFacetNodes(numfacetnodes),
-	fnum_contact(-1), 
-	fh_max(1)
-{
-	SetName("contact");
-}
-
 ContactT::ContactT(const ElementSupportT& support, int numfacetnodes):
 	ElementBaseT(support),
 	fNumFacetNodes(numfacetnodes),
@@ -58,19 +49,6 @@ GlobalT::RelaxCodeT ContactT::RelaxSystem(void)
 		return relax;
 	else
 		return GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
-}
-
-/* initialization after constructor */
-void ContactT::Initialize(void)
-{
-	/* inherited */
-	ElementBaseT::Initialize();
-
-	/* set up work space */
-	SetWorkSpace();
-	
-	/* set initial contact configuration */
-	SetContactConfiguration();	
 }
 
 /* initialize current time increment. Reset the contact tracking data. */
@@ -206,16 +184,6 @@ void ContactT::TakeParameterList(const ParameterListT& list)
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-/* print element group data */
-void ContactT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	ElementBaseT::PrintControlData(out);
-
-	out << " Number of facet nodes . . . . . . . . . . . . . = "
-	    << fNumFacetNodes << '\n';
-}
 
 /* echo contact bodies and striker nodes. After the read section, should have valid 
  * nodes/facet connectivities for the local database. */

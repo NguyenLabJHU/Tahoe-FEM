@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.13.2.1 2004-07-06 06:53:13 paklein Exp $ */
+/* $Id: ContactT.h,v 1.13.2.2 2004-07-12 08:08:43 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #ifndef _CONTACT_T_H_
 #define _CONTACT_T_H_
@@ -23,7 +23,6 @@ class ContactT: public ElementBaseT
 public:
 
 	/** constructor */
-	ContactT(const ElementSupportT& support, const FieldT& field, int numfacetnodes);
 	ContactT(const ElementSupportT& support, int numfacetnodes);
 
 	/** destructor */
@@ -34,9 +33,6 @@ public:
 
 	/** element level reconfiguration for the current solution */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
-
-	/** initialization after constructor */
-	virtual void Initialize(void);
 
 	/** initialize current time increment. Reset the contact tracking data. */
 	virtual void InitStep(void);
@@ -91,9 +87,6 @@ protected:
                           kContactBodies = 3,
                             kSideSetList = 4 /**< collect from side sets */};
 
-	/** print element group data */
-	virtual void PrintControlData(ostream& out) const;
-	
 	/** \name initialization steps */
 	/*@{*/
 	/** Echo contact bodies and striker nodes. After the read section, should 

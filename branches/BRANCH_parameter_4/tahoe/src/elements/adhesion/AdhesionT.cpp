@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.18.2.2 2004-07-12 05:12:02 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.18.2.3 2004-07-12 08:08:39 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -24,72 +24,6 @@ using namespace Tahoe;
 const int kAvgCellNodes = 10;
 
 /* constructor */
-AdhesionT::AdhesionT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field),
-	fGrid(NULL),
-	fCutOff(0.0),
-	fPenalizePenetration(0),
-	fAllowSameSurface(0),
-	fAdhesion(NULL),
-	fNEE_vec_man(0, true),
-	fNEE_mat_man(0, true),
-	fFace2_man(0, true, NumSD()),
-	fGrad_d_man(0, fGrad_d)
-{
-#pragma message("delete me")
-#if 0
-	SetName("adhesion");
-	
-	/* register dynamically resized arrays */
-	fNEE_vec_man.Register(fRHS);
-	fNEE_vec_man.Register(fNEE_vec);
-
-	fNEE_mat_man.Register(fLHS);
-	fNEE_mat_man.Register(fNEE_mat);
-
-	fFace2_man.Register(fIPCoords2);
-	fFace2_man.Register(fIPNorm2);
-
-	/* read cut-off distance */
-	ifstreamT& in = ElementSupport().Input();
-	in >> fPenalizePenetration;
-	in >> fAllowSameSurface;
-	in >> fCutOff;
-	if (fCutOff < kSmall) throw ExceptionT::kBadInputValue;
-
-	/* set adhesion function */
-	int code;
-	in >> code;
-	switch (code)
-	{
-		case C1FunctionT::kLennardJones:
-		{	
-			double A, B;
-			in >> A >> B;
-			fAdhesion = new LennardJones612(A,B);
-			break;
-		}	
-		case C1FunctionT::kSmithFerrante:
-		{
-			double A, B;
-			in >> A >> B;
-			fAdhesion = new SmithFerrante(A,B,0.0);
-			break;
-		}
-		case C1FunctionT::kModSmithFerrante:
-		{
-			double A, B;
-			in >> A >> B;
-			fAdhesion = new ModSmithFerrante(A,B);
-			break;
-		}
-		default:
-			cout << "\n AdhesionT::Initialize: unrecognized function: " << code << endl;
-			throw ExceptionT::kBadInputValue;	
-	}
-#endif
-}
-
 AdhesionT::AdhesionT(const ElementSupportT& support):
 	ElementBaseT(support),
 	fGrid(NULL),
@@ -148,25 +82,6 @@ GlobalT::RelaxCodeT AdhesionT::RelaxSystem(void)
 
 		return GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
 	}
-}
-
-/* initialization after constructor */
-void AdhesionT::Initialize(void)
-{
-	/* inherited */
-	ElementBaseT::Initialize();
-
-	/* set up work space */
-	SetWorkSpace();
-	
-	/* set initial configuration */
-	SetConfiguration();	
-
-	/* write statistics */
-	ostream& out = ElementSupport().Output();
-	out << "\n Surface adhesion: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
-	out << " Time                           = " << ElementSupport().Time() << '\n';
-	out << " Active face pairs              = " << fSurface1.Length() << '\n';
 }
 
 /* solution calls */

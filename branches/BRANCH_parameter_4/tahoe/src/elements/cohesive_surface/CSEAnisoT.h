@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.34.26.1 2004-07-06 06:53:08 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.34.26.2 2004-07-12 08:08:41 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -26,9 +26,8 @@ class CSEAnisoT: public CSEBaseT
 {
 public:
 
-	/* constructors */
+	/** constructors */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate);
 	CSEAnisoT(const ElementSupportT& support);
 #else
 	CSEAnisoT(ElementSupportT& support, bool rotate);

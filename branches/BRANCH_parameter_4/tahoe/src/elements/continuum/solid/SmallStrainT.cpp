@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13.26.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.26.2 2004-07-12 08:08:47 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -14,15 +14,6 @@
 using namespace Tahoe;
 
 /* constructor */
-SmallStrainT::SmallStrainT(const ElementSupportT& support, const FieldT& field):
-	SolidElementT(support, field),
-	fNeedsOffset(-1),
-	fGradU(NumSD()),
-	fSSMatSupport(NULL)
-{
-	SetName("small_strain");
-}
-
 SmallStrainT::SmallStrainT(const ElementSupportT& support):
 	SolidElementT(support),
 	fNeedsOffset(-1),
@@ -35,39 +26,6 @@ SmallStrainT::SmallStrainT(const ElementSupportT& support):
 SmallStrainT::~SmallStrainT(void)
 {
 	delete fSSMatSupport;
-}
-
-/* called immediately after constructor */
-void SmallStrainT::Initialize(void)
-{
-	/* inherited */
-	SolidElementT::Initialize();
-
-	/* what's needed */
-	bool need_strain = false;
-	bool need_strain_last = false;
-	for (int i = 0; i < fMaterialNeeds.Length(); i++)
-	{
-		const ArrayT<bool>& needs = fMaterialNeeds[i];
-		need_strain = need_strain || needs[fNeedsOffset + kstrain];
-		need_strain_last = need_strain_last || needs[fNeedsOffset + kstrain_last];
-	}
-
-	/* allocate deformation gradient list */
-	if (need_strain)
-	{
-		fStrain_List.Dimension(NumIP());
-		for (int i = 0; i < NumIP(); i++)
-			fStrain_List[i].Dimension(NumSD());
-	}
-	
-	/* allocate "last" deformation gradient list */
-	if (need_strain_last)
-	{
-		fStrain_last_List.Dimension(NumIP());
-		for (int i = 0; i < NumIP(); i++)
-			fStrain_last_List[i].Dimension(NumSD());
-	}
 }
 
 #if 0
@@ -304,38 +262,6 @@ MaterialListT* SmallStrainT::NewMaterialList(const StringT& name, int size)
 	
 	/* no match */
 	return NULL;
-}
-
-/* construct list of materials from the input stream */
-void SmallStrainT::ReadMaterialData(ifstreamT& in)
-{
-	/* inherited */
-	SolidElementT::ReadMaterialData(in);
-
-	/* offset to class needs flags */
-	fNeedsOffset = fMaterialNeeds[0].Length();
-	
-	/* set material needs */
-	for (int i = 0; i < fMaterialNeeds.Length(); i++)
-	{
-		/* needs array */
-		ArrayT<bool>& needs = fMaterialNeeds[i];
-
-		/* resize array */
-		needs.Resize(needs.Length() + 2, true);
-
-		/* casts are safe since class contructs materials list */
-		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
-		SSSolidMatT* mat = (SSSolidMatT*) pcont_mat;
-
-		/* collect needs */
-		needs[fNeedsOffset + kstrain     ] = mat->Need_Strain();
-		needs[fNeedsOffset + kstrain_last] = mat->Need_Strain_last();
-		
-		/* consistency */
-		needs[kNeedDisp] = needs[kNeedDisp] || needs[fNeedsOffset + kstrain];
-		needs[KNeedLastDisp] = needs[KNeedLastDisp] || needs[fNeedsOffset + kstrain_last];
-	}
 }
 
 /* calculate the internal force contribution ("-k*d") */

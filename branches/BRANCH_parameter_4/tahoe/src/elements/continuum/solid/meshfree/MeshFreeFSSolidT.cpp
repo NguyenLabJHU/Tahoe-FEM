@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.19.2.3 2004-07-12 05:12:11 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.19.2.4 2004-07-12 08:08:50 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidT.h"
 
@@ -27,19 +27,6 @@ using namespace Tahoe;
 const double Pi = acos(-1.0);
 
 /* constructor */
-MeshFreeFSSolidT::MeshFreeFSSolidT(const ElementSupportT& support, const FieldT& field):
-	TotalLagrangianT(support, field),
-	fAutoBorder(false),
-	fB_wrap(10, fB),
-	fGradNa_wrap(10, fGradNa),
-	fStressStiff_wrap(10, fStressStiff),
-	fMFShapes(NULL),
-	fMFFractureSupport(NULL),
-	fMeshfreeParameters(NULL)	
-{
-	SetName("large_strain_meshfree");
-}
-
 MeshFreeFSSolidT::MeshFreeFSSolidT(const ElementSupportT& support):
 	TotalLagrangianT(support),
 	fAutoBorder(false),

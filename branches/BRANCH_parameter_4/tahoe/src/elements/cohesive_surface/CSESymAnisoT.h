@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.h,v 1.3.26.1 2004-07-06 06:53:08 paklein Exp $ */
+	/* $Id: CSESymAnisoT.h,v 1.3.26.2 2004-07-12 08:08:41 paklein Exp $ */
 #ifndef _CSE_SYM_ANISO_T_H_
 #define _CSE_SYM_ANISO_T_H_
 
@@ -25,7 +25,6 @@ public:
 
 	/* constructors */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	CSESymAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate);
 	CSESymAnisoT(const ElementSupportT& support);
 #else
 	CSESymAnisoT(ElementSupportT& support, bool rotate);

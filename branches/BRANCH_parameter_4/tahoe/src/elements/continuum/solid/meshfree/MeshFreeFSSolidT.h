@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.h,v 1.9.26.1 2004-07-06 06:54:15 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.h,v 1.9.26.2 2004-07-12 08:08:50 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #ifndef _EFG_FDELASTIC_T_H_
 #define _EFG_FDELASTIC_T_H_
@@ -25,22 +25,21 @@ class MeshFreeFSSolidT: public TotalLagrangianT
 {
 public:
 
-	/* constructor */
-	MeshFreeFSSolidT(const ElementSupportT& support, const FieldT& field);
+	/** constructor */
 	MeshFreeFSSolidT(const ElementSupportT& support);
 
-	/* destructor */
+	/** destructor */
 	~MeshFreeFSSolidT(void);
 	
-	/* append element equations numbers to the list */
+	/** append element equations numbers to the list */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
-	/* appends group connectivities to the array */
+	/** appends group connectivities to the array */
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
-	AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
+		AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
 
-	/* write output */
+	/** write output */
 	virtual void WriteOutput(void);
 
 	/* returns true if the internal force has been changed since

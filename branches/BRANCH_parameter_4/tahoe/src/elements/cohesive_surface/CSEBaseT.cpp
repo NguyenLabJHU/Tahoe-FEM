@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.32.2.4 2004-07-12 05:12:04 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.32.2.5 2004-07-12 08:08:41 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -32,49 +32,6 @@ static const char* ElementOutputNames[3] = {
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
-CSEBaseT::CSEBaseT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field),
-	fLocInitCoords1(LocalArrayT::kInitCoords),
-	fLocCurrCoords(LocalArrayT::kCurrCoords),
-	fFractureArea(0.0),
-	fShapes(NULL),
-	fNumIntPts(-1),
-	fOutputGlobalTractions(false)
-{
-	SetName("CSE_base");
-#if 0	
-	/* read control parameters */
-	ifstreamT& in = ElementSupport().Input();
-
-	in >> fGeometryCode;
-	in >> fNumIntPts;
-	in >> fCloseSurfaces;
-	in >> fOutputArea;
-
-	/* checks */
-	if (NumSD() == 2 && fGeometryCode != GeometryT::kLine)
-	{
-		cout << "\n CSEBaseT::CSEBaseT: expecting geometry code "
-		     << GeometryT::kLine<< " for 2D: " << fGeometryCode << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-	else if (NumSD() == 3 &&
-	         fGeometryCode != GeometryT::kQuadrilateral &&
-	         fGeometryCode != GeometryT::kTriangle)
-	{
-		cout << "\n CSEBaseT::CSEBaseT: expecting geometry code " << GeometryT::kQuadrilateral
-		     << " or\n" <<   "     " << GeometryT::kTriangle << " for 3D: "
-		     << fGeometryCode << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-	
-	if (fCloseSurfaces != 0 &&
-	    fCloseSurfaces != 1) throw ExceptionT::kBadInputValue;
-	if (fOutputArea != 0 &&
-	    fOutputArea != 1) throw ExceptionT::kBadInputValue;
-#endif
-}
-
 CSEBaseT::CSEBaseT(const ElementSupportT& support):
 	ElementBaseT(support),
 	fLocInitCoords1(LocalArrayT::kInitCoords),
@@ -539,27 +496,6 @@ void CSEBaseT::TakeParameterList(const ParameterListT& list)
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-/* print element group data */
-void CSEBaseT::PrintControlData(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/* inherited */
-	ElementBaseT::PrintControlData(out);
-
-	/* control parameters */
-	out << " Associated field. . . . . . . . . . . . . . . . = \"" << Field().Name() << "\"\n";	
-	out << " Element geometry code . . . . . . . . . . . . . = " << fGeometryCode << '\n';
-	out << "    eq." << GeometryT::kLine          << ", line\n";
-	out << "    eq." << GeometryT::kQuadrilateral << ", quadrilateral\n";
-	out << "    eq." << GeometryT::kTriangle	  << ", triangle\n";
-	out << " Number of integration points. . . . . . . . . . = " << fNumIntPts     << '\n';
-	out << " Initial surface closure flag. . . . . . . . . . = " << fCloseSurfaces << '\n';
-	out << " Output fracture surface area. . . . . . . . . . = " << fOutputArea    << '\n';
-#else
-#pragma unused(out)
-#endif
-}
 
 /* define the elements blocks for the element group */
 void CSEBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  
