@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.22 2004-02-26 08:54:34 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.23 2004-06-28 21:26:29 paklein Exp $ */
 #include "ComparatorT.h"
 
 #include <iostream.h>
@@ -8,7 +8,8 @@
 
 #include "ExceptionT.h"
 #include "ModelManagerT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "dArrayT.h"
 
 const char kBenchmarkDirectory[] = "benchmark";
