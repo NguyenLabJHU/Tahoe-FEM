@@ -1,4 +1,4 @@
-/* $Id: ParameterContainerT.cpp,v 1.4 2004-04-28 15:41:35 paklein Exp $ */
+/* $Id: ParameterContainerT.cpp,v 1.5 2005-04-05 15:51:11 paklein Exp $ */
 #include "ParameterContainerT.h"
 
 using namespace Tahoe;
@@ -42,16 +42,28 @@ bool ParameterContainerT::AddParameter(const ParameterT& param, ParameterListT::
 void ParameterContainerT::AddSub(const StringT& name, ParameterListT::OccurrenceT occur, 
 	bool is_inline)
 {
+	/* order info */
+	fs_or_c.Append('s');
+	fs_or_c_index.Append(fSubs.Length());
+
 	fSubs.AddSub(name, occur, is_inline);
 }
 
 void ParameterContainerT::AddSub(const SubListDescriptionT& sub)
 {
+	/* order info */
+	fs_or_c.Append('s');
+	fs_or_c_index.Append(fSubs.Length());
+
 	fSubs.AddSub(sub);
 }
 
 void ParameterContainerT::AddSub(const ParameterContainerT& sub, ParameterListT::OccurrenceT occur, bool is_inline)
 {
+	/* order info */
+	fs_or_c.Append('c');
+	fs_or_c_index.Append(fContainers.Length());
+
 	fContainers.Append(sub);
 	fContainersOccur.Append(occur);
 	fContainersInline.Append(is_inline);
@@ -123,10 +135,11 @@ void ParameterContainerT::DefineSubs(SubListT& sub_list) const
 	ParameterInterfaceT::DefineSubs(sub_list);
 
 	/* register all sublists */
-	for (int i = 0; i < fSubs.Length(); i++)
-		sub_list.AddSub(fSubs[i]);
-
-	/* register all containers */
-	for (int i = 0; i < fContainers.Length(); i++)
-		sub_list.AddSub(fContainers[i].Name(), fContainersOccur[i], fContainersInline[i]);
+	for (int i = 0; i < fs_or_c.Length(); i++) {
+		int ii = fs_or_c_index[i];
+		if (fs_or_c[i] == 's')
+			sub_list.AddSub(fSubs[ii]);
+		else
+			sub_list.AddSub(fContainers[ii].Name(), fContainersOccur[ii], fContainersInline[ii]);
+	}
 }

@@ -1,4 +1,4 @@
-/* $Id: ParameterContainerT.h,v 1.8 2004-07-12 21:49:59 paklein Exp $ */
+/* $Id: ParameterContainerT.h,v 1.9 2005-04-05 15:51:11 paklein Exp $ */
 #ifndef _PARAMETER_CONTAINER_T_H_
 #define _PARAMETER_CONTAINER_T_H_
 
@@ -126,6 +126,13 @@ protected:
 	
 	/** source for subs that are not defined by the container */
 	const ParameterInterfaceT* fSubSource;
+	/*@}*/
+
+	/** \name maintain order of ParameterContainerT::fSubs and ParameterContainerT::fContainers
+	 * as registered in the constructed list in ParameterContainerT::DefineSubs */
+	/*@{*/
+	AutoArrayT<char> fs_or_c;
+	AutoArrayT<int> fs_or_c_index;	
 	/*@}*/
 };
 
