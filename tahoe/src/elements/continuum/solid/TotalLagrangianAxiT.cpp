@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianAxiT.cpp,v 1.2.12.2 2004-04-02 18:58:28 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.cpp,v 1.2.12.3 2004-04-21 18:58:19 paklein Exp $ */
 #include "TotalLagrangianAxiT.h"
 
 #include "ShapeFunctionT.h"
@@ -199,6 +199,19 @@ void TotalLagrangianAxiT::FormKd(double constK)
 		/* debugging output */
 		int output_element = fOutputCell;
 		if (CurrElementNumber() == output_element) {
+
+//TEMP - write stress and modulus to output to compare with ".ip4." output
+if (CurrIP() == 3) {
+	cout << "reporting stress at ip 0" << endl;
+	ofstreamT& out = ElementSupport().Output();
+	int prec = out.precision();
+	out.precision(12);
+	out << "time = " << ElementSupport().Time() << '\n';
+	out << "F = \n" << DeformationGradient() << '\n';
+	out << "s = \n" << fCurrMaterial->s_ij() << '\n';
+	out << "c = \n" << fCurrMaterial->c_ijkl() << endl;
+	out.precision(prec);	
+}
 
 			/* collect nodal velocities */
 			if (CurrIP() == 0) 
