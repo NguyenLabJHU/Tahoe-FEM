@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.31.2.1 2003-05-05 22:45:30 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.31.2.2 2003-05-06 04:40:58 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -40,6 +40,10 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 {
 	const char caller[] = "BridgingScaleT::MaptoCells";
 
+	/* global to local map */
+	InverseMapT& global_to_local = cell_data.GlobalToLocal();
+	global_to_local.SetMap(points_used);
+
 	/* map data */
 	cell_data.SetContinuumElement(fSolid);
 	RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
@@ -64,6 +68,10 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 	/* configure search grid */
 	iGridManagerT grid(10, 100, point_coordinates, &points_used);
 	grid.Reset();
+	
+	/* track cell containing each point, so only one cell is associated with each point */
+	iArrayT found_in_cell(points_used.Length());
+	found_in_cell = -1;
 
 	/* check all cells for points */
 	const ParentDomainT& parent = ShapeFunction().ParentDomain();
@@ -85,15 +93,26 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 		/* check if points are within the element domain */
 		for (int j = 0; j < hits.Length(); j++)
 		{
-			x_atom.Set(NumSD(), hits[j].Coords());
-			if (parent.PointInDomain(loc_cell_coords, x_atom)) 
-				auto_fill.Append(i, hits[j].Tag());
+			int global = hits[j].Tag();
+			int local = global_to_local.Map(global);
+			
+			/* not mapped yet */
+			if (found_in_cell[local] == -1)
+			{
+				x_atom.Set(NumSD(), hits[j].Coords());
+				if (parent.PointInDomain(loc_cell_coords, x_atom)) 
+				{
+					found_in_cell[local] = i;
+					auto_fill.Append(i, global);
+				}
+			}
 		}
 	}
 
 	/* copy/compress contents */
 	point_in_cell.Copy(auto_fill);
 	auto_fill.Free();
+	found_in_cell.Free();
 	
 	/* verbose output */
 	if (ElementSupport().PrintInput()) {
@@ -176,8 +195,7 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used,
 	cell = -1;
 	
 	/* global to local map */
-	InverseMapT& global_to_local = cell_data.GlobalToLocal();
-	global_to_local.SetMap(points_used);
+	const InverseMapT& global_to_local = cell_data.GlobalToLocal();
 
 	/* cell shape functions */
 	int nsd = NumSD();
