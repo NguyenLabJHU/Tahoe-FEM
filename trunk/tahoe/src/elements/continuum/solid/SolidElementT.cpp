@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.66 2004-11-19 23:24:31 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.67 2005-01-05 01:26:42 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -130,7 +130,17 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 				if (formBody) AddBodyForce(fLocAcc);
 				
 				/* calculate inertial forces */
-				FormMa(fMassType, constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL);
+				if (!fCurrMaterial->HasChangingDensity())
+					FormMa(fMassType, constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL, NULL);
+				else /* need to compute density */
+				{
+					/* collect densities */
+					fShapes->TopIP();
+					while (fShapes->NextIP())
+						fDensity[fShapes->CurrIP()] = fCurrMaterial->Density();
+
+					FormMa(fMassType, constMa, axisymmetric, &fLocAcc, NULL, fDensity.Pointer());
+				}
 			}
 
 			/* loop over nodes (double-noding OK) */
@@ -421,6 +431,8 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 		}
 
 	/* generate list of material needs */
+	bool changing_density = false;
+	bool constant_density = false;
 	fMaterialNeeds.Dimension(fMaterialList->Length());
 	for (int i = 0; i < fMaterialNeeds.Length(); i++)
 	{
@@ -436,7 +448,21 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 		needs[kNeedDisp] = mat->NeedDisp();
 		needs[kNeedVel] = mat->NeedVel();
 		needs[KNeedLastDisp] = mat->NeedLastDisp();
+		
+		/* changing density */
+		if (mat->HasChangingDensity()) 
+			changing_density = true;
+		else /* constant density */
+			constant_density = true;
 	}
+	
+	/* all must be the same */
+	if (changing_density == constant_density)
+		ExceptionT::GeneralFail(caller, "cannot mix materials with constant/changing density");
+
+	/* work space for calculating integration point densities */
+	if (changing_density)
+		fDensity.Dimension(NumIP());
 }
 
 /***********************************************************************
@@ -865,8 +891,19 @@ void SolidElementT::ElementLHSDriver(void)
 			SetGlobalShape();
 
 			/* element mass */
-			if (fabs(constMe) > kSmall)
-				FormMass(fMassType, constMe*(fCurrMaterial->Density()), axisymmetric);
+			if (fabs(constMe) > kSmall) {
+				if (!fCurrMaterial->HasChangingDensity())
+					FormMass(fMassType, constMe*(fCurrMaterial->Density()), axisymmetric, NULL);
+				else
+				{
+					/* collect densities */
+					fShapes->TopIP();
+					while (fShapes->NextIP())
+						fDensity[fShapes->CurrIP()] = fCurrMaterial->Density();
+				
+					FormMass(fMassType, constMe, axisymmetric, fDensity.Pointer());
+				}
+			}
 
 			/* element stiffness */
 			if (fabs(constKe) > kSmall)
@@ -975,7 +1012,17 @@ void SolidElementT::ElementRHSDriver(void)
 				/* body force contribution */
 				if (formBody) AddBodyForce(fLocAcc);
 		
-				FormMa(fMassType, -constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL);
+				if (!fCurrMaterial->HasChangingDensity())
+					FormMa(fMassType, -constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL, NULL);
+				else
+				{
+					/* collect densities */
+					fShapes->TopIP();
+					while (fShapes->NextIP())
+						fDensity[fShapes->CurrIP()] = fCurrMaterial->Density();
+				
+					FormMa(fMassType, -constMa, axisymmetric, &fLocAcc, NULL, fDensity.Pointer());
+				}
 			}
 		
 			/* store incremental heat */
