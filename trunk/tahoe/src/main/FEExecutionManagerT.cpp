@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.9 2002-01-03 19:10:28 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.10 2002-01-07 00:56:22 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #include "FEExecutionManagerT.h"
@@ -55,12 +55,8 @@ FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
 /* Prompt input files until "quit" */
 void FEExecutionManagerT::Run(void)
 {
-	int size = 1;
-	int rank = 0;
-#ifdef __MPI__
-	if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS) throw eMPIFail;
-	if (MPI_Comm_rank(MPI_COMM_WORLD, &rank) != MPI_SUCCESS) throw eMPIFail;
-#endif
+	int size = Size();
+	int rank = Rank();
 
 	/* check command line arguments */
 	if (size > 1)
@@ -421,9 +417,8 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	in.set_marker('#');
 
 	/* get rank and size */
-	int rank, size;
-	if (MPI_Comm_rank(MPI_COMM_WORLD, &rank) != MPI_SUCCESS ||
-	    MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS) throw eMPIFail;
+	int rank = Rank();
+	int size = Size();
 
 	/* time markers */
 	clock_t t0 = 0, t1 = 0, t2 = 0, t3 = 0;
@@ -522,11 +517,20 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	partial_file.Append(".p", rank);
 	partial_file.Append(suffix);
 	if (NeedModelFile(partial_file, format))
-	{			
-		cout << "\n ::RunJob_parallel: writing partial geometry file: " << partial_file << endl;
-		EchoPartialGeometry(partition, model_file, partial_file, format);
-		cout << " ::RunJob_parallel: writing partial geometry file: partial_file: "
-		     << partial_file << ": DONE" << endl;
+	{
+		if (CommandLineOption("-split_io"))
+		{
+			cout << "\n ::RunJob_parallel: missing partial geometry files are not regenerated"
+			     <<   "     with command line option \"-split_io\": \n"
+			     << partial_file << endl;
+			throw eBadInputValue;
+		}
+		else {
+			cout << "\n ::RunJob_parallel: writing partial geometry file: " << partial_file << endl;
+			EchoPartialGeometry(partition, model_file, partial_file, format);
+			cout << " ::RunJob_parallel: writing partial geometry file: partial_file: "
+			     << partial_file << ": DONE" << endl;
+		}
 	}
 	
 	/* construct local problem (Initialize() changes the file name) */
@@ -577,15 +581,15 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	
 	/* external IO */
 	IOManager_mpi* IOMan = NULL;
-	if (!CommandLineOption("-split_io"))
+	if (!CommandLineOption("-es"))
 	{
 		/* read output map */
 		iArrayT output_map;
 		ReadOutputMap(in, map_file, output_map);
 
 		/* set-up local IO */
-		IOMan = new IOManager_mpi(in, output_map, *(FEman.OutputManager()), FEman.Partition(),
-			global_model_file, format);
+//		IOMan = new IOManager_mpi(in, output_map, *(FEman.OutputManager()), FEman.Partition(), global_model_file, format);
+		IOMan = new IOManager_mpi(in, output_map, *(FEman.OutputManager()), FEman.Partition(), model_file, format);
 		if (!IOMan) throw eOutOfMemory;
 		
 		/* set external IO */
@@ -765,9 +769,12 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 		/* output model file */
 		if (need_model_file)
 		{
+			cout << "\n FEExecutionManagerT::Decompose: SKIPPING global model file" << endl;
+#if 0
 			cout << "\n Writing output model file: " << global_model_file << endl;
 			global_FEman.WriteGeometryFile(global_model_file, format);
 			cout << " Writing output model file: " << global_model_file << ": DONE" << endl;
+#endif
 		}
 	
 		/* decompose */
@@ -1074,7 +1081,7 @@ void FEExecutionManagerT::ReadOutputMap(ifstreamT& in, const StringT& map_file,
 void FEExecutionManagerT::SetOutputMap(const ArrayT<OutputSetT*>& output_sets,
 	iArrayT& output_map, int size) const
 {
-	/* initialize map */
+	/* initialize map - processor number for each element block */
 	output_map.Allocate(output_sets.Length());
 	output_map = 0;
 	
@@ -1094,6 +1101,7 @@ void FEExecutionManagerT::SetOutputMap(const ArrayT<OutputSetT*>& output_sets,
 		set_size[i] = size;
 	}
 
+	/* map output sets to processors */
 	for (int j = 0; j < output_sets.Length(); j++)
 	{
 		int max_at;
@@ -1113,7 +1121,6 @@ void FEExecutionManagerT::EchoPartialGeometry(const PartitionT& partition,
 	const StringT& model_file, const StringT& partial_file,
 	IOBaseT::FileTypeT format) const
 {
-
 	switch (format)
 	{
 		case IOBaseT::kExodusII:
@@ -1393,4 +1400,27 @@ void FEExecutionManagerT::EchoPartialGeometry_TahoeII(const PartitionT& partitio
 
 	/* close database */
 	model.Close();
+}
+
+/* basic MP support */
+int FEExecutionManagerT::Rank(void) const
+{
+#ifdef __MPI__
+	int rank;
+	if (MPI_Comm_rank(MPI_COMM_WORLD, &rank) != MPI_SUCCESS) throw eMPIFail;
+	return rank;
+#else
+	return 0;
+#endif
+}
+
+int FEExecutionManagerT::Size(void) const
+{
+#ifdef __MPI__
+	int size;
+	if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS) throw eMPIFail;
+	return size;
+#else
+	return 1;
+#endif
 }

@@ -1,5 +1,5 @@
-/* $Id: IOManager_mpi.h,v 1.3 2001-05-30 23:25:10 paklein Exp $ */
-/* created: paklein (03/14/2000)                                          */
+/* $Id: IOManager_mpi.h,v 1.4 2002-01-07 00:56:22 paklein Exp $ */
+/* created: paklein (03/14/2000) */
 
 #ifndef _IOMANAGER_MPI_H_
 #define _IOMANAGER_MPI_H_
@@ -22,10 +22,11 @@ class IOManager_mpi: public IOManager
 {
 public:
 
-	/* constructor */
+	/** constructor 
+	 * \param model_file total model database */
 	IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
 		const IOManager& local_IO, const PartitionT& partition,
-		const StringT& global_geom_file, IOBaseT::FileTypeT format);
+		const StringT& model_file, IOBaseT::FileTypeT format);
 
 	/* destructor */
 	virtual ~IOManager_mpi(void);
@@ -66,8 +67,8 @@ private:
 	void CheckAssemblyMaps(void);
 
 	/* load global geometry */
-	void ReadOutputGeometry(const StringT& global_geom_file,
-		IOBaseT::FileTypeT format);
+	void ReadOutputGeometry(const StringT& model_file,
+		const ArrayT<OutputSetT*>& element_sets, IOBaseT::FileTypeT format);
 
 private:
 
@@ -80,7 +81,12 @@ private:
 	/* global model data */
 	dArray2DT fCoordinates; //NOTE: right now storing ALL of them
 	iArrayT   fNodeMap;
-	ArrayT<iArray2DT> fConnectivities; //NOTE: only reading
+	
+	/** list if ID's for element blocks */
+	iArrayT fBlockID;
+	
+	/** global (assembled) connectivities used for output */
+	ArrayT<iArray2DT> fConnectivities;
 
 	/* communication maps */
 	iArray2DT fNodeCounts;    // [element sets] x [number of processors]
