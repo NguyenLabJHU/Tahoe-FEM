@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.7 2002-11-09 18:12:12 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.8 2002-11-28 16:44:19 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -212,17 +212,17 @@ void FieldT::FormRHS(const FieldSupportT& support)
 }
 
 /* assemble contributions to the tangent */
-void FieldT::FormLHS(const FieldSupportT& support)
+void FieldT::FormLHS(const FieldSupportT& support, GlobalT::SystemTypeT sys_type)
 {
 #pragma unused(support)
 
 	/* KBC controllers */
 	for (int i = 0; i < fKBC_Controllers.Length(); i++)
-		fKBC_Controllers[i]->FormLHS();
+		fKBC_Controllers[i]->FormLHS(sys_type);
 
 	/* FBC controllers */
 	for (int i = 0; i < fFBC_Controllers.Length(); i++)
-		fFBC_Controllers[i]->ApplyLHS();
+		fFBC_Controllers[i]->ApplyLHS(sys_type);
 }
 
 /* update history */

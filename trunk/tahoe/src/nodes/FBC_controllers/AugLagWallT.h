@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.h,v 1.5 2002-07-05 22:28:30 paklein Exp $ */
+/* $Id: AugLagWallT.h,v 1.6 2002-11-28 16:44:20 paklein Exp $ */
 
 #ifndef _AUGLAG_WALL_T_H_
 #define _AUGLAG_WALL_T_H_
@@ -40,8 +40,11 @@ public:
 	/* finalize step */
 	virtual void CloseStep(void);
 
-	/* tangent term */
-	virtual void ApplyLHS(void);
+	/** tangent
+	 * \param sys_type "maximum" tangent type needed by the solver. The GlobalT::SystemTypeT
+	 *        enum is ordered by generality. The solver should indicate the most general
+	 *        system type that is actually needed. */
+	virtual void ApplyLHS(GlobalT::SystemTypeT sys_type);
 
 	/* returns the array for the DOF tags needed for the current config */
 	virtual void SetDOFTags(void);

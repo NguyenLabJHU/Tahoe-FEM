@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.9 2002-11-26 00:34:20 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.10 2002-11-28 16:44:19 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -135,9 +135,19 @@ public:
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 	/*@}*/
 
-	/* tangent and force contributions */
-	virtual void FormLHS(int group);
+	/** \name tangent and force contributions */
+	/*@{*/
+	/** compute LHS-side matrix and assemble to solver.
+	 * \param group equation group to solve
+	 * \param sys_type "maximum" LHS matrix type needed by the solver. The GlobalT::SystemTypeT
+	 *        enum is ordered by generality. The solver should indicate the most general
+	 *        system type that is actually needed. */
+	virtual void FormLHS(int group, GlobalT::SystemTypeT sys_type);
+
+	/** compute RHS-side, residual force vector and assemble to solver
+	 * \param group equation group to solve */
 	virtual void FormRHS(int group);
+	/*@}*/
 
 	/* returns true if the internal force has been changed since
 	 * the last time step */
@@ -227,10 +237,6 @@ public:
 
 protected:
 
-	/* initialization steps */
-//	void EchoDimensions(ifstreamT& in, ostream& out);
-//	virtual void AllocateGlobal(void);
-
 	/** \name steps of NodeManagerT::Initialize */
 	/*@{*/
 	virtual void EchoCoordinates(ifstreamT& in, ostream& out);
@@ -238,9 +244,6 @@ protected:
 	virtual void EchoExternalNodes(ostream& out);
 	virtual void EchoHistoryNodes(ifstreamT& in, ostream &out);
 	/*@}*/
-
-	/* apply kinematic boundary conditions */
-//	virtual void ApplyKinematicBC(int group);
 
 	/** simple output function */
 	virtual void WriteData(ostream& out, const char* title, const char* name,
@@ -260,9 +263,6 @@ protected:
 	/*@}*/
 
 private:
-
-	/* return the number of DOF's */
-//	virtual int DegreesOfFreedom(int nsd) const = 0;
 
 	/** write nodal history data. Called by NodeManagerT:WriteOutput */
 	virtual void WriteNodalHistory(void);
