@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.26 2003-11-13 22:15:17 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.27 2004-01-10 17:15:03 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -229,7 +229,7 @@ public:
 	/** rank of this process */
 	int Rank(void) const;
 
-	/** low-level communicator */
+	/** low-level global communicator */
 	const CommunicatorT& Communicator(void) const;
 
 	/** the nodes not native to this processor. Returns NULL if there is no 

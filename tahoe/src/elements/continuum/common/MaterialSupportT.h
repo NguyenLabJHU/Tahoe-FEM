@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.h,v 1.8 2003-11-21 22:46:00 paklein Exp $ */
+/* $Id: MaterialSupportT.h,v 1.9 2004-01-10 17:15:06 paklein Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
@@ -49,8 +49,12 @@ public:
 	/** the rank of this process */
 	int Rank(void) const { return fRank; };
 
-	/** the low-level communicator, or NULL if it doesn't exist */
+	/** the low-level global communicator, or NULL if it doesn't exist */
 	const CommunicatorT* Communicator(void) const { return fCommunicator; };
+
+	/** the low-level communicator only including processes with non-zero numbers
+	 * of elements, or NULL if it doesn't exist */
+	const CommunicatorT* GroupCommunicator(void) const { return fGroupCommunicator; };
 	/*@}*/
 
 	/** \name run time status */
@@ -193,7 +197,12 @@ public:
 	/*@{*/
 	int fSize;
 	int fRank;
+	
+	/** global communicator */
 	const CommunicatorT* fCommunicator;
+
+	/** communicator including only processes with non-zero numbers of elements */
+	const CommunicatorT* fGroupCommunicator;
 	/*@}*/
 
 	/** pointer to element card information */
