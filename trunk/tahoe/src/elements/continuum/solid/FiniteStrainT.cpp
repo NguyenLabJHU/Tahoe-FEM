@@ -1,8 +1,9 @@
-/* $Id: FiniteStrainT.cpp,v 1.8 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.9 2002-06-26 23:29:44 hspark Exp $ */
 
 #include "FiniteStrainT.h"
 #include "ShapeFunctionT.h"
 #include "FDStructMatT.h"
+#include "MaterialList1DT.h"
 #include "MaterialList2DT.h"
 #include "MaterialList3DT.h"
 
@@ -94,7 +95,9 @@ void FiniteStrainT::ComputeGradient_reference(const LocalArrayT& u, dMatrixT& gr
 /* construct materials manager and read data */
 MaterialListT* FiniteStrainT::NewMaterialList(int size) const
 {
-	if (NumSD() == 2)
+        if (NumSD() == 1) /* 1D added by HSP 6-26-02 */
+	        return new MaterialList1DT(size, *this);
+	else if (NumSD() == 2)
 		return new MaterialList2DT(size, *this);
 	else if (NumSD() == 3)
 		return new MaterialList3DT(size, *this);
