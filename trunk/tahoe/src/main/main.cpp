@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.21 2004-01-05 07:15:23 paklein Exp $ */
+/* $Id: main.cpp,v 1.22 2004-01-08 17:58:17 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -64,7 +64,7 @@ static void StartUp(int* argc, char*** argv, CommunicatorT& comm)
 {
 #if defined(__MWERKS__) && defined(__MACH__)
 /* CW8 console apps launch with cwd = "/" */
-if (chdir("/Volumes/Uster/USERS/tahoe/bin") != 0) cout << " chdir failed" << endl;
+if (chdir("/Volumes/Uster/USERS/paklein/Code/protected-tahoe/benchmark") != 0) cout << " chdir failed" << endl;
 char cwd[255];
 if (getcwd(cwd, 255)) cout << " cwd: " << cwd << endl;
 #endif
@@ -162,7 +162,7 @@ static void ShutDown(CommunicatorT& comm)
 
 void DumpLicense(void)
 {
-	const char version[] = "Tahoe 1.2";
+	const char version[] = "Tahoe 1.3";
 	cout << "\n " << version << "\n\n"
          << " Copyright 2003, Sandia Corporation.\n" 
 	     << " All rights reserved.\n\n"
