@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.24 2004-01-10 17:15:06 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.24.2.1 2004-02-11 16:38:58 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -129,6 +129,9 @@ protected:
 	/** stream extraction operator */
 	friend istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type);
 
+	/** define the elements blocks for the element group */
+	virtual void DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index);
+
 	/** echo element connectivity data. Calls the inherited ElementBaseT::ElementBaseT
 	 * and then constructs the communicator for the processes with non-zero numbers
 	 * of elements in this group */
@@ -181,9 +184,9 @@ protected:
 
 	/** return a pointer to a new material list. Recipient is responsible for freeing 
 	 * the pointer. 
-	 * \param nsd number of spatial dimensions
+	 * \param name list identifier
 	 * \param size length of the list */
-	virtual MaterialListT* NewMaterialList(int nsd, int size) = 0;
+	virtual MaterialListT* NewMaterialList(const StringT& name, int size) = 0;
 
 	/** construct a new material support and return a pointer. Recipient is responsible for
 	 * for freeing the pointer.
@@ -305,10 +308,7 @@ inline const ShapeFunctionT& ContinuumElementT::ShapeFunction(void) const
 {
 #if __option(extended_errorcheck)
 	if (!fShapes)
-	{
-		cout << "\n ContinuumElementT::ShapeFunction: no shape functions" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("ContinuumElementT::ShapeFunction", "no shape functions");
 #endif
 	return *fShapes;
 }
@@ -325,7 +325,10 @@ inline const LocalArrayT& ContinuumElementT::Displacements() const
 
 inline const MaterialListT& ContinuumElementT::MaterialsList(void) const
 {
-	if (!fMaterialList) throw ExceptionT::kGeneralFail;
+#ifdef __option(extended_errorcheck)
+	if (!fMaterialList) 
+		ExceptionT::GeneralFail("ContinuumElementT::MaterialsList", "no material list");
+#endif
 	return *fMaterialList;
 }
 

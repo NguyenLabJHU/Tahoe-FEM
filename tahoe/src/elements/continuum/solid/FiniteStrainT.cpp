@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.19.2.2 2004-02-05 18:47:13 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.19.2.3 2004-02-11 16:39:00 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -130,8 +130,18 @@ MaterialSupportT* FiniteStrainT::NewMaterialSupport(MaterialSupportT* p) const
 }
 
 /* construct materials manager and read data */
-MaterialListT* FiniteStrainT::NewMaterialList(int nsd, int size)
+MaterialListT* FiniteStrainT::NewMaterialList(const StringT& name, int size)
 {
+	/* resolve number of spatial dimensions */
+	int nsd = -1;
+	if (name == "large_strain_material_2D")
+		nsd = 2;
+	else if (name == "large_strain_material_3D")
+		nsd = 3;
+	
+	/* no match */
+	if (nsd == -1) return NULL;
+
 	if (size > 0)
 	{
 		/* material support */
@@ -140,26 +150,21 @@ MaterialListT* FiniteStrainT::NewMaterialList(int nsd, int size)
 			if (!fFSMatSupport) ExceptionT::GeneralFail("FiniteStrainT::NewMaterialList");
 		}
 
-		if (nsd == 1)
-			return NULL;
-		else if (nsd == 2)
+		if (nsd == 2)
 			return new FSSolidMatList2DT(size, *fFSMatSupport);
 		else if (nsd == 3)
 			return new FSSolidMatList3DT(size, *fFSMatSupport);
-		else
-			return NULL;
 	}
 	else
-	{
-		if (nsd == 1)
-			return NULL;
-		else if (nsd == 2)
+	 {
+		if (nsd == 2)
 			return new FSSolidMatList2DT;
 		else if (nsd == 3)
 			return new FSSolidMatList3DT;
-		else
-			return NULL;
 	}
+	
+	/* no match */
+	return NULL;
 }
 
 /* construct list of materials from the input stream */

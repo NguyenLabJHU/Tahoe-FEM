@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.35.2.1 2004-01-21 19:09:55 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.35.2.2 2004-02-11 16:38:57 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -298,6 +298,9 @@ public:
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected: /* for derived classes only */
@@ -350,6 +353,9 @@ protected: /* for derived classes only */
 	 * false otherwise */ 
 	virtual bool NextElement(void);
 	/*@}*/
+
+	/** define the elements blocks for the element group */
+	virtual void DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index);
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* print element group data */
@@ -407,7 +413,7 @@ protected:
 	
 	/** \name grouped element arrays */
 	/*@{*/
-	ArrayT<const iArray2DT*> fConnectivities;		
+	ArrayT<const iArray2DT*> fConnectivities;
 	ArrayT<iArray2DT> fEqnos;			
 	/*@}*/
 	

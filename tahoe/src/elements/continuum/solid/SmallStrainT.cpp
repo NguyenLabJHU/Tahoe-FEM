@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13.2.3 2004-02-10 07:17:53 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.2.4 2004-02-11 16:39:00 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -9,6 +9,7 @@
 #include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
 #include "ParameterContainerT.h"
+#include "ModelManagerT.h"
 
 using namespace Tahoe;
 
@@ -106,9 +107,6 @@ void SmallStrainT::DefineSubs(SubListT& sub_list) const
 /* return the description of the given inline subordinate parameter list */
 ParameterInterfaceT* SmallStrainT::NewSub(const StringT& list_name) const
 {
-	/* create non-const this */
-	SmallStrainT* non_const_this = const_cast<SmallStrainT*>(this);
-
 	if (list_name == "small_strain_element_block")
 	{
 		ParameterContainerT* block = new ParameterContainerT("small_strain_element_block");
@@ -124,12 +122,6 @@ ParameterInterfaceT* SmallStrainT::NewSub(const StringT& list_name) const
 		
 		return block;
 	}
-	else if (list_name == "small_strain_material_1D")
-		return non_const_this->NewMaterialList(1,0);
-	else if (list_name == "small_strain_material_2D")
-		return non_const_this->NewMaterialList(2,0);
-	else if (list_name == "small_strain_material_3D")
-		return non_const_this->NewMaterialList(3,0);
 	else /* inherited */
 		return ContinuumElementT::NewSub(list_name);
 }
@@ -162,37 +154,48 @@ void SmallStrainT::TakeParameterList(const ParameterListT& list)
 	int b = list.GetParameter("strain_displacement");
 	fStrainDispOpt = (b == kStandardB) ? kStandardB : kMeanDilBbar;
 
-	/* run through element block declarations */
-	AutoArrayT<ElementBlockDataT> block_data;
+	/* model manager */
+	ModelManagerT& model_manager = ElementSupport().Model();
+
+	/* collect {block_ID, material_index} pairs */
 	int num_blocks = list.NumLists("small_strain_element_block");
+	AutoArrayT<StringT> block_ID;
+	AutoArrayT<int> block_mat;
+	ParameterListT material_list; /* collected material parameters */
 	for (int i = 0; i < num_blocks; i++) {
+
+		/* block information */	
 		const ParameterListT& block = list.GetList("small_strain_element_block", i);
-	
-		// count blocks
-		
-		// define ElementBlockDataT
-	}
-	fBlockData.Swap(block_data);
 
-ExceptionT::GeneralFail(caller, "YOU ARE HERE");
-
-//TEMP - materials defined in blocks <small_strain_element_block>
-#if 0
-	/* construct the material list */
-	if (fMaterialList) ExceptionT::GeneralFail(caller, "material list already set");
-	StringT mat_list_name_root = "small_strain_material_";
-	for (int nsd = 1; !fMaterialList && nsd <= 3; nsd++) {
-		StringT mat_list_name = mat_list_name_root;
-		mat_list_name.Append(nsd);
-		mat_list_name.Append("D");
-		const ParameterListT* mat_list_params = list.List(mat_list_name);
-		if (mat_list_params) {
-			fMaterialList = NewMaterialList(nsd, 0);
-			fMaterialList->TakeParameterList(*mat_list_params);
+		/* collect block ID's */
+		const ArrayT<ParameterListT>& IDs = block.GetList("block_ID_list").Lists();
+		for (int j = 0; j < IDs.Length(); j++) {
+			block_ID.Append(IDs[j].GetParameter("value"));
+			block_mat.Append(i);
 		}
+		
+		/* resolve material list name */
+		if (i == 0) {
+			const ParameterListT* mat_list_params = block.FindList("small_strain_material_");
+			if (mat_list_params)
+				material_list.SetName(mat_list_params->Name());
+			else
+				ExceptionT::GeneralFail(caller, "could resolve material list");
+		}
+		
+		/* collect material parameters */
+		const ParameterListT& mat_list = block.GetList(material_list.Name());
+		const ArrayT<ParameterListT>& mat_params = mat_list.Lists();
+		material_list.AddList(mat_params[0]);
 	}
-	if (!fMaterialList) ExceptionT::GeneralFail(caller, "could not construct material list");
-#endif
+
+	/* define connectivities */
+	DefineElements(block_ID, block_mat);
+
+	/* construct materials */
+	if (fMaterialList) ExceptionT::GeneralFail(caller, "material list already set");
+	fMaterialList = NewMaterialList(material_list.Name(), material_list.NumLists());
+	fMaterialList->TakeParameterList(material_list);
 
 	/* what's needed */
 	bool need_strain = false;
@@ -242,8 +245,17 @@ MaterialSupportT* SmallStrainT::NewMaterialSupport(MaterialSupportT* p) const
 }
 
 /* return a pointer to a new material list */
-MaterialListT* SmallStrainT::NewMaterialList(int nsd, int size)
+MaterialListT* SmallStrainT::NewMaterialList(const StringT& name, int size)
 {
+	/* resolve dimension */
+	int nsd = -1;
+	if (name == "small_strain_material_1D") nsd = 1;
+	else if (name == "small_strain_material_2D") nsd = 2;
+	else if (name == "small_strain_material_3D") nsd = 3;
+	
+	/* no match */
+	if (nsd == -1) return NULL;
+
 	/* full list */
 	if (size > 0)
 	{
@@ -260,8 +272,6 @@ MaterialListT* SmallStrainT::NewMaterialList(int nsd, int size)
 			return new SSSolidMatList2DT(size, *fSSMatSupport);
 		else if (nsd == 3)
 			return new SSSolidMatList3DT(size, *fSSMatSupport);
-		else
-			return NULL;
 	}
 	else
 	{
@@ -271,9 +281,10 @@ MaterialListT* SmallStrainT::NewMaterialList(int nsd, int size)
 			return new SSSolidMatList2DT;
 		else if (nsd == 3)
 			return new SSSolidMatList3DT;
-		else
-			return NULL;
-	}	
+	}
+	
+	/* no match */
+	return NULL;
 }
 
 /* construct list of materials from the input stream */

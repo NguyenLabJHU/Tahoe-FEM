@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.19 2003-12-28 08:23:11 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.19.2.1 2004-02-11 16:38:59 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -510,9 +510,12 @@ MaterialSupportT* DiffusionElementT::NewMaterialSupport(MaterialSupportT* p) con
 }
 
 /* return a pointer to a new material list */
-MaterialListT* DiffusionElementT::NewMaterialList(int nsd, int size)
+MaterialListT* DiffusionElementT::NewMaterialList(const StringT& name, int size)
 {
-#pragma unused(nsd)
+	/* no match */
+	if (name != "diffusion_materials") 
+		return NULL;
+
 	if (size > 0)
 	{
 		/* material support */
@@ -620,22 +623,9 @@ void DiffusionElementT::DefineSubs(SubListT& sub_list) const
 	sub_list.AddSub("diffusion_materials");
 }
 
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* DiffusionElementT::NewSub(const StringT& list_name) const
-{
-	if (list_name == "diffusion_materials")
-	{
-		/* non-const this */
-		DiffusionElementT* non_const_this = const_cast<DiffusionElementT*>(this);
-		return non_const_this->NewMaterialList(0,0);
-	}
-	else /* inherited */
-		return ContinuumElementT::NewSub(list_name);
-}
-
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
 /* construct output labels array */
 void DiffusionElementT::GenerateOutputLabels(const iArrayT& n_codes,

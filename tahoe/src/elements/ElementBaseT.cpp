@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.43.2.1 2004-01-21 19:09:55 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.43.2.2 2004-02-11 16:38:57 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -415,6 +415,21 @@ ParameterInterfaceT* ElementBaseT::NewSub(const StringT& list_name) const
 		return ParameterInterfaceT::NewSub(list_name);
 }
 
+/* accept parameter list */
+void ElementBaseT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "ElementBaseT::TakeParameterList";
+
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	/* get the field */
+	const StringT& field_name = list.GetParameter("field_name");
+	fField = ElementSupport().Field(field_name);
+	if (!fField)
+		ExceptionT::GeneralFail(caller, "could not resolve \"%s\" field", field_name.Pointer());
+}
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
@@ -469,6 +484,76 @@ void ElementBaseT::AssembleLHS(void) const
 #else	
 	fSupport.AssembleLHS(fElementCards.Position(),fLHS,CurrentElement().Equations());
 #endif
+}
+
+#pragma message("document what ElementBaseT::DefineElements does")
+/* define the elements blocks for the element group */
+void ElementBaseT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index)
+{
+	const char caller[] = "ElementBaseT::DefineElements";
+
+	/* allocate block map */
+	int num_blocks = block_ID.Length();
+	fBlockData.Dimension(num_blocks);
+	fConnectivities.Allocate (num_blocks);
+
+	/* get model manager */
+	ModelManagerT& model = ElementSupport().Model();
+
+	/* read from parameter file */
+	int elem_count = 0;
+	int nen = 0;
+	for (int b = 0; b < num_blocks; b++)
+	{
+		/* load connectivities */
+		const iArray2DT& connects = model.ElementGroup(block_ID[b]);
+
+	    /* check number of nodes */
+	    int num_elems = connects.MajorDim();
+	    int num_nodes = connects.MinorDim();
+
+	    /* set if unset */
+	    if (nen == 0)
+	    	nen = num_nodes;
+	    
+	    /* consistency check */
+	    if (num_nodes != 0 && nen != num_nodes)
+			ExceptionT::BadInputValue(caller, "minor dimension %d of block %d does not match previous %d", num_nodes, b+1, nen);
+	    
+	    /* store block data */
+	    fBlockData[b].Set(block_ID[b], elem_count, num_elems, mat_index[b]);
+
+	    /* increment element count */
+	    elem_count += num_elems;
+
+	    /* set pointer to connectivity list */
+	    fConnectivities[b] = &connects;
+	}
+
+	/* connectivities came back empty */
+	if (nen == 0)  nen = DefaultNumElemNodes();
+	for (int i = 0; i < fConnectivities.Length(); i++)
+		if (fConnectivities[i]->MinorDim() == 0) 
+		{
+			/* not really violating const-ness */
+			iArray2DT* connects = const_cast<iArray2DT*>(fConnectivities[i]);
+			connects->Dimension(0, nen);
+		}
+	  
+	/* set dimensions */
+	fElementCards.Dimension(elem_count);
+
+	/* derived dimensions */
+	int neq = NumElementNodes()*NumDOF();
+	fEqnos.Dimension(fBlockData.Length());
+	for (int be = 0; be < fEqnos.Length(); be++) {
+		int numblockelems = fConnectivities[be]->MajorDim();
+		fEqnos[be].Dimension(numblockelems, neq);
+		fEqnos[be] = -1;
+	}
+
+	/* set pointers in element cards */
+	SetElementCards();
 }
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
