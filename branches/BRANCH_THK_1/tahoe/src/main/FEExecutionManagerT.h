@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.13 2003-03-31 23:20:27 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.13.2.1 2003-04-07 22:47:11 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -58,7 +58,8 @@ private:
         kJob = 0,
   kDecompose = 1,
        kJoin = 2,
-   kBridging = 3
+   kBridging = 3,
+        kTHK = 4
 	};
 	
 	/** standard serial driver */
@@ -75,6 +76,9 @@ private:
 
 	/** multi-Tahoe, bridging scale test */
 	void RunBridging(ifstreamT& in, ostream& status) const;
+
+	/** time history kernel tests */
+	void RunTHK(ifstreamT& in, ostream& status) const;
 	/*@}*/
 
 	/** print message on exception */

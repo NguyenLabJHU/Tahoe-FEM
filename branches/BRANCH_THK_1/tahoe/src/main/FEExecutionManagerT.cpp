@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.39 2003-04-03 02:32:16 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.39.2.1 2003-04-07 22:47:11 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -37,6 +37,7 @@
 /* needed for bridging calculations FEExecutionManagerT::RunBridging */
 #ifdef BRIDGING_ELEMENT
 #include "FEManagerT_bridging.h"
+#include "FEManagerT_THK.h"
 #include "TimeManagerT.h"
 #include "NodeManagerT.h"
 #include "dSPMatrixT.h"
@@ -91,6 +92,9 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 		}
 	}
 
+//TEMP - look for command line option indicating THK calculation
+if (CommandLineOption("-thk")) mode = kTHK;
+
 	switch (mode)
 	{
 		case kJob:
@@ -134,6 +138,14 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 			if (fComm.Size() > 1) ExceptionT::GeneralFail(caller, "RunBridging for SERIAL ONLY");
 
 			RunBridging(in, status);
+			break;
+		}
+		case kTHK:
+		{
+			cout << "\n RunTHK: " << in.filename() << endl;
+			if (fComm.Size() > 1) ExceptionT::GeneralFail(caller, "RunTHK for SERIAL ONLY");
+
+			RunTHK(in, status);
 			break;
 		}
 		default:
@@ -541,6 +553,107 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 #pragma unused(status)
 
 	const char caller[] = "FEExecutionManagerT::RunBridging";
+	ExceptionT::GeneralFail(caller, "BRIDGING_ELEMENT not enabled");
+}
+#endif
+
+#ifdef BRIDGING_ELEMENT
+void FEExecutionManagerT::RunTHK(ifstreamT& in, ostream& status) const
+{
+	const char caller[] = "FEExecutionManagerT::RunTHK";
+
+	/* output stream */
+	StringT outfilename;
+	outfilename.Root(in.filename());
+	outfilename.Append(".out");
+	ofstreamT out;
+	out.open(outfilename);
+
+#ifdef __MWERKS__
+	if (!out.is_open())
+	{
+		cout << "\n " << caller << " : could not open file: " << outfilename << endl;
+		return;
+	}
+#endif
+
+	clock_t t0 = 0, t1 = 0, t2 = 0;
+
+	/* start day/date info */
+	time_t starttime;
+	time(&starttime);
+
+	int phase; // job phase
+	try
+	{
+		t0 = clock();
+
+		/* construction */
+		phase = 0;
+		in.set_marker('#');
+		ifstreamT dummy_bridging_input; // TEMP - this would normally be input about ghost nodes
+		FEManagerT_THK thk(in, out, fComm, dummy_bridging_input);
+		thk.Initialize();
+
+		t1 = clock();
+
+		/* solution */
+		phase = 1;
+		thk.Solve();
+
+		t2 = clock();
+	}
+
+	/* job failure */
+	catch (ExceptionT::CodeT code)
+	{
+		status << "\n \"" << in.filename() << "\" exit on exception during the\n";
+		if (phase == 0)
+		{
+			status << " construction phase. Check the input file for errors." << endl;
+		
+			/* echo some lines from input */
+			if (code == ExceptionT::kBadInputValue) Rewind(in, status);
+		}
+		else
+		{
+			status << " solution phase. See \"" << outfilename << "\" for a list";
+			status << " of the codes.\n";
+		}
+		
+		/* fix clock values */
+		if (t1 == 0) t1 = clock();
+		if (t2 == 0) t2 = clock();		
+
+		out << endl;
+	}
+
+	/* stop day/date info */
+	time_t stoptime;
+	time(&stoptime);
+
+	/* output timing */
+	status << "\n     Filename: " << in.filename() << '\n';
+	status <<   "   Start time: " << ctime(&starttime);
+	status <<   " Construction: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
+	status <<   "     Solution: " << double(t2 - t1)/CLOCKS_PER_SEC << " sec.\n";
+	
+	out << "\n   Start time: " << ctime(&starttime);
+	out <<   " Construction: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
+	out <<   "     Solution: "   << double(t2 - t1)/CLOCKS_PER_SEC << " sec.\n";
+	status << "    Stop time: " << ctime(&stoptime);
+	out   << "    Stop time: " << ctime(&stoptime);
+
+	status << "\n End Execution\n" << endl;
+	out    << "\n End Execution\n" << endl;
+}
+#else /* bridging element not enabled */
+void FEExecutionManagerT::RunTHK(ifstreamT& in, ostream& status) const
+{
+#pragma unused(in)
+#pragma unused(status)
+
+	const char caller[] = "FEExecutionManagerT::RunTHK";
 	ExceptionT::GeneralFail(caller, "BRIDGING_ELEMENT not enabled");
 }
 #endif
