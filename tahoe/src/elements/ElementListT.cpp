@@ -1,8 +1,10 @@
-/* $Id: ElementListT.cpp,v 1.47 2003-04-05 20:23:22 thao Exp $ */
+/* $Id: ElementListT.cpp,v 1.48 2003-04-07 06:29:28 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
+#ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
+#endif
 
 #include <iostream.h>
 #include "fstreamT.h"
