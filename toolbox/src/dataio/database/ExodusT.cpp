@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.19.2.1 2002-10-17 03:57:48 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.19.2.2 2002-10-20 18:01:59 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -364,7 +364,7 @@ void ExodusT::WriteConnectivities(int block_ID, GeometryT::CodeT code,
 	iArray2DT tempconn;
 	if (num_output_nodes != connects.MinorDim())
 	{
-		tempconn.Allocate(connects.MajorDim(), num_output_nodes);
+		tempconn.Dimension(connects.MajorDim(), num_output_nodes);
 		for (int i = 0; i < tempconn.MajorDim(); i++)
 	  		for (int j = 0; j < tempconn.MinorDim(); j++)
 	    		tempconn (i,j) = connects (i,j);
@@ -441,7 +441,7 @@ void ExodusT::ReadNodeSets(const nArrayT<int>& set_ID, nArrayT<int>& nodes) cons
 		num_set_nodes += NumNodesInSet(set_ID[i]);
 
 	/* allocate */
-	nodes.Allocate(num_set_nodes);
+	nodes.Dimension(num_set_nodes);
 
 	/* read */
 	int count = 0;
@@ -689,7 +689,7 @@ void ExodusT::ReadLabels(ArrayT<StringT>& labels, ExodusT::VariableTypeT t) cons
 			true);
 			
 		/* copy in */
-		labels.Allocate(num_labels);
+		labels.Dimension(num_labels);
 		for (int j = 0; j < num_labels; j++)
 		{	
 			char* str = var_names[j];
@@ -805,7 +805,7 @@ char *recs[MAX_QA_REC][4];
 	Try("ExodusBaseT::ReadQA", ex_get_qa(exoid, recs), 1);
 	
 	int m=0;
-	qa_records.Allocate(4*num_qa_rec);
+	qa_records.Dimension(4*num_qa_rec);
 	for (int ii=0; ii < num_qa_rec; ii++)
 	  for (int j=0; j < 4; j++)
 	    qa_records[m++] = recs[ii][j];
@@ -830,7 +830,7 @@ if (num_info > MAX_INFO)
 	/* read records */
 	Try("ExodusT::ReadInfo", ex_get_info(exoid, info), 1);
 
-	info_records.Allocate(num_info);
+	info_records.Dimension(num_info);
 	for (int j=0; j < num_info; j++)
 	  info_records[j] = info[j];
 }

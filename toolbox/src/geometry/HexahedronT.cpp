@@ -1,4 +1,4 @@
-/* $Id: HexahedronT.cpp,v 1.2.2.1 2002-10-17 01:37:47 paklein Exp $ */
+/* $Id: HexahedronT.cpp,v 1.2.2.2 2002-10-20 18:02:02 paklein Exp $ */
 /* created: paklein (10/22/1997) */
 
 #include "HexahedronT.h"
@@ -683,7 +683,7 @@ void HexahedronT::NumNodesOnFacets(iArrayT& num_nodes) const
 		throw ExceptionT::kGeneralFail;
 	}
 
-	num_nodes.Allocate(6);
+	num_nodes.Dimension(6);
 	if (fNumNodes == 8)
 		num_nodes = 4;
 	else
@@ -715,10 +715,10 @@ void HexahedronT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes)
 		throw ExceptionT::kGeneralFail;
 	}
 
-	facet_geom.Allocate(fNumFacets);
+	facet_geom.Dimension(fNumFacets);
 	facet_geom = kQuadrilateral;
 	
-	facet_nodes.Allocate(fNumFacets);
+	facet_nodes.Dimension(fNumFacets);
 	facet_nodes = (fNumNodes == 8) ? 4 : 8;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: FileCrawlerT.cpp,v 1.5.2.1 2002-10-17 04:06:03 paklein Exp $ */
+/* $Id: FileCrawlerT.cpp,v 1.5.2.2 2002-10-20 18:02:04 paklein Exp $ */
 
 #include "FileCrawlerT.h"
 
@@ -24,7 +24,7 @@ FileCrawlerT::FileCrawlerT(int argc, char* argv[], char job_char, char batch_cha
 	fRecursionDepth(0)
 {
 	/* store command line arguments */
-	fCommandLineOptions.Allocate(argc);
+	fCommandLineOptions.Dimension(argc);
 	for (int i = 0; i < fCommandLineOptions.Length(); i++)
 		fCommandLineOptions[i] = argv[i];
 

@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.21.2.1 2002-10-17 01:54:45 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.21.2.2 2002-10-20 18:01:57 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -1022,8 +1022,8 @@ void iConsoleT::BuildDictionary(bool scope_only)
 	if (!scope_only)
 	{
 		/* resize */
-		fWord.Allocate(0);
-		fWordScope.Allocate(0);
+		fWord.Dimension(0);
+		fWordScope.Dimension(0);
 	
 		/* add commands */
 		for (int i = 0; i < console_commands.Length(); i++)
@@ -1124,8 +1124,8 @@ void iConsoleT::FlushInput(StringT& line)
 			delete fInputStack[i];
 			fInputStack[i] = NULL;
 		}
-		fInputStack.Allocate(0);
-		fDanglingInput.Allocate(0);
+		fInputStack.Dimension(0);
+		fDanglingInput.Dimension(0);
 	}
 }
 

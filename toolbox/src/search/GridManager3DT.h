@@ -1,4 +1,4 @@
-/* $Id: GridManager3DT.h,v 1.5.2.1 2002-10-17 04:10:10 paklein Exp $ */
+/* $Id: GridManager3DT.h,v 1.5.2.2 2002-10-20 18:02:07 paklein Exp $ */
 /* created: paklein (12/06/1997)                                          */
 /* Interface for regular rectangular search and storage grid              */
 /* sTYPE requirements:                                                    */
@@ -149,7 +149,7 @@ void GridManager3DT<sTYPE>::Reset(void)
 
 	for (int i = 0; i < fGrid.Length(); i++)
 	{
-		if (*pgrid) (*pgrid)->Allocate(0);
+		if (*pgrid) (*pgrid)->Dimension(0);
 		pgrid++;
 	}
 
@@ -314,7 +314,7 @@ void GridManager3DT<sTYPE>::Reset(const dArray2DT& coords,
 	/* set grid parameters */
 	fxjump = fny*fnz;
 	fyjump = fnz;
-	fGrid.Allocate(fnx*fny*fnz);
+	fGrid.Dimension(fnx*fny*fnz);
 }
 
 /* insert data into the grid */
@@ -415,7 +415,7 @@ const AutoArrayT<sTYPE>& GridManager3DT<sTYPE>::
 	HitsInRegion(double* coords, double distance)
 {
 	/* empty hit list */
-	fHits.Allocate(0);
+	fHits.Dimension(0);
 
 	/* grid indices */
 	int ixstart = int((coords[0] - fxmin - distance)/fdx);
@@ -463,7 +463,7 @@ const AutoArrayT<sTYPE>& GridManager3DT<sTYPE>::HitsInRegion(double* coords,
 	const ArrayT<double>& dist_xyz)
 {
 	/* empty hit list */
-	fHits.Allocate(0);
+	fHits.Dimension(0);
 
 	/* grid indices */
 	int ixstart = int((coords[0] - fxmin - dist_xyz[0])/fdx);

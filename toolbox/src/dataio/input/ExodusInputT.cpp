@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.16.2.1 2002-10-17 03:59:16 paklein Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.16.2.2 2002-10-20 18:02:00 paklein Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -220,7 +220,7 @@ void ExodusInputT::ReadSideSetGlobal (const StringT& name, iArray2DT& sides) con
 
 void ExodusInputT::ReadTimeSteps (dArrayT& steps)
 {
-  steps.Allocate(NumTimeSteps());
+  steps.Dimension(NumTimeSteps());
   for (int i=0; i < steps.Length(); i++)
     fData.ReadTime (i+1, steps[i]);
 }
@@ -438,7 +438,7 @@ void ExodusInputT::NodesUsed(const nArrayT<int>& connects, iArrayT& nodesused) c
 		node_map[connects[i] - min] = 1;
 
 	/* collect list */
-	nodesused.Allocate(node_map.Count(1));
+	nodesused.Dimension(node_map.Count(1));
 	int dex = 0;
 	int*  p = node_map.Pointer();
 	for (int j = 0; j < node_map.Length(); j++)

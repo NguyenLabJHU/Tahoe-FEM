@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.12.2.1 2002-10-17 03:59:17 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.12.2.2 2002-10-20 18:02:01 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "OutputBaseT.h"
@@ -43,7 +43,7 @@ OutputBaseT::~OutputBaseT(void)
 {
 	for (int i = 0; i < fElementSets.Length(); i++)
 		delete fElementSets[i];
-	fElementSets.Allocate(0);
+	fElementSets.Dimension(0);
 }
 
 const OutputSetT& OutputBaseT::OutputSet(int ID) const
@@ -291,7 +291,7 @@ void OutputBaseT::NodalBlockValues(int ID, int block, const dArray2DT& allvalues
 		const iArrayT& index_map = fElementSets[ID]->BlockIndexToSetIndexMap(fElementSets[ID]->BlockID(block));
 		
 		/* collect block values */
-		blockvalues.Allocate(index_map.Length(), allvalues.MinorDim());
+		blockvalues.Dimension(index_map.Length(), allvalues.MinorDim());
 		blockvalues.RowCollect(index_map, allvalues);	
     }
 }

@@ -1,4 +1,4 @@
-/* $Id: MapSetT.h,v 1.2 2002-07-02 19:57:18 cjkimme Exp $ */
+/* $Id: MapSetT.h,v 1.2.2.1 2002-10-20 18:02:04 paklein Exp $ */
 /* created: paklein (03/26/2000)                                          */
 
 #ifndef _MAP_SET_T_H_
@@ -18,9 +18,9 @@ public:
 	MapSetT(void) { }
 
 	/* dimensioning */
-	void Allocate(int n_sets, int e_sets) {
-		fNodalMaps.Allocate(n_sets);
-		fElementMaps.Allocate(e_sets);
+	void Dimension(int n_sets, int e_sets) {
+		fNodalMaps.Dimension(n_sets);
+		fElementMaps.Dimension(e_sets);
 	}
 		
 	/* number of maps */

@@ -1,4 +1,4 @@
-/* $Id: PentahedronT.cpp,v 1.2.2.1 2002-10-17 01:37:47 paklein Exp $ */
+/* $Id: PentahedronT.cpp,v 1.2.2.2 2002-10-20 18:02:02 paklein Exp $ */
 /* created: sawimme (10/22/1999) */
 #include "PentahedronT.h"
 
@@ -118,7 +118,7 @@ void PentahedronT::NumNodesOnFacets(iArrayT& num_nodes) const
 		throw ExceptionT::kGeneralFail;
 	}
 
-	num_nodes.Allocate(5);
+	num_nodes.Dimension(5);
 	if (fNumNodes == 6)
 	{
 		num_nodes = 4;
@@ -147,7 +147,7 @@ throw ExceptionT::kGeneralFail;
 /* return geometry and number of nodes on each facet */
 void PentahedronT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes) const
 {
-	facet_geom.Allocate(fNumFacets);
+	facet_geom.Dimension(fNumFacets);
 	facet_geom = kQuadrilateral;
 	facet_geom[0] = kTriangle;
 	facet_geom[1] = kTriangle;

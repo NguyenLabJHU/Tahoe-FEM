@@ -1,4 +1,4 @@
-/* $Id: FindNeighborT.cpp,v 1.4.2.1 2002-10-17 04:08:01 paklein Exp $ */
+/* $Id: FindNeighborT.cpp,v 1.4.2.2 2002-10-20 18:02:05 paklein Exp $ */
 /* created: paklein (03/21/1997)                                          */
 /* FindNeighborT.cpp                                                      */
 
@@ -30,7 +30,7 @@ FindNeighborT::FindNeighborT(const dArray2DT& coords, int maxneighbors):
 	if (fMaxNeighbors < 1) throw ExceptionT::kBadInputValue;
 
 	fCoords.Alias(fglCoords);
-	Allocate(fCoords.MajorDim(), fCoords.MinorDim());
+	Dimension(fCoords.MajorDim(), fCoords.MinorDim());
 			
 	/* set search grid */
 	if (fnsd == 1)
@@ -61,10 +61,10 @@ FindNeighborT::FindNeighborT(const iArrayT& nodesused, const dArray2DT& coords,
 {
 	if (fMaxNeighbors < 1) throw ExceptionT::kBadInputValue;
 
-	Allocate(fNodeMap->Length(), coords.MinorDim());
+	Dimension(fNodeMap->Length(), coords.MinorDim());
 	
 	/* collect coords of used nodes */
-	fCoords.Allocate(fNodeMap->Length(), fglCoords.MinorDim());
+	fCoords.Dimension(fNodeMap->Length(), fglCoords.MinorDim());
 	fCoords.RowCollect(*fNodeMap, fglCoords);
 
 	/* set search grid */
@@ -131,12 +131,12 @@ void FindNeighborT::GetNeighors(iArray2DT& edges, double tolerance)
 	/* copy unique edges */
 	if (fNodeMap)
 	{
-		edges.Allocate(Count2BodyMapped(), 2);
+		edges.Dimension(Count2BodyMapped(), 2);
 		Set2BodyMapped(edges);
 	}
 	else
 	{
-		edges.Allocate(Count2Body(), 2);	
+		edges.Dimension(Count2Body(), 2);	
 		Set2Body(edges);
 	}
 }
@@ -252,7 +252,7 @@ void FindNeighborT::FindNeighors3D(double tolerance)
 }
 
 /* Allocate memory */
-void FindNeighborT::Allocate(int numpts, int nsd)
+void FindNeighborT::Dimension(int numpts, int nsd)
 {
 	fNumPts = numpts;
 	fnsd    = nsd;
@@ -261,8 +261,8 @@ void FindNeighborT::Allocate(int numpts, int nsd)
 	if (fnsd != 1 && fnsd != 2 && fnsd != 3) throw ExceptionT::kBadInputValue;
 
 	/* Allocate memory */
-	fCount.Allocate(fNumPts);
-	fNeighbors.Allocate(fNumPts, fMaxNeighbors);
+	fCount.Dimension(fNumPts);
+	fNeighbors.Dimension(fNumPts, fMaxNeighbors);
 }
 
 /* Determine number of 2 body interactions */

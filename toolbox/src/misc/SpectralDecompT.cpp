@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.cpp,v 1.9.2.1 2002-10-17 04:06:03 paklein Exp $ */
+/* $Id: SpectralDecompT.cpp,v 1.9.2.2 2002-10-20 18:02:04 paklein Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -47,7 +47,7 @@ SpectralDecompT::SpectralDecompT(int nsd):
 		
 	/* dimension rank 1 matrices */
 	for (int i = 0; i < nsd; i++)
-		fm[i].Allocate(nsd);
+		fm[i].Dimension(nsd);
 
 	/* eigenvectors in columns */
 	for (int j = 0; j < nsd; j++)

@@ -1,4 +1,4 @@
-/* $Id: QuadT.cpp,v 1.2.2.1 2002-10-17 01:37:48 paklein Exp $ */
+/* $Id: QuadT.cpp,v 1.2.2.2 2002-10-20 18:02:02 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 
 #include "QuadT.h"
@@ -616,7 +616,7 @@ void QuadT::NumNodesOnFacets(iArrayT& num_nodes) const
 		throw ExceptionT::kGeneralFail;
 	}
 
-	num_nodes.Allocate(4);
+	num_nodes.Dimension(4);
 	if (fNumNodes == 4)
 		num_nodes = 2;
 	else
@@ -636,10 +636,10 @@ void QuadT::NeighborNodeMap(iArray2DT& facetnodes) const
 /* return geometry and number of nodes on each facet */
 void QuadT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes) const
 {
-	facet_geom.Allocate(fNumFacets);
+	facet_geom.Dimension(fNumFacets);
 	facet_geom = kLine;
 	
-	facet_nodes.Allocate(fNumFacets);
+	facet_nodes.Dimension(fNumFacets);
 	facet_nodes = 2;
 	for (int i = 0; i < (fNumNodes - kNumVertexNodes); i++)
 		facet_nodes[i] = 3;

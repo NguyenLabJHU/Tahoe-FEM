@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.cpp,v 1.13.2.1 2002-10-17 03:59:16 paklein Exp $ */
+/* $Id: AbaqusInputT.cpp,v 1.13.2.2 2002-10-20 18:02:00 paklein Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #include "AbaqusInputT.h"
@@ -433,7 +433,7 @@ void AbaqusInputT::NodesUsed (const nArrayT<int>& connects, iArrayT& nodesused) 
 		node_map[connects[i] - min] = 1;
 
 	/* collect list */
-	nodesused.Allocate(node_map.Count(1));
+	nodesused.Dimension(node_map.Count(1));
 	int dex = 0;
 	int*  p = node_map.Pointer();
 	for (int j = 0; j < node_map.Length(); j++)

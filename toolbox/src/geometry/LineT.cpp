@@ -1,4 +1,4 @@
-/* $Id: LineT.cpp,v 1.2.2.1 2002-10-17 01:37:47 paklein Exp $ */
+/* $Id: LineT.cpp,v 1.2.2.2 2002-10-20 18:02:02 paklein Exp $ */
 /* created: paklein (04/25/1999) */
 #include "LineT.h"
 
@@ -254,13 +254,13 @@ void LineT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 #pragma unused (facet)	
 #endif
 
-	facetnodes.Allocate(1);
+	facetnodes.Dimension(1);
 	facetnodes[0] = facet;
 }
 
 void LineT::NumNodesOnFacets(iArrayT& num_nodes) const
 {
-	num_nodes.Allocate(2);
+	num_nodes.Dimension(2);
 	num_nodes = 1;
 }
 
@@ -268,7 +268,7 @@ void LineT::NumNodesOnFacets(iArrayT& num_nodes) const
 * across facets */
 void LineT::NeighborNodeMap(iArray2DT& facetnodes) const
 {
-	facetnodes.Allocate(2,1);
+	facetnodes.Dimension(2,1);
 	facetnodes(0,0) = 0;
 	facetnodes(1,0) = 1;
 }
@@ -276,9 +276,9 @@ void LineT::NeighborNodeMap(iArray2DT& facetnodes) const
 /* return geometry and number of nodes on each facet */
 void LineT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes) const
 {
-	facet_geom.Allocate(fNumFacets);
+	facet_geom.Dimension(fNumFacets);
 	facet_geom = kPoint;
 	
-	facet_nodes.Allocate(fNumFacets);
+	facet_nodes.Dimension(fNumFacets);
 	facet_nodes = 1;
 }

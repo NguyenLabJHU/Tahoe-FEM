@@ -1,4 +1,4 @@
-/* $Id: ReLabellerT.cpp,v 1.3.2.1 2002-10-17 04:03:56 paklein Exp $ */
+/* $Id: ReLabellerT.cpp,v 1.3.2.2 2002-10-20 18:02:03 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "ReLabellerT.h"
@@ -326,9 +326,9 @@ void ReLabellerT::Initialize(void)
 	int numnodes = fGraph.NumNodes();
 
 	/* allocate space */
-	fSequence.Allocate(numnodes);
-	fStatus.Allocate(numnodes);
-	fPriority.Allocate(numnodes),
+	fSequence.Dimension(numnodes);
+	fStatus.Dimension(numnodes);
+	fPriority.Dimension(numnodes),
 
 	/* initialize */
 	fSequence =-1;
@@ -416,7 +416,7 @@ void ReLabellerT::SelectNodes(void)
 
 		/* collect top level info */
 		fRootedLevel.NodesOnLevel(topnodes, h_max - 1);
-		degrees.Allocate(topnodes.Length()); //really want to Allocate() every time?
+		degrees.Dimension(topnodes.Length()); //really want to Dimension() every time?
 		fGraph.ReturnDegrees(topnodes, degrees);
 		
 		/* order and halve */

@@ -1,4 +1,4 @@
-/* $Id: EdgeFinderT.cpp,v 1.4.2.1 2002-10-17 04:07:20 paklein Exp $ */
+/* $Id: EdgeFinderT.cpp,v 1.4.2.2 2002-10-20 18:02:05 paklein Exp $ */
 /* created: paklein (02/14/1998) */
 #include "EdgeFinderT.h"
 #include "AutoArrayT.h"
@@ -69,7 +69,7 @@ const iArray2DT& EdgeFinderT::Neighbors(void)
 		SetInverseConnects();
 
 		/* allocate and initialize neighbor data */
-		fNeighbors.Allocate(fNumElements, fNumFacets);
+		fNeighbors.Dimension(fNumElements, fNumFacets);
 		fNeighbors = -1;
 
 		/* work space */
@@ -145,7 +145,7 @@ const iArray2DT& EdgeFinderT::Neighbors(void)
 					hit_count[*hits++] = 0;
 				
 				/* initialize hit list */	
-				hit_elems.Allocate(0);
+				hit_elems.Dimension(0);
 		
 				/* next facet */
 				neigh_i++;
@@ -269,7 +269,7 @@ void EdgeFinderT::SurfaceFacets(ArrayT<iArray2DT>& surface_facet_sets,
 	
 	/* sort surfaces */
 	int num_branches = branch_map.Max() + 1;
-	surface_facet_sets.Allocate(num_branches);
+	surface_facet_sets.Dimension(num_branches);
 	if (num_branches == 1)
 		surface_facet_sets[0] = surface_facets;
 	else
@@ -303,7 +303,7 @@ void EdgeFinderT::SurfaceFacets(ArrayT<iArray2DT>& surface_facet_sets,
 		/* copy in */
 		for (int k = 0; k < num_branches; k++)
 		{
-			surface_facet_sets[k].Allocate(set_data.MinorDim(k), size);
+			surface_facet_sets[k].Dimension(set_data.MinorDim(k), size);
 			surface_facet_sets[k].RowCollect(set_data(k), surface_facets);
 		}
 	}

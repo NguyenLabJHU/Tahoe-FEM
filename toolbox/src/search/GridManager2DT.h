@@ -1,4 +1,4 @@
-/* $Id: GridManager2DT.h,v 1.5.2.1 2002-10-17 04:10:10 paklein Exp $ */
+/* $Id: GridManager2DT.h,v 1.5.2.2 2002-10-20 18:02:07 paklein Exp $ */
 /* created: paklein (12/06/1997)                                          */
 /* Interface for regular rectangular search and storage grid              */
 /* sTYPE requirements:                                                    */
@@ -134,7 +134,7 @@ void GridManager2DT<sTYPE>::Reset(void)
 
 	for (int i = 0; i < fGrid.Length(); i++)
 	{
-		if (*pgrid) (*pgrid)->Allocate(0);
+		if (*pgrid) (*pgrid)->Dimension(0);
 		pgrid++;
 	}
 
@@ -241,7 +241,7 @@ void GridManager2DT<sTYPE>::Reset(const dArray2DT& coords,
 	}
 
 	/* set grid parameters */
-	fGrid.Allocate(fnx*fny);
+	fGrid.Dimension(fnx*fny);
 }	
 
 /* insert data into the grid */
@@ -336,7 +336,7 @@ const AutoArrayT<sTYPE>& GridManager2DT<sTYPE>::
 	HitsInRegion(double* coords, double distance)
 {
 	/* empty hit list */
-	fHits.Allocate(0);
+	fHits.Dimension(0);
 
 	/* grid indices */
 	int ixstart = int((coords[0] - fxmin - distance)/fdx);
@@ -377,7 +377,7 @@ const AutoArrayT<sTYPE>& GridManager2DT<sTYPE>::
 	HitsInRegion(double* coords, const ArrayT<double>& dist_xy)
 {
 	/* empty hit list */
-	fHits.Allocate(0);
+	fHits.Dimension(0);
 
 	/* grid indices */
 	int ixstart = int((coords[0] - fxmin - dist_xy[0])/fdx);
