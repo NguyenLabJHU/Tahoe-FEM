@@ -1,4 +1,4 @@
-/* $Id: Gamma.cpp,v 1.4 2002-10-20 22:38:47 paklein Exp $ */
+/* $Id: Gamma.cpp,v 1.4.8.1 2003-09-25 17:29:20 cjkimme Exp $ */
 
 #include "Gamma.h"
 #include <math.h>
@@ -131,7 +131,8 @@ dArrayT& Gamma::MapDFunction(const dArrayT& in,  dArrayT& out) const
 	cout << "\n Derivative of the Gamma Function not tabulated!\n";
 	for (int i = 0; i < in.Length(); i++)
 	{
-		double r = *pl++;					
+//		double r = *pl++;					
+		*pl++;
 		*pdU++ = 0.0;
 	}
 	return out;
@@ -148,7 +149,8 @@ dArrayT& Gamma::MapDDFunction(const dArrayT& in,  dArrayT& out) const
 	cout << "\n Second derivative of the Gamma Function not tabulated!\n";
 	for (int i = 0; i < in.Length(); i++)
 	{
-		double r = *pl++;				
+//		double r = *pl++;				
+		*pl++;
 		*pddU++ = 0.0;
 	}
 	return out;

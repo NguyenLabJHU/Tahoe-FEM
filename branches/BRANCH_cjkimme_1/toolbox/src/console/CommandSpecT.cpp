@@ -1,4 +1,4 @@
-/* $Id: CommandSpecT.cpp,v 1.9 2002-10-20 22:38:59 paklein Exp $ */
+/* $Id: CommandSpecT.cpp,v 1.9.8.1 2003-09-25 17:29:25 cjkimme Exp $ */
 
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
@@ -14,9 +14,9 @@ const bool ArrayT<CommandSpecT>::fByteCopy = false;
 
 CommandSpecT::CommandSpecT(const StringT& name, bool ordered_args):
 	fName(name),
+	fPrompter(NULL),
 	fOrdered(ordered_args),
-	fArguments(0),
-	fPrompter(NULL)
+	fArguments(0)
 {
 
 }
@@ -24,9 +24,9 @@ CommandSpecT::CommandSpecT(const StringT& name, bool ordered_args):
 /* copy constructor */
 CommandSpecT::CommandSpecT(const CommandSpecT& command):
 	fName(command.Name()),
+	fPrompter(command.Prompter()),
 	fOrdered(command.Ordered()),
-	fArguments(0),
-	fPrompter(command.Prompter())
+	fArguments(0)
 {
 	/* copy argument list */
 	const ArrayT<ArgSpecT*>& args = command.Arguments();

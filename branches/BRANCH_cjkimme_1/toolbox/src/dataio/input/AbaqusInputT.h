@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.h,v 1.14 2002-07-05 22:26:26 paklein Exp $ */
+/* $Id: AbaqusInputT.h,v 1.14.10.1 2003-09-25 17:29:28 cjkimme Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _ABAQUSINPUT_T_H_
@@ -124,24 +124,32 @@ inline int AbaqusInputT::NumNodes (void) const { return fNumNodes; }
 inline int AbaqusInputT::NumGlobalElements (void) const { return fNumElements; }
 inline bool AbaqusInputT::AreSideSetsLocal (void) const { return false; }
 inline  int  AbaqusInputT::NumSidesInSet (const StringT& setname)  const
-{ 
+{
+#ifdef __MWERKS__ 
 #pragma unused (setname)
+#endif
   return 0; 
 }
 inline  StringT AbaqusInputT::SideSetGroupName (const StringT& setname)  const
 { 
+#ifdef __MWERKS__
 #pragma unused (setname)
+#endif
   StringT name ("");
   return name; 
 }
 inline  void AbaqusInputT::ReadSideSetLocal (const StringT& setname, iArray2DT& sides) const
 {
+#ifdef __MWERKS__
 #pragma unused (setname)
+#endif
   sides.Free();
 }
 inline  void AbaqusInputT::ReadSideSetGlobal (const StringT& setname, iArray2DT& sides) const
 {
+#ifdef __MWERKS__
 #pragma unused (setname)
+#endif
   sides.Free();
 }
 inline int AbaqusInputT::NumDimensions (void) const { return 3; }

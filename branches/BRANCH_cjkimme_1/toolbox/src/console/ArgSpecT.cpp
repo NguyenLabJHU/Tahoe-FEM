@@ -1,4 +1,4 @@
-/* $Id: ArgSpecT.cpp,v 1.10 2002-10-20 22:38:59 paklein Exp $ */
+/* $Id: ArgSpecT.cpp,v 1.10.8.1 2003-09-25 17:29:25 cjkimme Exp $ */
 
 #include "ArgSpecT.h"
 #include <ctype.h>
@@ -31,8 +31,8 @@ ArgSpecT::ArgSpecT(ArgTypeT t):
 
 /* constructor */
 ArgSpecT::ArgSpecT(ArgTypeT type, const StringT& name):
-	fType(type),
 	fName(name),
+	fType(type),
 	fDefault(NULL),
 	fValue(NULL)
 {

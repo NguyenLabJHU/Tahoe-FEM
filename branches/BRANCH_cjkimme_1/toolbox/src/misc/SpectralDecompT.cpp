@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.cpp,v 1.10 2002-10-20 22:39:04 paklein Exp $ */
+/* $Id: SpectralDecompT.cpp,v 1.10.8.1 2003-09-25 17:29:32 cjkimme Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -620,7 +620,9 @@ const dMatrixT& SpectralDecompT::SpatialTensor3D(const dSymMatrixT& b, int A)
 * eigenvalue */
 const dMatrixT& SpectralDecompT::SpatialTensor2D(const dSymMatrixT& b, int A)
 {
+#ifdef __MWERKS__
 #pragma unused(b)
+#endif
 
 	/* initialize */
 	fSpatTensor = 0.0;

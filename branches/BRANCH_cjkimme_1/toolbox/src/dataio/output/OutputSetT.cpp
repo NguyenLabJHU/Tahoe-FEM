@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.17 2003-04-21 16:47:36 sawimme Exp $ */
+/* $Id: OutputSetT.cpp,v 1.17.6.1 2003-09-25 17:29:29 cjkimme Exp $ */
 /* created: paklein (03/07/2000) */
 #include "OutputSetT.h"
 #include "iArrayT.h"
@@ -22,8 +22,8 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	fID("1"), /* dummy ID */
 	fChanging(changing),
 	fGeometry(geometry_code),
-	fBlockID(block_ID),
-	fConnectivities(connectivities.Length()),
+        fBlockID(block_ID),
+        fConnectivities(connectivities.Length()),
 	fBlockNodesUsed(fConnectivities.Length()),
 	fBlockIndexToSetIndexMap(fConnectivities.Length())
 {
@@ -67,9 +67,9 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	fID("1"), /* dummy ID */
 	fChanging(false),
 	fGeometry(geometry_code),
+	fBlockID(1),
 	fConnectivities(1),
 	fBlockNodesUsed(1),
-	fBlockID(1),
 	fBlockIndexToSetIndexMap(1)
 {
 	/* keep reference to connectivities */
@@ -93,14 +93,14 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 }
 
 OutputSetT::OutputSetT(const OutputSetT& source):
-	fPrintStep(-1),
 	fMode(source.fMode),
+	fPrintStep(-1),
 	fID(source.fID),
 	fChanging(source.fChanging),
 	fGeometry(source.fGeometry),
 	fBlockID(source.fBlockID),
-	fNodesUsed(source.fNodesUsed),
 	fConnectivities(source.NumBlocks()),
+	fNodesUsed(source.fNodesUsed),
 	fBlockNodesUsed(fConnectivities.Length()),
 	fBlockIndexToSetIndexMap(source.fBlockIndexToSetIndexMap)
 {

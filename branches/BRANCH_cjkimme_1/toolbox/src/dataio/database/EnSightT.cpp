@@ -1,4 +1,4 @@
-/* $Id: EnSightT.cpp,v 1.12 2002-10-20 22:36:53 paklein Exp $ */
+/* $Id: EnSightT.cpp,v 1.12.8.1 2003-09-25 17:29:27 cjkimme Exp $ */
 /* created: sawimme (05/13/1999) */
 
 #include "EnSightT.h"
@@ -23,8 +23,8 @@ const bool ArrayT<EnSightT::VariableTypeT>::fByteCopy = true;
 } /* namespace Tahoe */
 
 EnSightT::EnSightT (ostream& out, bool binary, int dof) :
+fOut(out),
 fBinary (binary),
-fOut (out),
 fDOF (dof)
 {
 }

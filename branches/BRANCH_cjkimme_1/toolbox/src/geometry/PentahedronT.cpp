@@ -1,4 +1,4 @@
-/* $Id: PentahedronT.cpp,v 1.3 2002-10-20 22:32:08 paklein Exp $ */
+/* $Id: PentahedronT.cpp,v 1.3.8.1 2003-09-25 17:29:31 cjkimme Exp $ */
 /* created: sawimme (10/22/1999) */
 #include "PentahedronT.h"
 
@@ -24,8 +24,10 @@ PentahedronT::PentahedronT(int numnodes): GeometryBaseT(numnodes, kNumFacets) {}
 /* evaluate the shape functions and gradients. */
 void PentahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 {
+#ifdef __MWERKS__
 #pragma unused(coords)
 #pragma unused(Na)
+#endif
 	cout << "\n PentahedronT::EvaluateShapeFunctions: not implemented" << endl;
 	throw ExceptionT::kGeneralFail;
 }
@@ -33,9 +35,11 @@ void PentahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) co
 /* evaluate the shape functions and gradients. */
 void PentahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa) const
 {
+#ifdef __MWERKS__
 #pragma unused(coords)
 #pragma unused(Na)
 #pragma unused(DNa)
+#endif
 	cout << "\n PentahedronT::EvaluateShapeFunctions: not implemented" << endl;
 	throw ExceptionT::kGeneralFail;
 }
@@ -44,9 +48,11 @@ void PentahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dA
 void PentahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	dArrayT& weights) const
 {
+#ifdef __MWERKS__
 #pragma unused(Na)
 #pragma unused(Na_x)
 #pragma unused(weights)
+#endif
 
 cout << "\n PentahedronT::SetLocalShape not implemented " << endl;
 throw ExceptionT::kGeneralFail;
@@ -55,7 +61,9 @@ throw ExceptionT::kGeneralFail;
 /* set the values of the nodal extrapolation matrix */
 void PentahedronT::SetExtrapolation(dMatrixT& extrap) const
 {
+#ifdef __MWERKS__
 #pragma unused(extrap)
+#endif
 
 cout << "\n PentahedronT::SetExtrapolation not implemented " << endl;
 throw ExceptionT::kGeneralFail;
@@ -137,7 +145,9 @@ void PentahedronT::NumNodesOnFacets(iArrayT& num_nodes) const
 * across facets */
 void PentahedronT::NeighborNodeMap(iArray2DT& facetnodes) const
 {
+#ifdef __MWERKS__
 #pragma unused(facetnodes)
+#endif
 
 cout << "\n PentahedronT::NeighborNodeMap not implemented " << endl;
 // this would require facetnodes to be a ragged array
