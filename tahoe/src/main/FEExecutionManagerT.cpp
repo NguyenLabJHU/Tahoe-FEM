@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41 2003-05-21 23:48:15 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.41.2.1 2003-05-22 21:51:39 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -584,36 +584,12 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	{	
 		/* set to initial condition */
 		atoms.InitialCondition();
-		continuum.InitialCondition();
-
-		/* figure out timestep ratio between fem and md simulations */
-		int nfesteps = continuum_time->NumberOfSteps();
-		double mddt = atom_time->TimeStep();
-		double fedt = continuum_time->TimeStep();
-		double d_ratio = fedt/mddt;		
-		int ratio = int((2.0*d_ratio + 1.0)/2.0);
-		cout << "time step ratio = " << ratio << endl;
 		
-		/* running status flag */
-		ExceptionT::CodeT error = ExceptionT::kNoError;		
-		
-		/* Solve both MD and FE initially before main time loop */
-		atom_time->Step();	
-					
-		/* initialize MD step - assume initial MD displacements known here */
-		if (1 || error == ExceptionT::kNoError) error = atoms.InitStep();
-		
-		/* begin continuum initial step */
-		continuum_time->Step();
-					
-		/* initialize step */
-		if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
-                    		
 		/* calculate fine scale part of MD displacement and total displacement u */
 		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu);
 		
 		/* solve for initial FEM force f(u) as function of fine scale + FEM */
-		/* use projected totalu instead of totalu for first timestep */
+		/* use projected totalu instead of totalu for initial FEM displacements */
 		fu = InternalForce(projectedu, atoms);
 		
 		/* calculate global interpolation matrix ntf */
@@ -630,39 +606,41 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		fu.ColumnCopy(1,tempy);
 		ntf.Multx(tempy,fy);
 		ntfproduct.SetColumn(1,fy);
-		cout << "ntfproduct = " << ntfproduct << endl;
 		
 		/* Add FEM RHS force to RHS using SetExternalForce */
 		continuum.SetExternalForce(bridging_field, ntfproduct, activefenodes);
 		
-		/* solve FEM equation of motion using force just calculated as RHS */
-		if (1 || error == ExceptionT::kNoError) {
-				continuum.ResetCumulativeUpdate(group);
-				error = continuum.SolveStep();
-		}
-		
-		/* close fe step (all solving of equations over) */
-		if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
-		
+		/* now d0, v0 and a0 are known after InitialCondition */
+		continuum.InitialCondition();
+
+		/* initialize time history variables here */
+
 		/* set ghost atom displacements/velocities as BC's for MD simulation - need to integrate
 		 * these ghost atom displacements through time during MD time loop assuming
 		 * constant coarse scale acceleration */
 		continuum.InterpolateField(bridging_field, field_at_ghosts);
 		atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
+
+		FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
+		FieldT* femfield = continuum.NodeManager()->Field(bridging_field);
+		dArray2DT mdacc = (*atomfield)[2];
+		dArray2DT femacc = (*femfield)[2];
+		cout << "md acc = " << mdacc << endl;
+		cout << "fem acc = " << femacc << endl;
 		
-		/* initialize time history variables here */
+		/* figure out timestep ratio between fem and md simulations */
+		int nfesteps = continuum_time->NumberOfSteps();
+		double mddt = atom_time->TimeStep();
+		double fedt = continuum_time->TimeStep();
+		double d_ratio = fedt/mddt;		
+		int ratio = int((2.0*d_ratio + 1.0)/2.0);
+		cout << "time step ratio = " << ratio << endl;
 		
-		/* solve atoms for accelerations */
-		if (1 || error == ExceptionT::kNoError) {
-				atoms.ResetCumulativeUpdate(group);
-				error = atoms.SolveStep();
-		}
-							
-		/* close  md step */
-		if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep(); 
+		/* running status flag */
+		ExceptionT::CodeT error = ExceptionT::kNoError;	
 		
 		/* now loop over continuum and atoms after initialization */
-		for (int i = 1; i < nfesteps; i++)	// FE loop - originally i = 0
+		for (int i = 0; i < nfesteps; i++)	// FE loop - originally i = 0
 		{
 			for (int j = 0; j < ratio; j++)	// MD update first
 			{
@@ -670,10 +648,6 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 					
 				/* initialize step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.InitStep();
-                 
-				/* integrate coarse scale displacements/velocities at MD boundary atom/ghost atoms here */
-				
-				/* integrate MD displacements, fractional velocities */
 				
 				/* update time history variables here using coarse scale displacements at MD
 				 * boundary/ghost atoms + MD displacements at boundary/ghost atoms */
@@ -696,8 +670,6 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
             
 			/* calculate total displacement u = FE + fine scale here using updated FEM displacement */
 			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
-						
-			/* integrate FEM displacement, fractional step velocities */
 			
 			/* calculate FE internal force as function of total displacement u here */
 			fu = InternalForce(totalu, atoms);
@@ -706,17 +678,13 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			ntfproduct.SetColumn(0,fx);
 			fu.ColumnCopy(1,tempy);
 			ntf.Multx(tempy,fy);
-			ntfproduct.SetColumn(1,fy);
-			
-			/* no need to call SetExternalForce again due to pointers to ntfproduct */
+			ntfproduct.SetColumn(1,fy);	// SetExternalForce updated via pointer
 			
 			/* solve FE equation of motion using internal force just calculated */
 			if (1 || error == ExceptionT::kNoError) {
 					continuum.ResetCumulativeUpdate(group);
 					error = continuum.SolveStep();
 			}
-			
-			/* finish time integration for integer step velocities */
                     
 			/* interpolate coarse scale displacements/velocities to MD ghost atoms/boundary 
 			 * atom for next MD timesteps */
