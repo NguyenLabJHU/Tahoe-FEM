@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.9 2002-07-02 19:55:30 cjkimme Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.10 2002-08-15 08:59:36 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 
 #ifndef _FE_MANAGER_MPI_H_
@@ -41,20 +41,11 @@ public:
 	                  kRun = 1};
 
 	/* constructor - partition can be NULL for decomposition */
-	FEManagerT_mpi(ifstreamT& input, ofstreamT& output, const PartitionT* partition,
-		TaskT task);
+	FEManagerT_mpi(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
+		const PartitionT* partition, TaskT task);
 
 	/* destructor */
 	virtual ~FEManagerT_mpi(void);
-	
-	/* exception handling */
-//	virtual void HandleException(int exception);
-
-	/* time sequence messaging */
-//	virtual bool Step(void);
-
-	/* solution update */
-	virtual void Update(int group, const dArrayT& update);
 
 	/* system relaxation */
 	virtual GlobalT::RelaxCodeT RelaxSystem(int group) const;
@@ -70,7 +61,7 @@ public:
 	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
 
 	/** reference to the coordinate array */
-	const dArray2DT& Coordinates(void) const;
+//	const dArray2DT& Coordinates(void) const;
 
 	/* (temporarily) direct output away from main out */
 	virtual void DivertOutput(const StringT& outfile);
@@ -101,10 +92,6 @@ public:
 	virtual const iArrayT* NodeMap(void) const;
 	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
 
-	/* basic MP support */
-	virtual int Rank(void) const;
-	virtual int Size(void) const;
-
 protected:
 
 	/** initialize the new time interval */
@@ -119,7 +106,7 @@ protected:
 	virtual void InitialCondition(void);
 
 	/* reduce single value */
-	int AllReduce(MPI_Op operation, int value);
+//	int AllReduce(MPI_Op operation, int value);
 
 	/* equation system information */
 	virtual int GetGlobalEquationStart(int group) const;
@@ -155,7 +142,6 @@ private:
 	StringT fModelFile;
 	
 	/* partition information */
-	int fRank;
 	const PartitionT* fPartition;
 	ArrayT<dArray2DT> fRecvBuffer;
 	ArrayT<dArray2DT> fSendBuffer;

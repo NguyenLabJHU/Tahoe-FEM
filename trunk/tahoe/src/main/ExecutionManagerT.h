@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.h,v 1.4 2002-07-05 22:28:07 paklein Exp $ */
+/* $Id: ExecutionManagerT.h,v 1.5 2002-08-15 08:59:35 paklein Exp $ */
 /* created: paklein (08/27/1997) */
 
 #ifndef _EXECMAN_T_H_
@@ -17,6 +17,7 @@ namespace Tahoe {
 /* forward declarations */
 class ifstreamT;
 class StringT;
+class CommunicatorT;
 
 /** runs tree of input file driven jobs. Derived classes \a must overload 
  * ExecutionManagerT::RunJob() */
@@ -29,10 +30,11 @@ public:
 	 * \param argv list of command line arguments
 	 * \param job_char first-in-file character signaling a job file
 	 * \param batch_char first-in-file character signaling a batch file 
+	 * \param comm MP environment
 	 * \param jobcharputback set to 1 if job_char should be returned to the 
 	 *        input stream before it is passed to the analysis object. */
 	ExecutionManagerT(int argc, char* argv[], char job_char, char batch_char,
-		int jobcharputback = 1);
+		CommunicatorT& comm, int jobcharputback = 1);
 
 	/** destructor */
 	virtual ~ExecutionManagerT(void);
@@ -83,6 +85,9 @@ protected:
 	/* filetype character codes */
 	char fJobChar;
 	char fBatchChar;
+	
+	/** MP environment */
+	CommunicatorT& fComm;
 
 	/* put back flag */
 	int fJobCharPutBack;

@@ -1,6 +1,5 @@
-/* $Id: main.cpp,v 1.9 2002-07-02 19:48:40 cjkimme Exp $ */
+/* $Id: main.cpp,v 1.10 2002-08-15 08:59:36 paklein Exp $ */
 /* created: paklein (05/22/1996) */
-
 #include <iostream.h>
 #include <fstream.h>
 
@@ -16,17 +15,16 @@ extern "C" int ccommand(char ***arg);
 #endif
 #endif
 
-#ifdef __MPI__
-#include "mpi.h"
-#endif
+/* MP environment */
+#include "CommunicatorT.h"
 
 #include "FEExecutionManagerT.h"
 #include "StringT.h"
 
 using namespace Tahoe;
 
-static void StartUp(int* argc, char*** argv);
-static void ShutDown(void);
+static void StartUp(int* argc, char*** argv, CommunicatorT& comm);
+static void ShutDown(CommunicatorT& comm);
 
 /* redirect of cout for parallel execution */
 ofstream console;
@@ -43,40 +41,28 @@ void main(int argc, char* argv[])
 	/* f2c library global variables */
 	xargc = argc;
 	xargv = argv;
+	
+	/* MP */
+	CommunicatorT::SetArgv(&argc, &argv);
+	CommunicatorT comm;
 
-	StartUp(&argc, &argv);
+	StartUp(&argc, &argv, comm);
 
-	FEExecutionManagerT FEExec(argc, argv, '%', '@');
+	FEExecutionManagerT FEExec(argc, argv, '%', '@', comm);
 	FEExec.Run();		
 
-	ShutDown();
+	ShutDown(comm);
 }
 
-static void StartUp(int* argc, char*** argv)
+static void StartUp(int* argc, char*** argv, CommunicatorT& comm)
 {
-#ifdef __MPI__
-#ifdef __MWERKS__
-	cout << " Initializing MPI..." << endl;
-#endif
-
-	/* initialize MPI */
-	if (MPI_Init(argc, argv) != MPI_SUCCESS)
-	{
-		cout << "\n MPI_Init: error" << endl;
-		throw eMPIFail;
-	}
-
-	int rank;
-	if (MPI_Comm_rank(MPI_COMM_WORLD, &rank) != MPI_SUCCESS)
-		throw eMPIFail;
-	
 #if !defined(_MACOS_)
 #ifdef __DEC__
 	/* redirect cout and cerr */
-	if (rank > 0)
+	if (comm.Rank() > 0)
 	{
 		StringT console_file("console");
-		console_file.Append(rank);
+		console_file.Append(comm.Rank());
 		console.open(console_file, ios::app);
 
 		/* keep buffers from cout and cerr */
@@ -89,28 +75,29 @@ static void StartUp(int* argc, char*** argv)
 	}
 #else
 	/* redirect cout and cerr */
-	if (rank > 0)
+	if (comm.Rank() > 0)
 	{
 		StringT console_file("console");
-		console_file.Append(rank);
+		console_file.Append(comm.Rank());
 		console.open(console_file, ios::app);
 		cout = console;
 		cerr = console;
 	}
 #endif /* __DEC__ */
+#else /* __MACOS__ */
+#pragma unused(comm)
 #endif /* __MACOS__ */
 
 	/* output build date and time */
 	cout << "\n build: " __TIME__ ", " << __DATE__ << '\n';
 
-#elif defined(__MWERKS__) && defined (macintosh)
-	/* get command-line arguments - MacOS no MPI */
+#if defined(__MWERKS__) && defined (macintosh)
+	/* get command-line arguments */
 	*argc = ccommand(argv);
-#endif /* __MPI__ */
+#endif /* Carbon */
 
-#ifdef __MPI__
-	cout << "********************* MPI Version *********************" << '\n';
-#endif /* __MPI__ */
+	if (CommunicatorT::ActiveMP())
+		cout << "********************* MPI Version *********************" << '\n';
 
 #if __option (extended_errorcheck)
 	cout << "\n Extended error checking is ON\n";
@@ -132,7 +119,7 @@ static void StartUp(int* argc, char*** argv)
 #endif
 }
 
-static void ShutDown(void)
+static void ShutDown(CommunicatorT& comm)
 {
 	cout << "\nExit.\n" << endl;
 
@@ -141,16 +128,7 @@ static void ShutDown(void)
 	ProfilerTerm();
 #endif
 
-#ifdef __MPI__
-	/* get rank */
-	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-	/* end MPI */
-	if (MPI_Finalize() != MPI_SUCCESS)
-		cout << "\n MPI_Finalize: error" << endl;
-
-	if (rank > 0)
+	if (comm.Rank() > 0)
 	{
 #ifdef __DEC__
 		/* restore cout and cerr */
@@ -160,5 +138,4 @@ static void ShutDown(void)
 		/* close console file */
 		console.close();
 	}
-#endif /* __MPI__ */
 }

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.34 2002-07-02 19:55:30 cjkimme Exp $ */
+/* $Id: FEManagerT.cpp,v 1.35 2002-08-15 08:59:36 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -21,6 +21,7 @@
 #include "ArgSpecT.h"
 #include "eControllerT.h"
 #include "nControllerT.h"
+#include "CommunicatorT.h"
 
 /* nodes */
 #include "NodeManagerT.h"
@@ -37,10 +38,9 @@
 #include "iNLSolver_LS.h"
 #include "NOXSolverT.h"
 
-/* File/Version Control */
-
 using namespace Tahoe;
 
+/* File/Version Control */
 const char* kCurrentVersion = "v3.4.1";
 const char* kProgramName    = "tahoe";
 
@@ -59,9 +59,10 @@ const char* eExceptionStrings[] = {
 /*10 */ "unknown"};	
 
 /* constructor */
-FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output):
+FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm):
 	fMainIn(input),
 	fMainOut(output),
+	fComm(comm),
 	fStatus(GlobalT::kConstruction),
 	fTimeManager(NULL),
 	fNodeManager(NULL),
@@ -738,6 +739,9 @@ int FEManagerT::GlobalEquationNumber(int nodenum, int dofnum) const
 	return fNodeManager->GlobalEquationNumber(nodenum, dofnum);
 }
 #endif
+
+int FEManagerT::Rank(void) const { return fComm.Rank(); }
+int FEManagerT::Size(void) const { return fComm.Size(); }
 
 void FEManagerT::IncomingNodes(iArrayT& nodes_in ) const {  nodes_in.Free(); }
 void FEManagerT::OutgoingNodes(iArrayT& nodes_out) const { nodes_out.Free(); }
