@@ -1,7 +1,9 @@
-/* $Id: FBC_ControllerT.cpp,v 1.9.6.1 2004-01-28 01:34:13 paklein Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.9.6.2 2004-03-31 16:20:14 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #include "FBC_ControllerT.h"
 #include "ArrayT.h"
+#include "FieldT.h"
+#include "IntegratorT.h"
 
 #include <iostream.h>
 
@@ -24,11 +26,11 @@ FBC_ControllerT::CodeT FBC_ControllerT::Code(const char* name)
 		return kNone;
 }
 
-/* constructor */
-FBC_ControllerT::FBC_ControllerT(FEManagerT& fe_manager, int group):
+FBC_ControllerT::FBC_ControllerT(void):
 	ParameterInterfaceT("FBC_controller"),
-	fFEManager(fe_manager),
-	fGroup(group),
+	fFieldSupport(NULL),
+	fField(NULL),
+	fGroup(-1),
 	fIntegrator(NULL)
 {
 
@@ -37,10 +39,21 @@ FBC_ControllerT::FBC_ControllerT(FEManagerT& fe_manager, int group):
 /* destructor */
 FBC_ControllerT::~FBC_ControllerT(void) { }
 
-/* set the controller */
-void FBC_ControllerT::SetController(const eIntegratorT* controller)
+/* set the associated field */
+void FBC_ControllerT::SetField(const FieldT& field)
 {
-	fIntegrator = controller;
+	/* the field */
+	fField = &field;
+
+	/* the solver group */
+	fGroup = fField->Group();
+
+	/* the support */
+	fFieldSupport = &(fField->FieldSupport());
+
+	/* the integrator */
+	const IntegratorT& integrator = fField->Integrator();
+	fIntegrator = &(integrator.eIntegrator());
 }
 
 /* append element equations numbers to the list */
@@ -74,4 +87,15 @@ void FBC_ControllerT::ReadRestart(istream& in)
 void FBC_ControllerT::WriteRestart(ostream& out) const
 {
 #pragma unused(out)
+}
+
+/* accept parameter list */
+void FBC_ControllerT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);	
+
+	/* field support should already be set */
+	if (!fFieldSupport)
+		ExceptionT::GeneralFail("FBC_ControllerT::TakeParameterList", "call SetField first");
 }
