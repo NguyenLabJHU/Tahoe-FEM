@@ -1,13 +1,11 @@
-/* $Id: iAutoArrayT.cpp,v 1.5 2002-10-01 11:43:07 sawimme Exp $ */
-/* created: paklein (02/08/1999)                                          */
-
+/* $Id: iAutoArrayT.cpp,v 1.6 2002-11-25 07:03:21 paklein Exp $ */
+/* created: paklein (02/08/1999) */
 #include "iAutoArrayT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 
 #include "toolboxConstants.h"
-
 
 using namespace Tahoe;
 

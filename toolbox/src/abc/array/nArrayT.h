@@ -1,6 +1,5 @@
-/* $Id: nArrayT.h,v 1.16 2002-10-20 22:38:51 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.17 2002-11-25 07:03:21 paklein Exp $ */
 /* created: paklein (05/23/1997) */
-
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
 
@@ -246,8 +245,7 @@ ostream& operator<<(ostream& out, const OutputProxyT<TYPE>& proxy)
 			proxy.array_.WriteWrappedTight(out, proxy.line_count_);
 			break;
 		default:
-			cout << "\n operator<<OutputProxyT: unknown format: " << proxy.format_ << endl;
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail("operator<<OutputProxyT", "unknown format: %d", proxy.format_);
 	}
 	return out;
 }
@@ -380,7 +378,7 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator+=(const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != RHS.fLength) throw ExceptionT::kSizeMismatch;
+	if (fLength != RHS.fLength) ExceptionT::SizeMismatch("nArrayT<nTYPE>::operator+=");
 #endif
 	return operator+=(RHS.Pointer());
 }
@@ -410,7 +408,7 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator-=(const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != RHS.fLength) throw ExceptionT::kSizeMismatch;
+	if (fLength != RHS.fLength) ExceptionT::SizeMismatch("nArrayT<nTYPE>::operator-=");
 #endif
 	return operator-=(RHS.Pointer());
 }
@@ -440,7 +438,7 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator*=(const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != RHS.fLength) throw ExceptionT::kSizeMismatch;
+	if (fLength != RHS.fLength) ExceptionT::SizeMismatch("nArrayT<nTYPE>::operator*=");
 #endif
 
 	nTYPE* pthis = Pointer();
@@ -466,7 +464,7 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator/=(const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != RHS.fLength) throw ExceptionT::kSizeMismatch;
+	if (fLength != RHS.fLength) ExceptionT::SizeMismatch("nArrayT<nTYPE>::operator/=");
 #endif
 
 	nTYPE* pthis = Pointer();
@@ -558,7 +556,7 @@ template <class nTYPE>
 nTYPE nArrayT<nTYPE>::Max(void) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) throw ExceptionT::kGeneralFail;
+	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
 	nTYPE* pthis = Pointer();
@@ -576,7 +574,7 @@ template <class nTYPE>
 nTYPE nArrayT<nTYPE>::Max(int& position) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) throw ExceptionT::kGeneralFail;
+	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
 	nTYPE* pthis = Pointer();
@@ -599,7 +597,7 @@ template <class nTYPE>
 nTYPE nArrayT<nTYPE>::Min(void) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) throw ExceptionT::kGeneralFail;
+	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
 	nTYPE* pthis = Pointer();
@@ -617,7 +615,7 @@ template <class nTYPE>
 nTYPE nArrayT<nTYPE>::Min(int& position) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) throw ExceptionT::kGeneralFail;
+	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
 	nTYPE* pthis = Pointer();
@@ -640,7 +638,7 @@ template <class nTYPE>
 nTYPE nArrayT<nTYPE>::AbsMax(void) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) throw ExceptionT::kGeneralFail;
+	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
 	nTYPE* pthis = Pointer();
@@ -658,7 +656,7 @@ template <class nTYPE>
 nTYPE nArrayT<nTYPE>::AbsMin(void) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) throw ExceptionT::kGeneralFail;
+	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
 	nTYPE* pthis = Pointer();
@@ -677,7 +675,7 @@ void nArrayT<nTYPE>::MinMax(nTYPE& min, nTYPE& max,
 	bool positive_only) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) throw ExceptionT::kGeneralFail;
+	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
 	/* ignore negative numbers */
@@ -723,7 +721,7 @@ template <class nTYPE>
 void nArrayT<nTYPE>::AbsMinMax(nTYPE& absmin, nTYPE& absmax) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) throw ExceptionT::kGeneralFail;
+	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
 	nTYPE abs;
@@ -835,7 +833,7 @@ template <class masterTYPE, class slaveTYPE>
 static void SortAscending(ArrayT<masterTYPE>& master, ArrayT<slaveTYPE>& slave)
 {
 	/* check */
-	if (master.Length() < slave.Length()) throw ExceptionT::kSizeMismatch;
+	if (master.Length() < slave.Length()) ExceptionT::SizeMismatch();
 	int N = master.Length();
 
 	/* local variables */
@@ -936,7 +934,7 @@ nTYPE nArrayT<nTYPE>::Dot(const nArrayT<nTYPE>& A1, const nArrayT<nTYPE>& A2)
 {
 /* dimension check */
 #if __option (extended_errorcheck)
-	if (A1.Length() != A2.Length()) throw ExceptionT::kSizeMismatch;
+	if (A1.Length() != A2.Length()) ExceptionT::SizeMismatch();
 #endif
 
 	nTYPE* p1 = A1.Pointer();
@@ -962,7 +960,7 @@ nTYPE nArrayT<nTYPE>::Distance(const nArrayT<nTYPE>& A1,
 {
 /* dimension check */
 #if __option (extended_errorcheck)
-	if (A1.Length() != A2.Length()) throw ExceptionT::kSizeMismatch;
+	if (A1.Length() != A2.Length()) ExceptionT::SizeMismatch();
 #endif
 
 	nTYPE* p1 = A1.Pointer();
@@ -993,7 +991,7 @@ void nArrayT<nTYPE>::SetToScaled(const nTYPE& scale, const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != RHS.fLength) throw ExceptionT::kSizeMismatch;
+	if (fLength != RHS.fLength) ExceptionT::SizeMismatch();
 #endif
 
 	nTYPE* pthis = Pointer();
@@ -1012,7 +1010,7 @@ void nArrayT<nTYPE>::AddScaled(const nTYPE& scale, const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != RHS.fLength) throw ExceptionT::kSizeMismatch;
+	if (fLength != RHS.fLength) ExceptionT::SizeMismatch();
 #endif
 
 	nTYPE* pthis = Pointer();
@@ -1032,7 +1030,7 @@ inline void nArrayT<nTYPE>::SumOf(const nArrayT& A, const nArrayT& B)
 {
 #if __option (extended_errorcheck)
 	/* dimension checks */
-	if (fLength != A.fLength || fLength != B.fLength) throw ExceptionT::kSizeMismatch;
+	if (fLength != A.fLength || fLength != B.fLength) ExceptionT::SizeMismatch();
 #endif
 
 	/* call pointer version */
@@ -1056,7 +1054,7 @@ inline void nArrayT<nTYPE>::DiffOf(const nArrayT& A, const nArrayT& B)
 {
 #if __option (extended_errorcheck)
 	/* dimension checks */
-	if (fLength != A.fLength || fLength != B.fLength) throw ExceptionT::kSizeMismatch;
+	if (fLength != A.fLength || fLength != B.fLength) ExceptionT::SizeMismatch();
 #endif
 
 	/* call pointer version */
@@ -1082,7 +1080,7 @@ void nArrayT<nTYPE>::SetToCombination(const nTYPE& a, const nArrayT& A,
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != A.fLength || fLength != B.fLength) throw ExceptionT::kSizeMismatch;
+	if (fLength != A.fLength || fLength != B.fLength) ExceptionT::SizeMismatch();
 #endif
 
 	nTYPE* pthis = Pointer();
@@ -1113,7 +1111,7 @@ void nArrayT<nTYPE>::SetToCombination(
 #if __option (extended_errorcheck)
 	if (fLength != A.fLength ||
 	    fLength != B.fLength ||
-	    fLength != C.fLength) throw ExceptionT::kSizeMismatch;
+	    fLength != C.fLength) ExceptionT::SizeMismatch();
 #endif
 
 	nTYPE* pthis = Pointer();
@@ -1145,7 +1143,7 @@ void nArrayT<nTYPE>::AddCombination(const nTYPE& a, const nArrayT& A,
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != A.fLength || fLength != B.fLength) throw ExceptionT::kSizeMismatch;
+	if (fLength != A.fLength || fLength != B.fLength) ExceptionT::SizeMismatch();
 #endif
 
 	nTYPE* pthis = Pointer();
@@ -1171,7 +1169,7 @@ void nArrayT<nTYPE>::AddCombination(const nTYPE& a, const nArrayT& A)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != A.fLength) throw ExceptionT::kSizeMismatch;
+	if (fLength != A.fLength) ExceptionT::SizeMismatch();
 #endif
 
 	nTYPE* pthis = Pointer();
@@ -1193,14 +1191,14 @@ void nArrayT<nTYPE>::AddCombination(const nArrayT& a,
 {
 /* dimension of sum */
 #if __option (extended_errorcheck)
-	if (a.Length() != A.Length()) throw ExceptionT::kSizeMismatch;
+	if (a.Length() != A.Length()) ExceptionT::SizeMismatch();
 #endif
 
 	/* sum */
 	for (int i = 0; i < a.Length(); i++)
 	{
 		/* check each term in sum */
-		if (fLength != A[i]->Length()) throw ExceptionT::kSizeMismatch;
+		if (fLength != A[i]->Length()) ExceptionT::SizeMismatch();
 	
 		nTYPE* pthis = Pointer();
 		nTYPE* pA    = A[i]->Pointer();
