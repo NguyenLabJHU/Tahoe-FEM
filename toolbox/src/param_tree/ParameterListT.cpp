@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.cpp,v 1.20 2004-06-16 07:11:57 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.21 2004-09-14 17:58:17 paklein Exp $ */
 #include "ParameterListT.h"
 #include "ParameterInterfaceT.h"
 #include <string.h>
@@ -70,7 +70,8 @@ bool ParameterListT::AddParameter(const ParameterT& param, OccurrenceT occur)
 {
 	if (fInline)
 		ExceptionT::GeneralFail("ParameterListT::AddParameter", 
-			"inlined lists cannot have parameters");
+			"inlined list \"%s\" cannot have parameters",
+			Name().Pointer());
 
 	/* "description" is reserved */
 	if (param.Name() == "description") {
