@@ -1,4 +1,4 @@
-/* $Id: ThreeBodyPropertyT.h,v 1.1 2004-11-23 01:43:20 cjkimme Exp $ */
+/* $Id: ThreeBodyPropertyT.h,v 1.2 2004-11-23 01:55:38 cjkimme Exp $ */
 #ifndef _THREE_BODY_PROPERTY_T_H_
 #define _THREE_BODY_PROPERTY_T_H_
 
@@ -9,6 +9,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class BasicSupportT;
+class dMatrixT;
 
 /** defines interface for pair interactions */
 class ThreeBodyPropertyT: public PairPropertyT
