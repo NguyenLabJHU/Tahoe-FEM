@@ -1,4 +1,4 @@
-/* $Id: ParameterContainerT.h,v 1.3 2004-03-22 18:34:54 paklein Exp $ */
+/* $Id: ParameterContainerT.h,v 1.4 2004-03-24 17:20:35 paklein Exp $ */
 #ifndef _PARAMETER_CONTAINER_T_H_
 #define _PARAMETER_CONTAINER_T_H_
 
@@ -56,6 +56,9 @@ public:
 	/** the order of subordinate lists */
 	virtual ParameterListT::ListOrderT ListOrder(void) const;
 
+	/** return true if the interface is inline */
+	virtual bool Inline(void) const;
+
 protected:
 
 	/** \name implementation of the ParameterInterfaceT interface */
@@ -82,6 +85,11 @@ protected:
 /* the order of subordinate lists */
 inline ParameterListT::ListOrderT ParameterContainerT::ListOrder(void) const {
 	return ParameterListT::ListOrder();
+}
+
+/* return true if the interface is inline */
+inline bool ParameterContainerT::Inline(void) const {
+	return ParameterListT::Inline();
 }
 
 } /* namespace Tahoe */
