@@ -1,4 +1,4 @@
-/* $Id: nGear6.cpp,v 1.12.4.1 2004-11-08 02:16:01 d-farrell2 Exp $ */
+/* $Id: nGear6.cpp,v 1.12.4.2 2004-11-15 04:14:58 d-farrell2 Exp $ */
 #include "nGear6.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
@@ -107,9 +107,9 @@ void nGear6::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend 
 		(*p4++) += fdt*(*p5++);
 	}
 }		
-
+#pragma message("nGear6::Corrector, not implemented with limits yet, declaration changed to match others")
 /* corrector. Maps ALL degrees of freedom forward. */
-void nGear6::Corrector(BasicFieldT& field, const dArray2DT& update)
+void nGear6::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
 {
 	/* check */
 	if (field.Order() != 5)

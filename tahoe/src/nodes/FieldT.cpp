@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.36.2.1 2004-11-08 02:16:07 d-farrell2 Exp $ */
+/* $Id: FieldT.cpp,v 1.36.2.2 2004-11-15 04:15:03 d-farrell2 Exp $ */
 #include "FieldT.h"
 
 #include "ifstreamT.h"
@@ -353,10 +353,10 @@ void FieldT::AssembleUpdate(const dArrayT& update)
 }
 
 /* update the active degrees of freedom */
-void FieldT::ApplyUpdate(void)
+void FieldT::ApplyUpdate(int fPartFieldStart /*= 0*/, int fPartFieldEnd /*= -1*/)
 {
 	/* corrector */
-	nIntegrator().Corrector(*this, fUpdate);
+	nIntegrator().Corrector(*this, fUpdate,fPartFieldStart, fPartFieldEnd, 0);
 }
 
 /* copy nodal information */

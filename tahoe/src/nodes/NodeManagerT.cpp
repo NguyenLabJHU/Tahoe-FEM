@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.52.2.4 2004-11-12 01:54:14 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.52.2.5 2004-11-15 04:15:03 d-farrell2 Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -408,6 +408,7 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 {
 	/* update fields */
 	for (int i = 0; i < fFields.Length(); i++)
+	{
 		if (fFields[i]->Group() == group)
 		{
 			/* assemble contribution from local solver */
@@ -416,16 +417,19 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 			/* gather/distribute external contribution */
 			fCommManager.AllGather(fMessageID[i], fFields[i]->Update());
 			
-			/* apply the update */
-			fFields[i]->ApplyUpdate();
+//			/* apply the update */
+//			fFields[i]->ApplyUpdate();
+			// apply the update to owned nodes
+			fFields[i]->ApplyUpdate(fPartFieldStart, fPartFieldEnd);
 		}
+	}
 
 	/* update current configurations */
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
 		UpdateCurrentCoordinates();
 	
 	/* inherited - update external DOF */
-	XDOF_ManagerT::Update(group, update);
+//	XDOF_ManagerT::Update(group, update);
 }
 
 /* update the current configuration. This is called by NodeManagerT::Update
@@ -440,7 +444,21 @@ void NodeManagerT::UpdateCurrentCoordinates(void)
 	
 		/* simple update assuming displacement degrees of freedom are the
 		 * nodal values */
-		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+		if (fPartFieldEnd != -1)
+		{
+			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0], fPartFieldStart, fPartFieldEnd);
+			
+			// communicate the updated coords
+			fCommManager.AllGather(fMessageCurrCoordsID, *fCurrentCoords);
+		}
+		else if (fPartFieldEnd == -1)
+		{
+			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+		}
+		else
+		{
+			ExceptionT::GeneralFail("NodeManagerT::InitStep, update current config","fPartFieldEnd does not fit expected values");
+		}
 	}	
 }
 
