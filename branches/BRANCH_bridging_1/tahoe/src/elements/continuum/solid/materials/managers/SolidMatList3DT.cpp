@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.29.2.1 2003-02-19 01:16:19 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.29.2.2 2003-02-21 01:17:48 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "fstreamT.h"
@@ -18,6 +18,7 @@
 
 #ifdef CAUCHY_BORN_MATERIAL
 #include "EAMFCC3DMatT.h"
+#include "FCC3D.h"
 #endif
 
 #ifdef MODCBSW_MATERIAL
@@ -240,6 +241,18 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new EAMFCC3DMatT(in, *fFSMatSupport);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);
+#endif
+			}
+			case kFCC:
+			{
+#ifdef CAUCHY_BORN_MATERIAL
+				/* check */
+				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new FCC3D(in, *fFSMatSupport);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);

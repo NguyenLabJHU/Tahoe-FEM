@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.32.2.1 2003-02-19 01:16:19 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.32.2.2 2003-02-21 01:17:48 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
@@ -349,7 +349,11 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "VIB_MATERIAL not enabled: %d", matcode);
 #endif
 			}
-		        case kFossumSSIso:
+			case kFCC:
+			{
+				ExceptionT::BadInputValue(caller, "material %d is 3D only", matcode);
+			}
+			case kFossumSSIso:
 			{
 #ifdef FOSSUM_MATERIAL_DEV
 				/* check */
