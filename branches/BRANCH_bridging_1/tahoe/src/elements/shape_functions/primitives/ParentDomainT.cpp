@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.16.6.1 2003-02-09 00:50:47 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.16.6.2 2003-02-10 02:19:29 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -409,7 +409,7 @@ void ParentDomainT::ComputeDNa(const LocalArrayT& coords,
 	ArrayT<dArray2DT>& DNa, dArrayT& det)
 {
 	/* loop over integration points */
-int numIP = fDNa.Length();
+	int numIP = fDNa.Length();
 	for (int i = 0; i < numIP; i++)	
 	{
 		/* calculate the Jacobian matrix */
@@ -677,13 +677,18 @@ bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& poin
 
 /* map domain coordinates into the parent coordinates */
 bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& point,
-	dArrayT& mapped)
+	dArrayT& mapped) const
 {
 	const char caller[] = "ParentDomainT::MapToParentDomain";
 #if __option(extended_errorcheck)
 	if (point.Length() != mapped.Length() ||
 	    point.Length() != coords.MinorDim()) ExceptionT::SizeMismatch(caller);
 #endif
+
+	/* cast away const-ness of local work space */
+	dMatrixT& jacobian = (dMatrixT&) fJacobian;
+	dArrayT& Na_p = (dArrayT&) fNa_p;
+	dArray2DT& DNa_p = (dArray2DT&) fDNa_p;
 
 	int dim = point.Length();
 	if (dim == 1) 
@@ -708,7 +713,7 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
 		mapped[1] = 0.0;
 	
 		/* evaluate shape functions, derivatives at point */
-		EvaluateShapeFunctions(mapped, fNa_p, fDNa_p);
+		EvaluateShapeFunctions(mapped, Na_p, DNa_p);
       
 		/* compute initial residual */
 		double residual[2];
@@ -716,8 +721,8 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
 		residual[1] = point[1];
 		for (int i = 0; i < NumNodes(); i++)
 		{
-			residual[0] -= fNa_p[i]*coords(i,0);
-			residual[1] -= fNa_p[i]*coords(i,1);
+			residual[0] -= Na_p[i]*coords(i,0);
+			residual[1] -= Na_p[i]*coords(i,1);
 		}
 		double magres, magres0;
 		magres = magres0 = sqrt(residual[0]*residual[0] + residual[1]*residual[1]);
@@ -731,22 +736,22 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
 			{
 				/* Newton update */
 				double update[2];
-				Jacobian(coords, fDNa_p, fJacobian);
-				fJacobian.Inverse();
-				fJacobian.Multx(residual, update);
+				Jacobian(coords, DNa_p, jacobian);
+				jacobian.Inverse();
+				jacobian.Multx(residual, update);
 				mapped[0] += update[0];
 				mapped[1] += update[1];
 				
 				/* evaluate shape functions, derivatives at point */
-				EvaluateShapeFunctions(mapped, fNa_p, fDNa_p);
+				EvaluateShapeFunctions(mapped, Na_p, DNa_p);
 				
 				/* new residual */
 				residual[0] = point[0];
 				residual[1] = point[1];
 				for (int i = 0; i < NumNodes(); i++)
 				{
-					residual[0] -= fNa_p[i]*coords(i,0);
-					residual[1] -= fNa_p[i]*coords(i,1);
+					residual[0] -= Na_p[i]*coords(i,0);
+					residual[1] -= Na_p[i]*coords(i,1);
 				}
 				magres = sqrt(residual[0]*residual[0] + residual[1]*residual[1]);
 			}
@@ -769,7 +774,7 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
 		mapped[2] = 0.0;
 	
 		/* evaluate shape functions, derivatives at point */
-		EvaluateShapeFunctions(mapped, fNa_p, fDNa_p);
+		EvaluateShapeFunctions(mapped, Na_p, DNa_p);
       
 		/* compute initial residual */
 		double residual[3];
@@ -778,9 +783,9 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
 		residual[2] = point[2];
 		for (int i = 0; i < NumNodes(); i++)
 		{
-			residual[0] -= fNa_p[i]*coords(i,0);
-			residual[1] -= fNa_p[i]*coords(i,1);
-			residual[2] -= fNa_p[i]*coords(i,2);
+			residual[0] -= Na_p[i]*coords(i,0);
+			residual[1] -= Na_p[i]*coords(i,1);
+			residual[2] -= Na_p[i]*coords(i,2);
 		}
 		double magres, magres0;
 		magres = magres0 = sqrt(residual[0]*residual[0] + 
@@ -796,15 +801,15 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
 			{
 				/* Newton update */
 				double update[3];
-				Jacobian(coords, fDNa_p, fJacobian);
-				fJacobian.Inverse();
-				fJacobian.Multx(residual, update);
+				Jacobian(coords, DNa_p, jacobian);
+				jacobian.Inverse();
+				jacobian.Multx(residual, update);
 				point[0] += update[0];
 				point[1] += update[1];
 				point[2] += update[2];
 				
 				/* evaluate shape functions, derivatives at point */
-				EvaluateShapeFunctions(mapped, fNa_p, fDNa_p);
+				EvaluateShapeFunctions(mapped, Na_p, DNa_p);
 				
 				/* new residual */
 				residual[0] = point[0];
@@ -812,9 +817,9 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
 				residual[2] = point[2];
 				for (int i = 0; i < NumNodes(); i++)
 				{
-					residual[0] -= fNa_p[i]*coords(i,0);
-					residual[1] -= fNa_p[i]*coords(i,1);
-					residual[2] -= fNa_p[i]*coords(i,2);
+					residual[0] -= Na_p[i]*coords(i,0);
+					residual[1] -= Na_p[i]*coords(i,1);
+					residual[2] -= Na_p[i]*coords(i,2);
 				}
 				double magres = sqrt(residual[0]*residual[0] + 
 				                     residual[1]*residual[1] +

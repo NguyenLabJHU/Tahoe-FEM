@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.12.12.1 2003-02-09 00:50:48 paklein Exp $ */
+/* $Id: ParentDomainT.h,v 1.12.12.2 2003-02-10 02:19:29 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _PARENT_DOMAIN_T_H_
 #define _PARENT_DOMAIN_T_H_
@@ -195,7 +195,7 @@ class ParentDomainT
 	 * \param point test point coordinates 
 	 * \param mapped point coordinates in the parent coordinates */
 	bool MapToParentDomain(const LocalArrayT& coords, const dArrayT& point,
-		dArrayT& mapped);
+		dArrayT& mapped) const;
 
 	/** calculate a characteristic domain size. Calculate the maximum distance
 	 * between the average nodal position and each of the nodes. 
