@@ -1,4 +1,4 @@
-/* $Id: dSPMatrixT.cpp,v 1.1 2003-02-22 02:55:15 kaplan Exp $ */
+/* $Id: dSPMatrixT.cpp,v 1.2 2003-02-22 23:53:44 paklein Exp $ */
 /* created MLK 10/3/00 */
 #include "dSPMatrixT.h"
 
@@ -116,12 +116,17 @@ dSPMatrixT& dSPMatrixT::operator=(const dSPMatrixT& RHS)
 #endif
 
 	SetBlock(0,0,RHS);
-	
 	return(*this);
 }
 
+dSPMatrixT& dSPMatrixT::operator=(double value)
+{
+	fVal_Matrix = value;
+	return(*this);	
+}
+
 /* multiplication by a scalar */
-dSPMatrixT& dSPMatrixT::operator*=(const double& value)
+dSPMatrixT& dSPMatrixT::operator*=(double value)
 {
 	fVal_Matrix *= value;
 	return(*this);	
@@ -435,7 +440,7 @@ void dSPMatrixT::Transpose(const dSPMatrixT& RHS)
 
 /*                              	  T		*/
 /* (*this) = A(i,k)*B(j,k) 		(A * B )	*/
-void dSPMatrixT::MultABT(dSPMatrixT& A, dSPMatrixT& B)
+void dSPMatrixT::MultABT(const dSPMatrixT& A, const dSPMatrixT& B)
 {
 #if __option (extended_errorcheck)	
 	/* dimension checks */
@@ -488,7 +493,7 @@ void dSPMatrixT::MultABT(dSPMatrixT& A, dSPMatrixT& B)
 
 /*                               	     T		    */
 /* this(i,j) = A(k,i)*B(k,j) 	(this = A  * B)		*/
-void dSPMatrixT::MultATB(dSPMatrixT& A, dSPMatrixT& B)
+void dSPMatrixT::MultATB(const dSPMatrixT& A, const dSPMatrixT& B)
 {
 #if __option (extended_errorcheck)
 	/* dimension checks */	
@@ -504,7 +509,7 @@ void dSPMatrixT::MultATB(dSPMatrixT& A, dSPMatrixT& B)
 }
 
 /* this(i,j) = A(i,k)*B(k,j) , (this = A * B) 	*/
-void dSPMatrixT::MultAB(dSPMatrixT& A, dSPMatrixT& B)
+void dSPMatrixT::MultAB(const dSPMatrixT& A, const dSPMatrixT& B)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)	

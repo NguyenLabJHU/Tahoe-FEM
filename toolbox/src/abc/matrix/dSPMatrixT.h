@@ -1,4 +1,4 @@
-/* $Id: dSPMatrixT.h,v 1.1 2003-02-22 02:55:15 kaplan Exp $ */
+/* $Id: dSPMatrixT.h,v 1.2 2003-02-22 23:53:44 paklein Exp $ */
 /* created MLK 10/3/00 */
 #ifndef _DSPMATRIX_T_H_
 #define _DSPMATRIX_T_H_
@@ -54,9 +54,10 @@ class dSPMatrixT
 	/*@{*/
 	/** assignment operators */
 	dSPMatrixT& operator=(const dSPMatrixT& RHS);
+	dSPMatrixT& operator=(double value);
 
 	/** multiplication by a scalar */
-	dSPMatrixT& operator*=(const double& value);
+	dSPMatrixT& operator*=(double value);
 	
 	/** matrix addition */  	 
   	dSPMatrixT& operator+=(const dSPMatrixT& RHS);
@@ -94,9 +95,9 @@ class dSPMatrixT
 
 	/** \name matrix-matrix multiplication */
 	/*@{*/
-	void MultAB(dSPMatrixT& A, dSPMatrixT& B);
-	void MultABT(dSPMatrixT& A, dSPMatrixT& B);
-	void MultATB(dSPMatrixT& A, dSPMatrixT& B);
+	void MultAB(const dSPMatrixT& A, const dSPMatrixT& B);
+	void MultABT(const dSPMatrixT& A, const dSPMatrixT& B);
+	void MultATB(const dSPMatrixT& A, const dSPMatrixT& B);
 	/*@}*/
 	
 	/** conversion to dLACOOMatrixT */
