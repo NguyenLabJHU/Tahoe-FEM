@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.7 2004-07-15 08:25:53 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.8 2004-07-22 08:20:19 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "ifstreamT.h"
@@ -14,45 +14,16 @@
 #include "CommManagerT.h"
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
+#include "SolidElementT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-MeshfreeBridgingT::MeshfreeBridgingT(const ElementSupportT& support, const FieldT& field,
-	const SolidElementT& solid):
-	BridgingScaleT(support, field, solid),
+MeshfreeBridgingT::MeshfreeBridgingT(const ElementSupportT& support):
+	BridgingScaleT(support),
 	fMLS(NULL)
 {
-ExceptionT::GeneralFail("MeshfreeBridgingT::MeshfreeBridgingT", "out of date");
-#if 0
-	/* solid element class needs to store the internal force vector */
-	SolidElementT& solid_tmp = const_cast<SolidElementT&>(fSolid);
-	solid_tmp.SetStoreInternalForce(true);
-
-	ifstreamT& in = ElementSupport().Input();
-	MeshFreeT::WindowTypeT window_type;
-	in >> window_type;
-	dArrayT window_params;
-	switch (window_type)
-	{
-		case MeshFreeT::kGaussian:
-			window_params.Dimension(3);
-			for (int i = 0; i < window_params.Length(); i++)
-				in >> window_params[i]; /* one at a time for comments */
-			break;
-		case MeshFreeT::kCubicSpline:
-			window_params.Dimension(1);
-			in >> window_params[0];
-			break;
-		default:
-			ExceptionT::BadInputValue("MeshfreeBridgingT::MeshfreeBridgingT", 
-				"unknown window type: %d", window_type);
-	}
-	
-	/* MLS solver */
-	fMLS = new MLSSolverT(NumSD(), 1, window_type, window_params);
-	fMLS->Initialize();
-#endif
+	SetName("meshfree_bridging");
 }
 
 /* destructor */
@@ -376,6 +347,39 @@ void MeshfreeBridgingT::CollectProjectedNodes(const PointInCellDataT& cell_data,
 	driven_node_map.Forward(nodes);
 }
 
+/* information about subordinate parameter lists */
+void MeshfreeBridgingT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	BridgingScaleT::DefineSubs(sub_list);
+
+	/* meshfree shape functions */
+	sub_list.AddSub("RKPM");
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* MeshfreeBridgingT::NewSub(const StringT& name) const
+{
+	if (name == "RKPM")
+		return fMeshFreeSupport.NewSub(name);
+	else /* inherited */
+		return BridgingScaleT::NewSub(name);
+}
+	
+/* accept parameter list */
+void MeshfreeBridgingT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	BridgingScaleT::TakeParameterList(list);
+
+	/* construct the MLS solver */
+	const ParameterListT& rkpm = list.GetList("RKPM");
+	int completeness = rkpm.GetParameter("completeness");
+	const ParameterListT& window = rkpm.GetListChoice(fMeshFreeSupport, "window_function_choice");		
+	fMLS = MeshFreeSupportT::New_MLSSolverT(NumSD(), completeness, window);
+	fMLS->Initialize();
+}
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
@@ -409,19 +413,20 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 		LocalArrayT::kInitCoords : LocalArrayT::kCurrCoords;
 
 	/* compute (average) support size of each node */
+	int nel = SolidElement().NumElements();	
 	iArrayT counts(nodes_used.Length());
 	counts = 0;
 	dArray2DT support_param(nodes_used.Length(), 1);
 	support_param = 0.0;
 	const ParentDomainT& parent = ShapeFunction().ParentDomain();
 	dArrayT centroid;
-	LocalArrayT loc_cell_coords(coord_type, fSolid.NumElementNodes(), NumSD());
+	LocalArrayT loc_cell_coords(coord_type, SolidElement().NumElementNodes(), NumSD());
 	loc_cell_coords.SetGlobal(cell_coordinates);
 	node_to_neighbor_data.SetOutOfRange(InverseMapT::MinusOne);
-	for (int i = 0; i < fSolid.NumElements(); i++) {
+	for (int i = 0; i < nel; i++) {
 
 		/* element nodes */
-		const iArrayT& element_nodes = fSolid.ElementCard(i).NodesX();
+		const iArrayT& element_nodes = SolidElement().ElementCard(i).NodesX();
 	
 		/* gives domain (global) nodal coordinates */
 		loc_cell_coords.SetLocal(element_nodes);

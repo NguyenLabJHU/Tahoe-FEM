@@ -1,19 +1,22 @@
-/* $Id: BridgingScaleT.h,v 1.34 2004-07-15 08:25:53 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.35 2004-07-22 08:20:19 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
 /* base class */
-#include "SolidElementT.h"
+#include "ElementBaseT.h"
 
 /* direct members */
 #include "RaggedArray2DT.h"
 #include "ElementMatrixT.h"
 #include "CCSMatrixT.h"
+#include "LocalArrayT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class PointInCellDataT;
+class SolidElementT;
+class ShapeFunctionT;
 
 /** class to handle interpolation of data from the nodes to an arbitrary set of
  * points and from a arbitrary set of points into the nodes. */
@@ -22,8 +25,10 @@ class BridgingScaleT: public ElementBaseT
 public:
 
 	/** constructor */
-	BridgingScaleT(const ElementSupportT& support, const FieldT& field,
-		const SolidElementT& solid);
+	BridgingScaleT(const ElementSupportT& support);
+
+//	BridgingScaleT(const ElementSupportT& support, const FieldT& field,
+//		const SolidElementT& solid);
 
 	/** \name field interpolation */
 	/*@{*/
@@ -122,7 +127,20 @@ public:
 	/*@}*/
 #endif
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
+
+	/** return a reference to the associated solid element group or throw
+	 * an exception if the group has not been resolved */
+	const SolidElementT& SolidElement(void) const;
 
 	/** map points into cells in the group's connectivities.
 	 * Map points into the initial or current configuration of the mesh. Only
@@ -164,7 +182,7 @@ protected:
 protected:
 
 	/** continuum group solving displacements */
-	const SolidElementT& fSolid;
+	const SolidElementT* fSolid;
 	iArray2DT fSolidNodesUsed;
 
 	/** list of particles per element: [n_cell] x [n_part_i] */
@@ -216,10 +234,15 @@ private:
 
 /* inlines */
 
-/* accessors */
-inline const ShapeFunctionT& BridgingScaleT::ShapeFunction(void) const
+/* return a reference to the associated solid element group */
+inline const SolidElementT& BridgingScaleT::SolidElement(void) const
 {
-	return fSolid.ShapeFunction();
+#if __option(extended_errorcheck)
+	if (!fSolid) 
+		ExceptionT::GeneralFail("BridgingScaleT::SolidElement",
+			"pointer not set");
+#endif
+	return *fSolid;
 }
 
 inline const LocalArrayT& BridgingScaleT::InitialCoordinates() const

@@ -1,9 +1,12 @@
-/* $Id: MeshfreeBridgingT.h,v 1.6 2004-06-26 05:53:19 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.h,v 1.7 2004-07-22 08:20:19 paklein Exp $ */
 #ifndef _MESHFREE_BRIDGING_SCALE_T_H_
 #define _MESHFREE_BRIDGING_SCALE_T_H_
 
 /* base class */
 #include "BridgingScaleT.h"
+
+/* direct members */
+#include "MeshFreeSupport3DT.h"
 
 namespace Tahoe {
 
@@ -17,8 +20,7 @@ class MeshfreeBridgingT: public BridgingScaleT
 public:
 
 	/** constructor */
-	MeshfreeBridgingT(const ElementSupportT& support, const FieldT& field,
-		const SolidElementT& solid);
+	MeshfreeBridgingT(const ElementSupportT& support);
 
 	/** destructor */
 	~MeshfreeBridgingT(void);
@@ -55,6 +57,18 @@ public:
 	virtual void CollectProjectedNodes(const PointInCellDataT& cell_data, iArrayT& nodes) const;
 	/*@}*/
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/** determines points in the neighborhoods of nodes of each non-empty cell.
@@ -88,6 +102,9 @@ private:
 	
 	/** support size parameters of each atom in the crystal, not just the points in cells */
 	dArray2DT fSupportParams;
+
+	/** needed to define MLSSolverT parameters */
+	MeshFreeSupport3DT fMeshFreeSupport;
 };
 
 } /* namespace Tahoe */
