@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.38 2003-09-10 00:17:42 paklein Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.39 2003-11-18 19:36:27 paklein Exp $  */
 #include "TranslateIOManager.h"
 
 #include "ExceptionT.h"
@@ -133,19 +133,23 @@ void TranslateIOManager::InitializeVariables (void)
   cout << setw (10) << fNumQV << " Quadrature Variables\n";
 
   fNodeLabels.Dimension (fNumNV);
+  fKeepNodeLabels.Dimension (fNumNV);
   fElementLabels.Dimension (fNumEV);
+  fKeepElementLabels.Dimension (fNumEV);
 
   if (fNumNV > 0) {
   	fModel.NodeLabels (fNodeLabels);
   	ReNameLabels("node", fNodeLabels);
+  	FilterLabels("node", fKeepNodeLabels, fNodeLabels);
+  	fNumNV = fNodeLabels.Length();
   }
   
   if (fNumEV > 0) {
   	fModel.ElementLabels (fElementLabels);
   	ReNameLabels("element", fElementLabels);
-	}
-
-  // future: query user as to which variables to translate
+  	FilterLabels("element", fKeepElementLabels, fElementLabels);
+  	fNumEV = fElementLabels.Length();
+  }
 }
 
 void TranslateIOManager::InitializeNodeVariables (void)
@@ -538,6 +542,20 @@ void TranslateIOManager::TranslateVariables(void)
 		/* work space */
 		dArray2DT n_values(num_nodes, fNumNV);
 		dArray2DT e_values(num_elems, fNumEV);
+
+		/* filtering nodal values */
+		dArray2DT n_values_all;
+		if (fModel.NumNodeVariables() != fNumNV)
+			n_values_all.Dimension(num_nodes, fModel.NumNodeVariables());
+		else
+			n_values_all.Alias(n_values);
+
+		/* filtering element values */
+		dArray2DT e_values_all;
+		if (fModel.NumElementVariables() != fNumEV)
+			e_values_all.Dimension(num_elems, fModel.NumElementVariables());
+		else
+			e_values_all.Alias(e_values);
 	
 		/* loop over time steps */
 		for (int t = 0; t < fTimeIncs.Length(); t++)
@@ -548,20 +566,36 @@ void TranslateIOManager::TranslateVariables(void)
 			if (fOneOutputSet)
 			  {
 			    /* read node values */
-			    fModel.AllNodeVariables(fTimeIncs[t], n_values);
+			    fModel.AllNodeVariables(fTimeIncs[t], n_values_all);
 			    
 			    /* read values for all blocks - assumes block values assembled
 			     * one after the next */
-			    fModel.AllElementVariables(fTimeIncs[t], e_values);
+			    fModel.AllElementVariables(fTimeIncs[t], e_values_all);
 			  }
 			else
 			  {
 			    /* read node values */
-			    fModel.NodeVariables (fTimeIncs[t], names[g], n_values);
+			    fModel.NodeVariables (fTimeIncs[t], names[g], n_values_all);
 
 			    /* read element values */
-			    fModel.ElementVariables (fTimeIncs[t], names[g], e_values);
+			    fModel.ElementVariables (fTimeIncs[t], names[g], e_values_all);
 			  }
+			  
+			/* filter nodal values */
+			if (n_values_all.MinorDim() != n_values.MinorDim()) {
+				int index = 0;
+				for (int i = 0; i < n_values_all.MajorDim(); i++)
+					if (fKeepNodeLabels[i]) 
+						n_values.ColumnCopy(index++, n_values_all, i);	
+			}
+
+			/* filter nodal values */
+			if (e_values_all.MinorDim() != e_values.MinorDim()) {
+				int index = 0;
+				for (int i = 0; i < e_values_all.MajorDim(); i++)
+					if (fKeepElementLabels[i]) 
+						e_values.ColumnCopy(index++, e_values_all, i);	
+			}
 
 			/* write it */
 			fOutput->WriteOutput(fTimeSteps[t], fOutputID[g], n_values, e_values);
@@ -710,6 +744,7 @@ void TranslateIOManager::WriteElements(void)
 			    conn[0] = fModel.ElementGroupPointer (names[e]);
 			    OutputSetT set(fModel.ElementGroupGeometry (names[e]), block_ID, 
 					   conn, fNodeLabels, fElementLabels, changing);
+
 			    fOutputID[e] = fOutput->AddElementSet (set);
 			  }
 			else
@@ -803,8 +838,7 @@ void TranslateIOManager::ReNameLabels(const StringT& data_type, ArrayT<StringT>&
 	if (fEcho) fEchoOut << reply[0] << endl;
 
 	/* clear newline */
-	char line[255];
-	fIn.getline(line, 254);
+	fstreamT::ClearLine(fIn);
 
 	if (reply[0] == 'y' || reply[0] == 'Y')
 		for (int i = 0; i < labels.Length(); i++)
@@ -823,6 +857,56 @@ void TranslateIOManager::ReNameLabels(const StringT& data_type, ArrayT<StringT>&
 			} 	
 			
 			/* clear line */
-			fIn.getline(line, 254);
+			fstreamT::ClearLine(fIn);
 		}
+}
+
+void TranslateIOManager::FilterLabels(const StringT& data_type, iArrayT& filter,
+	ArrayT<StringT>& labels)
+{
+	if (labels.Length() == 0) return;
+
+	if (fWrite) cout << "\n Filter " << data_type << " labels (y/n) ? ";
+	StringT reply;
+	fIn >> reply;
+	if (fEcho) fEchoOut << reply[0] << endl;
+
+	/* clear newline */
+	fstreamT::ClearLine(fIn);
+
+	if (reply[0] == 'y' || reply[0] == 'Y')
+	{
+		filter.Dimension(labels.Length());
+		filter = 1;
+		for (int i = 0; i < labels.Length(); i++)
+		{
+		  if (fWrite)
+			cout << " Keep " << labels[i] << " <y> ? ";
+
+			/* peek at reply */
+			char test = fIn.peek();
+
+			/* not empty */
+			if (test != '\n') {
+				fIn >> reply;
+				if (reply[0] == 'n' || reply[0] == 'N')
+					filter[i] = 0;
+				if (fEcho) fEchoOut << reply << endl;
+			}
+			
+			/* clear line */
+			fstreamT::ClearLine(fIn);
+		}
+		
+		/*  filter labels */
+		int keep_count = filter.Count(1);
+		ArrayT<StringT> keep_labels(keep_count);
+		keep_count = 0;
+		for (int i = 0; i < filter.Length(); i++)
+			if (filter[i])
+				keep_labels[keep_count++] = labels[i];
+				
+		/* return filtered list */
+		labels.Swap(keep_labels);
+	}
 }
