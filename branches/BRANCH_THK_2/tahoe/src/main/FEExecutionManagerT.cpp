@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41.2.17 2003-06-16 05:34:07 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.41.2.18 2003-06-16 22:19:45 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -581,18 +581,18 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	/* figure out boundary atoms for use with THK boundary conditions, 
 	   ghost atoms for usage with MD force calculations */
 	const iArrayT& boundaryghostatoms = atoms.InterpolationNodes();
-	
 	int numgatoms = (atoms.GhostNodes()).Length();	// total number of ghost atoms
 	int numbatoms = boundaryghostatoms.Length() - numgatoms;	// total number of boundary atoms
 	dArray2DT gadisp(numgatoms,2), gavel(numgatoms,2), gaacc(numgatoms,2);
 	dArray2DT badisp(numbatoms,2), bavel(numbatoms,2), baacc(numbatoms,2);
-	iArrayT allatoms(boundaryghostatoms.Length()), gatoms(numgatoms), batoms(numbatoms); 
+	iArrayT allatoms(boundaryghostatoms.Length()), gatoms(numgatoms), batoms(numbatoms), boundatoms(numbatoms);
 	ArrayT<bool> ghostmask(1), ghostallow(1);
 	ghostmask = false;
 	ghostallow = true;
 	allatoms.SetValueToPosition();
-	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);
-	gatoms.CopyPart(0, allatoms, 0, numgatoms);
+	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);  
+	gatoms.CopyPart(0, allatoms, 0, numgatoms);          
+	boundatoms.CopyPart(0, boundaryghostatoms, numgatoms, numbatoms);
 	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
 	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);
 	
@@ -656,7 +656,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		
 		/* store initial MD boundary displacement histories */
 		thkforce = atoms.THKForce(badisp);
-		//atoms.SetExternalForce(bridging_field, thkforce, batoms);  // sets pointer to thkforce
+       		atoms.SetExternalForce(bridging_field, thkforce, boundatoms);  // sets pointer to thkforce 
 
 		/* figure out timestep ratio between fem and md simulations */
 		int nfesteps = continuum_time->NumberOfSteps();
@@ -724,7 +724,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 					continuum.ResetCumulativeUpdate(group);
 					error = continuum.SolveStep();
 			}
-		
+
 			/* Interpolate FEM values to MD ghost nodes which will act as MD boundary conditions */
 			continuum.InterpolateField(bridging_field, order1, boundghostdisp);
 			continuum.InterpolateField(bridging_field, order2, boundghostvel);
@@ -740,7 +740,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			
 			/* Write interpolated FEM values at MD ghost nodes into MD field - displacement only */
 			atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
-			
+
 			/* close fe step */
 			if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
                         
