@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.23 2002-06-25 14:19:58 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.24 2002-06-27 15:21:01 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -10,7 +10,7 @@
 #include "ExodusOutputT.h"
 #include "TecPlotOutputT.h"
 #include "FE_ASCIIT.h"
-#include "PatranOutputT.h"
+//#include "PatranOutputT.h"
 
 TranslateIOManager::TranslateIOManager (ostream& out, istream& in, bool write) :
   fMessage (out),
@@ -134,9 +134,9 @@ void TranslateIOManager::SetOutput (const StringT& program_name, const StringT& 
     case IOBaseT::kTecPlot:
       fOutput = new TecPlotOutputT (fMessage, outstrings, 4);
       break;
-    case IOBaseT::kPatranNeutral:
-      fOutput = new PatranOutputT (fMessage, outstrings, false);
-      break;
+      //case IOBaseT::kPatranNeutral:
+      //fOutput = new PatranOutputT (fMessage, outstrings, false);
+      //break;
     case IOBaseT::kAVS:
     case IOBaseT::kAVSBinary:
       fOutput = new AVSOutputT (fMessage, outstrings, false);
