@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.h,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
+/* $Id: PenaltyWallT.h,v 1.2 2001-09-07 00:54:13 paklein Exp $ */
 /* created: paklein (02/25/1997)                                          */
 
 #ifndef _PENATLY_WALL_T_H_
@@ -35,7 +35,6 @@ private:
 private:
 
 	/* wall parameters */
-	double ftheta; //wall angle - read in degrees	
 	double fmu;    //coefficient of friction
 	
 	/* wall normal and tangents */
