@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.23.2.1 2003-05-06 04:38:59 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.23.2.2 2003-05-06 22:14:04 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -65,6 +65,14 @@ public:
 		const dArray2DT& values, dArray2DT& projection);
 	/*@}*/
 
+	/** Same as ProjectField, except that computes and returns total solution u 
+	 *  and fine scale part of MD solution.  values = MD displacements, values2 = 
+	 *  fem displacements */
+	void BridgingFields(const StringT& field, const PointInCellDataT& cell_data,
+		const dArray2DT& values, const dArray2DT& values2, dArray2DT& fine_scale,
+		dArray2DT& projection, dArray2DT& totalu);
+	/*@}*/
+	
 	/** register self for output */
 	virtual void RegisterOutput(void);
 

@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.39.2.5 2003-05-05 22:45:33 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.39.2.6 2003-05-06 22:14:05 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -589,60 +589,110 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		atoms.ReadRestart();
 		continuum.ReadRestart();
 
-                /* figure out timestep ratio between fem and md simulations */
-                int nfesteps = continuum_time->NumberOfSteps();
-                double mddt = atom_time->TimeStep();
-                double fedt = continuum_time->TimeStep();
-                double d_ratio = fedt/mddt;		
-                int ratio = int((2.0*d_ratio + 1.0)/2.0);
-                cout << "time step ratio = " << ratio << endl;
-
-                /* running status flag */
-                ExceptionT::CodeT error = ExceptionT::kNoError;		
-				
-                /* now loop over continuum and atoms after initialization */
-                for (int i = 0; i < nfesteps; i++)	// FE loop
-                {
-                    for (int j = 0; j < ratio; j++)	// MD update first
-                    {
-                        atom_time->Step();	
-                        
-                        /* initialize step */
-                        if (1 || error == ExceptionT::kNoError) error = atoms.InitStep();
-                        
-                        /* solve atoms */
-                        if (1 || error == ExceptionT::kNoError) {
-                                atoms.ResetCumulativeUpdate(group);
-                                error = atoms.SolveStep();
-                        }
-                        
-                        /* close  md step */
-                        if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
-                    }
-                    continuum_time->Step();
+		/* figure out timestep ratio between fem and md simulations */
+		int nfesteps = continuum_time->NumberOfSteps();
+		double mddt = atom_time->TimeStep();
+		double fedt = continuum_time->TimeStep();
+		double d_ratio = fedt/mddt;		
+		int ratio = int((2.0*d_ratio + 1.0)/2.0);
+		cout << "time step ratio = " << ratio << endl;
+		
+		/* running status flag */
+		ExceptionT::CodeT error = ExceptionT::kNoError;		
+		
+		/* test solving both MD and FE initially before main time loop */
+		atom_time->Step();	
 					
-                    /* initialize step */
-                    if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
-                    
-					/* apply solution to continuum - need to put this somewhere */
-					continuum.ProjectField(bridging_field, *atoms.NodeManager());
-					
-                    /* solve continuum */
-                    if (1 || error == ExceptionT::kNoError) {
-                            continuum.ResetCumulativeUpdate(group);
-                            error = continuum.SolveStep();
-                    }
-                    
-                    /* close fe step */
-                    if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
+		/* initialize step */
+		if (1 || error == ExceptionT::kNoError) error = atoms.InitStep();
                         
-                }
+		/* solve atoms */
+		if (1 || error == ExceptionT::kNoError) {
+				atoms.ResetCumulativeUpdate(group);
+				error = atoms.SolveStep();
+		}
+                        
+		/* close  md step */
+		if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
+		
+		continuum_time->Step();
+					
+		/* initialize step */
+		if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
+                    
+		/* calculate initial FEM displacements via projection */
+		continuum.ProjectField(bridging_field, *atoms.NodeManager());
+		
+		/* solve for initial FEM force as function of fine scale + FEM */
+		
+		/* solve continuum */
+		if (1 || error == ExceptionT::kNoError) {
+				continuum.ResetCumulativeUpdate(group);
+				error = continuum.SolveStep();
+		}
+		
+		/* set ghost atom displacements as BC's for MD simulation */
+		continuum.InterpolateField(bridging_field, field_at_ghosts);
+		atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
+		
+		/* initialize time history variables here */
+		
+		/* close fe step */
+		if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
+		continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager());
+		
+		/* now loop over continuum and atoms after initialization */
+		for (int i = 1; i < nfesteps; i++)	// FE loop - originally i = 0
+		{
+			for (int j = 0; j < ratio; j++)	// MD update first
+			{
+				atom_time->Step();	
+					
+				/* initialize step */
+				if (1 || error == ExceptionT::kNoError) error = atoms.InitStep();
+                        
+				/* solve atoms */
+				if (1 || error == ExceptionT::kNoError) {
+						atoms.ResetCumulativeUpdate(group);
+						error = atoms.SolveStep();
+				}
+                        
+				/* close  md step */
+				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
+			}
+			continuum_time->Step();
+					
+			/* initialize step */
+			if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
+            
+			/* integrate FEM displacement, fractional step velocities */
+			
+			/* calculate total displacement u = FE + fine scale here using updated FEM displacement */
+			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager());
+			
+			/* calculate FE internal force as function of total displacement u here */
+			
+			/* solve FE equation of motion here using internal force */
+			if (1 || error == ExceptionT::kNoError) {
+					continuum.ResetCumulativeUpdate(group);
+					error = continuum.SolveStep();
+			}
+			
+			/* finish time integration for integer step velocities */
+                    
+			/* update time history variables here */
+			
+			
+			/* close fe step */
+			if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
+                        
+		}
 
-                /* check for error */
-                if (0)
-                    ExceptionT::GeneralFail(caller, "hit error %d", error);
+		/* check for error */
+		if (0)
+			ExceptionT::GeneralFail(caller, "hit error %d", error);
                 
-        }
+	}
 
 }
 

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.3 2003-04-01 18:23:48 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.3.2.1 2003-05-06 22:14:05 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -99,6 +99,11 @@ public:
 	void ProjectField(const StringT& field, NodeManagerT& node_manager);
 	/*@}*/
 
+	/** calculate the fine scale part of MD solution as well as total displacement u */
+	void BridgingFields(const StringT& field, NodeManagerT& atom_node_manager,
+		NodeManagerT& fem_node_manager);
+	/*@}*/
+	
 	/** \name solver control */
 	/*@{*/
 	/** the residual for the given group. The array contains the residual from

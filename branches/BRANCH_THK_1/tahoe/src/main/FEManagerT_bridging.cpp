@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.3.2.3 2003-05-05 22:45:33 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.3.2.4 2003-05-06 22:14:05 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -346,6 +346,26 @@ void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
 	SetFieldValues(field, cell_nodes, fProjection);
 }
+
+/* calculate the fine scale part of MD solution as well as total displacement u */
+void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& atom_node_manager, 
+	NodeManagerT& fem_node_manager)
+{
+	const char caller[] = "FEManagerT_bridging::ProjectField";
+	dArray2DT fine_scale, totalu;
+
+	/* get the fem and md fields */
+	FieldT* atom_field = atom_node_manager.Field(field);
+	FieldT* fem_field = fem_node_manager.Field(field);
+	if (!atom_field) ExceptionT::GeneralFail(caller, "could not resolve source field \"%s\"", field.Pointer());
+	if (!fem_field) ExceptionT::GeneralFail(caller, "could not resolve source field \"%s\"", field.Pointer());
+	
+	/* compute the fine scale part of MD solution as well as total displacement u */
+	const dArray2DT& atom_values = (*atom_field)[0];
+	const dArray2DT& fem_values = (*fem_field)[0];
+	BridgingScale().BridgingFields(field, fDrivenCellData, atom_values, fem_values, fine_scale, fProjection, totalu);
+}
+
 
 /* the residual for the given group */
 const dArrayT& FEManagerT_bridging::Residual(int group) const 
