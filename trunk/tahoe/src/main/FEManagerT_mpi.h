@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.17 2003-01-27 07:00:27 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.18 2003-05-20 10:38:45 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #ifndef _FE_MANAGER_MPI_H_
 #define _FE_MANAGER_MPI_H_
@@ -83,7 +83,7 @@ protected:
 	/*@}*/
 
 	/* (re-)set system to initial conditions */
-	virtual void InitialCondition(void);
+	virtual ExceptionT::CodeT InitialCondition(void);
 
 	/** \name equation system information */
 	/*@{*/
