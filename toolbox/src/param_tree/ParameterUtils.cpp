@@ -1,4 +1,4 @@
-/* $Id: ParameterUtils.cpp,v 1.6 2004-04-04 03:03:51 paklein Exp $ */
+/* $Id: ParameterUtils.cpp,v 1.7 2004-05-20 14:56:22 paklein Exp $ */
 #include "ParameterUtils.h"
 
 using namespace Tahoe;
@@ -179,7 +179,7 @@ void VectorParameterT::TakeParameterList(const ParameterListT& list)
 		const StringT& name = parameters[i].Name();
 		if (name.StringLength() > 2 && name[0] == 'v' && name[1] == '_') {
 			int component = atoi(name.Pointer(2)) - 1;
-			if (component < 0 && component >= fVector.Length())
+			if (component < 0 || component >= fVector.Length())
 				ExceptionT::OutOfRange("VectorParameterT::TakeParameterList",
 					"component \"%s\" is out of range {1,%d}", name.Pointer(), fVector.Length()+1);
 			fVector[component] = parameters[i];
