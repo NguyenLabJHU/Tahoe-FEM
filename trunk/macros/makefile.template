@@ -1,6 +1,7 @@
-# $Id: makefile.template,v 1.4 2001-01-25 20:42:56 paklein Exp $
+# $Id: makefile.template,v 1.5 2001-01-28 17:19:16 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
+# (0) copy makefile.template to a local makefile.
 # (1) set HOME_DIR to the full path to this makefile.
 # (2) set MACRO_DIR to the full path to directory
 #     containing the machine specific compiler macros.
