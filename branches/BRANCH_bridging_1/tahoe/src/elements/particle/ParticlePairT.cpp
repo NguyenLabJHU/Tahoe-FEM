@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.14.2.2 2003-02-19 19:57:36 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.14.2.3 2003-02-20 01:58:39 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -59,6 +59,8 @@ void ParticlePairT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 
 void ParticlePairT::WriteOutput(void)
 {
+	const char caller[] = "ParticlePairT::WriteOutput";
+
 	/* inherited */
 	ParticleT::WriteOutput();
 
@@ -71,9 +73,15 @@ void ParticlePairT::WriteOutput(void)
 	int ndof = NumDOF();
 	int num_output = ndof + 2; /* displacement + PE + KE */
 
+	/* number of nodes */
+	const ArrayT<int>* parition_nodes = fCommManager.PartitionNodes();
+	int non = (parition_nodes) ? 
+		parition_nodes->Length() : 
+		ElementSupport().NumNodes();
+
 	/* output arrays length number of active nodes */
-	int num_particles = fNeighbors.MajorDim();
-	dArray2DT n_values(num_particles, num_output), e_values;
+//	int num_particles = fNeighbors.MajorDim();
+	dArray2DT n_values(non, num_output), e_values;
 	n_values = 0.0;
 
 	/* global coordinates */
@@ -157,7 +165,7 @@ void ParticlePairT::WriteOutput(void)
 				int local_j = (inverse_map) ? inverse_map->Map(tag_j) : tag_j;
 				
 				if (local_j < 0 || local_j >= n_values.MajorDim())
-					cout << " out of range: " << local_j << '\n';
+					cout << caller << ": out of range: " << local_j << '\n';
 				else
 					n_values(local_j, ndof) += uby2;
 
