@@ -1,9 +1,12 @@
-/* $Id: LennardJonesPairT.h,v 1.3 2002-11-28 01:07:10 paklein Exp $ */
+/* $Id: LennardJonesPairT.h,v 1.4 2002-11-28 15:00:28 paklein Exp $ */
 #ifndef _LENNARD_JONES_PAIR_T_H_
 #define _LENNARD_JONES_PAIR_T_H_
 
 /* base class */
 #include "PairPropertyT.h"
+
+/* define NULL */
+#include <stdlib.h>
 
 namespace Tahoe {
 
