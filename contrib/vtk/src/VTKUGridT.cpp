@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.15 2002-06-19 16:43:41 recampb Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.16 2002-06-19 21:38:22 recampb Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -97,11 +97,10 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 
 	glyph = vtkTahoeGlyph3D::New();
 	cone = vtkArrowSource::New();
-	//cone->SetResolution(6);
 	
 	visPoints = vtkSelectVisiblePoints::New();
 	visPoints->SetInput(fUGrid);
-	glyph->SetInput(visPoints->GetOutput());
+	glyph->SetInput(fUGrid);
 	glyph->SetSource(cone->GetOutput());
 	glyph->SetVectorModeToUseVector();
 	glyph->SetScaleModeToScaleByVector();
@@ -112,7 +111,9 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 	spikeActor->GetProperty()->SetColor(0,1,0);
 	spikeActor->SetVisibility(false);
 	spikeActor->PickableOff();
-	warpCount = 0;
+	glyphFilter = true;
+	warpBool = false;
+	warpArrows = false;
 
 	
 	
@@ -287,22 +288,6 @@ void VTKUGridT::SetScalars(vtkFloatArray* scalars)
 void VTKUGridT::ShowContours(vtkFloatArray* scalars, int numContours, double min, double max)
 {
   
-  // fContour->GenerateValues(numContours, scalars->GetRange());
-  //fContourMapper->SetScalarRange(scalars->GetRange());
-
-//   double temp = (max - min)/ (numContours+1);
-//   fContour->SetNumberOfContours(numContours);
-//   //fContour->SetValue(0,min);
-//   //fContour->SetValue(1,min+.001);
-//   //fContour->SetValue(numContours+1, max);
-//   //fContour->SetValue(numContours, max-.001);
-  
-//   for (int i = 0; i<numContours; i++)
-//     {
-//       fContour->SetValue(i, min+temp*(i+1));
-
-//     }
-  
 
   fContour->GenerateValues(numContours+2, min, max);
 
@@ -331,6 +316,7 @@ void VTKUGridT::HideContours(vtkFloatArray* scalars)
 
 void VTKUGridT::CuttingPlane(vtkRenderer* renderer, double oX, double oY, double oZ,double nX, double nY, double nZ, bool warp)
 {
+  warpBool = warp;
   vtkPlane* tplane = vtkPlane::New();
   vtkCutter* tcutter = vtkCutter::New();
   vtkPolyDataMapper* tcutterMapper = vtkPolyDataMapper::New();
@@ -377,10 +363,45 @@ void VTKUGridT::HideCuttingPlane(vtkRenderer* renderer)
   
 }
 
-void VTKUGridT::Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer) 
+void VTKUGridT::Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer, bool filter, bool warpA) 
 {
-
+  glyphFilter = filter;
+  warpArrows = warpA;
   visPoints->SetRenderer(renderer);
+  if (filter)
+    {
+      if (warpBool)
+	{
+	  if (warpArrows)
+	    visPoints->SetInput(fWarp->GetOutput());
+	  else  
+	    visPoints->SetInput(fUGrid);
+	  
+	  glyph->SetInput(visPoints->GetOutput());
+	}
+      else
+	{
+	  visPoints->SetInput(fUGrid);
+	  glyph->SetInput(visPoints->GetOutput());
+	}
+    }
+
+  else
+    {
+      if (warpBool)
+	{
+	  if (warpArrows)
+	    glyph->SetInput(fWarp->GetOutput());
+	  else
+	    glyph->SetInput(fUGrid);
+	}
+      else
+	glyph->SetInput(fUGrid);
+      
+    }
+  
+
+
   glyph->SetVectors(vectors);
 
   spikeActor->SetVisibility(true);
@@ -412,11 +433,6 @@ void VTKUGridT::SetVectors(vtkFloatArray* vectors)
 	fUGrid->GetPointData()->SetVectors(vectors);
 }
 
-// void VTKUGridT::SetDataVectors(vtkFloatArray* DataVectors)
-// {
-//   vtkPointData *pd = fUGird->GetPointData();  
-//   pd->AddArray(DataVectors);
-// }
 
 /* set vectors that warp */
 void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors, dArray2DT coords)
@@ -425,17 +441,35 @@ void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors, dArray2DT coords)
   SetVectors(vectors);
   
  
-
-
     /* set up warp vector */
-    
+    warpBool = true;
     fWarp->SetInput(fUGrid);
-    //fWarp->SelectInputVectors(vectors);
+
     fMapper->SetInput(fWarp->GetOutput());
     outline->SetInput(fWarp->GetOutput());
     outlineMapper->SetInput(outline->GetOutput());
     visPoints->SetInput(fWarp->GetOutput());
-    glyph->SetInput(visPoints->GetOutput());
+
+
+  if (glyphFilter)
+    {
+      if (warpArrows)
+	visPoints->SetInput(fWarp->GetOutput());
+      else  
+	visPoints->SetInput(fUGrid);
+      
+      glyph->SetInput(visPoints->GetOutput());
+  
+    }
+
+  else
+    {
+      if (warpArrows)
+	glyph->SetInput(fWarp->GetOutput());
+      else
+	glyph->SetInput(fUGrid);
+      
+    }
     
     for (int i=0; i<cutter.Length(); i++)
       {
@@ -467,6 +501,7 @@ void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors, dArray2DT coords)
 //       cout << "Old: (" << coords(i,0) << ", " << coords(i,1) << ", " << coords(i,2) << ")" << endl;
 //       cout << "New: (" << d[0] << ", " << d[1] << ", " << d[2] << ")" << endl;
     
+
 //       cout << (vectors->GetComponent(i,0)) << ", " << vectors->GetComponent(i,1) << ", " << vectors->GetComponent(i,2) << endl;
 //       //}
 //   }

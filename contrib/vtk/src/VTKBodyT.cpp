@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.28 2002-06-19 16:43:41 recampb Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.29 2002-06-19 21:38:22 recampb Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -68,7 +68,7 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	iAddCommand(CommandSpecT("HideElementNumbers"));
 	iAddCommand(CommandSpecT("ShowAxes"));
 	iAddCommand(CommandSpecT("HideAxes"));
-	iAddCommand(CommandSpecT("ShowGlyphs"));
+// 	iAddCommand(CommandSpecT("ShowGlyphs"));
 	iAddCommand(CommandSpecT("HideCuttingPlane"));
 
 	/* commands from body data */
@@ -124,6 +124,16 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	cut.AddArgument(nZ);
 	iAddCommand(cut);
 
+	CommandSpecT glyph("ShowGlyphs", false);
+	ArgSpecT visPtsFilter(ArgSpecT::bool_, "filter");
+	visPtsFilter.SetDefault(true);
+	visPtsFilter.SetPrompt("Show only visible points (true/false)");
+	glyph.AddArgument(visPtsFilter);
+	ArgSpecT base(ArgSpecT::string_, "base");
+	base.SetDefault("tail");
+	base.SetPrompt("Location of base of arrow (head/tail)");
+	glyph.AddArgument(base);
+	iAddCommand(glyph);
 }
 
 /* destructor */
@@ -584,10 +594,17 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	else if (command.Name() == "ShowGlyphs")
 	  {
       
+	    bool filter;
+	    bool warpArrows = true;
+	    StringT temp;
+	    command.Argument("base").GetValue(temp);
+	    if (temp == "head")
+	      warpArrows = false;
+	    command.Argument("filter").GetValue(filter);
 	    ArrayT<VTKUGridT*> fUGrids = fBodyData->UGrids();
 	       for (int i = 0; i < fBodyData->UGrids().Length(); i++)
 		 {
-		   fUGrids[i]->Glyphing(fBodyData->GetVectors(), fFrame->Renderer());
+		   fUGrids[i]->Glyphing(fBodyData->GetVectors(), fFrame->Renderer(), filter, warpArrows);
 
 		 }
 	     return true;

@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.12 2002-06-19 16:43:41 recampb Exp $ */
+/* $Id: VTKUGridT.h,v 1.13 2002-06-19 21:38:22 recampb Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -86,7 +86,7 @@ class VTKUGridT
 
 	void HideCuttingPlane(vtkRenderer* renderer);
 
-	void Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer);
+	void Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer, bool filter, bool warpA);
 
 	void HideGlyphing(void);
 
@@ -218,10 +218,10 @@ class VTKUGridT
 	vtkPolyDataMapper* spikeMapper;
 	vtkActor* spikeActor;
 	vtkArrowSource* cone;
-	vtkPoints* tempPoints;
-	int warpCount;
-	int numPoints;
 	vtkSelectVisiblePoints* visPoints;
+	bool glyphFilter;
+	bool warpBool;
+	bool warpArrows;
 	
       
 };
