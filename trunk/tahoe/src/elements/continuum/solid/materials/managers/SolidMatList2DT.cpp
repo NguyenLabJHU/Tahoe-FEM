@@ -1,12 +1,9 @@
-/* $Id: SolidMatList2DT.cpp,v 1.34 2003-03-19 20:18:58 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.35 2003-03-26 23:08:25 thao Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
 #include "SolidMaterialsConfig.h"
-
-#ifdef __DEVELOPMENT__
 #include "DevelopmentMaterialsConfig.h"
-#endif
 
 #include "SSKStV2D.h"
 #include "FDKStV2D.h"
@@ -64,7 +61,7 @@
 
 #ifdef VISCOELASTIC_MATERIALS_DEV
 #include "RGVIB2D.h"
-#include "RGSplit2D.h"
+#include "RGSplit3D.h"
 #include "SSSV_KStV2D.h"
 #include "FDSV_KStV2D.h"
 #endif
@@ -575,7 +572,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new RGSplit2D(in, *fFSMatSupport);
+				fArray[matnum] = new RGSplit3D(in, *fFSMatSupport);
 				fHasHistory = true;
 				break;
 #else

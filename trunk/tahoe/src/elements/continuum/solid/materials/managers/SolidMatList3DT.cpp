@@ -1,12 +1,9 @@
-/* $Id: SolidMatList3DT.cpp,v 1.32 2003-03-19 17:09:02 thao Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.33 2003-03-26 23:08:25 thao Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "fstreamT.h"
 #include "SolidMaterialsConfig.h"
-
-#ifdef __DEVELOPMENT__
 #include "DevelopmentMaterialsConfig.h"
-#endif
 
 #include "SSKStV.h"
 #include "FDKStV.h"
