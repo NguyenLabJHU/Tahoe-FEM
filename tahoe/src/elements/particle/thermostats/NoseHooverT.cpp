@@ -1,4 +1,4 @@
-/* $Id: NoseHooverT.cpp,v 1.7 2003-11-21 22:47:11 paklein Exp $ */
+/* $Id: NoseHooverT.cpp,v 1.7.20.1 2004-05-25 16:36:43 paklein Exp $ */
 #include "NoseHooverT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -17,13 +17,13 @@ NoseHooverT::NoseHooverT(ifstreamT& in, const int& nsd, const double& dt):
 	ThermostatBaseT(in, nsd, dt),
 	fEta(0.)
 {
-	SetName("NoseHoover");
+	SetName("Nose-Hoover");
 	fBetaOrig = fBeta;
 }
 
 NoseHooverT::NoseHooverT(void)
 {
-	SetName("NoseHoover");
+	SetName("Nose-Hoover");
 }
 
 /* write properties to output */

@@ -1,47 +1,30 @@
-/* $Id: GaussIsokineticT.cpp,v 1.8 2003-11-21 22:47:11 paklein Exp $ */
+/* $Id: GaussIsokineticT.cpp,v 1.8.20.1 2004-05-25 16:36:43 paklein Exp $ */
 #include "GaussIsokineticT.h"
-#include "ArrayT.h"
-#include <iostream.h>
-#include "ifstreamT.h"
+
 #include <math.h>
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "RaggedArray2DT.h"
 #include "ParticlePropertyT.h"
+#include "BasicSupportT.h"
 
 const double fkB = 0.00008617385;
 
 using namespace Tahoe;
 
 /* constructor */
+#if 0
 GaussIsokineticT::GaussIsokineticT(ifstreamT& in, const int& nsd, const double& dt):
 	ThermostatBaseT(in, nsd, dt)
 {
 	SetName("Gauss_isokinetic");
 }
+#endif
 
-GaussIsokineticT::GaussIsokineticT(void)
+GaussIsokineticT::GaussIsokineticT(const BasicSupportT& support):
+	ThermostatBaseT(support)
 {
 	SetName("Gauss_isokinetic");
-}
-
-/* write properties to output */
-void GaussIsokineticT::Write(ostream& out) const
-{
-	ThermostatBaseT::Write(out);	
-}
-
-/* restart files */
-void GaussIsokineticT::WriteRestart(ostream& out) const
-{
-	/* Base class */
-	ThermostatBaseT::WriteRestart(out);
-}
-
-void GaussIsokineticT::ReadRestart(istream& in) 
-{
-	/* Base class */
-	ThermostatBaseT::ReadRestart(in);
 }
 
 void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
@@ -53,6 +36,7 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 	if (fTemperature < 0.)
 		ExceptionT::GeneralFail("LangevinT::ApplyDamping","schedule generated negative temperature");
 
+	int nsd = fSupport.NumSD();
 	double denom = 0.;
 	double num = 0.;
 	const double* v_j;
@@ -61,7 +45,7 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 	double mass;
 	
 	/* calculate drag coefficient */
-	if (fNodes.Length() == 0)
+	if (fAllNodes)
 	{ // All the nodes are damped, use neighbors
 		currType = types[*neighbors(0)];
 		mass = particleProperties[currType]->Mass();
@@ -77,14 +61,14 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 				mass = particleProperties[currType]->Mass();
 			}
 				
-			for (int i = 0; i < fSD; i++)
+			for (int i = 0; i < nsd; i++)
 			{
 				denom += mass*(*v_j)*(*v_j);
 				num += (*f_j++)*(*v_j++);
 			}
 		}
 	}
-	else
+	else if (fNodes.Length() > 0)
 	{
 		currType = types[fNodes[0]];
 		mass = particleProperties[currType]->Mass();
@@ -100,7 +84,7 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 				mass = particleProperties[currType]->Mass();
 			}
 		
-			for (int i = 0; i < fSD; i++)
+			for (int i = 0; i < nsd; i++)
 			{
 				denom += mass*(*v_j)*(*v_j); 	
 				num += (*f_j++)*(*v_j++); 

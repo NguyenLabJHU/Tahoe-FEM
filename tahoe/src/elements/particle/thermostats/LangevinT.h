@@ -1,20 +1,14 @@
-/* $Id: LangevinT.h,v 1.4 2003-10-30 17:15:21 paklein Exp $ */
+/* $Id: LangevinT.h,v 1.4.22.1 2004-05-25 16:36:43 paklein Exp $ */
 #ifndef _LANGEVIN_T_H_
 #define _LANGEVIN_T_H_
-
-#include "ios_fwd_decl.h"
 
 /* base class */
 #include "ThermostatBaseT.h"
 
-/* direct members */
-#include "iArrayT.h"
-#include "RandomNumberT.h"
-
 namespace Tahoe {
 
 /* forward declarations */
-class ifstreamT;
+class RandomNumberT;
 
 /** insert witty comment here */
 class LangevinT: public ThermostatBaseT
@@ -22,25 +16,13 @@ class LangevinT: public ThermostatBaseT
 public:
 	
 	/** constructor */
-	LangevinT(ifstreamT& in, const int& nsd, const double& dt);
-	LangevinT(void);
+//	LangevinT(ifstreamT& in, const int& nsd, const double& dt);
+	LangevinT(const BasicSupportT& support);
 
-	/** destructor */
-	virtual ~LangevinT(void) {};
-	
 	/** augment/overwrite forces with new ones */
 	virtual void ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
 			dArray2DT& forces, AutoArrayT<int>& types,
 			ArrayT<ParticlePropertyT*>& particleProperties);
-	
-	/** write properties to output */
-	virtual void Write(ostream& out) const;
-	
-	/** write restart information */
-	virtual void WriteRestart(ostream& out) const;
-	
-	/** read restart information */
-	virtual void ReadRestart(istream& in);
 	
 	void SetRandNumGenerator(RandomNumberT* frand);
 	
@@ -48,7 +30,7 @@ protected:
 
 	/** \name properties */
 	/*@{*/
-	double fAmp;
+//	double fAmp;
 	/*@}*/
 	
 	RandomNumberT* fRandom;
