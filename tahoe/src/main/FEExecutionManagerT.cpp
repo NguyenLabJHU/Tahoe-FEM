@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.44.4.3 2003-08-21 03:53:37 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.44.4.4 2003-08-21 17:36:04 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -6,7 +6,9 @@
 #include <iomanip.h>
 #include <time.h>
 #include <ctype.h>
+#include <stdlib.h>
 
+#include "ofstreamT.h"
 #include "fstreamT.h"
 #include "Environment.h"
 #include "toolboxConstants.h"
@@ -57,7 +59,6 @@ FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
 	/* if not prescribed as joined, write separate files */
 	if (!CommandLineOption("-join_io")) AddCommandLineOption("-split_io");
 #endif
-	fopen = false;
 
 	/* set communicator log level */
 	if (CommandLineOption("-verbose")) comm.SetLogLevel(CommunicatorT::kLow);
@@ -615,6 +616,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	//ghostonmap(1,0) = ghostonmap(0,1) = 1;
 
 	/* temporary code to output dissipation due to THK forces */
+	bool fopen = false;
+	ofstreamT fout;
+	StringT fsummary_file;
 	ifstreamT& in = atoms.Input();
 	const StringT& input_file = in.filename();
 	fsummary_file.Root(input_file);
@@ -696,8 +700,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		/* first obtain the MD displacement field */
 		FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
 		dArray2DT mddisplast = (*atomfield)[0];	
-		
-		/* now loop over continuum and atoms after initialization */
+		dArrayT aa(boundatoms.Length()), ab(boundatoms.Length()), sub1(boundatoms.Length()); 
+	      	dArrayT ac(boundatoms.Length()), ad(boundatoms.Length()), sub2(boundatoms.Length());
+
 		for (int i = 0; i < nfesteps; i++)	
 		{
 			for (int j = 0; j < ratio; j++)	// MD update first
@@ -724,13 +729,12 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 						atoms.ResetCumulativeUpdate(group);
 						error = atoms.SolveStep();
 				}
-				
+
 				/* first obtain the MD displacement field */
 				FieldT* atomfielda = atoms.NodeManager()->Field(bridging_field);
 				dArray2DT mddispcurr = (*atomfielda)[0];	
-				mdu0.RowCollect(batoms,mddisplast);
-				mdu1.RowCollect(batoms,mddispcurr);  // may need to change batoms for global boundary atoms
-				dArrayT aa, ab, ac, ad, sub1, sub2;
+				mdu0.RowCollect(boundatoms,mddisplast);
+				mdu1.RowCollect(boundatoms,mddispcurr); 
 				mdu0.ColumnCopy(0,aa);
 				mdu0.ColumnCopy(1,ab);
 				mdu1.ColumnCopy(0,ac);
@@ -748,22 +752,23 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 					fout.open_append(fsummary_file);
 					fout.precision(13);
 					fout << dissipation
-						 << setw(25) << time
-						 << endl;
+					     << setw(25) << time
+					     << endl;
 				}
 				else
 				{
 					fout.open(fsummary_file);
-					//fopen = true;
+					fopen = true;
 					fout.precision(13);
 					fout << "Dissipation"
 					     << setw(25) << "Time"
-				         << endl;
+				             << endl;
 					fout << dissipation
 					     << setw(25) << time
-				         << endl;
+				             << endl;
 				}
-				
+				mddispcurr = mddisplast;
+
 				/* close  md step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
 			}

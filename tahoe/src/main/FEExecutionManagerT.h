@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.16.4.1 2003-08-21 03:53:37 hspark Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.16.4.2 2003-08-21 17:36:05 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -27,6 +27,7 @@ class ModelManagerT;
 class FEManagerT_bridging;
 class FEManagerT_THK;
 class dArray2DT;
+class StringT;
 
 /** class to handle file driven finite element simulations */
 class FEExecutionManagerT: public ExecutionManagerT
@@ -187,10 +188,6 @@ private:
 	/** write partial model file in TahoeII format */
 	void EchoPartialGeometry_TahoeII(const PartitionT& partition,
 		ModelManagerT& model_ALL, const StringT& partial_file) const;
-		
-	bool fopen;
-	ofstreamT fout;
-	StringT fsummary_file;
 	/*@}*/
 };
 
