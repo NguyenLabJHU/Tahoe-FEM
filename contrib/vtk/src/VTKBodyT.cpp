@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.25 2002-06-13 22:47:24 recampb Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.26 2002-06-17 20:31:40 recampb Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -515,7 +515,8 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 					//axes->SetFlyModeToOuterEdges();
 					axes->SetFlyModeToClosestTriad();
 					//axes->SetFontFactor(1.8);
-					axes->GetProperty()->SetColor(0,0,1);
+					axes->GetProperty()->SetColor(1,1,1);
+					axes->ShadowOff();
 					// axes->SetBounds(0,1,0,1,0,1);
 					axes->VisibilityOn();
 					renderer->AddActor(axes);

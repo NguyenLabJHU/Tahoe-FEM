@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.20 2002-06-13 22:47:24 recampb Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.21 2002-06-17 20:31:40 recampb Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -44,7 +44,7 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 	cout << "initialized database file: " << fInFile << endl;
   
 	/* read coordinates */
-	dArray2DT coords;
+	// dArray2DT coords;
 	coords.Alias(model.Coordinates());
 	if (coords.MinorDim() == 2) /* fill to 3D */
     {
@@ -314,6 +314,7 @@ void VTKBodyDataT::AddToRenderer(vtkRenderer* renderer) const
 		renderer->AddActor(fUGrids[i]->Actor());
 		//renderer->AddActor(fUGrids[i]->OutlineActor());
 		renderer->AddActor(fUGrids[i]->BoundBoxActor());
+		renderer->AddActor(fUGrids[i]->SpikeActor());
   }
 }
 
@@ -325,6 +326,7 @@ void VTKBodyDataT::RemoveFromRenderer(vtkRenderer* renderer) const
 		renderer->RemoveActor(fUGrids[i]->Actor());
 		//renderer->RemoveActor(fUGrids[i]->OutlineActor());
 		renderer->RemoveActor(fUGrids[i]->BoundBoxActor());
+		renderer->RemoveActor(fUGrids[i]->SpikeActor());
   }
 		
 }
@@ -411,7 +413,7 @@ bool VTKBodyDataT::SelectTimeStep(int stepNum)
 	  			/* displaced shape */
 				if (fVectors.Length() > 0){
 					if (!fVectors[stepNum]) throw eGeneralFail;
-		  			fUGrids[i]->SetWarpVectors(fVectors[stepNum]);
+		  			fUGrids[i]->SetWarpVectors(fVectors[stepNum], coords);
 		  		}
 	  		}
 			currentStepNum = stepNum;

@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.12 2002-06-13 22:47:24 recampb Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.13 2002-06-17 20:31:41 recampb Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -19,6 +19,10 @@
 #include "vtkDataSetToPolyDataFilter.h"
 #include "vtkPlane.h"
 #include "vtkCutter.h"
+#include "vtkGlyph3D.h"
+#include "vtkConeSource.h"
+#include "dArray2DT.h"
+
 
 /* array behavior */
 const bool ArrayT<VTKUGridT*>::fByteCopy = true;
@@ -81,6 +85,7 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 	boundBoxActor->SetVisibility(false);
 	boundBoxActor->GetProperty()->SetColor(1,1,1);
 	
+	tempPoints = vtkPoints::New();
 	plane = vtkPlane::New();
 	cutter = vtkCutter::New();
 	cutterMapper = vtkPolyDataMapper::New();
@@ -89,6 +94,24 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 	cutter->SetCutFunction(plane);
 	cutterMapper->SetInput(cutter->GetOutput());
 	cutterMapper->SetLookupTable(fLookUpTable);
+
+	glyph = vtkGlyph3D::New();
+	cone = vtkConeSource::New();
+	cone->SetResolution(6);
+	glyph->SetInput(fUGrid);
+	glyph->SetSource(cone->GetOutput());
+	glyph->SetVectorModeToUseVector();
+	glyph->SetScaleModeToScaleByVector();
+	spikeMapper = vtkPolyDataMapper::New();
+	spikeMapper->SetInput(glyph->GetOutput());
+	spikeActor = vtkActor::New();
+	spikeActor->SetMapper(spikeMapper);
+	spikeActor->GetProperty()->SetColor(0,1,0);
+	spikeActor->SetVisibility(false);
+	spikeActor->PickableOff();
+	warpCount = 0;
+
+	
 	
 	/* change color range from blue to red */
 	fLookUpTable = vtkLookupTable::New();
@@ -321,6 +344,17 @@ void VTKUGridT::HideCuttingPlane(void)
   boundBoxActor->SetVisibility(false);
 }
 
+void VTKUGridT::Glyphing(void )
+{
+  spikeActor->SetVisibility(true);
+  spikeActor->PickableOff();
+}
+
+void VTKUGridT::HideGlyphing(void)
+{
+  spikeActor->SetVisibility(false);
+}
+
 /* set the scalar data range */
 void VTKUGridT::SetScalarRange(double min, double max)
 {
@@ -341,7 +375,7 @@ void VTKUGridT::SetVectors(vtkFloatArray* vectors)
 }
 
 /* set vectors that warp */
-void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors)
+void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors, dArray2DT coords)
 {
   /* insert in grid */
   SetVectors(vectors);
@@ -368,6 +402,28 @@ void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors)
       boundBoxMapper->SetInput(fWarp->GetOutput());
       //  }  
 
+
+//   numPoints = fUGrid->GetNumberOfPoints();
+
+//   float d[3];
+  
+//   for (int i = 0; i<numPoints; i++){
+
+//     d[0] = (float)coords(i,0)+ (vectors->GetComponent(i,0));
+//     d[1] = (float)coords(i,1)+ (vectors->GetComponent(i,1));
+//     d[2] = (float) coords(i,2)+ (vectors->GetComponent(i,2));
+//     fUGrid->GetPoints()->SetPoint(i,d);
+
+//     // if (i == numPoints-1){
+//       cout << "Old: (" << coords(i,0) << ", " << coords(i,1) << ", " << coords(i,2) << ")" << endl;
+//       cout << "New: (" << d[0] << ", " << d[1] << ", " << d[2] << ")" << endl;
+    
+//       cout << (vectors->GetComponent(i,0)) << ", " << vectors->GetComponent(i,1) << ", " << vectors->GetComponent(i,2) << endl;
+//       //}
+//   }
+//   // cout << numPoints << endl;
+//   cout << vectors->GetNumberOfTuples()<< endl;
+      //  cout << vectors->GetNumberOfComponents() << endl;
 }
 
 /* set the wrap displacement scale factor */
