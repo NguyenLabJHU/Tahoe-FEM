@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.24.2.2 2004-02-12 17:19:12 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.24.2.3 2004-03-15 19:44:38 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -178,6 +178,9 @@ protected:
 	// could also break up. Input and defaults(per output format) are
 	// shared but the output of what each code means is class-dependent
 	void EchoTractionBC(ifstreamT& in, ostream& out);
+
+	/** extract natural boundary condition information */
+	void TakeNaturalBC(const ParameterListT& list);
 
 	/** return a pointer to a new material list. Recipient is responsible for freeing 
 	 * the pointer. 
