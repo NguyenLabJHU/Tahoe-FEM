@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.88 2005-01-06 01:11:43 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.89 2005-02-04 22:04:52 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -297,6 +297,9 @@ void FEManagerT::FormLHS(int group, GlobalT::SystemTypeT sys_type) const
 	for (int i = 0 ; i < fElementGroups->Length(); i++)
 		if ((*fElementGroups)[i]->InGroup(group))
 			(*fElementGroups)[i]->FormLHS(sys_type);
+
+	/* signal stiffness matrix is complete */
+	fNodeManager->EndLHS(group);
 }
 
 void FEManagerT::FormRHS(int group) const
@@ -321,6 +324,9 @@ void FEManagerT::FormRHS(int group) const
 
 	/* lock assembly into RHS */
 	fSolvers[group]->LockRHS();
+
+	/* signal nodal force is complete */
+	fNodeManager->EndRHS(group);
 }
 
 /* the residual for the given group */
