@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.7.2.6 2001-10-29 17:00:35 sawimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.7.2.7 2001-10-29 22:29:50 sawimme Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementBaseT.h"
@@ -610,6 +610,15 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 /* set element cards array */
 void ElementBaseT::SetElementCards(void)
 {
+  if (fConnectivities.Length() != fEqnos.Length())
+    {
+      cout << "ElementBaseT::SetElementCards length mismatch ";
+      cout << "\n           element group: " << fFEManager.ElementGroupNumber(this) + 1;      
+      cout << "\n fConnectivities length = " << fConnectivities.Length();
+      cout << "\n          fEqnos length = " << fEqnos.Length() << endl;
+      throw eSizeMismatch;
+    }
+
 	/* allocate */
 	fElementCards.Allocate(fNumElements);
 
@@ -623,6 +632,16 @@ void ElementBaseT::SetElementCards(void)
 		const iArray2DT* blockconn = fConnectivities[i];
 		iArray2DT& blockeqnos = fEqnos[i];
 
+		if (blockconn->MajorDim() != blockeqnos.MajorDim())
+		  {
+		    cout << "ElementBaseT::SetElementCards length mismatch ";
+		    cout << "\n   element group: " << fFEManager.ElementGroupNumber(this) + 1; 
+		    cout << "\n           block: " << i+1;
+		    cout << "\n  blockconn dim = " << blockconn->MajorDim() << " " << blockconn->MinorDim();
+		    cout << "\n blockeqnos dim = " << blockeqnos.MajorDim() << " " << blockeqnos.MinorDim() << endl;
+		    throw eSizeMismatch;
+		  }
+
 		for (int j = 0; j < dim; j++)
 		{
 			ElementCardT& element_card = fElementCards[count];
@@ -632,8 +651,8 @@ void ElementBaseT::SetElementCards(void)
 
 			/* set pointers */
 			iArrayT& nodes = element_card.NodesX();
-			blockconn->RowAlias(count, nodes);
-			blockeqnos.RowAlias(count, element_card.Equations());
+			blockconn->RowAlias(j, nodes);
+			blockeqnos.RowAlias(j, element_card.Equations());
 			
 			/* check node numbers */
 			int min, max;
