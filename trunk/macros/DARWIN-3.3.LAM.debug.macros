@@ -1,4 +1,4 @@
-# $Id: DARWIN-3.3.LAM.debug.macros,v 1.4 2004-11-12 20:54:53 paklein Exp $
+# $Id: DARWIN-3.3.LAM.debug.macros,v 1.5 2005-02-05 01:03:15 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -16,9 +16,10 @@ COMP_C      = mpicc
 COMP_CC     = mpic++
 COMP_F      = mpif77
 COMP_F90    = g95
-COMP_FLAG   = -c
+COMP_FLAG   = -c -pipe
 MORE_CFLAGS = -g
 LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+CFLAGS_PCH  = $(LOC_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS) -include $(BLD_DIR)/pch/$(PCH) -Winvalid-pch 
 CFLAGS_F    = $(LOC_CFLAGS)
