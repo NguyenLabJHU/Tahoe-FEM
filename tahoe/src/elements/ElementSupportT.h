@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.16.2.3 2003-01-05 23:42:22 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.16.2.4 2003-01-13 19:53:09 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -131,10 +131,10 @@ public:
 #endif // def _SIERRA_TEST_
 
 	/** number of nodes */
-	int NumNodes(void) const { return fNumNodes; };
+	int NumNodes(void) const;
 	
 	/** number of spatial dimensions */
-	int NumSD(void) const { return fNumSD; };
+	int NumSD(void) const;
 
 	/** initial coordinates */
 	const dArray2DT& InitialCoordinates(void) const;
@@ -314,13 +314,12 @@ private:
 	/*@{*/
 	GlobalT::AnalysisCodeT fAnalysis;
 	const GlobalT::StateT* fRunState;
+	const dArray2DT *fInitialCoordinates;
+	const dArray2DT *fCurrentCoordinates;
 	/*@}*/
-
-	int fNumSD, fNumNodes;
 
 #ifdef _SIERRA_TEST_	
  
-	dArray2DT *fInitialCoordinates, *fCurrentCoordinates;
 	dArrayT *fResidual;
 	dMatrixT *fStiffness;
 
@@ -390,6 +389,26 @@ inline CommManagerT& ElementSupportT::CommManager(void) const
 	if (!fCommManager) 
 		ExceptionT::GeneralFail("ElementSupportT::CommManager", "pointer not set");
 	return *fCommManager;
+}
+
+/* number of nodes */
+inline int ElementSupportT::NumNodes(void) const
+{
+#if __option(extended_errorcheck)
+	if (!fInitialCoordinates) ExceptionT::GeneralFail("ElementSupportT::NumNodes", 
+		"no initial coordinates");
+#endif
+	return fInitialCoordinates->MajorDim();
+}
+	
+/* number of spatial dimensions */
+inline int ElementSupportT::NumSD(void) const
+{
+#if __option(extended_errorcheck)
+	if (!fInitialCoordinates) ExceptionT::GeneralFail("ElementSupportT::NumSD", 
+		"no initial coordinates");
+#endif
+	return fInitialCoordinates->MinorDim();
 }
 
 } // namespace Tahoe 
