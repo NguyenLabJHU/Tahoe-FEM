@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.11 2002-07-05 22:26:27 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.12 2002-09-12 16:10:03 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -59,7 +59,6 @@ public:
 	            };
 
 	/** generate output data record.
-	 * \param ID identifier to denote the class generating the OutputSetT
 	 * \param geometry_code GeometryT::CodeT defining the geometry associated
 	 *        with the connectivities.
 	 * \param block_ID list of element block ID's comprising the connectivities.
@@ -74,13 +73,12 @@ public:
 	 *        this list defines the number of element output variables.
 	 * \param changing flag to indicate whether the connectivities may change
 	 *        from output step to output step. */
-	OutputSetT(const StringT& ID, GeometryT::CodeT geometry_code,
+	OutputSetT(GeometryT::CodeT geometry_code,
 		const ArrayT<StringT>& block_ID, const ArrayT<const iArray2DT*>& connectivities, 
 		const ArrayT<StringT>& n_labels, const ArrayT<StringT>& e_labels, 
 		bool changing);
 
 	/** generate output data record.
-	 * \param ID identifier to denote the class generating the OutputSetT
 	 * \param geometry_code GeometryT::CodeT defining the geometry associated
 	 *        with the connectivities.
 	 * \param connectivities elements over which data will be written. The
@@ -88,7 +86,7 @@ public:
 	 *        for use during output. These connectivities are not copied.
 	 * \param n_labels list of labels for the nodal variables. The length of
 	 *        this list defines the number of nodal output variables */
-	OutputSetT(const StringT& ID, GeometryT::CodeT geometry_code,
+	OutputSetT(GeometryT::CodeT geometry_code,
 		const iArray2DT& connectivities, const ArrayT<StringT>& n_labels);
 
 	/** copy constructor */
@@ -111,7 +109,8 @@ public:
 	void IncrementPrintStep(void);
 
 	/** return the ID for the output set */
-	const StringT& ID(void) const;
+	void SetID(const StringT& id);
+	const StringT& ID(void) const { return fID; };
 
 	/** return true if the set has changing geometry, false otherwise */
 	bool Changing(void) const;
@@ -175,7 +174,7 @@ private:
 	int fPrintStep;
 
 	/** set ID */
-	const StringT fID;
+	StringT fID;
 	
 	/** true if set has changing geometry, false otherwise */
 	bool fChanging;
@@ -208,7 +207,6 @@ inline int OutputSetT::PrintStep(void) const { return fPrintStep; }
 inline void OutputSetT::ResetPrintStep(void) { fPrintStep = -1; }
 inline void OutputSetT::IncrementPrintStep(void) { fPrintStep++; }
 
-inline const StringT& OutputSetT::ID(void) const { return fID; }
 inline bool OutputSetT::Changing(void) const { return fChanging; }
 inline GeometryT::CodeT OutputSetT::Geometry(void) const { return fGeometry; }
 inline int OutputSetT::NumBlocks (void) const { return fBlockID.Length(); }
