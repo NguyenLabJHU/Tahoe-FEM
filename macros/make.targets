@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.16 2002-04-03 00:08:42 paklein Exp $
+# $Id: make.targets,v 1.17 2002-09-12 16:47:03 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -87,7 +87,7 @@ build: objects $(BUILD)
 
 $(TARGET): $(OPT_LIB) $(LIBRARY)
 	@ $(ECHO) " linking..."	
-	@ $(LINK) $(MAIN) -o $(TARGET) -L$(HOME_DIR)/lib -l$(TARGET) $(OPT_LFLAGS) $(LFLAGS)
+	@ $(LINK) $(MAIN) -o $(TARGET) -L$(HOME_DIR)/lib -l$(TARGET) $(OPT_LFLAGS) $(MY_LFLAGS) $(LFLAGS)
 	@ $(ECHO) "    ...wrote $(TARGET)"; $(ECHO) " "
 
 # include object list and create archive
@@ -163,7 +163,7 @@ depend_init:
 	"DEPEND_PATH = $(DEPEND_PATH)"
 
 # build objects
-objects:
+objects: $(MAKE_BUILD_XTRAS)
 	@ $(ECHO) "cd $(SRC_DIR)"; \
 	cd $(SRC_DIR); \
 	$(MAKE) $(MAKE_OPTS) objects \
@@ -173,6 +173,10 @@ objects:
 	"OBJ_DIR = $(OBJ_DIR)" \
 	"LIB_DIR = $(LIB_DIR)" \
 	"OPT_CFLAGS = $(OPT_CFLAGS)" \
+	"MY_CFLAGS = $(MY_CFLAGS)" \
+	"MY_CCFLAGS = $(MY_CCFLAGS)" \
+	"MY_FFLAGS = $(MY_FFLAGS)" \
+	"MY_LFLAGS = $(MY_LFLAGS)" \
 	"DEPEND_PATH = $(DEPEND_PATH)" \
 	"DEPEND = $(DEPEND_FILE)" \
 	"CURR_DIR = $(SRC_DIR)"
