@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.4 2001-04-30 19:29:23 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.5 2001-05-17 19:13:47 ebmarin Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList2DT.h"
@@ -34,6 +34,11 @@
 #include "ABAQUS_BCJ.h"
 #include "QuadLogOgden2DT.h"
 #include "tevp2D.h"
+
+#include "HyperEVP2D.h"
+#include "BCJHypo2D.h"
+#include "LocalCrystalPlast2D.h"
+#include "GradCrystalPlast2D.h"
 
 /* constructor */
 SolidMatList2DT::SolidMatList2DT(int length, const ElasticT& element_group):
@@ -187,6 +192,31 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fArray[matnum] = new tevp2D(in, fElementGroup);
 				fHasHistory = true;
 				break;
+
+                        case kHyperEVP:
+                                fArray[matnum] = new HyperEVP2D(in, fElementGroup);
+                                fHasHistory = true;
+                                break;
+
+                        case kBCJHypo:
+                                fArray[matnum] = new BCJHypo2D(in, fElementGroup);
+                                fHasHistory = true;
+                                break;
+
+                        case kLocXtalPlast:
+                                fArray[matnum] = new LocalCrystalPlast2D(in, fElementGroup);
+                                fHasHistory = true;
+                                break;
+
+			case kLocXtalPlast_C:
+				cout << "\n SolidMatList2DT::ReadMaterialData: model " << matcode
+				     << " is not implemented in 2D" << endl;
+				throw eBadInputValue;
+
+                        case kGrdXtalPlast:
+                                fArray[matnum] = new GradCrystalPlast2D(in, fElementGroup);
+                                fHasHistory = true;
+                                break;
 
 			case kABAQUS_BCJ:
 #ifdef __F2C__

@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.5 2001-05-01 23:22:53 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.6 2001-05-17 19:13:47 ebmarin Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -25,6 +25,12 @@
 #include "J2QLLinHardT.h"
 #include "OgdenIsoVIB3D.h"
 #include "QuadLogOgden3DT.h"
+
+#include "HyperEVP3D.h"
+#include "BCJHypo3D.h"
+#include "LocalCrystalPlast.h"
+#include "LocalCrystalPlast_C.h"
+#include "GradCrystalPlast.h"
 
 #include "ABAQUS_BCJ.h"
 
@@ -146,6 +152,31 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fHasLocalizers = true;
 				fHasHistory = true;
 				break;
+
+                        case kHyperEVP:
+                                fArray[matnum] = new HyperEVP3D(in, fElementGroup);
+                                fHasHistory = true;
+                                break;
+
+                        case kBCJHypo:
+                                fArray[matnum] = new BCJHypo3D(in, fElementGroup);
+                                fHasHistory = true;
+                                break;
+
+                        case kLocXtalPlast:
+                                fArray[matnum] = new LocalCrystalPlast(in, fElementGroup);
+                                fHasHistory = true;
+                                break;
+
+                        case kLocXtalPlast_C:
+                                fArray[matnum] = new LocalCrystalPlast_C(in, fElementGroup);
+                                fHasHistory = true;
+                                break;
+
+                        case kGrdXtalPlast:
+                                fArray[matnum] = new GradCrystalPlast(in, fElementGroup);
+                                fHasHistory = true;
+                                break;
 
 			case kABAQUS_BCJ:
 #ifdef __F2C__			
