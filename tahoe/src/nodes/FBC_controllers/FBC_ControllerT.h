@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.12.12.1 2004-01-28 01:34:13 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.12.12.2 2004-03-31 16:20:14 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #ifndef _FBC_CONTROLLER_T_H_
 #define _FBC_CONTROLLER_T_H_
@@ -22,6 +22,8 @@ class iArray2DT;
 template <class TYPE> class RaggedArray2DT;
 class eIntegratorT;
 class StringT;
+class FieldT;
+class FieldSupportT;
 
 /** base class for all force BC controllers */
 class FBC_ControllerT: public ParameterInterfaceT
@@ -40,14 +42,14 @@ public:
 	/** converts strings to FBC_ControllerT::CodeT */
 	static CodeT Code(const char* name);
 
-	/* constructor */
-	FBC_ControllerT(FEManagerT& fe_manager, int group);
+	/** constructor */
+	FBC_ControllerT(void);
 
 	/* destructor */
 	virtual ~FBC_ControllerT(void);
 
-	/* set the controller */
-	virtual void SetController(const eIntegratorT* controller);
+	/** set the associated field */
+	virtual void SetField(const FieldT& field);
 
 	/* initialize data - called immediately after construction */
 	virtual void Initialize(void) = 0;
@@ -98,20 +100,47 @@ public:
 	virtual void WriteOutput(ostream& out) const = 0;
 	/*@}*/
 
-	/* input processing */
-	virtual void EchoData(ifstreamT& in, ostream& out) = 0;
-	
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list. Must be called after FBC_ControllerT::SetField */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
-	/** the Boss */
-	FEManagerT& fFEManager;
+	/** return the FieldT or throw exception if not set */
+	const FieldT& Field(void);
+
+	/** return the FieldSupportT or throw exception if not set */
+	const FieldSupportT& FieldSupport(void);
+
+protected:
+
+	/** support */
+	const FieldSupportT* fFieldSupport;
+
+	/** the field */
+	const FieldT* fField;
 
 	/** equation group */
 	int fGroup;
 
-	/* element controller */
+	/** element time integration parameters */
 	const eIntegratorT* fIntegrator;
 };
 
-} // namespace Tahoe 
+/* return the FieldT or throw exception if not set */
+const FieldT& FBC_ControllerT::Field(void) {
+	if (!fField) ExceptionT::GeneralFail("FBC_ControllerT::Field", "pointer not set");
+	return *fField;
+}
+
+/* return the FieldSupportT or throw exception if not set */
+const FieldSupportT& FBC_ControllerT::FieldSupport(void) {
+	if (!fFieldSupport) ExceptionT::GeneralFail("FBC_ControllerT::FieldSupport", "pointer not set");
+	return *fFieldSupport;
+}
+
+} /* namespace Tahoe */
+
 #endif /* _FBC_CONTROLLER_T_H_ */
