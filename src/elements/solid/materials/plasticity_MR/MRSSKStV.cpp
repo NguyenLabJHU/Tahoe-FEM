@@ -147,7 +147,7 @@ void MRSSKStV::ComputeOutput(dArrayT& output)
 		slipdirs.Dimension(3);
 		bool checkloc;
 		double detA;
-		checkloc = checker.IsLocalized_SS(normals,slipdirs,detA);
+		checkloc = checker.IsLocalized_SS(normals,slipdirs);
 		if (checkloc) output[6] = 1.0;
 		else output[6] = 0.0;
 	}	

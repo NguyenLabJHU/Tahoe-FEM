@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardLocT.cpp,v 1.5 2004-09-10 01:07:59 cfoster Exp $ */
+/* $Id: DPSSLinHardLocT.cpp,v 1.6 2005-01-25 23:16:52 raregue Exp $ */
 /* created: myip (06/01/1999)                                        */
 
 /*
@@ -90,7 +90,7 @@ const dSymMatrixT& DPSSLinHardLocT::StressCorrection(
 		if (ftrial > kYieldTol)
 		{
 
-		  cout << "plastic loading\n";
+		  //cout << "plastic loading\n";
 
 			/* plastic increment */
 	    	dgamma = ftrial/fX_H;
@@ -172,11 +172,7 @@ const dMatrixT& DPSSLinHardLocT::ModuliCorrection(const ElementCardT& element, i
 
 	    fModuliCorr *= timeFactor/(1.0+timeFactor);
 	  }
-
-	
-
-
-
+	  
 	return fModuliCorr;
 }	
 
@@ -390,7 +386,7 @@ void DPSSLinHardLocT::Update(ElementCardT& element, double dt)
 			if (fEta == 0.0)
 			  {
 			  fInternal[kalpha] -= fH_prime*dgamma;
-			  cout << "kalpha = " << fInternal[kalpha] << endl;
+			  //cout << "kalpha = " << fInternal[kalpha] << endl;
 			  }
 			else
 			  {

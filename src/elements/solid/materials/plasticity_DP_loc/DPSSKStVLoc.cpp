@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.8 2004-09-10 01:07:59 cfoster Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.9 2005-01-25 23:16:52 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 #include "SSMatSupportT.h"
@@ -55,9 +55,10 @@ void DPSSKStVLoc::ResetHistory(void)
 	if (element.IsAllocated()) fDP->Reset(element);
 }
 
-const dSymMatrixT& DPSSKStVLoc::ElasticStrain(const dSymMatrixT& totalstrain, const ElementCardT& element, int ip) {
-
-  //cout << "totalstrain= \n" << totalstrain <<endl << endl;
+const dSymMatrixT& DPSSKStVLoc::ElasticStrain(const dSymMatrixT& totalstrain, 
+											const ElementCardT& element, int ip) 
+{
+	//cout << "totalstrain= \n" << totalstrain <<endl << endl;
 
 	return fDP->ElasticStrain(totalstrain, element, ip);
 }
@@ -73,8 +74,8 @@ const dMatrixT& DPSSKStVLoc::c_ijkl(void)
 /* elastoplastic modulus */
 const dMatrixT& DPSSKStVLoc::c_ep_ijkl(void)
 {
-        fModulusEP.SumOf(HookeanMatT::Modulus(),
-		 fDP->ModuliCorrectionEP(CurrentElement(), CurrIP()));
+	fModulusEP.SumOf(HookeanMatT::Modulus(),
+		fDP->ModuliCorrectionEP(CurrentElement(), CurrIP()));
 
 	return fModulusEP;
 }
@@ -84,7 +85,7 @@ const dMatrixT& DPSSKStVLoc::c_perfplas_ijkl(void)
 {
 	/* elastoplastic correction */
 	fModulusPerfPlas.SumOf(HookeanMatT::Modulus(),
-	fDP->ModuliCorrPerfPlas(CurrentElement(), CurrIP()));
+		fDP->ModuliCorrPerfPlas(CurrentElement(), CurrIP()));
 	
 	return fModulusPerfPlas;
 }
@@ -99,7 +100,6 @@ const dSymMatrixT& DPSSKStVLoc::s_ij(void)
 
 	//cout << "e_tot= \n" << e_tot <<endl << endl;
 	//cout << "e_els= \n" << e_els <<endl << endl; 
-
 
 	/* elastic stress */
 	HookeanStress(e_els, fStress);
@@ -121,11 +121,11 @@ const dSymMatrixT& DPSSKStVLoc::s_ij(void)
 // see ComputeOutput
 int DPSSKStVLoc::IsLocalized(dArrayT& normal)
 {
-  //DetCheckT checker(fStress, fModulus, fModulusCe);
-  DetCheckT checker(fStress, c_ep_ijkl(), fModulusCe);	
-  checker.SetfStructuralMatSupport(*fSSMatSupport);
+	//DetCheckT checker(fStress, fModulus, fModulusCe);
+	DetCheckT checker(fStress, c_ep_ijkl(), fModulusCe);	
+	checker.SetfStructuralMatSupport(*fSSMatSupport);
 
-  int loccheck = checker.IsLocalized(normal);
+	int loccheck = checker.IsLocalized(normal);
 	return loccheck;
 }
 
@@ -189,10 +189,8 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 			AutoArrayT <dArrayT> slipdirs;
 			normals.Dimension(3);
 			slipdirs.Dimension(3);
-			double dummy;
-#pragma unused(dummy)
-			output[3] = checker.IsLocalized_SS(normals,slipdirs, dummy);
-
+			output[3] = 0.0;
+			if(checker.IsLocalized_SS(normals,slipdirs)) output[3] = 1.0;
 		  }
 	}
 	else
@@ -250,7 +248,6 @@ void DPSSKStVLoc::TakeParameterList(const ParameterListT& list)
 	fModulusEP.Dimension(dSymMatrixT::NumValues(3));
 	fModulusCe.Dimension(dSymMatrixT::NumValues(3));
 	fModulusPerfPlas.Dimension(dSymMatrixT::NumValues(3));
-
 
 	/* construct Drucker-Prager solver */
 	fDP = new DPSSLinHardLocT(NumIP(), Mu(), Lambda());
