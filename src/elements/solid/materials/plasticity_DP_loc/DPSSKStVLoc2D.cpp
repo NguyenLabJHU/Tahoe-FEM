@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc2D.cpp,v 1.4 2004-07-21 20:52:46 raregue Exp $ */
+/* $Id: DPSSKStVLoc2D.cpp,v 1.5 2005-02-16 17:26:24 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc2D.h"
 #include "ElementCardT.h"
@@ -25,7 +25,7 @@ const dSymMatrixT& DPSSKStVLoc2D::ElasticStrain(const dSymMatrixT& totalstrain,
 	return DPSSKStVLoc::ElasticStrain(fTotalStrain3D, element, ip);
 }
 
-/* moduli */
+/* tangent modulus */
 const dMatrixT& DPSSKStVLoc2D::c_ijkl(void)
 {
 	/* 3D -> 2D */
@@ -34,6 +34,16 @@ const dMatrixT& DPSSKStVLoc2D::c_ijkl(void)
 	return fModulus2D;
 }
 
+/* elastic modulus */
+const dMatrixT& DPSSKStVLoc2D::ce_ijkl(void)
+{
+	/* 3D -> 2D */
+	fModulusElas2D.Rank4ReduceFrom3D(DPSSKStVLoc::ce_ijkl());
+//	fModulus2D *= fThickness;
+	return fModulusElas2D;
+}
+
+/* perfectly-plastic continuum modulus */
 const dMatrixT& DPSSKStVLoc2D::c_perfplas_ijkl(void)
 {
 	/* 3D -> 2D */

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc2D.h,v 1.4 2004-07-21 20:52:46 raregue Exp $ */
+/* $Id: DPSSKStVLoc2D.h,v 1.5 2005-02-16 17:26:24 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_2D_H_
 #define _DP_SS_KSTV_LOC_2D_H_
@@ -22,6 +22,7 @@ public:
 
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);
+	virtual const dMatrixT& ce_ijkl(void);
 	virtual const dMatrixT& c_perfplas_ijkl(void);
   	
 	/* stress */
@@ -40,7 +41,7 @@ public:
   
 	/* return values */
 	dSymMatrixT	fStress2D;
-	dMatrixT fModulus2D, fModulusPerfPlas2D;
+	dMatrixT fModulus2D, fModulusElas2D, fModulusPerfPlas2D;
 
 	/* work space */
 	dSymMatrixT	fTotalStrain3D;
