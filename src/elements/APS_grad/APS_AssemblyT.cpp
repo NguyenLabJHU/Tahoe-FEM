@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.35 2003-10-10 13:36:01 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.36 2003-10-10 19:33:39 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -1043,6 +1043,8 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 	iArrayT face_nodes, face_equations;
 	dMatrixT face_jacobian(NumSD(), NumSD()-1);
 	dMatrixT face_Q(NumSD());
+	LocalArrayT face_gamma_p(LocalArrayT::kDisp, 2, NumSD());
+	fPlast.RegisterLocal(face_gamma_p);
 
  	/* has (coarse scale) body forces */
 	int formBody = 0;
@@ -1120,6 +1122,9 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 						/* collect coordinates over the face */
 						fPlasticGradientFaces[i].RowAlias(j, face_nodes);
 						face_coords.SetLocal(face_nodes);
+						
+						/* collect plastic strain over the face */
+						face_gamma_p.SetLocal(face_nodes);
 						
 						/* shape functions over the given face */
 
