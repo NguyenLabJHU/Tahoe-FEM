@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.11 2002-11-29 16:09:00 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.11.2.1 2002-12-18 09:50:14 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 
 #include "MeshFreeElementSupportT.h"
@@ -218,7 +218,7 @@ void MeshFreeElementSupportT::TraceNode(ostream& out, int node, const ElementBas
 	out << "\n MeshFreeElementSupportT::TraceNode: " << node + 1 << endl;
 
 	/* node map */
-	const iArrayT* node_map = element_group.ElementSupport().NodeMap();
+	const ArrayT<int>* node_map = element_group.ElementSupport().NodeMap();
 
 	/* shape function data */
 	MeshFreeSupportT& mf_support = fMFShapes->MeshFreeSupport();
