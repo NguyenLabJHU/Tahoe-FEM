@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.4.4.3 2002-10-16 23:29:20 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.4.4.4 2002-10-18 22:37:22 cjkimme Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -11,6 +11,8 @@
 #include "FieldT.h"
 #else
 #include "LocalArrayT.h"
+#include "dArrayT.h"
+#include "iArrayT.h"
 #endif
 
 /* constructor */
@@ -28,6 +30,7 @@ ElementSupportT::ElementSupportT(void)
 	fItNum = 0;
 	fCurrentCoordinates = NULL;
 	fInitialCoordinates = NULL;
+	ieqnos = NULL;
 	iparams = NULL;
 	fparams = new double[7];
 	fparams[0] = 1.;
@@ -344,6 +347,25 @@ void ElementSupportT::SetNumElements(int nelem)
 	fElem = nelem;
 }	
 
+void ElementSupportT::SetEqnos(int *conn, const int& nElem, const int& nElemNodes, 
+	const int& nNodes)
+{
+	ieqnos = new iArrayT();
+	ieqnos->Allocate(nElem*nElemNodes*3);
+	int *iptr, ioff;
+	iptr = ieqnos->Pointer();
+	for (int i = 0; i < nElem*nElemNodes; i++)
+	{
+		ioff = (*conn++)*3; 
+		for (int k = 0; k < 3; k++)
+			*iptr++ = ioff++;
+	}
+	
+	/* Allocate vector for residual while we're here */
+	fResidual = new dArrayT();
+	fResidual->Allocate(3*nNodes);
+}
+
 #endif
 
 /* element number map for the given block ID */
@@ -447,9 +469,16 @@ void ElementSupportT::AssembleRHS(int group, const dArrayT& elRes,
 #ifndef _SIERRA_TEST_
 	FEManager().AssembleRHS(group, elRes, eqnos);
 #else
-#pragma unused(group)
 #pragma unused(elRes)
 #pragma unused(eqnos)
+	cout <<"elRes.Length() = "<<group<<"\n";
+	double *fp = elRes.Pointer();
+	int *ip = ieqnos->Pointer() + group*elRes.Length();
+	for (int i = 0;i < elRes.Length();i++)
+		(*fResidual)[*ip++] += *fp++;
+	fp = fResidual->Pointer();
+	for (int i = 0;i < fResidual->Length(); i++)
+		cout <<"i = "<<i<<" "<<*fp++<<"\n";
 #endif
 }
 

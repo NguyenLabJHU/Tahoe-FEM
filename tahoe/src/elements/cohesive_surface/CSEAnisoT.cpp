@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.23.2.3 2002-10-16 23:29:21 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.23.2.4 2002-10-18 22:37:23 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -419,7 +419,7 @@ void CSEAnisoT::LHSDriver(void)
 		dMatrixT::kWhole : dMatrixT::kUpperOnly;
 
 	/* time-integration parameters */
-	double constK = 0.0;
+	double constK = 1.0;
 #ifndef _SIERRA_TEST_
 	int formK = fController->FormK(constK);
 	if (!formK) return;
@@ -566,7 +566,7 @@ void CSEAnisoT::LHSDriver(void)
 void CSEAnisoT::RHSDriver(void)
 {
 	/* time-integration parameters */
-	double constKd = 0.0;
+	double constKd = 1.0;
 #ifndef _SIERRA_TEST_
 	int formKd = fController->FormKd(constKd);
 	if (!formKd) return;
@@ -621,7 +621,7 @@ void CSEAnisoT::RHSDriver(void)
 
 	/* fracture surface area */
 	fFractureArea = 0.0;
-	
+
 	int block_count = 0, block_dex = 0;
 	dArrayT state;
 	Top();

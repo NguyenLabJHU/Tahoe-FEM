@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.11.4.1 2002-10-15 23:03:48 cjkimme Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.11.4.2 2002-10-18 22:37:23 cjkimme Exp $ */
 /* created: paklein (06/23/1999)*/
 
 #include "XuNeedleman3DT.h"
@@ -133,8 +133,6 @@ const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	double u_t2 = jump_u[1];
 	double u_n  = jump_u[2];
 	
-	cout <<"Here in Traction : "<<u_t1<<" "<<u_t2<<" "<<u_n<<"\n";
-
 	z1 = 1./d_n;
 	z2 = 1./(d_t*d_t);
 	z3 = r-q;
@@ -179,6 +177,9 @@ const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	
 	/* penetration */
 	if (u_n < 0.0) fTraction[2] += u_n*fK;
+
+	cout <<"Here in Traction : "<<fTraction[0]<<" "<<fTraction[1]<<" "<<fTraction[2]<<"\n";
+
 
 	return fTraction;
 }
@@ -304,6 +305,8 @@ void XuNeedleman3DT::PrintName(ostream& out) const
 {
 #ifndef _SIERRA_TEST_
 	out << "    Xu-Needleman 3D\n";
+#else
+#pragma unused(out)
 #endif
 }
 

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.20.2.3 2002-10-16 23:29:20 cjkimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.20.2.4 2002-10-18 22:37:21 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -357,6 +357,8 @@ void ElementBaseT::AssembleRHS(void) const
 {
 #ifndef _SIERRA_TEST_
 	fSupport.AssembleRHS(fField.Group(), fRHS, CurrentElement().Equations());
+#else
+	fSupport.AssembleRHS(fElementCards.Position(),fRHS,CurrentElement().Equations());
 #endif
 }
 
