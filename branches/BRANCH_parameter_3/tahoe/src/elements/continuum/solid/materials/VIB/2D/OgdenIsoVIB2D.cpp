@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.cpp,v 1.11.20.3 2004-06-19 23:28:02 paklein Exp $ */
+/* $Id: OgdenIsoVIB2D.cpp,v 1.11.20.4 2004-06-25 01:30:23 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB2D.h"
 
@@ -14,22 +14,7 @@
 
 using namespace Tahoe;
 
-/* constructors */
-OgdenIsoVIB2D::OgdenIsoVIB2D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("Ogden_isotropic_VIB_2D"),
-	OgdenIsotropicT(in, support),
-	VIB(2, 2, 3),
-	fCircle(NULL)
-{
-#if 0
-	/* point generator */
-	fCircle = new EvenSpacePtsT(in);
-
-	/* set tables */
-	Construct();
-#endif
-}
-
+/* constructor */
 OgdenIsoVIB2D::OgdenIsoVIB2D(void):
 	ParameterInterfaceT("Ogden_isotropic_VIB_2D"),
 	VIB(2, 2, 3),

@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.9.18.6 2004-06-16 00:29:30 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.9.18.7 2004-06-25 01:30:31 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
 #include "SSMatSupportT.h"
@@ -18,18 +18,6 @@ static const char* Labels[kNumOutput] = {
 	"press"}; // pressure
 
 /* constructor */
-J2SSKStV::J2SSKStV(ifstreamT& in, const SSMatSupportT& support):
-	ParameterInterfaceT("small_strain_StVenant_J2"),
-	SSSolidMatT(in, support),
-	IsotropicT(in),
-	HookeanMatT(3),
-//	J2SSC0HardeningT(in, NumIP(), Mu()),
-	fStress(3),
-	fModulus(dSymMatrixT::NumValues(3))
-{
-#pragma message("delete me")
-}
-
 J2SSKStV::J2SSKStV(void):
 	ParameterInterfaceT("small_strain_StVenant_J2"),
 	HookeanMatT(3),

@@ -1,18 +1,10 @@
-/* $Id: FDCubicT.cpp,v 1.5.46.3 2004-06-09 23:17:35 paklein Exp $ */
+/* $Id: FDCubicT.cpp,v 1.5.46.4 2004-06-25 01:30:11 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "FDCubicT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-FDCubicT::FDCubicT(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("large_strain_cubic"),
-	FDHookeanMatT(in, support),
-	CubicT(in)
-{
-
-}
-
 FDCubicT::FDCubicT(void):
 	ParameterInterfaceT("large_strain_cubic")
 {

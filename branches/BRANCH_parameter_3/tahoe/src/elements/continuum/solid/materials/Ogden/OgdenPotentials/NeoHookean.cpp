@@ -1,20 +1,27 @@
+/* $Id: NeoHookean.cpp,v 1.2.20.1 2004-06-25 01:30:19 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
-
 #include "NeoHookean.h"
-
 #include "ExceptionT.h"
 #include <math.h>
 #include <iostream.h>
 
 using namespace Tahoe;
+const double third = 1.0/3.0;
 
-NeoHookean::NeoHookean(ifstreamT& in): fthird(1.0/3.0)
+NeoHookean::NeoHookean(void):
+	fMu(0.0),
+	fKappa(0.0)
 {
-  /*read in material parameters*/
-  in >> fMu;
-  in >> fKappa;
+
+}
+
+/* set parameters */
+void NeoHookean::SetKappaMu(double kappa, double mu)
+{
+	fMu = mu;
+	fKappa = kappa;
 }
 
 void NeoHookean::Print(ostream& out) const
@@ -45,11 +52,11 @@ void NeoHookean::DevStress(const dArrayT& lambda_bar,dArrayT& tau)
   const double& l1 = lambda_bar[1];
   const double& l2 = lambda_bar[2];
   
-  tau[0] = fMu*fthird*(2.0*l0-l1-l2);
-  tau[1] = fMu*fthird*(2.0*l1-l0-l2);
+  tau[0] = fMu*third*(2.0*l0-l1-l2);
+  tau[1] = fMu*third*(2.0*l1-l0-l2);
   
   if (nsd == 3)
-    tau[2] = fMu*fthird*(2.0*l2-l0-l1);
+    tau[2] = fMu*third*(2.0*l2-l0-l1);
 }
 
 double NeoHookean::MeanStress(const double& J) {return(0.5*fKappa*(J*J-1));}
@@ -57,7 +64,7 @@ double NeoHookean::MeanStress(const double& J) {return(0.5*fKappa*(J*J-1));}
 void NeoHookean::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus)
 {
   int nsd = eigenmodulus.Rows();
-  double ninth = fthird*fthird;
+  double ninth = third*third;
   
   const double& l0 = lambda_bar[0];
   const double& l1 = lambda_bar[1];

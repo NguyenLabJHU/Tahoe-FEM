@@ -1,4 +1,4 @@
-/* $Id: ModCB3DT.cpp,v 1.7.46.3 2004-06-17 07:54:25 paklein Exp $ */
+/* $Id: ModCB3DT.cpp,v 1.7.46.4 2004-06-25 01:30:28 paklein Exp $ */
 /* created: paklein (10/14/1998) */
 #include "ModCB3DT.h"
 
@@ -20,19 +20,6 @@ const int 	kDC110		= 1;
 const int	kDC111		= 2;
 
 /* constructor */
-ModCB3DT::ModCB3DT(ifstreamT& in, const FSMatSupportT& support, bool equilibrate):
-	ParameterInterfaceT("Cauchy-Born_diamond"),
-	NL_E_MatT(in, support),
-	fModCBSolver(NULL),
-	fXsi(kNDOF),
-	fC(kNSD),
-	fPK2(kNSD)
-{
-#pragma unused(equilibrate)
-//	fModCBSolver = new ModCBSolverT(Q, fThermal, in, equilibrate);
-//	if (!fModCBSolver) throw ExceptionT::kOutOfMemory;
-}
-
 ModCB3DT::ModCB3DT(void):
 	ParameterInterfaceT("Cauchy-Born_diamond"),
 	fModCBSolver(NULL)

@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.h,v 1.7.46.3 2004-06-17 07:54:25 paklein Exp $ */
+/* $Id: ModCB2DT.h,v 1.7.46.4 2004-06-25 01:30:28 paklein Exp $ */
 /* created: paklein (05/31/1997) */
 #ifndef _MODCB_2DT_H_
 #define _MODCB_2DT_H_
@@ -16,7 +16,6 @@ class ModCB2DT: public NL_E_MatT
 public:
 
 	/* constructor */
-	ModCB2DT(ifstreamT& in, const FSMatSupportT& support, bool equilibrate);
 	ModCB2DT(void);
 
 	/* destructor */

@@ -1,27 +1,12 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.13.34.3 2004-06-09 23:17:38 paklein Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.13.34.4 2004-06-25 01:30:17 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #include "OgdenIsotropicT.h"
 
-#include <iostream.h>
 #include <math.h>
 
 using namespace Tahoe;
 
 /* constructor */
-OgdenIsotropicT::OgdenIsotropicT(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("Ogden_isotropic"),
-	fSpectralDecomp(NULL),
-	fC(NumSD()),
-	fEigs(NumSD()),
-	fdWdE(NumSD()),
-	fddWddE(NumSD()),
-	fModMat(dSymMatrixT::NumValues(NumSD())),
-	fModulus(dSymMatrixT::NumValues(NumSD())),
-	fStress(NumSD())
-{
-
-}
-
 OgdenIsotropicT::OgdenIsotropicT(void):
 	ParameterInterfaceT("Ogden_isotropic"),
 	fSpectralDecomp(NULL)
@@ -32,24 +17,6 @@ OgdenIsotropicT::OgdenIsotropicT(void):
 OgdenIsotropicT::~OgdenIsotropicT(void)
 {
 	delete fSpectralDecomp;
-}
-
-/* class specific initializations */
-void OgdenIsotropicT::Initialize(void)
-{
-	/* initial modulus */
-	fEigs = 1.0;
-	ddWddE(fEigs, fdWdE, fddWddE);
-	double lambda = fddWddE(0,1);
-	double mu = 0.5*(fddWddE(0,0) - fddWddE(0,1));
-
-	if (NumSD() == 2)
-		IsotropicT::Set_PurePlaneStress_mu_lambda(mu, lambda);
-	else
-	{
-		double kappa = lambda + 2.0/3.0*mu;
-		IsotropicT::Set_mu_kappa(mu, kappa);
-	}
 }
 
 /* modulus */

@@ -1,10 +1,7 @@
-/* $Id: SolidMaterialT.cpp,v 1.10.18.2 2004-06-07 13:48:17 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.10.18.3 2004-06-25 01:30:35 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
-#include <iostream.h>
-
-#include "fstreamT.h"
 #include "dArrayT.h"
 #include "dSymMatrixT.h"
 #include "LocalArrayT.h"
@@ -13,22 +10,6 @@
 using namespace Tahoe;
 
 /* constructor */
-SolidMaterialT::SolidMaterialT(ifstreamT& in, const MaterialSupportT& support):
-	ParameterInterfaceT("solid_material"),
-	ContinuumMaterialT(support)
-{
-#pragma unused(in)
-#if 0
-	in >> fMassDamp;	if (fMassDamp  <  0.0) throw ExceptionT::kBadInputValue;
-	in >> fStiffDamp;	if (fStiffDamp <  0.0) throw ExceptionT::kBadInputValue;
-	in >> fDensity;		if (fDensity   <= 0.0) throw ExceptionT::kBadInputValue;
-	fThermal = new ThermalDilatationT(in);
-	if (!fThermal) throw ExceptionT::kOutOfMemory;
-
-	SetName("solid_material");
-#endif
-}
-
 SolidMaterialT::SolidMaterialT(void):
 	ParameterInterfaceT("solid_material"),
 	fThermal(NULL),
@@ -41,18 +22,6 @@ SolidMaterialT::SolidMaterialT(void):
 
 /* destructor */
 SolidMaterialT::~SolidMaterialT(void) { delete fThermal; }
-
-/* initialization */
-void SolidMaterialT::Initialize(void)
-{
-	/* inherited */
-	ContinuumMaterialT::Initialize();
-
-	/* active multiplicative dilatation */
-	if (fThermal->IsActive() && !SupportsThermalStrain())
-		ExceptionT::BadInputValue("SolidMaterialT::Initialize", 
-			"material does not support imposed thermal strain");
-}
 
 /* return the wave speeds */
 void SolidMaterialT::WaveSpeeds(const dArrayT& normal, dArrayT& speeds)
@@ -225,4 +194,9 @@ void SolidMaterialT::TakeParameterList(const ParameterListT& list)
 		if (!schedule) ExceptionT::GeneralFail(caller, "could not resolve schedule %d", schedule_num+1);		
 		fThermal->SetSchedule(schedule);
 	}
+
+	/* active multiplicative dilatation */
+	if (fThermal->IsActive() && !SupportsThermalStrain())
+		ExceptionT::BadInputValue("SolidMaterialT::Initialize", 
+			"material does not support imposed thermal strain");
 }

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.cpp,v 1.9.4.3 2004-06-11 01:38:16 paklein Exp $ */
+/* $Id: DPSSKStV2D.cpp,v 1.9.4.4 2004-06-25 01:30:30 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV2D.h"
 #include "ElementCardT.h"
@@ -8,16 +8,6 @@
 using namespace Tahoe;
 
 /* constructor */
-DPSSKStV2D::DPSSKStV2D(ifstreamT& in, const SSMatSupportT& support):
-	ParameterInterfaceT("small_strain_StVenant_DP_2D"),
-	DPSSKStV(in, support),
-	fStress2D(2),
-	fModulus2D(dSymMatrixT::NumValues(2)),
-	fTotalStrain3D(3)
-{
-
-}
-
 DPSSKStV2D::DPSSKStV2D(void):
 	ParameterInterfaceT("small_strain_StVenant_DP_2D")
 {

@@ -1,36 +1,16 @@
-/* $Id: CubicT.cpp,v 1.4.50.2 2004-06-07 13:48:13 paklein Exp $ */
+/* $Id: CubicT.cpp,v 1.4.50.3 2004-06-25 01:30:11 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "CubicT.h"
-
-#include <iostream.h>
-
-#include "fstreamT.h"
 #include "dMatrixT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-CubicT::CubicT(ifstreamT& in):
-	ParameterInterfaceT("cubic")
-{	
-	in >> fC11;			
-	in >> fC12;			//add check on the ranges!!!!
-	in >> fC44;	
-}
-
 CubicT::CubicT(void): 
 	ParameterInterfaceT("cubic"),
 	fC11(0.0), fC12(0.0), fC44(0.0)
 {
 
-}
-
-/* I/O operators */
-void CubicT::Print(ostream& out) const
-{
-	out << " C11 . . . . . . . . . . . . . . . . . . . . . . = " << fC11 << '\n';
-	out << " C12 . . . . . . . . . . . . . . . . . . . . . . = " << fC12 << '\n';
-	out << " C44 . . . . . . . . . . . . . . . . . . . . . . = " << fC44 << '\n';	
 }
 
 /* describe the parameters needed by the interface */
@@ -59,12 +39,6 @@ void CubicT::TakeParameterList(const ParameterListT& list)
  * Protected
  *************************************************************************/
 
-/* print name */
-void CubicT::PrintName(ostream& out) const
-{
-	out << "    Cubic\n";
-}
-
 /* compute the symetric Cij reduced index matrix */
 void CubicT::ComputeModuli(dMatrixT& moduli)
 {
@@ -79,10 +53,7 @@ void CubicT::ComputeModuli(dMatrixT& moduli)
 		moduli.CopySymmetric();
 	}
 	else
-	{
-		cout << "\n CubicT::ComputeModuli: 3D only" << endl;
-		throw ExceptionT::kSizeMismatch;
-	}
+		ExceptionT::SizeMismatch("CubicT::ComputeModuli", "3D only");
 }
 
 void CubicT::ComputeModuli2D(dMatrixT& moduli, SolidMaterialT::ConstraintT constraint) const
@@ -107,7 +78,7 @@ void CubicT::ComputeModuli2D(dMatrixT& moduli, SolidMaterialT::ConstraintT const
 		moduli(0,1) = moduli(1,0) = C12;
 		moduli(2,2) = fC44;
 	}
-	else throw ExceptionT::kSizeMismatch;
+	else ExceptionT::SizeMismatch("CubicT::ComputeModuli2D");
 }
 
 /* scale factor for constrained dilatation */

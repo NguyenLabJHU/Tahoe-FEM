@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.22.4.3 2004-06-11 01:38:16 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.22.4.4 2004-06-25 01:30:30 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
 #include "SSMatSupportT.h"
@@ -22,19 +22,6 @@ static const char* Labels[kNumOutput] = {
 	    "press"}; // pressure	    
 
 /* constructor */
-DPSSKStV::DPSSKStV(ifstreamT& in, const SSMatSupportT& support):
-	ParameterInterfaceT("small_strain_StVenant_DP"),
-	SSSolidMatT(in, support),
-	IsotropicT(in),
-	HookeanMatT(3),
-//	DPSSLinHardT(in, NumIP(), Mu(), Lambda()),
-	fDP(NULL),
-	fStress(3),
-	fModulus(dSymMatrixT::NumValues(3))
-{
- 
-}
-
 DPSSKStV::DPSSKStV(void):
 	ParameterInterfaceT("small_strain_StVenant_DP"),
 	HookeanMatT(3),

@@ -1,4 +1,4 @@
-/* $Id: SSCubic2DT.cpp,v 1.6.48.1 2004-04-08 07:32:48 paklein Exp $ */
+/* $Id: SSCubic2DT.cpp,v 1.6.48.2 2004-06-25 01:30:13 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "SSCubic2DT.h"
 #include "ThermalDilatationT.h"
@@ -6,27 +6,10 @@
 using namespace Tahoe;
 
 /* constructor */
-SSCubic2DT::SSCubic2DT(ifstreamT& in, const SSMatSupportT& support):
-	ParameterInterfaceT("small_strain_cubic_2D"),
-	SSCubicT(in, support),
-	Anisotropic2DT(in)
-{
-
-}
-
-/* constructor */
 SSCubic2DT::SSCubic2DT(void):
 	ParameterInterfaceT("small_strain_cubic_2D")
 {
 
-}
-
-/* print parameters */
-void SSCubic2DT::Print(ostream& out) const
-{
-	/* inherited */
-	SSCubicT::Print(out);
-	Anisotropic2DT::Print(out);
 }
 
 double SSCubic2DT::Pressure(void) const

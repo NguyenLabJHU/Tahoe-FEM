@@ -1,34 +1,15 @@
-/* $Id: FDHookeanMatT.cpp,v 1.9.46.1 2004-04-08 07:32:43 paklein Exp $ */
+/* $Id: FDHookeanMatT.cpp,v 1.9.46.2 2004-06-25 01:30:09 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "FDHookeanMatT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-FDHookeanMatT::FDHookeanMatT(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("large_strain_Hookean_material"),
-	FSSolidMatT(in, support),
-	HookeanMatT(NumSD()),
-	fE(NumSD()),
-	fStress(NumSD()),
-	fModulus(dSymMatrixT::NumValues(NumSD())),
-	fLastCall(kNone)
-{
-
-}
-
 FDHookeanMatT::FDHookeanMatT(void):
-	ParameterInterfaceT("large_strain_Hookean_material")
+	ParameterInterfaceT("large_strain_Hookean_material"),
+	fLastCall(kNone)	
 {
 
-}
-
-/* initialization */
-void FDHookeanMatT::Initialize(void)
-{
-	/* inherited */
-	FSSolidMatT::Initialize();
-	HookeanMatT::Initialize();
 }
 
 /* set the material support or pass NULL to clear */

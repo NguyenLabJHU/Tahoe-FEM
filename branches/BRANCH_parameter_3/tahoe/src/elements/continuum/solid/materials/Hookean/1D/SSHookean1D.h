@@ -1,4 +1,4 @@
-/* $Id: SSHookean1D.h,v 1.5.18.2 2004-06-09 23:17:34 paklein Exp $ */
+/* $Id: SSHookean1D.h,v 1.5.18.3 2004-06-25 01:30:10 paklein Exp $ */
 #ifndef _SS_HOOKEAN_1D_H_
 #define _SS_HOOKEAN_1D_H_
 
@@ -13,7 +13,6 @@ class SSHookean1D: public SSHookeanMatT, public IsotropicT
 public:
 
 	/** constructor */
-	SSHookean1D(ifstreamT& in, const SSMatSupportT& support);
 	SSHookean1D(void);
 
 	/** \name implementation of the ParameterInterfaceT interface */

@@ -1,4 +1,4 @@
-/* $Id: CrystalElast.cpp,v 1.9.46.2 2004-06-09 23:17:51 paklein Exp $ */
+/* $Id: CrystalElast.cpp,v 1.9.46.3 2004-06-25 01:30:27 paklein Exp $ */
 #include "CrystalElast.h"
 #include "CrystalElastMat.h"
 #include "CrystalElastLat.h"
@@ -20,13 +20,15 @@ const int kNSD = 3;
 
 CrystalElast::CrystalElast(ifstreamT& in, const FSMatSupportT& support) :
 	ParameterInterfaceT("crystial_elasticity"),
-	FDHookeanMatT(in, support),
+//	FDHookeanMatT(in, support),
   // pointers to supporting classes
   	fCrystalElastLat (NULL),
   	fCrystalElastMat (NULL),
   // material properties
         fMatProp      (kNumMatProp)
 {
+ExceptionT::GeneralFail("CrystalElast::CrystalElast", "out of date");
+#if 0
   // input file
   StringT filename;
   in >> filename;
@@ -49,6 +51,7 @@ CrystalElast::CrystalElast(ifstreamT& in, const FSMatSupportT& support) :
 
   // set crystal elasticity type
   SetCrystalElasticity();
+#endif
 }
 
 CrystalElast::~CrystalElast()

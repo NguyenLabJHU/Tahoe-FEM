@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.h,v 1.7.46.3 2004-06-17 07:54:23 paklein Exp $ */
+/* $Id: EAMFCC2D.h,v 1.7.46.4 2004-06-25 01:30:07 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #ifndef _EAMFCC2D_H_
 #define _EAMFCC2D_H_
@@ -17,7 +17,6 @@ class EAMFCC2D: public NL_E_MatT
 public:
 
 	/* constructor */
-	EAMFCC2D(ifstreamT& in, const FSMatSupportT& support);
 	EAMFCC2D(void);
 
 	/* destructor */

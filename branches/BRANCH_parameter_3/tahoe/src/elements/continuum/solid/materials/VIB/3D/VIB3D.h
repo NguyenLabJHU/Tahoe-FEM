@@ -1,4 +1,4 @@
-/* $Id: VIB3D.h,v 1.6.46.2 2004-06-19 23:28:04 paklein Exp $ */
+/* $Id: VIB3D.h,v 1.6.46.3 2004-06-25 01:30:24 paklein Exp $ */
 /* created: paklein (04/20/1997) */
 #ifndef _VIB_3D_H_
 #define _VIB_3D_H_
@@ -19,7 +19,6 @@ class VIB3D: public NL_E_MatT, public VIB_E_MatT
 public:
 
 	/* constructor */
-	VIB3D(ifstreamT& in, const FSMatSupportT& support);
 	VIB3D(void);
 
 	/* destructor */

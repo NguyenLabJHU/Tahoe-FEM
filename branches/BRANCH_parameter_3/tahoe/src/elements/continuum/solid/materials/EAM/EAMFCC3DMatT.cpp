@@ -1,15 +1,11 @@
-/* $Id: EAMFCC3DMatT.cpp,v 1.7.46.4 2004-06-16 07:13:35 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.cpp,v 1.7.46.5 2004-06-25 01:30:07 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT.h"
 
-#include <math.h>
-#include <iostream.h>
-
-#include "toolboxConstants.h"
-
-#include "fstreamT.h"
 #include "EAMFCC3DSym.h"
 #include "dMatrixT.h"
+
+#include <math.h>
 
 using namespace Tahoe;
 
@@ -17,14 +13,6 @@ using namespace Tahoe;
 #pragma message("rename me")
 
 /* constructor */
-EAMFCC3DMatT::EAMFCC3DMatT(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("FCC_EAM"),
-	NL_E_MatT(in, support),
-	fEAM(NULL)
-{
-
-}
-
 EAMFCC3DMatT::EAMFCC3DMatT(void):
 	ParameterInterfaceT("FCC_EAM"),
 	fEAM(NULL)

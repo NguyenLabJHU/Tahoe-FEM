@@ -1,4 +1,4 @@
-/* $Id: FCC3D.h,v 1.3.12.2 2004-06-19 23:27:58 paklein Exp $ */
+/* $Id: FCC3D.h,v 1.3.12.3 2004-06-25 01:30:06 paklein Exp $ */
 #ifndef _FCC_3D_H_
 #define _FCC_3D_H_
 
@@ -17,7 +17,6 @@ class FCC3D: public NL_E_MatT
 public:
 
 	/** constructor */
-	FCC3D(ifstreamT& in, const FSMatSupportT& support);
 	FCC3D(void);	
 	
 	/** destructor */

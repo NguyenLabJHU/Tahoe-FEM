@@ -1,4 +1,4 @@
-/* $Id: VIB3D.cpp,v 1.8.20.3 2004-06-19 23:28:04 paklein Exp $ */
+/* $Id: VIB3D.cpp,v 1.8.20.4 2004-06-25 01:30:24 paklein Exp $ */
 /* created: paklein (04/20/1997) */
 #include "VIB3D.h"
 
@@ -21,47 +21,7 @@
 
 using namespace Tahoe;
 
-/* constructors */
-VIB3D::VIB3D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("VIB"),
-	NL_E_MatT(in, support),
-	VIB_E_MatT(3),
-	fSphere(NULL)
-{
-#if 0
-	/* construct point generator */
-	int pointcode;
-	in >> pointcode;
-	switch(pointcode)
-	{
-		case SpherePointsT::kLatLong:
-			fSphere = new LatLongPtsT(in);
-			break;
-			
-		case SpherePointsT::kIcosahedral:
-			fSphere = new IcosahedralPtsT(in);
-			break;
-
-		case SpherePointsT::kFCC:
-		{
-			int num_shells;
-			double bond_length;
-			in >> num_shells >> bond_length;
-			fSphere = new FCCPtsT(num_shells, bond_length);
-			break;		
-		}	
-		default:
-		
-			throw ExceptionT::kBadInputValue;
-	}
-	
-	if (!fSphere) throw ExceptionT::kOutOfMemory;
-#endif
-
-	/* default construction */
-	SetAngles(0.0, 0.0);
-}
-
+/* constructor */
 VIB3D::VIB3D(void):
 	ParameterInterfaceT("VIB"),
 	VIB_E_MatT(3),

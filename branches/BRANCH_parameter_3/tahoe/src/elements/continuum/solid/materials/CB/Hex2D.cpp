@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.2.42.6 2004-06-19 23:27:58 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.2.42.7 2004-06-25 01:30:06 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -24,71 +24,6 @@ const double sqrt3 = sqrt(3.0);
 using namespace Tahoe;
 
 /* constructor */
-Hex2D::Hex2D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("hex_2D"),
-	NL_E_MatT(in, support),
-	fNearestNeighbor(-1),
-	fQ(2),
-	fHexLattice2D(NULL),
-	fPairProperty(NULL),
-	fBondTensor4(dSymMatrixT::NumValues(2)),
-	fBondTensor2(dSymMatrixT::NumValues(2))	
-{
-#if 0
-	const char caller[] = "Hex2D::Hex2D";
-
-	/* read the number of shells */
-	int nshells;
-	in >> nshells;
-
-	/* construct pair property */
-	ParticlePropertyT::TypeT property;
-	in >> property;
-	switch (property)
-	{
-		case ParticlePropertyT::kHarmonicPair:
-		{
-			double mass, K;
-			in >> mass >> fNearestNeighbor >> K;
-			fPairProperty = new HarmonicPairT(mass, fNearestNeighbor, K);
-			break;
-		}
-		case ParticlePropertyT::kLennardJonesPair:
-		{
-			double mass, eps, sigma, alpha;
-			in >> mass >> eps >> sigma >> alpha;
-			fPairProperty = new LennardJonesPairT(mass, eps, sigma, alpha);
-
-			/* equilibrium length of a single unmodified LJ bond */
-			fNearestNeighbor = pow(2.0,1.0/6.0)*sigma;
-			break;
-		}
-		default:
-			ExceptionT::BadInputValue(caller, "unrecognized property type %d", property);
-	}
-	
-	/* construct the bond tables */
-	fQ.Identity();
-	fHexLattice2D = new HexLattice2DT(fQ, nshells);
-	fHexLattice2D->Initialize();
-	
-	/* check */
-	if (fNearestNeighbor < kSmall)
-		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
-		
-	/* compute the cell volume */
-	fCellVolume = fNearestNeighbor*fNearestNeighbor*sqrt3/2.0;
-
-	/* compute stress-free dilatation */
-	double stretch = ZeroStressStretch();
-	fNearestNeighbor *= stretch;
-	fCellVolume = fNearestNeighbor*fNearestNeighbor*sqrt3/2.0;
-	
-	/* reset the continuum density (2 atoms per unit cell) */
-	fDensity = 2*fPairProperty->Mass()/fCellVolume;
-#endif
-}
-
 Hex2D::Hex2D(void):
 	ParameterInterfaceT("hex_2D"),
 	fNearestNeighbor(-1),

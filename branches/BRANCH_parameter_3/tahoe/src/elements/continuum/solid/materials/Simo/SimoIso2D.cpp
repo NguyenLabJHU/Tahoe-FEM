@@ -1,22 +1,11 @@
-/* $Id: SimoIso2D.cpp,v 1.9.46.2 2004-06-09 23:17:41 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.9.46.3 2004-06-25 01:30:21 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 #include "SimoIso2D.h"
 #include <math.h>
-#include <iostream.h>
 
 using namespace Tahoe;
 
 /* constructor */
-SimoIso2D::SimoIso2D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("Simo_isotropic_2D"),
-	SimoIso3D(in, support),
-	fStress2D(2),
-	fModulus2D(dSymMatrixT::NumValues(2)),
-	fb_2D(2)
-{
-
-}
-
 SimoIso2D::SimoIso2D(void):
 	ParameterInterfaceT("Simo_isotropic_2D")
 {
@@ -39,11 +28,14 @@ void SimoIso2D::InitStep(void)
 		if (fabs(F_therm_inv(0,0) - F_therm_inv(1,1)) > kSmall ||
 		    fabs(F_therm_inv(1,0)) > kSmall ||
 		    fabs(F_therm_inv(0,1)) > kSmall)
+			ExceptionT::GeneralFail("SimoIso2D::InitStep", "expecting isotropic (F_thermal)^-1:");
+#if 0
 		{
 			cout << "\n SimoIso2D::InitStep: expecting isotropic (F_thermal)^-1:\n"
 			     << F_therm_inv << endl;
 			throw ExceptionT::kGeneralFail;
 		}
+#endif
 	}
 }
 

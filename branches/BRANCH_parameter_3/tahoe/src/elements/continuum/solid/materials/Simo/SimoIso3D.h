@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.h,v 1.9.46.2 2004-06-09 23:17:41 paklein Exp $ */
+/* $Id: SimoIso3D.h,v 1.9.46.3 2004-06-25 01:30:22 paklein Exp $ */
 /* created: paklein (03/02/1997) */
 #ifndef _SIMO_ISO_3D_H_
 #define _SIMO_ISO_3D_H_
@@ -17,7 +17,6 @@ class SimoIso3D: public FSIsotropicMatT
 public:
 
 	/* constructor */
-	SimoIso3D(ifstreamT& in, const FSMatSupportT& support);
 	SimoIso3D(void);
 	
 	/** \name spatial description */

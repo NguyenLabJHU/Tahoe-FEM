@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.cpp,v 1.9.20.3 2004-06-19 23:28:04 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.cpp,v 1.9.20.4 2004-06-25 01:30:24 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB3D.h"
 
@@ -18,37 +18,7 @@
 
 using namespace Tahoe;
 
-/* constructors */
-OgdenIsoVIB3D::OgdenIsoVIB3D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("Ogden_isotropic_VIB"),
-	OgdenIsotropicT(in, support),
-	VIB(3, 3, 6),
-	fSphere(NULL)
-{
-#if 0
-	/* construct point generator */
-	int gencode;
-	in >> gencode;
-	switch (gencode)
-	{
-		case SpherePointsT::kLatLong:
-			fSphere = new LatLongPtsT(in);
-			break;
-	
-		case SpherePointsT::kIcosahedral:
-			fSphere = new IcosahedralPtsT(in);
-			break;
-			
-		default:
-			throw ExceptionT::kBadInputValue;
-	}
-	if (!fSphere) throw ExceptionT::kOutOfMemory;
-
-	/* set tables */
-	Construct();
-#endif
-}
-
+/* constructor */
 OgdenIsoVIB3D::OgdenIsoVIB3D(void):
 	ParameterInterfaceT("Ogden_isotropic_VIB"),
 	VIB(3, 3, 6),

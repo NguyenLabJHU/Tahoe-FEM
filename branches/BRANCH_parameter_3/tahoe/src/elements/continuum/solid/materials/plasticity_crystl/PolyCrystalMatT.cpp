@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.13.46.2 2004-06-09 23:18:01 paklein Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.13.46.3 2004-06-25 01:30:32 paklein Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -31,7 +31,7 @@ const int kNSD = 3;
 
 PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const FSMatSupportT& support) :
 	ParameterInterfaceT("polycrystal_material"),
-  FDHookeanMatT(in, support),
+//  FDHookeanMatT(in, support),
   fdt           (FSMatSupport().TimeStep()),
   //ftime       (FSMatSupport().Time()),
   fLocLastDisp  (FSMatSupport().FiniteStrain()->LastDisplacements()),
@@ -53,6 +53,8 @@ PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const FSMatSupportT& support) :
   fc_ijkl       (dSymMatrixT::NumValues(kNSD)),
   fcavg_ijkl    (dSymMatrixT::NumValues(kNSD))
 {
+ExceptionT::GeneralFail("PolyCrystalMatT::PolyCrystalMatT", "out of date");
+
   // input file
   StringT filename;
   in >> filename;

@@ -1,17 +1,9 @@
-/* $Id: SSHookean1D.cpp,v 1.6.18.4 2004-06-23 00:52:59 paklein Exp $ */
+/* $Id: SSHookean1D.cpp,v 1.6.18.5 2004-06-25 01:30:10 paklein Exp $ */
 #include "SSHookean1D.h"
 
 using namespace Tahoe;
 
 /* constructor */
-SSHookean1D::SSHookean1D(ifstreamT& in, const SSMatSupportT& support):
-	ParameterInterfaceT("linear_material_1D"),
-	SSHookeanMatT(in, support),
-	IsotropicT(in)
-{
-
-}
-
 SSHookean1D::SSHookean1D(void):
 	ParameterInterfaceT("linear_material_1D")
 

@@ -1,4 +1,4 @@
-/* $Id: FDKStV2D.h,v 1.5.46.1 2004-04-08 07:32:51 paklein Exp $ */
+/* $Id: FDKStV2D.h,v 1.5.46.2 2004-06-25 01:30:16 paklein Exp $ */
 /* created: paklein (06/10/97) */
 #ifndef _FD_KSTV_2D_H_
 #define _FD_KSTV_2D_H_
@@ -14,7 +14,6 @@ class FDKStV2D: public FDKStV
 public:
 
 	/** constructor */
-	FDKStV2D(ifstreamT& in, const FSMatSupportT& support);
 	FDKStV2D(void);
 
 	/** \name implementation of the ParameterInterfaceT interface */

@@ -1,4 +1,4 @@
-/* $Id: D2VIB2D.cpp,v 1.6.46.2 2004-06-09 23:17:48 paklein Exp $ */
+/* $Id: D2VIB2D.cpp,v 1.6.46.3 2004-06-25 01:30:26 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2VIB2D.h"
 
@@ -15,7 +15,7 @@ using namespace Tahoe;
 /* constructors */
 D2VIB2D::D2VIB2D(ifstreamT& in, const D2FSMatSupportT& support):
 	ParameterInterfaceT("gradient_VIB_2D"),
-	VIB2D(in, support),
+//	VIB2D(in, support),
 	fD2MLSShape(support.D2MeshFreeFDElastic()->D2MLSShapeFunction())
 {
 	/* length scale parameter */
@@ -24,6 +24,8 @@ D2VIB2D::D2VIB2D(ifstreamT& in, const D2FSMatSupportT& support):
 		
 	/* squared */
 	feps2 *= feps2;
+	
+	ExceptionT::GeneralFail("D2VIB2D::D2VIB2D", "out of date");
 }
 
 #if 0

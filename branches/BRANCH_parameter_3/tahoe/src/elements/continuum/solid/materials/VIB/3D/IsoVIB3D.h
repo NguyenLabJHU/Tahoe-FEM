@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.h,v 1.8.46.2 2004-06-19 23:28:04 paklein Exp $ */
+/* $Id: IsoVIB3D.h,v 1.8.46.3 2004-06-25 01:30:24 paklein Exp $ */
 /* created: paklein (03/15/1998) */
 #ifndef _ISO_VIB_3D_H_
 #define _ISO_VIB_3D_H_
@@ -21,7 +21,6 @@ class IsoVIB3D: public FSSolidMatT, public VIB
 public:
 
 	/* constructor */
-	IsoVIB3D(ifstreamT& in, const FSMatSupportT& support);
 	IsoVIB3D(void);
 
 	/* destructor */

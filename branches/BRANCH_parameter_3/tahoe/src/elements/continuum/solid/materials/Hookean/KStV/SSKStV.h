@@ -1,4 +1,4 @@
-/* $Id: SSKStV.h,v 1.4.48.2 2004-06-09 23:17:37 paklein Exp $ */
+/* $Id: SSKStV.h,v 1.4.48.3 2004-06-25 01:30:14 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _SS_KSTV_H_
 #define _SS_KSTV_H_
@@ -14,7 +14,6 @@ class SSKStV: public SSHookeanMatT, public IsotropicT
 public:
 
 	/* constructor */
-	SSKStV(ifstreamT& in, const SSMatSupportT& support);
 	SSKStV(void);
 
 	/** \name implementation of the ParameterInterfaceT interface */

@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.cpp,v 1.8.46.3 2004-06-17 07:54:25 paklein Exp $ */
+/* $Id: ModCB2DT.cpp,v 1.8.46.4 2004-06-25 01:30:28 paklein Exp $ */
 /* created: paklein (05/31/1997) */
 #include "ModCB2DT.h"
 
@@ -11,73 +11,6 @@ using namespace Tahoe;
 const int knsd = 2;
 
 /* constructor */
-ModCB2DT::ModCB2DT(ifstreamT& in, const FSMatSupportT& support, bool equilibrate):
-	ParameterInterfaceT("Cauchy-Born_diamond_2D"),
-	NL_E_MatT(in, support),
-	fModCBSolver(NULL)
-{
-#if 0
-	/* lattice transformation */
-	dMatrixT Q;
-	switch (fPlaneCode)
-	{
-		case kDC001:
-			
-			//no Q to construct
-			break;
-
-		case kDC101:
-		{
-			Q.Dimension(3);
-			Q = 0.0;
-			
-			double cos45 = 0.5*sqrt2;
-			
-			/* transform global xy-plane into [110] */			
-			Q(0,0) = 1.0;
-			Q(1,1) = Q(2,2) = cos45;
-			Q(1,2) =-cos45;
-			Q(2,1) = cos45;
-
-			break;
-		}
-		case kDC111:
-		{
-			Q.Dimension(3);
-			Q = 0.0;
-			
-			/* transform global xy-plane into [111] */			
-			double rt2b2 = sqrt2/2.0;
-			double rt3b3 = sqrt3/3.0;
-			double rt6b6 = (sqrt2*sqrt3)/6.0;
-			double rt23  = sqrt2/sqrt3;
-			
-			Q(0,0) =-rt2b2;
-			Q(0,1) =-rt6b6;
-			Q(0,2) = rt3b3;
-			
-			Q(1,0) = rt2b2;
-			Q(1,1) =-rt6b6;
-			Q(1,2) = rt3b3;
-			
-			Q(2,0) = 0.0;
-			Q(2,1) = rt23;
-			Q(2,2) = rt3b3;
-
-			break;
-		}
-		default:
-
-			cout << "\nModCB2DT::ModCB2DT: unknown plane code:" << fPlaneCode;
-			cout << endl;
-			throw ExceptionT::kBadInputValue;
-	}
-
-	fModCBSolver = new ModCBSolverT(fThermal);
-	if (!fModCBSolver) throw ExceptionT::kOutOfMemory;
-#endif
-}
-
 ModCB2DT::ModCB2DT(void):
 	ParameterInterfaceT("Cauchy-Born_diamond_2D"),
 	fModCBSolver(NULL)

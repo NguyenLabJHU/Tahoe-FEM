@@ -1,4 +1,4 @@
-/* $Id: FDCubic2DT.cpp,v 1.8.46.1 2004-04-08 07:32:48 paklein Exp $ */
+/* $Id: FDCubic2DT.cpp,v 1.8.46.2 2004-06-25 01:30:13 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "FDCubic2DT.h"
 #include "ThermalDilatationT.h"
@@ -6,26 +6,10 @@
 using namespace Tahoe;
 
 /* constructor */
-FDCubic2DT::FDCubic2DT(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("large_strain_cubic_2D"),
-	FDCubicT(in, support),
-	Anisotropic2DT(in)
-{
-
-}
-
 FDCubic2DT::FDCubic2DT(void):
 	ParameterInterfaceT("large_strain_cubic_2D")
 {
 
-}
-
-/* print parameters */
-void FDCubic2DT::Print(ostream& out) const
-{
-	/* inherited */
-	FDCubicT::Print(out);
-	Anisotropic2DT::Print(out);
 }
 
 double FDCubic2DT::Pressure(void) const
