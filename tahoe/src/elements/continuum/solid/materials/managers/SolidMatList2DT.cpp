@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.31 2003-01-31 10:00:33 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.32 2003-02-05 02:38:27 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
@@ -217,12 +217,16 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			}
 			case kDPSSKStV:
 			{
+#ifdef PLASTICITY_DP_MATERIAL
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 			
 				fArray[matnum] = new DPSSKStV2D(in, *fSSMatSupport);
 				fHasHistory = true;															
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "PLASTICITY_DP_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kLJTr2D:
 			{
