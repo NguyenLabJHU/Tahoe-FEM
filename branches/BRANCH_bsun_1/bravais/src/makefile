@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.9.2.1 2004-07-08 23:26:18 bsun Exp $
+# $Id: makefile,v 1.9.2.2 2004-07-21 17:14:17 bsun Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -23,7 +23,7 @@ OBJ = \
 	OutPutLatticeT.o \
 	MeshAtomT.o \
 	MakeCrystalT.o 
-	
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy

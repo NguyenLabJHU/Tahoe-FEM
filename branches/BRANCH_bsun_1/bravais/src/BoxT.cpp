@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.44.2.1 2004-07-02 23:18:02 bsun Exp $ */
+/* $Id: BoxT.cpp,v 1.44.2.2 2004-07-21 17:14:17 bsun Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -799,9 +799,9 @@
       while (rmult < rmax)
       {
          int Integer = 1;
-         double tql=abs(ql);
-         double tqm=abs(qm);
-         double tqn=abs(qn);
+         double tql=fabs(ql);
+         double tqm=fabs(qm);
+         double tqn=fabs(qn);
       
          if(fabs(Mod(tql+0.5,1.0)-0.5) > tol) Integer = 0;
          if(fabs(Mod(tqm+0.5,1.0)-0.5) > tol) Integer = 0;
