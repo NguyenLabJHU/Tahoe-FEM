@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.7 2002-04-25 17:47:29 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.8 2002-05-02 22:51:04 dzeigle Exp $ */
 
 #include "GreenwoodWilliamson.h"
 #include <math.h>
@@ -140,7 +140,7 @@ double GreenwoodWilliamson::DFunction(double x) const
 			m7 = f7.Function(expo);
 			gn = h.Function(-0.25);
 			gp = h.Function(0.25);
-		
+
 			term[0] = -2.0*sqrt(2.0)*fS*gp*m5;
 			term[1] = 3.0*(fM-x)*gn*m7;
 			term[2] = exp(-expo)*sqrt(PI*fS*(fM-x))*(term[0]+term[1]);
