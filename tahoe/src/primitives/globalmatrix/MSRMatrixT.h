@@ -1,4 +1,4 @@
-/* $Id: MSRMatrixT.h,v 1.2 2004-03-14 02:28:09 paklein Exp $ */
+/* $Id: MSRMatrixT.h,v 1.2.12.1 2004-06-07 13:55:52 paklein Exp $ */
 #ifndef _MSR_MATRIX_T_H_
 #define _MSR_MATRIX_T_H_
 
@@ -52,6 +52,9 @@ public:
 		const ArrayT<int>& col_eqnos);
 	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos);
 	/*@}*/
+
+	/** return the values along the diagonal of the matrix */
+	virtual bool CopyDiagonal(dArrayT& diags) const;
 
 	/** set all matrix values to 0.0 */
 	void Clear(void);
