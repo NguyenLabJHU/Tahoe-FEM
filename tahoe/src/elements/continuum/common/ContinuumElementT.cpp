@@ -1,6 +1,5 @@
-/* $Id: ContinuumElementT.cpp,v 1.22 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.23 2002-10-20 22:40:46 paklein Exp $ */
 /* created: paklein (10/22/1996) */
-
 #include "ContinuumElementT.h"
 
 #include <iostream.h>
@@ -10,7 +9,6 @@
 #include "ModelManagerT.h"
 #include "StructuralMaterialT.h"
 #include "ShapeFunctionT.h"
-#include "DomainIntegrationT.h"
 #include "eControllerT.h"
 #include "Traction_CardT.h"
 #include "iAutoArrayT.h"
@@ -21,10 +19,6 @@
 #include "VariArrayT.h"
 #include "nVariArray2DT.h"
 #include "VariLocalArrayT.h"
-
-/* services */
-#include "EdgeFinderT.h"
-#include "GraphT.h"
 
 /* materials lists */
 #include "MaterialListT.h"
@@ -45,8 +39,8 @@ ContinuumElementT::ContinuumElementT(const ElementSupportT& support,
 	fLocDisp(LocalArrayT::kDisp),
 	fDOFvec(NumDOF())
 {
-	ifstreamT&  in = ElementSupport().Input();
-	ostream&    out = ElementSupport().Output();
+	ifstreamT& in = ElementSupport().Input();
+	ostream&  out = ElementSupport().Output();
 		
 	/* control parameters */
 	in >> fGeometryCode; //TEMP - should actually come from the geometry database
@@ -116,7 +110,7 @@ void ContinuumElementT::Initialize(void)
 	ElementBaseT::Initialize();
 	
 	/* allocate work space */
-	fNEEvec.Allocate(NumElementNodes()*NumDOF());
+	fNEEvec.Dimension(NumElementNodes()*NumDOF());
 
 	/* initialize local arrays */
 	SetLocalArrays();
@@ -332,55 +326,6 @@ void ContinuumElementT::WriteOutput(IOBaseT::OutputModeT mode)
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
 }
 
-/* side set to nodes on facets data */
-void ContinuumElementT::SideSetToFacets(const StringT& block_ID, const iArray2DT& sideset,
-	iArray2DT& facets) const
-{
-	/* checks */
-	if (sideset.MinorDim() != 2) throw eGeneralFail;
-	
-	/* empty set */
-	if (sideset.MajorDim() == 0)
-	{
-		facets.Allocate(0, 0);
-		return;
-	}
-
-// NOTE: faster to get all nodes_on_facet data at once. also
-//       would be easier to check dimensions of facets.
-
-	/* get block data */
-	const ElementBlockDataT& block_data = BlockData(block_ID);
-	
-	int offset = block_data.StartNumber();
-	iArrayT facet_nodes, facet_tmp;
-	int num_facets = sideset.MajorDim();
-	for (int i = 0; i < num_facets; i++)
-	{
-		int nel = sideset(i,0) + offset;
-		int nft = sideset(i,1);
-	
-		/* get facet node map */
-		ShapeFunction().NodesOnFacet(nft, facet_nodes);
-		
-		/* dimension check */
-		if (i == 0)
-			facets.Allocate(sideset.MajorDim(), facet_nodes.Length());
-		else if (facets.MinorDim() != facet_nodes.Length())
-		{
-			cout << "\n ContinuumElementT::SideSetToFacets: all sides in set must have\n"
-			     <<   "     the same number of nodes in element block" << block_ID << endl;
-			throw eGeneralFail;
-		}
-		
-		/* shape check */
-
-		/* get node numbers */
-		facets.RowAlias(i, facet_tmp);
-		facet_tmp.Collect(facet_nodes, fElementCards[nel].NodesX());
-	}
-}
-
 /* return geometry and number of nodes on each facet */
 void ContinuumElementT::FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, 
 	iArrayT& num_facet_nodes) const
@@ -424,211 +369,9 @@ void ContinuumElementT::InitialCondition(void)
 	}
 }
 
-/* surface facets */
-void ContinuumElementT::SurfaceFacets(GeometryT::CodeT& geometry,
-	iArray2DT& surface_facets, iArrayT& surface_nodes) const
-{
-	/* surface facets must all have same geometry */
-	ArrayT<GeometryT::CodeT> facet_geom;
-	iArrayT facet_nodes;
-	ShapeFunction().FacetGeometry(facet_geom, facet_nodes);
-	if (facet_nodes.Count(facet_nodes[0]) != facet_geom.Length())
-	{
-		cout << "\n ContinuumElementT::SurfaceFacets: only support identical\n";
-		cout <<   "     facet shapes" << endl;
-		throw eGeneralFail;
-	}
-	geometry = facet_geom[0];
-
-	/* find bounding elements */
-	AutoArrayT<int> border_nodes;
-	iArrayT   border_elems;
-	iArray2DT border_neighs;
-	BoundingElements(border_elems, border_neighs);
-	
-	/* check */
-	if (ShapeFunction().NumFacets() != border_neighs.MinorDim())
-		throw eSizeMismatch;
-		
-	/* collect nodes on facets info */
-	ArrayT<iArrayT> facetnodemap(ShapeFunction().NumFacets());
-	for (int i2 = 0; i2 < facetnodemap.Length(); i2++)
-		ShapeFunction().NodesOnFacet(i2, facetnodemap[i2]);	
-
-	/* collect surface facets (with "outward" normal ordering) */
-	int surf_count = 0;
-	int num_facets = facetnodemap.Length();
-	int num_facet_nodes = facet_nodes[0];
-	border_nodes.Allocate(0);
-	surface_facets.Allocate(border_neighs.Count(-1), num_facet_nodes);
-	for (int i = 0; i < border_elems.Length(); i++)
-	{
-		/* element connectivity */
-	        const iArrayT& elemnodes = fElementCards[border_elems[i]].NodesX();
-		int* elem = elemnodes.Pointer();
-
-		/* find open sides */
-		int found_open = 0;
-		int* pneigh = border_neighs(i);
-		for (int j = 0; j < num_facets; j++)
-		{
-			/* open face */
-			if (*pneigh == -1)
-			{
-				/* set flag */
-				found_open = 1;
-				
-				/* collect facet nodes */
-				int* pfacet = surface_facets(surf_count++);
-				int* facet_nodes = facetnodemap[j].Pointer();
-				for (int k = 0; k < num_facet_nodes; k++)
-				{
-					int node = elem[*facet_nodes++];
-					*pfacet++ = node;
-					border_nodes.AppendUnique(node);
-					// better just to keep a "nodes used" map?
-				}
-			}	
-			pneigh++;
-		}
-	
-		/* no open facet */	
-		if (!found_open)
-		{
-			cout << "\n ContinuumElementT::SurfaceFacets: error building surface facet list" << endl;
-			throw eGeneralFail;
-		}	
-	}
-
-	/* return value */
-	surface_nodes.Allocate(border_nodes.Length());
-	border_nodes.CopyInto(surface_nodes);
-}
-
-/* with surface facets sorted into connected sets */
-void ContinuumElementT::SurfaceFacets(GeometryT::CodeT& geometry,
-	ArrayT<iArray2DT>& surface_facet_sets,
-	iArrayT& surface_nodes) const
-{
-	/* collect all surface facets */
-	iArray2DT surface_facets;
-	SurfaceFacets(geometry, surface_facets, surface_nodes);
-
-	/* graph object */
-	GraphT graph;
-	graph.AddGroup(surface_facets);
-	graph.MakeGraph();
-
-	iArrayT branch_map;
-	graph.LabelBranches(surface_nodes, branch_map);
-	
-	/* sort surfaces */
-	int num_branches = branch_map.Max() + 1;
-	surface_facet_sets.Allocate(num_branches);
-	if (num_branches == 1)
-		surface_facet_sets[0] = surface_facets;
-	else
-	{
-		/* surfaces in each set */
-		iArrayT count(num_branches);
-		int size = surface_facets.MinorDim();
-		count = 0;
-		int* psurf = surface_facets(0);
-		for (int i = 0; i < surface_facets.MajorDim(); i++)
-		{
-			count[branch_map[*psurf]]++;
-			psurf += size;
-		}
-
-		/* set to surfaces map */
-		RaggedArray2DT<int> set_data;
-		set_data.Configure(count);
-
-		count = 0;
-		psurf = surface_facets(0);
-		for (int j = 0; j < surface_facets.MajorDim(); j++)
-		{
-			int branch = branch_map[*psurf];
-			*(set_data(branch) + count[branch]) = j;
-
-			count[branch]++;
-			psurf += size;
-		}
-			
-		/* copy in */
-		for (int k = 0; k < num_branches; k++)
-		{
-			surface_facet_sets[k].Allocate(set_data.MinorDim(k), size);
-			surface_facet_sets[k].RowCollect(set_data(k), surface_facets);
-		}
-	}
-}		
-	
-/* surface nodes */
-void ContinuumElementT::SurfaceNodes(iArrayT& surface_nodes) const
-{
-	/* work space */
-	AutoArrayT<int> border_nodes;
-	iArrayT   border_elems;
-	iArray2DT border_neighs;
-
-	/* find bounding elements */
-	BoundingElements(border_elems, border_neighs);
-	
-	/* check */
-	if (ShapeFunction().NumFacets() != border_neighs.MinorDim())
-		throw eSizeMismatch;
-		
-	/* collect nodes on facets map */
-	ArrayT<iArrayT> facetnodemap(ShapeFunction().NumFacets());
-	for (int i2 = 0; i2 < facetnodemap.Length(); i2++)
-		ShapeFunction().NodesOnFacet(i2, facetnodemap[i2]);
-			
-	/* collect surface nodes from border elems */
-	border_nodes.Allocate(0);
-	int numfacets = facetnodemap.Length();
-	for (int i = 0; i < border_elems.Length(); i++)
-	{
-		/* element connectivity */
-	        const iArrayT& elemnodes = fElementCards[border_elems[i]].NodesX();
-		int* elem = elemnodes.Pointer();
-
-		/* find open sides */
-		int found_open = 0;
-		int* pneigh = border_neighs(i);
-		for (int j = 0; j < numfacets; j++)
-		{
-			/* open face */
-			if (*pneigh == -1)
-			{
-				/* set flag */
-				found_open = 1;
-				
-				/* collect facet nodes */
-				int  num_facet_nodes = facetnodemap[j].Length();
-				int*     facet_nodes = facetnodemap[j].Pointer();
-				for (int k = 0; k < num_facet_nodes; k++)
-					border_nodes.AppendUnique(elem[*facet_nodes++]);
-			}	
-			pneigh++;
-		}
-	
-		/* no open facet */	
-		if (!found_open)
-		{
-			cout << "\n ContinuumElementT::SurfaceNodes: error building surface node list" << endl;
-			throw eGeneralFail;
-		}	
-	}
-	
-	/* return value */
-	surface_nodes.Allocate(border_nodes.Length());
-	border_nodes.CopyInto(surface_nodes);
-}
-
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 namespace Tahoe {
 
@@ -651,7 +394,7 @@ istream& operator>>(istream& in, ContinuumElementT::MassTypeT& mtype)
 		default:
 			cout << "\n ContinuumElementT::MassTypeT: unknown type: "
 			<< i_type<< endl;
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
 	return in;
 }
@@ -662,8 +405,8 @@ istream& operator>>(istream& in, ContinuumElementT::MassTypeT& mtype)
 void ContinuumElementT::SetLocalArrays(void)
 {
 	/* dimension */
-	fLocInitCoords.Allocate(NumElementNodes(), NumSD());
-	fLocDisp.Allocate(NumElementNodes(), NumDOF());
+	fLocInitCoords.Dimension(NumElementNodes(), NumSD());
+	fLocDisp.Dimension(NumElementNodes(), NumDOF());
 
 	/* set source */
 	ElementSupport().RegisterCoordinates(fLocInitCoords);
@@ -832,7 +575,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 				}
 			}
 			else
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 
 			/* assemble */
 			ElementSupport().AssembleRHS(Group(), rhs, BC_card.Eqnos());
@@ -854,7 +597,7 @@ void ContinuumElementT::SetGlobalShape(void)
 void ContinuumElementT::FormMass(int mass_type, double constM)
 {
 #if __option(extended_errorcheck)
-	if (fLocDisp.Length() != fLHS.Rows()) throw eSizeMismatch;
+	if (fLocDisp.Length() != fLHS.Rows()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	switch (mass_type)
@@ -950,7 +693,7 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 		default:
 		
 			cout << "\n Elastic::FormMass: unknown mass matrix code\n" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 }
 
@@ -985,12 +728,12 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 	/* dimension checks */
 	if (nodal_values && 
 		fRHS.Length() != nodal_values->Length()) 
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 
 	if (ip_values &&
 		(ip_values->MajorDim() != fShapes->NumIP() ||
 		 ip_values->MinorDim() != NumDOF()))
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	switch (mass_type)
@@ -1040,13 +783,13 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 				nodal_values->ReturnTranspose(fNEEvec);
 			else {
 				cout << "\n ContinuumElementT::FormMa: expecting nodal values for lumped mass" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 				
 //TEMP - what to do with ip values?
 if (ip_values) {
 	cout << "\n ContinuumElementT::FormMa: lumped mass not implemented for ip sources" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 			double* pAcc = fNEEvec.Pointer();
@@ -1087,7 +830,7 @@ void ContinuumElementT::ReadMaterialData(ifstreamT& in)
 	int size;
 	in >> size;
 	fMaterialList = NewMaterialList(size);
-	if (!fMaterialList) throw eOutOfMemory;
+	if (!fMaterialList) throw ExceptionT::kOutOfMemory;
 
 	/* read */
 	fMaterialList->ReadMaterialData(in);
@@ -1100,7 +843,7 @@ void ContinuumElementT::ReadMaterialData(ifstreamT& in)
 			cout << "\n ContinuumElementT::ReadMaterialData: material number "
 			     << fBlockData[i].MaterialID() + 1 << '\n';
 			cout<<    "     for element block " << i + 1 << " is out of range" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 }
 
@@ -1129,7 +872,7 @@ void ContinuumElementT::EchoBodyForce(ifstreamT& in, ostream& out)
 		if (!fBodySchedule) {
 			cout << "\n ContinuumElementT::EchoBodyForce: could not resolve schedule " 
 			     << n_sched + 1 << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}	
 	}
 	
@@ -1207,7 +950,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 			    cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: node numbers\n";
 			    cout <<   "     {"<< min << "," << max << "} are out of range in ";
 			    cout << " dataline " << line << endl;
-			    throw eBadInputValue;
+			    throw ExceptionT::kBadInputValue;
 			  }
 			/* shift */
 			elems += block_data.StartNumber();
@@ -1221,7 +964,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 			      cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: sides specified\n";
 			      cout <<   "     in line " << line << " have differing numbers of nodes";
 			      cout << endl;
-			      throw eBadInputValue;
+			      throw ExceptionT::kBadInputValue;
 			    }
 		      }
 		    else
@@ -1233,7 +976,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 			  {
 			    cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: cannot determine number of\n"
 				 <<   "     facet nodes for empty side set at line " << line << endl;
-			    throw eBadInputValue;
+			    throw ExceptionT::kBadInputValue;
 			  }
 			else
 			  num_nodes = min;
@@ -1296,42 +1039,9 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 				     <<   "    Cartesian:" << Traction_CardT::kCartesian
 				     << " if (spatial dimensions != degrees of freedom)\n"
 				     <<   "    for card " << i+1 << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 	}
-}
-
-/* return the "bounding" elements and the corresponding
-* neighbors, both dimensioned internally */
-void ContinuumElementT::BoundingElements(iArrayT& elements, iArray2DT& neighbors) const
-{
-	//TEMP - not parallelized
-	if (ElementSupport().Size() > 1)
-		cout << "\n ContinuumElementT::BoundingElements: not extended to parallel" << endl;
-
-	/* build element neighbor list */
-	iArray2DT nodefacetmap;
-	fShapes->NeighborNodeMap(nodefacetmap);
-	EdgeFinderT edger(fConnectivities, nodefacetmap);
-	const iArray2DT& all_neighbors = edger.Neighbors();
-
-	/* collect list of bounding elements */
-	AutoArrayT<int> borders;
-	iArrayT element;
-	int nel = NumElements();
-	for (int i = 0; i < nel; i++)
-	{
-		all_neighbors.RowAlias(i, element);
-	
-		/* has "free" edge */
-		if (element.HasValue(-1)) borders.Append(i);
-	}
-	elements.Allocate(borders.Length());
-	borders.CopyInto(elements);
-	
-	/* copy bounding element neighbor lists */
-	neighbors.Allocate(elements.Length(), all_neighbors.MinorDim());
-	neighbors.RowCollect(elements, all_neighbors);
 }
 
 /* write all current element information to the stream */
@@ -1340,15 +1050,15 @@ void ContinuumElementT::CurrElementInfo(ostream& out) const
 	/* inherited */
 	ElementBaseT::CurrElementInfo(out);
 	dArray2DT temp;
-	temp.Allocate(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
+	temp.Dimension(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
 	
 	out <<   " initial coords:\n";
-	temp.Allocate(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
+	temp.Dimension(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
 	fLocInitCoords.ReturnTranspose(temp);
 	temp.WriteNumbered(out);
 
 	out <<   " displacements:\n";
-	temp.Allocate(fLocDisp.NumberOfNodes(), fLocDisp.MinorDim());
+	temp.Dimension(fLocDisp.NumberOfNodes(), fLocDisp.MinorDim());
 	fLocDisp.ReturnTranspose(temp);
 	temp.WriteNumbered(out);
 }
@@ -1421,12 +1131,12 @@ void ContinuumElementT::SetTractionBC(void)
 		int nnd = loc_nodes.Length();
 		
 		iArrayT& nodes = BC_card.Nodes();
-		nodes.Allocate(nnd);
+		nodes.Dimension(nnd);
 		nodes.Collect(loc_nodes, fElementCards[elem].NodesX());
 		
 		/* set global equation numbers */
 		iArrayT& eqnos = BC_card.Eqnos();
-		eqnos.Allocate(ndof*nnd);
+		eqnos.Dimension(ndof*nnd);
 		
 		/* get from node manager */
 		nd_tmp.Set(1, nnd, nodes.Pointer());
