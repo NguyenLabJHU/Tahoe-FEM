@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.45 2004-08-18 19:53:00 bsun Exp $ */
+/* $Id: BoxT.cpp,v 1.46 2005-02-03 20:14:43 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -74,8 +74,12 @@
          for(int i=0;i<nSD;i++)
          {
             double dist = ncells[i]*lattice_parameter[i]*0.5;
-            length(i,0) = -dist;
-            length(i,1) = length(i,0) + (dist - length(i,0));
+            //length(i,0) = 0 ; // -dist;
+	    // length(i,1) = dist; // length(i,0) + (dist - length(i,0));
+
+	    length(i,0) = len(i,0);
+	    length(i,1) = len(i,1);
+
          }
       }
    }
@@ -231,6 +235,35 @@
                (length(2,1)-length(2,0));
             break;
       }
+
+      // !
+       iArrayT TmpSort;
+       TmpSort.Dimension(nSD);
+       TmpSort = WhichSort;
+
+       WhichSort[0] = 1;
+       WhichSort[1] = 2;
+       WhichSort[2] = 0;
+       SortLattice(pcl);
+
+       WhichSort[0] = 2;
+       WhichSort[1] = 0;
+       WhichSort[2] = 1;
+       SortLattice(pcl);
+
+       WhichSort[0] = 0;
+       WhichSort[1] = 1;
+       WhichSort[2] = 2;
+       SortLattice(pcl);
+
+       cout << "\n";
+
+       WhichSort = TmpSort;
+       
+       
+       
+	 
+
    
    // Sort Lattice 
       if(WhichSort  != 0) SortLattice(pcl);
@@ -374,8 +407,9 @@
             typ[p] = aux3[Map2[m]];
             p++;
          }
+
       }
-   
+
       for(int m=0; m < nATOMS ; m++) 
       {
          new_coord(m)[WhichSort[0]] = atom_coord(m)[WhichSort[0]];
@@ -452,10 +486,19 @@
             new_type[m] = typ[m];
          } 
       }
+
+      
+      cout << "Periodic distance in " << WhichSort[2] << ": " << z[1] - z[0] << "\n";
+
    
    // Update sorted atoms
       atom_coord = new_coord;
       atom_types = new_type;
+      
+      // Output spacings along ox, oy and oz.
+      
+ 
+
    
    }
 
@@ -476,10 +519,16 @@
          // periodic conditions
             atom_bounds(i,0) = length(i,0);
             atom_bounds(i,1) = length(i,1);
+
+	    cout << "Bounds:";
+	    cout << i << " " << atom_bounds(i,0) << " " <<  atom_bounds(i,1) << "\n";
+
          }
          else
             throw eBadInputValue;
-      }  
+      } 
+
+ 
    }
 
 
@@ -518,12 +567,16 @@
       vec[0] = 0.0;vec[1] = 0.0; vec[2] = 1.0;
       PerLen[2] = CalculatePeriodicLength(pcl,vec);  
    
-      for (int i=0;i<nlsd;i++) 
-      {    
-         PerLen[i] *= ncells[i];
-         length(i,0) = -PerLen[i]/2.;
-         length(i,1) =  PerLen[i]/2.;
-      }
+      //for (int i=0;i<nlsd;i++) 
+      //{    
+      //   PerLen[i] *= ncells[i];
+      //   length(i,0) = -PerLen[i]/2.;
+      //   length(i,1) =  PerLen[i]/2.;
+      //}
+
+      cout << "Periodic Lengths:" ; 
+      cout << PerLen[0] << "  " << PerLen[1] << " " << PerLen[2] << "\n";
+
    
    // Define a slightly shorter box
       double l00,l01,l10,l11;
@@ -593,13 +646,16 @@
          double epsz = 0.01*(length(2,1)-length(2,0));
       
          double l00 = length(0,0);//+ epsx;
-         double l01 = length(0,1);//- epsx;
+         double l01 = length(0,1)- epsx;
       
          double l10 = length(1,0);//+ epsy;
-         double l11 = length(1,1);//- epsy;
+         double l11 = length(1,1)- epsy;
       
          double l20 = length(2,0);//+ epsz;
-         double l21 = length(2,1);//- epsz;
+         double l21 = length(2,1)- epsz;
+
+	 cout << epsx << " " << epsy << " " << epsz << "\n";
+
       
       // Rotate coordinates
          for (int r=0;r<new_cel[0];r++) 
