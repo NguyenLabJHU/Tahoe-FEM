@@ -1,17 +1,22 @@
-# $Id: JANUS.macros,v 1.1.1.1 2001-01-25 01:46:10 paklein Exp $
+# $Id: JANUS.macros,v 1.2 2001-01-25 18:17:00 paklein Exp $
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = -lmpi
 
 # ASCI Red - JANUS (sasn100, sasn101)
-COMP_CC     = ciCC
+MAKE        = make
+MAKE_DEPEND = makedepend
 COMP_C      = cicc
-AR          = ar
-LINK        = $(COMP_CC)
-MY_CFLAGS = -c -Wc,-tlocal -I$(INC_DIR)
-CFLAGS      = $(MY_CFLAGS)
-#MORE_CFLAGS = -g
+COMP_CC     = ciCC
+COMP_C      = cif77
 MORE_CFLAGS = -O2 -DNDEBUG 
+#MORE_CFLAGS = -g
+MY_CFLAGS = -c -I$(INC_DIR) $(MORE_CFLAGS)
+CFLAGS_C    = $(MY_CFLAGS)
+CFLAGS_CC   = $(MY_CFLAGS) -Wc,-tlocal 
+CFLAGS_F    = $(MY_CFLAGS)
+LINK        = $(COMP_CC)
 LFLAGS      =
+AR          = ar
 ARFLAGS     = -cruv
 MAKEOPTS    =
 RM          = rm
