@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.29 2004-07-28 16:37:05 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.30 2004-07-30 18:11:24 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -21,6 +21,10 @@
 /* direct members */
 #include "LocalArrayT.h"
 #include "GeometryT.h"
+
+#include "VariArrayT.h"
+#include "nVariArray2DT.h"
+#include "VariLocalArrayT.h"
 
 /* base multiscale classes */
 #include "APS_FEA.h"
@@ -74,9 +78,9 @@ public:
 
 	/** destructor */
 	~APS_AssemblyT(void);
-
-	/** data initialization */
-	//virtual void Initialize(void); 
+	
+	/** reference to element shape functions */
+	const ShapeFunctionT& ShapeFunction(void) const;
 
 	/** echo input */
 	void Echo_Input_Data (void); 
@@ -86,14 +90,15 @@ public:
 	 * same as the group of the FieldT passed in to ElementBaseT::ElementBaseT. */
 	virtual bool InGroup(int group) const;
 
-	/** close current time increment. Called if the integration over the
-	 * current time increment was successful. */
+	/* initialize/finalize time increment */
+	virtual void InitStep(void);
 	virtual void CloseStep(void);
+	//virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
 
 	/** collecting element group equation numbers. See ElementBaseT::Equations
 	 * for more information */
 	virtual void Equations( AutoArrayT<const iArray2DT*>& eq_d,
-							AutoArrayT<const RaggedArray2DT<int>*>& eq_eps);
+					AutoArrayT<const RaggedArray2DT<int>*>& eq_eps);
 
 	/** return a const reference to the run state flag */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -111,10 +116,6 @@ public:
 
 	/** write element output */
 	virtual void WriteOutput(void);	
-
-	/** compute specified output parameter and send for smoothing */
-	virtual void SendOutput(int kincode);
-	/*@}*/
 
 	/** \name restart functions */
 	/*@{*/
@@ -149,7 +150,7 @@ public:
 	/*@}*/
 
 protected:
-
+	
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
 	/*@{*/
 	/** form group contribution to the stiffness matrix */
@@ -158,11 +159,14 @@ protected:
 	/** form group contribution to the residual */
 	virtual void RHSDriver(void);
 	/*@}*/
+	
+	/** compute shape functions and derivatives */
+	virtual void SetGlobalShape(void);
 
 	void Select_Equations ( const int &iBalLinMom, const int &iPlast );
 
 private:
-
+	
 	/** \name solution methods.
 	 * Both of these drivers assemble the LHS as well as the residual.
 	 */
@@ -176,6 +180,11 @@ private:
 	
 public:	
 protected:
+
+	/* output control */
+	iArrayT	fNodalOutputCodes;
+	iArrayT	fElementOutputCodes;
+	
 private:
 
 	/** Data at time steps n and n+1 used by both Coarse and Fine */
@@ -347,9 +356,6 @@ private:
 
 public:
 
-	/** reference to element shape functions */
-	const ShapeFunctionT& ShapeFunction(void) const;
-
 protected:
 
 	/** extract natural boundary condition information */
@@ -364,6 +370,12 @@ protected:
 	/* traction data */
 	ArrayT<Traction_CardT> fTractionList;
 	int fTractionBCSet;
+	
+	/** \name arrays with local ordering */
+	/*@{*/
+	LocalArrayT fLocInitCoords;   /**< initial coords with local ordering */
+	LocalArrayT fLocDisp;	      /**< displacements with local ordering  */ 
+	/*@}*/
 
 	/** \name work space */
 	/*@{*/

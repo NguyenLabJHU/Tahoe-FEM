@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2004-07-28 16:37:05 raregue Exp $
+# $Id: makefile,v 1.8 2004-07-30 18:11:24 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,8 +20,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.2).
 #
 OBJ = \
-	APS_AssemblyT.o \
-	APS_Traction.o
+	APS_AssemblyT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -41,8 +40,7 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	APS_AssemblyT.cpp \
-	APS_Traction.cpp
+	APS_AssemblyT.cpp
 
 ##################### (3) headers
 #

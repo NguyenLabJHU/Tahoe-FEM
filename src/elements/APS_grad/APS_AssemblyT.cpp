@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.57 2004-07-30 15:39:29 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.58 2004-07-30 18:11:23 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "APS_MatlT.h"
@@ -301,20 +301,13 @@ void APS_AssemblyT::CloseStep(void)
 	fiState = fiState_new;
 }
 
-//---------------------------------------------------------------------
-
-void APS_AssemblyT::SendOutput(int kincode)
-{
-#pragma unused(kincode)
-	//not implemented
-}
-//---------------------------------------------------------------------
 
 /* form of tangent matrix */
 GlobalT::SystemTypeT APS_AssemblyT::TangentType(void) const
 {
 	return GlobalT::kNonSymmetric; 
 }
+
 
 //#############################################################################
 //#############################################################################
@@ -967,6 +960,17 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 
 
 
+/* form global shape function derivatives */
+void APS_AssemblyT::SetGlobalShape(void)
+{
+	/* fetch (initial) coordinates */
+	SetLocalX(fLocInitCoords);
+	
+	/* compute shape function derivatives */
+	fShapes_displ->SetDerivatives();
+	fShapes_plast->SetDerivatives();
+}
+
 
 
 /* describe the parameters needed by the interface */
@@ -1431,5 +1435,341 @@ ParameterInterfaceT* APS_AssemblyT::NewSub(const StringT& name) const
 	}
 	else /* inherited */
 		return ElementBaseT::NewSub(name);
+}
+
+
+
+//##################################################################################
+//###### Traction B.C. Methods (Cut and Paste from ContinuumElementT) ##############
+//##################################################################################
+
+//---------------------------------------------------------------------
+
+//---------------------------------------------------------------------
+
+/* update traction BC data */
+void APS_AssemblyT::SetTractionBC(void)
+{
+//NOTE: With the possibility of variable global node numbers and
+//		and equations, we assume as little as possible here with
+//      regard to the validity of the node/equation numbers, requiring
+//      only that NodesX in the element cards has the correct global
+//      node numbers.
+
+	/* dimensions */
+	int ndof = NumDOF();
+
+	/* echo values */
+	iArray2DT nd_tmp, eq_tmp;
+	for (int i = 0; i < fTractionList.Length(); i++)
+	{
+		Traction_CardT& BC_card = fTractionList[i];
+			
+		/* traction element/facet */
+		int elem, facet;
+		BC_card.Destination(elem, facet);
+
+		/* set global node numbers */
+		const iArrayT& loc_nodes = BC_card.LocalNodeNumbers();
+		int nnd = loc_nodes.Length();
+		
+		iArrayT& nodes = BC_card.Nodes();
+		nodes.Dimension(nnd);
+		nodes.Collect(loc_nodes, fElementCards[elem].NodesX());
+		
+		/* set global equation numbers */
+		iArrayT& eqnos = BC_card.Eqnos();
+		eqnos.Dimension(ndof*nnd);
+		
+		/* get from node manager */
+		nd_tmp.Set(1, nnd, nodes.Pointer());
+		eq_tmp.Set(1, ndof*nnd, eqnos.Pointer());
+		fDispl->SetLocalEqnos(nd_tmp, eq_tmp);
+	}
+
+	/* set flag */
+	fTractionBCSet = 1;
+}
+
+
+
+/* extract natural boundary condition information */
+void APS_AssemblyT::TakeNaturalBC(const ParameterListT& list)
+{
+	const char caller[] = "APS_AssemblyT::TakeTractionBC";
+
+	int num_natural_bc = list.NumLists("natural_bc");
+	if (num_natural_bc > 0)
+	{
+		/* model manager */
+		ModelManagerT& model = ElementSupport().ModelManager();
+	
+		/* temp space */
+		ArrayT<StringT> block_ID(num_natural_bc);
+	    ArrayT<iArray2DT> localsides(num_natural_bc);
+	    iArrayT LTf(num_natural_bc);
+	    ArrayT<Traction_CardT::CoordSystemT> coord_sys(num_natural_bc);
+	    ArrayT<dArray2DT> values(num_natural_bc);
+
+	    /* nodes on element facets */
+	    iArrayT num_facet_nodes;
+	    fShapes_displ->NumNodesOnFacets(num_facet_nodes);
+	    
+	    /* loop over natural BC's */
+	    int tot_num_sides = 0;
+	    for (int i = 0; i < num_natural_bc; i++) 
+	   	{
+	    	const ParameterListT& natural_bc = list.GetList("natural_bc", i);
+	    
+	    	/* side set */
+	    	const StringT& ss_ID = natural_bc.GetParameter("side_set_ID");
+			localsides[i] = model.SideSet(ss_ID);
+			int num_sides = localsides[i].MajorDim();
+			tot_num_sides += num_sides;
+			if (num_sides > 0)
+			{
+				block_ID[i] = model.SideSetGroupID(ss_ID);
+				LTf[i] = natural_bc.GetParameter("schedule");
+				coord_sys[i] = Traction_CardT::int2CoordSystemT(natural_bc.GetParameter("coordinate_system"));
+
+				/* switch to elements numbering within the group */
+				iArray2DT& side_set = localsides[i];
+				iArrayT elems(num_sides);
+				side_set.ColumnCopy(0, elems);
+				BlockToGroupElementNumbers(elems, block_ID[i]);
+				side_set.SetColumn(0, elems);
+
+				/* all facets in set must have the same number of nodes */
+				int num_nodes = num_facet_nodes[side_set(0,1)];
+				for (int f = 0; f < num_sides; f++)
+					if (num_facet_nodes[side_set(f,1)] != num_nodes)
+						ExceptionT::BadInputValue(caller, "faces side set \"%s\" have different numbers of nodes",
+							ss_ID.Pointer());
+
+				/* read traction nodal values */
+				dArray2DT& nodal_values = values[i];
+				nodal_values.Dimension(num_nodes, NumDOF());
+				int num_traction_vectors = natural_bc.NumLists("DoubleList");
+				if (num_traction_vectors != 1 && num_traction_vectors != num_nodes)
+					ExceptionT::GeneralFail(caller, "expecting 1 or %d vectors not %d",
+						num_nodes, num_traction_vectors);
+						
+				/* constant over the face */
+				if (num_traction_vectors == 1) {
+					const ParameterListT& traction_vector = natural_bc.GetList("DoubleList");
+					int dim = traction_vector.NumLists("Double");
+					if (dim != NumDOF())
+						ExceptionT::GeneralFail(caller, "expecting traction vector length %d not %d",
+							NumDOF(), dim);
+
+					/* same for all face nodes */
+					for (int f = 0; f < NumDOF(); f++) {
+						double t = traction_vector.GetList("Double", f).GetParameter("value");
+						nodal_values.SetColumn(f, t);
+					}
+				}
+				else
+				{
+					/* read separate vector for each face node */
+					dArrayT t;
+					for (int f = 0; f < num_nodes; f++) {
+						const ParameterListT& traction_vector = natural_bc.GetList("DoubleList", f);
+					int dim = traction_vector.NumLists("Double");
+						if (dim != NumDOF())
+							ExceptionT::GeneralFail(caller, "expecting traction vector length %d not %d",
+								NumDOF(), dim);
+
+						nodal_values.RowAlias(f, t);
+						for (int j = 0; j < NumDOF(); j++)
+							t[j] = traction_vector.GetList("Double", j).GetParameter("value");
+					}
+				}
+			}
+	    }
+#pragma message("OK with empty side sets?")
+
+		/* allocate all traction BC cards */
+	    fTractionList.Dimension(tot_num_sides);
+
+	    /* correct numbering offset */
+	    LTf--;
+
+		/* define traction cards */
+		if (tot_num_sides > 0)
+		{
+			iArrayT loc_node_nums;
+			int dex = 0;
+			for (int i = 0; i < num_natural_bc; i++)
+			{
+				/* set traction BC cards */
+				iArray2DT& side_set = localsides[i];
+				int num_sides = side_set.MajorDim();
+				for (int j = 0; j < num_sides; j++)
+				{					
+					/* get facet local node numbers */
+					fShapes_displ->NodesOnFacet(side_set(j, 1), loc_node_nums);
+					
+					/* set and echo */
+					fTractionList[dex++].SetValues(ElementSupport(), side_set(j,0), side_set (j,1), LTf[i],
+						 coord_sys[i], loc_node_nums, values[i]);
+				}
+			}
+		}
+
+		/* check coordinate system specifications */
+		if (NumSD() != NumDOF())
+			for (int i = 0; i < fTractionList.Length(); i++)
+				if (fTractionList[i].CoordSystem() != Traction_CardT::kCartesian)
+					ExceptionT::BadInputValue(caller, "coordinate system must be Cartesian if (nsd != ndof) for card %d", i+1);
+	}
+}
+
+
+//---------------------------------------------------------------------
+
+/* compute contribution to RHS from traction BC's */
+void APS_AssemblyT::ApplyTractionBC(void)
+{
+	if (fTractionList.Length() > 0)
+	{
+		/* dimensions */
+		int nsd = NumSD();
+		int ndof = NumDOF();
+	
+		/* update equation numbers */
+		if (!fTractionBCSet) SetTractionBC();
+	
+		/* force vector */
+		dArrayT rhs;
+		VariArrayT<double> rhs_man(25, rhs);
+		
+		/* local coordinates */
+		LocalArrayT coords(LocalArrayT::kInitCoords);
+		VariLocalArrayT coord_man(25, coords, nsd);
+		ElementSupport().RegisterCoordinates(coords);
+		
+		/* nodal tractions */
+		LocalArrayT tract(LocalArrayT::kUnspecified);
+		VariLocalArrayT tract_man(25, tract, ndof);
+
+		/* integration point tractions */
+		dArray2DT ip_tract;
+		nVariArray2DT<double> ip_tract_man(25, ip_tract, ndof);
+		dArrayT tract_loc, tract_glb(ndof);
+		dMatrixT Q(ndof);
+		
+		/* Jacobian of the surface mapping */
+		dMatrixT jacobian(nsd, nsd-1);
+		
+		for (int i = 0; i < fTractionList.Length(); i++)
+		{
+			const Traction_CardT& BC_card = fTractionList[i];
+
+			/* dimension */
+			const iArrayT& nodes = BC_card.Nodes();
+			int nnd = nodes.Length();
+			rhs_man.SetLength(nnd*ndof, false);
+			coord_man.SetNumberOfNodes(nnd);
+			tract_man.SetNumberOfNodes(nnd);
+			
+			/* local coordinates */
+			coords.SetLocal(nodes);
+
+			/* nodal traction vectors: (ndof x nnd) */
+			BC_card.CurrentValue(tract);
+			
+			/* BC destination */
+			int elem, facet;
+			BC_card.Destination(elem, facet);
+			
+			/* default thickness */
+			double thick = 1.0;
+			
+			/* boundary shape functions */
+			const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(facet);
+			int nip = surf_shape.NumIP();
+			
+			/* all ip tractions: (nip x ndof) */
+			ip_tract_man.SetMajorDimension(nip, false);
+			surf_shape.Interpolate(tract, ip_tract);
+
+			/* traction vector coordinate system */
+			if (BC_card.CoordSystem() == Traction_CardT::kCartesian)
+			{
+				/* integrate */			
+				rhs = 0.0;
+				const double* w = surf_shape.Weight();
+				for (int j = 0; j < nip; j++)
+				{
+					/* coordinate mapping */
+					surf_shape.DomainJacobian(coords, j, jacobian);
+					double detj = surf_shape.SurfaceJacobian(jacobian);
+	
+					/* ip weight */
+					double jwt = detj*w[j]*thick;
+					
+					/* ip traction */
+					const double* tj = ip_tract(j);
+					
+					/* accumulate */
+					for (int l = 0; l < ndof; l++)
+					{
+						/* nodal shape function */
+						const double* Na = surf_shape.Shape(j);
+					
+						double* prhs = rhs.Pointer(l);
+						double  fact = jwt*(*tj++);
+						for (int k = 0; k < nnd; k++)
+						{
+							*prhs += fact*(*Na++);
+							prhs += ndof;
+						}
+					}				
+				}
+			}
+			else if (BC_card.CoordSystem() == Traction_CardT::kLocal)
+			{
+				/* integrate */			
+				rhs = 0.0;
+				const double* w = surf_shape.Weight();
+				for (int j = 0; j < nip; j++)
+				{
+					/* coordinate mapping */
+					surf_shape.DomainJacobian(coords, j, jacobian);
+					double detj = surf_shape.SurfaceJacobian(jacobian, Q);
+	
+					/* ip weight */
+					double jwt = detj*w[j]*thick;
+					
+					/* transform ip traction out of local frame */
+					ip_tract.RowAlias(j, tract_loc);
+					Q.Multx(tract_loc, tract_glb);
+
+					/* ip traction */
+					const double* tj = tract_glb.Pointer();
+					
+					/* accumulate */
+					for (int l = 0; l < ndof; l++)
+					{
+						/* nodal shape function */
+						const double* Na = surf_shape.Shape(j);
+					
+						double* prhs = rhs.Pointer(l);
+						double  fact = jwt*(*tj++);
+						for (int k = 0; k < nnd; k++)
+						{
+							*prhs += fact*(*Na++);
+							prhs += ndof;
+						}
+					}				
+				}
+			}
+			else
+				throw ExceptionT::kGeneralFail;
+
+			/* assemble into displacement equations */
+			ElementSupport().AssembleRHS(fDispl->Group(), rhs, BC_card.Eqnos());
+		}
+	}
 }
 
