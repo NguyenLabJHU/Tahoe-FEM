@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.10 2003-08-14 01:22:03 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.11 2003-08-18 15:54:10 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -210,7 +210,7 @@ inline bool ParameterListT::AddParameter(ValueT::TypeT t, const char* name, Occu
 inline ParameterListT* ParameterListT::List(const char* name, int instance)
 {
 	/* const this */
-	const ParameterListT* const this_ = (const ParameterListT* const) this;
+	const ParameterListT* this_ = (const ParameterListT*) this;
 	const ParameterListT* list = this_->List(name, instance);
 	return (ParameterListT*) list;
 }
@@ -218,7 +218,7 @@ inline ParameterListT* ParameterListT::List(const char* name, int instance)
 inline ParameterT* ParameterListT::Parameter(const char* name)
 {
 	/* const this */
-	const ParameterListT* const this_ = (const ParameterListT* const) this;
+	const ParameterListT* this_ = (const ParameterListT*) this;
 	const ParameterT* parameter = this_->Parameter(name);
 	return (ParameterT*) parameter;
 }
