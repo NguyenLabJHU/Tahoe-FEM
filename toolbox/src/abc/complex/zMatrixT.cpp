@@ -1,4 +1,4 @@
-/* $Id: zMatrixT.cpp,v 1.5 2001-12-10 23:38:10 paklein Exp $ */
+/* $Id: zMatrixT.cpp,v 1.6 2002-02-18 08:48:40 paklein Exp $ */
 /* created: paklein (05/19/1997)                                          */
 /* 2 dimensional matrix mathematics object.                               */
 
@@ -74,7 +74,7 @@ zMatrixT& zMatrixT::toZ(const dMatrixT& re, const dMatrixT& im)
 	    re.Cols() != im.Cols()) throw(eGeneralFail);
 	
 	/* dimension */
-	Allocate(re.Rows(),im.Cols());
+	Dimension(re.Rows(),im.Cols());
 	
 	/* ComplexT function */
 	ComplexT::ReIm_to_z(re,im,*this);

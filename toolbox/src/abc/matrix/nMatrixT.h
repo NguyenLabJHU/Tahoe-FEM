@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.8 2001-11-14 21:51:22 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.9 2002-02-18 08:48:41 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 /* 2 dimensional matrix mathematics template object.                      */
 
@@ -29,9 +29,19 @@ public:
 	/* destructor*/
 	~nMatrixT(void);
 
-	/* post construction dimensioning */
-	void Allocate(int numrows, int numcols);
-	void Allocate(int squaredim);
+	/** dimension matrix */
+	void Dimension(int numrows, int numcols);
+
+	/** dimension square matrix */
+	void Dimension(int squaredim);
+
+	/** \deprecated replaced by nMatrixT::Dimension on 02/13/2002 */
+	void Allocate(int numrows, int numcols) { Dimension(numrows, numcols); } ;
+	/** \deprecated replaced by nMatrixT::Dimension on 02/13/2002 */
+	void Allocate(int squaredim) { Dimension(squaredim); } ;
+
+	/** configure an matrix of the specified dimensions using the 
+	 * given memory */
 	void Set(int numrows, int numcols, nTYPE* p);
 
 	/* free memory (if allocated) and set size to zero */
@@ -169,13 +179,13 @@ inline nMatrixT<nTYPE>::nMatrixT(void): fRows(0), fCols(0) { }
 template <class nTYPE>
 inline nMatrixT<nTYPE>::nMatrixT(int numrows, int numcols)
 {
-	Allocate(numrows,numcols);
+	Dimension(numrows,numcols);
 }
 
 template <class nTYPE>
 inline nMatrixT<nTYPE>::nMatrixT(int squaredim)
 {
-	Allocate(squaredim);
+	Dimension(squaredim);
 }
 
 template <class nTYPE>
@@ -200,13 +210,13 @@ inline nMatrixT<nTYPE>::~nMatrixT(void)
 
 /* post construction dimensioning */
 template <class nTYPE>
-inline void nMatrixT<nTYPE>::Allocate(int numrows, int numcols)
+inline void nMatrixT<nTYPE>::Dimension(int numrows, int numcols)
 {
 	/* zero dimensions */
 	fRows = fCols = 0;
 
 	/* inherited */
-	nArrayT<nTYPE>::Allocate(numrows*numcols);
+	nArrayT<nTYPE>::Dimension(numrows*numcols);
 
 	/* set dimensions */
 	fRows = numrows;
@@ -214,9 +224,9 @@ inline void nMatrixT<nTYPE>::Allocate(int numrows, int numcols)
 }
 
 template <class nTYPE>
-inline void nMatrixT<nTYPE>::Allocate(int squaredim)
+inline void nMatrixT<nTYPE>::Dimension(int squaredim)
 {
-	Allocate(squaredim,squaredim);
+	Dimension(squaredim,squaredim);
 }
 
 template <class nTYPE>

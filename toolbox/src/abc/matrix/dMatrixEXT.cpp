@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.cpp,v 1.4 2001-10-05 22:31:34 paklein Exp $ */
+/* $Id: dMatrixEXT.cpp,v 1.5 2002-02-18 08:48:41 paklein Exp $ */
 /* created: paklein (03/06/1998)                                          */
 
 #include "dMatrixEXT.h"
@@ -32,7 +32,7 @@ dMatrixEXT::dMatrixEXT(int squaredim):
 dMatrixEXT::dMatrixEXT(int squaredim, double* p):
 	dMatrixT(squaredim,squaredim,p)
 {
-	fworkspace.Allocate(2*squaredim);
+	fworkspace.Dimension(2*squaredim);
 
 	/* set pointers */
 	v1 = fworkspace.Pointer();
@@ -40,13 +40,13 @@ dMatrixEXT::dMatrixEXT(int squaredim, double* p):
 }
 
 /* post constructor (re-)dimensioning */
-void dMatrixEXT::Allocate(int squaredim)
+void dMatrixEXT::Dimension(int squaredim)
 {
 	/* inherited */
-	dMatrixT::Allocate(squaredim);
+	dMatrixT::Dimension(squaredim);
 	
 	/* temp space */
-	fworkspace.Allocate(2*squaredim);
+	fworkspace.Dimension(2*squaredim);
 
 	/* set pointers */
 	v1 = fworkspace.Pointer();

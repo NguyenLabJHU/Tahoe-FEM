@@ -1,4 +1,4 @@
-/* $Id: Array2DT.h,v 1.3 2001-11-07 02:32:56 paklein Exp $ */
+/* $Id: Array2DT.h,v 1.4 2002-02-18 08:48:38 paklein Exp $ */
 /* created: paklein (11/02/1998)                                          */
 
 #ifndef _ARRAY2D_T_H_
@@ -24,8 +24,14 @@ public:
 	/* set fields - convert to shallow object */
 	void Set(int majordim, int minordim, TYPE* TYPEPtr);
 
-	/* allocate an array of the specified size */
-	void Allocate(int majordim, int minordim);
+	/** set the array size to the given dimensions. No change occurs if the array
+	 * is already the specified size. The previous contents of the array is
+	 * not preserved. To preserve the array contents while changing the dimension
+	 * use Array2DT::Resize. */
+	void Dimension(int majordim, int minordim);
+
+	/** \deprecated replaced by Array2DT::Dimension on 02/13/2002 */
+	void Allocate(int majordim, int minordim) { Dimension(majordim, minordim); };
 
 	/* resize to new major dimension, copying in at most what fits.
 	 * extra space is initialized by specifying the fill. */
@@ -78,7 +84,7 @@ inline Array2DT<TYPE>::Array2DT(void):
 template <class TYPE>
 inline Array2DT<TYPE>::Array2DT(int majordim, int minordim)
 {
-	Allocate(majordim, minordim);
+	Dimension(majordim, minordim);
 }
 
 template <class TYPE>
@@ -122,13 +128,13 @@ inline void Array2DT<TYPE>::Set(int majordim, int minordim,
 * Array2DT's created by default construction.
 */
 template <class TYPE>
-inline void Array2DT<TYPE>::Allocate(int majordim, int minordim)
+inline void Array2DT<TYPE>::Dimension(int majordim, int minordim)
 {
 	/* zero dimensions */
 	fMajorDim = fMinorDim = 0;
 
 	/* (try) inherited */
-	ArrayT<TYPE>::Allocate(majordim*minordim);
+	ArrayT<TYPE>::Dimension(majordim*minordim);
 
 	/* set dimensions */
 	fMajorDim = majordim;

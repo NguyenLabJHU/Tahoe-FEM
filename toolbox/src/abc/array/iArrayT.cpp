@@ -1,4 +1,4 @@
-/* $Id: iArrayT.cpp,v 1.6 2002-01-11 23:44:20 paklein Exp $ */
+/* $Id: iArrayT.cpp,v 1.7 2002-02-18 08:48:39 paklein Exp $ */
 /* created: paklein (08/10/1996) */
 
 #include "iArrayT.h"
@@ -79,7 +79,7 @@ iArrayT& iArrayT::Union(const nArrayT<int>& source)
 {
 	/* quick exit */
 	if (source.Length() == 0)
-		Allocate(0);
+		Dimension(0);
 	else
 	{
 		/* range of data */
@@ -97,7 +97,7 @@ iArrayT& iArrayT::Union(const nArrayT<int>& source)
 			node_map[*p++ - min] = 1;
 
 		/* collect list */
-		Allocate(node_map.Count(1));
+		Dimension(node_map.Count(1));
 		int dex = 0;
 		p = node_map.Pointer();
 		int* pthis = Pointer();
@@ -112,7 +112,7 @@ iArrayT& iArrayT::Union(const ArrayT<const nArrayT<int>*>& source)
 {
 	/* quick exit */
 	if (source.Length() == 0)
-		Allocate(0);
+		Dimension(0);
 	else
 	{
 		/* verify list and skip empties */
@@ -131,7 +131,7 @@ iArrayT& iArrayT::Union(const ArrayT<const nArrayT<int>*>& source)
 		/* range of data */
 		int count = empty.Count(0);
 		if (count == 0)
-			Allocate(0);
+			Dimension(0);
 		else
 		{
 			iArrayT mins(count), maxs(count);
@@ -161,7 +161,7 @@ iArrayT& iArrayT::Union(const ArrayT<const nArrayT<int>*>& source)
 				}
 
 			/* collect list */
-			Allocate(node_map.Count(1));
+			Dimension(node_map.Count(1));
 			dex = 0;
 			int* p = node_map.Pointer();
 			int* pthis = Pointer();

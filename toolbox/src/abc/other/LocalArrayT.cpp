@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.cpp,v 1.4 2001-09-05 00:24:57 paklein Exp $ */
+/* $Id: LocalArrayT.cpp,v 1.5 2002-02-18 08:48:42 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #include "LocalArrayT.h"
@@ -31,7 +31,7 @@ LocalArrayT::LocalArrayT(TypeT type, int numnodes, int minordim):
 	fType(type),
 	fGlobal(NULL)
 {
-	Allocate(numnodes, minordim);
+	Dimension(numnodes, minordim);
 }
 
 LocalArrayT::LocalArrayT(const LocalArrayT& source):

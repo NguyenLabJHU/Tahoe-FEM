@@ -1,4 +1,4 @@
-/* $Id: dRangeArrayT.cpp,v 1.2 2001-07-14 01:21:04 paklein Exp $ */
+/* $Id: dRangeArrayT.cpp,v 1.3 2002-02-18 08:48:43 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 
 #include "dRangeArrayT.h"
@@ -15,7 +15,7 @@ dRangeArrayT::dRangeArrayT(const dArrayT& values)
 dRangeArrayT::dRangeArrayT(int colnum, const dArray2DT& values2D)
 {
 	/* allocate space */
-	Allocate(values2D.MajorDim());
+	Dimension(values2D.MajorDim());
 	
 	/* copy values */
 	values2D.ColumnCopy(colnum,*this);

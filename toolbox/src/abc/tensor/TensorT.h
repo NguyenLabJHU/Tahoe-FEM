@@ -25,34 +25,27 @@ class TensorT: public nArrayT<MATHTYPE>
 {
   public:
 
-	/*
-	 * Constructor
-	 */
+	/* constructor */
 	TensorT(void);
 	TensorT(int size, int rank);
 	TensorT(const TensorT& source);
 
-	/*
-	 * Post-constructor
-	 */
-	void Allocate(int size, int rank);
+	/* set dimension */
+	void Dimension(int size, int rank);
 
-	/*
-	 * Dimensions
-	 */
+	/* set dimension */
+	void Allocate(int size, int rank) { Dimension(size, rank); };
+
+	/* dimensions */
 	int Rank(void) const; 
-	int Dimension(int dim) const;
+	int Dim(int dim) const;
 
-  	/*
-  	 * Copy/assignment operators
-  	 */
+  	/* copy/assignment operators */
   	TensorT<MATHTYPE>& operator=(const TensorT& RHS);
   	TensorT<MATHTYPE>& operator=(const MATHTYPE& value);
   	void ShallowCopy(const TensorT& RHS);
 
-	/*
-	 * Print parsed tensor to the ostream
-	 */
+	/* print parsed tensor to the ostream */
 	void PrintTensor(ostream& out) const;
 
   protected:
@@ -78,7 +71,7 @@ inline TensorT<MATHTYPE>::TensorT(void) { }
 template <class MATHTYPE> 
 inline TensorT<MATHTYPE>::TensorT(int size, int rank)
 {
-	Allocate(size, rank);	
+	Dimension(size, rank);	
 }
 
 template <class MATHTYPE> 
@@ -91,13 +84,13 @@ inline TensorT<MATHTYPE>::TensorT(const TensorT& source)
  * Post-constructor
  */
 template <class MATHTYPE> 
-void TensorT<MATHTYPE>::Allocate(int size, int rank)
+void TensorT<MATHTYPE>::Dimension(int size, int rank)
 {
 	/* dimensions */
-	fDim.Allocate(rank);
+	fDim.Dimension(rank);
 	
 	/* base class */
-	nArrayT<MATHTYPE>::Allocate(size);
+	nArrayT<MATHTYPE>::Dimension(size);
 }
 
 /*
@@ -110,7 +103,7 @@ inline int TensorT<MATHTYPE>::Rank(void) const
 }
 
 template <class MATHTYPE> 
-inline int TensorT<MATHTYPE>::Dimension(int dim) const
+inline int TensorT<MATHTYPE>::Dim(int dim) const
 {
 	return (fDim[dim]);
 }
@@ -191,9 +184,7 @@ void TensorT<MATHTYPE>::PrintTensor(ostream& out) const
 }
 
 /**********************************************************************
- *
  *  Protected
- *
  **********************************************************************/
 
 /*
@@ -207,7 +198,7 @@ int SameDimensions(const TensorT<MATHTYPE1>& t1, const TensorT<MATHTYPE2>& t2)
 		return (0);
 	
 	for (int i = 0; i < t1.Rank(); i++)
-		if (t1.Dimension(i) != t2.Dimension(i))
+		if (t1.Dim(i) != t2.Dim(i))
 			return (0);
 
 	return (1);

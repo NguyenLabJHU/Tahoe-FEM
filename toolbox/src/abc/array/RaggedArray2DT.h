@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.7 2001-10-24 01:57:18 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.8 2002-02-18 08:48:39 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 
 #ifndef _RAGGED_ARRAY_2D_T_H_
@@ -27,8 +27,13 @@ public:
 	 * every row. */
 	RaggedArray2DT(int majordim, int minordim, int blocksize = 1);
 
-	/** allocate array with fixed row dimensions */
-	void Allocate(int majordim, int minordim);
+	/** set the array size with fixed row dimensions. No change occurs if the array
+	 * is already the specified size. The previous contents of the array is
+	 * not preserved. */
+	void Dimension(int majordim, int minordim);
+
+	/** \deprecated replaced by RaggedArray2DT::Dimension on 02/13/2002 */
+	void Allocate(int majordim, int minordim) { Dimension(majordim, minordim); };
 
 	/** return the dimension of the data block */		
 	int Length(void) const;
@@ -199,20 +204,20 @@ template <class TYPE>
 RaggedArray2DT<TYPE>::RaggedArray2DT(int majordim, int minordim, int blocksize)
 {
 	/* configure */
-	Allocate(majordim, minordim*blocksize);
+	Dimension(majordim, minordim*blocksize);
 }
 
 /* allocate array with fixed row dimensions */
 template <class TYPE>
-void RaggedArray2DT<TYPE>::Allocate(int majordim, int minordim)
+void RaggedArray2DT<TYPE>::Dimension(int majordim, int minordim)
 {
 	/* set dimensions */
 	fMajorDim = majordim;
 	fMinMinorDim = fMaxMinorDim = minordim;
 
 	/* allocate space */
-	fPtrs.Allocate(fMajorDim + 1);
-	fData.Allocate(fMajorDim*minordim);
+	fPtrs.Dimension(fMajorDim + 1);
+	fData.Dimension(fMajorDim*minordim);
 
 	/* set pointers */
 	SetEvenPointers(minordim);
@@ -312,8 +317,8 @@ void RaggedArray2DT<TYPE>::Configure(const ArrayT<int>& rowcounts, int blocksize
 		size += *pcount++;
 		
 	/* allocate memory */
-	fPtrs.Allocate(fMajorDim + 1);
-	fData.Allocate(size*blocksize);		
+	fPtrs.Dimension(fMajorDim + 1);
+	fData.Dimension(size*blocksize);		
 
 	/* set pointers */
 	pcount = rowcounts.Pointer();
@@ -362,7 +367,7 @@ void RaggedArray2DT<TYPE>::Alias(const nArray2DT<TYPE>& source)
 	fMinMinorDim = fMaxMinorDim = source.MinorDim;
 	
 	/* configure memory */
-	fPtrs.Allocate(fMajorDim + 1);
+	fPtrs.Dimension(fMajorDim + 1);
 	fData.Set(source.Length(), source.Pointer());
 	
 	/* set pointers */
@@ -393,7 +398,7 @@ RaggedArray2DT<TYPE>& RaggedArray2DT<TYPE>::operator=(const RaggedArray2DT& sour
 		fData = source.fData;
 		
 		/* allocate space for data pointers */
-		fPtrs.Allocate(source.fPtrs.Length());
+		fPtrs.Dimension(source.fPtrs.Length());
 	
 		/* quick set */
 		if (fMinMinorDim == fMaxMinorDim)
@@ -417,8 +422,8 @@ void RaggedArray2DT<TYPE>::Copy(const AutoFill2DT<TYPE>& source)
 {
 	/* total memory size */
 	fMajorDim = source.MajorDim();		
-	fPtrs.Allocate(fMajorDim + 1);
-	fData.Allocate(source.LogicalSize());
+	fPtrs.Dimension(fMajorDim + 1);
+	fData.Dimension(source.LogicalSize());
 
 	fMinMinorDim = (fMajorDim > 0) ? source.MinorDim(0) : 0;
 	fMaxMinorDim = 0;
@@ -459,8 +464,8 @@ void RaggedArray2DT<TYPE>::Copy(const RowAutoFill2DT<TYPE>& source)
 {
 	/* total memory size */
 	fMajorDim = source.MajorDim();		
-	fPtrs.Allocate(fMajorDim + 1);
-	fData.Allocate(source.LogicalSize());
+	fPtrs.Dimension(fMajorDim + 1);
+	fData.Dimension(source.LogicalSize());
 
 	fMinMinorDim = (fMajorDim > 0) ? source.MinorDim(0) : 0;
 	fMaxMinorDim = 0;
@@ -516,8 +521,8 @@ void RaggedArray2DT<TYPE>::CopyCompressed(const AutoFill2DT<TYPE>& source) // re
 {
 	/* total memory size */
 	fMajorDim = source.MajorDim() - source.MinorDimCount(0); // number of non-empty rows		
-	fPtrs.Allocate(fMajorDim + 1); // have trailing pointer
-	fData.Allocate(source.LogicalSize());
+	fPtrs.Dimension(fMajorDim + 1); // have trailing pointer
+	fData.Dimension(source.LogicalSize());
 
 	fMaxMinorDim = 0;
 	TYPE** pptrs = fPtrs.Pointer();
@@ -561,7 +566,7 @@ template <class TYPE>
 void RaggedArray2DT<TYPE>::GenerateOffsetVector(ArrayT<int>& offsets) const
 {
 	/* same length as pointers */
-	offsets.Allocate(fPtrs.Length());
+	offsets.Dimension(fPtrs.Length());
 
 	/* pointer to base address */
 	TYPE* base = fData.Pointer();

@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.h,v 1.3 2001-10-05 18:54:47 paklein Exp $ */
+/* $Id: dMatrixEXT.h,v 1.4 2002-02-18 08:48:41 paklein Exp $ */
 /* created: paklein (03/06/1998) */
 
 #ifndef _DMATRIXEX_T_H_
@@ -21,8 +21,11 @@ public:
 	dMatrixEXT(int squaredim);
 	dMatrixEXT(int squaredim, double* p);
 
-	/* post constructor (re-)dimensioning */
-	void Allocate(int squaredim);
+	/** dimension to a square matrix */
+	void Dimension(int squaredim);
+
+	/** \deprecated replaced by dMatrixEXT::Dimension on 02/13/2002 */
+	void Allocate(int squaredim) { Dimension(squaredim); };
 
 	/* diagonalize (using symmetric QR algorithm).
 	 * assumes the matrix is symmetric. Returns the
