@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.21.6.1 2004-01-28 01:34:14 paklein Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.21.6.2 2004-03-27 04:18:12 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _KBC_CONTROLLER_T_H_
 #define _KBC_CONTROLLER_T_H_
@@ -129,6 +129,12 @@ protected:
 	 * \param id_list returns with the set id's of the nodes
 	 * \param nodes returns with the nodes in the set id's */
 	void ReadNodes(ifstreamT& in, ArrayT<StringT>& id_list, iArrayT& nodes) const;
+
+	/** get nodes from the ModelManagerT
+	 * \param in input stream listing the node ids
+	 * \param id_list returns with the set id's of the nodes
+	 * \param nodes returns with the nodes in the set id's */
+	void GetNodes(const ArrayT<StringT>& id_list, iArrayT& nodes) const;
 
 private:
 
