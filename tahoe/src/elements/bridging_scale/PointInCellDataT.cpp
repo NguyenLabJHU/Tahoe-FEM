@@ -1,4 +1,4 @@
-/* $Id: PointInCellDataT.cpp,v 1.5 2003-05-23 22:56:11 paklein Exp $ */
+/* $Id: PointInCellDataT.cpp,v 1.6 2004-06-26 05:53:20 paklein Exp $ */
 #include "PointInCellDataT.h"
 #include "ContinuumElementT.h"
 #include "InverseMapT.h"
@@ -65,6 +65,29 @@ void PointInCellDataT::GenerateCellConnectivities(void)
 			const iArrayT& nodes = fContinuumElement->ElementCard(i).NodesX();
 			for (int j = 0; j < nodes.Length(); j++)
 				local[j] = global_to_local.Map(nodes[j]);
+		}
+	}
+}
+
+/* translate interpolation data to sparse matrix data */
+void PointInCellDataT::InterpolationDataToMatrix(iArrayT& r, iArrayT& c, dArrayT& v) const
+{
+	int nv = fInterpolationWeights.Length();
+	r.Dimension(nv);
+	c.Dimension(nv);
+	v.Dimension(nv);
+
+	int index = 0;
+	iArrayT fwd(fInterpolationWeights.MajorDim());
+	fGlobalToLocal.Forward(fwd);
+	for (int i = 0; i < fInterpolatingCell.Length(); i++) {
+		const iArrayT& nodes = fContinuumElement->ElementCard(i).NodesU();
+		const double* w = fInterpolationWeights(i);
+		for (int j = 0; j < nodes.Length(); j++) {
+			r[index] = fwd[i];
+			c[index] = nodes[j];
+			v[index] = w[j];
+			index++;
 		}
 	}
 }
