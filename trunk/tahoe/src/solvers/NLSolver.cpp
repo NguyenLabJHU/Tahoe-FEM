@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.32 2004-09-09 23:54:55 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.33 2004-09-10 20:28:49 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -436,7 +436,7 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error, int iteration)
 			status = kConverged;
 		}
 		/* iteration limit hit */
-		else if (iteration > fMaxIterations)
+		else if (iteration >= fMaxIterations)
 		{
 			cout << setw(kIntWidth) << fNumIteration 
 			     << ": Relative error = " << setw(d_width) << error/fError0 << '\n';	
