@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0Axi_inv.cpp,v 1.1.2.5 2004-05-08 01:08:12 paklein Exp $ */
+/* $Id: SimoQ1P0Axi_inv.cpp,v 1.1.2.6 2004-05-08 02:19:05 paklein Exp $ */
 #include "SimoQ1P0Axi_inv.h"
 
 #include "ShapeFunctionT.h"
@@ -143,13 +143,10 @@ void SimoQ1P0Axi_inv::WriteRestart(ostream& out) const
 /* form shape functions and derivatives */
 void SimoQ1P0Axi_inv::SetGlobalShape(void)
 {
+	const char caller[] = "SimoQ1P0Axi_inv::SetGlobalShape";
+
 	/* current element number */
 	int elem = CurrElementNumber();
-
-//TEMP
-if (elem == 2574) {
-	int a = 1;
-}
 
 	/* inherited - computes gradients and standard 
 	 * deformation gradients */
@@ -177,6 +174,7 @@ if (elem == 2574) {
 			/* "replace" dilatation */
 			dMatrixT& F = fF_List[i];
 			double J = F.Det();
+			if (J < 0.0) ExceptionT::BadJacobianDet(caller, "J = %g", J);
 			F *= pow(1.0/(Gamma*J), 1.0/3.0);
 			
 			/* store Jacobian */
