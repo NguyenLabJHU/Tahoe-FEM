@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.7 2001-04-04 22:38:34 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.8 2001-04-06 03:06:13 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -514,7 +514,7 @@ void FEManagerT::WriteOutput(IOBaseT::OutputModeT mode)
 
 		/* nodes */
 		fNodeManager->WriteOutput(mode);
-		
+
 		/* elements */
 		for (int i = 0; i < fElementGroups.Length(); i++)
 			fElementGroups[i]->WriteOutput(mode);
@@ -541,7 +541,10 @@ void FEManagerT::WriteOutput(IOBaseT::OutputModeT mode)
 #endif
 	}
 	
-	catch (int error) { HandleException(error); }
+	catch (int error) { 
+	  cout << "\n FEManagerT::WriteOutput: caught exception: " << Exception(error) << endl;
+	  HandleException(error); 
+	}
 }
 
 void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values,
