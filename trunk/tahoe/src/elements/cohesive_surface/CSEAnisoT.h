@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.29 2003-05-28 23:15:23 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.30 2003-08-08 01:01:24 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -51,7 +51,11 @@ public:
 
 	/** read restart data to the output stream. */
 	virtual void ReadRestart(istream& in);
+
+	/** state variable array */
+	RaggedArray2DT<double>& StateVariables(void) { return fStateVariables; };
 #else
+
   	/* send restart array */
 	virtual void WriteRestart(double* outgoingData) const;
 	
@@ -66,6 +70,10 @@ public:
 
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
+
+	/** set the active elements.
+	 * \param array of status flags for all elements in the group */
+	virtual void SetStatus(const ArrayT<StatusT>& status);
 
 protected:
 
@@ -116,12 +124,13 @@ protected:
 //	TiedPotentialBaseT* tiedpot;
 	bool qRetieNodes;
 
-	/** state variable storage array. 
-	 * Array has dimensions: [nel] x [nip * nvar] */
+	/** \name state variable storage arrays. 
+	 * arrays have dimensions: [nel] x [nip * nvar] */
+	/*@{*/
 	RaggedArray2DT<double> fStateVariables;
 	RaggedArray2DT<double> fStateVariables_last;
-	
-	
+	/*@}*/
+
 	const GlobalT::StateT& fRunState;
 
 #else
