@@ -1,4 +1,4 @@
-/* $Id: FindNeighborT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: FindNeighborT.cpp,v 1.2 2002-06-29 22:21:12 hspark Exp $ */
 /* created: paklein (03/21/1997)                                          */
 /* FindNeighborT.cpp                                                      */
 
@@ -6,6 +6,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 #include "Constants.h"
+#include "iGridManager1DT.h"
 #include "iGridManager2DT.h"
 #include "iGridManager3DT.h"
 
@@ -19,6 +20,7 @@ FindNeighborT::FindNeighborT(const dArray2DT& coords, int maxneighbors):
 	fMaxNeighbors(maxneighbors),
 	fNodeMap(NULL),
 	fglCoords(coords),
+	fGrid1D(NULL),
 	fGrid2D(NULL),
 	fGrid3D(NULL)
 {
@@ -28,7 +30,12 @@ FindNeighborT::FindNeighborT(const dArray2DT& coords, int maxneighbors):
 	Allocate(fCoords.MajorDim(), fCoords.MinorDim());
 			
 	/* set search grid */
-	if (fnsd == 2)
+	if (fnsd == 1)
+	{
+		fGrid1D = new iGridManager1DT(Grid_x_count, fCoords, NULL);	
+		if (!fGrid1D) throw eOutOfMemory;		
+	}
+	else if (fnsd == 2)
 	{
 		fGrid2D = new iGridManager2DT(Grid_x_count, Grid_y_count, fCoords, NULL);	
 		if (!fGrid2D) throw eOutOfMemory;		
@@ -45,6 +52,7 @@ FindNeighborT::FindNeighborT(const iArrayT& nodesused, const dArray2DT& coords,
 	fMaxNeighbors(maxneighbors),
 	fNodeMap(&nodesused),
 	fglCoords(coords),
+	fGrid1D(NULL),
 	fGrid2D(NULL),
 	fGrid3D(NULL)
 {
@@ -57,7 +65,12 @@ FindNeighborT::FindNeighborT(const iArrayT& nodesused, const dArray2DT& coords,
 	fCoords.RowCollect(*fNodeMap, fglCoords);
 
 	/* set search grid */
-	if (fnsd == 2)
+	if (fnsd == 1)
+	{
+		fGrid1D = new iGridManager1DT(Grid_x_count, fCoords, 0);	
+		if (!fGrid1D) throw eOutOfMemory;		
+	}
+	else if (fnsd == 2)
 	{
 		fGrid2D = new iGridManager2DT(Grid_x_count, Grid_y_count, fCoords, 0);	
 		if (!fGrid2D) throw eOutOfMemory;		
@@ -72,6 +85,7 @@ FindNeighborT::FindNeighborT(const iArrayT& nodesused, const dArray2DT& coords,
 /* Destructor */
 FindNeighborT::~FindNeighborT(void)
 {
+        delete fGrid1D;
 	delete fGrid2D;
 	delete fGrid3D;
 }
@@ -80,7 +94,9 @@ FindNeighborT::~FindNeighborT(void)
 void FindNeighborT::OutputNeighors(ostream& out, double tolerance)
 {
 	/* find neighbors */
-	if (fnsd == 2)
+        if (fnsd == 1)
+		FindNeighors1D(tolerance);
+	else if (fnsd == 2)
 		FindNeighors2D(tolerance);
 	else
 		FindNeighors3D(tolerance);
@@ -102,7 +118,9 @@ void FindNeighborT::OutputNeighors(ostream& out, double tolerance)
 void FindNeighborT::GetNeighors(iArray2DT& edges, double tolerance)
 {
 	/* find neighbors - exhaustive search */
-	if (fnsd == 2)
+        if (fnsd == 1)
+		FindNeighors1D(tolerance);
+	else if (fnsd == 2)
 		FindNeighors2D(tolerance);
 	else
 		FindNeighors3D(tolerance);
@@ -140,6 +158,36 @@ void  FindNeighborT::PrintCoords(ostream& out) const
 **********************************************************************/
 
 /* Determine neighbors */
+void FindNeighborT::FindNeighors1D(double tolerance)
+{
+	/* update search coords */
+	if (fNodeMap) fCoords.RowCollect(*fNodeMap, fglCoords);
+
+	/* reset the grid */
+	fGrid1D->Reset();
+
+	/* using the grid */
+	AutoArrayT<int> neighbors;
+	for (int i = 0; i < fNeighbors.MajorDim(); i++)
+	{
+		fGrid1D->Neighbors(i, tolerance, neighbors);
+		fCount[i] = neighbors.Length();
+		
+		if (neighbors.Length() > fNeighbors.MinorDim()) throw eSizeMismatch;
+		
+		/* copy in */
+		memcpy(fNeighbors(i), neighbors.Pointer(), sizeof(int)*neighbors.Length());
+	}
+
+	/* check that all are connected */
+	int noneighbors = fCount.Count(0);
+	if (noneighbors > 0)
+	{
+		cout << "\nFindNeighborT::FindNeighors1D: " << noneighbors;
+		cout << " without neighnors" << endl;
+	}
+}
+
 void FindNeighborT::FindNeighors2D(double tolerance)
 {
 	/* update search coords */
@@ -206,8 +254,8 @@ void FindNeighborT::Allocate(int numpts, int nsd)
 	fNumPts = numpts;
 	fnsd    = nsd;
 	
-	/* only support 2D and 3D data */
-	if (fnsd != 2 && fnsd != 3) throw eBadInputValue;
+	/* Now supports 1D, 2D and 3D */
+	if (fnsd != 1 && fnsd != 2 && fnsd != 3) throw eBadInputValue;
 
 	/* Allocate memory */
 	fCount.Allocate(fNumPts);
