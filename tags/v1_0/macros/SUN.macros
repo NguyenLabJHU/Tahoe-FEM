@@ -1,0 +1,18 @@
+# $Id: SUN.macros,v 1.1.1.1 2001-01-25 01:46:10 paklein Exp $
+#
+# SUN: SUNWSpro 5.0 - this is flaky. better to use egcs (GNU)
+#
+COMP_CC     = CC
+COMP_C      = cc
+AR          = ar
+LINK        = $(COMP_CC)
+MY_CFLAGS   = -c -instances=static -I$(INC_DIR) -features=rtti
+CFLAGS      = $(MY_CFLAGS) -D__SUN__
+MORE_CFLAGS = -fast -DNDEBUG 
+#MORE_CFLAGS = -g
+LFLAGS      = 
+ARFLAGS     = -cruv
+MAKE_OPTS   = 
+RM          = rm
+LN          = ln -sf
+INC_FLAGS   = -I/opt/SUNWspro/SC5.0/include/CC

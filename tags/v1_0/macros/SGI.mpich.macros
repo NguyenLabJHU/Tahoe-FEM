@@ -1,0 +1,22 @@
+# $Id: SGI.mpich.macros,v 1.1.1.1 2001-01-25 01:46:10 paklein Exp $
+# MPI
+MPI_CFLAGS = -D__MPI__
+MPI_LFLAGS = 
+
+# SGI Irix 6.2 (or newer)
+COMP_CC     = /usr/local/mpich/bin/mpiCC
+COMP_C      = /usr/local/mpich/bin/mpicc
+AR          = ar
+LINK        = $(COMP_CC)
+MY_CFLAGS   = -c -mips4 -ptused -woff 1110,1155,1174,1188,1682 -LANG:exceptions=ON -D__SGI__ -I$(INC_DIR)
+CFLAGS      = $(MPI_CFLAGS) $(MY_CFLAGS)
+MORE_CFLAGS = -O3 -OPT:Olimit=4000 -DNDEBUG 
+#MORE_CFLAGS = -g
+LFLAGS      = $(MPI_LFLAGS) -lm -w
+ARFLAGS     = -cruv
+MAKE_OPTS   = -sP
+RM          = rm
+LN          = ln -sf
+INC_FLAGS   = -I/usr/include/CC
+# parallel builds
+# env. var. PARALLEL controls concurrency (default = 2)
