@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.48 2005-01-31 19:15:13 cjkimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.49 2005-02-22 00:08:43 rjones Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -8,6 +8,9 @@
 #include "GeometryBaseT.h"
 #include "EdgeFinderT.h"
 #include "dArrayT.h"
+#include "InverseMapT.h"
+#include "ParentDomainT.h"
+#include "LocalArrayT.h"
 
 using namespace Tahoe;
 
@@ -1036,6 +1039,74 @@ void ModelManagerT::SurfaceNodes(const ArrayT<StringT>& IDs,
 
 	/* clean up */
 	if (my_geometry) delete geometry;
+}
+
+
+/* compute the nodal area associated with each surface node */
+void ModelManagerT::ComputeNodalArea(const iArrayT& node_tags, 
+	const ArrayT<StringT>& surface_blocks, 
+	dArrayT& nodal_area, InverseMapT& inverse_map)
+{
+	/* initialize nodal area */
+  	nodal_area.Dimension(node_tags.Length());
+	nodal_area = 0.0;
+
+	/* get surface faces */
+	GeometryT::CodeT geometry;
+	ArrayT<iArray2DT> surfaces;
+	iArrayT surface_nodes;
+	SurfaceFacets(surface_blocks, geometry, surfaces, surface_nodes);
+
+	/* no surfaces */
+	if (surfaces.Length() == 0) return;
+
+	/* map to local id of surface nodes */
+	inverse_map.SetOutOfRange(InverseMapT::MinusOne);
+	inverse_map.SetMap(node_tags);
+
+	/* shape functions over the faces */
+	int nip = 1;
+	int nfn = surfaces[0].MinorDim();
+	ParentDomainT surf_shape(geometry, nip, nfn);
+	surf_shape.Initialize();
+
+	/* coordinates over the face, NOTE these are ref. coordinates */
+	int nsd = NumDimensions();
+	LocalArrayT ref_coords(LocalArrayT::kInitCoords, nfn, nsd);
+	ref_coords.SetGlobal(Coordinates());
+	dMatrixT jacobian(nsd, nsd-1);
+
+	/* loop over surfaces */
+	const double* Na = surf_shape.Shape(0);
+	const double* w  = surf_shape.Weight();
+	iArrayT facet_nodes;
+	for (int i = 0; i < surfaces.Length(); i++)
+	{
+		const iArray2DT& surface = surfaces[i];
+
+		/* loop over faces */
+		for (int j = 0; j < surface.MajorDim(); j++)
+		{
+			/* face nodes */
+			surface.RowAlias(j, facet_nodes);
+		
+			/* gather coordinates */
+			ref_coords.SetLocal(facet_nodes);
+		
+			/* coordinate mapping */
+			surf_shape.DomainJacobian(ref_coords, 0, jacobian);
+			double detj = surf_shape.SurfaceJacobian(jacobian);	
+		
+			/* loop over face nodes */
+			for (int k = 0; k < facet_nodes.Length(); k++)
+			{
+				/* surface node index */
+				int index = inverse_map.Map(facet_nodes[k]);
+				if (index != -1)
+					nodal_area[index] += w[0]*detj*Na[k];
+			}
+		}
+	}
 }
 
 int ModelManagerT::NodeSetIndex (const StringT& ID) const
