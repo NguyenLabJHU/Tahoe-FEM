@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.h,v 1.9 2005-01-10 07:38:33 paklein Exp $ */
+/* $Id: ConveyorT.h,v 1.10 2005-02-21 08:26:02 paklein Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
 
@@ -191,8 +191,8 @@ protected:
 	/** \name tracking point */
 	/*@{*/
 	int fTrackingInterval;
+	int fTrackingOutputInterval;
 
-	int fTrackingCount;
 	double fTrackingPoint;
 	double fTrackingPoint_last;
 	

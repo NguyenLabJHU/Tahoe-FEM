@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.14 2005-02-13 22:19:10 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.15 2005-02-21 08:26:02 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -26,6 +26,7 @@ ConveyorT::ConveyorT(const BasicSupportT& support, FieldT& field):
 	fWindowShiftDistance(0.0),
 	fRightMinSpacing(0.0),
 	fTrackingInterval(1),
+	fTrackingOutputInterval(1),
 	fULBC_Value(0.0),
 	fULBC_Code(KBC_CardT::kFix),
 	fULBC_ScheduleNumber(-1),
@@ -47,7 +48,6 @@ ConveyorT::ConveyorT(const BasicSupportT& support, FieldT& field):
 void ConveyorT::InitialCondition(void)
 {
 	/* reset */
-	fTrackingCount = 0;
 	fTrackingPoint = fX_Left;
 	fTrackingPoint_last = fTrackingPoint;
 	fX_Left_last = fX_Left;
@@ -93,7 +93,6 @@ void ConveyorT::Reset(void)
 	KBC_ControllerT::Reset();
 
 	/* reset system */
-	fTrackingCount--;
 	fTrackingPoint = fTrackingPoint_last;
 	fX_Left = fX_Left_last;
 	fX_Right = fX_Right_last;
@@ -104,7 +103,6 @@ void ConveyorT::InitStep(void)
 {
 	/* inherited */
 	KBC_ControllerT::InitStep();
-	fTrackingCount++;
 
 	/* update running average of interface compliance */
 	dArray2DT& u_field = fField[0];
@@ -269,7 +267,7 @@ void ConveyorT::CloseStep(void)
 	KBC_ControllerT::CloseStep();
 
 	/* report tracking point */
-	if (fSupport.Rank() == 0 && fTrackingCount == fTrackingInterval) {
+	if (fSupport.Rank() == 0 && fSupport.StepNumber() % fTrackingOutputInterval == 0) {
 	
 		/* boundary displacement */
 		dArray2DT& u_field = fField[0];
@@ -281,7 +279,6 @@ void ConveyorT::CloseStep(void)
 		fTrackingOutput << fSupport.Time() << ' ' 
 		                << fTrackingPoint << ' '
 		                << uY_top - uY_bot <<'\n';
-		fTrackingCount = 0;
 	}
 
 	/* update history */
@@ -298,7 +295,7 @@ GlobalT::RelaxCodeT ConveyorT::RelaxSystem(void)
 	GlobalT::RelaxCodeT relax = KBC_ControllerT::RelaxSystem();
 
 	/* don't track this time */
-	if (fTrackingCount != fTrackingInterval) return relax;
+	if (fSupport.StepNumber() % fTrackingInterval != 0) return relax;
 	
 	/* check to see if focus needs to be reset */
 	fTrackingPoint = TrackPoint(fTrackingType, fTipThreshold);
@@ -329,7 +326,7 @@ void ConveyorT::ReadRestart(ifstreamT& in)
 			file.Pointer());
 
 	/* read dimensions */
-	my_in >> fTrackingCount >> fTrackingPoint >> fX_Left >> fX_Right;
+	my_in >> fTrackingPoint >> fX_Left >> fX_Right;
 
 	/* read node lists */
 	iArrayT tmp;
@@ -425,10 +422,9 @@ void ConveyorT::WriteRestart(ofstreamT& out) const
 	my_out.precision(out.precision());
 
 	/* write dimensions */
-	my_out << fTrackingCount << '\n'
-	    << fTrackingPoint << '\n'
-	    << fX_Left << '\n'
-	    << fX_Right << '\n';
+	my_out << fTrackingPoint << '\n'
+	       << fX_Left << '\n'
+	       << fX_Right << '\n';
 	
 	/* nodes on right edge */
 	iArrayT tmp;
@@ -485,9 +481,18 @@ void ConveyorT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(num_samples, ParameterListT::ZeroOrOnce);
 
 	/* tip tracking */
+	LimitT min_increment(1, LimitT::LowerInclusive);
+
 	ParameterT tracking_increment(fTrackingInterval, "focus_tracking_increment");
+	tracking_increment.AddLimit(min_increment);
 	tracking_increment.SetDefault(fTrackingInterval);
 	list.AddParameter(tracking_increment);
+
+	ParameterT tracking_output_increment(fTrackingOutputInterval, "focus_output_increment");
+	tracking_output_increment.AddLimit(min_increment);
+	tracking_output_increment.SetDefault(fTrackingOutputInterval);
+	list.AddParameter(tracking_output_increment);
+
 	list.AddParameter(ParameterT::Integer, "focus_element_group");
 	list.AddParameter(ParameterT::Word, "focus_output_variable");
 
@@ -621,6 +626,7 @@ void ConveyorT::TakeParameterList(const ParameterListT& list)
 
 	/* tracking */
 	fTrackingInterval = list.GetParameter("focus_tracking_increment");
+	fTrackingOutputInterval = list.GetParameter("focus_output_increment");
 	const ParameterListT& init_focus = list.GetList("initial_focus_coordinates");
 	fTipX_0 = init_focus.GetParameter("x_1");
 	fTipY_0 = init_focus.GetParameter("x_2");
