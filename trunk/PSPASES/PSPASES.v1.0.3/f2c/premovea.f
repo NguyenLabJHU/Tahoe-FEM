@@ -40,14 +40,15 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: premovea.f,v 1.2 2004-12-15 01:14:19 paklein Exp $ */
+C/* $Id: premovea.f,v 1.3 2004-12-30 00:07:22 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine premovea(N,dd,pp,lgblk,myid,mynnodes,rowdist,order,
      +                  sizes,mybeginleaf,pasize,aptrs,ainds,tainds,
      +                  parent,gorder,temparr2,wrkint,ranmasks,
      +                  whichsnode,maxnzpercol,checksymm,sortinds,comm,
-     +                  sendinds,sendsizs,recvinds,recvsizs)
+     +                  sendinds,sendsizs,recvinds,recvsizs,
+     +                  iwillsend_inds2, iwillreceive_inds2)
 
       implicit none
 
@@ -60,10 +61,16 @@ C/*****************************************************************************/
       integer whichsnode(0:*),maxnzpercol,checksymm,sortinds
 
 C     integer, allocatable :: sendinds(:),sendsizs(:)
+      integer iwillsend_inds2
       integer sendinds(*),sendsizs(*)
+      dimension sendinds(0:iwillsend_inds2-1)
+      dimension sendsizs(0:iwillsend_inds2-1)      
 
 C     integer, allocatable :: recvinds(:),recvsizs(:)
+      integer iwillreceive_inds2
       integer recvinds(*),recvsizs(*)
+      dimension recvinds(0:iwillreceive_inds2-1)
+      dimension recvsizs(0:iwillreceive_inds2-1)      
 
       integer proc,rbits,cbits,pgrsize,pgcsize
       integer tppr,tppc
