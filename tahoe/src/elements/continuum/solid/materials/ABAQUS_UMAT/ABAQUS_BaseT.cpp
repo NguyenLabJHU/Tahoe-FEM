@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BaseT.cpp,v 1.1.2.3 2003-11-24 19:17:09 paklein Exp $ */
+/* $Id: ABAQUS_BaseT.cpp,v 1.1.2.4 2003-11-24 22:53:05 paklein Exp $ */
 #include "ABAQUS_BaseT.h"
 
 #ifdef __F2C__
@@ -287,10 +287,7 @@ bool ABAQUS_BaseT::Next_ABAQUS_Keyword(ifstreamT& in) const
 		}
 		/* other alphanumeric character */
 		else
-		{
-			in.putback(c);
 			return false;
-		}
 	}
 	
 	/* stream error */
