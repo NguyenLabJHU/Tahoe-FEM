@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.47 2003-10-09 23:26:19 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.48 2003-10-28 23:31:48 paklein Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -33,7 +33,22 @@ EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
   fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
   fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
   frhop_r_man(kMemoryHeadRoom, frhop_r,NumDOF())
-{}
+{
+	SetName("particle_eam");
+}
+
+EAMT::EAMT(const ElementSupportT& support):
+  ParticleT(support),
+  fNeighbors(kMemoryHeadRoom),
+  fEqnos(kMemoryHeadRoom),
+  fForce_list_man(0, fForce_list),
+  fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
+  fEmbeddingEnergy_man(kMemoryHeadRoom, fEmbeddingEnergy, 1),
+  fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
+  fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1)
+{
+	SetName("particle_eam");
+}
 
 /* collecting element group equation numbers */
 void EAMT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -55,25 +70,28 @@ void EAMT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 void EAMT::Initialize(void)
 {
   cout << "Initialization Phase\n";
+  
+	/* muli-processor information */
+	CommManagerT& comm_manager = ElementSupport().CommManager();
 
   /* set up communication of electron density information */
-  fElectronDensityMessageID = fCommManager.Init_AllGather(MessageT::Double, 1);
+  fElectronDensityMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
   fElectronDensity_man.SetMajorDimension(ElementSupport().NumNodes(), false);
 
   /* set up communication of embedding energy information */
-  fEmbeddingEnergyMessageID = fCommManager.Init_AllGather(MessageT::Double, 1);
+  fEmbeddingEnergyMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
   fEmbeddingEnergy_man.SetMajorDimension(ElementSupport().NumNodes(), false);
 
   /* set up communication of embedding force information */
-  fEmbeddingForceMessageID = fCommManager.Init_AllGather(MessageT::Double, 1);
+  fEmbeddingForceMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
   fEmbeddingForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
 
   /* set up communication of embedding stiffness information */
-  fEmbeddingStiffMessageID = fCommManager.Init_AllGather(MessageT::Double, 1);
+  fEmbeddingStiffMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
   fEmbeddingStiff_man.SetMajorDimension(ElementSupport().NumNodes(), false);
 
   /* set up communication of rhop * r information */
-  frhop_rMessageID = fCommManager.Init_AllGather(MessageT::Double, NumDOF());
+  frhop_rMessageID = comm_manager.Init_AllGather(MessageT::Double, NumDOF());
   frhop_r_man.SetMajorDimension(ElementSupport().NumNodes(), false);
 
   /* inherited */
@@ -127,11 +145,11 @@ void EAMT::WriteOutput(void)
   int num_output = ndof + 2; /* displacement + PE + KE */
 
   /* number of nodes */
-  const ArrayT<int>* parition_nodes = fCommManager.PartitionNodes();
+  const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
   int non = (parition_nodes) ? parition_nodes->Length() : ElementSupport().NumNodes();
 
   /* map from partition node index */
-  const InverseMapT* inverse_map = fCommManager.PartitionNodes_inv();
+  const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
 
   dSymMatrixT vs_i(ndof), temp(ndof);
   int num_stresses=vs_i.NumValues(ndof);
@@ -195,13 +213,13 @@ void EAMT::WriteOutput(void)
 	      ExceptionT::GeneralFail(caller);
 	  
       /* exchange electron density information */
-      fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
+      comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
       
       /* get embedding energy */
       GetEmbEnergy(coords,fElectronDensity,fEmbeddingEnergy);
 	  
       /* exchange embedding energy information */
-      fCommManager.AllGather(fEmbeddingEnergyMessageID, fEmbeddingEnergy);
+      comm_manager.AllGather(fEmbeddingEnergyMessageID, fEmbeddingEnergy);
     }
 
   /* EAM properties function pointers */
@@ -462,24 +480,27 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 	    }
 	}
     }
+
+	/* muli-processor information */
+	CommManagerT& comm_manager = ElementSupport().CommManager();
  
   /* exchange electron density information */
-  fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
+  comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
 
   /* exchange rhop * r information */
-  fCommManager.AllGather(frhop_rMessageID, frhop_r);
+  comm_manager.AllGather(frhop_rMessageID, frhop_r);
 
   /* get embedding force */
   GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
   
   /* exchange embedding force information */
-  fCommManager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
+  comm_manager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
 
   /* get embedding stiffness */
   GetEmbStiff(coords,fElectronDensity,fEmbeddingStiff);
   
   /* exchange embedding stiffness information */
-  fCommManager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
+  comm_manager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
 
   int current_property_i = -1;
   int current_property_j = -1;
@@ -683,6 +704,13 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
     }
 }
 
+/* describe the parameters needed by the interface */
+void EAMT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ParticleT::DefineParameters(list);
+}
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
@@ -753,6 +781,9 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	
     AssembleParticleMass(mass);
   }
+
+	/* muli-processor information */
+	CommManagerT& comm_manager = ElementSupport().CommManager();
 	
   /* assemble diagonal stiffness */
   if (formK && sys_type == GlobalT::kDiagonal)
@@ -777,25 +808,25 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	  	ExceptionT::GeneralFail();
 	  
       /* exchange electron density information */
-      fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
+      comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
 
       /* get embedding force */
       GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
 	  
       /* exchange embedding force information */
-      fCommManager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
+      comm_manager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
 
       /* get embedding stiffness */
       GetEmbStiff(coords,fElectronDensity,fEmbeddingStiff);
       
 	  /* exchange embedding stiffness information */
-      fCommManager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
+      comm_manager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
    
       /* get rhop * r */
       frhop_r = 0.0;
       GetRhop_r(coords,frhop_r);
       /* exchange rhop * r information */
-      fCommManager.AllGather(frhop_rMessageID, frhop_r);
+      comm_manager.AllGather(frhop_rMessageID, frhop_r);
 
       int current_property_i = -1;
       int current_property_j = -1;
@@ -975,25 +1006,25 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	  	ExceptionT::GeneralFail();
 		
       /* exchange electron density information */
-      fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
+      comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
 
       /* get embedding force */
       GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
       
 	  /* exchange embedding force information */
-      fCommManager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
+      comm_manager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
 
       /* get embedding stiffness */
       GetEmbStiff(coords,fElectronDensity,fEmbeddingStiff);
       
 	  /* exchange embedding stiffness information */
-      fCommManager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
+      comm_manager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
       
       /* get rhop * r */
       frhop_r = 0.0;
       GetRhop_r(coords,frhop_r);
       /* exchange rhop * r information */
-      fCommManager.AllGather(frhop_rMessageID, frhop_r);
+      comm_manager.AllGather(frhop_rMessageID, frhop_r);
 
       int current_property_i = -1;
       int current_property_j = -1;
@@ -1226,19 +1257,22 @@ void EAMT::RHSDriver2D(void)
   /* global coordinates */
   const dArray2DT& coords = support.CurrentCoordinates();
 
+	/* communication */
+	CommManagerT& comm_manager = support.CommManager();
+
   if(iEmb == 1)
     {
       /* get electron density */
       GetRho2D(coords,fElectronDensity);
 	  
       /* exchange electron density information */
-      fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
+      comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
       
       /* get embedding force */
       GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
 
       /* exchange embedding energy information */
-      fCommManager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
+      comm_manager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
     }
 
 
@@ -1376,6 +1410,9 @@ void EAMT::RHSDriver3D(void)
 	
   /* global coordinates */
   const dArray2DT& coords = support.CurrentCoordinates();
+
+	/* communication */
+	CommManagerT& comm_manager = support.CommManager();
   
   if(iEmb == 1)
     {
@@ -1384,14 +1421,14 @@ void EAMT::RHSDriver3D(void)
       GetRho3D(coords,fElectronDensity);
 	  
       /* exchange electron density information */
-      fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
+      comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
       
       /* get embedding force */
       fEmbeddingForce = 0.0;
       GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
       
 	  /* exchange embedding energy information */
-      fCommManager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
+      comm_manager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
     }
 
  /* EAM properties function pointers */
@@ -1524,7 +1561,8 @@ void EAMT::SetConfiguration(void)
   ParticleT::SetConfiguration();
 
   /* reset neighbor lists */
-  const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+  CommManagerT& comm_manager = ElementSupport().CommManager();
+  const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
   if (fActiveParticles) 
     part_nodes = fActiveParticles;
   GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
@@ -1561,33 +1599,33 @@ void EAMT::SetConfiguration(void)
   fElectronDensity_man.SetMajorDimension(nnd, true);
   
   /* exchange type information */
-  fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
+  comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
 
   // EMBEDDING ENERGY //
   /* reset the embedding energy array */
   fEmbeddingEnergy_man.SetMajorDimension(nnd, true);
   
   /* exchange type information */
-  fCommManager.AllGather(fEmbeddingEnergyMessageID, fEmbeddingEnergy);
+  comm_manager.AllGather(fEmbeddingEnergyMessageID, fEmbeddingEnergy);
 
   /* reset the embedding force array */
   fEmbeddingForce_man.SetMajorDimension(nnd, true);
   
   /* exchange type information */
-  fCommManager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
+  comm_manager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
 
   /* reset the embedding stiffness array */
   fEmbeddingStiff_man.SetMajorDimension(nnd, true);
   
   /* exchange type information */
-  fCommManager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
+  comm_manager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
 
   // OTHER  //
   /* reset the rhop * r array */
   frhop_r_man.SetMajorDimension(nnd, true);
   
   /* exchange type information */
-  fCommManager.AllGather(frhop_rMessageID, frhop_r);
+  comm_manager.AllGather(frhop_rMessageID, frhop_r);
 }
 
 /* construct the list of properties from the given input stream */

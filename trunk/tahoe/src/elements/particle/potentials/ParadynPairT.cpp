@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.cpp,v 1.7 2003-05-08 01:07:19 saubry Exp $ */
+/* $Id: ParadynPairT.cpp,v 1.8 2003-10-28 23:31:52 paklein Exp $ */
 #include "ParadynPairT.h"
 #include "toolboxConstants.h"
 #include "ifstreamT.h"
@@ -21,52 +21,17 @@ const int knum_coeff = 9;
 
 /* constructor */
 ParadynPairT::ParadynPairT(const StringT& param_file):
-	fParams(param_file),
 	f_cut(0.0)
 {
-	const char caller[] = "ParadynPairT::ParadynPairT";
+	SetName("Paradyn_pair");
 
-	/* try to open file */
-	ifstreamT in(fParams);
-	if (!in.is_open())
-		ExceptionT::BadInputValue(caller, "error opening file: %s", fParams.Pointer());
+	/* initialize potential from stream */
+	ReadParameters(param_file);
+}
 
-	/* read comment line */
-	fDescription.GetLineFromStream(in);
-
-	/* lattice information */
-	double mass;
-	in >> fAtomicNumber >> mass >> fLatticeParameter >> fStructure;
-	
-	/* Adjust mass like in interpolate_pair.F of ParaDyn */
-	double conmas = 1.0365e-4;
-	mass *= conmas;
-
-	/* table dimensions */
-	int np, nr;
-	double dp, dr;
-	in >> np >> dp >> nr >> dr >> f_cut;
-	if (np < 2   ||
-	    dp < 0.0 ||
-	    nr < 2   ||
-	    dr < 0.0 ||
-	 f_cut < 0.0) ExceptionT::BadInputValue(caller);
-	
-	/* embedding energy - not used */
-	dArrayT tmp(np);
-	in >> tmp;
-	
-	/* phi function */
-	tmp.Dimension(nr);
-	in >> tmp;
-
-	/* compute spline coefficients */
-	ComputeCoefficients(tmp, dr, fCoefficients);
-	f_1bydr = 1.0/dr;
-
-	/* inherited */
-	SetMass(mass);
-	SetRange(f_cut);
+ParadynPairT::ParadynPairT(void)
+{
+	SetName("Paradyn_pair");
 }
 
 /* write properties to output */
@@ -126,6 +91,25 @@ bool ParadynPairT::getParadynTable(const double** coeff, double& dr, int& row_si
 	row_size = 9;
 	num_rows = fCoefficients.MajorDim();
 	return true;
+}
+
+/* describe the parameters needed by the interface */
+void ParadynPairT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	PairPropertyT::DefineParameters(list);
+
+	list.AddParameter(ParameterT::String, "parameter_file");
+}
+
+/* accept parameter list */
+void ParadynPairT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	PairPropertyT::TakeParameterList(list);
+
+	StringT parameter_file = list.GetParameter("parameter_file");
+	ReadParameters(parameter_file);
 }
 
 /***********************************************************************
@@ -218,4 +202,52 @@ void ParadynPairT::ComputeCoefficients(const ArrayT<double>& f, double dx, dArra
       coeff(j,7) = coeff(j,5)/dx;
       coeff(j,8) = 2.0*coeff(j,6)/dx;
     }
+}
+
+/* initialize potential from stream */
+void ParadynPairT::ReadParameters(const StringT& param_file)
+{
+	const char caller[] = "ParadynPairT::ReadParameters";
+
+	/* try to open file */
+	ifstreamT in(param_file);
+	if (!in.is_open())
+		ExceptionT::BadInputValue(caller, "error opening file: %s", param_file.Pointer());
+
+	/* read comment line */
+	fDescription.GetLineFromStream(in);
+
+	/* lattice information */
+	double mass;
+	in >> fAtomicNumber >> mass >> fLatticeParameter >> fStructure;
+	
+	/* Adjust mass like in interpolate_pair.F of ParaDyn */
+	double conmas = 1.0365e-4;
+	mass *= conmas;
+
+	/* table dimensions */
+	int np, nr;
+	double dp, dr;
+	in >> np >> dp >> nr >> dr >> f_cut;
+	if (np < 2   ||
+	    dp < 0.0 ||
+	    nr < 2   ||
+	    dr < 0.0 ||
+	 f_cut < 0.0) ExceptionT::BadInputValue(caller);
+	
+	/* embedding energy - not used */
+	dArrayT tmp(np);
+	in >> tmp;
+	
+	/* phi function */
+	tmp.Dimension(nr);
+	in >> tmp;
+
+	/* compute spline coefficients */
+	ComputeCoefficients(tmp, dr, fCoefficients);
+	f_1bydr = 1.0/dr;
+
+	/* set parmeters */
+	SetMass(mass);
+	SetRange(f_cut);
 }

@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.18 2003-10-28 07:08:37 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.19 2003-10-28 23:31:48 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -29,6 +29,7 @@ public:
 
 	/** constructor */
 	ParticleT(const ElementSupportT& support, const FieldT& field);
+	ParticleT(const ElementSupportT& support);
 
 	/** destructor */
 	~ParticleT(void);
@@ -151,13 +152,19 @@ protected: /* for derived classes only */
 	 *  Initialize */
 	virtual void EchoDamping(ifstreamT& in, ofstreamT& out);
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+	/*@}*/
+
 protected:
 
 	/** reference ID for sending output */
 	int fOutputID;
-	
-	/** communications manager */
-	CommManagerT& fCommManager;
 
 	/** \name local to global tag map.
 	 * Used for things like neighbor lists */

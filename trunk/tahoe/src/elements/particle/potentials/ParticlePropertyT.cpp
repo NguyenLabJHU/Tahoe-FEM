@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.cpp,v 1.8 2003-10-28 07:08:39 paklein Exp $ */
+/* $Id: ParticlePropertyT.cpp,v 1.9 2003-10-28 23:31:52 paklein Exp $ */
 #include "ParticlePropertyT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -12,6 +12,7 @@ template<> const bool ArrayT<ParticlePropertyT>::fByteCopy = false;
 
 /* constructor */
 ParticlePropertyT::ParticlePropertyT(void):
+	ParameterInterfaceT("particle_property"),
 	fMass(0),
 	fRange(0)
 {
@@ -23,6 +24,26 @@ void ParticlePropertyT::Write(ostream& out) const
 {
 	out << " Mass. . . . . . . . . . . . . . . . . . . . . . = " << fMass << '\n';
 	out << " Interaction range . . . . . . . . . . . . . . . = " << fRange << '\n';
+}
+
+/* describe the parameters needed by the interface */
+void ParticlePropertyT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineParameters(list);
+
+	ParameterT mass(fMass, "mass");
+	mass.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(mass);
+}
+
+/* accept parameter list */
+void ParticlePropertyT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	fMass = list.GetParameter("mass");
 }
 
 namespace Tahoe {

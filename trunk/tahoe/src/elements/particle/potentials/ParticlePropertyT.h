@@ -1,13 +1,16 @@
-/* $Id: ParticlePropertyT.h,v 1.7 2003-08-07 21:11:35 fwdelri Exp $ */
+/* $Id: ParticlePropertyT.h,v 1.8 2003-10-28 23:31:52 paklein Exp $ */
 #ifndef _PARTICLE_PROPERTY_T_H_
 #define _PARTICLE_PROPERTY_T_H_
+
+/* base class */
+#include "ParameterInterfaceT.h"
 
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
 /** base class for particle properties and interactions */
-class ParticlePropertyT
+class ParticlePropertyT: public ParameterInterfaceT
 {
 public:
 
@@ -19,8 +22,7 @@ public:
           kParadynEAM = 3, /**< EAM potentials in Paradyn format */
 	  kMatsuiPair = 4  /**< Matsui pair potential */
 	};
-	
-	
+
 	/** stream extraction operators */
 	friend istream& operator>>(istream& in, ParticlePropertyT::TypeT& property);
 
@@ -39,6 +41,15 @@ public:
 
 	/** write properties to output */
 	virtual void Write(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
