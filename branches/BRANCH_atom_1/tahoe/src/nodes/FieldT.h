@@ -1,5 +1,4 @@
-/* $Id: FieldT.h,v 1.6.2.1 2002-12-18 09:48:33 paklein Exp $ */
-
+/* $Id: FieldT.h,v 1.6.2.2 2002-12-18 21:11:22 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -168,16 +167,16 @@ public:
 	/** reset internal data associated with the equations array. The number of
 	 * active equations is continuous but may start with any value. The active
 	 * equations are those that correspond to the values passed in by FieldT::AssembleUpdate.
-	 * \param eq_start first active equation 
-	 * \param num_eq number of active equations */
+	 * \param eq_start first active equation in the group to which the field belongs
+	 * \param num_eq number of active equations in the group to which the field belongs */
 	void FinalizeEquations(int eq_start, int num_eq);
 	
-	/** access to the number of active equations. Returns the value set using
-	 * FieldT::FinalizeEquations. */
+	/** access to the number of active equations in the group to which the field belongs. 
+	 * Returns the value set using FieldT::FinalizeEquations. */
 	int NumEquations(void) const { return fNumEquations; };
 
-	/** first active equation number. Returns the value set using
-	 * FieldT::FinalizeEquations. */
+	/** first active equation number in the group to which the field belongs. Returns 
+	 * the value set using FieldT::FinalizeEquations. */
 	int EquationStart(void) const { return fEquationStart; };
 
 	/** dimension storage and mark equation numbers for external nodes */
