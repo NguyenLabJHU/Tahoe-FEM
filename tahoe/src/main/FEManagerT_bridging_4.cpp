@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_4.cpp,v 1.1.2.4 2004-05-25 08:25:42 paklein Exp $ */
+/* $Id: FEManagerT_bridging_4.cpp,v 1.1.2.5 2004-05-25 23:06:38 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -41,7 +41,7 @@ const char p_x = 'c'; /* unknown: 0 < bond density < 1 */
 using namespace Tahoe;
 
 void FEManagerT_bridging::CorrectOverlap_4(const RaggedArray2DT<int>& point_neighbors, const dArray2DT& point_coords, 
-	double smoothing, double k2, int nip)
+	double smoothing, double k2, double k_r, int nip)
 {
 	const char caller[] = "FEManagerT_bridging::CorrectOverlap_4";
 
@@ -123,6 +123,17 @@ void FEManagerT_bridging::CorrectOverlap_4(const RaggedArray2DT<int>& point_neig
 	overlap_node_group.Register(sum_R_N);
 	overlap_node_group.Register(f_a);
 
+	/* constraints */
+	iArrayT eqnos;
+	iArray2DT constraint_eq;
+	nVariArray2DT<int> constraint_eq_man(0, constraint_eq, 2);
+	dArrayT f_constraint(2);
+	ElementMatrixT K_constraint(2, ElementMatrixT::kSymmetric);
+	dArrayT rhs;
+	VariArrayT<double> rhs_man(0, rhs);
+	dArrayT constraint;
+	VariArrayT<double> constraint_man(0, constraint);
+
 	/* solve unknowns */
 	int bond_density_offset = 0;
 	ArrayT<char> cell_type(nel);
@@ -194,6 +205,7 @@ void FEManagerT_bridging::CorrectOverlap_4(const RaggedArray2DT<int>& point_neig
 		for (int j = 0; j < bond_densities_i_eq.MajorDim(); j++)
 			for (int k = 0; k < bond_densities_i_eq.MinorDim(); k++)
 				bond_densities_i_eq(j,k) = ++num_eq;
+		int num_eq_p = num_eq;
 
 		/* "inverse" connectivities for overlap cells in the support of overlap nodes */
 		TransposeConnects(*coarse, overlap_node_i, overlap_cell_i, inv_connects_i);
@@ -210,10 +222,33 @@ void FEManagerT_bridging::CorrectOverlap_4(const RaggedArray2DT<int>& point_neig
 					*equations_per_node++ = *equations++;
 			}
 		}
+		
+		/* constraint equations - one constraint per unknown */
+		int num_eq_L = 0;
+		if (k_r > kSmall) {
+		
+			/* dimension equations array */
+			num_eq_L = num_eq_p;
+			constraint_eq_man.SetMajorDimension(num_eq_L, false);
+		
+			/* assign equation numbers */
+			for (int j = 0; j < bond_densities_i_eq.Length(); j++) {
+				constraint_eq(j,0) = bond_densities_i_eq[j];
+				constraint_eq(j,1) = ++num_eq;
+			}
+		
+			/* configure solver */
+			ddf_dpdp_i.AddEquationSet(constraint_eq);
 
-		/* configure linear solver */
+			/* initialize unknowns */
+			constraint_man.SetLength(num_eq_L, false);
+			constraint = 0.0;
+		}
+
+		/* configure equation system */
 		ddf_dpdp_i.AddEquationSet(inv_equations_i);
 		ddf_dpdp_i.Initialize(num_eq, num_eq, 1);
+		rhs_man.SetLength(num_eq, false);
 
 		/* compute contribution from bonds terminating at "ghost" atoms */
 		ComputeSum_signR_Na_4(shell_bond_length[i], ghost_neighbors_i, point_coords, overlap_node_i_map, sum_R_N);
@@ -224,12 +259,60 @@ void FEManagerT_bridging::CorrectOverlap_4(const RaggedArray2DT<int>& point_neig
 
 		/* initialize */
 		p_i = 1.0;
+		rhs = 0.0;
 		
 		/* compute residual - add Cauchy-Born contribution */
 		f_a = sum_R_N;
 		Compute_df_dp_4(shell_bonds, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map, 
 			bond_densities_i_eq, inv_connects_i, inv_equations_i,
 			p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
+			
+		/* assemble residual */
+		for (int j = 0; j < df_dp_i.Length(); j++)
+			rhs[j] -= df_dp_i[j];
+			
+		/* apply constraints */
+		for (int j = 0; j < num_eq_L; j++)
+		{
+			/* equation numbers */
+			constraint_eq.RowAlias(j, eqnos);
+
+			/* constraint equation: g >= 0 */
+			double   g = 0.25 - (p_i[j] - 0.5)*(p_i[j] - 0.5);
+			double  Dg = -2.0*(p_i[j] - 0.5);
+			double DDg = -2.0;
+		
+			/* augmented multiplier */
+			double L_r = constraint[j] + k_r*g;
+			if (L_r < 0.0) /* active constraint */
+			{
+				/* force */
+				rhs[eqnos[0]-1] -= Dg*L_r;
+				rhs[eqnos[1]-1] -= g;
+
+				/* stiffness */
+				K_constraint(0,0) = DDg*L_r + k_r*Dg*Dg;
+				K_constraint(0,1) = Dg;
+				K_constraint(1,0) = Dg;
+				K_constraint(1,1) = 0.0;
+			}
+			else /* inactive */
+			{
+				/* force */
+				rhs[eqnos[0]-1] += 0.0;
+				rhs[eqnos[1]-1] += constraint[j]/k_r;
+			
+				/* stiffness */
+				K_constraint(0,0) = 0.0;
+				K_constraint(0,1) = 0.0;
+				K_constraint(1,0) = 0.0;
+				K_constraint(1,1) = -1.0/k_r;
+			}
+			
+			/* assembly stiffness constribution */
+			ddf_dpdp_i.Assemble(K_constraint, eqnos);
+		}
+			
 		if (fPrintInput) {
 			fMainOut << "residual =\n" << df_dp_i << endl;
 		}
@@ -238,47 +321,82 @@ void FEManagerT_bridging::CorrectOverlap_4(const RaggedArray2DT<int>& point_neig
 		double abs_tol = 1.0e-10;
 		double rel_tol = 1.0e-10;
 		double div_tol = 1.0e+06;		
-		int max_iter = 5;
+		int max_iter = 200;
 		int iter = 0;
-		double error_0 = sqrt(dArrayT::Dot(df_dp_i,df_dp_i));		
+		double error_0 = sqrt(dArrayT::Dot(rhs, rhs));		
 		double error = error_0;
+		cout << "\n{e, ||fa||} = {" << error << ", " <<  sqrt(dArrayT::Dot(f_a, f_a)) << "}" << endl;
 		while (iter++ < max_iter && error > abs_tol && error/error_0 > rel_tol && error/error_0 < div_tol) {
 
 			/* catch errors in linear solver */
 			try {
 
 				/* solve system */
-				dp_i.SetToScaled(-1.0, df_dp_i);
-				dArrayT tmp;
-				tmp.Alias(dp_i);
-				ddf_dpdp_i.Solve(tmp);
+				ddf_dpdp_i.Solve(rhs);
 
-#if 0
-				/* solve system */
-				dp_i.SetToScaled(-1.0, df_dp_i);
-				dArrayT tmp;
-				tmp.Alias(dp_i);
-#if __DEBUG__
-				fMainOut << "f:\n" << tmp << endl;
-#endif
-				ddf_dpdp_i.LinearSolve(tmp);
-#if __DEBUG__
-				fMainOut << "dp_i =\n" << tmp << endl;
-#endif
-#endif
 				/* update densities */
-				p_i += dp_i;
+				for (int j = 0; j < num_eq_p; j++)
+					p_i[j] += rhs[j];
+								
+				/* update constraints */
+				for (int j = 0; j < num_eq_L; j++)
+					constraint[j] += rhs[j+num_eq_p];
 
 				/* recompute residual */			
 				f_a = sum_R_N;
 				Compute_df_dp_4(shell_bonds, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map,
 					bond_densities_i_eq, inv_connects_i, inv_equations_i,
 					p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
-				error = sqrt(dArrayT::Dot(df_dp_i,df_dp_i));
-				cout << "iteration = " << iter 
-				     << "\n e/e_0 = " << error/error_0 
-				     << "\n||fa|| = " << sqrt(dArrayT::Dot(f_a, f_a)) << endl;
+					
+				/* assemble residual */
+				rhs = 0.0;
+				for (int j = 0; j < df_dp_i.Length(); j++)
+					rhs[j] -= df_dp_i[j];
+				
+				/* apply constraints */
+				for (int j = 0; j < num_eq_L; j++)
+				{
+					/* equation numbers */
+					constraint_eq.RowAlias(j, eqnos);
 
+					/* constraint equation: g >= 0 */
+					double   g = 0.25 - (p_i[j] - 0.5)*(p_i[j] - 0.5);
+					double  Dg = -2.0*(p_i[j] - 0.5);
+					double DDg = -2.0;
+		
+					/* augmented multiplier */
+					double L_r = constraint[j] + k_r*g;
+					if (L_r < 0.0) /* active constraint */
+					{
+						/* force */
+						rhs[eqnos[0]-1] -= Dg*L_r;
+						rhs[eqnos[1]-1] -= g;
+
+						/* stiffness */
+						K_constraint(0,0) = DDg*L_r + k_r*Dg*Dg;
+						K_constraint(0,1) = Dg;
+						K_constraint(1,0) = Dg;
+						K_constraint(1,1) = 0.0;
+					}
+					else /* inactive */
+					{
+						/* force */
+						rhs[eqnos[0]-1] += 0.0;
+						rhs[eqnos[1]-1] += constraint[j]/k_r;
+			
+						/* stiffness */
+						K_constraint(0,0) = 0.0;
+						K_constraint(0,1) = 0.0;
+						K_constraint(1,0) = 0.0;
+						K_constraint(1,1) = -1.0/k_r;
+					}
+			
+					/* assembly stiffness constribution */
+					ddf_dpdp_i.Assemble(K_constraint, eqnos);
+				}
+					
+				error = sqrt(dArrayT::Dot(rhs, rhs));
+				cout << setw(5) << iter << ": {e/e_0, ||fa||} = {" << error/error_0 << ", " <<  sqrt(dArrayT::Dot(f_a, f_a)) << "}" << endl;
 			} /* end try */
 
 			catch (ExceptionT::CodeT error) {
