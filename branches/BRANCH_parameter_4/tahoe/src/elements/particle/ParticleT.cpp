@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.41.2.2 2004-07-07 15:28:33 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.41.2.3 2004-07-07 23:59:40 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -866,6 +866,7 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 	if (num_pbc > NumSD())
 		ExceptionT::BadInputValue(caller, "expecting at most %d \"periodic_bc\" not %d",
 			NumSD(), num_pbc);
+	fhas_periodic = (num_pbc > 0) ? 1 : 0;
 	for (int i = 0; i < num_pbc; i++) {
 	
 		/* periodic bc parameters */
