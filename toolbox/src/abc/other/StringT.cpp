@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.22 2002-07-05 15:05:32 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.23 2002-07-05 17:15:57 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 
 #include "StringT.h"
@@ -21,9 +21,11 @@
 
 using namespace Tahoe;
 
+namespace Tahoe {
 const bool ArrayT<StringT>::fByteCopy = false;
 const bool ArrayT<StringT*>::fByteCopy = true;
 const bool ArrayT<const StringT*>::fByteCopy = true;
+} /* namespace Tahoe */
 
 /* line length */
 const int kLineLength = 254;

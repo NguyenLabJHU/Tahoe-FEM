@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.cpp,v 1.12 2002-07-02 19:56:57 cjkimme Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.13 2002-07-05 17:16:01 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleBaseT.h"
@@ -17,7 +17,9 @@
 
 using namespace Tahoe;
 
+namespace Tahoe {
 const bool ArrayT<iConsoleBaseT::VariableType>::fByteCopy = true;
+} /* namespace Tahoe */
 
 /* constructor */
 iConsoleBaseT::iConsoleBaseT(void):

@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.cpp,v 1.7 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: KBC_CardT.cpp,v 1.8 2002-07-05 17:18:40 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "KBC_CardT.h"
@@ -15,8 +15,10 @@
 
 using namespace Tahoe;
 
+namespace Tahoe {
 const bool ArrayT<KBC_CardT*>::fByteCopy = true;
 const bool ArrayT<KBC_CardT>::fByteCopy = false;
+} /* namespace Tahoe */
 
 /* constructor */
 KBC_CardT::KBC_CardT(void):fSchedule(NULL) { }

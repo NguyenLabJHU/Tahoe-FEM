@@ -1,4 +1,4 @@
-/* $Id: FrontNodeT.cpp,v 1.4 2002-07-02 19:57:10 cjkimme Exp $ */
+/* $Id: FrontNodeT.cpp,v 1.5 2002-07-05 17:16:08 paklein Exp $ */
 /* created: paklein (03/19/1999)                                          */
 
 #include "FrontNodeT.h"
@@ -32,7 +32,9 @@ inline static void Normalize(double* A)
 };
 
 /* array behavior */
+namespace Tahoe {
 const bool ArrayT<FrontNodeT*>::fByteCopy = true;
+} /* namespace Tahoe */
 
 /* constructor */
 FrontNodeT::FrontNodeT(int dim, const double* x, const double* v_n,

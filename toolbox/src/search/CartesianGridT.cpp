@@ -1,4 +1,4 @@
-/* $Id: CartesianGridT.cpp,v 1.4 2002-07-02 19:57:23 cjkimme Exp $ */
+/* $Id: CartesianGridT.cpp,v 1.5 2002-07-05 17:16:12 paklein Exp $ */
 /* created: paklein (11/10/2000) */
 
 #include "CartesianGridT.h"
@@ -11,7 +11,9 @@ using namespace Tahoe;
 static int to_integer(double a) { return int((2.0*a + 1.0)/2.0); };
 
 /* array behavior */
+namespace Tahoe {
 const bool ArrayT<CartesianGridT::BoundaryConditionT>::fByteCopy = true;
+} /* namespace Tahoe */
 
 /* constructor */
 CartesianGridT::CartesianGridT(void)

@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.7 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.8 2002-07-05 17:18:39 paklein Exp $ */
 /* created: paklein (06/15/1996) */
 
 #include "FBC_CardT.h"
@@ -15,8 +15,10 @@
 
 using namespace Tahoe;
 
+namespace Tahoe {
 const bool ArrayT<FBC_CardT*>::fByteCopy = true;
 const bool ArrayT<FBC_CardT>::fByteCopy = false;
+} /* namespace Tahoe */
 
 /* constructor */
 FBC_CardT::FBC_CardT(void):

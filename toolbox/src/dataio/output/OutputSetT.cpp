@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.12 2002-07-02 19:57:07 cjkimme Exp $ */
+/* $Id: OutputSetT.cpp,v 1.13 2002-07-05 17:16:06 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #include "OutputSetT.h"
@@ -9,7 +9,9 @@
 
 using namespace Tahoe;
 
+namespace Tahoe {
 const bool ArrayT<OutputSetT*>::fByteCopy = true;
+} /* namespace Tahoe */
 
 /* constructor */
 OutputSetT::OutputSetT(const StringT& ID, GeometryT::CodeT geometry_code,

@@ -1,4 +1,4 @@
-/* $Id: iNodeT.cpp,v 1.4 2002-07-02 19:57:24 cjkimme Exp $ */
+/* $Id: iNodeT.cpp,v 1.5 2002-07-05 17:16:12 paklein Exp $ */
 /* created: paklein (12/07/1997) */
 
 #include "iNodeT.h"
@@ -8,7 +8,9 @@
 
 using namespace Tahoe;
 
+namespace Tahoe {
 const bool ArrayT<iNodeT>::fByteCopy = true;
+} /* namespace Tahoe */
 
 /* constructors */
 #ifndef __MWERKS__ /* VC++ doesn't like inline constructors */

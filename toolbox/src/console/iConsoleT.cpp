@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.17 2002-07-02 19:56:57 cjkimme Exp $ */
+/* $Id: iConsoleT.cpp,v 1.18 2002-07-05 17:16:01 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -21,7 +21,9 @@
 
 using namespace Tahoe;
 
+namespace Tahoe {
 const bool ArrayT<iConsoleT::CommandScope>::fByteCopy = true;
+} /* namespace Tahoe */
 
 /* constructor */
 iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current,

@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.27 2002-07-02 19:56:59 cjkimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.28 2002-07-05 17:16:03 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -18,7 +18,9 @@
 
 using namespace Tahoe;
 
+namespace Tahoe {
 const bool ArrayT<ModelManagerT::SideSetScopeT>::fByteCopy = true;
+} /* namespace Tahoe */
 
 ModelManagerT::ModelManagerT (ostream& message):
 	fMessage(message),
