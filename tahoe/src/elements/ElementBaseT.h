@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.35 2004-01-05 07:37:04 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.36 2004-01-27 15:31:05 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -282,6 +282,9 @@ public:
 
 	/** array of nodes used by the element group */
 	void NodesUsed(ArrayT<int>& nodes_used) const;
+
+	/** add the element group's contribution to the lumped (scalar) mass of the given nodes */
+	virtual void LumpedMass(const iArrayT& nodes, dArrayT& mass) const;
 
 	/** contribution to the nodal residual forces. Return the contribution of this element
 	 * group to the residual for the given solver group. 
