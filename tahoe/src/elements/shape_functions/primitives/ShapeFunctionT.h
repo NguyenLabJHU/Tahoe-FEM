@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.14 2002-09-23 06:58:29 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.15 2002-10-10 17:28:07 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -126,7 +126,13 @@ public:
 	void TransformDerivatives(const dMatrixT& changeofvar, dArray2DT& derivatives);
 
 	/** shape function gradients matrix at the current integration point
-	 * as in Hughes (4.90) */
+	 * as in Hughes (4.90)
+	 * \param grad_Na returns with a matrix of shape function derivatives with
+	 *        respect to the coordinates passes to ShapeFunctionT::ShapeFunctionT.
+	   \f[
+	      \left[\nabla \mathbf{N}\right]_{iA} =
+	          \left( \frac{\partial N_a}{\partial x_i} \right)^{T}
+	   \f] */
 	void GradNa(dMatrixT& grad_Na) const;
 
 	/** shape function gradients matrix as in Hughes (4.90) */
