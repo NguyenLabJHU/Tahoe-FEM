@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.15 2001-12-10 22:57:58 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.16 2001-12-12 15:52:58 paklein Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -23,6 +23,14 @@ const bool ArrayT<vtkIdFilter*>::fByteCopy = true;
 const bool ArrayT<vtkSelectVisiblePoints*>::fByteCopy = true;
 const bool ArrayT<vtkLabeledDataMapper*>::fByteCopy = true;
 const bool ArrayT<vtkActor2D*>::fByteCopy = true;
+
+/* default constuctor */
+VTKBodyT::VTKBodyT(void) 
+{ 
+  fBodyData = NULL; 
+  fFrame = NULL;
+};
+
 
 /* constructor */
 VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
@@ -55,6 +63,8 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 /* destructor */
 VTKBodyT::~VTKBodyT(void)
 {
+  if (fFrame)
+	{
 	vtkRenderer* renderer = fFrame->Renderer();
 
 	/* free axis actors */
@@ -75,6 +85,12 @@ VTKBodyT::~VTKBodyT(void)
 			if (fVisPoints[i]) fVisPoints[i]->Delete();
 			if (fIDFilter[i]) fIDFilter[i]->Delete();
 		}
+	}
+  else /* without a frame these should be empty */
+	{
+	  if (fAxes.Length() > 0) cout << "~VTKBodyT: axes list not empty"<< endl;
+	  if (fIDFilter.Length() > 0) cout << "~VTKBodyT: id filter list not empty"<< endl;
+	}
 }
 
 /* execute console command. \return true is executed normally */
