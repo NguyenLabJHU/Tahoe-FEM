@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.27 2005-01-25 23:10:01 paklein Exp $ */
+/* $Id: SCNIMFT.h,v 1.28 2005-01-28 02:47:41 paklein Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -100,15 +100,18 @@ public:
 
 	/** \name communication routine for MFLagMultT
 	/*@{*/
+	/** nodes used in global numbering */
+	const iArrayT& NodesUsed(void) const { return fNodes; };
+	
 	/** Translate global node numbers to local ones,
 	 * returns 0 if unsucessful, i.e. nodes not contained in fNodes */
-	int GlobalToLocalNumbering(iArrayT& nodes) const;
+	int GlobalToLocalNumbering(ArrayT<int>& nodes) const;
 	
 	/** Translate global node numbers to local ones */
 	int GlobalToLocalNumbering(RaggedArray2DT<int>& nodes);
 
 	/** Return interpolated displacement field at selected nodes */
-	void InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtNodes) const;
+	void InterpolatedFieldAtNodes(const ArrayT<int>& nodes, dArray2DT& fieldAtNodes) const;
 
 	/** Return the data structure holding the supports of the localNodes and their window function values */
 	void NodalSupportAndPhi(const iArrayT& localNodes, RaggedArray2DT<int>& support, 
@@ -180,6 +183,9 @@ protected:
 
 	/** indices of nodes */
 	iArrayT fNodes;
+
+	/** inverse map of nodes */
+	InverseMapT fNodes_inv;
 
 	/** coordinates of nodes */	
 	dArray2DT fNodalCoordinates;
