@@ -1,5 +1,7 @@
-/* $Id: J2SSC0HardeningT.cpp,v 1.6 2004-07-15 08:28:54 paklein Exp $ */
+/* $Id: J2SSC0HardeningT.cpp,v 1.7 2005-04-06 23:32:45 thao Exp $ */
 #include "J2SSC0HardeningT.h"
+#include "SSMatSupportT.h"
+#include "ElementCardT.h"
 
 #include "iArrayT.h"
 #include "ElementCardT.h"
@@ -25,7 +27,20 @@ J2SSC0HardeningT::J2SSC0HardeningT(void):
 	fDevStrain(kNSD),
 	fTensorTemp(dSymMatrixT::NumValues(kNSD))
 {
-
+  int dofcount = 0;
+  fInternalDOF.Dimension(3);
+  fInternalDOF[0] = 1; //alpha, -K*alpha
+  dofcount++;
+  fInternalDOF[1] = dSymMatrixT::NumValues(kNSD); //plasticstrain, -beta
+  dofcount += dSymMatrixT::NumValues(kNSD);
+  fInternalDOF[2] = dSymMatrixT::NumValues(kNSD); //plasticstrain, stress
+  dofcount += dSymMatrixT::NumValues(kNSD);
+  
+  fInternalStressVars.Dimension(dofcount);
+  fInternalStressVars = 0.0;
+  
+  fInternalStrainVars.Dimension(dofcount);
+  fInternalStrainVars = 0.0;
 }
 
 /* returns elastic strain */
@@ -229,6 +244,27 @@ void J2SSC0HardeningT::Reset(ElementCardT& element, int nip)
 	(element.IntegerData()) = kReset;
 }
 
+/* Access History Variables */
+const dSymMatrixT& J2SSC0HardeningT::Get_PlasticStrain(const ElementCardT& element, int nip, int ip)
+{
+         LoadData(element, nip, ip);
+	 return (fPlasticStrain);
+}
+
+/* load element data for the specified integration point */
+const dSymMatrixT& J2SSC0HardeningT::Get_Beta(const ElementCardT& element, int nip, int ip)
+{
+         LoadData(element, nip, ip);
+	 return (fBeta);
+}
+
+/* load element data for the specified integration point */
+const dArrayT& J2SSC0HardeningT::Get_Internal(const ElementCardT& element, int nip, int ip)
+{
+         LoadData(element, nip, ip);
+	 return (fInternal);
+}
+
 /***********************************************************************
 * Private
 ***********************************************************************/
@@ -237,7 +273,10 @@ void J2SSC0HardeningT::Reset(ElementCardT& element, int nip)
 void J2SSC0HardeningT::LoadData(const ElementCardT& element, int nip, int ip)
 {
 	/* check */
-	if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
+  if (!element.IsAllocated()) { 
+    cout << "\nElement is not allocated: ";
+    throw ExceptionT::kGeneralFail;
+  }
 
 	/* fetch arrays */
 	const dArrayT& d_array = element.DoubleData();
