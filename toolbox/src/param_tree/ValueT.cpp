@@ -1,4 +1,4 @@
-/* $Id: ValueT.cpp,v 1.9 2003-11-04 01:21:25 paklein Exp $ */
+/* $Id: ValueT.cpp,v 1.10 2004-01-21 17:06:45 paklein Exp $ */
 #include "ValueT.h"
 #include <stdlib.h>
 #include <ctype.h>
@@ -296,7 +296,7 @@ ValueT::operator const int() const
 	else if (fType == Double)
 		return int(fDouble);
 	else
-		ExceptionT::TypeMismatch("ValueT::operator const int()");
+		ExceptionT::TypeMismatch("ValueT::int()", "cannot convert from %s", TypeName(fType));
 		
 	return 0;
 }
@@ -304,7 +304,7 @@ ValueT::operator const int() const
 ValueT::operator const bool() const
 {
 	if (fType != Boolean)
-		ExceptionT::TypeMismatch("ValueT::operator const bool()");	
+		ExceptionT::TypeMismatch("ValueT::bool()", "cannot convert from %s", TypeName(fType));
 	return fBoolean;
 }
 
@@ -315,7 +315,7 @@ ValueT::operator const double() const
 	else if (fType == Integer)
 		return double(fInteger);
 	else
-		ExceptionT::TypeMismatch("ValueT::operator const double()");	
+		ExceptionT::TypeMismatch("ValueT::double()", "cannot convert from %s", TypeName(fType));
 
 	return 0.0;
 }
@@ -323,7 +323,7 @@ ValueT::operator const double() const
 ValueT::operator const StringT&() const
 {
 	if (fType != String && fType != Enumeration)
-		ExceptionT::TypeMismatch("ValueT::operator const StringT&()");	
+		ExceptionT::TypeMismatch("ValueT::StringT&()", "cannot convert from %s", TypeName(fType));
 	return fString;
 }
 
@@ -334,4 +334,44 @@ const char* ValueT::TypeName(TypeT t)
 		return type_names[t];
 	else
 		return type_names[0];
+}
+
+/* comparison */
+bool ValueT::operator==(const ValueT& rhs) const
+{
+	switch (fType)
+	{
+		case Integer:
+		{
+			int i = rhs;
+			return fInteger == i;
+		}
+		case Double:
+		{
+			double a = rhs;
+			return fDouble == a;
+		}
+		case String:
+		{
+			const StringT& s = rhs;
+			return fString == s;
+		}
+		case Boolean:
+		{
+			bool t = rhs;
+			return fBoolean == t;
+		}
+		case Enumeration:
+		{
+			const StringT& s = rhs;
+			if (s.StringLength() > 0)
+				return fString == s;
+			else {
+				int i = rhs;
+				return fInteger == i;
+			}		
+		}	
+		default:
+			return false;
+	}
 }
