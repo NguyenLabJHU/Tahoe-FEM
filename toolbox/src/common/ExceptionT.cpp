@@ -1,9 +1,10 @@
-/* $Id: ExceptionT.cpp,v 1.3 2002-11-13 08:28:14 paklein Exp $ */
+/* $Id: ExceptionT.cpp,v 1.4 2002-11-22 01:55:28 paklein Exp $ */
 #include "ExceptionT.h"
 #include "ArrayT.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include <time.h>
+#include <cstdarg> /* to handle the variable number of arguments in Throw() */
 
 /* initialize static data */
 namespace Tahoe {
@@ -26,6 +27,9 @@ const char* ExceptionT::fExceptionStrings[12] =
 /*10 */ "bad MP heartbeat",
 /*11 */ "unknown"};
 
+/* buffer for vsprintf */
+static char message_buffer[255];
+
 /* write exception codes to output stream */
 void ExceptionT::WriteExceptionCodes(ostream& out)
 {
@@ -47,17 +51,119 @@ const char* ExceptionT::ToString(CodeT code)
 		return fExceptionStrings[NumExceptions];
 }
 
-void ExceptionT::Throw(ExceptionT::CodeT code, const char* caller, const char* message)
+/* repeated here instead of passing a va_list to Throw so that the
+ * cstdarg header is limited to this source file */
+void ExceptionT::GeneralFail(const char* caller, const char* fmt, ...)
+{
+	va_list argp;
+	va_start(argp, fmt);
+	vsprintf(message_buffer, fmt, argp);
+	va_end(argp);
+	Throw_(kGeneralFail, caller, message_buffer);
+}
+
+void ExceptionT::Stop(const char* caller, const char* fmt, ...)
+{
+	va_list argp;
+	va_start(argp, fmt);
+	vsprintf(message_buffer, fmt, argp);
+	va_end(argp);
+	Throw_(kStop, caller, message_buffer);
+}
+
+void ExceptionT::OutOfMemory(const char* caller, const char* fmt, ...)
+{
+	va_list argp;
+	va_start(argp, fmt);
+	vsprintf(message_buffer, fmt, argp);
+	va_end(argp);
+	Throw_(kOutOfMemory, caller, message_buffer);
+}
+
+void ExceptionT::OutOfRange(const char* caller, const char* fmt, ...)
+{
+	va_list argp;
+	va_start(argp, fmt);
+	vsprintf(message_buffer, fmt, argp);
+	va_end(argp);
+	Throw_(kOutOfRange, caller, message_buffer);
+}
+
+void ExceptionT::SizeMismatch(const char* caller, const char* fmt, ...)
+{
+	va_list argp;
+	va_start(argp, fmt);
+	vsprintf(message_buffer, fmt, argp);
+	va_end(argp);
+	Throw_(kSizeMismatch, caller, message_buffer);
+}
+
+void ExceptionT::BadInputValue(const char* caller, const char* fmt, ...)
+{
+	va_list argp;
+	va_start(argp, fmt);
+	vsprintf(message_buffer, fmt, argp);
+	va_end(argp);
+	Throw_(kBadInputValue, caller, message_buffer);
+}
+
+void ExceptionT::BadJacobianDet(const char* caller, const char* fmt, ...)
+{
+	va_list argp;
+	va_start(argp, fmt);
+	vsprintf(message_buffer, fmt, argp);
+	va_end(argp);
+	Throw_(kBadJacobianDet, caller, message_buffer);
+}
+
+void ExceptionT::MPIFail(const char* caller, const char* fmt, ...)
+{
+	va_list argp;
+	va_start(argp, fmt);
+	vsprintf(message_buffer, fmt, argp);
+	va_end(argp);
+	Throw_(kMPIFail, caller, message_buffer);
+}
+
+void ExceptionT::DatabaseFail(const char* caller, const char* fmt, ...)
+{
+	va_list argp;
+	va_start(argp, fmt);
+	vsprintf(message_buffer, fmt, argp);
+	va_end(argp);
+	Throw_(kDatabaseFail, caller, message_buffer);
+}
+
+void ExceptionT::BadHeartBeat(const char* caller, const char* fmt, ...)
+{
+	va_list argp;
+	va_start(argp, fmt);
+	vsprintf(message_buffer, fmt, argp);
+	va_end(argp);
+	Throw_(kBadHeartBeat, caller, message_buffer);
+}
+
+void ExceptionT::Throw(ExceptionT::CodeT code, const char* caller, const char* fmt, ...)
+{
+	va_list argp;
+	va_start(argp, fmt);
+	vsprintf(message_buffer, fmt, argp);
+	va_end(argp);
+	Throw_(code, caller, message_buffer);
+}
+
+void ExceptionT::Throw_(ExceptionT::CodeT code, const char* caller, const char* message)
 {
 	/* write info */
 	time_t t;
 	time(&t);
-	cout << "\n ExceptionT::Throw: " << ctime(&t) << '\n';
-	cout << "      code: " << code << '\n';
-	cout << " exception: " << ToString(code) << '\n';
-	if (caller)  cout << "    caller: " << caller << '\n';
-	if (message) cout << "   message: " << message << '\n';
-	cout.flush();
+	cout << "\n ExceptionT::Throw: " << ctime(&t);
+	cout <<   "        code: " << code << '\n';
+	cout <<   "   exception: " << ToString(code) << '\n';
+	if (caller)
+	cout <<   "      caller: " << caller << '\n';
+	if (message)
+	cout <<   "     message: " << message << '\n';
 	
 	/* do the throw */
 	throw code;
