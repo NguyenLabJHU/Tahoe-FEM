@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.1.4.2 2004-06-08 22:27:32 paklein Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.1.4.3 2004-06-09 06:25:36 paklein Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
 
@@ -380,7 +380,7 @@ SSSolidMatT* SSSolidMatList2DT::NewSSSolidMat(const StringT& list_name) const
 
 #ifdef PLASTICITY_J2_MATERIAL
 	else if (list_name == "small_strain_J2_StVenant_2D")
-		mat = new J2SSKStV;
+		mat = new J2SSKStV2D;
 #endif
 
 	/* set support */

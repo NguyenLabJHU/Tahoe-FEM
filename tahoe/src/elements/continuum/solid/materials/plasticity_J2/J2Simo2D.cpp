@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.cpp,v 1.13.20.1 2004-04-08 07:33:09 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.13.20.2 2004-06-09 06:25:37 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo2D.h"
 #include "StringT.h"
@@ -13,7 +13,7 @@ const double sqrt23 = sqrt(2.0/3.0);
 J2Simo2D::J2Simo2D(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("Simo_J2_2D"),
 	SimoIso2D(in, support),
-	J2SimoC0HardeningT(in, NumIP(), Mu()),
+//	J2SimoC0HardeningT(in, NumIP(), Mu()),
 	fFmech(3),
 	ffrel(3),
 	fF_temp(2),
@@ -34,7 +34,7 @@ void J2Simo2D::UpdateHistory(void)
 {
 	/* update if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) Update(element);
+	if (element.IsAllocated()) Update(element, Mu(), NumIP());
 }
 
 /* reset internal variables to last converged solution */
@@ -42,15 +42,7 @@ void J2Simo2D::ResetHistory(void)
 {
 	/* reset if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) Reset(element);
-}
-
-/* print parameters */
-void J2Simo2D::Print(ostream& out) const
-{
-	/* inherited */
-	SimoIso2D::Print(out);
-	J2SimoC0HardeningT::Print(out);
+	if (element.IsAllocated()) Reset(element, NumIP());
 }
 
 /* modulus */
@@ -60,17 +52,18 @@ const dMatrixT& J2Simo2D::c_ijkl(void)
 	ComputeGradients();
 
 	int ip = CurrIP();
+	int nip = NumIP();
 	ElementCardT& element = CurrentElement();
 
 	/* compute isochoric elastic stretch */
 	double J = fFmech.Det();
-	const dSymMatrixT& b_els = TrialElasticState(fFmech, ffrel, element, ip);
+	const dSymMatrixT& b_els = TrialElasticState(fFmech, ffrel, element, nip, ip);
 	
 	/* 3D elastic stress */
 	ComputeModuli(J, b_els, fModulus);
 	
 	/* elastoplastic correction */
-	fModulus += ModuliCorrection(element, ip);
+	fModulus += ModuliCorrection(element, Mu(), nip, ip);
 	
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(fModulus);
@@ -85,33 +78,35 @@ const dSymMatrixT& J2Simo2D::s_ij(void)
 	ComputeGradients();
 
 	int ip = CurrIP();
+	int nip = NumIP();
 	ElementCardT& element = CurrentElement();
 
 	/* compute isochoric elastic stretch */
 	double J = fFmech.Det();
-	const dSymMatrixT& b_els = TrialElasticState(fFmech, ffrel, element, ip);
+	const dSymMatrixT& b_els = TrialElasticState(fFmech, ffrel, element, nip, ip);
 	
 	/* 3D elastic stress */
 	ComputeCauchy(J, b_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
-	if (PlasticLoading(element, ip))
+	double mu = Mu();
+	if (PlasticLoading(element, mu, ip))
 	{
 		/* element not yet plastic */
 		if (!element.IsAllocated())
 		{
 			/* allocate element storage */
-			AllocateElement(element);
+			AllocateElement(element, nip);
 		
 			/* set trial state and load data */
-			TrialElasticState(fFmech, ffrel, element, ip);
+			TrialElasticState(fFmech, ffrel, element, nip, ip);
 			
 			/* set the loading state */
-			PlasticLoading(element, ip);
+			PlasticLoading(element, mu, ip);
 		}
 	
 		/* apply correction due to the return mapping */
-		fStress += StressCorrection(element, ip);
+		fStress += StressCorrection(element, mu, ip);
 	}
 	
 	/* 3D -> 2D */
@@ -129,7 +124,7 @@ double J2Simo2D::StrainEnergyDensity(void)
 	/* compute isochoric elastic stretch */
 	double J = fFmech.Det();
 	const dSymMatrixT& b_els = TrialElasticState(fFmech, ffrel,
-		CurrentElement(), CurrIP());
+		CurrentElement(), NumIP(), CurrIP());
 
 	return ComputeEnergy(J, b_els);
 }
@@ -192,7 +187,7 @@ void J2Simo2D::ComputeOutput(dArrayT& output)
 			double alpha = fInternal[kalpha];
 			double dgamma = fInternal[kdgamma];
 			double mu_bar_bar = fInternal[kmu_bar_bar];
-			double k = 2.0*mu_bar_bar*dgamma/fmu;
+			double k = 2.0*mu_bar_bar*dgamma/Mu();
 		
 			/* update variables */
 			alpha += sqrt23*dgamma;
@@ -221,21 +216,55 @@ void J2Simo2D::ComputeOutput(dArrayT& output)
 	output[2] = sqrt(stress.ScalarProduct())/sqrt23;
 }
 
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print name */
-void J2Simo2D::PrintName(ostream& out) const
+/* describe the parameters needed by the interface */
+void J2Simo2D::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	SimoIso2D::PrintName(out);
-	J2SimoC0HardeningT::PrintName(out);
+	SimoIso2D::DefineParameters(list);
+	J2SimoC0HardeningT::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
+}
+
+/* information about subordinate parameter lists */
+void J2Simo2D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SimoIso2D::DefineSubs(sub_list);
+	J2SimoC0HardeningT::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* J2Simo2D::NewSub(const StringT& list_name) const
+{
+	/* inherited */
+	ParameterInterfaceT* sub = SimoIso2D::NewSub(list_name);
+	if (sub)
+		return sub;
+	else
+		return J2SimoC0HardeningT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void J2Simo2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SimoIso2D::TakeParameterList(list);
+	J2SimoC0HardeningT::TakeParameterList(list);
+
+	/* dimension work space */
+	fFmech.Dimension(3);
+	ffrel.Dimension(3);
+	fF_temp.Dimension(2);
+	fFmech_2D.Dimension(2);
+	ffrel_2D.Dimension(2);
 }
 
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
 /* compute F_mechanical and f_relative */
 void J2Simo2D::ComputeGradients(void)

@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV2D.cpp,v 1.4.48.2 2004-06-08 22:27:33 paklein Exp $ */
+/* $Id: J2SSKStV2D.cpp,v 1.4.48.3 2004-06-09 06:25:37 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV2D.h"
 #include "ElementCardT.h"
@@ -23,22 +23,15 @@ J2SSKStV2D::J2SSKStV2D(void):
 
 }
 
-/* initialization */
-void J2SSKStV2D::Initialize(void)
-{
-	/* inherited */
-	HookeanMatT::Initialize();
-}
-
 /* returns elastic strain (3D) */
 const dSymMatrixT& J2SSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain,
-	const ElementCardT& element, int ip)
+	const ElementCardT& element, int nip, int ip)
 {
 	/* 2D -> 3D (plane strain) */
 	fTotalStrain3D.ExpandFrom2D(totalstrain);
 
 	/* inherited */
-	return J2SSKStV::ElasticStrain(fTotalStrain3D, element, ip);
+	return J2SSKStV::ElasticStrain(fTotalStrain3D, element, nip, ip);
 }
 
 /* moduli */
@@ -78,16 +71,4 @@ void J2SSKStV2D::TakeParameterList(const ParameterListT& list)
 	fStress2D.Dimension(2);
 	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
 	fTotalStrain3D.Dimension(3);
-}
-
-/***********************************************************************
- * Protected
- ***********************************************************************/
-
-/* print name */
-void J2SSKStV2D::PrintName(ostream& out) const
-{
-	/* inherited */
-	J2SSKStV::PrintName(out);
-	out << "    2D\n";
 }

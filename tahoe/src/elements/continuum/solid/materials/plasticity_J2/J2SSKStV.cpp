@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.9.18.3 2004-06-08 22:27:33 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.9.18.4 2004-06-09 06:25:37 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
 #include "SSMatSupportT.h"
@@ -51,7 +51,8 @@ void J2SSKStV::UpdateHistory(void)
 {
 	/* update if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) Update(element);
+	if (element.IsAllocated()) 
+		Update(element, NumIP());
 }
 
 /* reset internal variables to last converged solution */
@@ -59,14 +60,15 @@ void J2SSKStV::ResetHistory(void)
 {
 	/* reset if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) Reset(element);
+	if (element.IsAllocated()) 
+		Reset(element, NumIP());
 }
 
 /* modulus */
 const dMatrixT& J2SSKStV::c_ijkl(void)
 {
 	/* elastoplastic correction */
-	fModulus.SumOf(HookeanMatT::Modulus(), ModuliCorrection(CurrentElement(), CurrIP()));	
+	fModulus.SumOf(HookeanMatT::Modulus(), ModuliCorrection(CurrentElement(), Mu(), NumIP(), CurrIP()));	
 	return fModulus;
 }
 
@@ -76,7 +78,7 @@ const dSymMatrixT& J2SSKStV::s_ij(void)
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
 	const dSymMatrixT& e_tot = e();
-	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
+	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, NumIP(), ip);
 
 	/* elastic stress */
 	HookeanStress(e_els, fStress);
@@ -84,14 +86,14 @@ const dSymMatrixT& J2SSKStV::s_ij(void)
 	/* modify Cauchy stress (return mapping) */
 	int iteration = fSSMatSupport->IterationNumber();
 	if (iteration > -1) /* elastic iteration */
-		fStress += StressCorrection(e_els, element, ip);
+		fStress += StressCorrection(e_els, element, Mu(), NumIP(), ip);
 	return fStress;	
 }
 
 /* returns the strain energy density for the specified strain */
 double J2SSKStV::StrainEnergyDensity(void)
 {
-	return HookeanEnergy(ElasticStrain(e(), CurrentElement(), CurrIP()));		
+	return HookeanEnergy(ElasticStrain(e(), CurrentElement(), NumIP(), CurrIP()));		
 }
 
 /* returns the number of variables computed for nodal extrapolation
