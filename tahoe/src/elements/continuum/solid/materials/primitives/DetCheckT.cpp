@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.26 2003-05-05 00:58:32 paklein Exp $ */
+/* $Id: DetCheckT.cpp,v 1.27 2003-05-21 23:48:12 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>

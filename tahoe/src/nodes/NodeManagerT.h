@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.16 2003-04-16 18:09:05 cjkimme Exp $ */
+/* $Id: NodeManagerT.h,v 1.17 2003-05-21 23:48:17 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -67,7 +67,11 @@ public:
 	/** const reference to the FEManagerT */
 	const FEManagerT& FEManager(void) const;
 
+	/** total number of equations in the given solver group */
 	int NumEquations(int group) const;
+
+	/** number of unknowns per node in the given solver group */
+	int NumDOF(int group) const;
 	int NumNodes(void) const;
 	int NumSD(void) const;
 	

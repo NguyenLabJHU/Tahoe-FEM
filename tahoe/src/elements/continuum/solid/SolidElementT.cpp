@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.44 2003-05-20 10:31:21 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.45 2003-05-21 23:48:09 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -53,7 +53,8 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 
 	/* checks for dynamic analysis */
 	if (fIntegrator->Order() > 0 &&
-	    fIntegrator->ImplicitExplicit() == eIntegratorT::kExplicit)
+	    fIntegrator->ImplicitExplicit() == eIntegratorT::kExplicit &&
+	    ElementSupport().Analysis() != GlobalT::kMultiField)
 	    fMassType = kLumpedMass;
 }
 

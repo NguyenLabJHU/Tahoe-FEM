@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.3 2003-04-01 18:23:48 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.4 2003-05-21 23:48:15 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -49,6 +49,9 @@ public:
 	/** set pointer to an external force vector or pass NULL to clear. The array
 	 * the length of the number of unknowns for the given group. */
 	void SetExternalForce(int group, const dArrayT& external_force);
+
+	/** set pointer to an external force vector for the given field */
+	void SetExternalForce(const StringT& field, const dArray2DT& external_force, const iArrayT& activefenodes);
 	/*@}*/
 
 	/** \name ghost nodes 
@@ -88,17 +91,34 @@ public:
 	 * of freedom */
 	void InterpolationMatrix(const StringT& field, dSPMatrixT& G_Interpolation) const;
 
+	/** compute global interpolation matrix for all nodes whose support intersects the MD 
+	 *  region, i.e. N_{I}(X_{\alpha}) */
+	void Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& activefenodes) const;
+
 	/** initialize projection data. Initialize data structures needed to project
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
 	void InitProjection(const iArrayT& nodes, const StringT& field,
-		NodeManagerT& node_manager);
+		NodeManagerT& node_manager, bool make_inactive);
 
 	/** project the point values onto the mesh. Project to the nodes using
 	 * projection initialized with the latest call to FEManagerT_bridging::InitProjection. */
 	void ProjectField(const StringT& field, NodeManagerT& node_manager);
 	/*@}*/
 
+	/** calculate the fine scale part of MD solution as well as total displacement u.  Does not
+	  * write into the displacement field */
+	void BridgingFields(const StringT& field, NodeManagerT& atom_node_manager,
+		NodeManagerT& fem_node_manager, dArray2DT& totalu);
+	
+	/** calculate the initial FEM displacement via projection of initial MD displacement.  Differs 
+	  * from BridgingFields in that projected FE nodal values written into displacement field */
+	void InitialProject(const StringT& field, NodeManagerT& atom_node_manager, dArray2DT& projectedu);
+	/*@}*/
+
+	/** (re-)set the equation number for the given group */
+	virtual void SetEquationSystem(int group);
+	
 	/** \name solver control */
 	/*@{*/
 	/** the residual for the given group. The array contains the residual from
@@ -108,6 +128,10 @@ public:
 	/** set the reference error for the given group */
 	void SetReferenceError(int group, double error) const;
 	/*@}*/
+
+	/** return the internal forces for the given solver group associated with the
+	 * most recent call to FEManagerT_bridging::FormRHS. */
+	const dArray2DT& InternalForce(int group) const;
 
 protected:
 
@@ -173,8 +197,14 @@ private:
 	ArrayT<dArrayT> fCumulativeUpdate;
 	/*@}*/
 	
-	/** external force vector by group */
+	/** \name external force vector by group */
+	/*@{*/
 	ArrayT<const dArrayT*> fExternalForce;
+	
+	ArrayT<const dArray2DT*> fExternalForce2D;
+	ArrayT<const iArrayT*>   fExternalForce2DNodes;
+	ArrayT<iArray2DT>        fExternalForce2DEquations;
+	/*@}*/
 };
 
 /* inlines */
