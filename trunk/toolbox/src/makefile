@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2001-01-31 04:08:34 paklein Exp $
+# $Id: makefile,v 1.3 2001-02-01 18:24:17 paklein Exp $
 # object directory makefile - compilation instructions
 
 .SUFFIXES: .c .cpp .C .f .F .o .d .h .h_link
@@ -32,9 +32,11 @@ SUB_DIR = \
 	misc \
 	neighbors \
 	search
+#SUB_DIR = no_subdirs
 
 # process sub-directories as targets:
 subdir_driver: $(SUB_DIR)
+#subdir_driver:
 
 MACROS = \
 	"MAKE = $(MAKE)" \
