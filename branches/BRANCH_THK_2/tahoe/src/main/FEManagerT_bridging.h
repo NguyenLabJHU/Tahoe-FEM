@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.4.2.5 2003-06-17 07:20:07 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.4.2.6 2003-06-17 18:46:25 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -20,6 +20,7 @@ class BridgingScaleT;
 class KBC_PrescribedT;
 class dSPMatrixT;
 
+/** extension of FEManagerT for bridging scale calculations */
 class FEManagerT_bridging: public FEManagerT
 {
 public:
@@ -140,6 +141,10 @@ public:
 	/** return the internal forces for the given solver group associated with the
 	 * most recent call to FEManagerT_bridging::FormRHS. */
 	const dArray2DT& InternalForce(int group) const;
+
+	/** return the properties map for the given element group. The element group must be
+	 * a particle type; otherwise, an exception will be thrown. */
+	nMatrixT<int>& PropertiesMap(int element_group);
 
 protected:
 
