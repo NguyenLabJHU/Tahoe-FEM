@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.2.2.2 2002-04-30 00:07:14 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.2.2.3 2002-04-30 08:22:05 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
@@ -62,116 +62,117 @@ NLSolverX::NLSolverX(FEManagerT& fe_manager, int group):
 }
 
 /* generate the solution for the current time sequence */
-void NLSolverX::Run(void)
+int NLSolverX::Solve(void)
 {
-	/* solve displacements for quasi-static load sequence */
-	while (Step())
-	{			
-		/* residual loop */
-		try { 	
-			/* apply kinematic BC's */
-			fFEManager.InitStep();
-		
-			/* form the first residual force vector */
-			fRHS = 0.0;
-			fFEManager.FormRHS(Group());	
-			double      error = fRHS.Magnitude();
-			double last_error = error;
+	try { 	
+
+	/* form the first residual force vector */
+	fRHS = 0.0;
+	fFEManager.FormRHS(Group());	
+	double      error = fRHS.Magnitude();
+	double last_error = error;
 			
-			/* loop on error */
-			fNumNewTangent     = 0;
-			int into_trust     = 0;
-			int negative_pivot = 0;
-			int reuse_count    = 0;
-			int solutionflag = ExitIteration(error);
-			while(solutionflag == kContinue)
+	/* loop on error */
+	fNumNewTangent     = 0;
+	int into_trust     = 0;
+	int negative_pivot = 0;
+	int reuse_count    = 0;
+	int solutionflag = ExitIteration(error);
+	while(solutionflag == kContinue)
+	{
+		/* force new tangent */
+		if (fMinFreshTangents > 0 &&
+			fNumIteration < fMinFreshTangents)
+			fFormNewTangent = 1;
+			
+		if (fFormNewTangent)
+		{
+			fNumNewTangent++;
+			reuse_count = 0;
+			cout << " tangent:" << setw(3) << fNumNewTangent << ": ";				
+		}
+		else
+		{
+			reuse_count++;
+			cout << " re-use :" << setw(3) << reuse_count <<  ": ";
+		}
+				
+		error = SolveAndForm(fFormNewTangent);
+		solutionflag = ExitIteration(error);
+
+		/* check for negative pivots */
+		if (fCheckNegPivots && fFormNewTangent)
+			negative_pivot = pCCS->HasNegativePivot();
+
+		/* no fail on quasi-Newton step */
+		if (solutionflag == kFailed && !fFormNewTangent)
+		{
+			cout << "\n NLSolverX: overriding kFailed on quasi-Newton step" << endl;
+			solutionflag = kContinue;
+			fFormNewTangent = 1;
+		}
+		/* tangent re-use limit and fail recovery */
+		else if (solutionflag == kContinue &&
+				(error > fMinResRatio*last_error ||
+				reuse_count == fMaxTangentReuse))
+		{
+			/* remove last quasi-Newton update */
+			if (0 && error > fMinResRatio*last_error && !fFormNewTangent)
 			{
-				/* force new tangent */
-				if (fMinFreshTangents > 0 &&
-				    fNumIteration < fMinFreshTangents)
-					fFormNewTangent = 1;
-			
-				if (fFormNewTangent)
-				{
-					fNumNewTangent++;
-					reuse_count = 0;
-					cout << " tangent:" << setw(3) << fNumNewTangent << ": ";				
-				}
-				else
-				{
-					reuse_count++;
-					cout << " re-use :" << setw(3) << reuse_count <<  ": ";
-				}
-				
-				error = SolveAndForm(fFormNewTangent);
-				solutionflag = ExitIteration(error);
-
-				/* check for negative pivots */
-				if (fCheckNegPivots && fFormNewTangent)
-					negative_pivot = pCCS->HasNegativePivot();
-
-				/* no fail on quasi-Newton step */
-				if (solutionflag == kFailed && !fFormNewTangent)
-				{
-				    cout << "\n NLSolverX: overriding kFailed on quasi-Newton step" << endl;
-					solutionflag = kContinue;
-					fFormNewTangent = 1;
-				}
-				/* tangent re-use limit and fail recovery */
-				else if (solutionflag == kContinue &&
-				   (error > fMinResRatio*last_error ||
-					reuse_count == fMaxTangentReuse))
-				{
-					/* remove last quasi-Newton update */
-					if (0 && error > fMinResRatio*last_error && !fFormNewTangent)
-					{
-						fLastUpdate *= -1.0;
-						fFEManager.Update(Group(), fLastUpdate);
-					}
-
-					fFormNewTangent = 1;				
-				}
-				else
-					fFormNewTangent = 0;
-				
-				/* don't re-use if negative pivot */
-				if (negative_pivot)
-				{
-					fFormNewTangent = 1;
-					cout << "\n NLSolverX: no re-use for negative pivot" << endl;
-				}
-				
-				/* too many new tangents */
-				if (solutionflag == kContinue && fNumNewTangent == fMaxNewTangents)
-				{
-					if (error/fError0 < fTrustTol && !into_trust)
-					{
-						fNumNewTangent -= 3;
-						into_trust      = 1;
-						cout << "\n NLSolverX:: allowing 3 more tangents" << endl;
-					}	
-					else
-					{
-						cout << "\n NLSolverX:: too many new tangents" << endl;
-						solutionflag = kFailed;
-					}
-				}
-				
-				/* store last error */
-				last_error = error;
+				fLastUpdate *= -1.0;
+				fFEManager.Update(Group(), fLastUpdate);
 			}
 
-			/* ensure good start for Relax() */
-			if (into_trust) fFormNewTangent = 1;
-
-			/* found solution */
-			if (solutionflag == kConverged)
-				DoConverged();
-			/* solution procedure failed */
-			else // (solutionflag == kFailed)
-				DoNotConverged();
+			fFormNewTangent = 1;				
 		}
-		catch (int code) { fFEManager.HandleException(code); }
+		else
+			fFormNewTangent = 0;
+				
+		/* don't re-use if negative pivot */
+		if (negative_pivot)
+		{
+			fFormNewTangent = 1;
+			cout << "\n NLSolverX: no re-use for negative pivot" << endl;
+		}
+				
+		/* too many new tangents */
+		if (solutionflag == kContinue && fNumNewTangent == fMaxNewTangents)
+		{
+			if (error/fError0 < fTrustTol && !into_trust)
+			{
+				fNumNewTangent -= 3;
+				into_trust      = 1;
+				cout << "\n NLSolverX:: allowing 3 more tangents" << endl;
+			}	
+			else
+			{
+				cout << "\n NLSolverX:: too many new tangents" << endl;
+				solutionflag = kFailed;
+			}
+		}
+				
+		/* store last error */
+		last_error = error;
+	}
+
+	/* ensure good start for Relax() */
+	if (into_trust) fFormNewTangent = 1;
+
+	/* found solution - check relaxation */
+	if (solutionflag == kConverged)
+		solutionflag = DoConverged();
+
+	/* found solution */
+	if (solutionflag == kConverged)
+		return eNoError; /* found solution */
+	else // (solutionflag == kFailed)
+		return eGeneralFail; /* did not find solution */
+	}
+	
+	/* exceptions */
+	catch (int code)
+	{
+		return code;
 	}
 }
 
@@ -332,10 +333,10 @@ cout << fQuickConvCount << "/" << fQuickSeriesTol << endl;
 	return kConverged;
 }
 
-void NLSolverX::DoNotConverged(void)
+void NLSolverX::ResetStep(void)
 {
 	/* inherited */
-	NLSolver::DoNotConverged();
+	NLSolver::ResetStep();
 
 	fFormNewTangent = 1;
 }

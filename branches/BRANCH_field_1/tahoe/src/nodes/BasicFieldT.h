@@ -1,4 +1,4 @@
-/* $Id: BasicFieldT.h,v 1.1.2.3 2002-04-30 00:07:12 paklein Exp $ */
+/* $Id: BasicFieldT.h,v 1.1.2.4 2002-04-30 08:22:03 paklein Exp $ */
 
 #ifndef _BASIC_FIELD_T_H_
 #define _BASIC_FIELD_T_H_
@@ -49,7 +49,7 @@ public:
 	int NumDOF(void) const { return fEqnos.MinorDim(); };
 	
 	/** number of time derivatives stored by the field */
-	int Order(void) const { return fField.Length(); };
+	int Order(void) const { return fField.Length() - 1; };
 	/*@}*/
 
 	/** \name equation numbers */

@@ -1,11 +1,11 @@
-/* $Id: BasicFieldT.cpp,v 1.1.2.2 2002-04-25 01:31:27 paklein Exp $ */
+/* $Id: BasicFieldT.cpp,v 1.1.2.3 2002-04-30 08:22:03 paklein Exp $ */
 #include "BasicFieldT.h"
 #include "iArrayT.h"
 
 /* constructor */
 BasicFieldT::BasicFieldT(const StringT& name, int ndof, int order):
 	fName(name),
-	fField(order),
+	fField(order+1),
 	fEqnos(0, ndof)
 {
 	/* set default labels */

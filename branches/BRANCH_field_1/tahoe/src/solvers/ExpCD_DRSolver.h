@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.h,v 1.1.1.1.8.2 2002-04-30 01:30:23 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.h,v 1.1.1.1.8.3 2002-04-30 08:22:05 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 
 #ifndef _EXPCD_DRSOLVER_H_
@@ -23,13 +23,13 @@ public:
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
 	
 	/** solve the system over the current time increment */
-	virtual void Solve(void);	
+	virtual int Solve(void);	
 
 protected:
 
 	/* advance to next load step. Returns 0 if there are no more
 	 * steps. Overload to add class dependent initializations */
-	virtual int Step(void);
+//	virtual int Step(void);
 
 	/* returns the appropriate iteration status flag for
 	 * the given error measurement, based on the current

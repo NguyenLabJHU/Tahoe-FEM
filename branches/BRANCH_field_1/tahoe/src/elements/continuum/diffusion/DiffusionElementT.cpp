@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.3.8.4 2002-04-30 01:30:19 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.3.8.5 2002-04-30 08:22:01 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -200,11 +200,12 @@ void DiffusionElementT::SetLocalArrays(void)
 	/* inherited */
 	ContinuumElementT::SetLocalArrays();
 
-	/* dimension */
+	/* allocate */
 	fLocVel.Allocate(NumElementNodes(), NumDOF());
-	
-	/* set source */
-	Field().RegisterLocal(fLocVel);
+
+	/* nodal velocities */
+	if (fController->Order() == 1)
+		Field().RegisterLocal(fLocVel);
 }
 
 /* construct output labels array */

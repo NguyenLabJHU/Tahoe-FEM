@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.9.2.3 2002-04-30 01:30:23 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.9.2.4 2002-04-30 08:22:05 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -80,55 +80,50 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 }
 
 /* generate the solution for the current time sequence */
-void NLSolver::Run(void)
+int NLSolver::Solve(void)
 {
-	/* solve load sequence */
-	while (Step())
-	{			
-		/* residual loop */
-		try
-		{ 	
-			/* apply boundary conditions */
-			fFEManager.InitStep();
+	try
+	{ 	
+	/* reset iteration count */
+	fNumIteration = -1;
 
-			/* open iteration output */
-			InitIterationOutput();
+	/* open iteration output */
+	InitIterationOutput();
 
-			/* form the first residual force vector */
-			fRHS = 0.0;
-			fFEManager.FormRHS(Group());	
-			double error = Residual(fRHS);
+	/* form the first residual force vector */
+	fRHS = 0.0;
+	fFEManager.FormRHS(Group());	
+	double error = Residual(fRHS);
 			
-			/* loop on error */
-			IterationStatusT solutionflag = ExitIteration(error);
-			while (solutionflag == kContinue)
-			{
-				error = SolveAndForm(true);
-				solutionflag = ExitIteration(error);
-			}
+	/* loop on error */
+	IterationStatusT solutionflag = ExitIteration(error);
+	while (solutionflag == kContinue)
+	{
+		error = SolveAndForm(true);
+		solutionflag = ExitIteration(error);
+	}
 
-			/* found solution - check relaxation */
-			if (solutionflag == kConverged)
-				solutionflag = DoConverged();
+	/* found solution - check relaxation */
+	if (solutionflag == kConverged)
+		solutionflag = DoConverged();
 				
-			/* close iteration output */	
-			CloseIterationOutput();
+	/* close iteration output */	
+	CloseIterationOutput();
 			
-			/* close step */
-			if (solutionflag == kConverged)
-				fFEManager.CloseStep();
-			/* solution procedure failed */
-			else
-				DoNotConverged();
-		}
+	/* normal ending */
+	if (solutionflag == kConverged)
+		return eNoError; /* found solution */		
+	else
+		return eGeneralFail; /* solution procedure failed */
+	}
 		
-		catch (int code)
-		{
-			cout << "\n NLSolver::Run: exception at step number "
-			     << fFEManager.StepNumber() << " with step "
-			     << fFEManager.TimeStep() << endl;
-			fFEManager.HandleException(code);
-		}
+	/* abnormal ending */
+	catch (int code)
+	{
+		cout << "\n NLSolver::Run: exception at step number "
+             << fFEManager.StepNumber() << " with step "
+             << fFEManager.TimeStep() << endl;
+		return code;
 	}
 }
 
@@ -191,18 +186,6 @@ NLSolver::IterationStatusT NLSolver::DoConverged(void)
 
 	/* success */
 	return kConverged;						
-}
-
-void NLSolver::DoNotConverged(void)
-{
-	/* message */
-	cout << "\n NLSolver::DoNotConverged: resetting step, cutting load set" << endl;
-
-	/* step back to last converged */
-	fFEManager.ResetStep();
-	
-	/* cut load increment */
-	fFEManager.DecreaseLoadStep();
 }
 
 /* divert output for iterations */
@@ -282,17 +265,6 @@ NLSolver::IterationStatusT NLSolver::Relax(int newtancount)
 	}
 
 	return solutionflag;
-}
-
-/* advance to next load step. Returns 0 if there are no more
-* steps. Overload to add class dependent initializations */
-int NLSolver::Step(void)
-{
-	/* reset iteration count */
-	fNumIteration = -1;
-		
-	/* inherited */
-	return SolverT::Step();
 }
 
 /* returns 1 if the iteration loop should be left, otherwise

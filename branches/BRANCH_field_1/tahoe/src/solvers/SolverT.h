@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.4.2.3 2002-04-30 01:30:23 paklein Exp $ */
+/* $Id: SolverT.h,v 1.4.2.4 2002-04-30 08:22:06 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _SOLVER_H_
@@ -105,7 +105,7 @@ protected:
 
 	/* advance to next load step. Returns 0 if there are no more
 	 * steps. Overload to add class dependent initializations */
-	virtual int Step(void);
+//	virtual int Step(void);
 
 	/* return the magnitude of the residual force */
 	double Residual(const dArrayT& force) const;

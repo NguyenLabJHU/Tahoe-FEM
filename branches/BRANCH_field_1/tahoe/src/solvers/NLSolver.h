@@ -1,4 +1,4 @@
-/* $Id: NLSolver.h,v 1.2.2.2 2002-04-30 01:30:23 paklein Exp $ */
+/* $Id: NLSolver.h,v 1.2.2.3 2002-04-30 08:22:05 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NL_SOLVER_H_
@@ -16,7 +16,7 @@ public:
 	NLSolver(FEManagerT& fe_manager, int group);
 	
 	/** solve the system over the current time increment */
-	virtual void Solve(void);	
+	virtual int Solve(void);	
 
 	/* error handler */
 	virtual void ResetStep(void);
@@ -46,7 +46,7 @@ protected:
 
 	/* advance to next load step. Returns 0 if there are no more
 	 * steps. Overload to add class dependent initializations. */
-	virtual int Step(void);
+//	virtual int Step(void);
 
 	/* returns the appropriate iteration status flag for
 	 * the given error measurement, based on the current
@@ -56,14 +56,15 @@ protected:
 	/* form and solve the equation system - returns the magnitude of the
 	 * residual */
 	virtual double SolveAndForm(bool newtangent);
-	
-	/* handlers */
-	virtual IterationStatusT DoConverged(void);
-	virtual void DoNotConverged(void);
 
 	/* divert output for iterations */
 	void InitIterationOutput(void);
 	void CloseIterationOutput(void);
+
+protected:
+
+	/** things to do if the solver converges */
+	IterationStatusT DoConverged(void);
 
 protected:
 

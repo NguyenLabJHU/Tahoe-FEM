@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.32.2.5 2002-04-30 01:30:20 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.32.2.6 2002-04-30 08:22:02 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -62,7 +62,6 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output):
 	fStatus(GlobalT::kConstruction),
 	fTimeManager(NULL),
 	fNodeManager(NULL),
-	fElementGroups(*this),
 	fIOManager(NULL),
 	fRestartCount(0),
 	fGlobalEquationStart(0),
@@ -201,12 +200,21 @@ void FEManagerT::Solve(void)
 			/* handle errors */
 			switch (error)
 			{
-				case eNoError;
+				case eNoError:
+					/* nothing to do */
 					break;
 
-				case eBadJacobianDet;
+				case eGeneralFail:
+				case eBadJacobianDet:
 				{
-				
+					/* reset system configuration */
+					error = ResetStep();
+					
+					if (error != eNoError)
+						/* cut time increment */
+						seq_OK = DecreaseLoadStep();
+					else
+						seq_OK = false;
 					break;
 				}
 				default:
@@ -220,15 +228,6 @@ void FEManagerT::Solve(void)
 /* signal that references to external data are stale - i.e. equ numbers */
 void FEManagerT::Reinitialize(int group)
 {
-#if 0
-	/* node */
-	fNodeManager->Reinitialize();
-	
-	/* elements */
-	for (int i = 0 ; i < fElementGroups.Length(); i++)
-		fElementGroups[i]->Reinitialize();
-#endif
-
 	/* reset equation structure */
 	SetEquationSystem(group);		
 }
@@ -274,6 +273,7 @@ GlobalT::SystemTypeT FEManagerT::GlobalSystemType(int group) const
 	return type;
 }
 
+#if 0
 /* exception handling */
 void FEManagerT::HandleException(int exception)
 {
@@ -309,6 +309,7 @@ void FEManagerT::HandleException(int exception)
 			throw eGeneralFail;
 	}
 }
+#endif
 
 void FEManagerT::WriteExceptionCodes(ostream& out) const
 {
@@ -334,8 +335,10 @@ const char* FEManagerT::Exception(int code) const
 bool FEManagerT::DecreaseLoadStep(void) { return fTimeManager->DecreaseLoadStep(); }
 bool FEManagerT::IncreaseLoadStep(void) { return fTimeManager->IncreaseLoadStep(); }
 
-void FEManagerT::ResetStep(void)
+int FEManagerT::ResetStep(void)
 {
+	int error = eNoError;
+	try{
 	/* state */
 	fStatus = GlobalT::kResetStep;	
 
@@ -353,6 +356,16 @@ void FEManagerT::ResetStep(void)
 	/* solver - ALL groups */
 	for (int i = 0; i < NumGroups(); i++)
 		fSolvers[i]->ResetStep();
+	}
+	
+	catch (int exc) {
+		cout << "\n FEManagerT::ResetStep: caught exception: " 
+		     << Exception(exc) << endl;
+		return exc;
+	}
+	
+	/* OK */
+	return eNoError;
 }
 
 const double& FEManagerT::Time(void) const { return fTimeManager->Time(); }
@@ -411,7 +424,7 @@ void FEManagerT::InternalForceOnNode(const FieldT& field, int node, dArrayT& for
 		fElementGroups[i]->AddNodalForce(field, node, force);
 }
 
-int FEManagerT::InitStep(void) const
+int FEManagerT::InitStep(void)
 {
 	try {
 	/* state */
@@ -439,7 +452,7 @@ int FEManagerT::InitStep(void) const
 	return eNoError;
 }
 
-int FEManagerT::SolveStep(void) const
+int FEManagerT::SolveStep(void)
 {
 	int error = eNoError;
 	try {
@@ -459,7 +472,7 @@ int FEManagerT::SolveStep(void) const
 	return error;
 }
 
-void FEManagerT::CloseStep(void) const
+int FEManagerT::CloseStep(void)
 {
 	try {
 	/* state */
@@ -578,8 +591,8 @@ void FEManagerT::WriteOutput(double time, IOBaseT::OutputModeT mode)
 	}
 	
 	catch (int error) { 
-	  cout << "\n FEManagerT::WriteOutput: caught exception: " << Exception(error) << endl;
-	  HandleException(error); 
+		cout << "\n FEManagerT::WriteOutput: caught exception: " << Exception(error) << endl;
+		throw error; 
 	}
 }
 
@@ -1027,7 +1040,7 @@ void FEManagerT::SetElementGroups(void)
 	fMainIn >> num_groups;
 	if (num_groups < 1) throw eBadInputValue;
 	fElementGroups.Allocate(num_groups);
-	fElementGroups.EchoElementData(fMainIn, fMainOut);
+	fElementGroups.EchoElementData(fMainIn, fMainOut, *this);
 		
 	/* set console */
 	for (int i = 0; i < fElementGroups.Length(); i++)
@@ -1036,7 +1049,13 @@ void FEManagerT::SetElementGroups(void)
 
 /* set the correct fSolutionDriver type */
 void FEManagerT::SetSolver(void)
-{	
+{
+	/* equation info */
+	int num_groups = fSolvers.Length();
+	fGlobalEquationStart.Dimension(num_groups);
+	fActiveEquationStart.Dimension(num_groups);
+	fGlobalNumEquations.Dimension(num_groups);
+
 	/* no predefined solvers */ 
 	if (fAnalysisCode == GlobalT::kMultiField)
 	{
@@ -1154,7 +1173,7 @@ void FEManagerT::ReadParameters(InitCodeT init)
 
 	/* read number of equation groups */	
 	int num_groups = -1;
-	if (fAnalysisCode != GlobalT::kMultiField)
+	if (fAnalysisCode == GlobalT::kMultiField)
 		fMainIn >> num_groups;
 	/* support for legacy analysis */
 	else

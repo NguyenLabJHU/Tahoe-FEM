@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.15.2.4 2002-04-30 01:30:18 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.15.2.5 2002-04-30 08:21:58 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -12,6 +12,7 @@
 #include "Constants.h"
 #include "FieldT.h"
 #include "LocalArrayT.h"
+#include "eControllerT.h"
 
 /* array behavior */
 const bool ArrayT<const RaggedArray2DT<int>*>::fByteCopy = true;
@@ -34,6 +35,9 @@ ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):
 //	fNumSD  = fNodes->NumSD();
 //	fNumDOF = fField.NumDOF(); // NOTE: won't be good for multi-physics
 //	fAnalysisCode = fFEManager.Analysis();
+
+	/* just cast it */
+	fController = fSupport.eController(field);
 }
 
 /* destructor */

@@ -1,4 +1,4 @@
-/* $Id: DRSolver.cpp,v 1.2.2.2 2002-04-30 00:07:14 paklein Exp $ */
+/* $Id: DRSolver.cpp,v 1.2.2.3 2002-04-30 08:22:05 paklein Exp $ */
 /* created: PAK/CBH (10/03/1996) */
 
 #include "DRSolver.h"
@@ -39,52 +39,46 @@ void DRSolver::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 }
 
 /* generate the solution for the current time sequence */
-void DRSolver::Run(void)
+int DRSolver::Solve(void)
 {
-	/* solve displacements for quasi-static load sequence */
-	while ( Step() )
+	try
+	{	  	
+
+	/* form the residual force vector */
+	fRHS = 0.0;
+	fFEManager.FormRHS(Group());
+
+	while (!ExitIteration(fRHS.Magnitude()))
 	{
-	 	try
-	  	{	  	
-			/* apply kinematic BC's - set displacements and update geometry */
-			fFEManager.InitStep();
-
-	  		/* form the residual force vector */
-			fRHS = 0.0;
-			fFEManager.FormRHS(Group());
-
-			while (!ExitIteration(fRHS.Magnitude()))
-	  		{
-				/* form the stiffness matrix */
-				fLHS->Clear();				
-				fFEManager.FormLHS(Group());
+		/* form the stiffness matrix */
+		fLHS->Clear();				
+		fFEManager.FormLHS(Group());
 	
-				/* compute mass for stability */
-				ComputeMass();
+		/* compute mass for stability */
+		ComputeMass();
 
-				/* calculate velocity */
-				ComputeVelocity();
+		/* calculate velocity */
+		ComputeVelocity();
 
-				/* displacement update */
-				fVel *= fFEManager.TimeStep();
+		/* displacement update */
+		fVel *= fFEManager.TimeStep();
 
-				/* update displacements */
-				fFEManager.Update(Group(), fVel);
+		/* update displacements */
+		fFEManager.Update(Group(), fVel);
 				
-				/* calculate critical damping */
-				ComputeDamping();
+		/* calculate critical damping */
+		ComputeDamping();
 
-	  			/* form the residual force vector */
-				fRHS = 0.0;
-				fFEManager.FormRHS(Group());
-			}
-			
-			/* finalize */
-			fFEManager.CloseStep();
-	 	}
+		/* form the residual force vector */
+		fRHS = 0.0;
+		fFEManager.FormRHS(Group());
+	}  }
+	
 	 	
-	 	catch (int code) { fFEManager.HandleException(code); }
-	}
+	catch (int code) {  return code; }
+
+	/* OK */
+	return eNoError;
 }
 
 /*************************************************************************

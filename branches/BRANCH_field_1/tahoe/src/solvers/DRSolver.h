@@ -1,4 +1,4 @@
-/* $Id: DRSolver.h,v 1.1.1.1.8.2 2002-04-30 01:30:23 paklein Exp $ */
+/* $Id: DRSolver.h,v 1.1.1.1.8.3 2002-04-30 08:22:05 paklein Exp $ */
 /* created: PAK/CBH (10/03/1996) */
 
 #ifndef _DRSOLVER_H_
@@ -22,7 +22,7 @@ public:
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
 	
 	/** solve the system over the current time increment */
-	virtual void Solve(void);	
+	virtual int Solve(void);	
 	
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.8.2.5 2002-04-30 01:30:18 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.8.2.6 2002-04-30 08:21:59 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -269,7 +269,7 @@ protected:
 //	const NodeManagerT& fNodes;
 
 	/* element controller */
-	eControllerT* fController;
+	const eControllerT* fController;
 
 	/* derived data */
 //	int	fNumSD;

@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.1.2.4 2002-04-30 01:30:19 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.1.2.5 2002-04-30 08:21:59 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -28,6 +28,7 @@ class OutputSetT;
 class dArray2DT;
 class LocalArrayT;
 class FieldT;
+class eControllerT;
 
 /** support for the ElementBaseT class hierarchy. A limited interface to get 
  * information in and out of an ElementBaseT */
@@ -120,6 +121,9 @@ public:
 	/** return a pointer to the field with the specified name. returns NULL
 	 * if a field with the given name is not found. */
 	const FieldT* Field(const char* name) const;
+
+	/** return the element controller appropriate for the given field */
+	const eControllerT* eController(const FieldT& field) const;
 	/*@}*/
 
 	/** \name basic MP support */
