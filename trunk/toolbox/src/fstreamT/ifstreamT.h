@@ -1,24 +1,19 @@
-/* $Id: ifstreamT.h,v 1.13 2002-07-08 11:20:21 sawimme Exp $ */
+/* $Id: ifstreamT.h,v 1.14 2004-06-17 06:37:52 paklein Exp $ */
 /* created: paklein (03/03/1999) */
-
 #ifndef _IFSTREAM_T_H_
 #define _IFSTREAM_T_H_
 
-#include "Environment.h"
-
 /* base class */
+#include "fstreamT.h"
 #include <fstream.h>
 #include <stddef.h>
-
-/* direct members */
-#include "StringT.h"
 
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
 /** input file stream with extended capabilities */
-class ifstreamT: public ifstream
+class ifstreamT: public ifstream, public fstreamT
 {
 public:
 
@@ -58,12 +53,6 @@ public:
 	
 	/** get the next line from stream. Ignores comment lines */
 	ifstreamT& getline(char* s, int n, char delimiter = '\n');
-	
-	/** \return the filename or NULL if no file is open */
-	const char* filename(void) const;
-	
-	/** set file name string, but not change the stream */
-	void set_filename(const char* name);
 
 	/** adjusting stream position
 	 * \return the actual number of rewound lines */
@@ -98,15 +87,11 @@ private:
 	int  fSkipComments;
 	char fMarker;
 	/*@}*/
-	
-	/** the filename */
-	StringT fFileName;
 };
 
 /* inlines */
 inline char ifstreamT::comment_marker(void) const { return fMarker; }
 inline int ifstreamT::skip_comments(void) const { return fSkipComments; }
-inline const char* ifstreamT::filename(void) const { return fFileName; }
 
 inline void ifstreamT::set_marker(char marker)
 {

@@ -1,11 +1,10 @@
-/* $Id: fstreamT.h,v 1.7 2002-12-02 09:37:02 paklein Exp $ */
+/* $Id: fstreamT.h,v 1.8 2004-06-17 06:37:52 paklein Exp $ */
 /* created: paklein (12/30/2000) */
-
 #ifndef _FSTREAM_T_H_
 #define _FSTREAM_T_H_
 
-#include "ifstreamT.h"
-#include "ofstreamT.h"
+/* direct members */
+#include "StringT.h"
 
 namespace Tahoe {
 
@@ -31,6 +30,31 @@ class fstreamT
 	 * a bug in getline which does not return when it hits the line delimiter '\n'
 	 * \return the number of characters read from the stream including the newline */
 	static int ClearLine(istream& in);
+
+	/** \return the filename or NULL if no file is open */
+	const char* filename(void) const { return fFileName; };
+	
+	/** set file name string, but not change the stream */
+	void set_filename(const char* name);
+
+	/** \name common root path */
+	/*@{*/
+	/** set the file root, pass NULL to clear */
+	static void SetRoot(const char* root);
+
+	/** root path */
+	static const char* Root(void) { return fRoot; };
+	/*@}*/
+
+  protected:
+
+	/** the filename */
+	StringT fFileName;
+  
+  private:
+
+	/** shared root path */
+	static StringT fRoot;
 };
 
 } // namespace Tahoe 
