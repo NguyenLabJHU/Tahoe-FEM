@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.61.2.7 2004-07-12 16:06:29 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.61.2.8 2004-07-12 18:55:01 paklein Exp $ */
 #include "EAMT.h"
 
 #include "ofstreamT.h"
@@ -1753,6 +1753,7 @@ void EAMT::SetConfiguration(void)
 		int ndof = NumDOF();
 		fElectronDensityMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
 		fEmbeddingEnergyMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
+		fEmbeddingForceMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
 		fEmbeddingStiffMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
 		frhop_rMessageID = comm_manager.Init_AllGather(MessageT::Double, ndof);
 		
