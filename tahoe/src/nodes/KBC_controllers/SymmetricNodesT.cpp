@@ -1,4 +1,4 @@
-/* $Id: SymmetricNodesT.cpp,v 1.1.2.4 2002-06-02 04:00:02 paklein Exp $ */
+/* $Id: SymmetricNodesT.cpp,v 1.1.2.5 2002-06-04 16:17:19 cjkimme Exp $ */
 #include "SymmetricNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -100,7 +100,7 @@ bool SymmetricNodesT::ChangeStatus(void)
       	cout <<" Group 0 doesn't exist \n";
       	throw eGeneralFail;
     }
-  	surroundingGroup->SendOutput(3);
+  	surroundingGroup->SendOutput(TiedPotentialT::kAverageCode);
   	dArray2DT fNodalQs = fNodeManager.OutputAverage();
 
   	for (int i = 0; i < fNodePairs.MajorDim();i++) 
@@ -110,6 +110,7 @@ bool SymmetricNodesT::ChangeStatus(void)
 		{ 
 	  		fPairStatus[i] = kFree;
 	  		changeQ = true;
+	  		cout << "Freed a node !!! \n";
 		}
     }
 

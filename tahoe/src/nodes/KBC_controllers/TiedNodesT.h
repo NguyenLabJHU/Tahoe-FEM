@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.5.2.8 2002-06-02 04:00:03 paklein Exp $ */
+/* $Id: TiedNodesT.h,v 1.5.2.9 2002-06-04 16:17:19 cjkimme Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -109,6 +109,7 @@ protected:
 	/** copy kinematic information from the leader nodes to the follower nodes */
 	virtual void CopyKinematics(void);
 	
+
 //	friend bool TiedPotentialT::InitiationQ(const dArrayT& sigma); 
 
 	/** output current configuration */

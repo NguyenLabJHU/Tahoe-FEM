@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.7.2.7 2002-06-02 04:00:03 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.7.2.8 2002-06-04 16:17:19 cjkimme Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -267,7 +267,6 @@ bool TiedNodesT::ChangeStatus(void)
 		{ 
 	  		fPairStatus[i] = kFree;
 	  		changeQ = true;
-	  		
 		}
     }
 
