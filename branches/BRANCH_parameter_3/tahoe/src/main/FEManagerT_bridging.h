@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11.12.1 2004-04-08 07:33:48 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.12.2 2004-06-07 13:50:51 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -19,7 +19,7 @@ namespace Tahoe {
 /* forward declarations */
 class ParticleT;
 class BridgingScaleT;
-class KBC_PrescribedT;
+class KBC_ControllerT;
 class dSPMatrixT;
 
 /** extension of FEManagerT for bridging scale calculations */
@@ -198,7 +198,7 @@ private:
 	/** \name the driven solution */
 	/*@{*/
 	/** the KBC_ControllerT applying the external solution */
-	KBC_PrescribedT* fSolutionDriver;
+	KBC_ControllerT* fSolutionDriver;
 	
 	/** map data of driver points into the mesh */
 	PointInCellDataT fDrivenCellData;
