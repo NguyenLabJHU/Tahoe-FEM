@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.19.6.2 2004-02-18 16:33:52 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.19.6.3 2004-03-09 08:56:29 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -354,6 +354,7 @@ void TimeManagerT::TakeParameterList(const ParameterListT& list)
 	{
 		fSchedule[i] = new ScheduleT;
 		fSchedule[i]->TakeParameterList(*(list.List("schedule_function", i)));
+		fSchedule[i]->SetTime(0.0);
 	}
 }
 
