@@ -1,11 +1,9 @@
-/* $Id: main.cpp,v 1.4 2002-09-12 20:53:33 paklein Exp $ */
+/* $Id: main.cpp,v 1.4.2.1 2002-10-20 08:12:19 paklein Exp $ */
 /* created: paklein (05/22/1996) */
-
 #include <iostream.h>
 #include <fstream.h>
 
 #include "Environment.h"
-#include "ExceptionCodes.h"
 
 #ifdef __MWERKS__
 #if __option(profile)
