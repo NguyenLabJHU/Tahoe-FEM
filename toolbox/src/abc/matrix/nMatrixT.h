@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.15 2002-07-08 11:20:21 sawimme Exp $ */
+/* $Id: nMatrixT.h,v 1.16 2002-10-10 17:26:37 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _NMATRIX_T_H_
@@ -191,7 +191,9 @@ public:
 	 * dot the specified row/column number with the array */
 	/*@{*/
 	nTYPE DotRow(int rownum, const nArrayT<nTYPE>& array) const;
+	nTYPE DotRow(int rownum, const nTYPE* array) const;
 	nTYPE DotCol(int colnum, const nArrayT<nTYPE>& array) const;
+	nTYPE DotCol(int colnum, const nTYPE* array) const;
 	/*@}*/
 
 protected:
@@ -1677,56 +1679,56 @@ inline void nMatrixT<nTYPE>::SetCol(int col, const nTYPE& value)
 
 /* dot the specified row/column number with the array */
 template <class nTYPE>
-nTYPE nMatrixT<nTYPE>::DotRow(int rownum,
+inline nTYPE nMatrixT<nTYPE>::DotRow(int rownum,
 	const nArrayT<nTYPE>& vec) const
 {
-/* dimension check */
 #if __option (extended_errorcheck)
+	/* dimension check */
 	if (vec.Length() != fCols) throw eSizeMismatch;
 #endif
+	return DotRow(rownum, vec.Pointer());
+}
 
-	nTYPE *p    = &(*this)(rownum,0);
-	nTYPE *pvec = vec.Pointer();
-
+template <class nTYPE>
+inline nTYPE nMatrixT<nTYPE>::DotRow(int rownum, const nTYPE* pvec) const
+{
+	nTYPE *p = &(*this)(rownum,0);
 	register nTYPE sum = 0.0;
 	register nTYPE temp;
-
 	for (int i = 0; i < fCols; i++)
 	{
 		temp  = *p;
 		temp *= *pvec++;
-	
 		sum  += temp;
 		p    += fRows;
 	}
-		
-	return(sum);
+	return sum;
 }
 
 template <class nTYPE>
-nTYPE nMatrixT<nTYPE>::DotCol(int colnum,
+inline nTYPE nMatrixT<nTYPE>::DotCol(int colnum,
 	const nArrayT<nTYPE>& vec) const
 {
-/* dimension check */
 #if __option (extended_errorcheck)
+	/* dimension check */
 	if (vec.Length() != fRows) throw eSizeMismatch;
 #endif
+	return DotCol(colnum, vec.Pointer());
+}
 
+template <class nTYPE>
+inline nTYPE nMatrixT<nTYPE>::DotCol(int colnum, const nTYPE* pvec) const
+{
 	nTYPE *p    = (*this)(colnum);
-	nTYPE *pvec = vec.Pointer();
-
 	register nTYPE sum = 0.0;
 	register nTYPE temp;
-
 	for (int i = 0; i < fRows; i++)
 	{
 		temp  = *p++;
 		temp *= *pvec++;
-	
 		sum  += temp;
 	}
-		
-	return(sum);
+	return sum;
 }
 
 } // namespace Tahoe 
