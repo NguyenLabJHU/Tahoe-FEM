@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.cpp,v 1.4.2.3 2001-06-22 14:18:19 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.cpp,v 1.4.2.4 2001-06-29 23:55:49 paklein Exp $ */
 /* created: paklein (06/29/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -261,9 +261,6 @@ double J2QL2DLinHardT::StrainEnergyDensity(void)
 
 	return fThickness*ComputeEnergy(floge);
 }
-
-/* required parameter flags */
-bool J2QL2DLinHardT::NeedLastDisp(void) const { return true; }
 
 /*
 * Returns the number of variables computed for nodal extrapolation

@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV2D.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:20 paklein Exp $ */
+/* $Id: J2SSKStV2D.cpp,v 1.1.1.1.2.3 2001-06-29 23:55:50 paklein Exp $ */
 /* created: paklein (06/18/1997)                                          */
 
 #include "J2SSKStV2D.h"
@@ -15,6 +15,13 @@ J2SSKStV(in, element),
 {
 	/* acccount for thickness */
 	fDensity *= fThickness;
+}
+
+/* initialization */
+void J2SSKStV2D::Initialize(void)
+{
+	/* inherited */
+	HookeanMatT::Initialize();
 }
 
 /* returns elastic strain (3D) */

@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.h,v 1.1.1.1.2.2 2001-06-22 14:18:20 paklein Exp $ */
+/* $Id: J2SSKStV.h,v 1.1.1.1.2.3 2001-06-29 23:55:49 paklein Exp $ */
 /* created: paklein (06/18/1997)                                          */
 
 #ifndef _J2_SS_KSTV_H_
@@ -19,6 +19,9 @@ public:
 
 	/* constructor */
 	J2SSKStV(ifstreamT& in, const SmallStrainT& element);
+
+	/* initialization */
+	virtual void Initialize(void);
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);

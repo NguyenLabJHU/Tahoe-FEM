@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:20 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.1.1.1.2.3 2001-06-29 23:55:49 paklein Exp $ */
 /* created: paklein (06/18/1997)                                          */
 
 #include "J2SSKStV.h"
@@ -25,6 +25,13 @@ J2SSKStV::J2SSKStV(ifstreamT& in, const SmallStrainT& element):
 	fModulus(dSymMatrixT::NumValues(3))
 {
 
+}
+
+/* initialization */
+void J2SSKStV::Initialize(void)
+{
+	/* inherited */
+	HookeanMatT::Initialize();
 }
 
 /* update internal variables */

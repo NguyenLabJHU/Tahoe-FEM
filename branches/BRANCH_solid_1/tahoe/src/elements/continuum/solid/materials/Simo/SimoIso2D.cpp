@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.cpp,v 1.3.2.2 2001-06-22 14:18:09 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.3.2.3 2001-06-29 23:55:47 paklein Exp $ */
 /* created: paklein (03/04/1997)                                          */
 /* (2D <-> 3D) translator for the SimoIso3D.                              */
 
@@ -34,7 +34,7 @@ const dMatrixT& SimoIso2D::c_ijkl(void)
 	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 
 	/* 3D calculation */
-	ComputeModuli(J, fb, fModulus);
+	ComputeModuli(J, fb_bar, fModulus);
 
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(fModulus);
@@ -60,7 +60,7 @@ const dSymMatrixT& SimoIso2D::s_ij(void)
 	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 
 	/* 3D calculation */
-	ComputeCauchy(J, fb, fStress);
+	ComputeCauchy(J, fb_bar, fStress);
 
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(fStress);

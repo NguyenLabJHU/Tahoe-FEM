@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.1.1.1.2.2 2001-06-22 14:17:54 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.1.1.1.2.3 2001-06-29 23:55:45 paklein Exp $ */
 /* created: paklein (05/09/2000)                                          */
 /* NOTE: pick the base class for this based on the                        */
 /* weak form equations it's supposed to fit into                          */
@@ -38,6 +38,9 @@ public:
 	/* destructor */
 	~ABAQUS_UMAT_BaseT(void);
 
+	/** required parameter flags */
+	virtual bool Need_F_last(void) const { return true; };
+
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
@@ -55,11 +58,6 @@ public:
 	/* update/reset internal variables */
 	virtual void UpdateHistory(void); // per element
 	virtual void ResetHistory(void);  // per element
-
-	/* required parameter flags */
-	virtual bool NeedDisp(void) const;
-	virtual bool NeedLastDisp(void) const;
-	virtual bool NeedVel(void) const;
 
 	/* spatial description */
 	virtual const dMatrixT& c_ijkl(void);  // spatial tangent moduli

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:18 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.1.1.1.2.3 2001-06-29 23:55:47 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 #include "DPSSKStV.h"
@@ -26,6 +26,13 @@ DPSSKStV::DPSSKStV(ifstreamT& in, const SmallStrainT& element):
 	fModulus(dSymMatrixT::NumValues(3))
 {
 
+}
+
+/* initialization */
+void DPSSKStV::Initialize(void)
+{
+	/* inherited */
+	HookeanMatT::Initialize();
 }
 
 /* form of tangent matrix (symmetric by default) */

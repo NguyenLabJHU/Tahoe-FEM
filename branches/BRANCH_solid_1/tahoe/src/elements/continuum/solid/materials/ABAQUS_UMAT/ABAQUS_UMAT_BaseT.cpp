@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.2.2.3 2001-06-22 14:17:54 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.2.2.4 2001-06-29 23:55:45 paklein Exp $ */
 /* created: paklein (05/14/2000)                                          */
 
 #include "ABAQUS_UMAT_BaseT.h"
@@ -214,11 +214,6 @@ void ABAQUS_UMAT_BaseT::ResetHistory(void)
 		Store(element, ip);
 	}
 }
-
-/* required parameter flags */
-bool ABAQUS_UMAT_BaseT::NeedDisp(void) const     { return true; }
-bool ABAQUS_UMAT_BaseT::NeedLastDisp(void) const { return true; }
-bool ABAQUS_UMAT_BaseT::NeedVel(void) const      { return false; }
 
 /* spatial description */
 const dMatrixT& ABAQUS_UMAT_BaseT::c_ijkl(void)
