@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.h,v 1.7 2002-01-08 13:56:51 sawimme Exp $ */
+/* $Id: AbaqusResultsT.h,v 1.8 2002-01-09 18:36:06 paklein Exp $ */
 /*
    CREATED: S. Wimmer 9 Nov 2000
 
@@ -204,7 +204,7 @@ class AbaqusResultsT
 		     STARTINCREMENT = 2000,
 		     ENDINCREMENT = 2001 };
 
-  enum OutputParamsT { dprecision = 15, kDoubleSize = 8 };
+  enum OutputParamsT { dprecision = 15, kDoubleSize = 8, kIntSize = 4};
 
   enum StatusT { OKAY = -101, BAD = -102, END = -103 };
 
