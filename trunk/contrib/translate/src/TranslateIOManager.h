@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.h,v 1.16 2003-09-05 20:35:49 paklein Exp $ */
+/* $Id: TranslateIOManager.h,v 1.17 2003-11-18 19:36:27 paklein Exp $ */
 #ifndef _TRANSLATE_IOMANAGER_H_
 #define _TRANSLATE_IOMANAGER_H_
 
@@ -55,6 +55,7 @@ class TranslateIOManager
   void VariableQuery (const ArrayT<StringT>& names, iArrayT& list);
 
 	void ReNameLabels(const StringT& data_type, ArrayT<StringT>& labels);
+	void FilterLabels(const StringT& data_type, iArrayT& filter, ArrayT<StringT>& labels);
 
  protected:
   ostream& fMessage;
@@ -76,6 +77,9 @@ class TranslateIOManager
   iArrayT fNVUsed;
   iArrayT fEVUsed;
   iArrayT fQVUsed;
+  
+  iArrayT fKeepNodeLabels;
+  iArrayT fKeepElementLabels;
 
   // time step information
   int fNumTS;
