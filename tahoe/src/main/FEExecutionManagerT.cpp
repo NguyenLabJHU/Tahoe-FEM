@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.55.2.4 2004-02-07 20:00:12 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.55.2.5 2004-02-11 15:27:31 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -699,13 +699,17 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	dArray2DT field_at_ghosts, totalu, fubig, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
 	dArray2DT thkforce, gaussdisp, thkdisp, totaldisp;
 	dSPMatrixT ntf;
-	iArrayT activefenodes;
+	iArrayT activefenodes, boundaryghostatoms;
 	StringT bridging_field = "displacement";
 	atoms.InitGhostNodes();
 	bool makeinactive = false;	
 	/* figure out boundary atoms for use with THK boundary conditions, 
 	   ghost atoms for usage with MD force calculations */
-	const iArrayT& boundaryghostatoms = atoms.InterpolationNodes();
+	if (nsd == 2)
+		boundaryghostatoms = atoms.InterpolationNodes2D();
+	else
+		boundaryghostatoms = atoms.InterpolationNodes3D();
+		
 	int numgatoms = (atoms.GhostNodes()).Length();	// total number of ghost atoms
 	int numbatoms = boundaryghostatoms.Length() - numgatoms;	// total number of boundary atoms
 	dArray2DT gadisp(numgatoms,nsd), gavel(numgatoms,nsd), gaacc(numgatoms,nsd);
@@ -714,7 +718,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	iArrayT allatoms(boundaryghostatoms.Length()), gatoms(numgatoms), batoms(numbatoms), boundatoms(numbatoms);
 	allatoms.SetValueToPosition();
 	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);
-	gatoms.CopyPart(0, allatoms, 0, numgatoms);        
+	gatoms.CopyPart(0, allatoms, 0, numgatoms);      
 	boundatoms.CopyPart(0, boundaryghostatoms, numgatoms, numbatoms);
 	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
 	//dArrayT mdmass;
@@ -748,17 +752,17 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		
 		/* calculate fine scale part of MD displacement and total displacement u */
 		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu, order1);
-			
+	
 		/* solve for initial FEM force f(u) as function of fine scale + FEM */
 		/* use projected totalu instead of totalu for initial FEM displacements */
 		nMatrixT<int>& promap = atoms.PropertiesMap(0);   // element group for particles = 0
 		promap = ghostoffmap;  // turn ghost atoms off for f(u) calculation
 		fubig = InternalForce(projectedu, atoms);
 		promap = ghostonmap;   // turn ghost atoms back on for MD force calculations
-	
+		
 		/* calculate global interpolation matrix ntf */
 		continuum.Ntf(ntf, atoms.NonGhostNodes(), activefenodes);
-				
+		
 		/* compute FEM RHS force as product of ntf and fu */
 		dArrayT fx(ntf.Rows()), fy(ntf.Rows()), fz(ntf.Rows()), tempx(ntf.Cols()), tempy(ntf.Cols()), tempz(ntf.Cols());
 		dArray2DT ntfproduct(ntf.Rows(), nsd);
@@ -787,7 +791,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		continuum.InterpolateField(bridging_field, order1, boundghostdisp);
 		continuum.InterpolateField(bridging_field, order2, boundghostvel);
 		continuum.InterpolateField(bridging_field, order3, boundghostacc);
-
+		
 		/* sort boundary + ghost atom info into separate arrays */
 		gadisp.RowCollect(gatoms, boundghostdisp);
 		gavel.RowCollect(gatoms, boundghostvel);
@@ -795,7 +799,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		badisp.RowCollect(batoms, boundghostdisp);
 		bavel.RowCollect(batoms, boundghostvel);
 		baacc.RowCollect(batoms, boundghostacc);
-			
+		
 		/* Removed atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp); here */	
 			
 		if (nsd == 2)
