@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.8 2001-08-27 17:19:57 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.9 2001-09-04 06:54:08 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -13,7 +13,8 @@
 #include "SimoShapeFunctionT.h"
 
 /* debugging flag */
-#define _SIMO_FINITE_STRAIN_DEBUG_
+//#define _SIMO_FINITE_STRAIN_DEBUG_
+#undef _SIMO_FINITE_STRAIN_DEBUG_
 
 /* constructor */
 SimoFiniteStrainT::SimoFiniteStrainT(FEManagerT& fe_manager):
@@ -34,11 +35,31 @@ SimoFiniteStrainT::SimoFiniteStrainT(FEManagerT& fe_manager):
 
 	/* read parameters */
 	ifstreamT& in = fe_manager.Input();
+
 	int inc_mode = -1;
 	in >> inc_mode;
-	in >> fLocalIterationMax;
-	in >> fAbsTol;
-	in >> fRelTol;
+
+	int solver_method = -1;
+	in >> solver_method;
+	if (solver_method == kStaticCondensation)
+		fModeSolveMethod = kStaticCondensation;
+	else if (solver_method == kLocalIteration)
+		fModeSolveMethod = kLocalIteration;
+	else
+		throw eBadInputValue;
+		
+	/* parameters for local iteration */
+	if (fModeSolveMethod == kLocalIteration)
+	{
+		in >> fLocalIterationMax;
+		in >> fAbsTol;
+		in >> fRelTol;
+	}
+	else
+	{
+		fLocalIterationMax = 1;
+		fAbsTol = fRelTol = 0.5; //dummy values
+	}
 
 	/* checks */
 	if (inc_mode != 0 && inc_mode != 1) throw eBadInputValue;
@@ -225,7 +246,10 @@ void SimoFiniteStrainT::PrintControlData(ostream& out) const
 	
 	/* parameters */
 	out << " Include incompressible mode . . . . . . . . . . = " << fIncompressibleMode << '\n';
-	out << "    Number of enhanced mode shapes = " << fNumModeShapes << '\n';
+	out << "    Number of enhanced mode shapes = " << fNumModeShapes << '\n';	
+	out << " Solution method for enhanced element modes. . . = " << fModeSolveMethod << '\n';
+	out << "    eq." << kStaticCondensation << ", static condensation\n";
+	out << "    eq." << kLocalIteration	    << ", staggered, local iteration\n";
 	out << " Maximum number of local sub-iterations. . . . . = " << fLocalIterationMax << '\n';
 	out << " Absolute tol. on residual of enhanced modes . . = " << fAbsTol << '\n';
 	out << " Maximum number of local sub-iterations. . . . . = " << fRelTol << '\n';
@@ -296,69 +320,73 @@ void SimoFiniteStrainT::SetGlobalShape(void)
 		ComputeEnhancedDeformation(needs_F, needs_F_last);
 		
 		/* calculate the residual from the internal force */
-		fRHS_enh = 0.0;
-		FormKd_enhanced(fPK1_list, fRHS_enh);
-		
-		/* internal iterations */
-		double res, res_0, res_rel;
-		res = fRHS_enh.Magnitude();
-		res_0 = res;
-		res_rel = 1.0;
-		int iter_enh = 0;
-
-#ifdef _SIMO_FINITE_STRAIN_DEBUG_
-		cout << "\n SimoFiniteStrainT::SetGlobalShape: solve internal modes\n";
-		cout << setw(kIntWidth) << "iter" << setw(kDoubleWidth) << "error" << '\n';
-#endif
-
-		while (iter_enh++ < fLocalIterationMax && res > fAbsTol && res_rel > fRelTol)
+		if (RunState() == GlobalT::kFormRHS)
 		{
-#ifdef _SIMO_FINITE_STRAIN_DEBUG_
-			cout << setw(kIntWidth) << iter_enh << setw(kDoubleWidth) << res << '\n';
-#endif
-
-			/* form the stiffness associated with the enhanced modes */
-			fK22 = 0.0;
-			FormStiffness_enhanced(fK22, NULL);
-
-#ifdef _SIMO_FINITE_STRAIN_DEBUG_
-			cout << "\n F_int =\n" << fRHS_enh << endl;
-			cout << "\n K22 =\n"   << fK22 << endl;
-#endif
-
-//TEMP
-throw eStop;
-
-			/* update enhanced modes */
-			fK22.LinearSolve(fRHS_enh);			
-
-#ifdef _SIMO_FINITE_STRAIN_DEBUG_
-			cout << "\n d_mode =\n" << fRHS_enh << endl;
-#endif	
-			
-			/* recompute shape functions */
-			fCurrElementModes -= fRHS_enh;
-		
-			/* compute enhanced part of F and total F */
-			ComputeEnhancedDeformation(needs_F, needs_F_last);
-		
-			/* calculate the residual from the internal force */
 			fRHS_enh = 0.0;
 			FormKd_enhanced(fPK1_list, fRHS_enh);
 		
-			/* errors */
+			/* internal iterations */
+			double res, res_0, res_rel;
 			res = fRHS_enh.Magnitude();
-			res_rel = res/res_0;
-		}
-#ifdef _SIMO_FINITE_STRAIN_DEBUG_
-		cout << setw(kIntWidth) << iter_enh << setw(kDoubleWidth) << res << '\n';
+			res_0 = res;
+			res_rel = 1.0;
+			int iter_enh = 0;
+
+//#ifdef _SIMO_FINITE_STRAIN_DEBUG_
+#if 1
+			cout << "\n SimoFiniteStrainT::SetGlobalShape: solve internal modes\n";
+			cout << setw(kIntWidth) << "iter" << setw(kDoubleWidth) << "error" << '\n';
 #endif
+
+			while (iter_enh++ < fLocalIterationMax && res > fAbsTol && res_rel > fRelTol)
+			{
+//#ifdef _SIMO_FINITE_STRAIN_DEBUG_
+#if 1
+				cout << setw(kIntWidth) << iter_enh << setw(kDoubleWidth) << res << '\n';
+#endif
+
+				/* form the stiffness associated with the enhanced modes */
+				fK22 = 0.0;
+				FormStiffness_enhanced(fK22, NULL);
+
+#ifdef _SIMO_FINITE_STRAIN_DEBUG_
+				cout << "\n F_int =\n" << fRHS_enh << endl;
+				cout << "\n K22 =\n"   << fK22 << endl;
+#endif
+
+				/* update enhanced modes */
+				fK22.LinearSolve(fRHS_enh);			
+
+#ifdef _SIMO_FINITE_STRAIN_DEBUG_
+				cout << "\n d_mode =\n" << fRHS_enh << endl;
+#endif	
+			
+				/* recompute shape functions */
+				fCurrElementModes.AddScaledTranspose(-1.0, fRHS_enh);
+				//fCurrElementModes -= fRHS_enh;
+		
+				/* compute enhanced part of F and total F */
+				ComputeEnhancedDeformation(needs_F, needs_F_last);
+		
+				/* calculate the residual from the internal force */
+				fRHS_enh = 0.0;
+				FormKd_enhanced(fPK1_list, fRHS_enh);
+		
+				/* errors */
+				res = fRHS_enh.Magnitude();
+				res_rel = res/res_0;
+			}
+//#ifdef _SIMO_FINITE_STRAIN_DEBUG_
+#if 1
+			cout << setw(kIntWidth) << iter_enh << setw(kDoubleWidth) << res << '\n';
+#endif
+		
+			/* form the stiffness associated with the enhanced modes */
+			fK22 = 0.0;
+			fK12 = 0.0;
+			FormStiffness_enhanced(fK22, &fK12); /* also stores c_ijkl */
+		}
 	}
-	
-	/* form the stiffness associated with the enhanced modes */
-	fK22 = 0.0;
-	fK12 = 0.0;
-	FormStiffness_enhanced(fK22, &fK12);
 }
 
 /* form the element stiffness matrix */
@@ -570,12 +598,12 @@ void SimoFiniteStrainT::FormKd_enhanced(ArrayT<dMatrixT>& PK1_list, dArrayT& RHS
 		/* accumulate */
 		RHS_enh.AddScaled((*Weight++)*(*Det++), fWP_enh);
 		
-//TEMP
+#ifdef _SIMO_FINITE_STRAIN_DEBUG_
 		/* gradients in the current config */
 		fEnhancedShapes->TransformDerivatives_enhanced(fTempMat2, fDNa_x_enh);
 		fShapes->GradNa(fDNa_x_enh, fGradNa_enh);
 		cout << "grad[Na_enh]:\n" << fGradNa_enh << endl;
-//TEMP
+#endif
 	}
 }
 
@@ -605,8 +633,8 @@ void SimoFiniteStrainT::FormStiffness_enhanced(dMatrixT& K_22, dMatrixT* K_12)
 		fStressMat.MultABT(PK1, fTempMat1);
 		fStressMat *= scale/J;
 
-		/* material tangent modulus */
-		fc_ijkl_list[CurrIP()] = fCurrMaterial->c_ijkl(); /* calculate and store */
+		/* material tangent modulus- calculate and store */
+		fc_ijkl_list[CurrIP()] = fCurrMaterial->c_ijkl();
 
 		/* transform shape functions to derivatives wrt. current coords */
 		fTempMat1.Inverse(); /* F^-1 */
@@ -657,7 +685,6 @@ void SimoFiniteStrainT::FormStiffness_enhanced(dMatrixT& K_22, dMatrixT* K_12)
 	}
 						
 	/* expand and add in stress stiffness parts */
-	//K_22.Expand(fStressStiff_22, fNumDOF);
-	cout << "\n SimoFiniteStrainT::FormStiffness_enhanced: SKIPPING stress stiffness contribution"<< endl;
+	K_22.Expand(fStressStiff_22, fNumDOF);
 	if (K_12) K_12->Expand(fStressStiff_12, fNumDOF);
 }
