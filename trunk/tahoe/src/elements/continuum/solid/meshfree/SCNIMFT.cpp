@@ -1,6 +1,5 @@
-/* $Id: SCNIMFT.cpp,v 1.40 2004-12-22 22:38:58 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.41 2004-12-22 22:54:06 cjkimme Exp $ */
 #include "SCNIMFT.h"
-
 
 #include "ArrayT.h"
 #include "ofstreamT.h"
@@ -915,7 +914,7 @@ void SCNIMFT::InitializeVoronoiData(void)
 #ifdef __QHULL__
   // use qhull's data structures but make our own specialized versions
   CompGeomT::ConvexHullMap selfDuals;
-  VoronoiDiagramMap voronoiFacetIndices;
+  CompGeomT::VoronoiDiagramMap voronoiFacetIndices;
   ArrayT<dArrayT> voronoiFacetAreas;
   ArrayT<dArray2DT> voronoiFacetNormals;
   CompGeomT::ConvexHullMap voronoiCells;
@@ -948,8 +947,8 @@ void SCNIMFT::InitializeVoronoiData(void)
   dArrayT ptArray(fSD); // workspace for centroids
   double *pt = ptArray.Pointer(); 
   
-  for (int i = 0; i < fSelfDuals.Length(); i++)
-    	for (int j = 0; j < fSelfDuals[i].Length(); j++) {
+  for (int i = 0; i < selfDuals.Length(); i++)
+    	for (int j = 0; j < selfDuals[i].Length(); j++) {
       		fNonDeloneEdges[ctr] = fBoundaryNodes[i];
       		thisFacet = &voronoiFacetIndices[fBoundaryNodes[i]][selfDuals[i][j]];
       		thisFacetLength = thisFacet->Length();
@@ -962,9 +961,9 @@ void SCNIMFT::InitializeVoronoiData(void)
       		}
       
       		for (int k = 0; k < fSD; k++) 
-				fNonDeloneNormals(ctr,k) =  voronoiFacetNormals[fBoundaryNodes[i]](fSelfDuals[i][j],k);
+				fNonDeloneNormals(ctr,k) =  voronoiFacetNormals[fBoundaryNodes[i]](selfDuals[i][j],k);
       
-      		fBoundaryIntegrationWeights[ctr] =  voronoiFacetAreas[fBoundaryNodes[i]][fSelfDuals[i][j]];
+      		fBoundaryIntegrationWeights[ctr] =  voronoiFacetAreas[fBoundaryNodes[i]][selfDuals[i][j]];
       		ctr++;
     	}
     	
@@ -975,8 +974,8 @@ void SCNIMFT::InitializeVoronoiData(void)
   for (int i = 0; i < nVoronoiCells; i++) {
   	iArrayT& cell_i = voronoiCells[i];
   	for (int j = 0; j < cell_i.Length(); j++) 
-      fVoronoiCellCentroids.AddRowScaled(i,1.,fVoronoiVertices(cell_i[j]));
-    fVoronoiCellCentroids.ScaleRow(i,1./double(cell_i.Length()))
+	  fVoronoiCellCentroids.AddToRowScaled(i,1.,fVoronoiVertices(cell_i[j]));
+	fVoronoiCellCentroids.ScaleRow(i,1./double(cell_i.Length()));
   }
 #endif
 }
