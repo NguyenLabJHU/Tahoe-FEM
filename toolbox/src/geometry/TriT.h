@@ -1,4 +1,4 @@
-/* $Id: TriT.h,v 1.4 2004-02-28 21:52:26 paklein Exp $ */
+/* $Id: TriT.h,v 1.5 2004-05-12 17:51:27 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _TRI_T_H_
 #define _TRI_T_H_
@@ -35,6 +35,9 @@ public:
 
 	/* set the values of the nodal extrapolation matrix */
 	virtual void SetExtrapolation(dMatrixT& extrap) const;
+
+	/** integration point gradient matrix */
+	virtual void IPGradientTransform(int ip, dMatrixT& transform) const;
 
 	/* return the local node numbers for each facet of the element
 	 * numbered to produce at outward normal in the order: vertex
