@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.18 2002-12-05 08:23:02 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.19 2003-02-09 00:47:53 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _NMATRIX_T_H_
 #define _NMATRIX_T_H_
@@ -151,15 +151,18 @@ public:
 	/*@}*/	 
 	
 	/** \name matrix-vector multiplication
-	 * results returned in \e b */
+	 * Methods taking pointer arguments assume arrays have correct dimensions
+	 * \param x vector contracted with this matrix
+	 * \param b returns with results of product */
 	/*@{*/
 	void Multx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b) const;
+	void Multx(const nTYPE* x, nTYPE* b) const;
 	void MultTx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b) const;
+	void MultTx(const nTYPE* x, nTYPE* b) const;
 	/*@}*/
 
-	/* vector-matrix-vector product */
-	nTYPE MultmBn(const nArrayT<nTYPE>& m,
-	                 const nArrayT<nTYPE>& n) const;
+	/** vector-matrix-vector product */
+	nTYPE MultmBn(const nArrayT<nTYPE>& m, const nArrayT<nTYPE>& n) const;
 	   		
 	/** dyadic product
 	 * Set thisd to the the outer product of the 2 vectors, or
@@ -1384,17 +1387,22 @@ void nMatrixT<nTYPE>::MultQTBQ(const nMatrixT& q,
 
 /* b_i = A_ij*x_j */
 template <class nTYPE>
-void nMatrixT<nTYPE>::Multx(const nArrayT<nTYPE>& x,
-	nArrayT<nTYPE>& b) const
+inline void nMatrixT<nTYPE>::Multx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b) const
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)	
 	if (fRows != b.Length() || fCols != x.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
+	Multx(x.Pointer(), b.Pointer());
+}
+
+template <class nTYPE>
+void nMatrixT<nTYPE>::Multx(const nTYPE* x, nTYPE* b) const
+{
 	nTYPE* ARow = Pointer();
-	nTYPE* px0  = x.Pointer();
-	nTYPE* pb   = b.Pointer();
+	const nTYPE* px0 = x;
+	nTYPE* pb = b;
 
 	register nTYPE temp;
 	register nTYPE sum;
@@ -1402,7 +1410,7 @@ void nMatrixT<nTYPE>::Multx(const nArrayT<nTYPE>& x,
 	for (int i = 0; i < fRows; i++)
 	{
 		sum = 0.0;
-		nTYPE *px = px0;
+		const nTYPE *px = px0;
 		nTYPE *AR = ARow;
 	
 		for (int j = 0; j < fCols; j++)
@@ -1421,17 +1429,22 @@ void nMatrixT<nTYPE>::Multx(const nArrayT<nTYPE>& x,
 
 /* b_i = A_ji*x_j */
 template <class nTYPE>
-void nMatrixT<nTYPE>::MultTx(const nArrayT<nTYPE>& x,
-	nArrayT<nTYPE>& b) const
+inline void nMatrixT<nTYPE>::MultTx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b) const
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)
 	if (fRows != x.Length() && fCols != b.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
+	MultTx(x.Pointer(), b.Pointer());
+}
+
+template <class nTYPE>
+void nMatrixT<nTYPE>::MultTx(const nTYPE* x, nTYPE* b) const
+{
 	nTYPE* ARow = Pointer();
-	nTYPE* px0  = x.Pointer();
-	nTYPE* pb   = b.Pointer();
+	const nTYPE* px0 = x;
+	nTYPE* pb = b;
 
 	register nTYPE temp;
 	register nTYPE sum;
@@ -1439,7 +1452,7 @@ void nMatrixT<nTYPE>::MultTx(const nArrayT<nTYPE>& x,
 	for (int i = 0; i < fCols; i++)
 	{
 		sum = 0.0;
-		nTYPE *px = px0;
+		const nTYPE *px = px0;
 		nTYPE *AR = ARow;
 	
 		for (int j = 0; j < fRows; j++)
@@ -1447,7 +1460,6 @@ void nMatrixT<nTYPE>::MultTx(const nArrayT<nTYPE>& x,
 			temp  = *px++;
 			temp *= *AR++;
 			sum  += temp;
-			
 		}
 
 		*pb++ = sum;
