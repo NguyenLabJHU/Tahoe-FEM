@@ -1,21 +1,21 @@
-/* $Id: SolidMatList3DT.h,v 1.7 2002-11-14 17:06:22 paklein Exp $ */
+/* $Id: SolidMatList3DT.h,v 1.8 2003-01-29 07:34:58 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #ifndef _MATLIST_3D_T_H_
 #define _MATLIST_3D_T_H_
 
 /* base class */
-#include "StructuralMatListT.h"
-#include "MaterialT.h"
+#include "SolidMatListT.h"
+#include "SolidT.h"
 
 namespace Tahoe {
 
 /** materials list for 3D structural analysis */
-class SolidMatList3DT: public StructuralMatListT, public MaterialT
+class SolidMatList3DT: public SolidMatListT, public SolidT
 {
 public:
 
 	/** constructors */
-	SolidMatList3DT(int length, const StructuralMatSupportT& support);
+	SolidMatList3DT(int length, const SolidMatSupportT& support);
 
 	/** read material data from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);

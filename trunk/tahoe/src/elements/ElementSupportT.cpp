@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.21 2003-01-27 07:00:24 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.22 2003-01-29 07:34:26 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -8,8 +8,8 @@
 #include "FEManagerT.h"
 #include "CommManagerT.h"
 #include "NodeManagerT.h"
-#include "eControllerT.h"
-#include "nControllerT.h"
+#include "eIntegratorT.h"
+#include "nIntegratorT.h"
 #include "FieldT.h"
 #else
 #include "LocalArrayT.h"
@@ -278,10 +278,10 @@ const FieldT* ElementSupportT::Field(const char* name) const
 }
 
 /* return the element controller appropriate for the given field */
-const eControllerT* ElementSupportT::eController(const FieldT& field) const
+const eIntegratorT* ElementSupportT::eIntegrator(const FieldT& field) const
 {
-	const nControllerT& n_cont = field.nController();
-	const eControllerT* e_cont = dynamic_cast<const eControllerT*>(&n_cont);
+	const nIntegratorT& n_cont = field.nIntegrator();
+	const eIntegratorT* e_cont = dynamic_cast<const eIntegratorT*>(&n_cont);
 	return e_cont;
 }
 

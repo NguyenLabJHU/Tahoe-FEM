@@ -1,10 +1,10 @@
-/* $Id: tevp3D.cpp,v 1.14 2002-11-14 17:06:43 paklein Exp $ */
+/* $Id: tevp3D.cpp,v 1.15 2003-01-29 07:35:09 paklein Exp $ */
 /* created:  Harold Park (06/25/2001) */
 #include "tevp3D.h"
 #include <iostream.h>
 #include <math.h>
 #include "ifstreamT.h"
-#include "FDMatSupportT.h"
+#include "FSMatSupportT.h"
 #include "ElementCardT.h"
 
 using namespace Tahoe;
@@ -19,8 +19,8 @@ static const char* Labels[kNumOutput] = {
   "Eff._Stress"};   // effective stress
 
 /* constructor */
-tevp3D::tevp3D(ifstreamT& in, const FDMatSupportT& support):
-  FDStructMatT(in, support),
+tevp3D::tevp3D(ifstreamT& in, const FSMatSupportT& support):
+  FSSolidMatT(in, support),
   IsotropicT(in),
   /* initialize references */
 //  fRunState(ContinuumElement().RunState()),
@@ -135,14 +135,14 @@ void tevp3D::ResetHistory(void)
 void tevp3D::Print(ostream& out) const
 {
   /* inherited */
-  FDStructMatT::Print(out);
+  FSSolidMatT::Print(out);
   IsotropicT::Print(out);
 }
 
 void tevp3D::PrintName(ostream& out) const
 {
   /* inherited */
-  FDStructMatT::PrintName(out);
+  FSSolidMatT::PrintName(out);
   out << "    3D Thermo-Elasto-Viscoplastic\n";
 }
 
@@ -342,7 +342,7 @@ void tevp3D::ComputeD(void)
   dSymMatrixT* smalld = &fDtot;
   dSymMatrixT tempd(3);
   dMatrixT yada(3);
-  if (!FDMatSupport().ComputeGradient_reference(*fLocVel, fGradV)) throw ExceptionT::kGeneralFail;
+  if (!FSMatSupport().ComputeGradient_reference(*fLocVel, fGradV)) throw ExceptionT::kGeneralFail;
   yada.MultAB(fGradV, fF_temp, 0);
   (*smalld) = tempd.Symmetrize(yada);
 }
@@ -353,7 +353,7 @@ dMatrixT& tevp3D::ComputeSpin(void)
 
   /* Compute the spin tensor */
   fSpin = 0.0;
-  if (!FDMatSupport().ComputeGradient_reference(*fLocVel, fGradV)) throw ExceptionT::kGeneralFail;
+  if (!FSMatSupport().ComputeGradient_reference(*fLocVel, fGradV)) throw ExceptionT::kGeneralFail;
   dMatrixT yada(3);
   yada.MultAB(fGradV, fF_temp, 0);
   double temp1 = .5 * (yada(0,1) - yada(1,0));

@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.h,v 1.6 2002-12-18 22:49:59 cjkimme Exp $ */
+/* $Id: LJTr2D.h,v 1.7 2003-01-29 07:34:37 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #ifndef _LJTR2D_H_
 #define _LJTR2D_H_
@@ -18,7 +18,7 @@ namespace Tahoe {
 public:
 
 	/* constructor */
-	LJTr2D(ifstreamT& in, const FDMatSupportT& support);
+	LJTr2D(ifstreamT& in, const FSMatSupportT& support);
 	
 	virtual void Initialize(void);
 

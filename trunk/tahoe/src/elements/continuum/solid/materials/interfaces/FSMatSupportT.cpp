@@ -1,4 +1,4 @@
-/* $Id: FSMatSupportT.cpp,v 1.3 2003-01-27 07:00:28 paklein Exp $ */
+/* $Id: FSMatSupportT.cpp,v 1.4 2003-01-29 07:34:57 paklein Exp $ */
 #include "FSMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -10,7 +10,7 @@ using namespace Tahoe;
 
 /* constructor */
 FSMatSupportT::FSMatSupportT(int nsd, int ndof, int nip):
-	StructuralMatSupportT(nsd, ndof, nip),
+	SolidMatSupportT(nsd, ndof, nip),
 	fF_List(NULL),
 	fF_last_List(NULL),
 	fFiniteStrain(NULL)
@@ -130,7 +130,7 @@ bool FSMatSupportT::ComputeGradient_reference(const LocalArrayT& u, dMatrixT& gr
 void FSMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 {
 	/* inherited */
-	StructuralMatSupportT::SetContinuumElement(p);
+	SolidMatSupportT::SetContinuumElement(p);
 
 #ifdef CONTINUUM_ELEMENT
 	/* cast to finite strain pointer */

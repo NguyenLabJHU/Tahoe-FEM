@@ -1,4 +1,4 @@
-/* $Id: D2VIB2D.cpp,v 1.5 2002-11-14 17:06:18 paklein Exp $ */
+/* $Id: D2VIB2D.cpp,v 1.6 2003-01-29 07:34:55 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2VIB2D.h"
 
@@ -7,13 +7,13 @@
 
 #include "toolboxConstants.h"
 #include "fstreamT.h"
-#include "D2FDMatSupportT.h"
-#include "D2MeshFreeFDElasticT.h"
+#include "D2FSMatSupportT.h"
+#include "D2MeshFreeFSSolidT.h"
 
 using namespace Tahoe;
 
 /* constructors */
-D2VIB2D::D2VIB2D(ifstreamT& in, const D2FDMatSupportT& support):
+D2VIB2D::D2VIB2D(ifstreamT& in, const D2FSMatSupportT& support):
 	VIB2D(in, support),
 	fD2MLSShape(support.D2MeshFreeFDElastic()->D2MLSShapeFunction())
 {

@@ -1,4 +1,4 @@
-/* $Id: FDSV_KStV2D.h,v 1.3 2002-11-14 17:06:14 paklein Exp $ */
+/* $Id: FDSV_KStV2D.h,v 1.4 2003-01-29 07:34:50 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 #ifndef _FD_SV_KStV_2D_H_
 #define _FD_SV_KStV_2D_H_
@@ -19,7 +19,7 @@ class FDSV_KStV2D: public FDSimoViscoBaseT, public Material2DT
 	public:
 	
 	/*constructor*/
-	FDSV_KStV2D(ifstreamT& in, const FDMatSupportT& support);
+	FDSV_KStV2D(ifstreamT& in, const FSMatSupportT& support);
 		
 	/*print parameters*/
 	void Print(ostream& out) const;

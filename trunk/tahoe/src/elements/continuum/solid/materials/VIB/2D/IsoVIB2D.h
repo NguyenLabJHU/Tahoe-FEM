@@ -1,10 +1,10 @@
-/* $Id: IsoVIB2D.h,v 1.7 2002-11-14 17:06:15 paklein Exp $ */
+/* $Id: IsoVIB2D.h,v 1.8 2003-01-29 07:34:52 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _ISO_VIB_2D_H_
 #define _ISO_VIB_2D_H_
 
 /* base classes */
-#include "FDStructMatT.h"
+#include "FSSolidMatT.h"
 #include "Material2DT.h"
 #include "VIB.h"
 
@@ -17,12 +17,12 @@ namespace Tahoe {
 class CirclePointsT;
 
 /** 2D Isotropic VIB solver using spectral decomposition formulation */
-class IsoVIB2D: public FDStructMatT, public Material2DT, public VIB
+class IsoVIB2D: public FSSolidMatT, public Material2DT, public VIB
 {
 public:
 
 	/* constructor */
-	IsoVIB2D(ifstreamT& in, const FDMatSupportT& support);
+	IsoVIB2D(ifstreamT& in, const FSMatSupportT& support);
 
 	/* destructor */
 	~IsoVIB2D(void);
@@ -40,7 +40,7 @@ public:
 	virtual const dSymMatrixT& s_ij(void);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. */
 	virtual double Pressure(void) const { return fEigs.Sum()/3.0; };
 	/*@}*/

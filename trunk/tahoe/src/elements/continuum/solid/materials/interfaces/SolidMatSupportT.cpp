@@ -1,9 +1,9 @@
-/* $Id: SolidMatSupportT.cpp,v 1.3 2003-01-27 07:00:28 paklein Exp $ */
+/* $Id: SolidMatSupportT.cpp,v 1.4 2003-01-29 07:34:57 paklein Exp $ */
 #include "SolidMatSupportT.h"
 #include "ElementsConfig.h"
 
 #ifdef CONTINUUM_ELEMENT
-#include "ElasticT.h"
+#include "SolidElementT.h"
 #endif
 
 using namespace Tahoe;
@@ -11,7 +11,7 @@ using namespace Tahoe;
 /* constructor */
 SolidMatSupportT::SolidMatSupportT(int nsd, int ndof, int nip):
 	MaterialSupportT(nsd, ndof, nip),
-	fElastic(NULL),
+	fSolidElement(NULL),
 	fLastDisp(NULL),
 	fVel(NULL),
 	fAcc(NULL),
@@ -29,7 +29,7 @@ void SolidMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 
 #ifdef CONTINUUM_ELEMENT
 	/* cast to elastic element pointer */
-	fElastic = dynamic_cast<const ElasticT*>(p);
+	fSolidElement = dynamic_cast<const SolidElementT*>(p);
 #endif
 }
 

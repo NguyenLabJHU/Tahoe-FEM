@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.cpp,v 1.7 2002-12-18 22:49:59 cjkimme Exp $ */
+/* $Id: LJTr2D.cpp,v 1.8 2003-01-29 07:34:37 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "LJTr2D.h"
 
@@ -12,7 +12,7 @@ using namespace Tahoe;
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-LJTr2D::LJTr2D(ifstreamT& in, const FDMatSupportT& support):
+LJTr2D::LJTr2D(ifstreamT& in, const FSMatSupportT& support):
 	NL_E_Mat2DT(in, support, kPlaneStress),
 	CBLatticeT(2,2,3)
 {

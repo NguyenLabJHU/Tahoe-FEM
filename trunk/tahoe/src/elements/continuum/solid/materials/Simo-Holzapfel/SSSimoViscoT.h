@@ -1,9 +1,9 @@
-/* $Id: SSSimoViscoT.h,v 1.4 2002-11-14 17:06:13 paklein Exp $ */
+/* $Id: SSSimoViscoT.h,v 1.5 2003-01-29 07:34:49 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_SIMO_VISCO_H_
 #define _SS_SIMO_VISCO_H_
  
-#include "SSStructMatT.h"
+#include "SSSolidMatT.h"
 #include "dSymMatrixT.h"
 
 namespace Tahoe {
@@ -12,7 +12,7 @@ namespace Tahoe {
 class ifstreamT;
 
 /*small strain linear viscoelastic constitutive law */
-class SSSimoViscoT: public SSStructMatT
+class SSSimoViscoT: public SSSolidMatT
 {
 	public:
 
@@ -20,7 +20,7 @@ class SSSimoViscoT: public SSStructMatT
 	SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. \note NOT IMPLEMENTED */
+	 * SolidMaterialT::s_ij. \note NOT IMPLEMENTED */
 	virtual double Pressure(void) const {
 		cout << "\n SSSimoViscoT::Pressure: not implemented" << endl;
 		throw ExceptionT::kGeneralFail;
@@ -32,7 +32,7 @@ class SSSimoViscoT: public SSStructMatT
 	void PrintName(ostream& out) const;
 		
 	/* apply pre-conditions at the current time step */
-	void InitStep(void){SSStructMatT::InitStep();}
+	void InitStep(void){SSSolidMatT::InitStep();}
 
 	/*initialize history variable*/
 	bool NeedsPointInitialization(void) const {return true;}; // declare true

@@ -1,10 +1,10 @@
-/* $Id: TotalLagrangianT.cpp,v 1.10 2002-10-20 22:48:23 paklein Exp $ */
+/* $Id: TotalLagrangianT.cpp,v 1.11 2003-01-29 07:34:34 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "TotalLagrangianT.h"
 
 #include "fstreamT.h"
 #include "toolboxConstants.h"
-#include "StructuralMaterialT.h"
+#include "SolidMaterialT.h"
 #include "MaterialListT.h"
 #include "ShapeFunctionT.h"
 

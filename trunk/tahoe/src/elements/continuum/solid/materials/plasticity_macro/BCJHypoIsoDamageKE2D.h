@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageKE2D.h,v 1.3 2002-11-14 17:06:36 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageKE2D.h,v 1.4 2003-01-29 07:35:06 paklein Exp $ */
 #ifndef _BCJ_HYPO_ISO_DAMAGE_KE_2D_H_
 #define _BCJ_HYPO_ISO_DAMAGE_KE_2D_H_
 
@@ -12,13 +12,13 @@
 namespace Tahoe {
 
 class ifstreamT;
-class ElasticT;
+class SolidElementT;
 
 class BCJHypoIsoDamageKE2D : public BCJHypoIsoDamageKE3D, public Material2DT
 {
  public:
   // constructor
-  BCJHypoIsoDamageKE2D(ifstreamT& in, const FDMatSupportT& support);
+  BCJHypoIsoDamageKE2D(ifstreamT& in, const FSMatSupportT& support);
 
   // destructor
   ~BCJHypoIsoDamageKE2D();

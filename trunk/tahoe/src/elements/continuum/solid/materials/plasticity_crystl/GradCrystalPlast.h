@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.h,v 1.6 2002-11-14 17:06:32 paklein Exp $ */
+/* $Id: GradCrystalPlast.h,v 1.7 2003-01-29 07:35:04 paklein Exp $ */
 #ifndef _GRAD_CRYSTAL_PLAST_H_
 #define _GRAD_CRYSTAL_PLAST_H_
 
@@ -16,7 +16,7 @@ class GradCrystalPlast : public LocalCrystalPlast
 {
  public:
   // constructor
-  GradCrystalPlast(ifstreamT& in, const FDMatSupportT& support);
+  GradCrystalPlast(ifstreamT& in, const FSMatSupportT& support);
 
   // destructor
   ~GradCrystalPlast();

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.7 2002-11-30 16:41:27 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.8 2003-01-29 07:34:30 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 
 #include "PenaltyContact3DT.h"
@@ -8,7 +8,7 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 
 using namespace Tahoe;
 
@@ -123,7 +123,7 @@ void PenaltyContact3DT::PrintControlData(ostream& out) const
 void PenaltyContact3DT::LHSDriver(GlobalT::SystemTypeT)
 {
 	double constK = 0.0;
-	int formK = fController->FormK(constK);
+	int formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 
 	//TEMP - consistent tangent not implemented
@@ -151,7 +151,7 @@ void PenaltyContact3DT::RHSDriver(void)
 {
 	/* time integration parameters */
 	double constKd = 0.0;
-	int     formKd = fController->FormKd(constKd);
+	int     formKd = fIntegrator->FormKd(constKd);
 	if (!formKd) return;
 
 	/* references to global nodal data */

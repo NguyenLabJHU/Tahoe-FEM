@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.7 2002-11-14 17:06:17 paklein Exp $ */
+/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.8 2003-01-29 07:34:54 paklein Exp $ */
 /* created: paklein (10/12/1998) */
 #include "J2IsoVIB3DLinHardT.h"
 
@@ -49,7 +49,7 @@ const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {"s_max", "s_min", "VM stress", "alpha"};
 
 /* constructor */
-J2IsoVIB3DLinHardT::J2IsoVIB3DLinHardT(ifstreamT& in, const FDMatSupportT& support):
+J2IsoVIB3DLinHardT::J2IsoVIB3DLinHardT(ifstreamT& in, const FSMatSupportT& support):
 	IsoVIB3D(in, support),
 	J2PrimitiveT(in),
 

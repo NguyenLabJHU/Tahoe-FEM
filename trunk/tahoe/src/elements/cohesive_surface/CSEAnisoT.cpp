@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.34 2003-01-22 00:54:33 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.35 2003-01-29 07:34:29 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -11,7 +11,7 @@
 #include "SurfaceShapeT.h"
 #include "SurfacePotentialT.h"
 #ifndef _SIERRA_TEST_
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 #endif
 #include "ElementSupportT.h"
 
@@ -435,7 +435,7 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 	/* time-integration parameters */
 	double constK = 1.0;
 #ifndef _SIERRA_TEST_
-	int formK = fController->FormK(constK);
+	int formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 #endif
 
@@ -581,7 +581,7 @@ void CSEAnisoT::RHSDriver(void)
 	/* time-integration parameters */
 	double constKd = 1.0;
 #ifndef _SIERRA_TEST_
-	int formKd = fController->FormKd(constKd);
+	int formKd = fIntegrator->FormKd(constKd);
 	if (!formKd) return;
 
 	/* heat source if needed */

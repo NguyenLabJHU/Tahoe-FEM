@@ -1,4 +1,4 @@
-/* $Id: VIB3D.cpp,v 1.6 2002-11-14 17:06:17 paklein Exp $ */
+/* $Id: VIB3D.cpp,v 1.7 2003-01-29 07:34:54 paklein Exp $ */
 /* created: paklein (04/20/1997) */
 #include "VIB3D.h"
 
@@ -21,7 +21,7 @@
 using namespace Tahoe;
 
 /* constructors */
-VIB3D::VIB3D(ifstreamT& in, const FDMatSupportT& support):
+VIB3D::VIB3D(ifstreamT& in, const FSMatSupportT& support):
 	NL_E_MatT(in, support),
 	VIB_E_MatT(in, 3)
 {

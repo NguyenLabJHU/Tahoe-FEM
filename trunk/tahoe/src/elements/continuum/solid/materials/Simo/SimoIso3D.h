@@ -1,10 +1,10 @@
-/* $Id: SimoIso3D.h,v 1.8 2002-11-14 17:06:11 paklein Exp $ */
+/* $Id: SimoIso3D.h,v 1.9 2003-01-29 07:34:48 paklein Exp $ */
 /* created: paklein (03/02/1997) */
 #ifndef _SIMO_ISO_3D_H_
 #define _SIMO_ISO_3D_H_
 
 /* base classes */
-#include "FDStructMatT.h"
+#include "FSSolidMatT.h"
 #include "IsotropicT.h"
 
 namespace Tahoe {
@@ -13,12 +13,12 @@ namespace Tahoe {
  * stored energy function.
  * \note This material is inherently 3D
  */
-class SimoIso3D: public FDStructMatT, public IsotropicT
+class SimoIso3D: public FSSolidMatT, public IsotropicT
 {
 public:
 
 	/* constructor */
-	SimoIso3D(ifstreamT& in, const FDMatSupportT& support);
+	SimoIso3D(ifstreamT& in, const FSMatSupportT& support);
 	
 	/* print parameters */
 	virtual void Print(ostream& out) const;
@@ -33,7 +33,7 @@ public:
 	virtual const dSymMatrixT& s_ij(void);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. */
 	virtual double Pressure(void) const { return fStress.Trace()/3.0; };
 	/*@}*/

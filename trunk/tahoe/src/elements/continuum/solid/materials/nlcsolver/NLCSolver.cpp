@@ -1,4 +1,4 @@
-/* $Id: NLCSolver.cpp,v 1.6 2003-01-27 07:00:28 paklein Exp $ */
+/* $Id: NLCSolver.cpp,v 1.7 2003-01-29 07:35:00 paklein Exp $ */
 #include "NLCSolver.h"
 
 #include <iostream.h>
@@ -229,6 +229,7 @@ void NLCSolver::TestForInitialConvergence(const dArrayT& X)
 	  
 void NLCSolver::ComputeTrialPoint(dArrayT& X)  
 {
+#pragma unused(X)
   if (fRejectionCount == 0)
     {
       fMethod->GetNewtonStep(*this, fNewtonStep);
@@ -289,6 +290,7 @@ void NLCSolver::TestForConvergence(const dArrayT& X)
 
 void NLCSolver::TestForFailure(const dArrayT& X)
 {
+#pragma unused(X)
   if (fRejectionCount > fMaxRejections)
     {
       fFailed = true;
@@ -321,6 +323,7 @@ void NLCSolver::Print(ostream& out) const
 /* PROTECTED MEMBER FUNCTIONS */
 void NLCSolver::AcceptTrialPoint(dArrayT& X)
 {
+#pragma unused(X)
   fIterationCount++;
   fRejectionCount = 0;
   fTrialPointAccepted = true;
@@ -369,6 +372,7 @@ void NLCSolver::SetDefaultTypFunction(const double& F)
 
 bool NLCSolver::FuncTest(const dArrayT& X) const
 {
+#pragma unused(X)
   double temp = 0.;
   for (int i = 0; i < fDim; i++)
     temp = max(fabs(fRHS[i]), temp);

@@ -142,7 +142,7 @@ void nVerlet::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 	}
 }
 
-/* return the field array needed by nControllerT::MappedCorrector. */
+/* return the field array needed by nIntegratorT::MappedCorrector. */
 const dArray2DT& nVerlet::MappedCorrectorField(BasicFieldT& field) const
 {
 	return field[2];

@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.cpp,v 1.6 2002-11-28 16:44:20 paklein Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.7 2003-01-29 07:35:22 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltySphereT.h"
@@ -9,7 +9,7 @@
 #include "toolboxConstants.h"
 #include "FEManagerT.h"
 #include "fstreamT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 
 /* constructor */
 
@@ -63,7 +63,7 @@ void PenaltySphereT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 #pragma unused(sys_type)
 
 	double constK = 0.0;
-	int formK = fController->FormK(constK);
+	int formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 
 	/* node by node */

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BCJ.cpp,v 1.5 2002-11-14 17:05:58 paklein Exp $ */
+/* $Id: ABAQUS_BCJ.cpp,v 1.6 2003-01-29 07:34:35 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #include "ABAQUS_BCJ.h"
 
@@ -29,7 +29,7 @@ int cycdmg7_([full argument list]);
 #endif
 
 /* constructor */
-ABAQUS_BCJ::ABAQUS_BCJ(ifstreamT& in, const FDMatSupportT& support):
+ABAQUS_BCJ::ABAQUS_BCJ(ifstreamT& in, const FSMatSupportT& support):
 	ABAQUS_UMAT_BaseT(in, support)
 {
 

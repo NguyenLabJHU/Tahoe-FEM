@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.cpp,v 1.8 2002-11-14 17:06:11 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.9 2003-01-29 07:34:48 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 #include "SimoIso2D.h"
 #include <math.h>
@@ -7,7 +7,7 @@
 using namespace Tahoe;
 
 /* constructor */
-SimoIso2D::SimoIso2D(ifstreamT& in, const FDMatSupportT& support):
+SimoIso2D::SimoIso2D(ifstreamT& in, const FSMatSupportT& support):
 	SimoIso3D(in, support),
 	Material2DT(in, kPlaneStrain),
 	fStress2D(2),
@@ -126,7 +126,7 @@ void SimoIso2D::PrintName(ostream& out) const
 *************************************************************************/
 
 /** compute 3D stretch tensor \b b from the 2D deformation state. 
- * \todo Make this a FDStructMatT function? */
+ * \todo Make this a FSSolidMatT function? */
 void SimoIso2D::Compute_b_3D(dSymMatrixT& b_3D)
 {
 	/* get mechanical part of the deformation gradient */

@@ -1,4 +1,4 @@
-/* $Id: HyperEVP2D.h,v 1.4 2002-11-14 17:06:36 paklein Exp $ */
+/* $Id: HyperEVP2D.h,v 1.5 2003-01-29 07:35:06 paklein Exp $ */
 #ifndef _HYPER_EVP_2D_H_
 #define _HYPER_EVP_2D_H_
 
@@ -12,13 +12,13 @@
 namespace Tahoe {
 
 class ifstreamT;
-class ElasticT;
+class SolidElementT;
 
 class HyperEVP2D : public HyperEVP3D, public Material2DT
 {
  public:
   // constructor
-  HyperEVP2D(ifstreamT& in, const FDMatSupportT& support);
+  HyperEVP2D(ifstreamT& in, const FSMatSupportT& support);
 
   // destructor
   ~HyperEVP2D();

@@ -1,4 +1,4 @@
-/* $Id: SSSimoViscoT.cpp,v 1.3 2002-11-14 17:06:13 paklein Exp $ */
+/* $Id: SSSimoViscoT.cpp,v 1.4 2003-01-29 07:34:49 paklein Exp $ */
 #include "SSSimoViscoT.h"
 #include "fstreamT.h"
 #include "ExceptionT.h"
@@ -9,7 +9,7 @@ const int kNumOutputVar = 2;
 static const char* Labels[kNumOutputVar] = {"r_dil","r_dev"};
 
 SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support):
-	SSStructMatT(in, support)
+	SSSolidMatT(in, support)
 {
 	int nsd = NumSD();
 	int numstress = (nsd*(nsd+1))/2;
@@ -51,13 +51,13 @@ SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support):
 void SSSimoViscoT::Print(ostream& out) const
 {
 	/* inherited */
-	SSStructMatT::Print(out);
+	SSSolidMatT::Print(out);
 }
 
 void SSSimoViscoT::PrintName(ostream& out) const
 {
 	/* inherited */
-	SSStructMatT::PrintName(out);
+	SSSolidMatT::PrintName(out);
         out << "Finite Deformation Simo Viscoelastic Model \n";
 }
 

@@ -1,9 +1,9 @@
-/* $Id: D2FSMatSupportT.cpp,v 1.4 2003-01-27 07:00:28 paklein Exp $ */
+/* $Id: D2FSMatSupportT.cpp,v 1.5 2003-01-29 07:34:57 paklein Exp $ */
 #include "D2FSMatSupportT.h"
 #include "ElementsConfig.h"
 
 #ifdef CONTINUUM_ELEMENT
-#include "D2MeshFreeFDElasticT.h"
+#include "D2MeshFreeFSSolidT.h"
 #endif
 
 using namespace Tahoe;
@@ -24,6 +24,6 @@ void D2FSMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 
 #ifdef CONTINUUM_ELEMENT
 	/* cast to finite strain pointer */
-	fD2MeshFreeFDElastic = dynamic_cast<const D2MeshFreeFDElasticT*>(p);
+	fD2MeshFreeFDElastic = dynamic_cast<const D2MeshFreeFSSolidT*>(p);
 #endif
 }

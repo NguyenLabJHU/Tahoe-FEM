@@ -3,7 +3,7 @@
 
 /* base class */
 #include "Gear6.h"
-#include "nControllerT.h"
+#include "nIntegratorT.h"
 #include "dArray2DT.h"
 
 namespace Tahoe {
@@ -11,7 +11,7 @@ namespace Tahoe {
 /** Node controller for an explicit 6th order accurate Gear time integration
  * algorithm. The BasicFieldT used with this integrator must have
  * BasicFieldT::Order of 6. */
-class nGear6: public virtual Gear6, public nControllerT
+class nGear6: public virtual Gear6, public nIntegratorT
 {
 public:
 
@@ -30,17 +30,17 @@ public:
 	/** corrector. Maps ALL degrees of freedom forward. */
 	virtual void Corrector(BasicFieldT& field, const dArray2DT& update);
 
-	/** corrector - map ACTIVE. See nControllerT::Corrector for more
+	/** corrector - map ACTIVE. See nIntegratorT::Corrector for more
 	 * documentation */
 	virtual void Corrector(BasicFieldT& field, const dArrayT& update, 
 		int eq_start, int num_eq);
 
 	/** corrector with node number map - map ACTIVE. See 
-	 * nControllerT::MappedCorrector for more documentation */
+	 * nIntegratorT::MappedCorrector for more documentation */
 	virtual void MappedCorrector(BasicFieldT& field, const iArrayT& map, 
 		const iArray2DT& flags, const dArray2DT& update);
 
-	/** return the field array needed by nControllerT::MappedCorrector. */
+	/** return the field array needed by nIntegratorT::MappedCorrector. */
 	virtual const dArray2DT& MappedCorrectorField(BasicFieldT& field) const;
 
 private:

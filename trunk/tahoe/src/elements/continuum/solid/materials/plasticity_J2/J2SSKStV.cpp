@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.6 2002-11-14 17:06:25 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.7 2003-01-29 07:35:02 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
 #include "SSMatSupportT.h"
@@ -19,7 +19,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 J2SSKStV::J2SSKStV(ifstreamT& in, const SSMatSupportT& support):
-	SSStructMatT(in, support),
+	SSSolidMatT(in, support),
 	IsotropicT(in),
 	HookeanMatT(3),
 //	J2SSLinHardT(in, NumIP(), Mu()),
@@ -57,7 +57,7 @@ void J2SSKStV::ResetHistory(void)
 void J2SSKStV::Print(ostream& out) const
 {
 	/* inherited */
-	SSStructMatT::Print(out);
+	SSSolidMatT::Print(out);
 	IsotropicT::Print(out);
 //	J2SSLinHardT::Print(out);
 	J2SSC0HardeningT::Print(out);
@@ -67,7 +67,7 @@ void J2SSKStV::Print(ostream& out) const
 void J2SSKStV::PrintName(ostream& out) const
 {
 	/* inherited */
-	SSStructMatT::PrintName(out);
+	SSSolidMatT::PrintName(out);
 //	J2SSLinHardT::PrintName(out);
 	J2SSC0HardeningT::PrintName(out);
 	out << "    Kirchhoff-St.Venant\n";

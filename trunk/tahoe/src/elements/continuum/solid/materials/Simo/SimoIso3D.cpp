@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.cpp,v 1.8 2002-11-14 17:06:11 paklein Exp $ */
+/* $Id: SimoIso3D.cpp,v 1.9 2003-01-29 07:34:48 paklein Exp $ */
 /* created: paklein (03/02/1997) */
 #include "SimoIso3D.h"
 #include <iostream.h>
@@ -7,8 +7,8 @@
 using namespace Tahoe;
 
 /* constructor */
-SimoIso3D::SimoIso3D(ifstreamT& in, const FDMatSupportT& support):
-	FDStructMatT(in, support),
+SimoIso3D::SimoIso3D(ifstreamT& in, const FSMatSupportT& support):
+	FSSolidMatT(in, support),
 	IsotropicT(in),
 	fStress(3),
 	fModulus(dSymMatrixT::NumValues(3)),
@@ -35,7 +35,7 @@ SimoIso3D::SimoIso3D(ifstreamT& in, const FDMatSupportT& support):
 void SimoIso3D::Print(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::Print(out);
+	FSSolidMatT::Print(out);
 	IsotropicT::Print(out);
 }
 
@@ -121,7 +121,7 @@ double SimoIso3D::StrainEnergyDensity(void)
 void SimoIso3D::PrintName(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::PrintName(out);
+	FSSolidMatT::PrintName(out);
 
 	out << "    Simo Isotropic\n";
 }

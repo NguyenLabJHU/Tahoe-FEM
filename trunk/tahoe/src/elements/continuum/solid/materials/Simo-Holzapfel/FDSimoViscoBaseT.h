@@ -1,10 +1,10 @@
-/* $Id: FDSimoViscoBaseT.h,v 1.4 2002-11-14 17:06:13 paklein Exp $ */
+/* $Id: FDSimoViscoBaseT.h,v 1.5 2003-01-29 07:34:49 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #ifndef _FD_SIMO_VISCO_BASE_H_
 #define _FD_SIMO_VISCO_BASE_H_
  
-#include "FDStructMatT.h"
+#include "FSSolidMatT.h"
 #include "dSymMatrixT.h"
 
 namespace Tahoe {
@@ -13,15 +13,15 @@ namespace Tahoe {
 class ifstreamT;
 
 /*small strain linear viscoelastic constitutive law */
-class FDSimoViscoBaseT: public FDStructMatT
+class FDSimoViscoBaseT: public FSSolidMatT
 {
 	public:
 
 	/*constructor*/
-	FDSimoViscoBaseT(ifstreamT& in, const FDMatSupportT& support);
+	FDSimoViscoBaseT(ifstreamT& in, const FSMatSupportT& support);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. \note NOT IMPLEMENTED */
+	 * SolidMaterialT::s_ij. \note NOT IMPLEMENTED */
 	virtual double Pressure(void) const {
 		cout << "\n FDSimoViscoBaseT::Pressure: not implemented" << endl;
 		throw ExceptionT::kGeneralFail;
@@ -33,7 +33,7 @@ class FDSimoViscoBaseT: public FDStructMatT
 	void PrintName(ostream& out) const;
 		
 	/* apply pre-conditions at the current time step */
-	void InitStep(void){FDStructMatT::InitStep();};
+	void InitStep(void){FSSolidMatT::InitStep();};
 
 	/*initialize history variable*/
 	bool NeedsPointInitialization(void) const {return true;}; // declare true

@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast2D.cpp,v 1.4 2002-11-14 17:06:32 paklein Exp $ */
+/* $Id: GradCrystalPlast2D.cpp,v 1.5 2003-01-29 07:35:04 paklein Exp $ */
 #include "GradCrystalPlast2D.h"
 #include "Utils.h"
 
@@ -9,7 +9,7 @@ using namespace Tahoe;
 /* spatial dimensions of the problem */
 const int kNSD = 2;
 
-GradCrystalPlast2D::GradCrystalPlast2D(ifstreamT& in, const FDMatSupportT& support) :
+GradCrystalPlast2D::GradCrystalPlast2D(ifstreamT& in, const FSMatSupportT& support) :
   GradCrystalPlast (in, support),  
   Material2DT      (in, Material2DT::kPlaneStrain),
   f2Ds_ij    (kNSD),

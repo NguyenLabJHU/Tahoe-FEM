@@ -1,4 +1,4 @@
-/* $Id: SWMaterial2D.h,v 1.4 2002-11-14 17:06:00 paklein Exp $ */
+/* $Id: SWMaterial2D.h,v 1.5 2003-01-29 07:34:37 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #ifndef _SWMATERIAL2D_H_
 #define _SWMATERIAL2D_H_
@@ -14,7 +14,7 @@ class SWMaterial2D: public NL_E_RotMat2DT, public SWDataT
 public:
 
 	/* constructor */
-	SWMaterial2D(ifstreamT& in, const FDMatSupportT& support);
+	SWMaterial2D(ifstreamT& in, const FSMatSupportT& support);
 	
 	/* print parameters */
 	virtual void Print(ostream& out) const;	

@@ -1,4 +1,4 @@
-/* $Id: nExplicitCD.cpp,v 1.7 2003-01-27 07:00:23 paklein Exp $ */
+/* $Id: nExplicitCD.cpp,v 1.8 2003-01-29 07:35:15 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "nExplicitCD.h"
 #include "iArrayT.h"
@@ -149,7 +149,7 @@ void nExplicitCD::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 	}
 }
 
-/* return the field array needed by nControllerT::MappedCorrector. */
+/* return the field array needed by nIntegratorT::MappedCorrector. */
 const dArray2DT& nExplicitCD::MappedCorrectorField(BasicFieldT& field) const
 {
 	return field[2];

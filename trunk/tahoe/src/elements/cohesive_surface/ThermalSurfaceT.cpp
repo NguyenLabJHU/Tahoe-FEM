@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.7 2002-11-30 16:41:25 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.8 2003-01-29 07:34:29 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -9,7 +9,7 @@
 #include "fstreamT.h"
 #include "toolboxConstants.h"
 #include "SurfaceShapeT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 
 /* constructor */
 
@@ -79,7 +79,7 @@ void ThermalSurfaceT::LHSDriver(GlobalT::SystemTypeT)
 {
 	/* algorithmic constants */
 	double constK = 0.0;
-	int     formK = fController->FormK(constK);
+	int     formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 
 	/* node map of facet 1 */
@@ -144,7 +144,7 @@ void ThermalSurfaceT::RHSDriver(void)
 {
 	/* time-stepping parameters */
 	double constKd = 0.0;
-	int     formKd = fController->FormKd(constKd);
+	int     formKd = fIntegrator->FormKd(constKd);
 	if (!formKd) return;
 	
 	/* node map of facet 1 */

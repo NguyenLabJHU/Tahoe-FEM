@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.20 2003-01-27 07:00:24 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.21 2003-01-29 07:34:26 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -24,7 +24,7 @@ class FEManagerT;
 class NodeManagerT;
 class XDOF_ManagerT;
 class FieldT;
-class eControllerT;
+class eIntegratorT;
 #else
 class dMatrixT;
 #endif
@@ -216,7 +216,7 @@ public:
 	const FieldT* Field(const char* name) const;
 
 	/** return the element controller appropriate for the given field */
-	const eControllerT* eController(const FieldT& field) const;
+	const eIntegratorT* eIntegrator(const FieldT& field) const;
 	/*@}*/
 
 	/** \name basic MP support */

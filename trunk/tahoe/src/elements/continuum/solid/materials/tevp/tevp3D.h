@@ -1,10 +1,10 @@
-/* $Id: tevp3D.h,v 1.8 2002-11-14 17:06:43 paklein Exp $ */
+/* $Id: tevp3D.h,v 1.9 2003-01-29 07:35:09 paklein Exp $ */
 /* created:  Harold Park (06/25/2001) */
 #ifndef _TEVP_3D_H_
 #define _TEVP_3D_H_
 
 /* base classes */
-#include "FDStructMatT.h"
+#include "FSSolidMatT.h"
 #include "IsotropicT.h"
 #include "iArrayT.h"
 
@@ -14,11 +14,11 @@ namespace Tahoe {
 class ElementCardT;
 
 /** Thermoelasto-viscoplastic material used to generate shear bands */
-class tevp3D: public FDStructMatT, public IsotropicT
+class tevp3D: public FSSolidMatT, public IsotropicT
 {
  public:
   /* constructor */
-  tevp3D(ifstreamT& in, const FDMatSupportT& support);
+  tevp3D(ifstreamT& in, const FSMatSupportT& support);
   
   /* materials initialization */
   virtual bool NeedsPointInitialization(void) const { return true; }
@@ -46,7 +46,7 @@ class tevp3D: public FDStructMatT, public IsotropicT
 	virtual const dSymMatrixT& s_ij(void);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. */
 	virtual double Pressure(void) const { return fStress.Trace()/3.0; };
 	/*@}*/

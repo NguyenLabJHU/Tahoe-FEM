@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.7 2002-11-26 01:54:53 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.8 2003-01-29 07:35:20 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _TIMEMANAGER_T_H_
@@ -14,7 +14,7 @@
 #include "iAutoArrayT.h"
 #include "IOBaseT.h"
 #include "TimeSequence.h"
-#include "ControllerT.h"
+#include "IntegratorT.h"
 
 namespace Tahoe {
 
@@ -93,7 +93,7 @@ public:
 	void CloseStep(void); //TEMP? - let FEManager control/monitor output?
 
 	/** return a pointer to a integrator of the specified type */
-	ControllerT* New_Controller(CodeT type) const;
+	IntegratorT* New_Integrator(CodeT type) const;
 
 private:	
 
@@ -141,9 +141,9 @@ private:
 	int	   fIsTimeShifted;
 	double fTimeShift;
 	
-	/** will be ControllerT::kExplicit if all integrators are explicit
-	 * otherwise will be ControllerT::kImplicit */
-	ControllerT::ImpExpFlagT fImpExp;
+	/** will be IntegratorT::kExplicit if all integrators are explicit
+	 * otherwise will be IntegratorT::kImplicit */
+	IntegratorT::ImpExpFlagT fImpExp;
 
 /* functions for time shifters */
 private:

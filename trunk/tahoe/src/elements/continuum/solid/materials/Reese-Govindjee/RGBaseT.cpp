@@ -1,12 +1,12 @@
-/* $Id: RGBaseT.cpp,v 1.3 2002-11-14 17:06:09 paklein Exp $ */
+/* $Id: RGBaseT.cpp,v 1.4 2003-01-29 07:34:45 paklein Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGBaseT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-RGBaseT::RGBaseT(ifstreamT& in, const FDMatSupportT& support):
-	FDStructMatT(in, support),
+RGBaseT::RGBaseT(ifstreamT& in, const FSMatSupportT& support):
+	FSSolidMatT(in, support),
 	fSpectralDecompSpat(NumSD()),
 	fSpectralDecompRef(NumSD())
 {
@@ -30,14 +30,14 @@ RGBaseT::RGBaseT(ifstreamT& in, const FDMatSupportT& support):
 void RGBaseT::Print(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::Print(out);
+	FSSolidMatT::Print(out);
 	IsotropicT::Print(out);
 }
 
 void RGBaseT::PrintName(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::PrintName(out);
+	FSSolidMatT::PrintName(out);
 
 	out << "    Reese-Govindjee Finite Nonlinear Viscoelastic Model\n";
 }

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.51 2003-01-27 07:00:27 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.52 2003-01-29 07:35:20 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -19,8 +19,8 @@
 #include "OutputSetT.h"
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
-#include "eControllerT.h"
-#include "nControllerT.h"
+#include "eIntegratorT.h"
+#include "nIntegratorT.h"
 #include "CommunicatorT.h"
 #include "CommManagerT.h"
 
@@ -98,8 +98,8 @@ FEManagerT::~FEManagerT(void)
 	for (int i = 0; i < fSolvers.Length(); i++)
 		delete fSolvers[i];
 	
-	for (int i = 0; i < fControllers.Length(); i++)
-		delete fControllers[i];
+	for (int i = 0; i < fIntegrators.Length(); i++)
+		delete fIntegrators[i];
 
 	delete fIOManager;
 	delete fModelManager;
@@ -149,9 +149,9 @@ void FEManagerT::Initialize(InitCodeT init)
 	iAddSub(*fTimeManager);
 	if (verbose) cout << "    FEManagerT::Initialize: time" << endl;
 
-	/* set time integration controller */
-	SetController();
-	if (verbose) cout << "    FEManagerT::Initialize: controller" << endl;
+	/* set time integration integrator */
+	SetIntegrator();
+	if (verbose) cout << "    FEManagerT::Initialize: integrator" << endl;
 
 	/* initial configuration of communication manager */
 	if (fModelManager->DatabaseFormat() != IOBaseT::kTahoe)
@@ -783,40 +783,40 @@ int FEManagerT::GetGlobalNumEquations(int group) const
 	return fNodeManager->NumEquations(group);
 }
 
-/* access to controllers */
-eControllerT* FEManagerT::eController(int index) const
+/* access to integrators */
+eIntegratorT* FEManagerT::eIntegrator(int index) const
 {
-	/* cast to eControllerT */
+	/* cast to eIntegratorT */
 #ifdef __NO_RTTI__
-	eControllerT* e_controller = (eControllerT*) fControllers[index];
+	eIntegratorT* e_integrator = (eIntegratorT*) fIntegrators[index];
 		//NOTE: cast should be safe for all cases
 #else
-	eControllerT* e_controller = dynamic_cast<eControllerT*>(fControllers[index]);
-	if (!e_controller) ExceptionT::GeneralFail();
+	eIntegratorT* e_integrator = dynamic_cast<eIntegratorT*>(fIntegrators[index]);
+	if (!e_integrator) ExceptionT::GeneralFail();
 #endif
 
-	return e_controller;
+	return e_integrator;
 }
 
-nControllerT* FEManagerT::nController(int index) const
+nIntegratorT* FEManagerT::nIntegrator(int index) const
 {
-	/* cast to eControllerT */
+	/* cast to nIntegratorT */
 #ifdef __NO_RTTI__
-	nControllerT* n_controller = (nControllerT*) fControllers[index];
+	nIntegratorT* n_integrator = (nIntegratorT*) fIntegrators[index];
 		//NOTE: cast should be safe for all cases
 #else
-	nControllerT* n_controller = dynamic_cast<nControllerT*>(fControllers[index]);
-	if (!n_controller) ExceptionT::GeneralFail();
+	nIntegratorT* n_integrator = dynamic_cast<nIntegratorT*>(fIntegrators[index]);
+	if (!n_integrator) ExceptionT::GeneralFail();
 #endif
 
-	return n_controller;
+	return n_integrator;
 }
 
 void FEManagerT::SetTimeStep(double dt) const
 {
-	//TEMP - for ALL controllers
-	for (int i = 0; i < fControllers.Length(); i++)
-		fControllers[i]->SetTimeStep(dt);
+	//TEMP - for ALL integrators
+	for (int i = 0; i < fIntegrators.Length(); i++)
+		fIntegrators[i]->SetTimeStep(dt);
 }
 
 /* returns 1 of ALL element groups have interpolant DOF's */
@@ -1290,12 +1290,12 @@ void FEManagerT::ReadParameters(InitCodeT init)
 	fSolvers = NULL;
 }
 
-/* set the execution controller and send to nodes and elements.
-* This function constructs the proper drived class controller
-* and passes it to the nodes and elements.  The controller is
-* then cast to a controller to extract only the FEManagerT
+/* set the execution integrator and send to nodes and elements.
+* This function constructs the proper drived class integrator
+* and passes it to the nodes and elements.  The integrator is
+* then cast to a integrator to extract only the FEManagerT
 * interface. */
-void FEManagerT::SetController(void)
+void FEManagerT::SetIntegrator(void)
 {
 	fMainOut << "\n T i m e   I n t e g r a t o r s:\n";
 	
@@ -1308,58 +1308,58 @@ void FEManagerT::SetController(void)
 		int n_int = -1;
 		in >> n_int;
 		
-		fControllers.Dimension(n_int);
-		fControllers = NULL;
-		for (int i = 0; i < fControllers.Length(); i++)
+		fIntegrators.Dimension(n_int);
+		fIntegrators = NULL;
+		for (int i = 0; i < fIntegrators.Length(); i++)
 		{
 			int dex = -1;
 			TimeManagerT::CodeT code;
 			in >> dex >> code;
 			
-			ControllerT* controller = fTimeManager->New_Controller(code);
-			if (!controller) {
-				cout << "\n FEManagerT::SetController: exception constructing controller " 
-				     << i+1 << " of " << fControllers.Length() << endl;
+			IntegratorT* integrator = fTimeManager->New_Integrator(code);
+			if (!integrator) {
+				cout << "\n FEManagerT::SetIntegrator: exception constructing integrator " 
+				     << i+1 << " of " << fIntegrators.Length() << endl;
 				throw ExceptionT::kBadInputValue;
 			}
-			fControllers[i] = controller;
+			fIntegrators[i] = integrator;
 		}
 	}
 	else /* legacy code - a single predefined integrator */
 	{
 		/* just one */
-		fControllers.Dimension(1);
-		fControllers = NULL;
+		fIntegrators.Dimension(1);
+		fIntegrators = NULL;
 		
 		/* set by analysis type */
-		ControllerT* controller = NULL;
+		IntegratorT* integrator = NULL;
 		switch (fAnalysisCode)
 		{
 			case GlobalT::kLinStatic:
 			{
-				controller = fTimeManager->New_Controller(TimeManagerT::kLinearStatic);
+				integrator = fTimeManager->New_Integrator(TimeManagerT::kLinearStatic);
 				break;
 			}
 			case GlobalT::kNLStatic:
 			case GlobalT::kNLStaticKfield:
 			case GlobalT::kLinStaticHeat:
 			{
-				controller = fTimeManager->New_Controller(TimeManagerT::kStatic);
+				integrator = fTimeManager->New_Integrator(TimeManagerT::kStatic);
 				break;
 			}
 			case GlobalT::kLinTransHeat:
 			{
-				controller = fTimeManager->New_Controller(TimeManagerT::kTrapezoid);
+				integrator = fTimeManager->New_Integrator(TimeManagerT::kTrapezoid);
 				break;
 			}
 			case GlobalT::kLinDynamic:
 			{
-				controller = fTimeManager->New_Controller(TimeManagerT::kLinearHHT);
+				integrator = fTimeManager->New_Integrator(TimeManagerT::kLinearHHT);
 				break;
 			}
 			case GlobalT::kNLDynamic:
 			{
-				controller = fTimeManager->New_Controller(TimeManagerT::kNonlinearHHT);
+				integrator = fTimeManager->New_Integrator(TimeManagerT::kNonlinearHHT);
 				break;
 			}
 			case GlobalT::kLinExpDynamic:
@@ -1367,16 +1367,16 @@ void FEManagerT::SetController(void)
 			case GlobalT::kNLExpDynKfield:
 			case GlobalT::kPML:
 			{
-				controller = fTimeManager->New_Controller(TimeManagerT::kExplicitCD);
+				integrator = fTimeManager->New_Integrator(TimeManagerT::kExplicitCD);
 				break;
 			}			
 			default:
-				cout << "\nFEManagerT::SetController: unknown controller type\n" << endl;
+				cout << "\nFEManagerT::SetIntegrator: unknown integrator type\n" << endl;
 				throw ExceptionT::kBadInputValue;
 		}
 		
-		if (!controller) throw ExceptionT::kGeneralFail;
-		fControllers[0] = controller;
+		if (!integrator) throw ExceptionT::kGeneralFail;
+		fIntegrators[0] = integrator;
 	}
 }
 
@@ -1674,7 +1674,7 @@ SolverT* FEManagerT::New_Solver(int code, int group)
 			//TEMP - need to figure out which set of DOF's to send to the solver.
 			//       This gets complicated since each group could have more than
 			//       one time integrator, which sets the order of the DOF. For now,
-			//       grab the controller from the first field in this group and
+			//       grab the integrator from the first field in this group and
 			//       let its integrator decide.
 			
 			/* all fields in the group */
@@ -1682,8 +1682,8 @@ SolverT* FEManagerT::New_Solver(int code, int group)
 			fNodeManager->CollectFields(group, fields);
 			if (fields.Length() < 1) throw ExceptionT::kGeneralFail;
 			
-			const nControllerT& controller = fields[0]->nController();
-			solver = new NOXSolverT(*this, group, controller.OrderOfUnknown());
+			const nIntegratorT& integrator = fields[0]->nIntegrator();
+			solver = new NOXSolverT(*this, group, integrator.OrderOfUnknown());
 			break;
 #else
 			ExceptionT::GeneralFail(caller, "NOX not installed: %d", SolverT::kNOX);

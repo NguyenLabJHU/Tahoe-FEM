@@ -1,14 +1,14 @@
-/* $Id: FSSolidMatT.h,v 1.9 2002-11-14 17:06:39 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.10 2003-01-29 07:35:08 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
 
 /* base class */
-#include "StructuralMaterialT.h"
+#include "SolidMaterialT.h"
 #include "TensorTransformT.h"
 
 /* direct members */
-#include "FDMatSupportT.h"
+#include "FSMatSupportT.h"
 
 namespace Tahoe {
 
@@ -26,19 +26,19 @@ class FiniteStrainT;
  * gradient is available through FSSolidMatT::F_total, and the
  * \a inverse of the thermal deformation gradient is available
  * through FSSolidMatT::F_thermal_inverse. */
-class FSSolidMatT: public StructuralMaterialT, protected TensorTransformT
+class FSSolidMatT: public SolidMaterialT, protected TensorTransformT
 {
 public:
 
 	/** constructor */
-	FSSolidMatT(ifstreamT& in, const FDMatSupportT& support);
+	FSSolidMatT(ifstreamT& in, const FSMatSupportT& support);
 
 	/** initialization. If active, initialize the history of
 	 * prescribed thermal strains. */
 	virtual void Initialize(void);
 
 	/** finite strain materials support */
-	const FDMatSupportT& FDMatSupport(void) const { return fFDMatSupport; };
+	const FSMatSupportT& FSMatSupport(void) const { return fFSMatSupport; };
 
 	/** write name to output stream */
 	virtual void PrintName(ostream& out) const;
@@ -165,7 +165,7 @@ protected:
 	 * method is not guaranteed to be supported. If no FiniteStrainT is
 	 * available, this function will return NULL.
 	 * \return a const pointer to the supporting element group */
-	const FiniteStrainT* FiniteStrain(void) const { return fFDMatSupport.FiniteStrain(); };
+	const FiniteStrainT* FiniteStrain(void) const { return fFSMatSupport.FiniteStrain(); };
 
 private:
 
@@ -193,7 +193,7 @@ private:
 protected:
 
 	/** support for finite strain materials */
-	const FDMatSupportT& fFDMatSupport;
+	const FSMatSupportT& fFSMatSupport;
 
 private:
 

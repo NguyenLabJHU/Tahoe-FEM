@@ -1,6 +1,5 @@
-/* $Id: TimeManagerT.cpp,v 1.15 2003-01-27 07:00:27 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.16 2003-01-29 07:35:20 paklein Exp $ */
 /* created: paklein (05/23/1996) */
-
 #include "TimeManagerT.h"
 
 #include <iostream.h>
@@ -15,14 +14,14 @@
 #include "dArrayT.h"
 
 /* controllers */
-#include "StaticController.h"
-#include "LinearStaticController.h"
-#include "TrapezoidController.h"
+#include "StaticIntegrator.h"
+#include "LinearStaticIntegrator.h"
+#include "TrapezoidIntegrator.h"
 #include "LinearHHTalpha.h"
 #include "NLHHTalpha.h"
-#include "ExplicitCDController.h"
-#include "VerletController.h"
-#include "Gear6Controller.h"
+#include "ExplicitCDIntegrator.h"
+#include "VerletIntegrator.h"
+#include "Gear6Integrator.h"
 
 
 	/** enum of integrator types */
@@ -162,11 +161,11 @@ bool TimeManagerT::NextSequence(void)
 		cout << "\n T i m e   S e q u e n c e : ";
 		cout << fCurrentSequence + 1 << endl;
 		
-		/* see if all controllers are explicit */
-		fImpExp = ControllerT::kExplicit;
-		for (int i = 0; fImpExp == ControllerT::kExplicit && 
-			i < theBoss.NumControllers(); i++)
-			fImpExp = theBoss.Controller(i)->ImplicitExplicit();
+		/* see if all Integrators are explicit */
+		fImpExp = IntegratorT::kExplicit;
+		for (int i = 0; fImpExp == IntegratorT::kExplicit && 
+			i < theBoss.NumIntegrators(); i++)
+			fImpExp = theBoss.Integrator(i)->ImplicitExplicit();
 		
 		return true;
 	}
@@ -195,7 +194,7 @@ bool TimeManagerT::Step(void)
 		
 		/* print less often for explicit */
 		GlobalT::AnalysisCodeT analysiscode = theBoss.Analysis();
-		bool is_explicit = fImpExp == ControllerT::kExplicit;
+		bool is_explicit = fImpExp == IntegratorT::kExplicit;
 		
 		/* verbose flag */
 		bool write_header = !is_explicit     ||
@@ -359,73 +358,73 @@ void TimeManagerT::CloseStep(void) //TEMP? - let FEManager control/monitor outpu
 }
 
 /* return a pointer to a integrator of the specified type */
-ControllerT* TimeManagerT::New_Controller(CodeT type) const
+IntegratorT* TimeManagerT::New_Integrator(CodeT type) const
 {
-	ControllerT* controller = NULL;
+	IntegratorT* integrator = NULL;
 	try {
 	switch (type)
 	{
 		case kLinearStatic:
 		{
-			controller = new LinearStaticController(theBoss.Output());
+			integrator = new LinearStaticIntegrator(theBoss.Output());
 			break;		
 		}
 		case kStatic:
 		{
-			controller = new StaticController(theBoss.Output());
+			integrator = new StaticIntegrator(theBoss.Output());
 			break;		
 		}
 		case kTrapezoid:
 		{
-			controller = new TrapezoidController(theBoss.Output());
+			integrator = new TrapezoidIntegrator(theBoss.Output());
 			break;		
 		}
 		case kLinearHHT:
 		{
 			TimeManagerT* tm = const_cast<TimeManagerT*>(this);
-			controller = new LinearHHTalpha(*tm, theBoss.Input(), theBoss.Output(), true);
+			integrator = new LinearHHTalpha(*tm, theBoss.Input(), theBoss.Output(), true);
 			break;				
 		}
 		case kNonlinearHHT:
 		{
 			TimeManagerT* tm = const_cast<TimeManagerT*>(this);
-			controller = new NLHHTalpha(*tm, theBoss.Input(), theBoss.Output(), true);
+			integrator = new NLHHTalpha(*tm, theBoss.Input(), theBoss.Output(), true);
 			break;
 		}
 		case kExplicitCD:
 		{
-			controller = new ExplicitCDController(theBoss.Output());
+			integrator = new ExplicitCDIntegrator(theBoss.Output());
 			break;		
 		}
-	        case kVerlet:
-	        {
-	                controller = new VerletController(theBoss.Output());
-	                break;
-	        }
+		case kVerlet:
+		{
+			integrator = new VerletIntegrator(theBoss.Output());
+			break;
+		}
 		case kGear6:
-	        {
-	                controller = new Gear6Controller(theBoss.Output());
-	                break;
-	        }
+		{
+			integrator = new Gear6Integrator(theBoss.Output());
+			break;
+		}
 		default:
 		{
-			cout << "\n TimeManagerT::New_Controller: unrecognized type: " << type << endl;
+			cout << "\n TimeManagerT::New_Integrator: unrecognized type: " << type << endl;
 			throw ExceptionT::kGeneralFail;
 		}
 	} }
 #ifdef __NEW_THROWS__
-	catch (bad_alloc) { controller = NULL; }
+	catch (bad_alloc) { integrator = NULL; }
 #else
-	catch (ExceptionT::CodeT) { controller = NULL; }
+	catch (ExceptionT::CodeT) { integrator = NULL; }
 #endif	
 	
 	/* fail */
-	if (!controller) {
-		cout << "\n TimeManagerT::New_Controller: failed" << endl;
+	if (!integrator) {
+		cout << "\n TimeManagerT::New_Integrator: failed" << endl;
 		throw ExceptionT::kGeneralFail;	
 	}
 
-	return controller;
+	return integrator;
 }
 
 /************************************************************************

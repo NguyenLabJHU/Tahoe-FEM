@@ -1,4 +1,4 @@
-/* $Id: FDSimoVisco2D.h,v 1.4 2002-11-14 17:06:12 paklein Exp $ */
+/* $Id: FDSimoVisco2D.h,v 1.5 2003-01-29 07:34:49 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #ifndef _FD_SIMO_VISCO2D_H_
@@ -17,7 +17,7 @@ class FDSimoVisco2D: public FDSimoViscoBaseT, public Material2DT
 	public:
 
 	/*constructor*/
-	FDSimoVisco2D(ifstreamT& in, const FDMatSupportT& support);
+	FDSimoVisco2D(ifstreamT& in, const FSMatSupportT& support);
 
 	/*print parameters*/
 	void Print(ostream& out) const;

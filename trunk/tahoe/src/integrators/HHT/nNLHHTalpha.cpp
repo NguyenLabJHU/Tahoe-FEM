@@ -1,4 +1,4 @@
-/* $Id: nNLHHTalpha.cpp,v 1.8 2003-01-27 07:00:22 paklein Exp $ */
+/* $Id: nNLHHTalpha.cpp,v 1.9 2003-01-29 07:35:14 paklein Exp $ */
 /* created: paklein (10/17/1996) */
 #include "nNLHHTalpha.h"
 #include "dArrayT.h"
@@ -161,7 +161,7 @@ void nNLHHTalpha::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 	}
 }
 
-/* return the field array needed by nControllerT::MappedCorrector. */
+/* return the field array needed by nIntegratorT::MappedCorrector. */
 const dArray2DT& nNLHHTalpha::MappedCorrectorField(BasicFieldT& field) const
 {
 	return field[2];

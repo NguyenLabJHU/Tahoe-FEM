@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.5 2002-11-14 17:06:39 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.6 2003-01-29 07:35:08 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include <iostream.h>
@@ -10,7 +10,7 @@ using namespace Tahoe;
 
 /* constructor */
 SSSolidMatT::SSSolidMatT(ifstreamT& in,const SSMatSupportT& support):
-	StructuralMaterialT(in, support),
+	SolidMaterialT(in, support),
 	fSSMatSupport(support),
 //	fLocDisp(fSmallStrain.Displacements()),	
 	fStrainTemp(NumSD()),
@@ -24,7 +24,7 @@ SSSolidMatT::SSSolidMatT(ifstreamT& in,const SSMatSupportT& support):
 void SSSolidMatT::PrintName(ostream& out) const
 {
 	/* inherited */
-	StructuralMaterialT::PrintName(out);
+	SolidMaterialT::PrintName(out);
 	
 	out << "    Small strain\n";
 }
@@ -93,7 +93,7 @@ const dSymMatrixT& SSSolidMatT::S_IJ(void) { return s_ij();   }
 void SSSolidMatT::InitStep(void)
 {
 	/* inherited */
-	StructuralMaterialT::InitStep();
+	SolidMaterialT::InitStep();
 
 	/* thermal strain */
 	fHasThermalStrain = SetThermalStrain(fThermalStrain);

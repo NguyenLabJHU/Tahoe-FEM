@@ -1,6 +1,5 @@
-/* $Id: FBC_ControllerT.h,v 1.7 2002-11-28 16:44:20 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.8 2003-01-29 07:35:22 paklein Exp $ */
 /* created: paklein (11/17/1997) */
-
 #ifndef _FBC_CONTROLLER_T_H_
 #define _FBC_CONTROLLER_T_H_
 
@@ -18,7 +17,7 @@ class SolverT;
 template <class TYPE> class AutoArrayT;
 class iArray2DT;
 template <class TYPE> class RaggedArray2DT;
-class eControllerT;
+class eIntegratorT;
 class StringT;
 
 /** base class for all force BC controllers */
@@ -40,7 +39,7 @@ public:
 	virtual ~FBC_ControllerT(void);
 
 	/* set the controller */
-	virtual void SetController(const eControllerT* controller);
+	virtual void SetController(const eIntegratorT* controller);
 
 	/* initialize data - called immediately after construction */
 	virtual void Initialize(void) = 0;
@@ -96,7 +95,7 @@ protected:
 	int fGroup;
 
 	/* element controller */
-	const eControllerT* fController;
+	const eIntegratorT* fIntegrator;
 };
 
 } // namespace Tahoe 

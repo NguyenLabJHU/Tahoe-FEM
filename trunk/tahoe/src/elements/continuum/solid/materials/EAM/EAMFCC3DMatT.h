@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.h,v 1.5 2002-11-14 17:06:01 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.h,v 1.6 2003-01-29 07:34:38 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #ifndef _EAMFCC3DMatT_H_
 #define _EAMFCC3DMatT_H_
@@ -25,7 +25,7 @@ public:
 	  kPrescribed = 4};
 
 	/* constructor */
-	EAMFCC3DMatT(ifstreamT& in, const FDMatSupportT& support);
+	EAMFCC3DMatT(ifstreamT& in, const FSMatSupportT& support);
 
 	/* destructor */
 	virtual ~EAMFCC3DMatT(void);

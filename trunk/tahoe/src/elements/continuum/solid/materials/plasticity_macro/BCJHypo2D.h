@@ -1,4 +1,4 @@
-/* $Id: BCJHypo2D.h,v 1.5 2002-11-14 17:06:36 paklein Exp $ */
+/* $Id: BCJHypo2D.h,v 1.6 2003-01-29 07:35:06 paklein Exp $ */
 #ifndef _BCJ_HYPO_2D_H_
 #define _BCJ_HYPO_2D_H_
 
@@ -12,13 +12,13 @@
 namespace Tahoe {
 
 class ifstreamT;
-class ElasticT;
+class SolidElementT;
 
 class BCJHypo2D : public BCJHypo3D, public Material2DT
 {
  public:
   // constructor
-  BCJHypo2D(ifstreamT& in, const FDMatSupportT& support);
+  BCJHypo2D(ifstreamT& in, const FSMatSupportT& support);
 
   // destructor
   ~BCJHypo2D();

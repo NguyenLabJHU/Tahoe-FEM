@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden2DT.h,v 1.4 2002-11-14 17:06:07 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.h,v 1.5 2003-01-29 07:34:43 paklein Exp $ */
 /* created: paklein (02/18/2001) */
 #ifndef _QUAD_LOG_ISO_2D_T_H_
 #define _QUAD_LOG_ISO_2D_T_H_
@@ -15,7 +15,7 @@ class QuadLogOgden2DT: public OgdenIsotropicT, public Material2DT
 public:
 
 	/* constructor */
-	QuadLogOgden2DT(ifstreamT& in, const FDMatSupportT& support);
+	QuadLogOgden2DT(ifstreamT& in, const FSMatSupportT& support);
 
 	/* print parameters */
 	virtual void PrintName(ostream& out) const;

@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.h,v 1.4 2002-11-14 17:06:32 paklein Exp $ */
+/* $Id: GradCrystalPlastFp.h,v 1.5 2003-01-29 07:35:04 paklein Exp $ */
 #ifndef _GRAD_CRYSTAL_PLAST_FP_H_
 #define _GRAD_CRYSTAL_PLAST_FP_H_
 
@@ -16,7 +16,7 @@ class GradCrystalPlastFp : public LocalCrystalPlastFp
 {
  public:
   // constructor
-  GradCrystalPlastFp(ifstreamT& in, const FDMatSupportT& support);
+  GradCrystalPlastFp(ifstreamT& in, const FSMatSupportT& support);
 
   // destructor
   ~GradCrystalPlastFp();

@@ -1,4 +1,4 @@
-/* $Id: SolidMatSupportT.h,v 1.3 2003-01-27 07:00:28 paklein Exp $ */
+/* $Id: SolidMatSupportT.h,v 1.4 2003-01-29 07:34:57 paklein Exp $ */
 #ifndef _STRUCT_MAT_SUPPORT_T_H_
 #define _STRUCT_MAT_SUPPORT_T_H_
 
@@ -8,7 +8,7 @@
 namespace Tahoe {
 
 /* forward declarations */
-class ElasticT;
+class SolidElementT;
 
 /** support for the small strain Tahoe materials classes */
 class SolidMatSupportT: public MaterialSupportT
@@ -23,7 +23,7 @@ public:
 	/** return a pointer to the host element. Returns NULL if no
 	 * no element information in available. The ContinuumElementT
 	 * pointer is set using MaterialSupportT::SetContinuumElement. */
-	const ElasticT* Elastic(void) const { return fElastic; };
+	const SolidElementT* SolidElement(void) const { return fSolidElement; };
 
 	/** return a pointer the specified local array, or NULL if the array is not
 	 * available. During calls the materials routines these will contain the
@@ -53,7 +53,7 @@ public:
   private:
 
   	/** pointer to the solid element */
-	const ElasticT* fElastic;
+	const SolidElementT* fSolidElement;
 	
 	/** \name pointers to local arrays */
 	/*@{*/

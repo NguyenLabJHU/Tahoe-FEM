@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.39 2003-01-27 07:00:25 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.40 2003-01-29 07:34:34 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -10,13 +10,13 @@
 #include "fstreamT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 #include "iAutoArrayT.h"
 
 /* materials */
-#include "StructuralMaterialT.h"
-#include "StructuralMatSupportT.h"
-#include "StructuralMatListT.h"
+#include "SolidMaterialT.h"
+#include "SolidMatSupportT.h"
+#include "SolidMatListT.h"
 
 /* exception codes */
 #include "ExceptionT.h"
@@ -52,8 +52,8 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	    fStrainDispOpt != kMeanDilBbar) throw ExceptionT::kBadInputValue;
 
 	/* checks for dynamic analysis */
-	if (fController->Order() > 0 &&
-	    fController->ImplicitExplicit() == eControllerT::kExplicit)
+	if (fIntegrator->Order() > 0 &&
+	    fIntegrator->ImplicitExplicit() == eIntegratorT::kExplicit)
 	    fMassType = kLumpedMass;
 }
 
@@ -112,8 +112,8 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 	double constKd = 0.0;
 	
 	/* components dicated by the algorithm */
-	int formMa = fController->FormMa(constMa);
-	int formKd = fController->FormKd(constKd);
+	int formMa = fIntegrator->FormMa(constMa);
+	int formKd = fIntegrator->FormKd(constKd);
 
 	/* body forces */
 	int formBody = 0;
@@ -325,7 +325,7 @@ void SolidElementT::ReadMaterialData(ifstreamT& in)
 
 		/* casts are safe since class contructs materials list */
 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
-		StructuralMaterialT* mat = (StructuralMaterialT*) pcont_mat;
+		SolidMaterialT* mat = (SolidMaterialT*) pcont_mat;
 
 		/* collect needs */
 		needs[kNeedDisp] = mat->NeedDisp();
@@ -433,7 +433,7 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 		}	
 
 		/* defaults */
-		if (fController->Order() == 0)
+		if (fIntegrator->Order() == 0)
 		{
 			fElementOutputCodes[iKineticEnergy] = IOBaseT::kAtNever;
 			fElementOutputCodes[iLinearMomentum] = IOBaseT::kAtNever;
@@ -512,7 +512,7 @@ void SolidElementT::SetLocalArrays(void)
 
 	/* register */
 	Field().RegisterLocal(fLocLastDisp);
-	if (fController->Order() == 2)
+	if (fIntegrator->Order() == 2)
 	{
 		Field().RegisterLocal(fLocVel);
 		Field().RegisterLocal(fLocAcc);
@@ -576,13 +576,13 @@ void SolidElementT::SetGlobalShape(void)
 MaterialSupportT* SolidElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
 	/* allocate new */
-	if (!p) p = new StructuralMatSupportT(NumSD(), NumDOF(), NumIP());
+	if (!p) p = new SolidMatSupportT(NumSD(), NumDOF(), NumIP());
 
 	/* inherited initializations */
 	ContinuumElementT::NewMaterialSupport(p);
 
-	/* set StructuralMatSupportT fields */
-	StructuralMatSupportT* ps = dynamic_cast<StructuralMatSupportT*>(p);
+	/* set SolidMatSupportT fields */
+	SolidMatSupportT* ps = dynamic_cast<SolidMatSupportT*>(p);
 	if (ps) {
 		/* set pointers to local arrays */
 		ps->SetLocalArray(fLocLastDisp);
@@ -773,8 +773,8 @@ void SolidElementT::ElementLHSDriver(void)
 	double constM = 0.0;
 	double constK = 0.0;
 	
-	int formM = fController->FormM(constM);
-	int formK = fController->FormK(constK);
+	int formM = fIntegrator->FormM(constM);
+	int formK = fIntegrator->FormK(constK);
 
 	/* override algorithm */
 	if (fMassType == kNoMass) formM = 0;
@@ -851,8 +851,8 @@ void SolidElementT::ElementRHSDriver(void)
 	double constKd = 0.0;
 	
 	/* components dicated by the algorithm */
-	int formMa = fController->FormMa(constMa);
-	int formKd = fController->FormKd(constKd);
+	int formMa = fIntegrator->FormMa(constMa);
+	int formKd = fIntegrator->FormKd(constKd);
 
 	/* body forces */
 	int formBody = 0;
@@ -928,7 +928,7 @@ bool SolidElementT::NextElement(void)
 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[CurrentElement().MaterialNumber()];
 	
 		/* cast is safe since class contructs materials list */
-		fCurrMaterial = (StructuralMaterialT*) pcont_mat;
+		fCurrMaterial = (SolidMaterialT*) pcont_mat;
 	}
 	
 	return result;
@@ -938,8 +938,8 @@ bool SolidElementT::NextElement(void)
 GlobalT::SystemTypeT SolidElementT::TangentType(void) const
 {
 	/* special case */
-	if (fController->Order() > 0 &&
-	    fController->ImplicitExplicit() ==  eControllerT::kExplicit &&
+	if (fIntegrator->Order() > 0 &&
+	    fIntegrator->ImplicitExplicit() ==  eIntegratorT::kExplicit &&
 	    (fMassType == kNoMass ||
 	     fMassType == kLumpedMass))
 		return GlobalT::kDiagonal;
@@ -949,9 +949,9 @@ GlobalT::SystemTypeT SolidElementT::TangentType(void) const
 }
 
 /* return the materials list */
-const StructuralMatListT& SolidElementT::StructuralMaterialList(void) const
+const SolidMatListT& SolidElementT::StructuralMaterialList(void) const
 {
-	return dynamic_cast<const StructuralMatListT&>(MaterialsList());
+	return dynamic_cast<const SolidMatListT&>(MaterialsList());
 }
 
 /* extrapolate the integration point stresses and strains and extrapolate */

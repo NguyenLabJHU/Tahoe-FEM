@@ -1,10 +1,10 @@
-/* $Id: SSSolidMatT.h,v 1.5 2002-11-14 17:06:39 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.6 2003-01-29 07:35:08 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
 
 /* base class */
-#include "StructuralMaterialT.h"
+#include "SolidMaterialT.h"
 
 /* direct members */
 #include "dSymMatrixT.h"
@@ -15,7 +15,7 @@ namespace Tahoe {
 class SSMatSupportT;
 
 /** defines the interface for small strain continuum materials */
-class SSSolidMatT: public StructuralMaterialT
+class SSSolidMatT: public SolidMaterialT
 {
 public:
 

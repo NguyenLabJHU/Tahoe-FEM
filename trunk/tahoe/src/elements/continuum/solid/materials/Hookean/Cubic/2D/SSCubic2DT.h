@@ -1,4 +1,4 @@
-/* $Id: SSCubic2DT.h,v 1.5 2002-11-14 17:06:05 paklein Exp $ */
+/* $Id: SSCubic2DT.h,v 1.6 2003-01-29 07:34:41 paklein Exp $ */
 /* created: paklein (06/11/97) */
 #ifndef _SS_CUBIC_2D_T_H_
 #define _SS_CUBIC_2D_T_H_
@@ -21,7 +21,7 @@ public:
 	virtual void Print(ostream& out) const;
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. \note plane strain not implemented, but 
 	 * could be using CubicT::DilatationFactor2D. */
 	virtual double Pressure(void) const;

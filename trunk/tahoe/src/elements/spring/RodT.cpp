@@ -1,11 +1,11 @@
-/* $Id: RodT.cpp,v 1.26 2002-11-30 16:41:30 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.27 2003-01-29 07:35:13 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include "fstreamT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 #include "OutputSetT.h"
 #include "dArray2DT.h"
 
@@ -96,8 +96,8 @@ void RodT::Initialize(void)
 GlobalT::SystemTypeT RodT::TangentType(void) const
 {
 	/* special case */
-	if (fController->Order() > 0 &&
-	    fController->ImplicitExplicit() ==  eControllerT::kExplicit)
+	if (fIntegrator->Order() > 0 &&
+	    fIntegrator->ImplicitExplicit() ==  eIntegratorT::kExplicit)
 		return GlobalT::kDiagonal;
 	else
 		return GlobalT::kSymmetric;
@@ -231,8 +231,8 @@ void RodT::LHSDriver(GlobalT::SystemTypeT)
 	/* time integration dependent */
 	double constK = 0.0;
 	double constM = 0.0;
-	int formK = fController->FormK(constK);
-	int formM = fController->FormM(constM);
+	int formK = fIntegrator->FormK(constK);
+	int formM = fIntegrator->FormM(constM);
 
 	/* coordinates arrays */
 	const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
@@ -295,8 +295,8 @@ void RodT::RHSDriver(void)
 	double constKd = 0.0;
 	
 	/* components dicated by the algorithm */
-	int formMa = fController->FormMa(constMa);
-	int formKd = fController->FormKd(constKd);
+	int formMa = fIntegrator->FormMa(constMa);
+	int formKd = fIntegrator->FormKd(constKd);
 	
 //TEMP - inertia term in residual
 if (formMa) {
@@ -427,7 +427,7 @@ void RodT::ComputeHardyStress(void)
   double constKd = 0.0;
 	
   /* components dicated by the algorithm */
-  int formKd = fController->FormKd(constKd);
+  int formKd = fIntegrator->FormKd(constKd);
   
   /* coordinates arrays */
   const dArray2DT& init_coords = ElementSupport().InitialCoordinates();

@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatSupportT.h,v 1.2 2002-11-14 17:06:21 paklein Exp $ */
+/* $Id: DiffusionMatSupportT.h,v 1.3 2003-01-29 07:34:33 paklein Exp $ */
 #ifndef _DIFF_MAT_SUPPORT_T_H_
 #define _DIFF_MAT_SUPPORT_T_H_
 
@@ -12,7 +12,7 @@
 namespace Tahoe {
 
 /* forward declarations */
-class DiffusionT;
+class DiffusionElementT;
 
 /** support for the finite strain Tahoe materials classes */
 class DiffusionMatSupportT: public MaterialSupportT
@@ -41,7 +41,7 @@ public:
 	/** return a pointer to the host element. Returns NULL if no
 	 * no element information in available. The ContinuumElementT
 	 * pointer is set using MaterialSupportT::SetContinuumElement. */
-	const DiffusionT* Diffusion(void) const { return fDiffusion; };
+	const DiffusionElementT* Diffusion(void) const { return fDiffusion; };
 
 	/** set the element group pointer */
 	virtual void SetContinuumElement(const ContinuumElementT* p);
@@ -55,7 +55,7 @@ public:
 	const ArrayT<dArrayT>* fGradient_list;
 
   	/** pointer to the diffusion element */
-	const DiffusionT* fDiffusion;
+	const DiffusionElementT* fDiffusion;
 };
 
 /* inlines */

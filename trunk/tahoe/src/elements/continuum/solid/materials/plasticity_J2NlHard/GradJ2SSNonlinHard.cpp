@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSNonlinHard.cpp,v 1.8 2003-01-27 07:00:29 paklein Exp $ */
+/* $Id: GradJ2SSNonlinHard.cpp,v 1.9 2003-01-29 07:35:03 paklein Exp $ */
 #include "GradJ2SSNonlinHard.h"
 #include "SSMatSupportT.h"
 
@@ -35,7 +35,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 GradJ2SSNonlinHard::GradJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& support):
-	SSStructMatT (in, support),
+	SSSolidMatT (in, support),
 	IsotropicT   (in),
 	HookeanMatT  (kNSD),
 	fNumIP       (NumIP()),
@@ -228,7 +228,7 @@ void GradJ2SSNonlinHard::ResetHistory(void)
 void GradJ2SSNonlinHard::Print(ostream& out) const
 {
 	/* inherited */
-	SSStructMatT::Print(out);
+	SSSolidMatT::Print(out);
 	IsotropicT::Print(out);
 
         /* hardening coefficients */
@@ -248,7 +248,7 @@ void GradJ2SSNonlinHard::Print(ostream& out) const
 void GradJ2SSNonlinHard::PrintName(ostream& out) const
 {
 	/* inherited */
-	SSStructMatT::PrintName(out);
+	SSSolidMatT::PrintName(out);
 	out << "    Nonlocal small strain J2 plasticity\n";
 	out << "      with nonlinear gradient dependent\n";
         out << "      isotropic/kinematic hardening\n";

@@ -4,12 +4,12 @@
 #include "Environment.h"
 
 /* base class */
-#include "ControllerT.h"
+#include "IntegratorT.h"
 
 namespace Tahoe {
 
 /** explicit, central differences time integrator */
-class Verlet: virtual public ControllerT
+class Verlet: virtual public IntegratorT
 {
 public:
 

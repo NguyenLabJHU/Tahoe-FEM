@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.11 2002-11-30 16:41:28 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.12 2003-01-29 07:34:32 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -11,7 +11,7 @@
 #include "fstreamT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 #include "iAutoArrayT.h"
 
 /* materials */
@@ -215,7 +215,7 @@ void DiffusionElementT::SetLocalArrays(void)
 	fLocVel.Dimension(NumElementNodes(), NumDOF());
 
 	/* nodal velocities */
-	if (fController->Order() == 1)
+	if (fIntegrator->Order() == 1)
 		Field().RegisterLocal(fLocVel);
 }
 
@@ -265,8 +265,8 @@ void DiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	double constC = 0.0;
 	double constK = 0.0;
 	
-	int formC = fController->FormC(constC);
-	int formK = fController->FormK(constK);
+	int formC = fIntegrator->FormC(constC);
+	int formK = fIntegrator->FormK(constK);
 
 	/* loop over elements */
 	Top();
@@ -299,8 +299,8 @@ void DiffusionElementT::RHSDriver(void)
 	double constKd = 0.0;
 	
 	/* components dicated by the algorithm */
-	int formCv = fController->FormCv(constCv);
-	int formKd = fController->FormKd(constKd);
+	int formCv = fIntegrator->FormCv(constCv);
+	int formKd = fIntegrator->FormKd(constKd);
 
 	/* body forces */
 	int formBody = 0;
@@ -485,7 +485,7 @@ MaterialSupportT* DiffusionElementT::NewMaterialSupport(MaterialSupportT* p) con
 	/* inherited initializations */
 	ContinuumElementT::NewMaterialSupport(p);
 	
-	/* set StructuralMatSupportT fields */
+	/* set SolidMatSupportT fields */
 	DiffusionMatSupportT* ps = dynamic_cast<DiffusionMatSupportT*>(p);
 	if (ps) {
 		ps->SetContinuumElement(this);

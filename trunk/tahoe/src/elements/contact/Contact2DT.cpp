@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.cpp,v 1.5 2002-10-20 22:48:21 paklein Exp $ */
+/* $Id: Contact2DT.cpp,v 1.6 2003-01-29 07:34:30 paklein Exp $ */
 /* created: paklein (05/26/1999) */
 #include "Contact2DT.h"
 
@@ -7,7 +7,7 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 #include "iGridManager2DT.h"
 #include "ElementSupportT.h"
 

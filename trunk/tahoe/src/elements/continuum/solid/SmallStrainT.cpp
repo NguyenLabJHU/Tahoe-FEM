@@ -1,19 +1,19 @@
-/* $Id: SmallStrainT.cpp,v 1.9 2002-11-14 17:05:51 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.10 2003-01-29 07:34:34 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
-#include "SSStructMatT.h"
+#include "SSSolidMatT.h"
 
 /* materials lists */
-#include "MaterialList1DT.h"
-#include "MaterialList2DT.h"
-#include "MaterialList3DT.h"
+#include "SolidMatList1DT.h"
+#include "SolidMatList2DT.h"
+#include "SolidMatList3DT.h"
 #include "SSMatSupportT.h"
 
 using namespace Tahoe;
 
 /* constructor */
 SmallStrainT::SmallStrainT(const ElementSupportT& support, const FieldT& field):
-	ElasticT(support, field),
+	SolidElementT(support, field),
 	fNeedsOffset(-1),
 	fGradU(NumSD()),
 	fSSMatSupport(NULL)
@@ -31,7 +31,7 @@ SmallStrainT::~SmallStrainT(void)
 void SmallStrainT::Initialize(void)
 {
 	/* inherited */
-	ElasticT::Initialize();
+	SolidElementT::Initialize();
 
 	/* what's needed */
 	bool need_strain = false;
@@ -64,7 +64,7 @@ void SmallStrainT::Initialize(void)
 void SmallStrainT::InitialCondition(void)
 {
 	/* inherited */
-	ElasticT::InitialCondition();
+	SolidElementT::InitialCondition();
 	
 	/* set the source for the iteration number */
 	fSSMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
@@ -81,9 +81,9 @@ MaterialSupportT* SmallStrainT::NewMaterialSupport(MaterialSupportT* p) const
 	if (!p) p = new SSMatSupportT(NumSD(), NumDOF(), NumIP());
 
 	/* inherited initializations */
-	ElasticT::NewMaterialSupport(p);
+	SolidElementT::NewMaterialSupport(p);
 	
-	/* set StructuralMatSupportT fields */
+	/* set SolidMatSupportT fields */
 	SSMatSupportT* ps = dynamic_cast<SSMatSupportT*>(p);
 	if (ps) {
 		ps->SetLinearStrain(&fStrain_List);
@@ -103,11 +103,11 @@ MaterialListT* SmallStrainT::NewMaterialList(int size)
 	}
 
 	if (NumSD() == 1)
-		return new MaterialList1DT(size, *fSSMatSupport);
+		return new SolidMatList1DT(size, *fSSMatSupport);
 	else if (NumSD() == 2)
-		return new MaterialList2DT(size, *fSSMatSupport);
+		return new SolidMatList2DT(size, *fSSMatSupport);
 	else if (NumSD() == 3)
-		return new MaterialList3DT(size, *fSSMatSupport);
+		return new SolidMatList3DT(size, *fSSMatSupport);
 	else
 		return NULL;		
 }
@@ -116,7 +116,7 @@ MaterialListT* SmallStrainT::NewMaterialList(int size)
 void SmallStrainT::ReadMaterialData(ifstreamT& in)
 {
 	/* inherited */
-	ElasticT::ReadMaterialData(in);
+	SolidElementT::ReadMaterialData(in);
 
 	/* offset to class needs flags */
 	fNeedsOffset = fMaterialNeeds[0].Length();
@@ -132,7 +132,7 @@ void SmallStrainT::ReadMaterialData(ifstreamT& in)
 
 		/* casts are safe since class contructs materials list */
 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
-		SSStructMatT* mat = (SSStructMatT*) pcont_mat;
+		SSSolidMatT* mat = (SSSolidMatT*) pcont_mat;
 
 		/* collect needs */
 		needs[fNeedsOffset + kstrain     ] = mat->Need_Strain();
@@ -148,7 +148,7 @@ void SmallStrainT::ReadMaterialData(ifstreamT& in)
 void SmallStrainT::SetLocalArrays(void)
 {
 	/* inherited */
-	ElasticT::SetLocalArrays();
+	SolidElementT::SetLocalArrays();
 
 	/* using B-bar */
 	if (fStrainDispOpt == kMeanDilBbar) {
@@ -224,7 +224,7 @@ void SmallStrainT::FormStiffness(double constK)
 void SmallStrainT::SetGlobalShape(void)
 {
 	/* inherited */
-	ElasticT::SetGlobalShape();
+	SolidElementT::SetGlobalShape();
 
 	/* material information */
 	int material_number = CurrentElement().MaterialNumber();

@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.h,v 1.9 2002-11-14 17:06:26 paklein Exp $ */
+/* $Id: J2Simo3D.h,v 1.10 2003-01-29 07:35:02 paklein Exp $ */
 /* created: paklein (04/30/2001) */
 #ifndef _J2_SIMO_3D_H_
 #define _J2_SIMO_3D_H_
@@ -19,7 +19,7 @@ class J2Simo3D: public SimoIso3D, public J2SimoC0HardeningT
 public:
 
 	/** constructor */
-	J2Simo3D(ifstreamT& in, const FDMatSupportT& support);
+	J2Simo3D(ifstreamT& in, const FSMatSupportT& support);
 
 	/** form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;

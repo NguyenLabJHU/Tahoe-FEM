@@ -1,4 +1,4 @@
-/* $Id: CrystalElast.h,v 1.6 2002-11-14 17:06:19 paklein Exp $ */
+/* $Id: CrystalElast.h,v 1.7 2003-01-29 07:34:56 paklein Exp $ */
 #ifndef _CRYSTAL_ELAST_H_
 #define _CRYSTAL_ELAST_H_
 
@@ -19,13 +19,13 @@ namespace Tahoe {
 class CrystalElastLat;
 class CrystalElastMat;
 
-class ElasticT;
+class SolidElementT;
 
 class CrystalElast : public FDHookeanMatT
 {
  public:
   // constructor
-  CrystalElast(ifstreamT& in, const FDMatSupportT& support);
+  CrystalElast(ifstreamT& in, const FSMatSupportT& support);
 
   // destructor
   virtual ~CrystalElast();

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.15 2003-01-27 07:00:26 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.16 2003-01-29 07:35:11 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -15,7 +15,7 @@
 
 //TEMP
 #include "MaterialListT.h"
-#include "StructuralMaterialT.h"
+#include "SolidMaterialT.h"
 
 using namespace Tahoe;
 
@@ -254,7 +254,7 @@ GlobalT::RelaxCodeT MeshFreeSSSolidT::RelaxSystem(void)
 
 		/* check for crack growth */
 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[0];
-		StructuralMaterialT* pmat = (StructuralMaterialT*) pcont_mat;
+		SolidMaterialT* pmat = (SolidMaterialT*) pcont_mat;
 		bool verbose = false;
 	 	if (CheckGrowth(pmat, &fLocDisp, verbose))
 	 	{

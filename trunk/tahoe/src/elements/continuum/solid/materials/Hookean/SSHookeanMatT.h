@@ -1,15 +1,15 @@
-/* $Id: SSHookeanMatT.h,v 1.5 2002-11-14 17:06:02 paklein Exp $ */
+/* $Id: SSHookeanMatT.h,v 1.6 2003-01-29 07:34:39 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _SS_HOOKEAN_MAT_H_
 #define _SS_HOOKEAN_MAT_H_
 
 /* base classes */
-#include "SSStructMatT.h"
+#include "SSSolidMatT.h"
 #include "HookeanMatT.h"
 
 namespace Tahoe {
 
-class SSHookeanMatT: public SSStructMatT, public HookeanMatT
+class SSHookeanMatT: public SSSolidMatT, public HookeanMatT
 {
 public:
 
@@ -28,7 +28,7 @@ public:
 	virtual const dSymMatrixT& s_ij(void);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. */
 	virtual double Pressure(void) const { return fStress.Trace()/3.0; };
 	/*@}*/

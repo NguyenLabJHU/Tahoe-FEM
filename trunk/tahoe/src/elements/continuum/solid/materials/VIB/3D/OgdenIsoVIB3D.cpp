@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.cpp,v 1.7 2002-11-14 17:06:17 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.cpp,v 1.8 2003-01-29 07:34:54 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB3D.h"
 
@@ -17,7 +17,7 @@
 using namespace Tahoe;
 
 /* constructors */
-OgdenIsoVIB3D::OgdenIsoVIB3D(ifstreamT& in, const FDMatSupportT& support):
+OgdenIsoVIB3D::OgdenIsoVIB3D(ifstreamT& in, const FSMatSupportT& support):
 	OgdenIsotropicT(in, support),
 	VIB(in, 3, 3, 6),
 	fSphere(NULL)

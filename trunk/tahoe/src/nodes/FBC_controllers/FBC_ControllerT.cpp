@@ -1,18 +1,16 @@
-/* $Id: FBC_ControllerT.cpp,v 1.3 2002-07-02 19:56:28 cjkimme Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.4 2003-01-29 07:35:22 paklein Exp $ */
 /* created: paklein (11/17/1997) */
-
 #include "FBC_ControllerT.h"
 
 #include <iostream.h>
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 FBC_ControllerT::FBC_ControllerT(FEManagerT& fe_manager, int group):
 	fFEManager(fe_manager),
 	fGroup(group),
-	fController(NULL)
+	fIntegrator(NULL)
 {
 
 }
@@ -21,9 +19,9 @@ FBC_ControllerT::FBC_ControllerT(FEManagerT& fe_manager, int group):
 FBC_ControllerT::~FBC_ControllerT(void) { }
 
 /* set the controller */
-void FBC_ControllerT::SetController(const eControllerT* controller)
+void FBC_ControllerT::SetController(const eIntegratorT* controller)
 {
-	fController = controller;
+	fIntegrator = controller;
 }
 
 /* append element equations numbers to the list */

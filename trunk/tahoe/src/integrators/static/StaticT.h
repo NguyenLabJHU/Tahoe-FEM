@@ -1,16 +1,16 @@
-/* $Id: StaticT.h,v 1.3 2002-07-05 22:27:55 paklein Exp $ */
+/* $Id: StaticT.h,v 1.4 2003-01-29 07:35:17 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _STATIC_T_H_
 #define _STATIC_T_H_
 
 /* base class */
-#include "ControllerT.h"
+#include "IntegratorT.h"
 
 namespace Tahoe {
 
 /** explicit, central differences time integrator */
-class StaticT: public virtual ControllerT
+class StaticT: public virtual IntegratorT
 {
 public:
 

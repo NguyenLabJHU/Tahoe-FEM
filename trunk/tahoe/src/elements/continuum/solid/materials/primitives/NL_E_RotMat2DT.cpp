@@ -1,11 +1,11 @@
-/* $Id: NL_E_RotMat2DT.cpp,v 1.5 2002-11-14 17:06:39 paklein Exp $ */
+/* $Id: NL_E_RotMat2DT.cpp,v 1.6 2003-01-29 07:35:08 paklein Exp $ */
 /* created: paklein (06/13/1997) */
 #include "NL_E_RotMat2DT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-NL_E_RotMat2DT::NL_E_RotMat2DT(ifstreamT& in, const FDMatSupportT& support,
+NL_E_RotMat2DT::NL_E_RotMat2DT(ifstreamT& in, const FSMatSupportT& support,
 	ConstraintOptionT constraint):
 	NL_E_Mat2DT(in, support, constraint),
 	Anisotropic2DT(in)

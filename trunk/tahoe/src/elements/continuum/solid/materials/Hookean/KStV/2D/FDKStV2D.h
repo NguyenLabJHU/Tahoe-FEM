@@ -1,4 +1,4 @@
-/* $Id: FDKStV2D.h,v 1.4 2002-11-14 17:06:06 paklein Exp $ */
+/* $Id: FDKStV2D.h,v 1.5 2003-01-29 07:34:42 paklein Exp $ */
 /* created: paklein (06/10/97) */
 #ifndef _FD_KSTV_2D_H_
 #define _FD_KSTV_2D_H_
@@ -14,7 +14,7 @@ class FDKStV2D: public FDKStV, public Material2DT
 public:
 
 	/* constructor */
-	FDKStV2D(ifstreamT& in, const FDMatSupportT& support);
+	FDKStV2D(ifstreamT& in, const FSMatSupportT& support);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

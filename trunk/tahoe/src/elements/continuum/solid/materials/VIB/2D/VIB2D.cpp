@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.6 2002-11-14 17:06:16 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.7 2003-01-29 07:34:52 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #include "VIB2D.h"
 
@@ -22,7 +22,7 @@ using namespace Tahoe;
 const double Pi = acos(-1.0);
 
 /* constructors */
-VIB2D::VIB2D(ifstreamT& in, const FDMatSupportT& support):
+VIB2D::VIB2D(ifstreamT& in, const FSMatSupportT& support):
 	NL_E_Mat2DT(in, support, kPlaneStress),
 	VIB_E_MatT(in, 2)
 {

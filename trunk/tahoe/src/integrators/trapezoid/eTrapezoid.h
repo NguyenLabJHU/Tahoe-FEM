@@ -1,4 +1,4 @@
-/* $Id: eTrapezoid.h,v 1.3 2002-07-02 19:55:10 cjkimme Exp $ */
+/* $Id: eTrapezoid.h,v 1.4 2003-01-29 07:35:18 paklein Exp $ */
 /* created: paklein (10/03/1999) */
 
 #ifndef _E_TRAPEZOID_H_
@@ -6,12 +6,12 @@
 
 /* base classes */
 #include "Trapezoid.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 
 
 namespace Tahoe {
 
-class eTrapezoid: public virtual Trapezoid, public eControllerT
+class eTrapezoid: public virtual Trapezoid, public eIntegratorT
 {
 public:
 

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.20 2002-11-30 16:41:28 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.21 2003-01-29 07:34:34 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -14,8 +14,8 @@ namespace Tahoe {
 
 /* forward declarations */
 class ShapeFunctionT;
-class StructuralMaterialT;
-class StructuralMatListT;
+class SolidMaterialT;
+class SolidMatListT;
 class StringT;
 
 /** base class of elements for deformation of solids */
@@ -145,7 +145,7 @@ protected:
 	virtual void FormKd(double constK) = 0;
 	
 	/** return the materials list. \return NULL if fail. */
-	const StructuralMatListT& StructuralMaterialList(void) const;
+	const SolidMatListT& StructuralMaterialList(void) const;
 
 	/** driver for calculating output values */
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
@@ -188,7 +188,7 @@ protected:
 	/*@}*/
 
 	/* run time */
-	StructuralMaterialT*  fCurrMaterial;
+	SolidMaterialT*  fCurrMaterial;
 	ArrayT<ArrayT<bool> > fMaterialNeeds;
 
 	/** incremental heat sources for each element block */

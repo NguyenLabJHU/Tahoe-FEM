@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.9 2003-01-27 07:00:26 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.10 2003-01-29 07:35:11 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeFSSolidT.h"
 #include "MaterialsConfig.h"
@@ -15,14 +15,14 @@
 #ifdef VIB_MATERIAL
 #include "D2VIB2D.h"
 #else
-#include "StructuralMaterialT.h"
+#include "SolidMaterialT.h"
 #endif
 
 //TEMP
 #include "MaterialListT.h"
 
 //TEMP - for RHS stuff
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 
 using namespace Tahoe;
 
@@ -62,7 +62,7 @@ void D2MeshFreeFSSolidT::Initialize(void)
 	for (int i = 0; i < fMaterialList->Length(); i++)
 	{
 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
-		StructuralMaterialT* pstruct_mat = (StructuralMaterialT*) pcont_mat;
+		SolidMaterialT* pstruct_mat = (SolidMaterialT*) pcont_mat;
 #ifdef VIB_MATERIAL
 		D2VIB2D* pmat = dynamic_cast<D2VIB2D*>(pstruct_mat);
 #else
@@ -97,9 +97,9 @@ void D2MeshFreeFSSolidT::ElementRHSDriver(void)
 	double constKd = 0.0;
 	
 	/* components dicated by the algorithm */
-	int formMa = fController->FormMa(constMa);
-	int formCv = fController->FormCv(constCv);
-	int formKd = fController->FormKd(constKd);
+	int formMa = fIntegrator->FormMa(constMa);
+	int formCv = fIntegrator->FormCv(constCv);
+	int formKd = fIntegrator->FormKd(constKd);
 
 	/* body forces */
 	int formBody = 0;

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp2D.cpp,v 1.4 2002-11-14 17:06:32 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp2D.cpp,v 1.5 2003-01-29 07:35:04 paklein Exp $ */
 #include "LocalCrystalPlastFp2D.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
@@ -8,7 +8,7 @@ using namespace Tahoe;
 /* spatial dimensions of the problem */
 const int kNSD = 2;
 
-LocalCrystalPlastFp2D::LocalCrystalPlastFp2D(ifstreamT& in, const FDMatSupportT& support) :
+LocalCrystalPlastFp2D::LocalCrystalPlastFp2D(ifstreamT& in, const FSMatSupportT& support) :
   LocalCrystalPlastFp (in, support),  
   Material2DT         (in, Material2DT::kPlaneStrain),
   f2Dsavg_ij   (kNSD),

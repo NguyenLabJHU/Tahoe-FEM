@@ -1,4 +1,4 @@
-/* $Id: HyperEVP3D.cpp,v 1.9 2002-11-14 17:06:36 paklein Exp $ */
+/* $Id: HyperEVP3D.cpp,v 1.10 2003-01-29 07:35:06 paklein Exp $ */
 #include "HyperEVP3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -23,7 +23,7 @@ const int kNumInternal = 5;
 const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {"EQP_strain","VM_stress","Pressure","Hardness"};
 
-HyperEVP3D::HyperEVP3D(ifstreamT& in, const FDMatSupportT& support) :
+HyperEVP3D::HyperEVP3D(ifstreamT& in, const FSMatSupportT& support) :
   EVPFDBaseT(in, support),  
 
   // elastic def gradients
@@ -116,7 +116,7 @@ const dSymMatrixT& HyperEVP3D::s_ij()
       Compute_Ftot_3D(fFtot);
 
       // time step
-      fdt = fFDMatSupport.TimeStep();
+      fdt = fFSMatSupport.TimeStep();
 
       // compute state (stress and state variables)
       IntegrateConstitutiveEqns();
@@ -238,7 +238,7 @@ void HyperEVP3D::ComputeOutput(dArrayT& output)
   output[3] = fIterCount;
 
   if (Hyper_MESSAGES && intpt == 0)
-     cerr << " step # " << fFDMatSupport.StepNumber()
+     cerr << " step # " << fFSMatSupport.StepNumber()
           << " EQP-strain  "  << output[0] 
           << " VM-stress  "   << output[1] 
           << " pressure  "    << output[2] 

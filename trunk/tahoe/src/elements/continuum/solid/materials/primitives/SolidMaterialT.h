@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.8 2002-11-14 17:06:40 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.9 2003-01-29 07:35:08 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -22,7 +22,7 @@ class ThermalDilatationT;
 class ScheduleT;
 class dSymMatrixT;
 class LocalArrayT;
-class ElasticT;
+class SolidElementT;
 
 /** base class for constitutive models for solids */
 class SolidMaterialT: public ContinuumMaterialT

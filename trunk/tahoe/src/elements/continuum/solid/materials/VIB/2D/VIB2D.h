@@ -1,4 +1,4 @@
-/* $Id: VIB2D.h,v 1.5 2002-11-14 17:06:16 paklein Exp $ */
+/* $Id: VIB2D.h,v 1.6 2003-01-29 07:34:52 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #ifndef _VIB_2D_H_
 #define _VIB_2D_H_
@@ -23,7 +23,7 @@ public:
 	                     KGaussRule = 1};
 
 	/* constructor */
-	VIB2D(ifstreamT& in, const FDMatSupportT& support);
+	VIB2D(ifstreamT& in, const FSMatSupportT& support);
 
 	/* destructor */
 	virtual ~VIB2D(void);

@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.6 2002-11-14 17:06:36 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.7 2003-01-29 07:35:06 paklein Exp $ */
 #include "BCJHypoIsoDamageYC3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -32,7 +32,7 @@ const int kNumOutput = 8;
 static const char* Labels[kNumOutput] = {"EQPe","EQPh","EQXie","EQXih",
                                          "VMISES","ALPHA","KAPPA","VVF"};
 
-BCJHypoIsoDamageYC3D::BCJHypoIsoDamageYC3D(ifstreamT& in, const FDMatSupportT& support) :
+BCJHypoIsoDamageYC3D::BCJHypoIsoDamageYC3D(ifstreamT& in, const FSMatSupportT& support) :
   BCJHypo3D(in, support),  
   fVoidGrowthModel (NULL)
 {
@@ -265,7 +265,7 @@ void BCJHypoIsoDamageYC3D::ComputeOutput(dArrayT& output)
   //output[8] = fIterCount;
 
   if (BCJ_DMG_MESSAGES && intpt == 0 && CurrElementNumber() == 0)
-     cerr << " step # " << fFDMatSupport.StepNumber()
+     cerr << " step # " << fFSMatSupport.StepNumber()
           << " EQPe  "  << fEQValues[kEQPe] 
           << " EQXie "  << fEQValues[kEQXie]
           << " PRESS "  << -fEQValues[kEQXih]
@@ -393,7 +393,7 @@ void BCJHypoIsoDamageYC3D::IntegrateConstitutiveEqns(bool& converged, int subInc
 
   // check for inelastic process (note: use deviatoric part for this check)
   if ( fEQXieTr > (1.+1.e-6)*fKineticEqn->h(fInternal_n[kDEQPe]/fdt,fInternal_n[kKAPP])
-	&& fFDMatSupport.IterationNumber() > -1 )
+	&& fFSMatSupport.IterationNumber() > -1 )
     {
       // step 5. forward gradient estimate
       if (subIncr == 1) ForwardGradientEstimate();

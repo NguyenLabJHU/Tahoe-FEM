@@ -1,10 +1,10 @@
-/* $Id: RGBaseT.h,v 1.4 2002-11-14 17:06:09 paklein Exp $ */
+/* $Id: RGBaseT.h,v 1.5 2003-01-29 07:34:45 paklein Exp $ */
 /* created : TDN (1/22/2001) */
 #ifndef _RG_BASE_T_H_
 #define _RG_BASE_T_H_
 
 /* base classes */
-#include "FDStructMatT.h"
+#include "FSSolidMatT.h"
 #include "IsotropicT.h"
 
 /* direct members */
@@ -14,15 +14,15 @@ namespace Tahoe {
 
 /** base class for large deformation isotropic material following
  * Ogden's formulation */
-class RGBaseT: public FDStructMatT, public IsotropicT
+class RGBaseT: public FSSolidMatT, public IsotropicT
 {
   public:
   
 	/* constructor */
-	RGBaseT(ifstreamT& in, const FDMatSupportT& support);
+	RGBaseT(ifstreamT& in, const FSMatSupportT& support);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. \note NOT IMPLEMENTED */
+	 * SolidMaterialT::s_ij. \note NOT IMPLEMENTED */
 	virtual double Pressure(void) const {
 		cout << "\n RGBaseT::Pressure: not implemented" << endl;
 		throw ExceptionT::kGeneralFail;
@@ -41,7 +41,7 @@ class RGBaseT: public FDStructMatT, public IsotropicT
 	virtual void UpdateHistory(void); // element at a time
 	virtual void ResetHistory(void);  // element at a time
 	/* apply pre-conditions at the current time step */
-	virtual void InitStep(void){ FDStructMatT::InitStep(); };
+	virtual void InitStep(void){ FSSolidMatT::InitStep(); };
 	
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;

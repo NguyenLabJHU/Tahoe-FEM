@@ -1,16 +1,16 @@
-/* $Id: nTrapezoid.h,v 1.7 2003-01-27 07:00:24 paklein Exp $ */
+/* $Id: nTrapezoid.h,v 1.8 2003-01-29 07:35:18 paklein Exp $ */
 /* created: paklein (10/03/1999) */
 #ifndef _N_TRAPEZOID_H_
 #define _N_TRAPEZOID_H_
 
 /* base class */
 #include "Trapezoid.h"
-#include "nControllerT.h"
+#include "nIntegratorT.h"
 
 namespace Tahoe {
 
 /** trapezoidal integration for first order systems */
-class nTrapezoid: public virtual Trapezoid, public nControllerT
+class nTrapezoid: public virtual Trapezoid, public nIntegratorT
 {
 public:
 
@@ -29,17 +29,17 @@ public:
 	/** corrector. Maps ALL degrees of freedom forward. */
 	virtual void Corrector(BasicFieldT& field, const dArray2DT& update);
 
-	/** corrector - map ACTIVE. See nControllerT::Corrector for more
+	/** corrector - map ACTIVE. See nIntegratorT::Corrector for more
 	 * documentation */
 	virtual void Corrector(BasicFieldT& field, const dArrayT& update, 
 		int eq_start, int num_eq);
 
 	/** corrector with node number map - map ACTIVE. See 
-	 * nControllerT::MappedCorrector for more documentation */
+	 * nIntegratorT::MappedCorrector for more documentation */
 	virtual void MappedCorrector(BasicFieldT& field, const iArrayT& map, 
 		const iArray2DT& flags, const dArray2DT& update);
 
-	/** return the field array needed by nControllerT::MappedCorrector. */
+	/** return the field array needed by nIntegratorT::MappedCorrector. */
 	virtual const dArray2DT& MappedCorrectorField(BasicFieldT& field) const;
 
 protected:  	

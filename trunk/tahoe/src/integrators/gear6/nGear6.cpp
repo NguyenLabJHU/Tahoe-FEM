@@ -229,7 +229,7 @@ ExceptionT::Stop("nGear6::MappedCorrector", "not implemented");
 	}
 }
 
-/* return the field array needed by nControllerT::MappedCorrector. */
+/* return the field array needed by nIntegratorT::MappedCorrector. */
 const dArray2DT& nGear6::MappedCorrectorField(BasicFieldT& field) const
 {
 	/* check */

@@ -1,4 +1,4 @@
-/* $Id: LJFCC111.cpp,v 1.5 2002-11-14 17:06:00 paklein Exp $ */
+/* $Id: LJFCC111.cpp,v 1.6 2003-01-29 07:34:37 paklein Exp $ */
 /* created: paklein (07/31/1996) */
 #include "LJFCC111.h"
 
@@ -12,7 +12,7 @@ const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-LJFCC111::LJFCC111(ifstreamT& in, const FDMatSupportT& support):
+LJFCC111::LJFCC111(ifstreamT& in, const FSMatSupportT& support):
 	NL_E_RotMat2DT(in, support, kPlaneStrain)
 {
 	in >> fScale;	if (fScale < 0.0) throw ExceptionT::kBadInputValue;

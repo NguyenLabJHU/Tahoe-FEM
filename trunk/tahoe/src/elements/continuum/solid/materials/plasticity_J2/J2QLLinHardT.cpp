@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.11 2002-11-14 17:06:25 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.12 2003-01-29 07:35:02 paklein Exp $ */
 /* created: paklein (10/26/2000) */
 #include "J2QLLinHardT.h"
 
@@ -54,7 +54,7 @@ static const char* Labels[kNumOutput] = {
 	    "s_min"}; // min principal stress
 
 /* constructor */
-J2QLLinHardT::J2QLLinHardT(ifstreamT& in, const FDMatSupportT& support):
+J2QLLinHardT::J2QLLinHardT(ifstreamT& in, const FSMatSupportT& support):
 	QuadLog3D(in, support),
 	J2PrimitiveT(in),
 	fb_elastic(kNSD),

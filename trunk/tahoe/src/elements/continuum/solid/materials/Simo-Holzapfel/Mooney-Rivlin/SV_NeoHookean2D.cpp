@@ -1,4 +1,4 @@
-/* $Id: SV_NeoHookean2D.cpp,v 1.4 2002-11-14 17:06:15 paklein Exp $ */
+/* $Id: SV_NeoHookean2D.cpp,v 1.5 2003-01-29 07:34:51 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
@@ -12,7 +12,7 @@
 
 using namespace Tahoe;
 
-SV_NeoHookean2D::SV_NeoHookean2D(ifstreamT& in, const FDMatSupportT& support):
+SV_NeoHookean2D::SV_NeoHookean2D(ifstreamT& in, const FSMatSupportT& support):
          FDSimoVisco2D(in, support),
 	 fMu(2),
 	 fKappa(2),

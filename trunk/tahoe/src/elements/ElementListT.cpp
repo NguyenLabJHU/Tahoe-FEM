@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.36 2003-01-28 22:35:25 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.37 2003-01-29 07:34:26 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -36,10 +36,10 @@
 #include "LocalizerT.h"
 #include "SimoFiniteStrainT.h"
 #include "SimoQ1P0.h"
-#include "DiffusionT.h"
-#include "MeshFreeElasticT.h"
-#include "MeshFreeFDElasticT.h"
-#include "D2MeshFreeFDElasticT.h"
+#include "DiffusionElementT.h"
+#include "MeshFreeSSSolidT.h"
+#include "MeshFreeFSSolidT.h"
+#include "D2MeshFreeFSSolidT.h"
 #include "UpLagr_ExternalFieldT.h"
 #include "BridgingScaleT.h"
 #endif
@@ -202,7 +202,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			case ElementT::kMeshFreeElastic:
 			{
 #ifdef CONTINUUM_ELEMENT
-				fArray[group] = new MeshFreeElasticT(fSupport, *field);
+				fArray[group] = new MeshFreeSSSolidT(fSupport, *field);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
@@ -270,7 +270,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			case ElementT::kMeshFreeFDElastic:
 			{
 #ifdef CONTINUUM_ELEMENT
-				fArray[group] = new MeshFreeFDElasticT(fSupport, *field);
+				fArray[group] = new MeshFreeFSSolidT(fSupport, *field);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
@@ -279,7 +279,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			case ElementT::kD2MeshFreeFDElastic:
 			{
 #ifdef CONTINUUM_ELEMENT
-				fArray[group] = new D2MeshFreeFDElasticT(fSupport, *field);
+				fArray[group] = new D2MeshFreeFSSolidT(fSupport, *field);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
@@ -397,7 +397,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			case ElementT::kLinearDiffusion:
 			{
 #ifdef CONTINUUM_ELEMENT
-				fArray[group] = new DiffusionT(fSupport, *field);
+				fArray[group] = new DiffusionElementT(fSupport, *field);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
@@ -482,9 +482,9 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			if (!particle)
 				ExceptionT::BadInputValue(caller, "unable to cast pointer to group %d to type RodT", particle_group+1);
 
-			const ElasticT* solid = dynamic_cast<const ElasticT*>(&(fSupport.ElementGroup(--solid_group)));
+			const SolidElementT* solid = dynamic_cast<const SolidElementT*>(&(fSupport.ElementGroup(--solid_group)));
 			if (!solid)
-				ExceptionT::BadInputValue(caller, "unable to cast pointer to group %d to type ElasticT", solid_group+1);
+				ExceptionT::BadInputValue(caller, "unable to cast pointer to group %d to type SolidElementT", solid_group+1);
 
 			fArray[group] = new BridgingScaleT(fSupport, *field, *particle, *solid);
 		    break;

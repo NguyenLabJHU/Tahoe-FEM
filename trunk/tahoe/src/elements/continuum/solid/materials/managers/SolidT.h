@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.23 2002-10-30 17:06:54 thao Exp $ */
+/* $Id: SolidT.h,v 1.24 2003-01-29 07:34:58 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 
 #ifndef _MATERIAL_T_H_
@@ -14,7 +14,7 @@ class SolidT
 public:
 
 	/* solid material types */
-	enum SolidT {
+	enum TypeT {
          kSSKStV = 1,			
          kFDKStV = 2,			
         kSSCubic = 3,			
@@ -58,7 +58,7 @@ kLocXtalPlastFp_C = 56,
      kABAQUS_BCJ = 80,
 kABAQUS_VUMAT_BCJ = 90};
 	/* stream extraction operator */ 
-	friend istream& operator>>(istream& in, SolidT::SolidT& code);
+	friend istream& operator>>(istream& in, SolidT::TypeT& code);
 
 /* 2D types */
 #if 0

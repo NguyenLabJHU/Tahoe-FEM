@@ -1,9 +1,9 @@
-/* $Id: FSMatSupportT.h,v 1.2 2002-11-14 17:06:21 paklein Exp $ */
+/* $Id: FSMatSupportT.h,v 1.3 2003-01-29 07:34:57 paklein Exp $ */
 #ifndef _FD_MAT_SUPPORT_T_H_
 #define _FD_MAT_SUPPORT_T_H_
 
 /* base class */
-#include "StructuralMatSupportT.h"
+#include "SolidMatSupportT.h"
 
 /* direct members */
 #include "ArrayT.h"
@@ -15,7 +15,7 @@ namespace Tahoe {
 class FiniteStrainT;
 
 /** support for the finite strain Tahoe materials classes */
-class FSMatSupportT: public StructuralMatSupportT
+class FSMatSupportT: public SolidMatSupportT
 {
 public:
 

@@ -1,20 +1,20 @@
-/* $Id: FDHookeanMatT.h,v 1.6 2002-11-14 17:06:02 paklein Exp $ */
+/* $Id: FDHookeanMatT.h,v 1.7 2003-01-29 07:34:39 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _FD_HOOKEAN_MAT_H_
 #define _FD_HOOKEAN_MAT_H_
 
 /* base classes */
-#include "FDStructMatT.h"
+#include "FSSolidMatT.h"
 #include "HookeanMatT.h"
 
 namespace Tahoe {
 
-class FDHookeanMatT: public FDStructMatT, public HookeanMatT
+class FDHookeanMatT: public FSSolidMatT, public HookeanMatT
 {
 public:
 
 	/* constructor */
-	FDHookeanMatT(ifstreamT& in, const FDMatSupportT& support);
+	FDHookeanMatT(ifstreamT& in, const FSMatSupportT& support);
 
 	/* initialization */
 	virtual void Initialize(void);
@@ -28,7 +28,7 @@ public:
 	virtual const dSymMatrixT& s_ij(void);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. */
 	virtual double Pressure(void) const;
 	/*@}*/

@@ -1,4 +1,4 @@
-/* $Id: ElementListT.h,v 1.4 2002-07-05 22:27:56 paklein Exp $ */
+/* $Id: ElementListT.h,v 1.5 2003-01-29 07:34:26 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #ifndef _ELEMENTLIST_T_H_
@@ -18,7 +18,7 @@ namespace Tahoe {
 /* forward declarations */
 class ifstreamT;
 class ElementBaseT;
-class eControllerT;
+class eIntegratorT;
 class StringT;
 class FEManagerT;
 class ElementSupportT;

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.18 2002-11-14 17:06:32 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.19 2003-01-29 07:35:04 paklein Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -28,7 +28,7 @@ static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"}
 const bool XTAL_MESSAGES = false;
 const int IPprnt = 1;
 
-LocalCrystalPlast::LocalCrystalPlast(ifstreamT& in, const FDMatSupportT& support) :
+LocalCrystalPlast::LocalCrystalPlast(ifstreamT& in, const FSMatSupportT& support) :
   PolyCrystalMatT(in, support),  
 
   // elastic deformation gradients
@@ -144,7 +144,7 @@ const dSymMatrixT& LocalCrystalPlast::s_ij()
   LoadAggregateData(element, intpt);
 
   // compute state, stress and moduli 
-  if (fFDMatSupport.RunState() == GlobalT::kFormRHS)
+  if (fFSMatSupport.RunState() == GlobalT::kFormRHS)
     {
       // reset iteration counter to check NLCSolver and state convergence
       if (CurrIP() == 0) 
@@ -185,16 +185,16 @@ const dSymMatrixT& LocalCrystalPlast::s_ij()
 
           if (XTAL_MESSAGES && CurrIP() == IPprnt) {
              cout << " Step # " << 
-                      fFDMatSupport.StepNumber() 
+                      fFSMatSupport.StepNumber() 
                   << "    Iter # " << 
-                      fFDMatSupport.IterationNumber() 
+                      fFSMatSupport.IterationNumber() 
                   << endl;
           }
 
           // compute crystal Cauchy stress and consistent tangent
           // global iterations start at iter = -1
-          if (fFDMatSupport.StepNumber() >= 0 &&
-              fFDMatSupport.IterationNumber() <= -1)
+          if (fFSMatSupport.StepNumber() >= 0 &&
+              fFSMatSupport.IterationNumber() <= -1)
              {
                // deformation gradient
                fmatx1.SetToCombination(1., fFtot, -1., fFtot_n);
@@ -435,7 +435,7 @@ void LocalCrystalPlast::ComputeOutput(dArrayT& output)
   // cout << "    fsavg_ij = " << endl << fsavg_ij << endl;
   // cout << "    fAvgStress = " << endl << fAvgStress << endl;
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
-     cerr << " step # " << fFDMatSupport.StepNumber() 
+     cerr << " step # " << fFSMatSupport.StepNumber() 
           << "    S_eq_avg = " 
           << sqrt(fsymmatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 
 
@@ -444,8 +444,8 @@ void LocalCrystalPlast::ComputeOutput(dArrayT& output)
   output[2] = fIterState;
 
   // compute texture of aggregate, if requested
-  int step = fFDMatSupport.StepNumber();
-  int nsteps = fFDMatSupport.NumberOfSteps();
+  int step = fFSMatSupport.StepNumber();
+  int nsteps = fFSMatSupport.NumberOfSteps();
 
   if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
     {
@@ -789,7 +789,7 @@ void LocalCrystalPlast::ForwardGradientEstimate()
   const dArrayT& propH = fHardening->MaterialProperties();
   const dArrayT& propKE = fKinetics->MaterialProperties();
   double m = propKE[0];
-  double time = fFDMatSupport.Time();
+  double time = fFSMatSupport.Time();
 
   // some local tensors
   dMatrixT fFe_n (kNSD);

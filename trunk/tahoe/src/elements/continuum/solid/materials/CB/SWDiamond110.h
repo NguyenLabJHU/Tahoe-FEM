@@ -1,4 +1,4 @@
-/* $Id: SWDiamond110.h,v 1.4 2002-11-14 17:06:00 paklein Exp $ */
+/* $Id: SWDiamond110.h,v 1.5 2003-01-29 07:34:37 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #ifndef _SWDIAMOND110_H_
 #define _SWDIAMOND110_H_
@@ -13,7 +13,7 @@ class SWDiamond110: public SWMaterial2D
 public:
 
 	/* constructor */
-	SWDiamond110(ifstreamT& in, const FDMatSupportT& support);
+	SWDiamond110(ifstreamT& in, const FSMatSupportT& support);
 
 	/* print name */
 	virtual void PrintName(ostream& out) const;

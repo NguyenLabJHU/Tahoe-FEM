@@ -4,14 +4,14 @@
 #include "Environment.h"
 
 /* base class */
-#include "ControllerT.h"
+#include "IntegratorT.h"
 
 namespace Tahoe {
 
 /** Gear time integrator. Base class for the Gear predictor-corrector 
  * time integrator with a local trunction error of 
  * \f$ \Delta t^6 \f$. */
-class Gear6: virtual public ControllerT
+class Gear6: virtual public IntegratorT
 {
 public:
 
