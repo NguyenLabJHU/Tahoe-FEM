@@ -1,5 +1,5 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.6.2.1 2002-04-26 02:24:20 paklein Exp $ */
-/* created: paklein (11/12/1999)                                          */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.6.2.2 2002-04-27 01:32:29 paklein Exp $ */
+/* created: paklein (11/12/1999) */
 
 #include "MeshFreeElementSupportT.h"
 

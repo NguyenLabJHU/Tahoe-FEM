@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.3.8.1 2002-04-26 02:24:18 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.3.8.2 2002-04-27 01:32:27 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -140,7 +140,7 @@ void DiffusionElementT::SendOutput(int kincode)
 	SetNodalOutputCodes(IOBaseT::kAtInc, flags, n_counts);
 
 	/* reset averaging workspace */
-	fNodes->ResetAverage(n_counts.Sum());
+	ElementSupport().ResetAverage(n_counts.Sum());
 
 	/* no element output */
 	iArrayT e_counts(fElementOutputCodes.Length());
@@ -444,7 +444,7 @@ if (e_out > 0)
 	int nsd = NumSD();
 
 	/* reset averaging workspace */
-	fNodes->ResetAverage(n_out);
+	ElementSupport().ResetAverage(n_out);
 
 	/* work arrays */
 	dArray2DT nodal_space(nen, n_out);
@@ -499,14 +499,14 @@ if (e_out > 0)
 		nodal_all.BlockColumnCopyAt(matdat, colcount);
 
 		/* accumulate - extrapolation done from ip's to corners => X nodes */
-		fNodes->AssembleAverage(CurrentElement().NodesX(), nodal_all);
+		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
 	}
 	
 	/* get nodally averaged values */
 	//was:
 	//const iArrayT& node_used = fFEManager.OutputSet(fOutputID).NodesUsed();
 	//fNodes->OutputAverage(node_used, n_values);
-	fNodes->OutputUsedAverage(n_values);
+	ElementSupport().OutputUsedAverage(n_values);
 }
 
 /***********************************************************************
