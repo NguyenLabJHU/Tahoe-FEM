@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8.26.1 2004-05-22 03:07:09 paklein Exp $
+# $Id: makefile,v 1.8.26.2 2004-06-07 18:24:43 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -27,6 +27,7 @@ OBJ = \
 	FEManagerT_bridging.o \
 	FEManagerT_bridging_1.o \
 	FEManagerT_bridging_2.o \
+	FEManagerT_bridging_22.o \
 	FEManagerT_bridging_3.o \
 	FEManagerT_bridging_4.o \
 	GlobalT.o \
@@ -62,6 +63,7 @@ SRC = \
 	FEManagerT_bridging.cpp \
 	FEManagerT_bridging_1.cpp \
 	FEManagerT_bridging_2.cpp \
+	FEManagerT_bridging_22.cpp \
 	FEManagerT_bridging_3.cpp \
 	FEManagerT_bridging_4.cpp \
 	GlobalT.cpp \
