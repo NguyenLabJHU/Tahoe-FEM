@@ -90,7 +90,7 @@ void MFGP_MFA_Data_Processor_DisplT::Set_B1(dMatrixT& B1 )
 
 
 /* laplacian of the displacement shape function: [nsd*nsd] x [nnd] */  
-void MFGP_MFA_Data_Processor_DisplT::Set_B3(dMatrixT& B3 )
+void MFGP_MFA_Data_Processor_DisplT::Set_B3(dMatrixT& B3)
 {
 #if __option(extended_errorcheck)
 	if (B3.Rows() != dSymMatrixT::NumValues(sqrt(d3N.MajorDim())) ||
