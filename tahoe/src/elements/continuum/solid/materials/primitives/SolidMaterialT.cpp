@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.14 2004-09-10 22:39:54 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.15 2004-09-22 06:12:57 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -199,7 +199,7 @@ void SolidMaterialT::TakeParameterList(const ParameterListT& list)
 		fThermal->SetSchedule(schedule);
 	}
 
-	/* active multiplicative dilatation */
+	/* active thermal dilatation */
 	if (fThermal->IsActive() && !SupportsThermalStrain())
 		ExceptionT::BadInputValue("SolidMaterialT::Initialize", 
 			"material does not support imposed thermal strain");

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.14 2004-08-01 00:54:59 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.15 2004-09-22 06:12:57 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -63,6 +63,9 @@ public:
 
 	/*inquire if dissipation variables used in material force calculation are needed*/
 	virtual bool HasDissipVar(void) const {return false;};
+
+	/** small strain material support additive split of thermal strains by default */
+	virtual bool SupportsThermalStrain(void) const { return true; };
 
 protected:
 
