@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.h,v 1.13 2001-12-13 02:57:59 paklein Exp $ */
+/* $Id: VTKBodyT.h,v 1.14 2001-12-13 09:56:21 paklein Exp $ */
 
 #ifndef _VTK_BODY_T_H_
 #define _VTK_BODY_T_H_
@@ -28,9 +28,6 @@ class VTKBodyT: public iConsoleObjectT
 {
  public:
 
-	/** default constuctor */
-	VTKBodyT(void);
-
 	/** constructor */
 	VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data);
   
@@ -43,9 +40,6 @@ class VTKBodyT: public iConsoleObjectT
 	/** comparison operator */
 	bool operator==(const VTKBodyT& rhs) { return fBodyData == rhs.fBodyData; };
 
-	/** rvalue - smart pointer */
-	VTKBodyDataT* operator->();
-
 	/** execute console command. \return true is executed normally */
 	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
 
@@ -54,12 +48,6 @@ class VTKBodyT: public iConsoleObjectT
 
  	/** add actors in self to the given renderer */
  	void RemoveFromFrame(void);
-
- 	/** show node numbers */
- 	//void ShowNodeNumbers(vtkRenderer* renderer);
-
- 	/** hide node numbers */
- 	//void HideNodeNumbers(vtkRenderer* renderer);
  	
  	/** change the plot variable */
 	bool ChangeVars(const StringT& var);
@@ -81,10 +69,5 @@ class VTKBodyT: public iConsoleObjectT
 	ArrayT<vtkLabeledDataMapper*> fNodeLabelMapper;
 	ArrayT<vtkActor2D*> fNodeLabelActor;	
 };
-
-inline VTKBodyDataT* VTKBodyT::operator->()
-{
-  return fBodyData;
-}
 
 #endif

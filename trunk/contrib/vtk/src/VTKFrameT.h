@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.h,v 1.15 2001-12-10 12:44:08 paklein Exp $ */
+/* $Id: VTKFrameT.h,v 1.16 2001-12-13 09:56:22 paklein Exp $ */
 
 #ifndef _VTK_FRAME_T_H_
 #define _VTK_FRAME_T_H_
@@ -37,7 +37,7 @@ class VTKFrameT: public iConsoleObjectT
   ~VTKFrameT(void);
 
   /** return a pointer to the specified frame body */
-  VTKBodyT* Body(int bodyNum) { return &bodies[bodyNum]; };
+  VTKBodyT* Body(int bodyNum) { return bodies[bodyNum]; };
   
   /** add body to the frame.
    * returns true if the body was added the frame, false
@@ -62,26 +62,22 @@ class VTKFrameT: public iConsoleObjectT
 	/** execute console command. \return true is executed normally */
 	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
    
-   /** set controlling console object */
-//   void setConsole(VTKConsoleT* console) { fConsole = console; };
-
-   /** set the renderer window */
-//   void setRenWin(vtkRenderWindow* renWin) { fRenWin = renWin; };
-   
-   /** set the window interactor */
-//   void setIren(vtkRenderWindowInteractor* iren) {fIren = iren; };
-
-//   const StringT& getName(void) const {return bodies[0]->SourceFile(); };
-//what was this for????
-
  protected:
 
 	/** call to re-render the window contents. Call goes through the console,
 	 * so all window contents will be brought up to date and re-drawn. */
 	void Render(void) const;
 
-   /** write prompt for the specific argument of the command */
-   virtual void ValuePrompt(const CommandSpecT& command, int index, ostream& out) const;  
+	/** write prompt for the specific argument of the command */
+	virtual void ValuePrompt(const CommandSpecT& command, int index, ostream& out) const;  
+
+	/** transform from display to world coordinates.
+	 * \param worldPt has to be allocated as 4 vector */
+	void ComputeDisplayToWorld(double x, double y, double z, double *worldPt);
+
+	/** transform from world to display coordinates.
+	 * \param displayPt has to be allocated as 3 vector */
+	void ComputeWorldToDisplay(double x, double y, double z, double *displayPt);
 
  private:
 
@@ -90,15 +86,9 @@ class VTKFrameT: public iConsoleObjectT
   
   	/** renderer for this frame */
 	vtkRenderer *fRenderer;
-	
-	/** window where frame appears */
-//	vtkRenderWindow *fRenWin;
-
-	/** interactor for the window in which the frame appears */
-//	vtkRenderWindowInteractor *fIren;
 
 	/** bodies appearing in the frame */
-	AutoArrayT<VTKBodyT> bodies;
+	AutoArrayT<VTKBodyT*> bodies;
 
 	/** scalar bar appearing in the frame */
 	vtkScalarBarActor* scalarBar;
