@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.44 2004-09-28 15:35:31 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.45 2004-10-14 20:21:58 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -287,7 +287,8 @@ void ParticleT::SetConfiguration(void)
 {
 	/* set periodic boundary conditions */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
-	comm_manager.EnforcePeriodicBoundaries(fPeriodicSkin);
+	comm_manager.SetSkin(fPeriodicSkin);
+	comm_manager.EnforcePeriodicBoundaries();
 	
 	/* reset the types array */
 	int nnd = ElementSupport().NumNodes();
