@@ -1,0 +1,7 @@
+# $Id: SGI.macros,v 1.1 2002-07-20 01:59:39 paklein Exp $
+# macros for SGI (wallaby2)
+COMP_CC = CC
+CC_FLAGS = -c
+LD       = CC
+LD_FLAGS = -shared
+DSO_EXT  = so
