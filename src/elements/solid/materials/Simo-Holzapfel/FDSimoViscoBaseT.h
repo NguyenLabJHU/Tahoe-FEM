@@ -1,4 +1,4 @@
-/* $Id: FDSimoViscoBaseT.h,v 1.2 2003-04-05 20:38:07 thao Exp $ */
+/* $Id: FDSimoViscoBaseT.h,v 1.3 2003-05-12 16:51:27 thao Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #ifndef _FD_SIMO_VISCO_BASE_H_
@@ -29,19 +29,19 @@ class FDSimoViscoBaseT: public FSSolidMatT
 	};
 
 	/*print parameters*/
-	void Print(ostream& out) const;
-	void PrintName(ostream& out) const;
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
 		
 	/* apply pre-conditions at the current time step */
-	void InitStep(void){FSSolidMatT::InitStep();};
+	virtual void InitStep(void){FSSolidMatT::InitStep();};
 
 	/*initialize history variable*/
-	bool NeedsPointInitialization(void) const {return true;}; // declare true
-	void PointInitialize(void);                // assigns storage space
+	virtual bool NeedsPointInitialization(void) const {return true;}; // declare true
+	virtual void PointInitialize(void);                // assigns storage space
 	
 	/* update/reset internal variables */
-	void UpdateHistory(void); // element at a time
-	void ResetHistory(void);  // element at a time
+	virtual void UpdateHistory(void); // element at a time
+	virtual void ResetHistory(void);  // element at a time
 	void Load(ElementCardT& element, int ip);
 	void Store(ElementCardT& element, int ip);
 
