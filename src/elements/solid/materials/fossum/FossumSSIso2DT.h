@@ -1,4 +1,4 @@
-/* $Id: FossumSSIso2DT.h,v 1.8 2003-02-03 04:40:29 paklein Exp $ */
+/* $Id: FossumSSIso2DT.h,v 1.9 2004-05-08 23:46:35 raregue Exp $ */
 #ifndef _FOSSUM_SS_ISO_2D_T_H_
 #define _FOSSUM_SS_ISO_2D_T_H_
 
@@ -11,44 +11,48 @@
 
 namespace Tahoe {
 
-class FossumSSIso2DT: public FossumSSIsoT, 
-                      public Material2DT
+class FossumSSIso2DT: public FossumSSIsoT, public Material2DT
 {
-  public:
+public:
 
-        /* constructor */
-        FossumSSIso2DT(ifstreamT& in, const SSMatSupportT& support);
+	/* constructor */
+	FossumSSIso2DT(ifstreamT& in, const SSMatSupportT& support);
 
-        /* initialization */
-        virtual void Initialize(void);
+	/* initialization */
+	virtual void Initialize(void);
 
-        /* returns elastic strain (3D) */
-        virtual const dSymMatrixT& ElasticStrain(
-                const dSymMatrixT& totalstrain, 
-                const ElementCardT& element, int ip);
+	/* returns elastic strain (3D) */
+	virtual const dSymMatrixT& ElasticStrain(
+			const dSymMatrixT& totalstrain, 
+			const ElementCardT& element, int ip);
 
-        /* print parameters */
-        virtual void Print(ostream& out) const;
-        virtual void PrintName(ostream& out) const;
+	/* print parameters */
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
         
-        /* modulus */
-        virtual const dMatrixT& c_ijkl(void);
-        virtual const dMatrixT& cdisc_ijkl(void);
+	/* moduli */
+	virtual const dMatrixT& c_ijkl(void);
+	//virtual const dMatrixT& con_ijkl(void);
+	virtual const dMatrixT& c_perfplas_ijkl(void);
+	//virtual const dMatrixT& con_perfplas_ijkl(void);
         
-        /* stress */
-        virtual const dSymMatrixT& s_ij(void);
+	/* stress */
+	virtual const dSymMatrixT& s_ij(void);
 
-        /* returns the strain energy density for the specified strain */
-        virtual double StrainEnergyDensity(void);
+	/* returns the strain energy density for the specified strain */
+	virtual double StrainEnergyDensity(void);
 
-  private:
+private:
   
-        /* return values */
-        dSymMatrixT        fStress2D;
-        dMatrixT        fModulus2D;
+	/* return values */
+	dSymMatrixT fStress2D;
+	dMatrixT fModulus2D;
+	dMatrixT fModulusPerfPlas;
+	//dMatrixT fModulusContinuum;
+	//dMatrixT fModulusContinuumPerfPlas;        
 
-        /* work space */
-        dSymMatrixT        fTotalStrain3D;
+	/* work space */
+	dSymMatrixT fTotalStrain3D;
 };
 
 } // namespace Tahoe 
