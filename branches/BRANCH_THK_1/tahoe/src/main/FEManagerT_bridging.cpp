@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.3.2.1 2003-04-07 22:47:11 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.3.2.2 2003-04-07 23:04:59 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -7,6 +7,7 @@
 #include "KBC_PrescribedT.h"
 #include "KBC_CardT.h"
 #include "ofstreamT.h"
+#include "ifstreamT.h"
 #include "NLSolver.h"
 
 #include "BridgingScaleT.h"
