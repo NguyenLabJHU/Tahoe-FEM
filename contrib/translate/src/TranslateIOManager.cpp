@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.27 2002-08-13 08:17:29 paklein Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.28 2002-08-16 17:55:54 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -743,7 +743,8 @@ void TranslateIOManager::ReNameLabels(const StringT& data_type, ArrayT<StringT>&
 {
 	if (labels.Length() == 0) return;
 
-	cout << "\n Rename " << data_type << " labels (y/n) ? ";
+	if (fWrite)
+	  cout << "\n Rename " << data_type << " labels (y/n) ? ";
 	StringT reply;
 	fIn >> reply;
 
@@ -754,6 +755,7 @@ void TranslateIOManager::ReNameLabels(const StringT& data_type, ArrayT<StringT>&
 	if (reply[0] == 'y' || reply[0] == 'Y')
 		for (int i = 0; i < labels.Length(); i++)
 		{
+		  if (fWrite)
 			cout << " Rename " << labels[i] << " <" << labels[i] << "> : ";
 
 			/* peek at reply */

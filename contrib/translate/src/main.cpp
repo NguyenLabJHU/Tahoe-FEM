@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.12 2002-07-02 21:22:59 cjkimme Exp $ */
+/* $Id: main.cpp,v 1.13 2002-08-16 17:55:54 sawimme Exp $ */
 
 #include "TranslateIOManager.h"
 #include "ExtractNode.h"
@@ -11,7 +11,7 @@
 
 using namespace Tahoe;
 
-void ReadArgs (int c, char* a[], AutoArrayT<StringT>& list);
+void ReadArgs (char* a, AutoArrayT<StringT>& list);
 istream& Open (ifstreamT& tmp, const StringT& f);
 
 int main (int c, char* a [])
@@ -22,7 +22,12 @@ int main (int c, char* a [])
       AutoArrayT<StringT> filelist;
       ifstreamT tmp;
 
-      ReadArgs (c, a, filelist);
+      /* is a command line arguement provided */
+      if (c >= 2)
+	ReadArgs (a[1], filelist);
+      else
+	filelist.Free();
+
       int numruns = 1;
       if (filelist.Length() > 0) 
 	{
@@ -125,42 +130,35 @@ int main (int c, char* a [])
   return 1;
 }
 
-void ReadArgs (int c, char* a[], AutoArrayT<StringT>& list)
+void ReadArgs (char* a, AutoArrayT<StringT>& list)
 {
-  ifstreamT tmp;
+  ifstreamT tmp (a);
   StringT s;
-  if (c == 2)
+  s.GetLineFromStream (tmp);
+  switch (s[0])
     {
-      tmp.open (a[1]);
-      s.GetLineFromStream (tmp);
-      switch (s[0])
-	{
-	case '%':
+    case '%':
+      {
+	list.Append (a);
+	break;
+      }
+    case '@':
+      {
+	while (tmp.good())
 	  {
-	    list.Append (a[1]);
-	    break;
+	    s.Clear();
+	    s.GetLineFromStream(tmp);
+	    if (s.StringLength() > 1)
+	      list.Append (s);
 	  }
-	case '@':
-	  {
-	    while (tmp.good())
-	      {
-		s.Clear();
-		s.GetLineFromStream(tmp);
-		if (s.StringLength() > 1)
-		  list.Append (s);
-	      }
-	    break;
-	  }
-	default:
-	  {
-	    cout << "\n You must put either % or @ at the beginning of your input file.\n\n";
-	    cout << "\n The code is being somewhat aligned with Tahoe.\n\n";
-	    throw eBadInputValue;
-	  }
-	}
+	break;
+      }
+    default:
+      {
+	cout << "\n You must put either % or @ at the beginning of your input file.\n\n";
+	throw eBadInputValue;
+      }
     }
-  else
-    list.Free();
 }
 
 istream& Open (ifstreamT& tmp, const StringT& f)
