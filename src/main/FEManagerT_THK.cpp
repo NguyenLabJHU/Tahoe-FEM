@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.cpp,v 1.4 2003-05-05 00:14:00 paklein Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.5 2003-05-05 01:13:44 paklein Exp $ */
 #include "FEManagerT_THK.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -12,4 +12,4 @@ FEManagerT_THK::FEManagerT_THK(ifstreamT& input, ofstreamT& output, Communicator
 
 }
 
-#endif BRIDGING_ELEMENT
+#endif /* BRIDGING_ELEMENT */
