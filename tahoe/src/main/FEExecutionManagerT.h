@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.13.2.5 2003-05-07 20:55:37 hspark Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.13.2.6 2003-05-09 08:49:19 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -98,7 +98,7 @@ private:
                 ofstream& log_out) const;
 				
 	/** calculate MD internal force as a function of total displacement u */
-	dArray2DT InternalForce(dArray2DT& totalu, FEManagerT_bridging atoms) const;
+	const dArray2DT& InternalForce(dArray2DT& totalu, FEManagerT_bridging atoms) const;
 	/*@}*/
 #endif
 
