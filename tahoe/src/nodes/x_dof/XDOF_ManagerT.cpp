@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.5 2001-09-05 07:07:55 paklein Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.6 2001-09-06 01:03:28 rjones Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
@@ -53,12 +53,12 @@ void XDOF_ManagerT::XDOF_Register(DOFElementT* group, const iArrayT& numDOF)
 	/* keep number of tag sets for each group */
 	fNumTagSets.Append(numDOF.Length());
 
-	/* initialize set length */
-	fTagSetLength.Append(0);
-
 	/* add to lists */
 	for (int i = 0; i < numDOF.Length(); i++)
 	{
+		/* initialize set length */
+		fTagSetLength.Append(0);
+
 		fXDOF_Eqnos.Append(new iArray2DT(0, numDOF[i]));
 		fXDOFs.Append(new dArray2DT(0, numDOF[i]));
 	}
