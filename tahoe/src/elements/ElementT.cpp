@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.43 2004-05-17 23:39:06 raregue Exp $ */
+/* $Id: ElementT.cpp,v 1.44 2004-06-17 00:47:09 rdorgan Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -174,6 +174,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		    break;
 		case ElementT::kGradC0SmallStrain:
 		    type = ElementT::kGradC0SmallStrain;
+		    break;
+		case ElementT::kGradSmallStrainMixed:
+		    type = ElementT::kGradSmallStrainMixed;
 		    break;
 		case ElementT::kAPSgrad:
 		    type = ElementT::kAPSgrad;

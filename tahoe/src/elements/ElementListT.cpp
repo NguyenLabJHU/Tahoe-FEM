@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.88 2004-05-17 23:39:06 raregue Exp $ */
+/* $Id: ElementListT.cpp,v 1.89 2004-06-17 00:47:09 rdorgan Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -125,6 +125,7 @@
 #ifdef GRAD_SMALL_STRAIN_DEV
 #include "GradSmallStrainT.h"
 #include "GradC0SmallStrainT.h"
+#include "GradSmallStrainMixedT.h"
 #endif
 
 #ifdef SOLID_ELEMENT_DEV
@@ -930,7 +931,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or SPLIT_INTEGRATION_DEV not enabled: %d", code);
 #endif				
 		}			
-		case ElementT::kGradSmallStrain:
+		case ElementT::kGradC0SmallStrain:
 		{
 #ifdef GRAD_SMALL_STRAIN_DEV
 		  /* displacement field read above */
@@ -946,7 +947,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		  if (!disp || !hardness1 || !hardness2)
 		    ExceptionT::BadInputValue(caller, "error resolving field names");
 		  
-		  fArray[group] = new GradSmallStrainT(fSupport, *disp, *hardness1, *hardness2);
+		  fArray[group] = new GradC0SmallStrainT(fSupport, *disp, *hardness1, *hardness2);
 		  break;
 #else
 		  ExceptionT::BadInputValue(caller, "GRAD_SMALL_STRAIN_DEV not enabled: %d", code);
@@ -970,7 +971,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
 #endif		
 		}		
-		case ElementT::kGradC0SmallStrain:
+		case ElementT::kGradSmallStrain:
 		{
 #ifdef GRAD_SMALL_STRAIN_DEV
 		  /* displacement field read above */
@@ -983,7 +984,26 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		  if (!disp || !hardness)
 		    ExceptionT::BadInputValue(caller, "error resolving field names");
 		  
-		  fArray[group] = new GradC0SmallStrainT(fSupport, *disp, *hardness);
+		  fArray[group] = new GradSmallStrainT(fSupport, *disp, *hardness);
+		  break;
+#else
+		  ExceptionT::BadInputValue(caller, "GRAD_SMALL_STRAIN_DEV not enabled: %d", code);
+#endif			
+		}
+		case ElementT::kGradSmallStrainMixed:
+		{
+#ifdef GRAD_SMALL_STRAIN_DEV
+		  /* displacement field read above */
+		  const FieldT* disp = field;
+		  
+		  /* hardness field */				
+		  StringT hardness_field_name;
+		  in >> hardness_field_name;
+		  const FieldT* hardness = fSupport.Field(hardness_field_name);
+		  if (!disp || !hardness)
+		    ExceptionT::BadInputValue(caller, "error resolving field names");
+		  
+		  fArray[group] = new GradSmallStrainMixedT(fSupport, *disp, *hardness);
 		  break;
 #else
 		  ExceptionT::BadInputValue(caller, "GRAD_SMALL_STRAIN_DEV not enabled: %d", code);
