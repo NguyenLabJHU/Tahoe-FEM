@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.12 2002-08-08 23:24:11 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.13 2002-08-10 02:37:38 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -13,6 +13,7 @@
 #include "RaggedArray2DT.h"
 #include "iGridManagerT.h"
 #include "iNodeT.h"
+#include "nArrayGroupT.h"
 
 using namespace Tahoe;
 
@@ -68,6 +69,7 @@ void BridgingScaleT::Initialize(void)
 	iArrayT atoms_used, nodes_used;
 	fParticle.NodesUsed(atoms_used);
 	fSolid.NodesUsed(nodes_used);
+	
 #if 0
 	dArray2DT atom_coords, node_coords;
 	atom_coords.RowCollect(atoms_used, curr_coords);
@@ -154,6 +156,14 @@ void BridgingScaleT::Initialize(void)
 	    << setw(kDoubleWidth) << "no." << '\n';
 	fInverseMapInCell.WriteNumbered(out);
 	out.flush();	
+
+	/* store solid nodes used */
+	fSolidNodesUsed.Dimension(nodes_used.Length(), 1);
+	fSolidNodesUsed.SetColumn(0, nodes_used);
+
+	/* store particles used */
+	fParticlesUsed.Dimension(atoms_used.Length(), 1);
+	fParticlesUsed.SetColumn(0, atoms_used);
 }
 
 void BridgingScaleT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -191,36 +201,27 @@ void BridgingScaleT::ResetStep(void)
 /* writing output */
 void BridgingScaleT::RegisterOutput(void)
 {
-#if 0
-//NOTE: could loop over each output mode and register
-//      it with the output separately. for now just register
-//      "kAtInc"
-	
-	/* nodal output */
-	iArrayT n_counts;
-	SetNodalOutputCodes(IOBaseT::kAtInc, fNodalOutputCodes, n_counts);
-
-	/* element output */
-	iArrayT e_counts;
-	SetElementOutputCodes(IOBaseT::kAtInc, fElementOutputCodes, e_counts);
-	ArrayT<StringT> block_ID(fBlockData.Length());
-	for (int i = 0; i < block_ID.Length(); i++)
-		block_ID[i] = fBlockData[i].ID();
-
 	/* collect variable labels */
-	ArrayT<StringT> n_labels(n_counts.Sum());
-	ArrayT<StringT> e_labels(e_counts.Sum());
-	GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
+	int ndof = NumDOF();
+	if (ndof > 3) throw;
+	ArrayT<StringT> n_labels(2*ndof);
+	const char* coarse_labels[] = {"FE_X", "FE_Y", "FE_Z"};
+	const char* fine_labels[] = {"fine_X", "fine_Y", "fine_Z"};
+	int dex = 0;
+	for (int i = 0; i < ndof; i++) n_labels[dex++] = coarse_labels[i];
+	for (int i = 0; i < ndof; i++) n_labels[dex++] = fine_labels[i];
 
-	/* set output specifier */
+	/* group ID */	
 	StringT set_ID;
 	set_ID.Append(ElementSupport().ElementGroupNumber(this) + 1);
-	OutputSetT output_set(set_ID, fGeometryCode, block_ID, fConnectivities,
-		n_labels, e_labels, false);
-		
-	/* register and get output ID */
-	fOutputID = ElementSupport().RegisterOutput(output_set);
-#endif
+
+	/* register output at solid nodes */
+	OutputSetT output_set_solid(set_ID, GeometryT::kPoint, fSolidNodesUsed, n_labels);
+	fSolidOutputID = ElementSupport().RegisterOutput(output_set_solid);
+
+	/* register output at particles */
+	OutputSetT output_set_particle(set_ID, GeometryT::kPoint, fParticlesUsed, n_labels);
+	fParticleOutputID = ElementSupport().RegisterOutput(output_set_particle);
 }
 
 //NOTE - this function is/was identical to CSEBaseT::WriteOutput
@@ -234,19 +235,13 @@ void BridgingScaleT::WriteOutput(IOBaseT::OutputModeT mode)
 		return;
 	}
 
-	/* map output flags to count of values */
-	iArrayT n_counts;
-//	SetNodalOutputCodes(mode, fNodalOutputCodes, n_counts);
-	iArrayT e_counts;
-//	SetElementOutputCodes(mode, fElementOutputCodes, e_counts);
-
 	/* calculate output values */
-	dArray2DT n_values;
-	dArray2DT e_values;
-//	ComputeOutput(n_counts, n_values, e_counts, e_values);
+	dArray2DT n_values; // dimension: [number of output nodes] x [number of values]
+//	ComputeOutput(n_counts, n_values);
+//  rows in n_values correspond to the nodes listed in fSolidNodesUsed
 
 	/* send to output */
-//	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+//	ElementSupport().WriteOutput(fOutputID, n_values);
 }
 
 /***********************************************************************
@@ -360,21 +355,35 @@ void BridgingScaleT::ComputeU(const dArray2DT& field1, const dArray2DT& field2, 
   dArray2DT disp(fParticlesInCell.MaxMinorDim(),NumDOF()), vel(fParticlesInCell.MaxMinorDim(),NumDOF());
   dArray2DT acc(fParticlesInCell.MaxMinorDim(),NumDOF());
   double mult;
-
+  
+	/* arrays with changing dimensions */
+  	dArrayT ErrorU, FineScaleU, CoarseScaleU, TotalU, ErrorV, FineScaleV;
+  	dArrayT CoarseScaleV, TotalV, ErrorA, FineScaleA, CoarseScaleA, TotalA;
+	nArrayGroupT<double> dArrayT_group(25);
+  	dArrayT_group.Register(ErrorU);
+  	dArrayT_group.Register(FineScaleU);
+  	dArrayT_group.Register(CoarseScaleU);
+  	dArrayT_group.Register(TotalU);
+  	dArrayT_group.Register(ErrorV);
+  	dArrayT_group.Register(FineScaleV);
+  	dArrayT_group.Register(CoarseScaleV);
+  	dArrayT_group.Register(TotalV);
+  	dArrayT_group.Register(ErrorA);
+  	dArrayT_group.Register(FineScaleA);
+  	dArrayT_group.Register(CoarseScaleA);
+  	dArrayT_group.Register(TotalA);
+  
   for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
   {
+		/* resize array group */
+		dArrayT_group.Dimension(fParticlesInCell.MinorDim(i), false);
+  
       fInverseMapInCell.RowAlias(i,map);
       fParticlesInCell.RowAlias(i,disp1);
       disp.RowCollect(disp1,field1);
       vel.RowCollect(disp1,field2);
       acc.RowCollect(disp1,field3);
       dMatrixT Projection(fParticlesInCell.MinorDim(i));
-      dArrayT ErrorU(fParticlesInCell.MinorDim(i)), FineScaleU(fParticlesInCell.MinorDim(i));
-      dArrayT CoarseScaleU(fParticlesInCell.MinorDim(i)), TotalU(fParticlesInCell.MinorDim(i));
-      dArrayT ErrorV(fParticlesInCell.MinorDim(i)), FineScaleV(fParticlesInCell.MinorDim(i));
-      dArrayT CoarseScaleV(fParticlesInCell.MinorDim(i)), TotalV(fParticlesInCell.MinorDim(i));
-      dArrayT ErrorA(fParticlesInCell.MinorDim(i)), FineScaleA(fParticlesInCell.MinorDim(i));
-      dArrayT CoarseScaleA(fParticlesInCell.MinorDim(i)), TotalA(fParticlesInCell.MinorDim(i));
       ErrorU = 0.0, FineScaleU = 0.0, CoarseScaleU = 0.0, TotalU = 0.0, Projection = 0.0;
       ErrorA = 0.0, FineScaleA = 0.0, CoarseScaleA = 0.0, TotalA = 0.0;
       ErrorV = 0.0, FineScaleV = 0.0, CoarseScaleV = 0.0, TotalV = 0.0;
