@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.4.4.1 2002-10-11 00:23:12 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.4.4.2 2002-10-15 23:03:47 cjkimme Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -9,6 +9,8 @@
 #include "eControllerT.h"
 #include "nControllerT.h"
 #include "FieldT.h"
+#else
+#include "LocalArrayT.h"
 #endif
 
 /* constructor */
@@ -17,17 +19,15 @@ using namespace Tahoe;
 
 ElementSupportT::ElementSupportT(void)
 {
-#ifdef _SIERRA_TEST_
+#ifndef _SIERRA_TEST_
+	/* clear */
+	SetFEManager(NULL);
+#else
 	fNumSD = 3;
 	fTimeStep = 0.;
 	fItNum = 0;
-	fCurrentCoordinates = new dArray2DT();
-	fInitialCoordinates = new dArray2DT();
-//	ifst();
-//	ofst();
-#else
-	/* clear */
-	SetFEManager(NULL);
+	fCurrentCoordinates = NULL;
+	fInitialCoordinates = NULL;
 #endif
 }
 
@@ -58,10 +58,16 @@ void ElementSupportT::SetFEManager(FEManagerT* fe)
 void ElementSupportT::SetNodes(NodeManagerT* nodes)
 {
 
-	fNumSD = dim;
-	fNumNodes = nnds;
-	fTimeStep = timeStep;
-	
+	fNodes = nodes;
+	if (nodes)
+	{
+		fNumSD = nodes->NumSD();
+		fNumNodes = nodes->NumNodes();
+	}
+	else
+	{	
+		fNumSD = fNumNodes = 0;
+	}		
 }
 
 /* Tahoe version string */
@@ -104,7 +110,23 @@ void ElementSupportT::RegisterCoordinates(LocalArrayT& array) const
 #ifndef _SIERRA_TEST_
 	Nodes().RegisterCoordinates(array);
 #else
-#pragma unused(array)
+    switch (array.Type())
+    {
+    	case LocalArrayT::kInitCoords:
+    	{
+    		array.SetGlobal(*fInitialCoordinates);
+    		break;
+    	}
+    	case LocalArrayT::kCurrCoords:
+    	{
+    		array.SetGlobal(*fCurrentCoordinates);
+    		break;
+    	}
+    	default:
+    		cout << "\n FieldSupportT::RegisterCoordinates: not a coordinate type: " 
+                 << array.Type() << endl;
+            throw eGeneralFail;
+     }
 #endif
 }
 
@@ -129,10 +151,27 @@ const int& ElementSupportT::IterationNumber(int group) const
 #endif
 }
 
-//const char* ElementSupportT::Exception(int exception) const
-//{
-//	return FEManager().Exception(exception);
-//}
+const char* ElementSupportT::Exception(int exception) const
+{
+#ifndef _SIERRA_TEST_
+	return FEManager().Exception(exception);
+#else
+	const char* sbntma[] = {
+ /* 0 */ "no error",
+ /* 1 */ "general fail",
+ /* 2 */ "stop",
+ /* 3 */ "out of memory",
+ /* 4 */ "index out of range",
+ /* 5 */ "dimension mismatch",
+ /* 6 */ "invalid value read from input",
+ /* 7 */ "zero or negative jacobian",
+ /* 8 */ "MPI message passing error",
+ /* 9 */ "database read failure",
+ /*10 */ "bad MP heartbeat",
+ /*11 */ "unknown"}; 
+	return sbntma[exception];
+#endif
+}
 
 int ElementSupportT::ElementGroupNumber(const ElementBaseT* element) const
 { 
@@ -155,10 +194,10 @@ const double& ElementSupportT::Time(void) const
 
 const double& ElementSupportT::TimeStep(void) const
 {
-#ifdef _SIERRA_TEST_
-	return fTimeStep;
-#else	
+#ifndef _SIERRA_TEST_
 	return FEManager().TimeStep();
+#else	
+	return fTimeStep;
 #endif
 }
 
@@ -180,13 +219,15 @@ const int& ElementSupportT::NumberOfSteps(void) const
 #endif
 }
 
+#ifndef _SIERRA_TEST_
 /* the element group at the specified index in the element list */
-//ElementBaseT& ElementSupportT::ElementGroup(int index) const
-//{
-//	ElementBaseT* element = FEManager().ElementGroup(index);
-//	if (!element) throw eGeneralFail;
-//	return *element;
-//}
+ElementBaseT& ElementSupportT::ElementGroup(int index) const
+{
+	ElementBaseT* element = FEManager().ElementGroup(index);
+	if (!element) throw eGeneralFail;
+	return *element;
+}
+#endif
 
 /* geometry information */
 ModelManagerT& ElementSupportT::Model(void) const
@@ -223,9 +264,7 @@ const iArrayT* ElementSupportT::NodeMap(void) const
 #ifndef _SIERRA_TEST_
 const FieldT* ElementSupportT::Field(const char* name) const
 {
-#pragma unused(name)
-//	return Nodes().Field(name);
-	return fField;
+	return Nodes().Field(name);
 }
 
 /* return the element controller appropriate for the given field */
@@ -235,7 +274,8 @@ const eControllerT* ElementSupportT::eController(const FieldT& field) const
 	const eControllerT* e_cont = dynamic_cast<const eControllerT*>(&n_cont);
 	return e_cont;
 }
-#else //#ifdef _SIERRA_TEST_
+
+#else //_SIERRA_TEST_
 
 void ElementSupportT::SetNumNodes(int nn)
 {
@@ -247,19 +287,39 @@ void ElementSupportT::SetTimeStep(double dt)
 	fTimeStep = dt;
 }
 
-void ElementSupportT::SetInitialCoordinates(double *initCoords)
+/* The following two functions should be called only once to set the pointers */
+void ElementSupportT::SetInitialCoordinates(dArray2DT *initialCoords)
 {	
-	fInitialCoordinates->Set(fNumNodes,fNumSD,initCoords);
+	fInitialCoordinates = initialCoords;
 }
 
-void ElementSupportT::SetCurrentCoordinates(double **initCoords)
+void ElementSupportT::SetCurrentCoordinates(dArray2DT* currentCoords)
 {	
-	fCurrentCoordinates->Set(fNumNodes,fNumSD,*initCoords);
+	fCurrentCoordinates = currentCoords;
 }
 
 void ElementSupportT::SetModelManager(ModelManagerT *modelManager)
 {
 	fModelManager = modelManager;
+}
+
+/* The following two functions can be called repeatedly to change the contents of
+ * the coordinate arrays.
+ */
+void ElementSupportT::SetInitialCoordinates(double *initialCoords)
+{	
+	double *finit = fInitialCoordinates->Pointer();
+
+	for (int i = 0; i < fInitialCoordinates->Length();i++)
+		*finit++ = *initialCoords++;		
+}
+
+void ElementSupportT::SetCurrentCoordinates(double *currentCoords)
+{
+	double *fcurr = fInitialCoordinates->Pointer();
+	
+	for (int i = 0; i < fCurrentCoordinates->Length(); i++)
+		*fcurr++ = *currentCoords++;
 }
 
 #endif
@@ -333,12 +393,12 @@ void ElementSupportT::RecvExternalData(dArray2DT& external_data) const
 void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat, 
 	const nArrayT<int>& eqnos) const
 {
-#ifdef _SIERRA_TEST_
+#ifndef _SIERRA_TEST_
+	FEManager().AssembleLHS(group, elMat, eqnos);
+#else
 #pragma unused(group)
 #pragma unused(elMat)
 #pragma unused(eqnos)
-#else
-	FEManager().AssembleLHS(group, elMat, eqnos);
 #endif
 }
 
@@ -346,46 +406,46 @@ void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat,
 	const nArrayT<int>& row_eqnos,
 	const nArrayT<int>& col_eqnos) const
 {
-#ifdef _SIERRA_TEST_
+#ifndef _SIERRA_TEST_
+	FEManager().AssembleLHS(group, elMat, row_eqnos, col_eqnos);
+#else
 #pragma unused(group)
 #pragma unused(elMat)
 #pragma unused(row_eqnos)
 #pragma unused(col_eqnos)
-#else
-	FEManager().AssembleLHS(group, elMat, row_eqnos, col_eqnos);
 #endif
 }
 
 void ElementSupportT::AssembleRHS(int group, const dArrayT& elRes, 
 	const nArrayT<int>& eqnos) const
 {
-#ifdef _SIERRA_TEST_
+#ifndef _SIERRA_TEST_
+	FEManager().AssembleRHS(group, elRes, eqnos);
+#else
 #pragma unused(group)
 #pragma unused(elRes)
 #pragma unused(eqnos)
-#else
-	FEManager().AssembleRHS(group, elRes, eqnos);
 #endif
 }
 
 /* initialize work space to the number of values to be averaged */
 void ElementSupportT::ResetAverage(int n_values) const
 {
-#ifdef _SIERRA_TEST_
-#pragma unused(n_values)
-#else
+#ifndef _SIERRA_TEST_
 	Nodes().ResetAverage(n_values);
+#else
+#pragma unused(n_values)
 #endif
 }
 
 /* assemble values */
 void ElementSupportT::AssembleAverage(const iArrayT& nodes, const dArray2DT& vals) const
 {
-#ifdef _SIERRA_TEST_
+#ifndef _SIERRA_TEST_
+	Nodes().AssembleAverage(nodes, vals);
+#else
 #pragma unused(nodes)
 #pragma unused(vals)
-#else
-	Nodes().AssembleAverage(nodes, vals);
 #endif
 }
 
@@ -402,10 +462,10 @@ const dArray2DT& ElementSupportT::OutputAverage(void) const
 /* return averaged values for the nodes with assembled values */
 void ElementSupportT::OutputUsedAverage(dArray2DT& average_values) const
 {
-#ifdef _SIERRA_TEST_
-#pragma unused(average_values)
-#else
+#ifndef _SIERRA_TEST_
 	Nodes().OutputUsedAverage(average_values);
+#else
+#pragma unused(average_values)
 #endif
 }
 
@@ -443,6 +503,7 @@ void ElementSupportT::WriteOutput(int ID, const dArray2DT& n_values,
 #ifndef _SIERRA_TEST_
 	FEManager().WriteOutput(ID, n_values, e_values);
 #else
+#pragma unused(ID)
 #pragma unused(n_values)
 #pragma unused(e_values)
 #endif

@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.7.4.1 2002-10-11 00:23:13 cjkimme Exp $ */
+/* $Id: CSEBaseT.h,v 1.7.4.2 2002-10-15 23:03:48 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _TAHOE_FRACTURE_INTERFACE_
 #define _TAHOE_FRACTURE_INTERFACE_
@@ -80,6 +80,11 @@ public:
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
+
+#ifdef _SIERRA_TEST_	
+	/* Initialize fields passed in from the outside */
+	virtual void InitStep(void);
+#endif
 
 protected:
 

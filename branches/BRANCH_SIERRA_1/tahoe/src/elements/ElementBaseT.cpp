@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.20.2.1 2002-10-11 00:23:12 cjkimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.20.2.2 2002-10-15 23:03:46 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -143,9 +143,7 @@ void ElementBaseT::FormRHS(void)
 	try { RHSDriver(); }
 	catch (int error)
 	{
-#ifndef _SIERRA_TEST_
 		cout << "\n ElementBaseT::FormRHS: " << fSupport.Exception(error);
-#endif
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
 		
@@ -153,9 +151,7 @@ void ElementBaseT::FormRHS(void)
 		{
 #ifndef _SIERRA_TEST_		
 			ostream& out = fSupport.Output();
-#else
-			ostream& out = cout;
-#endif		
+	
 			/* header */
 			out << "\n ElementBaseT::FormRHS: caught exception " << error << '\n';
 			out <<   "      Time: " << fSupport.Time() << '\n';
@@ -165,6 +161,7 @@ void ElementBaseT::FormRHS(void)
 			/* write current element information to main out */
 			CurrElementInfo(out);
 			cout << "     See output file for current element information\n";
+#endif
 		}
 		else
 			cout << "     Current element information not available\n";
@@ -408,6 +405,11 @@ void ElementBaseT::EchoConnectivityData(ifstreamT& in, ostream& out)
 /* resolve input format types */
 void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 {
+#ifdef _SIERRA_TEST_
+#pragma unused(in)
+#pragma unused(out)
+#endif
+
 	/* read from parameter file */
 	ArrayT<StringT> elem_ID;
 	iArrayT matnums;
@@ -428,7 +430,6 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 
 	/* allocate block map */
 	int num_blocks = elem_ID.Length();
-	cout <<"In ElementBaseT num_blocks = "<<num_blocks;
 	fBlockData.Allocate(num_blocks);
 	fConnectivities.Allocate (num_blocks);
 
@@ -447,10 +448,12 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	    /* consistency check */
 	    if (num_nodes != 0 && nen != num_nodes)
 		{
+#ifndef _SIERRA_TEST_
 			cout << "\n ElementBaseT::ReadConnectivity: minor dimension "
                  << num_nodes << " of block " << b+1 << '\n';
 			cout <<   "     does not match dimension of previous blocks "
                  << nen << endl;
+#endif
 			throw eBadInputValue;
 		}
 	    

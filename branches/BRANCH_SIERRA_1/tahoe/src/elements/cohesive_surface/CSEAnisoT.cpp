@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.23.2.1 2002-10-11 00:23:12 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.23.2.2 2002-10-15 23:03:47 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -151,16 +151,18 @@ void CSEAnisoT::Initialize(void)
 				}
 				else
 				{
-					double params[7];
 #ifndef _SIERRA_TEST_
-					in >> params[0]; in >> params[1]; in >> params[2];
-					in >> params[3]; in >> params[4]; in >> params[5];
-					in >> params[6];
+					fSurfPots[num] = new XuNeedleman3DT(in);
 #else
-					params[0] = params[1] = params[2] = params[3] = params[4] = 0.;
-					params[5] = params[6] = 0.;
-#endif
+					double params[7];
+					params[0] = 1.;
+					params[1] = 0.;
+					params[2] = params[3] = .05;
+					params[4] = 1.;
+					params[5] = 100.;
+					params[6] = 10.;
 					fSurfPots[num] = new XuNeedleman3DT(params);
+#endif
 				}
 				break;
 			}
@@ -327,6 +329,11 @@ void CSEAnisoT::Initialize(void)
 	fStateVariables_last = fStateVariables;
 }
 
+#ifdef _SIERRA_TEST_	
+	/* Initialize fields passed in from the outside */
+	void CSEAnisoT::InitStep(void) {};
+#endif
+
 /* close current time increment */
 void CSEAnisoT::CloseStep(void)
 {
@@ -427,7 +434,8 @@ void CSEAnisoT::LHSDriver(void)
 
 		bool nodalReleaseQ = false;
 		LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
-/*		int currElNum;
+#ifndef _SIERRA_TEST_
+		int currElNum;
 		if (surfpot->NeedsNodalInfo()) 
 		{
 		  	iArrayT ndIndices = element.NodesX();
@@ -446,7 +454,8 @@ void CSEAnisoT::LHSDriver(void)
 		    	ndIndices[i] = i;
 		 	}
 		  	fNodalValues.SetLocal(ndIndices);
-		}*/
+		}
+#endif
 
 		/* loop over integration points */
 		double* pstate = fStateVariables_last(CurrElementNumber());
@@ -572,8 +581,9 @@ void CSEAnisoT::RHSDriver(void)
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 	
+#ifndef _SIERRA_TEST_
 	/* If the potential needs info from the nodes, start to gather it now */
-/*	if (fCalcNodalInfo) 
+	if (fCalcNodalInfo) 
 	{
 		ElementBaseT& surroundingGroup = ElementSupport().ElementGroup(iBulkGroup);
 		surroundingGroup.SendOutput(fNodalInfoCode);
@@ -582,7 +592,8 @@ void CSEAnisoT::RHSDriver(void)
 			fNodalQuantities.Free();
 		}
 		fNodalQuantities = ElementSupport().OutputAverage();
-	}*/
+	}
+#endif
 
 	/* fracture surface area */
 	fFractureArea = 0.0;
@@ -619,7 +630,8 @@ void CSEAnisoT::RHSDriver(void)
 	  		
 			bool nodalReleaseQ = false;
 			LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
-/*			int currElNum;
+#ifndef _SIERRA_TEST_
+			int currElNum;
 			if (surfpot->NeedsNodalInfo()) 
 			{
 				iArrayT ndIndices = element.NodesX();
@@ -638,7 +650,8 @@ void CSEAnisoT::RHSDriver(void)
 		    		ndIndices[i] = i;
 		 		}
 			  	fNodalValues.SetLocal(ndIndices);
-			}*/
+			}
+#endif
 			
 			/* loop over integration points */
 			double* pstate = fStateVariables(CurrElementNumber());
@@ -901,10 +914,10 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			if (e_codes[Centroid]) centroid = 0.0;
 			if (e_codes[Traction]) traction = 0.0;
 
-//			int currElNum;
+			int currElNum;
 			bool nodalReleaseQ = false;
 			LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
-/*			if (surfpot->NeedsNodalInfo()) 
+			if (surfpot->NeedsNodalInfo()) 
 			{
 			  	int numNodes = element.NodesX().Length();
 			  	dArray2DT elementVals(numNodes,fNodalQuantities.MinorDim());
@@ -922,7 +935,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		    		ndIndices[i] = i;
 		 		}
 			  	fNodalValues.SetLocal(ndIndices);
-			}*/
+			}
 
 			/* integrate */
 			fShapes->TopIP();

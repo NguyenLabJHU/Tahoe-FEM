@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.5.4.1 2002-10-11 00:23:12 cjkimme Exp $ */
+/* $Id: ElementSupportT.h,v 1.5.4.2 2002-10-15 23:03:47 cjkimme Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -69,8 +69,10 @@ public:
 	
 #ifdef _SIERRA_TEST_
 	void SetNumNodes(int nn);	
-	void SetInitialCoordinates(double *InitCoords);
-	void SetCurrentCoordinates(double **CurrCoords);
+	void SetInitialCoordinates(double *InitialCoords);
+	void SetInitialCoordinates(dArray2DT *InitialCoords);
+	void SetCurrentCoordinates(double *CurrentCoords);
+	void SetCurrentCoordinates(dArray2DT *CurrentCoords);
 	void SetTimeStep(double dt);
 	void SetModelManager(ModelManagerT* modelManager);
 #endif
@@ -104,7 +106,7 @@ public:
 	const int& IterationNumber(int group) const;
 	
 	/** exception string */
-//	const char* Exception(int exception) const;
+	const char* Exception(int exception) const;
 	
 	/** simulation time */
 	const double& Time(void) const;
@@ -121,8 +123,10 @@ public:
 	/** index of the element group in the list of elements */
 	int ElementGroupNumber(const ElementBaseT* element) const;
 
+#ifndef _SIERRA_TEST_
 	/** the element group at the specified index in the element list */
-//	ElementBaseT& ElementGroup(int index) const;
+	ElementBaseT& ElementGroup(int index) const;
+#endif
 
 	/** geometry information */
 	ModelManagerT& Model(void) const;
