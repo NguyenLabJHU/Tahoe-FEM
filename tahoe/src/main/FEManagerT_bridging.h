@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.17 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.17.2.1 2004-10-11 19:26:15 d-farrell2 Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -59,6 +59,9 @@ public:
 	/** set pointer to an external force vector or pass NULL to clear. The array
 	 * the length of the number of unknowns for the given group. */
 	void SetExternalForce(int group, const dArrayT& external_force);
+	
+	//DEF added this because I couldn't get the null pointer passed in right - clears the coupling forces
+	void ClearExternalForce(int group);
 
 	/** set pointer to an external force vector for the given field */
 	void SetExternalForce(const StringT& field, const dArray2DT& external_force, const iArrayT& activefenodes);
@@ -408,6 +411,12 @@ private:
 inline void FEManagerT_bridging::SetExternalForce(int group, const dArrayT& external_force)
 {
 	fExternalForce[group] = &external_force;
+}
+
+/* set pointer to an external force vector or pass NULL to clear */
+inline void FEManagerT_bridging::ClearExternalForce(int group)
+{
+	fExternalForce[group] = NULL;
 }
 
 } /* namespace Tahoe */
