@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2002-11-26 01:55:37 paklein Exp $
+# $Id: makefile,v 1.2 2002-12-04 05:50:11 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -9,7 +9,8 @@ OBJ = \
 	HarmonicPairT.o \
 	LennardJonesPairT.o \
 	PairPropertyT.o \
-	ParticlePropertyT.o
+	ParticlePropertyT.o \
+	ParadynPairT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -22,14 +23,16 @@ SRC = \
 	HarmonicPairT.cpp \
 	LennardJonesPairT.cpp \
 	PairPropertyT.cpp \
-	ParticlePropertyT.cpp
+	ParticlePropertyT.cpp \
+	ParadynPairT.cpp
 
 # headers
 HDR = \
 	HarmonicPairT.h \
 	LennardJonesPairT.h \
 	PairPropertyT.h \
-	ParticlePropertyT.h
+	ParticlePropertyT.h \
+	ParadynPairT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
