@@ -1,8 +1,9 @@
-/* $Id: RandomNumberT.cpp,v 1.5 2003-04-14 17:26:21 cjkimme Exp $ */
+/* $Id: RandomNumberT.cpp,v 1.6 2003-04-24 20:49:06 cjkimme Exp $ */
 #include "RandomNumberT.h"
 #include "ifstreamT.h"
 #include <math.h>
 #include "dArrayT.h"
+#include "dArray2DT.h"
 
 using namespace Tahoe;
 
@@ -124,6 +125,19 @@ dArrayT& RandomNumberT::RandomArray(dArrayT& fillArray)
 	return fillArray;
 
 }
+
+dArray2DT& RandomNumberT::RandomArray(dArray2DT& fillArray)
+{
+
+	double* f = fillArray.Pointer();
+
+	for (int i = 0; i < fillArray.Length(); i++)
+		*f++ = Rand();
+
+	return fillArray;
+
+}
+
 
 long RandomNumberT::RandSeed(void)
 {
