@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.28 2004-07-22 08:24:11 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.29 2004-08-06 20:22:32 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "MeshFreeSupportT.h"
 
@@ -644,7 +644,7 @@ void MeshFreeSupportT::WriteStatistics(ostream& out) const
 
 	/* nodal support data */
 	int d_width = OutputWidth(out, fNodalParameters.Pointer());
-	out << " Support size distribution:\n";
+	out << " Support size distribution (unscaled):\n";
 	out << setw(d_width) << "min"
 	    << setw(d_width) << "max"
 	    << setw(d_width) << "avg" << '\n';
@@ -653,6 +653,7 @@ void MeshFreeSupportT::WriteStatistics(ostream& out) const
 		double min, max, sum;
 		min = -1.0; 
 		max = sum = 0.0;
+		int count = 0;
 		for (int j = 0; j < fNodalParameters.MajorDim(); j++)
 		{
 			double value = fNodalParameters(j,i);
@@ -663,6 +664,7 @@ void MeshFreeSupportT::WriteStatistics(ostream& out) const
 				else if (value > max)
 					max = value;
 				sum += value;
+				count++;
 			}
 		}
 		
@@ -670,7 +672,7 @@ void MeshFreeSupportT::WriteStatistics(ostream& out) const
 		out << setw(d_width) << min
 	        << setw(d_width) << max;
 		if (fNodalParameters.MajorDim() > 0)
-			out << setw(d_width) << sum/fNodalParameters.MajorDim() << '\n';
+			out << setw(d_width) << ((count > 0) ? sum/count : 0.0) << '\n';
 		else
 			out << setw(d_width) << 0.0 << '\n';
 	}
