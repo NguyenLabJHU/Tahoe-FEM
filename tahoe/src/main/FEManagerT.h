@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.13.2.6 2002-04-30 01:30:20 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.13.2.7 2002-04-30 08:22:02 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -21,7 +21,7 @@ class ifstreamT;
 class ofstreamT;
 class ModelManagerT;
 class TimeManagerT;
-class NodeManagerT; //TEMP - rename
+class NodeManagerT;
 class ControllerT;
 class nControllerT;
 class eControllerT;
@@ -79,6 +79,28 @@ public:
 
 	/** returns true for verbose echo of input */
 	bool PrintInput(void) const;
+
+	const StringT& Version(void) const;
+	IOBaseT::FileTypeT OutputFormat(void) const;
+	const StringT& Title(void) const { return fTitle; };
+
+	/** returns 1 of ALL element groups have interpolant DOF's */
+	int InterpolantDOFs(void) const;
+
+	/** pointer to the I/O manager */
+	IOManager* OutputManager(void) const;
+
+	/** the model database manager */
+	ModelManagerT* ModelManager (void) const;
+
+	/** the node manager */
+	NodeManagerT* NodeManager(void) const;
+
+	/** pointer to an element group */
+	ElementBaseT* ElementGroup(int groupnumber) const;
+
+	/** resolve the index of the given element group */
+	int ElementGroupNumber(const ElementBaseT* pgroup) const;
 	/*@}*/
 
 	/** \name equation system */
@@ -105,7 +127,7 @@ public:
 
 	/** \name exception handling */
 	/*@{*/
-	virtual void HandleException(int exception);
+//	virtual void HandleException(int exception);
 	void WriteExceptionCodes(ostream& out) const;
 	const char* Exception(int code) const;
 	/*@}*/
@@ -116,7 +138,6 @@ public:
 	
 	/* time sequence messaging */
 //	virtual bool Step(void);
-	void ResetStep(void);
 	
 	/* solution accessors */
 	const double& Time(void) const;
@@ -137,24 +158,12 @@ public:
 	void FormLHS(int group) const;
 	void FormRHS(int group) const;
 
+	/** send update of the solution to the NodeManagerT */
+	virtual void Update(int group, const dArrayT& update);
 	/*@}*/
-
-	/* I/O info */
-	const StringT& Version(void) const;
-	IOBaseT::FileTypeT OutputFormat(void) const;
-	ModelManagerT* ModelManager (void) const;
-	const StringT& Title(void) const { return fTitle; };
-
-	/* local reordering */
-//	void SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const;
-//	void RegisterLocal(LocalArrayT& array) const;
-	
 	
 	/** collect the internal force on the specified node */
 	void InternalForceOnNode(const FieldT& field, int node, dArrayT& force) const;
-
-	/** send update of the solution to the NodeManagerT */
-	virtual void Update(int group, const dArrayT& update);
 
 	/** return the current values of the unknowns 
 	 * \param group equation group 
@@ -181,10 +190,9 @@ public:
 	void OverWriteRHS(int group, const dArrayT& elRes, const nArrayT<int>& eqnos) const;
 	void DisassembleRHS(int group, dArrayT& elRes, const nArrayT<int>& eqnos) const;
 	/*@}*/
-
-	/** pointer to the I/O manager */
-	IOManager* OutputManager(void) const;
 	
+	/** \name output */
+	/*@{*/
 	/** register an output set to write output data. See OutputSetT for more information.
 	 * \return the ID for the output set. This value is needed to send data to the
 	 *         correct destination with a subsequent call to FEManagerT::WriteOutput */
@@ -211,16 +219,7 @@ public:
 	/* (temporarily) direct output away from main out */
 	virtual void DivertOutput(const StringT& outfile);
 	virtual void RestoreOutput(void);
-	
-	/* cross-linking - create your own trouble */
-	NodeManagerT* NodeManager(void) const;
-	ElementBaseT* ElementGroup(int groupnumber) const;
-		// 1 <= groupnumber <= fNumElementGroups
-		// returns NULL if out of range
-	int ElementGroupNumber(const ElementBaseT* pgroup) const;
-		// returns the element group number (0...) for pgroup,
-		// or -1 if not found, result not valid until after
-		// fElementGroups is fully constructed
+	/*@}*/
 
 	/** \name access to controllers */
 	/*@{*/
@@ -229,9 +228,6 @@ public:
 	eControllerT* eController(int index) const;
 	nControllerT* nController(int index) const;
 	/*@}*/
-
-	/* returns 1 of ALL element groups have interpolant DOF's */
-	int InterpolantDOFs(void) const;
 
 	/** debugging */
 	virtual void WriteSystemConfig(ostream& out, int group) const;
@@ -300,9 +296,10 @@ protected:
 	void SendEqnsToSolver(int group) const;
 
 	/* first/last functions called during a time increment */
-	virtual int InitStep(void) const;
-	virtual int SolveStep(void) const;
-	virtual int CloseStep(void) const;
+	virtual int InitStep(void);
+	virtual int SolveStep(void);
+	virtual int CloseStep(void);
+	virtual int ResetStep(void);
 
 private:
 

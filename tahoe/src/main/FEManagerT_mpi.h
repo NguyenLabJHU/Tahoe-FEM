@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.7.2.1 2002-04-30 00:07:12 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.7.2.2 2002-04-30 08:22:02 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 
 #ifndef _FE_MANAGER_MPI_H_
@@ -41,13 +41,10 @@ public:
 	virtual ~FEManagerT_mpi(void);
 	
 	/* exception handling */
-	virtual void HandleException(int exception);
+//	virtual void HandleException(int exception);
 
 	/* time sequence messaging */
-	virtual bool Step(void);
-
-	/** initialize the new time interval */
-	virtual void InitStep(void) const;
+//	virtual bool Step(void);
 
 	/* solution update */
 	virtual void Update(int group, const dArrayT& update);
@@ -102,6 +99,9 @@ public:
 	virtual int Size(void) const;
 
 protected:
+
+	/** initialize the new time interval */
+	virtual int InitStep(void);
 
 	/* initialization functions */
 	virtual void ReadParameters(InitCodeT init);

@@ -1,7 +1,10 @@
-/* $Id: ElementSupportT.cpp,v 1.1.2.3 2002-04-30 01:30:18 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.1.2.4 2002-04-30 08:21:59 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "FEManagerT.h"
 #include "NodeManagerT.h"
+#include "eControllerT.h"
+#include "nControllerT.h"
+#include "FieldT.h"
 
 /* constructor */
 ElementSupportT::ElementSupportT(void)
@@ -147,6 +150,14 @@ const iArrayT* ElementSupportT::NodeMap(void) const
 const FieldT* ElementSupportT::Field(const char* name) const
 {
 	return Nodes().Field(name);
+}
+
+/* return the element controller appropriate for the given field */
+const eControllerT* ElementSupportT::eController(const FieldT& field) const
+{
+	const nControllerT& n_cont = field.nController();
+	const eControllerT* e_cont = dynamic_cast<const eControllerT*>(&n_cont);
+	return e_cont;
 }
 	
 /* element number map for the given block ID */

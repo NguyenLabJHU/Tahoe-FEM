@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.20.2.2 2002-04-30 00:07:04 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.20.2.3 2002-04-30 08:21:59 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -54,15 +54,17 @@
 #include "UpLagr_ExternalFieldT.h"
 
 /* constructors */
-ElementListT::ElementListT(FEManagerT& fe)
+ElementListT::ElementListT(void)
 {
-	/* initialize element support */
-	fSupport.SetFEManager(&fe);
+
 }
 
 /* initialization functions */
-void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
+void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 {
+	/* initialize element support */
+	fSupport.SetFEManager(&fe);
+
 	/* print header */
 	out << "\n E l e m e n t   G r o u p   D a t a :\n\n";
 	out << " Number of element groups. . . . . . . . . . . . = ";

@@ -1,4 +1,4 @@
-/* $Id: NOXSolverT.h,v 1.2.2.2 2002-04-30 01:30:24 paklein Exp $ */
+/* $Id: NOXSolverT.h,v 1.2.2.3 2002-04-30 08:22:07 paklein Exp $ */
 #ifndef _NOX_SOLVER_T_H_
 #define _NOX_SOLVER_T_H_
 
@@ -38,7 +38,7 @@ public:
 	virtual ~NOXSolverT(void);
 
 	/** solve the system over the current time increment */
-	virtual void Solve(void);	
+	virtual int Solve(void);	
 
 	/** error handler */
 	virtual void ResetStep(void);
@@ -71,15 +71,6 @@ private:
                             
 	/** run solver */                            
 	SolutionStatusT Solve(NOX::Solver::Manager& nox);
-	
-	/** handle situation if solution for the current time increment
-	 * is successfully determined.
-	 * \return true if step is ready to be closed */
-	SolutionStatusT DoConverged(void);
-
-	/** handle situation if solution for the current time increment
-	 * could not be determined */
-	void DoNotConverged(void);
 
 	/** divert output for iterations */
 	void InitIterationOutput(void);

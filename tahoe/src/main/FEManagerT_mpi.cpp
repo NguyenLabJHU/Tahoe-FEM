@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.14.2.1 2002-04-30 00:07:11 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.14.2.2 2002-04-30 08:22:02 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 
 #include "FEManagerT_mpi.h"
@@ -141,6 +141,7 @@ FEManagerT_mpi::~FEManagerT_mpi(void)
 #endif /* __MPI__ */
 }
 
+#if 0
 /* exception handling */
 void FEManagerT_mpi::HandleException(int exception)
 {
@@ -188,7 +189,9 @@ void FEManagerT_mpi::HandleException(int exception)
 	/* inherited */
 	FEManagerT::HandleException(exception);
 }
+#endif
 
+#if 0
 /* time sequence messaging */
 bool FEManagerT_mpi::Step(void)
 {
@@ -214,14 +217,17 @@ bool FEManagerT_mpi::Step(void)
 
 	return result;
 }
+#endif
 
-void FEManagerT_mpi::InitStep(void) const
+int FEManagerT_mpi::InitStep(void)
 {
-	/* inherited */
-	FEManagerT::InitStep();
+//NOTE - check for errors on other processors
 
 	/* set default output time stamp */
 	if (fExternIOManager) fExternIOManager->SetOutputTime(Time());
+
+	/* inherited */
+	return FEManagerT::InitStep();
 }
 
 /* solution update */

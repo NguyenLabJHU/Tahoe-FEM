@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.2.2.2 2002-04-30 00:07:14 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.2.2.3 2002-04-30 08:22:05 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 
 #include "ExpCD_DRSolver.h"
@@ -115,74 +115,10 @@ void ExpCD_DRSolver::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 }
 
 /* generate the solution for the current time sequence */
-void ExpCD_DRSolver::Run(void)
+int ExpCD_DRSolver::Solve(void)
 {
-	/* generate pseudo-mass matrix */
-	SetMass();
+	try {
 
-	/* solve displacements for quasi-static load sequence */
-	while (Step())
-	{			
-		/* residual loop */
-		try {
-	
-			/* apply kinematic BC's */
-			fFEManager.InitStep();
-		
-			/* form the residual force vector */
-			fRHS = 0.0;
-			fFEManager.FormRHS(Group());	
-			double error = fRHS.Magnitude();
-			
-			/* loop on error */
-			int solutionflag = ExitIteration(error);
-			while(solutionflag == kContinue)
-			{
-				/* explicit central difference time stepping */
-				error = SolveAndForm();
-				solutionflag = ExitIteration(error);
-
-				/* convergence history */
-				if (fOutputDOF > 0)
-				{
-					fhist_out << fVel[fOutputDOF - 1] << '\t';
-					fhist_out << error/fError0      << '\n';
-				}
-			}
-
-			/* found solution */
-			if (solutionflag == kConverged)
-			{
-				/* relaxation */
-				GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
-				
-				/* reset global equations */
-				if (relaxcode == GlobalT::kReEQ ||
-				    relaxcode == GlobalT::kReEQRelax)
-					fFEManager.Reinitialize(Group());
-					
-				/* new equilibrium */					
-				if (relaxcode == GlobalT::kRelax ||
-				    relaxcode == GlobalT::kReEQRelax)
-					Relax();
-			}
-			
-			/* finalize */
-			fFEManager.CloseStep();
-		}
-
-		catch (int code) { fFEManager.HandleException(code); }		
-	}
-}
-
-/*************************************************************************
-* Protected
-*************************************************************************/
-
-/* advance to next load step. Returns 0 if there are no more
-* steps. Overload to add class dependent initializations */
-int ExpCD_DRSolver::Step(void)
-{
 	/* reset iteration count */
 	fNumIteration = -1;
 
@@ -190,10 +126,62 @@ int ExpCD_DRSolver::Step(void)
 	fDis = 0.0;
 	fVel = 0.0;
 	fAcc = 0.0;
-		
-	/* inherited */
-	return SolverT::Step();
+	
+	/* generate pseudo-mass matrix */
+	if (fFEManager.StepNumber() == 0) SetMass();
+	
+	/* form the residual force vector */
+	fRHS = 0.0;
+	fFEManager.FormRHS(Group());	
+	double error = fRHS.Magnitude();
+			
+	/* loop on error */
+	int solutionflag = ExitIteration(error);
+	while (solutionflag == kContinue)
+	{
+		/* explicit central difference time stepping */
+		error = SolveAndForm();
+		solutionflag = ExitIteration(error);
+
+		/* convergence history */
+		if (fOutputDOF > 0)
+		{
+			fhist_out << fVel[fOutputDOF - 1] << '\t';
+			fhist_out << error/fError0      << '\n';
+		}
+	}
+
+	/* found solution */
+	if (solutionflag == kConverged)
+	{
+		/* relaxation */
+		GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
+				
+		/* reset global equations */
+		if (relaxcode == GlobalT::kReEQ ||
+			relaxcode == GlobalT::kReEQRelax)
+			fFEManager.Reinitialize(Group());
+					
+		/* new equilibrium */					
+		if (relaxcode == GlobalT::kRelax ||
+			relaxcode == GlobalT::kReEQRelax)
+			Relax();
+
+		return eNoError;
+	}
+	else return eGeneralFail;
+	
+	}
+
+	/* abnormal */
+	catch (int code) { 
+		return code;
+	}		
 }
+
+/*************************************************************************
+* Protected
+*************************************************************************/
 
 /* returns 1 if the iteration loop should be left, otherwise
 * returns 0.  The iteration loop can be exited for the
@@ -239,10 +227,6 @@ int ExpCD_DRSolver::ExitIteration(double error)
 	else if (fNumIteration >= fMaxIterations)
 	{
 		cout << "\n ExpCD_DRSolver::ExitIteration: max iterations hit\n" << endl;
-
-		fFEManager.ResetStep();
-		fFEManager.DecreaseLoadStep();
-			
 		return kFailed;
 	}
 	/* interpret error */
@@ -295,10 +279,6 @@ int ExpCD_DRSolver::ExitRelaxation(double error)
 	else if (fNumIteration >= fMaxIterations)
 	{
 		cout << "\n ExpCD_DRSolver::ExitRelaxation: max iterations hit\n" << endl;
-
-		fFEManager.ResetStep();
-		fFEManager.DecreaseLoadStep();
-
 		return kFailed;
 	}
 	/* interpret error */

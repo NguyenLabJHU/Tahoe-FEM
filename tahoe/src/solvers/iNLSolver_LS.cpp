@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.6.2.2 2002-04-30 00:07:14 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.6.2.3 2002-04-30 08:22:06 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #include "iNLSolver_LS.h"
@@ -50,8 +50,12 @@ iNLSolver_LS::iNLSolver_LS(FEManagerT& fe_manager, int group):
 }
 
 /* interactive */
-void iNLSolver_LS::Run(void)
+int iNLSolver_LS::Solve(void)
 {
+//TEMP - revised solvers means this interactive part needs to change
+cout << "\n iNLSolver_LS::Solve: not updated for multifield" << endl;
+return eStop;
+
 	/* initial state */
 	fIterationStatus = kConverged;
 	
@@ -115,7 +119,7 @@ bool iNLSolver_LS::iDoCommand(const CommandSpecT& command, StringT& line)
 		else if (command.Name() == "ResetStep")
 		{
 			/* step back to last converged */
-			fFEManager.ResetStep();
+//			fFEManager.ResetStep();
 
 			/* initialize step */
 			return DoInitStep();
@@ -160,7 +164,7 @@ bool iNLSolver_LS::iDoCommand(const CommandSpecT& command, StringT& line)
 		cout << "\n iNLSolver_LS::iDoCommand: exception at step number "
 		     << fFEManager.StepNumber() << " with step "
 		     << fFEManager.TimeStep() << endl;
-		fFEManager.HandleException(code);
+//		fFEManager.HandleException(code);
 		return false;
 	}
 }
@@ -213,6 +217,8 @@ bool iNLSolver_LS::DoInitStep(void)
 	/* close any iteration output */	
 	CloseIterationOutput();
 
+	return false; //TEMP
+#if 0
 	if (Step())
 	{
 		/* apply boundary conditions */
@@ -225,6 +231,7 @@ bool iNLSolver_LS::DoInitStep(void)
 		cout << "reached end of time sequence" << endl;
 		return false;
 	}
+#endif
 }
 
 NLSolver::IterationStatusT iNLSolver_LS::DoIterate(int max_count)
@@ -271,7 +278,7 @@ NLSolver::IterationStatusT iNLSolver_LS::DoIterate(int max_count)
 			if (fIterationStatus == kConverged)
 			{
 				fIterationStatus = DoConverged();	
-				fFEManager.CloseStep();
+//				fFEManager.CloseStep();
 			}
 			break;
 		}

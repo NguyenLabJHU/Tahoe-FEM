@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.1.2.5 2002-04-26 02:24:23 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.1.2.6 2002-04-30 08:22:03 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -13,7 +13,7 @@ FieldT::FieldT(const StringT& name, int ndof, nControllerT& controller):
 	BasicFieldT(name, ndof, controller.Order()),
 	fnController(controller),
 	fNumActiveEquations(-1),
-	fField_last(fnController.Order())
+	fField_last(fnController.Order()+1)
 {
 
 }

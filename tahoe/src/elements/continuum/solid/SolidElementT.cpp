@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.21.2.3 2002-04-30 00:07:08 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.21.2.4 2002-04-30 08:22:01 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #include "SolidElementT.h"
@@ -53,6 +53,11 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	
 	if (fStrainDispOpt != ShapeFunctionT::kStandardB &&
 	    fStrainDispOpt != ShapeFunctionT::kMeanDilBbar) throw eBadInputValue;
+
+	/* checks for dynamic analysis */
+	if (fController->Order() > 0 &&
+	    fController->ImplicitExplicit() == eControllerT::kExplicit)
+	    fMassType = kLumpedMass;
 }
 
 /* data initialization */
@@ -60,11 +65,6 @@ void SolidElementT::Initialize(void)
 {
 	/* inherited */
 	ContinuumElementT::Initialize();
-
-	/* checks for dynamic analysis */
-	if (fController->Order() > 0 &&
-	    fController->ImplicitExplicit() == eControllerT::kExplicit)
-	    fMassType = kLumpedMass;
 
 	/* allocate strain-displacement matrix */
 	fB.Allocate(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
@@ -464,15 +464,18 @@ void SolidElementT::SetLocalArrays(void)
 	/* inherited */
 	ContinuumElementT::SetLocalArrays();
 
-	/* dimension */
+	/* allocate */
 	fLocLastDisp.Allocate(NumElementNodes(), NumDOF());
-	fLocVel.Allocate(NumElementNodes(), NumDOF());
 	fLocAcc.Allocate(NumElementNodes(), NumDOF());
+	fLocVel.Allocate(NumElementNodes(), NumDOF());
 
-	/* set source */
+	/* register */
 	Field().RegisterLocal(fLocLastDisp);
-	Field().RegisterLocal(fLocVel);
-	Field().RegisterLocal(fLocAcc);
+	if (fController->Order() == 2)
+	{
+		Field().RegisterLocal(fLocVel);
+		Field().RegisterLocal(fLocAcc);
+	}
 }
 
 /* set the correct shape functions */

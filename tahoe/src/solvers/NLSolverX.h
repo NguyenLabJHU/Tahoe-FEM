@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.h,v 1.1.1.1.8.2 2002-04-30 01:30:23 paklein Exp $ */
+/* $Id: NLSolverX.h,v 1.1.1.1.8.3 2002-04-30 08:22:06 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 
 #ifndef _NL_SOLVER_X_H_
@@ -20,20 +20,22 @@ public:
 	NLSolverX(FEManagerT& fe_manager, int group);
 
 	/** solve the system over the current time increment */
-	virtual void Solve(void);	
+	virtual int Solve(void);	
 
 	/* form and solve the equation system - returns the magnitude of the
 	 * residual */
 	virtual double SolveAndForm(bool newtangent);
+
+	/* error handler */
+	virtual void ResetStep(void);
 
 protected:
 
 	/* relax system - reform tangent at newtancount intervals */
 	virtual IterationStatusT Relax(int newtancount = 1);  	
 
-	/* handlers */
-	virtual IterationStatusT DoConverged(void);	
-	virtual void DoNotConverged(void);
+	/** things to do if the solver converges */
+	IterationStatusT DoConverged(void);
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: ElementListT.h,v 1.1.1.1.8.3 2002-04-30 00:07:04 paklein Exp $ */
+/* $Id: ElementListT.h,v 1.1.1.1.8.4 2002-04-30 08:21:59 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #ifndef _ELEMENTLIST_T_H_
@@ -27,10 +27,10 @@ class ElementListT: public pArrayT<ElementBaseT*>
 public:
 
 	/** constructor */
-	ElementListT(FEManagerT& fe);
+	ElementListT(void);
 
 	/* echo data from the I/O streams */
-	void EchoElementData(ifstreamT& in, ostream& out);
+	void EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe);
 	
 	/* returns true of ALL element groups have interpolant DOF's */
 	bool InterpolantDOFs(void) const;

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.7.2.2 2002-04-30 01:26:28 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.7.2.3 2002-04-30 08:22:04 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "NodeManagerT.h"
@@ -97,16 +97,16 @@ void NodeManagerT::Initialize(void)
 
 	/* echo nodal coordinate data */
 	EchoCoordinates(in, out);
-	
+
+	/* set fields */
+	EchoFields(in, out);
+
 	//TEMP - for now, use field called "displacement" to update the
 	//       reference coordinates to the current coordinates
 	fCoordUpdate = Field("displacement");
 	if (fCoordUpdate) {
 		fCurrentCoords = new dArray2DT(InitialCoordinates());
 	}
-
-	/* set fields */
-	EchoFields(in, out);
 	
 	/* external nodes (parallel execution) */
 	EchoExternalNodes(out);
