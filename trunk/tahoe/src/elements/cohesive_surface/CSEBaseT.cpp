@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.11 2002-08-22 20:45:08 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.12 2002-08-23 09:12:54 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -15,10 +15,9 @@
 #include "ElementSupportT.h"
 #include "ModelManagerT.h"
 
-/* initialize static data */
-
 using namespace Tahoe;
 
+/* initialize static data */
 const int CSEBaseT::NumNodalOutputCodes = 5;
 const int CSEBaseT::NumElementOutputCodes = 3;
 
@@ -407,7 +406,8 @@ if (ElementSupport().Size() > 1) {
 	if ((nsd == 2 && nen != 4 && nen != 6) || 
 	    (nsd == 3 && nen != 8 && nen != 16)) {
 		cout << "\n CSEBaseT::ReadConnectivity: TEMP: detected higher order elements,\n"
-			 <<   "     but output not reduced to lower order MP calculations." << endl;    
+			 <<   "     but output not reduced to lower order MP calculations." << endl;
+		return;
 	}
 }
 	/* check for higher order elements */
