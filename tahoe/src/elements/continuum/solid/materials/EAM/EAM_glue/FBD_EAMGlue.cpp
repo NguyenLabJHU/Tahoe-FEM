@@ -1,4 +1,4 @@
-/* $Id: FBD_EAMGlue.cpp,v 1.3.50.1 2004-06-16 00:31:53 paklein Exp $ */
+/* $Id: FBD_EAMGlue.cpp,v 1.3.50.2 2004-06-16 18:43:28 paklein Exp $ */
 /* created: paklein (01/30/2000) */
 #include "FBD_EAMGlue.h"
 
@@ -8,8 +8,8 @@
 using namespace Tahoe;
 
 /* constructor */
-FBD_EAMGlue::FBD_EAMGlue(CBLatticeT& lattice, int nsd, ifstreamT& in):
-	EAM(lattice, nsd)
+FBD_EAMGlue::FBD_EAMGlue(CBLatticeT& lattice, ifstreamT& in):
+	EAM(lattice)
 {
 	/* clear comment line */
 	in.clear_line();

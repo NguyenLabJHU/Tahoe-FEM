@@ -1,4 +1,4 @@
-/* $Id: CBLatticeT.cpp,v 1.5.20.1 2004-06-16 00:31:50 paklein Exp $ */
+/* $Id: CBLatticeT.cpp,v 1.5.20.2 2004-06-16 18:43:26 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "CBLatticeT.h"
 
@@ -85,7 +85,7 @@ void CBLatticeT::BondTensor4_3D(const dArrayT& comps, dMatrixT& matrix) const
 		*col++ = m[2]*m[j];
 		*col++ = m[3]*m[j];
 		*col++ = m[4]*m[j];
-		*col   = m[6]*m[j];
+		*col   = m[5]*m[j];
 	}
 }	
 

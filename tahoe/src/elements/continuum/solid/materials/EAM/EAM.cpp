@@ -1,31 +1,19 @@
-/* $Id: EAM.cpp,v 1.4.20.1 2004-06-16 00:31:51 paklein Exp $ */
+/* $Id: EAM.cpp,v 1.4.20.2 2004-06-16 18:43:27 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAM.h"
-//#include <iostream.h> //TEMP
 #include "CBLatticeT.h"
 #include "C1FunctionT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-EAM::EAM(CBLatticeT& lattice, int nsd): 
+EAM::EAM(CBLatticeT& lattice):
 	fPairPotential(NULL),
 	fEmbeddingEnergy(NULL),
 	fElectronDensity(NULL),
 	fLattice(lattice)
 {
-	/* dimensions */
-	int nb = fLattice.NumberOfBonds();
-	int nstrs = dSymMatrixT::NumValues(nsd);
 
-	/* dimension work space */
-	fBondTensor4.Dimension(nstrs),
-	fAmn.Dimension(nb);
-	fBondTensor2.Dimension(nstrs);
-	fTensor2Table.Dimension(nb, nstrs);
-	fBond1.Dimension(nb);
-	fBond2.Dimension(nb);
-	fBond3.Dimension(nb);
 }
 
 /* Destructor */
@@ -36,12 +24,23 @@ EAM::~EAM(void)
 	delete fElectronDensity;
 }
 
-/* Set "glue" functions */
-void EAM::SetGlueFunctions(void)
+/* Set "glue" functions and dimension work space */
+void EAM::Initialize(int nsd, int numbonds)
 {
+	/* glue functions */
 	SetPairPotential();
 	SetEmbeddingEnergy();
 	SetElectronDensity(); 		
+
+	/* dimension work space */
+	int nstrs = dSymMatrixT::NumValues(nsd);
+	fBondTensor4.Dimension(nstrs),
+	fAmn.Dimension(numbonds);
+	fBondTensor2.Dimension(nstrs);
+	fTensor2Table.Dimension(numbonds, nstrs);
+	fBond1.Dimension(numbonds);
+	fBond2.Dimension(numbonds);
+	fBond3.Dimension(numbonds);
 }
 
 /*

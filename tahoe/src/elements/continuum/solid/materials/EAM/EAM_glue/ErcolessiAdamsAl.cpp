@@ -1,4 +1,4 @@
-/* $Id: ErcolessiAdamsAl.cpp,v 1.3.50.1 2004-06-16 00:31:53 paklein Exp $ */
+/* $Id: ErcolessiAdamsAl.cpp,v 1.3.50.2 2004-06-16 18:43:28 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "ErcolessiAdamsAl.h"
 #include <iostream.h> //TEMP
@@ -11,8 +11,8 @@ using namespace Tahoe;
 const double kLatticeParameterAl = 4.03515412; //zero stress
 
 /* Constructor */
-ErcolessiAdamsAl::ErcolessiAdamsAl(CBLatticeT& lattice, int nsd):
-	EAM(lattice, nsd)
+ErcolessiAdamsAl::ErcolessiAdamsAl(CBLatticeT& lattice):
+	EAM(lattice)
 {
 
 }

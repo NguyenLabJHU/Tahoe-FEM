@@ -1,4 +1,4 @@
-/* $Id: VoterChenCu.cpp,v 1.4.20.1 2004-06-16 00:31:53 paklein Exp $ */
+/* $Id: VoterChenCu.cpp,v 1.4.20.2 2004-06-16 18:43:28 paklein Exp $ */
 /* created: paklein (12/04/1996) */
 #include "VoterChenCu.h"
 #include <math.h>
@@ -14,8 +14,8 @@ const double kCutoffRadiusCu     = 4.961;  /* angstrom */
 #include "VoterChenCu.dat"
 
 /* constructor */
-VoterChenCu::VoterChenCu(CBLatticeT& lattice, int nsd):
-	EAM(lattice, nsd)
+VoterChenCu::VoterChenCu(CBLatticeT& lattice):
+	EAM(lattice)
 {
 
 }

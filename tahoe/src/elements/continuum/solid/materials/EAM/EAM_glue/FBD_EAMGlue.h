@@ -1,4 +1,4 @@
-/* $Id: FBD_EAMGlue.h,v 1.3.56.1 2004-06-16 00:31:53 paklein Exp $ */
+/* $Id: FBD_EAMGlue.h,v 1.3.56.2 2004-06-16 18:43:28 paklein Exp $ */
 /* created: paklein (01/30/2000) */
 #ifndef _FBD_EAM_GLUE_H_
 #define _FBD_EAM_GLUE_H_
@@ -17,7 +17,7 @@ class FBD_EAMGlue: public EAM
 public:
 
 	/* constructor */
-	FBD_EAMGlue(CBLatticeT& lattice, int nsd, ifstreamT& in);
+	FBD_EAMGlue(CBLatticeT& lattice, ifstreamT& in);
 
 	/* ustressed lattice parameter */
 	 virtual double LatticeParameter(void) const;

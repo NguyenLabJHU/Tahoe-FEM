@@ -1,4 +1,4 @@
-/* $Id: VoterChenCu.h,v 1.2.56.1 2004-06-16 00:31:53 paklein Exp $ */
+/* $Id: VoterChenCu.h,v 1.2.56.2 2004-06-16 18:43:28 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #ifndef _VOTERCHEN_CU_H_
 #define _VOTERCHEN_CU_H_
@@ -14,7 +14,7 @@ class VoterChenCu: public EAM
 public:
 
 	/* constructor */
-	VoterChenCu(CBLatticeT& lattice, int nsd);
+	VoterChenCu(CBLatticeT& lattice);
 
 	/* unstressed lattice parameter */
 	 virtual double LatticeParameter(void) const;

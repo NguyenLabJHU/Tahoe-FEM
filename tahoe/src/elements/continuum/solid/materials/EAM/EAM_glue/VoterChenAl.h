@@ -1,4 +1,4 @@
-/* $Id: VoterChenAl.h,v 1.2.56.1 2004-06-16 00:31:53 paklein Exp $ */
+/* $Id: VoterChenAl.h,v 1.2.56.2 2004-06-16 18:43:28 paklein Exp $ */
 /* created: paklein (12/04/1996) */
 #ifndef _VOTERCHEN_AL_H_
 #define _VOTERCHEN_AL_H_
@@ -14,7 +14,7 @@ class VoterChenAl: public EAM
 public:
 
 	/* constructor */
-	VoterChenAl(CBLatticeT& lattice, int nsd);
+	VoterChenAl(CBLatticeT& lattice);
 
 	/* unstressed lattice parameter */
 	 virtual double LatticeParameter(void) const;

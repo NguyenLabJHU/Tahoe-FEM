@@ -1,4 +1,4 @@
-/* $Id: VoterChenAl.cpp,v 1.4.20.1 2004-06-16 00:31:53 paklein Exp $ */
+/* $Id: VoterChenAl.cpp,v 1.4.20.2 2004-06-16 18:43:28 paklein Exp $ */
 /* created: paklein (12/04/1996) */
 #include "VoterChenAl.h"
 #include <math.h>
@@ -11,8 +11,8 @@ const double kLatticeParameterAl = 4.05; /* angstrom */
 const double kCutoffRadiusAl 	 = 5.5550; /* angstrom */
 
 /* constructor */
-VoterChenAl::VoterChenAl(CBLatticeT& lattice, int nsd):
-	EAM(lattice, nsd)
+VoterChenAl::VoterChenAl(CBLatticeT& lattice):
+	EAM(lattice)
 {
 
 }
