@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT.h,v 1.15 2004-01-27 19:07:23 paklein Exp $ */
+/* $Id: C1FunctionT.h,v 1.16 2004-07-20 23:23:33 rdorgan Exp $ */
 /* created: paklein (12/04/1996) */
 #ifndef _C1_FUNCTION_T_H_
 #define _C1_FUNCTION_T_H_
@@ -54,6 +54,8 @@ public:
 	virtual double Function(double x) const = 0;
 	virtual double DFunction(double x) const = 0;
 	virtual double DDFunction(double x) const = 0;
+	virtual double DDDFunction(double x) const { return 0.;};
+	virtual double DDDDFunction(double x) const { return 0.;};
 	/*@}*/
 
 	/** \name returning values in groups
@@ -64,6 +66,8 @@ public:
 	virtual dArrayT& MapFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
+	virtual dArrayT& MapDDDFunction(const dArrayT& in, dArrayT& out) const;
+	virtual dArrayT& MapDDDDFunction(const dArrayT& in, dArrayT& out) const;
 	/*@}*/
 	
 	/** return 0th, 1st, and 2nd derivative in the respective

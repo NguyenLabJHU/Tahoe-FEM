@@ -1,4 +1,4 @@
-/* $Id: CubicSplineT.cpp,v 1.6 2004-01-27 19:07:23 paklein Exp $ */
+/* $Id: CubicSplineT.cpp,v 1.7 2004-07-20 23:23:33 rdorgan Exp $ */
 /* created: paklein (12/02/1996) */
 #include "CubicSplineT.h"
 #include "dArray2DT.h"
@@ -61,6 +61,8 @@ void CubicSplineT::PrintName(ostream& out) const
 double CubicSplineT::Function(double x) const { return function(x); }
 double CubicSplineT::DFunction(double x) const { return Dfunction(x); }
 double CubicSplineT::DDFunction(double x) const { return DDfunction(x); }
+double CubicSplineT::DDDFunction(double x) const { return DDDfunction(x); }
+double CubicSplineT::DDDDFunction(double x) const { return DDDDfunction(x); }
 
 /* returning values in groups - returns refence to out to allow:
 *
@@ -110,6 +112,38 @@ dArrayT& CubicSplineT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	/* fast mapping */
 	for (int i = 0; i < length; i++)
 		*pout++ = DDfunction(*pin++);
+
+	return out;
+}
+
+dArrayT& CubicSplineT::MapDDDFunction(const dArrayT& in, dArrayT& out) const
+{
+	/* dimension check */
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
+	
+	const double *pin   =  in.Pointer();
+	double *pout  = out.Pointer();
+	int    length = in.Length();
+	
+	/* fast mapping */
+	for (int i = 0; i < length; i++)
+		*pout++ = DDDfunction(*pin++);
+
+	return out;
+}
+
+dArrayT& CubicSplineT::MapDDDDFunction(const dArrayT& in, dArrayT& out) const
+{
+	/* dimension check */
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
+	
+	const double *pin   =  in.Pointer();
+	double *pout  = out.Pointer();
+	int    length = in.Length();
+	
+	/* fast mapping */
+	for (int i = 0; i < length; i++)
+		*pout++ = DDDDfunction(*pin++);
 
 	return out;
 }
@@ -168,6 +202,30 @@ double CubicSplineT::DDfunction(double x) const
 	const double* a = fCoefficients(i);	
 	
 	return 2.0*a[2] + 6.0*a[3]*dx;
+}
+
+double CubicSplineT::DDDfunction(double x) const	
+{
+	int i = fXPoints.Range(x);
+	
+	double  dx = (i == 0) ? x - fXPoints[i] :
+	             ((i == fXPoints.Length()) ? x - fXPoints[i-1] :
+	              x - fXPoints[i-1]);
+	const double* a = fCoefficients(i);	
+	
+	return 6.0*a[3];
+}
+
+double CubicSplineT::DDDDfunction(double x) const	
+{
+	int i = fXPoints.Range(x);
+	
+	double  dx = (i == 0) ? x - fXPoints[i] :
+	             ((i == fXPoints.Length()) ? x - fXPoints[i-1] :
+	              x - fXPoints[i-1]);
+	const double* a = fCoefficients(i);	
+	
+	return 0.0;
 }
 
 void CubicSplineT::all_functions(double x, double& f, double& Df, double& DDf) const

@@ -1,4 +1,4 @@
-/* $Id: LinearExponentialT.h,v 1.4 2004-06-09 06:24:13 paklein Exp $ */
+/* $Id: LinearExponentialT.h,v 1.5 2004-07-20 23:23:33 rdorgan Exp $ */
 /* created: paklein (05/04/2001)                                    */
 
 #ifndef _LINEAR_EXPONENTIAL_T_H_
@@ -40,6 +40,12 @@ public:
 	/** evaluate second derivative function */
 	virtual double DDFunction(double x) const;
 
+	/** evaluate third derivative function */
+	virtual double DDDFunction(double x) const;
+
+	/** evaluate fourth derivative function */
+	virtual double DDDDFunction(double x) const;
+
 	/** \name returning values in groups */
 	/*@{*/
 	/** multiple function evaluations */
@@ -50,6 +56,12 @@ public:
 
 	/** multiple second derivative evaluations */
 	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
+
+	/** multiple third derivative evaluations */
+	virtual dArrayT& MapDDDFunction(const dArrayT& in, dArrayT& out) const;
+
+	/** multiple fourth derivative evaluations */
+	virtual dArrayT& MapDDDDFunction(const dArrayT& in, dArrayT& out) const;
 	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */

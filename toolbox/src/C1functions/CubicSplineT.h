@@ -1,4 +1,4 @@
-/* $Id: CubicSplineT.h,v 1.4 2004-01-27 19:07:23 paklein Exp $ */
+/* $Id: CubicSplineT.h,v 1.5 2004-07-20 23:23:33 rdorgan Exp $ */
 /* created: paklein (12/02/1996) */
 #ifndef _CUBICSPLINE_T_H_
 #define _CUBICSPLINE_T_H_
@@ -44,6 +44,8 @@ public:
 	virtual double Function(double x) const;
 	virtual double DFunction(double x) const;
 	virtual double DDFunction(double x) const;
+	virtual double DDDFunction(double x) const;
+	virtual double DDDDFunction(double x) const;
 
 	/* returning values in groups - returns refence to out to allow:
 	 *
@@ -52,6 +54,8 @@ public:
 	virtual dArrayT& MapFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
+	virtual dArrayT& MapDDDFunction(const dArrayT& in, dArrayT& out) const;
+	virtual dArrayT& MapDDDDFunction(const dArrayT& in, dArrayT& out) const;
 	
 	/*
 	 * Return 0th, 1st, and 2nd derivative in the respective
@@ -85,6 +89,8 @@ protected:
 	double function(double x) const;
 	double Dfunction(double x) const;
 	double DDfunction(double x) const;
+	double DDDfunction(double x) const;
+	double DDDDfunction(double x) const;
 	void all_functions(double x, double& f, double& Df, double& DDf) const;
 	
 private:
