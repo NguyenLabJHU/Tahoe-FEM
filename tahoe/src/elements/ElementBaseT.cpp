@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.45 2004-02-09 08:23:31 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.43.2.7 2004-04-07 15:36:14 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -9,13 +9,13 @@
 #include "ModelManagerT.h"
 #include "fstreamT.h"
 #include "toolboxConstants.h"
+#include "LocalArrayT.h"
+#include "ParameterUtils.h"
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "FieldT.h"
 #include "eIntegratorT.h"
 #endif
-
-#include "LocalArrayT.h"
 
 using namespace Tahoe;
 
@@ -30,7 +30,7 @@ ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):
 	fLHS(ElementMatrixT::kSymmetric)
 {
 	/* just cast it */
-	fIntegrator = fSupport.eIntegrator(field);
+	fIntegrator = &(fField->Integrator().eIntegrator());
 }
 
 ElementBaseT::ElementBaseT(const ElementSupportT& support):
@@ -150,7 +150,7 @@ void ElementBaseT::FormLHS(GlobalT::SystemTypeT sys_type)
 	catch (ExceptionT::CodeT error)
 	{
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-		cout << "\n ElementBaseT::FormLHS: " << fSupport.Exception(error);
+		cout << "\n ElementBaseT::FormLHS: " << ExceptionT::ToString(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
 		
@@ -182,7 +182,7 @@ void ElementBaseT::FormRHS(void)
 	catch (ExceptionT::CodeT error)
 	{
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-		cout << "\n ElementBaseT::FormRHS: " << fSupport.Exception(error);
+		cout << "\n ElementBaseT::FormRHS: " << ExceptionT::ToString(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
 		
@@ -388,13 +388,6 @@ void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
 		if (*p++ == 1) nodes_used[dex++] = j + min;
 }
 
-/* add the element group's contribution to the lumped (scalar) mass of the given nodes */
-void ElementBaseT::LumpedMass(const iArrayT& nodes, dArrayT& mass) const
-{
-	if (nodes.Length() != mass.Length())
-		ExceptionT::SizeMismatch("ElementBaseT::LumpedMass");
-}
-
 /* contribution to the nodal residual forces */
 const dArray2DT& ElementBaseT::InternalForce(int group)
 {
@@ -410,30 +403,79 @@ void ElementBaseT::DefineParameters(ParameterListT& list) const
 	ParameterInterfaceT::DefineParameters(list);
 
 	/* associated fields */
-	list.AddParameter(ParameterT::String, "field_name");
+	list.AddParameter(ParameterT::Word, "field_name");
 }
 
-/*information about subordinate parameter lists */
-void ElementBaseT::DefineSubs(SubListT& sub_list) const
+/* accept parameter list */
+void ElementBaseT::TakeParameterList(const ParameterListT& list)
 {
+	const char caller[] = "ElementBaseT::TakeParameterList";
+
 	/* inherited */
-	ParameterInterfaceT::DefineSubs(sub_list);
+	ParameterInterfaceT::TakeParameterList(list);
 
-	sub_list.AddSub("element_block", ParameterListT::OnePlus);
-}
+	/* get the field */
+	const StringT& field_name = list.GetParameter("field_name");
+	fField = ElementSupport().Field(field_name);
+	if (!fField)
+		ExceptionT::GeneralFail(caller, "could not resolve \"%s\" field", field_name.Pointer());
 
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ElementBaseT::NewSub(const StringT& list_name) const
-{
-	if (list_name == "element_block")
-		return new ElementBlockDataT;
-	else
-		return ParameterInterfaceT::NewSub(list_name);
+	/* get the integrator */
+	fIntegrator = &(fField->Integrator().eIntegrator());
+
+	/* try to load connectivities */
+	ArrayT<StringT> block_ID;
+	ArrayT<int> mat_index;
+	CollectBlockInfo(list, block_ID,  mat_index); /* 'look ahead' in parameter list */
+	DefineElements(block_ID, mat_index);
+
+	/* dimension */
+	int neq = NumElementNodes()*NumDOF();
+	fLHS.Dimension(neq);	
+	fRHS.Dimension(neq);
 }
 
 /***********************************************************************
  * Protected
  ***********************************************************************/
+
+/* extract element block info from parameter list */
+void ElementBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const
+{
+	/* search for a block declarations */
+	const ParameterListT* block_search = list.FindList("_element_block");
+	if (!block_search) /* no match */
+	{
+		block_ID.Dimension(0);
+		mat_index.Dimension(0);
+	}
+	else /* extract */
+	{
+		const StringT& block_name = block_search->Name();
+
+		/* collect {block_ID, material_index} pairs */
+		int num_blocks = list.NumLists(block_name);
+		AutoArrayT<StringT> block_ID_tmp;
+		AutoArrayT<int> mat_index_tmp;
+		ParameterListT material_list; /* collected material parameters */
+		for (int i = 0; i < num_blocks; i++) {
+
+			/* block information */	
+			const ParameterListT& block = list.GetList(block_name, i);
+
+			/* collect block ID's */
+			const ArrayT<ParameterListT>& IDs = block.GetList("block_ID_list").Lists();
+			for (int j = 0; j < IDs.Length(); j++) {
+				block_ID_tmp.Append(IDs[j].GetParameter("value"));
+				mat_index_tmp.Append(i);
+			}
+		}
+	
+		/* transfer */
+		block_ID.Swap(block_ID_tmp);
+		mat_index.Swap(mat_index_tmp);
+	}
+}
 
 /* map the element numbers from block to group numbering */
 void ElementBaseT::BlockToGroupElementNumbers(iArrayT& elems, const StringT& block_ID) const
@@ -487,6 +529,76 @@ void ElementBaseT::AssembleLHS(void) const
 #endif
 }
 
+#pragma message("document what ElementBaseT::DefineElements does")
+/* define the elements blocks for the element group */
+void ElementBaseT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index)
+{
+	const char caller[] = "ElementBaseT::DefineElements";
+
+	/* allocate block map */
+	int num_blocks = block_ID.Length();
+	fBlockData.Dimension(num_blocks);
+	fConnectivities.Allocate (num_blocks);
+
+	/* get model manager */
+	ModelManagerT& model = ElementSupport().ModelManager();
+
+	/* read from parameter file */
+	int elem_count = 0;
+	int nen = 0;
+	for (int b = 0; b < num_blocks; b++)
+	{
+		/* load connectivities */
+		const iArray2DT& connects = model.ElementGroup(block_ID[b]);
+
+	    /* check number of nodes */
+	    int num_elems = connects.MajorDim();
+	    int num_nodes = connects.MinorDim();
+
+	    /* set if unset */
+	    if (nen == 0)
+	    	nen = num_nodes;
+	    
+	    /* consistency check */
+	    if (num_nodes != 0 && nen != num_nodes)
+			ExceptionT::BadInputValue(caller, "minor dimension %d of block %d does not match previous %d", num_nodes, b+1, nen);
+	    
+	    /* store block data */
+	    fBlockData[b].Set(block_ID[b], elem_count, num_elems, mat_index[b]);
+
+	    /* increment element count */
+	    elem_count += num_elems;
+
+	    /* set pointer to connectivity list */
+	    fConnectivities[b] = &connects;
+	}
+
+	/* connectivities came back empty */
+	if (nen == 0)  nen = DefaultNumElemNodes();
+	for (int i = 0; i < fConnectivities.Length(); i++)
+		if (fConnectivities[i]->MinorDim() == 0) 
+		{
+			/* not really violating const-ness */
+			iArray2DT* connects = const_cast<iArray2DT*>(fConnectivities[i]);
+			connects->Dimension(0, nen);
+		}
+	  
+	/* set dimensions */
+	fElementCards.Dimension(elem_count);
+
+	/* derived dimensions */
+	int neq = NumElementNodes()*NumDOF();
+	fEqnos.Dimension(fBlockData.Length());
+	for (int be = 0; be < fEqnos.Length(); be++) {
+		int numblockelems = fConnectivities[be]->MajorDim();
+		fEqnos[be].Dimension(numblockelems, neq);
+		fEqnos[be] = -1;
+	}
+
+	/* set pointers in element cards */
+	SetElementCards();
+}
+
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* print element group data */
 void ElementBaseT::PrintControlData(ostream& out) const
@@ -523,7 +635,7 @@ void ElementBaseT::EchoConnectivityData(void)
 	  }
 
 	/* set pointers in element cards */
-	SetElementCards(fBlockData, fConnectivities, fEqnos, fElementCards);
+	SetElementCards();
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* write */
@@ -544,7 +656,7 @@ void ElementBaseT::ReadConnectivity(void)
 	/* read from parameter file */
 	ArrayT<StringT> elem_ID;
 	iArrayT matnums;
-	ModelManagerT& model = fSupport.Model();
+	ModelManagerT& model = fSupport.ModelManager();
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	model.ElementBlockList(in, elem_ID, matnums);
 #else
@@ -713,7 +825,7 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 	int local_el_number = fElementCards.Position() - block_data.StartNumber();
 
 	/* model manager - block processor number */
-	ModelManagerT& model = fSupport.Model();
+	ModelManagerT& model = fSupport.ModelManager();
 	iArrayT elem_map(block_data.Dimension());
 	model.ElementMap(block_ID, elem_map);
 
@@ -765,20 +877,16 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 }
 
 /* set element cards array */
-void ElementBaseT::SetElementCards(
-	const ArrayT<ElementBlockDataT>& block_data, 
-	const ArrayT<const iArray2DT*>& connectivities,		
-	const ArrayT<iArray2DT>& eqnos, 
-	AutoArrayT<ElementCardT>& element_cards) const
+void ElementBaseT::SetElementCards(void)
 {
 	const char caller[] = "ElementBaseT::SetElementCards";
-	if (connectivities.Length() != eqnos.Length())
+	if (fConnectivities.Length() != fEqnos.Length())
     {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
       cout << "ElementBaseT::SetElementCards length mismatch ";
       cout << "\n           element group: " << fSupport.ElementGroupNumber(this) + 1;      
-      cout << "\n connectivities length = " << connectivities.Length();
-      cout << "\n         eqnos length = " << eqnos.Length() << endl;
+      cout << "\n fConnectivities length = " << fConnectivities.Length();
+      cout << "\n          fEqnos length = " << fEqnos.Length() << endl;
 #endif
 		ExceptionT::SizeMismatch(caller);
     }
@@ -786,12 +894,12 @@ void ElementBaseT::SetElementCards(
 	/* loop over blocks to set pointers */
 	int numberofnodes = fSupport.NumNodes();
 	int count = 0;
-	for (int i = 0; i < block_data.Length(); i++)
+	for (int i = 0; i < fBlockData.Length(); i++)
 	{
-		int dim = block_data[i].Dimension();
-		int mat = block_data[i].MaterialID();
-		const iArray2DT* blockconn = connectivities[i];
-		const iArray2DT& blockeqnos = eqnos[i];
+		int dim = fBlockData[i].Dimension();
+		int mat = fBlockData[i].MaterialID();
+		const iArray2DT* blockconn = fConnectivities[i];
+		iArray2DT& blockeqnos = fEqnos[i];
 
 		if (blockconn->MajorDim() != blockeqnos.MajorDim())
 		  {
@@ -807,7 +915,7 @@ void ElementBaseT::SetElementCards(
 
 		for (int j = 0; j < dim; j++)
 		{
-			ElementCardT& element_card = element_cards[count];
+			ElementCardT& element_card = fElementCards[count];
 	
 			/* material number */
 			element_card.SetMaterialNumber(mat);
@@ -837,8 +945,8 @@ void ElementBaseT::SetElementCards(
 }
 
 /***********************************************************************
- * Private
- ***********************************************************************/
+* Private
+***********************************************************************/
 
 /* return the default number of element nodes */
 int ElementBaseT::DefaultNumElemNodes(void) const { return 0; }

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2004-01-27 17:03:47 cjkimme Exp $
+# $Id: makefile,v 1.6 2003-03-04 07:37:54 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -31,8 +31,7 @@ OBJ = \
 	OrthoMLSSolverT.o \
 	OrthoMLS2DT.o \
 	OrthoMLS3DT.o \
-	SamplingSurfaceT.o \
-	MeshFreeNodalShapeFunctionT.o
+	SamplingSurfaceT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -63,8 +62,7 @@ SRC = \
 	OrthoMLSSolverT.cpp \
 	OrthoMLS2DT.cpp \
 	OrthoMLS3DT.cpp \
-	SamplingSurfaceT.cpp \
-	MeshFreeNodalShapeFunctionT.cpp
+	SamplingSurfaceT.cpp
 
 ##################### (3) headers
 #
@@ -87,8 +85,7 @@ HDR = \
 	OrthoMLSSolverT.h \
 	OrthoMLS2DT.h \
 	OrthoMLS3DT.h \
-	SamplingSurfaceT.h \
-	MeshFreeNodalShapeFunctionT.h
+	SamplingSurfaceT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

@@ -1,4 +1,4 @@
-/* $Id: D2VIB2D.cpp,v 1.6 2003-01-29 07:34:55 paklein Exp $ */
+/* $Id: D2VIB2D.cpp,v 1.6.30.1 2004-01-21 19:10:16 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2VIB2D.h"
 
@@ -14,6 +14,7 @@ using namespace Tahoe;
 
 /* constructors */
 D2VIB2D::D2VIB2D(ifstreamT& in, const D2FSMatSupportT& support):
+	ParameterInterfaceT("gradient_VIB_2D"),
 	VIB2D(in, support),
 	fD2MLSShape(support.D2MeshFreeFDElastic()->D2MLSShapeFunction())
 {

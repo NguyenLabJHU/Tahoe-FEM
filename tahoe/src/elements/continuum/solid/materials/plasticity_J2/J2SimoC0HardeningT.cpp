@@ -1,5 +1,6 @@
-/* $Id: J2SimoC0HardeningT.cpp,v 1.12 2004-01-27 19:11:40 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.cpp,v 1.11.4.1 2004-03-30 07:50:33 paklein Exp $ */
 /* created: paklein (05/01/2001) */
+
 #include "J2SimoC0HardeningT.h"
 
 #include <iostream.h>
@@ -12,7 +13,7 @@
 /* hardening functions */
 #include "CubicSplineT.h"
 #include "LinearExponentialT.h"
-#include "PowerLawT.h"
+
 
 using namespace Tahoe;
 
@@ -26,6 +27,7 @@ const int J2SimoC0HardeningT::kNumInternal = 8;
 
 /* constructor */
 J2SimoC0HardeningT::J2SimoC0HardeningT(ifstreamT& in, int num_ip, double mu):
+	ParameterInterfaceT("J2_Simo_C0_Hardening"),
 	fNumIP(num_ip),
 	fmu(mu),
 	fK(NULL),
@@ -43,6 +45,26 @@ J2SimoC0HardeningT::J2SimoC0HardeningT(ifstreamT& in, int num_ip, double mu):
 {
 	/* construct hardening function from stream */
 	ConstructHardeningFunction(in);
+}
+
+J2SimoC0HardeningT::J2SimoC0HardeningT(void):
+	ParameterInterfaceT("J2_Simo_C0_Hardening"),
+	fNumIP(0.0),
+	fmu(0.0),
+	fK(NULL),
+	fStressCorr(kNSD),
+	fModuliCorr(dSymMatrixT::NumValues(kNSD)),
+	fRelStress(kNSD),
+	f_f_bar(kNSD),
+	fb_bar_trial(kNSD),
+	fbeta_bar_trial(kNSD),
+	fMatrixTemp1(kNSD),
+	fMatrixTemp2(kNSD),
+	fRed2Temp(kNSD),
+	fRed4Temp1(dSymMatrixT::NumValues(kNSD)),
+	fRed4Temp2(dSymMatrixT::NumValues(kNSD))
+{
+
 }
 
 /** destructor */
@@ -575,17 +597,6 @@ void J2SimoC0HardeningT::ConstructHardeningFunction(ifstreamT& in)
 			
 			/* construct spline */
 			fK = new CubicSplineT(points, CubicSplineT::kFreeRun);
-			break;
-		}
-		case kPowerLaw:
-		{
-			fType = kPowerLaw;
-			double a, b, n;
-			a = b = n = 0.0;
-			in >> a >> b >> n;
-			
-			/* construct function */
-			fK = new PowerLawT(a, b, n);
 			break;
 		}
 		default:

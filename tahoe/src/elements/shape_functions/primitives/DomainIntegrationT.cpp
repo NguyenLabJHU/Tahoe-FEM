@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.cpp,v 1.5 2004-02-02 23:45:00 paklein Exp $ */
+/* $Id: DomainIntegrationT.cpp,v 1.4 2002-10-20 22:49:46 paklein Exp $ */
 /* created: paklein (09/04/1998)                                          */
 /* class to manage the parent domain including construction for           */
 /* shared parent domains, integration point iterations, and some          */
@@ -17,7 +17,7 @@ DomainIntegrationT::DomainIntegrationT(GeometryT::CodeT geometry_code, int numIP
 	fNumIP(numIP),
 	fCurrIP(frefCurrIP),
 	fDeleteDomain(1),
-	frefCurrIP(-1)
+	frefCurrIP(0)
 {
 	/* set parent geometry */
 	fDomain = new ParentDomainT(geometry_code, fNumIP, numnodes);

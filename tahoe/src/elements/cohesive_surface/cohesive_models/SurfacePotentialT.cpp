@@ -1,13 +1,12 @@
-/* $Id: SurfacePotentialT.cpp,v 1.17 2004-03-02 23:50:32 raregue Exp $ */
+/* $Id: SurfacePotentialT.cpp,v 1.16.18.1 2004-03-18 17:51:46 paklein Exp $ */
 /* created: paklein (06/20/1999) */
-
 #include "SurfacePotentialT.h"
-
-/* constructor */
 
 using namespace Tahoe;
 
+/* constructor */
 SurfacePotentialT::SurfacePotentialT(int ndof):
+	ParameterInterfaceT("surface_property"),
 	fTraction(ndof),
 	fStiffness(ndof)
 {
@@ -76,9 +75,9 @@ void SurfacePotentialT::ComputeOutput(const dArrayT& jump, const ArrayT<double>&
 int SurfacePotentialT::NodalQuantityNeeded(void) 
 {
 	return 0;
-}
+}*/
 
-
+/*
 double SurfacePotentialT::ComputeNodalValue(const dArrayT& nodalRow)
 {
 #pragma unused(nodalRow)
@@ -90,13 +89,13 @@ void SurfacePotentialT::UpdateStateVariables(const dArrayT& IPdata, ArrayT<doubl
 #pragma unused(IPdata)
 #pragma unused(state)
 }
+*/
 
-
-int SurfacePotentialT::ElementGroupNeeded(void)
+/*int SurfacePotentialT::ElementGroupNeeded(void)
 {
 	return -1;
-}
-*/
+}*/
+
 
 /*************************************************************************
  * Protected

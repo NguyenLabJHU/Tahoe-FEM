@@ -1,18 +1,18 @@
-/* $Id: K_FieldT.cpp,v 1.18 2004-04-02 16:48:27 jzimmer Exp $ */
+/* $Id: K_FieldT.cpp,v 1.17.2.2 2004-03-22 18:36:47 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
-#include "fstreamT.h"
-
-#include "ElementsConfig.h"
-#ifdef CONTINUUM_ELEMENT
 #include "MaterialListT.h"
 #include "ContinuumMaterialT.h"
-#include "ContinuumElementT.h"
+#include "fstreamT.h"
 #include "IsotropicT.h"
-#include "Material2DT.h"
+#include "SolidMaterialT.h"
+#include "ElementsConfig.h"
+
+#ifdef CONTINUUM_ELEMENT
+#include "ContinuumElementT.h"
 #else
 #include "ElementBaseT.h"
 #endif
@@ -29,7 +29,7 @@ K_FieldT::K_FieldT(NodeManagerT& node_manager):
 	fLTf1(NULL),
 	fLTf2(NULL),
 	fIsotropic(NULL),
-	fMaterial2D(NULL),
+	fSolidMaterial(NULL),
 	fDummySchedule(1.0),
 	fNearTipGroupNum(-1),
 	fNearTipOutputCode(-1),
@@ -41,7 +41,7 @@ K_FieldT::K_FieldT(NodeManagerT& node_manager):
 	SetName("K_field");
 
 #ifndef CONTINUUM_ELEMENT
-	ExceptionT::BadInputValue("K_FieldT::K_FieldT", "CONTINUUM_ELEMENT not enabled");
+	ExceptionT::BadInputValue("TiedNodesT::TiedNodesT", "CONTINUUM_ELEMENT not enabled");
 #endif
 }
 
@@ -129,10 +129,7 @@ void K_FieldT::Initialize(ifstreamT& in)
 		for (int j = 0; j < nsd; j++)
 		{
 			/* set values */
-			pcard->SetValues(fNodes[i], j, KBC_CardT::kDsp, 0, 0.0);
-	
-			/* dummy schedule */
-			pcard->SetSchedule(&fDummySchedule);
+			pcard->SetValues(fNodes[i], j, KBC_CardT::kDsp, &fDummySchedule, 0.0);
 			pcard++;
 		}	
 
@@ -419,7 +416,7 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 
 /* resolve element info to isotropic material */
 void K_FieldT::ResolveMaterialReference(int element_group,
-	int material_num, const IsotropicT** iso, const Material2DT** mat) const
+	int material_num, const IsotropicT** iso, const SolidMaterialT** mat) const
 {
 	const char caller[] = "K_FieldT::ResolveMaterialReference";
 
@@ -453,7 +450,7 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 
 	if (fNodeManager.NumSD() == 2)
 	{
-		*mat = TB_DYNAMIC_CAST(Material2DT*, cont_mat);
+		*mat = TB_DYNAMIC_CAST(SolidMaterialT*, cont_mat);
 		if (!(*mat))
 		{
 			cout << "\n K_FieldT::ResolveReference: could not cast material "
@@ -482,24 +479,18 @@ void K_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 	/* resolve near tip and material reference */
 	if (!fIsotropic)
 		ResolveMaterialReference(fFarFieldGroupNum, fFarFieldMaterialNum,
-			&fIsotropic, &fMaterial2D);
+			&fIsotropic, &fSolidMaterial);
 
-#ifdef CONTINUUM_ELEMENT
 	/* moduli */
 	double mu = fIsotropic->Mu();
 	double nu = fIsotropic->Poisson();	
 	double kappa = 3.0 - 4.0*nu;
 	if (fNodeManager.NumSD() == 2)
 	{
-		if (!fMaterial2D) throw ExceptionT::kGeneralFail;
-		if (fMaterial2D->ConstraintOption() == Material2DT::kPlaneStress)
+		if (!fSolidMaterial) throw ExceptionT::kGeneralFail;
+		if (fSolidMaterial->Constraint() == SolidMaterialT::kPlaneStress)
 			kappa = (3.0 - nu)/(1.0 + nu);
 	}
-#else
-	double mu = 0.0;
-	double nu = 0.0;	
-	double kappa = 0.0;
-#endif
 
 	/* compute K-field displacement factors (Andersen Table 2.2): */
 	dArrayT coords;
@@ -558,7 +549,7 @@ void K_FieldT::SetBCCards(void)
 		double d2 = K1*K1disp[1] + K2*K2disp[1];
 	
 		/* set cards */
-		fKBC_Cards[dex++].SetValues(node, 0, KBC_CardT::kDsp, 0, d1);
-		fKBC_Cards[dex++].SetValues(node, 1, KBC_CardT::kDsp, 0, d2);
+		fKBC_Cards[dex++].SetValues(node, 0, KBC_CardT::kDsp, NULL, d1);
+		fKBC_Cards[dex++].SetValues(node, 1, KBC_CardT::kDsp, NULL, d2);
 	}
 }

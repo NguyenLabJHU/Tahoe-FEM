@@ -1,4 +1,4 @@
-/* $Id: FDCubic2DT.h,v 1.6 2003-01-29 07:34:41 paklein Exp $ */
+/* $Id: FDCubic2DT.h,v 1.6.30.2 2004-03-02 17:46:14 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #ifndef _FD_CUBIC_2D_T_H_
 #define _FD_CUBIC_2D_T_H_
@@ -6,16 +6,16 @@
 /* base classes */
 #include "FDCubicT.h"
 #include "Anisotropic2DT.h"
-#include "Material2DT.h"
 
 namespace Tahoe {
 
-class FDCubic2DT: public FDCubicT, public Anisotropic2DT, public Material2DT
+class FDCubic2DT: public FDCubicT, public Anisotropic2DT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	FDCubic2DT(ifstreamT& in, const FSMatSupportT& support);
+	FDCubic2DT(void);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;
@@ -28,14 +28,15 @@ public:
 
 protected:
 
-	/* set modulus */
+	/** set modulus */
 	virtual void SetModulus(dMatrixT& modulus);
-	
+
 private:
 
-	/* set inverse of thermal transformation - return true if active */
+	/** set inverse of thermal transformation - return true if active */
 	virtual bool SetInverseThermalTransformation(dMatrixT& F_trans_inv);  			
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _FD_CUBIC_2D_T_H_ */

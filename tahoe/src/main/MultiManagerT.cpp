@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.9 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.5.2.1 2004-03-31 16:19:10 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -9,6 +9,7 @@
 #include "NodeManagerT.h"
 #include "OutputSetT.h"
 #include "TimeManagerT.h"
+#include "FieldT.h"
 
 using namespace Tahoe;
 
@@ -49,11 +50,9 @@ void MultiManagerT::Initialize(InitCodeT)
 	int order1 = 0;
 	StringT bridging_field = "displacement";
 	bool make_inactive = true;
-	//dArrayT mdmass;
-	fFine->InitGhostNodes(fCoarse->ProjectImagePoints());
+	fFine->InitGhostNodes();
 	fCoarse->InitInterpolation(fFine->GhostNodes(), bridging_field, *(fFine->NodeManager()));
-	//fFine->LumpedMass(fFine->NonGhostNodes(), mdmass);
-	fCoarse->InitProjection(*(fFine->CommManager()), fFine->NonGhostNodes(), bridging_field, *(fFine->NodeManager()), make_inactive);
+	fCoarse->InitProjection(fFine->NonGhostNodes(), bridging_field, *(fFine->NodeManager()), make_inactive);
 
 	/* send coarse/fine output through the fFine output */
 	int ndof = fFine->NodeManager()->NumDOF(group);

@@ -1,4 +1,4 @@
-/* $Id: ViscousDragT.cpp,v 1.2 2004-01-05 07:30:11 paklein Exp $ */
+/* $Id: ViscousDragT.cpp,v 1.2.2.1 2004-03-31 16:16:25 paklein Exp $ */
 #include "ViscousDragT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -28,7 +28,7 @@ void ViscousDragT::Initialize(void)
 	   >> fID;
 	   
 	/* model manager */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	const iArray2DT& connects = model.ElementGroup(fID);
 	iArrayT nodes_used;
 	nodes_used.Union(connects);

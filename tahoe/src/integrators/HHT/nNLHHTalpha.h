@@ -1,4 +1,4 @@
-/* $Id: nNLHHTalpha.h,v 1.9 2003-01-29 07:35:14 paklein Exp $ */
+/* $Id: nNLHHTalpha.h,v 1.9.30.1 2004-01-28 01:34:03 paklein Exp $ */
 /* created: paklein (10/17/1996) */
 #ifndef _N_NL_HHT_A_H_
 #define _N_NL_HHT_A_H_
@@ -15,7 +15,7 @@ class nNLHHTalpha: public virtual HHTalpha, public nIntegratorT
 public:
 
 	/** constructor */
-	nNLHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder);
+	nNLHHTalpha(double alpha);
 
 	/** consistent BC's */
 	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC);

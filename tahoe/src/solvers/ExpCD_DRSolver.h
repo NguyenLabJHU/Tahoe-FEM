@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.h,v 1.4 2002-07-05 22:28:41 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.h,v 1.4.40.1 2004-02-24 19:09:43 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 
 #ifndef _EXPCD_DRSOLVER_H_
@@ -18,7 +18,7 @@ class ExpCD_DRSolver: public SolverT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	ExpCD_DRSolver(FEManagerT& fe_manager, int group);
 
 	/* (re-)configure the global equation system */

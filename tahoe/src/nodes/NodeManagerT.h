@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.23 2004-01-05 07:12:36 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.23.2.4 2004-04-01 08:35:02 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -83,7 +83,7 @@ public:
 	
 	/** the number of fields in the given group */
 	int NumFields(int group) const;
-	
+
 	/** return a const pointer to the field with the specified name. returns NULL
 	 * if a field with the given name is not found. */
 	const FieldT* Field(const char* name) const;
@@ -171,6 +171,9 @@ public:
 	/* returns true if the internal force has been changed since
 	 * the last time step */
 	virtual GlobalT::RelaxCodeT RelaxSystem(int group);
+
+	/** set the time step */
+	void SetTimeStep(double dt);
 
 	/** Set to initial conditions */
 	virtual void InitialCondition(void);
@@ -278,7 +281,7 @@ public:
 	/** \name construct BC controllers */
 	/*@{*/
 	virtual KBC_ControllerT* NewKBC_Controller(FieldT& field, int code);
-	virtual FBC_ControllerT* NewFBC_Controller(FieldT& field, int code);
+	virtual FBC_ControllerT* NewFBC_Controller(int code);
 	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */
@@ -288,13 +291,17 @@ public:
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
 
 	/** \name steps of NodeManagerT::Initialize */
 	/*@{*/
-	virtual void EchoCoordinates(ifstreamT& in, ostream& out);
+	void SetCoordinates(void);
+//	virtual void EchoCoordinates(ifstreamT& in, ostream& out);
 	virtual void EchoFields(ifstreamT& in, ostream& out);
 	virtual void EchoHistoryNodes(ifstreamT& in, ostream &out);
 	/*@}*/

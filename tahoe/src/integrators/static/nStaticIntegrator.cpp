@@ -1,4 +1,4 @@
-/* $Id: nStaticIntegrator.cpp,v 1.9 2004-02-06 17:34:08 cjkimme Exp $ */
+/* $Id: nStaticIntegrator.cpp,v 1.8 2003-11-21 22:47:42 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nStaticIntegrator.h"
@@ -39,7 +39,7 @@ void nStaticIntegrator::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 			break;
 		}
 		default:
-			ExceptionT::BadInputValue("nStaticIntegrator::ConsistentKBC", "unknown BC code: %d", KBC.Code());
+			ExceptionT::BadInputValue("nTrapezoid::ConsistentKBC", "unknown BC code: %d", KBC.Code());
 	}
 }		
 

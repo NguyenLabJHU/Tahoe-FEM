@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.23 2004-03-04 08:54:29 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.20 2003-11-21 22:47:14 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -44,7 +44,7 @@ static double Max(double a, double b) { return (a > b) ? a : b; };
 static double AbsMax(double a, double b) { return (fabs(a) > fabs(b)) ? fabs(a) : fabs(b); };
 
 /* constructor */
-MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT* domain,  
+MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,  
 	const dArray2DT& coords, const iArray2DT& connects, const iArrayT& nongridnodes, 
 	ifstreamT& in):
 	fDomain(domain),
@@ -60,28 +60,14 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT* domain,
 	fvolume_man(25, fvolume),
 	fnodal_param_man(25, true),
 	fcoords_man(25, fcoords, fCoords.MinorDim()),
+	fx_ip_table(fDomain.NumIP(), fCoords.MinorDim()),
 	fReformNode(kNotInit),
 	fReformElem(kNotInit)	
 {
-	if (fDomain)
-	{
-		fIP = fDomain->NumIP();
-		fx_ip_table.Dimension(fIP, fCoords.MinorDim());
-		fSD = fDomain->NumSD();
-		
-		/* checks */
-		if (fSD    !=   fCoords.MinorDim() ||
-	    	fDomain->NumNodes() != fConnects.MinorDim()) 
-	    		ExceptionT::BadInputValue("MeshFreeSupportT::MeshFreeSupportT","Dimension mismatch\n");
+	/* checks */
+	if (fDomain.NumSD()    !=   fCoords.MinorDim() ||
+	    fDomain.NumNodes() != fConnects.MinorDim()) throw ExceptionT::kBadInputValue;
 
-	}
-	else // Presumably nodally integrated elements are calling this
-	{
-		fx_ip_table.Dimension(1, fCoords.MinorDim());
-		fSD = fCoords.MinorDim();
-		fIP = 1;
-	}
-	
 	/* read common parameters */
 	in >> fStoreShape;
 	in >> fMeshfreeType;
@@ -99,14 +85,14 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT* domain,
 		if (fDextra < 1.0 || complete <= 1) throw ExceptionT::kBadInputValue;
 		
 		/* construct MLS solver */	
-		if (fSD == 2)
+		if (fDomain.NumSD() == 2)
 			fEFG = new OrthoMLS2DT(complete);
-		else if (fSD == 3)
+		else if (fDomain.NumSD() == 3)
 			fEFG = new OrthoMLS3DT(complete);
 		else
 		{
 			cout << "\n MeshFreeSupportT::MeshFreeSupportT: unsupported spatial dimensions: "
-			     << fSD << endl;
+			     << fDomain.NumSD() << endl;
 			throw ExceptionT::kGeneralFail;
 		}
 		if (!fEFG) throw ExceptionT::kOutOfMemory;	
@@ -148,8 +134,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT* domain,
 				/* parameters = dilation scaling in each direction
 				 *             + sharpening factor
 				 *             + cut-off factor */
-				
-				window_params.Dimension(fSD + 2);
+				window_params.Dimension(fDomain.NumSD() + 2);
 				
 				/* allow for line-by-line comments */
 				for (int i = 0; i < window_params.Length(); i++)
@@ -157,27 +142,17 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT* domain,
 					
 				break;
 			}
-		    case kRectCubicSpline:
+		        case kCubicSpline:
 			{
 				/* parameters = dilation scaling in each direction
 				 *             + sharpening factor
 				 *             + cut-off factor */
-				window_params.Dimension(fSD + 2);
+				window_params.Dimension(fDomain.NumSD() + 2);
 				
 				/* allow for line-by-line comments */
 				for (int i = 0; i < window_params.Length(); i++)
 					in >> window_params[i];
 					
-				break;
-			}  
-		    case kCubicSpline:
-			{
-				/* parameters = dilation scaling in each direction */
-				window_params.Dimension(1);
-				
-				/* allow for line-by-line comments */
-				in >> window_params[0];
-
 				break;
 			}  
 			default:
@@ -187,7 +162,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT* domain,
 		}
 
 		/* construct MLS solver */
-		fRKPM = new MLSSolverT(fSD, complete, window_type, window_params);
+		fRKPM = new MLSSolverT(fDomain.NumSD(), complete, window_type, window_params);
 		if (!fRKPM) throw ExceptionT::kOutOfMemory;	
 
 		/* initialize */
@@ -289,8 +264,7 @@ void MeshFreeSupportT::InitNeighborData(void)
 	/* data and element integration point shape functions */
 	cout << " MeshFreeSupportT::InitNeighborData: setting integration point data" << endl;
 //	SetElementNeighborData(fConnects);
-	if (fDomain)
-		SetElementNeighborData_2(fConnects);
+	SetElementNeighborData_2(fConnects);
 }
 
 /* specify nodes/cells to skip when doing MLS calculations */
@@ -400,12 +374,13 @@ void MeshFreeSupportT::ResetFacets(const ArrayT<int>& facets)
 	 * This approach does NOT strictly guarantee that affected nodes
 	 * are found. More correctly, we would need to find all nodes whose
 	 * support is cut by the facet. */
+	int nsd = fDomain.NumSD();
 	dArray2DT facet_coords;
 	AutoArrayT<int> resetnodes;
 	for (int ii = 0; ii < facets.Length(); ii++)
 	{
 		/* alias to facet data */
-		facet_coords.Alias(fNumFacetNodes, fSD, (*fCutCoords)(facets[ii]));
+		facet_coords.Alias(fNumFacetNodes, nsd, (*fCutCoords)(facets[ii]));
 
 		/* compute characteristic facet size */
 		double sqr_max = 0.0;
@@ -414,7 +389,7 @@ void MeshFreeSupportT::ResetFacets(const ArrayT<int>& facets)
 			double sqr_d = 0.0;
 			double* A = facet_coords(k-1);
 			double* B = facet_coords(k);
-			for (int i = 0; i < fSD; i++)
+			for (int i = 0; i < fDomain.NumSD(); i++)
 			{
 				double dx = B[i] - A[i];
 				sqr_d += dx*dx;
@@ -549,13 +524,15 @@ void MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 	dArray2DT& phi, ArrayT<dArray2DT>& Dphi)
 {
 #if __option(extended_errorcheck)
-	if (fDomain && Dphi.Length() != fDomain->NumIP()) throw ExceptionT::kSizeMismatch;
+	if (Dphi.Length() != fDomain.NumIP()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* element neighbors */
 	feNeighborData.RowAlias(element, neighbors);
 
 	/* dimensions */
+	int nip = fDomain.NumIP();
+	int nsd = fCoords.MinorDim();
 	int nnd = neighbors.Length();
 
 	if (fStoreShape)
@@ -581,27 +558,27 @@ void MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 		}
 	
 		/* load functions */
-		phi.Set(fIP, nnd, fePhiData(element));
+		phi.Set(nip, nnd, fePhiData(element));
 			
 		/* load derivatives */
 		double* Dphi_ptr = feDPhiData(element);
-		for (int i = 0; i < fIP; i++)
+		for (int i = 0; i < nip; i++)
 		{
-			Dphi[i].Set(fSD, nnd, Dphi_ptr);
-			Dphi_ptr += fSD*nnd;
+			Dphi[i].Set(nsd, nnd, Dphi_ptr);
+			Dphi_ptr += nsd*nnd;
 		}
 	}
 	else
 	{
 		/* set shallow space */
 		double* pelspace = felShapespace.Pointer();
-		phi.Set(fIP, nnd, pelspace);
+		phi.Set(nip, nnd, pelspace);
 		pelspace += phi.Length();
 		
 		/* loop over integration points */
-		for (int i = 0; i < fIP; i++)
+		for (int i = 0; i < nip; i++)
 		{
-			Dphi[i].Set(fSD, nnd, pelspace);
+			Dphi[i].Set(nsd, nnd, pelspace);
 			pelspace += Dphi[i].Length();
 		}
 
@@ -801,7 +778,7 @@ void MeshFreeSupportT::WriteStatistics(ostream& out) const
 
 	/* memory requirements */
 	int nsd = fCoords.MinorDim();
-	
+	int nip = fDomain.NumIP();
 	out << "\n MLS storage requirements:\n";
 	int n_count = fnNeighborCount.Sum();
 	out << " Total number of nodal neighbors . . . . . . . . = " << n_count << '\n';
@@ -809,8 +786,8 @@ void MeshFreeSupportT::WriteStatistics(ostream& out) const
 	out << " Nodal shape function derivatives storage. . . . = " << nsd*n_count*sizeof(double) << " bytes\n";
 	int e_count = feNeighborCount.Sum();
 	out << " Total number of integration point neighbors . . = " << e_count << '\n';
-	out << " i.p. shape function storage . . . . . . . . . . = " << fIP*e_count*sizeof(double) << " bytes\n";
-	out << " i.p. shape function derivatives storage . . . . = " << fIP*nsd*e_count*sizeof(double) << " bytes\n";
+	out << " i.p. shape function storage . . . . . . . . . . = " << nip*e_count*sizeof(double) << " bytes\n";
+	out << " i.p. shape function derivatives storage . . . . = " << nip*nsd*e_count*sizeof(double) << " bytes\n";
 
 	/* search grid statistics */
 	fGrid->WriteStatistics(out);
@@ -831,7 +808,7 @@ void MeshFreeSupportT::SetSearchGrid(void)
 	}
 
 	/* try to get roughly least 10 per grid */
-	int ngrid = int(pow(fNodesUsed.Length()/10.0, 1.0/fSD)) + 1;
+	int ngrid = int(pow(fNodesUsed.Length()/10.0, 1.0/fDomain.NumSD())) + 1;
 	ngrid = (ngrid < 2) ? 2 : ngrid;
 	ngrid = (ngrid > kMaxNumGrid) ? kMaxNumGrid : ngrid;
 
@@ -839,7 +816,7 @@ void MeshFreeSupportT::SetSearchGrid(void)
 	delete fGrid;
 
 	/* construct a search grid */
-	iArrayT n_grid(fSD);
+	iArrayT n_grid(fDomain.NumSD());
 	n_grid = ngrid;
 	fGrid = new iGridManagerT(n_grid, fCoords, &fNodesUsed);	
 	if (!fGrid) throw ExceptionT::kOutOfMemory;
@@ -1056,15 +1033,12 @@ void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 * element integration points */
 void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 {
-	/* verify that this routine should have been called */
-	if (!fDomain)
-		ExceptionT::GeneralFail("MeshFreeSupportT::SetElementNeighborData","No Domain available\n");
-
-
 	/* dimensions */
 	int numelems = connects.MajorDim();
 	int nen      = connects.MinorDim();
-		
+	int nsd      = fCoords.MinorDim();
+	int nip      = fDomain.NumIP();
+	
 	/* initialize neighbor counts */
 	feNeighborCount.Dimension(numelems);
 	feNeighborCount = 0;
@@ -1076,11 +1050,11 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 	
 	/* domain coords */
 	iArrayT     elementnodes;
-	LocalArrayT loccoords(LocalArrayT::kUnspecified, nen, fSD);
+	LocalArrayT loccoords(LocalArrayT::kUnspecified, nen, nsd);
 	loccoords.SetGlobal(fCoords);
 
 	/* integration point coordinate tables */	
-	dArray2DT x_ip_table(fIP, fSD);
+	dArray2DT x_ip_table(nip, nsd);
 	dArrayT   x_ip, x_node, nodal_params;
 
 	/* "big" system */
@@ -1116,8 +1090,8 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 		/* integration point coordinates */
 		fConnects.RowAlias(i, elementnodes);
 		loccoords.SetLocal(elementnodes);
-		fDomain->Interpolate(loccoords, x_ip_table);
-		
+		fDomain.Interpolate(loccoords, x_ip_table);
+	
 		/* collect unique list of neighboring nodes */
 		nodeset.Dimension(0);
 		for (int j = 0; j < nen; j++)
@@ -1139,7 +1113,7 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 				
 					/* loop over integration points */
 					int hit = 0;
-					for (int k = 0; k < fIP && !hit; k++)
+					for (int k = 0; k < nip && !hit; k++)
 					{
 						/* fetch ip coordinates */
 						x_ip_table.RowAlias(k, x_ip);
@@ -1189,23 +1163,19 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 		
 	/* space element calculation */
 	int maxsize = feNeighborData.MaxMinorDim();
-	felShapespace.Dimension(fIP*maxsize*(1 + fSD));
+	felShapespace.Dimension(nip*maxsize*(1 + nsd));
 }
 
 /* generate lists of all nodes that fall within Dmax of the
 * element integration points */
 void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 {
-	/* verify that this routine should have been called */
-	if (!fDomain)
-		ExceptionT::GeneralFail("MeshFreeSupportT::SetElementNeighborData_2","No Domain available\n");
-
-
 	/* dimensions */
 	int numelems = connects.MajorDim();
 	int nen      = connects.MinorDim();
 	int nsd      = fCoords.MinorDim();
-		
+	int nip      = fDomain.NumIP();
+	
 	/* initialize neighbor counts */
 	feNeighborCount.Dimension(numelems);
 	feNeighborCount = 0;
@@ -1217,11 +1187,11 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 
 	/* domain coords */
 	iArrayT     elementnodes;
-	LocalArrayT loccoords(LocalArrayT::kUnspecified, nen, fSD);
+	LocalArrayT loccoords(LocalArrayT::kUnspecified, nen, nsd);
 	loccoords.SetGlobal(fCoords);
 
 	/* integration point coordinate tables */	
-	dArray2DT x_ip_table(fIP, fSD);
+	dArray2DT x_ip_table(nip, nsd);
 	dArrayT   x_ip, x_node, nodal_params;
 
 	/* "big" system */
@@ -1257,8 +1227,8 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 		/* integration point coordinates */
 		fConnects.RowAlias(i, elementnodes);
 		loccoords.SetLocal(elementnodes);
-		fDomain->Interpolate(loccoords, x_ip_table);
-		
+		fDomain.Interpolate(loccoords, x_ip_table);
+	
 		/* collect unique list of neighboring nodes */
 		nodeset.Dimension(0);
 		for (int j = 0; j < nen; j++)
@@ -1280,7 +1250,7 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 				
 					/* loop over integration points */
 					int hit = 0;
-					for (int k = 0; k < fIP && !hit; k++)
+					for (int k = 0; k < nip && !hit; k++)
 					{
 						/* fetch ip coordinates */
 						x_ip_table.RowAlias(k, x_ip);
@@ -1369,7 +1339,7 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 		
 	/* space element calculation */
 	int maxsize = feNeighborData.MaxMinorDim();
-	felShapespace.Dimension(fIP*maxsize*(1 + fSD));
+	felShapespace.Dimension(nip*maxsize*(1 + nsd));
 }
 
 /* (re-)compute some/all nodal shape functions and derivatives */
@@ -1425,12 +1395,13 @@ void MeshFreeSupportT::SetElementShapeFunctions(void)
 	InitElementShapeData();
 
 	/* dimensions */
+	int nip = fDomain.NumIP();
 	int nel = fConnects.MajorDim();
 
 	/* work space */
 	iArrayT    neighbors;
 	dArray2DT phi;
-	ArrayT<dArray2DT> Dphi(fIP);
+	ArrayT<dArray2DT> Dphi(nip);
 
 	/* selectively or all */
 	ArrayT<int>* elems  = (fResetElems.Length() > 0) ? &fResetElems : NULL;
@@ -1502,10 +1473,6 @@ bool MeshFreeSupportT::Covers(const dArrayT& field_x, const dArrayT& node_x,
 void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	dArray2DT& phi, ArrayT<dArray2DT>& Dphi)
 {
-	/* Verify that there is an element */
-	if (!fDomain)
-		ExceptionT::GeneralFail("MeshFreeSupportT::ComputeElementData","No Domain available\n");
-
 	/* skip nodes */
 	if (fSkipElement.Length() > 0 && fSkipElement[element] == 1)
 	{
@@ -1517,6 +1484,8 @@ void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	}
 
 	/* dimensions */
+	int nsd = fCoords.MinorDim();
+	int nip = fDomain.NumIP();
 	int nnd = neighbors.Length();
 	int nen = fConnects.MinorDim();
 
@@ -1531,17 +1500,17 @@ void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 
 	/* workspace */
 	iArrayT     elementnodes;
-	LocalArrayT loccoords(LocalArrayT::kUnspecified, nen, fSD);
+	LocalArrayT loccoords(LocalArrayT::kUnspecified, nen, nsd);
 	loccoords.SetGlobal(fCoords);
 		
 	/* integration point coordinates */
 	fConnects.RowAlias(element, elementnodes);
 	loccoords.SetLocal(elementnodes);
-	fDomain->Interpolate(loccoords, fx_ip_table);
+	fDomain.Interpolate(loccoords, fx_ip_table);
 
 	/* loop over integration points */
 	dArrayT x_ip;
-	for (int i = 0; i < fIP; i++)
+	for (int i = 0; i < nip; i++)
 	{
 		/* fetch ip coordinates */
 		fx_ip_table.RowAlias(i, x_ip);
@@ -2141,7 +2110,7 @@ void MeshFreeSupportT::InitElementShapeData(void)
 {
 	/* dimensions */
 	int nsd = fCoords.MinorDim();
-	int nip = fIP;
+	int nip = fDomain.NumIP();
 
 	/* configure element storage */
 	int step;

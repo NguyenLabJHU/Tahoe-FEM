@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.16 2004-04-02 16:48:17 jzimmer Exp $
+# $Id: makefile,v 1.15 2003-03-04 07:36:55 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -79,6 +79,7 @@ include $(SRC_DIR)/config/ElementsConfig.make
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
 SUB_DIR = \
+	shape_functions \
 	$(ELEMENTS_CONFIG_DIRECTORIES)
 
 subdir_driver: subdir_loop

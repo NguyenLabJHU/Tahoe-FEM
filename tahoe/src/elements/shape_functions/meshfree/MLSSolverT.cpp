@@ -1,5 +1,6 @@
-/* $Id: MLSSolverT.cpp,v 1.14 2004-03-04 08:54:29 paklein Exp $ */
-/* created: paklein (12/08/1999) */
+/* $Id: MLSSolverT.cpp,v 1.12 2003-11-21 22:47:14 paklein Exp $ */
+/* created: paklein (12/08/1999)                                          */
+
 #include "MLSSolverT.h"
 
 #include "ExceptionT.h"
@@ -14,11 +15,11 @@
 #include "GaussianWindowT.h"
 #include "RectGaussianWindowT.h"
 #include "RectCubicSplineWindowT.h"
-#include "CubicSplineWindowT.h"
+
+/* constants */
 
 using namespace Tahoe;
 
-/* constants */
 const double sqrtPi = sqrt(acos(-1.0));
 
 /* constructor */
@@ -81,18 +82,12 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 			if (!fWindow) throw ExceptionT::kGeneralFail;
 			break;
 		}
-		case MeshFreeT::kRectCubicSpline:
+	        case MeshFreeT::kCubicSpline:
 		{
-			dArrayT scalings(fNumSD, window_params.Pointer());
+		        dArrayT scalings(fNumSD, window_params.Pointer());
 			double sharpening_factor = window_params[fNumSD];
 			double cut_off_factor = window_params[fNumSD+1];
 			fWindow = new RectCubicSplineWindowT(scalings, sharpening_factor, cut_off_factor);
-			if (!fWindow) throw ExceptionT::kGeneralFail;
-			break;
-		}
-		case MeshFreeT::kCubicSpline:
-		{
-			fWindow = new CubicSplineWindowT(window_params[0]);
 			if (!fWindow) throw ExceptionT::kGeneralFail;
 			break;
 		}

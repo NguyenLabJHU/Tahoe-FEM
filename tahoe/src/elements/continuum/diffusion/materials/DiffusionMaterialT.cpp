@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.7 2003-12-10 07:14:28 paklein Exp $ */
+/* $Id: DiffusionMaterialT.cpp,v 1.7.2.3 2004-03-06 17:30:13 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
@@ -10,16 +10,21 @@
 
 using namespace Tahoe;
 
+/* array behavior */
+namespace Tahoe {
+DEFINE_TEMPLATE_STATIC const bool ArrayT<DiffusionMaterialT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<DiffusionMaterialT*>::fByteCopy = true;
+} /* namespace Tahoe */
+
 /* constructor */
 DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT& support):
+	ParameterInterfaceT("linear_diffusion_material"),
 	ContinuumMaterialT(support),
 	fDiffusionMatSupport(&support),
 	fConductivity(NumSD()),
 	fq_i(NumSD()),
 	fdq_i(NumSD())	
 {
-	SetName("linear_diffusion");
-
 	in >> fDensity;		 if (fDensity <= 0.0) throw ExceptionT::kBadInputValue;
 	in >> fSpecificHeat; if (fSpecificHeat <= 0.0) throw ExceptionT::kBadInputValue;
 	in >> fConductivity;
@@ -27,11 +32,31 @@ DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT
 }
 
 DiffusionMaterialT::DiffusionMaterialT(void):
+	ParameterInterfaceT("linear_diffusion_material"),
 	fDiffusionMatSupport(NULL),
 	fDensity(0.0),
 	fSpecificHeat(0.0)
 {
-	SetName("linear_diffusion");
+
+}
+
+/* set support */
+void DiffusionMaterialT::SetDiffusionMatSupport(const DiffusionMatSupportT* support)
+{
+	/* inherited */
+	SetMaterialSupport(support);
+	fDiffusionMatSupport = support;
+
+	/* dimension */
+	int nsd = NumSD();
+	fConductivity.Dimension(nsd);
+	fq_i.Dimension(nsd);
+	fdq_i.Dimension(nsd);
+
+	/* initialize */
+	fConductivity = 0.0;
+	fq_i = 0.0;
+	fdq_i = 0.0;
 }
 
 /* I/O functions */
@@ -63,6 +88,19 @@ void DiffusionMaterialT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(fDensity, "density");
 	list.AddParameter(fSpecificHeat, "specific_heat");
 	list.AddParameter(ParameterT::Double, "conductivity");
+}
+
+/* accept parameter list */
+void DiffusionMaterialT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ContinuumMaterialT::TakeParameterList(list);
+
+	/* get parameters */
+	fDensity = list.GetParameter("density");
+	fSpecificHeat = list.GetParameter("specific_heat");
+	double k = list.GetParameter("conductivity");
+	fConductivity.Identity(k);
 }
 
 /*************************************************************************

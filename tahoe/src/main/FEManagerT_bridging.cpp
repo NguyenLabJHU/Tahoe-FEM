@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.18 2004-03-18 01:20:32 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.11.4.1 2004-03-22 18:40:52 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -9,7 +9,6 @@
 #include "ofstreamT.h"
 #include "ifstreamT.h"
 #include "NLSolver.h"
-#include "CommManagerT.h"
 
 #include "BridgingScaleT.h"
 #include "ParticleT.h"
@@ -107,7 +106,7 @@ void FEManagerT_bridging::SetExternalForce(const StringT& field, const dArray2DT
 }
 
 /* initialize the ghost node information */
-void FEManagerT_bridging::InitGhostNodes(bool include_image_nodes)
+void FEManagerT_bridging::InitGhostNodes(void)
 {
 	const char caller[] = "FEManagerT_bridging::InitGhostNodes";
 
@@ -140,7 +139,7 @@ void FEManagerT_bridging::InitGhostNodes(bool include_image_nodes)
 	int dex = 0;
 	for (int j = 0; j < ndof; j++)
 		for (int i = 0; i < fGhostNodes.Length(); i++)
-			KBC_cards[dex++].SetValues(fGhostNodes[i], j, KBC_CardT::kDsp, 0, 0.0);
+			KBC_cards[dex++].SetValues(fGhostNodes[i], j, KBC_CardT::kDsp, NULL, 0.0);
 
 	/* search through element groups for particles */
 	bool found = false;
@@ -150,11 +149,7 @@ void FEManagerT_bridging::InitGhostNodes(bool include_image_nodes)
 		ElementBaseT* element_base = (*fElementGroups)[i];
 		
 		/* attempt cast to particle type */
-#ifndef __NO_RTTI_
 		ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
-#else /* no RTTI */
-		ParticleT* particle = element_base->dynamic_cast_ParticleT();
-#endif
 		if (particle) 
 		{
 			found = true;
@@ -175,39 +170,20 @@ void FEManagerT_bridging::InitGhostNodes(bool include_image_nodes)
 		fGhostNodes--;
 	}
 
-	/* initialize potential non-ghost nodes */
-	CommManagerT* comm = FEManagerT::CommManager();	
-	const ArrayT<int>* part_nodes = comm->PartitionNodes();
-	iArrayT is_ghost;
-	if (include_image_nodes || !part_nodes) {
-		/* assuming there are no images in the list of ghost nodes */
-		fNonGhostNodes.Dimension(fModelManager->NumNodes() - fGhostNodes.Length());
-		is_ghost.Dimension(fModelManager->NumNodes());
-		is_ghost = 0;	
-	} else { /* remove image nodes */
-		is_ghost.Dimension(fModelManager->NumNodes());
-		is_ghost = 1;
-
-		/* initialize potential non-ghost nodes */		
-		const int* p = part_nodes->Pointer();
-		int npn = part_nodes->Length();
-		for (int i = 0; i < npn; i++)
-			is_ghost[*p++] = 0;
-	}	
-
 	/* mark nodes as ghost */
-	for (int i = 0; i < fGhostNodes.Length(); i++) {
-		int& is_ghost_i = is_ghost[fGhostNodes[i]];
-		if (is_ghost_i == 1)
-			ExceptionT::GeneralFail(caller, "ghost node %d is duplicated or image",
-				fGhostNodes[i]+1);
-		else
-			is_ghost_i = 1;
-	}
+	fNonGhostNodes.Dimension(fModelManager->NumNodes() - fGhostNodes.Length());
+	iArrayT is_ghost(fModelManager->NumNodes());
+	is_ghost = 0;
+	for (int i = 0; i < fGhostNodes.Length(); i++)
+		is_ghost[fGhostNodes[i]] = 1;
+
+	/* check for uniqueness */
+	int ng = is_ghost.Count(1);
+	if (ng != fGhostNodes.Length())
+		ExceptionT::GeneralFail(caller, "list of ghost nodes contains %d duplicates",
+			fGhostNodes.Length() - ng);
 
 	/* collect non-ghost nodes */
-	if (fNonGhostNodes.Length() == 0) 
-		fNonGhostNodes.Dimension(is_ghost.Count(0));
 	dex = 0;
 	for (int i = 0; i < is_ghost.Length(); i++)
 		if (is_ghost[i] == 0)
@@ -236,8 +212,8 @@ void FEManagerT_bridging::SetGhostNodeKBC(KBC_CardT::CodeT code, const dArray2DT
 		/* retrieve values set during InitGhostNodes */
 		KBC_CardT& card = KBC_cards[i];
 		int node = card.Node();
-		int dof  = card.DOF();
-		int schd = card.ScheduleNum();
+		int dof = card.DOF();
+		const ScheduleT* schd = card.Schedule();
 	
 		/* reset code and value */
 		card.SetValues(node, dof, code, schd, values[i]);
@@ -276,11 +252,7 @@ void FEManagerT_bridging::Form_G_NG_Stiffness(const StringT& field, int element_
 
 	/* try cast */
 	ElementBaseT* element_base = (*fElementGroups)[element_group];
-#ifndef __NO_RTTI_
 	ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
-#else
-	ParticleT* particle = element_base->dynamic_cast_ParticleT();
-#endif
 	if (!particle) ExceptionT::GeneralFail(caller, "element group %d is not a particle group", element_group);
 
 	/* form matrix */
@@ -311,18 +283,6 @@ void FEManagerT_bridging::SetFieldValues(const StringT& field, const iArrayT& no
 	fNodeManager->UpdateCurrentCoordinates();
 
 	//NOTE: write the values into the KBC controller as well?
-}
-
-/* return the "lumped" (scalar) mass associated with the given nodes */
-void FEManagerT_bridging::LumpedMass(const iArrayT& nodes, dArrayT& mass) const
-{
-	/* initialize */
-	mass.Dimension(nodes.Length());
-	mass = 0.0;
-
-	/* accumulate element contribution */
-	for (int i = 0 ; i < fElementGroups->Length(); i++)
-		(*fElementGroups)[i]->LumpedMass(nodes, mass);
 }
 
 /* initialize nodes that follow the field computed by this instance */
@@ -447,15 +407,16 @@ void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& ac
 }
 
 /* initialize data for the driving field */
-void FEManagerT_bridging::InitProjection(CommManagerT& comm, const iArrayT& nodes, const StringT& field, 
+void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& field, 
 	NodeManagerT& node_manager, bool make_inactive)
 {
-	const char caller[] = "FEManagerT_bridging::InitProjection";
+	const char caller[] = "FEManagerT_bridging::SetExactSolution";
+
 	fMainOut << "\n Number of projection points . . . . . . . . . . = " << nodes.Length() << '\n';
 
 	/* initialize the projection (using reference coordinates) */
 	const dArray2DT& init_coords = node_manager.InitialCoordinates();
-	BridgingScale().InitProjection(comm, nodes, &init_coords, NULL, fDrivenCellData);
+	BridgingScale().InitProjection(nodes, &init_coords, NULL, fDrivenCellData);
 
 	/* get the associated field */
 	FieldT* the_field = fNodeManager->Field(field);
@@ -481,7 +442,7 @@ void FEManagerT_bridging::InitProjection(CommManagerT& comm, const iArrayT& node
 		int dex = 0;
 		for (int j = 0; j < ndof; j++)
 			for (int i = 0; i < cell_nodes.Length(); i++)
-				KBC_cards[dex++].SetValues(cell_nodes[i], j, KBC_CardT::kDsp, 0, 0.0);
+				KBC_cards[dex++].SetValues(cell_nodes[i], j, KBC_CardT::kDsp, NULL, 0.0);
 	}
 
 	/* dimension work space */
@@ -489,12 +450,6 @@ void FEManagerT_bridging::InitProjection(CommManagerT& comm, const iArrayT& node
 	
 	/* reset the group equations numbers */
 	SetEquationSystem(the_field->Group());
-}
-
-/* indicate whether image nodes should be included in the projection */
-bool FEManagerT_bridging::ProjectImagePoints(void) const
-{
-	return BridgingScale().ProjectImagePoints();
 }
 
 /* project the point values onto the mesh */
@@ -571,7 +526,7 @@ void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& ato
 void FEManagerT_bridging::SetReferenceError(int group, double error) const
 {
 	/* retrieve nonlinear solver */
-  NLSolver* solver = TB_DYNAMIC_CAST(NLSolver*, fSolvers[group]);
+	NLSolver* solver = dynamic_cast<NLSolver*>(fSolvers[group]);
 
 	/* silent in failuer */
 	if (solver) solver->SetReferenceError(error);
@@ -604,11 +559,7 @@ nMatrixT<int>& FEManagerT_bridging::PropertiesMap(int element_group)
 {
 	/* try cast to particle type */
 	ElementBaseT* element_base = (*fElementGroups)[element_group];
-#ifndef __NO_RTTI__
 	ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
-#else
-	ParticleT* particle = element_base->dynamic_cast_ParticleT();
-#endif
 	if (!particle)
 		ExceptionT::GeneralFail("FEManagerT_bridging::PropertiesMap",
 			"group %d is not a particle group", element_group);
@@ -657,11 +608,7 @@ BridgingScaleT& FEManagerT_bridging::BridgingScale(void) const
 			
 			/* need non-const pointer to this */
 			FEManagerT_bridging* fe = (FEManagerT_bridging*) this;
-#ifndef __NO_RTTI__
 			fe->fBridgingScale = dynamic_cast<BridgingScaleT*>(element_base);
-#else
-			fe->fBridgingScale = element_base->dynamic_cast_BridgingScaleT();
-#endif
 		}
 		
 		/* not found */

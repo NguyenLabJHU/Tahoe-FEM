@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.25 2004-02-04 07:37:52 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.23.2.2 2004-02-18 16:33:43 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -82,12 +82,6 @@ public:
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 
-	/** strain-displacement options.
-	 * \note This really belongs in SmallStrainT; however, will be here for
-	 * not to allow input files to be unchanged. */
-	enum StrainOptionT {kStandardB = 0, /**< standard strain-displacement matrix */
-	                  kMeanDilBbar = 1  /**< mean dilatation for near incompressibility */ };
-
 	/** set storage flag for internal force */
 	void SetStoreInternalForce(bool do_store) { fStoreInternalForce = do_store; };
 
@@ -100,12 +94,18 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
-
-	/** stream extraction operator */
-	friend istream& operator>>(istream& in, SolidElementT::StrainOptionT& type);
 
 	/** construct list of materials from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
@@ -129,25 +129,13 @@ protected:
 
 	/** set the \e B matrix using the given shape function derivatives
 	 * Set strain displacement matrix as in Hughes (2.8.20)
-	 * \param derivatives of shape function derivatives: [nsd] x [nen]
+	 * \param derivatives of shape function derivatives: [nsd] x [nnd]
 	 * \param B destination for B */
 	void Set_B(const dArray2DT& derivatives, dMatrixT& B) const;
 
-	/** set the \e B matrix for 2D axysymmetric problems using the given shape functions
-	 * and derivative using the y-axis as the axis or revolution.
-	 * \param shapes shape function values: [nen]
-	 * \param derivatives of shape function derivatives: [nsd] x [nen]
-	 * \param r distance from the axis of revolution
-	 * \param B destination for B */
-	void Set_B_axi(const dArrayT& shapes, const dArray2DT& derivatives, double r, dMatrixT& B) const;
-
-	/** set B-bar as given by Hughes (4.5.11-16) */
+	/** set B-bar as given by Hughes (4.5.11-16)*/
 	void Set_B_bar(const dArray2DT& derivatives, const dArray2DT& mean_gradient, 
-		dMatrixT& B) const;
-
-	/** set B-bar for axisymmetric deformations */
-	void Set_B_bar_axi(const dArrayT& shapes, const dArray2DT& derivatives, const dArray2DT& mean_gradient, 
-		double r, dMatrixT& B) const;
+		dMatrixT& B);
 
 	/** \name construct the effective mass matrix */
 	/*@{*/
@@ -195,11 +183,8 @@ protected:
 
 protected:
 
-	/** \name class parameters */
-	/*@{*/
-	MassTypeT     fMassType;	
-	StrainOptionT fStrainDispOpt;
-	/*@}*/
+	/** mass type */
+	MassTypeT fMassType;	
 
 	/* propagation direction for wave speeds */
 	dArrayT fNormal;

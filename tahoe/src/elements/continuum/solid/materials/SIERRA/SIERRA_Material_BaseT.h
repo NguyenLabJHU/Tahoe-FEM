@@ -1,10 +1,9 @@
-/* $Id: SIERRA_Material_BaseT.h,v 1.4 2003-03-10 16:56:47 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.h,v 1.4.28.1 2004-02-19 19:59:51 paklein Exp $ */
 #ifndef _SIERRA_MAT_BASE_T_H_
 #define _SIERRA_MAT_BASE_T_H_
 
 /* base classes */
-#include "FSSolidMatT.h"
-#include "IsotropicT.h"
+#include "FSIsotropicMatT.h"
 
 /* direct members */
 #include "StringT.h"
@@ -23,7 +22,7 @@ class ParameterListT;
  * should register all material parameters with SIERRA_Material_DB, and
  * SIERRA_Material_BaseT::SetOutputVariables, which defines the labels and indecies 
  * for values in the state variable array that will be written with material output. */
-class SIERRA_Material_BaseT: public FSSolidMatT, protected IsotropicT
+class SIERRA_Material_BaseT: public FSIsotropicMatT
 {
 public:
 

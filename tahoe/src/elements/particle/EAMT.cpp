@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.55 2004-04-02 16:48:22 jzimmer Exp $ */
+/* $Id: EAMT.cpp,v 1.51.4.3 2004-04-08 06:15:51 paklein Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -8,6 +8,7 @@
 #include "dSPMatrixT.h"
 #include "dSymMatrixT.h"
 #include "dArray2DT.h"
+
 
 /* EAM potentials */
 #include "ParadynEAMT.h"
@@ -25,7 +26,6 @@ EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
   ParticleT(support, field),
   fNeighbors(kMemoryHeadRoom),
   NearestNeighbors(kMemoryHeadRoom),
-  RefNearestNeighbors(kMemoryHeadRoom),
   fEqnos(kMemoryHeadRoom),
   fForce_list_man(0, fForce_list),
   fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
@@ -40,8 +40,6 @@ EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
 EAMT::EAMT(const ElementSupportT& support):
   ParticleT(support),
   fNeighbors(kMemoryHeadRoom),
-  NearestNeighbors(kMemoryHeadRoom),
-  RefNearestNeighbors(kMemoryHeadRoom),
   fEqnos(kMemoryHeadRoom),
   fForce_list_man(0, fForce_list),
   fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
@@ -99,8 +97,6 @@ void EAMT::Initialize(void)
   /* inherited */
   ParticleT::Initialize();
 
-  ParticleT::SetRefNN(NearestNeighbors,RefNearestNeighbors);
-
   /* dimension */
   int ndof = NumDOF();
   fLHS.Dimension(2*ndof);
@@ -147,12 +143,8 @@ void EAMT::WriteOutput(void)
   /* dimensions */
   int ndof = NumDOF();
   int num_output = ndof + 2; /* displacement + PE + KE */
-
-#ifndef NO_PARTICLE_STRESS_OUTPUT
   num_output++; /*includes centrosymmetry*/
   num_output+=ndof; /*some more for slip vector*/
-#endif /* NO_PARTICLE_STRESS_OUTPUT */
-
   /* number of nodes */
   const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
   int non = (parition_nodes) ? parition_nodes->Length() : ElementSupport().NumNodes();
@@ -160,16 +152,14 @@ void EAMT::WriteOutput(void)
   /* map from partition node index */
   const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
 
-#ifndef NO_PARTICLE_STRESS_OUTPUT
   dSymMatrixT vs_i(ndof), temp(ndof);
   int num_stresses=vs_i.NumValues(ndof);
   //dArray2DT vsvalues(non, num_stresses);
   num_output +=num_stresses; 
   num_output += num_stresses; //another for the strain
-#endif
-
   /* output arrays length number of active nodes */
   dArray2DT n_values(non, num_output), e_values;
+
   n_values = 0.0;
 
   /* global coordinates */
@@ -181,19 +171,13 @@ void EAMT::WriteOutput(void)
   const dArray2DT* velocities = NULL;
   if (field.Order() > 0) velocities = &(field[1]);
 
-  	/* atomic volume */
-  	double V0 = 0.0;
-  	if (NumSD() == 1)
-    	V0 = fLatticeParameter;
-	else if (NumSD() == 2)
-		V0 = sqrt(3.0)*fLatticeParameter*fLatticeParameter/2.0; /* 2D hex */
-	else /* 3D */
-		V0 = fLatticeParameter*fLatticeParameter*fLatticeParameter/4.0; /* FCC */  
-	
+ 
   /* collect mass per particle */
-  dArrayT mass(fNumTypes);
-  for (int i = 0; i < fNumTypes; i++)
+  int num_types = fTypeNames.Length();
+  dArrayT mass(num_types);
+  for (int i = 0; i < num_types; i++)
     mass[i] = fEAMProperties[fPropertiesMap(i,i)]->Mass();
+
 
  /* collect displacements */
   dArrayT vec, values_i;
@@ -210,17 +194,15 @@ void EAMT::WriteOutput(void)
       vec.Set(ndof, values_i.Pointer());
       displacement.RowCopy(tag_i, vec);
   
-#ifndef NO_PARTICLE_STRESS_OUTPUT
 	/* kinetic contribution to the virial */
 		if (velocities) {
 			velocities->RowAlias(tag_i, vec);
 			temp.Outer(vec);
 		 	for (int cc = 0; cc < num_stresses; cc++) {
 				int ndex = ndof+2+cc;
-		   		values_i[ndex] = -mass[type_i]*temp[cc]/V0;
+		   		values_i[ndex] = -mass[type_i]*temp[cc];
 		 	}
 		}
-#endif /* NO_PARTICLE_STRESS_OUTPUT */
     }
   if(iEmb == 1)
     {
@@ -254,7 +236,8 @@ void EAMT::WriteOutput(void)
   fForce = 0.0;
 
   iArrayT neighbors;
-  dArrayT x_i, x_j, r_ij(ndof);
+  dArrayT x_i, x_j, r_ij(ndof), SlipVector(ndof);
+  dMatrixT Strain(ndof);
 
   int current_property_i = -1;
   int current_property_j = -1;
@@ -265,15 +248,20 @@ void EAMT::WriteOutput(void)
       /* row of neighbor list */
       fNeighbors.RowAlias(i, neighbors);
 
-#ifndef NO_PARTICLE_STRESS_OUTPUT
-      vs_i=0.0;
-#endif /* NO_PARTICLE_STRESS_OUTPUT */
+      Strain=0;
+      SlipVector=0.0;
+     
+      /*linked list for holding vector pair magnitudes*/
+      CSymmParamNode *CParamStart=new CSymmParamNode;
+      CParamStart->Next=NULL;
+      CParamStart->value=0.0;
 
       /* tags */
       int   tag_i = neighbors[0]; /* self is 1st spot */
       int  type_i = fType[tag_i];		
       int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
       double* f_i = fForce(tag_i);
+      vs_i=0.0;
 
       /* values for particle i */
       n_values.RowAlias(local_i, values_i);		
@@ -296,6 +284,7 @@ void EAMT::WriteOutput(void)
 	  int   tag_j = neighbors[j];
 	  int  type_j = fType[tag_j];		
 	  double* f_j = fForce(tag_j);
+	  //double* x_j = coords(tag_j);
 			
 	  int property_i = fPropertiesMap(type_i, type_j);
 	  if (property_i != current_property_i)
@@ -322,6 +311,8 @@ void EAMT::WriteOutput(void)
 	  r_ij.DiffOf(x_j, x_i);
 	  double r = r_ij.Magnitude();
 
+
+
 	  /* Pair Potential : phi = 0.5 * z_i z_j /r */
 	  double phiby2 = 0.0;
 	  if(ipair == 1) 
@@ -338,6 +329,7 @@ void EAMT::WriteOutput(void)
 	  /* Component of force coming from Pair potential */
 	  if(ipair == 1)
 	    {
+
 	      double z_i = pair_energy_i(r,NULL,NULL);
 	      double z_j = pair_energy_j(r,NULL,NULL);
 	      double zp_i = pair_force_i(r,NULL,NULL);
@@ -347,6 +339,7 @@ void EAMT::WriteOutput(void)
 	      double F = (z_i*zp_j + zp_i*z_j)/r - E/r;
 	      
 	      Fbyr = F/r;
+
 	    }
 
 	  /* Component of force coming from Embedding energy */
@@ -361,85 +354,57 @@ void EAMT::WriteOutput(void)
 	      Fbyr += F/r;
 	      }
 
-#ifndef NO_PARTICLE_STRESS_OUTPUT
-		temp.Outer(r_ij);
-		vs_i.AddScaled( 0.5*Fbyr,temp);
-#endif /* NO_PARTICLE_STRESS_OUTPUT */
+	      temp.Outer(r_ij);
+	      vs_i.AddScaled( 0.5*Fbyr,temp);
 
-		/* second node may not be on processor */
-		if (!proc_map || (*proc_map)[tag_j] == rank) 
-		{
-			int local_j = (inverse_map) ? inverse_map->Map(tag_j) : tag_j;
-			if (local_j < 0 || local_j >= n_values.MajorDim())
-				cout << caller << ": out of range: " << local_j << '\n';
-			else {
 
-				/* potential energy */
-				n_values(local_j, ndof) += phiby2;
+	  /* second node may not be on processor */
+	  if (!proc_map || (*proc_map)[tag_j] == rank) 
+	    {
+	      int local_j = (inverse_map) ? inverse_map->Map(tag_j) : tag_j;
+	      
+	      if (local_j < 0 || local_j >= n_values.MajorDim())
+		cout << caller << ": out of range: " << local_j << '\n';
+	   
+	      else {
 
-#ifndef NO_PARTICLE_STRESS_OUTPUT
-				/* accumulate into stress into array */
-				for (int cc = 0; cc < num_stresses; cc++) {
-					int ndex = ndof+2+cc;
-					n_values(local_j, ndex) += 0.5*Fbyr*temp[cc]/V0;
-				}
-#endif /* NO_PARTICLE_STRESS_OUTPUT */
-			}	  
+	      	/* potential energy */
+		n_values(local_j, ndof) += phiby2;
+
+	       	/* accumulate into stress into array */
+	       	for (int cc = 0; cc < num_stresses; cc++) {
+		  int ndex = ndof+2+cc;
+		  n_values(local_j, ndex) += 0.5*Fbyr*temp[cc];		   
 		}
+	      }	  
+	    }
 	}
 
-#ifndef NO_PARTICLE_STRESS_OUTPUT
-	          /* copy stress into array */
-	          for (int cc = 0; cc < num_stresses; cc++) {
-	            int ndex = ndof+2+cc;
-                values_i[ndex] += (vs_i[cc]/V0);
-	          }
-#endif
-	}
 
-#ifndef NO_PARTICLE_STRESS_OUTPUT
-    int num_s_vals = num_stresses+1+ndof+1;
-	dArray2DT s_values(non,num_s_vals);
+      /*copy stress into array*/
+      for (int cc = 0; cc < num_stresses; cc++) {
+	int ndex = ndof+2+cc;
+	values_i[ndex] += vs_i[cc];
+      }
 
-    /* flag for specifying Lagrangian (0) or Eulerian (1) strain */
-    const int kEulerLagr = 0;
-    /* calculate slip vector and strain */
-    Calc_Slip_and_Strain(non,num_s_vals,s_values,RefNearestNeighbors,kEulerLagr);
-    /* calculate centrosymmetry parameter */
-    Calc_CSP(non,num_s_vals,s_values, NearestNeighbors);
 
-    /* combine strain, slip vector and centrosymmetry parameter into n_values list */
-    for (int i = 0; i < fNeighbors.MajorDim(); i++)
-    {
-        /* row of neighbor list */
-        fNeighbors.RowAlias(i, neighbors);
+		   
+      CalcValues(i, coords, CParamStart, &Strain, &SlipVector, &NearestNeighbors);
+      int valuep=0;
+      Strain /=2;
+      for(int n=0; n<ndof;n++)
+	for(int m=n;m<ndof;m++)
+	  n_values(local_i,ndof+2+num_stresses+valuep++)=Strain(n,m);
+      for(int n=0; n<ndof; n++)
+	n_values(local_i, ndof+2+num_stresses+num_stresses+n)=SlipVector[n];
+      
+      /*given the list of vector pair magnitudes, returns first seven*/
+      n_values(local_i,num_output-1)=GenCSymmValue(CParamStart, ndof);
+    
+    }	
 
-        /* tags */
-        int   tag_i = neighbors[0]; /* self is 1st spot */
-        int  type_i = fType[tag_i];
-        int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
-
-        int valuep = 0;
-        for (int is = 0; is < num_stresses; is++)
-        {
-            n_values(local_i,ndof+2+num_stresses+valuep++) = s_values(local_i,is);
-        }
-
-        /* recover J, the determinant of the deformation gradient, for atom i
-		 * and divide stress values by it */
-		double J = s_values(local_i,num_stresses);
-		for (int is = 0; is < num_stresses; is++) n_values(local_i,ndof+2+is) /= J;
-
-        for (int n = 0; n < ndof; n++)
-            n_values(local_i, ndof+2+num_stresses+num_stresses+n) = s_values(local_i,num_stresses+1+n);
-
-        n_values(local_i, num_output-1) = s_values(local_i,num_s_vals-1);
-    }
-
-#endif /* NO_PARTICLE_STRESS_OUTPUT */
-
-	/* send */
-	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+  /* send */
+  ElementSupport().WriteOutput(fOutputID, n_values, e_values);
 }
 
 /* compute the part of the stiffness matrix */
@@ -786,8 +751,6 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
   int num_labels =
     ndof // displacements
     + 2;     // PE and KE
-
-#ifndef NO_PARTICLE_STRESS_OUTPUT
 	int num_stress=0;
 	const char* stress[6];
 	const char* strain[6];
@@ -829,11 +792,11 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 
 	  strain[0] = "e11";
 	  }
+
 	num_labels+=num_stress;
 	num_labels++; //another label for the centrosymmetry
 	num_labels+=num_stress; //another for the strain
 	num_labels+=ndof; /*and another for the slip vector*/
-#endif /* NO_PARTICLE_STRESS_OUTPUT */
 
   labels.Dimension(num_labels);
   int dex = 0;
@@ -842,7 +805,6 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
   labels[dex++] = "PE";
   labels[dex++] = "KE";
 
-#ifndef NO_PARTICLE_STRESS_OUTPUT
 	for (int ns =0 ; ns<num_stress; ns++)
 	  labels[dex++]=stress[ns];
 	for (int ns =0 ; ns<num_stress; ns++)
@@ -850,7 +812,6 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 	for (int i=0; i<ndof; i++)
 	  labels[dex++]=SV[i];
 	labels[dex++]= "CS";
-#endif /* NO_PARTICLE_STRESS_OUTPUT */
 }
 
 /* form group contribution to the stiffness matrix */
@@ -862,17 +823,18 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
   int formK = fIntegrator->FormK(constK);
   int formM = fIntegrator->FormM(constM);
 
-  /* assemble particle mass */
-  if (formM) 
-    {
-    /* collect mass per particle */
-    dArrayT mass(fNumTypes);
-    for (int i = 0; i < fNumTypes; i++)
-      mass[i] = fEAMProperties[fPropertiesMap(i,i)]->Mass();
-    mass *= constM;
-	
-    AssembleParticleMass(mass);
-  }
+	/* assemble particle mass */
+	if (formM) {
+		
+		/* collect mass per particle */
+		int num_types = fTypeNames.Length();
+		dArrayT mass(num_types);
+		for (int i = 0; i < num_types; i++)
+			mass[i] = fEAMProperties[fPropertiesMap(i,i)]->Mass();
+		mass *= constM;
+
+		AssembleParticleMass(mass);
+	}
 
 	/* muli-processor information */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
@@ -1657,7 +1619,7 @@ void EAMT::SetConfiguration(void)
   const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
   if (fActiveParticles) 
     part_nodes = fActiveParticles;
-  GenerateNeighborList(part_nodes, NearestNeighborDistance, NearestNeighbors, true, true);
+  GenerateNeighborList(part_nodes, 0.8*fLatticeParameter, NearestNeighbors, true, true);
   GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
 	
   ofstreamT& out = ElementSupport().Output();
@@ -1719,6 +1681,13 @@ void EAMT::SetConfiguration(void)
   
   /* exchange type information */
   comm_manager.AllGather(frhop_rMessageID, frhop_r);
+}
+
+/* extract the properties information from the parameter list. See ParticleT::ExtractProperties */
+void EAMT::ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& type_names,
+	ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map)
+{
+ExceptionT::GeneralFail("EAMT::ExtractProperties", "not implemented");
 }
 
 /* construct the list of properties from the given input stream */

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.6.6.1 2004-03-31 16:19:02 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -12,6 +12,7 @@
 /* direct members */
 #include "PointInCellDataT.h"
 #include "nMatrixT.h"
+#include "KBC_CardT.h"
 
 namespace Tahoe {
 
@@ -60,10 +61,8 @@ public:
 	 * The ghost node database must be initialized by calling
 	 * FEManagerT_bridging::InitGhostNodes before accessing the lists.*/
 	/*@{*/
-	/** initialize the ghost node information 
-	 * \param include_image_nodes flag to indicate whether image nodes should be
-	 *        included in the list of non-ghost nodes */
-	void InitGhostNodes(bool include_image_nodes);
+	/** initialize the ghost node information */
+	void InitGhostNodes(void);
 
 	/** prescribe the motion of ghost nodes. Generate KBC cards to control the
 	 * ghost node motion. Assumes all components of the ghost node motion are
@@ -88,9 +87,6 @@ public:
 
 	/** \name interpolation and projection operators */
 	/*@{*/
-	/** return the "lumped" (scalar) mass associated with the given nodes */
-	void LumpedMass(const iArrayT& nodes, dArrayT& mass) const;
-	
 	/** initialize interpolation data. Initialize data structures needed to interpolate
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
@@ -112,11 +108,8 @@ public:
 	/** initialize projection data. Initialize data structures needed to project
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
-	void InitProjection(CommManagerT& comm, const iArrayT& nodes, const StringT& field,
+	void InitProjection(const iArrayT& nodes, const StringT& field,
 		NodeManagerT& node_manager, bool make_inactive);
-
-	/** indicate whether image nodes should be included in the projection */
-	virtual bool ProjectImagePoints(void) const;
 
 	/** project the point values onto the mesh. Project to the nodes using
 	 * projection initialized with the latest call to FEManagerT_bridging::InitProjection. */

@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.cpp,v 1.9 2003-01-29 07:34:48 paklein Exp $ */
+/* $Id: SimoIso3D.cpp,v 1.9.30.5 2004-03-24 19:53:03 paklein Exp $ */
 /* created: paklein (03/02/1997) */
 #include "SimoIso3D.h"
 #include <iostream.h>
@@ -8,8 +8,7 @@ using namespace Tahoe;
 
 /* constructor */
 SimoIso3D::SimoIso3D(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support),
-	IsotropicT(in),
+	ParameterInterfaceT("Simo_isotropic"),
 	fStress(3),
 	fModulus(dSymMatrixT::NumValues(3)),
 	
@@ -29,6 +28,12 @@ SimoIso3D::SimoIso3D(ifstreamT& in, const FSMatSupportT& support):
 	fIcrossI.Outer(fIdentity, fIdentity);
 	fIdentity4.ReducedIndexI();	
 	fDevOp4.ReducedIndexDeviatoric();
+}
+
+SimoIso3D::SimoIso3D(void):
+	ParameterInterfaceT("Simo_isotropic")
+{	
+
 }
 
 /* print parameters */
@@ -114,9 +119,33 @@ double SimoIso3D::StrainEnergyDensity(void)
 	return ComputeEnergy(J, fb_bar);
 }
 
+/* accept parameter list */
+void SimoIso3D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FSIsotropicMatT::TakeParameterList(list);
+	
+	/* dimension work space */
+	fStress.Dimension(3);
+	fModulus.Dimension(dSymMatrixT::NumValues(3));
+	fb.Dimension(3);
+	fb_bar.Dimension(3);
+	frank4.Dimension(dSymMatrixT::NumValues(3));
+	fIdentity.Dimension(3);
+	fIcrossI.Dimension(dSymMatrixT::NumValues(3));
+	fIdentity4.Dimension(dSymMatrixT::NumValues(3));
+	fDevOp4.Dimension(dSymMatrixT::NumValues(3));
+
+	/* initialize work matricies */
+	fIdentity.Identity();
+	fIcrossI.Outer(fIdentity, fIdentity);
+	fIdentity4.ReducedIndexI();	
+	fDevOp4.ReducedIndexDeviatoric();
+}
+
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 void SimoIso3D::PrintName(ostream& out) const
 {

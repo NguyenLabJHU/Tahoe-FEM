@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.28 2004-02-09 08:23:43 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.27 2004-01-05 07:27:58 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -312,7 +312,7 @@ void SimoFiniteStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		}
 		
 		/* reset element cards */
-		SetElementCards(fBlockData, fConnectivities, fEqnos, fElementCards);
+		SetElementCards();	
 	}
 }
 

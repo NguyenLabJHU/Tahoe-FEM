@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.cpp,v 1.8 2003-01-29 07:34:59 paklein Exp $ */
+/* $Id: ModCB2DT.cpp,v 1.8.30.3 2004-03-04 06:45:31 paklein Exp $ */
 /* created: paklein (05/31/1997) */
 #include "ModCB2DT.h"
 
@@ -20,9 +20,9 @@ const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-ModCB2DT::ModCB2DT(ifstreamT& in, const FSMatSupportT& support, bool equilibrate, 
-	PlaneCodeT plane_code):
-	NL_E_Mat2DT(in, support, kPlaneStrain),
+ModCB2DT::ModCB2DT(ifstreamT& in, const FSMatSupportT& support, bool equilibrate, PlaneCodeT plane_code):
+	ParameterInterfaceT("modified_CB_2D"),
+	NL_E_MatT(in, support),
 	fPlaneCode(plane_code),
 	fModCBSolver(NULL),
 	fCij3D(dSymMatrixT::NumValues(3)),
@@ -99,10 +99,21 @@ ModCB2DT::~ModCB2DT(void)
 void ModCB2DT::Print(ostream& out) const
 {
 	/* inherited */
-	NL_E_Mat2DT::Print(out);
+	NL_E_MatT::Print(out);
 
 	/* potential data */
 	fModCBSolver->Print(out);
+}
+
+/* describe the parameters needed by the interface */
+void ModCB2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
 }
 
 /*************************************************************************
@@ -112,7 +123,7 @@ void ModCB2DT::Print(ostream& out) const
 void ModCB2DT::PrintName(ostream& out) const
 {
 	/* inherited */
-	NL_E_Mat2DT::PrintName(out);
+	NL_E_MatT::PrintName(out);
 	
 	const char* planes[] = {"001", "101", "111"};
 	out << "    Modified CB <" << planes[fPlaneCode] << "> Plane Strain\n";

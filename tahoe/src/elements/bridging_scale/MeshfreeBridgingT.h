@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.h,v 1.5 2004-03-04 08:54:20 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.h,v 1.3 2003-10-28 07:32:08 paklein Exp $ */
 #ifndef _MESHFREE_BRIDGING_SCALE_T_H_
 #define _MESHFREE_BRIDGING_SCALE_T_H_
 
@@ -33,7 +33,7 @@ public:
 	 * \param curr_coords point to the initial coordinates array if available
 	 * \param point_in_cell destination for map data
 	 */
-	virtual void InitProjection(CommManagerT& comm, const iArrayT& points_used, const dArray2DT* init_coords, 
+	virtual void InitProjection(const iArrayT& points_used, const dArray2DT* init_coords, 
 		const dArray2DT* curr_coords, PointInCellDataT& cell_data);
 
 	/** project the point values onto the mesh. Requires a previous call to
@@ -44,9 +44,6 @@ public:
 	/** compute the coarse scale part of the source field */
 	virtual void CoarseField(const PointInCellDataT& cell_data,
 		const dArray2DT& field, dArray2DT& coarse) const;
-
-	/** indicate whether image nodes should be included in the projection */
-	virtual bool ProjectImagePoints(void) const { return false; };
 	/*@}*/
 
 protected:
@@ -61,7 +58,7 @@ protected:
 	 * \param curr_coords pointer to the initial coordinates array if available
 	 * \param point_in_cell destination for map data
 	 */
-	void BuildNodalNeighborhoods(CommManagerT& comm, const iArrayT& points_used, const dArray2DT* init_coords, 
+	void BuildNodalNeighborhoods(const iArrayT& points_used, const dArray2DT* init_coords, 
 		const dArray2DT* curr_coords, PointInCellDataT& cell_data);
 
 	/** determines points in the neighborhoods of points used. This method must be

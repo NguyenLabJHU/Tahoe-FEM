@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.38 2004-03-17 22:47:02 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.35.2.5 2004-04-07 15:36:14 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -41,17 +41,7 @@ class SubListT;
 class FieldT;
 #endif
 
-#ifdef __NO_RTTI__
-class ParticleT;
-class BridgingScaleT;
-#endif
-
-/** base class for element types. Initialization of the element classes
- * is accomplished by first setting the time integration controller with
- * ElementBaseT::SetController followed by calling the function 
- * ElementBaseT::Initialize immediately after the constructor. This gives 
- * derived classes the opportunity to override derived class behavior since
- * both functions are virtual. A sequence of time steps begins with a call
+/** base class for element types. A sequence of time steps begins with a call
  * to ElementBaseT::InitialCondition. A single time step begins with a call to 
  * ElementBaseT::InitStep, followed by one or more calls to ElementBaseT::FormRHS
  * and ElementBaseT::FormLHS (in that order) depending on the solution method.
@@ -288,9 +278,6 @@ public:
 	/** array of nodes used by the element group */
 	void NodesUsed(ArrayT<int>& nodes_used) const;
 
-	/** add the element group's contribution to the lumped (scalar) mass of the given nodes */
-	virtual void LumpedMass(const iArrayT& nodes, dArrayT& mass) const;
-
 	/** contribution to the nodal residual forces. Return the contribution of this element
 	 * group to the residual for the given solver group. 
 	 * \note ElementBaseT::InternalForce is not implemented and throws ExceptionT::kGeneralFail. 
@@ -301,28 +288,33 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
+	/** describe the parameters needed by the interface. See ParameterInterfaceT::DefineParameters
+	 * for more information. Additionally, sub-classes of ElementBaseT should define element
+	 * block information within a list whose name contains "_element_block" to make use of the
+	 * default implementation for ElementBaseT::CollectBlockInfo. Otherwise, ElementBaseT::CollectBlockInfo
+	 * must be overridden. */
 	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
-
-#ifdef __NO_RTTI__
-	/** \name fixes for environments without working RTTI */
-	/*@{*/
-	/** cast this to ParticleT */
-	virtual ParticleT* dynamic_cast_ParticleT(void) { return NULL; };
-
-	/** cast this to BridgingScaleT* */
-	virtual BridgingScaleT* dynamic_cast_BridgingScaleT(void) { return NULL; };
-	/*@}*/
-#endif
 
 protected: /* for derived classes only */
+
+	/** \name construction of connectivities */
+	/*@{*/
+	/** extract element block info from parameter list to be used. Method is
+	 * used in conjunction with ElementBaseT::DefineElements to initialize
+	 * the element group connectivities. By default, ElementBaseT::ExtractBlockInfo 
+	 * does not extract any information; henace to connectivies are read. 
+	 * The default implementation looks for block declarations with names
+	 * containing "_element_block" which contains block ID's within a
+	 * "block_ID_list". */
+	virtual void CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const;
+
+	/** define the elements blocks for the element group */
+	virtual void DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index);
+	/*@}*/
 
 	/** map the element numbers from block to group numbering */
 	void BlockToGroupElementNumbers(iArrayT& elems, const StringT& block_ID) const;
@@ -409,9 +401,8 @@ protected: /* for derived classes only */
 	virtual void CurrElementInfo(ostream& out) const;
 
 	/** (re-)set element cards array */
-	void SetElementCards(const ArrayT<ElementBlockDataT>& block_data, const ArrayT<const iArray2DT*>& connectivities,		
-		const ArrayT<iArray2DT>& eqnos, AutoArrayT<ElementCardT>& element_cards) const;
-	
+	void SetElementCards(void);
+
 private:
 
 	/** return the default number of element nodes. This function is needed
@@ -430,7 +421,7 @@ protected:
 	
 	/** \name grouped element arrays */
 	/*@{*/
-	ArrayT<const iArray2DT*> fConnectivities;		
+	ArrayT<const iArray2DT*> fConnectivities;
 	ArrayT<iArray2DT> fEqnos;			
 	/*@}*/
 	

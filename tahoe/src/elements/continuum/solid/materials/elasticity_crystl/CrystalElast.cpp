@@ -1,4 +1,4 @@
-/* $Id: CrystalElast.cpp,v 1.9 2003-01-29 07:34:56 paklein Exp $ */
+/* $Id: CrystalElast.cpp,v 1.9.30.1 2004-01-21 19:10:17 paklein Exp $ */
 #include "CrystalElast.h"
 #include "CrystalElastMat.h"
 #include "CrystalElastLat.h"
@@ -19,7 +19,8 @@ const int kIsInit = 1;
 const int kNSD = 3;
 
 CrystalElast::CrystalElast(ifstreamT& in, const FSMatSupportT& support) :
-  FDHookeanMatT(in, support),
+	ParameterInterfaceT("crystial_elasticity"),
+	FDHookeanMatT(in, support),
   // pointers to supporting classes
   	fCrystalElastLat (NULL),
   	fCrystalElastMat (NULL),

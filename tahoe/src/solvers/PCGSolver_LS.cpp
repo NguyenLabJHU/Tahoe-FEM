@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.19 2004-01-05 07:07:19 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.19.2.2 2004-03-24 01:58:35 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -15,8 +15,8 @@
 using namespace Tahoe;
 
 /* constructor */
-PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager):
-	NLSolver(fe_manager),
+PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
+	NLSolver(fe_manager, group),
 	fRestart_count(-1)
 {
 	SetName("PCG_solver");
@@ -25,9 +25,10 @@ PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager):
 	iAddVariable("search_iterations", fSearchIterations);
 	iAddVariable("line_search_tolerance", fOrthogTolerance);
 	iAddVariable("max_step_size", fMaxStepSize);
-	iAddVariable("restart_count", fRestart);
+	iAddVariable("restart_count", fRestart);	
 }
 
+#if 0
 PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	NLSolver(fe_manager, group),
 	fRestart_count(-1)
@@ -86,6 +87,7 @@ PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	iAddVariable("max_step_size", fMaxStepSize);
 	iAddVariable("restart_count", fRestart);
 }
+#endif
 
 /* (re-)configure the global equation system */
 void PCGSolver_LS::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
@@ -106,6 +108,10 @@ void PCGSolver_LS::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	NLSolver::DefineParameters(list);
 
+	/* set default matrix type to diagonal */
+	ParameterT& matrix_type = list.GetParameter("matrix_type");
+	matrix_type.SetDefault(kDiagonalMatrix);
+
 	/* restart iterations */
 	ParameterT restart(ParameterT::Integer, "restart");
 	restart.AddLimit(0, LimitT::LowerInclusive);
@@ -125,6 +131,22 @@ void PCGSolver_LS::DefineParameters(ParameterListT& list) const
 	ParameterT max_step(ParameterT::Double, "max_step");
 	max_step.SetDefault(2.5);
 	list.AddParameter(max_step);
+}
+
+/* accept parameter list */
+void PCGSolver_LS::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	NLSolver::TakeParameterList(list);
+
+	/* extract parameters */
+	fRestart = list.GetParameter("restart");
+	fSearchIterations = list.GetParameter("line_search_iterations");
+	fOrthogTolerance = list.GetParameter("line_search_tolerance");
+	fMaxStepSize = list.GetParameter("max_step");
+
+	/* allocate space for history */
+	fSearchData.Dimension(fSearchIterations, 2);
 }
 
 /*************************************************************************

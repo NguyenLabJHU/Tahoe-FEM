@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.20 2004-02-03 08:24:57 paklein Exp $
+# $Id: makefile,v 1.17 2003-08-08 00:40:41 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -29,12 +29,7 @@ OBJ = \
 	TotalLagrangianT.o \
 	UpdatedLagrangianT.o \
 	UpLagr_ExternalFieldT.o \
-	UpLagAdaptiveT.o \
-	SmallStrainAxiT.o \
-	FiniteStrainAxiT.o \
-	TotalLagrangianAxiT.o \
-	UpdatedLagrangianAxiT.o \
-	SimoQ1P0Axi.o
+	UpLagAdaptiveT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -63,12 +58,7 @@ SRC = \
 	TotalLagrangianT.cpp \
 	UpdatedLagrangianT.cpp \
 	UpLagr_ExternalFieldT.cpp \
-	UpLagAdaptiveT.cpp \
-	SmallStrainAxiT.cpp \
-	FiniteStrainAxiT.cpp \
-	TotalLagrangianAxiT.cpp \
-	UpdatedLagrangianAxiT.cpp \
-	SimoQ1P0Axi.cpp
+	UpLagAdaptiveT.cpp
 
 ##################### (3) headers
 #
@@ -89,12 +79,7 @@ HDR = \
 	TotalLagrangianT.h \
 	UpdatedLagrangianT.h \
 	UpLagr_ExternalFieldT.h \
-	UpLagAdaptiveT.h \
-	SmallStrainAxiT.h \
-	FiniteStrainAxiT.h \
-	TotalLagrangianAxiT.h \
-	UpdatedLagrangianAxiT.h \
-	SimoQ1P0Axi.h
+	UpLagAdaptiveT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

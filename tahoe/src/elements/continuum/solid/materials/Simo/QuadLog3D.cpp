@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.cpp,v 1.8 2003-01-29 07:34:48 paklein Exp $ */
+/* $Id: QuadLog3D.cpp,v 1.8.30.3 2004-02-19 19:59:52 paklein Exp $ */
 /* created: paklein (06/27/1997) */
 #include "QuadLog3D.h"
 
@@ -9,8 +9,7 @@ using namespace Tahoe;
 
 /* constructor */
 QuadLog3D::QuadLog3D(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support), //in principal stress space
-	IsotropicT(in),
+	ParameterInterfaceT("quad_log_3D"),
 	fSpectral(3),
 	fb(3),
 	fStress(3),
@@ -94,8 +93,8 @@ double QuadLog3D::StrainEnergyDensity(void)
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* computation routines */
 void QuadLog3D::ComputeModuli(const dSymMatrixT& b, dMatrixT& moduli)

@@ -1,4 +1,4 @@
-/* $Id: RodMaterialT.cpp,v 1.7 2002-10-20 22:49:15 paklein Exp $ */
+/* $Id: RodMaterialT.cpp,v 1.7.34.1 2004-02-19 19:59:58 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 
 #include "RodMaterialT.h"
@@ -7,17 +7,19 @@
 #include "ThermalDilatationT.h"
 #include "ifstreamT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+#pragma message("XML clean up")
+
+/* constructor */
 RodMaterialT::RodMaterialT(ifstreamT& in)
 {
 	fMass = -1.0;
 	in >> fMass;
 	if (fMass < 0) throw ExceptionT::kBadInputValue;
 	
-	fThermal = new ThermalDilatationT(in);
+//	fThermal = new ThermalDilatationT(in);
+	fThermal = new ThermalDilatationT;
 	if (!fThermal) throw ExceptionT::kOutOfMemory;
 }
 
@@ -31,14 +33,14 @@ RodMaterialT::~RodMaterialT(void)
 void RodMaterialT::Print(ostream& out) const
 {
 	out << " Mass . . . . . . . . . . . . . . . . . . . . . .= " << fMass << '\n';	
-	fThermal->Print(out);	
+//	fThermal->Print(out);	
 }
 
 /* print parameters */
 void RodMaterialT::PrintParameters(ostream& out) const
 {
 	/* thermal expansion parameters */
-	fThermal->Print(out);
+//	fThermal->Print(out);
 }
 
 /* thermal accessors */

@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.19 2004-04-02 16:48:22 jzimmer Exp $ */
+
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -78,6 +78,10 @@ protected:
 	 * to determine the neighborlists. */
 	virtual void SetConfiguration(void);
 
+	/** extract the properties information from the parameter list. See ParticleT::ExtractProperties */
+	virtual void ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& type_names,
+		ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map);
+
 	/** construct the list of properties from the given input stream */
 	virtual void EchoProperties(ifstreamT& in, ofstreamT& out);
 
@@ -86,7 +90,6 @@ protected:
 
 	/**nearest neighbor list**/
 	RaggedArray2DT<int> NearestNeighbors;
-	RaggedArray2DT<int> RefNearestNeighbors;
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: SSLinearVE3D.cpp,v 1.3 2004-01-10 04:41:27 paklein Exp $ */
+/* $Id: SSLinearVE3D.cpp,v 1.3.2.1 2004-01-21 19:10:30 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSLinearVE3D.h"
 #include "SSMatSupportT.h"
@@ -14,6 +14,7 @@ const int kNumOutputVar = 1;
 static const char* Labels[kNumOutputVar] = {"Dvisc"};
 
 SSLinearVE3D::SSLinearVE3D(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("linear_viscoelastic_3D"),
 	SSViscoelasticityT(in, support),
 	fe(3),
 	fStress(3),

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupport3DT.cpp,v 1.9 2004-01-27 01:21:11 cjkimme Exp $ */
+/* $Id: MeshFreeSupport3DT.cpp,v 1.8 2003-11-21 22:47:14 paklein Exp $ */
 /* created: paklein (09/13/1998) */
 
 #include "MeshFreeSupport3DT.h"
@@ -16,7 +16,7 @@
 
 using namespace Tahoe;
 
-MeshFreeSupport3DT::MeshFreeSupport3DT(const ParentDomainT* domain, const dArray2DT& coords,
+MeshFreeSupport3DT::MeshFreeSupport3DT(const ParentDomainT& domain, const dArray2DT& coords,
 	const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in):
 	MeshFreeSupportT(domain, coords, connects, nongridnodes, in)
 {

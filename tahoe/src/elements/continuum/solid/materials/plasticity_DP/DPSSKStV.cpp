@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.22 2004-03-20 23:38:19 raregue Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.21.2.2 2004-02-18 16:33:49 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
 #include "SSMatSupportT.h"
@@ -14,20 +14,31 @@ using namespace Tahoe;
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 3;
+const int kNumOutput = 11;
 static const char* Labels[kNumOutput] = {
-	    "alpha",  // stress-like internal state variable (isotropic linear hardening)
-	    "VM",  	// Von Mises stress
-	    "press"}; // pressure	    
+	    "alpha",  // stress-like internal state variable
+	    			//  (isotropic linear hardening)
+	    "VM",  // Von Mises stress
+	    "press", // pressurefmo
+	    "loccheck",
+	    "loccheckd", // localization check
+	    "n1", // x1 component of normal n for contbif
+	    "n2", // x2 component of normal n for contbif
+	    "n3", // x3 component of normal n for contbif
+	    "nd1", // x1 component of normal n for discbif	
+	    "nd2", // x2 component of normal n for discbif	
+	    "nd3"}; // x3 component of normal n for discbif	    
 
 /* constructor */
 DPSSKStV::DPSSKStV(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("small_strain_StVenant_DP"),
 	SSSolidMatT(in, support),
 	IsotropicT(in),
 	HookeanMatT(3),
 	DPSSLinHardT(in, NumIP(), Mu(), Lambda()),
 	fStress(3),
-	fModulus(dSymMatrixT::NumValues(3))
+	fModulus(dSymMatrixT::NumValues(3)),
+	fModulusdisc(dSymMatrixT::NumValues(3))
 {
  
 }
@@ -86,6 +97,15 @@ const dMatrixT& DPSSKStV::c_ijkl(void)
 	return fModulus;
 }
 
+/*discontinuous modulus */
+const dMatrixT& DPSSKStV::cdisc_ijkl(void)
+{
+	/* elastoplastic correction */
+	fModulusdisc.SumOf(HookeanMatT::Modulus(),
+	ModuliCorrDisc(CurrentElement(), CurrIP()));
+	return fModulusdisc;
+}
+
 /* stress */
 const dSymMatrixT& DPSSKStV::s_ij(void)
 {
@@ -100,6 +120,23 @@ const dSymMatrixT& DPSSKStV::s_ij(void)
 	/* modify Cauchy stress (return mapping) */
 	fStress += StressCorrection(e_els, element, ip);
 	return fStress;	
+}
+
+
+/*
+* Test for localization using "current" values for Cauchy
+* stress and the spatial tangent moduli. Returns 1 if the
+* determinant of the acoustic tensor is negative and returns
+* the normal for which the determinant is minimum. Returns 0
+* of the determinant is positive.
+*/
+int DPSSKStV::IsLocalized(dArrayT& normal)
+{
+        DetCheckT checker(fStress, fModulus);
+        checker.SetfStructuralMatSupport(*fSSMatSupport);
+
+        int loccheck= checker.IsLocalized(normal);
+        return loccheck;
 }
 
 
@@ -147,14 +184,89 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 		if (flags[CurrIP()] == kIsPlastic)
 		  {
 			output[0] -= fH_prime*fInternal[kdgamma];
+			
+			// check for localization
+			// compute modulus 
+			const dMatrixT& modulus = c_ijkl();
+
+			// continuous localization condition checker
+			/*DetCheckT checker(stress, modulus);
+			dArrayT normal(stress.Rows());
+			output[3] = checker.IsLocalized_SS(normal);
+			output[5] = normal[0];
+			output[6] = normal[1];
+			if (normal.Length() == 3)
+				output[7] = normal[2];
+			else
+				output[7] = 0.0;
+			*/
+		    output[3] = 0.0;
+		    output[5] = 0.0;
+			output[6] = 0.0;
+			output[7] = 0.0;
+	
+			/* compute discontinuous bifurcation modulus */
+			const dMatrixT& modulusdisc = cdisc_ijkl();
+
+			/* discontinuous localization condition checker */
+			DetCheckT checkerdisc(stress, modulusdisc);
+			dArrayT normaldisc(stress.Rows());
+			output[4] = checkerdisc.IsLocalized_SS(normaldisc);
+			output[8] = normaldisc[0];
+			output[9] = normaldisc[1];
+			if (normaldisc.Length() == 3)
+				output[10] = normaldisc[2];
+			else
+				output[10] = 0.0;
+			/*
+			output[4] = 0.0;
+		    output[8] = 0.0;
+			output[9] = 0.0;
+			output[10] = 0.0;*/
+			
 		  }
 	}
 	else
 	{
 		output[0] = 0.0;
+		output[3] = 0.0;
+		output[4] = 0.0;
+		output[5] = 0.0;
+		output[6] = 0.0;
+		output[7] = 0.0;
+		output[8] = 0.0;
+		output[9] = 0.0;
+		output[10] = 0.0;
 	}
 
 	
+}
+
+/* information about subordinate parameter lists */
+void DPSSKStV::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SSSolidMatT::DefineSubs(sub_list);
+	IsotropicT::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* DPSSKStV::NewSub(const StringT& list_name) const
+{
+	/* inherited */
+	ParameterInterfaceT* params = SSSolidMatT::NewSub(list_name);
+	if (params)
+		return params;
+	else
+		return IsotropicT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void DPSSKStV::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SSSolidMatT::TakeParameterList(list);
+	IsotropicT::TakeParameterList(list);
 }
 
 /*************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.7 2004-01-27 01:21:14 cjkimme Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.6 2002-11-14 17:06:47 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeShapeFunctionT.h"
 #include "D2MeshFreeSupport2DT.h"
@@ -19,7 +19,7 @@ D2MeshFreeShapeFunctionT::D2MeshFreeShapeFunctionT(GeometryT::CodeT geometry_cod
 	fDDNa_tmp(numIP)
 {
 	if (all_coords.MinorDim() == 2)
-		fD2MFSupport = new D2MeshFreeSupport2DT(fDomain, all_coords, connects,
+		fD2MFSupport = new D2MeshFreeSupport2DT(*fDomain, all_coords, connects,
 							nongridnodes, in);
 	else
 	{

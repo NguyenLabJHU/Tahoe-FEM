@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.cpp,v 1.9 2003-10-15 23:03:41 cjkimme Exp $ */
+/* $Id: LJTr2D.cpp,v 1.9.6.3 2004-03-04 06:45:22 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "LJTr2D.h"
 
@@ -13,7 +13,8 @@ const double sqrt3 = sqrt(3.0);
 
 /* constructor */
 LJTr2D::LJTr2D(ifstreamT& in, const FSMatSupportT& support):
-	NL_E_Mat2DT(in, support, kPlaneStress),
+	ParameterInterfaceT("LJ_triangular_2D"),
+	NL_E_MatT(in, support),
 	CBLatticeT(2,2,3)
 {
 	in >> feps;	if (feps < 0.0) throw ExceptionT::kBadInputValue;
@@ -21,19 +22,29 @@ LJTr2D::LJTr2D(ifstreamT& in, const FSMatSupportT& support):
 
 void LJTr2D::Initialize(void) 
 {
-  NL_E_Mat2DT::Initialize();
-
-  CBLatticeT::Initialize();
+	NL_E_MatT::Initialize();
+	CBLatticeT::Initialize();
 }
 
 /* I/O functions */
 void LJTr2D::Print(ostream& out) const
 {
 	/* inherited */
-	NL_E_Mat2DT::Print(out);
+	NL_E_MatT::Print(out);
 
 	out << " Lennard-Jones energy scaling constant . . . . . = " << feps << '\n';
 
+}
+
+/* describe the parameters needed by the interface */
+void LJTr2D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStress);
 }
 
 /*************************************************************************
@@ -42,7 +53,7 @@ void LJTr2D::Print(ostream& out) const
 
 void LJTr2D::PrintName(ostream& out) const
 {
-	NL_E_Mat2DT::PrintName(out);
+	NL_E_MatT::PrintName(out);
 
 	out << "    LJ triangular 2D\n";
 }

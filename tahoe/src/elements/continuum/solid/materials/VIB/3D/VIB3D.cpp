@@ -1,4 +1,4 @@
-/* $Id: VIB3D.cpp,v 1.8 2003-11-21 22:46:38 paklein Exp $ */
+/* $Id: VIB3D.cpp,v 1.8.4.1 2004-01-21 19:10:15 paklein Exp $ */
 /* created: paklein (04/20/1997) */
 #include "VIB3D.h"
 
@@ -22,6 +22,7 @@ using namespace Tahoe;
 
 /* constructors */
 VIB3D::VIB3D(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("VIB_3D"),
 	NL_E_MatT(in, support),
 	VIB_E_MatT(in, 3)
 {
@@ -78,7 +79,7 @@ void VIB3D::SetAngles(double phi, double theta)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Dimension(numpoints);
+	VIB::Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fSphere->Jacobians();

@@ -1,31 +1,22 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.9 2004-04-02 16:48:27 jzimmer Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.8.34.2 2004-03-22 18:36:47 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "BimaterialK_FieldT.h"
 
 #include "NodeManagerT.h"
 #include "fstreamT.h"
-
-/* build options */
-#include "ElementsConfig.h"
-#ifdef CONTINUUM_ELEMENT
 #include "IsotropicT.h"
-#include "Material2DT.h"
-#endif
 
-/* parameters */
 using namespace Tahoe;
 
+/* parameters */
 const double Pi = acos(-1.0);
 
 /* constructor */
 BimaterialK_FieldT::BimaterialK_FieldT(NodeManagerT& node_manager):
 	K_FieldT(node_manager),
 	fIsotropic_2(NULL),
-	fMaterial2D_2(NULL)
+	fSolidMaterial_2(NULL)
 {
-#ifndef CONTINUUM_ELEMENT
-	ExceptionT::BadInputValue("BimaterialK_FieldT::BimaterialK_FieldT", "CONTINUUM_ELEMENT not enabled");
-#endif
 
 }
 
@@ -145,10 +136,7 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 		for (int j = 0; j < nsd; j++)
 		{
 			/* set values */
-			pcard->SetValues(fNodes[i], j, KBC_CardT::kDsp, 0, 0.0);
-	
-			/* dummy schedule */
-			pcard->SetSchedule(&fDummySchedule);
+			pcard->SetValues(fNodes[i], j, KBC_CardT::kDsp, &fDummySchedule, 0.0);
 			pcard++;
 		}	
 
@@ -274,52 +262,45 @@ void BimaterialK_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 	/* resolve near tip and material reference */
 	if (fFarFieldGroupNum != -1 && !fIsotropic)
 		ResolveMaterialReference(fFarFieldGroupNum, fFarFieldMaterialNum,
-			&fIsotropic, &fMaterial2D);
+			&fIsotropic, &fSolidMaterial);
 	else
 	{
 		fIsotropic = NULL;
-		fMaterial2D = NULL;
+		fSolidMaterial = NULL;
 	}
 
 	if (fFarFieldGroupNum_2 != -1 && !fIsotropic_2)		
 		ResolveMaterialReference(fFarFieldGroupNum_2, fFarFieldMaterialNum_2,
-			&fIsotropic_2, &fMaterial2D_2);
+			&fIsotropic_2, &fSolidMaterial_2);
 	else
 	{
 		fIsotropic_2 = NULL;
-		fMaterial2D_2 = NULL;
+		fSolidMaterial_2 = NULL;
 	}
 
 	/* moduli */
 	double G_1, nu_1, mu_1;
-#ifdef CONTINUUM_ELEMENT
 	if (fIsotropic)
 	{
 		G_1 = fIsotropic->Mu();
 		nu_1 = fIsotropic->Poisson();	
 		mu_1 = 3.0 - 4.0*nu_1;	
 	}
-#endif
-
 	double G_2, nu_2, mu_2;
-#ifdef CONTINUUM_ELEMENT
 	if (fIsotropic_2)
 	{
 		G_2 = fIsotropic_2->Mu();
 		nu_2 = fIsotropic_2->Poisson();	
 		mu_2 = 3.0 - 4.0*nu_2;
 	}
-#endif
 	
-#ifdef CONTINUUM_ELEMENT
 	if (fNodeManager.NumSD() == 2)
 	{
-		if (fMaterial2D && fMaterial2D->ConstraintOption() == Material2DT::kPlaneStress)
+		if (fSolidMaterial && fSolidMaterial_2->Constraint() == SolidMaterialT::kPlaneStress)
 			mu_1 = (3.0 - nu_1)/(1.0 + nu_1);
-		if (fMaterial2D_2 && fMaterial2D_2->ConstraintOption() == Material2DT::kPlaneStress)
+		if (fSolidMaterial_2 && fSolidMaterial_2->Constraint() == SolidMaterialT::kPlaneStress)
 			mu_2 = (3.0 - nu_2)/(1.0 + nu_2);
 	}
-#endif
 
 	if (fUHP == 1)
 	{

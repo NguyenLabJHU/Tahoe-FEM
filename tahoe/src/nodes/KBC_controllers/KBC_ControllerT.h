@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.21 2003-10-20 23:21:53 cjkimme Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.21.6.2 2004-03-27 04:18:12 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _KBC_CONTROLLER_T_H_
 #define _KBC_CONTROLLER_T_H_
@@ -34,7 +34,8 @@ class KBC_ControllerT: public ParameterInterfaceT
 public:
 
 	/** controller codes - derived classes */
-	enum CodeT {kK_Field = 0,
+	enum CodeT {   kNone =-1,
+	            kK_Field = 0,
       kBimaterialK_Field = 1,
          kMappedPeriodic = 2,
               kTiedNodes = 3,
@@ -45,6 +46,9 @@ public:
                 kTorsion = 9,
                kConyevor = 10
                 };
+
+	/** converts strings to KBC_ControllerT::CodeT */
+	static CodeT Code(const char* name);
 
 	/** constructor */
 	KBC_ControllerT(NodeManagerT& node_manager);
@@ -125,6 +129,12 @@ protected:
 	 * \param id_list returns with the set id's of the nodes
 	 * \param nodes returns with the nodes in the set id's */
 	void ReadNodes(ifstreamT& in, ArrayT<StringT>& id_list, iArrayT& nodes) const;
+
+	/** get nodes from the ModelManagerT
+	 * \param in input stream listing the node ids
+	 * \param id_list returns with the set id's of the nodes
+	 * \param nodes returns with the nodes in the set id's */
+	void GetNodes(const ArrayT<StringT>& id_list, iArrayT& nodes) const;
 
 private:
 

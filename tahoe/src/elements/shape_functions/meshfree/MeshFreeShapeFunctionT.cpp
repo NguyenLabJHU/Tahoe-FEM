@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.12 2004-03-16 06:58:54 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.10.4.1 2004-03-16 19:34:29 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 
 #include "MeshFreeShapeFunctionT.h"
@@ -22,10 +22,10 @@ MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, i
 {
 	/* construct MLS support */
 	if (all_coords.MinorDim() == 2)
-		fMFSupport = new MeshFreeSupport2DT(fDomain, all_coords, connects,
+		fMFSupport = new MeshFreeSupport2DT(*fDomain, all_coords, connects,
 							nongridnodes, in);
 	else
-		fMFSupport = new MeshFreeSupport3DT(fDomain, all_coords, connects,
+		fMFSupport = new MeshFreeSupport3DT(*fDomain, all_coords, connects,
 							nongridnodes, in);
 
 	if (!fMFSupport) throw ExceptionT::kOutOfMemory;
@@ -522,7 +522,7 @@ void MeshFreeShapeFunctionT::BlendElementData(void)
 	int nnd = fNeighbors.Length();
 	
 	fR  = 0.0;
-	fDR = 0.0;			
+	fDR = 0;			
 	int* pelem_flags = fElemFlags(fElemHasExactNode[fCurrElement]);
 	for (int ii = 0; ii < nip; ii++)
 	{

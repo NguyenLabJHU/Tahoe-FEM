@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.16 2003-12-29 04:54:44 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.16.2.1 2004-03-31 16:16:23 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -264,7 +264,7 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	fStrikerCoords.Dimension(fStrikerTags.Length(), NumSD());
 	
 	/* set connectivity name */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	StringT name ("Contact");
 	name.Append (ElementSupport().ElementGroupNumber(this) + 1);
 
@@ -413,7 +413,7 @@ void ContactT::InputSideSets(ifstreamT& in, iArray2DT& facets)
 	/* read data from parameter file */
 	ArrayT<StringT> ss_ID;
 	bool multidatabasesets = false; /* change to positive and the parameter file format changes */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	model.SideSetList(in, ss_ID, multidatabasesets);
 
 	if (ss_ID.Length () != 1) {
@@ -442,7 +442,7 @@ void ContactT::InputBodyBoundary(ifstreamT& in, ArrayT<iArray2DT>& surfaces,
 	GeometryT::CodeT geometry;
 	ArrayT<iArray2DT> surface_facet_sets;
 	iArrayT surface_nodes;
-	ElementSupport().Model().SurfaceFacets(IDs, geometry, surface_facet_sets, surface_nodes);
+	ElementSupport().ModelManager().SurfaceFacets(IDs, geometry, surface_facet_sets, surface_nodes);
 
 	/* just one surface */
 	if (surface_facet_sets.Length() == 1)
@@ -505,7 +505,7 @@ void ContactT::ReadStrikers(ifstreamT& in, ostream& out)
 {
 #pragma unused(out)
 
-  ModelManagerT& model = ElementSupport().Model();
+  ModelManagerT& model = ElementSupport().ModelManager();
 
   /* read list of node set id indexes */
   ArrayT<StringT> ns_ID;
@@ -522,7 +522,7 @@ void ContactT::StrikersFromSideSets(ifstreamT& in, ostream& out)
 	/* read data from parameter file */
 	ArrayT<StringT> ss_ID;
 	bool multidatabasesets = true;
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	model.SideSetList(in, ss_ID, multidatabasesets);
 
 	/* list node nodes used */
@@ -563,7 +563,7 @@ void ContactT::ComputeNodalArea(const ArrayT<StringT>& striker_blocks,
 	GeometryT::CodeT geometry;
 	ArrayT<iArray2DT> surfaces;
 	iArrayT surface_nodes;
-	ElementSupport().Model().SurfaceFacets(striker_blocks, geometry, surfaces, surface_nodes);
+	ElementSupport().ModelManager().SurfaceFacets(striker_blocks, geometry, surfaces, surface_nodes);
 
 	/* no surfaces */
 	if (surfaces.Length() == 0) return;

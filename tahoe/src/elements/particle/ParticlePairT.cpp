@@ -1,5 +1,6 @@
-/* $Id: ParticlePairT.cpp,v 1.33 2004-04-02 16:48:22 jzimmer Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.28.4.3 2004-04-08 06:15:51 paklein Exp $ */
 #include "ParticlePairT.h"
+
 #include "PairPropertyT.h"
 #include "fstreamT.h"
 #include "eIntegratorT.h"
@@ -9,12 +10,14 @@
 #include "ofstreamT.h"
 #include "ifstreamT.h"
 #include "ModelManagerT.h"
-#include <iostream.h>
-#include <iomanip.h>
-#include <stdlib.h>
 #include "dSymMatrixT.h"
 #include "dArray2DT.h"
 #include "iGridManagerT.h"
+#include "ParameterContainerT.h"
+
+#include <iostream.h>
+#include <iomanip.h>
+#include <stdlib.h>
 
 /* pair property types */
 #include "LennardJonesPairT.h"
@@ -27,12 +30,12 @@ using namespace Tahoe;
 /* parameters */
 const int kMemoryHeadRoom = 15; /* percent */
 
+	
 /* constructor */
 ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field):
 	ParticleT(support, field),
 	fNeighbors(kMemoryHeadRoom),
 	NearestNeighbors(kMemoryHeadRoom),
-	RefNearestNeighbors(kMemoryHeadRoom),
 	fEqnos(kMemoryHeadRoom),
 	fForce_list_man(0, fForce_list)
 {
@@ -44,8 +47,6 @@ ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field
 ParticlePairT::ParticlePairT(const ElementSupportT& support):
 	ParticleT(support),
 	fNeighbors(kMemoryHeadRoom),
-	NearestNeighbors(kMemoryHeadRoom),
-	RefNearestNeighbors(kMemoryHeadRoom),
 	fEqnos(kMemoryHeadRoom),
 	fForce_list_man(0, fForce_list)
 {
@@ -67,30 +68,6 @@ void ParticlePairT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 
 	/* add to list of equation numbers */
 	eq_2.Append(&fEqnos);
-}
-
-/* class initialization */
-void ParticlePairT::Initialize(void)
-{
-	/* inherited */
-	ParticleT::Initialize();
-
-	ParticleT::SetRefNN(NearestNeighbors,RefNearestNeighbors);
-
-	/* dimension */
-	int ndof = NumDOF();
-	fLHS.Dimension(2*ndof);
-	fRHS.Dimension(2*ndof);
-
-	/* constant matrix needed to calculate stiffness */
-	fOneOne.Dimension(fLHS);
-	dMatrixT one(ndof);
-	one.Identity();
-	fOneOne.SetBlock(0, 0, one);
-	fOneOne.SetBlock(ndof, ndof, one);
-	one *= -1;
-	fOneOne.SetBlock(0, ndof, one);
-	fOneOne.SetBlock(ndof, 0, one);
 }
 
 /* collecting element geometry connectivities */
@@ -123,12 +100,8 @@ void ParticlePairT::WriteOutput(void)
 	/* dimensions */
 	int ndof = NumDOF();
 	int num_output = ndof + 2; /* displacement + PE + KE */
-
-#ifndef NO_PARTICLE_STRESS_OUTPUT
-	num_output++; /* includes centrosymmetry */
-	num_output+=ndof; /* some more for slip vector */
-#endif
-
+	num_output++; /*includes centrosymmetry*/
+	num_output+=ndof; /*some more for slip vector*/
 	/* number of nodes */
 	const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
 	int non = (parition_nodes) ? 
@@ -138,14 +111,11 @@ void ParticlePairT::WriteOutput(void)
 	/* map from partition node index */
 	const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
 
-#ifndef NO_PARTICLE_STRESS_OUTPUT
 	dSymMatrixT vs_i(ndof), temp(ndof);
 	int num_stresses = vs_i.NumValues(ndof);
 	//dArray2DT vsvalues(non, num_stresses);
 	num_output += num_stresses;
 	num_output += num_stresses; //another for the strain
-#endif
-
 	/* output arrays length number of active nodes */
 	dArray2DT n_values(non, num_output), e_values;
 	n_values = 0.0;
@@ -157,6 +127,9 @@ void ParticlePairT::WriteOutput(void)
 	int current_property = -1;
 	PairPropertyT::EnergyFunction energy_function = NULL;	
 	PairPropertyT::ForceFunction force_function = NULL;
+	//const double* Paradyn_table = NULL;
+	//double dr = 1.0;
+	//int row_size = 0, num_rows = 0;
 
 	/* the field */
 	const FieldT& field = Field();
@@ -164,18 +137,10 @@ void ParticlePairT::WriteOutput(void)
 	const dArray2DT* velocities = NULL;
 	if (field.Order() > 0) velocities = &(field[1]);
 
-	/* atomic volume */
-  	double V0 = 0.0;
-  	if (NumSD() == 1)
-    	V0 = fLatticeParameter;
-	else if (NumSD() == 2)
-		V0 = sqrt(3.0)*fLatticeParameter*fLatticeParameter/2.0; /* 2D hex */
-	else /* 3D */
-		V0 = fLatticeParameter*fLatticeParameter*fLatticeParameter/4.0; /* FCC */
-
 	/* collect mass per particle */
-	dArrayT mass(fNumTypes);
-	for (int i = 0; i < fNumTypes; i++)
+	int num_types = fTypeNames.Length();
+	dArrayT mass(num_types);
+	for (int i = 0; i < num_types; i++)
 		mass[i] = fPairProperties[fPropertiesMap(i,i)]->Mass();
 
 	/* collect displacements */
@@ -192,46 +157,48 @@ void ParticlePairT::WriteOutput(void)
 		vec.Set(ndof, values_i.Pointer());
 		displacement.RowCopy(tag_i, vec);
 
-#ifndef NO_PARTICLE_STRESS_OUTPUT
 		/* kinetic contribution to the virial */
 		if (velocities) {
 			velocities->RowAlias(tag_i, vec);
 			temp.Outer(vec);
 		 	for (int cc = 0; cc < num_stresses; cc++) {
 				int ndex = ndof+2+cc;
-		   		values_i[ndex] = -mass[type_i]*temp[cc]/V0;
+		   		values_i[ndex] = -mass[type_i]*temp[cc];
 		 	}
-		}
-#endif
+		} 
 	}
 	
 	/* run through neighbor list */
 	iArrayT neighbors;
-	dArrayT x_i, x_j, r_ij(ndof);
+	dArrayT x_i, x_j, r_ij(ndof), SlipVector(ndof);
 
-#ifndef NO_PARTICLE_STRESS_OUTPUT
-	dArrayT SlipVector(ndof);
 	dMatrixT Strain(ndof);
-#endif
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
-	{	    
+	  { //run through neighbor list
+	    
 		/* row of neighbor list */
 		fNeighbors.RowAlias(i, neighbors);
-
+		Strain=0;
 		/* tags */
 		int   tag_i = neighbors[0]; /* self is 1st spot */
 		int  type_i = fType[tag_i];
+		//double* f_i = fForce(tag_i);
+		vs_i = 0.0;
+
 		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
 		
 		/* values for particle i */
 		n_values.RowAlias(local_i, values_i);
 
-#ifndef NO_PARTICLE_STRESS_OUTPUT
-		vs_i = 0.0;
-#endif
+		/*linked list for holding vector pair magnitudes*/
+		CSymmParamNode *CParamStart=new CSymmParamNode;
+ 		CParamStart->Next=NULL;
+ 		CParamStart->value=0.0;
+
+		SlipVector=0.0;
 		
 		/* kinetic energy */
-		if (velocities) 
+		if (velocities)
 		{
 			velocities->RowAlias(tag_i, vec);
 			values_i[ndof+1] = 0.5*mass[type_i]*dArrayT::Dot(vec, vec);
@@ -242,26 +209,29 @@ void ParticlePairT::WriteOutput(void)
 		coords.RowAlias(tag_i, x_i);
 
 		for (int j = 1; j < neighbors.Length(); j++)
-		{
+		  { //run through j
 			/* tags */
 			int   tag_j = neighbors[j];
 			int  type_j = fType[tag_j];
 			
 			/* set pair property (if not already set) */
 			int property = fPropertiesMap(type_i, type_j);
-			if (property != current_property) 
+			if (property != current_property)
 			{
 				energy_function = fPairProperties[property]->getEnergyFunction();
+
+				//if (!fPairProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
 				force_function = fPairProperties[property]->getForceFunction();
 				current_property = property;
 			}
 		
 			/* global coordinates */
 			coords.RowAlias(tag_j, x_j);
-
+		
 			/* connecting vector */
 			r_ij.DiffOf(x_j, x_i);
 			double r = r_ij.Magnitude();
+			
 
 			/* split interaction energy */
 			double uby2 = 0.5*energy_function(r, NULL, NULL); 
@@ -270,16 +240,13 @@ void ParticlePairT::WriteOutput(void)
 	      	/* interaction force */
 			double F = force_function(r, NULL, NULL);
 			double Fbyr = F/r;
-
-#ifndef NO_PARTICLE_STRESS_OUTPUT
 			temp.Outer(r_ij);
 			vs_i.AddScaled(0.5*Fbyr, temp);
-#endif
 
 			/* second node may not be on processor */
-			if (!proc_map || (*proc_map)[tag_j] == rank) 
-			{
-				int local_j = (inverse_map) ? inverse_map->Map(tag_j) : tag_j;	
+			if (!proc_map || (*proc_map)[tag_j] == rank) {
+				int local_j = (inverse_map) ? inverse_map->Map(tag_j) : tag_j;
+				
 				if (local_j < 0 || local_j >= n_values.MajorDim())
 					cout << caller << ": out of range: " << local_j << '\n';
 				else {
@@ -287,70 +254,46 @@ void ParticlePairT::WriteOutput(void)
 					/* potential energy */
 					n_values(local_j, ndof) += uby2;
 
-#ifndef NO_PARTICLE_STRESS_OUTPUT
 			 		/* accumulate into stress into array */
 		 			for (int cc = 0; cc < num_stresses; cc++) {
 						int ndex = ndof+2+cc;
-		   				n_values(local_j, ndex) += 0.5*Fbyr*temp[cc]/V0;		   
+		   				n_values(local_j, ndex) += 0.5*Fbyr*temp[cc];		   
 		 			}
-#endif
 				}
 			}
-		}
+		} //end of run through neighbors of one atom
 
-
-#ifndef NO_PARTICLE_STRESS_OUTPUT
 		/* copy stress into array */
 		for (int cc = 0; cc < num_stresses; cc++) {
 		  int ndex = ndof+2+cc;
-		  values_i[ndex] += (vs_i[cc]/V0);
-		}
-#endif
-	}
-#ifndef NO_PARTICLE_STRESS_OUTPUT
-    int num_s_vals = num_stresses+1+ndof+1;
-    dArray2DT s_values(non,num_s_vals);
-    s_values = 0.0;
-
-    /* flag for specifying Lagrangian (0) or Eulerian (1) strain */ 
-    const int kEulerLagr = 0;
-	/* calculate slip vector and strain */
-	Calc_Slip_and_Strain(non,num_s_vals,s_values,RefNearestNeighbors,kEulerLagr);
-
-    /* calculate centrosymmetry parameter */
-	Calc_CSP(non,num_s_vals,s_values,NearestNeighbors);
-
-	/* combine strain, slip vector and centrosymmetry parameter into n_values list */
-	for (int i = 0; i < fNeighbors.MajorDim(); i++)
-	{
-		/* row of neighbor list */
-		fNeighbors.RowAlias(i, neighbors);
-
-		/* tags */
-		int   tag_i = neighbors[0]; /* self is 1st spot */
-		int  type_i = fType[tag_i];
-		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
-									            
-		int valuep = 0;
-		for (int is = 0; is < num_stresses; is++)
-		{
-			n_values(local_i,ndof+2+num_stresses+valuep++) = s_values(local_i,is);
+		  values_i[ndex] += vs_i[cc];
 		}
 
-		/* recover J, the determinant of the deformation gradient, for atom i
-		 * and divide stress values by it */
-		double J = s_values(local_i,num_stresses);
-	    for (int is = 0; is < num_stresses; is++) n_values(local_i,ndof+2+is) /= J;
+		 
+	
 
-		for (int n = 0; n < ndof; n++)
-			n_values(local_i, ndof+2+num_stresses+num_stresses+n) = s_values(local_i,num_stresses+1+n);
 
-		n_values(local_i, num_output-1) = s_values(local_i,num_s_vals-1);
-	}
-#endif
+		CalcValues(i, coords, CParamStart, &Strain, &SlipVector, &NearestNeighbors);
+		int valuep=0;
+		Strain /=2;
+		for(int n=0; n<ndof;n++)
+		  for(int m=n;m<ndof;m++)
+		    n_values(local_i,ndof+2+num_stresses+valuep++)=Strain(n,m);
+		for(int n=0; n<ndof; n++)
+		  n_values(local_i, ndof+2+num_stresses+num_stresses+n)=SlipVector[n];
 
+		/*given the list of vector pair magnitudes, returns first seven*/
+		n_values(local_i,num_output-1)=GenCSymmValue(CParamStart, ndof);
+
+	      
+	}//end of run through neighbor list
+
+
+
+
+	
 #if 0
-	/* temporary to calculate crack propagation velocity */
+	/* Temporary to calculate crack propagation velocity */
 	ifstreamT& in = ElementSupport().Input();
 	ModelManagerT& model = ElementSupport().Model();
 	const ArrayT<StringT> id_list = model.NodeSetIDs();
@@ -448,9 +391,11 @@ void ParticlePairT::WriteOutput(void)
 				 << endl;
 	}
 #endif
+	   
 
 	/* send */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+
 }
 
 /* compute the part of the stiffness matrix */
@@ -552,28 +497,21 @@ void ParticlePairT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 	}
 }
 
-/* describe the parameters needed by the interface */
-void ParticlePairT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ParticleT::DefineParameters(list);
-}
-
 /* information about subordinate parameter lists */
 void ParticlePairT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
 	ParticleT::DefineSubs(sub_list);
 
-	/* the pair properties - array of choices */
-	sub_list.AddSub("property_list", ParameterListT::OnePlus, true);
+	/* interactions */
+	sub_list.AddSub("pair_particle_interaction", ParameterListT::OnePlus);
 }
 
 /* return the description of the given inline subordinate parameter list */
 void ParticlePairT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
 	SubListT& sub_sub_list) const
 {
-	if (sub == "property_list")
+	if (sub == "pair_property_choice")
 	{
 		order = ParameterListT::Choice;
 		
@@ -600,8 +538,44 @@ ParameterInterfaceT* ParticlePairT::NewSub(const StringT& list_name) const
 	PairPropertyT* pair_property = New_PairProperty(list_name, false);
 	if (pair_property)
 		return pair_property;
+	else if (list_name == "pair_particle_interaction")
+	{
+		ParameterContainerT* interactions = new ParameterContainerT(list_name);
+		interactions->SetSubSource(this);
+
+		/* particle type labels */
+		interactions->AddParameter(ParameterT::Word, "label_1");
+		interactions->AddParameter(ParameterT::Word, "label_2");
+	
+		/* properties choice list */
+		interactions->AddSub("pair_property_choice", ParameterListT::Once, true);
+
+		return interactions;
+	}	
 	else /* inherited */
 		return ParticleT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void ParticlePairT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParticleT::TakeParameterList(list);
+
+	/* dimension */
+	int ndof = NumDOF();
+	fLHS.Dimension(2*ndof);
+	fRHS.Dimension(2*ndof);
+
+	/* constant matrix needed to calculate stiffness */
+	fOneOne.Dimension(fLHS);
+	dMatrixT one(ndof);
+	one.Identity();
+	fOneOne.SetBlock(0, 0, one);
+	fOneOne.SetBlock(ndof, ndof, one);
+	one *= -1;
+	fOneOne.SetBlock(0, ndof, one);
+	fOneOne.SetBlock(ndof, 0, one);
 }
 
 /***********************************************************************
@@ -638,9 +612,8 @@ void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 	int num_labels =
 		ndof // displacements
 		+ 2;     // PE and KE
-
-#ifndef NO_PARTICLE_STRESS_OUTPUT
 	int num_stress=0;
+
 	const char* stress[6];
 	const char* strain[6];
 	if (ndof==3){
@@ -685,8 +658,6 @@ void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 	num_labels++; //another label for the centrosymmetry
 	num_labels+=num_stress; //another for the strain
 	num_labels+=ndof; /*and another for the slip vector*/
-#endif /* NO_PARTICLE_STRESS_OUTPUT */
-	
 	labels.Dimension(num_labels);
 	int dex = 0;
 	for (dex = 0; dex < NumDOF(); dex++)
@@ -694,7 +665,6 @@ void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 	labels[dex++] = "PE";
 	labels[dex++] = "KE";
 
-#ifndef NO_PARTICLE_STRESS_OUTPUT
 	for (int ns =0 ; ns<num_stress; ns++)
 	  labels[dex++]=stress[ns];
 	for (int ns =0 ; ns<num_stress; ns++)
@@ -702,7 +672,6 @@ void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 	for (int i=0; i<ndof; i++)
 	  labels[dex++]=SV[i];
 	labels[dex++]= "CS";
-#endif /* NO_PARTICLE_STRESS_OUTPUT */
 }
 
 /* form group contribution to the stiffness matrix */
@@ -718,8 +687,9 @@ void ParticlePairT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	if (formM) {
 
 		/* collect mass per particle */
-		dArrayT mass(fNumTypes);
-		for (int i = 0; i < fNumTypes; i++)
+		int num_types = fTypeNames.Length();
+		dArrayT mass(num_types);
+		for (int i = 0; i < num_types; i++)
 			mass[i] = fPairProperties[fPropertiesMap(i,i)]->Mass();
 		mass *= constM;
 	
@@ -1110,7 +1080,7 @@ void ParticlePairT::SetConfiguration(void)
 	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
 	if (fActiveParticles) 
 		part_nodes = fActiveParticles;
-	GenerateNeighborList(part_nodes, NearestNeighborDistance, NearestNeighbors, true, true);
+	GenerateNeighborList(part_nodes, 0.8*fLatticeParameter, NearestNeighbors, true, true);
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
 
 
@@ -1142,6 +1112,63 @@ void ParticlePairT::SetConfiguration(void)
 	}
 }
 
+/* extract the properties information from the parameter list. See ParticleT::ExtractProperties */
+void ParticlePairT::ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& type_names,
+	ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map)
+{
+	const char caller[] = "ParticlePairT::ExtractProperties";
+
+	/* check number of interactions */
+	int num_props = list.NumLists("pair_particle_interaction");
+	int dim = 0;
+	for (int i = 0; i < properties_map.Rows(); i++)
+		dim += properties_map.Rows() - i;
+	if (dim != num_props)
+		ExceptionT::GeneralFail(caller, "%d types requires %d \"pair_particle_interaction\"",
+			properties_map.Rows(), dim);
+
+	/* read properties */
+	fPairProperties.Dimension(num_props);
+	for (int i = 0; i < num_props; i++) {
+
+		const ParameterListT& interaction = list.GetList("pair_particle_interaction", i);
+		
+		/* type names */
+		const StringT& label_1 = interaction.GetParameter("label_1");
+		const StringT& label_2 = interaction.GetParameter("label_2");
+		
+		/* resolve index */
+		int index_1 = -1, index_2 = -1;
+		for (int j = 0; index_1 == -1 && j < type_names.Length(); j++)
+			if (type_names[j] == label_1) index_1 = j;
+		if (index_1 == -1) ExceptionT::GeneralFail(caller, "could not resolve index of \"%s\"", label_1.Pointer());
+
+		for (int j = 0; index_2 == -1 && j < type_names.Length(); j++)
+			if (type_names[j] == label_2) index_2 = j;
+		if (index_2 == -1) ExceptionT::GeneralFail(caller, "could not resolve index of \"%s\"", label_2.Pointer());
+		
+		/* set properies map */
+		if (properties_map(index_1, index_2) != -1)
+			ExceptionT::GeneralFail(caller, "%s-%s interaction is already defined",
+				label_1.Pointer(), label_2.Pointer());
+		properties_map(index_1, index_2) = properties_map(index_2, index_1) = i; /* symmetric */
+		
+		/* read property */
+		const ParameterListT* property = interaction.ResolveListChoice(*this, "pair_property_choice");
+		if (!property)
+			ExceptionT::GeneralFail(caller, "could not resolve \"pair_property_choice\"");
+		PairPropertyT* pair_prop = New_PairProperty(property->Name(), true);
+		pair_prop->TakeParameterList(*property);
+		fPairProperties[i] = pair_prop;
+	}
+	
+	/* copy */
+	properties.Dimension(fPairProperties.Length());
+	for (int i = 0; i < properties.Length(); i++)
+		properties[i] = fPairProperties[i];
+}
+
+#if 0
 /* construct the list of properties from the given input stream */
 void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 {
@@ -1194,8 +1221,7 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 				ExceptionT::BadInputValue("ParticlePairT::ReadProperties", 
 					"unrecognized property type: %d", property);
 		}
-		
-
+	
 	}
 
 	/* echo particle properties */
@@ -1212,6 +1238,4 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 	for (int i = 0; i < fPairProperties.Length(); i++)
 		fParticleProperties[i] = fPairProperties[i];
 }
-
-
-  
+#endif
