@@ -1,9 +1,10 @@
-// $Id: test.java,v 1.5 2002-07-24 20:55:54 recampb Exp $
+// $Id: test.java,v 1.6 2002-07-29 21:11:50 recampb Exp $
 import java.io.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
 import javax.swing.tree.*;
+import javax.swing.event.*;
 
 public class test extends JPanel implements ActionListener {
 
@@ -16,10 +17,13 @@ public class test extends JPanel implements ActionListener {
   public native void InitCpp();  
   public native void Print();
   public native void SetMinSc(int x);
+  public native int GetMinSc();
+  public native void AddScope(String s);
 
  
   long cpp_obj;
   long console;
+
   int newNodeSuffix = 1;
   protected JButton testButton, b2;
   protected JTextField minScalarTF;
@@ -28,19 +32,16 @@ public class test extends JPanel implements ActionListener {
 
     InitCpp();
     Print();
-    JTabbedPane tabbedPane = new JTabbedPane();
+    final JTabbedPane tabbedPane = new JTabbedPane();
 
-    JPanel rootPanel = new JPanel(false);
-    JPanel framePanel = new JPanel(false);
-    JPanel bodyPanel = new JPanel(false);
-    JPanel bodyVarPanel = new JPanel(false);
-    tabbedPane.addTab("Root Commands", rootPanel);
-    tabbedPane.addTab("Frame Commands", framePanel);
-    tabbedPane.addTab("Body Commands", bodyPanel);
-    tabbedPane.addTab("Body Variables", bodyVarPanel);
+    final JPanel rootPanel = new JPanel();
+    final JPanel framePanel = new JPanel();
+    JPanel bodyPanel = new JPanel();
+    JPanel bodyVarPanel = new JPanel();
+
     bodyVarPanel.setLayout(new GridLayout(2,2,20,5));
 
-    minScalarTF = new JTextField("-99", 8);
+    minScalarTF = new JTextField(Integer.toString(GetMinSc()), 8);
     JLabel minScalarL = new JLabel("min_Scalar_Range");
     JButton bodyVarOKButton = new JButton("OK");
     JButton bodyVarCancelButton = new JButton("Cancel");
@@ -52,10 +53,44 @@ public class test extends JPanel implements ActionListener {
     bodyVarPanel.add(bodyVarOKButton);
     bodyVarPanel.add(bodyVarCancelButton);
 
+    final JToolBar bodyToolBar = new JToolBar();
+    JToolBar bodyDataToolBar = new JToolBar();
+    JToolBar frameToolBar = new JToolBar();
+    JToolBar rootToolBar = new JToolBar();
+
+    JButton ShowContoursButton = new JButton ("ShowContours");
+    JButton HideContoursButton = new JButton ("HideContours");
+    JButton ShowCuttingButton = new JButton ("ShowCuttingPlane");
+    JButton HideCuttingButton = new JButton ("HideCuttingPlane");
+
+    ShowContoursButton.addActionListener(this);
+    HideContoursButton.addActionListener(this);    
+    ShowCuttingButton.addActionListener(this);
+    HideCuttingButton.addActionListener(this);
+
+    ShowContoursButton.setActionCommand("ShowContours");
+    HideContoursButton.setActionCommand("HideContours");
+    ShowCuttingButton.setActionCommand("ShowCutting");
+    HideCuttingButton.setActionCommand("HideCutting");
+
+
+    bodyToolBar.add(ShowContoursButton);
+    bodyToolBar.add(HideContoursButton);
+    bodyToolBar.add(ShowCuttingButton);
+    bodyToolBar.add(HideCuttingButton);
+    
+    
+    tabbedPane.addTab("Root Commands", rootPanel);
+    tabbedPane.addTab("Frame Commands", framePanel);
+    tabbedPane.addTab("Body Commands", bodyToolBar);
+    tabbedPane.addTab("Body Variables", bodyVarPanel);
+    
 
     setLayout(new GridLayout(1, 2)); 
-    add(tabbedPane);
- 
+     add(tabbedPane);
+     //add(rootPanel);
+     //add(bodyToolBar);
+    
     testButton = new JButton ("Exit");
     testButton.addActionListener(this);
     testButton.setActionCommand("Exit");
@@ -69,13 +104,34 @@ public class test extends JPanel implements ActionListener {
 
     final DynamicTree treePanel = new DynamicTree();
     populateTree(treePanel);
+    //treePanel.setup();
+    treePanel.getTree().addTreeSelectionListener(new TreeSelectionListener() {
+                public void valueChanged(TreeSelectionEvent e) {
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)
+                                       treePanel.getTree().getLastSelectedPathComponent();
+                    
+                    if (node == null) return;
 
-   
+                    Object nodeInfo = node.getUserObject();
+		    if (((String)nodeInfo).equals( "0.body"))
+		      tabbedPane.setSelectedComponent(bodyToolBar);
+		    else if (((String)nodeInfo).equals("Console Root"))
+		      tabbedPane.setSelectedComponent(rootPanel);
+		    else if (((String)nodeInfo).equals("0.0.frame"))
+		      tabbedPane.setSelectedComponent(framePanel);
 
- JButton addButton = new JButton("Add");
+		    System.out.println((String)nodeInfo);
+		    
+		}
+                
+    });
+    
+    
+    JButton addButton = new JButton("Add");
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 treePanel.addObject("New Node " + newNodeSuffix++);
+		AddScope("New Node " + newNodeSuffix++);
             }
         });
 
@@ -126,25 +182,35 @@ public class test extends JPanel implements ActionListener {
       
     }
     
+    else if (e.getActionCommand().equals("ShowContours")){
+      System.out.println("ShowContours");
+    }
+    
+    else if (e.getActionCommand().equals("HideContours")){
+      System.out.println("HideContours");
+    }
+
+    else if (e.getActionCommand().equals("ShowCutting")){
+      System.out.println("ShowCuttingPlane");
+    }
+    else if (e.getActionCommand().equals("HideCutting")){
+      System.out.println("HideCuttingPlane");
+    }
+
   }
 
 
     public void populateTree(DynamicTree treePanel) {
-        String p1Name = new String("Parent 1");
-        String p2Name = new String("Parent 2");
-        String c1Name = new String("Child 1");
-        String c2Name = new String("Child 2");
+        String f1Name = new String("0.0.frame");
+	String b1Name = new String("0.body");
+        String bd1Name = new String("0.body");
 
         DefaultMutableTreeNode p1, p2;
 
-        p1 = treePanel.addObject(null, p1Name);
-        p2 = treePanel.addObject(null, p2Name);
+        p1 = treePanel.addObject(null, f1Name);
+	p2 = treePanel.addObject(null, bd1Name);
+        treePanel.addObject(p1, b1Name);
 
-        treePanel.addObject(p1, c1Name);
-        treePanel.addObject(p1, c2Name);
-
-        treePanel.addObject(p2, c1Name);
-        treePanel.addObject(p2, c2Name);
     }
 
 

@@ -11,7 +11,7 @@ public class DynamicTree extends JPanel {
     private Toolkit toolkit = Toolkit.getDefaultToolkit();
 
     public DynamicTree() {
-        rootNode = new DefaultMutableTreeNode("Root Node");
+        rootNode = new DefaultMutableTreeNode("Console Root");
         treeModel = new DefaultTreeModel(rootNode);
         treeModel.addTreeModelListener(new MyTreeModelListener());
 
@@ -19,12 +19,21 @@ public class DynamicTree extends JPanel {
         tree.setEditable(true);
         tree.getSelectionModel().setSelectionMode
                 (TreeSelectionModel.SINGLE_TREE_SELECTION);
+
+	
+
+
         tree.setShowsRootHandles(true);
 
         JScrollPane scrollPane = new JScrollPane(tree);
         setLayout(new GridLayout(1,0));
         add(scrollPane);
     }
+
+  public JTree getTree(){
+    return tree;
+  }
+
 
     /** Remove all nodes except the root node. */
     public void clear() {
