@@ -1,4 +1,4 @@
-// $Id: APS_VariableT.cpp,v 1.3 2003-09-04 15:45:39 paklein Exp $
+// $Id: APS_VariableT.cpp,v 1.4 2003-09-15 20:50:44 paklein Exp $
 #include "APS_VariableT.h"
 
 //---------------------------------------------------------------------
@@ -43,11 +43,11 @@ void APS_VariableT::Print(char *c) { // overload << later
   cout <<"\n APS_VariableT "<< c <<" follows: \n\n"; 
 
 	for (int l=0; l<n_vars; l++) 
-		if (fVars[l].n_ip==0)
+		if (fVars[l].IPs() == 0)
 			cout << "APS_VariableT n["<<l<<"] Unallocated \n\n";
     else {
-  		cout << "\n Vector "<<l<<" evaluated at "<<fVars[l].n_ip<<" inegration points (ip): \n"; 
-  		for (int i=0; i<fVars[l].n_ip; i++) 
+  		cout << "\n Vector "<<l<<" evaluated at "<<fVars[l].IPs() <<" inegration points (ip): \n"; 
+  		for (int i=0; i<fVars[l].IPs(); i++) 
    	 		cout <<"\n "<< c <<" @ ip "<<i<<": \n\n"<< fVars[l][i] << "\n";
 			cout << "\n";
 		}
