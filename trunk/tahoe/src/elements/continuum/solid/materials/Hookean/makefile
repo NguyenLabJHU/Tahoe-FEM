@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:26 paklein Exp $
+# $Id: makefile,v 1.5 2002-06-27 01:22:58 hspark Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -31,6 +31,7 @@ HDR_LINK = $(HDR:.h=.h_link)
 # subdirectories
 SUB_DIR = \
 	Cubic \
+	1D \
 	KStV
 subdir_driver: subdir_loop
 # SUB_DIR is empty
