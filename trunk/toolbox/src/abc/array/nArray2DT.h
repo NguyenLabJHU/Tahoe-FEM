@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.18 2003-09-04 23:55:24 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.19 2003-10-04 19:08:16 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #ifndef _NARRAY2D_T_H_
 #define _NARRAY2D_T_H_
@@ -85,6 +85,12 @@ public:
 
 	/** copy the specified column into array without range checking. */
 	void ColumnCopy(int col, nTYPE* array) const;
+
+	/** copy the specified column out of the source array. 
+	 * \param col destination in this of the column
+	 * \param a source array
+	 * \param col_a column to copy out of the source array */
+	void ColumnCopy(int col, const nArray2DT<nTYPE>& a, int col_a) const;
 
 	/** shallow copy of a row.
 	 * \param row row number to alias
@@ -510,6 +516,24 @@ inline void nArray2DT<nTYPE>::ColumnCopy(int col, nArrayT<nTYPE>& array) const
 
 	/* call wrapper */
 	ColumnCopy(col, array.Pointer());
+}
+
+/* copy the specified column out of the source array */
+template <class nTYPE>
+void nArray2DT<nTYPE>::ColumnCopy(int col, const nArray2DT<nTYPE>& a, int col_a) const
+{
+#if __option (extended_errorcheck)
+	if (a.MajorDim() != fMajorDim) ExceptionT::SizeMismatch("nArray2DT<nTYPE>::ColumnCopy");
+#endif
+
+	int a_dim = a.MinorDim();
+	nTYPE* pthis = Pointer(col);
+	nTYPE* pthat = a.Pointer(col_a);
+	for (int i = 0; i < fMajorDim; i++) {
+		*pthis = *pthat;
+		pthis += fMinorDim;
+		pthat += a_dim;
+	}
 }
 
 template <class nTYPE>
