@@ -1,5 +1,5 @@
-# $Id: makefile,v 1.1.1.1 2001-01-31 21:33:52 paklein Exp $
-# object directory makefile - compilation instructions
+# $Id: makefile,v 1.2 2001-02-01 01:01:08 paklein Exp $
+# object directory makefile - compilation instruction
 
 .SUFFIXES: .c .cpp .C .f .F .o .d .h .h_link
 
