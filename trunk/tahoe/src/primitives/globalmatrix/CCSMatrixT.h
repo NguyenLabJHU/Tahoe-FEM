@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.h,v 1.17 2005-02-04 22:01:54 paklein Exp $ */
+/* $Id: CCSMatrixT.h,v 1.18 2005-02-04 22:37:21 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #ifndef _CCSMATRIX_T_H_
 #define _CCSMATRIX_T_H_
@@ -193,7 +193,7 @@ inline int CCSMatrixT::ColumnHeight(int col) const
 
 /* Tranpose[matrix]-vector product */
 inline void CCSMatrixT::MultTx(const dArrayT& x, dArrayT& b) const {
-	return CCSMatrixT::Multx(x, b);
+	CCSMatrixT::Multx(x, b);
 }
 
 /* element accessor */
