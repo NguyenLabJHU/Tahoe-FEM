@@ -1,4 +1,4 @@
-# $Id: ring.demo,v 1.1 2002-04-07 19:21:21 paklein Exp $
+# $Id: ring.demo,v 1.2 2002-04-08 16:14:09 paklein Exp $
 :root
 Layout nx 1 ny 1
 WindowSize w 400 h 400
@@ -299,3 +299,5 @@ Reset
 
 echo
 echo "':root; Rem 0'..."
+:root; Rem 0
+Upd

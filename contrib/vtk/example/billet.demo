@@ -1,4 +1,4 @@
-# $Id: billet.demo,v 1.1 2002-04-07 19:21:21 paklein Exp $
+# $Id: billet.demo,v 1.2 2002-04-08 16:14:09 paklein Exp $
 :root
 Layout nx 2 ny 2
 WindowSize w 500 h 500
@@ -187,8 +187,9 @@ end
 
 # clean up
 :root:1.0
-HideAx
+HideC
 ::
 Rem 0
+Upd
 
 
