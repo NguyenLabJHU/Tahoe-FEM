@@ -1,6 +1,5 @@
-/* $Id: CSEAnisoT.h,v 1.13 2002-07-05 22:27:58 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.14 2002-08-05 19:28:33 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
-
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
 

@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.21 2002-07-02 19:55:15 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.22 2002-08-05 19:28:33 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -18,11 +18,14 @@
 #include "XuNeedleman2DT.h"
 #include "XuNeedleman3DT.h"
 #include "TvergHutch2DT.h"
+#include "TvergHutch3DT.h"
 #include "ViscTvergHutch2DT.h"
 #include "Tijssens2DT.h"
 #include "RateDep2DT.h"
 #include "TiedPotentialT.h"
 #include "YoonAllen2DT.h"
+#include "YoonAllen3DT.h"
+//#include "SimoViscoElast2DT.h"
 
 /* constructor */
 
@@ -120,11 +123,7 @@ void CSEAnisoT::Initialize(void)
 				if (NumDOF() == 2)
 					fSurfPots[num] = new TvergHutch2DT(in);
 				else
-				{
-					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: "
-					     << code << endl; 				
-					throw eBadInputValue;
-				}
+					fSurfPots[num] = new TvergHutch3DT(in);
 				break;
 			}
 			case SurfacePotentialT::kViscTvergaardHutchinson:
@@ -185,13 +184,21 @@ void CSEAnisoT::Initialize(void)
 				if (NumDOF() == 2)
 					fSurfPots[num] = new YoonAllen2DT(in, ElementSupport().TimeStep());
 				else
+					fSurfPots[num] = new YoonAllen3DT(in, ElementSupport().TimeStep());
+				break;
+			}
+			/*case SurfacePotentialT::kSimoViscoElast:
+			{	
+				if (NumDOF() == 2)
+					fSurfPots[num] = new SimoViscoElast2DT(in, ElementSupport().TimeStep());
+				else
 				{
-					cout << "\n AllenT::Initialize: potential not implemented for 3D: " << code <<  endl;
+					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
 
 					throw eBadInputValue;
 				}
 				break;
-			}
+			}*/
 			default:
 				cout << "\n CSEAnisoT::Initialize: unknown potential code: " << code << endl;
 				throw eBadInputValue;
