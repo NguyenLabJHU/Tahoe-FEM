@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: iConsoleT.h,v 1.2 2001-02-07 23:56:25 ebmarin Exp $ */
 /* created: paklein (12/21/2000)                                          */
 /* iConsoleT.h                                                            */
 
@@ -17,7 +17,6 @@ class iConsoleObjectT;
 class iConsoleT: public iConsoleBaseT
 {
 public:
-
 	/* constructor */
 	iConsoleT(const StringT& log_file, iConsoleObjectT& current);
 
@@ -29,6 +28,14 @@ public:
 
 	/* operate on given variable */
 	virtual bool iDoVariable(const StringT& variable, StringT& line);
+
+	/* console flags */
+	enum CommandScope {kNone = 0,
+		 kConsoleCommand = 1,
+	        kConsoleVariable = 2,
+	           kScopeCommand = 3,
+	          kScopeVariable = 4,
+	                  kAlias = 5};
 
 private:
 
@@ -47,12 +54,6 @@ private:
 	/* pulls the first word from the line and resolves it into
 	 * a command from the console or current scope, or returns
 	 * kNone if the word could not be resolved */
-	enum CommandScope {kNone = 0,
-		     kConsoleCommand = 1,
-	        kConsoleVariable = 2,
-	           kScopeCommand = 3,
-	          kScopeVariable = 4,
-	                  kAlias = 5};
 	CommandScope ResolveNextWord(StringT& line, StringT& command) const;
 	CommandScope ResolveCommand(StringT& command) const;
 	
