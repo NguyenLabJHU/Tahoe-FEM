@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.5.2.3 2003-05-24 17:58:37 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.5.2.4 2003-05-24 23:34:56 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -177,8 +177,6 @@ void FEManagerT_bridging::InitGhostNodes(void)
 		if (is_ghost[i] == 0)
 			fNonGhostNodes[dex++] = i;
 			
-	cout << "ghost atoms = " << fGhostNodes << endl;
-	cout << "non ghost atoms = " << fNonGhostNodes << endl;
 }
 
 /* compute the ghost-nonghost part of the stiffness matrix */
