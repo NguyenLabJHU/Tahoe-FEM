@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.h,v 1.2 2003-03-31 23:09:14 paklein Exp $ */
+/* $Id: ParticlePropertyT.h,v 1.3 2003-04-05 08:34:41 paklein Exp $ */
 #ifndef _PARTICLE_PROPERTY_T_H_
 #define _PARTICLE_PROPERTY_T_H_
 
@@ -15,7 +15,8 @@ public:
 	enum TypeT {
         kHarmonicPair = 0, /**< harmonic pair potential */
     kLennardJonesPair = 1, /**< Jennard-Jones 6/12 pair potential */
-         kParadynPair = 2  /**< pair potential in Paradyn (EAM) format */
+         kParadynPair = 2, /**< pair potential in Paradyn (EAM) format */
+          kParadynEAM = 3  /**< EAM potentials in Paradyn format */
 	};
 	
 	/** stream extraction operator */
