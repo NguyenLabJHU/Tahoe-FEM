@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.11 2002-02-07 20:59:43 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.12 2002-02-08 18:18:05 dzeigle Exp $ */
 
 #include "PenaltyContactElement2DT.h"
 
@@ -94,11 +94,8 @@ void PenaltyContactElement2DT::RHSDriver(void)
 
   bool in_contact = 0;
   ContactNodeT* node;
-  double gap, pen, pre;
-  double gw_m,gw_s;
-  double realArea=0.0;
-  double material_coeff=kAsperityDensity*kHertzianModulus*sqrt(kAsperityTipRadius)/(6.0*sqrt(PI));
-  double area_coeff = PI*kAsperityDensity*kAsperityTipRadius*kAsperityHeightStandardDeviation;
+  double gap, pre;
+  double gw_m,gw_s,gw_dens,gw_mod,gw_rad;
 
   /* residual */
   for(int s = 0; s < fSurfaces.Length(); s++) {
@@ -138,11 +135,15 @@ void PenaltyContactElement2DT::RHSDriver(void)
                   /* parameters for Greenwood-Williamson load formulation */
                   gw_m = parameters[kAsperityHeightMean];
                   gw_s = parameters[kAsperityHeightStandardDeviation];
-		  
+                  gw_dens = parameters[kAsperityDensity];
+                  gw_mod = parameters[kHertzianModulus];
+                  gw_rad = parameters[kAsperityTipRadius];
+                  double material_coeff=(4.0/3.0)*gw_dens*gw_mod*sqrt(gw_rad*gw_s)*gw_s;
+  		  double area_coeff = PI*gw_dens*gw_rad*gw_s;
+                  
                   GreenwoodWilliamson GW(gw_m,gw_s);
 		  /* First derivative of Greenwood-Williamson represents force */
                   pre  = material_coeff*GW.DFunction(gap);
-                  //realArea = area_coeff*GW.ContactArea(gap);
 
 		  face->ComputeShapeFunctions(points(i),N1);
 		  for (int j =0; j < fNumSD; j++) {n1[j] = node->Normal()[j];}
@@ -171,8 +172,8 @@ void PenaltyContactElement2DT::LHSDriver(void)
   int consistent;
   int opp_num_nodes;
   ContactNodeT* node;
-  double pen, pre, dpre_dg;
-  double gap,gw_m,gw_s;
+  double pre, dpre_dg;
+  double gap,gw_m,gw_s,gw_dens,gw_mod,gw_rad;
   dArrayT l1;
   l1.Allocate(fNumSD);
   double lm2[3];
@@ -190,7 +191,6 @@ void PenaltyContactElement2DT::LHSDriver(void)
    Perm(0,0) = 0.0 ; Perm(0,1) = -1.0;
    Perm(1,0) = 1.0 ; Perm(1,1) =  0.0;
    double alpha;
-   double material_coeff=kAsperityDensity*kHertzianModulus*sqrt(kAsperityTipRadius)/(6.0*sqrt(PI));
 
 
   for(int s = 0; s < fSurfaces.Length(); s++) {
@@ -234,6 +234,10 @@ void PenaltyContactElement2DT::LHSDriver(void)
                         node->OpposingFace()->Surface().Tag());
                   gw_m = parameters[kAsperityHeightMean];
                   gw_s = parameters[kAsperityHeightStandardDeviation];
+                  gw_dens = parameters[kAsperityDensity];
+                  gw_mod = parameters[kHertzianModulus];
+                  gw_rad = parameters[kAsperityTipRadius];
+                  double material_coeff=(4.0/3.0)*gw_dens*gw_mod*sqrt(gw_rad*gw_s)*gw_s;
 
                   GreenwoodWilliamson GW(gw_m,gw_s);
                   pre  = material_coeff*GW.DFunction(gap);
@@ -308,4 +312,5 @@ void PenaltyContactElement2DT::LHSDriver(void)
 /***********************************************************************
  * Private
  ***********************************************************************/
+
 
