@@ -17,7 +17,7 @@ class ExtractIOManager : public TranslateIOManager
   virtual void InitializeNodePoints (void);
   virtual void TranslateVariables (void);
 
-  void PrepFiles (void) const;
+  void PrepFiles (StringT& ext, int digits) const;
   void OpenFile (ofstreamT& o, int index, int digits, StringT& ext, bool append) const;
 
  private:
