@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.3.30.1 2004-10-13 19:03:47 thao Exp $ */
+/* $Id: ConveyorT.cpp,v 1.3.30.2 2004-11-08 23:44:09 thao Exp $ */
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
@@ -87,9 +87,11 @@ void ConveyorT::Initialize(ifstreamT& in)
 	ReadNodes(in, id_list, fTopNodes);
 
 	/* set stretching BC cards */
-	fKBC_Cards.Dimension(nsd*(fBottomNodes.Length() + fTopNodes.Length()));
+//	fKBC_Cards.Dimension(nsd*(fBottomNodes.Length() + fTopNodes.Length()));
+	fKBC_Cards.Dimension(fBottomNodes.Length() + fTopNodes.Length());
 	int node = 0;
 	double valueby2 = fULBC_Value/2.0;
+
 	for (int i = 0; i < fBottomNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
 		card.SetValues(fBottomNodes[i], 1, fULBC_Code, fULBC_ScheduleNumber, -valueby2);
@@ -100,16 +102,16 @@ void ConveyorT::Initialize(ifstreamT& in)
 		card.SetValues(fTopNodes[i], 1, fULBC_Code, fULBC_ScheduleNumber, valueby2);
 		card.SetSchedule(fULBC_Schedule);
 	}
-
+	
 	/* set stretching tangent cards */
-	for (int i = 0; i < fBottomNodes.Length(); i++) {
+/*	for (int i = 0; i < fBottomNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
 		card.SetValues(fBottomNodes[i], 0, KBC_CardT::kFix, 0, 0);
 	}
 	for (int i = 0; i < fTopNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
 		card.SetValues(fTopNodes[i], 0, KBC_CardT::kFix, 0, 0);
-	}
+	} */
  
  
 	/* find boundaries */
@@ -130,6 +132,7 @@ void ConveyorT::Initialize(ifstreamT& in)
 	file.Append(".tracking");
 	fTrackingOutput.open(file);
 	
+	
 	/* create controller for the right and left edge of the domain */
 	fRightEdge = new KBC_PrescribedT(fNodeManager);
 	fField.AddKBCController(fRightEdge);
@@ -138,13 +141,14 @@ void ConveyorT::Initialize(ifstreamT& in)
 	const dArray2DT& initial_coords = fNodeManager.InitialCoordinates();
 	int nnd = initial_coords.MajorDim();
 	iAutoArrayT rightnodes(0);
-	double* px = initial_coords.Pointer();
+	const double* px = initial_coords.Pointer();
 //	double rightmost = TrackPoint(kRightMost,kSmall);
 	/* find and store right edge */
 	for (int i = 0; i < nnd; i++)
 	{
 //		if (fabs(*px - rightmost) < kSmall) rightnodes.Append(i);
-		if (fabs(*px - fX_Right) < kSmall) rightnodes.Append(i);
+		if (fabs(*px - fX_Right) < kSmall) 
+			rightnodes.Append(i);
 		px += nsd;
 	}
 	/*fix the right edge*/
@@ -152,7 +156,7 @@ void ConveyorT::Initialize(ifstreamT& in)
 	cards.Dimension(rightnodes.Length());
 	for (int i=0; i< cards.Length(); i++) {
 		KBC_CardT& card = cards[i];
-		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
+		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, NULL, 0.0); 
 	}
 }
 
@@ -492,6 +496,11 @@ bool ConveyorT::SetSystemFocus(double focus)
 	double uY_top = u_field(fTopNodes[0], 1);
 	double duY_dY = (uY_top - uY_bottom)/(Y_top - Y_bottom);
 
+	double uX_bottom = u_field(fBottomNodes[0],0);
+	double uX_top = u_field(fTopNodes[0],0);
+	if (uX_bottom - uX_top > kSmall) 
+		ExceptionT::GeneralFail("ConveyorT::SetSystemFocus", "Difference in X displacement of top on bottom strip exceeds tolerance: %d",uX_top-uX_bottom);
+		 
 	/* has damping */
 	bool has_damping = (fabs(fDampingWidth) > kSmall && fabs(fDampingCoefficient) > kSmall) ? true : false;
 
@@ -516,7 +525,7 @@ bool ConveyorT::SetSystemFocus(double focus)
 			model->UpdateNode(new_coords, i);
 
 			/* correct displacements */
-			u_field(i,0) = 0.0;
+			u_field(i,0) = uX_bottom;
 			u_field(i,1) = uY_bottom + duY_dY*(initial_coords(i,1) - Y_bottom); /* interpolate between lower and upper boundary */
 			
 			/* zero higher order components */
@@ -528,6 +537,9 @@ bool ConveyorT::SetSystemFocus(double focus)
 				(*DDu_field)(i,0) = 0.0;
 				(*DDu_field)(i,1) = 0.0;
 			}
+			
+			/*checks for state variables and sets them to initial values*/
+			ResetStateVariables();
 		}
 		
 		/* check for damping */
@@ -615,6 +627,56 @@ void ConveyorT::MarkElements(void)
 		element_group->SetStatus(status);
 	}
 }
+
+
+
+/* Finds elements on the right edge */
+void ConveyorT::ResetStateVariables(void)
+{
+	/* system information */
+	const FEManagerT& fe = fNodeManager.FEManager();
+	const dArray2DT& current_coords = fNodeManager.CurrentCoordinates();
+
+	/*determine which elements are on the left edge*/		
+	int num_element_groups = fe.NumElementGroups();
+	for (int i = 0; i < num_element_groups; i++)
+	{
+		/* element group */
+		ElementBaseT* element_group = fe.ElementGroup(i);
+		int nel = element_group->NumElements();
+		int nen = element_group->NumElementNodes();
+
+		/* local coordinate array */
+		LocalArrayT curr_coords(LocalArrayT::kCurrCoords, nen, 2);
+		curr_coords.SetGlobal(current_coords);
+	
+		for (int j = 0; j < nel; j++)
+		{
+			/* element info */
+			ElementCardT& card = element_group->ElementCard(j);
+			/* collect local coordinates */
+			curr_coords.SetLocal(card.NodesX());
+			
+			const double* px = curr_coords(0);
+			double x_min = *px;
+			double x_max = *px;
+			px++;
+			for (int k = 1; k < nen; k++) {
+				/* bounds */
+				x_max = (*px > x_max) ? *px : x_max;
+				x_min = (*px > x_min) ? *px : x_min;
+				px++;
+			}
+			/*for now, set the element DoubleData array to zero.  
+			Ideally the PointInitialize member of the material class should be called to do this*/
+			if ((fabs(x_max - fX_Right) < kSmall) && (x_min > fX_Left) && card.IsAllocated()) 
+				card.DoubleData() = 0.0;
+		}
+	}
+}
+
+
+
 
 /* deactivate elements to create a pre-crack */
 void ConveyorT::CreatePrecrack(void)
