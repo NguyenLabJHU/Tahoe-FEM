@@ -1,4 +1,4 @@
-# $Id: DARWIN.LAM.macros,v 1.10 2003-03-20 19:21:57 paklein Exp $
+# $Id: DARWIN.LAM.macros,v 1.11 2003-11-04 01:55:38 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -15,7 +15,7 @@ DEPENDFLAGS = -I$(GCC_ROOT) -I$(GCC_ROOT)/backward -I$(GCC_ROOT)/bits -I$(GCC_RO
 COMP_C      = mpicc
 COMP_CC     = mpic++
 COMP_F      = mpif77
-DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__ -DAZTEC_MPI
+DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__ -DAZTEC_MPI -DNEW_STATIC_TEMPLATE_SYNTAX
 MORE_CFLAGS = -O -DNDEBUG -g
 #MORE_CFLAGS = -g
 LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
