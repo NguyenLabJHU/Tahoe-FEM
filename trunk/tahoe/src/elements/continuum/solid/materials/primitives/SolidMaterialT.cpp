@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.15 2004-09-22 06:12:57 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.16 2005-01-28 23:22:04 raregue Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -111,6 +111,32 @@ int SolidMaterialT::IsLocalized(dArrayT& normal)
 	/* by default, no localization */
 	return 0;
 }
+
+
+/* assumes small strains. returns true if the strain localization condition is satisfied,
+* .ie if the acoustic tensor has zero (or negative eigenvalues),
+* for the current conditions (current integration point and strain
+* state). If localization is detected, the normals (current config)
+* to the surface and slip directions are returned */
+bool SolidMaterialT::IsLocalized_SS(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
+{
+	/* stress tensor */
+	const dSymMatrixT& stress = s_ij();
+			
+	/* consistent tangent modulus */
+	const dMatrixT& modulus = c_ijkl();
+	
+	/* elastic modulus */
+	const dMatrixT& modulus_e = ce_ijkl();
+
+	/* localization condition checker */
+	DetCheckT checker(stress, modulus, modulus_e);
+	normals.Dimension(NumSD());
+	slipdirs.Dimension(NumSD());
+	return checker.IsLocalized_SS(normals,slipdirs);
+}
+
+
 
 /* describe the parameters needed by the interface */
 void SolidMaterialT::DefineParameters(ParameterListT& list) const
