@@ -31,8 +31,10 @@ PFC = f90
 #----------------- Compile Flags for MPI code    ----------------
 
 ## for SGI (default code) and SUN
-PFFLAGS = -O3
-PCFLAGS = -DUNDERSCORE -O3
+#PFFLAGS = -O3
+#PCFLAGS = -DUNDERSCORE -O3
+PFFLAGS = -g
+PCFLAGS = -DUNDERSCORE -g
 
 ## for IBM
 #PFFLAGS = -qnosave -O3 -qtune=auto

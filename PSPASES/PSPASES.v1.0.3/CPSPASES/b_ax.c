@@ -1,11 +1,16 @@
-/* $Id: b_ax.c,v 1.1 2004-12-10 21:13:26 paklein Exp $ */
+/* $Id: b_ax.c,v 1.2 2004-12-11 01:21:59 paklein Exp $ */
 /* b_ax.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
 */
 
+/* debugging */
+#undef __DO_DEBUG__
+/* #define __DO_DEBUG__ 1 */
+
 #include "mpi.h"
 #include "pspases_f2c.h"
+#include <stdio.h>
 
 /* Table of constant values */
 static integer c__9 = 9;
@@ -54,12 +59,12 @@ static integer c__21 = 21;
 /* /+ The downloading, compiling, or executing any part of this software        +/ */
 /* /+ constitutes an implicit agreement to these terms.  These terms and        +/ */
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
-/* /+                                                                           +/ */
+/* /+                                                                           +/em */
 /* /+***************************************************************************+/ */
-/* /+ $Id: b_ax.c,v 1.1 2004-12-10 21:13:26 paklein Exp $ +/ */
+/* /+ $Id: b_ax.c,v 1.2 2004-12-11 01:21:59 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 /*<    >*/
-/* Subroutine */ int db_ax__(integer *n, integer *rowdista, integer *rowdistb,
+/* Subroutine */ int db_ax_(integer *n, integer *rowdista, integer *rowdistb,
 	 integer *nrhs, integer *aptrs, integer *ainds, doublereal *avals, 
 	doublereal *b, integer *ldb, doublereal *x, integer *ldx, integer *
 	myid, integer *pp, doublereal *emax, MPI_Comm *comm)
@@ -69,6 +74,14 @@ static integer c__21 = 21;
 	doublereal *tb, doublereal *bmax)
 */
 {
+	/* debugging */
+#ifdef __DO_DEBUG__
+	FILE* fp = NULL;
+	char file[] = "rankN";
+	char ints[] = "0123456789";
+	int dummy;
+#endif
+
     /* System generated locals */
     integer b_dim1, b_offset, x_dim1, x_offset, tx_dim1, tx_offset, tb_dim1, 
 	    tb_offset, bmax_dim1, bmax_offset, i__1, i__2;
@@ -98,34 +111,21 @@ static integer c__21 = 21;
 
 	static doublereal *tx, *tb, *bmax; 
 
+	/* debugging */
+#ifdef __DO_DEBUG__
+	file[4] = ints[*myid];
+	fp = fopen(file, "w");
+	fprintf(fp, "   n = %d\n", *n);
+	fprintf(fp, "nrhs = %d\n", *nrhs);
+#endif
+
 /*<       double precision tx,tb,bmax >*/
 /*<       dimension tx(0:N-1,nrhs) >*/
 /*<       dimension tb(0:N-1,nrhs) >*/
 /*<       dimension bmax(0:N-1,nrhs) >*/
 /*      allocate(tx(0:N-1,nrhs),stat=k) */
 	tx = (doublereal*) malloc((*n)*(*nrhs)*sizeof(doublereal));
-
 /*<       if(k.ne.0) then >*/
-    /* Parameter adjustments */
-    bmax_dim1 = *n - 1 - 0 + 1;
-    bmax_offset = 0 + bmax_dim1;
-    bmax -= bmax_offset;
-    tb_dim1 = *n - 1 - 0 + 1;
-    tb_offset = 0 + tb_dim1;
-    tb -= tb_offset;
-    tx_dim1 = *n - 1 - 0 + 1;
-    tx_offset = 0 + tx_dim1;
-    tx -= tx_offset;
-    --aptrs;
-    --ainds;
-    --avals;
-    b_dim1 = *ldb - 1 - 0 + 1;
-    b_offset = 0 + b_dim1;
-    b -= b_offset;
-    x_dim1 = *ldx - 1 - 0 + 1;
-    x_offset = 0 + x_dim1;
-    x -= x_offset;
-
     /* Function Body */
     if (!tx) {
 /*<         print *,'memory allocation failure' >*/
@@ -156,6 +156,35 @@ static integer c__21 = 21;
 		MPI_Abort(*comm, 0);
 /*<       end if >*/
     }
+
+	/* zero the arrays */
+	psp_clear(  tb, (*n)*(*nrhs));
+	psp_clear(  tx, (*n)*(*nrhs));
+	psp_clear(bmax, (*n)*(*nrhs));
+
+    /* Parameter adjustments */
+    bmax_dim1 = *n - 1 - 0 + 1;
+    bmax_offset = 0 + bmax_dim1;
+    bmax -= bmax_offset;
+
+    tb_dim1 = *n - 1 - 0 + 1;
+    tb_offset = 0 + tb_dim1;
+    tb -= tb_offset;
+
+    tx_dim1 = *n - 1 - 0 + 1;
+    tx_offset = 0 + tx_dim1;
+    tx -= tx_offset;
+
+    --aptrs;
+    --ainds;
+    --avals;
+    b_dim1 = *ldb - 1 - 0 + 1;
+    b_offset = 0 + b_dim1;
+    b -= b_offset;
+    x_dim1 = *ldx - 1 - 0 + 1;
+    x_offset = 0 + x_dim1;
+    x -= x_offset;
+
 /*<       mynnodesb = rowdistb(myid+1)-rowdistb(myid) >*/
     mynnodesb = rowdistb[*myid + 1] - rowdistb[*myid];
 /*<       k = rowdistb(myid) >*/
@@ -185,10 +214,19 @@ static integer c__21 = 21;
 	}
 /*<       end do >*/
     }
+
+	/* debugging */
+#ifdef __DO_DEBUG__
+	fprintf(fp, "b unreduced:\n");
+	psp_dump(fp, bmax + bmax_offset, (*n)*(*nrhs));
+	fprintf(fp, "\n");
+#endif
+
 /*<       call staged_mpirds(bmax,tb,N*nrhs,0,0,comm) >*/
     i__1 = *n * *nrhs;
     staged_mpirds__(&bmax[bmax_offset], &tb[tb_offset], &i__1, &c__0, &c__0, 
 	    comm);
+
 /*      gather x. */
 /*<       do j=1,nrhs >*/
     i__1 = *nrhs;
@@ -235,13 +273,41 @@ static integer c__21 = 21;
     mynnodesa = rowdista[*myid + 1] - rowdista[*myid];
 /*<       ofs = rowdista(myid) >*/
     ofs = rowdista[*myid];
+
+	/* debugging */
+#ifdef __DO_DEBUG__
+	fprintf(fp, "b =\n");	
+	psp_dump(fp, tb + tb_offset, (*n)*(*nrhs));
+	fprintf(fp, "\n");
+
+	fprintf(fp, "x = \n");
+	psp_dump(fp, tx + tx_offset, (*n)*(*nrhs));
+	fprintf(fp, "\n");
+#endif
+
 /*<       call b_ax(aptrs,ainds,avals,tb,tx,N,mynnodesa,ofs,nrhs,bmax) >*/
     b_ax__(&aptrs[1], &ainds[1], &avals[1], &tb[tb_offset], &tx[tx_offset], n,
 	     &mynnodesa, &ofs, nrhs, &bmax[bmax_offset]);
+
+	/* debugging */
+#ifdef __DO_DEBUG__
+	fprintf(fp, "local b-ax = \n");
+	psp_dump(fp, bmax + bmax_offset, (*n)*(*nrhs));
+	fprintf(fp, "\n");
+#endif
+
 /*<       call staged_mpirds(bmax,tx,N*nrhs,1,0,comm) >*/
     i__1 = *n * *nrhs;
     staged_mpirds__(&bmax[bmax_offset], &tx[tx_offset], &i__1, &c__1, &c__0, 
 	    comm);
+
+	/* debugging */
+#ifdef __DO_DEBUG__
+	fprintf(fp, "b - ax = \n");
+	psp_dump(fp, tx + tx_offset, (*n)*(*nrhs));
+	fprintf(fp, "\n");
+#endif
+
 /*<       if (myid.eq.0) then >*/
     if (*myid == 0) {
 /*<         emax = 0.d0 >*/
@@ -253,11 +319,22 @@ static integer c__21 = 21;
 	    i__2 = *n - 1;
 	    for (i__ = 0; i__ <= i__2; ++i__) {
 /*<             err = dabs(tx(i,j)) >*/
-		err = (d__1 = tx[i__ + j * tx_dim1], abs(d__1));
+		err = tx[i__ + j * tx_dim1];
+		if (err < 0.0) err = -err;
 /*<             if(err.gt.emax) emax = err >*/
 		if (err > *emax) {
 		    *emax = err;
 		}
+
+/* debugging */
+#ifdef __DO_DEBUG__
+if (err > *emax)
+	dummy = 1;
+else
+	dummy = 0;
+fprintf(fp, "%20.14le %20.14le %d\n", *emax, err, dummy);		
+#endif
+
 /*<           end do >*/
 	    }
 /*<         end do >*/
@@ -268,11 +345,23 @@ static integer c__21 = 21;
 /*      deallocate(tx) */
 /*      deallocate(tb) */
 /*      deallocate(bmax) */
+
+	/* restore offsets */
+	tx += tx_offset;
+	tb += tb_offset;
+	bmax += bmax_offset;
+
 	free(tx);
 	free(tb);
 	free(bmax);
 
 /*<       end  >*/
+
+	/* debugging */
+#ifdef __DO_DEBUG__
+	fclose(fp);
+#endif
+
     return 0;
 } /* db_ax__ */
 

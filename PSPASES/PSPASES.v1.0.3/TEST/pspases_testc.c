@@ -2,7 +2,7 @@
 /***** This code reads in a matrix file in .bin format, and tests PSPASES */
 /***** functionality for various parameters and solution paths.           */
 /***** 					        written by: Mahesh Joshi  */
-/*****   $Id: pspases_testc.c,v 1.1.1.1 2004-10-07 16:05:26 paklein Exp $ */
+/*****   $Id: pspases_testc.c,v 1.2 2004-12-11 01:22:00 paklein Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,12 +36,19 @@ MPI_Comm comm;
 int *order,*sizes,clean_option;
 double time0,Ftime,Otime,Ytime,Ntime,Ttime,Ltime;
 double *memPM,*memFM,maxPM,minPM,sumPM,maxFM,minFM,sumFM,maxTM,minTM;
+int dummy;
 
 MPI_Init(&argc,&argv);
 
 MPI_Comm_dup(MPI_COMM_WORLD,&comm);
 MPI_Comm_size(comm,&pp);
 MPI_Comm_rank(comm,&myid);
+
+/* report data sizes */
+if (myid == 0) {
+printf("sizeof(int) = %d\n", sizeof(int));
+printf("sizeof(int4) = %d\n", sizeof(int4));
+}
 
 if(argc<2) {
   if(!myid) {
@@ -119,6 +126,11 @@ if(!myid) {
   printf("Parameters: blk  = %d, nrhs = %d, br = %d\n",blk,nrhs,br);
   printf("            symm = %d, sort = %d, serialorder = %d\n\n",
 	   checksymm,sortinds,serialorder);
+
+#if 1
+  printf("enter a number:");
+  scanf("%d", &dummy);	
+#endif
 }
 MPI_Barrier(comm);
 
