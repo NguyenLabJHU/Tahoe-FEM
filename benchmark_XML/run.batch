@@ -1,7 +1,0 @@
-@
-# $Id: run.batch,v 1.2 2004-04-04 03:00:42 paklein Exp $
--dtd
--xsd
-level.0/run.batch
-level.2/run.batch
-
