@@ -1,7 +1,4 @@
-/*
-  File: GradCrystalPlastFp.h
-*/
-
+/* $Id: GradCrystalPlastFp.h,v 1.2 2002-03-26 17:48:17 paklein Exp $ */
 #ifndef _GRAD_CRYSTAL_PLAST_FP_H_
 #define _GRAD_CRYSTAL_PLAST_FP_H_
 
@@ -21,9 +18,6 @@ class GradCrystalPlastFp : public LocalCrystalPlastFp
 
   // destructor
   ~GradCrystalPlastFp();
-
-  // number of crystal variables to be stored
-  virtual int NumVariablesPerElement();
 
   // Cauchy stress - Taylor average    
   virtual const dSymMatrixT& s_ij();   
@@ -51,9 +45,6 @@ class GradCrystalPlastFp : public LocalCrystalPlastFp
   // slip hardening law
   virtual void SetSlipHardening();
 
-  // initial value of crystal variables
-  virtual void InitializeCrystalVariables();
-
   // recover crystal variables
   virtual void LoadCrystalData(ElementCardT& element, int intpt, int igrain);
 
@@ -67,6 +58,13 @@ class GradCrystalPlastFp : public LocalCrystalPlastFp
   virtual void ResolveShearStress();
 
  private:
+
+  // number of crystal variables to be stored
+  virtual int NumVariablesPerElement(void);
+
+  // initial value of crystal variables
+  virtual void InitializeCrystalVariables(ElementCardT& element);
+
   // fetch crystal curvature and associated stress
   void LoadCrystalCurvature(ElementCardT& element, int intpt, int igrain);
 

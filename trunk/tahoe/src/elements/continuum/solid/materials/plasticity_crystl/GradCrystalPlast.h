@@ -1,8 +1,4 @@
-/* $Id: GradCrystalPlast.h,v 1.3 2002-02-01 00:15:49 ebmarin Exp $ */
-/*
-  File: GradCrystalPlast.h
-*/
-
+/* $Id: GradCrystalPlast.h,v 1.4 2002-03-26 17:48:17 paklein Exp $ */
 #ifndef _GRAD_CRYSTAL_PLAST_H_
 #define _GRAD_CRYSTAL_PLAST_H_
 
@@ -22,9 +18,6 @@ class GradCrystalPlast : public LocalCrystalPlast
 
   // destructor
   ~GradCrystalPlast();
-
-  // number of crystal variables to be stored
-  virtual int NumVariablesPerElement();
 
   // Cauchy stress - Taylor average    
   virtual const dSymMatrixT& s_ij();   
@@ -46,14 +39,12 @@ class GradCrystalPlast : public LocalCrystalPlast
   virtual void PrintName(ostream& out) const;
 
  protected:
+
   // slip kinetics
   virtual void SetSlipKinetics();
 
   // slip hardening law
   virtual void SetSlipHardening();
-
-  // initial value of crystal variables
-  virtual void InitializeCrystalVariables();
 
   // recover crystal variables
   virtual void LoadCrystalData(ElementCardT& element, int intpt, int igrain);
@@ -68,6 +59,13 @@ class GradCrystalPlast : public LocalCrystalPlast
   virtual void DeltaFPInverse(const dArrayT& dgamma);
 
  private:
+
+  // number of crystal variables to be stored
+  virtual int NumVariablesPerElement();
+
+  // initial value of crystal variables
+  virtual void InitializeCrystalVariables(ElementCardT& element);
+
   // fetch crystal curvature and associated stress
   void LoadCrystalCurvature(ElementCardT& element, int intpt, int igrain);
 

@@ -1,4 +1,4 @@
-/* $Id: CrystalElast.h,v 1.3 2001-09-15 01:21:00 paklein Exp $ */
+/* $Id: CrystalElast.h,v 1.4 2002-03-26 17:48:16 paklein Exp $ */
 /*
   File: CrystalElast.h
 */
@@ -32,7 +32,6 @@ class CrystalElast : public FDHookeanMatT
   virtual ~CrystalElast();
 
   // allocate space/initialize crystal arrays (all)
-  virtual bool NeedsInitialization() const;
   virtual void Initialize();
 
   // some methods to set/initialize member data

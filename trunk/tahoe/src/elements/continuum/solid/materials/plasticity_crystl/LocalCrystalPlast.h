@@ -1,8 +1,4 @@
-/* $Id: LocalCrystalPlast.h,v 1.4 2002-02-01 00:15:49 ebmarin Exp $ */
-/*
-  File: LocalCrystalPlast.h
-*/
-
+/* $Id: LocalCrystalPlast.h,v 1.5 2002-03-26 17:48:17 paklein Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_H_
 #define _LOCAL_CRYSTAL_PLAST_H_
 
@@ -27,9 +23,6 @@ class LocalCrystalPlast : public PolyCrystalMatT
 
   // destructor
   ~LocalCrystalPlast();
-
-  // number of crystal variables to be stored
-  virtual int NumVariablesPerElement();
 
   // number of variables to compute in NLCSolver
   virtual int NumberOfUnknowns() const;
@@ -63,14 +56,12 @@ class LocalCrystalPlast : public PolyCrystalMatT
   virtual GlobalT::SystemTypeT TangentType(void) const;
 
  protected:
+
   // slip kinetics
   virtual void SetSlipKinetics();
 
   // slip hardening law
   virtual void SetSlipHardening();
-
-  // initial value of crystal variables
-  virtual void InitializeCrystalVariables();
 
   // recover crystal variables
   virtual void LoadCrystalData(ElementCardT& element, int intpt, int igrain);
@@ -127,6 +118,14 @@ class LocalCrystalPlast : public PolyCrystalMatT
 
   // polar decomposition of deformation gradient
   void PolarDecomp();
+
+ private:
+ 
+   // number of crystal variables to be stored
+  virtual int NumVariablesPerElement();
+
+  // initial value of crystal variables
+  virtual void InitializeCrystalVariables(ElementCardT& element);
 
  protected:
   // number of hardening variables (used in Grad derived class)

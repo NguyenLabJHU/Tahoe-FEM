@@ -1,8 +1,4 @@
-/* $Id: EVPFDBaseT.cpp,v 1.5 2001-10-24 02:24:25 paklein Exp $ */
-/*
-  File: EVPFDBaseT.cpp
-*/
-
+/* $Id: EVPFDBaseT.cpp,v 1.6 2002-03-26 17:48:18 paklein Exp $ */
 #include "EVPFDBaseT.h"
 #include "NLCSolver.h"
 #include "NLCSolver_LS.h"
@@ -59,7 +55,7 @@ EVPFDBaseT::~EVPFDBaseT()
   delete fSolver;
 }
 
-bool EVPFDBaseT::NeedsInitialization() const { return false; }
+
 void EVPFDBaseT::Initialize()
 {
   // set slip system hardening law
@@ -69,10 +65,10 @@ void EVPFDBaseT::Initialize()
   SetConstitutiveSolver();
 
   // allocate space for all elements
-  AllocateElements();
+  //AllocateElements();
 
   // initialize selected variables in all elements
-  InitializeVariables();
+  //InitializeVariables();
 }
 
 bool EVPFDBaseT::NeedLastDisp() const { return true; }
@@ -117,24 +113,26 @@ int EVPFDBaseT::GetNumberOfEqns()
   return 0;
 }
 
-void EVPFDBaseT::AllocateElements()
+bool EVPFDBaseT::NeedsPointInitialization() const { return true; }
+void EVPFDBaseT::PointInitialize()
 {
-  // determine storage size
-  int i_size = NumIP();
-  int d_size = NumVariablesPerElement();
+	// only execute during the first ip
+	if (CurrIP() == 0) {
 
-  // allocate space for all elements
-  for (int elem = 0; elem < NumElements(); elem++)
-    {
-      // get pointer to element elem
-      ElementCardT& element = ElementCard(elem);
-      
-      // construct element
-      element.Allocate(i_size, d_size);
-      
-      // initialize values
-      element.IntegerData() = kIsInit;
-      element.DoubleData()  = 0.0;
+		// determine storage size
+		int i_size = NumIP();
+		int d_size = NumVariablesPerElement();
+
+		// current element
+		ElementCardT& element = CurrentElement();	
+
+		// construct element
+		element.Allocate(i_size, d_size);
+		element.IntegerData() = kIsInit;
+		element.DoubleData()  = 0.0;		
+
+		// initialize values
+		InitializeVariables(element);
     }
 }
 

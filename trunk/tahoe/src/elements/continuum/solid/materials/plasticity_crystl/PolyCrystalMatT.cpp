@@ -1,7 +1,4 @@
-/*
-  File: PolyCrystalMatT.cpp
-*/
-
+/* $Id: PolyCrystalMatT.cpp,v 1.7 2002-03-26 17:48:17 paklein Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -94,7 +91,6 @@ PolyCrystalMatT::~PolyCrystalMatT()
   delete fSolver;
 }
 
-bool PolyCrystalMatT::NeedsInitialization() const { return false; }
 void PolyCrystalMatT::Initialize()
 {
   // set nonlinear constitutive solver 
@@ -109,12 +105,29 @@ void PolyCrystalMatT::Initialize()
 
   // set kinetics of slip
   SetSlipKinetics();
+}
 
-  // allocate space for all elements
-  AllocateElements();
+bool PolyCrystalMatT::NeedsPointInitialization() const { return true; }
+void PolyCrystalMatT::PointInitialize(void)
+{
+	// only execute for first integration point
+	if (CurrIP() == 0) {
+	
+		// determine storage size
+		int i_size = NumIP();
+		int d_size = NumVariablesPerElement();
+	
+		// current element
+		ElementCardT& element = CurrentElement();
+		
+		// allocate space
+		element.Allocate(i_size, d_size);
+		element.IntegerData() = kIsInit;
+		element.DoubleData()  = 0.0;
 
-  // initialize state variables in all elements
-  InitializeCrystalVariables();
+		// initialize state variables in all elements
+		InitializeCrystalVariables(element);
+	}
 }
 
 bool PolyCrystalMatT::NeedLastDisp() const { return true; }
@@ -159,27 +172,6 @@ void PolyCrystalMatT::PrintName(ostream& out) const
 
   // print model name
   out << "    PolyCrystal constitutive model\n";
-}
-
-void PolyCrystalMatT::AllocateElements()
-{
-  // determine storage size
-  int i_size = NumIP();
-  int d_size = NumVariablesPerElement();
-
-  // allocate space for all elements
-  for (int elem = 0; elem < NumElements(); elem++)
-    {
-      // get pointer to element elem
-      ElementCardT& element = ElementCard(elem);
-      
-      // construct element
-      element.Allocate(i_size, d_size);
-      
-      // initialize values
-      element.IntegerData() = kIsInit;
-      element.DoubleData()  = 0.0;
-    }
 }
 
 void PolyCrystalMatT::SetSlipSystems()

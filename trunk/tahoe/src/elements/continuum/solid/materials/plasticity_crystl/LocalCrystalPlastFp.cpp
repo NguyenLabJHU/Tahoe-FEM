@@ -1,7 +1,4 @@
-/*
-  File: LocalCrystalPlastFp.cpp
-*/
-
+/* $Id: LocalCrystalPlastFp.cpp,v 1.5 2002-03-26 17:48:17 paklein Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -557,16 +554,12 @@ void LocalCrystalPlastFp::SetSlipHardening()
   if (!fHardening) throwMemoryError("LocalCrystalPlastFp::SetSlipHardening");
 }
 
-void LocalCrystalPlastFp::InitializeCrystalVariables()
+void LocalCrystalPlastFp::InitializeCrystalVariables(ElementCardT& element)
 {
-  // initialize state at each element and ...
-  for (int elem = 0; elem < NumElements(); elem++)
-    {
-      // get pointer to element elem
-      ElementCardT& element = ElementCard(elem);
+	int elem = CurrElementNumber();
 
-      // ... at each integration point and ...
-      for (int intpt = 0; intpt < NumIP(); intpt++)
+	// ... at each integration point and ...
+	for (int intpt = 0; intpt < NumIP(); intpt++)
 	{
 	  // load aggregate data at integration point
 	  LoadAggregateData(element, intpt);
@@ -603,7 +596,6 @@ void LocalCrystalPlastFp::InitializeCrystalVariables()
 	      fHardening->InitializeHardVariables(); 
 	    }
 	}
-    }
 }
 
 void LocalCrystalPlastFp::LoadCrystalData(ElementCardT& element,

@@ -1,7 +1,4 @@
-/*
-  File: HyperEVP3D.cpp
-*/
-
+/* $Id: HyperEVP3D.cpp,v 1.5 2002-03-26 17:48:18 paklein Exp $ */
 #include "HyperEVP3D.h"
 
 #include "ContinuumElementT.h"
@@ -301,34 +298,27 @@ void HyperEVP3D::SetKineticEquation()
   if (!fKineticEqn) throwMemoryError("HyperEVP3D::SetKineticEquation");
 }
 
-void HyperEVP3D::InitializeVariables()
+void HyperEVP3D::InitializeVariables(ElementCardT& element)
 {
-  // initialize state at each element
-  for (int elem = 0; elem < NumElements(); elem++)
-    {
-      // get pointer to element elem
-      ElementCardT& element = ElementCard(elem);
-
-      // initialize state at each integration point
-      for (int intpt = 0; intpt < NumIP(); intpt++)
+	// initialize state at each integration point
+	for (int intpt = 0; intpt < NumIP(); intpt++)
 	{
-	  // load element data
-	  LoadElementData(element, intpt);
+		// load element data
+		LoadElementData(element, intpt);
 
-	  // plastic deformation gradients
-	  fFpi_n.Identity();
-	  fFpi.Identity();
+		// plastic deformation gradients
+		fFpi_n.Identity();
+		fFpi.Identity();
 	      
-	  // scalar internal variables
-	  fInternal = 0.;
+		// scalar internal variables
+		fInternal = 0.;
 
-	  // Cauchy stress
-	  fs_ij = 0.;
+		// Cauchy stress
+		fs_ij = 0.;
 
-	  // tangent moduli
-	  fc_ijkl = 0.;
+		// tangent moduli
+		fc_ijkl = 0.;
 	}
-    }
 }
 
 void HyperEVP3D::LoadElementData(ElementCardT& element, int intpt)

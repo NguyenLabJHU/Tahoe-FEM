@@ -1,8 +1,4 @@
-/* $Id: BCJHypo3D.h,v 1.3 2002-03-12 02:08:14 ebmarin Exp $ */
-/*
-  File: BCJHypo3D.h
-*/
-
+/* $Id: BCJHypo3D.h,v 1.4 2002-03-26 17:48:18 paklein Exp $ */
 #ifndef _BCJ_HYPO_3D_H_
 #define _BCJ_HYPO_3D_H_
 
@@ -28,9 +24,6 @@ class BCJHypo3D : public EVPFDBaseT
 
   // destructor
   ~BCJHypo3D();
-
-  // number of variables to be stored
-  virtual int NumVariablesPerElement();
 
   // Cauchy stress
   virtual const dSymMatrixT& s_ij();   
@@ -69,9 +62,6 @@ class BCJHypo3D : public EVPFDBaseT
 
   // kinetic equation
   virtual void SetKineticEquation();
-
-  // initial value of variables
-  virtual void InitializeVariables();
 
   // recover variables
   virtual void LoadElementData(ElementCardT& element, int intpt);
@@ -123,6 +113,12 @@ class BCJHypo3D : public EVPFDBaseT
                   kEQXi_n = 2,           // equivalent overstress (deviatoric)  
                   kEQXi   = 3,         
 		  kPress  = 4 };         // pressure
+
+  // number of variables to be stored
+  virtual int NumVariablesPerElement();
+
+	/** initialize the state variables for the given element */
+	virtual void InitializeVariables(ElementCardT& element);
 
   // internal quantities
   void ComputeInternalQntsRHS(const dArrayT& array);

@@ -1,8 +1,4 @@
-/* $Id: BCJHypo3D.cpp,v 1.7 2002-03-12 02:08:14 ebmarin Exp $ */
-/*
-  File: BCJHypo3D.cpp
-*/
-
+/* $Id: BCJHypo3D.cpp,v 1.8 2002-03-26 17:48:18 paklein Exp $ */
 #include "BCJHypo3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -423,39 +419,32 @@ void BCJHypo3D::SetKineticEquation()
   if (!fKineticEqn) throwMemoryError("BCJHypo3D::SetKineticEquation");
 }
 
-void BCJHypo3D::InitializeVariables()
+void BCJHypo3D::InitializeVariables(ElementCardT& element)
 {
-  // initialize state at each element
-  for (int elem = 0; elem < NumElements(); elem++)
-    {
-      // get pointer to element elem
-      ElementCardT& element = ElementCard(elem);
-
-      // initialize state at each integration point
-      for (int intpt = 0; intpt < NumIP(); intpt++)
+	// initialize state at each integration point
+	for (int intpt = 0; intpt < NumIP(); intpt++)
 	{
-	  // load element data
-	  LoadElementData(element, intpt);
+		// load element data
+		LoadElementData(element, intpt);
 
-	  // Cauchy stress
-          fs_ij_n = 0.;
-          fs_ij   = 0.;
+		// Cauchy stress
+		fs_ij_n = 0.;
+		fs_ij   = 0.;
 	      
-          // backstress
-          falph_ij_n = 0.;
-          falph_ij   = 0.;
+		// backstress
+		falph_ij_n = 0.;
+		falph_ij   = 0.;
 
-	  // scalar internal variables
-	  fInternal_n = 0.;
-	  fInternal   = 0.;
+		// scalar internal variables
+		fInternal_n = 0.;
+		fInternal   = 0.;
 
-	  // other scalar values
-	  fEQValues = 0.;
+		// other scalar values
+		fEQValues = 0.;
 
-	  // tangent moduli
-	  fc_ijkl = 0.;
+		// tangent moduli
+		fc_ijkl = 0.;
 	}
-    }
 }
 
 void BCJHypo3D::LoadElementData(ElementCardT& element, int intpt)

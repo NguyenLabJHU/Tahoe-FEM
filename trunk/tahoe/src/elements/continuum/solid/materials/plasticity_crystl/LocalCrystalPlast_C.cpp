@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast_C.cpp,v 1.3 2002-01-06 06:58:42 cbhovey Exp $ */
+/* $Id: LocalCrystalPlast_C.cpp,v 1.4 2002-03-26 17:48:17 paklein Exp $ */
 /*
   File: LocalCrystalPlast_C.cpp
 */
@@ -258,14 +258,10 @@ void LocalCrystalPlast_C::PrintName(ostream& out) const
 
 /* PROTECTED MEMBER FUNCTIONS */
 
-void LocalCrystalPlast_C::InitializeCrystalVariables()
+void LocalCrystalPlast_C::InitializeCrystalVariables(ElementCardT& element)
 {
-  // initialize state at each element and ...
-  for (int elem = 0; elem < NumElements(); elem++)
-    {
-      // get pointer to element elem
-      ElementCardT& element = ElementCard(elem);
-      int intpt = 0;
+	int elem = CurrElementNumber();
+	int intpt = 0;
 
       // fetch aggregate quantities
       LoadAggregateData(element, intpt);
@@ -303,7 +299,6 @@ void LocalCrystalPlast_C::InitializeCrystalVariables()
 	  // hardening variables
 	  fHardening->InitializeHardVariables();
 	}
-    }
 }
 
 const dMatrixT& LocalCrystalPlast_C::DeformationGradient(const LocalArrayT& disp)

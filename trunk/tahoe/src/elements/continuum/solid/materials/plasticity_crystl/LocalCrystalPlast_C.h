@@ -31,9 +31,6 @@ class LocalCrystalPlast_C : public LocalCrystalPlast
   // initialize arrays
   virtual void Initialize();
 
-  // number of crystal variables to be stored
-  virtual int NumVariablesPerElement();
-
   // Cauchy stress - Taylor average    
   virtual const dSymMatrixT& s_ij();   
 
@@ -54,14 +51,20 @@ class LocalCrystalPlast_C : public LocalCrystalPlast
   virtual void PrintName(ostream& out) const;
 
  protected:
-  // initial value of crystal variables
-  virtual void InitializeCrystalVariables();
-
+ 
   // deformation gradient
 	const dMatrixT& DeformationGradient(const LocalArrayT& disp);
 
   // deformation gradient at center of element
   const dMatrixT& DefGradientAtCenter(const LocalArrayT& disp);
+
+ private:
+
+  // number of crystal variables to be stored
+  virtual int NumVariablesPerElement();
+ 
+   // initial value of crystal variables
+  virtual void InitializeCrystalVariables(ElementCardT&);
 
  protected:
   // number of nodes/element: 4-node Quad (2D) and 8-node Hexa (3D)

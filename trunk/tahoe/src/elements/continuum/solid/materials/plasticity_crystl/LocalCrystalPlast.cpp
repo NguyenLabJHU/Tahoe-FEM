@@ -1,8 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.11 2002-02-01 17:51:10 paklein Exp $ */
-/*
-  File: LocalCrystalPlast.cpp
-*/
-
+/* $Id: LocalCrystalPlast.cpp,v 1.12 2002-03-26 17:48:17 paklein Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -513,56 +509,6 @@ GlobalT::SystemTypeT LocalCrystalPlast::TangentType() const
 
 /* PROTECTED MEMBER FUNCTIONS */
 
-void LocalCrystalPlast::InitializeCrystalVariables()
-{
-  // initialize state at each element and ...
-  for (int elem = 0; elem < NumElements(); elem++)
-    {
-      // get pointer to element elem
-      ElementCardT& element = ElementCard(elem);
-
-      // ... at each integration point and ...
-      for (int intpt = 0; intpt < NumIP(); intpt++)
-	{
-	  // load aggregate data at integration point
-	  LoadAggregateData(element, intpt);
-
-	  // initialilize average stress and moduli
-	  fsavg_ij = 0.;
-	  fcavg_ijkl = 0.;
-
-	  // ... at each crystal
-	  for (int igrn = 0; igrn < fNumGrain; igrn++)
-	    {
-	      // fetch crystal data 
-	      LoadCrystalData(element, intpt, igrn);
-	      
-	      // fetch euler angles
-	      dArrayT& angles = fEuler[elem](intpt, igrn);
-	      
-	      // storage rotation matrix from Euler angles
-	      fLatticeOrient->AnglesToRotMatrix(angles, fRotMat);
-	      
-	      // plastic deformation gradients 
-	      fFpi_n.Identity();
-	      fFpi.Identity();
-
-	      // shear rates on slip systems
-	      fDGamma_n = 0.;
-	      fDGamma   = 0.;
-
-	      // elastic deformation gradient
-	      fFe.Identity();
-
-	      // crystal Cauchy stress
-	      fs_ij = 0.;
-
-	      // hardening variables
-	      fHardening->InitializeHardVariables(); 
-	    }
-	}
-    }
-}
 
 void LocalCrystalPlast::LoadCrystalData(ElementCardT& element,
 					int intpt, int igrain)
@@ -1172,3 +1118,50 @@ void LocalCrystalPlast::dTaudCe(const dMatrixT& Z, const dSymMatrixT& P,
 void LocalCrystalPlast::CrystalC_ijkl_Elastic() { }
 
 void LocalCrystalPlast::CrystalC_ijkl_Plastic() { }
+
+void LocalCrystalPlast::InitializeCrystalVariables(ElementCardT& element)
+{
+	// current element number
+	int elem = CurrElementNumber();
+
+	// ... at each integration point and ...
+	for (int intpt = 0; intpt < NumIP(); intpt++)
+	{
+	  // load aggregate data at integration point
+	  LoadAggregateData(element, intpt);
+
+	  // initialilize average stress and moduli
+	  fsavg_ij = 0.;
+	  fcavg_ijkl = 0.;
+
+	  // ... at each crystal
+	  for (int igrn = 0; igrn < fNumGrain; igrn++)
+	    {
+	      // fetch crystal data 
+	      LoadCrystalData(element, intpt, igrn);
+	      
+	      // fetch euler angles
+	      dArrayT& angles = fEuler[elem](intpt, igrn);
+	      
+	      // storage rotation matrix from Euler angles
+	      fLatticeOrient->AnglesToRotMatrix(angles, fRotMat);
+	      
+	      // plastic deformation gradients 
+	      fFpi_n.Identity();
+	      fFpi.Identity();
+
+	      // shear rates on slip systems
+	      fDGamma_n = 0.;
+	      fDGamma   = 0.;
+
+	      // elastic deformation gradient
+	      fFe.Identity();
+
+	      // crystal Cauchy stress
+	      fs_ij = 0.;
+
+	      // hardening variables
+	      fHardening->InitializeHardVariables(); 
+	    }
+	}
+}

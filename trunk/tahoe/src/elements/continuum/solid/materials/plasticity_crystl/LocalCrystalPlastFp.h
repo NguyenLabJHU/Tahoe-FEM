@@ -28,9 +28,6 @@ class LocalCrystalPlastFp : public PolyCrystalMatT
   // destructor
   ~LocalCrystalPlastFp();
 
-  // number of crystal variables to be stored
-  virtual int NumVariablesPerElement();
-
   // number of variables to compute in NLCSolver
   virtual int NumberOfUnknowns() const;
 
@@ -68,9 +65,6 @@ class LocalCrystalPlastFp : public PolyCrystalMatT
 
   // slip hardening law
   virtual void SetSlipHardening();
-
-  // initial value of crystal variables
-  virtual void InitializeCrystalVariables();
 
   // recover crystal variables
   virtual void LoadCrystalData(ElementCardT& element, int intpt, int igrain);
@@ -122,6 +116,14 @@ class LocalCrystalPlastFp : public PolyCrystalMatT
 
   // add gradient dependent term to consistent moduli
   virtual void AddGradTermToC_ijkl();
+
+ private:
+ 
+   // number of crystal variables to be stored
+  virtual int NumVariablesPerElement(void);
+
+  // initial value of crystal variables
+  virtual void InitializeCrystalVariables(ElementCardT& element);
 
  protected:
   // penalty parameter for detFp
