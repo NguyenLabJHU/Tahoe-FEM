@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.14 2003-01-27 06:42:43 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.14.2.1 2003-04-27 22:09:35 paklein Exp $ */
 /* created: paklein (06/19/1996) */
 #ifndef _ARRAY_T_H_
 #define _ARRAY_T_H_
@@ -219,10 +219,6 @@ private:
 	 * copying operations are instantiated */
 	static const bool fByteCopy;
 };
-
-} // namespace Tahoe
-
-using namespace Tahoe;
 
 /*************************************************************************
 * Implementation
@@ -682,5 +678,7 @@ inline void ArrayT<TYPE>::WriteBinary(ostream& out) const
 {
 	out.write((char*) fArray, sizeof(TYPE)*fLength);
 }
+
+} /* namespace Tahoe */
 
 #endif /* _ARRAY_T_H_ */
