@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.h,v 1.1 2003-11-04 01:31:05 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.h,v 1.2 2003-11-04 17:37:50 paklein Exp $ */
 #ifndef _MF_PENALTY_CONTACT2D_T_H_
 #define _MF_PENALTY_CONTACT2D_T_H_
 
@@ -8,6 +8,7 @@
 /* direct members */
 #include "nMatrixGroupT.h"
 #include "VariArrayT.h"
+#include "InverseMapT.h"
 
 namespace Tahoe {
 
@@ -46,11 +47,16 @@ protected:
 	 * but modified to account for compute the current coordinates using the
 	 * meshfree, kernel representation for the nodal displacements. */
 	virtual bool SetActiveInteractions(void);
-
-	/** set "external" data to send to FEManager */
-	virtual void SetConnectivities(void);
 	/*@}*/
-		
+
+	/** compute the current coordinates of the given meshless striker nodes.
+	 * Current striker coordinates are written into ContactT::fStrikerCoords. */
+	void ComputeStrikerCoordinates(const ArrayT<int>& strikers);
+
+	/** set derivative arrays given the array of shape functions for the
+	 * nodes in the neighborhood of the meshfree striker. */
+	void SetDerivativeArrays(const dArrayT& mf_shape);
+	
 protected:
 
 	/** \name meshfree element group */
@@ -59,11 +65,20 @@ protected:
 	const ElementBaseT* fElementGroup;
 
 	/** meshfree support from MFPenaltyContact2DT::fElementGroup */
-	const MeshFreeSupportT* fMeshFreeSupport;
+	MeshFreeSupportT* fMeshFreeSupport;
 	/*@}*/
+
+	/** map from global ID to meshfree node index */
+	InverseMapT fNodeToMeshFreePoint;
+
+	/** map from global ID to active striker index */
+	InverseMapT fNodeToActiveStriker;
 
 	/** \name dynamic memory managers */
 	/*@{*/
+	/** striker coordinate work space */
+	nVariArray2DT<double> fStrikerCoords_man;
+	
 	/** manager for the Contact2DT derivative arrays */
 	nMatrixGroupT<double> fdvT_man;
 
