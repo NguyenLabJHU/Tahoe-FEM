@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.cpp,v 1.6 2002-02-22 19:35:17 xiang Exp $ */
+/* $Id: BCJHypo3D.cpp,v 1.7 2002-03-12 02:08:14 ebmarin Exp $ */
 /*
   File: BCJHypo3D.cpp
 */
@@ -16,7 +16,8 @@
 const double sqrt32 = sqrt(3.0/2.0);
 
 /* printing for debugging */
-const bool BCJ_MESSAGES = true;
+const bool BCJ_MESSAGES = false;
+const int IPprint = -1;
 
 /* spatial dimensions of the problem */
 const int kNSD = 3;
@@ -29,12 +30,15 @@ const int kNumEQValues = 5;
 const int kNumMatProp = 6;
 
 /* element output data */
-const int kNumOutput = 6;
-static const char* Labels[kNumOutput] = {"EQP_strain","VMises-Xi",
-  "Pressure","Iters","Sigma_33","VMises"};
+const int kNumOutput = 4;
+static const char* Labels[kNumOutput] = {"EQP","VMISES","PRESS","KAPPA"};
 
 BCJHypo3D::BCJHypo3D(ifstreamT& in, const FiniteStrainT& element) :
   EVPFDBaseT(in, element),  
+
+  // some constants
+  fNumInternal (kNumInternal),   // fDEQP, fALPH, fKAPP
+  fNumEQValues (kNumEQValues),   // fEQP_n, fEQP, fEQXi_n, fEQXi, fPress
 
   // array for material parameters
   fMatProp (kNumMatProp),
@@ -75,15 +79,15 @@ BCJHypo3D::BCJHypo3D(ifstreamT& in, const FiniteStrainT& element) :
   fR     (kNSD,kNSD),
   
   // internal variables
-  fInternal_n (kNumInternal),
-  fInternal   (kNumInternal),
-  fInt_save   (kNumInternal),
-  fEQValues   (kNumEQValues),
+  fInternal_n (fNumInternal),
+  fInternal   (fNumInternal),
+  fInt_save   (fNumInternal),
+  fEQValues   (fNumEQValues),
 
   // work spaces
-  fRHS       (kNumInternal),
-  fLHS       (kNumInternal),
-  farray     (kNSD),
+  fRHS       (fNumInternal),
+  fLHS       (fNumInternal),
+  farray     (fNumInternal),
   fmatx1     (kNSD,kNSD),
   fmatx2     (kNSD,kNSD),
   fmatx3     (kNSD,kNSD),
@@ -125,9 +129,9 @@ int BCJHypo3D::NumVariablesPerElement()
   d_size += dim;             // fs_ij
   d_size += dim;             // falph_ij_n
   d_size += dim;             // falph_ij
-  d_size += kNumInternal;    // fDEQP_n, fALPH_n, fKAPP_n
-  d_size += kNumInternal;    // fDEQP, fALPH, fKAPP
-  d_size += kNumEQValues;    // fEQP_n, fEQP, fEQSig_n, fEQSig, fPresTr
+  d_size += fNumInternal;    // internal variables at t_n
+  d_size += fNumInternal;    // internal variables at t
+  d_size += fNumEQValues;    // equivalent quantities at t_n & t
   d_size += dim * dim;       // fc_ijkl(t)
 
   // total # variables per element
@@ -151,13 +155,6 @@ const dSymMatrixT& BCJHypo3D::s_ij()
       // reset iteration counter to check NLCSolver
       if (CurrIP() == 0) fIterCount = 0;
 
-      // total deformation gradients
-      // fFtot_n = fContinuumElement.FEManager().LastDeformationGradient();
-      // fFtot = fContinuumElement.FEManager().DeformationGradient();
-      // fFtot_n = DeformationGradient(fLocLastDisp);
-      //fFtot   = DeformationGradient(fLocDisp);
-      //fFtot   = F();
-      
       //compute 3D total deformation gradient
       Compute_Ftot_3D(fFtot);
       Compute_Ftot_last_3D(fFtot_n);
@@ -189,14 +186,14 @@ void BCJHypo3D::FormRHS(const dArrayT& array, dArrayT& rhs)
   ComputeInternalQntsRHS(array);
 
   // form residuals
-  // 1. from evolution equation of cauchy stress: function PSI
-  rhs[0] = fKineticEqn->h(array[kDEQP]/fdt, array[kKAPP]) 
-             - fEQSigTr + (3.*fmu + fMatProp[1]*(1.-fEta))*array[kDEQP];
+  // 1. from evolution equation of cauchy stress: function G1
+  rhs[0] = fKineticEqn->h(array[kDEQP]/fdt, array[kKAPP])
+             - fEQXiTr + (3.*fmu + fMatProp[1]*(1.-fEta))*array[kDEQP];
 
-  // 2. from evolution equation of alpha: function PHI
+  // 2. from evolution equation of alpha: function G2
   rhs[1] = array[kALPH] - (1.-fEta)*fXMag;
 
-  // 3. from evolution equation of kappa: function THETA
+  // 3. from evolution equation of kappa: function G3
   rhs[2] = array[kKAPP] - fInternal_n[kKAPP]  
              - (fMatProp[4]-fMatProp[3]*array[kKAPP]*array[kKAPP])*array[kDEQP]
              + fMatProp[5]*fdt*array[kKAPP]*array[kKAPP];
@@ -218,23 +215,19 @@ void BCJHypo3D::FormLHS(const dArrayT& array, dMatrixT& lhs)
   double cmn  = dMatrixT::Dot(fmatx1, fmatx3);
   double cmxa = dMatrixT::Dot(fmatx3, fmatx4);
 
-  //double cnx  = Dot(fmatx1, fmatx2);
-  //double cmn  = Dot(fmatx1, fmatx3);
-  //double cmxa = Dot(fmatx3, fmatx4);
-
   // Jacobian
-  // 1. d(PSI)/d(DEQP), d(PSI)/d(ALPH), d(PSI)/(dKAPP)
-  lhs(0,0) = fKineticEqn->DhDeqpdot(array[kDEQP]/fdt, array[kKAPP])
+  // 1. d(G1)/d(DEQP), d(G1)/d(ALPH), d(G1)/(dKAPP)
+  lhs(0,0) = fKineticEqn->DhDeqpdot(array[kDEQP]/fdt, array[kKAPP]) / fdt
              - 1./sqrt32*fDEtaDDEQP*cnx + (3.*fmu+fMatProp[1]*(1.-fEta));
   lhs(0,1) = - 1./sqrt32*fDEtaDALPH*cnx;
   lhs(0,2) = fKineticEqn->DhDs(array[kDEQP]/fdt, array[kKAPP]);
 
-  // 2. d(PHI)/d(DEQP), d(PHI)/d(ALPH), d(PHI)/(dKAPP)
+  // 2. d(G2)/d(DEQP), d(G2)/d(ALPH), d(G2)/(dKAPP)
   lhs(1,0) = fDEtaDDEQP*cmxa - sqrt32*(1.-fEta)*fMatProp[1]*cmn;
   lhs(1,1) = 1. + cmxa*fDEtaDALPH;
   lhs(1,2) = 0.0;
 
-  // 3. d(THETA)/d(DEQP), d(THETA)/d(ALPH), d(THETA)/(dKAPP)
+  // 3. d(G3)/d(DEQP), d(G3)/d(ALPH), d(G3)/(dKAPP)
   lhs(2,0) = -fMatProp[4] + fMatProp[3]*array[kKAPP]*array[kKAPP];
   lhs(2,1) = 0.0;
   lhs(2,2) = 1. + 2.*(fMatProp[3]*array[kDEQP] + fMatProp[5]*fdt) * array[kKAPP];
@@ -257,8 +250,8 @@ void BCJHypo3D::UpdateHistory()
       fInternal_n = fInternal;
 
       // update useful scalar values
-      fEQValues[kEQP_n]   = fEQValues[kEQP];
-      fEQValues[kEQSig_n] = fEQValues[kEQSig];
+      fEQValues[kEQXi_n] = fEQValues[kEQXi];
+      fEQValues[kEQP_n]  = fEQValues[kEQP];
     }
 }
 
@@ -279,8 +272,8 @@ void BCJHypo3D::ResetHistory()
       fInternal = fInternal_n;
 
       // reset useful scalar values
-      fEQValues[kEQP]   = fEQValues[kEQP_n];
-      fEQValues[kEQSig] = fEQValues[kEQSig_n];
+      fEQValues[kEQXi] = fEQValues[kEQXi_n];
+      fEQValues[kEQP]  = fEQValues[kEQP_n];
     }
 }
 
@@ -308,28 +301,32 @@ void BCJHypo3D::ComputeOutput(dArrayT& output)
   // equivalent plastic strain
   output[0] = fEQValues[kEQP];
   
-  // Von Mises stress
-  output[1] = fEQValues[kEQSig];
+  // mises stress
+  output[1] = sqrt(fsymmatx1.Deviatoric(fs_ij).ScalarProduct())*sqrt32;
 
   // pressure
-  output[2] = fEQValues[kPresTr];
+  output[2] = fEQValues[kPress];
+
+  // isotropic hardening variable
+  output[3] = fInternal[kKAPP];
+
+  // effective overstress
+  //output[4] = fEQValues[kEQXi];
 
   // iter counter
-  output[3] = fIterCount;
+  //output[5] = fIterCount;
 
-  // stress Szz
-  output[4] = fs_ij(2,2);
-
-  // mises stress
-  output[5] = sqrt(fsymmatx1.Deviatoric(fs_ij).ScalarProduct())*sqrt32;
-
-  if (BCJ_MESSAGES && intpt == 0)
+  if (BCJ_MESSAGES && intpt == 0 && CurrElementNumber() == 0)
      cerr << " step # " << ContinuumElement().FEManager().StepNumber()
-          << " EQP-strain  "  << output[0] 
-          << " VM-stress   "  << output[1] 
-          << " pressure    "  << output[2] 
-          << " stress_33   "  << output[4]
-          << " iterCounter "  << (int)output[3] << endl;
+          << " EQP  "   << fEQValues[kEQP]
+          << " EQXi "   << fEQValues[kEQXi]
+          << " PRESS "  << fEQValues[kPress]
+          << " STRESS33 " << fs_ij(2,2)
+	  << " VMISES " << output[1]
+	  << " DEQP "   << fInternal[kDEQP]
+	  << " ALPHA "  << fInternal[kALPH]
+	  << " KAPPA "  << fInternal[kKAPP]
+          << " ITERS "  << fIterCount << endl;
 }
 
 void BCJHypo3D::Print(ostream& out) const
@@ -422,6 +419,7 @@ void BCJHypo3D::SetKineticEquation()
     default:
       throwRunTimeError("BCJHypo3D::SetKineticEquation: Bad fKinEqnCode");
     }
+
   if (!fKineticEqn) throwMemoryError("BCJHypo3D::SetKineticEquation");
 }
 
@@ -467,60 +465,60 @@ void BCJHypo3D::LoadElementData(ElementCardT& element, int intpt)
   
   // decode
   int dim = dSymMatrixT::NumValues(kNSD);
-  int block = 4*dim + 2*kNumInternal + kNumEQValues + dim*dim;
+  int block = 4*dim + 2*fNumInternal + fNumEQValues + dim*dim;
   int dex = intpt*block;
 
   fs_ij_n.Set    (kNSD,         &d_array[dex                ]);     
   fs_ij.Set      (kNSD,         &d_array[dex += dim         ]); 
   falph_ij_n.Set (kNSD,         &d_array[dex += dim         ]);     
   falph_ij.Set   (kNSD,         &d_array[dex += dim         ]); 
-  fInternal_n.Set(kNumInternal, &d_array[dex += dim         ]); 
-  fInternal.Set  (kNumInternal, &d_array[dex += kNumInternal]); 
-  fEQValues.Set  (kNumEQValues, &d_array[dex += kNumInternal]);
-  fc_ijkl.Set    (dim,dim,      &d_array[dex += kNumEQValues]);
+  fInternal_n.Set(fNumInternal, &d_array[dex += dim         ]); 
+  fInternal.Set  (fNumInternal, &d_array[dex += fNumInternal]); 
+  fEQValues.Set  (fNumEQValues, &d_array[dex += fNumInternal]);
+  fc_ijkl.Set    (dim,dim,      &d_array[dex += fNumEQValues]);
 }
 
+/* driver to solve state using subincrementation */
 void BCJHypo3D::SolveState()
 {
   // flag to track convergence of state
-  bool stateConverged = false;
+  bool stateConverged;
 
-  // counters for subincrementation (continuation method)
+  // counters for subincrementation
   int subIncr = 1;
   int totSubIncrs = 1;
 
-  // relative deformation gradient
+  // time step and relative deformation gradient
+  fdt = ContinuumElement().FEManager().TimeStep();
   fmatx1.Inverse(fFtot_n);
   fF.MultAB(fFtot, fmatx1);
+  fFr = fF;
 
+  // integrate BCJ constitutive equations equations
+  IntegrateConstitutiveEqns(stateConverged, subIncr, totSubIncrs);
+
+  // if converged -> return; else -> do subincrementation
+  if (stateConverged) return;
+
+  // loop for subincrementation procedure
   for(;;)
     {
-      // time step
-      double tmp = (float)subIncr/(float)totSubIncrs;
-      fdt = ContinuumElement().FEManager().TimeStep() * tmp;
-
-      // relative deformation gradient for subincrement
-      fFr.SetToCombination((1.-tmp), fI, tmp, fF);
-
-      // save current solution
-      if (subIncr > 1 && stateConverged) {
-         fInt_save = fInternal;
-      }
-
-      // integrate BCJ equations
-      IntegrateConstitutiveEqns(stateConverged, subIncr);
-
-      // check convergence; if "stateConverged=false", use continuation method
+      // increase number of subincrements if not converged
       if (!stateConverged)
         {
           subIncr = 2 * subIncr - 1;
           totSubIncrs = 2 * totSubIncrs;
-          if (totSubIncrs > pow(2.0, 30))
-              throwRunTimeError("BCJHypo3D::SolveState: totSubIncrs > 2^30");
-          if (subIncr > 1) {
-             fInternal = fInt_save;
-          }
+          if (totSubIncrs > 128) {
+              if (BCJ_MESSAGES) {
+                 cout << "BCJHypo3D::SolveState: totSubIncrs > 128 \n";
+                 cout << "  **will throw 'EBadJacobianDet' to force dtime decrease** \n";
+	      }
+              throw eBadJacobianDet;
+	  }
+          if (subIncr > 1) fInternal = fInt_save;
         }
+
+      // if converged, adjust subincrements
       else if (subIncr < totSubIncrs)
         {
           if ((subIncr/2*2) == subIncr)
@@ -531,13 +529,34 @@ void BCJHypo3D::SolveState()
           else
             subIncr = subIncr + 1;
         }
+
+      // succesful return for subincrementation
       else
         break;
+ 
+      // time step
+      double tmp = (float)subIncr/(float)totSubIncrs;
+      fdt = ContinuumElement().FEManager().TimeStep() * tmp;
+      
+      // relative deformation gradient for subincrement
+      fFr.SetToCombination((1.-tmp), fI, tmp, fF);
+
+      // save current converged solution before getting next solution
+      if (subIncr > 1 && stateConverged) {
+         fInt_save = fInternal;
+      }
+
+      // integrate BCJ equations
+      IntegrateConstitutiveEqns(stateConverged, subIncr, totSubIncrs);
     }
 }
 
-void BCJHypo3D::IntegrateConstitutiveEqns(bool& converged, int subIncr)
+void BCJHypo3D::IntegrateConstitutiveEqns(bool& converged, int subIncr, 
+		                          int totSubIncrs)
 {
+  // initialize flag to track convergence
+  converged = true; 
+  
   // step 1. polar decomposition of relative deformation gradient
   PolarDecomposition();
 
@@ -551,22 +570,22 @@ void BCJHypo3D::IntegrateConstitutiveEqns(bool& converged, int subIncr)
   ElasticTrialStress();
 
   // check for inelastic process
-  if ( fEQSigTr > (1.+1.e-6)*fKineticEqn->h(fInternal_n[kDEQP]/fdt,fInternal_n[kKAPP]) )
+  if ( fEQXiTr > (1.+1.e-6)*fKineticEqn->h(fInternal_n[kDEQP]/fdt,fInternal_n[kKAPP]) )
     {
       // step 5. forward gradient estimate
       if (subIncr == 1) ForwardGradientEstimate();
       
       // step 6. solve for state variables
-      try
-	{
-	  Solve();
-	}
-      catch(int code)
-	{
-          cout << " *Warning*: will use continuation method " << endl;
-	  return;
-	}
-
+      Solve(converged);
+      if (!converged) {
+	 if (BCJ_MESSAGES)
+            cout << " Did not converged at elem # " << CurrElementNumber()
+	         << ";  IP # " << CurrIP() << ";  subIncr/totSunIncrs = " 
+	         << subIncr << "/" << totSubIncrs << endl;
+	 return;
+      }
+      if (subIncr < totSubIncrs) return;
+      
       // step 7. compute Cauchy stress and backstress
       UpdateStresses();
 
@@ -576,21 +595,22 @@ void BCJHypo3D::IntegrateConstitutiveEqns(bool& converged, int subIncr)
   else  // elastic process
     {
       // step 5. reset values
-      falph_ij  = falph_ij_n;
       fInternal = fInternal_n;
-      fEQValues[kEQSig] = fEQSigTr;
-      fEQValues[kEQP]   = fEQValues[kEQP_n];
+      if (subIncr < totSubIncrs) return;
+
+      falph_ij  = falph_ij_n;
+      fEQValues[kEQXi] = fEQXiTr;
+      fEQValues[kEQP]  = fEQValues[kEQP_n];
       
       // step 6. Cauchy stress
       fs_ij = fSigTr;
 
       // step 7. elastic moduli
-      ffactor = 1.;
-      ElasticModuli();
+      ElasticModuli(fmu, fbulk);
     }
 
   // state has converged
-  converged = true;
+  //converged = true;
 }
 
 void BCJHypo3D::PolarDecomposition()
@@ -645,10 +665,10 @@ void BCJHypo3D::IncrementalStrain()
 {
   // eigenvalues of logarithmic strain
   for (int i = 0; i < kNSD; i++)
-    farray[i] = log(fEigs[i]);
+    fEigs[i] = log(fEigs[i]);
  
   // logarithmic strain (fDEBar = log(fU))
-  fDEBar = fSpecD.EigsToRank2(farray);
+  fDEBar = fSpecD.EigsToRank2(fEigs);
 }
 
 void BCJHypo3D::RotateTensorialVariables()
@@ -669,23 +689,42 @@ void BCJHypo3D::ElasticTrialStress()
 
   // deviatoric and volumetric parts of trial stress
   fSigTrDev.Deviatoric(fSigTr);
-  fEQValues[kPresTr] = -fSigTr.Trace() / 3.;
+  fEQValues[kPress] = -fSigTr.Trace() / 3.;
 
   // trial (elastic) equivalent stress
   fXiTr.SetToCombination(1., fSigTrDev, -2./3., falpha_n);
-  fEQSigTr = sqrt32*sqrt(fXiTr.ScalarProduct());
+  fEQXiTr = sqrt32*sqrt(fXiTr.ScalarProduct());
 }
 
-void BCJHypo3D::Solve()
+void BCJHypo3D::Solve(bool& converged)
 {
   int ierr = 0;
 
-  // solve for incremental shear strain
-  fSolver->Solve(fSolverPtr, fInternal, ierr);
+  // solve for primary unknowns (internal variables)
+  try { fSolver->Solve(fSolverPtr, fInternal, ierr); }
+  catch (int code)
+     {
+       if (BCJ_MESSAGES)
+          writeWarning("BCJHypo3D::Solve: exception caught at Solve() -> subincrementation");
+       converged = false;
+       return;
+     }
 
-  if (ierr == 1) {
-    writeMessage("BCJHypo3D::Solve: Convergence problems");
-    writeWarning("BCJHypo3D::Solve: Will use unconverged fInternal");
+  // check for problems in NLCSolver
+  if ( ierr != 0 ) {
+     if (BCJ_MESSAGES) writeWarning("BCJHypo3D::Solve: ierr!= 0 -> subincrementation");
+     converged = false;
+     return;
+  }
+ 
+  // check for negative values of internal variables
+  if ( IsSolnVariableNegative() ) {
+     if (BCJ_MESSAGES) {
+        writeWarning("BCJHypo3D::Solve: negative solution variable -> subincrementation");
+        cout << "   fInternal: " << fInternal << endl;
+     }
+     converged = false;
+     return;
   }
 
   // update iteration count from NLCSolver
@@ -698,20 +737,20 @@ void BCJHypo3D::UpdateStresses()
   // ComputeInternalQntsRHS(fInternal);
 
   // current equivalent stress
-  // fEQValues[kEQSig] = fKineticEqn->h(fInternal[kDEQP]/fdt, fInternal[kKAPP]);
-  fEQValues[kEQSig] = fEQSigTr - (3*fmu+fMatProp[1]*(1.-fEta))*fInternal[kDEQP];
+  // fEQValues[kEQXi] = fKineticEqn->h(fInternal[kDEQP]/fdt, fInternal[kKAPP]);
+  fEQValues[kEQXi] = fEQXiTr - (3*fmu+fMatProp[1]*(1.-fEta))*fInternal[kDEQP];
 
   // current equivalent plastic strain
   fEQValues[kEQP] = fEQValues[kEQP_n] + fInternal[kDEQP];
 
   // radial factor
-  fradial = fEQValues[kEQSig]/fEQSigTr;
+  fradial = fEQValues[kEQXi]/fEQXiTr;
 
   // backstress
   falph_ij.SetToScaled((1.-fEta), fX);
 
   // Cauchy stress
-  fs_ij.SetToCombination(fradial, fXiTr, 2./3., falph_ij, -fEQValues[kPresTr], fISym);
+  fs_ij.SetToCombination(fradial, fXiTr, 2./3., falph_ij, -fEQValues[kPress], fISym);
 }
 
 /* Consisten Tangent based on Updated Lagrangian Procedure */
@@ -724,7 +763,7 @@ void BCJHypo3D::TangentModuli()
   FormLHS(fInternal, fLHS);
   dMatrixT Jaci = MatrixInversion(fLHS);
 
-  ffactor = fradial + fMatProp[1]*(1.-fEta)*fInternal[kDEQP]/fEQSigTr;
+  ffactor = fradial + fMatProp[1]*(1.-fEta)*fInternal[kDEQP]/fEQXiTr;
   
   double tmpa = sqrt32*(2.*fmu);
   double tmpb = 1.5*(2.*fmu)/fXMag*(ffactor-fradial);
@@ -738,7 +777,7 @@ void BCJHypo3D::TangentModuli()
   double b4 = b1*fDEtaDDEQP + b2*fDEtaDALPH;
 
   // elastic-like terms: 2*mu*f*(I) +(k-2/3*mu*f)*(1(x)1)
-  ElasticModuli();
+  ElasticModuli(fmu*ffactor, fbulk);
 
   // inelastic part: term  -c1*(N(x)N)
   double c = 2.*fmu*ffactor - 2.*fmu*(1.-sqrt32*a1);
@@ -746,7 +785,7 @@ void BCJHypo3D::TangentModuli()
   fc_ijkl.AddScaled(-c, fRank4);
 
   // inelastic part: term  -c2*(N(x)A)
-  c = 3.*fmu*fEQSigTr*b1;
+  c = 3.*fmu*fEQXiTr*b1;
   fRank4.Outer(fUnitNorm, fA);
   fc_ijkl.AddScaled(-c, fRank4);
 
@@ -756,22 +795,20 @@ void BCJHypo3D::TangentModuli()
   fc_ijkl.AddScaled(-c, fRank4);
 
   // inelastic part: term  -c4*(A(x)A)
-  c = 3.*fmu*fInternal[kDEQP]*fEQSigTr*b4;
+  c = 3.*fmu*fInternal[kDEQP]*fEQXiTr*b4;
   fRank4.Outer(fA, fA);
   fc_ijkl.AddScaled(-c, fRank4);
 }
 
-void BCJHypo3D::ElasticModuli()
+void BCJHypo3D::ElasticModuli(double mu, double bulk)
 {
   // first term I_ijkl 
-  fc_ijkl.SetToScaled(2.*fmu*ffactor, fIdentity4);
+  fc_ijkl.SetToScaled(2.*mu, fIdentity4);
 
   // second term I(x)I
   fRank4.Outer(fISym, fISym);
-  fc_ijkl.AddScaled((fbulk-2./3.*fmu*ffactor), fRank4);
+  fc_ijkl.AddScaled((bulk-2./3.*mu), fRank4);
 }
-
-/* PRIVATE MEMBER FUNCTIONS */
 
 void BCJHypo3D::ForwardGradientEstimate()
 {
@@ -780,14 +817,35 @@ void BCJHypo3D::ForwardGradientEstimate()
 
   // inverse of Jacobian at t_n (MatrixInversion changes fLHS)
   FormLHS(fInternal_n, fLHS);
-  //fLHS.Inverse();
   dMatrixT Jaci = MatrixInversion(fLHS);
 
   // forward gradient estimate
-  //  fLHS.Multx(fRHS, farray);
   Jaci.Multx(fRHS, farray);
   fInternal.SetToCombination(1., fInternal_n, -1., farray);
 }
+
+bool BCJHypo3D::IsSolnVariableNegative()
+{
+  // test for negative values of internal variables
+  int i = 0;
+  bool isNegative = false;
+  while (i < fNumInternal && !isNegative)
+    {
+      isNegative = (fInternal[i] < 0.0);
+      i++;
+    }
+
+  // check for zero values of internal variables
+  if (!isNegative) {
+     if (fInternal[kDEQP] < 1.e-16) fInternal[kDEQP] = 1.e-16;
+     if (fInternal[kALPH] < 1.e-16) fInternal[kALPH] = 1.e-16;
+     if (fInternal[kKAPP] < 1.e-16) fInternal[kKAPP] = 1.e-16;
+  }
+
+  return isNegative;
+}
+
+/* PRIVATE MEMBER FUNCTIONS */
 
 void BCJHypo3D::ComputeInternalQntsRHS(const dArrayT& array)
 {
@@ -797,8 +855,8 @@ void BCJHypo3D::ComputeInternalQntsRHS(const dArrayT& array)
 
   // "new" trial equivalente stress and unit normal in stress space
   fXiTr.SetToCombination(1., fSigTrDev, -2./3.*(1.-fEta), falpha_n);
-  fEQSigTr = sqrt32*sqrt(fXiTr.ScalarProduct());
-  fUnitNorm.SetToScaled(sqrt32/fEQSigTr, fXiTr);
+  fEQXiTr = sqrt32*sqrt(fXiTr.ScalarProduct());
+  fUnitNorm.SetToScaled(sqrt32/fEQXiTr, fXiTr);
 
   // factor (tensor) in integrated eqn for backstress: alpha=(1-eta)*X
   fX.SetToCombination(1., falpha_n, sqrt32*fMatProp[1]*array[kDEQP], fUnitNorm);
@@ -822,6 +880,5 @@ void BCJHypo3D::ComputeInternalQntsLHS(const dArrayT& array)
   falpha_n.ToMatrix(fmatx1);
   fUnitNorm.ToMatrix(fmatx2);
   fsymmatx1.SetToCombination(1., falpha_n, -dArrayT::Dot(fmatx1,fmatx2), fUnitNorm);
-  //fsymmatx1.SetToCombination(1., falpha_n, -Dot(fmatx1,fmatx2), fUnitNorm);
-  fA.SetToScaled(1./(sqrt32*fEQSigTr), fsymmatx1);
+  fA.SetToScaled(1./(sqrt32*fEQXiTr), fsymmatx1);
 }
