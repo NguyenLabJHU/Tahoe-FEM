@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.36.2.5 2004-04-16 18:11:35 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.36.2.6 2004-04-20 17:40:46 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -8,7 +8,7 @@
 #include "ElementSupportT.h"
 #include "ModelManagerT.h"
 #include "iGridManagerT.h"
-#include "iNodeT.h"
+#include "iNodeT.h"l3
 #include "ParticlePropertyT.h"
 #include "RaggedArray2DT.h"
 #include "CommManagerT.h"
@@ -391,14 +391,6 @@ void ParticleT::LumpedMass(const iArrayT& nodes, dArrayT& mass) const
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-/* extract element block info from parameter list to be used */
-void ParticleT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  
-	ArrayT<int>& mat_index) const 
-{
-	block_ID.Dimension(0);
-	mat_index.Dimension(0);
-}
 
 void ParticleT::ApplyDamping(const RaggedArray2DT<int>& fNeighbors)
 {		

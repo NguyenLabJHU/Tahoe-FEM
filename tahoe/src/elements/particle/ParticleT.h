@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.27.2.3 2004-04-14 22:38:46 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.27.2.4 2004-04-20 17:40:46 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -140,11 +140,6 @@ protected: /* for derived classes only */
 
 	/** \name initialization methods */
 	/*@{*/
-	/** extract element block info from parameter list to be used. Override inherited
-	 * method to disable default method for defining connectivities. */
-	virtual void CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  
-		ArrayT<int>& mat_index) const;
-
 	/** extract the properties information from the parameter list
 	 * \name list source for parameters 
 	 * \name type_names list of type names
