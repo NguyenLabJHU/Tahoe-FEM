@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.3.4.1 2002-04-26 02:24:22 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.3.4.2 2002-05-11 19:49:23 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 
 #ifndef _STRUCTURAL_MATERIALT_H_
@@ -49,6 +49,10 @@ public:
 	/* material description */
 	virtual const dMatrixT& C_IJKL(void) = 0;  /**< material tangent moduli */
 	virtual const dSymMatrixT& S_IJ(void) = 0; /**< 2nd Piola-Kirchhoff stress */
+
+	/** incremental heat generation. Associated with the stress calculated with the
+	 * most recent call to SolidMaterialT::s_ij or SolidMaterialT::S_IJ */
+	virtual double IncrementalHeat(void);
 
 	/** strain energy density */
 	virtual double StrainEnergyDensity(void) = 0;
@@ -117,6 +121,9 @@ private:
 	double fStiffDamp;
 	
 };
+
+/* incremental heat generation */
+inline double SolidMaterialT::IncrementalHeat(void) { return 0.0; };
 
 /* returns the density */
 inline double SolidMaterialT::Density(void) const { return fDensity; }
