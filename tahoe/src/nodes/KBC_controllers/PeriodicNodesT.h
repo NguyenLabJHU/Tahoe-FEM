@@ -1,9 +1,12 @@
-/* $Id: PeriodicNodesT.h,v 1.2.50.1 2004-06-07 13:47:35 paklein Exp $ */
+/* $Id: PeriodicNodesT.h,v 1.2.50.2 2004-06-07 23:20:17 paklein Exp $ */
 #ifndef _PERIODIC_NODES_T_H_
 #define _PERIODIC_NODES_T_H_
 
 /* base class */
 #include "TiedNodesT.h"
+
+/* direct members */
+#include "dArrayT.h"
 
 namespace Tahoe {
 

@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.h,v 1.1.4.4 2004-06-07 13:51:21 paklein Exp $ */
+/* $Id: BasicSupportT.h,v 1.1.4.5 2004-06-07 23:20:18 paklein Exp $ */
 #ifndef _TAHOE_SUPPORT_T_H_
 #define _TAHOE_SUPPORT_T_H_
 
@@ -9,6 +9,8 @@
 namespace Tahoe {
 
 /* forward declarations */
+class StringT;
+class iArrayT;
 class FEManagerT;
 class NodeManagerT;
 class XDOF_ManagerT;

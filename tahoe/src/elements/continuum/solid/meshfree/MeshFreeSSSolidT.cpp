@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.17.18.7 2004-05-13 16:43:33 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.17.18.8 2004-06-07 23:20:12 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -217,6 +217,12 @@ GlobalT::RelaxCodeT MeshFreeSSSolidT::ResetStep(void)
 	fMFFractureSupport->ResetStep();
 
 	return relax;
+}
+
+MeshFreeSupportT& MeshFreeSSSolidT::MeshFreeSupport(void) const
+{
+	if (!fMFShapes) ExceptionT::GeneralFail("MeshFreeSSSolidT::MeshFreeSupport", "shape functions not set");
+	return fMFShapes->MeshFreeSupport();
 }
 
 /* describe the parameters needed by the interface */

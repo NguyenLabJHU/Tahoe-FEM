@@ -1,6 +1,7 @@
-/* $Id: ScheduleT.cpp,v 1.5.22.1 2004-04-08 07:33:55 paklein Exp $ */
+/* $Id: ScheduleT.cpp,v 1.5.22.2 2004-06-07 23:20:18 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ScheduleT.h"
+#include "dArray2DT.h"
 
 /* C1 functions */
 #include "PiecewiseLinearT.h"
@@ -61,7 +62,7 @@ void ScheduleT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& 
 		sub_sub_list.AddSub("cubic_spline");
 	}
 	else /* inherited */
-		return ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.h,v 1.10.16.5 2004-05-11 15:57:29 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.h,v 1.10.16.6 2004-06-07 23:20:12 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 #ifndef _MFREE_SUPPORT_T_H_
 #define _MFREE_SUPPORT_T_H_
@@ -8,6 +8,7 @@
 
 /* direct members */
 #include "iArrayT.h"
+#include "dMatrixT.h"
 #include "LocalArrayGroupT.h"
 #include "RaggedArray2DT.h"
 #include "nArrayGroupT.h"

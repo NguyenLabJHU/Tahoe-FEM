@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.42.18.1 2004-04-08 07:33:04 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.42.18.2 2004-06-07 23:20:08 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 
@@ -129,6 +129,8 @@ SolidMatList3DT::SolidMatList3DT(void)
 /* read material data from the input stream */
 void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 {
+#pragma message("delete me")
+#if 0
 	const char caller[] = "SolidMatList3DT::ReadMaterialData";
 
 	int i, matnum;
@@ -765,6 +767,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		ExceptionT::Throw(error, caller, "exception constructing material %d, index %d, code %d",
 			i+1, matnum+1, matcode);
 	}
+#endif
 }
 
 /* error messages */

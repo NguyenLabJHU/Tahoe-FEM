@@ -1,4 +1,4 @@
-/* $Id: SolidMatList1DT.cpp,v 1.16.18.1 2004-04-08 07:33:04 paklein Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.16.18.2 2004-06-07 23:20:08 paklein Exp $ */
 #include "SolidMatList1DT.h"
 #include "SolidMatSupportT.h"
 #include "fstreamT.h"
@@ -34,6 +34,8 @@ SolidMatList1DT::SolidMatList1DT(void)
 /* read material data from the input stream */
 void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 {
+#pragma message("delete me")
+#if 0
 	int i, matnum;
 	SolidT::TypeT matcode;
 	try {
@@ -136,6 +138,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		     << '\n' << "     index " << matnum+1 << ", code " << matcode << endl;
 		throw error;
 	}
+#endif
 }
 
 /* information about subordinate parameter lists */

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeNodalShapeFunctionT.cpp,v 1.2 2004-02-10 01:27:38 cjkimme Exp $ */
+/* $Id: MeshFreeNodalShapeFunctionT.cpp,v 1.2.14.1 2004-06-07 23:20:14 paklein Exp $ */
 #include "MeshFreeNodalShapeFunctionT.h"
 #include "toolboxConstants.h"
 #include "MeshFreeSupport2DT.h"
@@ -23,10 +23,10 @@ MeshFreeNodalShapeFunctionT::MeshFreeNodalShapeFunctionT(int numSD,
 	/* construct MLS support */
 	if (all_coords.MinorDim() == 2)
 		fMFSupport = new MeshFreeSupport2DT(NULL, all_coords, connects,
-							fNonGridNodes, in);
+							fNonGridNodes);
 	else
 		fMFSupport = new MeshFreeSupport3DT(NULL, all_coords, connects,
-							fNonGridNodes, in);
+							fNonGridNodes);
 
 	if (!fMFSupport) 
 		ExceptionT::OutOfMemory("MeshFreeNodalShapeFunctionT::MeshFreeNodalShapeFunctionT","Cannot create support\n");
