@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.cpp,v 1.14 2004-06-28 22:42:03 hspark Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.15 2004-07-14 00:32:48 paklein Exp $ */
 
 #include "FEManagerT_THK.h"
 #ifdef BRIDGING_ELEMENT
@@ -189,7 +189,7 @@ void FEManagerT_THK::Initialize3D(void)
 			mag1 = sqrt(xmag*xmag+ymag*ymag+zmag*zmag);
 						
 			/* Get row0 neighbors */
-			if (abs(acoord1[2]-ncoord1[2]) < tol && mag1 < 1.03*sqrt(2.0)*lparam)	
+			if (fabs(acoord1[2]-ncoord1[2]) < tol && mag1 < 1.03*sqrt(2.0)*lparam)	
 			{
 				/* now sort into x by y array for THK BC application */
 				blah2 = 0;
@@ -197,8 +197,8 @@ void FEManagerT_THK::Initialize3D(void)
 				{
 					for (int l = -fNcrit; l<= fNcrit; l++)
 					{
-						xdist1 = abs(-ncoord1[0]+acoord1[0]+lparam*k);
-						ydist1 = abs(-ncoord1[1]+acoord1[1]+lparam*l);
+						xdist1 = fabs(-ncoord1[0]+acoord1[0]+lparam*k);
+						ydist1 = fabs(-ncoord1[1]+acoord1[1]+lparam*l);
 						if (xdist1 < tol && ydist1 < tol)
 							fBottom(i,blah2) = hitsa[j].Tag();
 						blah2++;
@@ -225,7 +225,7 @@ void FEManagerT_THK::Initialize3D(void)
 			mag1 = sqrt(xmag*xmag+ymag*ymag+zmag*zmag);
 						
 			/* Get row0 neighbors */
-			if (abs(acoord2[2]-ncoord2[2]) < tol && mag1 < 1.03*sqrt(2.0)*lparam)	
+			if (fabs(acoord2[2]-ncoord2[2]) < tol && mag1 < 1.03*sqrt(2.0)*lparam)	
 			{
 				/* now sort into x by y array for THK BC application */
 				blah2 = 0;
@@ -233,8 +233,8 @@ void FEManagerT_THK::Initialize3D(void)
 				{
 					for (int l = -fNcrit; l<= fNcrit; l++)
 					{
-						xdist1 = abs(-ncoord2[0]+acoord2[0]+lparam*k);
-						ydist1 = abs(-ncoord2[1]+acoord2[1]+lparam*l);
+						xdist1 = fabs(-ncoord2[0]+acoord2[0]+lparam*k);
+						ydist1 = fabs(-ncoord2[1]+acoord2[1]+lparam*l);
 						if (xdist1 < tol && ydist1 < tol)
 							fTop(i,blah2) = hitsa[j].Tag();
 						blah2++;
