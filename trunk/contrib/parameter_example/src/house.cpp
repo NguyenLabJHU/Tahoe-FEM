@@ -1,4 +1,4 @@
-/* $Id: house.cpp,v 1.3 2003-08-14 01:22:43 paklein Exp $ */
+/* $Id: house.cpp,v 1.4 2003-11-21 22:48:26 paklein Exp $ */
 #include "house.h"
 #include "lawn.h"
 #include "AutoArrayT.h"
@@ -157,6 +157,8 @@ void house::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& orde
 		/* a bedroom */
 		sub_sub_list.AddSub("storm_shelter");
 	}
+	else /* inherited */
+		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
 }
 
 ParameterInterfaceT* house::NewSub(const StringT& list_name) const
