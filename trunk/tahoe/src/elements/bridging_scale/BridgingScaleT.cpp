@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.15 2002-08-12 17:43:54 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.16 2002-08-13 17:30:53 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -28,12 +28,12 @@ BridgingScaleT::BridgingScaleT(const ElementSupportT& support,
 	fLocInitCoords(LocalArrayT::kInitCoords),
 	fLocDisp(LocalArrayT::kDisp),
 	fDOFvec(NumDOF()),
-	fMass(ShapeFunction().ParentDomain().NumNodes()*NumDOF()),
+	fMass(ShapeFunction().ParentDomain().NumNodes()),
 	//fWtemp(support.NumNodes(),ShapeFunction().ParentDomain().NumNodes()),
 	//fW(support.NumNodes(),ShapeFunction().ParentDomain().NumNodes())
-	fWtempU(ShapeFunction().ParentDomain().NumNodes()*NumDOF()),
-	fWtempV(ShapeFunction().ParentDomain().NumNodes()*NumDOF()),
-	fWtempA(ShapeFunction().ParentDomain().NumNodes()*NumDOF()),
+	fWtempU(ShapeFunction().ParentDomain().NumNodes(), NumDOF()),
+	fWtempV(ShapeFunction().ParentDomain().NumNodes(), NumDOF()),
+	fWtempA(ShapeFunction().ParentDomain().NumNodes(), NumDOF()),
 	//fWU(ShapeFunction().ParentDomain().NumNodes()),
 	fWV(ShapeFunction().ParentDomain().NumNodes()),
 	fWA(ShapeFunction().ParentDomain().NumNodes()),
@@ -41,7 +41,7 @@ BridgingScaleT::BridgingScaleT(const ElementSupportT& support,
   	//fFineScaleU(ShapeFunction().ParentDomain().NumNodes()),
 	//fCoarseScaleU(ShapeFunction().ParentDomain().NumNodes()),
 	//fTotalU(ShapeFunction().ParentDomain().NumNodes()),
-	fMassInv(ShapeFunction().ParentDomain().NumNodes()*NumDOF())
+	fMassInv(ShapeFunction().ParentDomain().NumNodes())
 	//	fProjection(support.NumNodes())
 {
 
@@ -136,7 +136,7 @@ void BridgingScaleT::Initialize(void)
 	cell_coord.SetGlobal(curr_coords); // Sets address of cell_coords
 	iArrayT atom_nums;
 	dArrayT mapped(NumSD()), point(NumSD());
-	dArray2DT atom_coords(NumSD(),fParticlesInCell.MaxMinorDim());
+	dArray2DT atom_coords(fParticlesInCell.MaxMinorDim(), NumSD());
 	AutoFill2DT<double> inverse(fParticlesInCell.MajorDim(),10,10);
 	for (int i = 0; i < fParticlesInCell.MajorDim(); i++) {
 
@@ -144,11 +144,11 @@ void BridgingScaleT::Initialize(void)
 	                atom_coords.RowCollect(atom_nums,curr_coords);
 			/* gives domain (global) nodal coordinates */
 	                cell_coord.SetLocal(fSolid.ElementCard(i).NodesX()); 
-
+			
 	                for (int j = 0; j < fParticlesInCell.MinorDim(i); j++) 
 			{
 			    //need a ColumnAlias function in nArray2DT similar to RowAlias!
-			    point[0] = atom_coords(0,j);
+			    atom_coords.RowAlias(j, point);
 			    if (parent.MapToParentDomain(cell_coord,point,mapped))
 				inverse.Append(i,mapped);   
 			}
@@ -306,14 +306,12 @@ void BridgingScaleT::ComputeMass(void)
   const dArray2DT& displacements = field[0];
   const dArray2DT& velocities = field[1];
   const dArray2DT& accelerations = field[2];
-  dArrayT map, shape(parent.NumNodes()), shape2(parent.NumNodes()), shape3(parent.NumNodes());
-  dArrayT temp(NumSD()), disp, vel, acc;
-  double dp, ve, ac; 
-  dMatrixT Mass(fTotalNodes*NumDOF()), MassInv(fTotalNodes*NumDOF());
-  dArrayT trialU(fTotalNodes*NumDOF()), trialU2(fTotalNodes*NumDOF());
+  dArrayT map, shape(parent.NumNodes()), temp(NumSD()), disp, vel, acc;
+  dMatrixT Mass(fTotalNodes), MassInv(fTotalNodes), tempmass(parent.NumNodes()); 
+  dMatrixT Nd(parent.NumNodes(), NumSD()), Nv(parent.NumNodes(), NumSD()), Na(parent.NumNodes(), NumSD());
+  dArray2DT trialU(fTotalNodes, NumDOF()), trialU2(fTotalNodes, NumDOF());
   trialU = 0.0, trialU2 = 0.0, Mass = 0.0, MassInv = 0.0;
 
-  dMatrixT tempmass(parent.NumNodes()*NumDOF());
   for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
   {
       fMass = 0.0, fWtempU = 0.0, fWtempV = 0.0, fWtempA = 0.0;
@@ -321,49 +319,43 @@ void BridgingScaleT::ComputeMass(void)
       fInverseMapInCell.RowAlias(i,map);
       for (int j = 0; j < fParticlesInCell.MinorDim(i); j++)
       {
-	  // still need to access individual atomic masses
+	  // still need to access individual atomic masses!!!
 	  displacements.RowAlias(atoms[j],disp);
 	  velocities.RowAlias(atoms[j],vel);
 	  accelerations.RowAlias(atoms[j],acc);
-	  dp = disp[0];
-	  ve = vel[0];
-	  ac = acc[0];
-	  temp = map[j];
+	  temp.CopyPart(0, map, NumSD()*j, NumSD());
 	  parent.EvaluateShapeFunctions(temp,shape);
-	  parent.EvaluateShapeFunctions(temp,shape2);
-	  parent.EvaluateShapeFunctions(temp,shape3);
 	  tempmass.Outer(shape,shape);
 	  fMass += tempmass;
-	  shape *= dp;	  
-	  shape2 *= ve;
-	  shape3 *= ac;
-	  fWtempU += shape;
-	  fWtempV += shape2;
-	  fWtempA += shape3;
-	  //fW.SetRow(atoms[j],shape); -> multiD implementation
+	  Nd.Outer(shape, disp);
+	  Nv.Outer(shape, vel);
+	  Na.Outer(shape, acc);
+	  fWtempU += Nd;
+	  fWtempV += Nv;
+	  fWtempA += Na;
       }
       /* augment global W, mass matrix/arrays */
-      int count = 0;
-      for (int j = i; j <= i + 1 ; j++)
-	{
-	  trialU[j] = trialU[j] + fWtempU[count];
-	  int count2 = 0;
-	  for (int k = i; k <= i + 1; k++)
-	    {
-	      Mass(j,k) += fMass(count,count2);
-	      count2++;
-	    }
-	  
-	  count++;
-	}
+      //int count = 0;
+      //for (int j = i; j <= i + 1 ; j++)
+      //{
+      //  trialU[j] = trialU[j] + fWtempU[count];
+      //  int count2 = 0;
+      //  for (int k = i; k <= i + 1; k++)
+      //    {
+      //      Mass(j,k) += fMass(count,count2);
+      //      count2++;
+      //    }
+      //  
+      //  count++;
+      //}
       //fMassInv.Inverse(fMass);
       //fMassInv.Multx(trialU,fWU);
       //fMassInv.Multx(fWtempV,fWV);
       //fMassInv.Multx(fWtempA,fWA);
       //ComputeU(displacements, velocities, accelerations);
   }
-  MassInv.Inverse(Mass);
-  MassInv.Multx(trialU,trialU2);
+  //MassInv.Inverse(Mass);
+  //MassInv.Multx(trialU,trialU2);
   //cout << "MD displacements = \n" << displacements << endl;
   //cout << "FEM nodal values = \n" << trialU2 << endl;
 }
