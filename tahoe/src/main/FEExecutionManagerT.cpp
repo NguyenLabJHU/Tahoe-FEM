@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.39.2.14 2003-05-13 20:46:32 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.39.2.15 2003-05-14 19:49:54 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -618,7 +618,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
                     		
 		/* calculate fine scale part of MD displacement and total displacement u */
-		continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu, projectedu);
+		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu);
 		
 		/* solve for initial FEM force f(u) as function of fine scale + FEM */
 		/* use projected totalu instead of totalu for first timestep */
@@ -703,7 +703,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
             
 			/* calculate total displacement u = FE + fine scale here using updated FEM displacement */
-			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu, projectedu);
+			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
 						
 			/* integrate FEM displacement, fractional step velocities */
 			
@@ -762,7 +762,7 @@ const dArray2DT& FEExecutionManagerT::InternalForce(dArray2DT& totalu, FEManager
 		
 	/* compute RHS - ParticlePairT fForce calculated by this call */
 	atoms.FormRHS(group);
-			
+	
 	/* write actual MD displacements back into field */
 	atoms.SetFieldValues(bridging_field, nodes, mddisp);
 
