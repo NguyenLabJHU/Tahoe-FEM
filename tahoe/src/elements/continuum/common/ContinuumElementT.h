@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.9 2002-06-08 20:20:21 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.10 2002-06-21 12:40:37 sawimme Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _CONTINUUM_ELEMENT_T_H_
@@ -123,12 +123,12 @@ public:
 	/** reference to the materials list */
 	const MaterialListT& MaterialsList(void) const;
 	
-protected:
-
 	/** mass types */
 	enum MassTypeT {kNoMass = 0, /**< do not compute mass matrix */
             kConsistentMass = 1, /**< variationally consistent mass matrix */
                 kLumpedMass = 2  /**< diagonally lumped mass */ };
+
+protected:
 
 	/** stream extraction operator */
 	friend istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type);
