@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBaseT.cpp,v 1.5 2003-05-20 00:16:07 thao Exp $ */
+/* $Id: SSJ2LinHardBaseT.cpp,v 1.6 2003-06-28 17:28:54 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -87,6 +87,11 @@ SSJ2LinHardBaseT::SSJ2LinHardBaseT(ifstreamT& in, const SSMatSupportT& support):
 	fBeta_n.Set(ndof,pstatev);
 	pstatev += numstress;
 	fPlasticStrain_n.Set(ndof,pstatev);
+}
+
+double SSJ2LinHardBaseT::mPressure(void)
+{
+        return(fKappa*e().Trace());
 }
 
 /* output parameters to stream */

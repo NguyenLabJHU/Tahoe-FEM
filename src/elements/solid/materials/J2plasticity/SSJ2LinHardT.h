@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardT.h,v 1.2 2003-05-15 05:18:14 thao Exp $ */
+/* $Id: SSJ2LinHardT.h,v 1.3 2003-06-28 17:28:54 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -24,12 +24,6 @@ public:
 
 	/* constructor */
 	SSJ2LinHardT(ifstreamT& in, const SSMatSupportT& support);
-
-	virtual double Pressure(void) const {
-	  cout << "\nSSJ2LinHardT::Pressure: not implemented" <<endl;
-	  throw ExceptionT::kGeneralFail;
-	  return 0.0;
-	};
 
 	/*free energy density*/
 	virtual double StrainEnergyDensity(void);

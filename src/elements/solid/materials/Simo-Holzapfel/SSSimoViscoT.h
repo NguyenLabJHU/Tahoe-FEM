@@ -1,4 +1,4 @@
-/* $Id: SSSimoViscoT.h,v 1.4 2003-05-15 05:18:15 thao Exp $ */
+/* $Id: SSSimoViscoT.h,v 1.5 2003-06-28 17:28:56 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_SIMO_VISCO_H_
 #define _SS_SIMO_VISCO_H_
@@ -46,7 +46,7 @@ class SSSimoViscoT: public SSSolidMatT
 
 	/*inquire if dissipation variables used in material force calculation are needed*/
 	virtual bool HasDissipVar(void) const {return true;}
-	virtual const iArrayT& InternalDOF(void);
+	virtual const iArrayT& InternalDOF(void) const;
 			
 	protected:
 	
@@ -71,10 +71,7 @@ class SSSimoViscoT: public SSSolidMatT
 	dArrayT   fmeanSin;
 
 	/*internal dissipation variables*/
-	dArrayT fInternalStressVars;
-	dArrayT fInternalStrainVars;
 	iArrayT fInternalDOF;
-	
 	dSymMatrixT fViscStrain;
 	dSymMatrixT fViscStress;
 
@@ -91,7 +88,10 @@ class SSSimoViscoT: public SSSolidMatT
 	double fndtB;	
   };
 
- inline const iArrayT& SSSimoViscoT::InternalDOF(void) {return fInternalDOF;}
+ inline const iArrayT& SSSimoViscoT::InternalDOF(void) const 
+ {
+	return fInternalDOF;
+ }
  
 } // namespace Tahoe 
 #endif /*_SS_SIMO_VISCO_H_*/

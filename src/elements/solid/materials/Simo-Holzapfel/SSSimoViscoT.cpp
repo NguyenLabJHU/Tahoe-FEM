@@ -1,4 +1,4 @@
- /* $Id: SSSimoViscoT.cpp,v 1.3 2003-05-15 05:18:15 thao Exp $ */
+ /* $Id: SSSimoViscoT.cpp,v 1.4 2003-06-28 17:28:56 thao Exp $ */
 #include "SSSimoViscoT.h"
 #include "fstreamT.h"
 #include "ExceptionT.h"
@@ -14,12 +14,9 @@ SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support):
 
 	fInternalDOF.Dimension(1);
 	fInternalDOF = numstress;
-	fInternalStressVars.Dimension(numstress);
-	fInternalStrainVars.Dimension(numstress);
+	fViscStress.Dimension(numstress);
+	//TEMP: activate with removal of temp fViscStrain.Dimension(numstress);
 
-	fViscStrain.Set(ndof,fInternalStrainVars.Pointer());
-	fViscStress.Set(ndof,fInternalStressVars.Pointer());
-	
 	/*allocates storage for state variable array*/
 	fnstatev = 0;
 	fnstatev += numstress;   /*current deviatoric overstress*/
@@ -31,6 +28,8 @@ SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support):
 	fnstatev += numstress;   /*preceding deviatoric inelastic stress*/
 	fnstatev ++;			 /*preceding mean overstress*/
 	fnstatev ++; 			 /*preceding mean inelastic stress*/
+	//TEMP
+	fnstatev += numstress;   /*viscous stress*/
 	
 	fstatev.Dimension(fnstatev);
 	double* pstatev = fstatev.Pointer();
@@ -52,6 +51,8 @@ SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support):
 	fmeanQ_n.Set(1, pstatev);
 	pstatev ++;
 	fmeanSin_n.Set(1, pstatev);
+	pstatev ++;
+	fViscStrain.Set(numstress,pstatev);
 }	
 
 void SSSimoViscoT::Print(ostream& out) const

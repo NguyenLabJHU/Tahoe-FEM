@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBaseT.h,v 1.2 2003-05-15 05:18:14 thao Exp $ */
+/* $Id: SSJ2LinHardBaseT.h,v 1.3 2003-06-28 17:28:54 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -32,6 +32,13 @@ public:
         /* constructor */
         SSJ2LinHardBaseT(ifstreamT& in, const SSMatSupportT& support);
   
+	virtual double Pressure(void) const{
+	        cout<<"SSJ2LinHardBaseT::Pressure not implemented.";
+	        throw ExceptionT::kGeneralFail;
+	        return 0.0;}
+	
+	virtual double mPressure(void);
+
 	/* output name */
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
@@ -51,7 +58,7 @@ public:
         /*inquire if dissipation variables used in material force calculation are n
 eeded*/
         virtual bool HasDissipVar(void) const {return true;}
-        virtual const iArrayT& InternalDOF(void);
+        virtual const iArrayT& InternalDOF(void) const;
 
 protected:
 	/*radial return mapping*/
@@ -119,7 +126,7 @@ protected:
 	dMatrixT   fTensorTemp; 
 };
 
- inline const iArrayT& SSJ2LinHardBaseT::InternalDOF(void) 
+ inline const iArrayT& SSJ2LinHardBaseT::InternalDOF(void) const
  {
    return fInternalDOF;
  }

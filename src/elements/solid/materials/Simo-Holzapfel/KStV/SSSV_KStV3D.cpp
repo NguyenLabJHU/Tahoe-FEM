@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV3D.cpp,v 1.5 2003-05-15 05:18:16 thao Exp $ */
+/* $Id: SSSV_KStV3D.cpp,v 1.6 2003-06-28 17:28:58 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV3D.h"
 #include "SSMatSupportT.h"
@@ -226,6 +226,15 @@ const dSymMatrixT& SSSV_KStV3D::s_ij(void)
 		/*volumetric part*/
 		fmeanSin[0] = kappa*I1;
 		fmeanQ[0] = fbetaB*fmeanQ_n[0] + falphaB * (fmeanSin[0]-fmeanSin_n[0]);
+		//TEMP
+		/*evaluate viscous strains*/
+		fViscStrain = 0.0;
+		fViscStrain -= fdevQ;
+		fViscStrain /= 2.0*mu;
+		fViscStrain[0] -= fmeanQ[0]*fthird/kappa;
+		fViscStrain[1] -= fmeanQ[0]*fthird/kappa;
+		fViscStrain[2] -= fmeanQ[0]*fthird/kappa;
+		fViscStrain += e();       
 
 		Store(element,CurrIP());
 	}
@@ -257,7 +266,7 @@ const dArrayT& SSSV_KStV3D::InternalStrainVars(void)
         fViscStrain[2] -= fmeanQ[0]*fthird/kappa;
         fViscStrain += e();       
 	
-	return(fInternalStrainVars);
+	return(fViscStrain);
 }
 
 const dArrayT& SSSV_KStV3D::InternalStressVars(void)
@@ -272,7 +281,7 @@ const dArrayT& SSSV_KStV3D::InternalStressVars(void)
 	fViscStress[1] += fmeanQ[0];
 	fViscStress[2] += fmeanQ[0];
 	
-	return(fInternalStressVars);
+	return(fViscStress);
 }
 	
 int SSSV_KStV3D::NumOutputVariables() const {return kNumOutputVar;}
@@ -299,22 +308,14 @@ void SSSV_KStV3D::ComputeOutput(dArrayT& output)
 	double etaS = fMu[kNonEquilibrium]*ftauS;
 	double etaB = fKappa[kNonEquilibrium]*ftauB;
 
-	/*evaluate viscous strains*/
-	fViscStrain = 0.0;
-	fViscStrain -= fdevQ;
-	fViscStrain /= 2.0*mu;
-	fViscStrain[0] -= fmeanQ[0]*fthird/kappa;
-	fViscStrain[1] -= fmeanQ[0]*fthird/kappa;
-	fViscStrain[2] -= fmeanQ[0]*fthird/kappa;
-	fViscStrain += e();       
-	
+	const dArrayT& viscstrain = InternalStrainVars();
 	output[0] = 0.5*(0.5/etaS*fdevQ.ScalarProduct() + 1.0/etaB*fmeanQ[0]*fmeanQ[0]); 
-	double I1 = output[1] = fViscStrain[0]+fViscStrain[1]+fViscStrain[2];
-	I1 *= fthird;
-	output[2] = sqrt(2.0*fthird*((fViscStrain[0]-I1)*(fViscStrain[0]-I1)
-		  +(fViscStrain[1]-I1)*(fViscStrain[1]-I1) 
-		  + (fViscStrain[2]-I1)*(fViscStrain[2]-I1)
-		  +2.0*fViscStrain[3]*fViscStrain[3]
-		  +2.0*fViscStrain[4]*fViscStrain[4]
-		  +2.0*fViscStrain[5]*fViscStrain[5]));
+	double I1 = fthird*(viscstrain[0]+viscstrain[1]+viscstrain[2]);
+	output[1] = I1;
+	output[2] = sqrt(2.0*fthird*((viscstrain[0]-I1)*(viscstrain[0]-I1)
+		  +(viscstrain[1]-I1)*(viscstrain[1]-I1) 
+		  + (viscstrain[2]-I1)*(viscstrain[2]-I1)
+		  +2.0*viscstrain[3]*viscstrain[3]
+		  +2.0*viscstrain[4]*viscstrain[4]
+		  +2.0*viscstrain[5]*viscstrain[5]));
 }	

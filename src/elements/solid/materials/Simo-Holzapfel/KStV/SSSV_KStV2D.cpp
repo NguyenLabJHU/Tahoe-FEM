@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV2D.cpp,v 1.6 2003-05-15 05:18:16 thao Exp $ */
+/* $Id: SSSV_KStV2D.cpp,v 1.7 2003-06-28 17:28:57 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV2D.h"
 #include "SSMatSupportT.h"
@@ -233,7 +233,19 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
 		/*volumetric part*/
 		fmeanSin[0] = kappa*I1;
 		fmeanQ[0] = fbetaB*fmeanQ_n[0] + falphaB * (fmeanSin[0]-fmeanSin_n[0]);
-        
+		//TEMP
+		/*evaluate viscous strains*/
+		fViscStrain = 0.0;
+		fViscStrain -= fdevQ;
+		fViscStrain /= 2.0*mu;
+		fViscStrain[0] -= fmeanQ[0]*fthird/kappa;
+		fViscStrain[1] -= fmeanQ[0]*fthird/kappa;
+		fViscStrain[2] -= fmeanQ[0]*fthird/kappa;
+
+		fViscStrain[0] += strain[0];
+		fViscStrain[1] += strain[1];
+		fViscStrain[5] += strain[2];
+
  		Store(element,CurrIP());
 	}
 	fStress3D += fdevQ;
@@ -246,10 +258,6 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
 	fStress[1] = fStress3D[1];
 	fStress[2] = fStress3D[5];
 	
-	dSymMatrixT stress = fdevQ;
-	stress[0] += fmeanQ[0];
-	stress[1] += fmeanQ[0];
-	stress[2] += fmeanQ[0];
 	return(fStress);
 }
 
@@ -276,7 +284,7 @@ const dArrayT& SSSV_KStV2D::InternalStrainVars(void)
 	fViscStrain[1] += strain[1];
 	fViscStrain[5] += strain[2];
 
-	return(fInternalStrainVars);
+	return(fViscStrain);
 }
 
 const dArrayT& SSSV_KStV2D::InternalStressVars(void)
@@ -291,7 +299,7 @@ const dArrayT& SSSV_KStV2D::InternalStressVars(void)
 	fViscStress[1] += fmeanQ[0];
 	fViscStress[2] += fmeanQ[0];
 	
-	return(fInternalStressVars);
+	return(fViscStress);
 }
 
 int SSSV_KStV2D::NumOutputVariables() const {return kNumOutputVar;}
@@ -315,29 +323,18 @@ void SSSV_KStV2D::ComputeOutput(dArrayT& output)
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
 
-	dSymMatrixT strain = e();
-        /*evaluate viscous strains*/
-        fViscStrain = 0.0;
-	fViscStrain -= fdevQ;
-	fViscStrain /= 2.0*mu;
-        fViscStrain[0] -= fmeanQ[0]*fthird/kappa;
-        fViscStrain[1] -= fmeanQ[0]*fthird/kappa;
-        fViscStrain[2] -= fmeanQ[0]*fthird/kappa;
-	
-        fViscStrain[0] += strain[0];                
-        fViscStrain[1] += strain[1];
-        fViscStrain[5] += strain[2];
+	const dArrayT& viscstrain = InternalStrainVars();
         
 	double etaS = fMu[kNonEquilibrium]*ftauS;
 	double etaB = fKappa[kNonEquilibrium]*ftauB;
 
-	output[0] = 0.5*(0.5/etaS*fdevQ.ScalarProduct() + 1.0/etaB*fmeanQ[0]*fmeanQ[0]); 
-	double I1 = output[1] = fViscStrain[0]+fViscStrain[1]+fViscStrain[2];
-	I1 *= fthird;
-	output[2] = sqrt(2.0*fthird*((fViscStrain[0]-I1)*(fViscStrain[0]-I1)
-                  +(fViscStrain[1]-I1)*(fViscStrain[1]-I1) 
-                  + (fViscStrain[2]-I1)*(fViscStrain[2]-I1)
-                  +2.0*fViscStrain[3]*fViscStrain[3]
-                  +2.0*fViscStrain[4]*fViscStrain[4]
-                  +2.0*fViscStrain[5]*fViscStrain[5]));
+	output[0] = 0.5*(0.5/etaS*fdevQ.ScalarProduct()+1.0/etaB*fmeanQ[0]*fmeanQ[0]); 
+	double I1 = fthird*(viscstrain[0]+viscstrain[1]+viscstrain[2]);
+	output[1] = I1;
+	output[2] = sqrt(2.0*fthird*((viscstrain[0]-I1)*(viscstrain[0]-I1)
+                  +(viscstrain[1]-I1)*(viscstrain[1]-I1) 
+                  +(viscstrain[2]-I1)*(viscstrain[2]-I1)
+                  +2.0*viscstrain[3]*viscstrain[3]
+                  +2.0*viscstrain[4]*viscstrain[4]
+                  +2.0*viscstrain[5]*viscstrain[5]));
 }	
