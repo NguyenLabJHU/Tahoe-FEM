@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BaseT.h,v 1.1.2.4 2003-12-05 17:08:37 paklein Exp $ */
+/* $Id: ABAQUS_BaseT.h,v 1.1.2.5 2003-12-10 23:02:59 paklein Exp $ */
 #ifndef _ABAQUS_BASE_T_H_
 #define _ABAQUS_BASE_T_H_
 
@@ -6,9 +6,11 @@
 #ifdef __F2C__
 
 /* f2c */
-#include "ExceptionT.h"
+#include "ArrayT.h"
 #include "f2c.h"
 //MIPSpro 7.2.1 chokes on f2c.h unless some C++ headers are read first
+//compaq-cxx-6.5.9.28 also chokes on f2c.h and needs a more extensive
+//C++ header to precede f2c.h
 
 namespace Tahoe {
 
