@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.h,v 1.5 2002-02-18 21:56:10 paklein Exp $ */
+/* $Id: LocalArrayT.h,v 1.5.2.1 2002-04-30 00:03:39 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #ifndef _LOCALARRAY_T_H_
@@ -24,15 +24,14 @@ public:
 	/** array data types. Used by the node and element classes to 
 	 * resolve the source for the array data. */
 	enum TypeT {kUnspecified, /**< unspecified data type */
-	             kInitCoords, /**< initial coordinates */
                        kDisp, /**< displacements */
                         kVel, /**< velocities */
                         kAcc, /**< accelerations */
-                 kCurrCoords, /**< current coordinates */
                    kLastDisp, /**< displacements from the previous time step */
                     kLastVel, /**< velocities from the previous time step */
-                   kLastAcc   /**< accelerations from the previous time step */
-                   };
+                    kLastAcc, /**< accelerations from the previous time step */
+	             kInitCoords, /**< initial coordinates */
+                 kCurrCoords  /**< current coordinates */ };
 
 	/** default constructor. Constructs an array of zero length with type
 	 * LocalArrayT::kUnspecified. */
