@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.13 2002-06-18 21:49:00 recampb Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.14 2002-06-19 16:43:41 recampb Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -67,6 +67,8 @@ public:
 	
 	/** return tbe number of nodal variables */
 	int NumNodeVariables(void) const { return fScalars.MinorDim(); };
+
+	int NumVectors(void) const {return fVectors.Length();};
 	
 	/** return a reference to the nodal labels */
 	const ArrayT<StringT>& NodeLabels(void) const { return fNodeLabels; };
