@@ -1,6 +1,5 @@
-/* $Id: MeshFreeSupportT.h,v 1.11 2004-02-10 01:27:38 cjkimme Exp $ */
-/* created: paklein (09/07/1998)                                          */
-
+/* $Id: MeshFreeSupportT.h,v 1.12 2004-06-26 06:11:09 paklein Exp $ */
+/* created: paklein (09/07/1998) */
 #ifndef _MF_SUPPORT_T_H_
 #define _MF_SUPPORT_T_H_
 

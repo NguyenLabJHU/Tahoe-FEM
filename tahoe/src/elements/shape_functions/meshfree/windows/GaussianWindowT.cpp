@@ -1,9 +1,7 @@
-/* $Id: GaussianWindowT.cpp,v 1.9 2002-10-20 22:49:44 paklein Exp $ */
-
+/* $Id: GaussianWindowT.cpp,v 1.10 2004-06-26 06:11:13 paklein Exp $ */
 #include "GaussianWindowT.h"
 #include "ExceptionT.h"
 #include <math.h>
-
 
 using namespace Tahoe;
 
@@ -29,11 +27,7 @@ void GaussianWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 	if (params_1.Length() != params_2.Length() ||
 	    params_1.MinorDim() != NumberOfSupportParameters() ||
 	    params_2.MinorDim() != NumberOfSupportParameters())
-	{
-		cout << "\n GaussianWindowT::SynchronizeSupportParameters: nodal\n"
-		     << " parameters dimension mismatch" << endl;
-		throw ExceptionT::kSizeMismatch;
-	}
+	ExceptionT::SizeMismatch("GaussianWindowT::SynchronizeSupportParameters"); 
 		
 	/* "synchronize" means take max of dmax */
 	double* p1 = params_1.Pointer();
@@ -44,13 +38,6 @@ void GaussianWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 		*p1 = *p2 = Max(*p1, *p2);
 		p1++; p2++;
 	}
-}
-
-/* modify nodal shape function parameters */
-void GaussianWindowT::ModifySupportParameters(dArray2DT& nodal_params) const
-{
-	/* scale supports */
-	nodal_params *= fDilationScaling;
 }
 
 void GaussianWindowT::WriteParameters(ostream& out) const
@@ -66,7 +53,7 @@ bool GaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const d
 		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw)
 {
 	/* check out of influence range */
-	if (!Covers(x_n, x, param_n))
+	if (!GaussianWindowT::Covers(x_n, x, param_n))
 	{
 		w = 0.0;
 		if (order > 0)
@@ -86,7 +73,7 @@ bool GaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const d
 		double dist = Dw.Magnitude();
 		
   		/* scalar factors */
-    	double adm = param_n[0] * fSharpeningFactor;
+    	double adm = param_n[0]*fDilationScaling*fSharpeningFactor;
     	double adm2 = adm * adm;
     	double q = dist / adm;
     	w = exp(-q * q) / (sqrtPi * adm);
@@ -147,7 +134,7 @@ int GaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 bool GaussianWindowT::Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n) const
 {
 	double dist = dArrayT::Distance(x_n, x);
-	if (dist > fCutOffFactor*param_n[0])
+	if (dist > fCutOffFactor*fDilationScaling*param_n[0])
 		return false;
 	else
 		return true;
@@ -156,14 +143,14 @@ bool GaussianWindowT::Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT
 int GaussianWindowT::Covers(const dArray2DT& x_n, const dArrayT& x, 
 	const dArray2DT& param_n, ArrayT<bool>& covers) const
 {
-	int count = 0;    // # of point covered...
+	int count = 0; /* # of point covered... */
 	int numwindows = x_n.MajorDim();
 	for (int i = 0; i < numwindows; i++)
   	{
 		double dist = dArrayT::Distance(x, x_n);
 
 		/* check out of influence range */
-		if (dist > fCutOffFactor*param_n[i])
+		if (dist > fCutOffFactor*fDilationScaling*param_n[i])
 			covers[i] = false;
 		else
 		{
@@ -172,4 +159,42 @@ int GaussianWindowT::Covers(const dArray2DT& x_n, const dArrayT& x,
 		}
   	}
   	return count;
+}
+
+/* spherical upport size */
+double GaussianWindowT::SphericalSupportSize(const dArrayT& param_n) const
+{
+#if __option(extended_errorcheck)
+	if (param_n.Length() != 1) ExceptionT::GeneralFail("GaussianWindowT::SphericalSupportSize");
+#endif
+	return fCutOffFactor*fDilationScaling*param_n[0];
+}
+
+/* rectangular support size */
+const dArrayT& GaussianWindowT::RectangularSupportSize(const dArrayT& param_n) const 
+{
+	ExceptionT::GeneralFail("GaussianWindowT::RectangularSupportSize");
+	return param_n; /* dummy */
+}
+
+/* spherical support sizes in batch */
+void GaussianWindowT::SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const
+{
+#if __option(extended_errorcheck)
+	if (param_n.MinorDim() != 1 ||
+	    param_n.MajorDim() != support_size.Length()) 
+		ExceptionT::SizeMismatch("GaussianWindowT::SphericalSupportSize");
+#endif
+
+	dArrayT tmp;
+	tmp.Alias(support_size);
+	tmp.SetToScaled(fCutOffFactor*fDilationScaling, param_n);
+}
+
+/* rectangular support sizes in batch */
+void GaussianWindowT::RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const
+{
+#pragma unused(param_n)
+#pragma unused(support_size)
+	ExceptionT::GeneralFail("GaussianWindowT::RectangularSupportSize");
 }
