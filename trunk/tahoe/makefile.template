@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.7 2002-03-06 00:29:20 paklein Exp $
+# $Id: makefile.template,v 1.8 2002-03-25 19:50:01 creigh Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -12,7 +12,7 @@
 # (6) "make build" to (re-)compiler binaries.
 
 # full path to current directory
-HOME_DIR =
+HOME_DIR =  /usr2/creigh/tahoe/tahoe
 
 # working directories:
 OBJ_DIR = $(HOME_DIR)/obj
@@ -21,7 +21,7 @@ SRC_DIR = $(HOME_DIR)/src
 LIB_DIR = $(HOME_DIR)/lib
 
 # build architecture
-ARCH =
+ARCH = GNU.linux.macros
 # see macros directory for choices $(ARCH).macros
 
 # default target name - root of library name or executable name
@@ -41,6 +41,7 @@ MACRO_DIR = $(HOME_DIR)/../macros
 
 ############################### build options ###########################
 # uncomment macros for installed models
+ /usr2/creigh/tahoe/toolbox
 
 ##### toolbox
 TB_DIR      = $(HOME_DIR)/../toolbox
@@ -50,7 +51,8 @@ TB_LIB_NAME = toolbox
 TB_LIB      = $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
 TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 
-##### F2C 1.4.3
+##### F2C 1.4.3 /usr2/creigh/tahoe/toolbox
+
 #F2C_DIR      = $(HOME_DIR)/../f2c
 #F2C_INC      = -I$(F2C_DIR)/inc
 #F2C_CFLAGS   = $(F2C_INC) -D__F2C__
@@ -68,7 +70,8 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 
 ##### Aztec iterative linear algebra library
 #AZ_DIR      = $(HOME_DIR)/../aztec
-#AZ_INC      = -I$(AZ_DIR)/inc
+#AZ_INC      = -I$(AZ_DIR)/inc /usr2/creigh/tahoe/toolbox
+
 #AZ_CFLAGS   = $(AZ_INC) -D__AZTEC__
 #AZ_LIB_NAME = aztec
 #AZ_LIB      = $(AZ_DIR)/lib/lib$(AZ_LIB_NAME).a

@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.19 2002-03-21 22:36:32 creigh Exp $ */
+/* $Id: ElementListT.cpp,v 1.20 2002-03-25 19:50:02 creigh Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -27,7 +27,7 @@
 #include "GeometryT.h"
 #include "SimoFiniteStrainT.h"
 #include "MultiScaleT.h"
-#include "CourseScaleT.h"
+#include "CoarseScaleT.h"
 #include "FinePhestT.h"
 
 /* contact */
@@ -98,7 +98,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 		out << "    eq. " << ElementT::kLinearDiffusion    << ", linear diffusion element\n";
 		out << "    eq. " << ElementT::kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
 		out << "    eq. " << ElementT::kMultiScale              << ", Variational Multi-Scale (VMS) Element \n";
-		out << "    eq. " << ElementT::kCourseScale             << ", Course Scale Element (for VMS) \n";
+		out << "    eq. " << ElementT::kCoarseScale             << ", Coarse Scale Element (for VMS) \n";
 		out << "    eq. " << ElementT::kFinePhest               << ", Fine Sclale Phenomenological Str. Grad\n";
 
 		out << "    eq. " << ElementT::kACME_Contact       << ", 3D contact using ACME\n";
@@ -147,8 +147,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 				fArray[group] = new MultiScaleT(fFEManager);
 				break;
 
-			case ElementT::kCourseScale:
-				fArray[group] = new CourseScaleT(fFEManager);
+			case ElementT::kCoarseScale:
+				fArray[group] = new CoarseScaleT(fFEManager);
 				break;
 
 			case ElementT::kFinePhest:
