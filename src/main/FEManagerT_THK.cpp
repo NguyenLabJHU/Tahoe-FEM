@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.cpp,v 1.7 2003-07-11 16:45:19 hspark Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.8 2003-10-02 21:07:28 hspark Exp $ */
 #include "FEManagerT_THK.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -91,7 +91,6 @@ void FEManagerT_THK::Initialize(InitCodeT init)
 		
 		}
 	}
-	
 	/* compute theta tables */
 	StringT path;
 	path.FilePath(in.filename());
@@ -157,7 +156,7 @@ const dArray2DT& FEManagerT_THK::THKForce(const dArray2DT& badisp)
 	bottomdisp.Dimension(fBottomatoms.Length(), 2);
 	bottomdisp.RowCollect(fBottomrow, badisp);
 	topdisp.RowCollect(fToprow, badisp);
-
+	
 	/* access the actual MD displacements */
 	NodeManagerT* node = FEManagerT::NodeManager();
 	FieldT* atomfield = node->Field(bridging_field);
@@ -337,7 +336,7 @@ void FEManagerT_THK::ComputeThetaTables(const StringT& data_file)
 										// need to actually compute using LJ parameters
 	/* determine correct number of timesteps to store for theta and history variables */
 	if (fN_times+1 <= fNumstep_crit)	// WATCH +1 FACTOR!!!
-		nsteps = fN_times+1;
+	        nsteps = fN_times+1;  // watch +1
 	else
 		nsteps = fNumstep_crit;
 
