@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.4 2001-02-27 00:03:22 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.5 2001-02-28 02:36:24 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -481,6 +481,11 @@ void FEManagerT::OverWriteLHS(const ElementMatrixT& elMat,
 void FEManagerT::DisassembleLHS(dMatrixT& elMat, const iArrayT& eqnos) const
 {
 	fSolutionDriver->DisassembleLHS(elMat, eqnos);
+}
+
+void FEManagerT::DisassembleLHSDiagonal(dArrayT& diagonals, const iArrayT& eqnos) const
+{
+	fSolutionDriver->DisassembleLHSDiagonal(diagonals, eqnos);
 }
 
 void FEManagerT::AssembleRHS(const dArrayT& elRes,
