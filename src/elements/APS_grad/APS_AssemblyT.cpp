@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.18 2003-09-29 23:28:49 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.19 2003-09-30 00:33:40 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -518,7 +518,13 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		fCurrCoords = fInitCoords;
 		fShapes->SetDerivatives(); 
 		
-		// ?????
+		int a, n_state = fNumIP*knum_d_state;
+		dArrayT fdstatenew(n_state), fdstate(n_state);
+		for (a=0; a<n_state; a++) {
+				fdstatenew[a] = fdState_new[CurrElementNumber(),a];
+				fdstate[a] = fdState[CurrElementNumber(),a];
+				}
+		
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
 		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
 		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
@@ -527,8 +533,8 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
 		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
-		Convert.State			(	fNumIP, knum_d_state, fdState_new[CurrElementNumber()], fstate );
-		Convert.State			(	fNumIP, knum_d_state, fdState[CurrElementNumber()], fstate_n );
+		Convert.State			(	fNumIP, knum_d_state, fdstatenew, fstate );
+		Convert.State			(	fNumIP, knum_d_state, fdstate, fstate_n );
 		
 		APS_VariableT np1(	fgrad_u, fgamma_p, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
 		APS_VariableT   n(	fgrad_u_n, fgamma_p_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n	 
@@ -846,6 +852,12 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		fCurrCoords = fInitCoords; 
 		fShapes->SetDerivatives(); 
 		
+		dArrayT fdstatenew(n_state), fdstate(n_state);
+		for (int a=0; a<n_state; a++) {
+				fdstatenew[a] = fdState_new[CurrElementNumber(),a];
+				fdstate[a] = fdState[CurrElementNumber(),a];
+				}
+		
 		//repackage data to forms compatible with FEA classes (very little cost in big picture)
 		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
 		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
@@ -854,8 +866,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
 		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
-		Convert.State			(	fNumIP, knum_d_state, fdState_new[CurrElementNumber()], fstate );
-		Convert.State			(	fNumIP, knum_d_state, fdState[CurrElementNumber()], fstate_n );
+		Convert.State			(	fNumIP, knum_d_state, fdstatenew, fstate );
+		Convert.State			(	fNumIP, knum_d_state, fdstate, fstate_n );
 		
 		APS_VariableT np1(	fgrad_u, fgamma_p, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
 		APS_VariableT   n(	fgrad_u_n, fgamma_p_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n
@@ -918,7 +930,11 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 				fEquation_eps -> Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
 				fEquation_eps -> Form_RHS_F_int ( fFeps_int );
 				
-				Convert.State ( fNumIP, knum_d_state, fstate, fdState_new[CurrElementNumber()] );
+			    int a,i;
+				for (a=0; a<fNumIP; a++)
+					for (i=0; i<knum_d_state; i++)
+						fdstatenew[a*knum_d_state+i] = fstate[a,i];
+				for (a=0; a<n_state; a++)  fdState_new[CurrElementNumber(),a] = fdstatenew[a];
 
 				/** Set LHS */
 				fLHS = fKepseps;	
@@ -991,6 +1007,12 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		fCurrCoords = fInitCoords;
 		fShapes->SetDerivatives(); 
 		
+		dArrayT fdstatenew(n_state), fdstate(n_state);
+		for (int a=0; a<n_state; a++) {
+				fdstatenew[a] = fdState_new[CurrElementNumber(),a];
+				fdstate[a] = fdState[CurrElementNumber(),a];
+				}
+		
 		/* repackage data to forms compatible with FEA classes (very little cost in big picture) */
 		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
 		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
@@ -999,8 +1021,8 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
 		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
-		Convert.State			(	fNumIP, knum_d_state, fdState_new[CurrElementNumber()], fstate );
-		Convert.State			(	fNumIP, knum_d_state, fdState[CurrElementNumber()], fstate_n );
+		Convert.State			(	fNumIP, knum_d_state, fdstatenew, fstate );
+		Convert.State			(	fNumIP, knum_d_state, fdstate, fstate_n );
 		
 		APS_VariableT np1(	fgrad_u, fgamma_p, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
 		APS_VariableT   n(	fgrad_u_n, fgamma_p_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n
@@ -1037,7 +1059,11 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 			fEquation_eps -> Form_RHS_F_int ( fFeps_int );
 			fFeps_int *= -1.0;
 			
-			Convert.State ( fNumIP, knum_d_state, fstate, fdState_new[CurrElementNumber()] );
+			int a,i;
+				for (a=0; a<fNumIP; a++)
+					for (i=0; i<knum_d_state; i++)
+						fdstatenew[a*knum_d_state+i] = fstate[a,i];
+			for (a=0; a<n_state; a++)  fdState_new[CurrElementNumber(),a] = fdstatenew[a];
 
 			/* equations numbers */
 			const iArrayT& all_eq = CurrentElement().Equations();
