@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.cpp,v 1.8.34.1 2004-04-14 17:35:39 paklein Exp $ */
+/* $Id: ParadynEAMT.cpp,v 1.8.34.2 2004-04-14 22:38:47 paklein Exp $ */
 #include "ParadynEAMT.h"
 
 #include "toolboxConstants.h"
@@ -174,6 +174,10 @@ void ParadynEAMT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	EAMPropertyT::DefineParameters(list);
+
+	/* give "mass" default value */
+	ParameterT& mass = list.GetParameter("mass");
+	mass.SetDefault(1.0);
 
 	/* parameter file path (relative to input file) */
 	list.AddParameter(ParameterT::Word, "parameter_file");

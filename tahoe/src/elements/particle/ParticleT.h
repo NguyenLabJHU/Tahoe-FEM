@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.27.2.2 2004-04-09 05:26:52 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.27.2.3 2004-04-14 22:38:46 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -33,9 +33,6 @@ public:
 
 	/** destructor */
 	~ParticleT(void);
-	
-	/** initialization */
-	virtual void Initialize(void);
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;

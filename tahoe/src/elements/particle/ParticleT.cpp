@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.36.2.3 2004-04-13 16:01:55 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.36.2.4 2004-04-14 22:38:46 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -46,8 +46,8 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 
 
 	fActiveParticles(NULL),
-	fRandom(NULL)
-	
+	fRandom(NULL),
+	fTypeMessageID(CommManagerT::kNULLMessageID)
 {
 	SetName("particle");
 
@@ -79,7 +79,8 @@ ParticleT::ParticleT(const ElementSupportT& support):
 	fDmax(0),
 	fForce_man(fForce),
 	fActiveParticles(NULL),
-	fRandom(NULL)
+	fRandom(NULL),
+	fTypeMessageID(CommManagerT::kNULLMessageID)
 {
 	SetName("particle");
 
@@ -108,131 +109,8 @@ ParticleT::~ParticleT(void)
 	
 }
 
-/* initialization */
-void ParticleT::Initialize(void)
-{
-ExceptionT::GeneralFail("ParticleT::Initialize", "delete me");
-#if 0
-	const char caller[] = "ParticleT::Initialize";
-
-	/* inherited */
-	ElementBaseT::Initialize();
-	
-	/* allocate work space */
-	fForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-	/* write parameters */
-	ofstreamT& out = ElementSupport().Output();
-	int d_width = OutputWidth(out, &fNeighborDistance);
-	out << " Neighbor cut-off distance . . . . . . . . . . . = " << fNeighborDistance << '\n';
-	out << " Re-neighboring displacement trigger . . . . . . = " << fReNeighborDisp << '\n';
-	out << " Re-neighboring interval . . . . . . . . . . . . = " << fReNeighborIncr << '\n';
-
-	/* periodic boundary conditions */
-	fPeriodicBounds.Dimension(NumSD(), 2);
-	fPeriodicBounds = 0.0;
-	fPeriodicLengths.Dimension(NumSD());
-	fPeriodicLengths=0.0;
-	fStretchSchedule.Dimension(NumSD());
-	fStretchSchedule = NULL;
-
-	out << " Periodic boundary conditions:\n";
-	out << setw(kIntWidth) << "dir"
-	    << setw(d_width) << "min"
-	    << setw(d_width) << "max" << '\n';
-	ifstreamT& in = ElementSupport().Input();
-	fhas_periodic=0;
-
-	for (int i = 0; i < NumSD(); i++) {
-	
-		out << setw(kIntWidth) << i+1;
-
-		 int has_periodic = 0;
-		in >> has_periodic;
-		
-		if (has_periodic > 0) {
-		  fhas_periodic= fhas_periodic|has_periodic;
-			double x_min = 0.0, x_max = 0.0;
-			in >> x_min >> x_max;
-			out << setw(d_width) << x_min << setw(d_width) << x_max << '\n';
-			if (x_min > x_max)
-				ExceptionT::BadInputValue(caller, "x_min > x_max: %g < %g", x_min, x_max);
-
-			fPeriodicLengths[i]=x_max-x_min;
-			/* store */
-			fPeriodicBounds(i,0) = x_min;
-			fPeriodicBounds(i,1) = x_max;
-
-
-			/* send to CommManagerT */
-			ElementSupport().CommManager().SetPeriodicBoundaries(i, x_min, x_max);
-
-			
-			/* read stretch schedule */
-			if (has_periodic > 1) {
-				int schedule = -99;
-				in >> schedule;
-				schedule--;
-				fStretchSchedule[i] = ElementSupport().Schedule(schedule);
-				
-				/* check - expecting f(0) = 1 */
-				if (fabs(fStretchSchedule[i]->Value(0.0) - 1.0) > kSmall)
-					ExceptionT::BadInputValue(caller, "schedule %d does not have value 1 at time 0", schedule+1);
-			}
-
-		}
-		else out << setw(d_width) << "-" << setw(d_width) << "-" << '\n';
-	}
-	
-	/* read properties information */
-	EchoProperties(in, out);
-
-	StringT key;
-	in>>key;
-	if (key =="lattice") in >> fLatticeParameter;
-	else
-	  {
-	    in.rewind();
-	    fLatticeParameter = 4.08; //defaults to gold
-	  }
-
-	if (NumSD()==1)
-		NearestNeighborDistance=fLatticeParameter*1.1;
-    else if (NumSD()==2)
-		NearestNeighborDistance=fLatticeParameter*1.1;
-    else if (NumSD()==3)
-		NearestNeighborDistance=fLatticeParameter*.78;
-
-	/* set up communication of type information */
-	fTypeMessageID = ElementSupport().CommManager().Init_AllGather(MessageT::Integer, 1);
-
-	/* map of {type_a, type_b} -> potential number */
-	fPropertiesMap.Dimension(fNumTypes);
-	fPropertiesMap = -1;
-	for (int i = 0; i < fPropertiesMap.Length(); i++)
-	{
-		int a, b, pot_num;
-		in >> a >> b >> pot_num;
-		a--; b--; /* offset */
-		if (fPropertiesMap(a,b) != -1) 
-			ExceptionT::BadInputValue(caller, "potential map(%d,%d) is already assigned to %d", a, b, fPropertiesMap(a,b));
-		else if (pot_num < 1 && pot_num > fNumTypes)
-			ExceptionT::BadInputValue(caller, "potential %d is out of range (%d,%d)", pot_num, 1, fNumTypes);
-		else
-			fPropertiesMap(a,b) = pot_num;
-	}
-	fPropertiesMap--; /* offset */
-
-	/* set the neighborlists */
-	SetConfiguration();
-
-	EchoDamping(in, out);
-#endif
-}
-
 /* form of tangent matrix */
-GlobalT::SystemTypeT ParticleT::TangentType(void) const
-{
+GlobalT::SystemTypeT ParticleT::TangentType(void) const {
 	return GlobalT::kSymmetric;
 }
 
@@ -465,6 +343,8 @@ void ParticleT::SetConfiguration(void)
 	fType.Resize(nnd);
 	
 	/* exchange type information */
+	if (fTypeMessageID == CommManagerT::kNULLMessageID)
+		fTypeMessageID = ElementSupport().CommManager().Init_AllGather(MessageT::Integer, 1);
 	iArray2DT type_wrapper(fType.Length(), 1, fType.Pointer());
 	comm_manager.AllGather(fTypeMessageID, type_wrapper);
 	
@@ -1125,9 +1005,6 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 		/* send to CommManagerT */
 		ElementSupport().CommManager().SetPeriodicBoundaries(direction, x_min, x_max);
 	}
-
-	/* set up communication of type information */
-	fTypeMessageID = ElementSupport().CommManager().Init_AllGather(MessageT::Integer, 1);
 
 	/* resolve types */
 	fType.Dimension(ElementSupport().NumNodes());
