@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.20 2002-07-19 20:17:20 hspark Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.20.2.1 2002-10-11 00:23:12 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -9,10 +9,14 @@
 
 #include "ModelManagerT.h"
 #include "fstreamT.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
+#ifndef _SIERRA_TEST_
 #include "FieldT.h"
+#endif
 #include "LocalArrayT.h"
+#ifndef _SIERRA_TEST_
 #include "eControllerT.h"
+#endif
 
 /* array behavior */
 
@@ -23,6 +27,7 @@ const bool ArrayT<const RaggedArray2DT<int>*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */
+#ifndef _SIERRA_TEST_
 ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):
 	fSupport(support),
 	fField(field),
@@ -33,6 +38,17 @@ ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):
 	/* just cast it */
 	fController = fSupport.eController(field);
 }
+#else
+ElementBaseT::ElementBaseT(const ElementSupportT& support):
+	fSupport(support),
+	fController(NULL),
+	fElementCards(0),
+	fLHS(ElementMatrixT::kSymmetric)
+{
+	/* just cast it */
+//	fController = fSupport.eController(field);
+}
+#endif
 
 /* destructor */
 ElementBaseT::~ElementBaseT(void) {	}
@@ -50,10 +66,10 @@ void ElementBaseT::Initialize(void)
 	/* streams */
 	ifstreamT& in = fSupport.Input();
 	ostream&   out = fSupport.Output();
-
+#ifndef _SIERRA_TEST_
 	/* control data */
 	PrintControlData(out);
-
+#endif
 	/* element connectivity data */
 	EchoConnectivityData(in, out);
 
@@ -91,13 +107,19 @@ void ElementBaseT::FormLHS(void)
 	try { LHSDriver(); }
 	catch (int error)
 	{
+#ifndef _SIERRA_TEST_
 		cout << "\n ElementBaseT::FormLHS: " << fSupport.Exception(error);
+#endif
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
 		
 		if (fElementCards.InRange())
 		{
+#ifndef _SIERRA_TEST_		
 			ostream& out = fSupport.Output();
+#else
+			ostream& out = cout;
+#endif
 		
 			/* header */
 			out << "\n ElementBaseT::FormLHS: caught exception " << error << '\n';
@@ -121,14 +143,19 @@ void ElementBaseT::FormRHS(void)
 	try { RHSDriver(); }
 	catch (int error)
 	{
+#ifndef _SIERRA_TEST_
 		cout << "\n ElementBaseT::FormRHS: " << fSupport.Exception(error);
+#endif
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
 		
 		if (fElementCards.InRange())
 		{
+#ifndef _SIERRA_TEST_		
 			ostream& out = fSupport.Output();
-		
+#else
+			ostream& out = cout;
+#endif		
 			/* header */
 			out << "\n ElementBaseT::FormRHS: caught exception " << error << '\n';
 			out <<   "      Time: " << fSupport.Time() << '\n';
@@ -168,6 +195,7 @@ void ElementBaseT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	if (fConnectivities.Length() != fEqnos.Length()) throw eSizeMismatch;
 #endif
 
+#ifndef _SIERRA_TEST_
 	/* loop over connectivity blocks */
 	for (int i = 0; i < fEqnos.Length(); i++)
 	{
@@ -177,6 +205,9 @@ void ElementBaseT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		/* add to list of equation numbers */
 		eq_1.Append(&fEqnos[i]);
 	}
+#else
+#pragma unused(eq_1)
+#endif
 }
 
 /* appends group connectivities to the array (X -> geometry, U -> field) */
@@ -218,12 +249,17 @@ void ElementBaseT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 
 #endif
 
+#ifndef _SIERRA_TEST_
 	const dArray2DT& all_DOFs = fField[0]; // displacements
 	DOFs.RowCollect(nodes, all_DOFs); // no check of nodes used
 
 //NOTE - This function is added only for completeness. If the
 //       DOF's are interpolant, there should be no reason to
 //       collect the displacements in this way. Use SetLocalU
+#else
+#pragma unused(nodes)
+#pragma unused(DOFs)
+#endif
 }
 
 /* block ID for the specified element */
@@ -323,12 +359,16 @@ const LocalArrayT& ElementBaseT::SetLocalU(LocalArrayT& localarray)
 /* assembling the left and right hand sides */
 void ElementBaseT::AssembleRHS(void) const
 {
+#ifndef _SIERRA_TEST_
 	fSupport.AssembleRHS(fField.Group(), fRHS, CurrentElement().Equations());
+#endif
 }
 
 void ElementBaseT::AssembleLHS(void) const
 {
+#ifndef _SIERRA_TEST_
 	fSupport.AssembleLHS(fField.Group(), fLHS, CurrentElement().Equations());
+#endif
 }
 
 /* print element group data */
@@ -340,9 +380,10 @@ void ElementBaseT::PrintControlData(ostream& out) const
 /* echo element connectivity data, resolve material pointers
 * and set the local equation numbers */
 void ElementBaseT::EchoConnectivityData(ifstreamT& in, ostream& out)
-{	
+{
+#ifndef _SIERRA_TEST_	
 	out << "\n Element Connectivity:\n";
-	
+#endif	
 	/* read */
 	ReadConnectivity(in, out);
 
@@ -358,23 +399,36 @@ void ElementBaseT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	/* set pointers in element cards */
 	SetElementCards();
 
+#ifndef _SIERRA_TEST_
 	/* write */
 	WriteConnectivity(out);
+#endif
 }
 
 /* resolve input format types */
 void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 {
-#pragma unused(out)
-
 	/* read from parameter file */
 	ArrayT<StringT> elem_ID;
 	iArrayT matnums;
 	ModelManagerT& model = fSupport.Model();
+#ifndef _SIERRA_TEST_
 	model.ElementBlockList(in, elem_ID, matnums);
+#else
+	/* For Sierra, can't use input stream. Right now, make an array 
+	 * whose first entry is the number of element blocks (should be
+	 * 1) and then there are two entries for each element block. 
+	 * First entry is index for 1st block, 2nd etc. Second entry
+	 * is the element block number (should be 1 again)
+	 */
+	iArrayT inStream(3);
+	inStream = 1; 
+	model.ElementBlockList(inStream,elem_ID, matnums);
+#endif
 
 	/* allocate block map */
 	int num_blocks = elem_ID.Length();
+	cout <<"In ElementBaseT num_blocks = "<<num_blocks;
 	fBlockData.Allocate(num_blocks);
 	fConnectivities.Allocate (num_blocks);
 
@@ -565,6 +619,8 @@ const ElementBlockDataT& ElementBaseT::BlockData(const StringT& block_ID) const
 /* write all current element information to the stream */
 void ElementBaseT::CurrElementInfo(ostream& out) const
 {
+#pragma unused(out)
+#ifndef _SIERRA_TEST_
 	if (!fElementCards.InRange()) return;
 	
 	out << "\n element group: " << fSupport.ElementGroupNumber(this) + 1 << '\n';
@@ -621,6 +677,7 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 
 	out <<   " equations:\n";
 	out << (CurrentElement().Equations()).wrap(4) << '\n';
+#endif
 }
 
 /* set element cards array */
@@ -639,7 +696,7 @@ void ElementBaseT::SetElementCards(void)
 	//fElementCards.Allocate(fNumElements);
 
 	/* loop over blocks to set pointers */
-	int numberofnodes = fField.NumNodes();
+	int numberofnodes = fSupport.NumNodes();
 	int count = 0;
 	for (int i = 0; i < fBlockData.Length(); i++)
 	{

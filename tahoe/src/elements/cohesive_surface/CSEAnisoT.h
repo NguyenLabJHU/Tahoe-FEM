@@ -1,7 +1,11 @@
-/* $Id: CSEAnisoT.h,v 1.15 2002-08-22 23:56:39 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.15.4.1 2002-10-11 00:23:13 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
+
+#ifndef _SIERRA_TEST_
+#define _SIERRA_TEST_
+#endif
 
 /* base class */
 #include "CSEBaseT.h"
@@ -26,9 +30,13 @@ class CSEAnisoT: public CSEBaseT
 {
 public:
 
-	/* constructor */
+	/* constructors */
+#ifndef _SIERRA_TEST_
 	CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate);
-
+#else
+	CSEAnisoT(const ElementSupportT& support, bool rotate);
+#endif
+	
 	/* destructor */
 	~CSEAnisoT(void);
 

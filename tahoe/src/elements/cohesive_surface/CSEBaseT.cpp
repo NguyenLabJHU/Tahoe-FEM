@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.13 2002-08-23 09:20:39 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.13.2.1 2002-10-11 00:23:13 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -8,7 +8,7 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "SurfaceShapeT.h"
 #include "iAutoArrayT.h"
 #include "OutputSetT.h"
@@ -21,6 +21,7 @@ using namespace Tahoe;
 const int CSEBaseT::NumNodalOutputCodes = 5;
 const int CSEBaseT::NumElementOutputCodes = 3;
 
+#ifndef _SIERRA_TEST_
 /* constructor */
 CSEBaseT::CSEBaseT(const ElementSupportT& support, const FieldT& field):
 	ElementBaseT(support, field),
@@ -59,6 +60,52 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support, const FieldT& field):
 	if (fOutputArea != 0 &&
 	    fOutputArea != 1) throw eBadInputValue;
 }
+#else
+/* constructor */
+CSEBaseT::CSEBaseT(const ElementSupportT& support):
+	ElementBaseT(support),
+	fLocInitCoords1(LocalArrayT::kInitCoords),
+	fLocCurrCoords(LocalArrayT::kCurrCoords),
+	fFractureArea(0.0),
+	fShapes(NULL)
+{
+#ifndef _SIERRA_TEST_
+	/* read control parameters */
+	ifstreamT& in = ElementSupport().Input();
+
+	in >> fGeometryCode;
+	in >> fNumIntPts;
+	in >> fCloseSurfaces;
+	in >> fOutputArea;
+#else
+	fGeometryCode = GeometryT::kQuadrilateral;
+	fNumIntPts = 4;
+	fCloseSurfaces = 0;
+	fOutputArea = 0;
+#endif
+	/* checks */
+	if (NumSD() == 2 && fGeometryCode != GeometryT::kLine)
+	{
+		cout << "\n CSEBaseT::CSEBaseT: expecting geometry code "
+		     << GeometryT::kLine<< " for 2D: " << fGeometryCode << endl;
+		throw eBadInputValue;
+	}
+	else if (NumSD() == 3 &&
+	         fGeometryCode != GeometryT::kQuadrilateral &&
+	         fGeometryCode != GeometryT::kTriangle)
+	{
+		cout << "\n CSEBaseT::CSEBaseT: expecting geometry code " << GeometryT::kQuadrilateral
+		     << " or\n" <<   "     " << GeometryT::kTriangle << " for 3D: "
+		     << fGeometryCode << endl;
+		throw eBadInputValue;
+	}
+	
+	if (fCloseSurfaces != 0 &&
+	    fCloseSurfaces != 1) throw eBadInputValue;
+	if (fOutputArea != 0 &&
+	    fOutputArea != 1) throw eBadInputValue;
+}
+#endif // _SIERRA_TEST_
 
 /* destructor */
 CSEBaseT::~CSEBaseT(void)
@@ -96,6 +143,7 @@ void CSEBaseT::Initialize(void)
 
 	/* echo output codes (one at a time to allow comments) */
 	fNodalOutputCodes.Allocate(NumNodalOutputCodes);
+#ifndef _SIERRA_TEST_	
 	ifstreamT& in = ElementSupport().Input();
 	ostream&   out = ElementSupport().Output();
 	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
@@ -121,8 +169,9 @@ void CSEBaseT::Initialize(void)
 
 	fElementOutputCodes.Allocate(NumElementOutputCodes);
 	fElementOutputCodes = IOBaseT::kAtNever;
-
+#endif
 //TEMP - backward compatibility
+#ifndef _SIERRA_TEST_
 	if (StringT::versioncmp(ElementSupport().Version(), "v3.01") < 1)
 	{
 		/* message */
@@ -164,10 +213,11 @@ void CSEBaseT::Initialize(void)
 	out << "    [" << fElementOutputCodes[Centroid      ] << "]: centroid\n";
 	out << "    [" << fElementOutputCodes[CohesiveEnergy] << "]: dissipated cohesive energy\n";
 	out << "    [" << fElementOutputCodes[Traction      ] << "]: average traction\n";
+#endif
 	
 	/* close surfaces */
 	if (fCloseSurfaces) CloseSurfaces();
-
+#ifndef _SIERRA_TEST_
 	/* output stream */
 	if (fOutputArea == 1)
 	{
@@ -180,6 +230,7 @@ void CSEBaseT::Initialize(void)
 		/* open stream */
 		farea_out.open(name);
 	}
+#endif
 }
 
 /* initial condition/restart functions (per time sequence) */
@@ -268,6 +319,7 @@ void CSEBaseT::RegisterOutput(void)
 		throw eGeneralFail;	
 	}	
 
+#ifndef _SIERRA_TEST_	
 	/* nodal output */
 	iArrayT n_counts;
 	SetNodalOutputCodes(IOBaseT::kAtInc, fNodalOutputCodes, n_counts);
@@ -289,14 +341,18 @@ void CSEBaseT::RegisterOutput(void)
 	set_ID.Append(ElementSupport().ElementGroupNumber(this) + 1);
 	OutputSetT output_set(set_ID, geo_code, block_ID, fOutput_Connectivities, 
 		n_labels, e_labels, false);
-		
+
+
 	/* register and get output ID */
 	fOutputID = ElementSupport().RegisterOutput(output_set);
+#endif
 }
 
 //NOTE - this function is identical to ContinuumElementT::WriteOutput
 void CSEBaseT::WriteOutput(IOBaseT::OutputModeT mode)
 {
+#pragma unused(mode)
+#ifndef _SIERRA_TEST_
 //TEMP - not handling general output modes yet
 	if (mode != IOBaseT::kAtInc)
 	{
@@ -325,6 +381,7 @@ void CSEBaseT::WriteOutput(IOBaseT::OutputModeT mode)
 
 	/* send to output */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+#endif
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -402,11 +459,12 @@ void CSEBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	if ((nsd == 2 && nen != 4 && nen != 6) || 
 	    (nsd == 3 && nen != 8 && nen != 16))
 	{
+#ifndef _SIERRA_TEST_	
 		/* message */
 		ostream& out = ElementSupport().Output();
 		cout << "\n CSEBaseT::ReadConnectivity: detected higher order elements\n";
 		out  << "\n CSEBaseT::ReadConnectivity: detected higher order elements\n";
-
+#endif
 		/* the geometry manager */
 		ModelManagerT& model = ElementSupport().Model();
 
@@ -434,8 +492,9 @@ void CSEBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 			{
 				/* message */
 		     	cout << "     translating element block ID " << id << endl;
+#ifndef _SIERRA_TEST_		     	
 		     	out  << "     translating element block ID " << id << endl;
-
+#endif
 				/* translate */
 				const iArray2DT& source = *(fOutput_Connectivities[b]);
 				iArray2DT dest(source.MajorDim(), map.Length());
@@ -460,8 +519,9 @@ void CSEBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 
 			/* message */
 			cout << "     block ID " << id << " replaced by ID " << new_id << endl;
+#ifndef _SIERRA_TEST_			
 			out  << "     block ID " << id << " replaced by ID " << new_id << endl;
-
+#endif
 			/* set pointer to connectivity list */
 			fConnectivities[b] = model.ElementGroupPointer(new_id);
 			
@@ -494,6 +554,7 @@ void CSEBaseT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& fla
 void CSEBaseT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 	iArrayT& counts) const
 {
+#ifndef _SIERRA_TEST_
 	/* initialize */
 	counts.Allocate(flags.Length());
 	counts = 0;
@@ -504,12 +565,19 @@ void CSEBaseT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& f
 		counts[CohesiveEnergy] = 1;
 	if (flags[Traction] == mode)
 		counts[Traction] = 1;
+#else
+#pragma unused(mode)
+#pragma unused(flags)
+#pragma unused(counts)
+#endif
 }
 
 /* construct output labels array */
 void CSEBaseT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels,
 	const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
 {
+#ifndef _SIERRA_TEST_
+
 	/* allocate nodal output labels */
 	n_labels.Allocate(n_codes.Sum());
 
@@ -543,11 +611,18 @@ void CSEBaseT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_l
 	}
 	if (e_codes[CohesiveEnergy]) e_labels[count++] = "phi";
 	if (e_codes[Traction]) e_labels[count++] = "Tmag";
+#else
+#pragma unused(n_codes)
+#pragma unused(n_labels)
+#pragma unused(e_codes)
+#pragma unused(e_labels)
+#endif
 }
 
 /* write all current element information to the stream */
 void CSEBaseT::CurrElementInfo(ostream& out) const
 {
+#ifndef _SIERRA_TEST_
 	/* inherited */
 	ElementBaseT::CurrElementInfo(out);
 	dArray2DT temp;
@@ -561,6 +636,9 @@ void CSEBaseT::CurrElementInfo(ostream& out) const
 	temp.Allocate(fLocCurrCoords.NumberOfNodes(), fLocCurrCoords.MinorDim());
 	fLocCurrCoords.ReturnTranspose(temp);
 	temp.WriteNumbered(out);
+#else
+#pragma unused(out)
+#endif
 }
 
 /***********************************************************************

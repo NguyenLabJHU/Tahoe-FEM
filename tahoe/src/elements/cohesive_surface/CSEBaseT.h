@@ -1,5 +1,8 @@
-/* $Id: CSEBaseT.h,v 1.7 2002-07-05 22:27:58 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.7.4.1 2002-10-11 00:23:13 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
+#ifndef _TAHOE_FRACTURE_INTERFACE_
+#define _TAHOE_FRACTURE_INTERFACE_
+#endif
 
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -43,8 +46,12 @@ public:
            CohesiveEnergy = 1, /**< dissipated energy */
                  Traction = 2  /**< element-averaged traction */ };
 
-	/* constructor */
+	/* constructors */
+#ifndef _SIERRA_TEST_
 	CSEBaseT(const ElementSupportT& support, const FieldT& field);
+#else
+	CSEBaseT(const ElementSupportT& support);
+#endif
 
 	/* destructor */
 	~CSEBaseT(void);

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.14 2002-07-20 08:01:13 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.14.4.1 2002-10-11 00:23:12 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -18,7 +18,9 @@
 #include "IOBaseT.h"
 #include "ElementBlockDataT.h"
 #include "ElementSupportT.h"
+#ifndef _SIERRA_TEST_
 #include "FieldT.h"
+#endif
 
 #include "ios_fwd_decl.h"
 
@@ -53,8 +55,12 @@ class ElementBaseT: public iConsoleObjectT
 {
 public:
 
-	/** constructor */
+	/** constructors */
+#ifndef _SIERRA_TEST_
 	ElementBaseT(const ElementSupportT& support, const FieldT& field);
+#else
+	ElementBaseT(const ElementSupportT& support);
+#endif
 
 	/** destructor */
 	virtual ~ElementBaseT(void);
@@ -70,7 +76,7 @@ public:
 	int NumElementNodes(void) const;
 
 	/** solver group */
-	int Group(void) const { return fField.Group(); };
+	int Group(void) const { return 0; };//fField.Group(); };
 
 	/** form of tangent matrix, symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const = 0;
@@ -81,11 +87,13 @@ public:
 	/** the source */
 	const ElementSupportT& ElementSupport(void) const { return fSupport; };
 
+#ifndef _SIERRA_TEST_
 	/** field information */
 	const FieldT& Field(void) const { return fField; };
 
 	/** return a const reference to the run state flag */
 	const GlobalT::StateT& RunState(void) const { return fSupport.RunState(); };
+#endif
 
 	/** the iteration number for the current time increment */
 	const int& IterationNumber(void) const;
@@ -97,7 +105,7 @@ public:
 	int NumSD(void) const { return fSupport.NumSD(); };
 
 	/** return the number of degrees of freedom per node */
-	int NumDOF(void) const { return fField.NumDOF(); };
+	int NumDOF(void) const { return 3;};//fField.NumDOF(); };
 	/*@}*/
 
 	/** class initialization. Among other things, element work space
@@ -301,7 +309,9 @@ private:
 	 * Available to sub-classes through access methods */
 	/*@{*/
 	const ElementSupportT& fSupport;
+#ifndef _SIERRA_TEST_
 	const FieldT& fField;
+#endif
 	/*@}*/
 };
 
