@@ -34,8 +34,17 @@ class PowerLawIKinetics: public SlipKinetics
   virtual void Print(ostream& out) const;
   virtual void PrintName(ostream& out) const;
 
+  // continuation method using rate sensitivity exponent
+  virtual void SetUpRateSensitivity();
+  virtual void ComputeRateSensitivity();
+  virtual bool IsMaxRateSensitivity();
+
  private:
 
+  // variables used in setting up continuation method
+  double fxm;
+  double fk;
+  double fkmax;
 };
 
 #endif  /* _POWER_LAW_I_KINETICS_H_ */
