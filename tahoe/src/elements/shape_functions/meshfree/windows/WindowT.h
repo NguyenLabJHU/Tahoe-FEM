@@ -1,10 +1,13 @@
-/* $Id: WindowT.h,v 1.6 2001-06-19 23:22:08 paklein Exp $ */
+/* $Id: WindowT.h,v 1.7 2002-07-02 19:57:07 cjkimme Exp $ */
 
 #ifndef _WINDOW_T_H_
 #define _WINDOW_T_H_
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 class dArrayT;
 class dArray2DT;
@@ -102,4 +105,5 @@ inline void WindowT::WriteParameters(ostream& out) const
 #pragma unused(out)
 }
 
+} // namespace Tahoe 
 #endif /* _WINDOW_T_H_ */

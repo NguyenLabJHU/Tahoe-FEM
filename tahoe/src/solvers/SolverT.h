@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.5 2002-06-08 20:20:55 paklein Exp $ */
+/* $Id: SolverT.h,v 1.6 2002-07-02 19:57:12 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _SOLVER_H_
@@ -16,6 +16,9 @@
 #include "GlobalT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class FEManagerT;
 class iArrayT;
 class iArray2DT;
@@ -189,4 +192,5 @@ inline const dArrayT& SolverT::RHS(void) const { return fRHS; }
 /* accessor */
 inline const int& SolverT::IterationNumber(void) const { return fNumIteration; }
 
+} // namespace Tahoe 
 #endif /* _SOLVER_H_ */

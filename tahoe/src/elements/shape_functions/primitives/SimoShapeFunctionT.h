@@ -1,4 +1,4 @@
-/* $Id: SimoShapeFunctionT.h,v 1.5 2001-08-20 06:52:10 paklein Exp $ */
+/* $Id: SimoShapeFunctionT.h,v 1.6 2002-07-02 19:57:09 cjkimme Exp $ */
 
 #ifndef _SIMO_SHAPE_FUNCTION_T_H_
 #define _SIMO_SHAPE_FUNCTION_T_H_
@@ -9,6 +9,9 @@
 /** enhanced modes shape functions. for use in conjunction with element
  * formulation due to Simo, Armero, and Taylor, CMAME \b 110, 359-386, 1993 
  * \note equation numbers refer to the paper. */
+
+namespace Tahoe {
+
 class SimoShapeFunctionT: public ShapeFunctionT
 {
 public:
@@ -117,4 +120,5 @@ inline void SimoShapeFunctionT::GradU_enhanced(const LocalArrayT& nodal,
 	fDomain->Jacobian(nodal, fDNaX_bubble[IPnumber], grad_U);
 }
 
+} // namespace Tahoe 
 #endif /* _SIMO_SHAPE_FUNCTION_T_H_ */

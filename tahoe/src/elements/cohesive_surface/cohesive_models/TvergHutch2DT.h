@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.h,v 1.6 2002-04-16 21:19:33 cjkimme Exp $ */
+/* $Id: TvergHutch2DT.h,v 1.7 2002-07-02 19:55:17 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _TVERG_HUTCH_2D_T_H_
@@ -8,6 +8,9 @@
 #include "SurfacePotentialT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ifstreamT;
 
 /** cohesive potential from Tvergaard and Hutchinson. This model is
@@ -82,4 +85,5 @@ private:
 	                  * and the initial stiffness of the cohesive potential */
 };
 
+} // namespace Tahoe 
 #endif /* _TVERG_HUTCH_2D_T_H_ */

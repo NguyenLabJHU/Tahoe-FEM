@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.21 2002-03-22 02:25:47 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.22 2002-07-02 19:55:30 cjkimme Exp $ */
 /* created: paklein (09/21/1997) */
 
 #include "FEExecutionManagerT.h"
@@ -37,6 +37,9 @@
 #include "OutputBaseT.h"
 
 /* Constructor */
+
+using namespace Tahoe;
+
 FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
 	char batch_char):
 	ExecutionManagerT(argc, argv, job_char, batch_char, 0)

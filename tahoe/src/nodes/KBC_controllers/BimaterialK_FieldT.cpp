@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.6 2002-06-08 20:20:51 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.7 2002-07-02 19:56:35 cjkimme Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "BimaterialK_FieldT.h"
@@ -9,6 +9,9 @@
 #include "Material2DT.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 const double Pi = acos(-1.0);
 
 /* constructor */

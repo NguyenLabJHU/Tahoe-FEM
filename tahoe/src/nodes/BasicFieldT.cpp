@@ -1,8 +1,11 @@
-/* $Id: BasicFieldT.cpp,v 1.2 2002-06-08 20:20:47 paklein Exp $ */
+/* $Id: BasicFieldT.cpp,v 1.3 2002-07-02 19:56:26 cjkimme Exp $ */
 #include "BasicFieldT.h"
 #include "iArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 BasicFieldT::BasicFieldT(const StringT& name, int ndof, int order):
 	fName(name),
 	fField(order+1),

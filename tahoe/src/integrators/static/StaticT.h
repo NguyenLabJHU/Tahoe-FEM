@@ -1,4 +1,4 @@
-/* $Id: StaticT.h,v 1.1 2002-04-02 23:20:41 paklein Exp $ */
+/* $Id: StaticT.h,v 1.2 2002-07-02 19:55:09 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _STATIC_T_H_
@@ -8,6 +8,9 @@
 #include "ControllerT.h"
 
 /** explicit, central differences time integrator */
+
+namespace Tahoe {
+
 class StaticT: public virtual ControllerT
 {
 public:
@@ -29,4 +32,5 @@ public:
 	/*@}*/
 };
 
+} // namespace Tahoe 
 #endif /* _STATIC_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.15 2002-06-25 14:14:12 sawimme Exp $ */
+/* $Id: IOManager.cpp,v 1.16 2002-07-02 19:55:30 cjkimme Exp $ */
 /* created: sawimme (10/12/1999) */
 
 #include "IOManager.h"
@@ -14,6 +14,9 @@
 #include "EnSightOutputT.h"
 #include "AbaqusOutputT.h"
 #include "TecPlotOutputT.h"
+
+
+using namespace Tahoe;
 
 IOManager::IOManager(ostream& outfile, const StringT& program_name,
 	const StringT& version, const StringT& title, const StringT& input_file,

@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.h,v 1.6 2002-04-02 23:38:43 paklein Exp $ */
+/* $Id: CCSMatrixT.h,v 1.7 2002-07-02 19:56:45 cjkimme Exp $ */
 /* created: paklein (05/29/1996) */
 /* This is the interface for a Symmetric matrix stored in                 */
 /* Compact Column form.                                                   */
@@ -21,6 +21,8 @@
 
 /* direct members */
 #include "LinkedListT.h"
+
+namespace Tahoe {
 
 class CCSMatrixT: public GlobalMatrixT
 {
@@ -179,4 +181,5 @@ inline bool CCSMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
 	return CCSMatrixT::Multx(x, b);
 }
 
+} // namespace Tahoe 
 #endif /* _CCSMATRIX_T_H_ */

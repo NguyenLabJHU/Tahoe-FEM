@@ -7,6 +7,9 @@
 
 #include "NewtonMethodBase.h"
 
+
+namespace Tahoe {
+
 class NewtonMethod : public NewtonMethodBase
 {
  public:
@@ -18,4 +21,5 @@ class NewtonMethod : public NewtonMethodBase
   virtual NewtonMethodBase* clone() const;
 };
 
+} // namespace Tahoe 
 #endif /* _NEWTON_METHOD_H_ */

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.5 2002-06-08 20:20:45 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.6 2002-07-02 19:56:22 cjkimme Exp $ */
 /* created: paklein (06/09/1997) */
 
 #include "FSSolidMatT.h"
@@ -8,6 +8,9 @@
 #include "ThermalDilatationT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 FSSolidMatT::FSSolidMatT(ifstreamT& in, const FiniteStrainT& element):
 	StructuralMaterialT(in, element),
 	TensorTransformT(NumSD()),

@@ -1,4 +1,4 @@
-/* $Id: SWDiamond100.cpp,v 1.2 2001-07-03 01:34:59 paklein Exp $ */
+/* $Id: SWDiamond100.cpp,v 1.3 2002-07-02 19:55:34 cjkimme Exp $ */
 /* created: paklein (08/25/1996)                                          */
 
 #include "SWDiamond100.h"
@@ -6,6 +6,9 @@
 #include <iostream.h>
 
 /* constructor */
+
+using namespace Tahoe;
+
 SWDiamond100::SWDiamond100(ifstreamT& in, const FiniteStrainT& element):
 	SWMaterial2D(in, element)
 {

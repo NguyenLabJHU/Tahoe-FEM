@@ -1,4 +1,4 @@
-/* $Id: VoterChenAl.cpp,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* $Id: VoterChenAl.cpp,v 1.2 2002-07-02 19:55:37 cjkimme Exp $ */
 /* created: paklein (12/04/1996)                                          */
 /* VoterChenAl.cpp                                                        */
 
@@ -7,6 +7,9 @@
 #include "CubicSplineT.h"
 
 /* lattice parameters */
+
+using namespace Tahoe;
+
 const double kLatticeParameterAl = 4.05; /* angstrom */
 const double kCutoffRadiusAl 	 = 5.5550; /* angstrom */
 

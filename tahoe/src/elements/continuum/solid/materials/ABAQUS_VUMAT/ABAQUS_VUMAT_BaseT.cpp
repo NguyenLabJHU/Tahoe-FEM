@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.11 2002-06-27 23:38:13 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.12 2002-07-02 19:55:33 cjkimme Exp $ */
 
 #include "ABAQUS_VUMAT_BaseT.h"
 
@@ -16,6 +16,9 @@
 #define VUMAT_DEBUG 0
 
 /* constructor */
+
+using namespace Tahoe;
+
 ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& element):
 	FDStructMatT(in, element),
 	fRunState(ContinuumElement().RunState()),

@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.cpp,v 1.2 2002-06-08 20:20:18 paklein Exp $ */
+/* $Id: YoonAllen2DT.cpp,v 1.3 2002-07-02 19:55:17 cjkimme Exp $ */
 
 #include "YoonAllen2DT.h"
 
@@ -11,6 +11,9 @@
 #include "SecantMethodT.h"
 
 /* class parameters */
+
+using namespace Tahoe;
+
 const int knumDOF = 2;
 
 /* constructor */

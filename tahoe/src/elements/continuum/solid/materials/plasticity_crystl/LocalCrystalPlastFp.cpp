@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.7 2002-06-08 20:20:42 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.8 2002-07-02 19:56:14 cjkimme Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -15,6 +15,9 @@
 #include "ContinuumElementT.h"
 
 /* spatial dimensions of the problem */
+
+using namespace Tahoe;
+
 const int kNSD = 3;
 
 /* useful constant */

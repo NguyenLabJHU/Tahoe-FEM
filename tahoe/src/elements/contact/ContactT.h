@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.3 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: ContactT.h,v 1.4 2002-07-02 19:55:19 cjkimme Exp $ */
 /* created: paklein (12/11/1997) */
 
 #ifndef _CONTACT_T_H_
@@ -12,6 +12,9 @@
 #include "LocalArrayT.h"
 #include "dArray2DT.h"
 #include "nVariArray2DT.h"
+
+
+namespace Tahoe {
 
 class ContactT: public ElementBaseT
 {
@@ -128,4 +131,5 @@ private:
 //      due with strikers? For now do not return decomposition connects
 };
 
+} // namespace Tahoe 
 #endif /* _CONTACT_T_H_ */

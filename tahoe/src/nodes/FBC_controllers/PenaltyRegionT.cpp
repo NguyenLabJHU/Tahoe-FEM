@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.6 2002-06-08 20:20:49 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.7 2002-07-02 19:56:28 cjkimme Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
@@ -16,6 +16,9 @@
 #include "ScheduleT.h"
 #include "eControllerT.h"
 #include "IOBaseT.h"
+
+
+using namespace Tahoe;
 
 const double Pi = acos(-1.0);
 

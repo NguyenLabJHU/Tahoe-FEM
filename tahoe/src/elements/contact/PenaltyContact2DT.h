@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.h,v 1.2 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: PenaltyContact2DT.h,v 1.3 2002-07-02 19:55:19 cjkimme Exp $ */
 /* created: paklein (12/11/1997) */
 
 #ifndef _PENALTY_CONTACT2D_T_H_
@@ -6,6 +6,8 @@
 
 /* base classes */
 #include "Contact2DT.h"
+
+namespace Tahoe {
 
 class PenaltyContact2DT: public Contact2DT
 {
@@ -42,5 +44,7 @@ private:
 	int    fnum_contact;
 	double fh_max;
 };
+
+} // namespace Tahoe
 
 #endif /* _PENALTY_CONTACT2D_T_H_ */

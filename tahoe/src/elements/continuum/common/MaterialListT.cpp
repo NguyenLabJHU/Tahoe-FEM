@@ -1,10 +1,13 @@
-/* $Id: MaterialListT.cpp,v 1.3 2002-06-08 20:20:40 paklein Exp $ */
+/* $Id: MaterialListT.cpp,v 1.4 2002-07-02 19:56:05 cjkimme Exp $ */
 /* created: paklein (02/16/1997) */
 
 #include "MaterialListT.h"
 #include "ContinuumMaterialT.h"
 
 /* constructors */
+
+using namespace Tahoe;
+
 MaterialListT::MaterialListT(int length):
 	pArrayT<ContinuumMaterialT*>(length),
 	fHasHistory(false)

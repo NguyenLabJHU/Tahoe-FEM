@@ -1,4 +1,4 @@
-/* $Id: CrystalElastLat.h,v 1.2 2001-08-20 22:15:40 rdorgan Exp $ */
+/* $Id: CrystalElastLat.h,v 1.3 2002-07-02 19:56:03 cjkimme Exp $ */
 /*
   File: CrystalElastLat.h
 */
@@ -10,6 +10,9 @@
 #include "ArrayT.h"
 #include "dArrayT.h"
 #include "Array2DT.h"
+
+
+namespace Tahoe {
 
 class CrystalElast;
 class ifstreamT;
@@ -66,4 +69,5 @@ class CrystalElastLat
   ofstream fTextOut;
 };
 
+} // namespace Tahoe 
 #endif /* _CRYSTAL_ELAST_LAT_H_ */

@@ -17,6 +17,8 @@
 #include "dArray2DT.h"
 #include "dMatrixT.h"
 
+namespace Tahoe {
+
 const double sqrt3 = sqrt(3.0);
 
 ifstreamT& OpenExternal(ifstreamT& in, ifstreamT& in2,
@@ -680,3 +682,5 @@ void throwMemoryError(const char* msg)
 
   throw eOutOfMemory;
 }
+
+} // namespace Tahoe

@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.3 2001-10-24 02:24:22 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.4 2002-07-02 19:55:56 cjkimme Exp $ */
 /* created: paklein (10/18/1998)                                          */
 /* VIB plus principal stretch elasticity                                  */
 /* Interface for a elastoplastic material that is linearly                */
@@ -22,6 +22,9 @@
 #include "C1FunctionT.h"
 
 /* flags */
+
+using namespace Tahoe;
+
 const int kNumFlags = 2;
 const int kEP   = 0;
 const int kInit = 1;

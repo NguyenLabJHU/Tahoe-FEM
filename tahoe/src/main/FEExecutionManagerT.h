@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.6 2002-02-18 09:25:55 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.7 2002-07-02 19:55:30 cjkimme Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -11,6 +11,9 @@
 #include "IOBaseT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 template <class TYPE> class ArrayT;
 class iArrayT;
 class OutputSetT;
@@ -105,4 +108,5 @@ private:
 		const StringT& model_file, const StringT& partial_file) const;
 };
 
+} // namespace Tahoe 
 #endif /* _FE_EXECMAN_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.8 2002-06-26 23:28:55 hspark Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.9 2002-07-02 19:57:09 cjkimme Exp $ */
 /* created: paklein (06/26/1996) */
 
 #include "ShapeFunctionT.h"
@@ -7,6 +7,9 @@
 #include "dSymMatrixT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 ShapeFunctionT::ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 	const LocalArrayT& coords, StrainOptionT B_option):
 DomainIntegrationT(geometry_code, numIP, coords.NumberOfNodes()),

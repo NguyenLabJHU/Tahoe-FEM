@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.h,v 1.3 2002-06-08 20:20:16 paklein Exp $ */
+/* $Id: CSEIsoT.h,v 1.4 2002-07-02 19:55:15 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ISO_T_H_
@@ -11,6 +11,9 @@
 #include "pArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class C1FunctionT;
 
 /** Cohesive surface elements with scalar traction potentials,
@@ -47,4 +50,5 @@ protected:
 	pArrayT<C1FunctionT*> fSurfPots;
 };
 
+} // namespace Tahoe 
 #endif /* _CSE_ISO_T_H_ */

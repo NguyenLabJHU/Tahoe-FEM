@@ -1,4 +1,4 @@
-/* $Id: NOXSolverT.cpp,v 1.3 2002-06-08 20:20:57 paklein Exp $ */
+/* $Id: NOXSolverT.cpp,v 1.4 2002-07-02 19:57:16 cjkimme Exp $ */
 #include "NOXSolverT.h"
 
 /* optional */
@@ -17,6 +17,9 @@
 #include "NOX_Status_MaxIters.H"
 #include "NOX_Status_Combo.H"
 #include "NOX_Status_Combo.H"
+
+
+using namespace Tahoe;
 
 using namespace NOX::Status;
 using namespace NOX::Tahoe;

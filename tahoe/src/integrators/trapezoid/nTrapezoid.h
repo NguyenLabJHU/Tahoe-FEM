@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.h,v 1.4 2002-06-08 20:20:13 paklein Exp $ */
+/* $Id: nTrapezoid.h,v 1.5 2002-07-02 19:55:11 cjkimme Exp $ */
 /* created: paklein (10/03/1999) */
 
 #ifndef _N_TRAPEZOID_H_
@@ -9,6 +9,9 @@
 #include "nControllerT.h"
 
 /** trapezoidal integration for first order systems */
+
+namespace Tahoe {
+
 class nTrapezoid: public virtual Trapezoid, public nControllerT
 {
 public:
@@ -52,4 +55,5 @@ private:
 	double	dcorr_v;
 };
 
+} // namespace Tahoe 
 #endif /* _N_TRAPEZOID_H_ */

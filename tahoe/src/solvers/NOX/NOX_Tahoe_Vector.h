@@ -1,4 +1,4 @@
-// $Id: NOX_Tahoe_Vector.h,v 1.2 2002-04-02 23:30:55 paklein Exp $
+// $Id: NOX_Tahoe_Vector.h,v 1.3 2002-07-02 19:57:16 cjkimme Exp $
 #ifndef NOX_TAHOE_VECTOR_H
 #define NOX_TAHOE_VECTOR_H
 
@@ -9,12 +9,14 @@
 #include "NOX_Abstract_Vector.H"
 
 // forward declarations
+
+namespace Tahoe {
+
 class dArrayT;
 
 namespace NOX {
 
 //! %NOX %Tahoe support.
-namespace Tahoe {
 
 //! Implementation of NOX::Abstract::Vector for %Tahoe vectors.
 class Vector : public Abstract::Vector {
@@ -125,8 +127,8 @@ class Vector : public Abstract::Vector {
   dArrayT* fArray;
 
 };
-} // namespace Tahoe
 } // namespace NOX
 
+} // namespace Tahoe 
 #endif /* __NOX__ */
 #endif /* NOX_TAHOE_VECTOR_H */

@@ -1,4 +1,4 @@
-/* $Id: CubicT.h,v 1.2 2001-07-03 01:35:06 paklein Exp $ */
+/* $Id: CubicT.h,v 1.3 2002-07-02 19:55:39 cjkimme Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #ifndef _CUBIC_T_H_
@@ -8,11 +8,18 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 class dMatrixT;
 
+}
+
 /* direct members */
 #include "Material2DT.h"
+
+namespace Tahoe {
 
 class CubicT
 {
@@ -41,4 +48,5 @@ protected:
 	double fC44;
 };
 
+} // namespace Tahoe 
 #endif /* _CUBIC_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: Material2DT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: Material2DT.h,v 1.2 2002-07-02 19:56:22 cjkimme Exp $ */
 /* created: paklein (02/15/1997)                                          */
 /* Mix-in for 2D materials.                                               */
 
@@ -9,6 +9,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 
 class Material2DT
@@ -37,4 +40,5 @@ protected:
 	ConstraintOptionT fConstraintOption;	
 };
 
+} // namespace Tahoe 
 #endif /* _MATERIAL_2D_T_H_ */

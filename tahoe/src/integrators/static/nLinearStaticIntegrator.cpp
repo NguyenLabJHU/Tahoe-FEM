@@ -1,4 +1,4 @@
-/* $Id: nLinearStaticIntegrator.cpp,v 1.2 2002-06-08 20:20:12 paklein Exp $ */
+/* $Id: nLinearStaticIntegrator.cpp,v 1.3 2002-07-02 19:55:09 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nLinearStaticIntegrator.h"
@@ -6,6 +6,9 @@
 #include "dArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 nLinearStaticIntegrator::nLinearStaticIntegrator(void) { };
 
 /* predictor. Maps ALL degrees of freedom forward. */

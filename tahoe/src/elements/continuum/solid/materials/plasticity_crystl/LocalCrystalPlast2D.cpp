@@ -1,9 +1,12 @@
-/* $Id: LocalCrystalPlast2D.cpp,v 1.3 2002-06-08 20:20:42 paklein Exp $ */
+/* $Id: LocalCrystalPlast2D.cpp,v 1.4 2002-07-02 19:56:14 cjkimme Exp $ */
 #include "LocalCrystalPlast2D.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 
 /* spatial dimensions of the problem */
+
+using namespace Tahoe;
+
 const int kNSD = 2;
 
 LocalCrystalPlast2D::LocalCrystalPlast2D(ifstreamT& in, const FiniteStrainT& element) :

@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB3DLinHardT.h,v 1.2 2001-07-03 01:35:20 paklein Exp $ */
+/* $Id: J2IsoVIB3DLinHardT.h,v 1.3 2002-07-02 19:55:58 cjkimme Exp $ */
 /* created: paklein (10/12/1998)                                          */
 /* VIB plus principal stretch elasticity                                  */
 /* Interface for a elastoplastic material that is linearly                */
@@ -22,6 +22,9 @@
 #include "dMatrixT.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
+
+
+namespace Tahoe {
 
 class J2IsoVIB3DLinHardT: public IsoVIB3D, public J2PrimitiveT
 {
@@ -127,4 +130,5 @@ private:
 	dMatrixT fF_temp;
 };
 
+} // namespace Tahoe 
 #endif /* _J2_ISOVIB3D_T_H_ */

@@ -1,10 +1,13 @@
-/* $Id: FDKStV2D.cpp,v 1.4 2001-09-15 01:19:25 paklein Exp $ */
+/* $Id: FDKStV2D.cpp,v 1.5 2002-07-02 19:55:46 cjkimme Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "FDKStV2D.h"
 #include "ThermalDilatationT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 FDKStV2D::FDKStV2D(ifstreamT& in, const FiniteStrainT& element):
 	FDKStV(in, element),
 	Material2DT(in)

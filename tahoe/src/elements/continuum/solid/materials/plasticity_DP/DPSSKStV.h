@@ -1,6 +1,6 @@
-/* $Id: DPSSKStV.h,v 1.6 2001-07-25 01:45:31 cfoster Exp $ */
+/* $Id: DPSSKStV.h,v 1.7 2002-07-02 19:56:09 cjkimme Exp $ */
 /* created: myip (06/01/1999)                                  */
-/* $Id: DPSSKStV.h,v 1.6 2001-07-25 01:45:31 cfoster Exp $ */
+/* $Id: DPSSKStV.h,v 1.7 2002-07-02 19:56:09 cjkimme Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 #ifndef _DP_SS_KSTV_H_
@@ -11,6 +11,9 @@
 #include "IsotropicT.h"
 #include "HookeanMatT.h"
 #include "DPSSLinHardT.h"
+
+
+namespace Tahoe {
 
 class DPSSKStV: public SSStructMatT,
 				public IsotropicT,
@@ -79,4 +82,5 @@ protected:
 
 };
 
+} // namespace Tahoe 
 #endif /* _DP_SS_KSTV_H_ */

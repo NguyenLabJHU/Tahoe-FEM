@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.4 2001-10-24 02:11:24 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.5 2002-07-02 19:56:21 cjkimme Exp $ */
 /* created: paklein (11/20/1996) */
 
 #ifndef _CONTINUUM_MATERIAL_T_H_
@@ -9,6 +9,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ElementCardT;
 class dArrayT;
 template <class TYPE> class ArrayT;
@@ -115,7 +118,7 @@ public:
 	 * for output.
 	 * \param labels destination for the variable labels. Returns
 	 *        with length ContinuumMaterialT::NumOutputVariables */
-	virtual void OutputLabels(ArrayT<StringT>& labels) const;
+	virtual void OutputLabels(Tahoe::ArrayT<StringT>& labels) const;
 
 	/** return material output variables. Used by the host element group 
 	 * in conjunction with ContinuumMaterialT::NumOutputVariables and
@@ -124,7 +127,7 @@ public:
 	 * are available.
 	 * \param output destination for the output. Must be passed in with
 	 *        length ContinuumMaterialT::NumOutputVariables */
-	virtual void ComputeOutput(dArrayT& output);
+	virtual void ComputeOutput(Tahoe::dArrayT& output);
 
 	/** returns true if two materials have compatible output variables.
 	 * Used by the host element to determine whether the two material
@@ -159,4 +162,5 @@ inline const int& ContinuumMaterialT::CurrIP(void) const { return fCurrIP; }
 inline const ContinuumElementT& ContinuumMaterialT::ContinuumElement(void) const
 { return fContinuumElement; }
 
+} // namespace Tahoe 
 #endif /* _CONTINUUM_MATERIAL_T_H_ */

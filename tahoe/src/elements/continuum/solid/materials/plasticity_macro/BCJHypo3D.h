@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.h,v 1.4 2002-03-26 17:48:18 paklein Exp $ */
+/* $Id: BCJHypo3D.h,v 1.5 2002-07-02 19:56:18 cjkimme Exp $ */
 #ifndef _BCJ_HYPO_3D_H_
 #define _BCJ_HYPO_3D_H_
 
@@ -10,6 +10,9 @@
 #include "dSymMatrixT.h"
 #include "dMatrixT.h"
 #include "SpectralDecompT.h"
+
+
+namespace Tahoe {
 
 class ifstreamT;
 class ElasticT;
@@ -210,4 +213,5 @@ class BCJHypo3D : public EVPFDBaseT
   dSymMatrixT fsymmatx1;
 };
 
+} // namespace Tahoe 
 #endif /* _BCJ_HYPO_3D_ */

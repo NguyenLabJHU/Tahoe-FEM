@@ -1,4 +1,4 @@
-/* $Id: FDCubicT.h,v 1.2 2001-07-03 01:35:06 paklein Exp $ */
+/* $Id: FDCubicT.h,v 1.3 2002-07-02 19:55:39 cjkimme Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #ifndef _FD_CUBIC_T_H_
@@ -7,6 +7,9 @@
 /* base classes */
 #include "FDHookeanMatT.h"
 #include "CubicT.h"
+
+
+namespace Tahoe {
 
 class FDCubicT: public FDHookeanMatT, public CubicT
 {
@@ -25,4 +28,5 @@ protected:
 	virtual void SetModulus(dMatrixT& modulus);
 };
 
+} // namespace Tahoe 
 #endif /* _FD_CUBIC_T_H_ */

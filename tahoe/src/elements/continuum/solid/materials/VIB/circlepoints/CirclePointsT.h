@@ -1,4 +1,4 @@
-/* $Id: CirclePointsT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: CirclePointsT.h,v 1.2 2002-07-02 19:55:59 cjkimme Exp $ */
 /* created: paklein (11/02/1997)                                          */
 /* Base class for circular integration point generators.                  */
 
@@ -9,6 +9,9 @@
 #include "dArray2DT.h"
 #include "dMatrixT.h"
 #include "dArrayT.h"
+
+
+namespace Tahoe {
 
 class CirclePointsT
 {
@@ -62,4 +65,5 @@ private:
 			
 };
 
+} // namespace Tahoe 
 #endif /* _CIRCLE_PTS_T_H_ */

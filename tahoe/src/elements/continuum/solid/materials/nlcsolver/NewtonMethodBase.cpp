@@ -8,6 +8,9 @@
 #include "LAdMatrixT.h"
 #include "Utils.h"
 
+
+using namespace Tahoe;
+
 NewtonMethodBase::NewtonMethodBase() { }
 
 void NewtonMethodBase::GetNewtonStep(NLCSolver& nlcsolve, dArrayT& step) const

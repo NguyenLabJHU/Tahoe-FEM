@@ -1,4 +1,4 @@
-/* $Id: eExplicitCD.cpp,v 1.2 2002-04-02 23:19:23 paklein Exp $ */
+/* $Id: eExplicitCD.cpp,v 1.3 2002-07-02 19:55:08 cjkimme Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "eExplicitCD.h"
@@ -7,6 +7,9 @@
 #include "ExceptionCodes.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 eExplicitCD::eExplicitCD(void) { }
 
 /* returns 1 if the algorithm requires M, C, or K and sets const equal

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.h,v 1.4 2001-12-17 00:03:36 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.h,v 1.5 2002-07-02 19:56:55 cjkimme Exp $ */
 /* created: paklein (09/10/1998) */
 
 #ifndef _MF_SHAPE_FUNCTION_T_H_
@@ -13,6 +13,9 @@
 #include "iArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class MeshFreeSupportT;
 class ifstreamT;
 template <class TYPE> class RaggedArray2DT;
@@ -143,4 +146,5 @@ inline MeshFreeSupportT& MeshFreeShapeFunctionT::MeshFreeSupport(void) const
 }
 inline const iArrayT& MeshFreeShapeFunctionT::Neighbors(void) const { return fNeighbors; }
 
+} // namespace Tahoe 
 #endif /* _MF_SHAPE_FUNCTION_T_H_ */

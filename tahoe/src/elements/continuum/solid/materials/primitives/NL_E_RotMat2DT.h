@@ -1,4 +1,4 @@
-/* $Id: NL_E_RotMat2DT.h,v 1.2 2001-07-03 01:35:42 paklein Exp $ */
+/* $Id: NL_E_RotMat2DT.h,v 1.3 2002-07-02 19:56:22 cjkimme Exp $ */
 /* created: paklein (06/13/1997)                                          */
 /* Base class for materials with 2D nonlinear elastic behavior            */
 /* with in-plane orientation with respect to global coordinate            */
@@ -12,6 +12,9 @@
 /* base classes */
 #include "NL_E_Mat2DT.h"
 #include "Anisotropic2DT.h"
+
+
+namespace Tahoe {
 
 class NL_E_RotMat2DT: public NL_E_Mat2DT, public Anisotropic2DT
 {
@@ -34,4 +37,5 @@ public:
 	
 };
 
+} // namespace Tahoe 
 #endif /* _NL_E_ROTMAT_2D_T_H_ */

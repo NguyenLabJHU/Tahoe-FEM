@@ -3,6 +3,8 @@
 #include "Environment.h"
 #include "ExceptionCodes.h"
 
+using namespace Tahoe;
+
 /* constructor */
 eVerlet::eVerlet(void) { }
 

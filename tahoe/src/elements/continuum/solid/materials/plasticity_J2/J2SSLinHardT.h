@@ -1,4 +1,4 @@
-/* $Id: J2SSLinHardT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: J2SSLinHardT.h,v 1.2 2002-07-02 19:56:11 cjkimme Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -21,6 +21,9 @@
 #include "dArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ElementCardT;
 
 class J2SSLinHardT: public J2PrimitiveT
@@ -113,4 +116,5 @@ private:
 	
 };
 
+} // namespace Tahoe 
 #endif /* _J2_SS_LIN_HARD_T_H_ */

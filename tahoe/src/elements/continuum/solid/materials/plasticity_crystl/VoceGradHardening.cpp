@@ -9,6 +9,9 @@
 #include "ifstreamT.h"
 
 // number of material properties for hard model 
+
+using namespace Tahoe;
+
 const int kNumMatProp    = 9;
 const int kNumInitValues = 1;
 const int kNumInternal   = 4;

@@ -5,6 +5,8 @@
 #include "Verlet.h"
 #include "eControllerT.h"
 
+namespace Tahoe {
+
 /** Element controller for an explicit 4th order velocity verlet
   * algorithm */
 class eVerlet: public virtual Verlet, public eControllerT
@@ -43,5 +45,7 @@ private:
 	double fconstC;
 	
 };
+
+} // namespace Tahoe
 
 #endif /* _E_VERLET_H_ */

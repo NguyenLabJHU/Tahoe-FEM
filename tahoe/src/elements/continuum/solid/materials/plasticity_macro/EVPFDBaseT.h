@@ -1,4 +1,4 @@
-/* $Id: EVPFDBaseT.h,v 1.5 2002-03-26 17:48:18 paklein Exp $ */
+/* $Id: EVPFDBaseT.h,v 1.6 2002-07-02 19:56:19 cjkimme Exp $ */
 #ifndef _EVP_FD_BASE_T_H_
 #define _EVP_FD_BASE_T_H_
 
@@ -15,6 +15,9 @@
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 #include "ifstreamT.h" 
+
+
+namespace Tahoe {
 
 class NLCSolver;
 class ElasticT;
@@ -145,4 +148,5 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
 inline ifstreamT& EVPFDBaseT::Input() { return fInput; }
 inline double EVPFDBaseT::Temperature() { return fTheta; }
 
+} // namespace Tahoe 
 #endif /* _EVP_FD_BASE_T_H_ */

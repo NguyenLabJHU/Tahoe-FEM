@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.11 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.12 2002-07-02 19:55:23 cjkimme Exp $ */
 
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
@@ -12,6 +12,9 @@
 #include "dSymMatrixT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ShapeFunctionT;
 class StructuralMaterialT;
 class StringT;
@@ -185,4 +188,5 @@ inline const LocalArrayT& SolidElementT::LastDisplacements(void) const { return 
 inline const LocalArrayT& SolidElementT::Velocities(void) const { return fLocVel; }
 inline const LocalArrayT& SolidElementT::Accelerations(void) const { return fLocAcc; }
 
+} // namespace Tahoe 
 #endif /* _ELASTIC_T_H_ */

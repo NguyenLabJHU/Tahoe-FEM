@@ -1,4 +1,4 @@
-/* $Id: LJSpringT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: LJSpringT.cpp,v 1.2 2002-07-02 19:56:24 cjkimme Exp $ */
 /* created: paklein (5/28/1996)                                           */
 
 #include "LJSpringT.h"
@@ -16,6 +16,9 @@
 /*
 * constructor
 */
+
+using namespace Tahoe;
+
 LJSpringT::LJSpringT(ifstreamT& in): RodMaterialT(in)
 {
 	in >> fLJConstant;	if (fLJConstant < 0.0) throw eBadInputValue;

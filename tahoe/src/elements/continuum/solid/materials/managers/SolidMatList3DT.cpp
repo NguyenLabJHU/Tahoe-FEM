@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.18 2002-06-20 01:18:58 thao Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.19 2002-07-02 19:56:05 cjkimme Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList3DT.h"
@@ -46,6 +46,9 @@
 //#include "OgdenViscVIB3D.h"
 
 /* constructors */
+
+using namespace Tahoe;
+
 SolidMatList3DT::SolidMatList3DT(int length, const ElasticT& element_group):
 	StructuralMatListT(length),
 	fElementGroup(element_group)

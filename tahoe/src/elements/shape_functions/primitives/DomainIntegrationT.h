@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.h,v 1.4 2001-08-20 06:54:24 paklein Exp $ */
+/* $Id: DomainIntegrationT.h,v 1.5 2002-07-02 19:57:09 cjkimme Exp $ */
 /* created: paklein (09/04/1998) */
 
 #ifndef _DOMAIN_INTEGRATION_T_H_
@@ -14,6 +14,9 @@
  * creates "linked" objects which (i) share the same parent domain and
  * (ii) are synchronized in integration through the current integration
  * point reference. */
+
+namespace Tahoe {
+
 class DomainIntegrationT
 {
 public:
@@ -241,4 +244,5 @@ inline const dArray2DT& DomainIntegrationT::Na(void) const
 	return fDomain->Na();
 }
 
+} // namespace Tahoe 
 #endif /* _DOMAIN_INTEGRATION_T_H_ */

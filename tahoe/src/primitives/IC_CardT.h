@@ -1,4 +1,4 @@
-/* $Id: IC_CardT.h,v 1.3 2002-06-08 20:20:53 paklein Exp $ */
+/* $Id: IC_CardT.h,v 1.4 2002-07-02 19:56:42 cjkimme Exp $ */
 /* created: paklein (07/16/1997) */
 
 #ifndef _IC_CARD_T_H_
@@ -8,6 +8,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 
 /** container class for kinematic initial condition data.
@@ -55,4 +58,5 @@ inline int IC_CardT::DOF(void) const      { return fdof;   }
 inline int IC_CardT::Order(void) const    { return forder; }
 inline double IC_CardT::Value(void) const { return fvalue; }
 
+} // namespace Tahoe 
 #endif /* _IC_CARD_T_H_ */

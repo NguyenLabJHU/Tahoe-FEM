@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.h,v 1.4 2001-07-13 02:17:38 paklein Exp $ */
+/* $Id: D2MeshFreeSupportT.h,v 1.5 2002-07-02 19:57:02 cjkimme Exp $ */
 /* created: paklein (10/23/1999) */
 
 #ifndef _D2_MF_SUPPORT_T_H_
@@ -8,6 +8,9 @@
 #include "MeshFreeSupportT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class D2OrthoMLSSolverT;
 
 /** class for support of meshfree field calculations up to
@@ -94,4 +97,5 @@ private:
 	RaggedArray2DT<double> feDDPhiData;	
 };
 
+} // namespace Tahoe 
 #endif /* _D2_MF_SUPPORT_T_H_ */

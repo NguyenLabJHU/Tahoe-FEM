@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.h,v 1.5 2002-03-26 17:48:17 paklein Exp $ */
+/* $Id: LocalCrystalPlast.h,v 1.6 2002-07-02 19:56:14 cjkimme Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_H_
 #define _LOCAL_CRYSTAL_PLAST_H_
 
@@ -9,6 +9,9 @@
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 #include "LAdMatrixT.h"
+
+
+namespace Tahoe {
 
 class ifstreamT;
 class ElasticT;
@@ -193,4 +196,5 @@ class LocalCrystalPlast : public PolyCrystalMatT
   dSymMatrixT fAvgStress;
 };
 
+} // namespace Tahoe 
 #endif /* _LOCAL_CRYSTAL_PLAST_H_ */

@@ -1,4 +1,4 @@
-/* $Id: SW2BodyT.cpp,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* $Id: SW2BodyT.cpp,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
 /* created: paklein (05/20/1997)                                          */
 
 #include "SW2BodyT.h"
@@ -7,6 +7,9 @@
 #include "ThermalDilatationT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 SW2BodyT::SW2BodyT(const dArrayT& lengths, const ThermalDilatationT* thermal,
 	const SWDataT& SW):
 	TwoBodyT(lengths, thermal),

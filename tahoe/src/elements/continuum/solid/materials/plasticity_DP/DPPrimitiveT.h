@@ -1,4 +1,4 @@
-/* $Id: DPPrimitiveT.h,v 1.5 2001-07-13 23:15:06 cfoster Exp $ */
+/* $Id: DPPrimitiveT.h,v 1.6 2002-07-02 19:56:09 cjkimme Exp $ */
 /* created: myip (06/01/1999)                                      */
 /*
  * Base class for Drucker-Prager, nonassociative, small-strain,
@@ -13,6 +13,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 class dSymMatrixT;
 
@@ -49,4 +52,5 @@ class DPPrimitiveT
   double fH_delta;   /* Localized deviatoric hardening parameter (fH_delta < 0.0) */
 };
 
+} // namespace Tahoe 
 #endif /* _DP_PRIMITIVET_H_ */

@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.h,v 1.6 2002-04-02 23:38:43 paklein Exp $ */
+/* $Id: DiagonalMatrixT.h,v 1.7 2002-07-02 19:56:45 cjkimme Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _DIAGONAL_MATRIX_H_
@@ -11,6 +11,9 @@
 #include "dArrayT.h"
 
 /** diagonal matrix */
+
+namespace Tahoe {
+
 class DiagonalMatrixT: public GlobalMatrixT
 {
 public:
@@ -116,4 +119,5 @@ inline bool DiagonalMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
 	return DiagonalMatrixT::Multx(x, b);
 }; 
 
+} // namespace Tahoe 
 #endif /* _DIAGONAL_MATRIX_H_ */

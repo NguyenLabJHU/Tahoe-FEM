@@ -5,6 +5,8 @@
 #include "Verlet.h"
 #include "nControllerT.h"
 
+namespace Tahoe {
+
 /** Node controller for an explicit 4th order accurate, Verlet time integration
  * algorithm. */
 class nVerlet: public virtual Verlet, public nControllerT
@@ -54,5 +56,7 @@ private:
 	double vcorr_a;
 	  	  	
 };
+
+} // namespace Tahoe
 
 #endif /* _N_VERLET_H_ */

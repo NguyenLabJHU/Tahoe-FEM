@@ -1,4 +1,4 @@
-/* $Id: ModCB3DT.h,v 1.2 2001-07-03 01:35:29 paklein Exp $ */
+/* $Id: ModCB3DT.h,v 1.3 2002-07-02 19:56:06 cjkimme Exp $ */
 /* created: paklein (10/14/1998)                                          */
 
 #ifndef _MODCB_3D_T_H_
@@ -11,6 +11,9 @@
 #include "SWDataT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ModCBSolverT;
 
 class ModCB3DT: public NL_E_MatT
@@ -58,4 +61,5 @@ private:
 	dMatrixT fPK2;		
 };
 
+} // namespace Tahoe 
 #endif /* _MODCB_3D_T_H_ */

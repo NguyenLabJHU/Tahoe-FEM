@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.h,v 1.4 2001-09-15 01:19:42 paklein Exp $ */
+/* $Id: SimoIso3D.h,v 1.5 2002-07-02 19:55:50 cjkimme Exp $ */
 /* created: paklein (03/02/1997)                                          */
 /* Hyperelastic material governed by Simo's split volumetric/deviatoric   */
 /* stored energy function.                                                */
@@ -10,6 +10,9 @@
 /* base classes */
 #include "FDStructMatT.h"
 #include "IsotropicT.h"
+
+
+namespace Tahoe {
 
 class SimoIso3D: public FDStructMatT, public IsotropicT
 {
@@ -91,4 +94,5 @@ inline double SimoIso3D::ddU(double J) const
 	return 0.5*Kappa()*(1.0 + 1.0/(J*J));
 }
 
+} // namespace Tahoe 
 #endif /* _SIMO_ISO_3D_H_ */

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupport2DT.h,v 1.4 2001-07-13 02:17:38 paklein Exp $ */
+/* $Id: D2MeshFreeSupport2DT.h,v 1.5 2002-07-02 19:57:02 cjkimme Exp $ */
 /* created: paklein (10/23/1999) */
 
 #ifndef _D2_MF_SUPPORT_2D_T_H_
@@ -7,11 +7,14 @@
 /* base class */
 #include "D2MeshFreeSupportT.h"
 
+namespace Tahoe {
+
 /** class for support of meshfree field calculations up to second gradients 
  * in two dimensions. See base class documentation for information  about 
  * class initialization. */
  class D2MeshFreeSupport2DT: public D2MeshFreeSupportT
 {
+
 public:
 
 	/** constructor.
@@ -44,4 +47,5 @@ private:
 		const double* q) const;
 };
 
+} // namespace Tahoe 
 #endif /* _D2_MF_SUPPORT_2D_T_H_ */

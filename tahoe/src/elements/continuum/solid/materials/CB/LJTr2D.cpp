@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.cpp,v 1.2 2001-07-03 01:34:59 paklein Exp $ */
+/* $Id: LJTr2D.cpp,v 1.3 2002-07-02 19:55:33 cjkimme Exp $ */
 /* created: paklein (07/01/1996)                                          */
 
 #include "LJTr2D.h"
@@ -7,6 +7,9 @@
 #include <iostream.h>
 
 #include "fstreamT.h"
+
+
+using namespace Tahoe;
 
 const double sqrt3 = sqrt(3.0);
 

@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.4 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.5 2002-07-02 19:55:24 cjkimme Exp $ */
 /* created: paklein (07/03/1996) */
 
 #include "UpdatedLagrangianT.h"
@@ -13,6 +13,9 @@
 #include "ShapeFunctionT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 UpdatedLagrangianT::UpdatedLagrangianT(const ElementSupportT& support, const FieldT& field):
 	FiniteStrainT(support, field),
 	fCurrShapes(NULL),

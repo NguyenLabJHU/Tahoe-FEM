@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.h,v 1.7 2002-06-27 23:44:34 cfoster Exp $ */
+/* $Id: DetCheckT.h,v 1.8 2002-07-02 19:56:21 cjkimme Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
@@ -9,6 +9,9 @@
 #define numPhiChecks  19      // should be 90/sweepIncr+1
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dSymMatrixT;
 class dMatrixT;
 class dMatrixEXT;
@@ -84,4 +87,5 @@ private:
 	double A0, A2, A4;	/* amplitudes   */
 };
 
+} // namespace Tahoe 
 #endif /* _DETCHECK_T_H_ */

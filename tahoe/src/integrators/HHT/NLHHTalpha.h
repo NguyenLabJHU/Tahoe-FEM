@@ -1,4 +1,4 @@
-/* $Id: NLHHTalpha.h,v 1.2 2002-04-02 23:19:20 paklein Exp $ */
+/* $Id: NLHHTalpha.h,v 1.3 2002-07-02 19:55:05 cjkimme Exp $ */
 /* created: paklein (10/11/1996) */
 
 #ifndef _NL_HHT_ALPHA_H_
@@ -9,6 +9,9 @@
 #include "eNLHHTalpha.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class NodeManagerT;
 class TimeManagerT;
 
@@ -38,4 +41,5 @@ private:
 	
 };
 
+} // namespace Tahoe 
 #endif /* _NL_HHT_ALPHA_H_ */

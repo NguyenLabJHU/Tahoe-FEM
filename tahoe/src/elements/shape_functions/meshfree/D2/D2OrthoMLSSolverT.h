@@ -1,4 +1,4 @@
-/* $Id: D2OrthoMLSSolverT.h,v 1.3 2001-07-03 01:35:52 paklein Exp $ */
+/* $Id: D2OrthoMLSSolverT.h,v 1.4 2002-07-02 19:57:02 cjkimme Exp $ */
 /* created: paklein (10/10/1999)                                          */
 /* base class for orthogonal basis, moving least squares, interpolants    */
 /* (from Lu et al, Comp Meth App Mech Eng, 126, 1995, 131-153)            */
@@ -11,6 +11,9 @@
 
 /* direct members */
 #include "dSymMatrixT.h"
+
+
+namespace Tahoe {
 
 class D2OrthoMLSSolverT: public OrthoMLSSolverT
 {
@@ -102,4 +105,5 @@ inline const dArray2DT& D2OrthoMLSSolverT::DDw(void) const { return fDDw; }
 inline const dArray2DT& D2OrthoMLSSolverT::DDb(void) const { return fDDb; }
 inline const dArray2DT& D2OrthoMLSSolverT::DDq(void) const { return fDDq; }
 
+} // namespace Tahoe 
 #endif /* _D2_ORTHO_MLS_SOLVER_T_H_ */

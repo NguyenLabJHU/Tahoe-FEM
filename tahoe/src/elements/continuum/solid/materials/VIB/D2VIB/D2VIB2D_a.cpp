@@ -1,4 +1,4 @@
-/* $Id: D2VIB2D_a.cpp,v 1.2 2001-07-03 01:35:22 paklein Exp $ */
+/* $Id: D2VIB2D_a.cpp,v 1.3 2002-07-02 19:55:59 cjkimme Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2VIB2D_a.h"
@@ -12,6 +12,9 @@
 #include "D2MeshFreeShapeFunctionT.h"
 
 /* constructors */
+
+using namespace Tahoe;
+
 D2VIB2D_a::D2VIB2D_a(ifstreamT& in, const D2MeshFreeFDElasticT& element):
 	D2VIB2D(in, element),
 	fLocDisp(element.Displacements()),

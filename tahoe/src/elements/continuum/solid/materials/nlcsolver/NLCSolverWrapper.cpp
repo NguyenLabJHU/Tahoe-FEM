@@ -8,6 +8,9 @@
 #include "EVPFDBaseT.h"
 
 /* base class: NLCSolverWrapper */
+
+using namespace Tahoe;
+
 NLCSolverWrapper::~NLCSolverWrapper() { }
 
 /* derived class: SolverWrapperPoly */

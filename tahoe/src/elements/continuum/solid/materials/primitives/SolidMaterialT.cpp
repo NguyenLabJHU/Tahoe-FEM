@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.5 2002-06-27 14:59:01 hspark Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.6 2002-07-02 19:56:22 cjkimme Exp $ */
 /* created: paklein (11/20/1996) */
 
 #include "SolidMaterialT.h"
@@ -11,6 +11,9 @@
 #include "LocalArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 SolidMaterialT::SolidMaterialT(ifstreamT& in,
 	const ContinuumElementT& element):
 	ContinuumMaterialT(element)

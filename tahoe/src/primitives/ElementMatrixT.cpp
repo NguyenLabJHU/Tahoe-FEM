@@ -1,4 +1,4 @@
-/* $Id: ElementMatrixT.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* $Id: ElementMatrixT.cpp,v 1.2 2002-07-02 19:56:42 cjkimme Exp $ */
 /* created: paklein (03/17/1998)                                          */
 
 #include "ElementMatrixT.h"
@@ -7,6 +7,9 @@
 #include "Constants.h"
 
 /* constructors */
+
+using namespace Tahoe;
+
 ElementMatrixT::ElementMatrixT(FormatT format):
 	fFormat(format)
 {

@@ -1,4 +1,4 @@
-/* $Id: VIB3D.h,v 1.2 2001-07-03 01:35:20 paklein Exp $ */
+/* $Id: VIB3D.h,v 1.3 2002-07-02 19:55:58 cjkimme Exp $ */
 /* created: paklein (04/20/1997)                                          */
 /* 3D isotropic VIB solver.                                               */
 
@@ -11,6 +11,9 @@
 #include "SpherePointsT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dMatrixT;
 
 class VIB3D: public NL_E_MatT, public VIB_E_MatT
@@ -49,4 +52,5 @@ private:
 		
 };
 
+} // namespace Tahoe 
 #endif /* _VIB_3D_H_ */

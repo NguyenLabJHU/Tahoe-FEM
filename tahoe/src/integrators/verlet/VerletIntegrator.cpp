@@ -1,6 +1,7 @@
 #include "VerletIntegrator.h"
-
 #include <iostream.h>
+
+using namespace Tahoe;
 
 /* constructor */
 VerletIntegrator::VerletIntegrator(ostream& out)

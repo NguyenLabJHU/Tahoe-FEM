@@ -8,6 +8,9 @@
 #include "NLCSolver.h"
 #include "NewtonMethod.h"
 
+
+namespace Tahoe {
+
 class dArrayT;
 
 class NLCSolver_LS: public NLCSolver
@@ -40,4 +43,5 @@ class NLCSolver_LS: public NLCSolver
   double fPrevLambda;
 };
 
+} // namespace Tahoe 
 #endif  /* _NLC_SOLVER_LS_H_ */

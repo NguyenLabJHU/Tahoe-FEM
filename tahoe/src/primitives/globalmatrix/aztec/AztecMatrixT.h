@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.h,v 1.4 2002-03-28 16:42:47 paklein Exp $ */
+/* $Id: AztecMatrixT.h,v 1.5 2002-07-02 19:56:49 cjkimme Exp $ */
 /* created: paklein (08/10/1998)                                          */
 /* interface for using Aztec with fe++                                    */
 
@@ -16,6 +16,9 @@
 #include "dMatrixT.h"
 
 /* foward declarations */
+
+namespace Tahoe {
+
 class Aztec_fe;
 class ifstreamT;
 
@@ -96,5 +99,6 @@ private:
 };
 
 /* library support options */
+} // namespace Tahoe 
 #endif /* __AZTEC__ */
 #endif /* _AZTEC_MATRIX_T_H_ */

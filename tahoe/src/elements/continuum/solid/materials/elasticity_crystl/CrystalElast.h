@@ -1,4 +1,4 @@
-/* $Id: CrystalElast.h,v 1.4 2002-03-26 17:48:16 paklein Exp $ */
+/* $Id: CrystalElast.h,v 1.5 2002-07-02 19:56:03 cjkimme Exp $ */
 /*
   File: CrystalElast.h
 */
@@ -16,6 +16,9 @@
 #include "ifstreamT.h" 
 
 #include "LocalArrayT.h"
+
+
+namespace Tahoe {
 
 class CrystalElastLat;
 class CrystalElastMat;
@@ -110,4 +113,5 @@ class CrystalElast : public FDHookeanMatT
   inline const int CrystalElast::NumGrain() const { return fNumGrain; }
   inline const dArrayT& CrystalElast::MaterialProperties() const { return fMatProp; }
 
+} // namespace Tahoe 
 #endif /* _CRYSTAL_ELAST_H_ */

@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.8 2002-07-01 17:34:49 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.9 2002-07-02 19:55:29 cjkimme Exp $ */
 /* created: paklein (04/05/1997) */
 
 #include "UnConnectedRodT.h"
@@ -10,6 +10,9 @@
 #include "FindNeighborT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 UnConnectedRodT::UnConnectedRodT(const ElementSupportT& support, const FieldT& field):
 	RodT(support, field),
 	fNumNodesUsed(0),

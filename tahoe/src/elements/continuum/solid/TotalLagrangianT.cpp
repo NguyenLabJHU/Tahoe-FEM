@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianT.cpp,v 1.6 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: TotalLagrangianT.cpp,v 1.7 2002-07-02 19:55:24 cjkimme Exp $ */
 /* created: paklein (09/07/1998) */
 
 #include "TotalLagrangianT.h"
@@ -14,6 +14,9 @@
 #include "ShapeFunctionT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 TotalLagrangianT::TotalLagrangianT(const ElementSupportT& support, const FieldT& field):
 	FiniteStrainT(support, field),
 	fStressMat(NumSD()),

@@ -1,4 +1,4 @@
-/* $Id: EAM.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: EAM.cpp,v 1.2 2002-07-02 19:55:36 cjkimme Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAM.cpp                                                                */
 
@@ -8,6 +8,9 @@
 #include "C1FunctionT.h"
 
 /* Constructor */
+
+using namespace Tahoe;
+
 EAM::EAM(CBLatticeT& lattice): fLattice(lattice),
 	fCounts( fLattice.BondCounts() ), fBonds( fLattice.DeformedLengths() ),
 	fNumSpatialDim( fLattice.NumberOfSpatialDim() ),

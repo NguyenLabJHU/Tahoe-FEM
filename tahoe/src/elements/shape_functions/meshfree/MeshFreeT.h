@@ -1,4 +1,4 @@
-/* $Id: MeshFreeT.h,v 1.4 2001-07-13 02:17:36 paklein Exp $ */
+/* $Id: MeshFreeT.h,v 1.5 2002-07-02 19:56:56 cjkimme Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #ifndef _MESHFREE_T_H_
@@ -7,6 +7,9 @@
 #include "ios_fwd_decl.h"
 
 /* class to define enumerations for meshfree methods */
+
+namespace Tahoe {
+
 class MeshFreeT
 {
 public:
@@ -27,4 +30,5 @@ public:
 	friend istream& operator>>(istream& in, MeshFreeT::WindowTypeT& code);
 };
 
+} // namespace Tahoe 
 #endif /* _MESHFREE_T_H_ */

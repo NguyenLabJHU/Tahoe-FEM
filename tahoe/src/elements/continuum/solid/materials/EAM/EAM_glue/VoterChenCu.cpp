@@ -1,4 +1,4 @@
-/* $Id: VoterChenCu.cpp,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* $Id: VoterChenCu.cpp,v 1.2 2002-07-02 19:55:37 cjkimme Exp $ */
 /* created: paklein (12/04/1996)                                          */
 /* VoterChenCu.cpp                                                        */
 
@@ -7,6 +7,9 @@
 #include "CubicSplineT.h"
 
 /* lattice parameters */
+
+using namespace Tahoe;
+
 const double kLatticeParameterCu = 3.615;  /* angstrom */
 const double kCutoffRadiusCu     = 4.961;  /* angstrom */
 

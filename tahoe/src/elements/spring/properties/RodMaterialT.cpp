@@ -1,4 +1,4 @@
-/* $Id: RodMaterialT.cpp,v 1.5 2002-06-29 16:17:22 paklein Exp $ */
+/* $Id: RodMaterialT.cpp,v 1.6 2002-07-02 19:56:24 cjkimme Exp $ */
 /* created: paklein (11/20/1996) */
 
 #include "RodMaterialT.h"
@@ -8,6 +8,9 @@
 #include "ifstreamT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 RodMaterialT::RodMaterialT(ifstreamT& in)
 {
 	fMass = -1.0;

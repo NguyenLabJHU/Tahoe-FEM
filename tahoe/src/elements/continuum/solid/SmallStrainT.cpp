@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.4 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.5 2002-07-02 19:55:24 cjkimme Exp $ */
 
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
@@ -6,6 +6,9 @@
 #include "MaterialListT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 SmallStrainT::SmallStrainT(const ElementSupportT& support, const FieldT& field):
 	ElasticT(support, field),
 	fNeedsOffset(-1),

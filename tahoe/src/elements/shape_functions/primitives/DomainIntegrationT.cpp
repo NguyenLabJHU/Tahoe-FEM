@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.cpp,v 1.2 2001-03-15 17:48:46 paklein Exp $ */
+/* $Id: DomainIntegrationT.cpp,v 1.3 2002-07-02 19:57:08 cjkimme Exp $ */
 /* created: paklein (09/04/1998)                                          */
 /* class to manage the parent domain including construction for           */
 /* shared parent domains, integration point iterations, and some          */
@@ -10,6 +10,9 @@
 #include "DomainIntegrationT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 DomainIntegrationT::DomainIntegrationT(GeometryT::CodeT geometry_code, int numIP, int numnodes):
 	fNumIP(numIP),
 	fCurrIP(frefCurrIP),

@@ -1,4 +1,4 @@
-/* $Id: ExplicitCD.h,v 1.1 2002-04-02 23:20:41 paklein Exp $ */
+/* $Id: ExplicitCD.h,v 1.2 2002-07-02 19:55:08 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _EXPLICIT_CD_H_
@@ -10,6 +10,9 @@
 #include "ControllerT.h"
 
 /** explicit, central differences time integrator */
+
+namespace Tahoe {
+
 class ExplicitCD: virtual public ControllerT
 {
 public:
@@ -31,4 +34,5 @@ public:
 	/*@}*/
 };
 
+} // namespace Tahoe 
 #endif /* _EXPLICIT_CD_H_ */

@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.3 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.4 2002-07-02 19:55:23 cjkimme Exp $ */
 /* created: paklein (10/02/1999)                                          */
 
 #ifndef _DIFFUSE_T_H_
@@ -14,6 +14,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ShapeFunctionT;
 class DiffusionMaterialT;
 class StringT;
@@ -103,4 +106,5 @@ protected:
 	static const int NumOutputCodes;
 };
 
+} // namespace Tahoe 
 #endif /* _DIFFUSE_T_H_ */

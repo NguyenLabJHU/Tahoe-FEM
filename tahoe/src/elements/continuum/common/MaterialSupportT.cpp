@@ -1,9 +1,12 @@
-/* $Id: MaterialSupportT.cpp,v 1.1 2002-04-21 07:18:27 paklein Exp $ */
+/* $Id: MaterialSupportT.cpp,v 1.2 2002-07-02 19:56:04 cjkimme Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "SSHookeanMatT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 SSHookeanMatT::SSHookeanMatT(ifstreamT& in, const SmallStrainT& element):
 	SSStructMatT(in, element),
 	HookeanMatT(NumSD()),

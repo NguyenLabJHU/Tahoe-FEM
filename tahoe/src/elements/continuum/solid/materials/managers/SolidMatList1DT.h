@@ -5,6 +5,8 @@
 #include "StructuralMatListT.h"
 #include "MaterialT.h"
 
+namespace Tahoe {
+
 /* forward declaration */
 class ElasticT;
 class SmallStrainT;
@@ -35,5 +37,7 @@ private:
 	const FiniteStrainT* fFiniteStrain;
 	const MultiScaleT*   fMultiScale;
 };
+
+} // namespace Tahoe 
 
 #endif /* _MATLIST_1D_T_H_ */

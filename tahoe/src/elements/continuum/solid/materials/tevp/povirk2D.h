@@ -10,6 +10,9 @@
 #include "Material2DT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ElementCardT;
 
 /** Thermoelasto-viscoplastic material used to generate shear bands */
@@ -159,6 +162,7 @@ class povirk2D: public FDStructMatT, public IsotropicT, public Material2DT
   double Xi;
 };
 
+} // namespace Tahoe 
 #endif /* _POVIRK_2D_H_ */
                                 
 

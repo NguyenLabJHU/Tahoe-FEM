@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast2D.cpp,v 1.2 2001-07-03 01:35:34 paklein Exp $ */
+/* $Id: GradCrystalPlast2D.cpp,v 1.3 2002-07-02 19:56:14 cjkimme Exp $ */
 /*
   File: GradCrystalPlast2D.cpp
 */
@@ -9,6 +9,9 @@
 #include "ifstreamT.h"
 
 /* spatial dimensions of the problem */
+
+using namespace Tahoe;
+
 const int kNSD = 2;
 
 GradCrystalPlast2D::GradCrystalPlast2D(ifstreamT& in, const FiniteStrainT& element) :

@@ -1,8 +1,11 @@
-/* $Id: ElementBlockDataT.cpp,v 1.3 2002-02-27 16:47:49 paklein Exp $ */
+/* $Id: ElementBlockDataT.cpp,v 1.4 2002-07-02 19:56:41 cjkimme Exp $ */
 
 #include "ElementBlockDataT.h"
 
 /* copy behavior for arrays FBC_CardT's */
+
+using namespace Tahoe;
+
 const bool ArrayT<ElementBlockDataT*>::fByteCopy = true;
 const bool ArrayT<ElementBlockDataT>::fByteCopy = false;
 

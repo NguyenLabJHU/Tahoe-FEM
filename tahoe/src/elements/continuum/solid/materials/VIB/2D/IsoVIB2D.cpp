@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.cpp,v 1.2 2001-07-03 01:35:17 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.3 2002-07-02 19:55:56 cjkimme Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 2D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -15,6 +15,9 @@
 #include "EvenSpacePtsT.h"
 
 /* constructors */
+
+using namespace Tahoe;
+
 IsoVIB2D::IsoVIB2D(ifstreamT& in, const FiniteStrainT& element):
 	FDStructMatT(in, element),
 	Material2DT(in, kPlaneStress),

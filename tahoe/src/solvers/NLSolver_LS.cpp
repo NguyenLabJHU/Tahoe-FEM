@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.cpp,v 1.3 2002-06-08 20:20:55 paklein Exp $ */
+/* $Id: NLSolver_LS.cpp,v 1.4 2002-07-02 19:57:11 cjkimme Exp $ */
 /* created: paklein (08/18/1999) */
 
 #include "NLSolver_LS.h"
@@ -12,6 +12,9 @@
 #include "FEManagerT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 NLSolver_LS::NLSolver_LS(FEManagerT& fe_manager, int group):
 	NLSolver(fe_manager, group)
 {

@@ -7,6 +7,9 @@
 
 #include "SlipKinetics.h"
 
+
+namespace Tahoe {
+
 class PolyCrystalMatT;
 
 class PowerLawIIKinetics: public SlipKinetics
@@ -39,4 +42,5 @@ class PowerLawIIKinetics: public SlipKinetics
   double ComputeInternalQnts(double& tau, double tauIso, int is);
 };
 
+} // namespace Tahoe 
 #endif  /* _POWER_LAW_II_KINETICS_H_ */

@@ -1,10 +1,12 @@
-/* $Id: MeshFreeT.cpp,v 1.3 2001-07-03 01:35:50 paklein Exp $ */
+/* $Id: MeshFreeT.cpp,v 1.4 2002-07-02 19:56:56 cjkimme Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #include "MeshFreeT.h"
 
 #include <iostream.h>
 #include "ExceptionCodes.h"
+
+namespace Tahoe {
 
 istream& operator>>(istream& in, MeshFreeT::FormulationT& code)
 {
@@ -47,4 +49,6 @@ istream& operator>>(istream& in, MeshFreeT::WindowTypeT& code)
 			throw eBadInputValue;	
 	}
 	return in;
+}
+
 }

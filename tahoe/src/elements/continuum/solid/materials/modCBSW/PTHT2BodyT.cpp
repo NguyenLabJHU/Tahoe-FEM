@@ -1,4 +1,4 @@
-/* $Id: PTHT2BodyT.cpp,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* $Id: PTHT2BodyT.cpp,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
 /* created: paklein (10/11/1997)                                          */
 
 #include "PTHT2BodyT.h"
@@ -9,6 +9,9 @@
 #include "ThermalDilatationT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 PTHT2BodyT::PTHT2BodyT(const dArrayT& lengths,
 	const ThermalDilatationT* thermal, ifstreamT& in):
 	TwoBodyT(lengths, thermal)

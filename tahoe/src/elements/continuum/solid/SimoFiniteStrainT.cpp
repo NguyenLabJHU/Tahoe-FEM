@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.18 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.19 2002-07-02 19:55:24 cjkimme Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -14,6 +14,9 @@
 #include "XDOF_ManagerT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 SimoFiniteStrainT::SimoFiniteStrainT(const ElementSupportT& support, const FieldT& field):
 	FiniteStrainT(support, field),
 	fCurrElementModes(LocalArrayT::kUnspecified),

@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.5 2002-06-08 20:20:45 paklein Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.6 2002-07-02 19:56:21 cjkimme Exp $ */
 /* created: paklein (11/20/1996) */
 
 #include "ContinuumMaterialT.h"
@@ -7,6 +7,9 @@
 #include "StringT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 ContinuumMaterialT::ContinuumMaterialT(const ContinuumElementT& element):
 	fContinuumElement(element),
 	fNumDOF(element.NumDOF()),

@@ -1,5 +1,5 @@
 
-/* $Id: Contact3DT.cpp,v 1.3 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: Contact3DT.cpp,v 1.4 2002-07-02 19:55:19 cjkimme Exp $ */
 /* created: paklein (07/17/1999) */
 
 #include "Contact3DT.h"
@@ -15,6 +15,9 @@
 #include "ElementSupportT.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 const int kNumFacetNodes = 3;
 const int kMaxNumGrid    = 50;
 

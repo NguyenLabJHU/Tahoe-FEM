@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.h,v 1.3 2001-07-03 01:35:29 paklein Exp $ */
+/* $Id: ModCB2DT.h,v 1.4 2002-07-02 19:56:06 cjkimme Exp $ */
 /* created: paklein (05/31/1997)                                          */
 
 #ifndef _MODCB_2DT_H_
@@ -11,6 +11,9 @@
 #include "SWDataT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ModCBSolverT;
 
 class ModCB2DT: public NL_E_Mat2DT
@@ -69,4 +72,5 @@ private:
 		
 };
 
+} // namespace Tahoe 
 #endif /* _MODCB_2DT_H_ */

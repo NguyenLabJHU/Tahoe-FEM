@@ -1,4 +1,4 @@
-/* $Id: eLinearHHTalpha.h,v 1.2 2002-04-02 23:19:20 paklein Exp $ */
+/* $Id: eLinearHHTalpha.h,v 1.3 2002-07-02 19:55:05 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _E_LINEARHHT_A_H_
@@ -9,6 +9,9 @@
 #include "eControllerT.h"
 
 /** element component of the HHT-\f$\alpha\f$ time integrator */
+
+namespace Tahoe {
+
 class eLinearHHTalpha: virtual public HHTalpha, public eControllerT
 {
 public:
@@ -49,4 +52,5 @@ private:
 	/*@}*/
 };
 
+} // namespace Tahoe 
 #endif /* _E_LINEARHHT_A_H_ */

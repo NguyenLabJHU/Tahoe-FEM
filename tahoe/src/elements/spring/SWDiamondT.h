@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.h,v 1.4 2002-06-08 20:20:26 paklein Exp $ */
+/* $Id: SWDiamondT.h,v 1.5 2002-07-02 19:55:28 cjkimme Exp $ */
 /* created: paklein (03/19/1997) */
 
 #ifndef _SWDIAMOND_T_H_
@@ -13,6 +13,9 @@
 
 /* templates */
 #include "pArrayT.h"
+
+
+namespace Tahoe {
 
 class SWDiamondT: public ElementBaseT
 {
@@ -160,4 +163,5 @@ protected:
 
 };
 
+} // namespace Tahoe 
 #endif /* _SWDIAMOND_T_H_ */

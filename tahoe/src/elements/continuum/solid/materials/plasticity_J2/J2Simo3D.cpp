@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.cpp,v 1.9 2002-06-08 20:20:41 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.10 2002-07-02 19:56:11 cjkimme Exp $ */
 /* created: paklein (06/22/1997) */
 
 #include "J2Simo3D.h"
@@ -7,6 +7,9 @@
 #include "ContinuumElementT.h"
 
 /* constants */
+
+using namespace Tahoe;
+
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* constructor */

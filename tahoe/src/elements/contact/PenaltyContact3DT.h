@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.h,v 1.2 2002-06-08 20:20:20 paklein Exp $ */
+/* $Id: PenaltyContact3DT.h,v 1.3 2002-07-02 19:55:19 cjkimme Exp $ */
 /* created: paklein (02/09/2000) */
 
 #ifndef _PENALTY_CONTACT3D_T_H_
@@ -6,6 +6,8 @@
 
 /* base classes */
 #include "Contact3DT.h"
+
+namespace Tahoe {
 
 class PenaltyContact3DT: public Contact3DT
 {
@@ -56,5 +58,7 @@ private:
 	int    fnum_contact;
 	double fh_max;
 };
+
+} // namespace Tahoe
 
 #endif /* _PENALTY_CONTACT3D_T_H_ */

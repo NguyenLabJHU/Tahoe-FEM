@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.3 2002-04-17 23:58:18 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.4 2002-07-02 19:56:11 cjkimme Exp $ */
 /* created: paklein (06/18/1997) */
 
 #include "J2SSKStV.h"
@@ -9,6 +9,9 @@
 #include "ContinuumElementT.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */

@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.2 2002-06-08 20:20:17 paklein Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.3 2002-07-02 19:55:16 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -12,6 +12,9 @@
 #include "SecantMethodT.h"
 
 /* class parameters */
+
+using namespace Tahoe;
+
 const int    knumDOF = 2;
 const double kExpMax = 100;
 double TiedPotentialT::fsigma_critical = 0.;

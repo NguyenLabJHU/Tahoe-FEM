@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.cpp,v 1.2 2001-07-03 01:35:01 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.cpp,v 1.3 2002-07-02 19:55:36 cjkimme Exp $ */
 /* created: paklein (10/25/1998)                                          */
 /* Plane strain EAM material                                              */
 
@@ -14,6 +14,9 @@
 #include "dMatrixT.h"
 
 /* material parameters */
+
+using namespace Tahoe;
+
 const int knsd = 3;
 
 const double sqrt2 = sqrt(2.0);

@@ -1,4 +1,4 @@
-/* $Id: AztecReaderT.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: AztecReaderT.cpp,v 1.2 2002-07-02 19:56:49 cjkimme Exp $ */
 /* created: paklein (08/12/1998)                                          */
 /* utility to read Aztec options and parameters                           */
 
@@ -16,6 +16,9 @@
 #include "fstreamT.h"
 
 /* class parameters */
+
+using namespace Tahoe;
+
 const int kNameLength = 255;
 
 /* option constants and indices */

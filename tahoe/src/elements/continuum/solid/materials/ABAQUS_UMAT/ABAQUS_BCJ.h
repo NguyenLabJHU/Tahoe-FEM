@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BCJ.h,v 1.2 2001-07-03 01:34:58 paklein Exp $ */
+/* $Id: ABAQUS_BCJ.h,v 1.3 2002-07-02 19:55:31 cjkimme Exp $ */
 /* created: paklein (05/09/2000)                                          */
 
 #ifndef _ABAQUS_BCJ_H_
@@ -9,6 +9,9 @@
 
 /* library support options */
 #ifdef __F2C__
+
+
+namespace Tahoe {
 
 class ABAQUS_BCJ: public ABAQUS_UMAT_BaseT
 {
@@ -36,5 +39,6 @@ private:
 		ArrayT<StringT>& output_labels);
 };
 
+} // namespace Tahoe 
 #endif /* __F2C__ */
 #endif /* _ABAQUS_BCJ_H_ */

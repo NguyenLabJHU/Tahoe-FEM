@@ -1,4 +1,4 @@
-/* $Id: eExplicitCD.h,v 1.2 2002-04-02 23:19:23 paklein Exp $ */
+/* $Id: eExplicitCD.h,v 1.3 2002-07-02 19:55:08 cjkimme Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _E_EXP_CD_H_
@@ -10,6 +10,9 @@
 
 /** Element controller for an explicit 2nd order
  * accurate, central difference time-stepping algorithm */
+
+namespace Tahoe {
+
 class eExplicitCD: public virtual ExplicitCD, public eControllerT
 {
 public:
@@ -47,4 +50,5 @@ private:
 	
 };
 
+} // namespace Tahoe 
 #endif /* _E_EXP_CD_H_ */

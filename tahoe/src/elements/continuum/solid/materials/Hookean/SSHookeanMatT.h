@@ -1,4 +1,4 @@
-/* $Id: SSHookeanMatT.h,v 1.2 2001-07-03 01:35:05 paklein Exp $ */
+/* $Id: SSHookeanMatT.h,v 1.3 2002-07-02 19:55:38 cjkimme Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #ifndef _SS_HOOKEAN_MAT_H_
@@ -7,6 +7,9 @@
 /* base classes */
 #include "SSStructMatT.h"
 #include "HookeanMatT.h"
+
+
+namespace Tahoe {
 
 class SSHookeanMatT: public SSStructMatT, public HookeanMatT
 {
@@ -36,4 +39,5 @@ protected:
 	dSymMatrixT fStress;
 };
 
+} // namespace Tahoe 
 #endif /* _SS_HOOKEAN_MAT_H_ */

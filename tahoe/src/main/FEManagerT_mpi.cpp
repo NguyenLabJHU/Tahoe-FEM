@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.15 2002-06-08 20:20:28 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.16 2002-07-02 19:55:30 cjkimme Exp $ */
 /* created: paklein (01/12/2000) */
 
 #include "FEManagerT_mpi.h"
@@ -24,6 +24,9 @@
 #include "ExodusT.h"
 
 /* MPI information */
+
+using namespace Tahoe;
+
 static int rank(void)
 {
 #ifdef __MPI__

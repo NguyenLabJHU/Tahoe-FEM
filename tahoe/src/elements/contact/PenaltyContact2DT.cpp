@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.3 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.4 2002-07-02 19:55:19 cjkimme Exp $ */
 /* created: paklein (12/11/1997) */
 
 #include "PenaltyContact2DT.h"
@@ -12,6 +12,8 @@
 
 /* parameters (duplicated from Contact2DT) */
 const int kNumFacetNodes = 2;
+
+using namespace Tahoe;
 
 /* constructor */
 PenaltyContact2DT::PenaltyContact2DT(const ElementSupportT& support, const FieldT& field):

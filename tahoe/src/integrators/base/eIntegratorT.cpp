@@ -1,9 +1,12 @@
-/* $Id: eIntegratorT.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* $Id: eIntegratorT.cpp,v 1.2 2002-07-02 19:55:07 cjkimme Exp $ */
 /* created: paklein (10/14/1996)                                          */
 
 #include "eIntegratorT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 eIntegratorT::eIntegratorT(void) { }
 
 /* destructor */

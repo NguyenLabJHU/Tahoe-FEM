@@ -1,4 +1,4 @@
-/* $Id: NOX_Tahoe_Group.cpp,v 1.2 2002-04-02 23:30:55 paklein Exp $ */
+/* $Id: NOX_Tahoe_Group.cpp,v 1.3 2002-07-02 19:57:16 cjkimme Exp $ */
 #include "NOX_Tahoe_Group.h"
 
 /* optional */
@@ -8,6 +8,9 @@
 #include "SolverInterfaceT.h"
 #include "dArrayT.h"
 #include "GlobalMatrixT.h"
+
+
+using namespace Tahoe;
 
 using namespace NOX;
 using namespace NOX::Tahoe;

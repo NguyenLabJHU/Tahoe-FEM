@@ -7,6 +7,9 @@
 
 #include "ios_fwd_decl.h"
 
+
+namespace Tahoe {
+
 class PolyCrystalMatT;
 class dArrayT;
 class dMatrixT;
@@ -75,4 +78,5 @@ class CubicCrystalElast: public CrystalElasticity
  private:
 };
 
+} // namespace Tahoe 
 #endif /* _CRYSTAL_ELAST_H_ */

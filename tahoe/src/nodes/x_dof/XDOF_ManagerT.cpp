@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.9 2002-06-08 20:20:52 paklein Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.10 2002-07-02 19:56:39 cjkimme Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
@@ -11,6 +11,9 @@
 #include "dArray2DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 XDOF_ManagerT::XDOF_ManagerT(void): 
 	fNumTags(0),
 	fStartTag(-1) 

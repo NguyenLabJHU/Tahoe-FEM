@@ -1,10 +1,13 @@
-/* $Id: FDCubic2DT.cpp,v 1.3 2001-09-15 01:19:24 paklein Exp $ */
+/* $Id: FDCubic2DT.cpp,v 1.4 2002-07-02 19:55:40 cjkimme Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "FDCubic2DT.h"
 #include "ThermalDilatationT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 FDCubic2DT::FDCubic2DT(ifstreamT& in, const FiniteStrainT& element):
 	FDCubicT(in, element),
 	Anisotropic2DT(in),

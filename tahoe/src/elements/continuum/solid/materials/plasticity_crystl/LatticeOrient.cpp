@@ -14,6 +14,9 @@
 #include <stdlib.h>
 
 // some constants
+
+using namespace Tahoe;
+
 const double pi = 4.0 * atan(1.0);
 const double pi180 = pi / 180.;
 

@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatListT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: DiffusionMatListT.cpp,v 1.2 2002-07-02 19:56:05 cjkimme Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "DiffusionMatListT.h"
@@ -10,6 +10,9 @@
 #include "DiffusionMaterialT.h"
 
 /* diffusion materials */
+
+using namespace Tahoe;
+
 const int kLinear      = 1;
 
 const int kMaterialMin = 1;

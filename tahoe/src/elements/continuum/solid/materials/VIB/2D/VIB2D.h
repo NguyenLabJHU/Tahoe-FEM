@@ -1,4 +1,4 @@
-/* $Id: VIB2D.h,v 1.2 2001-07-03 01:35:18 paklein Exp $ */
+/* $Id: VIB2D.h,v 1.3 2002-07-02 19:55:56 cjkimme Exp $ */
 /* created: paklein (04/09/1997)                                          */
 /* 2D VIB solver                                                          */
 
@@ -10,6 +10,9 @@
 #include "VIB_E_MatT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dMatrixT;
 class CirclePointsT;
 
@@ -58,4 +61,5 @@ private:
 
 };
 
+} // namespace Tahoe 
 #endif /* _VIB_2D_H_ */

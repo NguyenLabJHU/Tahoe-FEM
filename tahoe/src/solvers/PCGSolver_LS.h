@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.h,v 1.2 2002-06-08 20:20:55 paklein Exp $ */
+/* $Id: PCGSolver_LS.h,v 1.3 2002-07-02 19:57:12 cjkimme Exp $ */
 /* created: paklein (08/19/1999) */
 
 #ifndef _PCG_SOLVER_LS_H_
@@ -9,6 +9,9 @@
 
 /* direct members */
 #include "dArray2DT.h"
+
+
+namespace Tahoe {
 
 class PCGSolver_LS: public NLSolver
 {
@@ -66,4 +69,5 @@ private:
 	dArray2DT fSearchData; // line search history
 };
 
+} // namespace Tahoe 
 #endif /* _PCG_SOLVER_LS_H_ */

@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.h,v 1.3 2002-04-16 21:19:33 cjkimme Exp $ */
+/* $Id: RateDep2DT.h,v 1.4 2002-07-02 19:55:16 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _RATE_DEP_2D_T_H_
@@ -8,6 +8,9 @@
 #include "SurfacePotentialT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ifstreamT;
 
 /** cohesive potential from Tvergaard and Hutchinson. This model is
@@ -95,4 +98,5 @@ private:
 	double fslope; /*slope of the 'plateau' of the Tverg-Hutch potential in units of fsigma_max */
 };
 
+} // namespace Tahoe 
 #endif /* _RATE_DEP_2D_T_H_ */

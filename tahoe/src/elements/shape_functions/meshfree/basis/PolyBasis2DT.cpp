@@ -1,9 +1,12 @@
-/* $Id: PolyBasis2DT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: PolyBasis2DT.cpp,v 1.2 2002-07-02 19:57:05 cjkimme Exp $ */
 /* created: paklein (12/13/1999)                                          */
 
 #include "PolyBasis2DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 PolyBasis2DT::PolyBasis2DT(int complete):
 	BasisT(complete, 2)
 {

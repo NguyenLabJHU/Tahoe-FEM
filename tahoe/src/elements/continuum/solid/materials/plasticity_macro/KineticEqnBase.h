@@ -7,6 +7,9 @@
 
 #include "dArrayT.h"
 
+
+namespace Tahoe {
+
 class KineticEqnBase
 {
  public:
@@ -46,4 +49,5 @@ class KineticEqnBase
 //KineticEqnBase::KineticEqnBase() { }
 //KineticEqnBase::~KineticEqnBase() { }
 
+} // namespace Tahoe 
 #endif  /* _KINETIC_EQN_BASE_H_ */

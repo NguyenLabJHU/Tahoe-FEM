@@ -1,4 +1,4 @@
-/* $Id: PTHT3BodyT.cpp,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* $Id: PTHT3BodyT.cpp,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
 /* created: paklein (10/11/1997)                                          */
 
 #include "PTHT3BodyT.h"
@@ -12,6 +12,9 @@
 
 
 /* parameters */
+
+using namespace Tahoe;
+
 const int kNumVars = 3; //number of arguments in Phi
 
 /* constructor */
