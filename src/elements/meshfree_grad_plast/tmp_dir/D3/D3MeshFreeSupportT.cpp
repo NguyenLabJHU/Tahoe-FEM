@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupportT.cpp,v 1.2 2004-09-29 00:42:55 kyonten Exp $ */
+/* $Id: D3MeshFreeSupportT.cpp,v 1.3 2004-10-05 15:10:33 kyonten Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D3MeshFreeSupportT.h"
@@ -198,7 +198,7 @@ void D3MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 /* return values */
 const dArray2DT& D3MeshFreeSupportT::DDDFieldAt(void) const
 {	
-	//return fRKPM->DDDphi();  
+	return fRKPM->DDDphi();  //kyonten (uncommented)
 }
 
 /*************************************************************************
@@ -320,7 +320,7 @@ void D3MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 		phi   = fRKPM->phi();
 		Dphi  = fRKPM->Dphi();
 		DDphi = fRKPM->DDphi();
-		//DDDphi = fRKPM->DDDphi(); //kyonten 
+		DDDphi = fRKPM->DDDphi(); //kyonten (uncommented)
 	}
 }
 
@@ -379,7 +379,7 @@ void D3MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 			phi.SetRow(i, fRKPM->phi());
 			Dphi[i]  = fRKPM->Dphi();
 			DDphi[i] = fRKPM->DDphi();
-			//DDDphi[i] = fRKPM->DDDphi();  //kyonten 
+			DDDphi[i] = fRKPM->DDDphi();  //kyonten (uncommented) 
 		}
 	}
 }
