@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.18 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.19 2005-03-02 02:29:14 paklein Exp $ */
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
 
@@ -137,11 +137,8 @@ inline const dMatrixT& FiniteStrainT::DeformationGradient(void) const
 	int mat_num = CurrentElement().MaterialNumber();
 	const ArrayT<bool>& needs = fMaterialNeeds[mat_num];
 	if (!needs[fNeedsOffset + kF])
-	{
-		cout << "\n FiniteStrainT::DeformationGradient: material " << mat_num + 1 
-		     << " did not specify this need" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("FiniteStrainT::DeformationGradient",
+			"material %d did not specify this need", mat_num+1);
 #endif
 
 	return fF_List[CurrIP()];
@@ -154,11 +151,8 @@ inline const dMatrixT& FiniteStrainT::DeformationGradient(int ip) const
 	int mat_num = CurrentElement().MaterialNumber();
 	const ArrayT<bool>& needs = fMaterialNeeds[mat_num];
 	if (!needs[fNeedsOffset + kF])
-	{
-		cout << "\n FiniteStrainT::DeformationGradient: material " << mat_num + 1 
-		     << " did not specify this need" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("FiniteStrainT::DeformationGradient",
+			"material %d did not specify this need", mat_num+1);
 #endif
 
 	return fF_List[ip];
@@ -171,11 +165,8 @@ inline const dMatrixT& FiniteStrainT::DeformationGradient_last(void) const
 	int mat_num = CurrentElement().MaterialNumber();
 	const ArrayT<bool>& needs = fMaterialNeeds[mat_num];
 	if (!needs[fNeedsOffset + kF_last])
-	{
-		cout << "\n FiniteStrainT::DeformationGradient_last: material " << mat_num + 1 
-		     << " did not specify this need" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("FiniteStrainT::DeformationGradient_last",
+			"material %d did not specify this need", mat_num+1);
 #endif
 
 	return fF_last_List[CurrIP()];
@@ -188,11 +179,8 @@ inline const dMatrixT& FiniteStrainT::DeformationGradient_last(int ip) const
 	int mat_num = CurrentElement().MaterialNumber();
 	const ArrayT<bool>& needs = fMaterialNeeds[mat_num];
 	if (!needs[fNeedsOffset + kF_last])
-	{
-		cout << "\n FiniteStrainT::DeformationGradient_last: material " << mat_num + 1 
-		     << " did not specify this need" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("FiniteStrainT::DeformationGradient_last",
+			"material %d did not specify this need", mat_num+1);
 #endif
 
 	return fF_last_List[ip];
