@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.5 2001-06-14 20:52:09 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.6 2001-06-18 20:34:43 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -230,10 +230,10 @@ bool ComparatorT::PassOrFail(ifstreamT& in) //const
 
 		/* compare nodal blocks */
 		if (!CompareDataBlocks(b_node_labels, b_node_data, c_node_labels, c_node_data)) {
-			cout << "nodal data fails check" << '\n';
+			cout << "nodal data check: FAIL" << '\n';
 			return false;
 		}
-		else cout << "nodal data passes check" << '\n';
+		else cout << "nodal data check: PASS" << '\n';
 
 		/* read element data */
 		ArrayT<StringT> b_element_labels;
@@ -252,10 +252,10 @@ bool ComparatorT::PassOrFail(ifstreamT& in) //const
 
 		/* compare element blocks */
 		if (!CompareDataBlocks(b_element_labels, b_element_data, c_element_labels, c_element_data)) {
-			cout << "element data fails check" << '\n';
+			cout << "element data check: FAIL" << '\n';
 			return false;
 		}
-		else cout << "element data passes check" << '\n';
+		else cout << "element data check: PASS" << '\n';
 
 		/* next block */
 		b_OK = ReadDataBlockInfo(bench_in, b_group, b_time);
@@ -422,14 +422,14 @@ bool ComparatorT::CompareDataBlocks(const ArrayT<StringT>& labels_1, const dArra
 
 	/* assess results */
 	if (fabs(max_abs_error) > fAbsTol)
-		cout << "absolute error exceeds tolerance " << fAbsTol << ": " << max_abs_error << '\n';
+		cout << "absolute error exceeds tolerance " << fAbsTol << ": " << max_abs_error << ": FAIL\n";
 	else
-		cout << "absolute error within tolerance " << fAbsTol << ": " << max_abs_error << '\n';
+		cout << "absolute error within tolerance " << fAbsTol << ": " << max_abs_error << ": PASS\n";
 	
 	if (fabs(max_rel_error) > fRelTol) 
 		cout << "relative error exceeds tolerance " << fRelTol << ": " << max_rel_error << ": IGNORED\n";
 	else
-		cout << "relative error within tolerance " << fRelTol << ": " << max_rel_error << '\n';
+		cout << "relative error within tolerance " << fRelTol << ": " << max_rel_error << ": PASS\n";
 
 	/* return */
 	if (fabs(max_abs_error) > fAbsTol)
