@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.19.2.2 2004-03-04 20:12:14 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.19.2.3 2004-03-17 18:03:31 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -696,32 +696,6 @@ void DiffusionElementT::TakeParameterList(const ParameterListT& list)
 					fNodalOutputCodes[i] = 1;
 			}
 		}	
-}
-
-/* extract element block info from parameter list */
-void DiffusionElementT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const
-{
-	/* collect {block_ID, material_index} pairs */
-	int num_blocks = list.NumLists("diffusion_element_block");
-	AutoArrayT<StringT> block_ID_tmp;
-	AutoArrayT<int> mat_index_tmp;
-	ParameterListT material_list; /* collected material parameters */
-	for (int i = 0; i < num_blocks; i++) {
-
-		/* block information */	
-		const ParameterListT& block = list.GetList("diffusion_element_block", i);
-
-		/* collect block ID's */
-		const ArrayT<ParameterListT>& IDs = block.GetList("block_ID_list").Lists();
-		for (int j = 0; j < IDs.Length(); j++) {
-			block_ID_tmp.Append(IDs[j].GetParameter("value"));
-			mat_index_tmp.Append(i);
-		}
-	}
-	
-	/* transfer */
-	block_ID.Swap(block_ID_tmp);
-	mat_index.Swap(mat_index_tmp);
 }
 
 /* extract the list of material parameters */
