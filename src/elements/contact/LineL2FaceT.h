@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.h,v 1.6 2001-04-23 17:50:26 rjones Exp $ */
+/* $Id: LineL2FaceT.h,v 1.7 2001-04-24 00:33:22 rjones Exp $ */
 
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
@@ -43,7 +43,7 @@ public:
 	void ComputeShapeFunctions
 		(dArrayT& local_coordinates, dMatrixT& shape_functions);
 	double ComputeJacobian (dArrayT& local_coordinates);
-        bool Projection (ContactNodeT* node, dArrayT& parameters);
+        bool Projection (ContactNodeT* node, dArrayT& parameters) ;
 protected:
 
 private:

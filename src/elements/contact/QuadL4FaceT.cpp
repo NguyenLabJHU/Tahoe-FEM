@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.8 2001-04-23 17:50:27 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.9 2001-04-24 00:33:22 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
@@ -111,14 +111,14 @@ QuadL4FaceT::ComputeJacobian (dArrayT& local_coordinates)
 
 bool
 QuadL4FaceT::Projection 
-(ContactNodeT* node,dArrayT& parameters)
+(ContactNodeT* node,dArrayT& parameters) 
 {
 	double tol_g  = parameters[ContactElementT::kGapTol];
 	double tol_xi = parameters[ContactElementT::kXiTol];
 
 	const double* nm = node->Normal();
 	/* check normal opposition */
-	if ( Dot(nm,fnormal) > 0.0 ) {
+	if ( Dot(nm,fnormal) < 0.0 ) {
 	  const double* x0 = node->Position();
 	  /* compute local coordinates */
 	  Polynomial(a,b,c,d);
@@ -129,7 +129,7 @@ QuadL4FaceT::Projection
 	  x1 = Dot(x0,t1); 
 	  x2 = Dot(x0,t2);
 	  a1 = Dot(a,t1); b1 = Dot(b,t1); c1 = Dot(c,t1); d1 = Dot(d,t1);
-	  a2 = Dot(a,t2); b2 = Dot(b,t2); c2 = Dot(c,t1); d2 = Dot(d,t2);
+	  a2 = Dot(a,t2); b2 = Dot(b,t2); c2 = Dot(c,t2); d2 = Dot(d,t2);
 	  double p0,p1,p2,p3,m0,m1,m2,m3;
 	  /*difference*/
 	  m0 = a1 - a2 - x1 + x2;
@@ -138,12 +138,10 @@ QuadL4FaceT::Projection
 	  p0 = a1 + a2 - x1 - x2;
 	  p1 = b1 + b2; p2 = c1 + c2; p3 = d1 + d2;
 	  /* reduced equation for xi, valid for p0 - p2*eta != 0 */
-	  double con = p3*m1 - p1*m3;
+	  double qua = p3*m1 - p1*m3;
 	  double lin = p2*m1 - p1*m2 + p3*m0 - p0*m3;
-	  double qua = p2*m0 - p0*m2;
-	  if (fabs(qua) < kTol_Quad) {
-		xi[0] = -con/lin;
-	  }
+	  double con = p2*m0 - p0*m2;
+	  if (fabs(qua) < kTol_Quad) { xi[0] = -con/lin; }
 	  else {
 		double b2a = 0.5*lin/qua;
 		double discrim = lin*lin - 4.0*con*qua;
@@ -163,6 +161,8 @@ QuadL4FaceT::Projection
 		{xi[1] = -(m0 + m1*xi[0])/(m2 + m3*xi[0]);}
 	  if( CheckLocalCoordinates(xi,tol_xi) ) { 
 	    double a3,b3,c3,d3,x3;
+	    x3 = Dot(x0,nm);
+	    a3 = Dot(a,nm); b3 = Dot(b,nm); c3 = Dot(c,nm); d3 = Dot(d,nm);
 	    /* compute gap */
 	    double g =  a3 + b3*xi[0] + c3*xi[1]+ d3*xi[0]*xi[1] - x3;
 	    if (CheckGap(g,tol_g) ) {

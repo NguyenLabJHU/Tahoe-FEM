@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.h,v 1.5 2001-04-23 17:50:26 rjones Exp $ */
+/* $Id: ContactSearchT.h,v 1.6 2001-04-24 00:33:21 rjones Exp $ */
 
 #ifndef _CONTACT_SEARCH_T_H_
 #define _CONTACT_SEARCH_T_H_
@@ -7,6 +7,7 @@
 /* direct members */
 #include "nMatrixT.h"
 #include "dArrayT.h"
+#include "iArrayT.h"
 #include "iGridManagerT.h"
 
 /* forward declarations */
@@ -55,6 +56,7 @@ private:
 	/*workspace*/
 	double centroid[3];
 	double radius;
+	iArrayT grid_nodes;
 
 };
 

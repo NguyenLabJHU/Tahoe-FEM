@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.8 2001-04-23 17:50:26 rjones Exp $ */
+/* $Id: FaceT.h,v 1.9 2001-04-24 00:33:21 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -62,7 +62,7 @@ public:
 	virtual double ComputeJacobian 
 		(dArrayT& local_coordinates)=0;
         virtual bool Projection 
-		(ContactNodeT* node, dArrayT& parameters)=0; 
+		(ContactNodeT* node, dArrayT& parameters) =0; 
 
 	/* access functions */
 	inline const int NumNodes(void) const 
@@ -81,8 +81,8 @@ public:
 
 	/* check functions */  
 	inline bool CheckLocalCoordinates(double* xi, double tol_xi)
-		{return xi[0] < 1.0 - tol_xi && xi[0] >-1.0 + tol_xi
-		   &&   xi[1] < 1.0 - tol_xi && xi[1] >-1.0 + tol_xi ; }
+		{return xi[0] < 1.0 + tol_xi && xi[0] >-1.0 - tol_xi
+		   &&   xi[1] < 1.0 + tol_xi && xi[1] >-1.0 - tol_xi ; }
 	inline bool CheckGap(double gap, double tol_g)
 		{ return gap < tol_g ? 1 : 0 ;}
 		

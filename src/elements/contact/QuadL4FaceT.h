@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.h,v 1.6 2001-04-23 17:50:27 rjones Exp $ */
+/* $Id: QuadL4FaceT.h,v 1.7 2001-04-24 00:33:22 rjones Exp $ */
 
 #ifndef _QUADL4_FACE_T_H_
 #define _QUADL4_FACE_T_H_
@@ -47,9 +47,9 @@ public:
         void ComputeShapeFunctions
                 (dArrayT& local_coordinates, dMatrixT& shape_functions);
         double ComputeJacobian (dArrayT& local_coordinates);
-        bool Projection (ContactNodeT* node, dArrayT& parameters);
+        bool Projection (ContactNodeT* node, dArrayT& parameters) ;
 
-	inline void Polynomial(double* a, double* b, double* c, double* d);
+	inline void Polynomial (double* a, double* b, double* c, double* d) ;
 
 protected:
 
@@ -65,7 +65,7 @@ private:
 
 inline void
 QuadL4FaceT::Polynomial
-(double* a, double* b, double* c, double* d)
+(double* a, double* b, double* c, double* d) 
 {	/* const term */
         a[0] = 0.25*( fx[0][0]+fx[1][0]+fx[2][0]+fx[3][0]);
         a[1] = 0.25*( fx[0][1]+fx[1][1]+fx[2][1]+fx[3][1]);
@@ -78,7 +78,7 @@ QuadL4FaceT::Polynomial
         c[0] = 0.25*(-fx[0][0]-fx[1][0]+fx[2][0]+fx[3][0]);
         c[1] = 0.25*(-fx[0][1]-fx[1][1]+fx[2][1]+fx[3][1]);
         c[2] = 0.25*(-fx[0][2]-fx[1][2]+fx[2][2]+fx[3][2]);
-	/* xi eta term */ 
+	/* xi.eta term */ 
         d[0] = 0.25*( fx[0][0]-fx[1][0]+fx[2][0]-fx[3][0]);
         d[1] = 0.25*( fx[0][1]-fx[1][1]+fx[2][1]-fx[3][1]);
         d[2] = 0.25*( fx[0][2]-fx[1][2]+fx[2][2]-fx[3][2]);

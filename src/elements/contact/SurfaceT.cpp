@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.9 2001-04-23 17:50:27 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.10 2001-04-24 00:33:22 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -63,7 +63,7 @@ SurfaceT::~SurfaceT(void)
 }
 
 
-void SurfaceT::PrintData(ostream& out)
+void SurfaceT::PrintConnectivityData(ostream& out)
 {
 	/* surface data */
         /* echo data and correct numbering offset */
@@ -85,6 +85,25 @@ void SurfaceT::PrintData(ostream& out)
         	connectivity--;
 	}
 	out << '\n';
+
+}
+
+void SurfaceT::PrintKinematicData(ostream& out)
+{
+	out << "\n Surface " << fTag
+            << " nodes:" << setw(kIntWidth) << fGlobalNodes.Length() << '\n' ;
+
+	for (int i = 0 ; i < fNormals.MajorDim() ; i++) {
+		double* position = fCoordinates(i);
+		out << i << " position: " << position[0] << ", "
+		                          << position[1] << ", "
+		                          << position[2] << '\n';
+		double* normal = fNormals(i);
+		out << i << " normal  : " << normal[0] << ", "
+		                          << normal[1] << ", "
+		                          << normal[2] << '\n';
+		out << '\n';
+	}
 
 }
 
@@ -341,9 +360,7 @@ void SurfaceT::Initialize (const NodeManagerT* node_manager)
 
 	ComputeNeighbors();
 
-	cout << " Initialize \n";
 	UpdateConfiguration();
-	cout << " DOne Initialize \n";
 }
 
 void SurfaceT::UpdateConfiguration ()
@@ -354,6 +371,8 @@ void SurfaceT::UpdateConfiguration ()
 
   /* update averaged outward normals (and tangents) */
   ComputeSurfaceBasis();
+
+  PrintKinematicData(cout);
 }
 
 void SurfaceT::ComputeNeighbors (void)
@@ -416,10 +435,6 @@ void SurfaceT::ComputeNeighbors3D()
         }
 
 	fNodeNeighbors.CopyCompressed(faces_at_node);
-	        cout << " num face count \n";
-        for (i = 0; i < fNodeNeighbors.MajorDim() ; i++) {
-                cout << i << " " << fNodeNeighbors.MinorDim(i) << '\n';
-        }
 
 	iArrayT face_counts;
 	face_counts.Allocate(fNodeNeighbors.MajorDim());
@@ -435,15 +450,6 @@ void SurfaceT::ComputeNeighbors3D()
 		  fLocalNodeInNeighbors(i)[j] = face->LocalNodeNumber(i);
 		}
 	}
-
-	                cout << " local node num \n";
-        for (i = 0; i < fLocalNodeInNeighbors.MajorDim() ; i++) {
-		cout << i << " ";
-		for (j = 0; j < fLocalNodeInNeighbors.MinorDim(i) ; j++) {
-                  cout << 1+fLocalNodeInNeighbors(i)[j] << " " ;
-		}
-		cout << '\n';
-        }
 
 
 	/* find all neighbor faces inclusive of orig. face currently */
@@ -461,16 +467,8 @@ void SurfaceT::ComputeNeighbors3D()
 		  }
                 }
         }
-	        cout << " face neigbor count \n";
-        for (i = 0; i < faces_next_to_face.MajorDim() ; i++) {
-                cout << i << " " << faces_next_to_face.MinorDim(i) << '\n';
-	}
 	
 	fFaceNeighbors.CopyCompressed(faces_next_to_face);
-	        cout << " FaceNeighbors \n";
-        for (i = 0; i < fFaceNeighbors.MajorDim() ; i++) {
-                cout << i << " " << fFaceNeighbors.MinorDim(i) << '\n';
-	}
 
 }
 
@@ -487,17 +485,10 @@ void SurfaceT::ComputeSurfaceBasis(void)
 		Add(normal,normal_i,normal,fNumSD);
           }
 	  Normalize(normal,fNumSD);
-	  cout << i << " normal " << normal[0] << " " 
-                                  << normal[1] << " " << normal[2] << "\n";
 	  /* compute tangents */
 	  double* tangent1 = fTangent1s(i);
 	  double* tangent2 = fTangent2s(i); // 2D ??
 	  FaceT* face = fNodeNeighbors(i)[0];
 	  face->LocalBasis(normal,tangent1,tangent2);
-	  cout << i << " tangent1 " << tangent1[0] << " "
-                                  << tangent1[1] << " " << tangent1[2] << "\n";
-	  cout << i << " tangent2 " << tangent2[0] << " "
-                                  << tangent2[1] << " " << tangent2[2] << "\n";
-
         }
 }

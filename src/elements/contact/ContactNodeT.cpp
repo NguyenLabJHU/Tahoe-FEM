@@ -1,4 +1,4 @@
-/*  $Id: ContactNodeT.cpp,v 1.3 2001-04-23 17:50:26 rjones Exp $ */
+/*  $Id: ContactNodeT.cpp,v 1.4 2001-04-24 00:33:21 rjones Exp $ */
 #include "ContactNodeT.h"
 
 #include "SurfaceT.h"
@@ -25,6 +25,7 @@ void
 ContactNodeT::PrintData(ostream& out)
 {
 	out << "gap " << fGap << '\n';
+	out << "xi " << fxi[0] << " " << fxi[1] << '\n';
 }
 
 bool
@@ -39,6 +40,7 @@ double* xi, double g)
 		if (fOpposingSurface->NumSD() == 3 ) 
 			{fxi[1] = xi[1] ; }
         	fGap = g ;
+		PrintData(cout);
 		return 1;
 	}
 	return 0;

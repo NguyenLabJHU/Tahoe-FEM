@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.5 2001-04-23 17:50:26 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.6 2001-04-24 00:33:21 rjones Exp $ */
 
 #include "ContactSearchT.h"
 
@@ -44,7 +44,13 @@ bool ContactSearchT::SetInteractions(void)
 	ngrid = (ngrid < 2) ? 2 : ngrid;
 	ngrid = (ngrid > kMaxNumGrid) ? kMaxNumGrid : ngrid;
 	
-	fGrid = new iGridManagerT (ngrid, surface1.Coordinates(), 0);
+	/* construct a search grid */
+	dArray2DT& coordinates = surface1.Coordinates();
+	grid_nodes.Allocate(coordinates.MajorDim());
+	grid_nodes.SetValueToPosition();
+	iArrayT n_grid(surface1.NumSD());
+	n_grid = ngrid;
+	fGrid = new iGridManagerT (n_grid, coordinates, &grid_nodes);
 	if (!fGrid) throw eOutOfMemory;
 	
 	/* (re-)set grid boundaries */
@@ -54,7 +60,9 @@ bool ContactSearchT::SetInteractions(void)
 		ContactSurfaceT& surface2  = fSurfaces[j]; // "face" surface
 		dArrayT& parameters = fSearchParameters(i,j);
 		/* set node-face data */
-		NodeFaceSearch(surface1,surface2,parameters);
+		if (parameters.Length() != 0) 
+			NodeFaceSearch(surface1,surface2,parameters);
+if (parameters.Length() != 0) cout << " searching surface " << i << " with " << j << '\n';
  	}
 	delete fGrid;
   }
@@ -92,6 +100,7 @@ void ContactSearchT::Initialize(void)
 	/* update face normals */
 	ArrayT<FaceT*>& faces = surface.Faces();
 	for (j = 0; j < faces.Length(); j++) {
+		//const FaceT* face = faces[j];
 		FaceT* face = faces[j];
 		face->FaceNormal();
 	}
@@ -109,7 +118,8 @@ void ContactSearchT::Initialize(void)
  		if (osurface) {
 			tag = osurface->Tag();	
 			dArrayT& parameters = fSearchParameters(i,tag);
-			const FaceT* face = node->OpposingFace() ;
+			// FaceT* face = node->OpposingFace() ;
+			FaceT* face = node->OpposingFace() ;
 			found = face->Projection(node,parameters);
 			if (!found) node->ClearOpposing();
 		}
@@ -129,6 +139,7 @@ dArrayT& parameters)
   ArrayT<FaceT*>&        faces = face_surface.Faces();
   ArrayT<ContactNodeT*>& nodes = node_surface.ContactNodes();
   for (int i = 0; i < face_surface.NumFaces(); i++) {
+	//const FaceT* face = faces[i];
 	FaceT* face = faces[i];
 	/* face centroid*/
         face->ComputeCentroid(*centroid);
@@ -163,7 +174,8 @@ bool ContactSearchT::UpdateProjection (void)
                 if (osurface) {
                         tag = osurface->Tag();
                         dArrayT& parameters = fSearchParameters(i,tag);
-                        const FaceT* face = node->OpposingFace() ;
+                        //const FaceT* face = node->OpposingFace() ;
+                        FaceT* face = node->OpposingFace() ;
                         found = face->Projection(node,parameters);
                         if (!found) {
 #if 0

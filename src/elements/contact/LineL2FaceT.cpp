@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.7 2001-04-23 17:50:26 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.8 2001-04-24 00:33:22 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
@@ -121,7 +121,7 @@ LineL2FaceT::ComputeJacobian (dArrayT& local_coordinates)
 
 bool
 LineL2FaceT::Projection 
-(ContactNodeT* node, dArrayT& parameters)
+(ContactNodeT* node, dArrayT& parameters) 
 {
 	//HACK
 	return 0;

@@ -1,4 +1,4 @@
-/* $Id: SurfaceT.h,v 1.7 2001-04-23 17:50:27 rjones Exp $ */
+/* $Id: SurfaceT.h,v 1.8 2001-04-24 00:33:22 rjones Exp $ */
 
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
@@ -29,7 +29,8 @@ class SurfaceT
 	virtual ~SurfaceT(void);
 
 	/* print data */
-	void PrintData(ostream& out);
+	void PrintConnectivityData(ostream& out);
+	void PrintKinematicData(ostream& out);
 
 	/* allocate and input face nodes */
 	void InputSideSets
