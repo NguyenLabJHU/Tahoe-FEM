@@ -1,4 +1,4 @@
-/* $Id: LocalizeT.h,v 1.3 2003-11-19 06:09:46 thao Exp $ */
+/* $Id: LocalizeT.h,v 1.4 2003-11-24 17:34:40 thao Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _LOCALIZET_H_
@@ -8,6 +8,7 @@
 #include "dMatrixT.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
+#include "dArray2DT.h"
 #include "ofstreamT.h"
 
 namespace Tahoe {
@@ -25,13 +26,14 @@ public:
 	LocalizeT(const ElementSupportT& support);
 
 	/*print localization results*/
-	void WriteLocalize(const iArrayT& locflags, const dArray2DT& elem_center, const dArray2DT& normal);
-	void WriteLocalize (void);
+	void WriteLocalize(const iArrayT& flags,const dArray2DT& elem_centers,
+			   const dArray2DT& normals);
+	void WriteLocalize(void);
 
 	/*check localization*/
-	int CheckLocalizeFS(const dSymMatrixT& stress, const dMatrixT& modulus,
+	int CheckLocalizeFS(const dSymMatrixT& stress,const dMatrixT& modulus,
 			    const LocalArrayT& initcoords);
-	int CheckLocalizeSS(const dSymMatrixT& stress, const dMatrixT& modulus,
+	int CheckLocalizeSS(const dSymMatrixT& stress,const dMatrixT& modulus,
 			    const LocalArrayT& initcoords);
 
 	/*accessors*/
@@ -60,11 +62,24 @@ public:
 	double ddet(double t) const;
 	double dddet(double t) const;
 	
- protected:
+ protected: 
+	/*for use by derived element class*/
 	/*check localization flag*/
 	int fCheck;	
+
+	/*list of index of element blocks for localization check*/
 	iArrayT fBlockList;
-	iArrayT fip_loc;
+	iArrayT fcheckflag; /*flag for elements identified by fBlockList*/
+	iArrayT flocflag;   /*flag for elements that have localized in time
+			      step*/
+	iArrayT flocflagtot; /*flag for localized elements cummulative*/
+
+	/*check for localization at all the ips in the element*/
+	iArrayT fip_loc;  //currently not implemented
+	
+	dArray2DT felem_centers; /*center coordinates of localized elements*/
+	dArray2DT fnormals;      /*normals of localized elements*/
+	
  private:
 	
 	/*member data*/

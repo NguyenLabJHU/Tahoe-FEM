@@ -1,4 +1,4 @@
-/* $Id: LocalizeT.cpp,v 1.4 2003-11-19 06:09:46 thao Exp $ */
+/* $Id: LocalizeT.cpp,v 1.5 2003-11-24 17:34:39 thao Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "LocalizeT.h"
@@ -28,7 +28,6 @@ LocalizeT::LocalizeT(const ElementSupportT& support):
 
   ifstreamT& in = support.Input();
   ostream& out = support.Output();
-  //  const CommunicatorT& comm = support.CommManager().Communicator();
 
   in >> fCheck;
   if (fCheck == 1){
@@ -43,16 +42,10 @@ LocalizeT::LocalizeT(const ElementSupportT& support):
       in >> index;
       fBlockList[i] = index -1;
     }
-    //    cout << "In Blocks:\n"<<fBlockList;
     out << "\nIn Blocks\n"<<fBlockList;
 
     const StringT& input_file = in.filename();
     flocalize_file.Root(input_file);
-
-    /*    if (comm.Size()>1){
-      int rank = support.Rank();
-      flocalize_file.Append(rank);
-      }*/
     flocalize_file.Append(".loc");
  
     fout.open(flocalize_file);
@@ -75,7 +68,7 @@ LocalizeT::LocalizeT(const ElementSupportT& support):
 }
 
 
-void LocalizeT::WriteLocalize(const iArrayT& flags, const dArray2DT& elem_center,const dArray2DT& normal)
+void LocalizeT::WriteLocalize(const iArrayT& flags, const dArray2DT& elem_centers, const dArray2DT& normals)
 {
   int nel = flags.Length();
   
@@ -84,10 +77,10 @@ void LocalizeT::WriteLocalize(const iArrayT& flags, const dArray2DT& elem_center
   {
     if (flags[i] == 1)
       fout << setw(8) << fTime
-	   << setw(16) << elem_center(i,0)
-	   << setw(16) << elem_center(i,1)
-	   << setw(16) << normal(i,0)
-	   << setw(16) << normal(i,1)    
+	   << setw(16) << elem_centers(i,0)
+	   << setw(16) << elem_centers(i,1)
+	   << setw(16) << normals(i,0)
+	   << setw(16) << normals(i,1)    
 	   << endl;
   }
   fout.close();
@@ -275,16 +268,21 @@ void LocalizeT::ComputeCoefficients(void)
 			+ s22*s22)/8;
 
 	/* phase shifts */
-       	if (fabs(c2t) == 0.0 && fabs(s2t) == 0.0)
+       	if (fabs(c2t) < 1.0e-12 && fabs(s2t) < 1.0e-12)
 	  fphi2 = fPi/4.0;
 	else fphi2 = atan2(c2t,s2t)/2.0;
 	
-	if (fabs(c4t) == 0.0 && fabs(s4t) == 0.0)
+	if (fabs(c4t) < 1.0e-12 && fabs(s4t) < 1.0e-12)
 	  fphi4 = fPi/8.0;
 	  else fphi4 = atan2(c4t,s4t)/4.0;
 
-	//	fphi2 = atan2(c2t,s2t)/2.0;
-	//	fphi4 = atan2(c4t,s4t)/4.0;
+	if (fabs(fphi4) == 0.0)
+	  cout << "\nDivide by zero: c4t = "<<c4t<<" s4t = "<<s4t
+	       << "\nfabs c4t = "<<fabs(c4t)<<" fabs s4t = " <<fabs(s4t);
+	if (fabs(fphi2) == 0.0)
+	  cout << "\nDivide by zero: c2t = "<<c2t<<" s2t = "<<s2t 
+	       << "\nfabs c2t = "<<fabs(c2t)<<" fabs s2t = " <<fabs(s2t);
+
 	/* amplitudes */
 	fA0 = (-c12*c12 - 3*c13*c13 + c11*c22 + 2*c13*c23 - 3*c23*c23 +
 			3*c11*c33 - 2*c12*c33 + 3*c22*c33 + 3*c11*s11 + c22*s11 +
