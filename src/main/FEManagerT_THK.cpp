@@ -1,6 +1,6 @@
-/* $Id: FEManagerT_THK.cpp,v 1.20 2004-12-26 21:14:26 d-farrell2 Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.21 2005-04-06 15:42:00 paklein Exp $ */
 #include "FEManagerT_THK.h"
-#ifdef BRIDGING_ELEMENT
+#if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
 
 #include "ifstreamT.h"
 #include "ModelManagerT.h"
@@ -919,4 +919,4 @@ void FEManagerT_THK::ComputeThetaTables3D(const StringT& data_file)
 	}
 }
 
-#endif /* BRIDGING_ELEMENT */
+#endif /* BRIDGING_ELEMENT && BRIDGING_ELEMENT_DEV */

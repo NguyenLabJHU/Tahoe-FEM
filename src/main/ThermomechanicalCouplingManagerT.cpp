@@ -1,7 +1,7 @@
-/* $Id $ */
+/* $Id: ThermomechanicalCouplingManagerT.cpp,v 1.2 2005-04-06 15:42:00 paklein Exp $ */
 #include "ThermomechanicalCouplingManagerT.h"
 
-#ifdef BRIDGING_ELEMENT
+#if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
 
 #include "ifstreamT.h"
 #include "SolverT.h"
@@ -395,4 +395,4 @@ void ThermomechanicalCouplingManagerT::TakeParameterList(const ParameterListT& l
  * Protected
  **********************************************************************/
 
-#endif /* BRIDGING_ELEMENT */
+#endif /* BRIDGING_ELEMENT && BRIDGING_ELEMENT_DEV */

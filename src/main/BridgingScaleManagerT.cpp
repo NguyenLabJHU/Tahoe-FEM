@@ -1,7 +1,7 @@
-/* $Id: BridgingScaleManagerT.cpp,v 1.6 2004-12-26 21:14:26 d-farrell2 Exp $ */
+/* $Id: BridgingScaleManagerT.cpp,v 1.7 2005-04-06 15:42:00 paklein Exp $ */
 #include "BridgingScaleManagerT.h"
 
-#ifdef BRIDGING_ELEMENT
+#if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
 
 #include "ifstreamT.h"
 #include "SolverT.h"
@@ -509,4 +509,4 @@ const dArray2DT& BridgingScaleManagerT::InternalForce(const StringT& field_name,
 	return bridging.InternalForce(group);
 }
 
-#endif /* BRIDGING_ELEMENT */
+#endif /* BRIDGING_ELEMENT && BRIDGING_ELEMENT_DEV */

@@ -1,10 +1,11 @@
-/* $Id: BridgingScaleManagerT.h,v 1.4 2004-12-26 21:14:26 d-farrell2 Exp $ */
+/* $Id: BridgingScaleManagerT.h,v 1.5 2005-04-06 15:42:00 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_MANAGER_H_
 #define _BRIDGING_SCALE_MANAGER_H_
 
 /* element configuration header */
 #include "ElementsConfig.h"
-#ifdef BRIDGING_ELEMENT
+#include "DevelopmentElementsConfig.h"
+#if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
 
 /* base class  */
 #include "MultiManagerT.h"
@@ -56,5 +57,5 @@ private:
 
 } /* namespace Tahoe */
 
-#endif /* BRIDGING_ELEMENT */
+#endif /* BRIDGING_ELEMENT && BRIDGING_ELEMENT_DEV */
 #endif /* _BRIDGING_SCALE_MANAGER_H_ */

@@ -1,11 +1,11 @@
-/* $Id: FEManagerT_THK.h,v 1.13 2004-12-26 21:14:26 d-farrell2 Exp $ */
-
+/* $Id: FEManagerT_THK.h,v 1.14 2005-04-06 15:42:00 paklein Exp $ */
 #ifndef _FE_MANAGER_THK_H_
 #define _FE_MANAGER_THK_H_
 
 /* element configuration header */
 #include "ElementsConfig.h"
-#ifdef BRIDGING_ELEMENT
+#include "DevelopmentElementsConfig.h"
+#if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
 
 /* base class */
 #include "FEManagerT_bridging.h"
@@ -116,5 +116,5 @@ private:
 
 } /* namespace Tahoe */
 
-#endif /* BRIDGING_ELEMENT */
+#endif /* BRIDGING_ELEMENT && BRIDGING_ELEMENT_DEV */
 #endif /* _FE_MANAGER_THK_H_ */
