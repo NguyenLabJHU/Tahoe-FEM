@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2003-03-04 07:37:47 paklein Exp $
+# $Id: makefile,v 1.7.28.1 2004-02-26 17:31:13 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -25,7 +25,6 @@ OBJ = \
 	FSSolidMatT.o \
 	SSSolidMatT.o \
 	IsotropicT.o \
-	Material2DT.o \
 	NL_E_MatT.o \
 	NL_E_Mat2DT.o \
 	NL_E_RotMat2DT.o \
@@ -56,7 +55,6 @@ SRC = \
 	FSSolidMatT.cpp \
 	SSSolidMatT.cpp \
 	IsotropicT.cpp \
-	Material2DT.cpp \
 	NL_E_MatT.cpp \
 	NL_E_Mat2DT.cpp \
 	NL_E_RotMat2DT.cpp \
@@ -79,7 +77,6 @@ HDR = \
 	FSSolidMatT.h \
 	SSSolidMatT.h \
 	IsotropicT.h \
-	Material2DT.h \
 	NL_E_MatT.h \
 	NL_E_Mat2DT.h \
 	NL_E_RotMat2DT.h \
