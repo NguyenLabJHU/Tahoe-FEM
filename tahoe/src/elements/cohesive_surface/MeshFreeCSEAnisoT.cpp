@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.2 2001-10-11 00:54:28 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.3 2002-02-20 09:37:54 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -720,6 +720,12 @@ void MeshFreeCSEAnisoT::InitializeNewFacets(void)
 	/* resize storage space */
 	int size = facets.MajorDim()*fNumIntPts;
 	fd_Storage_man.SetMajorDimension(size, true);
+	
+	/* new facets are initialized at construction and during runtime
+	 * during RelaxSystem. RelaxSystem is called before CloseStep. Only
+	 * database for the new facets is set here. The updated values in
+	 * fd_Storage will be copied in during CloseStep. */
+	fd_Storage_last_man.SetMajorDimension(size, true);
 		
 	/* loop over all [facets] x [ip] */
 	dArrayT state;
@@ -738,6 +744,9 @@ void MeshFreeCSEAnisoT::InitializeNewFacets(void)
 
 			/* initialize */
 			fSurfacePotential->InitStateVariables(state);
+
+			/* set facet data */
+			fd_Storage_last.SetRow(point_dex, state);
 		}
 		
 		/* check activation */
