@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.30 2003-01-09 18:10:46 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.31 2003-01-10 19:10:09 paklein Exp $ */
 
 // DEVELOPMENT
 
@@ -384,9 +384,11 @@ void SurfaceT::ComputeSurfaceBasis(void)
 		}
 		Normalize(normal,fNumSD);
 		// BEGIN HACK-----------------------------------------
+#if 0
 		normal[0] = 0.0;
 		normal[1] = -1.0;
 		normal[2] = 0.0;
+#endif
 		// END   HACK-----------------------------------------
 		/* compute tangents */
 		FaceT* face = fNodeNeighbors(i)[0];
