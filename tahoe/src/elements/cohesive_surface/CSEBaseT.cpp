@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.2 2001-02-20 00:42:11 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.3 2001-02-27 00:09:54 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 
 #include "CSEBaseT.h"
@@ -257,6 +257,8 @@ void CSEBaseT::RegisterOutput(void)
 	/* element output */
 	iArrayT e_counts;
 	SetElementOutputCodes(IOBaseT::kAtInc, fElementOutputCodes, e_counts);
+	iArrayT block_ID(fBlockData.MajorDim());
+	fBlockData.ColumnCopy(kID, block_ID);
 
 	/* collect variable labels */
 	ArrayT<StringT> n_labels(n_counts.Sum());
@@ -265,7 +267,8 @@ void CSEBaseT::RegisterOutput(void)
 
 	/* set output specifier */
 	int ID = fFEManager.ElementGroupNumber(this) + 1;
-	OutputSetT output_set(ID, geo_code, fConnectivities, n_labels, e_labels, false);
+	OutputSetT output_set(ID, geo_code, block_ID, fConnectivities, n_labels, 
+		e_labels, false);
 		
 	/* register and get output ID */
 	fOutputID = fFEManager.RegisterOutput(output_set);
