@@ -1,4 +1,4 @@
-#/* $Id: makefile,v 1.1 2002-11-22 21:41:40 creigh Exp $ */
+#/* $Id: makefile,v 1.2 2002-11-23 16:32:39 paklein Exp $ */
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -19,7 +19,8 @@ SRC = \
 
 # headers
 HDR =	FEA_Data_ProcessorT.h
-	HDR_LINK = $(HDR:.h=.h_link)
+
+HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
 SUB_DIR = 

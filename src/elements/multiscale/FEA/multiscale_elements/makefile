@@ -1,4 +1,4 @@
-#/* $Id: makefile,v 1.1 2002-11-22 21:37:56 creigh Exp $ */
+#/* $Id: makefile,v 1.2 2002-11-23 16:32:42 paklein Exp $ */
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -20,7 +20,8 @@ HDR =	\
 	VMS.h	\
 	VMS_EnumT.h	\
 	VMS_VariableT.h	
-	HDR_LINK = $(HDR:.h=.h_link)
+
+HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
 SUB_DIR = \
