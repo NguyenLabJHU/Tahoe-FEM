@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.cpp,v 1.1 2003-11-19 20:38:22 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.cpp,v 1.2 2004-01-14 22:02:46 rdorgan Exp $ */ 
 #include "GradSmallStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -464,13 +464,15 @@ void GradSmallStrainT::FormKd(double constK)
                 /* material info for constraint */
                 double yield = fCurrMaterial_Grad->yc();
                 double del_r = fCurrMaterial_Grad->del_R();
+                double r = fCurrMaterial_Grad->R();
 
                 /* apply constraint - elastic or decreasing R */
                 double const_RHS_R = -scale*yield;
 
 #if 1
-                if (fabs(yield) < kSmall || del_r < 0.0) {
-                        const_RHS_R -= scale*fKConstraintA*del_r;
+                if (yield < kSmall || del_r < 0.0) {
+                  //                        const_RHS_R -= scale*fKConstraintA*del_r;
+                        const_RHS_R += 1.0*scale*fKConstraintA*r;
                 }
 #endif
 

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2003-11-19 20:38:22 rdorgan Exp $
+# $Id: makefile,v 1.6 2004-01-14 22:02:46 rdorgan Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,8 +22,10 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	GradSmallStrainT.o\
+	GradC0SmallStrainT.o\
         J2SSKStV1D.o\
         GradJ2SS1D.o\
+        GradC0J2SS1D.o\
 	GradSSSolidMatT.o\
 	GradSSMatSupportT.o
 
@@ -46,8 +48,10 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	GradSmallStrainT.cpp\
+	GradC0SmallStrainT.cpp\
         J2SSKStV1D.cpp\
         GradJ2SS1D.cpp\
+        GradC0J2SS1D.cpp\
 	GradSSSolidMatT.cpp\
 	GradSSMatSupportT.cpp
 
@@ -62,8 +66,10 @@ SRC = \
 #
 HDR = \
 	GradSmallStrainT.h\
+	GradC0SmallStrainT.h\
         J2SSKStV1D.h\
         GradJ2SS1D.h\
+        GradC0J2SS1D.h\
 	GradSSSolidMatT.h\
 	GradSSMatSupportT.h
 
