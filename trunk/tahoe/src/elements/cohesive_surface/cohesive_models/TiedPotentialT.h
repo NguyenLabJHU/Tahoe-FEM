@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.10 2003-03-26 20:00:08 cjkimme Exp $ */
+/* $Id: TiedPotentialT.h,v 1.11 2003-04-14 17:27:07 cjkimme Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -87,6 +87,7 @@ private:
 	double phi_n; // mode I work to fracture
 	double r_fail; 
 	double fsigma, fL_0, fL_1, fL_2;
+	double q, r;
 	
 	double fnvec1, fnvec2; /*components of direction
 	  in which to sample the stress for freeing nodes */
