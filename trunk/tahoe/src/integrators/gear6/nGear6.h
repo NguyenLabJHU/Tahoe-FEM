@@ -46,9 +46,18 @@ private:
 	/*@{*/
 	double F02; 
 	double F12;
+	double F22;
 	double F32;
 	double F42;
 	double F52;
+	/*@}*/
+	
+	/** \name Taylor expansion factors */
+	/*@{*/
+	double fdt2; /**< \f$ \frac{\Delta t^2}{2!} \f$ */
+	double fdt3; /**< \f$ \frac{\Delta t^3}{3!} \f$ */
+	double fdt4; /**< \f$ \frac{\Delta t^4}{4!} \f$ */
+	double fdt5; /**< \f$ \frac{\Delta t^5}{5!} \f$ */
 	/*@}*/
 
 	/* higher order derivatives */

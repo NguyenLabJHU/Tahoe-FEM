@@ -10,12 +10,13 @@ using namespace Tahoe;
 /* constructor */
 nGear6::nGear6(void)
 {
-  /* Gear constants */
-  F02 = 3.0/16.0;
-  F12 = 251.0/360.0;
-  F32 = 11.0/18.0;
-  F42 = 1.0/6.0;
-  F52 = 1.0/60.0;
+	/* Gear constants */
+	F02 = 3.0/16.0;
+	F12 = 251.0/360.0;
+	F22 = 1.0;
+	F32 = 11.0/18.0;
+	F42 = 1.0/6.0;
+	F52 = 1.0/60.0;
 }
 
 /* consistent BC's - updates predictors and acceleration only */
@@ -24,7 +25,7 @@ void nGear6::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 	const char caller[] = "nGear6::ConsistentKBC";
 
 	/* check */
-	if (field.Order() != 6)
+	if (field.Order() != 5)
 		ExceptionT::GeneralFail(caller, "field must be order 6: %d", field.Order());
 
 	/* destinations */
@@ -78,7 +79,7 @@ void nGear6::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 void nGear6::Predictor(BasicFieldT& field)
 {
 	/* check */
-	if (field.Order() != 6)
+	if (field.Order() != 5)
 		ExceptionT::GeneralFail("nGear6::Predictor", "field must be order 6: %d", field.Order());
 
 	/* unknowns */
@@ -94,11 +95,11 @@ void nGear6::Predictor(BasicFieldT& field)
 
 	for (int i = 0; i < eqnos.Length(); i++)
 	{
-		(*p0++) += (*p1) + (*p2) + (*p3) + (*p4) + (*p5);
-		(*p1++) += 2.0 * (*p2) + 3.0 * (*p3) + 4.0 * (*p4) + 5.0 * (*p5);
-		(*p2++) += 3.0 * (*p3) + 6.0 * (*p4) + 10.0 * (*p5);
-		(*p3++) += 4.0 * (*p4) + 10.0 * (*p5);
-		(*p4++) += 5.0 * (*p5);
+		(*p0++) += fdt*(*p1) + fdt2*(*p2) + fdt3*(*p3) + fdt4*(*p4) + fdt5*(*p5);
+		(*p1++) += fdt*(*p2) + fdt2*(*p3) + fdt3*(*p4) + fdt4*(*p5);
+		(*p2++) += fdt*(*p3) + fdt2*(*p4) + fdt3*(*p5);
+		(*p3++) += fdt*(*p4) + fdt2*(*p5);
+		(*p4++) += fdt*(*p5++);
 	}
 }		
 
@@ -107,7 +108,7 @@ void nGear6::Corrector(BasicFieldT& field, const dArrayT& update,
 	int eq_start, int num_eq)
 {
 	/* check */
-	if (field.Order() != 6)
+	if (field.Order() != 5)
 		ExceptionT::GeneralFail("nGear6::Corrector", "field must be order 6: %d", field.Order());
 
 	const iArray2DT& eqnos = field.Equations();
@@ -129,24 +130,30 @@ void nGear6::Corrector(BasicFieldT& field, const dArrayT& update,
 		
 		/* active dof */
 		if (eq > -1 && eq < num_eq)
-		  {
-		        double a = update[eq];
-			double error = (*p2) - a;
-		        (*p0++) -= error * F02;
-			(*p1++) -= error * F12;
-			(*p2++) -= error;
-			(*p3++) -= error * F32; 
-			(*p4++) -= error * F42;
-			(*p5++) -= error * F52;
+		{
+			double a = update[eq];
+			double error = ((*p2) - a)*fdt2;
+			*p0 -= (error*F02);
+			*p1 -= (error*F12)/fdt;
+			*p2 -= (error*F22)/fdt2;
+			*p3 -= (error*F32)/fdt3; 
+			*p4 -= (error*F42)/fdt4;
+			*p5 -= (error*F52)/fdt5;
 		}
+		
+		/* next */
+		p0++; p1++; p2++; p3++; p4++; p5++;
 	}
 }
 
 void nGear6::MappedCorrector(BasicFieldT& field, const iArrayT& map, 
 	const iArray2DT& flags, const dArray2DT& update)
 {
+//TEMP
+ExceptionT::Stop("nGear6::MappedCorrector", "not implemented");
+
 	/* check */
-	if (field.Order() != 6)
+	if (field.Order() != 5)
 		ExceptionT::GeneralFail("nGear6::MappedCorrector", "field must be order 6: %d", field.Order());
 
 	/* run through map */
@@ -172,18 +179,19 @@ void nGear6::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 			/* active */
 			if (*pflag > 0)
 			{
-                                double a = *pupdate;
+				double a = *pupdate;
 				double error = (*p2) - a;
-				(*p0++) -= error * F02;
-				(*p1++) -= error * F12;
-				(*p2++) -= error;
-				(*p3++) -= error * F32;
-				(*p4++) -= error * F42;
-				(*p5++) -= error * F52;
+				*p0 -= error * F02;
+				*p1 -= error * F12;
+				*p2 -= error;
+				*p3 -= error * F32;
+				*p4 -= error * F42;
+				*p5 -= error * F52;
 			}
 			
 			/* next */
 			pflag++; pupdate++; 
+			p0++; p1++; p2++; p3++; p4++; p5++;
 		}
 	}
 }
@@ -192,7 +200,7 @@ void nGear6::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 const dArray2DT& nGear6::MappedCorrectorField(BasicFieldT& field) const
 {
 	/* check */
-	if (field.Order() != 6)
+	if (field.Order() != 5)
 		ExceptionT::GeneralFail("nGear6::MappedCorrectorField", "field must be order 6: %d", field.Order());
 
 	return field[2];
@@ -211,6 +219,9 @@ KBC_CardT::CodeT nGear6::ExternalNodeCondition(void) const
 /* recalculate time stepping constants */
 void nGear6::nComputeParameters(void)
 {
-  /* nothing implemented here */
-
+	/* nothing implemented here */
+	fdt2 =  fdt*fdt/2.0;
+	fdt3 = fdt2*fdt/3.0;
+	fdt4 = fdt3*fdt/4.0;
+	fdt5 = fdt4*fdt/5.0;
 }
