@@ -1,4 +1,4 @@
-# $Id: toolbox.extras,v 1.5 2003-08-14 04:14:50 paklein Exp $
+# $Id: toolbox.extras,v 1.6 2003-09-27 08:06:25 paklein Exp $
 #
 # additional make commands for the toolbox module
 #
@@ -21,6 +21,9 @@ touch_SEACAS:
 touch_MPI:
 	@ $(PRINTF) "removing object files depending on MPI\n"
 	- $(RM) $(SRC_DIR)/parallel/CommunicatorT.o
+    - $(RM) $(SRC_DIR)/parallel/MessageT.o
+    - $(RM) $(SRC_DIR)/parallel/AllGatherT.o
+    - $(RM) $(SRC_DIR)/parallel/PointToPointT.o
 	@ $(PRINTF) "NOTE: dependent modules must also be up to date\n"
 
 touch_METIS:
