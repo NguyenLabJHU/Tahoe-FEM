@@ -1,4 +1,4 @@
-/* $Id: LinearExponentialT.h,v 1.3 2002-07-05 22:26:16 paklein Exp $ */
+/* $Id: LinearExponentialT.h,v 1.4 2004-06-09 06:24:13 paklein Exp $ */
 /* created: paklein (05/04/2001)                                    */
 
 #ifndef _LINEAR_EXPONENTIAL_T_H_
@@ -10,17 +10,20 @@
 namespace Tahoe {
 
 /** implementation of the function:
- *
- *  f(x) = a + b x + c (1 - exp[-x/d])
- *
+	\f[
+		f(x) = a + b x + c (1 - \exp[-x/d])
+	\f]
  * with parameters {a, b, c, d}
  */
 class LinearExponentialT: public C1FunctionT
 {
 public:
 
-	/** constructor */
+	/** \name constructors */
+	/*@{*/
 	LinearExponentialT(double a, double b, double c, double d);
+	LinearExponentialT(void);
+	/*@}*/
 
 	/** print parameters */
 	virtual void Print(ostream& out) const;
@@ -37,8 +40,8 @@ public:
 	/** evaluate second derivative function */
 	virtual double DDFunction(double x) const;
 
-	/* Returning values in groups */
-
+	/** \name returning values in groups */
+	/*@{*/
 	/** multiple function evaluations */
 	virtual dArrayT& MapFunction(const dArrayT& in, dArrayT& out) const;
 
@@ -47,6 +50,16 @@ public:
 
 	/** multiple second derivative evaluations */
 	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
+	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@{*/
 
 private:
 
@@ -54,5 +67,6 @@ private:
 	double fa, fb, fc, fd;
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _LINEAR_EXPONENTIAL_T_H_ */

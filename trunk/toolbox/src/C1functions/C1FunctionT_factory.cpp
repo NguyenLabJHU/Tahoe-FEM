@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT_factory.cpp,v 1.5 2004-04-27 07:22:19 paklein Exp $ */
+/* $Id: C1FunctionT_factory.cpp,v 1.6 2004-06-09 06:24:13 paklein Exp $ */
 #include "C1FunctionT.h"
 #include <string.h>
 
@@ -10,6 +10,7 @@
 #include "LennardJones612.h"
 #include "SmithFerrante.h"
 #include "ModSmithFerrante.h"
+#include "LinearExponentialT.h"
 
 using namespace Tahoe;
 
@@ -30,6 +31,8 @@ C1FunctionT* C1FunctionT::New(const char* name)
 		return new SmithFerrante;
 	else if (strcmp(name, "modified_Smith-Ferrante") == 0)
 		return new ModSmithFerrante;
+	else if (strcmp(name, "linear_exponential") == 0)
+		return new LinearExponentialT;
 	else
 		return NULL;
 }
