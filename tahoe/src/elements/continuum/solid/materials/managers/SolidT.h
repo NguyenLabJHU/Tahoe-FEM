@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.35 2004-01-05 07:18:21 paklein Exp $ */
+/* $Id: SolidT.h,v 1.36 2004-01-14 22:04:44 rdorgan Exp $ */
 /* created: paklein (03/10/2001) */
 #ifndef _MATERIAL_T_H_
 #define _MATERIAL_T_H_
@@ -62,6 +62,7 @@ kLocXtalPlastFp_C = 56,
   kGrdJ2SSNlHard = 71,
        kGradJ2SS = 72,
      kJ2SSKStV1D = 73,
+     kGradC0J2SS = 74,
      kABAQUS_BCJ = 80, /**< explicit integration */
  kABAQUS_BCJ_ISO = 81, /**< implicit integration */
 kABAQUS_VUMAT_BCJ = 90,
