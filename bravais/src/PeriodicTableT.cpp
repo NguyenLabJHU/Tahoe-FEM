@@ -1,4 +1,4 @@
-/* $Id: PeriodicTableT.cpp,v 1.1 2002-03-13 02:25:55 jzimmer Exp $ */
+/* $Id: PeriodicTableT.cpp,v 1.2 2002-06-03 22:20:43 jzimmer Exp $ */
 
 #include "PeriodicTableT.h"
 
@@ -8,7 +8,7 @@
 #include "ArrayT.h"
 #include "PerTabEntryT.h"
 
-PeriodicTableT::PeriodicTableT() {
+PeriodicTableT::PeriodicTableT():PT(110) {
 	Initialize();
 }
 
@@ -308,8 +308,9 @@ void PeriodicTableT::Initialize() {
 }
 
 PerTabEntryT PeriodicTableT::operator[] (const char * s) {
+	int i;
 	int loc = 0;
-	StringT = dummy;
+/* StringT = dummy; */
 
 	for(i=1;i<110;i++) {
 		if (s == PT[i].GetName()) loc = i;
@@ -318,6 +319,15 @@ PerTabEntryT PeriodicTableT::operator[] (const char * s) {
 
 	if (i>0) {
 		return PT[i];
+	}
+	else {
+		throw eBadInputValue;
+	}
+}
+
+PerTabEntryT PeriodicTableT::operator[] (const int m) {
+	if (m>0 && m<110) {
+		return PT[m];
 	}
 	else {
 		throw eBadInputValue;
