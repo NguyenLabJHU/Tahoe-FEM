@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.25 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.26 2005-02-04 22:01:54 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "CCSMatrixT.h"
 
@@ -786,14 +786,16 @@ void CCSMatrixT::PrintLHS(bool force) const
 
 
 /* matrix-vector product */
-bool CCSMatrixT::Multx(const dArrayT& d, dArrayT& Kd) const
+void CCSMatrixT::Multx(const dArrayT& d, dArrayT& Kd) const
 {
+	const char caller[] = "CCSMatrixT::Multx";
+
 	/* consistency check */
-	if (fIsFactorized) return false;
+	if (fIsFactorized) ExceptionT::GeneralFail(caller, "matrix if factorized");
 
 	/* dimension checks */
 	if ( d.Length() != Kd.Length() ||
-	     d.Length() != fLocNumEQ ) throw ExceptionT::kGeneralFail;
+	     d.Length() != fLocNumEQ ) ExceptionT::SizeMismatch(caller);
 
 	Kd = 0.0;
 	
@@ -840,9 +842,6 @@ bool CCSMatrixT::Multx(const dArrayT& d, dArrayT& Kd) const
 			}
 		}
 	}
-	
-	/* OK */
-	return true;
 }									
 
 /* return the values along the diagonal of the matrix */

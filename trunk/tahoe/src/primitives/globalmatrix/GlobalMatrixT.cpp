@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.19 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.20 2005-02-04 22:01:54 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "GlobalMatrixT.h"
 #include <iostream.h>
@@ -140,19 +140,28 @@ GlobalMatrixT& GlobalMatrixT::operator=(const GlobalMatrixT& rhs)
 }
 
 /* matrix-vector product */
-bool GlobalMatrixT::Multx(const dArrayT& x, dArrayT& b) const 
+void GlobalMatrixT::Multx(const dArrayT& x, dArrayT& b) const 
 { 
 #pragma unused(x)
 #pragma unused(b)
-	return false; 
+	ExceptionT::GeneralFail("GlobalMatrixT::Multx", "not implemented");
 }
 
 /* Tranpose[matrix]-vector product */
-bool GlobalMatrixT::MultTx(const dArrayT& x, dArrayT& b) const 
+void GlobalMatrixT::MultTx(const dArrayT& x, dArrayT& b) const 
 {
 #pragma unused(x)
 #pragma unused(b)
-	return false; 
+	ExceptionT::GeneralFail("GlobalMatrixT::MultTx", "not implemented");
+}
+
+/* vector-matrix-vector product */
+double GlobalMatrixT::MultmBn(const dArrayT& m, const dArrayT& n) const
+{
+#pragma unused(m)
+#pragma unused(n)
+	ExceptionT::GeneralFail("GlobalMatrixT::MultmBn", "not implemented");
+	return 0;
 }
 
 /* return the values along the diagonal of the matrix */

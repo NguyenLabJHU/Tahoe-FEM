@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.19 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.20 2005-02-04 22:01:54 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "DiagonalMatrixT.h"
 #include <iostream.h>
@@ -228,14 +228,31 @@ GlobalMatrixT* DiagonalMatrixT::Clone(void) const
 }
 
 /* matrix-vector product */
-bool DiagonalMatrixT::Multx(const dArrayT& x, dArrayT& b) const
+void DiagonalMatrixT::Multx(const dArrayT& x, dArrayT& b) const
 {
 	b = x;
 	if (fIsFactorized)
 		b /= fMatrix;
 	else
 		b *= fMatrix;
-	return true;
+}
+
+/* vector-matrix-vector product */
+double DiagonalMatrixT::MultmBn(const dArrayT& m, const dArrayT& n) const
+{
+#if __option(extended_errorcheck)
+	if (m.Length() != fMatrix.Length() || n.Length() != fMatrix.Length())
+		ExceptionT::SizeMismatch("DiagonalMatrixT::MultmBn");
+#endif
+
+	const double* pm = m.Pointer();
+	const double* pn = n.Pointer();
+	const double* pM = fMatrix.Pointer();
+	int length = fMatrix.Length();
+	double mBn = 0.0;
+	for (int i = 0; i < length; i++)
+		mBn += (*pm++)*(*pM++)*(*pn++);
+	return mBn;
 }
 
 /**************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.18 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.19 2005-02-04 22:01:54 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
 #include <iostream.h>
@@ -312,30 +312,35 @@ GlobalMatrixT* FullMatrixT::Clone(void) const
 	return new_mat;
 }
 
-bool FullMatrixT::Multx(const dArrayT& x, dArrayT& b) const
+void FullMatrixT::Multx(const dArrayT& x, dArrayT& b) const
 {
 	/* already factorized */
-	if (fIsFactorized) {
-		cout << "\n FullMatrixT::Multx: cannot calculate product with factorized matrix" << endl;
-		return false;
-	} else {
-		/* calculate product */
-		fMatrix.Multx(x, b);
-		return true;
-	}
+	if (fIsFactorized)
+		ExceptionT::GeneralFail("FullMatrixT::Multx", "matrix is factorized");
+
+	/* calculate product */
+	fMatrix.Multx(x, b);
 }
 
-bool FullMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
+void FullMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
 {
 	/* already factorized */
-	if (fIsFactorized) {
-		cout << "\n FullMatrixT::MultTx: cannot calculate product with factorized matrix" << endl;
-		return false;
-	} else {
-		/* calculate product */
-		fMatrix.MultTx(x, b);
-		return true;
-	}
+	if (fIsFactorized)
+		ExceptionT::GeneralFail("FullMatrixT::MultTx", "matrix is factorized");
+
+	/* calculate product */
+	fMatrix.MultTx(x, b);
+}
+
+/* vector-matrix-vector product */
+double FullMatrixT::MultmBn(const dArrayT& m, const dArrayT& n) const
+{
+	/* already factorized */
+	if (fIsFactorized)
+		ExceptionT::GeneralFail("FullMatrixT::MultmBn", "matrix is factorized");
+
+	/* calculate product */
+	return fMatrix.MultmBn(m, n);
 }
 
 /**************************************************************************

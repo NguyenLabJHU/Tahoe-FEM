@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.h,v 1.15 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: DiagonalMatrixT.h,v 1.16 2005-02-04 22:01:54 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _DIAGONAL_MATRIX_H_
@@ -78,11 +78,14 @@ public:
 
 	/** matrix-vector product. OK to call either before or after the matrix is
 	 * factorized */
-	virtual bool Multx(const dArrayT& x, dArrayT& b) const;
+	virtual void Multx(const dArrayT& x, dArrayT& b) const;
 
 	/** Tranpose[matrix]-vector product. OK to call either before or after the matrix 
 	 * is factorized */
-	virtual bool MultTx(const dArrayT& x, dArrayT& b) const;
+	virtual void MultTx(const dArrayT& x, dArrayT& b) const;
+
+	/** vector-matrix-vector product */
+	virtual double MultmBn(const dArrayT& m, const dArrayT& n) const;
 	
 protected:
 
@@ -118,9 +121,8 @@ inline dArrayT& DiagonalMatrixT::TheMatrix(void)
 }
 
 /* Tranpose[matrix]-vector product */
-inline bool DiagonalMatrixT::MultTx(const dArrayT& x, dArrayT& b) const 
-{ 
-	return DiagonalMatrixT::Multx(x, b);
+inline void DiagonalMatrixT::MultTx(const dArrayT& x, dArrayT& b) const { 
+	DiagonalMatrixT::Multx(x, b);
 }; 
 
 } // namespace Tahoe 
