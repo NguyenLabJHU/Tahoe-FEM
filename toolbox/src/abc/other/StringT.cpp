@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.24 2002-09-03 07:06:06 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.25 2002-09-19 05:43:03 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 
 #include "StringT.h"
@@ -242,7 +242,7 @@ StringT& StringT::Root(const char* s, char marker)
 		for (int i = 0; i < len && *p != marker; i++) p--;
 
 		/* drop tail */
-		if (*p == marker)
+		if (p >= s && *p == marker)
 		{
 			int new_len = p - s + 1;
 			Dimension(new_len);
