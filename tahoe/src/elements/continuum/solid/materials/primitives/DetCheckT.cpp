@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.42 2005-03-10 23:47:22 raregue Exp $ */
+/* $Id: DetCheckT.cpp,v 1.43 2005-03-16 00:32:11 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -8,6 +8,7 @@
 #include "dMatrixEXT.h"
 #include "dArrayT.h"
 #include "dTensor4DT.h"
+#include "SpectralDecompT.h"
 
 /* needed to access element information */
 #include "SolidMatSupportT.h"
@@ -662,42 +663,32 @@ void DetCheckT::FindApproxLocalMins(double detA [numThetaChecks] [numPhiChecks],
  * J and choosing the best one, i.e. closest in norm to previous vector */
 dArrayT DetCheckT::ChooseNewNormal(dArrayT& prevnormal, dMatrixEXT& J)
 {
-	double tol = 10e-10;
-	dArrayT normal(3), trialNormal(3);
-	dArrayT altnormal_i(3), altnormal_ii(3);
-	dArrayT realev(3), imev(3);
-	int numev = 0, i;
-	dMatrixEXT Atrial(3); //trial acoustic tensor
-	double inprod, maxInprod;
-	Atrial = 0.0;
-	trialNormal = 0.0;
+	dArrayT normal(3);
+	//dMatrixEXT Atrial(3); //trial acoustic tensor
+	double inprod, maxInprod = -1.0;
+	dSymMatrixT J_sym(3);
+	J_sym.Symmetrize(J);
 
-	// chooses eigvector by closest approx to previous normal
-	J.eigvalfinder(J, realev, imev);
+	SpectralDecompT spectre(3);
+	spectre.SpectralDecomp_Jacobi(J_sym, true);
 
-	for (i=0; i<3; i++)
-	{  
-		if ( fabs(imev[i])<tol || fabs(0.001*imev[i]/realev[i])<tol )
-		{
-			J.eigenvector3x3(J, realev[i], numev, trialNormal, altnormal_i, altnormal_ii);
-			//J.Eigenvector(realev[i], trialNormal);
-			inprod = fabs(trialNormal.Dot(trialNormal, prevnormal));
-			if ( i==0 )
-			{
-				maxInprod = inprod;
-				normal = trialNormal;
-			}
-			else if (inprod > maxInprod)
-			{
-				maxInprod = inprod;
-				normal = trialNormal;
-			}	    
-		}
-	}
-	
+	ArrayT<dArrayT> trialNormals(3);
+	trialNormals = spectre.Eigenvectors();
+
+	//choose eigenvector by closest to previous normal
+	for (int i=0; i<3; i++)
+	  {
+	    inprod = fabs(trialNormals [i].Dot(trialNormals [i],
+					       prevnormal));
+	    if(inprod > maxInprod)
+	      {
+		maxInprod = inprod;
+		normal = trialNormals[i];
+	      }
+	  }
 	return normal;
-	
 }
+
 
 
 /* Chooses normal from a set that have essentially same detA that is least
