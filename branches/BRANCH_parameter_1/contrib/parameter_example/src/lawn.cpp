@@ -1,0 +1,1 @@
+/* $Id: lawn.cpp,v 1.1.2.1 2003-04-28 08:17:08 paklein Exp $ */#include "lawn.h"lawn::lawn(void):	ParameterInterfaceT("lawn"){}void lawn::DefineParameters(ParameterListT& list) const{	/* inherited */	ParameterInterfaceT::DefineParameters(list);}void lawn::SetParameters(const ParameterListT& list){#pragma unused(list)}
