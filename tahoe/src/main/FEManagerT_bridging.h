@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.17 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.18 2004-11-06 01:49:49 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -105,7 +105,7 @@ public:
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
 	void InitInterpolation(const StringT& field, const iArrayT& nodes,
-		NodeManagerT& node_manager);
+		const dArray2DT& coordinates);
 
 	/** field interpolations. Interpolate the field to the nodes initialized
 	 * with the latest call to FEManagerT_bridging::InitInterpolation. */
