@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.cpp,v 1.19 2004-04-04 03:02:45 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.20 2004-06-16 07:11:57 paklein Exp $ */
 #include "ParameterListT.h"
 #include "ParameterInterfaceT.h"
 #include <string.h>
@@ -169,10 +169,10 @@ const ParameterListT* ParameterListT::FindList(const char* search_name, int inst
 }
 
 /* return the list associated a choice */
-const ParameterListT* ParameterListT::ResolveListChoice(const ParameterInterfaceT& source, 
+const ParameterListT* ParameterListT::ListChoice(const ParameterInterfaceT& source, 
 	const char* choice_name, int instance) const
 {
-	const char caller[] = "ParameterListT::ResolveListChoice";
+	const char caller[] = "ParameterListT::ListChoice";
 
 	/* check choice with an interface - sub's with interfaces still may or may not
 	 * have been declared "inline". We could check this with a call to DefineSubs.

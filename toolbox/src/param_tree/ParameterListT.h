@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.21 2004-03-28 09:47:16 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.22 2004-06-16 07:11:58 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -141,7 +141,7 @@ public:
 	 * \param source ParameterInterfaceT which defined the choice
 	 * \param choice_name name of the choice defined by ParameterInterfaceT::DefineInlineSub 
 	 * \param instance occurrence within the list */
-	const ParameterListT* ResolveListChoice(const ParameterInterfaceT& source, const char* choice_name, int instance = 0) const;
+	const ParameterListT* ListChoice(const ParameterInterfaceT& source, const char* choice_name, int instance = 0) const;
 
 	/** return the index to the given list. Returns index of the nth instance of the
 	 * given list or -1 if the list is not found or the instance is out of range. */
@@ -172,6 +172,9 @@ public:
 
 	/** return the given parameter. Throws an exception of the parameter is not present */
 	ParameterT& GetParameter(const char* name);
+
+	/** return the list associated a choice. Throws an exception of the parameter is not present */
+	const ParameterListT& GetListChoice(const ParameterInterfaceT& source, const char* choice_name, int instance = 0) const;
 
 	/** search for parameter by name. Returns a pointer to the nth parameter whose name contains
 	 * the given search string or NULL if the parameter is not found or the instance is out 
@@ -285,6 +288,15 @@ inline ParameterT* ParameterListT::Parameter(const char* name)
 	const ParameterListT* this_ = (const ParameterListT*) this;
 	const ParameterT* parameter = this_->Parameter(name);
 	return (ParameterT*) parameter;
+}
+
+/* return the list associated a choice. Throws an exception of the parameter is not present */
+inline const ParameterListT& ParameterListT::GetListChoice(const ParameterInterfaceT& source, const char* choice_name, int instance) const
+{
+	const ParameterListT* list = ListChoice(source, choice_name, instance);
+	if (!list) ExceptionT::GeneralFail("ParameterListT::GetListChoice", "occurrence %d of choice \"%s\" not found in \"%s\"",
+		instance + 1, choice_name, Name().Pointer());
+	return *list;
 }
 
 } /* namespace Tahoe */
