@@ -1,4 +1,4 @@
-/* $Id: ParameterUtils.h,v 1.6 2004-03-27 16:55:55 paklein Exp $ */
+/* $Id: ParameterUtils.h,v 1.7 2004-04-07 15:31:47 paklein Exp $ */
 #ifndef _PARAMETER_UTILS_H_
 #define _PARAMETER_UTILS_H_
 
@@ -126,6 +126,15 @@ public:
 	/** the list name */
 	const StringT& ListName(void) const { return fListName; };
 
+	/** \name list length limits
+	 * Limits can be set/re-set any time before NamedListT::DefineParameters is
+	 * called. Pass -1 to clear length limits. \note: length limits are not
+	 * fully supported yet. */
+	/*@{*/
+	void SetMinLength(int min_length) { fMinLength = min_length; };
+	void SetMaxLength(int max_length) { fMaxLength = max_length; };
+	/*@}*/
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */
@@ -145,12 +154,20 @@ private:
 
 	/** list name */
 	StringT fListName;
+	
+	/** \name list length limits */
+	/*@{*/
+	int fMinLength;
+	int fMaxLength;
+	/*@}*/
 };
 
 /* constructors */
 template <class TYPE>
 NamedListT<TYPE>::NamedListT(const StringT& name):
-	ParameterInterfaceT(name)
+	ParameterInterfaceT(name),
+	fMinLength(-1),
+	fMaxLength(-1)
 {
 
 }
@@ -172,10 +189,13 @@ void NamedListT<TYPE>::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
 	ParameterInterfaceT::DefineSubs(sub_list);
-	
+
 	/* zero or more list entries */
 	TYPE list_entry;
-	sub_list.AddSub(list_entry.Name(), ParameterListT::Any);
+	if (fMinLength == 1)
+		sub_list.AddSub(list_entry.Name(), ParameterListT::OnePlus);
+	else
+		sub_list.AddSub(list_entry.Name(), ParameterListT::Any);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
