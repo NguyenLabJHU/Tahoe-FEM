@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.23 2003-05-01 02:49:17 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.24 2003-05-04 23:59:12 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -15,13 +15,12 @@
 #include "pArrayT.h"
 #include "fstreamT.h"
 
+using namespace Tahoe;
+
 #ifdef __ACCESS__ // with SEACAS support
 #include "exodusII.h"
 
 /* constructor for opening input or output file */
-
-using namespace Tahoe;
-
 ExodusT::ExodusT(ostream& message_out, int float_size):
 	fOut(message_out),
 	exoid(-1),
