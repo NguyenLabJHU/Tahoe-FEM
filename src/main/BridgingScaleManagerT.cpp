@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleManagerT.cpp,v 1.4 2004-09-28 15:35:13 paklein Exp $ */
+/* $Id: BridgingScaleManagerT.cpp,v 1.5 2004-11-06 01:49:59 paklein Exp $ */
 #include "BridgingScaleManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -95,7 +95,7 @@ void BridgingScaleManagerT::Solve(void)
 	//embforce.Dimension(gatoms.Length(), 1);
 
 	/* reset interpolation data set in MultiManagerT::TakeParameterList */
-	fCoarse->InitInterpolation(bridging_field, boundaryghostatoms, fine_node_manager);
+	fCoarse->InitInterpolation(bridging_field, boundaryghostatoms, fine_node_manager.InitialCoordinates());
 
 	//dArrayT mdmass;
 	//fFine_THK->LumpedMass(fFine_THK->NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
