@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2001-04-16 17:30:52 rjones Exp $
+# $Id: makefile,v 1.8 2001-05-23 14:45:06 rjones Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -15,6 +15,7 @@ OBJ = \
 	SurfaceT.o \
 	FaceT.o \
 	LineL2FaceT.o \
+	LineQ3FaceT.o \
 	QuadL4FaceT.o \
 	ACME_Contact3DT.o \
 	AugLagContact2DT.o \
@@ -41,6 +42,7 @@ SRC = \
 	SurfaceT.cpp \
 	FaceT.cpp \
 	LineL2FaceT.cpp \
+	LineQ3FaceT.cpp \
 	QuadL4FaceT.cpp \
 	ACME_Contact3DT.cpp \
 	AugLagContact2DT.cpp \
@@ -63,6 +65,7 @@ HDR = \
 	SurfaceT.h \
         FaceT.h \
         LineL2FaceT.h \
+        LineQ3FaceT.h \
         QuadL4FaceT.h \
 	vector2D.h \
 	vector3D.h \

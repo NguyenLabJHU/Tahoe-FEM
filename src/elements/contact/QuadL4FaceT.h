@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.h,v 1.12 2001-05-21 21:50:36 rjones Exp $ */
+/* $Id: QuadL4FaceT.h,v 1.13 2001-05-23 14:45:06 rjones Exp $ */
 
 #ifndef _QUADL4_FACE_T_H_
 #define _QUADL4_FACE_T_H_
@@ -34,18 +34,37 @@ public:
         void Initialize(void);
 
         /* geometric computation */
-        void ComputeCentroid(double& centroid) const; 
+        void ComputeCentroid(double* centroid) const; 
 	double ComputeRadius() const;
-        void ComputeNormal(double* local_coordinates, double& normal) const;
-        void NodeNormal(int local_node_number, double& normal) const;
+        void ComputeNormal
+		(const double* local_coordinates, double* normal) const;
+        void ComputeTangent1 
+		(const double* local_coordinates, double* tangent1) const;
+        void ComputeTangent2 
+		(const double* local_coordinates, double* tangent2) const;
+        void NodeNormal(int local_node_number, double* normal) const;
         void CalcFaceNormal(void);
 	void LocalBasis 
 		(double* normal, double* tangent1, double* tangent2) const;
         void ComputeShapeFunctions
-          (const double* local_coordinates, dArrayT& shape_functions) const;
+            	(const double* local_coordinates, dArrayT& shape_functions) 
+		const;
         void ComputeShapeFunctions
-          (const double* local_coordinates, dMatrixT& shape_functions) const;
-        double ComputeJacobian (double* local_coordinates) const;
+          	(const double* local_coordinates, dMatrixT& shape_functions) 
+		const;
+        void ComputeShapeFunctionDerivatives
+                (const double* local_coordinates, dArrayT& shape_derivatives) 
+		const;
+        void ComputeShapeFunctionDerivatives
+                (const double* local_coordinates, dMatrixT& shape_derivatives) 
+		const;
+        double Interpolate 
+		(const double* local_coordinates, dArrayT& nodal_values)
+		const;
+        void InterpolateVector 
+		(const double* local_coordinates, dArray2DT& nodal_values, 
+		double* vector) const;
+        double ComputeJacobian (const double* local_coordinates) const;
         bool Projection (ContactNodeT* node, dArrayT& parameters)  const;
 	inline void Polynomial 
 		(double* a, double* b, double* c, double* d) const ;

@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.9 2001-04-25 17:26:44 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.10 2001-05-23 14:45:04 rjones Exp $ */
 
 #include "ContactSearchT.h"
 
@@ -134,7 +134,7 @@ dArrayT& parameters)
   for (int i = 0; i < face_surface.NumFaces(); i++) {
 	const FaceT* face = faces[i];
 	/* face centroid*/
-        face->ComputeCentroid(*centroid);
+        face->ComputeCentroid(centroid);
         /* face "radius"*/
         radius = kFaceTolerance * (face->ComputeRadius());
 	/* get nodes in neighborhood */

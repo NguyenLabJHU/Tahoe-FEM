@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.13 2001-04-27 00:55:26 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.14 2001-05-23 14:45:06 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -14,6 +14,7 @@
 #include "ContinuumElementT.h" // For conversion of side sets to facets.
 #include "FaceT.h"
 #include "LineL2FaceT.h"
+#include "LineQ3FaceT.h"
 #include "QuadL4FaceT.h"
 #include "AutoFill2DT.h"
 
@@ -288,13 +289,11 @@ void SurfaceT::InputSideSets
 			  new LineL2FaceT(*this,fCoordinates, 
 			  number_of_face_nodes,faces_tmp(i));
 			break;
-#if 0
 			case 3:
 			fFaces[i] = 
 			  new LineQ3FaceT(*this,fCoordinates, 
 			  number_of_face_nodes,faces_tmp(i) );
 			break;
-#endif
 			default:               
 			cout << "\n SurfaceT::InputSideSets:" 
 			     << " no LineFace " << face_geometry_code 
@@ -467,7 +466,7 @@ void SurfaceT::ComputeSurfaceBasis(void)
           for (int j = 0; j < fNodeNeighbors.MinorDim(i); j++) {
 		FaceT* face = fNodeNeighbors(i)[j];
 		int lnn = fLocalNodeInNeighbors(i)[j];
-		face->NodeNormal(lnn,*normal_i);
+		face->NodeNormal(lnn,normal_i);
 		Add(normal,normal_i,normal,fNumSD);
           }
 	  Normalize(normal,fNumSD);

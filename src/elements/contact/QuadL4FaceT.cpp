@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.14 2001-05-21 21:50:36 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.15 2001-05-23 14:45:06 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
@@ -51,9 +51,9 @@ QuadL4FaceT::Initialize(void)
 }
 
 void
-QuadL4FaceT::ComputeCentroid(double& centroid) const
+QuadL4FaceT::ComputeCentroid(double* centroid) const
 {
-	Ave(fx[0],fx[1],fx[2],fx[3],&centroid);
+	Ave(fx[0],fx[1],fx[2],fx[3],centroid);
 }
 
 double
@@ -66,7 +66,7 @@ QuadL4FaceT::ComputeRadius(void) const
 }
 
 void
-QuadL4FaceT::NodeNormal(int local_node_number,double& normal) const
+QuadL4FaceT::NodeNormal(int local_node_number,double* normal) const
 { /* computes (unnormalized) outward normal at vertex node */
 	int curr = local_node_number;
 	int prev = Prev(local_node_number);	
@@ -74,7 +74,7 @@ QuadL4FaceT::NodeNormal(int local_node_number,double& normal) const
 	double t1[3], t2[3];
 	Diff(fx[next],fx[curr],t1);
 	Diff(fx[prev],fx[curr],t2);
-	Cross(t1,t2,&normal); 
+	Cross(t1,t2,normal); 
 }
 
 void
@@ -92,8 +92,62 @@ QuadL4FaceT::CalcFaceNormal(void)
 }
 
 void
-QuadL4FaceT::ComputeNormal(double* local_coordinates,double& normal) const
+QuadL4FaceT::ComputeNormal
+(const double* local_coordinates,double* normal) const
 {
+cout << "not implemented";
+throw;
+}
+
+void
+QuadL4FaceT::ComputeTangent1
+(const double* local_coordinates,double* tangent1) const
+{
+cout << "not implemented";
+throw;
+}
+
+void
+QuadL4FaceT::ComputeTangent2
+(const double* local_coordinates,double* tangent2) const
+{
+cout << "not implemented";
+throw;
+}
+
+double
+QuadL4FaceT::Interpolate
+(const double* local_coordinates, dArrayT& nodal_values)
+const
+{
+        dArrayT shape_f(4);
+        ComputeShapeFunctions (local_coordinates, shape_f);
+        double value = shape_f[0]*nodal_values[0]
+                     + shape_f[1]*nodal_values[1] 
+                     + shape_f[2]*nodal_values[2] 
+                     + shape_f[3]*nodal_values[3];
+        return value;
+}
+
+void
+QuadL4FaceT::InterpolateVector
+(const double* local_coordinates, dArray2DT& nodal_vectors, double* vector)
+const
+{
+        dArrayT shape_f(4);
+        ComputeShapeFunctions (local_coordinates, shape_f);
+        vector[0] = shape_f[0]*nodal_vectors(0)[0]
+                  + shape_f[1]*nodal_vectors(1)[0] 
+                  + shape_f[2]*nodal_vectors(2)[0] 
+                  + shape_f[3]*nodal_vectors(2)[0];
+        vector[1] = shape_f[0]*nodal_vectors(0)[1]
+                  + shape_f[1]*nodal_vectors(1)[1] 
+                  + shape_f[2]*nodal_vectors(2)[1] 
+                  + shape_f[3]*nodal_vectors(3)[1];
+        vector[2] = shape_f[0]*nodal_vectors(0)[2]
+                  + shape_f[1]*nodal_vectors(1)[2] 
+                  + shape_f[2]*nodal_vectors(2)[2] 
+                  + shape_f[3]*nodal_vectors(3)[2];
 }
 
 void
@@ -128,8 +182,21 @@ QuadL4FaceT::ComputeShapeFunctions
 	shape_functions(11,2)= shape_f[3];
 }
 
+void
+QuadL4FaceT::ComputeShapeFunctionDerivatives
+(const double* local_coordinates, dArrayT& shape_functions) const
+{
+}
+
+void
+QuadL4FaceT::ComputeShapeFunctionDerivatives
+(const double* local_coordinates, dMatrixT& shape_functions) const
+{
+}
+
+
 double
-QuadL4FaceT::ComputeJacobian (double* local_coordinates) const
+QuadL4FaceT::ComputeJacobian (const double* local_coordinates) const
 {
 	//HACK
 	return 1.0;

@@ -1,6 +1,8 @@
-/* $Id: FaceT.cpp,v 1.4 2001-04-19 23:47:01 rjones Exp $ */
+/* $Id: FaceT.cpp,v 1.5 2001-05-23 14:45:04 rjones Exp $ */
 
 #include "FaceT.h"
+
+#include "SurfaceT.h" // this is for global nodes
 
 /*constructor*/
 FaceT::FaceT
@@ -10,8 +12,12 @@ int num_face_nodes, int* connectivity):
 	fSurfaceCoordinates(surface_coordinates)
 {
         fConnectivity.Allocate(num_face_nodes);
+        fGlobalConnectivity.Allocate(num_face_nodes);
         for (int i = 0; i < num_face_nodes; i++) {
                 fConnectivity[i] = connectivity[i];
+                // NOTE : this is ugly
+                fGlobalConnectivity[i] 
+		   = surface.GlobalNodes()[connectivity[i]];
 	}
 	fnormal[0] = 0.0;
 	fnormal[1] = 0.0;

@@ -1,7 +1,7 @@
-/* $Id: LineL2FaceT.h,v 1.14 2001-05-23 14:45:05 rjones Exp $ */
+/* $Id: LineQ3FaceT.h,v 1.1 2001-05-23 14:45:05 rjones Exp $ */
 
-#ifndef _LINEL2_FACE_T_H_
-#define _LINEL2_FACE_T_H_
+#ifndef _LINEQ3_FACE_T_H_
+#define _LINEQ3_FACE_T_H_
 
 /* base class */
 #include "FaceT.h"
@@ -11,22 +11,22 @@
 /* forward declarations */
 
 /*  connectivity
- * L  1--2  R  (outward normal up)
+ * L  1-3-2  R  (outward normal up)
  */
 
-class LineL2FaceT : public FaceT
+class LineQ3FaceT : public FaceT
 {
 public:
 
         /* constructor */
-        LineL2FaceT
+        LineQ3FaceT
 		(SurfaceT& surface,
 		dArray2DT& surface_coordinates,
 		int num_face_nodes,
 		int* connectivity);
 
         /* destructor */
-        ~LineL2FaceT(void);
+        ~LineQ3FaceT(void);
 
         /* initialization after construction */
         void Initialize(void);
@@ -57,23 +57,21 @@ public:
                 (const double* local_coordinates, dMatrixT& shape_derivatives) 
 		const;
         double Interpolate 
-		(const double* local_coordinates, dArrayT& nodal_values) 
-		const;
+		(const double* local_coordinates, dArrayT& nodal_values) const;
         void InterpolateVector 
 		(const double* local_coordinates, dArray2DT& nodal_vectors, 
 		double* vector) const;
 	double ComputeJacobian (const double* local_coordinates) const;
         bool Projection (ContactNodeT* node, dArrayT& parameters) const ;
         void Quadrature (dArray2DT& points, dArrayT& weights) const;
-		// points should be const
 
         inline void Polynomial
-                (double* a, double* b) const ;
+                (double* a, double* b, double* c) const ;
 protected:
 
 private:
 	/* nodal coordinates */
-	double*  fx[2];
+	double*  fx[3];
 	
 	/* integration points */  
 	static dArray2DT fIntegrationPoints;
@@ -81,16 +79,19 @@ private:
 };
 
 inline void
-LineL2FaceT::Polynomial
-(double* a, double* b) const
+LineQ3FaceT::Polynomial
+(double* a, double* b, double* c) const
 {       /* const term */
-        a[0] = 0.5*( fx[0][0]+fx[1][0]);
-        a[1] = 0.5*( fx[0][1]+fx[1][1]);
+        a[0] =  fx[2][0];
+        a[1] =  fx[2][1];
         /* xi term */
         b[0] = 0.5*(-fx[0][0]+fx[1][0]);
         b[1] = 0.5*(-fx[0][1]+fx[1][1]);
+        /* xi^2 term */
+        c[0] = 0.5*(fx[0][0]+fx[1][0]) - fx[2][0];
+        c[1] = 0.5*(fx[0][1]+fx[1][1]) - fx[2][1];
 }
 
 
-#endif /* _LINEL2_FACE_T_H_ */
+#endif /* _LINEQ3_FACE_T_H_ */
 

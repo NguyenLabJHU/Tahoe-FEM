@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.10 2001-04-30 19:30:19 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.11 2001-05-23 14:45:04 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -135,6 +135,28 @@ void ContactElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	/* Connectivities generated in SetConfiguration */
         ElementBaseT::fNodes->
 		SetLocalEqnos(connectivities, equation_numbers);
+#if 0
+cout << " in Equations \n";
+for (int k = 0; k < connectivities.MajorDim(); k++) {
+for (int j = 0; j < connectivities.MinorDim(k); j++) {
+cout << connectivities(k)[j] <<", ";
+if (j%4 == 0) cout << "_";
+}
+cout << "\n";
+}
+cout << "\n";
+cout << "\n";
+
+for (int k = 0; k < equation_numbers.MajorDim(); k++) {
+for (int j = 0; j < equation_numbers.MinorDim(k); j++) {
+cout << equation_numbers(k)[j] <<", ";
+if ((j+1) == 3) cout << "\n";
+if ((j-2)%12 == 0) cout << "_";
+}
+cout << "\n";
+}
+cout << "\n";
+#endif
         /* add to list */
         eq_2.Append(&equation_numbers);
   }

@@ -1,6 +1,6 @@
-/* $Id: LineL2FaceT.cpp,v 1.15 2001-05-23 14:45:05 rjones Exp $ */
+/* $Id: LineQ3FaceT.cpp,v 1.1 2001-05-23 14:45:05 rjones Exp $ */
 
-#include "LineL2FaceT.h"
+#include "LineQ3FaceT.h"
 #include "FaceT.h"
 
 #include "ContactElementT.h"
@@ -11,9 +11,10 @@
 #include "vector2D.h"
 
 /* parameters */
-dArray2DT LineL2FaceT::fIntegrationPoints;
+dArray2DT LineQ3FaceT::fIntegrationPoints;
+static const double kTol_Zero  = 0.00000001;
 
-LineL2FaceT::LineL2FaceT
+LineQ3FaceT::LineQ3FaceT
 (SurfaceT& surface, dArray2DT& surface_coordinates, 
 int number_of_face_nodes, int* connectivity):
 	FaceT(surface,surface_coordinates,
@@ -21,22 +22,24 @@ int number_of_face_nodes, int* connectivity):
 {
 	fNumVertexNodes = 2;
 	if (!fIntegrationPoints.IsAllocated()){
-        	fIntegrationPoints.Allocate(2,1);
+        	fIntegrationPoints.Allocate(3,1);
         	double* ip;
         	ip = fIntegrationPoints(0);
         	ip[0] = -1.0 ;
         	ip = fIntegrationPoints(1);   
         	ip[0] =  1.0 ; 
+        	ip = fIntegrationPoints(2);   
+        	ip[0] =  1.0 ; 
 	}
 
 }
 
-LineL2FaceT::~LineL2FaceT (void)
+LineQ3FaceT::~LineQ3FaceT (void)
 {
 }
 
 void
-LineL2FaceT::Initialize(void)
+LineQ3FaceT::Initialize(void)
 {
         for (int i = 0; i < fConnectivity.Length(); i++) {
                 fx[i] = fSurfaceCoordinates(fConnectivity[i]);
@@ -45,13 +48,14 @@ LineL2FaceT::Initialize(void)
 
 
 void
-LineL2FaceT::ComputeCentroid(double* centroid) const
+LineQ3FaceT::ComputeCentroid(double* centroid) const
 {
-	Ave(fx[0],fx[1],centroid); 
+	centroid[0] = fx[2][0];
+	centroid[1] = fx[2][1];
 }
 
 double
-LineL2FaceT::ComputeRadius(void) const
+LineQ3FaceT::ComputeRadius(void) const
 {
 	double diagonal[2];
 	Diff (fx[0],fx[1],diagonal);
@@ -60,20 +64,36 @@ LineL2FaceT::ComputeRadius(void) const
 }
 
 void
-LineL2FaceT::NodeNormal(int local_node_number, double* normal) const
+LineQ3FaceT::NodeNormal(int local_node_number, double* normal) const
 {
-	int c = local_node_number;
-	int n = Next(c);
 	double t1[2];
-	/* get sense of left and right */
-	(n > c) ? Diff(fx[c],fx[n],t1) : Diff(fx[n],fx[c],t1);
+	switch(local_node_number)
+	{
+		case 0: // xi -1
+			t1[0] = 0.0; t1[1] = 0.0;
+			Add(t1,-1.5,fx[0]);
+			Add(t1,-0.5,fx[1]);
+			Add(t1, 2.0,fx[2]);
+			break;
+		case 1: // xi +1
+			t1[0] = 0.0; t1[1] = 0.0;
+			Add(t1, 0.5,fx[0]);
+			Add(t1, 1.5,fx[1]);
+			Add(t1,-2.0,fx[2]);
+			break;
+		case 2: // xi  0
+			Diff (fx[0],fx[1],t1);
+			break;
+	}
 	RCross(t1,normal);
+	// normalize??
 }
 
 void
-LineL2FaceT::CalcFaceNormal(void)
+LineQ3FaceT::CalcFaceNormal(void)
 {
-        /* right to left */
+	/* this assumes a CW parameterization of the boundary */
+        /* right (-1) to left (+1) */
 	double t1[2];
         Diff(fx[0],fx[1],t1);
         RCross(t1,fnormal);
@@ -81,18 +101,18 @@ LineL2FaceT::CalcFaceNormal(void)
 
 
 void
-LineL2FaceT::ComputeNormal
+LineQ3FaceT::ComputeNormal
 (const double* local_coordinates, double* normal) const
 {
 	double t1[2];
-	Diff(fx[0],fx[1],t1);
+	ComputeTangent1(local_coordinates,t1);
 	/* this assumes a CW parameterization of the boundary */
 	RCross(t1,normal);
 	Normalize(normal);
 }
 
 void
-LineL2FaceT::ComputeTangent1
+LineQ3FaceT::ComputeTangent1
 (const double* local_coordinates,double* tangent1) const
 {
 cout << "not implemented";
@@ -100,7 +120,7 @@ throw;
 }
 
 void
-LineL2FaceT::ComputeTangent2
+LineQ3FaceT::ComputeTangent2
 (const double* local_coordinates,double* tangent2) const
 {
 cout << "not implemented";
@@ -109,74 +129,82 @@ throw;
 
 
 void
-LineL2FaceT::ComputeShapeFunctions
+LineQ3FaceT::ComputeShapeFunctions
 (const double* local_coordinates, dArrayT& shape_functions) const
 {
 	double xi  = local_coordinates[0];
-	shape_functions[0] = 0.5 * (1.0 - xi );
-	shape_functions[1] = 0.5 * (1.0 + xi );
+	shape_functions[0] = 0.5 * xi * ( xi - 1.0 );
+	shape_functions[1] = 0.5 * xi * ( xi + 1.0 );
+	shape_functions[2] = 1.0 - xi * xi ;
 }
 
 void
-LineL2FaceT::ComputeShapeFunctions
+LineQ3FaceT::ComputeShapeFunctions
 (const double* local_coordinates, dMatrixT& shape_functions) const
 {
-	dArrayT shape_f(2);
+	dArrayT shape_f(3);
 	ComputeShapeFunctions(local_coordinates, shape_f);
-        shape_functions(0,0) = shape_f[0];
-        shape_functions(1,1) = shape_f[0];
-        shape_functions(2,0) = shape_f[1];
-        shape_functions(3,1) = shape_f[1];
+	shape_functions(0,0) = shape_f[0];
+	shape_functions(1,1) = shape_f[0];
+	shape_functions(2,0) = shape_f[1];
+	shape_functions(3,1) = shape_f[1];
+	shape_functions(4,0) = shape_f[2];
+	shape_functions(5,1) = shape_f[2];
 }
 
 void
-LineL2FaceT::ComputeShapeFunctionDerivatives
+LineQ3FaceT::ComputeShapeFunctionDerivatives
 (const double* local_coordinates, dArrayT& shape_functions) const
 {
 }
 
 void
-LineL2FaceT::ComputeShapeFunctionDerivatives
+LineQ3FaceT::ComputeShapeFunctionDerivatives
 (const double* local_coordinates, dMatrixT& shape_functions) const
 {
 }
 
 
 double
-LineL2FaceT::Interpolate
-(const double* local_coordinates, dArrayT& nodal_values) const
+LineQ3FaceT::Interpolate
+(const double* local_coordinates, dArrayT& nodal_values)
+const
 {
-	dArrayT shape_f(2);
+	dArrayT shape_f(3);
         ComputeShapeFunctions (local_coordinates, shape_f);
         double value = shape_f[0]*nodal_values[0]
-                     + shape_f[1]*nodal_values[1];
+                     + shape_f[1]*nodal_values[1] 
+                     + shape_f[2]*nodal_values[2];
 	return value;
 }
 
 void
-LineL2FaceT::InterpolateVector
-(const double* local_coordinates, dArray2DT& nodal_vectors, double* vector) 
+LineQ3FaceT::InterpolateVector
+(const double* local_coordinates, dArray2DT& nodal_vectors, double* vector)
 const
 {
-	dArrayT shape_f(2);
-	ComputeShapeFunctions (local_coordinates, shape_f);
+	dArrayT shape_f(3);
+        ComputeShapeFunctions (local_coordinates, shape_f);
 	vector[0] = shape_f[0]*nodal_vectors(0)[0] 
-	          + shape_f[1]*nodal_vectors(1)[0];
+	          + shape_f[1]*nodal_vectors(1)[0] 
+	          + shape_f[2]*nodal_vectors(2)[0];
 	vector[1] = shape_f[0]*nodal_vectors(0)[1] 
-	          + shape_f[1]*nodal_vectors(1)[1];
+	          + shape_f[1]*nodal_vectors(1)[1] 
+	          + shape_f[2]*nodal_vectors(2)[1];
 }
+
 
 
 double
-LineL2FaceT::ComputeJacobian (const double* local_coordinates) const
+LineQ3FaceT::ComputeJacobian (const double* local_coordinates) const
 {
-	double t1[2];
-	Diff(fx[0],fx[1],t1);
-	return 0.5*Mag(t1);
+	//HACK
+	// mag of tangent
+	return 1.0;
 }
 
 bool
-LineL2FaceT::Projection 
+LineQ3FaceT::Projection 
 (ContactNodeT* node, dArrayT& parameters)  const
 {
         double tol_g  = parameters[ContactElementT::kGapTol];
@@ -187,15 +215,28 @@ LineL2FaceT::Projection
         if ( Dot(nm,fnormal) < 0.0 ) {
           const double* x0 = node->Position();
           /* compute local coordinates */
-          double a[2], b[2];
-          Polynomial(a,b);
+          double a[2], b[2], c[2];
+          Polynomial(a,b,c);
           /* components */
-          double a1,b1,x1;
+          double a1,b1,c1,x1;
           const double* t1 = node->Tangent1();
           x1 = Dot(x0,t1);
-          a1 = Dot(a,t1); b1 = Dot(b,t1);
+          a1 = Dot(a,t1); b1 = Dot(b,t1); c1 = Dot(c,t1);
 	  double xi;
-	  xi = (x1 - a1)/b1;
+	  if (fabs(c1) < kTol_Zero) {
+	    xi = (x1 - a1)/b1;
+	  } else {
+		double discrim = b1*b1 - 4.0*a1*c1;
+		if ( discrim < 0.0 ) { // no intersection
+		  xi = (x1 - a1)/b1;
+		}
+		discrim = 
+		    -0.5*(b1 + ((b1>0.0) ? sqrt(discrim) : -sqrt(discrim)));
+		double root_1 = discrim/a1;
+		double root_2 = c1/discrim;
+		// pick xi closer to zero
+		xi = (fabs(root_1) < fabs(root_2)) ? root_1 : root_2;
+	  }
           if( CheckLocalCoordinates(xi,tol_xi) ) {
             double x3 = Dot(x0,nm);
             double a3 = Dot(a,nm);
@@ -215,7 +256,7 @@ LineL2FaceT::Projection
 }
 
 void
-LineL2FaceT::LocalBasis
+LineQ3FaceT::LocalBasis
 (double* normal, double* tangent1, double* tangent2) const
 {
 	/* calculate face tangent */
@@ -228,10 +269,10 @@ LineL2FaceT::LocalBasis
 }
 
 void
-LineL2FaceT::Quadrature
+LineQ3FaceT::Quadrature
 (dArray2DT& points, dArrayT& weights) const
 {
-        points = fIntegrationPoints; // this is dangerous
+        points = fIntegrationPoints;
         for (int i = 0; i < fIntegrationPoints.MajorDim(); i++) {
                 weights[i] = ComputeJacobian(points(i));
         }
