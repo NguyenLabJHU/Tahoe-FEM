@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.49 2003-05-28 23:15:23 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.50 2003-06-09 06:42:47 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -293,7 +293,6 @@ void CSEAnisoT::Initialize(void)
 #else
 				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT_DEV not enabled: %d", code);
 #endif
-			
 				break;
 			}
 #endif // ndef _FRACTURE_INTERFACE_LIBRARY_
@@ -312,7 +311,7 @@ void CSEAnisoT::Initialize(void)
 			if (freeNodeQ.Length() != 0) ExceptionT::GeneralFail(caller, "only 1 TiedNodes potential can be extant");
 				
 			/* common allocation for tied potentials */
-			iTiedFlagIndex = surfpot->NumStateVariables()-1;
+			iTiedFlagIndex = tiedpot->TiedStatusPosition();
 			freeNodeQ.Dimension(NumElements(),NumElementNodes());
 			freeNodeQ = 0.;
 			freeNodeQ_last = freeNodeQ;
@@ -438,7 +437,6 @@ void CSEAnisoT::Initialize(void)
 /* Get state variables from ElementSupportT here */
 void CSEAnisoT::InitStep(void) 
 {
-	
 	fStateVariables_last.Set(fStateVariables.MajorDim(),fStateVariables.MinorDim(),
 		ElementSupport().StateVariableArray());
 };
@@ -450,13 +448,66 @@ void CSEAnisoT::CloseStep(void)
 	/* inherited */
 	CSEBaseT::CloseStep();
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/* reset state variables from history */
-	fStateVariables_last = fStateVariables;
-
+#ifndef _SIERRA_TEST_
+	/* update flags */
 	if (freeNodeQ.IsAllocated())
+	{
+		int nel = freeNodeQ.MajorDim();
+		int nen = freeNodeQ.MinorDim();
+		for (int e = 0; e < nel; e++)
+		{
+			double* p = freeNodeQ(e);
+			double* p_last = freeNodeQ_last(e);
+			int count_Free = 0;
+			int count_Tied = 0;
+			for (int n = 0; n < nen; n++)
+			{
+				double change = *p++ - *p_last++;
+				if (change > 0.5)
+					count_Free++;
+				else if (change < -0.5)
+					count_Tied++;
+			}
+			
+			/* conflict */
+			if (count_Free > 0 && count_Tied > 0)
+				ExceptionT::GeneralFail("CSEAnisoT::CloseStep", 
+					"conflicting status changes in element %d", e+1);
+					
+			/* change state flag for all integration points */
+			if (count_Free > 0 || count_Tied > 0)
+			{
+				const ElementCardT& element = ElementCard(e);
+				int mat_num = element.MaterialNumber();
+				TiedPotentialBaseT* tiedpot = fTiedPots[mat_num];
+				if (tiedpot)
+				{
+					SurfacePotentialT* surfpot = fSurfPots[mat_num];
+					int num_state = surfpot->NumStateVariables();
+					int stat_dex = tiedpot->TiedStatusPosition();
+			
+					double new_status = (count_Free > 0) ? TiedPotentialBaseT::kFreeNode : TiedPotentialBaseT::kTiedNode;
+					double *pstate = fStateVariables(e);
+					
+					int nip = fShapes->NumIP();
+					for (int ip = 0; ip < nip; ip++)
+					{
+						pstate[stat_dex] = new_status;
+						pstate += num_state;
+					}
+				}
+			}
+		}
+
+		/* update history */
 		freeNodeQ_last = freeNodeQ;
-#endif
+	}
+#endif /* _SIERRA_TEST_	*/
+	
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+	/* store history */
+	fStateVariables_last = fStateVariables;
+#endif /* _FRACTURE_INTERFACE_LIBRARY_ */
 }
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -1205,7 +1256,6 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
 				int num_state = fNumStateVariables[element.MaterialNumber()];
 				state.Dimension(num_state);
-
 		
 				/* integrate */
 				fShapes->TopIP();
