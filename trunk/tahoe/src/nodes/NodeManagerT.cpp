@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.29 2003-05-20 10:21:16 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.30 2003-05-21 23:48:17 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -89,6 +89,17 @@ int NodeManagerT::NumFields(int group) const
 		if (fFields[i]->Group() == group)
 			num_fields++;
 	return num_fields; 
+}
+
+int NodeManagerT::NumDOF(int group) const
+{
+	/* sum over fields */
+	int ndof = 0;
+	for (int i = 0; i < fFields.Length(); i++)
+		if (fFields[i]->Group() == group)
+			ndof += fFields[i]->NumDOF();
+			
+	return ndof; 
 }
 
 /* return a pointer to the specified load time function */
