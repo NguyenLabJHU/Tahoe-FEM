@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Data.cpp,v 1.4 2003-04-14 23:00:10 paklein Exp $ */
+/* $Id: SIERRA_Material_Data.cpp,v 1.5 2003-04-23 16:56:38 paklein Exp $ */
 #include "SIERRA_Material_Data.h"
 
 /* static data */
@@ -16,7 +16,9 @@ SIERRA_Material_Data::SIERRA_Material_Data(const StringT& name, int XML_command_
 	fInitFunction(NULL)
 {
 	fXMLCommandID.Append(XML_command_id);
-	fPropertyMap.SetCompareFunction(SIERRA_Material_Data::Compare);
+//	fPropertyMap.SetCompareFunction(SIERRA_Material_Data::Compare);
+// NOTE: not needed now that all fortran strings should be translated to C strings
+//       before calling SIERRA_Material_Data methods.
 }
 
 /* register input variable name */
