@@ -1,4 +1,4 @@
-/* $Id: GridManager1DT.h,v 1.7 2002-11-22 01:53:11 paklein Exp $ */
+/* $Id: GridManager1DT.h,v 1.8 2003-01-27 06:42:48 paklein Exp $ */
 #ifndef _GRIDMANAGER1D_T_H_
 #define _GRIDMANAGER1D_T_H_
 
@@ -26,14 +26,14 @@ public:
 	/* constructors */
 	GridManager1DT(double xmin, double xmax, int nx);
 	GridManager1DT(int nx, const dArray2DT& coords,
-		const iArrayT* nodes_used);
+		const ArrayT<int>* nodes_used);
 	
 	/* destructor */
 	~GridManager1DT(void);
 	
 	/* empty grid */
 	void Reset(void);
-	void Reset(const dArray2DT& coords, const iArrayT* nodes_used);
+	void Reset(const dArray2DT& coords, const ArrayT<int>* nodes_used);
 
 	/* insert data into the grid */
 	void Add(const sTYPE& data);
@@ -98,7 +98,7 @@ GridManager1DT<sTYPE>::GridManager1DT(double xmin, double xmax, int nx):
 
 template <class sTYPE>
 GridManager1DT<sTYPE>::GridManager1DT(int nx, const dArray2DT& coords,
-	const iArrayT* nodes_used):
+	const ArrayT<int>* nodes_used):
 	fnx(nx)
 {
 	/* initialize grid data */
@@ -127,7 +127,7 @@ void GridManager1DT<sTYPE>::Reset(void)
 
 template <class sTYPE>
 void GridManager1DT<sTYPE>::Reset(const dArray2DT& coords,
-	const iArrayT* nodes_used)
+	const ArrayT<int>* nodes_used)
 {
 	/* empty grid */
 	Reset();

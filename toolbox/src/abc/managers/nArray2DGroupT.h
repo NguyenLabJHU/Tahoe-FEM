@@ -1,4 +1,4 @@
-/* $Id: nArray2DGroupT.h,v 1.3 2002-10-20 22:38:53 paklein Exp $ */
+/* $Id: nArray2DGroupT.h,v 1.4 2003-01-27 06:42:44 paklein Exp $ */
 /* created: paklein (04/16/1998) */
 #ifndef _NARRAY2D_GROUP_T_H_
 #define _NARRAY2D_GROUP_T_H_
@@ -25,8 +25,8 @@ public:
 
 	/** \name constructors */
 	/*@{*/
-	nArray2DGroupT(int headroom);
-	nArray2DGroupT(int headroom, int minordim);
+	nArray2DGroupT(int headroom, bool pool_memory);
+	nArray2DGroupT(int headroom, bool pool_memory, int minordim);
 	/*@}*/
 
 	/** add an nArray2DT to list of managed arrays */
@@ -53,13 +53,13 @@ private:
 };
 
 /*************************************************************************
-* Implementation
-*************************************************************************/
+ * Implementation
+ *************************************************************************/
 
 /* constructors */
 template <class TYPE>
-nArray2DGroupT<TYPE>::nArray2DGroupT(int headroom):
-	MemoryGroupT<TYPE>(headroom),
+nArray2DGroupT<TYPE>::nArray2DGroupT(int headroom, bool pool_memory):
+	MemoryGroupT<TYPE>(headroom, pool_memory),
 	fMajorDim(0),
 	fMinorDim(0)
 {
@@ -67,13 +67,13 @@ nArray2DGroupT<TYPE>::nArray2DGroupT(int headroom):
 }
 
 template <class TYPE>
-nArray2DGroupT<TYPE>::nArray2DGroupT(int headroom, int minordim):
-	MemoryGroupT<TYPE>(headroom),
+nArray2DGroupT<TYPE>::nArray2DGroupT(int headroom, bool pool_memory, int minordim):
+	MemoryGroupT<TYPE>(headroom, pool_memory),
 	fMajorDim(0),
 	fMinorDim(minordim)
 {
 	/* error check */
-	if (fMinorDim < 0) throw ExceptionT::kGeneralFail;
+	if (fMinorDim < 0) ExceptionT::GeneralFail();
 }
 
 /* add Array2DT to list of managed - function allows only nArray2DT's

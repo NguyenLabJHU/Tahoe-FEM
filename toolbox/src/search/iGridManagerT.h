@@ -1,4 +1,4 @@
-/* $Id: iGridManagerT.h,v 1.9 2002-11-22 01:53:12 paklein Exp $ */
+/* $Id: iGridManagerT.h,v 1.10 2003-01-27 06:42:48 paklein Exp $ */
 /* created: paklein (09/13/1998) */
 #ifndef _I_GRIDMANAGER_T_H_
 #define _I_GRIDMANAGER_T_H_
@@ -35,7 +35,7 @@ public:
 	 * \param nodes_used optional list of subset of coords to include
 	 *        in the search grid */
 	iGridManagerT(const iArrayT& n_grid, const dArray2DT& coords,
-		const iArrayT* nodes_used);
+		const ArrayT<int>* nodes_used);
 
 	/** construct grid without explicit grid layout 
 	 * \param avg_cell_nodes approximate average number of points per
@@ -46,7 +46,7 @@ public:
 	 * \param nodes_used optional list of subset of coords to include
 	 *        in the search grid */
 	iGridManagerT(int avg_cell_nodes, int max_cells, const dArray2DT& coords,
-		const iArrayT* nodes_used);
+		const ArrayT<int>* nodes_used);
 	/*@}*/
 	
 	/* destructor */
@@ -57,6 +57,9 @@ public:
 	//void Reset(const dArray2DT& coords, const iArrayT* nodes_used);
 	//TODO - add version that allows you to change the coordinate data
 	//       but use the same grid allocation?
+
+	/** return the coordinate array */
+	const dArray2DT& Coordinates(void) const;
 
 	/** \name neighbors
 	 * returns neighbors coords(n) (SELF not included) */

@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.10 2003-01-16 22:42:00 thao Exp $
+# $Id: makefile.template,v 1.11 2003-01-27 06:42:43 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -44,7 +44,7 @@ MACRO_DIR = $(HOME_DIR)/../macros
 
 ##### any additional user C, C++, fortran, or linker flags
 #MY_CFLAGS  =
-MY_CCFLAGS =
+#MY_CCFLAGS = --load-pch $(HOME_DIR)/pch
 MY_FFLAGS  =
 MY_LFLAGS  =
 
@@ -83,8 +83,14 @@ include $(MACRO_DIR)/toolbox.extras
 
 # "make build" extras - target brought up to date before other makefile
 # targets associated with "make build"
-#MAKE_BUILD_XTRAS = make_build_extras
-make_build_extras:
+#MAKE_BUILD_XTRAS = make_build_pch
 
 # include common target definitions
 include $(MACRO_DIR)/make.targets
+
+make_build_pch:
+	@cd $(HOME_DIR)/pch; make \
+	"COMP_CC = $(COMP_CC)" \
+	"CFLAGS_CC = $(CFLAGS_CC)" \
+	"INC_DIR = $(INC_DIR)" \
+	"MAKE_DEPEND = $(MAKE_DEPEND) $(DEPEND_PATH)"

@@ -1,18 +1,5 @@
-/* $Id: MemoryGroupT.h,v 1.3 2002-10-20 22:38:53 paklein Exp $ */
-/* created: paklein (04/17/1998)                                          */
-/* Base class to handle memory (re-/de-) allocation for                   */
-/* derived classes managing grouped arrays with memory                    */
-/* divided into equally-sized blocks                                      */
-/* NOTE: derived class need to define a function which                    */
-/* (1) determines the new block size based on derived                     */
-/* class parameters.                                                      */
-/* (2) resets the block size with a call to SetBlockSize                  */
-/* (3) resets the pointers and size parameters for all                    */
-/* members of fArrays.                                                    */
-/* Since the number of arguments for (1) and (3) can be just              */
-/* about anything, no prototypes are provided in this base                */
-/* class.                                                                 */
-
+/* $Id: MemoryGroupT.h,v 1.4 2003-01-27 06:42:44 paklein Exp $ */
+/* created: paklein (04/17/1998) */
 #ifndef _MEMORYGROUP_T_H_
 #define _MEMORYGROUP_T_H_
 
@@ -20,83 +7,118 @@
 #include "ArrayT.h"
 #include "AutoArrayT.h"
 
-
 namespace Tahoe {
 
+/** Base class to handle memory (re-/de-) allocation for
+ * derived classes managing grouped arrays with memory
+ * divided into equally-sized blocks
+ * NOTE: derived class need to define a function which
+ * (1) determines the new block size based on derived
+ * class parameters.
+ * (2) resets the block size with a call to SetBlockSize
+ * (3) resets the pointers and size parameters for all
+ * members of fArrays.
+ * Since the number of arguments for (1) and (3) can be just
+ * about anything, no prototypes are provided in this base
+ * class. Memory for the arrays in the group may be either
+ * pooled or separated. Pooled memory is preferable for a
+ * large number of small arrays while separate memory is
+ * preferable for a small number of large arrays.
+ */
 template <class TYPE>
 class MemoryGroupT
 {
 public:
 
-	/* constructor */
-	MemoryGroupT(int headroom);
+	/** constructor */
+	MemoryGroupT(int headroom, bool pool_memory);
 
-	/* destructor */
+	/** destructor */
 	~MemoryGroupT(void);
 
-	/* over-allocation parameter */
+	/** \name over-allocation parameter */
+	/*@{*/
 	int HeadRoom(void) const;
 	void SetHeadRoom(int headroom);
+	/*@}*/
 
-	/* add array to list of managed */
+	/** \name add array to list of managed */
+	/*@{*/
 	void Register(ArrayT<TYPE>& array);
 	bool IsRegistered(const ArrayT<TYPE>& array) const;
+	/*@}*/
 
 protected:
 
-	/* current block size */
+	/** current block size */
 	int BlockSize(void) const;
 
-	/* return a pointer to the specified block */
+	/** return a pointer to the specified block */
 	TYPE* BlockPointer(int block) const;
 
-	/* memory (re-) allocation and copy old data if specified */
+	/** memory (re-) allocation and copy old data if specified */
 	void SetBlockSize(int newblocksize, bool copy_in);
 	
 private:
 
-	/* NOT DEFINED - no copy construction */
+	/** \name not allowed */
+	/*@{*/
+	/** copy construction */
 	MemoryGroupT(const MemoryGroupT& source);
 
-	/* NOT DEFINED - no assignment operator */
+	/* assignment operator */
 	MemoryGroupT& operator=(MemoryGroupT&);
+	/*@}*/
 
 protected:
 
-	/* list of managed */
+	/** list of managed */
 	AutoArrayT<ArrayT<TYPE>*> fArrays;
 
 private:
 
-	/* oversize parameter */
+	/** oversize parameter */
 	int fHeadRoom;
 	
-	/* grouped data */
-	TYPE* fData;
-	int   fBlockSize;
+	/** true if memory for the group is pooled, false if it is separate */
+	bool fPoolMemory;
+	
+	/** \name memory  */
+	/*@{*/
+	/** memory for the registered arrays. List will be length 1 if 
+	 * MemoryGroupT::fPoolMemory is true; otherwise, will be the same
+	 * length as MemoryGroupT::fArrays */
+	AutoArrayT<TYPE*> fData;
+
+	/** current size of the memory per array */
+	int fBlockSize;
+	/*@}*/
 };
 
 /*************************************************************************
-* Implementation
-*************************************************************************/
+ * Implementation
+ *************************************************************************/
 
 /* constructor */
 template <class TYPE>
-MemoryGroupT<TYPE>::MemoryGroupT(int headroom):
+MemoryGroupT<TYPE>::MemoryGroupT(int headroom, bool pool_memory):
 	fHeadRoom(headroom),
-	fData(NULL),
+	fPoolMemory(pool_memory),
 	fBlockSize(0)
 {
 	/* error check */
-	if (fHeadRoom < 0) throw ExceptionT::kGeneralFail;
+	if (fHeadRoom < 0) ExceptionT::GeneralFail();
+
+	/* pooled memory */
+	if (fPoolMemory) fData.Append(NULL);
 }
 
 /* destructor */
 template <class TYPE>
 MemoryGroupT<TYPE>::~MemoryGroupT(void)
 {
-	delete[] fData;
-	fData = NULL;
+	for (int i = 0; i < fData.Length(); i++)
+		delete[] fData[i];
 }
 
 /* over-allocation parameter */
@@ -112,24 +134,24 @@ inline void MemoryGroupT<TYPE>::SetHeadRoom(int headroom)
 	fHeadRoom = headroom;
 
 	/* check */
-	if (fHeadRoom < 0) throw ExceptionT::kGeneralFail;
+	if (fHeadRoom < 0) ExceptionT::GeneralFail();
 }
-
 
 /* add array to list of managed */
 template <class TYPE>
 void MemoryGroupT<TYPE>::Register(ArrayT<TYPE>& array)
 {
 	/* only until memory is allocated */
-	if (fBlockSize > 0)
-	{
-		cout << "\n MemoryGroupT<TYPE>::Register: all arrays must be registered\n";
-		cout <<   "     before initial allocation\n" << endl;
-		throw ExceptionT::kGeneralFail;
+	if (fBlockSize > 0) {
+		const char caller[] = "MemoryGroupT<TYPE>::Register";
+		ExceptionT::GeneralFail(caller, "all arrays must be registered before initial allocation");
 	}
 
 	/* add to list */
 	fArrays.Append(&array);
+
+	/* memory */
+	if (!fPoolMemory) fData.Append(NULL);
 }
 
 template <class TYPE>
@@ -143,21 +165,23 @@ bool MemoryGroupT<TYPE>::IsRegistered(const ArrayT<TYPE>& array) const
 }
 
 /**********************************************************************
-*  Private
-**********************************************************************/
+ *  Private
+ **********************************************************************/
 
 /* current block size */
 template <class TYPE>
-inline int MemoryGroupT<TYPE>::BlockSize(void) const { return(fBlockSize); }
+inline int MemoryGroupT<TYPE>::BlockSize(void) const { return fBlockSize; }
 
 /* return a pointer to the specified block */
 template <class TYPE>
 TYPE* MemoryGroupT<TYPE>::BlockPointer(int block) const
 {
-	/* range check */
-	if (block < 0 || block >= fArrays.Length()) throw ExceptionT::kOutOfRange;
-	
-	return(fData + fBlockSize*block);
+	if (fPoolMemory) {	
+		if (block < 0 || block >= fArrays.Length()) ExceptionT::OutOfRange();	
+		return fData[0] + fBlockSize*block;
+	}
+	else
+		return fData[block];
 }
 
 /* memory (re-) allocation */
@@ -169,35 +193,46 @@ void MemoryGroupT<TYPE>::SetBlockSize(int newblocksize, bool copy_in)
 
 	/* new memory (with extra space) */
 	newblocksize += newblocksize*fHeadRoom/100;
-	TYPE* newdata;
 
-#ifdef __NEW_THROWS__
-	try { newdata = new TYPE[fArrays.Length()*newblocksize]; }
-	catch (bad_alloc) { newdata = NULL; }
-#else
-	newdata = new TYPE[fArrays.Length()*newblocksize];
-#endif
-
-	if (!newdata) throw ExceptionT::kOutOfMemory;
-
-	/* copy data in */
-	if (copy_in)
+	/* memory for all arrays pooled */
+	if (fPoolMemory)
 	{
-		TYPE* pold = fData;
-		TYPE* pnew = newdata;
-		for (int i = 0; i < fArrays.Length(); i++)
-		{
-			memcpy(pnew,pold,sizeof(TYPE)*copysize);
+		/* allocate new array */
+		TYPE* newdata = ArrayT<TYPE>::New(fArrays.Length()*newblocksize);
+
+		/* copy data in */
+		if (copy_in) {
+			TYPE* pold = fData[0];
+			TYPE* pnew = newdata;
+			for (int i = 0; i < fArrays.Length(); i++) {
+				memcpy(pnew, pold, sizeof(TYPE)*copysize);
 			
-			pold += fBlockSize;
-			pnew += newblocksize;
+				pold += fBlockSize;
+				pnew += newblocksize;
+			}
+		}
+	
+		/* reset grouped pointer */
+		delete[] fData[0];
+		fData[0] = newdata;
+		fBlockSize = newblocksize;
+	}
+	else
+	{
+		fBlockSize = newblocksize;
+		for (int i = 0; i < fArrays.Length(); i++) {
+		
+			/* allocate */
+			TYPE* newdata = ArrayT<TYPE>::New(fBlockSize);
+			
+			/* copy data */
+			if (copy_in) memcpy(newdata, fData[i], sizeof(TYPE)*copysize);
+	
+			/* reset grouped pointer */
+			delete[] fData[i];
+			fData[i] = newdata;
 		}
 	}
-
-	/* reset grouped pointer */
-	delete[] fData;
-	fData      = newdata;
-	fBlockSize = newblocksize;
 }
 
 } // namespace Tahoe 

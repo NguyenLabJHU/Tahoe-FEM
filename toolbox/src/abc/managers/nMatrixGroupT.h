@@ -1,4 +1,4 @@
-/* $Id: nMatrixGroupT.h,v 1.3 2002-10-20 22:38:53 paklein Exp $ */
+/* $Id: nMatrixGroupT.h,v 1.4 2003-01-27 06:42:44 paklein Exp $ */
 /* created: paklein (04/17/1998) */
 #ifndef _MATHMATRIX_GROUP_T_H_
 #define _MATHMATRIX_GROUP_T_H_
@@ -24,7 +24,7 @@ class nMatrixGroupT: public MemoryGroupT<TYPE>
 public:
 
 	/** constructor */
-	nMatrixGroupT(int headroom);
+	nMatrixGroupT(int headroom, bool pool_memory);
 
 	/** add an nMatrixT to list of managed matricies */
 	void Register(nMatrixT<TYPE>& matrix);
@@ -45,8 +45,8 @@ private:
 
 /* constructor */
 template <class TYPE>
-nMatrixGroupT<TYPE>::nMatrixGroupT(int headroom):
-	MemoryGroupT<TYPE>(headroom),
+nMatrixGroupT<TYPE>::nMatrixGroupT(int headroom, bool pool_memory):
+	MemoryGroupT<TYPE>(headroom, pool_memory),
 	fRows(0),
 	fCols(0)
 {
