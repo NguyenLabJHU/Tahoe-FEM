@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.30 2005-03-08 19:06:01 rjones Exp $
+# $Id: tahoe-manager,v 1.31 2005-03-08 21:24:11 rjones Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -169,6 +169,30 @@ foreach my $lib (@syslibs) {
 		if($modules[$i] =~ /$syslib2module{$lib}/) {  splice (@modules,$i,1);}
 	}
 }
+
+# add unincluded dependency modules
+%tmp = %module2define;
+foreach my $key (@modules) {
+	delete $tmp{$key};
+}
+@unincludedmodules = sort(keys (%tmp));
+foreach my $dir (@modules) {
+	$filename = "$dir/makefile.template";
+        if (-e $filename) {
+                open(IN,"$filename");
+                my @lines = <IN>; $file = "@lines";
+                close(IN);
+		foreach my $mod (@unincludedmodules) {
+			my $define = $module2define{$mod};
+                	if (($file =~ /$define/) && ($file !~ /#$define/)) {
+				print "* $dir depends on $mod, $mod will be included\n";
+				
+ 				push(@modules,$mod);
+			}
+		}
+	}
+}
+
 
 print ">   tahoe name: $tahoe_name\n";
 print ">   connection: $connection\n";
