@@ -1,4 +1,4 @@
-// $Id: FEA_dMatrixT.h,v 1.9 2003-09-15 15:17:51 raregue Exp $
+// $Id: FEA_dMatrixT.h,v 1.10 2003-10-09 21:46:15 raregue Exp $
 #ifndef _FEA_DMATRIXT_H_
 #define _FEA_DMATRIXT_H_
 
@@ -112,6 +112,11 @@ class FEA_dMatrixT: public ArrayT <dMatrixT>
 		void operator -=  (const double &a); 
 		void operator *=  (const double &a);   
 		void operator /=  (const double &a); 
+		/*void operator  =  (const double *a); 
+		void operator +=  (const double *a);   
+		void operator -=  (const double *a); 
+		void operator *=  (const double *a);   
+		void operator /=  (const double *a);  */
 
 		void operator *=  (const FEA_dScalarT &s);   
 		void operator /=  (const FEA_dScalarT &s);  

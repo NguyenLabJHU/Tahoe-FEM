@@ -1,4 +1,4 @@
-// $Id: FEA_dVectorT.cpp,v 1.4 2003-09-15 15:17:51 raregue Exp $
+// $Id: FEA_dVectorT.cpp,v 1.5 2003-10-09 21:46:15 raregue Exp $
 #include "FEA.h"
 
 using namespace Tahoe; 
@@ -230,6 +230,34 @@ void FEA_dVectorT::operator /=  (const double &a) {
 	for (int i=0; i<fLength; i++) 
 		(*this)[i] /= a; 
 }
+
+/*
+
+//----------------------------------------------------
+
+void FEA_dVectorT::operator =  (const double *a) { 
+  if (fLength==0) cout <<"..ERROR>> FEA_dVectorT: Vector unallocated"; 
+	for (int i=0; i<fLength; i++) 
+		(*this)[i] = a; 
+}
+
+//----------------------------------------------------
+
+void FEA_dVectorT::operator *=  (const double *a) { 
+  if (fLength==0) cout <<"..ERROR>> FEA_dVectorT: Vector unallocated"; 
+	for (int i=0; i<fLength; i++) 
+		(*this)[i] *= a; 
+}
+
+//----------------------------------------------------
+
+void FEA_dVectorT::operator /=  (const double *a) { 
+  if (fLength==0) cout <<"..ERROR>> FEA_dVectorT: Vector unallocated"; 
+	for (int i=0; i<fLength; i++) 
+		(*this)[i] /= a; 
+}
+
+*/
 
 //----------------------------------------------------
 //Un-tested

@@ -1,4 +1,4 @@
-// $Id: FEA_dMatrixT.cpp,v 1.11 2003-09-15 16:22:32 paklein Exp $
+// $Id: FEA_dMatrixT.cpp,v 1.12 2003-10-09 21:46:14 raregue Exp $
 #include "FEA.h"
 
 using namespace Tahoe; 
@@ -375,6 +375,54 @@ void FEA_dMatrixT::operator /=  (const double &a) {
 	for (int i=0; i<fLength; i++) 
 		(*this)[i] /= a; 
 }
+
+
+
+
+//----------------------------------------------------
+/*
+void FEA_dMatrixT::operator =  (const double *a) { // Un-tested 
+
+  double *p = (*this)[0].Pointer();
+  if (Length()==0) cout << "...ERROR >> FEA_dMatrixT::operator = : Matrix Unallocated \n";
+	for (int i=0; i< n_ip_x_n_rows_x_n_cols; i++) 
+		(*p++) = a;	
+}
+
+//----------------------------------------------------
+
+void FEA_dMatrixT::operator +=  (const double *a) { 
+  if (fLength==0) cout <<"..ERROR>> FEA_dMAtrixT: Matrix unallocated"; 
+	for (int i=0; i<fLength; i++) 
+		(*this)[i] += a; 
+}
+
+//----------------------------------------------------
+
+void FEA_dMatrixT::operator -=  (const double *a) { 
+  if (fLength==0) cout <<"..ERROR>> FEA_dMAtrixT: Matrix unallocated"; 
+	for (int i=0; i<fLength; i++) 
+		(*this)[i] -= a; 
+}
+
+//----------------------------------------------------
+
+void FEA_dMatrixT::operator *=  (const double *a) { 
+  if (fLength==0) cout <<"..ERROR>> FEA_dMAtrixT: Matrix unallocated"; 
+	for (int i=0; i<fLength; i++) 
+		(*this)[i] *= a; 
+}
+
+//----------------------------------------------------
+
+void FEA_dMatrixT::operator /=  (const double *a) { 
+  if (fLength==0) cout <<"..ERROR>> FEA_dMAtrixT: Matrix unallocated"; 
+	for (int i=0; i<fLength; i++) 
+		(*this)[i] /= a; 
+}
+
+*/
+
 
 //----------------------------------------------------
 //Un-tested

@@ -1,4 +1,4 @@
-// $Id: FEA_dVectorT.h,v 1.6 2003-09-15 19:27:57 raregue Exp $
+// $Id: FEA_dVectorT.h,v 1.7 2003-10-09 21:46:15 raregue Exp $
 #ifndef _FEA_DVECTORT_H_
 #define _FEA_DVECTORT_H_
 
@@ -74,6 +74,9 @@ class FEA_dVectorT: public ArrayT <dArrayT>
 	  	void operator  =  (const double &a);   
 		void operator *=  (const double &a);   
 		void operator /=  (const double &a);
+		/* void operator  =  (const double *a);   
+		void operator *=  (const double *a);   
+		void operator /=  (const double *a); */
 
 		void operator *=  (const FEA_dScalarT &s);   
 		void operator /=  (const FEA_dScalarT &s);   
