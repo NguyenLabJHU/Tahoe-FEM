@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatListT.cpp,v 1.7 2003-12-10 07:14:28 paklein Exp $ */
+/* $Id: DiffusionMatListT.cpp,v 1.8 2004-01-10 04:41:07 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "DiffusionMatListT.h"
 #include "DiffusionMatSupportT.h"
@@ -71,9 +71,26 @@ void DiffusionMatListT::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	MaterialListT::DefineSubs(sub_list);
 
-	/* diffusion materials */
-	sub_list.AddSub("linear_diffusion");
-	sub_list.AddSub("nonlinear_diffusion");
+	/* an array of choices */
+	sub_list.AddSub("diffusion_material_list", ParameterListT::OnePlus, true);
+
+}
+
+/* return the description of the given inline subordinate parameter list */
+void DiffusionMatListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	/* list of choice of materials */
+	if (sub == "diffusion_material_list")
+	{
+		order = ParameterListT::Choice;
+	
+		/* diffusion materials */
+		sub_sub_list.AddSub("linear_diffusion");
+		sub_sub_list.AddSub("nonlinear_diffusion");
+	}	
+	else /* inherited */
+		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */

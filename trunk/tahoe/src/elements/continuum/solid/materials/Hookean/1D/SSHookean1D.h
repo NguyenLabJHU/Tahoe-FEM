@@ -1,4 +1,4 @@
-/* $Id: SSHookean1D.h,v 1.4 2002-11-14 17:06:03 paklein Exp $ */
+/* $Id: SSHookean1D.h,v 1.5 2004-01-10 04:41:14 paklein Exp $ */
 #ifndef _SS_HOOKEAN_1D_H_
 #define _SS_HOOKEAN_1D_H_
 
@@ -14,6 +14,7 @@ public:
 
 	/** constructor */
 	SSHookean1D(ifstreamT& in, const SSMatSupportT& support);
+	SSHookean1D(void);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

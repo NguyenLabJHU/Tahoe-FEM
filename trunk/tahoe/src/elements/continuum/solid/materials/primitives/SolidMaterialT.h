@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.12 2003-08-12 18:57:46 thao Exp $ */
+/* $Id: SolidMaterialT.h,v 1.13 2004-01-10 04:41:25 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -31,6 +31,7 @@ public:
 
 	/** constructor */
 	SolidMaterialT(ifstreamT& in, const MaterialSupportT& support);
+	SolidMaterialT(void);
 
 	/** destructor */
 	~SolidMaterialT(void);
@@ -130,6 +131,12 @@ public:
 	 * \return 1 if the determinant of the acoustical tensor is negative
 	 * or 0 if the determinant is positive. */
 	virtual int IsLocalized(dArrayT& normal);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 	
 private:
 

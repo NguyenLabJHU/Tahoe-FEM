@@ -1,4 +1,4 @@
-/* $Id: SolidMatList1DT.cpp,v 1.13 2003-12-02 17:12:22 paklein Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.14 2004-01-10 04:41:16 paklein Exp $ */
 #include "SolidMatList1DT.h"
 #include "SolidMatSupportT.h"
 #include "fstreamT.h"
@@ -124,6 +124,49 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 	}
 }
 
+/* information about subordinate parameter lists */
+void SolidMatList1DT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SolidMatListT::DefineSubs(sub_list);
+
+	/* list of materials an array of choices */
+	sub_list.AddSub("solid_material_list_1D", ParameterListT::OnePlus, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void SolidMatList1DT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "solid_material_list_1D")
+	{
+		order = ParameterListT::Choice;
+	
+		sub_sub_list.AddSub("small_strain_Hookean_1D");
+
+#ifdef GRAD_SMALL_STRAIN_DEV
+		sub_sub_list.AddSub("GradJ2SS1D")
+		sub_sub_list.AddSub("J2SSKStV1D");
+#endif		
+	}
+	else /* inherited */
+		SolidMatListT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SolidMatList1DT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "small_strain_Hookean_1D")
+		return new SSHookean1D;
+#ifdef GRAD_SMALL_STRAIN_DEV
+	else if (list_name == "GradJ2SS1D")
+		return new GradJ2SS1D;
+	if (list_name == "J2SSKStV1D")
+		return new J2SSKStV1D;
+#endif		
+	else /* inherited */
+		return SolidMatListT::NewSub(list_name);
+}
 
 /* error messages */
 

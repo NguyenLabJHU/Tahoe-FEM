@@ -1,4 +1,4 @@
-/* $Id: SSLinearVE2D.cpp,v 1.2 2003-04-14 17:28:33 thao Exp $ */
+/* $Id: SSLinearVE2D.cpp,v 1.3 2004-01-10 04:41:27 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSLinearVE2D.h"
 #include "SSMatSupportT.h"
@@ -132,7 +132,7 @@ const dSymMatrixT& SSLinearVE2D::S_IJ(void)
 
 const dMatrixT& SSLinearVE2D::c_ijkl(void)
 {        
- 	double dt = fSSMatSupport.TimeStep();
+ 	double dt = fSSMatSupport->TimeStep();
 	double taudtS = dt/ftauS;
 	double taudtB = dt/ftauB;
 
@@ -174,7 +174,7 @@ const dMatrixT& SSLinearVE2D::c_ijkl(void)
 
 const dSymMatrixT& SSLinearVE2D::s_ij(void)
 {
-	double dt = fSSMatSupport.TimeStep();
+	double dt = fSSMatSupport->TimeStep();
 	double taudtS = dt/ftauS;
 	double taudtB = dt/ftauB;
 
@@ -211,7 +211,7 @@ const dSymMatrixT& SSLinearVE2D::s_ij(void)
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
 
-	if(fSSMatSupport.RunState() == GlobalT::kFormRHS)
+	if(fSSMatSupport->RunState() == GlobalT::kFormRHS)
 	{
 		mu = fMu[kNonEquilibrium];
 		kappa = fKappa[kNonEquilibrium];

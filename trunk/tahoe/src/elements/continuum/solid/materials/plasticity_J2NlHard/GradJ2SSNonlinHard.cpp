@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSNonlinHard.cpp,v 1.12 2003-11-21 22:46:51 paklein Exp $ */
+/* $Id: GradJ2SSNonlinHard.cpp,v 1.13 2004-01-10 04:41:23 paklein Exp $ */
 #include "GradJ2SSNonlinHard.h"
 
 #include "iArrayT.h"
@@ -183,9 +183,9 @@ const dSymMatrixT& GradJ2SSNonlinHard::s_ij(void)
 	int fCurrIP = CurrIP();
 	ElementCardT& element = CurrentElement();
 
-	int iteration = fSSMatSupport.IterationNumber();
+	int iteration = fSSMatSupport->IterationNumber();
 
-	if (fSSMatSupport.RunState() == GlobalT::kFormRHS && fCurrIP == 0)
+	if (fSSMatSupport->RunState() == GlobalT::kFormRHS && fCurrIP == 0)
 	{
 	        if (iteration > -1)
 		        /* solve state at each integration point (all at once) */

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.3 2004-01-05 23:36:01 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.4 2004-01-10 04:41:10 paklein Exp $ */
 #include "ABAQUS_UMAT_SS_BaseT.h"
 
 #ifdef __F2C__
@@ -345,10 +345,10 @@ const dSymMatrixT& ABAQUS_UMAT_SS_BaseT::s_ij(void)
 	if (MaterialSupport().RunState() == GlobalT::kFormRHS ||
 	    (fApproxModulus && MaterialSupport().RunState() == GlobalT::kFormLHS))
 	{
-		double  t = fSSMatSupport.Time();
-		double dt = fSSMatSupport.TimeStep();
-		int  step = fSSMatSupport.StepNumber();
-		int iter = fSSMatSupport.IterationNumber();
+		double  t = fSSMatSupport->Time();
+		double dt = fSSMatSupport->TimeStep();
+		int  step = fSSMatSupport->StepNumber();
+		int  iter = fSSMatSupport->IterationNumber();
 		if (iter < fNumElasticIterations-1) /* treat as 'first' iteration */
 			iter = -1;
 		
