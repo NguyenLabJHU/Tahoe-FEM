@@ -1,6 +1,6 @@
-# $Id: SHASTA.macros,v 1.12 2005-01-07 19:32:53 paklein Exp $
+# $Id: SHASTA.macros,v 1.13 2005-01-08 06:51:56 jwfoulk Exp $
 MAKE        = make
-DEFINES     = -D__TAHOE_MPI__ -D__SHASTA__ -D__INTEL_CC__ -DNON_UNIX_STDIO -D__NO_RTTI__ -DEIGHT_BYTE_REAL
+DEFINES     = -D__TAHOE_MPI__ -D__SHASTA__ -D__INTEL_CC__ -DNON_UNIX_STDIO -D__INTEL_RTTI__ -DEIGHT_BYTE_REAL
 COMP_C      = mpicc
 COMP_CC     = mpiCC
 COMP_F      = mpif77
