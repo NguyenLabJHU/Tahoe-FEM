@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.h,v 1.11 2002-03-04 06:26:33 paklein Exp $ */
+/* $Id: ExodusInputT.h,v 1.12 2002-03-11 20:14:45 sawimme Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _EXODUSINPUT_T_H_
@@ -151,10 +151,10 @@ inline int ExodusInputT::NumTimeSteps (void) const
 { return fData.NumTimeSteps (); }
 
 inline int ExodusInputT::NumNodeVariables (void) const
-{ return fData.NumNodeVariables (); }
+{ return fData.NumVariables (ExodusT::kNode); }
 
 inline int ExodusInputT::NumElementVariables (void) const
-{ return fData.NumElementVariables (); }
+{ return fData.NumVariables (ExodusT::kElement); }
 
 inline int ExodusInputT::NumQuadratureVariables (void) const
 { return 0; }
@@ -166,10 +166,10 @@ inline void ExodusInputT::QuadratureVariablesUsed (const StringT& name, iArrayT&
 }
 
 inline void ExodusInputT::ReadNodeLabels (ArrayT<StringT>& labels) const
-{ fData.ReadNodeLabels (labels); }
+{ fData.ReadLabels (labels, ExodusT::kNode); }
 
 inline void ExodusInputT::ReadElementLabels (ArrayT<StringT>& elabels) const
-{ fData.ReadElementLabels (elabels); }
+{ fData.ReadLabels (elabels, ExodusT::kElement); }
 
 inline void ExodusInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
 { qlabels.Free (); }
