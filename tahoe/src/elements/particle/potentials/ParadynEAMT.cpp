@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.cpp,v 1.4 2003-04-15 17:42:06 saubry Exp $ */
+/* $Id: ParadynEAMT.cpp,v 1.5 2003-05-08 01:07:19 saubry Exp $ */
 #include "ParadynEAMT.h"
 
 #include "toolboxConstants.h"
@@ -45,6 +45,11 @@ ParadynEAMT::ParadynEAMT(const StringT& param_file):
   double mass;
   in >> fAtomicNumber >> mass 
      >> fLatticeParameter >> fStructure;
+
+  /* Adjust mass like in interpolate.F of ParaDyn */
+  double conmas = 1.0365e-4;
+  mass *= conmas;
+  
   
   /* read dimensions */
   int np, nr;
@@ -70,7 +75,11 @@ ParadynEAMT::ParadynEAMT(const StringT& param_file):
      Note: It is only z at this point, not phi = z^2/r */
   tmp.Dimension(nr);
   in >> tmp;
-  tmp *= sqrt(27.2*0.529);
+
+  /* adjust units */
+  for (int j = 0; j < nr; j++)
+    tmp[j] *= sqrt(27.2*0.529);
+
   f_inc = 1.0/dr;
 
   /* compute spline coefficients for z^2 */
@@ -247,6 +256,8 @@ double ParadynEAMT::ElecDensEnergy(double r_ab, double* data_a, double* data_b)
 // z'(r)
 double ParadynEAMT::PairForce(double r_ab, double* data_a, double* data_b)
 {
+#pragma unused(data_a)
+#pragma unused(data_b)
   double zp = ForceAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
   return zp;
 }
@@ -272,6 +283,9 @@ double ParadynEAMT::ElecDensForce(double r_ab, double* data_a, double* data_b)
 // z''(r)
 double ParadynEAMT::PairStiffness(double r_ab, double* data_a, double* data_b)
 {
+#pragma unused(data_a)
+#pragma unused(data_b)
+
   double zpp = StiffnessAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
   return zpp;
 }
@@ -348,7 +362,8 @@ void ParadynEAMT::ComputeCoefficients(const ArrayT<double>& f, double dx, dArray
   coeff(0,1)      =      coeff(1,0)      - coeff(0,0);
   coeff(1,1)      = 0.5*(coeff(2,0)      - coeff(0,0));
   coeff(nrar-2,1) = 0.5*(coeff(nrar-1,0) - coeff(nrar-3,0));
-  coeff(nrar-1,1) = 0.0;
+  // Syl: coeff(nrar-1,1) = 0.0;
+  coeff(nrar-1,1) = coeff(nrar-1,0) - coeff(nrar-2,0);
   
   /* derivative approximation through the middle */
   for (int j = 2; j < nrar-2; j++)
