@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.12 2002-11-26 18:54:27 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.13 2002-11-28 01:14:05 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -531,7 +531,7 @@ void ElementSupportT::AssembleLHS(int group, const nArrayT<double>& diagonal_elM
 #endif
 }
 
-void ElementSupportT::AssembleRHS(int group, const dArrayT& elRes, 
+void ElementSupportT::AssembleRHS(int group, const nArrayT<double>& elRes, 
 	const nArrayT<int>& eqnos) const
 {
 #ifndef _SIERRA_TEST_

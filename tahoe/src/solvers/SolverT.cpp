@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.9 2002-11-14 17:06:47 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.10 2002-11-28 01:14:07 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -134,7 +134,7 @@ void SolverT::ReceiveEqns(const RaggedArray2DT<int>& equations) const
 	fLHS->AddEquationSet(equations);
 }
 
-void SolverT::AssembleRHS(const dArrayT& elRes, const nArrayT<int>& eqnos)
+void SolverT::AssembleRHS(const nArrayT<double>& elRes, const nArrayT<int>& eqnos)
 {
 	/* consistency check */
 	if (elRes.Length() != eqnos.Length()) throw ExceptionT::kGeneralFail;

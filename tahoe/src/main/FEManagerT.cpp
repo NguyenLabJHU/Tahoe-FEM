@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.44 2002-11-25 07:27:35 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.45 2002-11-28 01:14:06 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -569,7 +569,7 @@ void FEManagerT::DisassembleLHSDiagonal(int group, dArrayT& diagonals, const nAr
 	fSolvers[group]->DisassembleLHSDiagonal(diagonals, eqnos);
 }
 
-void FEManagerT::AssembleRHS(int group, const dArrayT& elRes,
+void FEManagerT::AssembleRHS(int group, const nArrayT<double>& elRes,
 	const nArrayT<int>& eqnos) const
 {
 	fSolvers[group]->AssembleRHS(elRes, eqnos);

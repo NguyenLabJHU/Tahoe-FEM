@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.25 2002-11-26 01:11:13 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.26 2002-11-28 01:14:06 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -194,7 +194,7 @@ public:
 	void DisassembleLHS(int group, dMatrixT& elMat, const nArrayT<int>& eqnos) const;
 	void DisassembleLHSDiagonal(int group, dArrayT& diagonals, const nArrayT<int>& eqnos) const;
 
-	void AssembleRHS(int group, const dArrayT& elRes, const nArrayT<int>& eqnos) const;
+	void AssembleRHS(int group, const nArrayT<double>& elRes, const nArrayT<int>& eqnos) const;
 	void OverWriteRHS(int group, const dArrayT& elRes, const nArrayT<int>& eqnos) const;
 	void DisassembleRHS(int group, dArrayT& elRes, const nArrayT<int>& eqnos) const;
 	/*@}*/

@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.27 2002-10-20 22:48:32 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.28 2002-11-28 01:14:06 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -224,11 +224,6 @@ void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
 	int phase; // job phase
 	try
 	{
-#if defined(__MWERKS__) && __option(profile)
-		/* start recording profiler information */
-		ProfilerSetStatus(1);
-#endif
-
 		t0 = clock();
 
 		/* construction */
@@ -238,17 +233,22 @@ void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
 		analysis1.Initialize();
 
 		t1 = clock();
+
+#if defined(__MWERKS__) && __option(profile)
+		/* start recording profiler information */
+		ProfilerSetStatus(1);
+#endif
 		
 		/* solution */
 		phase = 1;
 		analysis1.Solve();
 
-		t2 = clock();
-
 #if defined(__MWERKS__) && __option(profile)
 		/* stop recording profiler information */
 		ProfilerSetStatus(0);
 #endif
+
+		t2 = clock();
 	}
 
 	/* job failure */

@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.13 2002-11-26 00:17:33 cjkimme Exp $ */
+/* $Id: ElementSupportT.h,v 1.14 2002-11-28 01:14:05 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -242,7 +242,7 @@ public:
 	void AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos) const;
 	void AssembleLHS(int group, const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos) const;
-	void AssembleRHS(int group, const dArrayT& elRes, const nArrayT<int>& eqnos) const;
+	void AssembleRHS(int group, const nArrayT<double>& elRes, const nArrayT<int>& eqnos) const;
 	/*@}*/
 
 	/** \name nodal averaging */
