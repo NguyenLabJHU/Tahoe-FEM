@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.44.4.5 2003-08-24 17:27:56 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.44.4.6 2003-09-18 20:01:43 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -623,7 +623,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	ifstreamT& in = atoms.Input();
 	const StringT& input_file = in.filename();
 	fsummary_file.Root(input_file);
-	fsummary_file.Append(".sum");
+	fsummary_file.Append(".diss");
 
 	/* time managers */
 	TimeManagerT* atom_time = atoms.TimeManager();
@@ -699,12 +699,12 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		ExceptionT::CodeT error = ExceptionT::kNoError;	
 		
 		/* first obtain the MD displacement field */
-		FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
-		dArray2DT mddisplast = (*atomfield)[0];	
-		dArrayT aa(boundatoms.Length()), ab(boundatoms.Length()), sub1(boundatoms.Length()); 
-		dArrayT ac(boundatoms.Length()), ad(boundatoms.Length()), sub2(boundatoms.Length());
-		dArrayT ua(boundatoms.Length()), ub(boundatoms.Length()), uc(boundatoms.Length()), ud(boundatoms.Length());
-		dArrayT sub3(boundatoms.Length()), sub4(boundatoms.Length()), sub5(boundatoms.Length()), sub6(boundatoms.Length());
+		//FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
+		//dArray2DT mddisplast = (*atomfield)[0];	
+		//dArrayT aa(boundatoms.Length()), ab(boundatoms.Length()), sub1(boundatoms.Length()); 
+		//dArrayT ac(boundatoms.Length()), ad(boundatoms.Length()), sub2(boundatoms.Length());
+		//dArrayT ua(boundatoms.Length()), ub(boundatoms.Length()), uc(boundatoms.Length()), ud(boundatoms.Length());
+		//dArrayT sub3(boundatoms.Length()), sub4(boundatoms.Length()), sub5(boundatoms.Length()), sub6(boundatoms.Length());
 		
 		for (int i = 0; i < nfesteps; i++)	
 		{
@@ -735,51 +735,51 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				}
 
 				/* first obtain the MD displacement field */
-				FieldT* atomfielda = atoms.NodeManager()->Field(bridging_field);
-				dArray2DT mddispcurr = (*atomfielda)[0];	
-				mdu0.RowCollect(boundatoms,mddisplast);
-				mdu1.RowCollect(boundatoms,mddispcurr); 
-				mdu0.ColumnCopy(0,aa);
-				mdu0.ColumnCopy(1,ab);
-				mdu1.ColumnCopy(0,ac);
-				mdu1.ColumnCopy(1,ad);
-				sub1.DiffOf(ac,aa); // q(n+1)-q(n) (x-comp)
-				sub2.DiffOf(ad,ab); // q(n+1)-q(n) (y-comp)
-				bdisplast.ColumnCopy(0,ua);
-				bdisplast.ColumnCopy(1,ub);
-				badisp.ColumnCopy(0,uc);
-				badisp.ColumnCopy(1,ud);
-				sub3.DiffOf(ua,uc);  // ubar(n)-ubar(n+1) (x-comp)
-				sub4.DiffOf(ub,ud);  // ubar(n)-ubar(n+1) (x-comp)
-				sub5.SumOf(sub1,sub3);
-				sub6.SumOf(sub2,sub4);
-				double d0 = thkforce.DotColumn(0,sub5);
-				double d1 = thkforce.DotColumn(1,sub6);
-				dissipation += d0;
-				dissipation += d1;
+				//FieldT* atomfielda = atoms.NodeManager()->Field(bridging_field);
+				//dArray2DT mddispcurr = (*atomfielda)[0];	
+				//mdu0.RowCollect(boundatoms,mddisplast);
+				//mdu1.RowCollect(boundatoms,mddispcurr); 
+				//mdu0.ColumnCopy(0,aa);
+				//mdu0.ColumnCopy(1,ab);
+				//mdu1.ColumnCopy(0,ac);
+				//mdu1.ColumnCopy(1,ad);
+				//sub1.DiffOf(ac,aa); // q(n+1)-q(n) (x-comp)
+				//sub2.DiffOf(ad,ab); // q(n+1)-q(n) (y-comp)
+				//bdisplast.ColumnCopy(0,ua);
+				//bdisplast.ColumnCopy(1,ub);
+				//badisp.ColumnCopy(0,uc);
+				//badisp.ColumnCopy(1,ud);
+				//sub3.DiffOf(ua,uc);  // ubar(n)-ubar(n+1) (x-comp)
+				//sub4.DiffOf(ub,ud);  // ubar(n)-ubar(n+1) (x-comp)
+				//sub5.SumOf(sub1,sub3);
+				//sub6.SumOf(sub2,sub4);
+				//double d0 = thkforce.DotColumn(0,sub5);
+				//double d1 = thkforce.DotColumn(1,sub6);
+				//dissipation += d0;
+				//dissipation += d1;
 				
-				const double& time = atoms.Time();
-				if (fopen)
-				{
-					fout.open_append(fsummary_file);
-					fout.precision(13);
-					fout << dissipation
-					     << setw(25) << time
-					     << endl;
-				}
-				else
-				{
-					fout.open(fsummary_file);
-					fopen = true;
-					fout.precision(13);
-					fout << "Dissipation"
-					     << setw(25) << "Time"
-						 << endl;
-					fout << dissipation
-					     << setw(25) << time
-					     << endl;
-				}
-				mddisplast = mddispcurr;
+				//const double& time = atoms.Time();
+				//if (fopen)
+				//{
+				//	fout.open_append(fsummary_file);
+				//	fout.precision(13);
+				//	fout << dissipation
+				//	     << setw(25) << time
+				//	     << endl;
+				//}
+				//else
+				//{
+				//	fout.open(fsummary_file);
+				//	fopen = true;
+				//	fout.precision(13);
+				//	fout << "Dissipation"
+				//	     << setw(25) << "Time"
+				//	     << endl;
+				//	fout << dissipation
+				//	     << setw(25) << time
+				//	     << endl;
+				//}
+				//mddisplast = mddispcurr;
 
 				/* close  md step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    

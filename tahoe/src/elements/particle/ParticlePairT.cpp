@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.17.4.4 2003-08-15 15:41:40 hspark Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.17.4.5 2003-09-18 20:01:42 hspark Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -219,15 +219,15 @@ void ParticlePairT::WriteOutput(void)
 	nodelist = model.NodeSet(id_list[id_list.Length()-1]); // want last nodeset
 	const StringT& input_file = in.filename();
 	fsummary_file.Root(input_file);
-        fsummary_file.Append(".sum");
+        fsummary_file.Append(".crack");
 	double xcoord = coords(nodelist[0],0);
 	double ydispcrit = .13;
 	const double& time = ElementSupport().Time();
 	for (int i = 0; i < nodelist.Length(); i++)
 	{
-	  int node = nodelist[i];
-	  if (fabs(displacement(node,1)) >= ydispcrit)
-	    xcoord = coords(node,0);
+	    int node = nodelist[i];
+	    if (fabs(displacement(node,1)) >= ydispcrit)
+	      xcoord = coords(node,0);
 	}
 	if (fopen)
 	{
