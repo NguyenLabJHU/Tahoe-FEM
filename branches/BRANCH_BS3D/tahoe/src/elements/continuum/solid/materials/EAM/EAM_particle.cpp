@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.cpp,v 1.1.2.8 2004-03-01 05:56:27 hspark Exp $ */
+/* $Id: EAM_particle.cpp,v 1.1.2.9 2004-03-06 01:22:47 hspark Exp $ */
 /* created: hspark(02/25/2004) */
 #include "EAM_particle.h"
 #include <iostream.h> //TEMP
@@ -143,6 +143,30 @@ double EAM_particle::LatticeParameter(void) const
 {
 	return fLatticeParameter;
 }
+
+/*
+* Compute the total electron density.
+*/
+double EAM_particle::TotalElectronDensity(void)
+{
+	double rho = 0.0;
+	const int* pcount = fCounts.Pointer();
+
+	for (int i = 0; i < fNumBonds; i++)
+	{
+		double ri = fBonds[i];
+		double pedensity = fEDEnergy(ri, NULL, NULL);
+		rho += (*pcount++)*(pedensity);
+	}
+	return rho;
+}
+
+/* return the embedding force for a given electron density */
+double EAM_particle::ReturnEmbeddingForce(double rho)
+{
+	return fEmbedForce(rho, NULL, NULL);
+}
+
 /**********************************************************************
 * Private
 **********************************************************************/
@@ -199,23 +223,6 @@ void EAM_particle::FormMixedDerivatives(double rho)
 	
 	fAmn.CopySymmetric();
 }	
-
-/*
-* Compute the total electron density.
-*/
-double EAM_particle::TotalElectronDensity(void)
-{
-	double rho = 0.0;
-	const int* pcount = fCounts.Pointer();
-
-	for (int i = 0; i < fNumBonds; i++)
-	{
-		double ri = fBonds[i];
-		double pedensity = fEDEnergy(ri, NULL, NULL);
-		rho += (*pcount++)*(pedensity);
-	}
-	return rho;
-}
 
 /*
 * Moduli tensor contributions.

@@ -1,4 +1,4 @@
-/* $Id: EAM.cpp,v 1.4.6.2 2004-02-28 18:06:58 hspark Exp $ */
+/* $Id: EAM.cpp,v 1.4.6.3 2004-03-06 01:22:47 hspark Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAM.cpp                                                                */
 
@@ -119,6 +119,23 @@ void EAM::ComputeUnitModuli(dMatrixT& moduli)
 	FormSingleBondContribution(rho, moduli);
 }
 
+/*
+* Compute the total electron density.
+*/
+double EAM::TotalElectronDensity(void)
+{
+	/* compute total atomic density */
+	dArrayT& ElectronDensity = fElectronDensity->MapFunction(fBonds, fBond1);
+
+	double rho = 0.0;
+	const int* pcount = fCounts.Pointer();
+	double* pedensity = ElectronDensity.Pointer();
+
+	for (int i = 0; i < fNumBonds; i++)
+		rho += (*pcount++)*(*pedensity++);
+
+	return rho;
+}
 /**********************************************************************
 * Private
 **********************************************************************/
@@ -173,24 +190,6 @@ void EAM::FormMixedDerivatives(double rho)
 	
 	fAmn.CopySymmetric();
 }	
-
-/*
-* Compute the total electron density.
-*/
-double EAM::TotalElectronDensity(void)
-{
-	/* compute total atomic density */
-	dArrayT& ElectronDensity = fElectronDensity->MapFunction(fBonds, fBond1);
-
-	double rho = 0.0;
-	const int* pcount = fCounts.Pointer();
-	double* pedensity = ElectronDensity.Pointer();
-
-	for (int i = 0; i < fNumBonds; i++)
-		rho += (*pcount++)*(*pedensity++);
-
-	return rho;
-}
 
 /*
 * Moduli tensor contributions.
