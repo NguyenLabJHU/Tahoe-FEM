@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.58 2003-11-21 22:45:50 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.59 2003-12-02 17:16:21 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -410,11 +410,8 @@ void CSEAnisoT::Initialize(void)
 			{
 				const SurfacePotentialT* pot_i = fSurfPots[i];
 				if (!SurfacePotentialT::CompatibleOutput(*pot_k, *pot_i))
-				{
-					cout << "\n CSEAnisoT::Initialize: incompatible output between potentials\n"
-					     <<   "     " << k+1 << " and " << i+1 << endl;
-					throw ExceptionT::kBadInputValue;
-				}
+					ExceptionT::BadInputValue(caller, "incompatible output between potentials %d and %d",
+						k+1, i+1);
 			}
 		}
 			
