@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.41 2003-07-18 00:27:23 saubry Exp $ */
+/* $Id: EAMT.cpp,v 1.42 2003-08-04 16:36:10 saubry Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -60,9 +60,6 @@ void EAMT::Initialize(void)
   int ndof = NumDOF();
   fLHS.Dimension(2*ndof);
   fRHS.Dimension(2*ndof);
-
-  /* new array */
-  fRHS2.Dimension(2*ndof);
 
   /* constant matrix needed to calculate stiffness */
   fOneOne.Dimension(fLHS);
