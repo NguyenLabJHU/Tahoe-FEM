@@ -1,6 +1,5 @@
-/* $Id: TetrahedronT.cpp,v 1.4 2003-11-10 22:14:29 cjkimme Exp $ */
+/* $Id: TetrahedronT.cpp,v 1.5 2004-02-28 21:52:26 paklein Exp $ */
 /* created: paklein (10/22/1996) */
-
 #include "TetrahedronT.h"
 #include "QuadT.h"
 #include "iArrayT.h"
@@ -8,6 +7,7 @@
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 #include "dMatrixT.h"
+#include "LocalArrayT.h"
 
 using namespace Tahoe;
 
@@ -22,28 +22,86 @@ TetrahedronT::TetrahedronT(int numnodes): GeometryBaseT(numnodes, kNumFacets) {}
 /* evaluate the shape functions and gradients. */
 void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 {
-#pragma unused(coords)
-#pragma unused(Na)
+	const char caller[] = "TetrahedronT::EvaluateShapeFunctions";
 
-	cout << "\n TetrahedronT::EvaluateShapeFunctions: not implemented" << endl;
-	throw ExceptionT::kGeneralFail;
+#if __option(extended_errorcheck)
+	if (coords.Length() != 3 ||
+	        Na.Length() != fNumNodes) ExceptionT::SizeMismatch(caller);
+	if (fNumNodes != kNumVertexNodes) ExceptionT::GeneralFail(caller);
+#endif
+
+	/* coordinates */	
+	double r = coords[0];
+	double s = coords[1];
+	double t = coords[2];
+	if (r < 0.0 || r > 1.0) ExceptionT::OutOfRange(caller);
+	if (s < 0.0 || s > 1.0) ExceptionT::OutOfRange(caller);
+	if (t < 0.0 || t > 1.0) ExceptionT::OutOfRange(caller);
+
+	/* shape functions */
+	Na[0] = r;
+	Na[1] = s;
+	Na[3] = t;
+	Na[2] = 1 - r - s - t;
 }
 
 /* evaluate the shape functions and gradients. */
 void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa) const
 {
-#pragma unused(coords)
-#pragma unused(Na)
-#pragma unused(DNa)
+	const char caller[] = "TetrahedronT::EvaluateShapeFunctions";
 
-	cout << "\n TetrahedronT::EvaluateShapeFunctions: not implemented" << endl;
-	throw ExceptionT::kGeneralFail;
+#if __option(extended_errorcheck)
+	if (coords.Length() != 3 ||
+	        Na.Length() != fNumNodes ||
+	     DNa.MajorDim() != 3 ||
+	     DNa.MinorDim() != fNumNodes) ExceptionT::SizeMismatch(caller);
+	if (fNumNodes != kNumVertexNodes) ExceptionT::GeneralFail(caller);
+#endif
+
+	/* coordinates */	
+	double r = coords[0];
+	double s = coords[1];
+	double t = coords[2];
+	if (r < 0.0 || r > 1.0) ExceptionT::OutOfRange(caller);
+	if (s < 0.0 || s > 1.0) ExceptionT::OutOfRange(caller);
+	if (t < 0.0 || t > 1.0) ExceptionT::OutOfRange(caller);
+
+	/* shape functions */
+	Na[0] = r;
+	Na[1] = s;
+	Na[3] = t;
+	Na[2] = 1 - r - s - t;
+
+	/* derivatives */
+	double* nax = DNa(0);
+	double* nay = DNa(1);
+	double* naz = DNa(2);
+
+	/* Na,r */
+	nax[0] = 1.0;
+	nax[1] = 0.0;
+	nax[3] = 0.0;
+	nax[2] =-1.0;
+	
+	/* Na,s */
+	nay[0] = 0.0;
+	nay[1] = 1.0;
+	nay[3] = 0.0;
+	nay[2] =-1.0;
+
+	/* Na,t */
+	naz[0] = 0.0;
+	naz[1] = 0.0;
+	naz[3] = 1.0;
+	naz[2] =-1.0;
 }
 
 /* compute local shape functions and derivatives */
 void TetrahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	dArrayT& weights) const
 {
+	const char caller[] = "TetrahedronT::SetLocalShape";
+
 	/* dimensions */
 	int numnodes = Na.MinorDim();
 	int numint   = weights.Length();
@@ -51,21 +109,13 @@ void TetrahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 
 	/* dimension checks */
 	if (numnodes != 4)
-	{
-		cout << "\n TetrahedronT::SetLocalShape: unsupported number of element nodes: "
-		     << numnodes << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "unsupported number of element nodes: %d", numnodes);
 	
 	if (numint != 1 &&
 	    numint != 4)
-	{
-		cout << "\n TetrahedronT::SetLocalShape: unsupported number of integration points: "
-		     << numint << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "unsupported number of integration points: %d", numint);
 
-	if (nsd != kTetnsd) throw ExceptionT::kGeneralFail;
+	if (nsd != kTetnsd) ExceptionT::GeneralFail(caller);
 
 	/* initialize */
 	Na = 0.0;
@@ -115,7 +165,7 @@ double t4[4] = {0.13819660, 0.13819660, 0.13819660, 0.58541020};
 
 		default:
 		
-			throw ExceptionT::kGeneralFail;			
+			ExceptionT::GeneralFail(caller);
 	}	
 
 	/* shape functions and derivatives */
@@ -134,7 +184,7 @@ double t4[4] = {0.13819660, 0.13819660, 0.13819660, 0.58541020};
 	na[3] += t[i];
 	na[2] += 1 - r[i] - s[i] - t[i];
 
-/* Na,r */
+	/* Na,r */
 	nax[0] += 1.0;
 	nax[1] += 0.0;
 	nax[3] += 0.0;
@@ -157,14 +207,16 @@ double t4[4] = {0.13819660, 0.13819660, 0.13819660, 0.58541020};
 /* set the values of the nodal extrapolation matrix */
 void TetrahedronT::SetExtrapolation(dMatrixT& extrap) const
 {
+	const char caller[] = "TetrahedronT::SetExtrapolation";
+
 	/* dimensions */
 	int numnodes = extrap.Rows();
 	int numint   = extrap.Cols();
 
 	/* dimension checks */
-	if (numnodes != 4) throw ExceptionT::kGeneralFail;
+	if (numnodes != 4) ExceptionT::GeneralFail(caller);
 	if (numint != 1 &&
-	    numint != 4) throw ExceptionT::kGeneralFail;	
+	    numint != 4) ExceptionT::GeneralFail(caller);	
 	
 	/* initialize */
 	extrap = 0.0;
@@ -191,7 +243,7 @@ void TetrahedronT::SetExtrapolation(dMatrixT& extrap) const
 }	
 		default:
 		
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail(caller);
 	}
 }
 
@@ -200,14 +252,13 @@ void TetrahedronT::SetExtrapolation(dMatrixT& extrap) const
 * nodes, mid-edge nodes, mid-face nodes */
 void TetrahedronT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 {
+	const char caller[] = "TetrahedronT::NodesOnFacet";
+
 	if (fNumNodes != 4 && fNumNodes != 10)
-	{
-		cout << "\n TetrahedronT::NodesOnFacet: only implemented 4 and 10 element nodes" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "only implemented 4 and 10 element nodes: %d", fNumNodes);
 
 #if __option(extended_errorcheck)
-	if (facet < 0 || facet > 4) throw ExceptionT::kOutOfRange;
+	if (facet < 0 || facet > 4) ExceptionT::OutOfRange(caller);
 #endif
 
 	/* nodes-facet data */
@@ -235,10 +286,7 @@ void TetrahedronT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 void TetrahedronT::NumNodesOnFacets(iArrayT& num_nodes) const
 {
 	if (fNumNodes != 4 && fNumNodes != 10)
-	{
-		cout << "\n TetrahedronT::NodesOnFacet: only implemented 4 and 10 element nodes" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("TetrahedronT::NodesOnFacet", "only implemented 4 and 10 element nodes");
 
 	num_nodes.Dimension(4);
 	if (fNumNodes == 4)
@@ -264,10 +312,7 @@ void TetrahedronT::NeighborNodeMap(iArray2DT& facetnodes) const
 void TetrahedronT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes) const
 {
 	if (fNumNodes != 4 && fNumNodes != 10)
-	{
-		cout << "\n TetrahedronT::FacetGeometry: only implemented for 4 nodes" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("TetrahedronT::FacetGeometry", "only implemented for 4 nodes: %d", fNumNodes);
 
 	facet_geom.Dimension(fNumFacets);
 	facet_geom = kTriangle;
@@ -277,4 +322,50 @@ void TetrahedronT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes
 		facet_nodes = 3;
 	else
 		facet_nodes = 6;
+}
+
+/* return true if the given point is within the domain */
+bool TetrahedronT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
+{
+#if __option(extended_errorcheck)
+		if (coords.NumberOfNodes() != 4) 
+			ExceptionT::GeneralFail("TetrahedronT::PointInDomain", "expecting 4 element nodes: %d", coords.NumberOfNodes());
+#endif
+
+	/* nodes-facet data - ordered for outward normals */
+	int dat4[] = {0,1,3,
+	              1,2,3,
+	              2,0,3,
+	              0,2,1};
+
+	/* method: check all faces and see of point lies inside */
+	bool in_domain = true;
+	int* facet_nodes = dat4;
+	for (int i = 0; in_domain && i < 4; i++)
+	{
+		/* facet 1 */
+		double ab_0 = coords(facet_nodes[1], 0) - coords(facet_nodes[0], 0);
+		double ab_1 = coords(facet_nodes[1], 1) - coords(facet_nodes[0], 1);
+		double ab_2 = coords(facet_nodes[1], 2) - coords(facet_nodes[0], 2);
+
+		double ac_0 = coords(facet_nodes[2], 0) - coords(facet_nodes[0], 0);
+		double ac_1 = coords(facet_nodes[2], 1) - coords(facet_nodes[0], 1);
+		double ac_2 = coords(facet_nodes[2], 2) - coords(facet_nodes[0], 2);
+
+		double ap_0 = point[0] - coords(facet_nodes[0], 0);
+		double ap_1 = point[1] - coords(facet_nodes[0], 1);
+		double ap_2 = point[2] - coords(facet_nodes[0], 2);
+			
+		/* vector triple product */
+		double ac_ab_0 = ac_1*ab_2 - ac_2*ab_1;
+		double ac_ab_1 = ac_2*ab_0 - ac_0*ab_2;
+		double ac_ab_2 = ac_0*ab_1 - ac_1*ab_0;			
+		double triple_product = ac_ab_0*ap_0 + ac_ab_1*ap_1 + ac_ab_2*ap_2;
+		in_domain = triple_product >= 0.0;
+
+		/* next face */		
+		facet_nodes += 3;
+	}
+	
+	return in_domain;
 }
