@@ -1,4 +1,4 @@
-/* $Id: expat_ParseT.h,v 1.3 2004-07-08 22:53:28 paklein Exp $ */
+/* $Id: expat_ParseT.h,v 1.4 2004-07-22 08:15:03 paklein Exp $ */
 #ifndef _EXPAT_PARSE_T_H_
 #define _EXPAT_PARSE_T_H_
 
@@ -32,7 +32,8 @@ public:
 	 * \param file path to source file
 	 * \param params destination for parsed information. All ParameterT's in
 	 *        the parameter list will contain the data from the file as
-	 *        strings. */
+	 *        strings. params will correspond to the root of the document
+	 *        being parsed. */
 	void Parse(const StringT& file, ParameterListT& params);
 
 private:
@@ -47,6 +48,9 @@ private:
 
 	/** the parameter list for the current call to Parse */
 	static AutoArrayT<ParameterListT*> sListStack;
+
+	/** root element of document being parsed */
+	static ParameterListT* sRoot;
 };
 
 } /* namespace Tahoe */
