@@ -1,4 +1,4 @@
-/* $Id: Vector3T.h,v 1.7 2003-11-14 04:46:40 paklein Exp $ */
+/* $Id: Vector3T.h,v 1.8 2003-11-21 22:41:39 paklein Exp $ */
 /* created: paklein (02/11/2000) */
 
 #ifndef _VECTOR_3_T_H_
@@ -22,14 +22,20 @@ class Vector3T
 	/** "copy" constructor. Copy the first 3 values from source */
 	Vector3T(const nTYPE* source);
 
+	/** \name accessors */
+	/*@{*/
 	/** element accessor */
-	nTYPE& operator[](int dex) const;
+	nTYPE& operator[](int dex);
+
+	/** const element accessor */
+	const nTYPE& operator[](int dex) const;
 
 	/** type conversion operator. Convert a Vector3T to a (const nTYPE*) */
 	operator const nTYPE*() const;
 
 	/** type conversion operator. Convert a Vector3T to a (nTYPE*) */
 	operator nTYPE*() const;
+	/*@}*/
 
 	/** \name assignment operator */
 	/*@{*/
@@ -101,7 +107,16 @@ inline Vector3T<nTYPE>::Vector3T(const nTYPE* source)
 
 /* accessor */
 template <class nTYPE>
-inline nTYPE& Vector3T<nTYPE>::operator[](int dex) const
+inline nTYPE& Vector3T<nTYPE>::operator[](int dex)
+{
+#if __option(extended_errorcheck)
+	if (dex < 0 || dex > 2) throw ExceptionT::kOutOfRange;
+#endif
+	return v[dex];
+}
+
+template <class nTYPE>
+inline const nTYPE& Vector3T<nTYPE>::operator[](int dex) const
 {
 #if __option(extended_errorcheck)
 	if (dex < 0 || dex > 2) throw ExceptionT::kOutOfRange;

@@ -1,4 +1,4 @@
-/* $Id: PartitionT.cpp,v 1.10 2003-01-27 06:42:47 paklein Exp $ */
+/* $Id: PartitionT.cpp,v 1.11 2003-11-21 22:41:54 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 #include "PartitionT.h"
 
@@ -228,7 +228,7 @@ void PartitionT::SetElements(const StringT& blockID, const iArray2DT& connects)
 	/* sort elements into internal/external */
 	int nel = connects.MajorDim();
 	int nen = connects.MinorDim();
-	int* pelem = connects.Pointer();
+	const int* pelem = connects.Pointer();
 	for (int i = 0; i < nel; i++)
 	{
 		int n_i = 0;
@@ -306,8 +306,8 @@ int PartitionT::CrossCheck(const PartitionT& that) const
 			return 0;
 		else
 		{
-			int* p1 = fNodes_in[i1].Pointer();
-			int* p2 = (that.fNodes_out[i2]).Pointer();
+			const int* p1 = fNodes_in[i1].Pointer();
+			const int* p2 = (that.fNodes_out[i2]).Pointer();
 			for (int i = 0; i < n1; i++)
 				if (fNodeMap[*p1++] != (that.fNodeMap)[*p2++]) return 0;
 				// need to check global/local here
@@ -327,8 +327,8 @@ int PartitionT::CrossCheck(const PartitionT& that) const
 			return 0;
 		else
 		{
-			int* p1 = fNodes_out[i1].Pointer();
-			int* p2 = (that.fNodes_in[i2]).Pointer();
+			const int* p1 = fNodes_out[i1].Pointer();
+			const int* p2 = (that.fNodes_in[i2]).Pointer();
 			for (int i = 0; i < n1; i++)
 				if (fNodeMap[*p1++] != (that.fNodeMap)[*p2++]) return 0;
 		}
@@ -789,7 +789,7 @@ void PartitionT::ClassifyNodes(const iArrayT& part_map,
 		if (part_i == fID)
 		{
 			int degree = graph.Degree(i);
-			int *pedge = graph.Edges(i);
+			const int *pedge = graph.Edges(i);
 			for (int j = 0; j < degree; j++)
 			{
 				int part_j = part_map[*pedge];
@@ -1007,7 +1007,7 @@ void PartitionT::MapStatus(StatusT status, const iArrayT& part,
 {
 	int  range = status_map.Length();
 	int length = part.Length();
-	int* ppart = part.Pointer();
+	const int* ppart = part.Pointer();
 	for (int i = 0; i < length; i++)
 	{
 		int dex = *ppart++ - offset;
@@ -1083,8 +1083,9 @@ void PartitionT::SetElementMap(NumberScopeT scope, const StringT& blockID, iArra
 	{
 		/* construct inverse element map */
 		if (fInvElementMap[dex].Length() == 0)
-			MakeInverseMap(fElementMap[dex], fInvElementMap[dex],
-				fElementMapShift[dex]);
+			MakeInverseMap(fElementMap[dex], 
+				const_cast<iArrayT&>(fInvElementMap[dex]),
+				const_cast<int&>(fElementMapShift[dex]));
 				
 		shift = fElementMapShift[dex];
 		map.Alias(fInvElementMap[dex]);

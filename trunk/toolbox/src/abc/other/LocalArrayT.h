@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.h,v 1.12 2003-05-27 06:54:29 paklein Exp $ */
+/* $Id: LocalArrayT.h,v 1.13 2003-11-21 22:41:39 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #ifndef _LOCALARRAY_T_H_
@@ -35,6 +35,8 @@ public:
 	             kInitCoords, /**< initial coordinates */
                  kCurrCoords  /**< current coordinates */ };
 
+	/** \name constructors */
+	/*@{*/
 	/** default constructor. Constructs an array of zero length with type
 	 * LocalArrayT::kUnspecified. */
 	LocalArrayT(void);
@@ -48,6 +50,7 @@ public:
 
 	/** copy constructor */
 	LocalArrayT(const LocalArrayT& source);
+	/*@}*/
 
 	/** dimension array */
 	void Dimension(int numnodes, int minordim);
@@ -55,8 +58,11 @@ public:
 	/** \deprecated replaced by LocalArrayT::Dimension on 02/13/2002 */
 	void Allocate(int numnodes, int minordim);
  
+	/** \deprecated replaced by LocalArrayT::Alias */
+	void Set(int numnodes, int minordim, double* p);
+
 	/** create a shallow array */
-	void Set(int numnodes, int minordim, double*p);
+	void Alias(int numnodes, int minordim, const double* p);
 	
 	/** copy data from an nArrayT.
 	 * \param numnodes set LocalArrayT::NumberOfNodes
@@ -77,10 +83,16 @@ public:
 	int MinorDim(void) const;
 	
 	/** element accessor */
-	double& operator()(int majordim, int minordim) const;
+	double& operator()(int majordim, int minordim);
+
+	/** element accessor */
+	const double& operator()(int majordim, int minordim) const;
 
 	/** return a pointer to the specified row */
-	double* operator()(int minordim) const;
+	double* operator()(int minordim);
+
+	/** return a pointer to the specified row */
+	const double* operator()(int minordim) const;
 
 	/** assignment operator. This operator re-dimensions the array as
 	 * needed and sets the source dArray2DT. The type of this array
@@ -165,6 +177,15 @@ inline void LocalArrayT::Set(int numnodes, int minordim, double *p)
 	dArrayT::Set(fNumNodes*fMinorDim, p);
 }
 
+inline void LocalArrayT::Alias(int numnodes, int minordim, const double *p)
+{
+	fNumNodes = numnodes;
+	fMinorDim = minordim;
+	
+	/* inherited */
+	dArrayT::Alias(fNumNodes*fMinorDim, p);
+}
+
 inline void LocalArrayT::SetType(TypeT type) { fType = type; }
 
 /* accessors */
@@ -173,7 +194,18 @@ inline int LocalArrayT::NumberOfNodes(void) const { return fNumNodes; }
 inline int LocalArrayT::MinorDim(void) const      { return fMinorDim; }
 
 /* element accessors */
-inline double& LocalArrayT::operator()(int majordim, int minordim) const
+inline double& LocalArrayT::operator()(int majordim, int minordim)
+{
+#if __option (extended_errorcheck)
+	if (majordim < 0 ||
+	    majordim >= fNumNodes ||
+	    minordim < 0 ||
+	    minordim >= fMinorDim) ExceptionT::OutOfRange("LocalArrayT::operator(,)");
+#endif
+
+	return (fArray[minordim*fNumNodes + majordim]);
+}
+inline const double& LocalArrayT::operator()(int majordim, int minordim) const
 {
 #if __option (extended_errorcheck)
 	if (majordim < 0 ||
@@ -185,7 +217,15 @@ inline double& LocalArrayT::operator()(int majordim, int minordim) const
 	return (fArray[minordim*fNumNodes + majordim]);
 }
 
-inline double* LocalArrayT::operator()(int minordim) const
+inline double* LocalArrayT::operator()(int minordim)
+{
+#if __option (extended_errorcheck)
+	if (minordim < 0 || minordim >= fMinorDim) ExceptionT::OutOfRange("LocalArrayT::operator()");
+#endif
+
+	return (fArray + minordim*fNumNodes);
+}
+inline const double* LocalArrayT::operator()(int minordim) const
 {
 #if __option (extended_errorcheck)
 	if (minordim < 0 || minordim >= fMinorDim) ExceptionT::OutOfRange("LocalArrayT::operator()");

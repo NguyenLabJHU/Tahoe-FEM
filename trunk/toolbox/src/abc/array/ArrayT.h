@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.17 2003-11-10 22:14:03 cjkimme Exp $ */
+/* $Id: ArrayT.h,v 1.18 2003-11-21 22:41:30 paklein Exp $ */
 /* created: paklein (06/19/1996) */
 #ifndef _ARRAY_T_H_
 #define _ARRAY_T_H_
@@ -41,8 +41,11 @@ public:
 	 * \param length dimension of the array
 	 * \param TYPEPtr pointer to a block of memory with a dimension of at
 	 *        least length. It is assumed that this memory will remain valid
-	 *        for the lifetime of this array */
-	ArrayT(int length, TYPE* TYPEPtr);
+	 *        for the lifetime of this array
+	 * \note the pointer passed in to alias isn't modified by creating the
+	 *       alias, but there is nothing preventing values in the data block
+	 *       to be modified by this alias subsequently */
+	ArrayT(int length, const TYPE* TYPEPtr);
 
 	/** construct a deep copy of the source array */
 	ArrayT(const ArrayT& source);
@@ -56,15 +59,21 @@ public:
 	 * \param length dimension of the array
 	 * \param TYPEPtr pointer to a block of memory with a dimension of at
 	 *        least length. It is assumed that this memory will remain valid
-	 *        for the lifetime of this array */
-	void Alias(int length, TYPE* TYPEPtr);
+	 *        for the lifetime of this array 
+	 * \note the pointer passed in to alias isn't modified by creating the
+	 *       alias, but there is nothing preventing values in the data block
+	 *       to be modified by this alias subsequently */
+	void Alias(int length, const TYPE* TYPEPtr);
 
 	/** \deprecated replaced by ArrayT::Alias on 09/04/2003 */
 	void Set(int length, TYPE* TYPEPtr);
 
 	/** create shallow copy of the source array. Any memory previously owned 
 	 * by the array will be freed and previous content is lost. The source array
-	 * is assumed to stay valid for the lifetime of this array. */
+	 * is assumed to stay valid for the lifetime of this array.
+	 * \note the array passed in to alias isn't modified by creating the
+	 *       alias, but there is nothing preventing values in its data
+	 *       to be modified by this alias subsequently */
 	void Alias(const ArrayT<TYPE>& RHS);
 
 	/** set the array size to the given length. No change occurs if the array
@@ -99,20 +108,28 @@ public:
 	/** free memory (if allocated) and set size to zero */
 	void Free(void);
 
-	/** returns a pointer specified element in the array - offset
-	 * must be 0 <= offset <= Length() <--- one beyond the end! */
-	TYPE* Pointer(int offset = 0) const;
+	/** \name return a pointer specified element in the array
+	 * offset must be 0 <= offset <= Length() <--- one beyond the end! */
+	/*@{*/
+	TYPE* Pointer(int offset = 0);
+	const TYPE* Pointer(int offset = 0) const;
+	/*@}*/
 
-	/** element accessor */
-	TYPE& operator[](int index) const;
+	/** \name element accessor */
+	/*@{*/
+	TYPE& operator[](int index);
+	const TYPE& operator[](int index) const;
+	/*@}*/
 
 	/** reference to the first element in the array. Array must be at
 	 * least length 1 */
-	TYPE& First(void) const;
+	TYPE& First(void);
+	const TYPE& First(void) const;
 
 	/** reference to the last element in the array. Array must be at
 	 * least length 1 */
-	TYPE& Last(void) const;
+	TYPE& Last(void);
+	const TYPE& Last(void) const;
 
 	/** \name assignment operators */
 	/*@{*/		
@@ -251,12 +268,12 @@ inline ArrayT<TYPE>::ArrayT(int length):
 }
 
 template <class TYPE>
-inline ArrayT<TYPE>::ArrayT(int length, TYPE* TYPEPtr): 
-	fLength(length), 
-	fArray(TYPEPtr),
+inline ArrayT<TYPE>::ArrayT(int length, const TYPE* TYPEPtr): 
+	fLength(0), 
+	fArray(NULL),
 	fDelete(0)
 {
-
+	Alias(length, TYPEPtr);
 }
 
 template <class TYPE>
@@ -347,7 +364,7 @@ inline void ArrayT<TYPE>::MemMove(TYPE* to, const TYPE* from, int length)
 
 /* set fields */
 template <class TYPE>
-inline void ArrayT<TYPE>::Alias(int length, TYPE* TYPEPtr)
+inline void ArrayT<TYPE>::Alias(int length, const TYPE* TYPEPtr)
 {
 	/* release memory if allocated */
 	if (fDelete)
@@ -356,7 +373,7 @@ inline void ArrayT<TYPE>::Alias(int length, TYPE* TYPEPtr)
 		fDelete = 0;
 	}
 	fLength = length;
-	fArray  = TYPEPtr;	
+	fArray = const_cast<TYPE*>(TYPEPtr);	
 }
 
 /* shallow copy/conversion */
@@ -454,7 +471,18 @@ inline int ArrayT<TYPE>::Length(void) const { return fLength; }
 /* returns a pointer specified element in the array - offset
 * must be 0 <= offset <= Length() <--- one passed the end! */
 template <class TYPE>
-inline TYPE* ArrayT<TYPE>::Pointer(int offset) const
+inline TYPE* ArrayT<TYPE>::Pointer(int offset)
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (offset < 0 || offset > fLength) 
+		ExceptionT::OutOfRange("ArrayT<TYPE>::Pointer", "offset: !(0 <= %d <= %d)", offset, fLength);
+#endif
+	return fArray + offset;
+}
+
+template <class TYPE>
+inline const TYPE* ArrayT<TYPE>::Pointer(int offset) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
@@ -466,7 +494,7 @@ inline TYPE* ArrayT<TYPE>::Pointer(int offset) const
 
 /* element accessor */
 template <class TYPE>
-inline TYPE& ArrayT<TYPE>::operator[](int index) const
+inline TYPE& ArrayT<TYPE>::operator[](int index)
 {
 /* range checking */
 #if __option (extended_errorcheck)
@@ -477,7 +505,18 @@ inline TYPE& ArrayT<TYPE>::operator[](int index) const
 }
 
 template <class TYPE>
-TYPE& ArrayT<TYPE>::First(void) const
+inline const TYPE& ArrayT<TYPE>::operator[](int index) const
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (index < 0 || index >= fLength) 
+		ExceptionT::OutOfRange("ArrayT<TYPE>::operator[]", "index !(0 <= %d < %d)", index, fLength);
+#endif
+	return fArray[index];
+}
+
+template <class TYPE>
+inline TYPE& ArrayT<TYPE>::First(void)
 {
 #if __option(extended_errorcheck)
 	if (fArray == NULL) ExceptionT::GeneralFail("ArrayT<TYPE>::First", "array is NULL");
@@ -486,7 +525,25 @@ TYPE& ArrayT<TYPE>::First(void) const
 }
 
 template <class TYPE>
-inline TYPE& ArrayT<TYPE>::Last(void) const
+inline const TYPE& ArrayT<TYPE>::First(void) const
+{
+#if __option(extended_errorcheck)
+	if (fArray == NULL) ExceptionT::GeneralFail("ArrayT<TYPE>::First", "array is NULL");
+#endif	
+	return *fArray;
+}
+
+template <class TYPE>
+inline TYPE& ArrayT<TYPE>::Last(void)
+{
+#if __option(extended_errorcheck)
+	if (fArray == NULL) ExceptionT::GeneralFail("ArrayT<TYPE>::Last", "array is NULL");
+#endif	
+	return *(fArray + fLength - 1);
+}
+
+template <class TYPE>
+inline const TYPE& ArrayT<TYPE>::Last(void) const
 {
 #if __option(extended_errorcheck)
 	if (fArray == NULL) ExceptionT::GeneralFail("ArrayT<TYPE>::Last", "array is NULL");
@@ -625,7 +682,7 @@ inline void ArrayT<TYPE>::Collect(const ArrayT<int>& keys, const ArrayT<TYPE>& s
 template <class TYPE>
 inline void ArrayT<TYPE>::Collect(const ArrayT<int>& keys, const TYPE* source)
 {
-	int*  pkeys = keys.Pointer();
+	const int*  pkeys = keys.Pointer();
 	TYPE* pthis = Pointer();
 	for (int i = 0; i < Length(); i++)
 		*pthis++ = source[*pkeys++];

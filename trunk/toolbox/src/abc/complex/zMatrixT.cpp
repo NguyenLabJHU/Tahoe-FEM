@@ -1,22 +1,16 @@
-/* $Id: zMatrixT.cpp,v 1.8 2002-10-20 22:38:52 paklein Exp $ */
-/* created: paklein (05/19/1997)                                          */
-/* 2 dimensional matrix mathematics object.                               */
-
+/* $Id: zMatrixT.cpp,v 1.9 2003-11-21 22:41:33 paklein Exp $ */
+/* created: paklein (05/19/1997) */
 #include "zMatrixT.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include "dMatrixT.h"
-
-/*
-* constructor
-*/
 
 using namespace Tahoe;
 
 zMatrixT::zMatrixT(void) { }
 zMatrixT::zMatrixT(int numrows, int numcols): nMatrixT<ComplexT>(numrows,numcols) { }
 zMatrixT::zMatrixT(int squaredim): nMatrixT<ComplexT>(squaredim) { }
-zMatrixT::zMatrixT(int numrows, int numcols, ComplexT* p):
+zMatrixT::zMatrixT(int numrows, int numcols, const ComplexT* p):
 	nMatrixT<ComplexT>(numrows, numcols, p) { }
 zMatrixT::zMatrixT(const dMatrixT& re, const dMatrixT& im)
 {
@@ -200,7 +194,7 @@ zMatrixT& zMatrixT::Conjugate(const zMatrixT& matrix)
   if (matrix.Length() != Length()) throw ExceptionT::kSizeMismatch;
 
   ComplexT* pLHS = Pointer();
-  ComplexT* pRHS = matrix.Pointer();
+  const ComplexT* pRHS = matrix.Pointer();
   int length = Length();
   for(int i = 0; i < length; i++)
 	(*pLHS++).Conjugate(*pRHS++);

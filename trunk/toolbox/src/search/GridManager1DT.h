@@ -1,4 +1,4 @@
-/* $Id: GridManager1DT.h,v 1.9 2003-05-04 22:59:55 paklein Exp $ */
+/* $Id: GridManager1DT.h,v 1.10 2003-11-21 22:42:07 paklein Exp $ */
 #ifndef _GRIDMANAGER1D_T_H_
 #define _GRIDMANAGER1D_T_H_
 
@@ -55,7 +55,7 @@ public:
 protected:
 
 	/* return pointer to the content list for the given coords */
-	AutoArrayT<sTYPE>** FetchGrid(double* coords);
+	AutoArrayT<sTYPE>** FetchGrid(const double* coords);
 
 protected:
 
@@ -139,7 +139,7 @@ void GridManager1DT<sTYPE>::Reset(const dArray2DT& coords,
 			
 			for (int i = 0; i < coords.MajorDim(); i++)
 			{
-				double* p = coords(i);
+				const double* p = coords(i);
 			
 				if (p[0] < fxmin) fxmin = p[0];
 				else if (p[0] > fxmax) fxmax = p[0];
@@ -155,14 +155,14 @@ void GridManager1DT<sTYPE>::Reset(const dArray2DT& coords,
 		n_max = nodes_used->Length();
 		if (nodes_used->Length() > 0)
 		{
-			int* dex = nodes_used->Pointer();
+			const int* dex = nodes_used->Pointer();
 
 			/* initialize limits */
 			fxmin = fxmax = coords(*dex, 0);
 		
 			for (int i = 0; i < nodes_used->Length(); i++)
 			{
-				double* p = coords(*dex++);
+				const double* p = coords(*dex++);
 		
 				if (p[0] < fxmin) fxmin = p[0];
 				else if (p[0] > fxmax) fxmax = p[0];
@@ -347,7 +347,7 @@ void GridManager1DT<sTYPE>::WriteStatistics(ostream& out) const
 	int max_count = 0;
 	int null_count = 0;
 	int tot_count  = 0;
-	AutoArrayT<sTYPE>** ppgrid = fGrid.Pointer();
+	AutoArrayT<sTYPE>** ppgrid = (AutoArrayT<sTYPE>**) fGrid.Pointer();
 	for (int i = 0; i < fGrid.Length(); i++)
 	{
 		AutoArrayT<sTYPE>* pgrid = *ppgrid++;
@@ -387,7 +387,7 @@ void GridManager1DT<sTYPE>::WriteStatistics(ostream& out) const
 
 /* return pointer to the content list for the given coords */
 template <class sTYPE>
-AutoArrayT<sTYPE>** GridManager1DT<sTYPE>::FetchGrid(double* coords)
+AutoArrayT<sTYPE>** GridManager1DT<sTYPE>::FetchGrid(const double* coords)
 {
 	/* grid indices */
 	int ix = int((coords[0] - fxmin)/fdx);

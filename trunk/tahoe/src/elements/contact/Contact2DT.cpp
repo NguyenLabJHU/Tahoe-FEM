@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.cpp,v 1.7 2003-11-04 17:37:50 paklein Exp $ */
+/* $Id: Contact2DT.cpp,v 1.8 2003-11-21 22:45:57 paklein Exp $ */
 /* created: paklein (05/26/1999) */
 #include "Contact2DT.h"
 
@@ -127,7 +127,7 @@ void Contact2DT::SetActiveStrikers(void)
 		for (int j = 0; j < numfacets; j++)
 		{
 			/* facet node positions */
-			int* pfacet = surface(j);
+			const int* pfacet = surface(j);
 			allcoords.RowAlias(pfacet[0], fx1);	
 			allcoords.RowAlias(pfacet[1], fx2);	
 		
@@ -154,7 +154,7 @@ void Contact2DT::SetActiveStrikers(void)
 				if (!surface.HasValue(strikertag))
 				{
 					/* possible striker */
-					fStriker.Set(NumSD(), hits[k].Coords());
+					fStriker.Alias(NumSD(), hits[k].Coords());
 			
 					/* penetration vectors */
 					fv1.DiffOf(fStriker, fx1);
@@ -212,7 +212,7 @@ void Contact2DT::SetConnectivities(void)
 			fConnectivities[0]->MajorDim(), fActiveStrikers.Length());
 
 	/* set interacting nodes */
-	int* pelem = fConnectivities[0]->Pointer();
+	int* pelem = (int*) fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
 	if (fConnectivities[0]->MajorDim() > 0 && rowlength != 3)
 		ExceptionT::SizeMismatch(caller, "expecting connectivites length 3 not %d", rowlength);
@@ -221,8 +221,8 @@ void Contact2DT::SetConnectivities(void)
 	{
 		const iArray2DT& surface = fSurfaces[fHitSurface[i]];
 		
-		int   facet = fHitFacets[i];
-		int* pfacet = surface(facet);
+		int facet = fHitFacets[i];
+		const int* pfacet = surface(facet);
 
 		/* all element tags */
 		pelem[0] = pfacet[0]; // 1st facet node
@@ -303,7 +303,7 @@ void Contact2DT::SetSurfacesData(void)
 		for (int j = 0; j < numfacets; j++)
 		{
 			/* facet node positions */
-			int* pfacet = surface(j);
+			const int* pfacet = surface(j);
 			allcoords.RowAlias(pfacet[0], fx1);	
 			allcoords.RowAlias(pfacet[1], fx2);	
 				

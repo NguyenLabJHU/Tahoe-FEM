@@ -1,4 +1,4 @@
-/* $Id: VIB3D.cpp,v 1.7 2003-01-29 07:34:54 paklein Exp $ */
+/* $Id: VIB3D.cpp,v 1.8 2003-11-21 22:46:38 paklein Exp $ */
 /* created: paklein (04/20/1997) */
 #include "VIB3D.h"
 
@@ -99,7 +99,7 @@ void VIB3D::SetAngles(double phi, double theta)
 	for (int i = 0; i < numpoints; i++)
 	{
 		/* direction cosines */
-		double* xsi = points(i);
+		const double* xsi = points(i);
 		double xsi1 = xsi[0];
 		double xsi2 = xsi[1];
 		double xsi3 = xsi[2];

@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.14 2003-10-31 20:53:14 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.15 2003-11-21 22:48:06 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "DiagonalMatrixT.h"
 #include <iostream.h>
@@ -85,7 +85,7 @@ void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& e
 	if (elMat.Format() == ElementMatrixT::kDiagonal)
 	{
 		/* from diagonal only */
-		double* pelMat = elMat.Pointer();
+		const double* pelMat = elMat.Pointer();
 		int inc = elMat.Rows() + 1;
 
 		int numvals = eqnos.Length();
@@ -123,7 +123,7 @@ void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& e
 				for (int i = 0; i < numrows; i++)
 					if (eqnos[i] > 0)
 					{
-						double* prow = elMat.Pointer(i);
+						const double* prow = elMat.Pointer(i);
 						double sum = 0.0;					
 						for (int j = 0; j < numrows; j++)
 						{				

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.11 2003-01-30 00:43:41 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.12 2003-11-21 22:47:04 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeFSSolidT.h"
 #include "SolidMaterialsConfig.h"
@@ -255,18 +255,18 @@ void D2MeshFreeFSSolidT::A_ijk_B_jkl(const dMatrixT& A, const dMatrixT& B,
 	int        cols = C.Cols();
 	int    dotcount = A.Cols();
 	double*	c       = C.Pointer();
-	double*	BCol    = B.Pointer();
+	const double* BCol = B.Pointer();
 
 	register double sum;
 	for (int Bcol = 0; Bcol < cols; Bcol++)
 	{
-		double* ARow = A.Pointer();
+		const double* ARow = A.Pointer();
 		 		 	
 		for (int Arow = 0; Arow < rows; Arow++)
 		{
 			sum = 0.0;
-			double* AR = ARow;
-			double* BC = BCol;
+			const double* AR = ARow;
+			const double* BC = BCol;
 			double* pscale = scale;
 			for (int i = 0; i < dotcount; i++)
 			{

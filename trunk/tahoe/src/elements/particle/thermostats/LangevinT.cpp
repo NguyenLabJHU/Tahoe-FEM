@@ -1,4 +1,4 @@
-/* $Id: LangevinT.cpp,v 1.5 2003-10-30 17:15:21 paklein Exp $ */
+/* $Id: LangevinT.cpp,v 1.6 2003-11-21 22:47:11 paklein Exp $ */
 #include "LangevinT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -71,7 +71,7 @@ void LangevinT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2
 		{
 			int tag_j = *neighbors(j);
 			double* f_j = forces(tag_j);
-	    	double* v_j = (*velocities)(tag_j);
+	    	const double* v_j = (*velocities)(tag_j);
 			if (types[tag_j] != currType)
 			{
 				currType = types[tag_j];
@@ -98,7 +98,7 @@ void LangevinT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2
 		{ 
 			int tag_j = fNodes[j];
 			double* f_j = forces(tag_j);
-			double* v_j = (*velocities)(tag_j);
+			const double* v_j = (*velocities)(tag_j);
 			if (types[tag_j] != currType)
 			{
 				currType = types[tag_j];

@@ -207,7 +207,7 @@ void AVST::WriteArray2DT (ostream &out, const dArray2DT& data, int firstID) cons
   int prec = fOut.precision();
   out.precision(dprecision);
   out.setf (ios::scientific);
-  double *pc = data.Pointer();
+  const double *pc = data.Pointer();
   for (int i=0, id=firstID; i < data.MajorDim(); i++, id++)
     {
       out << setw (iwidth) << id;

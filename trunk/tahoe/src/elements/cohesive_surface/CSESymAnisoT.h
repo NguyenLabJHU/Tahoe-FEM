@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.h,v 1.1 2003-10-20 23:31:07 cjkimme Exp $ */
+/* $Id: CSESymAnisoT.h,v 1.2 2003-11-21 22:45:50 paklein Exp $ */
 #ifndef _CSE_SYM_ANISO_T_H_
 #define _CSE_SYM_ANISO_T_H_
 
@@ -73,7 +73,12 @@ private:
 
 	void Q_ijk__u_j(const ArrayT<dMatrixT>& Q, const dArrayT& u,
 		dMatrixT& Qu);
-	
+
+private:
+
+	/** stiffness matrix */
+	dMatrixT fK;
+
 };
 
 } // namespace Tahoe 

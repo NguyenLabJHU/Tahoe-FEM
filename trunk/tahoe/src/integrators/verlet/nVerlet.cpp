@@ -96,7 +96,7 @@ void nVerlet::Corrector(BasicFieldT& field, const dArrayT& update,
 	const iArray2DT& eqnos = field.Equations();
 
 	/* add update - assumes that fEqnos maps directly into dva */
-	int    *peq = eqnos.Pointer();
+	const int* peq = eqnos.Pointer();	
 	double *pv  = field[1].Pointer();
 	double *pa  = field[2].Pointer();
 	for (int i = 0; i < eqnos.Length(); i++)
@@ -125,7 +125,7 @@ void nVerlet::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 	for (int i = 0; i < map.Length(); i++)
 	{
 		int row = map[i];
-		int* pflags = flags(i);
+		const int* pflags = flags(i);
 
 		double* pv = (field[1])(row);
 		double* pa = (field[2])(row);

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.19 2003-01-27 07:00:30 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.20 2003-11-21 22:47:14 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -380,7 +380,7 @@ void MeshFreeSupportT::ResetFacets(const ArrayT<int>& facets)
 	for (int ii = 0; ii < facets.Length(); ii++)
 	{
 		/* alias to facet data */
-		facet_coords.Set(fNumFacetNodes, nsd, (*fCutCoords)(facets[ii]));
+		facet_coords.Alias(fNumFacetNodes, nsd, (*fCutCoords)(facets[ii]));
 
 		/* compute characteristic facet size */
 		double sqr_max = 0.0;
@@ -866,7 +866,7 @@ void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 	for (int ndex = 0; ndex < fNodesUsed.Length(); ndex++)
 	{
 		int i = fNodesUsed[ndex];
-		double* target = coords(i);
+		const double* target = coords(i);
 		
 		/* find nodes in neighborhood */
 		if (search_type == WindowT::kSpherical)
@@ -946,7 +946,7 @@ void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 	for (int ndex = 0; ndex < fNodesUsed.Length(); ndex++)
 	{
 		int i = fNodesUsed[ndex];
-		double* target = coords(i);
+		const double* target = coords(i);
 		
 		/* find nodes in neighborhood */
 		if (search_type == WindowT::kSpherical)
@@ -1085,7 +1085,7 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 		}
 
 		/* connectivity */
-		int* pelem = connects(i);
+		const int* pelem = connects(i);
 		
 		/* integration point coordinates */
 		fConnects.RowAlias(i, elementnodes);
@@ -1222,7 +1222,7 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 		}
 
 		/* connectivity */
-		int* pelem = connects(i);
+		const int* pelem = connects(i);
 		
 		/* integration point coordinates */
 		fConnects.RowAlias(i, elementnodes);
@@ -1710,7 +1710,7 @@ void MeshFreeSupportT::SetSupport_Spherical_Search(void)
 
 		/* resolve tag */
 		int i = fNodesUsed[ndex];
-		double* target = fCoords(i);
+		const double* target = fCoords(i);
 
 		/* search parameters */
 		bool cell_search = true;
@@ -1839,7 +1839,7 @@ void MeshFreeSupportT::SetSupport_Spherical_Connectivities(void)
 	dArrayT x_0, x_i;
 	for (int i = 0; i < nel; i++)
 	{
-		int* pelem = fConnects(i);
+		const int* pelem = fConnects(i);
 		for (int j = 0; j < nen; j++)
 		{
 			/* current node */
@@ -1879,7 +1879,7 @@ void MeshFreeSupportT::SetSupport_Cartesian_Connectivities(void)
 	dArrayT x_0, x_i, r(nsd), support;
 	for (int i = 0; i < nel; i++)
 	{
-		int* pelem = fConnects(i);
+		const int* pelem = fConnects(i);
 		for (int j = 0; j < nen; j++)
 		{
 			/* current node */
@@ -1927,7 +1927,7 @@ void MeshFreeSupportT::SetNodesUsed(void)
 
 	/* mark nodes used on the integration grid */
 	int  tot = fConnects.Length();
-	int* pnd = fConnects.Pointer();
+	const int* pnd = fConnects.Pointer();
 	for (int i = 0; i < tot; i++)
 		used[*pnd++] = 1;
 	
@@ -1956,7 +1956,7 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 
 	/* collect nodes in neighborhood of point x */
 	int cell_span = 0;
-	double* target = x.Pointer();
+	const double* target = x.Pointer();
 	const AutoArrayT<iNodeT>* inodes = &fGrid->HitsInRegion(target, ++cell_span);
 	while (inodes->Length() < 1 && cell_span <= 3)
 		inodes = &fGrid->HitsInRegion(target, ++cell_span);

@@ -1,4 +1,4 @@
-/* $Id: EdgeFinderT.h,v 1.5 2003-03-19 19:13:40 thao Exp $ */
+/* $Id: EdgeFinderT.h,v 1.6 2003-11-21 22:41:59 paklein Exp $ */
 /* created: paklein (02/14/1998) */
 #ifndef _EDGE_FINDER_T_H_
 #define _EDGE_FINDER_T_H_
@@ -64,7 +64,7 @@ public:
 	
 	/** map element index to pointer to element nodes across all connectivities
 	 * being operated on */
-	int* ElementNodes (int index) const;
+	const int* ElementNodes (int index) const;
 	
 	// Other additions?
 	// (1) return list border nodes

@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.h,v 1.14 2003-01-29 07:35:08 paklein Exp $ */
+/* $Id: DetCheckT.h,v 1.15 2003-11-21 22:46:55 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
@@ -59,7 +59,7 @@ private:
 	 * 2 is 22
 	 * 3 is 12
 	 * angle theta subtends from the x1 axis to the band normal */
-	int SPINLOC_localize(double *c__, double *thetan, int *loccheck);
+	int SPINLOC_localize(const double *c__, double *thetan, int *loccheck);
 
 	/*3D Small Strain check for localization */
 	int DetCheck3D_SS(dArrayT& normal);

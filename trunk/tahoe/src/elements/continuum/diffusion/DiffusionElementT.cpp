@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.15 2003-11-01 21:12:56 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.16 2003-11-21 22:46:03 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -389,8 +389,8 @@ void DiffusionElementT::B(int ip, dMatrixT& B_matrix) const
 	/* 2D */
 	if (DNa.MajorDim() == 2)
 	{
-		double* pNax = DNa(0);
-		double* pNay = DNa(1);
+		const double* pNax = DNa(0);
+		const double* pNay = DNa(1);
 
 		for (int i = 0; i < nnd; i++)
 		{
@@ -401,9 +401,9 @@ void DiffusionElementT::B(int ip, dMatrixT& B_matrix) const
 	/* 3D */
 	else		
 	{
-		double* pNax = DNa(0);
-		double* pNay = DNa(1);
-		double* pNaz = DNa(2);
+		const double* pNax = DNa(0);
+		const double* pNay = DNa(1);
+		const double* pNaz = DNa(2);
 		
 		for (int i = 0; i < nnd; i++)
 		{

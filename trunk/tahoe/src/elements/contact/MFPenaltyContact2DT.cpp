@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.4 2003-11-05 21:25:23 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.5 2003-11-21 22:45:57 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -108,7 +108,7 @@ void MFPenaltyContact2DT::RHSDriver(void)
 	dArrayT Na;
 	dArrayT rhs_tmp;
 	dArray2DT DNa;
-	int* pelem = fConnectivities[0]->Pointer();
+	const int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{

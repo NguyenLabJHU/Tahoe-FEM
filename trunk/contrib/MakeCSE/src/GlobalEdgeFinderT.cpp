@@ -1,4 +1,4 @@
-/* $Id: GlobalEdgeFinderT.cpp,v 1.8 2002-11-05 13:26:26 sawimme Exp $ */
+/* $Id: GlobalEdgeFinderT.cpp,v 1.9 2003-11-21 22:47:39 paklein Exp $ */
 #include "GlobalEdgeFinderT.h"
 #include "ExceptionT.h"
 #include "MakeCSE_FEManager.h"
@@ -340,8 +340,8 @@ bool GlobalEdgeFinderT::HasNode (int node, const ArrayT<int>& facets)
   int *hit = hit_elems.Pointer();
   for (int i=0; i < hit_elems.Length(); i++, hit++)
     {
-      int *pelem = facets.Pointer();
-      int *pface = facets.Pointer(1);
+      const int *pelem = facets.Pointer();
+      const int *pface = facets.Pointer(1);
       for (int j=0; j < facets.Length()/2; j++, pelem += 2, pface += 2)
 	if (*pelem == *hit)
 	  return true;

@@ -1,4 +1,4 @@
-/* $Id: ExtractIOManager.cpp,v 1.15 2003-02-25 15:05:37 sawimme Exp $ */
+/* $Id: ExtractIOManager.cpp,v 1.16 2003-11-21 22:45:27 paklein Exp $ */
 #include "ExtractIOManager.h"
 
 #include "ExceptionT.h"
@@ -158,7 +158,7 @@ void ExtractIOManager::WriteVarData (iArrayT& varsused, int ts) const
 
 /**************** PRIVATE **********************/
 
-void ExtractIOManager::OpenFile (ofstreamT& o, StringT& name, bool append) const
+void ExtractIOManager::OpenFile (ofstreamT& o, const StringT& name, bool append) const
 {
   StringT filename (fOutputName);
   filename.Append ("_");

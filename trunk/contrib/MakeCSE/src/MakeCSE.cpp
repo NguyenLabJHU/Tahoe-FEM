@@ -567,7 +567,7 @@ void MakeCSE::InitializeFacet (int elem, int face, int group, int cs, int cselem
 
 void MakeCSE::RemoveSingleNodes (const ArrayT<int>& nodes)
 {
-  int *ps = nodes.Pointer();
+  const int *ps = nodes.Pointer();
   for (int i=0; i < nodes.Length(); i++, ps++)
     {
       int dex = fPotentialSplitNodes.PositionOf (*ps);
@@ -710,7 +710,7 @@ void MakeCSE::CheckNeighbor (int eglobal, int face, int node, iAutoArrayT& nelem
     }
 }
 
-void MakeCSE::ReduceList (iAutoArrayT& hit_elems, const iAutoArrayT& elems, const iArrayT& checkelems) const
+void MakeCSE::ReduceList (iAutoArrayT& hit_elems, const iAutoArrayT& elems, iArrayT& checkelems) const
 {
   for (int u=0; u < elems.Length(); u++)
     {

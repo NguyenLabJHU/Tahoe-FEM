@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.cpp,v 1.10 2002-10-20 22:39:04 paklein Exp $ */
+/* $Id: SpectralDecompT.cpp,v 1.11 2003-11-21 22:41:57 paklein Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -88,7 +88,7 @@ void SpectralDecompT::SpectralDecomp(const dSymMatrixT& rank2, const dArrayT& ei
 	{
 		/* shift */
 		double shift = (fEigs[0] + fEigs[1] + fEigs[2])/3.0;
-		double* tmp = rank2.Pointer();
+		double* tmp = (double*) rank2.Pointer();
 		tmp[0] -= shift;
 		tmp[1] -= shift;
 		tmp[2] -= shift;

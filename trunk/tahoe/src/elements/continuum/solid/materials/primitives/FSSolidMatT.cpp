@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.9 2003-01-29 07:35:08 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.10 2003-11-21 22:46:55 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include <iostream.h>
@@ -269,7 +269,7 @@ void FSSolidMatT::Compute_b(const dMatrixT& F, dSymMatrixT& b) const
 	int nsd = NumSD();
 	if (nsd == 2)
 	{
-		double* f = F.Pointer();
+		const double* f = F.Pointer();
 		double* a = b.Pointer();
 		
 		/* unrolled */
@@ -279,7 +279,7 @@ void FSSolidMatT::Compute_b(const dMatrixT& F, dSymMatrixT& b) const
 	}
 	else if (nsd == 3)
 	{
-		double* f = F.Pointer();
+		const double* f = F.Pointer();
 		double* a = b.Pointer();
 	
 		/* unrolled */
@@ -303,7 +303,7 @@ void FSSolidMatT::Compute_C(const dMatrixT& F, dSymMatrixT& C) const
 	int nsd = NumSD();
 	if (nsd == 2)
 	{
-		double* f = F.Pointer();
+		const double* f = F.Pointer();
 		double* c = C.Pointer();
 		
 		/* unrolled */
@@ -313,7 +313,7 @@ void FSSolidMatT::Compute_C(const dMatrixT& F, dSymMatrixT& C) const
 	}
 	else if (nsd == 3)
 	{
-		double* f = F.Pointer();
+		const double* f = F.Pointer();
 		double* c = C.Pointer();
 	
 		/* unrolled */
@@ -337,7 +337,7 @@ void FSSolidMatT::Compute_E(const dMatrixT& F, dSymMatrixT& E) const
 	int nsd = NumSD();
 	if (nsd == 2)
 	{
-		double* f = F.Pointer();
+		const double* f = F.Pointer();
 		double* e = E.Pointer();
 		
 		/* unrolled */
@@ -347,7 +347,7 @@ void FSSolidMatT::Compute_E(const dMatrixT& F, dSymMatrixT& E) const
 	}
 	else if (nsd == 3)
 	{
-		double* f = F.Pointer();
+		const double* f = F.Pointer();
 		double* e = E.Pointer();
 	
 		/* unrolled */

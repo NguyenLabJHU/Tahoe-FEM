@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.cpp,v 1.14 2003-11-10 22:14:05 cjkimme Exp $ */
+/* $Id: dMatrixEXT.cpp,v 1.15 2003-11-21 22:41:36 paklein Exp $ */
 /* created: paklein (03/06/1998)                                          */
 
 #include "dMatrixEXT.h"
@@ -33,7 +33,7 @@ dMatrixEXT::dMatrixEXT(int squaredim):
 	v2 = v1 + squaredim;
 }
 
-dMatrixEXT::dMatrixEXT(int squaredim, double* p):
+dMatrixEXT::dMatrixEXT(int squaredim, const double* p):
 	dMatrixT(squaredim,squaredim,p)
 {
 	fworkspace.Dimension(2*squaredim);
@@ -793,7 +793,8 @@ int dMatrixEXT::svdcmp(double* a, int m, int n, double* w, double* v, double* rv
 }
 
 /* void svbksb(double **u, double w[], double **v, int m, int n, double b[], double x[]) */
-void dMatrixEXT::svbksb(double* u, double* w, double* v, int m, int n, double* b, double* x, double* tmp) const
+void dMatrixEXT::svbksb(const double* u, const double* w, const double* v, int m, int n, 
+	const double* b, double* x, double* tmp) const
 {
 	int jj,j,i;
 	double s;

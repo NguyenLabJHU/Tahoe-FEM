@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.40 2003-11-04 17:53:49 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.41 2003-11-21 22:45:44 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -331,7 +331,7 @@ void ElementBaseT::WeightNodalCost(iArrayT& weight) const
 	for (int i=0; i < nel; i++)
 	{
 		const iArrayT& elemnodes = fElementCards[i].NodesX();
-		int* p = elemnodes.Pointer();
+		const int* p = elemnodes.Pointer();
 		for (int n=0; n < elemnodes.Length(); n++)
 			if (weight[*p] < base_weight) 
 				weight[*p] = base_weight;
@@ -365,7 +365,7 @@ void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
 	for (int b=0; b < num_blocks; b++)
 	  {
 	    const iArray2DT* conn = fConnectivities[b];
-	    int *pc = conn->Pointer();
+		const int *pc = conn->Pointer();
 	    for (int i = 0; i < conn->Length(); i++)
 	      node_map[*pc++ - min] = 1;
 	  }

@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.2 2003-10-28 07:24:05 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.3 2003-11-21 22:46:06 paklein Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */
@@ -301,9 +301,9 @@ void UpLagAdaptiveT::FindLeaders(const iArray2DT& connects, const ArrayT<StatusT
 			int n1 = pelem[j];
 			int n2 = pelem[pair_node[j]];
 			if (n1 > n2)
-				fSameAs[n1] = n2;
+				same_as[n1] = n2;
 			else
-				fSameAs[n2] = n1;
+				same_as[n2] = n1;
 		}
 	}
 
@@ -316,7 +316,7 @@ void UpLagAdaptiveT::FindLeaders(const iArray2DT& connects, const ArrayT<StatusT
 		changed_count++;
 		for (int i = 0; i < fSameAs.Length(); i++)
 		{
-			int& leader = fSameAs[i];
+			int& leader = same_as[i];
 			if (leader > -1) {
 				int leader_leader = fSameAs[leader];
 				if (leader_leader > -1 && leader_leader < leader)

@@ -1,4 +1,4 @@
-/* $Id: iPeriodicGrid3DT.cpp,v 1.5 2003-01-27 06:42:48 paklein Exp $ */
+/* $Id: iPeriodicGrid3DT.cpp,v 1.6 2003-11-21 22:42:07 paklein Exp $ */
 /* created: paklein (12/18/1997)                                          */
 
 #include "iPeriodicGrid3DT.h"
@@ -30,7 +30,10 @@ int iPeriodicGrid3DT::PeriodicNeighbors(int n, double tol, iArrayT& neighbors)
 	double h_z = fPeriodicity[2];
 	
 	/* fetch prospective neighbors */
-	double* target = fCoords(n);
+	double target[3];
+	target[0] = fCoords(n,0);
+	target[1] = fCoords(n,1);
+	target[2] = fCoords(n,2);
 
 	/* main cell hits */
 	ProcessHitsSorted(target, tol, skiptag, fSortedHits);

@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.13 2003-10-09 18:12:16 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.14 2003-11-21 22:47:24 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #include "ShapeFunctionT.h"
@@ -103,8 +103,8 @@ void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 
 	if (numsd == 2)
 	{
-		double* pNax = DNa(0);
-		double* pNay = DNa(1);
+		const double* pNax = DNa(0);
+		const double* pNay = DNa(1);
 		
 		for (int i = 0; i < numnodes; i++)
 		{
@@ -114,9 +114,9 @@ void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 	}
 	else if (numsd == 3)
 	{
-		double* pNax = DNa(0);
-		double* pNay = DNa(1);
-		double* pNaz = DNa(2);
+		const double* pNax = DNa(0);
+		const double* pNay = DNa(1);
+		const double* pNaz = DNa(2);
 		
 		for (int i = 0; i < numnodes; i++)
 		{

@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.cpp,v 1.8 2003-01-29 07:34:52 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.9 2003-11-21 22:46:35 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVIB2D.h"
 
@@ -362,7 +362,7 @@ void IsoVIB2D::Construct(void)
 	for (int i = 0; i < numpoints; i++)
 	{
 		/* direction cosines */
-		double *xsi = points(i);
+		const double *xsi = points(i);
 		double cosi = xsi[0];
 		double sini = xsi[1];
 		

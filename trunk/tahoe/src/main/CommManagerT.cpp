@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.7 2003-10-28 07:18:05 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.8 2003-11-21 22:47:52 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -166,7 +166,7 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 			{
 				/* current coordinates */
 				int nd = (partition_nodes) ? (*partition_nodes)[j] : j;
-				double& X = reference_coords(nd,i);
+				const double& X = reference_coords(nd,i);
 				double& d = displacement(nd,i);
 				double  x = X + d;
 
@@ -199,7 +199,7 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 			{
 				/* current coordinates */
 				int nd = fPBCNodes[j];
-				double& X = reference_coords(nd,i);
+				const double& X = reference_coords(nd,i);
 				double& d = displacement(nd,i);
 				double  x = X + d;
 			
@@ -247,7 +247,7 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 		const dArray2DT& coords = fModelManager.Coordinates();
 		dArray2DT ghost_coords;
 		if (fPBCNodes_ghost.Length() > 0) {
-			ghost_coords.Set(fPBCNodes_ghost.Length(), coords.MinorDim(), coords(ghost_num_start));
+			ghost_coords.Alias(fPBCNodes_ghost.Length(), coords.MinorDim(), coords(ghost_num_start));
 
 			/* copy coordinates */
 			for (int i = 0; i < fPBCNodes_ghost.Length(); i++)
@@ -568,7 +568,7 @@ void CommManagerT::CollectPartitionNodes(const ArrayT<int>& n2p_map, int part,
 	AutoArrayT<int>& part_nodes) const
 {
 	int count = 0;
-	int* p = n2p_map.Pointer();
+	const int* p = n2p_map.Pointer();
 	int len = n2p_map.Length();
 	for (int i = 0; i < len; i++)
 		if (*p++ == part)
@@ -727,26 +727,26 @@ void CommManagerT::GetBounds(const dArray2DT& coords_all, const iArrayT& local,
 	/* resolve by spatial dimension */
 	if (nsd == 1)
 	{
-		int* p_i = local.Pointer();
+		const int* p_i = local.Pointer();
 		double& x_min = bounds(0,0);
 		double& x_max = bounds(0,1);
 		for (int i = 0; i < local.Length(); i++)
 		{
-			double* x = coords_all(*p_i++);
+			const double* x = coords_all(*p_i++);
 			x_min = (*x < x_min) ? *x : x_min;
 			x_max = (*x > x_max) ? *x : x_max;
 		}
 	}
 	else if (nsd == 2)
 	{
-		int* p_i = local.Pointer();
+		const int* p_i = local.Pointer();
 		double& x_min = bounds(0,0);
 		double& x_max = bounds(0,1);
 		double& y_min = bounds(1,0);
 		double& y_max = bounds(1,1);
 		for (int i = 0; i < local.Length(); i++)
 		{
-			double* x = coords_all(*p_i++);
+			const double* x = coords_all(*p_i++);
 			x_min = (*x < x_min) ? *x : x_min;
 			x_max = (*x > x_max) ? *x : x_max;
 			x++;
@@ -756,7 +756,7 @@ void CommManagerT::GetBounds(const dArray2DT& coords_all, const iArrayT& local,
 	}
 	else if (nsd == 3)
 	{
-		int* p_i = local.Pointer();
+		const int* p_i = local.Pointer();
 		double& x_min = bounds(0,0);
 		double& x_max = bounds(0,1);
 		double& y_min = bounds(1,0);
@@ -765,7 +765,7 @@ void CommManagerT::GetBounds(const dArray2DT& coords_all, const iArrayT& local,
 		double& z_max = bounds(2,1);
 		for (int i = 0; i < local.Length(); i++)
 		{
-			double* x = coords_all(*p_i++);
+			const double* x = coords_all(*p_i++);
 			x_min = (*x < x_min) ? *x : x_min;
 			x_max = (*x > x_max) ? *x : x_max;
 			x++;

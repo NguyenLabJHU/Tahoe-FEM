@@ -1,4 +1,4 @@
-/* $Id: dSPMatrixT.h,v 1.3 2003-03-04 00:40:36 cjkimme Exp $ */
+/* $Id: dSPMatrixT.h,v 1.4 2003-11-21 22:41:36 paklein Exp $ */
 /* created MLK 10/3/00 */
 #ifndef _DSPMATRIX_T_H_
 #define _DSPMATRIX_T_H_
@@ -118,9 +118,10 @@ class dSPMatrixT
   	int ColNum(int row, int j) const;
 	double Value(int row, int j) const;
 	
-	
-	int* ColPointer(int row) const;
-	double* ValPointer(int row) const;
+	int* ColPointer(int row);
+	const int* ColPointer(int row) const;
+	double* ValPointer(int row);
+	const double* ValPointer(int row) const;
 
 	//iAutoFill2DT& ColMatrix(void) const;
 	//dAutoFill2DT& ValMatrix(void) const;
@@ -151,6 +152,22 @@ inline int dSPMatrixT::Cols(void) const { return fCols; }
 inline int dSPMatrixT::Nnz(void) const { return fNnz; }
 inline int dSPMatrixT::RowNnz(int row) const { return fCol_Matrix.MinorDim(row); }
 
+/* returns pointer to first element of column numbers matrix */
+inline int* dSPMatrixT::ColPointer(int row) {
+	return fCol_Matrix(row);
+}
+inline const int* dSPMatrixT::ColPointer(int row) const {
+	return fCol_Matrix(row);
+}
+
+/* returns pointer to first element of values matrix */
+inline double* dSPMatrixT::ValPointer(int row) {
+	return fVal_Matrix(row);
+}
+inline const double* dSPMatrixT::ValPointer(int row) const {
+	return fVal_Matrix(row);
+}
+
 /* matrix element accessor */
 inline double dSPMatrixT::operator()(int row, int col) const
 {
@@ -163,7 +180,7 @@ inline double dSPMatrixT::operator()(int row, int col) const
 	int num_cols_in_row = fCol_Matrix.MinorDim(row);
 	
 	/* search through column numbers in row */
-	int* pC = fCol_Matrix(row);				
+	const int* pC = fCol_Matrix(row);				
 	for( int i = 0; i < num_cols_in_row; i++)
 	{
 		int colnum = *pC++;

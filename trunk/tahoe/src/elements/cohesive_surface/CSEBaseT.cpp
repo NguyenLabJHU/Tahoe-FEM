@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.28 2003-10-20 23:31:07 cjkimme Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.29 2003-11-21 22:45:50 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -580,7 +580,7 @@ void CSEBaseT::ReadConnectivity(void)
 				for (int i = 0; i < dest.MajorDim(); i++)
 				{
 					int* a = dest(i);
-					int* b = source(i);
+					const int* b = source(i);
 					for (int j = 0; j < map.Length(); j++)
 						*a++ = b[map[j]];	
 				}
@@ -731,16 +731,16 @@ void CSEBaseT::CloseSurfaces(void) const
 	int nel = NumElements();
 	for (int i = 0; i < nel; i++)
 	{			
-		int* pfacet1 = facetnodes(0);
-		int* pfacet2 = facetnodes(1);
-	        const iArrayT& elemnodes = fElementCards[i].NodesX();
-		int* nodes = elemnodes.Pointer();
+		const int* pfacet1 = facetnodes(0);
+		const int* pfacet2 = facetnodes(1);
+		const iArrayT& elemnodes = fElementCards[i].NodesX();
+		const int* nodes = elemnodes.Pointer();
 
 		for (int j = 0; j < facetnodes.MinorDim(); j++)
 		{
 			/* facet coordinates */		
-			double* px1 = init_coords(nodes[*pfacet1++]);
-			double* px2 = init_coords(nodes[*pfacet2++]);
+			double* px1 = const_cast<double*>(init_coords(nodes[*pfacet1++]));
+			double* px2 = const_cast<double*>(init_coords(nodes[*pfacet2++]));
 				
 			for (int k = 0; k < NumSD(); k++)
 			{

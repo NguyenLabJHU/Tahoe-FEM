@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.37 2003-10-31 20:49:23 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.38 2003-11-21 22:45:47 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -99,7 +99,7 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 			/* not mapped yet */
 			if (found_in_cell[local] == -1)
 			{
-				x_atom.Set(NumSD(), hits[j].Coords());
+				x_atom.Alias(NumSD(), hits[j].Coords());
 				if (parent.PointInDomain(loc_cell_coords, x_atom)) 
 				{
 					found_in_cell[local] = i;
@@ -218,10 +218,10 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used, const dArray2
 		int np = point_in_cell.MinorDim(i);
 		if (np > 0)
 		{
-			int* points = point_in_cell(i);
+			const int* points = point_in_cell(i);
 			
 			/* mapped coordinates of points in this cell */
-			mapped_coords.Set(np, nsd, point_in_cell_coords(i));
+			mapped_coords.Alias(np, nsd, point_in_cell_coords(i));
 			
 			/* run through points */
 			for (int j = 0; j < np; j++)
@@ -320,7 +320,7 @@ void BridgingScaleT::InitProjection(const iArrayT& points_used, const dArray2DT*
 		if (np > 0)
 		{
 			fElMatU = 0.0;
-			int* points = point_in_cell(i);
+			const int* points = point_in_cell(i);
 			for (int j = 0; j < np; j++)
 			{
 				/* fetch interpolation weights */
@@ -378,7 +378,7 @@ void BridgingScaleT::ProjectField(const PointInCellDataT& cell_data,
 		int np = point_in_cell.MinorDim(i);
 		if (np > 0)
 		{
-			int* points = point_in_cell(i);
+			const int* points = point_in_cell(i);
 			Nd = 0.0;
 			for (int j = 0; j < np; j++)
 			{
@@ -441,7 +441,7 @@ out << "\n residual =\n" << projection << endl;
 			cell_connects.RowAlias(cell_dex++, cell_connect);
 			cell_projection.RowCollect(cell_connect, projection);
 		
-			int* points = point_in_cell(i);
+			const int* points = point_in_cell(i);
 			for (int j = 0; j < np; j++)
 			{
 				int point = points[j];
@@ -504,7 +504,7 @@ void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT
 		int np = point_in_cell.MinorDim(i);
 		if (np > 0)
 		{
-			int* points = point_in_cell(i);
+			const int* points = point_in_cell(i);
 			Nd = 0.0;
 			for (int j = 0; j < np; j++)
 			{
@@ -591,7 +591,7 @@ out << "\n residual =\n" << projection << endl;
 			cell_connects.RowAlias(cell_dex++, cell_connect);
 			cell_projection.RowCollect(cell_connect, projection);
 		
-			int* points = point_in_cell(i);
+			const int* points = point_in_cell(i);
 			for (int j = 0; j < np; j++)
 			{
 				int point = points[j];
@@ -647,7 +647,7 @@ void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT
 		int np = point_in_cell.MinorDim(i);
 		if (np > 0)
 		{
-			int* points = point_in_cell(i);
+			const int* points = point_in_cell(i);
 			Nd = 0.0;
 			for (int j = 0; j < np; j++)
 			{
@@ -723,7 +723,7 @@ out << "\n residual =\n" << projection << endl;
 			cell_projection.RowCollect(cell_connect, projection);
 				
 			/* element info */
-			int* points = point_in_cell(i);
+			const int* points = point_in_cell(i);
 			int off = global_to_local.Map(points[0]);
 			const ElementCardT& element_card = continuum->ElementCard(cell[off]);
 			const iArrayT& fenodes = element_card.NodesU();

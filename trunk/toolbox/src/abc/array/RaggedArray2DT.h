@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.13 2003-08-08 00:24:14 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.14 2003-11-21 22:41:30 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
@@ -137,13 +137,22 @@ public:
 	void RowAlias(int row, ArrayT<TYPE>& rowdata) const;
 
 	/** return a pointer to first element in the specified row */
-	TYPE* operator()(int row) const;
+	TYPE* operator()(int row);
 
 	/** return a pointer to first element in the specified row */
-	TYPE& operator()(int row, int col) const;
+	const TYPE* operator()(int row) const;
+
+	/** return a pointer to first element in the specified row */
+	TYPE& operator()(int row, int col);
+
+	/** return a pointer to first element in the specified row */
+	const TYPE& operator()(int row, int col) const;
 	
-	/** return a pointer to the first element in the data array */
-	TYPE* Pointer(void) const;
+	/** \name return a pointer to the first element in the data array */
+	/*@{*/
+	TYPE* Pointer(void);
+	const TYPE* Pointer(void) const;
+	/*@}*/
 
 	/** free memory */
 	void Free(void);
@@ -273,7 +282,7 @@ inline int RaggedArray2DT<TYPE>::MinorDim(int row) const
 	if (row < 0 || row >= fMajorDim) ExceptionT::OutOfRange();
 #endif
 
-	TYPE** p = fPtrs.Pointer() + row;
+	TYPE** p = (TYPE**) fPtrs.Pointer() + row;
 	return *(p + 1) - *p;
 }
 
@@ -284,7 +293,7 @@ inline void RaggedArray2DT<TYPE>::MinorDim(ArrayT<int>& minordim) const
 	if (minordim.Length() != fMajorDim) ExceptionT::SizeMismatch();
 #endif
 
-	TYPE**  p = fPtrs.Pointer();
+	TYPE** p = (TYPE**) fPtrs.Pointer();
 	int* pdim = minordim.Pointer();
 	for (int i = 0; i < fMajorDim; i++)
 	{
@@ -341,8 +350,8 @@ void RaggedArray2DT<TYPE>::Configure(const ArrayT<int>& rowcounts, int blocksize
 	fMajorDim = rowcounts.Length();
 
 	/* count total entries */
-	int    size = 0;
-	int* pcount = rowcounts.Pointer();
+	int size = 0;
+	const int* pcount = rowcounts.Pointer();
 	for (int j = 0; j < fMajorDim; j++)
 		size += *pcount++;
 		
@@ -657,7 +666,7 @@ void RaggedArray2DT<TYPE>::WriteNumbered(ostream& out) const
 		out << setw(kIntWidth) << i+1;
 		
 		int minordim = MinorDim(i);
-		TYPE* p = (*this)(i);
+		const TYPE* p = (*this)(i);
 		for (int j = 0; j < minordim; j++)
 			out << setw(width) << *p++;
 		out << '\n';
@@ -674,21 +683,40 @@ inline void RaggedArray2DT<TYPE>::RowAlias(int row,
 
 /* data retrieval */
 template <class TYPE>
-inline TYPE* RaggedArray2DT<TYPE>::operator()(int row) const
+inline TYPE* RaggedArray2DT<TYPE>::operator()(int row)
+{
+	return fPtrs[row];
+}
+
+template <class TYPE>
+inline const TYPE* RaggedArray2DT<TYPE>::operator()(int row) const
 {
 	return fPtrs[row];
 }
 
 /* return a pointer to first element in the specified row */
 template <class TYPE>
-inline TYPE& RaggedArray2DT<TYPE>::operator()(int row, int col) const
+inline TYPE& RaggedArray2DT<TYPE>::operator()(int row, int col)
 {
 	TYPE* prow = fPtrs[row];
 	return prow[col];
 }
 
 template <class TYPE>
-inline TYPE* RaggedArray2DT<TYPE>::Pointer(void) const
+inline const TYPE& RaggedArray2DT<TYPE>::operator()(int row, int col) const
+{
+	TYPE* prow = fPtrs[row];
+	return prow[col];
+}
+
+template <class TYPE>
+inline TYPE* RaggedArray2DT<TYPE>::Pointer(void)
+{
+	return fData.Pointer();
+}
+
+template <class TYPE>
+const inline TYPE* RaggedArray2DT<TYPE>::Pointer(void) const
 {
 	return fData.Pointer();
 }

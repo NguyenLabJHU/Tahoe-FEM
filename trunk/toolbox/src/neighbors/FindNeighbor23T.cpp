@@ -1,4 +1,4 @@
-/* $Id: FindNeighbor23T.cpp,v 1.3 2002-10-20 22:39:06 paklein Exp $ */
+/* $Id: FindNeighbor23T.cpp,v 1.4 2003-11-21 22:41:59 paklein Exp $ */
 /* created: paklein (03/21/1997)                                          */
 /* FindNeighbor23T.cpp                                                    */
 
@@ -81,7 +81,7 @@ void FindNeighbor23T::Set3Body(iArray2DT& angles) const
 	int* p3Body = angles(0);
 	for (int node = 0; node < fNumPts; node++)
 	{
-		int* pneigh = fNeighbors(node);
+		const int* pneigh = fNeighbors(node);
 	
 		for (int i = 0; i < fCount[node]; i++)
 			for (int j = i + 1; j < fCount[node]; j++)
@@ -101,7 +101,7 @@ void FindNeighbor23T::Set3BodyMapped(iArray2DT& angles) const
 	int* p3Body = angles(0);
 	for (int node = 0; node < fNumPts; node++)
 	{
-		int* pneigh = fNeighbors(node);
+		const int* pneigh = fNeighbors(node);
 	
 		for (int i = 0; i < fCount[node]; i++)
 			for (int j = i + 1; j < fCount[node]; j++)

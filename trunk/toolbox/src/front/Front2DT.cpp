@@ -1,4 +1,4 @@
-/* $Id: Front2DT.cpp,v 1.3 2002-10-20 22:39:00 paklein Exp $ */
+/* $Id: Front2DT.cpp,v 1.4 2003-11-21 22:41:51 paklein Exp $ */
 /* created: paklein (03/18/1999)                                          */
 
 #include "Front2DT.h"
@@ -29,10 +29,10 @@ void Front2DT::Initialize(const dArray2DT& facet_coords, const iArrayT& fr_facet
 
 	for (int i = 0; i < fr_facets.Length(); i++)
 	{
-		double* x1 = facet_coords(fr_facets[i]);
-		double* x2 = x1 + 2;
+		const double* x1 = facet_coords(fr_facets[i]);
+		const double* x2 = x1 + 2;
 
-		double* x = (fr_edges[i] == 0) ? x1 : x2;
+		const double* x = (fr_edges[i] == 0) ? x1 : x2;
 		double v_n[2];
 		if (fr_edges[i] == 0)
 		{

@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.cpp,v 1.12 2003-10-12 01:39:03 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.13 2003-11-21 22:46:48 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo2D.h"
 #include "StringT.h"
@@ -139,7 +139,7 @@ double J2Simo2D::StrainEnergyDensity(void)
 double J2Simo2D::IncrementalHeat(void)
 {
 	/* trust the "current" element is already loaded */
-	ElementCardT& element = CurrentElement();
+	const ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 		return fInternal[kHeatIncr];
 	else

@@ -1,4 +1,4 @@
-/* $Id: GaoKlein.cpp,v 1.4 2003-11-10 22:14:00 cjkimme Exp $ */
+/* $Id: GaoKlein.cpp,v 1.5 2003-11-21 22:41:27 paklein Exp $ */
 /* created: paklein (12/26/1998)                                          */
 
 #include "GaoKlein.h"
@@ -39,6 +39,7 @@ void GaoKlein::PrintName(ostream& out) const
 /* returning values */
 double GaoKlein::Function(double x) const
 {
+#pragma unused(x)
 //	double dr = x - fL;
 	
 	cout << "\n GaoKlein::Function: only f' and f\" have been implemented\n";
@@ -95,7 +96,7 @@ dArrayT& GaoKlein::MapDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl  = in.Pointer();
+	const double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
 	
 	for (int i = 0; i < in.Length(); i++)
@@ -114,7 +115,7 @@ dArrayT& GaoKlein::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl   = in.Pointer();
+	const double* pl   = in.Pointer();
 	double* pddU = out.Pointer();
 	
 	for (int i = 0; i < in.Length(); i++)

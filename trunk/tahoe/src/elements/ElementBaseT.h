@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.32 2003-09-03 22:54:11 cjkimme Exp $ */
+/* $Id: ElementBaseT.h,v 1.33 2003-11-21 22:45:44 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -249,14 +249,20 @@ public:
 
 	/** \name element card data */
 	/*@{*/
-	/** information about a particular element */
-	ElementCardT& ElementCard(int card) const;
+	/** read/write information about a particular element */
+	ElementCardT& ElementCard(int card);
+
+	/** read-only information about a particular element */
+	const ElementCardT& ElementCard(int card) const;
 
 	/** index of the "current" element */
 	int CurrElementNumber(void) const;
 
 	/** reference "current" element */
-	ElementCardT& CurrentElement(void) const;
+	ElementCardT& CurrentElement(void);
+
+	/** const reference "current" element */
+	const ElementCardT& CurrentElement(void) const;
 	/*@}*/
 
 	/** returns 1 if DOF's are interpolants of the nodal values */
@@ -441,8 +447,11 @@ inline bool ElementBaseT::NextElement(void) { return fElementCards.Next(); }
 
 /* element card */
 inline int ElementBaseT::CurrElementNumber(void) const { return fElementCards.Position(); }
-inline ElementCardT& ElementBaseT::CurrentElement(void) const { return fElementCards.Current(); }
-inline ElementCardT& ElementBaseT::ElementCard(int card) const { return fElementCards[card]; }
+inline const ElementCardT& ElementBaseT::CurrentElement(void) const { return fElementCards.Current(); }
+inline ElementCardT& ElementBaseT::CurrentElement(void) { return fElementCards.Current(); }
+
+inline ElementCardT& ElementBaseT::ElementCard(int card) { return fElementCards[card]; }
+inline const ElementCardT& ElementBaseT::ElementCard(int card) const { return fElementCards[card]; }
 
 /* called by FormRHS and FormLHS */
 inline void ElementBaseT::LHSDriver(GlobalT::SystemTypeT) { }

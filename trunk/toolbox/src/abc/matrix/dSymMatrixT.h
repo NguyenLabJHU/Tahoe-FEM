@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.15 2003-11-07 20:17:50 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.16 2003-11-21 22:41:36 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _DSYM_MATRIX_T_H_
 #define _DSYM_MATRIX_T_H_
@@ -41,7 +41,9 @@ public:
 	dSymMatrixT(void);
 	explicit dSymMatrixT(DimensionT nsd);
 	dSymMatrixT(const dSymMatrixT& source);
-	dSymMatrixT(DimensionT nsd, double* array);
+
+	/** construct alias */
+	dSymMatrixT(DimensionT nsd, const double* array);
 	/*@}*/
 
 	/** dimension the matrix for the number of spatial dimensions. No change 
@@ -52,7 +54,7 @@ public:
 	/** create shallow matrix. Explicitly set the memory used the matrix.
 	 * \param nsd matrix dimension
 	 * \param array pointer to memory at least length dSymMatrixT::NumValues(nsd) */
-	void Alias(DimensionT nsd, double* array);
+	void Alias(DimensionT nsd, const double* array);
 
 	/** \name assignment operators */
 	/*@{*/
@@ -60,8 +62,11 @@ public:
 	dSymMatrixT& operator=(const double value);
 	/*@}*/
 
-	/* accessor */
-	double& operator()(int row, int col) const;
+	/** \name element accessor */
+	/*@{*/
+	double& operator()(int row, int col);
+	const double& operator()(int row, int col) const;
+	/*@}*/
 
 	/* returns the number of dimensions in the reduced
 	 * index symmetric matrix vectors given the number of spatial
@@ -75,9 +80,11 @@ public:
 	};
 	static void ExpandIndex(DimensionT nsd, int dex, int& dex_1, int& dex_2);
 
-	/* dimensions */
+	/** \name dimensions */
+	/*@{*/
 	int Rows(void) const;
 	int Cols(void) const;
+	/*@}*/
 	
 	/* I/O operators */
 	friend ostream& operator<<(ostream& out, const dSymMatrixT& array);
@@ -240,7 +247,7 @@ inline void dSymMatrixT::ScaleOffDiagonal(double factor)
 }
 
 /* set fields */
-inline void dSymMatrixT::Alias(DimensionT nsd, double* array)
+inline void dSymMatrixT::Alias(DimensionT nsd, const double* array)
 {
 	fNumSD = int2DimensionT(nsd);
 #if __option(extended_errorcheck)
@@ -248,7 +255,7 @@ inline void dSymMatrixT::Alias(DimensionT nsd, double* array)
 		ExceptionT::GeneralFail("dSymMatrixT::Alias", "invalid dimension %d", nsd);
 #endif
 	/* inherited */
-	dArrayT::Set(NumValues(fNumSD), array);
+	dArrayT::Alias(NumValues(fNumSD), array);
 }
 
 inline void dSymMatrixT::Set(DimensionT nsd, double* array)
@@ -267,5 +274,12 @@ inline void dSymMatrixT::Set(int nsd, double* array)
 	Set(int2DimensionT(nsd), array); 
 };
 
-} // namespace Tahoe 
+/* const element accessor */
+inline double& dSymMatrixT::operator()(int row, int col) {
+	const double& a = ((const dSymMatrixT*) this)->operator()(row,col);
+	return const_cast<double&>(a);
+}
+
+} /* namespace Tahoe */
+
 #endif /* _DSYM_MATRIX_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.cpp,v 1.16 2003-11-04 01:21:01 paklein Exp $ */
+/* $Id: LocalArrayT.cpp,v 1.17 2003-11-21 22:41:39 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 #include "LocalArrayT.h"
 #include "dArray2DT.h"
@@ -100,7 +100,7 @@ void LocalArrayT::Average(dArrayT& avg) const
 	avg = 0;
 	for (int i = 0; i < MinorDim(); i++)
 	{
-		double* p = (*this)(i);
+		const double* p = (*this)(i);
 		double& s = avg[i];
 		for (int j = 0; j < NumberOfNodes(); j++)
 			s += *p++;
@@ -148,7 +148,7 @@ void LocalArrayT::AddScaledTranspose(double scale, const nArrayT<double>& transp
 	if(fLength != transpose.Length()) ExceptionT::SizeMismatch("LocalArrayT::AddScaledTranspose");
 #endif
 
-	double* ptrans = transpose.Pointer();
+	const double* ptrans = transpose.Pointer();
 	for (int i = 0; i < fNumNodes; i++)
 	{
 		double* pthis = fArray + i;	

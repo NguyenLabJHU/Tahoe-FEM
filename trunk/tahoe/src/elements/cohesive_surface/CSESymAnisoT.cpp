@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.3 2003-10-21 23:31:49 cjkimme Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.4 2003-11-21 22:45:50 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -258,18 +258,18 @@ void CSESymAnisoT::LHSDriver(GlobalT::SystemTypeT)
 #endif
 
 			/* stiffness in local frame */
-			const dMatrixT& K = surfpot->Stiffness(fdelta, state, localFrameIP);
+			fK = surfpot->Stiffness(fdelta, state, localFrameIP);
 			
 			/* enforce symmetry */
 			if (nsd == 2)
 			{
-				K(0,0) = K(1,0) = K(0,1) = 0.;
-				K(1,1) *= 2.;
+				fK(0,0) = fK(1,0) = fK(0,1) = 0.;
+				fK(1,1) *= 2.;
 			}
 			else
 			{
-				K(0,0) = K(1,0) = K(0,1) = K(1,1) = K(2,0) = K(0,2) = K(1,2) = K(2,1) = 0.;
-				K(2,2) *= 2.;
+				fK(0,0) = fK(1,0) = fK(0,1) = fK(1,1) = fK(2,0) = fK(0,2) = fK(1,2) = fK(2,1) = 0.;
+				fK(2,2) *= 2.;
 			} 
 				
 			/* rotation */
@@ -285,7 +285,7 @@ void CSESymAnisoT::LHSDriver(GlobalT::SystemTypeT)
 				fLHS += fNEEmat;
 
 				/* 2nd term */
-				fddU.SetToScaled(j0*w*constK, K);
+				fddU.SetToScaled(j0*w*constK, fK);
 				fnsd_nee_1.MultATB(fQ, d_delta);
 				fnsd_nee_2.MultATB(fddU, fnsd_nee_1);
 				u_i__Q_ijk(delta, fdQ, fnsd_nee_1);
@@ -294,7 +294,7 @@ void CSESymAnisoT::LHSDriver(GlobalT::SystemTypeT)
 			}
 			
 			/* 3rd term */
-			fddU.MultQBQT(fQ, K);
+			fddU.MultQBQT(fQ, fK);
 			fddU *= j0*w*constK;
 			fLHS.MultQTBQ(d_delta, fddU, format, dMatrixT::kAccumulate);
 		}
@@ -600,7 +600,7 @@ void CSESymAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	while (NextElement())
 	{
 		/* current element */
-		ElementCardT& element = CurrentElement();
+		const ElementCardT& element = CurrentElement();
 		
 		/* initialize */
 		nodal_space = 0.0;

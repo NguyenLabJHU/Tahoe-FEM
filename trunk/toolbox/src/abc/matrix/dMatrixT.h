@@ -1,12 +1,10 @@
-/* $Id: dMatrixT.h,v 1.9 2002-10-20 22:38:54 paklein Exp $ */
+/* $Id: dMatrixT.h,v 1.10 2003-11-21 22:41:36 paklein Exp $ */
 /* created: paklein (05/24/1996) */
-
 #ifndef _DMATRIX_T_H_
 #define _DMATRIX_T_H_
 
 /* base class */
 #include "nMatrixT.h"
-
 
 namespace Tahoe {
 
@@ -31,12 +29,11 @@ public:
 	 * dMatrixT type conversion */
 	explicit dMatrixT(int squaredim);
 
-	/** constructor for shallow matrix. Matrix will not free memory
-	 * during destructor.
+	/** constructor an alias
 	 * \param numrows number of rows in the matrix
 	 * \param numcols number of cols in the matrix
 	 * \param p pointer to an array of length numrows*numcols */
-	dMatrixT(int numrows, int numcols, double* p);
+	dMatrixT(int numrows, int numcols, const double* p);
 
 	/** copy constructor */
 	dMatrixT(const dMatrixT& source);

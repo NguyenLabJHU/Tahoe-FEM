@@ -1,4 +1,4 @@
-/* $Id: Triantafyllidis.cpp,v 1.3 2002-10-20 22:38:48 paklein Exp $ */
+/* $Id: Triantafyllidis.cpp,v 1.4 2003-11-21 22:41:27 paklein Exp $ */
 
 #include "Triantafyllidis.h"
 #include <math.h>
@@ -48,7 +48,7 @@ dArrayT& Triantafyllidis::MapFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl = in.Pointer();
+	const double* pl = in.Pointer();
 	double* pU = out.Pointer();
 	for (int i = 0; i < in.Length(); i++)
 	{
@@ -64,7 +64,7 @@ dArrayT& Triantafyllidis::MapDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl  = in.Pointer();
+	const double* pl  = in.Pointer();
 	double* pdU = out.Pointer();	
 	for (int i = 0; i < in.Length(); i++)
 	{
@@ -79,7 +79,7 @@ dArrayT& Triantafyllidis::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	double* pl   = in.Pointer();
+	const double* pl   = in.Pointer();
 	double* pddU = out.Pointer();	
 	for (int i = 0; i < in.Length(); i++)
 	{

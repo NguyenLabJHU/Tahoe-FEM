@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.13 2003-11-04 17:53:12 cjkimme Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.14 2003-11-21 22:46:13 paklein Exp $ */
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
 
@@ -104,7 +104,7 @@ private:
 	void dSymMatrixT_to_ABAQUS(const dSymMatrixT& A, doublereal* pB) const;
 
 	/* load element data for the specified integration point */
-	void Load(ElementCardT& element, int ip);
+	void Load(const ElementCardT& element, int ip);
 	void Store(ElementCardT& element, int ip);
 
 	/* make call to the VUMAT */

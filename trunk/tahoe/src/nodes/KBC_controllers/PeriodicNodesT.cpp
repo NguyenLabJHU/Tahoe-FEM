@@ -1,4 +1,4 @@
-/* $Id: PeriodicNodesT.cpp,v 1.3 2003-01-27 07:00:30 paklein Exp $ */
+/* $Id: PeriodicNodesT.cpp,v 1.4 2003-11-21 22:47:59 paklein Exp $ */
 #include "PeriodicNodesT.h"
 #include "NodeManagerT.h"
 #include "ifstreamT.h"
@@ -90,7 +90,7 @@ void PeriodicNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 
 	for (int i = 0; i <= FLength; i++)
 	{
-		double* x_f = coords(follower_nodes[i]);
+		const double* x_f = coords(follower_nodes[i]);
 		
 		/*If a follower is external, flag it for removal from the list*/
 		if (pMap && (*pMap)[follower_nodes[i]] != np)
@@ -100,7 +100,7 @@ void PeriodicNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 		
 		for (int j = 0; j < leader_nodes.Length(); j++)
 		{
-			double* x_l = coords(leader_nodes[j]);
+			const double* x_l = coords(leader_nodes[j]);
 			bool OK = true;
 			for (int k = 0; OK && k < nsd; k++)
 			{

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.30 2003-11-04 17:45:09 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.31 2003-11-21 22:46:00 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -215,7 +215,7 @@ void ContinuumElementT::CloseStep(void)
 		Top();
 		while (NextElement())
 		{
-			ElementCardT& element = CurrentElement();
+			const ElementCardT& element = CurrentElement();
 			if (element.IsAllocated())
 			{
 				ContinuumMaterialT* pmat = (*fMaterialList)[element.MaterialNumber()];
@@ -239,7 +239,7 @@ void ContinuumElementT::ResetStep(void)
 		Top();
 		while (NextElement())
 		{
-			ElementCardT& element = CurrentElement();		
+			const ElementCardT& element = CurrentElement();		
 			if (element.IsAllocated())
 			{
 				ContinuumMaterialT* pmat = (*fMaterialList)[element.MaterialNumber()];
@@ -1042,7 +1042,7 @@ MaterialSupportT* ContinuumElementT::NewMaterialSupport(MaterialSupportT* p) con
 
 	/* ContinuumElementT sources */
 	p->SetContinuumElement(this);
-	p->SetElementCards(&fElementCards);
+	p->SetElementCards(const_cast<AutoArrayT<ElementCardT>* >(&fElementCards));
 	p->SetCurrIP(CurrIP());
 
 	/* ElementSupportT sources */

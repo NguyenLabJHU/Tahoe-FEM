@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.24 2003-05-04 23:59:12 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.25 2003-11-21 22:41:46 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -264,7 +264,7 @@ void ExodusT::WriteCoordinates(const dArray2DT& coords,
 		if (node_map->Length() != coords.MajorDim()) throw ExceptionT::kSizeMismatch;
 	
 		Try("ExodusT::WriteCoordinates: ex_put_node_map",
-			ex_put_node_num_map(exoid, node_map->Pointer()),
+			ex_put_node_num_map(exoid, (int*) node_map->Pointer()),
 			true);
 	}
 }
@@ -396,7 +396,7 @@ void ExodusT::WriteConnectivities(int block_ID, GeometryT::CodeT code,
 		if (elem_map->Length() != connects.MajorDim()) throw ExceptionT::kSizeMismatch;
 	
 		Try("ExodusT::WriteConnectivities: ex_put_elem_num_map",
-			ex_put_elem_num_map(exoid, elem_map->Pointer()),
+			ex_put_elem_num_map(exoid, (int*) elem_map->Pointer()),
 			true);
 	}
 }
@@ -465,7 +465,7 @@ void ExodusT::WriteNodeSet(int set_ID, const nArrayT<int>& nodes) const
 	if (nodes.Length() > 0)
 	{
 		Try("ExodusT::WriteNodeSet: ex_put_node_set",
-			ex_put_node_set(exoid, set_ID, nodes.Pointer()),
+			ex_put_node_set(exoid, set_ID, (int*) nodes.Pointer()),
 			true);
 	}
 }
@@ -592,13 +592,13 @@ void ExodusT::WriteLabels(const ArrayT<StringT>& labels, ExodusT::VariableTypeT 
 			true);
 
 		/* change array of strings to array of char* */
-		ArrayT<char*> var_names(labels.Length());
+		ArrayT<const char*> var_names(labels.Length());
 		for (int i = 0; i < labels.Length(); i++)
 			var_names[i] = labels[i].Pointer();
 
 		/* write variable names */
 		Try("ExodusT::WriteLabels: ex_put_var_names",
-			ex_put_var_names(exoid, &type, labels.Length(), var_names.Pointer()),
+			ex_put_var_names(exoid, &type, labels.Length(), (char**) var_names.Pointer()),
 			true);
 	}
 }	
@@ -624,7 +624,7 @@ void ExodusT::WriteNodalVariable(int step, int index, const dArrayT& fValues) co
 	/* the time_step must correspond to the time_value of the printed increment
 	 * index corresponds to the variable name list */
 	Try("ExodusT::WriteNodalVariable",
-		ex_put_nodal_var(exoid, step, index, fValues.Length(), fValues.Pointer()),
+		ex_put_nodal_var(exoid, step, index, fValues.Length(), (double*) fValues.Pointer()),
 		true);
 }
 
@@ -639,7 +639,7 @@ void ExodusT::WriteElementVariable(int step, int block_ID, int index,
 	/* the time_step must correspond to the time_value of the printed increment
 	 * index corresponds to the variable name list */
 	Try("ExodusT::WriteElementVariable",
-		ex_put_elem_var (exoid, step, index, block_ID, fValues.Length(), fValues.Pointer()),
+		ex_put_elem_var (exoid, step, index, block_ID, fValues.Length(), (double*) fValues.Pointer()),
 		true);
 }
 
@@ -652,7 +652,7 @@ void ExodusT::WriteGlobalVariable(int step, const dArrayT& fValues) const
 
 	/* the time_step must correspond to the time_value of the printed increment */
 	Try("ExodusT::WriteGlobalVariable",
-		ex_put_glob_vars (exoid, step, fValues.Length(), fValues.Pointer()),
+		ex_put_glob_vars (exoid, step, fValues.Length(), (double*) fValues.Pointer()),
 		true);
 }
 

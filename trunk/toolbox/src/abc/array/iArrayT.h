@@ -1,4 +1,4 @@
-/* $Id: iArrayT.h,v 1.7 2003-05-04 22:56:18 paklein Exp $ */
+/* $Id: iArrayT.h,v 1.8 2003-11-21 22:41:30 paklein Exp $ */
 /* created: paklein (08/10/1996) */
 #ifndef _IARRAY_T_H_
 #define _IARRAY_T_H_
@@ -17,8 +17,10 @@ public:
 	/*@{*/
 	iArrayT(void);
 	explicit iArrayT(int length);
-	iArrayT(int length, int* p);
 	iArrayT(const iArrayT& source);
+
+	/** create an alias */
+	iArrayT(int length, const int* p);
 	/*@}*/
 	
 	/** \name assigment operators */

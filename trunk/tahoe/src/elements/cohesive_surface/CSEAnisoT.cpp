@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.57 2003-11-04 17:34:42 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.58 2003-11-21 22:45:50 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -1129,7 +1129,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	while (NextElement())
 	{
 		/* current element */
-		ElementCardT& element = CurrentElement();
+		const ElementCardT& element = CurrentElement();
 		
 		/* initialize */
 		nodal_space = 0.0;

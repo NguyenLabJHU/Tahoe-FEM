@@ -1,4 +1,4 @@
-/* $Id: RGSplitT.cpp,v 1.1 2003-04-05 20:06:59 thao Exp $ */
+/* $Id: RGSplitT.cpp,v 1.2 2003-11-21 22:47:01 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT.h"
@@ -492,9 +492,9 @@ void RGSplitT::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_
 	const double ctol = 1.00e-14;
 		
 	/*set references to principle stretches*/
-	double& l0 = eigenstretch[0];
-	double& l1 = eigenstretch[1];
-	double& l2 = eigenstretch[2];
+	const double& l0 = eigenstretch[0];
+	const double& l1 = eigenstretch[1];
+	const double& l2 = eigenstretch[2];
       
 	double& le0 = eigenstretch_e[0];
 	double& le1 = eigenstretch_e[1];

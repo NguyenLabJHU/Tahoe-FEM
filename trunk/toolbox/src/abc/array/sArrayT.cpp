@@ -21,7 +21,7 @@ sArrayT& sArrayT::operator=(const StringT& value)
 
 int sArrayT::HasValue (const StringT& value) const
 {
-  StringT* p = Pointer();
+  const StringT* p = Pointer();
   for (int i=0; i < Length(); i++, p++)
     {
       int length = p->StringLength();
@@ -36,7 +36,7 @@ int sArrayT::HasValue (const StringT& value) const
 int sArrayT::HasValue (const StringT& value, int& index) const
 {
   index  = -1;
-  StringT* p = Pointer();
+  const StringT* p = Pointer();
   for (int i = 0; i < Length() && index < 0; i++, p++)
     {
       int length = p->StringLength();
@@ -54,7 +54,7 @@ int sArrayT::HasValue (const StringT& value, int& index) const
 void sArrayT::WriteWrapped (ostream& out, int wrap) const
 {
   int width = 0;
-  StringT *p = Pointer();
+  const StringT *p = Pointer();
   for (int i=0; i < Length(); i++, p++)
     {
       int ewidth = p->Length();

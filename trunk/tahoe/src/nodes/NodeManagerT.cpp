@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.41 2003-11-04 17:36:48 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.42 2003-11-21 22:47:56 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -941,7 +941,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArrayT& nodes,
 	int nen = nodes.Length();
 	int neq = eqnos.Length();
 
-	int* ien = nodes.Pointer();
+	const int* ien = nodes.Pointer();
 	int* peq = eqnos.Pointer();
 		
 	/* count assigned equation numbers */
@@ -1027,7 +1027,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArray2DT& nodes,
 	int nen = nodes.MinorDim();
 	int neq = eqnos.MinorDim();
 
-	int* ien = nodes.Pointer();
+	const int* ien = nodes.Pointer();
 	int* peq = eqnos.Pointer();
 	for (int i = 0; i < nel; i++)
 	{
@@ -1120,7 +1120,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& node
 	int nnd = NumNodes();
 	int nel = nodes.MajorDim();
 
-	int* ien = nodes.Pointer();
+	const int* ien = nodes.Pointer();
 	int* peq = eqnos.Pointer();
 	for (int i = 0; i < nel; i++)
 	{

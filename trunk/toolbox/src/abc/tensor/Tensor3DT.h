@@ -1,4 +1,4 @@
-/* $Id: Tensor3DT.h,v 1.5 2002-10-20 22:38:56 paklein Exp $ */
+/* $Id: Tensor3DT.h,v 1.6 2003-11-21 22:41:41 paklein Exp $ */
 /* created PAK (05/23/97) */
 
 #ifndef _TENSOR3D_H_
@@ -35,10 +35,16 @@ class Tensor3DT: public TensorT<MATHTYPE>
   	Tensor3DT<MATHTYPE>& operator=(const Tensor3DT& RHS);
   	Tensor3DT<MATHTYPE>& operator=(const MATHTYPE& value);
 	
-	/* element and subdimension accessors. */
-	MATHTYPE& operator()(int dim0, int dim1, int dim2) const;
-	MATHTYPE* operator()(int dim0, int dim1) const;
-	MATHTYPE* operator()(int dim0) const;
+	/** \name element and subdimension accessors. */
+	/*@{*/
+	MATHTYPE& operator()(int dim0, int dim1, int dim2);
+	MATHTYPE* operator()(int dim0, int dim1);
+	MATHTYPE* operator()(int dim0);
+
+	const MATHTYPE& operator()(int dim0, int dim1, int dim2) const;
+	const MATHTYPE* operator()(int dim0, int dim1) const;
+	const MATHTYPE* operator()(int dim0) const;
+	/*@{*/
 
 	/*
 	 * Contract the t3dex index of t3 with the t2dex index of
@@ -154,7 +160,19 @@ inline Tensor3DT<MATHTYPE>& Tensor3DT<MATHTYPE>::operator=(const MATHTYPE& value
  * element and sub-dimension accessors.
  */
 template <class MATHTYPE>
-inline MATHTYPE& Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1, int dim2) const
+inline MATHTYPE& Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1, int dim2)
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (dim0 < 0 || dim0 >= fDim[0] ||
+	    dim1 < 0 || dim1 >= fDim[1] ||
+	    dim2 < 0 || dim2 >= fDim[2]) throw ExceptionT::kOutOfRange;
+#endif
+
+	return (fArray[dim0*fOffset0 + dim1*fOffset1 + dim2]);
+}
+template <class MATHTYPE>
+inline const MATHTYPE& Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1, int dim2) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
@@ -167,7 +185,18 @@ inline MATHTYPE& Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1, int dim2) c
 }
 
 template <class MATHTYPE>
-inline MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1) const
+inline MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1)
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (dim0 < 0 || dim0 >= fDim[0] ||
+	    dim1 < 0 || dim1 >= fDim[1]) throw ExceptionT::kOutOfRange;
+#endif
+
+	return (fArray + dim0*fOffset0 + dim1*fOffset1);
+}
+template <class MATHTYPE>
+inline const MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
@@ -179,7 +208,17 @@ inline MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1) const
 }
 
 template <class MATHTYPE>
-inline MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0) const
+inline MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0)
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (dim0 < 0 || dim0 >= fDim[0]) throw ExceptionT::kOutOfRange;
+#endif
+
+	return (fArray + dim0*fOffset0);
+}
+template <class MATHTYPE>
+inline const MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0) const
 {
 /* range checking */
 #if __option (extended_errorcheck)

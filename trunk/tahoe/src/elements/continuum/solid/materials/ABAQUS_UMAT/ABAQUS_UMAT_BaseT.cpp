@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.14 2003-09-11 22:57:35 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.15 2003-11-21 22:46:10 paklein Exp $ */
 /* created: paklein (05/14/2000) */
 #include "ABAQUS_UMAT_BaseT.h"
 
@@ -423,7 +423,7 @@ void ABAQUS_UMAT_BaseT::dMatrixT_to_ABAQUS(const dMatrixT& A,
 	else
 	{
 		doublereal* pB = B.Pointer();
-		double* pA = A.Pointer();
+		const double* pA = A.Pointer();
 		*pB++ = doublereal(*pA++);
 		*pB++ = doublereal(*pA++);
 		*pB++ = doublereal(*pA++);
@@ -460,7 +460,7 @@ void ABAQUS_UMAT_BaseT::ABAQUS_to_dSymMatrixT(const doublereal* pA,
 void ABAQUS_UMAT_BaseT::dSymMatrixT_to_ABAQUS(const dSymMatrixT& A,
 	doublereal* pB) const
 {
-	double* pA = A.Pointer();
+	const double* pA = A.Pointer();
 	if (NumSD() == 2)
 	{
 		*pB++ = doublereal(pA[0]); // 11
@@ -774,13 +774,13 @@ void ABAQUS_UMAT_BaseT::Read_ABAQUS_Word(ifstreamT& in, StringT& word, bool to_u
 }
 
 /* load element data for the specified integration point */
-void ABAQUS_UMAT_BaseT::Load(ElementCardT& element, int ip)
+void ABAQUS_UMAT_BaseT::Load(const ElementCardT& element, int ip)
 {
 	/* fetch internal variable array */
-	dArrayT& d_array = element.DoubleData();
+	const dArrayT& d_array = element.DoubleData();
 
 	/* copy/convert */
-	double* pd = d_array.Pointer(fBlockSize*ip);
+	const double* pd = d_array.Pointer(fBlockSize*ip);
 	doublereal* pdr = fArgsArray.Pointer();
 	for (int i = 0; i < fBlockSize; i++)
 		*pdr++ = doublereal(*pd++);

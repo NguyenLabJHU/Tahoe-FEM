@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.h,v 1.11 2002-07-05 22:28:24 paklein Exp $ */
+/* $Id: DPSSLinHardT.h,v 1.12 2003-11-21 22:46:45 paklein Exp $ */
 /* created: myip (06/01/1999)                                      */
 /*  
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -76,8 +76,7 @@ class DPSSLinHardT: public DPPrimitiveT
 	/* returns 1 if the trial elastic strain state lies outside of the 
 	 * yield surface */
 	int PlasticLoading(const dSymMatrixT& trialstrain, 
-                           const ElementCardT& element, 
-		           int ip);
+		ElementCardT& element, int ip);
 
 	/* computes the deviatoric stress corresponding to the given element
 	 * and elastic strain.  The function returns a reference to the

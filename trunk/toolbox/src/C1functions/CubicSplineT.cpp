@@ -1,4 +1,4 @@
-/* $Id: CubicSplineT.cpp,v 1.4 2002-10-20 22:38:47 paklein Exp $ */
+/* $Id: CubicSplineT.cpp,v 1.5 2003-11-21 22:41:27 paklein Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* CubicSplineT.cpp                                                       */
 
@@ -65,7 +65,7 @@ dArrayT& CubicSplineT::MapFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension check */
 	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
-	double *pin   = in.Pointer();
+	const double *pin   = in.Pointer();
 	double *pout  = out.Pointer();
 	int    length = in.Length();
 	
@@ -81,7 +81,7 @@ dArrayT& CubicSplineT::MapDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension check */
 	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
-	double *pin   =  in.Pointer();
+	const double *pin   =  in.Pointer();
 	double *pout  = out.Pointer();
 	int    length = in.Length();
 	
@@ -97,7 +97,7 @@ dArrayT& CubicSplineT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension check */
 	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
-	double *pin   =  in.Pointer();
+	const double *pin   =  in.Pointer();
 	double *pout  = out.Pointer();
 	int    length = in.Length();
 	
@@ -135,7 +135,7 @@ double CubicSplineT::function(double x) const
 	double  dx = (i == 0) ? x - fXPoints[i] :
 	             ((i == fXPoints.Length()) ? x - fXPoints[i-1] :
 	              x - fXPoints[i-1]);
-	double*  a = fCoefficients(i);	
+	const double* a = fCoefficients(i);	
 	
 	return a[0] + a[1]*dx + a[2]*dx*dx + a[3]*dx*dx*dx;
 }
@@ -147,7 +147,7 @@ double CubicSplineT::Dfunction(double x) const
 	double  dx = (i == 0) ? x - fXPoints[i] :
 	             ((i == fXPoints.Length()) ? x - fXPoints[i-1] :
 	              x - fXPoints[i-1]);
-	double*  a = fCoefficients(i);	
+	const double* a = fCoefficients(i);	
 	
 	return a[1] + 2.0*a[2]*dx + 3.0*a[3]*dx*dx;
 }
@@ -159,7 +159,7 @@ double CubicSplineT::DDfunction(double x) const
 	double  dx = (i == 0) ? x - fXPoints[i] :
 	             ((i == fXPoints.Length()) ? x - fXPoints[i-1] :
 	              x - fXPoints[i-1]);
-	double*  a = fCoefficients(i);	
+	const double* a = fCoefficients(i);	
 	
 	return 2.0*a[2] + 6.0*a[3]*dx;
 }
@@ -171,7 +171,7 @@ void CubicSplineT::all_functions(double x, double& f, double& Df, double& DDf) c
 	double  dx = (i == 0) ? x - fXPoints[i] :
 	             ((i == fXPoints.Length()) ? x - fXPoints[i-1] :
 	              x - fXPoints[i-1]);
-	double*  a = fCoefficients(i);	
+	const double* a = fCoefficients(i);	
 	
 	f = a[0] + a[1]*dx + a[2]*dx*dx + a[3]*dx*dx*dx;
 	Df = a[1] + 2.0*a[2]*dx + 3.0*a[3]*dx*dx;

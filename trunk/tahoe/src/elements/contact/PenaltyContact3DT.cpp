@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.10 2003-11-13 22:19:25 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.11 2003-11-21 22:45:57 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #include "PenaltyContact3DT.h"
 
@@ -123,7 +123,7 @@ void PenaltyContact3DT::LHSDriver(GlobalT::SystemTypeT)
 	const iArray2DT& connects = *(fConnectivities[0]);
 	for (int i = 0; i < connects.MajorDim(); i++)
 	{
-		int* pelem = connects(i);
+		const int* pelem = connects(i);
 
 		/* collect element configuration */
 		fElRefCoord.RowCollect(pelem, init_coords);
@@ -211,7 +211,7 @@ void PenaltyContact3DT::RHSDriver(void)
 	int num_contact = 0;
 	double h_max = 0.0;
 
-	int* pelem = fConnectivities[0]->Pointer();
+	const int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{

@@ -1,4 +1,4 @@
-/* $Id: BandedLAdMatrixT.cpp,v 1.4 2002-10-20 22:38:54 paklein Exp $ */
+/* $Id: BandedLAdMatrixT.cpp,v 1.5 2003-11-21 22:41:36 paklein Exp $ */
 /* created: MLK (05/21/1997)                                              */
 /* square banded matrix operations                                        */
 /* banded matrix elements stored in columns                               */
@@ -77,7 +77,7 @@ void BandedLAdMatrixT::AddBlock(int row, int col, const dMatrixT& block)
 	    (col + block.Cols() - row) > fRband + 1 ) throw ExceptionT::kOutOfRange;
 #endif
 
-	double* pblock = block.Pointer();
+	const double* pblock = block.Pointer();
 	double* pstart = fArray + col*fColumnHeight + fRband + row - col;
 	
 	for (int i = 0; i < block.Cols(); i++)
@@ -403,7 +403,7 @@ void BandedLAdMatrixT::Multx(const dArrayT& x,
 
 	//double* ARow = Pointer() + fRband;
 	//double* ARow;
-	double* px0  = x.Pointer();
+	const double* px0  = x.Pointer();
 	double* pb   = b.Pointer();
 
 	register double temp;
@@ -428,10 +428,10 @@ void BandedLAdMatrixT::Multx(const dArrayT& x,
 		
 		// set pointer ARow to first element of i row of A
 		//ARow = &(*this)(i,startcol);
-		double *AR = &(*this)(i,startcol);
+		const double *AR = &(*this)(i,startcol);
 
 		// set pointer to x vector to appropriate row
-		double *px = px0 + startcol;
+		const double *px = px0 + startcol;
 		
 		//double *AR = ARow;
 		
@@ -463,7 +463,7 @@ void BandedLAdMatrixT::MultM(const dMatrixT& M,
 
 	for (int col = 0; col < B.Cols(); col++) {
 
-		double* pM0  = M.Pointer() + col*(M.Rows());
+		const double* pM0  = M.Pointer() + col*(M.Rows());
 		double* pB   = B.Pointer() + col*(B.Rows());
 
 		register double temp;
@@ -488,10 +488,10 @@ void BandedLAdMatrixT::MultM(const dMatrixT& M,
 			
 			// set pointer ARow to first element of i row of A
 			//ARow = &(*this)(i,startcol);
-			double *AR = &(*this)(i,startcol);	
+			const double *AR = &(*this)(i,startcol);	
 
 			// set pointer to M matrix to appropriate row
-			double *pM = pM0 + startcol;
+			const double *pM = pM0 + startcol;
 		
 			//double *AR = ARow;
 		
@@ -520,7 +520,7 @@ void BandedLAdMatrixT::MultTx(const dArrayT& x,
 	if (fRows != x.Length() || fCols != b.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
-	double* px0  = x.Pointer();
+	const double* px0  = x.Pointer();
 	double* pb   = b.Pointer();
 
 	register double temp;
@@ -545,10 +545,10 @@ void BandedLAdMatrixT::MultTx(const dArrayT& x,
 		
 		// set pointer ARow to first element of i row of A
 		//ARow = &(*this)(i,startcol);
-		double *AR = &(*this)(startrow,i);
+		const double *AR = &(*this)(startrow,i);
 
 		// set pointer to x vector to appropriate row
-		double *px = px0 + startrow;
+		const double *px = px0 + startrow;
 		
 		//double *AR = ARow;
 		
@@ -582,7 +582,7 @@ void BandedLAdMatrixT::MultTM(const dMatrixT& M,
 
 	for (int row = 0; row < B.Rows(); row++) {
 
-		double* pM0  = M.Pointer() + row*(M.Rows());
+		const double* pM0  = M.Pointer() + row*(M.Rows());
 		double* pB   = B.Pointer() + row;
 
 		register double temp;
@@ -607,10 +607,10 @@ void BandedLAdMatrixT::MultTM(const dMatrixT& M,
 			
 			// set pointer ARow to first element of i row of A
 			//ARow = &(*this)(i,startcol);
-			double *AR = &(*this)(i,startcol);	
+			const double *AR = &(*this)(i,startcol);	
 
 			// set pointer to M matrix to appropriate row
-			double *pM = pM0 + startcol;
+			const double *pM = pM0 + startcol;
 		
 			//double *AR = ARow;
 		

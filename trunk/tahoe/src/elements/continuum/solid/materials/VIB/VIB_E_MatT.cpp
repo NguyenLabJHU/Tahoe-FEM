@@ -1,4 +1,4 @@
-/* $Id: VIB_E_MatT.cpp,v 1.4 2002-10-20 22:48:54 paklein Exp $ */
+/* $Id: VIB_E_MatT.cpp,v 1.5 2003-11-21 22:46:32 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* Base class for isotropic VIB_E_MatT materials.                         */
 
@@ -61,9 +61,9 @@ void VIB_E_MatT::ComputeLengths(const dSymMatrixT& strain)
 	if (strain.Rows() == 2)
 	{
 		/* references to the strain components */
-		double& E11 = strain[0];
-		double& E22 = strain[1];
-		double& E12 = strain[2];
+		const double& E11 = strain[0];
+		const double& E22 = strain[1];
+		const double& E12 = strain[2];
 	
 		/* initialize kernel pointers */
 		double* pl  = fLengths.Pointer();
@@ -80,12 +80,12 @@ void VIB_E_MatT::ComputeLengths(const dSymMatrixT& strain)
 	else
 	{
 		/* references to the strain components */
-		double& E11 = strain[0];
-		double& E22 = strain[1];
-		double& E33 = strain[2];
-		double& E23 = strain[3];
-		double& E13 = strain[4];
-		double& E12 = strain[5];
+		const double& E11 = strain[0];
+		const double& E22 = strain[1];
+		const double& E33 = strain[2];
+		const double& E23 = strain[3];
+		const double& E13 = strain[4];
+		const double& E12 = strain[5];
 	
 		/* initialize kernel pointers */
 		double* pl  = fLengths.Pointer();

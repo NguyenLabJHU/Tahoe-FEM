@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.8 2003-11-04 17:53:09 cjkimme Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.9 2003-11-21 22:46:10 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #ifndef _ABAQUS_UMAT_BASE_T_H_
 #define _ABAQUS_UMAT_BASE_T_H_
@@ -101,7 +101,7 @@ private:
 	void dSymMatrixT_to_ABAQUS(const dSymMatrixT& A, doublereal* pB) const;
 
 	/* load element data for the specified integration point */
-	void Load(ElementCardT& element, int ip);
+	void Load(const ElementCardT& element, int ip);
 	void Store(ElementCardT& element, int ip);
 
 	/* make call to the UMAT */

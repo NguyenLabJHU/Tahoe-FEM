@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.cpp,v 1.10 2003-11-20 01:43:49 cjkimme Exp $ */
+/* $Id: SurfaceShapeT.cpp,v 1.11 2003-11-21 22:47:24 paklein Exp $ */
 /* created: paklein (11/21/1997) */
 #include "SurfaceShapeT.h"
 
@@ -146,11 +146,11 @@ void SurfaceShapeT::Interpolate(const LocalArrayT& nodal, dArrayT& u) const
 
 	/* a little tricky here because node numbering across
 	 * both faces is inconsistent between 2D and 3D */
-	int* face_nodes = fFacetNodes(1); /* nodes on 2nd face */
+	const int* face_nodes = fFacetNodes(1); /* nodes on 2nd face */
 	for (int i = 0; i < u.Length(); i++)
 	{	
 		/* first face */
-		double* p = nodal(i);
+		const double* p = nodal(i);
 		u[i] = scale*shapes.DotRow(fCurrIP, p);
 		
 		/* second face */
@@ -297,8 +297,8 @@ void SurfaceShapeT::Shapes(dArrayT& Na) const
 		fNa.RowAlias(fCurrIP, Na);
 	else if (Na.Length() == fFacetNodes.MinorDim()) /* just nodes from the first face */
 	{
-		double* pNa = fNa(fCurrIP);
-		int* lnd = fFacetNodes(0);
+		const double* pNa = fNa(fCurrIP);
+		const int* lnd = fFacetNodes(0);
 		for (int i = 0; i < Na.Length(); i++)
 			Na[i] = pNa[lnd[i]];
 	}
@@ -625,7 +625,7 @@ void SurfaceShapeT::ComputeFacetCoords(void)
 		int* facet1 = fFacetNodes(0);
 		int* facet2 = fFacetNodes(1);
 		
-		double* px    = fCoords(i);
+		const double* px = fCoords(i);
 		double* pxmid = fFacetCoords(i);
 		for (int j = 0; j < fNumFacetNodes; j++)
 			*pxmid++ = 0.5*(px[*facet1++] + px[*facet2++]);

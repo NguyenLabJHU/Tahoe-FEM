@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.12 2003-10-31 20:53:14 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.13 2003-11-21 22:48:06 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
 #include <iostream.h>
@@ -89,10 +89,10 @@ void FullMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 	if (format == ElementMatrixT::kDiagonal)
 	{
 		/* from diagonal only */
-		double* pelMat = elMat.Pointer();
+		const double* pelMat = elMat.Pointer();
 		int inc = elMat.Rows() + 1;
 	
-		int*    peq    = eqnos.Pointer();		
+		const int* peq = eqnos.Pointer();		
 		for (int i = 0; i < elMat.Length(); i++)
 		{
 			int eq = *peq++;
@@ -108,17 +108,16 @@ void FullMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 		/* copy to full symmetric */
 		if (elMat.Format() == ElementMatrixT::kSymmetricUpper) elMat.CopySymmetric();
 
-		int*    peq    = eqnos.Pointer();	
+		const int* peq = eqnos.Pointer();	
 		for (int col = 0; col < elMat.Cols(); col++)
 		{
-			int        eqc = eqnos[col];
-			double* pelMat = elMat(col);
+			int eqc = eqnos[col];
+			const double* pelMat = elMat(col);
 		
 			/* active dof's only */
 			if (eqc-- > 0)
 			{		
-				int* peqr = eqnos.Pointer();
-						
+				const int* peqr = eqnos.Pointer();
 				for (int row = 0; row < elMat.Rows(); row++)
 				{
 					int eqr = *peqr++;
@@ -199,17 +198,16 @@ void FullMatrixT::OverWrite(const ElementMatrixT& elMat, const nArrayT<int>& eqn
 	/* copy to full symmetric */
 	if (elMat.Format() == ElementMatrixT::kSymmetricUpper) elMat.CopySymmetric();
 
-	int* peq = eqnos.Pointer();	
+	const int* peq = eqnos.Pointer();	
 	for (int col = 0; col < elMat.Cols(); col++)
 	{
-		int        eqc = eqnos[col];
-		double* pelMat = elMat(col);
+		int eqc = eqnos[col];
+		const double* pelMat = elMat(col);
 		
 		/* active dof's only */
 		if (eqc-- > 0)
 		{		
-			int* peqr = eqnos.Pointer();
-					
+			const int* peqr = eqnos.Pointer();
 			for (int row = 0; row < elMat.Rows(); row++)
 			{
 				int eqr = *peqr++;
@@ -231,8 +229,7 @@ void FullMatrixT::Disassemble(dMatrixT& elMat, const nArrayT<int>& eqnos) const
 	    elMat.Cols() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
-	int* peq = eqnos.Pointer();
-	
+	const int* peq = eqnos.Pointer();
 	for (int col = 0; col < elMat.Cols(); col++)
 	{
 		int        eqc = eqnos[col];
@@ -241,8 +238,7 @@ void FullMatrixT::Disassemble(dMatrixT& elMat, const nArrayT<int>& eqnos) const
 		/* active dof's only */
 		if (eqc-- > 0)
 		{		
-			int* peqr = eqnos.Pointer();
-					
+			const int* peqr = eqnos.Pointer();
 			for (int row = 0; row < elMat.Rows(); row++)
 			{
 				int eqr = *peqr++;

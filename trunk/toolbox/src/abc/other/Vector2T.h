@@ -1,16 +1,14 @@
-/* $Id: Vector2T.h,v 1.2 2002-07-02 19:56:50 cjkimme Exp $ */
-/* utility class for 2D vector functions                                  */
-/* NOTE: some functions do create temporary nTYPE's                       */
-
+/* $Id: Vector2T.h,v 1.3 2003-11-21 22:41:39 paklein Exp $ */
 #ifndef _VECTOR_2_T_H_
 #define _VECTOR_2_T_H_
 
 /* Environmental */
 #include "Environment.h"
 
-
 namespace Tahoe {
 
+/** utility class for 2D vector functions
+ * NOTE: some functions do create temporary nTYPE's */
 template <class nTYPE>
 class Vector2T
 {
@@ -20,12 +18,15 @@ class Vector2T
 	Vector2T(void);
 	Vector2T(const nTYPE* source);
 
-	/* accessor */
-	nTYPE& operator[](int dex) const;
+	/** \name accessors */
+	/*@{*/
+	nTYPE& operator[](int dex);
+	const nTYPE& operator[](int dex) const;
 
 	/* type conversion operators */
 	operator const nTYPE*() const;
 	operator nTYPE*() const;
+	/*@}*/
 
 	/* assignment operator */
 	Vector2T<nTYPE>& operator=(const nTYPE* rhs);

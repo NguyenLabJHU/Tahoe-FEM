@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.21 2003-10-04 19:14:01 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.22 2003-11-21 22:47:56 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nIntegratorT.h"
@@ -429,7 +429,7 @@ void FieldT::SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const
 	int ndof  = NumDOF();
 	for (int i = 0; i < numel; i++)
 	{
-		int* pnodes = nodes(i);
+		const int* pnodes = nodes(i);
 		int* pien   = eqnos(i);
 		for (int j = 0; j < nen; j++)
 		{
@@ -482,7 +482,7 @@ void FieldT::SetLocalEqnos(const RaggedArray2DT<int>& nodes,
 		//must have enough space (and maybe more)
 #endif
 		int  nen    = nodes.MinorDim(i);
-		int* pnodes = nodes(i);
+		const int* pnodes = nodes(i);
 		int* pien   = eqnos(i);
 		int ndof    = NumDOF();
 		for (int j = 0; j < nen; j++)

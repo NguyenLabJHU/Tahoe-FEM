@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.cpp,v 1.15 2002-10-20 22:49:04 paklein Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.16 2003-11-21 22:46:45 paklein Exp $ */
 /* created: myip (06/01/1999)                                        */
 /*
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -398,22 +398,23 @@ void DPSSLinHardT::LoadData(const ElementCardT& element, int ip)
 	if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
 	/* fetch arrays */
-	dArrayT& d_array = element.DoubleData();
+	const dArrayT& d_array = element.DoubleData();
 	
 	/* decode */
+	dSymMatrixT::DimensionT dim = dSymMatrixT::int2DimensionT(kNSD);
 	int stressdim = dSymMatrixT::NumValues(kNSD);
 	int offset    = stressdim*fNumIP;
 	int dex       = ip*stressdim;
 	
-	fPlasticStrain.Set(        kNSD, &d_array[           dex]);
-	     fUnitNorm.Set(        kNSD, &d_array[  offset + dex]);     
-	     fInternal.Set(kNumInternal, &d_array[2*offset + ip*kNumInternal]);
+	fPlasticStrain.Alias(         dim, &d_array[           dex]);
+	     fUnitNorm.Alias(         dim, &d_array[  offset + dex]);     
+	     fInternal.Alias(kNumInternal, &d_array[2*offset + ip*kNumInternal]);
 }
 
 /* returns 1 if the trial elastic strain state lies outside of the 
  * yield surface */
 int DPSSLinHardT::PlasticLoading(const dSymMatrixT& trialstrain, 
-	const ElementCardT& element, int ip)
+	ElementCardT& element, int ip)
 {
 	/* not yet plastic */
 	if (!element.IsAllocated()) 

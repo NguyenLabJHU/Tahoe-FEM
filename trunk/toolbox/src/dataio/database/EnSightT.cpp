@@ -1,4 +1,4 @@
-/* $Id: EnSightT.cpp,v 1.15 2003-11-10 22:14:20 cjkimme Exp $ */
+/* $Id: EnSightT.cpp,v 1.16 2003-11-21 22:41:46 paklein Exp $ */
 /* created: sawimme (05/13/1999) */
 #include "EnSightT.h"
 
@@ -66,7 +66,7 @@ void EnSightT::WriteCoordinateMap (ostream& fgeo, const iArrayT& nodesmap) const
 if (fBinary)
 {
 int itemp;
-int *pnodemap = nodesmap.Pointer();
+const int *pnodemap = nodesmap.Pointer();
 for (int n=0; n < nodesmap.Length(); n++)
 	{
 	  itemp = pnodemap[n];
@@ -142,7 +142,7 @@ void EnSightT::WriteConnectivity (ostream& fgeo, int numelemnodes, const iArray2
     }
   else
     {
-      int *pc = connects.Pointer();
+      const int *pc = connects.Pointer();
       for (int ic = 0; ic < connects.MajorDim(); ic++)
 	{
 	  for (int j=0; j < numelemnodes; j++)
@@ -691,7 +691,7 @@ out.setf(ios::showpoint);
 out.setf(ios::right, ios::adjustfield);
 out.setf(ios::scientific, ios::floatfield);
 out.precision(dprecision);
-double* pv = values.Pointer() + column_position;
+const double* pv = values.Pointer() + column_position;
 for (int i=0; i < values.MajorDim(); i++)
 {
 out << setw(dwidth) << *pv << '\n';

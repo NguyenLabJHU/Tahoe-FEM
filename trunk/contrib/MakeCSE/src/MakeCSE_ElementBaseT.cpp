@@ -1,4 +1,4 @@
-// $Id: MakeCSE_ElementBaseT.cpp,v 1.8 2002-11-05 13:26:26 sawimme Exp $
+// $Id: MakeCSE_ElementBaseT.cpp,v 1.9 2003-11-21 22:47:39 paklein Exp $
 // created: SAW 10/06/99
 #include "MakeCSE_ElementBaseT.h"
 
@@ -78,7 +78,7 @@ void MakeCSE_ElementBaseT::FacesWithNode (int e1local, int node, iArrayT& faces)
 {
   if (!IsElementValid (e1local)) throw ExceptionT::kSizeMismatch;
   iAutoArrayT f;
-  int *conn = fNodeNums(e1local);
+  const int *conn = fNodeNums(e1local);
   for (int i=0; i < fNumElemNodes; i++)
     if (*conn++ == node)
 	f.AppendUnique (fRevFacetNodes[i]);
@@ -94,7 +94,7 @@ bool MakeCSE_ElementBaseT::FaceHasNode (int e1local, int f1, int node) const
       cout << "FaceHasNode" << endl;
       throw ExceptionT::kSizeMismatch;
     }
-  int *pfN = fFacetNodes[f1].Pointer();
+  const int *pfN = fFacetNodes[f1].Pointer();
   for (int n=0; n < fFacetNodes[f1].Length(); n++, pfN++)
     if (fNodeNums (e1local, *pfN) == node)
       return true;
@@ -144,7 +144,7 @@ void MakeCSE_ElementBaseT::ElementNodes (int e1local, iArrayT& nodes) const
       cout << "ElementNodes" << endl;
       throw ExceptionT::kSizeMismatch;
     }
-  nodes.Set (fNodeNums.MinorDim(), fNodeNums(e1local));
+  nodes.Alias(fNodeNums.MinorDim(), fNodeNums(e1local));
 }
 
 void MakeCSE_ElementBaseT::FaceNodes (int e1local, int f1, iArrayT& nodes) const
@@ -154,7 +154,7 @@ void MakeCSE_ElementBaseT::FaceNodes (int e1local, int f1, iArrayT& nodes) const
       cout << "FaceNodes" << endl;
       throw ExceptionT::kSizeMismatch;
     }
-  int *pfN = fFacetNodes[f1].Pointer();
+  const int *pfN = fFacetNodes[f1].Pointer();
   nodes.Allocate (fFacetNodes[f1].Length());
   for (int i=0; i <fFacetNodes[f1].Length(); i++)
     if (*pfN > -1) // account for ragged array (penta)
@@ -170,7 +170,7 @@ void MakeCSE_ElementBaseT::AbbrFaceNodes (int e1local, int f1, iArrayT& nodes) c
       cout << "AbbrFaceNodes" << endl;
       throw ExceptionT::kSizeMismatch;
     }
-  iArrayT& vertexfacenodes = fVertexFaceNodes[f1];
+  const iArrayT& vertexfacenodes = fVertexFaceNodes[f1];
 
   nodes.Allocate (vertexfacenodes.Length());
   for (int i=0; i < nodes.Length(); i++)
@@ -184,7 +184,7 @@ bool MakeCSE_ElementBaseT::CheckSideSet (const iArray2DT& sides) const
 {
   int elem = NumElements();
   int face = NumElemFaces();
-  int *s = sides.Pointer();
+  const int *s = sides.Pointer();
   for (int i=0; i < sides.MajorDim(); i++)
     {
       if (*s > elem || *s < 0) 

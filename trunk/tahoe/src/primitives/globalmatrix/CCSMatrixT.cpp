@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.16 2003-10-31 20:53:14 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.17 2003-11-21 22:48:06 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "CCSMatrixT.h"
 
@@ -164,7 +164,7 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
 	else if (format == ElementMatrixT::kDiagonal)
 	{
 		/* from diagonal only */
-		double* pelMat = elMat.Pointer();
+		const double* pelMat = elMat.Pointer();
 		int inc = elMat.Rows() + 1;
 		
 		int size = eqnos.Length();
@@ -278,7 +278,7 @@ double CCSMatrixT::ResidualNorm(const dArrayT& result) const
 	if (result.Length() != fLocNumEQ) throw ExceptionT::kGeneralFail;
 
 	double  norm = 0.0;
-	double* p = result.Pointer();
+	const double* p = result.Pointer();
 
 	for (int i = 0; i < fLocNumEQ; i++)
 	{
@@ -915,8 +915,8 @@ void CCSMatrixT::SetColumnHeights(const iArray2DT& eqnos)
 
 	for (int j = 0; j < nel; j++)
 	{
-		int* eleqnos = eqnos(j);
-		int  min     = fLocNumEQ;
+		const int* eleqnos = eqnos(j);
+		int min = fLocNumEQ;
 	
 		/* find the smallest eqno > 0 */
 		for (int k = 0; k < nee; k++)
@@ -953,8 +953,8 @@ void CCSMatrixT::SetColumnHeights(const RaggedArray2DT<int>& eqnos)
 	int nel = eqnos.MajorDim();
 	for (int j = 0; j < nel; j++)
 	{
-		int      nee = eqnos.MinorDim(j);
-		int* eleqnos = eqnos(j);
+		int nee = eqnos.MinorDim(j);
+		const int* eleqnos = eqnos(j);
 	
 		/* find the smallest eqno > 0 */
 		int min = fLocNumEQ;

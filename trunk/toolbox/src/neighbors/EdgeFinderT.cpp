@@ -1,4 +1,4 @@
-/* $Id: EdgeFinderT.cpp,v 1.8 2003-11-10 22:14:37 cjkimme Exp $ */
+/* $Id: EdgeFinderT.cpp,v 1.9 2003-11-21 22:41:59 paklein Exp $ */
 /* created: paklein (02/14/1998) */
 #include "EdgeFinderT.h"
 #include "AutoArrayT.h"
@@ -82,14 +82,14 @@ const iArray2DT& EdgeFinderT::Neighbors(void)
 		for (int i = 0; i < fNumElements; i++)
 		{
 			int* neigh_i = fNeighbors(i);
-			int* elem_i  = ElementNodes(i);
+			const int* elem_i  = ElementNodes(i);
 			for (int j = 0; j < fNumFacets; j++)
 			{
 				/* neighbor not set */
 				if (*neigh_i == -1)
 				{
 					/* tag all neighboring elements */
-					int* nodemap = fNodeFacetMap(j);
+					const int* nodemap = fNodeFacetMap(j);
 					for (int k = 0; k < nfn; k++)
 					{
 						/* location of elems(node) data */
@@ -211,7 +211,7 @@ void EdgeFinderT::SurfaceFacets(iArray2DT& surface_facets, iArrayT& surface_node
 	for (int i = 0; i < border_elems.Length(); i++)
 	{
 		/* element connectivity */
-		int* elem = ElementNodes(border_elems[i]);
+		const int* elem = ElementNodes(border_elems[i]);
 
 		/* find open sides */
 		int found_open = 0;
@@ -226,7 +226,7 @@ void EdgeFinderT::SurfaceFacets(iArray2DT& surface_facets, iArrayT& surface_node
 				
 				/* collect facet nodes */
 				int* pfacet = surface_facets(surf_count++);
-				int* facet_nodes = fNodeFacetMap(j);
+				const int* facet_nodes = fNodeFacetMap(j);
 				for (int k = 0; k < num_facet_nodes; k++)
 				{
 					int node = elem[*facet_nodes++];
@@ -278,7 +278,7 @@ void EdgeFinderT::SurfaceFacets(iArray2DT& surface_facets,
 	for (int i = 0; i < border_elems.Length(); i++)
 	{
 		/* element connectivity */
-		int* elem = ElementNodes(border_elems[i]);
+		const int* elem = ElementNodes(border_elems[i]);
 
 		/* find open sides */
 		int found_open = 0;
@@ -292,7 +292,7 @@ void EdgeFinderT::SurfaceFacets(iArray2DT& surface_facets,
 				found_open = 1;
 				
 				/* collect facet nodes */
-				int* facet_nodes = fNodeFacetMap(j);
+				const int* facet_nodes = fNodeFacetMap(j);
 				facet_numbers[surf_count] = j; 			
 				elem_numbers[surf_count] = border_elems[i];	
 				int* pfacet = surface_facets(surf_count++);
@@ -435,7 +435,7 @@ void EdgeFinderT::SetInverseConnects(void)
 //		int  nen = fConnects[0]->MinorDim();
 		for (int i = 0; i < fNumElements; i++)
 		{
-			int* pel = ElementNodes(i);
+			const int* pel = ElementNodes(i);
 			for (int j = 0; j < fKeyNodes; j++)
 			{
 				int row = (*pel++) - fMinNum;
@@ -456,8 +456,8 @@ int EdgeFinderT::FindMatchingFacet(int facet_i, const int* elem_i,
 	int facet_j = -1;
 	for (int j = 0; j < fNumFacets && facet_j < 0; j++)
 	{
-		int* nodemap_i = fNodeFacetMap(facet_i) + (nfn - 1);
-		int* nodemap_j = fNodeFacetMap(j);
+		const int* nodemap_i = fNodeFacetMap(facet_i) + (nfn - 1);
+		const int* nodemap_j = fNodeFacetMap(j);
 
 		/* find starting point */
 		int node_i = elem_i[*nodemap_i--];
@@ -496,7 +496,7 @@ int EdgeFinderT::FindMatchingFacet(int facet_i, const int* elem_i,
 	return facet_j;	
 }
 
-int* EdgeFinderT::ElementNodes (int index) const
+const int* EdgeFinderT::ElementNodes (int index) const
 {
   if (index < 0 || index >= fNumElements) throw ExceptionT::kOutOfRange;
 

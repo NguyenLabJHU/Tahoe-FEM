@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.20 2003-05-04 22:54:54 paklein Exp $ */
+/* $Id: StringT.h,v 1.21 2003-11-21 22:41:39 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #ifndef _STRING_T_H_
 #define _STRING_T_H_
@@ -29,10 +29,12 @@ public:
 	explicit StringT(int length);
 	/*@}*/
 	
-	/** type conversion operator - allows use of StringT in all const char*
-	 * ANSI C functions. */
+	/** \name type conversion operator
+	 * allows use of StringT in all const char* ANSI C functions. */
+	/*@{*/
+	operator char*();
 	operator const char*() const;
-	operator char*() const;
+	/*@}*/
 	
 	/** input initializer */
 	friend istream& operator>>(istream& in, StringT& string);
@@ -252,7 +254,7 @@ inline StringT::StringT(const char* string) { operator=(string); }
 /* type conversion operator - allows use of StringT in all const char*
 * ANSI C functions */
 inline StringT::operator const char*() const { return Pointer(); }
-inline StringT::operator char*() const { return Pointer(); }
+inline StringT::operator char*() { return Pointer(); }
 
 /* assignment operator */
 inline StringT& StringT::operator=(const StringT& string)

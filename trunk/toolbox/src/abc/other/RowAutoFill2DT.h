@@ -1,4 +1,4 @@
-/* $Id: RowAutoFill2DT.h,v 1.6 2002-10-20 22:38:55 paklein Exp $ */
+/* $Id: RowAutoFill2DT.h,v 1.7 2003-11-21 22:41:39 paklein Exp $ */
 
 #ifndef _ROW_AUTO_ARRAY2D_T_H_
 #define _ROW_AUTO_ARRAY2D_T_H_
@@ -39,9 +39,13 @@ public:
 	/** flush size */
 	void SetFlushSize(long flush_size);	
 	
-	/* accessors */
-	TYPE& operator()(int major_dim, int minor_dim) const;
-	TYPE* operator()(int major_dim) const;
+	/** \name accessors */
+	/*@{*/
+	TYPE& operator()(int major_dim, int minor_dim);
+	const TYPE& operator()(int major_dim, int minor_dim) const;
+	TYPE* operator()(int major_dim);
+	const TYPE* operator()(int major_dim) const;
+	/*@}*/
 
 	/* set logical size = 0 */
 	void Reset(void);    // for all rows
@@ -204,7 +208,7 @@ inline void RowAutoFill2DT<TYPE>::SetFlushSize(long flush_size)
 
 /* accessors */
 template <class TYPE>
-inline TYPE& RowAutoFill2DT<TYPE>::operator()(int major_dim, int minor_dim) const
+inline const TYPE& RowAutoFill2DT<TYPE>::operator()(int major_dim, int minor_dim) const
 {
 #if __option(extended_errorcheck)
 	/* checks */
@@ -216,7 +220,30 @@ inline TYPE& RowAutoFill2DT<TYPE>::operator()(int major_dim, int minor_dim) cons
 }
 
 template <class TYPE>
-inline TYPE* RowAutoFill2DT<TYPE>::operator()(int major_dim) const
+inline TYPE& RowAutoFill2DT<TYPE>::operator()(int major_dim, int minor_dim)
+{
+#if __option(extended_errorcheck)
+	/* checks */
+	if (major_dim < 0 || major_dim >= fRowData.Length()) throw ExceptionT::kOutOfRange;
+	if (minor_dim < 0 || minor_dim >= fLogicalSize[major_dim]) throw ExceptionT::kOutOfRange;
+#endif
+
+	return *(fRowData[major_dim] + minor_dim);
+}
+
+template <class TYPE>
+inline const TYPE* RowAutoFill2DT<TYPE>::operator()(int major_dim) const
+{
+#if __option(extended_errorcheck)
+	/* checks */
+	if (major_dim < 0 || major_dim >= fRowData.Length()) throw ExceptionT::kOutOfRange;
+#endif
+
+	return fRowData[major_dim];
+}
+
+template <class TYPE>
+inline TYPE* RowAutoFill2DT<TYPE>::operator()(int major_dim)
 {
 #if __option(extended_errorcheck)
 	/* checks */

@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.16 2003-05-04 22:56:18 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.17 2003-11-21 22:41:30 paklein Exp $ */
 /* created: paklein (12/05/1997) */
 #ifndef _AUTO_ARRAY_T_H_
 #define _AUTO_ARRAY_T_H_
@@ -134,7 +134,10 @@ public:
 	const int& Position(void) const;
 
 	/** returns a reference to the current element in the list */
-	TYPE& Current(void) const;
+	const TYPE& Current(void) const;
+
+	/** returns a reference to the current element in the list */
+	TYPE& Current(void);
 	
 	/** set the position of the current pointer in the list and return a reference
 	 * to the element in that position */
@@ -528,7 +531,7 @@ bool AutoArrayT<TYPE>::AppendUnique(const TYPE& value, bool (*comp)(const TYPE& 
 template <class TYPE>
 int AutoArrayT<TYPE>::AppendUnique(const ArrayT<TYPE>& source)
 {	
-	TYPE* psrc = source.Pointer();
+	const TYPE* psrc = source.Pointer();
 	int length = source.Length();
 	int count = 0;
 	for (int i = 0; i < length; i++)
@@ -578,7 +581,19 @@ template <class TYPE>
 inline const int& AutoArrayT<TYPE>::Position(void) const { return fCurrElement; }
 
 template <class TYPE>
-inline TYPE& AutoArrayT<TYPE>::Current(void) const
+inline const TYPE& AutoArrayT<TYPE>::Current(void) const
+{
+#if __option(extended_errorcheck)
+	/* range check */
+	if (fCurrElement < 0 || fCurrElement >= fLength) 
+		ExceptionT::OutOfRange("AutoArrayT<TYPE>::Current", 
+			"position is out of range: %d", fCurrElement);
+#endif
+	return *(fArray + fCurrElement);
+}
+
+template <class TYPE>
+inline TYPE& AutoArrayT<TYPE>::Current(void)
 {
 #if __option(extended_errorcheck)
 	/* range check */
