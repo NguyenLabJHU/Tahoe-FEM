@@ -1,6 +1,5 @@
-/* $Id: JoinOutputT.cpp,v 1.11 2002-08-23 15:40:18 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.12 2002-09-12 16:05:35 paklein Exp $ */
 /* created: paklein (03/24/2000) */
-
 #include "JoinOutputT.h"
 
 #include "fstreamT.h"
@@ -13,10 +12,9 @@
 #include "VariArrayT.h"
 #include "dArrayT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 JoinOutputT::JoinOutputT(const StringT& param_file, const StringT& model_file,
 	IOBaseT::FileTypeT model_file_type, IOBaseT::FileTypeT results_file_type, 
 	OutputBaseT* output, int size):
@@ -359,9 +357,7 @@ void JoinOutputT::SetOutput(void)
 			/* construct output set */
 			const iArray2DT& connects = fModel->ElementGroup(sID);
 			bool changing = false; // changing geometry not supported
-			StringT set_ID;
-			set_ID.Append(ID);
-			OutputSetT output_set(set_ID, geometry_code, connects, n_labels);
+			OutputSetT output_set(geometry_code, connects, n_labels);
 	
 			/* register */
 			fOutput->AddElementSet(output_set);
@@ -389,9 +385,7 @@ void JoinOutputT::SetOutput(void)
 
 			/* construct output set */
 			bool changing = false; // changing geometry not supported
-			StringT set_ID;
-			set_ID.Append(ID);
-			OutputSetT output_set(set_ID, geometry_code, block_ID, connects_list, n_labels, e_labels, changing);
+			OutputSetT output_set(geometry_code, block_ID, connects_list, n_labels, e_labels, changing);
 	
 			/* register */
 			fOutput->AddElementSet(output_set);
@@ -406,11 +400,9 @@ void JoinOutputT::SetOutput(void)
 				cout << endl;
 				
 				/* register dummy set keep IO ID's the same */
-				StringT set_ID;
-				set_ID.Append(ID);
 				ArrayT<const iArray2DT*> empty_connects_list;
 				ArrayT<StringT> empty_list;
-				OutputSetT output_set(set_ID, GeometryT::kPoint, empty_list, empty_connects_list, empty_list, empty_list, false);
+				OutputSetT output_set(GeometryT::kPoint, empty_list, empty_connects_list, empty_list, empty_list, false);
 				fOutput->AddElementSet(output_set);
 			}
 		}
