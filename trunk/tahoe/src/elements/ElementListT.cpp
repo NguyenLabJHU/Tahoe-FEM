@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.104 2004-10-20 21:44:37 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.105 2004-11-05 22:54:53 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -148,6 +148,11 @@
 #ifdef SPLIT_INTEGRATION_DEV
 #include "SplitIntegrationT.h"
 #endif
+#endif
+
+#ifdef MIXTURE_THEORY_DEV
+#include "MixtureSpeciesT.h"
+#include "UpdatedLagMixtureT.h"
 #endif
 
 using namespace Tahoe;
@@ -329,6 +334,10 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("small_strain_enh_loc_craig");
 #endif
 
+#ifdef MIXTURE_THEORY_DEV
+		sub_lists.AddSub("updated_lagrangian_mixture");
+		sub_lists.AddSub("mixture_species");
+#endif
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
@@ -516,6 +525,13 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #ifdef ENHANCED_STRAIN_LOC_DEV_CRAIG
 	else if (name == "small_strain_enh_loc_craig")
 		return new SSEnhLocCraigT(fSupport);
+#endif
+
+#ifdef MIXTURE_THEORY_DEV
+	else if (name == "updated_lagrangian_mixture")
+		return new UpdatedLagMixtureT(fSupport);
+	else if (name == "mixture_species")
+		return new MixtureSpeciesT(fSupport);
 #endif
 
 	/* default */	
