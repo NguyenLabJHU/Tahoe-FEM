@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.h,v 1.9 2002-07-20 07:58:39 paklein Exp $ */
+/* $Id: LocalArrayT.h,v 1.10 2002-07-24 14:56:28 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #ifndef _LOCALARRAY_T_H_
@@ -57,6 +57,12 @@ public:
  
 	/** create a shallow array */
 	void Set(int numnodes, int minordim, double*p);
+	
+	/** copy data from an nArrayT.
+	 * \param numnodes set LocalArrayT::NumberOfNodes
+	 * \param minordim set LocalArrayT::MinorDim
+	 * \param source data source array */
+	void Copy(int numnodes, int minordim, const nArrayT<double>& source);
 
 	/** set the array type */
 	void SetType(TypeT type);
