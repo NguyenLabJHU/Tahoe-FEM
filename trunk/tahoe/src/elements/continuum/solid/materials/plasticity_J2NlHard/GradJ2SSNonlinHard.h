@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSNonlinHard.h,v 1.11 2004-07-22 21:10:18 paklein Exp $ */
+/* $Id: GradJ2SSNonlinHard.h,v 1.12 2004-08-01 00:57:45 paklein Exp $ */
 #ifndef _GRAD_J2_SS_NONLIN_HARD_H_
 #define _GRAD_J2_SS_NONLIN_HARD_H_
 
@@ -29,6 +29,9 @@ public:
 
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
+
+	/** material has history variables */
+	virtual bool HasHistory(void) const { return true; };
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
