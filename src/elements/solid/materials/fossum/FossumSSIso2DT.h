@@ -1,4 +1,4 @@
-/* $Id: FossumSSIso2DT.h,v 1.9 2004-05-08 23:46:35 raregue Exp $ */
+/* $Id: FossumSSIso2DT.h,v 1.10 2004-05-10 21:06:55 raregue Exp $ */
 #ifndef _FOSSUM_SS_ISO_2D_T_H_
 #define _FOSSUM_SS_ISO_2D_T_H_
 
@@ -32,9 +32,9 @@ public:
         
 	/* moduli */
 	virtual const dMatrixT& c_ijkl(void);
-	//virtual const dMatrixT& con_ijkl(void);
+	virtual const dMatrixT& con_ijkl(void);
 	virtual const dMatrixT& c_perfplas_ijkl(void);
-	//virtual const dMatrixT& con_perfplas_ijkl(void);
+	virtual const dMatrixT& con_perfplas_ijkl(void);
         
 	/* stress */
 	virtual const dSymMatrixT& s_ij(void);
@@ -47,9 +47,9 @@ private:
 	/* return values */
 	dSymMatrixT fStress2D;
 	dMatrixT fModulus2D;
-	dMatrixT fModulusPerfPlas;
-	//dMatrixT fModulusContinuum;
-	//dMatrixT fModulusContinuumPerfPlas;        
+	dMatrixT fModulusPerfPlas2D;
+	dMatrixT fModulusContinuum2D;
+	dMatrixT fModulusContinuumPerfPlas2D;        
 
 	/* work space */
 	dSymMatrixT fTotalStrain3D;

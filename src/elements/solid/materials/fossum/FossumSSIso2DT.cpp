@@ -1,4 +1,4 @@
-/* $Id: FossumSSIso2DT.cpp,v 1.5 2004-05-08 23:46:35 raregue Exp $ */
+/* $Id: FossumSSIso2DT.cpp,v 1.6 2004-05-10 21:06:55 raregue Exp $ */
 #include "FossumSSIso2DT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -11,6 +11,9 @@ FossumSSIso2DT::FossumSSIso2DT(ifstreamT& in, const SSMatSupportT& support):
 	Material2DT(in, kPlaneStrain),
 	fStress2D(2),
 	fModulus2D(dSymMatrixT::NumValues(2)),
+	fModulusPerfPlas2D(dSymMatrixT::NumValues(2)),
+	fModulusContinuum2D(dSymMatrixT::NumValues(2)),
+	fModulusContinuumPerfPlas2D(dSymMatrixT::NumValues(2)),
 	fTotalStrain3D(3)
 {
 	/* account for thickness */
@@ -63,9 +66,25 @@ const dMatrixT& FossumSSIso2DT::c_ijkl(void)
 const dMatrixT& FossumSSIso2DT::c_perfplas_ijkl(void)
 {
 	/* 3D -> 2D */
-	fModulus2D.Rank4ReduceFrom3D(FossumSSIsoT::c_perfplas_ijkl());
-	fModulus2D *= fThickness;
-	return fModulus2D;
+	fModulusPerfPlas2D.Rank4ReduceFrom3D(FossumSSIsoT::c_perfplas_ijkl());
+	fModulusPerfPlas2D *= fThickness;
+	return fModulusPerfPlas2D;
+}
+
+const dMatrixT& FossumSSIso2DT::con_ijkl(void)
+{
+	/* 3D -> 2D */
+	fModulusContinuum2D.Rank4ReduceFrom3D(FossumSSIsoT::con_ijkl());
+	fModulusContinuum2D *= fThickness;
+	return fModulusContinuum2D;
+}
+
+const dMatrixT& FossumSSIso2DT::con_perfplas_ijkl(void)
+{
+	/* 3D -> 2D */
+	fModulusContinuumPerfPlas2D.Rank4ReduceFrom3D(FossumSSIsoT::con_perfplas_ijkl());
+	fModulusContinuumPerfPlas2D *= fThickness;
+	return fModulusContinuumPerfPlas2D;
 }
 
 

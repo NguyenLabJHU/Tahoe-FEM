@@ -272,9 +272,9 @@ void FossumSSIsoT::OutputLabels(ArrayT<StringT>& labels) const
 	for (int i = 0; i < kNumOutput; i++) labels[i] = Labels[i];
 }
 
+
 void FossumSSIsoT::ComputeOutput(dArrayT& output)
 {
-
 	const ElementCardT& element = CurrentElement();
 	int i, ip = CurrIP();
 	LoadData(element, ip);
@@ -319,7 +319,7 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 		if (flags[CurrIP()] == kIsPlastic)
 		{
 			// check for localization
-			
+
 			// compute modulus 
 			// use consistent tangent
 			//const dMatrixT& modulus = c_ijkl();
@@ -385,7 +385,6 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 		output[16] = 0.0;
 		output[17] = 0.0;
 	}
-
 }
 
 
