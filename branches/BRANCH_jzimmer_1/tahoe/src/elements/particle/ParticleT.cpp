@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.35.8.1 2004-03-19 01:49:47 jzimmer Exp $ */
+/* $Id: ParticleT.cpp,v 1.35.8.2 2004-03-19 17:35:45 jzimmer Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -1033,10 +1033,27 @@ void ParticleT::Calc_Slip_and_Strain(int non, int num_s_vals,dArray2DT &s_values
   dMatrixT omega(ndof), eta(ndof), omegatemp(ndof), etatemp(ndof); 
   dMatrixT C_IJ(ndof), b_ij(ndof), F_iI(ndof), strain(ndof);
   dMatrixT etainverse(ndof), Id(ndof);
-  const double svtol =  0.5*NearestNeighborDistance/sqrt(3.0);
   int nslip;
-  double J;
+  double J, svtol;
 
+  /* set slip vector tolerance for either 1-D (chain), 
+   * 2-D (triangular lattice), or 3-D (FCC lattice) systems */
+  if (NumSD()==1)
+  {
+   svtol = 0.25*NearestNeighborDistance;
+  }
+  else if (NumSD()==2)
+  {
+   svtol = 0.5*NearestNeighborDistance;
+  }
+  else if (NumSD()==3)
+  {
+   svtol =  0.5*NearestNeighborDistance/sqrt(3.0);
+  }
+  else
+  {
+   throw eBadInputValue;
+  } 
   /* multi-processor information */
   CommManagerT& comm_manager = ElementSupport().CommManager();
   const ArrayT<int>* proc_map = comm_manager.ProcessorMap();
@@ -1045,20 +1062,12 @@ void ParticleT::Calc_Slip_and_Strain(int non, int num_s_vals,dArray2DT &s_values
   const dArray2DT& refcoords = ElementSupport().InitialCoordinates();
   const dArray2DT& coords = ElementSupport().CurrentCoordinates();
 
-  cout << RefNearestNeighbors.MajorDim() << endl;
-  cout << s_values.MajorDim() << endl;
   /* row of neighbor list */
   for (int i = 0; i < RefNearestNeighbors.MajorDim(); i++)
   {
-   cout << i << endl;
-   cout << RefNearestNeighbors.MinorDim(i) << endl;
    RefNearestNeighbors.RowAlias(i,neighbors);
-   cout << neighbors.Length() << endl;
    int tag_i = neighbors[0];
-   cout << tag_i << endl;
    int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
-
-   cout << i << "   " << tag_i << "    " << local_i << endl;
 
    eta = 0.0; omega = 0.0; strain = 0.0; slipvector = 0.0; nslip = 0;
    J = 1.0;
@@ -1143,7 +1152,6 @@ void ParticleT::Calc_Slip_and_Strain(int non, int num_s_vals,dArray2DT &s_values
    {
     s_values(local_i,valuep++) = slipvector[m];
    }
-   cout << i << "  " << J << endl; 
   } /* end of i loop */
  
 } 
