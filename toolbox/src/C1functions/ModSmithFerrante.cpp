@@ -1,4 +1,4 @@
-/* $Id: ModSmithFerrante.cpp,v 1.5 2003-11-21 22:41:27 paklein Exp $ */
+/* $Id: ModSmithFerrante.cpp,v 1.6 2004-04-27 07:22:19 paklein Exp $ */
 
 /* Smith Ferrante modified to have a linear branch */
 
@@ -8,18 +8,24 @@
 #include "ExceptionT.h"
 #include "dArrayT.h"
 
-/*
-* constructors
-*/
-
 using namespace Tahoe;
 
-ModSmithFerrante::ModSmithFerrante(double A, double B):
-	fA(A), fB(B) { }
+/* constructors */
+ModSmithFerrante::ModSmithFerrante(void):
+	fA(0.0),
+	fB(0.0) 
+{ 
+	SetName("modified_Smith-Ferrante");
+}
 
-/*
-* I/O
-*/
+ModSmithFerrante::ModSmithFerrante(double A, double B):
+	fA(A), 
+	fB(B) 
+{ 
+	SetName("modified_Smith-Ferrante");
+}
+
+/* I/O */
 void ModSmithFerrante::Print(ostream& out) const
 {
 	/* parameters */
@@ -33,9 +39,7 @@ void ModSmithFerrante::PrintName(ostream& out) const
 	out << "    Smith-Ferrante\n";
 }
 
-/*
-* Returning values
-*/
+/* returning values */
 double ModSmithFerrante::Function(double x) const
 {
 	return (x > 0) ? (-((fA*fB*(fB + (x)))/exp((x)/fB))) : 0.5*fA*x*x;
@@ -107,4 +111,22 @@ dArrayT& ModSmithFerrante::MapDDFunction(const dArrayT& in, dArrayT& out) const
 		*pddU++ = (x > 0) ? ((fA*(x))/exp((x)/fB)) : fA*x;
 	}
 	return(out);
+}
+
+/* describe the parameters needed by the interface */
+void ModSmithFerrante::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	C1FunctionT::DefineParameters(list);
+	list.AddParameter(fA, "a");
+	list.AddParameter(fB, "b");
+}
+
+/* accept parameter list */
+void ModSmithFerrante::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	C1FunctionT::TakeParameterList(list);
+	fA = list.GetParameter("a");
+	fB = list.GetParameter("b");
 }
