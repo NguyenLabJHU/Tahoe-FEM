@@ -1,10 +1,10 @@
-/* $Id: RodT.cpp,v 1.31 2004-05-11 17:33:37 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.32 2004-06-17 07:41:37 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
 #include <math.h>
-#include <iostream.h>
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "eIntegratorT.h"
 #include "OutputSetT.h"
 #include "dArray2DT.h"

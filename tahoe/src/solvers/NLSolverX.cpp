@@ -1,10 +1,12 @@
-/* $Id: NLSolverX.cpp,v 1.11 2004-01-05 07:07:19 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.12 2004-06-17 07:42:05 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
 #include <iostream.h>
 #include <math.h>
-#include "fstreamT.h"
+
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 #include "FEManagerT.h"

@@ -1,7 +1,8 @@
-/* $Id: UpLagr_ExternalFieldT.cpp,v 1.7 2002-10-20 22:48:23 paklein Exp $ */
+/* $Id: UpLagr_ExternalFieldT.cpp,v 1.8 2004-06-17 07:40:08 paklein Exp $ */
 #include "UpLagr_ExternalFieldT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "ExodusT.h"
 
 using namespace Tahoe;

@@ -1,9 +1,10 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.4 2003-12-28 08:23:20 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.5 2004-06-17 07:40:08 paklein Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */
 #ifdef COHESIVE_SURFACE_ELEMENT
 
+#include "ifstreamT.h"
 #include "CSEAnisoT.h"
 #include "AutoFill2DT.h"
 #include "TiedNodesT.h"

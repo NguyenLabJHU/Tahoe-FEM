@@ -1,5 +1,5 @@
 
-/* $Id: DPPrimitiveT.cpp,v 1.8 2004-03-20 23:38:19 raregue Exp $ */
+/* $Id: DPPrimitiveT.cpp,v 1.9 2004-06-17 07:41:07 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 /* Base class for Druker-Prager, nonassociative, small strain,        */
 /* pressure dependent plasticity model with linear isotropic hardening.*/
@@ -10,7 +10,7 @@
 #include <iostream.h>
 #include <math.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "dSymMatrixT.h"
 
 

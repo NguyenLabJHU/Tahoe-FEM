@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.5 2004-04-09 02:02:58 hspark Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.6 2004-06-17 07:40:19 paklein Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAMFCC3D.cpp                                                           */
 
@@ -6,7 +6,7 @@
 
 #include <iostream.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "dMatrixT.h"
 #include "StringT.h"
 

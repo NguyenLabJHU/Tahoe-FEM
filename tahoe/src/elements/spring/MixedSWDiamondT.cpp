@@ -1,4 +1,4 @@
-/* $Id: MixedSWDiamondT.cpp,v 1.4 2002-10-20 22:48:26 paklein Exp $ */
+/* $Id: MixedSWDiamondT.cpp,v 1.5 2004-06-17 07:41:37 paklein Exp $ */
 /* created: paklein (03/22/1997) */
 
 #include "MixedSWDiamondT.h"
@@ -7,7 +7,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "FindNeighbor23T.h"
 #include "ScheduleT.h"
 

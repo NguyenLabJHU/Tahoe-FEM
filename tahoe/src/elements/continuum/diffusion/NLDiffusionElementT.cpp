@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.4 2003-12-28 08:23:11 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.5 2004-06-17 07:39:59 paklein Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
@@ -7,7 +7,8 @@
 
 #include "toolboxConstants.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"
@@ -52,8 +53,8 @@ void NLDiffusionElementT::Initialize(void)
 	fField_list.Dimension(NumIP());
 	
 	/* echo mixed traction BC's */
-	ifstreamT& in = ElementSupport().Input();
-	ostream&  out = ElementSupport().Output();
+	ifstreamT&  in = ElementSupport().Input();
+	ofstreamT& out = ElementSupport().Output();
 	EchoTractionBC(in, out);
 }
 

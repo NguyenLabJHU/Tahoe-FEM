@@ -1,10 +1,10 @@
-/* $Id: VirtualSWDC.cpp,v 1.5 2002-10-20 22:48:26 paklein Exp $ */
+/* $Id: VirtualSWDC.cpp,v 1.6 2004-06-17 07:41:37 paklein Exp $ */
 /* created: paklein (05/05/1997) */
 #include "VirtualSWDC.h"
 
 #include <iomanip.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "toolboxConstants.h"
 
 /* fVNodePair decoding */

@@ -1,17 +1,15 @@
-/* $Id: IsotropicT.cpp,v 1.9 2003-08-16 01:31:48 rdorgan Exp $ */
-/* created: paklein (06/10/1997)                                          */
-
+/* $Id: IsotropicT.cpp,v 1.10 2004-06-17 07:41:14 paklein Exp $ */
+/* created: paklein (06/10/1997) */
 #include "IsotropicT.h"
 
 #include <iostream.h>
 
 #include "dMatrixT.h"
-#include "fstreamT.h"
-
-/* constructor */
+#include "ifstreamT.h"
 
 using namespace Tahoe;
 
+/* constructor */
 IsotropicT::IsotropicT(ifstreamT& in)
 {
 	double E, nu;

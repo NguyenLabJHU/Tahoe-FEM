@@ -1,4 +1,4 @@
-/* $Id: VIB.cpp,v 1.12 2004-05-11 20:09:41 paklein Exp $ */
+/* $Id: VIB.cpp,v 1.13 2004-06-17 07:40:37 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #include "VIB.h"
 
@@ -8,7 +8,7 @@
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "dSymMatrixT.h"
 
 /* potential functions */

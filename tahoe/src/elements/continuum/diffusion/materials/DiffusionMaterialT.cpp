@@ -1,10 +1,10 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.7 2003-12-10 07:14:28 paklein Exp $ */
+/* $Id: DiffusionMaterialT.cpp,v 1.8 2004-06-17 07:40:04 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
 
 #include "StringT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "dArrayT.h"
 #include "dSymMatrixT.h"
 
