@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.15 2003-09-25 20:40:19 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.16 2003-09-26 23:44:41 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -213,11 +213,11 @@ void APS_AssemblyT::Initialize(void)
 	
 	//fgrad_u.FEA_Dimension 			( fNumIP, n_sd );
 	dum=1;
-	fgrad_u.FEA_Dimension 			( fNumIP, dum, n_sd );
+	fgrad_u.FEA_Dimension 			( fNumIP, n_sd, dum );
 	fgamma_p.FEA_Dimension 			( fNumIP, n_sd );
 	fgrad_gamma_p.FEA_Dimension 	( fNumIP, n_sd,n_sd );
 	//fgrad_u_n.FEA_Dimension 		( fNumIP, n_sd );
-	fgrad_u_n.FEA_Dimension 		( fNumIP, dum, n_sd );
+	fgrad_u_n.FEA_Dimension 		( fNumIP, n_sd, dum );
 	fgamma_p_n.FEA_Dimension 		( fNumIP, n_sd );
 	fgrad_gamma_p_n.FEA_Dimension 	( fNumIP, n_sd,n_sd );
 

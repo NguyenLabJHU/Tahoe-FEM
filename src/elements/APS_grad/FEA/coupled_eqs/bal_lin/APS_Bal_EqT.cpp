@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.10 2003-09-26 00:31:12 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.11 2003-09-26 23:44:43 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -87,7 +87,8 @@ void APS_Bal_EqT::Form_B_List (void)
 		B_d.Construct 	( kNUM_B_d_TERMS, n_ip, n_sd, n_en);
 		B_eps.Construct ( kNUM_B_eps_TERMS, n_ip, n_sd, n_sd_x_n_en);
 		int dum=1;
-		B_gradu.Construct ( kNUM_B_gradu_TERMS, n_ip, n_sd, dum);		
+		B_gradu.Construct ( kNUM_B_gradu_TERMS, n_ip, n_sd, dum);
+		//B_gradu.Construct ( kNUM_B_gradu_TERMS, n_ip, dum, n_sd);		
 		
 		Data_Pro.APS_B(B_d[kB]);
  		Data_Pro.APS_Ngamma(B_eps[kBgamma]);
