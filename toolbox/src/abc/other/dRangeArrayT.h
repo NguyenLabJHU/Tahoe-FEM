@@ -1,9 +1,5 @@
-/* $Id: dRangeArrayT.h,v 1.1.1.1 2001-01-25 20:56:24 paklein Exp $ */
-/* created: paklein (12/02/1996)                                          */
-/* dRangeArrayT.h                                                         */
-/* Must set the knot values with the constructor.  This class             */
-/* does not have all the behavior of a dArrayT.  The inheritance          */
-/* is PRIVATE.                                                            */
+/* $Id: dRangeArrayT.h,v 1.2 2001-07-14 01:21:04 paklein Exp $ */
+/* created: paklein (12/02/1996) */
 
 #ifndef _DRANGEARRAY_T_H_
 #define _DRANGEARRAY_T_H_
@@ -14,19 +10,25 @@
 /* forward declarations */
 class dArray2DT;
 
+/** Class to identify the interval numbers in a list of floating
+ * point numbers. Values defining the intervals must be provided
+ * in ascending order. */
 class dRangeArrayT: private dArrayT
 {
 public:
 
 	/* constructor */
+	dRangeArrayT(void);
 	dRangeArrayT(const dArrayT& values);
 	dRangeArrayT(int colnum, const dArray2DT& values2D);
 
-	/* I/O operators */
+	/** output operator */
 	friend ostream& operator<<(ostream& out, const dRangeArrayT& array);
-	    	
-	/*
-	 * Return the range for the given value - the Range will is
+
+	/** set values. \param values array of points defining subintervals */
+	void SetValues(const dArrayT& values);
+
+	/** find the interval containing the given value. The Range is
 	 * an integer { 0...Length() }, where 0 means the value is less
 	 * than the first array value, Length() means it's greater than
 	 * the last, and in general:
@@ -36,15 +38,15 @@ public:
 	 */
 	int Range(double value) const;
 	
-	/* still allow length checks */
+	/** length of the array */
 	int Length(void) const;
 	
-	/* make element accessor public */
+	/** make element accessor public */
 	dArrayT::operator[];
 	
 private:
 	
-	/* returns 1 if the data is in ascending order */
+	/** returns 1 if the data is in ascending order */
 	int IsSequential(void) const;
 	
 };

@@ -1,15 +1,15 @@
-/* $Id: dRangeArrayT.cpp,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
-/* created: paklein (12/02/1996)                                          */
-/* dRangeArrayT.cpp                                                       */
+/* $Id: dRangeArrayT.cpp,v 1.2 2001-07-14 01:21:04 paklein Exp $ */
+/* created: paklein (12/02/1996) */
 
 #include "dRangeArrayT.h"
 #include "dArray2DT.h"
 
 /* constructor */
+dRangeArrayT::dRangeArrayT(void) { }
+
 dRangeArrayT::dRangeArrayT(const dArrayT& values)
 {
-	dArrayT::operator=(values);
-	if ( !IsSequential()) throw eGeneralFail;
+	SetValues(values);
 }
 
 dRangeArrayT::dRangeArrayT(int colnum, const dArray2DT& values2D)
@@ -19,6 +19,13 @@ dRangeArrayT::dRangeArrayT(int colnum, const dArray2DT& values2D)
 	
 	/* copy values */
 	values2D.ColumnCopy(colnum,*this);
+
+	/* check */
+	if (!IsSequential())
+	{
+		cout << "\n dRangeArrayT::dRangeArrayT: array values must be sorted in ascending order" << endl;
+		throw eGeneralFail;
+	}
 }
 
 /* I/O operators */
@@ -27,6 +34,17 @@ ostream& operator<<(ostream& out, const dRangeArrayT& array)
 	/* inherited */
 	const dArrayT& temp = array;
 	return (out << temp);
+}
+
+/* set values */
+void dRangeArrayT::SetValues(const dArrayT& values)
+{
+	dArrayT::operator=(values);
+	if (!IsSequential())
+	{
+		cout << "\n dRangeArrayT::SetValues: array values must be sorted in ascending order" << endl;
+		throw eGeneralFail;
+	}
 }
 
 /*
