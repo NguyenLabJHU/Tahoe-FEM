@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.4 2002-08-21 08:32:40 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.5 2002-09-30 23:49:02 cjkimme Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -183,7 +183,6 @@ void FieldT::InitStep(void)
 	{
 		/* cards */
 		const ArrayT<KBC_CardT>& cards = fKBC_Controllers[j]->KBC_Cards();
-
 		/* apply KBC cards */
 		for (int i = 0; i < cards.Length(); i++)
 			fnController.ConsistentKBC(*this, cards[i]);
@@ -296,11 +295,11 @@ void FieldT::InitEquations(iArray2DT& eqnos)
 	/* use the allocated space */
 	eqnos.Alias(fEqnos);
 	fEqnos = FieldT::kInit;
-
+	
 	/* mark KBC nodes */
 	for (int j = 0; j < fKBC.Length(); j++)
 		SetBCCode(fKBC[j]);
-
+	
 	/* mark nodes used by KBC controllers */
 	for (int j = 0; j < fKBC_Controllers.Length(); j++)
 	{
@@ -321,6 +320,9 @@ void FieldT::SetEquations(iArray2DT& eqnos, int num_active)
 
 	/* trust this is correct */
 	fNumActiveEquations = num_active;
+
+	for (int j = 0; j < fKBC_Controllers.Length(); j++)
+	  fKBC_Controllers[j]->SetEquations();
 }
 
 /* dimension storage and mark equation numbers for external nodes */
