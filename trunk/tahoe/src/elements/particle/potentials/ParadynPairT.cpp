@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.cpp,v 1.3 2002-12-04 18:55:30 paklein Exp $ */
+/* $Id: ParadynPairT.cpp,v 1.4 2002-12-05 07:07:45 paklein Exp $ */
 #include "ParadynPairT.h"
 #include "toolboxConstants.h"
 #include "ifstreamT.h"
@@ -147,6 +147,8 @@ double ParadynPairT::Force(double r_ab, double* data_a, double* data_b)
 #pragma unused(data_a)
 #pragma unused(data_b)
 
+	return ParadynT::evalForce(r_ab, s_coeff, s_1bydr, s_nr, knum_coeff);
+#if 0
 	double pp = r_ab*s_1bydr + 1.0;
 	int kk = int(pp);
 	kk = Min(kk, s_nr-2);
@@ -154,6 +156,7 @@ double ParadynPairT::Force(double r_ab, double* data_a, double* data_b)
 	pp = Min(pp, 1.0);
 	double* c = s_coeff + kk*knum_coeff;
 	return c[4] + pp*(c[5] + pp*c[6]);
+#endif
 }
 
 double ParadynPairT::Stiffness(double r_ab, double* data_a, double* data_b)
@@ -168,49 +171,4 @@ double ParadynPairT::Stiffness(double r_ab, double* data_a, double* data_b)
 	pp = Min(pp, 1.0);
 	double* c = s_coeff + kk*knum_coeff;
 	return c[7] + pp*c[8];
-}
-
-/* compute the coefficients */
-void ParadynPairT::ComputeCoefficients(const ArrayT<double>& f, double dx, dArray2DT& coeff)
-{
-	int nrar = f.Length();
-	
-	/* dimension */
-	coeff.Dimension(nrar, knum_coeff);
-
-	/* copy in function value */
-	for (int j = 0; j < nrar; j++)
-		coeff(j,0) = f[j];
-
-	/* set function derivative at endpoints */
-	coeff(0,1) = coeff(1,0) - coeff(0,0);
-	coeff(1,1) = 0.5*(coeff(2,0) - coeff(0,0));
-	coeff(nrar-2,1) = 0.5*(coeff(nrar-1,0) - coeff(nrar-3,0));
-	coeff(nrar-1,1) = 0.0;
-
-	/* derivative approximation through the middle */
-	for (int j = 2; j < nrar-2; j++)
-		coeff(j,1) = ((coeff(j-2,0) - coeff(j+2,0)) + 8.0*(coeff(j+1,0) - coeff(j-1,0)))/12.0;
-
-	/* higher order coefficients */
-	for (int j = 0; j < nrar-1; j++)
-	{
-		coeff(j,2) = 3.0*(coeff(j+1,0) - coeff(j,0)) - 2.0*coeff(j,1) - coeff(j+1,1);
-		coeff(j,3) = coeff(j,1) + coeff(j+1,1) - 2.0*(coeff(j+1,0) - coeff(j,0));
-	}
-	coeff(nrar-1,2) = 0.0;
-	coeff(nrar-1,3) = 0.0;
-    
-    /* coefficients for derivatives */
-	for (int j = 0; j < nrar; j++)
-	{
-		/* for first derivative */
-		coeff(j,4) = coeff(j,1)/dx;
-		coeff(j,5) = 2.0*coeff(j,2)/dx;
-		coeff(j,6) = 3.0*coeff(j,3)/dx;
-
-		/* for second derivatives */
-		coeff(j,7) = coeff(j,5)/dx;
-		coeff(j,8) = 2.0*coeff(j,6)/dx;
-	}
 }
