@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.h,v 1.2.8.1 2004-07-08 07:50:16 paklein Exp $ */
+/* $Id: EAM_particle.h,v 1.2.8.2 2004-07-08 16:11:52 paklein Exp $ */
 /* created: hspark(02/25/2004) */
 #ifndef _EAM_PARTICLE_H_
 #define _EAM_PARTICLE_H_
@@ -23,13 +23,13 @@ class EAM_particle
 public:
 
 	/* constructor */
-	EAM_particle(CBLatticeT& lattice);
+	EAM_particle(CBLatticeT& lattice, const StringT& param_file);
 
 	/* destructor */
 	virtual ~EAM_particle(void);
 
 	/** set "glue" functions and dimension work space */
-	void Initialize(int nsd, int numbonds, const StringT& param_file);
+	void Initialize(int nsd, int numbonds);
 
 	/* compute unit strain energy density:
 	 *
@@ -50,7 +50,7 @@ public:
 	void ComputeUnitModuli(dMatrixT& moduli); 	    	
 
 	/* unstressed lattice parameter */
-	virtual double LatticeParameter(void) const;
+	double LatticeParameter(void) const { return fLatticeParameter; };
 
 	/* compute the total electron density - moved public by HSP 3/5/04 */
 	double TotalElectronDensity(void);

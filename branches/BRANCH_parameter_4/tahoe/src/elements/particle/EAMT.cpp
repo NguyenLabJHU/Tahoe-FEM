@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.61.2.3 2004-07-07 21:50:44 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.61.2.4 2004-07-08 16:11:53 paklein Exp $ */
 #include "EAMT.h"
 
 #include "ofstreamT.h"
@@ -912,7 +912,7 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 EAMPropertyT* EAMT::New_EAMProperty(const StringT& name, bool throw_on_fail) const
 {
 	if (name == "Paradyn_EAM")
-		return new ParadynEAMT(ElementSupport());
+		return new ParadynEAMT;
 	else if (throw_on_fail) 
 		ExceptionT::GeneralFail("EAMT::New_EAMProperty",
 			"unrecognized potential \"%s\"", name.Pointer());

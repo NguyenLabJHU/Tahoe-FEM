@@ -1,10 +1,9 @@
-/* $Id: ParadynEAMT.cpp,v 1.9.8.2 2004-07-07 15:28:35 paklein Exp $ */
+/* $Id: ParadynEAMT.cpp,v 1.9.8.3 2004-07-08 16:11:54 paklein Exp $ */
 #include "ParadynEAMT.h"
 
 #include "ifstreamT.h"
 #include "dArrayT.h"
 #include "AutoArrayT.h"
-#include "BasicSupportT.h"
 
 using namespace Tahoe;
 
@@ -27,8 +26,7 @@ double* ParadynEAMT::s_ElecDenscoeff = NULL;
 const int knum_coeff = 9;
 
 /* constructor */
-ParadynEAMT::ParadynEAMT(const BasicSupportT& support, const StringT& param_file):
-	fSupport(support),
+ParadynEAMT::ParadynEAMT(const StringT& param_file):
 	f_cut(0.0)
 {
 	SetName("Paradyn_EAM");
@@ -37,8 +35,7 @@ ParadynEAMT::ParadynEAMT(const BasicSupportT& support, const StringT& param_file
 	ReadParameters(param_file);
 }
 
-ParadynEAMT::ParadynEAMT(const BasicSupportT& support):
-	fSupport(support),
+ParadynEAMT::ParadynEAMT(void):
 	f_cut(0.0)
 {
 	SetName("Paradyn_EAM");
@@ -195,9 +192,7 @@ void ParadynEAMT::TakeParameterList(const ParameterListT& list)
 	file.ToNativePathName();
 	
 	/* prepend path from input file */
-	StringT path;
-	path.FilePath(fSupport.Input().filename());	
-	file.Prepend(path);
+	file.Prepend(fstreamT::Root());
 
 	/* read parameters */
 	ReadParameters(file);
