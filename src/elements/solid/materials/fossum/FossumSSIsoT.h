@@ -102,6 +102,7 @@ protected:
 
 	/* moduli */
 	virtual const dMatrixT& c_ijkl(void);
+	virtual const dMatrixT& ce_ijkl(void);
 	virtual const dMatrixT& con_ijkl(void);
 	virtual const dMatrixT& c_perfplas_ijkl(void);
 	virtual const dMatrixT& con_perfplas_ijkl(void);
@@ -125,12 +126,11 @@ protected:
 
 	/*
 	* Test for localization using "current" values for Cauchy
-	* stress and the spatial tangent moduli. Returns 1 if the
+	* stress and the spatial tangent moduli. Returns true if the
 	* determinant of the acoustic tensor is negative and returns
-	* the normal for which the determinant is minimum. Returns 0
-	* of the determinant is positive.
+	* the normals and slipdirs. Returns false if the determinant is positive.
 	*/
-	int IsLocalized(dArrayT& normal);
+	bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
 
 protected:
 

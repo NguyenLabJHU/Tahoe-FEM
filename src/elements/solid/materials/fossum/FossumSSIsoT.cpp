@@ -288,6 +288,13 @@ void FossumSSIsoT::ResetHistory(void)
 	if (element.IsAllocated()) Reset(element);
 }
 
+/* elastic modulus */
+const dMatrixT& FossumSSIsoT::ce_ijkl(void)
+{
+	fModulusCe = HookeanMatT::Modulus();
+	return fModulusCe;
+}
+
 /* continuum modulus */
 const dMatrixT& FossumSSIsoT::con_ijkl(void)
 {
@@ -306,20 +313,27 @@ const dMatrixT& FossumSSIsoT::con_perfplas_ijkl(void)
 
 /*
 * Test for localization using "current" values for Cauchy
-* stress and the spatial tangent moduli. Returns 1 if the
+* stress and the spatial tangent moduli. Returns true if the
 * determinant of the acoustic tensor is negative and returns
-* the normal for which the determinant is minimum. Returns 0
-* of the determinant is positive.
+* the normals and slipdirs. Returns false if the determinant is positive.
 */
-
-int FossumSSIsoT::IsLocalized(dArrayT& normal)
+bool FossumSSIsoT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
 {
-	DetCheckT checker(fStress, fModulus, fModulusCe);
-	//checker.SetElementGroup(ContinuumElement());
-	checker.SetfStructuralMatSupport(*fSSMatSupport);
+	/* stress tensor */
+	const dSymMatrixT& stress = s_ij();
+			
+	/* elasto-plastic tangent modulus */
+	const dMatrixT& modulus = con_perfplas_ijkl();
+	//const dMatrixT& modulus = c_ijkl();
+	
+	/* elastic modulus */
+	const dMatrixT& modulus_e = ce_ijkl();
 
-	int loccheck = checker.IsLocalized(normal);
-	return loccheck;
+	/* localization condition checker */
+	DetCheckT checker(stress, modulus, modulus_e);
+	normals.Dimension(NumSD());
+	slipdirs.Dimension(NumSD());
+	return checker.IsLocalized_SS(normals,slipdirs);
 }
 
 
