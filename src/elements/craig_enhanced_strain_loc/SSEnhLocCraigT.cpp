@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.5 2005-02-25 03:22:40 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.6 2005-03-04 04:14:12 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -67,7 +67,68 @@ void SSEnhLocCraigT::DefineSubs(SubListT& sub_list) const
 void SSEnhLocCraigT::TakeParameterList(const ParameterListT& list)
 {
 	
-	SmallStrainT::TakeParameterList(list);
+
+
+  SmallStrainT::TakeParameterList(list);
+
+#if 0
+  const char caller[] = "SmallStrainT::TakeParameterList";
+
+  /* strain displacement option before calling SolidElementT::TakeParameterList */
+  int b = list.GetParameter("strain_displacement");
+  fStrainDispOpt = (b == kStandardB) ? kStandardB : kMeanDilBbar;
+
+  /* inherited */
+  SolidElementT::TakeParameterList(list);
+    
+  /* dimension workspace */
+  fGradU.Dimension(NumSD());        
+  if (fStrainDispOpt == kMeanDilBbar) {
+    fLocDispTranspose.Dimension(fLocDisp.Length());
+    fMeanGradient.Dimension(NumSD(), NumElementNodes());
+  }        
+
+  /* offset to class needs flags */
+  fNeedsOffset = fMaterialNeeds[0].Length();
+  
+  /* set material needs */
+  for (int i = 0; i < fMaterialNeeds.Length(); i++)
+    {
+      /* needs array */
+      ArrayT<bool>& needs = fMaterialNeeds[i];
+      
+      /* resize array */
+      needs.Resize(needs.Length() + 2, true);
+      
+      /* casts are safe since class contructs materials list */
+      ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
+      SSSolidMatT* mat = (SSSolidMatT*) pcont_mat;
+      
+      /* collect needs */
+      needs[fNeedsOffset + kstrain     ] = true;
+      needs[fNeedsOffset + kstrain_last] = true;
+    }
+
+  /* what's needed */
+  bool need_strain = true;
+  bool need_strain_last = true;
+  for (int i = 0; i < fMaterialNeeds.Length(); i++) {
+    const ArrayT<bool>& needs = fMaterialNeeds[i];
+    need_strain = need_strain || needs[fNeedsOffset + kstrain];
+    need_strain_last = need_strain_last || needs[fNeedsOffset + kstrain_last];
+  }
+
+    /* allocate strain list - necessary for this element*/
+    fStrain_List.Dimension(NumIP());
+    for (int i = 0; i < NumIP(); i++)
+      fStrain_List[i].Dimension(NumSD());
+    
+
+    /* allocate "last" strain list */
+    fStrain_last_List.Dimension(NumIP());
+    for (int i = 0; i < NumIP(); i++)
+      fStrain_last_List[i].Dimension(NumSD());
+#endif
 
 	/*PARAMETERS FOR ENHANCED STRAIN*/
 	fH_Delta = list.GetParameter("Post-Localization_softening_parameter_H_Delta"); 
@@ -120,9 +181,6 @@ void SSEnhLocCraigT::FormKd(double constK)
   if(!isLocalized)
     SmallStrainT::FormKd(constK);
 
-    //cout << "fRHS =\n" << fRHS <<endl;
-
-#if 1
     if(isLocalized)
       {
 	const double* Det    = fShapes->IPDets();
@@ -157,9 +215,6 @@ void SSEnhLocCraigT::FormKd(double constK)
 	      fElementHeat[fShapes->CurrIP()] += fCurrMaterial->IncrementalHeat();
 	  }     
       }
-
-#endif
-
 }
 
 /* form the element stiffness matrix */
@@ -175,14 +230,11 @@ void SSEnhLocCraigT::FormStiffness(double constK)
     /* form stiffness in standard way */
     SmallStrainT::FormStiffness(constK);
 
-      /* check for localization */
-    
+      /* check for localization */    
     if (IsElementLocalized())
       isLocalizedTemp = true;
     else
       isLocalizedTemp = false;
-    
-
     }
   else //if already localized, use localized stiffness routine
     {
@@ -206,8 +258,7 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 	k_zeta_d = 0.0;
 
 	dSymMatrixT gradActiveTensorFlowDir(ndof), dGdSigma(ndof);
-	dMatrixT fLHSWork(nedof),// fDfB((HookeanMatT::Modulus().Rows()),nedof);
-	  fDfB((fInitialModulus.Rows()),nedof);
+	dMatrixT fLHSWork(nedof),fDfB((fInitialModulus.Rows()),nedof);
 
 	dGdSigma = FormdGdSigma(ndof);
 
@@ -225,12 +276,7 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 			Set_B(fShapes->Derivatives_U(), fB);
 
 		/* get D matrix */
-		//fD.SetToScaled(scale, HookeanMatT::Modulus());
 		fD.SetToScaled(scale, fInitialModulus);
-
-		//cout << "fLHS =\n" << fLHS << endl;		
-		//cout << "fD =\n" << fD << endl;
-		cout << "fB =\n" << fB << endl;
 
 		/* multiply b(transpose) * db, taking account of symmetry, */
 		/* and accumulate in elstif */
@@ -247,22 +293,18 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 		//fDfB.MultTx(gradActiveTensorFlowDir, k_d_zeta_work,::dMatrixT::kOverwrite);
 		fDfB.MultTx(gradActiveTensorFlowDir, k_d_zeta_work);
 		k_d_zeta += k_d_zeta_work;
-		cout << "k_d_zeta =\n" << k_d_zeta << endl;
+		//cout << "k_d_zeta =\n" << k_d_zeta << endl;
 
 		//form k_zeta_d
 		//fDfB.MultTx(dGdSigma, k_zeta_d_work, dMatrixT::kOverwrite);
 		fDfB.MultTx(dGdSigma, k_zeta_d_work);
 		k_zeta_d += k_zeta_d_work;
-		cout << "k_zeta_d =\n" << k_zeta_d << endl;
+		//cout << "k_zeta_d =\n" << k_zeta_d << endl;
 
 		//form k_zeta_zeta
 		k_zeta_zeta +=
 		fD.MultmBn(dGdSigma,gradActiveTensorFlowDir);
-		cout << "k_zeta_zeta =\n" << k_zeta_zeta << endl;
 	}
-
-	cout << "fLHS =\n" << fLHS << endl;
-	//cout << "area =" << area << endl;
 
 	k_d_zeta *= 1.0/area;
 
@@ -270,11 +312,8 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 	k_zeta_zeta += fH_Delta;
 	//k_zeta_zeta *= -1.0;
 
-
-
 	fLHS.Outer(k_d_zeta, k_zeta_d, -1.0/k_zeta_zeta, dMatrixT::kAccumulate);
-	//cout << "fLHS =\n" << fLHS << endl;
-    }
+	  }
 }
 
 /* compute the measures of strain/deformation over the element */
@@ -619,7 +658,7 @@ bool SSEnhLocCraigT::IsElementLocalized()
       
       /*is this necessary? */
       checker.SetfStructuralMatSupport(*fSSMatSupport);
-      if (checker.IsLocalized_SS(normals, slipDirs, detA))
+      if (fCurrMaterial->IsLocalized(normals, slipDirs, detA))
 	{
 	  locCheck = true;
 	  if (detA < detAMin)
