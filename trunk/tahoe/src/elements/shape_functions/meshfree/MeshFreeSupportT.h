@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.h,v 1.4 2001-07-06 18:58:25 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.5 2001-07-06 19:30:19 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #ifndef _MF_SUPPORT_T_H_
@@ -124,6 +124,7 @@ protected:
 	/* generate lists of all nodes that fall within Dmax of the
 	 * nodal coords (self included) */
 	void SetNodeNeighborData(const dArray2DT& coords);
+	void SetNodeNeighborData_2(const dArray2DT& coords);
 
 	/* generate lists of all nodes that fall within Dmax of the
 	 * element integration points */
