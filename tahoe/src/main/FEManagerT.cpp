@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.25 2002-01-27 18:51:08 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.26 2002-02-07 23:29:33 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -527,6 +527,12 @@ void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values,
 
 int FEManagerT::RegisterOutput(const OutputSetT& output_set)
 {
+	/* check */
+	if (!fIOManager) {
+		cout << "\n FEManagerT::RegisterOutput: I/O manager not yet initialized" << endl;
+		throw eGeneralFail;
+	}
+
 	int ID = fIOManager->AddElementSet(output_set);
 	if (Size() > 1 && Rank() == 0)
 	{
@@ -568,17 +574,35 @@ void FEManagerT::WriteGeometryFile(const StringT& file_name,
 
 const OutputSetT& FEManagerT::OutputSet(int ID) const
 {
+	/* check */
+	if (!fIOManager) {
+		cout << "\n FEManagerT::OutputSet: I/O manager not yet initialized" << endl;
+		throw eGeneralFail;
+	}
+
 	return fIOManager->OutputSet(ID);
 }
 
 /* (temporarily) direct output away from main out */
 void FEManagerT::DivertOutput(const StringT& outfile)
 {
+	/* check */
+	if (!fIOManager) {
+		cout << "\n FEManagerT::DivertOutput: I/O manager not yet initialized" << endl;
+		throw eGeneralFail;
+	}
+
 	fIOManager->DivertOutput(outfile);
 }
 
 void FEManagerT::RestoreOutput(void)
 {
+	/* check */
+	if (!fIOManager) {
+		cout << "\n FEManagerT::RestoreOutput: I/O manager not yet initialized" << endl;
+		throw eGeneralFail;
+	}
+
 	fIOManager->RestoreOutput();
 }
 
