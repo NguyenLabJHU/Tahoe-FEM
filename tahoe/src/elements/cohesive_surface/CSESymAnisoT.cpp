@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.1 2003-10-20 23:31:07 cjkimme Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.2 2003-10-21 21:39:39 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -247,7 +247,7 @@ void CSESymAnisoT::LHSDriver(GlobalT::SystemTypeT)
 			{
 				fdelta[0] = 0.;
 				fdelta[1] = 0.;
-				fdelta[2] = 1.;
+				fdelta[2] *= 2.;
 			}
 					
 			
@@ -453,7 +453,7 @@ void CSESymAnisoT::RHSDriver(void)
 				{
 					fdelta[0] = 0.;
 					fdelta[1] = 0.;
-					fdelta[2] = 1.;
+					fdelta[2] *= 2.;
 				}
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_					
@@ -693,7 +693,7 @@ void CSESymAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				{
 					fdelta[0] = 0.;
 					fdelta[1] = 0.;
-					fdelta[2] = 1.;
+					fdelta[2] *= 2.;
 				}
 				
 				/* gap */				
@@ -827,7 +827,6 @@ void CSESymAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 void CSESymAnisoT::ReadConnectivity(ifstreamT& in, ostream& out)
 {
-#pragma unused(out)
 #else
 void CSESymAnisoT::ReadConnectivity(void)
 {
@@ -900,12 +899,19 @@ void CSESymAnisoT::ReadConnectivity(void)
 	    /* load connectivity from database into model manager */
 //	    model.ReadConnectivity(sideSet_ID[b]);
 #endif
+		/* Make a new ID that's the last element group in the database */
+		StringT new_id;
+		new_id.Append(model.NumElementGroups()+1);
 
+		if (!model.RegisterElementGroup(new_id, faces, ssArray[b], false))
+		{
+			ExceptionT::GeneralFail("CSESymAnisoT::ReadConnectivities","Cannot register element group\n");
+		}
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+		out << " Creating block ID "<< new_id << " for this element group\n";
+#endif
 	    /* set pointer to connectivity list */
-	    fConnectivities[b] = new const iArray2DT;
-	    iArray2DT* ncf = const_cast <iArray2DT*> (fConnectivities[b]);
-	    ncf->Allocate(faces.MajorDim(), faces.MinorDim());
-	    ncf->CopyIn(0, faces);
+	    fConnectivities[b] = model.ElementGroupPointer(new_id);
 	}
 
 	/* connectivities came back empty */
@@ -959,7 +965,7 @@ void CSESymAnisoT::CurrElementInfo(ostream& out) const
 		{
 			delta_temp[0] = 0.;
 			delta_temp[1] = 0.;
-			delta_temp[2] = 1.;
+			delta_temp[2] *= 2.;
 		}
 		
 		out << delta_temp << '\n';	
