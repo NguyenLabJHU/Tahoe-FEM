@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.97 2004-07-27 20:08:50 raregue Exp $ */
+/* $Id: ElementListT.cpp,v 1.98 2004-07-29 00:24:37 raregue Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -303,14 +303,16 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 #ifdef MULTISCALE_APS_V_DEV
 		sub_lists.AddSub("antiplane_shear_grad_plast_V");
 #endif
+*/
 
+/*
 #ifdef MESHFREE_GRAD_PLAST_DEV
 		sub_lists.AddSub("meshfree_grad_plast");
 #endif
 */
 
 #ifdef ENHANCED_STRAIN_LOC_DEV
-		sub_lists.AddSub("ss_enhanced_strain_loc");
+		sub_lists.AddSub("small_strain_enh_loc");
 #endif
 
 	}
@@ -475,19 +477,21 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 	else if (name == "antiplane_shear_grad_plast_V")
 		return new APS_V_AssemblyT(fSupport);
 #endif
+*/
 
+/*
 #ifdef MESHFREE_GRAD_PLAST_DEV
 	else if (name == "meshfree_grad_plast")
 		return new MFGP_AssemblyT(fSupport);
 #endif
 */
 
-/*
+
 #ifdef ENHANCED_STRAIN_LOC_DEV
-	else if (name == "ss_enhanced_strain_loc")
+	else if (name == "small_strain_enh_loc")
 		return new SmallStrainEnhLocT(fSupport);
 #endif
-*/
+
 
 	/* default */	
 	else
