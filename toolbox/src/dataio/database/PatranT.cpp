@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.19 2003-03-12 21:13:16 sawimme Exp $ */
+/* $Id: PatranT.cpp,v 1.20 2003-03-31 22:53:50 paklein Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -506,6 +506,7 @@ bool PatranT::WriteHeader (ostream& out, int numnodes, int numelems, const Strin
 
 bool PatranT::WriteCoordinates (ostream& out, const dArray2DT& coords, int firstnodeID) const
 {
+#pragma unused(out)
   iArrayT map (coords.MajorDim());
   map.SetValueToPosition ();
   map += firstnodeID;
@@ -552,6 +553,8 @@ bool PatranT::WriteCoordinates (ostream& out, const dArray2DT& coords, const iAr
 
 bool PatranT::WriteElements (ostream& out, const iArray2DT& elems, const ArrayT<PatranT::ElementTypes>& elemtypes, int firstelemID) const
 {
+#pragma unused(out)
+#pragma unused(elemtypes)
   iArrayT map (elems.MajorDim());
   map.SetValueToPosition ();
   map += firstelemID;
