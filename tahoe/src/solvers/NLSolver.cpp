@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.6 2001-06-04 22:48:09 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.7 2001-06-12 22:12:52 paklein Exp $ */
 /* created: paklein (07/09/1996)                                          */
 
 #include "NLSolver.h"
@@ -348,8 +348,9 @@ NLSolver::IterationStatusT NLSolver::ExitIteration(double error)
 	{
 		int d_width = cout.precision() + kDoubleExtra;
 		double relerror = error/fError0;
-		if (fVerbose) cout << setw(kIntWidth) << fNumIteration
-		                   << setw(d_width)   << relerror << endl;
+		if (fVerbose) cout << setw(kIntWidth) << fNumIteration 
+		                   << ": Relative error = "
+		                   << setw(d_width) << relerror << endl;
 
 		/* diverging solution */	
 		if (relerror > fDivTolerance)
