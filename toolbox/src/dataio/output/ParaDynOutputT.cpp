@@ -96,6 +96,7 @@ void ParaDynOutputT::WriteCoordinates (ostream& geo, ParaDynT& par,
   for (int i=0; i < nodes.Length(); i++)
     local.SetRow (i, (*fCoordinates)(nodes[i]));
 
+  
   iArrayT tmp (fTypes->Length());
   for (int i=0; i < fTypes->Length(); i++)
     tmp[i] = (*fTypes)[i];
