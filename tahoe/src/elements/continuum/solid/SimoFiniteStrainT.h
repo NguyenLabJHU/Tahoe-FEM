@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.h,v 1.9 2001-09-06 08:49:09 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.h,v 1.10 2001-09-15 01:16:39 paklein Exp $ */
 
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
@@ -105,6 +105,10 @@ protected:
 
 	/** calculate the internal force contribution ("-k*d") */
 	virtual void FormKd(double constK);
+
+	/** write all current element information to the stream. used to generate
+	 * debugging information after runtime errors */
+	virtual void CurrElementInfo(ostream& out) const;
 
 private:
 
