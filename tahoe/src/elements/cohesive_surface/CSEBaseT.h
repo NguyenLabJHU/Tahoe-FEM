@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.18 2004-01-05 07:34:30 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.18.2.1 2004-03-16 19:33:57 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -94,6 +94,19 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 	
 protected:
@@ -150,8 +163,8 @@ protected:
 	/* parameters */
 	GeometryT::CodeT fGeometryCode;
 	int fNumIntPts;
-	int fCloseSurfaces;
-	int fOutputArea;
+	bool fCloseSurfaces;
+	bool fOutputArea;
 
 	/* output control */
 	int fOutputID;

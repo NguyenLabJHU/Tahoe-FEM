@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.30 2004-01-05 07:34:30 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.30.2.1 2004-03-16 19:33:57 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -18,7 +18,24 @@ using namespace Tahoe;
 
 /* initialize static data */
 const int CSEBaseT::NumNodalOutputCodes = 5;
+static const char* NodalOutputNames[] = {
+	"coordinates",
+	"displacements",
+	"stress",
+	"principal_stress",
+	"strain_energy_density",
+	"wave_speeds",
+	"material_output"};
+
 const int CSEBaseT::NumElementOutputCodes = 3;
+static const char* ElementOutputNames[] = {
+	"centroid",
+	"mass",
+	"strain_energy",
+	"kinetic_energy",
+	"linear_momentum",
+	"stress",
+	"material_output"};
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
@@ -488,6 +505,86 @@ void CSEBaseT::DefineParameters(ParameterListT& list) const
 	ParameterT output_area(ParameterT::Boolean, "output_area");
 	output_area.SetDefault(false);
 	list.AddParameter(output_area);
+}
+
+/* information about subordinate parameter lists */
+void CSEBaseT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ElementBaseT::DefineSubs(sub_list);
+
+	/* geometry and integration rule (inline) */
+	sub_list.AddSub("surface_geometry", ParameterListT::Once, true);
+
+	/* nodal output codes (optional) */
+	sub_list.AddSub("surface_element_nodal_output", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("surface_element_element_output", ParameterListT::ZeroOrOnce);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void CSEBaseT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order,
+	SubListT& sub_sub_list) const
+{
+	if (sub == "surface_geometry")
+	{
+		/* choice */
+		order = ParameterListT::Choice;
+
+		/* element geometries */
+		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kLine));		
+		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kQuadrilateral));
+		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kTriangle));
+	}
+	else /* inherited */
+		ElementBaseT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT */
+ParameterInterfaceT* CSEBaseT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "surface_element_nodal_output")
+	{
+		ParameterContainerT* node_output = new ParameterContainerT(list_name);
+		
+		/* all false by default */
+		for (int i = 0; i < NumNodalOutputCodes; i++)
+			node_output->AddParameter(ParameterT::Integer, NodalOutputNames[i], ParameterListT::ZeroOrOnce);
+
+		return node_output;
+	}
+	else if (list_name == "surface_element_element_output")
+	{
+		ParameterContainerT* element_output = new ParameterContainerT(list_name);
+		
+		/* all false by default */
+		for (int i = 0; i < NumElementOutputCodes; i++)
+			element_output->AddParameter(ParameterT::Integer, ElementOutputNames[i], ParameterListT::ZeroOrOnce);
+
+		return element_output;	
+	}
+	else /* inherited */
+		ElementBaseT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void CSEBaseT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "CSEBaseT::TakeParameterList";
+
+	/* inherited */
+	ElementBaseT::TakeParameterList(list);
+
+	/* take parameters */
+	fGeometryCode = GeometryT::int2CodeT(list.GetParameter("geometry"));
+	fNumIntPts = list.GetParameter("integration_points");
+	fCloseSurfaces = list.GetParameter("close_surfaces");
+	fOutputArea = list.GetParameter("output_area");
+
+	/* element geometry */
+	const ParameterListT* geom = list.ResolveListChoice(*this, "surface_geometry");
+	if (!geom) ExceptionT::BadInputValue(caller, "could not resolve \"surface_geometry\"");
+	fGeometryCode = GeometryT::string2CodeT(geom->Name());
+	fNumIP = geom->GetParameter("num_ip");
 }
 
 /***********************************************************************
