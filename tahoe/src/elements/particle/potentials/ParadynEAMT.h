@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.h,v 1.3.34.1 2004-04-14 17:35:39 paklein Exp $ */
+/* $Id: ParadynEAMT.h,v 1.3.34.2 2004-06-16 00:25:42 paklein Exp $ */
 #ifndef _PARADYN_EAM_T_H_
 #define _PARADYN_EAM_T_H_
 
@@ -25,9 +25,6 @@ public:
          * file. */
 	ParadynEAMT(const BasicSupportT& support, const StringT& param_file);
 	ParadynEAMT(const BasicSupportT& support);
-
-	/** write properties to output */
-	virtual void Write(ostream& out) const;
 
 	/** \name return interaction functions */
 	/*@{*/

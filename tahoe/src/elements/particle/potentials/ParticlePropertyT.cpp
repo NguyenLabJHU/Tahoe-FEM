@@ -1,7 +1,6 @@
-/* $Id: ParticlePropertyT.cpp,v 1.10 2003-11-04 01:34:29 paklein Exp $ */
+/* $Id: ParticlePropertyT.cpp,v 1.10.22.1 2004-06-16 00:25:42 paklein Exp $ */
 #include "ParticlePropertyT.h"
 #include "ArrayT.h"
-#include <iostream.h>
 
 using namespace Tahoe;
 
@@ -13,17 +12,11 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<ParticlePropertyT>::fByteCopy = false;
 /* constructor */
 ParticlePropertyT::ParticlePropertyT(void):
 	ParameterInterfaceT("particle_property"),
-	fMass(0),
-	fRange(0)
+	fMass(0.0),
+	fRange(0.0),
+	fNearestNeighbor(0.0)
 {
 
-}
-
-/* write properties to output */
-void ParticlePropertyT::Write(ostream& out) const
-{
-	out << " Mass. . . . . . . . . . . . . . . . . . . . . . = " << fMass << '\n';
-	out << " Interaction range . . . . . . . . . . . . . . . = " << fRange << '\n';
 }
 
 /* describe the parameters needed by the interface */
@@ -46,6 +39,7 @@ void ParticlePropertyT::TakeParameterList(const ParameterListT& list)
 	fMass = list.GetParameter("mass");
 }
 
+#if 0
 namespace Tahoe {
 
 /* stream extraction operator */
@@ -78,3 +72,4 @@ istream& operator>>(istream& in, ParticlePropertyT::TypeT& property)
 }
 
 } /* namespace Tahoe */
+#endif

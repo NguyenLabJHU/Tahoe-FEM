@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.cpp,v 1.10 2003-10-31 20:51:11 paklein Exp $ */
+/* $Id: LennardJonesPairT.cpp,v 1.10.22.1 2004-06-16 00:25:41 paklein Exp $ */
 #include "LennardJonesPairT.h"
 #include "toolboxConstants.h"
 #include <iostream.h>
@@ -23,6 +23,7 @@ LennardJonesPairT::LennardJonesPairT(double mass, double eps, double sigma, doub
 	SetName("Lennard_Jones");
 	SetRange(f_sigma*f_alpha);
 	SetMass(mass);
+	SetNearestNeighbor(pow(2.0,1.0/6.0)*f_sigma);	
 	
 	/* evaluate unmodified force at the cut-off */
 	if (f_alpha > kSmall) {
@@ -89,16 +90,6 @@ PairPropertyT::StiffnessFunction LennardJonesPairT::getStiffnessFunction(void)
 	return LennardJonesPairT::Stiffness;
 }
 
-/* write properties to output */
-void LennardJonesPairT::Write(ostream& out) const
-{
-	/* inherited */
-	PairPropertyT::Write(out);
-	out << " Energy scaling (epsilon). . . . . . . . . . . . = " << f_eps << '\n';
-	out << " Length scaling (sigma). . . . . . . . . . . . . = " << f_sigma << '\n';
-	out << " Cut-off parameter (alpha) . . . . . . . . . . . = " << f_alpha << '\n';
-}
-
 /* describe the parameters needed by the interface */
 void LennardJonesPairT::DefineParameters(ParameterListT& list) const
 {
@@ -134,6 +125,7 @@ void LennardJonesPairT::TakeParameterList(const ParameterListT& list)
 	else
 		f_alpha = 0.0;
 	SetRange(f_sigma*f_alpha);
+	SetNearestNeighbor(pow(2.0,1.0/6.0)*f_sigma);	
 
 	/* evaluate unmodified force at the cut-off */
 	if (f_alpha > kSmall) {

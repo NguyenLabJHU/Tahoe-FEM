@@ -1,4 +1,4 @@
-/* $Id: PairPropertyT_factory.cpp,v 1.1.2.1 2004-06-14 04:56:38 paklein Exp $ */
+/* $Id: PairPropertyT_factory.cpp,v 1.1.2.2 2004-06-16 00:25:41 paklein Exp $ */
 #include "PairPropertyT.h"
 #include <string.h>
 
@@ -18,12 +18,7 @@ PairPropertyT* PairPropertyT::New(const char* name, const BasicSupportT* support
 	else if (strcmp(name, "Lennard_Jones") == 0)
 		return new LennardJonesPairT;
 	else if (strcmp(name, "Paradyn_pair") == 0)
-	{
-		/* requires support */
-		if (!support) ExceptionT::GeneralFail("PairPropertyT::New", "\"%s\" requires BasicSupportT", name);
-		
-		return new ParadynPairT(*support);	
-	}
+		return new ParadynPairT(support);	
 	else if (strcmp(name, "Matsui") == 0)
 		return new MatsuiPairT;
 	else

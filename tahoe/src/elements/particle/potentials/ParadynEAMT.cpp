@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.cpp,v 1.8.34.2 2004-04-14 22:38:47 paklein Exp $ */
+/* $Id: ParadynEAMT.cpp,v 1.8.34.3 2004-06-16 00:25:42 paklein Exp $ */
 #include "ParadynEAMT.h"
 
 #include "toolboxConstants.h"
@@ -45,6 +45,7 @@ ParadynEAMT::ParadynEAMT(const BasicSupportT& support):
 	SetName("Paradyn_EAM");
 }
 
+#if 0
 /* write properties to output */
 void ParadynEAMT::Write(ostream& out) const
 {
@@ -57,6 +58,7 @@ void ParadynEAMT::Write(ostream& out) const
   out << " # intervals in the potential table. . . . . . . = " << fPairCoeff.MajorDim() << '\n';
   out << " Interval size . . . . . . . . . . . . . . . . . = " << 1.0/f_inc << '\n';
 }
+#endif
 
 /* return a pointer to the energy function */
 ParadynEAMT::PairEnergyFunction ParadynEAMT::getPairEnergy(void)
