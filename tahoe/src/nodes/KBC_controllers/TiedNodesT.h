@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.19 2003-04-24 20:40:24 cjkimme Exp $ */
+/* $Id: TiedNodesT.h,v 1.20 2003-08-08 00:33:27 paklein Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -57,8 +57,11 @@ public:
 	virtual void Initialize(ifstreamT& in);
 	virtual void WriteParameters(ostream& out) const;
 
+	/** initialize directly instead of using TiedNodesT::Initialize */
+	virtual void SetTiedPairs(iArrayT& follower, iArrayT& leader);
+
 	/** inform controller of external nodes */
-	virtual void SetExternalNodes(const iArrayT& ex_nodes) const;
+	virtual void SetExternalNodes(const ArrayT<int>& ex_nodes) const;
 
 	/** set to initial conditions. Reset all conditions to tied. */
 	virtual void InitialCondition(void);
