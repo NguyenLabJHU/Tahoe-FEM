@@ -1,4 +1,4 @@
-/* $Id: FossumSSIso2DT.cpp,v 1.7 2004-07-15 08:28:52 paklein Exp $ */
+/* $Id: FossumSSIso2DT.cpp,v 1.8 2004-08-04 02:28:46 cfoster Exp $ */
 #include "FossumSSIso2DT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -6,30 +6,75 @@
 using namespace Tahoe;
 
 /* constructor */
-FossumSSIso2DT::FossumSSIso2DT(ifstreamT& in, const SSMatSupportT& support):
+FossumSSIso2DT::FossumSSIso2DT(void):
 	ParameterInterfaceT("Fossum_small_strain_2D"),
-	FossumSSIsoT(in, support),
+	FossumSSIsoT(),
 //	Material2DT(in, kPlaneStrain),
-	fStress2D(2),
-	fModulus2D(dSymMatrixT::NumValues(2)),
+	//fStress2D(2),
+	//fModulus2D(dSymMatrixT::NumValues(2)),
 	fModulusPerfPlas2D(dSymMatrixT::NumValues(2)),
 	fModulusContinuum2D(dSymMatrixT::NumValues(2)),
-	fModulusContinuumPerfPlas2D(dSymMatrixT::NumValues(2)),
-	fTotalStrain3D(3)
+	fModulusContinuumPerfPlas2D(dSymMatrixT::NumValues(2))
+	//fTotalStrain3D(3)
 {
 	/* account for thickness */
 //	fDensity *= fThickness;
 }
 
+/* describe the parameters needed by the interface */
+void FossumSSIso2DT::DefineParameters(ParameterListT& list) const
+{
+  /* inherited */
+  FossumSSIsoT::DefineParameters(list);
+  
+  /* 2D option must be plain stress */
+  ParameterT& constraint = list.GetParameter("constraint_2D");
+  constraint.SetDefault(kPlaneStrain);
+}
+
+/* accept parameter list */
+void FossumSSIso2DT::TakeParameterList(const ParameterListT& list)
+{
+  /* inherited */
+  FossumSSIsoT::TakeParameterList(list);
+  
+  /* dimension work space */
+  fStress2D.Dimension(2);
+  fModulus2D.Dimension(dSymMatrixT::NumValues(2));
+  fTotalStrain3D.Dimension(3);
+}
+
+#if 0
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+
+ParameterInterfaceT* FossumSSIso2DT::NewSub(const StringT& name) const
+{
+  if (name == "Fossum_small_strain_2D")
+    return new FossumSSIso2DT();
+  else
+    {
+      /* inherited */
+      ParameterInterfaceT* params = SSIsotropicMatT::NewSub(name);
+      if (params) 
+	return params;
+      else
+	return HookeanMatT::NewSub(name);
+    }
+}
+#endif
+
 /* initialization */
+#if 0
 void FossumSSIso2DT::Initialize(void)
 {
 ExceptionT::GeneralFail("FossumSSIso2DT::Initialize", "out of date");
-#if 0
+
 	/* inherited */
 	HookeanMatT::Initialize();
-#endif
+
 }
+#endif
+
 
 /* returns elastic strain (3D) */
 const dSymMatrixT& FossumSSIso2DT::ElasticStrain(const dSymMatrixT& totalstrain, 

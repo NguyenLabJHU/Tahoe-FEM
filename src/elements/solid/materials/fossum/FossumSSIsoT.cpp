@@ -6,14 +6,13 @@
 #include "FossumSSIsoT.h"
 #include "SSMatSupportT.h"
 
-#include <iostream.h>
-#include "ifstreamT.h"
+//#include <iostream.h>
+//#include "ifstreamT.h"
 #include "dSymMatrixT.h"
 
 #include "ElementCardT.h"
 #include "StringT.h"
 #include "DetCheckT.h"
-#include <iostream.h>
 
 #include <math.h>
 
@@ -46,7 +45,7 @@ static const char* Labels[kNumOutput] = {
 };
 
 /*constructor*/
-FossumSSIsoT::FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support):
+FossumSSIsoT::FossumSSIsoT(void):
 	ParameterInterfaceT("Fossum_small_strain"),
 	fA(-1.0),         
 	fB(-1.0),
@@ -65,6 +64,8 @@ FossumSSIsoT::FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support):
 	flambda(Lambda()),
 //	SSSolidMatT(in, support),
 //	IsotropicT(in),
+
+
 	HookeanMatT(3),
 	fStress(3),
 	fModulus(dSymMatrixT::NumValues(3)),
@@ -94,13 +95,17 @@ FossumSSIsoT::FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support):
         fTimeFactor(1.0)
 
 {
+  SetName("Fossum_small_strain");
+
+
 	/* allocate space for principal dirs m */
 	for (int i = 0; i < 3; i++)
 	{
 		m[i].Dimension(kNSD);
 	}
 
-	/* read parameters */
+	/* read parameters -old tahoe 1_x style*/
+	/*
 	in >> fA;      
 	if (fA < 0.0 ) {cout << "Bad value for A\n" << flush; throw ExceptionT::kBadInputValue;}   
 	in >> fB;
@@ -123,18 +128,109 @@ FossumSSIsoT::FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support):
         if (fFluidity < 0.0) {cout << "Bad value for fluidity\n" << flush; throw ExceptionT::kBadInputValue;}
 	in >> fFossumDebug;
         if (fFossumDebug != 0 && fFossumDebug != 1) {cout << "Bad value for fluidity\n" << flush; throw ExceptionT::kBadInputValue;}
+	*/
+
+
+	 
 
 	/* initialize constant tensor */
 	One.Identity();
-
-	/*Set time factor previously set to 1.0*/
-	if (fFluidity != 0.0)
-	  fTimeFactor = 1 - exp(-1*(fSSMatSupport->TimeStep())/fFluidity);
 
 }
 
 /* destructor */
 FossumSSIsoT::~FossumSSIsoT(void) { }
+
+/*describe parameters needed by the interface*/
+void FossumSSIsoT::DefineParameters(ParameterListT& list) const  
+{      
+  /* inherited */       
+  ParameterInterfaceT::DefineParameters(list); 
+ 
+  ParameterT A(fA, "Shear_surface_parameter_A");    
+  A.AddLimit(0.0, LimitT::LowerInclusive); 
+  list.AddParameter(A);
+
+  list.AddParameter(fB, "Shear_surface_parameter_B"); 
+  list.AddParameter(fC, "Shear_surface_parameter_C");
+  
+  ParameterT theta(fTheta, "Shear_surface_parameter_theta");    
+  theta.AddLimit(0.0, LimitT::LowerInclusive); 
+  list.AddParameter(theta);
+
+  ParameterT R(fR, "Cap_Ratio_R");    
+  R.AddLimit(0.0, LimitT::LowerInclusive); 
+  list.AddParameter(R);
+
+  list.AddParameter(fW, "Cap_growth_Parameter_W"); 
+  list.AddParameter(fD1, "Cap_growth_Parameter_D1");
+  list.AddParameter(fD2, "Cap_growth_Parameter_D2");
+
+  ParameterT calpha(fCalpha, "shear_surface_growth_factor_c_alpha");
+  calpha.AddLimit(0.0, LimitT::LowerInclusive);
+  list.AddParameter(calpha);     
+
+  ParameterT N(fN, "shear_surface_offset_N");
+  N.AddLimit(0.0, LimitT::LowerInclusive);
+  list.AddParameter(N);
+
+  ParameterT fluidity(fFluidity, "fluidity_parameter_eta");
+  fluidity.AddLimit(0.0, LimitT::LowerInclusive);
+  list.AddParameter(fluidity);
+
+  ParameterT debug(fFossumDebug, "local_debug_parameter");
+  debug.SetDefault(false);
+  list.AddParameter(debug);
+}
+
+/* accept parameter list */
+void FossumSSIsoT::TakeParameterList(const ParameterListT& list)
+{
+    /* inherited */
+    ParameterInterfaceT::TakeParameterList(list);
+
+    fA = list.GetParameter("Shear_surface_parameter_A");
+    fB = list.GetParameter("Shear_surface_parameter_B");
+    fC = list.GetParameter("Shear_surface_parameter_C");
+    fTheta = list.GetParameter("Shear_surface_parameter_theta");
+    fR = list.GetParameter("Cap_Ratio_R");
+    fW = list.GetParameter("Cap_growth_Parameter_W");
+    fD1 = list.GetParameter("Cap_growth_Parameter_D1");
+    fD2 = list.GetParameter("Cap_growth_Parameter_D2");
+    fCalpha = list.GetParameter("shear_surface_growth_factor_c_alpha");
+    fN = list.GetParameter("shear_surface_offset_N");
+    fFluidity = list.GetParameter("fluidity_parameter_eta");
+    fFossumDebug = list.GetParameter("local_debug_parameter");
+}
+
+void FossumSSIsoT::DefineSubs(SubListT& sub_list) const
+{
+    /* inherited */
+    SSIsotropicMatT::DefineSubs(sub_list);
+    HookeanMatT::DefineSubs(sub_list);
+
+    /* parameters for Drucker-Prager plasticity */
+    //sub_list.AddSub("Fossum_small_strain");
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+
+
+ParameterInterfaceT* FossumSSIsoT::NewSub(const StringT& name) const
+{
+  //if (name == "Fossum_small_strain_2D")
+  //  return new FossumSSIso2DT;
+  //else
+  //  {
+      /* inherited */
+      ParameterInterfaceT* params = SSIsotropicMatT::NewSub(name);
+      if (params) 
+	return params;
+      else
+	return HookeanMatT::NewSub(name);
+      //      }
+}
+
 
 #if 0
 /* write parameters to stream */

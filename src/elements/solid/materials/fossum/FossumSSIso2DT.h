@@ -1,4 +1,4 @@
-/* $Id: FossumSSIso2DT.h,v 1.11 2004-07-15 08:28:52 paklein Exp $ */
+/* $Id: FossumSSIso2DT.h,v 1.12 2004-08-04 02:28:46 cfoster Exp $ */
 #ifndef _FOSSUM_SS_ISO_2D_T_H_
 #define _FOSSUM_SS_ISO_2D_T_H_
 
@@ -16,10 +16,13 @@ class FossumSSIso2DT: public FossumSSIsoT//, public Material2DT
 public:
 
 	/* constructor */
-	FossumSSIso2DT(ifstreamT& in, const SSMatSupportT& support);
+	FossumSSIso2DT(void);
 
 	/* initialization */
-	virtual void Initialize(void);
+	//virtual void Initialize(void);
+	virtual void DefineParameters(ParameterListT& list) const;
+	virtual void TakeParameterList(const ParameterListT& list);
+	//virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/* returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(

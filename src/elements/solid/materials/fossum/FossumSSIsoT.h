@@ -22,20 +22,19 @@
 namespace Tahoe {
 
 /* forward declarations */
-class ifstreamT;
 class dSymMatrixT;
 
 /* forward declarations */
 class ElementCardT;
 
-class FossumSSIsoT: public SSIsotropicMatT, public HookeanMatT
+ class FossumSSIsoT: public SSIsotropicMatT, public HookeanMatT //, public ParameterInterfaceT
 {
 
 public:
 
 	/* constructor */
 	// FossumSSIsoT(ifstreamT& in, const SmallStrainT& element, int num_ip, double mu, double lambda);
-	FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support);
+	FossumSSIsoT(void);
 
 	/* destructor */
 	virtual ~FossumSSIsoT(void);
@@ -49,6 +48,8 @@ public:
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** information about subordinate parameter lists */
+	virtual void DefineParameters(ParameterListT& list) const;
+
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
