@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.5.2.2 2002-04-29 17:20:43 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.5.2.3 2002-04-30 00:07:11 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "RodT.h"
@@ -62,8 +62,9 @@ GlobalT::SystemTypeT RodT::TangentType(void) const
 }
 
 /* NOT implemented. Returns an zero force vector */
-void RodT::AddNodalForce(int node, dArrayT& force)
+void RodT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
+#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 }

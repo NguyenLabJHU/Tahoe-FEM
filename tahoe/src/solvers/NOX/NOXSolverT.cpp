@@ -1,4 +1,4 @@
-/* $Id: NOXSolverT.cpp,v 1.2 2002-04-02 23:30:55 paklein Exp $ */
+/* $Id: NOXSolverT.cpp,v 1.2.2.1 2002-04-30 00:07:15 paklein Exp $ */
 #include "NOXSolverT.h"
 
 /* optional */
@@ -6,7 +6,6 @@
 
 #include "fstreamT.h"
 #include "FEManagerT.h"
-#include "ControllerT.h"
 #include "NOX_Solver_Manager.H"
 #include "NOX_Tahoe_Group.h"
 #include "dArrayT.h"
@@ -28,8 +27,9 @@ inline static double Min(double a, double b) { return (a < b) ? a : b; };
 inline static double Max(double a, double b) { return (a > b) ? a : b; };
 
 /* constructor */
-NOXSolverT::NOXSolverT(FEManagerT& fe_manager):
-	SolverT(fe_manager),
+NOXSolverT::NOXSolverT(FEManagerT& fe_manager, int group, int unknowns_order):
+	SolverT(fe_manager, group),
+	fUnknownsOrder(unknowns_order),
 	fNOXParameters(NULL),
 	fMaxIterations(-1),
 	fAbsResidual(1.1),
@@ -177,10 +177,6 @@ NOXSolverT::~NOXSolverT(void)
 /* generate the solution for the current time sequence */
 void NOXSolverT::Run(void)
 {
-	/* time integrator */
-	const ControllerT* controller = fFEManager.Controller();
-	if (!controller) throw eGeneralFail;
-
 	/* check */
 	if (!fLHS) {
 		cout << "\n NOXSolverT::NOXSolverT: global matrix not set" << endl;
@@ -201,7 +197,7 @@ void NOXSolverT::Run(void)
 
 			/* set up group */
 			dArrayT u(fRHS.Length());
-			fFEManager.GetUnknowns(controller->OrderOfUnknown(), u);
+			fFEManager.GetUnknowns(fGroup, fUnknownsOrder, u);
 			NOX::Tahoe::Group group(*this, u, *fLHS);
 			fLastSolution = u;
 			
@@ -305,7 +301,7 @@ bool NOXSolverT::computeRHS(const dArrayT& x, dArrayT& rhs)
 	/* compute the update vector and apply */
 	dArrayT update(x.Length());
 	update.DiffOf(x, fLastSolution);
-	fFEManager.Update(update);
+	fFEManager.Update(Group(), update);
 	update.Free();
 	
 	/* store new configuration */
@@ -317,7 +313,7 @@ bool NOXSolverT::computeRHS(const dArrayT& x, dArrayT& rhs)
 	/* calculate */
 	try {
 		fRHS = 0.0;
-		fFEManager.FormRHS();	
+		fFEManager.FormRHS(Group());	
 	}
 	catch (int exception) {
 		cout << "\n NOXSolverT::computeRHS: exception: "
@@ -341,7 +337,7 @@ bool NOXSolverT::computeJacobian(GlobalMatrixT& jacobian)
 	/* calculate */
 	try {
 		fLHS->Clear();
-		fFEManager.FormLHS();	
+		fFEManager.FormLHS(Group());	
 	}
 	catch (int exception) {
 		cout << "\n NOXSolverT::computeJacobian: exception: "

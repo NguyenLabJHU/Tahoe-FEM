@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.8.2.1 2002-04-26 02:24:18 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.8.2.2 2002-04-30 00:07:08 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #ifndef _ELASTIC_T_H_
@@ -56,13 +56,13 @@ public:
 	virtual void Initialize(void);
 
 	/** set the controller */
-	virtual void SetController(eControllerT* controller);
+//	virtual void SetController(eControllerT* controller);
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
 	/* solution calls */
-	virtual void AddNodalForce(int node, dArrayT& force);
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 	virtual void AddLinearMomentum(dArrayT& momentum);
 	
 	/* returns the energy as defined by the derived class types */

@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.2.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.2.2.2 2002-04-30 00:07:14 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 
 #include "ExpCD_DRSolver.h"
@@ -131,7 +131,7 @@ void ExpCD_DRSolver::Run(void)
 		
 			/* form the residual force vector */
 			fRHS = 0.0;
-			fFEManager.FormRHS();	
+			fFEManager.FormRHS(Group());	
 			double error = fRHS.Magnitude();
 			
 			/* loop on error */
@@ -154,12 +154,12 @@ void ExpCD_DRSolver::Run(void)
 			if (solutionflag == kConverged)
 			{
 				/* relaxation */
-				GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem();
+				GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
 				
 				/* reset global equations */
 				if (relaxcode == GlobalT::kReEQ ||
 				    relaxcode == GlobalT::kReEQRelax)
-					fFEManager.Reinitialize();
+					fFEManager.Reinitialize(Group());
 					
 				/* new equilibrium */					
 				if (relaxcode == GlobalT::kRelax ||
@@ -348,11 +348,11 @@ double ExpCD_DRSolver::SolveAndForm(void)
 	fAcc = fRHS;
 
 	/* incremental update */
-	fFEManager.Update(fDis);
+	fFEManager.Update(Group(), fDis);
 
 	/* compute new residual */
 	fRHS = 0.0;
-	fFEManager.FormRHS();
+	fFEManager.FormRHS(Group());
 
 	return fRHS.Magnitude();
 }
@@ -372,7 +372,7 @@ void ExpCD_DRSolver::Relax(int newtancount)
 	
 		/* form the residual force vector */
 		fRHS = 0.0;
-		fFEManager.FormRHS();
+		fFEManager.FormRHS(Group());
 		double error = fRHS.Magnitude();	
 		
 		while ( !ExitRelaxation(error) )
@@ -399,7 +399,7 @@ void ExpCD_DRSolver::SetMass(void)
 {
 	/* get diagonal stiffness */
 	fLHS->Clear();
-	fFEManager.FormLHS();
+	fFEManager.FormLHS(Group());
 	
 	/* get the matrix - should be safe */
 	DiagonalMatrixT* lhs = (DiagonalMatrixT*) fLHS;

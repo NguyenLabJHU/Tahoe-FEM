@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.3.8.2 2002-04-27 01:32:27 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.3.8.3 2002-04-30 00:07:08 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -77,9 +77,10 @@ void DiffusionElementT::Initialize(void)
 //}
 
 /* compute nodal force */
-void DiffusionElementT::AddNodalForce(int node, dArrayT& force)
+void DiffusionElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
 	//not implemented
+#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 }

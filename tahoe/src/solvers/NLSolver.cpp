@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.9.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.9.2.2 2002-04-30 00:07:14 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -96,7 +96,7 @@ void NLSolver::Run(void)
 
 			/* form the first residual force vector */
 			fRHS = 0.0;
-			fFEManager.FormRHS();	
+			fFEManager.FormRHS(Group());	
 			double error = Residual(fRHS);
 			
 			/* loop on error */
@@ -168,13 +168,13 @@ NLSolver::IterationStatusT NLSolver::DoConverged(void)
 	}
 
 	/* allow for multiple relaxation */
-	GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem();
+	GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
 	while (relaxcode != GlobalT::kNoRelax)
 	{	
 		/* reset global equations */
 		if (relaxcode == GlobalT::kReEQ ||
 		    relaxcode == GlobalT::kReEQRelax)
-			fFEManager.Reinitialize();
+			fFEManager.Reinitialize(Group());
 						
 		/* new equilibrium */
 		if (relaxcode == GlobalT::kRelax ||
@@ -183,7 +183,7 @@ NLSolver::IterationStatusT NLSolver::DoConverged(void)
 			if (Relax() == kFailed)
 				return kFailed;
 	   		else
-				relaxcode = fFEManager.RelaxSystem();
+				relaxcode = fFEManager.RelaxSystem(Group());
 		}
 		else
 			relaxcode = GlobalT::kNoRelax;
@@ -245,7 +245,7 @@ void NLSolver::Update(const dArrayT& update, const dArrayT* residual)
 #pragma unused(residual)
 
 	/* full Newton update */
-	fFEManager.Update(update);
+	fFEManager.Update(Group(), update);
 }
 
 /* relax system */
@@ -260,7 +260,7 @@ NLSolver::IterationStatusT NLSolver::Relax(int newtancount)
 
 	/* form the first residual force vector */
 	fRHS = 0.0;
-	fFEManager.FormRHS();	
+	fFEManager.FormRHS(Group());	
 	double error = Residual(fRHS);
 		
 	/* loop on error */
@@ -385,7 +385,7 @@ double NLSolver::SolveAndForm(bool newtangent)
 	if (newtangent)
 	{
 		fLHS->Clear();
-		fFEManager.FormLHS();
+		fFEManager.FormLHS(Group());
 	}
 		 		
 	/* solve equation system */
@@ -396,7 +396,7 @@ double NLSolver::SolveAndForm(bool newtangent)
 								
 	/* compute new residual */
 	fRHS = 0.0;
-	fFEManager.FormRHS();
+	fFEManager.FormRHS(Group());
 
 	/* combine residual magnitude with update magnitude */
 	/* e = a1 |R| + a2 |delta_d|                        */

@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.2.2.1 2002-04-28 22:26:18 paklein Exp $ */
+/* $Id: ContactT.h,v 1.2.2.2 2002-04-30 00:07:07 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 
 #ifndef _CONTACT_T_H_
@@ -33,7 +33,7 @@ public:
 	virtual void Initialize(void);
 
 	/* solution calls */
-	virtual void AddNodalForce(int node, dArrayT& force); //not implemented
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force); //not implemented
 
 	/* Returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void); // not implemented

@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.1.2.2 2002-04-28 22:26:17 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.1.2.3 2002-04-30 00:07:04 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -57,7 +57,7 @@ public:
 	bool PrintInput(void) const;
 	
 	/** number of nodes */
-	int NumNodes(void) const;
+	int NumNodes(void) const { return fNumNodes; };
 	
 	/** number of spatial dimensions */
 	int NumSD(void) const { return fNumSD; };
@@ -219,12 +219,12 @@ private:
 	GlobalT::AnalysisCodeT fAnalysis;
 	const GlobalT::StateT* fRunState;
 	int fNumSD;
-		
+	int fNumNodes;		
 	/*@}*/
 };
 
 /* the top-level manager */
-FEManagerT& ElementSupportT::FEManager(void) const
+inline FEManagerT& ElementSupportT::FEManager(void) const
 {
 	if (!fFEManager) {
 		cout << "\n ElementSupportT::FEManager: pointer not set" << endl;
@@ -234,7 +234,7 @@ FEManagerT& ElementSupportT::FEManager(void) const
 }
 
 /* the nodes */
-NodeManagerPrimitive& ElementSupportT::Nodes(void) const
+inline NodeManagerPrimitive& ElementSupportT::Nodes(void) const
 {
 	if (!fNodes) {
 		cout << "\n ElementSupportT::Nodes: pointer not set" << endl;
@@ -244,7 +244,7 @@ NodeManagerPrimitive& ElementSupportT::Nodes(void) const
 }
 
 /* return a const reference to the run state flag */
-const GlobalT::StateT& ElementSupportT::RunState(void) const
+inline const GlobalT::StateT& ElementSupportT::RunState(void) const
 {
 	if (!fRunState) {
 		cout << "\n ElementSupportT::RunState: not set" << endl;

@@ -1,4 +1,4 @@
-/* $Id: NOXSolverT.h,v 1.2 2002-04-02 23:30:55 paklein Exp $ */
+/* $Id: NOXSolverT.h,v 1.2.2.1 2002-04-30 00:07:15 paklein Exp $ */
 #ifndef _NOX_SOLVER_T_H_
 #define _NOX_SOLVER_T_H_
 
@@ -29,8 +29,10 @@ class NOXSolverT: public SolverT, protected SolverInterfaceT
 {
 public:
 
-	/** constructor */
-	NOXSolverT(FEManagerT& fe_manager);
+	/** constructor 
+	 * \param unknowns_order the time derivative of the field that is
+	 *        treated as the unknown field by the solver */
+	NOXSolverT(FEManagerT& fe_manager, int group, int unknowns_order);
 
 	/** destructor */
 	virtual ~NOXSolverT(void);
@@ -102,6 +104,9 @@ protected:
 	NOX::Parameter::List* fNOXParameters;
 	
 private:
+
+	/** order of the field solved by the solver */
+	int fUnknownsOrder;
 
 	/** \name stopping criteria */
 	/*@{*/

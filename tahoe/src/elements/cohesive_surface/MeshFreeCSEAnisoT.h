@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.h,v 1.3.2.1 2002-04-28 22:26:21 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.h,v 1.3.2.2 2002-04-30 00:07:06 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #ifndef _MF_CSE_ANISO_T_H_
@@ -55,7 +55,7 @@ public:
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
 	/* solution calls */
-	virtual void AddNodalForce(int node, dArrayT& force);
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 
 	/* returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void); //not implemented

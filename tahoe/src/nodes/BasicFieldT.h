@@ -1,4 +1,4 @@
-/* $Id: BasicFieldT.h,v 1.1.2.2 2002-04-25 01:31:27 paklein Exp $ */
+/* $Id: BasicFieldT.h,v 1.1.2.3 2002-04-30 00:07:12 paklein Exp $ */
 
 #ifndef _BASIC_FIELD_T_H_
 #define _BASIC_FIELD_T_H_
@@ -54,6 +54,9 @@ public:
 
 	/** \name equation numbers */
 	/*@{*/
+	/** return the equation of the degree of freedom of the specified node */
+	int EquationNumber(int node, int dof) const { return fEqnos(node, dof); };
+	
 	/** const access to the equation numbers */
 	const iArray2DT& Equations(void) const { return fEqnos; };
 

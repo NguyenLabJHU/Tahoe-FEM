@@ -1,11 +1,10 @@
-/* $Id: ElementListT.cpp,v 1.20.2.1 2002-04-29 02:45:09 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.20.2.2 2002-04-30 00:07:04 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
 #include <iostream.h>
 #include "fstreamT.h"
 //#include "FEManagerT.h"
-//#include "NodeManagerT.h"
 #include "StringT.h"
 #include "ElementT.h"
 #include "ElementSupportT.h"
@@ -55,15 +54,14 @@
 #include "UpLagr_ExternalFieldT.h"
 
 /* constructors */
-ElementListT::ElementListT(const ElementSupportT& support):
-	fSupport(support)
+ElementListT::ElementListT(FEManagerT& fe)
 {
-
+	/* initialize element support */
+	fSupport.SetFEManager(&fe);
 }
 
 /* initialization functions */
-void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
-	eControllerT* e_controller)
+void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 {
 	/* print header */
 	out << "\n E l e m e n t   G r o u p   D a t a :\n\n";

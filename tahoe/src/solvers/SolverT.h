@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.4.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* $Id: SolverT.h,v 1.4.2.2 2002-04-30 00:07:14 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _SOLVER_H_
@@ -97,6 +97,9 @@ public:
 
 	/* returns true if solver prefers reordered equations */
 	bool RenumberEquations(void);
+	
+	/** my group */
+	int Group(void) const { return fGroup; };
 
 protected:
 

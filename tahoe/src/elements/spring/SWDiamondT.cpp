@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.cpp,v 1.5.2.1 2002-04-29 02:45:11 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.5.2.2 2002-04-30 00:07:10 paklein Exp $ */
 /* created: paklein (03/19/1997) */
 
 #include "SWDiamondT.h"
@@ -72,8 +72,9 @@ GlobalT::SystemTypeT SWDiamondT::TangentType(void) const
 }
 
 /* NOT implemented. Returns an zero force vector */
-void SWDiamondT::AddNodalForce(int node, dArrayT& force)
+void SWDiamondT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
+#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 }

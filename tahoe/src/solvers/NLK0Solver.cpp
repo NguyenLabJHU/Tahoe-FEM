@@ -1,4 +1,4 @@
-/* $Id: NLK0Solver.cpp,v 1.3.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* $Id: NLK0Solver.cpp,v 1.3.2.2 2002-04-30 00:07:14 paklein Exp $ */
 /* created: paklein (10/01/1996) */
 
 #include "NLK0Solver.h"
@@ -44,7 +44,7 @@ double NLK0Solver::SolveAndForm(bool junk)
 	if (fFormTangent)
 	{
 		pCCSLHS->Clear();
-		fFEManager.FormLHS();
+		fFEManager.FormLHS(Group());
 
 		/* solve equation system */
 		fUpdate = fRHS;
@@ -67,11 +67,11 @@ double NLK0Solver::SolveAndForm(bool junk)
 		if (!fLastTangent.Solve(fRHS)) throw eBadJacobianDet;
 			 		
 	/* update system */
-	fFEManager.Update(fRHS);
+	fFEManager.Update(Group(), fRHS);
 								
 	/* compute new residual */
 	fRHS = 0.0;
-	fFEManager.FormRHS();
+	fFEManager.FormRHS(Group());
 
 	/* combine residual magnitude with update magnitude */
 	/* e = a1 |R| + a2 |delta_d|                        */

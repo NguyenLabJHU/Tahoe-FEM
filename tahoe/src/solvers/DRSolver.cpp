@@ -1,4 +1,4 @@
-/* $Id: DRSolver.cpp,v 1.2.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* $Id: DRSolver.cpp,v 1.2.2.2 2002-04-30 00:07:14 paklein Exp $ */
 /* created: PAK/CBH (10/03/1996) */
 
 #include "DRSolver.h"
@@ -51,13 +51,13 @@ void DRSolver::Run(void)
 
 	  		/* form the residual force vector */
 			fRHS = 0.0;
-			fFEManager.FormRHS();
+			fFEManager.FormRHS(Group());
 
 			while (!ExitIteration(fRHS.Magnitude()))
 	  		{
 				/* form the stiffness matrix */
 				fLHS->Clear();				
-				fFEManager.FormLHS();
+				fFEManager.FormLHS(Group());
 	
 				/* compute mass for stability */
 				ComputeMass();
@@ -69,14 +69,14 @@ void DRSolver::Run(void)
 				fVel *= fFEManager.TimeStep();
 
 				/* update displacements */
-				fFEManager.Update(fVel);
+				fFEManager.Update(Group(), fVel);
 				
 				/* calculate critical damping */
 				ComputeDamping();
 
 	  			/* form the residual force vector */
 				fRHS = 0.0;
-				fFEManager.FormRHS();
+				fFEManager.FormRHS(Group());
 			}
 			
 			/* finalize */
@@ -127,7 +127,7 @@ void DRSolver::ComputeVelocity(void)
 void DRSolver::ComputeDamping(void)
 {
 	/* numerator */
-	fFEManager.GetUnknowns(0, fDisp);
+	fFEManager.GetUnknowns(fGroup, 0, fDisp);
 	fCCSLHS->Multx(fDisp, fKd);
 	double numer = dArrayT::Dot(fDisp,fKd);
 	
