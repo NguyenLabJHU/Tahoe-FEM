@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.12 2002-01-23 20:27:01 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.13 2002-02-18 08:53:22 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -587,6 +587,9 @@ void ExodusT::WriteNodalVariable(int step, int index, const dArrayT& fValues) co
 {
 	if (exoid < 0) throw eGeneralFail;
 
+	/* don't write empty lists */
+	if (fValues.Length() == 0) return;
+
 	/* the time_step must correspond to the time_value of the printed increment
 	 * index corresponds to the variable name list */
 	Try("ExodusT::WriteNodalVariable",
@@ -599,6 +602,9 @@ void ExodusT::WriteElementVariable(int step, int block_ID, int index,
 {
 	if (exoid < 0) throw eGeneralFail;
 
+	/* don't write empty lists */
+	if (fValues.Length() == 0) return;
+
 	/* the time_step must correspond to the time_value of the printed increment
 	 * index corresponds to the variable name list */
 	Try("ExodusT::WriteElementVariable",
@@ -609,6 +615,9 @@ void ExodusT::WriteElementVariable(int step, int block_ID, int index,
 void ExodusT::WriteGlobalVariable(int step, const dArrayT& fValues) const
 {
 	if (exoid < 0) throw eGeneralFail;
+
+	/* don't write empty lists */
+	if (fValues.Length() == 0) return;
 
 	/* the time_step must correspond to the time_value of the printed increment */
 	Try("ExodusT::WriteGlobalVariable",
@@ -690,6 +699,9 @@ void ExodusT::ReadNodalVariable(int step, int index, dArrayT& fValues) const
 {
 	if (exoid < 0) throw eGeneralFail;
 
+	/* don't try to read empty lists */
+	if (fValues.Length() == 0) return;
+
 	/* the time_step must correspond to the time_value of the printed increment
 	 * index corresponds to the variable name list */
 	Try("ExodusT::ReadNodalVariable",
@@ -720,6 +732,9 @@ void ExodusT::ReadElementVariable(int step, int block_ID, int index,
 void ExodusT::ReadGlobalVariable(int step, dArrayT& fValues) const
 {
 	if (exoid < 0) throw eGeneralFail;
+
+	/* don't read empty lists */
+	if (fValues.Length() == 0) return;
 
 	/* the time_step must correspond to the time_value of the printed increment */
 	Try("ExodusT::WriteGlobalVariable",
