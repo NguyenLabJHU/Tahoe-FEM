@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.27 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.27.2.1 2004-12-26 06:23:15 d-farrell2 Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -153,10 +153,10 @@ void FEManagerT_bridging::SetEquationSystem(int group, int start_eq_shift)
 	/* inherited */
 	FEManagerT::SetEquationSystem(group, start_eq_shift);
 
-	//NOTE: this is going to break if the equation numbers has changed since the force was set
-	if (fExternalForce2D[group])
-		ExceptionT::GeneralFail("FEManagerT_bridging::SetEquationSystem",
-			"group %d has external force so equations cannot be reset", group+1);
+//	//NOTE: this is going to break if the equation numbers has changed since the force was set
+//	if (fExternalForce2D[group])
+//		ExceptionT::GeneralFail("FEManagerT_bridging::SetEquationSystem",
+//			"group %d has external force so equations cannot be reset", group+1);
 }
 
 /* set pointer to an external force vector */
