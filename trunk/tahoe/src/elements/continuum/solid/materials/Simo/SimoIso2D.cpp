@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.2 2001-02-26 17:37:00 paklein Exp $ */
 /* created: paklein (03/04/1997)                                          */
 /* (2D <-> 3D) translator for the SimoIso3D.                              */
 
@@ -25,7 +25,9 @@ const dMatrixT& SimoIso2D::c_ijkl(void)
 	fb_3D(2,2) = 1.0; //out-of-plane stretch
 	
 	/* 3D calculation */
-	double J = sqrt(fb_3D.Det());
+	double J = fb_3D.Det();
+	if (J < kSmall) throw eBadJacobianDet;
+	J = sqrt(J);
 	fb_3D *= pow(J,-2.0/3.0);
 
 	ComputeModuli(J, fb_3D, fModulus);
@@ -45,7 +47,9 @@ const dSymMatrixT& SimoIso2D::s_ij(void)
 	fb_3D(2,2) = 1.0; //out-of-plane stretch
 	
 	/* 3D calculation */
-	double J = sqrt(fb_3D.Det());
+	double J = fb_3D.Det();
+	if (J < kSmall) throw eBadJacobianDet;
+	J = sqrt(J);
 	fb_3D *= pow(J,-2.0/3.0);
 
 	ComputeCauchy(J, fb_3D, fStress);
@@ -65,7 +69,9 @@ double SimoIso2D::StrainEnergyDensity(void)
 	fb_3D(2,2) = 1.0; //out-of-plane stretch
 	
 	/* 3D calculation */
-	double J = sqrt(fb_3D.Det());
+	double J = fb_3D.Det();
+	if (J < kSmall) throw eBadJacobianDet;
+	J = sqrt(J);
 	fb_3D *= pow(J,-2.0/3.0);
 
 	return fThickness*ComputeEnergy(J, fb_3D);
