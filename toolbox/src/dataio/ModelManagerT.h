@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.28 2003-08-08 00:25:34 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.29 2004-04-22 15:25:44 paklein Exp $ */
 /* created: sawimme July 2001 */
 #ifndef _MODELMANAGER_T_H_
 #define _MODELMANAGER_T_H_
@@ -217,6 +217,11 @@ class ModelManagerT
 	 *        construct a temporary */
 	void BoundingElements(const ArrayT<StringT>& IDs, iArrayT& elements, 
 		iArray2DT& neighbors, const GeometryBaseT* geometry = NULL);
+
+	/** return the list of element block ID's containing the given list of nodes 
+	 * \param nodes list of node numbers
+	 * \param returns with a list of element block ID's that contain the give nodes */
+	void ElementGroupIDsWithNodes(const ArrayT<int>& nodes, ArrayT<StringT>& element_ids);
 
 	/** element faces on the group "surface" grouped into contiguous patches */
 	void SurfaceFacets(const ArrayT<StringT>& IDs,

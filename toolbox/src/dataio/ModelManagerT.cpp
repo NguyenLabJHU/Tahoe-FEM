@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.43 2004-03-18 17:42:45 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.44 2004-04-22 15:25:44 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -793,6 +793,41 @@ void ModelManagerT::BoundingElements(const ArrayT<StringT>& IDs, iArrayT& elemen
 	
 	/* clean up */
 	if (my_geometry) delete geometry;
+}
+
+void ModelManagerT::ElementGroupIDsWithNodes(const ArrayT<int>& nodes, ArrayT<StringT>& element_ids)
+{
+	/* quick exit */
+	if (nodes.Length() == 0) {
+		element_ids.Dimension(0);
+		return;
+	}
+
+	/* mark nodes being looked for */
+	ArrayT<char> hit_node(NumNodes());
+	hit_node = 'f';
+	for (int i = 0; i < nodes.Length(); i++)
+		hit_node[i] = 't';
+		
+	/* search through blocks */
+	iArrayT has_node(fElementNames.Length());
+	has_node = 0;
+	for (int i = 0; i < fElementNames.Length(); i++) {
+		const iArray2DT& connects = ElementGroup(fElementNames[i]);
+		bool found = false;
+		for (int j = 0; !found && j < connects.Length(); j++)
+			if (hit_node[connects[j]] == 't')
+				found = true;
+				
+		has_node[i] = (found) ? 1 : 0;
+	}
+	
+	/* collect IDs */
+	element_ids.Dimension(has_node.Count(1));
+	int count = 0;
+	for (int i = 0; i < fElementNames.Length(); i++)
+		if (has_node[i] == 1)
+			element_ids[count++] = fElementNames[i];
 }
 
 #if 0
