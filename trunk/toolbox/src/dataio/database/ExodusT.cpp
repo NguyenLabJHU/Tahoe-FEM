@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.9 2001-07-05 22:02:35 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.10 2001-07-14 01:20:41 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -263,7 +263,7 @@ void ExodusT::ReadNodeMap(iArrayT& node_map) const
 {
 	/* checks */
 	if (exoid < 0) throw eGeneralFail;
-	if (node_map.Length() != num_nodes)
+	if (node_map.Length() != num_nodes) throw eSizeMismatch;
 
 	Try("ExodusT::ReadNodeMap: ",
 		ex_get_node_num_map(exoid, node_map.Pointer()),
