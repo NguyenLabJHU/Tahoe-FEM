@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.39 2004-07-29 20:28:00 paklein Exp $
+# $Id: makefile.template,v 1.40 2004-09-15 20:38:26 raregue Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (1) copy makefile.template to a local makefile
@@ -82,15 +82,6 @@ EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
 #DEV_LIB_NAME = development
 #DEV_LIB      = $(DEV_DIR)/lib/lib$(DEV_LIB_NAME).a
 #DEV_LFLAGS   = -L$(DEV_DIR)/lib -l$(DEV_LIB_NAME) -l$(TARGET)
-
-##### fossum geomaterial module
-#FOSSUM_DIR      = $(HOME_DIR)/../fossum
-#FOSSUM_INC      = -I$(FOSSUM_DIR)/inc
-#FOSSUM_DEFINES  = -D__FOSSUM__
-#FOSSUM_CFLAGS   = $(FOSSUM_INC) $(FOSSUM_DEFINES)
-#FOSSUM_LIB_NAME = fossum
-#FOSSUM_LIB      = $(FOSSUM_DIR)/lib/lib$(FOSSUM_LIB_NAME).a
-#FOSSUM_LFLAGS   = -L$(FOSSUM_DIR)/lib -l$(FOSSUM_LIB_NAME)
 
 ##### Sierra models module
 #SIERRA_DIR      = $(HOME_DIR)/../Sierra
@@ -224,7 +215,7 @@ EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
 
 ##### keeping optional modules up to date
 UP_TO_DATE = NONE
-#UP_TO_DATE = $(DEV_DIR) $(FOSSUM_DIR) $(SIERRA_DIR)
+#UP_TO_DATE = $(DEV_DIR) $(SIERRA_DIR)
 
 ############################### build options ###########################
 
