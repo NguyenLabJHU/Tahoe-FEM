@@ -1,5 +1,5 @@
 
-/* $Id: VTKConsoleT.h,v 1.30 2002-07-02 21:23:00 cjkimme Exp $ */
+/* $Id: VTKConsoleT.h,v 1.31 2002-09-22 19:54:59 paklein Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -83,7 +83,7 @@ class VTKConsoleT: public iConsoleObjectT
 
   /** interactor to rotate, translate, zoom, etc */
   vtkRenderWindowInteractor *iren;
- 
+
   /** list of frame in the display window */
   Array2DT<VTKFrameT*> fFrames;
 

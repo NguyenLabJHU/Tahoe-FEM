@@ -1,6 +1,11 @@
-/* $Id: VTKUGridT.cpp,v 1.23 2002-07-17 16:52:21 recampb Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.24 2002-09-22 19:54:59 paklein Exp $ */
 #include "VTKUGridT.h"
 
+/* Tahoe toolbox headers */
+#include "iArray2DT.h"
+#include "dArray2DT.h"
+
+/* VTK headers */
 #include "vtkPoints.h"
 #include "vtkUnstructuredGrid.h"
 #include "vtkDataSetMapper.h"
@@ -11,7 +16,6 @@
 #include "vtkLookupTable.h"
 #include "vtkProperty.h"
 #include "vtkContourFilter.h"
-#include "iArray2DT.h"
 #include "vtkOutlineFilter.h"
 #include "vtkExtractEdges.h"
 #include "vtkLODActor.h"
@@ -21,12 +25,12 @@
 #include "vtkCutter.h"
 #include "vtkGlyph3D.h"
 #include "vtkConeSource.h"
-#include "dArray2DT.h"
 #include "vtkArrowSource.h"
 #include "vtkSelectVisiblePoints.h"
 #include "vtkRenderer.h"
 #include "vtkTahoeGlyph3D.h"
 #include "vtkActorCollection.h"
+#include "vtkPolyDataMapper.h"
 
 using namespace Tahoe;
 

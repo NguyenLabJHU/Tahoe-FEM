@@ -1,11 +1,21 @@
-/* $Id: VTKConsoleT.cpp,v 1.56 2002-09-03 07:10:36 paklein Exp $ */
-
+/* $Id: VTKConsoleT.cpp,v 1.57 2002-09-22 19:54:59 paklein Exp $ */
 #include "VTKConsoleT.h"
-#include "VTKFrameT.h"
-#include "VTKBodyT.h"
-#include "VTKBodyDataT.h"
 
-//#include "vtkRenderer.h"
+/* ANSI headers */
+//#include <iostream.h>
+//#include <iomanip.h>
+//#include <cstdio>
+
+/* tahoe toolbox headers */
+#include "dArray2DT.h"
+#include "iArray2DT.h"
+#include "dArrayT.h"
+#include "GeometryT.h"
+#include "IOBaseT.h"
+#include "CommandSpecT.h"
+#include "ArgSpecT.h"
+
+/* VTK headers */
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkInteractorStyle.h"
@@ -13,23 +23,6 @@
 #include "vtkTIFFWriter.h"
 #include "vtkJPEGWriter.h"
 #include "vtkWindowToImageFilter.h"
-
-/* generating PostScript from OpenGL */
-#include "gl2ps.h"
-
-#include <iostream.h>
-#include <iomanip.h>
-//#include <cstdio>
-
-#include "ExodusT.h"
-#include "dArray2DT.h"
-#include "iArray2DT.h"
-#include "dArrayT.h"
-#include "GeometryT.h"
-#include "IOBaseT.h"
-
-#include "CommandSpecT.h"
-#include "ArgSpecT.h"
 #include "vtkPointPicker.h"
 #include "vtkFloatArray.h"
 #include "vtkActor.h"
@@ -39,6 +32,15 @@
 #include "vtkTextSource.h"
 #include "vtkActorCollection.h"
 #include "vtkRendererCollection.h"
+#include "vtkProperty.h"
+
+/* VTK console headers */
+#include "VTKFrameT.h"
+#include "VTKBodyT.h"
+#include "VTKBodyDataT.h"
+
+/* generating PostScript from OpenGL */
+#include "gl2ps.h"
 
 using namespace Tahoe;
 
@@ -169,7 +171,8 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 	
 	/* set interator style to trackball instead of joystick in the
 	 * same way it occurs from the window */
-	iren->GetInteractorStyle()->OnChar(0, 0, 't', 1);
+	//iren->GetInteractorStyle()->OnChar(0, 0, 't', 1);
+	//NOTE: doesn't work with VTK 4.1.1
 
 	/* set up single frame */
 	SetFrameLayout(1,1);

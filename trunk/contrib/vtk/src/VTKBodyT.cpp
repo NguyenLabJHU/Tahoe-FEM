@@ -1,14 +1,12 @@
-/* $Id: VTKBodyT.cpp,v 1.35 2002-07-17 16:52:21 recampb Exp $ */
-
+/* $Id: VTKBodyT.cpp,v 1.36 2002-09-22 19:54:59 paklein Exp $ */
 #include "VTKBodyT.h"
-#include "VTKBodyDataT.h"
-#include "VTKFrameT.h"
-#include "VTKUGridT.h"
-#include "VTKMappedIdFilterT.h"
+
+/* tahoe toolbox headers */
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
-#include "VTKConsoleT.h"
+#include "Array2DT.h"
 
+/* VTK headers */
 #include "vtkCubeAxesActor2D.h"
 #include "vtkRenderer.h"
 #include "vtkUnstructuredGrid.h"
@@ -21,8 +19,16 @@
 #include "vtkLODActor.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkSphereSource.h"
-#include "Array2DT.h"
 #include "vtkFloatArray.h"
+#include "vtkProperty2D.h"
+#include "vtkProperty.h"
+
+/* VTK console headers */
+#include "VTKBodyDataT.h"
+#include "VTKFrameT.h"
+#include "VTKUGridT.h"
+#include "VTKMappedIdFilterT.h"
+#include "VTKConsoleT.h"
 
 using namespace Tahoe;
 
