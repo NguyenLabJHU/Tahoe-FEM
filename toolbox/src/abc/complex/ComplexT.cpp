@@ -1,4 +1,4 @@
-/* $Id: ComplexT.cpp,v 1.9 2002-07-05 15:05:29 paklein Exp $ */
+/* $Id: ComplexT.cpp,v 1.10 2002-07-05 15:16:21 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997) */
 
 #include "ComplexT.h"
@@ -86,7 +86,7 @@ istream& operator>>(istream& in, ComplexT& z)
 /* other Math functions */
 ComplexT log(const ComplexT& z)
 {
-	return ( ComplexT ( std::log( z.Magnitude() ) ,z.Angle() ) );
+	return ( ComplexT ( ::log( z.Magnitude() ) ,z.Angle() ) );
 }
 
 } // namespace Tahoe
