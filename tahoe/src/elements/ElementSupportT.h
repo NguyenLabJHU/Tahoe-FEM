@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.24 2003-08-08 16:20:53 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.25 2003-08-25 21:41:49 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -42,6 +42,7 @@ class StringT;
 class OutputSetT;
 class LocalArrayT;
 class CommManagerT;
+class CommunicatorT;
 
 /** support for the ElementBaseT class hierarchy. A limited interface to get 
  * information in and out of an ElementBaseT */
@@ -226,6 +227,9 @@ public:
 
 	/** rank of this process */
 	int Rank(void) const;
+
+	/** low-level communicator */
+	const CommunicatorT& Communicator(void) const;
 
 	/** the nodes not native to this processor. Returns NULL if there is no 
 	 * list, indicating \e all nodes are owned by this partition */
