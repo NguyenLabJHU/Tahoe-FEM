@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.8 2002-01-05 06:36:39 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.9 2002-01-08 13:55:32 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -65,8 +65,8 @@ class ModelManagerT
   void EchoData (ostream& o) const;
   
   /** access function
-   * \return format database format
-   * \return name model file name */
+   * \param format returns database format
+   * \param name returns model file name */
   void Format (IOBaseT::FileTypeT& format, StringT& name) const;
 
   /** InputBaseT node registration
@@ -155,14 +155,14 @@ class ModelManagerT
    * Element block data: the number of blocks, list of names, and matnums
    * if the database format is inline, it will read connectivity and register it
    * \param in stream containing element block data or external file name
-   * \return indexes array of element group indexes
-   * \return matnums array of corresponding material IDs */
+   * \param indexes returned array of element group indexes
+   * \param matnums returned array of corresponding material IDs */
   void ElementBlockList (ifstreamT& in, iArrayT& indexes, iArrayT& matnums);
   /** reads node set block data from Tahoe paramter file
    * Node Set block data: number of sets and set IDs
    * if the datbase format is inline, it will read number of nodes and register them
    * \param in stream containing node set block data or external file name
-   * \return indexes array of node set indexes */
+   * \param indexes returned array of node set indexes */
   void NodeSetList (ifstreamT& in, iArrayT& indexes);
   /** reads side set block data from Tahoe paramter file
    * Side Set block data: number of sets and set IDs
@@ -170,39 +170,39 @@ class ModelManagerT
    * set multidatabasesets = false for places where the number of sets is not in the
    * parameter file and it is assumed that there is only one set to read
    * \param in stream containing side set block data or external file name
-   * \return indexes array of node set indexes
+   * \param indexes returned array of node set indexes
    * \param multidatabasesets flag for slight parameter file inconsistency, see more info above */
   void SideSetList (ifstreamT& in, iArrayT& indexes, bool multidatabasesets);
 
   /** read IC/KBC/FBC card type data from Tahoe parameter file, including number of cards
    * \param in stream for parameter file
    * \param out error messaging stream
-   * \return nodes array of node set arrays 
-   * \return data array of integer card data, each row corresponds to a node set
-   * \return value array of double values, each member corresponds to a node set */
+   * \param nodes returned array of node set arrays 
+   * \param return data returned array of integer card data, each row corresponds to a node set
+   * \param return value returned array of double values, each member corresponds to a node set */
   int ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& nodes, iArray2DT& data, dArrayT& value);
   /** read traction card overall dimensions from Tahoe parameter file
    * Call this function in conjuction with ReadTractionSetData and ReadTractionSideSet
    * if inline database format, number tractions and number of sets are read
    * else number of sets are read
    * \param in stream for parameter file
-   * \return numlines number of cards in parameter file
-   * \return numsets number of sets */
+   * \param numlines returned number of cards in parameter file
+   * \param numsets returned number of sets */
   void ReadNumTractionLines (ifstreamT& in, int& numlines, int& numsets);
   /** read a set of data
    * if inline database format, the element block index and dimensions for a set of data is read
    * else the set of data is dimensioned as 1, element block index is set later
    * \param in stream for parameter file
-   * \return blockindex element block index the set is contained within for inline text
-   * \return setsize number of cards to read from parameter file for this set */
+   * \param blockindex returned element block index the set is contained within for inline text
+   * \param setsize returned number of cards to read from parameter file for this set */
   void ReadTractionSetData (ifstreamT& in, int& blockindex, int& setsize);
   /** reads a set of traction cards
    * this read a partial traction card, the rest must be read by an element class, 
    * if inline database format, the element and facet is read
    * else the set name is read and the element block index is determined
    * \param in stream for parameter file
-   * \return blockindex element block index the set is contained within for model file data
-   * \return localsides array of facets from model file or just one facet from inline text, locally numbered */
+   * \param blockindex returned element block index the set is contained within for model file data
+   * \param localsides returned array of facets from model file or just one facet from inline text, locally numbered */
   void ReadTractionSideSet (ifstreamT& in, int& blockindex, iArray2DT& localsides);
 
 	/** number of nodes */
@@ -212,8 +212,8 @@ class ModelManagerT
 	int  NumDimensions (void) const;
 
   /** access coordinate dimensions
-   * \return length number of nodes
-   * \return dof spatial degree of freedom */
+   * \param length returned number of nodes
+   * \param dof returned spatial degree of freedom */
   void CoordinateDimensions (int& length, int& dof) const;
   /** return a reference to the coordinate array, whether it is filled or empty */
   const dArray2DT& CoordinateReference (void) const;
@@ -222,7 +222,7 @@ class ModelManagerT
   /** reads the coordinate array if not yet read from the model file, no return accessor */
   void ReadCoordinates (void);
 
-  /** determine if coordinates are written wth 3 DOF for 2D elements
+  /** determine if coordinates are written wth 3 DOF for 2D elements;
    * Patran, Abaqus, EnSight, etc. always store coordinates in 3D */
   bool AreElements2D (void) const;
 
@@ -266,6 +266,7 @@ class ModelManagerT
   /** return reference to node set array
       \note node numbering is global, continuous, and offset to zero */
   const iArrayT& NodeSet (int index);
+  /** return mapped node set array
   /** compile the set of node sets indicated by indexes into one sorted array called nodes
    * \note node numbering is global, continuous, and offset to zero */
   void ManyNodeSets (const iArrayT& indexes, iArrayT& nodes);
@@ -293,13 +294,13 @@ class ModelManagerT
 
   /** add nodes to the coordinate array
    * \param newcoords array of coordinates to add
-   * \return new_node_tags node tags, globally numbered, continuous, offset to zero
-   * \return newtotalnumnodes number of nodes after adding */
+   * \param new_node_tags returned node tags, globally numbered, continuous, offset to zero
+   * \param newtotalnumnodes returned number of nodes after adding */
   void AddNodes (const dArray2DT& newcoords, iArrayT& new_node_tags, int& newtotalnumnodes);
   /** dupicate nodes to expand the coordinate array
    * \param nodes array of node tags that will be duplicated
-   * \return new_node_tags node tags, globally numbered, continuous, offset to zero
-   * \return newtotalnumnodes number of nodes after adding */
+   * \param new_node_tags returned node tags, globally numbered, continuous, offset to zero
+   * \param newtotalnumnodes returned number of nodes after adding */
   void DuplicateNodes (const iArrayT& nodes, iArrayT& new_node_tags, int& newtotalnumnodes);
   /** adjust the DOF of the coordinate array from 3D to 2D by dropping the 3rd coordiante value */
   void AdjustCoordinatesto2D (void);
@@ -316,8 +317,8 @@ class ModelManagerT
   /** add elements to an element group array
    * \param index element group index
    * \param connects connectivity of elements to add
-   * \return new_elem_tags element tags, locally numbered, continuous, offset to zero
-   * \return newtotalnumelems number of elements in the group after adding */
+   * \param new_elem_tags returned element tags, locally numbered, continuous, offset to zero
+   * \param newtotalnumelems returned number of elements in the group after adding */
   void AddElement (int index, const iArray2DT& connects, iArrayT& new_elem_tags, int& newtotalnumelems);
 
   /** This closes the link to InputBaseT, it does not clear any stored data */
