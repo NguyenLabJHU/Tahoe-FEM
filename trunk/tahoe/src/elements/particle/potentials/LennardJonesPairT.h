@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.h,v 1.2 2002-11-26 01:55:37 paklein Exp $ */
+/* $Id: LennardJonesPairT.h,v 1.3 2002-11-28 01:07:10 paklein Exp $ */
 #ifndef _LENNARD_JONES_PAIR_T_H_
 #define _LENNARD_JONES_PAIR_T_H_
 
@@ -7,13 +7,32 @@
 
 namespace Tahoe {
 
-/** harmonic pair interaction */
+/** Lennard-Jones pair interaction. The Lennard-Jones 6/12 with a smooth
+ * cut-off function. The potential is defined as
+ \f[
+	\phi(r) = \phi_{LJ}(r) - \phi_{LJ}(r_c) - (r - r_c) \phi'_{LJ}(r_c),
+ \f]
+ * where \f$ r_c = \alpha \sigma \f$. The unmodified Lennard Jones potential is
+ \f[
+	\phi_{LJ}(r) = 4 \epsilon \left[ (\sigma/r)^{12} - (\sigma/r)^{6} \right].
+ \f]
+ * In terms of these parameters, equilibrium length of a single, unmodified
+ * Lennard-Jones bond is
+ \f[
+ 	r_0 = 2^{1/6} \sigma,
+ \f]
+ and the depth of the energy well is
+ \f[
+	\phi_{LJ}(r_0) = -\epsilon.
+ \f]
+ The cut-off parameter \f$ \alpha \f$ is ignored if \f$ \alpha < 0 \f$.
+ */
 class LennardJonesPairT: public PairPropertyT
 {
 public:
 
 	/** constructor */
-	LennardJonesPairT(double mass, double eps, double sigma, double cut_off);
+	LennardJonesPairT(double mass, double eps, double sigma, double alpha);
 
 	/** \name return interaction functions */
 	/*@{*/
@@ -38,6 +57,8 @@ private:
 
 private:
 
+	/** \name user-defined parameters */
+	/*@{*/
 	/** energy scaling */
 	double f_eps;
 
@@ -45,7 +66,17 @@ private:
 	double f_sigma;
 	
 	/** cut-off distance */
-	double f_cut;
+	double f_alpha;
+	/*@}*/
+	
+	/** \name unmodified potential at the cut-off */
+	/*@{*/
+	/** energy */
+	double f_phi_rc;
+
+	/** force */
+	double f_dphi_rc;
+	/*@}*/
 	
 	/** \name static parameters 
 	 * There parameters are use during evaluation of the static interaction 
@@ -53,7 +84,9 @@ private:
 	/*@{*/
 	static double s_eps;
 	static double s_sigma;
-	static double s_cut;
+	static double s_alpha;
+	static double s_phi_rc;
+	static double s_dphi_rc;
 	/*@}*/
 };
 
