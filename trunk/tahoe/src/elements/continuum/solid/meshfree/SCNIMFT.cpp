@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.37 2004-10-27 16:30:43 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.38 2004-10-27 20:04:13 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 
@@ -907,6 +907,7 @@ int SCNIMFT::SupportSize(int localNode)
 
 void SCNIMFT::InitializeVoronoiData(void)
 {
+#ifdef __QHULL__
   fVoronoiVertices.Alias(fVoronoi->VoronoiVertices());
   fVoronoiCells.Alias(fVoronoi->VoronoiCells()); 		
   fVoronoiFacetIndices.Alias(fVoronoi->VoronoiFacetIndices());
@@ -955,6 +956,7 @@ void SCNIMFT::InitializeVoronoiData(void)
       fBoundaryIntegrationWeights[ctr] =  fVoronoiFacetAreas[fBoundaryNodes[i]][fSelfDuals[i][j]];
       ctr++;
     }
+#endif
 }
 
 void SCNIMFT::ComputeBMatrices(void)
