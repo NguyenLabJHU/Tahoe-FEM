@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.10.2.5 2003-01-11 22:11:39 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.10.2.6 2003-01-13 19:51:28 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -30,7 +30,8 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	fGrid(NULL),
 	fReNeighborCounter(0),
 	fCommManager(support.CommManager()),
-	fDmax(0)
+	fDmax(0),
+	fForce_man(0, fForce, field.NumDOF())
 {
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
@@ -68,17 +69,44 @@ void ParticleT::Initialize(void)
 	ElementBaseT::Initialize();
 	
 	/* allocate work space */
-	fForce.Dimension(ElementSupport().NumNodes(), NumDOF());
+	fForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
 
 	/* write parameters */
 	ofstreamT& out = ElementSupport().Output();
+	int d_width = OutputWidth(out, &fNeighborDistance);
 	out << " Neighbor cut-off distance . . . . . . . . . . . = " << fNeighborDistance << '\n';
 	out << " Re-neighboring displacement trigger . . . . . . = " << fReNeighborDisp << '\n';
 	out << " Re-neighboring interval . . . . . . . . . . . . = " << fReNeighborIncr << '\n';
+
+	/* periodic boundary conditions */
+	out << " Periodic boundary conditions:\n";
+	out << setw(kIntWidth) << "dir"
+	    << setw(d_width) << "min"
+	    << setw(d_width) << "max" << '\n';
+	ifstreamT& in = ElementSupport().Input();
+	for (int i = 0; i < NumSD(); i++) {
+	
+		out << setw(kIntWidth) << i+1;
+		int has_periodic = 0;
+		in >> has_periodic;
+		if (has_periodic) {
+			double x_min = 0.0, x_max = 0.0;
+			in >> x_min >> x_max;
+			out << setw(d_width) << x_min << setw(d_width) << x_max << '\n';
+			if (x_min > x_max)
+				ExceptionT::BadInputValue(caller, "x_min > x_max: %g < %g", x_min, x_max);
+
+			/* send to CommManagerT */
+			ElementSupport().CommManager().SetPeriodicBoundaries(i, x_min, x_max);
+		}
+		else out << setw(d_width) << "-" << setw(d_width) << "-" << '\n';
+	}
 	
 	/* read properties information */
-	ifstreamT& in = ElementSupport().Input();
 	EchoProperties(in, out);
+
+	/* set up communication of type information */
+	fTypeMessageID = ElementSupport().CommManager().Init_AllGather(MessageT::Integer, 1);
 
 	/* map of {type_a, type_b} -> potential number */
 	fPropertiesMap.Dimension(fNumTypes);
@@ -96,7 +124,7 @@ void ParticleT::Initialize(void)
 			fPropertiesMap(a,b) = pot_num;
 	}
 	fPropertiesMap--; /* offset */
-	
+
 	/* set the neighborlists */
 	SetConfiguration();
 }
@@ -169,12 +197,6 @@ void ParticleT::WriteOutput(void)
 		else
 			ExceptionT::GeneralFail("ParticleT::WriteOutput", "expecting a partition nodes list");
 	}
-
-	/* write the search grid statistics */
-	if (fGrid) {
-		ofstreamT& out = ElementSupport().Output();
-		fGrid->WriteStatistics(out);
-	}
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -238,6 +260,29 @@ bool ParticleT::ChangingGeometry(void) const
 /* set neighborlists */
 void ParticleT::SetConfiguration(void)
 {
+	/* set periodic boundary conditions */
+	CommManagerT& comm_manager = ElementSupport().CommManager();
+	comm_manager.EnforcePeriodicBoundaries(fNeighborDistance);
+	
+	/* reset the types array */
+	int nnd = ElementSupport().NumNodes();
+	fType.Resize(nnd);
+	const ArrayT<int>* ghosted_nodes = comm_manager.NodesWithGhosts();
+	if (ghosted_nodes) {
+		const ArrayT<int>* ghosts = comm_manager.GhostNodes();
+		int* to = ghosts->Pointer();
+		int* from = ghosted_nodes->Pointer();
+		for (int i = 0; i < ghosted_nodes->Length(); i++)
+			fType[to[i]] = fType[from[i]];
+	}
+	
+	/* exchange type information */
+	iArray2DT type_wrapper(fType.Length(), 1, fType.Pointer());
+	ElementSupport().CommManager().AllGather(fTypeMessageID, type_wrapper);
+	
+	/* resize working arrays */
+	fForce_man.SetMajorDimension(nnd, false);
+
 	/* collect current coordinates */
 	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
 	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
@@ -249,6 +294,12 @@ void ParticleT::SetConfiguration(void)
 	}
 	else /* use ALL nodes */
 		fReNeighborCoords = curr_coords;
+
+	/* write the search grid statistics */
+	if (fGrid) {
+		ofstreamT& out = ElementSupport().Output();
+		fGrid->WriteStatistics(out);
+	}
 }
 
 /* echo element connectivity data */
@@ -365,7 +416,8 @@ void ParticleT::GenerateNeighborList(const ArrayT<int>* particle_tags,
 				}
 		
 				/* it's a keeper */
-				if (d2 <= distance2) auto_neighbors.Append(i, tag_j);
+				if (d2 <= distance2) 
+					auto_neighbors.Append(i, tag_j);
 			}
 		}
 	}

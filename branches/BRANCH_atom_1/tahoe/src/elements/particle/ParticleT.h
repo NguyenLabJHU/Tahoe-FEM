@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.8.2.3 2003-01-11 01:14:48 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.8.2.4 2003-01-13 19:51:28 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -161,7 +161,10 @@ protected:
 	int fNumTypes;
 
 	/** particle type for global tag */
-	iArrayT fType;
+	AutoArrayT<int> fType;
+	
+	/** message id for exchanging the ParticleT::fType array */
+	int fTypeMessageID;
 	
 	/** map of particle types to properties: {type_a, type_b} -> property number */
 	nMatrixT<int> fPropertiesMap;
@@ -174,6 +177,7 @@ protected:
 	/*@{*/
 //	dArrayT   fEnergy;
 	dArray2DT fForce;
+	nVariArray2DT<double> fForce_man;
 	/*@{*/
 	
 	/** \name group running averages.
