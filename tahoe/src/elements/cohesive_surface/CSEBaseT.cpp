@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.32.2.2 2004-07-07 15:27:56 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.32.2.3 2004-07-08 16:11:27 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -418,8 +418,11 @@ ParameterInterfaceT* CSEBaseT::NewSub(const StringT& list_name) const
 		ParameterContainerT* node_output = new ParameterContainerT(list_name);
 		
 		/* all false by default */
-		for (int i = 0; i < NumNodalOutputCodes; i++)
-			node_output->AddParameter(ParameterT::Integer, NodalOutputNames[i], ParameterListT::ZeroOrOnce);
+		for (int i = 0; i < NumNodalOutputCodes; i++) {
+			ParameterT output(ParameterT::Integer, NodalOutputNames[i]);
+			output.SetDefault(1);
+			node_output->AddParameter(output, ParameterListT::ZeroOrOnce);
+		}
 
 		return node_output;
 	}
@@ -428,8 +431,11 @@ ParameterInterfaceT* CSEBaseT::NewSub(const StringT& list_name) const
 		ParameterContainerT* element_output = new ParameterContainerT(list_name);
 		
 		/* all false by default */
-		for (int i = 0; i < NumElementOutputCodes; i++)
-			element_output->AddParameter(ParameterT::Integer, ElementOutputNames[i], ParameterListT::ZeroOrOnce);
+		for (int i = 0; i < NumElementOutputCodes; i++) {
+			ParameterT output(ParameterT::Integer, ElementOutputNames[i]);
+			output.SetDefault(1);
+			element_output->AddParameter(output, ParameterListT::ZeroOrOnce);
+		}
 
 		return element_output;	
 	}
