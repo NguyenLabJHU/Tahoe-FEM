@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:44 paklein Exp $
+# $Id: makefile,v 1.5 2001-04-27 16:47:58 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -9,7 +9,8 @@ OBJ = \
 	DiffusionMatListT.o \
 	MaterialListT.o \
 	MaterialList2DT.o \
-	MaterialList3DT.o
+	MaterialList3DT.o \
+	MaterialT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -21,14 +22,16 @@ SRC = \
 	DiffusionMatListT.cpp \
 	MaterialListT.cpp \
 	MaterialList2DT.cpp \
-	MaterialList3DT.cpp
+	MaterialList3DT.cpp \
+	MaterialT.cpp
 
 # headers
 HDR = \
 	DiffusionMatListT.h \
 	MaterialListT.h \
 	MaterialList2DT.h \
-	MaterialList3DT.h
+	MaterialList3DT.h \
+	MaterialT.h
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
