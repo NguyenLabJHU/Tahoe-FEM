@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.37 2002-01-02 06:38:49 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.38 2002-01-03 00:33:57 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -22,7 +22,7 @@
 
 #include <iostream.h>
 #include <iomanip.h>
-#include <cstdio>
+//#include <cstdio>
 
 #include "ExodusT.h"
 #include "dArray2DT.h"
@@ -111,7 +111,7 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 	/* display objects */
 	renWin = vtkRenderWindow::New();
 	renWin->SetWindowName("VTK for Tahoe");
-//  renWin->SetPosition(668, 0);
+	renWin->SetPosition(10,10);
 //  renWin->SetSize(600,700);
 	iren = vtkRenderWindowInteractor::New();
 	iren->SetRenderWindow(renWin);
@@ -411,7 +411,7 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 			int state = GL2PS_OVERFLOW;
 			
 			/* loop on buffer size */
-			int iter;
+			int iter = 0;
 			while (state == GL2PS_OVERFLOW && iter++ < 20)
 			{
 				buffsize += 1024*1024;
