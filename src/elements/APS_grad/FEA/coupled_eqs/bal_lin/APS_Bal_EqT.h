@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.h,v 1.3 2003-09-04 15:45:41 paklein Exp $
+// $Id: APS_Bal_EqT.h,v 1.4 2003-09-16 16:42:33 raregue Exp $
 #ifndef _APS_BALEQ_T_H_ 
 #define _APS_BALEQ_T_H_ 
 
@@ -29,6 +29,12 @@ class APS_Bal_EqT	: public BalLinMomT
 								kVB_Temp1,
 								kVB_Temp2,
 	             				kNUM_VB_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
+	             				
+	             				
+	enum V_T {
+								knueps,
+								kV_Temp1,
+	             				kNUM_V_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 								
 	enum C_T { 
 								kMu,
@@ -44,10 +50,11 @@ class APS_Bal_EqT	: public BalLinMomT
 		void 	Construct 		( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_VariableT &np1, APS_VariableT &n, 
 								int &fTime_Step, double fdelta_t = 0.0, int Integration_Scheme=FEA::kBackward_Euler); 
 
-  		void 	Form_LHS_Keps_Kd	(	dMatrixT &Keps, dMatrixT &Kd ); // add delta_t for dynamics
-  		void 	Form_RHS_F_int		(	dArrayT  &F_int ); 
+  		void 	Form_LHS_Keps_Kd	( dMatrixT &Keps, dMatrixT &Kd ); // add delta_t for dynamics
+  		void 	Form_RHS_F_int		( dArrayT  &F_int, dMatrixT &Kd, dMatrixT &Keps ); 
 		void 	Form_B_List 		( void );  // Strain Displacement Matricies
 		void 	Form_VB_List 		( void );  // Strain Matricies
+		void 	Form_V_List 		( void );  // vectors
  		void 	Form_C_List 		( APS_MaterialT *Shear_Matl );  // Constant List
 
 		void  	Get ( StringT &Name, FEA_dMatrixT &tensor );
@@ -59,7 +66,7 @@ class APS_Bal_EqT	: public BalLinMomT
 	protected:
 
   		FEA_dMatrix_ArrayT B; 
-  		FEA_dVector_ArrayT VB; 
+  		FEA_dVector_ArrayT VB, V; 
   		dArrayT 			C;
 
 	protected:

@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.3 2003-09-04 15:45:38 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.4 2003-09-16 16:42:30 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -21,7 +21,8 @@ int knum_i_state = 1; // int's needed per ip
 //---------------------------------------------------------------------
 
 /* constructor */
-APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ, const FieldT& gammap):
+APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ, 
+							const FieldT& gammap):
 	ElementBaseT(support, displ), //pass the displacement field to the base class
 	u(LocalArrayT::kDisp),
 	u_n(LocalArrayT::kLastDisp),
@@ -110,22 +111,22 @@ void APS_AssemblyT::Echo_Input_Data(void) {
 
 	//################## material data ##################
 
-	cout << "iPlastModelType " 						<< iPlastModelType 						<< endl; 
+	cout << "iPlastModelType " 						<< iPlastModelType 				<< endl; 
 	
 	//-- Elasticity parameters 
-	cout << "fMaterial_Data[k__mu] "  				<< fMaterial_Data[k__mu] 					<< endl;
+	cout << "fMaterial_Data[k__mu] "  				<< fMaterial_Data[k__mu] 		<< endl;
 
 	//-- Plasticity parameters
-	cout << "fMaterial_Data[k__m_rate] " 			<< fMaterial_Data[k__m_rate] 				<< endl;
-	cout << "fMaterial_Data[k__gamma0_dot] " 		<< fMaterial_Data[k__gamma0_dot] 			<< endl;
-	cout << "fMaterial_Data[k__m1] " 				<< fMaterial_Data[k__m1] 					<< endl;
-	cout << "fMaterial_Data[k__m2] " 				<< fMaterial_Data[k__m2] 					<< endl;
+	cout << "fMaterial_Data[k__m_rate] " 			<< fMaterial_Data[k__m_rate] 	<< endl;
+	cout << "fMaterial_Data[k__gamma0_dot] " 		<< fMaterial_Data[k__gamma0_dot] << endl;
+	cout << "fMaterial_Data[k__m1] " 				<< fMaterial_Data[k__m1] 		<< endl;
+	cout << "fMaterial_Data[k__m2] " 				<< fMaterial_Data[k__m2] 		<< endl;
 
 	//-- Backstress Parameters
-	cout << "fMaterial_Data[k__l] " 				<< fMaterial_Data[k__l]						<< endl;
+	cout << "fMaterial_Data[k__l] " 				<< fMaterial_Data[k__l]			<< endl;
 
 	//-- Isotropic Hardening Parameters
-	cout << "fMaterial_Data[k__H] "					<< fMaterial_Data[k__H]						<< endl;
+	cout << "fMaterial_Data[k__H] "					<< fMaterial_Data[k__H]			<< endl;
 	
 }
 
@@ -306,7 +307,7 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 //---------------------------------------------------------------------
 
 /* form group contribution to the stiffness matrix and RHS */
-void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	(This was original RHSDriver()
+void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	This was original RHSDriver()
 {
  
 	int curr_group = ElementSupport().CurrentGroup();
@@ -350,8 +351,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	(This was original RHS
 		
 		// ?????
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradients 		( fShapes, 	u, u_n );
-		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n );
+		Convert.Gradiants 		( fShapes, 	u, u_n );
+		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
@@ -373,7 +374,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	(This was original RHS
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_I -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, step_number, delta_t );
+				fEquation_I -> Construct (	fFEA_Shapes, fBalLinMomMaterial, np1, n, 
+											step_number, delta_t );
 				fEquation_I -> Form_LHS_Keps_Kd ( fKeps_I, fKd_I );
 				fEquation_I -> Form_RHS_F_int ( fFint_I );
 
@@ -405,7 +407,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	(This was original RHS
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_II -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
+				fEquation_II -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, 
+											step_number, delta_t, FEA::kBackward_Euler );
 				fEquation_II -> Form_LHS_Keps_Kd ( fKeps_II, 	fKd_II );
 				fEquation_II -> Form_RHS_F_int ( fFint_II );
 
@@ -468,13 +471,13 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 		case PlastT::kAPS_BCJ :
 			fEquation_II	= new APS_BCJT;
 			fPlastMaterial	= new APS_MatlT;		
-			fPlastMaterial -> Assign (	APS_MatlT::kMu, 			fMaterial_Data[k__mu] 			); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::km_rate, 		fMaterial_Data[k__m_rate] 		); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::kgamma0_dot, 	fMaterial_Data[k__gamma0_dot] 	); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::km1, 			fMaterial_Data[k__m1] 			); 
-			fPlastMaterial -> Assign ( 	APS_MatlT::km2, 			fMaterial_Data[k__m2] 			); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::kl, 				fMaterial_Data[k__l] 			); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::kH, 				fMaterial_Data[k__H] 			); 	
+			fPlastMaterial -> Assign (	APS_MatlT::kMu, 		fMaterial_Data[k__mu] 		); 	
+			fPlastMaterial -> Assign ( 	APS_MatlT::km_rate, 	fMaterial_Data[k__m_rate] 	); 	
+			fPlastMaterial -> Assign ( 	APS_MatlT::kgamma0_dot, fMaterial_Data[k__gamma0_dot]); 	
+			fPlastMaterial -> Assign ( 	APS_MatlT::km1, 		fMaterial_Data[k__m1] 		); 
+			fPlastMaterial -> Assign ( 	APS_MatlT::km2, 		fMaterial_Data[k__m2] 		); 	
+			fPlastMaterial -> Assign ( 	APS_MatlT::kl, 			fMaterial_Data[k__l] 		); 	
+			fPlastMaterial -> Assign ( 	APS_MatlT::kH, 			fMaterial_Data[k__H] 		); 	
 			break;
 		default :
 			cout << " APS_AssemblyT::Select_Equations() .. ERROR >> bad iPlastScale \n";
@@ -515,7 +518,7 @@ void APS_AssemblyT::PrintControlData(ostream& out) const
 	ElementBaseT::PrintControlData(out);
 
 	out << " Displacement field. . . . . . . . . . . . . . . = \"" << fDispl.Name() << "\"\n";
-	out << " Plastic gradient field. . . . . . . . . . . . . . . . = \"" << fPlast.Name() << "\"\n";
+	out << " Plastic gradient field. . . . . . . . . . . . . = \"" << fPlast.Name() << "\"\n";
 	out << " Element geometry code . . . . . . . . . . . . . = " << fGeometryCode << '\n';
 	out << "    eq." << GeometryT::kPoint         << ", point\n";
 	out << "    eq." << GeometryT::kLine          << ", line\n";
@@ -613,8 +616,8 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		
 		// ?????
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradients 		( fShapes, 	u, u_n );
-		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n );
+		Convert.Gradiants 		( fShapes, 	u, u_n );
+		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
@@ -630,7 +633,8 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 			if (is_coarse)
 			{
 				/* residual and tangent for coarse scale */
-				fEquation_I -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, step_number, delta_t );
+				fEquation_I -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, 
+											step_number, delta_t );
 				fEquation_I -> Form_LHS_Keps_Kd ( fKeps_I, fKd_I );
 				fEquation_I -> Form_RHS_F_int ( fFint_I );
 				fFint_I *= -1.0;  
@@ -651,7 +655,8 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 			else /* fine scale nodal force */
 			{
 				/* residual and tangent for fine scale */
-				fEquation_II -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
+				fEquation_II -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, 
+											step_number, delta_t, FEA::kBackward_Euler );
 				fEquation_II -> Form_LHS_Keps_Kd ( fKeps_II, 	fKd_II );
 				fEquation_II -> Form_RHS_F_int ( fFint_II );
 				fFint_II *= -1.0;
@@ -925,8 +930,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		
 		// ?????
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradients 		( fShapes, 	u, u_n );
-		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n );
+		Convert.Gradiants 		( fShapes, 	u, u_n );
+		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
@@ -943,7 +948,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_I -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, step_number, delta_t );
+				fEquation_I -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, 
+											step_number, delta_t );
 				fEquation_I -> Form_LHS_Keps_Kd ( fKeps_I, fKd_I );
 				fEquation_I -> Form_RHS_F_int ( fFint_I );
 
@@ -969,8 +975,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 				}
 			
 				/* add to global equations */
-				ElementSupport().AssembleLHS	( fDispl.Group(), fLHS, CurrentElement().Equations() );
-				ElementSupport().AssembleRHS 	( fDispl.Group(), fRHS, CurrentElement().Equations() );
+				ElementSupport().AssembleLHS ( fDispl.Group(), fLHS, CurrentElement().Equations() );
+				ElementSupport().AssembleRHS ( fDispl.Group(), fRHS, CurrentElement().Equations() );
 			}
 		}
 
@@ -984,7 +990,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_II -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
+				fEquation_II -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, 
+											step_number, delta_t, FEA::kBackward_Euler );
 				fEquation_II -> Form_LHS_Keps_Kd ( fKeps_II, 	fKd_II );
 				fEquation_II -> Form_RHS_F_int ( fFint_II );
 
@@ -1057,8 +1064,8 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		fShapes->SetDerivatives(); 
 		
 		/* repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradients 		( fShapes, 	u, u_n );
-		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n );
+		Convert.Gradiants 		( fShapes, 	u, u_n );
+		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
@@ -1070,7 +1077,8 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		else { //-- Still Iterating
 
 			/* residual and tangent for coarse scale */
-			fEquation_I -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, step_number, delta_t );
+			fEquation_I -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, 
+										step_number, delta_t );
 			fEquation_I -> Form_LHS_Keps_Kd ( fKeps_I, fKd_I );
 			fEquation_I -> Form_RHS_F_int ( fFint_I );
 			fFint_I *= -1.0;
@@ -1089,7 +1097,8 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 			}
 
 			/* residual and tangent for fine scale */
-			fEquation_II -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
+			fEquation_II -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, step_number, 
+										delta_t, FEA::kBackward_Euler );
 			fEquation_II -> Form_LHS_Keps_Kd ( fKeps_II, 	fKd_II );
 			fEquation_II -> Form_RHS_F_int ( fFint_II );
 			fFint_II *= -1.0;

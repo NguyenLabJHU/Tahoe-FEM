@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.3 2003-09-04 15:45:41 paklein Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.4 2003-09-16 16:42:33 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -44,6 +44,7 @@ void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_M
 	Form_C_List		(	Shear_Matl );
 	Form_B_List		(	);
 	Form_VB_List	(	);
+	Form_V_List		(	);
 
 	Integral.Construct ( Shapes.j, Shapes.W ); 
 
@@ -53,27 +54,29 @@ void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_M
 
 void APS_Bal_EqT::Form_LHS_Keps_Kd	( dMatrixT &Keps, dMatrixT &Kd )  // Untested
 {
-		Keps 	= Integral.of( 	B[kB], C[kMu], B[kBgamma] );  	
+		Keps 	= Integral.of( B[kB], C[kMu], B[kBgamma] );  
 		Keps 	*= -1.0;
-	 	Kd  	= Integral.of( 	B[kB], C[kMu], B[kB] 	);  	
-//	Kd		-= Integral.of( VB[kN], C[kMu], VB[knuB] 	); 	
-#pragma message("APS_Bal_EqT::Form_LHS_Keps_Kd: there is no (FEA_dVectorT, double FEA_dVectorT) version of this method")
+	 	Kd  	= Integral.of( B[kB], C[kMu], B[kB] );  	
+		Kd		-= Integral.of( VB[kN], C[kMu], VB[knuB] );
 }
 
 //---------------------------------------------------------------------
 
-void APS_Bal_EqT::Form_RHS_F_int ( dArrayT &F_int ) // Untested
+void APS_Bal_EqT::Form_RHS_F_int ( dArrayT &F_int, dMatrixT &Kd, dMatrixT &Keps ) // Untested
 {
-#pragma message("APS_Bal_EqT::Form_RHS_F_int: tmp, Kepstmp, and tmp2 are not defined")
-
-#if 0
-//		F_int = Integral.of	( VB[kN], traction?? );
-//		dArrayT tmp1.MultAb (Kd, d???);
-		F_int -= tmp;
-		Kepstmp = Keps - Integral.of( 	VB[kN], C[kMu], VB[knuNgam] );
-//		dArrayT tmp2.MultAb ( Kepstmp, eps??? );
+#pragma message("APS_Bal_EqT::Form_RHS_F_int: traction must be input")
+		double traction = 0.0;
+		F_int = Integral.of	( VB[kN], traction );
+#pragma message("APS_Bal_EqT::Form_RHS_F_int: displ must be passed in")
+		dArrayT displ(n_en), tmp1(n_en);
+		Kd.Multx (tmp1, displ);
+		F_int -= tmp1;
+		dMatrixT Kepstmp = Keps;
+		Kepstmp -= Integral.of( VB[kN], C[kMu], VB[knuNgam] );
+#pragma message("APS_Bal_EqT::Form_RHS_F_int: eps must be passed in")
+		dArrayT eps(n_sd_x_n_en), tmp2(n_en);
+		Kepstmp.Multx ( tmp2, eps);
 		F_int += tmp2;
-#endif
 }
 
 //=== Private =========================================================
@@ -90,11 +93,19 @@ void APS_Bal_EqT::Form_B_List (void)
 void APS_Bal_EqT::Form_VB_List (void)
 {					
 		Data_Pro.APS_N(VB[kN]);
-		
-// 		VB[knuB].Dot( V[knueps]??, B[kB] );
-// 		VB[knuNgam].Dot( V[knueps]??, B[kBgamma] );
+
+ 		V[knueps].Dot( B[kB], VB[knuB] );
+ 		V[knueps].Dot( B[kBgamma], VB[knuNgam] );
 }
-							
+
+
+void APS_Bal_EqT::Form_V_List (void)
+{
+#pragma message("APS_Bal_EqT::Form_V_List: V[knueps] must be input")
+		V[knueps](0) = 1.0;
+		V[knueps](1) = 0.0;
+}
+
 
 void APS_Bal_EqT::Form_C_List (APS_MaterialT *Shear_Matl)
 {

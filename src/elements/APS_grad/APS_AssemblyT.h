@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.3 2003-09-04 15:45:38 paklein Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.4 2003-09-16 16:42:30 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -47,7 +47,7 @@ class APS_AssemblyT: public ElementBaseT
 									k__gamma0_dot,
 									k__m1,
 									k__m2,
-									kNUM_FMAT_TERMS	};		// MAT for material here, not matrix
+									kNUM_FMAT_TERMS	}; // MAT for material here, not matrix
 
 	/** constructor */
 	APS_AssemblyT(const ElementSupportT& support, const FieldT& displ, 
@@ -152,12 +152,12 @@ private:
 
 	/** \name element displacements in local ordering */
 	/*@{*/
-	LocalArrayT u;		/**< total out-of-plane displacement */
-	LocalArrayT u_n; 	/**< total out-of-plane displacement from previous increment */
-	LocalArrayT del_u;	/**< the Newton-R update i.e. del_u = u - u_n (u_{n+1}^{k+1} implied) */
-	LocalArrayT gamma_p;		/**< plastic gradient */
+	LocalArrayT u;		//total out-of-plane displacement
+	LocalArrayT u_n; 	//total out-of-plane displacement from previous increment
+	LocalArrayT del_u;	//the Newton-R update i.e. del_u = u - u_n (u_{n+1}^{k+1} implied
+	LocalArrayT gamma_p;		//plastic gradient
 	LocalArrayT gamma_p_n;
-	LocalArrayT del_gamma_p;	/**< the Newton-R update */
+	LocalArrayT del_gamma_p;	//the Newton-R update
 	dArrayT		del_u_vec;  		// vector form 
 	dArrayT		del_gamma_p_vec;	// vector form
 	/*@}*/
@@ -269,7 +269,8 @@ private:
 	 * \param nodal nodal values. Pass NULL for no nodal values: [nen] x [ndof]
 	 * \param ip_values integration point source terms. Pass NULL for no integration
 	 *        point values : [nip] x [ndof] */
-	void FormMa(MassTypeT mass_type, double constM, const LocalArrayT* nodal_values, const dArray2DT* ip_values);
+	void FormMa(MassTypeT mass_type, double constM, const LocalArrayT* nodal_values, 
+				const dArray2DT* ip_values);
 	 		
 	void EchoTractionBC(ifstreamT& in, ostream& out);
 	// could also break up. Input and defaults(per output format) are

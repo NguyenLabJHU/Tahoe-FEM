@@ -1,4 +1,4 @@
-// $Id: APS_VariableT.cpp,v 1.4 2003-09-15 20:50:44 paklein Exp $
+// $Id: APS_VariableT.cpp,v 1.5 2003-09-16 16:42:31 raregue Exp $
 #include "APS_VariableT.h"
 
 //---------------------------------------------------------------------
@@ -73,13 +73,13 @@ void APS_VariableT::operator=(const APS_VariableT &a)	// Initializes
 	n_vars = a.n_vars;
 	fVars.Dimension( n_vars );
 
-#if 0
+//#if 0
 	for (int i=0; i<n_vars; i++) {
-  	fVars[i].FEA_Dimension( a.fVars[i].n_ip, a.fVars[i].n_rows, a.fVars[i].n_cols );
+  	fVars[i].FEA_Dimension( a.fVars[i].IPs(), a.fVars[i].Rows() );
   	fVars[i] = a.fVars[i];
 	}
-#endif
-#pragma message("APS_VariableT::operator=: fVars[i] is a FEA_dVectorT which has no n_rows")
+//#endif
+//#pragma message("APS_VariableT::operator=: fVars[i] is a FEA_dVectorT which has no n_rows")
 };
 
 //---------------------------------------------------------------------
@@ -118,13 +118,13 @@ void APS_VariableT::SumOf (APS_VariableT &a,APS_VariableT &b) // Initializes
 n_vars = a.n_vars;
 fVars.Dimension( n_vars );
 
-#if 0
+//#if 0
 for (int i=0; i<n_vars; i++) {
-  fVars[i].FEA_Dimension( a.fVars[i].n_ip, a.fVars[i].n_rows, a.fVars[i].n_cols );
+	fVars[i].FEA_Dimension( a.fVars[i].IPs(), a.fVars[i].Rows() );
 	fVars[i].SumOf(a.fVars[i],b.fVars[i]); 
 }
-#endif
-#pragma message("APS_VariableT::SumOf: fVars[i] is a FEA_dVectorT which has no n_rows")
+//#endif
+//#pragma message("APS_VariableT::SumOf: fVars[i] is a FEA_dVectorT which has no n_rows")
 };
 
 //---------------------------------------------------------------------
