@@ -1,4 +1,4 @@
-/* $Id: GlobalT.cpp,v 1.4.2.1 2002-04-23 01:25:50 paklein Exp $ */
+/* $Id: GlobalT.cpp,v 1.4.2.2 2002-04-24 01:29:23 paklein Exp $ */
 /* created: paklein (04/01/2000) */
 
 #include "GlobalT.h"
@@ -69,6 +69,9 @@ istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 			break;
 		case GlobalT::kPML:
 			code = GlobalT::kPML;
+			break;
+		case GlobalT::kMultiField:
+			code = GlobalT::kMultiField;
 			break;
 		default:
 			cout << "\n operator>>GlobalT::AnalysisCodeT: unknown code: "

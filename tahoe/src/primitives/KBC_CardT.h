@@ -1,5 +1,5 @@
-/* $Id: KBC_CardT.h,v 1.2 2001-12-17 00:05:52 paklein Exp $ */
-/* created: paklein (05/23/1996)                                          */
+/* $Id: KBC_CardT.h,v 1.2.2.1 2002-04-24 01:29:28 paklein Exp $ */
+/* created: paklein (05/23/1996) */
 
 #ifndef _KBC_CARD_T_H_
 #define _KBC_CARD_T_H_
@@ -8,7 +8,7 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
-class LoadTime;
+class ScheduleT;
 
 class KBC_CardT
 {
@@ -29,19 +29,19 @@ public:
 	/* modifiers */
 	void SetValues(istream& in);
 	void SetValues(int node, int dof, CodeT code, int nLTF, double value);
-	void SetSchedule(const LoadTime* LTfPtr);
+	void SetSchedule(const ScheduleT* schedule);
 	
 	/* accessors */
 	int Node(void) const;
 	int DOF(void) const;
 	CodeT Code(void) const;
-	int LTfNum(void) const;
+	int ScheduleNum(void) const;
 		
 	/* returns the value of the BC */
 	double Value(void) const;
 
 	/* I/O */
-	void WriteHeader(ostream& out) const;
+	static void WriteHeader(ostream& out);
 	void WriteValues(ostream& out) const;
 
 	/* input operator for codes */
@@ -53,9 +53,9 @@ protected:
 	int      fnode;
 	int      fdof;
 	CodeT    fcode;
-	int      fnLTf;
+	int      fSchedNum;
 	double   fvalue;			
-	const LoadTime* fLTfPtr;
+	const ScheduleT* fSchedule;
 };
 
 /* in-lines */
@@ -64,6 +64,6 @@ protected:
 inline int KBC_CardT::Node(void) const   { return fnode; }
 inline int KBC_CardT::DOF(void) const    { return fdof;  }
 inline KBC_CardT::CodeT KBC_CardT::Code(void) const   { return fcode; }
-inline int KBC_CardT::LTfNum(void) const { return fnLTf; }
+inline int KBC_CardT::ScheduleNum(void) const { return fSchedNum; }
 
 #endif /* _KBC_CARD_T_H_ */

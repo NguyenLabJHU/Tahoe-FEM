@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.5.2.1 2002-04-23 01:25:52 paklein Exp $ */
+/* $Id: TiedNodesT.h,v 1.5.2.2 2002-04-24 01:29:27 paklein Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -9,7 +9,7 @@
 /* direct members */
 #include "iArray2DT.h"
 #include "iArrayT.h"
-#include "LoadTime.h"
+#include "ScheduleT.h"
 #include "AutoArrayT.h"
 
 /* forward declarations */
@@ -141,7 +141,7 @@ protected:
 	AutoArrayT<dArray2DT*> fKinematics;
 	
 	/** needed to generate KBC_ControllerT::fKBC_Cards */
-	LoadTime fDummySchedule;	
+	ScheduleT fDummySchedule;	
 
 	const FEManagerT& fFEManager;
 };

@@ -1,4 +1,4 @@
-/* $Id: nExplicitCD.h,v 1.3.2.1 2002-04-23 01:24:16 paklein Exp $ */
+/* $Id: nExplicitCD.h,v 1.3.2.2 2002-04-24 01:29:21 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _N_EXP_CD_H_
@@ -17,27 +17,27 @@ public:
 	/** constructor */
 	nExplicitCD(void);
 
-	/** consistent BC's - updates predictors and acceleration only */
-	virtual void ConsistentKBC(const KBC_CardT& KBC);
-	
-	/** predictor - map ALL */
-	virtual void Predictor(void);
+	/** consistent BC's */
+	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC);
+
+	/** pseudo-boundary conditions for external nodes */
+	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;
+
+	/** predictor. Maps ALL degrees of freedom forward. */
+	virtual void Predictor(BasicFieldT& field);
 
 	/** corrector - map ACTIVE. See nControllerT::Corrector for more
 	 * documentation */
-	virtual void Corrector(const iArray2DT& eqnos, const dArrayT& update,
+	virtual void Corrector(BasicFieldT& field, const dArrayT& update, 
 		int eq_start, int num_eq);
 
 	/** corrector with node number map - map ACTIVE. See 
 	 * nControllerT::MappedCorrector for more documentation */
-	virtual void MappedCorrector(const iArrayT& map, const iArray2DT& eqnos,
-		const dArray2DT& update, int eq_start, int eq_stop);
+	virtual void MappedCorrector(BasicFieldT& field, const iArrayT& map, 
+		const iArray2DT& flags, const dArray2DT& update);
 
 	/** return the field array needed by nControllerT::MappedCorrector. */
-	virtual const dArray2DT& MappedCorrectorField(void) const;
-
-	/** pseudo-boundary conditions for external nodes */
-	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;
+	virtual const dArray2DT& MappedCorrectorField(BasicFieldT& field) const;
 
 protected:  	
 	

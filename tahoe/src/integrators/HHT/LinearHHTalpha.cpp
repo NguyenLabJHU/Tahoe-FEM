@@ -1,10 +1,10 @@
-/* $Id: LinearHHTalpha.cpp,v 1.2 2002-04-02 23:19:20 paklein Exp $ */
+/* $Id: LinearHHTalpha.cpp,v 1.2.2.1 2002-04-24 01:29:19 paklein Exp $ */
 /* created: paklein (10/11/1996) */
 
 #include "LinearHHTalpha.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
-#include "NodeManagerT.h"
+//#include "NodeManagerT.h"
 #include "TimeManagerT.h"
 
 /* constructor */
@@ -29,7 +29,9 @@ void LinearHHTalpha::FormNodalForce(NodeManagerT* nodeboss) const
 	TimeBoss.ShiftTime(fTimeShift);
 	
 	/* form nodal contribution to RHS */
-	nodeboss->FormRHS();
+//	nodeboss->FormRHS();
+#pragma unused(nodeboss)
+#pragma message("LinearHHTalpha::FormNodalForce: need this????")
 	
 	/* reset the time */
 	TimeBoss.ResetTime();

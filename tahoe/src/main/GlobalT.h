@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.5.2.1 2002-04-23 01:25:50 paklein Exp $ */
+/* $Id: GlobalT.h,v 1.5.2.2 2002-04-24 01:29:23 paklein Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -23,7 +23,8 @@ public:
 		   kNLExpDynamic = 7,
 		  kLinStaticHeat = 19, /**< linear static heat conduction */
 		   kLinTransHeat = 20, /**< linear transient heat conduction */
-		            kPML = 30  /**< perfectly matched layer formulation */
+		            kPML = 30, /**< perfectly matched layer formulation */
+			 kMultiField = 99  /**< generalized analysis code */
 		   };
 		
 	/** stream extraction operator */
@@ -33,7 +34,7 @@ public:
 	enum OldAnalysisCodeT {
 		kVarNodeNLStatic = 15, /**< variables nodes supported through ModelManagerT */
 		kVarNodeNLExpDyn = 16, /**< variables nodes supported through ModelManagerT */
-		        kCBStatic = 8, /**< converted to KBC controller: PAK (12/10/2000) */
+		       kCBStatic = 8, /**< converted to KBC controller: PAK (12/10/2000) */
 		   kAugLagStatic = 17, /**< moved to general support of element DOF: PAK (08/22/2001) */
 	     kNLStaticKfield = 11, /**< converted to KBC controller: PAK (09/10/2000) */
 		 kNLExpDynKfield = 18  /**< converted to KBC controller: PAK (09/10/2000) */
