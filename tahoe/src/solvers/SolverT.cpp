@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.2 2001-02-28 00:47:05 paklein Exp $ */
 /* created: paklein (05/23/1996)                                          */
 
 #include "SolverT.h"
@@ -418,13 +418,6 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 			/* global system properties */
 			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType();
 
-//DEBUG
-#if 0
-type = GlobalT::kNonSymmetric;
-cout << "\n SolverT:SetGlobalMatrix: forcing nonsymmetric matrix" << endl;
-#endif
-//DEBUG
-
 			/* solver options */
 			bool pivoting = false; //TEMP: solve with pivoting??
 			bool symmetric;
@@ -448,7 +441,15 @@ cout << "\n SolverT:SetGlobalMatrix: forcing nonsymmetric matrix" << endl;
 #else
 			/* constuctor */
 			if (fFEManager.Size() > 1)
+			{
+#ifdef __SPOOLES_MPI__
 				fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting);
+#else
+				cout << "\n SolverT::SetGlobalMatrix: SPOOLES MPI not installed: ";
+				cout << matrix_type << endl;
+				throw eGeneralFail;
+#endif /* __SPOOLES_MPI__ */
+			}
 			else
 				fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
 #endif /* __MWERKS__ */
