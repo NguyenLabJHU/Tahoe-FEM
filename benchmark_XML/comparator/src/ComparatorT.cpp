@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.24 2004-07-22 00:38:09 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.25 2004-07-25 06:44:45 paklein Exp $ */
 #include "ComparatorT.h"
 
 #include <iostream.h>
@@ -269,9 +269,9 @@ void ComparatorT::JobOrBatch(ifstreamT& in, ostream& status)
 		parser.Parse(in.filename(), params);
 
 		/* plain tahoe simulation */
-		if (params.Name() == "tahoe")
+		if (params.Name() == "tahoe" || params.Name() == "tahoe_bridging" || params.Name() == "tahoe_THK")
 			RunJob(in, status);
-		else if (params.Name() == "tahoe_multi") /* multi-tahoe simulation */
+		else if (params.Name() == "tahoe_multi" || params.Name() == "tahoe_bridging_scale") /* multi-tahoe simulation */
 		{
 			/* add results to the list */
 			cout << "\nSTART: " << in.filename() << '\n';
@@ -306,12 +306,8 @@ void ComparatorT::JobOrBatch(ifstreamT& in, ostream& status)
 			cout << "\nEND: " << in.filename() << '\n';
 		}
 		else
-			ExceptionT::GeneralFail("ComparatorT::JobOrBatch", "unrecognized name ",
+			ExceptionT::GeneralFail("ComparatorT::JobOrBatch", "unrecognized name \"%s\"",
 				params.Name().Pointer());
-
-
-		
-		
 	}
 	else /* inherited */
 		FileCrawlerT::JobOrBatch(in, status);
