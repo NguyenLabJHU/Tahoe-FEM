@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.2 2001-04-04 22:11:19 paklein Exp $ */
 /* created: paklein (02/05/2000)                                          */
 /* cohesive potential from Tvergaard and Hutchinson,                      */
 /* JMPS v41, n6, 1995, 1119-1135.                                         */
@@ -37,6 +37,11 @@ TvergHutch2DT::TvergHutch2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 }
 
 /* surface potential */
+double TvergHutch2DT::FractureEnergy(void)
+{ 
+	return fd_c_n*fsigma_max*0.5*(1 - fL_1 + fL_2); 
+}
+
 double TvergHutch2DT::Potential(const dArrayT& jump_u)
 {
 #if __option(extended_errorcheck)

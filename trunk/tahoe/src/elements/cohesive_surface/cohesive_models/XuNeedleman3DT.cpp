@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.2 2001-04-04 22:11:19 paklein Exp $ */
 /* created: paklein (06/23/1999)                                          */
 
 #include "XuNeedleman3DT.h"
@@ -36,6 +36,7 @@ XuNeedleman3DT::XuNeedleman3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 }
 
 /* surface potential */
+double XuNeedleman3DT::FractureEnergy(void) { return phi_n; }
 double XuNeedleman3DT::Potential(const dArrayT& jump_u)
 {
 #if __option(extended_errorcheck)

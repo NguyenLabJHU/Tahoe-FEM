@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.2 2001-04-04 22:11:19 paklein Exp $ */
 /* created: paklein (06/20/1999)                                          */
 /* base class for surface potential with jump vector arguments            */
 
@@ -34,6 +34,7 @@ public:
 	virtual ~SurfacePotentialT(void);
 	
 	/* surface potential */
+	virtual double FractureEnergy(void) = 0;
 	virtual double Potential(const dArrayT& jump_u) = 0;
 	
 	/* traction vector given displacement jump vector */	

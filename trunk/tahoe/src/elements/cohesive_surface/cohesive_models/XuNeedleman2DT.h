@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman2DT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: XuNeedleman2DT.h,v 1.2 2001-04-04 22:11:19 paklein Exp $ */
 /* created: paklein (11/14/1997)                                          */
 /* Xu-Needleman 2D cohesive surface potential                             */
 
@@ -19,6 +19,7 @@ public:
 	XuNeedleman2DT(ifstreamT& in);
 
 	/* surface potential */
+	virtual double FractureEnergy(void);	
 	virtual double Potential(const dArrayT& jump_u);
 	
 	/* traction vector given displacement jump vector */	
