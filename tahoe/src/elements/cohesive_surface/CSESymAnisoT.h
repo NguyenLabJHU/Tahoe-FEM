@@ -1,4 +1,4 @@
-	/* $Id: CSESymAnisoT.h,v 1.4 2004-07-15 08:25:57 paklein Exp $ */
+	/* $Id: CSESymAnisoT.h,v 1.5 2004-09-10 20:29:42 paklein Exp $ */
 #ifndef _CSE_SYM_ANISO_T_H_
 #define _CSE_SYM_ANISO_T_H_
 
@@ -32,6 +32,15 @@ public:
 
 	/* writing output */
 	virtual void RegisterOutput(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
