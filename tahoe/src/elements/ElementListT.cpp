@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.91 2004-06-24 03:00:12 rdorgan Exp $ */
+/* $Id: ElementListT.cpp,v 1.92 2004-06-26 18:27:45 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -44,7 +44,9 @@
 #include "LocalizerT.h"
 #include "SimoFiniteStrainT.h"
 #include "SimoQ1P0.h"
+#include "SimoQ1P0_inv.h"
 #include "SimoQ1P0Axi.h"
+#include "SimoQ1P0Axi_inv.h"
 #include "DiffusionElementT.h"
 #include "NLDiffusionElementT.h"
 #include "MeshFreeSSSolidT.h"
@@ -400,10 +402,28 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
 #endif
 			}
+			case ElementT::kSimoQ1P0Inv:
+			{
+#ifdef CONTINUUM_ELEMENT
+				fArray[group] = new SimoQ1P0_inv(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kSimoQ1P0Axi:
 			{
 #ifdef CONTINUUM_ELEMENT
 				fArray[group] = new SimoQ1P0Axi(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
+			case ElementT::kSimoQ1P0InvAxi:
+			{
+#ifdef CONTINUUM_ELEMENT
+				fArray[group] = new SimoQ1P0Axi_inv(fSupport, *field);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
