@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.5 2001-06-20 22:49:16 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.6 2001-08-29 07:05:40 paklein Exp $ */
 /* created: paklein (07/09/1996)                                          */
 /* nArrayT with subdimension - row major storage                          */
 
@@ -55,10 +55,22 @@ public:
 	/* return transposed list (re-dimensions) - don't call with self! */
 	void Transpose(const nArray2DT<nTYPE>& source);
 	  	
-	/* deep/shallow row copies */  	 							
+	/** copy the specified row into array. */
 	void RowCopy(int row, nArrayT<nTYPE>& array) const;
-	void RowAlias(int row, nArrayT<nTYPE>& array) const;
+
+	/** copy the specified row into array without range checking. */
+	void RowCopy(int row, nTYPE* array) const;
+
+	/** copy the specified column into array. */
 	void ColumnCopy(int col, nArrayT<nTYPE>& array) const;
+
+	/** copy the specified column into array without range checking. */
+	void ColumnCopy(int col, nTYPE* array) const;
+
+	/** shallow copy of a row.
+	 * \param row row number to alias
+	 * \param array array to alias to the row data */
+	void RowAlias(int row, nArrayT<nTYPE>& array) const;
 	
 	/* set values in batch */
 	void SetRow(int row, const nTYPE& value);
@@ -383,13 +395,44 @@ void nArray2DT<nTYPE>::SetLocal(const ArrayT<int>& rows,
 }
 
 template <class nTYPE>
-void nArray2DT<nTYPE>::RowCopy(int row, nArrayT<nTYPE>& array) const
+inline void nArray2DT<nTYPE>::RowCopy(int row, nTYPE* array) const
 {
-	/* temp wrapper */
-	nArrayT<nTYPE> temp(fMinorDim, (*this)(row) );
+	/* safe wrapper for memcpy */
+	MemCopy(array, (*this)(row), MinorDim());
+}
 
-	/* deep copy */
-	array = temp;
+template <class nTYPE>
+inline void nArray2DT<nTYPE>::RowCopy(int row, nArrayT<nTYPE>& array) const
+{
+#if __option(extended_errorcheck)
+	if (array.Length() < MinorDim()) throw eSizeMismatch;
+#endif
+
+	/* call wrapper */
+	RowCopy(row, array.Pointer());
+}
+
+template <class nTYPE>
+inline void nArray2DT<nTYPE>::ColumnCopy(int col, nTYPE* array) const
+{
+	nTYPE* pout = array;
+	nTYPE* pcol = &(*this)(0,col);
+	for (int i = 0; i < fMajorDim; i++)
+	{
+		*pout++ = *pcol;
+		pcol   += fMinorDim;
+	}
+}
+
+template <class nTYPE>
+inline void nArray2DT<nTYPE>::ColumnCopy(int col, nArrayT<nTYPE>& array) const
+{
+#if __option (extended_errorcheck)
+	if (array.Length() != fMajorDim) throw eSizeMismatch;
+#endif
+
+	/* call wrapper */
+	ColumnCopy(col, array.Pointer());
 }
 
 template <class nTYPE>
@@ -398,25 +441,6 @@ inline void nArray2DT<nTYPE>::RowAlias(int row,
 {
 	array.Set(fMinorDim, (*this)(row));
 }	
-
-template <class nTYPE>
-void nArray2DT<nTYPE>::ColumnCopy(int col,
-	nArrayT<nTYPE>& array) const
-{
-/* range checking */
-#if __option (extended_errorcheck)
-	if (array.Length() != fMajorDim) throw eSizeMismatch;
-#endif
-
-	nTYPE* pout = array.Pointer();
-	nTYPE* pcol = &(*this)(0,col);
-
-	for (int i = 0; i < fMajorDim; i++)
-	{
-		*pout++ = *pcol;
-		pcol   += fMinorDim;
-	}
-}
 
 /* set values in batch */
 template <class nTYPE>
