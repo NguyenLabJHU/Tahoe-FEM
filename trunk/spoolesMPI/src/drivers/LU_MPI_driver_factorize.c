@@ -1,4 +1,4 @@
-/* $Id: LU_MPI_driver_factorize.c,v 1.1 2004-09-07 06:41:58 paklein Exp $ */
+/* $Id: LU_MPI_driver_factorize.c,v 1.2 2005-04-05 16:02:35 paklein Exp $ */
 #include "LU_MPI_driver_int.h"
 
 /* MPI driver provided by in SPOOLES documentation */
@@ -108,8 +108,7 @@ seed = rand_seed;
 #endif
 
 if (!pLU_dat) {
-	fprintf(stderr, "\n SPOOLES:LU_MPI_driver_factorize: pLU_dat is NULL\n",
-	message_file) ;
+	fprintf(stderr, "\n SPOOLES:LU_MPI_driver_factorize: pLU_dat is NULL\n");
    	return -1;
 }
 else {
