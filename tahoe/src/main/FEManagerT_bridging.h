@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.3.2.8 2003-05-13 02:38:56 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.3.2.9 2003-05-13 15:08:36 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -51,7 +51,7 @@ public:
 	void SetExternalForce(int group, const dArrayT& external_force);
 
 	/** set pointer to an external force vector for the given field */
-	void SetExternalForce(const StringT& field, const iArrayT& nodes, const dArray2DT& external_force);
+	void SetExternalForce(const StringT& field, const dArray2DT& external_force);
 	/*@}*/
 
 	/** \name ghost nodes 
