@@ -1,4 +1,4 @@
-/* $Id: CrystalLatticeT.cpp,v 1.11 2002-10-31 00:41:42 saubry Exp $ */
+/* $Id: CrystalLatticeT.cpp,v 1.12 2002-10-31 01:34:53 saubry Exp $ */
 #include "CrystalLatticeT.h"
 
 #include <iostream>
@@ -145,7 +145,6 @@ dArray2DT  CrystalLatticeT::AxisRotation(dArray2DT A)
 	    for (int k=0; k<nLSD; k++)
 	      B(i,j) += Q(i,k)*A(k,j);
 	  }
-
+    }
   return B;
 }
-
