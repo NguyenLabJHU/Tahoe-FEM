@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.h,v 1.12 2003-09-10 00:14:57 paklein Exp $ */
+/* $Id: IOBaseT.h,v 1.13 2003-11-25 19:45:30 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
 #ifndef _IOBASE_T_H_
 #define _IOBASE_T_H_
@@ -49,6 +49,10 @@ public:
 	/** convert integer to FileTypeT */
 	static FileTypeT int_to_FileTypeT(int i);
 	friend istream& operator>>(istream& in, IOBaseT::FileTypeT& file_type);
+
+	/** open new stream with path defined relative to the given file. Throws exception
+	 * if the file is not found */
+	static void OpenRelative(ifstreamT& in, const StringT& file, const StringT& root_file);
 
 	/** write list of input formats to log */
 	static void InputFormats (ostream &log);
