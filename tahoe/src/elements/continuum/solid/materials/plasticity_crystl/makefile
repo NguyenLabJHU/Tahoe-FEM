@@ -9,6 +9,7 @@ OBJ = \
 	LocalCrystalPlast_C.o \
 	LocalCrystalPlastFp.o \
 	LocalCrystalPlastFp2D.o \
+	LocalCrystalPlastFp_C.o \
 	GradCrystalPlast.o \
 	GradCrystalPlast2D.o \
 	GradCrystalPlastFp.o \
@@ -41,6 +42,7 @@ SRC = \
 	LocalCrystalPlast_C.cpp \
 	LocalCrystalPlastFp.cpp \
 	LocalCrystalPlastFp2D.cpp \
+	LocalCrystalPlastFp_C.cpp \
 	GradCrystalPlast.cpp \
 	GradCrystalPlast2D.cpp \
 	GradCrystalPlastFp.cpp \
@@ -67,6 +69,7 @@ HDR = \
 	LocalCrystalPlast_C.h \
 	LocalCrystalPlastFp.h \
 	LocalCrystalPlastFp2D.h \
+	LocalCrystalPlastFp_C.h \
 	GradCrystalPlast.h \
 	GradCrystalPlast2D.h \
 	GradCrystalPlastFp.h \
