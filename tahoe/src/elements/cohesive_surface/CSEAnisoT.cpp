@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.41 2003-04-07 23:37:28 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.42 2003-04-17 17:30:50 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -455,6 +455,9 @@ void CSEAnisoT::WriteRestart(ostream& out) const
 	/* write state variable data */
 	fStateVariables.WriteData(out);
 	out << '\n';
+	
+	out << freeNodeQ.Length() << '\n';
+	out << freeNodeQ.wrap_tight(10) << endl;
 }
 
 /* read restart data to the output stream */
@@ -468,8 +471,13 @@ void CSEAnisoT::ReadRestart(istream& in)
 
 	/* set history */
 	fStateVariables_last = fStateVariables;
-	if (freeNodeQ.IsAllocated()) //This is useless
-		freeNodeQ_last = freeNodeQ;
+	
+	int freeNode_length;
+	in >> freeNode_length;
+	if (freeNodeQ.Length() != freeNode_length)
+		ExceptionT::GeneralFail("CSEAnisoT::ReadRestart","Length mismatch for freeNodeQ");
+	in >> freeNodeQ;
+	freeNodeQ_last = freeNodeQ;
 }
 
 #else
@@ -840,9 +848,10 @@ void CSEAnisoT::RHSDriver(void)
 #endif
 				
 				/* set a flag to tell traction and stiffness that the node is free */
-				if (nodalReleaseQ && fabs(state[iTiedFlagIndex]) < kSmall)
+				if (state[iTiedFlagIndex] == -100.) // Node is tied
 				{
-					state[iTiedFlagIndex] = -10.;
+					if (nodalReleaseQ) // InitiationQ is true
+						state[iTiedFlagIndex] = -10.;
 				}
 
 				/* traction vector in/out of local frame */
