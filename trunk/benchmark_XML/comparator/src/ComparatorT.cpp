@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.11 2002-02-09 19:13:06 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.12 2002-02-18 09:45:12 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -84,7 +84,9 @@ void ComparatorT::RunJob(ifstreamT& in, ostream& status)
 
 	/* append to results */
 	cout << "\nSTART: " << in.filename() << '\n';
-	fPassFail.Append(PassOrFail(in));
+	bool result = PassOrFail(in);
+	fPassFail.Append(result);
+	cout << in.filename() << ": " << ((result) ? "PASS" : "FAIL") << '\n';
 	cout << "\nEND: " << in.filename() << '\n';
 }
 
@@ -239,8 +241,9 @@ bool ComparatorT::PassOrFail(ifstreamT& in) //const
 		if (file_root[0] != StringT::DirectorySeparator())
 		{
 			const char sep[2] = {StringT::DirectorySeparator(), '\0'};
-			benchmark.Append(sep, file_root);
+			benchmark.Append(sep);
 		}
+		benchmark.Append(file_root);
 		if (count != -1) benchmark.Append(".io", count);
 		benchmark.Append(".run");
 		
@@ -289,27 +292,29 @@ bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2,
 	if (!current_in.FindString("O U T P U T", c_str)) return false;
 	
 	/* block info */
-	int b_group, c_group;
+	int b_num_block, c_num_block;
 	double b_time, c_time;
-	bool b_OK = ReadDataBlockInfo(bench_in, b_group, b_time);
-	bool c_OK = ReadDataBlockInfo(current_in, c_group, c_time);
+	bool b_OK = ReadDataBlockInfo(bench_in, b_time, b_num_block);
+	bool c_OK = ReadDataBlockInfo(current_in, c_time, c_num_block);
 
 	/* compare blocks */
 	while (b_OK && c_OK)
 	{
-		/* verify block info */
-		if (b_group != c_group) {
-			cout << "group number mismatch: " << b_group << " != " << c_group << '\n';
-			return false;
-		}
-		else
-			cout << "group: " << b_group << '\n';		
+		/* verify time */
 		if (fabs(b_time - c_time) > kSmall) {
 			cout << "time mismatch: " << b_time << " != " << c_time << '\n';
 			return false;
 		}
 		else
 			cout << "time: " << b_time << '\n';
+
+		/* verify number of element blocks */
+		if (b_num_block != c_num_block) {
+			cout << "block count mismatch: " << b_num_block << " != " << c_num_block << '\n';
+			return false;
+		}
+		else
+			cout << "number of blocks: " << b_num_block << '\n';		
 	
 		/* read nodal data */
 		ArrayT<StringT> b_node_labels;
@@ -334,32 +339,46 @@ bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2,
 		}
 		else cout << "nodal data check: PASS" << '\n';
 
-		/* read element data */
-		ArrayT<StringT> b_element_labels;
-		dArray2DT b_element_data;
-		if (!ReadElementData(bench_in, b_element_labels, b_element_data)) {
-			cout << "error reading element data from: " << bench_in.filename() << '\n';
-			return false;
-		}
+		/* loop over element blocks */
+		for (int i = 0; i < b_num_block; i++)
+		{
+			/* read element data */
+			ArrayT<StringT> b_element_labels;
+			dArray2DT b_element_data;
+			int b_block_ID;
+			if (!ReadElementData(bench_in, b_element_labels, b_element_data, b_block_ID)) {
+				cout << "error reading element data from: " << bench_in.filename() << '\n';
+				return false;
+			}
 
-		ArrayT<StringT> c_element_labels;
-		dArray2DT c_element_data;
-		if (!ReadElementData(current_in, c_element_labels, c_element_data)) {
-			cout << "error reading element data from: " << current_in.filename() << '\n';
-			return false;
-		}
+			ArrayT<StringT> c_element_labels;
+			dArray2DT c_element_data;
+			int c_block_ID;
+			if (!ReadElementData(current_in, c_element_labels, c_element_data, c_block_ID)) {
+				cout << "error reading element data from: " << current_in.filename() << '\n';
+				return false;
+			}
 
-		/* compare element blocks */
-		if (!CompareDataBlocks(b_element_labels, b_element_data, c_element_labels, c_element_data, 
-			do_rel, do_abs)) {
-			cout << "element data check: FAIL" << '\n';
-			return false;
+			/* verify block ID's */
+			if (b_block_ID != c_block_ID) {
+				cout << "block ID mismatch: " << b_block_ID << " != " << c_block_ID << '\n';
+				return false;
+			}
+			else
+				cout << "block ID: " << b_block_ID << '\n';		
+
+			/* compare element blocks */
+			if (!CompareDataBlocks(b_element_labels, b_element_data, c_element_labels, c_element_data, 
+				do_rel, do_abs)) {
+				cout << "element data check: FAIL" << '\n';
+				return false;
+			}
+			else cout << "element data check: PASS" << '\n';
 		}
-		else cout << "element data check: PASS" << '\n';
 
 		/* next block */
-		b_OK = ReadDataBlockInfo(bench_in, b_group, b_time);
-		c_OK = ReadDataBlockInfo(current_in, c_group, c_time);
+		b_OK = ReadDataBlockInfo(bench_in, b_time, b_num_block);
+		c_OK = ReadDataBlockInfo(current_in, c_time, c_num_block);
 	}
 
 	/* termination */
@@ -373,17 +392,17 @@ bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2,
 }
 
 /* read data block header */
-bool ComparatorT::ReadDataBlockInfo(ifstreamT& in, int& group, double& time) const
+bool ComparatorT::ReadDataBlockInfo(ifstreamT& in, double& time, int& num_blocks) const
 {
 	StringT str;
 
-	/* group number */
-	if (!in.FindString("Group number", str)) return false;
-	if (!str.Tail('=', group)) return false;
-	
 	/* time */
 	if (!in.FindString("Time", str)) return false;
 	if (!str.Tail('=', time)) return false;
+
+	/* number of element blocks */
+	if (!in.FindString("Number of blocks", str)) return false;
+	if (!str.Tail('=', num_blocks)) return false;
 	
 	return true;
 }
@@ -418,7 +437,7 @@ bool ComparatorT::ReadNodalData(ifstreamT& in, ArrayT<StringT>& labels, dArray2D
 }
 
 /* read block of element data */
-bool ComparatorT::ReadElementData(ifstreamT& in, ArrayT<StringT>& labels, dArray2DT& data) const
+bool ComparatorT::ReadElementData(ifstreamT& in, ArrayT<StringT>& labels, dArray2DT& data, int& block_ID) const
 {
 	/* advance nodal data */
 	StringT str;
@@ -426,6 +445,8 @@ bool ComparatorT::ReadElementData(ifstreamT& in, ArrayT<StringT>& labels, dArray
 
 	/* get dimensions */
 	int num_nodes, num_values;
+	if (!in.FindString("Block ID", str)) return false;
+	str.Tail('=', block_ID);
 	if (!in.FindString("Number of elements", str)) return false;
 	str.Tail('=', num_nodes);
 	if (!in.FindString("Number of values", str)) return false;
