@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.14 2002-03-11 20:14:44 sawimme Exp $ */
+/* $Id: ExodusT.cpp,v 1.15 2002-03-12 14:42:35 sawimme Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -1196,10 +1196,10 @@ void ExodusT::WriteTime(int step, double time) const { throw eGeneralFail; }
 void ExodusT::WriteNodalVariable(int step, int index, const dArrayT& fValues) const { throw eGeneralFail; }
 void ExodusT::WriteElementVariable(int step, int block_ID, int index, const dArrayT& fValues) const { throw eGeneralFail; }
 void ExodusT::WriteGlobalVariable(int step, const dArrayT& fValues) const { throw eGeneralFail; }
-void ExodusT::ReadLabels(ArrayT<StringT>& labels, ExodusT::VariableT t) const { throw eGeneralFail; }
+void ExodusT::ReadLabels(ArrayT<StringT>& labels, ExodusT::VariableTypeT t) const { throw eGeneralFail; }
 int ExodusT::NumTimeSteps(void) const { return 0; }
 void ExodusT::ReadTime(int step, double& time) const { throw eGeneralFail; }
-int ExodusT::NumVariables (ExodusT::VariableT t) const { return 0; }
+int ExodusT::NumVariables (ExodusT::VariableTypeT t) const { return 0; }
 void ExodusT::ReadNodalVariable(int step, int index, dArrayT& fValues) const { throw eGeneralFail; }
 void ExodusT::ReadElementVariable(int step, int block_ID, int index, dArrayT& fValues) const { throw eGeneralFail; }
 void ExodusT::ReadGlobalVariable(int step, dArrayT& fValues) const { throw eGeneralFail; }
@@ -1214,8 +1214,6 @@ GeometryT::CodeT ExodusT::ToGeometryCode(const StringT& elem_name) const { throw
 void ExodusT::ConvertSideSetOut(const char* elem_type, nArrayT<int>& sides) const { throw eGeneralFail; }
 void ExodusT::ConvertSideSetIn(const char* elem_type, nArrayT<int>& sides) const { throw eGeneralFail; }
 void ExodusT::ConvertElementNumbering (iArray2DT& conn, int fcode) const { throw eGeneralFail; }
-void ExodusT::WriteLabels(const ArrayT<StringT>& labels, const char *type) const { throw eGeneralFail; }
-void ExodusT::ReadLabels(ArrayT<StringT>& labels, char *type) const { throw eGeneralFail; }
 void ExodusT::Clear(void) { throw eGeneralFail; }
 void ExodusT::Try(const char* caller, int code, bool do_warning) const { throw eGeneralFail; }
 #pragma warn_unusedarg reset
