@@ -1,4 +1,6 @@
-/* $Id: ConHypGeom.cpp,v 1.3 2002-10-20 22:38:47 paklein Exp $ */
+/* $Id: ConHypGeom.cpp,v 1.4 2002-11-14 15:47:09 rjones Exp $ */
+
+// DEVELOPMENT
 
 // CONHYPGEOM is the confluent hypergeometric function of the 1st kind
 // (a.k.a. Kummer function) Because of the rapid growth/decay of individual
