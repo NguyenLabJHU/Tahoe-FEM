@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.26 2002-07-25 17:26:33 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.27 2002-08-13 08:17:29 paklein Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -165,8 +165,15 @@ void TranslateIOManager::InitializeVariables (void)
   fNodeLabels.Dimension (fNumNV);
   fElementLabels.Dimension (fNumEV);
 
-  if (fNumNV > 0) fModel.NodeLabels (fNodeLabels);
-  if (fNumEV > 0) fModel.ElementLabels (fElementLabels);
+  if (fNumNV > 0) {
+  	fModel.NodeLabels (fNodeLabels);
+  	ReNameLabels("node", fNodeLabels);
+  }
+  
+  if (fNumEV > 0) {
+  	fModel.ElementLabels (fElementLabels);
+  	ReNameLabels("element", fElementLabels);
+	}
 
   // future: query user as to which variables to translate
 }
@@ -730,4 +737,35 @@ void TranslateIOManager::VariableQuery (const ArrayT<StringT>& names, iArrayT& l
 
   list.Dimension (temp.Length());
   list.CopyPart (0, temp, 0, temp.Length());  
+}
+
+void TranslateIOManager::ReNameLabels(const StringT& data_type, ArrayT<StringT>& labels)
+{
+	if (labels.Length() == 0) return;
+
+	cout << "\n Rename " << data_type << " labels (y/n) ? ";
+	StringT reply;
+	fIn >> reply;
+
+	/* clear newline */
+	char line[255];
+	fIn.getline(line, 254);
+
+	if (reply[0] == 'y' || reply[0] == 'Y')
+		for (int i = 0; i < labels.Length(); i++)
+		{
+			cout << " Rename " << labels[i] << " <" << labels[i] << "> : ";
+
+			/* peek at reply */
+			char test = fIn.peek();
+
+			/* not empty */
+			if (test != '\n') {
+				fIn >> reply;
+				labels[i] = reply;
+			} 	
+			
+			/* clear line */
+			fIn.getline(line, 254);
+		}
 }
