@@ -1,4 +1,4 @@
-/* $Id: iGridManager3DT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: iGridManager3DT.h,v 1.2 2001-06-19 00:52:18 paklein Exp $ */
 /* created: paklein (12/09/1997)                                          */
 /* iNodeT grid. offset specifies the starting number for the iNodeT       */
 /* tags.                                                                  */
@@ -25,6 +25,7 @@ public:
 	
 	/* neighbors - returns neighbors coords(n) (SELF not included) */
 	void Neighbors(int n, double tol, AutoArrayT<int>& neighbors);
+	void Neighbors(int n, const ArrayT<double>& tol_xyz, AutoArrayT<int>& neighbors);
 
 	/* reconfigure grid with stored coordinate data */
 	void Reset(void);

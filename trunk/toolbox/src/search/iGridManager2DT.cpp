@@ -1,9 +1,10 @@
-/* $Id: iGridManager2DT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: iGridManager2DT.cpp,v 1.2 2001-06-19 00:52:18 paklein Exp $ */
 /* created: paklein (12/09/1997)                                          */
 /* iNodeT grid                                                            */
 
 #include "iGridManager2DT.h"
 #include "iArrayT.h"
+#include "dArrayT.h"
 
 /* constructor */
 iGridManager2DT::iGridManager2DT(int nx, int ny, const dArray2DT& coords,
@@ -39,6 +40,42 @@ void iGridManager2DT::Neighbors(int n, double tol, AutoArrayT<int>& neighbors)
 			
 			/* add to neighbor list */
 			if (dsqr <= tolsqr) neighbors.Append(hits[i].Tag());
+		}
+}
+
+void iGridManager2DT::Neighbors(int n, const ArrayT<double>& tol_xy, 
+	AutoArrayT<int>& neighbors)
+{
+	/* check */
+	if (tol_xy.Length() != 2)
+	{
+		cout << "\n iGridManager2DT::Neighbors: expecting tolerance list length 2: " 
+		     << tol_xy.Length() << endl;
+		throw eSizeMismatch;
+	}
+
+	/* initialize */
+	neighbors.Allocate(0);
+	
+	/* fetch prospective neighbors */
+	double* target = fCoords(n);
+	const AutoArrayT<iNodeT>& hits =  HitsInRegion(target, tol_xy);
+
+	/* search through list */
+	double tol_x = tol_xy[0];
+	double tol_y = tol_xy[1];
+	int   thistag = n;
+	for (int i = 0; i < hits.Length(); i++)
+		if (hits[i].Tag() != thistag)
+		{
+			double* coords = hits[i].Coords();
+			
+			double dx = fabs(target[0] - coords[0]);
+			double dy = fabs(target[1] - coords[1]);
+			
+			/* add to neighbor list */
+			if (dx <= tol_x && 
+			    dy <= tol_y) neighbors.Append(hits[i].Tag());
 		}
 }
 
