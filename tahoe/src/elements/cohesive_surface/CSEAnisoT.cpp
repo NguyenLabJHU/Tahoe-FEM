@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.60.2.2 2004-03-18 17:51:45 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.60.2.3 2004-03-22 18:40:19 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -73,7 +73,8 @@ CSEAnisoT::CSEAnisoT(const ElementSupportT& support):
 	CSEBaseT(support),
 	fRotate(true),
 	fCurrShapes(NULL),
-	fRunState(support.RunState())
+	fRunState(support.RunState()),
+	fIPArea(0.0)
 {
 	SetName("anisotropic_CSE");
 }
@@ -741,6 +742,13 @@ void CSEAnisoT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	CSEBaseT::TakeParameterList(list);
 
+	/* dimension work space */
+	int nsd = NumSD();
+	fQ.Dimension(NumSD());
+	fdelta.Dimension(NumSD());
+	fT.Dimension(NumSD());
+	fddU.Dimension(NumSD());
+
 	/* rotating frame */
 #pragma message("need to keep this flag?")
 	fRotate = list.GetParameter("rotate_frame");
@@ -765,9 +773,39 @@ void CSEAnisoT::TakeParameterList(const ParameterListT& list)
 	else
 		fCurrShapes = fShapes;
 
-	//construct material list
-//	fSurfPots.Dimension(numprops);
-//	fNumStateVariables.Dimension(numprops);
+	/* construct surface properties - one per block */
+	int num_block = list.NumLists("anisotropic_CSE_element_block");
+	fSurfPots.Dimension(num_block);
+	fNumStateVariables.Dimension(fSurfPots.Length());
+	fTiedPots.Dimension(num_block);
+	fTiedPots = NULL;
+	for (int i = 0; i < fSurfPots.Length(); i++) {
+
+		/* block information */
+		const ParameterListT& block = list.GetList("anisotropic_CSE_element_block", i);
+		
+		/* resolve choices of properties choice by spatial dimension */
+		const ParameterListT* mat_list_choice_choice = block.ResolveListChoice(*this, "cohesive_relation_choice");
+		if (!mat_list_choice_choice)
+			ExceptionT::BadInputValue(caller, "could not resolve choice \"cohesive_relation_choice\"");
+
+		/* resolve material choice */
+		const ParameterListT* surf_pot_params = block.ResolveListChoice(*this, mat_list_choice_choice->Name());
+		if (!surf_pot_params)
+			ExceptionT::BadInputValue(caller, "could not resolve \"%s\"", mat_list_choice_choice->Name().Pointer());
+
+		/* construct material */
+		SurfacePotentialT* surf_pot = SurfacePotentialT::New(surf_pot_params->Name());
+		if (!surf_pot)
+			ExceptionT::BadInputValue(caller, "could not construct \"%s\"", surf_pot_params->Name().Pointer());
+		surf_pot->TakeParameterList(*surf_pot_params);
+
+		/* number of state variables */
+		fNumStateVariables[i] = surf_pot->NumStateVariables();
+
+		/* keep */
+		fSurfPots[i] = surf_pot;
+	}
 	
 	//handle tied potentials
 	fCalcNodalInfo = false;
