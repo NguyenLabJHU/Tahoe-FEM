@@ -64,11 +64,10 @@ void PointPlots::TranslateVariables (void)
 
   // read data
   int nume = fModel.NumElementGroups ();
-  ArrayT<StringT> names (nume);
-  fModel.ElementGroupNames (names);
+  const ArrayT<StringT>& names = fModel.ElementGroupIDs();
   int egindex = fElementGroup;
   int numelems, numelemnodes;
-  fModel.ElementGroupDimensions (egindex, numelems, numelemnodes);
+  fModel.ElementGroupDimensions (names [egindex], numelems, numelemnodes);
   int numquadpts = fModel.NumElementQuadPoints (names [egindex]);
   dArray2DT qv (numelems*numquadpts, fNumQV);
   for (int t=0; t < fNumTS; t++)

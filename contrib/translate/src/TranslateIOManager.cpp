@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.11 2002-01-23 19:42:15 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.12 2002-02-04 22:57:33 paklein Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -181,8 +181,7 @@ void TranslateIOManager::InitializeQuadVariables (void)
 void TranslateIOManager::InitializeElements (int& group, StringT& groupname) const
 {
   int num = fModel.NumElementGroups ();
-  ArrayT<StringT> elemsetnames (num);
-  fModel.ElementGroupNames (elemsetnames);
+  const ArrayT<StringT>& elemsetnames = fModel.ElementGroupIDs();
   cout << "\n";
   for (int h=0; h < num; h++)
     cout << "    " << h+1 << ". " << elemsetnames[h] << "\n";
@@ -244,8 +243,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
     case 2:
       {
 	int num = fModel.NumNodeSets ();
-	ArrayT<StringT> nodesetnames (num);
-	fModel.NodeSetNames (nodesetnames);
+	const ArrayT<StringT>& nodesetnames = fModel.NodeSetIDs();
 	cout << "\n";
 	for (int h=0; h < num; h++)
 	  cout << "    " << h+1 << ". " << nodesetnames[h] << "\n";
@@ -253,10 +251,10 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	int ni;
 	cin >> ni;
 	ni--;
-	numpoints = fModel.NodeSetLength (ni);
+	numpoints = fModel.NodeSetLength (nodesetnames[ni]);
 	nodes.Allocate (numpoints);
 	index.Allocate (numpoints);
-	index = fModel.NodeSet (ni);
+	index = fModel.NodeSet (nodesetnames[ni]);
 	for (int n=0; n < numpoints; n++)
 	  nodes[n] = fNodeMap [index[n]];
 	break;
@@ -295,8 +293,8 @@ void TranslateIOManager::InitializeTime (void)
       if (fNumTS < 100)
 	for (int b=0; b < fNumTS; b++)
 	  cout << "    " << b+1 << ". " << fTimeSteps[b] << "\n";
-      cout << "\n1. Translate All Time Steps\n";
-      cout << "2. Translate Specified Time Steps\n";
+      cout << "\n1. Translate All\n";
+      cout << "2. Translate Specified\n";
       cout << "3. Translate Specified Range\n";
       cout << "4. Translate Every nth step\n";
       cout << "5. Translate None (just geometry)\n";
@@ -386,9 +384,7 @@ void TranslateIOManager::TranslateVariables (void)
   else if (ng != fOutputID.Length()) 
     throw eSizeMismatch;
 
-  ArrayT<StringT> groupnames (ng);
-  fModel.ElementGroupNames (groupnames);
-
+  const ArrayT<StringT>& groupnames = fModel.ElementGroupIDs();
   int numnodes, numdims;
   fModel.CoordinateDimensions (numnodes, numdims);
   for (int t=0; t < fNumTS; t++)
@@ -400,7 +396,7 @@ void TranslateIOManager::TranslateVariables (void)
 	  if (fOutputID [g] > -1) 
 	    {
 	      int numelems, numelemnodes;
-	      fModel.ElementGroupDimensions (g, numelems, numelemnodes);
+	      fModel.ElementGroupDimensions (groupnames[g], numelems, numelemnodes);
 	      
 	      // read all variables for this step
 	      dArray2DT nvalues (numnodes, fNumNV); // numnodes is larger than needed
@@ -430,11 +426,6 @@ void TranslateIOManager::WriteNodes (void)
 {
   int numnodes, dof;
   fModel.CoordinateDimensions (numnodes, dof);
-  if (numnodes < 1) 
-    {
-      cout << "\n No nodes found!   Num Nodes = " << numnodes << "\n\n";
-      throw eDatabaseFail;
-    }
   fNodeMap.Allocate (numnodes);
   fModel.AllNodeMap (fNodeMap);
   fOutput->SetCoordinates (fModel.Coordinates(), &fNodeMap);
@@ -445,13 +436,12 @@ void TranslateIOManager::WriteNodeSets (void)
 {
   int num = fModel.NumNodeSets ();
   if (num <= 0) return;
-  ArrayT<StringT> names (num);
-  fModel.NodeSetNames (names);
+  const ArrayT<StringT>& names = fModel.NodeSetIDs();
 
   int selection;
   cout << "\n Number of Node Sets: " << num << endl;
-  cout << "\n1. Translate All Element Groups\n";
-  cout << "2. Translate Some Groups\n";
+  cout << "\n1. Translate All\n";
+  cout << "2. Translate Some\n";
   cout << "3. Translate None\n";
   cout << "\n selection: ";
   cin >> selection;
@@ -467,7 +457,7 @@ void TranslateIOManager::WriteNodeSets (void)
 	}
       
       if (answer [0] == 'y' || answer[0] == 'Y')
-	fOutput->AddNodeSet (fModel.NodeSet (i), i+1);
+	fOutput->AddNodeSet (fModel.NodeSet(names[i]), i+1);
     }
 }
  
@@ -475,8 +465,7 @@ void TranslateIOManager::WriteElements (void)
 {
   int num = fModel.NumElementGroups ();
   fOutputID.Allocate (num);
-  ArrayT<StringT> names (num);
-  fModel.ElementGroupNames (names);
+  const ArrayT<StringT>& names = fModel.ElementGroupIDs(	);
 
   int selection;
   cout << "\n Number of Element Groups: " << num << endl;
@@ -499,15 +488,17 @@ void TranslateIOManager::WriteElements (void)
       
       if (answer [0] == 'y' || answer[0] == 'Y')
 	{
-	  iArrayT block_ID (1);
 	  ArrayT<const iArray2DT*> conn (1);
-	  block_ID = e+1;
-	  conn[0] = fModel.ElementGroupPointer (e);
-	  fModel.ReadConnectivity (e);
+	  conn[0] = fModel.ElementGroupPointer (names[e]);
+	  fModel.ReadConnectivity (names[e]);
 
 	  if (conn[0]->Length() > 0)
 	    {
-	      OutputSetT set (e+1, fModel.ElementGroupGeometry (e), block_ID, 
+	    	ArrayT<StringT> block_ID(1);
+	    	block_ID[0] = names[e];
+	    	StringT ID;
+	    	ID.Append(e+1);
+	      OutputSetT set(ID, fModel.ElementGroupGeometry (names[e]), block_ID, 
 			      conn, fNodeLabels, fElementLabels, changing);
 	      fOutputID[e] = fOutput->AddElementSet (set);
 	    }
@@ -524,8 +515,7 @@ void TranslateIOManager::WriteSideSets (void)
   int num = fModel.NumSideSets ();
   if (num <= 0) return;
   fGlobalSideSets.Allocate (num);
-  ArrayT<StringT> names (num);
-  fModel.SideSetNames (names);
+  const ArrayT<StringT>& names = fModel.SideSetIDs();
 
   int selection;
   cout << "\n Number of Side Sets: " << num << endl;
@@ -546,11 +536,13 @@ void TranslateIOManager::WriteSideSets (void)
       
       if (answer [0] == 'y' || answer[0] == 'Y')
 	{
-	  fGlobalSideSets[i] = fModel.SideSet (i);
-	  int g = fModel.SideSetGroupIndex (i);
-	  if (fModel.IsSideSetLocal (i))
+	  fGlobalSideSets[i] = fModel.SideSet (names[i]);
+	  const StringT& g = fModel.SideSetGroupID(names[i]);
+	  if (fModel.IsSideSetLocal (names[i]))
 	    fModel.SideSetLocalToGlobal (g, fGlobalSideSets[i], fGlobalSideSets[i]);
-	  fOutput->AddSideSet (fGlobalSideSets [i], i+1, g);
+	    
+	  int g_int = atoi(g);
+	  fOutput->AddSideSet (fGlobalSideSets [i], i+1, g_int);
 	}
     }
 }
