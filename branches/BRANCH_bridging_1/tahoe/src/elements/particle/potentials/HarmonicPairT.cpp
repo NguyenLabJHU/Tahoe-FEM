@@ -1,4 +1,4 @@
-/* $Id: HarmonicPairT.cpp,v 1.2 2002-11-26 01:55:37 paklein Exp $ */
+/* $Id: HarmonicPairT.cpp,v 1.2.4.1 2003-02-13 05:24:04 paklein Exp $ */
 #include "HarmonicPairT.h"
 
 using namespace Tahoe;
@@ -12,8 +12,8 @@ HarmonicPairT::HarmonicPairT(double mass, double R0, double K):
 	fR0(R0),
 	fK(K)
 {
-	/* assume nearest neighbor - 10% of equilibrium spacing */
-	SetRange(1.1*fR0);
+	/* assume nearest neighbor - 10x of equilibrium spacing */
+	SetRange(10.0*fR0);
 	SetMass(mass);
 }
 
