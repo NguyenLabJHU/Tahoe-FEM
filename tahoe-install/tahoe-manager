@@ -359,6 +359,7 @@ sub build{
 			chdir $dir;
 			if (!(-e "makefile") && (-e "makefile.template")) {
 				fillin_makefile();
+				system("make init > build.log 2>&1");
 			}
 			if (-e "makefile") {
 				print "\tmaking $dir";
