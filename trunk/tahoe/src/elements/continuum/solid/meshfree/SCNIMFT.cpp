@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.14 2004-05-06 18:58:15 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.15 2004-05-12 00:20:40 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -645,7 +645,7 @@ int SCNIMFT::GlobalToLocalNumbering(RaggedArray2DT<int>& nodes)
 	return 1;
 }
 
-void SCNIMFT::InterpolatedFieldAtNodes(iArrayT& nodes, dArray2DT& fieldAtNodes)
+void SCNIMFT::InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtNodes)
 {
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
@@ -656,8 +656,8 @@ void SCNIMFT::InterpolatedFieldAtNodes(iArrayT& nodes, dArray2DT& fieldAtNodes)
 		vec.Set(fSD, fieldAtNodes.Pointer() + i*fSD);
 		vec = 0.;	
 			
-		LinkedListT<int>& supp_i = fNodalSupports[i];
-		LinkedListT<double>& phi_i = fNodalPhi[i];
+		LinkedListT<int>& supp_i = fNodalSupports[nodes[i]];
+		LinkedListT<double>& phi_i = fNodalPhi[nodes[i]];
 		supp_i.Top(); phi_i.Top();
 		while (supp_i.Next() && phi_i.Next()) 
 			vec.AddScaled(*(phi_i.CurrentValue()), u(*(supp_i.CurrentValue())));
@@ -677,6 +677,33 @@ void SCNIMFT::NodalSupportAndPhi(int localNode, LinkedListT<int>& support, Linke
 
 	support.Alias(fNodalSupports[localNode]);
 	phi.Alias(fNodalPhi[localNode]);
+}
+
+void SCNIMFT::NodalSupportAndPhi(iArrayT& localNodes, RaggedArray2DT<int>& support, RaggedArray2DT<double>& phi)
+{
+	int nlnd = localNodes.Length();
+	ArrayT<LinkedListT<int> > local_support(nlnd);
+	ArrayT<LinkedListT<double> > local_phi(nlnd);
+	
+	for (int i = 0; i < nlnd; i++) {
+		local_support[i].Alias(fNodalSupports[localNodes[i]]);
+		local_phi[i].Alias(fNodalPhi[localNodes[i]]);
+	}
+	
+	support.Configure(local_support);
+	phi.Configure(local_phi);
+	
+	for (int i = 0; i < phi.MajorDim(); i++) {
+		int* irow_i = support(i);
+		double* drow_i = phi(i);
+		LinkedListT<int>& ilist = local_support[i];
+		LinkedListT<double>& dlist = local_phi[i];
+		ilist.Top(); dlist.Top();
+		while (ilist.Next() && dlist.Next()) {
+			*irow_i++ = *(ilist.CurrentValue());
+			*drow_i++ = *(dlist.CurrentValue());
+		}
+	}
 }
 
 int SCNIMFT::SupportSize(int localNode) 
