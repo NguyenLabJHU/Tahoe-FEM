@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.9 2005-01-25 23:06:53 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.10 2005-03-07 01:34:34 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -133,8 +133,8 @@ const dSymMatrixT& FSSolidMixtureT::ds_ij_dc(int i)
 
 	/* finite difference */
 	double dc_inv = 1.0/(c_h - c_l);
-	for (int i = 0; i < fStress.Length(); i++)
-		fStress[i] = (fs_ij_tmp[i] - fStress[i])*dc_inv;
+	for (int j = 0; j < fStress.Length(); j++)
+		fStress[j] = (fs_ij_tmp[j] - fStress[j])*dc_inv;
 
 	/* restore the concentration */
 	conc[i] = c_0;
