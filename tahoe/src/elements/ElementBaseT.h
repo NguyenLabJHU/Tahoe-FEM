@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.2 2001-02-27 00:10:25 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -219,7 +219,7 @@ protected:
 	dArrayT        fRHS;
 	
 	/* data for multiple connectivity blocks */
-	iArray2DT fBlockData; // [ID] [1st group element] [size] per block
+	iArray2DT fBlockData; //[n_blocks]: [ID] [1st group element] [size] [material]
 };
 
 /* inline functions */
