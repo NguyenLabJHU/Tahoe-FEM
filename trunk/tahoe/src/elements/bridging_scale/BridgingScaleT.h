@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.4 2002-07-19 00:58:26 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.5 2002-07-19 01:28:21 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -71,6 +71,9 @@ public:
 	virtual void SendOutput(int) {};
 
 protected:
+
+	/** echo element connectivity data. No connectivities need to be read */
+	virtual void EchoConnectivityData(ifstreamT&, ostream&) {};
 
 	/* called by FormRHS and FormLHS */
 	virtual void LHSDriver(void) {};

@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.4 2002-07-19 00:58:26 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.5 2002-07-19 01:28:21 paklein Exp $ */
 #include "BridgingScaleT.h"
 #include "ShapeFunctionT.h"
 #include "RodT.h"
@@ -136,9 +136,8 @@ void BridgingScaleT::WriteOutput(IOBaseT::OutputModeT mode)
 //	ComputeOutput(n_counts, n_values, e_counts, e_values);
 
 	/* send to output */
-	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+//	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
 }
-
 
 /***********************************************************************
 * Protected
