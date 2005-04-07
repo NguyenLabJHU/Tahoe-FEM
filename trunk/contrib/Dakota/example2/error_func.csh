@@ -1,4 +1,4 @@
-#!/bin/csh -w
+#!/bin/csh
 
 # $argv[1] is .in from Dakota
 # $argv[2] is .out returned to Dakota
@@ -10,7 +10,7 @@
 #---------------
 set TAHOE          = tahoe
 
-set DAKOTA_UTIL    = /people/rjones/TEST/tahoe-install/contrib/Dakota/
+set DAKOTA_UTIL    = ../
 set EXTRACT        = extract_1D
 set TAHOE_TEMPLATE = cornea.xml.tmpl
 set RESULT_EXT     = io1.run
