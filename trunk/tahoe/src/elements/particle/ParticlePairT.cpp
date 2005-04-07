@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.42 2005-03-11 20:42:10 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.43 2005-04-07 19:17:57 d-farrell2 Exp $ */
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
@@ -26,7 +26,7 @@ using namespace Tahoe;
 
 /* parameters */
 const int kMemoryHeadRoom = 15; /* percent */
-const int kNumOutput = 7;
+const int kNumOutput = 8;
 static const char* OutputNames[kNumOutput] = {
 	"displacement",
 	"potential_energy",
@@ -34,7 +34,8 @@ static const char* OutputNames[kNumOutput] = {
 	"stress",
 	"strain",
 	"slip_vector",	
-	"centrosymmetry"
+	"centrosymmetry",
+	"coordination_number"
 };
 
 /* constructor */
@@ -287,6 +288,13 @@ void ParticlePairT::WriteOutput(void)
 		csp.Dimension(non);
 		Calc_CSP(fNearestNeighbors, csp);
 	}
+	
+	// calculate coordination number
+	iArrayT cnarray;
+	if (fOutputFlags[kCN]) {
+		cnarray.Dimension(non);
+		Calc_CN(fNearestNeighbors, cnarray);
+	}
 
 	/* slip vector, stress, and strain */
 	dArray2DT s_values;
@@ -304,7 +312,7 @@ void ParticlePairT::WriteOutput(void)
 		Calc_Slip_and_Strain(s_values, fRefNearestNeighbors, kEulerLagr);
 	}
 
-	/* combine strain, slip vector and centrosymmetry parameter into n_values list */
+	// combine strain, slip vector, centrosymmetry parameter and coordination number into n_values list
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
 	{
 		/* row of neighbor list */
@@ -341,6 +349,10 @@ void ParticlePairT::WriteOutput(void)
 		/* centrosymmetry */
 		if (fOutputFlags[kCS])
 			n_values(local_i, offsets[kCS]) = csp[local_i];
+		
+		// coordination number
+		if (fOutputFlags[kCN])
+			n_values(local_i, offsets[kCN]) = cnarray[local_i];
 	}
 
 #if 0
@@ -686,6 +698,7 @@ void ParticlePairT::SetOutputCount(const iArrayT& flags, iArrayT& counts) const
 	if (flags[kPE]) counts[kPE] = 1;
 	if (flags[kKE]) counts[kKE] = 1;
 	if (flags[kCS]) counts[kCS] = 1;
+	if (flags[kCN]) counts[kCN] = 1;
 	if (flags[kStress]) counts[kStress] = dSymMatrixT::NumValues(NumSD());
 	if (flags[kStrain]) counts[kStrain] = dSymMatrixT::NumValues(NumSD());
 	if (flags[kSlipVector]) counts[kSlipVector] = NumDOF();
@@ -731,6 +744,10 @@ void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 	/* centrosymmetry */
 	if (fOutputFlags[kCS])
 		labels[offsets[kCS]] = "CS";
+	
+	// coordination number
+	if (fOutputFlags[kCN])
+		labels[offsets[kCN]] = "CN";
 	
 	/* slip vector */
 	if (fOutputFlags[kSlipVector]) {
