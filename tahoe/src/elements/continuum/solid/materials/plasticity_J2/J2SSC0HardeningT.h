@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.h,v 1.8 2005-04-06 23:32:45 thao Exp $ */
+/* $Id: J2SSC0HardeningT.h,v 1.9 2005-04-07 00:13:25 thao Exp $ */
 #ifndef _J2_SS_C0_HARD_T_H_
 #define _J2_SS_C0_HARD_T_H_
 
@@ -9,6 +9,7 @@
 #include "dSymMatrixT.h"
 #include "dMatrixT.h"
 #include "dArrayT.h"
+#include "iArrayT.h"
 #include "C1FunctionT.h"
 
 namespace Tahoe {
