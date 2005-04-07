@@ -1,4 +1,0 @@
-extern int az_rcm__(integer *root, integer *xadj, integer *adjncy, integer *mask, integer *perm, integer *ccsize, integer *deg);
-extern int az_degree__(integer *root, integer *xadj, integer *adjncy, integer *mask, integer *deg, integer *ccsize, integer *ls);
-extern int az_fnroot__(integer *root, integer *xadj, integer *adjncy, integer *mask, integer *nlvl, integer *xls, integer *ls);
-extern int az_rootls__(integer *root, integer *xadj, integer *adjncy, integer *mask, integer *nlvl, integer *xls, integer *ls);
