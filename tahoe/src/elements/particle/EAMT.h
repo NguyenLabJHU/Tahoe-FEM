@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.22 2004-12-09 09:19:45 paklein Exp $ */
+/* $Id: EAMT.h,v 1.22.8.1 2005-04-07 13:34:20 d-farrell2 Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -82,7 +82,8 @@ protected:
 		kStress = 3,
 		kStrain = 4,
 		kSlipVector = 5,
-		kCS = 6
+		kCS = 6,
+		kCN = 7
 	};
 
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
