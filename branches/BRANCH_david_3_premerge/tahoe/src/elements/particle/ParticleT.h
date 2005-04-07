@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.32 2005-04-05 16:06:09 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.32.2.1 2005-04-07 13:34:20 d-farrell2 Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -324,6 +324,9 @@ protected:
 
 	/* compute the centrosymmetry parameter */
 	void Calc_CSP(const RaggedArray2DT<int>& NearestNeighbors, dArrayT& csp);
+	
+	// compute the coordination number
+	void Calc_CN(const RaggedArray2DT<int>& NearestNeighbors, iArrayT& cnarray);
     
 	void SetRefNN(RaggedArray2DT<int> &NearestNeighbors,RaggedArray2DT<int> &RefNearestNeighbors);
 
