@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.11 2005-04-07 19:18:05 d-farrell2 Exp $ */
+/* $Id: MultiManagerT.h,v 1.12 2005-04-08 16:41:55 d-farrell2 Exp $ */
 
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
@@ -112,7 +112,13 @@ private:
 
 	/** driver for staggered solution with single clock for both systems */
 	ExceptionT::CodeT SolveStep_Staggered(void);
-
+	
+	/** set up the course/fine instances */
+	void TakeParams1(const ParameterListT& list);
+	
+	/** set up just the fine scale (atomistic, for MD only Dynamic Bridging Scale) */
+	void TakeParams2(const ParameterListT& list);
+	
 protected:
 
 	/** \name sub-managers */

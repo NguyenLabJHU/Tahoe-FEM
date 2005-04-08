@@ -1,4 +1,5 @@
-/* $Id: ParticlePairT.cpp,v 1.43 2005-04-07 19:17:57 d-farrell2 Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.44 2005-04-08 16:41:48 d-farrell2 Exp $ */
+
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
