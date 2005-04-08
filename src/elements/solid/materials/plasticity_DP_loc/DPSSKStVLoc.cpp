@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.17 2005-03-12 00:13:00 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.18 2005-04-08 19:22:46 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 #include "SSMatSupportT.h"
@@ -15,12 +15,11 @@ using namespace Tahoe;
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 4;
+const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {
-	"alpha",  // stress-like internal state variable (isotropic linear hardening)
+	"kappa",  // stress-like internal state variable (isotropic linear hardening)
 	"VM",  // Von Mises stress
-	"press", // pressure
-	"loccheck"}; // localization check   
+	"press"};// pressure
 	
 // need to store the normals somewhere.  as ISVs?
 
@@ -165,11 +164,11 @@ bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT
 		devsig.Deviatoric(stress);
 		
 		dArrayT& internal = fDP->Internal();
-		double alphaISV = internal[DPSSLinHardLocT::kalpha];
+		double kappaISV = internal[DPSSLinHardLocT::kkappa];
 		const ElementCardT& element = CurrentElement();
 		const iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == DPSSLinHardLocT::kIsPlastic)
-			alphaISV -= fDP->H_prime()*internal[DPSSLinHardLocT::kdgamma];
+			kappaISV -= fDP->H()*internal[DPSSLinHardLocT::kdgamma];
 		
 		while (normals.Next())
 		{
@@ -181,7 +180,7 @@ bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT
 			psi = asin(nm);
 			cospsi = cos(psi);
 			double dissip = sigmn_scalar;
-			dissip -= alphaISV*cospsi;
+			dissip -= kappaISV*cospsi;
 			dissipations_fact.Append(dissip);
 		}
 	}
@@ -226,16 +225,16 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 	J2 = (J2 < 0.0) ? 0.0 : J2;
 	output[1] = sqrt(3.0*J2);
 	
-	/* output stress-like internal variable alpha, and check for bifurcation */
+	/* output stress-like internal variable kappa, and check for bifurcation */
 	const ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
 		dArrayT& internal = fDP->Internal();
-		output[0] = internal[DPSSLinHardLocT::kalpha];
+		output[0] = internal[DPSSLinHardLocT::kkappa];
 		const iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == DPSSLinHardLocT::kIsPlastic)
 		{
-			output[0] -= fDP->H_prime()*internal[DPSSLinHardLocT::kdgamma];
+			output[0] -= fDP->H()*internal[DPSSLinHardLocT::kdgamma];
 			
 			// check for localization
 			// compute modulus 
@@ -253,13 +252,13 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 			output[3] = 0.0;
 			if(checker.IsLocalized_SS(normals,slipdirs)) output[3] = 1.0;
 			*/
-			output[3] = 0.0;
+			//output[3] = 0.0;
 		  }
 	}
 	else
 	{
 		output[0] = 0.0;
-		output[3] = 0.0;
+		//output[3] = 0.0;
 	}
 
 }

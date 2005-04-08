@@ -1,4 +1,4 @@
-/* $Id: DPPrimitiveLocT.h,v 1.4 2004-09-10 01:07:59 cfoster Exp $ */
+/* $Id: DPPrimitiveLocT.h,v 1.5 2005-04-08 19:22:46 raregue Exp $ */
 /* created: myip (06/01/1999)                                      */
 
 /*
@@ -39,29 +39,27 @@ public:
 
 	/** \name accessors to parameters */
 	/*@{*/
-	double H_prime(void) const { return fH_prime; };
-	double H_delta(void) const { return fH_delta; };
+	double H(void) const { return fH; };
 	/*@}*/
 	
 protected:
 
   	/*
   	 * Returns the value of the yield function given the
-  	 * Cauchy stress vector and state variables, where alpha is
+  	 * Cauchy stress vector and state variables, where kappa is
   	 * the deviatoric stress-like internal state variable
   	 */
 	double YieldCondition(const dSymMatrixT& devstress, 
-				const double meanstress, double alpha) const;
+				const double meanstress, double kappa) const;
 
 protected:
 	
 	/** \name parameters */
 	/*@{*/	
-	double falpha_bar; /* cohesion-like strength parameter (falpha_bar >= 0.0) */
+	double fkappa; /* cohesion-like strength parameter (fkappa >= 0.0) */
 	double ffriction;  /* friction-like parameter (ffriction >= 0.0) */
 	double fdilation;  /* dilation-like parameter (fdilation >= 0.0) */
-	double fH_prime;   /* Deviatoric hardening parameter */
-	double fH_delta;   /* Localized deviatoric hardening parameter (fH_delta < 0.0) */
+	double fH;   /* Deviatoric hardening parameter */
 	double fEta; /*fluidity parameter eta */
 	/*@}*/	
 };

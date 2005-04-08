@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardLocT.h,v 1.4 2004-09-10 01:07:59 cfoster Exp $ */
+/* $Id: DPSSLinHardLocT.h,v 1.5 2005-04-08 19:22:46 raregue Exp $ */
 /* created: myip (06/01/1999)                                      */
 
 /*  
@@ -56,7 +56,7 @@ public:
 	 *       The element passed in is already assumed to carry current
 	 *       internal variable values */
 	const dMatrixT& ModuliCorrection(const ElementCardT& element, int ip, double dt); 
-const dMatrixT& ModuliCorrectionEP(const ElementCardT& element, int ip);
+	const dMatrixT& ModuliCorrectionEP(const ElementCardT& element, int ip);
 	/* Modulus for checking perfectly plastic bifurcation */
 	const dMatrixT& ModuliCorrPerfPlas(const ElementCardT& element, int ip);
 
@@ -64,7 +64,7 @@ const dMatrixT& ModuliCorrectionEP(const ElementCardT& element, int ip);
 	 * the data from element */
 	void AllocateElement(ElementCardT& element);
 
-	enum InternalVariablesT {kalpha = 0,  // stress-like internal state variable
+	enum InternalVariablesT {kkappa = 0,  // stress-like internal state variable
 							kstressnorm = 1,  // norm of stress
                             kdgamma = 2,  // consistency parameter
                             kftrial = 3, // yield function value
@@ -119,7 +119,7 @@ private:
 	/* material parameters **/
 	double fmu;
 	double flambda;
-	double fkappa;
+	double fK;
 	double fX_H;
 	double fX;
 	double fMeanStress;

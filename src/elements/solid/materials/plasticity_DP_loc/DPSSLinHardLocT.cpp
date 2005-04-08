@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardLocT.cpp,v 1.6 2005-01-25 23:16:52 raregue Exp $ */
+/* $Id: DPSSLinHardLocT.cpp,v 1.7 2005-04-08 19:22:46 raregue Exp $ */
 /* created: myip (06/01/1999)                                        */
 
 /*
@@ -31,7 +31,7 @@ DPSSLinHardLocT::DPSSLinHardLocT(int num_ip, double mu, double lambda):
 	fNumIP(num_ip),
 	fmu(mu),
 	flambda(lambda),
-	fkappa(flambda + (2.0/3.0*fmu)),
+	fK(flambda + (2.0/3.0*fmu)),
 	fMeanStress(0.0)
 {
 	SetName("DP_Loc_SS_linear_hardening");
@@ -105,15 +105,15 @@ const dSymMatrixT& DPSSLinHardLocT::StressCorrection(
 				/* plastic increment stress correction */
 				dgamma2=0.0;
 
-				fStressCorr.PlusIdentity(-sqrt(3.0)*fdilation*fkappa*dgamma);
+				fStressCorr.PlusIdentity(-sqrt(3.0)*fdilation*fK*dgamma);
 				fStressCorr.AddScaled(-sqrt(6.0)*fmu*dgamma, fUnitNorm);
 			}
 			else
 			{
 				dgamma=devstressnorm/(sqrt(6.0)*fmu);
 				//cout << "dgamma = " << dgamma << endl;
-				double totalcohesion=sqrt(3.0)*falpha_bar-fInternal[kalpha] + fH_prime*dgamma;	
-				dgamma2=(MeanStress(trialstrain,element)-totalcohesion/ffriction-sqrt(3.0)*fkappa*fdilation*dgamma)/fkappa;
+				double totalcohesion=sqrt(3.0)*fkappa-fInternal[kkappa] + fH*dgamma;	
+				dgamma2=(MeanStress(trialstrain,element)-totalcohesion/ffriction-sqrt(3.0)*fK*fdilation*dgamma)/fK;
 
 				fStressCorr.PlusIdentity(-1*MeanStress(trialstrain,element));
 				fStressCorr.PlusIdentity(totalcohesion/(sqrt(3.0)*ffriction));
@@ -132,7 +132,7 @@ const dSymMatrixT& DPSSLinHardLocT::StressCorrection(
 			//cout << " stress = \n";
 			//cout << stress << endl;
 
-			double a = fInternal[kalpha] - fH_prime*dgamma;
+			double a = fInternal[kkappa] - fH*dgamma;
 
 			// evaluate plastic consistency
 			double p = stress.Trace()/3.0;
@@ -190,12 +190,12 @@ const dMatrixT& DPSSLinHardLocT::ModuliCorrectionEP(const ElementCardT& element,
 
 		if (fInternal[kdgamma2]==0.0)
 		{
-			double c1  = -3.0*ffriction*fdilation*fkappa*fkappa/fX_H;
+			double c1  = -3.0*ffriction*fdilation*fK*fK/fX_H;
 	       	c1 += (4.0/3.0)*sqrt32*fmu*fmu*fInternal[kdgamma]/fInternal[kstressnorm];
 			double c2  = -sqrt(6.0)*fmu*fmu*fInternal[kdgamma]/fInternal[kstressnorm];
 			double c3  = -(3.0/2.0)/fX_H + sqrt32*fInternal[kdgamma]/fInternal[kstressnorm];
 	       	c3 *= 4.0*fmu*fmu;
-			double c4  = -3.0*sqrt(2.0)*fkappa*fmu/fX_H;
+			double c4  = -3.0*sqrt(2.0)*fK*fmu/fX_H;
 
 			fTensorTemp.Outer(One, One);
 			fModuliCorr.AddScaled(c1, fTensorTemp);
@@ -221,7 +221,7 @@ const dMatrixT& DPSSLinHardLocT::ModuliCorrectionEP(const ElementCardT& element,
 			//cout << "In vertex region \n";
 
 			//cout << " kstressnorm = " << fInternal[kstressnorm] << endl;
-			double c1 = -fkappa;
+			double c1 = -fK;
 			c1 += 2.0/3.0*fmu;
 		    
 			double c2 = -fmu;
@@ -230,7 +230,7 @@ const dMatrixT& DPSSLinHardLocT::ModuliCorrectionEP(const ElementCardT& element,
 			//c3 *= 4.0*fmu*fmu;
 			//c3 += -2.0*fmu;
 		    
-			double c4 = sqrt(2.0)*fH_prime/(3*ffriction);
+			double c4 = sqrt(2.0)*fH/(3*ffriction);
 
 			fTensorTemp.Outer(One, One);
 			fModuliCorr.AddScaled(c1, fTensorTemp);
@@ -273,12 +273,12 @@ const dMatrixT& DPSSLinHardLocT::ModuliCorrPerfPlas(const ElementCardT& element,
 		/* load internal state variables */
 		LoadData(element,ip);
 		
-		double c1d  = -3.0*ffriction*fdilation*fkappa*fkappa/fX;
+		double c1d  = -3.0*ffriction*fdilation*fK*fK/fX;
 		c1d += (4.0/3.0)*sqrt32*fmu*fmu*fInternal[kdgamma]/fInternal[kstressnorm];
 		double c2d  = -sqrt(6.0)*fmu*fmu*fInternal[kdgamma]/fInternal[kstressnorm];
 		double c3d  = -(3.0/2.0)/fX + sqrt32*fInternal[kdgamma]/fInternal[kstressnorm];
 		c3d *= 4.0*fmu*fmu;
-		double c4d  = -3.0*sqrt(2.0)*fkappa*fmu/fX; 
+		double c4d  = -3.0*sqrt(2.0)*fK*fmu/fX; 
 
 		fTensorTemp.Outer(One, One);
 		fModuliCorrPerfPlas.AddScaled(c1d, fTensorTemp);
@@ -339,9 +339,9 @@ void DPSSLinHardLocT::TakeParameterList(const ParameterListT& list)
 	One.Dimension(kNSD);
 
 	/* constants */
-	fX_H = 3.0*(fmu+ffriction*fdilation*fkappa) + fH_prime;
+	fX_H = 3.0*(fmu+ffriction*fdilation*fK) + fH;
 	//for perfectly plastic bifurcation check
-    fX = 3.0*(fmu+ffriction*fdilation*fkappa);
+    fX = 3.0*(fmu+ffriction*fdilation*fK);
     
 	/* initialize constant tensor */
 	One.Identity();
@@ -385,14 +385,14 @@ void DPSSLinHardLocT::Update(ElementCardT& element, double dt)
 			/* internal state variable */
 			if (fEta == 0.0)
 			  {
-			  fInternal[kalpha] -= fH_prime*dgamma;
-			  //cout << "kalpha = " << fInternal[kalpha] << endl;
+			  fInternal[kkappa] -= fH*dgamma;
+			  //cout << "kkappa = " << fInternal[kkappa] << endl;
 			  }
 			else
 			  {
 			    double timeFactor = dt/fEta;//(fKStV -> fSSMatSupport -> TimeStep())/fEta;
-			    fInternal[kalpha] -= timeFactor/(1+timeFactor)*fH_prime*dgamma;
-			    //fInternal[kalpha] /= (1 + timeFactor);
+			    fInternal[kkappa] -= timeFactor/(1+timeFactor)*fH*dgamma;
+			    //fInternal[kkappa] /= (1 + timeFactor);
 			  }
 
 			/* dev plastic strain increment	*/
@@ -453,7 +453,7 @@ int DPSSLinHardLocT::PlasticLoading(const dSymMatrixT& trialstrain,
 		LoadData(element, ip);
 		
 		fInternal[kftrial] = YieldCondition(DeviatoricStress(trialstrain,element),
-			MeanStress(trialstrain,element),fInternal[kalpha]);
+			MeanStress(trialstrain,element),fInternal[kkappa]);
 
 		/* plastic */
 		if (fInternal[kftrial] > kYieldTol)
@@ -503,6 +503,6 @@ double DPSSLinHardLocT::MeanStress(const dSymMatrixT& trialstrain,
 {
 	#pragma unused(element)
 
-	fMeanStress = fkappa*trialstrain.Trace();
+	fMeanStress = fK*trialstrain.Trace();
 	return fMeanStress;
 }

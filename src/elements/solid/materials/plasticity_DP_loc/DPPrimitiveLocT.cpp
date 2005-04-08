@@ -1,5 +1,5 @@
 
-/* $Id: DPPrimitiveLocT.cpp,v 1.5 2004-09-10 01:07:59 cfoster Exp $ */
+/* $Id: DPPrimitiveLocT.cpp,v 1.6 2005-04-08 19:22:46 raregue Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 /* Base class for Druker-Prager, nonassociative, small strain,
@@ -19,11 +19,10 @@ const double sqrt32 = sqrt(3.0/2.0);
 /* constructor */
 DPPrimitiveLocT::DPPrimitiveLocT(void): 
 	ParameterInterfaceT("DP_Loc_primitive"),
-	falpha_bar(-1.0),
+	fkappa(-1.0),
 	ffriction(-1.0),
 	fdilation(-1.0),
-	fH_prime(0.0),
-	fH_delta(1.0),
+	fH(0.0),
 	fEta(-1.0)
 {
 
@@ -38,17 +37,17 @@ void DPPrimitiveLocT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	ParameterInterfaceT::DefineParameters(list);
 
-	ParameterT alpha_bar(falpha_bar, "alpha_bar");
-	alpha_bar.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(alpha_bar);
+	ParameterT kappa(fkappa, "kappa");
+	kappa.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(kappa);
 
 	ParameterT friction(ffriction, "friction");
 	friction.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(friction);
 
 	list.AddParameter(fdilation, "dilation");
-	list.AddParameter(fH_prime, "H_prime");
-	list.AddParameter(fH_delta, "H_delta");
+	
+	list.AddParameter(fH, "H");
 
 	ParameterT eta(fEta, "fluidity_eta");
 	eta.AddLimit(0.0, LimitT::LowerInclusive);
@@ -61,11 +60,10 @@ void DPPrimitiveLocT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
 
-	falpha_bar = list.GetParameter("alpha_bar");
+	fkappa = list.GetParameter("kappa");
 	ffriction = list.GetParameter("friction");
 	fdilation = list.GetParameter("dilation");
-	fH_prime = list.GetParameter("H_prime");
-	fH_delta = list.GetParameter("H_delta");
+	fH = list.GetParameter("H");
 	fEta = list.GetParameter("fluidity_eta");
 }
 
@@ -75,16 +73,16 @@ void DPPrimitiveLocT::TakeParameterList(const ParameterListT& list)
 
 /*
  * Returns the value of the yield function given the
- * stress vector and state variables, where alpha
+ * stress vector and state variables, where kappa
  * represents isotropic hardening.
  */
 double DPPrimitiveLocT::YieldCondition(const dSymMatrixT& devstress, 
-				const double meanstress, double alpha) const
+				const double meanstress, double kappa) const
 {
 	double kTemp;
 	kTemp  = sqrt32*sqrt(devstress.ScalarProduct());
-	kTemp += sqrt(3.0)*(-falpha_bar + ffriction*meanstress);
-	kTemp += alpha;
+	kTemp += sqrt(3.0)*(-fkappa + ffriction*meanstress);
+	kTemp += kappa;
 	return   kTemp;
 }
 

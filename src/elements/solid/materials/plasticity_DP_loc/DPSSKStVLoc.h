@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.h,v 1.12 2005-03-09 19:27:00 raregue Exp $ */
+/* $Id: DPSSKStVLoc.h,v 1.13 2005-04-08 19:22:46 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_H_
 #define _DP_SS_KSTV_LOC_H_
@@ -49,7 +49,7 @@ public:
 	virtual const dMatrixT& ce_ijkl(void);
 	const dMatrixT& c_ep_ijkl(void);
 	virtual const dMatrixT& c_perfplas_ijkl(void);
-
+	
 	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
 
