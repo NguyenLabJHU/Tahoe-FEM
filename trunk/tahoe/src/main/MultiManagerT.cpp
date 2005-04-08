@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.23 2005-04-08 16:41:55 d-farrell2 Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.24 2005-04-08 18:33:31 d-farrell2 Exp $ */
 
 #include "MultiManagerT.h"
 
@@ -482,11 +482,6 @@ void MultiManagerT::DefineParameters(ParameterListT& list) const
 	/* paths to input files for sub-tahoe's */
 	list.AddParameter(ParameterT::String, "atom_input");
 	list.AddParameter(ParameterT::String, "continuum_input",ParameterListT::ZeroOrOnce);
-	
-	// set boolean to see if continuum input should be ignored
-	ParameterT ignore_continuum(ParameterT::Boolean, "ignore_continuum_input");
-	ignore_continuum.SetDefault(false);
-	list.AddParameter(ignore_continuum);
 
 	/* name of the bridging field */
 	list.AddParameter(ParameterT::Word, "bridging_field");
@@ -633,10 +628,10 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	TaskT task = kRun;
 #pragma message("Ignore continuum only implemented for Dynamic Bridging Scale calculation, ask dave")	
 	// check to see if continuum should be ignored
-	ParameterT ignore_continuum = list.GetParameter("ignore_continuum_input");
+	const ParameterT* cont_ignore = list.FindParameter("continuum_input"); // see if the continuum is present
 	fignore = false;
-	if (ignore_continuum)
-		fignore = ignore_continuum;
+	if (!cont_ignore)
+		fignore = true; // if continuum not present, don't use it
 	
 	if (fignore == false)	// if we are to use the continuum
 	{
