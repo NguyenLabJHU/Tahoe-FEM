@@ -1,4 +1,5 @@
-/* $Id: EAMT.h,v 1.23 2005-04-07 19:17:57 d-farrell2 Exp $ */
+/* $Id: EAMT.h,v 1.24 2005-04-08 16:41:48 d-farrell2 Exp $ */
+
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
