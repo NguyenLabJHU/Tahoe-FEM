@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.17 2005-04-07 00:24:26 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.18 2005-04-08 19:21:48 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -187,8 +187,8 @@ protected:
 	
 	/** \name return values */
 	/*@{*/
-  	ArrayT<dSymMatrixT> fStress_List;
-  	ArrayT<dSymMatrixT> fStress_last_List;
+  	//ArrayT<dSymMatrixT> fStress_List;
+  	//ArrayT<dSymMatrixT> fStress_last_List;
 	/*@}*/
   	
   	/** \name work space */
@@ -205,28 +205,34 @@ protected:
 /* for post-localization */
 protected:
 
+	// set for first traced element
+	bool fFirstTrace;
+
 	/** \name element localization info */
 	/*@{*/
 	/** current time step */
-	dArray2DT fElementLocScalars;
 	dArray2DT fElementLocNormal;
 	dArray2DT fElementLocTangent;
 	dArray2DT fElementLocSlipDir;
-	dArrayT fElementLocPsi;
 	dArray2DT fElementLocMuDir;
+	dArrayT fElementLocPsi;
+	dArray2DT fElementLocScalars;
 	dArray2DT fElementLocInternalVars;
-	dArray2DT fElementLocGradEnh; // varies for each IP
-	dArray2DT fElementLocGradEnhIP; // for each IP for one element
-	dArray2DT fElementLocEdgeIntersect;
-	dArray2DT fElementLocStartSurface;
+	
 	dArrayT fElementVolume;
 	dArrayT fElementYieldTrial;
 	
 	dArray2DT fElementStress;
   	
-	iArray2DT fElementLocNodesActive;
+  	iArrayT fElementLocFlag;
+  	iArray2DT fElementLocNodesActive;
+  	dArray2DT fElementLocGradEnh; // varies for each IP
+	dArray2DT fElementLocGradEnhIP; // for each IP for one element
+	dArray2DT fElementLocEdgeIntersect;
+	dArray2DT fElementLocStartSurface;
 	
-	iArrayT fElementLocFlag;
+	/* element centroid */
+	dArray2DT fElementCentroid;
 	
 	dArray2DT fElementLastIterateDisp; // used to store last iterated displacement
 	dArrayT fLocLastIterateDisp, fLocdeltaDisp; // used to calculate zeta increment
@@ -234,28 +240,17 @@ protected:
 	// used to store last iterated K_zetad and K_dzeta
 	dArray2DT fElementLocKzetad, fElementLocKdzeta;
 	
-	/* element centroid */
-	dArray2DT fElementCentroid;
-	
-	double psi, psi_tmp, psi_chosen;
-	
 	/** from the last time step */
-	dArray2DT fElementLocScalars_last;
 	dArray2DT fElementLocSlipDir_last;
 	dArray2DT fElementLocMuDir_last;
+	dArray2DT fElementLocScalars_last;
 	dArray2DT fElementLocInternalVars_last;
 	dArrayT fElementVolume_last;
 	dArray2DT fElementStress_last;
 	/*@}*/
-	
-	dArray2DT stress_IPs, stress_last_IPs;
-	
+		
 	dArrayT fCohesiveSurface_Params;
-							
-	double c_r, c_p, alpha_c, phi_r, phi_p, alpha_phi, psi_p, alpha_psi;
 	
-	double detAmin, detA_tmp;
-	double dissip_max, dissip_tmp;
 	AutoArrayT <dArrayT> normals;
 	AutoArrayT <dArrayT> slipdirs;
 	AutoArrayT <dArrayT> tangents;
@@ -271,53 +266,23 @@ protected:
 	AutoArrayT <double> dissipations_fact_min;
 	AutoArrayT <double> grad_displ_mns_min;
 	
-	dArrayT grad_enh_IP, mu_dir, mu_dir_last;
-	dArray2DT grad_enh_IPs;
+	double psi_chosen;
 		
 	dArrayT normal_tmp, normal_chosen;
 	dArrayT slipdir_tmp, slipdir_chosen;
 	dArrayT tangent_tmp, tangent_chosen;
-	dArrayT tmp_array;
+	dArrayT mu_dir, mu_dir_last;
 	
-	int loc_flag, numedges;
-	dArrayT node_displ, node_coords, node_shape_deriv;
-	dArrayT start_surface_vect, start_surface_vect_read, elem_centroid;
+	int loc_flag;
 	
 	int choose_normal;
 	
-	double fYieldTrial, r_S, K_zetazeta;
-	double Q_S, Q_S_last, Q_Sn_trial, P_S, q_St, P_S_trial, q_St_trial, P_S_last, 
-			q_St_last, q_St_abs, q_St_abs_trial, q_St_abs_last;
-	double sign_q_St, gamma_delta, DgammadeltaDzeta, DpsiDzeta, DphiDzeta;
-	double DQ_SDzeta, DQ_SnDzeta, DP_SDzeta, Dr_SDzeta;
-	double h_c, h_phi, h_psi;
-	double Dh_cDzeta, Dh_phiDzeta, Dh_psiDzeta;
-	
-	dArrayT q_isv, q_isv_last, h_q, DqDzeta, DhqDzeta, DmudirDzeta, DslipdirDzeta, DslipdirDpsi;
-	
+	dArrayT start_surface_vect_read;
+
 	dMatrixT fDe;
 	
-	dSymMatrixT F_nn, F_tn, F_mun, F_mun_last, G_enh, tmp_sym_matrix, inner_matrix;
-	dSymMatrixT DF_munDzeta, DGenhDzeta;
-	
-	dMatrixT F_mun_nonsym, F_nn_nonsym, tmp_matrix;
-	
-	dSymMatrixT strain_inc, stress_inc, stress_last, stress_return;
-	
-	double inner, inner1, inner2, inner_abs;
-	
-	dSymMatrixT fStressTrial, fStressCurr, DsigDzeta, tmp_stress1, tmp_stress2;
-	
 	dMatrixT fK_dd, fK_dzeta_x_Kzetad;
-	dArrayT fK_dzeta, fK_zetad, tmp_vec1, tmp_vec2;
-	
-	double zeta, zeta_last, delta_zeta, Delta_zeta;
-	
-	double var1, var2, var3;
-	
-	double cospsi, sinpsi, tanphi, tanphi_n, secphi, secphi2;
-
-	bool fFirstTrace;
+	dArrayT fK_dzeta, fK_zetad;
 
 };
 
