@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.48 2004-06-17 07:41:49 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.48.4.1 2005-04-08 00:48:19 thao Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -43,6 +43,8 @@
 #include "SetOfNodesKBCT.h"
 #include "TorsionKBCT.h"
 #include "ConveyorT.h"
+#include "ConveyorSymT.h"
+#include "ConveyorAdhesiveT.h"
 
 using namespace Tahoe;
 
@@ -1821,6 +1823,16 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 		{
 			ConveyorT* kbc = new ConveyorT(*this, field);
 			return kbc;
+		}
+		case KBC_ControllerT::kConveyorSym:
+		{
+			ConveyorSymT* kbc = new ConveyorSymT(*this, field);
+			return(kbc);
+		}
+		case KBC_ControllerT::kConveyorAdhesive:
+		{
+			ConveyorAdhesiveT* kbc = new ConveyorAdhesiveT(*this, field);
+			return(kbc);
 		}
 		default:
 			ExceptionT::BadInputValue("NodeManagerT::NewKBC_Controller", 
