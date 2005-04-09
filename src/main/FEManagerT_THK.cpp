@@ -1,4 +1,5 @@
-/* $Id: FEManagerT_THK.cpp,v 1.21 2005-04-06 15:42:00 paklein Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.22 2005-04-09 18:27:33 d-farrell2 Exp $ */
+
 #include "FEManagerT_THK.h"
 #if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
 
@@ -14,6 +15,7 @@
 #include "iAutoArrayT.h"
 #include "iNodeT.h"
 #include "ParameterUtils.h"
+#include "ParameterContainerT.h"
 
 #include <iostream.h>
 #include <fstream.h>
@@ -36,213 +38,185 @@ FEManagerT_THK::FEManagerT_THK(const StringT& input, ofstreamT& output, Communic
 void FEManagerT_THK::Initialize2D(void)
 {
 	ModelManagerT* model = FEManagerT::ModelManager();
-
+	int nsd = model->NumDimensions();
+	
 	// read other parameters and initialize data
-	int num_neighbors = 2 * fNcrit + 1;   // maximum number of neighbors per atom in 2D
+	fNeighbors = 2 * fNcrit + 1;   // maximum number of neighbors per atom in 2D
 
 	/* read node set indexes */
 	fnumsets = fTHKNodes.Length();		// number of MD THK boundary node sets
  
 	/* collect sets - currently assuming exactly 2 MD THK boundaries in 2D */
 	/* further assumes bottom is first node set, top is second node set */
-	fBottomatoms = model->NodeSet(fTHKNodes[0]);
-	fTopatoms = model->NodeSet(fTHKNodes[1]);
-	fBottomrow.Dimension(fBottomatoms.Length());
-	fBottomrow.SetValueToPosition();
-	fToprow.Dimension(fTopatoms.Length());
-	fToprow.SetValueToPosition();
-	fToprow+=fBottomrow.Length();
-	int num_nodes_top = fTopatoms.Length();		// total number of boundary atoms on top layer
-	int num_nodes_bottom = fBottomatoms.Length();  // total number of boundary atoms on bottom layer
-	fBottom.Dimension(num_nodes_bottom, num_neighbors);
-	fBottom = -1;  // -1 -> no neighbor
-	fTop.Dimension(num_nodes_top, num_neighbors);
-	fTop = -1;  // -1 -> no neighbor
-
-	NodeManagerT* node = FEManagerT::NodeManager();
-	const dArray2DT& initcoords = node->InitialCoordinates();  // init coords for all atoms
-	dArrayT bacoordst, bacoordsb, currcoordst, currcoordsb;   // boundary atom coordinates
+#pragma message("FEManagerT_THK::Initialize2D, only set up for consistent input with 3D. -- talk to dave")
 	
-	/* now loop over boundary atoms to find neighbors - specialized for 2D FCC lattices */
-	/* assume top and bottom have same number of atoms */
-	for (int i = 0; i < fBottomatoms.Length(); i++)	// changed from fBottom.MajorDim()
+	// collect sets, set up some arrays (these have repeats in general)
+	if (fnumsets >= 1)
 	{
-		/* obtain coordinates of each bottom and top boundary atom */
-		initcoords.RowAlias(fBottomatoms[i], bacoordsb);
-		initcoords.RowAlias(fTopatoms[i], bacoordst);
-		
-		for (int j = -fNcrit; j <= fNcrit; j++)
+		if (fnumsets > 4)
 		{
-			if ((i+j >= 0) && (i+j < fBottomatoms.Length()))	// check with boundary only
-			{	
-				initcoords.RowAlias(fBottomatoms[i+j], currcoordsb);
-				initcoords.RowAlias(fTopatoms[i+j], currcoordst);
-				fBottom(i,j+fNcrit) = fBottomatoms[i+j];	// +1
-				fTop(i,j+fNcrit) = fTopatoms[i+j];	// +1
-			}
+#pragma message("The formulation used here is not good if you have a square lattice like structure as a boundary, needs to be generalized further")
+			cout << "THe formulation used here is only good when in neighboring layers, there is not an atom in the same location" << endl;
+		}
+		fbound_set_atoms.Dimension(fnumsets);
+		fbound_neighbor_atoms.Dimension(fnumsets);
+		for (int i = 0; i < fnumsets; i++)
+		{
+			// collect sets - minimum 1
+			// put each set into array of integer arrays
+			fbound_set_atoms[i] = model->NodeSet(fTHKNodes[i]);
+			
+			// dimension array of 2D arrays to hold in-plane neighbors ( host and other sets as well)
+			// set the value to -1, for no neighbor
+			fbound_neighbor_atoms[i].Dimension(fbound_set_atoms[i].Length(), fNeighbors);
+			fbound_neighbor_atoms[i] = -1;
 		}
 	}
+	else
+	{
+		ExceptionT::GeneralFail("FEManagerT_THK::Initialize2D - # of THK BC sets less than 1"); // this is the only check on fnumsets
+	}
 	
-///// May wish to move this into another method	 NOTE: the file is formatted in rows with 2 columns (i,j) coords in mapping array
-	// read in the ghostoffmap into fghostoffmap
-	ifstreamT data(fGhostMapFile);
+	// figure out how many boundary atoms there are (since this is based on sets with repeats, this is corrected after the special atom info is read in)
+	ftotal_b_atoms = 0;
+	for (int isetcount = 0; isetcount < fnumsets; isetcount++)
+	{
+		ftotal_b_atoms += fbound_set_atoms[isetcount].Length(); 
+	}
+	
+	// Parse the special atom information file
+	ifstreamT data(fSpecAtomFile);
 	if (!data.is_open())
-		ExceptionT::GeneralFail("FEManagerT_THK::Initialize2D", "file not found: %s", fGhostMapFile.Pointer());
+		ExceptionT::GeneralFail("FEManagerT_THK::Initialize2D", "file not found: %s", fSpecAtomFile.Pointer());
 	
-	// get dimension of the file from the properties map
-	nMatrixT<int>& promap = PropertiesMap(0);   // element group for particles = 0
-	const int promap_dim = promap.Rows(); // assumes square property matrix
+	// now grab data from file
 	
-	int ghosti = 0; // row number
-	int ghostj = 0; // column number
-	// now read in the rows and columns of the fghostoffmap 2D array
-	for (int ghostk = 0; ghostk < promap_dim; ghostk++)
+	// first entry in file is number of special atoms
+	data >> fnum_spec_atoms;
+	
+	if (fnum_spec_atoms > 0) // if there are special atoms
 	{
-		data >> ghosti >> ghostj ;
-		fghostoffmap(ghosti,ghostj) = 1;
+		// now read in the data, need to set up some stuff first
+		fSpecAtomInfo.Dimension(fnum_spec_atoms);
+		fSpecAtomID.Dimension(fnum_spec_atoms);
+		int tempatomnum, tempnumsets, temphostset;
+		iArrayT tempspecinfo;
+		
+		int tempspeccounter = 0;
+		
+		// grab the special atom data
+		for (int i = 0; i < fnum_spec_atoms; i++ ) // for all of the special atoms
+		{
+			// read in atom #, # of boundaries it is a member of (2 -> fNumSets), host boundary # (1 -> fNumSets) (set the atom is found in in fbound_set_atoms)
+			data >> tempatomnum >> tempnumsets >> temphostset ;
+			if (tempnumsets < 2)
+				ExceptionT::GeneralFail("FEManagerT_THK::Initialize2D", "Special Atom %d, number of member sets should be >= 2, not %d", tempatomnum, tempnumsets);
+			
+			tempspecinfo.Dimension(tempnumsets+2); // dimension the temp array to hold the information
+			tempspecinfo = -1;	// reset the array to -1 for all entries
+			tempspecinfo[0] = tempatomnum;
+			tempspecinfo[1] = tempnumsets;
+			tempspecinfo[2] = temphostset;
+			
+			// now read in remaining sets
+			for (int j = 0; j < (tempnumsets-1); j++)
+			{
+				data >> tempspecinfo[j+3]; // j+3 to make sure alignment is correct
+			}
+			
+			// now place temporary array in the permanant array
+			fSpecAtomInfo[i] = tempspecinfo;		// this contains ALL of the information needed to deal with special atoms, but may not be needed in its entirety
+			fSpecAtomID[i] = tempatomnum-1;			// this offsets the value to the internal atom numbering 0-(NN-1) NN = # nodes
+			tempspeccounter +=  (tempnumsets-1);	// counter to keep record of how many extra entries there are (tempnumsets-1 is since there should be 1 entry for each)
+		}
+		
+		// now correct ftotal_b_atoms to remove multiple counting of special atoms
+		ftotal_b_atoms -= tempspeccounter;
+
 	}
-
-///////	
 	
-	
-	/* compute theta tables */
-	ComputeThetaTables2D(fThetaFile);
-}
+	// dimension array for THK force (sized for 1 entry per atom on boundary, no repeats)
+	fTHKforce.Dimension(ftotal_b_atoms, 2);
+#pragma message("Dave set up the initialize2D to be basically the same as 3D. this is for consistency, expense not big issue since only done once.")
 
-/* Bridging Scale 3D Initialization */
-void FEManagerT_THK::Initialize3D(void)
-{
-	/* Implement 3D version of initialize here */
-	/* Find neighbors of top 2 planes of atoms */
-	ModelManagerT* model = FEManagerT::ModelManager();
-	int nsd = model->NumDimensions();
-
-	// read other parameters and initialize data
-	int num_neighborsx = 2 * fNcrit + 1;	// assume same number of neighbors in both x and y directions
-	int num_neighborsy = 2 * fNcrit + 1;
-	fNeighbors = num_neighborsx * num_neighborsy;
-
-	/* read node set indexes */
-	fnumsets = fTHKNodes.Length();		// number of MD THK boundary node sets
-
-/////////////// This whole thing looks like it needs to be generalized
-#pragma message("FEManager_THK::Initialize3D only set up for bottom or bottom/top boundary")
- 
-	// collect sets - currently assuming exactly 1 or 2 MD THK boundaries in 3D
-	// further assumes bottom is first node set or only set, top is second node set
-	fBottomatoms = model->NodeSet(fTHKNodes[0]);
-	fBottomrow.Dimension(fBottomatoms.Length());
-	fBottomrow.SetValueToPosition();
-	fBottom.Dimension(fBottomatoms.Length(), fNeighbors);
-	fBottom = -1;  // -1 -> no neighbor
-	
-	if (fnumsets == 2)
-	{
-		fTopatoms = model->NodeSet(fTHKNodes[1]);
-		fToprow.Dimension(fTopatoms.Length());
-		fToprow.SetValueToPosition();
-		fToprow+=fBottomrow.Length();
-		fTop.Dimension(fTopatoms.Length(), fNeighbors);
-		fTop = -1;  // -1 -> no neighbor
-	}
-	else if (fnumsets > 2)
-	{
-		ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D - only set up for bottom or bottom/top boundaries - tell dave");
-	}
-
-	NodeManagerT* node = FEManagerT::NodeManager();
-	const dArray2DT& initcoords = node->InitialCoordinates();  // init coords for all atoms
-	iArrayT asdf(initcoords.MajorDim());
-	asdf.SetValueToPosition();
+	// do neighbor search - only done once as of original implmententation -- by assumptions of method, only needs to be done once
+	// this looks for neighboring atoms in the boundary plane, which are to be considered in the summation mentioned in eqn 41 in hspark's 2D paper
+	NodeManagerT* node = FEManagerT::NodeManager();				// get the node manager
+	const dArray2DT& initcoords = node->InitialCoordinates();	// get initial coords for all atoms
+	iArrayT temp_atom(initcoords.MajorDim());					// set up another temp integer array with length = # atoms
+	temp_atom.SetValueToPosition();								// initialize the above array to a local numbering scheme
 	
 	/* configure search grid - CURRENTLY SEARCHING ONLY NON-IMAGE ATOMS (REAL+GHOST) */
-	iGridManagerT grid(10, 100, initcoords, &asdf);
+	iGridManagerT grid(10, 100, initcoords, &temp_atom);		// set up search grid based on initial coordinates of real + ghost atoms
 	grid.Reset();
-	dArrayT acoord1, acoord2, ncoord1, ncoord2;
-	double xdist1, ydist1, mag1, xmag, ymag, zmag;
-	int blah2;
+	dArrayT acoord1, acoord2, ncoord1, ncoord2;					// declare some more temp arrays (maybe we can kill some of these off, save memory?)
+	double checkdot, checkrad, mag1, xmag, ymag;			// declare some temp variables
+	int counter;
+	dArrayT facenormal;											// nodeset normal (error = 0)											
+	facenormal = 0.0;
 	
-	// find bottom plane0 neighbor atoms -> at minimum
-	for (int i = 0; i < fBottomatoms.Length(); i++)
-	{
-		initcoords.RowAlias(fBottomatoms[i], acoord1);
-		/* candidate points for row0 bottom atoms */
-		const AutoArrayT<iNodeT>& hitsa = grid.HitsInRegion(acoord1.Pointer(), 1.05*sqrt(2.0)*fLatticeParameter);
-	
-		for (int j = 0; j < hitsa.Length(); j++)
-		{			
-			/* distance between atoms */
-			ncoord1.Alias(nsd, hitsa[j].Coords());
-			xmag = ncoord1[0]-acoord1[0];
-			ymag = ncoord1[1]-acoord1[1];
-			zmag = ncoord1[2]-acoord1[2];
-			mag1 = sqrt(xmag*xmag+ymag*ymag+zmag*zmag);
-						
-			/* Get row0 neighbors */
-			if (fabs(acoord1[2]-ncoord1[2]) < tol && mag1 < 1.03*sqrt(2.0)*fLatticeParameter)	
-			{
-				/* now sort into x by y array for THK BC application */
-				blah2 = 0;
-				for (int k = -fNcrit; k <= fNcrit; k++)
-				{
+	for (int isetcount = 0; isetcount < fnumsets; isetcount++)
+	{ 
+		
+		// get the normal of plane of boundary atoms (provided in input file)
+		facenormal = fTHK_normals[isetcount];
+		if (facenormal == 0.0)
+			ExceptionT::GeneralFail("FEManagerT_THK::Initialize2D", "THK Boundary face normal not defined");
+		
+		// find in-plane neighbor atoms, based on results of search (2 level search, coarse and fine)
+		// first do regular atoms and 'special' atoms with respect to each set to which it belongs
+		for (int i = 0; i < fbound_set_atoms[isetcount].Length(); i++)
+		{
+			initcoords.RowAlias(fbound_set_atoms[isetcount][i], acoord1);		// alias the coordinates of the ith real boundary atom to acoord1
+			
+			// access the candidate neighbor points
+			const AutoArrayT<iNodeT>& hitsa = grid.HitsInRegion(acoord1.Pointer(), (fNcrit+1)*1.05*sqrt(2.0)*fLatticeParameter); // will work for FCC, BCC, SC 
+																																// DEF added (fNCrit+1) to scale the search area
+			for (int j = 0; j < hitsa.Length(); j++)		// loop over the candidate neighbors
+			{			
+				// distance between atom and candidate neighbor
+				ncoord1.Alias(nsd, hitsa[j].Coords());		// alias the coordinates of the candidate neighbor to ncoord1 (perhaps change syntax?)
+				xmag = ncoord1[0]-acoord1[0];				// get the distance between the atom and candidate neighbor point in each direction
+				ymag = ncoord1[1]-acoord1[1];
+				mag1 = sqrt(xmag*xmag+ymag*ymag);	// calculate the point to point distance between the neigbor and atom
+				
+				// now do neighbor search first determine which of the candidates is in the same plane (look to see if facenormal & normalized vector between atoms is ~ +/- tol)
+				// once the atoms are determined to be in the same plane, look at the distance, see if it is within the desired range.
+				// this will work for arbitrary plane orientations - but lattice parameter is the in-plane parameter
+							
+				// Get in-plane neighbors
+				if (mag1 > 1.0e-8) // if mag1 is close enough to be zero -> this would blow up -> but should be zero (allows self checking)
+					checkdot = (1/mag1) *((facenormal[0] * xmag) + (facenormal[1] * ymag)); // compute dot product of normal and candidate vector
+				else
+					checkdot = 0.0;
+				
+				if (fabs(checkdot) < tol )	// if the candidate neighbor is within the plane, check it
+				{																					 					
+					// do fine check, store matches in array for THK BC application
+					
+					// fNCrit denotes neighborshell in the boundary plane
+					// if fNCrit = 0, self is only one considered in BC summation
+					counter = 0;
 					for (int l = -fNcrit; l<= fNcrit; l++)
 					{
-						xdist1 = fabs(-ncoord1[0]+acoord1[0]+fLatticeParameter*k);
-						ydist1 = fabs(-ncoord1[1]+acoord1[1]+fLatticeParameter*l);
-						if (xdist1 < tol && ydist1 < tol)
-							fBottom(i,blah2) = hitsa[j].Tag();
-						blah2++;
-					}	
-				}
-			}
+						// check distance against position in neighbor shell
+						checkrad = sqrt((fLatticeParameter*l)*(fLatticeParameter*l));
+						if ( fabs(mag1-checkrad) < tol)
+						{																				
+							fbound_neighbor_atoms[isetcount](i,counter) = hitsa[j].Tag();									
+						}
+						counter++;	// counter increments to make sure atoms are in right order																													
+					}																				
+				}																					
+			}																					
 		}
 	}
-	
-	if (fnumsets == 2) // do top plane
-	{
-		/* find top plane0 neighbor atoms */
-		for (int i = 0; i < fTopatoms.Length(); i++)
-		{
-			initcoords.RowAlias(fTopatoms[i], acoord2);
-			/* candidate points for row0 top atoms */
-			const AutoArrayT<iNodeT>& hitsa = grid.HitsInRegion(acoord2.Pointer(), 1.05*sqrt(2.0)*fLatticeParameter);
-		
-			for (int j = 0; j < hitsa.Length(); j++)
-			{			
-				/* distance between atoms */
-				ncoord2.Alias(nsd, hitsa[j].Coords());
-				xmag = ncoord2[0]-acoord2[0];
-				ymag = ncoord2[1]-acoord2[1];
-				zmag = ncoord2[2]-acoord2[2];
-				mag1 = sqrt(xmag*xmag+ymag*ymag+zmag*zmag);
-							
-				/* Get row0 neighbors */
-				if (fabs(acoord2[2]-ncoord2[2]) < tol && mag1 < 1.03*sqrt(2.0)*fLatticeParameter)	
-				{
-					/* now sort into x by y array for THK BC application */
-					blah2 = 0;
-					for (int k = -fNcrit; k <= fNcrit; k++)
-					{
-						for (int l = -fNcrit; l<= fNcrit; l++)
-						{
-							xdist1 = fabs(-ncoord2[0]+acoord2[0]+fLatticeParameter*k);
-							ydist1 = fabs(-ncoord2[1]+acoord2[1]+fLatticeParameter*l);
-							if (xdist1 < tol && ydist1 < tol)
-								fTop(i,blah2) = hitsa[j].Tag();
-							blah2++;
-						}	
-					}
-				}
-			}
-		}
-	}
-
 	
 ///// May wish to move this into another method	 NOTE: the file is formatted in rows with 2 columns (i,j) coords in mapping array
 	// read in the ghostoffmap into fghostoffmap
-	ifstreamT data(fGhostMapFile);
-	if (!data.is_open())
-		ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D", "file not found: %s", fGhostMapFile.Pointer());
+	ifstreamT data2(fGhostMapFile);
+	if (!data2.is_open())
+		ExceptionT::GeneralFail("FEManagerT_THK::Initialize2D", "file not found: %s", fGhostMapFile.Pointer());
 	
 	// get dimension of the file from the properties map
 	nMatrixT<int>& promap = PropertiesMap(0);   // element group for particles = 0
@@ -254,7 +228,7 @@ void FEManagerT_THK::Initialize3D(void)
 	int ghosti = 0; // row number
 	int ghostj = 0; // column number
 	// now read in the rows and columns of the fghostoffmap 2D array
-	for (int ghostk = 0; ghostk < promap_dim; ghostk++)
+	for (int ghostk = 0; ghostk < 2*(promap_dim-1); ghostk++)
 	{
 		data >> ghosti >> ghostj ;
 		fghostoffmap(ghosti,ghostj) = 1;
@@ -263,30 +237,329 @@ void FEManagerT_THK::Initialize3D(void)
 ///////	
 	
 	
-	/* Compute Theta tables - may need to pass multiple data files as arguments */
-	ComputeThetaTables3D(fThetaFile);
+	/* compute theta tables */
+	ComputeThetaTables2D();
+}
+
+/* Bridging Scale 3D Initialization */
+void FEManagerT_THK::Initialize3D(void)
+{
+	/* Implement 3D version of initialize here */
+	/* Find neighbors of top 2 planes of atoms */
+	ModelManagerT* model = FEManagerT::ModelManager();
+	int nsd = model->NumDimensions();
+
+	// get information on THK BC sets
+
+	// set number of neighbor atoms to consider for the THK BC (including the boundary atom)
+	int num_neighborsx = 2 * fNcrit + 1;	// assume same number of neighbors in both x and y directions 
+	int num_neighborsy = 2 * fNcrit + 1;
+	fNeighbors = num_neighborsx * num_neighborsy; // total number of neighbors to consider in the sum on the THK terms
+												  // see eqn 41 in hspark's 2D paper (for now, assume same for all sets)
+	// read node set indices
+	fnumsets = fTHKNodes.Length();		// number of MD THK boundary node sets
+	
+	// collect sets, set up some arrays (these have repeats)
+	if (fnumsets >= 1)
+	{
+		if (fnumsets > 6)
+		{
+#pragma message("The formulation used here is not good if you have a simple cubic like structure as a boundary, needs to be generalized further")
+			cout << "THe formulation used here is only good when in neighboring layers, there is not an atom in the same l,m location" << endl;
+		}
+		fbound_set_atoms.Dimension(fnumsets);
+		fbound_neighbor_atoms.Dimension(fnumsets);
+		for (int i = 0; i < fnumsets; i++)
+		{
+			// collect sets - no maximum, minimum 1
+			// put each set into array of integer arrays
+			fbound_set_atoms[i] = model->NodeSet(fTHKNodes[i]);
+			
+			// dimension array of 2D arrays to hold in-plane neighbors ( host and other sets as well)
+			// set the value to -1, for no neighbor
+			fbound_neighbor_atoms[i].Dimension(fbound_set_atoms[i].Length(), fNeighbors);
+			fbound_neighbor_atoms[i] = -1;
+		}
+	}
+	else
+	{
+		ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D - # of THK BC sets less than 1, check inputs"); // this is the only check on fnumsets
+	}
+	
+	// figure out how many boundary atoms there are (since this is based on sets with repeats, this is corrected after the special atom info is read in)
+	ftotal_b_atoms = 0;
+	for (int isetcount = 0; isetcount < fnumsets; isetcount++)
+	{
+		ftotal_b_atoms += fbound_set_atoms[isetcount].Length(); 
+	}
+	
+///// May wish to move this to another method
+	
+	// Parse the special atom information file
+	ifstreamT data(fSpecAtomFile);
+	if (!data.is_open())
+		ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D", "file not found: %s", fSpecAtomFile.Pointer());
+	
+	// now grab data from file
+	
+	// first entry in file is number of special atoms
+	data >> fnum_spec_atoms;
+	
+	if (fnum_spec_atoms > 0) // if there are special atoms
+	{
+		// now read in the data, need to set up some stuff first
+		fSpecAtomInfo.Dimension(fnum_spec_atoms);
+		fSpecAtomID.Dimension(fnum_spec_atoms);
+		int tempatomnum, tempnumsets, temphostset;
+		iArrayT tempspecinfo;
+		
+		int tempspeccounter = 0;
+		
+		// grab the special atom data
+		for (int i = 0; i < fnum_spec_atoms; i++ ) // for all of the special atoms
+		{
+			// read in atom #, # of boundaries it is a member of (2 -> fNumSets), host boundary # (1 -> fNumSets) (set the atom is found in in fbound_set_atoms)
+			data >> tempatomnum >> tempnumsets >> temphostset ;
+			if (tempnumsets < 2)
+				ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D", "Special Atom %d, number of member sets should be >= 2, not %d", tempatomnum, tempnumsets);
+			
+			tempspecinfo.Dimension(tempnumsets+2); // dimension the temp array to hold the information
+			tempspecinfo = -1;	// reset the array to -1 for all entries
+			tempspecinfo[0] = tempatomnum;
+			tempspecinfo[1] = tempnumsets;
+			tempspecinfo[2] = temphostset;
+			
+			// now read in remaining sets
+			for (int j = 0; j < (tempnumsets-1); j++)
+			{
+				data >> tempspecinfo[j+3]; // j+3 to make sure alignment is correct
+			}
+			
+			// now place temporary array in the permanant array
+			fSpecAtomInfo[i] = tempspecinfo;		// this contains ALL of the information needed to deal with special atoms, but may not be needed in its entirety
+			fSpecAtomID[i] = tempatomnum-1;			// this offsets the value to the internal atom numbering 0-(NN-1) NN = # nodes
+			tempspeccounter +=  (tempnumsets-1);	// counter to keep record of how many extra entries there are (tempnumsets-1 is since there should be 1 entry for each)
+		}
+		
+		// now correct ftotal_b_atoms to remove multiple counting of special atoms
+		ftotal_b_atoms -= tempspeccounter;
+
+	}
+/////
+		
+	// dimension array for THK force (sized for 1 entry per atom on boundary, no repeats)
+	fTHKforce.Dimension(ftotal_b_atoms, 3);
+
+
+	// do neighbor search - only done once as of original implmententation -- by assumptions of method, only needs to be done once
+	// this looks for neighboring atoms in the boundary plane, which are to be considered in the summation mentioned in eqn 41 in hspark's 2D paper
+	NodeManagerT* node = FEManagerT::NodeManager();				// get the node manager
+	const dArray2DT& initcoords = node->InitialCoordinates();	// get initial coords for all atoms
+	iArrayT temp_atom(initcoords.MajorDim());					// set up another temp integer array with length = # atoms
+	temp_atom.SetValueToPosition();								// initialize the above array to a local numbering scheme
+	
+	/* configure search grid - CURRENTLY SEARCHING ONLY NON-IMAGE ATOMS (REAL+GHOST) */
+	iGridManagerT grid(10, 100, initcoords, &temp_atom);		// set up search grid based on initial coordinates of real + ghost atoms
+	grid.Reset();
+	dArrayT acoord1, acoord2, ncoord1, ncoord2;					// declare some more temp arrays (maybe we can kill some of these off, save memory?)
+	double checkdot, checkrad, mag1, xmag, ymag, zmag;			// declare some temp variables
+	int counter;
+	dArrayT facenormal;											// nodeset normal (error = 0)											
+	facenormal = 0.0;
+	
+	for (int isetcount = 0; isetcount < fnumsets; isetcount++)
+	{ 
+		
+		// get the normal of plane of boundary atoms (provided in input file)
+		facenormal = fTHK_normals[isetcount];
+		if (facenormal == 0.0)
+			ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D", "THK Boundary face normal not defined");
+		
+		// find in-plane neighbor atoms, based on results of search (2 level search, coarse and fine)
+		// first do regular atoms and 'special' atoms with respect to each set to which it belongs
+		for (int i = 0; i < fbound_set_atoms[isetcount].Length(); i++)
+		{
+			initcoords.RowAlias(fbound_set_atoms[isetcount][i], acoord1);		// alias the coordinates of the ith real boundary atom to acoord1
+			
+			// access the candidate neighbor points
+			const AutoArrayT<iNodeT>& hitsa = grid.HitsInRegion(acoord1.Pointer(), (fNcrit+1)*1.05*sqrt(2.0)*fLatticeParameter); // will work for FCC, BCC, SC 
+																																// DEF added (fNCrit+1) to scale the search area
+			for (int j = 0; j < hitsa.Length(); j++)		// loop over the candidate neighbors
+			{			
+				// distance between atom and candidate neighbor
+				ncoord1.Alias(nsd, hitsa[j].Coords());		// alias the coordinates of the candidate neighbor to ncoord1 (perhaps change syntax?)
+				xmag = ncoord1[0]-acoord1[0];				// get the distance between the atom and candidate neighbor point in each direction
+				ymag = ncoord1[1]-acoord1[1];
+				zmag = ncoord1[2]-acoord1[2];
+				mag1 = sqrt(xmag*xmag+ymag*ymag+zmag*zmag);	// calculate the point to point distance between the neigbor and atom
+				
+				// now do neighbor search first determine which of the candidates is in the same plane (look to see if facenormal & normalized vector between atoms is ~ +/- tol)
+				// once the atoms are determined to be in the same plane, look at the distance, see if it is within the desired range.
+				// this will work for arbitrary plane orientations - but lattice parameter is the in-plane parameter
+							
+				// Get in-plane neighbors
+				if (mag1 > 1.0e-8) // if mag1 is close enough to be zero -> this would blow up -> but should be zero (allows self checking)
+					checkdot = (1/mag1) *((facenormal[0] * xmag) + (facenormal[1] * ymag) + (facenormal[2] * zmag)); // compute dot product of normal and candidate vector
+				else
+					checkdot = 0.0;
+				
+				if (fabs(checkdot) < tol )	// if the candidate neighbor is within the plane, check it
+				{																					 					
+					// do fine check, store matches in array for THK BC application
+					
+					// fNCrit denotes neighborshell in the boundary plane
+					// if fNCrit = 0, self is only one considered in BC summation
+					counter = 0;
+					for (int k = -fNcrit; k <= fNcrit; k++)
+					{
+						for (int l = -fNcrit; l<= fNcrit; l++)
+						{
+							// check distance against position in neighbor shell
+							checkrad = sqrt((fLatticeParameter*k)*(fLatticeParameter*k) + (fLatticeParameter*l)*(fLatticeParameter*l));
+							if ( fabs(mag1-checkrad) < tol)
+							{																				
+								fbound_neighbor_atoms[isetcount](i,counter) = hitsa[j].Tag();									
+							}
+							counter++;		// counter increments to make sure atoms are in right orde																
+						}																			
+					}																				
+				}																					
+			}																					
+		}
+	}
+	
+///// May wish to move this into another method	 NOTE: the file is formatted in rows with 2 columns, the (i,j) coords of 1's in mapping array
+	// read in the ghostoffmap into fghostoffmap
+	ifstreamT data2(fGhostMapFile);
+	if (!data2.is_open())
+		ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D", "file not found: %s", fGhostMapFile.Pointer());
+	
+	// get dimension of the file from the properties map
+	nMatrixT<int>& promap = PropertiesMap(0);   // element group for particles = 0
+	const int promap_dim = promap.Rows(); // assumes square property matrix
+	// ghostoffmap matrix
+	fghostoffmap.Dimension(promap_dim);
+	fghostoffmap = 0;
+	
+	
+	int ghosti = 0; // row number
+	int ghostj = 0; // column number
+	// now read in the rows and columns of the fghostoffmap 2D array
+	for (int ghostk = 0; ghostk < 2*(promap_dim-1); ghostk++)
+	{
+		data2 >> ghosti >> ghostj ;
+		fghostoffmap(ghosti,ghostj) = 1;
+	}
+
+///////	
+	
+	// have boundary atom THK neighbor list, have properties mapping for calculation of forces
+	// now Compute Theta tables
+	ComputeThetaTables3D();
 }
 
 /* return iArrayT of boundary and ghost atom numbers - 3D version */
 const iArrayT& FEManagerT_THK::InterpolationNodes3D(void)
 {
 	const iArrayT& ghost = GhostNodes();
-	fInterpolationNodes.Dimension(ghost.Length()+fBottomatoms.Length()+fTopatoms.Length());
+	fInterpolationNodes.Dimension(ghost.Length()+ftotal_b_atoms);
 	fInterpolationNodes.CopyIn(0,ghost);	// copy in ghost atoms first
-	fInterpolationNodes.CopyIn(ghost.Length(), fBottomatoms);	// then copy in bottom atoms
-	fInterpolationNodes.CopyIn(ghost.Length()+fBottomatoms.Length(), fTopatoms);	// finally top atoms
-	return fInterpolationNodes;
+	
+	
+	// loop over each boundary, put boundary atoms into the array(make it so it has no repeats)
+	
+	if (fnum_spec_atoms > 0)	// if there are special atoms, have to monkey with things a bit
+	{
+		int offset = -1;
+		int specpos;
+		for (int isetcount = 0; isetcount < fnumsets; isetcount++)
+		{
+			for (int i = 0; i < fbound_set_atoms[isetcount].Length(); i++)
+			{
+				if (fSpecAtomID.HasValue(fbound_set_atoms[isetcount][i], specpos) == 1)	// if current atom is special
+				{
+					if ((fSpecAtomInfo[specpos][2] - 1) == isetcount )	// host set, count it
+					{
+						offset++;	// increment the counter
+						fInterpolationNodes[(ghost.Length() + offset)] = fbound_set_atoms[isetcount][i];	// place the value
+					}
+					else if ((fSpecAtomInfo[specpos][2] - 1) != isetcount) // not host set, dont count it
+					{
+						continue;	// go to the next value, 
+					}
+				}
+				else	// not special
+				{
+					offset++;	// increment the counter
+					fInterpolationNodes[(ghost.Length() + offset)] = fbound_set_atoms[isetcount][i];	// place the value
+				}
+			}
+			
+		}		
+	}
+	else	// no changes to original implementation
+	{
+		int offset = 0;
+		for (int isetcount = 0; isetcount < fnumsets; isetcount++)
+		{
+			fInterpolationNodes.CopyIn((ghost.Length() + offset), fbound_set_atoms[isetcount]);	// then copy in set atoms
+			offset += fbound_set_atoms[isetcount].Length();
+		}		
+	}
+
+	
+	return fInterpolationNodes;	
 }
 
 /* return iArrayT of boundary and ghost atom numbers - 2D version */
 const iArrayT& FEManagerT_THK::InterpolationNodes2D(void)
 {
 	const iArrayT& ghost = GhostNodes();
-	
-	fInterpolationNodes.Dimension(ghost.Length()+fBottomatoms.Length()+fTopatoms.Length());
+	fInterpolationNodes.Dimension(ghost.Length()+ftotal_b_atoms);
 	fInterpolationNodes.CopyIn(0,ghost);	// copy in ghost atoms first
-	fInterpolationNodes.CopyIn(ghost.Length(), fBottomatoms);	// then copy in bottom atoms
-	fInterpolationNodes.CopyIn(ghost.Length()+fBottomatoms.Length(), fTopatoms);	// finally top atoms
+	
+	
+	// loop over each boundary, put boundary atoms into the array(make it so it has no repeats)
+	
+	if (fnum_spec_atoms > 0)	// if there are special atoms, have to monkey with things a bit
+	{
+		int offset = -1;
+		int specpos;
+		for (int isetcount = 0; isetcount < fnumsets; isetcount++)
+		{
+			for (int i = 0; i < fbound_set_atoms[isetcount].Length(); i++)
+			{
+				if (fSpecAtomID.HasValue(fbound_set_atoms[isetcount][i], specpos) == 1)	// if current atom is special
+				{
+					if ((fSpecAtomInfo[specpos][2] - 1) == isetcount )	// host set, count it
+					{
+						offset++;	// increment the counter
+						fInterpolationNodes[(ghost.Length() + offset)] = fbound_set_atoms[isetcount][i];	// place the value
+					}
+					else if ((fSpecAtomInfo[specpos][2] - 1) != isetcount) // not host set, dont count it
+					{
+						continue;	// go to the next value, 
+					}
+				}
+				else	// not special
+				{
+					offset++;	// increment the counter
+					fInterpolationNodes[(ghost.Length() + offset)] = fbound_set_atoms[isetcount][i];	// place the value
+				}
+			}
+			
+		}		
+	}
+	else	// no changes to original implementation
+	{
+		int offset = 0;
+		for (int isetcount = 0; isetcount < fnumsets; isetcount++)
+		{
+			fInterpolationNodes.CopyIn((ghost.Length() + offset), fbound_set_atoms[isetcount]);	// then copy in set atoms
+			offset += fbound_set_atoms[isetcount].Length();
+		}		
+	}
+
 	
 	return fInterpolationNodes;
 }
@@ -294,7 +567,7 @@ const iArrayT& FEManagerT_THK::InterpolationNodes2D(void)
 /* predictor and corrector routine for FEM solution interpolated to MD boundary atoms.  both predictor
    and corrector are done in one step due to constant coarse scale acceleration assumption.  */
 void FEManagerT_THK::BAPredictAndCorrect(double timestep, dArray2DT& badisp, dArray2DT& bavel, dArray2DT& baacc)
-{
+{	
 	/* displacement predictor (and corrector) */
 	badisp.AddCombination(timestep, bavel, .5*timestep*timestep, baacc);
 	
@@ -303,18 +576,13 @@ void FEManagerT_THK::BAPredictAndCorrect(double timestep, dArray2DT& badisp, dAr
 }
 
 /* calculate external force on MD boundary atoms for 2D disp/force formulation */
-const dArray2DT& FEManagerT_THK::THKForce(const StringT& bridging_field, const dArray2DT& badisp)
+const dArray2DT& FEManagerT_THK::THKForce2D(const StringT& bridging_field, const dArray2DT& badisp)
 {
-	/* badisp is in format bottom displacements first, then top */
-	fTHKforce.Dimension(badisp.MajorDim(), 2);  
+	// badisp is in format with each set sequentially in vector form
+	fTHKforce = 0.0;  
 
-	/* sort top and bottom displacements into separate arrays - may not be necessary */
-	dArray2DT topdisp, bottomdisp;
+	// dimension some local arrays (these get reused and re defined constantly here)
 	dArrayT atomdisp, femdisp(2), diff(2);
-	topdisp.Dimension(fTopatoms.Length(), 2);
-	bottomdisp.Dimension(fBottomatoms.Length(), 2);
-	bottomdisp.RowCollect(fBottomrow, badisp);
-	topdisp.RowCollect(fToprow, badisp);
 	
 	/* access the actual MD displacements */
 	NodeManagerT* node = FEManagerT::NodeManager();
@@ -324,129 +592,192 @@ const dArray2DT& FEManagerT_THK::THKForce(const StringT& bridging_field, const d
 	const int stepnum = FEManagerT::StepNumber();  // to write into correct part of fHistoryTable 
 	const double timestep = FEManagerT::TimeStep();  // delta t_md
 
-	/* loop over boundary atoms first, store q - ubar */
 	dArray2DT shift;
 	shift.Dimension(fNumstep_crit-1, 2);	// copy all rows of history except last row
 
-	/* Calculate q - ubar */
-	for (int i = 0; i < fBottomatoms.Length(); i++)
+	// Calculate q - ubar for each set
+	
+	int dispcounter = -1; // keeps track of place in badisp array
+	int specpos;
+	iArrayT thk_force_pos_spec(fnum_spec_atoms);
+	thk_force_pos_spec = -1;
+	int pos_temp = -1;
+	
+	for (int isetcount = 0; isetcount < fnumsets; isetcount++)
 	{
-		if (stepnum < fNumstep_crit)   
+		// now go through the set
+		for (int i = 0; i < fbound_set_atoms[isetcount].Length(); i++)
 		{
-			/* bottom layer of atoms */
-			mddisp.RowAlias(fBottomatoms[i], atomdisp);
-			bottomdisp.RowAlias(i, femdisp);
-			diff.DiffOf(atomdisp, femdisp);
-			fHistoryTableb[i].SetRow(stepnum, diff);
-	
-			/* top layer of atoms */
-			mddisp.RowAlias(fTopatoms[i], atomdisp);   
-			topdisp.RowAlias(i, femdisp);
-			diff.DiffOf(atomdisp, femdisp);
-			fHistoryTablet[i].SetRow(stepnum, diff);
-		}
-		else	// time greater than critical normalized time
-		{
-			/* bottom layer of atoms */
-			mddisp.RowAlias(fBottomatoms[i], atomdisp);
-			bottomdisp.RowAlias(i, femdisp);
-			diff.DiffOf(atomdisp, femdisp);
-			shift.RowCollect(fShift, fHistoryTableb[i]);
-			fHistoryTableb[i].BlockRowCopyAt(shift, 0);
-			fHistoryTableb[i].SetRow(fNumstep_crit-1, diff);
-	
-			/* top layer of atoms */
-			mddisp.RowAlias(fTopatoms[i], atomdisp);
-			topdisp.RowAlias(i, femdisp);
-			diff.DiffOf(atomdisp, femdisp);
-			shift.RowCollect(fShift, fHistoryTablet[i]);
-			fHistoryTablet[i].BlockRowCopyAt(shift, 0);
-			fHistoryTablet[i].SetRow(fNumstep_crit-1, diff);
+			if (fnum_spec_atoms > 0)	// if there are special atoms, have to use some special considerations (perhaps this can be done better?)
+			{
+				if (fSpecAtomID.HasValue(fbound_set_atoms[isetcount][i], specpos) == 1)	// if current atom is special
+				{
+					if ((fSpecAtomInfo[specpos][2] - 1) == isetcount )	// host set, count it ( zero everything, since it is first time seen)
+					{
+						dispcounter++;	// increment the counter
+						pos_temp = dispcounter;
+						thk_force_pos_spec[specpos] = dispcounter;	// note the position
+					}
+					else if ((fSpecAtomInfo[specpos][2] - 1) != isetcount) // not host set, access previous record
+					{
+						pos_temp = thk_force_pos_spec[specpos];					
+					}
+				}
+				else	// not special
+				{
+					dispcounter++;	// increment the counter
+					pos_temp = dispcounter;
+				}
+			}
+			else	// no change
+			{
+				dispcounter++;	// increment the counter
+				pos_temp = dispcounter;	// increment the counter
+			}			
+			
+			/* non-shift case */
+			if (stepnum < fNumstep_crit)   
+			{
+				// for the boundary plane
+				mddisp.RowAlias(fbound_set_atoms[isetcount][i], atomdisp);
+				badisp.RowAlias(pos_temp, femdisp);
+				diff.DiffOf(atomdisp, femdisp);
+				fHistoryTable[isetcount][i].SetRow(stepnum, diff);
+			}
+			else	// t > t_crit
+			{
+				// for the boundary plane
+				mddisp.RowAlias(fbound_set_atoms[isetcount][i], atomdisp);
+				badisp.RowAlias(pos_temp, femdisp);
+				diff.DiffOf(atomdisp, femdisp);
+				shift.RowCollect(fShift, fHistoryTable[isetcount][i]);
+				fHistoryTable[isetcount][i].BlockRowCopyAt(shift, 0);
+				fHistoryTable[isetcount][i].SetRow(fNumstep_crit-1, diff);
+			}
 		}
 	}
 
 	dMatrixT theta(2);
-	dArrayT force1(2), force2(2), force3b(2), force3t(2);
+	dArrayT force1(2), force2(2), force0a(2), force0b(2);
+	InverseMapT setnodes;
+	int counter2 = -1;
+	specpos = -1;
+	thk_force_pos_spec = -1;
 
-	/* loop over boundary atoms, calculate THK force, i.e. Theta(t-tau)*(q-ubar)(tau)*(delta tau) */
-	for (int i = 0; i < fBottom.MajorDim(); i++)
+	for (int isetcount = 0; isetcount < fnumsets; isetcount++)
 	{
-		force3b = 0.0;
-		force3t = 0.0;
-		for (int j = -fNcrit; j <= fNcrit; j++)
+		// set inverse maps  - what does this do?? 
+		setnodes.SetMap(fbound_set_atoms[isetcount]);	// Set global to local map for bottom atoms plane 0
+		int count, dex;
+
+		/* calculate THK force for the boundary plane of atoms */
+		for (int i = 0; i < fbound_neighbor_atoms[isetcount].MajorDim(); i++)
 		{
-			if (fBottom(i,j+fNcrit) == -1)
-				int blah = 0;	// do nothing
-			else
+			if (fnum_spec_atoms > 0)	// if there are special atoms, have to use some special considerations
 			{
-				const dArray2DT& theta_b = fThetaTable[j+fNcrit];
-				const dArray2DT& disp_b = fHistoryTableb[i+j];
-				const dArray2DT& disp_t = fHistoryTablet[i+j];
-				const dArray2DT& theta_t = fThetaTable[fNcrit-j];  
-		
-				/* calculate THK force using theta here */
-				if (stepnum < fNumstep_crit) 
+				if (fSpecAtomID.HasValue(fbound_set_atoms[isetcount][i], specpos) == 1)	// if current atom is special
 				{
-					for (int k = 0; k < stepnum; k++)
+					if ((fSpecAtomInfo[specpos][2] - 1) == isetcount )	// host set, count it ( zero everything, since it is first time seen)
 					{
-						/* bottom row */
-						theta.Alias(2,2,theta_b(k));
-						disp_b.RowAlias(stepnum-k, force1);
-						theta.Multx(force1, force2);
-						force3b.AddScaled(timestep, force2);
-					
-						/* top row */
-						theta.Alias(2,2,theta_t(k));
-						disp_t.RowAlias(stepnum-k, force1);  
-						theta.Multx(force1, force2);  
-						force3t.AddScaled(timestep, force2);   
+						counter2++;	// increment the counter
+						thk_force_pos_spec[specpos] = counter2;	// note the position
+						force0a = 0.0;	// zero the forces
+						force0b = 0.0;
+						
+					}
+					else if ((fSpecAtomInfo[specpos][2] - 1) != isetcount) // not host set
+					{
+						force0a = fTHKforce[thk_force_pos_spec[specpos]];	// record the value of the force already present
 					}
 				}
-				else	// normalized time greater than critical value
+				else	// not special
 				{
-					for (int k = 0; k < fNumstep_crit; k++)
-					{
-						/* bottom row */
-						theta.Alias(2,2,theta_b(k));
-						disp_b.RowAlias(fNumstep_crit-k-1, force1);
-						theta.Multx(force1, force2);
-						force3b.AddScaled(timestep, force2);
-			
-						/* top row */
-						theta.Alias(2,2,theta_t(k));
-						disp_t.RowAlias(fNumstep_crit-k-1, force1);
-						theta.Multx(force1, force2);
-						force3t.AddScaled(timestep, force2);
-					}
+					counter2++;	// increment the counter
+					force0a = 0.0;	// zero the forces
+					force0b = 0.0;
 				}
 			}
+			else	// no change
+			{
+				counter2++;	// increment the counter
+				force0a = 0.0;	// zero the forces
+				force0b = 0.0;
+			}
+			
+			count = 0;
+			for (int j = 0; j < 2*fNcrit+1; j++)
+			{
+				if (fbound_neighbor_atoms[isetcount](i,count) == -1)	// if no neighbor
+					int temp = 0;
+				else
+				{
+					/* bottom plane 0 */
+					dex = setnodes.Map(fbound_neighbor_atoms[isetcount](i,count));
+					const dArray2DT& disp_temp = fHistoryTable[isetcount][dex];
+					const dArray2DT& theta_temp = fThetaTable_array[isetcount][fNeighbors-1-count]; 	// start count at 8, go backwards 
+					
+					/* calculate fine scale THK disp using theta here */
+					if (stepnum < fNumstep_crit)  // < fNumstep_crit 
+					{
+						for (int l = 0; l < stepnum; l++)
+						{												
+							theta.Alias(2,2,theta_temp(l));
+							disp_temp.RowAlias(stepnum-l, force1);
+							theta.Multx(force1, force2);
+							force0b.AddScaled(timestep, force2);	
+						}
+					}
+					else	// normalized time greater than critical value
+					{	
+						for (int l = 0; l < fNumstep_crit; l++)
+						{												
+							theta.Alias(2,2,theta_temp(l));
+							disp_temp.RowAlias(fNumstep_crit-l-1, force1);
+							theta.Multx(force1, force2);
+							force0b.AddScaled(timestep, force2);	
+						}
+					}
+				}
+				count++;
+			}
+			// THK Force
+			if (fnum_spec_atoms > 0)	// if there are special atoms, have to use some special considerations
+			{
+				if (fSpecAtomID.HasValue(fbound_set_atoms[isetcount][i], specpos) == 1)	// if current atom is special
+				{
+					if ((fSpecAtomInfo[specpos][2] - 1) == isetcount )	// host set, count it ( zero everything, since it is first time seen)
+					{
+						fTHKforce.SetRow(counter2, force0b);
+					}
+					else if ((fSpecAtomInfo[specpos][2] - 1) != isetcount) // not host set
+					{
+						force0b += force0a;	// simply add the just calculated force to the previous (this may need to change, since simple sum may not be exact)
+						fTHKforce.SetRow(thk_force_pos_spec[specpos], force0b);	// then set the value
+					}
+				}
+				else	// not special
+				{
+					fTHKforce.SetRow(counter2, force0b);
+				}
+			}
+			else	// no change
+			{
+				fTHKforce.SetRow(counter2, force0b);
+			}
 		}
-		/* add THK force to fTHKForce - bottom atoms */
-		fTHKforce.SetRow(i, force3b);
-		
-		/* add THK force to fTHKForce - top atoms */
-		fTHKforce.SetRow(i+fBottomatoms.Length(), force3t);
 	}
+	//cout << "THKforce = " << fTHKforce << endl;
 	return fTHKforce;
 }
 
 /* calculate impedance force using 3D disp/force formulation */
-const dArray2DT& FEManagerT_THK::THKDisp(const StringT& bridging_field, const dArray2DT& badisp)
+const dArray2DT& FEManagerT_THK::THKForce3D(const StringT& bridging_field, const dArray2DT& badisp)
 {
-	/* badisp is in format bottom displacements first, then top */
-	/* COULD DIMENSION ONCE IN INTERPOLATIONNODES3D() */
-	fTHKforce.Dimension(badisp.MajorDim(), 3);  
+	// badisp is in format with each set sequentially in vector form
 	fTHKforce = 0.0;
 
-	/* sort top and bottom displacements into separate arrays - may not be necessary */
-	/* ADD topdisp0, etc as class variables so only dimension once? */
-	/* COULD DIMENSION ONCE IN INTERPOLATIONNODES3D() */
-	dArray2DT topdisp0, bottomdisp0;
+	// dimension some local arrays (these get reused and re defined constantly here)
 	dArrayT atomdisp, femdisp(3), diff(3);
-	bottomdisp0.Dimension(fBottomatoms.Length(), 3);
-	topdisp0.Dimension(fTopatoms.Length(), 3);
-	bottomdisp0.RowCollect(fBottomrow, badisp);
-	topdisp0.RowCollect(fToprow, badisp);
 	
 	/* access the actual MD displacements */
 	NodeManagerT* node = FEManagerT::NodeManager();
@@ -459,153 +790,183 @@ const dArray2DT& FEManagerT_THK::THKDisp(const StringT& bridging_field, const dA
 	dArray2DT shift;
 	shift.Dimension(fNumstep_crit-1, 3);	// copy all rows of history except last row 
 
-	/* Calculate q - ubar for bottom or top/bottom plane 0 of atoms */
-	for (int i = 0; i < fBottomatoms.Length(); i++)
-	{
-		/* non-shift case */
-		if (stepnum < fNumstep_crit)   
-		{
-			if (fnumsets == 2)
-			{
-				// Row 0 top plane of atoms
-				mddisp.RowAlias(fTopatoms[i], atomdisp);
-				topdisp0.RowAlias(i, femdisp);	
-				diff.DiffOf(atomdisp, femdisp);
-				fHistoryTablet[i].SetRow(stepnum, diff);
-			}
-		
-			// Row 0 bottom plane of atoms
-			mddisp.RowAlias(fBottomatoms[i], atomdisp);
-			bottomdisp0.RowAlias(i, femdisp);	
-			diff.DiffOf(atomdisp, femdisp);
-			fHistoryTableb[i].SetRow(stepnum, diff);
-		}
-		else	// t > t_crit
-		{
-			if (fnumsets == 2)
-			{
-				// Row 0 top plane of atoms
-				mddisp.RowAlias(fTopatoms[i], atomdisp);
-				topdisp0.RowAlias(i, femdisp);
-				diff.DiffOf(atomdisp, femdisp);
-				shift.RowCollect(fShift, fHistoryTablet[i]);
-				fHistoryTablet[i].BlockRowCopyAt(shift, 0);
-				fHistoryTablet[i].SetRow(fNumstep_crit-1, diff);
-			}
+	// Calculate q - ubar for each set
 	
-			/* Row 0 bottom plane of atoms */
-			mddisp.RowAlias(fBottomatoms[i], atomdisp);
-			bottomdisp0.RowAlias(i, femdisp);
-			diff.DiffOf(atomdisp, femdisp);
-			shift.RowCollect(fShift, fHistoryTableb[i]);
-			fHistoryTableb[i].BlockRowCopyAt(shift, 0);
-			fHistoryTableb[i].SetRow(fNumstep_crit-1, diff);
-		}
-	}
-		
-	dMatrixT theta(3);
-	dArrayT force1(3), force2(3), force0a(3), force0b(3);
+	int dispcounter = -1; // keeps track of place in badisp array
+	int specpos;
+	iArrayT thk_force_pos_spec(fnum_spec_atoms);
+	thk_force_pos_spec = -1;
+	int pos_temp = -1;
 	
-	/* set inverse maps */
-	InverseMapT topnodes0, bottomnodes0;
-	if (fnumsets == 2) { topnodes0.SetMap(fTopatoms); }	// Set global to local map for top atoms plane 0
-	bottomnodes0.SetMap(fBottomatoms);	// Set global to local map for bottom atoms plane 0
-	int count, dex;
-
-	/* calculate THK force for top/bottom plane0 atoms */
-	for (int i = 0; i < fBottom.MajorDim(); i++)
+	for (int isetcount = 0; isetcount < fnumsets; isetcount++)
 	{
-		force0a = 0.0;
-		force0b = 0.0;
-		count = 0;
-		for (int j = 0; j < 2*fNcrit+1; j++)
+		// now go through the set
+		for (int i = 0; i < fbound_set_atoms[isetcount].Length(); i++)
 		{
-			for (int k = 0; k < 2*fNcrit+1; k++)
+			if (fnum_spec_atoms > 0)	// if there are special atoms, have to use some special considerations (perhaps this can be done better?)
 			{
-				if (fBottom(i,count) == -1)	
-					int blah = 0;
-				else
+				if (fSpecAtomID.HasValue(fbound_set_atoms[isetcount][i], specpos) == 1)	// if current atom is special
 				{
-					/* bottom plane 0 */
-					dex = bottomnodes0.Map(fBottom(i,count));
-					const dArray2DT& disp_b0 = fHistoryTableb[dex];
-					const dArray2DT& theta_b0 = fThetaTableB[fNeighbors-1-count]; 	// start count at 8, go backwards 
-					
-					/* calculate fine scale THK disp using theta here */
-					if (stepnum < fNumstep_crit)  // < fNumstep_crit 
+					if ((fSpecAtomInfo[specpos][2] - 1) == isetcount )	// host set, count it ( zero everything, since it is first time seen)
 					{
-						for (int l = 0; l < stepnum; l++)	// ORIGINALLY l < stepnum
-						{												
-							/* bottom plane 0 */
-							theta.Alias(3,3,theta_b0(l));	// MAY NEED TO USE l+1 here 
-							disp_b0.RowAlias(stepnum-l, force1);
-							theta.Multx(force1, force2);
-							force0b.AddScaled(timestep, force2);	
-						}
+						dispcounter++;	// increment the counter
+						pos_temp = dispcounter;
+						thk_force_pos_spec[specpos] = dispcounter;	// note the position
 					}
-					else	// normalized time greater than critical value
-					{	
-						for (int l = 0; l < fNumstep_crit; l++)
-						{												
-							/* bottom plane 0 */
-							theta.Alias(3,3,theta_b0(l));	// MAY NEED TO USE l+1 here 
-							disp_b0.RowAlias(fNumstep_crit-l-1, force1);
-							theta.Multx(force1, force2);
-							force0b.AddScaled(timestep, force2);	
-						}
+					else if ((fSpecAtomInfo[specpos][2] - 1) != isetcount) // not host set, access previous record
+					{
+						pos_temp = thk_force_pos_spec[specpos];					
 					}
 				}
-				if (fnumsets == 2)
+				else	// not special
 				{
-					if (fTop(i,count) == -1 )	
-						int blah = 0;
+					dispcounter++;	// increment the counter
+					pos_temp = dispcounter;
+				}
+			}
+			else	// no change
+			{
+				dispcounter++;	// increment the counter
+				pos_temp = dispcounter;	// increment the counter
+			}			
+			
+			/* non-shift case */
+			if (stepnum < fNumstep_crit)   
+			{
+				// for the boundary plane
+				mddisp.RowAlias(fbound_set_atoms[isetcount][i], atomdisp);
+				badisp.RowAlias(pos_temp, femdisp);
+				diff.DiffOf(atomdisp, femdisp);
+				fHistoryTable[isetcount][i].SetRow(stepnum, diff);
+			}
+			else	// t > t_crit
+			{
+				// for the boundary plane
+				mddisp.RowAlias(fbound_set_atoms[isetcount][i], atomdisp);
+				badisp.RowAlias(pos_temp, femdisp);
+				diff.DiffOf(atomdisp, femdisp);
+				shift.RowCollect(fShift, fHistoryTable[isetcount][i]);
+				fHistoryTable[isetcount][i].BlockRowCopyAt(shift, 0);
+				fHistoryTable[isetcount][i].SetRow(fNumstep_crit-1, diff);
+			}
+		}
+	}
+	
+	dMatrixT theta(3);
+	dArrayT force1(3), force2(3), force0a(3), force0b(3);
+	InverseMapT setnodes;
+	int counter2 = -1;
+	specpos = -1;
+	thk_force_pos_spec = -1;
+	
+	for (int isetcount = 0; isetcount < fnumsets; isetcount++)
+	{
+		// set inverse maps  - what does this do?? 
+		setnodes.SetMap(fbound_set_atoms[isetcount]);	// Set global to local map for bottom atoms plane 0
+		int count, dex;
+		//dex = setnodes.Map(839);
+
+		/* calculate THK force for the boundary plane of atoms */
+		for (int i = 0; i < fbound_neighbor_atoms[isetcount].MajorDim(); i++)
+		{
+			if (fnum_spec_atoms > 0)	// if there are special atoms, have to use some special considerations
+			{
+				if (fSpecAtomID.HasValue(fbound_set_atoms[isetcount][i], specpos) == 1)	// if current atom is special
+				{
+					if ((fSpecAtomInfo[specpos][2] - 1) == isetcount )	// host set, count it ( zero everything, since it is first time seen)
+					{
+						counter2++;	// increment the counter
+						thk_force_pos_spec[specpos] = counter2;	// note the position
+						force0a = 0.0;	// zero the forces
+						force0b = 0.0;
+						
+					}
+					else if ((fSpecAtomInfo[specpos][2] - 1) != isetcount) // not host set
+					{
+						force0a = fTHKforce[thk_force_pos_spec[specpos]];	// record the value of the force already present
+					}
+				}
+				else	// not special
+				{
+					counter2++;	// increment the counter
+					force0a = 0.0;	// zero the forces
+					force0b = 0.0;
+				}
+			}
+			else	// no change
+			{
+				counter2++;	// increment the counter
+				force0a = 0.0;	// zero the forces
+				force0b = 0.0;
+			}
+			
+			count = 0;
+			for (int j = 0; j < 2*fNcrit+1; j++)
+			{
+				for (int k = 0; k < 2*fNcrit+1; k++)
+				{
+					if (fbound_neighbor_atoms[isetcount](i,count) == -1)	// if no neighbor
+						int temp = 0;
 					else
 					{
-						/* top plane 0 */
-						dex = topnodes0.Map(fTop(i,count));
-						const dArray2DT& disp_t0 = fHistoryTablet[dex];
-						const dArray2DT& theta_t0 = fThetaTableT[fNeighbors-1-count]; 	// start count at 8, go backwards 
+						/* bottom plane 0 */
+						dex = setnodes.Map(fbound_neighbor_atoms[isetcount](i,count));
+						const dArray2DT& disp_temp = fHistoryTable[isetcount][dex];
+						const dArray2DT& theta_temp = fThetaTable_array[isetcount][fNeighbors-1-count]; 	// start count at 8, go backwards 
 						
 						/* calculate fine scale THK disp using theta here */
 						if (stepnum < fNumstep_crit)  // < fNumstep_crit 
 						{
-							for (int l = 0; l < stepnum; l++)	// ORIGINALLY l < stepnum
+							for (int l = 0; l < stepnum; l++)
 							{												
-								/* bottom plane 0 */
-								theta.Alias(3,3,theta_t0(l));	// MAY NEED TO USE l+1 here 
-								disp_t0.RowAlias(stepnum-l, force1);
+								theta.Alias(3,3,theta_temp(l));
+								disp_temp.RowAlias(stepnum-l, force1);
 								theta.Multx(force1, force2);
-								force0a.AddScaled(timestep, force2);	
+								force0b.AddScaled(timestep, force2);	
 							}
 						}
 						else	// normalized time greater than critical value
 						{	
 							for (int l = 0; l < fNumstep_crit; l++)
 							{												
-								/* bottom plane 0 */
-								theta.Alias(3,3,theta_t0(l));	// MAY NEED TO USE l+1 here 
-								disp_t0.RowAlias(fNumstep_crit-l-1, force1);
+								theta.Alias(3,3,theta_temp(l));
+								disp_temp.RowAlias(fNumstep_crit-l-1, force1);
 								theta.Multx(force1, force2);
-								force0a.AddScaled(timestep, force2);	
+								force0b.AddScaled(timestep, force2);	
 							}
 						}
 					}
+					count++;
 				}
-				count++;
 			}
-		}
-		/* add THK force to fTHKDisp - bottom atoms */
-		fTHKforce.SetRow(i, force0b);
-		
-		if (fnumsets == 2)
-		{
-			/* add THK force to fTHKDisp - top atoms */
-			fTHKforce.SetRow(i+fBottomatoms.Length(), force0a);
+			// THK Force
+			if (fnum_spec_atoms > 0)	// if there are special atoms, have to use some special considerations
+			{
+				if (fSpecAtomID.HasValue(fbound_set_atoms[isetcount][i], specpos) == 1)	// if current atom is special
+				{
+					if ((fSpecAtomInfo[specpos][2] - 1) == isetcount )	// host set, count it ( zero everything, since it is first time seen)
+					{
+						fTHKforce.SetRow(counter2, force0b);
+					}
+					else if ((fSpecAtomInfo[specpos][2] - 1) != isetcount) // not host set
+					{
+						force0b += force0a;	// simply add the just calculated force to the previous (this may need to change, since simple sum may not be exact)
+						fTHKforce.SetRow(thk_force_pos_spec[specpos], force0b);	// then set the value
+					}
+				}
+				else	// not special
+				{
+					fTHKforce.SetRow(counter2, force0b);
+				}
+			}
+			else	// no change
+			{
+				fTHKforce.SetRow(counter2, force0b);
+			}
 		}
 	}
 	//cout << "THKforce = " << fTHKforce << endl;
 	return fTHKforce;
-
 }
 
 /* describe the parameters needed by the interface */
@@ -616,11 +977,14 @@ void FEManagerT_THK::DefineParameters(ParameterListT& list) const
 
 	/* time-history kernel parameters */
 	list.AddParameter(ParameterT::Integer, "N_crit");
+	list.AddParameter(ParameterT::Double, "T_crit");	// user can set T-Crit to match theta files
 	list.AddParameter(ParameterT::Double, "lattice_parameter");
-	list.AddParameter(ParameterT::Word, "theta_file");
 	
 	// the ghost mapping for the coupling matrix specified in a file
 	list.AddParameter(ParameterT::Word, "ghostmap_file");
+	
+	// file which contains 'special' atom info (corners, edges)
+	list.AddParameter(ParameterT::Word,"THK_special_atom_file");
 }
 
 /* information about subordinate parameter lists */
@@ -628,10 +992,33 @@ void FEManagerT_THK::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
 	FEManagerT_bridging::DefineSubs(sub_list);
+	
+	// files containing fourier coeffs for THK
+	sub_list.AddSub("theta_file_ID_list");
 
 	/* nodes affected by THK boundary conditions */
 	sub_list.AddSub("THK_nodes_ID_list");
 	
+	// list of outward normals for THK BC planes
+	sub_list.AddSub("THK_plane_normals_list", ParameterListT::OnePlus);
+	
+}
+
+ParameterInterfaceT* FEManagerT_THK::NewSub(const StringT& name) const
+{
+	if (name == "THK_plane_normals_list")
+	{
+		ParameterContainerT* x_choice = new ParameterContainerT(name);
+		
+		/* by dimension */
+		x_choice->SetListOrder(ParameterListT::Choice);
+		x_choice->AddSub("Vector_2");
+		x_choice->AddSub("Vector_3");
+	
+		return x_choice;
+	}
+	else // inherited
+		return FEManagerT_bridging::NewSub(name);
 }
 
 /* accept parameter list */
@@ -640,14 +1027,14 @@ void FEManagerT_THK::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	FEManagerT_bridging::TakeParameterList(list);
 	
+	int nsd = NodeManager()->NumSD(); // get # spatial dimensions
+	
 	/* extract THK parameters */
 	fNcrit = list.GetParameter("N_crit");
+	fTcrit = list.GetParameter("T_crit");
 	fLatticeParameter = list.GetParameter("lattice_parameter");
-	fThetaFile = list.GetParameter("theta_file");
-	fThetaFile.ToNativePathName();
 	StringT path;
 	path.FilePath(InputFile());
-	fThetaFile.Prepend(path);
 	
 	// extract matrix for use when doing ghostoffmap in BridgingScaleManagerT
 	fGhostMapFile = list.GetParameter("ghostmap_file");
@@ -655,13 +1042,50 @@ void FEManagerT_THK::TakeParameterList(const ParameterListT& list)
 	StringT filepath;
 	filepath.FilePath(InputFile());
 	fGhostMapFile.Prepend(path);
+	
+	// extract the special atom info
+	fSpecAtomFile = list.GetParameter("THK_special_atom_file");
+	fSpecAtomFile.ToNativePathName();
+	fSpecAtomFile.Prepend(path);
+	
+	// Files of fourier coefficients
+	const ParameterListT& file_list = list.GetList("theta_file_ID_list");
+	StringListT::Extract(file_list, fThetaFile_array);
+	for (int i = 0; i < fThetaFile_array.Length(); i++)
+	{
+		fThetaFile_array[i].ToNativePathName();
+		fThetaFile_array[i].Prepend(path);
+	}
+	
 
 	/* nodes affected by THK boundary conditions */
 	const ParameterListT& id_list = list.GetList("THK_nodes_ID_list");
 	StringListT::Extract(id_list, fTHKNodes);
-
+	
+	// list of outward normals for THK BC planes
+	const ArrayT<ParameterListT>& subs = list.Lists();
+	int listcount = 0;
+	fTHK_normals.Dimension(fTHKNodes.Length());
+	
+	for (int i = 0; i < subs.Length(); i++)
+	{
+		const StringT& name = subs[i].Name();
+		if (name == "THK_plane_normals_list" )
+		{
+			listcount++;
+			const ParameterListT& THK_normals_list = subs[i].GetListChoice(*this,"THK_plane_normals_list");
+			VectorParameterT::Extract(THK_normals_list, fTHK_normals[listcount-1]);
+			if (fTHK_normals[listcount-1].Length() != nsd) 
+				ExceptionT::GeneralFail("FEManagerT_THK::TakeParameterList", "\"THK_plane_normals_list\" entry %d should be length %d not %d", i, nsd, fTHK_normals[listcount-1].Length());
+		}
+		
+	}
+	if (listcount != fTHKNodes.Length()) 
+		ExceptionT::GeneralFail("FEManagerT_THK::TakeParameterList", "\"THK_plane_normals_list\" should be length %d not %d", fTHKNodes.Length(), listcount);
+	
+	
+	
 	/* initialize */
-	int nsd = NodeManager()->NumSD();
 	if (nsd == 2)
 		Initialize2D();
 	else if (nsd == 3)
@@ -676,36 +1100,32 @@ void FEManagerT_THK::TakeParameterList(const ParameterListT& list)
  *************************************************************************/
 
 /* compute theta tables for 2D disp/force formulation */
-void FEManagerT_THK::ComputeThetaTables2D(const StringT& data_file)
-{
-	const char caller[] = "FEManagerT_THK::ComputeThetaTables2D";
-	ifstreamT data(data_file);
-	if (!data.is_open())
-		ExceptionT::GeneralFail(caller, "file not found: %s", data_file.Pointer());
-		
+void FEManagerT_THK::ComputeThetaTables2D(void)
+{		
 	/* dimensions */
 	double pi = acos(-1.0);
-	int n_neighbor = fNcrit + 1;  // number of neighbors to calculate thetas for
+	int n_neighbor = 2*fNcrit + 1;  // number of neighbors to calculate thetas for
 	int n_sum, nsteps;       // number of fourier coefficients to use in calculation of theta
-	data >> n_sum;
 	
 	/* dimension work space */
-	const TimeManagerT* time_manager = TimeManager();
-	fN_times = time_manager->NumberOfSteps();
-	double tstep = time_manager->TimeStep(); // timestep
-	double totaltime = fN_times * tstep; // total time of simulation
+	const TimeManagerT* time_manager = TimeManager();	// get the time manager
+	fN_times = time_manager->NumberOfSteps();		 	// get the number of timesteps
+	double tstep = time_manager->TimeStep(); 		 	// get the timestep size
+	double totaltime = fN_times * tstep; 				// total time of simulation
 	
 	/* determine correct loop time for theta and time history variables */
 	double looptime = 0.0;
-	if (totaltime <= 3.0)  // assume that t_crit = 3.0 in normalized time
+	if (totaltime <= fTcrit)  // t_crit in normalized time given in input file
 		looptime = totaltime;
 	else
-		looptime = 3.0;   // need to normalize this time
-	fNumstep_crit = int(3.0/tstep) + 1;	// currently assuming normalized t_crit = 3 
-										// need to actually compute using LJ parameters
+		looptime = fTcrit;   // need to normalize this time
+
+	fNumstep_crit = int((fTcrit/tstep) + 0.5) + 1;	// determine number of steps to t_crit
+	// DEF note: the 0.5 was added on to ensure that the int chop gets the correct number (to avoid roundoff issues)
+	
 	/* determine correct number of timesteps to store for theta and history variables */
-	if (fN_times+1 <= fNumstep_crit)	// WATCH +1 FACTOR!!!
-		nsteps = fN_times+1;  // watch +1
+	if (fN_times+1 <= fNumstep_crit)
+		nsteps = fN_times+1;  
 	else
 		nsteps = fNumstep_crit;
 
@@ -713,110 +1133,116 @@ void FEManagerT_THK::ComputeThetaTables2D(const StringT& data_file)
 	fShift.Dimension(fNumstep_crit-1);
 	crit.SetValueToPosition();
 	fShift.CopyPart(0, crit, 1, fNumstep_crit-1);
-	fThetaTable.Dimension(2*fNcrit+1);	//(n_neighbor)
 	
-	/* dimension boundary atom history */
-	fHistoryTablet.Dimension(fTopatoms.Length());   
-	fHistoryTableb.Dimension(fBottomatoms.Length());
-
-	for (int i = 0; i < fBottomatoms.Length(); i++)
-	{
-		fHistoryTableb[i].Dimension(nsteps, 2);  // used to be fN_times+1,2
-		fHistoryTablet[i].Dimension(nsteps, 2);
-	}
-
-	/* dimension theta table data structure */
-	for (int i = 0; i < fThetaTable.Length(); i++)
-		fThetaTable[i].Dimension(nsteps, 2*2);  // used to be fN_times+1,2*2
-	
-	/* read in data table */
+	// Dimension the arrays which will hold some other arrays (dimension to # of BC sets)
+	fThetaTable_array.Dimension(fnumsets);
+	fHistoryTable.Dimension(fnumsets);
 	dArrayT row;
-	ArrayT<dArray2DT> data_table(n_neighbor);
-	for (int i = 0; i < data_table.Length(); i++)
-	{
-		/* dimension */
-		dArray2DT& n_table = data_table[i];
-		n_table.Dimension(n_sum, 2*2);
-			
-		/* read */
-		for (int j = 0; j < n_table.MajorDim(); j++)
-		{
-			int junk;
-			data >> junk >> junk;
-			
-			/* each row is b^T */
-			n_table.RowAlias(j, row);
-			data >> row;
-		}
-	}
-
-	dMatrixT theta1(2), temptheta(2), transform(2);
-	transform.Identity(1.0);
-	transform(1,1) = -1.0;
-
-	/* compute theta's - in correct order for bottom layer, need to transpose for top layer */
-	for (int i = 0; i < n_neighbor; i++)	// fThetaTable.Length()
-	{
-		int count = 0;
-		/* get each set of Fourier coefficients */
-		const dArray2DT& theta_i = data_table[i];
-		for (double j = 0.0; j <= looptime; j+=tstep)	// theta only goes to normalized time = 3
-		{
-			int n_theta = data_table[i].MajorDim();
-			temptheta = 0.0;
-			for (int k = 0; k < n_theta; k++)  // can truncate this summation
-			{
-				/* Extract each row of coefficients */
-				temptheta.AddScaled(sin((k+1)*pi*j/3.2), theta_i(k)); // tmax = 3.2 now
-			}
-
-			/* add temptheta into fThetaTable */
-			fThetaTable[i].SetRow(count, temptheta);
+	ArrayT< ArrayT<dArray2DT> > data_table_array(fnumsets);
 		
-			/* add symmetric portion onto fThetaTable */
-			if (i < n_neighbor - 1)
+	for (int isetcount = 0; isetcount < fnumsets; isetcount++)
+	{
+		// Open the file with the fourier coeffs
+		const StringT& data_file = fThetaFile_array[isetcount];
+		const char caller[] = "FEManagerT_THK::ComputeThetaTables2D";
+		ifstreamT data(data_file);
+		if (!data.is_open())
+			ExceptionT::GeneralFail(caller, "file not found: %s", data_file.Pointer());
+		
+		data >> n_sum;
+		
+		// Dimension some arrays of arrays to hold information (dimension to # neighbors, # boundary atoms)
+		fThetaTable_array[isetcount].Dimension(n_neighbor);
+		fHistoryTable[isetcount].Dimension(fbound_set_atoms[isetcount].Length());
+		
+		// Now dimension all the way down (this has repeats)
+		for (int count1 = 0; count1 < n_neighbor; count1++)
+		{
+			fThetaTable_array[isetcount][count1].Dimension(nsteps, 2*2); // Dimension to hold elements of THK matrix in 3D for each of nsteps
+		}
+		for (int count1 = 0; count1 < fbound_set_atoms[isetcount].Length(); count1++)
+		{
+			fHistoryTable[isetcount][count1].Dimension(nsteps, 2); // Dimension to hold displacement history for each of nsteps
+		}
+		
+		// read in data tables of Fourier coefficients for calculation of Theta
+		data_table_array[isetcount].Dimension(n_neighbor);	// dimension for each set
+		for (int i = 0; i < data_table_array[isetcount].Length(); i++)
+		{
+			/* dimension */
+			dArray2DT& n_table = data_table_array[isetcount][i];
+			n_table.Dimension(n_sum, 2*2);
+					
+			/* read */
+			for (int j = 0; j < n_table.MajorDim(); j++)
 			{
-				theta1.MultABC(transform, temptheta, transform);
-				fThetaTable[2*fNcrit-i].SetRow(count, theta1);
-			}	
-			count++;
+				int junk;
+				data >> junk >> junk ; // first 2 cols in file are not needed
+				
+				/* each row is b^T */
+				n_table.RowAlias(j, row);	// read in the values of the fourier coefficients (coefficients from fourier series expansion)
+				data >> row;				// See below for the use of the expansion to calculate theta from the coefficients
+			}								// These are simply the fourier sine coeffs for each atom in the unit cell
+		}
+		
+		
+		// Now use fourier sine series to compute Theta -> this will end up recycling memory
+		dMatrixT theta1(2), temptheta(2); 
+
+		// compute theta's - uses fourier sine series to represent the quantity
+		for (int i = 0; i < n_neighbor; i++)
+		{
+			int count = 0;
+			
+			/* get each set of Fourier coefficients */
+			const dArray2DT& theta_i = data_table_array[isetcount][i];
+			
+			for (double j = 0.0; j <= looptime; j+=tstep)	// theta only goes to normalized time = looptime
+			{
+				int n_theta = data_table_array[isetcount][i].MajorDim();
+				temptheta = 0.0;
+				
+				for (int k = 0; k < n_theta; k++)  // can truncate this summation
+				{
+					/* Extract each row of coefficients */
+					temptheta.AddScaled(sin((k+1)*pi*j/(1.06*looptime)), theta_i(k)); // tmax = (1.06*looptime) now
+				}
+
+				/* add temptheta into fThetaTable */
+				fThetaTable_array[isetcount][i].SetRow(count, temptheta);				
+				count++;
+			}
 		}
 	}
 }
 
 /* compute theta tables for 3D disp/disp formulation */
-void FEManagerT_THK::ComputeThetaTables3D(const StringT& data_file)
-{
-	const char caller[] = "FEManagerT_THK::ComputeThetaTables3D";
-	ifstreamT data(data_file);
-	if (!data.is_open())
-		ExceptionT::GeneralFail(caller, "file not found: %s", data_file.Pointer());
-						
+void FEManagerT_THK::ComputeThetaTables3D(void)
+{				
 	/* dimensions */
 	double pi = acos(-1.0);
-	int n_neighbor = (2 * fNcrit + 1) * (2 * fNcrit + 1);  // number of neighbors to calculate thetas for
-	int n_sum, nsteps;       // number of fourier coefficients to use in calculation of theta
-	data >> n_sum;
+	int n_neighbor = (2 * fNcrit + 1) * (2 * fNcrit + 1);	// number of neighbors to calculate thetas for (see eqn 41 Harolds 2D paper)
+	int n_sum, nsteps;       								// number of fourier coefficients to use in calculation of theta
 	
 	/* dimension work space */
-	const TimeManagerT* time_manager = TimeManager();
-	fN_times = time_manager->NumberOfSteps();
-	double tstep = time_manager->TimeStep(); // timestep
-	double totaltime = fN_times * tstep; // total time of simulation
+	const TimeManagerT* time_manager = TimeManager();		// get the time manager
+	fN_times = time_manager->NumberOfSteps();				// get the number of timesteps
+	double tstep = time_manager->TimeStep(); 				// get the timestep size
+	double totaltime = fN_times * tstep; 					// total time of simulation
 
 	/* determine correct loop time for theta and time history variables */
 	double looptime = 0.0;
-	if (totaltime <= 2.0)  // assume that t_crit = 12.0 in normalized time
+	if (totaltime <= fTcrit)  // t_crit in normalized time given in input file
 		looptime = totaltime;
 	else
-		looptime = 2.0;   // need to normalize this time
+		looptime = fTcrit;   // need to normalize this time
 
-	fNumstep_crit = int((2.0/tstep) + 0.5) + 1;	// currently assuming normalized t_crit = 12.0 
+	fNumstep_crit = int((fTcrit/tstep) + 0.5) + 1;	// determine number of steps to t_crit
 	// DEF note: the 0.5 was added on to ensure that the int chop gets the correct number (to avoid roundoff issues)
 	
 	/* determine correct number of timesteps to store for theta and history variables */
 	if (fN_times+1 <= fNumstep_crit)	// WATCH +1 FACTOR!!!
-		nsteps = fN_times+1;  // watch +1
+		nsteps = fN_times+1;
 	else
 		nsteps = fNumstep_crit;
 
@@ -825,96 +1251,84 @@ void FEManagerT_THK::ComputeThetaTables3D(const StringT& data_file)
 	crit.SetValueToPosition();
 	fShift.CopyPart(0, crit, 1, fNumstep_crit-1);	// Used to shift displacement history when time > t_crit - MAY NEED TO FIX!
 	
-	fThetaTableB.Dimension(n_neighbor); //(n_neighbor)
-	
-	/* dimension boundary atom history */
-	fHistoryTableb.Dimension(fBottomatoms.Length());
-	
-	
-	if (fnumsets == 2) 
-	{ 	
-		fThetaTableT.Dimension(n_neighbor);	//(n_neighbor)
-		
-		// dimension boundary atom history
-		fHistoryTablet.Dimension(fTopatoms.Length());
-		
-		for (int i = 0; i < fBottomatoms.Length(); i++)
-		{
-			fHistoryTablet[i].Dimension(nsteps, 3);  // used to be fN_times+1,2
-		}
-		
-		// dimension theta table data structure
-		for (int i = 0; i < fThetaTableB.Length(); i++)
-		{
-			fThetaTableT[i].Dimension(nsteps, 3*3);  // used to be fN_times+1,2*2
-		}
-		
-	}
-	
-	for (int i = 0; i < fBottomatoms.Length(); i++)
-	{
-		fHistoryTableb[i].Dimension(nsteps, 3);	// used to be fN_times+1,2
-	}
-	
-	// dimension theta table data structure */
-	for (int i = 0; i < fThetaTableB.Length(); i++)
-	{
-		fThetaTableB[i].Dimension(nsteps, 3*3);  // used to be fN_times+1,2*2
-	}
-	
-	/* read in data tables for multiple thetas */
+	// Dimension the arrays which will hold some other arrays (dimension to # of BC sets)
+	fThetaTable_array.Dimension(fnumsets);
+	fHistoryTable.Dimension(fnumsets);
 	dArrayT row;
-	ArrayT<dArray2DT> data_table(n_neighbor);
-	for (int i = 0; i < data_table.Length(); i++)
+	ArrayT< ArrayT<dArray2DT> > data_table_array(fnumsets);
+		
+	for (int isetcount = 0; isetcount < fnumsets; isetcount++)
 	{
-		/* dimension */
-		dArray2DT& n_table = data_table[i];
-		n_table.Dimension(n_sum, 3*3);
-				
-		/* read */
-		for (int j = 0; j < n_table.MajorDim(); j++)
+		// Open the file with the fourier coeffs
+		const StringT& data_file = fThetaFile_array[isetcount];
+		const char caller[] = "FEManagerT_THK::ComputeThetaTables3D";
+		ifstreamT data(data_file);
+		if (!data.is_open())
+			ExceptionT::GeneralFail(caller, "file not found: %s", data_file.Pointer());
+		
+		data >> n_sum;
+		
+		// Dimension some arrays of arrays to hold information (dimension to # neighbors, # boundary atoms)
+		fThetaTable_array[isetcount].Dimension(n_neighbor);
+		fHistoryTable[isetcount].Dimension(fbound_set_atoms[isetcount].Length());
+		
+		// Now dimension all the way down (this has repeats)
+		for (int count1 = 0; count1 < n_neighbor; count1++)
 		{
-			int junk;
-			data >> junk >> junk >> junk;
-			
-			/* each row is b^T */
-			n_table.RowAlias(j, row);
-			data >> row;
+			fThetaTable_array[isetcount][count1].Dimension(nsteps, 3*3); // Dimension to hold elements of THK matrix in 3D for each of nsteps(why hold for each time??)
 		}
-	}
-		
-	dMatrixT theta1(3), temptheta(3), transform(3);
-	transform.Identity(1.0);
-	transform(2,2) = -1.0; // Theta(bottom)=T*Theta(top)*T, T=transform
-
-	/* compute theta's - top/bottom planes related by transform matrix above */
-	for (int i = 0; i < n_neighbor; i++)	// fThetaTable.Length()
-	{
-		int count = 0;
-		/* get each set of Fourier coefficients */
-		const dArray2DT& theta_i = data_table[i];
-		
-		for (double j = 0.0; j <= looptime; j+=tstep)	// theta only goes to normalized time = 3
+		for (int count1 = 0; count1 < fbound_set_atoms[isetcount].Length(); count1++)
 		{
-			int n_theta = data_table[i].MajorDim();
-			temptheta = 0.0;
-			
-			for (int k = 0; k < n_theta; k++)  // can truncate this summation
-			{
-				/* Extract each row of coefficients */
-				temptheta.AddScaled(sin((k+1)*pi*j/2.2), theta_i(k)); // tmax = 2.2 now
-			}
-
-			/* add temptheta into fThetaTable */
-			if (fnumsets == 2) // top theta table -> may wish to pull out to save time
-			{
-				fThetaTableT[i].SetRow(count, temptheta);
-			}
+			fHistoryTable[isetcount][count1].Dimension(nsteps, 3); // Dimension to hold displacement history for each of nsteps
+		}
 		
-			/* compute bottom thetatables via transform matrix */
-			theta1.MultABC(transform, temptheta, transform);
-			fThetaTableB[i].SetRow(count, theta1);
-			count++;
+		// read in data tables of Fourier coefficients for calculation of Theta
+		data_table_array[isetcount].Dimension(n_neighbor);	// dimension for each set -- Has very strong assumption that neightbor set is in order of Thetas
+		for (int i = 0; i < data_table_array[isetcount].Length(); i++)
+		{
+			/* dimension */
+			dArray2DT& n_table = data_table_array[isetcount][i];
+			n_table.Dimension(n_sum, 3*3);
+					
+			/* read */
+			for (int j = 0; j < n_table.MajorDim(); j++)
+			{
+				int junk;
+				data >> junk >> junk >> junk; // first 3 cols in file are not needed
+				
+				/* each row is b^T */
+				n_table.RowAlias(j, row);	// read in the values of the fourier coefficients (coefficients from fourier series expansion)
+				data >> row;				// See below for the use of the expansion to calculate theta from the coefficients
+			}								// These are simply the fourier sine coeffs for each atom in the unit cell
+		}
+		
+		
+		// Now use fourier sine series to compute Theta -> this will end up recycling memory
+		dMatrixT theta1(3), temptheta(3); 
+
+		// compute theta's - uses fourier sine series to represent the quantity
+		for (int i = 0; i < n_neighbor; i++)
+		{
+			int count = 0;
+			
+			/* get each set of Fourier coefficients */
+			const dArray2DT& theta_i = data_table_array[isetcount][i];
+			
+			for (double j = 0.0; j <= looptime; j+=tstep)	// theta only goes to normalized time = looptime
+			{
+				int n_theta = data_table_array[isetcount][i].MajorDim();
+				temptheta = 0.0;
+				
+				for (int k = 0; k < n_theta; k++)  // can truncate this summation
+				{
+					/* Extract each row of coefficients */
+					temptheta.AddScaled(sin((k+1)*pi*j/(1.06*looptime)), theta_i(k)); // tmax = (1.06*looptime) now
+				}
+
+				/* add temptheta into fThetaTable */
+				fThetaTable_array[isetcount][i].SetRow(count, temptheta);				
+				count++;
+			}
 		}
 	}
 }
