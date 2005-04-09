@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.20 2005-04-08 19:21:47 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.21 2005-04-09 18:21:33 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -66,7 +66,19 @@ void SmallStrainEnhLocT::InitStep(void)
 		ss_enh_out	<< setw(outputFileWidth) << step
 					<< endl;	
 	}
-			
+	
+	// initialize coupling stiffness matrices
+	fElementLocKzetad = 0.0;
+	fElementLocKdzeta = 0.0;
+	int elem_num;
+	Top();
+	while (NextElement())
+	{
+		elem_num = CurrElementNumber();
+		fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kKzetazeta] = 0.0;
+		//fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kr_S] = 0.0;
+	}
+		
 }
 
 
@@ -1126,7 +1138,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 	double q_St_abs_last, q_St_abs_trial, q_St_abs;
 	double DQ_SDzeta, DQ_SnDzeta, DP_SDzeta, Dr_SDzeta;
 	
-	double zeta, zeta_last, delta_zeta, Delta_zeta;
+	double zeta, zeta_last, delta_zeta, Delta_zeta, gamma_delta;
 	double K_zetazeta;
 	
 	double tanphi_n;
@@ -1135,6 +1147,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 	
 	double DpsiDzeta, DphiDzeta;
 	double Dh_cDzeta, Dh_phiDzeta, Dh_psiDzeta;
+	double DcospsiDzeta, DgammadeltaDzeta;
 	
 	double h_c, h_phi, h_psi;
 	
@@ -1166,63 +1179,59 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		F_tn.Symmetrize(tmp_matrix);
 		
 		// calc tanphi from phi_last
-		phi_p = fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kFriction];		
-		tanphi_n = tan(phi_p);
+		double phi_tmp = fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kFriction];		
+		tanphi_n = tan(phi_tmp);
 		
 		// initialize resolved stresses and derivatives
-		Q_S = 0.0;
 		Q_S_last = 0.0;
 		Q_Sn_trial = 0.0;
-		P_S = 0.0;
-		P_S_trial = 0.0;
+		Q_S = 0.0;
 		P_S_last = 0.0;
-		q_St = 0.0;
-		q_St_trial = 0.0;
+		P_S_trial = 0.0;
+		P_S = 0.0;
 		q_St_last = 0.0;
-		q_St_abs = 0.0;
-		q_St_abs_trial = 0.0;
+		q_St_trial = 0.0;
+		q_St = 0.0;
 		q_St_abs_last = 0.0;
+		q_St_abs_trial = 0.0;
+		q_St_abs = 0.0;
 		DQ_SDzeta = 0.0;
 		DQ_SnDzeta = 0.0;
 		DP_SDzeta = 0.0;
 		
 		fK_dzeta = 0.0;
 		
-		/* get displacements and displacement increments, and update delta_zeta */
+		/* get displacements and displacement increments, 
+		   and update delta_zeta;
+		   delta d = d^{k+1} - d^k
+		   */
 	    SetLocalU(fLocDisp);
-	    //if (iter == 0)
-	    if (iter < 0)
-	    {
-	    	fElementLastIterateDisp.SetRow(elem, fLocDisp);
-	    	delta_zeta = 0.0;
-	    }
-	    else
-	    {
-	    	fElementLastIterateDisp.RowCopy(elem, fLocLastIterateDisp);
-	    	fLocdeltaDisp = fLocDisp;
-	    	fLocdeltaDisp -= fLocLastIterateDisp;
-	    	fElementLastIterateDisp.SetRow(elem, fLocDisp);
-	    	
-	    	// calculate delta_zeta based on previous residual and matrices
-	    	fElementLocKzetad.RowCopy(elem, fK_zetad);
-			delta_zeta = dArrayT::Dot(fK_zetad,fLocdeltaDisp);
-			delta_zeta += fElementLocScalars[kNUM_SCALAR_TERMS*elem + kr_S];
-			delta_zeta *= -1.0;
-			K_zetazeta = fElementLocScalars[kNUM_SCALAR_TERMS*elem + kKzetazeta];
-			if ( fabs(K_zetazeta) > 1.0e-20 )
-			{
-				delta_zeta /= K_zetazeta;
-			}
-			else
-			{
-				delta_zeta = 0.0;
-			}
-	    }
+    	fElementLastIterateDisp.RowCopy(elem, fLocLastIterateDisp);
+    	fLocdeltaDisp = fLocDisp;
+    	fLocdeltaDisp -= fLocLastIterateDisp;
+    	fElementLastIterateDisp.SetRow(elem, fLocDisp);
+    	
+    	// calculate delta_zeta based on previous residual and matrices
+    	fElementLocKzetad.RowCopy(elem, fK_zetad);
+		delta_zeta = dArrayT::Dot(fK_zetad,fLocdeltaDisp);
+		delta_zeta += fElementLocScalars[kNUM_SCALAR_TERMS*elem + kr_S];
+		delta_zeta *= -1.0;
+		K_zetazeta = fElementLocScalars[kNUM_SCALAR_TERMS*elem + kKzetazeta];
+		if ( fabs(K_zetazeta) > 1.0e-20 )
+		{
+			delta_zeta /= K_zetazeta;
+		}
+		else
+		{
+			delta_zeta = 0.0;
+		}
 	    
 		// update zeta and calculate Delta_zeta
+		// zeta^{k+1} = zeta^k + delta zeta
 		zeta = fElementLocScalars[kNUM_SCALAR_TERMS*elem + kzeta];
 		zeta += delta_zeta;
 		fElementLocScalars[kNUM_SCALAR_TERMS*elem + kzeta] = zeta;
+		// Delta zeta = zeta^{k+1} - zeta_n
 		Delta_zeta = zeta;
 		zeta_last = fElementLocScalars_last[kNUM_SCALAR_TERMS*elem + kzeta];
 		Delta_zeta -= zeta_last;
@@ -1232,11 +1241,8 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		double psi = fElementLocInternalVars[kNUM_ISV_TERMS*elem + kDilation];
 		cospsi = cos(psi);
 		sinpsi = sin(psi);
-		double gamma_delta = fElementLocScalars_last[kNUM_SCALAR_TERMS*elem + kgamma_delta] + cospsi*Delta_zeta;
+		gamma_delta = fElementLocScalars_last[kNUM_SCALAR_TERMS*elem + kgamma_delta] + cospsi*Delta_zeta;
 		fElementLocScalars[kNUM_SCALAR_TERMS*elem + kgamma_delta] = gamma_delta;
-		
-		// reassign since overwritten after localization check
-		psi_p = fCohesiveSurface_Params[kpsi_p];
 		
 		h_c = -alpha_c*(c_p-c_r)*exp(-alpha_c*gamma_delta)*cospsi;
 		h_phi = -alpha_phi*(phi_p-phi_r)*exp(-alpha_phi*gamma_delta)*cospsi;
@@ -1291,8 +1297,8 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		double var1 = psi_p*exp(-alpha_psi*gamma_delta)*Delta_zeta;
 		DpsiDzeta = ( (alpha_psi*cospsi*alpha_psi*cospsi)*var1 + h_psi )/
 					( 1.0 + alpha_psi*var1*(alpha_psi*sinpsi*cospsi*Delta_zeta - sinpsi) );
-		double DcospsiDzeta = -sinpsi*DpsiDzeta;
-		double DgammadeltaDzeta = DcospsiDzeta*Delta_zeta + cospsi;
+		DcospsiDzeta = -sinpsi*DpsiDzeta;
+		DgammadeltaDzeta = DcospsiDzeta*Delta_zeta + cospsi;
 		Dh_cDzeta = -alpha_c*(c_p-c_r)*exp(-alpha_c*gamma_delta)*(-alpha_c*cospsi*DgammadeltaDzeta
 					+ DcospsiDzeta);
 		Dh_phiDzeta = -alpha_phi*(phi_p-phi_r)*exp(-alpha_phi*gamma_delta)*(-alpha_phi*cospsi*DgammadeltaDzeta
@@ -1535,17 +1541,6 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		// calc Q_S_last
 		Q_S_last = q_St_last + tanphi*P_S_last;
 		
-		// calc residual
-		double var2 = h_c - secphi2*h_phi*P_S;
-		double r_S = Q_S - Q_S_last - var2*Delta_zeta;
-		fElementLocScalars[kNUM_SCALAR_TERMS*elem + kr_S] = r_S;
-		
-		// calc Dr_SDzeta
-		double Dvar2Dzeta = Dh_cDzeta - secphi2*(2.0*tanphi*h_phi*P_S*DphiDzeta
-							- P_S*Dh_phiDzeta - h_phi*DP_SDzeta);
-		double Dr_SDzeta = DQ_SDzeta - DQ_SnDzeta - Dvar2Dzeta*Delta_zeta - var2;
-		K_zetazeta = Dr_SDzeta;	
-		
 		// initialize cohesive strength parameter just after localization
 		if (fabs(zeta) < 1.0e-20 && c_p < smallnum) 
 		{
@@ -1558,10 +1553,26 @@ void SmallStrainEnhLocT::FormKd(double constK)
 				fCohesiveSurface_Params[kc_r] = c_r;
 			}
 			fCohesiveSurface_Params[kc_p] = c_p;
+			
+			h_c = -alpha_c*(c_p-c_r)*exp(-alpha_c*gamma_delta)*cospsi;
+			Dh_cDzeta = -alpha_c*(c_p-c_r)*exp(-alpha_c*gamma_delta)*(-alpha_c*cospsi*DgammadeltaDzeta
+					+ DcospsiDzeta);
 		}
 		
+		// calc residual
+		double var2 = h_c - secphi2*h_phi*P_S;
+		double r_S = Q_S - Q_S_last - var2*Delta_zeta;
+		fElementLocScalars[kNUM_SCALAR_TERMS*elem + kr_S] = r_S;
+		
+		// calc Dr_SDzeta
+		double Dvar2Dzeta = Dh_cDzeta - secphi2*(2.0*tanphi*h_phi*P_S*DphiDzeta
+							- P_S*Dh_phiDzeta - h_phi*DP_SDzeta);
+		double Dr_SDzeta = DQ_SDzeta - DQ_SnDzeta - Dvar2Dzeta*Delta_zeta - var2;
+		K_zetazeta = Dr_SDzeta;
+		
 		// calculate yield on discontinuity surface
-		double fYieldTrial = Q_Sn_trial - fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kCohesion];
+		//double fYieldTrial = Q_Sn_trial - fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kCohesion];
+		double fYieldTrial = 1.0;
 		fElementYieldTrial[elem] = fYieldTrial;
 	
 		// modify fRHS if yielding
