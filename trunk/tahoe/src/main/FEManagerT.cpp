@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.91 2005-03-12 08:41:35 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.92 2005-04-10 18:15:26 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1264,6 +1264,10 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
+
+	/* title */
+	const ParameterT* title = list.Parameter("title");
+	if (title) fTitle = *title;
 
 	/* path to parameters file */
 	StringT path;
