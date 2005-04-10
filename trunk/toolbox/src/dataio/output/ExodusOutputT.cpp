@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.16 2004-11-16 00:58:37 paklein Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.17 2005-04-10 18:13:59 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "ExodusOutputT.h"
@@ -50,13 +50,9 @@ void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	
 		/* append output to existing results */
 		if (!exo.OpenWrite(filename))
-		  {
-		    cout << "\n\nExodusOutputT::WriteOutput call to ExodusT::OpenWrite failed\n";
-		    cout << "filename = " << filename << "\n";
-		    cout << "time = " << time << "\n";
-		    cout << "output ID = " << ID << "\n\n";
-		    throw ExceptionT::kDatabaseFail;
-		  }
+			ExceptionT::DatabaseFail("ExodusOutputT::WriteOutput",
+				"could not open file \"%s\" for output ID %d at time %g",
+				filename.Pointer(), ID, time);
 	}
 	
 	/* print step - changing implies 1 result per file */
@@ -154,11 +150,9 @@ void ExodusOutputT::CreateResultsFile(int ID, ExodusT& exo)
 	AssembleQA (qa);
 	if (!exo.Create(filename, fTitle, info, qa, dim, num_nodes,
 			num_elem, num_blks, num_node_sets, num_side_sets))
-	  {
-	    cout << "\n\nExodusOutputT::WriteOutput call to ExodusT::Create failed\n";
-	    cout << "output ID = " << ID << "\n\n";
-	    throw ExceptionT::kDatabaseFail;
-	  }
+		ExceptionT::DatabaseFail("ExodusOutputT::WriteOutput",
+			"could not create file \"%s\" for output ID %d",
+			filename.Pointer(), ID);
 
 	/* write geometry */
 	iArrayT nodes_used;
