@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.h,v 1.8.34.1 2005-04-05 23:29:02 thao Exp $ */
+/* $Id: J2SSKStV.h,v 1.8.34.2 2005-04-11 19:40:37 thao Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_H_
 #define _J2_SS_KSTV_H_
@@ -67,6 +67,7 @@ protected:
 	virtual const dArrayT& InternalStrainVars(void);
 	virtual const dArrayT& InternalStressVars(void);
 	 	 	
+
 private:
 
 	/* return values */

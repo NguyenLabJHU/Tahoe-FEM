@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.cpp,v 1.5.30.2 2005-04-06 23:14:55 thao Exp $ */
+/* $Id: J2SSC0HardeningT.cpp,v 1.5.30.3 2005-04-11 19:40:37 thao Exp $ */
 #include "J2SSC0HardeningT.h"
 
 #include <iostream.h>
@@ -38,6 +38,8 @@ J2SSC0HardeningT::J2SSC0HardeningT(ifstreamT& in, int num_ip, double mu):
 {
 	/* construct hardening function from stream */
 	ConstructHardeningFunction(in);
+
+	fYield = K(0.0);
 
 	int dofcount = 0;
 	fInternalDOF.Dimension(3);
