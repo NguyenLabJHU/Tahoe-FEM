@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.h,v 1.6.28.2 2005-04-05 23:33:30 thao Exp $ */
+/* $Id: J2SSC0HardeningT.h,v 1.6.28.3 2005-04-11 19:40:37 thao Exp $ */
 
 #ifndef _J2_SS_C0_HARD_T_H_
 #define _J2_SS_C0_HARD_T_H_
@@ -114,7 +114,8 @@ protected:
 	dSymMatrixT fUnitNorm;      //unit normal to the stress surface
 	dSymMatrixT fBeta;          //stress surface "center", kinematic hardening
 	dArrayT     fInternal;      //internal variables
-	
+	double      fYield;
+
 	/*internal variables and conjugates for material force calculations*/
 	dArrayT fInternalStressVars;
 	dArrayT fInternalStrainVars;
