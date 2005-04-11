@@ -1,4 +1,4 @@
-/* $Id: SS_SCNIMFT.cpp,v 1.20 2005-04-06 17:55:23 paklein Exp $ */
+/* $Id: SS_SCNIMFT.cpp,v 1.21 2005-04-11 17:39:44 cjkimme Exp $ */
 
 #include "SS_SCNIMFT.h"
 
@@ -347,9 +347,7 @@ void SS_SCNIMFT::RHSDriver(void)
 	SCNIMFT::RHSDriver();
 
 	/* time integration parameters */
-	double constMa = 0.0;
 	double constKd = 0.0;
-	int formMa = fIntegrator->FormMa(constMa);
 	int formKd = fIntegrator->FormKd(constKd);
 
 	/* For now, just one material. Grab it */
@@ -360,26 +358,6 @@ void SS_SCNIMFT::RHSDriver(void)
 
 	int nNodes = fNodes.Length();
 	int nsd = NumSD();
-
-	if (formMa) {
-
-		if (Field().Order() < 2)
-			ExceptionT::GeneralFail(caller, "Field's Order does not have accelerations");
-
-		fLHS = 0.0; // fLHS.Length() = nNodes * nsd;
-		const dArray2DT& a = Field()(0,2); // accelerations
-		double* ma = fLHS.Pointer();
-		const double* acc;
-		int* nodes = fNodes.Pointer();
-		double* volume = fCellVolumes.Pointer();
-		double density = fCurrMaterial->Density();
-		for (int i = 0; i < nNodes; i++) {
-			acc = a(*nodes++);
-			for (int j = 0; j < nsd; j++)
-				*ma++ = density*(*volume)*(*acc++);
-			volume++;
-		}
-	}
 
 	fForce = 0.0;
 	dSymMatrixT& strain = fStrain_list[0];

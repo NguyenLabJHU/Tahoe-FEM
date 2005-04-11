@@ -1,4 +1,4 @@
-/* $Id: SS_SCNIMF_AxiT.cpp,v 1.1 2005-03-04 18:31:50 cjkimme Exp $ */
+/* $Id: SS_SCNIMF_AxiT.cpp,v 1.2 2005-04-11 17:39:44 cjkimme Exp $ */
 
 #include "SS_SCNIMF_AxiT.h"
 
@@ -484,28 +484,7 @@ void SS_SCNIMF_AxiT::RHSDriver(void)
 
 	int nNodes = fNodes.Length();
 	int nsd = NumSD();
-
-	if (formMa) {
-
-		if (Field().Order() < 2)
-			ExceptionT::GeneralFail(caller, "Field's Order does not have accelerations");
-
-		fLHS = 0.0; // fLHS.Length() = nNodes * nsd;
-		const dArray2DT& a = Field()(0,2); // accelerations
-		double* ma = fLHS.Pointer();
-		const double* acc;
-		int* nodes = fNodes.Pointer();
-		double* volume = fCellVolumes.Pointer();
-
-		for (int i = 0; i < nNodes; i++) {
-			acc = a(*nodes++);
-			for (int j = 0; j < nsd; j++)
-				*ma++ = *volume * twoPi * fCellCentroids(i,0) * *acc++;
-			volume++;
-		}
-		fLHS *= fCurrMaterial->Density();
-	}
-
+	
 	fForce = 0.0;
 	dMatrixT stress3D(3), stress_vec(2);
 	dSymMatrixT& strain3D = fStrain_list[0];
