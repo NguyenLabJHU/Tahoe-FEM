@@ -1,4 +1,4 @@
-/* $Id: MFSupportT.cpp,v 1.11 2005-03-02 17:41:47 paklein Exp $ */
+/* $Id: MFSupportT.cpp,v 1.12 2005-04-11 19:42:46 thao Exp $ */
 #include "MFSupportT.h"
 
 #include "dArrayT.h"
@@ -119,6 +119,7 @@ void MFSupportT::MapOutput(void)
 	if (fBoundID.Length() > 0) {
 		iArrayT bound_nodes;
 		model.ManyNodeSets(fBoundID, bound_nodes);
+		//		cout << "\nbound_nodes: "<< bound_nodes;
 		for (int i = 0; i< bound_nodes.Length(); i++)
 			fExclude[fMap[bound_nodes[i]]] = 1;
 	}

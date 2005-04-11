@@ -1,4 +1,4 @@
-/* $Id: SSMF.cpp,v 1.13 2005-03-02 17:41:47 paklein Exp $ */
+/* $Id: SSMF.cpp,v 1.14 2005-04-11 19:42:46 thao Exp $ */
 #include "SSMF.h"
 
 #include "OutputSetT.h"
@@ -150,6 +150,7 @@ void SSMF::WriteOutput(void)
   dArray2DT e_values;
 
   MapOutput();
+  // cout << "\nfExclude: "<< fExclude;
   ComputeMatForce(n_values);
    /* send to output */
   const CommunicatorT& comm = ElementSupport().Communicator();
