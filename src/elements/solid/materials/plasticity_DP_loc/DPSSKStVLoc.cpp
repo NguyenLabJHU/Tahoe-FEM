@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.18 2005-04-08 19:22:46 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.19 2005-04-12 18:14:15 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 #include "SSMatSupportT.h"
@@ -9,6 +9,10 @@
 #include "DetCheckT.h"
 #include <iostream.h>
 
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
+#endif
+
 using namespace Tahoe;
 
 /* parameters */
@@ -17,11 +21,9 @@ const double sqrt23 = sqrt(2.0/3.0);
 /* element output data */
 const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {
-	"kappa",  // stress-like internal state variable (isotropic linear hardening)
-	"VM",  // Von Mises stress
-	"press"};// pressure
-	
-// need to store the normals somewhere.  as ISVs?
+	"kappa",	// stress-like internal state variable (isotropic linear hardening)
+	"VM",		// Von Mises stress
+	"press"};	// pressure
 
 /* constructor */
 DPSSKStVLoc::DPSSKStVLoc(void):
@@ -33,7 +35,10 @@ DPSSKStVLoc::DPSSKStVLoc(void):
 }
 
 /* destructor */
-DPSSKStVLoc::~DPSSKStVLoc(void) { delete fDP; }
+DPSSKStVLoc::~DPSSKStVLoc(void) 
+{ 
+	delete fDP;
+}
 
 /* form of tangent matrix (symmetric by default) */
 GlobalT::SystemTypeT DPSSKStVLoc::TangentType(void) const { return GlobalT::kNonSymmetric; }
@@ -101,18 +106,40 @@ const dSymMatrixT& DPSSKStVLoc::s_ij(void)
 {
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
+	int elem = CurrElementNumber();
 	const dSymMatrixT& e_tot = e();
 	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
 
 	//cout << "e_tot= \n" << e_tot <<endl << endl;
 	//cout << "e_els= \n" << e_els <<endl << endl; 
+	
+#ifdef ENHANCED_STRAIN_LOC_DEV	
+	int element_locflag = 0;
+	if (element.IsAllocated()) 
+	{
+		element_locflag = fSSMatSupport->ElementLocflag();
+	}
+	if ( element_locflag == 2 )
+	{
+		fStress = fSSMatSupport->ElementStress(ip);
+	}
+	else
+	{
+		/* elastic stress */
+		HookeanStress(e_els, fStress);
 
+		/* modify Cauchy stress (return mapping) */
+		fStress += fDP->StressCorrection(e_els, element, ip, fSSMatSupport->TimeStep());
+	}
+#else
 	/* elastic stress */
 	HookeanStress(e_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
 	fStress += fDP->StressCorrection(e_els, element, ip, fSSMatSupport->TimeStep());
-	return fStress;	
+#endif
+
+	return fStress;
 }
 
 
