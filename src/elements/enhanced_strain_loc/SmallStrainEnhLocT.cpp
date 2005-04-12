@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.21 2005-04-09 18:21:33 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.22 2005-04-12 18:15:42 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -28,7 +28,7 @@ bool SmallStrainEnhLocT::fDeBug = true;
 SmallStrainEnhLocT::SmallStrainEnhLocT(const ElementSupportT& support):
 	SolidElementT(support),
 	fNeedsOffset(-1),
-	fSSMatSupport(NULL)	
+	fSSMatSupport(NULL)
 {
 	SetName("small_strain_enh_loc");
 }
@@ -239,6 +239,8 @@ GlobalT::RelaxCodeT SmallStrainEnhLocT::RelaxSystem(void)
 	return code;
 }
 
+
+
 /* implementation of the ParameterInterfaceT interface */
 void SmallStrainEnhLocT::DefineParameters(ParameterListT& list) const
 {
@@ -393,11 +395,11 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	
 	
 	/* allocate stress list */
-	/*
+	
 	fStress_List.Dimension(NumIP());
 	for (int j = 0; j < NumIP(); j++)
 		fStress_List[j].Dimension(NumSD());
-		*/
+
 		
 	/* allocate "last" stress list */
 	/*
@@ -609,6 +611,8 @@ MaterialSupportT* SmallStrainEnhLocT::NewMaterialSupport(MaterialSupportT* p) co
 	if (ps) {
 		ps->SetLinearStrain(&fStrain_List);
 		ps->SetLinearStrain_last(&fStrain_last_List);
+		ps->SetElementStress(&fStress_List);
+		ps->SetElementLocFlag(&fLocFlag);
 	}
 
 	return p;
@@ -1105,6 +1109,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 	/* current element number */
 	int elem = CurrElementNumber();
 	loc_flag = fElementLocFlag[elem];
+	fLocFlag = fElementLocFlag[elem];
 	int nen = NumElementNodes();
 	double vol = fElementVolume[elem];
 	int iter = fSSMatSupport->IterationNumber();
@@ -1399,6 +1404,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			fStressCurr = fStressTrial;
 			fStressCurr -= stress_return;
 			stress_IPs.SetRow(ip, fStressCurr);
+			fStress_List[ip] = fStressCurr;
 	
 			// calc q_St
 			inner_matrix = 0.0;
@@ -1495,7 +1501,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 	// store current stress
 	fElementStress.SetRow(elem, stress_IPs);
 	
-	if ( loc_flag == 2)
+	if ( loc_flag == 2 )
 	{	
 		// store volume averaged resolved stresses
 		fElementLocScalars[kNUM_SCALAR_TERMS*elem + kP_S] = P_S;

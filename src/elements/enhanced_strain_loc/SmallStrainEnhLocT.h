@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.18 2005-04-08 19:21:48 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.19 2005-04-12 18:15:42 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -183,12 +183,11 @@ protected:
 	/*@{*/
   	ArrayT<dSymMatrixT> fStrain_List;
   	ArrayT<dSymMatrixT> fStrain_last_List;
-	/*@}*/
 	
-	/** \name return values */
-	/*@{*/
-  	//ArrayT<dSymMatrixT> fStress_List;
+  	ArrayT<dSymMatrixT> fStress_List;
   	//ArrayT<dSymMatrixT> fStress_last_List;
+  	
+  	int fLocFlag;
 	/*@}*/
   	
   	/** \name work space */
