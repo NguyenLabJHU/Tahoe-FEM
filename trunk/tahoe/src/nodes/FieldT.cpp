@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.43 2005-02-06 18:27:30 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.44 2005-04-12 15:34:29 paklein Exp $ */
 
 #include "FieldT.h"
 
@@ -1033,6 +1033,7 @@ void FieldT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& or
 		sub_lists.AddSub("wall_penalty");
 #ifdef CONTINUUM_ELEMENT
 		sub_lists.AddSub("augmented_Lagrangian_KBC_meshfree");
+		sub_lists.AddSub("field_augmented_Lagrangian_KBC_meshfree");
 #endif
 		sub_lists.AddSub("wall_augmented_Lagrangian");
 		sub_lists.AddSub("cylinder_penalty");
