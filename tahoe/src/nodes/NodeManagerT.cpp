@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.60 2005-02-04 22:03:55 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.61 2005-04-12 15:34:29 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -33,6 +33,7 @@
 #include "PenaltyCylinderT.h"
 #include "AugLagCylinderT.h"
 #include "MFAugLagMultT.h"
+#include "FieldMFAugLagMultT.h"
 
 /* kinematic BC controllers */
 #include "K_FieldT.h"
@@ -1633,6 +1634,10 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(int code)
 #ifdef CONTINUUM_ELEMENT
 	    case FBC_ControllerT::kMFAugLagMult:
 	    	fbc = new MFAugLagMultT;
+	    	break;
+
+	    case FBC_ControllerT::kFieldMFAugLagMult:
+	    	fbc = new FieldMFAugLagMultT;
 	    	break;
 #endif
 
