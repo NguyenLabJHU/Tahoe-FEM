@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.11 2005-03-30 00:41:32 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.12 2005-04-12 20:43:02 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -203,7 +203,7 @@ void SSEnhLocCraigT::FormKd(double constK)
 
 	    
 	    dSymMatrixT gradActiveTensorFlowDir =
-	    FormGradActiveTensorFlowDir(NumSD());
+	    FormGradActiveTensorFlowDir(NumSD(), CurrIP());
 	    gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);
 
 	    strainIncr.AddScaled(-1.0*fBand->JumpIncrement(), gradActiveTensorFlowDir);
@@ -212,9 +212,9 @@ void SSEnhLocCraigT::FormKd(double constK)
 	      {
 	      cout << "FormKd, fBand->JumpIncrement() = "
 		   << fBand->JumpIncrement() << endl;
-	      cout << "strainIncr = \n" << strainIncr;
-	cout << "Stress_List =\n" <<
-	      fBand->Stress_List(CurrIP()) << endl;
+	      // cout << "strainIncr = \n" << strainIncr;
+	      //cout << "Stress_List =\n" <<
+	      // fBand->Stress_List(CurrIP()) << endl;
 	      }
 
 	    /*
@@ -328,7 +328,8 @@ void SSEnhLocCraigT::FormStiffness(double constK)
                 //fLHS.MultATB(fB, fD, format, dMatrixT::kAccumulate);	
 
 		//form k_d_zeta
-		gradActiveTensorFlowDir = FormGradActiveTensorFlowDir(ndof);
+		gradActiveTensorFlowDir =
+		FormGradActiveTensorFlowDir(ndof, CurrIP());
 
 		//k_d_zeta_work = 0.0;
 		//fDfB.MultTx(gradActiveTensorFlowDir, k_d_zeta_work,::dMatrixT::kOverwrite);
@@ -393,7 +394,8 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 	    /* loop over integration points again */
 	    for (int i = 0; i < NumIP(); i++)
 	      {
-		gradActiveTensorFlowDir = FormGradActiveTensorFlowDir(ndof);
+		gradActiveTensorFlowDir =
+	    FormGradActiveTensorFlowDir(ndof, i);
 		
 		/*change shear strains back to matrix values */
 		/* vector values are used when created */
@@ -474,7 +476,7 @@ double SSEnhLocCraigT::CalculateJumpIncrement()
       strainIncr -= fStrain_last_List [i];
       strainIncr.ScaleOffDiagonal(2.0);
 
-      gradActiveTensorFlowDir = FormGradActiveTensorFlowDir(ndof);
+      gradActiveTensorFlowDir = FormGradActiveTensorFlowDir(ndof, i);
       
       //cout << "scale = " << scale << endl;
       //cout << "dGfD = " << dGfD << endl << endl;
@@ -596,9 +598,7 @@ bool SSEnhLocCraigT::IsBandActive()
 void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			   const iArrayT& e_codes, dArray2DT& e_values)
 {
-
   SolidElementT::ComputeOutput(n_codes, n_values, e_codes, e_values);
-
 }
 
 
@@ -644,7 +644,7 @@ void SSEnhLocCraigT::CloseStep(void)
 	      strainIncr -= fStrain_last_List [CurrIP()]; 
 
 	      dSymMatrixT gradActiveTensorFlowDir =
-		FormGradActiveTensorFlowDir(NumSD());
+		FormGradActiveTensorFlowDir(NumSD(), CurrIP());
 	      gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);
 
 	      strainIncr.AddScaled(-1.0*fBand->JumpIncrement(), gradActiveTensorFlowDir);
@@ -689,7 +689,7 @@ dSymMatrixT SSEnhLocCraigT::FormdGdSigma(int ndof)
   return dGdSigma;
 }
 
-dSymMatrixT SSEnhLocCraigT::FormGradActiveTensorFlowDir(int ndof)
+dSymMatrixT SSEnhLocCraigT::FormGradActiveTensorFlowDir(int ndof, int ip)
 {
   dSymMatrixT G(ndof);
   dMatrixT G_NonSym(ndof);
@@ -697,6 +697,9 @@ dSymMatrixT SSEnhLocCraigT::FormGradActiveTensorFlowDir(int ndof)
   int A;
   dArrayT grad_f(ndof);
   grad_f = 0.0;
+
+  fShapes->SetIP(ip);
+  Set_B(fShapes->Derivatives_U(), fB);
 
   for (int i=0; i<ndof; i++)
     {
@@ -805,18 +808,48 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
   normals.Top();
   slipDirs.Top();
 
-  normals.Next();
-  slipDirs.Next();
-
-  // cout << "normals.Current = \n " << flush << normals.Current() << endl;
 
   // implement how to choose
-  dArrayT normal = normals.Current();
-  dArrayT slipDir = slipDirs.Current();
-  dArrayT perpSlipDir;
+  int ndof = NumDOF();
 
-  // cout << "normal = \n" << normal;
-  //cout << "slipDir = \n" << slipDir; 
+  dArrayT normal(ndof);
+  dArrayT slipDir(ndof);
+  dArrayT perpSlipDir(ndof);
+
+  //determine strain on band
+  //should we use elastic strain?
+  dMatrixT avgGradU(ndof);
+  avgGradU = 0.0;
+
+  const double* Det    = fShapes->IPDets();
+  const double* Weight = fShapes->IPWeights();
+  double area = 0.0;
+
+  fShapes->TopIP();
+  while (fShapes-> NextIP())
+    {
+ 
+      double scale = (*Det++)*(*Weight++);
+      area += scale;
+      fShapes->GradU(fLocDisp, fGradU, CurrIP());
+      avgGradU.AddScaled(scale, fGradU);
+      cout << "fGradU = \n" << fGradU << endl;
+    }
+  avgGradU /= area;
+
+  double prod, maxProd = -1.0;
+
+  while(normals.Next())
+    {
+      slipDirs.Next();
+      prod = fabs( avgGradU.MultmBn(normals.Current(), slipDirs.Current()));
+      if (prod > maxProd)
+	{
+	  normal = normals.Current(); 
+	  slipDir = slipDirs.Current();
+	}
+    }
+
 
   //make sure slip direction is dilatant
   if (normal.Dot(normal, slipDir)<0.0)
@@ -848,10 +881,10 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
   /*for residual cohesion*/
   double normalStress = 0.0;
   double shearStress = 0.0;
-  double area = 0.0;
+  //double area = 0.0;
 
-  const double* Det    = fShapes->IPDets();
-  const double* Weight = fShapes->IPWeights();
+  Det    = fShapes->IPDets();
+  Weight = fShapes->IPWeights();
 
   fShapes->TopIP();
   for (int i = 0; i < NumIP(); i++)
@@ -861,7 +894,7 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
       stressList[i].Dimension(NumSD());
       stressList[i] = fCurrMaterial -> s_ij();
 
-      area += (*Det)*(*Weight);
+      //area += (*Det)*(*Weight);
       double scale = (*Det++)*(*Weight++);
 
       normalStress += scale * stressList[i].MultmBn(normal, normal);
@@ -870,7 +903,6 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
 
   normalStress/= area;
   shearStress = fabs(shearStress)/area;
-
 
   double residCohesion = shearStress + normalStress * fLocalizedFrictionCoeff;
 

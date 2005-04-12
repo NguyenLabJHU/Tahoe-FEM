@@ -1,4 +1,3 @@
-
 #include "SSEnhLocDieterichT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -119,7 +118,8 @@ void SSEnhLocDieterichT::FormStiffness(double constK)
 		/* update nMatrixT to get rid of fLHSwork */
 
 		//form k_d_zeta
-		gradActiveTensorFlowDir = FormGradActiveTensorFlowDir(ndof);
+		gradActiveTensorFlowDir =
+		FormGradActiveTensorFlowDir(ndof, CurrIP());
 
 		fDfB.MultTx(gradActiveTensorFlowDir, k_d_zeta_work);
 		k_d_zeta += k_d_zeta_work;
@@ -162,7 +162,7 @@ double SSEnhLocDieterichT::CalculateJumpIncrement()
 
   // what about coming off an elastic step? 
   double deltaG = DeltaG(jumpIncrement, deltaTheta);
-  //cout << "deltaG = " << deltaG << endl;
+  cout << "deltaG = " << deltaG << endl;
 
       // make this a relative tolerance
   while (fabs(deltaG) > newtonTol)
@@ -194,7 +194,7 @@ double SSEnhLocDieterichT::CalculateJumpIncrement()
 
       /*reform DeltaG*/
       deltaG = DeltaG(jumpIncrement, deltaTheta);
-      //cout << "deltaG = " << deltaG << endl;
+      cout << "deltaG = " << deltaG << endl;
     }
 
   fBand -> StoreJumpIncrement(jumpIncrement);
@@ -252,17 +252,19 @@ bool SSEnhLocDieterichT::IsBandActive()
   shearStress = shearStress/area;
 
   double neededCohesion = shearStress; // + normalStress * fLocalizedFrictionCoeff;
- 
+  cout << "ResidualCohesion = " << fBand->ResidualCohesion() << endl; 
+  cout << "neededCohesion = " << neededCohesion << endl; 
+
   if (fBand-> ResidualCohesion() < neededCohesion)
     {
       fBand-> SetActive(true);
-      //cout << "Band is active\n";
+      cout << "Band is active\n";
       return true;
     }
   else
     {
       fBand -> SetActive(false);
-      //cout << "Band is NOT active\n";
+      cout << "Band is NOT active\n";
       return false;
     }
 
@@ -273,7 +275,7 @@ bool SSEnhLocDieterichT::IsBandActive()
 double SSEnhLocDieterichT::DeltaTheta(double jumpIncrement, double deltaTheta)
 {
   double dt = ElementSupport().TimeStep();
-  return  (dt * fD_c - fDieterichBand->Theta()*jumpIncrement)/ (dt *
+  return  (dt * fD_c - fDieterichBand->Theta()*jumpIncrement)/ (
   fD_c + jumpIncrement);
 
   //return 1.0 - (fDieterichBand->Theta() + deltaTheta ) *jumpIncrement/(dt*fD_c);
@@ -322,7 +324,7 @@ dSymMatrixT SSEnhLocDieterichT::StressIncrOnBand(double jumpIncrement)
       dSymMatrixT strainIncr = fStrain_List [CurrIP()];
       strainIncr -= fStrain_last_List [CurrIP()];
 
-      gradActiveTensorFlowDir = FormGradActiveTensorFlowDir(ndof);
+      gradActiveTensorFlowDir = FormGradActiveTensorFlowDir(ndof, CurrIP());
       gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);
       strainIncr.AddScaled(-1.0*jumpIncrement, gradActiveTensorFlowDir);
 
@@ -375,8 +377,8 @@ dSymMatrixT SSEnhLocDieterichT::AvgStrainRelaxation(double jumpIncrement)
     {
       double scale = (*Det++)*(*Weight++);
       area += scale;
-      //gradActiveTensorFlowDir = FormGradActiveTensorFlowDir(ndof);
-      avgStrain.AddScaled(scale,FormGradActiveTensorFlowDir(ndof));
+      //gradActiveTensorFlowDir = FormGradActiveTensorFlowDir(ndof, CurrIP());
+      avgStrain.AddScaled(scale,FormGradActiveTensorFlowDir(ndof, CurrIP()));
     }
   //avgStrain*=jumpIncrement/area;
   avgStrain /= area;
@@ -498,9 +500,9 @@ double SSEnhLocDieterichT::DdeltaGdThetaGlobal(double jumpIncrement, double delt
 double SSEnhLocDieterichT::DThetaDJump(double jumpIncrement, double deltaTheta)
 {
   double dt = ElementSupport().TimeStep();
-    double work = (dt * fD_c + jumpIncrement);
+    double work = (fD_c + jumpIncrement);
 
-   return -dt * fD_c * (fDieterichBand->Theta() + 1.0)/(work*work);
+   return  -1.0 * fD_c * (fDieterichBand->Theta() + dt)/(work*work);
 
   //return  -1.0*(fDieterichBand->Theta() + deltaTheta)/(fD_c * dt);
   //return  -1.0*(fDieterichBand->Theta())/(fD_c * dt);

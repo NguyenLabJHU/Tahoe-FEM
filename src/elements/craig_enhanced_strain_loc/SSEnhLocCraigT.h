@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.h,v 1.7 2005-03-30 00:41:32 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.h,v 1.8 2005-04-12 20:43:02 cfoster Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_CF_T_H_
 #define _SMALL_STRAIN_ENH_LOC_CF_T_H_
 
@@ -125,7 +125,7 @@ stressList);
 
 //move to surface mat model?
 	dSymMatrixT FormdGdSigma(int ndof);
-	dSymMatrixT FormGradActiveTensorFlowDir(int ndof);
+	dSymMatrixT FormGradActiveTensorFlowDir(int ndof, int ip);
 	bool IsElementTraced();
 	bool IsElementLocalized();
 	virtual void ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipDirs);
