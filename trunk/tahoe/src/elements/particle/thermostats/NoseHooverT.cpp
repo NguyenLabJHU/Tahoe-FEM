@@ -1,9 +1,10 @@
-/* $Id: NoseHooverT.cpp,v 1.8 2004-07-15 08:29:54 paklein Exp $ */
+/* $Id: NoseHooverT.cpp,v 1.9 2005-04-12 17:10:11 cjkimme Exp $ */
 #include "NoseHooverT.h"
 #include <math.h>
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "RaggedArray2DT.h"
+#include "ParticlePropertyT.h"
 #include "BasicSupportT.h"
 
 const double fkB = 0.00008617385;
@@ -62,38 +63,47 @@ void NoseHooverT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArra
 	double dt = fSupport.TimeStep();
 	
 	/* calculate current temperature */
-	double kineticTemp = 0.;
-	int nDOF = 0;
-	if (fAllNodes)
-	{ // All the nodes are damped, use neighbors
-		nDOF = nsd*neighbors.MajorDim();
-		for (int j = 0; j < neighbors.MajorDim(); j++) 
-		{
-			int tag_j = *neighbors(j);
-	    	const double* v_j = (*velocities)(tag_j);
-				
-			for (int i = 0; i < nsd; i++, *v_j++)
-				kineticTemp += (*v_j)*(*v_j);
-		}
-	}
-	else if (fNodes.Length() > 0)
-	{
-		nDOF = nsd*fNodes.Length();
-		for (int j = 0; j < fNodes.Length(); j++)
-		{ 
-			int tag_j = fNodes[j];
-			const double* v_j = (*velocities)(tag_j);
-
-			for (int i = 0; i < nsd; i++, *v_j++)
-				kineticTemp += (*v_j)*(*v_j); 	
+	double kineticTemp = 0., mass;
+	int nDOF = 0, currType;
+	if (fAllNodes) { // All the nodes are damped, use neighbors
+	  int currType = types[*neighbors(0)];
+	  double mass = particleProperties[currType]->Mass();
+	  nDOF = nsd*neighbors.MajorDim();
+	  for (int j = 0; j < neighbors.MajorDim(); j++) {
+	    int tag_j = *neighbors(j);
+	    const double* v_j = (*velocities)(tag_j);
+	    if (types[tag_j] != currType) {
+	      currType = types[tag_j];
+	      mass = particleProperties[currType]->Mass();
 	    }
+
+	    for (int i = 0; i < nsd; i++, *v_j++)
+	      kineticTemp += mass*(*v_j)*(*v_j);
+	  }
+	}
+	else if (fNodes.Length() > 0) {
+	  currType = types[fNodes[0]];
+	  mass = particleProperties[currType]->Mass();
+	  nDOF = nsd*fNodes.Length();
+	  for (int j = 0; j < fNodes.Length(); j++) { 
+	    int tag_j = fNodes[j];
+	    const double* v_j = (*velocities)(tag_j);
+
+	    if (types[tag_j] != currType) {
+	      currType = types[tag_j];
+	      mass = particleProperties[currType]->Mass();
+	    }
+
+	    for (int i = 0; i < nsd; i++, *v_j++)
+	      kineticTemp += mass*(*v_j)*(*v_j); 	
+	  }
 	}
 	kineticTemp /= fkB*nDOF;
 	fEtaDot = (kineticTemp-fTemperature)/fBetaOrig;
 	fBeta = fEta += fEtaDot*dt;
 	
-//	cout << " NoseHooverT::ApplyDamping KE = " << kineticTemp << " " << fBeta << "\n";
-	
+//cout << " NoseHooverT::ApplyDamping KE = " << kineticTemp << " " << fBeta << " " << nDOF << "\n";
+//cout << fEtaDot*fEtaDot/fEta/fEta/2. << " " <<  nDOF*fkB*fTemperature << " " << fEta << "\n";	
 	ThermostatBaseT::ApplyDamping(neighbors,velocities,forces,
 						types,particleProperties);
 }			
