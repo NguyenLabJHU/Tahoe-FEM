@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.34 2005-04-05 16:01:25 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.35 2005-04-12 15:30:14 paklein Exp $ */
 /* created: sawimme July 2001 */
 #ifndef _MODELMANAGER_T_H_
 #define _MODELMANAGER_T_H_
@@ -266,6 +266,10 @@ class ModelManagerT
 	/*@{*/
 	/** return number of node sets */
 	int NumNodeSets (void) const;
+
+	/** return an unused node set ID 
+	 * \param prefix prefix for ID. The prefix can be empty. */
+	StringT FreeNodeSetID(const StringT& prefix) const;
 
 	/** reads node set block data from Tahoe paramter file.
 	 * Node Set block data: number of sets and set IDs

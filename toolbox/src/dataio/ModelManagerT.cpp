@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.50 2005-04-05 16:01:25 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.51 2005-04-12 15:30:14 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -273,6 +273,25 @@ void ModelManagerT::ElementBlockList (ifstreamT& in, ArrayT<StringT>& ID, iArray
       fMessage << "                element block name: " << name << endl;
 
     }
+}
+
+/* return an unused element ID */
+StringT ModelManagerT::FreeNodeSetID(const StringT& prefix) const
+{
+	int tail = 0;
+	bool free = false;
+	StringT ID;
+	while (!free)
+	{
+		ID.Clear();
+		ID.Append(prefix, tail);
+		free = true;
+		for (int i = 0; free && i < fNodeSetNames.Length(); i++)
+			if (ID == fNodeSetNames[i])
+				free = false;
+		tail++;
+	}
+	return ID;
 }
 
 void ModelManagerT::NodeSetList (ifstreamT& in, ArrayT<StringT>& ID)
