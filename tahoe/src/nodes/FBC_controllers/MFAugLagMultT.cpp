@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.cpp,v 1.6 2004-11-18 16:36:40 paklein Exp $ */
+/* $Id: MFAugLagMultT.cpp,v 1.7 2005-04-12 15:34:07 paklein Exp $ */
 #include "MFAugLagMultT.h"
 
 #ifdef CONTINUUM_ELEMENT
@@ -203,7 +203,6 @@ void MFAugLagMultT::ApplyRHS(void)
 		eqNos.Set(fSupportSizes[i], fEqNos(i));
 		field_support.AssembleRHS(fGroup, fRHS, eqNos);
 	}
-	
 }
 
 /* tangent term */
@@ -311,8 +310,6 @@ void MFAugLagMultT::RegisterOutput(void)
 
 void MFAugLagMultT::WriteOutput(ostream& out) const
 {
-	out << "\n M F  A u g  L a g  M u l t   D a t a :\n\n";
-	
 	const FieldT& field = Field();
 	int ndof = field.NumDOF();
 	int num_output = 2*ndof;

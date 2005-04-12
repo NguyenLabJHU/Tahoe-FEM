@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.h,v 1.5 2004-11-18 16:36:40 paklein Exp $ */
+/* $Id: MFAugLagMultT.h,v 1.6 2005-04-12 15:34:07 paklein Exp $ */
 #ifndef _MF_AUG_LAG_MULT_T_H_
 #define _MF_AUG_LAG_MULT_T_H_
 
@@ -102,7 +102,7 @@ public:
 	virtual int Reconfigure(void);
 
 	/** restore any state data to the previous converged state */
-	virtual void ResetState(void) { };
+	virtual void ResetState(void) {};
 
 	/** return the equation group to which the generate degrees of
 	 * freedom belong. */
@@ -131,7 +131,7 @@ private:
 	/** initialize data structures and communicate with meshfree elements */
 	void ChatWithElementGroup(void);
 
-private:
+protected:
 
 	/** nodemanager */
 //	XDOF_ManagerT* fXDOF_Nodes;
