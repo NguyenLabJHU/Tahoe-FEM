@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_MT.cpp,v 1.1 2005-04-05 16:08:59 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_MT.cpp,v 1.2 2005-04-13 17:38:48 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "SPOOLESMatrixT_MT.h"
 
@@ -15,9 +15,10 @@ const char SPOOLES_FILE[] = "SPOOLES.out";
 
 /* constuctor */
 SPOOLESMatrixT_MT::SPOOLESMatrixT_MT(ostream& out, int check_code,
-	bool symmetric, bool pivoting, int num_threads):
+	bool symmetric, bool pivoting, int message_level, int num_threads):
 	MSRMatrixT(out, check_code, symmetric),
 	fPivoting(pivoting),
+	fMessageLevel(message_level),
 	pLU_dat(NULL),
 	fIsFactorized(false),
 	fNumThreads(num_threads)
@@ -37,6 +38,8 @@ ExceptionT::GeneralFail("SPOOLESMatrixT_MT::SPOOLESMatrixT_MT",
 
 SPOOLESMatrixT_MT::SPOOLESMatrixT_MT(const SPOOLESMatrixT_MT& source):
 	MSRMatrixT(source),
+	fPivoting(source.fPivoting),
+	fMessageLevel(source.fMessageLevel),
 	pLU_dat(NULL),
 	fIsFactorized(false),
 	fNumThreads(0)	
@@ -127,7 +130,7 @@ void SPOOLESMatrixT_MT::Factorize(void)
 		 0: nothing
 		 1: scalar output (timing data) only
 		>1: verbose */
-	int msglvl = 0; 
+	int msglvl = (fMessageLevel < 0) ? 0 : fMessageLevel; 
 
 	/* compute factorization */
 	int OK = LU_serial_driver_factorize(msglvl, SPOOLES_FILE,
@@ -149,7 +152,8 @@ void SPOOLESMatrixT_MT::BackSubstitute(dArrayT& result)
  	/* check */
 	if (!fIsFactorized) ExceptionT::GeneralFail(caller, "matrix is not factorized");
 
-	 int msglvl = 0; //  0: nothing
+	int msglvl = (fMessageLevel < 0) ? 0 : fMessageLevel; 
+	 //  0: nothing
 	 //  1: scalar output (timing data) only
 	 // >1: verbose
 	int OK;

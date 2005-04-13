@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.16 2005-01-07 21:23:02 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.17 2005-04-13 17:38:48 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "SPOOLESMatrixT_mpi.h"
 
@@ -18,15 +18,14 @@ using namespace Tahoe;
 /* message file name */
 const char SPOOLES_FILE_ROOT[] = "SPOOLES";
 const char  SPOOLES_FILE_EXT[] = ".out";
-const int        MESSAGE_LEVEL = 0;
 
 //old code or new code
 #undef OLD_CODE
 
 /* constuctor */
 SPOOLESMatrixT_mpi::SPOOLESMatrixT_mpi(ostream& out, int check_code,
-	bool symmetric, bool pivoting, CommunicatorT& comm):
-	SPOOLESMatrixT(out, check_code, symmetric, pivoting),
+	bool symmetric, bool pivoting, int message_level, CommunicatorT& comm):
+	SPOOLESMatrixT(out, check_code, symmetric, pivoting, message_level),
 	fComm(comm)
 {
 
@@ -96,7 +95,7 @@ void SPOOLESMatrixT_mpi::Factorize(void)
 		 0: nothing
 		 1: scalar output (timing data) only
 		>1: verbose */
-	int msglvl = MESSAGE_LEVEL; 
+	int msglvl = (fMessageLevel < 0) ? 0 : fMessageLevel; 
 
 	/* message file name */
 	StringT spooles_file(SPOOLES_FILE_ROOT);
@@ -134,9 +133,10 @@ void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 	GenerateRCV(r, c, v, 1.0e-15);
 
 	/* serial driver provided by in SPOOLES documentation */
-	int msglvl = 0; //  0: nothing
-	                //  1: scalar output (timing data) only
-	                // >1: verbose
+	int msglvl = (fMessageLevel < 0) ? 0 : fMessageLevel; 
+	//  0: nothing
+	//  1: scalar output (timing data) only
+	// >1: verbose
 	int matrix_type = SPOOLES_REAL;
 	int symmetry_flag = (fSymmetric) ? SPOOLES_SYMMETRIC : SPOOLES_NONSYMMETRIC;
 	int pivoting_flag = (fPivoting) ? SPOOLES_PIVOTING : SPOOLES_NO_PIVOTING;

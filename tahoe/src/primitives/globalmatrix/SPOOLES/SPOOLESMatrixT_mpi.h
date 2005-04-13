@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.h,v 1.8 2005-01-07 21:23:02 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.h,v 1.9 2005-04-13 17:38:48 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #ifndef _SPOOLES_MATRIX_T_MPI_H_
 #define _SPOOLES_MATRIX_T_MPI_H_
@@ -21,7 +21,7 @@ public:
 
 	/** constuctor */
 	SPOOLESMatrixT_mpi(ostream& out, int check_code, bool symmetric,
-		bool pivoting, CommunicatorT& comm);
+		bool pivoting, int message_level, CommunicatorT& comm);
 
 	/** destructor */
 	~SPOOLESMatrixT_mpi(void);
