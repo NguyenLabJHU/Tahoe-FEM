@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeShapeFunctionT.h,v 1.4 2005-02-16 21:41:43 paklein Exp $ */
+/* $Id: D3MeshFreeShapeFunctionT.h,v 1.5 2005-04-13 00:10:25 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SHAPE_T_H_
 #define _D3_MF_SHAPE_T_H_
@@ -35,6 +35,7 @@ public:
 
 	/* 3rd order spatial gradients */
 	void GradGradGradU(const LocalArrayT& nodal, dMatrixT& gradgradgrad_U) const;
+	void GradGradGradU(const LocalArrayT& nodal, dMatrixT& gradgradgrad_U, int ip) const;
 
 	/* 3rd derivatives of shape functions at IP */
 	const dArray2DT& DDDerivatives_U(int ip) const { return fDDDNaU[ip]; };
@@ -53,6 +54,7 @@ protected:
 	
 	/* work space for blended shape functions */
 	ArrayT<dArray2DT> fDDDNa_tmp;
+	
 };
 
 /* inlines */
@@ -61,7 +63,19 @@ protected:
 inline void D3MeshFreeShapeFunctionT::GradGradGradU(const LocalArrayT& nodal,
 	dMatrixT& gradgradgrad_U) const
 {
-	fDomain->JacobianD3(nodal, fDDDNaU[fCurrIP], gradgradgrad_U);	
+	int row = nodal.MinorDim();
+	int col = fDDDNaU[fCurrIP].MajorDim(); 
+	gradgradgrad_U.Dimension(row, col);
+	fDomain->Jacobian(nodal, fDDDNaU[fCurrIP], gradgradgrad_U);	
+}
+
+inline void D3MeshFreeShapeFunctionT::GradGradGradU(const LocalArrayT& nodal,
+	dMatrixT& gradgradgrad_U, int ip) const
+{
+	int row = nodal.MinorDim();
+	int col = fDDDNaU[ip].MajorDim(); 
+	gradgradgrad_U.Dimension(row, col);
+	fDomain->Jacobian(nodal, fDDDNaU[ip], gradgradgrad_U);	
 }
 
 } // namespace Tahoe 
