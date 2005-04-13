@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.25 2005-02-25 15:41:34 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.26 2005-04-13 17:40:37 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -14,6 +14,8 @@
 #include "iArray2DT.h"
 #include "RaggedArray2DT.h"
 #include "ElementMatrixT.h"
+#include "StringT.h"
+#include "ofstreamT.h"
 
 using namespace Tahoe;
 
@@ -513,11 +515,27 @@ void CCNSMatrixT::PrintAllPivots(void) const
 
 void CCNSMatrixT::PrintLHS(bool force) const
 {
-	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS)
-		return;
-		
-	fOut << "\nLHS matrix:\n\n";
-	fOut << (*this) << "\n\n";
+	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
+
+	/* output stream */
+	StringT file = fstreamT::Root();
+	file.Append("CCSMatrixT.LHS.", sOutputCount);
+	ofstreamT out(file);
+	out.precision(14);
+
+	/* write non-zero values in RCV format */
+	for (int r = 0; r < fLocNumEQ; r++)
+		for (int c = 0; c < fLocNumEQ; c++)
+		{
+			double value = (*this)(r,c);
+			if (value != 0.0) {
+				out << r+1 << " " << c+1 << " " << value << '\n';
+				if (r != c) out << c+1 << " " << r+1 << " " << value << '\n';
+			}
+		}
+
+	/* increment count */
+	sOutputCount++;
 }
 
 /* test if {row,col} is within the skyline */
