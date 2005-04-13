@@ -1,4 +1,4 @@
-/* $Id: MSRMatrixT.cpp,v 1.7 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: MSRMatrixT.cpp,v 1.8 2005-04-13 17:39:31 paklein Exp $ */
 #include "MSRMatrixT.h"
 
 #include "MSRBuilderT.h"
@@ -231,7 +231,42 @@ void MSRMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eq
 	{
 		/* assembly mode */
 		if (fSymmetric)
+		{
+			//TEMP - implementation doesn't work yet
 			ExceptionT::GeneralFail(caller, "cannot assemble symmetric matrix");
+		
+			/* equation number limit */
+			int end_update = fStartEQ + fLocNumEQ - 1;
+
+			/* equation numbers -> active element row numbers */
+			int status = 1;
+			for (int j = 0; j < row_eqnos.Length() && status; j++) 
+			{
+				int req = row_eqnos[j];
+				if (req >= fStartEQ && req <= end_update)
+				{
+					/* collect values in upper triangle */
+					fColDexVec.Dimension(0);
+					fValVec.Dimension(0);
+					for (int k = 0; k < col_eqnos.Length(); k++) 
+					{
+						int ceq = col_eqnos[k];
+						if (ceq >= req) {
+							fColDexVec.Append(ceq - 1); //OFFSET
+							fValVec.Append(elMat(j,k));
+						}
+					}
+
+					/* assemble into matrix */
+					if (fColDexVec.Length() > 0)
+						AssembleRow(req - 1, //OFFSET 
+							fColDexVec.Length(), fColDexVec.Pointer(), fValVec.Pointer(), status);
+				}
+			}
+
+			/* check completion */
+			if (!status) ExceptionT::GeneralFail(caller, "symmetric assembly error");
+		}
 		else
 		{
 			/* equation number limit */
