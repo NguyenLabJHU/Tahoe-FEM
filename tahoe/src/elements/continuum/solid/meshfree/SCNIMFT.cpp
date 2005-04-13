@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.58 2005-04-11 17:39:44 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.59 2005-04-13 17:37:04 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -37,6 +37,9 @@
 #include "SSSolidMatList1DT.h"
 #include "SSSolidMatList2DT.h"
 #include "SSSolidMatList3DT.h"
+
+/* for manufactured solutions */
+#include "IsotropicT.h"
 
 using namespace Tahoe;
 
@@ -737,7 +740,6 @@ void SCNIMFT::RHSDriver(void)
 	const char caller[] = "SCNIMFT::RHSDriver";
 
 	int nsd = NumSD();
-	
 	fForce = 0.0;
 
 	if (fTractionVectors.MajorDim()) {
@@ -769,18 +771,27 @@ void SCNIMFT::RHSDriver(void)
 	double constMa = 0.0;
 	int formMa = fIntegrator->FormMa(constMa); 
 	ContinuumMaterialT *mat;
-	SolidMaterialT* fCurrMaterial;
+	SolidMaterialT* solid_material = NULL;
+	IsotropicT* iso_material = NULL;
 	int nnd;
-	if (fBodySchedule || formMa) {
+	if (fBodySchedule || formMa)
+	{
 		/* just one material for now */
 		mat = (*fMaterialList)[0];
-		fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
-		if (!fCurrMaterial) ExceptionT::GeneralFail(caller, "cannot get material");
+		solid_material = TB_DYNAMIC_CAST(SolidMaterialT*, mat);
+		if (!solid_material) ExceptionT::GeneralFail(caller, "cannot get material");
 		nnd = fNodes.Length();
+
+		/* cast to isotropic class */
+		iso_material = TB_DYNAMIC_CAST(IsotropicT*, mat);
 	}
 
 	/* contribution from body force source */
-	if (fBodySchedule) {
+	bool body_force_source = false;
+	if (fBodySchedule || body_force_source) {
+
+		/* nodal coordinates */
+		const dArray2DT& initial_coordinates = ElementSupport().InitialCoordinates();
 
 		/* work space */	
 		double load_factor = fBodySchedule->Value();
@@ -792,12 +803,17 @@ void SCNIMFT::RHSDriver(void)
 		int* supp_i, n_supp;
 		int* nodes = fNodes.Pointer();
 		double* volume = fCellVolumes.Pointer();
-		double density = fCurrMaterial->Density();
+		double density = solid_material->Density();
 		double twoPi = 2.0*acos(-1.0);
 		for (int i = 0; i < nnd; i++) {
 		
+			bf_source = 0.0;
+		
 			/* compute body force at node i */
-			bf_source = fBody;
+			if (fBodySchedule) bf_source = fBody;
+			
+			//add additional contribution to the body force
+			
 			bf_source *= load_factor*density*(*volume++);
 			if (qIsAxisymmetric) 
 				bf_source *= twoPi*fCellCentroids(i,0);
@@ -823,7 +839,7 @@ void SCNIMFT::RHSDriver(void)
 		const double* acc;
 		int* nodes = fNodes.Pointer();
 		double* volume = fCellVolumes.Pointer();
-		double density = fCurrMaterial->Density();
+		double density = solid_material->Density();
 		if (!qIsAxisymmetric) {
 			for (int i = 0; i < nnd; i++)
 			{
