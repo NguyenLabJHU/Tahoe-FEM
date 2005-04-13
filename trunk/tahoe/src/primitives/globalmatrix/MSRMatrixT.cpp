@@ -1,14 +1,17 @@
-/* $Id: MSRMatrixT.cpp,v 1.8 2005-04-13 17:39:31 paklein Exp $ */
+/* $Id: MSRMatrixT.cpp,v 1.9 2005-04-13 21:49:58 paklein Exp $ */
 #include "MSRMatrixT.h"
 
 #include "MSRBuilderT.h"
 #include "ElementMatrixT.h"
+#include "StringT.h"
+#include "ofstreamT.h"
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
 /* constuctor */
-MSRMatrixT::MSRMatrixT(ostream& out, int check_code, bool symmetric):
-	GlobalMatrixT(out, check_code),
+MSRMatrixT::MSRMatrixT(ostream& out, int check_code, bool symmetric, const CommunicatorT& comm):
+	GlobalMatrixT(out, check_code, comm),
 	fSymmetric(symmetric),
 	fMSRBuilder(NULL),
 	fActiveBlkMan(0, fActiveBlk)
@@ -408,16 +411,24 @@ void MSRMatrixT::PrintLHS(bool force) const
 {
 	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
 
+	/* output stream */
+	StringT file = fstreamT::Root();
+	file.Append("MSRMatrixT.LHS.", sOutputCount);
+	if (fComm.Size() > 1) file.Append(".p", fComm.Rank());
+	ofstreamT out(file);
+	out.precision(14);
+
 	/* convert to RCV */
 	iArrayT r, c;
 	dArrayT v;
 	GenerateRCV(r, c, v, 0.0);
 	r++;
 	c++;
-	fOut << "LHS: {r, c, v}: \n";
 	for (int i = 0; i < r.Length(); i++)
-		fOut << r[i] << " " << c[i] << " " << v[i] << '\n';
-	fOut << endl;
+		out << r[i] << " " << c[i] << " " << v[i] << '\n';
+
+	/* increment count */
+	sOutputCount++;
 }
 
 /* copy MSR data to RCV */

@@ -1,4 +1,4 @@
-/* $Id: AztecBaseT.h,v 1.5 2003-02-28 02:07:17 paklein Exp $ */
+/* $Id: AztecBaseT.h,v 1.6 2005-04-13 21:50:27 paklein Exp $ */
 /* created: paklein (07/28/1998) */
 
 #ifndef _AZTEC_BASE_T_H_
@@ -23,7 +23,7 @@ class AztecBaseT
 public:
 
 	/** constuctor */
-	AztecBaseT(ostream& msg, CommunicatorT& comm);
+	AztecBaseT(ostream& msg, const CommunicatorT& comm);
 	
 	/* destructor */
 	virtual ~AztecBaseT(void);
@@ -83,7 +83,7 @@ protected:
 	ostream& fMessage;
 
 	/** multiprocessor communicator */
-	CommunicatorT& fCommunicator;
+	const CommunicatorT& fCommunicator;
 
 	/* number of update rows */
 	int Start_update; //1,...

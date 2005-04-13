@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.h,v 1.19 2005-02-25 15:41:34 paklein Exp $ */
+/* $Id: CCSMatrixT.h,v 1.20 2005-04-13 21:49:58 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #ifndef _CCSMATRIX_T_H_
 #define _CCSMATRIX_T_H_
@@ -28,7 +28,7 @@ class CCSMatrixT: public GlobalMatrixT
 public:
 
 	/** constructor */
-	CCSMatrixT(ostream& out, int check_code);
+	CCSMatrixT(ostream& out, int check_code, const CommunicatorT& comm);
 
 	/** copy constructor */
 	CCSMatrixT(const CCSMatrixT& source);

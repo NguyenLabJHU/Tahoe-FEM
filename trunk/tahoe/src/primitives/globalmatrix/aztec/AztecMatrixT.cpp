@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.23 2005-04-05 16:07:07 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.24 2005-04-13 21:50:27 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #include "AztecMatrixT.h"
 
@@ -20,9 +20,9 @@
 using namespace Tahoe;
 
 /* constructor */
-AztecMatrixT::AztecMatrixT(ostream& out, int check_code, CommunicatorT& comm, 
+AztecMatrixT::AztecMatrixT(ostream& out, int check_code, const CommunicatorT& comm, 
 	const ParameterListT& parameters):
-	GlobalMatrixT(out, check_code)
+	GlobalMatrixT(out, check_code, comm)
 {
 	/* set and verify Aztec data structures */
 	fAztec = new Aztec_fe(parameters, out, comm);

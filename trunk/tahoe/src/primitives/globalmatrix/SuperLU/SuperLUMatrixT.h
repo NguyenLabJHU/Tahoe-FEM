@@ -1,4 +1,4 @@
-/* $Id: SuperLUMatrixT.h,v 1.3 2005-02-25 15:41:41 paklein Exp $ */
+/* $Id: SuperLUMatrixT.h,v 1.4 2005-04-13 21:50:20 paklein Exp $ */
 #ifndef _SUPER_LU_MATRIX_T_H_
 #define _SUPER_LU_MATRIX_T_H_
 
@@ -22,7 +22,7 @@ class SuperLUMatrixT: public GlobalMatrixT
 public:
 
 	/** constructor */
-	SuperLUMatrixT(ostream& out, int check_code, bool symmetric);
+	SuperLUMatrixT(ostream& out, int check_code, bool symmetric, const CommunicatorT& comm);
 
 	/** destructor */
 	~SuperLUMatrixT(void);

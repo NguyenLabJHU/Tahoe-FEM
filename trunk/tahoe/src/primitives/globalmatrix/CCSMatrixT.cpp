@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.28 2005-04-13 17:40:37 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.29 2005-04-13 21:49:58 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "CCSMatrixT.h"
 
@@ -18,12 +18,13 @@
 #include "ElementMatrixT.h"
 #include "StringT.h"
 #include "ofstreamT.h"
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-CCSMatrixT::CCSMatrixT(ostream& out, int check_code):
-	GlobalMatrixT(out, check_code),
+CCSMatrixT::CCSMatrixT(ostream& out, int check_code, const CommunicatorT& comm):
+	GlobalMatrixT(out, check_code, comm),
 	fDiags(NULL),
 	fNumberOfTerms(0),
 	fMatrix(NULL),
@@ -778,6 +779,7 @@ void CCSMatrixT::PrintLHS(bool force) const
 	/* output stream */
 	StringT file = fstreamT::Root();
 	file.Append("CCSMatrixT.LHS.", sOutputCount);
+	if (fComm.Size() > 1) file.Append(".p", fComm.Rank());	
 	ofstreamT out(file);
 	out.precision(14);
 

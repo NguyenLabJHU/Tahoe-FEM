@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.21 2005-04-13 17:40:37 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.22 2005-04-13 21:49:58 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
 #include <iostream.h>
@@ -9,12 +9,13 @@
 #include "ElementMatrixT.h"
 #include "StringT.h"
 #include "ofstreamT.h"
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-FullMatrixT::FullMatrixT(ostream& out,int check_code):
-	GlobalMatrixT(out, check_code),
+FullMatrixT::FullMatrixT(ostream& out,int check_code, const CommunicatorT& comm):
+	GlobalMatrixT(out, check_code, comm),
 	fIsFactorized(false)
 {
 
@@ -373,6 +374,7 @@ void FullMatrixT::PrintLHS(bool force) const
 	/* output stream */
 	StringT file = fstreamT::Root();
 	file.Append("FullMatrixT.LHS.", sOutputCount);
+	if (fComm.Size() > 1) file.Append(".p", fComm.Rank());	
 	ofstreamT out(file);
 	out.precision(14);
 

@@ -1,4 +1,4 @@
-/* $Id: SuperLUMatrixT.cpp,v 1.4 2005-02-25 15:41:41 paklein Exp $ */
+/* $Id: SuperLUMatrixT.cpp,v 1.5 2005-04-13 21:50:20 paklein Exp $ */
 #include "SuperLUMatrixT.h"
 
 /* library support */
@@ -23,8 +23,8 @@
 using namespace Tahoe;
 
 /* constructor */
-SuperLUMatrixT::SuperLUMatrixT(ostream& out, int check_code, bool symmetric):
-	GlobalMatrixT(out, check_code),
+SuperLUMatrixT::SuperLUMatrixT(ostream& out, int check_code, bool symmetric, const CommunicatorT& comm):
+	GlobalMatrixT(out, check_code, comm),
 	fIsSymFactorized(false),
 	fIsNumFactorized(false)
 {

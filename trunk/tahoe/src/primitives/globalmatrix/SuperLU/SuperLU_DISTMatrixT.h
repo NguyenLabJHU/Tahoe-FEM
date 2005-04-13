@@ -1,4 +1,4 @@
-/* $Id: SuperLU_DISTMatrixT.h,v 1.6 2005-02-25 15:41:41 paklein Exp $ */
+/* $Id: SuperLU_DISTMatrixT.h,v 1.7 2005-04-13 21:50:20 paklein Exp $ */
 #ifndef _SUPER_LU_DIST_MATRIX_T_H_
 #define _SUPER_LU_DIST_MATRIX_T_H_
 
@@ -19,7 +19,6 @@ namespace Tahoe {
 
 /* forward declarations */
 class MSRBuilderT;
-class CommunicatorT;
 
 /** interface to SuperLU 2.0 parallel linear solver */
 class SuperLU_DISTMatrixT: public GlobalMatrixT
@@ -27,7 +26,7 @@ class SuperLU_DISTMatrixT: public GlobalMatrixT
 public:
 
 	/** constructor */
-	SuperLU_DISTMatrixT(ostream& out, int check_code, CommunicatorT& comm);
+	SuperLU_DISTMatrixT(ostream& out, int check_code, const CommunicatorT& comm);
 
 	/** copy constructor */
 	SuperLU_DISTMatrixT(const SuperLU_DISTMatrixT& rhs);
@@ -104,9 +103,6 @@ private:
 	/*@}*/
 
 protected:
-
-	/** MP environment */
-	CommunicatorT& fComm;	
 
 	/** matrix structure builder */
 	MSRBuilderT* fBuilder;
