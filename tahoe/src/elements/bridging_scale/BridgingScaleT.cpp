@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.50 2005-03-11 20:36:47 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.51 2005-04-13 21:51:27 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -25,7 +25,7 @@ BridgingScaleT::BridgingScaleT(const ElementSupportT& support):
 	fElMatU(ElementMatrixT::kSymmetric),
 	fLocInitCoords(LocalArrayT::kInitCoords),
 	fLocDisp(LocalArrayT::kDisp),
-	fGlobalMass(support.Output(), 1)
+	fGlobalMass(support.Output(), 1, support.Communicator())
 {
 	SetName("bridging");
 }
