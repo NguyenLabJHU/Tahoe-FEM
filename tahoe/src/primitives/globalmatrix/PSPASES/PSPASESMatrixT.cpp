@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.15 2005-01-07 22:02:00 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.16 2005-04-13 21:50:06 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -23,9 +23,8 @@ void CHECKB_AX(int*, int*, int*, double*, int*, int*, double*, int*, double*, in
 using namespace Tahoe;
 
 /* constuctor */
-PSPASESMatrixT::PSPASESMatrixT(ostream& out, int check_code, CommunicatorT& comm):
-	GlobalMatrixT(out, check_code),
-	fComm(comm),
+PSPASESMatrixT::PSPASESMatrixT(ostream& out, int check_code, const CommunicatorT& comm):
+	GlobalMatrixT(out, check_code, comm),
 	fBuilder(NULL),
 	faptrs_man(10, faptrs, 2),
 	fIsSymFactorized(false),
@@ -38,7 +37,6 @@ PSPASESMatrixT::PSPASESMatrixT(ostream& out, int check_code, CommunicatorT& comm
 
 PSPASESMatrixT::PSPASESMatrixT(const PSPASESMatrixT& source):
 	GlobalMatrixT(source),
-	fComm(source.fComm),
 	fIsSymFactorized(source.fIsSymFactorized),
 	fIsNumFactorized(source.fIsNumFactorized)
 {

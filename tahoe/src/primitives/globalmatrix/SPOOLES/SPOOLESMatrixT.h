@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.h,v 1.19 2005-04-13 17:38:48 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.h,v 1.20 2005-04-13 21:50:13 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #ifndef _SPOOLES_MATRIX_T_H_
 #define _SPOOLES_MATRIX_T_H_
@@ -31,7 +31,7 @@ public:
 
 	/* constuctor */
 	SPOOLESMatrixT(ostream& out, int check_code, bool symmetric,
-		bool pivoting, int message_level);
+		bool pivoting, int message_level, const CommunicatorT& comm);
 
 	/* copy constructor */
 	SPOOLESMatrixT(const SPOOLESMatrixT& source);

@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.26 2005-04-13 17:38:48 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.27 2005-04-13 21:50:13 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "SPOOLESMatrixT.h"
 
@@ -15,8 +15,8 @@ const char SPOOLES_FILE[] = "SPOOLES.out";
 
 /* constuctor */
 SPOOLESMatrixT::SPOOLESMatrixT(ostream& out, int check_code,
-	bool symmetric, bool pivoting, int message_level):
-	MSRMatrixT(out, check_code, symmetric),
+	bool symmetric, bool pivoting, int message_level, const CommunicatorT& comm):
+	MSRMatrixT(out, check_code, symmetric, comm),
 	fPivoting(pivoting),
 	pLU_dat(NULL),
 	fIsFactorized(false),

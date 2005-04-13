@@ -1,4 +1,4 @@
-/* $Id: MSRMatrixT.h,v 1.5 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: MSRMatrixT.h,v 1.6 2005-04-13 21:49:58 paklein Exp $ */
 #ifndef _MSR_MATRIX_T_H_
 #define _MSR_MATRIX_T_H_
 
@@ -16,6 +16,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class MSRBuilderT;
+class CommunicatorT;
 
 /** Base class for matricies using the Modified Sparse Row (MSR) format. Methods beginning 
  * with names AZ_ are borrowed from Aztec 1.0. */
@@ -24,7 +25,7 @@ class MSRMatrixT: public GlobalMatrixT
 public:
 
 	/** constuctor */
-	MSRMatrixT(ostream& out, int check_code, bool symmetric);
+	MSRMatrixT(ostream& out, int check_code, bool symmetric, const CommunicatorT& comm);
 
 	/** copy constructor */
 	MSRMatrixT(const MSRMatrixT& source);

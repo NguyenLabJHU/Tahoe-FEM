@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.26 2005-04-13 17:40:37 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.27 2005-04-13 21:49:58 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -16,12 +16,13 @@
 #include "ElementMatrixT.h"
 #include "StringT.h"
 #include "ofstreamT.h"
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-CCNSMatrixT::CCNSMatrixT(ostream& out, int check_code):
-	GlobalMatrixT(out, check_code),
+CCNSMatrixT::CCNSMatrixT(ostream& out, int check_code, const CommunicatorT& comm):
+	GlobalMatrixT(out, check_code, comm),
 	famax(NULL),
 	fNumberOfTerms(0),
 	fMatrix(NULL),
@@ -519,7 +520,8 @@ void CCNSMatrixT::PrintLHS(bool force) const
 
 	/* output stream */
 	StringT file = fstreamT::Root();
-	file.Append("CCSMatrixT.LHS.", sOutputCount);
+	file.Append("CCNSMatrixT.LHS.", sOutputCount);
+	if (fComm.Size() > 1) file.Append(".p", fComm.Rank());	
 	ofstreamT out(file);
 	out.precision(14);
 
@@ -527,7 +529,7 @@ void CCNSMatrixT::PrintLHS(bool force) const
 	for (int r = 0; r < fLocNumEQ; r++)
 		for (int c = 0; c < fLocNumEQ; c++)
 		{
-			double value = (*this)(r,c);
+			double value = Element(r,c);
 			if (value != 0.0) {
 				out << r+1 << " " << c+1 << " " << value << '\n';
 				if (r != c) out << c+1 << " " << r+1 << " " << value << '\n';

@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.h,v 1.16 2005-02-04 22:01:54 paklein Exp $ */
+/* $Id: DiagonalMatrixT.h,v 1.17 2005-04-13 21:49:58 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _DIAGONAL_MATRIX_H_
@@ -23,7 +23,7 @@ public:
                         kAbsRowSum  = 2  /**< assemble the L1 norm of the row */};
 
 	/** constructors */
-	DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mode);
+	DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mode, const CommunicatorT& comm);
 
 	/** copy constructor */
 	DiagonalMatrixT(const DiagonalMatrixT& source);

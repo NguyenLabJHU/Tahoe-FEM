@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.h,v 1.17 2005-02-04 22:01:54 paklein Exp $ */
+/* $Id: FullMatrixT.h,v 1.18 2005-04-13 21:49:58 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #ifndef _FULL_MATRIX_T_H_
@@ -18,7 +18,7 @@ class FullMatrixT: public GlobalMatrixT
 public:
 
 	/** constructor */
-	FullMatrixT(ostream& out, int check_code);
+	FullMatrixT(ostream& out, int check_code, const CommunicatorT& comm);
 
 	/** copy constructor */
 	FullMatrixT(const FullMatrixT& source);

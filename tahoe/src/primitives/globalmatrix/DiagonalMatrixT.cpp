@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.20 2005-02-04 22:01:54 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.21 2005-04-13 21:49:58 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "DiagonalMatrixT.h"
 #include <iostream.h>
@@ -6,12 +6,16 @@
 #include "toolboxConstants.h"
 #include "iArrayT.h"
 #include "ElementMatrixT.h"
+#include "StringT.h"
+#include "ofstreamT.h"
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-DiagonalMatrixT::DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mode):
-	GlobalMatrixT(out, check_code),
+DiagonalMatrixT::DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mode, 
+	const CommunicatorT& comm):
+	GlobalMatrixT(out, check_code, comm),
 	fIsFactorized(false)
 {
 	try { SetAssemblyMode(mode); }
@@ -357,7 +361,18 @@ void DiagonalMatrixT::PrintZeroPivots(void) const
 void DiagonalMatrixT::PrintLHS(bool force) const
 {
 	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
-		
-	fOut << "\nLHS matrix:\n\n";
-	fOut << fMatrix << "\n\n";
+
+	/* output stream */
+	StringT file = fstreamT::Root();
+	file.Append("DiagonalMatrixT.LHS.", sOutputCount);
+	if (fComm.Size() > 1) file.Append(".p", fComm.Rank());		
+	ofstreamT out(file);
+	out.precision(14);
+
+	/* write non-zero values in RCV format */
+	for (int i = 0; i < fLocNumEQ; i++)
+		out << i+1 << " " << i+1 << " " << fMatrix[i] << '\n';	
+
+	/* increment count */
+	sOutputCount++;
 }
