@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.20 2005-02-25 15:41:34 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.21 2005-04-13 17:40:37 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
 #include <iostream.h>
@@ -7,6 +7,8 @@
 #include "dArrayT.h"
 #include "iArrayT.h"
 #include "ElementMatrixT.h"
+#include "StringT.h"
+#include "ofstreamT.h"
 
 using namespace Tahoe;
 
@@ -367,7 +369,19 @@ void FullMatrixT::PrintZeroPivots(void) const
 void FullMatrixT::PrintLHS(bool force) const
 {
 	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
-		
-	fOut << "\nLHS matrix:\n\n";
-	fOut << fMatrix << "\n\n";
+
+	/* output stream */
+	StringT file = fstreamT::Root();
+	file.Append("FullMatrixT.LHS.", sOutputCount);
+	ofstreamT out(file);
+	out.precision(14);
+
+	/* write non-zero values in RCV format */
+	for (int r = 0; r < fMatrix.Rows(); r++)
+		for (int c = 0; c < fMatrix.Cols(); c++)
+			if (fMatrix(r,c) != 0.0)
+				out << r+1 << " " << c+1 << " " << fMatrix(r,c) << '\n';
+	
+	/* increment count */
+	sOutputCount++;
 }

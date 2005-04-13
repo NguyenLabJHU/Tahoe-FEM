@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.18 2005-02-25 15:41:04 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.19 2005-04-13 17:40:37 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #ifndef _GLOBAL_MATRIX_H_
 #define _GLOBAL_MATRIX_H_
@@ -198,6 +198,9 @@ protected:
 	int	fLocNumEQ;
 	int fStartEQ; //1,...
 	/*@}*/
+	
+	/** number output counts */
+	static int sOutputCount;
 };
 
 /* return the check code */

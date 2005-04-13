@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.21 2005-02-25 15:41:04 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.22 2005-04-13 17:40:37 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "GlobalMatrixT.h"
 #include <iostream.h>
@@ -8,6 +8,9 @@
 #include "dArrayT.h"
 
 using namespace Tahoe;
+
+/* initialize static data */
+int GlobalMatrixT::sOutputCount = 0;
 
 /* cconstructor */
 GlobalMatrixT::GlobalMatrixT(ostream& out, int check_code):
