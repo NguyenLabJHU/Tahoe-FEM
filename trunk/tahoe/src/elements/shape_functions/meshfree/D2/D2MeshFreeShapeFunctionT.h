@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.h,v 1.8 2005-02-16 21:41:36 paklein Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.h,v 1.9 2005-04-13 00:09:23 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D2_MF_SHAPE_T_H_
 #define _D2_MF_SHAPE_T_H_
@@ -34,6 +34,7 @@ public:
 
 	/* 2nd order spatial gradients */
 	void GradGradU(const LocalArrayT& nodal, dMatrixT& gradgrad_U) const;
+	void GradGradU(const LocalArrayT& nodal, dMatrixT& gradgrad_U, int ip) const;
 	
 	/* 2nd derivatives of shape functions at IP */
 	const dArray2DT& DDerivatives_U(int ip) const { return fDDNaU[ip]; };
@@ -60,7 +61,19 @@ protected:
 inline void D2MeshFreeShapeFunctionT::GradGradU(const LocalArrayT& nodal,
 	dMatrixT& gradgrad_U) const
 {
+	int row = nodal.MinorDim();
+	int col = fDDNaU[fCurrIP].MajorDim(); 
+	gradgrad_U.Dimension(row, col);
 	fDomain->Jacobian(nodal, fDDNaU[fCurrIP], gradgrad_U);	
+}
+
+inline void D2MeshFreeShapeFunctionT::GradGradU(const LocalArrayT& nodal,
+	dMatrixT& gradgrad_U, int ip) const
+{
+	int row = nodal.MinorDim();
+	int col = fDDNaU[ip].MajorDim(); 
+	gradgrad_U.Dimension(row, col);
+	fDomain->Jacobian(nodal, fDDNaU[ip], gradgrad_U);	
 }
 
 } // namespace Tahoe 
