@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.30 2005-04-05 18:25:40 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.31 2005-04-13 17:39:59 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -219,6 +219,7 @@ void SolverT::DefineParameters(ParameterListT& list) const
 	ParameterT check_code(ParameterT::Enumeration, "check_code");
 	check_code.AddEnumeration("no_check", GlobalMatrixT::kNoCheck);
 	check_code.AddEnumeration("small_pivots", GlobalMatrixT::kZeroPivots);
+	check_code.AddEnumeration("all_pivots", GlobalMatrixT::kAllPivots);
 	check_code.AddEnumeration("print_LHS", GlobalMatrixT::kPrintLHS);
 	check_code.AddEnumeration("print_RHS", GlobalMatrixT::kPrintRHS);
 	check_code.AddEnumeration("print_solution", GlobalMatrixT::kPrintSolution);
@@ -262,6 +263,12 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& name) const
 
 #ifdef __SPOOLES__
 		ParameterContainerT SPOOLES("SPOOLES_matrix");
+		ParameterT message_level(ParameterT::Enumeration, "message_level");
+		message_level.AddEnumeration("silent", 0);
+		message_level.AddEnumeration("timing", 1);
+		message_level.AddEnumeration("verbose", 99);
+		message_level.SetDefault(0);
+		SPOOLES.AddParameter(message_level);
 		ParameterT enable_pivoting(ParameterT::Boolean, "enable_pivoting");
 		enable_pivoting.SetDefault(true);
 		SPOOLES.AddParameter(enable_pivoting);
@@ -560,6 +567,7 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 		GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
 
 		/* solver options */
+		int message_level = params.GetParameter("message_level");
 		bool pivoting = params.GetParameter("enable_pivoting");
 		bool always_symmetric = params.GetParameter("always_symmetric");
 		bool symmetric;
@@ -585,7 +593,7 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 			int num_threads = params.GetParameter("num_threads");
 		
 #ifdef __SPOOLES_MT__
-				fLHS = new SPOOLESMatrixT_MT(out, check_code, symmetric, pivoting, num_threads);
+				fLHS = new SPOOLESMatrixT_MT(out, check_code, symmetric, pivoting, message_level, num_threads);
 #else /* __SPOOLES_MT__ */
 				ExceptionT::GeneralFail(caller, "SPOOLES MPI not installed");
 #endif /* __SPOOLES_MT__ */
@@ -596,16 +604,16 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 			if (fFEManager.Size() > 1)
 			{
 #ifdef __SPOOLES_MPI__
-				fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting, fFEManager.Communicator());
+				fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting, message_level, fFEManager.Communicator());
 #else /* __SPOOLES_MPI__ */
 				ExceptionT::GeneralFail(caller, "SPOOLES MPI not installed");
 #endif /* __SPOOLES_MPI__ */
 			}
 			else /* single processor with MPI-enabled code */
-				fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
+				fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting, message_level);
 #else /* __TAHOE_MPI__ */
 			/* constuctor */
-			fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
+			fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting, message_level);
 #endif /* __TAHOE_MPI__ */
 		}
 #else /* __SPOOLES__ */
