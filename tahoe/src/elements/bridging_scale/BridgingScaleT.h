@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.36 2005-03-11 20:36:47 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.37 2005-04-13 22:15:35 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -8,7 +8,6 @@
 /* direct members */
 #include "RaggedArray2DT.h"
 #include "ElementMatrixT.h"
-#include "CCSMatrixT.h"
 #include "LocalArrayT.h"
 
 namespace Tahoe {
@@ -17,6 +16,7 @@ namespace Tahoe {
 class PointInCellDataT;
 class SolidElementT;
 class ShapeFunctionT;
+class CCSMatrixT;
 
 /** class to handle interpolation of data from the nodes to an arbitrary set of
  * points and from a arbitrary set of points into the nodes. */
@@ -27,8 +27,8 @@ public:
 	/** constructor */
 	BridgingScaleT(const ElementSupportT& support);
 
-//	BridgingScaleT(const ElementSupportT& support, const FieldT& field,
-//		const SolidElementT& solid);
+	/** destructor */
+	virtual ~BridgingScaleT(void);
 
 	/** \name field interpolation */
 	/*@{*/
@@ -222,7 +222,7 @@ protected:
 	int fTotalNodes;
 	iArray2DT fConnect, fAtomConnect;
 	ElementMatrixT fElMatU;
-	CCSMatrixT fGlobalMass;
+	CCSMatrixT* fGlobalMass;
 
 	/* output control */
 	iArrayT	fNodalOutputCodes;
