@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.h,v 1.6 2005-04-12 15:34:07 paklein Exp $ */
+/* $Id: MFAugLagMultT.h,v 1.7 2005-04-13 17:10:20 cjkimme Exp $ */
 #ifndef _MF_AUG_LAG_MULT_T_H_
 #define _MF_AUG_LAG_MULT_T_H_
 
@@ -29,8 +29,7 @@ class FieldT;
 class StringT;
 class SCNIMFT;
 
-/** rigid barrier with augmented Lagrangian enforcement of
- * non-interpenetration */
+/** augmented Lagrangian enforcement of KBC's */
 class MFAugLagMultT: public FBC_ControllerT, public DOFElementT
 {
 public:
@@ -133,20 +132,11 @@ private:
 
 protected:
 
-	/** nodemanager */
-//	XDOF_ManagerT* fXDOF_Nodes;
 	
 	int fNumConstrainedDOFs; // This the number of LaGrange multipliers
 	
-	/** \name references to NodeManagerT data */
+	/** \name constraint force node and equation numbers */
 	/*@{*/
-//	const iArray2DT& rEqnos;  /**< nodal equation numbers */
-//	const dArray2DT& rDisp;   /**< nodal displacement */
-	/*@}*/
-	
-	/** \name contact force node and equation numbers */
-	/*@{*/
-	//iArrayT fConstraintNodes, fLocallyNumberedConstraintNodes;
 	iArrayT fConstraintEqnos;
 	int fNumEqs;
 
@@ -215,9 +205,7 @@ protected:
 	/*@{*/	
 	/** output ID */
 	int fOutputID;
-	
-	/** "connectivities" for output, just alias of PenaltyRegionT::fContactNodes */
-	
+		
 	/*@}*/	
 };
 
