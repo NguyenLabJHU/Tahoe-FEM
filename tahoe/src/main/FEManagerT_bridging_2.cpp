@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.10 2005-03-11 20:41:46 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.11 2005-04-13 17:38:14 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -158,7 +158,7 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 
 	/* works space that changes for each bond family */
 #ifdef __SPOOLES__
-	SPOOLESMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots, true, true);
+	SPOOLESMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots, true, true, 0);
 #else
 	CCSMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots);
 #endif	
