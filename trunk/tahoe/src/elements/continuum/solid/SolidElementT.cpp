@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.73 2005-03-17 21:23:11 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.74 2005-04-13 21:51:33 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -532,7 +532,7 @@ double SolidElementT::MaxEigenvalue(void)
 		ExceptionT::GeneralFail("SolidElementT::MaxEigenvalue", "mass matrix must be lumped");
 
 	/* set up K */
-	CCSMatrixT K(ElementSupport().Output(), CCSMatrixT::kNoCheck);
+	CCSMatrixT K(ElementSupport().Output(), CCSMatrixT::kNoCheck, ElementSupport().Communicator());
 	
 	/* collection equation numbers */
 	AutoArrayT<const iArray2DT*> eq_1;

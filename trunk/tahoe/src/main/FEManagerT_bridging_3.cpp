@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_3.cpp,v 1.6 2005-03-11 20:41:46 paklein Exp $ */
+/* $Id: FEManagerT_bridging_3.cpp,v 1.7 2005-04-13 21:51:40 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -110,7 +110,7 @@ void FEManagerT_bridging::CorrectOverlap_3(const RaggedArray2DT<int>& point_neig
 	bond_densities = 1.0;
 
 	/* works space that changes for each bond family */
-	CCSMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots);
+	CCSMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots, fComm);
 	dArrayT rhs;
 	VariArrayT<double> rhs_man(0, rhs);
 	

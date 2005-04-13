@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.31 2005-04-13 17:39:59 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.32 2005-04-13 21:51:48 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -538,11 +538,14 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 
 	/* streams */
 	ofstreamT& out = fFEManager.Output();
+	
+	/* MP support */
+	const CommunicatorT& comm = fFEManager.Communicator();
 
 	/* resolve matrix type */
 	if (params.Name() == "diagonal_matrix")
 	{
-		DiagonalMatrixT* diag = new DiagonalMatrixT(out, check_code, DiagonalMatrixT::kNoAssembly);
+		DiagonalMatrixT* diag = new DiagonalMatrixT(out, check_code, DiagonalMatrixT::kNoAssembly, comm);
 		diag->SetAssemblyMode(DiagonalMatrixT::kDiagOnly);
 		fLHS = diag;
 	}
@@ -552,14 +555,14 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 		GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
 		
 		if (type == GlobalT::kNonSymmetric)
-			fLHS = new CCNSMatrixT(out, check_code);
+			fLHS = new CCNSMatrixT(out, check_code, comm);
 		else if (type == GlobalT::kSymmetric)
-			fLHS = new CCSMatrixT(out, check_code);
+			fLHS = new CCSMatrixT(out, check_code, comm);
 		else
 			ExceptionT::GeneralFail(caller, "system type %d not compatible with matrix %d", type, kProfileSolver);
 	}
 	else if (params.Name() == "full_matrix")
-		fLHS = new FullMatrixT(out, check_code);
+		fLHS = new FullMatrixT(out, check_code, comm);
 	else if (params.Name() == "SPOOLES_matrix" || params.Name() == "SPOOLES_MT_matrix")
 	{
 #ifdef __SPOOLES__
@@ -593,7 +596,7 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 			int num_threads = params.GetParameter("num_threads");
 		
 #ifdef __SPOOLES_MT__
-				fLHS = new SPOOLESMatrixT_MT(out, check_code, symmetric, pivoting, message_level, num_threads);
+				fLHS = new SPOOLESMatrixT_MT(out, check_code, symmetric, pivoting, message_level, num_threads, comm);
 #else /* __SPOOLES_MT__ */
 				ExceptionT::GeneralFail(caller, "SPOOLES MPI not installed");
 #endif /* __SPOOLES_MT__ */
@@ -604,16 +607,16 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 			if (fFEManager.Size() > 1)
 			{
 #ifdef __SPOOLES_MPI__
-				fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting, message_level, fFEManager.Communicator());
+				fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting, message_level, comm);
 #else /* __SPOOLES_MPI__ */
 				ExceptionT::GeneralFail(caller, "SPOOLES MPI not installed");
 #endif /* __SPOOLES_MPI__ */
 			}
 			else /* single processor with MPI-enabled code */
-				fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting, message_level);
+				fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting, message_level, comm);
 #else /* __TAHOE_MPI__ */
 			/* constuctor */
-			fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting, message_level);
+			fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting, message_level, comm);
 #endif /* __TAHOE_MPI__ */
 		}
 #else /* __SPOOLES__ */
@@ -637,7 +640,7 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 				ExceptionT::GeneralFail(caller, "unexpected system type: %d", type);
 
 			/* construct */
-			fLHS = new SuperLUMatrixT(out, check_code, symmetric);
+			fLHS = new SuperLUMatrixT(out, check_code, symmetric, comm);
 #else /* no __SUPERLU__ */
 			ExceptionT::GeneralFail(caller, "SuperLU not installed");
 #endif /* __SUPERLU__*/
@@ -646,7 +649,7 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 		{
 #ifdef __SUPERLU_DIST__
 			/* construct */
-			fLHS = new SuperLU_DISTMatrixT(out, check_code, fFEManager.Communicator());
+			fLHS = new SuperLU_DISTMatrixT(out, check_code, comm);
 #else /* no __SUPERLU_DIST__ */
 			ExceptionT::GeneralFail(caller, "SuperLU_DIST not installed");
 #endif /* __SUPERLU_DIST__*/
@@ -656,7 +659,7 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 	{
 #ifdef __PSPASES__
 		/* construct */
-		fLHS = new PSPASESMatrixT(out, check_code, fFEManager.Communicator());
+		fLHS = new PSPASESMatrixT(out, check_code, comm);
 #else
 		ExceptionT::GeneralFail(caller, " PSPASES solver not installed");
 #endif /* __PSPASES__ */
@@ -665,7 +668,7 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 	{
 #ifdef __AZTEC__
 			/* construct */
-			fLHS = new AztecMatrixT(out, check_code, fFEManager.Communicator(), params);
+			fLHS = new AztecMatrixT(out, check_code, comm, params);
 #else
 			ExceptionT::GeneralFail(caller, "Aztec solver not installed: %d", fMatrixType);
 #endif /* __AZTEC__ */
