@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.17 2005-04-13 17:38:48 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.18 2005-04-13 17:49:50 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "SPOOLESMatrixT_mpi.h"
 
@@ -189,7 +189,7 @@ void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 		 0: nothing
 		 1: scalar output (timing data) only
 		>1: verbose */
-	int msglvl = MESSAGE_LEVEL; 
+	int msglvl = (fMessageLevel < 0) ? 0 : fMessageLevel;
 
 	/* message file name */
 	StringT spooles_file(SPOOLES_FILE_ROOT);
