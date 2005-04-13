@@ -99,11 +99,15 @@ void LatticeOrient::AssignEulerAngles(int kcode, int nelem, int nint,
       throwRunTimeError("LatticeOrient::AssignEulerAngles: Bad kcode");
     }
 
+    // open output file for texture
+    fTextOut.open_append(fOutFilename);
+    SetStreamPrefs(fTextOut);
+
     // print initial assigned orientations
-    // fTextOut << "\nINITIAL ASSIGNED ORIENTATIONS " << endl;
-    // fTextOut << "   ang1      ang2      ang3    elem   intpt   ngrn " << endl;
+    fTextOut << "\nINITIAL ASSIGNED ORIENTATIONS " << endl;
+    fTextOut << "   ang1      ang2      ang3    elem   intpt   ngrn " << endl;
   
-    /*for (int ie = 0; ie < nelem; ie++)
+    for (int ie = 0; ie < nelem; ie++)
       for (int ip = 0; ip < nint; ip++)
         for (int ig = 0; ig < ngrn; ig++)
           {
@@ -112,8 +116,10 @@ void LatticeOrient::AssignEulerAngles(int kcode, int nelem, int nint,
                       << angles[1]/pi180 << "  " 
                       << angles[2]/pi180 << "    " 
                       << ie << "   " << ip << "   " << ig << endl;
-          }   
-    */
+          }
+
+     // close file
+     fTextOut.close();   
 }
 
 void LatticeOrient::WriteTexture(int group, int elem, int intpt, int ngrn,
