@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.51 2005-04-13 21:51:27 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.52 2005-04-13 22:15:35 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -15,6 +15,7 @@
 #include "iNodeT.h"
 #include "nArrayGroupT.h"
 #include "PointInCellDataT.h"
+#include "CCSMatrixT.h"
 
 using namespace Tahoe;
 
@@ -25,9 +26,15 @@ BridgingScaleT::BridgingScaleT(const ElementSupportT& support):
 	fElMatU(ElementMatrixT::kSymmetric),
 	fLocInitCoords(LocalArrayT::kInitCoords),
 	fLocDisp(LocalArrayT::kDisp),
-	fGlobalMass(support.Output(), 1, support.Communicator())
+	//fGlobalMass(support.Output(), 1, support.Communicator())
+	fGlobalMass(NULL)
 {
 	SetName("bridging");
+}
+
+/* destructor */
+BridgingScaleT::~BridgingScaleT(void) {
+	delete fGlobalMass;
 }
 
 /* map coordinates into elements */
@@ -309,10 +316,11 @@ void BridgingScaleT::InitProjection(CommManagerT& comm, const iArrayT& points_us
 	tmp_shift++;
 
 	/* configure the matrix */
+	if (!fGlobalMass) fGlobalMass = new CCSMatrixT(ElementSupport().Output(), 1, ElementSupport().Communicator());
 	int num_projected_nodes = cell_nodes.Length();
-	fGlobalMass.AddEquationSet(cell_connects);
-	fGlobalMass.Initialize(num_projected_nodes, num_projected_nodes, 1);
-	fGlobalMass.Clear();
+	fGlobalMass->AddEquationSet(cell_connects);
+	fGlobalMass->Initialize(num_projected_nodes, num_projected_nodes, 1);
+	fGlobalMass->Clear();
 
 	/* points in cell data */
 	const RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
@@ -346,7 +354,7 @@ void BridgingScaleT::InitProjection(CommManagerT& comm, const iArrayT& points_us
 			cell_connects.RowAlias(cell_dex++, cell_eq);
 
 			/* assemble into matrix */
-			fGlobalMass.Assemble(fElMatU, cell_eq);
+			fGlobalMass->Assemble(fElMatU, cell_eq);
 		}
 	}
 
@@ -429,7 +437,7 @@ out << "\n residual =\n" << projection << endl;
 	for (int i = 0; i < projection.MinorDim(); i++)
 	{
 		projection.ColumnCopy(i, u_tmp);
-		fGlobalMass.Solve(u_tmp);
+		fGlobalMass->Solve(u_tmp);
 		projection.SetColumn(i, u_tmp);
 	}
 	u_tmp.Free();
@@ -541,7 +549,7 @@ void BridgingScaleT::CoarseField(const PointInCellDataT& cell_data, const dArray
 	for (int i = 0; i < coarse.MinorDim(); i++)
 	{
 		coarse.ColumnCopy(i, u_tmp);
-		non_const_this->fGlobalMass.Solve(u_tmp);
+		non_const_this->fGlobalMass->Solve(u_tmp);
 		coarse.SetColumn(i, u_tmp);
 	}
 }
@@ -659,7 +667,7 @@ out << "\n residual =\n" << projection << endl;
 	for (int i = 0; i < projection.MinorDim(); i++)
 	{
 		projection.ColumnCopy(i, u_tmp);
-		fGlobalMass.Solve(u_tmp);
+		fGlobalMass->Solve(u_tmp);
 		projection.SetColumn(i, u_tmp);
 	}	
 
@@ -805,7 +813,7 @@ out << "\n residual =\n" << projection << endl;
 	for (int i = 0; i < projection.MinorDim(); i++)
 	{
 		projection.ColumnCopy(i, u_tmp);
-		fGlobalMass.Solve(u_tmp);
+		fGlobalMass->Solve(u_tmp);
 		projection.SetColumn(i, u_tmp);
 	}
 	u_tmp.Free();
