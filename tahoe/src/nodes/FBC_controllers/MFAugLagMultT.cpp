@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.cpp,v 1.7 2005-04-12 15:34:07 paklein Exp $ */
+/* $Id: MFAugLagMultT.cpp,v 1.8 2005-04-13 17:10:20 cjkimme Exp $ */
 #include "MFAugLagMultT.h"
 
 #ifdef CONTINUUM_ELEMENT
@@ -24,16 +24,7 @@ using namespace Tahoe;
 const int kMFAugLagDOF = 1;
 
 /* constructor */
-//MFAugLagMultT::MFAugLagMultT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
-//	const FieldT& field, const dArray2DT& coords, const dArray2DT& disp):
-//	FBC_ControllerT(fe_manager, field.Group()),
 MFAugLagMultT::MFAugLagMultT(void):
-
-	/* references to NodeManagerT data */
-//	rEqnos(field.Equations()),
-//	rDisp(disp),
-//	fXDOF_Nodes(XDOF_nodes),
-//	fField(field),
 
 	fNumConstrainedDOFs(0),
 	
@@ -83,8 +74,8 @@ void MFAugLagMultT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	/* collect displacement DOF's */
 	iArrayT dofs(fNumConstrainedDOFs);
 	
-	fConstraintEqnos.Dimension(2*fNumEqs);
-	fConstraintEqnos2D.Set(fNumEqs, 2, fConstraintEqnos.Pointer());
+	fConstraintEqnos.Dimension(2*(fNumEqs+fNumConstrainedDOFs));
+	fConstraintEqnos2D.Set(fNumEqs+fNumConstrainedDOFs, 2, fConstraintEqnos.Pointer());
 	
 	fEqNos.Configure(fSupportSizes, 1);
 	
@@ -109,6 +100,9 @@ void MFAugLagMultT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 				*iptr++ = *rowptr++;
 				*iptr++ = *lagMultEqs;
 			}
+		// try explicitly telling the solver about the XDOF diagonal entries
+		*iptr++ = *lagMultEqs;
+		*iptr++ = *lagMultEqs;
 		ctr++;
 		lagMultEqs++;
 		}
@@ -310,6 +304,7 @@ void MFAugLagMultT::RegisterOutput(void)
 
 void MFAugLagMultT::WriteOutput(ostream& out) const
 {
+#pragma unused(out)
 	const FieldT& field = Field();
 	int ndof = field.NumDOF();
 	int num_output = 2*ndof;
