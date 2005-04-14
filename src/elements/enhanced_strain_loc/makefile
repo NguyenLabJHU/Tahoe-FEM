@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2005-04-14 16:43:49 raregue Exp $
+# $Id: makefile,v 1.5 2005-04-14 17:01:48 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,7 +20,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.2).
 #
 OBJ = \
-	SmallStrainEnhLocT.o 
+	SmallStrainEnhLocT.o \
 	SSEnhLocMatSupportT.o
 
 OBJ_LINK = $(OBJ)
@@ -41,7 +41,7 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	SmallStrainEnhLocT.cpp 
+	SmallStrainEnhLocT.cpp \
 	SSEnhLocMatSupportT.cpp
 
 ##################### (3) headers
@@ -54,7 +54,7 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	SmallStrainEnhLocT.h
+	SmallStrainEnhLocT.h \
 	SSEnhLocMatSupportT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
