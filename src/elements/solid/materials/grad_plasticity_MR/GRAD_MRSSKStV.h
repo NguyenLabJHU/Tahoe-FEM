@@ -40,8 +40,8 @@ class GRAD_MRSSKStV: public IsotropicT, public HookeanMatT
 	virtual void ResetHistory(void);
 	
 	/* initialize laplacian of strain and lambdaPM, and lambdaPM, all at ip */
-	void Initialize(ElementCardT& element, int ip, int n_ip, dSymMatrixT& strain_ip, dSymMatrixT& strain_lapl_ip, 
-					dArrayT& lambdaPM_ip, dArrayT& lambdaPM_lapl_ip);
+	void Initialize(ElementCardT& element, int ip, int n_ip, dSymMatrixT strain_ip, dSymMatrixT strain_lap_ip, 
+					dArrayT lambdaPM_ip, dArrayT lambdaPM_lap_ip);
 
 	/** returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(
@@ -88,6 +88,26 @@ class GRAD_MRSSKStV: public IsotropicT, public HookeanMatT
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
 
+	/** \name total strain */
+	/*@{*/
+	const dSymMatrixT& LinearStrain(void) const;
+	/*@}*/
+	
+	/** \name laplacian of total strain */
+	/*@{*/
+	const dSymMatrixT& LapLinearStrain(void) const;
+	/*@}*/
+	
+	/** \name total lambda */
+	/*@{*/
+	const dArrayT& LambdaPM(void) const;
+	/*@}*/
+	
+	/** \name laplacian of total lambda */
+	/*@{*/
+	const dArrayT& LapLambdaPM(void) const;
+	/*@}*/
+	
 	/* returns the number of variables computed for nodal extrapolation
 	 * during for element output, ie. internal variables */
 	virtual int  NumOutputVariables(void) const;
@@ -115,8 +135,8 @@ protected:
 	virtual void SetModulus(dMatrixT& modulus); 
 	int loccheck;
 	
-	dSymMatrixT	Strain_IP, Strain_Lapl_IP;
-    dArrayT lambdaPM, lambdaPM_Lapl;
+	dSymMatrixT	fStrain_IP, fLapStrain_IP;
+    dArrayT fLambdaPM_IP, fLapLambdaPM_IP;
     ElementCardT curr_element;
     int curr_ip, num_ip;
  
@@ -136,6 +156,30 @@ private:
     double      fYieldFunction; 
 
 };
+
+/* return total strains */
+inline const dSymMatrixT& GRAD_MRSSKStV::LinearStrain(void) const
+{
+	return fStrain_IP;
+}
+
+/* return laplacian of total strains */
+inline const dSymMatrixT& GRAD_MRSSKStV::LapLinearStrain(void) const
+{
+	return fLapStrain_IP;
+}
+
+/* return total lambdas */
+inline const dArrayT& GRAD_MRSSKStV::LambdaPM(void) const
+{
+	return fLambdaPM_IP;
+}
+
+/* return laplacian of total lambdas */
+inline const dArrayT& GRAD_MRSSKStV::LapLambdaPM(void) const
+{
+	return fLapLambdaPM_IP;
+}
 
 } // namespace Tahoe 
 #endif /* _GRAD_MR_SS_KSTV_H_ */

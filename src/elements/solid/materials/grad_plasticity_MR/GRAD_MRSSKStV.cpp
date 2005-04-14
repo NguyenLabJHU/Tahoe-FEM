@@ -66,13 +66,13 @@ void GRAD_MRSSKStV::ResetHistory(void)
 
 /* initialize laplacian of strain and lambda, and lambda, all at ip */
 void GRAD_MRSSKStV::Initialize(ElementCardT& element, int ip, int n_ip,
-                    dSymMatrixT& strain_ip, dSymMatrixT& strain_lapl_ip, 
-					dArrayT& lambdaPM_ip, dArrayT& lambdaPM_lapl_ip)
+                    dSymMatrixT strain_ip, dSymMatrixT strain_lap_ip, 
+					dArrayT lambda_ip, dArrayT lambda_lap_ip)
 {
-	Strain_IP = strain_ip;
-	Strain_Lapl_IP = strain_lapl_ip;
-    lambdaPM = lambdaPM_ip;
-    lambdaPM_Lapl = lambdaPM_lapl_ip;
+	fStrain_IP = strain_ip;
+	fLapStrain_IP = strain_lap_ip;
+    fLambdaPM_IP = lambda_ip;
+    fLapLambdaPM_IP = lambda_lap_ip;
     curr_element = element;
     curr_ip = ip;
     num_ip = n_ip;
@@ -111,7 +111,7 @@ const dMatrixT& GRAD_MRSSKStV::c_UU1_ijkl(void)
 
 const dMatrixT& GRAD_MRSSKStV::c_UU2_ijkl(void)
 {
-	fModulusUU2 =	fGRAD_MR->Moduli_UU2();
+	fModulusUU2 = fGRAD_MR->Moduli_UU2();
 	return fModulusUU2;
 }
 
@@ -147,7 +147,7 @@ const dMatrixT& GRAD_MRSSKStV::c_LamLam1(void)
 
 const dMatrixT& GRAD_MRSSKStV::c_LamLam2(void)
 {
-	fModulusLamLam2 =	fGRAD_MR->Moduli_LamLam2();
+	fModulusLamLam2 = fGRAD_MR->Moduli_LamLam2();
 	return fModulusLamLam2;
 }
 
@@ -163,11 +163,15 @@ const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 {
 	int ip = curr_ip;
 	ElementCardT& element = curr_element;
-	const dSymMatrixT& e_els = ElasticStrain(Strain_IP, element, ip);
-	const dSymMatrixT& lap_e_els = LapElasticStrain(Strain_Lapl_IP, element, ip);
+	const dSymMatrixT& eps = LinearStrain();
+	const dSymMatrixT& lap_eps = LapLinearStrain();
+	const dArrayT& lam = LambdaPM();
+	const dArrayT& lap_lam = LapLambdaPM();
+	const dSymMatrixT& e_els = ElasticStrain(eps, element, ip); 
+	const dSymMatrixT& lap_e_els = LapElasticStrain(lap_eps, element, ip);
 	
 	/* Updated Cauchy stress (return mapping) */
-	fStress = fGRAD_MR->StressCorrection(e_els, lap_e_els, lambdaPM, lambdaPM_Lapl, element, ip);
+	fStress = fGRAD_MR->StressCorrection(e_els, lap_e_els, lam, lap_lam, element, ip);
 	return fStress;	
 }
 
@@ -308,11 +312,15 @@ void GRAD_MRSSKStV::TakeParameterList(const ParameterListT& list)
 	HookeanMatT::TakeParameterList(list);
 	
 	fStress.Dimension(3);
+	fStrain_IP.Dimension(3);
+	fLapStrain_IP.Dimension(3);
+	fLambdaPM_IP.Dimension(1);
+	fLapLambdaPM_IP.Dimension(1);
 	fModulus.Dimension(dSymMatrixT::NumValues(3));
 	fModulusCe.Dimension(dSymMatrixT::NumValues(3));
 	fModulusPerfPlas.Dimension(dSymMatrixT::NumValues(3));
 	//fYieldFunction(0.0); // kyonten
-
+	
 	/* construct GRAD_MR solver */
 	fGRAD_MR = new GRAD_MRSSNLHardT(num_ip, Mu(), Lambda());
 	fGRAD_MR->TakeParameterList(list.GetList("GRAD_MR_SS_nonlinear_hardening"));

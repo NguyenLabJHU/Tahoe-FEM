@@ -51,7 +51,7 @@ public:
 	/* return correction to stress vector computed by mapping the
 	 * stress back to the yield surface, if needed */
 	const dSymMatrixT& StressCorrection(const dSymMatrixT& trialstrain,
-	    const dSymMatrixT& lap_trialstrain, dArrayT& dlambda, dArrayT& lap_dlambda,  
+	    const dSymMatrixT& lap_trialstrain, const dArrayT& dlambda, const dArrayT& lap_dlambda,  
 		ElementCardT& element, int ip); // dlam and lap_dlam at the ip     
 		
 	double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);

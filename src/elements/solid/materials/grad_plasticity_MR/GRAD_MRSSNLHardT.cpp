@@ -82,7 +82,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::LapElasticStrain(const dSymMatrixT& lap_tot
 /* return correction to stress vector computed by mapping the
  * stress back to the yield surface, if needed */
 const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialstrain, 
-                  const dSymMatrixT& lap_trialstrain, dArrayT& dlambda, dArrayT& lap_dlambda,
+                  const dSymMatrixT& lap_trialstrain, const dArrayT& dlambda, const dArrayT& lap_dlambda,
                   ElementCardT& element, int ip)
 {	
 
