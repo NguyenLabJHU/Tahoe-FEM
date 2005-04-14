@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.23 2005-03-11 20:51:30 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.24 2005-04-14 01:17:46 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -158,6 +158,10 @@ public:
 	 * request cannot be completed */
 	const ParameterListT& GetList(const char* name, int instance = 0) const;
 
+	/** access to a specific occurrence of a list. Method throws an exception of the
+	 * request cannot be completed */
+	const ParameterListT& GetList(int instance) const;
+
 	/** \name retrieving parameter values 
 	 * Methods throw ExceptionT::kGeneralFail if the parameter is not found. */
 	/*@{*/
@@ -279,6 +283,17 @@ inline const ParameterListT& ParameterListT::GetList(const char* name, int insta
 	if (!list) ExceptionT::GeneralFail("ParameterListT::GetList", "occurrence %d of list \"%s\" not found in \"%s\"",
 		instance + 1, name, Name().Pointer());
 	return *list;
+}
+
+/* access to a specific occurrence of a list. Method throws an exception of the 
+ * request cannot be completed */
+inline const ParameterListT& ParameterListT::GetList(int instance) const
+{
+	if (instance < 0 || instance >= fParameterLists.Length())
+		ExceptionT::OutOfRange("ParameterListT::GetList", 
+			"instance %d is out of range in \"%s\"",
+			instance, Name().Pointer());
+	return fParameterLists[instance];
 }
 
 inline ParameterT* ParameterListT::Parameter(const char* name)
