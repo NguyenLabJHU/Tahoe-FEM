@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.cpp,v 1.8 2005-04-13 17:10:20 cjkimme Exp $ */
+/* $Id: MFAugLagMultT.cpp,v 1.9 2005-04-14 00:35:32 cjkimme Exp $ */
 #include "MFAugLagMultT.h"
 
 #ifdef CONTINUUM_ELEMENT
@@ -94,8 +94,8 @@ void MFAugLagMultT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	int* iptr = fConstraintEqnos.Pointer();
 	ctr = 0;
 	for (int i = 0; i < fNodeSets.MajorDim(); i++) {
-		int* rowptr = fEqNos(i);
 		for (int j = 0; j < fNodeSets.MinorDim(i); j++) {
+			int* rowptr = fEqNos(ctr);
 			for (int k = 0; k < fSupportSizes[ctr]; k++) { 	
 				*iptr++ = *rowptr++;
 				*iptr++ = *lagMultEqs;
