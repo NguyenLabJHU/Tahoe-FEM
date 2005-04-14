@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.113 2005-04-06 23:13:27 thao Exp $ */
+/* $Id: ElementListT.cpp,v 1.114 2005-04-14 01:19:50 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -102,6 +102,7 @@
 #include "MultiplierContactElement2DT.h"
 #include "PenaltyContactElement2DT.h"
 #include "PenaltyContactElement3DT.h"
+#include "FrictionalContactElement2DT.h"
 #endif
 
 #ifdef BEM_ELEMENT_DEV
@@ -340,6 +341,14 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("updated_lagrangian_mixture");
 		sub_lists.AddSub("mixture_species");
 #endif
+
+#ifdef CONTACT_ELEMENT_DEV
+		sub_lists.AddSub("Jones_penalty_contact_2D");
+		sub_lists.AddSub("Jones_penalty_contact_3D");
+		sub_lists.AddSub("Jones_multiplier_contact_2D");
+		sub_lists.AddSub("Jones_multiplier_contact_3D");
+		sub_lists.AddSub("Jones_frictional_contact_2D");
+#endif
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
@@ -545,6 +554,19 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #if defined(SOLID_ELEMENT_DEV) && defined(MATERIAL_FORCE_ELEMENT_DEV)
 	else if (name == "small_strain_material_force")
 		return new SSMF(fSupport);
+#endif
+
+#ifdef CONTACT_ELEMENT_DEV
+	else if (name == "Jones_penalty_contact_2D")
+		return new PenaltyContactElement2DT(fSupport);
+	else if (name == "Jones_penalty_contact_3D")
+		return new PenaltyContactElement3DT(fSupport);
+	else if (name == "Jones_multiplier_contact_2D")
+		return new MultiplierContactElement2DT(fSupport);
+	else if (name == "Jones_multiplier_contact_3D")
+		return new MultiplierContactElement3DT(fSupport);
+	else if (name == "Jones_frictional_contact_2D")
+		return new FrictionalContactElement2DT(fSupport);
 #endif
 
 	/* default */	
