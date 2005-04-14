@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.h,v 1.13 2005-04-08 19:22:46 raregue Exp $ */
+/* $Id: DPSSKStVLoc.h,v 1.14 2005-04-14 16:45:07 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_H_
 #define _DP_SS_KSTV_LOC_H_
@@ -11,6 +11,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class DPSSLinHardLocT;
+class SSEnhLocMatSupportT;
 
 class DPSSKStVLoc: public SSIsotropicMatT, public HookeanMatT
 {
@@ -102,6 +103,9 @@ private:
 
 	/** Drucker-Prager plasticity with linear hardening and localization*/
 	DPSSLinHardLocT* fDP;
+	
+	// pointer to material support
+	const SSEnhLocMatSupportT* fSSEnhLocMatSupport;
   
 	/* return values */
 	dSymMatrixT	fStress;

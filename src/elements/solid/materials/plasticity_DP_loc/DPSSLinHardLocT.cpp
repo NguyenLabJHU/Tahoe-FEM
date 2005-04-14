@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardLocT.cpp,v 1.7 2005-04-08 19:22:46 raregue Exp $ */
+/* $Id: DPSSLinHardLocT.cpp,v 1.8 2005-04-14 16:45:07 raregue Exp $ */
 /* created: myip (06/01/1999)                                        */
 
 /*
@@ -144,12 +144,13 @@ const dSymMatrixT& DPSSLinHardLocT::StressCorrection(
 		}
 		else 
 			dgamma = 0.0;
+		
 		if (fEta != 0.0)
-		  {
-		    double timeFactor = dt/fEta;//(fKStV -> fSSMatSupport->TimeStep())/fEta;
+		{
+			double timeFactor = dt/fEta;//(fKStV -> fSSMatSupport->TimeStep())/fEta;
 
-		    fStressCorr *= timeFactor/(1.0+timeFactor);
-		  }
+			fStressCorr *= timeFactor/(1.0+timeFactor);
+		}
 	}
 		
 	return fStressCorr;

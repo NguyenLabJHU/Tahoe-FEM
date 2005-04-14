@@ -1,7 +1,7 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.19 2005-04-12 18:14:15 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.20 2005-04-14 16:45:07 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
-#include "SSMatSupportT.h"
+#include "SSEnhLocMatSupportT.h"
 #include "DPSSLinHardLocT.h"
 
 #include "ElementCardT.h"
@@ -29,7 +29,8 @@ static const char* Labels[kNumOutput] = {
 DPSSKStVLoc::DPSSKStVLoc(void):
 	ParameterInterfaceT("small_strain_StVenant_DP_Loc"),
 	HookeanMatT(3),
-	fDP(NULL)
+	fDP(NULL),
+	fSSEnhLocMatSupport(NULL)
 {
  
 }
@@ -117,11 +118,11 @@ const dSymMatrixT& DPSSKStVLoc::s_ij(void)
 	int element_locflag = 0;
 	if (element.IsAllocated()) 
 	{
-		element_locflag = fSSMatSupport->ElementLocflag();
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
 	}
 	if ( element_locflag == 2 )
 	{
-		fStress = fSSMatSupport->ElementStress(ip);
+		fStress = fSSEnhLocMatSupport->ElementStress(ip);
 	}
 	else
 	{
@@ -341,6 +342,9 @@ void DPSSKStVLoc::TakeParameterList(const ParameterListT& list)
 	/* construct Drucker-Prager solver */
 	fDP = new DPSSLinHardLocT(NumIP(), Mu(), Lambda());
 	fDP->TakeParameterList(list.GetList("DP_Loc_SS_linear_hardening"));
+		
+	/* cast to small strain embedded discontinuity material pointer */
+	fSSEnhLocMatSupport = TB_DYNAMIC_CAST(const SSEnhLocMatSupportT*, fSSMatSupport);
 }
 
 /*************************************************************************
