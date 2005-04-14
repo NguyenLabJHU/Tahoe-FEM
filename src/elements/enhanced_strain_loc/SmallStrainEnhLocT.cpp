@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.22 2005-04-12 18:15:42 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.23 2005-04-14 16:43:49 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -7,11 +7,9 @@
 #include "SSSolidMatList1DT.h"
 #include "SSSolidMatList2DT.h"
 #include "SSSolidMatList3DT.h"
-#include "SSMatSupportT.h"
+#include "SSEnhLocMatSupportT.h"
 #include "ParameterContainerT.h"
 #include "ModelManagerT.h"
-
-//#include "BasicSupportT.h"
 
 using namespace Tahoe;
 
@@ -28,7 +26,7 @@ bool SmallStrainEnhLocT::fDeBug = true;
 SmallStrainEnhLocT::SmallStrainEnhLocT(const ElementSupportT& support):
 	SolidElementT(support),
 	fNeedsOffset(-1),
-	fSSMatSupport(NULL)
+	fSSEnhLocMatSupport(NULL)
 {
 	SetName("small_strain_enh_loc");
 }
@@ -36,7 +34,7 @@ SmallStrainEnhLocT::SmallStrainEnhLocT(const ElementSupportT& support):
 /* destructor */
 SmallStrainEnhLocT::~SmallStrainEnhLocT(void)
 {
-	delete fSSMatSupport;
+	delete fSSEnhLocMatSupport;
 }
 
 
@@ -62,7 +60,7 @@ void SmallStrainEnhLocT::InitStep(void)
 		ss_enh_out	<< endl 
 					<< setw(outputFileWidth) << "time_step"
 					<< endl;
-		int step = fSSMatSupport->StepNumber();
+		int step = fSSEnhLocMatSupport->StepNumber();
 		ss_enh_out	<< setw(outputFileWidth) << step
 					<< endl;	
 	}
@@ -600,14 +598,15 @@ void SmallStrainEnhLocT::CollectMaterialInfo(const ParameterListT& all_params, P
 /* construct a new material support and return a pointer */
 MaterialSupportT* SmallStrainEnhLocT::NewMaterialSupport(MaterialSupportT* p) const
 {
-	/* allocate */
-	if (!p) p = new SSMatSupportT(NumDOF(), NumIP());
+	
+	// allocate
+	if (!p) p = new SSEnhLocMatSupportT(NumDOF(), NumIP());
 
-	/* inherited initializations */
+	// inherited initializations
 	SolidElementT::NewMaterialSupport(p);
 	
-	/* set SolidMatSupportT fields */
-	SSMatSupportT* ps = TB_DYNAMIC_CAST(SSMatSupportT*, p);
+	// set SSEnhLocMatSupportT fields
+	SSEnhLocMatSupportT* ps = TB_DYNAMIC_CAST(SSEnhLocMatSupportT*, p);
 	if (ps) {
 		ps->SetLinearStrain(&fStrain_List);
 		ps->SetLinearStrain_last(&fStrain_last_List);
@@ -635,18 +634,18 @@ MaterialListT* SmallStrainEnhLocT::NewMaterialList(const StringT& name, int size
 	if (size > 0)
 	{
 		/* material support */
-		if (!fSSMatSupport) {
-			fSSMatSupport = TB_DYNAMIC_CAST(SSMatSupportT*, NewMaterialSupport());
-			if (!fSSMatSupport)
+		if (!fSSEnhLocMatSupport) {
+			fSSEnhLocMatSupport = TB_DYNAMIC_CAST(SSEnhLocMatSupportT*, NewMaterialSupport());
+			if (!fSSEnhLocMatSupport)
 				ExceptionT::GeneralFail("SmallStrainEnhLocT::NewMaterialList");
 		}
-
+		
 		if (nsd == 1)
-			return new SSSolidMatList1DT(size, *fSSMatSupport);
+			return new SSSolidMatList1DT(size, *fSSEnhLocMatSupport);
 		else if (nsd == 2)
-			return new SSSolidMatList2DT(size, *fSSMatSupport);
+			return new SSSolidMatList2DT(size, *fSSEnhLocMatSupport);
 		else if (nsd == 3)
-			return new SSSolidMatList3DT(size, *fSSMatSupport);
+			return new SSSolidMatList3DT(size, *fSSEnhLocMatSupport);
 	}
 	else
 	{
@@ -1112,7 +1111,9 @@ void SmallStrainEnhLocT::FormKd(double constK)
 	fLocFlag = fElementLocFlag[elem];
 	int nen = NumElementNodes();
 	double vol = fElementVolume[elem];
-	int iter = fSSMatSupport->IterationNumber();
+	//int iter = fSSEnhLocMatSupport->IterationNumber();
+	//int iter = fSSMatSupport->IterationNumber();
+	int iter = IterationNumber();
 	
 	dArray2DT stress_IPs(NumIP(),dSymMatrixT::NumValues(NumSD()));
 	dArray2DT stress_last_IPs(NumIP(),dSymMatrixT::NumValues(NumSD()));
@@ -1247,6 +1248,23 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		cospsi = cos(psi);
 		sinpsi = sin(psi);
 		gamma_delta = fElementLocScalars_last[kNUM_SCALAR_TERMS*elem + kgamma_delta] + cospsi*Delta_zeta;
+		double sign_gamma_delta;
+		if (fabs(gamma_delta) > 1.0e-20) 
+		{
+			if (gamma_delta > 0.0) 
+			{
+				sign_gamma_delta = 1.0;
+			}
+			else
+			{
+				sign_gamma_delta = 0.0;
+			}
+		}
+		else 
+		{
+			sign_gamma_delta = 0.0;
+		}
+		gamma_delta = 0.5*(gamma_delta+fabs(gamma_delta));
 		fElementLocScalars[kNUM_SCALAR_TERMS*elem + kgamma_delta] = gamma_delta;
 		
 		h_c = -alpha_c*(c_p-c_r)*exp(-alpha_c*gamma_delta)*cospsi;
@@ -1303,7 +1321,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		DpsiDzeta = ( (alpha_psi*cospsi*alpha_psi*cospsi)*var1 + h_psi )/
 					( 1.0 + alpha_psi*var1*(alpha_psi*sinpsi*cospsi*Delta_zeta - sinpsi) );
 		DcospsiDzeta = -sinpsi*DpsiDzeta;
-		DgammadeltaDzeta = DcospsiDzeta*Delta_zeta + cospsi;
+		DgammadeltaDzeta = sign_gamma_delta*(DcospsiDzeta*Delta_zeta + cospsi);
 		Dh_cDzeta = -alpha_c*(c_p-c_r)*exp(-alpha_c*gamma_delta)*(-alpha_c*cospsi*DgammadeltaDzeta
 					+ DcospsiDzeta);
 		Dh_phiDzeta = -alpha_phi*(phi_p-phi_r)*exp(-alpha_phi*gamma_delta)*(-alpha_phi*cospsi*DgammadeltaDzeta
@@ -1359,6 +1377,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			
 			// calculate trial stress
 			strain_inc.DiffOf(LinearStrain(), LinearStrain_last());
+			strain_inc.ScaleOffDiagonal(2.0);
 			fStressTrial = stress_last;
 			fDe = fCurrMaterial->ce_ijkl();
 			fDe.Multx(strain_inc, stress_inc);
@@ -1399,6 +1418,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			stress_return = 0.0;
 			tmp_matrix.Outer(slipdir_chosen, grad_enh_IP);
 			G_enh.Symmetrize(tmp_matrix);
+			G_enh.ScaleOffDiagonal(2.0);
 			fDe.Multx(G_enh, stress_return);
 			stress_return *= Delta_zeta;
 			fStressCurr = fStressTrial;
@@ -1433,6 +1453,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			DslipdirDzeta *= DpsiDzeta;
 			tmp_matrix.Outer(DslipdirDzeta, grad_enh_IP);
 			DGenhDzeta.Symmetrize(tmp_matrix);
+			DGenhDzeta.ScaleOffDiagonal(2.0);
 			DGenhDzeta *= Delta_zeta;
 			tmp_sym_matrix = G_enh;
 			tmp_sym_matrix += DGenhDzeta;
@@ -1572,7 +1593,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		
 		// calc Dr_SDzeta
 		double Dvar2Dzeta = Dh_cDzeta - secphi2*(2.0*tanphi*h_phi*P_S*DphiDzeta
-							- P_S*Dh_phiDzeta - h_phi*DP_SDzeta);
+							+ P_S*Dh_phiDzeta + h_phi*DP_SDzeta);
 		double Dr_SDzeta = DQ_SDzeta - DQ_SnDzeta - Dvar2Dzeta*Delta_zeta - var2;
 		K_zetazeta = Dr_SDzeta;
 		
@@ -1631,7 +1652,9 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 	int elem = CurrElementNumber();
 	loc_flag = fElementLocFlag[elem];
 	double vol = fElementVolume[elem];
-	int iter = fSSMatSupport->IterationNumber();
+	//int iter = fSSEnhLocMatSupport->IterationNumber();
+	//int iter = fSSMatSupport->IterationNumber();
+	int iter = IterationNumber();
 	
 	dArrayT tmp_vec1(NumElementNodes()*NumDOF()), tmp_vec2(NumElementNodes()*NumDOF());
 
@@ -1646,7 +1669,6 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 	dArray2DT grad_enh_IPs(NumIP(),NumSD());
 
 	/* element has localized and has been traced, thus fetch data to modify the stiffness matrix */
-	//if ( fabs(loc_flag - 2.0) < smallnum ) 
 	if ( loc_flag == 2 ) 
 	{
 		double secphi2 = fElementLocScalars[kNUM_SCALAR_TERMS*elem + ksecphi2];
@@ -1668,9 +1690,11 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 		
 		tmp_matrix.Outer(mu_dir, normal_chosen);
 		F_mun.Symmetrize(tmp_matrix);
+		F_mun.ScaleOffDiagonal(2.0);
 		
 		F_nn_nonsym.Outer(normal_chosen, normal_chosen);
 		F_nn.Symmetrize(F_nn_nonsym);
+		F_nn.ScaleOffDiagonal(2.0);
 		
 		if (fDeBug)
 		{
@@ -1882,7 +1906,7 @@ void SmallStrainEnhLocT::SetGlobalShape(void)
 				fShapes->GradU(fLocDisp, fGradU, i);
 
 				/* symmetric part */
-				 fStrain_List[i].Symmetrize(fGradU);
+				fStrain_List[i].Symmetrize(fGradU);
 			}
 
 			/* "last" deformation gradient */
@@ -1892,7 +1916,7 @@ void SmallStrainEnhLocT::SetGlobalShape(void)
 				fShapes->GradU(fLocLastDisp, fGradU, i);
 
 				/* symmetric part */
-				 fStrain_last_List[i].Symmetrize(fGradU);
+				fStrain_last_List[i].Symmetrize(fGradU);
 			}
 		}
 	}

@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.19 2005-04-12 18:15:42 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.20 2005-04-14 16:43:49 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -10,7 +10,7 @@
 namespace Tahoe {
 
 /* forward declarations */
-class SSMatSupportT;
+class SSEnhLocMatSupportT;
 
 /** Interface for linear strain deformation and field gradients */
 class SmallStrainEnhLocT: public SolidElementT
@@ -165,8 +165,10 @@ private:
 	/** flag to indicate first pass, and debugging */
 	//static bool fFirstPass, fDeBug, fFirstTrace;
 	static bool fFirstPass, fDeBug;
+	
 	/** output file stream */
 	ofstreamT ss_enh_out;
+	
 	/** line output formating variables */
 	int outputPrecision, outputFileWidth;
 	/*@}*/
@@ -199,7 +201,7 @@ protected:
 
   	/** the material support used to construct materials lists. This pointer
   	 * is only set the first time SmallStrainEnhLocT::NewMaterialList is called. */
-	SSMatSupportT* fSSMatSupport;
+	SSEnhLocMatSupportT* fSSEnhLocMatSupport;
 	
 /* for post-localization */
 protected:
