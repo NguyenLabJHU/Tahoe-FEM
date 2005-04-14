@@ -250,7 +250,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
       iplastic = 0;
       state[34] = ff;
       state[39] = ff;
-      kk = 0.;
+      kk = 0;
     }
       
     else 
