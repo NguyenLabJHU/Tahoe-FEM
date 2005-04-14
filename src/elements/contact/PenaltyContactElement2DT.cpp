@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.52 2004-07-15 08:28:08 paklein Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.53 2005-04-14 01:18:53 paklein Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -13,6 +13,7 @@
 #include "GreenwoodWilliamson.h"
 #include "MajumdarBhushan.h"
 #include "GWPlastic.h"
+#include "ofstreamT.h"
 
 /* vector functions */
 #include "vector2D.h"
@@ -27,19 +28,121 @@ static const int kMaxNumFaceDOF   = 12;
 using namespace Tahoe;
 
 /* constructor */
-PenaltyContactElement2DT::PenaltyContactElement2DT(const ElementSupportT& support, const FieldT& field):
-	ContactElementT(support, field, kNumEnfParameters)
+PenaltyContactElement2DT::PenaltyContactElement2DT(const ElementSupportT& support):
+	ContactElementT(support)
 {
+	SetName("Jones_penalty_contact_2D");
 }
 
-void PenaltyContactElement2DT::Initialize(void)
+/* accept parameter list */
+void PenaltyContactElement2DT::TakeParameterList(const ParameterListT& list)
 {
-ExceptionT::GeneralFail("PenaltyContactElement2DT::Initialize", "out of date");
-#if 0
-    ContactElementT::Initialize();
+	/* inherited */
+	ContactElementT::TakeParameterList(list);
+
+    /* write out search parameter matrix */
+	ofstreamT& out = ElementSupport().Output();
+	out << " Interaction parameters ............................\n";
+	int num_surfaces = fSearchParameters.Rows();
+    for (int i = 0; i < num_surfaces ; i++)
+	{
+		for (int j = i ; j < num_surfaces ; j++)
+		{
+			const dArrayT& search_parameters = fSearchParameters(i,j);
+			const dArrayT& enf_parameters = fEnforcementParameters(i,j);
+			const dArrayT& mat_parameters = fMaterialParameters(i,j);
+			if (enf_parameters.Length() != kNumEnfParameters)
+				ExceptionT::GeneralFail("PenaltyContactElement2DT::TakeParameterList",
+					"expecting %d enforcement parameters not %d",
+					kNumEnfParameters, enf_parameters.Length());
+
+			/* only print allocated parameter arrays */
+			if (search_parameters.Length() == kSearchNumParameters) {
+		  	  out << "  surface pair: ("  << i << "," << j << ")\n" ;
+			  out << "  gap tolerance:    "
+					<< search_parameters[kGapTol] << '\n';
+			  out << "  xi tolerance :    "
+					<< search_parameters[kXiTol] << '\n';
+			  out << "  pass flag    :    "
+					<< (int) search_parameters[kPass] << '\n';
+			  out << "  consis. tangent:  "
+                    << (int) enf_parameters[kConsistentTangent] << '\n';
+			  out << "  penalty :         "
+					<< enf_parameters[kPenalty] << '\n';
+			  out << "  penalty types:\n"
+				  << "     Linear              " 
+ 				  << PenaltyContactElement2DT::kDefault << "\n"
+				  << "     ModSmithFerrante    " 
+				  << PenaltyContactElement2DT::kModSmithFerrante << "\n"
+				  << "     GreenwoodWilliamson " 
+			      << PenaltyContactElement2DT::kGreenwoodWilliamson << "\n"
+			      << "     MajumdarBhushan     " 
+			      << PenaltyContactElement2DT::kMajumdarBhushan << "\n"
+				  << "     GWPlastic           " 
+			      << PenaltyContactElement2DT::kGWPlastic           << "\n";
+			  out << "  penalty Type :         "
+					<< (int) enf_parameters[kMaterialType] << '\n';
+			  // NOTE move this to ContactElement
+			  switch ((int) enf_parameters[kMaterialType]) 
+			  {
+			  case kDefault: // no other parameters
+			    out << "  <no parameters> \n";
+				break;	
+			  case kModSmithFerrante:
+				out << "  Smith-Ferrante A : "
+					<< mat_parameters[kSmithFerranteA] << '\n';
+				out << "  Smith-Ferrante B : "
+					<< mat_parameters[kSmithFerranteB] << '\n';
+				break;	
+			  case kGreenwoodWilliamson:
+				out << "  Average asperity height            : "
+					<< mat_parameters[kAsperityHeightMean] << '\n';
+				out << "  Asperity height standard deviation : "
+					<< mat_parameters[kAsperityHeightStandardDeviation] << '\n';
+				out << "  Asperity density                   : "
+					<< mat_parameters[kAsperityDensity] << '\n';
+				out << "  Asperity Radius                    : "
+					<< mat_parameters[kAsperityTipRadius] << '\n';
+				out << "  Hertzian Modulus                   : "
+					<< mat_parameters[kHertzianModulus] << '\n';
+				break;	
+			  case kMajumdarBhushan:
+			  	out << " Asperity height standard deviation : "
+			  		<< mat_parameters[kSigma] << '\n';
+			  	out << "  Asperity roughness scale : "
+			  		<< mat_parameters[kRoughnessScale] << '\n';
+			  	out << "  Fractal dimension : "
+			  		<< mat_parameters[kFractalDimension] << '\n';
+			  	out << "  Hertzian Modulus                   : "
+					<< mat_parameters[kEPrime] << '\n';
+				out << "  Area Fraction                   : "
+					<< mat_parameters[kAreaFraction] << '\n';
+				break;	
+			  case kGWPlastic:
+				out << "  Mean height                        : "
+					<< mat_parameters[kMean] << '\n';
+				out << "  Standard deviation                 : "
+					<< mat_parameters[kStandardDeviation] << '\n';
+				out << "  Asperity density                   : "
+					<< mat_parameters[kDensity] << '\n';
+				out << "  Elastic modulus                    : "
+					<< mat_parameters[kModulus] << '\n';
+				out << "  Yield value                        : "
+					<< mat_parameters[kYield] << '\n';
+				out << "  Length-scale                       : "
+					<< mat_parameters[kLength] << '\n';
+				out << "  AsperityArea                       : "
+					<< mat_parameters[kAsperityArea] << '\n';
+				break;	
+			  default:
+				throw ExceptionT::kBadInputValue;
+		  	  }
+			}
+		}
+	}
+	out <<'\n';
 
 	/* set up Penalty functions */
-	int num_surfaces = fSearchParameters.Rows();
 	fPenaltyFunctions.Dimension(num_surfaces*(num_surfaces-1));
     for (int i = 0; i < num_surfaces ; i++)
     {
@@ -132,7 +235,6 @@ ExceptionT::GeneralFail("PenaltyContactElement2DT::Initialize", "out of date");
 	fRealArea = 0.0;
     fPlasticArea.Dimension(fSurfaces.Length());
 	fPlasticArea = 0.0;
-#endif
 }
 
 /* print/compute element output quantities */
@@ -199,109 +301,6 @@ void PenaltyContactElement2DT::WriteOutput(void)
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-#if 0
-/* print element group data */
-void PenaltyContactElement2DT::PrintControlData(ostream& out) const
-{
-	ContactElementT::PrintControlData(out);
-    /* write out search parameter matrix */
-	out << " Interaction parameters ............................\n";
-	int num_surfaces = fSearchParameters.Rows();
-    for (int i = 0; i < num_surfaces ; i++)
-	{
-		for (int j = i ; j < num_surfaces ; j++)
-		{
-			const dArrayT& search_parameters = fSearchParameters(i,j);
-			const dArrayT& enf_parameters = fEnforcementParameters(i,j);
-			const dArrayT& mat_parameters = fMaterialParameters(i,j);
-			/* only print allocated parameter arrays */
-			if (search_parameters.Length() == kSearchNumParameters) {
-		  	  out << "  surface pair: ("  << i << "," << j << ")\n" ;
-			  out << "  gap tolerance:    "
-					<< search_parameters[kGapTol] << '\n';
-			  out << "  xi tolerance :    "
-					<< search_parameters[kXiTol] << '\n';
-			  out << "  pass flag    :    "
-					<< (int) search_parameters[kPass] << '\n';
-			  out << "  consis. tangent:  "
-                    << (int) enf_parameters[kConsistentTangent] << '\n';
-			  out << "  penalty :         "
-					<< enf_parameters[kPenalty] << '\n';
-			  out << "  penalty types:\n"
-				  << "     Linear              " 
- 				  << PenaltyContactElement2DT::kDefault << "\n"
-				  << "     ModSmithFerrante    " 
-				  << PenaltyContactElement2DT::kModSmithFerrante << "\n"
-				  << "     GreenwoodWilliamson " 
-			      << PenaltyContactElement2DT::kGreenwoodWilliamson << "\n"
-			      << "     MajumdarBhushan     " 
-			      << PenaltyContactElement2DT::kMajumdarBhushan << "\n"
-				  << "     GWPlastic           " 
-			      << PenaltyContactElement2DT::kGWPlastic           << "\n";
-			  out << "  penalty Type :         "
-					<< (int) enf_parameters[kMaterialType] << '\n';
-			  // NOTE move this to ContactElement
-			  switch ((int) enf_parameters[kMaterialType]) 
-			  {
-			  case kDefault: // no other parameters
-			    out << "  <no parameters> \n";
-				break;	
-			  case kModSmithFerrante:
-				out << "  Smith-Ferrante A : "
-					<< mat_parameters[kSmithFerranteA] << '\n';
-				out << "  Smith-Ferrante B : "
-					<< mat_parameters[kSmithFerranteB] << '\n';
-				break;	
-			  case kGreenwoodWilliamson:
-				out << "  Average asperity height            : "
-					<< mat_parameters[kAsperityHeightMean] << '\n';
-				out << "  Asperity height standard deviation : "
-					<< mat_parameters[kAsperityHeightStandardDeviation] << '\n';
-				out << "  Asperity density                   : "
-					<< mat_parameters[kAsperityDensity] << '\n';
-				out << "  Asperity Radius                    : "
-					<< mat_parameters[kAsperityTipRadius] << '\n';
-				out << "  Hertzian Modulus                   : "
-					<< mat_parameters[kHertzianModulus] << '\n';
-				break;	
-			  case kMajumdarBhushan:
-			  	out << " Asperity height standard deviation : "
-			  		<< mat_parameters[kSigma] << '\n';
-			  	out << "  Asperity roughness scale : "
-			  		<< mat_parameters[kRoughnessScale] << '\n';
-			  	out << "  Fractal dimension : "
-			  		<< mat_parameters[kFractalDimension] << '\n';
-			  	out << "  Hertzian Modulus                   : "
-					<< mat_parameters[kEPrime] << '\n';
-				out << "  Area Fraction                   : "
-					<< mat_parameters[kAreaFraction] << '\n';
-				break;	
-			  case kGWPlastic:
-				out << "  Mean height                        : "
-					<< mat_parameters[kMean] << '\n';
-				out << "  Standard deviation                 : "
-					<< mat_parameters[kStandardDeviation] << '\n';
-				out << "  Asperity density                   : "
-					<< mat_parameters[kDensity] << '\n';
-				out << "  Elastic modulus                    : "
-					<< mat_parameters[kModulus] << '\n';
-				out << "  Yield value                        : "
-					<< mat_parameters[kYield] << '\n';
-				out << "  Length-scale                       : "
-					<< mat_parameters[kLength] << '\n';
-				out << "  AsperityArea                       : "
-					<< mat_parameters[kAsperityArea] << '\n';
-				break;	
-			  default:
-				throw ExceptionT::kBadInputValue;
-		  	  }
-			}
-		}
-	}
-	out <<'\n';
-}
-#endif
 
 /* called before LHSDriver during iteration process */
 void PenaltyContactElement2DT::RHSDriver(void)

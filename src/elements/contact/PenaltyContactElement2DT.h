@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.22 2004-07-15 08:28:08 paklein Exp $ */
+/* $Id: PenaltyContactElement2DT.h,v 1.23 2005-04-14 01:18:53 paklein Exp $ */
 // created by : rjones 2001
 #ifndef _PENALTY_CONTACT_ELEMENT_2D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_2D_T_H_
@@ -17,10 +17,7 @@ class PenaltyContactElement2DT: public ContactElementT
   public:
 
 	/* constructor */
-	PenaltyContactElement2DT(const ElementSupportT& support, const FieldT& field);
-	
-	/* initialize */
-	virtual void Initialize(void);
+	PenaltyContactElement2DT(const ElementSupportT& support);
 
 	/* writing output */
 	virtual void WriteOutput(void);
@@ -30,6 +27,12 @@ class PenaltyContactElement2DT: public ContactElementT
                                 kPenalty ,
                                 kMaterialType ,
 								kNumEnfParameters}; 
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
   protected:
 

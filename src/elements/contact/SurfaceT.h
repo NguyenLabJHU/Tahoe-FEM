@@ -1,4 +1,4 @@
-/* $Id: SurfaceT.h,v 1.21 2003-07-17 20:32:50 rjones Exp $ */
+/* $Id: SurfaceT.h,v 1.22 2005-04-14 01:18:53 paklein Exp $ */
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
 
@@ -33,7 +33,7 @@ class SurfaceT
 
 	/* allocate and input face nodes */
 	void InputSideSets
-		(const ElementSupportT& support, ifstreamT& in, ostream& out);
+		(const ElementSupportT& support, ArrayT<StringT>& ss_ID, ostream& out);
 
 	/* compute neighbors and initalize coordinates */
 	void Initialize (const ElementSupportT& support);

@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.36 2004-07-15 08:28:08 paklein Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.37 2005-04-14 01:18:53 paklein Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -109,33 +109,28 @@ void SurfaceT::PrintConnectivityData(ostream& out)
 
 /* surface input functions */
 void SurfaceT::InputSideSets 
-(const ElementSupportT& support, ifstreamT& in, ostream& out)
+(const ElementSupportT& support, ArrayT<StringT>& ss_ID, ostream& out)
 {
 //TEMP
-	int elem_group;
-	in >> elem_group;
+//	int elem_group;
+//	in >> elem_group;
 //	cout << "\n SurfaceT::InputSideSets: element group number required, but not used" << endl;
 
 	/* read side set: element, local face pair */
 	iArray2DT side_set;
 	out <<" Surface: "<< fTag << "\n" ;
 
-	/* read data from parameter file */
-	ArrayT<StringT> ss_ID;
-	bool multidatabasesets = false; /* change to positive and the parameter file format changes */
-	ModelManagerT& model = support.ModelManager();
-	model.SideSetList(in, ss_ID, multidatabasesets);
+	/* check */
 	if (ss_ID.Length () != 1) 
-	{
-		cout << "\n ContactT::InputSideSets: Model Manager read more than one side set, not programmed for this" << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-	
+		ExceptionT::BadInputValue("ContactT::InputSideSets", 
+			"Model Manager read more than one side set, not programmed for this");
+
 	/* global node numbers of faces from element group */
 	/* allocates to number of nodes per face */
 	iArray2DT faces_tmp;
 	ArrayT <GeometryT::CodeT> geometry_code;
 	iArrayT num_face_nodes;
+	ModelManagerT& model = support.ModelManager();
 	model.SideSet(ss_ID[0], geometry_code, num_face_nodes, faces_tmp);
 	int num_faces = faces_tmp.MajorDim();
 

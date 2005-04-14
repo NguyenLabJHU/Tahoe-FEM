@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.36 2004-07-15 08:28:08 paklein Exp $ */
+/* $Id: ContactElementT.h,v 1.37 2005-04-14 01:18:53 paklein Exp $ */
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
 
@@ -36,11 +36,10 @@ class ContactElementT: public ElementBaseT, public DOFElementT
 public:
 
 	/* constructor */
-	ContactElementT(const ElementSupportT& support, const FieldT& field, int num_enf_params);
+	ContactElementT(const ElementSupportT& support);
 
 	/* constructor for elements with multipliers */
-	ContactElementT(const ElementSupportT& support, const FieldT& field, int num_enf_params, 
-		XDOF_ManagerT* xdof_nodes);
+//	ContactElementT(const ElementSupportT& support, XDOF_ManagerT* xdof_nodes);
 
 	/* destructor */
 	virtual ~ContactElementT(void);
@@ -50,9 +49,6 @@ public:
 
 	/* element level reconfiguration for the current solution */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
-
-	/* initialization after constructor */
-	virtual void Initialize(void);
 
 	/* solution calls */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force); //not implemented
@@ -181,6 +177,18 @@ public:
 
 	inline int Num_of_Parameters(int type)
 			{return fNumMaterialModelParameters[type];}
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/	
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 	
 protected:
 
@@ -199,7 +207,7 @@ protected:
 	/* read element group data */
 	void ReadControlData(void);
 	/* initialization steps */
-	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
+//	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 
 	/* returns pass type for surface pair */
     int PassType(int s1,int s2) const;
@@ -264,8 +272,6 @@ protected:
     //nVariArray2DT<double*> P1values_man;
     //nArray2DT<double*> P2values;
     //nVariArray2DT<double*> P2values_man;
-
-
 
 	/* generate contact element data  */
 	bool SetContactConfiguration(void);

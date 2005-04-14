@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.48 2004-07-15 08:28:08 paklein Exp $ */
+/* $Id: ContactElementT.cpp,v 1.49 2005-04-14 01:18:53 paklein Exp $ */
 #include "ContactElementT.h"
 
 #include <math.h>
@@ -16,21 +16,19 @@
 #include "ContactSearchT.h"
 #include "ContactNodeT.h"
 #include "OutputSetT.h"
-
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
 
 #undef TEXT_OUTPUT
 #define TEXT_OUTPUT 0
 
-/* parameters */ // unfortunately these are also in the derived classes
-
 using namespace Tahoe;
 
+/* parameters */ // unfortunately these are also in the derived classes
 static const int kMaxNumFaceNodes = 4; // 4node quads
 
-
 /* constructor */
-ContactElementT::ContactElementT
-(const ElementSupportT& support, const FieldT& field, int num_enf_params):
+ContactElementT::ContactElementT(const ElementSupportT& support):
     ElementBaseT(support),
     LHS(ElementMatrixT::kNonSymmetric),
     tmp_LHS(ElementMatrixT::kNonSymmetric),
@@ -38,7 +36,9 @@ ContactElementT::ContactElementT
     fXDOF_Nodes(NULL),
 	fFirstPass(1)
 {
-    fNumEnfParameters = num_enf_params;
+	SetName("Jones_contact");
+
+    fNumEnfParameters = 0;
     fNumMultipliers = 0;
 
 	fNumMaterialModelParameters[kDefault] = 0;
@@ -47,22 +47,26 @@ ContactElementT::ContactElementT
 	fNumMaterialModelParameters[kMajumdarBhushan] = knMB;
 	fNumMaterialModelParameters[kGWPlastic] = knGP;
 
-    ReadControlData();
+//    ReadControlData();
 }
 
+#if 0
 ContactElementT::ContactElementT
-(const ElementSupportT& support, const FieldT& field, int num_enf_params, XDOF_ManagerT* xdof_nodes):
+(const ElementSupportT& support, XDOF_ManagerT* xdof_nodes):
     ElementBaseT(support),
     fXDOF_Nodes(xdof_nodes),
     LHS(ElementMatrixT::kNonSymmetric),
     tmp_LHS(ElementMatrixT::kNonSymmetric),
     fContactSearch(NULL)
 {
-    fNumEnfParameters = num_enf_params;
-    if (!fXDOF_Nodes) throw ExceptionT::kGeneralFail;
-    ReadControlData();
-}
+	SetName("Jones_contact");
 
+    fNumEnfParameters = 0;
+    if (!fXDOF_Nodes) throw ExceptionT::kGeneralFail;
+
+//    ReadControlData();
+}
+#endif
 
 /* destructor */
 ContactElementT::~ContactElementT(void) 
@@ -74,58 +78,6 @@ ContactElementT::~ContactElementT(void)
 GlobalT::SystemTypeT ContactElementT::TangentType(void) const
 {
 	return GlobalT::kNonSymmetric; 
-}
-
-/* initialization after construction */
-void ContactElementT::Initialize(void)
-{
-ExceptionT::GeneralFail("ContactElementT::Initialize", "out of date");
-#if 0
-	/* inherited, calls EchoConnectivityData */
-	ElementBaseT::Initialize();
-
-	/* initialize surfaces, connect nodes to coordinates */
-	for (int i = 0; i < fSurfaces.Length(); i++) {
-		fSurfaces[i].Initialize(ElementSupport(), fNumMultipliers);
-	}
-
-#if 0
-        /* set console access */
-        iAddVariable("penalty_parameter", fpenalty);
-#endif
-
-	/* create search object */
-	fContactSearch = 
-	  new ContactSearchT(fSurfaces, fSearchParameters);
-
-	/* workspace matrices */
-	SetWorkspace();
-
-	/* for bandwidth reduction in the case of no contact 
-	 * make node-to-node pseudo-connectivities to link all bodies */
-	int num_surfaces = fSurfaces.Length();
-	if (num_surfaces > 1)
-	{
-		fSurfaceLinks.Dimension(num_surfaces - 1, 2);
-		for (int i = 0; i < num_surfaces - 1; i++)
-		{
-			fSurfaceLinks(i,0) = fSurfaces[i  ].GlobalNodes()[0];
-			fSurfaceLinks(i,1) = fSurfaces[i+1].GlobalNodes()[0];
-		}
-	}
-
-	if (fXDOF_Nodes) {
-		iArrayT numDOF(fSurfaces.Length());// the number of tag-sets
-		numDOF = fNumMultipliers;
-		/* this calls GenerateElementData */
-		/* register with node manager */
-		ElementSupport().XDOF_Manager().XDOF_Register(this, numDOF);
-	}
-	else {
-		/* set initial contact configuration */
-		bool changed = SetContactConfiguration();	
-	}
-#endif
 }
 
 void ContactElementT::SetWorkspace(void)
@@ -446,95 +398,192 @@ double ContactElementT::InternalEnergy(void)
         return 0.0;
 }
 
-
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print element group data */
-void ContactElementT::ReadControlData(void)
+/* information about subordinate parameter lists */
+void ContactElementT::DefineSubs(SubListT& sub_list) const
 {
-ExceptionT::GeneralFail("ContactElementT::ReadControlData", "out of date");
-#if 0
-    /* streams */
-    ifstreamT& in = ElementSupport().Input(); 
-    ostream&  out = ElementSupport().Output(); 
+	/* inherited */
+	ElementBaseT::DefineSubs(sub_list);
 
-    /* print flags */
+	/* output flags */
+	sub_list.AddSub("Jones_contact_output", ParameterListT::ZeroOrOnce);
+
+	/* surfaces */
+	sub_list.AddSub("Jones_contact_surface", ParameterListT::OnePlus);
+
+	/* surface interactions */
+	sub_list.AddSub("Jones_contact_surface_pairs", ParameterListT::OnePlus);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* ContactElementT::NewSub(const StringT& name) const
+{
+	if (name == "Jones_contact_output")
+	{
+		ParameterContainerT* output = new ParameterContainerT(name);
+		const char* labels[kNumOutputFlags] = {"gaps", "normals", "status", "multipliers", "contact_area"};
+		ParameterT value(ParameterT::Integer, "value");
+		value.SetDefault(0);
+		for (int i = 0; i < kNumOutputFlags; i++) {
+			value.SetName(labels[i]);
+			output->AddParameter(value);
+		}
+		return output;
+	}
+	else if (name == "Jones_contact_surface")
+	{
+		ParameterContainerT* surface = new ParameterContainerT(name);
+		surface->AddSub("side_set_ID_list");
+		return surface;
+	}
+	else if (name == "Jones_contact_surface_pairs")
+	{
+		ParameterContainerT* pair = new ParameterContainerT(name);
+		pair->SetSubSource(this);
+		
+		/* surface numbers */
+		pair->AddParameter(ParameterT::Integer, "surface_1");
+		pair->AddParameter(ParameterT::Integer, "surface_2");
+
+        /* general parameters for search */
+        pair->AddSub("Jones_search");
+
+        /* parameters specific to enforcement */
+        pair->AddSub("Jones_enforcement");
+
+        /* constitutive parameters */
+        pair->AddSub("Jones_properties");
+
+		return pair;	
+	}
+	else if (name == "Jones_search")
+		return new VectorParameterT(name, kSearchNumParameters);
+	else if (name == "Jones_enforcement")
+		return new DoubleListT(name);
+	else if (name == "Jones_properties")
+		return new DoubleListT(name);
+	else /* inherited */
+		return ElementBaseT::NewSub(name);
+}
+
+/* accept parameter list */
+void ContactElementT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "ContactElementT::TakeParameterList";
+
+	/* inherited */
+	ElementBaseT::TakeParameterList(list);
+
+	/* output flags */
     fOutputFlags.Dimension(kNumOutputFlags);
-    for (int i = 0; i < fOutputFlags.Length(); i++) {
-        in >> fOutputFlags[i];
+    fOutputFlags = 0;
+    const ParameterListT* output = list.List("Jones_contact_output");
+    if (output) {
+		const char* labels[kNumOutputFlags] = {"gaps", "normals", "status", "multipliers", "contact_area"};
+		for (int i = 0; i < kNumOutputFlags; i++)
+			fOutputFlags[i] = output->GetParameter(labels[i]);
     }
-	out << " Print gaps                 = " << fOutputFlags[kGaps] << '\n';
-	out << " Print normals              = " << fOutputFlags[kNormals] << '\n';
-	out << " Print status               = " << fOutputFlags[kStatus] << '\n';
-	out << " Print multipliers          = " << fOutputFlags[kMultipliers] << '\n';
-    out << " Print contact area         = " << fOutputFlags[kArea] << '\n';
 
-
-    int num_surfaces;
-    in >> num_surfaces;
-    if (num_surfaces < 1) throw ExceptionT::kBadInputValue;
-	out << " Number of contact surfaces. . . . . . . . . . . = "
-	    << num_surfaces << '\n';
-
-    int num_pairs;
-    in >> num_pairs;
+	/* dimension check */
+	int num_surfaces = list.NumLists("Jones_contact_surfaces");
+	int num_pairs = list.NumLists("Jones_contact_surface_pairs");
     if (num_pairs < 1 || num_pairs > num_surfaces*(num_surfaces-1))
-        throw ExceptionT::kBadInputValue;
-	out << " Number of surface pairs with data . . . . . . . = "
-	    << num_pairs << '\n';
+        ExceptionT::BadInputValue(caller);
 
-	/* parameters */
-	out << " Number of search parameters . . . . . . . . . . = "
-	    << kSearchNumParameters << '\n';
-	out << " Number of enforcement parameters. . . . . . . . = "
-	    << fNumEnfParameters << '\n';
+	/* extract pair data */
     fSearchParameters.Dimension(num_surfaces);
     fEnforcementParameters.Dimension(num_surfaces);
     fMaterialParameters.Dimension(num_surfaces);
-    int s1, s2;
     for (int i = 0; i < num_pairs ; i++)
-    {
-        in >> s1 >> s2;
+	{
+		/* pair parameters */
+		const ParameterListT& pair = list.GetList("Jones_contact_surface_pairs", i);
+		int s1 = pair.GetParameter("surface_1");
+		int s2 = pair.GetParameter("surface_2");
         s1--; s2--;
 
-        dArrayT& search_parameters = fSearchParameters(s1,s2);
         /* general parameters for search */
-        search_parameters.Allocate (kSearchNumParameters);
-        for (int j = 0 ; j < search_parameters.Length() ; j++)
-        {
-            in >> search_parameters[j];
-        }
+        dArrayT& search_parameters = fSearchParameters(s1,s2);
+        search_parameters.Dimension(kSearchNumParameters);
+        VectorParameterT::Extract(pair.GetList("Jones_search"), search_parameters);
 
-        dArrayT& enf_parameters    = fEnforcementParameters(s1,s2);
         /* parameters specific to enforcement */
-        enf_parameters.Allocate (fNumEnfParameters);
-        for (int j = 0 ; j < enf_parameters.Length() ; j++)
-        {
-            in >> enf_parameters[j];
-        }
+        dArrayT& enf_parameters = fEnforcementParameters(s1,s2);
+        const ParameterListT& enforcement = pair.GetList("Jones_enforcement");
+        enf_parameters.Dimension(enforcement.NumLists());
+        for (int i = 0; i < enf_parameters.Length(); i++)
+        	enf_parameters[i] = enforcement.GetList(i).GetParameter("value");
 
-		// read material parameters
+		/* material parameters */
+		const ParameterListT& properties = pair.GetList("Jones_properties");
 		int material_code = (int) enf_parameters[enf_parameters.Length()-1];
-
 		int NumMatParameters = Num_of_Parameters(material_code);
-		if (NumMatParameters) {
-          dArrayT& mat_parameters    = fMaterialParameters(s1,s2);
-          /* parameters specific to enforcement */
-          mat_parameters.Allocate (NumMatParameters);
-          for (int j = 0 ; j < mat_parameters.Length() ; j++)
-          {
-            in >> mat_parameters[j];
-          }
-		}
+		if (NumMatParameters != properties.NumLists())
+			ExceptionT::BadInputValue(caller, "expecting %d values in \"Jones_properties\" not %d",
+				NumMatParameters, properties.NumLists());
+		dArrayT& mat_parameters = fMaterialParameters(s1,s2);
+		mat_parameters.Dimension(NumMatParameters);
+		for (int i = 0; i < mat_parameters.Length(); i++)
+			mat_parameters[i] = properties.GetList(i).GetParameter("value");
     }
-    fSearchParameters.CopySymmetric();
-    fEnforcementParameters.CopySymmetric();
-    fMaterialParameters.CopySymmetric();
-#endif
+	fSearchParameters.CopySymmetric();
+	fEnforcementParameters.CopySymmetric();
+	fMaterialParameters.CopySymmetric();
+
+	/* initialize surfaces, connect nodes to coordinates */
+	for (int i = 0; i < fSurfaces.Length(); i++)
+	{
+		ContactSurfaceT& surface = fSurfaces[i];
+		surface.SetTag(i);
+
+		/* get side set ID's */
+		const ParameterListT& surface_params = list.GetList("Jones_contact_surface", i);
+		ArrayT<StringT> ss_ID;
+		StringListT::Extract(surface_params.GetList("side_set_ID_list"), ss_ID);
+
+		/* translate ID list */
+		surface.InputSideSets(ElementSupport(), ss_ID, ElementSupport().Output());
+		surface.PrintConnectivityData(ElementSupport().Output());
+	
+		/* initialize */
+		surface.Initialize(ElementSupport(), fNumMultipliers);
+	}
+
+	/* create search object */
+	fContactSearch = new ContactSearchT(fSurfaces, fSearchParameters);
+
+	/* workspace matrices */
+	SetWorkspace();
+
+	/* for bandwidth reduction in the case of no contact 
+	 * make node-to-node pseudo-connectivities to link all bodies */
+	if (num_surfaces > 1)
+	{
+		fSurfaceLinks.Dimension(num_surfaces - 1, 2);
+		for (int i = 0; i < num_surfaces - 1; i++)
+		{
+			fSurfaceLinks(i,0) = fSurfaces[i  ].GlobalNodes()[0];
+			fSurfaceLinks(i,1) = fSurfaces[i+1].GlobalNodes()[0];
+		}
+	}
+
+	if (fXDOF_Nodes) {
+		iArrayT numDOF(fSurfaces.Length());// the number of tag-sets
+		numDOF = fNumMultipliers;
+		/* this calls GenerateElementData */
+		/* register with node manager */
+		ElementSupport().XDOF_Manager().XDOF_Register(this, numDOF);
+	}
+	else {
+		/* set initial contact configuration */
+		bool changed = SetContactConfiguration();	
+	}
 }
 
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
+
+#if 0
 /* echo contact surfaces */
 void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
@@ -565,6 +614,7 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		surface.PrintConnectivityData(out);
 	}
 }
+#endif
 
 /* generate contact element data - return true if configuration has
  * changed since the last call */

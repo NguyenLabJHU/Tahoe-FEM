@@ -1,4 +1,4 @@
-/* $Id: FrictionalContactElement2DT.cpp,v 1.3 2004-07-15 08:28:08 paklein Exp $ */
+/* $Id: FrictionalContactElement2DT.cpp,v 1.4 2005-04-14 01:18:53 paklein Exp $ */
 // created by : rjones 2003
 #include "FrictionalContactElement2DT.h"
 
@@ -10,6 +10,7 @@
 #include "ContactNodeT.h"
 #include "ElementSupportT.h"
 #include "XDOF_ManagerT.h"
+#include "ofstreamT.h"
 
 /* vector functions */
 #include "vector2D.h"
@@ -26,26 +27,24 @@ static const int kMaxNumFaceNodes = 4;
 static const int kMaxNumFaceDOF   = 12;
 
 /* constructor */
-FrictionalContactElement2DT::FrictionalContactElement2DT
-(const ElementSupportT& support, const FieldT& field):
-	ContactElementT(support, field, kNumEnfParameters, &support.XDOF_Manager())
+FrictionalContactElement2DT::FrictionalContactElement2DT(const ElementSupportT& support):
+	ContactElementT(support)
 {
+	SetName("Jones_frictional_contact_2D");
 	fNumMultipliers = 2;
 }
 
-/***********************************************************************
- * Protected
- ***********************************************************************/
-
-#if 0
-/* print element group data */
-void FrictionalContactElement2DT::PrintControlData(ostream& out) const
+/* accept parameter list */
+void FrictionalContactElement2DT::TakeParameterList(const ParameterListT& list)
 {
-	ContactElementT::PrintControlData(out);
-	/* warning : req. solver that pivots */
-	// CHECK SOLVER TYPE
+	/* set pointer to the XDOF manager */
+	fXDOF_Nodes = &(ElementSupport().XDOF_Manager());
+
+	/* inherited */
+	ContactElementT::TakeParameterList(list);
 
     /* write out search parameter matrix */
+    ofstreamT& out = ElementSupport().Output();
     out << " Interaction parameters ............................\n";
     int num_surfaces = fSearchParameters.Rows();
     for (int i = 0; i < num_surfaces ; i++)
@@ -54,6 +53,11 @@ void FrictionalContactElement2DT::PrintControlData(ostream& out) const
         {
             const dArrayT& search_parameters = fSearchParameters(i,j);
             const dArrayT& enf_parameters = fEnforcementParameters(i,j);
+			if (enf_parameters.Length() != kNumEnfParameters)
+				ExceptionT::GeneralFail("FrictionalContactElement2DT::TakeParameterList",
+					"expecting %d enforcement parameters not %d",
+					kNumEnfParameters, enf_parameters.Length());
+
             /* only print allocated parameter arrays */
             if (search_parameters.Length() == kSearchNumParameters) {
               out << "  surface pair: ("  << i << "," << j << ")\n" ;
@@ -76,9 +80,11 @@ void FrictionalContactElement2DT::PrintControlData(ostream& out) const
 			}
 		}
 	}
-
 }
-#endif
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
 
 /* called before LHSDriver during iteration process */
 void FrictionalContactElement2DT::SetContactStatus(void)

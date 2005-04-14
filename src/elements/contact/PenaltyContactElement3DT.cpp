@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.cpp,v 1.14 2004-07-15 08:28:08 paklein Exp $ */
+/* $Id: PenaltyContactElement3DT.cpp,v 1.15 2005-04-14 01:18:53 paklein Exp $ */
 #include "PenaltyContactElement3DT.h"
 
 #include <math.h>
@@ -9,6 +9,7 @@
 #include "ParabolaT.h"
 #include "ModSmithFerrante.h"
 #include "GreenwoodWilliamson.h"
+#include "ofstreamT.h"
 
 /* vector functions */
 #include "vector3D.h"
@@ -23,95 +24,20 @@ static const int kMaxNumFaceDOF   = 12;
 using namespace Tahoe;
 
 /* constructor */
-PenaltyContactElement3DT::PenaltyContactElement3DT(const ElementSupportT& support, const FieldT& field):
-	ContactElementT(support, field, kNumEnfParameters)
+PenaltyContactElement3DT::PenaltyContactElement3DT(const ElementSupportT& support):
+	ContactElementT(support)
 {
+	SetName("Jones_penalty_contact_3D");
 }
 
-void PenaltyContactElement3DT::Initialize(void)
+/* accept parameter list */
+void PenaltyContactElement3DT::TakeParameterList(const ParameterListT& list)
 {
-ExceptionT::GeneralFail("PenaltyContactElement3DT::Initialize", "out of date");
-#if 0
-    ContactElementT::Initialize();
+	/* inherited */
+	ContactElementT::TakeParameterList(list);
 
-	/* set up Penalty functions */
-	int num_surfaces = fSearchParameters.Rows();
-	fPenaltyFunctions.Dimension(num_surfaces*(num_surfaces-1));
-    for (int i = 0; i < num_surfaces ; i++)
-    {
-        for (int j = 0 ; j < num_surfaces ; j++)
-        {
-          dArrayT& enf_parameters = fEnforcementParameters(i,j);
-		  if (enf_parameters.Length()) {
-            dArrayT& parameters = fEnforcementParameters(i,j);
-			switch ((int) enf_parameters[kMaterialType]) 
-			{
-			case PenaltyContactElement3DT::kDefault:
-				// Macauley bracket:  <-x> ???
-				fPenaltyFunctions[LookUp(i,j,num_surfaces)] = new ParabolaT(1.0);
-				break;
-			case PenaltyContactElement3DT::kModSmithFerrante:
-				{
-                double A = parameters[kSmithFerranteA];
-                double B = parameters[kSmithFerranteB];
-				fPenaltyFunctions[LookUp(i,j,num_surfaces)] = new ModSmithFerrante(A,B);
-				//parameters[kPenalty] = 1.0; // overwrite pen value
-				}
-				break;
-			case PenaltyContactElement3DT::kGreenwoodWilliamson:
-				{
-                /* parameters for Greenwood-Williamson load formulation */
-                double gw_m = parameters[kAsperityHeightMean];
-                double gw_s = parameters[kAsperityHeightStandardDeviation];
-                double gw_dens = parameters[kAsperityDensity];
-                double gw_mod = parameters[kHertzianModulus];
-                double gw_rad = parameters[kAsperityTipRadius];
-                double material_coeff=(4.0/3.0)*gw_dens*gw_mod*sqrt(gw_rad);
-          		double area_coeff = PI*gw_dens*gw_rad;
-				parameters[kPenalty] *= material_coeff; // overwrite pen value
-				fPenaltyFunctions[LookUp(i,j,num_surfaces)]
-                                        = new GreenwoodWilliamson(1.5,gw_m,gw_s);
-				}
-				break;
-			default:
-				throw ExceptionT::kBadInputValue;
-			}
-		  }
-		}
-	}
-
-	/* subsidary data for GW models */
-    fRealArea.Dimension(fSurfaces.Length());
-	fRealArea = 0.0;
-#endif
-}
-
-/* print/compute element output quantities */
-void PenaltyContactElement3DT::WriteOutput(void)
-{
-	/* call base class */
-	ContactElementT::WriteOutput();
-	
-	if (fOutputFlags[kArea] ) 
-//  (parameters[kMaterialType]==PenaltyContactElement3DT::kGreenwoodWilliamson))
-	{
-		cout << "\n";
-		for (int i=0; i<fSurfaces.Length(); i++)
-			if ( fRealArea[i] > 0.0) cout << "Surface" << i 
-			     << ": real contact area = " << fRealArea[i] << "\n";
-    }
-}
-
-/***********************************************************************
- * Protected
- ***********************************************************************/
-
-#if 0
-/* print element group data */
-void PenaltyContactElement3DT::PrintControlData(ostream& out) const
-{
-	ContactElementT::PrintControlData(out);
     /* write out search parameter matrix */
+    ofstreamT& out = ElementSupport().Output();
 	out << " Interaction parameters ............................\n";
 	int num_surfaces = fSearchParameters.Rows();
     for (int i = 0; i < num_surfaces ; i++)
@@ -120,6 +46,11 @@ void PenaltyContactElement3DT::PrintControlData(ostream& out) const
 		{
 			const dArrayT& search_parameters = fSearchParameters(i,j);
 			const dArrayT& enf_parameters = fEnforcementParameters(i,j);
+			if (enf_parameters.Length() != kNumEnfParameters)
+				ExceptionT::GeneralFail("PenaltyContactElement3DT::TakeParameterList",
+					"expecting %d enforcement parameters not %d",
+					kNumEnfParameters, enf_parameters.Length());
+			
 			/* only print allocated parameter arrays */
 			if (search_parameters.Length() == kSearchNumParameters) {
 		  	  out << "  surface pair: ("  << i << "," << j << ")\n" ;
@@ -172,8 +103,76 @@ void PenaltyContactElement3DT::PrintControlData(ostream& out) const
 		}
 	}
 	out <<'\n';
+
+	/* set up Penalty functions */
+	fPenaltyFunctions.Dimension(num_surfaces*(num_surfaces-1));
+    for (int i = 0; i < num_surfaces ; i++)
+    {
+        for (int j = 0 ; j < num_surfaces ; j++)
+        {
+          dArrayT& enf_parameters = fEnforcementParameters(i,j);
+		  if (enf_parameters.Length()) {
+            dArrayT& parameters = fEnforcementParameters(i,j);
+			switch ((int) enf_parameters[kMaterialType]) 
+			{
+			case PenaltyContactElement3DT::kDefault:
+				// Macauley bracket:  <-x> ???
+				fPenaltyFunctions[LookUp(i,j,num_surfaces)] = new ParabolaT(1.0);
+				break;
+			case PenaltyContactElement3DT::kModSmithFerrante:
+				{
+                double A = parameters[kSmithFerranteA];
+                double B = parameters[kSmithFerranteB];
+				fPenaltyFunctions[LookUp(i,j,num_surfaces)] = new ModSmithFerrante(A,B);
+				//parameters[kPenalty] = 1.0; // overwrite pen value
+				}
+				break;
+			case PenaltyContactElement3DT::kGreenwoodWilliamson:
+				{
+                /* parameters for Greenwood-Williamson load formulation */
+                double gw_m = parameters[kAsperityHeightMean];
+                double gw_s = parameters[kAsperityHeightStandardDeviation];
+                double gw_dens = parameters[kAsperityDensity];
+                double gw_mod = parameters[kHertzianModulus];
+                double gw_rad = parameters[kAsperityTipRadius];
+                double material_coeff=(4.0/3.0)*gw_dens*gw_mod*sqrt(gw_rad);
+          		double area_coeff = PI*gw_dens*gw_rad;
+				parameters[kPenalty] *= material_coeff; // overwrite pen value
+				fPenaltyFunctions[LookUp(i,j,num_surfaces)]
+                                        = new GreenwoodWilliamson(1.5,gw_m,gw_s);
+				}
+				break;
+			default:
+				throw ExceptionT::kBadInputValue;
+			}
+		  }
+		}
+	}
+
+	/* subsidary data for GW models */
+    fRealArea.Dimension(fSurfaces.Length());
+	fRealArea = 0.0;
 }
-#endif
+
+/* print/compute element output quantities */
+void PenaltyContactElement3DT::WriteOutput(void)
+{
+	/* call base class */
+	ContactElementT::WriteOutput();
+	
+	if (fOutputFlags[kArea] ) 
+//  (parameters[kMaterialType]==PenaltyContactElement3DT::kGreenwoodWilliamson))
+	{
+		cout << "\n";
+		for (int i=0; i<fSurfaces.Length(); i++)
+			if ( fRealArea[i] > 0.0) cout << "Surface" << i 
+			     << ": real contact area = " << fRealArea[i] << "\n";
+    }
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
 
 /* called before LHSdriver during iteration process */
 void PenaltyContactElement3DT::RHSDriver(void)
