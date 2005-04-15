@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.25 2003-06-03 16:32:12 rjones Exp $
+# $Id: makefile,v 1.26 2005-04-15 22:47:45 thao Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -10,7 +10,9 @@ OBJ = \
 	GreenwoodWilliamson.o \
 	GWPlastic.o \
 	PolyDistributionT.o \
-	ConHypGeom.o
+	ConHypGeom.o \
+	WormLikeChain.o \
+	FungType.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -24,7 +26,9 @@ SRC = \
 	GreenwoodWilliamson.cpp \
 	GWPlastic.cpp \
 	PolyDistributionT.cpp \
-	ConHypGeom.cpp
+	ConHypGeom.cpp \
+	WormLikeChain.cpp \
+	FungType.cpp
 
 # headers
 HDR = \
@@ -32,7 +36,9 @@ HDR = \
 	GreenwoodWilliamson.h \
 	GWPlastic.h \
 	PolyDistributionT.h \
-	ConHypGeom.h
+	ConHypGeom.h \
+	WormLikeChain.h \
+	FungType.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
