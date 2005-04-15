@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.74 2005-04-13 21:51:33 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.75 2005-04-15 18:54:57 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -13,6 +13,7 @@
 #include "iAutoArrayT.h"
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
+#include "OutputSetT.h"
 
 /* materials */
 #include "SolidMaterialT.h"
@@ -1650,8 +1651,10 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		}
 
 	/* get nodally averaged values */
-	dArray2DT extrap_values;
-	ElementSupport().OutputUsedAverage(extrap_values);
+	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
+	const iArrayT& nodes_used = output_set.NodesUsed();
+	dArray2DT extrap_values(nodes_used.Length(), n_extrap);
+	extrap_values.RowCollect(nodes_used, ElementSupport().OutputAverage());
 
 	int tmpDim = extrap_values.MajorDim();
 	n_values.Dimension(tmpDim,n_out);
@@ -1659,11 +1662,11 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	if (qUseSimo)
 	{        
 		int rowNum = 0;
-		iArrayT nodes_used(tmpDim);
+//		iArrayT nodes_used(tmpDim);
 		dArray2DT tmp_simo(tmpDim, n_simo);
 		for (int i = 0; i < simo_force.MajorDim(); i++)
 			if (simo_counts[i] > 0) {
-				nodes_used[rowNum] = i;
+//				nodes_used[rowNum] = i;
 				simo_force.ScaleRow(i, 1./simo_mass(i,0));
 				tmp_simo.SetRow(rowNum, simo_force(i));
 				rowNum++;
