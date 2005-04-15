@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tahoe author="cjkimme" geometry_file="../geometry/square.ss.geom"
     title="2D small strain scnimf" xmlns:x0="http://www.w3.org/2001/XMLSchema">
-    <time max_step_cuts="5" num_steps="1" output_inc="1" time_step="0.5">
+    <time max_step_cuts="5" num_steps="1" output_inc="1" time_step="1.0">
         <schedule_function>
             <piecewise_linear>
                 <OrderedPair x="0.0" y="0.0"/>
@@ -37,7 +37,7 @@
             <mf_particle_ID_list>
                 <String value="1"/>
             </mf_particle_ID_list>
-            <scni_output displacement="1" mass="1" strain="1" stress="1"/>
+            <scni_output displacement="1" stress="1"/>
             <ss_connectivity_element_block>
                 <block_ID_list>
                     <String value="1"/>
@@ -51,7 +51,7 @@
         </ss_mfparticle>
     </element_list>
     <nonlinear_solver abs_tolerance="1.0e-10"
-        check_LHS_perturbation="1.0E1" check_code="print_RHS"
+        check_LHS_perturbation="1.0E1"
         divergence_tolerance="1e2" max_iterations="10" rel_tolerance="1.0e-10">
         <profile_matrix/>
     </nonlinear_solver>
