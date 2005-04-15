@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="paklein" geometry_file="../geometry/square.1x2.b.geom"
+    title="2D finite deformation SCNI with contact to FE body" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time num_steps="100" output_inc="25" time_step="0.01">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="1.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement" integrator="central_difference">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <initial_condition dof="2" node_ID="102" type="D_u" value="-1.0"/>
+        </field>
+    </nodes>
+    <element_list>
+        <updated_lagrangian field_name="displacement" mass_type="lumped_mass">
+            <quadrilateral/>
+            <solid_element_nodal_output displacements="1" stress="1"/>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <large_strain_material_2D>
+                    <large_strain_StVenant_2D density="1.0">
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
+                    </large_strain_StVenant_2D>
+                </large_strain_material_2D>
+            </large_strain_element_block>
+        </updated_lagrangian>
+        <fd_mfparticle field_name="displacement">
+            <cell_from_mesh/>
+            <meshfree_support_2D>
+                <RKPM>
+                    <gaussian_window cutoff_factor="2.0"
+                        sharpening_factor="0.4" support_scaling="1.5"/>
+                </RKPM>
+            </meshfree_support_2D>
+            <mf_particle_ID_list>
+                <String value="102"/>
+            </mf_particle_ID_list>
+            <scni_output displacement="1"/>
+            <fd_connectivity_element_block>
+                <block_ID_list>
+                    <String value="2"/>
+                </block_ID_list>
+                <large_strain_material_2D>
+                    <large_strain_StVenant_2D density="1.0">
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
+                    </large_strain_StVenant_2D>
+                </large_strain_material_2D>
+            </fd_connectivity_element_block>
+        </fd_mfparticle>
+        <meshfree_contact_2D_penalty field_name="displacement"
+            meshless_group="2" penalty_stiffness="200.0">
+            <contact_surface>
+                <surface_side_set side_set_ID="1"/>
+            </contact_surface>
+            <contact_nodes>
+                <node_ID_list>
+                    <String value="102"/>
+                </node_ID_list>
+            </contact_nodes>
+        </meshfree_contact_2D_penalty>
+    </element_list>
+    <linear_solver>
+        <diagonal_matrix/>
+    </linear_solver>
+</tahoe>
