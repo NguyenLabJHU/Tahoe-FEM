@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2005-04-15 22:49:41 thao Exp $
+# $Id: makefile,v 1.1 2005-04-15 22:49:44 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,8 +20,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-        OgdenBaseT.o \
-	OgdenMaterialT.o 
+	IsoCorneaModel.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -41,8 +40,7 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	OgdenBaseT.cpp \
-	OgdenMaterialT.cpp 
+	IsoCorneaModel.cpp 
 
 ##################### (3) headers
 #
@@ -54,8 +52,7 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	OgdenBaseT.h \
-	OgdenMaterialT.h 
+	IsoCorneaModel.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
@@ -66,16 +63,16 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = VIB 
-subdir_driver: subdir_loop
+#SUB_DIR =  
+#subdir_driver: subdir_loop
 
 #
 # (4.2) If there are no sub-directories in this directory:
 #    (1) comment the SUB_DIR and subdir_driver in section (4.1)
 #    (2) uncomment the subdir_driver macro below
 #
-#SUB_DIR =
-#subdir_driver: 
+SUB_DIR = 
+subdir_driver: 
 
 #####################
 
