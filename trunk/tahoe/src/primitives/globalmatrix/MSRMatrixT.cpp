@@ -1,4 +1,4 @@
-/* $Id: MSRMatrixT.cpp,v 1.9 2005-04-13 21:49:58 paklein Exp $ */
+/* $Id: MSRMatrixT.cpp,v 1.10 2005-04-15 16:50:15 paklein Exp $ */
 #include "MSRMatrixT.h"
 
 #include "MSRBuilderT.h"
@@ -235,9 +235,6 @@ void MSRMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eq
 		/* assembly mode */
 		if (fSymmetric)
 		{
-			//TEMP - implementation doesn't work yet
-			ExceptionT::GeneralFail(caller, "cannot assemble symmetric matrix");
-		
 			/* equation number limit */
 			int end_update = fStartEQ + fLocNumEQ - 1;
 
