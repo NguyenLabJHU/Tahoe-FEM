@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tahoe_multi atom_input="atom.xml" bridging_field="displacement"
-    coarse_to_fine="true" continuum_input="continuum.xml"
-    fine_to_coarse="true" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    coarse_to_fine="false" continuum_input="continuum.xml"
+    fine_to_coarse="false" xmlns:x0="http://www.w3.org/2001/XMLSchema">
     <ghost_atom_ID_list>
         <String value="1"/>
     </ghost_atom_ID_list>
