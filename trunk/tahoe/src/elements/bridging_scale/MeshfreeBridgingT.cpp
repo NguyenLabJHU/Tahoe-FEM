@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.9 2005-03-11 20:36:48 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.10 2005-04-16 01:59:37 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "ifstreamT.h"
@@ -251,6 +251,9 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 			point_neighbor_weights.SetRow(i, fMLS->phi());
 		}
 	}
+
+	/* compute node to node projection matrix */
+//	Compute_B_hatU_U(cell_data, cell_data.NodeToNode());
 }
 
 /* project the point values onto the mesh */
@@ -347,22 +350,75 @@ void MeshfreeBridgingT::CollectProjectedNodes(const PointInCellDataT& cell_data,
 	driven_node_map.Forward(nodes);
 }
 
-/* write projection-interpolation matrix from projection_data into cell_data */
-void MeshfreeBridgingT::ComputeProjectionInterpolation(
-	const PointInCellDataT& cell_data,
-	const PointInCellDataT& projection_data,
-	const iArrayT& projection_source,
-	const iArrayT& projection_dest) const
+/* compute \f$ B_{\hat{U}U} \f$ */
+void MeshfreeBridgingT::Compute_B_hatU_U(const PointInCellDataT& projection, 
+	InterpolationDataT& B_hatU_U) const
 {
-#pragma unused(cell_data)
-#pragma unused(projection_data)
-#pragma unused(projection_source)
-#pragma unused(projection_dest)
+	const char caller[] = "MeshfreeBridgingT::Compute_B_hatU_U";
 
-	ExceptionT::GeneralFail("MeshfreeBridgingT::ComputeProjectionInterpolation",
-		"under construction");
+	/* N_Q_U */	
+	const InverseMapT& Q_global_to_local = projection.GlobalToLocal();
+	const iArray2DT& N_cell_connectivities = projection.CellConnectivities();
+	const iArrayT& N_cell = projection.InterpolatingCell();
+	const dArray2DT& N_cell_weights = projection.InterpolationWeights();
+
+	/* B_hatU_Q */
+	const InterpolationDataT& B_hatU_Q = projection.PointToNode();
+	const RaggedArray2DT<int>& B_hatU_Q_neighbors = B_hatU_Q.Neighbors();
+	const RaggedArray2DT<double>& B_hatU_Q_weights = B_hatU_Q.NeighborWeights();
+	const InverseMapT& B_hatU_Q_row_map = B_hatU_Q.Map();
+	if (B_hatU_Q_row_map.OutOfRange() != InverseMapT::MinusOne)
+		ExceptionT::GeneralFail(caller, "need map to return -1 if out of range");
+	iArrayT nodes_Uhat;
+	B_hatU_Q_row_map.Forward(nodes_Uhat);
+	
+	/* coarse scale element group */
+	const SolidElementT& solid = SolidElement();
+	int nen = solid.NumElementNodes();
+
+	/* B_hatU_U */
+	RaggedArray2DT<int>& B_hatU_U_neighbors = B_hatU_U.Neighbors();
+	RaggedArray2DT<double>& B_hatU_U_weights = B_hatU_U.NeighborWeights();
+	InverseMapT& B_hatU_U_row_map = B_hatU_U.Map();
+
+	/* compute B_hatU_U = B_hatU_Q x N_Q_U */
+	AutoFill2DT<int> B_hatU_U_neighbors_tmp(nodes_Uhat.Length(), 1, 10, 10);
+	AutoFill2DT<double> B_hatU_U_weights_tmp(nodes_Uhat.Length(), 1, 10, 10);
+	iArrayT hatU_neighbors;
+	for (int i = 0; i < nodes_Uhat.Length(); i++) /* loop over projected nodes */ 
+	{		
+		/* loop over points contributing to each projected node */
+		B_hatU_U_neighbors.RowAlias(i, hatU_neighbors);
+		for (int j = 0; j < hatU_neighbors.Length(); i++) 
+		{
+			int j_loc = Q_global_to_local.Map(hatU_neighbors[j]);
+
+			/* cell containing projection source point */
+			int element = N_cell[j_loc];
+			const iArrayT& nodes = SolidElement().ElementCard(element).NodesU();
+			
+			/* collect free cell nodes */
+			for (int k = 0; k < nodes.Length(); k++)
+			{
+				int node = nodes[k];
+				if (B_hatU_Q_row_map.Map(node) != -1)
+				{
+					int row_index = B_hatU_U_neighbors_tmp.PositionInRow(i, node);
+					if (row_index == -1) /* new value */
+					{
+						B_hatU_U_neighbors_tmp.Append(i,node);
+//						B_hatU_U_weights_tmp.Append(); B x N
+					}	
+					else /* existing value - matrix multiply */
+					{
+//						B_hatU_U_weights_tmp(i,row_index) += B x N
+					}
+				}
+			}
+		}
+	}
+
 }
-
 /* information about subordinate parameter lists */
 void MeshfreeBridgingT::DefineSubs(SubListT& sub_list) const
 {
