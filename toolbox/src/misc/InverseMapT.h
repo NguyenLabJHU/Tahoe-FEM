@@ -1,4 +1,4 @@
-/* $Id: InverseMapT.h,v 1.10 2005-02-24 17:34:04 paklein Exp $ */
+/* $Id: InverseMapT.h,v 1.11 2005-04-16 01:57:24 paklein Exp $ */
 #ifndef _INVERSE_MAP_T_H_
 #define _INVERSE_MAP_T_H_
 
@@ -29,6 +29,9 @@ public:
 
 	/** constructor */
 	InverseMapT(void);
+
+	/** assignment operator */
+	InverseMapT& operator=(const InverseMapT& rhs);
 
 	/** \name construct the inverse map */
 	/*@{*/

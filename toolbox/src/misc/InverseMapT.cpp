@@ -1,8 +1,22 @@
-/* $Id: InverseMapT.cpp,v 1.6 2005-02-24 17:34:03 paklein Exp $ */
+/* $Id: InverseMapT.cpp,v 1.7 2005-04-16 01:57:24 paklein Exp $ */
 #include "InverseMapT.h"
 #include "iArrayT.h"
 
 using namespace Tahoe;
+
+/* assignment operator */
+InverseMapT& InverseMapT::operator=(const InverseMapT& rhs)
+{
+	/* inherited */
+	AutoArrayT<int>::operator=(rhs);
+
+	/* copy fields */
+	fShift = rhs.fShift;
+	fOutOfRange = rhs.fOutOfRange;
+	fEntrees = rhs.fEntrees;
+
+	return *this;
+}
 
 /* construct the inverse map */
 void InverseMapT::SetMap(const nArrayT<int>& forward)
