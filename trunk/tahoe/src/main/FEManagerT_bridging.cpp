@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.35 2005-04-08 16:41:55 d-farrell2 Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.36 2005-04-16 02:03:26 paklein Exp $ */
  
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
@@ -964,6 +964,36 @@ void FEManagerT_bridging::SetExternalEmbedForce(const dArray2DT& embforce, const
 	EAM().SetExternalEmbedForce(embforce, ghostatoms);
 }
 
+/* the bridging scale element group */
+BridgingScaleT& FEManagerT_bridging::BridgingScale(void) const
+{
+	/* find bridging scale group */
+	if (!fBridgingScale) {
+	
+		/* search through element groups */
+		for (int i = 0; !fBridgingScale && i < fElementGroups->Length(); i++)
+		{
+			/* try cast */
+			ElementBaseT* element_base = (*fElementGroups)[i];
+			
+			/* need non-const pointer to this */
+			FEManagerT_bridging* fe = (FEManagerT_bridging*) this;
+#ifndef __NO_RTTI__
+			fe->fBridgingScale = dynamic_cast<BridgingScaleT*>(element_base);
+#else
+			fe->fBridgingScale = element_base->dynamic_cast_BridgingScaleT();
+#endif
+		}
+		
+		/* not found */
+		if (!fBridgingScale)
+			ExceptionT::GeneralFail("FEManagerT_bridging::BridgingScale",
+				"did not find BridgingScaleT element group");
+	}
+	
+	return *fBridgingScale;
+}
+
 /*************************************************************************
  * Protected
  *************************************************************************/
@@ -1114,36 +1144,6 @@ const ParticlePairT* FEManagerT_bridging::ParticlePair(int instance) const
 /*************************************************************************
  * Private
  *************************************************************************/
-
-/* the bridging scale element group */
-BridgingScaleT& FEManagerT_bridging::BridgingScale(void) const
-{
-	/* find bridging scale group */
-	if (!fBridgingScale) {
-	
-		/* search through element groups */
-		for (int i = 0; !fBridgingScale && i < fElementGroups->Length(); i++)
-		{
-			/* try cast */
-			ElementBaseT* element_base = (*fElementGroups)[i];
-			
-			/* need non-const pointer to this */
-			FEManagerT_bridging* fe = (FEManagerT_bridging*) this;
-#ifndef __NO_RTTI__
-			fe->fBridgingScale = dynamic_cast<BridgingScaleT*>(element_base);
-#else
-			fe->fBridgingScale = element_base->dynamic_cast_BridgingScaleT();
-#endif
-		}
-		
-		/* not found */
-		if (!fBridgingScale)
-			ExceptionT::GeneralFail("FEManagerT_bridging::BridgingScale",
-				"did not find BridgingScaleT element group");
-	}
-	
-	return *fBridgingScale;
-}
 
 /* the EAMT element group */
 EAMT& FEManagerT_bridging::EAM(void) const

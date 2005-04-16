@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.24 2005-04-05 16:06:37 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.25 2005-04-16 02:03:26 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -257,6 +257,9 @@ public:
 		const dArray2DT& values, const ArrayT<StringT>& labels) const;
 	/*@}*/
 
+	/** the bridging scale element group */
+	BridgingScaleT& BridgingScale(void) const;
+
 protected:
 
 	/** initialize solver information */
@@ -266,9 +269,6 @@ protected:
 	 * within a single element block */
 	void MaptoCells(const iArrayT& nodes, const dArray2DT& coords, iArrayT& cell_num,
 		dArray2DT& cell_coords) const;
-
-	/** the bridging scale element group */
-	BridgingScaleT& BridgingScale(void) const;
 
 	/** the EAMT element group */
 	EAMT& EAM(void) const;
