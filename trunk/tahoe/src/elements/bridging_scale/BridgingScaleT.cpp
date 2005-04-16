@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.52 2005-04-13 22:15:35 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.53 2005-04-16 01:58:41 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -579,19 +579,13 @@ void BridgingScaleT::CollectProjectedNodes(const PointInCellDataT& cell_data, iA
 	nodes = cell_data.CellNodes();
 }
 
-/* write projection-interpolation matrix from projection_data into cell_data */
-void BridgingScaleT::ComputeProjectionInterpolation(
-	const PointInCellDataT& cell_data,
-	const PointInCellDataT& projection_data,
-	const iArrayT& projection_source,
-	const iArrayT& projection_dest) const
+/* compute \f$ B_{\hat{U}U} \f$ */
+void BridgingScaleT::Compute_B_hatU_U(const PointInCellDataT& projection, InterpolationDataT& B_hatU_U) const
 {
-#pragma unused(cell_data)
-#pragma unused(projection_data)
-#pragma unused(projection_source)
-#pragma unused(projection_dest)
+#pragma unused(projection)
+#pragma unused(B_hatU_U)
 
-	ExceptionT::GeneralFail("BridgingScaleT::ComputeProjectionInterpolation",
+	ExceptionT::GeneralFail("BridgingScaleT::Compute_B_hatU_U",
 		"not implemented. Requires explicit matrix inverse");
 }
 
