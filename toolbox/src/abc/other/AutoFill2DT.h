@@ -1,4 +1,4 @@
-/* $Id: AutoFill2DT.h,v 1.14 2004-08-05 16:25:34 paklein Exp $ */
+/* $Id: AutoFill2DT.h,v 1.15 2005-04-16 01:56:57 paklein Exp $ */
 /* created: paklein (01/19/1999) */
 #ifndef _AUTO_ARRAY2D_T_H_
 #define _AUTO_ARRAY2D_T_H_
@@ -91,6 +91,10 @@ public:
 
 	/** copy of source - dimensions must match */
 //	void Copy(const AutoFill2DT<TYPE>& source);
+
+	/** returns the index of the first occurence of value in the given row or -1
+	 * if not present - NOTE: requires "==" */
+	int PositionInRow(int row, const TYPE& value) const;
 	
 	/** \name adding values to rows */
 	/*@{*/
@@ -435,6 +439,21 @@ void AutoFill2DT<TYPE>::Append(int row, const TYPE& value)
 
 	*(fChunks[chunk] + chunk_row*minor_dim + count) = value;
 	count++;	
+}
+
+/* returns the index of the first occurence of value in the given row or -1 
+ * if not present - NOTE: requires "==" */
+template <class TYPE>
+int  AutoFill2DT<TYPE>::PositionInRow(int row, const TYPE& value) const
+{
+	const TYPE* prow = (*this)(row);
+	int length = MinorDim(row);
+	for (int i = 0; i < length; i++)
+		if (*prow++ == value)
+			return i; /* found */
+
+	/* not found */
+	return -1;
 }
 
 template <class TYPE>
