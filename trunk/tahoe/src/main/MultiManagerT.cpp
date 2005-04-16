@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.24 2005-04-08 18:33:31 d-farrell2 Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.25 2005-04-16 02:04:07 paklein Exp $ */
 
 #include "MultiManagerT.h"
 
@@ -16,6 +16,7 @@
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
 #include "CommunicatorT.h"
+#include "BridgingScaleT.h"
 
 using namespace Tahoe;
 
@@ -301,6 +302,10 @@ void MultiManagerT::FormRHS(int group) const
 	
 	/* skip all cross terms */
 	if (!fFineToCoarse && !fCoarseToFine) return;
+	
+	/* cross terms only implemented for meshfree bridging */
+	if (fCoarse->BridgingScale().Name() != "meshfree_bridging")
+		ExceptionT::GeneralFail(caller, "cross terms only implemented for \"meshfree_bridging\"");
 
 	/* total internal force vectors */
 	int atoms_group = 0;
@@ -340,8 +345,8 @@ if (1) {
 	}
 
 	/* mixed contribution to the fine scale residual */
+	dArray2DT& R_Q = const_cast<dArray2DT&>(fR_Q);
 	if (fCoarseToFine) {
-		dArray2DT& R_Q = const_cast<dArray2DT&>(fR_Q);
 		R_Q.Dimension(resid_fine.MajorDim(), resid_fine.MinorDim());
 		R_Q = 0.0;
 		R_U += resid_coarse;
@@ -349,6 +354,18 @@ if (1) {
 		fCoarse->MultNTf(projection_data.PointToNode(), R_U, fCoarse->ProjectedNodes(), R_Q);	
 		fSolvers[group]->AssembleRHS(R_Q, fR_Q_eqnos);	
 	}
+
+#if 0
+	/* additional coarse scale force arising from N_QU */
+	if (fFineToCoarse && fCoarseToFine) {
+		R_U = 0.0;
+		R_Q *= -1.0;
+		const iArrayT& non_ghost_atoms = fFine->NonGhostNodes();
+		const PointInCellDataT& projection_data = fCoarse->ProjectionData();
+		fCoarse->MultNTf(projection_data, R_Q, non_ghost_atoms, R_U);
+		fSolvers[group]->AssembleRHS(R_U, fR_U_eqnos);		
+	}
+#endif
 	
 //TEMP - debugging
 #if 0
