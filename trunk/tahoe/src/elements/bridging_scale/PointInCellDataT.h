@@ -1,4 +1,4 @@
-/* $Id: PointInCellDataT.h,v 1.7 2005-03-11 20:35:21 paklein Exp $ */
+/* $Id: PointInCellDataT.h,v 1.8 2005-04-16 02:00:07 paklein Exp $ */
 #ifndef _POINT_IN_CELL_DATA_T_H_
 #define _POINT_IN_CELL_DATA_T_H_
 
@@ -75,6 +75,12 @@ public:
 	const InterpolationDataT& PointToPoint(void) const { return fPointToPoint; };
 	/*@}*/
 
+	/** \name projection from nodes to nodes */
+	/*@{*/
+	InterpolationDataT& NodeToNode(void) { return fNodeToNode; };
+	const InterpolationDataT& NodeToNode(void) const { return fNodeToNode; };
+	/*@}*/
+
 	/** collect the list of nodes in cells containing points. Returns the number of non-empty
 	 * cells. The list of nodes is accessed with PointInCellDataT::CellNodes */
 	int CollectCellNodes(void);
@@ -136,6 +142,9 @@ private:
 
 	/** projection from points to points */
 	InterpolationDataT fPointToPoint;
+
+	/** projection from nodes to nodes */
+	InterpolationDataT fNodeToNode;
 };
 
 } /* namespace Tahoe */
