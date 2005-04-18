@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_MT.cpp,v 1.4 2005-04-18 05:47:55 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_MT.cpp,v 1.5 2005-04-18 07:07:52 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "SPOOLESMatrixT_MT.h"
 
@@ -154,9 +154,6 @@ void SPOOLESMatrixT_MT::BackSubstitute(dArrayT& result)
 {
 	const char caller[] = "SPOOLESMatrixT_MT::BackSubstitute";
  
- 	/* check */
-	if (!fIsFactorized) ExceptionT::GeneralFail(caller, "matrix is not factorized");
-
 	int msglvl = (fMessageLevel < 0) ? 0 : fMessageLevel; 
 	 //  0: nothing
 	 //  1: scalar output (timing data) only
@@ -180,6 +177,9 @@ void SPOOLESMatrixT_MT::BackSubstitute(dArrayT& result)
 		r.Length(), r.Pointer(), c.Pointer(), v.Pointer(), fNumThreads);
 
 #else /* new driver */
+
+ 	/* check */
+	if (!fIsFactorized) ExceptionT::GeneralFail(caller, "matrix is not factorized");
 
 	/* back substitute */
 	OK = LU_MT_driver_solve(msglvl, SPOOLES_FILE, result.Pointer(), &pLU_dat);
