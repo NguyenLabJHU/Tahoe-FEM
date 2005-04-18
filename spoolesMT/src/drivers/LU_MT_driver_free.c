@@ -1,4 +1,4 @@
-/* $Id: LU_MT_driver_free.c,v 1.1 2005-04-05 16:04:19 paklein Exp $ */
+/* $Id: LU_MT_driver_free.c,v 1.2 2005-04-18 05:45:54 paklein Exp $ */
 #include "LU_MT_driver_int.h"
 
 /* free data structures needed for multiples solves */
@@ -15,20 +15,23 @@ int LU_MT_driver_free(void** ppLU_dat)
 	pLU_dat->pivoting_flag = 0;
 	pLU_dat->rand_seed = 0;
 	pLU_dat->num_eq = 0;
-	pLU_dat->num_row = 0;
 
 	/* free memory */
 	if (pLU_dat->frontmtx) {
 		FrontMtx_free(pLU_dat->frontmtx);
 		pLU_dat->frontmtx = NULL;
 	}
+	if (pLU_dat->solvemap) {
+		SolveMap_free(pLU_dat->solvemap);
+		pLU_dat->solvemap = NULL;
+	}
+	if (pLU_dat->mtxmanager) {
+		SubMtxManager_free(pLU_dat->mtxmanager);
+		pLU_dat->mtxmanager = NULL;
+	}
 	if (pLU_dat->frontETree) {
 		ETree_free(pLU_dat->frontETree);
 		pLU_dat->frontETree = NULL;
-	}
-	if (pLU_dat->oldToNewIV) {
-		IV_free(pLU_dat->oldToNewIV);
-		pLU_dat->oldToNewIV = NULL;
 	}
 	if (pLU_dat->ownersIV) {
 		IV_free(pLU_dat->ownersIV);
@@ -38,13 +41,9 @@ int LU_MT_driver_free(void** ppLU_dat)
 		IV_free(pLU_dat->newToOldIV);
 		pLU_dat->newToOldIV = NULL;
 	}
-	if (pLU_dat->mtxmanager) {
-		SubMtxManager_free(pLU_dat->mtxmanager);
-		pLU_dat->mtxmanager = NULL;
-	}
-	if (pLU_dat->solvemap) {
-		SolveMap_free(pLU_dat->solvemap);
-		pLU_dat->solvemap = NULL;
+	if (pLU_dat->oldToNewIV) {
+		IV_free(pLU_dat->oldToNewIV);
+		pLU_dat->oldToNewIV = NULL;
 	}
 
 	/* free structure */
