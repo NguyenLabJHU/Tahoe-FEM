@@ -1,6 +1,6 @@
-# $Id: SHASTA.macros,v 1.13 2005-01-08 06:51:56 jwfoulk Exp $
+# $Id: SHASTA.macros,v 1.14 2005-04-18 20:13:55 paklein Exp $
 MAKE        = make
-DEFINES     = -D__TAHOE_MPI__ -D__SHASTA__ -D__INTEL_CC__ -DNON_UNIX_STDIO -D__INTEL_RTTI__ -DEIGHT_BYTE_REAL
+DEFINES     = -D__TAHOE_MPI__ -D__SHASTA__ -D__INTEL_CC__ -DNON_UNIX_STDIO -D__INTEL_RTTI__ -DEIGHT_BYTE_REAL -D__POSIX_THREADS__
 COMP_C      = mpicc
 COMP_CC     = mpiCC
 COMP_F      = mpif77
@@ -12,7 +12,7 @@ CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -wr161,858,1224
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS) -fno-second-underscore
 F2C_LFLAGS  = -L/apps/intel/fce_80/lib -lifport -lifcore
 LINK        = $(COMP_CC)
-LFLAGS      = $(F2C_LFLAGS) -lstdc++
+LFLAGS      = $(F2C_LFLAGS) -lstdc++ -lpthread
 MAKEDEPEND_C         = mpicc -MM
 MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
 MAKEDEPEND_OUTPUT_C  = -MF
