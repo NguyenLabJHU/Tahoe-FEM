@@ -1,7 +1,7 @@
-# $Id: DARWIN-3.3.debug.macros,v 1.4 2005-02-05 01:03:15 paklein Exp $
+# $Id: DARWIN-3.3.debug.macros,v 1.5 2005-04-18 05:48:49 paklein Exp $
 # macros for Panther (GCC 3.3)
 MAKE        = make
-DEFINES     = -DEIGHT_BYTE_REAL -D__DARWIN__ -DNON_UNIX_STDIO
+DEFINES     = -DEIGHT_BYTE_REAL -D__DARWIN__ -DNON_UNIX_STDIO -D__POSIX_THREADS__
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77
@@ -14,7 +14,7 @@ CFLAGS_CC   = $(LOC_CFLAGS) -include $(BLD_DIR)/pch/$(PCH) -Winvalid-pch
 CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 F2C_LFLAG   = -lg2c
-LFLAGS      = -Xlinker -Y -Xlinker 50
+LFLAGS      = -Xlinker -Y -Xlinker 50 -lpthread
 MAKEDEPEND_C         = gcc -MM
 MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
 MAKEDEPEND_OUTPUT_C  = -MF
