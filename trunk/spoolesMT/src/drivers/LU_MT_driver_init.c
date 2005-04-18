@@ -1,9 +1,9 @@
-/* $Id: LU_MT_driver_init.c,v 1.1 2005-04-05 16:04:19 paklein Exp $ */
+/* $Id: LU_MT_driver_init.c,v 1.2 2005-04-18 05:45:54 paklein Exp $ */
 #include "LU_MT_driver_int.h"
 
 /* init data structures needed for multiples solves */
 int LU_MT_driver_init(int matrix_type,
-	int symmetry_flag, int pivoting_flag, int rand_seed, int num_eq, int num_row,
+	int symmetry_flag, int pivoting_flag, int rand_seed, int num_eq, int num_thread, 
 	void** ppLU_dat)
 {
 	/* resolve pointer */
@@ -21,7 +21,7 @@ int LU_MT_driver_init(int matrix_type,
 	pLU_dat->pivoting_flag = pivoting_flag;
 	pLU_dat->rand_seed = rand_seed;
 	pLU_dat->num_eq = num_eq;
-	pLU_dat->num_row = num_row;
+	pLU_dat->n_thread = num_thread;
 	
 	/* data structures computed during factorization */
 	pLU_dat->frontmtx = NULL;

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2005-04-05 16:04:19 paklein Exp $
+# $Id: makefile,v 1.3 2005-04-18 05:45:54 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -27,7 +27,10 @@ SRC = \
 	LU_MT_driver_solve.c
 
 # headers
-HDR = 
+HDR = \
+	LU_MT_driver.h \
+	LU_MT_driver_int.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories

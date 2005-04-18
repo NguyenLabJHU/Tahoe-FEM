@@ -1,4 +1,4 @@
-/* $Id: LU_MT_driver_solve.c,v 1.1 2005-04-05 16:04:19 paklein Exp $ */
+/* $Id: LU_MT_driver_solve.c,v 1.2 2005-04-18 05:45:54 paklein Exp $ */
 #include "LU_MT_driver_int.h"
 
 #include "misc.h"
@@ -50,7 +50,7 @@ double          droptol = 0.0, tau = 100. ;
 double          cpus[11] ;
 /* DV              *cumopsDV ; */
 /* ETree           *frontETree ; */
-/* FrontMtx        *frontmtx ; */
+FrontMtx        *frontmtx ;
  FILE            /* *inputFile, */ *msgFile ;
 /* Graph           *graph ; */
 /* InpMtx          *mtxA ; */
@@ -105,7 +105,7 @@ else
 	frontmtx = pLU_dat->frontmtx;
 	newToOldIV = pLU_dat->newToOldIV;
 	oldToNewIV = pLU_dat->oldToNewIV;
-	frontETree = pLU_dat->frontETree;
+//	frontETree = pLU_dat->frontETree;
 	mtxmanager = pLU_dat->mtxmanager;
 	solvemap = pLU_dat->solvemap;
 	ownersIV = pLU_dat->ownersIV;
@@ -139,11 +139,11 @@ neqns = pLU_dat->num_eq;
 #if 0
 nent = num_entries;
 mtxA = InpMtx_new();
-InpMtx_init(mtxA, INPMTX_BY_ROWS, matrix_type, nent, neqns);
+InpMtx_init(mtxA, INPMTX_BY_ROWS, type, nent, neqns);
 #endif
 
 #if 0
-if (matrix_type == SPOOLES_REAL)
+if (type == SPOOLES_REAL)
 	/* enter all {row, column, value} triples */
 	InpMtx_inputRealTriples(mtxA, num_entries, r, c, v);
 else
@@ -169,9 +169,9 @@ if ( msglvl > 2 ) {
 */
 nrhs = 1;
 mtxY = DenseMtx_new();
-DenseMtx_init(mtxY, matrix_type, 0, 0, neqns, nrhs, 1, neqns);
+DenseMtx_init(mtxY, type, 0, 0, neqns, nrhs, 1, neqns);
 DenseMtx_zero(mtxY) ;
-if (matrix_type == SPOOLES_REAL)
+if (type == SPOOLES_REAL)
 {
 	for (irow = 0 ; irow < neqns ; irow++) 
 		DenseMtx_setRealEntry(mtxY, irow, 0, rhs2out[irow]);
@@ -377,7 +377,7 @@ if ( msglvl > 0 ) {
    fflush(msgFile) ;
 }
 
-if (matrix_type == SPOOLES_REAL)
+if (type == SPOOLES_REAL)
 {
 	for (irow = 0 ; irow < neqns ; irow++) 
 		DenseMtx_realEntry(mtxX, irow, 0, rhs2out + irow);
@@ -401,21 +401,12 @@ DenseMtx_free(mtxY) ;
 /* IV_free(newToOldIV) ; ----------> STORE */
 /* IV_free(oldToNewIV) ; ----------> STORE */
 /* InpMtx_free(mtxA) ; */
-/* ETree_free(frontETree) ; ----------> STORE ????? */
+/* ETree_free(frontETree) ; ----------> STORE */
 /* IVL_free(symbfacIVL) ; */
 /* SubMtxManager_free(mtxmanager) ; ----------> STORE */
 /* Graph_free(graph) ; */
 /* SolveMap_free(solvemap) ; ----------> STORE */
-/* IV_free(ownersIV) ; -------------> STORE ?????? */
-
-/* store reused data */
-pLU_dat->frontmtx = frontmtx;
-pLU_dat->newToOldIV = newToOldIV;
-pLU_dat->oldToNewIV = oldToNewIV;
-pLU_dat->frontETree = frontETree;
-pLU_dat->mtxmanager = mtxmanager;
-pLU_dat->solvemap = solvemap;
-pLU_dat->ownersIV = ownersIV;
+/* IV_free(ownersIV) ; -------------> STORE */
 
 /*--------------------------------------------------------------------*/
 fclose(msgFile);
