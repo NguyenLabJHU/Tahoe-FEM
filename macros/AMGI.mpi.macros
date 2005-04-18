@@ -1,11 +1,11 @@
-# $Id: AMGI.mpi.macros,v 1.7 2004-11-12 20:54:53 paklein Exp $
+# $Id: AMGI.mpi.macros,v 1.8 2005-04-18 06:22:02 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__  -DAZTEC_MPI
 MPI_LFLAGS = -lmpi -lmpi++
 
 # SGI Irix 6.2
 MAKE        = make
-DEFINES     = -D__TAHOE_MPI__ -DAZTEC_MPI -D__SGI__
+DEFINES     = -D__TAHOE_MPI__ -DAZTEC_MPI -D__SGI__ -D__POSIX_THREADS__
 COMP_C      = cc
 COMP_CC     = CC
 COMP_F      = f77
@@ -17,7 +17,7 @@ CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -ptused -woff 1110,1155,1174,1188,1682
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS) -DEIGHT_BYTE_REAL
 F2C_LFLAG   = -lftn -lfortran
 LINK        = $(COMP_CC)
-LFLAGS      = $(MPI_LFLAGS) $(F2C_LFLAG) -lm -w
+LFLAGS      = $(MPI_LFLAGS) $(F2C_LFLAG) -lpthread -lm -w
 AR          = ar
 MAKEDEPEND_C         = cc -M
 MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)

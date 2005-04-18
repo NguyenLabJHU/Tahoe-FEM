@@ -1,7 +1,7 @@
-# $Id: SGI.macros,v 1.23 2004-11-12 20:54:54 paklein Exp $
+# $Id: SGI.macros,v 1.24 2005-04-18 06:22:02 paklein Exp $
 
 MAKE        = make
-DEFINES     = -D__SGI__
+DEFINES     = -D__SGI__ -D__POSIX_THREADS__
 COMP_C      = cc
 COMP_CC     = CC
 COMP_F      = f77
