@@ -1,4 +1,4 @@
-/* $Id: LU_MT_driver_factorize.c,v 1.2 2005-04-18 05:45:54 paklein Exp $ */
+/* $Id: LU_MT_driver_factorize.c,v 1.3 2005-04-18 18:59:37 paklein Exp $ */
 #include "LU_MT_driver_int.h"
 
 #include "misc.h"
@@ -58,7 +58,7 @@ int             error, ient, irow, jcol, jrhs, jrow, lookahead=0,
                 msglvl, ncol,  nedges, nent, neqns, nfront, nrhs, nrow, 
                 pivotingflag, seed, symmetryflag, type, nthread;
 int             *newToOld, *oldToNew ;
-int             stats[16] ;
+int             stats[20] ;
 IV              *newToOldIV, *oldToNewIV, *ownersIV ;
 IVL             *adjIVL, *symbfacIVL ;
 SolveMap        *solvemap ;
@@ -102,7 +102,7 @@ else
 	nthread = pLU_dat->n_thread;
 }
 
-IVzero(16, stats);
+IVzero(20, stats);
 DVzero(11, cpus);
 
 if (msglvl > 0) {
@@ -277,7 +277,7 @@ FrontMtx_init(frontmtx, frontETree, symbfacIVL, type, symmetryflag,
 */
 chvmanager = ChvManager_new() ;
 ChvManager_init(chvmanager, LOCK_IN_PROCESS, 1) ;
-DVfill(10, cpus, 0.0) ;
+DVfill(11, cpus, 0.0) ;
 IVfill(20, stats, 0) ;
 rootchv = FrontMtx_MT_factorInpMtx(frontmtx, mtxA, tau, droptol,
                                  chvmanager, ownersIV, lookahead, 
