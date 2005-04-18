@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_MT.cpp,v 1.3 2005-04-13 21:50:13 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_MT.cpp,v 1.4 2005-04-18 05:47:55 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "SPOOLESMatrixT_MT.h"
 
@@ -6,12 +6,15 @@
 #ifdef __SPOOLES_MT__
 
 #include "ElementMatrixT.h"
-#include "SPOOLESMT.h"
+#include "LU_MT_driver.h"
 
 using namespace Tahoe;
 
 /* log file */
 const char SPOOLES_FILE[] = "SPOOLES.out";
+
+//old code or new code
+#undef OLD_CODE
 
 /* constuctor */
 SPOOLESMatrixT_MT::SPOOLESMatrixT_MT(ostream& out, int check_code,
@@ -50,10 +53,12 @@ SPOOLESMatrixT_MT::SPOOLESMatrixT_MT(const SPOOLESMatrixT_MT& source):
 /* destructor */
 SPOOLESMatrixT_MT::~SPOOLESMatrixT_MT(void)
 {
-//	if (pLU_dat && !LU_serial_driver_free(&pLU_dat))
-//		ExceptionT::GeneralFail("SPOOLESMatrixT_MT::~SPOOLESMatrixT_MT",
-//			"error freeing SPOOLES data");
+#ifndef OLD_CODE
+	if (pLU_dat && !LU_MT_driver_free(&pLU_dat))
+		ExceptionT::GeneralFail("SPOOLESMatrixT_MT::~SPOOLESMatrixT_MT",
+			"error freeing SPOOLES data");
 	pLU_dat = NULL;
+#endif
 }
 
 /* clear values for next assembly */
@@ -69,9 +74,9 @@ void SPOOLESMatrixT_MT::Clear(void)
 		ExceptionT::GeneralFail(caller, "total equations (%d) != local equations (%d)",
 			fTotNumEQ, fLocNumEQ);
 
-#if 0
+#ifndef OLD_CODE
 	/* delete existing data */
-	if (pLU_dat && !LU_serial_driver_free(&pLU_dat))
+	if (pLU_dat && !LU_MT_driver_free(&pLU_dat))
 		ExceptionT::GeneralFail(caller, "error freeing SPOOLES data");
 
 	/* initialize new data */
@@ -79,9 +84,9 @@ void SPOOLESMatrixT_MT::Clear(void)
 	int symmetry_flag = (fSymmetric) ? SPOOLES_SYMMETRIC : SPOOLES_NONSYMMETRIC;
 	int pivoting_flag = (fPivoting) ? SPOOLES_PIVOTING : SPOOLES_NO_PIVOTING;
 	int seed = 1; /* any seed will do here */
-	if (!LU_serial_driver_init(matrix_type, symmetry_flag, pivoting_flag, seed, fTotNumEQ, &pLU_dat))
+	if (!LU_MT_driver_init(matrix_type, symmetry_flag, pivoting_flag, seed, fTotNumEQ, fNumThreads, &pLU_dat))
 		ExceptionT::GeneralFail(caller, "error initializing SPOOLES data");
-#endif /* __SPOOLES_MT__ */
+#endif /* OLD_CODE */
 
 	/* reset flag */
 	fIsFactorized = false;
@@ -120,7 +125,7 @@ void SPOOLESMatrixT_MT::Factorize(void)
 		ExceptionT::GeneralFail(caller, "expecting first equation number to be 1 not %d",
 			fStartEQ);
 
-#if 0
+#ifndef OLD_CODE
 	/* convert matrix to RCV */
 	iArrayT r, c;
 	dArrayT v;
@@ -133,15 +138,15 @@ void SPOOLESMatrixT_MT::Factorize(void)
 	int msglvl = (fMessageLevel < 0) ? 0 : fMessageLevel; 
 
 	/* compute factorization */
-	int OK = LU_serial_driver_factorize(msglvl, SPOOLES_FILE,
+	int OK = LU_MT_driver_factorize(msglvl, SPOOLES_FILE,
 		r.Length(), r.Pointer(), c.Pointer(), v.Pointer(), 
 		&pLU_dat);
 
-	if (OK != 1) ExceptionT::BadJacobianDet("SPOOLESMatrixT_MT::Factorize", "LU driver returned %d", OK);
-#endif /* __SPOOLES_MT__ */
+	if (OK != 1) ExceptionT::BadJacobianDet(caller, "LU driver returned %d", OK);
 
 	/* set flag */
 	fIsFactorized = true;
+#endif
 }
 
 /* determine new search direction and put the results in result */
@@ -156,9 +161,9 @@ void SPOOLESMatrixT_MT::BackSubstitute(dArrayT& result)
 	 //  0: nothing
 	 //  1: scalar output (timing data) only
 	 // >1: verbose
-	int OK;
- 
-#if 1
+	int OK = 1;
+
+#ifdef OLD_CODE
 	/* convert matrix to RCV */
 	iArrayT r, c;
 	dArrayT v;
@@ -173,12 +178,13 @@ void SPOOLESMatrixT_MT::BackSubstitute(dArrayT& result)
 	OK = LU_MT_driver(msglvl, SPOOLES_FILE, matrix_type, symmetry_flag,
 		pivoting_flag, seed, result.Length(), result.Pointer(),
 		r.Length(), r.Pointer(), c.Pointer(), v.Pointer(), fNumThreads);
-#else /* not __SPOOLES_MT__ */
+
+#else /* new driver */
 
 	/* back substitute */
-	OK = LU_serial_driver_solve(msglvl, SPOOLES_FILE, result.Pointer(), &pLU_dat, fNumThreads);
+	OK = LU_MT_driver_solve(msglvl, SPOOLES_FILE, result.Pointer(), &pLU_dat);
 
-#endif /* __SPOOLES_MT__ */
+#endif /* OLD_CODE */
  
 	if (OK != 1) ExceptionT::BadJacobianDet(caller, "LU driver returned %d", OK);
 }
