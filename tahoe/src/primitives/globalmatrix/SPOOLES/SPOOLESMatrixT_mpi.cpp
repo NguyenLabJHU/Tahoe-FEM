@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.20 2005-04-13 22:27:07 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.21 2005-04-18 05:47:55 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "SPOOLESMatrixT_mpi.h"
 
@@ -33,10 +33,12 @@ SPOOLESMatrixT_mpi::SPOOLESMatrixT_mpi(ostream& out, int check_code,
 /* destructor */
 SPOOLESMatrixT_mpi::~SPOOLESMatrixT_mpi(void)
 {
+#ifndef OLD_CODE
 	if (pLU_dat && !LU_MPI_driver_free(&pLU_dat))
 		ExceptionT::GeneralFail("SPOOLESMatrixT_mpi::~SPOOLESMatrixT_mpi",
 			"error freeing SPOOLES data");
 	pLU_dat = NULL;
+#endif
 }
 
 /* clear values for next assembly */
@@ -55,6 +57,7 @@ void SPOOLESMatrixT_mpi::Clear(void)
 	if (pLU_dat && !LU_MPI_driver_free(&pLU_dat))
 		ExceptionT::GeneralFail(caller, "error freeing SPOOLES data");
 
+#ifndef OLD_CODE
 	/* initialize new data */
 	int matrix_type = SPOOLES_REAL;
 	int symmetry_flag = (fSymmetric) ? SPOOLES_SYMMETRIC : SPOOLES_NONSYMMETRIC;
@@ -62,6 +65,7 @@ void SPOOLESMatrixT_mpi::Clear(void)
 	int seed = 1; /* anything will do */
 	if (!LU_MPI_driver_init(matrix_type, symmetry_flag, pivoting_flag, seed, fTotNumEQ, fLocNumEQ, &pLU_dat))
 		ExceptionT::GeneralFail(caller, "error initializing SPOOLES data");
+#endif
 
 	/* reset flag */
 	fIsFactorized = false;
