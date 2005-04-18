@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.38 2005-04-04 17:11:01 rjones Exp $
+# $Id: tahoe-manager,v 1.39 2005-04-18 06:44:30 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -18,6 +18,7 @@ tahoe	TAHOE_
 macros	NODEFINE
 spooles SPOOLES_
 spoolesMPI SPOOLESMPI_
+spoolesMT SPOOLESMT_
 metis   METIS_
 aztec   AZ_
 f2c	    F2C_
@@ -38,6 +39,7 @@ tahoe /cvs/protected/tahoe
 macros /cvs/protected/tahoe
 spooles /cvs/protected/tahoe
 spoolesMPI /cvs/protected/tahoe
+spoolesMT /cvs/protected/tahoe
 metis /cvs/protected/tahoe
 aztec /cvs/protected/tahoe
 f2c /cvs/protected/tahoe
@@ -54,6 +56,7 @@ contrib /cvs/protected/tahoe
 %module2touch = qw(
 spooles touch_spooles
 spoolesMPI touch_spooles
+spoolesMT touch_spooles
 aztec touch_Aztec
 f2c touch_f2c
 access touch_SEACAS
