@@ -1,4 +1,4 @@
-# $Id: DARWIN-3.3.LAM.debug.macros,v 1.5 2005-02-05 01:03:15 paklein Exp $
+# $Id: DARWIN-3.3.LAM.debug.macros,v 1.6 2005-04-18 05:48:49 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -11,7 +11,7 @@
 LAM_HOME    = /usr/local/lam
 #
 MAKE        = make
-DEFINES     = -DEIGHT_BYTE_REAL -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -DCHECK_MPI_STATUS -DCHECK_MPI_RETURN -DAZTEC_MPI
+DEFINES     = -DEIGHT_BYTE_REAL -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -DCHECK_MPI_STATUS -DCHECK_MPI_RETURN -DAZTEC_MPI -D__POSIX_THREADS__
 COMP_C      = mpicc
 COMP_CC     = mpic++
 COMP_F      = mpif77
@@ -25,7 +25,7 @@ CFLAGS_CC   = $(LOC_CFLAGS) -include $(BLD_DIR)/pch/$(PCH) -Winvalid-pch
 CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 F2C_LFLAG   = -lg2c
-LFLAGS      = -Xlinker -Y -Xlinker 50
+LFLAGS      = -Xlinker -Y -Xlinker 50 -lpthread
 MAKEDEPEND_C         = gcc -MM
 MAKEDEPENDFLAGS_C    = -I$(INC_DIR) -I$(LAM_HOME)/include $(DEFINES)
 MAKEDEPEND_OUTPUT_C  = -MF
