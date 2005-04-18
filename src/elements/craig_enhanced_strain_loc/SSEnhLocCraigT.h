@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.h,v 1.8 2005-04-12 20:43:02 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.h,v 1.9 2005-04-18 17:08:54 cfoster Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_CF_T_H_
 #define _SMALL_STRAIN_ENH_LOC_CF_T_H_
 
@@ -39,43 +39,23 @@ namespace Tahoe{
 	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
 
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
-	/** return the description of the given inline subordinate parameter list. */
-	/*virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
-	  SubListT& sub_lists) const; */
-
-	/** return the description of the given inline subordinate parameter list */
-	//virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
-	/** extract the list of material parameters */
-	virtual void CollectMaterialInfo(const ParameterListT& all_params, 
-				ParameterListT& mat_params) const;
-
 protected:
 
-    /* Currently NewMaterialSupport and NewMaterialList call subroutines from SmallStrainT.
-	Consider removing them if there is no reason to keep */
-
-	/** construct a new material support and return a pointer. Recipient is responsible for
-	 * for freeing the pointer.
-	 * \param p an existing MaterialSupportT to be initialized. If NULL, allocate
-	 *        a new MaterialSupportT and initialize it. */
 	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
 
-	/** return a pointer to a new material list. Recipient is responsible for freeing 
-	 * the pointer. 
-	 * \param name list identifier
-	 * \param size length of the list */
+	/** return a pointer to a new material list. Recipient is 
+	 * responsible for freeing  the pointer. 
+	 * \param name list identifier \param size length of the list */
 	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
 	/** calculate the internal force contribution ("-k*d") */
@@ -96,17 +76,12 @@ protected:
 
   protected:
     
-	//bool isLocalizedTemp;
-	//bool isLocalized;
 	BandT *fBand;
 	double fH_delta_0;
 	bool fNoBandDilation;
 	double fLocalizedFrictionCoeff;
 	MapT<int, BandT*>* TracedElements()
 	  {return &fTracedElements;}
-	//double fJumpIncrement;
-	//dMatrixT fInitialModulus;
-	//ArrayT<dSymMatrixT> fStress_List;
 
 	/** driver for calculating output values */
 	/* Used to check localization - is there a more appropriate fn? */
