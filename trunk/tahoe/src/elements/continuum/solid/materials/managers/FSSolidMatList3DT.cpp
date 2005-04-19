@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.13 2005-02-24 23:00:17 thao Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.14 2005-04-19 22:10:26 thao Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -46,6 +46,11 @@
 
 #ifdef ELASTIC_OGDEN_MATERIAL_DEV
 #include "OgdenMaterialT.h"
+#endif
+
+#ifdef CORNEA_MODELS
+#include "IsoCorneaModel.h"
+#include "IsoVECorneaModel.h"
 #endif
 
 #ifdef PLASTICITY_CRYSTAL_MATERIAL
@@ -185,6 +190,15 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
                 sub_lists.AddSub("Bischoff-Arruda_WLC");
 #endif
 
+
+#ifdef CORNEA_MODELS
+                sub_lists.AddSub("Isotropic_Cornea_Model");
+#endif
+
+#ifdef CORNEA_MODELS
+                sub_lists.AddSub("Isotropic_Viscoelastic_Cornea_Model");
+#endif
+
 #ifdef ABAQUS_MATERIAL
 #ifdef ABAQUS_BCJ_MATERIAL_DEV
 		sub_lists.AddSub("ABAQUS_UMAT_BCJ");
@@ -321,6 +335,16 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef FINITE_ANISOTROPY
 	else if (name == "Bischoff-Arruda_WLC")
 	  mat= new WLC;
+#endif
+
+#ifdef CORNEA_MODELS
+	else if (name == "Isotropic_Cornea_Model")
+	  mat= new IsoCorneaModel;
+#endif
+
+#ifdef CORNEA_MODELS
+	else if (name == "Isotropic_Viscoelastic_Cornea_Model")
+	  mat= new IsoVECorneaModel;
 #endif
 
 #ifdef ABAQUS_MATERIAL
