@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.41 2005-02-24 23:00:17 thao Exp $ */
+/* $Id: SolidT.cpp,v 1.42 2005-04-19 22:10:26 thao Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 #include "ExceptionT.h"
@@ -183,6 +183,12 @@ SolidT::TypeT SolidT::int2TypeT(int i)
 
 		case SolidT::kBischoff_Arruda_WLC:
 			return SolidT::kBischoff_Arruda_WLC;
+
+		case SolidT::kIso_Cornea_Model:
+			return SolidT::kIso_Cornea_Model;
+
+		case SolidT::kIso_VE_Cornea_Model:
+			return SolidT::kIso_VE_Cornea_Model;
 
 		default:
 			ExceptionT::BadInputValue("SolidT::int2TypeT", "unknown code %d", i);
