@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.26 2005-04-15 22:47:45 thao Exp $
+# $Id: makefile,v 1.27 2005-04-20 23:47:27 thao Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -12,6 +12,8 @@ OBJ = \
 	PolyDistributionT.o \
 	ConHypGeom.o \
 	WormLikeChain.o \
+	WLCwRep.o \
+	FungwRep.o \
 	FungType.o 
 
 OBJ_LINK = $(OBJ)
@@ -28,6 +30,8 @@ SRC = \
 	PolyDistributionT.cpp \
 	ConHypGeom.cpp \
 	WormLikeChain.cpp \
+	WLCwRep.cpp \
+	FungwRep.cpp \
 	FungType.cpp
 
 # headers
@@ -38,6 +42,8 @@ HDR = \
 	PolyDistributionT.h \
 	ConHypGeom.h \
 	WormLikeChain.h \
+	WLCwRep.h \
+	FungwRep.h \
 	FungType.h
 
 HDR_LINK = $(HDR:.h=.h_link)
