@@ -1,4 +1,4 @@
-/* $Id: IsoVECorneaModel.cpp,v 1.1 2005-04-19 22:09:15 thao Exp $ */
+/* $Id: IsoVECorneaModel.cpp,v 1.2 2005-04-20 00:56:41 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVECorneaModel.h"
 
@@ -30,6 +30,9 @@ static const double pi = 3.14159274641021;
 IsoVECorneaModel::IsoVECorneaModel(void):
 	RGViscoelasticityT(),
 	ParameterInterfaceT("Isotropic_Viscoelastic_Cornea_Model"),
+	fSphere(NULL),
+	fPot_EQ(NULL),
+	fPot_NEQ(NULL),
 	fNumSD(3),
 	fNumStress(3),
 	fNumModuli(6),
@@ -47,7 +50,7 @@ IsoVECorneaModel::IsoVECorneaModel(void):
 	fddWddE_NEQ(3),
 	fCalg(3),
 	fModMat(6),
-	fiKAB(3)
+	fiKAB(3)	
 {
 }
 
@@ -55,8 +58,8 @@ IsoVECorneaModel::IsoVECorneaModel(void):
 IsoVECorneaModel::~IsoVECorneaModel(void) 
 { 
   delete fSphere; 
-  delete fPot_EQ;
   delete fPot_NEQ;
+  delete fPot_EQ;
 }
 
 /* information about subordinate parameter lists */

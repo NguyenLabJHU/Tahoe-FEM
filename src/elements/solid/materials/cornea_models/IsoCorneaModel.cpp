@@ -1,4 +1,4 @@
-/* $Id: IsoCorneaModel.cpp,v 1.1 2005-04-19 22:09:15 thao Exp $ */
+/* $Id: IsoCorneaModel.cpp,v 1.2 2005-04-20 00:56:41 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoCorneaModel.h"
 
@@ -28,7 +28,8 @@ IsoCorneaModel::IsoCorneaModel(void):
 	fNumSD(3),
 	fNumStress(3),
 	fNumModuli(6),
-	fSphere(NULL)
+	fSphere(NULL),
+	fPotential(NULL)
 {
 }
 
