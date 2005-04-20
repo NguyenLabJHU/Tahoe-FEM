@@ -1,4 +1,4 @@
-/* $Id: IsoCorneaModel.cpp,v 1.2 2005-04-20 00:56:41 thao Exp $ */
+/* $Id: IsoCorneaModel.cpp,v 1.3 2005-04-20 23:45:17 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoCorneaModel.h"
 
@@ -12,7 +12,9 @@
 
 /*potential*/
 #include "WormLikeChain.h"
+#include "WLCwRep.h"
 #include "FungType.h"
+#include "FungwRep.h"
 
 /* point generators */
 #include "LatLongPtsT.h"
@@ -122,6 +124,25 @@ ParameterInterfaceT* IsoCorneaModel::NewSub(const StringT& name) const
     wlc.AddParameter(R0);
     choice->AddSub(wlc);
  
+    /* worm like chain statistics with power law repulsion*/
+    ParameterContainerT wlcrep("worm_like_chain_power_repulsion");
+    ParameterT N2(ParameterT::Double, "chain_density");
+    N2.AddLimit(lower);
+    ParameterT T2(ParameterT::Double, "temperature");
+    T2.AddLimit(lower);
+    ParameterT A2(ParameterT::Double, "persistence_length");
+    A2.AddLimit(lower);
+    ParameterT R02(ParameterT::Double, "initial_coil_length");
+    R02.AddLimit(lower);
+    ParameterT n(ParameterT::Double, "repulsion_exponent");
+    n.AddLimit(lower);
+    wlcrep.AddParameter(N2);
+    wlcrep.AddParameter(T2);
+    wlcrep.AddParameter(A2);
+    wlcrep.AddParameter(R02);
+    wlcrep.AddParameter(n);
+    choice->AddSub(wlcrep);
+
     /* fung-type chains */
     ParameterContainerT fungtype("fung_type_chain");
     ParameterT C1(ParameterT::Double, "multiplier_C1");
@@ -131,6 +152,19 @@ ParameterInterfaceT* IsoCorneaModel::NewSub(const StringT& name) const
     fungtype.AddParameter(C1);
     fungtype.AddParameter(beta);
     choice->AddSub(fungtype);
+
+    /* fung-type chains with repulsion */
+    ParameterContainerT fungrep("fung_type_chain_power_repulsion");
+    ParameterT C12(ParameterT::Double, "multiplier_C1");
+    C12.AddLimit(lower);
+    ParameterT beta2(ParameterT::Double, "exponent_beta");
+    beta2.AddLimit(lower);
+    ParameterT n2(ParameterT::Double, "repulsion_exponent");
+    n2.AddLimit(lower);
+    fungrep.AddParameter(C12);
+    fungrep.AddParameter(beta2);
+    fungrep.AddParameter(n2);
+    choice->AddSub(fungrep);
     return choice;
   }
 }
@@ -162,6 +196,27 @@ void IsoCorneaModel::TakeParameterList(const ParameterListT& list)
       fC0 = (N*k*T/A) * ( p - 0.25 + 0.25/((1-p)*(1-p)) );
       fR0 = R0;
   }
+  else if (potential.Name() == "worm_like_chain_power_repulsion")
+  {
+      double N = potential.GetParameter("chain_density");
+      double T = potential.GetParameter("temperature");
+      double A = potential.GetParameter("persistence_length");
+      double R0 = potential.GetParameter("initial_coil_length");
+      double n = potential.GetParameter("repulsion_exponent");
+      double L = R0*R0/(2*A);
+      double k = 1.3806503e-23; 
+		
+      /*set wlc potential function*/
+      double K = 0.75/pi*(N*k*T/A);
+      double p = sqrt(2*A/L);
+      double C = 0.75/pi*(N*k*T/A) * ( p - 0.25 + 0.25/((1-p)*(1-p)) )*pow(R0,(n+1.0))/n;
+      fPotential = new WLCwRep(K,L,C,n);
+      if (!fPotential) throw ExceptionT::kOutOfMemory;
+
+      /*set parameters for repulsive potential*/
+      fC0 = 0.0;
+      fR0 = R0;
+  }
   else if (potential.Name() == "fung_type_chain")
     {
       double C1 = potential.GetParameter("multiplier_C1");
@@ -174,6 +229,22 @@ void IsoCorneaModel::TakeParameterList(const ParameterListT& list)
 
       /*set parameters for repulsive potential*/
       fC0 = C1*beta;
+      fR0 = 1.0;      
+    }
+  else if (potential.Name() == "fung_type_chain_power_repulsion")
+    {
+      double C1 = potential.GetParameter("multiplier_C1");
+      double beta = potential.GetParameter("exponent_beta");
+      double n = potential.GetParameter("repulsion_exponent");
+
+      /*set fung type potential*/
+      double K = 0.75/pi*C1;
+      double C = 0.75/pi*C1*beta/n;
+	  fPotential = new FungwRep(K,beta,C,n);
+      if (!fPotential) throw ExceptionT::kOutOfMemory;
+
+      /*set parameters for repulsive potential*/
+      fC0 = 0.0;
       fR0 = 1.0;      
     }
   else
