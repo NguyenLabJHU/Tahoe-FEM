@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.25 2005-04-20 00:12:34 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.26 2005-04-20 20:20:55 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -1165,7 +1165,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 	
 	double tanphi_n;
 	
-	double cospsi, sinpsi, tanphi, secphi2;
+	double cospsi, sinpsi, tanphi, secphi2, cospsi2;
 	
 	double h_c, h_phi, h_psi;
 	double Dh_cDzeta, Dh_phiDzeta, Dh_psiDzeta;
@@ -1198,6 +1198,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		
 		F_nn_nonsym.Outer(normal_chosen, normal_chosen);
 		F_nn.Symmetrize(F_nn_nonsym);
+		
 		tmp_matrix.Outer(tangent_chosen, normal_chosen);
 		F_tn.Symmetrize(tmp_matrix);
 		
@@ -1289,6 +1290,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		// update internal variables using Delta_zeta
 		double psi = fElementLocInternalVars[kNUM_ISV_TERMS*elem + kDilation];
 		cospsi = cos(psi);
+		cospsi2 = cospsi*cospsi;
 		sinpsi = sin(psi);
 		gamma_delta = fElementLocScalars_last[kNUM_SCALAR_TERMS*elem + kgamma_delta] + cospsi*Delta_zeta;
 		fElementLocScalars[kNUM_SCALAR_TERMS*elem + kgamma_delta] = gamma_delta;
@@ -1354,17 +1356,17 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		Dh_qDpsi[1] = Dh_phiDpsi;
 		Dh_qDpsi[2] = Dh_psiDpsi;
 		Dh_qDq.SetCol(kDilation, Dh_qDpsi);
-		Dh_qDq *= -Delta_zeta;
+		Dh_qDq *= Delta_zeta;
 		// construct A_matrix
 		A_matrix = 0.0;
 		A_matrix.PlusIdentity(1.0);
-		A_matrix += Dh_qDq;
+		A_matrix -= Dh_qDq;
 		A_matrix.Inverse();
 		
 		// calculate derivatives of ISVs w.r.t zeta (jump displ.)
-		Dh_cDzeta = pow(alpha_c*cospsi,2)*(c_p-c_r)*exp(-alpha_c*gamma_delta)*sign_Delta_zeta;
-		Dh_phiDzeta = pow(alpha_phi*cospsi,2)*(phi_p-phi_r)*exp(-alpha_phi*gamma_delta)*sign_Delta_zeta;
-		Dh_psiDzeta = pow(alpha_psi*cospsi,2)*(psi_p)*exp(-alpha_psi*gamma_delta)*sign_Delta_zeta;
+		Dh_cDzeta = alpha_c*alpha_c*cospsi2*(c_p-c_r)*exp(-alpha_c*gamma_delta)*sign_Delta_zeta;
+		Dh_phiDzeta = alpha_phi*alpha_phi*cospsi2*(phi_p-phi_r)*exp(-alpha_phi*gamma_delta)*sign_Delta_zeta;
+		Dh_psiDzeta = alpha_psi*alpha_psi*cospsi2*psi_p*exp(-alpha_psi*gamma_delta)*sign_Delta_zeta;
 		Dh_qDzeta[0] = Dh_cDzeta;
 		Dh_qDzeta[1] = Dh_phiDzeta;
 		Dh_qDzeta[2] = Dh_psiDzeta;
@@ -1612,15 +1614,15 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			Dh_qDpsi[0] = Dh_cDpsi;
 			Dh_qDq = 0.0;
 			Dh_qDq.SetCol(kDilation, Dh_qDpsi);
-			Dh_qDq *= -Delta_zeta;
+			Dh_qDq *= Delta_zeta;
 			// construct A_matrix
 			A_matrix = 0.0;
 			A_matrix.PlusIdentity(1.0);
-			A_matrix += Dh_qDq;
+			A_matrix -= Dh_qDq;
 			A_matrix.Inverse();
 			
 			// recalculate derivative of ISV w.r.t zeta (jump displ.)
-			Dh_cDzeta = pow(alpha_c*cospsi,2)*(c_p-c_r)*exp(-alpha_c*gamma_delta)*sign_Delta_zeta;
+			Dh_cDzeta = alpha_c*alpha_c*cospsi2*(c_p-c_r)*exp(-alpha_c*gamma_delta)*sign_Delta_zeta;
 			Dh_qDzeta[0] = Dh_cDzeta;
 			
 			// reform DqDzeta
@@ -1631,6 +1633,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			tmp_q_zeta += tmp_h_q;
 			A_matrix.Multx(tmp_q_zeta, DqDzeta);
 			
+			/*
 			// calculate DslipdirDzeta
 			DslipdirDq.Multx(DqDzeta, DslipdirDzeta);
 			
@@ -1639,7 +1642,6 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			tmp_Dslipdir_array *= Delta_zeta;
 			tmp_Dslipdir_array += slipdir_tmp;
 			
-			/*
 			DQ_SDzeta = 0.0;
 			fK_dzeta = 0.0;
 			const double* Det    = fShapes->IPDets();
