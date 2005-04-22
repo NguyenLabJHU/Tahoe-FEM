@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.36 2005-04-16 02:03:26 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.37 2005-04-22 00:55:18 paklein Exp $ */
  
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
@@ -454,6 +454,26 @@ void FEManagerT_bridging::InitInterpolation(const StringT& field, const iArrayT&
 
 	/* compute interpolation data */
 	BridgingScale().InitInterpolation(nodes, &coordinates, NULL, fFollowerCellData);
+
+	/* output interpolation matrix */
+	if (fLogging == GlobalT::kVerbose)
+	{
+		/* interpolation data */
+		iArrayT r, c;
+		dArrayT v;
+		fFollowerCellData.InterpolationDataToMatrix(r, c, v);
+		
+		/* output stream */
+		StringT file;
+		file.Root(fInputFile);
+		file.Append(".N_hatQ_U.rcv");
+		ofstreamT out(file);
+		out.precision(12);
+		
+		/* write output */
+		for (int i = 0; i < r.Length(); i++)
+			out << r[i]+1 << " " << c[i]+1 << " " << v[i] << '\n';
+	}
 }
 
 /* field interpolations */
@@ -651,6 +671,55 @@ void FEManagerT_bridging::InitProjection(const StringT& field, CommManagerT& com
 	/* initialize the projection (using reference coordinates) */
 	const dArray2DT& init_coords = node_manager.InitialCoordinates();
 	BridgingScale().InitProjection(comm, nodes, &init_coords, NULL, fDrivenCellData);
+
+	/* output matricies used for the projection */
+	if (fLogging == GlobalT::kVerbose)
+	{
+		/* output stream */
+		StringT file;
+		ofstreamT out;
+		out.precision(12);
+
+		/* interpolation data */
+		iArrayT r, c;
+		dArrayT v;
+
+		/* N_Q_U */		
+		fDrivenCellData.InterpolationDataToMatrix(r, c, v);
+		file.Root(fInputFile);
+		file.Append(".N_Q_U.rcv");
+		out.open(file);
+		for (int i = 0; i < r.Length(); i++)
+			out << r[i]+1 << " " << c[i]+1 << " " << v[i] << '\n';
+		out.close();
+		
+		/* B_hatU_Q */
+		fDrivenCellData.PointToNode().GenerateRCV(r, c, v);
+		file.Root(fInputFile);
+		file.Append(".B_hatU_Q.rcv");
+		out.open(file);
+		for (int i = 0; i < r.Length(); i++)
+			out << r[i]+1 << " " << c[i]+1 << " " << v[i] << '\n';
+		out.close();
+
+		/* B_barQ_Q */
+		fDrivenCellData.PointToPoint().GenerateRCV(r, c, v);
+		file.Root(fInputFile);
+		file.Append(".B_barQ_Q.rcv");
+		out.open(file);
+		for (int i = 0; i < r.Length(); i++)
+			out << r[i]+1 << " " << c[i]+1 << " " << v[i] << '\n';
+		out.close();
+
+		/* B_hatU_U */
+		fDrivenCellData.NodeToNode().GenerateRCV(r, c, v);
+		file.Root(fInputFile);
+		file.Append(".B_hatU_U.rcv");
+		out.open(file);
+		for (int i = 0; i < r.Length(); i++)
+			out << r[i]+1 << " " << c[i]+1 << " " << v[i] << '\n';
+		out.close();
+	}
 
 	/* get the associated field */
 	FieldT* the_field = fNodeManager->Field(field);
