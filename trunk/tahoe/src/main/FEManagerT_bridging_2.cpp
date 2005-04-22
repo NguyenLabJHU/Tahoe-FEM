@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.12 2005-04-13 21:51:40 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.13 2005-04-22 00:55:52 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -917,6 +917,16 @@ void FEManagerT_bridging::Compute_df_dp_2(const dArrayT& R, double V_0, const Ar
 	ShapeFunctionT shapes = ShapeFunctionT(coarse->GeometryCode(), nip, element_coords);
 	shapes.Initialize();
 
+	/* B_hat_U_U */
+	InterpolationDataT& B_hatU_U = const_cast<InterpolationDataT&>(fDrivenCellData.NodeToNode());
+	const RaggedArray2DT<int>& B_hatU_U_neighbors = B_hatU_U.Neighbors();	
+	const RaggedArray2DT<double>& B_hatU_U_weights = B_hatU_U.NeighborWeights();	
+	InverseMapT& B_hatU_U_row_map = B_hatU_U.Map();
+	InverseMapT::SettingT old_out_of_range = B_hatU_U_row_map.OutOfRange();
+	B_hatU_U_row_map.SetOutOfRange(InverseMapT::MinusOne); /* need this to differentiate free/prescribed nodes */
+	iArrayT hatU_U_neighbors;
+	dArrayT hatU_U_weights;
+
 	/* integrate bond density term */
 	dArrayT rho_1(nip);
 	rho_1 = 1.0;
@@ -969,8 +979,33 @@ void FEManagerT_bridging::Compute_df_dp_2(const dArrayT& R, double V_0, const Ar
 				}
 			}
 		}
-	if (fLogging == GlobalT::kVerbose) {
-		fMainOut << "f_a =\n" << f_a << endl;
+		if (fLogging == GlobalT::kVerbose) {
+			fMainOut << "f_a =\n" << f_a << endl;
+	}
+	
+	/* add B_hatU_U to free nodes from prescribed nodes */
+	if (B_hatU_U_weights.Length() > 0) /* have hatU-U contributions */
+	{
+		for (int i = 0; i < overlap_node.Length(); i++)
+		{
+			int hatU_node = overlap_node[i];
+			int hatU_row = B_hatU_U_row_map.Map(hatU_node);
+			if (hatU_row != -1) /* is prescribed */
+			{
+				/* row of B_hatU_U */
+				B_hatU_U_neighbors.RowAlias(hatU_row, hatU_U_neighbors);
+				B_hatU_U_weights.RowAlias(hatU_row, hatU_U_weights);
+				
+				/* add contributions to U nodes */
+				for (int j = 0; j < hatU_U_neighbors.Length(); j++)
+				{
+					int U_node = hatU_U_neighbors[j];
+					int U_node_index = overlap_node_map.Map(U_node);
+					if (U_node_index > -1) /* allowed to be -1? */
+						f_a[U_node_index] += f_a[i]*hatU_U_weights[j]; /* add B_hatU_U contribution */
+				}
+			}
+		}
 	}
 
 	/* gradient work space */
@@ -989,7 +1024,7 @@ void FEManagerT_bridging::Compute_df_dp_2(const dArrayT& R, double V_0, const Ar
 	ddf_dpdp.Clear();
 
 	/* regularization contributions to the force and stiffness matrix */
-	dArray2DT df(nen, nip);
+//	dArray2DT df(nen, nip);
 	dMatrixT ddp_i_dpdp(nip);
 	dArrayT element_rho;
 	dArrayT element_force;
@@ -1124,10 +1159,35 @@ void FEManagerT_bridging::Compute_df_dp_2(const dArrayT& R, double V_0, const Ar
 		
 		/* force contribution */
 		inv_equations_all_i.RowAlias(i, eqnos);
-		for (int j = 0; j < eqnos.Length(); j++) {
+		for (int j = 0; j < eqnos.Length(); j++)
 			df_dp[eqnos[j]-1] += f_a[node_index]*df_a_dp[j];
+
+		if (B_hatU_U_weights.Length() > 0) /* have hatU-U contributions */
+		{
+			int hatU_row = B_hatU_U_row_map.Map(node);
+			if (hatU_row != -1) /* is prescribed */
+			{
+				/* row of B_hatU_U */
+				B_hatU_U_neighbors.RowAlias(hatU_row, hatU_U_neighbors);
+				B_hatU_U_weights.RowAlias(hatU_row, hatU_U_weights);
+			
+				/* sum over U nodes */
+				double Bxf = 0.0;
+				for (int k = 0; k < hatU_U_neighbors.Length(); k++) {
+					int U_node_index = overlap_node_map.Map(hatU_U_neighbors[k]);
+					if (U_node_index > -1) /* allowed to be -1? */
+						Bxf += hatU_U_weights[k]*f_a[U_node_index];
+				}
+			
+				/* assemble */
+				for (int j = 0; j < eqnos.Length(); j++)
+					df_dp[eqnos[j]-1] += Bxf*df_a_dp[j];
+			}
 		}
 	}
+
+	/* restore map behavior */
+	B_hatU_U_row_map.SetOutOfRange(old_out_of_range);
 }
 
 #endif  /* BRIDGING_ELEMENT */
