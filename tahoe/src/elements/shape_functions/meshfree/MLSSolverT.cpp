@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.cpp,v 1.22 2004-11-05 01:40:16 paklein Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.23 2005-04-22 00:53:04 paklein Exp $ */
 /* created: paklein (12/08/1999) */
 #include "MLSSolverT.h"
 
@@ -24,7 +24,7 @@ using namespace Tahoe;
 const double sqrtPi = sqrt(acos(-1.0));
 
 /* constructor */
-MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type, 
+MLSSolverT::MLSSolverT(int nsd, int complete, bool cross_terms, MeshFreeT::WindowTypeT window_type, 
 	const dArrayT& window_params):
 	fNumSD(nsd),
 	fComplete(complete),
@@ -59,10 +59,10 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 			fBasis = new PolyBasis1DT(fComplete);
 			break;
 		case 2:
-			fBasis = new PolyBasis2DT(fComplete);
+			fBasis = new PolyBasis2DT(fComplete, cross_terms);
 			break;
 		case 3:
-			fBasis = new PolyBasis3DT(fComplete);
+			fBasis = new PolyBasis3DT(fComplete, cross_terms);
 			break;
 		default:
 			ExceptionT::BadInputValue(caller, " unsupported spatial dimensions %d", fNumSD);
