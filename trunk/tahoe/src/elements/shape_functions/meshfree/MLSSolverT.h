@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.16 2005-01-27 17:47:51 paklein Exp $ */
+/* $Id: MLSSolverT.h,v 1.17 2005-04-22 00:53:04 paklein Exp $ */
 /* created: paklein (12/08/1999) */
 #ifndef _MLS_SOLVER_T_H_
 #define _MLS_SOLVER_T_H_
@@ -31,9 +31,11 @@ public:
 	/** constructor.
 	 * \param nsd number of spatial dimensions
 	 * \param complete order of completeness for the basis functions
+	 * \param cross_terms include additional monomials involving cross terms that
+	 *        aren't required for completeness
 	 * \param window_type window function specifier
 	 * \param window_params array of window function parameters */
-	MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type, 
+	MLSSolverT(int nsd, int complete, bool cross_terms, MeshFreeT::WindowTypeT window_type, 
 		const dArrayT& window_params);
 	
 	/** destructor */
