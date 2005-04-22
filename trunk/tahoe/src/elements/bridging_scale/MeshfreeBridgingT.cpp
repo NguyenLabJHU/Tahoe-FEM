@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.10 2005-04-16 01:59:37 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.11 2005-04-22 00:30:59 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "ifstreamT.h"
@@ -253,7 +253,7 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 	}
 
 	/* compute node to node projection matrix */
-//	Compute_B_hatU_U(cell_data, cell_data.NodeToNode());
+	//Compute_B_hatU_U(cell_data, cell_data.NodeToNode());
 }
 
 /* project the point values onto the mesh */
@@ -366,20 +366,17 @@ void MeshfreeBridgingT::Compute_B_hatU_U(const PointInCellDataT& projection,
 	const InterpolationDataT& B_hatU_Q = projection.PointToNode();
 	const RaggedArray2DT<int>& B_hatU_Q_neighbors = B_hatU_Q.Neighbors();
 	const RaggedArray2DT<double>& B_hatU_Q_weights = B_hatU_Q.NeighborWeights();
-	const InverseMapT& B_hatU_Q_row_map = B_hatU_Q.Map();
-	if (B_hatU_Q_row_map.OutOfRange() != InverseMapT::MinusOne)
-		ExceptionT::GeneralFail(caller, "need map to return -1 if out of range");
+	
+	/* B_hatU_Q and B_hatU_U row maps */
+	InverseMapT& B_hatU_U_row_map = B_hatU_U.Map();
+	B_hatU_U_row_map = B_hatU_Q.Map(); /* copy */
+	B_hatU_U_row_map.SetOutOfRange(InverseMapT::MinusOne);
 	iArrayT nodes_Uhat;
-	B_hatU_Q_row_map.Forward(nodes_Uhat);
+	B_hatU_U_row_map.Forward(nodes_Uhat);
 	
 	/* coarse scale element group */
 	const SolidElementT& solid = SolidElement();
 	int nen = solid.NumElementNodes();
-
-	/* B_hatU_U */
-	RaggedArray2DT<int>& B_hatU_U_neighbors = B_hatU_U.Neighbors();
-	RaggedArray2DT<double>& B_hatU_U_weights = B_hatU_U.NeighborWeights();
-	InverseMapT& B_hatU_U_row_map = B_hatU_U.Map();
 
 	/* compute B_hatU_U = B_hatU_Q x N_Q_U */
 	AutoFill2DT<int> B_hatU_U_neighbors_tmp(nodes_Uhat.Length(), 1, 10, 10);
@@ -388,8 +385,8 @@ void MeshfreeBridgingT::Compute_B_hatU_U(const PointInCellDataT& projection,
 	for (int i = 0; i < nodes_Uhat.Length(); i++) /* loop over projected nodes */ 
 	{		
 		/* loop over points contributing to each projected node */
-		B_hatU_U_neighbors.RowAlias(i, hatU_neighbors);
-		for (int j = 0; j < hatU_neighbors.Length(); i++) 
+		B_hatU_Q_neighbors.RowAlias(i, hatU_neighbors);
+		for (int j = 0; j < hatU_neighbors.Length(); j++) 
 		{
 			int j_loc = Q_global_to_local.Map(hatU_neighbors[j]);
 
@@ -397,28 +394,33 @@ void MeshfreeBridgingT::Compute_B_hatU_U(const PointInCellDataT& projection,
 			int element = N_cell[j_loc];
 			const iArrayT& nodes = SolidElement().ElementCard(element).NodesU();
 			
-			/* collect free cell nodes */
+			/* collect free cell nodes/constract over Q relating hatU and U */
+			double B = B_hatU_Q_weights(i,j);
 			for (int k = 0; k < nodes.Length(); k++)
 			{
 				int node = nodes[k];
-				if (B_hatU_Q_row_map.Map(node) != -1)
+				if (B_hatU_U_row_map.Map(node) == -1) /* not a hatU node */
 				{
 					int row_index = B_hatU_U_neighbors_tmp.PositionInRow(i, node);
+					double BxN = B*N_cell_weights(j_loc,k);
 					if (row_index == -1) /* new value */
 					{
-						B_hatU_U_neighbors_tmp.Append(i,node);
-//						B_hatU_U_weights_tmp.Append(); B x N
+						B_hatU_U_neighbors_tmp.Append(i, node);
+						B_hatU_U_weights_tmp.Append(i, BxN);
 					}	
 					else /* existing value - matrix multiply */
-					{
-//						B_hatU_U_weights_tmp(i,row_index) += B x N
-					}
+						B_hatU_U_weights_tmp(i, row_index) += BxN;
 				}
 			}
 		}
 	}
 
+	/* B_hatU_U */
+	B_hatU_U.Neighbors().Copy(B_hatU_U_neighbors_tmp);
+	B_hatU_U.NeighborWeights().Copy(B_hatU_U_weights_tmp);
+	B_hatU_U_row_map.SetOutOfRange(InverseMapT::Throw); /* allow no errors */
 }
+
 /* information about subordinate parameter lists */
 void MeshfreeBridgingT::DefineSubs(SubListT& sub_list) const
 {
@@ -447,8 +449,9 @@ void MeshfreeBridgingT::TakeParameterList(const ParameterListT& list)
 	/* construct the MLS solver */
 	const ParameterListT& rkpm = list.GetList("RKPM");
 	int completeness = rkpm.GetParameter("completeness");
+	int cross_terms = rkpm.GetParameter("cross_terms");
 	const ParameterListT& window = rkpm.GetListChoice(fMeshFreeSupport, "window_function_choice");		
-	fMLS = MeshFreeSupportT::New_MLSSolverT(NumSD(), completeness, window);
+	fMLS = MeshFreeSupportT::New_MLSSolverT(NumSD(), completeness, cross_terms, window);
 	fMLS->Initialize();
 }
 
