@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc2D.cpp,v 1.5 2005-02-16 17:26:24 raregue Exp $ */
+/* $Id: DPSSKStVLoc2D.cpp,v 1.6 2005-04-22 23:39:04 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc2D.h"
 #include "ElementCardT.h"
@@ -82,6 +82,7 @@ void DPSSKStVLoc2D::TakeParameterList(const ParameterListT& list)
 	/* dimension work space */
 	fStress2D.Dimension(2);
 	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
+	fModulusElas2D.Dimension(dSymMatrixT::NumValues(2));
 	fModulusPerfPlas2D.Dimension(dSymMatrixT::NumValues(2));
 	fTotalStrain3D.Dimension(3);
 }
