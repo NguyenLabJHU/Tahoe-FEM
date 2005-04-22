@@ -1,21 +1,16 @@
-/* $Id: PolyBasis1DT.cpp,v 1.7 2004-11-03 16:09:48 raregue Exp $ */
-/* created: paklein (12/11/1999)                                          */
-/* base class for basis functions                                         */
-
+/* $Id: PolyBasis1DT.cpp,v 1.8 2005-04-22 00:33:39 paklein Exp $ */
+/* created: paklein (12/11/1999) */
 #include "PolyBasis1DT.h"
-
-/* constructor */
 
 using namespace Tahoe;
 
+/* constructor */
 PolyBasis1DT::PolyBasis1DT(int complete):
 	BasisT(complete, 1)
 {
 	if (fComplete < 0 || fComplete > 1)
-	{
-		cout << "\n PolyBasis1DT::PolyBasis1DT: completeness must be [0,1]" << endl;
-		throw ExceptionT::kBadInputValue;	
-	}
+		ExceptionT::OutOfRange("PolyBasis1DT::PolyBasis1DT",
+			"completeness must be [0,1]: %d", complete);
 }
 	
 /* return the number of basis functions */
@@ -29,8 +24,9 @@ void PolyBasis1DT::SetBasis(const dArray2DT& coords, int order)
 {
 #if __option(extended_errorcheck)
 	/* dimension checking */
-	if (coords.MinorDim() != fNumSD) throw ExceptionT::kGeneralFail;
-	if (order > 3) throw ExceptionT::kOutOfRange; //kyonten (order increased to 3)
+	const char caller[] = "PolyBasis1DT::SetBasis";
+	if (coords.MinorDim() != fNumSD) ExceptionT::GeneralFail(caller);
+	if (order > 3) ExceptionT::OutOfRange(caller); //kyonten (order increased to 3)
 #endif
 
 	/* dimensions */
