@@ -1,4 +1,4 @@
-/* $Id: InterpolationDataT.cpp,v 1.4 2004-06-26 05:53:19 paklein Exp $ */
+/* $Id: InterpolationDataT.cpp,v 1.5 2005-04-22 00:29:54 paklein Exp $ */
 #include "InterpolationDataT.h"
 #include "iArray2DT.h"
 #include "dArrayT.h"
@@ -53,6 +53,35 @@ void InterpolationDataT::Transpose(const InverseMapT& map, const RaggedArray2DT<
 			dex++;
 		}
 	}	
+}
+
+/* return the interpolation data in {row, column, value} (RCV) format */
+void InterpolationDataT::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v) const
+{
+	/* dimensions */
+	int num_values = fNeighborWeights.Length();
+	r.Dimension(num_values);
+	c.Dimension(num_values);
+	v.Dimension(num_values);
+
+	/* global row id's */
+	iArrayT rows;
+	fMap.Forward(rows);
+
+	/* collect values */
+	int index = 0;
+	iArrayT cols;
+	dArrayT vals;
+	for (int i = 0; i < fNeighborWeights.MajorDim(); i++) {
+		fNeighborWeights.RowAlias(i, vals);
+		fNeighbors.RowAlias(i, cols);
+		for (int j = 0; j < vals.Length(); j++) {
+			r[index] = rows[i];
+			c[index] = cols[j];
+			v[index] = vals[j];
+			index++;
+		}
+	}
 }
 
 /* transpose the given interpolation data */
