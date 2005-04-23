@@ -1,4 +1,4 @@
-/* $Id: PointInCellDataT.cpp,v 1.7 2005-03-11 20:35:21 paklein Exp $ */
+/* $Id: PointInCellDataT.cpp,v 1.8 2005-04-23 20:04:26 paklein Exp $ */
 #include "PointInCellDataT.h"
 #include "ContinuumElementT.h"
 #include "InverseMapT.h"
@@ -88,7 +88,8 @@ void PointInCellDataT::InterpolationDataToMatrix(iArrayT& r, iArrayT& c, dArrayT
 	iArrayT fwd(fInterpolationWeights.MajorDim());
 	fGlobalToLocal.Forward(fwd);
 	for (int i = 0; i < fInterpolatingCell.Length(); i++) {
-		const iArrayT& nodes = fContinuumElement->ElementCard(i).NodesU();
+		int cell = fInterpolatingCell[i];
+		const iArrayT& nodes = fContinuumElement->ElementCard(cell).NodesU();
 		const double* w = fInterpolationWeights(i);
 		for (int j = 0; j < nodes.Length(); j++) {
 			r[index] = fwd[i];
