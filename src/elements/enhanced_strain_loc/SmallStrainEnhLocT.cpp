@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.27 2005-04-22 23:39:39 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.28 2005-04-25 05:05:06 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -757,7 +757,7 @@ void SmallStrainEnhLocT::CheckLocalization(int& elem, LocalArrayT& displ_elem)
 				detAs.Top();
 				dissipations_fact.Top();
 				int num_normals = normals.Length();
-				dArrayT dummyt(3);
+				dArrayT dummyt(NumSD());
 				while (normals.Next())
 				{
 					normal_tmp = normals.Current();
@@ -795,13 +795,25 @@ void SmallStrainEnhLocT::CheckLocalization(int& elem, LocalArrayT& displ_elem)
 						ss_enh_out	<< endl << "detA_min" << setw(outputFileWidth) << "dissip_max"  << setw(outputFileWidth) << "psi (rad)"
 									<< setw(outputFileWidth) << "grad_displ_mn";
 						ss_enh_out	<< endl << detA_tmp << setw(outputFileWidth) << dissip_tmp << setw(outputFileWidth) << psi_tmp
-									<< setw(outputFileWidth) << grad_displ_mn_scalar; 			
-						ss_enh_out	<< endl << "normal: " << setw(outputFileWidth) << normal_tmp[0] 
+									<< setw(outputFileWidth) << grad_displ_mn_scalar; 
+						if (NumSD() == 2)
+						{
+							ss_enh_out	<< endl << "normal: " << setw(outputFileWidth) << normal_tmp[0] 
+									<< setw(outputFileWidth) << normal_tmp[1]
+									<< setw(outputFileWidth) << "slipdir: " << setw(outputFileWidth) << slipdir_tmp[0] 
+									<< setw(outputFileWidth) << slipdir_tmp[1]; 
+							ss_enh_out	<< endl << "tangent:" << setw(outputFileWidth) << tangent_tmp[0] 
+									<< setw(outputFileWidth) << tangent_tmp[1];
+						}
+						else if (NumSD() == 3)
+						{
+							ss_enh_out	<< endl << "normal: " << setw(outputFileWidth) << normal_tmp[0] 
 									<< setw(outputFileWidth) << normal_tmp[1] <<  setw(outputFileWidth) << normal_tmp[2]
 									<< setw(outputFileWidth) << "slipdir: " << setw(outputFileWidth) << slipdir_tmp[0] 
 									<< setw(outputFileWidth) << slipdir_tmp[1] <<  setw(outputFileWidth) << slipdir_tmp[2]; 
-						ss_enh_out	<< endl << "tangent:" << setw(outputFileWidth) << tangent_tmp[0] 
+							ss_enh_out	<< endl << "tangent:" << setw(outputFileWidth) << tangent_tmp[0] 
 									<< setw(outputFileWidth) << tangent_tmp[1] <<  setw(outputFileWidth) << tangent_tmp[2];
+						}
 					}
 				} // while normals.Next
 				
@@ -1078,28 +1090,19 @@ void SmallStrainEnhLocT::DetermineActiveNodesTrace(LocalArrayT& coords_elem, int
 		{
 			node_coords[0] = coords_elem[i];
 			node_coords[1] = coords_elem[i+nen];
-			
-			diff_vector.DiffOf(node_coords,start_surface_vect);
-			product = dArrayT::Dot(normal_chosen,diff_vector);
-			if (product > 0.0)
-			{
-				fElementLocNodesActive[NumElementNodes()*elem + i] = 1;
-				//calculate enhancement in FormKd
-			}
 		}
 		else if (NumSD() == 3)
 		{
 			node_coords[0] = coords_elem[i];
 			node_coords[1] = coords_elem[i+nen];
 			node_coords[2] = coords_elem[i+2*nen];
-			
-			diff_vector.DiffOf(node_coords,start_surface_vect);
-			product = dArrayT::Dot(normal_chosen,diff_vector);
-			if (product > 0.0)
-			{
-				fElementLocNodesActive[NumElementNodes()*elem + i] = 1;
-				//calculate enhancement in FormKd
-			}
+		}
+		diff_vector.DiffOf(node_coords,start_surface_vect);
+		product = dArrayT::Dot(normal_chosen,diff_vector);
+		if (product > 0.0)
+		{
+			fElementLocNodesActive[NumElementNodes()*elem + i] = 1;
+			//calculate enhancement in FormKd
 		}
 	}
 	
@@ -1688,14 +1691,29 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 			ss_enh_out	<< endl << endl << "detA_min" << setw(outputFileWidth) << "dissip_max"  << setw(outputFileWidth) << "psi (rad)";
 			ss_enh_out	<< endl << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin] << setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdissip_max]
 						<< setw(outputFileWidth) << fElementLocPsi[elem]; 
-			ss_enh_out	<< endl << " normal_chosen: " << setw(outputFileWidth) << normal_chosen[0] 
+						
+			if (NumSD() == 2)	
+			{
+				ss_enh_out	<< endl << " normal_chosen: " << setw(outputFileWidth) << normal_chosen[0] 
+						<< setw(outputFileWidth) << normal_chosen[1]; 
+				ss_enh_out	<< endl << "slipdir_chosen: " << setw(outputFileWidth) << slipdir_chosen[0] 
+							<< setw(outputFileWidth) << slipdir_chosen[1]; 
+				ss_enh_out	<< endl << "tangent_chosen: " << setw(outputFileWidth) << tangent_chosen[0] 
+							<< setw(outputFileWidth) << tangent_chosen[1]; 
+				ss_enh_out	<< endl << "mu_dir: " << setw(outputFileWidth) << mu_dir[0] 
+							<< setw(outputFileWidth) << mu_dir[1];
+			}
+			else if (NumSD() == 3)	
+			{
+				ss_enh_out	<< endl << " normal_chosen: " << setw(outputFileWidth) << normal_chosen[0] 
 						<< setw(outputFileWidth) << normal_chosen[1] <<  setw(outputFileWidth) << normal_chosen[2]; 
-			ss_enh_out	<< endl << "slipdir_chosen: " << setw(outputFileWidth) << slipdir_chosen[0] 
-						<< setw(outputFileWidth) << slipdir_chosen[1] <<  setw(outputFileWidth) << slipdir_chosen[2]; 
-			ss_enh_out	<< endl << "tangent_chosen: " << setw(outputFileWidth) << tangent_chosen[0] 
-						<< setw(outputFileWidth) << tangent_chosen[1] <<  setw(outputFileWidth) << tangent_chosen[2]; 
-			ss_enh_out	<< endl << "mu_dir: " << setw(outputFileWidth) << mu_dir[0] 
-						<< setw(outputFileWidth) << mu_dir[1] <<  setw(outputFileWidth) << mu_dir[2];
+				ss_enh_out	<< endl << "slipdir_chosen: " << setw(outputFileWidth) << slipdir_chosen[0] 
+							<< setw(outputFileWidth) << slipdir_chosen[1] <<  setw(outputFileWidth) << slipdir_chosen[2]; 
+				ss_enh_out	<< endl << "tangent_chosen: " << setw(outputFileWidth) << tangent_chosen[0] 
+							<< setw(outputFileWidth) << tangent_chosen[1] <<  setw(outputFileWidth) << tangent_chosen[2]; 
+				ss_enh_out	<< endl << "mu_dir: " << setw(outputFileWidth) << mu_dir[0] 
+							<< setw(outputFileWidth) << mu_dir[1] <<  setw(outputFileWidth) << mu_dir[2];
+			}
 			
 			ss_enh_out	<< endl << endl << "loc_flag" << setw(outputFileWidth) << "jump_displ" 
 						<< setw(outputFileWidth) << "gamma_delta" <<  setw(outputFileWidth) << "Q_S"
@@ -1759,10 +1777,19 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 				{
 					const int ip = fShapes->CurrIP()+1;
 					int array_location = fShapes->CurrIP()*NumSD();
-					ss_enh_out	<< endl << "GradEnh at IP" << ip
+					if ( NumSD() == 2 )
+					{
+						ss_enh_out	<< endl << "GradEnh at IP" << ip
+								<< setw(outputFileWidth) << grad_enh_IPs[array_location] 
+								<< setw(outputFileWidth) << grad_enh_IPs[array_location+1];
+					}
+					else if ( NumSD() == 3 )
+					{
+						ss_enh_out	<< endl << "GradEnh at IP" << ip
 								<< setw(outputFileWidth) << grad_enh_IPs[array_location] 
 								<< setw(outputFileWidth) << grad_enh_IPs[array_location+1] 
 								<< setw(outputFileWidth) << grad_enh_IPs[array_location+2];
+					}
 				}
 			}
 			
