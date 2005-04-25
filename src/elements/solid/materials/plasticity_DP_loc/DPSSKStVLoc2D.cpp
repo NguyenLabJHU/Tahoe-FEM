@@ -1,15 +1,21 @@
-/* $Id: DPSSKStVLoc2D.cpp,v 1.6 2005-04-22 23:39:04 raregue Exp $ */
+/* $Id: DPSSKStVLoc2D.cpp,v 1.7 2005-04-25 05:05:57 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc2D.h"
+#include "SSEnhLocMatSupportT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
 #include "DPSSLinHardLocT.h"
+
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
+#endif
 
 using namespace Tahoe;
 
 /* constructor */
 DPSSKStVLoc2D::DPSSKStVLoc2D(void):
-	ParameterInterfaceT("small_strain_StVenant_DP_Loc_2D")
+	ParameterInterfaceT("small_strain_StVenant_DP_Loc_2D"),
+	fSSEnhLocMatSupport(NULL)
 {
 
 }
@@ -56,9 +62,28 @@ const dMatrixT& DPSSKStVLoc2D::c_perfplas_ijkl(void)
 /* stress */
 const dSymMatrixT& DPSSKStVLoc2D::s_ij(void)
 {
+#ifdef ENHANCED_STRAIN_LOC_DEV	
+	int ip = CurrIP();
+	ElementCardT& element = CurrentElement();
+	int element_locflag = 0;
+	if (element.IsAllocated()) 
+	{
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
+	}
+	if ( element_locflag == 2 )
+	{
+		fStress2D = fSSEnhLocMatSupport->ElementStress(ip);
+	}
+	else
+	{
+		/* 3D -> 2D */
+		fStress2D.ReduceFrom3D(DPSSKStVLoc::s_ij());
+	}
+#else
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(DPSSKStVLoc::s_ij());
-//	fStress2D *= fThickness;  
+#endif
+	//	fStress2D *= fThickness;  
 	return fStress2D;
 }
 
@@ -85,4 +110,7 @@ void DPSSKStVLoc2D::TakeParameterList(const ParameterListT& list)
 	fModulusElas2D.Dimension(dSymMatrixT::NumValues(2));
 	fModulusPerfPlas2D.Dimension(dSymMatrixT::NumValues(2));
 	fTotalStrain3D.Dimension(3);
+	
+	/* cast to small strain embedded discontinuity material pointer */
+	fSSEnhLocMatSupport = TB_DYNAMIC_CAST(const SSEnhLocMatSupportT*, fSSMatSupport);
 }

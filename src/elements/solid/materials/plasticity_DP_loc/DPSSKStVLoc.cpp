@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.20 2005-04-14 16:45:07 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.21 2005-04-25 05:05:57 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 #include "SSEnhLocMatSupportT.h"
@@ -71,7 +71,8 @@ const dSymMatrixT& DPSSKStVLoc::ElasticStrain(const dSymMatrixT& totalstrain,
 /* modulus */
 const dMatrixT& DPSSKStVLoc::c_ijkl(void)
 {
-	fModulus.SumOf(HookeanMatT::Modulus(), fDP->ModuliCorrection(CurrentElement(), CurrIP(), fSSMatSupport->TimeStep()));
+	fModulus.SumOf(HookeanMatT::Modulus(), 
+		fDP->ModuliCorrection(CurrentElement(), CurrIP(), fSSMatSupport->TimeStep()));
 
 	return fModulus;
 }
@@ -188,8 +189,8 @@ bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT
 		
 		double sigmn_scalar, nm, psi, cospsi;
 		
-		dSymMatrixT devsig(NumSD());
-		devsig.Deviatoric(stress);
+		//dSymMatrixT devsig(NumSD());
+		//devsig.Deviatoric(stress);
 		
 		dArrayT& internal = fDP->Internal();
 		double kappaISV = internal[DPSSLinHardLocT::kkappa];

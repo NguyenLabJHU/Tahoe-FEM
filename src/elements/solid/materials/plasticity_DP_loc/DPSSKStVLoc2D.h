@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc2D.h,v 1.5 2005-02-16 17:26:24 raregue Exp $ */
+/* $Id: DPSSKStVLoc2D.h,v 1.6 2005-04-25 05:05:58 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_2D_H_
 #define _DP_SS_KSTV_LOC_2D_H_
@@ -7,6 +7,9 @@
 #include "DPSSKStVLoc.h"
 
 namespace Tahoe {
+
+/* forward declarations */
+class SSEnhLocMatSupportT;
 
 class DPSSKStVLoc2D: public DPSSKStVLoc
 {
@@ -38,6 +41,9 @@ public:
 	/*@}*/
 
   private:
+
+	// pointer to material support
+	const SSEnhLocMatSupportT* fSSEnhLocMatSupport;
   
 	/* return values */
 	dSymMatrixT	fStress2D;
