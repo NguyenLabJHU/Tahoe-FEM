@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.43 2005-03-16 00:32:11 cfoster Exp $ */
+/* $Id: DetCheckT.cpp,v 1.44 2005-04-25 05:04:34 raregue Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -164,7 +164,13 @@ bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 				}
 					 
 				//find slip direction
-				A.Eigenvector(lambda_min, slipdir);
+				//A.Eigenvector(lambda_min, slipdir);
+				double A11sqr = A(0,0)*A(0,0);
+				slipdir[1] = sqrt( A11sqr/(A11sqr + A(0,1)*A(0,1)) );
+				slipdir[0] = -A(0,1)*slipdir[1]/A(0,0);
+				// make sure angle between normal and slipdir is acute
+				double nm = dArrayT::Dot(normal, slipdir);
+				if (nm < 0.0) slipdir.SetToScaled(-1.0,slipdir);
 				slipdirs.Append(slipdir);
 			}
 
