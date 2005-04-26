@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.23 2005-04-26 16:55:16 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.24 2005-04-26 20:42:19 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -276,7 +276,7 @@ protected:
 	
 	int loc_flag;
 	
-	int choose_normal, choose_element;
+	int choose_normal, choose_element, model_type;
 	
 	dArrayT start_surface_vect_read;
 

@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.30 2005-04-26 16:55:16 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.31 2005-04-26 20:42:19 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -251,6 +251,10 @@ void SmallStrainEnhLocT::DefineParameters(ParameterListT& list) const
     strain_displacement.AddEnumeration("B-bar", kMeanDilBbar);
     strain_displacement.SetDefault(kStandardB);
 	list.AddParameter(strain_displacement);
+	
+	// select model type
+	int modeltype;
+	list.AddParameter(modeltype, "model_type");
 	
 	/* cohesive surface model constants */
 	// eventually put this in a separate class to try different cohesive surface models
@@ -508,6 +512,9 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	fK_zetad = 0.0;
 	
 	fFirstTrace = false;
+	
+	// set model type
+	model_type = list.GetParameter("model_type");
 	
 	/* cohesive surface material parameters */
 	fCohesiveSurface_Params.Dimension ( kNUM_CS_TERMS );
@@ -1304,9 +1311,11 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		zeta_last = fElementLocScalars_last[kNUM_SCALAR_TERMS*elem + kzeta];
 		Delta_zeta -= zeta_last;
 		sign_Delta_zeta = 1.0;
-		//if (fabs(Delta_zeta) > verysmallnum) sign_Delta_zeta = Delta_zeta/fabs(Delta_zeta);
-		//sign_Delta_zeta = 0.5*(sign_Delta_zeta+fabs(sign_Delta_zeta));
+		
+		if (fabs(Delta_zeta) > verysmallnum) sign_Delta_zeta = Delta_zeta/fabs(Delta_zeta);
+		sign_Delta_zeta = 0.5*(sign_Delta_zeta+fabs(sign_Delta_zeta));
 		Delta_zeta = 0.5*(Delta_zeta+fabs(Delta_zeta));
+		
 		//if (zeta_last > verysmallnum) Delta_zeta = 0.5*(Delta_zeta+fabs(Delta_zeta));
 		/*
 		if (zeta_last > verysmallnum)
@@ -1325,16 +1334,30 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		// update internal variables using Delta_zeta
 		double psi = fElementLocInternalVars[kNUM_ISV_TERMS*elem + kDilation];
 		cospsi = cos(psi);
-		cospsi2 = cospsi*cospsi;
 		sinpsi = sin(psi);
 		gamma_delta = fElementLocScalars_last[kNUM_SCALAR_TERMS*elem + kgamma_delta] + cospsi*Delta_zeta;
 		fElementLocScalars[kNUM_SCALAR_TERMS*elem + kgamma_delta] = gamma_delta;
 		
 		// calculate ISV hardening functions
-		h_c = -alpha_c*(c_p-c_r)*exp(-alpha_c*gamma_delta)*cospsi;
-		h_phi = -alpha_phi*(phi_p-phi_r)*exp(-alpha_phi*gamma_delta)*cospsi;
+		if ( model_type == 0 ) // linear softening
+		{
+			h_c = -alpha_c*cospsi;
+			h_phi = -alpha_phi*cospsi;
+			h_psi = -alpha_psi*cospsi;
+		}
+		else if  ( model_type == 1 ) // exponential softening
+		{
+			h_c = -alpha_c*(c_p-c_r)*exp(-alpha_c*gamma_delta)*cospsi;
+			h_phi = -alpha_phi*(phi_p-phi_r)*exp(-alpha_phi*gamma_delta)*cospsi;
+			h_psi = -alpha_psi*psi_p*exp(-alpha_psi*gamma_delta)*cospsi;
+		}
+		else // default to linear
+		{
+			h_c = -alpha_c*cospsi;
+			h_phi = -alpha_phi*cospsi;
+			h_psi = -alpha_psi*cospsi;
+		}
 		fElementLocScalars[kNUM_SCALAR_TERMS*elem + kh_phi] = h_phi;
-		h_psi = -alpha_psi*psi_p*exp(-alpha_psi*gamma_delta)*cospsi;
 				
 		h_q[0] = h_c;
 		h_q[1] = h_phi;
@@ -1349,11 +1372,54 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		q_isv = q_isv_last;
 		q_isv += tmp_h_q;
 		
+		// check that do not soften less than residual values, for linear softening
+		if ( model_type == 0 )
+		{
+			if ( q_isv[0] < c_r && c_p > verysmallnum )
+			{
+				q_isv[0] = c_r;
+				alpha_c = 0.0;
+				fCohesiveSurface_Params[kalpha_c] = alpha_c;
+			}
+			if ( q_isv[1] < phi_r )
+			{
+				q_isv[1] = phi_r;
+				alpha_phi = 0.0;
+				fCohesiveSurface_Params[kalpha_phi] = alpha_phi;
+			}
+			if ( q_isv[2] < verysmallnum )
+			{
+				q_isv[2] = verysmallnum;
+				alpha_psi = 0.0;
+				fCohesiveSurface_Params[kalpha_psi] = alpha_psi;
+			}
+			
+			// update cospsi
+			psi = q_isv[2];
+			cospsi = cos(psi);
+			sinpsi = sin(psi);
+			
+			// recalculate hardening functions
+			h_c = -alpha_c*cospsi;
+			h_phi = -alpha_phi*cospsi;
+			fElementLocScalars[kNUM_SCALAR_TERMS*elem + kh_phi] = h_phi;
+			h_psi = -alpha_psi*cospsi;
+			h_q[0] = h_c;
+			h_q[1] = h_phi;
+			h_q[2] = h_psi;
+		}
+		
+		// update cospsi
+		psi = q_isv[2];
+		cospsi = cos(psi);
+		sinpsi = sin(psi);
+		
 		// store updated internal variables
 		fElementLocInternalVars[kNUM_ISV_TERMS*elem + kCohesion] = q_isv[0];
 		fElementLocInternalVars[kNUM_ISV_TERMS*elem + kFriction] = q_isv[1];
 		fElementLocInternalVars[kNUM_ISV_TERMS*elem + kDilation] = q_isv[2];
 		
+		// update tanphi
 		tanphi = tan(q_isv[1]);
 		double secphi = 1.0;
 		if (fabs(cos(q_isv[1])) > verysmallnum) secphi /= cos(q_isv[1]);
@@ -1384,24 +1450,47 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		slipdir_chosen = slipdir_tmp;
 
 		// calculate derivatives of h_q w.r.t. ISVs
-		Dh_cDpsi = alpha_c*(c_p-c_r)*exp(-alpha_c*gamma_delta)*sinpsi*(1.0-alpha_c*cospsi*Delta_zeta);
-		Dh_phiDpsi = alpha_phi*(phi_p-phi_r)*exp(-alpha_phi*gamma_delta)*sinpsi*(1.0-alpha_phi*cospsi*Delta_zeta);
-		Dh_psiDpsi = alpha_psi*psi_p*exp(-alpha_psi*gamma_delta)*sinpsi*(1.0-alpha_psi*cospsi*Delta_zeta);
+		if ( model_type == 0 ) // linear softening
+		{
+			Dh_cDpsi = alpha_c*sinpsi;
+			Dh_phiDpsi = alpha_phi*sinpsi;
+			Dh_psiDpsi = alpha_psi*sinpsi;
+			Dh_cDzeta = 0.0;
+			Dh_phiDzeta = 0.0;
+			Dh_psiDzeta = 0.0;
+		}
+		else if  ( model_type == 1 ) // exponential softening
+		{
+			Dh_cDpsi = alpha_c*(c_p-c_r)*exp(-alpha_c*gamma_delta)*sinpsi*(1.0-alpha_c*cospsi*Delta_zeta);
+			Dh_phiDpsi = alpha_phi*(phi_p-phi_r)*exp(-alpha_phi*gamma_delta)*sinpsi*(1.0-alpha_phi*cospsi*Delta_zeta);
+			Dh_psiDpsi = alpha_psi*psi_p*exp(-alpha_psi*gamma_delta)*sinpsi*(1.0-alpha_psi*cospsi*Delta_zeta);
+			Dh_cDzeta = alpha_c*alpha_c*cospsi2*(c_p-c_r)*exp(-alpha_c*gamma_delta)*sign_Delta_zeta;
+			Dh_phiDzeta = alpha_phi*alpha_phi*cospsi2*(phi_p-phi_r)*exp(-alpha_phi*gamma_delta)*sign_Delta_zeta;
+			Dh_psiDzeta = alpha_psi*alpha_psi*cospsi2*psi_p*exp(-alpha_psi*gamma_delta)*sign_Delta_zeta;
+		}
+		else // default to linear
+		{
+			Dh_cDpsi = alpha_c*sinpsi;
+			Dh_phiDpsi = alpha_phi*sinpsi;
+			Dh_psiDpsi = alpha_psi*sinpsi;
+			Dh_cDzeta = 0.0;
+			Dh_phiDzeta = 0.0;
+			Dh_psiDzeta = 0.0;
+		}
+		
 		Dh_qDpsi[0] = Dh_cDpsi;
 		Dh_qDpsi[1] = Dh_phiDpsi;
 		Dh_qDpsi[2] = Dh_psiDpsi;
 		Dh_qDq.SetCol(kDilation, Dh_qDpsi);
 		Dh_qDq *= Delta_zeta;
+		
 		// construct A_matrix
 		A_matrix = 0.0;
 		A_matrix.PlusIdentity(1.0);
 		A_matrix -= Dh_qDq;
 		A_matrix.Inverse();
 		
-		// calculate derivatives of ISVs w.r.t zeta (jump displ.)
-		Dh_cDzeta = alpha_c*alpha_c*cospsi2*(c_p-c_r)*exp(-alpha_c*gamma_delta)*sign_Delta_zeta;
-		Dh_phiDzeta = alpha_phi*alpha_phi*cospsi2*(phi_p-phi_r)*exp(-alpha_phi*gamma_delta)*sign_Delta_zeta;
-		Dh_psiDzeta = alpha_psi*alpha_psi*cospsi2*psi_p*exp(-alpha_psi*gamma_delta)*sign_Delta_zeta;
+		// store derivatives of ISVs w.r.t zeta (jump displ.)
 		Dh_qDzeta[0] = Dh_cDzeta;
 		Dh_qDzeta[1] = Dh_phiDzeta;
 		Dh_qDzeta[2] = Dh_psiDzeta;
@@ -1640,85 +1729,36 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			}
 			fCohesiveSurface_Params[kc_p] = c_p;
 			
-			// recalc h_c
-			h_c = -alpha_c*(c_p-c_r)*exp(-alpha_c*gamma_delta)*cospsi;
-			h_q[0] = h_c;
-			
-			// recalculate derivative of h_c w.r.t. ISVs
-			Dh_cDpsi = alpha_c*(c_p-c_r)*exp(-alpha_c*gamma_delta)*sinpsi*(1.0-alpha_c*cospsi*Delta_zeta);
-			Dh_qDpsi[0] = Dh_cDpsi;
-			Dh_qDq = 0.0;
-			Dh_qDq.SetCol(kDilation, Dh_qDpsi);
-			Dh_qDq *= Delta_zeta;
-			// construct A_matrix
-			A_matrix = 0.0;
-			A_matrix.PlusIdentity(1.0);
-			A_matrix -= Dh_qDq;
-			A_matrix.Inverse();
-			
-			// recalculate derivative of ISV w.r.t zeta (jump displ.)
-			Dh_cDzeta = alpha_c*alpha_c*cospsi2*(c_p-c_r)*exp(-alpha_c*gamma_delta)*sign_Delta_zeta;
-			Dh_qDzeta[0] = Dh_cDzeta;
-			
-			// reform DqDzeta
-			tmp_h_q = h_q;
-			tmp_h_q *= sign_Delta_zeta;
-			tmp_q_zeta = Dh_qDzeta;
-			tmp_q_zeta *= Delta_zeta;
-			tmp_q_zeta += tmp_h_q;
-			A_matrix.Multx(tmp_q_zeta, DqDzeta);
-			
-			/*
-			// calculate DslipdirDzeta
-			DslipdirDq.Multx(DqDzeta, DslipdirDzeta);
-			
-			// calc for use in forming DsigDzeta
-			tmp_Dslipdir_array = DslipdirDzeta;
-			tmp_Dslipdir_array *= Delta_zeta;
-			tmp_Dslipdir_array += slipdir_tmp;
-			
-			DQ_SDzeta = 0.0;
-			fK_dzeta = 0.0;
-			const double* Det    = fShapes->IPDets();
-			const double* Weight = fShapes->IPWeights();
-			fShapes->TopIP();
-			while (fShapes->NextIP())
+			if (model_type == 1)
 			{
-				double scale_no_constK = (*Det++)*(*Weight++);
-				double scale_vol = scale_no_constK*divide_vol;
+				// recalc h_c
+				h_c = -alpha_c*(c_p-c_r)*exp(-alpha_c*gamma_delta)*cospsi;
+				h_q[0] = h_c;
 				
-				const int ip = fShapes->CurrIP();
-				fElementLocGradEnhIP.RowCopy(ip, grad_enh_IP);
+				// recalculate derivative of h_c w.r.t. ISVs
+				Dh_cDpsi = alpha_c*(c_p-c_r)*exp(-alpha_c*gamma_delta)*sinpsi*(1.0-alpha_c*cospsi*Delta_zeta);
+				Dh_qDpsi[0] = Dh_cDpsi;
+				Dh_qDq = 0.0;
+				Dh_qDq.SetCol(kDilation, Dh_qDpsi);
+				Dh_qDq *= Delta_zeta;
+				// construct A_matrix
+				A_matrix = 0.0;
+				A_matrix.PlusIdentity(1.0);
+				A_matrix -= Dh_qDq;
+				A_matrix.Inverse();
 				
-				// strain displacement matrix
-				if (fStrainDispOpt == kMeanDilBbar)
-					Set_B_bar(fShapes->Derivatives_U(), fMeanGradient, fB);
-				else
-					Set_B(fShapes->Derivatives_U(), fB);
+				// recalculate derivative of ISV w.r.t zeta (jump displ.)
+				Dh_cDzeta = alpha_c*alpha_c*cospsi2*(c_p-c_r)*exp(-alpha_c*gamma_delta)*sign_Delta_zeta;
+				Dh_qDzeta[0] = Dh_cDzeta;
 				
-				// calc DsigDzeta
-				tmp_matrix.Outer(tmp_Dslipdir_array, grad_enh_IP);
-				tmp_sym_matrix.Symmetrize(tmp_matrix);
-				tmp_sym_matrix.ScaleOffDiagonal(2.0);
-				tmp_sym_matrix *= -1.0;
-				fDe.Multx(tmp_sym_matrix, DsigDzeta);
-				
-				// calc DQ_SDzeta
-				inner_matrix = 0.0;
-				inner_matrix.MultAB(DsigDzeta, F_mun);
-				inner = inner_matrix.Trace();
-				inner *= scale_vol;
-				DQ_SDzeta += inner;
-				
-				// B^T * derivative Cauchy stress w.r.t zeta
-				fB.MultTx(DsigDzeta, tmp_vec1);
-
-				// accumulate
-				fK_dzeta.AddScaled(scale_no_constK, tmp_vec1);
+				// reform DqDzeta
+				tmp_h_q = h_q;
+				tmp_h_q *= sign_Delta_zeta;
+				tmp_q_zeta = Dh_qDzeta;
+				tmp_q_zeta *= Delta_zeta;
+				tmp_q_zeta += tmp_h_q;
+				A_matrix.Multx(tmp_q_zeta, DqDzeta);
 			}
-			*/
-			
-			
 		}
 		
 		// calc residual
@@ -1768,6 +1808,61 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			
 			// store K_zetazeta
 			fElementLocScalars[kNUM_SCALAR_TERMS*elem + kKzetazeta] = 0.0;
+		}
+		
+		if (fDeBug)
+		{			
+			ss_enh_out	<< endl << endl << "----------------------------------------------------------------------------------------------" << endl;
+			ss_enh_out	<< endl 
+						<< setw(outputFileWidth) << "element " << elem 
+						<< setw(outputFileWidth) << "iteration " << iter;
+						
+			ss_enh_out	<< endl << endl << "element volume:" << setw(outputFileWidth) << vol; 
+						
+			ss_enh_out	<< endl << endl << "detA_min" << setw(outputFileWidth) << "dissip_max"  << setw(outputFileWidth) << "psi (rad)";
+			ss_enh_out	<< endl << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin] << setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdissip_max]
+						<< setw(outputFileWidth) << fElementLocPsi[elem]; 
+			
+			if (NumSD() == 2)	
+			{
+				ss_enh_out	<< endl << " normal_chosen: " << setw(outputFileWidth) << normal_chosen[0] 
+						<< setw(outputFileWidth) << normal_chosen[1]; 
+				ss_enh_out	<< endl << "slipdir_chosen: " << setw(outputFileWidth) << slipdir_chosen[0] 
+							<< setw(outputFileWidth) << slipdir_chosen[1]; 
+				ss_enh_out	<< endl << "tangent_chosen: " << setw(outputFileWidth) << tangent_chosen[0] 
+							<< setw(outputFileWidth) << tangent_chosen[1]; 
+				ss_enh_out	<< endl << "mu_dir: " << setw(outputFileWidth) << mu_dir[0] 
+							<< setw(outputFileWidth) << mu_dir[1];
+			}
+			else if (NumSD() == 3)	
+			{
+				ss_enh_out	<< endl << " normal_chosen: " << setw(outputFileWidth) << normal_chosen[0] 
+						<< setw(outputFileWidth) << normal_chosen[1] <<  setw(outputFileWidth) << normal_chosen[2]; 
+				ss_enh_out	<< endl << "slipdir_chosen: " << setw(outputFileWidth) << slipdir_chosen[0] 
+							<< setw(outputFileWidth) << slipdir_chosen[1] <<  setw(outputFileWidth) << slipdir_chosen[2]; 
+				ss_enh_out	<< endl << "tangent_chosen: " << setw(outputFileWidth) << tangent_chosen[0] 
+							<< setw(outputFileWidth) << tangent_chosen[1] <<  setw(outputFileWidth) << tangent_chosen[2]; 
+				ss_enh_out	<< endl << "mu_dir: " << setw(outputFileWidth) << mu_dir[0] 
+							<< setw(outputFileWidth) << mu_dir[1] <<  setw(outputFileWidth) << mu_dir[2];
+			}
+			
+			ss_enh_out	<< endl << endl << "loc_flag" << setw(outputFileWidth) << "jump_displ" 
+						<< setw(outputFileWidth) << "gamma_delta" <<  setw(outputFileWidth) << "Q_S"
+						<< setw(outputFileWidth) << "P_S" <<  setw(outputFileWidth) << "q_St"; 
+			ss_enh_out	<< endl << fElementLocFlag[elem] << setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kzeta] 
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kgamma_delta] <<  setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kQ_S]
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kP_S] <<  setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kq_St]; 
+			
+			ss_enh_out	<< endl << endl << "cohesion" << setw(outputFileWidth) << "friction (rad)" 
+						<< setw(outputFileWidth) << "dilation (rad)"; 
+			ss_enh_out	<< endl << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kCohesion] << setw(outputFileWidth) << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kFriction] 
+						<< setw(outputFileWidth) << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kDilation] << endl;		
+			
+			for (int i=0; i < NumElementNodes(); i++)
+			{		
+				ss_enh_out	<< endl << "activity of node " << i+1
+							<< setw(outputFileWidth)<< fElementLocNodesActive[NumElementNodes()*elem + i];
+			}			
 		}
 				
 	} // if loc_flag == 2
@@ -1833,62 +1928,7 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 		F_mun.Symmetrize(tmp_matrix);
 		F_mun.ScaleOffDiagonal(2.0);
 		
-		if (fDeBug)
-		{
-			fElementLocGradEnh.RowCopy(elem, grad_enh_IPs);
-			
-			ss_enh_out	<< endl << endl << "----------------------------------------------------------------------------------------------" << endl;
-			ss_enh_out	<< endl 
-						<< setw(outputFileWidth) << "element " << elem 
-						<< setw(outputFileWidth) << "iteration " << iter;
-						
-			ss_enh_out	<< endl << endl << "element volume:" << setw(outputFileWidth) << vol; 
-						
-			ss_enh_out	<< endl << endl << "detA_min" << setw(outputFileWidth) << "dissip_max"  << setw(outputFileWidth) << "psi (rad)";
-			ss_enh_out	<< endl << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin] << setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdissip_max]
-						<< setw(outputFileWidth) << fElementLocPsi[elem]; 
-			
-			if (NumSD() == 2)	
-			{
-				ss_enh_out	<< endl << " normal_chosen: " << setw(outputFileWidth) << normal_chosen[0] 
-						<< setw(outputFileWidth) << normal_chosen[1]; 
-				ss_enh_out	<< endl << "slipdir_chosen: " << setw(outputFileWidth) << slipdir_chosen[0] 
-							<< setw(outputFileWidth) << slipdir_chosen[1]; 
-				ss_enh_out	<< endl << "tangent_chosen: " << setw(outputFileWidth) << tangent_chosen[0] 
-							<< setw(outputFileWidth) << tangent_chosen[1]; 
-				ss_enh_out	<< endl << "mu_dir: " << setw(outputFileWidth) << mu_dir[0] 
-							<< setw(outputFileWidth) << mu_dir[1];
-			}
-			else if (NumSD() == 3)	
-			{
-				ss_enh_out	<< endl << " normal_chosen: " << setw(outputFileWidth) << normal_chosen[0] 
-						<< setw(outputFileWidth) << normal_chosen[1] <<  setw(outputFileWidth) << normal_chosen[2]; 
-				ss_enh_out	<< endl << "slipdir_chosen: " << setw(outputFileWidth) << slipdir_chosen[0] 
-							<< setw(outputFileWidth) << slipdir_chosen[1] <<  setw(outputFileWidth) << slipdir_chosen[2]; 
-				ss_enh_out	<< endl << "tangent_chosen: " << setw(outputFileWidth) << tangent_chosen[0] 
-							<< setw(outputFileWidth) << tangent_chosen[1] <<  setw(outputFileWidth) << tangent_chosen[2]; 
-				ss_enh_out	<< endl << "mu_dir: " << setw(outputFileWidth) << mu_dir[0] 
-							<< setw(outputFileWidth) << mu_dir[1] <<  setw(outputFileWidth) << mu_dir[2];
-			}
-			
-			ss_enh_out	<< endl << endl << "loc_flag" << setw(outputFileWidth) << "jump_displ" 
-						<< setw(outputFileWidth) << "gamma_delta" <<  setw(outputFileWidth) << "Q_S"
-						<< setw(outputFileWidth) << "P_S" <<  setw(outputFileWidth) << "q_St"; 
-			ss_enh_out	<< endl << fElementLocFlag[elem] << setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kzeta] 
-						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kgamma_delta] <<  setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kQ_S]
-						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kP_S] <<  setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kq_St]; 
-			
-			ss_enh_out	<< endl << endl << "cohesion" << setw(outputFileWidth) << "friction (rad)" 
-						<< setw(outputFileWidth) << "dilation (rad)"; 
-			ss_enh_out	<< endl << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kCohesion] << setw(outputFileWidth) << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kFriction] 
-						<< setw(outputFileWidth) << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kDilation] << endl;		
-			
-			for (int i=0; i < NumElementNodes(); i++)
-			{		
-				ss_enh_out	<< endl << "activity of node " << i+1
-							<< setw(outputFileWidth)<< fElementLocNodesActive[NumElementNodes()*elem + i];
-			}			
-		}
+		if (fDeBug) fElementLocGradEnh.RowCopy(elem, grad_enh_IPs);
 	}
 	
 	fShapes->TopIP();
