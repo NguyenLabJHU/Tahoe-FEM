@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.28 2005-04-25 05:05:06 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.29 2005-04-26 00:02:57 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -1235,10 +1235,31 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		   delta d = d^{k+1} - d^k
 		   */
 	    SetLocalU(fLocDisp);
+	    // remap nodal displacements
+	    dArrayT nodal_displ;
+	    nodal_displ.Dimension(fLocDisp.Length());
+	    nodal_displ = 0.0;
+	    for (int i=0; i < nen; i++)
+		{
+			int ii = NumSD()*i;
+			if (NumSD() == 2)
+			{
+				nodal_displ[ii] = fLocDisp[i];
+				nodal_displ[ii+1] = fLocDisp[i+nen];
+			}
+			else if (NumSD() == 3)
+			{
+				nodal_displ[ii] = fLocDisp[i];
+				nodal_displ[ii+1] = fLocDisp[i+nen];
+				nodal_displ[ii+2] = fLocDisp[i+2*nen];
+			}
+		}
+		
+		// calculate displacement increment
     	fElementLastIterateDisp.RowCopy(elem, fLocLastIterateDisp);
-    	fLocdeltaDisp = fLocDisp;
+    	fLocdeltaDisp = nodal_displ;
     	fLocdeltaDisp -= fLocLastIterateDisp;
-    	fElementLastIterateDisp.SetRow(elem, fLocDisp);
+    	fElementLastIterateDisp.SetRow(elem, nodal_displ);
     	
     	// calculate delta_zeta based on previous residual and matrices
     	fElementLocKzetad.RowCopy(elem, fK_zetad);
@@ -1265,8 +1286,10 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		zeta_last = fElementLocScalars_last[kNUM_SCALAR_TERMS*elem + kzeta];
 		Delta_zeta -= zeta_last;
 		sign_Delta_zeta = 1.0;
-		//Delta_zeta = 0.5*(Delta_zeta+fabs(Delta_zeta));
-		if (zeta_last > verysmallnum) Delta_zeta = 0.5*(Delta_zeta+fabs(Delta_zeta));
+		if (fabs(Delta_zeta) > verysmallnum) sign_Delta_zeta = Delta_zeta/fabs(Delta_zeta);
+		sign_Delta_zeta = 0.5*(sign_Delta_zeta+fabs(sign_Delta_zeta));
+		Delta_zeta = 0.5*(Delta_zeta+fabs(Delta_zeta));
+		//if (zeta_last > verysmallnum) Delta_zeta = 0.5*(Delta_zeta+fabs(Delta_zeta));
 		/*
 		if (zeta_last > verysmallnum)
 		{
@@ -1456,6 +1479,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			P_S += inner;
 			
 			// calc DsigDzeta
+			DsigDzeta = 0.0;
 			tmp_sym_matrix = G_enh;
 			tmp_sym_matrix *= sign_Delta_zeta;
 			tmp_sym_matrix *= -1.0;
@@ -1477,7 +1501,6 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			DP_SDzeta += inner;
 			
 			/* B^T * Cauchy stress */
-			//fStressCurr.ScaleOffDiagonal(0.5);
 			fNEEvec = 0.0;
 			fB.MultTx(fStressCurr, fNEEvec);
 			fNEEvec *= scale_no_constK;
@@ -1486,7 +1509,6 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			fRHS -= fNEEvec;
 			
 			/* B^T * derivative Cauchy stress w.r.t zeta */
-			//DsigDzeta.ScaleOffDiagonal(0.5);
 			tmp_vec1 = 0.0;
 			fB.MultTx(DsigDzeta, tmp_vec1);
 			tmp_vec1 *= scale_no_constK;
@@ -1767,7 +1789,6 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 				//fK_zetad.MultATBC(F_mun_nonsym, fDe, fB, format, dMatrixT::kAccumulate);
 				tmp_stress2 = 0.0;
 				fDe.Multx(F_mun, tmp_stress2);
-				//tmp_stress2.ScaleOffDiagonal(0.5);
 				tmp_vec2 = 0.0;
 				fB.MultTx(tmp_stress2, tmp_vec2);
 				tmp_vec2 *= divide_vol;
