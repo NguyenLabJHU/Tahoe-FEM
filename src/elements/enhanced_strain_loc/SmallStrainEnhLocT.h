@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.22 2005-04-22 23:39:39 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.23 2005-04-26 16:55:16 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -283,7 +283,7 @@ protected:
 	dMatrixT fDe;
 	
 	dMatrixT fK_dd, fK_dzeta_x_Kzetad;
-	dArrayT fK_dzeta, fK_zetad, fR_sig;
+	dArrayT fK_dzeta, fK_zetad;
 
 };
 
