@@ -23,9 +23,8 @@ namespace Tahoe {
 
 /* forward declarations */
 class dSymMatrixT;
-
-/* forward declarations */
 class ElementCardT;
+class SSEnhLocMatSupportT;
 
  class FossumSSIsoT: public SSIsotropicMatT, public HookeanMatT //, public ParameterInterfaceT
 {
@@ -107,8 +106,11 @@ protected:
 	virtual const dMatrixT& c_perfplas_ijkl(void);
 	virtual const dMatrixT& con_perfplas_ijkl(void);
 
-	/* stress */
+	/* stress, including possibility of localized deformation */
 	virtual const dSymMatrixT& s_ij(void);
+	
+	/* stress for return map */
+	const dSymMatrixT& sigma_ij(void);
 
 	/** return the pressure associated with the last call to 
 	* SolidMaterialT::s_ij. See SolidMaterialT::Pressure
@@ -130,7 +132,8 @@ protected:
 	* determinant of the acoustic tensor is negative and returns
 	* the normals and slipdirs. Returns false if the determinant is positive.
 	*/
-	bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
+	bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+					AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
 
 protected:
 
@@ -149,6 +152,9 @@ private:
 	dMatrixT fModulusPerfPlas;
 	dMatrixT fModulusContinuum;
 	dMatrixT fModulusContinuumPerfPlas;
+	
+	// pointer to material support
+	const SSEnhLocMatSupportT* fSSEnhLocMatSupport;
 
 
 /*--------------------------------------------------------------------*/

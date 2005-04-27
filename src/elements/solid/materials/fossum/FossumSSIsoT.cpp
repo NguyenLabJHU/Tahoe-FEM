@@ -4,7 +4,6 @@
  */
 
 #include "FossumSSIsoT.h"
-#include "SSMatSupportT.h"
 
 //#include <iostream.h>
 //#include "ifstreamT.h"
@@ -18,6 +17,17 @@
 
 #include "iArrayT.h"
 #include "ArrayT.h"
+
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
+#endif
+
+#ifdef ENHANCED_STRAIN_LOC_DEV	
+#include "SSEnhLocMatSupportT.h"
+#else
+#include "SSMatSupportT.h"
+#endif
+
 
 using namespace Tahoe;
 
@@ -94,7 +104,9 @@ FossumSSIsoT::FossumSSIsoT(void):
 
     /*viscous paramters*/
     //fStressInviscid(kNSD),
-        fTimeFactor(1.0)
+	fTimeFactor(1.0),
+        
+	fSSEnhLocMatSupport(NULL)
 
 {
 
@@ -167,7 +179,7 @@ void FossumSSIsoT::DefineParameters(ParameterListT& list) const
 void FossumSSIsoT::TakeParameterList(const ParameterListT& list)
 {
 
-  fNumIP = NumIP();
+	fNumIP = NumIP();
 
     /* inherited */
     SSIsotropicMatT::TakeParameterList(list);
@@ -190,8 +202,9 @@ void FossumSSIsoT::TakeParameterList(const ParameterListT& list)
 
     fmu = Mu();
     flambda = Lambda();
-
-
+    
+    /* cast to small strain embedded discontinuity material pointer */
+	fSSEnhLocMatSupport = TB_DYNAMIC_CAST(const SSEnhLocMatSupportT*, fSSMatSupport);
 }
 
 void FossumSSIsoT::DefineSubs(SubListT& sub_list) const
@@ -213,12 +226,12 @@ ParameterInterfaceT* FossumSSIsoT::NewSub(const StringT& name) const
   //  return new FossumSSIso2DT;
   //else
   //  {
-      /* inherited */
-      ParameterInterfaceT* params = SSIsotropicMatT::NewSub(name);
-      if (params) 
-	return params;
-      else
-	return HookeanMatT::NewSub(name);
+	/* inherited */
+	ParameterInterfaceT* params = SSIsotropicMatT::NewSub(name);
+	if (params) 
+		return params;
+	else
+		return HookeanMatT::NewSub(name);
       //      }
 }
 
@@ -319,12 +332,13 @@ const dMatrixT& FossumSSIsoT::con_perfplas_ijkl(void)
 */
 
 //#if 0
-bool FossumSSIsoT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
+bool FossumSSIsoT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact)
 {
 	/* stress tensor */
 	const dSymMatrixT& stress = s_ij();
 			
-	/* elasto-plastic tangent modulus */
+	/* elasto-plastic tangent moduli */
 	const dMatrixT& modulus = con_perfplas_ijkl();
 	//const dMatrixT& modulus = c_ijkl();
 	
@@ -335,8 +349,55 @@ bool FossumSSIsoT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArray
 	DetCheckT checker(stress, modulus, modulus_e);
 	normals.Dimension(NumSD());
 	slipdirs.Dimension(NumSD());
-	double dummyDetA = 0.0;
-	return checker.IsLocalized_SS(normals,slipdirs,dummyDetA);
+	normals.Free();
+	slipdirs.Free();
+	detAs.Free();
+	bool checkloc = checker.IsLocalized_SS(normals,slipdirs,detAs);
+	
+	if (checkloc)
+	{
+		/* calculate dissipation for each normal and slipdir */
+		// not calculated at the moment
+		normals.Top();
+		slipdirs.Top();
+		dArrayT normal_tmp, slipdir_tmp;
+		normal_tmp.Dimension(NumSD());
+		slipdir_tmp.Dimension(NumSD());
+		
+		dissipations_fact.Free();
+		
+		double sigmn_scalar, nm, psi, cospsi;
+		
+		//dSymMatrixT devsig(NumSD());
+		//devsig.Deviatoric(stress);
+		/*
+		dArrayT& internal = fDP->Internal();
+		double kappaISV = internal[DPSSLinHardLocT::kkappa];
+		const ElementCardT& element = CurrentElement();
+		const iArrayT& flags = element.IntegerData();
+		if (flags[CurrIP()] == DPSSLinHardLocT::kIsPlastic)
+			kappaISV -= fDP->H()*internal[DPSSLinHardLocT::kdgamma];
+		*/
+		
+		while (normals.Next())
+		{
+			normal_tmp = normals.Current();
+			slipdirs.Next();
+			slipdir_tmp = slipdirs.Current();
+			sigmn_scalar = stress.MultmBn(normal_tmp, slipdir_tmp);
+			/*
+			nm = dArrayT::Dot(normal_tmp, slipdir_tmp);
+			psi = asin(nm);
+			cospsi = cos(psi);
+			double dissip = sigmn_scalar;
+			dissip -= kappaISV*cospsi;
+			*/
+			double dissip = 0.0;
+			dissipations_fact.Append(dissip);
+		}
+	}
+	
+	return checkloc;
 }
 //#endif
 
@@ -407,6 +468,7 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 
 
 	//if (element.IsAllocated())
+	/*
 	if (0)  //to disable localization check
 	{
 		const iArrayT& flags = element.IntegerData();
@@ -421,7 +483,7 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 			//const dMatrixT& modulus = con_ijkl();
 			const dMatrixT& modulus = con_perfplas_ijkl();
 
-			/* localization condition checker */
+			// localization condition checker
 			//DetCheckT checker(stress, modulus, Ce);
 
 			AutoArrayT <dArrayT> normals;
@@ -443,6 +505,8 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 	{
 		output[10] = 0.0;
 	}
+	*/
+	output[10] = 0.0;
 }
 
 /*************************************************************************
@@ -894,11 +958,41 @@ double FossumSSIsoT::YieldFnFf(double I1)
 	return fA - fC*exp(fB*I1) - fTheta * I1;
 }
 
+
+/* stress */
+const dSymMatrixT& FossumSSIsoT::s_ij(void)
+{
+	int ip = CurrIP();
+	ElementCardT& element = CurrentElement();
+ 
+#ifdef ENHANCED_STRAIN_LOC_DEV	
+	int element_locflag = 0;
+	if (element.IsAllocated()) 
+	{
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
+	}
+	if ( element_locflag == 2 )
+	{
+		fStress = fSSEnhLocMatSupport->ElementStress(ip);
+	}
+	else
+	{
+		fStress = sigma_ij();
+	}
+#else
+	fStress = sigma_ij();
+#endif
+
+	return fStress;
+
+}
+
+
 /*-------------------------------------------------------------*/
 /*Return Mapping algorithm */
 
 /* stress */
-const dSymMatrixT& FossumSSIsoT::s_ij(void)
+const dSymMatrixT& FossumSSIsoT::sigma_ij(void)
 {
 
   double yieldFnTol = 1.0e-8; 
@@ -917,8 +1011,6 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
   if (fSSMatSupport->RunState() != GlobalT::kFormRHS && element.IsAllocated())
     return fStress;
   */
- 
-
 
   fStrain = e_els;
 
@@ -1058,9 +1150,13 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
       fDeltaAlpha *= fTimeFactor;
       fInternal[kdeltakappa] *= fTimeFactor;
     }
+    
   return fStress;
 
 }
+
+
+
 
 bool FossumSSIsoT::StressPointIteration(double initialYieldCheck, dArrayT& iterationVars, dSymMatrixT workingBackStress, double workingKappa)
 {

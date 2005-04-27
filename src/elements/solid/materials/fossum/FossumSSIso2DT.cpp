@@ -1,7 +1,12 @@
-/* $Id: FossumSSIso2DT.cpp,v 1.9 2004-08-04 16:26:25 paklein Exp $ */
+/* $Id: FossumSSIso2DT.cpp,v 1.10 2005-04-27 20:45:48 raregue Exp $ */
 #include "FossumSSIso2DT.h"
+#include "SSEnhLocMatSupportT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
+
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
+#endif
 
 using namespace Tahoe;
 
@@ -13,8 +18,9 @@ FossumSSIso2DT::FossumSSIso2DT(void):
 	//fModulus2D(dSymMatrixT::NumValues(2)),
 	fModulusPerfPlas2D(dSymMatrixT::NumValues(2)),
 	fModulusContinuum2D(dSymMatrixT::NumValues(2)),
-	fModulusContinuumPerfPlas2D(dSymMatrixT::NumValues(2))
+	fModulusContinuumPerfPlas2D(dSymMatrixT::NumValues(2)),
 	//fTotalStrain3D(3)
+	fSSEnhLocMatSupport(NULL)
 {
 	/* account for thickness */
 //	fDensity *= fThickness;
@@ -40,7 +46,11 @@ void FossumSSIso2DT::TakeParameterList(const ParameterListT& list)
   /* dimension work space */
   fStress2D.Dimension(2);
   fModulus2D.Dimension(dSymMatrixT::NumValues(2));
+  fModulusElas2D.Dimension(dSymMatrixT::NumValues(2));
   fTotalStrain3D.Dimension(3);
+  
+	/* cast to small strain embedded discontinuity material pointer */
+	fSSEnhLocMatSupport = TB_DYNAMIC_CAST(const SSEnhLocMatSupportT*, fSSMatSupport);
 }
 
 #if 0
@@ -113,6 +123,13 @@ const dMatrixT& FossumSSIso2DT::c_ijkl(void)
 	return fModulus2D;
 }
 
+const dMatrixT& FossumSSIso2DT::ce_ijkl(void)
+{
+	/* 3D -> 2D */
+	fModulusElas2D.Rank4ReduceFrom3D(FossumSSIsoT::ce_ijkl());
+	return fModulusElas2D;
+}
+
 const dMatrixT& FossumSSIso2DT::c_perfplas_ijkl(void)
 {
 	/* 3D -> 2D */
@@ -141,9 +158,28 @@ const dMatrixT& FossumSSIso2DT::con_perfplas_ijkl(void)
 /* stress */
 const dSymMatrixT& FossumSSIso2DT::s_ij(void)
 {
+#ifdef ENHANCED_STRAIN_LOC_DEV	
+	int ip = CurrIP();
+	ElementCardT& element = CurrentElement();
+	int element_locflag = 0;
+	if (element.IsAllocated()) 
+	{
+		element_locflag = fSSEnhLocMatSupport->ElementLocflag();
+	}
+	if ( element_locflag == 2 )
+	{
+		fStress2D = fSSEnhLocMatSupport->ElementStress(ip);
+	}
+	else
+	{
+		/* 3D -> 2D */
+		fStress2D.ReduceFrom3D(FossumSSIsoT::s_ij());
+	}
+#else
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(FossumSSIsoT::s_ij());
-//	fStress2D *= fThickness;  
+#endif
+	//	fStress2D *= fThickness;  
 	return fStress2D;
 }
 
