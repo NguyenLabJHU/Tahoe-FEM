@@ -1,4 +1,4 @@
-/* $Id: MFGPMaterialT.cpp,v 1.1 2005-04-26 22:27:01 kyonten Exp $ */
+/* $Id: MFGPMaterialT.cpp,v 1.2 2005-04-27 20:34:14 kyonten Exp $ */
 #include "MFGPMaterialT.h"
 #include "MFGPMatSupportT.h"
 #include "ArrayT.h"
@@ -142,17 +142,17 @@ bool MFGPMaterialT::CompatibleOutput(const MFGPMaterialT& m1,
 void MFGPMaterialT::DefineParameters(ParameterListT& list) const
 {
 	/* density */
-	/*ParameterT density(fDensity, "density");
+	ParameterT density(fDensity, "density");
 	density.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(density);*/
+	list.AddParameter(density);
 
 	/* 2D constraint option */
-	/*ParameterT constraint(ParameterT::Enumeration, "constraint_2D");
+	ParameterT constraint(ParameterT::Enumeration, "constraint_2D");
 	constraint.AddEnumeration("none", kNoConstraint);
 	constraint.AddEnumeration("plane_stress", kPlaneStress);
 	constraint.AddEnumeration("plane_strain", kPlaneStrain);
 	constraint.SetDefault(fConstraint);
-	list.AddParameter(constraint);*/
+	list.AddParameter(constraint);
 }
 
 /* accept parameter list */
@@ -161,13 +161,13 @@ void MFGPMaterialT::TakeParameterList(const ParameterListT& list)
 	const char caller[] = "MFGPMaterialT::TakeParameterList";
 
 	/* density */
-	//fDensity = list.GetParameter("density");
+	fDensity = list.GetParameter("density");
 
 	/* 2D constraint - default to plane strain for 2D materials */
-	/*list.GetParameter("constraint_2D", enum2int<ConstraintT>(fConstraint));
+	list.GetParameter("constraint_2D", enum2int<ConstraintT>(fConstraint));
 	if (NumSD() == 3)
 		fConstraint = kNoConstraint;
 	else if (NumSD() == 2 && fConstraint == kNoConstraint)
-		fConstraint = kPlaneStrain;*/
+		fConstraint = kPlaneStrain;
 }
 	
