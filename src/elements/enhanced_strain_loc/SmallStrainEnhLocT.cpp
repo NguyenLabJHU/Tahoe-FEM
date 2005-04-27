@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.31 2005-04-26 20:42:19 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.32 2005-04-27 20:45:00 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -727,15 +727,15 @@ void SmallStrainEnhLocT::CheckLocalization(int& elem, LocalArrayT& displ_elem)
 			}
 			
 			/* if maximum dissipation, do further localization calcs */
+			/*
 			if ( dissip_max > fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdissip_max] || 
 				(dissip_max/fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdissip_max] < 1.1 &&
 				dissip_max/fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdissip_max] > 0.0) )
+			*/
 			/* if minimum determinant, do further localization calcs */
-			/*
 			if ( detAmin < fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin] || 
 				(detAmin/fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin] < 1.1 &&
 				detAmin/fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin] > 0.0) )
-			*/
 			{
 				if (fDeBug)
 				{
