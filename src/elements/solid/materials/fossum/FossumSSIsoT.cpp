@@ -4,6 +4,7 @@
  */
 
 #include "FossumSSIsoT.h"
+#include "SSEnhLocMatSupportT.h"
 
 //#include <iostream.h>
 //#include "ifstreamT.h"
@@ -22,11 +23,13 @@
 #include "DevelopmentElementsConfig.h"
 #endif
 
-#ifdef ENHANCED_STRAIN_LOC_DEV	
-#include "SSEnhLocMatSupportT.h"
+/*
+#ifdef ENHANCED_STRAIN_LOC_DEV
+#include "SSEnhLocMatSupportT.h"	
 #else
 #include "SSMatSupportT.h"
 #endif
+*/
 
 
 using namespace Tahoe;
