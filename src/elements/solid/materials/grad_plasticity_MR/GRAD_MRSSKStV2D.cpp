@@ -94,9 +94,12 @@ const dMatrixT& GRAD_MRSSKStV2D::c_LamU1_ij(void)
 {
 	fModulusLamU1_2D = 0.0;
 	/* 3D -> 2D */
-	fTemp1.Transpose(GRAD_MRSSKStV::c_LamU1_ij());
-	ReduceOffDiagonalModulus(fTemp1, fTemp2);
-	fModulusLamU1_2D.Transpose(fTemp2);
+	int col = (GRAD_MRSSKStV::c_LamU1_ij()).Cols();
+	dMatrixT temp3D(col, 1);
+	temp3D.Transpose(GRAD_MRSSKStV::c_LamU1_ij());
+	ReduceOffDiagonalModulus(temp3D, fTemp2DA);
+	fModulusLamU1_2D.Transpose(fTemp2DA);
+	
 	return fModulusLamU1_2D;
 }
 
@@ -104,9 +107,12 @@ const dMatrixT& GRAD_MRSSKStV2D::c_LamU2_ij(void)
 {
 	fModulusLamU2_2D = 0.0;
 	/* 3D -> 2D */
-	fTemp3.Transpose(GRAD_MRSSKStV::c_LamU2_ij());
-	ReduceOffDiagonalModulus(fTemp3, fTemp4);
-	fModulusLamU2_2D.Transpose(fTemp4);
+	int col = (GRAD_MRSSKStV::c_LamU2_ij()).Cols();
+	dMatrixT temp3D(col, 1);
+	temp3D.Transpose(GRAD_MRSSKStV::c_LamU2_ij());
+	ReduceOffDiagonalModulus(temp3D, fTemp2DB);
+	fModulusLamU2_2D.Transpose(fTemp2DB);
+	
 	return fModulusLamU2_2D;
 }
 
@@ -148,8 +154,8 @@ void GRAD_MRSSKStV2D::DefineParameters(ParameterListT& list) const
 	GRAD_MRSSKStV::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	//ParameterT& constraint = list.GetParameter("constraint_2D");
-	//constraint.SetDefault(kPlaneStrain);
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
 }
 
 /* accept parameter list */
@@ -171,8 +177,6 @@ void GRAD_MRSSKStV2D::TakeParameterList(const ParameterListT& list)
 	fModulusLamLam1_2D.Dimension(1,1);
 	fModulusLamLam2_2D.Dimension(1,1);
 	fTotalStrain3D.Dimension(3);
-	fTemp1.Dimension(dSymMatrixT::NumValues(2),1);
-	fTemp2.Dimension(dSymMatrixT::NumValues(2),1);
-	fTemp3.Dimension(dSymMatrixT::NumValues(2),1);
-	fTemp4.Dimension(dSymMatrixT::NumValues(2),1);
+	fTemp2DA.Dimension(dSymMatrixT::NumValues(2),1);
+	fTemp2DB.Dimension(dSymMatrixT::NumValues(2),1);
 }

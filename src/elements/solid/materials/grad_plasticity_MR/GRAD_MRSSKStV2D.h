@@ -76,7 +76,7 @@ class GRAD_MRSSKStV2D: public GRAD_MRSSKStV
     dMatrixT    fModulusULam1_2D, fModulusULam2_2D;
     dMatrixT    fModulusLamU1_2D, fModulusLamU2_2D;
     dMatrixT    fModulusLamLam1_2D, fModulusLamLam2_2D;
-    dMatrixT    fTemp1, fTemp2, fTemp3, fTemp4;
+    dMatrixT    fTemp2DA, fTemp2DB;
   	double      fYieldFunction2D; //yield function
 
 	/* work space */
