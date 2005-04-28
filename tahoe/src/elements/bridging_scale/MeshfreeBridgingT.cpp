@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.11 2005-04-22 00:30:59 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.12 2005-04-28 23:54:50 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "ifstreamT.h"
@@ -253,7 +253,7 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 	}
 
 	/* compute node to node projection matrix */
-	//Compute_B_hatU_U(cell_data, cell_data.NodeToNode());
+	Compute_B_hatU_U(cell_data, cell_data.NodeToNode());
 }
 
 /* project the point values onto the mesh */
