@@ -6,7 +6,7 @@
 #ifndef _FOSSUM_SS_ISOT_H_
 #define _FOSSUM_SS_ISOT_H_
 
-#include "SolidMaterialT.h"
+//#include "SolidMaterialT.h"
 #include "SSIsotropicMatT.h"
 #include "HookeanMatT.h"
 #include "SSHookeanMatT.h"
@@ -22,8 +22,8 @@
 namespace Tahoe {
 
 /* forward declarations */
-class dSymMatrixT;
-class ElementCardT;
+//class dSymMatrixT;
+//class ElementCardT;
 class SSEnhLocMatSupportT;
 
  class FossumSSIsoT: public SSIsotropicMatT, public HookeanMatT //, public ParameterInterfaceT
@@ -145,7 +145,8 @@ protected:
 private:
   
 	/* return values */
-	dSymMatrixT fStress;
+	dSymMatrixT fStress; // stress choice between continuum model and localization model
+	dSymMatrixT fSigma; // stress from itegration
 	dSymMatrixT fStrain;
 	dMatrixT fModulus;
 	dMatrixT fModulusCe;

@@ -23,14 +23,6 @@
 #include "DevelopmentElementsConfig.h"
 #endif
 
-/*
-#ifdef ENHANCED_STRAIN_LOC_DEV
-#include "SSEnhLocMatSupportT.h"	
-#else
-#include "SSMatSupportT.h"
-#endif
-*/
-
 
 using namespace Tahoe;
 
@@ -79,12 +71,7 @@ FossumSSIsoT::FossumSSIsoT(void):
 
 
     HookeanMatT(3),
-    fStress(3),
-    fStrain(3),
-    fModulus(dSymMatrixT::NumValues(3)),
-    fModulusPerfPlas(dSymMatrixT::NumValues(3)),   
-    fModulusContinuum(dSymMatrixT::NumValues(3)),
-    fModulusContinuumPerfPlas(dSymMatrixT::NumValues(3)),     
+      
     fElasticStrain(kNSD),
     fStressCorr(kNSD),
     fModuliCorr(dSymMatrixT::NumValues(kNSD)),
@@ -187,6 +174,15 @@ void FossumSSIsoT::TakeParameterList(const ParameterListT& list)
     /* inherited */
     SSIsotropicMatT::TakeParameterList(list);
     HookeanMatT::TakeParameterList(list);
+    
+    // dimension
+    fStress.Dimension(3);
+    fSigma.Dimension(3);
+    fStrain.Dimension(3);
+    fModulus.Dimension(dSymMatrixT::NumValues(3));
+    fModulusPerfPlas.Dimension(dSymMatrixT::NumValues(3));
+    fModulusContinuum.Dimension(dSymMatrixT::NumValues(3));
+    fModulusContinuumPerfPlas.Dimension(dSymMatrixT::NumValues(3));
 
     fA = list.GetParameter("shear_surface_parameter__A__stress");
     fB = list.GetParameter("shear_surface_parameter__B__1_by_stress");
@@ -1024,7 +1020,7 @@ const dSymMatrixT& FossumSSIsoT::sigma_ij(void)
   // cout << "e()= \n" << e() <<endl << endl;
   //cout << "fStrain= \n" << fStrain <<endl << endl; 
   
-  HookeanStress(e_els, fStress);
+  HookeanStress(e_els, fSigma);
 
   /* working ISV's for iteration */
   dSymMatrixT workingBackStress(kNSD); 
@@ -1042,7 +1038,7 @@ const dSymMatrixT& FossumSSIsoT::sigma_ij(void)
 
   /*check for yielding */
   double initialYieldCheck;
-  initialYieldCheck = YieldCondition(fStress, workingKappa, workingBackStress);
+  initialYieldCheck = YieldCondition(fSigma, workingKappa, workingBackStress);
   if ( initialYieldCheck < yieldFnTol)
     {
       if (element.IsAllocated())
@@ -1050,7 +1046,7 @@ const dSymMatrixT& FossumSSIsoT::sigma_ij(void)
 	    int &flag = (element.IntegerData())[ip]; 
 	    flag = kIsElastic;
 	  }
-      return fStress;
+      return fSigma;
     }
   else
     {
@@ -1060,8 +1056,8 @@ const dSymMatrixT& FossumSSIsoT::sigma_ij(void)
       if (!element.IsAllocated()) 
 	{
 	  AllocateElement(element);
-	  LoadData(element, ip);//resets fStress and fStrain to 0 on 1st allocation
-	  HookeanStress(e_els, fStress);
+	  LoadData(element, ip);//resets fSigma and fStrain to 0 on 1st allocation
+	  HookeanStress(e_els, fSigma);
 	  fStrain = e_els; //no plastic strain yet
 	}
       //else
@@ -1077,7 +1073,7 @@ const dSymMatrixT& FossumSSIsoT::sigma_ij(void)
 
       /*spectral decomposition of equivalent stress*/  
       dSymMatrixT eqTrialStress(kNSD);
-      eqTrialStress.DiffOf(fStress, workingBackStress);
+      eqTrialStress.DiffOf(fSigma, workingBackStress);
       
       spectre.SpectralDecomp_Jacobi(eqTrialStress, true);
       
@@ -1092,9 +1088,9 @@ const dSymMatrixT& FossumSSIsoT::sigma_ij(void)
       if(StressPointIteration(initialYieldCheck, iterationVars, workingBackStress, workingKappa))
 	{
 	  /*update stress and ISV's */
-	  fStress.AddScaled(iterationVars[0],m[0]);
-	  fStress.AddScaled(iterationVars[1],m[1]);
-	  fStress.AddScaled(iterationVars[2],m[2]);
+	  fSigma.AddScaled(iterationVars[0],m[0]);
+	  fSigma.AddScaled(iterationVars[1],m[1]);
+	  fSigma.AddScaled(iterationVars[2],m[2]);
 	  
 	  fDeltaAlpha.AddScaled(iterationVars[3],m[0]);
 	  fDeltaAlpha.AddScaled(iterationVars[4],m[1]);
@@ -1132,8 +1128,8 @@ const dSymMatrixT& FossumSSIsoT::sigma_ij(void)
       e_tot_last += fPlasticStrain;      
 
       // stress from previous time step
-      dSymMatrixT fStress_last(3);
-      HookeanStress(e_els_last, fStress_last);
+      dSymMatrixT fSigma_last(3);
+      HookeanStress(e_els_last, fSigma_last);
 	
       // strain and elastic stress increment
       dSymMatrixT delta_e(3);
@@ -1145,16 +1141,16 @@ const dSymMatrixT& FossumSSIsoT::sigma_ij(void)
       /*Set time factor previously set to 1.0*/
       fTimeFactor = 1 - exp(-1*dt/fFluidity);
 
-      fStress *= fTimeFactor;
-      fStress.AddScaled(1- fTimeFactor, fStress_last);
-      fStress.AddScaled(fTimeFactor*fFluidity/dt, elastic_stress_increment);
+      fSigma *= fTimeFactor;
+      fSigma.AddScaled(1- fTimeFactor, fSigma_last);
+      fSigma.AddScaled(fTimeFactor*fFluidity/dt, elastic_stress_increment);
       
       // update isv's
       fDeltaAlpha *= fTimeFactor;
       fInternal[kdeltakappa] *= fTimeFactor;
     }
     
-  return fStress;
+  return fSigma;
 
 }
 
@@ -1201,7 +1197,7 @@ bool FossumSSIsoT::StressPointIteration(double initialYieldCheck, dArrayT& itera
 
 	    /* form dR/dx */
 	    dRdX = 0.0; 
-	    dRdX = FormdRdX(I1, J2, J3, principalEqStress, workingKappa, fStress, workingBackStress, iterationVars [6], m);
+	    dRdX = FormdRdX(I1, J2, J3, principalEqStress, workingKappa, fSigma, workingBackStress, iterationVars [6], m);
       
        
 	        if (ip == 0 && fFossumDebug)
@@ -1606,7 +1602,8 @@ LAdMatrixT FossumSSIsoT::FormdRdX(double I1, double J2, double J3, dArrayT princ
 			//cout << "d2fdDevStressdSigmaB = " << d2fdDevStressdSigmaB (I1, J2, J3, principalEqStress[A], principalEqStress[B], A, B) << endl;
 			//cout << "dGalphadSigmaB = " <<  dGalphadSigmaB (workingStress, m[B], principalEqStress[B], I1, J2) << endl;
 
-			dRdX (A + kNSD, B) = Galpha(workingBackStress) * d2fdDevStressdSigmaB (I1, J2, J3, principalEqStress[A], principalEqStress[B], A, B) + dGalphadSigmaB (workingStress, m[B], principalEqStress[B], I1, J2) * dfdDevStressA(I1, J2, J3, principalEqStress[A]);
+			dRdX (A + kNSD, B) = Galpha(workingBackStress) * d2fdDevStressdSigmaB (I1, J2, J3, principalEqStress[A], principalEqStress[B], A, B) 
+								+ dGalphadSigmaB (workingStress, m[B], principalEqStress[B], I1, J2) * dfdDevStressA(I1, J2, J3, principalEqStress[A]);
 			dRdX (A + kNSD, B) *= fCalpha * dGamma; 
 		}
 
