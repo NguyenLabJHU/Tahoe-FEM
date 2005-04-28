@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.25 2005-04-16 02:04:07 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.26 2005-04-28 23:58:14 paklein Exp $ */
 
 #include "MultiManagerT.h"
 
@@ -17,6 +17,7 @@
 #include "ParameterUtils.h"
 #include "CommunicatorT.h"
 #include "BridgingScaleT.h"
+#include "DotLine_FormatterT.h"
 
 using namespace Tahoe;
 
@@ -33,6 +34,7 @@ MultiManagerT::MultiManagerT(const StringT& input_file, ofstreamT& output, Commu
 	fCoarseField(NULL),
 	fFineToCoarse(true),
 	fCoarseToFine(true),
+	fCoarseToCoarse(true),
 	fImpExp(IntegratorT::kImplicit)
 {
 	SetName("tahoe_multi");
@@ -313,9 +315,8 @@ void MultiManagerT::FormRHS(int group) const
 	int continuum_group = 0;
 	const dArray2DT& resid_coarse = fCoarse->InternalForce(continuum_group);
 
-//TEMP -debugging
+//DEBUGGING
 #if 0
-if (1) {
 	const dArray2DT& u_fine = (*fFineField)[0];
 	const dArray2DT& u_coarse = (*fCoarseField)[0];
 
@@ -330,8 +331,8 @@ if (1) {
 	out << "u_coarse =\n" << u_coarse << '\n';
 	out << "f_coarse =\n" << resid_coarse << '\n';
 	out.precision(prec);
-}
 #endif
+//DEBUGGING
 
 	/* fine scale contribution to the coarse scale residual */
 	dArray2DT& R_U = const_cast<dArray2DT&>(fR_U);
@@ -355,30 +356,43 @@ if (1) {
 		fSolvers[group]->AssembleRHS(R_Q, fR_Q_eqnos);	
 	}
 
-#if 0
 	/* additional coarse scale force arising from N_QU */
-	if (fFineToCoarse && fCoarseToFine) {
+	if (fCoarseToCoarse) {
 		R_U = 0.0;
 		R_Q *= -1.0;
 		const iArrayT& non_ghost_atoms = fFine->NonGhostNodes();
 		const PointInCellDataT& projection_data = fCoarse->ProjectionData();
 		fCoarse->MultNTf(projection_data, R_Q, non_ghost_atoms, R_U);
 		fSolvers[group]->AssembleRHS(R_U, fR_U_eqnos);		
-	}
-#endif
-	
-//TEMP - debugging
-#if 0
-if (1) {
-	const dArrayT& rhs = fSolvers[group]->RHS();
 
-	ofstreamT& out = Output();
-	int prec = out.precision();
-	out.precision(12);
-	out << "R =\n" << rhs << '\n';	
-	out.precision(prec);
-}
+		/* verbose */
+		if (fLogging == GlobalT::kVerbose) {
+			ofstreamT& out = Output();
+			int prec = out.precision();
+			out.precision(12);
+			int width = OutputWidth(out, R_U.Pointer());
+			double norm = 0.0;
+			out << "\n(B_hatU_U)^T R_hatU =\n";	
+			for (int i = 0; i < fR_U_eqnos.Length(); i++)
+			if (fR_U_eqnos[i] > 0) {
+				out << setw(width) << R_U[i] << '\n';
+				norm += R_U[i]*R_U[i];
+			}
+			out << "|| (B_hatU_U)^T R_hatU || = " << setw(width) << sqrt(norm) << '\n';	
+			out.precision(prec);
+		}
+	}
+
+//DEBUGGING
+#if 0
+const dArrayT& rhs = fSolvers[group]->RHS();
+ofstreamT& out = Output();
+int prec = out.precision();
+out.precision(12);
+out << "R =\n" << rhs << '\n';	
+out.precision(prec);
 #endif
+//DEBUGGING
 }
 
 /* send update of the solution to the NodeManagerT */
@@ -495,6 +509,11 @@ void MultiManagerT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited - don't call direct base class method */
 	ParameterInterfaceT::DefineParameters(list);
+	
+	/* get FEManagerT definition of logging */
+	ParameterListT fe_params(Name());
+	FEManagerT::DefineParameters(fe_params);
+	list.AddParameter(fe_params.GetParameter("logging"));
 
 	/* paths to input files for sub-tahoe's */
 	list.AddParameter(ParameterT::String, "atom_input");
@@ -515,6 +534,10 @@ void MultiManagerT::DefineParameters(ParameterListT& list) const
 	ParameterT coarse_to_fine(fCoarseToFine, "coarse_to_fine");
 	coarse_to_fine.SetDefault(fCoarseToFine);
 	list.AddParameter(coarse_to_fine);
+
+	ParameterT coarse_to_coarse(fCoarseToCoarse, "coarse_to_coarse");
+	coarse_to_coarse.SetDefault(fCoarseToCoarse);
+	list.AddParameter(coarse_to_coarse);
 }
 
 /* information about subordinate parameter lists */
@@ -639,6 +662,17 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	/* inherited - don't call direct base class method */
 	ParameterInterfaceT::TakeParameterList(list);
 
+	/* logging */
+	int logging = list.GetParameter("logging");
+	fLogging = GlobalT::int2LoggingT(logging);
+
+	/* terms to include in the equilibrium equations */
+	fFineToCoarse = list.GetParameter("fine_to_coarse");
+	fCoarseToFine = list.GetParameter("coarse_to_fine");
+	fCoarseToCoarse = list.GetParameter("coarse_to_coarse");
+	fCoarseToCoarse = (fCoarseToCoarse) ? 
+		fFineToCoarse && fCoarseToFine : fCoarseToCoarse; /* requires other terms */
+
 	/* path to parameters file */
 	StringT path;
 	path.FilePath(fInputFile);
@@ -671,10 +705,19 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 			continuum_input.Append(suffix);	
 		}
 		
+		/* output stream */
 		StringT continuum_output_file;
 		continuum_output_file.Root(continuum_input);
 		continuum_output_file.Append(".out");
 		fCoarseOut.open(continuum_output_file);
+		
+		/* write the validated list as formatted text */
+		DotLine_FormatterT pp_format;
+		pp_format.InitParameterFile(fCoarseOut);
+		pp_format.WriteParameterList(fCoarseOut, continuum_params);
+		pp_format.CloseParameterFile(fCoarseOut);
+
+		/* construct */
 		fCoarse = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(continuum_params.Name(), continuum_input, fCoarseOut, *fCoarseComm, fArgv, task));
 		if (!fCoarse) ExceptionT::GeneralFail(caller, "could not construct continuum solver");
 		fCoarse->TakeParameterList(continuum_params);		
@@ -687,14 +730,21 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	ParameterListT atom_params;
 	ParseInput(atom_input, atom_params, true, true, true, fArgv);
 
-	/* construct atomistic solver */
-	if (Size() != fFineComm->Size())
-		ExceptionT::GeneralFail(caller, "parallel execution error");
+	/* output stream */
+	if (Size() != fFineComm->Size()) ExceptionT::GeneralFail(caller, "parallel execution error");
 	StringT atom_output_file;
 	atom_output_file.Root(atom_input);
 	if (Size() > 1) atom_output_file.Append(".p", Rank());
 	atom_output_file.Append(".out");
 	fFineOut.open(atom_output_file);
+
+	/* write the validated list as formatted text */
+	DotLine_FormatterT pp_format;
+	pp_format.InitParameterFile(fFineOut);
+	pp_format.WriteParameterList(fFineOut, atom_params);
+	pp_format.CloseParameterFile(fFineOut);
+
+	/* construct atomistic solver */
 	fFine = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(atom_params.Name(), atom_input, fFineOut, *fFineComm, fArgv, task));
 	if (!fFine) ExceptionT::GeneralFail(caller, "could not construct atomistic solver");
 	fFine->TakeParameterList(atom_params);
@@ -838,7 +888,8 @@ void MultiManagerT::TakeParams1(const ParameterListT& list)
 	bool make_inactive = true;
 	fFine->InitGhostNodes(fFineField->FieldName(), ghost_atom_ID, fCoarse->ProjectImagePoints());
 	fCoarse->InitInterpolation(fFineField->FieldName(), fFine->GhostNodes(), fine_node_manager.InitialCoordinates());
-	fCoarse->InitProjection(fFineField->FieldName(), *(fFine->CommManager()), fFine->NonGhostNodes(), fine_node_manager, make_inactive);
+	fCoarse->InitProjection(fFineField->FieldName(), *(fFine->CommManager()), fFine->NonGhostNodes(), 
+		fine_node_manager, make_inactive, fCoarseToCoarse);
 
 	/* send coarse/fine output through the fFine output */
 	int ndof = fFine->NodeManager()->NumDOF(group);
@@ -881,11 +932,8 @@ void MultiManagerT::TakeParams1(const ParameterListT& list)
 	fSolverPhasesStatus.Dimension(fSolverPhases.MajorDim(), kNumStatusFlags);
 	fSolverPhasesStatus = 0;
 
-	/* terms to include in the equilibrium equations */
-	fFineToCoarse = list.GetParameter("fine_to_coarse");
-	fCoarseToFine = list.GetParameter("coarse_to_fine");
-	if (fCoarseToFine) /* enforce zero bond density in projected cells */
-		fCoarse->DeactivateFollowerCells();
+	/* enforce zero bond density in projected cells */
+	if (fCoarseToFine) fCoarse->DeactivateFollowerCells();
 	
 	/* needed to solve overlap */
 	const dArray2DT& fine_init_coords = fine_node_manager.InitialCoordinates();
