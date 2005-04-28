@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.h,v 1.26 2005-03-09 19:25:48 raregue Exp $ */
+/* $Id: DetCheckT.h,v 1.27 2005-04-28 15:54:21 raregue Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
@@ -17,6 +17,8 @@
 
 
 #include "AutoArrayT.h"
+
+#include "ofstreamT.h"
 
 namespace Tahoe {
 
@@ -111,8 +113,11 @@ private:
 	/** pointer to calling element group */
 //	const ContinuumElementT* fElement;
 	
-	/** flag to indicate first pass */
-	static bool fFirstPass;
+	/** flag to indicate first pass, and debugging mode */
+	static bool fFirstPass, fDeBug;
+	
+	// output file for debugging 3D localization check
+	ofstreamT normal_out;
 };
 
 } // namespace Tahoe 
