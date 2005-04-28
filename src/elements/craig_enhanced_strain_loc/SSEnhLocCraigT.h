@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.h,v 1.9 2005-04-18 17:08:54 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.h,v 1.10 2005-04-28 00:45:55 cfoster Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_CF_T_H_
 #define _SMALL_STRAIN_ENH_LOC_CF_T_H_
 
@@ -72,8 +72,13 @@ protected:
 	/** compute mean shape function gradient, Hughes (4.5.23) */
 	//void SetMeanGradient(dArray2DT& mean_gradient) const;
 	MapT<int, BandT*> fTracedElements;
-
-
+	
+	/*elements with one edge on band of traced elements
+	 * with that coordinate of the end of band*/
+	iAutoArrayT fEdgeOfBandElements;
+	AutoArrayT<dArrayT> fEdgeOfBandCoords;
+	static bool fLocalizationHasBegun;
+	static double fDetAMin;
   protected:
     
 	BandT *fBand;
@@ -90,18 +95,21 @@ protected:
   public:
 	virtual void CloseStep(void);
   protected:
-
+	virtual void GetElement(int elementNumber);
 	virtual double CalculateJumpIncrement();
 	virtual bool IsBandActive();
 	virtual void LoadBand(int elementNumber);
 	virtual BandT* FormNewBand(dArrayT normal, dArrayT slipDir,
 				   dArrayT perpSlipDir, dArrayT coords, double residCohesion, ArrayT<dSymMatrixT>
 stressList);
+	virtual void AddNewEdgeElements(int elementNumber);
+	virtual dArrayT InterceptCoords(dArrayT& localizedEleCoord, dArrayT& nodalCoord1, dArrayT& nodalCoord2);
 
 //move to surface mat model?
 	dSymMatrixT FormdGdSigma(int ndof);
 	dSymMatrixT FormGradActiveTensorFlowDir(int ndof, int ip);
 	bool IsElementTraced();
+	bool IsElementTraced(int elementNumber);
 	bool IsElementLocalized();
 	virtual void ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipDirs);
 	dArrayT Centroid();

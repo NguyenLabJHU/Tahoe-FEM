@@ -11,6 +11,7 @@ perpSlipDir, dArrayT &coord, double h_delta, double residCohesion, ArrayT<dSymMa
 fNormal(normal),
 fSlipDir(slipDir),
 fPerpSlipDir(perpSlipDir),
+fCoords(coord), 
 fH_delta(h_delta),
 fEffectiveSoftening(h_delta),
 fResidualCohesion(residCohesion),
@@ -124,6 +125,11 @@ void BandT::SetActive(bool active)
 bool BandT::IsActive()
 {
   return fIsBandActive;
+}
+
+dArrayT& BandT::Coords()
+{
+ return fCoords;
 }
 
 /*

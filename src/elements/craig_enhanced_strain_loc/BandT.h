@@ -41,6 +41,7 @@ class BandT
     virtual bool IsActive();
     virtual void FlipSlipDir();
     virtual void CloseStep();
+    virtual dArrayT& Coords();
 
   private:
 
@@ -52,6 +53,7 @@ class BandT
     dArrayT fNormal;
     dArrayT fSlipDir;
     dArrayT fPerpSlipDir;
+    dArrayT fCoords; //coords of one point on band
     double fLength; //not used ?
     double fJump;
     double fJumpIncrement;
