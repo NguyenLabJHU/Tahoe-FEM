@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_22.cpp,v 1.13 2005-04-13 21:51:40 paklein Exp $ */
+/* $Id: FEManagerT_bridging_22.cpp,v 1.14 2005-04-28 23:57:15 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -245,8 +245,10 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 			tmp++;
 			fMainOut << tmp.wrap(5) << endl;
 			tmp--;
-		}
-		
+		} 
+		else if (fLogging != GlobalT::kSilent)
+			fMainOut << i+1 << '/' << bonds.MajorDim() << ": " << ghost_neighbors_i.Length() << " bonds\n";
+
 		/* collect list of cells not containing any active bonds */
 		BondFreeElements(ghost_neighbors_i, bondfree_cell_i);
 
