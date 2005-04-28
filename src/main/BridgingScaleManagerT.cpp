@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleManagerT.cpp,v 1.8 2005-04-09 18:27:33 d-farrell2 Exp $ */
+/* $Id: BridgingScaleManagerT.cpp,v 1.9 2005-04-28 23:59:04 paklein Exp $ */
 #include "BridgingScaleManagerT.h"
 
 #if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
@@ -106,9 +106,10 @@ void BridgingScaleManagerT::Solve(void)
 		fCoarse->InitInterpolation(bridging_field, boundaryghostatoms, fine_node_manager.InitialCoordinates());
 		
 		/* reset interpolation data set in MultiManagerT::TakeParameterList with makeinactive = false */
-		bool makeinactive = false;	
+		bool makeinactive = false;
+		bool node_to_node = false;	
 		fCoarse->InitProjection(bridging_field, *(fFine_THK->CommManager()), fFine_THK->NonGhostNodes(), 
-			fine_node_manager, makeinactive);
+			fine_node_manager, makeinactive, node_to_node);
 		
 		if (nsd == 3)
 		{

@@ -1,4 +1,4 @@
-/* $Id: ThermomechanicalCouplingManagerT.cpp,v 1.2 2005-04-06 15:42:00 paklein Exp $ */
+/* $Id: ThermomechanicalCouplingManagerT.cpp,v 1.3 2005-04-28 23:59:04 paklein Exp $ */
 #include "ThermomechanicalCouplingManagerT.h"
 
 #if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
@@ -259,9 +259,10 @@ void ThermomechanicalCouplingManagerT::TakeParameterList(const ParameterListT& l
 	int group = 0;
 	int order1 = 0;
 	bool make_inactive = true;
+	bool node_to_node = false;
 	fFine->InitGhostNodes(fFineField->FieldName(), ghost_atom_ID, fCoarse->ProjectImagePoints());
 	fCoarse->InitInterpolation(fFineField->FieldName(), fFine->GhostNodes(), fine_node_manager.InitialCoordinates());
-	fCoarse->InitProjection(fFineField->FieldName(), *(fFine->CommManager()), fFine->NonGhostNodes(), fine_node_manager, make_inactive);
+	fCoarse->InitProjection(fFineField->FieldName(), *(fFine->CommManager()), fFine->NonGhostNodes(), fine_node_manager, make_inactive, node_to_node);
 
 	/* send coarse/fine output through the fFine output */
 	int ndof = fFine->NodeManager()->NumDOF(group);
