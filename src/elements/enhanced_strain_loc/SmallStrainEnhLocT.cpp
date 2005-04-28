@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.32 2005-04-27 20:45:00 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.33 2005-04-28 05:42:40 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -118,6 +118,20 @@ void SmallStrainEnhLocT::CloseStep(void)
 			/* determine active nodes and band trace */
 			DetermineActiveNodesTrace(fLocInitCoords, elem_num, nen);
 		}
+		
+		if (fDeBug)
+		{
+			ss_enh_isv	<< fElementLocFlag[elem_num] 
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kzeta] 
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kgamma_delta] 
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kQ_S]
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kP_S] 
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kq_St]
+			 			<< setw(outputFileWidth) << fElementLocInternalVars[kNUM_ISV_TERMS*elem_num + kCohesion] 
+			 			<< setw(outputFileWidth) << fElementLocInternalVars[kNUM_ISV_TERMS*elem_num + kFriction] 
+						<< setw(outputFileWidth) << fElementLocInternalVars[kNUM_ISV_TERMS*elem_num + kDilation]
+						<< endl;
+		}		
 		
 	} // while next element
 	
@@ -432,6 +446,9 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	fElementLocStartSurface.Dimension(NumElements(),NumSD());
 	fElementLocStartSurface = 0.0;
 	
+	fElementLocISVSoften.Dimension(NumElements(),kNUM_ISV_TERMS);
+	fElementLocISVSoften = 0;
+	
 	fElementLocNodesActive.Dimension(NumElements(),NumElementNodes());
 	fElementLocNodesActive = 0;
 	
@@ -563,10 +580,12 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 		double& vol = fElementVolume_last[CurrElementNumber()];
 		SetMeanGradient(fMeanGradient, vol);
 		
-		// initialize phi as phi_p
+		// initialize phi as phi_p and psi as psi_p
 		int elem = CurrElementNumber();
 		fElementLocInternalVars[kNUM_ISV_TERMS*elem + kFriction] = fCohesiveSurface_Params[kphi_p];
 		fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kFriction] = fCohesiveSurface_Params[kphi_p];
+		fElementLocInternalVars[kNUM_ISV_TERMS*elem + kDilation] = fCohesiveSurface_Params[kpsi_p];
+		fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kDilation] = fCohesiveSurface_Params[kpsi_p];
 	}
 	
 	
@@ -576,12 +595,17 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 		outputPrecision = 10;
 		outputFileWidth = outputPrecision + 8;
 		
+		/*
 		if (fFirstPass) 
 		{
 			ss_enh_out.open("ss_enh.info");
 			fFirstPass = false;
 		}
 		else ss_enh_out.open_append("ss_enh.info");
+		*/
+		
+		ss_enh_out.open("ss_enh.info");
+		ss_enh_isv.open("ss_enh_isv.txt");
 	}
 	
 }
@@ -1038,9 +1062,9 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int& el
 	fElementLocSlipDir.SetRow(elem, slipdir_chosen);
 	fElementLocTangent.SetRow(elem, tangent_chosen);
 	fElementLocPsi[elem] = psi_chosen;
-	fElementLocInternalVars[kNUM_ISV_TERMS*elem + kDilation] = psi_chosen;
-	fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kDilation] = psi_chosen;
-	fCohesiveSurface_Params[kpsi_p] = psi_chosen;
+	//fElementLocInternalVars[kNUM_ISV_TERMS*elem + kDilation] = psi_chosen;
+	//fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kDilation] = psi_chosen;
+	//fCohesiveSurface_Params[kpsi_p] = psi_chosen;
 }
 
 /* given the normal and one point, determine active nodes */
@@ -1366,9 +1390,13 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		tmp_h_q *= Delta_zeta;
 		
 		// update ISVs
-		q_isv_last[0] = fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kCohesion];
-		q_isv_last[1] = fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kFriction];
-		q_isv_last[2] = fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kDilation];
+		q_isv_last = 0.0;
+		if (fElementLocISVSoften[kNUM_ISV_TERMS*elem + kCohesion] < 1)
+			q_isv_last[0] = fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kCohesion];
+		if (fElementLocISVSoften[kNUM_ISV_TERMS*elem + kFriction] < 1)
+			q_isv_last[1] = fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kFriction];
+		if (fElementLocISVSoften[kNUM_ISV_TERMS*elem + kDilation] < 1)
+			q_isv_last[2] = fElementLocInternalVars_last[kNUM_ISV_TERMS*elem + kDilation];
 		q_isv = q_isv_last;
 		q_isv += tmp_h_q;
 		
@@ -1380,18 +1408,21 @@ void SmallStrainEnhLocT::FormKd(double constK)
 				q_isv[0] = c_r;
 				alpha_c = 0.0;
 				fCohesiveSurface_Params[kalpha_c] = alpha_c;
+				fElementLocISVSoften[kNUM_ISV_TERMS*elem + kCohesion] = 1;
 			}
 			if ( q_isv[1] < phi_r )
 			{
 				q_isv[1] = phi_r;
 				alpha_phi = 0.0;
 				fCohesiveSurface_Params[kalpha_phi] = alpha_phi;
+				fElementLocISVSoften[kNUM_ISV_TERMS*elem + kFriction] = 1;
 			}
 			if ( q_isv[2] < verysmallnum )
 			{
 				q_isv[2] = verysmallnum;
 				alpha_psi = 0.0;
 				fCohesiveSurface_Params[kalpha_psi] = alpha_psi;
+				fElementLocISVSoften[kNUM_ISV_TERMS*elem + kDilation] = 1;
 			}
 			
 			// update cospsi

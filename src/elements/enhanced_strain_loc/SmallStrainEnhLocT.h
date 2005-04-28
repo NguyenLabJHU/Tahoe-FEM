@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.24 2005-04-26 20:42:19 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.25 2005-04-28 05:42:40 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -168,6 +168,7 @@ private:
 	
 	/** output file stream */
 	ofstreamT ss_enh_out;
+	ofstreamT ss_enh_isv;
 	
 	/** line output formating variables */
 	int outputPrecision, outputFileWidth;
@@ -227,6 +228,7 @@ protected:
   	
   	iArrayT fElementLocFlag;
   	iArray2DT fElementLocNodesActive;
+  	iArray2DT fElementLocISVSoften;
   	dArray2DT fElementLocGradEnh; // varies for each IP
 	dArray2DT fElementLocGradEnhIP; // for each IP for one element
 	dArray2DT fElementLocEdgeIntersect;
