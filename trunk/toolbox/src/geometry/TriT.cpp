@@ -1,4 +1,4 @@
-/* $Id: TriT.cpp,v 1.9 2005-03-02 17:37:30 paklein Exp $ */
+/* $Id: TriT.cpp,v 1.10 2005-04-28 20:59:34 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "TriT.h"
 #include "QuadT.h"
@@ -350,12 +350,20 @@ void TriT::IPGradientTransform(int ip, dMatrixT& transform) const
 	int nsd = transform.Rows();
 	int nip = transform.Cols();
 	if (nsd != 2) ExceptionT::SizeMismatch(caller);
-	
-	//TEMP only implemented for 1 integration point
-	if (ip != 0 || nip != 1) ExceptionT::GeneralFail(caller, "only implemented for 1 integration point");
 
 	/* no gradient */
-	transform = 0.0;
+	if (nip == 1)
+		transform = 0.0;
+	else if (nip == 4) {
+		double a = 5.0/2.0;
+		double m0[2*4] = {a, 0.0, 0.0, a, -a, -a, 0.0, 0.0};
+		double* m[4] = {m0, m0, m0, m0};
+		ArrayT<double*> m_array(4, m);
+		dMatrixT trans(2, 4, m_array[ip]);
+		transform = trans;
+	}
+	else
+		ExceptionT::GeneralFail(caller, "unsupported number of integration points %d", nip);	
 }
 
 /* return the local node numbers for each facet of the element
