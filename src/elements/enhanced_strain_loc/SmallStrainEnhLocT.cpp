@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.33 2005-04-28 05:42:40 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.34 2005-04-28 20:48:37 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -119,7 +119,7 @@ void SmallStrainEnhLocT::CloseStep(void)
 			DetermineActiveNodesTrace(fLocInitCoords, elem_num, nen);
 		}
 		
-		if (fDeBug)
+		if ( fDeBug &&  loc_flag == 2 )
 		{
 			ss_enh_isv	<< fElementLocFlag[elem_num] 
 						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kzeta] 
