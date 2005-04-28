@@ -1,4 +1,4 @@
-/* $Id: InterpolationDataT.h,v 1.4 2005-04-22 00:29:54 paklein Exp $ */
+/* $Id: InterpolationDataT.h,v 1.5 2005-04-28 23:54:17 paklein Exp $ */
 #ifndef _INTERPOLATION_DATA_T_H_
 #define _INTERPOLATION_DATA_T_H_
 
@@ -20,6 +20,9 @@ public:
 
 	/** constructor */
 	InterpolationDataT(void) { };
+
+	/** clear all data */
+	void Free(void);
 
 	/** \name accessors */
 	/*@{*/
