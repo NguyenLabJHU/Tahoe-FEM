@@ -1,3 +1,4 @@
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.7 2005-04-28 01:39:01 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    MR version modified to incorporate gradient plasticity 
    theory.
@@ -1553,8 +1554,8 @@ void GRAD_MRSSNLHardT::LoadData(const ElementCardT& element, int ip)
 	int offset    = stressdim*fNumIP;
 	int dex       = ip*stressdim;
 	
-	fPlasticStrain.Alias(        dim, &d_array[           dex]);
-	/*fUnitNorm.Set(        kNSD, &d_array[  offset + dex]); */    
+	fPlasticStrain.Alias(dim, &d_array[dex]);
+	/*fUnitNorm.Set(kNSD, &d_array[  offset + dex]); */    
 	fInternal.Alias(kNumInternal, &d_array[2*offset + ip*kNumInternal]);
 }
 

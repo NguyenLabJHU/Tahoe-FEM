@@ -1,3 +1,4 @@
+/* $Id: GRAD_MRSSKStV.h,v 1.7 2005-04-28 01:39:02 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    MR version modified to incorporate gradient plasticity 
    theory.
@@ -8,6 +9,7 @@
 #include "dSymMatrixT.h"
 
 /* base classes */
+#include "MFGPSSSolidMatT.h"
 #include "IsotropicT.h"
 #include "HookeanMatT.h"
 
@@ -17,7 +19,7 @@ namespace Tahoe
 /* forward declarations */
 class GRAD_MRSSNLHardT;
 
-class GRAD_MRSSKStV: public IsotropicT, public HookeanMatT
+class GRAD_MRSSKStV: public MFGPSSSolidMatT, public IsotropicT, public HookeanMatT
 {
   public:
 
@@ -26,7 +28,7 @@ class GRAD_MRSSKStV: public IsotropicT, public HookeanMatT
 	
 	/* destructor */
 	~GRAD_MRSSKStV(void);
-
+	
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
@@ -40,9 +42,9 @@ class GRAD_MRSSKStV: public IsotropicT, public HookeanMatT
 	virtual void ResetHistory(void);
 	
 	/* initialize laplacian of strain and lambdaPM, and lambdaPM, all at ip */
-	void Initialize(ElementCardT& element, int ip, int n_ip, dSymMatrixT strain_ip, dSymMatrixT strain_lap_ip, 
+	void Initialize(ElementCardT element, int ip, int n_ip, dSymMatrixT strain_ip, dSymMatrixT strain_lap_ip, 
 					dArrayT lambdaPM_ip, dArrayT lambdaPM_lap_ip);
-
+	
 	/** returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(
                 const dSymMatrixT& totalstrain,
@@ -87,26 +89,6 @@ class GRAD_MRSSKStV: public IsotropicT, public HookeanMatT
 
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
-
-	/** \name total strain */
-	/*@{*/
-	const dSymMatrixT& LinearStrain(void) const;
-	/*@}*/
-	
-	/** \name laplacian of total strain */
-	/*@{*/
-	const dSymMatrixT& LapLinearStrain(void) const;
-	/*@}*/
-	
-	/** \name total lambda */
-	/*@{*/
-	const dArrayT& LambdaPM(void) const;
-	/*@}*/
-	
-	/** \name laplacian of total lambda */
-	/*@{*/
-	const dArrayT& LapLambdaPM(void) const;
-	/*@}*/
 	
 	/* returns the number of variables computed for nodal extrapolation
 	 * during for element output, ie. internal variables */
@@ -135,10 +117,10 @@ protected:
 	virtual void SetModulus(dMatrixT& modulus); 
 	int loccheck;
 	
-	dSymMatrixT	fStrain_IP, fLapStrain_IP;
+	/*dSymMatrixT	fStrain_IP, fLapStrain_IP;
     dArrayT fLambdaPM_IP, fLapLambdaPM_IP;
     ElementCardT curr_element;
-    int curr_ip, num_ip;
+    int curr_ip, num_ip;*/
  
 private:
   
@@ -156,30 +138,6 @@ private:
     double      fYieldFunction; 
 
 };
-
-/* return total strains */
-inline const dSymMatrixT& GRAD_MRSSKStV::LinearStrain(void) const
-{
-	return fStrain_IP;
-}
-
-/* return laplacian of total strains */
-inline const dSymMatrixT& GRAD_MRSSKStV::LapLinearStrain(void) const
-{
-	return fLapStrain_IP;
-}
-
-/* return total lambdas */
-inline const dArrayT& GRAD_MRSSKStV::LambdaPM(void) const
-{
-	return fLambdaPM_IP;
-}
-
-/* return laplacian of total lambdas */
-inline const dArrayT& GRAD_MRSSKStV::LapLambdaPM(void) const
-{
-	return fLapLambdaPM_IP;
-}
 
 } // namespace Tahoe 
 #endif /* _GRAD_MR_SS_KSTV_H_ */

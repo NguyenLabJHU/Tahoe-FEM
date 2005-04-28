@@ -1,3 +1,4 @@
+/* $Id: GRAD_MRSSNLHardT.h,v 1.6 2005-04-28 01:39:01 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    MR version modified to incorporate gradient plasticity 
    theory.
@@ -37,7 +38,7 @@ public:
 	/* status flags */
 	enum LoadingStatusT {kIsPlastic = 0,
                          kIsElastic = 1,
-                         kIsLocalized = 2, 
+                       kIsLocalized = 2, 
                              kReset = 3}; // indicate not to repeat update
                              
 	/* returns elastic strain (3D) */

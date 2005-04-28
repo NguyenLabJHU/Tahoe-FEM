@@ -1,4 +1,4 @@
-
+/* $Id: GRAD_MRPrimitiveT.cpp,v 1.2 2005-04-28 01:39:02 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    MR version modified to incorporate gradient plasticity 
    theory.

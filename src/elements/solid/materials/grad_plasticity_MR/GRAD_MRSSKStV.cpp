@@ -1,10 +1,11 @@
+/* $Id: GRAD_MRSSKStV.cpp,v 1.14 2005-04-28 01:39:02 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    MR version modified to incorporate gradient plasticity 
    theory.
 */
 #include "GRAD_MRSSKStV.h"
 #include "GRAD_MRSSNLHardT.h"  
-
+#include "MFGPMatSupportT.h" 
 #include "ElementCardT.h"
 #include "StringT.h"
 #include "DetCheckT.h"
@@ -52,7 +53,9 @@ GlobalT::SystemTypeT GRAD_MRSSKStV::TangentType(void) const { return GlobalT::kN
 void GRAD_MRSSKStV::UpdateHistory(void)
 {
 	/* update if plastic */
-	ElementCardT& element = curr_element;
+	ElementCardT& element = CurrentElement();
+	//ElementCardT& element = curr_element;
+	
 	if (element.IsAllocated()) fGRAD_MR->Update(element);
 }
 
@@ -60,22 +63,23 @@ void GRAD_MRSSKStV::UpdateHistory(void)
 void GRAD_MRSSKStV::ResetHistory(void)
 {
 	/* reset if plastic */
-	ElementCardT& element = curr_element;
+	ElementCardT& element = CurrentElement();
+	//ElementCardT& element = curr_element;
 	if (element.IsAllocated()) fGRAD_MR->Reset(element);
 }
 
 /* initialize laplacian of strain and lambda, and lambda, all at ip */
-void GRAD_MRSSKStV::Initialize(ElementCardT& element, int ip, int n_ip,
+void GRAD_MRSSKStV::Initialize(ElementCardT element, int ip, int n_ip,
                     dSymMatrixT strain_ip, dSymMatrixT strain_lap_ip, 
 					dArrayT lambda_ip, dArrayT lambda_lap_ip)
 {
-	fStrain_IP = strain_ip;
+	/*fStrain_IP = strain_ip;
 	fLapStrain_IP = strain_lap_ip;
     fLambdaPM_IP = lambda_ip;
     fLapLambdaPM_IP = lambda_lap_ip;
     curr_element = element;
     curr_ip = ip;
-    num_ip = n_ip;
+    num_ip = n_ip;*/
 }
 
 const dSymMatrixT& GRAD_MRSSKStV::ElasticStrain(const dSymMatrixT& totalstrain, const ElementCardT& element, int ip) 
@@ -91,7 +95,8 @@ const dSymMatrixT& GRAD_MRSSKStV::LapElasticStrain(const dSymMatrixT& lap_totals
 /* modulus */
 const dMatrixT& GRAD_MRSSKStV::c_ijkl(void)
 {
-	fModulus =	fGRAD_MR->Moduli(curr_element, curr_ip);
+	fModulus =	fGRAD_MR->Moduli(CurrentElement(), CurrIP());
+	//fModulus =	fGRAD_MR->Moduli(curr_element, curr_ip);
 	return fModulus;
 }
 
@@ -99,7 +104,8 @@ const dMatrixT& GRAD_MRSSKStV::c_ijkl(void)
 const dMatrixT& GRAD_MRSSKStV::c_perfplas_ijkl(void)
 {
 	/* elastoplastic correction */
-	fModulusPerfPlas =	fGRAD_MR->ModuliPerfPlas(curr_element, curr_ip);
+	fModulusPerfPlas =	fGRAD_MR->ModuliPerfPlas(CurrentElement(), CurrIP());
+	//fModulusPerfPlas =	fGRAD_MR->ModuliPerfPlas(curr_element, curr_ip);
 	return fModulusPerfPlas;
 }
 
@@ -154,19 +160,22 @@ const dMatrixT& GRAD_MRSSKStV::c_LamLam2(void)
 /* yield function */
 const double& GRAD_MRSSKStV::YieldF(void)
 {
-	fYieldFunction = fGRAD_MR->YieldFunction(curr_element, curr_ip);
+	fYieldFunction = fGRAD_MR->YieldFunction(CurrentElement(), CurrIP());
+	//fYieldFunction = fGRAD_MR->YieldFunction(curr_element, curr_ip);
 	return fYieldFunction;
 }
 
 /* stress */
 const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 {
-	int ip = curr_ip;
-	ElementCardT& element = curr_element;
-	const dSymMatrixT& eps = LinearStrain();
-	const dSymMatrixT& lap_eps = LapLinearStrain();
-	const dArrayT& lam = LambdaPM();
-	const dArrayT& lap_lam = LapLambdaPM();
+	int ip = CurrIP();
+	//int ip = curr_ip;
+	//ElementCardT& element = curr_element;
+	ElementCardT& element = CurrentElement();
+	const dSymMatrixT& eps = e();
+	const dSymMatrixT& lap_eps = lap_e();
+	const dArrayT& lam = pm();
+	const dArrayT& lap_lam = lap_pm();
 	const dSymMatrixT& e_els = ElasticStrain(eps, element, ip); 
 	const dSymMatrixT& lap_e_els = LapElasticStrain(lap_eps, element, ip);
 	
@@ -219,7 +228,8 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 	J2 = (J2 < 0.0) ? 0.0 : J2;
 	output[16] = sqrt(3.0*J2);
 	
-	const ElementCardT& element = curr_element;
+	const ElementCardT& element = CurrentElement();
+	//const ElementCardT& element = curr_element;
 	if (element.IsAllocated())
 	{
 		
@@ -273,6 +283,7 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 void GRAD_MRSSKStV::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
+	MFGPSSSolidMatT::DefineParameters(list);
 	IsotropicT::DefineParameters(list);
 	HookeanMatT::DefineParameters(list);
 }
@@ -281,6 +292,7 @@ void GRAD_MRSSKStV::DefineParameters(ParameterListT& list) const
 void GRAD_MRSSKStV::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
+	MFGPSSSolidMatT::DefineSubs(sub_list);
 	IsotropicT::DefineSubs(sub_list);
 	HookeanMatT::DefineSubs(sub_list);
 	
@@ -296,9 +308,12 @@ ParameterInterfaceT* GRAD_MRSSKStV::NewSub(const StringT& name) const
 	else
 	{
 		/* inherited */
-		ParameterInterfaceT* params = IsotropicT::NewSub(name);
-		if (params) 
-			return params;
+		ParameterInterfaceT* params1 = MFGPSSSolidMatT::NewSub(name);
+		ParameterInterfaceT* params2 = IsotropicT::NewSub(name);
+		if (params1) 
+			return params1;
+		else if (params2)
+			return params2;
 		else
 			return HookeanMatT::NewSub(name);
 	}
@@ -308,21 +323,19 @@ ParameterInterfaceT* GRAD_MRSSKStV::NewSub(const StringT& name) const
 void GRAD_MRSSKStV::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
+	MFGPSSSolidMatT::TakeParameterList(list);
 	IsotropicT::TakeParameterList(list);
 	HookeanMatT::TakeParameterList(list);
 	
 	fStress.Dimension(3);
-	fStrain_IP.Dimension(3);
-	fLapStrain_IP.Dimension(3);
-	fLambdaPM_IP.Dimension(1);
-	fLapLambdaPM_IP.Dimension(1);
 	fModulus.Dimension(dSymMatrixT::NumValues(3));
 	fModulusCe.Dimension(dSymMatrixT::NumValues(3));
 	fModulusPerfPlas.Dimension(dSymMatrixT::NumValues(3));
 	//fYieldFunction(0.0); // kyonten
 	
 	/* construct GRAD_MR solver */
-	fGRAD_MR = new GRAD_MRSSNLHardT(num_ip, Mu(), Lambda());
+	fGRAD_MR = new GRAD_MRSSNLHardT(NumIP(), Mu(), Lambda());
+	//fGRAD_MR = new GRAD_MRSSNLHardT(num_ip, Mu(), Lambda());
 	fGRAD_MR->TakeParameterList(list.GetList("GRAD_MR_SS_nonlinear_hardening"));
 }
 
