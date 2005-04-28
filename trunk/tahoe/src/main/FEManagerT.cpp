@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.92 2005-04-10 18:15:26 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.93 2005-04-28 23:56:05 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1205,11 +1205,12 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 
 	/* geometry file format */
 	ParameterT geometry_format(ParameterT::Enumeration, "geometry_format");
+	geometry_format.AddEnumeration("automatic", IOBaseT::kAutomatic);
 	geometry_format.AddEnumeration("TahoeII", IOBaseT::kTahoeII);
 #ifdef __ACCESS__ 
 	geometry_format.AddEnumeration("ExodusII", IOBaseT::kExodusII);
 #endif
-	geometry_format.SetDefault(IOBaseT::kTahoeII);
+	geometry_format.SetDefault(IOBaseT::kAutomatic);
 	list.AddParameter(geometry_format);
 
 	/* geometry file */
@@ -1217,13 +1218,14 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 
 	/* output format */
 	ParameterT output_format(ParameterT::Enumeration, "output_format");
+	output_format.AddEnumeration("automatic", IOBaseT::kAutomatic);
 	output_format.AddEnumeration("Tahoe", IOBaseT::kTahoe);
 	output_format.AddEnumeration("TecPlot", IOBaseT::kTecPlot);
 	output_format.AddEnumeration("EnSight", IOBaseT::kEnSight);
 #ifdef __ACCESS__ 
 	output_format.AddEnumeration("ExodusII", IOBaseT::kExodusII);
 #endif
-	output_format.SetDefault(IOBaseT::kTahoe);
+	output_format.SetDefault(IOBaseT::kAutomatic);
 	list.AddParameter(output_format);
 
 	/* restart file name */
@@ -1281,6 +1283,8 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::BadInputValue(caller, "\"geometry_file\" is empty");
 	database.ToNativePathName();      
 	database.Prepend(path);
+	if (format == IOBaseT::kAutomatic)
+		format = IOBaseT::name_to_FileTypeT(database);
 
 	/* multiprocessor calculation */
 	if (Size() > 1) {
@@ -1397,6 +1401,12 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 
 	/* output format */
 	fOutputFormat = IOBaseT::int_to_FileTypeT(list.GetParameter("output_format"));
+	if (fOutputFormat == IOBaseT::kAutomatic) {
+		if (format == IOBaseT::kExodusII)
+			fOutputFormat = IOBaseT::kExodusII;
+		else
+			fOutputFormat = IOBaseT::kTahoe;
+	}
 	
 	/* restart files */
 	const ParameterT* restart_file = list.Parameter("restart_file");
