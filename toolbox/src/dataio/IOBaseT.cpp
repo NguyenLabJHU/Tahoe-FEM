@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.cpp,v 1.16 2004-11-19 22:55:25 paklein Exp $ */
+/* $Id: IOBaseT.cpp,v 1.17 2005-04-28 20:58:53 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
 #include "IOBaseT.h"
 
@@ -35,6 +35,10 @@ IOBaseT::FileTypeT IOBaseT::int_to_FileTypeT(int i)
 {
 	switch (i)
 	{
+		case -2:
+			return IOBaseT::kAutomatic;
+		case -1:
+			return IOBaseT::kNone;
 		case 0:
 			return IOBaseT::kTahoe;
 		case 1:
@@ -62,8 +66,8 @@ IOBaseT::FileTypeT IOBaseT::int_to_FileTypeT(int i)
 	       case 12:
 	                return IOBaseT::kParaDyn;
 		default:
-			cout << "\n int_to_IOFileType: could not convert: " << i << endl;
-			throw ExceptionT::kOutOfRange;
+			ExceptionT::OutOfRange("IOBaseT::int_to_FileTypeT", 
+				"could not convert %d", i);
 	}
 	
 	/* dummy */
@@ -148,11 +152,9 @@ IOBaseT::FileTypeT IOBaseT::name_to_FileTypeT(const char* file_name)
 		return kTahoeResults;
 	else if (ext == ".atoms")
 		return kParaDyn;
-	else {
-		cout << "\n IOBaseT::name_to_FileTypeT: could not guess file type from name: " 
-		    << file_name << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	else
+		ExceptionT::GeneralFail("IOBaseT::name_to_FileTypeT",
+			"could not guess file type from \"%s\"", file_name);
 
 	/* dummy */
 	return kTahoe;
@@ -161,6 +163,7 @@ IOBaseT::FileTypeT IOBaseT::name_to_FileTypeT(const char* file_name)
 /* construct new input object */
 InputBaseT* IOBaseT::NewInput(FileTypeT format, ostream& message)
 {
+	const char caller[] = "IOBaseT::NewInput";
 	InputBaseT* input = NULL;
 	try {
 	switch (format)
@@ -170,6 +173,7 @@ InputBaseT* IOBaseT::NewInput(FileTypeT format, ostream& message)
 			input = NULL;
 			break;
 
+		case kAutomatic: /* default type */
 		case kTahoeII:
 			input = new TahoeInputT(message);
 			break;
@@ -202,16 +206,12 @@ InputBaseT* IOBaseT::NewInput(FileTypeT format, ostream& message)
 			break;
 
 		default:
-		{
-			cout << "\n IOBaseT::NewInput: unsupported model format: " << format << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+			ExceptionT::GeneralFail(caller, "unsupported module format %d", format);
     }
     } /* end try */
     
     catch(ExceptionT::CodeT exception) {
-		cout << "\n IOBaseT::NewInput: caught exception: " <<  ExceptionT::ToString(exception) << endl;
-		throw exception;
+    	ExceptionT::Throw(exception, caller);
     }    
     return input;
 }
@@ -221,6 +221,7 @@ OutputBaseT* IOBaseT::NewOutput(const StringT& program_name,
 	const StringT& version, const StringT& title, const StringT& output_file,
 	FileTypeT output_format, ostream& log)
 {
+	const char caller[] = "IOBaseT::NewOutput";
 	ArrayT<StringT> outstrings (4);
 	outstrings[0] = output_file;
 	outstrings[1] = title;
@@ -235,6 +236,7 @@ OutputBaseT* IOBaseT::NewOutput(const StringT& program_name,
 	  case IOBaseT::kExodusII:
 	    output = new ExodusOutputT(log, outstrings);
 	    break;
+	  case IOBaseT::kAutomatic:
 	  case IOBaseT::kTahoe:
 	  case IOBaseT::kTahoeII:
 	  case IOBaseT::kTahoeResults:
@@ -259,19 +261,12 @@ OutputBaseT* IOBaseT::NewOutput(const StringT& program_name,
 	    output = new ParaDynOutputT(log, outstrings);
 	    break;
 	  default:
-	    {			
-	      cout << "\n IOBaseT::SetOutput unknown output format:"
-		   << output_format << endl;
-	      log  << "\n IOBaseT::SetOutput unknown output format:"
-		    << output_format << endl;
-	      throw ExceptionT::kGeneralFail;
-	    }
+	  	ExceptionT::GeneralFail(caller, "unknown output format %d", output_format);
 	}
 	} /* end try */  
 
     catch(ExceptionT::CodeT exception) {
-		cout << "\n IOBaseT::NewOutput: caught exception: " <<  ExceptionT::ToString(exception) << endl;
-		throw exception;
+    	ExceptionT::Throw(exception, caller);
     }    
 	return output;
 }
