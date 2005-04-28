@@ -1,4 +1,4 @@
-/* $Id: FossumSSIso2DT.cpp,v 1.10 2005-04-27 20:45:48 raregue Exp $ */
+/* $Id: FossumSSIso2DT.cpp,v 1.11 2005-04-28 15:53:07 raregue Exp $ */
 #include "FossumSSIso2DT.h"
 #include "SSEnhLocMatSupportT.h"
 #include "ElementCardT.h"
@@ -13,17 +13,9 @@ using namespace Tahoe;
 /* constructor */
 FossumSSIso2DT::FossumSSIso2DT(void):
 	ParameterInterfaceT("Fossum_small_strain_2D"),
-//	Material2DT(in, kPlaneStrain),
-	//fStress2D(2),
-	//fModulus2D(dSymMatrixT::NumValues(2)),
-	fModulusPerfPlas2D(dSymMatrixT::NumValues(2)),
-	fModulusContinuum2D(dSymMatrixT::NumValues(2)),
-	fModulusContinuumPerfPlas2D(dSymMatrixT::NumValues(2)),
-	//fTotalStrain3D(3)
 	fSSEnhLocMatSupport(NULL)
 {
-	/* account for thickness */
-//	fDensity *= fThickness;
+	
 }
 
 /* describe the parameters needed by the interface */
@@ -47,6 +39,9 @@ void FossumSSIso2DT::TakeParameterList(const ParameterListT& list)
   fStress2D.Dimension(2);
   fModulus2D.Dimension(dSymMatrixT::NumValues(2));
   fModulusElas2D.Dimension(dSymMatrixT::NumValues(2));
+  fModulusPerfPlas2D.Dimension(dSymMatrixT::NumValues(2)),
+	fModulusContinuum2D.Dimension(dSymMatrixT::NumValues(2)),
+	fModulusContinuumPerfPlas2D.Dimension(dSymMatrixT::NumValues(2)),
   fTotalStrain3D.Dimension(3);
   
 	/* cast to small strain embedded discontinuity material pointer */
