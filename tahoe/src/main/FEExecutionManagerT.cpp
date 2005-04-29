@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.77 2005-04-06 15:43:39 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.78 2005-04-29 01:24:12 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -710,6 +710,8 @@ void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& s
 		/* name translation */
 		model_file.ToNativePathName();      
 		model_file.Prepend(path);
+		if (format == IOBaseT::kAutomatic)
+			format = IOBaseT::name_to_FileTypeT(model_file);
 
 		/* more parameters for spatial decomposition */
 		if (decomp_method.Name() == "spatial_decomposition")
@@ -792,13 +794,22 @@ void FEExecutionManagerT::RunJoin_serial(const StringT& input_file, ostream& sta
 		i_format = valid_list.GetParameter("output_format");
 		IOBaseT::FileTypeT results_format = IOBaseT::int_to_FileTypeT(i_format);
 		StringT model_file = valid_list.GetParameter("geometry_file");
-		if (results_format == IOBaseT::kTahoe ||
-		    results_format == IOBaseT::kTahoeII)
-			results_format = IOBaseT::kTahoeResults;
 
 		/* name translation */
 		model_file.ToNativePathName();      
 		model_file.Prepend(path);
+
+		/* resolve file types */
+		if (model_format == IOBaseT::kAutomatic)
+			model_format = IOBaseT::name_to_FileTypeT(model_file);
+
+		if (results_format == IOBaseT::kAutomatic && model_format == IOBaseT::kExodusII)
+			results_format = IOBaseT::kExodusII;
+		else if (
+			results_format == IOBaseT::kTahoe ||
+			results_format == IOBaseT::kTahoeII || 
+			results_format == IOBaseT::kAutomatic)
+		results_format = IOBaseT::kTahoeResults;
 
 		int index;
 		if (CommandLineOption("-join", index) && fCommandLineOptions.Length() > index+1) {
