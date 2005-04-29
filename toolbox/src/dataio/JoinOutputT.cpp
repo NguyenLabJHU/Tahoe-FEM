@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.20 2004-10-06 21:05:01 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.21 2005-04-29 01:23:26 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 #include "JoinOutputT.h"
 
@@ -23,13 +23,13 @@ JoinOutputT::JoinOutputT(const StringT& param_file, const StringT& model_file,
 	fPartitions(size),
 	fOutput(output)
 {
+	const char caller[] = "JoinOutputT::JoinOutputT";
+
 	/* set model database manager */
 	fModel = new ModelManagerT(cout);
-	if (!fModel->Initialize(model_file_type, model_file, true)) {
-		cout << "\n JoinOutputT::JoinOutputT: error opening geometry file: " 
-		     << fModel->DatabaseName() << endl;
-		throw ExceptionT::kDatabaseFail;
-	}
+	if (!fModel->Initialize(model_file_type, model_file, true))
+		ExceptionT::DatabaseFail(caller, "error opening model file: %s",
+			fModel->DatabaseName().Pointer());
 
 	/* read partition data */
 	for (int i = 0; i < fPartitions.Length(); i++)
@@ -43,12 +43,9 @@ JoinOutputT::JoinOutputT(const StringT& param_file, const StringT& model_file,
 		/* open stream */
 		ifstreamT part_in(file);
 		if (!part_in.is_open())
-		{
-			cout << "\n JoinOutputT::JoinOutputT: could not open decomposition file: "
-			     << part_in.filename() << endl;
-			throw ExceptionT::kGeneralFail;
-		}
-		
+			ExceptionT::GeneralFail(caller, "could not open decomposition file: %s",
+				part_in.filename());
+
 		/* read data */
 		part_in >> fPartitions[i];
 		
@@ -688,9 +685,9 @@ void JoinOutputT::ResultFileName(int part, int group, StringT& name) const
 	else if (fResultsFileType == IOBaseT::kExodusII)
 		name.Append(".exo");
 	else
-		cout << "\n JoinOutputT::ResultFileName: supported results file format: "
-		     << fResultsFileType << endl;
-	
+		ExceptionT::GeneralFail("JoinOutputT::ResultFileName",
+			"unsupported file format %d", fResultsFileType);
+
 	//NOTE: not handling multiple time sequences ".sq" or changing
 	//      geometry groups ".ps"
 }
