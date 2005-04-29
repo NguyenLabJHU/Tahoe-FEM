@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.51 2005-04-12 15:30:14 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.52 2005-04-29 01:23:00 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -37,6 +37,9 @@ bool ModelManagerT::Initialize (const IOBaseT::FileTypeT format, const StringT& 
 
 	fFormat = format;
 	fInputName = database;
+	if (fFormat == IOBaseT::kAutomatic)
+		fFormat = IOBaseT::name_to_FileTypeT(fInputName);
+	
 	if (scan_model)
 		return ScanModel(fInputName);
 	else
