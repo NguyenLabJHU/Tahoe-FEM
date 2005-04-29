@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.cpp,v 1.17 2005-04-28 20:58:53 paklein Exp $ */
+/* $Id: IOBaseT.cpp,v 1.18 2005-04-29 01:22:15 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
 #include "IOBaseT.h"
 
@@ -173,7 +173,6 @@ InputBaseT* IOBaseT::NewInput(FileTypeT format, ostream& message)
 			input = NULL;
 			break;
 
-		case kAutomatic: /* default type */
 		case kTahoeII:
 			input = new TahoeInputT(message);
 			break;
@@ -204,6 +203,9 @@ InputBaseT* IOBaseT::NewInput(FileTypeT format, ostream& message)
 		case kTahoeResults:
 			input = new TextInputT(message);
 			break;
+
+		case kAutomatic:
+			ExceptionT::GeneralFail(caller, "\"automatic\" (%d) file type cannot be resolved here", format);
 
 		default:
 			ExceptionT::GeneralFail(caller, "unsupported module format %d", format);
