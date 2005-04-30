@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.52 2005-04-29 01:23:00 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.53 2005-04-30 21:11:00 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -653,7 +653,7 @@ void ModelManagerT::ReadConnectivity (const StringT& ID)
 
 		/* do read */
 		try { Input("ReadConnectivity").ReadConnectivity (ID, *fElementSets[index]); }
-		catch (ExceptionT::CodeT exception) {
+		catch (ExceptionT::CodeT exc) {
 			ExceptionT::DatabaseFail(caller, "exception reading ID %s", ID.Pointer());
 		}
     }
@@ -1208,7 +1208,7 @@ const iArrayT& ModelManagerT::NodeSet (const StringT& ID)
 
 		fNodeSets[index]->Dimension (fNodeSetDimensions[index]);
 		try { Input("NodeSet").ReadNodeSet(ID, *fNodeSets[index]); }
-		catch (ExceptionT::CodeT exception) {
+		catch (ExceptionT::CodeT exc) {
 			ExceptionT::DatabaseFail(caller, "exception reading ID %s", ID.Pointer());
 		}
 	}
@@ -1303,7 +1303,7 @@ const iArray2DT& ModelManagerT::SideSet (const StringT& ID)
 			else
 				input.ReadSideSetGlobal (fSideSetNames[index], *fSideSets[index]);
 		}
-		catch (ExceptionT::CodeT exception) {
+		catch (ExceptionT::CodeT exc) {
 			ExceptionT::DatabaseFail(caller, "exception reading ID %s", ID.Pointer());
 		}
 	}
@@ -1833,7 +1833,7 @@ bool ModelManagerT::ScanSideSets (void)
 					const StringT& name = fInput->SideSetGroupName(fSideSetNames[i]);
 					fSideSetGroupIndex[i] = ElementGroupIndex(name);
 				}
-				catch (ExceptionT::CodeT exception) {
+				catch (ExceptionT::CodeT exc) {
 					cout << "\n ModelManagerT::ScanSideSets: error scanning side set "
 					     << fSideSetNames[i] << endl;				
 					fSideSetGroupIndex[i] = -1;
