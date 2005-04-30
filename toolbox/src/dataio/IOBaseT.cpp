@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.cpp,v 1.18 2005-04-29 01:22:15 paklein Exp $ */
+/* $Id: IOBaseT.cpp,v 1.19 2005-04-30 21:11:00 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
 #include "IOBaseT.h"
 
@@ -212,8 +212,8 @@ InputBaseT* IOBaseT::NewInput(FileTypeT format, ostream& message)
     }
     } /* end try */
     
-    catch(ExceptionT::CodeT exception) {
-    	ExceptionT::Throw(exception, caller);
+    catch(ExceptionT::CodeT exc) {
+    	ExceptionT::Throw(exc, caller);
     }    
     return input;
 }
@@ -267,8 +267,8 @@ OutputBaseT* IOBaseT::NewOutput(const StringT& program_name,
 	}
 	} /* end try */  
 
-    catch(ExceptionT::CodeT exception) {
-    	ExceptionT::Throw(exception, caller);
+    catch(ExceptionT::CodeT exc) {
+    	ExceptionT::Throw(exc, caller);
     }    
 	return output;
 }

@@ -1,4 +1,4 @@
-/* $Id: GeometryT.cpp,v 1.9 2005-02-24 17:33:04 paklein Exp $ */
+/* $Id: GeometryT.cpp,v 1.10 2005-04-30 21:11:06 paklein Exp $ */
 /* created: paklein (10/10/1999) */
 #include "GeometryT.h"
 
@@ -115,6 +115,7 @@ int GeometryT::GeometryToNumSD(GeometryT::CodeT code)
 namespace Tahoe {
 GeometryBaseT* GeometryT::New(GeometryT::CodeT geometry, int nen)
 {
+	const char caller[] = "GeometryT::New";
 	GeometryBaseT* geom = NULL;
 	try {
 	switch (geometry)
@@ -144,13 +145,11 @@ GeometryBaseT* GeometryT::New(GeometryT::CodeT geometry, int nen)
 			break;
 
 		default:
-			cout << "\n GeometryT::New: unknown geometry code: " << geometry << endl;
-			throw ExceptionT::kGeneralFail;			
+			ExceptionT::GeneralFail(caller, "unknown geometry code %d", geometry);
 	}
 	}
-	catch (ExceptionT::CodeT exception) {
-		cout << "\n GeometryT::New: caught exception: " <<  ExceptionT::ToString(exception) << endl;
-		throw exception;
+	catch (ExceptionT::CodeT exc) {
+		ExceptionT::Throw(exc, caller);	
 	}
 	return geom;
 }
