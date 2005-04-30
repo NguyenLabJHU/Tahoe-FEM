@@ -1,4 +1,4 @@
-/* $Id: Tensor3DT.h,v 1.7 2005-04-30 21:14:36 paklein Exp $ */
+/* $Id: Tensor3DT.h,v 1.8 2005-04-30 21:29:51 paklein Exp $ */
 /* created PAK (05/23/97) */
 
 #ifndef _TENSOR3D_H_
@@ -164,9 +164,9 @@ inline MATHTYPE& Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1, int dim2)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (dim0 < 0 || dim0 >= fDim[0] ||
-	    dim1 < 0 || dim1 >= fDim[1] ||
-	    dim2 < 0 || dim2 >= fDim[2]) throw ExceptionT::kOutOfRange;
+	if (dim0 < 0 || dim0 >= this->fDim[0] ||
+	    dim1 < 0 || dim1 >= this->fDim[1] ||
+	    dim2 < 0 || dim2 >= this->fDim[2]) throw ExceptionT::kOutOfRange;
 #endif
 
 	return (this->fArray[dim0*fOffset0 + dim1*fOffset1 + dim2]);
@@ -176,9 +176,9 @@ inline const MATHTYPE& Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1, int d
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (dim0 < 0 || dim0 >= fDim[0] ||
-	    dim1 < 0 || dim1 >= fDim[1] ||
-	    dim2 < 0 || dim2 >= fDim[2]) throw ExceptionT::kOutOfRange;
+	if (dim0 < 0 || dim0 >= this->fDim[0] ||
+	    dim1 < 0 || dim1 >= this->fDim[1] ||
+	    dim2 < 0 || dim2 >= this->fDim[2]) throw ExceptionT::kOutOfRange;
 #endif
 
 	return (this->fArray[dim0*fOffset0 + dim1*fOffset1 + dim2]);
@@ -189,8 +189,8 @@ inline MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (dim0 < 0 || dim0 >= fDim[0] ||
-	    dim1 < 0 || dim1 >= fDim[1]) throw ExceptionT::kOutOfRange;
+	if (dim0 < 0 || dim0 >= this->fDim[0] ||
+	    dim1 < 0 || dim1 >= this->fDim[1]) throw ExceptionT::kOutOfRange;
 #endif
 
 	return (this->fArray + dim0*fOffset0 + dim1*fOffset1);
@@ -200,8 +200,8 @@ inline const MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (dim0 < 0 || dim0 >= fDim[0] ||
-	    dim1 < 0 || dim1 >= fDim[1]) throw ExceptionT::kOutOfRange;
+	if (dim0 < 0 || dim0 >= this->fDim[0] ||
+	    dim1 < 0 || dim1 >= this->fDim[1]) throw ExceptionT::kOutOfRange;
 #endif
 
 	return (this->fArray + dim0*fOffset0 + dim1*fOffset1);
@@ -212,7 +212,7 @@ inline MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (dim0 < 0 || dim0 >= fDim[0]) throw ExceptionT::kOutOfRange;
+	if (dim0 < 0 || dim0 >= this->fDim[0]) throw ExceptionT::kOutOfRange;
 #endif
 
 	return (this->fArray + dim0*fOffset0);
@@ -222,7 +222,7 @@ inline const MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (dim0 < 0 || dim0 >= fDim[0]) throw ExceptionT::kOutOfRange;
+	if (dim0 < 0 || dim0 >= this->fDim[0]) throw ExceptionT::kOutOfRange;
 #endif
 
 	return (this->fArray + dim0*fOffset0);
@@ -245,19 +245,19 @@ void Tensor3DT<MATHTYPE>::ContractIndex(const Tensor3DT& t3, int t3dex,
 	
 	/* (t2,t3) and (this, t2) */
 	if (t2dex == 0)
-		if (t2.Rows() != t3.fDim[t3dex] || t2.Cols() != fDim[2])
+		if (t2.Rows() != t3.fDim[t3dex] || t2.Cols() != this->fDim[2])
 			throw ExceptionT::kOutOfRange;
-	else if (t2.Cols() != t3.fDim[t3dex] || t2.Rows() != fDim[2]) 
+	else if (t2.Cols() != t3.fDim[t3dex] || t2.Rows() != this->fDim[2]) 
 		throw ExceptionT::kOutOfRange;
 	
 	/* (this, t3) */
 	if (t3dex == 2)
-		if (fDim[0] != t3.fDim[0] || fDim[1] != t3.fDim[1])
+		if (this->fDim[0] != t3.fDim[0] || this->fDim[1] != t3.fDim[1])
 			throw ExceptionT::kOutOfRange;
 	else if (t3dex == 1)
-		if (fDim[0] != t3.fDim[0] || fDim[1] != t3.fDim[2])
+		if (this->fDim[0] != t3.fDim[0] || this->fDim[1] != t3.fDim[2])
 			throw ExceptionT::kOutOfRange;
-	else if (fDim[0] != t3.fDim[1] || fDim[1] != t3.fDim[2])
+	else if (this->fDim[0] != t3.fDim[1] || this->fDim[1] != t3.fDim[2])
 		throw ExceptionT::kOutOfRange;
 #endif
 
@@ -277,16 +277,16 @@ void Tensor3DT<MATHTYPE>::ContractIndex(int t3dex,
 	const nArrayT<MATHTYPE>& t1, nMatrixT<MATHTYPE>& t2)
 {
 #if __option (extended_errorcheck)
-	if (t3dex < 0 || t3dex >= 3 ||t1.Length() != fDim[t3dex])
+	if (t3dex < 0 || t3dex >= 3 ||t1.Length() != this->fDim[t3dex])
 		throw ExceptionT::kOutOfRange;
 	
 	if (t3dex == 0)
-		if (t2.Rows() != fDim[1] || t2.Cols() != fDim[2])
+		if (t2.Rows() != this->fDim[1] || t2.Cols() != this->fDim[2])
 			throw ExceptionT::kOutOfRange;
 	else if (t3dex == 1)
-		if (t2.Rows() != fDim[0] || t2.Cols() != fDim[2])
+		if (t2.Rows() != this->fDim[0] || t2.Cols() != this->fDim[2])
 			throw ExceptionT::kOutOfRange;
-	else if (t2.Rows() != fDim[0] && t2.Cols() != fDim[1])
+	else if (t2.Rows() != this->fDim[0] && t2.Cols() != this->fDim[1])
 		throw ExceptionT::kOutOfRange;
 #endif
 

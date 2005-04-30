@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.28 2005-04-30 21:14:21 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.29 2005-04-30 21:29:41 paklein Exp $ */
 /* created: paklein (05/23/1997) */
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
@@ -599,7 +599,7 @@ template <class nTYPE>
 nTYPE nArrayT<nTYPE>::Max(void) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) ExceptionT::GeneralFail();
+	if (!this->fArray) ExceptionT::GeneralFail();
 #endif
 
 	const nTYPE* pthis = this->Pointer();
@@ -617,7 +617,7 @@ template <class nTYPE>
 nTYPE nArrayT<nTYPE>::Max(int& position) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) ExceptionT::GeneralFail();
+	if (!this->fArray) ExceptionT::GeneralFail();
 #endif
 
 	const nTYPE* pthis = this->Pointer();
@@ -640,7 +640,7 @@ template <class nTYPE>
 nTYPE nArrayT<nTYPE>::Min(void) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) ExceptionT::GeneralFail();
+	if (!this->fArray) ExceptionT::GeneralFail();
 #endif
 
 	const nTYPE* pthis = this->Pointer();
@@ -658,7 +658,7 @@ template <class nTYPE>
 nTYPE nArrayT<nTYPE>::Min(int& position) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) ExceptionT::GeneralFail();
+	if (!this->fArray) ExceptionT::GeneralFail();
 #endif
 
 	const nTYPE* pthis = this->Pointer();
@@ -681,7 +681,7 @@ template <class nTYPE>
 nTYPE nArrayT<nTYPE>::AbsMax(void) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) ExceptionT::GeneralFail();
+	if (!this->fArray) ExceptionT::GeneralFail();
 #endif
 
 	const nTYPE* pthis = this->Pointer();
@@ -699,7 +699,7 @@ template <class nTYPE>
 nTYPE nArrayT<nTYPE>::AbsMin(void) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) ExceptionT::GeneralFail();
+	if (!this->fArray) ExceptionT::GeneralFail();
 #endif
 
 	const nTYPE* pthis = this->Pointer();
@@ -718,7 +718,7 @@ void nArrayT<nTYPE>::MinMax(nTYPE& min, nTYPE& max,
 	bool positive_only) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) ExceptionT::GeneralFail();
+	if (!this->fArray) ExceptionT::GeneralFail();
 #endif
 
 	/* ignore negative numbers */
@@ -764,7 +764,7 @@ template <class nTYPE>
 void nArrayT<nTYPE>::AbsMinMax(nTYPE& absmin, nTYPE& absmax) const
 {
 #if __option(extended_errorcheck)
-	if (!fArray) ExceptionT::GeneralFail();
+	if (!this->fArray) ExceptionT::GeneralFail();
 #endif
 
 	nTYPE abs;
