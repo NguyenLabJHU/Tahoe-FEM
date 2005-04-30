@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.19 2004-08-05 16:25:30 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.20 2005-04-30 21:14:21 paklein Exp $ */
 /* created: paklein (12/05/1997) */
 #ifndef _AUTO_ARRAY_T_H_
 #define _AUTO_ARRAY_T_H_
@@ -241,11 +241,11 @@ inline void AutoArrayT<TYPE>::Dimension(int length)
 		ArrayT<TYPE>::Dimension(WithHeadRoom(length));
 	
 		/* allocated size */
-		fMemSize = fLength;
+		fMemSize = this->fLength;
 	}
 
 	/* logical size */
-	fLength = length;
+	this->fLength = length;
 }
 
 template <class TYPE>
@@ -258,11 +258,11 @@ inline void AutoArrayT<TYPE>::Resize(int new_length)
 		ArrayT<TYPE>::Resize(WithHeadRoom(new_length));
 		
 		/* allocated size */
-		fMemSize = fLength;
+		fMemSize = this->fLength;
 	}
 
 	/* logical size */
-	fLength = new_length;
+	this->fLength = new_length;
 }
 
 template <class TYPE>
@@ -275,11 +275,11 @@ void AutoArrayT<TYPE>::Resize(int new_length, const TYPE& fill)
 		ArrayT<TYPE>::Resize(WithHeadRoom(new_length), fill);
 		
 		/* allocated size */
-		fMemSize = fLength;
+		fMemSize = this->fLength;
 	}
 
 	/* logical size */
-	fLength = new_length;
+	this->fLength = new_length;
 }
 
 /* free memory (if allocated) and set size to zero */
@@ -321,16 +321,16 @@ template <class TYPE>
 AutoArrayT<TYPE>& AutoArrayT<TYPE>::operator=(const AutoArrayT<TYPE>& RHS)
 {
 	/* no copies of self */
-	if (fArray != RHS.Pointer())
+	if (this->fArray != RHS.Pointer())
 	{
 		/* set logical size */
 		if (fMemSize < RHS.Length())
 			Dimension(RHS.Length());
 		else
-			fLength = RHS.Length();
+			this->fLength = RHS.Length();
 				
 		/* copy data */
-		MemCopy(fArray, RHS.Pointer(), fLength);
+		MemCopy(this->fArray, RHS.Pointer(), this->fLength);
 	}
 
 	return *this;
@@ -340,16 +340,16 @@ template <class TYPE>
 AutoArrayT<TYPE>& AutoArrayT<TYPE>::operator=(const ArrayT<TYPE>& RHS)
 {
 	/* no copies to self */
-	if (fArray != RHS.Pointer())
+	if (this->fArray != RHS.Pointer())
 	{
 		/* set logical size */
 		if (fMemSize < RHS.Length())
 			Dimension(RHS.Length());
 		else
-			fLength = RHS.Length();
+			this->fLength = RHS.Length();
 				
 		/* copy data */
-		MemCopy(fArray, RHS.Pointer(), fLength);
+		MemCopy(this->fArray, RHS.Pointer(), this->fLength);
 	}
 
 	return *this;
@@ -360,68 +360,68 @@ template <class TYPE>
 void AutoArrayT<TYPE>::Append(const ArrayT<TYPE>& source)
 {
 	/* increase memory if needed */
-	if (fLength + source.Length() >= fMemSize)
+	if (this->fLength + source.Length() >= fMemSize)
 	{
 		/* owns memory */
-		bool was_allocated = IsAllocated();
+		bool was_allocated = this->IsAllocated();
 
 		/* who owns the existing memory */
-		int old_length = fLength;
+		int old_length = this->fLength;
 		TYPE* olddata;
 		if (was_allocated)
 			ReleasePointer(&olddata);
 		else
-			olddata = Pointer();
+			olddata = this->Pointer();
 		
 		/* allocate more memory */
 		Dimension(fMemSize + source.Length());
 		
 		/* reset logical size */
-		fLength = old_length;
+		this->fLength = old_length;
 				
 		/* copy data into new space */
-		MemCopy(fArray, olddata, fLength);
+		MemCopy(this->fArray, olddata, this->fLength);
 		
 		/* free memory */
 		if (was_allocated) delete[] olddata;
 	}	
 
 	/* append data from the list */
-	MemCopy(fArray + fLength, source.Pointer(), source.Length());
+	MemCopy(this->fArray + this->fLength, source.Pointer(), source.Length());
 
 	/* reset logical size */
-	fLength += source.Length();
+	this->fLength += source.Length();
 }
 
 template <class TYPE>
 void AutoArrayT<TYPE>::Append(const TYPE& value)
 {
-	if (fLength < fMemSize)
-		fArray[fLength++] = value;
+	if (this->fLength < fMemSize)
+		this->fArray[this->fLength++] = value;
 	else /* need more memory */
 	{
 		/* owns memory */
-		bool was_allocated = IsAllocated();
+		bool was_allocated = this->IsAllocated();
 
 		/* who owns the existing memory */
-		int old_length = fLength;
+		int old_length = this->fLength;
 		TYPE* olddata;
 		if (was_allocated)
 			ReleasePointer(&olddata);
 		else
-			olddata = Pointer();
+			olddata = this->Pointer();
 
 		/* allocate larger block */
 		Dimension(fMemSize + 1);		
 
 		/* reset logical size */
-		fLength = old_length;
+		this->fLength = old_length;
 		
 		/* copy data into new space */
-		MemCopy(fArray, olddata, fLength);
+		MemCopy(this->fArray, olddata, this->fLength);
 		
 		/* append new value */
-		fArray[fLength++] = value;
+		this->fArray[this->fLength++] = value;
 		
 		/* free memory */
 		if (was_allocated) delete[] olddata;
@@ -433,24 +433,24 @@ template <class TYPE>
 void AutoArrayT<TYPE>::InsertAt(const TYPE& value, int position)
 {
 	/* range check */
-	if (position < 0 || position > fLength) ExceptionT::OutOfRange();
+	if (position < 0 || position > this->fLength) ExceptionT::OutOfRange();
 
 	/* empty or at end */
-	if (position == fLength)
+	if (position == this->fLength)
 		Append(value);
 	else
 	{
 		/* resize (by re-appending the last) */
-		Append(fArray[fLength - 1]);
+		Append(this->fArray[this->fLength - 1]);
 	
 		/* move data */
-		TYPE* from = fArray + position;
+		TYPE* from = this->fArray + position;
 		TYPE*   to = from + 1;
-		int length = fLength - (position + 2);
+		int length = this->fLength - (position + 2);
 		MemMove(to, from, length);
 		
 		/* insert value */
-		fArray[position] = value;
+		this->fArray[position] = value;
 	}
 }
 
@@ -458,16 +458,16 @@ template <class TYPE>
 void AutoArrayT<TYPE>::DeleteAt(int position)
 {
 	/* range check */
-	if (position < 0 || position >= fLength) ExceptionT::OutOfRange();
+	if (position < 0 || position >= this->fLength) ExceptionT::OutOfRange();
 
 	/* move data */
-	TYPE*   to = fArray + position;
+	TYPE*   to = this->fArray + position;
 	TYPE* from = to + 1;
-	int length = fLength - (position + 1);
+	int length = this->fLength - (position + 1);
 	MemMove(to, from, length);
 	
 	/* reset size */
-	fLength--;
+	this->fLength--;
 }
 
 /* returns 1 if the value is already present - NOTE: "==" must be defined */
@@ -476,8 +476,8 @@ template <class TYPE>
 inline bool AutoArrayT<TYPE>::HasValue(const TYPE& value) const
 {
 	/* scan logical size for duplicates */
-	TYPE* pthis = fArray;
-	for (int i = 0; i < fLength; i++)
+	TYPE* pthis = this->fArray;
+	for (int i = 0; i < this->fLength; i++)
 		if (*pthis++ == value)
 			return true;
 
@@ -489,8 +489,8 @@ template <class TYPE>
 inline int AutoArrayT<TYPE>::PositionOf(const TYPE& value) const
 {
 	/* scan logical size for duplicates */
-	TYPE* pthis = fArray;
-	for (int i = 0; i < fLength; i++)
+	TYPE* pthis = this->fArray;
+	for (int i = 0; i < this->fLength; i++)
 		if (*pthis++ == value)
 			return i;
 
@@ -504,8 +504,8 @@ template <class TYPE>
 bool AutoArrayT<TYPE>::AppendUnique(const TYPE& value)
 {
 	/* scan logical size for duplicates */
-	TYPE* pthis = fArray;
-	for (int i = 0; i < fLength; i++)
+	TYPE* pthis = this->fArray;
+	for (int i = 0; i < this->fLength; i++)
 		if (*pthis++ == value)
 			return false;
 			
@@ -519,8 +519,8 @@ template <class TYPE>
 bool AutoArrayT<TYPE>::AppendUnique(const TYPE& value, bool (*comp)(const TYPE& a, const TYPE& b))
 {
 	/* scan logical size for duplicates */
-	TYPE* pthis = fArray;
-	for (int i = 0; i < fLength; i++)
+	TYPE* pthis = this->fArray;
+	for (int i = 0; i < this->fLength; i++)
 		if ((*comp)(*pthis++, value))
 			return false;
 			
@@ -546,11 +546,11 @@ inline void AutoArrayT<TYPE>::CopyInto(ArrayT<TYPE>& RHS) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (fLength > RHS.Length()) ExceptionT::SizeMismatch();
+	if (this->fLength > RHS.Length()) ExceptionT::SizeMismatch();
 #endif
 	
 	/* copy logical size */
-	MemCopy(RHS.Pointer(), fArray, fLength);
+	MemCopy(RHS.Pointer(), this->fArray, this->fLength);
 }
 
 /* Top/Next loop control */
@@ -560,9 +560,9 @@ inline void AutoArrayT<TYPE>::Top(void) { fCurrElement = -1; }
 template <class TYPE>
 inline bool AutoArrayT<TYPE>::Next(TYPE** value)
 {
-	if (++fCurrElement < fLength)
+	if (++fCurrElement < this->fLength)
 	{
-		*value = fArray + fCurrElement;
+		*value = this->fArray + fCurrElement;
 		return true;
 	}
 	else
@@ -570,11 +570,11 @@ inline bool AutoArrayT<TYPE>::Next(TYPE** value)
 }
 
 template <class TYPE>
-inline bool AutoArrayT<TYPE>::Next(void) { return ++fCurrElement < fLength; }
+inline bool AutoArrayT<TYPE>::Next(void) { return ++fCurrElement < this->fLength; }
 template <class TYPE>
 inline bool AutoArrayT<TYPE>::InRange(void) const
 {
-	return fCurrElement > -1 && fCurrElement < fLength;
+	return fCurrElement > -1 && fCurrElement < this->fLength;
 }
 
 /* returns the current position in the list */
@@ -586,11 +586,11 @@ inline const TYPE& AutoArrayT<TYPE>::Current(void) const
 {
 #if __option(extended_errorcheck)
 	/* range check */
-	if (fCurrElement < 0 || fCurrElement >= fLength) 
+	if (fCurrElement < 0 || fCurrElement >= this->fLength) 
 		ExceptionT::OutOfRange("AutoArrayT<TYPE>::Current", 
 			"position is out of range: %d", fCurrElement);
 #endif
-	return *(fArray + fCurrElement);
+	return *(this->fArray + fCurrElement);
 }
 
 template <class TYPE>
@@ -598,11 +598,11 @@ inline TYPE& AutoArrayT<TYPE>::Current(void)
 {
 #if __option(extended_errorcheck)
 	/* range check */
-	if (fCurrElement < 0 || fCurrElement >= fLength) 
+	if (fCurrElement < 0 || fCurrElement >= this->fLength) 
 		ExceptionT::OutOfRange("AutoArrayT<TYPE>::Current", 
 			"position is out of range: %d", fCurrElement);
 #endif
-	return *(fArray + fCurrElement);
+	return *(this->fArray + fCurrElement);
 }
 
 template <class TYPE>
@@ -610,12 +610,12 @@ inline TYPE& AutoArrayT<TYPE>::Current(int position)
 {
 #if __option(extended_errorcheck)
 	/* range check */
-	if (position < 0 || position >= fLength) 
+	if (position < 0 || position >= this->fLength) 
 		ExceptionT::OutOfRange("AutoArrayT<TYPE>::Current", 
 			"position is out of range: %d", position);
 #endif
 	fCurrElement = position;
-	return *(fArray + fCurrElement);
+	return *(this->fArray + fCurrElement);
 }
 
 /* stack-like operations */
@@ -628,7 +628,7 @@ inline void AutoArrayT<TYPE>::Push(const TYPE& value)
 template <class TYPE>
 inline void AutoArrayT<TYPE>::Pop(void)
 {
-	if (Length() > 0) DeleteAt(0);
+	if (this->Length() > 0) DeleteAt(0);
 }
 
 } /* namespace Tahoe */

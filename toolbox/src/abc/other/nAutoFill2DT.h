@@ -1,4 +1,4 @@
-/* $Id: nAutoFill2DT.h,v 1.2 2003-02-22 23:53:15 paklein Exp $ */
+/* $Id: nAutoFill2DT.h,v 1.3 2005-04-30 21:14:31 paklein Exp $ */
 #ifndef _N_AUTO_FILL2D_T_H_
 #define _N_AUTO_FILL2D_T_H_
 
@@ -43,10 +43,10 @@ nAutoFill2DT<nTYPE>::nAutoFill2DT(int majordim, int numchunks, int headroom, int
 template <class nTYPE>
 nAutoFill2DT<nTYPE>& nAutoFill2DT<nTYPE>::operator=(const nTYPE& value)
 {
-	int md = MajorDim();
+	int md = this->MajorDim();
 	for (int i = 0; i < md; i++)
 	{
-		int dim = MinorDim(i);
+		int dim = this->MinorDim(i);
 		nTYPE* p = (*this)(i);
 		for (int j = 0; j < dim; j++)
 			*p++ = value;
@@ -57,10 +57,10 @@ nAutoFill2DT<nTYPE>& nAutoFill2DT<nTYPE>::operator=(const nTYPE& value)
 template <class nTYPE>
 nAutoFill2DT<nTYPE>& nAutoFill2DT<nTYPE>::operator+=(const nTYPE& value)
 {
-	int md = MajorDim();
+	int md = this->MajorDim();
 	for (int i = 0; i < md; i++)
 	{
-		int dim = MinorDim(i);
+		int dim = this->MinorDim(i);
 		nTYPE* p = (*this)(i);
 		for (int j = 0; j < dim; j++)
 			*p++ += value;
@@ -71,10 +71,10 @@ nAutoFill2DT<nTYPE>& nAutoFill2DT<nTYPE>::operator+=(const nTYPE& value)
 template <class nTYPE>
 nAutoFill2DT<nTYPE>& nAutoFill2DT<nTYPE>::operator-=(const nTYPE& value)
 {
-	int md = MajorDim();
+	int md = this->MajorDim();
 	for (int i = 0; i < md; i++)
 	{
-		int dim = MinorDim(i);
+		int dim = this->MinorDim(i);
 		nTYPE* p = (*this)(i);
 		for (int j = 0; j < dim; j++)
 			*p++ -= value;
@@ -85,10 +85,10 @@ nAutoFill2DT<nTYPE>& nAutoFill2DT<nTYPE>::operator-=(const nTYPE& value)
 template <class nTYPE>
 nAutoFill2DT<nTYPE>& nAutoFill2DT<nTYPE>::operator*=(const nTYPE& value)
 {
-	int md = MajorDim();
+	int md = this->MajorDim();
 	for (int i = 0; i < md; i++)
 	{
-		int dim = MinorDim(i);
+		int dim = this->MinorDim(i);
 		nTYPE* p = (*this)(i);
 		for (int j = 0; j < dim; j++)
 			*p++ *= value;
@@ -99,10 +99,10 @@ nAutoFill2DT<nTYPE>& nAutoFill2DT<nTYPE>::operator*=(const nTYPE& value)
 template <class nTYPE>
 nAutoFill2DT<nTYPE>& nAutoFill2DT<nTYPE>::operator/=(const nTYPE& value)
 {
-	int md = MajorDim();
+	int md = this->MajorDim();
 	for (int i = 0; i < md; i++)
 	{
-		int dim = MinorDim(i);
+		int dim = this->MinorDim(i);
 		nTYPE* p = (*this)(i);
 		for (int j = 0; j < dim; j++)
 			*p++ /= value;

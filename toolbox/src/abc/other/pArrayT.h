@@ -1,4 +1,4 @@
-/* $Id: pArrayT.h,v 1.7 2004-08-08 02:01:44 paklein Exp $ */
+/* $Id: pArrayT.h,v 1.8 2005-04-30 21:14:31 paklein Exp $ */
 /* created: paklein (11/21/1996) */
 
 #ifndef _P_ARRAY_T_H_
@@ -160,17 +160,17 @@ template <class TYPEPtr>
 void pArrayT<TYPEPtr>::Dimension(int length)
 {
 	/* reallocate if needed */
-	if (fLength != length)
+	if (this->fLength != length)
 	{
 		/* free existing array */
-		if (fLength > 0) DeleteAll();
+		if (this->fLength > 0) DeleteAll();
 
 		/* allocate to new size */
 		ArrayT<TYPEPtr>::Dimension(length);
 
 		/* NULL all pointers */
-		for (int i = 0; i < fLength; i++)
-			fArray[i] = NULL;
+		for (int i = 0; i < this->fLength; i++)
+			this->fArray[i] = NULL;
 	}
 }
 
@@ -180,8 +180,8 @@ template <class TYPEPtr>
 void pArrayT<TYPEPtr>::Resize(int new_length)
 {
 	/* array is shrinking - free excess */
-	for (int i = fLength; i > new_length; i--)
-		delete fArray[i-1];
+	for (int i = this->fLength; i > new_length; i--)
+		delete this->fArray[i-1];
 
 	/* inherited */
 	ArrayT<TYPEPtr>::Resize(new_length, NULL);
@@ -224,10 +224,10 @@ inline ProxyTYPEPtr<TYPEPtr> pArrayT<TYPEPtr>::operator[](int index) const
 template <class TYPEPtr>
 void pArrayT<TYPEPtr>::DeleteAll(void)
 {
-	for (int i = 0; i < fLength; i++)
+	for (int i = 0; i < this->fLength; i++)
 	{
-		delete fArray[i];
-		fArray[i] = NULL;
+		delete this->fArray[i];
+		this->fArray[i] = NULL;
 	}
 }
 

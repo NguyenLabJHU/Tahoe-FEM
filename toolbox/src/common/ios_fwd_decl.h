@@ -1,4 +1,4 @@
-/* $Id: ios_fwd_decl.h,v 1.10 2004-11-12 20:58:32 paklein Exp $ */
+/* $Id: ios_fwd_decl.h,v 1.11 2005-04-30 21:14:46 paklein Exp $ */
 /* created: paklein (08/11/1999) */
 /* Include this header instead of writing forward declarations */
 /* explicitly. Some compilers do not allow forward declarations */
@@ -24,7 +24,7 @@ using namespace std; // can put this here now that namespace std is added
 #include <iostream.h>
 #elif defined(__DEC__) && defined (__USE_STD_IOSTREAM)
 #include <iosfwd>
-#elif defined(__GCC_3__)
+#elif defined(__GCC_3__) || defined(__GCC_4__)
 #include <iosfwd>
 #elif defined(__INTEL_CC__)
 #include <iosfwd>

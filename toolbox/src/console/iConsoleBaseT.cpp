@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.cpp,v 1.18 2004-07-19 20:32:11 paklein Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.19 2005-04-30 21:14:51 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 #include "iConsoleBaseT.h"
 #include "CommandSpecT.h"
@@ -6,7 +6,7 @@
 
 #ifdef _MSC_VER
 #include <strstrea.h>
-#elif defined (__GCC_3__)
+#elif defined (__GCC_3__) || defined (__GCC_4__)
 #include <strstream>
 #else
 #include <strstream.h>

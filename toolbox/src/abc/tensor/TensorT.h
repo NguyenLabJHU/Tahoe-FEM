@@ -1,13 +1,5 @@
-/*
- * File: TensorT.h 
- *
- */
-
-/*
- * created      : PAK (05/19/97)
- * last modified: PAK (07/03/98)
- */
-
+/* $Id: TensorT.h,v 1.4 2005-04-30 21:14:36 paklein Exp $ */
+/* created paklein (05/19/97) */
 #ifndef _TENSORBASET_H_
 #define _TENSORBASET_H_
 
@@ -165,17 +157,17 @@ void TensorT<MATHTYPE>::PrintTensor(ostream& out) const
 	iArrayT dex( Rank() );
 	dex = 0;
 
-	MATHTYPE* pD = fData;
-	for (int i = 0; i < fTotalSize; i++)
+	MATHTYPE* pD = this->fData;
+	for (int i = 0; i < this->fTotalSize; i++)
 	{
 		/* print indices */
-		for (int j = 0; j < fRank; j++)
+		for (int j = 0; j < this->fRank; j++)
 			out << setw(kIntWidth) << dex[j];
 		out << *pD++ << '\n';
 
 		/* increment indices */
-		dex[fRank-1]++;
-		for (int j = fRank-1; j > 0; j--)
+		dex[this->fRank-1]++;
+		for (int j = this->fRank-1; j > 0; j--)
 			if (dex[j] == fDim[j])
 			{
 				dex[j] = 0;
