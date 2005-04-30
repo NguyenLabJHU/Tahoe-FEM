@@ -1,4 +1,4 @@
-/* $Id: Tensor3DT.h,v 1.6 2003-11-21 22:41:41 paklein Exp $ */
+/* $Id: Tensor3DT.h,v 1.7 2005-04-30 21:14:36 paklein Exp $ */
 /* created PAK (05/23/97) */
 
 #ifndef _TENSOR3D_H_
@@ -125,16 +125,16 @@ void Tensor3DT<MATHTYPE>::Dimension(int dim0, int dim1, int dim2)
 	TensorT<MATHTYPE>::Dimension(dim0*dim1*dim2, 3);
 
 	/* dimensions */
-	fDim[0] = dim0;
-	fDim[1] = dim1;
-	fDim[2] = dim2;
+	this->fDim[0] = dim0;
+	this->fDim[1] = dim1;
+	this->fDim[2] = dim2;
 
 	/* sanity check */
-	if ( fDim.Min() < 1 ) throw ExceptionT::kOutOfRange;
+	if ( this->fDim.Min() < 1 ) throw ExceptionT::kOutOfRange;
 
 	/* offsets */
-	fOffset0 = fDim[1]*fDim[2];
-	fOffset1 = fDim[2];
+	fOffset0 = this->fDim[1]*this->fDim[2];
+	fOffset1 = this->fDim[2];
 }
 
 /*
@@ -169,7 +169,7 @@ inline MATHTYPE& Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1, int dim2)
 	    dim2 < 0 || dim2 >= fDim[2]) throw ExceptionT::kOutOfRange;
 #endif
 
-	return (fArray[dim0*fOffset0 + dim1*fOffset1 + dim2]);
+	return (this->fArray[dim0*fOffset0 + dim1*fOffset1 + dim2]);
 }
 template <class MATHTYPE>
 inline const MATHTYPE& Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1, int dim2) const
@@ -181,7 +181,7 @@ inline const MATHTYPE& Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1, int d
 	    dim2 < 0 || dim2 >= fDim[2]) throw ExceptionT::kOutOfRange;
 #endif
 
-	return (fArray[dim0*fOffset0 + dim1*fOffset1 + dim2]);
+	return (this->fArray[dim0*fOffset0 + dim1*fOffset1 + dim2]);
 }
 
 template <class MATHTYPE>
@@ -193,7 +193,7 @@ inline MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1)
 	    dim1 < 0 || dim1 >= fDim[1]) throw ExceptionT::kOutOfRange;
 #endif
 
-	return (fArray + dim0*fOffset0 + dim1*fOffset1);
+	return (this->fArray + dim0*fOffset0 + dim1*fOffset1);
 }
 template <class MATHTYPE>
 inline const MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1) const
@@ -204,7 +204,7 @@ inline const MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1) const
 	    dim1 < 0 || dim1 >= fDim[1]) throw ExceptionT::kOutOfRange;
 #endif
 
-	return (fArray + dim0*fOffset0 + dim1*fOffset1);
+	return (this->fArray + dim0*fOffset0 + dim1*fOffset1);
 }
 
 template <class MATHTYPE>
@@ -215,7 +215,7 @@ inline MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0)
 	if (dim0 < 0 || dim0 >= fDim[0]) throw ExceptionT::kOutOfRange;
 #endif
 
-	return (fArray + dim0*fOffset0);
+	return (this->fArray + dim0*fOffset0);
 }
 template <class MATHTYPE>
 inline const MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0) const
@@ -225,7 +225,7 @@ inline const MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0) const
 	if (dim0 < 0 || dim0 >= fDim[0]) throw ExceptionT::kOutOfRange;
 #endif
 
-	return (fArray + dim0*fOffset0);
+	return (this->fArray + dim0*fOffset0);
 }
 
 /*
@@ -322,7 +322,7 @@ void Tensor3DT<MATHTYPE>::Fast1Contract3D2D(const Tensor3DT& t3,
 	int t3jinc = t3.fOffset1;
 	
 	/* first ptr's */
-	MATHTYPE* pData = Pointer();
+	MATHTYPE* pData = this->Pointer();
 	MATHTYPE* pt2   = t2.Pointer();
 	MATHTYPE* pt3   = t3.Pointer();
 	
@@ -331,15 +331,15 @@ void Tensor3DT<MATHTYPE>::Fast1Contract3D2D(const Tensor3DT& t3,
 	register MATHTYPE sum;
 	register MATHTYPE temp;
 
-	for (int i = 0; i < fDim[0]; i++)
+	for (int i = 0; i < this->fDim[0]; i++)
 	{
 		MATHTYPE* pt3j = pt3;
 	
-		for (int j = 0; j < fDim[1]; j++)
+		for (int j = 0; j < this->fDim[1]; j++)
 		{
 			MATHTYPE* pt2k = pt2;
 		
-			for (int k = 0; k < fDim[2]; k++)
+			for (int k = 0; k < this->fDim[2]; k++)
 			{
 				sum = 0.0;
 			
@@ -406,7 +406,7 @@ void Tensor3DT<MATHTYPE>::Gen1Contract3D2D(const Tensor3DT& t3, int t3dex,
 	}
 			
 	/* first ptr's */
-	MATHTYPE* pData = Pointer();
+	MATHTYPE* pData = this->Pointer();
 	MATHTYPE* pt3   = t3.Pointer();
 	MATHTYPE* pt2   = t2.Pointer();
 		
@@ -415,15 +415,15 @@ void Tensor3DT<MATHTYPE>::Gen1Contract3D2D(const Tensor3DT& t3, int t3dex,
 	register MATHTYPE sum;
 	register MATHTYPE temp;
 	
-	for (int i = 0; i < fDim[0]; i++)
+	for (int i = 0; i < this->fDim[0]; i++)
 	{
 		MATHTYPE* pt3j = pt3;
 	
-		for (int j = 0; j < fDim[1]; j++)
+		for (int j = 0; j < this->fDim[1]; j++)
 		{
 			MATHTYPE* pt2k = pt2;
 		
-			for (int k = 0; k < fDim[2]; k++)
+			for (int k = 0; k < this->fDim[2]; k++)
 			{
 				sum = 0.0;
 			
@@ -472,20 +472,20 @@ void Tensor3DT<MATHTYPE>::Fast1Contract3D1D(const nArrayT<MATHTYPE>& t1,
 	
 	/* first ptr's */
 	MATHTYPE* pt2 = t2.Pointer();
-	MATHTYPE* pt3 = Pointer();
+	MATHTYPE* pt3 = this->Pointer();
 	MATHTYPE* pt1 = t1.Pointer();
 	
-	int dotrange = fDim[2];
+	int dotrange = this->fDim[2];
 	
 	register MATHTYPE sum;
 	register MATHTYPE temp;
 	
-	for (int i = 0; i < fDim[0]; i++)
+	for (int i = 0; i < this->fDim[0]; i++)
 	{
 		MATHTYPE* pt3j  = pt3;
 		MATHTYPE* pData = pt2;
 	
-		for (int j = 0; j < fDim[1]; j++)
+		for (int j = 0; j < this->fDim[1]; j++)
 		{		
 			sum = 0.0;
 							
@@ -545,10 +545,10 @@ void Tensor3DT<MATHTYPE>::Gen1Contract3D1D(int t3dex,
 			
 	/* first ptr's */
 	MATHTYPE* pt2   = t2.Pointer();
-	MATHTYPE* pt3   = Pointer();
+	MATHTYPE* pt3   = this->Pointer();
 	MATHTYPE* pt1   = t1.Pointer();
 		
-	int dotrange = fDim[t3dex];
+	int dotrange = this->fDim[t3dex];
 
 	register MATHTYPE sum;
 	register MATHTYPE temp;

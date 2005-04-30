@@ -1,4 +1,4 @@
-/* $Id: RowAutoFill2DT.h,v 1.7 2003-11-21 22:41:39 paklein Exp $ */
+/* $Id: RowAutoFill2DT.h,v 1.8 2005-04-30 21:14:31 paklein Exp $ */
 
 #ifndef _ROW_AUTO_ARRAY2D_T_H_
 #define _ROW_AUTO_ARRAY2D_T_H_
@@ -268,7 +268,7 @@ inline void RowAutoFill2DT<TYPE>::Reset(int major_dim)
 	if (major_dim < 0 || major_dim >= fRowData.Length()) throw ExceptionT::kOutOfRange;
 #endif
 
-	fLogicalSize[majordim] = 0;
+	fLogicalSize[major_dim] = 0;
 }
 
 /* adding values to rows */

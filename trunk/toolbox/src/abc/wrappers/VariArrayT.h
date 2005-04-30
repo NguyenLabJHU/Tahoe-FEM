@@ -1,4 +1,4 @@
-/* $Id: VariArrayT.h,v 1.4 2003-01-27 06:42:46 paklein Exp $ */
+/* $Id: VariArrayT.h,v 1.5 2005-04-30 21:14:41 paklein Exp $ */
 /* created: paklein (04/18/1998) */
 #ifndef _VARI_ARRAY_T_H_
 #define _VARI_ARRAY_T_H_
@@ -67,7 +67,7 @@ VariArrayT<TYPE>::VariArrayT(int headroom, ArrayT<TYPE>& ward):
 template <class TYPE>
 void VariArrayT<TYPE>::SetWard(int headroom, ArrayT<TYPE>& ward)
 {
-	SetHeadRoom(headroom);
+	this->SetHeadRoom(headroom);
 
 	/* can only be called once */
 	if (!fWard)

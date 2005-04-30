@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.23 2005-02-01 16:53:13 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.24 2005-04-30 21:14:21 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #ifndef _NARRAY2D_T_H_
 #define _NARRAY2D_T_H_
@@ -373,7 +373,7 @@ inline nTYPE& nArray2DT<nTYPE>::operator()(int majordim, int minordim)
 				minordim, fMinorDim-1);
 		}
 #endif
-	return fArray[majordim*fMinorDim + minordim];
+	return this->fArray[majordim*fMinorDim + minordim];
 }
 template <class nTYPE>
 inline const nTYPE& nArray2DT<nTYPE>::operator()(int majordim, int minordim) const
@@ -388,7 +388,7 @@ inline const nTYPE& nArray2DT<nTYPE>::operator()(int majordim, int minordim) con
 				minordim, fMinorDim-1);
 		}
 #endif
-	return fArray[majordim*fMinorDim + minordim];
+	return this->fArray[majordim*fMinorDim + minordim];
 }
 
 template <class nTYPE>
@@ -401,7 +401,7 @@ inline nTYPE* nArray2DT<nTYPE>::operator()(int majordim)
 			"majordim ! (0 <= %d <= %d)", majordim, fMajorDim-1);
 	}
 #endif
-	return fArray + majordim*fMinorDim;
+	return this->fArray + majordim*fMinorDim;
 }
 template <class nTYPE>
 inline const nTYPE* nArray2DT<nTYPE>::operator()(int majordim) const
@@ -413,7 +413,7 @@ inline const nTYPE* nArray2DT<nTYPE>::operator()(int majordim) const
 			"majordim ! (0 <= %d <= %d)", majordim, fMajorDim-1);
 	}
 #endif
-	return fArray + majordim*fMinorDim;
+	return this->fArray + majordim*fMinorDim;
 }
 
 /*
@@ -465,7 +465,7 @@ template <class nTYPE>
 void nArray2DT<nTYPE>::Transpose(const nArray2DT<nTYPE>& source)
 {
 	/* called with data belonging to this*/
-	if (source.Pointer() == Pointer()) 
+	if (source.Pointer() == this->Pointer()) 
 	{
 		nArray2DT<nTYPE> temp = source;
 		Transpose(temp);
@@ -478,7 +478,7 @@ void nArray2DT<nTYPE>::Transpose(const nArray2DT<nTYPE>& source)
 		const nTYPE* psrc = source.Pointer();	
 		for (int i = 0; i < fMinorDim; i++)
 		{
-			nTYPE* pthis = Pointer() + i;
+			nTYPE* pthis = this->Pointer() + i;
 			for (int j = 0; j < fMajorDim; j++)
 			{
 				*pthis = *psrc++;
@@ -569,7 +569,7 @@ void nArray2DT<nTYPE>::ColumnCopy(int col, const nArray2DT<nTYPE>& a, int col_a)
 
 	if (fMajorDim > 0) {
 		int a_dim = a.MinorDim();
-		nTYPE* pthis = Pointer(col);
+		nTYPE* pthis = this->Pointer(col);
 		const nTYPE* pthat = a.Pointer(col_a);
 		for (int i = 0; i < fMajorDim; i++) {
 			*pthis = *pthat;
@@ -742,7 +742,7 @@ nTYPE nArray2DT<nTYPE>::DotColumn(int col, const nArrayT<nTYPE>& array) const
 		return 0.0;
 	else
 	{
-		const nTYPE *p = Pointer(col);
+		const nTYPE *p = this->Pointer(col);
 		const nTYPE *parray = array.Pointer();
 		register nTYPE sum = 0.0;
 		register nTYPE temp;
@@ -948,7 +948,7 @@ void nArray2DT<nTYPE>::AddToRowsScaled(const nTYPE& scale,
 		const nTYPE* parray = array.Pointer();
 		for (int j = 0; j < fMinorDim; j++)
 		{
-			nTYPE* pcol = Pointer(j);
+			nTYPE* pcol = this->Pointer(j);
 			for (int i = 0; i < fMajorDim; i++)
 			{
 				temp  = *parray;
@@ -963,7 +963,7 @@ void nArray2DT<nTYPE>::AddToRowsScaled(const nTYPE& scale,
 	else
 	{
 		nTYPE  temp;
-		nTYPE* p = Pointer();
+		nTYPE* p = this->Pointer();
 		for (int i = 0; i < fMajorDim; i++)
 		{
 			const nTYPE* parray = array.Pointer();
@@ -996,7 +996,7 @@ void nArray2DT<nTYPE>::AddToColumnScaled(int col, const nTYPE& scale, const nTYP
 	if (fMajorDim > 0) {
 		nTYPE temp;
 		const nTYPE* parray = array;	
-		nTYPE* pcol = Pointer(col);
+		nTYPE* pcol = this->Pointer(col);
 		for (int i = 0; i < fMajorDim; i++) {
 			temp = *parray++;
 			temp *= scale;
@@ -1060,7 +1060,7 @@ void nArray2DT<nTYPE>::ReadNumbered(istream& in)
 template <class nTYPE>
 void nArray2DT<nTYPE>::WriteNumbered(ostream& out) const
 {
-	const nTYPE *p = Pointer();
+	const nTYPE *p = this->Pointer();
 	int width = OutputWidth(out, p);
 	for (int i = 0; i < fMajorDim; i++)
 	{

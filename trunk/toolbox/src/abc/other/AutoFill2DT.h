@@ -1,4 +1,4 @@
-/* $Id: AutoFill2DT.h,v 1.15 2005-04-16 01:56:57 paklein Exp $ */
+/* $Id: AutoFill2DT.h,v 1.16 2005-04-30 21:14:31 paklein Exp $ */
 /* created: paklein (01/19/1999) */
 #ifndef _AUTO_ARRAY2D_T_H_
 #define _AUTO_ARRAY2D_T_H_
@@ -47,7 +47,7 @@ public:
 	int LogicalSize(void) const; // size of data (<= total memory allocation)
 	int MinorDimCount(int dim) const; // returns number of rows with the specified size
 	
-	int NumChunks(void) const { return fChunkSize.Length(); };
+	int NumChunks(void) const { return fChunks.Length(); };
 	/*@}*/
 
 	/** re-sizing */

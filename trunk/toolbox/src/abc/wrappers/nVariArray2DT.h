@@ -1,4 +1,4 @@
-/* $Id: nVariArray2DT.h,v 1.10 2004-05-12 17:21:01 paklein Exp $ */
+/* $Id: nVariArray2DT.h,v 1.11 2005-04-30 21:14:41 paklein Exp $ */
 /* created: paklein (04/18/1998) */
 #ifndef _N_VARI_ARRAY2D_T_H_
 #define _N_VARI_ARRAY2D_T_H_
@@ -101,7 +101,7 @@ void nVariArray2DT<nTYPE>::SetWard(int headroom, nArray2DT<nTYPE>& ward,
 	const char caller[] = "nVariArray2DT<nTYPE>::SetWard";
 	
 	/* inherited */
-	SetHeadRoom(headroom);
+	this->SetHeadRoom(headroom);
 
 	/* can only be called once */
 	if (!fWard)

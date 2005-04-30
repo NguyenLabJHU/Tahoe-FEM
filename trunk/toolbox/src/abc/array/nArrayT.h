@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.27 2004-12-27 06:08:50 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.28 2005-04-30 21:14:21 paklein Exp $ */
 /* created: paklein (05/23/1997) */
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
@@ -330,27 +330,27 @@ inline nArrayT<nTYPE>::nArrayT(const nArrayT& source):
 template <class nTYPE>
 void nArrayT<nTYPE>::WriteNoWrap(ostream& out) const
 {
-	const nTYPE* p = Pointer();
+	const nTYPE* p = this->Pointer();
 	int width = OutputWidth(out, p);
-	for (int i = 0; i < Length(); i++)
+	for (int i = 0; i < this->Length(); i++)
 		out << setw(width) << p[i];
 }
 
 template <class nTYPE>
 void nArrayT<nTYPE>::WriteNoWrapTight(ostream& out) const
 {
-	const nTYPE* p = Pointer();
-	for (int i = 0; i < Length(); i++)
+	const nTYPE* p = this->Pointer();
+	for (int i = 0; i < this->Length(); i++)
 		out << " " << p[i];
 }
 
 template <class nTYPE>
 void nArrayT<nTYPE>::WriteWrapped(ostream& out, int linecount, int tab) const
 {
-	const nTYPE*  p = Pointer();
+	const nTYPE*  p = this->Pointer();
 	int width = OutputWidth(out, p);
 	int count = 0;
-	for (int i = 0; i < Length(); i++)
+	for (int i = 0; i < this->Length(); i++)
 	{
 		/* wrap */
 		if (count == linecount)
@@ -370,10 +370,10 @@ void nArrayT<nTYPE>::WriteWrapped(ostream& out, int linecount, int tab) const
 template <class nTYPE>
 void nArrayT<nTYPE>::WriteWrappedTight(ostream& out, int linecount) const
 {
-	const nTYPE*  p = Pointer();
+	const nTYPE*  p = this->Pointer();
 //	int width = OutputWidth(out, p);
 	int count = 0;
-	for (int i = 0; i < Length(); i++)
+	for (int i = 0; i < this->Length(); i++)
 	{
 		/* wrap */
 		if (count == linecount)
@@ -407,7 +407,7 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator=(const nTYPE* pRHS)
 #endif
 
 	/* no copies to self */
-	if (pRHS != Pointer()) MemCopy(Pointer(), pRHS, Length());
+	if (pRHS != this->Pointer()) MemCopy(this->Pointer(), pRHS, this->Length());
 
 	return *this;	
 }
@@ -425,7 +425,7 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator+=(const nArrayT& RHS)
 {
 #if __option (extended_errorcheck)
 	/* dimension checks */
-	if (fLength != RHS.fLength) ExceptionT::SizeMismatch("nArrayT<nTYPE>::operator+=");
+	if (this->fLength != RHS.fLength) ExceptionT::SizeMismatch("nArrayT<nTYPE>::operator+=");
 #endif
 	return operator+=(RHS.Pointer());
 }
@@ -433,8 +433,8 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator+=(const nArrayT& RHS)
 template <class nTYPE>
 inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator+=(const nTYPE* pRHS)
 {
-	nTYPE* pthis = Pointer();
-	for (int i = 0; i < fLength; i++)
+	nTYPE* pthis = this->Pointer();
+	for (int i = 0; i < this->fLength; i++)
 		*pthis++ += *pRHS++;
 		
 	return *this ;
@@ -443,8 +443,8 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator+=(const nTYPE* pRHS)
 template <class nTYPE>
 inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator+=(const nTYPE& value)
 {
-	nTYPE* pA = Pointer();
-	for (int i = 0; i < fLength; i++)
+	nTYPE* pA = this->Pointer();
+	for (int i = 0; i < this->fLength; i++)
 		*pA++ += value;
 		
 	return *this;	
@@ -455,7 +455,7 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator-=(const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != RHS.fLength) ExceptionT::SizeMismatch("nArrayT<nTYPE>::operator-=");
+	if (this->fLength != RHS.fLength) ExceptionT::SizeMismatch("nArrayT<nTYPE>::operator-=");
 #endif
 	return operator-=(RHS.Pointer());
 }
@@ -463,8 +463,8 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator-=(const nArrayT& RHS)
 template <class nTYPE>
 inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator-=(const nTYPE* pRHS)
 {
-	nTYPE* pthis = Pointer();
-	for (int i = 0; i < fLength; i++)
+	nTYPE* pthis = this->Pointer();
+	for (int i = 0; i < this->fLength; i++)
 		*pthis++ -= *pRHS++;
 		
 	return *this;
@@ -473,8 +473,8 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator-=(const nTYPE* pRHS)
 template <class nTYPE>
 inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator-=(const nTYPE& value)
 {
-	nTYPE* pA = Pointer();
-	for (int i = 0; i < fLength; i++)
+	nTYPE* pA = this->Pointer();
+	for (int i = 0; i < this->fLength; i++)
 		*pA++ -= value;
 		
 	return *this;	
@@ -485,12 +485,12 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator*=(const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != RHS.fLength) ExceptionT::SizeMismatch("nArrayT<nTYPE>::operator*=");
+	if (this->fLength != RHS.fLength) ExceptionT::SizeMismatch("nArrayT<nTYPE>::operator*=");
 #endif
 
-	nTYPE* pthis = Pointer();
+	nTYPE* pthis = this->Pointer();
 	const nTYPE* pRHS  = RHS.Pointer();
-	for (int i = 0; i < fLength; i++)
+	for (int i = 0; i < this->fLength; i++)
 		*pthis++ *= *pRHS++;
 		
 	return *this;
@@ -499,8 +499,8 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator*=(const nArrayT& RHS)
 template <class nTYPE>
 inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator*=(const nTYPE& value)
 {
-	nTYPE* pA = Pointer();
-	for (int i = 0; i < fLength; i++)
+	nTYPE* pA = this->Pointer();
+	for (int i = 0; i < this->fLength; i++)
 		*pA++ *= value;
 		
 	return *this;	
@@ -511,12 +511,12 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator/=(const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != RHS.fLength) ExceptionT::SizeMismatch("nArrayT<nTYPE>::operator/=");
+	if (this->fLength != RHS.fLength) ExceptionT::SizeMismatch("nArrayT<nTYPE>::operator/=");
 #endif
 
-	nTYPE* pthis = Pointer();
+	nTYPE* pthis = this->Pointer();
 	const nTYPE* pRHS  = RHS.Pointer();
-	for (int i = 0; i < fLength; i++)
+	for (int i = 0; i < this->fLength; i++)
 		*pthis++ /= *pRHS++;
 		
 	return *this;
@@ -525,8 +525,8 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator/=(const nArrayT& RHS)
 template <class nTYPE>
 inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator/=(const nTYPE& value)
 {
-	nTYPE* pA = Pointer();
-	for (int i = 0; i < fLength; i++)
+	nTYPE* pA = this->Pointer();
+	for (int i = 0; i < this->fLength; i++)
 		*pA++ /= value;
 		
 	return *this;	
@@ -536,8 +536,8 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator/=(const nTYPE& value)
 template <class nTYPE>
 inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator++(int)
 {
-	nTYPE* pA = Pointer();
-	for (int i = 0; i < fLength; i++)
+	nTYPE* pA = this->Pointer();
+	for (int i = 0; i < this->fLength; i++)
 	{
 		(*pA)++;
 		pA++;
@@ -548,8 +548,8 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator++(int)
 template <class nTYPE>
 inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator--(int)
 {
-	nTYPE* pA = Pointer();
-	for (int i = 0; i < fLength; i++)
+	nTYPE* pA = this->Pointer();
+	for (int i = 0; i < this->fLength; i++)
 	{
 		(*pA)--;
 		pA++;
@@ -562,8 +562,8 @@ template <class nTYPE>
 inline nTYPE nArrayT<nTYPE>::Sum(void) const
 {
 	register nTYPE sum = nTYPE(0.0);
-	const nTYPE* p = Pointer();
-	for (int i = 0; i < fLength; i++)
+	const nTYPE* p = this->Pointer();
+	for (int i = 0; i < this->fLength; i++)
 		sum += *p++;
 	return sum;
 }
@@ -572,8 +572,8 @@ template <class nTYPE>
 inline nTYPE nArrayT<nTYPE>::AbsSum(void) const
 {
 	register nTYPE sum = nTYPE(0.0);
-	const nTYPE* p = Pointer();
-	for (int i = 0; i < fLength; i++)
+	const nTYPE* p = this->Pointer();
+	for (int i = 0; i < this->fLength; i++)
 		sum += fabs(*p++);
 	return sum;
 }
@@ -581,15 +581,15 @@ inline nTYPE nArrayT<nTYPE>::AbsSum(void) const
 template <class nTYPE>
 inline nTYPE nArrayT<nTYPE>::Average(void) const
 {
-	return Sum()/fLength;
+	return Sum()/this->fLength;
 }
 
 template <class nTYPE>
 inline nTYPE nArrayT<nTYPE>::Product(void) const
 {
 	register nTYPE product = nTYPE(1.0);
-	const nTYPE* p = Pointer();
-	for (int i = 0; i < fLength; i++)
+	const nTYPE* p = this->Pointer();
+	for (int i = 0; i < this->fLength; i++)
 		product *= *p++;
 	return product;
 }
@@ -602,9 +602,9 @@ nTYPE nArrayT<nTYPE>::Max(void) const
 	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
-	const nTYPE* pthis = Pointer();
+	const nTYPE* pthis = this->Pointer();
 	nTYPE max = *pthis++;
-	for (int i = 1; i < Length(); i++)
+	for (int i = 1; i < this->Length(); i++)
 	{
 		if (*pthis > max) max = *pthis;
 		pthis++;
@@ -620,10 +620,10 @@ nTYPE nArrayT<nTYPE>::Max(int& position) const
 	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
-	const nTYPE* pthis = Pointer();
+	const nTYPE* pthis = this->Pointer();
 	nTYPE max = *pthis++;
 	position = 0;
-	for (int i = 1; i < Length(); i++)
+	for (int i = 1; i < this->Length(); i++)
 	{
 		if (*pthis > max)
 		{
@@ -643,9 +643,9 @@ nTYPE nArrayT<nTYPE>::Min(void) const
 	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
-	const nTYPE* pthis = Pointer();
+	const nTYPE* pthis = this->Pointer();
 	nTYPE min = *pthis++;
-	for (int i = 1; i < Length(); i++)
+	for (int i = 1; i < this->Length(); i++)
 	{
 		if (*pthis < min) min = *pthis;
 		pthis++;
@@ -661,10 +661,10 @@ nTYPE nArrayT<nTYPE>::Min(int& position) const
 	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
-	const nTYPE* pthis = Pointer();
+	const nTYPE* pthis = this->Pointer();
 	nTYPE  min   = *pthis++;
 	position = 0;
-	for (int i = 1; i < Length(); i++)
+	for (int i = 1; i < this->Length(); i++)
 	{
 		if (*pthis < min)
 		{
@@ -684,9 +684,9 @@ nTYPE nArrayT<nTYPE>::AbsMax(void) const
 	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
-	const nTYPE* pthis = Pointer();
+	const nTYPE* pthis = this->Pointer();
 	nTYPE abs, max = fabs(*pthis++);
-	for (int i = 1; i < Length(); i++)
+	for (int i = 1; i < this->Length(); i++)
 	{
 		abs = fabs(*pthis++);
 		if (abs > max) max = abs;
@@ -702,9 +702,9 @@ nTYPE nArrayT<nTYPE>::AbsMin(void) const
 	if (!fArray) ExceptionT::GeneralFail();
 #endif
 
-	const nTYPE* pthis = Pointer();
+	const nTYPE* pthis = this->Pointer();
 	nTYPE abs, min = fabs(*pthis++);
-	for (int i = 1; i < Length(); i++)
+	for (int i = 1; i < this->Length(); i++)
 	{
 		abs = fabs(*pthis++);
 		if (abs < min) min = abs;
@@ -724,10 +724,10 @@ void nArrayT<nTYPE>::MinMax(nTYPE& min, nTYPE& max,
 	/* ignore negative numbers */
 	if (positive_only)
 	{
-		const nTYPE* pthis = Pointer();
+		const nTYPE* pthis = this->Pointer();
 		max = 0;
 		min = *pthis++;
-		for (int i = 1; i < Length(); i++)
+		for (int i = 1; i < this->Length(); i++)
 		{
 			/* try to keep positive */
 			if (min < 0) min = *pthis;
@@ -745,10 +745,10 @@ void nArrayT<nTYPE>::MinMax(nTYPE& min, nTYPE& max,
 	}
 	else
 	{
-		const nTYPE* pthis = Pointer();
+		const nTYPE* pthis = this->Pointer();
 		min = *pthis++;
 		max = min;
-		for (int i = 1; i < Length(); i++)
+		for (int i = 1; i < this->Length(); i++)
 		{
 			if (*pthis < min)
 				min = *pthis;
@@ -768,9 +768,9 @@ void nArrayT<nTYPE>::AbsMinMax(nTYPE& absmin, nTYPE& absmax) const
 #endif
 
 	nTYPE abs;
-	const nTYPE* pthis = Pointer();
+	const nTYPE* pthis = this->Pointer();
 	absmax = absmin = fabs(*pthis++);
-	for (int i = 1; i < Length(); i++)
+	for (int i = 1; i < this->Length(); i++)
 	{
 		abs = fabs(*pthis++);
 
@@ -785,8 +785,8 @@ void nArrayT<nTYPE>::AbsMinMax(nTYPE& absmin, nTYPE& absmax) const
 template <class nTYPE>
 void nArrayT<nTYPE>::Chop(double tolerance)
 {
-	nTYPE* pthis = Pointer();
-	for (int i = 0; i < fLength; i++)
+	nTYPE* pthis = this->Pointer();
+	for (int i = 0; i < this->fLength; i++)
 	{
 		if (fabs(*pthis) < tolerance)
 			*pthis = 0;
@@ -799,8 +799,8 @@ void nArrayT<nTYPE>::Chop(double tolerance)
 template <class nTYPE>
 void nArrayT<nTYPE>::SetValueToPosition(void)
 {
-	nTYPE* p = Pointer();
-	for (int i = 0; i < Length(); i++)
+	nTYPE* p = this->Pointer();
+	for (int i = 0; i < this->Length(); i++)
 		*p++ = nTYPE(i);
 }
 
@@ -808,8 +808,8 @@ void nArrayT<nTYPE>::SetValueToPosition(void)
 template <class nTYPE>
 void nArrayT<nTYPE>::SortAscending(void)
 {
-	nTYPE* list = Pointer();
-	int N = Length();
+	nTYPE* list = this->Pointer();
+	int N = this->Length();
 
 	int l, r, j, i, flag;
 	nTYPE RR, K;
@@ -862,18 +862,6 @@ void nArrayT<nTYPE>::SortAscending(void)
 	}
 
 	list[0] = RR;
-}
-
-/* sort this and map, by values in keys */
-template <class nTYPE>
-inline void nArrayT<nTYPE>::SortAscending(ArrayT<int>& keys)
-{
-	Tahoe::SortAscending(keys, *this);
-}
-template <class nTYPE>
-inline void nArrayT<nTYPE>::SortAscending(ArrayT<double>& keys)
-{
-	Tahoe::SortAscending(keys, *this);
 }
 
 /* AZTEC az_sort.c: sort both arrays by the values in the master array */
@@ -949,6 +937,18 @@ list[ 0] = RR;
 list2[0] = RR2;
 } /* AZ_sort */
 
+/* sort this and map, by values in keys */
+template <class nTYPE>
+inline void nArrayT<nTYPE>::SortAscending(ArrayT<int>& keys)
+{
+	Tahoe::SortAscending(keys, *this);
+}
+template <class nTYPE>
+inline void nArrayT<nTYPE>::SortAscending(ArrayT<double>& keys)
+{
+	Tahoe::SortAscending(keys, *this);
+}
+
 template <class nTYPE>
 void nArrayT<nTYPE>::SortDescending(void)
 {
@@ -959,8 +959,8 @@ void nArrayT<nTYPE>::SortDescending(void)
 	{
 		swaps = 0;
 		
-		nTYPE* p = Pointer();
-		for (int i = 1; i < fLength; i++)
+		nTYPE* p = this->Pointer();
+		for (int i = 1; i < this->fLength; i++)
 		{
 			if (*p < *(p+1))
 			{
@@ -1051,7 +1051,7 @@ inline void nArrayT<nTYPE>::SetToScaled(const nTYPE& scale, const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != RHS.fLength) ExceptionT::SizeMismatch();
+	if (this->fLength != RHS.fLength) ExceptionT::SizeMismatch();
 #endif
 	SetToScaled(scale, RHS.Pointer());
 }
@@ -1059,9 +1059,9 @@ inline void nArrayT<nTYPE>::SetToScaled(const nTYPE& scale, const nArrayT& RHS)
 template <class nTYPE>
 void nArrayT<nTYPE>::SetToScaled(const nTYPE& scale, const nTYPE* RHS)
 {
-	nTYPE* pthis = Pointer();
+	nTYPE* pthis = this->Pointer();
 	nTYPE temp;
-	for (int i = 0; i < fLength; i++)
+	for (int i = 0; i < this->fLength; i++)
 	{
 		temp  = scale;
 		temp *= *RHS++;	//multi-step needed incase pthis == RHS
@@ -1074,9 +1074,9 @@ inline void nArrayT<nTYPE>::SetToScaled(const nTYPE& scale, const nArrayT& RHS, 
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != RHS.fLength) ExceptionT::SizeMismatch();
+	if (this->fLength != RHS.fLength) ExceptionT::SizeMismatch();
 #endif
-	nTYPE* pthis = Pointer();
+	nTYPE* pthis = this->Pointer();
 	nTYPE temp;
 	const nTYPE* pRHS = RHS.Pointer();
 	
@@ -1097,13 +1097,13 @@ inline void nArrayT<nTYPE>::AddScaled(const nTYPE& scale, const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != RHS.fLength) ExceptionT::SizeMismatch();
+	if (this->fLength != RHS.fLength) ExceptionT::SizeMismatch();
 #endif
-	nTYPE* pthis = Pointer();
+	nTYPE* pthis = this->Pointer();
 	nTYPE temp;
 	const nTYPE* pRHS = RHS.Pointer();
 	
-	for (int i = 0; i < fLength; i++)
+	for (int i = 0; i < this->fLength; i++)
 	{
 		temp  = scale;
 		temp *= *pRHS++;
@@ -1114,9 +1114,9 @@ inline void nArrayT<nTYPE>::AddScaled(const nTYPE& scale, const nArrayT& RHS)
 template <class nTYPE>
 void nArrayT<nTYPE>::AddScaled(const nTYPE& scale, const nTYPE* RHS)
 {
-	nTYPE* pthis = Pointer();
+	nTYPE* pthis = this->Pointer();
 	nTYPE temp;
-	for (int i = 0; i < fLength; i++)
+	for (int i = 0; i < this->fLength; i++)
 	{
 		temp  = scale;
 		temp *= *RHS++;
@@ -1129,9 +1129,9 @@ void nArrayT<nTYPE>::AddScaled(const nTYPE& scale, const nArrayT& RHS, int istar
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != RHS.fLength) ExceptionT::SizeMismatch();
+	if (this->fLength != RHS.fLength) ExceptionT::SizeMismatch();
 #endif
-	nTYPE* pthis = Pointer();
+	nTYPE* pthis = this->Pointer();
 	nTYPE temp;
 	const nTYPE* pRHS = RHS.Pointer();
 	
@@ -1153,7 +1153,7 @@ inline void nArrayT<nTYPE>::SumOf(const nArrayT& A, const nArrayT& B)
 {
 #if __option (extended_errorcheck)
 	/* dimension checks */
-	if (fLength != A.fLength || fLength != B.fLength) ExceptionT::SizeMismatch();
+	if (this->fLength != A.fLength || this->fLength != B.fLength) ExceptionT::SizeMismatch();
 #endif
 
 	/* call pointer version */
@@ -1163,8 +1163,8 @@ inline void nArrayT<nTYPE>::SumOf(const nArrayT& A, const nArrayT& B)
 template <class nTYPE>
 inline void nArrayT<nTYPE>::SumOf(const nTYPE* pA, const nTYPE* pB)
 {
-	nTYPE* pthis = Pointer();
-	for (int i = 0; i < fLength; i++)
+	nTYPE* pthis = this->Pointer();
+	for (int i = 0; i < this->fLength; i++)
 	{
 		*pthis  = *pA++;
 		*pthis += *pB++;
@@ -1178,10 +1178,10 @@ inline void nArrayT<nTYPE>::SumOf(const nArrayT& A, const nArrayT& B, int istart
 {
 #if __option (extended_errorcheck)
 	/* dimension checks */
-	if (fLength != A.fLength || fLength != B.fLength) ExceptionT::SizeMismatch();
+	if (this->fLength != A.fLength || this->fLength != B.fLength) ExceptionT::SizeMismatch();
 #endif
 
-	nTYPE* pthis = Pointer();
+	nTYPE* pthis = this->Pointer();
 	const nTYPE* pA = A.Pointer();
 	const nTYPE* pB = B.Pointer();
 
@@ -1203,7 +1203,7 @@ inline void nArrayT<nTYPE>::DiffOf(const nArrayT& A, const nArrayT& B)
 {
 #if __option (extended_errorcheck)
 	/* dimension checks */
-	if (fLength != A.fLength || fLength != B.fLength) ExceptionT::SizeMismatch();
+	if (this->fLength != A.fLength || this->fLength != B.fLength) ExceptionT::SizeMismatch();
 #endif
 
 	/* call pointer version */
@@ -1213,8 +1213,8 @@ inline void nArrayT<nTYPE>::DiffOf(const nArrayT& A, const nArrayT& B)
 template <class nTYPE>
 void nArrayT<nTYPE>::DiffOf(const nTYPE* pA, const nTYPE* pB)
 {
-	nTYPE* pthis = Pointer();
-	for (int i = 0; i < fLength; i++)
+	nTYPE* pthis = this->Pointer();
+	for (int i = 0; i < this->fLength; i++)
 	{
 		*pthis  = *pA++;
 		*pthis -= *pB++;
@@ -1229,16 +1229,16 @@ void nArrayT<nTYPE>::SetToCombination(const nTYPE& a, const nArrayT& A,
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != A.fLength || fLength != B.fLength) ExceptionT::SizeMismatch();
+	if (this->fLength != A.fLength || this->fLength != B.fLength) ExceptionT::SizeMismatch();
 #endif
 
-	nTYPE* pthis = Pointer();
+	nTYPE* pthis = this->Pointer();
 	const nTYPE* pA = A.Pointer();
 	const nTYPE* pB = B.Pointer();
 
 	register nTYPE temp;
 	
-	for (int i = 0; i < fLength; i++)
+	for (int i = 0; i < this->fLength; i++)
 	{
 		temp  = a;
 		temp *= *pA++;
@@ -1258,19 +1258,19 @@ void nArrayT<nTYPE>::SetToCombination(
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != A.fLength ||
-	    fLength != B.fLength ||
-	    fLength != C.fLength) ExceptionT::SizeMismatch();
+	if (this->fLength != A.fLength ||
+	    this->fLength != B.fLength ||
+	    this->fLength != C.fLength) ExceptionT::SizeMismatch();
 #endif
 
-	nTYPE* pthis = Pointer();
+	nTYPE* pthis = this->Pointer();
 	const nTYPE* pA = A.Pointer();
 	const nTYPE* pB = B.Pointer();
 	const nTYPE* pC = C.Pointer();
 
 	register nTYPE temp;
 	
-	for (int i = 0; i < fLength; i++)
+	for (int i = 0; i < this->fLength; i++)
 	{
 		temp  = a;
 		temp *= *pA++;
@@ -1292,16 +1292,16 @@ void nArrayT<nTYPE>::AddCombination(const nTYPE& a, const nArrayT& A,
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != A.fLength || fLength != B.fLength) ExceptionT::SizeMismatch();
+	if (this->fLength != A.fLength || this->fLength != B.fLength) ExceptionT::SizeMismatch();
 #endif
 
-	nTYPE* pthis = Pointer();
+	nTYPE* pthis = this->Pointer();
 	const nTYPE* pA = A.Pointer();
 	const nTYPE* pB = B.Pointer();
 
 	register nTYPE temp;
 	
-	for (int i = 0; i < fLength; i++)
+	for (int i = 0; i < this->fLength; i++)
 	{
 		temp  = a;
 		temp *= *pA++;
@@ -1319,10 +1319,10 @@ void nArrayT<nTYPE>::AddCombination(const nTYPE& a, const nArrayT& A,
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != A.fLength || fLength != B.fLength) ExceptionT::SizeMismatch();
+	if (this->fLength != A.fLength || this->fLength != B.fLength) ExceptionT::SizeMismatch();
 #endif
 
-	nTYPE* pthis = Pointer();
+	nTYPE* pthis = this->Pointer();
 	const nTYPE* pA = A.Pointer();
 	const nTYPE* pB = B.Pointer();
 
@@ -1351,15 +1351,15 @@ void nArrayT<nTYPE>::AddCombination(const nTYPE& a, const nArrayT& A)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fLength != A.fLength) ExceptionT::SizeMismatch();
+	if (this->fLength != A.fLength) ExceptionT::SizeMismatch();
 #endif
 
-	nTYPE* pthis = Pointer();
+	nTYPE* pthis = this->Pointer();
 	const nTYPE* pA = A.Pointer();
 
 	register nTYPE temp;
 	
-	for (int i = 0; i < fLength; i++)
+	for (int i = 0; i < this->fLength; i++)
 	{
 		temp  = a;
 		temp *= *pA++;
@@ -1380,14 +1380,14 @@ void nArrayT<nTYPE>::AddCombination(const nArrayT& a,
 	for (int i = 0; i < a.Length(); i++)
 	{
 		/* check each term in sum */
-		if (fLength != A[i]->Length()) ExceptionT::SizeMismatch();
+		if (this->fLength != A[i]->Length()) ExceptionT::SizeMismatch();
 	
-		nTYPE* pthis = Pointer();
+		nTYPE* pthis = this->Pointer();
 		nTYPE* pA    = A[i]->Pointer();
 	
 		register nTYPE temp;
 		
-		for (int j = 0; j < fLength; j++)
+		for (int j = 0; j < this->fLength; j++)
 		{
 			temp  = a[i];
 			temp *= *pA++;
@@ -1403,8 +1403,8 @@ void nArrayT<nTYPE>::Random(int seed)
 	/* set random number seed */
 	srand(seed);
 
-	nTYPE* p = Pointer();
-	for (int i = 0; i < Length(); i++)
+	nTYPE* p = this->Pointer();
+	for (int i = 0; i < this->Length(); i++)
 		*p++ = nTYPE(rand() - RAND_MAX/2)/nTYPE(RAND_MAX);
 }
 
@@ -1417,9 +1417,9 @@ void nArrayT<nTYPE>::WriteWithFormat(ostream& out, int width, int prec,
 	out.precision(prec);
 	
 	int     count = 0;
-	const nTYPE* pthis = Pointer();
+	const nTYPE* pthis = this->Pointer();
 	
-	for (int i = 0; i < Length(); i++)
+	for (int i = 0; i < this->Length(); i++)
 	{
 		out << setw(width) << *pthis++;
 		

@@ -1,4 +1,4 @@
-/* $Id: Tensor4DT.h,v 1.7 2003-11-21 22:41:41 paklein Exp $ */
+/* $Id: Tensor4DT.h,v 1.8 2005-04-30 21:14:36 paklein Exp $ */
 /* created paklein (12/19/96) */
 #ifndef _TENSOR4D_T_H_
 #define _TENSOR4D_T_H_
@@ -84,18 +84,18 @@ void Tensor4DT<MATHTYPE>::Dimension(int dim0, int dim1, int dim2, int dim3)
 	TensorT<MATHTYPE>::Dimension(dim0*dim1*dim2*dim3, 4);
 
 	/* dimensions */
-	fDim[0] = dim0;
-	fDim[1] = dim1;
-	fDim[2] = dim2;
-	fDim[3] = dim3;
+	this->fDim[0] = dim0;
+	this->fDim[1] = dim1;
+	this->fDim[2] = dim2;
+	this->fDim[3] = dim3;
 
 	/* sanity check */
-	if (fDim.Min() < 1) throw ExceptionT::kGeneralFail;
+	if (this->fDim.Min() < 1) throw ExceptionT::kGeneralFail;
 
 	/* offsets */
-	fOffset0 = fDim[1]*fDim[2]*fDim[3];
-	fOffset1 = fDim[2]*fDim[3];
-	fOffset2 = fDim[3];
+	fOffset0 = this->fDim[1]*this->fDim[2]*this->fDim[3];
+	fOffset1 = this->fDim[2]*this->fDim[3];
+	fOffset2 = this->fDim[3];
 }
 
 template <class MATHTYPE>
@@ -104,13 +104,13 @@ inline MATHTYPE& Tensor4DT<MATHTYPE>::
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (dim0 < 0 || dim0 >= fDim[0] ||
-        dim1 < 0 || dim1 >= fDim[1] ||
-        dim2 < 0 || dim2 >= fDim[2] ||
-        dim3 < 0 || dim3 >= fDim[3]) throw ExceptionT::kGeneralFail;
+	if (dim0 < 0 || dim0 >= this->fDim[0] ||
+        dim1 < 0 || dim1 >= this->fDim[1] ||
+        dim2 < 0 || dim2 >= this->fDim[2] ||
+        dim3 < 0 || dim3 >= this->fDim[3]) throw ExceptionT::kGeneralFail;
 #endif
 
-	return (fArray[dim0*fOffset0 + dim1*fOffset1 + dim2*fOffset2 + dim3]);
+	return (this->fArray[dim0*fOffset0 + dim1*fOffset1 + dim2*fOffset2 + dim3]);
 }
 template <class MATHTYPE>
 inline const MATHTYPE& Tensor4DT<MATHTYPE>::
@@ -118,13 +118,13 @@ inline const MATHTYPE& Tensor4DT<MATHTYPE>::
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (dim0 < 0 || dim0 >= fDim[0] ||
-        dim1 < 0 || dim1 >= fDim[1] ||
-        dim2 < 0 || dim2 >= fDim[2] ||
-        dim3 < 0 || dim3 >= fDim[3]) throw ExceptionT::kGeneralFail;
+	if (dim0 < 0 || dim0 >= this->fDim[0] ||
+        dim1 < 0 || dim1 >= this->fDim[1] ||
+        dim2 < 0 || dim2 >= this->fDim[2] ||
+        dim3 < 0 || dim3 >= this->fDim[3]) throw ExceptionT::kGeneralFail;
 #endif
 
-	return (fArray[dim0*fOffset0 + dim1*fOffset1 + dim2*fOffset2 + dim3]);
+	return (this->fArray[dim0*fOffset0 + dim1*fOffset1 + dim2*fOffset2 + dim3]);
 }
 
 template <class MATHTYPE>
@@ -138,7 +138,7 @@ inline MATHTYPE* Tensor4DT<MATHTYPE>::
         dim2 < 0 || dim2 >= fDim[2]) throw ExceptionT::kGeneralFail;
 #endif
 
-	return fArray + dim0*fOffset0 + dim1*fOffset1 + dim2*fOffset2;
+	return this->fArray + dim0*fOffset0 + dim1*fOffset1 + dim2*fOffset2;
 }
 template <class MATHTYPE>
 inline const MATHTYPE* Tensor4DT<MATHTYPE>::
@@ -151,7 +151,7 @@ inline const MATHTYPE* Tensor4DT<MATHTYPE>::
         dim2 < 0 || dim2 >= fDim[2]) throw ExceptionT::kGeneralFail;
 #endif
 
-	return fArray + dim0*fOffset0 + dim1*fOffset1 + dim2*fOffset2;
+	return this->fArray + dim0*fOffset0 + dim1*fOffset1 + dim2*fOffset2;
 }
 
 template<class MATHTYPE>
@@ -163,7 +163,7 @@ inline MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0, int dim1)
         dim1 < 0 || dim1 >= fDim[1]) throw ExceptionT::kGeneralFail;
 #endif
 
-	return fArray + dim0*fOffset0 + dim1*fOffset1;
+	return this->fArray + dim0*fOffset0 + dim1*fOffset1;
 }
 template<class MATHTYPE>
 inline const MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0, int dim1) const
@@ -174,7 +174,7 @@ inline const MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0, int dim1) const
         dim1 < 0 || dim1 >= fDim[1]) throw ExceptionT::kGeneralFail;
 #endif
 
-	return fArray + dim0*fOffset0 + dim1*fOffset1;
+	return this->fArray + dim0*fOffset0 + dim1*fOffset1;
 }
 
 template <class MATHTYPE>
@@ -185,7 +185,7 @@ inline MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0)
 	if (dim0 < 0 || dim0 >= fDim[0]) throw ExceptionT::kGeneralFail;
 #endif
 
-	return fArray + dim0*fOffset0;
+	return this->fArray + dim0*fOffset0;
 }
 template <class MATHTYPE>
 inline const MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0) const
@@ -195,7 +195,7 @@ inline const MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0) const
 	if (dim0 < 0 || dim0 >= fDim[0]) throw ExceptionT::kGeneralFail;
 #endif
 
-	return fArray + dim0*fOffset0;
+	return this->fArray + dim0*fOffset0;
 }
 
 template <class MATHTYPE> 

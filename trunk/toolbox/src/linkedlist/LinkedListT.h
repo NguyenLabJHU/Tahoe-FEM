@@ -1,4 +1,4 @@
-/* $Id: LinkedListT.h,v 1.8 2004-02-18 16:38:01 paklein Exp $ */
+/* $Id: LinkedListT.h,v 1.9 2005-04-30 21:15:05 paklein Exp $ */
 /* created: paklein (02/07/1996) */
 #ifndef _LINKEDLIST_T_H_
 #define _LINKEDLIST_T_H_
@@ -333,12 +333,12 @@ void LinkedListT<TYPE>::InsertAt(const TYPE& value, int position)
 	if (!newptr) throw ExceptionT::kOutOfMemory;
 	
 	if (lastPtr == NULL)
-		fFirstPtr = newPtr;
+		fFirstPtr = newptr;
 	else
-		lastPtr->fNextPtr = newPtr;
+		lastPtr->fNextPtr = newptr;
 
-	newPtr->fNextPtr = currPtr;
-	if (currPtr == fLastPtr) fLastPtr = newPtr;
+	newptr->fNextPtr = currPtr;
+	if (currPtr == fLastPtr) fLastPtr = newptr;
 }
 
 template <class TYPE>
