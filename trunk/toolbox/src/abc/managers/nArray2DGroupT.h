@@ -1,4 +1,4 @@
-/* $Id: nArray2DGroupT.h,v 1.5 2004-05-16 00:47:35 paklein Exp $ */
+/* $Id: nArray2DGroupT.h,v 1.6 2005-05-01 19:27:51 paklein Exp $ */
 /* created: paklein (04/16/1998) */
 #ifndef _NARRAY2D_GROUP_T_H_
 #define _NARRAY2D_GROUP_T_H_
@@ -122,16 +122,16 @@ void nArray2DGroupT<TYPE>::SetMajorDimension(int majordim, bool copy_in)
 
 		/* need more memory, no memory reduction criteria */
 		int blocksize = fMajorDim*fMinorDim;
-		if (blocksize > BlockSize()) SetBlockSize(blocksize, copy_in);
+		if (blocksize > this->BlockSize()) this->SetBlockSize(blocksize, copy_in);
 
 		/* reset pointers and dimensions */
-		for (int i = 0; i < fArrays.Length(); i++)
+		for (int i = 0; i < this->fArrays.Length(); i++)
 		{
 			/* safe cast due to type filtering by Register */
-			nArray2DT<TYPE>* parray = (nArray2DT<TYPE>*) fArrays[i];
+			nArray2DT<TYPE>* parray = (nArray2DT<TYPE>*) this->fArrays[i];
 		
 			/* reset parameters */
-			parray->Alias(fMajorDim, fMinorDim, BlockPointer(i));
+			parray->Alias(fMajorDim, fMinorDim, this->BlockPointer(i));
 		}
 	}
 }

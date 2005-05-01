@@ -1,4 +1,4 @@
-/* $Id: nArrayGroupT.h,v 1.4 2003-01-27 06:42:44 paklein Exp $ */
+/* $Id: nArrayGroupT.h,v 1.5 2005-05-01 19:27:51 paklein Exp $ */
 /* created: paklein (04/17/1998) */
 #ifndef _NARRAY_GROUP_T_H_
 #define _NARRAY_GROUP_T_H_
@@ -66,11 +66,11 @@ void nArrayGroupT<TYPE>::Dimension(int length, bool copy_in)
 		fLength = length;
 	
 		/* need more memory, no memory reduction criteria */
-		if (fLength > BlockSize()) SetBlockSize(fLength, copy_in);
+		if (fLength > this->BlockSize()) this->SetBlockSize(fLength, copy_in);
 
 		/* reset pointers and dimensions */
-		for (int i = 0; i < fArrays.Length(); i++)
-			fArrays[i]->Set(fLength, BlockPointer(i));
+		for (int i = 0; i < this->fArrays.Length(); i++)
+			this->fArrays[i]->Set(fLength, this->BlockPointer(i));
 	}
 }
 

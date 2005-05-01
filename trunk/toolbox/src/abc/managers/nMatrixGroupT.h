@@ -1,4 +1,4 @@
-/* $Id: nMatrixGroupT.h,v 1.4 2003-01-27 06:42:44 paklein Exp $ */
+/* $Id: nMatrixGroupT.h,v 1.5 2005-05-01 19:27:51 paklein Exp $ */
 /* created: paklein (04/17/1998) */
 #ifndef _MATHMATRIX_GROUP_T_H_
 #define _MATHMATRIX_GROUP_T_H_
@@ -73,16 +73,16 @@ void nMatrixGroupT<TYPE>::Dimension(int rows, int cols)
 	
 		/* need more memory, no memory reduction criteria */
 		int blocksize = fRows*fCols;
-		if (blocksize > BlockSize()) SetBlockSize(blocksize, false);
+		if (blocksize > this->BlockSize()) this->SetBlockSize(blocksize, false);
 
 		/* reset pointers and dimensions */
-		for (int i = 0; i < fArrays.Length(); i++)
+		for (int i = 0; i < this->fArrays.Length(); i++)
 		{
 			/* safe cast due to type filtering by Register */
-			nMatrixT<TYPE>* pmatrix = (nMatrixT<TYPE>*) fArrays[i];
+			nMatrixT<TYPE>* pmatrix = (nMatrixT<TYPE>*) this->fArrays[i];
 		
 			/* reset parameters */
-			pmatrix->Set(fRows, fCols, BlockPointer(i));
+			pmatrix->Set(fRows, fCols, this->BlockPointer(i));
 		}
 	}
 }

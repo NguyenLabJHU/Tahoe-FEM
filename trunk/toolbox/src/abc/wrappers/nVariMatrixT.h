@@ -1,4 +1,4 @@
-/* $Id: nVariMatrixT.h,v 1.7 2003-01-27 06:42:46 paklein Exp $ */
+/* $Id: nVariMatrixT.h,v 1.8 2005-05-01 19:27:57 paklein Exp $ */
 /* created: paklein (07/05/1998) */
 #ifndef _N_VARI_MATRIX_T_H_
 #define _N_VARI_MATRIX_T_H_
@@ -74,7 +74,7 @@ template <class nTYPE>
 void nVariMatrixT<nTYPE>::SetWard(int headroom, nMatrixT<nTYPE>& ward)
 {
 	/* inherited */
-	SetHeadRoom(headroom);
+	this->SetHeadRoom(headroom);
 
 	/* can only be called once */
 	if (!fWard)
