@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.24 2004-09-27 18:24:06 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.25 2005-05-01 20:29:22 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -7,7 +7,7 @@
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "DotLine_FormatterT.h"
-#if defined(__GCC_3__)
+#if defined(__GCC_3__) || defined(__GCC_4__)
 #include <strstream>
 #else
 #include <strstream.h>
