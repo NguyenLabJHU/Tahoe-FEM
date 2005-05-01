@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.12 2005-01-19 08:57:20 paklein Exp $ */
+/* $Id: IsotropicT.cpp,v 1.13 2005-05-01 19:29:29 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "IsotropicT.h"
 
@@ -18,14 +18,14 @@ IsotropicT::IsotropicT(ifstreamT& in):
 	double E, nu;
 	in >> E >> nu;
 	try { Set_E_nu(E, nu); }
-	catch (ExceptionT::CodeT exception) { throw ExceptionT::kBadInputValue; }
+	catch (ExceptionT::CodeT exc) { throw ExceptionT::kBadInputValue; }
 }
 
 IsotropicT::IsotropicT(void):
 	ParameterInterfaceT("isotropic")
 {
 	try { Set_E_nu(0.0, 0.0); }
-	catch (ExceptionT::CodeT exception) { throw ExceptionT::kBadInputValue; }
+	catch (ExceptionT::CodeT exc) { throw ExceptionT::kBadInputValue; }
 }
 
 /* set moduli */

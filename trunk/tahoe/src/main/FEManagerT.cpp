@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.93 2005-04-28 23:56:05 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.94 2005-05-01 19:29:37 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -2051,9 +2051,9 @@ void FEManagerT::SetEquationSystem(int group, int start_eq_shift)
 
 			/* renumber equations */
 			try { fNodeManager->RenumberEquations(group, connects_1, connects_2); }
-			catch (ExceptionT::CodeT exception) {
+			catch (ExceptionT::CodeT exc) {
 				cout << "\n FEManagerT::SetEquationSystem: could not renumber equations: exception: " 
-				     << exception << endl;
+				     << exc << endl;
 			}
 		}
 		else /* renumbering does not support multiple fields in the same group
