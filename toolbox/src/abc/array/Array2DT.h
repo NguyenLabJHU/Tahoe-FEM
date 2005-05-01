@@ -1,4 +1,4 @@
-/* $Id: Array2DT.h,v 1.10 2003-11-21 22:41:30 paklein Exp $ */
+/* $Id: Array2DT.h,v 1.11 2005-05-01 19:27:45 paklein Exp $ */
 /* created: paklein (11/02/1998) */
 #ifndef _ARRAY2D_T_H_
 #define _ARRAY2D_T_H_
@@ -247,7 +247,7 @@ if (majordim < 0 || majordim >= fMajorDim ||
 	minordim < 0 || minordim >= fMinorDim) throw ExceptionT::kOutOfRange;
 #endif
 
-	return fArray[majordim*fMinorDim + minordim];
+	return this->fArray[majordim*fMinorDim + minordim];
 }
 
 template <class TYPE>
@@ -259,7 +259,7 @@ if (majordim < 0 || majordim >= fMajorDim ||
 	minordim < 0 || minordim >= fMinorDim) throw ExceptionT::kOutOfRange;
 #endif
 
-	return fArray[majordim*fMinorDim + minordim];
+	return this->fArray[majordim*fMinorDim + minordim];
 }
 
 template <class TYPE>
@@ -270,7 +270,7 @@ inline TYPE* Array2DT<TYPE>::operator()(int majordim)
 	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
 #endif
 
-	return fArray + majordim*fMinorDim ;
+	return this->fArray + majordim*fMinorDim ;
 }
 
 template <class TYPE>
@@ -281,7 +281,7 @@ inline const TYPE* Array2DT<TYPE>::operator()(int majordim) const
 	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
 #endif
 
-	return fArray + majordim*fMinorDim ;
+	return this->fArray + majordim*fMinorDim ;
 }
 
 /* copy/assignment operators - by a scalar or element by element */
