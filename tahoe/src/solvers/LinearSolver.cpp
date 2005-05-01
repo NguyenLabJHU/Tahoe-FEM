@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.cpp,v 1.11 2004-07-15 08:31:50 paklein Exp $ */
+/* $Id: LinearSolver.cpp,v 1.12 2005-05-01 19:29:45 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 #include "LinearSolver.h"
 #include "FEManagerT.h"
@@ -87,10 +87,10 @@ SolverT::SolutionStatusT LinearSolver::Solve(int)
 	} /* end try */
 	
 	/* not OK */
-	catch (ExceptionT::CodeT exception)
+	catch (ExceptionT::CodeT exc)
 	{
 		cout << "\n LinearSolver::Solve: caught exception: " 
-		     << ExceptionT::ToString(exception) << endl;
+		     << ExceptionT::ToString(exc) << endl;
 		return kFailed;
 	}
 }
