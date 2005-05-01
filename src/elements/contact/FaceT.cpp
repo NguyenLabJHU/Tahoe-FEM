@@ -1,4 +1,4 @@
-/* $Id: FaceT.cpp,v 1.11 2003-12-20 01:22:14 rjones Exp $ */
+/* $Id: FaceT.cpp,v 1.12 2005-05-01 20:30:45 paklein Exp $ */
 #include "FaceT.h"
 
 #include "SurfaceT.h" // this is for global nodes
@@ -7,7 +7,7 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-const bool ArrayT<FaceT**>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<FaceT**>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /*constructor*/
