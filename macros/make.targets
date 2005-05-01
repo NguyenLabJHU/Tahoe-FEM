@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.47 2004-11-09 21:28:31 paklein Exp $
+# $Id: make.targets,v 1.48 2005-05-01 20:27:57 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -165,6 +165,8 @@ archive:
 
 # initialization
 init: $(MAKE_INIT_XTRAS) $(MOD_MAKE_INIT_XTRAS)
+	@ if test -f $(LIBRARY); then $(RM) $(LIBRARY); fi
+	@ if test -f object_list; then $(RM) object_list; fi	
 	@ $(MAKE) setup "ARCH = $(ARCH)" "HOME_DIR = $(HOME_DIR)" "MACRO_DIR = $(MACRO_DIR)"
 	@ $(MAKE) headers "ARCH = $(ARCH)" "HOME_DIR = $(HOME_DIR)" "MACRO_DIR = $(MACRO_DIR)"
 	@ $(MAKE) depend_init "ARCH = $(ARCH)" "HOME_DIR = $(HOME_DIR)" "MACRO_DIR = $(MACRO_DIR)"
@@ -205,7 +207,6 @@ clean: $(MAKE_CLEAN_XTRAS) $(MOD_MAKE_CLEAN_XTRAS)
 
 # set-up directories
 setup:
-	@ if test -f $(LIBRARY); then $(RM) $(LIBRARY); fi
 	@ if [ ! -d $(INC_DIR) ]; then mkdir $(INC_DIR); fi
 	@ if [ ! -d $(BLD_DIR) ]; then mkdir $(BLD_DIR); fi
 	@ if [ ! -d $(OBJ_DIR) ]; then mkdir $(OBJ_DIR); fi
