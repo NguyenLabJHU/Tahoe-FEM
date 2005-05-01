@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.28 2005-02-13 22:22:55 paklein Exp $ */
+/* $Id: main.cpp,v 1.29 2005-05-01 19:28:31 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -33,7 +33,7 @@ static void DumpLicense(void);
 
 /* redirect of cout for parallel execution */
 ofstream console;
-#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__) || defined(__INTEL_CC__)
+#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__) || defined(__GCC_4__) || defined(__INTEL_CC__)
 streambuf* cout_buff = NULL,*cerr_buff = NULL;
 #endif
 
@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
 static void StartUp(int* argc, char*** argv, CommunicatorT& comm)
 {
 #if !defined(_MACOS_) && !defined(__INTEL__)
-#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__) || defined(__INTEL_CC__)
+#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__) || defined(__GCC_4__) || defined(__INTEL_CC__)
 	/* redirect cout and cerr */
 	if (comm.Rank() > 0)
 	{
