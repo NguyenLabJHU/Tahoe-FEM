@@ -1,8 +1,12 @@
-# $Id: SUN.macros,v 1.21 2004-11-12 20:54:54 paklein Exp $
+# $Id: SUN.macros,v 1.22 2005-05-02 18:26:35 sawimme Exp $
 #
-# Load GNU file utilities to get ln -sf to work properly (sunfreeware.com)
+#
+# Solaris 10 includes EXPAT in package SUNWlexpt 
+# EXPAT is installed to /usr/sfw
+#
 #
 # OPTIONAL: set this from your shell or .cshrc
+# make sure matlab library is listed first
 # setenv LD_LIBRARY_PATH $(COMP_DIR)/lib
 #
 # set the path to your compiler
@@ -49,6 +53,8 @@ RANLIBFLAGS =
 MAKE_OPTS   = 
 RM          = rm
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
+# Load GNU file utilities to get ln -sf to work properly for Solaris 7,8 (sunfreeware.com)
+# Problem fixed, use regular ln -sf for Solaris 9, 10
 LN          = /usr/local/bin/ln -sf
 ECHO        = echo
 CAT         = cat
