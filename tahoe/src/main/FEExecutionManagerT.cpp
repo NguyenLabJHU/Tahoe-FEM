@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.78 2005-04-29 01:24:12 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.79 2005-05-02 07:44:38 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -56,7 +56,6 @@
 #include "FieldT.h"
 #include "IntegratorT.h"
 #include "ElementBaseT.h"
-#include "EAMFCC3D.h"
 #endif /* BRIDGING_ELEMENT */
 
 using namespace Tahoe;
