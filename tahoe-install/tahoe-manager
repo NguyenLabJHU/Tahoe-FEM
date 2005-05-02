@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.39 2005-04-18 06:44:30 paklein Exp $
+# $Id: tahoe-manager,v 1.40 2005-05-02 01:57:55 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -433,6 +433,16 @@ sub update{
 
 	# connection type
 	if ($connection =~ "cvs") {
+
+		# check if tahoe-manager is out of date
+		unlink("cvs.log");
+		system("cvs -q -n update tahoe-manager > cvs.log");
+		open(IN, "cvs.log"); my @lines = <IN>; my $file = "@lines"; close(IN);
+		if ($file =~ /tahoe-manager/) {
+			print STDOUT "*\n* NOTE: \"tahoe-manager\" has changed. Run \"selfupdate\" to update.\n*\n";
+		}
+
+		# update
 		update_cvs(@run_modules);
 	} elsif ($connection =~ "http") {
 		update_http(@run_modules);	
