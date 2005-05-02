@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.40 2005-05-02 01:57:55 paklein Exp $
+# $Id: tahoe-manager,v 1.41 2005-05-02 07:53:55 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -170,15 +170,15 @@ foreach my $key (sort(keys %ENV)) {
 }
 
 # configuration file
-if(-e "$config_file") { read_config();}
-else                  { write_default_config();}
+if(-e "$config_file") { read_config(); }
+else                  { write_default_config(); }
 
 # remove system libraries from @modules
-foreach my $lib (@syslibs) {
-	for (my $i = 0; $i < scalar(@modules) ; $i++) {
-		if($modules[$i] eq $syslib2module{$lib}) {  splice (@modules,$i,1);}
-	}
-}
+#foreach my $lib (@syslibs) {
+#	for (my $i = 0; $i < scalar(@modules) ; $i++) {
+#		if ($modules[$i] eq $syslib2module{$lib}) { splice (@modules,$i,1); }
+#	}
+#}
 
 # check for missing required modules
 my @req_missing = get_missing_modules();
@@ -225,7 +225,11 @@ if ($connection =~ "cvs") {
 
 ##############################################################################
 sub config {
-	@config_options = ("add optional modules", "remove optional modules", "configure options within modules");
+	@config_options = (
+#		"add optional modules", 
+#		"remove optional modules", 
+		"add/remove optional modules",
+		"configure options within modules");
 
 	my @mods = @modules;
 	print "\n> installed modules: @mods\n";
@@ -239,11 +243,15 @@ sub config {
 	my $change = 0;
 	print "\nchoice: ";
 	my $choice = <STDIN>;
+#	if ($choice =~ /0/) {
+#		$change = add_optional_modules();
+#		write_config();
+#	} elsif ($choice =~ /1/) {
+#		$change = remove_optional_modules();
+#		write_config();
+#	} elsif ($choice =~ /2/) {
 	if ($choice =~ /0/) {
-		$change = add_optional_modules();
-		write_config();
-	} elsif ($choice =~ /1/) {
-		$change = remove_optional_modules();
+		$change = config_optional_modules();
 		write_config();
 	} else {
 		$change = module_config();
@@ -410,7 +418,8 @@ if ($choice != 1) {
 	print "do want to add optional modules (y/n) [n]: "; 
 	$choice = <STDIN>;
 	if ( $choice =~ /y/ ) {
-		add_optional_modules();
+#		add_optional_modules();
+		config_optional_modules();
 	}
 }
 print "\n";
@@ -594,12 +603,15 @@ sub build {
 
 	$time = (split(/ +/,localtime()))[3];
 
-
 	# initialize modules if needed
 	my @init_modules = ();
 	my $tahoe_added = 0;
 	my $add_tahoe = 0;
 	foreach my $dir (@run_modules) {
+
+		# skip system libraries	
+		next if defined($module2syslib{$dir});
+	
 		my $add = 0;
 		if (! -e $dir) { $add = 1; }
 		elsif (! -e "$dir/makefile" && -e "$dir/makefile.template")  { $add = 1; }
@@ -638,13 +650,13 @@ sub build {
 				my @lines = <IN>; $file = "@lines"; close(IN); 
 				my $errors = ($file =~ /\*\*\* ERROR:/);
                			if($errors > 0) {
-               				print " ERROR\n";
+               				print " ERROR. See $dir/build.log for details.\n";
                				$script_status++;
                			}
 				elsif ($dir eq "tahoe" 
 				&& !($file =~ /wrote tahoe/)
 				&& !(-x "tahoe")) { 
-               				print " ERROR\n";
+               				print " ERROR.  See $dir/build.log for details.\n";
                				$script_status++;
 				}
 				else { print " ok\n"; 
@@ -712,7 +724,7 @@ sub init {
 					my @lines = <IN>; $file = "@lines"; close(IN); 
 					my $errors = ($file =~ /\*\*\* ERROR:/);
                		if($errors > 0) {
-               			print " ERROR\n";
+               			print " ERROR. See $dir/init.log for details.\n";
                			$script_status++;
                		}
 					else { 
@@ -1000,6 +1012,169 @@ sub write_config {
 	print CONFIG  "# VERBOSE\n$verbose\n\n";
 	print CONFIG  "# EOF";
 	close(CONFIG);
+}
+
+##############################################################################
+sub config_optional_modules {
+
+	# collect current status of optional modules
+	my @opt_mod_off = complement(\@optionalmodules, \@modules);	
+	my @status = ();
+	foreach my $module (@optionalmodules) {
+		my @tmp = ($module);
+		my @inter = intersection(\@opt_mod_off, \@tmp);
+		if (scalar(@inter) == 1) {
+			push(@status, "OFF");
+		} else {
+			push(@status, " ON");		
+		}
+	}
+
+	# prompt for changes
+	my @oldstatus = @status;
+	my $done = 0;
+	while ($done == 0) {
+		print "\nOptional modules:\n";
+		my $i = 0;
+		while ($i < scalar(@optionalmodules)) {
+			print " " if ($i < 10);
+			print "$i $status[$i] $optionalmodules[$i]\n";
+			$i++;
+		}
+		print "\n";
+		print " " if ($i < 10);
+		print "$i Toggle all modules ON\n"; $i++;
+		print " " if ($i < 10);
+		print "$i Toggle all modules OFF\n"; $i++;
+		print " " if ($i < 10);
+		print "$i Exit\n"; $i++;
+		print "\nChoice or modules to toggle (applied left to right): ";
+		my $ans = <STDIN>;
+		my @opts = split(/ +|,/, $ans);
+		foreach $ans (@opts) {
+			if ($ans == scalar(@status)) { # all ON
+				my $i = 0;
+				while ($i < scalar(@status)) {
+					$status[$i] = " ON";
+					$i++;
+				}
+			}
+			elsif ($ans == scalar(@status)+1) { # all OFF
+				my $i = 0;
+				while ($i < scalar(@status)) {
+					$status[$i] = "OFF";
+					$i++;
+				}
+			}
+			elsif ($ans == scalar(@status)+2) { # all Exit
+				$done = 1;
+			} else { # toggle option
+				if ($status[$ans] eq "OFF") {
+					$status[$ans] = " ON";
+				} else {
+					$status[$ans] = "OFF";				
+				}
+			}
+		}
+	}
+
+	# process changes to modules
+	my @addmodules = ();
+	@modules = @defaultmodules; # reset
+	my $i = 0;
+	while ($i < scalar(@optionalmodules)) {
+		my $module = $optionalmodules[$i];
+		if ($status[$i] eq " ON") {
+			push(@modules, $module);
+			push(@addmodules, $module) if ($oldstatus[$i] eq "OFF");
+			update($module) if (! -d $module && !defined($module2syslib{$module})); # fetch new modules to determine dependencies
+		}
+		$i++;
+	}
+
+	# look for other modules that must/may be included
+	$done = 0;
+	while ($done == 0) {
+
+		# add any additional required modules
+		my @missing_required = get_missing_modules();
+		if (scalar(@missing_required) > 0) {
+			print "adding required modules: @missing_required\n";
+			foreach my $mod (@missing_required) {
+				push(@addmodule, $mod);
+				push(@modules, $mod);
+				update($mod) if (! -d $mod && !defined($module2syslib{$module})); # fetch new modules to determine dependencies
+			}
+			@opt_mod_off = complement(\@optionalmodules, \@modules);
+		}
+	
+		# optional modules not included
+		my @missingmodules = complement(\@opt_mod_off, \@addmodules);
+		my @dependmodules = ();
+		foreach $missingmodule (@missingmodules) { # missing module needed due to dependency
+			DEP: foreach $addmodule (@addmodules) {
+				if (a_depends_on_b($addmodule, $missingmodule) == 1) {
+					push (@dependmodules, $missingmodule);
+					last DEP;
+				}
+			}
+		}
+
+		# add dependent modules
+		if (scalar(@dependmodules) > 0) {
+			print "the newly added modules can be extended with optional modules: @dependmodules\n";
+			print "add optional modules (y/n) [y]: ";
+			my $ans = <STDIN>;
+			if ($ans !~ /n/i) {
+				foreach $module (@dependmodules) {
+					push (@addmodules, $module);
+					push (@modules, $module);
+					update($module) if (! -d $module); # fetch new modules to determine dependencies
+				}
+				@opt_mod_off = complement(\@optionalmodules, \@modules);
+			} else { $done = 1; }
+		} else { $done = 1; }
+	}	
+
+	# collect current final status of optional modules
+	@opt_mod_off = complement(\@optionalmodules, \@modules);	
+	@status = ();
+	foreach my $module (@optionalmodules) {
+		my @tmp = ($module);
+		my @inter = intersection(\@opt_mod_off, \@tmp);
+		if (scalar(@inter) == 1) {
+			push(@status, "OFF");
+		} else {
+			push(@status, " ON");		
+		}
+	}
+
+	# collect list of settings that have changed
+	my @changedmodules = ();
+	my $j = 0;
+	while ($j < scalar(@optionalmodules)) {
+		push(@changedmodules, $optionalmodules[$j]) if ($status[$j] ne $oldstatus[$j]);
+		$j++;
+	}
+
+	# flag modules that need to be re-initialized
+	foreach my $module (@modules) {
+		foreach my $changedmodule (@changedmodules) {
+			if (a_depends_on_b($module, $changedmodule) == 1) {
+				system("echo 'init' > $module/.status");
+			}
+			
+			# "touch" target
+			if (-e "$module/makefile" && defined($module2touch{$changedmodule})) {
+				chdir($module);
+				system("make $module2touch{$changedmodule} >> build.log 2>&1");
+				chdir("..");
+			}
+		}
+	}
+
+	print "* modules : @modules \n";
+	return 1;
 }
 
 ##############################################################################
