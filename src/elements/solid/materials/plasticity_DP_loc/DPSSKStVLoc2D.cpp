@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc2D.cpp,v 1.7 2005-04-25 05:05:57 raregue Exp $ */
+/* $Id: DPSSKStVLoc2D.cpp,v 1.8 2005-05-03 15:52:28 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc2D.h"
 #include "SSEnhLocMatSupportT.h"
@@ -78,12 +78,11 @@ const dSymMatrixT& DPSSKStVLoc2D::s_ij(void)
 	{
 		/* 3D -> 2D */
 		fStress2D.ReduceFrom3D(DPSSKStVLoc::s_ij());
-	}
+	}	
 #else
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(DPSSKStVLoc::s_ij());
 #endif
-	//	fStress2D *= fThickness;  
 	return fStress2D;
 }
 
