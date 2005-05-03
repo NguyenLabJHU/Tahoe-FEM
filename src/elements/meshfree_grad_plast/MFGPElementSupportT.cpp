@@ -1,4 +1,4 @@
-/* $Id: MFGPElementSupportT.cpp,v 1.2 2005-04-28 01:22:11 kyonten Exp $ */
+/* $Id: MFGPElementSupportT.cpp,v 1.3 2005-05-03 20:12:35 kyonten Exp $ */
 #include "MFGPElementSupportT.h"
 
 
@@ -132,7 +132,10 @@ void MFGPElementSupportT::InitSupport(ostream& out,
 }
 
 /* initialization */
-void MFGPElementSupportT::InitSupport(int numDOF_displ, int numDOF_plast)
+void MFGPElementSupportT::InitSupport(ostream& out,
+	AutoArrayT<ElementCardT>& elem_cards_displ, AutoArrayT<ElementCardT>& elem_cards_plast, 
+	const iArrayT& surface_nodes, int numDOF_displ, int numDOF_plast, int max_node_num, 
+	ModelManagerT* model)
 {
 	/* configure variable length element arrays */
 	fElemNodesEX_displ = &(fMFShapes_displ->ElementNeighbors());
@@ -140,6 +143,45 @@ void MFGPElementSupportT::InitSupport(int numDOF_displ, int numDOF_plast)
 	
 	fElemNodesEX_plast = &(fMFShapes_plast->ElementNeighbors());
 	fElemEqnosEX_plast.Configure(fMFShapes_plast->ElementNeighborsCounts(), numDOF_plast);
+	
+	/* set element card pointers */
+	int num_cells = elem_cards_displ.Length();
+	fUNodeLists_displ.Dimension(num_cells);
+	fUNodeLists_plast.Dimension(num_cells);
+	for (int i = 0; i < num_cells; i++)
+	{
+		ElementCardT& card_displ = elem_cards_displ[i];
+		ElementCardT& card_plast = elem_cards_plast[i];
+	
+		/* field nodes */
+		fElemNodesEX_displ->RowAlias(i, fUNodeLists_displ[i]);
+		card_displ.SetNodesU(fUNodeLists_displ[i]);
+		fElemNodesEX_plast->RowAlias(i, fUNodeLists_plast[i]);
+		card_plast.SetNodesU(fUNodeLists_plast[i]);
+
+		/* field equations */
+		fElemEqnosEX_displ.RowAlias(i, card_displ.Equations());
+		fElemEqnosEX_plast.RowAlias(i, card_plast.Equations());
+		
+		/* combine the two equations */
+		//fElemEqnosEX_comb. ?? column copy
+	}
+	
+	/* collect FE/meshfree nodes */
+	CollectNodesData(out, max_node_num, model);
+
+	/* collect interpolant nodes = (auto) + (FE) - (EFG) */
+	SetAllFENodes(surface_nodes);
+
+	out << " Final number of interpolant nodes . . . . . . . = ";
+	out << fAllFENodes.Length() << '\n';
+	if (fAllFENodes.Length() > 0)
+	{
+		/* correct offset for output */
+		fAllFENodes++;
+		out << fAllFENodes.wrap(6) << '\n';
+		fAllFENodes--;
+	}
 }
 
 /* resize number of field nodes */

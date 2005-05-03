@@ -1,4 +1,4 @@
-/* $Id: MFGPElementSupportT.h,v 1.2 2005-04-28 01:22:11 kyonten Exp $ */
+/* $Id: MFGPElementSupportT.h,v 1.3 2005-05-03 20:12:35 kyonten Exp $ */
 #ifndef _MFGP_SUPPORT_T_H_
 #define _MFGP_SUPPORT_T_H_
 
@@ -110,7 +110,9 @@ public:
 	
 	/** initialization of meshless information. This method must be called once after 
 	 * a call to MeshFreeElementSupportT::TakeParameterList */
-	virtual void InitSupport(int numDOF_displ, int numDOF_plast);
+	virtual void InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards_displ, 
+		AutoArrayT<ElementCardT>& elem_cards_plast, const iArrayT& surface_nodes, 
+		int numDOF_displ, int numDOF_plast, int max_node_num, ModelManagerT* model);
 	
 	/** \name construct nodal field */
 	/*@{*/
@@ -160,6 +162,8 @@ protected:
 	RaggedArray2DT<int>        fElemEqnosEX_displ;
 	RaggedArray2DT<int>        fElemEqnosEX_plast;
 	ArrayT<iArrayT> fUNodeLists; // pointers to fElemNodesEX data
+	ArrayT<iArrayT> fUNodeLists_displ; // pointers to fElemNodesEX_displ data
+	ArrayT<iArrayT> fUNodeLists_plast; // pointers to fElemNodesEX_plast data
 	
 	/* variable length workspace managers */
 	nArrayGroupT<double>  fNEEArray;

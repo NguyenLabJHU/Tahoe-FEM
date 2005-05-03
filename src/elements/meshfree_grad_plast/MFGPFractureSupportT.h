@@ -1,4 +1,4 @@
-/* $Id: MFGPFractureSupportT.h,v 1.2 2005-04-28 01:22:11 kyonten Exp $ */
+/* $Id: MFGPFractureSupportT.h,v 1.3 2005-05-03 20:12:35 kyonten Exp $ */
 #ifndef _MFGP_FRACTURE_T_H_
 #define _MFGP_FRACTURE_T_H_
 
@@ -75,7 +75,9 @@ public:
 
 	/** initialization of meshless information. This method must be called once after 
 	 * a call to MeshFreeElementSupportT::TakeParameterList */
-	virtual void InitSupport(int numDOF_displ, int numDOF_plast);
+	virtual void InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards_displ,
+	    AutoArrayT<ElementCardT>& elem_cards_plast,	const iArrayT& surface_nodes, 
+	    int numDOF_displ, int numDOF_plast, int max_node_num, ModelManagerT* model);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

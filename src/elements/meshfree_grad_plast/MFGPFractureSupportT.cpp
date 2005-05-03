@@ -1,4 +1,4 @@
-/* $Id: MFGPFractureSupportT.cpp,v 1.2 2005-04-28 01:22:11 kyonten Exp $ */
+/* $Id: MFGPFractureSupportT.cpp,v 1.3 2005-05-03 20:12:35 kyonten Exp $ */
 #include "MFGPFractureSupportT.h"
 
 #include "StringT.h"
@@ -228,10 +228,13 @@ void MFGPFractureSupportT::InitSupport(ostream& out, AutoArrayT<ElementCardT>& e
 }
 
 /* initialization */
-void MFGPFractureSupportT::InitSupport(int numDOF_displ, int numDOF_plast)
+void MFGPFractureSupportT::InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards_displ, 
+	AutoArrayT<ElementCardT>& elem_cards_plast, const iArrayT& surface_nodes, int numDOF_displ, int numDOF_plast,
+	int max_node_num, ModelManagerT* model)
 {
 	/* inherited */
-	MFGPElementSupportT::InitSupport(numDOF_displ, numDOF_plast);
+	MFGPElementSupportT::InitSupport(out, elem_cards_displ, elem_cards_plast, surface_nodes, numDOF_displ, 
+							numDOF_plast, max_node_num, model);
 }
 
 bool MFGPFractureSupportT::CheckGrowth(SolidMaterialT* material, 
