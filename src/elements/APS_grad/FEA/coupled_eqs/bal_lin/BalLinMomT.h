@@ -19,8 +19,8 @@ public:
 
 	enum Eqn_TypeT { kAPS_Bal_Eq };
 
-	BalLinMomT ( void ) { }
-	virtual ~BalLinMomT ( void ) { }
+	BalLinMomT ( void ) { };
+	virtual ~BalLinMomT ( void ) { };
 
 	/** Pure virtual functions */
 

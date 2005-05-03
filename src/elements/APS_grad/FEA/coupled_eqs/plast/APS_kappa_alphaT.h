@@ -1,4 +1,4 @@
-// $Id: APS_kappa_alphaT.h,v 1.1 2004-02-17 19:48:47 raregue Exp $
+// $Id: APS_kappa_alphaT.h,v 1.2 2005-05-03 15:54:47 raregue Exp $
 #ifndef _APS_KAPPA_ALPHA_T_H_ 
 #define _APS_KAPPA_ALPHA_T_H_ 
 
@@ -179,6 +179,8 @@ class APS_kappa_alphaT : public PlastT
 								
 	APS_kappa_alphaT	( FEA_ShapeFunctionT&, FEA_ShapeFunctionT&, APS_MaterialT*, APS_VariableT&, APS_VariableT&, 
 				int &fTime_Step, double fdelta_t = 0.0, int IntegrationScheme = FEA::kBackward_Euler);
+
+	//~APS_kappa_alphaT	( void ) { }
 
 	void  	Initialize	( int &in_ip, int &in_sd, int &in_en_displ, int &in_en_plast, int &in_state, int &in_str, 
 							int Initial_Time_Step=1 );

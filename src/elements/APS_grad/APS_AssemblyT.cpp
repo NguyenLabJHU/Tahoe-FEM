@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.63 2004-08-04 22:07:58 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.64 2005-05-03 15:54:39 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "APS_MatlT.h"
@@ -10,7 +10,6 @@
 
 using namespace Tahoe;
 
-//---------------------------------------------------------------------
 
 /* constructor */
 APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support):
@@ -42,7 +41,6 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support):
 	SetName("antiplane_shear_grad_plast");
 }
 
-//---------------------------------------------------------------------
 
 /* destructor */
 APS_AssemblyT::~APS_AssemblyT(void) 
@@ -63,7 +61,6 @@ APS_AssemblyT::~APS_AssemblyT(void)
 
 }
 
-//--------------------------------------------------------------------
 
 void APS_AssemblyT::Echo_Input_Data(void) {
 

@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.31 2004-08-02 18:51:33 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.32 2005-05-03 15:54:40 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -11,6 +11,7 @@
 #include "StringT.h"
 #include "Traction_CardT.h"
 #include "ShapeFunctionT.h"
+#include "eIntegratorT.h"
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"

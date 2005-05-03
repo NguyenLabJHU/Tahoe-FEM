@@ -1,7 +1,9 @@
-// $Id: APS_Bal_EqT.cpp,v 1.25 2004-02-17 19:48:45 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.26 2005-05-03 15:54:43 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
+
+/* constructors */
 
 APS_Bal_EqT::APS_Bal_EqT ( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shapes_displ, FEA_ShapeFunctionT &Shapes_plast, 
 							APS_MaterialT *Shear_Matl, 
@@ -12,7 +14,7 @@ APS_Bal_EqT::APS_Bal_EqT ( int& nipsurf, int& nensurf, FEA_ShapeFunctionT &Shape
 }
 
 /* destructor */
-//APS_Bal_EqT::~APS_Bal_EqT(void) { }
+//APS_Bal_EqT::~APS_Bal_EqT(void);
 
 
 //---------------------------------------------------------------------

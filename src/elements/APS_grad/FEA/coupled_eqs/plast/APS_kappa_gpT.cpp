@@ -1,4 +1,4 @@
-// $Id: APS_kappa_gpT.cpp,v 1.1 2004-02-17 19:48:47 raregue Exp $
+// $Id: APS_kappa_gpT.cpp,v 1.2 2005-05-03 15:54:47 raregue Exp $
 #include "APS_kappa_gpT.h"
 
 using namespace Tahoe;
@@ -11,7 +11,8 @@ APS_kappa_gpT::APS_kappa_gpT	(FEA_ShapeFunctionT &Shapes_displ, FEA_ShapeFunctio
 }
 
 /* destructor */
-//APS_kappa_gpT::~APS_kappa_gpT(void) { }
+//APS_kappa_gpT::~APS_kappa_gpT(void);
+
 
 //---------------------------------------------------------------------
 

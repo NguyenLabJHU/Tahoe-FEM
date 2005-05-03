@@ -1,4 +1,4 @@
-// $Id: APS_kappa_alphaT.cpp,v 1.1 2004-02-17 19:48:47 raregue Exp $
+// $Id: APS_kappa_alphaT.cpp,v 1.2 2005-05-03 15:54:47 raregue Exp $
 #include "APS_kappa_alphaT.h"
 
 using namespace Tahoe;
@@ -11,7 +11,8 @@ APS_kappa_alphaT::APS_kappa_alphaT	(FEA_ShapeFunctionT &Shapes_displ, FEA_ShapeF
 }
 
 /* destructor */
-//APS_kappa_alphaT::~APS_kappa_alphaT(void) { }
+//APS_kappa_alphaT::~APS_kappa_alphaT(void);
+
 
 //---------------------------------------------------------------------
 
