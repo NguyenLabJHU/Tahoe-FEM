@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.14 2005-04-28 00:45:55 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.15 2005-05-03 05:08:42 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -276,6 +276,9 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 
 	fLHS.Outer(k_d_zeta, k_zeta_d, -1.0/k_zeta_zeta, dMatrixT::kAccumulate);
     }
+  /* cout << "Element Number " << CurrElementNumber() << ". fHLs =\n" << fLHS
+     << endl; */
+
 }
 
 /* compute the measures of strain/deformation over the element */
@@ -337,7 +340,10 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 double SSEnhLocCraigT::CalculateJumpIncrement()
 {
   if (!IsBandActive())
-    return 0.0;
+    {
+      fBand -> StoreJumpIncrement(0.0);
+      return 0.0;
+    }
   
   int ndof = NumDOF();
   dSymMatrixT dGdSigma = FormdGdSigma(ndof);
@@ -368,6 +374,9 @@ double SSEnhLocCraigT::CalculateJumpIncrement()
       jumpIncrement += scale * strainIncr.Dot(dGfD, strainIncr);
       jumpWork += scale * gradActiveTensorFlowDir.Dot(dGfD,gradActiveTensorFlowDir);		  
     }
+  //cout << "jumpIncrement = " << jumpIncrement << endl;
+  //cout << "jumpWork = " << jumpWork << endl;
+
   jumpIncrement /= (jumpWork + area * fBand->H_delta());
 
   double trialDeltaResidCohesion = -1.0*fabs(jumpIncrement)*fBand->H_delta();
@@ -392,6 +401,8 @@ double SSEnhLocCraigT::CalculateJumpIncrement()
       fBand->SetEffectiveSoftening(fBand->H_delta()); 
     } 
   fBand -> StoreJumpIncrement(jumpIncrement);
+
+  cout << "jumpIncrement = " << jumpIncrement << endl;
 
   return jumpIncrement;
 }
@@ -433,27 +444,39 @@ bool SSEnhLocCraigT::IsBandActive()
       shearStress += scale * stressIncr.MultmBn(fBand->PerpSlipDir(),fBand-> Normal()); 
     }
 
+#if 1
   if (shearStress < 0.0)
     {
       /* align slip direction with shear stress direction to get 
 	 correct yield surface */
       fBand-> FlipSlipDir();
       shearStress *= -1.0;
+      cout << "Slip direction flipped\n";
     }
+#endif
 
   normalStress/= area;
   shearStress = shearStress/area;
 
   double neededCohesion = shearStress + normalStress * fLocalizedFrictionCoeff;
  
+  //cout << CurrElementNumber() << endl;
+ cout << "normalStress = " << normalStress << endl;
+ cout << "shearStress = " << shearStress << endl;
+ //cout << "area = " << area << endl;
+ cout << "fBand-> ResidualCohesion() = " << fBand-> ResidualCohesion() << endl;
+ cout << "neededCohesion = " << neededCohesion << endl;
+ 
   if (fBand-> ResidualCohesion() < neededCohesion)
     {
       fBand-> SetActive(true);
+      cout << "Band is active.\n";
       return true;
     }
   else
     {
       fBand -> SetActive(false);
+      cout << "Band is traced but not active this step.\n";
       return false;
     }
 }
@@ -462,12 +485,7 @@ bool SSEnhLocCraigT::IsBandActive()
 void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			   const iArrayT& e_codes, dArray2DT& e_values)
 {
-  SolidElementT::ComputeOutput(n_codes, n_values, e_codes, e_values);
-}
-
-
-void SSEnhLocCraigT::CloseStep(void)
-{
+  #if 1
   if (fLocalizationHasBegun)
     {
       /*update traced elements */ 
@@ -476,29 +494,52 @@ void SSEnhLocCraigT::CloseStep(void)
 	{
 	  if (IsElementTraced())
 	    {
-	      dSymMatrixT strainIncr = fStrain_List [CurrIP()];
-	      strainIncr -= fStrain_last_List [CurrIP()]; 
+	      //cout << "fBand->JumpIncrement = " << fBand->JumpIncrement() << endl;
+
+	        fBand -> CloseStep();
+
+			//SetGlobalShape();	
+
+
+	    	/* loop over integration point */
+	    	fShapes->TopIP();
+	      while (fShapes->NextIP())
+			{    
+	      	dSymMatrixT strainIncr = fStrain_List [CurrIP()];
+	      	strainIncr -= fStrain_last_List [CurrIP()]; 
 	      
-	      dSymMatrixT gradActiveTensorFlowDir =
-		FormGradActiveTensorFlowDir(NumSD(), CurrIP());
-	      gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);
+	     	dSymMatrixT gradActiveTensorFlowDir =
+			FormGradActiveTensorFlowDir(NumSD(), CurrIP());
+	      	gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);      	
+
+	      	strainIncr.AddScaled(-1.0*fBand->JumpIncrement(), gradActiveTensorFlowDir);
 	      
-	      strainIncr.AddScaled(-1.0*fBand->JumpIncrement(), gradActiveTensorFlowDir);
-	      
-	      dSymMatrixT stressIncr(NumSD());
-	      stressIncr.A_ijkl_B_kl(fCurrMaterial->ce_ijkl(), strainIncr);
-	      fBand -> IncrementStress(stressIncr, CurrIP());
-	      
-	      cout << "jumpIncrement = " << fBand->JumpIncrement() << endl;
-	      cout << "fBand->Jump() = " << fBand->Jump() << endl;	
-	      
-	      fBand -> CloseStep();
+	     	dSymMatrixT stressIncr(NumSD());
+	      	stressIncr.A_ijkl_B_kl(fCurrMaterial->ce_ijkl(), strainIncr);
+	      	fBand -> IncrementStress(stressIncr, CurrIP());
+		if (CurrIP() == 0)
+		  {
+		    cout << "strain = \n" << fStrain_List[CurrIP()] << endl;
+		    cout << "strain_last = \n" << fStrain_last_List[CurrIP()] << endl;			  
+		    cout << "strainIncr = \n" << strainIncr << endl; 
+		    cout << "stressIncr = \n" << stressIncr << endl; 
+		  }
+	      	}
+	      	
+
+
+	      //fBand -> CloseStep();
+	      	
+	      	cout << "fBand->JumpIncrement = " << fBand->JumpIncrement() << endl;
+	      	cout << "fBand->Jump() = " << fBand->Jump() << endl;	
 	    }
 	}
       /* check for newly localized elements */
       fEdgeOfBandElements.Top();
+      fEdgeOfBandCoords.Top();
       while(fEdgeOfBandElements.Next())
 	{
+	  fEdgeOfBandCoords.Next();
 	  GetElement(fEdgeOfBandElements.Current());
 	  IsElementLocalized();
 	}
@@ -517,14 +558,109 @@ void SSEnhLocCraigT::CloseStep(void)
 	{
 	  fLocalizationHasBegun = true;
 	  fEdgeOfBandElements.Top();
+	  fEdgeOfBandCoords.Top();
 	  //localize 1st element?
 	  while(fEdgeOfBandElements.Next())
 	    {
+	      fEdgeOfBandCoords.Next();
 	      GetElement(fEdgeOfBandElements.Current());    
 	      IsElementLocalized();
 	    }
 	}
     }
+#endif
+  
+  SmallStrainT::ComputeOutput(n_codes, n_values, e_codes, e_values);
+}
+
+
+void SSEnhLocCraigT::CloseStep(void)
+{
+
+#if 0
+  if (fLocalizationHasBegun)
+    {
+      /*update traced elements */ 
+      Top();
+      while (NextElement())
+	{
+	  if (IsElementTraced())
+	    {
+	      //cout << "fBand->JumpIncrement = " << fBand->JumpIncrement() << endl;
+
+	        fBand -> CloseStep();
+
+			SetGlobalShape();	
+
+
+	    	/* loop over integration point */
+	    	fShapes->TopIP();
+	      while (fShapes->NextIP())
+			{    
+	      	dSymMatrixT strainIncr = fStrain_List [CurrIP()];
+	      	strainIncr -= fStrain_last_List [CurrIP()]; 
+	      
+	     	dSymMatrixT gradActiveTensorFlowDir =
+			FormGradActiveTensorFlowDir(NumSD(), CurrIP());
+	      	gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);      	
+
+	      	strainIncr.AddScaled(-1.0*fBand->JumpIncrement(), gradActiveTensorFlowDir);
+	      
+	     	dSymMatrixT stressIncr(NumSD());
+	      	stressIncr.A_ijkl_B_kl(fCurrMaterial->ce_ijkl(), strainIncr);
+	      	fBand -> IncrementStress(stressIncr, CurrIP());
+		if (CurrIP() == 0)
+		  {
+		    cout << "strain = \n" << fStrain_List[CurrIP()] << endl;
+		    cout << "strain_last = \n" << fStrain_last_List[CurrIP()] << endl;			  
+		    cout << "strainIncr = \n" << strainIncr << endl; 
+		    cout << "stressIncr = \n" << stressIncr << endl; 
+		  }
+	      	}
+	      	
+
+
+	      //fBand -> CloseStep();
+	      	
+	      	cout << "fBand->JumpIncrement = " << fBand->JumpIncrement() << endl;
+	      	cout << "fBand->Jump() = " << fBand->Jump() << endl;	
+	    }
+	}
+      /* check for newly localized elements */
+      fEdgeOfBandElements.Top();
+      fEdgeOfBandCoords.Top();
+      while(fEdgeOfBandElements.Next())
+	{
+	  fEdgeOfBandCoords.Next();
+	  GetElement(fEdgeOfBandElements.Current());
+	  IsElementLocalized();
+	}
+    }
+  else
+    {
+      //choose first element then let band progress
+      bool localizationHasBegun = false;
+      Top();
+      while (NextElement())
+	{
+	  if (IsElementLocalized())
+	    localizationHasBegun = true;
+	}
+      if (localizationHasBegun)
+	{
+	  fLocalizationHasBegun = true;
+	  fEdgeOfBandElements.Top();
+	  fEdgeOfBandCoords.Top();
+	  //localize 1st element?
+	  while(fEdgeOfBandElements.Next())
+	    {
+	      fEdgeOfBandCoords.Next();
+	      GetElement(fEdgeOfBandElements.Current());    
+	      IsElementLocalized();
+	    }
+	}
+    }
+#endif
 
   SmallStrainT::CloseStep();		
 }
@@ -632,7 +768,7 @@ bool SSEnhLocCraigT::IsElementLocalized()
   AutoArrayT <dArrayT> bestNormals;
   AutoArrayT <dArrayT> bestSlipDirs;
   
-  cout << "hi \n ";
+  //cout << "hi \n ";
 
   /* loop over integration points */
   fShapes->TopIP();
@@ -658,7 +794,12 @@ bool SSEnhLocCraigT::IsElementLocalized()
 
   if (locCheck)
     if (fLocalizationHasBegun)
+    {
       ChooseNormals(bestNormals, bestSlipDirs);
+      /* remove element from list of Edge elements*/
+      fEdgeOfBandElements.DeleteAt(fEdgeOfBandElements.Position());
+      fEdgeOfBandCoords.DeleteAt(fEdgeOfBandCoords.Position());  
+     }
     else
       if (detAMin < fDetAMin)
       {
@@ -788,7 +929,7 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
   //2D
   int numSides;
   int numSidesFound = 0;
-  int numElementSides = 0;
+  //int numElementSides = 0;
   iAutoArrayT activeNodes = fBand->ActiveNodes();
 
   switch (GeometryCode())
@@ -814,10 +955,11 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
   LocalArrayT nodalCoords = InitialCoordinates();
   dArrayT nodalCoord1, nodalCoord2; //coords a particular node
 
-  for(int i = 0; i < numElementSides; i++)
-    if ((activeNodes.HasValue(i+1 % numSides) && !activeNodes.HasValue(i))
-	|| (!activeNodes.HasValue(i+1 % numSides) && activeNodes.HasValue(i)))
+  for(int i = 0; i < numSides; i++)
+    if ((activeNodes.HasValue((i+1) % numSides) && !activeNodes.HasValue(i))
+	|| (!activeNodes.HasValue((i+1) % numSides) && activeNodes.HasValue(i)))
       {
+      cout << "i = " << i << endl;	
 		if (!(neighbors(elementNumber,i) = -1 || IsElementTraced(neighbors(elementNumber ,i))))
 	  	{
 	    	//get coords
@@ -839,7 +981,7 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
 		  fEdgeOfBandCoords.Append(interceptCoords);
 	  	} 
 		if (++numSidesFound > 1) 
-	  	break;
+	  		break;
       }
   cout << "numSidesFound = " << numSidesFound <<endl;
 

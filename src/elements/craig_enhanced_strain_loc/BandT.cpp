@@ -205,7 +205,7 @@ void BandT::CloseStep()
   fResidualCohesion += fH_delta * fabs(fJumpIncrement);
   //cout << "fResidualCohesion = " << fResidualCohesion << endl;
 
-  if(fResidualCohesion < 0.0)
+  if(fResidualCohesion <= 0.0)
     {
       fResidualCohesion = 0.0;
       fH_delta = 0.0; //no more softening possible
