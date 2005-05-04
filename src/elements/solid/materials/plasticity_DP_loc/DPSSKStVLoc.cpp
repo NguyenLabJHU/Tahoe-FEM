@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.21 2005-04-25 05:05:57 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.22 2005-05-04 23:31:00 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 #include "SSEnhLocMatSupportT.h"
@@ -9,9 +9,7 @@
 #include "DetCheckT.h"
 #include <iostream.h>
 
-#ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
-#endif
 
 using namespace Tahoe;
 
