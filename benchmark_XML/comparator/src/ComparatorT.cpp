@@ -1,10 +1,14 @@
-/* $Id: ComparatorT.cpp,v 1.25 2004-07-25 06:44:45 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.26 2005-05-04 06:40:38 paklein Exp $ */
 #include "ComparatorT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 #include <time.h>
+#if defined (__GCC_3__) || defined (__GCC_4__)
+#include <strstream>
+#else
 #include <strstream.h>
+#endif
 
 #include "ExceptionT.h"
 #include "ModelManagerT.h"
