@@ -1,4 +1,4 @@
-/* $Id: IsoVECorneaModel.cpp,v 1.3 2005-04-20 23:45:17 thao Exp $ */
+/* $Id: IsoVECorneaModel.cpp,v 1.4 2005-05-04 23:04:28 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVECorneaModel.h"
 
@@ -133,7 +133,7 @@ ParameterInterfaceT* IsoVECorneaModel::NewSub(const StringT& name) const
     LimitT lower(0.0, LimitT::Lower);
 
     /* worm like chain statistics */
-    ParameterContainerT wlc("worm_like_chain");
+    ParameterContainerT wlc("eq_wlc");
     ParameterT N(ParameterT::Double, "chain_density");
     N.AddLimit(lower);
     ParameterT T(ParameterT::Double, "temperature");
@@ -149,7 +149,7 @@ ParameterInterfaceT* IsoVECorneaModel::NewSub(const StringT& name) const
     choice->AddSub(wlc);
  
     /* worm like chain statistics with power law repulsion*/
-    ParameterContainerT wlcrep("worm_like_chain_power_repulsion");
+    ParameterContainerT wlcrep("eq_wlc_rep");
     ParameterT N2(ParameterT::Double, "chain_density");
     N2.AddLimit(lower);
     ParameterT T2(ParameterT::Double, "temperature");
@@ -168,7 +168,7 @@ ParameterInterfaceT* IsoVECorneaModel::NewSub(const StringT& name) const
     choice->AddSub(wlcrep);
 
     /* fung-type chains */
-    ParameterContainerT fungtype("fung_type_chain");
+    ParameterContainerT fungtype("eq_fung");
     ParameterT C1(ParameterT::Double, "multiplier_C1");
     C1.AddLimit(lower);
     ParameterT beta(ParameterT::Double, "exponent_beta");
@@ -178,7 +178,7 @@ ParameterInterfaceT* IsoVECorneaModel::NewSub(const StringT& name) const
     choice->AddSub(fungtype);
 
     /* fung-type chains with repulsion */
-    ParameterContainerT fungrep("fung_type_power_repulsion");
+    ParameterContainerT fungrep("eq_fung_rep");
     ParameterT C12(ParameterT::Double, "multiplier_C1");
     C12.AddLimit(lower);
     ParameterT beta2(ParameterT::Double, "exponent_beta");
@@ -200,7 +200,7 @@ ParameterInterfaceT* IsoVECorneaModel::NewSub(const StringT& name) const
     LimitT lower(0.0, LimitT::Lower);
 
     /* worm like chain statistics */
-    ParameterContainerT wlc("worm_like_chain");
+    ParameterContainerT wlc("neq_wlc");
     ParameterT N(ParameterT::Double, "chain_density");
     N.AddLimit(lower);
     ParameterT T(ParameterT::Double, "temperature");
@@ -216,7 +216,7 @@ ParameterInterfaceT* IsoVECorneaModel::NewSub(const StringT& name) const
     choice->AddSub(wlc);
  
     /* worm like chain statistics with power law repulsion*/
-    ParameterContainerT wlcrep("worm_like_chain_power_repulsion");
+    ParameterContainerT wlcrep("neq_wlc_rep");
     ParameterT N2(ParameterT::Double, "chain_density");
     N2.AddLimit(lower);
     ParameterT T2(ParameterT::Double, "temperature");
@@ -235,7 +235,7 @@ ParameterInterfaceT* IsoVECorneaModel::NewSub(const StringT& name) const
     choice->AddSub(wlcrep);
 
     /* fung-type chains */
-    ParameterContainerT fungtype("fung_type_chain");
+    ParameterContainerT fungtype("neq_fung");
     ParameterT C1(ParameterT::Double, "multiplier_C1");
     C1.AddLimit(lower);
     ParameterT beta(ParameterT::Double, "exponent_beta");
@@ -245,7 +245,7 @@ ParameterInterfaceT* IsoVECorneaModel::NewSub(const StringT& name) const
     choice->AddSub(fungtype);
 
     /* fung-type chains with repulsion */
-    ParameterContainerT fungrep("fung_type_power_repulsion");
+    ParameterContainerT fungrep("neq_fung_rep");
     ParameterT C12(ParameterT::Double, "multiplier_C1");
     C12.AddLimit(lower);
     ParameterT beta2(ParameterT::Double, "exponent_beta");
@@ -289,7 +289,7 @@ void IsoVECorneaModel::TakeParameterList(const ParameterListT& list)
   const ParameterListT& points = list.GetListChoice(*this, "sphere_integration_choice");
   const ParameterListT& viscosities = list.GetListChoice(*this, "viscosity_choice");
   
-  if (eqpotential.Name() == "worm_like_chain")
+  if (eqpotential.Name() == "eq_wlc")
   {
       double N = eqpotential.GetParameter("chain_density");
       double T = eqpotential.GetParameter("temperature");
@@ -307,7 +307,7 @@ void IsoVECorneaModel::TakeParameterList(const ParameterListT& list)
       double p = sqrt(2*A/L);
       fC0_EQ = (N*k*T/A) * ( p - 0.25 + 0.25/((1-p)*(1-p)) );
   }
-  else if (eqpotential.Name() == "worm_like_chain_power_repulsion")
+  else if (eqpotential.Name() == "eq_wlc_rep")
   {
       double N = eqpotential.GetParameter("chain_density");
       double T = eqpotential.GetParameter("temperature");
@@ -328,7 +328,7 @@ void IsoVECorneaModel::TakeParameterList(const ParameterListT& list)
       fC0_EQ = 0.0;
       fR0_EQ = R0;
   }
-  else if (eqpotential.Name() == "fung_type_chain")
+  else if (eqpotential.Name() == "eq_fung")
     {
       double C1 = eqpotential.GetParameter("multiplier_C1");
       double beta = eqpotential.GetParameter("exponent_beta");
@@ -342,7 +342,7 @@ void IsoVECorneaModel::TakeParameterList(const ParameterListT& list)
       fC0_EQ = C1*beta;
       fR0_EQ = 1.0;      
     }
-  else if (eqpotential.Name() == "fung_type_power_repulsion")
+  else if (eqpotential.Name() == "eq_fung_rep")
     {
       double C1 = eqpotential.GetParameter("multiplier_C1");
       double beta = eqpotential.GetParameter("exponent_beta");
@@ -361,7 +361,7 @@ void IsoVECorneaModel::TakeParameterList(const ParameterListT& list)
   else
     ExceptionT::GeneralFail("IsoVECorneaModel::TakeParameterList", "unrecognized potential \"%s\"", eqpotential.Name().Pointer());
 
-  if (neqpotential.Name() == "worm_like_chain")
+  if (neqpotential.Name() == "neq_wlc")
   {
       double N = neqpotential.GetParameter("chain_density");
       double T = neqpotential.GetParameter("temperature");
@@ -379,7 +379,7 @@ void IsoVECorneaModel::TakeParameterList(const ParameterListT& list)
       double p = sqrt(2*A/L);
       fC0_NEQ = (N*k*T/A) * ( p - 0.25 + 0.25/((1-p)*(1-p)) );
   }
-  else if (neqpotential.Name() == "worm_like_chain_power_repulsion")
+  else if (neqpotential.Name() == "neq_wlc_rep")
   {
       double N = neqpotential.GetParameter("chain_density");
       double T = neqpotential.GetParameter("temperature");
@@ -400,7 +400,7 @@ void IsoVECorneaModel::TakeParameterList(const ParameterListT& list)
       fC0_NEQ = 0.0;
       fR0_NEQ = R0;
   }
-  else if (neqpotential.Name() == "fung_type_chain")
+  else if (neqpotential.Name() == "neq_fung")
   {
       double C1 = neqpotential.GetParameter("multiplier_C1");
       double beta = neqpotential.GetParameter("exponent_beta");
@@ -414,7 +414,7 @@ void IsoVECorneaModel::TakeParameterList(const ParameterListT& list)
       fC0_NEQ = C1*beta;
       fR0_NEQ = 1.0;      
   }
-  else if (neqpotential.Name() == "fung_type_power_repulsion")
+  else if (neqpotential.Name() == "neq_fung_rep")
     {
       double C1 = neqpotential.GetParameter("multiplier_C1");
       double beta = neqpotential.GetParameter("exponent_beta");
