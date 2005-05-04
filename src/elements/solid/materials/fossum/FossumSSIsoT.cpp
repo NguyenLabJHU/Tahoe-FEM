@@ -19,10 +19,7 @@
 #include "iArrayT.h"
 #include "ArrayT.h"
 
-#ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
-#endif
-
 
 using namespace Tahoe;
 
@@ -46,7 +43,6 @@ static const char* Labels[kNumOutput] = {
 	"J2",
 	"J3",
 	"loccheck"
-
 };
 
 /*constructor*/
@@ -68,7 +64,6 @@ FossumSSIsoT::FossumSSIsoT(void):
 	//flambda(Lambda()),
 //  SSSolidMatT(in, support),
 //  IsotropicT(in),
-
 
     HookeanMatT(3),
       
@@ -97,7 +92,6 @@ FossumSSIsoT::FossumSSIsoT(void):
 	fTimeFactor(1.0),
         
 	fSSEnhLocMatSupport(NULL)
-
 {
 
     /* allocate space for principal dirs m */

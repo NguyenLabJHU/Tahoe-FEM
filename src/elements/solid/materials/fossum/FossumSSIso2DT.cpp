@@ -1,12 +1,10 @@
-/* $Id: FossumSSIso2DT.cpp,v 1.11 2005-04-28 15:53:07 raregue Exp $ */
+/* $Id: FossumSSIso2DT.cpp,v 1.12 2005-05-04 23:57:56 raregue Exp $ */
 #include "FossumSSIso2DT.h"
 #include "SSEnhLocMatSupportT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
 
-#ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
-#endif
 
 using namespace Tahoe;
 

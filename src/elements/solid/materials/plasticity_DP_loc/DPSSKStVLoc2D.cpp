@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc2D.cpp,v 1.8 2005-05-03 15:52:28 raregue Exp $ */
+/* $Id: DPSSKStVLoc2D.cpp,v 1.9 2005-05-04 23:57:25 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc2D.h"
 #include "SSEnhLocMatSupportT.h"
@@ -6,9 +6,7 @@
 #include "StringT.h"
 #include "DPSSLinHardLocT.h"
 
-#ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
-#endif
 
 using namespace Tahoe;
 
