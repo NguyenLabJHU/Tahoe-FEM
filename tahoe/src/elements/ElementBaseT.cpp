@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.51 2005-02-13 22:12:30 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.52 2005-05-05 16:39:03 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -556,13 +556,13 @@ void ElementBaseT::BlockToGroupElementNumbers(iArrayT& elems, const StringT& blo
 
 /* get local element data, X for geometry, U for
 * field variables */
-const LocalArrayT& ElementBaseT::SetLocalX(LocalArrayT& localarray)
+const LocalArrayT& ElementBaseT::SetLocalX(LocalArrayT& localarray) const
 {
 	localarray.SetLocal(CurrentElement().NodesX());
 	return localarray;
 }
 
-const LocalArrayT& ElementBaseT::SetLocalU(LocalArrayT& localarray)
+const LocalArrayT& ElementBaseT::SetLocalU(LocalArrayT& localarray) const
 {
 	localarray.SetLocal(CurrentElement().NodesU());
 	return localarray;
