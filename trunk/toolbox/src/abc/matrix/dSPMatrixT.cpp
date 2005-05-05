@@ -1,4 +1,4 @@
-/* $Id: dSPMatrixT.cpp,v 1.8 2004-03-16 05:37:16 paklein Exp $ */
+/* $Id: dSPMatrixT.cpp,v 1.9 2005-05-05 16:38:09 paklein Exp $ */
 /* created MLK 10/3/00 */
 #include "dSPMatrixT.h"
 
@@ -372,15 +372,18 @@ void dSPMatrixT::Multx(const dArrayT& x, dArrayT& b) const
 	/* for each nonzero element of the matrix, perform a multiplication
 		with the appropriate element of x and place in the appropriate
 		element of b */
+	double* pb = b.Pointer();
 	for(int i = 0; i < fRows; i++)
 	{
 		/* pointers to beginning of rows */
 		const double* pV = fVal_Matrix(i);
 		const int* pC = fCol_Matrix(i);
-		for(int j = 0; j < fCol_Matrix.MinorDim(i); j++)
-		{
-			b[i] += (*pV++)*x[*pC++];
-		}
+		int dim = fCol_Matrix.MinorDim(i);
+		for(int j = 0; j < dim; j++)
+			*pb += (*pV++)*x[*pC++];
+			
+		/* next row */
+		pb++;
 	}
 }
 
