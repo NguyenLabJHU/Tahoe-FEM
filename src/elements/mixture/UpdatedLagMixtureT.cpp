@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.8 2005-05-05 16:40:15 paklein Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.9 2005-05-05 18:49:41 paklein Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -33,7 +33,8 @@ void UpdatedLagMixtureT::SetConcentration(int i, ConcentrationT conc)
 	const char caller[] = "UpdatedLagMixtureT::SetConcentration";
 
 	/* get material */
-	FSSolidMixtureT* mixture = TB_DYNAMIC_CAST(FSSolidMixtureT*, fCurrMaterial);
+	ContinuumMaterialT* pcont_mat = (*fMaterialList)[0]; /* just use first material */
+	FSSolidMixtureT* mixture = TB_DYNAMIC_CAST(FSSolidMixtureT*, pcont_mat);
 	if (!mixture) 
 		ExceptionT::GeneralFail("UpdatedLagMixtureT::SetConcentration", 
 			"material is not a mixture");

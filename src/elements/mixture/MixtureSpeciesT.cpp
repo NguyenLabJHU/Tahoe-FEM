@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.12 2005-05-05 16:40:15 paklein Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.13 2005-05-05 18:49:41 paklein Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
@@ -51,12 +51,7 @@ void MixtureSpeciesT::WriteOutput(void)
 			{
 				/* ip values */
 				IP_Interpolate(fLocDisp, ip_conc);		
-	
-				/* integrand */
-				double jwc = (*j++)*(*w++)*ip_conc[0];
-				if (fConcentration == kCurrent) 
-					jwc *= fUpdatedLagMixture->DeformationGradient(fShapes->CurrIP()).Det();
-	
+
 				/* accumulate */
 				mass += (*j++)*(*w++)*ip_conc[0];
 			}
@@ -65,7 +60,8 @@ void MixtureSpeciesT::WriteOutput(void)
 		/* output */
 		ofstreamT& out = ElementSupport().Output();
 		int d_width = OutputWidth(out, &mass);
-		out << setw(d_width) << ElementSupport().Time()
+		out << '\n'
+		    << setw(d_width) << ElementSupport().Time()
 		    << setw(d_width) << mass
 		    << ": time, mass of \"" << Field().FieldName() << "\"" << '\n';
 	}
@@ -130,7 +126,8 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 	ElementBaseT& element = ElementSupport().ElementGroup(solid_element_group);	
 	fUpdatedLagMixture = TB_DYNAMIC_CAST(UpdatedLagMixtureT*, &element);
 	if (!fUpdatedLagMixture)
-		ExceptionT::GeneralFail(caller, "group %d is not a mixture", solid_element_group+1);
+		ExceptionT::GeneralFail(caller, "group %d \"%s\" is not a mixture", 
+			solid_element_group+1, element.Name().Pointer());
 	
 	/* checks */
 	if (fUpdatedLagMixture->NumElements() != NumElements() ||
@@ -189,6 +186,8 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 	fMassFlux.Dimension(NumElements(), NumIP()*NumSD());
 	fNEEmat.Dimension(NumElementNodes());
 	fNSDmat1.Dimension(NumSD());
+	fNSDmat2.Dimension(NumSD());
+	fNSDmat3.Dimension(NumSD());
 }
 
 /***********************************************************************
@@ -244,7 +243,8 @@ void MixtureSpeciesT::Top(void)
 	NLDiffusionElementT::Top();
 
 	/* will need deformation gradient */
-	if (fConcentration == kCurrent) fUpdatedLagMixture->Top();
+	if (fConcentration == kCurrent || fGradientOption == kGlobalProjection) 
+		fUpdatedLagMixture->Top();
 }
 	
 /* advance to next element */ 
@@ -254,7 +254,7 @@ bool MixtureSpeciesT::NextElement(void)
 	bool next = NLDiffusionElementT::NextElement();
 
 	/* will need deformation gradient */
-	if (fConcentration == kCurrent) 
+	if (fConcentration == kCurrent || fGradientOption == kGlobalProjection) 
 		next = fUpdatedLagMixture->NextElement() && next;
 
 	return next;
