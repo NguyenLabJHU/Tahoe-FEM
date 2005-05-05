@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.11 2005-05-05 16:40:14 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.12 2005-05-05 18:49:11 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -325,25 +325,43 @@ if (fabs(detF - 1.0) > kSmall)
 /* return the number of constitutive model output values */
 int FSSolidMixtureT::NumOutputVariables(void) const
 {
-	/* partial stress for each species */
-	return fIPConc.Length()*dSymMatrixT::NumValues(NumSD());
+	int num_output =
+		fIPConc.Length()*2 + /* current and reference concentration  for each species */
+		fIPConc.Length()*dSymMatrixT::NumValues(NumSD()); /* partial stress for each species */
+
+	return num_output;
 }
 
 /* return the labels for model output parameters */
-void FSSolidMixtureT::OutputLabels(Tahoe::ArrayT<StringT>& labels) const
+void FSSolidMixtureT::OutputLabels(ArrayT<StringT>& labels) const
 {
+	/* set up */
+	labels.Dimension(NumOutputVariables());
+	int nsp = fIPConc.Length();
+	int index = 0;
+
+	/* concentration labels */
+	const char* conc[4] = {"_ref", "_cur"};
+	for (int i = 0; i < nsp; i++)
+	{
+		/* field name */
+		const StringT& field_name = fFields[i]->FieldName();
+	
+		for (int j = 0; j < 2; j++) {
+			StringT label;
+			label.Append("c_", field_name, conc[j]);
+			labels[index++] = label;
+		}	
+	}
+
+	/* stress labels */
 	int nsd = NumSD();
 	const char* slabels1D[] = {"s11"};
 	const char* slabels2D[] = {"s11", "s22", "s12"};
 	const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12"};
 	const char** slabellist[3] = {slabels1D, slabels2D, slabels3D};
 	const char** slabels = slabellist[nsd-1];
-	
-	int nsp = fIPConc.Length();
 	int nst = dSymMatrixT::NumValues(nsd);
-	labels.Dimension(nsp*nst);
-	
-	int index = 0;
 	for (int i = 0; i < nsp; i++) {
 	
 		/* field name */
@@ -359,13 +377,21 @@ void FSSolidMixtureT::OutputLabels(Tahoe::ArrayT<StringT>& labels) const
 }
 
 /* return material output variables */
-void FSSolidMixtureT::ComputeOutput(Tahoe::dArrayT& output)
+void FSSolidMixtureT::ComputeOutput(dArrayT& output)
 {
 	/* get current concentrations */
 	if (CurrIP() == 0) UpdateConcentrations();
+	IPConcentration(fConc, fIPConc);
+	int offset = 0;
+
+	/* collect concentrations */
+	double detF = fFSMatSupport->DeformationGradient().Det();
+	for (int i = 0; i < fIPConc.Length(); i++){
+		output[offset++] = fIPConc[i];
+		output[offset++] = fIPConc[i]/detF;
+	}
 
 	/* collect partial stresses */
-	int offset = 0;
 	for (int i = 0; i < fIPConc.Length(); i++)
 	{
 		const dSymMatrixT& s_ij_i = s_ij(i);
