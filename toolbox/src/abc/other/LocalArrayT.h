@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.h,v 1.14 2005-01-26 19:53:27 paklein Exp $ */
+/* $Id: LocalArrayT.h,v 1.15 2005-05-05 16:35:24 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #ifndef _LOCALARRAY_T_H_
@@ -113,6 +113,9 @@ public:
 	 * \param global source for data collected with LocalArrayT::SetLocal.
 	 *        The source must have the same MinorDim as this array. */
 	void SetGlobal(const dArray2DT& global);
+	
+	/** return a reference to the global source */
+	const dArray2DT& Global(void) const;
 
 	/** gather values from the source dArray2DT. Values are collected from
 	 * the rows of the source dArray2DT, being transposed in the process.
@@ -272,6 +275,15 @@ inline void LocalArrayT::FromTranspose(const nArrayT<double>& transpose)
 
 	/* call primitive function */
 	FromTranspose(transpose.Pointer());
+}
+
+/* return a reference to the global source */
+inline const dArray2DT& LocalArrayT::Global(void) const
+{
+#if __option (extended_errorcheck)
+	if(!fGlobal) ExceptionT::GeneralFail("LocalArrayT::Global", "pointer not set");
+#endif
+	return *fGlobal;
 }
 
 } /* namespace Tahoe */
