@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.10 2005-03-07 01:34:34 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.11 2005-05-05 16:40:14 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -15,8 +15,8 @@ using namespace Tahoe;
 FSSolidMixtureT::FSSolidMixtureT(void):
 	ParameterInterfaceT("large_strain_solid_mixture"),
 //	fFSSolidMixtureSupport(NULL),
-	fStressSupport(NULL),
-	fConc(LocalArrayT::kDisp)
+	fConc(LocalArrayT::kDisp),
+	fStressSupport(NULL)
 {
 
 }
@@ -90,7 +90,7 @@ double FSSolidMixtureT::Density(void)
 {
 	/* update concentrations */
 	if (CurrIP() == 0) UpdateConcentrations();
-	fFSMatSupport->Interpolate(fConc, fIPConc);
+	IPConcentration(fConc, fIPConc);
 
 	fDensity = fIPConc.Sum();
 	return fDensity;
@@ -104,7 +104,7 @@ const dSymMatrixT& FSSolidMixtureT::ds_ij_dc(int i)
 	const dArrayT& conc_0 = element.DoubleData();
 
 	/* concentrations */
-	fFSMatSupport->Interpolate(fConc, fIPConc);
+	IPConcentration(fConc, fIPConc);
 	dArrayT& conc = fIPConc;	
 
 	/* select the perturbation */
@@ -151,7 +151,7 @@ double FSSolidMixtureT::StrainEnergyDensity(void)
 
 	/* update concentrations */
 	if (CurrIP() == 0) UpdateConcentrations();
-	fFSMatSupport->Interpolate(fConc, fIPConc);
+	IPConcentration(fConc, fIPConc);
 
 	/* sum over species */
 	double u = 0.0;
@@ -178,7 +178,7 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(void)
 
 	/* update concentrations */
 	if (CurrIP() == 0) UpdateConcentrations();
-	fFSMatSupport->Interpolate(fConc, fIPConc);
+	IPConcentration(fConc, fIPConc);
 	const dArrayT& conc = fIPConc;
 	//const dArrayT& conc = fFSSolidMixtureSupport->Concentration();
 
@@ -209,7 +209,7 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(int i)
 	const dArrayT& conc_0 = element.DoubleData();
 
 	/* concentrations */
-	fFSMatSupport->Interpolate(fConc, fIPConc);
+	IPConcentration(fConc, fIPConc);
 	const dArrayT& conc = fIPConc;	
 
 	/* compute mechanical strain */
@@ -235,7 +235,7 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(void)
 
 	/* update concentrations */
 	if (CurrIP() == 0) UpdateConcentrations();
-	fFSMatSupport->Interpolate(fConc, fIPConc);
+	IPConcentration(fConc, fIPConc);
 	const dArrayT& conc = fIPConc;
 
 	/* sum over species */
@@ -265,7 +265,7 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(int i)
 	const dArrayT& conc_0 = element.DoubleData();
 
 	/* concentrations */
-	fFSMatSupport->Interpolate(fConc, fIPConc);
+	IPConcentration(fConc, fIPConc);
 	const dArrayT& conc = fIPConc;	
 
 	/* compute mechanical strain */
@@ -285,6 +285,12 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(int i)
 /* initialization */
 void FSSolidMixtureT::PointInitialize(void)
 {
+//TEMP - assuming initial state is undeformed
+double detF = fFSMatSupport->DeformationGradient().Det();
+if (fabs(detF - 1.0) > kSmall)
+	ExceptionT::GeneralFail("FSSolidMixtureT::PointInitialize",
+		"body is not undeformed: det(F) = %g", detF);
+
 	/* info */
 	int cip = CurrIP();
 	int nip = NumIP();
@@ -306,7 +312,7 @@ void FSSolidMixtureT::PointInitialize(void)
 	}
 	
 	/* initialize concentrations */
-	fFSMatSupport->Interpolate(fConc, fIPConc);
+	IPConcentration(fConc, fIPConc);
 	int nc = fIPConc.Length();
 //	element.DoubleData() = fIPConc;	
 	element.DoubleData().CopyPart(cip*nc, fIPConc, 0, nc);
@@ -439,6 +445,8 @@ void FSSolidMixtureT::TakeParameterList(const ParameterListT& list)
 
 	/* species */
 	int num_species = list.NumLists("solid_mixture_species");
+	fConcentration.Dimension(num_species);
+	fConcentration = kReference;
 	fStressFunctions.Dimension(num_species);
 	fStressFunctions = NULL;
 	fFields.Dimension(num_species);
@@ -492,4 +500,23 @@ FSSolidMatT* FSSolidMixtureT::New(const StringT& name) const
 		return new SimoIso3D;
 	else
 		return NULL;
+}
+
+/* compute integration point concentrations */
+void FSSolidMixtureT::IPConcentration(const LocalArrayT& c_nodal, dArrayT& c_ip) const
+{
+	/* interpolate values to the integration point */
+	fFSMatSupport->Interpolate(c_nodal, c_ip);
+
+	/* compute total density from species concentration */
+	double detF = 1.0;
+	bool detF_set = false;
+	for (int i = 0; i < c_ip.Length(); i++)
+		if (Concentration(i) == kCurrent) {
+			if (!detF_set) {
+				detF = fFSMatSupport->DeformationGradient().Det();
+				detF_set = true;
+			}
+			c_ip[i] *= detF;
+		}
 }

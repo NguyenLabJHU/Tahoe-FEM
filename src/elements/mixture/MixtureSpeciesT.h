@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.h,v 1.7 2005-01-25 23:05:56 paklein Exp $ */
+/* $Id: MixtureSpeciesT.h,v 1.8 2005-05-05 16:40:15 paklein Exp $ */
 #ifndef _MIXTURE_SPECIES_T_H_
 #define _MIXTURE_SPECIES_T_H_
 
@@ -36,6 +36,31 @@ protected:
 		kGlobalProjection,
 		kElementProjection
 	};
+
+	/** concentration enum */
+	enum ConcentrationT {
+		kReference,
+		kCurrent
+	};
+
+	/** allocate and initialize shape function objects */
+	virtual void SetShape(void);
+
+	/** allocate and initialize local arrays */
+	virtual void SetLocalArrays(void);
+
+	/** compute shape functions and derivatives */
+	virtual void SetGlobalShape(void);
+
+	/** \name element loop operations */
+	/*@{*/
+	/** reset loop */
+	virtual void Top(void);
+	
+	/** advance to next element. \return true if there is another element, 
+	 * false otherwise */ 
+	virtual bool NextElement(void);
+	/*@}*/
 
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
 	/*@{*/
@@ -76,6 +101,9 @@ protected:
 	/** method used to compute stress gradient */
 	GradientOptionT fGradientOption;
 
+	/** concentration type */
+	ConcentrationT fConcentration;
+
 	/** write total species mass to output */
 	bool fOutputMass;
 
@@ -107,8 +135,14 @@ protected:
 	ArrayT<dMatrixT> fip_gradient;
 	/*@}*/
 	
-	/** work space */
+	/** \name work space */
+	/*@{*/
 	dMatrixT fNEEmat;
+	dMatrixT fNSDmat1, fNSDmat2, fNSDmat3;
+	/*@}*/
+
+	/** current coords with local ordering */
+	LocalArrayT fLocCurrCoords;	
 };
 
 } /* namespace Tahoe */

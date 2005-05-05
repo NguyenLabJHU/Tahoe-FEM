@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.h,v 1.5 2005-01-25 23:06:53 paklein Exp $ */
+/* $Id: FSSolidMixtureT.h,v 1.6 2005-05-05 16:40:15 paklein Exp $ */
 #ifndef _FS_SOLID_MIX_T_H_
 #define _FS_SOLID_MIX_T_H_
 
@@ -8,7 +8,7 @@
 namespace Tahoe {
 
 /* forward declarations */
-class FSSolidMixtureSupportT;
+//class FSSolidMixtureSupportT;
 
 /** base class for finite deformation solid composed of a mixture */
 class FSSolidMixtureT: public FSSolidMatT
@@ -26,6 +26,22 @@ public:
 
 	/** finite strain mixture materials support */
 //	const FSSolidMixtureSupportT& FSSolidMixtureSupport(void) const;
+
+	/** concentration enum */
+	enum ConcentrationT {
+		kReference,
+		kCurrent
+	};
+	void SetConcentration(int i, ConcentrationT conc) { fConcentration[i] = conc; };
+	ConcentrationT Concentration(int i) const { return fConcentration[i]; };
+
+	/** need to compute objective velocity gradient in mass balance
+	 * \note this is really only needed when FSSolidMixtureT::fConcentration ==
+	 *       FSSolidMixtureT::kCurrent; however, the element class configures
+	 *       itself based on the state of the material after construction,
+	 *       while the concentration type of each associated MixtureSpeciesT
+	 *       isn't determined until later. */
+	virtual bool Need_F_last(void) const { return true; };
 
 	/** get all nodal concentrations over the current element */
 	void UpdateConcentrations(void);
@@ -115,16 +131,31 @@ protected:
 	/** return the specified stress function or NULL */
 	FSSolidMatT* New(const StringT& name) const;
 
+	/** compute integration point concentrations. Interpolate the nodal values
+	 * to the current integration point and convert all concentrations to
+	 * reference concentration if FSSolidMixtureT::Concentration is
+	 * FSSolidMixtureT::kCurrent.
+	 * \param c_nodal nodal concentrations
+	 * \param c_ip returns with reference concentrations at the current
+	 *        integration point. */
+	void IPConcentration(const LocalArrayT& c_nodal, dArrayT& c_ip) const;
+
 protected:
 
 	/** support for finite strain mixture materials */
 //	const FSSolidMixtureSupportT* fFSSolidMixtureSupport;
 
-	/** element concentration */
+	/** element concentration. Nodal values of the species concentrations. The array can
+	 * contain either reference or current concentrations. The type is indicated in
+	 * FSSolidMixtureT::fConcentration. */
 	LocalArrayT fConc;
 	
-	/** integration point concentrations */
+	/** integration point concentrations. If updated using FSSolidMixtureT::IPConcentration,
+	 * all concentrations will be with respect to the reference configuration. */
 	dArrayT fIPConc;
+
+	/** concentration type for each species */
+	ArrayT<ConcentrationT> fConcentration;
 
 	/** array of stored energy functions */
 	ArrayT<FSSolidMatT*> fStressFunctions;

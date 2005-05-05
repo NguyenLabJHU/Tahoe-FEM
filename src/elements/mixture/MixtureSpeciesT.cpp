@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.11 2005-01-25 23:05:56 paklein Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.12 2005-05-05 16:40:15 paklein Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
@@ -13,10 +13,12 @@ using namespace Tahoe;
 MixtureSpeciesT::MixtureSpeciesT(const ElementSupportT& support):
 	NLDiffusionElementT(support),
 	fGradientOption(kGlobalProjection),
+	fConcentration(kReference),
 	fOutputMass(false),
 	fUpdatedLagMixture(NULL),
 	fBackgroundSpecies(NULL),
-	fIndex(-1)
+	fIndex(-1),
+	fLocCurrCoords(LocalArrayT::kCurrCoords)
 {
 	SetName("mixture_species");
 }
@@ -49,6 +51,11 @@ void MixtureSpeciesT::WriteOutput(void)
 			{
 				/* ip values */
 				IP_Interpolate(fLocDisp, ip_conc);		
+	
+				/* integrand */
+				double jwc = (*j++)*(*w++)*ip_conc[0];
+				if (fConcentration == kCurrent) 
+					jwc *= fUpdatedLagMixture->DeformationGradient(fShapes->CurrIP()).Det();
 	
 				/* accumulate */
 				mass += (*j++)*(*w++)*ip_conc[0];
@@ -87,6 +94,13 @@ void MixtureSpeciesT::DefineParameters(ParameterListT& list) const
 	grad_opt.SetDefault(fGradientOption);
 	list.AddParameter(grad_opt);
 
+	/* concentration type */
+	ParameterT conc_opt(ParameterT::Enumeration, "concentration");
+	conc_opt.AddEnumeration("reference_concentration", kReference);
+	conc_opt.AddEnumeration("current_concentration", kCurrent);
+	conc_opt.SetDefault(fConcentration);
+	list.AddParameter(conc_opt);
+
 	/* output total species mass */
 	ParameterT output_mass(fOutputMass, "output_mass");
 	output_mass.SetDefault(fOutputMass);
@@ -97,6 +111,15 @@ void MixtureSpeciesT::DefineParameters(ParameterListT& list) const
 void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "MixtureSpeciesT::TakeParameterList";
+
+	/* concentration */
+	int conc_opt = list.GetParameter("concentration");
+	if (conc_opt == kReference)
+		fConcentration = kReference;
+	else if (conc_opt == kCurrent)
+		fConcentration = kCurrent;
+	else
+		ExceptionT::GeneralFail(caller, "unrecognized \"concentration\" %d", conc_opt);
 
 	/* inherited */
 	NLDiffusionElementT::TakeParameterList(list);
@@ -114,7 +137,7 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 		fUpdatedLagMixture->NumElementNodes() != NumElementNodes() ||
 		fUpdatedLagMixture->NumIP() != NumIP())
 		ExceptionT::SizeMismatch(caller);
-
+	
 	/* method used to compute stress gradient */
 	int grad_opt = list.GetParameter("stress_gradient_option");
 	if (grad_opt == kGlobalProjection)
@@ -155,15 +178,87 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::GeneralFail(caller, "could not resolve index of field \"%s\"",
 			Field().FieldName().Pointer());
 
+	/* set concentration type */
+	if (fConcentration == kReference)
+		fUpdatedLagMixture->SetConcentration(fIndex, UpdatedLagMixtureT::kReference);
+	else
+		fUpdatedLagMixture->SetConcentration(fIndex, UpdatedLagMixtureT::kCurrent);
+
 	/* dimension */
 	fFluxVelocity.Dimension(NumElements(), NumIP()*NumSD());
 	fMassFlux.Dimension(NumElements(), NumIP()*NumSD());
 	fNEEmat.Dimension(NumElementNodes());
+	fNSDmat1.Dimension(NumSD());
 }
 
 /***********************************************************************
  * Protected
  ***********************************************************************/
+
+/* allocate and initialize shape function objects */
+void MixtureSpeciesT::SetShape(void)
+{
+	/* clear existing */
+	delete fShapes;
+
+	/* configuration */
+	const LocalArrayT& coords = (fConcentration == kCurrent) ?
+		fLocCurrCoords : fLocInitCoords;
+
+	/* construct shape functions */
+	fShapes = new ShapeFunctionT(GeometryCode(), NumIP(), coords);
+	fShapes->Initialize();
+}
+
+/* allocate and initialize local arrays */
+void MixtureSpeciesT::SetLocalArrays(void)
+{
+	/* inherited */
+	NLDiffusionElementT::SetLocalArrays();
+	
+	/* set up array of current nodal coordinates */
+	if (fConcentration == kCurrent) {
+		fLocCurrCoords.Dimension(NumElementNodes(), NumSD());
+		ElementSupport().RegisterCoordinates(fLocCurrCoords);
+	}
+}
+
+/* compute shape functions and derivatives */
+void MixtureSpeciesT::SetGlobalShape(void)
+{
+	/* collect coordinates */
+	if (fConcentration == kCurrent) SetLocalX(fLocCurrCoords);
+	
+	/* inherited */
+	NLDiffusionElementT::SetGlobalShape();
+	
+	/* will need deformation gradient */
+	if (fConcentration == kCurrent || fGradientOption == kGlobalProjection)
+		fUpdatedLagMixture->SetGlobalShape();
+}
+
+/* reset loop */
+void MixtureSpeciesT::Top(void)
+{
+	/* inherited */
+	NLDiffusionElementT::Top();
+
+	/* will need deformation gradient */
+	if (fConcentration == kCurrent) fUpdatedLagMixture->Top();
+}
+	
+/* advance to next element */ 
+bool MixtureSpeciesT::NextElement(void)
+{
+	/* inherited */
+	bool next = NLDiffusionElementT::NextElement();
+
+	/* will need deformation gradient */
+	if (fConcentration == kCurrent) 
+		next = fUpdatedLagMixture->NextElement() && next;
+
+	return next;
+}
 
 /* form the residual force vector */
 void MixtureSpeciesT::RHSDriver(void)
@@ -211,20 +306,43 @@ void MixtureSpeciesT::FormKd(double constK)
 	
 		/* retrieve the mass flux */
 		M_e.RowAlias(ip, M);
-	
+
 		/* set field gradient */
-		grad.Set(1, nsd, fGradient_list[CurrIP()].Pointer());
+		grad.Alias(1, nsd, fGradient_list[ip].Pointer());
 		IP_ComputeGradient(fLocDisp, grad);
 		
 		/* interpolate field */
-		field.Set(1, fField_list.Pointer(CurrIP()));
+		field.Alias(1, fField_list.Pointer(ip));
 		IP_Interpolate(fLocDisp, field);
 
 		/* get strain-displacement matrix */
-		B(fShapes->CurrIP(), fB);
+		B(ip, fB);
 
 		/* (div) flux contribution */
 		fB.MultTx(M, fNEEvec);
+
+		/* c div(v) contribution */
+		if (fConcentration == kCurrent) 
+		{
+			/* deformation gradients */
+			const dMatrixT& F = fUpdatedLagMixture->DeformationGradient(ip);
+			const dMatrixT& F_last = fUpdatedLagMixture->DeformationGradient_last(ip);
+			
+			/* compute h and h^T h */
+			fNSDmat1.DiffOf(F, F_last);           /* GRAD U (8.1.9) */
+			fNSDmat2.Inverse(F);                  /* F^-1 */
+			fNSDmat3.MultAB(fNSDmat1, fNSDmat2);  /* h (8.1.7) */
+			fNSDmat1.MultATB(fNSDmat3, fNSDmat3); /* h^T h */
+
+			/* compute velocity gradient (Simo: 8.1.22) and (Simo: 8.3.13) */
+			double dt = ElementSupport().TimeStep();
+			double by_dt = (dt > kSmall) ? 1.0/dt : 0.0;
+			fNSDmat2.SetToCombination(by_dt, fNSDmat3, -0.5*by_dt, fNSDmat1);
+
+			/* c div(v) */
+			double c_div_v = field[0]*fNSDmat2.Trace();
+			fNEEvec.AddScaled(-c_div_v, fShapes->IPShapeU());
+		}
 
 		/* accumulate */
 		fRHS.AddScaled(-constK*(*Weight++)*(*Det++), fNEEvec);
@@ -265,17 +383,17 @@ void MixtureSpeciesT::FormStiffness(double constK)
 		
 		/* retrieve the mass flux derivative */
 		DM.Alias(nsd, nen, DM_e(ip));
-	
+
 		/* set field gradient */
-//		grad.Set(1, nsd, fGradient_list[CurrIP()].Pointer());
+//		grad.Alias(1, nsd, fGradient_list[CurrIP()].Pointer());
 //		IP_ComputeGradient(fLocDisp, grad);
 		
 		/* interpolate field */
-//		field.Set(1, fField_list.Pointer(CurrIP()));
+//		field.Alias(1, fField_list.Pointer(CurrIP()));
 //		IP_Interpolate(fLocDisp, field);
 
 		/* strain displacement matrix */
-		B(fShapes->CurrIP(), fB);
+		B(ip, fB);
 	
 		/* (divergence) mass flux contribution */
 		fNEEmat.MultATB(fB, DM);
@@ -294,6 +412,7 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 	int nip = NumIP();
 	dArrayT force(nsd);
 	dMatrixT F_inv(nsd);
+	dMatrixT jacobian(nsd);
 
 	/* project partial stresses to the nodes */
 	LocalArrayT P(LocalArrayT::kUnspecified), dP(LocalArrayT::kUnspecified);
@@ -345,7 +464,6 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 	dMatrixT dM;
 
 	Top();
-	fUpdatedLagMixture->Top();
 	while (NextElement()) 
 	{
 		int e = CurrElementNumber();
@@ -353,14 +471,8 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 		/* global shape function values */
 		SetGlobalShape();
 	
-		/* set solid element */
-		fUpdatedLagMixture->NextElement();
-		if (fGradientOption == kGlobalProjection)
-		{
-			/* compute shape functions */
-			fUpdatedLagMixture->SetGlobalShape();
-			
-			/* collect nodal stresses */
+		/* collect nodal stresses */
+		if (fGradientOption == kGlobalProjection) {
 			SetLocalU(P);
 			if (compute_dmass_flux) SetLocalU(dP);
 		}
@@ -386,9 +498,17 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 		{
 			int ip = fShapes->CurrIP();
 
+			/* deformation gradient */
+			const dMatrixT& F = fUpdatedLagMixture->DeformationGradient(ip);
+			double detF = F.Det();
+			F_inv.Inverse(F);
+
 			/* ip values */
-			IP_Interpolate(fLocDisp, ip_conc);		
+			IP_Interpolate(fLocDisp, ip_conc);
 			IP_Interpolate(acc, ip_acc);		
+
+			/* convert to reference concentration */
+			if (fConcentration == kCurrent)	ip_conc *= detF;
 		
 			/* inertial forces */
 			force.SetToCombination(-1.0, ip_acc, 1.0, body_force);
@@ -407,9 +527,9 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 			else /* element-by-element gradient calculation */
 			{
 				/* transform gradient matrix to element (ref) coordinates */
-				fShapes->ParentDomain().DomainJacobian(fLocInitCoords, ip, F_inv);
-				F_inv.Inverse();
-				ip_grad_X.MultATB(F_inv, fip_gradient[ip]);
+				fShapes->ParentDomain().DomainJacobian(fLocInitCoords, ip, jacobian);
+				jacobian.Inverse();
+				ip_grad_X.MultATB(jacobian, fip_gradient[ip]);
 
 				/* compute divergence of P */
 				ComputeDivergence(ip_grad_X, fP_ip, divP);
@@ -428,8 +548,6 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 // add motion of background
 
 			/* compute mass flux */
-			const dMatrixT& F = fUpdatedLagMixture->DeformationGradient(ip);
-			F_inv.Inverse(F);
 			M_e.RowAlias(ip, M);
 			F_inv.Multx(V, M);
 			
@@ -480,6 +598,18 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 				/* accumulate */
 				mat.MultABC(F_inv, D, d_divP);
 				dM.AddScaled(-1.0/ip_conc[0], mat);
+				
+				/* transform to current configuration */
+				if (fConcentration == kCurrent) {
+					mat.SetToScaled(1.0/detF, dM);
+					dM.MultAB(F, mat);
+				}
+			}
+			
+			/* transform to current configuration */
+			if (fConcentration == kCurrent) {
+				vec1.SetToScaled(1.0/detF, M);
+				F.Multx(vec1, M);
 			}
 		}
 	}	

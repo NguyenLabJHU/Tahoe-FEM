@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.7 2005-02-16 21:37:47 paklein Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.8 2005-05-05 16:40:15 paklein Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -25,6 +25,26 @@ int UpdatedLagMixtureT::SpeciesIndex(const StringT& field_name) const
 
 	/* resolve index */
 	return mixture->SpeciesIndex(field_name);
+}
+
+/* set concentration flag */
+void UpdatedLagMixtureT::SetConcentration(int i, ConcentrationT conc)
+{
+	const char caller[] = "UpdatedLagMixtureT::SetConcentration";
+
+	/* get material */
+	FSSolidMixtureT* mixture = TB_DYNAMIC_CAST(FSSolidMixtureT*, fCurrMaterial);
+	if (!mixture) 
+		ExceptionT::GeneralFail("UpdatedLagMixtureT::SetConcentration", 
+			"material is not a mixture");
+			
+	/* set flag */
+	if (conc == kReference)
+		mixture->SetConcentration(i, FSSolidMixtureT::kReference);
+	else if (conc == kCurrent)
+		mixture->SetConcentration(i, FSSolidMixtureT::kCurrent);	
+	else
+		ExceptionT::GeneralFail(caller, "unrecognized flag %d", conc);
 }
 
 /* project the given partial first Piola-Kirchoff stress to the nodes */
@@ -156,10 +176,7 @@ void UpdatedLagMixtureT::IP_PartialStress(int i, ArrayT<dMatrixT>* ip_stress,
 		if (!mixture) 
 			ExceptionT::GeneralFail("UpdatedLagMixtureT::IP_PartialStress", 
 				"material is not a mixture");
-	
-		/* global shape function values */
-		SetGlobalShape();
-		
+
 		/* collect concentration */
 		mixture->UpdateConcentrations(i);
 
@@ -214,14 +231,22 @@ void UpdatedLagMixtureT::IP_PartialStress(int i, ArrayT<dMatrixT>* ip_stress,
 }
 
 /* return the nodal accelerations over the current element */
-void UpdatedLagMixtureT::Acceleration(LocalArrayT& acc)
+void UpdatedLagMixtureT::Acceleration(LocalArrayT& acc) const
 {
 	if (fIntegrator->Order() == 2) {
-		SetLocalU(fLocAcc);
-		acc = fLocAcc;
+		acc.SetGlobal(fLocAcc.Global());
+		SetLocalU(acc);
 	}
 	else
 		acc = 0.0;
+}
+
+/* return the nodal velocities over the current element */
+void UpdatedLagMixtureT::Velocity(LocalArrayT& vel) const
+{
+	/* should have been set during SetGlobalShape because FSSolidMixtureT
+	 * "needs" velocity information */
+	vel = fLocVel;
 }
 
 /* return the body force vector */
