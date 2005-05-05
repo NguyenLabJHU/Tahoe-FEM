@@ -26,6 +26,7 @@ public:
 
 	/** constructor */
 	MFGPMatSupportT(int ndof, int nip);
+	MFGPMatSupportT(int ndof_displ, int ndof_plast, int nip_displ, int nip_plast);
 
 	/** destructor */
 	virtual ~MFGPMatSupportT(void);
@@ -33,10 +34,11 @@ public:
 	/** \name dimensions */
 	/*@{*/
 	/** number of degrees of freedom (per node) */
-	int NumDOF(void) const { return fNumDOF; };
+	int NumDOF(void) const { return fNumDOF_displ; };
+	int NumDOF_PM(void) const { return fNumDOF_plast; };
 
 	/** stress evaluation points per element */
-	int NumIP(void) const { return fNumIP; };
+	int NumIP(void) const { return fNumIP_displ; };
 	/*@}*/
 
 	/** the low-level communicator only including processes with non-zero numbers
@@ -145,42 +147,42 @@ public:
 	
 	/** \name plastic multiplier */
 	/*@{*/
-	const dArrayT& Lambda(void) const;
-	const dArrayT& Lambda(int ip) const;
+	const dArrayT& LambdaPM(void) const;
+	const dArrayT& LambdaPM(int ip) const;
 	/*@}*/
 	
 	/** \name laplacian of plastic multiplier */
 	/*@{*/
-	const dArrayT& LapLambda(void) const;
-	const dArrayT& LapLambda(int ip) const;
+	const dArrayT& LapLambdaPM(void) const;
+	const dArrayT& LapLambdaPM(int ip) const;
 	/*@}*/
 
 	/** plastic multiplier from the end of the previous time step */
 	/*@{*/
-	const dArrayT& Lambda_last(void) const;
-	const dArrayT& Lambda_last(int ip) const;
+	const dArrayT& LambdaPM_last(void) const;
+	const dArrayT& LambdaPM_last(int ip) const;
 	/*@}*/
 	
 	/** laplacian of plastic multiplier from the end of the previous time step */
 	/*@{*/
-	const dArrayT& LapLambda_last(void) const;
-	const dArrayT& LapLambda_last(int ip) const;
+	const dArrayT& LapLambdaPM_last(void) const;
+	const dArrayT& LapLambdaPM_last(int ip) const;
 	/*@}*/
 	
 	/*@}*/
 	/** set source for the plastic multiplier */
-	void SetLambda(const ArrayT<dArrayT>* lambda_List);
+	void SetLambdaPM(const ArrayT<dArrayT>* lambda_List);
 
 	/** set source for the plastic multiplier from the end of the previous time step */
-	void SetLambda_last(const ArrayT<dArrayT>* lambda_last_List);
+	void SetLambdaPM_last(const ArrayT<dArrayT>* lambda_last_List);
 	/*@}*/
 	
 	/*@}*/
 	/** set source for the laplacian of plastic multiplier */
-	void SetLapLambda(const ArrayT<dArrayT>* laplambda_List);
+	void SetLapLambdaPM(const ArrayT<dArrayT>* laplambda_List);
 
 	/** set source for the laplacian of plastic multiplier from the end of the previous time step */
-	void SetLapLambda_last(const ArrayT<dArrayT>* laplambda_last_List);
+	void SetLapLambdaPM_last(const ArrayT<dArrayT>* laplambda_last_List);
 	/*@}*/
 
   private:
@@ -188,10 +190,12 @@ public:
   	/** \name dimensions */
   	/*@{*/
 	/** number of degrees of freedom */
-	int fNumDOF;
+	int fNumDOF_displ;
+	int fNumDOF_plast;
 	
 	/** number of integration points */
-	int fNumIP;
+	int fNumIP_displ;
+	int fNumIP_plast;
   	/*@}*/
   	
   	/** source for the current integration point */
@@ -213,6 +217,9 @@ public:
 	/*@{*/
 	const LocalArrayT* fInitCoords;
 	const LocalArrayT* fDisp;
+	const LocalArrayT* fLastDisp;
+	const LocalArrayT* fVel;
+	const LocalArrayT* fAcc;
 	/*@}*/
 	
 	/** \name return values */
@@ -239,7 +246,7 @@ inline const MFGP_AssemblyT* MFGPMatSupportT::MFGPAssembly(void) const
 
 /* solver iteration number for the group set with MaterialSupportT::SetGroup */
 inline const int& MFGPMatSupportT::GroupIterationNumber(void) const {
-	if (fGroup == -1) ExceptionT::GeneralFail("MaterialSupportT::GroupIterationNumber", "solver group not set");
+	if (fGroup == -1) ExceptionT::GeneralFail("MFGPMatSupportT::GroupIterationNumber", "solver group not set");
 	return IterationNumber(fGroup); /* inherited */
 }
 
@@ -343,49 +350,49 @@ inline const dSymMatrixT& MFGPMatSupportT::LapLinearStrain_last(int ip) const
 }
 
 /* return plastic multiplier */
-inline const dArrayT& MFGPMatSupportT::Lambda(void) const
+inline const dArrayT& MFGPMatSupportT::LambdaPM(void) const
 {
 	if (!fLambda_List) throw ExceptionT::kGeneralFail;
 	return (*fLambda_List)[CurrIP()]; 
 }
 
-inline const dArrayT& MFGPMatSupportT::Lambda(int ip) const
+inline const dArrayT& MFGPMatSupportT::LambdaPM(int ip) const
 {
 	if (!fLambda_List) throw ExceptionT::kGeneralFail;
 	return (*fLambda_List)[ip]; 
 }
 
-inline const dArrayT& MFGPMatSupportT::Lambda_last(void) const
+inline const dArrayT& MFGPMatSupportT::LambdaPM_last(void) const
 {
 	if (!fLambda_last_List) throw ExceptionT::kGeneralFail;
 	return (*fLambda_last_List)[CurrIP()]; 
 }
 
-inline const dArrayT& MFGPMatSupportT::Lambda_last(int ip) const
+inline const dArrayT& MFGPMatSupportT::LambdaPM_last(int ip) const
 {
 	if (!fLambda_last_List) throw ExceptionT::kGeneralFail;
 	return (*fLambda_last_List)[ip]; 
 }
 
-inline const dArrayT& MFGPMatSupportT::LapLambda(void) const
+inline const dArrayT& MFGPMatSupportT::LapLambdaPM(void) const
 {
 	if (!fLapLambda_List) throw ExceptionT::kGeneralFail;
 	return (*fLapLambda_List)[CurrIP()]; 
 }
 
-inline const dArrayT& MFGPMatSupportT::LapLambda(int ip) const
+inline const dArrayT& MFGPMatSupportT::LapLambdaPM(int ip) const
 {
 	if (!fLapLambda_List) throw ExceptionT::kGeneralFail;
 	return (*fLapLambda_List)[ip]; 
 }
 
-inline const dArrayT& MFGPMatSupportT::LapLambda_last(void) const
+inline const dArrayT& MFGPMatSupportT::LapLambdaPM_last(void) const
 {
 	if (!fLapLambda_last_List) throw ExceptionT::kGeneralFail;
 	return (*fLapLambda_last_List)[CurrIP()]; 
 }
 
-inline const dArrayT& MFGPMatSupportT::LapLambda_last(int ip) const
+inline const dArrayT& MFGPMatSupportT::LapLambdaPM_last(int ip) const
 {
 	if (!fLapLambda_last_List) throw ExceptionT::kGeneralFail;
 	return (*fLapLambda_last_List)[ip]; 

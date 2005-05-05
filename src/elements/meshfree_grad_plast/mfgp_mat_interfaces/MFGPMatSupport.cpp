@@ -8,8 +8,8 @@ using namespace Tahoe;
 
 /* constructor */
 MFGPMatSupportT::MFGPMatSupportT(int ndof, int nip):
-	fNumDOF(ndof),
-	fNumIP(nip),
+	fNumDOF_displ(ndof),
+	fNumIP_displ(nip),
 	fCurrIP(NULL),
 
 	/* multiprocessor information */
@@ -18,7 +18,31 @@ MFGPMatSupportT::MFGPMatSupportT(int ndof, int nip):
 	fMFGPAssembly(NULL),
 	fGroup(-1),
 	fInitCoords(NULL),
-	fDisp(NULL)
+	fDisp(NULL),
+	fLastDisp(NULL),
+	fVel(NULL),
+	fAcc(NULL)
+{ 
+
+}
+
+MFGPMatSupportT::MFGPMatSupportT(int ndof_displ, int ndof_plast, int nip_displ, int nip_plast):
+	fNumDOF_displ(ndof_displ),
+	fNumDOF_plast(ndof_plast),
+	fNumIP_displ(nip_displ),
+	fNumIP_plast(nip_plast),
+	fCurrIP(NULL),
+
+	/* multiprocessor information */
+	fGroupCommunicator(NULL),
+	fElementCards(NULL),
+	fMFGPAssembly(NULL),
+	fGroup(-1),
+	fInitCoords(NULL),
+	fDisp(NULL),
+	fLastDisp(NULL),
+	fVel(NULL),
+	fAcc(NULL)
 { 
 
 }
@@ -57,6 +81,15 @@ const LocalArrayT* MFGPMatSupportT::LocalArray(LocalArrayT::TypeT t) const
 	
 		case LocalArrayT::kDisp:
 			return fDisp;
+		
+		case LocalArrayT::kLastDisp:
+			return fLastDisp;
+	
+		case LocalArrayT::kVel:
+			return fVel;
+
+		case LocalArrayT::kAcc:
+			return fAcc;
 
 		default:
 			return NULL;
@@ -74,8 +107,21 @@ void MFGPMatSupportT::SetLocalArray(const LocalArrayT& array)
 		case LocalArrayT::kDisp:
 			fDisp = &array;
 			break;
+			
+		case LocalArrayT::kLastDisp:
+			fLastDisp = &array;
+			break;
+	
+		case LocalArrayT::kVel:
+			fVel = &array;
+			break;
+
+		case LocalArrayT::kAcc:
+			fAcc = &array;
+			break;
+			
 		default:
-			ExceptionT::GeneralFail("MaterialSupportT::LocalArray",
+			ExceptionT::GeneralFail("MFGPMatSupportT::LocalArray",
 				"unrecognized array type: %d", array.Type());
 	}
 }
@@ -149,7 +195,7 @@ void MFGPMatSupportT::SetLapLinearStrain_last(const ArrayT<dSymMatrixT>* lapstra
 }
 
 /* set source for the plastic multiplier */
-void MFGPMatSupportT::SetLambda(const ArrayT<dArrayT>* lambda_List)
+void MFGPMatSupportT::SetLambdaPM(const ArrayT<dArrayT>* lambda_List)
 {
 //NOTE: cannot do dimension checks because source is not initialized
 //      when this is configured 
@@ -166,7 +212,7 @@ void MFGPMatSupportT::SetLambda(const ArrayT<dArrayT>* lambda_List)
 }
 
 /** set source for the plastic multiplier from the end of the previous time step */
-void MFGPMatSupportT::SetLambda_last(const ArrayT<dArrayT>* lambda_last_List)
+void MFGPMatSupportT::SetLambdaPM_last(const ArrayT<dArrayT>* lambda_last_List)
 {
 //NOTE: cannot do dimension checks because source is not initialized
 //      when this is configured 
@@ -183,7 +229,7 @@ void MFGPMatSupportT::SetLambda_last(const ArrayT<dArrayT>* lambda_last_List)
 }
 	
 /* set source for the laplacian of plastic multiplier */
-void MFGPMatSupportT::SetLapLambda(const ArrayT<dArrayT>* laplambda_List)
+void MFGPMatSupportT::SetLapLambdaPM(const ArrayT<dArrayT>* laplambda_List)
 {
 //NOTE: cannot do dimension checks because source is not initialized
 //      when this is configured 
@@ -200,7 +246,7 @@ void MFGPMatSupportT::SetLapLambda(const ArrayT<dArrayT>* laplambda_List)
 }
 
 /** set source for the plastic multiplier from the end of the previous time step */
-void MFGPMatSupportT::SetLapLambda_last(const ArrayT<dArrayT>* laplambda_last_List)
+void MFGPMatSupportT::SetLapLambdaPM_last(const ArrayT<dArrayT>* laplambda_last_List)
 {
 //NOTE: cannot do dimension checks because source is not initialized
 //      when this is configured 
