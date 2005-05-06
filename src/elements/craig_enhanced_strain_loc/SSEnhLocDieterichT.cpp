@@ -31,6 +31,8 @@ void SSEnhLocDieterichT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(fFrictionB, "friction_parameter_B");
 	list.AddParameter(fD_c, "evolution_paramter_D_c");
 	list.AddParameter(fTheta_0, "initial_isv_theta_0");
+	list.AddParameter(fBeta_zeta,"time_integration_parameter_beta_zeta");
+	list.AddParameter(fBeta_theta,"time_integration_parameter_beta_theta");        
 }
 
 void SSEnhLocDieterichT::TakeParameterList(const ParameterListT& list)
@@ -47,6 +49,8 @@ void SSEnhLocDieterichT::TakeParameterList(const ParameterListT& list)
   fFrictionB = list.GetParameter("friction_parameter_B");
   fD_c = list.GetParameter("evolution_paramter_D_c");
   fTheta_0 = list.GetParameter("initial_isv_theta_0");
+  fBeta_zeta = list.GetParameter("time_integration_parameter_beta_zeta");
+  fBeta_theta = list.GetParameter("time_integration_parameter_beta_theta");
 }
 
 void SSEnhLocDieterichT::FormStiffness(double constK)
@@ -65,9 +69,12 @@ void SSEnhLocDieterichT::FormStiffness(double constK)
     {
       //cout << "SSEnhLocDieterichT::FormStiffness\n";
 
-
-	      cout << "Dieterich FormStiffness, fBand->JumpIncrement() = "
-		   << fBand->JumpIncrement() << endl;
+      cout << "Dieterich FormStiffness, fBand->JumpIncrement() = "
+	   << fBand->JumpIncrement() << endl;
+      
+      double slipRate = fDieterichBand->SlipRate();
+      double thetaNew = fDieterichBand->Theta();
+      double jumpIncrement = fBand -> JumpIncrement();
 
 	/* matrix format */
 	dMatrixT::SymmetryFlagT format = dMatrixT::kWhole;
@@ -85,10 +92,10 @@ void SSEnhLocDieterichT::FormStiffness(double constK)
 	k_d_zeta = 0.0;
 	k_zeta_d = 0.0;
 
-	dSymMatrixT gradActiveTensorFlowDir(ndof), dGdSigmaPlus(ndof), nTensorn(ndof);
+	dSymMatrixT gradActiveTensorFlowDir(ndof), dGdSigma(ndof), nTensorn(ndof);
 	dMatrixT fLHSWork(nedof),fDfB((fCurrMaterial->ce_ijkl().Rows()),nedof);
 
-	dGdSigmaPlus = FormdGdSigma(ndof, fBand->JumpIncrement(), fDieterichBand->DeltaTheta());
+	dGdSigma = FormdGdSigma(ndof, slipRate, thetaNew);
 	nTensorn.Outer(fBand->Normal());
 	nTensorn.ScaleOffDiagonal(2.0);
 	/*dGdSigmaPlus.AddScaled(BigConstant(fBand->JumpIncrement(),fDieterichBand->DeltaTheta()),
@@ -125,13 +132,15 @@ void SSEnhLocDieterichT::FormStiffness(double constK)
 		k_d_zeta += k_d_zeta_work;
 
 		//form k_zeta_d
-		fDfB.MultTx(dGdSigmaPlus, k_zeta_d_work);
+		fDfB.MultTx(dGdSigma, k_zeta_d_work);
 		k_zeta_d += k_zeta_d_work;
 
 	}
+	k_d_zeta *= fBeta_zeta * ElementSupport().TimeStep();
+
 	k_zeta_d *= 1.0/area;
 
-	k_zeta_zeta = DdeltaGdJump(fBand->JumpIncrement(),fDieterichBand->DeltaTheta());
+	k_zeta_zeta = DPhidSlipRate(slipRate, jumpIncrement, thetaNew);
 	//	k_zeta_zeta = DdeltaGdJumpGlobal(fBand->JumpIncrement(),fDieterichBand->DeltaTheta());
 
 
@@ -152,20 +161,20 @@ double SSEnhLocDieterichT::CalculateJumpIncrement()
   // cout << "fBand->SlipDir =\n" << fBand->SlipDir() << endl;
 
   double newtonTol = 1.0e-12;
-  double jumpIncrement = fDieterichBand->JumpIncrLast();
-  if (jumpIncrement <= 0.0)
-    jumpIncrement = 3.013904e-03; //think of better estimate
-
-  double deltaTheta = 0.0;
+  double dt = ElementSupport().TimeStep();
+  
+  double slipRate = 0.0;
+  double jumpIncrement = JumpIncrement(slipRate);
+  double thetaNew = ThetaNew(slipRate);
   int newtonCounter = 0;
   int maxIter = 20;
 
   // what about coming off an elastic step? 
-  double deltaG = DeltaG(jumpIncrement, deltaTheta);
-  cout << "deltaG = " << deltaG << endl;
+  double yieldFn = Phi(slipRate, jumpIncrement, thetaNew);
+  cout << "yieldFn = " << yieldFn << endl;
 
       // make this a relative tolerance
-  while (fabs(deltaG) > newtonTol)
+  while (fabs(yieldFn) > newtonTol)
     {
       /* if too many iterations, stop and cut load step */
       if(newtonCounter++ >maxIter)
@@ -175,30 +184,26 @@ double SSEnhLocDieterichT::CalculateJumpIncrement()
 	}
 
       /* update jump increment via Newton iteration */
-      //cout << "DdeltaGdJump = " << DdeltaGdJump(jumpIncrement, deltaTheta) << endl;
+      slipRate -= yieldFn/DPhidSlipRate(slipRate, jumpIncrement, thetaNew);
 
-      jumpIncrement -= deltaG/DdeltaGdJump(jumpIncrement, deltaTheta);
-
-      /* can't allow non-positive jump increment - in log fn creates
-	 non-real answer */
-      if (jumpIncrement <= 0.0)
-	jumpIncrement = newtonTol;
-      //cout << "deltaG = " << deltaG << endl;
-      //cout << "DdeltaGdJump = " << DdeltaGdJump(jumpIncrement, deltaTheta) << endl;
-      //cout << "jumpIncrement = " << jumpIncrement << endl;
+      cout << "dPhiSlipRate = " << DPhidSlipRate(slipRate, jumpIncrement,
+						 thetaNew) << endl;
+      cout << "slipRate = " << slipRate << endl;
 
       /*update increment of ISV */
-      deltaTheta = DeltaTheta(jumpIncrement, deltaTheta);
-      //cout << "deltaTheta = " << deltaTheta << endl;
-      /* update regular strains? */
+      jumpIncrement = JumpIncrement(slipRate);
+      thetaNew = ThetaNew(slipRate);
+         /* update regular strains? */
 
       /*reform DeltaG*/
-      deltaG = DeltaG(jumpIncrement, deltaTheta);
-      cout << "deltaG = " << deltaG << endl;
+      yieldFn = Phi(slipRate, jumpIncrement, thetaNew);
+      cout << "yieldFn = " << yieldFn << endl;
     }
 
+
   fBand -> StoreJumpIncrement(jumpIncrement);
-  fDieterichBand -> StoreDeltaTheta(deltaTheta);
+  fDieterichBand -> StoreTheta(thetaNew);
+  fDieterichBand -> StoreSlipRate(slipRate);
 
   return jumpIncrement;
 }      
@@ -272,37 +277,36 @@ bool SSEnhLocDieterichT::IsBandActive()
 
 /*--------------------------------math functions------------------*/
 
-double SSEnhLocDieterichT::DeltaTheta(double jumpIncrement, double deltaTheta)
+double SSEnhLocDieterichT::JumpIncrement(double slipRate)
 {
-  double dt = ElementSupport().TimeStep();
-  return  (dt * fD_c - fDieterichBand->Theta()*jumpIncrement)/ (
-  fD_c + jumpIncrement);
-
-  //return 1.0 - (fDieterichBand->Theta() + deltaTheta ) *jumpIncrement/(dt*fD_c);
-  //return 1.0 - (fDieterichBand->Theta()) *jumpIncrement/(dt*fD_c);
+  return ElementSupport().TimeStep() * ((1-fBeta_zeta)*
+	 fDieterichBand->SlipRateLast() + fBeta_zeta * slipRate);
 }
 
-double SSEnhLocDieterichT::DeltaG(double jumpIncrement, double deltaTheta)
+double SSEnhLocDieterichT::ThetaNew(double slipRate)
+{
+  double dt = ElementSupport().TimeStep();
+
+  return fD_c * (fDieterichBand->ThetaLast() + dt * (1 - fBeta_theta) *
+		 fDieterichBand -> ThetaRateLast() + fBeta_theta) 
+    / (fD_c + fBeta_theta* slipRate * dt);
+}
+
+double SSEnhLocDieterichT::Phi(double slipRate, double jumpIncrement, double thetaNew)
 {
   dSymMatrixT stressIncr = StressIncrOnBand(jumpIncrement);
   dSymMatrixT currStress = LastStressOnBand();
   currStress += stressIncr;
 
-  dSymMatrixT dGdSigma = FormdGdSigma(NumDOF(), jumpIncrement, deltaTheta);
+  dSymMatrixT dPhidSigma = FormdGdSigma(NumDOF(), slipRate, thetaNew);
   //dGdSigma.ScaleOffDiagonal(0.5);
 
-  double deltaG = dGdSigma.Dot(dGdSigma, currStress); 
-
-  //double normalStress = currStress.MultmBn(fBand->Normal(), fBand->Normal());
-
-  //deltaG += BigConstant(jumpIncrement, deltaTheta) * normalStress;
-  
-  //cout << "BigConstant = " << BigConstant(jumpIncrement, deltaTheta) << endl;
+  double phi = dPhidSigma.Dot(dPhidSigma, currStress); 
 
   //address end of cohesion
-  deltaG -= (fBand->ResidualCohesion() + fBand->H_delta()*jumpIncrement);
+  phi -= (fBand->ResidualCohesion() + fBand->H_delta()*jumpIncrement);
 
-  return deltaG;
+  return phi;
 }
 
 dSymMatrixT SSEnhLocDieterichT::StressIncrOnBand(double jumpIncrement)
@@ -387,126 +391,86 @@ dSymMatrixT SSEnhLocDieterichT::AvgStrainRelaxation(double jumpIncrement)
 }
 
 
-double SSEnhLocDieterichT::BigConstant(double jumpIncrement, double deltaTheta) 
+double SSEnhLocDieterichT::DPhidSlipRate(double slipRate, double jumpIncr, double thetaNew)
 {
-  /*  
-  cout << "bc fBand = " << fBand << flush << endl;  
-  cout << "bc fDieterich = " << fDieterichBand  << flush << endl;
-  cout << "bc Jump = " << fBand -> Jump() << flush << endl;
-  cout << "bc Jump = " << fDieterichBand -> Jump() << flush << endl;
-  cout << "bc Theta = " << fDieterichBand -> Theta() << flush << endl;
-  */
 
-  double bc = fFrictionA * (1 - fDieterichBand->JumpIncrLast()/jumpIncrement);
-  bc += fFrictionB * ( 1 - fDieterichBand->Theta()/(fDieterichBand->Theta() +
-  deltaTheta));
+  dSymMatrixT dSigmadSlipRate = DSigmadSlipRate(jumpIncr);
 
-  //cout << "bc = " << bc << endl;
+  dSymMatrixT dPhidSigma = FormdGdSigma(NumDOF(), slipRate, thetaNew);
+  //dGdSigma.ScaleOffDiagonal(0.5);
 
-  return bc;
+  double dPhi = dPhidSigma.Dot(dPhidSigma, dSigmadSlipRate); 
+
+  //cout << "dPhi = " << dPhi << endl;
+
+  dPhi += DmudSlipRate(slipRate, thetaNew) * NormalStress(jumpIncr);
+
+  //cout << "dPhi = " << dPhi << endl;
+
+  dPhi += fBand -> H_delta() * DjumpdSlipRate();
+
+  //cout << "dPhi = " << dPhi << endl;
+
+  return dPhi;
 }
 
-double SSEnhLocDieterichT::DdeltaGdJump(double jumpIncr, double deltaTheta)
+dSymMatrixT SSEnhLocDieterichT::DSigmadSlipRate(double jumpIncrement)
 {
-  return DdeltaGdJumpAtConstTheta(jumpIncr, deltaTheta) +
-  DdeltaGdTheta(jumpIncr, deltaTheta) * DThetaDJump(jumpIncr, deltaTheta);
+  dSymMatrixT dSigmadSlipRate(NumSD());
 
-}
-
-double SSEnhLocDieterichT::DdeltaGdJumpGlobal(double jumpIncr, double deltaTheta)
-{
-  return DdeltaGdJumpAtConstTheta(jumpIncr, deltaTheta) +
-  DdeltaGdThetaGlobal(jumpIncr, deltaTheta) * DThetaDJump(jumpIncr, deltaTheta);
-}
-
-double SSEnhLocDieterichT:: DdeltaGdJumpAtConstTheta(double jumpIncrement,
-double deltaTheta) 
-{
-  
   dSymMatrixT avgStrainRelaxation = AvgStrainRelaxation(jumpIncrement);
-  //currently in vector form - make into matrix
   avgStrainRelaxation.ScaleOffDiagonal(0.5);
-  //avgStrainRelaxation *= -1.0;
 
-  dSymMatrixT dGdSigmaPlus = FormdGdSigma(NumDOF(), jumpIncrement, deltaTheta);
-  dGdSigmaPlus.ScaleOffDiagonal(0.5);
+  dSigmadSlipRate.A_ijkl_B_kl(fD, avgStrainRelaxation);
 
-  
-  dSymMatrixT nTensorn(NumDOF());
-  nTensorn.Outer(fBand->Normal());
-
-  /*
-  dGdSigmaPlus.AddScaled(BigConstant(jumpIncrement, deltaTheta),
-  nTensorn);
-  */
-
-  dSymMatrixT avgStressRelaxation(NumDOF());
-  avgStressRelaxation.A_ijkl_B_kl(fCurrMaterial->ce_ijkl(),
-  avgStrainRelaxation);
-  double answer = -1.0 * dGdSigmaPlus.ScalarProduct(avgStressRelaxation);
-
-  answer -= fBand->H_delta();
-
-
-
-  dSymMatrixT stressIncr = StressIncrOnBand(jumpIncrement);
-  dSymMatrixT currStress = LastStressOnBand();
-  currStress += stressIncr;
-  double normalStress = currStress.MultmBn(fBand->Normal(),
-  fBand->Normal());
-  //double normalStressIncr = stressIncr.MultmBn(fBand->Normal(), fBand->Normal());
-
-  answer += fFrictionA * normalStress/( jumpIncrement);
-  /*
-  answer += fFrictionA * normalStressIncr/jumpIncrement;
-  */
-  return answer;
+  dSigmadSlipRate *= -1.0*DjumpdSlipRate();
+  return dSigmadSlipRate;
 }
 
-double SSEnhLocDieterichT::DdeltaGdTheta(double jumpIncrement, double deltaTheta) 
+double SSEnhLocDieterichT::DjumpdSlipRate()
 {
-    dSymMatrixT stressIncr = StressIncrOnBand(jumpIncrement);
-  dSymMatrixT currStress = LastStressOnBand();
-  currStress += stressIncr;
-  double normalStress = currStress.MultmBn(fBand->Normal(), fBand->Normal());
-  double normalStressIncr = stressIncr.MultmBn(fBand->Normal(), fBand->Normal());
-
-  double currentTheta = fDieterichBand->Theta() + deltaTheta;
-
-  //    return fFrictionB  *normalStress/(currentTheta); 
-
-    
- return fFrictionB  * normalStress/currentTheta; 
+  return fBeta_zeta * ElementSupport().TimeStep();
 }
 
-double SSEnhLocDieterichT::DdeltaGdThetaGlobal(double jumpIncrement, double deltaTheta) 
+double SSEnhLocDieterichT::DmudSlipRate(double slipRate, double thetaNew)
 {
-    dSymMatrixT stressIncr = StressIncrOnBand(jumpIncrement);
-  dSymMatrixT currStress = LastStressOnBand();
-  currStress += stressIncr;
-  double normalStress = currStress.MultmBn(fBand->Normal(), fBand->Normal());
-  double normalStressIncr = stressIncr.MultmBn(fBand->Normal(), fBand->Normal());
-
-  double currentTheta = fDieterichBand->Theta() + deltaTheta;
-
-    return fFrictionB * ( 2*  fDieterichBand->Theta()) *
-      normalStress/(currentTheta *currentTheta); 
-
-  /* return fFrictionB * fDieterichBand->Theta()  *
-      normalStress/(currentTheta *currentTheta) + fFrictionB *
-      normalStressIncr/currentTheta; */
+  if (slipRate == 0.0)
+    return 1.0/(2.0* fV_star) * exp((fMu_star + fFrictionB * log( thetaNew/fTheta_star))/fFrictionA);
+  else
+    {
+      double arg = ArcSinhArg(slipRate, thetaNew);
+      return arg * ( 1.0/slipRate + fFrictionB * DthetadSlipRate(slipRate)/
+		     (fFrictionA * thetaNew)) / sqrt(1 + arg * arg);
+    }
 }
 
-double SSEnhLocDieterichT::DThetaDJump(double jumpIncrement, double deltaTheta)
+double SSEnhLocDieterichT::ArcSinhArg(double slipRate, double theta)
+{
+  return slipRate/(2.0* fV_star) * exp((fMu_star + fFrictionB * log( theta/fTheta_star))/fFrictionA);
+}
+
+double SSEnhLocDieterichT::DthetadSlipRate(double slipRate)
 {
   double dt = ElementSupport().TimeStep();
-    double work = (fD_c + jumpIncrement);
 
-   return  -1.0 * fD_c * (fDieterichBand->Theta() + dt)/(work*work);
+  double numerator = fDieterichBand-> ThetaLast();
+  numerator += dt * ( ( 1 - fBeta_theta) * fDieterichBand -> ThetaRateLast()
+		      + fBeta_theta); 
+ numerator *= fBeta_theta * dt * fD_c;
 
-  //return  -1.0*(fDieterichBand->Theta() + deltaTheta)/(fD_c * dt);
-  //return  -1.0*(fDieterichBand->Theta())/(fD_c * dt);
+ double sqrtDenom = (fD_c + fBeta_theta * slipRate * dt);
+
+ return numerator/(sqrtDenom * sqrtDenom);  
 }
+
+double SSEnhLocDieterichT::NormalStress(double jumpIncr)
+{
+  dSymMatrixT currStress = LastStressOnBand();
+  currStress += StressIncrOnBand(jumpIncr);
+
+  return currStress.MultmBn(fBand->Normal(), fBand->Normal());
+}
+
 
 /*------end math functions----------------------------------------*/
 
@@ -557,8 +521,18 @@ void SSEnhLocDieterichT::LoadBand(int elementNumber)
   fDieterichBand = dynamic_cast<DieterichBandT*> (fBand);
 }
 
+double SSEnhLocDieterichT::FrictionCoeff(double slipRate, double theta)
+{
+  return fFrictionA * arcsinh(ArcSinhArg(slipRate, theta));
+}
+
+double SSEnhLocDieterichT::arcsinh(double arg)
+{
+  return log(arg + sqrt(arg*arg + 1));
+}
+
 dSymMatrixT SSEnhLocDieterichT::FormdGdSigma(int ndof, double
-jumpIncrement, double deltaTheta)
+slipRate, double thetaNew)
 {
   dSymMatrixT dGdSigma(ndof), work(ndof);
   dMatrixT dGNonSym(ndof);
@@ -567,10 +541,8 @@ jumpIncrement, double deltaTheta)
   dGdSigma.Symmetrize(dGNonSym);
 
   double dt = ElementSupport().TimeStep();
-  double frictionCoeff = fLocalizedFrictionCoeff;
-  frictionCoeff += fFrictionA * log(jumpIncrement/(dt * fV_star));
-  frictionCoeff += fFrictionB * log((fDieterichBand->Theta()+deltaTheta)/fTheta_star); 
-
+  double frictionCoeff = FrictionCoeff(slipRate, thetaNew);
+ 
   work.Outer(fBand->Normal());
   dGdSigma.AddScaled(frictionCoeff, work);
 

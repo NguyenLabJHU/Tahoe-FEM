@@ -36,27 +36,31 @@ namespace Tahoe {
       //virtual void CloseStep(void);
       virtual void LoadBand(int elementNumber);
 
-
-
       /* math functions for jump increment */
-      virtual double DeltaTheta(double jumpIncrement, double deltaTheta);
-      virtual double DeltaG(double jumpIncr, double deltaTheta);
-      virtual double DdeltaGdJump(double jumpIncr, double deltaTheta);
-      virtual double DdeltaGdJumpGlobal(double jumpIncr, double deltaTheta);
+      //virtual double ThetaNew(double jumpIncrement, double deltaTheta);
+      //virtual double Phi(double jumpIncr, double deltaTheta);
+      //virtual double DPhidSlipRate(double jumpIncr, double deltaTheta);
      virtual dSymMatrixT StressIncrOnBand(double jumpIncrement);
       virtual dSymMatrixT LastStressOnBand();
       virtual dSymMatrixT AvgStrainRelaxation(double jumpIncrement);
-      virtual double BigConstant(double jumpIncrement, double deltaTheta);
 
-      virtual double DdeltaGdJumpAtConstTheta(double jumpIncrement,
-					      double deltaTheta); 
-      virtual double DdeltaGdTheta(double jumpIncrement, double
-				   deltaTheta);
-      virtual double DdeltaGdThetaGlobal(double jumpIncrement, double
-				   deltaTheta);
-      virtual double DThetaDJump(double jumpIncrement, double deltaTheta);
       virtual dSymMatrixT FormdGdSigma(int ndof, double
-					     jumpIncrement, double deltaTheta);
+					     slipRate, double thetaNew);
+
+
+
+      virtual double JumpIncrement(double slipRate);
+      virtual double ThetaNew(double slipRate);
+      virtual  double Phi(double slipRate, double jumpIncrement, double thetaNew);
+      virtual double DPhidSlipRate(double slipRate, double jumpIncr, double thetaNew);
+      virtual dSymMatrixT DSigmadSlipRate(double JumpIncrement);
+      virtual double DjumpdSlipRate();
+      virtual double DmudSlipRate(double slipRate, double thetaNew);
+      virtual double ArcSinhArg(double slipRate, double theta);
+      virtual double DthetadSlipRate(double slipRate);
+      virtual double NormalStress(double jumpIncr);
+      virtual double FrictionCoeff(double slipRate, double theta);
+      virtual double arcsinh(double arg);
 
     private:
 
@@ -71,6 +75,8 @@ namespace Tahoe {
       double fFrictionB;
       double fD_c;
       double fTheta_0; //perhaps same as fTheta_star?
+      double fBeta_zeta;
+      double fBeta_theta;
     }; //end class declaration
 
 }//end namespace Tahoe

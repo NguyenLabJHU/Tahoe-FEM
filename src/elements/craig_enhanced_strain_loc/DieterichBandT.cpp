@@ -13,8 +13,12 @@ BandT(normal, slipDir, perpSlipDir, coords,
 				   fH_delta_0, residCohesion, stressList,
       element),
 fTheta(theta_0),
-fLastJumpIncrement(0.0),
-fDeltaTheta(0.0)
+fLastTheta(theta_0),
+fSlipRate(0.0),
+fLastSlipRate(0.0),
+fLastThetaRate(0.0) //what should this be?
+//fLastJumpIncrement(0.0),
+//fDeltaTheta(0.0)
 {}
 
 
@@ -23,19 +27,21 @@ double DieterichBandT::Theta()
   return fTheta;
 }
 
+/*
 double DieterichBandT::DeltaTheta()
 {
   return fDeltaTheta;
 }
+*/
 
-void DieterichBandT::StoreDeltaTheta(double deltaTheta)
+void DieterichBandT::StoreTheta(double theta)
 {
-  fDeltaTheta = deltaTheta;
+  fTheta = theta;
 }
 
-double DieterichBandT::JumpIncrLast()
+double DieterichBandT::SlipRateLast()
 {
-  return fLastJumpIncrement;
+  return fLastSlipRate;
 }
 
 void DieterichBandT::CloseStep()
@@ -44,7 +50,8 @@ void DieterichBandT::CloseStep()
   BandT::CloseStep();
 
   /* update ISV theta */
-  fTheta += fDeltaTheta;
+  fLastTheta = fTheta;
   /* store jump increment for next time step */
-  fLastJumpIncrement = JumpIncrement();
+  fLastSlipRate = fSlipRate;
+  //fLastThetaRate = 1.0 -  //get d_c
 }

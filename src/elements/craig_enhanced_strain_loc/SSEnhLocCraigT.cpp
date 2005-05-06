@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.15 2005-05-03 05:08:42 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.16 2005-05-06 20:53:49 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -460,17 +460,17 @@ bool SSEnhLocCraigT::IsBandActive()
 
   double neededCohesion = shearStress + normalStress * fLocalizedFrictionCoeff;
  
-  //cout << CurrElementNumber() << endl;
- cout << "normalStress = " << normalStress << endl;
- cout << "shearStress = " << shearStress << endl;
+  cout << "Element Number " << CurrElementNumber() << ", ";
+  //cout << "normalStress = " << normalStress << endl;
+  //cout << "shearStress = " << shearStress << endl;
  //cout << "area = " << area << endl;
- cout << "fBand-> ResidualCohesion() = " << fBand-> ResidualCohesion() << endl;
- cout << "neededCohesion = " << neededCohesion << endl;
+ //cout << "fBand-> ResidualCohesion() = " << fBand-> ResidualCohesion() << endl;
+ //cout << "neededCohesion = " << neededCohesion << endl;
  
   if (fBand-> ResidualCohesion() < neededCohesion)
     {
       fBand-> SetActive(true);
-      cout << "Band is active.\n";
+      //cout << "Band is active.\n";
       return true;
     }
   else
@@ -485,6 +485,10 @@ bool SSEnhLocCraigT::IsBandActive()
 void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			   const iArrayT& e_codes, dArray2DT& e_values)
 {
+
+  /* inherited */
+  SmallStrainT::ComputeOutput(n_codes, n_values, e_codes, e_values);
+
   #if 1
   if (fLocalizationHasBegun)
     {
@@ -498,7 +502,7 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 	        fBand -> CloseStep();
 
-			//SetGlobalShape();	
+		SetGlobalShape();	
 
 
 	    	/* loop over integration point */
@@ -519,10 +523,10 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	      	fBand -> IncrementStress(stressIncr, CurrIP());
 		if (CurrIP() == 0)
 		  {
-		    cout << "strain = \n" << fStrain_List[CurrIP()] << endl;
-		    cout << "strain_last = \n" << fStrain_last_List[CurrIP()] << endl;			  
+		    //cout << "strain = \n" << fStrain_List[CurrIP()] << endl;
+		    //cout << "strain_last = \n" << fStrain_last_List[CurrIP()] << endl;			  
 		    cout << "strainIncr = \n" << strainIncr << endl; 
-		    cout << "stressIncr = \n" << stressIncr << endl; 
+		    //cout << "stressIncr = \n" << stressIncr << endl; 
 		  }
 	      	}
 	      	
@@ -539,6 +543,8 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
       fEdgeOfBandCoords.Top();
       while(fEdgeOfBandElements.Next())
 	{
+	      cout << "checking for localization of element " <<
+	      	fEdgeOfBandElements.Current() << endl;
 	  fEdgeOfBandCoords.Next();
 	  GetElement(fEdgeOfBandElements.Current());
 	  IsElementLocalized();
@@ -562,6 +568,8 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	  //localize 1st element?
 	  while(fEdgeOfBandElements.Next())
 	    {
+	      cout << "checking for localization of element " <<
+	      	fEdgeOfBandElements.Current() << endl; 
 	      fEdgeOfBandCoords.Next();
 	      GetElement(fEdgeOfBandElements.Current());    
 	      IsElementLocalized();
@@ -570,7 +578,7 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
     }
 #endif
   
-  SmallStrainT::ComputeOutput(n_codes, n_values, e_codes, e_values);
+
 }
 
 
@@ -654,9 +662,13 @@ void SSEnhLocCraigT::CloseStep(void)
 	  //localize 1st element?
 	  while(fEdgeOfBandElements.Next())
 	    {
+	      fEdgeOfBandElements.Length();
+	      fEdgeOfBandElements.Position();
 	      fEdgeOfBandCoords.Next();
 	      GetElement(fEdgeOfBandElements.Current());    
 	      IsElementLocalized();
+	      fEdgeOfBandElements.Length();
+	      fEdgeOfBandElements.Position();
 	    }
 	}
     }
@@ -842,7 +854,7 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
       area += scale;
       fShapes->GradU(fLocDisp, fGradU, CurrIP());
       avgGradU.AddScaled(scale, fGradU);
-      cout << "fGradU = \n" << fGradU << endl;
+      //cout << "fGradU = \n" << fGradU << endl;
     }
   avgGradU /= area;
 
@@ -953,22 +965,24 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
 
 
   LocalArrayT nodalCoords = InitialCoordinates();
-  dArrayT nodalCoord1, nodalCoord2; //coords a particular node
+  dArrayT nodalCoord1(NumSD()), nodalCoord2(NumSD()); //coords a particular node
 
   for(int i = 0; i < numSides; i++)
     if ((activeNodes.HasValue((i+1) % numSides) && !activeNodes.HasValue(i))
 	|| (!activeNodes.HasValue((i+1) % numSides) && activeNodes.HasValue(i)))
       {
-      cout << "i = " << i << endl;	
-		if (!(neighbors(elementNumber,i) = -1 || IsElementTraced(neighbors(elementNumber ,i))))
+	cout << "i = " << i << ", neighbor = " << neighbors(elementNumber,
+							    i) << endl;	
+		if (!(neighbors(elementNumber,i) == -1 || IsElementTraced(neighbors(elementNumber ,i))))
 	  	{
+		  cout << "hi\n";
 	    	//get coords
 	    	dArrayT localizedEleCoord = fBand -> Coords();
 
 		    for (int j = 0; j < nodalCoords.MinorDim(); j++)
 		      {		
 				nodalCoord1 [j] = nodalCoords(i,j);
-				nodalCoord2 [j] = nodalCoords(i+1 % numSides, j);
+				nodalCoord2 [j] = nodalCoords((i+1) % numSides, j);
 	      		}
 
 	    	dArrayT interceptCoords = InterceptCoords(localizedEleCoord,
@@ -977,8 +991,12 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
 	    	//EdgeOfBandElement* newElement = new EdgeOfBandElement;
 	    	//newElement->elementNumber = CurrElementNumber();
 	    	//newElement -> coords = interceptCoords;
-	    	if(fEdgeOfBandElements.AppendUnique(CurrElementNumber()))
-		  fEdgeOfBandCoords.Append(interceptCoords);
+	    	if(fEdgeOfBandElements.AppendUnique(neighbors(elementNumber,i)))
+		  {
+		    cout << "Successfully appended element " <<
+		      neighbors(elementNumber,i) << endl;
+		    fEdgeOfBandCoords.Append(interceptCoords);
+		  }
 	  	} 
 		if (++numSidesFound > 1) 
 	  		break;

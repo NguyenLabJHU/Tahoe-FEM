@@ -24,17 +24,21 @@ namespace Tahoe {
 	       theta_0);
 
       virtual double Theta();
-      virtual double DeltaTheta();
-      virtual void StoreDeltaTheta(double deltaTheta);
-      //virtual void UpdateDieterichBand();
-      virtual double JumpIncrLast();
+      virtual double ThetaLast() {return fLastTheta;};
+      virtual void StoreTheta(double theta);
+      virtual double SlipRate() {return fSlipRate;};
+      virtual double SlipRateLast();
+      virtual void StoreSlipRate(double slipRate) {fSlipRate = slipRate;};
+      virtual double ThetaRateLast() {return fLastThetaRate;};
       virtual void CloseStep();
 
     private:
 
+      double fLastTheta;
       double fTheta;
-      double fDeltaTheta;
-      double fLastJumpIncrement;
+      double fSlipRate;
+      double fLastSlipRate;
+      double fLastThetaRate;
 
     };
 
