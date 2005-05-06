@@ -1,5 +1,7 @@
-# $Id: GNU-GCC3.2.LAM.macros,v 1.1 2005-05-06 17:26:29 raregue Exp $
+# $Id: GNU-GCC3.2.LAM.macros,v 1.2 2005-05-06 20:28:42 raregue Exp $
 # GNU
+#
+LAM_HOME    = /usr/local/lam
 #
 MAKE        = make
 DEFINES     = -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -DCHECK_MPI_STATUS -DCHECK_MPI_RETURN -DAZTEC_MPI -D__POSIX_THREADS__
