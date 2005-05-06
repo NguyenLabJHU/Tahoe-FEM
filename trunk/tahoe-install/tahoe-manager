@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.41 2005-05-02 07:53:55 paklein Exp $
+# $Id: tahoe-manager,v 1.42 2005-05-06 22:17:28 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -131,7 +131,7 @@ ARG: while (@ARGV) {
 	OPT: for (shift@ARGV) {
 		$count = @ARGV;
 		if ($script_status > 0 )   { failed();}
-		if (/^u|update/i)          { update(); next ARG; }
+		if (/^u|^update/i)          { update(); next ARG; }
 		if (/^co|config/i)         { config(); next ARG; }
 		if (/^i|init/i)            { init(); next ARG; }
 		if (/^b|build/i)           { build(); next ARG; }
