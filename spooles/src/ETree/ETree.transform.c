@@ -291,7 +291,7 @@ etree2 = ETree_compress(etree, mapIV) ;
    remap the nzeros[] vector
    -------------------------
 */
-temp = IVinit(nfront, NULL) ;
+temp = IVinit(nfront, 0) ;
 IVcopy(nfront, temp, nzeros) ;
 IV_setSize(nzerosIV, nnew) ;
 nzeros = IV_entries(nzerosIV) ;
@@ -453,7 +453,7 @@ etree2 = ETree_compress(etree, mapIV) ;
    remap the nzeros[] vector
    -------------------------
 */
-temp = IVinit(nfront, NULL) ;
+temp = IVinit(nfront, 0) ;
 IVcopy(nfront, temp, nzeros) ;
 IV_setSize(nzerosIV, nnew) ;
 nzeros = IV_entries(nzerosIV) ;
@@ -614,7 +614,7 @@ etree2 = ETree_compress(etree, mapIV) ;
    remap the nzeros[] vector
    -------------------------
 */
-temp = IVinit(nfront, NULL) ;
+temp = IVinit(nfront, 0) ;
 IVcopy(nfront, temp, nzeros) ;
 IV_setSize(nzerosIV, nnew) ;
 nzeros = IV_entries(nzerosIV) ;
