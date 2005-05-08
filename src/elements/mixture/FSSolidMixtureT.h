@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.h,v 1.6 2005-05-05 16:40:15 paklein Exp $ */
+/* $Id: FSSolidMixtureT.h,v 1.7 2005-05-08 15:35:58 paklein Exp $ */
 #ifndef _FS_SOLID_MIX_T_H_
 #define _FS_SOLID_MIX_T_H_
 
@@ -21,19 +21,25 @@ public:
 	/** destructor */
 	virtual ~FSSolidMixtureT(void);
 
+	/** form of tangent matrix. \return symmetric by default */
+	virtual GlobalT::SystemTypeT TangentType(void) const;
+
 	/** set the material support or pass NULL to clear */
 //	virtual void SetFSSolidMixtureSupport(const FSSolidMixtureSupportT* support);
 
 	/** finite strain mixture materials support */
 //	const FSSolidMixtureSupportT& FSSolidMixtureSupport(void) const;
 
+	/** \name concentration */
+	/*@{*/
 	/** concentration enum */
 	enum ConcentrationT {
 		kReference,
 		kCurrent
 	};
-	void SetConcentration(int i, ConcentrationT conc) { fConcentration[i] = conc; };
+	void SetConcentration(int i, ConcentrationT conc);
 	ConcentrationT Concentration(int i) const { return fConcentration[i]; };
+	/*@}*/
 
 	/** need to compute objective velocity gradient in mass balance
 	 * \note this is really only needed when FSSolidMixtureT::fConcentration ==
@@ -156,6 +162,7 @@ protected:
 
 	/** concentration type for each species */
 	ArrayT<ConcentrationT> fConcentration;
+	bool fHasCurrent;
 
 	/** array of stored energy functions */
 	ArrayT<FSSolidMatT*> fStressFunctions;
@@ -169,6 +176,7 @@ protected:
 	ArrayT<dMatrixT> fF_species;
 	dMatrixT fF_growth_inv;
 	dSymMatrixT fs_ij_tmp;
+	dSymMatrixT fI;
 };
 
 #if 0

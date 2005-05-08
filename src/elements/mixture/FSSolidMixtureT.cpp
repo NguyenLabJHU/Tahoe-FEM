@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.12 2005-05-05 18:49:11 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.13 2005-05-08 15:35:58 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -16,7 +16,8 @@ FSSolidMixtureT::FSSolidMixtureT(void):
 	ParameterInterfaceT("large_strain_solid_mixture"),
 //	fFSSolidMixtureSupport(NULL),
 	fConc(LocalArrayT::kDisp),
-	fStressSupport(NULL)
+	fStressSupport(NULL),
+	fHasCurrent(false)
 {
 
 }
@@ -28,6 +29,27 @@ FSSolidMixtureT::~FSSolidMixtureT(void)
 	for (int i = 0; i < fStressFunctions.Length(); i++)
 		delete fStressFunctions[i];
 	delete fStressSupport;
+}
+
+/* form of tangent matrix. \return symmetric by default */
+GlobalT::SystemTypeT FSSolidMixtureT::TangentType(void) const {
+	if (fHasCurrent)
+		return GlobalT::kNonSymmetric;
+	else
+		return GlobalT::kSymmetric;
+}
+
+/* set the concentration type */
+void FSSolidMixtureT::SetConcentration(int i, ConcentrationT conc) 
+{
+	fConcentration[i] = conc;
+	if (conc == kCurrent)
+		fHasCurrent = true;
+	else {
+		fHasCurrent = false;
+		for (int i = 0; !fHasCurrent && i < fConcentration.Length(); i++)
+			fHasCurrent = fConcentration[i] == kCurrent;
+	}	
 }
 
 #if 0
@@ -172,6 +194,9 @@ double FSSolidMixtureT::StrainEnergyDensity(void)
 /* total material tangent modulus */
 const dMatrixT& FSSolidMixtureT::c_ijkl(void)
 {
+//TEMP - not implemented yet, use inherited finite difference approximation
+if (fHasCurrent) return FSSolidMatT::c_ijkl();
+
 	/* current element information */
 	const ElementCardT& element = CurrentElement();
 	const dArrayT& conc_0 = element.DoubleData();
@@ -192,10 +217,10 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(void)
 		fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
 		/* Jacobian of growth */
-		double J_g = pow(rel_conc, fF_growth_inv.Rows());
+		double c_by_J_g = conc[i]/pow(rel_conc, fF_growth_inv.Rows());
 
 		/* compute modulus */
-		fModulus.AddScaled(conc[i]/J_g, fStressFunctions[i]->c_ijkl());
+		fModulus.AddScaled(c_by_J_g, fStressFunctions[i]->c_ijkl());
 	}
 
 	return fModulus;
@@ -204,6 +229,11 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(void)
 /* partial material tangent modulus */
 const dMatrixT& FSSolidMixtureT::c_ijkl(int i)
 {
+//TEMP - not implemented
+if (fHasCurrent)
+	ExceptionT::GeneralFail("FSSolidMixtureT::c_ijkl",
+		"not implemented for current concentration");
+
 	/* current element information */
 	const ElementCardT& element = CurrentElement();
 	const dArrayT& conc_0 = element.DoubleData();
@@ -218,10 +248,10 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(int i)
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
 	/* Jacobian of growth */
-	double J_g = pow(rel_conc, fF_growth_inv.Rows());
+	double c_by_J_g = conc[i]/pow(rel_conc, fF_growth_inv.Rows());
 
 	/* compute modulus */
-	fModulus.SetToScaled(conc[i]/J_g, fStressFunctions[i]->c_ijkl());
+	fModulus.SetToScaled(c_by_J_g, fStressFunctions[i]->c_ijkl());
 
 	return fModulus;
 }
@@ -465,6 +495,8 @@ void FSSolidMixtureT::TakeParameterList(const ParameterListT& list)
 	fF_species.Dimension(1);
 	fF_species[0].Dimension(nsd);
 	fF_growth_inv.Dimension(nsd);
+	fI.Dimension(nsd);
+	fI.Identity();
 	fStressSupport->SetContinuumElement(MaterialSupport().ContinuumElement());
 	fStressSupport->SetDeformationGradient(&fF_species);
 	fs_ij_tmp.Dimension(nsd);
@@ -473,6 +505,7 @@ void FSSolidMixtureT::TakeParameterList(const ParameterListT& list)
 	int num_species = list.NumLists("solid_mixture_species");
 	fConcentration.Dimension(num_species);
 	fConcentration = kReference;
+	fHasCurrent = false;
 	fStressFunctions.Dimension(num_species);
 	fStressFunctions = NULL;
 	fFields.Dimension(num_species);
