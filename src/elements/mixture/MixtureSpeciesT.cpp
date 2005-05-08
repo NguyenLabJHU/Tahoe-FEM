@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.13 2005-05-05 18:49:41 paklein Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.14 2005-05-08 15:37:59 paklein Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
@@ -242,9 +242,8 @@ void MixtureSpeciesT::Top(void)
 	/* inherited */
 	NLDiffusionElementT::Top();
 
-	/* will need deformation gradient */
-	if (fConcentration == kCurrent || fGradientOption == kGlobalProjection) 
-		fUpdatedLagMixture->Top();
+	/* synchronize solid element group */
+	fUpdatedLagMixture->Top();
 }
 	
 /* advance to next element */ 
@@ -253,11 +252,8 @@ bool MixtureSpeciesT::NextElement(void)
 	/* inherited */
 	bool next = NLDiffusionElementT::NextElement();
 
-	/* will need deformation gradient */
-	if (fConcentration == kCurrent || fGradientOption == kGlobalProjection) 
-		next = fUpdatedLagMixture->NextElement() && next;
-
-	return next;
+	/* synchronize solid element group */
+	return fUpdatedLagMixture->NextElement() && next;
 }
 
 /* form the residual force vector */
