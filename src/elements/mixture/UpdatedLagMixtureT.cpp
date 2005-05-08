@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.9 2005-05-05 18:49:41 paklein Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.10 2005-05-08 15:36:48 paklein Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -46,6 +46,15 @@ void UpdatedLagMixtureT::SetConcentration(int i, ConcentrationT conc)
 		mixture->SetConcentration(i, FSSolidMixtureT::kCurrent);	
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized flag %d", conc);
+	
+	/* (re-)set form of element stiffness matrix */
+	GlobalT::SystemTypeT type = TangentType();
+	if (type == GlobalT::kSymmetric)
+		fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
+	else if (type == GlobalT::kNonSymmetric)
+		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
+	else if (type == GlobalT::kDiagonal)
+		fLHS.SetFormat(ElementMatrixT::kDiagonal);
 }
 
 /* project the given partial first Piola-Kirchoff stress to the nodes */
