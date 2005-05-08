@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.27 2005-04-13 21:49:58 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.28 2005-05-08 15:33:38 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -530,10 +530,8 @@ void CCNSMatrixT::PrintLHS(bool force) const
 		for (int c = 0; c < fLocNumEQ; c++)
 		{
 			double value = Element(r,c);
-			if (value != 0.0) {
+			if (value != 0.0)
 				out << r+1 << " " << c+1 << " " << value << '\n';
-				if (r != c) out << c+1 << " " << r+1 << " " << value << '\n';
-			}
 		}
 
 	/* increment count */
@@ -615,7 +613,6 @@ double& CCNSMatrixT::operator()(int row, int col) const
 void CCNSMatrixT::ComputeSize(int& num_nonzero, int& mean_bandwidth, int& bandwidth)
 {
 	/* clear diags/columns heights */
-	fNumberOfTerms = 0;
 	for (int i = 0; i < fLocNumEQ; i++)
 		famax[i] = 0;
 		
@@ -631,6 +628,7 @@ void CCNSMatrixT::ComputeSize(int& num_nonzero, int& mean_bandwidth, int& bandwi
 		SetSkylineHeights(*prageq);		
 
 	/* skyline indices */
+	num_nonzero = 0;
 	mean_bandwidth = 0;
 	bandwidth = 0;
 	famax[0]  = 0; //first equation has no elements in fKU or fKS
@@ -654,6 +652,11 @@ void CCNSMatrixT::ComputeSize(int& num_nonzero, int& mean_bandwidth, int& bandwi
 		/* final dimensions */
 		mean_bandwidth = int(ceil(double(num_nonzero)/fLocNumEQ));
 		bandwidth += 1;
+	}
+	else if (fLocNumEQ == 1) {
+		num_nonzero = 1;
+		mean_bandwidth = 1;
+		bandwidth = 1;
 	}
 }
 
