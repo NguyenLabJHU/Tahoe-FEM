@@ -1,4 +1,4 @@
-/* $Id: FungwRep.cpp,v 1.1 2005-04-20 23:47:27 thao Exp $ */
+/* $Id: FungwRep.cpp,v 1.2 2005-05-09 17:19:14 thao Exp $ */
 
 #include "FungwRep.h"
 #include <iostream.h>
@@ -39,17 +39,17 @@ void FungwRep::PrintName(ostream& out) const
 */
 double FungwRep::Function(double r) const
 {
-	return ( fA*(exp(fB*(r-1.0))-1.0)+ fC*pow(r, -fn) );
+	return ( fA*(exp(fB*(r*r-1.0))-1.0)+ fC*pow(r, -fn) );
 }
 
 double FungwRep::DFunction(double r) const
 {
-	return ( fA*fB*exp(fB*(r-1.0))- fC*fn*pow(r,-(fn+1.0)) );
+	return ( 2.0*fA*fB*r*exp(fB*(r*r-1.0))- fC*fn*pow(r,-(fn+1.0)) );
 }
 
 double FungwRep::DDFunction(double r) const
 {
-	return ( fA*fB*fB*exp(fB*(r-1.0))+ fC*fn*(fn+1.0)*pow(r, -(fn+2.0)) );
+	return ( 2.0*fA*fB*(1.0+2.0*fB*r*r)*exp(fB*(r*r-1.0))+ fC*fn*(fn+1.0)*pow(r, -(fn+2.0)) ) ;
 }
 
 /* returning values in groups */
@@ -64,7 +64,7 @@ dArrayT& FungwRep::MapFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < in.Length(); i++)
 	{
 		double r = (*pr++);
-		*pU++ = (fA*(exp(fB*(r-1.0))-1.0) + fC*pow(r, -fn));
+		*pU++ = (fA*(exp(fB*(r*r-1.0))-1.0)+ fC*pow(r, -fn));
 	}
 	return(out);
 }
@@ -80,7 +80,7 @@ dArrayT& FungwRep::MapDFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < in.Length(); i++)
 	{
 		double r = (*pr++);
-		*pdU++ = ( fA*fB*exp(fB*(r-1.0)) - fC*fn*pow(r,-(fn+1.0)) );
+		*pdU++ = ( 2.0*fA*fB*r*exp(fB*(r*r-1.0))- fC*fn*pow(r,-(fn+1.0)) );
 	}
 	return(out);
 }
@@ -96,7 +96,7 @@ dArrayT& FungwRep::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < in.Length(); i++)
 	{
 		double r = (*pr++);
-		*pddU++ = (fA*fB*fB*exp(fB*(r-1.0)) + fC*fn*(fn+1.0)*pow(r, -(fn+2.0)) );
+		*pddU++ = ( 2.0*fA*fB*(1.0+2.0*fB*r*r)*exp(fB*(r*r-1.0))+ fC*fn*(fn+1.0)*pow(r, -(fn+2.0)) );
 	}
 	return(out);
 }

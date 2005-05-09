@@ -1,4 +1,4 @@
-/* $Id: FungType.cpp,v 1.1 2005-04-15 22:47:45 thao Exp $ */
+/* $Id: FungType.cpp,v 1.2 2005-05-09 17:19:14 thao Exp $ */
 
 #include "FungType.h"
 #include <iostream.h>
@@ -37,7 +37,7 @@ void FungType::PrintName(ostream& out) const
 */
 double FungType::Function(double r) const
 {
-	return ( fA*(exp(fB*(r-1.0))-1.0) );
+	return (fA*(exp(fB*(r*r-1.0))-1.0) );
 }
 
 double FungType::DFunction(double r) const
@@ -47,7 +47,7 @@ double FungType::DFunction(double r) const
 
 double FungType::DDFunction(double r) const
 {
-	return ( fA*fB*fB*exp(fB*(r-1.0)) );
+	return ( 2.0*fA*fB*(1.0+2.0*fB*r*r)*exp(fB*(r*r-1.0)) );
 }
 
 /* returning values in groups */
@@ -62,7 +62,7 @@ dArrayT& FungType::MapFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < in.Length(); i++)
 	{
 		double r = (*pr++);
-		*pU++ = (fA*(exp(fB*(r-1.0))-1.0));
+		*pU++ = (fA*(exp(fB*(r*r-1.0))-1.0));
 	}
 	return(out);
 }
@@ -78,7 +78,7 @@ dArrayT& FungType::MapDFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < in.Length(); i++)
 	{
 		double r = (*pr++);
-		*pdU++ = ( fA*fB*exp(fB*(r-1.0)) );
+		*pdU++ = ( 2.0*fA*fB*r*exp(fB*(r*r-1.0)) );
 	}
 	return(out);
 }
@@ -94,7 +94,7 @@ dArrayT& FungType::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < in.Length(); i++)
 	{
 		double r = (*pr++);
-		*pddU++ = (fA*fB*fB*exp(fB*(r-1.0)) );
+		*pddU++ = (2.0*fA*fB*(1.0+2.0*fB*r*r)*exp(fB*(r*r-1.0)) );
 	}
 	return(out);
 }
