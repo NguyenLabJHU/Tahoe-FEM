@@ -1,4 +1,4 @@
-/* $Id: IsoVECorneaModel.cpp,v 1.4 2005-05-04 23:04:28 thao Exp $ */
+/* $Id: IsoVECorneaModel.cpp,v 1.5 2005-05-09 17:20:17 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVECorneaModel.h"
 
@@ -339,7 +339,7 @@ void IsoVECorneaModel::TakeParameterList(const ParameterListT& list)
       if (!fPot_EQ) throw ExceptionT::kOutOfMemory;
 
       /*set parameters for repulsive potential*/
-      fC0_EQ = C1*beta;
+      fC0_EQ = 2.0*C1*beta;
       fR0_EQ = 1.0;      
     }
   else if (eqpotential.Name() == "eq_fung_rep")
@@ -350,7 +350,7 @@ void IsoVECorneaModel::TakeParameterList(const ParameterListT& list)
 
       /*set fung type potential*/
       double K = 0.75/pi*C1;
-      double C = 0.75/pi*C1*beta/n;
+      double C = 0.75/pi*2.0*C1*beta/n;
 	  fPot_EQ = new FungwRep(K,beta,C,n);
       if (!fPot_EQ) throw ExceptionT::kOutOfMemory;
 
@@ -411,7 +411,7 @@ void IsoVECorneaModel::TakeParameterList(const ParameterListT& list)
       if (!fPot_NEQ) throw ExceptionT::kOutOfMemory;
 
       /*set parameters for repulsive potential*/
-      fC0_NEQ = C1*beta;
+      fC0_NEQ = 2.0*C1*beta;
       fR0_NEQ = 1.0;      
   }
   else if (neqpotential.Name() == "neq_fung_rep")
@@ -422,7 +422,7 @@ void IsoVECorneaModel::TakeParameterList(const ParameterListT& list)
 
       /*set fung type potential*/
       double K = 0.75/pi*C1;
-      double C = 0.75/pi*C1*beta/n;
+      double C = 0.75/pi*2.0*C1*beta/n;
 	  fPot_NEQ = new FungwRep(K,beta,C,n);
       if (!fPot_NEQ) throw ExceptionT::kOutOfMemory;
 

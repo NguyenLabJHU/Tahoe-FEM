@@ -1,4 +1,4 @@
-/* $Id: IsoCorneaModel.cpp,v 1.3 2005-04-20 23:45:17 thao Exp $ */
+/* $Id: IsoCorneaModel.cpp,v 1.4 2005-05-09 17:20:17 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoCorneaModel.h"
 
@@ -228,7 +228,7 @@ void IsoCorneaModel::TakeParameterList(const ParameterListT& list)
       if (!fPotential) throw ExceptionT::kOutOfMemory;
 
       /*set parameters for repulsive potential*/
-      fC0 = C1*beta;
+      fC0 =2.0* C1*beta;
       fR0 = 1.0;      
     }
   else if (potential.Name() == "fung_type_chain_power_repulsion")
@@ -239,7 +239,7 @@ void IsoCorneaModel::TakeParameterList(const ParameterListT& list)
 
       /*set fung type potential*/
       double K = 0.75/pi*C1;
-      double C = 0.75/pi*C1*beta/n;
+      double C = 0.75/pi*2.0*C1*beta/n;
 	  fPotential = new FungwRep(K,beta,C,n);
       if (!fPotential) throw ExceptionT::kOutOfMemory;
 
