@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.13 2005-05-08 15:35:58 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.14 2005-05-09 21:14:53 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -194,9 +194,6 @@ double FSSolidMixtureT::StrainEnergyDensity(void)
 /* total material tangent modulus */
 const dMatrixT& FSSolidMixtureT::c_ijkl(void)
 {
-//TEMP - not implemented yet, use inherited finite difference approximation
-if (fHasCurrent) return FSSolidMatT::c_ijkl();
-
 	/* current element information */
 	const ElementCardT& element = CurrentElement();
 	const dArrayT& conc_0 = element.DoubleData();
@@ -220,7 +217,15 @@ if (fHasCurrent) return FSSolidMatT::c_ijkl();
 		double c_by_J_g = conc[i]/pow(rel_conc, fF_growth_inv.Rows());
 
 		/* compute modulus */
-		fModulus.AddScaled(c_by_J_g, fStressFunctions[i]->c_ijkl());
+		const dMatrixT& c_ijkl_i = fStressFunctions[i]->c_ijkl();
+		fModulus.AddScaled(c_by_J_g, c_ijkl_i);
+		
+		/* extra terms for current concentration */
+		if (fConcentration[i] == kCurrent) {
+			fs_ij_tmp.A_ijkl_B_kl(c_ijkl_i, fI);
+			fs_ij_tmp += fStressFunctions[i]->s_ij();
+			fModulus.Outer(fs_ij_tmp, fI, -c_by_J_g, dMatrixT::kAccumulate);
+		}
 	}
 
 	return fModulus;
@@ -229,11 +234,6 @@ if (fHasCurrent) return FSSolidMatT::c_ijkl();
 /* partial material tangent modulus */
 const dMatrixT& FSSolidMixtureT::c_ijkl(int i)
 {
-//TEMP - not implemented
-if (fHasCurrent)
-	ExceptionT::GeneralFail("FSSolidMixtureT::c_ijkl",
-		"not implemented for current concentration");
-
 	/* current element information */
 	const ElementCardT& element = CurrentElement();
 	const dArrayT& conc_0 = element.DoubleData();
@@ -251,7 +251,15 @@ if (fHasCurrent)
 	double c_by_J_g = conc[i]/pow(rel_conc, fF_growth_inv.Rows());
 
 	/* compute modulus */
-	fModulus.SetToScaled(c_by_J_g, fStressFunctions[i]->c_ijkl());
+	const dMatrixT& c_ijkl_i = fStressFunctions[i]->c_ijkl();
+	fModulus.SetToScaled(c_by_J_g, c_ijkl_i);
+
+	/* extra terms for current concentration */
+	if (fConcentration[i] == kCurrent) {
+		fs_ij_tmp.A_ijkl_B_kl(c_ijkl_i, fI);
+		fs_ij_tmp += fStressFunctions[i]->s_ij();
+		fModulus.Outer(fs_ij_tmp, fI, -c_by_J_g, dMatrixT::kAccumulate);
+	}
 
 	return fModulus;
 }
