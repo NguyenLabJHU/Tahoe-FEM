@@ -1,4 +1,4 @@
-/* $Id: NLSolver.h,v 1.12 2004-12-20 02:21:15 paklein Exp $ */
+/* $Id: NLSolver.h,v 1.12.12.1 2005-05-09 01:43:14 d-farrell2 Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NL_SOLVER_H_
@@ -33,7 +33,10 @@ public:
 	virtual void CloseStep(void);
 
 	/** error handler */
-	virtual void ResetStep(void);	
+	virtual void ResetStep(void);
+	
+	/** renumbering handler */
+	virtual void ContinueStep(void);	
 	/*@}*/
 
 	/** (re-)set the reference error */

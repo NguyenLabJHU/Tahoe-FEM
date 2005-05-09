@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.94 2005-05-01 19:29:37 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.94.2.1 2005-05-09 01:43:12 d-farrell2 Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -557,7 +557,6 @@ GlobalT::RelaxCodeT FEManagerT::RelaxSystem(int group) const
 		if ((*fElementGroups)[i]->InGroup(group))
 			relax = GlobalT::MaxPrecedence(relax, (*fElementGroups)[i]->RelaxSystem());
 
-	return relax;
 	if (Size() > 1) // use parallel stuff if comm size > 1
 	{
 		/* gather codes */
@@ -581,9 +580,8 @@ GlobalT::RelaxCodeT FEManagerT::RelaxSystem(int group) const
 				cout << '\n';	
 			}
 		 }
-
-		return relax;
 	 }
+	 return relax;
 }
 
 /* global equation functions */
