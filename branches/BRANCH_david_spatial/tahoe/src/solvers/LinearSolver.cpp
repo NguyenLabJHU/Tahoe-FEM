@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.cpp,v 1.12 2005-05-01 19:29:45 paklein Exp $ */
+/* $Id: LinearSolver.cpp,v 1.12.2.1 2005-05-09 01:43:14 d-farrell2 Exp $ */
 /* created: paklein (05/30/1996) */
 #include "LinearSolver.h"
 #include "FEManagerT.h"
@@ -69,7 +69,7 @@ SolverT::SolutionStatusT LinearSolver::Solve(int)
 	fFEManager.Update(Group(), fRHS);		
 			
 	/* relaxation */
-	GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
+	GlobalT::RelaxCodeT relaxcode = GetRelaxCode();
 				
 	/* relax for configuration change */
 	if (relaxcode == GlobalT::kRelax) fFormLHS = 1;
@@ -78,10 +78,7 @@ SolverT::SolutionStatusT LinearSolver::Solve(int)
 			//      global stiffness matrix, but since EFG only breaks connections
 			//      and doesn't make new ones, this should be OK for now. PAK (03/04/99)
 			
-	/* trigger set of new equations */
-	if (relaxcode == GlobalT::kReEQ ||
-	    relaxcode == GlobalT::kReEQRelax)
-		fFEManager.SetEquationSystem(Group());
+	// no renumbering allowed in linear solver -> all happens in initstep
 
 	return kConverged;
 	} /* end try */
