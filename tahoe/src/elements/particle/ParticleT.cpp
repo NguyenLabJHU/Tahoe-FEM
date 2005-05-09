@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.49 2005-04-08 16:41:48 d-farrell2 Exp $ */
+/* $Id: ParticleT.cpp,v 1.49.4.1 2005-05-09 18:28:39 d-farrell2 Exp $ */
 
 #include "ParticleT.h"
 
@@ -179,8 +179,8 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 		const ScheduleT* stretch = fStretchSchedule[i];
 		if (stretch)
 		{
-			/* time during next solution step */
-			double next_time = ElementSupport().Time() + ElementSupport().TimeStep();
+			/* time during current solution step */
+			double next_time = ElementSupport().Time();
 		
 			has_moving = true;
 			double scale = stretch->Value(next_time);

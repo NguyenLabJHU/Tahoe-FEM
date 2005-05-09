@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.32.2.1 2005-05-09 01:43:14 d-farrell2 Exp $ */
+/* $Id: SolverT.cpp,v 1.32.2.2 2005-05-09 18:28:40 d-farrell2 Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -98,8 +98,10 @@ void SolverT::InitStep(void)
 	// handle reconfiguration
 	fRelaxCode = fFEManager.RelaxSystem(Group());
 	
-	// handle renumbering
-	fFEManager.SetEquationSystem(Group());
+	
+	// handle renumbering, if needed(need to worry about kReEQRelax?)
+	if (fRelaxCode == GlobalT::kReEQ)
+		fFEManager.SetEquationSystem(Group());
 }
 
 /* end solution step */
