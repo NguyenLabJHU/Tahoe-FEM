@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.h,v 1.5 2005-05-05 16:40:15 paklein Exp $ */
+/* $Id: UpdatedLagMixtureT.h,v 1.6 2005-05-10 17:55:49 paklein Exp $ */
 #ifndef _UPDATED_LAG_MIXTURE_T_H_
 #define _UPDATED_LAG_MIXTURE_T_H_
 
@@ -6,6 +6,9 @@
 #include "UpdatedLagrangianT.h"
 
 namespace Tahoe {
+
+/* forward declarations */
+class FSSolidMixtureT;
 
 /** update Lagrangian, finite strain solid mixture */
 class UpdatedLagMixtureT: public UpdatedLagrangianT
@@ -17,6 +20,9 @@ public:
 
 	/** resolve the species name into the index */
 	int SpeciesIndex(const StringT& name) const;
+
+	/** density of the given species */
+	double Density(int i);
 
 	/** \name concentration flag */
 	/*@{*/
@@ -82,12 +88,25 @@ public:
 
 protected:
 
+	/** \name cast the material FSSolidMixtureT */
+	/*@{*/
+	FSSolidMixtureT& FSSolidMixture(void);
+	const FSSolidMixtureT& FSSolidMixture(void) const;
+	/*@}*/
+
+protected:
+
 	/** \name work space */
 	/*@{*/
 	dMatrixT fF_inv;
 	dMatrixT fStress;
 	/*@}*/
 };
+
+inline FSSolidMixtureT& UpdatedLagMixtureT::FSSolidMixture(void) {
+	const UpdatedLagMixtureT& const_this = const_cast<UpdatedLagMixtureT&>(*this);
+	return const_cast<FSSolidMixtureT&>(const_this.FSSolidMixture());
+}
 
 } /* namespace Tahoe */
 

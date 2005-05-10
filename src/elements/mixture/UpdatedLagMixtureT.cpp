@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.10 2005-05-08 15:36:48 paklein Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.11 2005-05-10 17:55:49 paklein Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -16,15 +16,13 @@ UpdatedLagMixtureT::UpdatedLagMixtureT(const ElementSupportT& support):
 }
 
 /* resolve the species name into the index */
-int UpdatedLagMixtureT::SpeciesIndex(const StringT& field_name) const
-{
-	/* get materials */
-	const ContinuumMaterialT* pcont_mat = (*fMaterialList)[0]; /* just use first material */
-	const FSSolidMixtureT* mixture = TB_DYNAMIC_CAST(const FSSolidMixtureT*, pcont_mat);
-	if (!mixture) ExceptionT::GeneralFail("UpdatedLagMixtureT::SpeciesIndex", "material is not a mixture");
+int UpdatedLagMixtureT::SpeciesIndex(const StringT& field_name) const {
+	return FSSolidMixture().SpeciesIndex(field_name);
+}
 
-	/* resolve index */
-	return mixture->SpeciesIndex(field_name);
+/* density of the given species */
+double UpdatedLagMixtureT::Density(int i) {
+	return FSSolidMixture().Density(i);
 }
 
 /* set concentration flag */
@@ -33,17 +31,13 @@ void UpdatedLagMixtureT::SetConcentration(int i, ConcentrationT conc)
 	const char caller[] = "UpdatedLagMixtureT::SetConcentration";
 
 	/* get material */
-	ContinuumMaterialT* pcont_mat = (*fMaterialList)[0]; /* just use first material */
-	FSSolidMixtureT* mixture = TB_DYNAMIC_CAST(FSSolidMixtureT*, pcont_mat);
-	if (!mixture) 
-		ExceptionT::GeneralFail("UpdatedLagMixtureT::SetConcentration", 
-			"material is not a mixture");
-			
+	FSSolidMixtureT& mixture = FSSolidMixture();
+
 	/* set flag */
 	if (conc == kReference)
-		mixture->SetConcentration(i, FSSolidMixtureT::kReference);
+		mixture.SetConcentration(i, FSSolidMixtureT::kReference);
 	else if (conc == kCurrent)
-		mixture->SetConcentration(i, FSSolidMixtureT::kCurrent);	
+		mixture.SetConcentration(i, FSSolidMixtureT::kCurrent);	
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized flag %d", conc);
 	
@@ -60,8 +54,6 @@ void UpdatedLagMixtureT::SetConcentration(int i, ConcentrationT conc)
 /* project the given partial first Piola-Kirchoff stress to the nodes */
 void UpdatedLagMixtureT::ProjectPartialStress(int i)
 {
-	const char caller[] = "UpdatedLagMixtureT::ProjectPartialStress";
-
 	/* dimensions */
 	int nen = NumElementNodes();
 	int nsd = NumSD();
@@ -80,15 +72,14 @@ void UpdatedLagMixtureT::ProjectPartialStress(int i)
 	while (NextElement())
 		if (CurrentElement().Flag() != ElementCardT::kOFF)
 		{
-			/* get materials */
-			FSSolidMixtureT* mixture = TB_DYNAMIC_CAST(FSSolidMixtureT*, fCurrMaterial);
-			if (!mixture) ExceptionT::GeneralFail(caller, "material is not a mixture");
+			/* get material */
+			FSSolidMixtureT& mixture = FSSolidMixture();
 		
 			/* global shape function values */
 			SetGlobalShape();
 			
 			/* collect concentration */
-			mixture->UpdateConcentrations(i);
+			mixture.UpdateConcentrations(i);
 
 			/* extrapolate element stresses */
 			nodal_P = 0.0;
@@ -96,7 +87,7 @@ void UpdatedLagMixtureT::ProjectPartialStress(int i)
 			while (fShapes->NextIP())
 			{
 				/* Cauchy stress */
-				const dSymMatrixT& cauchy = mixture->s_ij(i);
+				const dSymMatrixT& cauchy = mixture.s_ij(i);
 				
 				/* Cauchy -> 1st PK stress */
 				cauchy.ToMatrix(fStress);
@@ -118,8 +109,6 @@ void UpdatedLagMixtureT::ProjectPartialStress(int i)
  * Piola-Kirchoff stress to the nodes */
 void UpdatedLagMixtureT::ProjectDPartialStress(int i)
 {
-	const char caller[] = "UpdatedLagMixtureT::ProjectDPartialStress";
-
 	/* dimensions */
 	int nen = NumElementNodes();
 	int nsd = NumSD();
@@ -139,14 +128,13 @@ void UpdatedLagMixtureT::ProjectDPartialStress(int i)
 		if (CurrentElement().Flag() != ElementCardT::kOFF)
 		{
 			/* get materials */
-			FSSolidMixtureT* mixture = TB_DYNAMIC_CAST(FSSolidMixtureT*, fCurrMaterial);
-			if (!mixture) ExceptionT::GeneralFail(caller, "material is not a mixture");
-		
+			FSSolidMixtureT& mixture = FSSolidMixture();
+
 			/* global shape function values */
 			SetGlobalShape();
 			
 			/* collect concentration */
-			mixture->UpdateConcentrations(i);
+			mixture.UpdateConcentrations(i);
 
 			/* extrapolate element stresses */
 			nodal_P = 0.0;
@@ -154,7 +142,7 @@ void UpdatedLagMixtureT::ProjectDPartialStress(int i)
 			while (fShapes->NextIP())
 			{
 				/* Cauchy stress */
-				const dSymMatrixT& dcauchy = mixture->ds_ij_dc(i);
+				const dSymMatrixT& dcauchy = mixture.ds_ij_dc(i);
 				
 				/* Cauchy -> 1st PK stress */
 				dcauchy.ToMatrix(fStress);
@@ -182,13 +170,10 @@ void UpdatedLagMixtureT::IP_PartialStress(int i, ArrayT<dMatrixT>* ip_stress,
 	else if (CurrentElement().Flag() != ElementCardT::kOFF)
 	{
 		/* get materials */
-		FSSolidMixtureT* mixture = TB_DYNAMIC_CAST(FSSolidMixtureT*, fCurrMaterial);
-		if (!mixture) 
-			ExceptionT::GeneralFail("UpdatedLagMixtureT::IP_PartialStress", 
-				"material is not a mixture");
+		FSSolidMixtureT& mixture = FSSolidMixture();
 
 		/* collect concentration */
-		mixture->UpdateConcentrations(i);
+		mixture.UpdateConcentrations(i);
 
 		/* collect integration point element stresses */
 		fShapes->TopIP();
@@ -205,7 +190,7 @@ void UpdatedLagMixtureT::IP_PartialStress(int i, ArrayT<dMatrixT>* ip_stress,
 			if (ip_stress)
 			{
 				/* Cauchy stress */
-				const dSymMatrixT& cauchy = mixture->s_ij(i);
+				const dSymMatrixT& cauchy = mixture.s_ij(i);
 				cauchy.ToMatrix(fStress);
 			
 				/* Cauchy -> 1st PK stress */
@@ -218,7 +203,7 @@ void UpdatedLagMixtureT::IP_PartialStress(int i, ArrayT<dMatrixT>* ip_stress,
 			if (ip_dstress)
 			{
 				/* Cauchy stress */
-				const dSymMatrixT& dcauchy = mixture->ds_ij_dc(i);
+				const dSymMatrixT& dcauchy = mixture.ds_ij_dc(i);
 				dcauchy.ToMatrix(fStress);
 			
 				/* Cauchy -> 1st PK stress */
@@ -278,4 +263,30 @@ void UpdatedLagMixtureT::TakeParameterList(const ParameterListT& list)
 	int nsd = NumSD();
 	fF_inv.Dimension(nsd);
 	fStress.Dimension(nsd);
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
+
+const FSSolidMixtureT& UpdatedLagMixtureT::FSSolidMixture(void) const 
+{
+	const char caller[] = "FSSolidMixtureT::FSSolidMixture";
+
+#if __option(extended_errorcheck)
+	if (fMaterialList->Length() > 1)
+		ExceptionT::GeneralFail(caller, "expecting only 1 material %d",
+			fMaterialList->Length());
+#endif
+
+	const ContinuumMaterialT* pcont_mat = (*fMaterialList)[0]; /* just use first material */
+	if (!pcont_mat) 
+		ExceptionT::GeneralFail(caller, "material 0 is NULL");
+
+	const FSSolidMixtureT* mixture = TB_DYNAMIC_CAST(const FSSolidMixtureT*, pcont_mat);
+	if (!mixture)
+		ExceptionT::GeneralFail(caller, "material \"%s\" is not a mixture",
+			pcont_mat->Name().Pointer());
+
+	return *mixture;
 }
