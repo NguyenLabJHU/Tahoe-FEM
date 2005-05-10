@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.23 2005-05-10 18:40:51 kyonten Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.24 2005-05-10 19:55:41 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
@@ -99,10 +99,10 @@ public:
 	/** shallow copy from nArray2DT */
 	void Alias(const nArray2DT<TYPE>& source);
 
-	/** combine two RaggedArray2DT's a, b to get a third RaggedArray2DT c.
-	 * \param array source a
-	 * \param array source b. a and b have same MajorDim */
-	void Combine(RaggedArray2DT<TYPE>& a, RaggedArray2DT<TYPE>& b);
+	/** combine two RaggedArray2DT's a, b
+	 * \param a array source a
+	 * \param b array source b. a and b have same MajorDim */
+	void Combine(const RaggedArray2DT<TYPE>& a, const RaggedArray2DT<TYPE>& b);
 	
 	/** \name assignment operators */
 	/*@{*/
@@ -481,50 +481,39 @@ void RaggedArray2DT<TYPE>::Alias(const nArray2DT<TYPE>& source)
 }
 
 template <class TYPE>
-void RaggedArray2DT<TYPE>::Combine(RaggedArray2DT<TYPE>& a, RaggedArray2DT<TYPE>& b)
+void RaggedArray2DT<TYPE>::Combine(const RaggedArray2DT<TYPE>& a, const RaggedArray2DT<TYPE>& b)
 {
+	/* check */
+	if (a.MajorDim() != b.MajorDim()) 
+		ExceptionT::SizeMismatch("RaggedArray2DT<TYPE>::Combine");
+
 	/* get row dimensions of a and b */
-	fMajorDim    =  a.fMajorDim;
-	//fMaxMinorDim =  a.fMaxMinorDim;
-	//fMaxMinorDim += b.fMaxMinorDim; //taken care by Configure?
-	//fMinMinorDim =  a.fMinMinorDim;
-	//fMinMinorDim += b.fMinMinorDim; //taken care by Configure?
-	iArrayT minordim_a(fMajorDim);
-	iArrayT minordim_b(fMajorDim);
+	fMajorDim = a.fMajorDim
 	iArrayT minordim(fMajorDim);
-	a.MinorDim(minordim_a);
+	iArrayT minordim_b(fMajorDim);
+	a.MinorDim(minordim);
 	b.MinorDim(minordim_b);
 	
 	/* add the row dimensions of a and b */
-	// need to resize data and pointer arrays?
-	for (int i = 0; i < fMajorDim; i++)
-		minordim[i] = minordim_a[i] + minordim_b[i];
-		
+	minordim += minordim_b;
+
 	/* set up new row dimensions */
-	RaggedArray2DT<TYPE> temp;
-	temp.Configure(minordim);
+	Configure(minordim);
 	
 	/* access the row values in the arrays and combine
 	   the row values from a and b */ 
+	iArrayT rowdata, rowdata_a, rowdata_b;
 	for (int i = 0; i < fMajorDim; i++) {
-	    
-	    /* set dimensions of arrays */
-		iArrayT rowdata_a(minordim_a[i]);
-		iArrayT rowdata_b(minordim_b[i]);
-		iArrayT rowdata(minordim[i]);
-		
+
 		/* get row values */
+		RowAlias(i, rowdata);
 		a.RowAlias(i, rowdata_a);
 		b.RowAlias(i, rowdata_b);
 		
 		/* combine row values of a and b */
 		rowdata.CopyIn(0, rowdata_a);
 		rowdata.CopyIn(rowdata_a.Length(), rowdata_b);
-		temp.RowAlias(i, rowdata);
 	}
-	/* copy data and pointer arrays */
-	//fPtrs.Alias(temp.fPtrs);
-	//fData.Alias(temp.fData);
 }
 
 /* assigment operator */
