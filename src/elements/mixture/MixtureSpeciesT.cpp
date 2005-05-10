@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.15 2005-05-10 17:56:44 paklein Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.16 2005-05-10 23:52:44 paklein Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
@@ -176,6 +176,7 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::GeneralFail(caller, "could not resolve index of field \"%s\"",
 			Field().FieldName().Pointer());
 
+#if 0
 	/* consistency check */
 	double solid_density = fUpdatedLagMixture->Density(fIndex);
 	for (int i = 0; i < fMaterialList->Length(); i++) {
@@ -187,6 +188,7 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 				"density %g of the species at index %d of the solid mixture differs from %g",
 					solid_density, fIndex+1, pdiff_mat->Density());
 	}
+#endif
 
 	/* set concentration type */
 	if (fConcentration == kReference)
