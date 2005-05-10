@@ -1,8 +1,9 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.14 2005-05-08 15:37:59 paklein Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.15 2005-05-10 17:56:44 paklein Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "NLDiffusionMaterialT.h"
+#include "MaterialListT.h"
 
 //DEBUG
 #include "ofstreamT.h"
@@ -174,6 +175,18 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 	if (fIndex < 0)
 		ExceptionT::GeneralFail(caller, "could not resolve index of field \"%s\"",
 			Field().FieldName().Pointer());
+
+	/* consistency check */
+	double solid_density = fUpdatedLagMixture->Density(fIndex);
+	for (int i = 0; i < fMaterialList->Length(); i++) {
+		const ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
+		const DiffusionMaterialT* pdiff_mat = TB_DYNAMIC_CAST(const DiffusionMaterialT*, pcont_mat);
+		if (!pdiff_mat) ExceptionT::GeneralFail(caller, "error resolving density of material %d", i+1);
+		if (fabs(pdiff_mat->Density() - solid_density) > kSmall)
+			ExceptionT::GeneralFail(caller, 
+				"density %g of the species at index %d of the solid mixture differs from %g",
+					solid_density, fIndex+1, pdiff_mat->Density());
+	}
 
 	/* set concentration type */
 	if (fConcentration == kReference)
