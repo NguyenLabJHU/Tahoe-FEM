@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.61 2005-04-12 15:34:29 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.61.2.1 2005-05-10 18:10:33 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -1540,6 +1540,7 @@ void NodeManagerT::WriteData(ostream& out, const char* title,
 
 KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 {
+	const char caller[] = "NodeManagerT::NewKBC_Controller";
 	switch(code)
 	{
 		case KBC_ControllerT::kPrescribed:
@@ -1581,21 +1582,24 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 			TorsionKBCT* kbc = new TorsionKBCT(fFieldSupport);
 			return kbc;
 		}
+#if defined(CONTINUUM_ELEMENT) && defined(COHESIVE_SURFACE_ELEMENT)
 		case KBC_ControllerT::kConveyor:
 		{
 			ConveyorT* kbc = new ConveyorT(fFieldSupport, field);
 			return kbc;
 		}
-#if 0
-                case KBC_ControllerT::kConveyorSym:
-                {
-                        ConveyorSymT* kbc = new ConveyorSymT(fFieldSupport, field);
-                        return kbc;
-                }
 #endif
+
+#if 0
+		case KBC_ControllerT::kConveyorSym:
+		{
+			ConveyorSymT* kbc = new ConveyorSymT(fFieldSupport, field);
+			return kbc;
+		}
+#endif
+
 		default:
-			ExceptionT::BadInputValue("NodeManagerT::NewKBC_Controller", 
-				"KBC controller code %d is not supported", code);
+			ExceptionT::BadInputValue(caller, "KBC controller code %d is not supported", code);
 	}
 	return NULL;
 }
