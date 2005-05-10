@@ -1,5 +1,9 @@
-/* $Id: ConveyorT.cpp,v 1.15 2005-02-21 08:26:02 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.15.6.1 2005-05-10 18:10:34 paklein Exp $ */
 #include "ConveyorT.h"
+
+/* configuration requirements */
+#if defined(CONTINUUM_ELEMENT) && defined(COHESIVE_SURFACE_ELEMENT)
+
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
@@ -1200,3 +1204,5 @@ int ConveyorT::UpperLower(int node) const
 	else
 		return -1;
 }
+
+#endif /* CONTINUUM_ELEMENT && COHESIVE_SURFACE_ELEMENT */
