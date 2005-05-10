@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.24 2005-05-10 19:55:41 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.25 2005-05-10 20:29:58 kyonten Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
@@ -488,7 +488,7 @@ void RaggedArray2DT<TYPE>::Combine(const RaggedArray2DT<TYPE>& a, const RaggedAr
 		ExceptionT::SizeMismatch("RaggedArray2DT<TYPE>::Combine");
 
 	/* get row dimensions of a and b */
-	fMajorDim = a.fMajorDim
+	fMajorDim = a.fMajorDim;
 	iArrayT minordim(fMajorDim);
 	iArrayT minordim_b(fMajorDim);
 	a.MinorDim(minordim);
