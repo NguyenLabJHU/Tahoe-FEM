@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.14 2005-05-09 21:14:53 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.15 2005-05-10 17:57:07 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -116,6 +116,11 @@ double FSSolidMixtureT::Density(void)
 
 	fDensity = fIPConc.Sum();
 	return fDensity;
+}
+
+/* mass density of the given species */
+double FSSolidMixtureT::Density(int i) {
+	return fStressFunctions[i]->Density();
 }
 
 /* variation of 1st Piola-Kirchhoff for the given species with concentration */
