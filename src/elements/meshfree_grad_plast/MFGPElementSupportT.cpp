@@ -1,4 +1,4 @@
-/* $Id: MFGPElementSupportT.cpp,v 1.3 2005-05-03 20:12:35 kyonten Exp $ */
+/* $Id: MFGPElementSupportT.cpp,v 1.4 2005-05-11 23:06:35 kyonten Exp $ */
 #include "MFGPElementSupportT.h"
 
 
@@ -295,11 +295,11 @@ int MFGPElementSupportT::MarkActiveCells(AutoArrayT<ElementCardT>& elem_cards)
 		/* mark cell */
 		if (active)
 		{
-			elem_cards[i].Flag() = 1;
+			elem_cards[i].Flag() = ElementCardT::kON;
 			active_count++;
 		}
 		else
-			elem_cards[i].Flag() = 0;
+			elem_cards[i].Flag() = ElementCardT::kOFF;
 	}
 	return active_count;
 }
