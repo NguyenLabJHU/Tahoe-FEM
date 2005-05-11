@@ -1,4 +1,4 @@
-/* $Id: MFGPSSSolidMatT.cpp */
+/* $Id: MFGPSSSolidMatT.cpp,v 1.2 2005-05-11 23:10:05 kyonten Exp $  */
 #include "MFGPSSSolidMatT.h"
 #include "MFGPMatSupportT.h"
 #include "dSymMatrixT.h"
@@ -98,20 +98,36 @@ void MFGPSSSolidMatT::InitStep(void)
 * for the current conditions (current integration point and strain
 * state). If localization is detected, the normals (current config)
 * to the surface and slip directions are returned */
-bool MFGPSSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
+bool MFGPSSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact)
 {
-	/* stress tensor */
-	const dSymMatrixT& stress = s_ij();
-			
-	/* consistent tangent modulus */
-	const dMatrixT& modulus = c_ijkl();
-	
 	/* elastic modulus */
-	const dMatrixT& modulus_e = ce_ijkl();
+	/* this uses same space as c_ijkl(), so save separatley first */
+	const dMatrixT modulus_e = ce_ijkl();
 
 	/* localization condition checker */
-	DetCheckT checker(stress, modulus, modulus_e);
+	DetCheckT checker(s_ij(), c_ijkl(), modulus_e);
 	normals.Dimension(NumSD());
 	slipdirs.Dimension(NumSD());
-	return checker.IsLocalized_SS(normals,slipdirs);
+	return checker.IsLocalized_SS(normals, slipdirs, detAs);
 }
+
+bool MFGPSSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA)
+{
+	/* elastic modulus */
+	/* this uses same space as c_ijkl(), so save separatley first */
+	const dMatrixT modulus_e = ce_ijkl();
+
+	/* localization condition checker */
+	DetCheckT checker(s_ij(), c_ijkl(), modulus_e);
+	normals.Dimension(NumSD());
+	slipdirs.Dimension(NumSD());
+	return checker.IsLocalized_SS(normals, slipdirs, detA);
+}
+
+bool MFGPSSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
+{
+	double dummyDetA = 0.0;
+	return IsLocalized(normals, slipdirs, dummyDetA);
+}
+

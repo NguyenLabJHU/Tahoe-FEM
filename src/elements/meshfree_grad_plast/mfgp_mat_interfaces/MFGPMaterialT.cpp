@@ -1,4 +1,4 @@
-/* $Id: MFGPMaterialT.cpp,v 1.2 2005-04-27 20:34:14 kyonten Exp $ */
+/* $Id: MFGPMaterialT.cpp,v 1.3 2005-05-11 23:10:05 kyonten Exp $ */
 #include "MFGPMaterialT.h"
 #include "MFGPMatSupportT.h"
 #include "ArrayT.h"
@@ -14,6 +14,20 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<MFGPMaterialT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 using namespace Tahoe;
+
+MFGPMaterialT::ConstraintT MFGPMaterialT::int2ConstraintT(int i)
+{
+	if (i == kNoConstraint)
+		return kNoConstraint;
+	else if (i == kPlaneStress)
+		return kPlaneStress;
+	else if (i == kPlaneStrain)
+		return kPlaneStrain;
+	else
+		ExceptionT::GeneralFail("MFGPMaterialT::int2ConstraintT",
+			"could not translate %d", i);
+	return kNoConstraint;
+} 
 
 /* constructor */
 MFGPMaterialT::MFGPMaterialT(void):
@@ -164,7 +178,7 @@ void MFGPMaterialT::TakeParameterList(const ParameterListT& list)
 	fDensity = list.GetParameter("density");
 
 	/* 2D constraint - default to plane strain for 2D materials */
-	list.GetParameter("constraint_2D", enum2int<ConstraintT>(fConstraint));
+	list.GetParameter("constraint_2D");
 	if (NumSD() == 3)
 		fConstraint = kNoConstraint;
 	else if (NumSD() == 2 && fConstraint == kNoConstraint)

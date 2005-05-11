@@ -1,4 +1,4 @@
-/* $Id: MFGPMaterialT.h */
+/* $Id: MFGPMaterialT.h,v 1.2 2005-05-11 23:10:05 kyonten Exp $  */
 #ifndef _MFGP_MATERIAL_T_H_
 #define _MFGP_MATERIAL_T_H_
 
@@ -38,6 +38,7 @@ public:
 		kNoConstraint = 0, /**< no constraint, material is 3D */
 		kPlaneStress = 1, /**< plane stress */
 		kPlaneStrain = 2  /**< plane strain */};
+	ConstraintT static int2ConstraintT(int i);
 		
 	/** constructor */
 	MFGPMaterialT(void);
@@ -203,6 +204,10 @@ public:
 	/** 2D constrain options or kNoConstraint::kNoConstraint if the material
 	 * is not 2D */
 	ConstraintT Constraint(void) const { return fConstraint; };
+	
+	virtual bool NeedDisp(void) const     { return false; };
+	virtual bool NeedLastDisp(void) const { return false; };
+	virtual bool NeedVel(void) const      { return false; };
 	
 	/** return the strain in the material. The definition of strain will be
 	 * dependent on the subclass */

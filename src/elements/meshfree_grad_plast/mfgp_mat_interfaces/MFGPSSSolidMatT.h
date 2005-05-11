@@ -1,4 +1,4 @@
-/* $Id: MFGPSSSolidMatT.h */
+/* $Id: MFGPSSSolidMatT.h,v 1.2 2005-05-11 23:10:05 kyonten Exp $  */
 #ifndef _MFGP_SS_STRUCT_MAT_T_H_
 #define _MFGP_SS_STRUCT_MAT_T_H_
 
@@ -113,6 +113,9 @@ public:
 	 * \param normal orientation of the localization if localized
 	 * \return true if the determinant of the acoustical tensor is negative
 	 * or fals if the determinant is positive. */
+	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
+	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA);
 	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
 
 protected:
@@ -176,49 +179,49 @@ inline const dSymMatrixT& MFGPSSSolidMatT::lap_e_last(int ip)
 /* strain - returns the plastic multiplier */
 inline const dArrayT& MFGPSSSolidMatT::pm(void)
 {
-	return fMFGPMatSupport->Lambda();
+	return fMFGPMatSupport->LambdaPM();
 }
 
 /* plastic multiplier at the given integration point */
 inline const dArrayT& MFGPSSSolidMatT::pm(int ip)
 {
-	return fMFGPMatSupport->Lambda(ip);
+	return fMFGPMatSupport->LambdaPM(ip);
 }
 
 /* strain - returns the plastic multiplier */
 inline const dArrayT& MFGPSSSolidMatT::pm_last(void)
 {
-	return fMFGPMatSupport->Lambda_last();
+	return fMFGPMatSupport->LambdaPM_last();
 }
 
 /* plastic multiplier at the given integration point */
 inline const dArrayT& MFGPSSSolidMatT::pm_last(int ip)
 {
-	return fMFGPMatSupport->Lambda_last(ip);
+	return fMFGPMatSupport->LambdaPM_last(ip);
 }
 
 /* strain - returns the laplacian of plastic multiplier */
 inline const dArrayT& MFGPSSSolidMatT::lap_pm(void)
 {
-	return fMFGPMatSupport->LapLambda();
+	return fMFGPMatSupport->LapLambdaPM();
 }
 
 /* laplacian of plastic multiplier at the given integration point */
 inline const dArrayT& MFGPSSSolidMatT::lap_pm(int ip)
 {
-	return fMFGPMatSupport->LapLambda(ip);
+	return fMFGPMatSupport->LapLambdaPM(ip);
 }
 
 /* strain - returns the laplacian of plastic multiplier */
 inline const dArrayT& MFGPSSSolidMatT::lap_pm_last(void)
 {
-	return fMFGPMatSupport->LapLambda_last();
+	return fMFGPMatSupport->LapLambdaPM_last();
 }
 
 /* laplacian of plastic multiplier at the given integration point */
 inline const dArrayT& MFGPSSSolidMatT::lap_pm_last(int ip)
 {
-	return fMFGPMatSupport->LapLambda_last(ip);
+	return fMFGPMatSupport->LapLambdaPM_last(ip);
 }
 
 } // namespace Tahoe 
