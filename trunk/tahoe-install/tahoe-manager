@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.42 2005-05-06 22:17:28 paklein Exp $
+# $Id: tahoe-manager,v 1.43 2005-05-11 16:14:00 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -106,7 +106,7 @@ http	curl
 );
 
 # tahoe server
-$ tahoe = "tahoe.ca.sandia.gov"; 
+$tahoe = "tahoe.ca.sandia.gov"; 
 
 # default configuration file
 $config_file = "./.tahoe_config";
@@ -115,9 +115,11 @@ $time = localtime();
 print "* running tahoe-manager script at $time\n";
 
 # if TAHOE_HOME is set, change to that location
+$tahoe_home = cwd();
 if(defined($dir = findENV("TAHOE_HOME") ) ) {
-	print "* changing to directory TAHOE_HOME = $dir \n";
-        chdir($dir);
+	$tahoe_home = $dir;
+	print "* changing to directory TAHOE_HOME = $tahoe_home\n";
+	chdir $tahoe_home;
 }
 
 # initialization
@@ -477,11 +479,12 @@ sub update_cvs {
 		next if defined($module2syslib{$dir});
 
 		if (-d $dir) {
+			my $cwd = cwd();
 			print "\tupdating $dir...";
 			chdir($dir);
 			#system("cvs update -Pd > ../cvs.log 2>&1");
-			system("cvs -q update -Pd > ../cvs.log");
-			chdir("..");
+			system("cvs -q update -Pd > $cwd/cvs.log");
+			chdir($cwd);
 		} else {
 			print "\tchecking out $dir...";
 			my $repo = $module2repo{$dir};
@@ -490,7 +493,7 @@ sub update_cvs {
 		}
 		# check for failures
 		my ($errors, $patches, $updates, $merges) = (0, 0, 0, 0);
-		open(IN,"cvs.log");
+		open(IN,"cvs.log") || die "could not open $cwd/cvs.log";
 		my $first_line = 0;
 		while (defined(my $line = <IN>)) {
 			my $hit = 0;
@@ -638,6 +641,7 @@ sub build {
 	DIR: foreach my $dir (@tmp_modules) {
 		if (-e "$dir/makefile" && !defined($up_to_date_modules{$dir})) {
 
+			my $cwd = cwd();
 			chdir($dir);
 			print "\tmaking $dir...";
 			if (-e ".built") {
@@ -667,7 +671,7 @@ sub build {
 #					}
 				}
 			}
-			chdir "..";
+			chdir($cwd);
 		}
 	}
 }
@@ -692,6 +696,7 @@ sub init {
 	# since this may be interactive
 	foreach my $dir (@run_modules) {
 		if (-e $dir) { 
+			my $cwd = cwd();
 			chdir $dir; 
 			if (-e "makefile.template") {
 				unlink(".built");
@@ -701,7 +706,7 @@ sub init {
 				fillin_makefile();
 				print " ok\n";
 			}
-			chdir ".."; 
+			chdir $cwd; 
 		}
 	}
 	
@@ -711,6 +716,7 @@ sub init {
 
 	foreach my $dir (@tmp_modules) {
 		if (-e $dir) { 
+			my $cwd = cwd();
 			chdir $dir; 
 			if (-e "makefile.template") {
 
@@ -733,7 +739,7 @@ sub init {
 					}
 				} else { unlink(".status"); } # remove flag
 			}
-		 	chdir "..";
+		 	chdir $cwd;
 		}
 	}
 }
@@ -752,6 +758,7 @@ sub clean {
 	print "($count) cleaning: @modules, at $time\n";
 	foreach $dir (@run_modules) {
 		if (-e $dir) { 
+			my $cwd = cwd();
 			chdir $dir; 
 			if (-e "makefile") {
 				print "\tcleaning $dir...";
@@ -767,7 +774,7 @@ sub clean {
 				# flag
 				system("echo 'init' > .status");
 			}
-		 	chdir "..";
+		 	chdir $cwd;
 		}
 	}
 
@@ -778,21 +785,23 @@ sub test{
 	$time = (split(/ +/,localtime()))[3];
 	print "($count) running tests at $time\n";
 	update("benchmark_XML");
+	my $cwd = cwd();
 	chdir("benchmark_XML/comparator");
 	print("\tbuilding comparator...");
 	fillin_makefile(); system("make init build > build.log 2>&1");
+	die "error building compare\n" if (! -x "compare");
 	print(" ok\n");
-	chdir("..");
+	chdir("$cwd/benchmark_XML");
 	print("\tremoving previous results...");
 	system("make clean > build.log 2>&1");
 	print(" ok\n");
 	print("\trunning benchmark cases...");
-	system("../tahoe/tahoe -f run.batch > run.out 2>&1");
+	system("$cwd/tahoe/tahoe -f run.batch > run.out 2>&1");
 	print(" ok\n");
 	print("\tcomparing benchmarks...");
 	system("./comparator/compare -f run.batch > compare.out 2>&1");
 	print(" ok\n");
-	open(IN,"compare.summary");
+	open(IN,"compare.summary") || die "could not open $cwd/compare.summary\n";
 	<IN>; 
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $pass = $_;   
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $fail = $_;   
@@ -898,7 +907,7 @@ sub fillin_makefile{
 		chomp($ans);
 		if (length($ans) > 0 && $ans !~ /y/i) {
 			my $path = cwd();
-			chdir("..");
+			chdir($tahoe_home);
 			$mod_arch = get_arch();
 			chdir($path);
 		}
@@ -1166,9 +1175,10 @@ sub config_optional_modules {
 			
 			# "touch" target
 			if (-e "$module/makefile" && defined($module2touch{$changedmodule})) {
+				my $cwd = cwd();
 				chdir($module);
 				system("make $module2touch{$changedmodule} >> build.log 2>&1");
-				chdir("..");
+				chdir $cwd;
 			}
 		}
 	}
@@ -1259,9 +1269,10 @@ sub add_optional_modules {
 			
 			# "touch" target
 			if (-e "$module/makefile" && defined($module2touch{$addmodule})) {
-				chdir($module);
+				my $cwd = cwd();
+				chdir $module;
 				system("make $module2touch{$addmodule} >> build.log 2>&1");
-				chdir("..");
+				chdir $cwd;
 			}
 		}
 	}
@@ -1302,9 +1313,10 @@ sub remove_optional_modules {
 
 			# "touch" target
 			if (-e "$module/makefile" && defined($module2touch{$outmodule})) {
+				my $cwd = cwd();
 				chdir($module);
 				system("make $module2touch{$outmodule} >> build.log 2>&1");
-				chdir("..");
+				chdir($cwd);
 			}
 		}
 	}
@@ -1368,6 +1380,7 @@ sub configure_module {
 	my $module = shift(@_);
 	
 	# regenerate the configuration headers
+	my $cwd = cwd();
 	chdir $module;
 	fillin_makefile();
 	system("make update_config > build.log 2>&1");
@@ -1403,8 +1416,8 @@ sub configure_module {
 		}
 	}
 
-	# up
-	chdir "..";
+	# back
+	chdir $cwd;
 	return $change;
 }
 
@@ -1570,6 +1583,7 @@ sub print_in_columns {
 
 ##############################################################################
 sub get_arch {
+	my $cwd = cwd();
 	chdir "macros"; 
 	my @macros = glob("*.macros"); 
 	my @choices = ();
@@ -1577,7 +1591,7 @@ sub get_arch {
 		$choice =~ s/\.macros//; 
 		push(@choices,$choice);
 	}
-	chdir "..";
+	chdir $cwd;
 	print "no default build architecture, choices (".scalar(@choices)."):\n";
 	my $i=0;	
 	print_in_columns(3, @choices);
