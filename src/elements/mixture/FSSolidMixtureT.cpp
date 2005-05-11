@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.15 2005-05-10 17:57:07 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.16 2005-05-11 21:11:35 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -140,22 +140,21 @@ const dSymMatrixT& FSSolidMixtureT::ds_ij_dc(int i)
 	double c_h = c_0 + eps;
 	double c_l = c_0 - eps;
 	c_l = (c_l < 0.0) ? c_0 : c_l;
-	double rel_conc, J_g;
+	double J_g;
+	double alpha = 1.0/fF_growth_inv.Rows();
 
 	/* "high" */
 	conc[i] = c_h;
-	rel_conc = conc[i]/conc_0[i];
-	fF_growth_inv.Identity(1.0/rel_conc);
+	J_g = conc[i]/conc_0[i];
+	fF_growth_inv.Identity(pow(1.0/J_g, alpha));
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
-	J_g = pow(rel_conc, fF_growth_inv.Rows());
 	fs_ij_tmp.SetToScaled(conc[i]/J_g, fStressFunctions[i]->s_ij());
 
 	/* "low" */
 	conc[i] = c_l;
-	rel_conc = conc[i]/conc_0[i];
-	fF_growth_inv.Identity(1.0/rel_conc);
+	J_g = conc[i]/conc_0[i];
+	fF_growth_inv.Identity(pow(1.0/J_g, alpha));
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
-	J_g = pow(rel_conc, fF_growth_inv.Rows());
 	fStress.SetToScaled(conc[i]/J_g, fStressFunctions[i]->s_ij());
 
 	/* finite difference */
@@ -181,12 +180,13 @@ double FSSolidMixtureT::StrainEnergyDensity(void)
 	IPConcentration(fConc, fIPConc);
 
 	/* sum over species */
+	double alpha = 1.0/fF_growth_inv.Rows();
 	double u = 0.0;
 	for (int i = 0; i < fConc.Length(); i++)
 	{
 		/* compute mechanical strain */
 		double rel_conc = fConc[i]/conc_0[i];
-		fF_growth_inv.Identity(1.0/rel_conc);
+		fF_growth_inv.Identity(pow(1.0/rel_conc, alpha));
 		fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
 		/* compute modulus */
@@ -210,16 +210,17 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(void)
 	//const dArrayT& conc = fFSSolidMixtureSupport->Concentration();
 
 	/* sum over species */
+	double alpha = 1.0/fF_growth_inv.Rows();
 	fModulus = 0.0;
 	for (int i = 0; i < conc.Length(); i++)
 	{
 		/* compute mechanical strain */
-		double rel_conc = conc[i]/conc_0[i];
-		fF_growth_inv.Identity(1.0/rel_conc);
+		double J_g = conc[i]/conc_0[i];
+		fF_growth_inv.Identity(pow(1.0/J_g, alpha));
 		fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
 		/* Jacobian of growth */
-		double c_by_J_g = conc[i]/pow(rel_conc, fF_growth_inv.Rows());
+		double c_by_J_g = conc[i]/J_g;
 
 		/* compute modulus */
 		const dMatrixT& c_ijkl_i = fStressFunctions[i]->c_ijkl();
@@ -228,8 +229,8 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(void)
 		/* extra terms for current concentration */
 		if (fConcentration[i] == kCurrent) {
 			fs_ij_tmp.A_ijkl_B_kl(c_ijkl_i, fI);
-			fs_ij_tmp += fStressFunctions[i]->s_ij();
-			fModulus.Outer(fs_ij_tmp, fI, -c_by_J_g, dMatrixT::kAccumulate);
+			fs_ij_tmp -= fStressFunctions[i]->s_ij();
+			fModulus.Outer(fs_ij_tmp, fI, -c_by_J_g/3.0, dMatrixT::kAccumulate);
 		}
 	}
 
@@ -248,12 +249,13 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(int i)
 	const dArrayT& conc = fIPConc;	
 
 	/* compute mechanical strain */
-	double rel_conc = conc[i]/conc_0[i];
-	fF_growth_inv.Identity(1.0/rel_conc);
+	double alpha = 1.0/fF_growth_inv.Rows();
+	double J_g = conc[i]/conc_0[i];
+	fF_growth_inv.Identity(pow(1.0/J_g, alpha));
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
 	/* Jacobian of growth */
-	double c_by_J_g = conc[i]/pow(rel_conc, fF_growth_inv.Rows());
+	double c_by_J_g = conc[i]/J_g;
 
 	/* compute modulus */
 	const dMatrixT& c_ijkl_i = fStressFunctions[i]->c_ijkl();
@@ -262,8 +264,8 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(int i)
 	/* extra terms for current concentration */
 	if (fConcentration[i] == kCurrent) {
 		fs_ij_tmp.A_ijkl_B_kl(c_ijkl_i, fI);
-		fs_ij_tmp += fStressFunctions[i]->s_ij();
-		fModulus.Outer(fs_ij_tmp, fI, -c_by_J_g, dMatrixT::kAccumulate);
+		fs_ij_tmp -= fStressFunctions[i]->s_ij();
+		fModulus.Outer(fs_ij_tmp, fI, -c_by_J_g/3.0, dMatrixT::kAccumulate);
 	}
 
 	return fModulus;
@@ -282,16 +284,14 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(void)
 	const dArrayT& conc = fIPConc;
 
 	/* sum over species */
+	double alpha = 1.0/fF_growth_inv.Rows();	
 	fStress = 0.0;
 	for (int i = 0; i < conc.Length(); i++)
 	{
 		/* compute mechanical strain */
-		double rel_conc = conc[i]/conc_0[i];
-		fF_growth_inv.Identity(1.0/rel_conc);
+		double J_g = conc[i]/conc_0[i];
+		fF_growth_inv.Identity(pow(1.0/J_g, alpha));
 		fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
-
-		/* Jacobian of growth */
-		double J_g = pow(rel_conc, fF_growth_inv.Rows());
 
 		/* compute stress */
 		fStress.AddScaled(conc[i]/J_g, fStressFunctions[i]->s_ij());
@@ -312,12 +312,10 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(int i)
 	const dArrayT& conc = fIPConc;	
 
 	/* compute mechanical strain */
-	double rel_conc = conc[i]/conc_0[i];
-	fF_growth_inv.Identity(1.0/rel_conc);
+	double alpha = 1.0/fF_growth_inv.Rows();	
+	double J_g = conc[i]/conc_0[i];
+	fF_growth_inv.Identity(pow(1.0/J_g, alpha));
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
-
-	/* Jacobian of growth */
-	double J_g = pow(rel_conc, fF_growth_inv.Rows());
 
 	/* compute stress */
 	fStress.SetToScaled(conc[i]/J_g, fStressFunctions[i]->s_ij());
