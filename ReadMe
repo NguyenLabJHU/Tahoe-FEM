@@ -1,4 +1,4 @@
-# $Id: ReadMe,v 1.1 2003-02-03 19:18:13 paklein Exp $
+# $Id: ReadMe,v 1.2 2005-05-12 06:29:15 paklein Exp $
 These are instructions for working with the code in the development module. 
 The process is a little more complicated than working with the other optional 
 modules because the dependencies between Tahoe and the development module are 
@@ -45,3 +45,4 @@ build using the new configuration options:
     to include/exclude which ever sections you want.
 
 (3) "make init build" in the tahoe directory
+
