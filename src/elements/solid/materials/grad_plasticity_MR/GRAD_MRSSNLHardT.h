@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.h,v 1.6 2005-04-28 01:39:01 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.h,v 1.7 2005-05-13 22:01:16 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    MR version modified to incorporate gradient plasticity 
    theory.
@@ -95,7 +95,7 @@ public:
 	/*@{*/
 	
 	/* return yield condition, f */
-	const double& YieldFunction(const ElementCardT & element, int ip);
+	const double& YieldFunction(void) const { return fYield; };
 
 	/* return a pointer to a new plastic element object constructed with
 	 * the data from element */
@@ -186,7 +186,7 @@ public:
     dMatrixT	fModuli_LamLam1;
     dMatrixT	fModuli_LamLam2;
     /*@}*/
-    double fYieldFunction;
+    double fYield;
   		
 	/* work space */
 	dSymMatrixT fDevStress;

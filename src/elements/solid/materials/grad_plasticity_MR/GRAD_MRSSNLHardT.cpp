@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.7 2005-04-28 01:39:01 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.8 2005-05-13 22:01:16 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    MR version modified to incorporate gradient plasticity 
    theory.
@@ -106,7 +106,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     dArrayT Sig(6); dArrayT dSig(6); dArrayT Sig_I(6);
     dArrayT mm(6); dArrayT rr(4); dArrayT nn(6); 
     dArrayT dq(4); dArrayT hh(4); dArrayT gg(4); 
-    dArrayT state(38); dArrayT Sig_trial(6);
+    dArrayT state(39); dArrayT Sig_trial(6);
     dArrayT RSig(6); dArrayT Rq(4);
     dArrayT R(10); dArrayT ls(4);
     
@@ -116,10 +116,10 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
 	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
 	
-	ls[1] = flse_v; // lse_v: pore space length scale (elastic)  
-	ls[2] = flse_s; // lse_s: grain size length scale (elastic)
-	ls[3] = flsp_v; // lsp_v: pore space length scale (plastic)   
-	ls[4] = flsp_s; // lsp_s: grain size length scale (plastic) 
+	ls[0] = flse_v; // lse_v: pore space length scale (elastic)  
+	ls[1] = flse_s; // lse_s: grain size length scale (elastic)
+	ls[2] = flsp_v; // lsp_v: pore space length scale (plastic)   
+	ls[3] = flsp_s; // lsp_s: grain size length scale (plastic) 
 	
 	/* KE_AST for gradient terms */
 	KE_AST = 0.;
@@ -250,7 +250,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     {
       iplastic = 0;
       state[34] = ff;
-      state[39] = ff;
+      state[38] = ff;
       kk = 0;
     }
       
@@ -259,7 +259,6 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
       state[39] = ff;
       kk = 0;
       iplastic = 1;
-    
       while (ff > fTol_1) 
       {
         if (kk > 500) 
@@ -435,13 +434,14 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	state[37] = double(iplastic);
 	state[38] = double(kk);
 	
+	fYield = ff;
 	for (int i = 0; i<6; i++) 
 	{
 	      fStressCorr[i] = state[i];
     }
 	if (iplastic>0) 
 	{
-	   for (int i =0; i< 39; i++) 
+	   for (int i = 0; i<39; i++) 
 	   {
 		  fInternal[i] = state[i];
 	   }
@@ -1054,10 +1054,10 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
 	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
 	
-	ls[1] = flse_v; // lse_v: pore space length scale (elastic)  
-	ls[2] = flse_s; // lse_s: grain size length scale (elastic)
-	ls[3] = flsp_v; // lsp_v: pore space length scale (plastic)   
-	ls[4] = flsp_s; // lsp_s: grain size length scale (plastic)
+	ls[0] = flse_v; // lse_v: pore space length scale (elastic)  
+	ls[1] = flse_s; // lse_s: grain size length scale (elastic)
+	ls[2] = flsp_v; // lsp_v: pore space length scale (plastic)   
+	ls[3] = flsp_s; // lsp_s: grain size length scale (plastic)
 	
 	
 	// KE_AST for gradient terms
@@ -1410,39 +1410,6 @@ fModuliPerfPlas = 0.0;
 
 	return fModuliPerfPlas;
 }	
-
-/* Return the yield function (for enforcing consistency condition
-   in weak sense)
- * Current values of internal variables, and stress used */
-const double& GRAD_MRSSNLHardT::YieldFunction(const ElementCardT& element, 
-	int ip)
-{
-	dArrayT state(38); dArrayT Sig(6);
-	dArrayT qn(4); 
-	double ff;
- /* load internal state variables */
-    if(!element.IsAllocated()) 
-    {
-	  	LoadData(element,ip);
-	  	for (int i =0; i<39; i++) 
-	  	{
-		  state[i] = fInternal[i];
-		}
-	}
-	  	
-    for (int i = 0; i<6; i++) 
-    {
-       Sig[i] = state[i];
-    }
-    
-    for (int i = 0; i<4; i++)
-     {
-      qn[i] = state[i+30];
-     }
-     Yield_f(Sig, qn, ff);
-     fYieldFunction = ff;
-     return fYieldFunction; 
-}
  	 	
 /* return a pointer to a new plastic element object constructed with
  * the data from element */
