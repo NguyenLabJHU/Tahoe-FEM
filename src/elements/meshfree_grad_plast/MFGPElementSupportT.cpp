@@ -1,4 +1,4 @@
-/* $Id: MFGPElementSupportT.cpp,v 1.4 2005-05-11 23:06:35 kyonten Exp $ */
+/* $Id: MFGPElementSupportT.cpp,v 1.5 2005-05-13 21:56:42 kyonten Exp $ */
 #include "MFGPElementSupportT.h"
 
 
@@ -162,9 +162,6 @@ void MFGPElementSupportT::InitSupport(ostream& out,
 		/* field equations */
 		fElemEqnosEX_displ.RowAlias(i, card_displ.Equations());
 		fElemEqnosEX_plast.RowAlias(i, card_plast.Equations());
-		
-		/* combine the two equations */
-		//fElemEqnosEX_comb. ?? column copy
 	}
 	
 	/* collect FE/meshfree nodes */
@@ -206,16 +203,13 @@ void MFGPElementSupportT::SetOffDiagMatrix(int element)
 {
 	/* current number of element neighbors */
 	fNumElemenNodes_displ = fElemNodesEX_displ->MinorDim(element);
-	int neq_displ = fNumElemenNodes_displ*fLocField_1.MinorDim();
+	int neq_1 = fNumElemenNodes_displ*fLocField_1.MinorDim();
 	
 	fNumElemenNodes_plast = fElemNodesEX_plast->MinorDim(element);
-	int neq_plast = fNumElemenNodes_plast*fLocField_2.MinorDim();
+	int neq_2 = fNumElemenNodes_plast*fLocField_2.MinorDim();
 
 	/* redimension workspace arrays */
-	if (fLocField_1.MinorDim() > fLocField_2.MinorDim())
-		fNEEMatrixOD.Dimension(neq_displ, neq_plast);
-	else
-		fNEEMatrixOD.Dimension(neq_plast, neq_displ);
+	fNEEMatrixOD.Dimension(neq_1, neq_2);
 }
 
 /* construct nodal field */
