@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.16 2005-05-06 20:53:49 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.17 2005-05-13 19:42:31 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -276,8 +276,7 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 
 	fLHS.Outer(k_d_zeta, k_zeta_d, -1.0/k_zeta_zeta, dMatrixT::kAccumulate);
     }
-  /* cout << "Element Number " << CurrElementNumber() << ". fHLs =\n" << fLHS
-     << endl; */
+   //cout << "Element Number " << CurrElementNumber() << ". InitialCoodinates() =\n" << InitialCoordinates() << endl;
 
 }
 
@@ -402,7 +401,7 @@ double SSEnhLocCraigT::CalculateJumpIncrement()
     } 
   fBand -> StoreJumpIncrement(jumpIncrement);
 
-  cout << "jumpIncrement = " << jumpIncrement << endl;
+  // cout << "jumpIncrement = " << jumpIncrement << endl;
 
   return jumpIncrement;
 }
@@ -460,7 +459,7 @@ bool SSEnhLocCraigT::IsBandActive()
 
   double neededCohesion = shearStress + normalStress * fLocalizedFrictionCoeff;
  
-  cout << "Element Number " << CurrElementNumber() << ", ";
+  // cout << "Element Number " << CurrElementNumber() << ", ";
   //cout << "normalStress = " << normalStress << endl;
   //cout << "shearStress = " << shearStress << endl;
  //cout << "area = " << area << endl;
@@ -486,10 +485,10 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			   const iArrayT& e_codes, dArray2DT& e_values)
 {
 
-  /* inherited */
-  SmallStrainT::ComputeOutput(n_codes, n_values, e_codes, e_values);
+  cout << "ComputeOutput \n\n";
 
-  #if 1
+
+  #if 0
   if (fLocalizationHasBegun)
     {
       /*update traced elements */ 
@@ -577,6 +576,9 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	}
     }
 #endif
+
+  /* inherited */
+  SmallStrainT::ComputeOutput(n_codes, n_values, e_codes, e_values);
   
 
 }
@@ -585,8 +587,10 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 void SSEnhLocCraigT::CloseStep(void)
 {
 
-#if 0
-  if (fLocalizationHasBegun)
+cout << "\n CloseStep \n \n";
+
+#if 1
+ if (fLocalizationHasBegun)
     {
       /*update traced elements */ 
       Top();
@@ -596,9 +600,9 @@ void SSEnhLocCraigT::CloseStep(void)
 	    {
 	      //cout << "fBand->JumpIncrement = " << fBand->JumpIncrement() << endl;
 
-	        fBand -> CloseStep();
+	      //fBand -> CloseStep();
 
-			SetGlobalShape();	
+		SetGlobalShape();	
 
 
 	    	/* loop over integration point */
@@ -619,16 +623,16 @@ void SSEnhLocCraigT::CloseStep(void)
 	      	fBand -> IncrementStress(stressIncr, CurrIP());
 		if (CurrIP() == 0)
 		  {
-		    cout << "strain = \n" << fStrain_List[CurrIP()] << endl;
-		    cout << "strain_last = \n" << fStrain_last_List[CurrIP()] << endl;			  
+		    //cout << "strain = \n" << fStrain_List[CurrIP()] << endl;
+		    //cout << "strain_last = \n" << fStrain_last_List[CurrIP()] << endl;			  
 		    cout << "strainIncr = \n" << strainIncr << endl; 
-		    cout << "stressIncr = \n" << stressIncr << endl; 
+		    //cout << "stressIncr = \n" << stressIncr << endl; 
 		  }
 	      	}
 	      	
 
 
-	      //fBand -> CloseStep();
+	      fBand -> CloseStep();
 	      	
 	      	cout << "fBand->JumpIncrement = " << fBand->JumpIncrement() << endl;
 	      	cout << "fBand->Jump() = " << fBand->Jump() << endl;	
@@ -639,6 +643,8 @@ void SSEnhLocCraigT::CloseStep(void)
       fEdgeOfBandCoords.Top();
       while(fEdgeOfBandElements.Next())
 	{
+	      cout << "checking for localization of element " <<
+	      	fEdgeOfBandElements.Current() << endl;
 	  fEdgeOfBandCoords.Next();
 	  GetElement(fEdgeOfBandElements.Current());
 	  IsElementLocalized();
@@ -653,25 +659,31 @@ void SSEnhLocCraigT::CloseStep(void)
 	{
 	  if (IsElementLocalized())
 	    localizationHasBegun = true;
-	}
+	  	}
       if (localizationHasBegun)
 	{
 	  fLocalizationHasBegun = true;
+	  fEdgeOfBandElements.Current(0);
+	  GetElement(fEdgeOfBandElements.Current());
+	  fEdgeOfBandCoords.Free();
+	  fEdgeOfBandCoords.Append(Centroid());	  
 	  fEdgeOfBandElements.Top();
 	  fEdgeOfBandCoords.Top();
-	  //localize 1st element?
+	  	  //localize 1st element?
 	  while(fEdgeOfBandElements.Next())
 	    {
-	      fEdgeOfBandElements.Length();
-	      fEdgeOfBandElements.Position();
+	      cout << "checking for localization of element " <<
+	      	fEdgeOfBandElements.Current() << endl; 
+	      //cout << "Position = " << 	fEdgeOfBandElements.Position() << ". Length = " << fEdgeOfBandElements.Length() << endl;
 	      fEdgeOfBandCoords.Next();
 	      GetElement(fEdgeOfBandElements.Current());    
+	     cout << "Element Number " << CurrElementNumber() << ". InitialCoodinates() =\n" << InitialCoordinates() << endl; 
 	      IsElementLocalized();
-	      fEdgeOfBandElements.Length();
-	      fEdgeOfBandElements.Position();
+	      //cout << "Position = " << 	fEdgeOfBandElements.Position() << ". Length = " << fEdgeOfBandElements.Length() << endl;
 	    }
 	}
     }
+
 #endif
 
   SmallStrainT::CloseStep();		
@@ -694,6 +706,9 @@ void SSEnhLocCraigT::GetElement(int elementNumber)
       
   /* cast is safe since class contructs materials list */
   fCurrMaterial = (SolidMaterialT*) pcont_mat;
+  
+  //SetLocalX(fLocInitCoords);
+  SetGlobalShape();
  }
 
 
@@ -810,7 +825,9 @@ bool SSEnhLocCraigT::IsElementLocalized()
       ChooseNormals(bestNormals, bestSlipDirs);
       /* remove element from list of Edge elements*/
       fEdgeOfBandElements.DeleteAt(fEdgeOfBandElements.Position());
+      fEdgeOfBandElements.Current(fEdgeOfBandElements.Position() -1);
       fEdgeOfBandCoords.DeleteAt(fEdgeOfBandCoords.Position());  
+      fEdgeOfBandCoords.Current(fEdgeOfBandCoords.Position() - 1);
      }
     else
       if (detAMin < fDetAMin)
@@ -819,9 +836,9 @@ bool SSEnhLocCraigT::IsElementLocalized()
 	fEdgeOfBandElements.Free();
 	//EdgeOfBandElement* newElement = new EdgeOfBandElement;
 	//newElement->elementNumber = CurrElementNumber();
-	dArrayT coords = Centroid();
+	//dArrayT coords = Centroid();
 	fEdgeOfBandElements.Append(CurrElementNumber());
-	fEdgeOfBandCoords.Append(coords);
+	//fEdgeOfBandCoords.Append(coords);
       }
 
   return locCheck;
@@ -928,6 +945,7 @@ BandT* SSEnhLocCraigT::FormNewBand(dArrayT normal, dArrayT slipDir,
 dArrayT perpSlipDir, dArrayT coords, double residCohesion, ArrayT<dSymMatrixT>
 stressList)
 {
+cout << "coords =\n" << coords << endl;
 return new BandT(normal, slipDir, perpSlipDir, coords, fH_delta_0, residCohesion, stressList, this);
 }
 
@@ -975,7 +993,6 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
 							    i) << endl;	
 		if (!(neighbors(elementNumber,i) == -1 || IsElementTraced(neighbors(elementNumber ,i))))
 	  	{
-		  cout << "hi\n";
 	    	//get coords
 	    	dArrayT localizedEleCoord = fBand -> Coords();
 
@@ -984,6 +1001,12 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
 				nodalCoord1 [j] = nodalCoords(i,j);
 				nodalCoord2 [j] = nodalCoords((i+1) % numSides, j);
 	      		}
+	      	
+	      	cout << CurrElementNumber() << endl;
+	      	cout << "nodalCoords =\n" << nodalCoords;
+	      	cout << "neighbors =\n" << neighbors << endl;	
+	      	cout << "nodalCoord1 = \n" << nodalCoord1 << endl;	
+	      	cout << "nodalCoord2 = \n" << nodalCoord2 << endl;
 
 	    	dArrayT interceptCoords = InterceptCoords(localizedEleCoord,
 						      nodalCoord1, nodalCoord2);
@@ -994,7 +1017,7 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
 	    	if(fEdgeOfBandElements.AppendUnique(neighbors(elementNumber,i)))
 		  {
 		    cout << "Successfully appended element " <<
-		      neighbors(elementNumber,i) << endl;
+		      neighbors(elementNumber,i) << endl << "coords =\n" << interceptCoords << endl;
 		    fEdgeOfBandCoords.Append(interceptCoords);
 		  }
 	  	} 
@@ -1014,10 +1037,10 @@ dArrayT& nodalCoord1, dArrayT& nodalCoord2)
 
   dArrayT perpSlipDir = fBand -> PerpSlipDir();
 
-  double alpha = sideVector[1] * (localizedEleCoord[2] - nodalCoord1[2]) -
-  sideVector[2] * (localizedEleCoord[1] - nodalCoord1[1]);
-  alpha /= sideVector[2] * perpSlipDir[1] - sideVector[1] *
-  perpSlipDir[2];
+  double alpha = sideVector[0] * (localizedEleCoord[1] - nodalCoord1[1]) -
+  sideVector[1] * (localizedEleCoord[0] - nodalCoord1[0]);
+  alpha /= sideVector[1] * perpSlipDir[0] - sideVector[0] *
+  perpSlipDir[1];
 
   dArrayT interceptCoord = localizedEleCoord;
   interceptCoord.AddScaled(alpha, perpSlipDir);

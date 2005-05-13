@@ -42,6 +42,7 @@ class BandT
     virtual void FlipSlipDir();
     virtual void CloseStep();
     virtual dArrayT& Coords();
+ 
 
   private:
 
@@ -59,12 +60,12 @@ class BandT
     double fJumpIncrement;
     ArrayT <dArrayT> fEndPoints; //not used yet
     iAutoArrayT fActiveNodes;
-    SSEnhLocCraigT *currentElement;
     ArrayT<dSymMatrixT> fStress_List;
     double fResidualCohesion;
     double fH_delta;
     double fEffectiveSoftening;
     double fIsBandActive;
+    SSEnhLocCraigT *currentElement;
 
   };
   

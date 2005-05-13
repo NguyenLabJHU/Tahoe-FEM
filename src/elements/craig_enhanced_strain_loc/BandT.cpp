@@ -203,7 +203,7 @@ void BandT::CloseStep()
 
   //update cohesion
   fResidualCohesion += fH_delta * fabs(fJumpIncrement);
-  //cout << "fResidualCohesion = " << fResidualCohesion << endl;
+  cout << "fResidualCohesion = " << fResidualCohesion << endl;
 
   if(fResidualCohesion <= 0.0)
     {
@@ -211,6 +211,7 @@ void BandT::CloseStep()
       fH_delta = 0.0; //no more softening possible
     }
 
+  cout << "fResidualCohesion = " << fResidualCohesion << endl;
   //update stress list
 
 

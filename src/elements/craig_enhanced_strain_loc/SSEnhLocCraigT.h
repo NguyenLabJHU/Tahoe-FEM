@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.h,v 1.10 2005-04-28 00:45:55 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.h,v 1.11 2005-05-13 19:42:31 cfoster Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_CF_T_H_
 #define _SMALL_STRAIN_ENH_LOC_CF_T_H_
 
@@ -66,6 +66,8 @@ protected:
 
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
+	virtual bool LocalizationHasBegun(void) {return
+						 fLocalizationHasBegun;};
 
   private:
 

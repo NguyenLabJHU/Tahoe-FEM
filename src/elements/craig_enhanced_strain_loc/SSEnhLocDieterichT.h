@@ -33,14 +33,13 @@ namespace Tahoe {
 				 dArrayT perpSlipDir, dArrayT coords, double residCohesion, ArrayT<dSymMatrixT>
 				 stressList);
       
-      //virtual void CloseStep(void);
+      virtual void CloseStep(void);
+
+
       virtual void LoadBand(int elementNumber);
 
       /* math functions for jump increment */
-      //virtual double ThetaNew(double jumpIncrement, double deltaTheta);
-      //virtual double Phi(double jumpIncr, double deltaTheta);
-      //virtual double DPhidSlipRate(double jumpIncr, double deltaTheta);
-     virtual dSymMatrixT StressIncrOnBand(double jumpIncrement);
+      virtual dSymMatrixT StressIncrOnBand(double jumpIncrement);
       virtual dSymMatrixT LastStressOnBand();
       virtual dSymMatrixT AvgStrainRelaxation(double jumpIncrement);
 

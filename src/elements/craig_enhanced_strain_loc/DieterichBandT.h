@@ -31,6 +31,7 @@ namespace Tahoe {
       virtual void StoreSlipRate(double slipRate) {fSlipRate = slipRate;};
       virtual double ThetaRateLast() {return fLastThetaRate;};
       virtual void CloseStep();
+      virtual void UpdateThetaRate(double d_c);
 
     private:
 

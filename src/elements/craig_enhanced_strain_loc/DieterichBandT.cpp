@@ -1,3 +1,4 @@
+
 #include "DieterichBandT.h"
 
 using namespace Tahoe;
@@ -16,10 +17,12 @@ fTheta(theta_0),
 fLastTheta(theta_0),
 fSlipRate(0.0),
 fLastSlipRate(0.0),
-fLastThetaRate(0.0) //what should this be?
+fLastThetaRate(1.0) //what should this be?
 //fLastJumpIncrement(0.0),
 //fDeltaTheta(0.0)
-{}
+{
+	//currentElement = dynamic_cast<SSEnhLocDieterichT*> (currentElement); 
+}
 
 
 double DieterichBandT::Theta()
@@ -53,5 +56,10 @@ void DieterichBandT::CloseStep()
   fLastTheta = fTheta;
   /* store jump increment for next time step */
   fLastSlipRate = fSlipRate;
-  //fLastThetaRate = 1.0 -  //get d_c
+  //fLastThetaRate = 1.0 -  fTheta * fSlipRate / 1.0; // fix this(currentElement -> fD_c);
+}
+
+void DieterichBandT::UpdateThetaRate(double d_c)
+{
+  fLastThetaRate = 1.0 -  fTheta * fSlipRate / d_c;
 }
