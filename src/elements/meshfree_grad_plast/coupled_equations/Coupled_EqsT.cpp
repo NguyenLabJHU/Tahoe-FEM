@@ -1,4 +1,4 @@
-// $Id: Coupled_EqsT.cpp,v 1.1 2005-04-26 22:22:29 kyonten Exp $
+// $Id: Coupled_EqsT.cpp,v 1.2 2005-05-13 21:54:30 kyonten Exp $
 #include "Coupled_EqsT.h" 
 
 using namespace Tahoe;
@@ -62,19 +62,8 @@ void Coupled_EqsT::Form_FU_int(dArrayT& Fu_int)
 		if (Fu_int.Length() != B1.Cols()) throw ExceptionT::kSizeMismatch;
 	#endif
 	
-	dMatrixT B1_T(n_sd_x_n_en_displ, n_str);
-	dArrayT stress_sym(n_str);
-	B1_T.Transpose(B1);
-	dSymMatrixT stress = CurrMat->s_ij();
-	/* take out the symmetric part of the stress */
-	for (int ij = 0; ij < n_str; ij++)
-	{
-		int i, j;
-		dSymMatrixT::ExpandIndex(n_sd, ij, i, j);
-		stress_sym[ij] = stress(i,j);
-	} 
-	
-	B1_T.MultTx(stress_sym, Fu_int); // Fu_int: [nsd*nnd]x[1]
+	/* B1^T * Cauchy stress */
+	B1.MultTx(CurrMat->s_ij(), Fu_int); // Fu_int: [nsd*nnd]
 }
 
 
@@ -106,10 +95,8 @@ void Coupled_EqsT::Form_FLambda_int(dArrayT& Flambda_int)
 	#endif
 		
 	//pass column of phi_lam to F_int
-	double yield = CurrMat->YieldF();
 	Flambda_int = psi_lam[0];
-	Flambda_int *= yield; // Flambda_int: [nnd]x[1]
-	//updated failure function passed from the constitutive model
+	Flambda_int *= CurrMat->YieldF(); // Flambda_int: [nnd]
 }
 
 void Coupled_EqsT::Form_B_List(void)
@@ -306,7 +293,7 @@ void Coupled_EqsT::Set_psi_lam(dMatrixT& psi_lam)
 	int nnd = DN.MinorDim();
 	double* pphi = psi_lam.Pointer();
 	for (int i = 0; i < nnd; i++)
-	  	*pphi++ = *N++;
+	  	*pphi++ = *N++; //N[i]
 		
 }
 
