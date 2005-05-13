@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV.cpp,v 1.14 2005-04-28 01:39:02 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.cpp,v 1.15 2005-05-13 22:03:22 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    MR version modified to incorporate gradient plasticity 
    theory.
@@ -37,8 +37,7 @@ static const char* Labels[kNumOutput] = {
 GRAD_MRSSKStV::GRAD_MRSSKStV(void):
 	ParameterInterfaceT("small_strain_StVenant_MR_grad_3D"),
 	HookeanMatT(3),
-	fGRAD_MR(NULL),
-	fYieldFunction(0.0)
+	fGRAD_MR(NULL)
 {
 
 }
@@ -54,8 +53,6 @@ void GRAD_MRSSKStV::UpdateHistory(void)
 {
 	/* update if plastic */
 	ElementCardT& element = CurrentElement();
-	//ElementCardT& element = curr_element;
-	
 	if (element.IsAllocated()) fGRAD_MR->Update(element);
 }
 
@@ -64,7 +61,6 @@ void GRAD_MRSSKStV::ResetHistory(void)
 {
 	/* reset if plastic */
 	ElementCardT& element = CurrentElement();
-	//ElementCardT& element = curr_element;
 	if (element.IsAllocated()) fGRAD_MR->Reset(element);
 }
 
@@ -96,7 +92,6 @@ const dSymMatrixT& GRAD_MRSSKStV::LapElasticStrain(const dSymMatrixT& lap_totals
 const dMatrixT& GRAD_MRSSKStV::c_ijkl(void)
 {
 	fModulus =	fGRAD_MR->Moduli(CurrentElement(), CurrIP());
-	//fModulus =	fGRAD_MR->Moduli(curr_element, curr_ip);
 	return fModulus;
 }
 
@@ -105,7 +100,6 @@ const dMatrixT& GRAD_MRSSKStV::c_perfplas_ijkl(void)
 {
 	/* elastoplastic correction */
 	fModulusPerfPlas =	fGRAD_MR->ModuliPerfPlas(CurrentElement(), CurrIP());
-	//fModulusPerfPlas =	fGRAD_MR->ModuliPerfPlas(curr_element, curr_ip);
 	return fModulusPerfPlas;
 }
 
@@ -147,7 +141,7 @@ const dMatrixT& GRAD_MRSSKStV::c_LamU2_ij(void)
 
 const dMatrixT& GRAD_MRSSKStV::c_LamLam1(void)
 {
-	fModulusLamLam1 =	fGRAD_MR->Moduli_LamLam1();
+	fModulusLamLam1 = fGRAD_MR->Moduli_LamLam1();
 	return fModulusLamLam1;
 }
 
@@ -160,8 +154,7 @@ const dMatrixT& GRAD_MRSSKStV::c_LamLam2(void)
 /* yield function */
 const double& GRAD_MRSSKStV::YieldF(void)
 {
-	fYieldFunction = fGRAD_MR->YieldFunction(CurrentElement(), CurrIP());
-	//fYieldFunction = fGRAD_MR->YieldFunction(curr_element, curr_ip);
+	fYieldFunction = fGRAD_MR->YieldFunction();
 	return fYieldFunction;
 }
 
@@ -169,8 +162,6 @@ const double& GRAD_MRSSKStV::YieldF(void)
 const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 {
 	int ip = CurrIP();
-	//int ip = curr_ip;
-	//ElementCardT& element = curr_element;
 	ElementCardT& element = CurrentElement();
 	const dSymMatrixT& eps = e();
 	const dSymMatrixT& lap_eps = lap_e();
@@ -207,6 +198,7 @@ void GRAD_MRSSKStV::OutputLabels(ArrayT<StringT>& labels) const
 
 void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 {
+	output.Dimension(kNumOutput);
 	dMatrixT Ce = HookeanMatT::Modulus();
 	
 	/* stress tensor (load state) */
@@ -229,7 +221,6 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 	output[16] = sqrt(3.0*J2);
 	
 	const ElementCardT& element = CurrentElement();
-	//const ElementCardT& element = curr_element;
 	if (element.IsAllocated())
 	{
 		
@@ -331,11 +322,9 @@ void GRAD_MRSSKStV::TakeParameterList(const ParameterListT& list)
 	fModulus.Dimension(dSymMatrixT::NumValues(3));
 	fModulusCe.Dimension(dSymMatrixT::NumValues(3));
 	fModulusPerfPlas.Dimension(dSymMatrixT::NumValues(3));
-	//fYieldFunction(0.0); // kyonten
 	
 	/* construct GRAD_MR solver */
 	fGRAD_MR = new GRAD_MRSSNLHardT(NumIP(), Mu(), Lambda());
-	//fGRAD_MR = new GRAD_MRSSNLHardT(num_ip, Mu(), Lambda());
 	fGRAD_MR->TakeParameterList(list.GetList("GRAD_MR_SS_nonlinear_hardening"));
 }
 
