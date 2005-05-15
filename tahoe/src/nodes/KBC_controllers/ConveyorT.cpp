@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.15 2005-02-21 08:26:02 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.16 2005-05-15 07:33:24 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -11,8 +11,12 @@
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "ContinuumElementT.h"
-#include "CSEAnisoT.h"
 #include "CommunicatorT.h"
+
+#include "ElementsConfig.h"
+#ifdef COHESIVE_SURFACE_ELEMENT
+#include "CSEAnisoT.h"
+#endif
 
 using namespace Tahoe;
 
@@ -1092,14 +1096,23 @@ void ConveyorT::MarkElements(void)
 		}
 		
 		ContinuumElementT* cont_elem = TB_DYNAMIC_CAST(ContinuumElementT*, element_group);
+#ifdef COHESIVE_SURFACE_ELEMENT
 		if (!cont_elem) {
 			CSEAnisoT* cse_aniso_elem = TB_DYNAMIC_CAST(CSEAnisoT*, element_group);
 			if (!cse_aniso_elem)
-				ExceptionT::GeneralFail(caller,  "could not cast element group %d to ContinuumElementT", 
+				ExceptionT::GeneralFail(caller,  "could not cast element group %d to CSEAnisoT", 
 					element_group+1);
 			else cse_aniso_elem->SetStatus(status);
 		}
-		else cont_elem->SetStatus(status);
+		else {
+			cont_elem->SetStatus(status);
+		}
+#else /* COHESIVE_SURFACE_ELEMENT */
+		if (!cont_elem)
+			ExceptionT::GeneralFail(caller,  "could not cast element group %d to ContinuumElementT", 
+				element_group+1);
+		cont_elem->SetStatus(status);
+#endif /* COHESIVE_SURFACE_ELEMENT */
  	}
 }
 
