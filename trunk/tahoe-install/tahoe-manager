@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.43 2005-05-11 16:14:00 paklein Exp $
+# $Id: tahoe-manager,v 1.44 2005-05-16 23:05:48 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -769,7 +769,10 @@ sub clean {
 				unlink("makefile");
 		
 				# remove flag
-				unlink(".built");
+				unlink(".built") if (-e ".built");
+				
+				# remove module preferences
+				unlink(".tahoe_config") if (-e ".tahoe_config");
 		
 				# flag
 				system("echo 'init' > .status");
