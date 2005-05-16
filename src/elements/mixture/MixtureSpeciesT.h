@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.h,v 1.8 2005-05-05 16:40:15 paklein Exp $ */
+/* $Id: MixtureSpeciesT.h,v 1.9 2005-05-16 17:48:05 paklein Exp $ */
 #ifndef _MIXTURE_SPECIES_T_H_
 #define _MIXTURE_SPECIES_T_H_
 
@@ -8,6 +8,7 @@
 namespace Tahoe {
 
 class UpdatedLagMixtureT;
+class Q1P0MixtureT;
 
 /** class to handle transport with component of mixture */
 class MixtureSpeciesT: public NLDiffusionElementT
@@ -109,6 +110,7 @@ protected:
 
 	/** background solid */
 	UpdatedLagMixtureT* fUpdatedLagMixture;
+	Q1P0MixtureT*       fQ1P0Mixture;
 
 	/** background species */
 	MixtureSpeciesT* fBackgroundSpecies;

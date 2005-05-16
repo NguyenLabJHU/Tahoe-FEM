@@ -1,6 +1,7 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.16 2005-05-10 23:52:44 paklein Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.17 2005-05-16 17:48:05 paklein Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
+#include "Q1P0MixtureT.h"
 #include "ShapeFunctionT.h"
 #include "NLDiffusionMaterialT.h"
 #include "MaterialListT.h"
@@ -17,6 +18,7 @@ MixtureSpeciesT::MixtureSpeciesT(const ElementSupportT& support):
 	fConcentration(kReference),
 	fOutputMass(false),
 	fUpdatedLagMixture(NULL),
+	fQ1P0Mixture(NULL),
 	fBackgroundSpecies(NULL),
 	fIndex(-1),
 	fLocCurrCoords(LocalArrayT::kCurrCoords)
@@ -126,15 +128,23 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 	solid_element_group--;
 	ElementBaseT& element = ElementSupport().ElementGroup(solid_element_group);	
 	fUpdatedLagMixture = TB_DYNAMIC_CAST(UpdatedLagMixtureT*, &element);
-	if (!fUpdatedLagMixture)
+	fQ1P0Mixture       = TB_DYNAMIC_CAST(Q1P0MixtureT*, &element);
+	if (!fUpdatedLagMixture && !fQ1P0Mixture)
 		ExceptionT::GeneralFail(caller, "group %d \"%s\" is not a mixture", 
 			solid_element_group+1, element.Name().Pointer());
 	
 	/* checks */
-	if (fUpdatedLagMixture->NumElements() != NumElements() ||
-		fUpdatedLagMixture->NumElementNodes() != NumElementNodes() ||
-		fUpdatedLagMixture->NumIP() != NumIP())
-		ExceptionT::SizeMismatch(caller);
+	if (fUpdatedLagMixture) {
+		if (fUpdatedLagMixture->NumElements() != NumElements() ||
+			fUpdatedLagMixture->NumElementNodes() != NumElementNodes() ||
+			fUpdatedLagMixture->NumIP() != NumIP())
+			ExceptionT::SizeMismatch(caller);
+	} else {
+		if (fQ1P0Mixture->NumElements() != NumElements() ||
+			fQ1P0Mixture->NumElementNodes() != NumElementNodes() ||
+			fQ1P0Mixture->NumIP() != NumIP())
+			ExceptionT::SizeMismatch(caller);	
+	}
 	
 	/* method used to compute stress gradient */
 	int grad_opt = list.GetParameter("stress_gradient_option");
@@ -171,7 +181,9 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 	}
 
 	/* resolve species index */
-	fIndex = fUpdatedLagMixture->SpeciesIndex(Field().FieldName());
+	fIndex = (fUpdatedLagMixture) ? 
+		fUpdatedLagMixture->SpeciesIndex(Field().FieldName()) :
+		fQ1P0Mixture->SpeciesIndex(Field().FieldName());
 	if (fIndex < 0)
 		ExceptionT::GeneralFail(caller, "could not resolve index of field \"%s\"",
 			Field().FieldName().Pointer());
@@ -191,10 +203,17 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 #endif
 
 	/* set concentration type */
-	if (fConcentration == kReference)
-		fUpdatedLagMixture->SetConcentration(fIndex, UpdatedLagMixtureT::kReference);
-	else
-		fUpdatedLagMixture->SetConcentration(fIndex, UpdatedLagMixtureT::kCurrent);
+	if (fUpdatedLagMixture) {
+		if (fConcentration == kReference)
+			fUpdatedLagMixture->SetConcentration(fIndex, UpdatedLagMixtureT::kReference);
+		else
+			fUpdatedLagMixture->SetConcentration(fIndex, UpdatedLagMixtureT::kCurrent);
+	} else {
+		if (fConcentration == kReference)
+			fQ1P0Mixture->SetConcentration(fIndex, Q1P0MixtureT::kReference);
+		else
+			fQ1P0Mixture->SetConcentration(fIndex, Q1P0MixtureT::kCurrent);	
+	}
 
 	/* dimension */
 	fFluxVelocity.Dimension(NumElements(), NumIP()*NumSD());
@@ -247,8 +266,12 @@ void MixtureSpeciesT::SetGlobalShape(void)
 	NLDiffusionElementT::SetGlobalShape();
 	
 	/* will need deformation gradient */
-	if (fConcentration == kCurrent || fGradientOption == kGlobalProjection)
-		fUpdatedLagMixture->SetGlobalShape();
+	if (fConcentration == kCurrent || fGradientOption == kGlobalProjection) {
+		if (fUpdatedLagMixture)	
+			fUpdatedLagMixture->SetGlobalShape();
+		else
+			fQ1P0Mixture->SetGlobalShape();
+	}
 }
 
 /* reset loop */
@@ -258,7 +281,10 @@ void MixtureSpeciesT::Top(void)
 	NLDiffusionElementT::Top();
 
 	/* synchronize solid element group */
-	fUpdatedLagMixture->Top();
+	if (fUpdatedLagMixture)
+		fUpdatedLagMixture->Top();
+	else
+		fQ1P0Mixture->Top();
 }
 	
 /* advance to next element */ 
@@ -268,7 +294,10 @@ bool MixtureSpeciesT::NextElement(void)
 	bool next = NLDiffusionElementT::NextElement();
 
 	/* synchronize solid element group */
-	return fUpdatedLagMixture->NextElement() && next;
+	if (fUpdatedLagMixture)
+		return fUpdatedLagMixture->NextElement() && next;
+	else
+		return fQ1P0Mixture->NextElement() && next;
 }
 
 /* form the residual force vector */
@@ -336,8 +365,12 @@ void MixtureSpeciesT::FormKd(double constK)
 		if (fConcentration == kCurrent) 
 		{
 			/* deformation gradients */
-			const dMatrixT& F = fUpdatedLagMixture->DeformationGradient(ip);
-			const dMatrixT& F_last = fUpdatedLagMixture->DeformationGradient_last(ip);
+			const dMatrixT& F = (fUpdatedLagMixture) ? 
+				fUpdatedLagMixture->DeformationGradient(ip) : 
+				fQ1P0Mixture->DeformationGradient(ip);
+			const dMatrixT& F_last = (fUpdatedLagMixture) ?
+				fUpdatedLagMixture->DeformationGradient_last(ip) :
+				fQ1P0Mixture->DeformationGradient_last(ip);
 			
 			/* compute h and h^T h */
 			fNSDmat1.DiffOf(F, F_last);           /* GRAD U (8.1.9) */
@@ -433,14 +466,17 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 	if (fGradientOption == kGlobalProjection)
 	{	
 		/* get nodal stresses (PK1) */
-		fUpdatedLagMixture->ProjectPartialStress(fIndex);
+		if (fUpdatedLagMixture) fUpdatedLagMixture->ProjectPartialStress(fIndex);
+		else fQ1P0Mixture->ProjectPartialStress(fIndex);
+		
 		fP_avg = ElementSupport().OutputAverage();
 		P.Dimension(NumElementNodes(), nsd*nsd);		
 		P.SetGlobal(fP_avg);
 
 		/* project variation in partial stresses to the nodes */
 		if (compute_dmass_flux) {
-			fUpdatedLagMixture->ProjectDPartialStress(fIndex);
+			if (fUpdatedLagMixture) fUpdatedLagMixture->ProjectDPartialStress(fIndex);
+			else fQ1P0Mixture->ProjectDPartialStress(fIndex);
 			dP_avg.Alias(ElementSupport().OutputAverage());
 			dP.Dimension(NumElementNodes(), nsd*nsd);		
 			dP.SetGlobal(dP_avg);
@@ -455,7 +491,8 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 	/* get the body force */
 	dArrayT body_force(nsd), divP(nsd), vec(nsd);
 	dArrayT vec1(nsd), vec2(nsd);
-	fUpdatedLagMixture->BodyForce(body_force);
+	if (fUpdatedLagMixture) fUpdatedLagMixture->BodyForce(body_force);
+	else fQ1P0Mixture->BodyForce(body_force);
 	dMatrixT d_divP(nsd,nen), mat(nsd,nen), matnsd(nsd);
 
 	/* initialize mass flux variation */
@@ -489,11 +526,18 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 		}
 
 		/* collect integration point stresses - sets shapes functions over the element */
-		if (fGradientOption == kElementProjection)
-			fUpdatedLagMixture->IP_PartialStress(fIndex, &fP_ip, (compute_dmass_flux) ? &fdP_ip : NULL);
+		if (fGradientOption == kElementProjection) {
+			if (fUpdatedLagMixture)
+				fUpdatedLagMixture->IP_PartialStress(fIndex, &fP_ip, (compute_dmass_flux) ? &fdP_ip : NULL);
+			else
+				fQ1P0Mixture->IP_PartialStress(fIndex, &fP_ip, (compute_dmass_flux) ? &fdP_ip : NULL);
+		}
 
 		/* collect nodal accelerations */
-		fUpdatedLagMixture->Acceleration(acc);
+		if (fUpdatedLagMixture)
+			fUpdatedLagMixture->Acceleration(acc);
+		else
+			fQ1P0Mixture->Acceleration(acc);
 
 		/* collect nodal concentrations */
 		SetLocalU(fLocDisp);
@@ -510,7 +554,9 @@ void MixtureSpeciesT::ComputeMassFlux(bool compute_dmass_flux)
 			int ip = fShapes->CurrIP();
 
 			/* deformation gradient */
-			const dMatrixT& F = fUpdatedLagMixture->DeformationGradient(ip);
+			const dMatrixT& F = (fUpdatedLagMixture) ?
+				fUpdatedLagMixture->DeformationGradient(ip) :
+				fQ1P0Mixture->DeformationGradient(ip);
 			double detF = F.Det();
 			F_inv.Inverse(F);
 
