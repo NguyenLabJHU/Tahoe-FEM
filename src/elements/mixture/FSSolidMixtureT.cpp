@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.16 2005-05-11 21:11:35 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.17 2005-05-16 00:14:59 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -126,6 +126,8 @@ double FSSolidMixtureT::Density(int i) {
 /* variation of 1st Piola-Kirchhoff for the given species with concentration */
 const dSymMatrixT& FSSolidMixtureT::ds_ij_dc(int i)
 {
+	const char caller[] = "FSSolidMixtureT::ds_ij_dc";
+
 	/* current element information */
 	const ElementCardT& element = CurrentElement();
 	const dArrayT& conc_0 = element.DoubleData();
@@ -146,6 +148,7 @@ const dSymMatrixT& FSSolidMixtureT::ds_ij_dc(int i)
 	/* "high" */
 	conc[i] = c_h;
 	J_g = conc[i]/conc_0[i];
+	if (J_g <= 0.0) ExceptionT::BadJacobianDet(caller, "species %d: J_g = %g", i+1, J_g);
 	fF_growth_inv.Identity(pow(1.0/J_g, alpha));
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 	fs_ij_tmp.SetToScaled(conc[i]/J_g, fStressFunctions[i]->s_ij());
@@ -153,6 +156,7 @@ const dSymMatrixT& FSSolidMixtureT::ds_ij_dc(int i)
 	/* "low" */
 	conc[i] = c_l;
 	J_g = conc[i]/conc_0[i];
+	if (J_g <= 0.0) ExceptionT::BadJacobianDet(caller, "species %d: J_g = %g", i+1, J_g);
 	fF_growth_inv.Identity(pow(1.0/J_g, alpha));
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 	fStress.SetToScaled(conc[i]/J_g, fStressFunctions[i]->s_ij());
@@ -274,6 +278,8 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(int i)
 /* total Cauchy stress */
 const dSymMatrixT& FSSolidMixtureT::s_ij(void)
 {
+	const char caller[] = "FSSolidMixtureT::s_ij";
+
 	/* current element information */
 	const ElementCardT& element = CurrentElement();
 	const dArrayT& conc_0 = element.DoubleData();
@@ -290,6 +296,7 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(void)
 	{
 		/* compute mechanical strain */
 		double J_g = conc[i]/conc_0[i];
+		if (J_g <= 0.0) ExceptionT::BadJacobianDet(caller, "species %d: J_g = %g", i+1, J_g);
 		fF_growth_inv.Identity(pow(1.0/J_g, alpha));
 		fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
@@ -303,6 +310,8 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(void)
 /* partial Cauchy stress */
 const dSymMatrixT& FSSolidMixtureT::s_ij(int i)
 {
+	const char caller[] = "FSSolidMixtureT::s_ij";
+
 	/* current element information */
 	const ElementCardT& element = CurrentElement();
 	const dArrayT& conc_0 = element.DoubleData();
@@ -314,6 +323,7 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(int i)
 	/* compute mechanical strain */
 	double alpha = 1.0/fF_growth_inv.Rows();	
 	double J_g = conc[i]/conc_0[i];
+	if (J_g <= 0.0) ExceptionT::BadJacobianDet(caller, "species %d: J_g = %g", i+1, J_g);
 	fF_growth_inv.Identity(pow(1.0/J_g, alpha));
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
