@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.11 2005-05-10 17:55:49 paklein Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.12 2005-05-16 17:29:27 paklein Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -271,7 +271,7 @@ void UpdatedLagMixtureT::TakeParameterList(const ParameterListT& list)
 
 const FSSolidMixtureT& UpdatedLagMixtureT::FSSolidMixture(void) const 
 {
-	const char caller[] = "FSSolidMixtureT::FSSolidMixture";
+	const char caller[] = "UpdatedLagMixtureT::FSSolidMixture";
 
 #if __option(extended_errorcheck)
 	if (fMaterialList->Length() > 1)
