@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.114 2005-04-14 01:19:50 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.115 2005-05-16 18:52:28 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -151,6 +151,7 @@
 #ifdef MIXTURE_THEORY_DEV
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
+#include "Q1P0MixtureT.h"
 #endif
 
 using namespace Tahoe;
@@ -339,6 +340,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 
 #ifdef MIXTURE_THEORY_DEV
 		sub_lists.AddSub("updated_lagrangian_mixture");
+		sub_lists.AddSub("Q1P0_mixture");
 		sub_lists.AddSub("mixture_species");
 #endif
 
@@ -547,6 +549,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #ifdef MIXTURE_THEORY_DEV
 	else if (name == "updated_lagrangian_mixture")
 		return new UpdatedLagMixtureT(fSupport);
+	else if (name == "Q1P0_mixture")
+		return new Q1P0MixtureT(fSupport);
 	else if (name == "mixture_species")
 		return new MixtureSpeciesT(fSupport);
 #endif
