@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV.cpp,v 1.15 2005-05-13 22:03:22 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.cpp,v 1.16 2005-05-17 18:54:19 kyonten Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    MR version modified to incorporate gradient plasticity 
    theory.
@@ -17,14 +17,8 @@ using namespace Tahoe;
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 19;
-/* Note: For the time being stresses and strains are
-   passed to MFGP_AssemblyT as internal state variables
-   of the material
-*/
+const int kNumOutput = 7;
 static const char* Labels[kNumOutput] = {
-	    "eps11","eps22","eps33","eps23","eps13","eps12",
-	    "s11","s22","s33","s23","s13","s12",
 	    "chi",
 	    "cohesion",
 	    "Friction Angle",
@@ -204,40 +198,26 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 	/* stress tensor (load state) */
 	const dSymMatrixT& stress = s_ij();
 
-	/* stress components */
-	output[6] = stress(0,0);
-	output[7] = stress(1,1);
-	output[8] = stress(2,2);
-	output[9] = stress(1,2);
-	output[10] = stress(0,2);
-	output[11] = stress(0,1);
 	/* pressure */
-	output[17] = fStress.Trace()/3.0;
+	output[5] = fStress.Trace()/3.0;
 
 	/* deviatoric Von Mises stress */
 	fStress.Deviatoric();
 	double J2 = fStress.Invariant2();
 	J2 = (J2 < 0.0) ? 0.0 : J2;
-	output[16] = sqrt(3.0*J2);
+	output[4] = sqrt(3.0*J2);
 	
 	const ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
 		
 		dArrayT& internal = fGRAD_MR->Internal();
-		/* strain components */
-		output[0] = internal[GRAD_MRSSNLHardT::keps11];
-		output[1] = internal[GRAD_MRSSNLHardT::keps22];
-		output[2] = internal[GRAD_MRSSNLHardT::keps33];
-		output[3] = internal[GRAD_MRSSNLHardT::keps23];
-		output[4] = internal[GRAD_MRSSNLHardT::keps13];
-		output[5] = internal[GRAD_MRSSNLHardT::keps12];
 		
 		/* stress-like internal variable Chi */
-		output[12] = internal[GRAD_MRSSNLHardT::kchi];
-		output[13] = internal[GRAD_MRSSNLHardT::kc];
-		output[14] = internal[GRAD_MRSSNLHardT::ktanphi];
-		output[15] = internal[GRAD_MRSSNLHardT::ktanpsi];
+		output[0] = internal[GRAD_MRSSNLHardT::kchi];
+		output[1] = internal[GRAD_MRSSNLHardT::kc];
+		output[2] = internal[GRAD_MRSSNLHardT::ktanphi];
+		output[3] = internal[GRAD_MRSSNLHardT::ktanpsi];
 		
 		// check for localization
 		// compute modulus 
@@ -260,11 +240,11 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 		if (checkloc) output[18] = 1.0;
 		else output[18] = 0.0;
 		*/
-		output[18] = 0.0;
+		output[6] = 0.0;
 	}	
 	else
 	{
-		output[18] = 0.0;
+		output[6] = 0.0;
 	}
 
 	
