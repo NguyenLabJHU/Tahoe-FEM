@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.15.6.1 2005-05-10 18:10:34 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.15.6.2 2005-05-18 18:30:49 paklein Exp $ */
 #include "ConveyorT.h"
 
 /* configuration requirements */
@@ -405,12 +405,15 @@ void ConveyorT::ReadRestart(ifstreamT& in)
 	fX_Left_last = fX_Left;
 	fX_Right_last = fX_Right;
 
+#if 0
 //TEMP - need to reset the equation system because it was set before
 //       reading the restart files and does not reflect the equations
 //       the system had when the restart was written because the kbc's
 //       on right edge nodes where not in place at the time.
 FEManagerT& fe_man = const_cast<FEManagerT&>(fSupport.FEManager());
 fe_man.SetEquationSystem(fField.Group(), 0); // what about the equation start shift?
+#endif
+ExceptionT::GeneralFail("ConveyorT::ReadRestart", "broken");
 }
 
 void ConveyorT::WriteRestart(ofstreamT& out) const

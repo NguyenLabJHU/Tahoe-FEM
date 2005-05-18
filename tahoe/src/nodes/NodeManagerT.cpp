@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.61.2.1 2005-05-10 18:10:33 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.61.2.2 2005-05-18 18:30:48 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -316,28 +316,20 @@ GlobalT::SystemTypeT NodeManagerT::TangentType(int group) const
 }
 #pragma message("clean up the redundancy here when works")
 /* apply kinematic boundary conditions */
-void NodeManagerT::InitStep(int group)
+GlobalT::InitStatusT NodeManagerT::InitStep(int group)
 {
+	const char caller[] = "NodeManagerT::InitStep";
+
 	/* apply to fields */
 	for (int i = 0; i < fFields.Length(); i++)
-	{
-		if (fFields[i]->Group() == group)
-		{
+		if (fFields[i]->Group() == group) {
 			if (fPartFieldEnd != -1)
-			{
 				fFields[i]->InitStep(fPartFieldStart, fPartFieldEnd);
-			}
 			else if(fPartFieldEnd == -1)
-			{
 				fFields[i]->InitStep();
-			}
 			else
-			{
-			ExceptionT::GeneralFail("NodeManagerT::InitStep, apply to fields","fPartFieldEnd does not fit expected values");
-			}
+				ExceptionT::GeneralFail(caller, "fPartFieldEnd %d for at InitStep fields", fPartFieldEnd);
 		}
-		
-	}
 
 	/* update current configurations */
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
@@ -350,13 +342,9 @@ void NodeManagerT::InitStep(int group)
 			fCommManager.AllGather(fMessageCurrCoordsID, *fCurrentCoords);
 		}
 		else if (fPartFieldEnd == -1)
-		{
 			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
-		}
 		else
-		{
-			ExceptionT::GeneralFail("NodeManagerT::InitStep, update current config","fPartFieldEnd does not fit expected values");
-		}
+			ExceptionT::GeneralFail(caller, "fPartFieldEnd %d computing current coordinates", fPartFieldEnd);
 	}
 	
 	// Need to comunicate the update to ensure uniformity
@@ -364,6 +352,8 @@ void NodeManagerT::InitStep(int group)
 
 	/* clear history of relaxation over tbe last step */
 	fXDOFRelaxCodes[group] = GlobalT::kNoRelax;
+	
+	return GlobalT::kContinue;
 }
 
 /* compute the nodal contribution to the tangent */

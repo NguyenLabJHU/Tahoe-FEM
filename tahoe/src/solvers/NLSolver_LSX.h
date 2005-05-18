@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LSX.h,v 1.2 2004-01-05 07:07:19 paklein Exp $ */
+/* $Id: NLSolver_LSX.h,v 1.2.46.1 2005-05-18 18:30:52 paklein Exp $ */
 #ifndef _NL_SOLVER_LSX_H_
 #define _NL_SOLVER_LSX_H_
 
@@ -17,7 +17,7 @@ public:
 	NLSolver_LSX(FEManagerT& fe_manager, int group);
 
 	/** start solution step */
-	virtual void InitStep(void);
+	virtual GlobalT::InitStatusT InitStep(void);
 
 protected:
 

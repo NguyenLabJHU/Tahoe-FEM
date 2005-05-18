@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.32.2.2 2005-05-09 18:28:40 d-farrell2 Exp $ */
+/* $Id: SolverT.cpp,v 1.32.2.3 2005-05-18 18:30:52 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -90,18 +90,16 @@ void SolverT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 }
 
 /* start solution step */
-void SolverT::InitStep(void)
+GlobalT::InitStatusT SolverT::InitStep(void)
 {
 	fNumIteration = -1;
 	fLHS_update = true;
 	
-	// handle reconfiguration
-	fRelaxCode = fFEManager.RelaxSystem(Group());
-	
-	
-	// handle renumbering, if needed(need to worry about kReEQRelax?)
-	if (fRelaxCode == GlobalT::kReEQ)
-		fFEManager.SetEquationSystem(Group());
+	/* equations not yet set */
+	if (fLHS->NumEquations() < 0)
+		return GlobalT::kAssignEquations;
+	else
+		return GlobalT::kContinue;
 }
 
 /* end solution step */
@@ -678,7 +676,7 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 			/* construct */
 			fLHS = new AztecMatrixT(out, check_code, comm, params);
 #else
-			ExceptionT::GeneralFail(caller, "Aztec solver not installed: %d", fMatrixType);
+			ExceptionT::GeneralFail(caller, "Aztec solver not installed");
 #endif /* __AZTEC__ */
 	}
 	else

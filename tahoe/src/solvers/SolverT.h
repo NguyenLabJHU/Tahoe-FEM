@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.20.18.1 2005-05-09 01:43:14 d-farrell2 Exp $ */
+/* $Id: SolverT.h,v 1.20.18.2 2005-05-18 18:30:52 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -72,7 +72,7 @@ public:
 	/** \name solution steps */
 	/*@{*/
 	/** start solution step */
-	virtual void InitStep(void);
+	virtual GlobalT::InitStatusT InitStep(void);
 
 	/** solve the system over the current time increment.
 	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
@@ -196,7 +196,7 @@ protected:
 
 	/** \name flags */
 	/*@{*/
-	int fMatrixType;
+//	int fMatrixType;
 	int fPrintEquationNumbers;
 	/*@}*/
 

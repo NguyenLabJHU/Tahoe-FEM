@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LSX.cpp,v 1.5 2004-07-15 08:31:50 paklein Exp $ */
+/* $Id: NLSolver_LSX.cpp,v 1.5.18.1 2005-05-18 18:30:52 paklein Exp $ */
 #include "NLSolver_LSX.h"
 #include "FEManagerT.h"
 #include "ifstreamT.h"
@@ -25,13 +25,15 @@ ExceptionT::GeneralFail("NLSolver_LSX::NLSolver_LSX", "out of date");
 }
 
 /* start solution step */
-void NLSolver_LSX::InitStep(void)
+GlobalT::InitStatusT NLSolver_LSX::InitStep(void)
 {
 	/* inherited */
-	NLSolver_LS::InitStep();
+	GlobalT::InitStatusT status = NLSolver_LS::InitStep();
 	
 	/* reset minimum error */
 	fMinStepRelError = 1.0;
+	
+	return status;
 }
 
 /* allows continuation of NLSolver_LSX::fMinStepRelError is less

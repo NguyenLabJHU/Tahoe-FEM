@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.4 2005-02-27 00:02:25 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.4.6.1 2005-05-18 18:30:40 paklein Exp $ */
 #include "MeshFreeFSSolidAxiT.h"
 
 #include <iostream.h>
@@ -167,11 +167,12 @@ void MeshFreeFSSolidAxiT::WeightNodalCost(iArrayT& weight) const {
 }
 
 /* initialize/finalize time increment */
-void MeshFreeFSSolidAxiT::InitStep(void)
+GlobalT::InitStatusT MeshFreeFSSolidAxiT::InitStep(void)
 {
 	/* inherited */
-	TotalLagrangianAxiT::InitStep();
+	GlobalT::InitStatusT status = TotalLagrangianAxiT::InitStep();
 	fMFFractureSupport->InitStep();
+	return status;
 }
 
 void MeshFreeFSSolidAxiT::CloseStep(void)

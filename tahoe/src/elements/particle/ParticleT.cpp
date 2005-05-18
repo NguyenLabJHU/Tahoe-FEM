@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.49.4.1 2005-05-09 18:28:39 d-farrell2 Exp $ */
+/* $Id: ParticleT.cpp,v 1.49.4.2 2005-05-18 18:30:42 paklein Exp $ */
 
 #include "ParticleT.h"
 
@@ -156,11 +156,11 @@ void ParticleT::SendOutput(int kincode)
 	//TEMP: for now, do nothing
 }
 
-/* trigger reconfiguration */
-GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
+/* initialize current time increment */
+GlobalT::InitStatusT ParticleT::InitStep(void)
 {
 	/* inherited */
-	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
+	GlobalT::InitStatusT status = ElementBaseT::InitStep();
 
 	/* multiprocessor support */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
@@ -174,27 +174,17 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 
 	/* reset periodic bounds given stretching */
 	bool has_moving = false;
-	for (int i = 0; i < NumSD(); i++)
-	{
-		const ScheduleT* stretch = fStretchSchedule[i];
-		if (stretch)
-		{
-			/* time during current solution step */
-			double next_time = ElementSupport().Time();
-		
-			has_moving = true;
-			double scale = stretch->Value(next_time);
-			double x_min = scale*fPeriodicBounds(i,0);
-			double x_max = scale*fPeriodicBounds(i,1);
-	
-			/* redefine bounds */
-			comm_manager.SetPeriodicBoundaries(i, x_min, x_max);
-		}
-	}
+	for (int i = 0; !has_moving && i < NumSD(); i++)
+		has_moving = (fStretchSchedule[i] != NULL);
 
-	/* generate contact element data */
+	/* displacement tracking is out of date (not initialized) */
+	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
+	int npn = (part_nodes) ? part_nodes->Length() : ElementSupport().NumNodes();
+	bool out_of_date = fReNeighborCoords.MajorDim() != npn;
+
+	/* generate neighborlists */
 	fReNeighborCounter++;
-	if (has_moving ||
+	if (has_moving || out_of_date ||
 	    (fReNeighborDisp > 0.0 && fDmax > fReNeighborDisp) || 
 		(fReNeighborIncr > 0 && fReNeighborCounter >= fReNeighborIncr))
 	{
@@ -212,11 +202,15 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 
 		/* reset counter */
 		fReNeighborCounter = 0;
-	
-		return GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
+		
+		/* changes to equation system */
+		GlobalT::InitStatusT my_status = (fhas_periodic) ?
+			GlobalT::kAssignEquations : 
+			GlobalT::kNewInteractions;
+		status = GlobalT::MaxPrecedence(status, my_status);
 	}
-	else
-		return relax;
+
+	return status;
 }
 
 /* write restart data to the output stream */
@@ -290,6 +284,20 @@ void ParticleT::SetConfiguration(void)
 	/* set periodic boundary conditions */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
 	comm_manager.SetSkin(fPeriodicSkin);
+	for (int i = 0; i < NumSD(); i++) /* reset periodic bounds given stretching */
+	{
+		const ScheduleT* stretch = fStretchSchedule[i];
+		if (stretch)
+		{
+			/* compute new bounds */
+			double scale = stretch->Value(ElementSupport().Time());
+			double x_min = scale*fPeriodicBounds(i,0);
+			double x_max = scale*fPeriodicBounds(i,1);
+	
+			/* redefine bounds */
+			comm_manager.SetPeriodicBoundaries(i, x_min, x_max);
+		}
+	}
 	comm_manager.EnforcePeriodicBoundaries();
 	
 	/* reset the types array */
@@ -491,10 +499,16 @@ void ParticleT::AssembleParticleMass(const dArrayT& mass)
 double ParticleT::MaxDisplacement(void) const
 {
 	const char caller[] = "ParticleT::MaxDisplacement";
+
+	/* quick exit - this means the fReNeighborCoords is out of date and
+	 * reneighboring must occur. However, dmax alone does not guarantee
+	 * reneighboring, so this must be ensure elsewhere. */
+	double dmax2 = 0.0;
+	if (fReNeighborCoords.MajorDim() == 0) return dmax2;
+
 	CommManagerT& comm_manager = ElementSupport().CommManager();
 	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
 	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
-	double dmax2 = 0.0;
 	int nsd = curr_coords.MinorDim();
 	const double *p_old = fReNeighborCoords.Pointer();
 	if (part_nodes)
@@ -887,7 +901,7 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 	ExtractProperties(list, fTypeNames, fParticleProperties, fPropertiesMap);
 
 	/* set the neighborlists */
-	SetConfiguration();
+//	SetConfiguration();
 	
 	/* construct thermostats */
 	SetDamping(list);

@@ -1,5 +1,4 @@
-/* $Id: ParticleT.h,v 1.34 2005-04-08 16:41:48 d-farrell2 Exp $ */
-
+/* $Id: ParticleT.h,v 1.34.4.1 2005-05-18 18:30:43 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -34,6 +33,9 @@ public:
 	/** destructor */
 	~ParticleT(void);
 
+	/** initialize current time increment */
+	virtual GlobalT::InitStatusT InitStep(void);
+
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
@@ -55,9 +57,6 @@ public:
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
-
-	/** trigger reconfiguration */
-	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
 	/** \name restart functions */
 	/*@{*/
