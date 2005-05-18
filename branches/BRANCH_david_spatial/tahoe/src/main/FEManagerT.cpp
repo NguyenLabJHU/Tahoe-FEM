@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.94.2.1 2005-05-09 01:43:12 d-farrell2 Exp $ */
+/* $Id: FEManagerT.cpp,v 1.94.2.2 2005-05-18 18:30:45 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -249,12 +249,15 @@ ExceptionT::CodeT FEManagerT::ResetStep(void)
 	
 			/* solver */
 			fSolvers[fCurrentGroup]->ResetStep();
-		
+
+#if 0
 			/* check to see if the equation system needs to be reset */
 			if (relax == GlobalT::kReEQ)
 				SetEquationSystem(fCurrentGroup);
 			else if (relax != GlobalT::kNoRelax)
 				ExceptionT::GeneralFail("FEManagerT::ResetStep", "unsupported relaxation code %d", relax);
+#endif
+#pragma message("how to handle equation system after ResetStep")
 		}
 	}
 	
@@ -355,29 +358,45 @@ void FEManagerT::InternalForceOnNode(const FieldT& field, int node, dArrayT& for
 
 ExceptionT::CodeT FEManagerT::InitStep(void)
 {
-	try {
-	/* state */
-	SetStatus(GlobalT::kInitStep);
-	
-	/* set the default value for the output time stamp */
-	fIOManager->SetOutputTime(Time());	
-
-	/* loop over solver groups */
-	if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
-	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
+	try
 	{
-		/* solver */
-		fSolvers[fCurrentGroup]->InitStep();
+		/* state */
+		SetStatus(GlobalT::kInitStep);
+	
+		/* set the default value for the output time stamp */
+		fIOManager->SetOutputTime(Time());	
 
-		/* nodes */
-		fNodeManager->InitStep(fCurrentGroup);
-	}
-	fCurrentGroup = -1;
+		/* loop over solver groups */
+		if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
+		GlobalT::InitStatusT status = GlobalT::kContinue;
+		for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
+		{
+			/* solver */
+			GlobalT::InitStatusT solver_status = fSolvers[fCurrentGroup]->InitStep();
+			status = GlobalT::MaxPrecedence(solver_status, status);
 
-	/* elements */
-	for (int i = 0 ; i < fElementGroups->Length(); i++)
-		(*fElementGroups)[i]->InitStep();
-	}
+			/* nodes */
+			GlobalT::InitStatusT node_status = fNodeManager->InitStep(fCurrentGroup);
+			status = GlobalT::MaxPrecedence(node_status, status);
+
+			/* elements */
+			for (int i = 0 ; i < fElementGroups->Length(); i++) 
+				if ((*fElementGroups)[i]->InGroup(fCurrentGroup)) {
+					GlobalT::InitStatusT element_status = (*fElementGroups)[i]->InitStep();
+					status = GlobalT::MaxPrecedence(element_status, status);
+				}
+
+			/* reset the equations */
+			if (status == GlobalT::kNewInteractions || status == GlobalT::kAssignEquations)
+				SetEquationSystem(status, fCurrentGroup);
+		}
+		fCurrentGroup = -1;
+
+//NOTE: pass through InitStep more than once to remove order dependence? Could
+//      pass through the loop until each member returns kContinue and then set
+//      the equation system at the end.
+
+	} /* try */
 	
 	catch (ExceptionT::CodeT exc) {
 		cout << "\n FEManagerT::InitStep: caught exception: " 
@@ -1736,9 +1755,6 @@ void FEManagerT::SetSolver(void)
 	if (fCurrentGroup != -1) throw;
 	for (fCurrentGroup = 0; fCurrentGroup < fSolvers.Length(); fCurrentGroup++)
 	{
-		/* reset equation structure */
-		SetEquationSystem(fCurrentGroup);
-
 		/* console hierarchy */
 		iAddSub(*(fSolvers[fCurrentGroup]));	
 
@@ -1855,6 +1871,8 @@ ExceptionT::CodeT FEManagerT::InitialCondition(void)
 /* restart file functions */
 bool FEManagerT::ReadRestart(const StringT* file_name)
 {
+	const char caller[] = "FEManagerT::ReadRestart";
+
 	/* state */
 	fStatus = GlobalT::kReadRestart;	
 
@@ -1891,9 +1909,10 @@ bool FEManagerT::ReadRestart(const StringT* file_name)
 			     << ": DONE"<< endl;
 		}
 		else
-			ExceptionT::BadInputValue("FEManagerT::ReadRestart", "could not open file: \"%s\"",
-				rs_file.Pointer());
-		
+			ExceptionT::BadInputValue(caller, "could not open file: \"%s\"", rs_file.Pointer());
+
+#pragma message("delete me")
+#if 0		
 		/* relax system with new configuration */
 		for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
 		{
@@ -1906,9 +1925,11 @@ bool FEManagerT::ReadRestart(const StringT* file_name)
 
 			/* will not resolve the group */
 			if (relax_code == GlobalT::kRelax || relax_code == GlobalT::kReEQRelax)
-				cout << "\n FEManagerT::ReadRestart: will not resolve group " << fCurrentGroup+1 << endl;
+				cout << "\n " << caller << ": will not resolve group " << fCurrentGroup+1 << endl;
 		}
 		fCurrentGroup = -1;
+#endif
+
 		return true;
 	}
 	else /* no file read */
@@ -2012,71 +2033,41 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 * (3) set numbering scope
 * (4) collect equations and send to solver
 * (5) signal solver for final configuration */
-void FEManagerT::SetEquationSystem(int group, int start_eq_shift)
+void FEManagerT::SetEquationSystem(GlobalT::InitStatusT flag, int group, int start_eq_shift)
 {
-//DEBUG
-//cout << "FEManagerT::SetEquationSystem: START" << endl;
-
-	/* equation number scope */
-	GlobalT::EquationNumberScopeT equation_scope = 
-		fSolvers[group]->EquationNumberScope();
-
-	/* assign (local) equation numbers */
-	fNodeManager->SetEquationNumbers(group);
-	fGlobalEquationStart[group] = GetGlobalEquationStart(group, start_eq_shift);
-	fActiveEquationStart[group] = (equation_scope == GlobalT::kGlobal) ? 
-		fGlobalEquationStart[group] : 1;
-	fGlobalNumEquations[group]  = GetGlobalNumEquations(group);
-
-	/* renumber locally */
-	if (fSolvers[group]->RenumberEquations() && fGlobalNumEquations[group] > 0)
+	/* need to generate new equation numbers */
+	if (flag == GlobalT::kAssignEquations)
 	{
-		int num_fields = fNodeManager->NumFields(group);
-		if (num_fields == 1)
-		{
-			/* lists of connectivities */
-			AutoArrayT<const iArray2DT*> connects_1;
-			AutoArrayT<const RaggedArray2DT<int>*> connects_2;
-			AutoArrayT<const iArray2DT*> equivalent_nodes;
+		/* equation number scope */
+		GlobalT::EquationNumberScopeT equation_scope = 
+			fSolvers[group]->EquationNumberScope();
 
-			/* collect nodally generated DOF's */
-			fNodeManager->ConnectsU(group, connects_1, connects_2, equivalent_nodes);
+		/* assign (local) equation numbers */
+		fNodeManager->SetEquationNumbers(group);
+		fGlobalEquationStart[group] = GetGlobalEquationStart(group, start_eq_shift);
+		fActiveEquationStart[group] = (equation_scope == GlobalT::kGlobal) ? 
+			fGlobalEquationStart[group] : 1;
+		fGlobalNumEquations[group]  = GetGlobalNumEquations(group);
 
-			/* collect element groups */
-			for (int i = 0 ; i < fElementGroups->Length(); i++)
-				if ((*fElementGroups)[i]->InGroup(group))
-					(*fElementGroups)[i]->ConnectsU(connects_1, connects_2);		
+		/* renumber equations locally */
+		RenumberEquations(group);
 
-			/* renumber equations */
-			try { fNodeManager->RenumberEquations(group, connects_1, connects_2); }
-			catch (ExceptionT::CodeT exc) {
-				cout << "\n FEManagerT::SetEquationSystem: could not renumber equations: exception: " 
-				     << exc << endl;
-			}
-		}
-		else /* renumbering does not support multiple fields in the same group
-		      * because each row in the equations arrays is assumed to correspond
-		      * to a unique tag */
-		{
-			cout << "\n FEManagerT::SetEquationSystem: equations could not be renumbered\n"
-			     <<   "     because group " << group+1 << " contains " << num_fields << " fields." << endl;
-		}
+		/* set equation number scope */
+		fNodeManager->SetEquationNumberScope(group, equation_scope);
 	}
-
-	/* set equation number scope */
-	fNodeManager->SetEquationNumberScope(group, equation_scope);
 	
-	/* collect interaction equations and send to solver */
-	SendEqnsToSolver(group);
+	/* need to reset structure of equations in the solver */
+	if (flag == GlobalT::kAssignEquations || flag == GlobalT::kNewInteractions)
+	{
+		/* collect interaction equations and send to solver */
+		SendEqnsToSolver(group);
 	
-	/* final step in solver configuration */
-	fSolvers[group]->Initialize(
-		fGlobalNumEquations[group], 
-		fNodeManager->NumEquations(group),
-		fActiveEquationStart[group]);
-
-//DEBUG
-//cout << "FEManagerT::SetEquationSystem: END" << endl;
+		/* final step in solver configuration */
+		fSolvers[group]->Initialize(
+			fGlobalNumEquations[group], 
+			fNodeManager->NumEquations(group),
+			fActiveEquationStart[group]);
+	}
 }
 
 void FEManagerT::SendEqnsToSolver(int group) const
@@ -2109,6 +2100,45 @@ CommManagerT* FEManagerT::New_CommManager(void) const
 	/* set the partition data */
 	comm_man->SetPartition(fPartition);	
 	return comm_man;
+}
+
+/* renumber the local equations */
+void FEManagerT::RenumberEquations(int group)
+{
+	const char caller[] = "FEManagerT::RenumberEquations";
+	if (fSolvers[group]->RenumberEquations() && fGlobalNumEquations[group] > 0)
+	{
+		int num_fields = fNodeManager->NumFields(group);
+		if (num_fields == 1)
+		{
+			/* lists of connectivities */
+			AutoArrayT<const iArray2DT*> connects_1;
+			AutoArrayT<const RaggedArray2DT<int>*> connects_2;
+			AutoArrayT<const iArray2DT*> equivalent_nodes;
+
+			/* collect nodally generated DOF's */
+			fNodeManager->ConnectsU(group, connects_1, connects_2, equivalent_nodes);
+
+			/* collect element groups */
+			for (int i = 0 ; i < fElementGroups->Length(); i++)
+				if ((*fElementGroups)[i]->InGroup(group))
+					(*fElementGroups)[i]->ConnectsU(connects_1, connects_2);		
+
+			/* renumber equations */
+			try { fNodeManager->RenumberEquations(group, connects_1, connects_2); }
+			catch (ExceptionT::CodeT exc) {
+				cout << "\n " << caller << ": could not renumber equations: exception: " 
+				     << exc << endl;
+			}
+		}
+		else /* renumbering does not support multiple fields in the same group
+		      * because each row in the equations arrays is assumed to correspond
+		      * to a unique tag */
+		{
+			cout << "\n " << caller << ": equations could not be renumbered\n"
+			     <<   "     because group " << group+1 << " contains " << num_fields << " fields." << endl;
+		}
+	}
 }
 
 /*************************************************************************

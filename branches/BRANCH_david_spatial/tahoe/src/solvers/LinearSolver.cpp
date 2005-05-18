@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.cpp,v 1.12.2.1 2005-05-09 01:43:14 d-farrell2 Exp $ */
+/* $Id: LinearSolver.cpp,v 1.12.2.2 2005-05-18 18:30:52 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 #include "LinearSolver.h"
 #include "FEManagerT.h"
@@ -24,13 +24,15 @@ void LinearSolver::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 }
 
 /* start solution step */
-void LinearSolver::InitStep(void)
+GlobalT::InitStatusT LinearSolver::InitStep(void)
 {
 	/* inherited */
-	SolverT::InitStep();
+	GlobalT::InitStatusT status = SolverT::InitStep();
 
 	/* no iterations count */
 	fNumIteration = 0;
+	
+	return status;
 }
 
 /* solve the current step */

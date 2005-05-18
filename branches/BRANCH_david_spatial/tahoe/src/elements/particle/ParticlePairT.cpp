@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.44 2005-04-08 16:41:48 d-farrell2 Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.44.4.1 2005-05-18 18:30:42 paklein Exp $ */
 
 #include "ParticlePairT.h"
 
@@ -659,10 +659,6 @@ void ParticlePairT::TakeParameterList(const ParameterListT& list)
 		}
 	}
 
-	/* set the list of reference nearest neighbors */
-	if (fOutputFlags[kSlipVector] || fOutputFlags[kStress] || fOutputFlags[kStrain])
-		SetRefNN(fNearestNeighbors, fRefNearestNeighbors);
-
 	/* dimension */
 	int ndof = NumDOF();
 	fLHS.Dimension(2*ndof);
@@ -1302,9 +1298,15 @@ void ParticlePairT::SetConfiguration(void)
 	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
 	if (fActiveParticles) 
 		part_nodes = fActiveParticles;
-		
+	
+	/* neighbor lists */	
 	GenerateNeighborList(part_nodes, fNearestNeighborDistance, fNearestNeighbors, true, true);
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
+
+	/* set the list of reference nearest neighbors */
+	if (fRefNearestNeighbors.MajorDim() != fNearestNeighbors.MajorDim() &&
+		(fOutputFlags[kSlipVector] || fOutputFlags[kStress] || fOutputFlags[kStrain]))
+		SetRefNN(fNearestNeighbors, fRefNearestNeighbors);
 
 	/* output stream */
 	ofstreamT& out = ElementSupport().Output();

@@ -1,4 +1,4 @@
-/* $Id: MixedSWDiamondT.h,v 1.4 2002-07-05 22:28:05 paklein Exp $ */
+/* $Id: MixedSWDiamondT.h,v 1.4.84.1 2005-05-18 18:30:44 paklein Exp $ */
 /* created: paklein (03/22/1997) */
 
 #ifndef _MIXED_SWDIAMOND_T_H_
@@ -23,7 +23,7 @@ public:
 	MixedSWDiamondT(const ElementSupportT& support, const FieldT& field);
 
 	/** init new time increment */
-	virtual void InitStep(void);
+	virtual GlobalT::InitStatusT InitStep(void);
 
 protected:
 

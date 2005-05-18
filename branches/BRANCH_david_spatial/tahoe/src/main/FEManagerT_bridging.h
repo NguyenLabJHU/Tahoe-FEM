@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.26 2005-04-28 23:57:14 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.26.2.1 2005-05-18 18:30:45 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -218,7 +218,7 @@ public:
 	/*@}*/
 
 	/** (re-)set the equation number for the given group */
-	virtual void SetEquationSystem(int group, int start_eq_shift = 0);
+	virtual void SetEquationSystem(GlobalT::InitStatusT flag, int group, int start_eq_shift = 0);
 
 	/** set the reference error for the given group */
 	void SetReferenceError(int group, double error) const;
