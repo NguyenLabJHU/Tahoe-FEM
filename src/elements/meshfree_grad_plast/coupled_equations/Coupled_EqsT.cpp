@@ -1,4 +1,4 @@
-// $Id: Coupled_EqsT.cpp,v 1.2 2005-05-13 21:54:30 kyonten Exp $
+// $Id: Coupled_EqsT.cpp,v 1.3 2005-05-19 13:08:19 kyonten Exp $
 #include "Coupled_EqsT.h" 
 
 using namespace Tahoe;
@@ -12,7 +12,7 @@ Coupled_EqsT::Coupled_EqsT(void) { }
 
 
 void Coupled_EqsT::Initialize(int& curr_ip, D3MeshFreeShapeFunctionT* Shapes_displ, D3MeshFreeShapeFunctionT* Shapes_plast, 
-							MFGPMaterialT* curr_mat, int& fTime_Step, double fdelta_t) 
+							MFGPMaterialT* curr_mat) 
 {
 	/* collect integers for dimensioning */
 	n_en_displ  = Shapes_displ->Derivatives_U(curr_ip).MinorDim(); //dN: [nsd]x[nnd]
@@ -21,8 +21,6 @@ void Coupled_EqsT::Initialize(int& curr_ip, D3MeshFreeShapeFunctionT* Shapes_dis
 	n_str = dSymMatrixT::NumValues(n_sd);	
 	n_sd_x_n_en_displ = n_sd * n_en_displ;
 	n_sd_x_n_en_plast = n_sd * n_en_plast;
-
-	delta_t = fdelta_t;
  	
 	CurrMat = curr_mat;
 	N    = Shapes_displ->IPShapeU(curr_ip);
@@ -34,15 +32,13 @@ void Coupled_EqsT::Initialize(int& curr_ip, D3MeshFreeShapeFunctionT* Shapes_dis
 	Form_B_List();
 }
 
-//---------------------------------------------------------------------
-
 void Coupled_EqsT::Form_KUU_KULam(dMatrixT& Kuu, dMatrixT& Kulam)  
 {		
-	#if __option(extended_errorcheck)
-		if (Kuu.Rows() != B1.Cols() || Kulam.Rows() != B1.Cols() ||
-		    Kulam.Cols() != psi_lam.Cols())
-			throw ExceptionT::kSizeMismatch;
-	#endif
+#if __option(extended_errorcheck)
+	if (Kuu.Rows() != B1.Cols() || Kulam.Rows() != B1.Cols() ||
+	    Kulam.Cols() != psi_lam.Cols())
+		throw ExceptionT::kSizeMismatch;
+#endif
 	
 	dMatrixT Ktemp1(Kuu.Rows(), Kuu.Cols());
 	Kuu.MultATBC(B1, Cuu1, B1);
@@ -57,23 +53,21 @@ void Coupled_EqsT::Form_KUU_KULam(dMatrixT& Kuu, dMatrixT& Kulam)
 
 void Coupled_EqsT::Form_FU_int(dArrayT& Fu_int) 
 {
-	
-	#if __option(extended_errorcheck)
-		if (Fu_int.Length() != B1.Cols()) throw ExceptionT::kSizeMismatch;
-	#endif
+#if __option(extended_errorcheck)
+	if (Fu_int.Length() != B1.Cols()) throw ExceptionT::kSizeMismatch;
+#endif
 	
 	/* B1^T * Cauchy stress */
 	B1.MultTx(CurrMat->s_ij(), Fu_int); // Fu_int: [nsd*nnd]
 }
 
-
 void Coupled_EqsT::Form_KLamU_KLamLam(dMatrixT& Klamu, dMatrixT& Klamlam)  
 {
-	#if __option(extended_errorcheck)
-		if (Klamlam.Rows() != psi_lam.Cols() || Klamu.Rows() != psi_lam.Cols() ||
-		    Klamu.Cols() != B1.Cols())
-			throw ExceptionT::kSizeMismatch;
-	#endif
+#if __option(extended_errorcheck)
+	if (Klamlam.Rows() != psi_lam.Cols() || Klamu.Rows() != psi_lam.Cols() ||
+	    Klamu.Cols() != B1.Cols())
+		throw ExceptionT::kSizeMismatch;
+#endif
 	
 	dMatrixT Ktemp1(Klamlam.Rows(), Klamlam.Cols());
 	Klamlam.MultATBC(psi_lam, Clamlam1, psi_lam);
@@ -86,13 +80,11 @@ void Coupled_EqsT::Form_KLamU_KLamLam(dMatrixT& Klamu, dMatrixT& Klamlam)
 	Klamu += Ktemp2;	// Klamu :[nnd]x[nsd*nnd]
 }
 
-//---------------------------------------------------------------------
-
 void Coupled_EqsT::Form_FLambda_int(dArrayT& Flambda_int) 
 {
-	#if __option(extended_errorcheck)
-		if (Flambda_int.Length() != B4.Cols()) throw ExceptionT::kSizeMismatch;
-	#endif
+#if __option(extended_errorcheck)
+	if (Flambda_int.Length() != B4.Cols()) throw ExceptionT::kSizeMismatch;
+#endif
 		
 	//pass column of phi_lam to F_int
 	Flambda_int = psi_lam[0];
@@ -108,7 +100,6 @@ void Coupled_EqsT::Form_B_List(void)
 	psi_lam.Dimension(dum, n_en_plast);
 	B4.Dimension(dum, n_en_plast); 
 }
-
 
 void Coupled_EqsT::Form_C_List()
 {
@@ -203,7 +194,6 @@ void Coupled_EqsT::Set_B1(dMatrixT& B1 )
 	}
 }
 
-
 /* laplacian of the displacement shape function: [nsd*nsd] x [nnd] */  
 void Coupled_EqsT::Set_B3(dMatrixT& B3)
 {
@@ -293,8 +283,7 @@ void Coupled_EqsT::Set_psi_lam(dMatrixT& psi_lam)
 	int nnd = DN.MinorDim();
 	double* pphi = psi_lam.Pointer();
 	for (int i = 0; i < nnd; i++)
-	  	*pphi++ = *N++; //N[i]
-		
+	  	*pphi++ = *N++; //N[i]		
 }
 
 /* laplacian of the shape function of plastic multiplier: [1]x[nnd] */

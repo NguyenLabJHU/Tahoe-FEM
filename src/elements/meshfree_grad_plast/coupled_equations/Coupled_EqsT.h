@@ -1,4 +1,4 @@
-// $Id: Coupled_EqsT.h,v 1.1 2005-04-26 22:22:29 kyonten Exp $
+// $Id: Coupled_EqsT.h,v 1.2 2005-05-19 13:08:19 kyonten Exp $
 #ifndef _COUPLED_EQS_T_H_ 
 #define _COUPLED_EQS_T_H_ 
 
@@ -30,7 +30,7 @@ public:
 
 	/** initialize shape functions, material, etc */
 	void Initialize(int&, D3MeshFreeShapeFunctionT*, D3MeshFreeShapeFunctionT*, 
-					MFGPMaterialT* curr_mat, int& fTime_Step, double fdelta_t = 0.0); 
+					MFGPMaterialT* curr_mat); 
 
   	/** form the element stiffness matrices KUU & KULambda */
   	void Form_KUU_KULam(dMatrixT& Kuu, dMatrixT& Kulam); // add delta_t for dynamics
