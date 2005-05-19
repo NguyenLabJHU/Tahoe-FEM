@@ -1,4 +1,4 @@
-/* $Id: MFGP_ToolsT.h,kyonten*/
+/* $Id: MFGP_ToolsT.h,v 1.2 2005-05-19 22:05:54 kyonten Exp $ */
 /* created: kyonten */
 #ifndef _MFGP_TOOLS_T_H_
 #define _MFGP_TOOLS_T_H_
@@ -32,21 +32,6 @@ class MFGP_ToolsT
 	
     static void ExpandIndex2(int nsd, int dex_1, int dex_2, int dex_3, int& dex_12, 
                              int& dex_23, int& dex_31);
-    /** compute the jacobian of the nodal values.
-	 * uses externally provided shape function derivatives.
-	 * \param nodal values at the nodes: [nnd] x [nu]
-	 * \param DDNa shape function second derivatives: [nstr] x [nnd]
-	 * \param jacobian resulting jacobian: [nu] x [nstr]
-	 **/
-	//id JacobianD2(const LocalArrayT& nodal, const dArray2DT& DDNa, dMatrixT& jacobian) const;
-	
-	/** compute the jacobian of the nodal values.
-	 * uses externally provided shape function derivatives.
-	 * \param nodal values at the nodes: [nnd] x [nu]
-	 * \param DDDNa shape function third derivatives: [nsd*nsd] x [nnd] 
-	 * \param jacobian resulting jacobian: [nu] x [nsd*nsd]  
-	 **/
-	//id JacobianD3(const LocalArrayT& nodal, const dArray2DT& DDDNa, dMatrixT& jacobian) const;
 	
 };
 
