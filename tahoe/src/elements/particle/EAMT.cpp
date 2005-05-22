@@ -1,7 +1,7 @@
-/* $Id: EAMT.cpp,v 1.66 2005-04-08 16:41:48 d-farrell2 Exp $ */
-
+/* $Id: EAMT.cpp,v 1.66.4.1 2005-05-22 21:29:40 paklein Exp $ */
 #include "EAMT.h"
 
+#include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "eIntegratorT.h"
 #include "InverseMapT.h"
@@ -425,6 +425,46 @@ void EAMT::WriteOutput(void)
 
 	/* send */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+}
+
+/* write restart data to the output stream */
+void EAMT::WriteRestart(ofstreamT& out) const
+{
+	/* inherited */
+	ParticleT::WriteRestart(out);
+
+	/* open stream */	
+	StringT file = out.filename();
+	file.Append(".neighbor");
+	ofstreamT my_out(file);
+	if (!my_out.is_open())
+		ExceptionT::GeneralFail("ParticlePairT::WriteRestart",
+			"could not open file \"%s\"", file.Pointer());
+
+	/* write neighbor lists */
+	fNeighbors.Write(my_out); my_out << '\n';
+	fNearestNeighbors.Write(my_out); my_out << '\n';
+	fRefNearestNeighbors.Write(my_out); my_out << '\n';
+}
+
+/* read restart data to the output stream */
+void EAMT::ReadRestart(ifstreamT& in)
+{
+	/* inherited */
+	ParticleT::ReadRestart(in);
+
+	/* open stream */	
+	StringT file = in.filename();
+	file.Append(".neighbor");
+	ifstreamT my_in(file);
+	if (!my_in.is_open())
+		ExceptionT::GeneralFail("ParticlePairT::ReadRestart",
+			"could not open file \"%s\"", file.Pointer());
+
+	/* read neighbor lists */
+	fNeighbors.Read(my_in);
+	fNearestNeighbors.Read(my_in);
+	fRefNearestNeighbors.Read(my_in);
 }
 
 /* compute the part of the stiffness matrix */
@@ -852,10 +892,6 @@ void EAMT::TakeParameterList(const ParameterListT& list)
 			}
 		}
 	}
-
-	/* set the list of reference nearest neighbors */
-	if (fOutputFlags[kSlipVector] || fOutputFlags[kStress] || fOutputFlags[kStrain])	
-		SetRefNN(fNearestNeighbors, fRefNearestNeighbors);
 
 	/* dimension */
 	int ndof = NumDOF();
@@ -1824,10 +1860,16 @@ void EAMT::SetConfiguration(void)
 	/* reset neighbor lists */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
 	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
-	if (fActiveParticles) 
-		part_nodes = fActiveParticles;
+	if (fActiveParticles) part_nodes = fActiveParticles;
+
+	/* neighbor lists */
 	GenerateNeighborList(part_nodes, fNearestNeighborDistance, fNearestNeighbors, true, true);
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
+
+	/* set the list of reference nearest neighbors */
+	if (fRefNearestNeighbors.MajorDim() != fNearestNeighbors.MajorDim() &&
+		(fOutputFlags[kSlipVector] || fOutputFlags[kStress] || fOutputFlags[kStrain]))
+		SetRefNN(fNearestNeighbors, fRefNearestNeighbors);
 	
 	ofstreamT& out = ElementSupport().Output();
 	out << "\n Neighbor statistics:\n";
