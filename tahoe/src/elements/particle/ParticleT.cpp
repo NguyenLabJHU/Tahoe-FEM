@@ -1,5 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.49.4.2 2005-05-18 18:30:42 paklein Exp $ */
-
+/* $Id: ParticleT.cpp,v 1.49.4.3 2005-05-22 21:28:40 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -214,21 +213,34 @@ GlobalT::InitStatusT ParticleT::InitStep(void)
 }
 
 /* write restart data to the output stream */
-void ParticleT::WriteRestart(ostream& out) const
+void ParticleT::WriteRestart(ofstreamT& out) const
 {
 	/* write counter */
 	out << fReNeighborCounter << '\n';
+
+	/* coordinates for tracking of reneighboring */
+	out << fReNeighborCoords.MajorDim() << '\n'
+	    << fReNeighborCoords.MinorDim() << '\n'
+	    << fReNeighborCoords << '\n';
 	
+	/* thermostats */
 	for (int i = 0; i < fThermostats.Length(); i++)
 		fThermostats[i]->WriteRestart(out);
 }
 
 /* read restart data to the output stream */
-void ParticleT::ReadRestart(istream& in)
+void ParticleT::ReadRestart(ifstreamT& in)
 {
 	/* read counter */
 	in >> fReNeighborCounter;
 
+	/* coordinates for tracking of reneighboring */
+	int dim1, dim2;
+	in >> dim1 >> dim2;
+	fReNeighborCoords.Dimension(dim1, dim2);
+	in >> fReNeighborCoords;
+
+	/* thermostats */
 	for (int i = 0; i < fThermostats.Length(); i++)
 		fThermostats[i]->ReadRestart(in);
 }
