@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.34.4.1 2005-05-18 18:30:43 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.34.4.2 2005-05-22 21:28:41 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -62,11 +62,11 @@ public:
 	/*@{*/
 	/** write restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::ReadRestart implementation. */
-	virtual void WriteRestart(ostream& out) const;
+	virtual void WriteRestart(ofstreamT& out) const;
 
 	/** read restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
-	virtual void ReadRestart(istream& in);
+	virtual void ReadRestart(ifstreamT& in);
 	/*@}*/
 
 	/** define the particles to skip. This is a list of nodes though "owned" 
