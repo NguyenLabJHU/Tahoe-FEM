@@ -1,0 +1,11 @@
+@
+# $Id: run.batch,v 1.1 2005-05-23 06:59:52 paklein Exp $
+-split_io
+-no_metis
+-decomp_method
+-0
+elastostatic.xml
+-join
+-4
+elastostatic.xml
+
