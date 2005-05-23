@@ -1,4 +1,4 @@
-# $Id: DARWIN-GCC4.LAM.debug.macros,v 1.1 2005-05-07 02:05:17 paklein Exp $
+# $Id: DARWIN-GCC4.LAM.debug.macros,v 1.2 2005-05-23 22:21:30 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -12,9 +12,9 @@ LAM_HOME    = /usr/local/lam
 #
 MAKE        = make
 DEFINES     = -DEIGHT_BYTE_REAL -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -DCHECK_MPI_STATUS -DCHECK_MPI_RETURN -DAZTEC_MPI -D__POSIX_THREADS__
-COMP_C      = mpicc
-COMP_CC     = mpic++
-COMP_F      = mpicf77
+COMP_C      = $(LAM_HOME)/bin/mpicc
+COMP_CC     = $(LAM_HOME)/bin/mpic++
+COMP_F      = $(LAM_HOME)/bin/mpicf77
 COMP_FLAG   = -c -pipe
 MORE_CFLAGS = -g
 LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
