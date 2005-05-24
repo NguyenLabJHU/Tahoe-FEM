@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.1 2004-07-12 16:25:55 paklein Exp $
+# $Id: run.batch,v 1.2 2005-05-24 22:13:28 paklein Exp $
 -decomp_method
 -1
 -run
@@ -7,4 +7,8 @@ indent.EAM.xml
 -join
 -4
 indent.EAM.xml
-
+-run
+qsEAM_Per_3D.xml
+-join
+-4
+qsEAM_Per_3D.xml
