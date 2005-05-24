@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.61 2005-04-12 15:34:29 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.62 2005-05-24 22:12:13 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -45,7 +45,6 @@
 #include "SetOfNodesKBCT.h"
 #include "TorsionKBCT.h"
 #include "ConveyorT.h"
-//#include "ConveyorSymT.h"
 
 using namespace Tahoe;
 
@@ -54,6 +53,7 @@ NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
 	ParameterInterfaceT("nodes"),
 	fFEManager(fe_manager),
 	fCommManager(comm_manager),
+	fCoordUpdateIndex(-1),
 	fInitCoords(NULL),
 	fCoordUpdate(NULL),
 	fCurrentCoords(NULL),
@@ -64,11 +64,7 @@ NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
 	
 	/* init support */
 	fFieldSupport.SetFEManager(&fe_manager);
-	fFieldSupport.SetNodeManager(this);
-	
-	// initialize the partition ends to everything
-	fPartFieldStart = 0;
-	fPartFieldEnd = - 1;
+	fFieldSupport.SetNodeManager(this);	
 }
 
 /* destructor */
@@ -314,53 +310,47 @@ GlobalT::SystemTypeT NodeManagerT::TangentType(int group) const
 			type = GlobalT::MaxPrecedence(type, fFields[i]->SystemType());
 	return type;
 }
-#pragma message("clean up the redundancy here when works")
+
 /* apply kinematic boundary conditions */
 void NodeManagerT::InitStep(int group)
 {
+	const char caller[] = "NodeManagerT::InitStep";
+
+	/* decomposition information */
+	const PartitionT* partition = fFEManager.Partition();
+	PartitionT::DecompTypeT decomp = (partition) ? partition->DecompType() : PartitionT::kUndefined;
+	const ArrayT<int>* partition_nodes = fCommManager.PartitionNodes();
+	if (decomp == PartitionT::kIndex && !partition_nodes)
+		ExceptionT::GeneralFail(caller, "expecting non-NULL partition nodes");
+
 	/* apply to fields */
 	for (int i = 0; i < fFields.Length(); i++)
 	{
+		/* initialize for current group */
 		if (fFields[i]->Group() == group)
 		{
-			if (fPartFieldEnd != -1)
-			{
-				fFields[i]->InitStep(fPartFieldStart, fPartFieldEnd);
+			/* update bounds */
+			int& field_start = fFieldStart[i];
+			int& field_end = fFieldEnd[i];
+			if (false && decomp == PartitionT::kIndex) {
+
+				/* range of (real) nodes updated by this processor */
+				int beg = partition_nodes->First();
+				int end = partition_nodes->Last();
+	
+				/* set limits */
+				int ndof = fFields[i]->NumDOF();
+				field_start = ndof*beg;
+				field_end = (ndof*end) + (ndof - 1);	
 			}
-			else if(fPartFieldEnd == -1)
-			{
-				fFields[i]->InitStep();
-			}
-			else
-			{
-			ExceptionT::GeneralFail("NodeManagerT::InitStep, apply to fields","fPartFieldEnd does not fit expected values");
-			}
+
+			/* initialize step */
+			fFields[i]->InitStep(field_start, field_end);
 		}
-		
 	}
 
 	/* update current configurations */
-	if (fCoordUpdate && fCoordUpdate->Group() == group)
-	{
-		if (fPartFieldEnd != -1)
-		{
-			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0], fPartFieldStart, fPartFieldEnd);
-			
-			// communicate the updated coords
-			fCommManager.AllGather(fMessageCurrCoordsID, *fCurrentCoords);
-		}
-		else if (fPartFieldEnd == -1)
-		{
-			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
-		}
-		else
-		{
-			ExceptionT::GeneralFail("NodeManagerT::InitStep, update current config","fPartFieldEnd does not fit expected values");
-		}
-	}
-	
-	// Need to comunicate the update to ensure uniformity
-#pragma message("NodeManagerT::InitStep, need to put in all gather on updated coords")
+	if (fCoordUpdate && fCoordUpdate->Group() == group) UpdateCurrentCoordinates();
 
 	/* clear history of relaxation over tbe last step */
 	fXDOFRelaxCodes[group] = GlobalT::kNoRelax;
@@ -442,10 +432,8 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 			/* gather/distribute external contribution */
 			fCommManager.AllGather(fMessageID[i], fFields[i]->Update());
 			
-//			/* apply the update */
-//			fFields[i]->ApplyUpdate();
-			// apply the update to owned nodes
-			fFields[i]->ApplyUpdate(fPartFieldStart, fPartFieldEnd);
+			/* apply the update */
+			fFields[i]->ApplyUpdate(fFieldStart[i], fFieldEnd[i]);
 		}
 	}
 
@@ -461,29 +449,45 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 	 * and does not usually need to be called explicitly. */
 void NodeManagerT::UpdateCurrentCoordinates(void)
 {
+	const char caller[] = "NodeManagerT::UpdateCurrentCoordinates";
 	if (fCoordUpdate)
 	{
 		/* should be allocated */
-		if (!fCurrentCoords)
-			ExceptionT::GeneralFail("NodeManagerT::UpdateCurrentCoordinates", "current coords not initialized");
+		if (!fCurrentCoords) ExceptionT::GeneralFail(caller, "current coords not initialized");
+
+		/* bounds */
+		int field_start = fFieldStart[fCoordUpdateIndex];
+		int field_end = fFieldEnd[fCoordUpdateIndex];
 	
 		/* simple update assuming displacement degrees of freedom are the
 		 * nodal values */
-		if (fPartFieldEnd != -1)
+		if (field_end >= field_start)
 		{
-			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0], fPartFieldStart, fPartFieldEnd);
+			/* update coordinates of owned nodes */
+			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0], field_start, field_end);
 			
-			// communicate the updated coords
-			fCommManager.AllGather(fMessageCurrCoordsID, *fCurrentCoords);
+			/* update coordinates of image nodes */
+			int first_ghost = fCommManager.NumRealNodes();
+			int offset = first_ghost*NumSD();
+			double* px = fCurrentCoords->Pointer(offset);
+			const double* pX = InitialCoordinates().Pointer(offset);
+			const double* pu = (*fCoordUpdate)[0].Pointer(offset);
+			int len = fCurrentCoords->Length();
+			for (int i = offset; i < len; i++)
+				*px++ = (*pX++) + (*pu++);
+			/* NOTE: could use CommManagerT::GhostNodes and CommManagerT::NodesWithGhosts
+			 *       to compute current coordinates only for images of nodes owned by this
+			 *       processor and then exchange to update all other processors. However,
+			 *       CommManagerT::AllGather assumes an exchange of the full field (all nodes)
+			 *       and then copies values to image nodes, so another strict (no automatic
+			 *       handling of ghost node values), decomposition-independent exchange
+			 *       method would neeed to be added to CommManagerT.
+			 */
 		}
-		else if (fPartFieldEnd == -1)
-		{
+		else if (field_end == -1)
 			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
-		}
 		else
-		{
-			ExceptionT::GeneralFail("NodeManagerT::InitStep, update current config","fPartFieldEnd does not fit expected values");
-		}
+			ExceptionT::GeneralFail(caller, "field_end has unexpected value %d", field_end);
 	}	
 }
 
@@ -515,56 +519,9 @@ void NodeManagerT::InitialCondition(void)
 		for (int j = 0; j <= field.Order(); j++)
 			fCommManager.AllGather(fMessageID[i], field[j]);
 	}
-	
-	// get some information from the FEManager, to be used in the solution
-	fCommSize = fCommManager.Size();
-	const PartitionT* part = fFEManager.Partition();
-	if (part)
-	{
-		fDecomp_Type = part->DecompType();
-		if (fDecomp_Type == PartitionT::kIndex) 
-		{
-			// get the limits for the field
-			fPartFieldStart = fCommManager.GetPartFieldStart();
-			fPartFieldEnd = fCommManager.GetPartFieldEnd();			
-		}
-		else // set the start/end to the default values of 0, - 1 (full array) for any other decomposition
-		{
-			fPartFieldStart = 0;
-			fPartFieldEnd = - 1;
-		}
-	}
-	else // set the start/end to the default values of 0, - 1 (full array)
-	{
-//DEBUG
-//cout << "NodeManagerT::InitialCondition: no partition information" << endl;
-
-		fPartFieldStart = 0;
-		fPartFieldEnd = - 1;
-	}
-	
-//DEBUG
-//cout << "fPartFieldStart = " << fPartFieldStart << endl;
-//cout << "fPartFieldEnd = " << fPartFieldEnd << endl;
 
 	/* update current configurations */
-	if (fCoordUpdate)
-	{
-		if (fPartFieldEnd != -1 && fDecomp_Type == PartitionT::kIndex)
-		{
-			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0], fPartFieldStart, fPartFieldEnd);
-//DEBUG
-//cout << "NodeManagerT::InitialCondition, preparing to do AllGather" << endl;			
-			// communicate the updated coords
-			fCommManager.AllGather(fMessageCurrCoordsID, *fCurrentCoords); // I see a problem here, should only send part of the array, that which was updated		
-//DEBUG
-//cout << "NodeManagerT::InitialCondition, after AllGather" << endl;		
-		}
-		else
-		{
-			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
-		}
-	}
+	UpdateCurrentCoordinates();
 }
 
 void NodeManagerT::ReadRestart(ifstreamT& in)
@@ -587,7 +544,7 @@ void NodeManagerT::ReadRestart(ifstreamT& in)
 	}
 	
 	/* update current configurations */
-	if (fCoordUpdate) fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+	UpdateCurrentCoordinates();
 }
 
 void NodeManagerT::WriteRestart(ofstreamT& out) const
@@ -839,11 +796,10 @@ void NodeManagerT::WriteEquationNumbers(int group, ostream& out) const
 /* return the current values of the unknowns */
 void NodeManagerT::GetUnknowns(int group, int order, dArrayT& unknowns) const
 {
+	const char caller[] = "NodeManagerT::GetUnknowns";
+
 //TEMP - not fully implemented
-	if (NumTagSets() > 0) {
-		cout << "\n NodeManagerT::GetUnknowns: not implemented for XDOF tags" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+if (NumTagSets() > 0) ExceptionT::GeneralFail(caller, "not implemented for XDOF tags");
 
 	/* check */
 	int num_eq = NumEquations(group);
@@ -858,12 +814,9 @@ void NodeManagerT::GetUnknowns(int group, int order, dArrayT& unknowns) const
 			FieldT& field = *(fFields[i]);
 			
 			/* check order of field */
-			if (field.Order() < order) {
-				cout << "\n NodeManagerT::GetUnknowns: order " << order 
-				     << " is out of range {0," << field.Order() << "}" << endl;
-				throw ExceptionT::kOutOfRange;
-			}
-			
+			if (field.Order() < order)
+				ExceptionT::OutOfRange(caller, "order %d is out of range {0,%d}", order, field.Order());
+
 			const dArray2DT& u = field[order];
 			const iArray2DT& eqnos = field.Equations();
 		
@@ -884,7 +837,7 @@ void NodeManagerT::GetUnknowns(int group, int order, dArrayT& unknowns) const
 		}
 
 	/* check */
-	if (checksum != num_eq) throw ExceptionT::kGeneralFail;
+	if (checksum != num_eq) ExceptionT::GeneralFail(caller, "checksum error");
 }
 
 /* weight the computational effort of every node */
@@ -943,8 +896,7 @@ void NodeManagerT::CopyNodeToNode(const ArrayT<int>& source,
 	}
 
 	/* reset current coordinates */
-	if (fCurrentCoords)
-		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);	
+	UpdateCurrentCoordinates();
 }
 
 /* size of the nodal package */
@@ -1108,17 +1060,16 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArrayT& nodes,
 void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArray2DT& nodes, 
 	iArray2DT& eqnos) const
 {
+	const char caller[] = "NodeManagerT::XDOF_SetLocalEqnos";
+
 	/* check */
-	if (nodes.MajorDim() != eqnos.MajorDim()) throw ExceptionT::kSizeMismatch;
+	if (nodes.MajorDim() != eqnos.MajorDim()) ExceptionT::SizeMismatch(caller);
 
 	/* collect fields in the group */
 	ArrayT<FieldT*> fields;
 	CollectFields(group, fields);
-	if (fields.Length() == 0) {
-		cout << "\n NodeManagerT::XDOF_SetLocalEqnos: group has not fields: " 
-		     << group << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (fields.Length() == 0)
+		ExceptionT::GeneralFail(caller, "group %d has no fields", group+1);
 
 	/* dimensions */
 	int nnd = NumNodes();
@@ -1161,12 +1112,8 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArray2DT& nodes,
 					/* resolve tag into its set */
 					int tag_set;
 					if (!ResolveTagSet(tag, tag_set, tag_offset))
-					{
-						cout << "\n NodeManagerT::XDOF_SetLocalEqnos: could not resolve tag into set: " 
-						     << tag << endl;
-						throw ExceptionT::kGeneralFail;
-					}
-				
+						ExceptionT::GeneralFail(caller, "could not resolve tag %d into set", tag);
+
 					/* equations from tag set */
 					eqnos_source = fXDOF_Eqnos[tag_set];
 				}
@@ -1177,10 +1124,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArray2DT& nodes,
 
 				/* check number of assigned equations */
 				if (eq_count > neq)
-				{
-					cout << "\n NodeManagerT::XDOF_SetLocalEqnos: error assigning equations" << endl;
-					throw ExceptionT::kSizeMismatch;
-				}
+					ExceptionT::SizeMismatch(caller, "error assigning equations");
 
 				/* copy equations */
 				eqnos_source->RowCopy(tag - tag_offset, peq);
@@ -1191,11 +1135,8 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArray2DT& nodes,
 		}
 		
 		/* check */
-		if (eq_count != neq) {
-			cout << "\n NodeManagerT::XDOF_SetLocalEqnos: the number of assigned equations " << eq_count 
-			     << "\n     is not equal to the number of element equations " << neq << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+		if (eq_count != neq)
+			ExceptionT::GeneralFail(caller, "expecting %d equations not %a", neq, eq_count);
 	}
 }
 
@@ -1203,17 +1144,16 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArray2DT& nodes,
 void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& nodes, 
 	RaggedArray2DT<int>& eqnos) const
 {
+	const char caller[] = "NodeManagerT::XDOF_SetLocalEqnos";
+
 	/* check */
-	if (nodes.MajorDim() != eqnos.MajorDim()) throw ExceptionT::kSizeMismatch;
+	if (nodes.MajorDim() != eqnos.MajorDim()) ExceptionT::SizeMismatch(caller);
 
 	/* collect fields in the group */
 	ArrayT<FieldT*> fields;
 	CollectFields(group, fields);
-	if (fields.Length() == 0) {
-		cout << "\n NodeManagerT::XDOF_SetLocalEqnos: group has not fields: " 
-		     << group << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (fields.Length() == 0)
+		ExceptionT::GeneralFail(caller, "group %d has no fields", group+1);
 
 	/* dimensions */
 	int nnd = NumNodes();
@@ -1258,12 +1198,8 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& node
 					/* resolve tag into its set */
 					int tag_set;
 					if (!ResolveTagSet(tag, tag_set, tag_offset))
-					{
-						cout << "\n NodeManagerT::XDOF_SetLocalEqnos: could not resolve tag into set: " 
-						     << tag << endl;
-						throw ExceptionT::kGeneralFail;
-					}
-				
+						ExceptionT::GeneralFail(caller, "could not resolve tag %d into set", tag);
+
 					/* equations from tag set */
 					eqnos_source = fXDOF_Eqnos[tag_set];
 				}
@@ -1274,10 +1210,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& node
 
 				/* check number of assigned equations */
 				if (eq_count > neq)
-				{	
-					cout << "\n NodeManagerT::XDOF_SetLocalEqnos: error assigning equations" << endl;
-					throw ExceptionT::kSizeMismatch;
-				}
+					ExceptionT::SizeMismatch(caller, "error assigning equations");
 
 				/* copy equations */
 				eqnos_source->RowCopy(tag - tag_offset, peq);
@@ -1288,11 +1221,8 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& node
 		}
 
 		/* check */
-		if (eq_count != neq) {
-			cout << "\n NodeManagerT::XDOF_SetLocalEqnos: the number of assigned equations " << eq_count 
-			     << "\n     is not equal to the number of element equations " << neq << endl;
-			throw ExceptionT::kGeneralFail;
-		}		
+		if (eq_count != neq)
+			ExceptionT::GeneralFail(caller, "expecting %d equations not %d", neq, eq_count);
 	}
 }
 
@@ -1423,20 +1353,22 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 
 		/* coordinate update field */
 		if (field->FieldName() == coords_update_field) {
+			fCoordUpdateIndex = i;
 			if (fCoordUpdate) ExceptionT::BadInputValue(caller, "coordinate update field already set");
 			fCoordUpdate = field;
 			fCurrentCoords = new dArray2DT;
 			fCurrentCoords_man.SetWard(0, *fCurrentCoords, NumSD());
 			fCurrentCoords_man.SetMajorDimension(NumNodes(), false);
 			(*fCurrentCoords) = InitialCoordinates();
-
-			/* set up communication of the current coordinates */
-			fMessageCurrCoordsID = fCommManager.Init_AllGather(*fCurrentCoords);
 		}
 			
 		/* set up communication of field */
 		fMessageID[i] = fCommManager.Init_AllGather(fFields[i]->Update());
 	}
+	fFieldStart.Dimension(num_fields);
+	fFieldEnd.Dimension(num_fields);
+	fFieldStart = 0;
+	fFieldEnd = -1;
 }
 
 /**********************************************************************
