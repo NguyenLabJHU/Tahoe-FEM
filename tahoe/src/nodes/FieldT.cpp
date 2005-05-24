@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.44 2005-04-12 15:34:29 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.45 2005-05-24 22:09:43 paklein Exp $ */
 
 #include "FieldT.h"
 
@@ -221,6 +221,7 @@ void FieldT::InitialCondition(void)
 	fField_last = fField;
 }
 
+#if 0
 /* apply predictor to all degrees of freedom */
 void FieldT::InitStep(void)
 {
@@ -284,15 +285,48 @@ void FieldT::InitStep(void)
 			integrator.ConsistentKBC(*this, cards[i]);
 	}
 }
-#pragma message("Roll up the redundancy after it works")
-// apply predictor to all owned degrees of freedom 
+#endif
+
+/* apply predictor to all degrees of freedom */
 void FieldT::InitStep(int fieldstart, int fieldend)
 {
 	/* integrator */
 	nIntegratorT& integrator = nIntegrator();
-///////// This here is what I want to do only for the owned nodes
-	// predictor to all DOF's owned by this proc 
+
+	/* predict  DOF's owned by this proc */
 	integrator.Predictor(*this, fieldstart, fieldend);
+
+	/* integrate work */
+	if (fTrackTotalEnergy)
+	{
+		/* array of active velocities */
+		fActiveVel.Dimension(fNumEquations);
+
+		/* sum nodal work */
+		double& w_pred = fWork[1];
+		w_pred = fWork[0];
+		double dt_by_2 = FieldSupport().TimeStep()/2.0;
+		const int* eq = fEqnos.Pointer();
+		const double* v = fField[1].Pointer();
+		int length = fEqnos.Length();
+		for (int i = 0; i < length; i++)
+		{
+			/* active equation */
+			if (*eq > -1 && *eq < fNumEquations) {
+			
+				int index = (*eq) - 1;
+
+				/* work */
+				w_pred += dt_by_2*fActiveForce[(*eq)-1]*(*v);
+		
+				/* store velocity predictor */
+				fActiveVel[index] = *v;
+			}
+		
+			/* next */
+			eq++; v++;
+		}
+	}
 
 	/* KBC controllers */
 	for (int i = 0; i < fKBC_Controllers.Length(); i++)
@@ -315,7 +349,6 @@ void FieldT::InitStep(int fieldstart, int fieldend)
 		for (int i = 0; i < cards.Length(); i++)
 			integrator.ConsistentKBC(*this, cards[i]);
 	}
-///////// 
 }
 
 /* assemble contributions to the residual */
