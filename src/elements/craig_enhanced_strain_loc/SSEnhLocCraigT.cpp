@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.17 2005-05-13 19:42:31 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.18 2005-05-25 17:30:51 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -10,6 +10,7 @@
 #include "SSMatSupportT.h"
 #include "ParameterContainerT.h"
 #include "ModelManagerT.h"
+#include "OutputSetT.h"
 
 #include "DetCheckT.h"
 #include <math.h>
@@ -488,97 +489,485 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
   cout << "ComputeOutput \n\n";
 
 
-  #if 0
-  if (fLocalizationHasBegun)
+/* number of output values */
+    int n_out = n_codes.Sum();
+    int e_out = e_codes.Sum();
+        
+    int n_simo, n_extrap;
+    if (qUseSimo) {
+        n_simo = n_out - n_codes[iNodalDisp] - n_codes[iNodalCoord];
+        n_extrap = n_codes[iNodalDisp] + n_codes[iNodalCoord];
+    } else {
+        n_simo = 0;
+        n_extrap = n_out;
+    }
+            
+    /* nothing to output */
+    if (n_out == 0 && e_out == 0) return;
+
+    /* dimensions */
+    int nsd = NumSD();
+    int ndof = NumDOF();
+    int nen = NumElementNodes();
+    int nnd = ElementSupport().NumNodes();
+    int nstrs = fB.Rows();
+
+    /* reset averaging workspace */
+    ElementSupport().ResetAverage(n_extrap);
+
+    /* allocate element results space */
+    e_values.Dimension(NumElements(), e_out);
+
+    /* nodal work arrays */
+    dArray2DT nodal_space(nen, n_extrap);
+    dArray2DT nodal_all(nen, n_extrap);
+    dArray2DT coords, disp;
+    dArray2DT nodalstress, princstress, matdat;
+    dArray2DT energy, speed;
+    dArray2DT Poynting;
+
+    /* ip values */
+    dSymMatrixT cauchy((nstrs != 4) ? nsd : dSymMatrixT::k3D_plane), nstr_tmp;
+    dArrayT ipmat(n_codes[iMaterialData]), ipenergy(1);
+    dArrayT ipspeed(nsd), ipprincipal(nsd), ipPoynting(nsd);
+
+    /* set shallow copies */
+    double* pall = nodal_space.Pointer();
+    coords.Alias(nen, n_codes[iNodalCoord], pall); pall += coords.Length();
+    disp.Alias(nen, n_codes[iNodalDisp], pall)   ; pall += disp.Length();
+
+    /* work space for Poynting vector */
+    dMatrixT stress_mat, F_inv, PbyJ;
+    if (n_codes[iPoyntingVector]) {
+        stress_mat.Dimension(nsd);
+        F_inv.Dimension(nsd);
+        PbyJ.Dimension(nsd);
+    }
+
+    /* workspaces for Simo */
+    int simo_offset = coords.MinorDim() + disp.MinorDim();
+    dArray2DT simo_space(nen,qUseSimo ? n_simo : 0);
+    dArray2DT simo_all(nen,qUseSimo ? n_simo : 0);
+    dArray2DT simoNa_bar(nen,qUseSimo ? 1 : 0);
+    dArray2DT simo_force;
+    dArray2DT simo_mass;
+    iArrayT simo_counts;
+        
+    if (!qUseSimo) 
     {
-      /*update traced elements */ 
-      Top();
-      while (NextElement())
-	{
-	  if (IsElementTraced())
-	    {
-	      //cout << "fBand->JumpIncrement = " << fBand->JumpIncrement() << endl;
+        nodalstress.Alias(nen, n_codes[iNodalStress], pall); pall += nodalstress.Length();
+        princstress.Alias(nen, n_codes[iPrincipal], pall)  ; pall += princstress.Length();
+        energy.Alias(nen, n_codes[iEnergyDensity], pall)   ; pall += energy.Length();
+        speed.Alias(nen, n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
+        matdat.Alias(nen, n_codes[iMaterialData], pall)    ; pall += matdat.Length();
+        Poynting.Alias(nen, n_codes[iPoyntingVector], pall);
+    }
+    else
+    {
+        simo_force.Dimension(ElementSupport().NumNodes(),qUseSimo ? n_simo : 0);
+        simo_mass.Dimension(ElementSupport().NumNodes(),qUseSimo ? 1 : 0);
+        simo_counts.Dimension(ElementSupport().NumNodes());
 
-	        fBand -> CloseStep();
+        pall = simo_space.Pointer();
+        nodalstress.Alias(nen, n_codes[iNodalStress], pall); pall += nodalstress.Length();
+        princstress.Alias(nen, n_codes[iPrincipal], pall)  ; pall += princstress.Length();
+        energy.Alias(nen, n_codes[iEnergyDensity], pall)   ; pall += energy.Length();
+        speed.Alias(nen, n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
+        matdat.Alias(nen, n_codes[iMaterialData], pall)    ; pall += matdat.Length();
+        Poynting.Alias(nen, n_codes[iPoyntingVector], pall);
 
-		SetGlobalShape();	
+        simo_mass = 0.;
+        simo_force = 0.;
+        simo_counts = 0;
+    }
+        
+    /* element work arrays */
+    dArrayT element_values(e_values.MinorDim());
+    pall = element_values.Pointer();
+    dArrayT centroid, ip_centroid, ip_mass;
+    dArrayT ip_coords(nsd);
+    if (e_codes[iCentroid])
+    {
+        centroid.Alias(nsd, pall); pall += nsd;
+        ip_centroid.Dimension(nsd);
+    }
+    if (e_codes[iMass]) {
+        ip_mass.Alias(NumIP(), pall); 
+        pall += NumIP();
+    }
+    double w_tmp, ke_tmp;
+    double mass;
+    double& strain_energy = (e_codes[iStrainEnergy]) ? *pall++ : w_tmp;
+    double& kinetic_energy = (e_codes[iKineticEnergy]) ? *pall++ : ke_tmp;
+    dArrayT linear_momentum, ip_velocity;
+    if (e_codes[iLinearMomentum])
+    {
+        linear_momentum.Alias(ndof, pall); pall += ndof;
+        ip_velocity.Dimension(ndof);
+    }
+    else if (e_codes[iKineticEnergy]) ip_velocity.Dimension(ndof);
 
+    dArray2DT ip_stress;
+    if (e_codes[iIPStress])
+    {
+        ip_stress.Alias(NumIP(), e_codes[iIPStress]/NumIP(), pall);
+        pall += ip_stress.Length();
+    }
+    dArray2DT ip_material_data;
+    if (e_codes[iIPMaterialData])
+    {
+        ip_material_data.Alias(NumIP(), e_codes[iIPMaterialData]/NumIP(), pall);
+        pall += ip_material_data.Length();
+        ipmat.Dimension(ip_material_data.MinorDim());
+    }
 
-	    	/* loop over integration point */
-	    	fShapes->TopIP();
-	      while (fShapes->NextIP())
-			{    
-	      	dSymMatrixT strainIncr = fStrain_List [CurrIP()];
-	      	strainIncr -= fStrain_last_List [CurrIP()]; 
-	      
-	     	dSymMatrixT gradActiveTensorFlowDir =
-			FormGradActiveTensorFlowDir(NumSD(), CurrIP());
-	      	gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);      	
+    /* check that degrees are displacements */
+    int interpolant_DOF = InterpolantDOFs();
 
-	      	strainIncr.AddScaled(-1.0*fBand->JumpIncrement(), gradActiveTensorFlowDir);
-	      
-	     	dSymMatrixT stressIncr(NumSD());
-	      	stressIncr.A_ijkl_B_kl(fCurrMaterial->ce_ijkl(), strainIncr);
-	      	fBand -> IncrementStress(stressIncr, CurrIP());
-		if (CurrIP() == 0)
+    bool is_axi = Axisymmetric();
+    double Pi2 = 2.0*acos(-1.0);
+
+    Top();
+    while (NextElement())
+        if (CurrentElement().Flag() != ElementCardT::kOFF)
+        {
+            /* initialize */
+            nodal_space = 0.0;
+            simo_space = 0.;
+            simo_all = 0.;
+            simoNa_bar = 0.;
+
+            /* global shape function values */
+            SetGlobalShape();
+
+            /* collect nodal values */
+            if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum] || n_codes[iPoyntingVector]) {
+                if (fLocVel.IsRegistered())
+                    SetLocalU(fLocVel);
+                else
+                    fLocVel = 0.0;
+            }
+
+            /* coordinates and displacements all at once */
+            if (n_codes[iNodalCoord]) fLocInitCoords.ReturnTranspose(coords);
+            if (n_codes[ iNodalDisp]) {
+                if (interpolant_DOF)
+                    fLocDisp.ReturnTranspose(disp);
+                else
+                    NodalDOFs(CurrentElement().NodesX(), disp);
+            }
+ 
+            /* initialize element values */
+            mass = strain_energy = kinetic_energy = 0;
+            if (e_codes[iCentroid]) centroid = 0.0;
+            if (e_codes[iLinearMomentum]) linear_momentum = 0.0;
+            const double* j = fShapes->IPDets();
+            const double* w = fShapes->IPWeights();
+
+            /* integrate */
+            dArray2DT Na_X_ip_w;
+            fShapes->TopIP();
+            while (fShapes->NextIP())
+            {
+                /* density may change with integration point */
+                double density = fCurrMaterial->Density();
+
+                /* element integration weight */
+                double ip_w = (*j++)*(*w++);
+                if (is_axi) {
+                    fShapes->IPCoords(ip_coords);
+                    ip_w *= Pi2*ip_coords[0]; /* radius is the x1 coordinate */
+                }
+
+                if (qUseSimo || qNoExtrap)
+                {
+                    Na_X_ip_w.Dimension(nen,1);
+                    if (qUseSimo)
+                    {
+                        const double* Na_X = fShapes->IPShapeX();
+                        Na_X_ip_w = ip_w;
+                        for (int k = 0; k < nen; k++)
+                            Na_X_ip_w(k,0) *= *Na_X++;
+                        simoNa_bar += Na_X_ip_w;
+                    }
+                    else
+                        for (int k = 0; k < nen; k++)
+                            Na_X_ip_w(k,0) = 1.;
+                }
+
+                /* get Cauchy stress */
+  				//const dSymMatrixT stress(NumSD());                
+                const dSymMatrixT& stress = fCurrMaterial->s_ij();
+			    //dSymMatrixT stress(NumSD());
+                
+		// #if 1
+                if (IsElementTraced())
 		  {
-		    //cout << "strain = \n" << fStrain_List[CurrIP()] << endl;
-		    //cout << "strain_last = \n" << fStrain_last_List[CurrIP()] << endl;			  
-		    cout << "strainIncr = \n" << strainIncr << endl; 
-		    //cout << "stressIncr = \n" << stressIncr << endl; 
+		    dSymMatrixT strainIncr = fStrain_List [CurrIP()];
+		    strainIncr -= fStrain_last_List [CurrIP()];
+		    
+		    dSymMatrixT gradActiveTensorFlowDir =
+		      FormGradActiveTensorFlowDir(NumSD(), CurrIP());
+		    gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);
+		    
+		    strainIncr.AddScaled(-1.0*fBand->JumpIncrement(), gradActiveTensorFlowDir);
+		    dSymMatrixT stressIncr(NumSD());
+		    stressIncr.A_ijkl_B_kl(fCurrMaterial->ce_ijkl(), strainIncr);
+		    stressIncr += fBand->Stress_List(CurrIP());
+		    //stress = stressIncr;
+		    //cout << "stressIncr = " << stressIncr << endl;
+		    cauchy.Translate(stressIncr);
 		  }
-	      	}
-	      	
+                else
+		  {
+		    //const dSymMatrixT& stress = fCurrMaterial->s_ij();
+		    //cout << "stress = " << stress << endl;
+		    cauchy.Translate(stress);
+		    //cout << "cauchy = \n" << cauchy << endl;
+		  }    
+	             
+		//#endif
+		//cout << "hi\n";    
+		//cauchy.Translate(stress);
+		//cout << "cauchy = \n" << cauchy << endl;
 
 
-	      //fBand -> CloseStep();
-	      	
-	      	cout << "fBand->JumpIncrement = " << fBand->JumpIncrement() << endl;
-	      	cout << "fBand->Jump() = " << fBand->Jump() << endl;	
-	    }
-	}
-      /* check for newly localized elements */
-      fEdgeOfBandElements.Top();
-      fEdgeOfBandCoords.Top();
-      while(fEdgeOfBandElements.Next())
-	{
-	      cout << "checking for localization of element " <<
-	      	fEdgeOfBandElements.Current() << endl;
-	  fEdgeOfBandCoords.Next();
-	  GetElement(fEdgeOfBandElements.Current());
-	  IsElementLocalized();
-	}
+                /* stresses */
+                if (n_codes[iNodalStress]) {        
+                    if (qNoExtrap)
+                        for (int k = 0; k < nen; k++)
+                            nodalstress.AddToRowScaled(k,Na_X_ip_w(k,0),cauchy);
+                    else
+                        fShapes->Extrapolate(cauchy, nodalstress);
+                }
+
+                if (e_codes[iIPStress]) {
+                    double* row = ip_stress(fShapes->CurrIP());
+                    nstr_tmp.Set(nsd, row);
+                    nstr_tmp = cauchy;
+                    row += cauchy.Length();
+                    nstr_tmp.Set(nsd, row);
+                    fCurrMaterial->Strain(nstr_tmp);
+                }
+
+                /* wave speeds */
+                if (n_codes[iWaveSpeeds])
+                {
+                    /* acoustic wave speeds */
+                    fCurrMaterial->WaveSpeeds(fNormal, ipspeed);
+                    if (qNoExtrap)
+                        for (int k = 0; k < nen; k++)
+                            speed.AddToRowScaled(k,Na_X_ip_w(k,0),ipspeed);
+                        else
+                            fShapes->Extrapolate(ipspeed, speed);
+                }
+
+                /* principal values - compute principal before smoothing */
+                if (n_codes[iPrincipal])
+                {
+                    /* compute eigenvalues */
+                    cauchy.PrincipalValues(ipprincipal);
+                    if (qNoExtrap)
+                        for (int k = 0; k < nen; k++)
+                            princstress.AddToRowScaled(k,Na_X_ip_w(k,0),ipprincipal);
+                    else
+                        fShapes->Extrapolate(ipprincipal, princstress);        
+                }
+
+                /* strain energy density */
+                if (n_codes[iEnergyDensity] || e_codes[iStrainEnergy] || n_codes[iPoyntingVector])
+                {
+                    double ip_strain_energy = fCurrMaterial->StrainEnergyDensity();
+
+                    /* nodal average */
+                    if (n_codes[iEnergyDensity])
+                    {
+                        ipenergy[0] = ip_strain_energy;
+                        if (qNoExtrap)
+                            for (int k = 0; k < nen; k++)
+                                energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy);
+                        else
+                            fShapes->Extrapolate(ipenergy,energy);
+                    }
+
+                    /* integrate over element */
+                    if (e_codes[iStrainEnergy])
+                        strain_energy += ip_w*ip_strain_energy;
+                        
+                    /* Poynting vector */
+                    if (n_codes[iPoyntingVector]) {
+                        ipPoynting = 0.0;
+                        ipPoynting[0] += fv_ss*ip_strain_energy;
+                    }
+                }
+
+                /* material stuff */
+                if (n_codes[iMaterialData] || e_codes[iIPMaterialData])
+                {
+                    /* compute material output */
+                    fCurrMaterial->ComputeOutput(ipmat);
+
+                    /* store nodal data */
+                    if (n_codes[iMaterialData])
+                    {
+                        if (qNoExtrap)
+                            for (int k = 0; k < nen; k++)
+                                matdat.AddToRowScaled(k,Na_X_ip_w(k,0),ipmat);
+                        else 
+                            fShapes->Extrapolate(ipmat, matdat);
+                    }
+
+                    /* store element data */
+                    if (e_codes[iIPMaterialData]) ip_material_data.SetRow(fShapes->CurrIP(), ipmat);
+                }
+
+                /* mass averaged centroid */
+                if (e_codes[iCentroid] || e_codes[iMass])
+                {
+                    /* mass */
+                    mass += ip_w*density;
+
+                    /* integration point mass */
+                    if (e_codes[iMass]) ip_mass[fShapes->CurrIP()] = ip_w*density;
+
+                    /* moment */
+                    if (e_codes[iCentroid]) {
+                        fShapes->IPCoords(ip_centroid);
+                        centroid.AddScaled(ip_w*density, ip_centroid);
+                    }
+                }
+
+                /* kinetic energy/linear momentum */
+                if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum] || n_codes[iPoyntingVector])
+                {
+                    /* velocity at integration point */
+                    fShapes->InterpolateU(fLocVel, ip_velocity);                                        
+                    double ke_density = 0.5*density*dArrayT::Dot(ip_velocity, ip_velocity);
+
+                    /* kinetic energy */
+                    if (e_codes[iKineticEnergy])
+                        kinetic_energy += ip_w*ke_density;
+        
+                    /* linear momentum */
+                    if (e_codes[iLinearMomentum])
+                        linear_momentum.AddScaled(ip_w*density, ip_velocity);
+                
+                    /* Poynting vector */
+                    if (n_codes[iPoyntingVector]) {
+                        ipPoynting[0] += fv_ss*ke_density;
+
+                        /* is finite strain */
+                        
+                        #if 0
+                        FSSolidMatT* fs_mat = TB_DYNAMIC_CAST(FSSolidMatT*, fCurrMaterial);
+                        if (fs_mat)
+                        {
+                            /* compute PK1/J */
+                            cauchy.ToMatrix(stress_mat);
+                            F_inv.Inverse(fs_mat->F());
+                            PbyJ.MultABT(stress_mat, F_inv);
+                        
+                            PbyJ.Multx(ip_velocity, ipPoynting, 1.0/F_inv.Det(), dMatrixT::kAccumulate);
+                        } 
+                        else { /* small strain */
+                        
+                        #endif
+                        
+                            cauchy.Multx(ip_velocity, ipPoynting, 1.0, dMatrixT::kAccumulate);
+                        
+                        //}
+                        
+                        /* extrapolate */
+                        ipPoynting *= -1; /* positive toward crack tip */
+                        fShapes->Extrapolate(ipPoynting, Poynting);
+                    }
+                }
+            }
+
+            /* copy in the cols */
+            int colcount = 0;
+            nodal_all.BlockColumnCopyAt(disp       , colcount); colcount += disp.MinorDim();
+            nodal_all.BlockColumnCopyAt(coords     , colcount); colcount += coords.MinorDim();
+
+            if (!qUseSimo)
+            {
+                if (qNoExtrap)
+                {
+                    double nip(fShapes->NumIP());
+                    nodalstress /= nip;
+                    princstress /= nip;
+                    energy /= nip;
+                    speed /= nip;
+                    matdat /= nip;
+                }
+                nodal_all.BlockColumnCopyAt(nodalstress, colcount); colcount += nodalstress.MinorDim();
+                nodal_all.BlockColumnCopyAt(princstress, colcount); colcount += princstress.MinorDim();
+                nodal_all.BlockColumnCopyAt(energy     , colcount); colcount += energy.MinorDim();
+                nodal_all.BlockColumnCopyAt(speed      , colcount); colcount += speed.MinorDim();
+                nodal_all.BlockColumnCopyAt(matdat     , colcount); colcount += matdat.MinorDim();
+                nodal_all.BlockColumnCopyAt(Poynting   , colcount); colcount += Poynting.MinorDim();
+            }
+            else
+            {        
+                colcount = 0;
+                simo_all.BlockColumnCopyAt(nodalstress, colcount); colcount += nodalstress.MinorDim();
+                simo_all.BlockColumnCopyAt(princstress, colcount); colcount += princstress.MinorDim();
+                simo_all.BlockColumnCopyAt(energy     , colcount); colcount += energy.MinorDim();
+                simo_all.BlockColumnCopyAt(speed      , colcount); colcount += speed.MinorDim();
+                simo_all.BlockColumnCopyAt(matdat     , colcount); colcount += matdat.MinorDim();
+                simo_all.BlockColumnCopyAt(Poynting   , colcount); colcount += Poynting.MinorDim();
+
+                iArrayT currIndices = CurrentElement().NodesX();
+                simo_force.Accumulate(currIndices,simo_all);
+                simo_mass.Accumulate(currIndices,simoNa_bar);
+                for (int i = 0; i < currIndices.Length(); i++)
+                    simo_counts[currIndices[i]]++;
+            }
+
+            /* accumulate - extrapolation done from ip's to corners => X nodes */
+            ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
+
+            /* element values */
+            if (e_codes[iCentroid]) centroid /= mass;
+
+            /* store results */
+            e_values.SetRow(CurrElementNumber(), element_values);
+        }
+
+    /* get nodally averaged values */
+    const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
+    const iArrayT& nodes_used = output_set.NodesUsed();
+    dArray2DT extrap_values(nodes_used.Length(), n_extrap);
+    extrap_values.RowCollect(nodes_used, ElementSupport().OutputAverage());
+
+    int tmpDim = extrap_values.MajorDim();
+    n_values.Dimension(tmpDim,n_out);
+    n_values.BlockColumnCopyAt(extrap_values,0);
+    if (qUseSimo)
+    {        
+        int rowNum = 0;
+//      iArrayT nodes_used(tmpDim);
+        dArray2DT tmp_simo(tmpDim, n_simo);
+        for (int i = 0; i < simo_force.MajorDim(); i++)
+            if (simo_counts[i] > 0) {
+//              nodes_used[rowNum] = i;
+                simo_force.ScaleRow(i, 1./simo_mass(i,0));
+                tmp_simo.SetRow(rowNum, simo_force(i));
+                rowNum++;
+            }
+
+        /* collect final values */
+        n_values.BlockColumnCopyAt(tmp_simo, simo_offset);
+
+        /* write final values back into the averaging workspace */
+        if (extrap_values.MinorDim() != n_values.MinorDim()) {
+            ElementSupport().ResetAverage(n_values.MinorDim());
+            ElementSupport().AssembleAverage(nodes_used, n_values);
+        }
     }
-  else
-    {
-      //choose first element then let band progress
-      bool localizationHasBegun = false;
-      Top();
-      while (NextElement())
-	{
-	  if (IsElementLocalized())
-	    localizationHasBegun = true;
-	}
-      if (localizationHasBegun)
-	{
-	  fLocalizationHasBegun = true;
-	  fEdgeOfBandElements.Top();
-	  fEdgeOfBandCoords.Top();
-	  //localize 1st element?
-	  while(fEdgeOfBandElements.Next())
-	    {
-	      cout << "checking for localization of element " <<
-	      	fEdgeOfBandElements.Current() << endl; 
-	      fEdgeOfBandCoords.Next();
-	      GetElement(fEdgeOfBandElements.Current());    
-	      IsElementLocalized();
-	    }
-	}
-    }
-#endif
 
   /* inherited */
-  SmallStrainT::ComputeOutput(n_codes, n_values, e_codes, e_values);
+  //SmallStrainT::ComputeOutput(n_codes, n_values, e_codes, e_values);
   
 
 }
@@ -625,7 +1014,7 @@ cout << "\n CloseStep \n \n";
 		  {
 		    //cout << "strain = \n" << fStrain_List[CurrIP()] << endl;
 		    //cout << "strain_last = \n" << fStrain_last_List[CurrIP()] << endl;			  
-		    cout << "strainIncr = \n" << strainIncr << endl; 
+		    //cout << "strainIncr = \n" << strainIncr << endl; 
 		    //cout << "stressIncr = \n" << stressIncr << endl; 
 		  }
 	      	}
@@ -634,8 +1023,8 @@ cout << "\n CloseStep \n \n";
 
 	      fBand -> CloseStep();
 	      	
-	      	cout << "fBand->JumpIncrement = " << fBand->JumpIncrement() << endl;
-	      	cout << "fBand->Jump() = " << fBand->Jump() << endl;	
+	      	cout << "fBand->JumpIncrement = " << fBand->JumpIncrement();
+	      	cout << ", fBand->Jump() = " << fBand->Jump() << endl;	
 	    }
 	}
       /* check for newly localized elements */
@@ -677,7 +1066,7 @@ cout << "\n CloseStep \n \n";
 	      //cout << "Position = " << 	fEdgeOfBandElements.Position() << ". Length = " << fEdgeOfBandElements.Length() << endl;
 	      fEdgeOfBandCoords.Next();
 	      GetElement(fEdgeOfBandElements.Current());    
-	     cout << "Element Number " << CurrElementNumber() << ". InitialCoodinates() =\n" << InitialCoordinates() << endl; 
+	      //cout << "Element Number " << CurrElementNumber() << ". InitialCoodinates() =\n" << InitialCoordinates() << endl; 
 	      IsElementLocalized();
 	      //cout << "Position = " << 	fEdgeOfBandElements.Position() << ". Length = " << fEdgeOfBandElements.Length() << endl;
 	    }
@@ -831,6 +1220,7 @@ bool SSEnhLocCraigT::IsElementLocalized()
      }
     else
       if (detAMin < fDetAMin)
+	//if (CurrElementNumber() == 68)
       {
 	fDetAMin = detAMin;
 	fEdgeOfBandElements.Free();
@@ -945,7 +1335,7 @@ BandT* SSEnhLocCraigT::FormNewBand(dArrayT normal, dArrayT slipDir,
 dArrayT perpSlipDir, dArrayT coords, double residCohesion, ArrayT<dSymMatrixT>
 stressList)
 {
-cout << "coords =\n" << coords << endl;
+  //cout << "coords =\n" << coords << endl;
 return new BandT(normal, slipDir, perpSlipDir, coords, fH_delta_0, residCohesion, stressList, this);
 }
 
@@ -989,8 +1379,8 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
     if ((activeNodes.HasValue((i+1) % numSides) && !activeNodes.HasValue(i))
 	|| (!activeNodes.HasValue((i+1) % numSides) && activeNodes.HasValue(i)))
       {
-	cout << "i = " << i << ", neighbor = " << neighbors(elementNumber,
-							    i) << endl;	
+	//cout << "i = " << i << ", neighbor = " << neighbors(elementNumber,
+	//						    i) << endl;	
 		if (!(neighbors(elementNumber,i) == -1 || IsElementTraced(neighbors(elementNumber ,i))))
 	  	{
 	    	//get coords
@@ -1001,12 +1391,14 @@ void SSEnhLocCraigT::AddNewEdgeElements(int elementNumber)
 				nodalCoord1 [j] = nodalCoords(i,j);
 				nodalCoord2 [j] = nodalCoords((i+1) % numSides, j);
 	      		}
-	      	
+		    /*
 	      	cout << CurrElementNumber() << endl;
 	      	cout << "nodalCoords =\n" << nodalCoords;
 	      	cout << "neighbors =\n" << neighbors << endl;	
 	      	cout << "nodalCoord1 = \n" << nodalCoord1 << endl;	
 	      	cout << "nodalCoord2 = \n" << nodalCoord2 << endl;
+		    */
+
 
 	    	dArrayT interceptCoords = InterceptCoords(localizedEleCoord,
 						      nodalCoord1, nodalCoord2);

@@ -167,6 +167,7 @@ double SSEnhLocDieterichT::CalculateJumpIncrement()
     	return jumpAtZeroVel;
 	}
 
+  cout << "Element # " << CurrElementNumber() << endl;
   // cout << "fBand->SlipDir =\n" << fBand->SlipDir() << endl;
 
   double newtonTol = 1.0e-10;
@@ -178,12 +179,15 @@ double SSEnhLocDieterichT::CalculateJumpIncrement()
   int newtonCounter = 0;
   int maxIter = 20;
 
+  cout << "jumpIncrement = " << jumpIncrement << ", thetaNew = " << thetaNew;
+
   // what about coming off an elastic step? 
   double yieldFn = Phi(slipRate, jumpIncrement, thetaNew);
-  cout << "yieldFn = " << yieldFn << endl;
+  double yieldFn0 = yieldFn;
+  cout << ", yieldFn = " << yieldFn << endl;
 
       // make this a relative tolerance
-  while (fabs(yieldFn) > newtonTol)
+  while (fabs(yieldFn/yieldFn0) > newtonTol)
     {
       /* if too many iterations, stop and cut load step */
       if(newtonCounter++ >maxIter)
@@ -195,9 +199,9 @@ double SSEnhLocDieterichT::CalculateJumpIncrement()
       /* update jump increment via Newton iteration */
       slipRate -= yieldFn/DPhidSlipRate(slipRate, jumpIncrement, thetaNew);
 
-      //cout << "dPhiSlipRate = " << DPhidSlipRate(slipRate, jumpIncrement,
-      //					 thetaNew) << endl;
-      cout << "slipRate = " << slipRate;
+      cout << "dPhiSlipRate = " << DPhidSlipRate(slipRate, jumpIncrement,
+      					 thetaNew);
+      cout << " slipRate = " << slipRate;
 
       /*update increment of ISV */
       jumpIncrement = JumpIncrement(slipRate);
@@ -218,7 +222,7 @@ double SSEnhLocDieterichT::CalculateJumpIncrement()
   fDieterichBand -> StoreTheta(thetaNew);
   fDieterichBand -> StoreSlipRate(slipRate);
 
-  cout << endl;
+  //cout << endl;
   return jumpIncrement;
 }      
 
@@ -317,12 +321,20 @@ double SSEnhLocDieterichT::Phi(double slipRate, double jumpIncrement, double the
 {
   dSymMatrixT stressIncr = StressIncrOnBand(jumpIncrement);
   dSymMatrixT currStress = LastStressOnBand();
+
+  //cout << "currStress =\n" << currStress << endl;
+
   currStress += stressIncr;
 
   dSymMatrixT dPhidSigma = FormdGdSigma(NumDOF(), slipRate, thetaNew);
   //dGdSigma.ScaleOffDiagonal(0.5);
 
   double phi = dPhidSigma.Dot(dPhidSigma, currStress); 
+
+  //cout << "dPhidSigma =\n" << dPhidSigma << endl;
+  //cout << "currStress =\n" << currStress << endl;
+
+  //cout << "phi = " << phi; 
 
   //address end of cohesion
   double newCohesion = fBand->ResidualCohesion() +
@@ -332,7 +344,9 @@ double SSEnhLocDieterichT::Phi(double slipRate, double jumpIncrement, double the
     phi -= newCohesion;
   //else newCohesion is really 0.0, no need to subtract anything
 
-  cout << ", newCohesion = " << newCohesion << ", ";
+  cout << ", phi = " << phi << endl;
+
+  //cout << ", newCohesion = " << newCohesion << ", ";
 
   return phi;
 }
