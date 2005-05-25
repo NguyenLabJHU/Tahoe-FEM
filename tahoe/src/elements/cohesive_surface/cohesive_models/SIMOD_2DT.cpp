@@ -1,4 +1,4 @@
-/* $Id: SIMOD_2DT.cpp,v 1.2 2005-05-25 17:25:04 paklein Exp $ */
+/* $Id: SIMOD_2DT.cpp,v 1.3 2005-05-25 17:29:29 paklein Exp $ */
 #include "SIMOD_2DT.h"
 
 /* enabled */
@@ -168,6 +168,7 @@ ParameterInterfaceT* SIMOD_2DT::NewSub(const StringT& name) const
 			
 		/* define vector of parameters */
 		int nv = simod->num_input_parameters();
+		delete simod;
 		for (int i = 0; i < nv; i++) {
 			StringT label = "p_";
 			label.Append(i+1);
