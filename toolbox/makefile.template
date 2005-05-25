@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.20 2004-07-15 08:06:23 paklein Exp $
+# $Id: makefile.template,v 1.21 2005-05-25 17:04:01 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (1) copy makefile.template to a local makefile
@@ -85,7 +85,8 @@ EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
 #### METIS
 #METIS_DIR      = $(HOME_DIR)/../metis
 #METIS_INC      = -I$(METIS_DIR)/inc
-#METIS_CFLAGS   = $(METIS_INC) -D__METIS__
+#METIS_DEFINES  = -D__METIS__
+#METIS_CFLAGS   = $(METIS_INC) $(METIS_DEFINES)
 #METIS_LIB_NAME = metis
 #METIS_LIB      = $(METIS_DIR)/lib/lib$(METIS_LIB_NAME).a
 #METIS_LFLAGS   = -L$(METIS_DIR)/lib -l$(METIS_LIB_NAME)
