@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.68 2005-03-15 07:15:35 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.69 2005-05-25 08:28:51 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -34,6 +34,7 @@
 #include "YoonAllen2DT.h"
 #include "From2Dto3DT.h"
 #include "TvergHutchRigid2DT.h"
+#include "SIMOD_2DT.h"
 #endif
 
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
@@ -345,6 +346,10 @@ ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& name) const
 		cz->AddSub("Tijssens_2D");
 		cz->AddSub("Tvergaard-Hutchinson_rate_dep_2D");
 		cz->AddSub("Yoon-Allen_2D");
+
+#ifdef __SIMOD__
+		cz->AddSub("SIMOD_2D");
+#endif
 
 		return cz;
 	}
