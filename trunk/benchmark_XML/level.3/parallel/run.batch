@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.6 2005-05-23 06:59:50 paklein Exp $
+# $Id: run.batch,v 1.7 2005-05-25 00:54:47 paklein Exp $
 -run
 -join_io
 -no_metis
@@ -12,5 +12,6 @@ elastostatic.xml
 elastostatic.PCG.K.xml
 elastostatic.N-LS.xml
 split_io/run.batch
+2D.particle/run.batch
 3D.particle/run.batch
 

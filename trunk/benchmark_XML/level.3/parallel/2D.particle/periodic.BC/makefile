@@ -1,14 +1,11 @@
-# $Id: makefile,v 1.4 2005-05-25 00:54:47 paklein Exp $
+# $Id: makefile,v 1.1 2005-05-25 00:54:53 paklein Exp $
 #
 # type "make clean" to remove test results
 #
 
 # list of sub-directories
 # NOTE: if list is empty, set SUB_DIR = NONE
-SUB_DIR = \
-split_io \
-2D.particle \
-3D.particle
+SUB_DIR = NONE 
 
 all:
 	@echo "make clean to remove test results"
@@ -24,5 +21,4 @@ clean:
 			echo "*** WARNING: missing directory: $(CURR_DIR)/$$n"; \
 			fi; \
 	done
-	-@rm *.io*.ps* *.out *.geo *.run *.log console* *io.ID *io.map explicit.dyn*.rs* *.echo.xml *.valid.xml
-	-@cd geometry; rm *.n*.p*.geom* *.n*.part*
+	-@rm *.io*.ps* *.out *.geo *.run md.0.*rs1000* md.0.*rs500* console* *log *io.map *io.ID ./geometry/hex_lattice.n*.* ./geometry/four-atoms.n*.* ./geometry/five-atoms.n*.* *.echo.xml *.valid.xml

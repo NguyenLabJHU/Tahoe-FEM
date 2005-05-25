@@ -11,10 +11,11 @@ Translate
       12      32       4
       13      16       4
       14      32       4
-3 # number of node sets
+4 # number of node sets
      100      19
      101      21
      102      19
+	 103       5
 1 # number of side sets
       99      13       4
 *nodesets
@@ -24,6 +25,9 @@ square.geom.ns0
 square.geom.ns1
 *set
 square.geom.ns2
+*set
+5
+351 364 365 366 367
 *sidesets
 *set
 square.geom.ss0
