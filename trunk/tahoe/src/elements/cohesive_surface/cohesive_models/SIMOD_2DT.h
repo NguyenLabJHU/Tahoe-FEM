@@ -1,4 +1,4 @@
-/* $Id: SIMOD_2DT.h,v 1.1 2005-05-25 08:28:59 paklein Exp $ */
+/* $Id: SIMOD_2DT.h,v 1.2 2005-05-25 17:25:04 paklein Exp $ */
 #ifndef _SIMOD_2D_T_H_
 #define _SIMOD_2D_T_H_
 
@@ -28,7 +28,7 @@ public:
 	virtual ~SIMOD_2DT(void);
 
 	/** return the number of state variables needed by the model */
-	int NumStateVariables(void) const { return 12; };
+	int NumStateVariables(void) const;
 
 	/** dissipated energy */
 	virtual double FractureEnergy(const ArrayT<double>& state);
