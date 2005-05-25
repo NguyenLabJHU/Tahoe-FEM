@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.48 2005-05-01 20:27:57 paklein Exp $
+# $Id: make.targets,v 1.49 2005-05-25 17:00:44 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -16,6 +16,7 @@ $(SIERRA_CFLAGS) \
 $(TB_CFLAGS) \
 $(EXPAT_CFLAGS) \
 $(NOX_CFLAGS) \
+$(SIMOD_CFLAGS) \
 $(T_CFLAGS) \
 $(ACME_CFLAGS) \
 $(QHULL_CFLAGS) \
@@ -39,6 +40,7 @@ $(SIERRA_LFLAGS) \
 $(TB_LFLAGS) \
 $(EXPAT_LFLAGS) \
 $(NOX_LFLAGS) \
+$(SIMOD_LFLAGS) \
 $(T_LFLAGS) \
 $(ACME_LFLAGS) \
 $(QHULL_LFLAGS) \
@@ -62,6 +64,7 @@ $(SIERRA_LIB) \
 $(TB_LIB) \
 $(EXPAT_LIB) \
 $(NOX_LIB) \
+$(SIMOD_LIB) \
 $(T_LIB) \
 $(F2C_LIB) \
 $(BLAS_LIB) \
@@ -82,6 +85,7 @@ $(DEV_INC) \
 $(FOSSUM_INC) \
 $(SIERRA_INC) \
 $(NOX_INC) \
+$(SIMOD_INC) \
 $(TB_INC) \
 $(EXPAT_INC) \
 $(T_INC) \
@@ -107,6 +111,7 @@ $(SIERRA_DEFINES) \
 $(TB_DEFINES) \
 $(EXPAT_DEFINES) \
 $(NOX_DEFINES) \
+$(SIMOD_DEFINES) \
 $(T_DEFINES) \
 $(ACME_DEFINES) \
 $(QHULL_DEFINES) \
