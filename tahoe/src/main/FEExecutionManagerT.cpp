@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.79 2005-05-02 07:44:38 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.80 2005-05-25 00:32:48 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -454,8 +454,10 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 			const PartitionT* partition = tahoe->Partition();
 		
 			/* external IO */
+			bool do_split_io = CommandLineOption("-split_io");
+			PartitionT::DecompTypeT decomp = (partition) ? partition->DecompType() : PartitionT::kUndefined;
 			token = 1;
-			if (partition && partition->DecompType() == PartitionT::kGraph && !CommandLineOption("-split_io"))
+			if (decomp == PartitionT::kGraph && !do_split_io)
 			{
 				try {
 
@@ -478,6 +480,8 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 				    	   << " setting the external IO" << endl;
 				}
 			}
+			else if (!do_split_io)
+				status << "\n " << caller << ": decomposition method only supports -split_io" << endl;
 		}
 		if (fComm.Sum(token) != size && size > 1)
 		{
