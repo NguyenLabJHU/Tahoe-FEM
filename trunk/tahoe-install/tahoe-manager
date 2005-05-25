@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.46 2005-05-23 06:45:58 paklein Exp $
+# $Id: tahoe-manager,v 1.47 2005-05-25 17:00:13 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -29,6 +29,7 @@ Sierra SIERRA_
 qhull  QHULL_
 contrib NODEFINE
 benchmark_XML NODEFINE
+SIMOD SIMOD_
 );
 
 # location of module on the server
@@ -61,6 +62,7 @@ aztec touch_Aztec
 f2c touch_f2c
 access touch_SEACAS
 metis touch_METIS
+SIMOD touch_SIMOD
 );
 
 # modules in the UP_TO_DATE macro
@@ -94,10 +96,12 @@ benchmark_XML 1
 
 %syslib2module = qw(
 ACCESS	access
+SIMOD_HOME   SIMOD
 );
 
 %module2syslib = qw(
 access ACCESS
+SIMOD  SIMOD_HOME
 );
 
 %connect2command = qw(
@@ -938,12 +942,12 @@ sub fillin_makefile{
 		MOD_LFLAGS 0
 	);
 	my @mod_macros_keys = ();
-	if (-e "makefile") {
+	if (-e "makefile") { # collect MOD_ macro definitions
 		open(IN, "makefile");
 		@mod_macros_keys = keys(%mod_macros);
 		while (defined($line = <IN>)) {
 			foreach my $key (@mod_macros_keys) {
-				if ($line =~ /$key\s*=/) {
+				if ($line =~ /^$key\s*=/) {
 					$mod_macros{$key} = $line;
 				}
 			}
@@ -968,7 +972,7 @@ sub fillin_makefile{
 		
 		# restore MOD_ macros
 		foreach my $key (@mod_macros_keys) {
-			if ($line =~ /$key\s*=/) {
+			if ($line =~ /^$key\s*=/) {
 				$line = $mod_macros{$key};
 			}
 		}
@@ -978,11 +982,7 @@ sub fillin_makefile{
 			my $define = $module2define{$module};
 			$line =~ s/\#$define/$define/;
 		}
-		foreach my $syslib (@syslibs) {
-			my $define = $module2define{$syslib2module{$syslib}};
-			$line =~ s/\#$define/$define/;
-		}
-		
+
 		# UP_TO_DATE modules - tahoe module only
 		if ($path =~ /tahoe-install\/tahoe/ && $line =~ /UP_TO_DATE\ =\ NONE/) {
 			$up_to_date = "";
@@ -1063,6 +1063,7 @@ sub config_optional_modules {
 		print "$i Exit\n"; $i++;
 		print "\nChoice or modules to toggle (applied left to right): ";
 		my $ans = <STDIN>;
+		chomp($ans);
 		my @opts = split(/ +|,/, $ans);
 		foreach $ans (@opts) {
 			if ($ans == scalar(@status)) { # all ON
@@ -1494,6 +1495,7 @@ sub configure_header {
 		print "$i Exit\n"; $i++;
 		print "\nChoice or options to toggle (applied left to right): ";
 		my $ans = <STDIN>;
+		chomp($ans);
 		my @opts = split(/ +|,/, $ans);
 		foreach $ans (@opts) {
 			if ($ans == scalar(@status)) { # all ON
@@ -1623,7 +1625,18 @@ sub get_missing_modules {
 			close(IN);
 			foreach my $mod (@missing_modules) {
 				my $define = $module2define{$mod};
-				push(@req_missing, $mod) if ($file =~ /$define/ && $file !~ /#$define/);
+				
+				# add if not already in the list
+				if ($file =~ /$define/ && $file !~ /#$define/) {
+					my $found = 0;
+					LOOK: foreach my $missing (@req_missing) {
+						if ($missing eq $mod) {
+							$found = 1;
+							last LOOK;
+						}
+					}
+					push(@req_missing, $mod) if ($found == 0);
+				}				
 			}
 		}
 	}
