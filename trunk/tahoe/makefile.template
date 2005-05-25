@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.42 2004-11-19 17:19:25 paklein Exp $
+# $Id: makefile.template,v 1.43 2005-05-25 17:03:42 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (1) copy makefile.template to a local makefile
@@ -175,7 +175,8 @@ EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
 #### METIS
 #METIS_DIR      = $(HOME_DIR)/../metis
 #METIS_INC      = -I$(METIS_DIR)/inc
-#METIS_CFLAGS   = $(METIS_INC) -D__METIS__
+#METIS_DEFINES  = -D__METIS__
+#METIS_CFLAGS   = $(METIS_INC) $(METIS_DEFINES)
 #METIS_LIB_NAME = metis
 #METIS_LIB      = $(METIS_DIR)/lib/lib$(METIS_LIB_NAME).a
 #METIS_LFLAGS   = -L$(METIS_DIR)/lib -l$(METIS_LIB_NAME)
@@ -212,6 +213,14 @@ EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
 #NOX_LIB_NAME = nox
 #NOX_LIB      = $(NOX_DIR)/lib/lib$(NOX_LIB_NAME).a
 #NOX_LFLAGS   = -L$(NOX_DIR)/lib -l$(NOX_LIB_NAME)
+
+#### SIMOD
+#SIMOD_INC      = -I$(SIMOD_HOME) -I$(SIMOD_HOME)/util -I$(SIMOD_HOME)/core_models -I$(SIMOD_HOME)/test_models
+#SIMOD_DEFINES  = -D__SIMOD__
+#SIMOD_CFLAGS   = $(SIMOD_INC) $(SIMOD_DEFINES)
+#SIMOD_LIB_NAME = simod
+#SIMOD_LIB      = $(SIMOD_HOME)/lib$(SIMOD_LIB_NAME).a
+#SIMOD_LFLAGS   = -L$(SIMOD_HOME) -l$(SIMOD_LIB_NAME)
 
 ##### keeping optional modules up to date
 UP_TO_DATE = NONE
