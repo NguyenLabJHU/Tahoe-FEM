@@ -1,4 +1,4 @@
-/* $Id: SIMOD_2DT.cpp,v 1.1 2005-05-25 08:28:59 paklein Exp $ */
+/* $Id: SIMOD_2DT.cpp,v 1.2 2005-05-25 17:25:04 paklein Exp $ */
 #include "SIMOD_2DT.h"
 
 /* enabled */
@@ -35,6 +35,11 @@ SIMOD_2DT::~SIMOD_2DT(void)
 {
 	delete fSIMOD;
 	delete finternalVar;
+}
+
+/* return the number of state variables needed by the model */
+int SIMOD_2DT::NumStateVariables(void) const {
+	return fSIMOD->num_internal_var();
 }
 
 /* surface potential */
