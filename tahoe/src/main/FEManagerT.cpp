@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.94 2005-05-01 19:29:37 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.95 2005-05-26 20:08:36 cfoster Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -496,15 +496,15 @@ ExceptionT::CodeT FEManagerT::CloseStep(void)
 	if (fTimeManager->WriteOutput())
 		WriteOutput(Time());
 
+	/* elements */
+	for (int i = 0 ; i < fElementGroups->Length(); i++)
+		(*fElementGroups)[i]->CloseStep();
+
 	/* nodes - loop over all groups */
 	if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
 	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
 		fNodeManager->CloseStep(fCurrentGroup);
 	fCurrentGroup = -1;
-
-	/* elements */
-	for (int i = 0 ; i < fElementGroups->Length(); i++)
-		(*fElementGroups)[i]->CloseStep();
 
 	/* write restart file */
 	WriteRestart();
