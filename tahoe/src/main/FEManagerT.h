@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.50 2005-03-12 08:41:35 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.50.8.1 2005-05-27 19:55:20 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -157,7 +157,7 @@ public:
 	/** \name equation system */
 	/*@{*/
 	/** (re-)set the equation number for the given group */
-	virtual void SetEquationSystem(int group, int start_eq_shift = 0);
+	virtual void SetEquationSystem(GlobalT::InitStatusT flag, int group, int start_eq_shift = 0);
 
 	/** write the field equations to for the given group to the stream */
 	void WriteEquationNumbers(int group) const;
@@ -442,6 +442,9 @@ protected:
 	/** construct a new CommManagerT. Should be called some time after the
 	 * ModelManagerT has been constructed */
 	virtual CommManagerT* New_CommManager(void) const;
+
+	/** renumber the local equations */
+	void RenumberEquations(int group);
 
 private:
 

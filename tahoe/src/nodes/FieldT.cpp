@@ -1,5 +1,4 @@
-/* $Id: FieldT.cpp,v 1.45 2005-05-24 22:09:43 paklein Exp $ */
-
+/* $Id: FieldT.cpp,v 1.45.2.1 2005-05-27 19:55:22 paklein Exp $ */
 #include "FieldT.h"
 
 #include "ElementsConfig.h"
@@ -1052,7 +1051,9 @@ void FieldT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& or
 		sub_lists.AddSub("scaled_velocity");
 		sub_lists.AddSub("tied_nodes");
 		sub_lists.AddSub("periodic_nodes");
+#if defined(CONTINUUM_ELEMENT) && defined(COHESIVE_SURFACE_ELEMENT)
 		sub_lists.AddSub("conveyor");
+#endif
 //		sub_lists.AddSub("symmetric_conveyor");
 	}
 	else if (name == "FBC_controllers")

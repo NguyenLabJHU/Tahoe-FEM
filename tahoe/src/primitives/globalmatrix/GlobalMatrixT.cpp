@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.23 2005-04-13 21:49:58 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.23.4.1 2005-05-27 19:55:25 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "GlobalMatrixT.h"
 #include <iostream.h>
@@ -17,9 +17,9 @@ GlobalMatrixT::GlobalMatrixT(ostream& out, int check_code, const CommunicatorT& 
 	fOut(out),
 	fComm(comm),
 	fCheckCode(check_code),
-	fLocNumEQ(0),	
-	fTotNumEQ(0),
-	fStartEQ(0)
+	fLocNumEQ(-1),	
+	fTotNumEQ(-1),
+	fStartEQ(-1)
 {
 
 }
@@ -28,9 +28,9 @@ GlobalMatrixT::GlobalMatrixT(const GlobalMatrixT& source):
 	fOut(source.fOut),
 	fComm(source.fComm),
 	fCheckCode(kNoCheck),
-	fLocNumEQ(0),	
-	fTotNumEQ(0),
-	fStartEQ(0)
+	fLocNumEQ(-1),	
+	fTotNumEQ(-1),
+	fStartEQ(-1)
 {
 	GlobalMatrixT::operator=(source);
 }

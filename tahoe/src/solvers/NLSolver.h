@@ -1,6 +1,5 @@
-/* $Id: NLSolver.h,v 1.12 2004-12-20 02:21:15 paklein Exp $ */
+/* $Id: NLSolver.h,v 1.12.14.1 2005-05-27 19:55:26 paklein Exp $ */
 /* created: paklein (07/09/1996) */
-
 #ifndef _NL_SOLVER_H_
 #define _NL_SOLVER_H_
 
@@ -20,7 +19,7 @@ public:
 	/** \name solution steps */
 	/*@{*/
 	/** start solution step */
-	virtual void InitStep(void);
+	virtual GlobalT::InitStatusT InitStep(void);
 
 	/** solve the system over the current time increment.
 	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
@@ -33,7 +32,10 @@ public:
 	virtual void CloseStep(void);
 
 	/** error handler */
-	virtual void ResetStep(void);	
+	virtual void ResetStep(void);
+	
+	/** renumbering handler */
+	virtual void ContinueStep(void);	
 	/*@}*/
 
 	/** (re-)set the reference error */

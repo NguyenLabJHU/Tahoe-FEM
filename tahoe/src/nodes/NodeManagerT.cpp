@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.62 2005-05-24 22:12:13 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.62.2.1 2005-05-27 19:55:22 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -312,7 +312,7 @@ GlobalT::SystemTypeT NodeManagerT::TangentType(int group) const
 }
 
 /* apply kinematic boundary conditions */
-void NodeManagerT::InitStep(int group)
+GlobalT::InitStatusT NodeManagerT::InitStep(int group)
 {
 	const char caller[] = "NodeManagerT::InitStep";
 
@@ -354,6 +354,8 @@ void NodeManagerT::InitStep(int group)
 
 	/* clear history of relaxation over tbe last step */
 	fXDOFRelaxCodes[group] = GlobalT::kNoRelax;
+	
+	return GlobalT::kContinue;
 }
 
 /* compute the nodal contribution to the tangent */
@@ -1472,6 +1474,7 @@ void NodeManagerT::WriteData(ostream& out, const char* title,
 
 KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 {
+	const char caller[] = "NodeManagerT::NewKBC_Controller";
 	switch(code)
 	{
 		case KBC_ControllerT::kPrescribed:
@@ -1513,21 +1516,24 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 			TorsionKBCT* kbc = new TorsionKBCT(fFieldSupport);
 			return kbc;
 		}
+#if defined(CONTINUUM_ELEMENT) && defined(COHESIVE_SURFACE_ELEMENT)
 		case KBC_ControllerT::kConveyor:
 		{
 			ConveyorT* kbc = new ConveyorT(fFieldSupport, field);
 			return kbc;
 		}
-#if 0
-                case KBC_ControllerT::kConveyorSym:
-                {
-                        ConveyorSymT* kbc = new ConveyorSymT(fFieldSupport, field);
-                        return kbc;
-                }
 #endif
+
+#if 0
+		case KBC_ControllerT::kConveyorSym:
+		{
+			ConveyorSymT* kbc = new ConveyorSymT(fFieldSupport, field);
+			return kbc;
+		}
+#endif
+
 		default:
-			ExceptionT::BadInputValue("NodeManagerT::NewKBC_Controller", 
-				"KBC controller code %d is not supported", code);
+			ExceptionT::BadInputValue(caller, "KBC controller code %d is not supported", code);
 	}
 	return NULL;
 }

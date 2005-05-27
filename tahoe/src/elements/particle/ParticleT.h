@@ -1,5 +1,4 @@
-/* $Id: ParticleT.h,v 1.34 2005-04-08 16:41:48 d-farrell2 Exp $ */
-
+/* $Id: ParticleT.h,v 1.34.6.1 2005-05-27 19:55:17 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -34,6 +33,9 @@ public:
 	/** destructor */
 	~ParticleT(void);
 
+	/** initialize current time increment */
+	virtual GlobalT::InitStatusT InitStep(void);
+
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
@@ -56,18 +58,15 @@ public:
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 
-	/** trigger reconfiguration */
-	virtual GlobalT::RelaxCodeT RelaxSystem(void);
-
 	/** \name restart functions */
 	/*@{*/
 	/** write restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::ReadRestart implementation. */
-	virtual void WriteRestart(ostream& out) const;
+	virtual void WriteRestart(ofstreamT& out) const;
 
 	/** read restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
-	virtual void ReadRestart(istream& in);
+	virtual void ReadRestart(ifstreamT& in);
 	/*@}*/
 
 	/** define the particles to skip. This is a list of nodes though "owned" 

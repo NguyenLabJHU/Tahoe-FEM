@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.29 2005-05-24 22:12:13 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.29.2.1 2005-05-27 19:55:22 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -183,7 +183,7 @@ public:
 	virtual void InitialCondition(void);
 	
 	/** apply kinematic boundary conditions */
-	virtual void InitStep(int group);
+	virtual GlobalT::InitStatusT InitStep(int group);
 
 	/** update history */
 	virtual void CloseStep(int group);
