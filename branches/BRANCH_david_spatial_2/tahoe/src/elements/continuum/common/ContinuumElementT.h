@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.36 2005-03-11 20:33:41 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.36.8.1 2005-05-27 19:55:12 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -88,7 +88,7 @@ public:
 
 	/** \name initialize/finalize time increment */
 	/*@{*/
-	virtual void InitStep(void);
+	virtual GlobalT::InitStatusT InitStep(void);
 	virtual void CloseStep(void);
 	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
 	/*@}*/

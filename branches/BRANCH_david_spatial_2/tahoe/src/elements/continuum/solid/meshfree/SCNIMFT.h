@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.30 2005-03-01 08:26:29 paklein Exp $ */
+/* $Id: SCNIMFT.h,v 1.30.8.1 2005-05-27 19:55:14 paklein Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -51,7 +51,7 @@ public:
 
 	/** \name initialize/finalize time increment */
 	/*@{*/
-	virtual void InitStep(void);
+	virtual GlobalT::InitStatusT InitStep(void);
 	virtual void CloseStep(void);
 	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
 	/*@}*/

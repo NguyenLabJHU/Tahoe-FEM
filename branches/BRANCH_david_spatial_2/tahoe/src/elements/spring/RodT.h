@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.19 2004-07-15 08:30:17 paklein Exp $ */
+/* $Id: RodT.h,v 1.19.20.1 2005-05-27 19:55:19 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -55,7 +55,7 @@ public:
 	virtual void SendOutput(int kincode);
 
 	/* initialize/finalize time increment */
-	virtual void InitStep(void);
+	virtual GlobalT::InitStatusT InitStep(void);
 	virtual void CloseStep(void);
 
 	/* Element type parameters */

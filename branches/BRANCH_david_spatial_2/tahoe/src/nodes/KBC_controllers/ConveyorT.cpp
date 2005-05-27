@@ -1,5 +1,9 @@
-/* $Id: ConveyorT.cpp,v 1.16 2005-05-15 07:33:24 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.16.2.1 2005-05-27 19:55:24 paklein Exp $ */
 #include "ConveyorT.h"
+
+/* configuration requirements */
+#if defined(CONTINUUM_ELEMENT) && defined(COHESIVE_SURFACE_ELEMENT)
+
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
@@ -405,12 +409,15 @@ void ConveyorT::ReadRestart(ifstreamT& in)
 	fX_Left_last = fX_Left;
 	fX_Right_last = fX_Right;
 
+#if 0
 //TEMP - need to reset the equation system because it was set before
 //       reading the restart files and does not reflect the equations
 //       the system had when the restart was written because the kbc's
 //       on right edge nodes where not in place at the time.
 FEManagerT& fe_man = const_cast<FEManagerT&>(fSupport.FEManager());
 fe_man.SetEquationSystem(fField.Group(), 0); // what about the equation start shift?
+#endif
+ExceptionT::GeneralFail("ConveyorT::ReadRestart", "broken");
 }
 
 void ConveyorT::WriteRestart(ofstreamT& out) const
@@ -1213,3 +1220,5 @@ int ConveyorT::UpperLower(int node) const
 	else
 		return -1;
 }
+
+#endif /* CONTINUUM_ELEMENT && COHESIVE_SURFACE_ELEMENT */

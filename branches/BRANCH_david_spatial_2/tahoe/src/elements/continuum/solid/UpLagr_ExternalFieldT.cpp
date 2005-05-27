@@ -1,4 +1,4 @@
-/* $Id: UpLagr_ExternalFieldT.cpp,v 1.10 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: UpLagr_ExternalFieldT.cpp,v 1.10.20.1 2005-05-27 19:55:13 paklein Exp $ */
 #include "UpLagr_ExternalFieldT.h"
 
 #include "ifstreamT.h"
@@ -125,10 +125,10 @@ void UpLagr_ExternalFieldT::Initialize(void)
 }
 
 /* interpolate external field to the current time step */
-void UpLagr_ExternalFieldT::InitStep(void)
+GlobalT::InitStatusT UpLagr_ExternalFieldT::InitStep(void)
 {
 	/* inherited */
-	UpdatedLagrangianT::InitStep();
+	GlobalT::InitStatusT status = UpdatedLagrangianT::InitStep();
 	
 	/* interval containing current time */
 	double time = ElementSupport().Time();
@@ -192,6 +192,7 @@ void UpLagr_ExternalFieldT::InitStep(void)
 			AssembleField(i, beta, fNodalValues);
 		}
 	}
+	return status;
 }
 
 /***********************************************************************

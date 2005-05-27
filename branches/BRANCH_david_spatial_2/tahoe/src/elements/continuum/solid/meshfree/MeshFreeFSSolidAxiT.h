@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidAxiT.h,v 1.2 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.h,v 1.2.20.1 2005-05-27 19:55:14 paklein Exp $ */
 #ifndef _MESHFREE_FSSOLID_AXI_T_H_
 #define _MESHFREE_FSSOLID_AXI_T_H_
 
@@ -53,7 +53,7 @@ public:
 	virtual void WeightNodalCost(iArrayT& weight) const;
 
 	/* initialize/finalize time increment */
-	virtual void InitStep(void);
+	virtual GlobalT::InitStatusT InitStep(void);
 	virtual void CloseStep(void);
 	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
 

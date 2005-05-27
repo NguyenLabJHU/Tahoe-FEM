@@ -1,4 +1,4 @@
-/* $Id: UpLagr_ExternalFieldT.h,v 1.4 2002-07-05 22:28:03 paklein Exp $ */
+/* $Id: UpLagr_ExternalFieldT.h,v 1.4.86.1 2005-05-27 19:55:13 paklein Exp $ */
 
 #ifndef _UPDATED_LAGR_EX_FIELD_T_H_
 #define _UPDATED_LAGR_EX_FIELD_T_H_
@@ -32,7 +32,7 @@ public:
 
 	/** initialize current time increment. interpolate external field
 	 * data from database to the current time step. */
-	virtual void InitStep(void);
+	virtual GlobalT::InitStatusT InitStep(void);
 
 protected:
 
