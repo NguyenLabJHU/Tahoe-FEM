@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.94.2.2 2005-05-18 18:30:45 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.94.2.3 2005-05-27 18:56:10 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -392,9 +392,14 @@ ExceptionT::CodeT FEManagerT::InitStep(void)
 		}
 		fCurrentGroup = -1;
 
+#pragma message("read me")
 //NOTE: pass through InitStep more than once to remove order dependence? Could
 //      pass through the loop until each member returns kContinue and then set
-//      the equation system at the end.
+//      the equation system at the end. Need to pass through more than once if
+//      something causes the model to change, i.e., periodic boundary conditions,
+//      redistribution over a spatial grid. Add a separate call to InitStep to
+//      the CommManagerT or ModelManagerT to take care of this before moving on
+//      to the rest of the system.
 
 	} /* try */
 	
