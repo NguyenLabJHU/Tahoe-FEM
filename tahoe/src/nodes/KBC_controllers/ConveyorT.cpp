@@ -1,5 +1,9 @@
-/* $Id: ConveyorT.cpp,v 1.16 2005-05-15 07:33:24 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.15.6.2 2005-05-18 18:30:49 paklein Exp $ */
 #include "ConveyorT.h"
+
+/* configuration requirements */
+#if defined(CONTINUUM_ELEMENT) && defined(COHESIVE_SURFACE_ELEMENT)
+
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
@@ -11,12 +15,8 @@
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "ContinuumElementT.h"
-#include "CommunicatorT.h"
-
-#include "ElementsConfig.h"
-#ifdef COHESIVE_SURFACE_ELEMENT
 #include "CSEAnisoT.h"
-#endif
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
@@ -405,12 +405,15 @@ void ConveyorT::ReadRestart(ifstreamT& in)
 	fX_Left_last = fX_Left;
 	fX_Right_last = fX_Right;
 
+#if 0
 //TEMP - need to reset the equation system because it was set before
 //       reading the restart files and does not reflect the equations
 //       the system had when the restart was written because the kbc's
 //       on right edge nodes where not in place at the time.
 FEManagerT& fe_man = const_cast<FEManagerT&>(fSupport.FEManager());
 fe_man.SetEquationSystem(fField.Group(), 0); // what about the equation start shift?
+#endif
+ExceptionT::GeneralFail("ConveyorT::ReadRestart", "broken");
 }
 
 void ConveyorT::WriteRestart(ofstreamT& out) const
@@ -1096,23 +1099,14 @@ void ConveyorT::MarkElements(void)
 		}
 		
 		ContinuumElementT* cont_elem = TB_DYNAMIC_CAST(ContinuumElementT*, element_group);
-#ifdef COHESIVE_SURFACE_ELEMENT
 		if (!cont_elem) {
 			CSEAnisoT* cse_aniso_elem = TB_DYNAMIC_CAST(CSEAnisoT*, element_group);
 			if (!cse_aniso_elem)
-				ExceptionT::GeneralFail(caller,  "could not cast element group %d to CSEAnisoT", 
+				ExceptionT::GeneralFail(caller,  "could not cast element group %d to ContinuumElementT", 
 					element_group+1);
 			else cse_aniso_elem->SetStatus(status);
 		}
-		else {
-			cont_elem->SetStatus(status);
-		}
-#else /* COHESIVE_SURFACE_ELEMENT */
-		if (!cont_elem)
-			ExceptionT::GeneralFail(caller,  "could not cast element group %d to ContinuumElementT", 
-				element_group+1);
-		cont_elem->SetStatus(status);
-#endif /* COHESIVE_SURFACE_ELEMENT */
+		else cont_elem->SetStatus(status);
  	}
 }
 
@@ -1213,3 +1207,5 @@ int ConveyorT::UpperLower(int node) const
 	else
 		return -1;
 }
+
+#endif /* CONTINUUM_ELEMENT && COHESIVE_SURFACE_ELEMENT */

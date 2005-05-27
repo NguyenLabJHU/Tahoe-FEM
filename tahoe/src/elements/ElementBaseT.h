@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.46 2005-05-05 16:39:04 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.46.2.2 2005-05-22 21:27:25 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -163,7 +163,7 @@ public:
 #endif
 
 	/** initialize current time increment */
-	virtual void InitStep(void);
+	virtual GlobalT::InitStatusT InitStep(void);
 
 	/** close current time increment. Called if the integration over the
 	 * current time increment was successful. */
@@ -250,11 +250,11 @@ public:
 	/*@{*/
 	/** write restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::ReadRestart implementation. */
-	virtual void WriteRestart(ostream& out) const;
+	virtual void WriteRestart(ofstreamT& out) const;
 
 	/** read restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
-	virtual void ReadRestart(istream& in);
+	virtual void ReadRestart(ifstreamT& in);
 	/*@}*/
 #else
 	virtual void WriteRestart(double* outgoingData) const;

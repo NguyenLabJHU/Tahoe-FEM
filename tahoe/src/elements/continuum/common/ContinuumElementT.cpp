@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.50 2005-03-12 08:40:25 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.50.6.1 2005-05-18 18:30:38 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -135,13 +135,15 @@ GlobalT::SystemTypeT ContinuumElementT::TangentType(void) const
 }
 
 /* initialize/finalize step */
-void ContinuumElementT::InitStep(void)
+GlobalT::InitStatusT ContinuumElementT::InitStep(void)
 {
 	/* inherited */
-	ElementBaseT::InitStep();
+	GlobalT::InitStatusT status = ElementBaseT::InitStep();
 
 	/* set material variables */
 	if (fMaterialList)  fMaterialList->InitStep();
+
+	return status;
 }
 
 /* initialize/finalize step */

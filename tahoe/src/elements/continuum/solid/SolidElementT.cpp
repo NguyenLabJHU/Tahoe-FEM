@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.76 2005-05-10 19:34:12 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.75 2005-04-15 18:54:57 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -403,11 +403,6 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 
 	/* inherited */
 	ContinuumElementT::TakeParameterList(list);
-
-	/* check order of the time integrator */
-	int order = fIntegrator->Order();
-	if (order != 0 && order != 2)
-		ExceptionT::GeneralFail(caller, "expecting time integrator order 0 or 2 not %d", order);
 
 	/* resolve mass type */
 	if (fMassType == kAutomaticMass) {

@@ -1,98 +1,9 @@
-/* $Id: GlobalT.cpp,v 1.9 2005-03-11 20:37:19 paklein Exp $ */
+/* $Id: GlobalT.cpp,v 1.9.6.1 2005-05-18 18:30:46 paklein Exp $ */
 /* created: paklein (04/01/2000) */
 #include "GlobalT.h"
 #include "ExceptionT.h"
 
 using namespace Tahoe;
-
-#if 0
-namespace Tahoe {
-istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
-{
-	int i_code;
-	in >> i_code;
-	switch (i_code)
-	{
-		case GlobalT::kNoAnalysis:
-			code = GlobalT::kNoAnalysis;
-			break;
-		case GlobalT::kLinStatic:
-			code = GlobalT::kLinStatic;
-			break;
-		case GlobalT::kLinDynamic:
-			code = GlobalT::kLinDynamic;
-			break;
-		case GlobalT::kNLStatic:
-			code = GlobalT::kNLStatic;
-			break;
-		case GlobalT::kNLDynamic:
-			code = GlobalT::kNLDynamic;
-			break;
-		case GlobalT::kDR:
-			code = GlobalT::kDR;
-			break;
-		case GlobalT::kLinExpDynamic:
-			code = GlobalT::kLinExpDynamic;
-			break;
-		case GlobalT::kNLExpDynamic:
-			code = GlobalT::kNLExpDynamic;
-			break;
-		case GlobalT::kCBStatic:
-		{
-			cout << "\n operator>>GlobalT::AnalysisCodeT: Cauchy-Born BC's converted to KBC controller" << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-		case GlobalT::kNLStaticKfield:
-		{
-			cout << "\n operator>>GlobalT::AnalysisCodeT: K-field converted to KBC controller" << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-		case GlobalT::kVarNodeNLStatic:
-		case GlobalT::kVarNodeNLExpDyn:
-		{
-			cout << "\n operator>>GlobalT::AnalysisCodeT: analysis code is not longer\n"
-			     <<   "     supported. Support for changing geometry is being re-\n"
-			     <<   "     written: " << i_code << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-		case GlobalT::kAugLagStatic:
-		{
-			cout << "\n operator>>GlobalT::AnalysisCodeT: external degrees of freedom no longer\n" 
-			     <<   "     require a specific analysis code: " << GlobalT::kAugLagStatic << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-		case GlobalT::kNLExpDynKfield:
-		{
-			cout << "\n operator>>GlobalT::AnalysisCodeT: K-field converted to KBC controller" << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-		case GlobalT::kLinStaticHeat:
-			code = GlobalT::kLinStaticHeat;
-			break;
-		case GlobalT::kLinTransHeat:
-			code = GlobalT::kLinTransHeat;
-			break;
-		case GlobalT::kNLStaticHeat:
-			code = GlobalT::kNLStaticHeat;
-			break;
-		case GlobalT::kNLTransHeat:
-			code = GlobalT::kNLTransHeat;
-			break;
-		case GlobalT::kPML:
-			code = GlobalT::kPML;
-			break;
-		case GlobalT::kMultiField:
-			code = GlobalT::kMultiField;
-			break;
-		default:
-			cout << "\n operator>>GlobalT::AnalysisCodeT: unknown code: "
-			<< i_code<< endl;
-			throw ExceptionT::kBadInputValue;	
-	}
-	return in;
-}
-}
-#endif
 
 /* returns flag with precedence */
 GlobalT::RelaxCodeT GlobalT::MaxPrecedence(GlobalT::RelaxCodeT code1,
@@ -116,6 +27,13 @@ GlobalT::RelaxCodeT GlobalT::MaxPrecedence(GlobalT::RelaxCodeT code1,
 			code1, code2);
 
 	return result;
+}
+
+/* returns flag with precedence */
+GlobalT::InitStatusT GlobalT::MaxPrecedence(
+	GlobalT::InitStatusT status_1, GlobalT::InitStatusT status_2)
+{
+	return (status_1 > status_2) ? status_1 : status_2;
 }
 
 GlobalT::LoggingT GlobalT::int2LoggingT(int i)

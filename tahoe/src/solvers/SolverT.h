@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.20 2004-07-15 08:31:51 paklein Exp $ */
+/* $Id: SolverT.h,v 1.20.18.2 2005-05-18 18:30:52 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -72,7 +72,7 @@ public:
 	/** \name solution steps */
 	/*@{*/
 	/** start solution step */
-	virtual void InitStep(void);
+	virtual GlobalT::InitStatusT InitStep(void);
 
 	/** solve the system over the current time increment.
 	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
@@ -116,8 +116,9 @@ public:
 	void DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const;
 	/*@}*/
 
-	/* accessor */
+	/* accessors */
 	const int& IterationNumber(void) const;
+	GlobalT::RelaxCodeT GetRelaxCode(void) const;
 
 	/** debugging */
 	int Check(void) const;
@@ -146,6 +147,7 @@ public:
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
+	
 	/*@}*/
 
 protected:
@@ -194,7 +196,7 @@ protected:
 
 	/** \name flags */
 	/*@{*/
-	int fMatrixType;
+//	int fMatrixType;
 	int fPrintEquationNumbers;
 	/*@}*/
 
@@ -222,6 +224,9 @@ protected:
 
 	/** runtime data */
 	int fNumIteration;
+	
+	/** relaxation code */
+	GlobalT::RelaxCodeT fRelaxCode;
 };
 
 /* inlines */
@@ -296,8 +301,10 @@ inline const GlobalMatrixT& SolverT::LHS(void) const {
 	return *fLHS; 
 }
 
-/* accessor */
+/* accessors */
 inline const int& SolverT::IterationNumber(void) const { return fNumIteration; }
+
+inline GlobalT::RelaxCodeT SolverT::GetRelaxCode(void) const { return fRelaxCode; }
 
 } /* namespace Tahoe */
 

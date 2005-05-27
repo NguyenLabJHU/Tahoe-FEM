@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.59 2005-04-13 17:37:04 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.59.2.1 2005-05-18 18:30:41 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -382,13 +382,15 @@ GlobalT::SystemTypeT SCNIMFT::TangentType(void) const
 	return GlobalT::kSymmetric;
 }
 
-void SCNIMFT::InitStep(void)
+GlobalT::InitStatusT SCNIMFT::InitStep(void)
 {
 	/* inherited */
-	ElementBaseT::InitStep();
+	GlobalT::InitStatusT status = ElementBaseT::InitStep();
 
 	/* set material variables */
 	if (fMaterialList)  fMaterialList->InitStep();
+	
+	return status;
 }
 
 void SCNIMFT::CloseStep(void)

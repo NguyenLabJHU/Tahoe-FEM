@@ -1,4 +1,4 @@
-/* $Id: ParticleThreeBodyT.h,v 1.1 2004-11-23 01:43:15 cjkimme Exp $ */
+/* $Id: ParticleThreeBodyT.h,v 1.1.12.1 2005-05-22 21:29:41 paklein Exp $ */
 #ifndef _PARTICLE_THREE_BODY_T_H_
 #define _PARTICLE_THREE_BODY_T_H_
 
@@ -45,6 +45,17 @@ public:
 	 * ParticleT::fGlobalTag. The values per node are those specified
 	 * by ParticleThreeBodyT::GenerateOutputLabels. */
 	virtual void WriteOutput(void);
+
+	/** \name restart functions */
+	/*@{*/
+	/** write restart data to the output stream. Should be paired with
+	 * the corresponding ElementBaseT::ReadRestart implementation. */
+	virtual void WriteRestart(ofstreamT& out) const;
+
+	/** read restart data to the output stream. Should be paired with
+	 * the corresponding ElementBaseT::WriteRestart implementation. */
+	virtual void ReadRestart(ifstreamT& in);
+	/*@}*/
 
 	/** compute the part of the stiffness matrix associated with rows of the given 
 	 * particles. This is the mixed part of the stiffness matrix involving free

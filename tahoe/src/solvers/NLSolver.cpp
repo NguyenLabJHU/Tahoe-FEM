@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.37 2005-01-24 06:53:34 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.37.8.2 2005-05-18 18:30:52 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -41,16 +41,18 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 }
 
 /* start solution step */
-void NLSolver::InitStep(void)
+GlobalT::InitStatusT NLSolver::InitStep(void)
 {
 	/* inherited */
-	SolverT::InitStep();
+	GlobalT::InitStatusT status = SolverT::InitStep();
 
 	/* open iteration output */
 	InitIterationOutput();
 	
 	/* reset marker */
 	fRestartIteration = IterationNumber();
+	
+	return status;
 }
 
 /* generate the solution for the current time sequence */
@@ -90,11 +92,11 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 
 	/* check for relaxation */
 	if (solutionflag == kConverged) {
-		GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
+		GlobalT::RelaxCodeT relaxcode = GetRelaxCode();
 
 		/* reset global equations */
 		if (relaxcode == GlobalT::kReEQ || relaxcode == GlobalT::kReEQRelax)
-			fFEManager.SetEquationSystem(Group());
+			ContinueStep(); // go back and renumber and go again... or do we just want to not renumber in here...
 			
 		/* recompute force and continue iterating */
 		if (relaxcode == GlobalT::kRelax || relaxcode == GlobalT::kReEQRelax) {
@@ -195,11 +197,11 @@ approx_LHS = tmp;
 
 		/* check for relaxation */
 		if (solutionflag == kConverged) {
-			GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
+			GlobalT::RelaxCodeT relaxcode = GetRelaxCode();
 		
 			/* reset global equations */
 			if (relaxcode == GlobalT::kReEQ || relaxcode == GlobalT::kReEQRelax)
-				fFEManager.SetEquationSystem(Group());
+				ContinueStep(); // go back and renumber and go again... or do we just want to not renumber in here...
 			
 			/* recompute force and continue iterating */
 			if (relaxcode == GlobalT::kRelax || relaxcode == GlobalT::kReEQRelax) {
@@ -281,6 +283,14 @@ void NLSolver::ResetStep(void)
 	/* restore output */
 	CloseIterationOutput();
 }
+
+/* renumbering handler */
+void NLSolver::ContinueStep(void)
+{
+	// Calls InitStep to handle reconfiguration/renumbering
+	InitStep();
+}
+
 
 /* (re-)set the reference error */
 void NLSolver::SetReferenceError(double error)

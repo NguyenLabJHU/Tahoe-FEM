@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.19 2005-05-25 08:28:59 paklein Exp $
+# $Id: makefile,v 1.18 2004-07-15 08:26:03 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -35,8 +35,7 @@ OBJ = \
 	TvergHutch3DT.o \
 	TiedPotentialBaseT.o \
 	From2Dto3DT.o \
-	TvergHutchRigid2DT.o \
-	SIMOD_2DT.o	
+	TvergHutchRigid2DT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -71,8 +70,7 @@ SRC = \
 	TvergHutch3DT.cpp \
 	TiedPotentialBaseT.cpp \
 	From2Dto3DT.cpp \
-	TvergHutchRigid2DT.cpp \
-	SIMOD_2DT.cpp
+	TvergHutchRigid2DT.cpp
 
 ##################### (3) headers
 #
@@ -98,8 +96,7 @@ HDR = \
 	TvergHutch3DT.h \
 	TiedPotentialBaseT.h \
 	From2Dto3DT.h \
-	TvergHutchRigid2DT.h \
-	SIMOD_2DT.h
+	TvergHutchRigid2DT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

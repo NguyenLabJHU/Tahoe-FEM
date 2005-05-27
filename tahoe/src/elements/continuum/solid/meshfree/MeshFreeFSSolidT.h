@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.h,v 1.10 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.h,v 1.10.18.1 2005-05-18 18:30:40 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #ifndef _EFG_FDELASTIC_T_H_
 #define _EFG_FDELASTIC_T_H_
@@ -56,7 +56,7 @@ public:
 	virtual void WeightNodalCost(iArrayT& weight) const;
 
 	/* initialize/finalize time increment */
-	virtual void InitStep(void);
+	virtual GlobalT::InitStatusT InitStep(void);
 	virtual void CloseStep(void);
 	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
 

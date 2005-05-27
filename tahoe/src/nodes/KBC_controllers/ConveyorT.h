@@ -1,6 +1,9 @@
-/* $Id: ConveyorT.h,v 1.10 2005-02-21 08:26:02 paklein Exp $ */
+/* $Id: ConveyorT.h,v 1.10.6.1 2005-05-10 18:10:35 paklein Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
+
+#include "ElementsConfig.h"
+#if defined(CONTINUUM_ELEMENT) && defined(COHESIVE_SURFACE_ELEMENT)
 
 /* base class */
 #include "KBC_ControllerT.h"
@@ -202,5 +205,7 @@ protected:
 };
 
 } /* namespace Tahoe */
+
+#endif /* CONTINUUM_ELEMENT && COHESIVE_SURFACE_ELEMENT */
 
 #endif /* _CONVEYOR_T_H_ */
