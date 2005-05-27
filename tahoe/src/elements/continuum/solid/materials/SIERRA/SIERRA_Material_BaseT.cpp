@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.25 2005-05-01 20:29:22 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.26 2005-05-27 19:41:56 raregue Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -163,6 +163,8 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 			fstress_old_rotated.Pointer(), fstress_new.Pointer(), 
 			&nsv, fstate_old.Pointer(), fstate_new.Pointer(), 
 			&matvals);
+			
+		if (dt < 0.0) ExceptionT::BadJacobianDet("SIERRA_Material_BaseT::s_ij");	
 
 		/* debug information */
 		if (fDebug) {
