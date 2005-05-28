@@ -1,4 +1,4 @@
-/* $Id: SuperLU_MTMatrixT.h,v 1.1 2005-05-28 18:08:37 paklein Exp $ */
+/* $Id: SuperLU_MTMatrixT.h,v 1.2 2005-05-28 19:02:16 paklein Exp $ */
 #ifndef _SUPER_LU_MT_MATRIX_T_H_
 #define _SUPER_LU_MT_MATRIX_T_H_
 
@@ -10,6 +10,7 @@
 
 /* direct members */
 #include "LinkedListT.h"
+#include "AutoArrayT.h"
 
 /* SuperLU type definitions */
 #include "pdsp_defs.h"
