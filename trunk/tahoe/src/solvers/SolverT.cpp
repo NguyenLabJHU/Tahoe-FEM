@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.32 2005-04-13 21:51:48 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.33 2005-05-28 18:08:44 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -18,6 +18,7 @@
 #include "FullMatrixT.h"
 #include "CCNSMatrixT.h"
 #include "SuperLUMatrixT.h"
+#include "SuperLU_MTMatrixT.h"
 #include "SuperLU_DISTMatrixT.h"
 #include "SPOOLESMatrixT.h"
 #include "PSPASESMatrixT.h"
@@ -294,6 +295,14 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& name) const
 #ifdef __SUPERLU__
 		choice->AddSub(ParameterContainerT("SuperLU_matrix"));
 #endif	
+
+#ifdef __SUPERLU_MT__
+		ParameterContainerT SuperLU_MT("SuperLU_MT_matrix");
+		ParameterT slu_num_threads(ParameterT::Integer, "num_threads");
+		slu_num_threads.AddLimit(1, LimitT::LowerInclusive);
+		SuperLU_MT.AddParameter(slu_num_threads);
+		choice->AddSub(SuperLU_MT);
+#endif /* __SUPERLU_MT__ */
 
 		return choice;
 	}
@@ -654,6 +663,15 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 			ExceptionT::GeneralFail(caller, "SuperLU_DIST not installed");
 #endif /* __SUPERLU_DIST__*/
 		}
+	}
+	else if (params.Name() == "SuperLU_MT_matrix")
+	{
+#ifdef __SUPERLU_MT__
+		int num_threads = params.GetParameter("num_threads");
+		fLHS = new SuperLU_MTMatrixT(out, check_code, num_threads, comm);
+#else
+		ExceptionT::GeneralFail(caller, "SuperLU_MT not installed");
+#endif	
 	}
 	else if (params.Name() == "PSPASES_matrix")
 	{
