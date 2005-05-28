@@ -1,8 +1,8 @@
-/* $Id: SuperLUMatrixT.cpp,v 1.6 2005-05-28 18:08:37 paklein Exp $ */
-#include "SuperLUMatrixT.h"
+/* $Id: SuperLU_MTMatrixT.cpp,v 1.1 2005-05-28 18:08:37 paklein Exp $ */
+#include "SuperLU_MTMatrixT.h"
 
 /* library support */
-#ifdef __SUPERLU__
+#ifdef __SUPERLU_MT__
 
 #include <stdlib.h>
 #include <string.h>
@@ -23,12 +23,13 @@
 using namespace Tahoe;
 
 /* constructor */
-SuperLUMatrixT::SuperLUMatrixT(ostream& out, int check_code, bool symmetric, const CommunicatorT& comm):
+SuperLU_MTMatrixT::SuperLU_MTMatrixT(ostream& out, int check_code, int num_threads, const CommunicatorT& comm):
 	GlobalMatrixT(out, check_code, comm),
+	fNumThreads(num_threads),
 	fIsSymFactorized(false),
 	fIsNumFactorized(false)
 {
-	const char caller[] = "SuperLUMatrixT::SuperLUMatrixT";
+	const char caller[] = "SuperLU_MTMatrixT::SuperLU_MTMatrixT";
 
 	/* set up NULL structures */
 	fA.Stype = SLU_NC; /* column-wise, no supernodes */
@@ -75,28 +76,34 @@ SuperLUMatrixT::SuperLUMatrixT(ostream& out, int check_code, bool symmetric, con
 	XStore->lda = 0;
 	XStore->nzval = NULL;
 
-    /* Set the default input options:
-		options.Fact = DOFACT;
-		options.Equil = YES;
-    	options.ColPerm = COLAMD;
-		options.DiagPivotThresh = 1.0;
-    	options.Trans = NOTRANS;
-    	options.IterRefine = NOREFINE;
-    	options.SymmetricMode = NO;
-    	options.PivotGrowth = NO;
-    	options.ConditionNumber = NO;
-    	options.PrintStat = YES; */
-    set_default_options(&foptions);
-#if __option (extended_errorcheck)
-    foptions.PrintStat = YES;
-#else
-    foptions.PrintStat = NO;
-#endif
-	foptions.SymmetricMode = (symmetric) ? YES : NO;		
+    /* set sefault parameters to control factorization. */
+    foptions.nprocs       = fNumThreads;
+    foptions.fact         = DOFACT;
+    foptions.trans        = NOTRANS;
+    foptions.refact       = NO;
+    foptions.panel_size   = sp_ienv(1);
+    foptions.relax        = sp_ienv(2);
+    foptions.diag_pivot_thresh = 1.0;
+    foptions.usepr        = NO;
+    foptions.drop_tol     = 0.0;
+    foptions.perm_c       = NULL;
+    foptions.perm_r       = NULL;
+    foptions.work         = NULL;
+    foptions.lwork        = 0;
+	foptions.etree        = NULL;
+	foptions.colcnt_h     = NULL;
+	foptions.part_super_h = NULL;
+
+//#if __option (extended_errorcheck)
+//    foptions.PrintStat = YES;
+//#else
+//    foptions.PrintStat = NO;
+//#endif
+//	foptions.SymmetricMode = (symmetric) ? YES : NO;		
 }
 
 /* Destructor */	
-SuperLUMatrixT::~SuperLUMatrixT(void)
+SuperLU_MTMatrixT::~SuperLU_MTMatrixT(void)
 {
 	/* free the matrix */
 	Destroy_CompCol_Matrix(&fA);
@@ -104,17 +111,31 @@ SuperLUMatrixT::~SuperLUMatrixT(void)
 
 	/* free upper and lower factors */
 	if (fIsNumFactorized) {
-		Destroy_SuperNode_Matrix(&fL);
-		Destroy_CompCol_Matrix(&fU);
+		Destroy_SuperNode_SCP(&fL);
+		Destroy_CompCol_NCP(&fU);
+	}
+
+	/* free workspace */
+	if (!foptions.etree) {
+		free(foptions.etree);
+		foptions.etree = NULL;
+	}
+	if (!foptions.colcnt_h) {
+		free(foptions.colcnt_h);
+		foptions.colcnt_h = NULL;
+	}
+	if (!foptions.part_super_h) {
+		free(foptions.part_super_h);
+		foptions.part_super_h = NULL;
 	}
 }
 
 /* set the internal matrix structure.
 * NOTE: do not call Initialize() until equation topology has been set
 * with AddEquationSet() for all equation sets */
-void SuperLUMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
+void SuperLU_MTMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 {
-	const char caller[] = "SuperLUMatrixT::Initialize";
+	const char caller[] = "SuperLU_MTMatrixT::Initialize";
 
 	/* inherited */
 	GlobalMatrixT::Initialize(tot_num_eq, loc_num_eq, start_eq);
@@ -209,12 +230,26 @@ void SuperLUMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 
 	/* reset flags/options */
 	fIsSymFactorized = false;
-	fequed = 'N';
+	fequed = NOEQUIL;
+
+	/* reset workspace */
+	if (!foptions.etree) {
+		free(foptions.etree);
+		foptions.etree = NULL;
+	}
+	if (!foptions.colcnt_h) {
+		free(foptions.colcnt_h);
+		foptions.colcnt_h = NULL;
+	}
+	if (!foptions.part_super_h) {
+		free(foptions.part_super_h);
+		foptions.part_super_h = NULL;
+	}
 }
 
-/* write information to output stream after SuperLUMatrixT::Initialize
+/* write information to output stream after SuperLU_MTMatrixT::Initialize
  * has been called */
-void SuperLUMatrixT::Info(ostream& out)
+void SuperLU_MTMatrixT::Info(ostream& out)
 {
 	/* inherited */
 	GlobalMatrixT::Info(out);
@@ -225,7 +260,7 @@ void SuperLUMatrixT::Info(ostream& out)
 }
 
 /* set all matrix values to 0.0 */
-void SuperLUMatrixT::Clear(void)
+void SuperLU_MTMatrixT::Clear(void)
 {
 	/* inherited */
 	GlobalMatrixT::Clear();
@@ -235,7 +270,7 @@ void SuperLUMatrixT::Clear(void)
 	memset(A->nzval, 0, sizeof(double)*A->colptr[fLocNumEQ]);
 	
 	/* no equilibration */
-	fequed = 'N';
+	fequed = NOEQUIL;
 	fIsNumFactorized = false;
 }
 
@@ -243,13 +278,13 @@ void SuperLUMatrixT::Clear(void)
  * NOTE: assembly positions (equation numbers) = 1...fLocNumEQ
  * equations can be of fixed size (iArray2DT) or
  * variable length (RaggedArray2DT) */
-void SuperLUMatrixT::AddEquationSet(const iArray2DT& eqset)
+void SuperLU_MTMatrixT::AddEquationSet(const iArray2DT& eqset)
 {
 	fEqnos.AppendUnique (&eqset);
 }
 
 /* see AddEquationSet above */
-void SuperLUMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
+void SuperLU_MTMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 {
 	fRaggedEqnos.AppendUnique (&eqset);
 }
@@ -257,7 +292,7 @@ void SuperLUMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fLocNumEQ */
-void SuperLUMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
+void SuperLU_MTMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
 {
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
@@ -302,39 +337,40 @@ void SuperLUMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eq
 	}
 }
 
-void SuperLUMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
+void SuperLU_MTMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
 	const ArrayT<int>& col_eqnos)
 {
 #pragma unused(elMat)
 #pragma unused(row_eqnos)
 #pragma unused(col_eqnos)
-	ExceptionT::GeneralFail("SuperLUMatrixT::Assemble", "non-square not implemented");
+	ExceptionT::GeneralFail("SuperLU_MTMatrixT::Assemble", "non-square not implemented");
 }
 
-void SuperLUMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
+void SuperLU_MTMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
 {
 #pragma unused(diagonal_elMat)
 #pragma unused(eqnos)
-	ExceptionT::GeneralFail("SuperLUMatrixT::Assemble", "diagonal not implemented");
+	ExceptionT::GeneralFail("SuperLU_MTMatrixT::Assemble", "diagonal not implemented");
 }
 
 /* number scope and reordering */
-GlobalMatrixT::EquationNumberScopeT SuperLUMatrixT::EquationNumberScope(void) const
+GlobalMatrixT::EquationNumberScopeT SuperLU_MTMatrixT::EquationNumberScope(void) const
 {
 	return kLocal;
 }
 
-bool SuperLUMatrixT::RenumberEquations(void) const { return false; }
+bool SuperLU_MTMatrixT::RenumberEquations(void) const { return false; }
 
-SuperLUMatrixT& SuperLUMatrixT::operator=(const SuperLUMatrixT&)
+SuperLU_MTMatrixT& SuperLU_MTMatrixT::operator=(const SuperLU_MTMatrixT&)
 {
-	ExceptionT::GeneralFail("SuperLUMatrixT::operator=", "not implemented");
+	ExceptionT::GeneralFail("SuperLU_MTMatrixT::operator=", "not implemented");
 	return *this;
 }
 
 /* return a clone of self */
-GlobalMatrixT* SuperLUMatrixT::Clone(void) const {
-	return new SuperLUMatrixT(*this);
+GlobalMatrixT* SuperLU_MTMatrixT::Clone(void) const {
+	ExceptionT::GeneralFail("SuperLU_MTMatrixT::Clone", "not implemented");
+	return (GlobalMatrixT*) this;
 }
 
 /***********************************************************************
@@ -342,48 +378,63 @@ GlobalMatrixT* SuperLUMatrixT::Clone(void) const {
  ***********************************************************************/
 
 /* solution driver */
-void SuperLUMatrixT::BackSubstitute(dArrayT& result)
+void SuperLU_MTMatrixT::BackSubstitute(dArrayT& result)
 {
-	const char caller[] = "SuperLUMatrixT::BackSubstitute";
-	
-	/* needs symbolic and numeric factorization */
-	if (!fIsSymFactorized)
-		foptions.Fact = DOFACT;
-	else if (!fIsNumFactorized) /* compute numeric factorization assuming same sparsity */
-		foptions.Fact = SamePattern_SameRowPerm;
-	else /* just solve linear system */
-		foptions.Fact = FACTORED;
+	const char caller[] = "SuperLU_MTMatrixT::BackSubstitute";
 
 	/* rhs into B */
 	fB.nrow = fLocNumEQ;
 	DNformat* BStore = (DNformat*) fB.Store;
 	BStore->lda   = fLocNumEQ;
 	BStore->nzval = result.Pointer();
+	
+	/* needs symbolic and numeric factorization */
+	if (!fIsSymFactorized)
+	{
+		/* set flags */
+		foptions.fact = DOFACT;
+		foptions.refact = NO;
+		
+	    /* Get column permutation vector perm_c[], according to permc_spec:
+	     *   permc_spec = 0: natural ordering 
+	     *   permc_spec = 1: minimum degree ordering on structure of A'*A
+	     *   permc_spec = 2: minimum degree ordering on structure of A'+A
+	     *   permc_spec = 3: approximate minimum degree for unsymmetric matrices */    	
+		if (foptions.fact == DOFACT) {
+	    	int permc_spec = 1;
+	    	get_perm_c(permc_spec, &fA, fperm_c.Pointer());
+	    }
+	    foptions.perm_c = fperm_c.Pointer();
+	    foptions.perm_r = fperm_r.Pointer();	
+	}
+	else if (!fIsNumFactorized) /* compute numeric factorization assuming same sparsity */
+	{
+		/* set flags */
+		foptions.fact = DOFACT;
+		foptions.refact = YES;
+	}
+	else /* just solve linear system */
+	{
+		/* set flags */
+		foptions.fact = FACTORED;
+		foptions.refact = YES;
+	}
 
-    /* Initialize the statistics variables. */
-	SuperLUStat_t stat;    
-    StatInit(&stat);
-    
 	/* call SuperLU */
 	int info;
-	mem_usage_t mem_usage;
-	int lwork = 0; /* allocate space internally */
-	void* work = NULL;
+	superlu_memusage_t mem_usage;
 	double recip_pivot_growth;
 	double rcond;
 	double ferr;
 	double berr;
-	dgssvx(&foptions, &fA, fperm_c.Pointer(), fperm_r.Pointer(), fetree.Pointer(), &fequed,
-		fR.Pointer(), fC.Pointer(), &fL, &fU, work, lwork,
-		&fB, &fX, &recip_pivot_growth, &rcond, &ferr, &berr, &mem_usage, &stat, &info);
+	pdgssvx(fNumThreads, &foptions, &fA, 
+		fperm_c.Pointer(), fperm_r.Pointer(), &fequed, fR.Pointer(), fC.Pointer(),
+		&fL, &fU, &fB, &fX, 
+		&recip_pivot_growth, &rcond, &ferr, &berr, &mem_usage, &info);
 
 	/* check results */
 	if (info != 0)
-		ExceptionT::BadJacobianDet(caller, "dgssvx return %d with estimated condition number %g", info, rcond);
-
-	/* report statistics */
-    if (foptions.PrintStat) StatPrint(&stat);
-    StatFree(&stat);
+		ExceptionT::BadJacobianDet(caller, "pdgssvx return %d with estimated condition number %g", info, rcond);
 
 	/* always fully factorized on exit */
 	fIsSymFactorized = true;
@@ -395,17 +446,17 @@ void SuperLUMatrixT::BackSubstitute(dArrayT& result)
 }
 
 /* check functions */
-void SuperLUMatrixT::PrintAllPivots(void) const
+void SuperLU_MTMatrixT::PrintAllPivots(void) const
 {
 // temp - not implemented yet. Maybe inappropriate
 }
 
-void SuperLUMatrixT::PrintZeroPivots(void) const
+void SuperLU_MTMatrixT::PrintZeroPivots(void) const
 {
 // temp - not implemented yet. Maybe inappropriate
 }
 
-void SuperLUMatrixT::PrintLHS(bool force) const
+void SuperLU_MTMatrixT::PrintLHS(bool force) const
 {
 	if (!force || fCheckCode != GlobalMatrixT::kPrintLHS)
 		return;
@@ -415,7 +466,7 @@ void SuperLUMatrixT::PrintLHS(bool force) const
 }
 
 /* (over)estimate the number of nonzeros, based on the equation sets */
-void SuperLUMatrixT::EstimateNNZ (int *colLength, int &totalnnz)
+void SuperLU_MTMatrixT::EstimateNNZ (int *colLength, int &totalnnz)
 {
 	/* The estimate is simple: forget about overlap of nodes between */
 	/* elements, and just add up all the nonzeros of all the element */
@@ -468,7 +519,7 @@ void SuperLUMatrixT::EstimateNNZ (int *colLength, int &totalnnz)
 }
 
 /* insert all the element equations into A */
-void SuperLUMatrixT::InsertEquations (NCformat *A, int *colLength, int &nnz)
+void SuperLU_MTMatrixT::InsertEquations (NCformat *A, int *colLength, int &nnz)
 {
 	/* Reset the lengths */
 	memset (colLength, 0, fLocNumEQ*sizeof(int));
@@ -517,7 +568,7 @@ void SuperLUMatrixT::InsertEquations (NCformat *A, int *colLength, int &nnz)
 * The entries of nzlist are FORTRAN-indexed (starting at 1, so entries 0 or
 * less are ignored) whereas A and c are C-indexed (starting at 0).
 */
-void SuperLUMatrixT::InsertNZ (NCformat *A, int *colLength, int &nnz, int c,
+void SuperLU_MTMatrixT::InsertNZ (NCformat *A, int *colLength, int &nnz, int c,
 int nzlen, const int *nzlist)
 {
 	for (int i = 0; i < nzlen; ++i)
@@ -552,7 +603,7 @@ int nzlen, const int *nzlist)
 }
 
 /* compress columns in A */
-void SuperLUMatrixT::CompressColumns (NCformat *A, const int *colLength)
+void SuperLU_MTMatrixT::CompressColumns (NCformat *A, const int *colLength)
 {
 	int writeto = 0,  /* where we are writing to in A->rowind */
 	    colstart;     /* where a column will start in A->rowind */
@@ -574,4 +625,4 @@ void SuperLUMatrixT::CompressColumns (NCformat *A, const int *colLength)
 	A->colptr[fLocNumEQ] = writeto;
 }
 
-#endif /* __SUPERLU__ */
+#endif /* __SUPERLU_MT__ */
