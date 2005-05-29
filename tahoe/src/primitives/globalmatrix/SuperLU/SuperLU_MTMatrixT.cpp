@@ -1,4 +1,4 @@
-/* $Id: SuperLU_MTMatrixT.cpp,v 1.1 2005-05-28 18:08:37 paklein Exp $ */
+/* $Id: SuperLU_MTMatrixT.cpp,v 1.2 2005-05-29 03:44:48 paklein Exp $ */
 #include "SuperLU_MTMatrixT.h"
 
 /* library support */
@@ -107,12 +107,14 @@ SuperLU_MTMatrixT::~SuperLU_MTMatrixT(void)
 {
 	/* free the matrix */
 	Destroy_CompCol_Matrix(&fA);
+	free(((DNformat*)fX.Store)->nzval);
     Destroy_SuperMatrix_Store(&fX);
+    Destroy_SuperMatrix_Store(&fB);
 
 	/* free upper and lower factors */
 	if (fIsNumFactorized) {
-		Destroy_SuperNode_SCP(&fL);
-		Destroy_CompCol_NCP(&fU);
+		Destroy_SuperNode_Matrix(&fL);
+		Destroy_CompCol_Matrix(&fU);
 	}
 
 	/* free workspace */
@@ -159,7 +161,6 @@ void SuperLU_MTMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	/* dimension work space */
 	fperm_c.Dimension(fLocNumEQ);
 	fperm_r.Dimension(fLocNumEQ);
-	fetree.Dimension(fLocNumEQ);
 
 	/* structure could be changing, so get rid of old factors etc. */
 	if (fIsNumFactorized) {

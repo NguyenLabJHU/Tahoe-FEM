@@ -1,4 +1,4 @@
-/* $Id: SuperLU_MTMatrixT.h,v 1.2 2005-05-28 19:02:16 paklein Exp $ */
+/* $Id: SuperLU_MTMatrixT.h,v 1.3 2005-05-29 03:44:48 paklein Exp $ */
 #ifndef _SUPER_LU_MT_MATRIX_T_H_
 #define _SUPER_LU_MT_MATRIX_T_H_
 
@@ -156,9 +156,6 @@ protected:
 
 	/** row permutations */
 	AutoArrayT<int> fperm_r;
-
-	/** symbolic information used in factorization */
-	AutoArrayT<int> fetree;
 
 	/** rhs vector used for linear solves */
 	SuperMatrix fB;
