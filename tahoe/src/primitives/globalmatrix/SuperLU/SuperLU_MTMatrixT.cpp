@@ -1,4 +1,4 @@
-/* $Id: SuperLU_MTMatrixT.cpp,v 1.2 2005-05-29 03:44:48 paklein Exp $ */
+/* $Id: SuperLU_MTMatrixT.cpp,v 1.3 2005-05-29 04:24:30 paklein Exp $ */
 #include "SuperLU_MTMatrixT.h"
 
 /* library support */
@@ -113,20 +113,20 @@ SuperLU_MTMatrixT::~SuperLU_MTMatrixT(void)
 
 	/* free upper and lower factors */
 	if (fIsNumFactorized) {
-		Destroy_SuperNode_Matrix(&fL);
-		Destroy_CompCol_Matrix(&fU);
+		Destroy_SuperNode_SCP(&fL);
+		Destroy_CompCol_NCP(&fU);
 	}
 
 	/* free workspace */
-	if (!foptions.etree) {
+	if (foptions.etree) {
 		free(foptions.etree);
 		foptions.etree = NULL;
 	}
-	if (!foptions.colcnt_h) {
+	if (foptions.colcnt_h) {
 		free(foptions.colcnt_h);
 		foptions.colcnt_h = NULL;
 	}
-	if (!foptions.part_super_h) {
+	if (foptions.part_super_h) {
 		free(foptions.part_super_h);
 		foptions.part_super_h = NULL;
 	}
@@ -234,15 +234,15 @@ void SuperLU_MTMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	fequed = NOEQUIL;
 
 	/* reset workspace */
-	if (!foptions.etree) {
+	if (foptions.etree) {
 		free(foptions.etree);
 		foptions.etree = NULL;
 	}
-	if (!foptions.colcnt_h) {
+	if (foptions.colcnt_h) {
 		free(foptions.colcnt_h);
 		foptions.colcnt_h = NULL;
 	}
-	if (!foptions.part_super_h) {
+	if (foptions.part_super_h) {
 		free(foptions.part_super_h);
 		foptions.part_super_h = NULL;
 	}
