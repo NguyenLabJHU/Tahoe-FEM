@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.34.6.1 2005-05-27 19:55:17 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.34.6.2 2005-05-31 06:14:36 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -33,8 +33,8 @@ public:
 	/** destructor */
 	~ParticleT(void);
 
-	/** initialize current time increment */
-	virtual GlobalT::InitStatusT InitStep(void);
+	/** (re-)set the system configuration */
+	virtual GlobalT::InitStatusT UpdateConfiguration(void);
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -250,6 +250,7 @@ protected:
 	 * have a value of 1 at time = 0.0 and increase or decrease from there
 	 * to define the stretch in the periodic BC's as a function of time. */
 	ArrayT<const ScheduleT*> fStretchSchedule;
+	double fStretchTime;
 	/*@}*/
 
 	/** \name particle properties */
@@ -334,7 +335,8 @@ private:
 
 	/** count between resetting neighbor lists */
 	int fReNeighborCounter;
-	int fhas_periodic;
+	bool fhas_periodic;
+	bool fhas_moving_periodic;
 	dArrayT fPeriodicLengths;
 };
 
