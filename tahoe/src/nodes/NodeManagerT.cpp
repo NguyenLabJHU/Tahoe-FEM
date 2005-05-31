@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.62.2.1 2005-05-27 19:55:22 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.62.2.2 2005-05-31 06:15:41 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -311,8 +311,25 @@ GlobalT::SystemTypeT NodeManagerT::TangentType(int group) const
 	return type;
 }
 
+/* (re-)set the system configuration */
+GlobalT::InitStatusT NodeManagerT::UpdateConfiguration(int group)
+{
+	GlobalT::InitStatusT status = GlobalT::kContinue;
+	
+	/* equations have never been assigned */
+	int neq = NumEquations(group);
+	if (neq < 0) status = GlobalT::MaxPrecedence(status, GlobalT::kNewEquations);
+//NOTE: should this be kNewEquations or kNewInteractions? kNewEquations will trigger
+//      a repeat of the loop. Here we are saying equations need to be re-assigned, but
+//      not because we have changed the number of unknowns.
+
+#pragma message("UpdateConfiguration for FBC and KBC controllers?")
+	
+	return status;
+}
+
 /* apply kinematic boundary conditions */
-GlobalT::InitStatusT NodeManagerT::InitStep(int group)
+void NodeManagerT::InitStep(int group)
 {
 	const char caller[] = "NodeManagerT::InitStep";
 
@@ -354,8 +371,6 @@ GlobalT::InitStatusT NodeManagerT::InitStep(int group)
 
 	/* clear history of relaxation over tbe last step */
 	fXDOFRelaxCodes[group] = GlobalT::kNoRelax;
-	
-	return GlobalT::kContinue;
 }
 
 /* compute the nodal contribution to the tangent */

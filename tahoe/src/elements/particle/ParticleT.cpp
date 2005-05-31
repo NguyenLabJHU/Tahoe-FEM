@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.49.6.1 2005-05-27 19:55:17 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.49.6.2 2005-05-31 06:14:36 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -40,13 +40,16 @@ ParticleT::ParticleT(const ElementSupportT& support):
 	fNeighborDistance(-1),
 	fReNeighborDisp(-1),
 	fReNeighborIncr(-1),
+	fStretchTime(-1.0),
 	fGrid(NULL),
-	fReNeighborCounter(0),
 	fDmax(0),
 	fForce_man(fForce),
 	fActiveParticles(NULL),
 	fTypeMessageID(CommManagerT::kNULLMessageID),
-	fLatticeParameter(-1.0)
+	fLatticeParameter(-1.0),
+	fReNeighborCounter(0),
+	fhas_periodic(false),
+	fhas_moving_periodic(false)
 {
 	SetName("particle");
 
@@ -155,11 +158,11 @@ void ParticleT::SendOutput(int kincode)
 	//TEMP: for now, do nothing
 }
 
-/* initialize current time increment */
-GlobalT::InitStatusT ParticleT::InitStep(void)
+/* (re-)set the system configuration */
+GlobalT::InitStatusT ParticleT::UpdateConfiguration(void)
 {
 	/* inherited */
-	GlobalT::InitStatusT status = ElementBaseT::InitStep();
+	GlobalT::InitStatusT status = ElementBaseT::UpdateConfiguration();
 
 	/* multiprocessor support */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
@@ -172,10 +175,13 @@ GlobalT::InitStatusT ParticleT::InitStep(void)
 	//fDampingCounters++;
 
 	/* reset periodic bounds given stretching */
-	bool has_moving = false;
-	for (int i = 0; !has_moving && i < NumSD(); i++)
-		has_moving = (fStretchSchedule[i] != NULL);
+	bool reset_stretch = fhas_moving_periodic && fabs(fStretchTime - ElementSupport().Time()) > kSmall;
 
+	/* reset periodic bounds given stretching */
+//	bool has_moving = false;
+//	for (int i = 0; !has_moving && i < NumSD(); i++)
+//		has_moving = (fStretchSchedule[i] != NULL);
+             
 	/* displacement tracking is out of date (not initialized) */
 	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
 	int npn = (part_nodes) ? part_nodes->Length() : ElementSupport().NumNodes();
@@ -183,7 +189,7 @@ GlobalT::InitStatusT ParticleT::InitStep(void)
 
 	/* generate neighborlists */
 	fReNeighborCounter++;
-	if (has_moving || out_of_date ||
+	if (reset_stretch || out_of_date ||
 	    (fReNeighborDisp > 0.0 && fDmax > fReNeighborDisp) || 
 		(fReNeighborIncr > 0 && fReNeighborCounter >= fReNeighborIncr))
 	{
@@ -204,7 +210,7 @@ GlobalT::InitStatusT ParticleT::InitStep(void)
 		
 		/* changes to equation system */
 		GlobalT::InitStatusT my_status = (fhas_periodic) ?
-			GlobalT::kAssignEquations : 
+			GlobalT::kNewEquations : 
 			GlobalT::kNewInteractions;
 		status = GlobalT::MaxPrecedence(status, my_status);
 	}
@@ -302,7 +308,7 @@ void ParticleT::SetConfiguration(void)
 		if (stretch)
 		{
 			/* compute new bounds */
-			double scale = stretch->Value(ElementSupport().Time());
+			double scale = stretch->Value();
 			double x_min = scale*fPeriodicBounds(i,0);
 			double x_max = scale*fPeriodicBounds(i,1);
 	
@@ -311,6 +317,7 @@ void ParticleT::SetConfiguration(void)
 		}
 	}
 	comm_manager.EnforcePeriodicBoundaries();
+	fStretchTime = ElementSupport().Time();
 	
 	/* reset the types array */
 	int nnd = ElementSupport().NumNodes();
@@ -786,7 +793,7 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 	if (num_pbc > NumSD())
 		ExceptionT::BadInputValue(caller, "expecting at most %d \"periodic_bc\" not %d",
 			NumSD(), num_pbc);
-	fhas_periodic = (num_pbc > 0) ? 1 : 0;
+	fhas_periodic = (num_pbc > 0);
 	for (int i = 0; i < num_pbc; i++) {
 	
 		/* periodic bc parameters */
@@ -801,6 +808,7 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 		if (str_sched) {
 			int sched_num = *str_sched;
 			schedule = ElementSupport().Schedule(--sched_num);
+			fhas_moving_periodic = true;
 
 			/* check - expecting f(0) = 1 */
 			if (fabs(schedule->Value(0.0) - 1.0) > kSmall)
