@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.95.2.1 2005-05-27 19:55:20 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.95.2.2 2005-05-31 06:17:25 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -358,6 +358,7 @@ void FEManagerT::InternalForceOnNode(const FieldT& field, int node, dArrayT& for
 
 ExceptionT::CodeT FEManagerT::InitStep(void)
 {
+	const char caller[] = "FEManagerT::InitStep";
 	try
 	{
 		/* state */
@@ -366,29 +367,53 @@ ExceptionT::CodeT FEManagerT::InitStep(void)
 		/* set the default value for the output time stamp */
 		fIOManager->SetOutputTime(Time());	
 
-		/* loop over solver groups */
-		if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
-		GlobalT::InitStatusT status = GlobalT::kContinue;
+		/* set the system configuration */
+		if (fCurrentGroup != -1) ExceptionT::GeneralFail(caller);
+		for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
+		{
+			/* repeat until stable */
+			bool repeat_loop = true;
+			int loop_count = 0;
+			while (repeat_loop)
+			{
+				GlobalT::InitStatusT status = GlobalT::kContinue;
+
+				/* nodes */
+				GlobalT::InitStatusT node_status = fNodeManager->UpdateConfiguration(fCurrentGroup);
+				status = GlobalT::MaxPrecedence(node_status, status);
+
+				/* elements */
+				for (int i = 0 ; i < fElementGroups->Length(); i++) 
+					if ((*fElementGroups)[i]->InGroup(fCurrentGroup)) {
+						GlobalT::InitStatusT element_status = (*fElementGroups)[i]->UpdateConfiguration();
+						status = GlobalT::MaxPrecedence(element_status, status);
+					}
+					
+				/* continue */
+				repeat_loop = (status == GlobalT::kNewEquations);
+				if (++loop_count > 10 && repeat_loop)
+					ExceptionT::GeneralFail(caller, "configuration not stable after %d passes in group %d", 
+						loop_count, fCurrentGroup+1);
+
+				/* reset the equations */
+				if (status == GlobalT::kNewInteractions || status == GlobalT::kNewEquations)
+					SetEquationSystem(status, fCurrentGroup);
+			}
+		}
+
+		/* initialize step */
 		for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
 		{
 			/* solver */
-			GlobalT::InitStatusT solver_status = fSolvers[fCurrentGroup]->InitStep();
-			status = GlobalT::MaxPrecedence(solver_status, status);
+			fSolvers[fCurrentGroup]->InitStep();
 
 			/* nodes */
-			GlobalT::InitStatusT node_status = fNodeManager->InitStep(fCurrentGroup);
-			status = GlobalT::MaxPrecedence(node_status, status);
+			fNodeManager->InitStep(fCurrentGroup);
 
 			/* elements */
 			for (int i = 0 ; i < fElementGroups->Length(); i++) 
-				if ((*fElementGroups)[i]->InGroup(fCurrentGroup)) {
-					GlobalT::InitStatusT element_status = (*fElementGroups)[i]->InitStep();
-					status = GlobalT::MaxPrecedence(element_status, status);
-				}
-
-			/* reset the equations */
-			if (status == GlobalT::kNewInteractions || status == GlobalT::kAssignEquations)
-				SetEquationSystem(status, fCurrentGroup);
+				if ((*fElementGroups)[i]->InGroup(fCurrentGroup))
+					(*fElementGroups)[i]->InitStep();
 		}
 		fCurrentGroup = -1;
 
@@ -415,11 +440,12 @@ ExceptionT::CodeT FEManagerT::InitStep(void)
 
 ExceptionT::CodeT FEManagerT::SolveStep(void)
 {
+	const char caller[] = "FEManagerT::SolveStep";
 	ExceptionT::CodeT error = ExceptionT::kNoError;
 	try {
 	
 		/* check group flag */
-		if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
+		if (fCurrentGroup != -1) ExceptionT::GeneralFail(caller);
 		
 		int loop_count = 0;
 		bool all_pass = false;
@@ -456,8 +482,17 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 				else if (status == SolverT::kConverged && 
 					(pass == -1 || (fSolverPhasesStatus(i, kIteration) - last_iter) <= pass))
 				{
-					all_pass = all_pass && true; /* must all be true */
-					fSolverPhasesStatus(i, kPass) = 1;
+					/* check for relaxation */
+					GlobalT::RelaxCodeT relax_code = RelaxSystem(fCurrentGroup);
+					if (relax_code == GlobalT::kNoRelax) /* done */ {
+						all_pass = all_pass && true; /* must all be true */
+						fSolverPhasesStatus(i, kPass) = 1;
+					} else if (relax_code == GlobalT::kRelax) /* keep solving */ {
+						all_pass = false;
+						fSolverPhasesStatus(i, kPass) = 0;		
+					} else //TEMP - what to do about the others
+						ExceptionT::GeneralFail(caller, "unrecognized relaxation code %d", relax_code);
+#pragma message("how to handle remaining relaxation codes?")
 				}
 				else
 				{
@@ -565,47 +600,6 @@ void FEManagerT::Update(int group, const dArrayT& update)
 void FEManagerT::GetUnknowns(int group, int order, dArrayT& unknowns) const
 {
 	fNodeManager->GetUnknowns(group, order, unknowns);
-}
-
-GlobalT::RelaxCodeT FEManagerT::RelaxSystem(int group) const
-{
-	/* state */
-	SetStatus(GlobalT::kRelaxSystem);
-	
-	/* check node manager */
-	GlobalT::RelaxCodeT relax = GlobalT::kNoRelax;
-	relax = GlobalT::MaxPrecedence(relax, fNodeManager->RelaxSystem(group));
-		
-	/* check element groups - must touch all of them to reset */
-	for (int i = 0 ; i < fElementGroups->Length(); i++)
-		if ((*fElementGroups)[i]->InGroup(group))
-			relax = GlobalT::MaxPrecedence(relax, (*fElementGroups)[i]->RelaxSystem());
-
-	if (Size() > 1) // use parallel stuff if comm size > 1
-	{
-		/* gather codes */
-		iArrayT all_relax(Size());
-		fComm.AllGather(relax, all_relax);
-	
-		/* code precedence */
-		for (int i = 0; i < all_relax.Length(); i++)
-			relax = GlobalT::MaxPrecedence(relax, GlobalT::RelaxCodeT(all_relax[i]));
-	
-		/* report */
-		if (relax != GlobalT::kNoRelax)
-		{
-			cout << "\n Relaxation code at time = " << Time() << '\n';
-			cout << setw(kIntWidth) << "proc";	
-			cout << setw(kIntWidth) << "code" << '\n';	
-			for (int i = 0; i < all_relax.Length(); i++)
-			{
-				cout << setw(kIntWidth) << i;	
-				cout << setw(kIntWidth) << all_relax[i];
-				cout << '\n';	
-			}
-		 }
-	 }
-	 return relax;
 }
 
 /* global equation functions */
@@ -1821,6 +1815,47 @@ void FEManagerT::SetOutput(void)
 	fNodeManager->RegisterOutput();
 }
 
+GlobalT::RelaxCodeT FEManagerT::RelaxSystem(int group) const
+{
+	/* state */
+	SetStatus(GlobalT::kRelaxSystem);
+	
+	/* check node manager */
+	GlobalT::RelaxCodeT relax = GlobalT::kNoRelax;
+	relax = GlobalT::MaxPrecedence(relax, fNodeManager->RelaxSystem(group));
+		
+	/* check element groups - must touch all of them to reset */
+	for (int i = 0 ; i < fElementGroups->Length(); i++)
+		if ((*fElementGroups)[i]->InGroup(group))
+			relax = GlobalT::MaxPrecedence(relax, (*fElementGroups)[i]->RelaxSystem());
+
+	if (Size() > 1) // use parallel stuff if comm size > 1
+	{
+		/* gather codes */
+		iArrayT all_relax(Size());
+		fComm.AllGather(relax, all_relax);
+	
+		/* code precedence */
+		for (int i = 0; i < all_relax.Length(); i++)
+			relax = GlobalT::MaxPrecedence(relax, GlobalT::RelaxCodeT(all_relax[i]));
+	
+		/* report */
+		if (relax != GlobalT::kNoRelax)
+		{
+			cout << "\n Relaxation code at time = " << Time() << '\n';
+			cout << setw(kIntWidth) << "proc";	
+			cout << setw(kIntWidth) << "code" << '\n';	
+			for (int i = 0; i < all_relax.Length(); i++)
+			{
+				cout << setw(kIntWidth) << i;	
+				cout << setw(kIntWidth) << all_relax[i];
+				cout << '\n';	
+			}
+		 }
+	 }
+	 return relax;
+}
+
 /* (re-)set system to initial conditions */
 ExceptionT::CodeT FEManagerT::InitialCondition(void)
 {
@@ -2041,7 +2076,7 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 void FEManagerT::SetEquationSystem(GlobalT::InitStatusT flag, int group, int start_eq_shift)
 {
 	/* need to generate new equation numbers */
-	if (flag == GlobalT::kAssignEquations)
+	if (flag == GlobalT::kNewEquations)
 	{
 		/* equation number scope */
 		GlobalT::EquationNumberScopeT equation_scope = 
@@ -2062,7 +2097,7 @@ void FEManagerT::SetEquationSystem(GlobalT::InitStatusT flag, int group, int sta
 	}
 	
 	/* need to reset structure of equations in the solver */
-	if (flag == GlobalT::kAssignEquations || flag == GlobalT::kNewInteractions)
+	if (flag == GlobalT::kNewEquations || flag == GlobalT::kNewInteractions)
 	{
 		/* collect interaction equations and send to solver */
 		SendEqnsToSolver(group);

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.50.8.1 2005-05-27 19:55:20 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.50.8.2 2005-05-31 06:17:25 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -9,7 +9,7 @@
 /* base classes */
 #include "iConsoleObjectT.h"
 #include "ParameterInterfaceT.h"
-#include "DecomposeT.h" // DEF 4 Aug 04
+#include "DecomposeT.h"
 
 /* direct members */
 #include "iArrayT.h"
@@ -17,12 +17,9 @@
 #include "ElementListT.h"
 #include "IOBaseT.h"
 #include "iArray2DT.h"
-/* direct members, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
 #include "PartitionT.h"
 #include "dArray2DT.h"
 #include "ofstreamT.h"
-
-#include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
@@ -50,7 +47,6 @@ class FieldT;
 class CommunicatorT;
 class CommManagerT;
 class GlobalMatrixT;
-/* forward declarations, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
 class IOManager_mpi;
 class PartitionT;
 
@@ -58,7 +54,7 @@ class FEManagerT: public iConsoleObjectT, public ParameterInterfaceT
 {
 public:
 
-	/** task codes, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
+	/** task codes */
 	enum TaskT {kDecompose = 0,
 	                  kRun = 1,
                kParameters = 2};
@@ -78,10 +74,10 @@ public:
 	/** destructor */
 	virtual ~FEManagerT(void);
 	
-	/* return reference to partition data, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
+	/** return reference to partition data */
 	const PartitionT* Partition(void) const;
 	
-	/* set the external IOManager, formerly in FEManagerT_mpi.h, DEF 28 July 04 (needed??) */
+	/** set the external IOManager */
 	void SetExternalIO(IOManager_mpi* externIO);
 	
 	/** solve all the time sequences */
@@ -228,9 +224,6 @@ public:
 
 	/** send update of the solution to the NodeManagerT */
 	virtual void Update(int group, const dArrayT& update);
-
-	/** system relaxation */
-	virtual GlobalT::RelaxCodeT RelaxSystem(int group) const;
 
 	/** return the current values of the unknowns 
 	 * \param group equation group 
@@ -427,6 +420,9 @@ protected:
 	virtual void SetOutput(void);
 	/*@}*/
 
+	/** system relaxation */
+	virtual GlobalT::RelaxCodeT RelaxSystem(int group) const;
+
 	/** (re-) set cached value of the first equation number for the given
 	 * group on this processor. This value is cached because communication 
 	 * is required. */
@@ -551,12 +547,11 @@ protected:
 	/*@}*/
 
 private:
-	/* external IO */
-	IOManager_mpi* fExternIOManager;
-	//IOBaseT::FileTypeT fInputFormat;
-	//StringT fModelFile;
 
-	/* partition information */
+	/** external IO */
+	IOManager_mpi* fExternIOManager;
+
+	/** partition information */
 	PartitionT* fPartition;
 	
 	/** log file */
@@ -610,7 +605,6 @@ inline int FEManagerT::GlobalEquationStart(int group) const { return fGlobalEqua
 inline int FEManagerT::ActiveEquationStart(int group) const { return fActiveEquationStart[group]; };
 inline int FEManagerT::GlobalNumEquations(int group) const { return fGlobalNumEquations[group]; }
 
-// inserted inlines formerly in FEManagerT_mpi.h, DEF 28 July 04
 /* return reference to partition data */
 inline const PartitionT* FEManagerT::Partition(void) const
 {
