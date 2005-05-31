@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.20.20.1 2005-05-27 19:55:26 paklein Exp $ */
+/* $Id: SolverT.h,v 1.20.20.2 2005-05-31 06:08:55 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -72,7 +72,7 @@ public:
 	/** \name solution steps */
 	/*@{*/
 	/** start solution step */
-	virtual GlobalT::InitStatusT InitStep(void);
+	virtual void InitStep(void);
 
 	/** solve the system over the current time increment.
 	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
@@ -118,7 +118,6 @@ public:
 
 	/* accessors */
 	const int& IterationNumber(void) const;
-	GlobalT::RelaxCodeT GetRelaxCode(void) const;
 
 	/** debugging */
 	int Check(void) const;
@@ -224,9 +223,6 @@ protected:
 
 	/** runtime data */
 	int fNumIteration;
-	
-	/** relaxation code */
-	GlobalT::RelaxCodeT fRelaxCode;
 };
 
 /* inlines */
@@ -303,8 +299,6 @@ inline const GlobalMatrixT& SolverT::LHS(void) const {
 
 /* accessors */
 inline const int& SolverT::IterationNumber(void) const { return fNumIteration; }
-
-inline GlobalT::RelaxCodeT SolverT::GetRelaxCode(void) const { return fRelaxCode; }
 
 } /* namespace Tahoe */
 

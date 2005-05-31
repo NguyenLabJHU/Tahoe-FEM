@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.32.4.1 2005-05-27 19:55:26 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.32.4.2 2005-05-31 06:08:55 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -90,16 +90,10 @@ void SolverT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 }
 
 /* start solution step */
-GlobalT::InitStatusT SolverT::InitStep(void)
+void SolverT::InitStep(void)
 {
 	fNumIteration = -1;
 	fLHS_update = true;
-	
-	/* equations not yet set */
-	if (fLHS->NumEquations() < 0)
-		return GlobalT::kAssignEquations;
-	else
-		return GlobalT::kContinue;
 }
 
 /* end solution step */

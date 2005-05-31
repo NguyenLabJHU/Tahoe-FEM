@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.cpp,v 1.12.4.1 2005-05-27 19:55:26 paklein Exp $ */
+/* $Id: LinearSolver.cpp,v 1.12.4.2 2005-05-31 06:08:55 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 #include "LinearSolver.h"
 #include "FEManagerT.h"
@@ -24,15 +24,13 @@ void LinearSolver::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 }
 
 /* start solution step */
-GlobalT::InitStatusT LinearSolver::InitStep(void)
+void LinearSolver::InitStep(void)
 {
 	/* inherited */
-	GlobalT::InitStatusT status = SolverT::InitStep();
+	SolverT::InitStep();
 
 	/* no iterations count */
 	fNumIteration = 0;
-	
-	return status;
 }
 
 /* solve the current step */
@@ -69,18 +67,6 @@ SolverT::SolutionStatusT LinearSolver::Solve(int)
 
 	/* update displacements */
 	fFEManager.Update(Group(), fRHS);		
-			
-	/* relaxation */
-	GlobalT::RelaxCodeT relaxcode = GetRelaxCode();
-				
-	/* relax for configuration change */
-	if (relaxcode == GlobalT::kRelax) fFormLHS = 1;
-			//NOTE: NLSolver calls "fFEManager.Reinitialize()". Should this happen
-			//      here, too? For statics, should also reset the structure of
-			//      global stiffness matrix, but since EFG only breaks connections
-			//      and doesn't make new ones, this should be OK for now. PAK (03/04/99)
-			
-	// no renumbering allowed in linear solver -> all happens in initstep
 
 	return kConverged;
 	} /* end try */

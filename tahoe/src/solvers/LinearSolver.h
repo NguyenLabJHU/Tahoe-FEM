@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.h,v 1.8.20.1 2005-05-27 19:55:26 paklein Exp $ */
+/* $Id: LinearSolver.h,v 1.8.20.2 2005-05-31 06:08:55 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 #ifndef _LINEAR_SOLVER_H_
 #define _LINEAR_SOLVER_H_
@@ -20,7 +20,7 @@ public:
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
 
 	/** start solution step */
-	virtual GlobalT::InitStatusT InitStep(void);
+	virtual void InitStep(void);
 	
 	/** solve the system over the current time increment.
 	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
