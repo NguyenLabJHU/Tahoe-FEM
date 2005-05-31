@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.13.8.1 2005-05-27 19:55:20 paklein Exp $ */
+/* $Id: GlobalT.h,v 1.13.8.2 2005-05-31 06:09:59 paklein Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -96,9 +96,9 @@ public:
 
 	/** result flag for InitStep */
 	enum InitStatusT {
-		kContinue = 0,      /**< no signal needed */
-		kNewInteractions,   /**< new interaction with existing equation numbers */
-		kAssignEquations,   /**< (re-)assign equation numbers */
+		kContinue = 0,    /**< no signal needed */
+		kNewInteractions, /**< new interactions with existing equation numbers */
+		kNewEquations,    /**< (potential) change in the number of equations */
 	};
 
 	/** returns the type with higher restrictions */
