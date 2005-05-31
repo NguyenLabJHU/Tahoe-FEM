@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.37.10.1 2005-05-27 19:55:26 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.37.10.2 2005-05-31 06:08:55 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -41,18 +41,16 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 }
 
 /* start solution step */
-GlobalT::InitStatusT NLSolver::InitStep(void)
+void NLSolver::InitStep(void)
 {
 	/* inherited */
-	GlobalT::InitStatusT status = SolverT::InitStep();
+	SolverT::InitStep();
 
 	/* open iteration output */
 	InitIterationOutput();
 	
 	/* reset marker */
 	fRestartIteration = IterationNumber();
-	
-	return status;
 }
 
 /* generate the solution for the current time sequence */
@@ -90,6 +88,7 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 	double error = Residual(fRHS);
 	SolutionStatusT solutionflag = ExitIteration(error, fNumIteration);
 
+#if 0
 	/* check for relaxation */
 	if (solutionflag == kConverged) {
 		GlobalT::RelaxCodeT relaxcode = GetRelaxCode();
@@ -129,6 +128,7 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 			solutionflag = ExitIteration(error, fNumIteration);
 		}
 	}
+#endif
 			
 	/* loop on error */
 	while (solutionflag == kContinue &&
@@ -158,10 +158,10 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 				const GlobalMatrixT* approx_LHS = ApproximateLHS(*fLHS);
 				CompareLHS(*fLHS, *approx_LHS);
 
-//TEMP - use the approximate matrix
-GlobalMatrixT* tmp = fLHS;
-fLHS = (GlobalMatrixT*) approx_LHS;
-approx_LHS = tmp;
+				/* use the approximate matrix */
+				GlobalMatrixT* tmp = fLHS;
+				fLHS = (GlobalMatrixT*) approx_LHS;
+				approx_LHS = tmp;
 
 				delete approx_LHS;
 			}
@@ -195,6 +195,7 @@ approx_LHS = tmp;
 		/* test for convergence */
 		solutionflag = ExitIteration(error, fNumIteration);
 
+#if 0
 		/* check for relaxation */
 		if (solutionflag == kConverged) {
 			GlobalT::RelaxCodeT relaxcode = GetRelaxCode();
@@ -234,11 +235,13 @@ approx_LHS = tmp;
 				solutionflag = ExitIteration(error, fNumIteration);
 			}
 		}
+#endif
 	}
 
 	/* found solution - check relaxation */
-	if (solutionflag == kConverged)
-		solutionflag = DoConverged();
+//	if (solutionflag == kConverged)
+//		solutionflag = DoConverged();
+#pragma message("delete me")
 			
 	return solutionflag;
 	}
@@ -266,6 +269,25 @@ void NLSolver::CloseStep(void)
 
 	/* close iteration output */	
 	CloseIterationOutput();
+
+	/* increase time step ? (for multi-step sequences) */
+	if (fQuickSolveTol > 1 && fNumIteration < fQuickSolveTol)
+	{
+		fQuickConvCount++;		
+		cout << "\n NLSolver::CloseStep: quick converged count: ";
+		cout << fQuickConvCount << "/" << fQuickSeriesTol << endl;
+
+		if (fQuickConvCount >= fQuickSeriesTol)
+			if (fFEManager.IncreaseLoadStep() == 1)
+				fQuickConvCount = 0;
+	}
+	else
+	{
+		/* restart count if convergence is slow */
+		fQuickConvCount = 0;	
+		cout << "\n NLSolver::CloseStep: reset quick converged: ";
+		cout << fQuickConvCount << "/" << fQuickSeriesTol << endl;	
+	}
 }
 
 /* error handler */
@@ -299,6 +321,7 @@ void NLSolver::SetReferenceError(double error)
 	fError0 = error;
 }
 
+#if 0
 /* handlers */
 NLSolver::SolutionStatusT NLSolver::DoConverged(void)
 {
@@ -324,6 +347,7 @@ NLSolver::SolutionStatusT NLSolver::DoConverged(void)
 	/* success */
 	return kConverged;						
 }
+#endif
 
 /* divert output for iterations */
 void NLSolver::InitIterationOutput(void)

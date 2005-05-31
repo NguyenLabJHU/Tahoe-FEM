@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.13.14.1 2005-05-27 19:55:26 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.13.14.2 2005-05-31 06:08:55 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 #include "ExpCD_DRSolver.h"
 
@@ -146,27 +146,6 @@ SolverT::SolutionStatusT ExpCD_DRSolver::Solve(int num_iterations)
 		}
 	}
 
-	/* found solution */
-	if (solutionflag == kConverged)
-	{
-		/* relaxation */
-		GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
-
-#if 0
-		/* reset global equations */
-		if (relaxcode == GlobalT::kReEQ ||
-			relaxcode == GlobalT::kReEQRelax)
-			fFEManager.SetEquationSystem(Group());
-#endif
-ExceptionT::GeneralFail("ExpCD_DRSolver::Solve", "out of date");
-					
-		/* new equilibrium */					
-		if (relaxcode == GlobalT::kRelax ||
-			relaxcode == GlobalT::kReEQRelax)
-			ExceptionT::Stop();
-//			Relax();
-	} 
-			
 	return solutionflag;
 	} /* end try */
 
