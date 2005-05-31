@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.45.2.1 2005-05-27 19:55:22 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.45.2.2 2005-05-31 06:11:54 paklein Exp $ */
 #include "FieldT.h"
 
 #include "ElementsConfig.h"
@@ -27,8 +27,8 @@ FieldT::FieldT(const FieldSupportT& field_support):
 	fGroup(-1),
 	fIntegrator(NULL),	
 	fnIntegrator(NULL),
-	fEquationStart(0),
-	fNumEquations(0),
+	fEquationStart(-1),
+	fNumEquations(-1),
 	fActiveMass(NULL),
 	fTrackTotalEnergy(false),
 	fTotalEnergyOutputInc(0),
