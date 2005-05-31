@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.46.4.1 2005-05-27 19:55:08 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.46.4.2 2005-05-31 06:11:00 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -162,8 +162,11 @@ public:
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force) = 0;
 #endif
 
+	/** (re-)set the system configuration */
+	virtual GlobalT::InitStatusT UpdateConfiguration(void);
+
 	/** initialize current time increment */
-	virtual GlobalT::InitStatusT InitStep(void);
+	virtual void InitStep(void);
 
 	/** close current time increment. Called if the integration over the
 	 * current time increment was successful. */

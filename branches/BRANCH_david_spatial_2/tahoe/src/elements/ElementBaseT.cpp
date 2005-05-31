@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.52.4.1 2005-05-27 19:55:08 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.52.4.2 2005-05-31 06:11:00 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -177,8 +177,11 @@ void ElementBaseT::FormRHS(void)
 	}
 }
 
+/* (re-)set the system configuration */
+GlobalT::InitStatusT ElementBaseT::UpdateConfiguration(void) { return GlobalT::kContinue; }
+
 /* initialize/finalize time increment */
-GlobalT::InitStatusT ElementBaseT::InitStep(void) { return GlobalT::kContinue; }
+void ElementBaseT::InitStep(void) { }
 void ElementBaseT::CloseStep(void) { }
 GlobalT::RelaxCodeT ElementBaseT::ResetStep(void) 
 { 
