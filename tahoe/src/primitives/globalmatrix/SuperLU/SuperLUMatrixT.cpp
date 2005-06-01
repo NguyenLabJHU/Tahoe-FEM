@@ -1,4 +1,4 @@
-/* $Id: SuperLUMatrixT.cpp,v 1.6 2005-05-28 18:08:37 paklein Exp $ */
+/* $Id: SuperLUMatrixT.cpp,v 1.7 2005-06-01 15:47:14 jwfoulk Exp $ */
 #include "SuperLUMatrixT.h"
 
 /* library support */
@@ -334,7 +334,9 @@ SuperLUMatrixT& SuperLUMatrixT::operator=(const SuperLUMatrixT&)
 
 /* return a clone of self */
 GlobalMatrixT* SuperLUMatrixT::Clone(void) const {
-	return new SuperLUMatrixT(*this);
+
+	ExceptionT::GeneralFail("SuperLUMatrixT::operator=", "not implemented");
+	return NULL;
 }
 
 /***********************************************************************
