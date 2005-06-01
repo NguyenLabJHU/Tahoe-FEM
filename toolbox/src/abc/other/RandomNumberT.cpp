@@ -1,4 +1,4 @@
-/* $Id: RandomNumberT.cpp,v 1.6 2003-04-24 20:49:06 cjkimme Exp $ */
+/* $Id: RandomNumberT.cpp,v 1.7 2005-06-01 20:11:35 cjkimme Exp $ */
 #include "RandomNumberT.h"
 #include "ifstreamT.h"
 #include <math.h>
@@ -9,7 +9,12 @@ using namespace Tahoe;
 
 /* line length */
 const int kLineLength = 254;
-const double TWOPI = 6.283185307179586476925286;
+
+const int im = 714025;
+const int ia = 1366;
+const int ic = 150889;
+
+const double rminv = 1.0/double(im);
 
 RandomNumberT::RandomNumberT(ifstreamT& in)
 {
@@ -51,29 +56,33 @@ RandomNumberT::RandomNumberT(DistributionT type)
 	}
 }
 
-/* Implemeneted in .h file for now */
-//double RandomNumberT::Rand(void)
-//{
-//  return (this->*randFunc)();
-//}
-
-/* a slightly more high-falutin' uniform random number generator */
+/* random numbers on [0..1) */
 double RandomNumberT::UniformRandom(void)
 {
-	long k = fseed/12773;
-	fseed = fa*(fseed-k*12773)-2836*k;
-	if (fseed < 0)
-		fseed += frm;
-
-	return 1./frm*fseed;
+	fseed = (fseed*ia + ic) % im;
+	return double(fseed)*rminv;
 }
 
 /* Return a Gaussian random number with zero mean and unit variance */
 double RandomNumberT::GaussianRandom(void)
 {  
-	double a1 = (this->*uniformFunc)();
-	double a2 = (this->*uniformFunc)();
-	return sqrt(-2.0*log(a1))*cos(TWOPI*a2);
+	static bool is_saved = false;
+	static double g_save;
+	if (is_saved) {
+		is_saved = false;
+		return g_save;
+	} else {
+		double rsq = 0.0, a1, a2, fac;
+		do { 
+			a1 =  2.0*(this->*uniformFunc)() - 1.;
+			a2 =  2.0*(this->*uniformFunc)() - 1.;
+			rsq = a1*a1 + a2*a2;
+		} while (rsq > 1.0);
+		fac = sqrt(-2.0*log(rsq)/rsq);
+		g_save = a1*fac;;
+		is_saved = true;
+		return a2*fac;
+	}
 }
 
 /* random number generator from Paradyn */
