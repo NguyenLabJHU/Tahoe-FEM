@@ -1,4 +1,4 @@
-# $Id: tahoe.extras,v 1.18 2005-05-25 17:00:44 paklein Exp $
+# $Id: tahoe.extras,v 1.19 2005-06-02 05:45:40 paklein Exp $
 #
 # additional make commands for the tahoe module
 #
@@ -10,11 +10,13 @@ default:
 	@ $(PRINTF) "    clean_config - remove config files in src/config\n"
 	@ $(PRINTF) "\n additional targets for (un-)installing optional modules:\n"
 	@ $(PRINTF) "   touch_spooles - sparse, direct solver library\n"
+	@ $(PRINTF) "   touch_SuperLU - sparse, direct solver library\n"
 	@ $(PRINTF) "     touch_Aztec - sparse, iterative solver library\n"
 	@ $(PRINTF) "       touch_f2c - f2c support\n"
 	@ $(PRINTF) "    touch_SEACAS - Sandia tools\n"
 	@ $(PRINTF) "       touch_MPI - support for parallel execution\n"
 	@ $(PRINTF) "     touch_METIS - domain decomposition using METIS\n"
+	@ $(PRINTF) "     touch_qhull - computational geometry using qhull\n"
 	@ $(PRINTF) "       touch_NOX - NOX nonlinear solver library\n"
 	@ $(PRINTF) "    touch_fossum - geomaterial development module\n"
 	@ $(PRINTF) "     touch_expat - XML parsing\n"
@@ -26,6 +28,11 @@ touch_spooles:
 	- $(RM) $(BLD_SRC_DIR)/solvers/NLSolver.o
 	- $(RM) $(BLD_SRC_DIR)/primitives/globalmatrix/SPOOLES/*.o
 	- $(RM) $(BLD_SRC_DIR)/main/FEManagerT_bridging_*.o
+
+touch_SuperLU:
+	@ $(PRINTF) "removing object files depending on SuperLU\n"
+	- $(RM) $(BLD_SRC_DIR)/solvers/SolverT.o
+	- $(RM) $(BLD_SRC_DIR)/primitives/globalmatrix/SuperLU/*.o
 
 touch_Aztec:
 	@ $(PRINTF) "removing object files depending on Aztec\n"
@@ -56,6 +63,10 @@ touch_METIS:
 	- $(RM) $(BLD_SRC_DIR)/main/FEExecutionManagerT.o
 	- $(RM) $(BLD_SRC_DIR)/main/DecomposeT.o
 	@ $(PRINTF) "NOTE: dependent modules must also be up to date\n"
+
+touch_qhull:
+	@ $(PRINTF) "removing object files depending on qhull\n"
+	- $(RM) $(BLD_SRC_DIR)/elements/continuum/solid/meshfree/geometry/VoronoiDiagramT.o
 
 touch_NOX:
 	@ $(PRINTF) "removing object files depending on NOX\n"
