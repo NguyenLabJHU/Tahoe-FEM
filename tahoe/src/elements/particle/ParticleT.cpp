@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.49.6.2 2005-05-31 06:14:36 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.49.6.3 2005-06-04 17:10:45 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -316,7 +316,7 @@ void ParticleT::SetConfiguration(void)
 			comm_manager.SetPeriodicBoundaries(i, x_min, x_max);
 		}
 	}
-	comm_manager.EnforcePeriodicBoundaries();
+	comm_manager.UpdateConfiguration();
 	fStretchTime = ElementSupport().Time();
 	
 	/* reset the types array */
