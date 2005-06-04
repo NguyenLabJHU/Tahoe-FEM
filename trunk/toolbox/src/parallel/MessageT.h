@@ -1,4 +1,4 @@
-/* $Id: MessageT.h,v 1.2 2003-01-27 06:42:48 paklein Exp $ */
+/* $Id: MessageT.h,v 1.3 2005-06-04 16:59:42 paklein Exp $ */
 #ifndef _MESSAGE_T_H_
 #define _MESSAGE_T_H_
 
@@ -22,10 +22,13 @@ public:
 	};
 
 	/** constructor */
-	MessageT(CommunicatorT& comm);
+	MessageT(CommunicatorT& comm, int tag);
 
 	/** destructor */
-	virtual ~MessageT(void) { };
+	virtual ~MessageT(void) {};
+
+	/** message tag */
+	int Tag(void) const { return fTag; };
 
 protected:
 
@@ -39,6 +42,9 @@ protected:
  	
  	/** data type for the message */
  	TypeT fType;
+
+	/** message tag */
+	int fTag;
 };
 
 } /* namespace Tahoe */

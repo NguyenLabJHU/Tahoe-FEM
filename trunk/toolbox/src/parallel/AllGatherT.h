@@ -1,4 +1,4 @@
-/* $Id: AllGatherT.h,v 1.2 2003-01-27 06:42:48 paklein Exp $ */
+/* $Id: AllGatherT.h,v 1.3 2005-06-04 16:59:42 paklein Exp $ */
 #ifndef _GATHER_T_H_
 #define _GATHER_T_H_
 
@@ -18,7 +18,7 @@ class AllGatherT: public MessageT
 public:
 
 	/** constructor */
-	AllGatherT(CommunicatorT& comm);
+	AllGatherT(CommunicatorT& comm, int tag);
 
 	/** \name initialize gather data
 	 * \param my_data array of data sent from this processor to all. The

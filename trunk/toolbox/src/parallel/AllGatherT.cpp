@@ -1,12 +1,12 @@
-/* $Id: AllGatherT.cpp,v 1.2 2003-01-27 06:42:48 paklein Exp $ */
+/* $Id: AllGatherT.cpp,v 1.3 2005-06-04 16:59:42 paklein Exp $ */
 #include "AllGatherT.h"
 #include "CommunicatorT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-AllGatherT::AllGatherT(CommunicatorT& comm):
-	MessageT(comm),
+AllGatherT::AllGatherT(CommunicatorT& comm, int tag):
+	MessageT(comm, tag),
 	fEqual(false),
 	fTotal(0)
 {
