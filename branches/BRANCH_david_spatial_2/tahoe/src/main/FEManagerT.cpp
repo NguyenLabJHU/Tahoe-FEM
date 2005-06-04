@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.95.2.2 2005-05-31 06:17:25 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.95.2.3 2005-06-04 17:10:46 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1468,7 +1468,7 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	fCommManager = New_CommManager();
 	if (!fCommManager) ExceptionT::OutOfMemory(caller);
 	fCommManager->SetPartition(fPartition);
-	fCommManager->Configure();
+	fCommManager->Initialize();
 
 	/* set fields */
 	const ParameterListT* node_params = list.List("nodes");
