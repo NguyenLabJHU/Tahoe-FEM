@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.17 2005-05-24 22:10:24 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.18 2005-06-04 17:00:29 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -294,7 +294,7 @@ void CommManagerT::EnforcePeriodicBoundaries(void)
 
 		/* exchange */
 		if (ngn > 0) {
-			AllGatherT all_gather(fComm);
+			AllGatherT all_gather(fComm, 0);
 			all_gather.Initialize(ghost_coords);
 			dArray2DT ghost_coords_all(ngn, coords.MinorDim(), coords(fNumRealNodes));
 			all_gather.AllGather(ghost_coords_all);
@@ -421,11 +421,12 @@ int CommManagerT::Init_AllGather(MessageT::TypeT t, int num_vals)
 	/* store the number of values */
 	fNumValues.Append(num_vals);
 
+	int message_tag = fCommunications.Length();
 	PartitionT::DecompTypeT decomp_type = fPartition->DecompType();
 	if (decomp_type == PartitionT::kGraph) /* non-blocking send-receive */
 	{
 		/* new point-to-point */
-		PointToPointT* p2p = new PointToPointT(fComm, *fPartition);
+		PointToPointT* p2p = new PointToPointT(fComm, message_tag, *fPartition);
 
 		/* allocate buffers */
 		p2p->Initialize(t, num_vals);
@@ -439,7 +440,7 @@ int CommManagerT::Init_AllGather(MessageT::TypeT t, int num_vals)
 	else if (decomp_type == PartitionT::kIndex) /* all gather */
 	{
 		/* new all gather */
-		AllGatherT* all_gather = new AllGatherT(fComm);
+		AllGatherT* all_gather = new AllGatherT(fComm, message_tag);
 
 		/* set message size */
 		all_gather->Initialize(fPartition->NumPartitionNodes()*num_vals);
@@ -448,7 +449,7 @@ int CommManagerT::Init_AllGather(MessageT::TypeT t, int num_vals)
 		fCommunications.Append(all_gather);
 
 		/* new all gather for gh */
-		AllGatherT* ghost_all_gather = new AllGatherT(fComm);
+		AllGatherT* ghost_all_gather = new AllGatherT(fComm, message_tag);
 
 		/* set message size */
 		ghost_all_gather->Initialize(fPBCNodes.Length()*num_vals);
@@ -464,7 +465,7 @@ int CommManagerT::Init_AllGather(MessageT::TypeT t, int num_vals)
 		ExceptionT::GeneralFail(caller, "unrecognized decomp type: %d", decomp_type);
 
 	/* ID is just the array position */
-	return fCommunications.Length() - 1;
+	return message_tag;
 }
 
 /* clear the persistent communication */
@@ -664,7 +665,7 @@ void CommManagerT::FirstConfigure(void)
 		int nsd = fModelManager.NumDimensions();
 
 		/* total number of nodes */
-		AllGatherT all_gather(fComm);
+		AllGatherT all_gather(fComm, 0);
 		all_gather.Initialize(npn*nsd);
 		fNumRealNodes = all_gather.Total()/nsd;
 
@@ -705,7 +706,7 @@ void CommManagerT::FirstConfigure(void)
 			fPartition->SetNodeScope(PartitionT::kGlobal, partial_nodes);
 			
 			/* collect all */
-			AllGatherT gather_node_set(fComm);
+			AllGatherT gather_node_set(fComm, 0);
 			gather_node_set.Initialize(partial_nodes.Length());
 			iArrayT all_nodes(gather_node_set.Total());
 			gather_node_set.AllGather(partial_nodes, all_nodes);
