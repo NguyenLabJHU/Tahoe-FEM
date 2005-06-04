@@ -1,4 +1,4 @@
-/* $Id: CartesianShiftT.h,v 1.1 2005-06-04 16:58:35 paklein Exp $ */
+/* $Id: CartesianShiftT.h,v 1.2 2005-06-04 17:17:15 paklein Exp $ */
 #ifndef _CARTESIAN_SHIFT_T_H_
 #define _CARTESIAN_SHIFT_T_H_
 
@@ -10,6 +10,7 @@
 #include "iArray2DT.h"
 #include "CommunicatorT.h"
 #include "nVariArray2DT.h"
+#include "AutoArrayT.h"
 
 namespace Tahoe {
 
