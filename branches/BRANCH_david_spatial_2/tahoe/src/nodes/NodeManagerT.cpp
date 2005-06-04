@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.62.2.2 2005-05-31 06:15:41 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.62.2.3 2005-06-04 17:05:23 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -936,21 +936,22 @@ void NodeManagerT::Pack(int node, dArrayT& values) const
 		FieldT& field = *(fFields[i]);
 		int order = field.Order();
 		int ndof  = field.NumDOF();
-		if (values.Length() >= index + 2*ndof*(order + 1))
+		if (values.Length() < index + 2*ndof*(order + 1))
 			ExceptionT::SizeMismatch("NodeManagerT::Pack");
 	
 			/* loop over time derivatives */
 			for (int i = 0; i < order+1; i++) 
 			{
+				/* values from last step */
 				dArray2DT& f = field(0,i);
-				dArray2DT& f_last = field(-1,i); /* values from last step */
+				dArray2DT& f_last = field(-1,i); 
 
 				/* values at current time */
-				field(0,i).RowCopy(node, values.Pointer(index));
+				f.RowCopy(node, values.Pointer(index));
 				index += ndof;
 
 				/* values from the last time step */
-				field(-1,i).RowCopy(node, values.Pointer(index));
+				f_last.RowCopy(node, values.Pointer(index));
 				index += ndof;
 			}	
 	}
@@ -965,21 +966,22 @@ void NodeManagerT::Unpack(int node, dArrayT& values)
 		FieldT& field = *(fFields[i]);
 		int order = field.Order();
 		int ndof  = field.NumDOF();
-		if (values.Length() >= index + 2*ndof*(order + 1))
+		if (values.Length() < index + 2*ndof*(order + 1))
 			ExceptionT::SizeMismatch("NodeManagerT::Unpack");
 	
 			/* loop over time derivatives */
 			for (int i = 0; i < order+1; i++) 
 			{
+				/* values from last step */
 				dArray2DT& f = field(0,i);
-				dArray2DT& f_last = field(-1,i); /* values from last step */
+				dArray2DT& f_last = field(-1,i);
 
 				/* values at current time */
-				field(0,i).SetRow(node, values.Pointer(index));
+				f.SetRow(node, values.Pointer(index));
 				index += ndof;
 
 				/* values from the last time step */
-				field(-1,i).SetRow(node, values.Pointer(index));
+				f_last.SetRow(node, values.Pointer(index));
 				index += ndof;
 			}	
 	}
