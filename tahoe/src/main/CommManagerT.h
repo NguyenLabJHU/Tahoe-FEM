@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.13 2005-05-24 22:10:24 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.13.2.1 2005-06-04 17:10:24 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -21,6 +21,7 @@ class ModelManagerT;
 class NodeManagerT;
 class iArrayT;
 class MessageT;
+class CartesianShiftT;
 
 /** manage processor to processor transactions. Manages partition information.
  * Creates ghosts nodes. Manages communication lists. Manipulates the
@@ -60,6 +61,13 @@ public:
 	/** the communicator */
 	const CommunicatorT& Communicator(void) const { return fComm; };
 
+	/** Update system configuration, including enforcement of periodic boundary conditions */
+	void UpdateConfiguration(void);
+
+	/** Initialize communications. Partition information, if it exists should be 
+	 * (un-)set with CommManagerT::SetPartition before calling this. */
+	void Initialize(void);
+
 	/** \name periodic boundaries */
 	/*@{*/
 	void SetPeriodicBoundaries(int i, double x_i_min, double x_i_max);
@@ -67,20 +75,10 @@ public:
 	
 	/** accessor */
 	const dArray2DT& PeriodicBoundaries(void) { return fPeriodicBoundaries; };
-	
-	/** enforce the periodic boundary conditions */
-	void EnforcePeriodicBoundaries(void);
 
 	/** return the number of real nodes */
 	int NumRealNodes(void) const { return fNumRealNodes; };
 	/*@}*/
-
-	/** configure the current local coordinate list and register it with the
-	 * model manager. The first time this method is called, it will call
-	 * CommManagerT::FirstConfigure before performing the usual operations. 
-	 * Partition information, if it exists should be (un-)set with
-	 * CommManagerT::SetPartition before calling this. */
-	void Configure(void);
 
 	/** \name numbering maps */
 	/*@{*/
@@ -176,8 +174,10 @@ private:
 	void CollectPartitionNodes(const ArrayT<int>& n2p_map, int part, 
 		AutoArrayT<int>& part_nodes) const;
 
-	/** perform actions needed the first time CommManagerT::Configure is called. */
-	void FirstConfigure(void);
+	/** enforce the periodic boundary conditions for serial or index decomposition,
+	 * for which the whole crystal is reproduced on all processors and periodicity
+	 * is enforced by creating image atoms. */
+	void EnforcePeriodicBoundaries(void);
 
 	/** \name methods for configuring computation with a spatial decomposition */
 	/*@{*/
@@ -254,9 +254,6 @@ private:
 
 	/** node manager */
 	NodeManagerT* fNodeManager;
-	
-	/** true if CommManagerT::Configure has not been called yet */
-	bool fFirstConfigure;
 
 	/** \name maps */
 	/*@{*/
@@ -316,6 +313,9 @@ private:
 	/** send nodes for each phase of shift */
 	ArrayT<AutoArrayT<int> > fSendNodes;
 	ArrayT<AutoArrayT<int> > fRecvNodes;
+	
+	/* shift communications on a Cartesian grid */
+	CartesianShiftT* fCartesianShift;
 	/*@}*/
 };
 
