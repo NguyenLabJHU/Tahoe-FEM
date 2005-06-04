@@ -1,4 +1,4 @@
-/* $Id: MessageT.cpp,v 1.4 2003-11-04 01:21:23 paklein Exp $ */
+/* $Id: MessageT.cpp,v 1.5 2005-06-04 16:59:42 paklein Exp $ */
 #include "MessageT.h"
 #include "ArrayT.h"
 
@@ -11,9 +11,10 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<MessageT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */
-MessageT::MessageT(CommunicatorT& comm):
+MessageT::MessageT(CommunicatorT& comm, int tag):
 	fComm(comm),
-	fType(Void)
+	fType(Void),
+	fTag(tag)
 {
 
 }

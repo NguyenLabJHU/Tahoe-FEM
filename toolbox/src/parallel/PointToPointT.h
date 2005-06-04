@@ -1,4 +1,4 @@
-/* $Id: PointToPointT.h,v 1.2 2003-01-27 06:42:48 paklein Exp $ */
+/* $Id: PointToPointT.h,v 1.3 2005-06-04 16:59:42 paklein Exp $ */
 #ifndef _POINT_TO_POINT_T_H_
 #define _POINT_TO_POINT_T_H_
 
@@ -22,10 +22,7 @@ class PointToPointT: public MessageT
 public:
 
 	/** constructor */
-	PointToPointT(CommunicatorT& comm, const PartitionT& partition);
-
-	/** destructor */
-	virtual ~PointToPointT(void);
+	PointToPointT(CommunicatorT& comm, int tag, const PartitionT& partition);
 
 	/** allocate buffers 
 	 * \param t data type being communicated
@@ -37,9 +34,6 @@ public:
 	void Initialize(nArray2DT<int>& gather);
 	void Initialize(nArray2DT<double>& gather);
 	/*@}*/
-
-	/** current maximum tag number */
-	static int MaxTag(void) { return sMaxTag; };
 
 	/** perform the exchange. When called with only one
 	 * argument, the data from this partition must already be in the
@@ -81,15 +75,6 @@ private:
 	/*@{*/
 	ArrayT<MPI_Request> fRecvRequest;
 	ArrayT<MPI_Request> fSendRequest;
-	/*@}*/
-	
-	/** \name message tags 
-	 * Message tags are generated automatically based on the number of
-	 * instantiated PointToPointT objects. */
-	/*@{*/
-	int fTag;
-	static int sMaxTag;
-	static int sTagCount;
 	/*@}*/
 };
 

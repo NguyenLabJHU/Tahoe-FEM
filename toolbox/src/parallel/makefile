@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2003-03-04 06:41:24 paklein Exp $
+# $Id: makefile,v 1.5 2005-06-04 16:59:42 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,7 +23,8 @@ OBJ = \
 	CommunicatorT.o \
 	MessageT.o \
 	AllGatherT.o \
-	PointToPointT.o	
+	PointToPointT.o	\
+	CartesianShiftT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -46,7 +47,8 @@ SRC = \
 	CommunicatorT.cpp \
 	MessageT.cpp \
 	AllGatherT.cpp \
-	PointToPointT.cpp
+	PointToPointT.cpp \
+	CartesianShiftT.cpp
 
 ##################### (3) headers
 #
@@ -61,7 +63,8 @@ HDR = \
 	CommunicatorT.h \
 	MessageT.h \
 	AllGatherT.h \
-	PointToPointT.h
+	PointToPointT.h \
+	CartesianShiftT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

@@ -1,39 +1,24 @@
-/* $Id: PointToPointT.cpp,v 1.3 2003-11-10 22:14:39 cjkimme Exp $ */
+/* $Id: PointToPointT.cpp,v 1.4 2005-06-04 16:59:42 paklein Exp $ */
 #include "PointToPointT.h"
 #include "CommunicatorT.h"
 #include "PartitionT.h"
 
 using namespace Tahoe;
 
-namespace Tahoe {
-int PointToPointT::sMaxTag = 0;
-int PointToPointT::sTagCount = 0;
-}
-
 /* constructor */
-PointToPointT::PointToPointT(CommunicatorT& comm, const PartitionT& partition):
-	MessageT(comm),
+PointToPointT::PointToPointT(CommunicatorT& comm, int tag, const PartitionT& partition):
+	MessageT(comm, tag),
 	fPartition(partition),
-	fMinorDim(0),
-	fTag(sMaxTag++)
+	fMinorDim(0)
 {
-	sTagCount++;
-}
 
-/* destructor */
-PointToPointT::~PointToPointT(void)
-{
-	/* try to clear any incomplete communications */
-  //fComm.FreeRequests(fRecvRequest);
-  //fComm.FreeRequests(fSendRequest);
-	
-	/* reset max tag */
-	if (--sTagCount == 0) sMaxTag = 0;
 }
 
 /* allocate buffers */
 void PointToPointT::Initialize(MessageT::TypeT t, int num_values)
 {
+	const char caller[] = "PointToPointT::Initialize";
+
 	/* set type */
 	fType = t;
 
@@ -56,7 +41,7 @@ void PointToPointT::Initialize(MessageT::TypeT t, int num_values)
 			    fiSendBuffer[j].MinorDim() != num_values) exit = false;
 		if (exit) return;
 	} else
-		ExceptionT::GeneralFail("PointToPointT::Initialize", "unrecognized type %d", fType);
+		ExceptionT::GeneralFail(caller, "unrecognized type %d", fType);
 
 
 	/* was possibly initialize before */
@@ -103,7 +88,7 @@ void PointToPointT::Initialize(MessageT::TypeT t, int num_values)
 		fdSendBuffer.Free();
 	}
 	else
-		ExceptionT::GeneralFail("PointToPointT::Initialize", "unrecognized type %d", fType);
+		ExceptionT::GeneralFail(caller, "unrecognized type %d", fType);
 	
 	/* keep dim */
 	fMinorDim = num_values;
@@ -120,7 +105,6 @@ void PointToPointT::AllGather(nArray2DT<double>& gather)
 	const iArrayT& commID = fPartition.CommID();
 
 	/* post receives */
-//	int rank = fComm.Rank();
 	for (int i = 0; i < commID.Length(); i++)
 		fComm.PostReceive(fdRecvBuffer[i], commID[i], fTag, fRecvRequest[i]);
 		
@@ -179,7 +163,6 @@ void PointToPointT::AllGather(nArray2DT<int>& gather)
 	const iArrayT& commID = fPartition.CommID();
 
 	/* post receives */
-//	int rank = fComm.Rank();
 	for (int i = 0; i < commID.Length(); i++)
 		fComm.PostReceive(fiRecvBuffer[i], commID[i], fTag, fRecvRequest[i]);
 		
