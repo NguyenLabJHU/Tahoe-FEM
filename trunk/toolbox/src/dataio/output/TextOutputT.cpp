@@ -1,4 +1,4 @@
-/* $Id: TextOutputT.cpp,v 1.3 2003-11-10 22:14:25 cjkimme Exp $ */
+/* $Id: TextOutputT.cpp,v 1.4 2005-06-05 06:22:00 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 #include "TextOutputT.h"
 
@@ -449,14 +449,15 @@ void TextOutputT::WriteElementHeader(ostream& out, int num_output_elems,
 	}
 }
 
-void TextOutputT::WriteNodeValues(ostream& out, const iArrayT& node_numbers,
-	const dArray2DT& values) const
+void TextOutputT::WriteNodeValues(ostream& out, const ArrayT<int>& node_numbers,
+	const dArray2DT& values)
 {
 	/* no values */
 	if (values.Length() == 0) return;
 
 	/* check */
-	if (node_numbers.Length() != values.MajorDim()) throw ExceptionT::kSizeMismatch;
+	if (node_numbers.Length() != values.MajorDim()) 
+		ExceptionT::SizeMismatch("TextOutputT::WriteNodeValues");
 
 	/* write */
 	for (int i = 0; i < node_numbers.Length(); i++)
@@ -467,7 +468,7 @@ void TextOutputT::WriteNodeValues(ostream& out, const iArrayT& node_numbers,
 	}
 }
 
-void TextOutputT::WriteElementValues(ostream& out, const dArray2DT& values) const
+void TextOutputT::WriteElementValues(ostream& out, const dArray2DT& values)
 {
 	/* no values */
 	if (values.Length() == 0) return;
@@ -480,4 +481,3 @@ void TextOutputT::WriteElementValues(ostream& out, const dArray2DT& values) cons
 		values.PrintRow(i, out);	
 	}
 }
-
