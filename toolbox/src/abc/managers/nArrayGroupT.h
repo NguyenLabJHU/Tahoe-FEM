@@ -1,4 +1,4 @@
-/* $Id: nArrayGroupT.h,v 1.5 2005-05-01 19:27:51 paklein Exp $ */
+/* $Id: nArrayGroupT.h,v 1.6 2005-06-05 06:21:07 paklein Exp $ */
 /* created: paklein (04/17/1998) */
 #ifndef _NARRAY_GROUP_T_H_
 #define _NARRAY_GROUP_T_H_
@@ -24,7 +24,10 @@ public:
 	nArrayGroupT(int headroom, bool pool_memory);
 
 	/** add an nArrayT to list of managed arrays */
-	void Register(nArrayT<TYPE>& array);
+	int Register(nArrayT<TYPE>& array);
+
+	/** access a registered array */
+	nArrayT<TYPE>& Array(int i);
 
 	/** (re-)dimension all arrays and copy in old data if specified */
 	void Dimension(int length, bool copy_in);
@@ -48,13 +51,30 @@ nArrayGroupT<TYPE>::nArrayGroupT(int headroom, bool pool_memory):
 
 }
 
+/* access a registered array */
+template <class TYPE>
+nArrayT<TYPE>& nArrayGroupT<TYPE>::Array(int i)
+{
+	/* cast is OK because Register accepts only nArrayT's */
+	nArrayT<TYPE>* p = (nArrayT<TYPE>*) this->fArrays[i];
+	return *p;
+}
+
 /* add nArrayT to list of managed - function allows only nArrayT's
 * to be registered, ie. an array type filter */
 template <class TYPE>
-inline void nArrayGroupT<TYPE>::Register(nArrayT<TYPE>& array)
+inline int nArrayGroupT<TYPE>::Register(nArrayT<TYPE>& array)
 {
 	/* inherited */
-	MemoryGroupT<TYPE>::Register(array);
+	int index = MemoryGroupT<TYPE>::Register(array);
+	
+	/* return dimensioned array */
+	if (fLength > 0)
+		array.Alias(fLength, this->BlockPointer(index));
+	else /* empty array */
+		array.Dimension(0);
+	
+	return index;
 }
 
 /* (re-) dimension all arrays */
@@ -70,7 +90,7 @@ void nArrayGroupT<TYPE>::Dimension(int length, bool copy_in)
 
 		/* reset pointers and dimensions */
 		for (int i = 0; i < this->fArrays.Length(); i++)
-			this->fArrays[i]->Set(fLength, this->BlockPointer(i));
+			this->fArrays[i]->Alias(fLength, this->BlockPointer(i));
 	}
 }
 

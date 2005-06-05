@@ -1,4 +1,4 @@
-/* $Id: MemoryGroupT.h,v 1.5 2003-05-23 22:47:26 paklein Exp $ */
+/* $Id: MemoryGroupT.h,v 1.6 2005-06-05 06:21:07 paklein Exp $ */
 /* created: paklein (04/17/1998) */
 #ifndef _MEMORYGROUP_T_H_
 #define _MEMORYGROUP_T_H_
@@ -44,7 +44,8 @@ public:
 
 	/** \name add array to list of managed */
 	/*@{*/
-	void Register(ArrayT<TYPE>& array);
+	/** register an array with the group and returns the index of the array */
+	int Register(ArrayT<TYPE>& array);
 	bool IsRegistered(const ArrayT<TYPE>& array) const;
 	int NumRegistered(void) const { return fArrays.Length(); };
 	/*@}*/
@@ -140,19 +141,28 @@ inline void MemoryGroupT<TYPE>::SetHeadRoom(int headroom)
 
 /* add array to list of managed */
 template <class TYPE>
-void MemoryGroupT<TYPE>::Register(ArrayT<TYPE>& array)
+int MemoryGroupT<TYPE>::Register(ArrayT<TYPE>& array)
 {
 	/* only until memory is allocated */
-	if (fBlockSize > 0) {
-		const char caller[] = "MemoryGroupT<TYPE>::Register";
-		ExceptionT::GeneralFail(caller, "all arrays must be registered before initial allocation");
-	}
+	if (fBlockSize > 0 && fPoolMemory)
+		ExceptionT::GeneralFail("MemoryGroupT<TYPE>::Register", 
+			"no registration after dimensioning with pooled memory");
 
 	/* add to list */
 	fArrays.Append(&array);
 
 	/* memory */
-	if (!fPoolMemory) fData.Append(NULL);
+	if (!fPoolMemory)
+	{
+		if (fBlockSize > 0) /* allocate space for new array */ {
+			TYPE* new_data = ArrayT<TYPE>::New(fBlockSize);
+			fData.Append(new_data);
+		}
+		else
+	 		fData.Append(NULL);
+	}
+
+	return fData.Length() - 1;
 }
 
 template <class TYPE>
@@ -190,7 +200,7 @@ template <class TYPE>
 void MemoryGroupT<TYPE>::SetBlockSize(int newblocksize, bool copy_in)
 {
 	/* take the smaller */
-	int copysize = (fBlockSize < newblocksize) ? fBlockSize:newblocksize;
+	int copysize = (fBlockSize < newblocksize) ? fBlockSize : newblocksize;
 
 	/* new memory (with extra space) */
 	newblocksize += newblocksize*fHeadRoom/100;
