@@ -1,4 +1,4 @@
-/* $Id: SpatialGridT.cpp,v 1.2 2004-11-17 23:36:27 paklein Exp $ */
+/* $Id: SpatialGridT.cpp,v 1.2.16.1 2005-06-05 06:25:42 paklein Exp $ */
 #include "SpatialGridT.h"
 #include "dArray2DT.h"
 #include "iArrayT.h"
@@ -279,7 +279,7 @@ void SpatialGridT::Bin2D(const dArray2DT& points, iArrayT& bin, iArrayT& bin_cou
 		
 		/* bin index */
 		if (in_bounds) {
-			int nbin = ix*ny + iy;
+			int nbin = iy*nx + ix;
 			bin[index] = nbin;
 			bin_counts[nbin]++;
 		}
