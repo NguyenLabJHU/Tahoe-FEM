@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.34.6.2 2005-05-31 06:14:36 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.34.6.3 2005-06-05 06:27:52 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -262,11 +262,8 @@ protected:
 	ArrayT<StringT> fTypeNames;
 
 	/** particle type for global tag */
-	AutoArrayT<int> fType;
-	
-	/** message id for exchanging the ParticleT::fType array */
-	int fTypeMessageID;
-	
+	iArrayT fType;
+
 	/** map of particle types to properties: {type_a, type_b} -> property number */
 	nMatrixT<int> fPropertiesMap;
 

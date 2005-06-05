@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.49.6.3 2005-06-04 17:10:45 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.49.6.4 2005-06-05 06:27:52 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -45,7 +45,6 @@ ParticleT::ParticleT(const ElementSupportT& support):
 	fDmax(0),
 	fForce_man(fForce),
 	fActiveParticles(NULL),
-	fTypeMessageID(CommManagerT::kNULLMessageID),
 	fLatticeParameter(-1.0),
 	fReNeighborCounter(0),
 	fhas_periodic(false),
@@ -318,18 +317,9 @@ void ParticleT::SetConfiguration(void)
 	}
 	comm_manager.UpdateConfiguration();
 	fStretchTime = ElementSupport().Time();
-	
-	/* reset the types array */
-	int nnd = ElementSupport().NumNodes();
-	fType.Resize(nnd);
-	
-	/* exchange type information */
-	if (fTypeMessageID == CommManagerT::kNULLMessageID)
-		fTypeMessageID = ElementSupport().CommManager().Init_AllGather(MessageT::Integer, 1);
-	iArray2DT type_wrapper(fType.Length(), 1, fType.Pointer());
-	comm_manager.AllGather(fTypeMessageID, type_wrapper);
-	
+
 	/* resize working arrays */
+	int nnd = ElementSupport().NumNodes();
 	fForce_man.SetMajorDimension(nnd, false);
 
 	/* collect current coordinates */
@@ -826,7 +816,7 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 	}
 
 	/* resolve types */
-	fType.Dimension(ElementSupport().NumNodes());
+	ElementSupport().CommManager().RegisterNodalAttribute(fType);
 	fType = -1;
 	int num_types = list.NumLists("particle_type");
 	fTypeNames.Dimension(num_types);
