@@ -1,4 +1,4 @@
-/* $Id: TextOutputT.h,v 1.3 2003-10-09 17:11:14 cjkimme Exp $ */
+/* $Id: TextOutputT.h,v 1.4 2005-06-05 06:22:00 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 #ifndef _TEXT_OUTPUT_T_H_
 #define _TEXT_OUTPUT_T_H_
@@ -35,6 +35,15 @@ public:
 	virtual void WriteOutput(double time, int ID, const dArray2DT& n_values,
 		const dArray2DT& e_values);
 
+	/** \name writing values */
+	/*@{*/
+	/** writing node array data */
+	static void WriteNodeValues(ostream& out, const ArrayT<int>& node_numbers, const dArray2DT& values);
+
+	/** writing element array data */
+	static void WriteElementValues(ostream& out, const dArray2DT& values);
+	/*@}*/
+
 private:
 
 	/** initialize the results file */
@@ -53,12 +62,6 @@ private:
 		/** write element variable headers */
 	void WriteElementHeader(ostream& out, int num_output_elems,
 		const ArrayT<StringT>& labels) const;
-
-	/** writing node array data */
-	void WriteNodeValues(ostream& out, const iArrayT& node_numbers,
-		const dArray2DT& values) const;
-	/** writing element array data */
-	void WriteElementValues(ostream& out, const dArray2DT& values) const;
 
 private:
 
