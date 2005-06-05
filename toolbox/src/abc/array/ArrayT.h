@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.20 2004-04-21 07:34:52 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.21 2005-06-05 06:18:28 paklein Exp $ */
 /* created: paklein (06/19/1996) */
 #ifndef _ARRAY_T_H_
 #define _ARRAY_T_H_
@@ -407,7 +407,7 @@ void ArrayT<TYPE>::Dimension(int length)
 		
 		/* set dimensions */
 		fLength = length;
-		fDelete = 1;
+		fDelete = (fLength > 0) ? 1 : 0;
 	}
 }
 
