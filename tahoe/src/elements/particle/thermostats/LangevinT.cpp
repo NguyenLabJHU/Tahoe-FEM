@@ -1,4 +1,4 @@
-/* $Id: LangevinT.cpp,v 1.7 2004-07-15 08:29:54 paklein Exp $ */
+/* $Id: LangevinT.cpp,v 1.7.20.1 2005-06-05 06:23:55 paklein Exp $ */
 #include "LangevinT.h"
 
 #include <math.h>
@@ -20,7 +20,7 @@ LangevinT::LangevinT(const BasicSupportT& support):
 }
 
 void LangevinT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
-			dArray2DT& forces, AutoArrayT<int>& types,
+			dArray2DT& forces, ArrayT<int>& types,
 			ArrayT<ParticlePropertyT*>& particleProperties)
 {
 	int nsd = fSupport.NumSD();

@@ -1,4 +1,4 @@
-/* $Id: NoseHooverT.cpp,v 1.9 2005-04-12 17:10:11 cjkimme Exp $ */
+/* $Id: NoseHooverT.cpp,v 1.9.4.1 2005-06-05 06:23:55 paklein Exp $ */
 #include "NoseHooverT.h"
 #include <math.h>
 #include "dArrayT.h"
@@ -51,7 +51,7 @@ void NoseHooverT::TakeParameterList(const ParameterListT& list)
 }
 
 void NoseHooverT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
-			dArray2DT& forces, AutoArrayT<int>& types,
+			dArray2DT& forces, ArrayT<int>& types,
 			ArrayT<ParticlePropertyT*>& particleProperties)
 {
 	/* Get temperature */

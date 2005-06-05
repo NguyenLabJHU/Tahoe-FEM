@@ -1,4 +1,4 @@
-/* $Id: GaussIsokineticT.cpp,v 1.9 2004-07-15 08:29:54 paklein Exp $ */
+/* $Id: GaussIsokineticT.cpp,v 1.9.20.1 2005-06-05 06:23:55 paklein Exp $ */
 #include "GaussIsokineticT.h"
 
 #include <math.h>
@@ -20,7 +20,7 @@ GaussIsokineticT::GaussIsokineticT(const BasicSupportT& support):
 }
 
 void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
-			dArray2DT& forces, AutoArrayT<int>& types,
+			dArray2DT& forces, ArrayT<int>& types,
 			ArrayT<ParticlePropertyT*>& particleProperties)
 {
 	/* Get the temperature */
