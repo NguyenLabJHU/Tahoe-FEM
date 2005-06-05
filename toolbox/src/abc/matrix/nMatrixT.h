@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.30 2005-04-30 21:14:26 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.31 2005-06-05 06:19:24 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _NMATRIX_T_H_
 #define _NMATRIX_T_H_
@@ -350,12 +350,12 @@ inline void nMatrixT<nTYPE>::Free(void)
 template <class nTYPE>
 inline nTYPE& nMatrixT<nTYPE>::operator()(int nrow, int ncol)
 {
-/* range checking */
 #if __option (extended_errorcheck)
-	if (nrow < 0 ||
-	    nrow >= fRows ||
-	    ncol < 0 ||
-	    ncol >= fCols) throw ExceptionT::kOutOfRange;
+	/* range checking */
+	if (nrow < 0 || nrow >= fRows || ncol < 0 || ncol >= fCols)
+		ExceptionT::OutOfRange("nMatrixT<TYPE>::operator(int,int)",
+			"row ! (0 <= %d <= %d), col ! (0 <= %d <= %d)",
+			nrow, fRows-1, ncol, fCols-1);
 #endif
 	
 	return(this->fArray[ncol*fRows + nrow]);
@@ -364,12 +364,12 @@ inline nTYPE& nMatrixT<nTYPE>::operator()(int nrow, int ncol)
 template <class nTYPE>
 inline const nTYPE& nMatrixT<nTYPE>::operator()(int nrow, int ncol) const
 {
-/* range checking */
 #if __option (extended_errorcheck)
-	if (nrow < 0 ||
-	    nrow >= fRows ||
-	    ncol < 0 ||
-	    ncol >= fCols) throw ExceptionT::kOutOfRange;
+	/* range checking */
+	if (nrow < 0 || nrow >= fRows || ncol < 0 || ncol >= fCols)
+		ExceptionT::OutOfRange("nMatrixT<TYPE>::operator(int,int)",
+			"row ! (0 <= %d <= %d), col ! (0 <= %d <= %d)",
+			nrow, fRows-1, ncol, fCols-1);
 #endif
 	
 	return(this->fArray[ncol*fRows + nrow]);
@@ -379,9 +379,11 @@ inline const nTYPE& nMatrixT<nTYPE>::operator()(int nrow, int ncol) const
 template <class nTYPE>
 inline nTYPE* nMatrixT<nTYPE>::operator()(int ncol)
 {
-/* range checking */
 #if __option (extended_errorcheck)
-	if (ncol < 0 || ncol >= fCols) throw ExceptionT::kOutOfRange;
+/* range checking */
+	if (ncol < 0 || ncol >= fCols)
+		ExceptionT::OutOfRange("nMatrixT<TYPE>::operator(int)",
+			"col ! (0 <= %d <= %d)", ncol, fCols-1);
 #endif
 	
 	return(this->fArray + ncol*fRows);
@@ -390,9 +392,11 @@ inline nTYPE* nMatrixT<nTYPE>::operator()(int ncol)
 template <class nTYPE>
 inline const nTYPE* nMatrixT<nTYPE>::operator()(int ncol) const
 {
-/* range checking */
 #if __option (extended_errorcheck)
-	if (ncol < 0 || ncol >= fCols) throw ExceptionT::kOutOfRange;
+/* range checking */
+	if (ncol < 0 || ncol >= fCols)
+		ExceptionT::OutOfRange("nMatrixT<TYPE>::operator(int)",
+			"col ! (0 <= %d <= %d)", ncol, fCols-1);
 #endif
 	
 	return(this->fArray + ncol*fRows);
