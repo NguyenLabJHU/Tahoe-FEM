@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.13.2.1 2005-06-04 17:10:24 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.13.2.2 2005-06-05 06:31:44 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -11,6 +11,7 @@
 #include "dArrayT.h"
 #include "nVariArray2DT.h"
 #include "Array2DT.h"
+#include "nArrayGroupT.h"
 
 namespace Tahoe {
 
@@ -120,7 +121,7 @@ public:
 	 * for which information is sent to other processors. These nodes are numbered locally
 	 * within the nodes appearing on this processor. Returns NULL if there is no 
 	 * list, indicating \e all nodes are owned by this partition */
-	const ArrayT<int>* BorderNodes(void) const;
+//	const ArrayT<int>* BorderNodes(void) const;
 	/*@}*/
 
 	/** \name ghost nodes 
@@ -162,6 +163,12 @@ public:
 	void AllGather(int id, nArray2DT<int>& values);
 	/*@}*/
 
+	/** register an array of nodal attributes. Register an array whose contents will be
+	 * kept up to date as the CommManagerT maintains the system across multiple processors.
+	 * The arrays should be dimensioned and initialized before the first call to
+	 * CommManagerT::UpdateConfiguration */
+	int RegisterNodalAttribute(nArrayT<int>& array);
+
 private:
 
 	/** return the partition or throw an exception if it's not set */
@@ -172,7 +179,7 @@ private:
 
 	/** collect partition nodes */
 	void CollectPartitionNodes(const ArrayT<int>& n2p_map, int part, 
-		AutoArrayT<int>& part_nodes) const;
+		AutoArrayT<int>& part_nodes, AutoArrayT<int>& external_nodes) const;
 
 	/** enforce the periodic boundary conditions for serial or index decomposition,
 	 * for which the whole crystal is reproduced on all processors and periodicity
@@ -273,7 +280,7 @@ private:
 	AutoArrayT<int> fExternalNodes;
 
 	/** list of nodes adjacent to any external nodes */
-	AutoArrayT<int> fBorderNodes;
+//	AutoArrayT<int> fBorderNodes;
 	/*@}*/
 	
 	/** \name persistent communications */
@@ -317,6 +324,12 @@ private:
 	/* shift communications on a Cartesian grid */
 	CartesianShiftT* fCartesianShift;
 	/*@}*/
+
+	/** \name nodal attributes */
+	/*@{*/
+	int fAttributeMessageID;
+	nArrayGroupT<int> fNodalAttributes;
+	/*@}*/
 };
 
 /* processor map */
@@ -354,6 +367,7 @@ inline const ArrayT<int>* CommManagerT::ExternalNodes(void) const
 		return NULL;
 }
 
+#if 0
 inline const ArrayT<int>* CommManagerT::BorderNodes(void) const
 {
 	if (fBorderNodes.Length() > 0)
@@ -361,6 +375,7 @@ inline const ArrayT<int>* CommManagerT::BorderNodes(void) const
 	else
 		return NULL;
 }
+#endif
 
 /* nodes with ghosts */
 inline const ArrayT<int>* CommManagerT::NodesWithGhosts(void) const

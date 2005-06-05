@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.17.2.1 2005-06-04 17:10:23 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.17.2.2 2005-06-05 06:31:44 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -16,6 +16,10 @@
 
 using namespace Tahoe;
 
+/* debugging */
+#define CommManagerT_DEBUG_SPATIAL 1
+#include "TextOutputT.h"
+
 CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 	fComm(comm),
 	fModelManager(model_manager),
@@ -29,8 +33,13 @@ CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 	fd_recv_buffer_man(fd_recv_buffer),
 	fi_send_buffer_man(fi_send_buffer),
 	fi_recv_buffer_man(fi_recv_buffer),
-	fCartesianShift(NULL)
+	fCartesianShift(NULL),
+	fNodalAttributes(0, false),
+	fAttributeMessageID(kNULLMessageID)
 {
+	/* dimension the attributes array group */
+	fNodalAttributes.Dimension(fModelManager.NumNodes(), false);
+	
 //no map needed for serial calculations
 #if 0
 	//TEMP - with inline coordinate information (serial) this map
@@ -71,13 +80,13 @@ void CommManagerT::SetPartition(PartitionT* partition)
 		/* nodes owned by this processor */
 		fProcessor.Dimension(fNodeMap.Length());
 		fPartition->ReturnProcessorMap(fProcessor);
-		CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes);
+		CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes, fExternalNodes);
 		
 		/* external nodes */
-		fExternalNodes.Alias(fPartition->Nodes_External());
+		//fExternalNodes.Alias(fPartition->Nodes_External());
 		
 		/* border nodes */
-		fBorderNodes.Alias(fPartition->Nodes_Border());
+		//fBorderNodes.Alias(fPartition->Nodes_Border());
 	}
 	else /* clear partition information */
 	{
@@ -91,7 +100,7 @@ void CommManagerT::SetPartition(PartitionT* partition)
 		fExternalNodes.Dimension(0);
 
 		/* clear external nodes */
-		fBorderNodes.Dimension(0);
+		//fBorderNodes.Dimension(0);
 	}
 	
 	/* clear the inverse map */
@@ -168,6 +177,9 @@ void CommManagerT::Initialize(void)
 			fModelManager.UpdateNodes(coords_all, true);
 		}
 
+		/* dimension the attributes array group */
+		fNodalAttributes.Dimension(fModelManager.NumNodes(), true);
+
 		/* translate element sets to global numbering */
 		const ArrayT<StringT>& el_id = fModelManager.ElementGroupIDs();
 		for (int i = 0; i < el_id.Length(); i++)
@@ -224,13 +236,13 @@ void CommManagerT::Initialize(void)
 		fNodeMap.Dimension(0);
 		
 		/* collect partition nodes (general algorithm) */
-		CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes);
+		CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes, fExternalNodes);
 		
 		/* clear the inverse map */
 		fPartitionNodes_inv.ClearMap();
 		
 		/* (potentially) all are adjacent to external nodes */
-		fBorderNodes.Alias(fPartitionNodes);
+		//fBorderNodes.Alias(fPartitionNodes);
 		
 		/* all the rest are external */
 		fExternalNodes.Dimension(fNumRealNodes - fPartitionNodes.Length());
@@ -267,6 +279,12 @@ void CommManagerT::Initialize(void)
 			fSwap(i+nsd,0) = i; /* direction {x, y, z,...} */
 			fSwap(i+nsd,1) = 0; /* sign +/- */
 		}
+
+#ifdef CommManagerT_DEBUG_SPATIAL
+cout << "\n processor bounds = \n" << fBounds << '\n';
+cout << "\n adjacent = \n" << fAdjacentCommID << '\n';
+cout << "\n swaps = \n" << fSwap << '\n';
+#endif /* CommManagerT_DEBUG_SPATIAL */
 		
 		/* dimension the swapping node lists */
 		fSendNodes.Dimension(2*nsd);
@@ -284,9 +302,37 @@ void CommManagerT::UpdateConfiguration(void)
 {
 	const char caller[] = "CommManagerT::UpdateConfiguration";
 
+#ifdef CommManagerT_DEBUG_SPATIAL
+/* debugging */
+cout << "\n " << caller << ": IN\n";
+
+/* partition nodes */
+cout << "\npartition nodes:\n";
+if (1) {
+	iArrayT tmp(fPartitionNodes.Length());
+	tmp.Collect(fPartitionNodes, fNodeMap);
+	tmp++;
+	cout << tmp.wrap(10) << '\n';
+}
+cout << endl;
+#endif /* CommManagerT_DEBUG_SPATIAL */
+
 	PartitionT::DecompTypeT decomp_type = (fPartition) ? fPartition->DecompType() : PartitionT::kUndefined;
 	if (decomp_type == PartitionT::kIndex || decomp_type == PartitionT::kUndefined) /* serial or index decomposition */
+	{
+		/* update image nodes */
 		EnforcePeriodicBoundaries();
+
+		/* update attributes */
+		int nnd = fNodeManager->NumNodes();
+		fNodalAttributes.Dimension(nnd, true);
+		if (fAttributeMessageID == kNULLMessageID) fAttributeMessageID = Init_AllGather(MessageT::Integer, 1);
+		iArray2DT attr_wrapper;
+		for (int i = 0; i < fNodalAttributes.NumRegistered(); i++) {
+			attr_wrapper.Alias(nnd, 1, fNodalAttributes.Array(i).Pointer());
+			AllGather(fAttributeMessageID, attr_wrapper);
+		}
+	}
 	else if (decomp_type == PartitionT::kSpatial) /* spatial decomposition */
 	{
 		/* work space */
@@ -311,12 +357,47 @@ if (!fFirstConfigure && reset grid dimensions?)
 	
 			/* distribute nodes over the spatial grid */
 			Distribute(i_values, i_values_man, new_init_coords, new_init_coords_man, new_curr_coords, new_curr_coords_man);
+
+#ifdef CommManagerT_DEBUG_SPATIAL
+cout << "\ncaller: number of partition nodes: " << new_init_coords.MajorDim() << '\n';
+#endif
 			
 			/* exchange border nodes */
 			SetExchange(i_values, i_values_man, new_init_coords, new_init_coords_man, new_curr_coords, new_curr_coords_man);
 	
 			/* finalize configuration */
 			CloseConfigure(i_values, new_init_coords);
+
+#ifdef CommManagerT_DEBUG_SPATIAL
+/* debugging */
+cout << "\ncaller: OUT\n";
+
+/* coordinates */
+cout << "\nreference coordinates:\n";
+TextOutputT::WriteNodeValues(cout, fNodeMap, fNodeManager->InitialCoordinates());
+cout << "\ncurrent coordinates:\n";
+TextOutputT::WriteNodeValues(cout, fNodeMap, fNodeManager->CurrentCoordinates());
+
+/* node sets */
+const ArrayT<StringT>& ns_ID = fModelManager.NodeSetIDs();
+for (int i = 0; i < ns_ID.Length(); i++) {
+	iArrayT tmp;
+	tmp.Alias(fModelManager.NodeSet(ns_ID[i]));
+	tmp++;
+	cout << "\n node set: " << ns_ID[i] << '\n' << tmp.wrap(10) << '\n';
+	tmp--;
+}
+
+/* partition nodes */
+cout << "\npartition nodes:\n";
+if (1) {
+	iArrayT tmp(fPartitionNodes.Length());
+	tmp.Collect(fPartitionNodes, fNodeMap);
+	tmp++;
+	cout << tmp.wrap(10) << '\n';
+}
+cout << endl;
+#endif /* CommManagerT_DEBUG_SPATIAL */
 		}		
 		catch (ExceptionT::CodeT error) { token = 0; }
 		
@@ -348,9 +429,11 @@ const InverseMapT* CommManagerT::PartitionNodes_inv(void) const
 		CommManagerT* non_const_this = (CommManagerT*) this;
 	
 		/* set inverse map */
-		nArrayT<int> nd;
-		nd.Alias(*nodes);
-		non_const_this->fPartitionNodes_inv.SetMap(nd);
+		if (nodes->Length() > 0 && fPartitionNodes_inv.Length() == 0) {
+			nArrayT<int> nd;
+			nd.Alias(*nodes);
+			non_const_this->fPartitionNodes_inv.SetMap(nd);
+		}
 		
 		return &fPartitionNodes_inv;
 	}
@@ -571,13 +654,18 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 		ExceptionT::GeneralFail(caller, "unrecognized decomp type: %d", decomp_type);
 }
 
+/* register an array of nodal attributes */
+int CommManagerT::RegisterNodalAttribute(nArrayT<int>& array) {
+	return fNodalAttributes.Register(array);
+}
+
 /*************************************************************************
  * Private
  *************************************************************************/
 
 /* collect partition nodes */
 void CommManagerT::CollectPartitionNodes(const ArrayT<int>& n2p_map, int part, 
-	AutoArrayT<int>& part_nodes) const
+	AutoArrayT<int>& part_nodes, AutoArrayT<int>& external_nodes) const
 {
 	int count = 0;
 	const int* p = n2p_map.Pointer();
@@ -587,12 +675,16 @@ void CommManagerT::CollectPartitionNodes(const ArrayT<int>& n2p_map, int part,
 			count++;
 			
 	part_nodes.Dimension(count);
+	external_nodes.Dimension(len - count);
 	int* pn = part_nodes.Pointer();
+	int* en = external_nodes.Pointer();
 	p = n2p_map.Pointer();
 	count = 0;
 	for (int i = 0; i < len; i++)
 		if (*p++ == part)
 			*pn++ = i;
+		else
+			*en++ = i;
 }
 
 /* enforce the periodic boundary conditions */
@@ -793,7 +885,7 @@ void CommManagerT::EnforcePeriodicBoundaries(void)
 
 		/* create partition nodes list if */
 		if (fPartitionNodes.Length() == 0)
-			CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes);
+			CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes, fExternalNodes);
 
 		/* copy nodal information */
 		fNodeManager->CopyNodeToNode(fPBCNodes, fPBCNodes_ghost);
@@ -812,20 +904,23 @@ void CommManagerT::InitConfigure(iArray2DT& i_values, nVariArray2DT<int>& i_valu
 	int r = int(sizeof(int)/sizeof(char));
 	int nns = fModelManager.NumNodeSets();
 	int nsd = fModelManager.NumDimensions();
-	int i_size = 1 + int(ceil(double(nns)/r)); /* {global ID, (char) {0|1)}} */
+	int i_offset = 1 + fNodalAttributes.NumRegistered();
+	int i_size = i_offset + int(ceil(double(nns)/r)); /* {global ID, attributes, (char) {0|1)}} */
 
 	/* initialize integer data per node */
 	i_values_man.SetWard(10, i_values, i_size);
 	i_values_man.SetMajorDimension(npn, false);
 	i_values = 0; /* initialize */
 	i_values.SetColumn(0, fNodeMap.Pointer()); /* 0: global ID */
+	for (int i = 0; i < fNodalAttributes.NumRegistered(); i++)
+		i_values.SetColumn(i+1, fNodalAttributes.Array(i)); /* i: attribute_i */
 	const ArrayT<StringT>& ns_ID = fModelManager.NodeSetIDs();
 	for (int i = 0; i < nns; i++) /* mark node set participation */
 	{
 		const iArrayT& ns = fModelManager.NodeSet(ns_ID[i]);
 		for (int j = 0; j < ns.Length(); j++) {
 			int node = ns[j];
-			char* ns_flag = (char*)(i_values(node) + 1); /* field beyond int ID */
+			char* ns_flag = (char*)(i_values(node) + i_offset); /* field beyond int values */
 			ns_flag[i] = 1; /* node is member */
 		}
 	}
@@ -867,23 +962,42 @@ void CommManagerT::CloseConfigure(iArray2DT& i_values, dArray2DT& new_init_coord
 	
 	/* reset model geometry */
 	fModelManager.UpdateNodes(new_init_coords, false);
+	fNodeManager->UpdateCurrentCoordinates();
 
 	/* reset node map */
 	fNodeMap.Dimension(i_values.MajorDim());
 	i_values.ColumnCopy(0, fNodeMap.Pointer());
 
-	// reset fPartitionNodes and fPartitionNodes_inv?
+#ifdef CommManagerT_DEBUG_SPATIAL
+iArrayT tmp;
+tmp.Alias(fNodalAttributes.Array(0));
+cout << "types: BEFORE\n" << tmp.wrap(10) << '\n';
+#endif
+	
+	/* restore attributes */
+	fNodalAttributes.Dimension(i_values.MajorDim(), false);
+	for (int i = 0; i < fNodalAttributes.NumRegistered(); i++)
+		i_values.ColumnCopy(i+1, fNodalAttributes.Array(i));
+
+#ifdef CommManagerT_DEBUG_SPATIAL
+tmp.Alias(fNodalAttributes.Array(0));
+cout << "types: AFTER\n" << tmp.wrap(10) << '\n';
+#endif
+
+	/* reset fPartitionNodes (fPartitionNodes_inv?) */
+	CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes, fExternalNodes);
 
 	/* reset node sets */
 	AutoArrayT<int> ns_tmp;
 	iArrayT ns;
 	const ArrayT<StringT>& ns_ID = fModelManager.NodeSetIDs();
+	int i_offset = 1 + fNodalAttributes.NumRegistered();
 	for (int i = 0; i < nns; i++) /* mark node set participation */
 	{
 		/* count numbers of set nodes */
 		int count = 0;
 		for (int j = 0; j < npn; j++) {
-			char* ns_flag = (char*)(i_values(j) + 1); /* field beyond int ID */
+			char* ns_flag = (char*)(i_values(j) + i_offset); /* field beyond int values */
 			if (ns_flag[i] == 1) /* node is member */
 				count++;
 		}
@@ -892,7 +1006,7 @@ void CommManagerT::CloseConfigure(iArray2DT& i_values, dArray2DT& new_init_coord
 		ns_tmp.Dimension(count);
 		count = 0;
 		for (int j = 0; j < npn; j++) {
-			char* ns_flag = (char*)(i_values(j) + 1); /* field beyond int ID */
+			char* ns_flag = (char*)(i_values(j) + i_offset); /* field beyond int values */
 			if (ns_flag[i] == 1) /* node is member */
 				ns_tmp[count++] = j;
 		}			
@@ -917,12 +1031,17 @@ void CommManagerT::Distribute(iArray2DT& i_values, nVariArray2DT<int>& i_values_
 	dArrayT pack(pack_size), d_alias;
 	MPI_Request request;
 	int normal[2] = {-1, 1};
-	for (int i = 0 ; i < nsd; i++)
-		for (int j = 0; j < 2; j++) /* shift low and high */
+	for (int ii = 0; ii < fSwap.MajorDim(); ii++)
+//	for (int i = 0 ; i < nsd; i++)
+//		for (int j = 0; j < 2; j++) /* shift low and high */
 		{
+			/* swap info */
+			int dir = fSwap(ii,0);
+			int sgn = fSwap(ii,1);
+		
 			/* neighboring process ID's */
-			int ID_s = fAdjacentCommID(i,j);
-			int ID_r = fAdjacentCommID(i,1-j);
+			int ID_s = fAdjacentCommID(dir,sgn);
+			int ID_r = fAdjacentCommID(dir,1-sgn);
 			
 			/* has neighboring processes different from self */
 			bool do_send = (ID_s != -1 && ID_s != Rank());
@@ -947,12 +1066,12 @@ void CommManagerT::Distribute(iArray2DT& i_values, nVariArray2DT<int>& i_values_
 				fd_send_buffer_man.SetMajorDimension(0, false);
 		
 				/* loop over (current) processor nodes */
-				double bound = fBounds(i,j);
+				double bound = fBounds(dir,sgn);
 				int k = 0;
 				while (k < npn)
 				{
-					double dx = new_curr_coords(k,i) - bound;
-					if (dx*normal[j] > 0) /* out of bounds */
+					double dx = new_curr_coords(k,dir) - bound;
+					if (dx*normal[sgn] > 0) /* out of bounds */
 					{
 						/* copy into send buffers */
 						n_s++;
@@ -979,16 +1098,29 @@ void CommManagerT::Distribute(iArray2DT& i_values, nVariArray2DT<int>& i_values_
 				
 				/* send size */
 				fComm.Send(n_s, ID_s, tag_s);
-				
+
+#ifdef CommManagerT_DEBUG_SPATIAL
+cout << "s: sending " << n_s << " to " << ID_s << '\n';
+#endif /* CommManagerT_DEBUG_SPATIAL */
+
 				/* set flag */
 				do_send = (n_s > 0); 
 			}
+
+#ifdef CommManagerT_DEBUG_SPATIAL
+else
+cout << "s: no neighbor in coordinate " << dir << " direction " << sgn << '\n';
+#endif /* CommManagerT_DEBUG_SPATIAL */
 			
 			/* complete and post next receive */
 			if (do_recv) 
 			{
 				/* complete receive */
 				fComm.Wait(request);
+
+#ifdef CommManagerT_DEBUG_SPATIAL
+cout << "r: receiving " << n_r << " from " << ID_r << '\n';
+#endif /* CommManagerT_DEBUG_SPATIAL */
 			
 				/* post receive for integer data */
 				if (n_r > 0)
@@ -1002,6 +1134,10 @@ void CommManagerT::Distribute(iArray2DT& i_values, nVariArray2DT<int>& i_values_
 				else /* set flag */
 					do_recv = false;					
 			}
+#ifdef CommManagerT_DEBUG_SPATIAL
+else
+cout << "r: no neighbor in coordinate " << dir << " direction " << sgn << '\n';
+#endif /* CommManagerT_DEBUG_SPATIAL */
 			
 			/* send integer data */
 			if (do_send) fComm.Send(fi_send_buffer, ID_s, tag_s);
@@ -1012,7 +1148,7 @@ void CommManagerT::Distribute(iArray2DT& i_values, nVariArray2DT<int>& i_values_
 				/* complete receive */
 				fComm.Wait(request);
 
-				/* reset outgoing buffer size */
+				/* reset incoming buffer size */
 				fd_recv_buffer_man.SetMajorDimension(n_r, false);
 
 				/* post receive */
@@ -1022,6 +1158,12 @@ void CommManagerT::Distribute(iArray2DT& i_values, nVariArray2DT<int>& i_values_
 			/* send double data */
 			if (do_send) fComm.Send(fd_send_buffer, ID_s, tag_s);
 
+			/* re-dimension workspace */
+			i_values_man.SetMajorDimension(npn + n_r, true);
+			new_init_coords_man.SetMajorDimension(npn + n_r, true);
+			new_curr_coords_man.SetMajorDimension(npn + n_r, true);
+			fNodeManager->ResizeNodes(npn + n_r);
+
 			/* process incoming */
 			if (do_recv)
 			{				
@@ -1029,19 +1171,18 @@ void CommManagerT::Distribute(iArray2DT& i_values, nVariArray2DT<int>& i_values_
 				fComm.Wait(request);
 
 				/* flags */
-				i_values_man.SetMajorDimension(npn + n_r, true);
 				i_values.BlockRowCopyAt(fi_recv_buffer, npn, n_r);
 
 				/* coordinates and kinematic data */
-				new_init_coords_man.SetMajorDimension(npn + n_r, true);
-				new_curr_coords_man.SetMajorDimension(npn + n_r, true);
-				fNodeManager->ResizeNodes(npn + n_r);
 				for (int k = 0; k < n_r; k++) {
 					new_init_coords.SetRow(npn + k, fd_recv_buffer(k));
 					new_curr_coords.SetRow(npn + k, fd_recv_buffer(k) + nsd);
 					d_alias.Alias(pack_size, fd_recv_buffer(k) + 2*nsd);
 					fNodeManager->Unpack(npn + k, d_alias);
-				}	
+				}
+				
+				/* update size */
+				npn += n_r;
 			}
 		}		
 
@@ -1069,6 +1210,7 @@ void CommManagerT::SetExchange(iArray2DT& i_values, nVariArray2DT<int>& i_values
 	/* exhange nodes involved with swaps */
 	dArrayT pack(pack_size), d_alias;
 	MPI_Request request;
+	int normal[2] = {-1, 1};
 	for (int i = 0; i < fSwap.MajorDim(); i++)
 	{
 		/* swap info */
@@ -1106,8 +1248,8 @@ void CommManagerT::SetExchange(iArray2DT& i_values, nVariArray2DT<int>& i_values
 			double bound = fBounds(dir,sgn);
 			for (int k = 0; k < npn; k++)
 			{
-				double dx = fabs(new_curr_coords(k,dir) - bound);
-				if (dx < fSkin)
+				double dx = -(new_curr_coords(k,dir) - bound)*normal[sgn];
+				if (dx > 0.0 && dx < fSkin)
 				{
 					/* copy into send buffers */
 					n_s++;
