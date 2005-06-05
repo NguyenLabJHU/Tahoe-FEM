@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.h,v 1.6 2005-03-12 08:41:51 paklein Exp $ */
+/* $Id: BasicSupportT.h,v 1.6.8.1 2005-06-05 06:26:53 paklein Exp $ */
 #ifndef _TAHOE_SUPPORT_T_H_
 #define _TAHOE_SUPPORT_T_H_
 
@@ -138,7 +138,7 @@ public:
 	/** the nodes native to this processor that appear on other processors.
 	 * Returns NULL if there is no list, indicating \e all nodes are owned by 
 	 * this partition */
-	const ArrayT<int>* BorderNodes(void) const;
+//	const ArrayT<int>* BorderNodes(void) const;
 
 	/** node number map. returns NULL if there is not map */
 	const ArrayT<int>* NodeMap(void) const;
