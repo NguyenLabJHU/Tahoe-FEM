@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.24 2005-03-12 08:36:48 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.25 2005-06-06 06:38:24 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 #include "OutputSetT.h"
 #include "iArrayT.h"
@@ -47,11 +47,26 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 		fElementOutputLabels[j].Replace (' ', '_');
 	  }
 
-	/* set the nodes used array */
+	/* initialize memory managers */
+	fNodesUsed_man.SetWard(0, fNodesUsed);
+	if (fConnectivities.Length() > 1) {
+		fBlockNodesUsed_man.Dimension(fBlockNodesUsed.Length());
+		for (int i = 0; i < fBlockNodesUsed_man.Length(); i++)
+			fBlockNodesUsed_man[i].SetWard(0, fBlockNodesUsed[i]);
+	}
+	fBlockIndexToSetIndexMap_man.Dimension(fBlockIndexToSetIndexMap.Length());
+	for (int i = 0; i < fBlockIndexToSetIndexMap_man.Length(); i++)
+		fBlockIndexToSetIndexMap_man[i].SetWard(0, fBlockIndexToSetIndexMap[i]);
+
+	/* set the nodes used arrays */
 	fChanging = true; // force calculation of nodes used
 	NodesUsed();
-	for (int i = 0; i < fConnectivities.Length(); i++)
-		BlockNodesUsed(fBlockID[i]);
+	if (fConnectivities.Length() > 1) {
+		for (int i = 0; i < fConnectivities.Length(); i++)
+			BlockNodesUsed(fBlockID[i]);
+	} 
+	else 
+		fBlockNodesUsed[0].Alias(fNodesUsed);
 	fChanging = changing; // reset
 }
 
@@ -80,6 +95,11 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 		fNodeOutputLabels[i] = n_labels[i];
 		fNodeOutputLabels[i].Replace (' ', '_');
 	  }
+
+	/* initialize memory managers */
+	fNodesUsed_man.SetWard(0, fNodesUsed);
+	fBlockIndexToSetIndexMap_man.Dimension(1);
+	fBlockIndexToSetIndexMap_man[0].SetWard(0, fBlockIndexToSetIndexMap[0]);
 
 	/* set the nodes used array */
 	fChanging = true; // force calculation of nodes used
@@ -114,6 +134,11 @@ OutputSetT::OutputSetT(const iArrayT& points, const ArrayT<StringT>& n_labels, b
 		fNodeOutputLabels[i] = n_labels[i];
 		fNodeOutputLabels[i].Replace (' ', '_');
 	  }
+
+	/* initialize memory managers */
+	fNodesUsed_man.SetWard(0, fNodesUsed);
+	fBlockIndexToSetIndexMap_man.Dimension(1);
+	fBlockIndexToSetIndexMap_man[0].SetWard(0, fBlockIndexToSetIndexMap[0]);
 
 	/* set the nodes used array */
 	fChanging = true; // force calculation of nodes used
@@ -159,11 +184,26 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 		fElementOutputLabels[j].Replace (' ', '_');
 	  }
 
+	/* initialize memory managers */
+	fNodesUsed_man.SetWard(0, fNodesUsed);
+	if (fConnectivities.Length() > 1) {
+		fBlockNodesUsed_man.Dimension(fBlockNodesUsed.Length());
+		for (int i = 0; i < fBlockNodesUsed_man.Length(); i++)
+			fBlockNodesUsed_man[i].SetWard(0, fBlockNodesUsed[i]);
+	}
+	fBlockIndexToSetIndexMap_man.Dimension(fBlockIndexToSetIndexMap.Length());
+	for (int i = 0; i < fBlockIndexToSetIndexMap_man.Length(); i++)
+		fBlockIndexToSetIndexMap_man[i].SetWard(0, fBlockIndexToSetIndexMap[i]);
+
 	/* set the nodes used array */
 	fChanging = true; // force calculation of nodes used
 	NodesUsed();
-	for (int i = 0; i < fConnectivities.Length(); i++)
-		BlockNodesUsed(fBlockID[i]);
+	if (fConnectivities.Length() > 1) {
+		for (int i = 0; i < fConnectivities.Length(); i++)
+			BlockNodesUsed(fBlockID[i]);
+	} 
+	else 
+		fBlockNodesUsed[0].Alias(fNodesUsed);
 	fChanging = changing; // reset
 }
 
@@ -176,9 +216,8 @@ OutputSetT::OutputSetT(const OutputSetT& source):
 	fBlockID(source.fBlockID),
 	fSSID(source.fSSID),
 	fConnectivities(source.NumBlocks()),
-	fNodesUsed(source.fNodesUsed),
 	fBlockNodesUsed(fConnectivities.Length()),
-	fBlockIndexToSetIndexMap(source.fBlockIndexToSetIndexMap),
+	fBlockIndexToSetIndexMap(fConnectivities.Length()),
 	fPoints(source.fPoints)
 {
 	if (!fPoints) {
@@ -208,12 +247,29 @@ OutputSetT::OutputSetT(const OutputSetT& source):
 
 	if (fMode == kElementBlock &&
 	    fConnectivities.Length() != fBlockID.Length()) ExceptionT::SizeMismatch("OutputSetT::OutputSetT");
-	
-	/* set nodes used by blocks */
-	if (fConnectivities.Length() == 1)
-		fBlockNodesUsed[0].Alias(fNodesUsed);	
+
+	/* initialize memory managers */
+	fNodesUsed_man.SetWard(0, fNodesUsed);
+	fNodesUsed_man.SetLength(source.fNodesUsed.Length(), false);
+	fNodesUsed = source.fNodesUsed;
+
+	if (fConnectivities.Length() > 1) {
+		fBlockNodesUsed_man.Dimension(fBlockNodesUsed.Length());
+		for (int i = 0; i < fBlockNodesUsed_man.Length(); i++) {
+			fBlockNodesUsed_man[i].SetWard(0, fBlockNodesUsed[i]);
+			fBlockNodesUsed_man[i].SetLength(source.fBlockNodesUsed[i].Length(), false);
+			fBlockNodesUsed[i] = source.fBlockNodesUsed[i];
+		}
+	}
 	else
-		fBlockNodesUsed = source.fBlockNodesUsed;
+		fBlockNodesUsed[0].Alias(fNodesUsed);
+
+	fBlockIndexToSetIndexMap_man.Dimension(fBlockIndexToSetIndexMap.Length());
+	for (int i = 0; i < fBlockIndexToSetIndexMap_man.Length(); i++) {
+		fBlockIndexToSetIndexMap_man[i].SetWard(0, fBlockIndexToSetIndexMap[i]);
+		fBlockIndexToSetIndexMap_man[i].SetLength(source.fBlockIndexToSetIndexMap[i].Length(), false);
+		fBlockIndexToSetIndexMap[i] = source.fBlockIndexToSetIndexMap[i];
+	}
 }
 
 /* dimensions */
@@ -245,33 +301,39 @@ const iArray2DT* OutputSetT::Connectivities(const StringT& ID) const
 	return fConnectivities[BlockIndex(ID)];
 }
 
-const iArrayT& OutputSetT::BlockNodesUsed(const StringT& ID)
+const iArrayT& OutputSetT::BlockNodesUsed(const StringT& ID) const
 {
 	int index = BlockIndex(ID);
 	if (fChanging) /* need to reset data */
 	{
+		/* not so const */
+		OutputSetT* non_const_this = (OutputSetT*) this;
+
 		/* reset alias */
-		if (fPoints) fConnects2D.Alias(fPoints->Length(), 1, fPoints->Pointer());
+		if (fPoints) (non_const_this->fConnects2D).Alias(fPoints->Length(), 1, fPoints->Pointer());
 	
-		/* just one set */
+		/* just one set fBlockNodesUsed[0] is alias to fNodesUsed */
 		if (fBlockNodesUsed.Length() == 1)
 		{
-			fBlockNodesUsed[index].Alias(fNodesUsed);
-			fBlockIndexToSetIndexMap[0].Dimension(fNodesUsed.Length());
-			fBlockIndexToSetIndexMap[0].SetValueToPosition();		
+			/* reset fNodesUsed */
+			non_const_this->NodesUsed();
+			non_const_this->fBlockNodesUsed[0].Alias(fNodesUsed);
+			(non_const_this->fBlockIndexToSetIndexMap_man)[0].SetLength(fNodesUsed.Length(), false);
+			(non_const_this->fBlockIndexToSetIndexMap)[0].SetValueToPosition();		
 		}
 		else /* more than one block */
 		{
 			/* determine nodes used by block */
-			SetNodesUsed(*fConnectivities[index], fBlockNodesUsed[index]);
+			SetNodesUsed(*fConnectivities[index], (non_const_this->fBlockNodesUsed)[index],
+				(non_const_this->fBlockNodesUsed_man)[index]);
 			
 			/* block could be empty */
 			if (fBlockNodesUsed[index].Length() > 0)
 			{
 				/* block to set index map */
-				iArrayT& map = fBlockIndexToSetIndexMap[index];
-				iArrayT& used = fBlockNodesUsed[index];
-				map.Dimension(used.Length());
+				iArrayT& map = (non_const_this->fBlockIndexToSetIndexMap)[index];
+				const iArrayT& used = fBlockNodesUsed[index];
+				(non_const_this->fBlockIndexToSetIndexMap_man)[index].SetLength(used.Length(), false);
 		
 				/* range of nodes numbers */
 				int min, max;
@@ -305,20 +367,33 @@ const iArrayT& OutputSetT::BlockNodesUsed(const StringT& ID)
 }
 
 /* determine the nodes used */
-void OutputSetT::SetNodesUsed(const iArray2DT& connects, iArrayT& nodes_used)
+void OutputSetT::SetNodesUsed(const iArray2DT& connects, iArrayT& nodes_used, 
+	VariArrayT<int>& nodes_used_man) const
 {
-	nodes_used.Union(connects);
+	/* collect union */
+	iArrayT tmp;
+	tmp.Union(connects);
+	
+	/* copy */
+	nodes_used_man.SetLength(tmp.Length(), false);
+	nodes_used = tmp;
 }
 
 /* determine the nodes used */
 void OutputSetT::SetNodesUsed(const ArrayT<const iArray2DT*>& connects_list, 
-	iArrayT& nodes_used)
+	iArrayT& nodes_used, VariArrayT<int>& nodes_used_man)
 {
 	/* compiler won't cast array type */
 	ArrayT<const nArrayT<int>*> tmp(connects_list.Length(), 
 		(const nArrayT<int>**) connects_list.Pointer());
 
-	nodes_used.Union(tmp);
+	/* collect union */
+	iArrayT i_tmp;
+	i_tmp.Union(tmp);
+	
+	/* copy */
+	nodes_used_man.SetLength(i_tmp.Length(), false);
+	nodes_used = i_tmp;
 }
 
 /*************************************************************************
