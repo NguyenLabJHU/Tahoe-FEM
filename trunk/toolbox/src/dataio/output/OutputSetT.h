@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.20 2005-03-12 08:36:48 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.21 2005-06-06 06:38:24 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -9,6 +9,7 @@
 #include "StringT.h"
 #include "iArrayT.h"
 #include "iArray2DT.h"
+#include "VariArrayT.h"
 
 namespace Tahoe {
 
@@ -187,13 +188,15 @@ public:
 
 	/** return the nodes used by the output set. If the geometry is
 	 * changing, the nodes used are recalculated with every call. 
-	 * Note this function isn't really const since the nodes used
+	 * \note this function isn't really const since the nodes used
 	 * may be recalculated, but this is the price of lazy evaluation. */
 	const iArrayT& NodesUsed(void) const;
 
 	/** return the nodes used by the given block. If the geometry is
-	 * changing, the nodes used are recalculated with every call. */
-	const iArrayT& BlockNodesUsed(const StringT& ID);
+	 * changing, the nodes used are recalculated with every call.
+	 * \note this function isn't really const since the nodes used
+	 * may be recalculated, but this is the price of lazy evaluation. */
+	const iArrayT& BlockNodesUsed(const StringT& ID) const;
 
 	/** block index to set index node map. For cases with sets with
 	 * changing geometry, this map corresponds to the configuration
@@ -210,14 +213,17 @@ private:
 
 	/** determine the nodes used.
 	 * \param connects list of nodes
-	 * \param destination for nodes used */
-	void SetNodesUsed(const iArray2DT& connects, iArrayT& nodes_used);
+	 * \param nodes_used destination for nodes used 
+	 * \param nodes_used_man memory manager for the nodes used array */
+	void SetNodesUsed(const iArray2DT& connects, iArrayT& nodes_used, 
+		VariArrayT<int>& nodes_used_man) const;
 
 	/** determine the nodes used.
 	 * \param connects_list list of lists of nodes
-	 * \param destination for nodes used */
+	 * \param nodes_used destination for nodes used 
+	 * \param nodes_used_man memory manager for the nodes used array */
 	void SetNodesUsed(const ArrayT<const iArray2DT*>& connects_list, 
-		iArrayT& nodes_used);
+		iArrayT& nodes_used, VariArrayT<int>& nodes_used_man);
 	
 private:
 
@@ -251,12 +257,14 @@ private:
 	/** labels for element output variables */
 	ArrayT<StringT> fElementOutputLabels;
 	
-	/* cached */
+	/** \name cached */
+	/*@{*/
 	iArrayT fNodesUsed; /**< nodes used by the whole output set */
 	ArrayT<iArrayT> fBlockNodesUsed; /**< nodes used by element block */
 	ArrayT<iArrayT> fBlockIndexToSetIndexMap; 
 	/**< map telling for the ith block\n
 	 * fBlockNodesUsed_i[j] = fNodesUsed[fBlockIndexToSetIndexMap_i[j]] */
+	/*@}*/
 
 	/** \name writing over set of points */
 	/*@{*/
@@ -264,6 +272,13 @@ private:
 	
 	/** dummy 2D connectivity used when writing data over an iArrayT */
 	iArray2DT fConnects2D;
+	/*@}*/
+
+	/** \name memory managers */
+	/*@{*/
+	VariArrayT<int> fNodesUsed_man;
+	ArrayT<VariArrayT<int> > fBlockNodesUsed_man;
+	ArrayT<VariArrayT<int> > fBlockIndexToSetIndexMap_man;
 	/*@}*/
 };
 
@@ -286,7 +301,7 @@ inline const iArrayT& OutputSetT::NodesUsed(void) const
 		if (fPoints) non_const_this->fConnects2D.Alias(fPoints->Length(), 1, fPoints->Pointer());
 
 		/* reset nodes used */
-		non_const_this->SetNodesUsed(fConnectivities, non_const_this->fNodesUsed);
+		non_const_this->SetNodesUsed(fConnectivities, non_const_this->fNodesUsed, non_const_this->fNodesUsed_man);
 	}
 	return fNodesUsed;
 }
