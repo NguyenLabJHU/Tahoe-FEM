@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.17.2.3 2005-06-06 06:41:17 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.17.2.4 2005-06-06 07:15:50 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -17,7 +17,7 @@
 using namespace Tahoe;
 
 /* debugging */
-//#define CommManagerT_DEBUG_SPATIAL 1
+#define CommManagerT_DEBUG_SPATIAL 1
 #include "TextOutputT.h"
 
 CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
@@ -307,7 +307,7 @@ void CommManagerT::UpdateConfiguration(void)
 cout << "\n " << caller << ": IN\n";
 
 /* partition nodes */
-cout << "\npartition nodes:\n";
+cout << "\npartition nodes: " << fPartitionNodes.Length() << '\n';
 if (1) {
 	iArrayT tmp(fPartitionNodes.Length());
 	tmp.Collect(fPartitionNodes, fNodeMap);
@@ -349,11 +349,10 @@ for (int i = 0; i < fIsPeriodic.Length(); i++)
 		dArray2DT new_curr_coords;
 		nVariArray2DT<double> new_curr_coords_man;
 
-#pragma message("reset grid dimensions?")
-#if 0
-if (!fFirstConfigure && reset grid dimensions?)
-	GetProcessorBounds(const dArray2DT& coords, dArray2DT& bounds, iArray2DT& adjacent_ID)
-#endif 
+		/* determine the bounds and neighbors of this processor - (reference coordinates) */		
+		int npn = fPartitionNodes.Length(); /* current number of nodes owned by this partition */
+		dArray2DT curr_coords(npn, fModelManager.NumDimensions(), fNodeManager->CurrentCoordinates().Pointer()); /* processor nodes are 0...(npn-1) */
+		GetProcessorBounds(curr_coords, fBounds, fAdjacentCommID);
 
 		/* wrap in try block */
 		int token = 1;
@@ -395,7 +394,7 @@ for (int i = 0; i < ns_ID.Length(); i++) {
 }
 
 /* partition nodes */
-cout << "\npartition nodes:\n";
+cout << "\npartition nodes: " << fPartitionNodes.Length() << '\n';
 if (1) {
 	iArrayT tmp(fPartitionNodes.Length());
 	tmp.Collect(fPartitionNodes, fNodeMap);
