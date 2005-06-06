@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.49.6.4 2005-06-05 06:27:52 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.49.6.5 2005-06-06 07:14:57 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -208,7 +208,7 @@ GlobalT::InitStatusT ParticleT::UpdateConfiguration(void)
 		fReNeighborCounter = 0;
 		
 		/* changes to equation system */
-		GlobalT::InitStatusT my_status = (fhas_periodic) ?
+		GlobalT::InitStatusT my_status = (fhas_periodic || comm_manager.DecompType() == PartitionT::kSpatial) ?
 			GlobalT::kNewEquations : 
 			GlobalT::kNewInteractions;
 		status = GlobalT::MaxPrecedence(status, my_status);
