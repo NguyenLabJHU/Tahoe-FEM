@@ -1,4 +1,4 @@
-/* $Id: TextOutputT.cpp,v 1.4 2005-06-05 06:22:00 paklein Exp $ */
+/* $Id: TextOutputT.cpp,v 1.5 2005-06-06 06:35:33 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 #include "TextOutputT.h"
 
@@ -120,6 +120,8 @@ void TextOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		StringT geom_file(fOutroot);
 		if (fSequence > 0) geom_file.Append(".seq", fSequence + 1);
 		geom_file.Append(".io", ID);
+		if (fElementSets[ID]->Changing()) /* changing - assuming no more than 1000 output steps */
+			geom_file.Append(".ps", fElementSets[ID]->PrintStep() + 1, 4);		
 		geom_file.Append(".geo");
 
 		/* open stream */
@@ -167,12 +169,14 @@ void TextOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	StringT toc_file(fOutroot);
 	if (fSequence > 0) toc_file.Append(".seq", fSequence + 1);
 	toc_file.Append(".io", ID);
+	if (fElementSets[ID]->Changing()) /* changing - assuming no more than 1000 output steps */
+		toc_file.Append(".ps", fElementSets[ID]->PrintStep() + 1, 4);		
 	toc_file.Append(".run");
 
 	/* open stream */
 	ofstreamT toc;
 	SetStreamPrefs(toc);
-	if (!fInitRun[ID])
+	if (!fInitRun[ID] || fElementSets[ID]->Changing())
 	{
 		/* initialize toc file */
 		toc.open(toc_file);
