@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.21 2003-11-21 22:41:49 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.22 2005-06-06 06:36:42 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
@@ -222,8 +222,20 @@ void OutputBaseT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	if (ID < 0 || ID >= fElementSets.Length())
 		ExceptionT::GeneralFail(caller, "%d out of range: 0 < ID < %d", ID, fElementSets.Length());
 
-	/* dimension checks */
+	/* updtae output set */
 	const OutputSetT& set = OutputSet(ID);
+	if (set.Changing())
+	{
+		/* update nodes used */
+		set.NodesUsed();
+		
+		/* update nodes used in blocks */
+		const ArrayT<StringT>& block_ID = set.BlockID();
+		for (int i = 0; i < block_ID.Length(); i++)
+			set.BlockNodesUsed(block_ID[i]);
+	}
+	
+	/* dimension checks */
 	if (n_values.MinorDim() > 0 && set.NumNodes() != n_values.MajorDim()) 
 		ExceptionT::SizeMismatch(caller, "expecting %d not %d nodes in set ID %d", set.NumNodes(), n_values.MajorDim(), ID);
 	if (set.NumNodeValues() != n_values.MinorDim()) 
