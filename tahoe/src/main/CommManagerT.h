@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.13.2.2 2005-06-05 06:31:44 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.13.2.3 2005-06-06 06:41:17 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -12,11 +12,11 @@
 #include "nVariArray2DT.h"
 #include "Array2DT.h"
 #include "nArrayGroupT.h"
+#include "PartitionT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
-class PartitionT;
 class CommunicatorT;
 class ModelManagerT;
 class NodeManagerT;
@@ -55,6 +55,9 @@ public:
 	/** set or clear partition information. Needs to be set before calling 
 	 * CommManagerT::Configure. */
 	void SetPartition(PartitionT* partition);
+
+	/** decomposition type */
+	PartitionT::DecompTypeT DecompType(void) const;
 
 	/** set or clear node manager information */
 	void SetNodeManager(NodeManagerT* node_manager);
@@ -332,39 +335,28 @@ private:
 	/*@}*/
 };
 
+/* decomposition type */
+inline PartitionT::DecompTypeT CommManagerT::DecompType(void) const {
+	return (fPartition) ? fPartition->DecompType() : PartitionT::kUndefined;
+}
+
 /* processor map */
-inline const ArrayT<int>* CommManagerT::ProcessorMap(void) const
-{
-	if (fProcessor.Length() > 0)
-		return &fProcessor;
-	else
-		return NULL;
+inline const ArrayT<int>* CommManagerT::ProcessorMap(void) const {
+	return (fProcessor.Length() > 0) ? &fProcessor : NULL;
 }
 
 /* node numbering map */
-inline const ArrayT<int>* CommManagerT::NodeMap(void) const
-{
-	if (fNodeMap.Length() > 0)
-		return &fNodeMap;
-	else
-		return NULL;
+inline const ArrayT<int>* CommManagerT::NodeMap(void) const {
+	return (fNodeMap.Length() > 0) ? &fNodeMap : NULL;
 }
 
 /* list of nodes owned by the partition */
-inline const ArrayT<int>* CommManagerT::PartitionNodes(void) const
-{
-	if (fPartitionNodes.Length() > 0)
-		return &fPartitionNodes;
-	else
-		return NULL;
+inline const ArrayT<int>* CommManagerT::PartitionNodes(void) const {
+	return (fPartitionNodes.Length() > 0) ? &fPartitionNodes : NULL;
 }
 
-inline const ArrayT<int>* CommManagerT::ExternalNodes(void) const
-{
-	if (fExternalNodes.Length() > 0)
-		return &fExternalNodes;
-	else
-		return NULL;
+inline const ArrayT<int>* CommManagerT::ExternalNodes(void) const {
+	return (fExternalNodes.Length() > 0) ? &fExternalNodes : NULL;
 }
 
 #if 0
@@ -378,21 +370,13 @@ inline const ArrayT<int>* CommManagerT::BorderNodes(void) const
 #endif
 
 /* nodes with ghosts */
-inline const ArrayT<int>* CommManagerT::NodesWithGhosts(void) const
-{
-	if (fPBCNodes.Length() > 0)
-		return &fPBCNodes;
-	else
-		return NULL;
+inline const ArrayT<int>* CommManagerT::NodesWithGhosts(void) const {
+	return (fPBCNodes.Length() > 0) ? &fPBCNodes : NULL;
 }
 
 /* the ghosts */
-inline const ArrayT<int>* CommManagerT::GhostNodes(void) const
-{
-	if (fPBCNodes_ghost.Length() > 0)
-		return &fPBCNodes_ghost;
-	else
-		return NULL;
+inline const ArrayT<int>* CommManagerT::GhostNodes(void) const {
+	return (fPBCNodes_ghost.Length() > 0) ? &fPBCNodes_ghost : NULL;
 }
 
 /* return the partition or throw an exception if it's not set */
@@ -407,13 +391,11 @@ inline NodeManagerT& CommManagerT::NodeManager(void) const {
 	return *fNodeManager;
 }
 
-inline int CommManagerT::Init_AllGather(const nArray2DT<int>& values)
-{
+inline int CommManagerT::Init_AllGather(const nArray2DT<int>& values) {
 	return Init_AllGather(MessageT::Integer, values.MinorDim());
 }
 
-inline int CommManagerT::Init_AllGather(const nArray2DT<double>& values)
-{
+inline int CommManagerT::Init_AllGather(const nArray2DT<double>& values) {
 	return Init_AllGather(MessageT::Double, values.MinorDim());
 }
 

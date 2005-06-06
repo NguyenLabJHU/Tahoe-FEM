@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.17.2.2 2005-06-05 06:31:44 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.17.2.3 2005-06-06 06:41:17 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -17,7 +17,7 @@
 using namespace Tahoe;
 
 /* debugging */
-#define CommManagerT_DEBUG_SPATIAL 1
+//#define CommManagerT_DEBUG_SPATIAL 1
 #include "TextOutputT.h"
 
 CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
@@ -335,6 +335,12 @@ cout << endl;
 	}
 	else if (decomp_type == PartitionT::kSpatial) /* spatial decomposition */
 	{
+//TEMP
+for (int i = 0; i < fIsPeriodic.Length(); i++)
+	if (fIsPeriodic[i])
+		ExceptionT::GeneralFail(caller, "periodic boundary conditions not supported");
+//TEMP
+
 		/* work space */
 		iArray2DT i_values;
 		nVariArray2DT<int> i_values_man;
@@ -910,18 +916,25 @@ void CommManagerT::InitConfigure(iArray2DT& i_values, nVariArray2DT<int>& i_valu
 	/* initialize integer data per node */
 	i_values_man.SetWard(10, i_values, i_size);
 	i_values_man.SetMajorDimension(npn, false);
+
+	/* write global ID and flags - these are length (total processor nodes) and the
+	 * first npn are the processor nodes */
 	i_values = 0; /* initialize */
 	i_values.SetColumn(0, fNodeMap.Pointer()); /* 0: global ID */
 	for (int i = 0; i < fNodalAttributes.NumRegistered(); i++)
-		i_values.SetColumn(i+1, fNodalAttributes.Array(i)); /* i: attribute_i */
+		i_values.SetColumn(i+1, fNodalAttributes.Array(i).Pointer()); /* i: attribute_i */
+
+	/* node set flags */
 	const ArrayT<StringT>& ns_ID = fModelManager.NodeSetIDs();
 	for (int i = 0; i < nns; i++) /* mark node set participation */
 	{
 		const iArrayT& ns = fModelManager.NodeSet(ns_ID[i]);
 		for (int j = 0; j < ns.Length(); j++) {
 			int node = ns[j];
-			char* ns_flag = (char*)(i_values(node) + i_offset); /* field beyond int values */
-			ns_flag[i] = 1; /* node is member */
+			if (node < npn) /* processor nodes are 0...(npn-1) */{
+				char* ns_flag = (char*)(i_values(node) + i_offset); /* field beyond int values */
+				ns_flag[i] = 1; /* node is member */
+			}
 		}
 	}
 
