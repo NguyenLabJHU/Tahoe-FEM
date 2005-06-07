@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.62.2.3 2005-06-04 17:05:23 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.62.2.4 2005-06-07 17:04:09 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -13,6 +13,7 @@
 #include "IOManager.h"
 #include "ModelManagerT.h"
 #include "CommManagerT.h"
+#include "CommunicatorT.h"
 #include "LocalArrayT.h"
 #include "nIntegratorT.h"
 #include "eIntegratorT.h"
@@ -634,12 +635,14 @@ void NodeManagerT::WriteOutput(void)
 
 void NodeManagerT::SetEquationNumbers(int group)
 {
+	const char caller[] = "NodeManagerT::SetEquationNumbers";
+	int token = 1;
+	try {
 	/* collect fields in the group */
 	ArrayT<FieldT*> fields;
 	CollectFields(group, fields);
 	if (fields.Length() == 0)
-		ExceptionT::GeneralFail("NodeManagerT::SetEquationNumbers", 
-			"group has no fields: %d", group);
+		ExceptionT::GeneralFail(caller, "group has no fields: %d", group);
 	
 	/* initialize equations numbers arrays */
 	for (int i = 0; i < fields.Length(); i++)
@@ -687,6 +690,12 @@ void NodeManagerT::SetEquationNumbers(int group)
 	int start_eq = 1;
 	for (int i = 0; i < fields.Length(); i++)
 		fields[i]->FinalizeEquations(start_eq, num_eq);
+	} /* end try */
+	
+	catch (ExceptionT::CodeT error) { token = 0; }
+
+	/* synch and check */
+	if (fCommManager.Communicator().Sum(token) != Size()) ExceptionT::BadHeartBeat(caller);
 }
 
 void NodeManagerT::RenumberEquations(int group, 
