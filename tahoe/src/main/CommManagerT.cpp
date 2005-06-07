@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.17.2.4 2005-06-06 07:15:50 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.17.2.5 2005-06-07 17:03:10 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -386,11 +386,12 @@ TextOutputT::WriteNodeValues(cout, fNodeMap, fNodeManager->CurrentCoordinates())
 /* node sets */
 const ArrayT<StringT>& ns_ID = fModelManager.NodeSetIDs();
 for (int i = 0; i < ns_ID.Length(); i++) {
-	iArrayT tmp;
-	tmp.Alias(fModelManager.NodeSet(ns_ID[i]));
-	tmp++;
-	cout << "\n node set: " << ns_ID[i] << '\n' << tmp.wrap(10) << '\n';
-	tmp--;
+	const iArrayT& ns = fModelManager.NodeSet(ns_ID[i]);
+	cout << "\n node set: " << ns_ID[i] << '\n';
+	for (int j = 0; j < ns.Length(); j++)
+		cout << setw(kIntWidth) << ns[j]+1
+		     << setw(kIntWidth) << fNodeMap[ns[j]]+1 << '\n';
+	cout << '\n';
 }
 
 /* partition nodes */
