@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.h,v 1.7 2004-07-15 08:31:21 paklein Exp $ */
+/* $Id: MappedPeriodicT.h,v 1.8 2005-06-07 07:32:07 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 
 #ifndef _MAPPED_PERIODIC_T_H
@@ -61,7 +61,7 @@ public:
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
-	
+
 protected:
 
 	/** the field */
@@ -72,7 +72,7 @@ protected:
 	
 	/* specified deformation gradient */
 	dMatrixT fFperturb;
-	dMatrixT fF; /* F = 1 + LTf*Fperturb */
+	dMatrixT fF; /* F = (1|0) + LTf*Fperturb */
 	  	
 	/* list of mapped nodes */
 	iArrayT fMappedNodeList;
