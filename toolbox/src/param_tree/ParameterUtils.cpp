@@ -1,4 +1,4 @@
-/* $Id: ParameterUtils.cpp,v 1.11 2005-06-07 07:29:53 paklein Exp $ */
+/* $Id: ParameterUtils.cpp,v 1.12 2005-06-07 16:34:16 paklein Exp $ */
 #include "ParameterUtils.h"
 #include <ctype.h>
 
@@ -145,10 +145,11 @@ VectorParameterT::VectorParameterT(const StringT& name_N, char variable):
 	StringT suffix;
 	suffix.Suffix(name_N, '_');
 	if (suffix.StringLength() < 2 || !isdigit(suffix[1]))
-		ExceptionT::GeneralFail(caller, msg, suffix, name_N.Pointer());
+		ExceptionT::GeneralFail(caller, msg, suffix.Pointer(), name_N.Pointer());
 	int length = -1;
 	length = atoi(suffix.Pointer(1));
-	if (length < 0) ExceptionT::GeneralFail(caller, msg, suffix, name_N.Pointer());
+	if (length < 0) 
+		ExceptionT::GeneralFail(caller, msg, suffix.Pointer(), name_N.Pointer());
 
 	/* initialize */
 	fVector.Dimension(length);
@@ -236,7 +237,7 @@ MatrixParameterT::MatrixParameterT(const StringT& name_NxM, char variable):
 	StringT suffix;
 	suffix.Suffix(name_NxM, '_');
 	if (suffix.StringLength() < 4)
-		ExceptionT::GeneralFail(caller, msg, "matrix", suffix, name_NxM.Pointer());
+		ExceptionT::GeneralFail(caller, msg, "matrix", suffix.Pointer(), name_NxM.Pointer());
 	
 	/* resolve column dimensions */
 	StringT num;
