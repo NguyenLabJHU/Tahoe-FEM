@@ -1,5 +1,6 @@
-/* $Id: ParameterUtils.cpp,v 1.10 2004-12-01 02:01:16 cjkimme Exp $ */
+/* $Id: ParameterUtils.cpp,v 1.11 2005-06-07 07:29:53 paklein Exp $ */
 #include "ParameterUtils.h"
+#include <ctype.h>
 
 using namespace Tahoe;
 
@@ -138,15 +139,16 @@ VectorParameterT::VectorParameterT(const StringT& name_N, char variable):
 	fVariable(variable)
 {
 	const char caller[] = "VectorParameterT::VectorParameterT";
-	const char msg[] = "could not extract length from \"%s\"";
+	const char msg[] = "could not extract length from \"%s\" in \"%s\"";
 
 	/* resolve length */
 	StringT suffix;
 	suffix.Suffix(name_N, '_');
-	if (suffix.StringLength() < 2) ExceptionT::GeneralFail(caller, msg, name_N.Pointer());
+	if (suffix.StringLength() < 2 || !isdigit(suffix[1]))
+		ExceptionT::GeneralFail(caller, msg, suffix, name_N.Pointer());
 	int length = -1;
 	length = atoi(suffix.Pointer(1));
-	if (length < 0) ExceptionT::GeneralFail(caller, msg, name_N.Pointer());
+	if (length < 0) ExceptionT::GeneralFail(caller, msg, suffix, name_N.Pointer());
 
 	/* initialize */
 	fVector.Dimension(length);
@@ -228,30 +230,32 @@ MatrixParameterT::MatrixParameterT(const StringT& name_NxM, char variable):
 	fCopySymmetric(false)
 {
 	const char caller[] = "MatrixParameterT::MatrixParameterT";
-	const char msg[] = "could not extract %s dimensions from \"%s\"";
+	const char msg[] = "could not extract %s dimensions from \"%s\" in \"%s\"";
 
 	/* resolve suffix */
 	StringT suffix;
 	suffix.Suffix(name_NxM, '_');
 	if (suffix.StringLength() < 4)
-		ExceptionT::GeneralFail(caller, msg, "matrix", name_NxM.Pointer());
+		ExceptionT::GeneralFail(caller, msg, "matrix", suffix, name_NxM.Pointer());
 	
 	/* resolve column dimensions */
 	StringT num;
 	num.Suffix(suffix, 'x');
-	if (num.StringLength() < 2)
-		ExceptionT::GeneralFail(caller, msg, "col", num.Pointer());
+	if (num.StringLength() < 2 || !isdigit(num[1]))
+		ExceptionT::GeneralFail(caller, msg, "col", num.Pointer(), name_NxM.Pointer());
 	int col = -1;
 	col = atoi(num.Pointer(1));
-	if (col < 0) ExceptionT::GeneralFail(caller, msg, "col", num.Pointer());
+	if (col < 0)
+		ExceptionT::GeneralFail(caller, msg, "col", num.Pointer(), name_NxM.Pointer());
 	
 	/* resolve row dimensions */
 	suffix.Root('x');
-	if (suffix.StringLength() < 2)
-		ExceptionT::GeneralFail(caller, msg, "row", suffix.Pointer());
+	if (suffix.StringLength() < 2 || !isdigit(suffix[1]))
+		ExceptionT::GeneralFail(caller, msg, "row", suffix.Pointer(), name_NxM.Pointer());
 	int row = -1;
 	row = atoi(suffix.Pointer(1));
-	if (row < 0) ExceptionT::GeneralFail(caller, msg, "row", suffix.Pointer());
+	if (row < 0)
+		ExceptionT::GeneralFail(caller, msg, "row", suffix.Pointer(), name_NxM.Pointer());
 	
 	/* initialize */
 	fMatrix.Dimension(row, col);
