@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.95.2.3 2005-06-04 17:10:46 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.95.2.4 2005-06-07 17:03:30 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -164,7 +164,7 @@ void FEManagerT::Solve(void)
 			case ExceptionT::kGeneralFail:
 			case ExceptionT::kBadJacobianDet:
 			{
-				cout << '\n' << caller << ": trying to recover from error: " << ExceptionT::ToString(error) << endl;
+				cout << "\n " << caller << ": trying to recover from error: " << ExceptionT::ToString(error) << endl;
 				
 				/* reset system configuration */
 				error = ResetStep();
@@ -177,7 +177,8 @@ void FEManagerT::Solve(void)
 				break;
 			}
 			default:
-				cout << '\n' << caller <<  ": no recovery for error: " << ExceptionT::ToString(error) << endl;
+				cout << "\n " << caller <<  ": no recovery for error: " << ExceptionT::ToString(error) 
+				     << ". Check console and log files for more information." <<endl;
 		}
 	}
 }
