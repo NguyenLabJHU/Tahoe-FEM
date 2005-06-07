@@ -1,4 +1,4 @@
-/* $Id: ParameterContainerT.cpp,v 1.5 2005-04-05 15:51:11 paklein Exp $ */
+/* $Id: ParameterContainerT.cpp,v 1.6 2005-06-07 07:31:13 paklein Exp $ */
 #include "ParameterContainerT.h"
 
 using namespace Tahoe;
@@ -81,9 +81,6 @@ void ParameterContainerT::SetSubSource(const ParameterInterfaceT* sub_source)
 /* a pointer to the ParameterInterfaceT of the given subordinate*/
 ParameterInterfaceT* ParameterContainerT::NewSub(const StringT& list_name) const
 {
-	/* inherited (get from self) */
-	ParameterInterfaceT* sub = ParameterInterfaceT::NewSub(list_name);
-	
 	/* check list of containers */
 	for (int i = 0; i < fContainers.Length(); i++)
 		if (fContainers[i].Name() == list_name) {
@@ -91,10 +88,14 @@ ParameterInterfaceT* ParameterContainerT::NewSub(const StringT& list_name) const
 			return container;
 		}
 
+
 	/* get from sub source */
-	if (!sub && fSubSource)
-		sub = fSubSource->NewSub(list_name);
-		
+	ParameterInterfaceT* sub = NULL;
+	if (fSubSource) sub = fSubSource->NewSub(list_name);
+
+	/* inherited (try to get from self) */
+	if (!sub) sub = ParameterInterfaceT::NewSub(list_name);
+
 	return sub;
 }
 
