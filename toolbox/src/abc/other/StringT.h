@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.24 2005-01-29 18:31:29 paklein Exp $ */
+/* $Id: StringT.h,v 1.25 2005-06-08 17:20:20 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #ifndef _STRING_T_H_
 #define _STRING_T_H_
@@ -252,12 +252,17 @@ private:
 	
 	/** returns the character string corresponding to the number */
 	void IntegerToString(int number, char* string) const;
+
+private:
+
+	/** character for empty strings */
+	static char fEmpty;
 };
 
 /* inlines */
 
 /* constructors */
-inline StringT::StringT(void) { operator=("\0"); }
+inline StringT::StringT(void) { Alias(1, &fEmpty); }
 inline StringT::StringT(const StringT& string): ArrayT<char>(string) { }
 inline StringT::StringT(const char* string) { operator=(string); }
 
