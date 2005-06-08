@@ -1,4 +1,4 @@
-/* $Id: MFGPElementSupportT.h,v 1.3 2005-05-03 20:12:35 kyonten Exp $ */
+/* $Id: MFGPElementSupportT.h,v 1.4 2005-06-08 21:40:59 paklein Exp $ */
 #ifndef _MFGP_SUPPORT_T_H_
 #define _MFGP_SUPPORT_T_H_
 
@@ -75,7 +75,7 @@ public:
 	int SetElementNodes(int element);
 
 	/** redimension the off-diagonal, non-square matrices */
-	void MFGPElementSupportT::SetOffDiagMatrix(int element);
+	void SetOffDiagMatrix(int element);
 	
 	/** register local arrays */
 	void Register(LocalArrayT& u);
