@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.64 2005-05-03 15:54:39 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.65 2005-06-08 21:40:27 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "APS_MatlT.h"
@@ -330,12 +330,12 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 	bool is_displ = false;
 	dArrayT* element_force = NULL;
 	int num_force = 0;
-	if (field.Name() == fDispl->Name()) {
+	if (field.FieldName() == fDispl->FieldName()) {
 		is_displ = true;
 		element_force = &fFd_int;
 		num_force = fDispl->NumDOF();
 		}
-	else if (field.Name() == fPlast->Name()) {
+	else if (field.FieldName() == fPlast->FieldName()) {
 		is_displ = false;
 		element_force = &fFeps_int;
 		num_force = fPlast->NumDOF();
@@ -363,22 +363,24 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		if (nodes_u.HasValue(node, nodeposition))
 		{
 		e = CurrElementNumber();
+		const iArrayT& nodes_displ = fElementCards_displ[e].NodesU();
+		const iArrayT& nodes_plast = fElementCards_plast[e].NodesU();
 
-		SetLocalU (u);
-		SetLocalU (u_n);
-		SetLocalU (gamma_p);
-		SetLocalU (gamma_p_n);
+		u.SetLocal(nodes_displ);
+		u_n.SetLocal(nodes_displ);
+		gamma_p.SetLocal(nodes_plast);
+		gamma_p_n.SetLocal(nodes_plast);
 
 		del_u.DiffOf (u, u_n);
 		del_gamma_p.DiffOf (gamma_p, gamma_p_n);
 
 	 	// coordinates do not change for anti-plane shear
 		//fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
-	 	SetLocalX(fInitCoords_displ); 
+		fInitCoords_displ.SetLocal(fElementCards_displ[e].NodesX());
 		fCurrCoords_displ = fInitCoords_displ;
 		fShapes_displ->SetDerivatives(); 
 		//
-		SetLocalX(fInitCoords_plast); 
+		fInitCoords_plast.SetLocal(fElementCards_plast[e].NodesX());
 		fCurrCoords_plast = fInitCoords_plast;
 		fShapes_plast->SetDerivatives(); 
 		
