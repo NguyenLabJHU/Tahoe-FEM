@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.17.2.5 2005-06-07 17:03:10 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.17.2.6 2005-06-08 17:38:26 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -308,7 +308,7 @@ cout << "\n " << caller << ": IN\n";
 
 /* partition nodes */
 cout << "\npartition nodes: " << fPartitionNodes.Length() << '\n';
-if (1) {
+if (1 && fNodeMap.Length() > 0) {
 	iArrayT tmp(fPartitionNodes.Length());
 	tmp.Collect(fPartitionNodes, fNodeMap);
 	tmp++;
