@@ -1,4 +1,4 @@
-/* $Id: SuperLUMatrixT.cpp,v 1.7 2005-06-01 15:47:14 jwfoulk Exp $ */
+/* $Id: SuperLUMatrixT.cpp,v 1.8 2005-06-08 05:46:57 jwfoulk Exp $ */
 #include "SuperLUMatrixT.h"
 
 /* library support */
@@ -100,13 +100,17 @@ SuperLUMatrixT::~SuperLUMatrixT(void)
 {
 	/* free the matrix */
 	Destroy_CompCol_Matrix(&fA);
-    Destroy_SuperMatrix_Store(&fX);
+        Destroy_Dense_Matrix(&fX);
+        free(fB.Store);
 
 	/* free upper and lower factors */
-	if (fIsNumFactorized) {
+        /*                                                 */
+        /* Always destroying L & U to prevent memory leaks */
+        /*                                                 */
+/*	if (fIsNumFactorized) { */
 		Destroy_SuperNode_Matrix(&fL);
 		Destroy_CompCol_Matrix(&fU);
-	}
+/*	} */
 }
 
 /* set the internal matrix structure.
@@ -129,6 +133,7 @@ void SuperLUMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 
 	/* solution vector */
 	fX.nrow = fLocNumEQ;
+
 	DNformat* XStore = (DNformat*) fX.Store;
 	XStore->lda = fLocNumEQ;
 	free(XStore->nzval);
@@ -375,10 +380,14 @@ void SuperLUMatrixT::BackSubstitute(dArrayT& result)
 	double rcond;
 	double ferr;
 	double berr;
+
+
+	cout << "before: nzval = " << ((DNformat*) fX.Store)->nzval << '\n';
 	dgssvx(&foptions, &fA, fperm_c.Pointer(), fperm_r.Pointer(), fetree.Pointer(), &fequed,
 		fR.Pointer(), fC.Pointer(), &fL, &fU, work, lwork,
 		&fB, &fX, &recip_pivot_growth, &rcond, &ferr, &berr, &mem_usage, &stat, &info);
 
+	cout << "after: nzval = " << ((DNformat*) fX.Store)->nzval << '\n';
 	/* check results */
 	if (info != 0)
 		ExceptionT::BadJacobianDet(caller, "dgssvx return %d with estimated condition number %g", info, rcond);
