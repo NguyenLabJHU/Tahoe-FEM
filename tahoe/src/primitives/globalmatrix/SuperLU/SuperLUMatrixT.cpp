@@ -1,4 +1,4 @@
-/* $Id: SuperLUMatrixT.cpp,v 1.8 2005-06-08 05:46:57 jwfoulk Exp $ */
+/* $Id: SuperLUMatrixT.cpp,v 1.9 2005-06-08 17:24:31 jwfoulk Exp $ */
 #include "SuperLUMatrixT.h"
 
 /* library support */
@@ -381,13 +381,10 @@ void SuperLUMatrixT::BackSubstitute(dArrayT& result)
 	double ferr;
 	double berr;
 
-
-	cout << "before: nzval = " << ((DNformat*) fX.Store)->nzval << '\n';
 	dgssvx(&foptions, &fA, fperm_c.Pointer(), fperm_r.Pointer(), fetree.Pointer(), &fequed,
 		fR.Pointer(), fC.Pointer(), &fL, &fU, work, lwork,
 		&fB, &fX, &recip_pivot_growth, &rcond, &ferr, &berr, &mem_usage, &stat, &info);
 
-	cout << "after: nzval = " << ((DNformat*) fX.Store)->nzval << '\n';
 	/* check results */
 	if (info != 0)
 		ExceptionT::BadJacobianDet(caller, "dgssvx return %d with estimated condition number %g", info, rcond);
