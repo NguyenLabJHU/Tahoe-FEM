@@ -1,4 +1,4 @@
-/* $Id: nVerlet.cpp,v 1.12 2004-12-26 21:09:26 d-farrell2 Exp $ */
+/* $Id: nVerlet.cpp,v 1.12.12.1 2005-06-08 17:22:57 paklein Exp $ */
 #include "nVerlet.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
@@ -13,57 +13,70 @@ using namespace Tahoe;
 nVerlet::nVerlet(void) { }
 
 /* consistent BC's - updates predictors and acceleration only */
-void nVerlet::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
+void nVerlet::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC, const iArrayT* nodes)
 {
+	const char caller[] = "nVerlet::ConsistentKBC";
+	if (KBC.Mode() == KBC_CardT::kSet && !nodes)
+		ExceptionT::GeneralFail(caller, "expecting non-NULL nodes");
+
 	/* destinations */
 	int node = KBC.Node();
 	int dof  = KBC.DOF();
-	double& d = (field[0])(node, dof);
-	double& v = (field[1])(node, dof);
-	double& a = (field[2])(node, dof);
+	int nnd = (KBC.Mode() == KBC_CardT::kSet) ? nodes->Length() : 1;
+	const int* pnd = (KBC.Mode() == KBC_CardT::kSet) ? nodes->Pointer() : &node;
 
-	switch ( KBC.Code() )
+	/* apply to nodes */
+	for (int i = 0; i < nnd; i++)
 	{
-		case KBC_CardT::kFix: /* zero displacement */
+		double& d = (field[0])(*pnd, dof);
+		double& v = (field[1])(*pnd, dof);
+		double& a = (field[2])(*pnd, dof);
+		pnd++; /* next */
+
+		switch ( KBC.Code() )
 		{
-			d = 0.0;
-			v = 0.0; //correct?	
-			a = 0.0; //correct?	
-			break;
+			case KBC_CardT::kFix: /* zero displacement */
+			{
+				d = 0.0;
+				v = 0.0; //correct?	
+				a = 0.0; //correct?	
+				break;
+			}
+			case KBC_CardT::kDsp: /* prescribed displacement */
+			{
+				d = KBC.Value();
+			   	break;
+				/* NOTE:  haven't figured out a correct way to
+				   compute velocities and accelerations given a
+				   prescribed displacement...*/
+			}
+			case KBC_CardT::kVel: /* prescribed velocity */
+			{
+				double v_next = KBC.Value();
+				
+				if (fabs(vcorr_a) > kSmall) /* for dt -> 0.0 */
+					a = (v_next - v)/vcorr_a;
+				else
+					a = 0.0;
+				v = v_next;
+				break;
+			}
+			case KBC_CardT::kAcc: /* prescribed acceleration */
+			{
+				a  = KBC.Value();
+				v += vcorr_a*a;
+				break;
+			}
+			case KBC_CardT::kNull: /* do nothing */
+			{
+				break;
+			}
+			default:
+				ExceptionT::GeneralFail(caller, "unknown BC code %d", KBC.Code());
 		}
-		case KBC_CardT::kDsp: /* prescribed displacement */
-		{
-			d = KBC.Value();
-		   	break;
-			/* NOTE:  haven't figured out a correct way to
-			   compute velocities and accelerations given a
-			   prescribed displacement...*/
-		}
-		case KBC_CardT::kVel: /* prescribed velocity */
-		{
-			double v_next = KBC.Value();
-			
-			if (fabs(vcorr_a) > kSmall) /* for dt -> 0.0 */
-				a = (v_next - v)/vcorr_a;
-			else
-				a = 0.0;
-			v = v_next;
-			break;
-		}
-		case KBC_CardT::kAcc: /* prescribed acceleration */
-		{
-			a  = KBC.Value();
-			v += vcorr_a*a;
-			break;
-		}
-		case KBC_CardT::kNull: /* do nothing */
-		{
-			break;
-		}
-		default:
-			ExceptionT::GeneralFail("nVerlet::ConsistentKBC", "unknown BC code %d", KBC.Code());
 	}
-}		
+}
+	
 #pragma message ("roll up redundancy after it works")
 // predictors - map ALL, unless limit arguments are specified
 void nVerlet::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
@@ -95,6 +108,8 @@ void nVerlet::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend
 // correctors - map ALL , unless limit arguments are specified
 void nVerlet::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
 {
+#pragma unused(dummy)
+
 	if (fieldend == -1) // operate on full arrays
 	{
 		/* no displacement corrector */

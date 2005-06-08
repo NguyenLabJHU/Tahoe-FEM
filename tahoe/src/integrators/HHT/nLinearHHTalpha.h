@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.h,v 1.11 2004-12-26 21:08:41 d-farrell2 Exp $ */
+/* $Id: nLinearHHTalpha.h,v 1.11.12.1 2005-06-08 17:22:50 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 #ifndef _N_LINEARHHT_A_H_
 #define _N_LINEARHHT_A_H_
@@ -23,8 +23,12 @@ public:
 	/** declare field dimensions to the integrator */
 	virtual void Dimension(const BasicFieldT& field);
 
-	/** consistent BC's */
-	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC);
+	/** prescribe the field and derivatives consistent BC's 
+	 * \param field field to which boundary conditions will be applied
+	 * \param KBC boundary condition specification
+	 * \param nodes pointer to a list of nodes if KBC card has KBC_CardT::ModeT set to KBC_CardT::kSet
+	 *        or NULL if it is set to KBC_CardT::kNode. */
+	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC, const iArrayT* nodes = NULL);
 
 	/** pseudo-boundary conditions for external nodes */
 	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;

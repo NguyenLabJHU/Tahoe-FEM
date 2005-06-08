@@ -1,4 +1,4 @@
-/* $Id: nIntegratorT.h,v 1.10 2004-12-26 21:08:50 d-farrell2 Exp $ */
+/* $Id: nIntegratorT.h,v 1.10.12.1 2005-06-08 17:22:51 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_CONTROLLERT_H_
@@ -74,8 +74,12 @@ public:
 	/** return the field array needed by nIntegratorT::MappedCorrector. */
 	virtual const dArray2DT& MappedCorrectorField(BasicFieldT& field) const = 0;
 	
-	/** prescribe the field and derivatives consistent BC's */
-	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC) = 0;
+	/** prescribe the field and derivatives consistent BC's 
+	 * \param field field to which boundary conditions will be applied
+	 * \param KBC boundary condition specification
+	 * \param nodes pointer to a list of nodes if KBC card has KBC_CardT::ModeT set to KBC_CardT::kSet
+	 *        or NULL if it is set to KBC_CardT::kNode. */
+	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC, const iArrayT* nodes = NULL) = 0;
 
 protected:  	
 	
