@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.cpp,v 1.14 2004-07-15 08:31:36 paklein Exp $ */
+/* $Id: KBC_CardT.cpp,v 1.14.20.1 2005-06-08 17:21:43 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "KBC_CardT.h"
 #include "ExceptionT.h"
@@ -17,30 +17,55 @@ KBC_CardT::KBC_CardT(void):
 	fnode(-1),
 	fdof(-1),
 	fcode(kFix),
+	fmode(kUndefined),
 	fvalue(0.0),
 	fSchedule(NULL)
 { 
 
 }
 
+#pragma message("delete me")
+#if 0
 KBC_CardT::KBC_CardT(int node, int dof, CodeT code, const ScheduleT* schedule, double value):
 	fnode(-1),
 	fdof(-1),
 	fcode(kFix),
+	fmode(kNode),	
 	fvalue(0.0),
 	fSchedule(NULL)
 {
 	SetValues(node, dof, code, schedule, value);
 }
+#endif
 
 void KBC_CardT::SetValues(int node, int dof, CodeT code,  const ScheduleT* schedule, double value)
 {
 	/* set */
-	fnode = node;
+	fnode = node; 
+	fID.Clear();
 	fdof = dof;
 	fcode = code;
 	fSchedule = schedule;
 	fvalue = value;
+	fmode= kNode;
+
+	/* fixed */
+	if (fcode == kFix) {
+		fSchedule = NULL;
+		fvalue = 0.0;
+	}
+}
+
+void KBC_CardT::SetValues(const StringT& ID, int dof, CodeT code,  const ScheduleT* schedule, double value)
+{
+	/* set */
+	fnode = -1;
+	fID = ID;
+	fdof = dof;
+	fcode = code;
+	fSchedule = schedule;
+	fvalue = value;
+	fmode= kSet;
 
 	/* fixed */
 	if (fcode == kFix) {
