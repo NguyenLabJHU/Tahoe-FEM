@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.46 2005-04-30 21:14:31 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.47 2005-06-08 17:20:20 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -25,6 +25,9 @@ namespace Tahoe {
 DEFINE_TEMPLATE_STATIC const bool ArrayT<StringT>::fByteCopy = false;
 DEFINE_TEMPLATE_STATIC const bool ArrayT<StringT*>::fByteCopy = true;
 DEFINE_TEMPLATE_STATIC const bool ArrayT<const StringT*>::fByteCopy = true;
+
+/* static character for empty strings */
+char StringT::fEmpty = '\0';
 } /* namespace Tahoe */
 
 /* line length */
@@ -38,7 +41,7 @@ StringT::StringT(int length):
 	if (length > 0)
 		(*this)[0] = '\0';
 	else
-		*this = "\0";
+		Alias(1, &fEmpty);
 }
 
 namespace Tahoe {
