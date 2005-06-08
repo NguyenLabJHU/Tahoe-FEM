@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.21 2005-06-05 06:18:28 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.22 2005-06-08 17:19:01 paklein Exp $ */
 /* created: paklein (06/19/1996) */
 #ifndef _ARRAY_T_H_
 #define _ARRAY_T_H_
@@ -679,12 +679,18 @@ inline void ArrayT<TYPE>::Collect(const ArrayT<int>& keys, const ArrayT<TYPE>& s
 #if __option (extended_errorcheck)
 	if (keys.Length() != Length()) ExceptionT::SizeMismatch("ArrayT<TYPE>::Collect");
 #endif
-	Collect(keys, source.Pointer());
+	const int*  pkeys = keys.Pointer();
+	TYPE* pthis = Pointer();
+	for (int i = 0; i < Length(); i++)
+		*pthis++ = source[*pkeys++];
 }
 
 template <class TYPE>
 inline void ArrayT<TYPE>::Collect(const ArrayT<int>& keys, const TYPE* source)
 {
+#if __option (extended_errorcheck)
+	if (keys.Length() > 0 && !source) ExceptionT::SizeMismatch("ArrayT<TYPE>::Collect");
+#endif
 	const int*  pkeys = keys.Pointer();
 	TYPE* pthis = Pointer();
 	for (int i = 0; i < Length(); i++)
