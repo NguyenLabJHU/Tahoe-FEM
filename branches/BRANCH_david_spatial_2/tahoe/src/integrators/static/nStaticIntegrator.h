@@ -1,4 +1,4 @@
-/* $Id: nStaticIntegrator.h,v 1.8 2004-12-26 21:09:12 d-farrell2 Exp $ */
+/* $Id: nStaticIntegrator.h,v 1.8.12.1 2005-06-08 17:22:55 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 #ifndef _N_STATIC_CONTROLLER_H_
 #define _N_STATIC_CONTROLLER_H_
@@ -17,8 +17,12 @@ public:
 	/** constructor */
 	nStaticIntegrator(void);
 
-	/** consistent BC's */
-	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC);
+	/** prescribe the field and derivatives consistent BC's 
+	 * \param field field to which boundary conditions will be applied
+	 * \param KBC boundary condition specification
+	 * \param nodes pointer to a list of nodes if KBC card has KBC_CardT::ModeT set to KBC_CardT::kSet
+	 *        or NULL if it is set to KBC_CardT::kNode. */
+	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC, const iArrayT* nodes = NULL);
 
 	/** pseudo-boundary conditions for external nodes */
 	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;

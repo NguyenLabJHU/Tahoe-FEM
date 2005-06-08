@@ -1,4 +1,4 @@
-/* $Id: nVerlet.h,v 1.7 2004-12-26 21:09:26 d-farrell2 Exp $ */
+/* $Id: nVerlet.h,v 1.7.12.1 2005-06-08 17:22:57 paklein Exp $ */
 #ifndef _N_VERLET_H_
 #define _N_VERLET_H_
 
@@ -17,8 +17,12 @@ public:
 	/** constructor */
 	nVerlet(void);
 
-	/** consistent BC's */
-	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC);
+	/** prescribe the field and derivatives consistent BC's 
+	 * \param field field to which boundary conditions will be applied
+	 * \param KBC boundary condition specification
+	 * \param nodes pointer to a list of nodes if KBC card has KBC_CardT::ModeT set to KBC_CardT::kSet
+	 *        or NULL if it is set to KBC_CardT::kNode. */
+	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC, const iArrayT* nodes = NULL);
 
 	/** pseudo-boundary conditions for external nodes */
 	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;

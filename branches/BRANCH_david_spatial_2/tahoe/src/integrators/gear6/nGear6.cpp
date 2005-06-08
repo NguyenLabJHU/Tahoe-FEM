@@ -1,4 +1,4 @@
-/* $Id: nGear6.cpp,v 1.13 2004-12-26 21:09:05 d-farrell2 Exp $ */
+/* $Id: nGear6.cpp,v 1.13.12.1 2005-06-08 17:22:53 paklein Exp $ */
 #include "nGear6.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
@@ -21,63 +21,70 @@ nGear6::nGear6(void)
 }
 
 /* consistent BC's - updates predictors and acceleration only */
-void nGear6::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
+void nGear6::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC, const iArrayT* nodes)
 {
 	const char caller[] = "nGear6::ConsistentKBC";
-
-	/* check */
+	/* checks */
+	if (KBC.Mode() == KBC_CardT::kSet && !nodes)
+		ExceptionT::GeneralFail(caller, "expecting non-NULL nodes");
 	if (field.Order() != 5)
 		ExceptionT::GeneralFail(caller, "field must be order 6: %d", field.Order());
 
 	/* destinations */
 	int node = KBC.Node();
 	int dof  = KBC.DOF();
-	double& d = (field[0])(node, dof);
-	double& v = (field[1])(node, dof);
-	double& a = (field[2])(node, dof);
+	int nnd = (KBC.Mode() == KBC_CardT::kSet) ? nodes->Length() : 1;
+	const int* pnd = (KBC.Mode() == KBC_CardT::kSet) ? nodes->Pointer() : &node;
 
-	switch ( KBC.Code() )
+	/* apply to nodes */
+	for (int i = 0; i < nnd; i++)
 	{
-		case KBC_CardT::kFix: /* zero displacement */
-		{
-			d = 0.0;
-			v = 0.0; //correct?	
-			a = 0.0; //correct?	
-			break;
-		}
-		case KBC_CardT::kDsp: /* prescribed displacement */
-		{
-			d = KBC.Value();
-		   	break;
-			/* NOTE:  haven't figured out a correct way to
-			   compute velocities and accelerations given a
-			   prescribed displacement...*/
-		}
-		
-		case KBC_CardT::kVel: /* prescribed velocity */
-		{
-			v = KBC.Value();
-			// NEED ACTUAL, NOT PREDICTED ACCELERATION TO DEFINE
-			// THIS KBC!!! (update array?)
-			break;
-		}
-		
-		case KBC_CardT::kAcc: /* prescribed acceleration */
-		{
-			double a_next  = KBC.Value();
-			v -= F12 * (a - a_next);
-			d -= F02 * (a - a_next);
-			a = a_next;
-			break;
-		}
+		double& d = (field[0])(*pnd, dof);
+		double& v = (field[1])(*pnd, dof);
+		double& a = (field[2])(*pnd, dof);
+		pnd++; /* next */
 
-		case KBC_CardT::kNull: /* do nothing */
+		switch ( KBC.Code() )
 		{
-			break;
+			case KBC_CardT::kFix: /* zero displacement */
+			{
+				d = 0.0;
+				v = 0.0; //correct?	
+				a = 0.0; //correct?	
+				break;
+			}
+			case KBC_CardT::kDsp: /* prescribed displacement */
+			{
+				d = KBC.Value();
+			   	break;
+				/* NOTE:  haven't figured out a correct way to
+				   compute velocities and accelerations given a
+				   prescribed displacement...*/
+			}
+			
+			case KBC_CardT::kVel: /* prescribed velocity */
+			{
+				v = KBC.Value();
+				// NEED ACTUAL, NOT PREDICTED ACCELERATION TO DEFINE
+				// THIS KBC!!! (update array?)
+				break;
+			}
+			
+			case KBC_CardT::kAcc: /* prescribed acceleration */
+			{
+				double a_next  = KBC.Value();
+				v -= F12 * (a - a_next);
+				d -= F02 * (a - a_next);
+				a = a_next;
+				break;
+			}
+			case KBC_CardT::kNull: /* do nothing */
+			{
+				break;
+			}
+			default:
+				ExceptionT::BadInputValue(caller, "unknown BC code: %d", KBC.Code() );
 		}
-
-		default:
-			ExceptionT::BadInputValue(caller, "unknown BC code: %d", KBC.Code() );
 	}
 }		
 #pragma message("nGear6::Predictor, not implemented with limits yet, declaration changed to match others")

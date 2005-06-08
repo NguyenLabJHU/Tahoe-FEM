@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.cpp,v 1.11 2004-12-26 21:09:19 d-farrell2 Exp $ */
+/* $Id: nTrapezoid.cpp,v 1.11.12.1 2005-06-08 17:22:56 paklein Exp $ */
 /* created: paklein (10/03/1999) */
 #include "nTrapezoid.h"
 #include "dArrayT.h"
@@ -14,43 +14,55 @@ using namespace Tahoe;
 nTrapezoid::nTrapezoid(void) { }
 
 /* consistent BC's */
-void nTrapezoid::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
+void nTrapezoid::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC, const iArrayT* nodes)
 {
+	const char caller[] = "nTrapezoid::ConsistentKBC";
+	if (KBC.Mode() == KBC_CardT::kSet && !nodes)
+		ExceptionT::GeneralFail(caller, "expecting non-NULL nodes");
+
 	/* destinations */
 	int node = KBC.Node();
 	int dof  = KBC.DOF();
-	double& d = (field[0])(node, dof);
-	double& v = (field[1])(node, dof);
-	
-	switch ( KBC.Code() )
-	{
-		case KBC_CardT::kFix: /* zero displacement */
-		case KBC_CardT::kDsp: /* prescribed displacement */
-		{
-			double d_next = KBC.Value();
+	int nnd = (KBC.Mode() == KBC_CardT::kSet) ? nodes->Length() : 1;
+	const int* pnd = (KBC.Mode() == KBC_CardT::kSet) ? nodes->Pointer() : &node;
 
-			if (fabs(dcorr_v) > kSmall) /* for dt -> 0.0 */
-				v = (d_next - d)/dcorr_v;
-			else
-				v = 0.0;
-			d = d_next;
-			break;
-		}
-		case KBC_CardT::kVel: /* prescribed velocity */
+	/* apply to nodes */
+	for (int i = 0; i < nnd; i++)
+	{
+		double& d = (field[0])(*pnd, dof);
+		double& v = (field[1])(*pnd, dof);
+		pnd++; /* next */
+	
+		switch ( KBC.Code() )
 		{
-			v  = KBC.Value();
-			d += dcorr_v*v;
-			break;
+			case KBC_CardT::kFix: /* zero displacement */
+			case KBC_CardT::kDsp: /* prescribed displacement */
+			{
+				double d_next = KBC.Value();
+	
+				if (fabs(dcorr_v) > kSmall) /* for dt -> 0.0 */
+					v = (d_next - d)/dcorr_v;
+				else
+					v = 0.0;
+				d = d_next;
+				break;
+			}
+			case KBC_CardT::kVel: /* prescribed velocity */
+			{
+				v  = KBC.Value();
+				d += dcorr_v*v;
+				break;
+			}
+			case KBC_CardT::kNull:
+			{
+				break;
+			}
+			default:
+				ExceptionT::BadInputValue(caller, "unknown BC code: %d", KBC.Code());
 		}
-		case KBC_CardT::kNull:
-		{
-			break;
-		}
-		default:
-			ExceptionT::BadInputValue("nTrapezoid::ConsistentKBC",
-				"unknown BC code: %d", KBC.Code());
 	}
-}		
+}
+
 #pragma message ("roll up redundancy after it works")
 // predictors - map ALL, unless limit arguments are specified
 void nTrapezoid::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
@@ -76,6 +88,7 @@ void nTrapezoid::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int field
 /* correctors - map ALL */
 void nTrapezoid::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
 {
+#pragma unused(dummy)
 	if (fieldend == -1) // operate on full arrays
 	{
 		/* displacement corrector */

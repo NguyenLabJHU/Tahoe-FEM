@@ -1,4 +1,4 @@
-/* $Id: nGear6.h,v 1.9 2004-12-26 21:09:05 d-farrell2 Exp $ */
+/* $Id: nGear6.h,v 1.9.12.1 2005-06-08 17:22:53 paklein Exp $ */
 #ifndef _N_GEAR_06_H_
 #define _N_GEAR_06_H_
 
@@ -19,8 +19,12 @@ public:
 	/** constructor */
 	nGear6(void);
 
-	/** consistent BC's */
-	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC);
+	/** prescribe the field and derivatives consistent BC's 
+	 * \param field field to which boundary conditions will be applied
+	 * \param KBC boundary condition specification
+	 * \param nodes pointer to a list of nodes if KBC card has KBC_CardT::ModeT set to KBC_CardT::kSet
+	 *        or NULL if it is set to KBC_CardT::kNode. */
+	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC, const iArrayT* nodes = NULL);
 
 	/** pseudo-boundary conditions for external nodes */
 	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;
