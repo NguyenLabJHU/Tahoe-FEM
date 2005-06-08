@@ -1,6 +1,7 @@
-/* $Id: MFGPSSSolidMatList3DT.cpp,v 1.1 2005-04-26 22:27:01 kyonten Exp $ */
+/* $Id: MFGPSSSolidMatList3DT.cpp,v 1.2 2005-06-08 21:44:51 paklein Exp $ */
 #include "MFGPSSSolidMatList3DT.h"
 #include "MFGPMatSupportT.h"
+#include "MFGPSSSolidMatT.h"
 
 #include "DevelopmentMaterialsConfig.h"
 
