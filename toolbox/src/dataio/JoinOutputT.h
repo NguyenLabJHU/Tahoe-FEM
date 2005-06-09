@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.h,v 1.5 2002-07-05 22:26:25 paklein Exp $ */
+/* $Id: JoinOutputT.h,v 1.6 2005-06-09 00:03:09 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 
 #ifndef _JOIN_OUTPUT_T_H_
@@ -62,13 +62,13 @@ private:
 	void CheckAssemblyMaps(void);
 
 	/* generate output file name */
-	void ResultFileName(int part, int group, StringT& name) const;
+	void ResultFileName(int part, int group, bool changing, int print_step, StringT& name) const;
 
 	/* returns the number of output steps */
 	int NumOutputSteps(int group) const;
 	
 	/* retrieve output labels */
-	void OutputLabels(int group, ArrayT<StringT>& node_labels,
+	void OutputLabels(int group, bool changing, ArrayT<StringT>& node_labels,
 		ArrayT<StringT>& element_labels) const;
 
 private:

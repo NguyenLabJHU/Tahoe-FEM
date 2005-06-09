@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.21 2005-04-29 01:23:26 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.22 2005-06-09 00:03:09 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 #include "JoinOutputT.h"
 
@@ -84,6 +84,7 @@ void JoinOutputT::Join(void)
 	
 		/* set data */
 		const OutputSetT& output_set = *(element_sets[i]);
+		int io_ID = atoi(output_set.ID());
 		const MapSetT& map_set = fMapSets[i];
 	
 		/* assembled values */
@@ -99,7 +100,9 @@ void JoinOutputT::Join(void)
 		{
 			/* number of output steps */
 			int num_steps = NumOutputSteps(i);
-			cout << " JoinOutputT:      steps: " << num_steps << endl;
+			cout << " JoinOutputT:      steps: " << num_steps;
+			if (output_set.Changing()) cout << "+ (changing geometry)";
+			cout << endl;
 			int d_width = cout.precision() + kDoubleExtra;
 			cout << setw(kIntWidth) << "step"
 			     << setw(d_width)   << "time" << '\n';
@@ -107,19 +110,21 @@ void JoinOutputT::Join(void)
 			/* loop over steps */
 			for (int j = 0; j < num_steps; j++)
 			{
+				/* output step index */
+				int step_index = (output_set.Changing()) ? 0 : j;
+			
 				/* initialize */
+				StringT filename;
 				all_n_values = 0.0;
 				all_e_values = 0.0;
 			
 				/* loop over partitions */
-				double time = double();
+				double time = 0.0;
 				bool found_time = false;
 				for (int k = 0; k < fPartitions.Length(); k++)
 				{
 					/* file name */
-					int io_ID = atoi(output_set.ID());
-					StringT filename;
-					ResultFileName(k, io_ID, filename);
+					ResultFileName(k, io_ID, output_set.Changing(), j, filename);
 					
 					/* check if file is present */
 					if (fstreamT::Exists(filename))
@@ -138,7 +143,7 @@ void JoinOutputT::Join(void)
 							found_time = true;
 							dArrayT steps;
 							results.TimeSteps(steps);
-							time = steps[j];
+							time = steps[step_index];
 							cout << setw(kIntWidth) << j+1
 							     << setw(d_width)   << time << endl;
 						}
@@ -167,7 +172,7 @@ void JoinOutputT::Join(void)
 							part_n_man.Dimension(num_nodes, all_n_values.MinorDim());
 
 							/* read data */
-							results.AllNodeVariables(j, part_n_values);
+							results.AllNodeVariables(step_index, part_n_values);
 
 							/* assemble */
 							all_n_values.Assemble(node_map, part_n_values);
@@ -216,7 +221,7 @@ void JoinOutputT::Join(void)
 									row_offset += nel;
 								
 									/* read variables */
-									results.ElementVariables(j, block_name, block_values);
+									results.ElementVariables(step_index, block_name, block_values);
 								}
 							}
 							
@@ -228,6 +233,10 @@ void JoinOutputT::Join(void)
 
 				/* write assembled data */
 				fOutput->WriteOutput(time, i, all_n_values, all_e_values);
+				
+				/* look for next time step */
+				ResultFileName(0, io_ID, output_set.Changing(), j+1, filename);
+				if (fstreamT::Exists(filename)) num_steps++;
 			}	
 		}
 	}
@@ -240,6 +249,8 @@ void JoinOutputT::Join(void)
 /* set output */
 void JoinOutputT::SetOutput(void)
 {
+	const char caller[] = "JoinOutputT::SetOutput";
+
 	/* set coordinates */
 	fOutput->SetCoordinates(fModel->Coordinates(), NULL); //what about the map?
 	
@@ -248,18 +259,27 @@ void JoinOutputT::SetOutput(void)
 	io_file.Root(fJobFile);
 	io_file.Append(".io.ID");
 	ifstreamT io('#', io_file);
-	if (!io.is_open()) {
-		cout << "\n JoinOutputT::SetOutput: error opening: \"" << io_file << "\"\n"
-		     <<   "     file lists the element block ID's in each output ID:\n"
-		     <<   "        [output ID] [num blocks] [list of block ID's]" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (!io.is_open())
+		ExceptionT::GeneralFail(caller, "error opening \"%s\"", io_file.Pointer());
+
+/* see if file contains changing geometry information */
+#pragma message("not needed after merging BRANCH_david_spatial_2")
+io.clear_marker();
+StringT tmp;
+tmp.GetLineFromStream(io); // first comment line
+tmp.GetLineFromStream(io); // second comment line
+bool has_changing_info = (tmp.StringMatch("[changing]") != NULL);
+io.set_marker('#');
 
 	/* construct output sets for each ID */
 	int ID;
 	io >> ID;
 	while (io.good())
 	{
+		int i_changing = -99;
+		if (has_changing_info) //TEMP
+			io >> i_changing;
+		bool changing = (i_changing == 1);
 		int num_ID = -99;
 		io >> num_ID;
 		ArrayT<StringT> block_ID(num_ID);
@@ -269,7 +289,7 @@ void JoinOutputT::SetOutput(void)
 		/* get output labels */
 		ArrayT<StringT> n_labels;
 		ArrayT<StringT> e_labels;
-		OutputLabels(ID, n_labels, e_labels);
+		OutputLabels(ID, changing, n_labels, e_labels);
 
 		/* no block ID's implies a "free set" otherwise the set
 		 * is tied to element blocks in the geometry file */
@@ -289,23 +309,17 @@ void JoinOutputT::SetOutput(void)
 			{
 				/* look for part file */
 				StringT data_file;
-				ResultFileName(i, ID, data_file);
+				ResultFileName(i, ID, changing, 0, data_file);
 				if (fstreamT::Exists(data_file))
 				{
 					/* open database */
 					ModelManagerT results(cout);
-					if (!results.Initialize(fResultsFileType, data_file, true)) {
-						cout << "\n JoinOutputT::SetOutput: could not initialize file \""
-						     << data_file << '\"' << endl;
-						throw ExceptionT::kDatabaseFail;
-					}
+					if (!results.Initialize(fResultsFileType, data_file, true))
+						ExceptionT::DatabaseFail(caller, "could not initialize file \"%s\"", data_file.Pointer());
 					
 					/* check */
-					if (results.NumElementGroups() != 1) {
-						cout << "\n JoinOutputT::SetOutput: only expecting 1 element group in free output set: " 
-						     << results.NumElementGroups() << endl;
-						throw ExceptionT::kDatabaseFail;
-					}
+					if (results.NumElementGroups() != 1)
+						ExceptionT::DatabaseFail(caller, "expecting 1 not %d element groups in free output set", results.NumElementGroups());
 				
 					/* part geometry */
 					if (block_ID.Length() == 0) {
@@ -361,8 +375,7 @@ void JoinOutputT::SetOutput(void)
 	
 				/* construct output set */
 				const iArray2DT& connects = fModel->ElementGroup(sID);
-//				bool changing = false; // changing geometry not supported
-				OutputSetT output_set(geometry_code, connects, n_labels);
+				OutputSetT output_set(geometry_code, connects, n_labels, changing);
 
 				/* register */
 				fOutput->AddElementSet(output_set);
@@ -393,7 +406,6 @@ void JoinOutputT::SetOutput(void)
 			}
 
 			/* construct output set */
-			bool changing = false; // changing geometry not supported
 			OutputSetT output_set(geometry_code, block_ID, connects_list, n_labels, e_labels, changing);
 	
 			/* register */
@@ -672,12 +684,15 @@ void JoinOutputT::SetAssemblyMap(const iArrayT& inv_global, int shift, const iAr
 }
 
 /* generate output file name */
-void JoinOutputT::ResultFileName(int part, int group, StringT& name) const
+void JoinOutputT::ResultFileName(int part, int group, bool changing, int print_step, StringT& name) const
 {
 	/* basic name */
 	name.Root(fJobFile);
 	name.Append(".p", part);
 	name.Append(".io", group);
+	
+	/* changing geometry */
+	if (changing) name.Append(".ps", print_step, 4);
 	
 	/* file format extension */
 	if (fResultsFileType == IOBaseT::kTahoeResults)
@@ -697,13 +712,16 @@ int JoinOutputT::NumOutputSteps(int group) const
 {
 	/* database  */
 	int num_steps = -1;
-	
+
+	/* global output sets */
+	const ArrayT<OutputSetT*>& element_sets = fOutput->ElementSets();
+
 	/* some partitions could be missing */
 	for (int i = 0; i < fPartitions.Length() && num_steps < 0; i++)
 	{
 		/* generate file name */
 		StringT filename;
-		ResultFileName(i, group, filename);
+		ResultFileName(i, group, element_sets[0]->Changing(), 0, filename);
 		
 		/* file exists */
 		if (fstreamT::Exists(filename)) {
@@ -717,28 +735,26 @@ int JoinOutputT::NumOutputSteps(int group) const
 }
 
 /* retrieve output labels */
-void JoinOutputT::OutputLabels(int group, ArrayT<StringT>& node_labels,
+void JoinOutputT::OutputLabels(int group, bool changing, ArrayT<StringT>& node_labels,
 	ArrayT<StringT>& element_labels) const
-{	
+{
 	/* some partitions could be missing */
 	bool found_file = false;
 	for (int i = 0; i < fPartitions.Length() && !found_file; i++)
 	{
 		/* generate file name */
 		StringT filename;
-		ResultFileName(i, group, filename);
+		ResultFileName(i, group, changing, 0, filename);
 		
 		/* check if found */
 		if (fstreamT::Exists(filename))
 		{
 			/* database  */
 			ModelManagerT model(cout);
-			if (!model.Initialize(fResultsFileType, filename, true)) {
-				cout << "\n JoinOutputT::OutputLabels: error opening database file \""
-				     << fModel->DatabaseName() << '\"' << endl;
-				throw ExceptionT::kDatabaseFail;
-			}
-		
+			if (!model.Initialize(fResultsFileType, filename, true))
+				ExceptionT::DatabaseFail("JoinOutputT::OutputLabels", "error opening database file \"%s\"",
+					fModel->DatabaseName().Pointer());
+
 			/* read labels */
 			found_file = true;
 			model.NodeLabels(node_labels);
