@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.24 2005-06-09 16:18:38 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.25 2005-06-09 16:59:54 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 #include "JoinOutputT.h"
 
@@ -235,8 +235,10 @@ void JoinOutputT::Join(void)
 				fOutput->WriteOutput(time, i, all_n_values, all_e_values);
 				
 				/* look for next time step */
-				ResultFileName(0, io_ID, output_set.Changing(), j+1, filename);
-				if (fstreamT::Exists(filename)) num_steps++;
+				if (output_set.Changing()) {
+					ResultFileName(0, io_ID, output_set.Changing(), j+1, filename);
+					if (fstreamT::Exists(filename)) num_steps++;
+				}
 			}	
 		}
 		else cout << "\n JoinOutputT: output set: EMPTY" << endl;	
