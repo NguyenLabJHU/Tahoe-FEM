@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.23 2005-06-09 03:22:31 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.24 2005-06-09 16:18:38 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 #include "JoinOutputT.h"
 
@@ -340,10 +340,10 @@ io.set_marker('#');
 					for (int k = 0; k < connects.Length(); k++) 
 						connects[k] = nodes[connects[k]];
 
-					/* partition -> global numbering (atom decomp keeps global numbering) */
-					if (fPartitions[i].DecompType() != PartitionT::kIndex)
-					{
-						results.AllNodeMap(nodes);
+					/* partition -> global numbering - index decomp keeps global numbering 
+					 * since the entire system is reproduced on all processors. */
+					if (fPartitions[i].DecompType() != PartitionT::kIndex) {
+						nodes.Alias(fPartitions[i].NodeMap());
 						for (int k = 0; k < connects.Length(); k++) 
 							connects[k] = nodes[connects[k]];
 					}
