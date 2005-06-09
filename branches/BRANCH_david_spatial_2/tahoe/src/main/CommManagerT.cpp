@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.17.2.6 2005-06-08 17:38:26 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.17.2.7 2005-06-09 03:30:35 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -81,12 +81,6 @@ void CommManagerT::SetPartition(PartitionT* partition)
 		fProcessor.Dimension(fNodeMap.Length());
 		fPartition->ReturnProcessorMap(fProcessor);
 		CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes, fExternalNodes);
-		
-		/* external nodes */
-		//fExternalNodes.Alias(fPartition->Nodes_External());
-		
-		/* border nodes */
-		//fBorderNodes.Alias(fPartition->Nodes_Border());
 	}
 	else /* clear partition information */
 	{
@@ -98,9 +92,6 @@ void CommManagerT::SetPartition(PartitionT* partition)
 		
 		/* clear external nodes */
 		fExternalNodes.Dimension(0);
-
-		/* clear external nodes */
-		//fBorderNodes.Dimension(0);
 	}
 	
 	/* clear the inverse map */
@@ -378,10 +369,10 @@ cout << "\ncaller: number of partition nodes: " << new_init_coords.MajorDim() <<
 cout << "\ncaller: OUT\n";
 
 /* coordinates */
-cout << "\nreference coordinates:\n";
-TextOutputT::WriteNodeValues(cout, fNodeMap, fNodeManager->InitialCoordinates());
-cout << "\ncurrent coordinates:\n";
-TextOutputT::WriteNodeValues(cout, fNodeMap, fNodeManager->CurrentCoordinates());
+cout << "\nreference coordinates:" << fNodeManager->NumNodes() << '\n';
+//TextOutputT::WriteNodeValues(cout, fNodeMap, fNodeManager->InitialCoordinates());
+//cout << "\ncurrent coordinates:\n";
+//TextOutputT::WriteNodeValues(cout, fNodeMap, fNodeManager->CurrentCoordinates());
 
 /* node sets */
 const ArrayT<StringT>& ns_ID = fModelManager.NodeSetIDs();
@@ -889,9 +880,8 @@ void CommManagerT::EnforcePeriodicBoundaries(void)
 			for (int j = 0; j < ghost_count[i]; j++)
 				*n2p++ = -(i+1);
 
-		/* create partition nodes list if */
-		if (fPartitionNodes.Length() == 0)
-			CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes, fExternalNodes);
+		/* collect partition nodes */
+		CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes, fExternalNodes);
 
 		/* copy nodal information */
 		fNodeManager->CopyNodeToNode(fPBCNodes, fPBCNodes_ghost);
@@ -997,8 +987,9 @@ tmp.Alias(fNodalAttributes.Array(0));
 cout << "types: AFTER\n" << tmp.wrap(10) << '\n';
 #endif
 
-	/* reset fPartitionNodes (fPartitionNodes_inv?) */
+	/* reset partition nodes */
 	CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes, fExternalNodes);
+	fPartitionNodes_inv.ClearMap();
 
 	/* reset node sets */
 	AutoArrayT<int> ns_tmp;
