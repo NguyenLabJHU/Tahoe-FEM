@@ -1,4 +1,4 @@
-/* $Id: ParticleThreeBodyT.cpp,v 1.6.8.1 2005-05-27 19:55:17 paklein Exp $ */
+/* $Id: ParticleThreeBodyT.cpp,v 1.6.8.2 2005-06-09 03:32:45 paklein Exp $ */
 #include "ParticleThreeBodyT.h"
 
 #include "ifstreamT.h"
@@ -91,14 +91,14 @@ void ParticleThreeBodyT::WriteOutput(void)
 	num_output+=ndof; /* some more for slip vector */
 #endif
 
-	/* number of nodes */
-	const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
-	int non = (parition_nodes) ? 
-		parition_nodes->Length() : 
-		ElementSupport().NumNodes();
-
 	/* map from partition node index */
-	const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
+	const ArrayT<int>* partition_nodes = (fOutputAllParticles) ? NULL : comm_manager.PartitionNodes();
+	const InverseMapT* inverse_map = (fOutputAllParticles) ? NULL : comm_manager.PartitionNodes_inv();
+
+	/* number of nodes */
+	int non = (partition_nodes) ? 
+		partition_nodes->Length() : 
+		ElementSupport().NumNodes();
 
 #ifndef NO_PARTICLE_STRESS_OUTPUT
 	dSymMatrixT vs_i(ndof), temp(ndof);
@@ -148,7 +148,7 @@ void ParticleThreeBodyT::WriteOutput(void)
 	/* collect displacements */
 	dArrayT vec, values_i;
 	for (int i = 0; i < non; i++) {
-		int   tag_i = (parition_nodes) ? (*parition_nodes)[i] : i;
+		int   tag_i = (partition_nodes) ? (*partition_nodes)[i] : i;
 		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
 		int  type_i = fType[tag_i];
 
