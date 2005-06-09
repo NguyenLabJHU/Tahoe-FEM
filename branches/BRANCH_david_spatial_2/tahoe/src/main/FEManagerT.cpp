@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.95.2.4 2005-06-07 17:03:30 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.95.2.5 2005-06-09 03:29:32 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -800,13 +800,15 @@ void FEManagerT::WriteOutput(const StringT& file, const dArray2DT& coords, const
 
 int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 {
+	const char caller[] = "FEManagerT::RegisterOutput";
+
 	/* check */
 	if (!fIOManager) 
-		ExceptionT::GeneralFail("FEManagerT::RegisterOutput", "I/O manager not initialized");
+		ExceptionT::GeneralFail(caller, "I/O manager not initialized");
 
 	/* limit registering output to initialization stage */
 	if (fStatus != GlobalT::kInitialization) 
-		ExceptionT::GeneralFail("FEManagerT::RegisterOutput", "output sets can only be registered during initialization");
+		ExceptionT::GeneralFail(caller, "output sets can only be registered during initialization");
 
 	int ID = fIOManager->AddElementSet(output_set);
 	if (Size() > 1 && Rank() == 0)
@@ -825,7 +827,7 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 			
 			/* write header information */
 			io << "# element block ID's for each output ID\n";
-			io << "# [output ID] [num blocks] [list of block ID's]\n";
+			io << "# [output ID] [changing] [num blocks] [list of block ID's]\n";
 		}
 		else
 			io.open_append(io_file);
@@ -837,7 +839,7 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 			{	
 				/* write block ID information */
 				const ArrayT<StringT>& block_ID = output_set.BlockID();
-				io << ID << " " << block_ID.Length();
+				io << ID << " " << ((output_set.Changing()) ? 1 : 0) << " " << block_ID.Length();
 				for (int i = 0; i < block_ID.Length(); i++)
 					io << " " << block_ID[i];
 				io << '\n';
@@ -847,7 +849,7 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 			case OutputSetT::kFreeSet: 
 			{
 				/* no ID's for free sets */
-				io << ID << " 0\n";
+				io << ID << " " << ((output_set.Changing()) ? 1 : 0) << " 0\n";
 				
 				break;
 			}
@@ -855,7 +857,7 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 			{
 				/* write block ID information */
 				const ArrayT<StringT>& block_ID = output_set.BlockID();
-				io << ID << " " << block_ID.Length();
+				io << ID << " " << ((output_set.Changing()) ? 1 : 0) << " " << block_ID.Length();
 				for (int i = 0; i < block_ID.Length(); i++)
 					io << " " << block_ID[i];
 				io << '\n';
@@ -864,7 +866,7 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 			}
 			default:
 			{
-				ExceptionT::GeneralFail("FEManagerT::RegisterOutput", "unrecognized output set mode: %d", output_set.Mode());
+				ExceptionT::GeneralFail(caller, "unrecognized output set mode: %d", output_set.Mode());
 			}
 		}
 	}
