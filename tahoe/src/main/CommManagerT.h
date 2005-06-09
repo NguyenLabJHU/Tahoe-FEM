@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.13.2.3 2005-06-06 06:41:17 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.13.2.4 2005-06-09 03:30:35 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -119,12 +119,6 @@ public:
 	 * within the nodes appearing on this processor. Returns NULL if there is no 
 	 * list, indicating \e all nodes are owned by this partition. */
 	const ArrayT<int>* ExternalNodes(void) const;
-
-	/** list of nodes adjacent to nodes in CommManagerT::ExternalNodes. These are the nodes 
-	 * for which information is sent to other processors. These nodes are numbered locally
-	 * within the nodes appearing on this processor. Returns NULL if there is no 
-	 * list, indicating \e all nodes are owned by this partition */
-//	const ArrayT<int>* BorderNodes(void) const;
 	/*@}*/
 
 	/** \name ghost nodes 
@@ -281,9 +275,6 @@ private:
 
 	/** list of nodes \e not owned by this partition */
 	AutoArrayT<int> fExternalNodes;
-
-	/** list of nodes adjacent to any external nodes */
-//	AutoArrayT<int> fBorderNodes;
 	/*@}*/
 	
 	/** \name persistent communications */
@@ -358,16 +349,6 @@ inline const ArrayT<int>* CommManagerT::PartitionNodes(void) const {
 inline const ArrayT<int>* CommManagerT::ExternalNodes(void) const {
 	return (fExternalNodes.Length() > 0) ? &fExternalNodes : NULL;
 }
-
-#if 0
-inline const ArrayT<int>* CommManagerT::BorderNodes(void) const
-{
-	if (fBorderNodes.Length() > 0)
-		return &fBorderNodes;
-	else
-		return NULL;
-}
-#endif
 
 /* nodes with ghosts */
 inline const ArrayT<int>* CommManagerT::NodesWithGhosts(void) const {
