@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.34.6.3 2005-06-05 06:27:52 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.34.6.4 2005-06-09 03:31:36 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -207,9 +207,6 @@ protected: /* for derived classes only */
 
 protected:
 
-	/** reference ID for sending output */
-	int fOutputID;
-
 	/** \name local to global tag map.
 	 * Used for things like neighbor lists */
 	/*@{*/
@@ -220,6 +217,7 @@ protected:
 	/** connectivities used to define the output set. Just an alias to the
 	 * ParticleT::fGlobalTag. */
 	iArray2DT fPointConnectivities;
+	nVariArray2DT<int> fPointConnectivities_man;
 	/*@}*/
 
 	/** the neighboring cut-off distance */
@@ -236,6 +234,9 @@ protected:
 
 	/** maximum number of steps between reseting neighbor lists */
 	int fReNeighborIncr;
+
+	/** write output over all on-processor particles */
+	bool fOutputAllParticles;
 
 	/** \name periodic boundary conditions */
 	/*@{*/

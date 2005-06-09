@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.49.6.5 2005-06-06 07:14:57 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.49.6.6 2005-06-09 03:31:36 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -40,6 +40,8 @@ ParticleT::ParticleT(const ElementSupportT& support):
 	fNeighborDistance(-1),
 	fReNeighborDisp(-1),
 	fReNeighborIncr(-1),
+	fOutputAllParticles(false),
+	fPointConnectivities_man(0, fPointConnectivities, 1),
 	fStretchTime(-1.0),
 	fGrid(NULL),
 	fDmax(0),
@@ -91,15 +93,15 @@ void ParticleT::RegisterOutput(void)
 {
 	/* "point connectivities" needed for output */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
-	const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
-	if (parition_nodes)
+	const ArrayT<int>* partition_nodes = (fOutputAllParticles) ? NULL : comm_manager.PartitionNodes();
+	if (partition_nodes)
 	{
-		int num_nodes = parition_nodes->Length();
-		fPointConnectivities.Alias(num_nodes, 1, parition_nodes->Pointer());
+		int num_nodes = partition_nodes->Length();
+		fPointConnectivities.Alias(num_nodes, 1, partition_nodes->Pointer());
 	}
 	else /* ALL nodes */
 	{
-		fPointConnectivities.Dimension(ElementSupport().NumNodes(), 1);
+		fPointConnectivities_man.SetMajorDimension(ElementSupport().NumNodes(), false);
 		iArrayT tmp;
 		tmp.Alias(fPointConnectivities);
 		tmp.SetValueToPosition();				
@@ -139,14 +141,19 @@ void ParticleT::WriteOutput(void)
 	/* reset connectivities */
 	if (ChangingGeometry())
 	{
-		const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
-		if (parition_nodes)
+		const ArrayT<int>* partition_nodes = (fOutputAllParticles) ? NULL : comm_manager.PartitionNodes();
+		if (partition_nodes)
 		{
-			int num_nodes = parition_nodes->Length();
-			fPointConnectivities.Alias(num_nodes, 1, parition_nodes->Pointer());	
+			int num_nodes = partition_nodes->Length();
+			fPointConnectivities.Alias(num_nodes, 1, partition_nodes->Pointer());	
 		}
-		else
-			ExceptionT::GeneralFail("ParticleT::WriteOutput", "expecting a partition nodes list");
+		else /* ALL nodes */
+		{
+			fPointConnectivities_man.SetMajorDimension(ElementSupport().NumNodes(), false);
+			iArrayT tmp;
+			tmp.Alias(fPointConnectivities);
+			tmp.SetValueToPosition();				
+		}
 	}
 }
 
@@ -667,6 +674,11 @@ void ParticleT::DefineParameters(ParameterListT& list) const
 	re_neighbor_incr.AddLimit(0, LimitT::LowerInclusive);
 	re_neighbor_incr.SetDefault(0);
 	list.AddParameter(re_neighbor_incr);
+
+	/* output all on-processor particles */
+	ParameterT output_all(fOutputAllParticles, "output_all_particles");
+	output_all.SetDefault(fOutputAllParticles);
+	list.AddParameter(output_all);
 }
 
 /* information about subordinate parameter lists */
@@ -757,6 +769,7 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 	fNeighborDistance = list.GetParameter("max_neighbor_distance");
 	fReNeighborDisp = list.GetParameter("re-neighbor_displacement");
 	fReNeighborIncr = list.GetParameter("re-neighbor_increment");
+	fOutputAllParticles = list.GetParameter("output_all_particles");
 
 	/* derived parameters */
 	if (NumSD() == 1)
