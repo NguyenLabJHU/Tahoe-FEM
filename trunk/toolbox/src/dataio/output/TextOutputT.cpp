@@ -1,4 +1,4 @@
-/* $Id: TextOutputT.cpp,v 1.5 2005-06-06 06:35:33 paklein Exp $ */
+/* $Id: TextOutputT.cpp,v 1.6 2005-06-09 00:00:45 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 #include "TextOutputT.h"
 
@@ -54,7 +54,7 @@ void TextOutputT::WriteGeometry(void)
 	for (int j=0; j < fElementSets.Length() && !change; j++)
 	  if (fElementSets[j]->Changing()) change = true;
 	if (change)
-	  filename.Append(".ps", fElementSets[0]->PrintStep() + 1);
+	  filename.Append(".ps", fElementSets[0]->PrintStep());
 	filename.Append (".geom");
 	mf.OpenWrite (filename, fExternTahoeII);
 	
@@ -121,13 +121,13 @@ void TextOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		if (fSequence > 0) geom_file.Append(".seq", fSequence + 1);
 		geom_file.Append(".io", ID);
 		if (fElementSets[ID]->Changing()) /* changing - assuming no more than 1000 output steps */
-			geom_file.Append(".ps", fElementSets[ID]->PrintStep() + 1, 4);		
+			geom_file.Append(".ps", fElementSets[ID]->PrintStep(), 4);
 		geom_file.Append(".geo");
 
 		/* open stream */
 		ofstreamT out;
 		SetStreamPrefs(out);
-		if (!fInitGeom[ID])
+		if (!fInitGeom[ID] || fElementSets[ID]->Changing())
 		{
 			/* initialize geometry file */
 			out.open(geom_file);
@@ -170,7 +170,7 @@ void TextOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	if (fSequence > 0) toc_file.Append(".seq", fSequence + 1);
 	toc_file.Append(".io", ID);
 	if (fElementSets[ID]->Changing()) /* changing - assuming no more than 1000 output steps */
-		toc_file.Append(".ps", fElementSets[ID]->PrintStep() + 1, 4);		
+		toc_file.Append(".ps", fElementSets[ID]->PrintStep(), 4);
 	toc_file.Append(".run");
 
 	/* open stream */
