@@ -1,4 +1,4 @@
-/* $Id: TextOutputT.cpp,v 1.6 2005-06-09 00:00:45 paklein Exp $ */
+/* $Id: TextOutputT.cpp,v 1.7 2005-06-09 16:20:12 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 #include "TextOutputT.h"
 
@@ -109,6 +109,8 @@ void TextOutputT::WriteGeometry(void)
 void TextOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	const dArray2DT& e_values)
 {
+	const char caller[] = "TextOutputT::WriteOutput";
+
 	/* inherited */
 	OutputBaseT::WriteOutput(time, ID, n_values, e_values);
 
@@ -141,10 +143,7 @@ void TextOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 
 		/* check */
 		if (!out.is_open())
-		{
-			cout << "\n TextOutputT::WriteOutput: error opening file: " << geom_file << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+			ExceptionT::GeneralFail(caller, "error opening file \"%s\"", geom_file.Pointer());
 
 		/* ID information */
 		out << " Group number. . . . . . . . . . . . . . . . . . = "
