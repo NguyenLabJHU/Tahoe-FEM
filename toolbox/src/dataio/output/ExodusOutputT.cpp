@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.17 2005-04-10 18:13:59 paklein Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.18 2005-06-09 00:00:45 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "ExodusOutputT.h"
@@ -123,7 +123,7 @@ void ExodusOutputT::FileName(int ID, StringT& filename) const
 
 	/* changing geometry */
 	if (fElementSets[ID]->Changing())
-		filename.Append(".ps", fElementSets[ID]->PrintStep() + 1, 4);
+		filename.Append(".ps", fElementSets[ID]->PrintStep(), 4);
 			/* assuming no more than 1000 output steps */
 
 	/* extension */
@@ -182,7 +182,7 @@ void ExodusOutputT::CreateGeometryFile(ExodusT& exo)
   for (int j=0; j < fElementSets.Length() && !change; j++)
     if (fElementSets[j]->Changing()) change = true;
   if (change)
-    filename.Append(".ps", fElementSets[0]->PrintStep() + 1);
+    filename.Append(".ps", fElementSets[0]->PrintStep());
   filename.Append(".exo");
   
   int dim = fCoordinates->MinorDim();
