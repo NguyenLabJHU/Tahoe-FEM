@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.35 2005-04-12 15:30:14 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.36 2005-06-09 16:19:12 paklein Exp $ */
 /* created: sawimme July 2001 */
 #ifndef _MODELMANAGER_T_H_
 #define _MODELMANAGER_T_H_
@@ -709,15 +709,11 @@ class ModelManagerT
 };
 
 /* return a reference to the input class */
-inline InputBaseT& ModelManagerT::Input(const char* caller) const
-{
-	if (!fInput) {
-		if (caller)
-			cout << "\n ModelManagerT::" << caller << ": input source is not initialized" << endl;
-		else
-			cout << "\n ModelManagerT: input source is not initialized" << endl;
-		throw ExceptionT::kDatabaseFail;
-	}
+inline InputBaseT& ModelManagerT::Input(const char* caller) const {
+	const char this_caller[] = "ModelManagerT::Input"; 
+	if (!fInput) 
+		ExceptionT::DatabaseFail((caller) ? caller : this_caller, 
+			"input source is not initialized");
 	return *fInput;
 }
 
