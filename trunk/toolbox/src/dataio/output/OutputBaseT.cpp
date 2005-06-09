@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.22 2005-06-06 06:36:42 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.23 2005-06-09 03:22:39 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
@@ -135,11 +135,8 @@ void OutputBaseT::AddSideSet(const iArray2DT& sideset, const StringT& setID, con
 void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 	IOBaseT::FileTypeT format) const
 {
-	if (!fCoordinates)
-	{
-		cout << "\n OutputBaseT::WriteGeometryFile: pointer to coordinates not set" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	const char caller[] = "OutputBaseT::WriteGeometryFile";
+	if (!fCoordinates) ExceptionT::GeneralFail(caller, "pointer to coordinates not set");
 
 	if (format == IOBaseT::kTahoeII)
 	{
@@ -197,15 +194,11 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 				exo.WriteConnectivities(id, fElementSets[i]->Geometry(), connects);
 				connects--;
 		    }
-
 		}
 	}
 	else
-	{
-		cout << "\n OutputBaseT::WriteGeometryFile: output format must be "
-		     << IOBaseT::kTahoeII << " or " << IOBaseT::kExodusII << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "output format must be %d or %d",
+			IOBaseT::kTahoeII, IOBaseT::kExodusII);
 }
 
 void OutputBaseT::WriteOutput(double time, int ID, const dArray2DT& n_values,
