@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.cpp,v 1.6.8.1 2005-06-05 06:26:53 paklein Exp $ */
+/* $Id: BasicSupportT.cpp,v 1.6.8.2 2005-06-09 03:28:47 paklein Exp $ */
 #include "BasicSupportT.h"
 
 #include "dArray2DT.h"
@@ -320,18 +320,6 @@ const ArrayT<int>* BasicSupportT::ExternalNodes(void) const
 #endif
 	return NULL;
 }
-
-#if 0
-const ArrayT<int>* BasicSupportT::BorderNodes(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	if (fCommManager) 
-		return fCommManager->BorderNodes();
-	else
-#endif
-	return NULL;
-}
-#endif
 
 /* list of nodes owned by this processor or NULL if \e all nodes are owned */
 const ArrayT<int>* BasicSupportT::PartitionNodes(void) const
