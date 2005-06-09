@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.22 2005-06-09 00:03:09 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.23 2005-06-09 03:22:31 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 #include "JoinOutputT.h"
 
@@ -239,6 +239,7 @@ void JoinOutputT::Join(void)
 				if (fstreamT::Exists(filename)) num_steps++;
 			}	
 		}
+		else cout << "\n JoinOutputT: output set: EMPTY" << endl;	
 	}
 }
 
@@ -342,7 +343,7 @@ io.set_marker('#');
 					/* partition -> global numbering (atom decomp keeps global numbering) */
 					if (fPartitions[i].DecompType() != PartitionT::kIndex)
 					{
-						nodes.Alias(fPartitions[i].NodeMap());
+						results.AllNodeMap(nodes);
 						for (int k = 0; k < connects.Length(); k++) 
 							connects[k] = nodes[connects[k]];
 					}
