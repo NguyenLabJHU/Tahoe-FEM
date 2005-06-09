@@ -1,4 +1,4 @@
-/* $Id: nVerlet.cpp,v 1.12.12.1 2005-06-08 17:22:57 paklein Exp $ */
+/* $Id: nVerlet.cpp,v 1.12.12.2 2005-06-09 02:44:01 d-farrell2 Exp $ */
 #include "nVerlet.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
@@ -106,9 +106,8 @@ void nVerlet::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend
 }		
 
 // correctors - map ALL , unless limit arguments are specified
-void nVerlet::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
+void nVerlet::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
-#pragma unused(dummy)
 
 	if (fieldend == -1) // operate on full arrays
 	{

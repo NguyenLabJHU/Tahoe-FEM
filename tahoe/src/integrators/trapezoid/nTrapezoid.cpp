@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.cpp,v 1.11.12.1 2005-06-08 17:22:56 paklein Exp $ */
+/* $Id: nTrapezoid.cpp,v 1.11.12.2 2005-06-09 02:43:59 d-farrell2 Exp $ */
 /* created: paklein (10/03/1999) */
 #include "nTrapezoid.h"
 #include "dArrayT.h"
@@ -86,9 +86,8 @@ void nTrapezoid::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int field
 }		
 
 /* correctors - map ALL */
-void nTrapezoid::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
+void nTrapezoid::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
-#pragma unused(dummy)
 	if (fieldend == -1) // operate on full arrays
 	{
 		/* displacement corrector */

@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.45.2.3 2005-06-08 17:39:31 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.45.2.4 2005-06-09 02:44:02 d-farrell2 Exp $ */
 #include "FieldT.h"
 
 #include "ElementsConfig.h"
@@ -525,7 +525,7 @@ void FieldT::AssembleUpdate(const dArrayT& update)
 void FieldT::ApplyUpdate(int fPartFieldStart /*= 0*/, int fPartFieldEnd /*= -1*/)
 {
 	/* corrector */
-	nIntegrator().Corrector(*this, fUpdate,fPartFieldStart, fPartFieldEnd, 0);
+	nIntegrator().Corrector(*this, fUpdate,fPartFieldStart, fPartFieldEnd);
 }
 
 /* copy nodal information */
