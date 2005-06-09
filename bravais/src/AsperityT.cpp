@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.cpp,v 1.18 2004-03-19 17:33:29 jzimmer Exp $ */
+/* $Id: AsperityT.cpp,v 1.19 2005-06-09 21:48:08 saubry Exp $ */
 #include "AsperityT.h"
 #include "VolumeT.h"
 
@@ -189,7 +189,6 @@ void AsperityT::CreateLattice(CrystalLatticeT* pcl)
   int nuca = pcl->GetNUCA();
   int ntype = pcl->GetNTYPE();
 
-  int natoms=0;
   int temp_nat=0;
   dArray2DT temp_atom;
   iArrayT temp_type;
@@ -550,7 +549,7 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
   const dArray2DT& vA = pcl->GetAxis();
   const iArrayT& vT = pcl->GetType();
 
-  double x,y,z;
+  double x,y,z=0;
   double eps = 1.e-6;
 
   // Call circle parameters
@@ -720,7 +719,7 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
   const iArrayT& vT = pcl->GetType();
 
   double eps = 1.e-6;
-  double x,y,z;
+  double x,y,z=0;
 
   // Call circle parameters
   double h0 = ComputeCircleParameters();
