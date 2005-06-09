@@ -1,4 +1,4 @@
-/* $Id: nGear6.h,v 1.9.12.1 2005-06-08 17:22:53 paklein Exp $ */
+/* $Id: nGear6.h,v 1.9.12.2 2005-06-09 02:43:57 d-farrell2 Exp $ */
 #ifndef _N_GEAR_06_H_
 #define _N_GEAR_06_H_
 
@@ -33,7 +33,7 @@ public:
 	virtual void Predictor(BasicFieldT& field, int fieldstart = 0, int fieldend = -1);
 
 	/** corrector. Maps ALL degrees of freedom forward. */
-	virtual void Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart = 0, int fieldend = -1, int dummy = 0);
+	virtual void Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart = 0, int fieldend = -1);
 
 	/** corrector - map ACTIVE. See nIntegratorT::Corrector for more
 	 * documentation */

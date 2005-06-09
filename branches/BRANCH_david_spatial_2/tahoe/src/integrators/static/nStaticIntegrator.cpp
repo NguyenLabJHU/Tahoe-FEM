@@ -1,4 +1,4 @@
-/* $Id: nStaticIntegrator.cpp,v 1.10.12.1 2005-06-08 17:22:54 paklein Exp $ */
+/* $Id: nStaticIntegrator.cpp,v 1.10.12.2 2005-06-09 02:43:58 d-farrell2 Exp $ */
 /* created: paklein (10/14/1996) */
 #include "nStaticIntegrator.h"
 #include "BasicFieldT.h"
@@ -63,9 +63,8 @@ void nStaticIntegrator::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, in
 }
 
 /* corrector. Maps ALL degrees of freedom forward. */
-void nStaticIntegrator::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
+void nStaticIntegrator::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
-#pragma unused(dummy)
 
 	if (fieldend == -1) // operate on full arrays
 	{

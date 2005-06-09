@@ -1,4 +1,4 @@
-/* $Id: nIntegratorT.h,v 1.10.12.1 2005-06-08 17:22:51 paklein Exp $ */
+/* $Id: nIntegratorT.h,v 1.10.12.2 2005-06-09 02:43:55 d-farrell2 Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_CONTROLLERT_H_
@@ -53,7 +53,7 @@ public:
 	virtual void Predictor(BasicFieldT& field, int fieldstart = 0, int fieldend = -1) = 0;
 	
 	/** corrector. Maps ALL degrees of freedom forward. */
-	virtual void Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart = 0, int fieldend = -1, int dummy = 0);
+	virtual void Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart = 0, int fieldend = -1);
 
 	/** corrector. Maps only the ACTIVE degrees of freedom forward.
 	 * \param eqnos equations for the degrees of freedom of every node

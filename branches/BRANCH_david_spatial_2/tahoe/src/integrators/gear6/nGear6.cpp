@@ -1,4 +1,4 @@
-/* $Id: nGear6.cpp,v 1.13.12.1 2005-06-08 17:22:53 paklein Exp $ */
+/* $Id: nGear6.cpp,v 1.13.12.2 2005-06-09 02:43:57 d-farrell2 Exp $ */
 #include "nGear6.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
@@ -87,14 +87,14 @@ void nGear6::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC, const iArra
 		}
 	}
 }		
-#pragma message("nGear6::Predictor, not implemented with limits yet, declaration changed to match others")
+
 /* predictors - map ALL */
 void nGear6::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
 	/* check */
 	if (field.Order() != 5)
 		ExceptionT::GeneralFail("nGear6::Predictor", "field must be order 6: %d", field.Order());
-
+	
 	/* fetch pointers */
 	double* p0 = field[0].Pointer(); 
 	double* p1 = field[1].Pointer();
@@ -102,9 +102,23 @@ void nGear6::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend 
 	double* p3 = field[3].Pointer();
 	double* p4 = field[4].Pointer();
 	double* p5 = field[5].Pointer();
-
+	
+	/* now update the pointers to the appropriate starting point */
+	double dfs = fieldstart;
+	*p0 += dfs;
+	*p1 += dfs;
+	*p2 += dfs;
+	*p3 += dfs;
+	*p4 += dfs;
+	*p5 += dfs;
+	
+	int len;
+	if (fieldend == -1) // operate on full arrays
+		len = field[0].Length();
+	else // operate on restricted contiguous block of the arrays
+		len = fieldend - fieldstart + 1;
+	
 	/* run through arrays */
-	int len = field[0].Length();
 	for (int i = 0; i < len; i++)
 	{
 		(*p0++) += fdt*(*p1) + fdt2*(*p2) + fdt3*(*p3) + fdt4*(*p4) + fdt5*(*p5);
@@ -114,9 +128,9 @@ void nGear6::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend 
 		(*p4++) += fdt*(*p5++);
 	}
 }		
-#pragma message("nGear6::Corrector, not implemented with limits yet, declaration changed to match others")
+
 /* corrector. Maps ALL degrees of freedom forward. */
-void nGear6::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
+void nGear6::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
 	/* check */
 	if (field.Order() != 5)
@@ -130,11 +144,25 @@ void nGear6::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldsta
 	double* p4 = field[4].Pointer();
 	double* p5 = field[5].Pointer();
 	const double* pu = update.Pointer();
-
+	
+	/* now update the pointers to the appropriate starting point */
+	double dfs = fieldstart;
+	*p0 += dfs;
+	*p1 += dfs;
+	*p2 += dfs;
+	*p3 += dfs;
+	*p4 += dfs;
+	*p5 += dfs;
+		
+	int len;
+	if (fieldend == -1) // operate on full arrays
+		len = field[0].Length();
+	else // operate on restricted contiguous block of the arrays
+		len = fieldend - fieldstart + 1;
+	
 	if (fabs(fdt) > kSmall)
 	{
 		/* run through arrays */
-		int len = field[0].Length();
 		for (int i = 0; i < len; i++)
 		{		
 			double error = ((*p2) - (*pu++))*fdt2;
@@ -153,7 +181,6 @@ void nGear6::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldsta
 	else /* for dt -> 0.0 */
 	{
 		/* run through arrays */
-		int len = field[0].Length();
 		for (int i = 0; i < len; i++)
 		{
 			*p2 -= ((*p2) - (*pu++))*F22;

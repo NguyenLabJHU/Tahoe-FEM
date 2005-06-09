@@ -1,4 +1,4 @@
-/* $Id: nExplicitCD.cpp,v 1.12.12.1 2005-06-08 17:22:52 paklein Exp $ */
+/* $Id: nExplicitCD.cpp,v 1.12.12.2 2005-06-09 02:43:56 d-farrell2 Exp $ */
 /* created: paklein (03/23/1997) */
 #include "nExplicitCD.h"
 #include "iArrayT.h"
@@ -105,14 +105,13 @@ void nExplicitCD::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fiel
 	}
 }		
 
-void nExplicitCD::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
+void nExplicitCD::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
 #if __option(extended_errorcheck)
 	if (update.MajorDim() != field.NumNodes() ||
 	    update.MinorDim() != field.NumDOF())
 	    ExceptionT::SizeMismatch("nExplicitCD::Corrector");
 #endif
-#pragma unused(dummy)
 
 	if (fieldend == -1) // operate on full arrays
 	{

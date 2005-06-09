@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.cpp,v 1.14.12.1 2005-06-08 17:22:50 paklein Exp $ */
+/* $Id: nLinearHHTalpha.cpp,v 1.14.12.2 2005-06-09 02:43:53 d-farrell2 Exp $ */
 /* created: paklein (10/14/1996) */
 #include "nLinearHHTalpha.h"
 #include "dArrayT.h"
@@ -135,9 +135,8 @@ void nLinearHHTalpha::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int 
 }		
 
 /* corrector. Maps ALL degrees of freedom forward. */
-void nLinearHHTalpha::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
+void nLinearHHTalpha::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
-#pragma unused(dummy)
 
 	if (fieldend == -1) // operate on full arrays
 	{
