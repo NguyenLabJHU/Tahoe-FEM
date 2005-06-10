@@ -1,4 +1,4 @@
-/* $Id: InverseMapT.cpp,v 1.7 2005-04-16 01:57:24 paklein Exp $ */
+/* $Id: InverseMapT.cpp,v 1.8 2005-06-10 22:55:58 paklein Exp $ */
 #include "InverseMapT.h"
 #include "iArrayT.h"
 
@@ -13,7 +13,7 @@ InverseMapT& InverseMapT::operator=(const InverseMapT& rhs)
 	/* copy fields */
 	fShift = rhs.fShift;
 	fOutOfRange = rhs.fOutOfRange;
-	fEntrees = rhs.fEntrees;
+	fEntries = rhs.fEntries;
 
 	return *this;
 }
@@ -35,7 +35,7 @@ void InverseMapT::SetMap(const nArrayT<int>& forward)
 		AutoArrayT<int>::operator=(-1);
 
 		/* make map */
-		fEntrees = 0;
+		fEntries = 0;
 		int* inv_map = Pointer();
 		int dim = forward.Length();
 		for (int i = 0; i < dim; i++)
@@ -48,7 +48,7 @@ void InverseMapT::SetMap(const nArrayT<int>& forward)
 			else
 				entry = i;
 		}
-		fEntrees = forward.Length();
+		fEntries = forward.Length();
 	}
 }
 
