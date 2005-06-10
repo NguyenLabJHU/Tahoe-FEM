@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.17.2.7 2005-06-09 03:30:35 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.17.2.8 2005-06-10 23:03:34 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -8,6 +8,7 @@
 #include "FieldT.h"
 #include "SpatialGridT.h"
 #include <float.h>
+#include "ifstreamT.h"
 
 /* message types */
 #include "AllGatherT.h"
@@ -63,37 +64,41 @@ CommManagerT::~CommManagerT(void)
 		delete fGhostCommunications[i];
 
 	delete fCartesianShift;
+	delete fPartition;
 }
 
 /* set or clear partition information */
-void CommManagerT::SetPartition(PartitionT* partition)
+void CommManagerT::ReadPartition(const StringT& part_file)
 {
-	/* pointer to the partition info */
-	fPartition = partition;
-	
-	/* fetch partition information */
-	if (fPartition)
-	{
-		/* node map */
-		fNodeMap.Alias(fPartition->NodeMap());
-		
-		/* nodes owned by this processor */
-		fProcessor.Dimension(fNodeMap.Length());
-		fPartition->ReturnProcessorMap(fProcessor);
-		CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes, fExternalNodes);
+	const char caller[] = "CommManagerT::ReadPartition";
+
+	int token = 1;
+
+	/* check file */
+	ifstreamT part_in('#', part_file);
+	if (!part_in.is_open()) {
+		cout << "\n " << caller << ": could not open file: " << part_file << endl;
+		token = 0;	
 	}
-	else /* clear partition information */
-	{
-		/* node map */
-		fNodeMap.Dimension(0);
-		
-		/* nodes owned by this processor */
-		fPartitionNodes.Dimension(0);
-		
-		/* clear external nodes */
-		fExternalNodes.Dimension(0);
-	}
+	if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "error reading parition files");
 	
+	/* read partition information */
+	fPartition = new PartitionT;
+	part_in >> (*fPartition);
+	if (fPartition->ID() != Rank()) {
+		cout << "\n " << caller << "partition ID " << fPartition->ID() << " does not match process rank " << Rank() << endl;
+		token = 0;
+	}
+	if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "partition file error");
+
+	/* node map */
+	fNodeMap.Alias(fPartition->NodeMap());
+		
+	/* nodes owned by this processor */
+	fProcessor.Dimension(fNodeMap.Length());
+	fPartition->ReturnProcessorMap(fProcessor);
+	CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes, fExternalNodes);
+
 	/* clear the inverse map */
 	fPartitionNodes_inv.ClearMap();
 }
@@ -131,8 +136,12 @@ void CommManagerT::Initialize(void)
 {
 	const char caller[] = "CommManagerT::Initialize";
 
+	/* check */
+	if (!fPartition && Size() > 1)
+		ExceptionT::GeneralFail(caller, "partition not set");
+
 	/* serial */
-	if (!fPartition) {
+	if (Size() == 1) {
 		fNumRealNodes = fModelManager.NumNodes();
 		fProcessor.Dimension(fNumRealNodes);
 		fProcessor = fComm.Rank();
@@ -654,6 +663,15 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 /* register an array of nodal attributes */
 int CommManagerT::RegisterNodalAttribute(nArrayT<int>& array) {
 	return fNodalAttributes.Register(array);
+}
+
+/* send output data for writing */
+void CommManagerT::WriteOutput(void)
+{
+	/* write changing part file */
+	if (DecompType() == PartitionT::kSpatial) {
+cout << "CommManagerT::WriteOutput: write changing partition file" << endl;
+	}
 }
 
 /*************************************************************************
@@ -1358,6 +1376,7 @@ void CommManagerT::SetExchange(iArray2DT& i_values, nVariArray2DT<int>& i_values
 void CommManagerT::GetProcessorBounds(const dArray2DT& coords, dArray2DT& bounds, iArray2DT& adjacent_ID) const
 {
 	const char caller[] = "CommManagerT::GetProcessorBounds";
+	if (!fPartition) ExceptionT::GeneralFail(caller, "partition not set");
 
 	/* dimensions */
 	int nsd = coords.MinorDim();
@@ -1366,7 +1385,7 @@ void CommManagerT::GetProcessorBounds(const dArray2DT& coords, dArray2DT& bounds
 
 	/* spatial grid */
 	SpatialGridT grid;
-	grid.Dimension(Partition().GridDimensions());
+	grid.Dimension(fPartition->GridDimensions());
 
 	/* determine global bounds */
 	grid.SetBounds(fComm, coords, NULL);
