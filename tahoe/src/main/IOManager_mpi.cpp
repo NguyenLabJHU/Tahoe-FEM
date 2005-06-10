@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.35 2005-03-12 08:41:35 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.36 2005-06-10 22:57:50 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
@@ -131,8 +131,8 @@ cout << fComm.Rank() << ": " << caller << ": counts:\n" << elem_count.wrap(5) <<
 						for (int j = 0; j < my_connects.Length(); j++)
 							send[j] = node_map[my_connects[j]];
 
-//#ifdef IOManager_mpi_DEBUG
-#if 0
+#ifdef IOManager_mpi_DEBUG
+//#if 0
 cout << fComm.Rank() << ": " << caller << ": local:\n" << my_connects.wrap(5) << endl;
 cout << fComm.Rank() << ": " << caller << ": global:\n" << send.wrap(5) << endl;
 #endif
@@ -147,8 +147,8 @@ cout << fComm.Rank() << ": " << caller << ": global:\n" << send.wrap(5) << endl;
 					/* collect from all */
 					fComm.Gather(send, connects, elem_count, displ);
 
-//#ifdef IOManager_mpi_DEBUG
-#if 0
+#ifdef IOManager_mpi_DEBUG
+//#if 0
 cout << fComm.Rank() << ": " << caller << ": incoming:\n" << connects.wrap(5) << endl;
 #endif
 
@@ -291,8 +291,8 @@ cout << fComm.Rank() << ": " << caller << ": sending free set" << endl;
 					for (int j = 0; j < my_connects.Length(); j++)
 						send[j] = node_map[my_connects[j]];
 
-//#ifdef IOManager_mpi_DEBUG
-#if 0
+#ifdef IOManager_mpi_DEBUG
+//#if 0
 cout << fComm.Rank() << ": " << caller << ": local:\n" << my_connects.wrap(5) << endl;
 cout << fComm.Rank() << ": " << caller << ": global:\n" << send.wrap(5) << endl;
 #endif
@@ -1024,16 +1024,15 @@ void IOManager_mpi::BuildElementAssemblyMap(int set, const StringT& block_ID,
 /* check that assembly maps are compact and complete */
 void IOManager_mpi::CheckAssemblyMaps(void)
 {
+	const char caller[] = "IOManager_mpi::CheckAssemblyMaps";
+
 	/* global output sets */
 	const ArrayT<OutputSetT*>& element_sets = fOutput->ElementSets();
 
 	/* check */
-	if (fIO_map.Length() != element_sets.Length()) {
-		cout << "\n IOManager_mpi::CheckAssemblyMaps: length of the fIO_map (" 
-		     << fIO_map.Length() << ") does not\n" 
-		     <<   "     match the number of output sets (" << element_sets.Length() << ")" << endl;
-		throw ExceptionT::kSizeMismatch;	
-	}
+	if (fIO_map.Length() != element_sets.Length())
+		ExceptionT::SizeMismatch(caller, "length of the fIO_map (%d) does not match the number of output sets (%d)",
+			fIO_map.Length(), element_sets.Length());
 
 	for (int i = 0; i < fIO_map.Length(); i++)
 		if (fIO_map[i] == fComm.Rank())
@@ -1054,11 +1053,8 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 				for (int j = 0; j < map_set.NumNodeMaps(); j++)
 					node_count += map_set.NodeMap(j).Length();
 				if (node_count != nodes_used.Length())
-				{
-					cout << "\n IOManager_mpi::CheckAssemblyMaps: node maps size error: " << node_count
-					     << " should be " << nodes_used.Length() << " for set " << i << endl;
-					throw ExceptionT::kGeneralFail;
-				}
+					ExceptionT::GeneralFail(caller, "node map for set %d should have length %d not %d",
+						i, nodes_used.Length(), node_count);
 
 				/* check fill */
 				iArrayT fill_check(nodes_used.Length());
@@ -1072,13 +1068,8 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 					{
 						int& check = fill_check[node_assem_map[j]];
 						if (check != 0)
-						{
-							cout << "\n IOManager_mpi::CheckAssemblyMaps: duplicated fill for node "
-							     << nodes_used[node_assem_map[j]] << "\n"
-							     <<   "     in assembly map " << k << " for output set ID "
-							     << set.ID() << endl;
-							throw ExceptionT::kGeneralFail;
-						}
+							ExceptionT::GeneralFail(caller, "duplicated fill for node %d in assembly map %d for output set ID %s",
+								nodes_used[node_assem_map[j]], k, set.ID().Pointer());
 						else
 							check = 1;
 					}
@@ -1086,10 +1077,7 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 			
 				/* redundant check */
 				if (fill_check.Count(0) != 0)
-				{
-					cout << "\n IOManager_mpi::CheckAssemblyMaps: node maps are incomplete" << endl;
-					throw ExceptionT::kGeneralFail;
-				}
+					ExceptionT::GeneralFail(caller, "node maps are incomplete");
 			}
 			
 			/* check element maps */
@@ -1107,11 +1095,8 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 				 * at least as many entries in the maps as there are elements */
 				int num_elements = set.NumElements(); 
 				if (element_count < num_elements)
-				{
-					cout << "\n IOManager_mpi::CheckAssemblyMaps: element maps size error: " << element_count
-					     << " should be at least " << num_elements << " for set " << i << endl;
-					throw ExceptionT::kGeneralFail;
-				}
+					ExceptionT::GeneralFail(caller, "element map size %d should be at least %d for set %d",
+						element_count, num_elements, i);
 
 				/* check fill */
 				iArrayT fill_check(num_elements);
@@ -1136,10 +1121,7 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 			
 				/* redundant check */
 				if (fill_check.Count(0) != 0)
-				{
-					cout << "\n IOManager_mpi::CheckAssemblyMaps: element maps are incomplete" << endl;
-					throw ExceptionT::kGeneralFail;
-				}
+					ExceptionT::GeneralFail(caller, "element maps are incomplete");
 			}
 		}
 }
@@ -1148,15 +1130,15 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 void IOManager_mpi::ReadOutputGeometry(const StringT& model_file,
 	const ArrayT<OutputSetT*>& element_sets, IOBaseT::FileTypeT format)
 {
+	const char caller[] = "IOManager_mpi::ReadOutputGeometry";
+
 	/* initialize model manager */
 	fOutputGeometry = new ModelManagerT(cout);
 	if (!fOutputGeometry) throw ExceptionT::kGeneralFail;
-	if (!fOutputGeometry->Initialize(format, model_file, true)) {
-		cout << "\n IOManager_mpi::ReadOutputGeometry: error initializing database: " 
-		     << fOutputGeometry->DatabaseName() << endl;
-		throw ExceptionT::kDatabaseFail;
-	}
-	
+	if (!fOutputGeometry->Initialize(format, model_file, true))
+		ExceptionT::DatabaseFail(caller, "error initializing database \"%s\"",
+			fOutputGeometry->DatabaseName().Pointer());
+
 	/* set global coordinates */
 	SetCoordinates(fOutputGeometry->Coordinates(), NULL);
 
