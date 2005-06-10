@@ -1,4 +1,4 @@
-/* $Id: InverseMapT.h,v 1.11 2005-04-16 01:57:24 paklein Exp $ */
+/* $Id: InverseMapT.h,v 1.12 2005-06-10 22:55:58 paklein Exp $ */
 #ifndef _INVERSE_MAP_T_H_
 #define _INVERSE_MAP_T_H_
 
@@ -52,7 +52,7 @@ public:
 	/** clear the map. Sets InverseMapT::Length to zero without
 	 * necessarily freeing any memory. Use InverseMapT::Free to
 	 * release allocated memory */
-	void ClearMap(void) { Dimension(0); };
+	void ClearMap(void) { fShift = fEntries = 0; Dimension(0); };
 
 	/** map the global index to the local index */
 	int Map(int global) const;
@@ -64,7 +64,7 @@ public:
 	int Length(void) const { return AutoArrayT<int>::Length(); };
 
 	/** return the number of entrees in the map */
-	int Entrees(void) const { return fEntrees; };
+	int Entries(void) const { return fEntries; };
 	
 private:
 
@@ -77,7 +77,7 @@ private:
 	SettingT fOutOfRange;
 	
 	/** number of mapped entries */
-	int fEntrees;
+	int fEntries;
 };
 
 /* inlines */
@@ -85,7 +85,7 @@ private:
 /* constructor */
 inline InverseMapT::InverseMapT(void): 
 	fShift(0),
-	fEntrees(0),
+	fEntries(0),
 	fOutOfRange(Throw)
 {
 
@@ -113,7 +113,7 @@ inline int InverseMapT::Map(int global) const
 inline void InverseMapT::Free(void) { 
 	AutoArrayT<int>::Free(); 
 	fShift = 0;
-	fEntrees = 0;
+	fEntries = 0;
 }
 
 } /* namespace Tahoe */
