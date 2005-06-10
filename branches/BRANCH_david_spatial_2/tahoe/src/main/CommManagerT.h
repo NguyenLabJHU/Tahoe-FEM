@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.13.2.4 2005-06-09 03:30:35 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.13.2.5 2005-06-10 23:03:34 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -52,9 +52,12 @@ public:
 	/** set the width of the communication skin */
 	void SetSkin(double skin) { fSkin = skin; };
 
-	/** set or clear partition information. Needs to be set before calling 
+	/** read partition information. Needs to be set before calling 
 	 * CommManagerT::Configure. */
-	void SetPartition(PartitionT* partition);
+	void ReadPartition(const StringT& partition_file);
+	
+	/** partition information */
+	const PartitionT* Partition(void) const { return fPartition; };
 
 	/** decomposition type */
 	PartitionT::DecompTypeT DecompType(void) const;
@@ -68,8 +71,8 @@ public:
 	/** Update system configuration, including enforcement of periodic boundary conditions */
 	void UpdateConfiguration(void);
 
-	/** Initialize communications. Partition information, if it exists should be 
-	 * (un-)set with CommManagerT::SetPartition before calling this. */
+	/** Initialize communications. Partition information, if it exists, should be 
+	 * set with CommManagerT::ReadPartition before calling this. */
 	void Initialize(void);
 
 	/** \name periodic boundaries */
@@ -95,6 +98,9 @@ public:
 	 * NULL if there is no map, indicating the local and global node
 	 * numbers are the same. */
 	const ArrayT<int>* NodeMap(void) const;
+
+	/** node numbering map */
+	const iArrayT* ElementMap(const StringT& block_ID) const;
 
 	/** list of nodes owned by the partition. These nodes are numbered locally
 	 * within the nodes appearing on this processor. Returns NULL if there is no 
@@ -166,10 +172,10 @@ public:
 	 * CommManagerT::UpdateConfiguration */
 	int RegisterNodalAttribute(nArrayT<int>& array);
 
-private:
+	/** send output data for writing */
+	void WriteOutput(void);
 
-	/** return the partition or throw an exception if it's not set */
-	PartitionT& Partition(void) const;	
+private:
 
 	/** return the node manager or throw an exception if it's not set */
 	NodeManagerT& NodeManager(void) const;
@@ -341,6 +347,11 @@ inline const ArrayT<int>* CommManagerT::NodeMap(void) const {
 	return (fNodeMap.Length() > 0) ? &fNodeMap : NULL;
 }
 
+/* node numbering map */
+inline const iArrayT* CommManagerT::ElementMap(const StringT& block_ID) const {
+	return (fPartition) ? &(fPartition->ElementMap(block_ID)) : NULL;
+}
+
 /* list of nodes owned by the partition */
 inline const ArrayT<int>* CommManagerT::PartitionNodes(void) const {
 	return (fPartitionNodes.Length() > 0) ? &fPartitionNodes : NULL;
@@ -358,12 +369,6 @@ inline const ArrayT<int>* CommManagerT::NodesWithGhosts(void) const {
 /* the ghosts */
 inline const ArrayT<int>* CommManagerT::GhostNodes(void) const {
 	return (fPBCNodes_ghost.Length() > 0) ? &fPBCNodes_ghost : NULL;
-}
-
-/* return the partition or throw an exception if it's not set */
-inline PartitionT& CommManagerT::Partition(void) const {
-	if (!fPartition) ExceptionT::GeneralFail("CommManagerT::Partition", "partition not set");
-	return *fPartition;
 }
 
 /* return the node manager or throw an exception if it's not set */
