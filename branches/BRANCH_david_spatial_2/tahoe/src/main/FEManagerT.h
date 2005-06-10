@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.50.8.2 2005-05-31 06:17:25 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.50.8.3 2005-06-10 23:04:23 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -75,10 +75,10 @@ public:
 	virtual ~FEManagerT(void);
 	
 	/** return reference to partition data */
-	const PartitionT* Partition(void) const;
+//	const PartitionT* Partition(void) const;
 	
 	/** set the external IOManager */
-	void SetExternalIO(IOManager_mpi* externIO);
+//	void SetExternalIO(IOManager_mpi* externIO);
 	
 	/** solve all the time sequences */
 	virtual void Solve(void);
@@ -303,6 +303,7 @@ public:
 	int Rank(void) const;
 	int Size(void) const;
 	
+#if 0
 	/** the local node to home processor map. Returns the home processor
 	 * for each local node. Returns NULL if there is no map, indicating 
 	 * that the native processor for all nodes is this one. */
@@ -318,6 +319,7 @@ public:
 	const ArrayT<int>* PartitionNodes(void) const;
 
 	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
+#endif
 
 	void Wait(void);
 	/*@}*/
@@ -435,10 +437,6 @@ protected:
 	/** collect element equations and send to solver */
 	void SendEqnsToSolver(int group) const;
 
-	/** construct a new CommManagerT. Should be called some time after the
-	 * ModelManagerT has been constructed */
-	virtual CommManagerT* New_CommManager(void) const;
-
 	/** renumber the local equations */
 	void RenumberEquations(int group);
 
@@ -550,9 +548,6 @@ private:
 
 	/** external IO */
 	IOManager_mpi* fExternIOManager;
-
-	/** partition information */
-	PartitionT* fPartition;
 	
 	/** log file */
 	ofstreamT flog;
@@ -568,6 +563,9 @@ inline TimeManagerT* FEManagerT::TimeManager(void) const { return fTimeManager; 
 inline NodeManagerT* FEManagerT::NodeManager(void) const { return fNodeManager; }
 inline CommManagerT* FEManagerT::CommManager(void) const { return fCommManager; }
 inline IOManager* FEManagerT::OutputManager(void) const { return fIOManager; }
+
+#pragma message("delete me?")
+#if 0
 inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
 {
 #pragma unused(block_ID)
@@ -583,6 +581,7 @@ inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
 	}
 	return NULL;
 }
+#endif
 
 inline const ArrayT<StringT>& FEManagerT::Argv(void) const { return fArgv; };
 inline bool FEManagerT::CommandLineOption(const char* str) const {
@@ -605,6 +604,8 @@ inline int FEManagerT::GlobalEquationStart(int group) const { return fGlobalEqua
 inline int FEManagerT::ActiveEquationStart(int group) const { return fActiveEquationStart[group]; };
 inline int FEManagerT::GlobalNumEquations(int group) const { return fGlobalNumEquations[group]; }
 
+#pragma message("delete me")
+#if 0
 /* return reference to partition data */
 inline const PartitionT* FEManagerT::Partition(void) const
 {
@@ -616,6 +617,7 @@ inline void FEManagerT::SetExternalIO(IOManager_mpi* externIO)
 {
 	fExternIOManager = externIO;
 }
+#endif
 
 } // namespace Tahoe 
 #endif /* _FE_MANAGER_H_ */

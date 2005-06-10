@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.95.2.5 2005-06-09 03:29:32 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.95.2.6 2005-06-10 23:04:23 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -65,7 +65,6 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output,
 	fActiveEquationStart(0),
 	fGlobalNumEquations(0),
 	fCurrentGroup(-1),
-	fPartition(NULL),
 	fTask(task),
 	fExternIOManager(NULL)
 {
@@ -122,6 +121,7 @@ FEManagerT::~FEManagerT(void)
 		delete fSolvers[i];
 
 	delete fIOManager;
+	delete fExternIOManager;
 	delete fModelManager;
 	delete fCommManager;
 
@@ -131,6 +131,13 @@ FEManagerT::~FEManagerT(void)
 	
 	fStatus = GlobalT::kNone;	
 }
+
+#if 0
+/* return reference to partition data */
+const PartitionT* FEManagerT::Partition(void) const {
+	return (fCommManager) ? fCommManager->Partition() : NULL;
+}
+#endif
 
 /* solve all the time sequences */
 void FEManagerT::Solve(void)
@@ -673,6 +680,9 @@ void FEManagerT::WriteOutput(double time)
 		out << "\n Time = " << time << '\n';
 		out << " Step " << fTimeManager->StepNumber() << " of " << fTimeManager->NumberOfSteps() << '\n';
 
+		/* multi-processor information */
+		fCommManager->WriteOutput();
+
 		/* nodes */
 		fNodeManager->WriteOutput();
 
@@ -963,6 +973,7 @@ int FEManagerT::ElementGroupNumber(const ElementBaseT* pgroup) const
 int FEManagerT::Rank(void) const { return fComm.Rank(); }
 int FEManagerT::Size(void) const { return fComm.Size(); }
 
+#if 0
 const ArrayT<int>* FEManagerT::ProcessorMap(void) const
 {
 	return fCommManager->ProcessorMap();
@@ -977,6 +988,7 @@ const ArrayT<int>* FEManagerT::PartitionNodes(void) const
 {
 	return fCommManager->PartitionNodes();
 }
+#endif
 
 void FEManagerT::Wait(void) { fComm.Barrier(); }
 
@@ -1058,7 +1070,7 @@ void FEManagerT::WriteSystemConfig(ostream& out, int group) const
 	out.precision(DBL_DIG);
 	
 	/* node map */
-	const ArrayT<int>* node_map = NodeMap();
+	const ArrayT<int>* node_map = fCommManager->NodeMap();
 
 	/* nodal data */
 	const dArray2DT& coords = fNodeManager->InitialCoordinates();
@@ -1305,7 +1317,7 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	if (format == IOBaseT::kAutomatic)
 		format = IOBaseT::name_to_FileTypeT(database);
 
-	/* multiprocessor calculation */
+	/* check for decomposed geometry */
 	if (Size() > 1) {
 
 		int token = 1;
@@ -1362,31 +1374,6 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 			if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "error decomposing geometry");
 		}	
 
-		/* open stream */
-		StringT part_file;
-		part_file.Root(database); /* drop extension */
-		part_file.Append(".n", Size());
-		part_file.Append(".part", Rank());
-		ifstreamT part_in('#', part_file);
-		if (!part_in.is_open()) {
-			cout << "\n " << caller << ": could not open file: " << part_file << endl;
-			token = 0;	
-		}
-
-		/* synch and check */
-		if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "error reading parition files");
-		
-		/* read partition information */
-		fPartition = new PartitionT;
-		part_in >> (*fPartition);
-		if (fPartition->ID() != Rank()) {
-			cout << "\n " << caller << "partition ID " << fPartition->ID() << " does not match process rank " << Rank() << endl;
-			token = 0;
-		}
-
-		/* synch and check */
-		if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "partition file error");
-
 		/* rename file */
 		StringT suffix;
 		suffix.Suffix(database);
@@ -1394,19 +1381,6 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 		database.Append(".n", Size());
 		database.Append(".p", Rank());
 		database.Append(suffix);
-		if (decompose.NeedModelFile(database, format))
-		{
-			/* original model file */
-			ModelManagerT model_ALL(cout);
-			if (!model_ALL.Initialize(format, database, true))
-				ExceptionT::GeneralFail(caller, 
-					"error opening file: %s", (const char*) database);
-		
-			cout << "\n " << caller << ": writing partial geometry file: " << database << endl;
-			decompose.EchoPartialGeometry(*fPartition, model_ALL, database, format);
-			cout << " " << caller << ": writing partial geometry file: partial_file: "
-				 << database << ": DONE" << endl;
-		}	
 
 		/* revise input file name */
 		suffix.Suffix(fInputFile);
@@ -1417,6 +1391,23 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 		/* synch */
 		fComm.Barrier();
 	}
+
+	/* initialize the model manager */
+	fModelManager = new ModelManagerT(fMainOut);
+	if (!fModelManager) ExceptionT::OutOfMemory(caller);
+	if (!fModelManager->Initialize(format, database, true)) /* conditions under which to scan model */
+		ExceptionT::BadInputValue(caller, "error initializing model manager");
+
+	/* initialize communication */
+	fCommManager = new CommManagerT(fComm, *fModelManager);
+	if (Size() > 1 && fTask != kDecompose) {
+		StringT part_file = list.GetParameter("geometry_file");
+		part_file.Root(); /* drop extension */
+		part_file.Append(".n", Size());
+		part_file.Append(".part", Rank());
+		fCommManager->ReadPartition(part_file);
+	}
+	fCommManager->Initialize();
 
 	/* output format */
 	fOutputFormat = IOBaseT::int_to_FileTypeT(list.GetParameter("output_format"));
@@ -1448,12 +1439,6 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	/* compute the initial conditions */
 	fComputeInitialCondition = list.GetParameter("compute_IC");
 
-	/* initialize the model manager */
-	fModelManager = new ModelManagerT(fMainOut);
-	if (!fModelManager) ExceptionT::OutOfMemory(caller);
-	if (!fModelManager->Initialize(format, database, true)) /* conditions under which to scan model */
-		ExceptionT::BadInputValue(caller, "error initializing model manager");
-
 	/* construct IO manager - configure in SetOutput below */
 	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle, fInputFile, fOutputFormat);	
 	if (!fIOManager) ExceptionT::OutOfMemory(caller);
@@ -1466,12 +1451,6 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	if (!fTimeManager) ExceptionT::OutOfMemory(caller);
 	fTimeManager->TakeParameterList(*time_params);
 	iAddSub(*fTimeManager);	
-
-	/* set communication manager */
-	fCommManager = New_CommManager();
-	if (!fCommManager) ExceptionT::OutOfMemory(caller);
-	fCommManager->SetPartition(fPartition);
-	fCommManager->Initialize();
 
 	/* set fields */
 	const ParameterListT* node_params = list.List("nodes");
@@ -1555,6 +1534,7 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::BadInputValue(caller, "must have at least one phase per solver");
 
 //TEMP - don't allocate the global equation system
+#pragma message("still need this???")
 if (fTask == kDecompose) return;
 
 	/* set equation systems */
@@ -1571,6 +1551,30 @@ if (fTask == kDecompose) return;
 			fRestartFile.Append(".p", Rank());
 			fRestartFile.Append(suffix);
 		}		
+
+		/* construct IOManager to join results at run time */
+		if (list.Name() == "tahoe")
+		{
+			int index;
+			bool do_split_io = (CommandLineOption("-split_io", index)) ? true : false;
+			int token = 1;
+			if (fCommManager->DecompType() == PartitionT::kGraph && !do_split_io)
+			{
+				/* set-up joined I/O */
+				try  {
+					const StringT& model_file = list.GetParameter("geometry_file");
+					fExternIOManager = new IOManager_mpi(fInputFile, fComm, *fIOManager, *(fCommManager->Partition()), model_file, format);
+					if (!fExternIOManager) ExceptionT::OutOfMemory(caller);
+				} /* end try */
+				catch (ExceptionT::CodeT code) { token = 0; }
+			}
+			else if (!do_split_io)
+				cout << "\n " << caller << ": decomposition method only supports -split_io" << endl;
+		
+			/* check sum */
+			if (fComm.Sum(token) != Size())
+				ExceptionT::BadHeartBeat(caller, "error initializing joined output");
+		}
 	}
 }
 
@@ -2131,18 +2135,6 @@ void FEManagerT::SendEqnsToSolver(int group) const
 
 	for (int k = 0; k < eq_2.Length(); k++)
 		fSolvers[group]->ReceiveEqns(*(eq_2[k]));
-}
-
-/* construct a new CommManagerT */
-CommManagerT* FEManagerT::New_CommManager(void) const
-{
-	if (!fModelManager) 
-		ExceptionT::GeneralFail("FEManagerT::New_CommManager", "need ModelManagerT");
-
-	CommManagerT* comm_man = new CommManagerT(fComm, *fModelManager);
-	/* set the partition data */
-	comm_man->SetPartition(fPartition);	
-	return comm_man;
 }
 
 /* renumber the local equations */
