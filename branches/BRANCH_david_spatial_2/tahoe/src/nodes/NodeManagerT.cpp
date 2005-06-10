@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.62.2.4 2005-06-07 17:04:09 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.62.2.5 2005-06-10 23:02:01 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -335,8 +335,7 @@ void NodeManagerT::InitStep(int group)
 	const char caller[] = "NodeManagerT::InitStep";
 
 	/* decomposition information */
-	const PartitionT* partition = fFEManager.Partition();
-	PartitionT::DecompTypeT decomp = (partition) ? partition->DecompType() : PartitionT::kUndefined;
+	PartitionT::DecompTypeT decomp = fCommManager.DecompType();
 	const ArrayT<int>* partition_nodes = fCommManager.PartitionNodes();
 	if (decomp == PartitionT::kIndex && !partition_nodes)
 		ExceptionT::GeneralFail(caller, "expecting non-NULL partition nodes");
@@ -808,7 +807,7 @@ void NodeManagerT::WriteEquationNumbers(int group, ostream& out) const
 	
 	/* equations per field */
 	for (int i = 0; i < fields.Length(); i++)
-		fields[i]->WriteEquationNumbers(out, fFEManager.NodeMap());
+		fields[i]->WriteEquationNumbers(out, fCommManager.NodeMap());
 	
 	/* external equation groups */
 	for (int i = 0; i < fXDOF_Eqnos.Length(); i++)
@@ -829,7 +828,7 @@ if (NumTagSets() > 0) ExceptionT::GeneralFail(caller, "not implemented for XDOF 
 
 	/* check */
 	int num_eq = NumEquations(group);
-	if (unknowns.Length() != num_eq) throw ExceptionT::kGeneralFail;
+	if (unknowns.Length() != num_eq) ExceptionT::GeneralFail(caller);
 
 	/* loop over groups */
 	int checksum = 0;
@@ -1441,9 +1440,9 @@ void NodeManagerT::SetCoordinates(void)
 		out << '\n';
 
 		/* arrays */
-		const ArrayT<int>* processor = fFEManager.ProcessorMap();
+		const ArrayT<int>* processor = fCommManager.ProcessorMap();
 		const dArray2DT& init_coords = InitialCoordinates();
-		const ArrayT<int>* node_map = fFEManager.NodeMap();
+		const ArrayT<int>* node_map = fCommManager.NodeMap();
 		for (int i = 0; i < init_coords.MajorDim(); i++)
 		{
 			out << setw(kIntWidth) << i+1
