@@ -1,0 +1,22 @@
+/* $Id: tahoe.Win32.pch++,v 1.1 2004-02-05 18:45:18 paklein Exp $ */
+#pragma check_header_flags on  
+
+#if _WIN32
+	#ifndef _MSL_USE_DEFAULT_LIBS
+	#define _MSL_USE_DEFAULT_LIBS 0
+	#endif
+#endif
+
+#if !__option(mmcalls)
+	#pragma precompile_target "tahoe.x86.mch"
+#elif __option(k63d) && !__option(sse)
+	#pragma precompile_target "tahoe.3dnow.mch"
+#else
+	#error Win32 precompiled header configuration currently unsupported!
+#endif
+
+/* tahoe defines */
+#include "tahoeOptions.h"
+
+/* commonly included headers */
+#include "tahoePrefix.h"
