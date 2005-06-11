@@ -1,4 +1,4 @@
-/* $Id: PartitionT.h,v 1.13 2005-06-11 01:12:49 paklein Exp $ */
+/* $Id: PartitionT.h,v 1.14 2005-06-11 17:53:58 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 #ifndef _PARTITION_T_H_
 #define _PARTITION_T_H_
@@ -134,6 +134,15 @@ public:
 	 * provide the information for all external nodes and sets the list
 	 * of partitions returned by PartitionT::CommID. */
 	void Set(int num_parts, int id, const ArrayT<int>& part_map, const ArrayT<const iArray2DT*>& connects_1,
+		const ArrayT<const RaggedArray2DT<int>*>& connects_2);
+
+	/** labels nodes as internal, border, and external using the connectivities
+	 * of the local model. Method also determines which partitions
+	 * provide the information for all external nodes and sets the list
+	 * of partitions returned by PartitionT::CommID. */
+	void Set(int num_parts, int id, const ArrayT<int>& part_map, 
+		const ArrayT<int>& node_map,
+		const ArrayT<const iArray2DT*>& connects_1,
 		const ArrayT<const RaggedArray2DT<int>*>& connects_2);
 
 	/** set the lists of nodes communicated to other partitions. Each partition could
